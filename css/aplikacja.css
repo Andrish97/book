@@ -65,6 +65,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 body[data-ekran="start"] #ekran-start,
 body[data-ekran="logowanie"] #ekran-logowania,
 body[data-ekran="projekty"] #ekran-projektow,
+body[data-ekran="konto"] #ekran-konta,
 body[data-ekran="edytor"] #ekran-edytora { display: flex; }
 
 .ekran-start { flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
@@ -171,47 +172,115 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
   font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 17px;
 }
 
-/* ---------- Logowanie ---------- */
+/* ---------- Logowanie i rejestracja ---------- */
 
-.ekran-logowania { display: none; }
-body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(380px, 1fr); }
-.logowanie-bok {
-  position: relative;
-  overflow: hidden;
-  display: flex; flex-direction: column; justify-content: center; gap: 20px;
-  padding: 56px clamp(32px, 6vw, 88px);
-  background: var(--tusz);
-  color: #f4f3ef;
+body[data-ekran="logowanie"] .ekran-logowania {
+  position: relative; overflow: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  padding: 32px 16px 20px;
+  background:
+    radial-gradient(900px 500px at 12% 8%, #fbf4e6 0%, transparent 60%),
+    radial-gradient(900px 600px at 92% 96%, #e6ecf9 0%, transparent 62%),
+    var(--papier);
 }
-.logowanie-bok .znak-logo { background: #f4f3ef; color: var(--tusz); }
-.logowanie-bok .marka { position: absolute; top: 32px; left: clamp(32px, 6vw, 88px); }
-.logowanie-bok h1 { font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: clamp(30px, 3.4vw, 46px); line-height: 1.12; }
-.logowanie-bok p { max-width: 44ch; color: #c9c6bd; font-size: 15.5px; }
-.podglad-stron { position: relative; height: 200px; margin-top: 24px; }
+.tlo-logowania { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .kartka {
-  position: absolute; width: 132px; height: 186px; padding: 22px 16px;
-  background: #fbfaf7; border-radius: 3px; box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
-  display: flex; flex-direction: column; gap: 9px;
+  position: absolute; width: 150px; height: 212px; padding: 24px 18px;
+  background: #fffefb; border-radius: 4px; box-shadow: 0 20px 50px rgba(28, 27, 25, .12);
+  display: flex; flex-direction: column; gap: 10px; opacity: .9;
 }
-.kartka span { height: 6px; border-radius: 3px; background: #dcd8cd; }
-.kartka span:first-child { height: 22px; background: #2f5bd3; opacity: .85; }
-.kartka span.krotka { width: 60%; }
-.kartka.k1 { left: 0; transform: rotate(-6deg); }
-.kartka.k2 { left: 112px; top: -8px; transform: rotate(1deg); }
+.kartka span { height: 6px; border-radius: 3px; background: #e6e2d8; }
+.kartka span:first-child { height: 26px; background: var(--akcent); opacity: .85; }
+.kartka span.krotka { width: 58%; }
+.kartka.k1 { left: 7%; top: 14%; transform: rotate(-9deg); }
+.kartka.k2 { right: 8%; top: 20%; transform: rotate(7deg); }
 .kartka.k2 span:first-child { background: #c2410c; }
-.kartka.k3 { left: 224px; transform: rotate(7deg); }
+.kartka.k3 { left: 13%; bottom: 8%; transform: rotate(5deg); }
 .kartka.k3 span:first-child { background: #18794e; }
 
-.logowanie-forma { display: grid; place-items: center; padding: 32px 24px; overflow: auto; }
-.karta-logowania { width: min(400px, 100%); display: flex; flex-direction: column; gap: 18px; }
-.karta-logowania h2 { font-size: 26px; }
-.marka-mobilna { display: none; }
+.karta-logowania {
+  position: relative; z-index: 1;
+  width: min(430px, 100%);
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 30px 30px 26px;
+  background: var(--powierzchnia); border: 1px solid var(--linia); border-radius: 22px;
+  box-shadow: var(--cien-3);
+}
+.marka-duza { justify-content: center; font-size: 19px; gap: 12px; }
+.marka-duza .znak-logo { width: 40px; height: 40px; border-radius: 11px; font-size: 23px; }
+.haslo-marki { text-align: center; color: var(--cichy); margin-top: -8px; font-size: 13.5px; }
+#widok-formularz, .widok-wyslano { display: flex; flex-direction: column; gap: 14px; }
+#widok-formularz.wylaczony { opacity: .5; }
+.zakladki-logowania { display: flex; }
+.zakladki-logowania label { flex: 1; }
+.zakladki-logowania span { flex: 1; min-height: 38px; }
+.karta-logowania h1 { font-size: 20px; }
+.pole small { font-weight: 400; color: var(--cichy); }
+.przycisk.duzy { min-height: 46px; font-size: 15px; font-weight: 600; }
+.przycisk.maly { min-height: 32px; padding: 0 10px; font-size: 12.5px; }
+.linki-logowania { display: flex; justify-content: center; }
+
+.zasady-hasla { list-style: none; margin: -2px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.zasady-hasla li {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px 3px 6px; border-radius: 999px;
+  background: var(--wypelnienie); color: var(--cichy); font-size: 12px;
+  transition: background var(--czas), color var(--czas);
+}
+.zasady-hasla li .ikona { opacity: .35; }
+.zasady-hasla li.spelniona { background: #e3f4ea; color: var(--sukces); }
+.zasady-hasla li.spelniona .ikona { opacity: 1; }
+
+.widok-wyslano { align-items: center; text-align: center; padding-top: 6px; }
+.widok-wyslano p { color: var(--tusz-2); line-height: 1.55; }
+.ikona-stanu {
+  display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%;
+  background: var(--akcent-tlo); color: var(--akcent);
+}
+.stopka-logowania { position: relative; z-index: 1; font-size: 12px; color: var(--cichy); }
 .brak-konfiguracji {
   padding: 14px 16px; border-radius: var(--r-m);
   background: var(--uwaga-tlo); color: var(--uwaga);
   display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;
 }
 .brak-konfiguracji .przycisk { align-self: flex-start; color: var(--tusz); }
+
+/* ---------- Ustawienia konta ---------- */
+
+.ekran-konta { flex-direction: column; }
+.tytul-ekranu { font-size: 16px; font-weight: 600; }
+.konto-tresc { flex: 1; overflow: auto; padding: 28px clamp(16px, 4vw, 48px) 56px; }
+.siatka-konta {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; align-items: stretch;
+}
+.karta-konta {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 22px; border-radius: var(--r-l);
+  background: var(--powierzchnia); border: 1px solid var(--linia); box-shadow: var(--cien-1);
+}
+.karta-konta h2 { font-size: 16px; }
+.karta-konta > .ciche { font-size: 13px; line-height: 1.5; }
+.karta-konta .formularz { flex: 1; }
+.karta-konta .formularz .pole { flex: 0 0 auto; }
+.karta-konta.niebezpieczna { border-color: #f1c5c0; }
+.karta-konta.niebezpieczna h2 { color: var(--blad); }
+.stopka-karty { margin-top: auto; padding-top: 6px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stopka-karty .link { margin-right: auto; }
+.przycisk.niebezpieczny { border-color: #e9b4ae; }
+.przycisk.niebezpieczny:hover { background: var(--blad-tlo); border-color: var(--blad); }
+.oczekuje {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--r-m);
+  background: var(--akcent-tlo); color: #1d3f9e; font-size: 13px;
+}
+.oczekuje > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.oczekuje small { color: inherit; opacity: .8; }
+.dane-konta { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dane-konta div { padding: 10px 12px; border-radius: var(--r-m); background: var(--powierzchnia-2); border: 1px solid var(--linia); }
+.dane-konta dt { font-size: 12px; color: var(--cichy); }
+.dane-konta dd { margin: 2px 0 0; font-weight: 600; }
+.menu-naglowek strong { display: block; color: var(--tusz); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- Pasek aplikacji ---------- */
 
@@ -548,10 +617,10 @@ dialog h2 { font-size: 19px; }
   .etyk { display: none; }
 }
 
-@media (max-width: 980px) {
-  body[data-ekran="logowanie"] .ekran-logowania { grid-template-columns: 1fr; }
-  .logowanie-bok { display: none; }
-  .marka-mobilna { display: inline-flex; margin-bottom: 8px; }
+@media (max-width: 760px) {
+  .tlo-logowania { display: none; }
+  .karta-logowania { padding: 24px 20px 20px; }
+  .siatka-konta { grid-template-columns: 1fr; }
 }
 
 /* ---------- Telefon i tablet w pionie: panele jako arkusze z dołu ---------- */

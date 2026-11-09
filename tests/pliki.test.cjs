@@ -13,7 +13,7 @@ test('eksport do pliku projektu, usunięcie i import z powrotem', async (t) => {
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 2);
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForTimeout(1000);
-  await strona.click('[data-akcja="do-projektow"]');
+  await strona.click('[data-akcja="do-projektow"]:visible');
   await strona.waitForSelector('.karta-projektu:not(.szkielet)');
 
   await strona.click('.karta-projektu .menu-karty');

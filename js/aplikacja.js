@@ -12,7 +12,7 @@ import {
 import { PanelWlasciwosci } from './wlasciwosci.js';
 import { zaladujCzcionki } from './czcionki.js';
 import {
-  zapiszLokalnie, wczytajLokalnie, listaLokalnych, usunLokalnie, oznaczZsynchronizowany,
+  zapiszLokalnie, wczytajLokalnie, listaLokalnych, usunLokalnie, usunLokalneWlasciciela, oznaczZsynchronizowany,
 } from './lokalny.js';
 import * as chmura from './chmura.js';
 import { ikona, wstawIkony } from './ikony.js';
@@ -22,6 +22,7 @@ import {
   $, $$, powiadom, potwierdz, zapytajONazwe, zamknijMenu, przelaczMenu, pobierz, bezpiecznaNazwa, kiedy,
 } from './ui.js';
 import { NAZWA } from './marka.js';
+import { Konto } from './konto.js';
 
 
 const OPIS_OSTRZEZEN = {
@@ -71,6 +72,7 @@ function odmianaProjektow(n) {
 // ======================================================================
 //
 //   #/projekty                       lista projektów
+//   #/konto                          ustawienia konta
 //   #/p/<id projektu>                projekt (pierwsza strona)
 //   #/p/<id projektu>/s/<id strony>  konkretna strona
 //   #/p/<id projektu>/w/<id wzorca>  edycja wzorca
@@ -79,6 +81,7 @@ const trasa = {
   odczytaj() {
     const [rodzaj, id, typ, cel] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
     if (rodzaj === 'p' && id) return { ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null };
+    if (rodzaj === 'konto') return { ekran: 'konto' };
     return { ekran: 'projekty' };
   },
   // Zmiana ekranu dodaje wpis do historii (działa „Wstecz”), zmiana strony
@@ -95,7 +98,13 @@ function przejdzDoTrasy() {
   obslugaTrasy = obslugaTrasy.then(async () => {
     if (!stan.uzytkownik && !stan.trybLokalny) return;
     const t = trasa.odczytaj();
-    if (t.ekran === 'projekty') {
+    if (t.ekran === 'konto' && stan.uzytkownik) {
+      if (stan.projekt) { await zapiszTeraz(); stan.projekt = null; }
+      pokazEkran('konto');
+      konto.pokazUstawienia();
+      return;
+    }
+    if (t.ekran === 'projekty' || t.ekran === 'konto') {
       if (stan.projekt) await doProjektow(); else if (document.body.dataset.ekran !== 'projekty') await pokazProjekty();
       return;
     }
@@ -128,78 +137,54 @@ window.addEventListener('popstate', () => przejdzDoTrasy());
 // Logowanie
 // ======================================================================
 
-// Tylko logowanie. Nie ma rejestracji ani resetu hasła – konto administratora
-// zakłada się i resetuje w panelu Supabase (Authentication → Users).
-const logowanie = {
-  komunikat(tekst) {
-    $('#komunikat-logowania').textContent = tekst;
+const konto = new Konto({
+  stan,
+  poZalogowaniu: (u) => poZalogowaniu(u),
+  trybLokalny: () => { stan.trybLokalny = true; return poZalogowaniu(null); },
+  wyloguj: (wszedzie) => wyloguj(wszedzie),
+  odswiezNaglowek: () => odswiezNaglowek(),
+  liczbaProjektow: async () => (await wpisyProjektow()).length,
+  usunDaneLokalne: (id) => usunLokalneWlasciciela(id),
+  poUsunieciuKonta: async () => {
+    stan.uzytkownik = null;
+    stan.projekt = null;
+    trasa.ustaw('projekty', { zastap: true });
+    konto.ustawTryb('logowanie');
+    pokazEkran('logowanie');
+    powiadom('Konto i wszystkie dane zostały usunięte.');
   },
+});
 
-  async wyslij(e) {
-    e.preventDefault();
-    const f = e.target;
-    const email = f.elements.email.value.trim();
-    const haslo = f.elements.haslo.value;
-    if (!/^\S+@\S+\.\S+$/.test(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
-    if (!haslo) { this.komunikat('Podaj hasło.'); return; }
-    const przycisk = $('#przycisk-logowania');
-    przycisk.disabled = true;
-    try {
-      const u = await chmura.zalogujHaslem(email, haslo);
-      f.elements.haslo.value = '';
-      this.komunikat('');
-      if (document.body.dataset.ekran === 'logowanie') await poZalogowaniu(u);
-    } catch (err) {
-      this.komunikat(chmura.komunikatBledu(err));
-    } finally {
-      przycisk.disabled = false;
-    }
-  },
-
-  inicjuj() {
-    $('#form-logowania').addEventListener('submit', (e) => this.wyslij(e));
-    $('#pokaz-haslo').addEventListener('click', (e) => {
-      const input = $('#form-logowania').elements.haslo;
-      const widac = input.type === 'text';
-      input.type = widac ? 'password' : 'text';
-      e.currentTarget.innerHTML = ikona(widac ? 'oko' : 'okoOff');
-      e.currentTarget.setAttribute('aria-label', widac ? 'Pokaż hasło' : 'Ukryj hasło');
-    });
-    $('#tryb-lokalny').addEventListener('click', () => {
-      stan.trybLokalny = true;
-      poZalogowaniu(null);
-    });
-    if (!chmura.chmuraSkonfigurowana()) {
-      $('#brak-konfiguracji').hidden = false;
-      $('#form-logowania').querySelectorAll('input, button').forEach((el) => { el.disabled = true; });
-    }
-  },
-};
+function odswiezNaglowek() {
+  const u = stan.uzytkownik;
+  const nazwa = u ? chmura.nazwaUzytkownika(u) : '';
+  $('#awatar').textContent = (nazwa || '?')[0].toUpperCase();
+  $('#awatar').title = u ? `Konto: ${nazwa}` : 'Tryb bez konta';
+  $('#nazwa-uzytkownika').textContent = u ? nazwa : 'Tryb bez konta';
+  $('#email-uzytkownika').textContent = u ? u.email : 'Projekty tylko w tej przeglądarce';
+  $('#pozycja-konto').hidden = !u;
+  $('[data-akcja="wyloguj"]').lastChild.textContent = u ? 'Wyloguj' : 'Przejdź do logowania';
+}
 
 async function poZalogowaniu(uzytkownik) {
   stan.uzytkownik = uzytkownik;
-  $('#awatar').textContent = (uzytkownik?.email || '?')[0].toUpperCase();
-  $('#email-uzytkownika').textContent = uzytkownik
-    ? `Zalogowano jako ${uzytkownik.email}`
-    : 'Tryb bez konta – projekty tylko w tej przeglądarce';
-  const wyl = $('[data-akcja="wyloguj"]');
-  wyl.lastChild.textContent = uzytkownik ? 'Wyloguj' : 'Przejdź do logowania';
+  odswiezNaglowek();
   await przejdzDoTrasy();
   if (document.body.dataset.ekran === 'start' || document.body.dataset.ekran === 'logowanie') await pokazProjekty();
   if (plikiDoOtwarcia.length) await otworzOczekujacePliki();
   else instrukcja.otworzJesliNowa(uzytkownik?.id || 'lokalny');
 }
 
-async function wyloguj() {
+async function wyloguj(wszedzie = false) {
   zamknijMenu();
   if (stan.projekt) await zapiszTeraz();
   stan.projekt = null;
   if (stan.uzytkownik) {
-    try { await chmura.wyloguj(); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
+    try { await chmura.wyloguj(wszedzie); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
   }
   stan.uzytkownik = null;
   stan.trybLokalny = false;
-  logowanie.komunikat('');
+  konto.ustawTryb('logowanie');
   trasa.ustaw('projekty', { zastap: true });
   pokazEkran('logowanie');
 }
@@ -1303,7 +1288,8 @@ const akcje = {
   'nowy-projekt': otworzNowyProjekt,
   instrukcja: () => instrukcja.otworz(0),
   'zamknij-instrukcje': () => instrukcja.zamknij(),
-  wyloguj,
+  wyloguj: () => wyloguj(false),
+  'ustawienia-konta': () => { zamknijMenu(); trasa.ustaw('konto'); przejdzDoTrasy(); },
   'importuj-projekt': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
   png: () => {
@@ -1479,28 +1465,50 @@ window.addEventListener('resize', () => {
 
 async function start() {
   wstawIkony();
-  logowanie.inicjuj();
+  konto.inicjuj();
   stan.czcionki = zaladujCzcionki();
 
   if (!chmura.chmuraSkonfigurowana()) {
     pokazEkran('logowanie');
     return;
   }
+  // Powrót z linku w e-mailu (potwierdzenie konta, reset hasła, zmiana adresu)
+  // odczytujemy, zanim biblioteka Supabase wyczyści adres.
+  const powrot = konto.odczytajPowrot();
   try {
     await chmura.naZmianeSesji((uzytkownik, zdarzenie) => {
-      if (zdarzenie === 'SIGNED_OUT' && document.body.dataset.ekran !== 'logowanie') {
-        stan.uzytkownik = null;
-        pokazEkran('logowanie');
-      } else if (uzytkownik) {
+      if (zdarzenie === 'SIGNED_OUT') {
+        if (!['logowanie', 'start'].includes(document.body.dataset.ekran)) {
+          stan.uzytkownik = null;
+          stan.projekt = null;
+          konto.ustawTryb('logowanie');
+          pokazEkran('logowanie');
+        }
+      } else if (uzytkownik && stan.uzytkownik && uzytkownik.id === stan.uzytkownik.id) {
+        // Odświeżony token albo zmienione dane konta (np. potwierdzony nowy e-mail).
         stan.uzytkownik = uzytkownik;
+        odswiezNaglowek();
+        if (document.body.dataset.ekran === 'konto') konto.wypelnijUstawienia();
       }
     });
     const uzytkownik = await chmura.biezacyUzytkownik();
-    if (uzytkownik) await poZalogowaniu(uzytkownik); // otwiera adres z paska (np. odświeżony projekt)
-    else pokazEkran('logowanie');
+    if (powrot.blad) {
+      pokazEkran('logowanie');
+      konto.komunikat(powrot.blad);
+    } else if (powrot.typ === 'recovery' && uzytkownik) {
+      stan.uzytkownik = uzytkownik;
+      konto.ustawTryb('nowe-haslo');
+      pokazEkran('logowanie');
+    } else if (uzytkownik) {
+      await poZalogowaniu(uzytkownik); // otwiera adres z paska (np. odświeżony projekt)
+      if (powrot.typ === 'signup') powiadom('Konto potwierdzone. Witaj w Seriodruku!');
+      if (powrot.typ === 'email_change') powiadom('Adres e-mail został zmieniony.');
+    } else {
+      pokazEkran('logowanie');
+    }
   } catch (e) {
     pokazEkran('logowanie');
-    logowanie.komunikat(`Nie można połączyć się z serwerem: ${chmura.komunikatBledu(e)}`);
+    konto.komunikat(`Nie można połączyć się z serwerem: ${chmura.komunikatBledu(e)}`);
   }
 }
 
@@ -1526,7 +1534,7 @@ async function otworzOczekujacePliki() {
 start().catch((e) => {
   console.error(e);
   pokazEkran('logowanie');
-  logowanie.komunikat(`Błąd startu: ${e.message}`);
+  konto.komunikat(`Błąd startu: ${e.message}`);
 });
 
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.

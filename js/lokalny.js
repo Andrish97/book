@@ -101,3 +101,11 @@ export async function oznaczZsynchronizowany(id, zmieniono) {
     await transakcja('readwrite', (m) => m.put(rekord));
   }
 }
+
+// Usuwa z tej przeglądarki wszystkie projekty danego właściciela (po usunięciu konta).
+export async function usunLokalneWlasciciela(wlasciciel) {
+  const wszystkie = await transakcja('readonly', (m) => m.getAll());
+  const moje = (wszystkie || []).filter((r) => r.wlasciciel === wlasciciel);
+  if (!moje.length) return;
+  await transakcja('readwrite', (m) => { for (const r of moje) m.delete(r.id); });
+}

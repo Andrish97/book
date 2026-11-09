@@ -10,7 +10,9 @@ create table if not exists public.projekty (
   nazwa       text not null default 'Projekt',
   dane        jsonb not null,
   utworzono   timestamptz not null default now(),
-  zmieniono   timestamptz not null default now()
+  zmieniono   timestamptz not null default now(),
+  -- Licznik zapisów: pozwala wykryć, że projekt zmieniono na innym urządzeniu.
+  wersja      bigint not null default 1
 );
 
 create index if not exists projekty_owner_zmieniono on public.projekty (owner_id, zmieniono desc);
@@ -60,3 +62,23 @@ drop policy if exists "zasoby: własny folder - usuwanie" on storage.objects;
 create policy "zasoby: własny folder - usuwanie" on storage.objects
   for delete to authenticated
   using (bucket_id = 'zasoby' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+-- Usunięcie własnego konta z ustawień konta w aplikacji. Projekty znikają
+-- kaskadowo (owner_id ... on delete cascade); pliki ze Storage aplikacja
+-- usuwa wcześniej przez API.
+create or replace function public.usun_konto()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Brak sesji';
+  end if;
+  delete from auth.users where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.usun_konto() from public, anon;
+grant execute on function public.usun_konto() to authenticated;

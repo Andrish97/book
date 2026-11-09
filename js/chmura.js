@@ -20,8 +20,15 @@ export async function supabase() {
   return klient;
 }
 
+// Błąd z kodem Supabase (np. invalid_credentials), żeby komunikaty nie
+// zależały od angielskiej treści.
 function sprawdz({ data, error }) {
-  if (error) throw new Error(error.message || String(error));
+  if (error) {
+    const e = new Error(error.message || String(error));
+    e.kod = error.code || error.error_code || '';
+    e.status = error.status;
+    throw e;
+  }
   return data;
 }
 
@@ -38,16 +45,38 @@ export async function naZmianeSesji(callback) {
 
 const adresPowrotu = () => location.origin + location.pathname;
 
-// Komunikaty Supabase Auth po polsku (najczęstsze przypadki).
+const KOMUNIKATY = {
+  invalid_credentials: 'Nieprawidłowy e-mail lub hasło.',
+  email_not_confirmed: 'Konto czeka na potwierdzenie – kliknij link z wiadomości e-mail.',
+  user_already_exists: 'Konto z tym adresem już istnieje. Zaloguj się albo przypomnij hasło.',
+  email_exists: 'Ten adres e-mail jest już zajęty.',
+  weak_password: 'Hasło jest za słabe.',
+  same_password: 'Nowe hasło musi różnić się od obecnego.',
+  email_address_invalid: 'Nieprawidłowy adres e-mail.',
+  validation_failed: 'Sprawdź wpisane dane.',
+  signup_disabled: 'Zakładanie kont jest teraz wyłączone.',
+  over_email_send_rate_limit: 'Za dużo wiadomości w krótkim czasie. Spróbuj ponownie za kilka minut.',
+  over_request_rate_limit: 'Za dużo prób. Odczekaj chwilę i spróbuj ponownie.',
+  otp_expired: 'Link wygasł albo został już użyty. Poproś o nowy.',
+  session_not_found: 'Sesja wygasła. Zaloguj się ponownie.',
+  user_not_found: 'Nie ma takiego konta.',
+};
+
+// Komunikaty Supabase po polsku.
 export function komunikatBledu(e) {
+  if (e?.kod && KOMUNIKATY[e.kod]) return KOMUNIKATY[e.kod];
   const m = String(e?.message || e || '');
   const mapa = [
-    [/invalid login credentials/i, 'Nieprawidłowy e-mail lub hasło.'],
+    [/invalid login credentials/i, KOMUNIKATY.invalid_credentials],
+    [/email not confirmed/i, KOMUNIKATY.email_not_confirmed],
+    [/already registered/i, KOMUNIKATY.user_already_exists],
     [/password should be at least (\d+)/i, (r) => `Hasło musi mieć co najmniej ${r[1]} znaków.`],
-    [/unable to validate email|invalid email/i, 'Nieprawidłowy adres e-mail.'],
-    [/rate limit|too many requests|security purposes/i, 'Za dużo prób. Odczekaj chwilę i spróbuj ponownie.'],
-    [/failed to fetch|network/i, 'Brak połączenia z serwerem. Sprawdź internet.'],
-    [/signups not allowed|user not found/i, 'Nie ma takiego konta. Poproś administratora o dostęp.'],
+    [/should be different from the old/i, KOMUNIKATY.same_password],
+    [/unable to validate email|invalid email/i, KOMUNIKATY.email_address_invalid],
+    [/rate limit|too many requests|security purposes/i, KOMUNIKATY.over_request_rate_limit],
+    [/expired|invalid.*link/i, KOMUNIKATY.otp_expired],
+    [/failed to fetch|network|load failed/i, 'Brak połączenia z serwerem. Sprawdź internet.'],
+    [/signups not allowed/i, KOMUNIKATY.signup_disabled],
   ];
   for (const [wzor, tekst] of mapa) {
     const r = m.match(wzor);
@@ -56,14 +85,71 @@ export function komunikatBledu(e) {
   return m || 'Wystąpił nieznany błąd.';
 }
 
+// ---------- Konto ----------
+
+export const nazwaUzytkownika = (u) => (u?.user_metadata?.nazwa || '').trim() || (u?.email || '').split('@')[0];
+
 export async function zalogujHaslem(email, haslo) {
   const sb = await supabase();
   return sprawdz(await sb.auth.signInWithPassword({ email, password: haslo })).user;
 }
 
-export async function wyloguj() {
+// Zakłada konto. Zwraca 'potwierdz' (wysłano link) albo 'zalogowano'
+// (gdy projekt Supabase nie wymaga potwierdzenia adresu).
+export async function zarejestruj(email, haslo, nazwa) {
   const sb = await supabase();
-  sprawdz(await sb.auth.signOut());
+  const dane = sprawdz(await sb.auth.signUp({
+    email,
+    password: haslo,
+    options: { emailRedirectTo: adresPowrotu(), data: { nazwa: nazwa || '' } },
+  }));
+  // Dla istniejącego, potwierdzonego adresu Supabase nie zwraca błędu,
+  // tylko konto bez tożsamości – nie zdradzamy tego inaczej niż komunikatem.
+  if (dane.user && Array.isArray(dane.user.identities) && dane.user.identities.length === 0) {
+    const e = new Error('User already registered');
+    e.kod = 'user_already_exists';
+    throw e;
+  }
+  return dane.session ? 'zalogowano' : 'potwierdz';
+}
+
+export async function wyslijPotwierdzeniePonownie(email) {
+  const sb = await supabase();
+  sprawdz(await sb.auth.resend({ type: 'signup', email, options: { emailRedirectTo: adresPowrotu() } }));
+}
+
+export async function wyslijResetHasla(email) {
+  const sb = await supabase();
+  sprawdz(await sb.auth.resetPasswordForEmail(email, { redirectTo: adresPowrotu() }));
+}
+
+export async function ustawNoweHaslo(haslo) {
+  const sb = await supabase();
+  return sprawdz(await sb.auth.updateUser({ password: haslo })).user;
+}
+
+export async function zmienNazwe(nazwa) {
+  const sb = await supabase();
+  return sprawdz(await sb.auth.updateUser({ data: { nazwa } })).user;
+}
+
+// Wysyła link potwierdzający na nowy adres; do kliknięcia obowiązuje stary.
+export async function zmienEmail(email) {
+  const sb = await supabase();
+  return sprawdz(await sb.auth.updateUser({ email }, { emailRedirectTo: adresPowrotu() })).user;
+}
+
+export async function wyloguj(wszedzie = false) {
+  const sb = await supabase();
+  sprawdz(await sb.auth.signOut({ scope: wszedzie ? 'global' : 'local' }));
+}
+
+// Usuwa pliki, projekty i samo konto (funkcja usun_konto w bazie).
+export async function usunKonto() {
+  const sb = await supabase();
+  for (const p of await listaWChmurze()) await usunZChmury(p.id);
+  sprawdz(await sb.rpc('usun_konto'));
+  await sb.auth.signOut({ scope: 'local' }).catch(() => {});
 }
 
 export async function listaWChmurze() {

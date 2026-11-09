@@ -292,6 +292,7 @@ export class Instrukcja {
   }
 
   zamknij() {
+    this.oznaczPrzeczytana(); // od razu – zdarzenie „close” przychodzi z opóźnieniem
     this.dlg.close();
   }
 

@@ -31,47 +31,160 @@
 
   <!-- ===================== Logowanie ===================== -->
   <main class="ekran ekran-logowania" id="ekran-logowania">
-    <section class="logowanie-bok" aria-hidden="true">
-      <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
-      <h1>Projektuj strony raz.<br>Dane wstawią się same.</h1>
-      <p>Edytor do kalendarzy, planerów i notesów: projektujesz wzór strony, podpinasz arkusz z danymi i dostajesz gotowy PDF do druku.</p>
-      <div class="podglad-stron">
-        <div class="kartka k1"><span></span><span></span><span class="krotka"></span></div>
-        <div class="kartka k2"><span></span><span class="krotka"></span><span></span></div>
-        <div class="kartka k3"><span class="krotka"></span><span></span><span></span></div>
-      </div>
-    </section>
+    <div class="tlo-logowania" aria-hidden="true">
+      <div class="kartka k1"><span></span><span></span><span class="krotka"></span><span></span></div>
+      <div class="kartka k2"><span></span><span class="krotka"></span><span></span><span></span></div>
+      <div class="kartka k3"><span></span><span></span><span></span><span class="krotka"></span></div>
+    </div>
 
-    <section class="logowanie-forma">
-      <div class="karta-logowania">
-        <div class="marka marka-mobilna"><span class="znak-logo">S</span> Seriodruk</div>
-        <h2 id="tytul-logowania">Zaloguj się</h2>
-        <p class="ciche" id="opis-logowania">Dostęp mają tylko konta dodane przez administratora.</p>
+    <section class="karta-logowania" id="karta-logowania">
+      <div class="marka marka-duza"><span class="znak-logo">S</span> Seriodruk</div>
+      <p class="haslo-marki">Strony z danych, gotowe do druku.</p>
+
+      <div id="widok-formularz">
+        <div class="przelacznik-segmentowy zakladki-logowania" id="tryb-logowania" role="radiogroup" aria-label="Logowanie albo rejestracja">
+          <label><input type="radio" name="tryb-logowania" value="logowanie" checked><span>Logowanie</span></label>
+          <label><input type="radio" name="tryb-logowania" value="rejestracja"><span>Nowe konto</span></label>
+        </div>
+        <h1 id="tytul-logowania" hidden></h1>
+        <p class="ciche" id="opis-logowania"></p>
 
         <form id="form-logowania" class="formularz" novalidate>
-          <label class="pole">
+          <label class="pole" id="pole-nazwa" hidden>
+            <span>Imię lub nazwa <small>(opcjonalnie)</small></span>
+            <input name="nazwa" type="text" autocomplete="nickname" maxlength="40" placeholder="Jak się do Ciebie zwracać?">
+          </label>
+          <label class="pole" id="pole-email">
             <span>E-mail</span>
             <input name="email" type="email" autocomplete="email" inputmode="email" required>
           </label>
           <label class="pole" id="pole-haslo">
             <span>Hasło</span>
             <span class="z-przyciskiem">
-              <input name="haslo" type="password" autocomplete="current-password" minlength="6" required>
-              <button type="button" class="przycisk-ikona" id="pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button>
+              <input name="haslo" type="password" autocomplete="current-password" required>
+              <button type="button" class="przycisk-ikona pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button>
             </span>
           </label>
+          <label class="pole" id="pole-haslo2" hidden>
+            <span>Powtórz hasło</span>
+            <span class="z-przyciskiem">
+              <input name="haslo2" type="password" autocomplete="new-password">
+              <button type="button" class="przycisk-ikona pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button>
+            </span>
+          </label>
+          <ul class="zasady-hasla" id="zasady-hasla" aria-label="Wymagania hasła" hidden></ul>
           <p class="komunikat" id="komunikat-logowania" role="alert"></p>
-          <button type="submit" class="przycisk glowny pelny" id="przycisk-logowania">Zaloguj się</button>
+          <button type="submit" class="przycisk glowny pelny duzy" id="przycisk-logowania">Zaloguj się</button>
         </form>
 
-        <div class="brak-konfiguracji" id="brak-konfiguracji" hidden>
-          <strong>Brak połączenia z bazą.</strong>
-          <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase, więc logowanie jest niedostępne.</p>
-          <button type="button" class="przycisk" id="tryb-lokalny">Pracuj bez konta (tylko ta przeglądarka)</button>
+        <div class="linki-logowania">
+          <button type="button" class="link" id="link-reset" data-tryb="reset">Nie pamiętasz hasła?</button>
+          <button type="button" class="link" id="link-logowanie" data-tryb="logowanie" hidden>Wróć do logowania</button>
         </div>
       </div>
+
+      <div id="widok-wyslano" class="widok-wyslano" hidden>
+        <div class="ikona-stanu" data-ikona="koperta" data-rozmiar="28"></div>
+        <h1 id="wyslano-tytul">Sprawdź skrzynkę</h1>
+        <p id="wyslano-opis"></p>
+        <p class="komunikat" id="komunikat-wyslano" role="status"></p>
+        <button type="button" class="przycisk pelny" id="wyslij-ponownie">Wyślij ponownie</button>
+        <button type="button" class="link" data-tryb="logowanie">Wróć do logowania</button>
+      </div>
+
+      <div class="brak-konfiguracji" id="brak-konfiguracji" hidden>
+        <strong>Brak połączenia z bazą.</strong>
+        <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase, więc konta są niedostępne.</p>
+        <button type="button" class="przycisk" id="tryb-lokalny">Pracuj bez konta (tylko ta przeglądarka)</button>
+      </div>
     </section>
+    <footer class="stopka-logowania">Seriodruk · edytor kalendarzy, planerów i notesów</footer>
   </main>
+
+  <!-- ===================== Ustawienia konta ===================== -->
+  <div class="ekran ekran-konta" id="ekran-konta">
+    <header class="pasek-aplikacji">
+      <button class="przycisk przezroczysty" data-akcja="do-projektow" data-ikona="wstecz"><span>Projekty</span></button>
+      <div class="separator"></div>
+      <h1 class="tytul-ekranu">Ustawienia konta</h1>
+    </header>
+    <main class="konto-tresc">
+      <div class="siatka-konta">
+        <section class="karta-konta" id="karta-nazwa">
+          <h2>Nazwa</h2>
+          <p class="ciche">Widoczna w prawym górnym rogu i w wiadomościach od aplikacji.</p>
+          <form id="form-nazwa" class="formularz" novalidate>
+            <label class="pole"><span>Imię lub nazwa</span><input name="nazwa" type="text" maxlength="40" autocomplete="nickname"></label>
+            <p class="komunikat" role="status"></p>
+            <div class="stopka-karty"><button type="submit" class="przycisk">Zapisz nazwę</button></div>
+          </form>
+        </section>
+
+        <section class="karta-konta" id="karta-email">
+          <h2>E-mail</h2>
+          <p class="ciche">Adres do logowania: <strong id="konto-email-obecny"></strong>. Zmianę potwierdzasz linkiem wysłanym na nowy adres – do tego czasu logujesz się dotychczasowym.</p>
+          <div class="oczekuje" id="email-oczekuje" hidden>
+            <span data-ikona="koperta" data-rozmiar="18"></span>
+            <div>Czeka na potwierdzenie: <strong id="email-oczekuje-adres"></strong><br><small>Kliknij link w wiadomości wysłanej na ten adres.</small></div>
+            <button type="button" class="przycisk maly" id="email-ponownie">Wyślij ponownie</button>
+          </div>
+          <form id="form-email" class="formularz" novalidate>
+            <label class="pole"><span>Nowy e-mail</span><input name="email" type="email" autocomplete="off" inputmode="email"></label>
+            <label class="pole"><span>Powtórz nowy e-mail</span><input name="email2" type="email" autocomplete="off" inputmode="email"></label>
+            <p class="komunikat" role="status"></p>
+            <div class="stopka-karty"><button type="submit" class="przycisk">Zmień e-mail</button></div>
+          </form>
+        </section>
+
+        <section class="karta-konta" id="karta-haslo">
+          <h2>Hasło</h2>
+          <p class="ciche">Po zmianie hasła pozostajesz zalogowany na tym urządzeniu.</p>
+          <form id="form-haslo" class="formularz" novalidate>
+            <label class="pole"><span>Obecne hasło</span>
+              <span class="z-przyciskiem"><input name="obecne" type="password" autocomplete="current-password"><button type="button" class="przycisk-ikona pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button></span>
+            </label>
+            <label class="pole"><span>Nowe hasło</span>
+              <span class="z-przyciskiem"><input name="nowe" type="password" autocomplete="new-password"><button type="button" class="przycisk-ikona pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button></span>
+            </label>
+            <label class="pole"><span>Powtórz nowe hasło</span>
+              <span class="z-przyciskiem"><input name="nowe2" type="password" autocomplete="new-password"><button type="button" class="przycisk-ikona pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button></span>
+            </label>
+            <ul class="zasady-hasla" id="zasady-hasla-konto" aria-label="Wymagania hasła"></ul>
+            <p class="komunikat" role="status"></p>
+            <div class="stopka-karty">
+              <button type="button" class="link" id="konto-reset-hasla">Nie pamiętasz hasła?</button>
+              <button type="submit" class="przycisk">Zmień hasło</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="karta-konta" id="karta-sesje">
+          <h2>Konto i urządzenia</h2>
+          <dl class="dane-konta">
+            <div><dt>Konto od</dt><dd id="konto-od">—</dd></div>
+            <div><dt>Projekty</dt><dd id="konto-projekty">—</dd></div>
+          </dl>
+          <p class="ciche">Jeśli logowałeś się na cudzym lub zgubionym urządzeniu, wyloguj się wszędzie.</p>
+          <div class="stopka-karty">
+            <button type="button" class="przycisk" id="wyloguj-wszedzie">Wyloguj wszędzie</button>
+            <button type="button" class="przycisk" id="wyloguj-tutaj" data-ikona="wyloguj">Wyloguj</button>
+          </div>
+        </section>
+
+        <section class="karta-konta niebezpieczna" id="karta-usun">
+          <h2>Usuń konto</h2>
+          <p class="ciche">Usuwa konto razem ze wszystkimi projektami i obrazami. Tej operacji nie da się cofnąć – jeśli chcesz zachować projekty, najpierw wyeksportuj je do plików.</p>
+          <form id="form-usun" class="formularz" novalidate>
+            <label class="pole"><span>Hasło</span>
+              <span class="z-przyciskiem"><input name="haslo" type="password" autocomplete="current-password"><button type="button" class="przycisk-ikona pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button></span>
+            </label>
+            <p class="komunikat" role="status"></p>
+            <div class="stopka-karty"><button type="submit" class="przycisk niebezpieczny" data-ikona="kosz">Usuń konto i dane</button></div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
 
   <!-- ===================== Projekty ===================== -->
   <div class="ekran ekran-projektow" id="ekran-projektow">
@@ -82,7 +195,8 @@
       <div class="menu-uzytkownika">
         <button class="awatar" id="awatar" aria-haspopup="menu" aria-expanded="false" title="Konto"></button>
         <div class="menu" id="menu-uzytkownika" role="menu" hidden>
-          <div class="menu-naglowek" id="email-uzytkownika"></div>
+          <div class="menu-naglowek"><strong id="nazwa-uzytkownika"></strong><span id="email-uzytkownika"></span></div>
+          <button role="menuitem" data-akcja="ustawienia-konta" id="pozycja-konto" data-ikona="suwaki">Ustawienia konta</button>
           <button role="menuitem" data-akcja="wyloguj" data-ikona="wyloguj">Wyloguj</button>
         </div>
       </div>

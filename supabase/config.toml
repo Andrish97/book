@@ -1,13 +1,37 @@
 # Konfiguracja Supabase dla integracji z GitHubem (Supabase → Integrations → GitHub).
 # Po pushu na gałąź produkcyjną integracja stosuje migracje z supabase/migrations/.
+# Jeśli integracja nie przenosi ustawień logowania i szablonów wiadomości,
+# ustaw je ręcznie w panelu: Authentication → Sign In / Providers, URL Configuration, Emails.
 project_id = "pganajmivwtstapnwsgv"
 
 [db]
 major_version = 15
 
 [auth]
-# Adres aplikacji i adresy, na które może wrócić link logowania z e-maila.
+# Adres aplikacji i adresy, na które może wrócić link z e-maila.
 site_url = "https://andrish97.github.io/book/"
-additional_redirect_urls = ["https://andrish97.github.io/book/**", "http://localhost:8000"]
-# Bez samodzielnej rejestracji – konta dodaje administrator.
-enable_signup = false
+additional_redirect_urls = ["https://andrish97.github.io/book/**", "http://localhost:8000/**"]
+enable_signup = true
+minimum_password_length = 8
+password_requirements = "lower_upper_letters_digits_symbols"
+
+[auth.email]
+enable_signup = true
+# Konto działa dopiero po kliknięciu linku z wiadomości.
+enable_confirmations = true
+# Zmianę adresu potwierdza się linkiem z nowej skrzynki.
+double_confirm_changes = false
+secure_password_change = false
+max_frequency = "1m0s"
+
+[auth.email.template.confirmation]
+subject = "Seriodruk – potwierdź konto"
+content_path = "./supabase/templates/potwierdzenie.html"
+
+[auth.email.template.recovery]
+subject = "Seriodruk – ustaw nowe hasło"
+content_path = "./supabase/templates/reset-hasla.html"
+
+[auth.email.template.email_change]
+subject = "Seriodruk – potwierdź nowy adres e-mail"
+content_path = "./supabase/templates/zmiana-email.html"
