@@ -5,7 +5,7 @@ Pełny plan: [docs/PLAN.md](docs/PLAN.md). To repozytorium zawiera **Etap 1 – 
 
 ## Co działa (Etap 1)
 
-- **Logowanie na start:** e-mail i hasło (Supabase Auth), zakładanie konta, reset hasła. Bez logowania aplikacja jest niedostępna. Wyjątek: gdy brak konfiguracji Supabase, można pracować bez konta w tej przeglądarce.
+- **Logowanie na start:** e-mail i hasło (Supabase Auth). Bez rejestracji i resetu hasła w aplikacji – konto administratora zakłada się i resetuje w Supabase (Authentication → Users). Bez logowania aplikacja jest niedostępna. Wyjątek: gdy brak konfiguracji Supabase, można pracować bez konta w tej przeglądarce.
 - **Lista projektów:** karty z miniaturą pierwszej strony, kreator nowego projektu z wyborem formatu (kafelki), zmiana nazwy, kopia JSON, usuwanie.
 - **Instrukcja:** podręcznik z rozdziałami i zrzutami ekranu (`img/instrukcja/`). Otwiera się sama po pierwszym logowaniu, potem przyciskiem *Instrukcja* / **?**. Zrzuty odświeża `node scripts/zrzuty-instrukcji.cjs http://localhost:8000/`.
 - **Projekt i strony:** dodawanie, duplikowanie, usuwanie, zmiana kolejności i nazw (dwuklik na miniaturze). Miniatury są generowane leniwie.

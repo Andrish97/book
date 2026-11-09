@@ -18,6 +18,10 @@ const WIDOK = { width: 1280, height: 800 };
 // Konfiguracja z fikcyjnym adresem – tylko po to, by ekran logowania
 // wyglądał jak w działającej aplikacji. Żadne zapytanie nie wychodzi.
 const FAKE_KONFIG = "export const SUPABASE_URL = 'https://przyklad.supabase.co';\nexport const SUPABASE_ANON_KEY = 'sb_publishable_przyklad';\n";
+// Pusta konfiguracja – reszta zrzutów powstaje w trybie bez konta, na
+// przykładowych projektach, bez łączenia z prawdziwą bazą.
+const BEZ_KONFIGU = "export const SUPABASE_URL = '';\nexport const SUPABASE_ANON_KEY = '';\n";
+const bezBazy = (k) => k.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: BEZ_KONFIGU }));
 
 async function zrzut(strona, nazwa, opcje = {}) {
   await strona.waitForTimeout(350);
@@ -109,6 +113,7 @@ async function przykladoweProjekty(strona) {
 
   // ---------- Desktop / tablet w poziomie ----------
   const kontekst = await przegladarka.newContext({ viewport: WIDOK });
+  await bezBazy(kontekst);
   const s = await kontekst.newPage();
   s.on('pageerror', (e) => console.error('błąd strony:', e.message));
   await s.goto(ADRES);
@@ -197,6 +202,7 @@ async function przykladoweProjekty(strona) {
 
   // ---------- Telefon ----------
   const tel = await przegladarka.newContext({ ...devices['Pixel 7'] });
+  await bezBazy(tel);
   const t = await tel.newPage();
   await t.goto(ADRES);
   await t.tap('#tryb-lokalny');

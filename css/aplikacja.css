@@ -206,7 +206,6 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 .karta-logowania { width: min(400px, 100%); display: flex; flex-direction: column; gap: 18px; }
 .karta-logowania h2 { font-size: 26px; }
 .marka-mobilna { display: none; }
-.linki-logowania { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .brak-konfiguracji {
   padding: 14px 16px; border-radius: var(--r-m);
   background: var(--uwaga-tlo); color: var(--uwaga);

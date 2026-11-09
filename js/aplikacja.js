@@ -137,35 +137,11 @@ function odmianaProjektow(n) {
 // Logowanie
 // ======================================================================
 
+// Tylko logowanie. Nie ma rejestracji ani resetu hasła – konto administratora
+// zakłada się i resetuje w panelu Supabase (Authentication → Users).
 const logowanie = {
-  tryb: 'logowanie',
-
-  ustawTryb(tryb) {
-    this.tryb = tryb;
-    const f = $('#form-logowania');
-    const teksty = {
-      logowanie: ['Zaloguj się', 'Projekty są zapisywane na Twoim koncie i dostępne na każdym urządzeniu.', 'Zaloguj się', 'current-password'],
-      rejestracja: ['Utwórz konto', 'Podaj e-mail i hasło (co najmniej 6 znaków). Wyślemy wiadomość z linkiem potwierdzającym.', 'Utwórz konto', 'new-password'],
-      reset: ['Nowe hasło', 'Podaj e-mail konta. Wyślemy link do ustawienia nowego hasła.', 'Wyślij link', 'off'],
-      'nowe-haslo': ['Ustaw nowe hasło', 'Wpisz nowe hasło do swojego konta.', 'Zapisz hasło', 'new-password'],
-    }[tryb];
-    $('#tytul-logowania').textContent = teksty[0];
-    $('#opis-logowania').textContent = teksty[1];
-    $('#przycisk-logowania').textContent = teksty[2];
-    f.elements.haslo.autocomplete = teksty[3];
-    $('#pole-haslo').hidden = tryb === 'reset';
-    $('#pole-haslo > span').textContent = tryb === 'nowe-haslo' ? 'Nowe hasło' : 'Hasło';
-    f.elements.email.closest('.pole').hidden = tryb === 'nowe-haslo';
-    $('[data-tryb="reset"]').hidden = tryb !== 'logowanie';
-    $('[data-tryb="rejestracja"]').hidden = tryb !== 'logowanie';
-    $('[data-tryb="logowanie"]').hidden = tryb === 'logowanie' || tryb === 'nowe-haslo';
-    this.komunikat('');
-  },
-
-  komunikat(tekst, sukces = false) {
-    const k = $('#komunikat-logowania');
-    k.textContent = tekst;
-    k.classList.toggle('sukces', sukces);
+  komunikat(tekst) {
+    $('#komunikat-logowania').textContent = tekst;
   },
 
   async wyslij(e) {
@@ -173,29 +149,15 @@ const logowanie = {
     const f = e.target;
     const email = f.elements.email.value.trim();
     const haslo = f.elements.haslo.value;
-    if (this.tryb !== 'nowe-haslo' && !/^\S+@\S+\.\S+$/.test(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
-    if (this.tryb !== 'reset' && haslo.length < 6) { this.komunikat('Hasło musi mieć co najmniej 6 znaków.'); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
+    if (!haslo) { this.komunikat('Podaj hasło.'); return; }
     const przycisk = $('#przycisk-logowania');
     przycisk.disabled = true;
     try {
-      if (this.tryb === 'logowanie') {
-        const u = await chmura.zalogujHaslem(email, haslo);
-        if (document.body.dataset.ekran === 'logowanie') await poZalogowaniu(u);
-      } else if (this.tryb === 'rejestracja') {
-        const trzebaPotwierdzic = await chmura.zarejestruj(email, haslo);
-        if (trzebaPotwierdzic) {
-          this.ustawTryb('logowanie');
-          this.komunikat(`Wysłaliśmy link na ${email}. Kliknij go, a potem zaloguj się tutaj.`, true);
-        }
-      } else if (this.tryb === 'reset') {
-        await chmura.wyslijResetHasla(email);
-        this.komunikat(`Jeśli konto istnieje, link do zmiany hasła jest już w drodze na ${email}.`, true);
-      } else if (this.tryb === 'nowe-haslo') {
-        await chmura.ustawNoweHaslo(haslo);
-        powiadom('Hasło zostało zmienione.');
-        this.ustawTryb('logowanie');
-        await poZalogowaniu(stan.uzytkownik);
-      }
+      const u = await chmura.zalogujHaslem(email, haslo);
+      f.elements.haslo.value = '';
+      this.komunikat('');
+      if (document.body.dataset.ekran === 'logowanie') await poZalogowaniu(u);
     } catch (err) {
       this.komunikat(chmura.komunikatBledu(err));
     } finally {
@@ -205,7 +167,6 @@ const logowanie = {
 
   inicjuj() {
     $('#form-logowania').addEventListener('submit', (e) => this.wyslij(e));
-    $$('[data-tryb]').forEach((b) => b.addEventListener('click', () => this.ustawTryb(b.dataset.tryb)));
     $('#pokaz-haslo').addEventListener('click', (e) => {
       const input = $('#form-logowania').elements.haslo;
       const widac = input.type === 'text';
@@ -220,9 +181,7 @@ const logowanie = {
     if (!chmura.chmuraSkonfigurowana()) {
       $('#brak-konfiguracji').hidden = false;
       $('#form-logowania').querySelectorAll('input, button').forEach((el) => { el.disabled = true; });
-      $$('.linki-logowania button').forEach((b) => { b.disabled = true; });
     }
-    this.ustawTryb('logowanie');
   },
 };
 
@@ -247,7 +206,7 @@ async function wyloguj() {
   }
   stan.uzytkownik = null;
   stan.trybLokalny = false;
-  logowanie.ustawTryb('logowanie');
+  logowanie.komunikat('');
   pokazEkran('logowanie');
 }
 
@@ -1057,11 +1016,7 @@ async function start() {
   }
   try {
     await chmura.naZmianeSesji((uzytkownik, zdarzenie) => {
-      if (zdarzenie === 'PASSWORD_RECOVERY') {
-        stan.uzytkownik = uzytkownik;
-        logowanie.ustawTryb('nowe-haslo');
-        pokazEkran('logowanie');
-      } else if (zdarzenie === 'SIGNED_OUT' && document.body.dataset.ekran !== 'logowanie') {
+      if (zdarzenie === 'SIGNED_OUT' && document.body.dataset.ekran !== 'logowanie') {
         stan.uzytkownik = null;
         pokazEkran('logowanie');
       } else if (uzytkownik) {
@@ -1069,7 +1024,6 @@ async function start() {
       }
     });
     const uzytkownik = await chmura.biezacyUzytkownik();
-    if (document.body.dataset.ekran !== 'start') return; // np. odzyskiwanie hasła
     if (uzytkownik) await poZalogowaniu(uzytkownik);
     else pokazEkran('logowanie');
   } catch (e) {

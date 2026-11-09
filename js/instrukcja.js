@@ -20,12 +20,11 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Konto i logowanie',
-    wstep: 'Do aplikacji wchodzi się po zalogowaniu. Konto zakładasz raz – adresem e-mail i hasłem.',
+    wstep: 'Do aplikacji wchodzi się po zalogowaniu adresem e-mail i hasłem. Nie ma rejestracji ani resetu hasła w aplikacji – konto administratora jest zarządzane w panelu Supabase.',
     obraz: 'logowanie.png',
     podpis: 'Ekran logowania.',
     punkty: [
-      'Nowe konto: <b>Nie masz konta? Utwórz je</b>. Na podany adres przyjdzie wiadomość z linkiem potwierdzającym.',
-      'Zapomniane hasło: <b>Nie pamiętasz hasła?</b> – przyjdzie link, po którym ustawisz nowe hasło.',
+      'Hasło zmienia się lub resetuje w panelu Supabase → Authentication → Users.',
       'Wylogowanie: kliknij kółko z inicjałem w prawym górnym rogu listy projektów.',
     ],
   },

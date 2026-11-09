@@ -9,4 +9,5 @@ major_version = 15
 # Adres aplikacji i adresy, na które może wrócić link logowania z e-maila.
 site_url = "https://andrish97.github.io/book/"
 additional_redirect_urls = ["https://andrish97.github.io/book/**", "http://localhost:8000"]
-enable_signup = true
+# Bez samodzielnej rejestracji – konta dodaje administrator.
+enable_signup = false

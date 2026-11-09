@@ -43,13 +43,11 @@ export function komunikatBledu(e) {
   const m = String(e?.message || e || '');
   const mapa = [
     [/invalid login credentials/i, 'Nieprawidłowy e-mail lub hasło.'],
-    [/email not confirmed/i, 'Adres e-mail nie został jeszcze potwierdzony. Sprawdź skrzynkę.'],
-    [/user already registered/i, 'Konto z tym adresem już istnieje. Zaloguj się.'],
     [/password should be at least (\d+)/i, (r) => `Hasło musi mieć co najmniej ${r[1]} znaków.`],
     [/unable to validate email|invalid email/i, 'Nieprawidłowy adres e-mail.'],
     [/rate limit|too many requests|security purposes/i, 'Za dużo prób. Odczekaj chwilę i spróbuj ponownie.'],
     [/failed to fetch|network/i, 'Brak połączenia z serwerem. Sprawdź internet.'],
-    [/signups not allowed/i, 'Rejestracja nowych kont jest wyłączona.'],
+    [/signups not allowed|user not found/i, 'Nie ma takiego konta. Poproś administratora o dostęp.'],
   ];
   for (const [wzor, tekst] of mapa) {
     const r = m.match(wzor);
@@ -61,25 +59,6 @@ export function komunikatBledu(e) {
 export async function zalogujHaslem(email, haslo) {
   const sb = await supabase();
   return sprawdz(await sb.auth.signInWithPassword({ email, password: haslo })).user;
-}
-
-// Zwraca true, jeśli trzeba potwierdzić e-mail przed pierwszym logowaniem.
-export async function zarejestruj(email, haslo) {
-  const sb = await supabase();
-  const dane = sprawdz(await sb.auth.signUp({
-    email, password: haslo, options: { emailRedirectTo: adresPowrotu() },
-  }));
-  return !dane.session;
-}
-
-export async function wyslijResetHasla(email) {
-  const sb = await supabase();
-  sprawdz(await sb.auth.resetPasswordForEmail(email, { redirectTo: adresPowrotu() }));
-}
-
-export async function ustawNoweHaslo(haslo) {
-  const sb = await supabase();
-  sprawdz(await sb.auth.updateUser({ password: haslo }));
 }
 
 export async function wyloguj() {
