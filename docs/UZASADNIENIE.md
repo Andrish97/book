@@ -1,243 +1,153 @@
 # Uzasadnienie – funkcja po funkcji
 
-Do przeglądu przez Ciebie. Przy każdej funkcji jest:
-- **Co jest** – jak działa teraz.
-- **Dlaczego tak** – mój powód.
-- **Ocena** – czy uważam, że jest dobrze, czy słabo.
-- **Co można lepiej** – alternatywy i ich koszt.
-- **Pytanie** – tam, gdzie decyzja należy do Ciebie.
+Stan po rundzie poprawek z 9 listopada 2026 (decyzje #19–#25 w [DECYZJE.md](DECYZJE.md)). Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
 
-Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ do poprawy przed dalszą pracą.
+Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ nie zrobione / do poprawy.
 
-Dopisz swoje uwagi bezpośrednio pod punktami (np. „→ TAK”, „→ zmień na…”), a ja przeniosę decyzje do [DECYZJE.md](DECYZJE.md).
+Dopisz uwagi pod punktami (np. „→ zmień na…”), a ja przeniosę decyzje do dziennika.
+
+---
+
+## 0. Co musisz zrobić w Supabase, żeby konta i zapis działały
+
+Tego nie mogę zrobić ani sprawdzić z repozytorium.
+
+1. **Baza.** Tabeli `projekty` nadal nie ma – integracja z GitHubem nie wykonała migracji. Wklej `supabase/migrations/20261109120000_projekty_i_zasoby.sql` w SQL Editor i uruchom (tworzy tabelę z licznikiem wersji, bucket `zasoby`, reguły dostępu i funkcję `usun_konto`). Albo popraw integrację (Deploy to production, gałąź `main`).
+2. **Poczta (SMTP).** Wbudowana poczta Supabase wysyła tylko na adresy członków Twojego zespołu w Supabase i ma limit kilku wiadomości na godzinę. Żeby rejestracja działała dla innych osób, podepnij własny SMTP: Authentication → Emails → SMTP Settings (np. Resend, Brevo). Bez tego potwierdzenie konta dojdzie tylko do Ciebie.
+3. **Szablony wiadomości.** Są w `supabase/templates/` i w `supabase/config.toml`. Jeśli integracja ich nie przeniesie, wklej treść plików w Authentication → Emails → Templates (Confirm signup, Reset password, Change email address) i ustaw tematy z `config.toml`.
+4. **Adresy powrotu.** Authentication → URL Configuration: Site URL `https://andrish97.github.io/book/`, Redirect URLs `https://andrish97.github.io/book/**`. Bez tego linki z wiadomości nie wrócą do aplikacji.
+5. **Hasła.** Authentication → Sign In / Providers → Email: minimalna długość 8 i wymagane małe, wielkie litery, cyfry i znaki specjalne (aplikacja sprawdza to samo po swojej stronie).
+6. **Domena.** W dniu wyboru nazwy wolne były `seriodruk.com`, `seriodruk.app` i `seriodruk.pl`. Po podpięciu domeny trzeba zmienić Site URL, Redirect URLs i `site_url` w `config.toml`.
 
 ---
 
 ## A. Fundamenty techniczne
 
-### A1. Aplikacja statyczna, bez kroku budowania (czysty JavaScript w modułach) ⚠️
-**Co jest.** Pliki `index.html`, `css/`, `js/` wrzucane wprost na GitHub Pages. Biblioteki (Fabric.js, JSZip, Supabase) z CDN.
-**Dlaczego tak.** Plan mówił „Vanilla JS lub lekki framework” i hosting na GitHub Pages. Bez builda nie ma narzędzi do instalowania, każdy plik można otworzyć i przeczytać, a wdrożenie to kopiowanie plików.
-**Ocena.** Na tym etapie dobre, ale `js/aplikacja.js` ma już ~1500 linii i miesza wszystko: logowanie, listę projektów, edytor, sekcje, wzorce, pliki. To się zacznie mścić przy etapie danych.
-**Co można lepiej.**
-1. Podzielić `aplikacja.js` na moduły ekranów (`ekran-logowania.js`, `ekran-projektow.js`, `ekran-edytora.js`, `sekcje.js`, `wzorce.js`). Koszt: 1 sesja, zero zmian dla Ciebie. **Polecam przed etapem 2.**
-2. Przejść na Vite + TypeScript: typy wyłapują błędy (np. ten z IndexedDB), ale dochodzi build i `node_modules`. Na razie bym nie robił.
+### A1. Aplikacja statyczna, moduły bez builda ⚠️
+**Co jest.** Czysty JavaScript w modułach, hosting na GitHub Pages. Po tej rundzie logika jest rozdzielona: `konto.js` (logowanie, rejestracja, ustawienia), `podglad.js`, `zlozenie.js` (składanie warstw strony), `style-tekstu.js`, `ui.js`, `marka.js`.
+**Słabe.** `aplikacja.js` nadal ma ok. 1800 linii (lista projektów, edytor, sekcje, wzorce, zapis). Nowe rzeczy trafiały do osobnych plików, ale stary rdzeń nie został jeszcze pocięty.
+**Lepiej.** Wydzielić `projekty-lista.js`, `sekcje.js`, `wzorce.js`, `zapis.js` – teraz jest to bezpieczne, bo są testy.
 
-### A2. Fabric.js 5.3 jako silnik płótna ⚠️
-**Co jest.** Wersja 5.3.1 (stabilna, starsza gałąź).
-**Dlaczego tak.** Plan wskazywał Fabric. Wersja 5 działa jako zwykły skrypt bez builda, ma dojrzałą obsługę tekstu i dotyku.
-**Ocena.** Działa, ale Fabric 5 nie jest już rozwijany (jest 6.x). W konsoli Chrome widać ostrzeżenia `alphabetical` – nieszkodliwe, ale to sygnał wieku biblioteki.
-**Co można lepiej.** Przejście na Fabric 6 (zmienione API, Promise zamiast callbacków). Najlepiej razem z punktem A1.1. Koszt: średni.
-**Pytanie.** Czy zostajemy przy Fabric, czy rozważamy alternatywę (np. Konva)? Moja rekomendacja: zostać przy Fabric, podnieść do 6 przy refaktorze.
+### A2. Fabric.js 5.3 ⚠️
+**Co jest.** Bez zmian; ostrzeżenia `alphabetical` w konsoli naprawione łatką.
+**Lepiej.** Przejście na Fabric 6 przy okazji cięcia `aplikacja.js`.
 
 ### A3. Wszystko w milimetrach ✅
-**Co jest.** Każdy obiekt ma współrzędne w mm, punkt (0,0) to lewy górny róg strony po przycięciu. Zoom zmienia tylko widok. Czcionki w punktach.
-**Dlaczego tak.** Druk liczy się w mm/pt. Gdyby obiekty były w pikselach, każda zmiana zoomu lub ekranu zmieniałaby „rozmiar” elementu, a eksport do PDF wymagałby przeliczeń i zaokrągleń.
-**Ocena.** Dobrze – to fundament, który się nie zmieni.
 
-### A4. Kod i nazwy po polsku ⚠️
-**Co jest.** Zmienne, funkcje, pliki po polsku (`zapiszBiezacyCel`, `wzorzecStrony`).
-**Dlaczego tak.** Plan i model danych były po polsku (`wydruk`, `strony`, `zakresy`), więc kod jest spójny z planem.
-**Ocena.** Spójne, ale nietypowe – biblioteki i przykłady są po angielsku, więc kod jest mieszany.
-**Pytanie.** Zostawić po polsku? Moja rekomendacja: zostawić, zmiana teraz to dużo pracy bez korzyści dla Ciebie.
-
-### A5. Brak automatycznych testów w repozytorium ❌
-**Co jest.** Testuję każdą zmianę skryptami Playwright, ale leżą one tylko w moim katalogu roboczym – nie ma ich w repo.
-**Dlaczego tak.** Szybciej było sprawdzać doraźnie.
-**Ocena.** Źle. Przy ostatniej zmianie wyszedł błąd z IndexedDB, który był w kodzie od początku – test w repo złapałby go wcześniej. Przy kolejnej sesji (albo innej osobie) testy przepadną.
-**Co można lepiej.** Przenieść testy do `tests/` i uruchamiać je w GitHub Actions przy każdym pushu. Koszt: mały. **Polecam od razu.**
+### A4. Testy w repozytorium ✅
+**Co jest.** `tests/` – 24 testy przeglądarkowe (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
+**Słabe.** Atrapa udaje Supabase – prawdziwej bazy, reguł RLS i poczty testy nie sprawdzają. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
 
 ---
 
 ## B. Konto, baza, zapis
 
-### B1. Logowanie e-mailem i hasłem, bez rejestracji i resetu ✅ / ❌
-**Co jest.** Sam formularz logowania. Konto zakładasz i resetujesz w panelu Supabase.
-**Dlaczego tak.** Twoja decyzja (jedno konto admina).
-**Ocena.** W aplikacji dobrze. **Ale rejestracja jest nadal włączona po stronie Supabase** – każdy, kto zna adres projektu (jest publiczny w kodzie), może założyć konto przez API. Dane innych nie są zagrożone (RLS), ale ktoś może zapchać bazę.
-**Do zrobienia przez Ciebie.** Supabase → Authentication → Sign In / Providers → wyłączyć „Allow new users to sign up”.
+### B1. Rejestracja, logowanie, reset hasła ✅ / ⚠️
+**Co jest.** Jedna karta: Logowanie / Nowe konto. Wymagania hasła zaznaczają się na żywo. Po rejestracji ekran „Sprawdź skrzynkę” z ponowną wysyłką po 60 s. Reset hasła linkiem. Powrót z linku w e-mailu jest rozpoznawany (potwierdzenie, reset, zmiana adresu, wygasły link).
+**Dlaczego tak.** Układ i przebieg wzorowane na familijnej (karta na środku, zasady hasła pod polami, stany „wysłano”); kod napisany od zera, bo jej licencja nie pozwala kopiować.
+**Czego nie ma z familijnej (świadomie):** konta gościa, logowania nazwą użytkownika, limitów „raz na godzinę”, zabezpieczenia przed botami (Turnstile). Dopisz, jeśli któreś jest potrzebne.
+**Słabe.** Działa dopiero po kroku 0.2 (SMTP). Rejestracja jest otwarta dla każdego – jeśli ma być tylko dla zaproszonych, trzeba to dodać.
 
-### B2. Tryb „bez konta” ⚠️
-**Co jest.** Gdy w `konfiguracja.js` brakuje adresu Supabase, ekran logowania pokazuje „Pracuj bez konta”.
-**Dlaczego tak.** Żeby aplikacja dała się uruchomić lokalnie bez bazy i żebym mógł robić zrzuty instrukcji bez dotykania Twoich danych.
-**Ocena.** Przy podpiętej bazie przycisk się nie pokazuje, więc dla Ciebie niewidoczny. Ale to dodatkowa ścieżka w kodzie.
-**Pytanie.** Zostawić (do testów i zrzutów) czy usunąć? Rekomendacja: zostawić.
+### B2. Ustawienia konta ✅
+**Co jest.** `#/konto`: nazwa, zmiana e-maila z potwierdzeniem i ponowną wysyłką, zmiana hasła (ze sprawdzeniem obecnego), wylogowanie wszędzie, usunięcie konta z projektami i obrazami.
+**Słabe.** Po zmianie hasła nie przychodzi wiadomość „hasło zmienione” (Supabase ma taką opcję – do włączenia w panelu). Anulowanie rozpoczętej zmiany e-maila nie jest możliwe z aplikacji.
 
-### B3. Zapis: najpierw przeglądarka (IndexedDB), potem Supabase ⚠️
-**Co jest.** 0,7 s po zmianie zapis w przeglądarce, 2,5 s później wysyłka całego projektu do tabeli `projekty` (jedna kolumna `dane` jsonb). Obrazy osobno do Storage, raz.
-**Dlaczego tak.** Plan: praca przy słabym zasięgu. Zapis lokalny jest natychmiastowy, wysyłka może się nie udać i ponowić.
-**Ocena – słabe strony:**
-1. **Cały projekt przy każdej zmianie.** Kalendarz z 365 stronami to kilka MB JSON-a wysyłane co kilka sekund edycji. Na darmowym planie i słabym łączu to będzie odczuwalne.
-2. **Konflikty między urządzeniami.** Jeśli edytujesz na tablecie offline, a potem na komputerze, wygrywa nowsza data – starsze zmiany giną bez ostrzeżenia. Data pochodzi z zegara urządzenia.
-3. **Tabeli `projekty` wciąż nie ma w bazie** – zapis do chmury dziś nie działa w ogóle.
-**Co można lepiej.**
-- Strony jako osobne wiersze (tabela `strony`), wysyłane tylko zmienione. Koszt: średni, zmiana schematu.
-- Licznik wersji po stronie serwera: zapis odrzucany, jeśli ktoś zapisał w międzyczasie → pytanie „masz nowszą wersję z innego urządzenia”. Koszt: mały. **Polecam jako minimum.**
-**Pytanie.** Czy edytujesz jeden projekt na kilku urządzeniach naprzemiennie? Jeśli tak, konflikty są ważne.
+### B3. Własne e-maile ✅ / ⚠️
+**Co jest.** Trzy szablony HTML w stylu aplikacji: potwierdzenie konta, nowe hasło, nowy adres.
+**Słabe.** Patrz 0.2 i 0.3 – wysyłka i wgranie szablonów zależą od ustawień w Supabase.
 
-### B4. Supabase: tabela `projekty` + bucket `zasoby` z RLS ✅
-**Co jest.** Każdy wiersz ma `owner_id`, reguły RLS pozwalają czytać i zmieniać tylko własne. Obrazy w folderze `<owner_id>/<projekt>/`.
-**Dlaczego tak.** Plan wymagał `owner_id` i RLS od początku. Jeden bucket z folderem na użytkownika zamiast bucketu per użytkownik – tak zaleca Supabase, efekt bezpieczeństwa ten sam.
-**Ocena.** Dobrze. Problem tylko z wdrożeniem migracji (patrz DECYZJE #3).
+### B4. Zapis: urządzenie → konto, z wykrywaniem konfliktu ✅ / ⚠️
+**Co jest.** Zapis w przeglądarce po 0,7 s, na konto po 2,5 s. Każdy zapis podnosi licznik wersji; jeśli na koncie jest wersja z innego urządzenia, aplikacja pyta, którą zachować, zamiast nadpisać.
+**Słabe.** Nadal wysyłany jest cały projekt przy każdej zmianie – przy setkach stron będzie wolno. Konflikt rozstrzyga się na poziomie całego projektu, nie pojedynczych stron.
+**Lepiej.** Strony jako osobne wiersze w bazie – do zrobienia przed etapem powielania (wtedy projekty urosną).
 
-### B5. Klucz publishable w kodzie ✅
-**Dlaczego tak.** Ten klucz jest publiczny z założenia (tak robi też `brick_ai`). Bezpieczeństwo zapewnia RLS, nie ukrycie klucza.
+### B5. Tryb bez konta ⚠️
+Został tylko jako tryb techniczny (testy, zrzuty do instrukcji); przy podpiętej bazie przycisk się nie pokazuje.
 
 ---
 
 ## C. Ekrany
 
-### C1. Ekran logowania z panelem „marketingowym” ⚠️
-**Co jest.** Po lewej ciemny panel z hasłem „Projektuj strony raz. Dane wstawią się same.” i ilustracją kartek, po prawej formularz.
-**Dlaczego tak.** Żeby pierwszy ekran nie był pustym formularzem.
-**Ocena.** Przy jednym użytkowniku (Tobie) to ozdobnik – i obiecuje funkcję (dane), której jeszcze nie ma.
-**Pytanie.** Uprościć do samego formularza z logo? Rekomendacja: uprościć.
+### C1. Lista projektów ✅
+Karty z miniaturą, menu: podgląd, zmiana nazwy, **duplikuj** (nowe), eksport, usunięcie. Import obok „Nowy projekt”.
 
-### C2. Lista projektów jako karty z miniaturą ✅
-**Dlaczego tak.** Projekty rozpoznaje się po wyglądzie; karty dobrze działają palcem.
-**Co można lepiej.** Brak wyszukiwania i sortowania – przy kilku projektach niepotrzebne. Brak „Duplikuj projekt” (np. kalendarz na kolejny rok) – **warto dodać**.
+### C2. Kreator projektu ✅
+Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dostaje cztery style tekstu na start.
 
-### C3. Kreator nowego projektu ✅
-**Dlaczego tak.** Format jest potrzebny, zanim postawi się pierwszy element (wszystko w mm).
-**Co można lepiej.** Gotowe szablony startowe (np. „Kalendarz książkowy A5: okładka + 12 miesięcy”). To ma sens dopiero po etapie danych.
+### C3. Adresy podstron ✅
+`#/projekty`, `#/konto`, `#/p/<id>/s/<strona>`, `#/p/<id>/w/<wzorzec>`, `#/p/<id>/podglad`.
 
-### C4. Adresy podstron (`#/p/<id>/s/<id>`) ✅
-**Dlaczego tak.** Odświeżenie nie wyrzuca z projektu, działa „Wstecz”, link prowadzi do konkretnej strony.
-**Dlaczego `#` w adresie.** GitHub Pages nie obsługuje „ładnych” adresów bez `#` (każdy adres musiałby być prawdziwym plikiem). `#` działa wszędzie.
-**Co można lepiej.** Nic pilnego.
+### C4. Podgląd bez edycji ✅ / ⚠️
+**Co jest.** Wszystkie strony po kolei jak po przycięciu, rozkładówki obok siebie, powiększanie, kliknięcie strony otwiera ją w edytorze. Strony rysują się dopiero, gdy są widoczne.
+**Słabe.** To podgląd dla zalogowanego właściciela. Nie ma linku „tylko do odczytu” dla innej osoby ani trybu pełnoekranowego z przewracaniem stron.
+**Pytanie.** Czy podgląd ma być też do pokazania komuś bez konta (link publiczny)?
 
 ---
 
 ## D. Edytor
 
-### D1. Układ: strony z lewej, płótno, właściwości z prawej ✅
-**Dlaczego tak.** Standard programów do składu – nie trzeba się uczyć.
+### D1. Tekst ✅ / ⚠️
+**Co jest.** Style tekstu wspólne dla projektu (zmiana stylu zmienia wszystkie teksty), odstęp liter, podkreślenie, przekreślenie, zmiana wielkości liter, formatowanie zaznaczonego fragmentu.
+**Nie ma.** Kolumn, przelewania tekstu między ramkami, tabel, wcięć i wypunktowań, stałej wysokości ramki z wyrównaniem w pionie, kapitalików „na żywo” (zmiana wielkości liter zmienia sam tekst).
+**Słabe.** Formatowanie fragmentu w tekście wzorca ze zmienną `{nr}` może się przesunąć, gdy numer ma inną liczbę cyfr.
 
-### D2. Pływający pasek „Wstaw” nad stroną ⚠️
-**Dlaczego tak.** Na tablecie blisko miejsca pracy, nie zabiera wysokości.
-**Ocena.** Zasłania górę strony przy dużym powiększeniu.
-**Co można lepiej.** Przenieść do stałego paska pod nagłówkiem albo chować przy przewijaniu.
+### D2. Wyrównywanie, blokada, schowek ✅
+Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstępy, blokada położenia, kopiuj/wytnij/wklej między stronami – skrótami i przyciskami.
 
-### D3. Nowe elementy pojawiają się na środku strony ⚠️
-**Dlaczego tak.** Zawsze widać, gdzie się pojawiły.
-**Co można lepiej.** Tryb „narysuj”: wybierasz Prostokąt i przeciągasz na stronie, gdzie ma być (jak w Publisherze). Wygodniejsze, ale na tablecie koliduje z przesuwaniem. **Do Twojej decyzji.**
+### D3. Rozkładówki z marginesami lustrzanymi ✅ / ⚠️
+**Co jest.** Układ sekcji „rozkładówki”, marginesy wewnętrzny/zewnętrzny, grzbiet, sąsiednia strona widoczna obok edytowanej, lista stron w parach.
+**Słabe.** Edytujesz jedną stronę naraz – element nie może leżeć na obu stronach rozkładówki (np. zdjęcie przez grzbiet). Sąsiednia strona jest obrazem, nie da się do niej przyciągać.
+**Lepiej.** Jedno płótno na całą rozkładówkę – większa przebudowa silnika; do decyzji, czy potrzebne.
 
-### D4. Panel właściwości z polami w mm ✅ / ⚠️
-**Dlaczego tak.** Palcem nie ustawisz elementu z dokładnością do milimetra.
-**Ocena.** Pola są, ale panel jest długi – na telefonie dużo przewijania.
-**Co można lepiej.** Zwijane sekcje panelu.
+### D4. Linie pomocnicze i ostrzeżenia ⚠️
+Bez zmian w zasadzie działania. Nadal brak linijek, własnych prowadnic i przyciągania do innych elementów.
 
-### D5. Tekst ⚠️
-**Co jest.** Ramka tekstu (Textbox): czcionka, rozmiar, interlinia, kolor, B/I, wyrównanie – dla całej ramki. Skalowanie narożnikiem zamieniam na rozmiar czcionki.
-**Dlaczego tak.** Proste i przewidywalne.
-**Braki względem Publishera:** formatowanie fragmentu (jedno słowo pogrubione), style akapitów (raz zdefiniowany „Nagłówek”), kolumny, przelewanie tekstu między ramkami, tabele, odstęp między literami, wcięcia.
-**Pytanie.** Które z tych są Ci potrzebne do kalendarzy? Moim zdaniem najważniejsze: **style tekstu** (spójność na 365 stronach) i **odstęp między literami**. Tabele – może do siatek miesięcy, ale da się je zastąpić wzorcem.
+### D5. Obrazy ⚠️
+Bez zmian: pełna rozdzielczość w pamięci, przycinanie liczbami. Do zrobienia przed pracą z dużymi zdjęciami: pomniejszony podgląd i przycinanie przeciąganiem.
 
-### D6. Czcionki: 8 czcionek OFL z Google Fonts ⚠️
-**Dlaczego tak.** Plan: tylko licencje komercyjne. OFL pozwala sprzedawać i osadzać w PDF.
-**Ocena.** Czcionki ładowane z serwerów Google – do eksportu PDF trzeba będzie mieć same pliki czcionek (osadzanie), a Google CDN ich tak nie udostępnia wygodnie.
-**Co można lepiej.** Trzymać pliki czcionek w repo (`fonts/`) – działa offline i daje pliki do PDF. Koszt: mały. **Polecam przed etapem PDF.**
-**Pytanie.** Czy ta lista 8 czcionek Ci odpowiada? Jakie dodać?
+### D6. Cofanie ⚠️
+Bez zmian: 60 kroków w obrębie bieżącej strony; nie cofa operacji na stronach, sekcjach i stylach.
 
-### D7. Obrazy ⚠️
-**Co jest.** Obraz trzymany w pełnej rozdzielczości jako tekst (dataURL) w pamięci i w IndexedDB. Przycinanie liczbami w %. Informacja o dpi.
-**Dlaczego tak.** Najprostsze i działa w eksporcie.
-**Słabe strony:** kilka dużych zdjęć z aparatu (po 8 MB) spowolni tablet. Przycinanie liczbami jest niewygodne.
-**Co można lepiej.** Podgląd zmniejszony do edycji, oryginał tylko do eksportu (plan to przewidywał). Przycinanie przeciąganiem krawędzi. **Polecam pomniejszony podgląd przed pracą z dużymi zdjęciami.**
+### D7. Czcionki ⚠️
+Bez zmian: 8 czcionek OFL z Google Fonts. Przed eksportem PDF trzeba przenieść pliki czcionek do repozytorium.
 
-### D8. Linie pomocnicze, przyciąganie, ostrzeżenia ⚠️
-**Co jest.** Linia cięcia, spad, margines; przyciąganie do krawędzi/marginesów/środka; ostrzeżenia o wejściu w margines i wyjściu poza spad, wyciszane per element.
-**Dlaczego tak.** Plan 4.5: ostrzegać, nie blokować.
-**Słabe strony:**
-- Stopka i numer strony we wzorcu zwykle leżą w marginesie → stałe ostrzeżenia (trzeba wyciszać).
-- Brak ostrzeżenia o tekście, który nie mieści się w ramce.
-- Brak przyciągania do innych elementów i własnych prowadnic, brak linijek.
-- Brak marginesów lustrzanych (wewnętrzny/zewnętrzny dla książki) – plan 4.5.
-**Co można lepiej.** Osobny „obszar stopki” w sekcji, w którym margines nie ostrzega. Marginesy lustrzane razem z widokiem rozkładówek (D10).
-
-### D9. Cofanie: 60 kroków, tylko na bieżącej stronie ⚠️
-**Dlaczego tak.** Prosta implementacja: zapamiętywanie stanu strony.
-**Słabe strony:** po przejściu na inną stronę historia znika; nie cofa operacji na stronach (usunięcie strony, zmiana sekcji).
-**Co można lepiej.** Historia na poziomie projektu. Koszt: średni. Przynajmniej: potwierdzenia przy usuwaniu (są).
-
-### D10. Brak widoku rozkładówek ❌ (dla kalendarza książkowego)
-**Co jest.** Zawsze jedna strona naraz.
-**Dlaczego tak.** Nie było w Etapie 1.
-**Ocena.** W kalendarzu książkowym lewa i prawa strona tworzą całość (tydzień na rozkładówce). Bez widoku dwóch stron obok siebie trudno je zgrać.
-**Pytanie.** Czy Twój kalendarz to rozkładówki? Jeśli tak – **polecam jako następną funkcję** (tryb sekcji „rozkładówki” + marginesy lustrzane).
-
-### D11. Brakujące narzędzia z Publishera
-Wyrównywanie i rozmieszczanie kilku elementów, blokowanie elementu, panel warstw, linijki, kopiuj/wklej między stronami, wklejanie obrazu ze schowka, kształty dowolne, gradienty, cienie.
-**Pytanie.** Zaznacz, które są potrzebne. Moja propozycja kolejności: wyrównywanie, blokowanie, kopiuj/wklej między stronami, panel warstw.
+### D8. Czego nadal nie ma z programów do składu ❌
+Panel warstw, linijki, kształty dowolne, gradienty, cienie, zwijane sekcje panelu właściwości (na telefonie panel jest długi).
 
 ---
 
 ## E. Sekcje i wzorce
 
-### E1. Sekcje z własnym formatem ✅
-**Co jest.** Projekt = lista sekcji; strona należy do jednej sekcji; strony zawsze ułożone według kolejności sekcji.
-**Dlaczego tak.** Twoja decyzja (okładka ≠ środek). Ustawienia na sekcję, bo zmiana marginesu ma objąć wszystkie strony części.
-**Co można lepiej.**
-- Grzbiet okładki liczony automatycznie z liczby kartek i grubości papieru (teraz wpisujesz szerokość ręcznie).
-- Numeracja stron od zadanej liczby w sekcji (np. środek od 1, okładka bez numeru) – teraz `{nr}` liczy od początku projektu, a `{nr_w_sekcji}` od początku sekcji.
+### E1. Sekcje ✅
+Własny format, spad, cztery marginesy, układ, wzorce domyślne i **numeracja** (dalszy ciąg, od numeru, bez numerów).
+**Nie ma.** Automatycznego liczenia szerokości grzbietu okładki z liczby kartek.
 
-### E2. Wzorce jako warstwa pod stroną ✅ / ⚠️
-**Co jest.** Wzorzec to strona; jego elementy rysowane pod treścią strony, niezaznaczalne. Wzorzec domyślny dla sekcji, nadpisywany per strona. Zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
-**Dlaczego tak.** Twoja decyzja (wzorce dla różnych stron i sekcji). Warstwa pod spodem i brak zaznaczania – żeby nie przesunąć ramki przypadkiem.
-**Słabe strony:**
-1. **Jeden wzorzec na stronę.** Nie da się złożyć np. „tło miesiąca” + „stopka” z dwóch wzorców.
-2. **Wzorzec ma własny rozmiar** – jeśli różni się od sekcji, elementy mogą wypaść poza stronę, a aplikacja o tym nie ostrzega.
-3. **Elementy wzorca zawsze pod treścią** – nie da się położyć np. ramki nad zdjęciem strony.
-4. **Pokrywa się z „nakładkami motywu” z planu (sekcja 6).** Plan ma: tło motywu → strona → nakładka motywu. Wzorce realizują pierwszą część.
-**Pytanie.** Połączyć „motywy” z planu z wzorcami (wzorzec z warstwą „pod” i „nad” + kilka wzorców na stronę)? Moja rekomendacja: **tak** – jedno pojęcie zamiast dwóch.
+### E2. Wzorce połączone z motywami ✅
+**Co jest.** Strona może mieć kilka wzorców naraz; każdy element wzorca leży pod albo nad treścią; wzorzec może odbijać się lustrzanie na lewych stronach (numer strony zawsze przy zewnętrznej krawędzi). Pojęcie „motyw” z planu zniknęło – to są wzorce.
+**Słabe.** Kolejność wzorców wynika z kolejności na liście wzorców (nie da się jej zmienić przeciąganiem). Odbicie lustrzane grupy przenosi całą grupę, ale nie odbija układu w jej środku.
 
-### E3. Tło strony „z wzorca” ⚠️
-**Co jest.** Strona bez własnego tła bierze tło wzorca; po zmianie koloru strona ma własne.
-**Ocena.** Działa, ale nie ma przycisku „wróć do tła z wzorca”. Drobne.
+### E3. Jedno składanie strony ✅
+`zlozenie.js` składa tło, wzorce i treść dla edytora, miniatur i podglądu – ten sam kod posłuży eksportowi PDF, więc wszędzie wygląda to identycznie.
 
 ---
 
 ## F. Pliki, instalacja, pomoc
 
-### F1. Format `.plite` (ZIP z manifestem) ✅
-**Dlaczego ZIP.** Obrazy jako zwykłe pliki (bez base64 – ~30% mniej), da się rozpakować dowolnym programem, sprawdzony wzorzec (.docx, .odt). Manifest mówi, co jest w środku i w jakiej wersji formatu – starsza aplikacja nie wczyta po cichu pliku z nowszej.
-**Co można lepiej.** Nazwa rozszerzenia – `.plite` od roboczej nazwy. Jeśli zmienisz nazwę aplikacji, warto zmienić i rozszerzenie teraz, póki nie ma plików.
-**Pytanie.** Nazwa aplikacji i rozszerzenia – zostaje „Publisher-lite” / `.plite`?
+### F1. Nazwa i format pliku ✅
+Seriodruk, plik `.seriodruk` (ZIP z manifestem). Nazwa jest w jednym miejscu w kodzie (`js/marka.js`) plus pliki statyczne wymienione w komentarzu.
 
-### F2. Eksport/import tylko na liście projektów ✅
-**Dlaczego tak.** Twoja uwaga – operacje na całości oddzielone od pracy na stronie.
+### F2. PWA ⚠️
+Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza kartka z literą „S” – do Twojej oceny.
 
-### F3. PWA (instalacja, praca offline) ✅ / ⚠️
-**Co jest.** Manifest, ikony, service worker: pliki aplikacji „najpierw sieć, potem pamięć”, biblioteki z CDN z pamięci.
-**Dlaczego „najpierw sieć”.** Po każdym wdrożeniu od razu działa nowa wersja – nie ma problemu „starej aplikacji z pamięci”.
-**Słabe strony.** Nie testowane na prawdziwym urządzeniu. Otwieranie `.plite` dwuklikiem działa tylko na komputerze (Chrome/Edge), nie na Androidzie.
-**Ikona** – zrobiona przeze mnie na szybko (kartka z „P”). **Do Twojej oceny.**
-
-### F4. Instrukcja ze zrzutami generowanymi skryptem ✅ / ⚠️
-**Dlaczego skrypt.** Zrzuty zawsze aktualne – po zmianie wyglądu uruchamiam skrypt i są nowe.
-**Słabe strony.** Instrukcja i ramki „Dlaczego tak?” trzeba aktualizować przy każdej funkcji. Ramki „Dlaczego tak?” w instrukcji to było moje błędne zrozumienie Twojej prośby.
-**Pytanie.** Zostawić ramki „Dlaczego tak?” w instrukcji, czy usunąć (uzasadnienia są w tym dokumencie)? Rekomendacja: **usunąć** – instrukcja ma mówić „jak”, a nie „dlaczego”.
+### F3. Instrukcja ✅
+18 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
 
 ---
 
-## G. Odstępstwa od planu
+## G. Co proponuję dalej
 
-| Plan | Jest | Dlaczego |
-|---|---|---|
-| Projekt jako JSON + folder z zasobami | Plik `.plite` (ZIP: JSON + folder zasobów w jednym pliku) | Jeden plik łatwiej przenosić; w środku to dokładnie JSON + folder. |
-| Bucket per użytkownik | Jeden bucket, folder per użytkownik | Zalecenie Supabase, to samo bezpieczeństwo. |
-| Jeden format wydruku na projekt | Format na sekcję | Twoja decyzja (#11). |
-| Nakładki motywu (sekcja 6) | Wzorce (tylko „pod” treścią) | Częściowo – patrz E2. |
-| Tryby układu: pojedyncza / broszura | Tylko pojedyncza | Nie zrobione – patrz D10. |
-| Etap 1: tekst, obrazy, kształty, format, zapis | Zrobione + sekcje, wzorce, PWA, `.plite` | Twoje kolejne uwagi. |
-| Etap 5: cofanie, skróty | Zrobione częściowo już teraz | Bez cofania praca na tablecie była zbyt ryzykowna. |
-
----
-
-## H. Moja propozycja kolejności (do Twojej korekty)
-
-1. **Naprawić wdrożenie bazy** (tabela `projekty`) i wyłączyć rejestrację w Supabase – bez tego zapis na konto nie działa.
-2. **Testy w repo + podział `aplikacja.js`** (A1, A5) – zanim dojdą dane.
-3. **Decyzje projektowe od Ciebie:** rozkładówki (D10), wzorce/motywy (E2), style tekstu (D5).
-4. **Etap 2 z planu: dane** (import CSV/XLSX, zmienne w tekście, autodopasowanie).
-5. Czcionki lokalnie (D6) i pomniejszone obrazy (D7) – przed etapem PDF.
+1. **Supabase – punkt 0** (bez tego konta i zapis na koncie nie działają).
+2. **Próba na tablecie** – gesty, klawiatura ekranowa, instalacja.
+3. **Etap danych z planu**: import CSV/XLSX, pola `{kolumna}` w tekście, autodopasowanie tekstu, zakresy powielane według wierszy.
+4. Przed etapem PDF: pliki czcionek w repozytorium, pomniejszone obrazy, strony jako osobne wiersze w bazie.
+5. Do Twojej decyzji: publiczny link do podglądu (C4), jedno płótno na rozkładówkę (D3), rejestracja tylko dla zaproszonych (B1).

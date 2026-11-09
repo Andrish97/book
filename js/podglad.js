@@ -89,7 +89,8 @@ export class Podglad {
     const projekt = this.projekt;
     const s = projekt.strony.find((x) => x.id === fig.dataset.id);
     if (!s) return;
-    const szer = Math.min(MAKS_PX, Math.round(Number(fig.style.getPropertyValue('--w')) * this.skala * (window.devicePixelRatio || 1)));
+    // Rysujemy z zapasem rozdzielczości – pomniejszony obraz jest ostry przy każdym powiększeniu.
+    const szer = Math.min(MAKS_PX, Math.round(Number(fig.style.getPropertyValue('--w')) * this.skala * Math.max(2, window.devicePixelRatio || 1)));
     // Już narysowana w tej lub lepszej rozdzielczości – nic do zrobienia.
     if (Number(fig.dataset.px) >= szer) return;
     fig.dataset.px = szer;

@@ -1,80 +1,82 @@
 # Seriodruk
 
-Webowy edytor stron do projektowania publikacji z podkładaniem danych (kalendarze, planery).
-Pełny plan: [docs/PLAN.md](docs/PLAN.md). To repozytorium zawiera **Etap 1 – szkielet (MVP)**.
+Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy): projektujesz wzory stron, a w kolejnych etapach aplikacja podstawi do nich dane z arkusza i złoży PDF do druku.
 
-## Co działa (Etap 1)
+- Aplikacja: https://andrish97.github.io/book/
+- Plan: [docs/PLAN.md](docs/PLAN.md) · Decyzje: [docs/DECYZJE.md](docs/DECYZJE.md) · Uzasadnienie i lista braków: [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md)
 
-- **Logowanie na start:** e-mail i hasło (Supabase Auth). Bez rejestracji i resetu hasła w aplikacji – konto administratora zakłada się i resetuje w Supabase (Authentication → Users). Bez logowania aplikacja jest niedostępna. Wyjątek: gdy brak konfiguracji Supabase, można pracować bez konta w tej przeglądarce.
-- **Lista projektów:** karty z miniaturą pierwszej strony, kreator nowego projektu z wyborem formatu (kafelki), zmiana nazwy, kopia JSON, usuwanie.
-- **Instrukcja:** podręcznik z rozdziałami i zrzutami ekranu (`img/instrukcja/`). Otwiera się sama po pierwszym logowaniu, potem przyciskiem *Instrukcja* / **?**. Zrzuty odświeża `node scripts/zrzuty-instrukcji.cjs http://localhost:8000/`.
-- **Projekt i strony:** dodawanie, duplikowanie, usuwanie, zmiana kolejności i nazw (dwuklik na miniaturze). Miniatury są generowane leniwie.
-- **Edytor (Fabric.js 5.3.1):** tekst, prostokąt, elipsa, linia, obraz z dysku (także przeciągnij i upuść), grupowanie, warstwy, duplikowanie, cofanie i ponawianie.
-- **Wszystko w milimetrach:** obiekty mają współrzędne w mm, (0, 0) to lewy górny róg strony po przycięciu. Zoom zmienia tylko widok. Rozmiar tekstu w punktach (pt).
-- **Panel właściwości:** X, Y, szerokość, wysokość, obrót (mm/°), czcionka, rozmiar, interlinia, wyrównanie, pogrubienie, kursywa, kolory, obrys, krycie, przycięcie obrazu (%), odbicie obrazu, informacja o dpi.
-- **Format wydruku:** A4, A5, A6, B5, kwadrat lub własny; spad, marginesy, znaki cięcia (zapisywane na etap eksportu PDF).
-- **Prowadnice:** linia cięcia (czerwona), spad (przyciemniony pas), marginesy (niebieska przerywana); przyciąganie do krawędzi, marginesów i środka strony.
-- **Ostrzeżenia o układzie (bez blokowania):** obiekt w marginesie, poza spadem albo poza stroną. Można je wyciszyć dla konkretnego obiektu.
-- **Dotyk:** jeden palec zaznacza i przesuwa, dwa palce przesuwają widok i przybliżają (szczypanie). Uchwyty mają powiększony obszar dotyku. Na telefonie panele wysuwają się z dołu, a treść tekstu można edytować w zwykłym polu nad klawiaturą.
-- **Zapis:** automatycznie w przeglądarce (IndexedDB), pobieranie i wczytywanie pliku JSON (z obrazami w środku), PNG bieżącej strony (150 dpi, ze spadem).
-- **Chmura (opcjonalnie):** Supabase – logowanie linkiem e-mail, tabela `projekty` (jsonb) z RLS, obrazy w prywatnym buckecie `zasoby`. Zmiany są wysyłane automatycznie kilka sekund po edycji. Jeśli nie ma sieci, wysyłka następuje po jej powrocie.
+## Co działa
 
-Skróty: `T` `R` `E` `L` (wstaw), `Delete`, `Ctrl+Z` / `Ctrl+Shift+Z`, `Ctrl+D`, `Ctrl+G` / `Ctrl+Shift+G`, strzałki (1 mm, `Shift` 10 mm, `Alt` 0,1 mm), `PageUp`/`PageDown`, `Ctrl+S`, `Ctrl` + kółko (zoom).
+- **Konto** (Supabase Auth): rejestracja z potwierdzeniem e-maila, logowanie, reset hasła, ustawienia konta (nazwa, e-mail, hasło, wylogowanie wszędzie, usunięcie konta). Własne szablony wiadomości w `supabase/templates/`.
+- **Projekty**: lista z miniaturami, kreator (format, spad, marginesy, układ), duplikowanie, eksport i import pliku `.seriodruk`.
+- **Sekcje**: części projektu z własnym formatem, spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki) i numeracją.
+- **Rozkładówki**: marginesy lustrzane (wewnętrzny przy grzbiecie), sąsiednia strona obok edytowanej.
+- **Wzorce**: wspólne elementy stron; kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
+- **Edytor** (Fabric.js 5.3.1, wszystko w mm): tekst, kształty, obrazy, grupy, warstwy, wyrównywanie i równe odstępy, blokada, schowek między stronami, cofanie, przyciąganie, ostrzeżenia o marginesach i spadzie.
+- **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu.
+- **Podgląd** bez edycji: cały projekt jak po przycięciu, rozkładówki obok siebie.
+- **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
+- **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok; panele wysuwane z dołu.
+- **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze.
+- **Instrukcja** w aplikacji ze zrzutami ekranu.
 
-### Adresy, pliki, instalacja
+Nie ma jeszcze: importu danych i powielania stron (etap 2–3 planu), eksportu PDF (etap 4). Pełna lista braków – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
 
-- **Adresy podstron** (w części `#`, działa na GitHub Pages): `#/projekty`, `#/p/<id projektu>/s/<id strony>`, `#/p/<id projektu>/w/<id wzorca>`. Odświeżenie zostaje na tej samej stronie, „Wstecz” wraca do listy, a niezalogowany po zalogowaniu trafia pod adres, który otwierał.
-- **Format pliku `.seriodruk`** (`js/plik-projektu.js`): archiwum ZIP z `mimetype`, `manifest.json` (format, `wersja_formatu`, opis projektu, lista zasobów), `projekt.json`, `zasoby/<id>.<rozszerzenie>` i `miniatura.png`. Eksport i import całych projektów są na liście projektów; w edytorze zostaje tylko PNG bieżącej strony. Stare pliki `.json` też się wczytają.
-- **PWA**: `manifest.webmanifest` (ikony w `img/ikony/`, otwieranie plików `.seriodruk` w zainstalowanej aplikacji) i `sw.js` (pliki aplikacji: najpierw sieć, potem pamięć; biblioteki z CDN i czcionki: z pamięci; Supabase: zawsze sieć).
+## Uruchomienie lokalne
 
-## Uruchomienie
-
-Aplikacja jest statyczna (bez kroku budowania). Moduły ES wymagają serwera HTTP:
+Aplikacja jest statyczna, bez kroku budowania. Moduły ES wymagają serwera HTTP:
 
 ```sh
-python3 -m http.server 8000
-# http://localhost:8000
+python3 -m http.server 8000     # http://localhost:8000
 ```
 
-Na tablecie w tej samej sieci: `http://<adres-komputera>:8000`. Uwaga: `crypto.randomUUID` i IndexedDB wymagają bezpiecznego kontekstu, czyli HTTPS albo `localhost`. Do testów na tablecie najprościej użyć GitHub Pages.
+Z pustym `js/konfiguracja.js` aplikacja działa bez konta, tylko w tej przeglądarce.
 
-### Deploy (push na `main`)
+## Testy i zrzuty do instrukcji
 
-- **Baza:** integracja Supabase z GitHubem (Supabase → Integrations → GitHub, włączone *Deploy to production*) po pushu na gałąź produkcyjną stosuje migracje z [`supabase/migrations/`](supabase/migrations/). Sekrety w GitHubie nie są potrzebne.
-- **Aplikacja:** [`pages.yml`](.github/workflows/pages.yml) publikuje ją na GitHub Pages (Settings → Pages → Source: **GitHub Actions**).
-- **Połączenie aplikacji z bazą:** adres projektu i publiczny klucz `anon` są wpisane w [`js/konfiguracja.js`](js/konfiguracja.js), tak jak w `brick_ai`. Dostęp do danych chronią reguły RLS.
-- **Logowanie linkiem z e-maila:** adres strony musi być w Authentication → URL Configuration → *Redirect URLs* (`https://andrish97.github.io/book/**`).
+```sh
+npm install && npx playwright install chromium
+npm test                                   # testy przeglądarkowe (tests/)
+python3 -m http.server 8000 &
+npm run zrzuty -- http://localhost:8000/   # odświeża img/instrukcja/*.png
+```
 
-Gdy `js/konfiguracja.js` ma puste pola, aplikacja działa tylko lokalnie (IndexedDB i pliki JSON). Klucza `service_role` nigdy nie wpisuj do frontendu.
+Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z prawdziwą bazą. W GitHub Actions uruchamia je workflow „Testy”.
 
-Zasoby: jeden prywatny bucket `zasoby` z folderem na użytkownika (`<owner_id>/<projekt>/<zasób>`) zamiast osobnego bucketu na użytkownika – reguły RLS dają ten sam efekt.
+## Wdrożenie (push na `main`)
+
+- **Aplikacja:** workflow [`pages.yml`](.github/workflows/pages.yml) publikuje ją na GitHub Pages.
+- **Baza:** integracja Supabase z GitHubem stosuje migracje z [`supabase/migrations/`](supabase/migrations/) i ustawienia z [`supabase/config.toml`](supabase/config.toml). Jeśli integracja nie działa, migrację można wkleić w SQL Editor.
+- **Połączenie z bazą:** adres projektu i publiczny klucz są w [`js/konfiguracja.js`](js/konfiguracja.js). Dostęp do danych chronią reguły RLS. Klucza `service_role` nigdy nie wpisuj do frontendu.
+- **Do ustawienia ręcznie w Supabase** (SMTP, szablony, adresy powrotu, wymagania hasła): [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md), punkt 0.
 
 ## Struktura
 
 | Plik | Rola |
 |---|---|
-| `index.html`, `css/aplikacja.css` | Interfejs (pasek, strony, narzędzia, właściwości, dialogi, układ mobilny) |
-| `js/aplikacja.js` | Stan aplikacji, strony, zapis, dialogi, skróty |
-| `js/edytor.js` | Silnik strony na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia |
-| `js/wlasciwosci.js` | Panel właściwości |
-| `js/projekt.js` | Model projektu (sekcja 3 planu), formaty, migracja |
-| `js/czcionki.js` | Lista dozwolonych czcionek (OFL) |
+| `index.html`, `css/aplikacja.css` | Ekrany: logowanie, projekty, konto, edytor, podgląd; dialogi |
+| `js/aplikacja.js` | Rdzeń: adresy podstron, lista projektów, edytor, sekcje, wzorce, zapis |
+| `js/konto.js` | Logowanie, rejestracja, reset hasła, ustawienia konta |
+| `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji, obrazy |
 | `js/lokalny.js` | IndexedDB |
-| `js/chmura.js`, `js/konfiguracja.js` | Supabase |
-| `supabase/migrations/`, `supabase/config.toml` | Schemat bazy i reguły dostępu (migracje dla integracji Supabase z GitHubem) |
+| `js/projekt.js` | Model projektu: sekcje, wzorce, rozkładówki, numeracja, migracje starszych wersji |
+| `js/edytor.js` | Silnik strony na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
+| `js/zlozenie.js` | Składanie strony z warstw (tło, wzorce, treść) dla edytora, miniatur i podglądu |
+| `js/wlasciwosci.js`, `js/style-tekstu.js` | Panel właściwości, style tekstu |
+| `js/podglad.js` | Podgląd bez edycji |
+| `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
+| `js/instrukcja.js`, `scripts/zrzuty-instrukcji.cjs` | Instrukcja i generator zrzutów |
+| `js/ui.js`, `js/ikony.js`, `js/czcionki.js`, `js/marka.js` | Elementy wspólne, ikony, czcionki, nazwa aplikacji |
+| `supabase/` | Migracje, konfiguracja, szablony e-maili |
+| `tests/` | Testy przeglądarkowe |
 
-### Model danych
+## Model projektu (wersja 3)
 
-Zgodny z sekcją 3 planu, z tą różnicą, że format wydruku należy do sekcji, a nie do całego projektu. Dodatkowo:
-- `sekcje`: `[{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy_mm, znaki_ciecia }, wzorzec }]` – części projektu (np. okładka, środek) z własnym formatem i domyślnym wzorcem. Strony są zawsze pogrupowane według kolejności sekcji.
-- `wzorce`: `[{ id, nazwa, wydruk, tlo, obiekty }]` – strony wzorcowe. Ich elementy są rysowane pod treścią stron (niezaznaczalne). W tekstach działają zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
-- `strony[].sekcja` (id sekcji) i `strony[].wzorzec`: `"z_sekcji"` (domyślnie), `"brak"` albo id wzorca.
-- Projekty w starym formacie (jedno `wydruk` na projekt) są przenoszone automatycznie do jednej sekcji „Główna”.
-- `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`. Obrazy na stronach mają `src: "zasob:<id>"`, więc JSON stron jest lekki, a pliki mogą trafić do Storage.
-- `strony[].tlo` (kolor tła) i `strony[].obiekty` (obiekty Fabric z własnymi polami `id`, `nazwa`, `zasob`, `bez_ostrzezen` oraz przygotowanymi na etap 2 `pole`, `autodopasowanie`, `min_rozmiar`).
-- Pola `zrodla`, `tabele`, `zakresy`, `motywy` istnieją w modelu i są puste do kolejnych etapów.
+- `sekcje[]`: `{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy: { gora, dol, wewnetrzny, zewnetrzny }, znaki_ciecia }, uklad: 'pojedyncze' | 'rozkladowki', pierwsza: 'prawa' | 'lewa', wzorce: [id], numeracja: { tryb: 'ciagla' | 'od' | 'brak', od } }`
+- `wzorce[]`: `{ id, nazwa, wydruk, tlo, lustro, obiekty[] }` – element z `warstwa: 'nad'` leży nad treścią strony.
+- `strony[]`: `{ id, nazwa, sekcja, wzorce: 'z_sekcji' | [id], tlo, obiekty[] }`
+- `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
+- `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`; obrazy na stronach mają `src: "zasob:<id>"`.
+- `zrodla`, `tabele`, `zakresy`: puste do etapu danych.
 
-## Następne kroki
-
-- Test referencyjny na tablecie Lenovo (gesty, edycja tekstu z klawiaturą ekranową). Patrz sekcja 4.7 planu.
-- Etap 2: import CSV/XLSX, tabele, zmienne `{kolumna}` w tekście, autodopasowanie.
+Projekty zapisane w starszych wersjach modelu są przenoszone automatycznie przy otwarciu (`normalizuj` w `js/projekt.js`).

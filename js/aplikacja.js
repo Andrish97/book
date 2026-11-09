@@ -1781,5 +1781,5 @@ start().catch((e) => {
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
-  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji,
+  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle,
 };

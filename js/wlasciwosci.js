@@ -53,7 +53,7 @@ export class PanelWlasciwosci {
       return;
     }
     if (obj.type === 'activeSelection') {
-      this.tytul.textContent = `Zaznaczono ${obj.size()} obiekty`;
+      this.tytul.textContent = `Zaznaczone elementy: ${obj.size()}`;
       const s = this.sekcja('Zaznaczenie');
       s.append(this.wskazowka('Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
       s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()]]));

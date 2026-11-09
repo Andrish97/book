@@ -10,6 +10,7 @@
 
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { otworz: otworzZAtrapa } = require('../tests/pomoc.cjs');
 
 const ADRES = process.argv[2] || 'http://localhost:8000/';
 const KATALOG = path.join(__dirname, '..', 'img', 'instrukcja');
@@ -72,52 +73,70 @@ async function przykladoweProjekty(strona) {
 
     // 3. Kalendarz 2027 – kilka stron
     await otworzProjekt(nowy('Kalendarz 2027', {}));
-    dodaj(new fabric.Rect({ left: -3, top: -3, width: 154, height: 62, fill: '#2f5bd3', strokeWidth: 0 }));
-    dodaj(tekst('Styczeń', { left: 10, top: 18, width: 128, fontSize: mm(30), fontFamily: 'Playfair Display', fontWeight: 'bold', fill: '#ffffff' }));
+    dodaj(new fabric.Rect({ left: -3, top: -3, width: 154, height: 62, fill: '#2f5bd3', strokeWidth: 0, bez_ostrzezen: true }));
+    dodaj(tekst('Styczeń', { left: 10, top: 18, width: 120, fontSize: mm(30), fontFamily: 'Playfair Display', fontWeight: 'bold', fill: '#ffffff' }));
     dodaj(tekst('2027', { left: 10, top: 40, width: 60, fontSize: mm(12), fill: '#dbe4fb' }));
     const dni = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
-    dni.forEach((d, i) => dodaj(tekst(d, { left: 10 + i * 18.3, top: 70, width: 16, fontSize: mm(8), fontWeight: 'bold', textAlign: 'center', fill: i > 4 ? '#c2410c' : '#4a4843' })));
+    dni.forEach((d, i) => dodaj(tekst(d, { left: 10 + i * 17.4, top: 70, width: 16, fontSize: mm(8), fontWeight: 'bold', textAlign: 'center', fill: i > 4 ? '#c2410c' : '#4a4843' })));
     for (let n = 1; n <= 31; n += 1) {
       const p = n + 3; const kol = p % 7; const rz = Math.floor(p / 7);
-      dodaj(tekst(String(n), { left: 10 + kol * 18.3, top: 80 + rz * 18, width: 16, fontSize: mm(11), textAlign: 'center', fill: kol > 4 ? '#c2410c' : '#1c1b19' }));
+      dodaj(tekst(String(n), { left: 10 + kol * 17.4, top: 80 + rz * 18, width: 16, fontSize: mm(11), textAlign: 'center', fill: kol > 4 ? '#c2410c' : '#1c1b19' }));
     }
-    dodaj(new fabric.Line([10, 190, 138, 190], { stroke: '#cfccc3', strokeWidth: 0.3, strokeUniform: true }));
-    dodaj(tekst('Notatki', { left: 10, top: 193, width: 60, fontSize: mm(8), fill: '#807d75' }));
+    dodaj(new fabric.Line([10.5, 186, 131.5, 186], { stroke: '#cfccc3', strokeWidth: 0.3, strokeUniform: true }));
+    dodaj(tekst('Notatki', { left: 10, top: 188, width: 60, fontSize: mm(8), fill: '#807d75' }));
     await zapisz();
 
-    // Sekcje: okładka (szeroka, z grzbietem) + środek ze wzorcem.
+    // Sekcje: okładka (szeroka, z grzbietem) + środek w rozkładówkach ze wzorcem.
     const rnd = () => `o_${Math.random().toString(36).slice(2)}`;
-    const json = (obiekty) => obiekty.map((o) => { o.set({ id: rnd() }); return o.toObject(['id', 'bez_ostrzezen']); });
+    const json = (obiekty) => obiekty.map((o) => { o.set({ id: rnd() }); return o.toObject(['id', 'bez_ostrzezen', 'styl']); });
     const P = stan.projekt;
-    P.sekcje[0].nazwa = 'Środek';
-    const wz = {
-      id: 'wz_kalendarz', nazwa: 'Strona kalendarza', wydruk: { ...P.sekcje[0].wydruk }, tlo: '#ffffff',
+    P.style = window.seriodruk.domyslneStyle();
+    const srodek = P.sekcje[0];
+    Object.assign(srodek, { nazwa: 'Środek', uklad: 'rozkladowki', pierwsza: 'prawa', wzorce: ['wz_kalendarz'] });
+    srodek.wydruk.marginesy = { gora: 10, dol: 12, wewnetrzny: 16, zewnetrzny: 10 };
+    // Wzorzec rysowany dla strony prawej; na lewych odbija się lustrzanie.
+    P.wzorce.push({
+      id: 'wz_kalendarz', nazwa: 'Stopka z numerem', wydruk: JSON.parse(JSON.stringify(srodek.wydruk)), tlo: null, lustro: true,
       obiekty: json([
-        new fabric.Line([10, 199, 138, 199], { stroke: '#cfccc3', strokeWidth: 0.3, strokeUniform: true, bez_ostrzezen: true }),
-        tekst('Kalendarz 2027', { left: 10, top: 201, width: 60, fontSize: mm(7), fill: '#807d75', bez_ostrzezen: true }),
-        tekst('{nr}', { left: 108, top: 201, width: 30, fontSize: mm(7), fill: '#807d75', textAlign: 'right', bez_ostrzezen: true }),
+        new fabric.Line([16, 199, 138, 199], { stroke: '#cfccc3', strokeWidth: 0.3, strokeUniform: true, bez_ostrzezen: true }),
+        tekst('Kalendarz 2027', { left: 16, top: 201, width: 60, fontSize: mm(7), fill: '#807d75', bez_ostrzezen: true }),
+        tekst('{nr}', { left: 108, top: 201, width: 30, fontSize: mm(7), fontWeight: 'bold', fill: '#4a4843', textAlign: 'right', bez_ostrzezen: true }),
       ]),
-    };
-    P.wzorce.push(wz);
-    P.sekcje[0].wzorzec = wz.id;
+    });
     P.sekcje.unshift({
-      id: 'sek_okladka', nazwa: 'Okładka', wzorzec: null,
+      id: 'sek_okladka', nazwa: 'Okładka', uklad: 'pojedyncze', wzorce: [], numeracja: { tryb: 'brak', od: 1 },
       wydruk: { format: 'wlasny', szerokosc_mm: 302, wysokosc_mm: 210, spad_mm: 3, marginesy_mm: 10, znaki_ciecia: true },
     });
-    P.strony[0].nazwa = 'Styczeń';
-    const srodek = P.sekcje[1].id;
-    P.strony.push(
-      { id: 's2', nazwa: 'Luty', sekcja: srodek, wzorzec: 'z_sekcji', obiekty: [], tlo: null },
-      { id: 's3', nazwa: 'Notatki', sekcja: srodek, wzorzec: 'z_sekcji', obiekty: [], tlo: null },
+    const styczen = P.strony[0];
+    Object.assign(styczen, { id: 's_styczen', nazwa: 'Styczeń', sekcja: srodek.id });
+    const linie = [];
+    for (let y = 40; y <= 180; y += 10) linie.push(new fabric.Line([16, y, 138, y], { stroke: '#d9d4c7', strokeWidth: 0.25, strokeUniform: true }));
+    P.strony = [
       {
-        id: 's0', nazwa: 'Okładka', sekcja: 'sek_okladka', wzorzec: 'z_sekcji', tlo: '#1f2a44',
+        id: 's_okladka', nazwa: 'Okładka', sekcja: 'sek_okladka', wzorce: 'z_sekcji', tlo: '#1f2a44',
         obiekty: json([
           new fabric.Rect({ left: 148, top: -3, width: 6, height: 216, fill: '#f2c66d', strokeWidth: 0, bez_ostrzezen: true }),
           tekst('Kalendarz', { left: 166, top: 72, width: 126, fontSize: mm(34), fontFamily: 'Playfair Display', fontWeight: 'bold', fill: '#ffffff' }),
           tekst('2027', { left: 166, top: 100, width: 126, fontSize: mm(34), fontFamily: 'Playfair Display', fill: '#f2c66d' }),
         ]),
       },
-    );
+      {
+        id: 's_tytul', nazwa: 'Strona tytułowa', sekcja: srodek.id, wzorce: [], tlo: null,
+        obiekty: json([
+          tekst('Kalendarz 2027', { left: 16, top: 84, width: 122, fontSize: mm(26), fontFamily: 'Playfair Display', fontWeight: 'bold', textAlign: 'center' }),
+          tekst('Anna Kowalska', { left: 16, top: 104, width: 122, fontSize: mm(11), textAlign: 'center', fill: '#807d75' }),
+        ]),
+      },
+      styczen,
+      {
+        id: 's_notatki', nazwa: 'Notatki', sekcja: srodek.id, wzorce: 'z_sekcji', tlo: null,
+        obiekty: json([
+          tekst('Notatki', { left: 16, top: 18, width: 122, fontSize: mm(16), fontWeight: 'bold', styl: P.style[1].id }),
+          ...linie,
+        ]),
+      },
+      { id: 's_luty', nazwa: 'Luty', sekcja: srodek.id, wzorce: 'z_sekcji', obiekty: [], tlo: null },
+    ];
     await otworzProjekt(P);
     stan.projekt.miniatura = edytor.miniatura(200);
     await zapiszLokalnie();
@@ -127,22 +146,45 @@ async function przykladoweProjekty(strona) {
 (async () => {
   const przegladarka = await chromium.launch();
 
-  // ---------- Logowanie ----------
+  // ---------- Logowanie, rejestracja, ustawienia konta (atrapa Supabase z testów) ----------
   {
-    const kontekst = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block' });
-    await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: FAKE_KONFIG }));
-    await kontekst.route('https://przyklad.supabase.co/**', (r) => r.abort());
-    const s = await kontekst.newPage();
-    await s.goto(ADRES);
-    await s.waitForSelector('#ekran-logowania', { state: 'visible' });
-    await s.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');
-    await s.fill('#form-logowania input[name=haslo]', 'tajnehaslo');
-    await s.locator('body').click({ position: { x: 5, y: 5 } });
-    await zrzut(s, 'logowanie.png');
-    await kontekst.close();
+    const sprzatanie = [];
+    const { strona: k } = await otworzZAtrapa({ after: (f) => sprzatanie.push(f) }, {
+      tryb: 'atrapa',
+      konta: [{ id: '11111111-1111-4111-8111-111111111111', email: 'anna@przyklad.pl', haslo: 'Dobre#Haslo1', potwierdzone: true, nazwa: 'Anna' }],
+    });
+    await k.waitForSelector('#ekran-logowania', { state: 'visible' });
+    await k.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');
+    await k.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+    await k.locator('.stopka-logowania').click();
+    await zrzut(k, 'logowanie.png');
+
+    await k.click('#tryb-logowania label:has-text("Nowe konto")');
+    await k.fill('#form-logowania input[name=nazwa]', 'Jan');
+    await k.fill('#form-logowania input[name=email]', 'jan@przyklad.pl');
+    await k.fill('#form-logowania input[name=haslo]', 'Kalendarz7');
+    await k.locator('.stopka-logowania').click();
+    await zrzut(k, 'rejestracja.png');
+    await k.fill('#form-logowania input[name=haslo]', 'Kalendarz#27');
+    await k.fill('#form-logowania input[name=haslo2]', 'Kalendarz#27');
+    await k.click('#przycisk-logowania');
+    await k.waitForSelector('#widok-wyslano', { state: 'visible' });
+    await zrzut(k, 'rejestracja-wyslano.png', { clip: { x: 340, y: 120, width: 600, height: 560 } });
+
+    await k.click('#widok-wyslano [data-tryb="logowanie"]');
+    await k.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');
+    await k.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+    await k.click('#przycisk-logowania');
+    await k.waitForSelector('#dlg-instrukcja[open]');
+    await k.click('[data-akcja="zamknij-instrukcje"]');
+    await k.click('#awatar');
+    await k.click('[data-akcja="ustawienia-konta"]');
+    await k.waitForFunction(() => document.body.dataset.ekran === 'konto');
+    await zrzut(k, 'konto.png');
+    for (const f of sprzatanie) await f();
   }
 
-  // ---------- Desktop / tablet w poziomie ----------
+  // ---------- Desktop / tablet w poziomie ----------  // ---------- Desktop / tablet w poziomie ----------
   const kontekst = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block' });
   await bezBazy(kontekst);
   const s = await kontekst.newPage();
@@ -152,7 +194,7 @@ async function przykladoweProjekty(strona) {
   await s.waitForSelector('#dlg-instrukcja[open]');
   await s.click('[data-akcja="zamknij-instrukcje"]');
   await przykladoweProjekty(s);
-  await s.click('[data-akcja="do-projektow"]');
+  await s.click('[data-akcja="do-projektow"]:visible');
   await s.waitForSelector('.karta-projektu:not(.szkielet)');
   await s.waitForTimeout(600);
   await zrzut(s, 'projekty.png');
@@ -222,6 +264,29 @@ async function przykladoweProjekty(strona) {
   await s.click('#lista-stron li.strona:has-text("Styczeń") .miniatura');
   await s.waitForTimeout(800);
 
+  // Rozkładówka: lewa strona (Styczeń) edytowana, prawa (Notatki) obok
+  await zrzut(s, 'rozkladowki.png');
+
+  // Podgląd bez edycji
+  await s.click('[data-akcja="podglad"]');
+  await s.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await s.waitForTimeout(1500);
+  await zrzut(s, 'podglad.png');
+  await s.keyboard.press('Escape');
+  await s.waitForFunction(() => document.body.dataset.ekran === 'edytor');
+  await s.waitForTimeout(500);
+
+  // Wyrównywanie: kilka zaznaczonych elementów
+  await s.evaluate(() => {
+    const { edytor } = window.seriodruk;
+    const dni = edytor.canvas.getObjects().filter((o) => ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'].includes(o.text));
+    edytor.canvas.setActiveObject(new fabric.ActiveSelection(dni, { canvas: edytor.canvas }));
+    edytor.canvas.requestRenderAll();
+    edytor._emitujZaznaczenie();
+  });
+  await zrzut(s, 'wyrownanie.png', { clip: { x: 600, y: 56, width: 680, height: 560 } });
+  await s.evaluate(() => { window.seriodruk.edytor.canvas.discardActiveObject(); window.seriodruk.edytor.canvas.requestRenderAll(); });
+
   // Ostrzeżenia: element w marginesie
   await s.evaluate(() => {
     const { edytor } = window.seriodruk;
@@ -241,7 +306,7 @@ async function przykladoweProjekty(strona) {
   });
 
   // Menu projektu na liście projektów (eksport, import)
-  await s.click('[data-akcja="do-projektow"]');
+  await s.click('[data-akcja="do-projektow"]:visible');
   await s.waitForSelector('.karta-projektu:not(.szkielet)');
   await s.waitForTimeout(600);
   await s.click('.karta-projektu:has-text("Kalendarz 2027") .menu-karty');
@@ -258,7 +323,7 @@ async function przykladoweProjekty(strona) {
   await t.waitForSelector('#dlg-instrukcja[open]');
   await t.tap('[data-akcja="zamknij-instrukcje"]');
   await przykladoweProjekty(t);
-  await t.evaluate(() => window.seriodruk.przejdzDoStrony(1));
+  await t.evaluate(() => window.seriodruk.przejdzDoStrony(window.seriodruk.stan.projekt.strony.findIndex((x) => x.nazwa === 'Styczeń')));
   await t.waitForTimeout(800);
   await t.evaluate(() => {
     const { edytor } = window.seriodruk;
