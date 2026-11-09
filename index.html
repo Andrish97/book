@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#f4f3ef">
   <meta name="description" content="Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Publisher">
+  <meta name="apple-mobile-web-app-title" content="Seriodruk">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>Publisher-lite</title>
+  <title>Seriodruk</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="img/ikony/ikona.svg" type="image/svg+xml">
   <link rel="icon" href="img/ikony/favicon-32.png" sizes="32x32" type="image/png">
@@ -32,7 +32,7 @@
   <!-- ===================== Logowanie ===================== -->
   <main class="ekran ekran-logowania" id="ekran-logowania">
     <section class="logowanie-bok" aria-hidden="true">
-      <div class="marka"><span class="znak-logo">P</span> Publisher-lite</div>
+      <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
       <h1>Projektuj strony raz.<br>Dane wstawią się same.</h1>
       <p>Edytor do kalendarzy, planerów i notesów: projektujesz wzór strony, podpinasz arkusz z danymi i dostajesz gotowy PDF do druku.</p>
       <div class="podglad-stron">
@@ -44,7 +44,7 @@
 
     <section class="logowanie-forma">
       <div class="karta-logowania">
-        <div class="marka marka-mobilna"><span class="znak-logo">P</span> Publisher-lite</div>
+        <div class="marka marka-mobilna"><span class="znak-logo">S</span> Seriodruk</div>
         <h2 id="tytul-logowania">Zaloguj się</h2>
         <p class="ciche" id="opis-logowania">Dostęp mają tylko konta dodane przez administratora.</p>
 
@@ -76,7 +76,7 @@
   <!-- ===================== Projekty ===================== -->
   <div class="ekran ekran-projektow" id="ekran-projektow">
     <header class="pasek-aplikacji">
-      <div class="marka"><span class="znak-logo">P</span> Publisher-lite</div>
+      <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
       <div class="odstep"></div>
       <button class="przycisk przezroczysty" data-akcja="instrukcja" data-ikona="ksiazka"><span class="etyk">Instrukcja</span></button>
       <div class="menu-uzytkownika">
@@ -95,14 +95,14 @@
           <p class="ciche" id="podsumowanie-projektow"></p>
         </div>
         <div class="przyciski-naglowka">
-          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .plite">Importuj</button>
+          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .seriodruk">Importuj</button>
           <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Nowy projekt</button>
         </div>
       </div>
 
       <section class="pusto-projekty" id="pusto-projekty" hidden>
         <h2>Zacznij od pierwszego projektu</h2>
-        <p class="ciche">Tak będzie wyglądać praca z Publisher-lite:</p>
+        <p class="ciche">Tak będzie wyglądać praca z Seriodruk:</p>
         <ol class="kroki">
           <li><span class="numer-kroku">1</span><div><strong>Format</strong><p>Wybierz rozmiar strony, spad i marginesy – np. A5 do kalendarza książkowego.</p></div></li>
           <li><span class="numer-kroku">2</span><div><strong>Wzory stron</strong><p>Zaprojektuj każdą stronę osobno: teksty, kształty, zdjęcia.</p></div></li>
@@ -351,6 +351,6 @@
   <div class="powiadomienie" id="powiadomienie" role="status" aria-live="polite" hidden></div>
 
   <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
-  <input type="file" id="plik-projekt" accept=".plite,.json,application/vnd.publisher-lite+zip,application/zip,application/json" hidden>
+  <input type="file" id="plik-projekt" accept=".seriodruk,.json,application/vnd.seriodruk+zip,application/zip,application/json" hidden>
 </body>
 </html>

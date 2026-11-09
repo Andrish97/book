@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Publisher-lite",
-  "short_name": "Publisher",
+  "name": "Seriodruk",
+  "short_name": "Seriodruk",
   "description": "Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.",
   "lang": "pl",
   "dir": "ltr",
@@ -22,7 +22,7 @@
   "file_handlers": [
     {
       "action": "./#/projekty",
-      "accept": { "application/vnd.publisher-lite+zip": [".plite"] },
+      "accept": { "application/vnd.seriodruk+zip": [".seriodruk"] },
       "icons": [{ "src": "img/ikony/ikona-512.png", "sizes": "512x512", "type": "image/png" }],
       "launch_type": "single-client"
     }

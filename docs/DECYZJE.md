@@ -24,3 +24,10 @@ Twoje uwagi z rozmów i to, co z nich wynikło. Najnowsze na dole. Przy każdej 
 | 16 | 2026-11-09 | Własny format zamiast JSON. | `.plite` (ZIP z manifestem). | zrobione |
 | 17 | 2026-11-09 | Manifest aplikacji. | PWA: manifest, ikony, service worker. | zrobione |
 | 18 | 2026-11-09 | Chcę uzasadnienia każdej funkcji (nie instrukcji): dlaczego tak, co lepiej. Ja poprawię, potem dalej. Czy dokumentujesz moje uwagi? | Ten dziennik + [UZASADNIENIE.md](UZASADNIENIE.md). Dalsze prace wstrzymane do Twojego przeglądu. | **czeka na Ciebie** |
+| 19 | 2026-11-09 | „Trzeba poprawić wszystkie braki, ale jak robić, to dobrze.” | Praca w etapach z listy w UZASADNIENIE.md; testy w repo (`tests/`, uruchamiane w GitHub Actions). | w toku |
+| 20 | 2026-11-09 | Rejestracja ma być, ładna jak w familijnej. Do tego ustawienia konta i własne e-maile. | **Zmienia decyzje #8–#10.** Rejestracja z potwierdzeniem e-maila, reset hasła, ekran ustawień konta, szablony wiadomości. Wzorowane na układzie familijnej, kod pisany od zera (jej licencja nie pozwala kopiować). | w toku |
+| 21 | 2026-11-09 | Podgląd bez edycji, żeby można było przeglądać projekt. | Osobny tryb przeglądania. | zaplanowane |
+| 22 | 2026-11-09 | Rozkładówki, z marginesami lustrzanymi. | Tryb sekcji „rozkładówki”, margines wewnętrzny/zewnętrzny. | zaplanowane |
+| 23 | 2026-11-09 | Wzorce połączyć z motywami z planu. | Kilka wzorców na stronę, elementy pod i nad treścią. Pojęcie „motyw” z planu znika. | zaplanowane |
+| 24 | 2026-11-09 | Tekst: odstępy itd., jak najwięcej, ale ładnie zrobione. | Odstęp między literami, style tekstu, formatowanie fragmentu i inne. | zaplanowane |
+| 25 | 2026-11-09 | Nazwa nie może sugerować Publishera Microsoftu; ma nawiązywać do podstawiania danych i powielania stron; łatwo o domenę. | **Seriodruk.** W dniu wyboru wolne: seriodruk.com, seriodruk.app, seriodruk.pl. Plik projektu: `.seriodruk`. | zrobione (domeny do kupienia przez Ciebie) |

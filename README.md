@@ -1,4 +1,4 @@
-# Publisher-lite
+# Seriodruk
 
 Webowy edytor stron do projektowania publikacji z podkładaniem danych (kalendarze, planery).
 Pełny plan: [docs/PLAN.md](docs/PLAN.md). To repozytorium zawiera **Etap 1 – szkielet (MVP)**.
@@ -24,8 +24,8 @@ Skróty: `T` `R` `E` `L` (wstaw), `Delete`, `Ctrl+Z` / `Ctrl+Shift+Z`, `Ctrl+D`,
 ### Adresy, pliki, instalacja
 
 - **Adresy podstron** (w części `#`, działa na GitHub Pages): `#/projekty`, `#/p/<id projektu>/s/<id strony>`, `#/p/<id projektu>/w/<id wzorca>`. Odświeżenie zostaje na tej samej stronie, „Wstecz” wraca do listy, a niezalogowany po zalogowaniu trafia pod adres, który otwierał.
-- **Format pliku `.plite`** (`js/plik-projektu.js`): archiwum ZIP z `mimetype`, `manifest.json` (format, `wersja_formatu`, opis projektu, lista zasobów), `projekt.json`, `zasoby/<id>.<rozszerzenie>` i `miniatura.png`. Eksport i import całych projektów są na liście projektów; w edytorze zostaje tylko PNG bieżącej strony. Stare pliki `.json` też się wczytają.
-- **PWA**: `manifest.webmanifest` (ikony w `img/ikony/`, otwieranie plików `.plite` w zainstalowanej aplikacji) i `sw.js` (pliki aplikacji: najpierw sieć, potem pamięć; biblioteki z CDN i czcionki: z pamięci; Supabase: zawsze sieć).
+- **Format pliku `.seriodruk`** (`js/plik-projektu.js`): archiwum ZIP z `mimetype`, `manifest.json` (format, `wersja_formatu`, opis projektu, lista zasobów), `projekt.json`, `zasoby/<id>.<rozszerzenie>` i `miniatura.png`. Eksport i import całych projektów są na liście projektów; w edytorze zostaje tylko PNG bieżącej strony. Stare pliki `.json` też się wczytają.
+- **PWA**: `manifest.webmanifest` (ikony w `img/ikony/`, otwieranie plików `.seriodruk` w zainstalowanej aplikacji) i `sw.js` (pliki aplikacji: najpierw sieć, potem pamięć; biblioteki z CDN i czcionki: z pamięci; Supabase: zawsze sieć).
 
 ## Uruchomienie
 

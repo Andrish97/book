@@ -32,7 +32,7 @@ async function zrzut(strona, nazwa, opcje = {}) {
 // Przykładowe projekty budowane przez API edytora.
 async function przykladoweProjekty(strona) {
   await strona.evaluate(async () => {
-    const { otworzProjekt, edytor, stan } = window.publisher;
+    const { otworzProjekt, edytor, stan } = window.seriodruk;
     const mm = (pt) => pt * 25.4 / 72;
     const tekst = (t, o) => new fabric.Textbox(t, {
       fontFamily: 'Inter', fontSize: mm(11), fill: '#1c1b19', lineHeight: 1.25, strokeWidth: 0, ...o,
@@ -190,7 +190,7 @@ async function przykladoweProjekty(strona) {
 
   // Wstawianie: zaznaczony tekst
   await s.evaluate(() => {
-    const { edytor } = window.publisher;
+    const { edytor } = window.seriodruk;
     const t = edytor.canvas.getObjects().find((o) => o.text === 'Styczeń');
     edytor.canvas.setActiveObject(t);
     edytor.canvas.requestRenderAll();
@@ -202,7 +202,7 @@ async function przykladoweProjekty(strona) {
   await zrzut(s, 'wlasciwosci.png', { clip: { x: 600, y: 56, width: 680, height: 744 } });
 
   // Strony – menu
-  await s.evaluate(() => { window.publisher.edytor.canvas.discardActiveObject(); window.publisher.edytor.canvas.requestRenderAll(); });
+  await s.evaluate(() => { window.seriodruk.edytor.canvas.discardActiveObject(); window.seriodruk.edytor.canvas.requestRenderAll(); });
   await s.waitForTimeout(800);
   await s.click('#lista-stron li.strona:has-text("Styczeń") .menu-miniatury');
   await zrzut(s, 'strony.png', { clip: { x: 0, y: 0, width: 560, height: 560 } });
@@ -215,7 +215,7 @@ async function przykladoweProjekty(strona) {
   await s.keyboard.press('Escape');
 
   // Wzorce: edycja wzorca
-  await s.evaluate(() => window.publisher.edytujWzorzec('wz_kalendarz'));
+  await s.evaluate(() => window.seriodruk.edytujWzorzec('wz_kalendarz'));
   await s.waitForTimeout(900);
   await zrzut(s, 'wzorce.png');
   await s.click('[data-akcja="wroc-do-stron"]');
@@ -224,7 +224,7 @@ async function przykladoweProjekty(strona) {
 
   // Ostrzeżenia: element w marginesie
   await s.evaluate(() => {
-    const { edytor } = window.publisher;
+    const { edytor } = window.seriodruk;
     const r = new fabric.Rect({ left: 2, top: 150, width: 40, height: 22, fill: '#fde68a', stroke: '#b45309', strokeWidth: 0.3, strokeUniform: true, nazwa: 'Ramka na naklejkę' });
     r.set({ id: 'o_przyklad' });
     edytor.canvas.add(r);
@@ -235,7 +235,7 @@ async function przykladoweProjekty(strona) {
   await s.evaluate(() => { document.getElementById('panel-inspektor').scrollTop = 1e6; });
   await zrzut(s, 'ostrzezenia.png', { clip: { x: 380, y: 300, width: 900, height: 500 } });
   await s.evaluate(() => {
-    const { edytor } = window.publisher;
+    const { edytor } = window.seriodruk;
     edytor.zaznacz('o_przyklad');
     edytor.usun();
   });
@@ -258,10 +258,10 @@ async function przykladoweProjekty(strona) {
   await t.waitForSelector('#dlg-instrukcja[open]');
   await t.tap('[data-akcja="zamknij-instrukcje"]');
   await przykladoweProjekty(t);
-  await t.evaluate(() => window.publisher.przejdzDoStrony(1));
+  await t.evaluate(() => window.seriodruk.przejdzDoStrony(1));
   await t.waitForTimeout(800);
   await t.evaluate(() => {
-    const { edytor } = window.publisher;
+    const { edytor } = window.seriodruk;
     const o = edytor.canvas.getObjects().find((x) => x.text === 'Styczeń');
     edytor.canvas.setActiveObject(o);
     edytor.canvas.requestRenderAll();

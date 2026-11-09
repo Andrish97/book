@@ -18,9 +18,11 @@ import * as chmura from './chmura.js';
 import { ikona, wstawIkony } from './ikony.js';
 import { Instrukcja } from './instrukcja.js';
 import { zapiszPlikProjektu, wczytajPlikProjektu as odczytajPlik, ROZSZERZENIE } from './plik-projektu.js';
+import {
+  $, $$, powiadom, potwierdz, zapytajONazwe, zamknijMenu, przelaczMenu, pobierz, bezpiecznaNazwa, kiedy,
+} from './ui.js';
+import { NAZWA } from './marka.js';
 
-const $ = (sel, korzen = document) => korzen.querySelector(sel);
-const $$ = (sel, korzen = document) => [...korzen.querySelectorAll(sel)];
 
 const OPIS_OSTRZEZEN = {
   poza_strona: 'Poza stroną – nie będzie widoczny w druku.',
@@ -56,83 +58,6 @@ function pokazEkran(nazwa) {
   document.body.dataset.ekran = nazwa;
   document.body.dataset.panel = '';
   zamknijMenu();
-}
-
-let timerPowiadomienia = null;
-function powiadom(tekst, blad = false) {
-  const el = $('#powiadomienie');
-  el.textContent = tekst;
-  el.classList.toggle('blad', blad);
-  el.hidden = false;
-  clearTimeout(timerPowiadomienia);
-  timerPowiadomienia = setTimeout(() => { el.hidden = true; }, blad ? 6000 : 3000);
-}
-
-function potwierdz(tytul, tresc, tak = 'OK', niebezpieczne = false) {
-  const dlg = $('#dlg-potwierdz');
-  $('#potwierdz-tytul').textContent = tytul;
-  $('#potwierdz-tresc').textContent = tresc;
-  const b = $('#potwierdz-tak');
-  b.textContent = tak;
-  b.style.background = niebezpieczne ? 'var(--blad)' : '';
-  b.style.borderColor = niebezpieczne ? 'var(--blad)' : '';
-  dlg.returnValue = '';
-  dlg.showModal();
-  return new Promise((ok) => dlg.addEventListener('close', () => ok(dlg.returnValue === 'tak'), { once: true }));
-}
-
-function zapytajONazwe(tytul, etykieta, wartosc) {
-  const dlg = $('#dlg-nazwa');
-  $('#nazwa-tytul').textContent = tytul;
-  $('#nazwa-etykieta').textContent = etykieta;
-  const input = dlg.querySelector('input');
-  input.value = wartosc;
-  dlg.returnValue = '';
-  dlg.showModal();
-  input.select();
-  return new Promise((ok) => dlg.addEventListener('close', () => {
-    const v = input.value.trim();
-    ok(dlg.returnValue === 'tak' && v ? v : null);
-  }, { once: true }));
-}
-
-function zamknijMenu() {
-  $$('.menu').forEach((m) => { m.hidden = true; });
-  $$('[aria-haspopup="menu"]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
-}
-
-function przelaczMenu(przycisk, menu) {
-  const bylo = !menu.hidden;
-  zamknijMenu();
-  if (bylo) return;
-  menu.hidden = false;
-  przycisk.setAttribute('aria-expanded', 'true');
-}
-
-document.addEventListener('pointerdown', (e) => {
-  if (!e.target.closest('.menu, [aria-haspopup="menu"]')) zamknijMenu();
-});
-
-function pobierz(nazwa, url) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nazwa;
-  document.body.append(a);
-  a.click();
-  a.remove();
-}
-
-const bezpiecznaNazwa = (s) => (s || 'projekt').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'projekt';
-
-function kiedy(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const roznica = (Date.now() - d.getTime()) / 1000;
-  if (roznica < 60) return 'przed chwilą';
-  if (roznica < 3600) return `${Math.floor(roznica / 60)} min temu`;
-  const dzis = new Date();
-  if (d.toDateString() === dzis.toDateString()) return `dziś, ${d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
-  return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: d.getFullYear() === dzis.getFullYear() ? undefined : 'numeric' });
 }
 
 function odmianaProjektow(n) {
@@ -329,7 +254,7 @@ async function pokazProjekty() {
       <button class="przycisk-ikona menu-karty" aria-label="Opcje projektu" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
         <button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>
-        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.plite)</button>
+        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.seriodruk)</button>
         <hr>
         <button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}Usuń projekt</button>
       </div>`;
@@ -393,7 +318,7 @@ async function zmienNazweProjektu(w) {
   pokazProjekty();
 }
 
-// Eksport całego projektu do pliku .plite (z obrazami) – kopia zapasowa
+// Eksport całego projektu do pliku .seriodruk (z obrazami) – kopia zapasowa
 // albo przeniesienie na inne konto.
 async function eksportujProjekt(w) {
   try {
@@ -573,7 +498,7 @@ async function otworzProjekt(p, cel = {}) {
   pokazEkran('edytor');
   if (trasa.odczytaj().id !== stan.projekt.id) trasa.ustaw(`p/${stan.projekt.id}`);
   $('#nazwa-projektu').value = stan.projekt.nazwa;
-  document.title = `${stan.projekt.nazwa} – Publisher-lite`;
+  document.title = `${stan.projekt.nazwa} – ${NAZWA}`;
   edytor.wydruk = null;
   await zaladujCel({ dopasuj: true });
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
@@ -583,7 +508,7 @@ async function otworzProjekt(p, cel = {}) {
 async function doProjektow() {
   if (stan.projekt) await zapiszTeraz();
   stan.projekt = null;
-  document.title = 'Publisher-lite';
+  document.title = NAZWA;
   pokazProjekty();
 }
 
@@ -1474,14 +1399,14 @@ kontener.addEventListener('drop', (e) => {
   e.preventDefault();
   for (const plik of e.dataTransfer.files) {
     if (plik.type.startsWith('image/')) wstawObraz(plik);
-    else if (/\.(plite|json)$/i.test(plik.name)) wczytajPlikProjektu(plik);
+    else if (/\.(seriodruk|json)$/i.test(plik.name)) wczytajPlikProjektu(plik);
   }
 });
 
 $('#nazwa-projektu').addEventListener('change', (e) => {
   stan.projekt.nazwa = e.target.value.trim() || 'Bez nazwy';
   e.target.value = stan.projekt.nazwa;
-  document.title = `${stan.projekt.nazwa} – Publisher-lite`;
+  document.title = `${stan.projekt.nazwa} – ${NAZWA}`;
   zaplanujZapis();
 });
 $('#nazwa-projektu').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
@@ -1585,7 +1510,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('Service worker:', e));
 }
 
-// Pliki .plite otwierane z systemu (zainstalowana aplikacja na komputerze).
+// Pliki .seriodruk otwierane z systemu (zainstalowana aplikacja na komputerze).
 // Wczytujemy je dopiero po zalogowaniu.
 const plikiDoOtwarcia = [];
 if ('launchQueue' in window) {
@@ -1605,7 +1530,7 @@ start().catch((e) => {
 });
 
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
-window.publisher = {
+window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
   przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji,
 };

@@ -4,18 +4,18 @@
 
 import { wstawIkony } from './ikony.js';
 
-const KLUCZ_PRZECZYTANA = 'publisher-lite:instrukcja-przeczytana';
+const KLUCZ_PRZECZYTANA = 'seriodruk:instrukcja-przeczytana';
 
 export const ROZDZIALY = [
   {
     tytul: 'Na początek',
-    wstep: 'Publisher-lite służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a w kolejnych wersjach aplikacja wstawi do nich dane z arkusza i złoży gotowy PDF do druku.',
+    wstep: 'Seriodruk służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a w kolejnych wersjach aplikacja wstawi do nich dane z arkusza i złoży gotowy PDF do druku.',
     obraz: 'projekty.png',
     podpis: 'Lista projektów po zalogowaniu.',
     punkty: [
       'Projekt to jedna publikacja – np. „Kalendarz 2027”. Karta pokazuje okładkę (pierwszą stronę) i datę ostatniej zmiany.',
       'Każda zmiana zapisuje się sama – nie ma przycisku „Zapisz”.',
-      '<b>Importuj</b> wczytuje projekt z pliku <code>.plite</code>, a menu <b>⋯</b> na karcie: zmiana nazwy, eksport do pliku, usunięcie.',
+      '<b>Importuj</b> wczytuje projekt z pliku <code>.seriodruk</code>, a menu <b>⋯</b> na karcie: zmiana nazwy, eksport do pliku, usunięcie.',
       'Instrukcję otworzysz w każdej chwili przyciskiem <b>Instrukcja</b> albo <b>?</b> w edytorze.',
     ],
     dlaczego: [
@@ -68,7 +68,7 @@ export const ROZDZIALY = [
       'Górny pasek: powrót do projektów, nazwa projektu, stan zapisu, cofanie, sekcja i jej format, instrukcja, menu <b>⋯</b> (PNG bieżącej strony).',
     ],
     dlaczego: [
-      '<b>Układ jak w programach do składu</b> (Publisher, InDesign): strony z lewej, płótno w środku, właściwości z prawej – ręka sama wie, gdzie szukać.',
+      '<b>Układ jak w programach do składu</b> (np. InDesign): strony z lewej, płótno w środku, właściwości z prawej – ręka sama wie, gdzie szukać.',
       '<b>Pływający pasek „Wstaw” nad stroną</b> – na tablecie przyciski są blisko miejsca pracy, a strona dostaje całą wysokość ekranu.',
       '<b>Panel właściwości zamiast okienek</b> – zmiana rozmiaru czcionki czy położenia nie zasłania strony i widać efekt od razu.',
     ],
@@ -195,7 +195,7 @@ export const ROZDZIALY = [
       'Na telefonie panele <b>Strony</b>, <b>Właściwości</b> i <b>Ostrzeżenia</b> otwierasz przyciskami na dole ekranu.',
       '<b>Instalacja na Androidzie</b> (Chrome): menu ⋮ → <b>Zainstaluj aplikację</b> / <b>Dodaj do ekranu głównego</b>.',
       '<b>Instalacja na Macu</b> (Chrome lub Edge): ikona instalacji w pasku adresu. W Safari: Plik → <b>Dodaj do Docka</b>.',
-      'Zainstalowana aplikacja na komputerze otwiera pliki <code>.plite</code> dwuklikiem.',
+      'Zainstalowana aplikacja na komputerze otwiera pliki <code>.seriodruk</code> dwuklikiem.',
     ],
     dlaczego: [
       '<b>Przeglądarka zamiast osobnych aplikacji</b> – jedna wersja działa na Androidzie, Macu i iPadzie, bez sklepów i aktualizacji.',
@@ -211,13 +211,13 @@ export const ROZDZIALY = [
     punkty: [
       'Stan zapisu widać obok nazwy projektu: <b>Zapisano</b>, <b>Zapisywanie…</b> albo <b>Offline</b> – wtedy zmiany czekają na urządzeniu.',
       '<b>Cofnij</b> i <b>Ponów</b> (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) działają w obrębie bieżącej strony.',
-      '<b>Eksport</b> (menu ⋯ na karcie projektu) zapisuje cały projekt do pliku <code>.plite</code>, a <b>Importuj</b> wczytuje go z powrotem.',
+      '<b>Eksport</b> (menu ⋯ na karcie projektu) zapisuje cały projekt do pliku <code>.seriodruk</code>, a <b>Importuj</b> wczytuje go z powrotem.',
       'W edytorze menu <b>⋯</b> pobiera bieżącą stronę jako obraz PNG.',
       'Każdy ekran ma własny adres: lista projektów, konkretna strona projektu, edytowany wzorzec. Odświeżenie zostawia Cię w tym samym miejscu, a przycisk „Wstecz” wraca do listy.',
     ],
     dlaczego: [
       '<b>Najpierw urządzenie, potem konto</b> – przy słabym zasięgu praca się nie zatrzymuje, a zmiany wysyłają się po powrocie sieci.',
-      '<b>Własny format .plite</b> – to archiwum ZIP z manifestem (co jest w środku, która wersja formatu), danymi projektu i obrazami jako zwykłymi plikami. Jest mniejsze niż tekstowy JSON z obrazami, da się je otworzyć dowolnym programem do ZIP, a manifest pozwala bezpiecznie wczytać plik z innej wersji aplikacji.',
+      '<b>Własny format .seriodruk</b> – to archiwum ZIP z manifestem (co jest w środku, która wersja formatu), danymi projektu i obrazami jako zwykłymi plikami. Jest mniejsze niż tekstowy JSON z obrazami, da się je otworzyć dowolnym programem do ZIP, a manifest pozwala bezpiecznie wczytać plik z innej wersji aplikacji.',
       '<b>Adresy z identyfikatorem projektu</b> – każdy projekt, strona i wzorzec ma stały identyfikator, więc adres zawsze prowadzi w to samo miejsce, nawet po zmianie nazw.',
     ],
   },
@@ -234,7 +234,7 @@ export const ROZDZIALY = [
       '<kbd>Ctrl</kbd> + kółko myszy – powiększenie',
     ],
     dlaczego: [
-      '<b>Te same skróty co w innych programach</b> – Ctrl+Z, Ctrl+D, Ctrl+G działają tak samo jak w Publisherze czy Figmie.',
+      '<b>Te same skróty co w innych programach</b> – Ctrl+Z, Ctrl+D, Ctrl+G działają tak samo jak w innych programach graficznych.',
       '<b>Strzałki w milimetrach</b> – dokładne dosuwanie bez myszy; krok 0,1 mm dla drobnych poprawek.',
     ],
   },

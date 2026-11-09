@@ -1,7 +1,7 @@
-// Własny format pliku projektu: .plite
+// Własny format pliku projektu: .seriodruk
 //
 // Plik to archiwum ZIP (tak jak .docx czy .odt), w środku:
-//   mimetype         application/vnd.publisher-lite+zip (pierwszy, bez kompresji)
+//   mimetype         application/vnd.seriodruk+zip (pierwszy, bez kompresji)
 //   manifest.json    co jest w pliku: format, wersja formatu, projekt, lista zasobów
 //   projekt.json     dane projektu (sekcje, wzorce, strony) bez obrazów
 //   zasoby/<id>.png  obrazy jako zwykłe pliki (bez kodowania base64)
@@ -11,8 +11,9 @@
 // rozpakować dowolnym programem do ZIP, a manifest pozwala sprawdzić wersję
 // formatu przed wczytaniem.
 
-export const ROZSZERZENIE = '.plite';
-export const TYP_MIME = 'application/vnd.publisher-lite+zip';
+import { NAZWA, ROZSZERZENIE, TYP_MIME, FORMAT_PLIKU } from './marka.js';
+
+export { ROZSZERZENIE, TYP_MIME };
 export const WERSJA_FORMATU = 1;
 
 const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
@@ -59,9 +60,9 @@ export async function zapiszPlikProjektu(projekt) {
   }
 
   const manifest = {
-    format: 'publisher-lite',
+    format: FORMAT_PLIKU,
     wersja_formatu: WERSJA_FORMATU,
-    aplikacja: 'Publisher-lite',
+    aplikacja: NAZWA,
     utworzono: new Date().toISOString(),
     projekt: {
       id: projekt.id,
@@ -82,7 +83,7 @@ export async function zapiszPlikProjektu(projekt) {
   return zip.generateAsync({ type: 'blob', mimeType: TYP_MIME, compression: 'DEFLATE', compressionOptions: { level: 6 } });
 }
 
-// Wczytuje .plite (lub starszy .json) i zwraca obiekt projektu z obrazami w dataUrl.
+// Wczytuje .seriodruk (lub starszy .json) i zwraca obiekt projektu z obrazami w dataUrl.
 export async function wczytajPlikProjektu(plik) {
   const naglowek = new Uint8Array(await plik.slice(0, 4).arrayBuffer());
   const toZip = naglowek[0] === 0x50 && naglowek[1] === 0x4b; // „PK”
@@ -90,16 +91,16 @@ export async function wczytajPlikProjektu(plik) {
     try {
       return JSON.parse(await plik.text());
     } catch {
-      throw new Error('To nie jest plik projektu Publisher-lite.');
+      throw new Error(`To nie jest plik projektu ${NAZWA}.`);
     }
   }
 
   const JSZip = await jszip();
   const zip = await JSZip.loadAsync(plik);
   const plikManifestu = zip.file('manifest.json');
-  if (!plikManifestu) throw new Error('W pliku brakuje manifestu – to nie jest projekt Publisher-lite.');
+  if (!plikManifestu) throw new Error(`W pliku brakuje manifestu – to nie jest projekt ${NAZWA}.`);
   const manifest = JSON.parse(await plikManifestu.async('string'));
-  if (manifest.format !== 'publisher-lite') throw new Error('To nie jest plik projektu Publisher-lite.');
+  if (manifest.format !== FORMAT_PLIKU) throw new Error(`To nie jest plik projektu ${NAZWA}.`);
   if (manifest.wersja_formatu > WERSJA_FORMATU) {
     throw new Error('Plik zapisano w nowszej wersji aplikacji. Odśwież stronę, aby wczytać najnowszą wersję.');
   }

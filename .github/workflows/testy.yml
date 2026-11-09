@@ -1,0 +1,29 @@
+name: Testy
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    paths-ignore: ["docs/**", "README.md"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  testy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Testy przeglądarkowe
+        run: npm test

@@ -1,11 +1,11 @@
-// Service worker Publisher-lite: aplikacja otwiera się przy słabym internecie.
+// Service worker Seriodruk: aplikacja otwiera się przy słabym internecie.
 //
 // - pliki aplikacji (ta sama domena): najpierw sieć, przy braku sieci kopia
 //   z pamięci – dzięki temu po każdym wdrożeniu od razu działa nowa wersja;
 // - biblioteki z CDN i czcionki Google: najpierw pamięć (mają wersję w adresie);
 // - Supabase (logowanie, dane): zawsze sieć, nic nie jest zapamiętywane.
 
-const PAMIEC = 'publisher-lite-v1';
+const PAMIEC = 'seriodruk-v1';
 const PODSTAWA = ['./', './index.html', './manifest.webmanifest', './img/ikony/ikona-192.png'];
 const CDN = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 

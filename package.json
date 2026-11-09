@@ -1,0 +1,12 @@
+{
+  "name": "seriodruk",
+  "private": true,
+  "description": "Seriodruk – edytor publikacji z podstawianiem danych. Aplikacja jest statyczna; ten plik służy tylko testom.",
+  "scripts": {
+    "test": "node --test --test-concurrency=2 tests/*.test.cjs",
+    "zrzuty": "node scripts/zrzuty-instrukcji.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}
