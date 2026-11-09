@@ -70,16 +70,18 @@ export class PanelWlasciwosci {
     const inne = this.sekcja('Inne');
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
+    this.opcje.dodatkiElementu?.(this, obj, inne);
     inne.append(this.przelacznik('Wycisz ostrzeżenia dla tego obiektu', () => Boolean(obj.bez_ostrzezen), (v) => { obj.bez_ostrzezen = v || undefined; }));
   }
 
-  legendaProwadnic() {
+  legendaProwadnic(grzbiet = false) {
     const l = this.sekcja('Linie na stronie');
     const legenda = document.createElement('ul');
     legenda.className = 'legenda-prowadnic';
     legenda.innerHTML = '<li><i class="ciecie"></i>Linia cięcia – krawędź strony po przycięciu</li>'
       + '<li><i class="spad"></i>Spad – zostanie odcięty</li>'
-      + '<li><i class="margines"></i>Margines – trzymaj w nim teksty</li>';
+      + '<li><i class="margines"></i>Margines – trzymaj w nim teksty</li>'
+      + (grzbiet ? '<li><i class="grzbiet"></i>Grzbiet – tu strony są zszyte</li>' : '');
     l.append(legenda);
     l.append(this.wskazowka('Kliknij element na stronie, aby zmienić jego wygląd. Linie nie są drukowane.'));
     return l;

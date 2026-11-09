@@ -7,20 +7,18 @@
 
 import { uid, ptNaMm } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
+import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
 // Własne właściwości obiektów, które zapisujemy razem z JSON-em Fabric.
 export const WLASNE_POLA = [
   'id', 'nazwa', 'zasob', 'bez_ostrzezen',
+  'warstwa', // element wzorca: 'nad' = nad treścią strony (domyślnie pod)
+  'zablokowany', 'styl',
   // Na etap 2 (pola z danymi): już teraz przenoszone przez zapis.
   'pole', 'autodopasowanie', 'min_rozmiar',
 ];
-
-const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150">'
-  + '<rect width="200" height="150" fill="#eee" stroke="#c00" stroke-width="4"/>'
-  + '<path d="M0 0L200 150M200 0L0 150" stroke="#c00" stroke-width="2"/></svg>');
 
 const MAKS_HISTORIA = 60;
 
@@ -78,7 +76,11 @@ export class Edytor extends EventTarget {
       utrwalSkaleTekstu(e.target);
       this.oznaczZmiane();
     });
-    c.on('object:added', () => this.oznaczZmiane());
+    c.on('object:added', (e) => {
+      if (this._wczytywanie || e.target?.zWzorca) return;
+      this._uporzadkujWzorce();
+      this.oznaczZmiane();
+    });
     c.on('object:removed', () => this.oznaczZmiane());
     c.on('text:editing:exited', () => this.oznaczZmiane());
     c.on('text:changed', () => this._emitujZaznaczenie());
@@ -96,8 +98,12 @@ export class Edytor extends EventTarget {
     return PX_NA_MM * this.zoom;
   }
 
-  ustawWydruk(wydruk) {
+  // marginesy: { lewy, prawy, gora, dol, grzbiet: 'lewy' | 'prawy' | null }
+  // – już przeliczone dla konkretnej strony (w rozkładówkach są lustrzane).
+  ustawWydruk(wydruk, marginesy) {
     this.wydruk = { ...wydruk };
+    const m = wydruk.marginesy || {};
+    this.marg = marginesy || { lewy: m.wewnetrzny ?? 10, prawy: m.zewnetrzny ?? 10, gora: m.gora ?? 10, dol: m.dol ?? 10, grzbiet: null };
     this._dopasujRozmiar();
     this.przeliczOstrzezenia();
   }
@@ -147,7 +153,7 @@ export class Edytor extends EventTarget {
     const mh = st ? px(st.paddingTop) + px(st.paddingBottom) : 48;
     const dw = Math.max(100, this.kontener.clientWidth - mw);
     const dh = Math.max(100, this.kontener.clientHeight - mh);
-    const z = Math.min(dw / ((w + 2 * b) * PX_NA_MM), dh / ((h + 2 * b) * PX_NA_MM));
+    const z = Math.min(dw / ((w + 2 * b + (this.obokMm || 0)) * PX_NA_MM), dh / ((h + 2 * b) * PX_NA_MM));
     this.zoom = Math.max(0.1, z);
     this._dopasujRozmiar();
     this.dispatchEvent(new CustomEvent('zoom', { detail: this.zoom }));
@@ -155,18 +161,18 @@ export class Edytor extends EventTarget {
 
   // ---------- Wczytywanie i zapis strony ----------
 
-  // wzorzec: { obiekty, zmienne } – elementy wspólne rysowane pod stroną
-  // (widoczne, ale niezaznaczalne i niezapisywane razem ze stroną).
-  async wczytajStrone(strona, zasoby, wzorzec = null) {
+  // warstwy: { pod: [], nad: [] } – gotowe elementy wzorców (zlozenie.js):
+  // widoczne, ale niezaznaczalne i niezapisywane razem ze stroną.
+  async wczytajStrone(strona, zasoby, warstwy = null) {
     this.zasoby = zasoby;
-    this._wzorzec = wzorzec;
+    this._warstwy = warstwy || { pod: [], nad: [] };
     this._wczytywanie = true;
     this.canvas.discardActiveObject();
-    const obiekty = podmienZasoby(strona.obiekty, (id) => zasoby[id]?.dataUrl || ZASTEPCZY_OBRAZ);
+    const obiekty = podmienZasoby(strona.obiekty, zrodloObrazu(zasoby));
     await new Promise((ok) => {
       this.canvas.loadFromJSON({ objects: obiekty, backgroundColor: strona.tlo || '#ffffff' }, ok);
     });
-    await this._dodajWzorzec();
+    this._dodajWzorce();
     this._dopasujRozmiar();
     this._wczytywanie = false;
     this._historia = [];
@@ -176,25 +182,26 @@ export class Edytor extends EventTarget {
     this._emitujZaznaczenie();
   }
 
-  async _dodajWzorzec() {
-    const w = this._wzorzec;
-    if (!w || !w.obiekty?.length) return;
-    const zrodla = podmienZasoby(w.obiekty, (id) => this.zasoby[id]?.dataUrl || ZASTEPCZY_OBRAZ);
-    const gotowe = await new Promise((ok) => fabric.util.enlivenObjects(zrodla, ok));
-    const oznacz = (o) => {
-      o.set({
-        zWzorca: true, selectable: false, evented: false, excludeFromExport: true, hoverCursor: 'default',
-      });
-      if (typeof o.text === 'string') o.set('text', wstawZmienne(o.text, w.zmienne || {}));
-      if (o._objects) o._objects.forEach((d) => { if (typeof d.text === 'string') d.set('text', wstawZmienne(d.text, w.zmienne || {})); });
-    };
-    gotowe.forEach((o, i) => { oznacz(o); this.canvas.insertAt(o, i, false); });
+  _dodajWzorce() {
+    const { pod, nad } = this._warstwy;
+    pod.forEach((o, i) => this.canvas.insertAt(o, i, false));
+    nad.forEach((o) => this.canvas.add(o));
     this.canvas.requestRenderAll();
   }
 
-  _wzorzecNaSpod() {
-    const elementy = this.canvas.getObjects().filter((o) => o.zWzorca);
-    for (let i = elementy.length - 1; i >= 0; i -= 1) this.canvas.sendToBack(elementy[i]);
+  // Elementy wzorców „pod” zawsze na samym dole, „nad” zawsze na wierzchu.
+  _uporzadkujWzorce() {
+    const { pod, nad } = this._warstwy || { pod: [], nad: [] };
+    if (!pod.length && !nad.length) return;
+    const bylo = this._wczytywanie;
+    this._wczytywanie = true;
+    for (let i = pod.length - 1; i >= 0; i -= 1) this.canvas.sendToBack(pod[i]);
+    for (const o of nad) this.canvas.bringToFront(o);
+    this._wczytywanie = bylo;
+  }
+
+  get maWzorce() {
+    return Boolean(this._warstwy && (this._warstwy.pod.length || this._warstwy.nad.length));
   }
 
   // Zwraca obiekty strony w postaci do zapisu (obrazy jako "zasob:<id>").
@@ -283,7 +290,7 @@ export class Edytor extends EventTarget {
     this._wczytywanie = true;
     this.canvas.discardActiveObject();
     await new Promise((ok) => this.canvas.loadFromJSON(stan, ok));
-    await this._dodajWzorzec();
+    this._dodajWzorce();
     this._dopasujRozmiar();
     this._wczytywanie = false;
     this.przeliczOstrzezenia();
@@ -308,10 +315,11 @@ export class Edytor extends EventTarget {
   }
 
   dodajTekst(tresc = 'Kliknij dwa razy, aby edytować') {
-    const { szerokosc_mm: w, marginesy_mm: m } = this.wydruk;
-    const szer = Math.max(20, w - 2 * m);
+    const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+    const szer = Math.max(20, w - this.marg.lewy - this.marg.prawy);
     const t = new fabric.Textbox(tresc, {
-      ...this._srodek(szer, 10),
+      left: this.marg.lewy,
+      top: (h - 10) / 2,
       width: szer,
       fontFamily: DOMYSLNA,
       fontSize: ptNaMm(14),
@@ -420,7 +428,7 @@ export class Edytor extends EventTarget {
       nizej: () => c.sendBackwards(akt),
       spod: () => c.sendToBack(akt),
     })[kierunek]();
-    this._wzorzecNaSpod();
+    this._uporzadkujWzorce();
     c.requestRenderAll();
     this.oznaczZmiane();
   }
@@ -458,7 +466,8 @@ export class Edytor extends EventTarget {
 
   przeliczOstrzezenia() {
     if (!this.wydruk) return;
-    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b, marginesy_mm: m } = this.wydruk;
+    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const m = this.marg;
     const tol = 0.05;
     const lista = [];
     for (const o of this.canvas.getObjects()) {
@@ -472,7 +481,7 @@ export class Edytor extends EventTarget {
         typ = 'poza_strona';
       } else if (x1 < -b - tol || y1 < -b - tol || x2 > w + b + tol || y2 > h + b + tol) {
         typ = 'poza_spadem';
-      } else if (x1 < m - tol || y1 < m - tol || x2 > w - m + tol || y2 > h - m + tol) {
+      } else if (x1 < m.lewy - tol || y1 < m.gora - tol || x2 > w - m.prawy + tol || y2 > h - m.dol + tol) {
         typ = 'w_marginesie';
       }
       if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
@@ -485,12 +494,13 @@ export class Edytor extends EventTarget {
 
   _przyciagnij(obj) {
     if (!this.wydruk) return;
-    const { szerokosc_mm: w, wysokosc_mm: h, marginesy_mm: m } = this.wydruk;
+    const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+    const m = this.marg;
     const prog = 6 / this.skala; // 6 px na ekranie
     obj.setCoords();
     const r = obj.getBoundingRect(true, true);
-    const pion = [0, m, w / 2, w - m, w];
-    const poziom = [0, m, h / 2, h - m, h];
+    const pion = [0, m.lewy, w / 2, w - m.prawy, w];
+    const poziom = [0, m.gora, h / 2, h - m.dol, h];
     const krawedzieX = [r.left, r.left + r.width / 2, r.left + r.width];
     const krawedzieY = [r.top, r.top + r.height / 2, r.top + r.height];
     const najblizsza = (krawedzie, linie) => {
@@ -515,7 +525,8 @@ export class Edytor extends EventTarget {
 
   _poRenderowaniu(ctx) {
     if (this._renderujeEksport || !this.wydruk) return;
-    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b, marginesy_mm: m } = this.wydruk;
+    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const m = this.marg;
     const v = this.canvas.viewportTransform;
     const s = v[0];
     const X = (mm) => v[4] + mm * s;
@@ -540,10 +551,25 @@ export class Edytor extends EventTarget {
       ctx.setLineDash([]);
       ctx.strokeRect(Math.round(X(0)) + 0.5, Math.round(Y(0)) + 0.5, Math.round(w * s) - 1, Math.round(h * s) - 1);
       // Obszar bezpieczny (marginesy).
-      if (m > 0) {
+      if (m.lewy + m.prawy + m.gora + m.dol > 0) {
         ctx.strokeStyle = 'rgba(37, 99, 235, 0.8)';
         ctx.setLineDash([4, 4]);
-        ctx.strokeRect(Math.round(X(m)) + 0.5, Math.round(Y(m)) + 0.5, Math.round((w - 2 * m) * s) - 1, Math.round((h - 2 * m) * s) - 1);
+        ctx.strokeRect(
+          Math.round(X(m.lewy)) + 0.5, Math.round(Y(m.gora)) + 0.5,
+          Math.round((w - m.lewy - m.prawy) * s) - 1, Math.round((h - m.gora - m.dol) * s) - 1,
+        );
+      }
+      // Grzbiet w rozkładówce: gruba linia po stronie zszycia.
+      if (m.grzbiet) {
+        const gx = Math.round(X(m.grzbiet === 'lewy' ? 0 : w)) + 0.5;
+        ctx.strokeStyle = 'rgba(28, 27, 25, 0.75)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(gx, Y(-b));
+        ctx.lineTo(gx, Y(h + b));
+        ctx.stroke();
+        ctx.lineWidth = 1;
       }
     }
 
@@ -637,25 +663,6 @@ export class Edytor extends EventTarget {
     this._liniePrzyciagania = [];
     c.requestRenderAll();
   }
-}
-
-// Rekurencyjnie podmienia src obrazów:
-//  - mapa == null: dataUrl -> "zasob:<id>" (do zapisu),
-//  - mapa(id) -> dataUrl (do wczytania).
-// Podstawia {zmienna} w tekstach wzorca; nieznane zmienne zostają bez zmian.
-export function wstawZmienne(tekst, zmienne) {
-  return tekst.replace(/\{([a-z_]+)\}/gi, (cale, nazwa) => (nazwa in zmienne ? zmienne[nazwa] : cale));
-}
-
-export function podmienZasoby(obiekty, mapa) {
-  return (obiekty || []).map((o) => {
-    const kopia = { ...o };
-    if (kopia.type === 'image' && kopia.zasob) {
-      kopia.src = mapa ? mapa(kopia.zasob) : `zasob:${kopia.zasob}`;
-    }
-    if (Array.isArray(kopia.objects)) kopia.objects = podmienZasoby(kopia.objects, mapa);
-    return kopia;
-  });
 }
 
 // Skalowanie tekstu narożnikiem zamieniamy na rozmiar czcionki i szerokość,

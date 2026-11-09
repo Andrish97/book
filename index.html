@@ -285,7 +285,10 @@
         </div>
 
         <div id="kontener-plotna" class="kontener-plotna">
-          <div class="arkusz"><canvas id="plotno"></canvas></div>
+          <div class="arkusz">
+            <canvas id="plotno"></canvas>
+            <button class="sasiad" id="sasiad" hidden><img alt="Sąsiednia strona rozkładówki"></button>
+          </div>
         </div>
 
         <div class="pasek-wzorca" id="pasek-wzorca" hidden>
@@ -360,7 +363,14 @@
         <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" value="3" inputmode="decimal"></label>
         <label class="pole waskie"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="0.5" value="10" inputmode="decimal"></label>
       </div>
-      <p class="podpowiedz">Spad to pas za krawędzią strony, który drukarnia odcina – tła i zdjęcia „na spad” sięgają do niego. Wszystko możesz zmienić później.</p>
+      <div class="pole">
+        <span>Układ stron</span>
+        <div class="przelacznik-segmentowy" role="radiogroup">
+          <label><input type="radio" name="uklad" value="pojedyncze" checked><span>Pojedyncze strony</span></label>
+          <label><input type="radio" name="uklad" value="rozkladowki"><span>Rozkładówki (lewa + prawa)</span></label>
+        </div>
+      </div>
+      <p class="podpowiedz">Spad to pas za krawędzią strony, który drukarnia odcina – tła i zdjęcia „na spad” sięgają do niego. Rozkładówki wybierz dla publikacji zszywanej lub klejonej jak książka – marginesy będą lustrzane. Wszystko możesz zmienić później.</p>
       <div class="przyciski-dialogu">
         <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
         <button class="przycisk glowny" value="ok">Utwórz projekt</button>
@@ -368,25 +378,70 @@
     </form>
   </dialog>
 
-  <dialog id="dlg-sekcja">
+  <dialog id="dlg-sekcja" class="dialog-szeroki">
     <form method="dialog" class="formularz">
       <div class="naglowek-dialogu">
         <h2 id="tytul-sekcji">Ustawienia sekcji</h2>
         <button class="przycisk-ikona" value="anuluj" formnovalidate data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <label class="pole"><span>Nazwa sekcji</span><input name="nazwa" required maxlength="60" placeholder="np. Okładka, Środek, Wkładka"></label>
-      <label class="pole"><span>Format</span><select name="format"></select></label>
       <div class="rzad">
-        <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
-        <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
-        <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="ponow"></button>
+        <label class="pole"><span>Nazwa sekcji</span><input name="nazwa" required maxlength="60" placeholder="np. Okładka, Środek, Wkładka"></label>
+        <div class="pole pole-orientacja">
+          <span>Układ stron</span>
+          <div class="przelacznik-segmentowy" role="radiogroup">
+            <label><input type="radio" name="uklad" value="pojedyncze" checked><span>Pojedyncze</span></label>
+            <label><input type="radio" name="uklad" value="rozkladowki"><span>Rozkładówki</span></label>
+          </div>
+        </div>
       </div>
-      <div class="rzad">
-        <label class="pole"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
-        <label class="pole"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="0.5" required inputmode="decimal"></label>
-      </div>
-      <label class="pole"><span>Wzorzec dla stron tej sekcji</span><select name="wzorzec"></select></label>
-      <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"><span>Znaki cięcia w pliku PDF</span></label>
+      <p class="podpowiedz" id="podpowiedz-rozkladowki" hidden>Strony tworzą pary lewa + prawa. Margines wewnętrzny jest przy grzbiecie – na lewych stronach z prawej, na prawych z lewej.</p>
+
+      <fieldset class="grupa-pol">
+        <legend>Format</legend>
+        <label class="pole"><span>Format</span><select name="format"></select></label>
+        <div class="rzad">
+          <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
+          <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
+          <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="ponow"></button>
+          <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupa-pol">
+        <legend>Marginesy (mm)</legend>
+        <div class="rzad cztery">
+          <label class="pole"><span>Górny</span><input name="margines_gora" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole"><span>Dolny</span><input name="margines_dol" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole"><span id="etykieta-wewnetrzny">Lewy</span><input name="margines_wewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole"><span id="etykieta-zewnetrzny">Prawy</span><input name="margines_zewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupa-pol">
+        <legend>Strony</legend>
+        <div class="rzad">
+          <label class="pole" id="pole-pierwsza" hidden><span>Pierwsza strona sekcji</span>
+            <select name="pierwsza">
+              <option value="prawa">Prawa (jak w książce)</option>
+              <option value="lewa">Lewa (od razu pełna rozkładówka)</option>
+            </select>
+          </label>
+          <label class="pole"><span>Numeracja stron</span>
+            <select name="numeracja">
+              <option value="ciagla">Dalszy ciąg poprzedniej sekcji</option>
+              <option value="od">Zacznij od numeru…</option>
+              <option value="brak">Bez numerów (np. okładka)</option>
+            </select>
+          </label>
+          <label class="pole waskie" id="pole-numeracja-od" hidden><span>Pierwszy numer</span><input name="numeracja_od" type="number" min="0" max="9999" step="1" inputmode="numeric"></label>
+        </div>
+        <div class="pole" id="sekcja-wzorce-pole">
+          <span>Wzorce na stronach tej sekcji</span>
+          <div class="lista-wyboru" id="sekcja-wzorce"></div>
+        </div>
+        <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"><span>Znaki cięcia w pliku PDF</span></label>
+      </fieldset>
+
       <p class="podpowiedz">Ustawienia dotyczą wszystkich stron tej sekcji. Elementy zostają w tych samych miejscach (w mm) – po zmianie formatu sprawdź ostrzeżenia.</p>
       <div class="przyciski-dialogu">
         <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>

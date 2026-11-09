@@ -1,11 +1,15 @@
 // Model projektu (sekcja 3 planu). Wszystkie wymiary w milimetrach.
 //
-// Wersja 2: projekt dzieli się na sekcje (np. okładka, środek), każda z
-// własnym formatem, spadem i marginesami. Wzorce (strony wzorcowe) to osobne
-// strony ze wspólnymi elementami – można je podpiąć do sekcji (domyślnie dla
-// wszystkich jej stron) albo do pojedynczych stron.
+// Wersja 3:
+// - projekt dzieli się na sekcje (np. okładka, środek) z własnym formatem,
+//   spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki)
+//   i numeracją;
+// - w rozkładówkach marginesy są lustrzane: wewnętrzny przy grzbiecie,
+//   zewnętrzny przy krawędzi – po przeciwnych stronach dla stron lewych i prawych;
+// - wzorce (strony wzorcowe) zastępują „motywy” z planu: strona może mieć
+//   kilka wzorców naraz, a każdy element wzorca leży pod albo nad treścią strony.
 
-export const WERSJA_MODELU = 2;
+export const WERSJA_MODELU = 3;
 
 export const FORMATY = {
   A4: [210, 297],
@@ -19,9 +23,8 @@ export const MM_NA_PT = 25.4 / 72;
 export const ptNaMm = (pt) => pt * MM_NA_PT;
 export const mmNaPt = (mm) => mm / MM_NA_PT;
 
-// Ustawienie wzorca na stronie: brać z sekcji, konkretny wzorzec albo żaden.
-export const WZORZEC_Z_SEKCJI = 'z_sekcji';
-export const BEZ_WZORCA = 'brak';
+// Wzorce strony: wartość 'z_sekcji' albo lista identyfikatorów (pusta = bez wzorców).
+export const WZORCE_Z_SEKCJI = 'z_sekcji';
 
 export function uid(prefiks = 'id') {
   const losowe = crypto.getRandomValues(new Uint32Array(2));
@@ -34,37 +37,64 @@ export function domyslnyWydruk() {
     szerokosc_mm: 148,
     wysokosc_mm: 210,
     spad_mm: 3,
-    marginesy_mm: 10,
+    marginesy: { gora: 10, dol: 10, wewnetrzny: 10, zewnetrzny: 10 },
     znaki_ciecia: true,
   };
 }
 
+// Uzupełnia wydruk i przenosi stare „marginesy_mm” (jedna liczba) na cztery marginesy.
+export function normalizujWydruk(w = {}) {
+  const d = domyslnyWydruk();
+  const wynik = { ...d, ...w };
+  const jeden = Number.isFinite(w.marginesy_mm) ? w.marginesy_mm : null;
+  const m = w.marginesy || {};
+  wynik.marginesy = {};
+  for (const k of ['gora', 'dol', 'wewnetrzny', 'zewnetrzny']) {
+    const v = Number.isFinite(m[k]) ? m[k] : (jeden ?? d.marginesy[k]);
+    wynik.marginesy[k] = Math.max(0, v);
+  }
+  delete wynik.marginesy_mm;
+  return wynik;
+}
+
 export function nowaSekcja(nazwa = 'Sekcja', wydruk = domyslnyWydruk()) {
-  return { id: uid('sek'), nazwa, wydruk: { ...wydruk }, wzorzec: null };
+  return {
+    id: uid('sek'),
+    nazwa,
+    wydruk: normalizujWydruk(wydruk),
+    uklad: 'pojedyncze', // 'pojedyncze' | 'rozkladowki'
+    pierwsza: 'prawa', // która strona zaczyna sekcję w rozkładówkach
+    wzorce: [],
+    numeracja: { tryb: 'ciagla', od: 1 }, // 'ciagla' | 'od' | 'brak'
+  };
 }
 
 export function nowyWzorzec(nazwa = 'Wzorzec', wydruk = domyslnyWydruk()) {
-  return { id: uid('wz'), nazwa, wydruk: { ...wydruk }, obiekty: [], tlo: '#ffffff' };
+  return {
+    id: uid('wz'), nazwa, wydruk: normalizujWydruk(wydruk), obiekty: [], tlo: null, lustro: false,
+  };
 }
 
 export function nowaStrona(nazwa = 'Strona', sekcja = null) {
-  return { id: uid('s'), nazwa, sekcja, wzorzec: WZORZEC_Z_SEKCJI, obiekty: [], tlo: '#ffffff' };
+  return {
+    id: uid('s'), nazwa, sekcja, wzorce: WZORCE_Z_SEKCJI, obiekty: [], tlo: null,
+  };
 }
 
-export function nowyProjekt(nazwa = 'Nowy projekt', wydruk = domyslnyWydruk()) {
+export function nowyProjekt(nazwa = 'Nowy projekt', wydruk = domyslnyWydruk(), uklad = 'pojedyncze') {
   const sekcja = nowaSekcja('Główna', wydruk);
+  sekcja.uklad = uklad;
   return {
     wersja: WERSJA_MODELU,
     id: crypto.randomUUID(), // uuid – klucz w tabeli `projekty`
     nazwa,
-    uklad: 'pojedyncza',
     sekcje: [sekcja],
     wzorce: [],
+    style: [], // style tekstu wspólne dla projektu
     zrodla: [],
     tabele: [],
     strony: [nowaStrona('Strona 1', sekcja.id)],
     zakresy: [],
-    motywy: [],
     // Zasoby (obrazy, później czcionki). Obiekty obrazów odwołują się do nich
     // przez src = "zasob:<id>", dzięki czemu JSON projektu pozostaje lekki,
     // a zasoby mogą trafić do Supabase Storage.
@@ -74,35 +104,47 @@ export function nowyProjekt(nazwa = 'Nowy projekt', wydruk = domyslnyWydruk()) {
 }
 
 // Uzupełnia brakujące pola w projektach wczytanych z pliku lub z bazy
-// i przenosi projekty z wersji 1 (jeden wspólny format) na sekcje.
+// i przenosi projekty ze starszych wersji modelu.
 export function normalizuj(p) {
   if (!p || typeof p !== 'object') throw new Error('Plik nie zawiera projektu.');
   if (!Array.isArray(p.strony)) throw new Error('Brak listy stron w projekcie.');
   const wynik = { ...nowyProjekt(p.nazwa || 'Projekt'), ...p };
   wynik.zasoby = p.zasoby || {};
-  for (const klucz of ['zrodla', 'tabele', 'zakresy', 'motywy']) {
+  for (const klucz of ['zrodla', 'tabele', 'zakresy', 'style']) {
     if (!Array.isArray(wynik[klucz])) wynik[klucz] = [];
   }
-
-  if (!Array.isArray(p.sekcje) || p.sekcje.length === 0) {
-    wynik.sekcje = [nowaSekcja('Główna', { ...domyslnyWydruk(), ...(p.wydruk || {}) })];
-  } else {
-    wynik.sekcje = p.sekcje.map((s, i) => ({
-      ...nowaSekcja(`Sekcja ${i + 1}`),
-      ...s,
-      wydruk: { ...domyslnyWydruk(), ...(s.wydruk || {}) },
-    }));
-  }
-  delete wynik.wydruk;
+  delete wynik.motywy; // zastąpione wzorcami
+  delete wynik.uklad;
 
   wynik.wzorce = (Array.isArray(p.wzorce) ? p.wzorce : []).map((w, i) => ({
     ...nowyWzorzec(`Wzorzec ${i + 1}`),
     ...w,
-    wydruk: { ...domyslnyWydruk(), ...(w.wydruk || {}) },
+    wydruk: normalizujWydruk(w.wydruk),
     obiekty: Array.isArray(w.obiekty) ? w.obiekty : [],
+    lustro: Boolean(w.lustro),
   }));
   const idWzorcow = new Set(wynik.wzorce.map((w) => w.id));
-  for (const s of wynik.sekcje) if (s.wzorzec && !idWzorcow.has(s.wzorzec)) s.wzorzec = null;
+  const tylkoIstniejace = (lista) => [...new Set(lista)].filter((id) => idWzorcow.has(id));
+
+  const zrodloSekcji = Array.isArray(p.sekcje) && p.sekcje.length
+    ? p.sekcje
+    : [{ nazwa: 'Główna', wydruk: p.wydruk }]; // wersja 1: jeden format na projekt
+  wynik.sekcje = zrodloSekcji.map((s, i) => {
+    const sekcja = { ...nowaSekcja(`Sekcja ${i + 1}`), ...s, wydruk: normalizujWydruk(s.wydruk) };
+    // wersja 2: jeden wzorzec na sekcję
+    const lista = Array.isArray(s.wzorce) ? s.wzorce : (s.wzorzec ? [s.wzorzec] : []);
+    sekcja.wzorce = tylkoIstniejace(lista);
+    delete sekcja.wzorzec;
+    if (!['pojedyncze', 'rozkladowki'].includes(sekcja.uklad)) sekcja.uklad = 'pojedyncze';
+    if (!['prawa', 'lewa'].includes(sekcja.pierwsza)) sekcja.pierwsza = 'prawa';
+    const n = s.numeracja || {};
+    sekcja.numeracja = {
+      tryb: ['ciagla', 'od', 'brak'].includes(n.tryb) ? n.tryb : 'ciagla',
+      od: Number.isFinite(n.od) ? Math.max(0, Math.round(n.od)) : 1,
+    };
+    return sekcja;
+  });
+  delete wynik.wydruk;
 
   const idSekcji = new Set(wynik.sekcje.map((s) => s.id));
   wynik.strony = p.strony.map((s, i) => {
@@ -112,9 +154,12 @@ export function normalizuj(p) {
       obiekty: Array.isArray(s.obiekty) ? s.obiekty : [],
     };
     if (!idSekcji.has(strona.sekcja)) strona.sekcja = wynik.sekcje[0].id;
-    if (strona.wzorzec !== WZORZEC_Z_SEKCJI && strona.wzorzec !== BEZ_WZORCA && !idWzorcow.has(strona.wzorzec)) {
-      strona.wzorzec = WZORZEC_Z_SEKCJI;
-    }
+    // wersja 2: strona.wzorzec = 'z_sekcji' | 'brak' | id
+    if (Array.isArray(s.wzorce)) strona.wzorce = tylkoIstniejace(s.wzorce);
+    else if (s.wzorce === WZORCE_Z_SEKCJI || s.wzorzec === undefined || s.wzorzec === WZORCE_Z_SEKCJI) strona.wzorce = WZORCE_Z_SEKCJI;
+    else if (s.wzorzec === 'brak') strona.wzorce = [];
+    else strona.wzorce = tylkoIstniejace([s.wzorzec]);
+    delete strona.wzorzec;
     return strona;
   });
   if (wynik.strony.length === 0) wynik.strony.push(nowaStrona('Strona 1', wynik.sekcje[0].id));
@@ -136,29 +181,95 @@ export function uporzadkujStrony(projekt) {
 }
 
 export const sekcjaStrony = (projekt, strona) => projekt.sekcje.find((s) => s.id === strona.sekcja) || projekt.sekcje[0];
+export const stronySekcji = (projekt, sekcja) => projekt.strony.filter((s) => s.sekcja === sekcja.id);
 
-// Wzorzec, który faktycznie obowiązuje na stronie (albo null).
-export function wzorzecStrony(projekt, strona) {
-  if (strona.wzorzec === BEZ_WZORCA) return null;
-  const id = strona.wzorzec === WZORZEC_Z_SEKCJI ? sekcjaStrony(projekt, strona).wzorzec : strona.wzorzec;
-  return projekt.wzorce.find((w) => w.id === id) || null;
+// ---------- Rozkładówki ----------
+
+// 'lewa' | 'prawa' dla strony w sekcji z rozkładówkami, null dla pojedynczych.
+export function stronaRozkladowki(projekt, strona) {
+  const sekcja = sekcjaStrony(projekt, strona);
+  if (sekcja.uklad !== 'rozkladowki') return null;
+  const k = stronySekcji(projekt, sekcja).indexOf(strona);
+  const parzysta = k % 2 === 0;
+  if (sekcja.pierwsza === 'prawa') return parzysta ? 'prawa' : 'lewa';
+  return parzysta ? 'lewa' : 'prawa';
+}
+
+// Druga strona tej samej rozkładówki (albo null: pojedyncze strony, pierwsza/ostatnia bez pary).
+export function sasiadStrony(projekt, strona) {
+  const bok = stronaRozkladowki(projekt, strona);
+  if (!bok) return null;
+  const strony = stronySekcji(projekt, sekcjaStrony(projekt, strona));
+  const k = strony.indexOf(strona);
+  return strony[bok === 'lewa' ? k + 1 : k - 1] || null;
+}
+
+// Marginesy konkretnej strony: w rozkładówce wewnętrzny jest przy grzbiecie.
+export function marginesyStrony(projekt, strona) {
+  const { marginesy: m } = sekcjaStrony(projekt, strona).wydruk;
+  const bok = stronaRozkladowki(projekt, strona);
+  if (bok === 'lewa') return { lewy: m.zewnetrzny, prawy: m.wewnetrzny, gora: m.gora, dol: m.dol, grzbiet: 'prawy' };
+  return { lewy: m.wewnetrzny, prawy: m.zewnetrzny, gora: m.gora, dol: m.dol, grzbiet: bok ? 'lewy' : null };
+}
+
+export const marginesyWzorca = (wzorzec) => {
+  const m = wzorzec.wydruk.marginesy;
+  return { lewy: m.wewnetrzny, prawy: m.zewnetrzny, gora: m.gora, dol: m.dol, grzbiet: null };
+};
+
+// ---------- Wzorce ----------
+
+// Wzorce obowiązujące na stronie, w kolejności listy wzorców projektu
+// (pierwszy na liście leży najniżej).
+export function wzorceStrony(projekt, strona) {
+  const ids = strona.wzorce === WZORCE_Z_SEKCJI ? sekcjaStrony(projekt, strona).wzorce : strona.wzorce;
+  const zbior = new Set(ids || []);
+  return projekt.wzorce.filter((w) => zbior.has(w.id));
+}
+
+export const stronyZWzorcem = (projekt, idWzorca) => projekt.strony.filter((s) => wzorceStrony(projekt, s).some((w) => w.id === idWzorca));
+
+// Tło strony: własne albo z ostatniego wzorca, który je ma.
+export function tloStrony(projekt, strona) {
+  if (strona.tlo) return strona.tlo;
+  const zTlem = wzorceStrony(projekt, strona).filter((w) => w.tlo);
+  return zTlem.length ? zTlem.at(-1).tlo : '#ffffff';
+}
+
+// ---------- Numeracja i zmienne ----------
+
+// Numer każdej strony projektu z uwzględnieniem ustawień sekcji:
+// 'ciagla' – dalej po poprzedniej sekcji, 'od' – od zadanej liczby,
+// 'brak' – strony bez numeru (nie liczą się do numeracji).
+export function numeryStron(projekt) {
+  const numery = new Map();
+  let nastepny = 1;
+  for (const sekcja of projekt.sekcje) {
+    const { tryb, od } = sekcja.numeracja || { tryb: 'ciagla' };
+    if (tryb === 'od') nastepny = od;
+    for (const s of stronySekcji(projekt, sekcja)) {
+      if (tryb === 'brak') numery.set(s.id, null);
+      else { numery.set(s.id, nastepny); nastepny += 1; }
+    }
+  }
+  return numery;
 }
 
 // Zmienne dostępne w tekstach wzorca: {nr}, {nr_w_sekcji}, {sekcja}, {strona}, {liczba_stron}.
-export function zmienneStrony(projekt, strona) {
-  const i = projekt.strony.indexOf(strona);
-  const wSekcji = projekt.strony.filter((s) => s.sekcja === strona.sekcja);
+export function zmienneStrony(projekt, strona, numery = numeryStron(projekt)) {
+  const sekcja = sekcjaStrony(projekt, strona);
+  const nr = numery.get(strona.id);
+  const liczone = [...numery.values()].filter((n) => n !== null);
   return {
-    nr: String(i + 1),
-    nr_w_sekcji: String(wSekcji.indexOf(strona) + 1),
-    sekcja: sekcjaStrony(projekt, strona).nazwa,
+    nr: nr === null || nr === undefined ? '' : String(nr),
+    nr_w_sekcji: String(stronySekcji(projekt, sekcja).indexOf(strona) + 1),
+    sekcja: sekcja.nazwa,
     strona: strona.nazwa,
-    liczba_stron: String(projekt.strony.length),
+    liczba_stron: String(liczone.length ? Math.max(...liczone) : 0),
   };
 }
 
-// Strony, na których pojawia się dany wzorzec.
-export const stronyZWzorcem = (projekt, idWzorca) => projekt.strony.filter((s) => wzorzecStrony(projekt, s)?.id === idWzorca);
+// ---------- Kopie ----------
 
 function odnowIdentyfikatory(obiekty) {
   obiekty.forEach((o) => {
@@ -181,5 +292,17 @@ export function kopiujWzorzec(wzorzec, nazwa) {
   kopia.id = uid('wz');
   kopia.nazwa = nazwa;
   odnowIdentyfikatory(kopia.obiekty);
+  return kopia;
+}
+
+// Kopia całego projektu pod nowym identyfikatorem (np. kalendarz na kolejny rok).
+export function kopiujProjekt(projekt, nazwa) {
+  const kopia = JSON.parse(JSON.stringify(projekt));
+  kopia.id = crypto.randomUUID();
+  kopia.nazwa = nazwa;
+  kopia.zmieniono = new Date().toISOString();
+  delete kopia.wersja_chmury;
+  // Obrazy trzeba wysłać na konto jeszcze raz, pod nowym projektem.
+  for (const z of Object.values(kopia.zasoby || {})) delete z.sciezka;
   return kopia;
 }

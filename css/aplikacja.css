@@ -737,3 +737,42 @@ body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
 }
 .instrukcja-tresc .dlaczego h4 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--uwaga); }
 .instrukcja-tresc .dlaczego ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; color: var(--tusz-2); }
+
+/* ---------- Rozkładówki ---------- */
+
+.arkusz { display: flex; align-items: flex-start; }
+.arkusz .canvas-container { flex: none; order: 1; }
+.sasiad {
+  flex: none; order: 0; position: relative; z-index: 2;
+  padding: 0; border: 0; background: #fff; cursor: pointer; overflow: hidden;
+  box-shadow: 0 2px 4px rgba(28, 27, 25, .1), 0 12px 32px rgba(28, 27, 25, .16);
+}
+.sasiad.po-prawej { order: 2; }
+.sasiad img { display: block; width: 100%; height: 100%; }
+.sasiad::after {
+  content: "Kliknij, aby edytować"; position: absolute; inset: auto 0 0 0;
+  padding: 6px; background: rgba(28, 27, 25, .7); color: #fff; font-size: 12px; text-align: center;
+  opacity: 0; transition: opacity var(--czas);
+}
+.sasiad:hover::after, .sasiad:focus-visible::after { opacity: 1; }
+
+.lista-stron { display: grid; grid-template-columns: 1fr 1fr; align-content: start; column-gap: 8px; }
+.lista-stron > li { grid-column: 1 / -1; }
+.lista-stron > li.strona.w-rozkladowce { grid-column: auto; grid-template-columns: 1fr; }
+.lista-stron > li.strona.w-rozkladowce.sama { grid-column: 2; }
+.strona.w-rozkladowce .numer { display: none; }
+.strona.w-rozkladowce .nazwa { grid-column: 1; }
+.strona.w-rozkladowce .menu-miniatury { --dotyk: 26px; top: 3px; right: 3px; }
+.legenda-prowadnic .grzbiet { border-top: 3px solid rgba(28, 27, 25, .75); }
+
+.grupa-pol { border: 0; border-top: 1px solid var(--linia); margin: 0; padding: 12px 0 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grupa-pol legend { padding: 0 8px 0 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--cichy); }
+.rzad.cztery .pole { flex: 1 1 0; }
+.lista-wyboru { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+
+@media (max-width: 860px) {
+  .lista-stron { display: flex; }
+  .lista-stron > li.strona.w-rozkladowce { flex: 0 0 84px; }
+  .lista-stron > li.strona.w-rozkladowce.lewa { margin-right: -10px; }
+  .rzad.cztery .pole { flex: 1 1 40%; }
+}
