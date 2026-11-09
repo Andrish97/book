@@ -4,5 +4,5 @@
 // z migracji w supabase/migrations/. Nigdy nie wpisuj tu klucza service_role.
 // Gdy pola są puste, aplikacja działa tylko lokalnie (IndexedDB + pliki JSON).
 
-export const SUPABASE_URL = '';
+export const SUPABASE_URL = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const SUPABASE_ANON_KEY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';

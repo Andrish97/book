@@ -1,6 +1,6 @@
 # Konfiguracja Supabase dla integracji z GitHubem (Supabase → Integrations → GitHub).
 # Po pushu na gałąź produkcyjną integracja stosuje migracje z supabase/migrations/.
-project_id = "book"
+project_id = "pganajmivwtstapnwsgv"
 
 [db]
 major_version = 15
