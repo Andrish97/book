@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "Publisher-lite",
+  "short_name": "Publisher",
+  "description": "Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.",
+  "lang": "pl",
+  "dir": "ltr",
+  "start_url": "./#/projekty",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#f4f3ef",
+  "theme_color": "#f4f3ef",
+  "categories": ["productivity", "design"],
+  "icons": [
+    { "src": "img/ikony/ikona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/ikony/ikona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/ikony/ikona-maskowalna-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "img/ikony/ikona.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "file_handlers": [
+    {
+      "action": "./#/projekty",
+      "accept": { "application/vnd.publisher-lite+zip": [".plite"] },
+      "icons": [{ "src": "img/ikony/ikona-512.png", "sizes": "512x512", "type": "image/png" }],
+      "launch_type": "single-client"
+    }
+  ],
+  "launch_handler": { "client_mode": "focus-existing" }
+}

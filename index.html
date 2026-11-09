@@ -4,7 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f4f3ef">
+  <meta name="description" content="Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Publisher">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Publisher-lite</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="img/ikony/ikona.svg" type="image/svg+xml">
+  <link rel="icon" href="img/ikony/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="img/ikony/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Wyłącznie czcionki na licencji OFL (lista w js/czcionki.js). -->
@@ -75,7 +83,6 @@
         <button class="awatar" id="awatar" aria-haspopup="menu" aria-expanded="false" title="Konto"></button>
         <div class="menu" id="menu-uzytkownika" role="menu" hidden>
           <div class="menu-naglowek" id="email-uzytkownika"></div>
-          <button role="menuitem" data-akcja="wczytaj-plik" data-ikona="wyslij">Wczytaj projekt z pliku</button>
           <button role="menuitem" data-akcja="wyloguj" data-ikona="wyloguj">Wyloguj</button>
         </div>
       </div>
@@ -87,7 +94,10 @@
           <h1>Twoje projekty</h1>
           <p class="ciche" id="podsumowanie-projektow"></p>
         </div>
-        <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Nowy projekt</button>
+        <div class="przyciski-naglowka">
+          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .plite">Importuj</button>
+          <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Nowy projekt</button>
+        </div>
       </div>
 
       <section class="pusto-projekty" id="pusto-projekty" hidden>
@@ -99,7 +109,10 @@
           <li class="wkrotce"><span class="numer-kroku">3</span><div><strong>Dane <em>wkrótce</em></strong><p>Podepnij arkusz (CSV, Excel, Google Sheets) – strony powielą się według wierszy.</p></div></li>
           <li class="wkrotce"><span class="numer-kroku">4</span><div><strong>PDF do druku <em>wkrótce</em></strong><p>Jeden plik ze spadem i znakami cięcia, gotowy dla drukarni.</p></div></li>
         </ol>
-        <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Utwórz projekt</button>
+        <div class="przyciski-naglowka">
+          <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Utwórz projekt</button>
+          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij">Importuj z pliku</button>
+        </div>
       </section>
 
       <ul class="siatka-projektow" id="siatka-projektow"></ul>
@@ -123,11 +136,7 @@
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
         <div class="menu" id="menu-wiecej" role="menu" hidden>
-          <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz stronę jako PNG</button>
-          <button role="menuitem" data-akcja="pobierz-json" data-ikona="pobierz">Pobierz kopię projektu (JSON)</button>
-          <button role="menuitem" data-akcja="wczytaj-plik" data-ikona="wyslij">Wczytaj projekt z pliku</button>
-          <hr>
-          <button role="menuitem" class="niebezpieczny" data-akcja="usun-projekt" data-ikona="kosz">Usuń projekt</button>
+          <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
         </div>
       </div>
     </header>
@@ -342,6 +351,6 @@
   <div class="powiadomienie" id="powiadomienie" role="status" aria-live="polite" hidden></div>
 
   <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
-  <input type="file" id="plik-projekt" accept=".json,application/json" hidden>
+  <input type="file" id="plik-projekt" accept=".plite,.json,application/vnd.publisher-lite+zip,application/zip,application/json" hidden>
 </body>
 </html>

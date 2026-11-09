@@ -17,6 +17,7 @@ import {
 import * as chmura from './chmura.js';
 import { ikona, wstawIkony } from './ikony.js';
 import { Instrukcja } from './instrukcja.js';
+import { zapiszPlikProjektu, wczytajPlikProjektu as odczytajPlik, ROZSZERZENIE } from './plik-projektu.js';
 
 const $ = (sel, korzen = document) => korzen.querySelector(sel);
 const $$ = (sel, korzen = document) => [...korzen.querySelectorAll(sel)];
@@ -141,6 +142,64 @@ function odmianaProjektow(n) {
 }
 
 // ======================================================================
+// Adresy podstron (routing w części # adresu – działa na GitHub Pages)
+// ======================================================================
+//
+//   #/projekty                       lista projektów
+//   #/p/<id projektu>                projekt (pierwsza strona)
+//   #/p/<id projektu>/s/<id strony>  konkretna strona
+//   #/p/<id projektu>/w/<id wzorca>  edycja wzorca
+
+const trasa = {
+  odczytaj() {
+    const [rodzaj, id, typ, cel] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+    if (rodzaj === 'p' && id) return { ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null };
+    return { ekran: 'projekty' };
+  },
+  // Zmiana ekranu dodaje wpis do historii (działa „Wstecz”), zmiana strony
+  // w projekcie tylko podmienia adres.
+  ustaw(sciezka, { zastap = false } = {}) {
+    const nowy = `#/${sciezka}`;
+    if (location.hash === nowy) return;
+    history[zastap ? 'replaceState' : 'pushState'](null, '', nowy);
+  },
+};
+
+let obslugaTrasy = Promise.resolve();
+function przejdzDoTrasy() {
+  obslugaTrasy = obslugaTrasy.then(async () => {
+    if (!stan.uzytkownik && !stan.trybLokalny) return;
+    const t = trasa.odczytaj();
+    if (t.ekran === 'projekty') {
+      if (stan.projekt) await doProjektow(); else if (document.body.dataset.ekran !== 'projekty') await pokazProjekty();
+      return;
+    }
+    if (stan.projekt?.id === t.id) {
+      if (t.wzorzec && (stan.tryb !== 'wzorzec' || stan.idWzorca !== t.wzorzec)) await edytujWzorzec(t.wzorzec);
+      else if (t.strona) {
+        const i = stan.projekt.strony.findIndex((x) => x.id === t.strona);
+        if (i >= 0 && (stan.tryb !== 'strona' || i !== stan.indeks)) await przejdzDoStrony(i);
+      }
+      return;
+    }
+    if (stan.projekt) await zapiszTeraz();
+    const wpis = (await wpisyProjektow()).find((w) => w.id === t.id);
+    const projekt = wpis && await wczytajProjektZWpisu(wpis).catch(() => null);
+    if (!projekt) {
+      powiadom('Nie znaleziono projektu z tego adresu – może został usunięty.', true);
+      trasa.ustaw('projekty', { zastap: true });
+      stan.projekt = null;
+      await pokazProjekty();
+      return;
+    }
+    await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec });
+  }).catch((e) => console.error(e));
+  return obslugaTrasy;
+}
+
+window.addEventListener('popstate', () => przejdzDoTrasy());
+
+// ======================================================================
 // Logowanie
 // ======================================================================
 
@@ -200,8 +259,10 @@ async function poZalogowaniu(uzytkownik) {
     : 'Tryb bez konta – projekty tylko w tej przeglądarce';
   const wyl = $('[data-akcja="wyloguj"]');
   wyl.lastChild.textContent = uzytkownik ? 'Wyloguj' : 'Przejdź do logowania';
-  await pokazProjekty();
-  instrukcja.otworzJesliNowa(uzytkownik?.id || 'lokalny');
+  await przejdzDoTrasy();
+  if (document.body.dataset.ekran === 'start' || document.body.dataset.ekran === 'logowanie') await pokazProjekty();
+  if (plikiDoOtwarcia.length) await otworzOczekujacePliki();
+  else instrukcja.otworzJesliNowa(uzytkownik?.id || 'lokalny');
 }
 
 async function wyloguj() {
@@ -214,6 +275,7 @@ async function wyloguj() {
   stan.uzytkownik = null;
   stan.trybLokalny = false;
   logowanie.komunikat('');
+  trasa.ustaw('projekty', { zastap: true });
   pokazEkran('logowanie');
 }
 
@@ -246,13 +308,14 @@ async function wpisyProjektow() {
 
 async function pokazProjekty() {
   pokazEkran('projekty');
+  trasa.ustaw('projekty');
   const siatka = $('#siatka-projektow');
   siatka.innerHTML = '<li class="karta-projektu szkielet"><div class="okladka"></div><div class="opis"><strong>&nbsp;</strong><small>&nbsp;</small></div></li>'.repeat(3);
   $('#pusto-projekty').hidden = true;
   const wpisy = await wpisyProjektow();
   siatka.replaceChildren();
   $('#pusto-projekty').hidden = wpisy.length > 0;
-  $('.projekty-naglowek [data-akcja="nowy-projekt"]').hidden = wpisy.length === 0;
+  $('.projekty-naglowek .przyciski-naglowka').hidden = wpisy.length === 0;
   $('#podsumowanie-projektow').textContent = wpisy.length ? `${wpisy.length} ${odmianaProjektow(wpisy.length)}` : '';
 
   for (const w of wpisy) {
@@ -266,7 +329,7 @@ async function pokazProjekty() {
       <button class="przycisk-ikona menu-karty" aria-label="Opcje projektu" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
         <button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>
-        <button role="menuitem" data-op="json">${ikona('pobierz')}Pobierz kopię (JSON)</button>
+        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.plite)</button>
         <hr>
         <button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}Usuń projekt</button>
       </div>`;
@@ -282,7 +345,7 @@ async function pokazProjekty() {
       if (!op) return;
       zamknijMenu();
       if (op === 'nazwa') await zmienNazweProjektu(w);
-      if (op === 'json') await pobierzJsonProjektu(w);
+      if (op === 'eksport') await eksportujProjekt(w);
       if (op === 'usun') await usunProjekt(w);
     });
     siatka.append(li);
@@ -330,14 +393,20 @@ async function zmienNazweProjektu(w) {
   pokazProjekty();
 }
 
-async function pobierzJsonProjektu(w) {
-  const projekt = w.id === stan.projekt?.id ? stan.projekt : await wczytajProjektZWpisu(w);
-  // Plik zawiera także obrazy, więc otworzy się na każdym urządzeniu.
-  const zasoby = Object.fromEntries(Object.entries(projekt.zasoby || {}).map(([id, { sciezka, ...z }]) => [id, z]));
-  const blob = new Blob([JSON.stringify({ ...projekt, zasoby }, null, 1)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  pobierz(`${bezpiecznaNazwa(projekt.nazwa)}.json`, url);
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+// Eksport całego projektu do pliku .plite (z obrazami) – kopia zapasowa
+// albo przeniesienie na inne konto.
+async function eksportujProjekt(w) {
+  try {
+    const projekt = await wczytajProjektZWpisu(w);
+    powiadom('Przygotowuję plik…');
+    const blob = await zapiszPlikProjektu(projekt);
+    const url = URL.createObjectURL(blob);
+    pobierz(`${bezpiecznaNazwa(projekt.nazwa)}${ROZSZERZENIE}`, url);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    powiadom(`Zapisano „${projekt.nazwa}${ROZSZERZENIE}”.`);
+  } catch (e) {
+    powiadom(`Nie udało się wyeksportować: ${e.message}`, true);
+  }
 }
 
 async function usunProjekt(w) {
@@ -479,6 +548,7 @@ async function zaladujCel({ dopasuj = false } = {}) {
   if (dopasuj || innyRozmiar) edytor.dopasujDoOkna();
   odswiezPasekEdytora();
   renderujListe();
+  trasa.ustaw(`p/${stan.projekt.id}/${stan.tryb === 'wzorzec' ? `w/${cel.id}` : `s/${cel.id}`}`, { zastap: true });
 }
 
 function stanZapisu(rodzaj, tekst) {
@@ -490,15 +560,18 @@ function stanZapisu(rodzaj, tekst) {
   el.title = tekst;
 }
 
-async function otworzProjekt(p) {
+// cel: { strona: id, wzorzec: id } – opcjonalnie, np. z adresu strony.
+async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
   stan.projekt = normalizuj(p);
-  stan.indeks = 0;
-  stan.tryb = 'strona';
-  stan.idWzorca = null;
+  stan.indeks = Math.max(0, stan.projekt.strony.findIndex((x) => x.id === cel.strona));
+  const wzorzec = cel.wzorzec && stan.projekt.wzorce.find((w) => w.id === cel.wzorzec);
+  stan.tryb = wzorzec ? 'wzorzec' : 'strona';
+  stan.idWzorca = wzorzec ? wzorzec.id : null;
   stan.miniatury.clear();
-  ustawZakladke('strony');
+  ustawZakladke(wzorzec ? 'wzorce' : 'strony');
   pokazEkran('edytor');
+  if (trasa.odczytaj().id !== stan.projekt.id) trasa.ustaw(`p/${stan.projekt.id}`);
   $('#nazwa-projektu').value = stan.projekt.nazwa;
   document.title = `${stan.projekt.nazwa} – Publisher-lite`;
   edytor.wydruk = null;
@@ -1253,7 +1326,7 @@ function renderujOstrzezenia(lista) {
 
 async function wczytajPlikProjektu(plik) {
   try {
-    const projekt = normalizuj(JSON.parse(await plik.text()));
+    const projekt = normalizuj(await odczytajPlik(plik));
     const istniejacy = await wczytajLokalnie(projekt.id);
     if (istniejacy) {
       const zastap = await potwierdz(
@@ -1306,21 +1379,12 @@ const akcje = {
   instrukcja: () => instrukcja.otworz(0),
   'zamknij-instrukcje': () => instrukcja.zamknij(),
   wyloguj,
-  'wczytaj-plik': () => { zamknijMenu(); $('#plik-projekt').click(); },
+  'importuj-projekt': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
-  'pobierz-json': () => { zamknijMenu(); pobierzJsonProjektu({ id: stan.projekt.id }); },
   png: () => {
     zamknijMenu();
     const nazwa = stan.tryb === 'wzorzec' ? `wzorzec-${biezacyWzorzec().nazwa}` : `s${stan.indeks + 1}`;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-${bezpiecznaNazwa(nazwa)}.png`, edytor.png(150));
-  },
-  'usun-projekt': async () => {
-    zamknijMenu();
-    const p = stan.projekt;
-    if (await usunProjekt({ id: p.id, nazwa: p.nazwa })) {
-      stan.projekt = null;
-      pokazProjekty();
-    }
   },
   wydruk: () => otworzUstawieniaSekcji(biezacaSekcja().id),
   'zamknij-panel': () => ustawPanel(''),
@@ -1391,15 +1455,17 @@ $('#naglowek-ostrzezen').addEventListener('click', (e) => {
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
 });
 
-$('#plik-obraz').addEventListener('change', (e) => {
+// Pole wyboru pliku czyścimy dopiero po wczytaniu – wyczyszczenie wcześniej
+// potrafi unieważnić plik, zanim zostanie odczytany.
+$('#plik-obraz').addEventListener('change', async (e) => {
   const plik = e.target.files[0];
+  if (plik) await wstawObraz(plik);
   e.target.value = '';
-  if (plik) wstawObraz(plik);
 });
-$('#plik-projekt').addEventListener('change', (e) => {
+$('#plik-projekt').addEventListener('change', async (e) => {
   const plik = e.target.files[0];
+  if (plik) await wczytajPlikProjektu(plik);
   e.target.value = '';
-  if (plik) wczytajPlikProjektu(plik);
 });
 
 const kontener = $('#kontener-plotna');
@@ -1408,7 +1474,7 @@ kontener.addEventListener('drop', (e) => {
   e.preventDefault();
   for (const plik of e.dataTransfer.files) {
     if (plik.type.startsWith('image/')) wstawObraz(plik);
-    else if (plik.name.endsWith('.json')) wczytajPlikProjektu(plik);
+    else if (/\.(plite|json)$/i.test(plik.name)) wczytajPlikProjektu(plik);
   }
 });
 
@@ -1505,12 +1571,31 @@ async function start() {
       }
     });
     const uzytkownik = await chmura.biezacyUzytkownik();
-    if (uzytkownik) await poZalogowaniu(uzytkownik);
+    if (uzytkownik) await poZalogowaniu(uzytkownik); // otwiera adres z paska (np. odświeżony projekt)
     else pokazEkran('logowanie');
   } catch (e) {
     pokazEkran('logowanie');
     logowanie.komunikat(`Nie można połączyć się z serwerem: ${chmura.komunikatBledu(e)}`);
   }
+}
+
+// ---------- Aplikacja instalowana (PWA) ----------
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('Service worker:', e));
+}
+
+// Pliki .plite otwierane z systemu (zainstalowana aplikacja na komputerze).
+// Wczytujemy je dopiero po zalogowaniu.
+const plikiDoOtwarcia = [];
+if ('launchQueue' in window) {
+  window.launchQueue.setConsumer(async (params) => {
+    for (const uchwyt of params.files || []) plikiDoOtwarcia.push(await uchwyt.getFile());
+    if (stan.uzytkownik || stan.trybLokalny) otworzOczekujacePliki();
+  });
+}
+async function otworzOczekujacePliki() {
+  while (plikiDoOtwarcia.length) await wczytajPlikProjektu(plikiDoOtwarcia.shift());
 }
 
 start().catch((e) => {

@@ -33,7 +33,7 @@ jobs:
       - name: Przygotuj pliki strony
         run: |
           mkdir -p _site
-          cp -r index.html css js img _site/
+          cp -r index.html manifest.webmanifest sw.js css js img _site/
           touch _site/.nojekyll
 
       - name: Configure Pages

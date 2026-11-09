@@ -658,3 +658,13 @@ body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
 @media (max-width: 860px) {
   .pasek-wzorca { left: 10px; right: 10px; bottom: 64px; max-width: none; }
 }
+
+.przyciski-naglowka { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.instrukcja-tresc .dlaczego {
+  margin-top: 16px; padding: 14px 16px; max-width: 70ch;
+  border-left: 3px solid var(--uwaga); border-radius: 0 var(--r-m) var(--r-m) 0;
+  background: var(--uwaga-tlo);
+}
+.instrukcja-tresc .dlaczego h4 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--uwaga); }
+.instrukcja-tresc .dlaczego ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; color: var(--tusz-2); }

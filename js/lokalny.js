@@ -23,7 +23,7 @@ async function transakcja(tryb, fn) {
   return new Promise((ok, blad) => {
     const tx = db.transaction(MAGAZYN, tryb);
     const wynik = fn(tx.objectStore(MAGAZYN));
-    tx.oncomplete = () => { db.close(); ok(wynik?.result ?? wynik); };
+    tx.oncomplete = () => { db.close(); ok(wynik instanceof IDBRequest ? wynik.result : wynik); };
     tx.onerror = () => { db.close(); blad(tx.error); };
     tx.onabort = () => { db.close(); blad(tx.error); };
   });

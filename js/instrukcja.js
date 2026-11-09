@@ -9,13 +9,19 @@ const KLUCZ_PRZECZYTANA = 'publisher-lite:instrukcja-przeczytana';
 export const ROZDZIALY = [
   {
     tytul: 'Na początek',
-    wstep: 'Publisher-lite służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzór strony, a w kolejnych wersjach aplikacja wstawi do niego dane z arkusza i złoży gotowy PDF do druku.',
+    wstep: 'Publisher-lite służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a w kolejnych wersjach aplikacja wstawi do nich dane z arkusza i złoży gotowy PDF do druku.',
     obraz: 'projekty.png',
     podpis: 'Lista projektów po zalogowaniu.',
     punkty: [
-      'Projekty są przypisane do Twojego konta i dostępne na tablecie, telefonie i komputerze.',
+      'Projekt to jedna publikacja – np. „Kalendarz 2027”. Karta pokazuje okładkę (pierwszą stronę) i datę ostatniej zmiany.',
       'Każda zmiana zapisuje się sama – nie ma przycisku „Zapisz”.',
-      'Instrukcję otworzysz w każdej chwili przyciskiem <b>Instrukcja</b> na liście projektów albo <b>?</b> w edytorze.',
+      '<b>Importuj</b> wczytuje projekt z pliku <code>.plite</code>, a menu <b>⋯</b> na karcie: zmiana nazwy, eksport do pliku, usunięcie.',
+      'Instrukcję otworzysz w każdej chwili przyciskiem <b>Instrukcja</b> albo <b>?</b> w edytorze.',
+    ],
+    dlaczego: [
+      '<b>Projekty zamiast plików na dysku</b> – projekt żyje na koncie, więc otwierasz go na tablecie, telefonie i komputerze bez przenoszenia plików.',
+      '<b>Zapis automatyczny</b> – na tablecie łatwo zamknąć kartę lub stracić zasięg; nic nie powinno zginąć przez zapomniany „Zapisz”.',
+      '<b>Operacje na całym projekcie tylko na liście projektów</b> – eksport, import i usuwanie dotyczą całości, więc są tam, gdzie widać wszystkie projekty, a nie w edytorze, gdzie łatwo je pomylić z akcjami na stronie.',
     ],
   },
   {
@@ -27,17 +33,27 @@ export const ROZDZIALY = [
       'Hasło zmienia się lub resetuje w panelu Supabase → Authentication → Users.',
       'Wylogowanie: kliknij kółko z inicjałem w prawym górnym rogu listy projektów.',
     ],
+    dlaczego: [
+      '<b>Logowanie przed wszystkim</b> – projekty są prywatne; bez konta nie da się ich bezpiecznie trzymać w bazie i synchronizować między urządzeniami.',
+      '<b>Brak rejestracji</b> – aplikacja ma jednego użytkownika. Każdy formularz zakładania konta to furtka dla obcych, więc jej nie ma.',
+      '<b>Brak resetu hasła w aplikacji</b> – reset przez e-mail wymaga konfiguracji poczty i przekierowań, a przy jednym koncie szybciej zrobić to w panelu Supabase.',
+    ],
   },
   {
     tytul: 'Nowy projekt',
-    wstep: 'Projekt to cała publikacja: format wydruku i wszystkie strony.',
+    wstep: 'Projekt to cała publikacja: sekcje, wzorce i wszystkie strony.',
     obraz: 'nowy-projekt.png',
     podpis: 'Okno „Nowy projekt”.',
     punkty: [
       'Wpisz nazwę i wybierz format – kafelki pokazują proporcje strony. <b>Własny</b> pozwala wpisać dowolny wymiar w milimetrach.',
       '<b>Spad</b> to pas za krawędzią strony, który drukarnia odcina. Zwykle 3 mm.',
-      '<b>Marginesy</b> wyznaczają bezpieczny obszar na teksty. Aplikacja ostrzeże, jeśli coś z niego wyjdzie.',
+      '<b>Marginesy</b> wyznaczają bezpieczny obszar na teksty.',
       'Projekt zaczyna od jednej sekcji „Główna” w tym formacie. Kolejne sekcje (np. okładkę o innym rozmiarze) dodasz w edytorze.',
+    ],
+    dlaczego: [
+      '<b>Format na starcie</b> – wszystkie wymiary w projekcie są w milimetrach względem strony, więc rozmiar trzeba znać, zanim postawi się pierwszy element.',
+      '<b>Kafelki z proporcjami</b> – na tablecie łatwiej wskazać kształt strony palcem niż wpisywać liczby; liczby zostają dla formatu własnego.',
+      '<b>Spad domyślnie 3 mm</b> – tyle wymaga większość drukarni. Bez spadu tło „do krawędzi” po przycięciu zostawia białą kreskę.',
     ],
   },
   {
@@ -46,10 +62,15 @@ export const ROZDZIALY = [
     obraz: 'edytor.png',
     podpis: 'Edytor na tablecie w poziomie.',
     punkty: [
-      '<b>1. Strony</b> (z lewej) – miniatury wszystkich stron projektu. Kliknij miniaturę, aby ją edytować.',
-      '<b>2. Strona</b> (pośrodku) – tu układasz elementy. Na górze pasek <b>Wstaw</b>, w prawym dolnym rogu powiększenie.',
-      '<b>3. Właściwości</b> (z prawej) – ustawienia zaznaczonego elementu albo całej strony, gdy nic nie jest zaznaczone.',
-      'Na górnym pasku: powrót do projektów, nazwa projektu, stan zapisu, cofanie, format i menu <b>⋯</b>.',
+      '<b>1. Strony i wzorce</b> (z lewej) – lista stron pogrupowana w sekcje oraz zakładka wzorców.',
+      '<b>2. Strona</b> (pośrodku) – tu układasz elementy. Na górze pasek <b>Wstaw</b>, w prawym dolnym rogu powiększenie i linie pomocnicze.',
+      '<b>3. Właściwości</b> (z prawej) – ustawienia zaznaczonego elementu albo strony, gdy nic nie jest zaznaczone.',
+      'Górny pasek: powrót do projektów, nazwa projektu, stan zapisu, cofanie, sekcja i jej format, instrukcja, menu <b>⋯</b> (PNG bieżącej strony).',
+    ],
+    dlaczego: [
+      '<b>Układ jak w programach do składu</b> (Publisher, InDesign): strony z lewej, płótno w środku, właściwości z prawej – ręka sama wie, gdzie szukać.',
+      '<b>Pływający pasek „Wstaw” nad stroną</b> – na tablecie przyciski są blisko miejsca pracy, a strona dostaje całą wysokość ekranu.',
+      '<b>Panel właściwości zamiast okienek</b> – zmiana rozmiaru czcionki czy położenia nie zasłania strony i widać efekt od razu.',
     ],
   },
   {
@@ -58,11 +79,17 @@ export const ROZDZIALY = [
     obraz: 'wstawianie.png',
     podpis: 'Zaznaczony tekst z uchwytami.',
     punkty: [
-      '<b>Tekst</b> – kliknij dwa razy, aby pisać bezpośrednio na stronie, albo wpisz treść w polu <b>Treść</b> po prawej (wygodniejsze na telefonie).',
+      '<b>Tekst</b> – kliknij dwa razy, aby pisać bezpośrednio na stronie, albo wpisz treść w polu <b>Treść</b> po prawej.',
       '<b>Prostokąt, Elipsa, Linia</b> – kształty do ramek, tła i podziałów.',
       '<b>Obraz</b> – zdjęcie lub grafika z dysku. Możesz też przeciągnąć plik na stronę.',
       'Przeciągnij element, aby go przesunąć. Kółka w rogach zmieniają rozmiar, kółko nad elementem go obraca.',
       'Przy krawędziach, marginesach i środku strony element „przykleja się” – pokazuje to różowa linia.',
+    ],
+    dlaczego: [
+      '<b>Nowy element na środku strony</b> – zawsze widać, gdzie się pojawił, także po powiększeniu.',
+      '<b>Duże uchwyty</b> – na ekranie dotykowym palec jest mniej dokładny niż mysz, więc obszar chwytania jest powiększony.',
+      '<b>Przyciąganie do marginesów i środka</b> – równe ustawienie elementów bez wpisywania liczb, bo w druku nawet milimetr różnicy między stronami jest widoczny.',
+      '<b>Pole „Treść” obok edycji na stronie</b> – na telefonie klawiatura zasłania pół ekranu; w polu tekstowym pisze się wygodniej.',
     ],
   },
   {
@@ -74,10 +101,16 @@ export const ROZDZIALY = [
       '<b>Tekst</b>: treść, czcionka, rozmiar, interlinia, kolor, pogrubienie, kursywa, wyrównanie.',
       '<b>Położenie i rozmiar</b>: dokładne X, Y, szerokość, wysokość i obrót.',
       '<b>Kolejność</b>: przenosi element nad lub pod inne.',
-      '<b>Obraz</b>: przycięcie z każdej strony, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi).',
+      '<b>Obraz</b>: przycięcie z każdej strony, obrys, odbicie i informacja o rozdzielczości.',
       'Ikony nad panelem: <b>duplikuj</b> i <b>usuń</b> element.',
     ],
     rada: 'Kilka elementów zaznaczysz, przeciągając prostokąt po pustym miejscu strony albo klikając z wciśniętym Shift. Potem możesz je zgrupować.',
+    dlaczego: [
+      '<b>Milimetry i punkty</b> – w tych jednostkach mówi drukarnia i w nich podaje się wymiary papieru; piksele zależą od ekranu.',
+      '<b>Pola liczbowe obok przeciągania</b> – palcem trudno ustawić element z dokładnością do milimetra; liczbę wpisuje się raz i jest dokładnie.',
+      '<b>Tylko czcionki z licencją OFL</b> – publikacja może być sprzedawana, a te czcionki wolno używać komercyjnie i osadzać w PDF.',
+      '<b>Informacja o dpi obrazu</b> – zdjęcie, które wygląda dobrze na ekranie, w druku może być rozmyte; poniżej 300 dpi aplikacja ostrzega.',
+    ],
   },
   {
     tytul: 'Strony',
@@ -87,7 +120,12 @@ export const ROZDZIALY = [
     punkty: [
       '<b>+ Strona</b> na dole panelu wstawia pustą stronę za bieżącą, w tej samej sekcji.',
       'Przycisk <b>⋯</b> na miniaturze: zmiana nazwy, duplikowanie, przesuwanie w górę i w dół (w obrębie sekcji), usuwanie.',
-      'Nazwy stron (np. „Okładka”, „Tydzień – lewa”) pomogą później przy podpinaniu danych.',
+      'Nazwy stron (np. „Styczeń”, „Notatki”) pomogą później przy podpinaniu danych.',
+    ],
+    dlaczego: [
+      '<b>Miniatury zamiast numerów</b> – stronę rozpoznaje się po wyglądzie szybciej niż po numerze.',
+      '<b>Duplikowanie</b> – w kalendarzu większość stron jest podobna; łatwiej poprawić kopię niż rysować od zera.',
+      '<b>Przesuwanie tylko w obrębie sekcji</b> – strona okładki nie powinna przypadkiem trafić między strony środka o innym formacie.',
     ],
   },
   {
@@ -100,7 +138,12 @@ export const ROZDZIALY = [
       '<b>+ Sekcja</b> na dole listy tworzy nową sekcję z pierwszą stroną.',
       'Przycisk <b>⋯</b> przy nagłówku: ustawienia sekcji, dodanie strony, zmiana kolejności, usunięcie.',
       'Okładkę z grzbietem ustaw jako jedną szeroką stronę: tył + grzbiet + przód (np. 148 + 6 + 148 mm).',
-      'Stronę przeniesiesz do innej sekcji w jej właściwościach (pole <b>Sekcja</b>). Nazwa i format bieżącej sekcji są też na górnym pasku.',
+      'Stronę przeniesiesz do innej sekcji w jej właściwościach (pole <b>Sekcja</b>).',
+    ],
+    dlaczego: [
+      '<b>Różne części publikacji mają różne wymagania</b> – okładka jest szersza (grzbiet), ma inny spad, wkładka może mieć inny papier i marginesy.',
+      '<b>Ustawienia na sekcję, nie na stronę</b> – zmiana marginesu w środku kalendarza ma objąć wszystkie 365 stron naraz.',
+      '<b>Sekcja to później osobny plik PDF</b> – drukarnie zwykle przyjmują okładkę i środek jako oddzielne pliki.',
     ],
   },
   {
@@ -113,8 +156,14 @@ export const ROZDZIALY = [
       'Wzorzec podpinasz do sekcji (będzie na wszystkich jej stronach) – w panelu wzorca albo w ustawieniach sekcji. Jeden wzorzec może służyć kilku sekcjom.',
       'Pojedyncza strona może mieć inny wzorzec albo żaden – pole <b>Wzorzec</b> we właściwościach strony.',
       'Numer strony: wpisz w tekście wzorca <code>{nr}</code>. Działają też <code>{nr_w_sekcji}</code>, <code>{liczba_stron}</code>, <code>{sekcja}</code> i <code>{strona}</code>.',
-      'Na zwykłych stronach elementy wzorca widać, ale nie da się ich zaznaczyć ani przesunąć. Zmieniasz je tylko we wzorcu – i zmieniają się wszędzie.',
       '<b>Gotowe</b> na fioletowym pasku wraca do stron.',
+    ],
+    dlaczego: [
+      '<b>Raz zamiast 365 razy</b> – wspólne elementy rysowane na każdej stronie osobno trzeba by też poprawiać na każdej osobno.',
+      '<b>Wzorce niezależne od sekcji</b> – ta sama stopka może być w środku i we wkładce, a okładka nie ma żadnej.',
+      '<b>Elementów wzorca nie da się zaznaczyć na stronie</b> – przy układaniu treści nie przesuniesz przypadkiem ramki, która musi być wszędzie w tym samym miejscu.',
+      '<b>Fioletowe tło przy edycji</b> – od razu widać, że zmieniasz coś, co pojawi się na wielu stronach.',
+      '<b>Zmienne {nr} itd.</b> – numeracja liczy się sama, także po dodaniu lub przesunięciu stron.',
     ],
   },
   {
@@ -126,32 +175,50 @@ export const ROZDZIALY = [
       '<b>Czerwona linia</b> – krawędź strony po przycięciu.',
       '<b>Różowy pas</b> – spad. Tła i zdjęcia, które mają sięgać krawędzi, rozciągnij aż do jego końca.',
       '<b>Niebieska przerywana</b> – margines. Teksty trzymaj wewnątrz.',
-      'Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę <b>Ostrzeżenia</b>. Jeśli to celowe (np. tło na spad), kliknij <b>Wycisz</b>.',
+      'Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę <b>Ostrzeżenia</b>. Jeśli to celowe, kliknij <b>Wycisz</b>.',
       'Linie ukryjesz przyciskiem w prawym dolnym rogu, obok powiększenia.',
+    ],
+    dlaczego: [
+      '<b>Gilotyna w drukarni ma tolerancję ok. 1–2 mm</b> – tekst przy samej krawędzi może zostać przycięty, dlatego teksty trzymamy w marginesie.',
+      '<b>Ostrzeżenia nie blokują</b> – tło na spad czy numer strony w marginesie to często celowe decyzje; aplikacja tylko pilnuje, żebyś o nich wiedział.',
+      '<b>Wyciszanie per element</b> – raz sprawdzony element nie zaśmieca listy przy każdej kolejnej zmianie.',
     ],
   },
   {
-    tytul: 'Tablet i telefon',
-    wstep: 'Aplikacja działa w przeglądarce, także na tablecie i telefonie.',
+    tytul: 'Tablet, telefon i instalacja',
+    wstep: 'Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można ją też zainstalować jak zwykły program.',
     obraz: 'telefon.png',
     podpis: 'Telefon: panele wysuwają się z dołu.',
     obrazWaski: true,
     punkty: [
-      '<b>Jeden palec</b> – zaznaczanie i przesuwanie elementów.',
-      '<b>Dwa palce</b> – przesuwanie widoku i powiększanie (szczypanie).',
+      '<b>Jeden palec</b> – zaznaczanie i przesuwanie elementów. <b>Dwa palce</b> – przesuwanie widoku i powiększanie.',
       'Na telefonie panele <b>Strony</b>, <b>Właściwości</b> i <b>Ostrzeżenia</b> otwierasz przyciskami na dole ekranu.',
-      'Tekst najwygodniej poprawiać w polu <b>Treść</b> we Właściwościach – klawiatura nie zasłania wtedy strony.',
+      '<b>Instalacja na Androidzie</b> (Chrome): menu ⋮ → <b>Zainstaluj aplikację</b> / <b>Dodaj do ekranu głównego</b>.',
+      '<b>Instalacja na Macu</b> (Chrome lub Edge): ikona instalacji w pasku adresu. W Safari: Plik → <b>Dodaj do Docka</b>.',
+      'Zainstalowana aplikacja na komputerze otwiera pliki <code>.plite</code> dwuklikiem.',
+    ],
+    dlaczego: [
+      '<b>Przeglądarka zamiast osobnych aplikacji</b> – jedna wersja działa na Androidzie, Macu i iPadzie, bez sklepów i aktualizacji.',
+      '<b>Dwa palce dla widoku, jeden dla elementów</b> – tak działa większość aplikacji graficznych na tablecie, więc nie trzeba się uczyć nowych gestów.',
+      '<b>Instalacja (PWA)</b> – własna ikona, pełny ekran bez paska przeglądarki i szybsze uruchamianie, bo pliki aplikacji są zapamiętane na urządzeniu.',
     ],
   },
   {
-    tytul: 'Zapis i kopie',
+    tytul: 'Zapis, pliki i adresy',
     wstep: 'Zmiany zapisują się same: najpierw na urządzeniu, kilka sekund później na koncie.',
     obraz: 'menu.png',
-    podpis: 'Menu ⋯ w edytorze.',
+    podpis: 'Menu projektu na liście projektów.',
     punkty: [
-      'Stan zapisu widać obok nazwy projektu: <b>Zapisano</b>, <b>Zapisywanie…</b> albo <b>Offline</b> – wtedy zmiany czekają na urządzeniu i wyślą się po powrocie internetu.',
-      '<b>Cofnij</b> i <b>Ponów</b> na górnym pasku (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) działają w obrębie bieżącej strony.',
-      'Menu <b>⋯</b>: pobranie strony jako PNG, kopia całego projektu do pliku i wczytanie projektu z pliku.',
+      'Stan zapisu widać obok nazwy projektu: <b>Zapisano</b>, <b>Zapisywanie…</b> albo <b>Offline</b> – wtedy zmiany czekają na urządzeniu.',
+      '<b>Cofnij</b> i <b>Ponów</b> (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) działają w obrębie bieżącej strony.',
+      '<b>Eksport</b> (menu ⋯ na karcie projektu) zapisuje cały projekt do pliku <code>.plite</code>, a <b>Importuj</b> wczytuje go z powrotem.',
+      'W edytorze menu <b>⋯</b> pobiera bieżącą stronę jako obraz PNG.',
+      'Każdy ekran ma własny adres: lista projektów, konkretna strona projektu, edytowany wzorzec. Odświeżenie zostawia Cię w tym samym miejscu, a przycisk „Wstecz” wraca do listy.',
+    ],
+    dlaczego: [
+      '<b>Najpierw urządzenie, potem konto</b> – przy słabym zasięgu praca się nie zatrzymuje, a zmiany wysyłają się po powrocie sieci.',
+      '<b>Własny format .plite</b> – to archiwum ZIP z manifestem (co jest w środku, która wersja formatu), danymi projektu i obrazami jako zwykłymi plikami. Jest mniejsze niż tekstowy JSON z obrazami, da się je otworzyć dowolnym programem do ZIP, a manifest pozwala bezpiecznie wczytać plik z innej wersji aplikacji.',
+      '<b>Adresy z identyfikatorem projektu</b> – każdy projekt, strona i wzorzec ma stały identyfikator, więc adres zawsze prowadzi w to samo miejsce, nawet po zmianie nazw.',
     ],
   },
   {
@@ -166,6 +233,10 @@ export const ROZDZIALY = [
       '<kbd>Page Up</kbd> / <kbd>Page Down</kbd> poprzednia / następna strona',
       '<kbd>Ctrl</kbd> + kółko myszy – powiększenie',
     ],
+    dlaczego: [
+      '<b>Te same skróty co w innych programach</b> – Ctrl+Z, Ctrl+D, Ctrl+G działają tak samo jak w Publisherze czy Figmie.',
+      '<b>Strzałki w milimetrach</b> – dokładne dosuwanie bez myszy; krok 0,1 mm dla drobnych poprawek.',
+    ],
   },
   {
     tytul: 'Co będzie dalej',
@@ -173,8 +244,10 @@ export const ROZDZIALY = [
     punkty: [
       '<b>Dane</b>: import CSV i Excel, pola typu <code>{dzien}. {miesiac}</code> w tekście, automatyczne zmniejszanie tekstu, który się nie mieści.',
       '<b>Powielanie</b>: zakresy stron powtarzane według wierszy arkusza, z numeracją.',
-      '<b>Motywy</b>: wspólne tła i ramki nakładane na wybrane strony.',
-      '<b>PDF do druku</b>: spad, znaki cięcia, obrazy 300 dpi, podział na części.',
+      '<b>PDF do druku</b>: spad, znaki cięcia, obrazy 300 dpi, osobne pliki dla sekcji, podział na części.',
+    ],
+    dlaczego: [
+      '<b>Najpierw edytor, potem dane</b> – dane trzeba gdzieś wstawić; bez wygodnego projektowania stron nie ma do czego ich podpinać.',
     ],
   },
 ];
@@ -236,6 +309,9 @@ export class Instrukcja {
     }
     if (r.punkty?.length) html.push(`<ul class="punkty">${r.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
     if (r.rada) html.push(`<p class="rada">${r.rada}</p>`);
+    if (r.dlaczego?.length) {
+      html.push(`<section class="dlaczego"><h4>Dlaczego tak?</h4><ul>${r.dlaczego.map((d) => `<li>${d}</li>`).join('')}</ul></section>`);
+    }
     this.tresc.innerHTML = html.join('');
     this.tresc.scrollTop = 0;
 

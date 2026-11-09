@@ -129,7 +129,7 @@ async function przykladoweProjekty(strona) {
 
   // ---------- Logowanie ----------
   {
-    const kontekst = await przegladarka.newContext({ viewport: WIDOK });
+    const kontekst = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block' });
     await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: FAKE_KONFIG }));
     await kontekst.route('https://przyklad.supabase.co/**', (r) => r.abort());
     const s = await kontekst.newPage();
@@ -143,7 +143,7 @@ async function przykladoweProjekty(strona) {
   }
 
   // ---------- Desktop / tablet w poziomie ----------
-  const kontekst = await przegladarka.newContext({ viewport: WIDOK });
+  const kontekst = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block' });
   await bezBazy(kontekst);
   const s = await kontekst.newPage();
   s.on('pageerror', (e) => console.error('błąd strony:', e.message));
@@ -240,14 +240,17 @@ async function przykladoweProjekty(strona) {
     edytor.usun();
   });
 
-  // Menu „więcej”
-  await s.click('#przycisk-wiecej');
-  await zrzut(s, 'menu.png', { clip: { x: 640, y: 0, width: 640, height: 320 } });
+  // Menu projektu na liście projektów (eksport, import)
+  await s.click('[data-akcja="do-projektow"]');
+  await s.waitForSelector('.karta-projektu:not(.szkielet)');
+  await s.waitForTimeout(600);
+  await s.click('.karta-projektu:has-text("Kalendarz 2027") .menu-karty');
+  await zrzut(s, 'menu.png', { clip: { x: 0, y: 56, width: 1280, height: 480 } });
   await s.keyboard.press('Escape');
   await kontekst.close();
 
   // ---------- Telefon ----------
-  const tel = await przegladarka.newContext({ ...devices['Pixel 7'] });
+  const tel = await przegladarka.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
   await bezBazy(tel);
   const t = await tel.newPage();
   await t.goto(ADRES);
