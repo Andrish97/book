@@ -1,5 +1,5 @@
 -- Migracja: tabela projektów i bucket na zasoby (sekcja 9 planu).
--- Stosowana automatycznie przez integrację Supabase z GitHubem
+-- Stosowana automatycznie przy pushu na main (.github/workflows/deploy.yml)
 -- (lub ręcznie: supabase db push / wklejenie w SQL Editor).
 -- Od początku jest owner_id i RLS, więc późniejsze udostępnianie innym
 -- osobom nie wymaga przebudowy.
