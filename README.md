@@ -29,19 +29,18 @@ python3 -m http.server 8000
 
 Na tablecie w tej samej sieci: `http://<adres-komputera>:8000`. Uwaga: `crypto.randomUUID` i IndexedDB wymagają bezpiecznego kontekstu, czyli HTTPS albo `localhost`. Do testów na tablecie najprościej użyć GitHub Pages.
 
-### GitHub Pages
+### Deploy (push na `main`)
 
-Settings → Pages → Deploy from a branch → wybierz gałąź i katalog `/ (root)`.
+Tak samo jak w `brick_ai`: push na `main` uruchamia GitHub Actions.
 
-### Supabase
+- [`deploy.yml`](.github/workflows/deploy.yml): migracje bazy (`supabase db push`) z [`supabase/migrations/`](supabase/migrations/) oraz Edge Functions z `supabase/functions/<nazwa>/index.ts` (na razie brak).
+- [`pages.yml`](.github/workflows/pages.yml): publikuje aplikację na GitHub Pages. Przy tym generuje `js/konfiguracja.js` z adresem projektu i kluczem anon pobranym z API Supabase oraz dopisuje adres strony do *Redirect URLs* (logowanie linkiem z e-maila).
 
-Schemat bazy jest w migracjach: [`supabase/migrations/`](supabase/migrations/) (tabela `projekty` z RLS, prywatny bucket `zasoby`), a ustawienia w [`supabase/config.toml`](supabase/config.toml).
+Potrzebne sekrety repozytorium (Settings → Secrets and variables → Actions): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_URL`. GitHub Pages: Settings → Pages → Source: **GitHub Actions**.
 
-1. **Migracje:** integracja Supabase z GitHubem stosuje je automatycznie po scaleniu do gałęzi produkcyjnej ustawionej w integracji (zwykle `main`). Ręcznie: `supabase db push` albo wklejenie pliku w SQL Editor.
-2. **Logowanie e-mailem:** Authentication → URL Configuration → dodaj adres aplikacji (GitHub Pages, `http://localhost:8000`) do *Redirect URLs*.
-3. **Frontend:** wpisz *Project URL* i klucz *anon / publishable* w [`js/konfiguracja.js`](js/konfiguracja.js). Te dwie wartości są publiczne. Klucz `service_role` / *secret* nigdy nie trafia do frontendu.
+Lokalnie bez Supabase aplikacja działa na IndexedDB i plikach JSON. Żeby lokalnie łączyć się z bazą, wpisz adres i klucz anon w [`js/konfiguracja.js`](js/konfiguracja.js) (nie commituj klucza `service_role`).
 
-Różnica względem planu: zamiast osobnego bucketu dla każdego użytkownika jest jeden prywatny bucket z folderem na użytkownika (`<owner_id>/<projekt>/<zasób>`). Tak zwykle robi się to w Supabase, a reguły RLS dają ten sam efekt.
+Zasoby: jeden prywatny bucket `zasoby` z folderem na użytkownika (`<owner_id>/<projekt>/<zasób>`) zamiast osobnego bucketu na użytkownika – reguły RLS dają ten sam efekt.
 
 ## Struktura
 
