@@ -24,6 +24,7 @@ import {
 } from './ui.js';
 import { NAZWA } from './marka.js';
 import { Konto } from './konto.js';
+import { Podglad } from './podglad.js';
 import { domyslneStyle, zastosujStylWProjekcie, odepnijStyl } from './style-tekstu.js';
 
 
@@ -78,11 +79,16 @@ function odmianaProjektow(n) {
 //   #/p/<id projektu>                projekt (pierwsza strona)
 //   #/p/<id projektu>/s/<id strony>  konkretna strona
 //   #/p/<id projektu>/w/<id wzorca>  edycja wzorca
+//   #/p/<id projektu>/podglad        podgląd bez edycji
 
 const trasa = {
   odczytaj() {
     const [rodzaj, id, typ, cel] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
-    if (rodzaj === 'p' && id) return { ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null };
+    if (rodzaj === 'p' && id) {
+      return {
+        ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null, podglad: typ === 'podglad',
+      };
+    }
     if (rodzaj === 'konto') return { ekran: 'konto' };
     return { ekran: 'projekty' };
   },
@@ -111,6 +117,8 @@ function przejdzDoTrasy() {
       return;
     }
     if (stan.projekt?.id === t.id) {
+      if (t.podglad) { await pokazPodglad(); return; }
+      if (document.body.dataset.ekran === 'podglad') { pokazEkran('edytor'); edytor.canvas.calcOffset(); }
       if (t.wzorzec && (stan.tryb !== 'wzorzec' || stan.idWzorca !== t.wzorzec)) await edytujWzorzec(t.wzorzec);
       else if (t.strona) {
         const i = stan.projekt.strony.findIndex((x) => x.id === t.strona);
@@ -129,6 +137,7 @@ function przejdzDoTrasy() {
       return;
     }
     await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec });
+    if (t.podglad) await pokazPodglad();
   }).catch((e) => console.error(e));
   return obslugaTrasy;
 }
@@ -240,6 +249,7 @@ async function pokazProjekty() {
       </button>
       <button class="przycisk-ikona menu-karty" aria-label="Opcje projektu" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
+        <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>
         <button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>
         <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.seriodruk)</button>
         <hr>
@@ -256,6 +266,7 @@ async function pokazProjekty() {
       const op = e.target.closest('[data-op]')?.dataset.op;
       if (!op) return;
       zamknijMenu();
+      if (op === 'podglad') { trasa.ustaw(`p/${w.id}/podglad`); await przejdzDoTrasy(); }
       if (op === 'nazwa') await zmienNazweProjektu(w);
       if (op === 'eksport') await eksportujProjekt(w);
       if (op === 'usun') await usunProjekt(w);
@@ -563,6 +574,37 @@ async function otworzProjekt(p, cel = {}) {
   await zaladujCel({ dopasuj: true });
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
   generujMiniatury();
+}
+
+// ---------- Podgląd bez edycji ----------
+
+const podglad = new Podglad({
+  naEdycje: async (idStrony) => {
+    const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);
+    pokazEkran('edytor');
+    if (stan.tryb === 'strona' && i === stan.indeks) {
+      trasa.ustaw(`p/${stan.projekt.id}/s/${idStrony}`);
+      edytor.canvas.calcOffset();
+    } else {
+      trasa.ustaw(`p/${stan.projekt.id}`);
+      await przejdzDoStrony(i);
+    }
+  },
+});
+
+async function pokazPodglad() {
+  if (!stan.projekt) return;
+  await zapiszTeraz();
+  const biezaca = stan.tryb === 'strona' ? biezacaStrona().id : null;
+  pokazEkran('podglad');
+  trasa.ustaw(`p/${stan.projekt.id}/podglad`);
+  document.title = `${stan.projekt.nazwa} – podgląd – ${NAZWA}`;
+  podglad.pokaz(stan.projekt, biezaca);
+  $('#podglad-tresc').focus({ preventScroll: true });
+}
+
+function zamknijPodglad() {
+  podglad.o.naEdycje(stan.tryb === 'strona' ? biezacaStrona().id : stan.projekt.strony[0].id);
 }
 
 async function doProjektow() {
@@ -1419,6 +1461,11 @@ const akcje = {
   'ustawienia-konta': () => { zamknijMenu(); trasa.ustaw('konto'); przejdzDoTrasy(); },
   'importuj-projekt': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
+  podglad: () => pokazPodglad(),
+  'podglad-zamknij': zamknijPodglad,
+  'podglad-plus': () => podglad.powieksz(1.25),
+  'podglad-minus': () => podglad.powieksz(0.8),
+  'podglad-dopasuj': () => podglad.dopasuj(),
   png: () => {
     zamknijMenu();
     const nazwa = stan.tryb === 'wzorzec' ? `wzorzec-${biezacyWzorzec().nazwa}` : `s${stan.indeks + 1}`;
@@ -1549,6 +1596,7 @@ edytor.addEventListener('historia', () => {
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') zamknijMenu();
+  if (document.body.dataset.ekran === 'podglad' && e.key === 'Escape' && !$('dialog[open]')) { zamknijPodglad(); return; }
   if (document.body.dataset.ekran !== 'edytor') return;
   const cel = e.target;
   const wPolu = cel !== document.body && cel.closest('input, textarea, select, [contenteditable]');

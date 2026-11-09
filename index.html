@@ -245,6 +245,7 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
+      <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji"><span class="etyk">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
@@ -330,6 +331,23 @@
       <button data-panel="inspektor" data-ikona="suwaki"><span>Właściwości</span></button>
       <button data-panel="ostrzezenia" data-ikona="uwaga"><span>Ostrzeżenia</span><span class="kropka" id="kropka-ostrzezen" hidden></span></button>
     </nav>
+  </div>
+
+  <!-- ===================== Podgląd ===================== -->
+  <div class="ekran ekran-podgladu" id="ekran-podgladu">
+    <header class="pasek-aplikacji">
+      <button class="przycisk przezroczysty" data-akcja="podglad-zamknij" data-ikona="wstecz" title="Wróć do edycji"><span>Edytor</span></button>
+      <div class="separator"></div>
+      <h1 class="tytul-ekranu" id="podglad-tytul"></h1>
+      <span class="ciche podglad-opis" id="podglad-opis"></span>
+      <div class="odstep"></div>
+      <div class="grupa-przyciskow">
+        <button class="przycisk-ikona" data-akcja="podglad-minus" data-ikona="minus" aria-label="Pomniejsz"></button>
+        <button class="wartosc-zoom" data-akcja="podglad-dopasuj" id="podglad-zoom" title="Dopasuj do okna">100%</button>
+        <button class="przycisk-ikona" data-akcja="podglad-plus" data-ikona="plus" aria-label="Powiększ"></button>
+      </div>
+    </header>
+    <main class="podglad-tresc" id="podglad-tresc" tabindex="-1"></main>
   </div>
 
   <!-- ===================== Dialogi ===================== -->

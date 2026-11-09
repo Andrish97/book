@@ -22,6 +22,16 @@ export const WLASNE_POLA = [
 
 const MAKS_HISTORIA = 60;
 
+// Fabric 5 ustawia nieistniejącą wartość textBaseline ('alphabetical'), co przy
+// każdym rysowaniu tekstu wypisuje ostrzeżenie w konsoli. Ta sama funkcja z poprawną wartością.
+fabric.Text.prototype._setTextStyles = function _setTextStyles(ctx, charStyle, forMeasuring) {
+  ctx.textBaseline = 'alphabetic';
+  if (this.path) {
+    ctx.textBaseline = { center: 'middle', ascender: 'top', descender: 'bottom' }[this.pathAlign] || 'alphabetic';
+  }
+  ctx.font = this._getFontDeclaration(charStyle, forMeasuring);
+};
+
 // Wygląd uchwytów: powiększony obszar dotyku na tablecie (4.7).
 fabric.Object.prototype.set({
   transparentCorners: false,
