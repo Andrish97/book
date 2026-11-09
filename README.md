@@ -33,12 +33,13 @@ Na tablecie w tej samej sieci: `http://<adres-komputera>:8000`. Uwaga: `crypto.r
 
 Settings → Pages → Deploy from a branch → wybierz gałąź i katalog `/ (root)`.
 
-### Supabase (opcjonalnie)
+### Supabase
 
-1. Utwórz projekt na supabase.com (darmowy plan).
-2. SQL Editor → wklej i uruchom [`supabase/schema.sql`](supabase/schema.sql) (tabela, reguły RLS, bucket `zasoby`).
-3. Authentication → URL Configuration: dodaj adres aplikacji (np. adres GitHub Pages i `http://localhost:8000`) do *Redirect URLs*.
-4. Project Settings → API: wpisz *Project URL* i klucz *anon public* w [`js/konfiguracja.js`](js/konfiguracja.js). Klucz `service_role` nigdy nie trafia do frontendu.
+Schemat bazy jest w migracjach: [`supabase/migrations/`](supabase/migrations/) (tabela `projekty` z RLS, prywatny bucket `zasoby`), a ustawienia w [`supabase/config.toml`](supabase/config.toml).
+
+1. **Migracje:** integracja Supabase z GitHubem stosuje je automatycznie po scaleniu do gałęzi produkcyjnej ustawionej w integracji (zwykle `main`). Ręcznie: `supabase db push` albo wklejenie pliku w SQL Editor.
+2. **Logowanie e-mailem:** Authentication → URL Configuration → dodaj adres aplikacji (GitHub Pages, `http://localhost:8000`) do *Redirect URLs*.
+3. **Frontend:** wpisz *Project URL* i klucz *anon / publishable* w [`js/konfiguracja.js`](js/konfiguracja.js). Te dwie wartości są publiczne. Klucz `service_role` / *secret* nigdy nie trafia do frontendu.
 
 Różnica względem planu: zamiast osobnego bucketu dla każdego użytkownika jest jeden prywatny bucket z folderem na użytkownika (`<owner_id>/<projekt>/<zasób>`). Tak zwykle robi się to w Supabase, a reguły RLS dają ten sam efekt.
 
@@ -54,7 +55,7 @@ Różnica względem planu: zamiast osobnego bucketu dla każdego użytkownika je
 | `js/czcionki.js` | Lista dozwolonych czcionek (OFL) |
 | `js/lokalny.js` | IndexedDB |
 | `js/chmura.js`, `js/konfiguracja.js` | Supabase |
-| `supabase/schema.sql` | Schemat bazy i reguły dostępu |
+| `supabase/migrations/`, `supabase/config.toml` | Schemat bazy i reguły dostępu (migracje dla integracji Supabase z GitHubem) |
 
 ### Model danych
 

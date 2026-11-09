@@ -1,5 +1,6 @@
--- Schemat bazy dla Publisher-lite (sekcja 9 planu).
--- Uruchom w Supabase: SQL Editor → New query → wklej → Run.
+-- Migracja: tabela projektów i bucket na zasoby (sekcja 9 planu).
+-- Stosowana automatycznie przez integrację Supabase z GitHubem
+-- (lub ręcznie: supabase db push / wklejenie w SQL Editor).
 -- Od początku jest owner_id i RLS, więc późniejsze udostępnianie innym
 -- osobom nie wymaga przebudowy.
 
