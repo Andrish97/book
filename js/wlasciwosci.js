@@ -57,6 +57,7 @@ export class PanelWlasciwosci {
       const s = this.sekcja('Zaznaczenie');
       s.append(this.wskazowka('Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
       s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()]]));
+      this.zbudujWyrownanie(obj.size());
       this.zbudujGeometrie(obj, { tylkoPozycja: true });
       return;
     }
@@ -68,8 +69,10 @@ export class PanelWlasciwosci {
     if (obj.type === 'line') this.zbudujLinie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
+    this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
     const inne = this.sekcja('Inne');
+    inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
     this.opcje.dodatkiElementu?.(this, obj, inne);
@@ -87,6 +90,28 @@ export class PanelWlasciwosci {
     l.append(legenda);
     l.append(this.wskazowka('Kliknij element na stronie, aby zmienić jego wygląd. Linie nie są drukowane.'));
     return l;
+  }
+
+  zbudujWyrownanie(ile) {
+    const e = this.edytor;
+    const s = this.sekcja(ile > 1 ? 'Wyrównaj do siebie' : 'Wyrównaj do marginesów');
+    const wyr = this.segmenty('W poziomie i w pionie', [
+      ['wyrownajLewo', 'Do lewej', null, () => e.wyrownaj('lewo')],
+      ['wyrownajSrodekX', 'Do środka w poziomie', null, () => e.wyrownaj('srodekX')],
+      ['wyrownajPrawo', 'Do prawej', null, () => e.wyrownaj('prawo')],
+      ['wyrownajGora', 'Do góry', null, () => e.wyrownaj('gora')],
+      ['wyrownajSrodekY', 'Do środka w pionie', null, () => e.wyrownaj('srodekY')],
+      ['wyrownajDol', 'Do dołu', null, () => e.wyrownaj('dol')],
+    ]);
+    wyr.classList.add('szeroki');
+    s.append(wyr);
+    if (ile > 2) {
+      const roz = this.segmenty('Równe odstępy', [
+        ['rozlozX', 'Rozłóż równo w poziomie', null, () => e.rozloz('x')],
+        ['rozlozY', 'Rozłóż równo w pionie', null, () => e.rozloz('y')],
+      ]);
+      s.append(roz);
+    }
   }
 
   zbudujKolejnosc(obj) {
@@ -532,7 +557,7 @@ export class PanelWlasciwosci {
       b.setAttribute('aria-label', opis);
       if (tekstowe) { b.textContent = ik; b.classList.add('tekstowy'); } else b.innerHTML = ikona(ik, { rozmiar: 18 });
       b.addEventListener('mousedown', (e) => e.preventDefault());
-      b.addEventListener('click', () => { klik(); zapisz(); });
+      b.addEventListener('click', () => { klik(); if (aktywny || tekstowe) zapisz(); else this.odswiez(); });
       rzad.append(b);
       return [b, aktywny];
     });

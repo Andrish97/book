@@ -119,13 +119,16 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (m === 'GET') {
         if (id) {
           const p = moje.find((x) => x.id === id);
-          return p ? json(r, 200, { dane: p.dane, wersja: p.wersja }) : blad(r, 406, 'brak wiersza', 'PGRST116');
+          if (!p) return blad(r, 406, 'brak wiersza', 'PGRST116');
+          return json(r, 200, { dane: p.dane, wersja: p.wersja, zmieniono: p.zmieniono });
         }
         return json(r, 200, moje.map((p) => ({ id: p.id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null })));
       }
       if (m === 'POST') {
         const w = Array.isArray(tresc) ? tresc[0] : tresc;
         const i = stan.projekty.findIndex((p) => p.id === w.id);
+        const upsert = (req.headers().prefer || '').includes('merge-duplicates');
+        if (i >= 0 && !upsert) return blad(r, 409, 'duplicate key value violates unique constraint', '23505');
         const nowy = { ...w, owner_id: k.id };
         if (i >= 0) stan.projekty[i] = nowy; else stan.projekty.push(nowy);
         return json(r, 201, [nowy]);

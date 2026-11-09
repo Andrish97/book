@@ -177,6 +177,7 @@ export class Edytor extends EventTarget {
   // widoczne, ale niezaznaczalne i niezapisywane razem ze stroną.
   async wczytajStrone(strona, zasoby, warstwy = null) {
     this.zasoby = zasoby;
+    this._znacznikStrony = strona.id || Symbol('strona');
     this._warstwy = warstwy || { pod: [], nad: [] };
     this._wczytywanie = true;
     this.canvas.discardActiveObject();
@@ -185,6 +186,7 @@ export class Edytor extends EventTarget {
       this.canvas.loadFromJSON({ objects: obiekty, backgroundColor: strona.tlo || '#ffffff' }, ok);
     });
     this._dodajWzorce();
+    this._zastosujBlokady();
     this._dopasujRozmiar();
     this._wczytywanie = false;
     this._historia = [];
@@ -303,6 +305,7 @@ export class Edytor extends EventTarget {
     this.canvas.discardActiveObject();
     await new Promise((ok) => this.canvas.loadFromJSON(stan, ok));
     this._dodajWzorce();
+    this._zastosujBlokady();
     this._dopasujRozmiar();
     this._wczytywanie = false;
     this.przeliczOstrzezenia();
@@ -411,6 +414,114 @@ export class Edytor extends EventTarget {
     this.canvas.requestRenderAll();
   }
 
+  // ---------- Schowek (kopiuj / wklej, także między stronami) ----------
+
+  get maSchowek() { return Boolean(this._schowek); }
+
+  async kopiuj() {
+    const akt = this.aktywny;
+    if (!akt || akt.isEditing) return false;
+    this._schowek = await new Promise((ok) => akt.clone(ok, WLASNE_POLA));
+    this._wklejen = 0;
+    this._schowekZ = this._znacznikStrony;
+    this.dispatchEvent(new Event('schowek'));
+    return true;
+  }
+
+  async wytnij() {
+    if (await this.kopiuj()) this.usun();
+  }
+
+  // Na tej samej stronie wklejka jest lekko przesunięta, na innej trafia w to samo miejsce.
+  async wklej() {
+    if (!this._schowek) return;
+    const kopia = await new Promise((ok) => this._schowek.clone(ok, WLASNE_POLA));
+    if (this._schowekZ === this._znacznikStrony) this._wklejen += 1; else { this._wklejen = 0; this._schowekZ = this._znacznikStrony; }
+    const d = 5 * this._wklejen;
+    this.canvas.discardActiveObject();
+    kopia.set({ left: kopia.left + d, top: kopia.top + d, evented: true });
+    if (kopia.type === 'activeSelection') {
+      kopia.canvas = this.canvas;
+      kopia.forEachObject((o) => { o.set({ id: uid('o') }); this.canvas.add(o); });
+      kopia.setCoords();
+      this.canvas.setActiveObject(kopia);
+    } else {
+      this._wstaw(kopia);
+    }
+    this.canvas.requestRenderAll();
+  }
+
+  // ---------- Wyrównywanie i rozmieszczanie ----------
+
+  // Rozbija zaznaczenie na obiekty z położeniem na stronie, wykonuje fn i zaznacza ponownie.
+  _naZaznaczonych(fn) {
+    const akt = this.aktywny;
+    if (!akt) return;
+    const obiekty = akt.type === 'activeSelection' ? akt.getObjects().slice() : [akt];
+    this.canvas.discardActiveObject();
+    const ramki = obiekty.map((o) => { o.setCoords(); const r = o.getBoundingRect(true, true); return { o, x: r.left, y: r.top, w: r.width, h: r.height }; });
+    fn(ramki);
+    for (const { o } of ramki) o.setCoords();
+    if (obiekty.length > 1) this.canvas.setActiveObject(new fabric.ActiveSelection(obiekty, { canvas: this.canvas }));
+    else this.canvas.setActiveObject(obiekty[0]);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // jak: 'lewo' | 'srodekX' | 'prawo' | 'gora' | 'srodekY' | 'dol'.
+  // Kilka obiektów wyrównuje się do siebie, jeden – do obszaru w marginesach.
+  wyrownaj(jak) {
+    this._naZaznaczonych((ramki) => {
+      const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+      const m = this.marg;
+      const pole = ramki.length > 1
+        ? {
+          x1: Math.min(...ramki.map((r) => r.x)), x2: Math.max(...ramki.map((r) => r.x + r.w)),
+          y1: Math.min(...ramki.map((r) => r.y)), y2: Math.max(...ramki.map((r) => r.y + r.h)),
+        }
+        : { x1: m.lewy, x2: w - m.prawy, y1: m.gora, y2: h - m.dol };
+      for (const r of ramki) {
+        if (r.o.zablokowany) continue;
+        const dx = { lewo: pole.x1 - r.x, srodekX: (pole.x1 + pole.x2) / 2 - (r.x + r.w / 2), prawo: pole.x2 - (r.x + r.w) }[jak] || 0;
+        const dy = { gora: pole.y1 - r.y, srodekY: (pole.y1 + pole.y2) / 2 - (r.y + r.h / 2), dol: pole.y2 - (r.y + r.h) }[jak] || 0;
+        r.o.set({ left: r.o.left + dx, top: r.o.top + dy });
+      }
+    });
+  }
+
+  // Równe odstępy między trzema lub więcej obiektami. os: 'x' | 'y'.
+  rozloz(os) {
+    this._naZaznaczonych((ramki) => {
+      if (ramki.length < 3) return;
+      const [p, d, wl] = os === 'x' ? ['x', 'w', 'left'] : ['y', 'h', 'top'];
+      const kolejno = ramki.slice().sort((a, b) => a[p] - b[p]);
+      const zakres = kolejno.at(-1)[p] + kolejno.at(-1)[d] - kolejno[0][p];
+      const odstep = (zakres - kolejno.reduce((suma, r) => suma + r[d], 0)) / (kolejno.length - 1);
+      let nastepny = kolejno[0][p];
+      for (const r of kolejno) {
+        if (!r.o.zablokowany) r.o.set(wl, r.o[wl] + (nastepny - r[p]));
+        nastepny += r[d] + odstep;
+      }
+    });
+  }
+
+  // ---------- Blokada położenia i rozmiaru ----------
+
+  ustawBlokade(obj, wlaczona) {
+    obj.zablokowany = wlaczona || undefined;
+    const b = Boolean(wlaczona);
+    obj.set({
+      lockMovementX: b, lockMovementY: b, lockScalingX: b, lockScalingY: b, lockRotation: b,
+      hasControls: !b, hoverCursor: b ? 'default' : null,
+    });
+    this.canvas.requestRenderAll();
+  }
+
+  _zastosujBlokady() {
+    for (const o of this.canvas.getObjects()) if (o.zablokowany && !o.zWzorca) this.ustawBlokade(o, true);
+  }
+
   grupuj() {
     const akt = this.aktywny;
     if (!akt || akt.type !== 'activeSelection') return;
@@ -447,7 +558,7 @@ export class Edytor extends EventTarget {
 
   przesun(dx, dy) {
     const akt = this.aktywny;
-    if (!akt || akt.isEditing) return;
+    if (!akt || akt.isEditing || akt.zablokowany) return;
     akt.set({ left: akt.left + dx, top: akt.top + dy });
     akt.setCoords();
     this.canvas.requestRenderAll();

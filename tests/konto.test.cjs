@@ -176,3 +176,37 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   assert.equal(baza.projekty.length, 0);
   assert.deepEqual(bledy, []);
 });
+
+test('konflikt zapisu: zmiana z innego urządzenia nie jest nadpisywana po cichu', async (t) => {
+  const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await zalogujIZamknijInstrukcje(strona);
+  await nowyProjekt(strona, 'Wspólny');
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  await strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
+  // Każdy zapis podnosi wersję: po kolejnej zmianie jest wyższa.
+  const pierwsza = baza.projekty[0].wersja;
+  await strona.click('[data-akcja="dodaj-linie"]');
+  await new Promise((ok) => setTimeout(ok, 4500));
+  assert.ok(baza.projekty[0].wersja > pierwsza, 'każdy zapis podnosi wersję');
+
+  // „Inne urządzenie” zapisało w międzyczasie.
+  baza.projekty[0].wersja = 7;
+  baza.projekty[0].nazwa = 'Wspólny (z telefonu)';
+  baza.projekty[0].dane = { ...baza.projekty[0].dane, nazwa: 'Wspólny (z telefonu)' };
+
+  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.waitForSelector('#dlg-potwierdz[open]', { timeout: 15000 });
+  assert.match(await strona.textContent('#potwierdz-tytul'), /zmieniono na innym urządzeniu/);
+  assert.equal(baza.projekty[0].wersja, 7, 'nic nie zostało nadpisane przed decyzją');
+
+  // Wybór: wczytaj wersję z konta.
+  await strona.click('#potwierdz-nie');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Wspólny (z telefonu)');
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury), 7);
+
+  // Kolejna zmiana zapisuje się już normalnie.
+  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
+  assert.equal(baza.projekty[0].wersja, 8);
+  assert.deepEqual(bledy, []);
+});

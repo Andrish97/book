@@ -14,12 +14,13 @@ export function powiadom(tekst, blad = false) {
   timerPowiadomienia = setTimeout(() => { el.hidden = true; }, blad ? 6000 : 3000);
 }
 
-export function potwierdz(tytul, tresc, tak = 'OK', niebezpieczne = false) {
+export function potwierdz(tytul, tresc, tak = 'OK', niebezpieczne = false, nie = 'Anuluj') {
   const dlg = $('#dlg-potwierdz');
   $('#potwierdz-tytul').textContent = tytul;
   $('#potwierdz-tresc').textContent = tresc;
   const b = $('#potwierdz-tak');
   b.textContent = tak;
+  $('#potwierdz-nie').textContent = nie;
   b.style.background = niebezpieczne ? 'var(--blad)' : '';
   b.style.borderColor = niebezpieczne ? 'var(--blad)' : '';
   dlg.returnValue = '';

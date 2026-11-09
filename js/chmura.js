@@ -159,9 +159,21 @@ export async function listaWChmurze() {
     .order('zmieniono', { ascending: false }));
 }
 
+// Zapis odrzucony, bo na koncie jest wersja zapisana z innego urządzenia.
+export class KonfliktZapisu extends Error {
+  constructor(zmieniono) {
+    super('Projekt został zmieniony na innym urządzeniu.');
+    this.konflikt = true;
+    this.zmieniono = zmieniono;
+  }
+}
+
 // Wysyła brakujące zasoby do Storage i zapisuje projekt (bez dataUrl) w tabeli.
-// Uzupełnia `sciezka` w projekt.zasoby, żeby kolejne zapisy nie wysyłały ich znowu.
-export async function zapiszWChmurze(projekt) {
+// Uzupełnia `sciezka` w projekt.zasoby i `wersja_chmury` w projekcie.
+// Kolumna `wersja` rośnie przy każdym zapisie; zapis przechodzi tylko wtedy,
+// gdy na koncie jest ta wersja, którą to urządzenie widziało ostatnio.
+// wymus: nadpisz wersję z konta (po decyzji użytkownika).
+export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
@@ -178,21 +190,39 @@ export async function zapiszWChmurze(projekt) {
 
   const zasobyBezDanych = Object.fromEntries(Object.entries(projekt.zasoby || {})
     .map(([id, { dataUrl, ...reszta }]) => [id, reszta]));
-  const dane = { ...projekt, zasoby: zasobyBezDanych };
+  const { wersja_chmury: znana, ...bezWersji } = projekt;
+  const pola = { nazwa: projekt.nazwa, dane: { ...bezWersji, zasoby: zasobyBezDanych }, zmieniono: projekt.zmieniono };
+  const tabela = () => sb.from('projekty');
+  const naKoncie = async () => sprawdz(await tabela().select('wersja, zmieniono').eq('id', projekt.id).maybeSingle());
 
-  sprawdz(await sb.from('projekty').upsert({
-    id: projekt.id,
-    owner_id: uzytkownik.id,
-    nazwa: projekt.nazwa,
-    dane,
-    zmieniono: projekt.zmieniono,
-  }));
+  if (wymus) {
+    const jest = await naKoncie();
+    const wersja = (jest?.wersja || 0) + 1;
+    sprawdz(await tabela().upsert({ id: projekt.id, owner_id: uzytkownik.id, ...pola, wersja }));
+    projekt.wersja_chmury = wersja;
+    return;
+  }
+  if (znana) {
+    const zapisane = sprawdz(await tabela().update({ ...pola, wersja: znana + 1 })
+      .eq('id', projekt.id).eq('wersja', znana).select('wersja'));
+    if (zapisane.length) { projekt.wersja_chmury = znana + 1; return; }
+    const jest = await naKoncie();
+    if (jest) throw new KonfliktZapisu(jest.zmieniono);
+    // Wiersza nie ma (usunięty na innym urządzeniu) – zapisujemy od nowa.
+  }
+  const { error } = await tabela().insert({ id: projekt.id, owner_id: uzytkownik.id, ...pola, wersja: 1 });
+  if (error) {
+    if (error.code === '23505') throw new KonfliktZapisu((await naKoncie())?.zmieniono);
+    sprawdz({ error });
+  }
+  projekt.wersja_chmury = 1;
 }
 
 export async function wczytajZChmury(id) {
   const sb = await supabase();
-  const wiersz = sprawdz(await sb.from('projekty').select('dane').eq('id', id).single());
+  const wiersz = sprawdz(await sb.from('projekty').select('dane, wersja').eq('id', id).single());
   const projekt = wiersz.dane;
+  projekt.wersja_chmury = wiersz.wersja;
   for (const zasob of Object.values(projekt.zasoby || {})) {
     if (!zasob.sciezka) continue;
     const blob = sprawdz(await sb.storage.from(BUCKET).download(zasob.sciezka));

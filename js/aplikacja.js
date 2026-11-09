@@ -45,6 +45,7 @@ const stan = {
   miniatury: new Map(), // id strony -> dataUrl
   timerZapisu: null,
   timerChmury: null,
+  konflikt: null, // id projektu czekającego na decyzję po konflikcie zapisu
   zapisywanie: Promise.resolve(),
   czcionki: null,
 };
@@ -251,6 +252,7 @@ async function pokazProjekty() {
       <div class="menu" role="menu" hidden>
         <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>
         <button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>
+        <button role="menuitem" data-op="duplikuj">${ikona('kopiuj')}Duplikuj</button>
         <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.seriodruk)</button>
         <hr>
         <button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}Usuń projekt</button>
@@ -268,6 +270,7 @@ async function pokazProjekty() {
       zamknijMenu();
       if (op === 'podglad') { trasa.ustaw(`p/${w.id}/podglad`); await przejdzDoTrasy(); }
       if (op === 'nazwa') await zmienNazweProjektu(w);
+      if (op === 'duplikuj') await duplikujProjekt(w);
       if (op === 'eksport') await eksportujProjekt(w);
       if (op === 'usun') await usunProjekt(w);
     });
@@ -304,6 +307,18 @@ async function zapiszGdziekolwiek(projekt) {
   } catch (e) {
     powiadom(chmura.komunikatBledu(e), true);
   }
+}
+
+async function duplikujProjekt(w) {
+  try {
+    const zrodlo = await wczytajProjektZWpisu(w);
+    const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
+    await zapiszGdziekolwiek(kopia);
+    powiadom(`Utworzono „${kopia.nazwa}”.`);
+  } catch (e) {
+    powiadom(`Nie udało się zduplikować: ${chmura.komunikatBledu(e)}`, true);
+  }
+  pokazProjekty();
 }
 
 async function zmienNazweProjektu(w) {
@@ -668,21 +683,57 @@ function zaplanujChmure(opoznienie = 2500) {
   stan.timerChmury = setTimeout(synchronizuj, opoznienie);
 }
 
-async function synchronizuj() {
+async function synchronizuj({ wymus = false } = {}) {
   const p = stan.projekt;
   if (!stan.uzytkownik || !p) return;
   if (!navigator.onLine) {
     stanZapisu('offline', 'Offline – zapisano na urządzeniu');
     return;
   }
+  if (stan.konflikt === p.id && !wymus) return; // czekamy na decyzję użytkownika
   const wersja = p.zmieniono;
   try {
-    await chmura.zapiszWChmurze(p);
+    await chmura.zapiszWChmurze(p, { wymus });
+    stan.konflikt = null;
     await zapiszLokalnie(p, wlasciciel(), p.zmieniono !== wersja);
     await oznaczZsynchronizowany(p.id, wersja);
     if (stan.projekt === p && !stan.timerZapisu) stanZapisu('ok', 'Zapisano');
   } catch (e) {
+    if (e.konflikt) { rozstrzygnijKonflikt(p, e); return; }
     stanZapisu('blad', `Nie wysłano: ${chmura.komunikatBledu(e)}`);
+  }
+}
+
+// Na koncie jest wersja zapisana z innego urządzenia – nic nie nadpisujemy po cichu.
+async function rozstrzygnijKonflikt(p, e) {
+  if (stan.konflikt === p.id) return;
+  stan.konflikt = p.id;
+  stanZapisu('blad', 'Nowsza wersja na koncie – wybierz, którą zachować');
+  const kiedyTamta = e.zmieniono ? ` (zapisana ${kiedy(e.zmieniono)})` : '';
+  const moja = await potwierdz(
+    'Projekt zmieniono na innym urządzeniu',
+    `Na koncie jest inna wersja projektu „${p.nazwa}”${kiedyTamta}. Możesz zachować wersję z tego urządzenia – tamta zostanie zastąpiona – albo wczytać wersję z konta i porzucić zmiany zrobione tutaj.`,
+    'Zachowaj wersję z tego urządzenia',
+    false,
+    'Wczytaj wersję z konta',
+  );
+  if (stan.projekt !== p) { stan.konflikt = null; return; }
+  if (moja) {
+    await synchronizuj({ wymus: true });
+    return;
+  }
+  try {
+    const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));
+    await zapiszLokalnie(zKonta, wlasciciel(), false);
+    stan.konflikt = null;
+    clearTimeout(stan.timerZapisu);
+    stan.timerZapisu = null;
+    stan.projekt = null; // żeby otwarcie nie zapisało porzucanej wersji
+    await otworzProjekt(zKonta);
+    powiadom('Wczytano wersję z konta.');
+  } catch (blad) {
+    stan.konflikt = null;
+    stanZapisu('blad', `Nie udało się wczytać wersji z konta: ${chmura.komunikatBledu(blad)}`);
   }
 }
 
@@ -724,6 +775,10 @@ function panelStrony(p) {
       strona.tlo = null;
       panel.zbuduj();
     }]]));
+  }
+
+  if (edytor.maSchowek) {
+    s.append(p.akcje([['wklej', 'Wklej skopiowane elementy', () => edytor.wklej()]]));
   }
 
   if (projekt.wzorce.length) {
@@ -1506,6 +1561,7 @@ const akcje = {
   cofnij: () => edytor.cofnij(),
   ponow: () => edytor.ponow(),
   duplikuj: () => edytor.duplikuj(),
+  kopiuj: async () => { if (await edytor.kopiuj()) powiadom('Skopiowano. Wklej na tej albo innej stronie: Ctrl+V lub „Wklej” we właściwościach strony.'); },
   usun: () => edytor.usun(),
   prowadnice: () => {
     edytor.pokazProwadnice = !edytor.pokazProwadnice;
@@ -1579,6 +1635,7 @@ edytor.addEventListener('zaznaczenie', (e) => {
   panel.pokaz(obj);
 });
 edytor.addEventListener('zmiana', zaplanujZapis);
+edytor.addEventListener('schowek', () => { if (!edytor.aktywny) panel.zbuduj(); });
 edytor.addEventListener('ostrzezenia', (e) => renderujOstrzezenia(e.detail));
 edytor.addEventListener('zoom', (e) => {
   $('#wartosc-zoom').textContent = `${Math.round(e.detail * 100)}%`;
@@ -1611,6 +1668,9 @@ document.addEventListener('keydown', (e) => {
   if (mod && k === 'z') { e.preventDefault(); (e.shiftKey ? edytor.ponow() : edytor.cofnij()); return; }
   if (mod && k === 'y') { e.preventDefault(); edytor.ponow(); return; }
   if (mod && k === 'd') { e.preventDefault(); edytor.duplikuj(); return; }
+  if (mod && k === 'c') { if (edytor.aktywny) { e.preventDefault(); edytor.kopiuj(); } return; }
+  if (mod && k === 'x') { if (edytor.aktywny) { e.preventDefault(); edytor.wytnij(); } return; }
+  if (mod && k === 'v') { if (edytor.maSchowek) { e.preventDefault(); edytor.wklej(); } return; }
   if (mod && k === 'g') { e.preventDefault(); (e.shiftKey ? edytor.rozgrupuj() : edytor.grupuj()); return; }
   if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); edytor.usun(); return; }
   if (e.key === 'Escape') { edytor.canvas.discardActiveObject(); edytor.canvas.requestRenderAll(); return; }
