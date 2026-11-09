@@ -2,7 +2,7 @@
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './konfiguracja.js';
 
-const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
+const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
 const BUCKET = 'zasoby';
 
 let klient = null;
