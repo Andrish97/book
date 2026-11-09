@@ -429,11 +429,14 @@
   <!-- ===================== Podgląd ===================== -->
   <div class="ekran ekran-podgladu" id="ekran-podgladu">
     <header class="pasek-aplikacji">
-      <button class="przycisk przezroczysty" data-akcja="podglad-zamknij" data-ikona="wstecz" title="Wróć do edycji"><span>Edytor</span></button>
+      <button class="przycisk przezroczysty tylko-wlasciciel" data-akcja="podglad-zamknij" data-ikona="wstecz" title="Wróć do edycji"><span>Edytor</span></button>
+      <a class="marka tylko-gosc" href="./" title="Seriodruk"><span class="znak-logo">S</span><span class="etyk">Seriodruk</span></a>
       <div class="separator"></div>
       <h1 class="tytul-ekranu" id="podglad-tytul"></h1>
       <span class="ciche podglad-opis" id="podglad-opis"></span>
       <div class="odstep"></div>
+      <button class="przycisk tylko-wlasciciel" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
+      <button class="przycisk-ikona tylko-gosc" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="grupa-przyciskow">
         <button class="przycisk-ikona" data-akcja="podglad-minus" data-ikona="minus" aria-label="Pomniejsz"></button>
         <button class="wartosc-zoom" data-akcja="podglad-dopasuj" id="podglad-zoom" title="Dopasuj do okna">100%</button>
@@ -559,6 +562,33 @@
         <button class="przycisk glowny" value="ok" id="zapisz-sekcje">Zapisz</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="dlg-udostepnij">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Udostępnij podgląd</h2>
+        <button class="przycisk-ikona" data-akcja="udostepnij-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche" id="udostepnij-opis">Każdy, kto dostanie link, zobaczy strony projektu – bez konta i bez możliwości zmiany. Link pokazuje projekt w stanie z chwili udostępnienia.</p>
+
+      <div id="udostepnij-link-blok" hidden>
+        <label class="pole"><span>Link do podglądu</span>
+          <span class="z-przyciskiem">
+            <input id="udostepnij-link" type="text" readonly>
+            <button type="button" class="przycisk-ikona" data-akcja="udostepnij-kopiuj" data-ikona="kopiuj" title="Kopiuj link" aria-label="Kopiuj link"></button>
+          </span>
+        </label>
+        <p class="podpowiedz" id="udostepnij-stan"></p>
+      </div>
+
+      <p class="komunikat" id="udostepnij-komunikat" role="status"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk niebezpieczny" id="udostepnij-wylacz" data-akcja="udostepnij-wylacz" hidden>Wyłącz link</button>
+        <span class="odstep"></span>
+        <button type="button" class="przycisk glowny" id="udostepnij-utworz" data-akcja="udostepnij-utworz">Utwórz link</button>
+      </div>
+    </div>
   </dialog>
 
   <dialog id="dlg-potwierdz">

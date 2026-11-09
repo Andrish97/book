@@ -36,12 +36,39 @@ function uruchomSerwer() {
 const BEZ_BAZY = "export const SUPABASE_URL = '';\nexport const SUPABASE_ANON_KEY = '';\n";
 const Z_ATRAPA = "export const SUPABASE_URL = 'https://atrapa.supabase.co';\nexport const SUPABASE_ANON_KEY = 'sb_publishable_test';\n";
 
+// Biblioteka Supabase wysyła pliki jako formularz wieloczęściowy – wyciągamy
+// z niego samą treść pliku i jej typ.
+function plikZZadania(req) {
+  const cialo = req.postDataBuffer() || Buffer.alloc(0);
+  const typ = req.headers()['content-type'] || 'application/octet-stream';
+  const granica = /boundary=(.+)$/.exec(typ)?.[1];
+  if (!granica) return { typ, tresc: cialo };
+  const znacznik = Buffer.from(`--${granica}`);
+  let od = 0;
+  let plik = null;
+  for (;;) {
+    const start = cialo.indexOf(znacznik, od);
+    if (start < 0) break;
+    const koniecNaglowkow = cialo.indexOf('\r\n\r\n', start);
+    const nastepny = cialo.indexOf(znacznik, start + znacznik.length);
+    if (koniecNaglowkow < 0 || nastepny < 0) break;
+    const naglowki = cialo.subarray(start, koniecNaglowkow).toString();
+    if (/filename=/.test(naglowki) || /name="?"?;?\s*$/m.test(naglowki) || !plik) {
+      const typPliku = /content-type:\s*([^\r\n]+)/i.exec(naglowki)?.[1];
+      if (typPliku) plik = { typ: typPliku.trim(), tresc: cialo.subarray(koniecNaglowkow + 4, nastepny - 2) };
+    }
+    od = nastepny;
+  }
+  return plik || { typ, tresc: cialo };
+}
+
 // Atrapa Supabase: konta w pamięci, tabela projekty, storage – tyle, ile używa aplikacja.
 function atrapaSupabase(kontekst, poczatkowe = {}) {
   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
   const stan = {
     konta: poczatkowe.konta || [{ id: '11111111-1111-4111-8111-111111111111', email: 'anna@test.pl', haslo: 'Dobre#Haslo1', potwierdzone: true, nazwa: 'Anna' }],
     projekty: [],
+    pliki: new Map(), // Storage: "bucket/ścieżka" -> { typ, tresc }
     wyslane: [], // „e-maile”: { typ, email }
     zadania: [],
   };
@@ -142,8 +169,31 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       if (m === 'DELETE') { stan.projekty = stan.projekty.filter((p) => !(p.id === id && p.owner_id === k.id)); return json(r, 200, []); }
     }
-    if (sc.startsWith('/storage/v1/object/list/')) return json(r, 200, []);
-    if (sc.startsWith('/storage/v1/object/')) return json(r, 200, { Key: sc });
+    if (sc.startsWith('/storage/v1/object/list/')) {
+      // Jak w Supabase: bezpośrednie pliki folderu oraz nazwy podfolderów.
+      const prefiks = `${sc.slice('/storage/v1/object/list/'.length)}/${tresc.prefix ? `${tresc.prefix}/` : ''}`;
+      const nazwy = new Set();
+      for (const klucz of stan.pliki.keys()) if (klucz.startsWith(prefiks)) nazwy.add(klucz.slice(prefiks.length).split('/')[0]);
+      return json(r, 200, [...nazwy].map((name) => ({ name })));
+    }
+    if (sc.startsWith('/storage/v1/object/public/')) {
+      const plik = stan.pliki.get(sc.slice('/storage/v1/object/public/'.length));
+      if (!plik) return blad(r, 404, 'Object not found', 'not_found');
+      return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
+    }
+    if (sc.startsWith('/storage/v1/object/')) {
+      const klucz = sc.slice('/storage/v1/object/'.length);
+      if (m === 'DELETE') {
+        const bucket = klucz.split('/')[0];
+        for (const p of tresc.prefixes || []) stan.pliki.delete(`${bucket}/${p}`);
+        return json(r, 200, []);
+      }
+      if (m === 'POST' || m === 'PUT') {
+        if (!zTokenu(req)) return blad(r, 401, 'JWT', 'unauthorized');
+        stan.pliki.set(klucz, plikZZadania(req));
+      }
+      return json(r, 200, { Key: klucz });
+    }
     return json(r, 200, {});
   });
   return stan;
@@ -170,7 +220,7 @@ async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = 
     await strona.waitForSelector('#dlg-instrukcja[open]');
     await strona.click('[data-akcja="zamknij-instrukcje"]');
   }
-  return { strona, kontekst, baza, bledy, adres: serwer.adres, przegladarka };
+  return { strona, kontekst, baza, bledy, adres: serwer.adres, przegladarka, Z_ATRAPA };
 }
 
 async function nowyProjekt(strona, nazwa = 'Test') {

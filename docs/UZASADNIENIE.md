@@ -12,7 +12,7 @@ Dopisz uwagi pod punktami (np. „→ zmień na…”), a ja przeniosę decyzje 
 
 Tego nie mogę zrobić ani sprawdzić z repozytorium.
 
-1. **Baza.** Tabeli `projekty` nadal nie ma – integracja z GitHubem nie wykonała migracji. Wklej `supabase/migrations/20261109120000_projekty_i_zasoby.sql` w SQL Editor i uruchom (tworzy tabelę z licznikiem wersji, bucket `zasoby`, reguły dostępu i funkcję `usun_konto`). Albo popraw integrację (Deploy to production, gałąź `main`).
+1. **Baza.** Tabeli `projekty` nadal nie ma – integracja z GitHubem nie wykonała migracji. Wklej `supabase/migrations/20261109120000_projekty_i_zasoby.sql` w SQL Editor i uruchom (tworzy tabelę z licznikiem wersji, buckety `zasoby` i `podglady`, reguły dostępu i funkcję `usun_konto`). Albo popraw integrację (Deploy to production, gałąź `main`).
 2. **Poczta (SMTP).** Wbudowana poczta Supabase wysyła tylko na adresy członków Twojego zespołu w Supabase i ma limit kilku wiadomości na godzinę. Żeby rejestracja działała dla innych osób, podepnij własny SMTP: Authentication → Emails → SMTP Settings (np. Resend, Brevo). Bez tego potwierdzenie konta dojdzie tylko do Ciebie.
 3. **Szablony wiadomości.** Są w `supabase/templates/` i w `supabase/config.toml`. Jeśli integracja ich nie przeniesie, wklej treść plików w Authentication → Emails → Templates (Confirm signup, Reset password, Change email address) i ustaw tematy z `config.toml`.
 4. **Adresy powrotu.** Authentication → URL Configuration: Site URL `https://andrish97.github.io/book/`, Redirect URLs `https://andrish97.github.io/book/**`. Bez tego linki z wiadomości nie wrócą do aplikacji.
@@ -35,7 +35,7 @@ Tego nie mogę zrobić ani sprawdzić z repozytorium.
 ### A3. Wszystko w milimetrach ✅
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** `tests/` – 25 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
+**Co jest.** `tests/` – 26 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
 **Słabe.** Atrapa udaje Supabase – prawdziwej bazy, reguł RLS i poczty testy nie sprawdzają. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
 
 ---
@@ -46,7 +46,7 @@ Tego nie mogę zrobić ani sprawdzić z repozytorium.
 **Co jest.** Ekran dzielony na pół: z lewej stała ciemna „okładka” z nazwą, z prawej formularz z przełącznikiem Logowanie / Nowe konto. Wymagania hasła zaznaczają się na żywo. Po rejestracji widok „Sprawdź skrzynkę” z ponowną wysyłką po 60 s. Reset hasła linkiem. Powrót z linku w e-mailu jest rozpoznawany (potwierdzenie, reset, zmiana adresu, wygasły link).
 **Dlaczego tak.** Z familijnej wzięty jest tylko zakres funkcji (rejestracja z potwierdzeniem, zasady hasła, ponowna wysyłka). Wygląd jest własny – po Twojej uwadze (decyzja #27) pierwsza wersja, która układem przypominała familijną, została przeprojektowana.
 **Czego nie ma z familijnej (świadomie):** konta gościa, logowania nazwą użytkownika, limitów „raz na godzinę”, zabezpieczenia przed botami (Turnstile). Dopisz, jeśli któreś jest potrzebne.
-**Słabe.** Działa dopiero po kroku 0.2 (SMTP). Rejestracja jest otwarta dla każdego – jeśli ma być tylko dla zaproszonych, trzeba to dodać.
+**Słabe.** Działa dopiero po kroku 0.2 (SMTP). Rejestracja jest otwarta dla każdego – świadomie (decyzja #29).
 
 ### B2. Ustawienia konta ✅
 **Co jest.** `#/konto`: jedna kolumna grup (Profil, Logowanie, Wygląd, Urządzenia, Usuwanie konta) z nawigacją po lewej. Każde ustawienie to wiersz „opis – wartość – akcja”; formularze zmiany adresu, hasła i usunięcia konta rozwijają się w swoim wierszu dopiero po kliknięciu.
@@ -80,8 +80,12 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 
 ### C4. Podgląd bez edycji ✅ / ⚠️
 **Co jest.** Wszystkie strony po kolei jak po przycięciu, rozkładówki obok siebie, powiększanie, kliknięcie strony otwiera ją w edytorze. Strony rysują się dopiero, gdy są widoczne.
-**Słabe.** To podgląd dla zalogowanego właściciela. Nie ma linku „tylko do odczytu” dla innej osoby ani trybu pełnoekranowego z przewracaniem stron.
-**Pytanie.** Czy podgląd ma być też do pokazania komuś bez konta (link publiczny)?
+**Słabe.** Nie ma trybu pełnoekranowego z przewracaniem stron.
+
+### C5. Udostępnianie podglądu linkiem ✅ / ⚠️
+**Co jest.** „Udostępnij” w podglądzie tworzy link `#/u/<konto>/<projekt>/<losowy kod>`. Aplikacja rysuje wszystkie strony do obrazów JPEG i wysyła je z małym plikiem opisu do publicznego folderu w Supabase. Osoba z linkiem widzi ten sam widok co podgląd, bez logowania. Link można zaktualizować (adres zostaje) albo wyłączyć (pliki znikają).
+**Dlaczego migawka z obrazów, a nie „żywy” projekt.** Osoba z linkiem dostaje tylko obrazy stron – nie dane projektu, nie zdjęcia w oryginale, nie dostęp do bazy. Nie trzeba otwierać bazy dla niezalogowanych ani ładować edytora i czcionek u oglądającego. Projekt w trakcie pracy nie „przecieka” do klienta, dopóki nie klikniesz Aktualizuj.
+**Słabe.** Trzeba pamiętać o aktualizacji (okno podpowiada, gdy link jest nieaktualny). Publikacja wysyła wszystkie strony od nowa – przy kilkuset stronach potrwa i zajmie kilkadziesiąt MB. Nie ma hasła do linku ani daty ważności. Wymaga bucketu `podglady` z migracji (punkt 0.1).
 
 ---
 
@@ -146,7 +150,7 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 **Słabe.** Wybór jest per urządzenie, nie per konto. Zrzuty w instrukcji są w jasnym motywie. Wiadomości e-mail są zawsze jasne.
 
 ### F4. Instrukcja ✅
-19 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
+20 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
 
 ---
 
@@ -156,4 +160,4 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 2. **Próba na tablecie** – gesty, klawiatura ekranowa, instalacja.
 3. **Etap danych z planu**: import CSV/XLSX, pola `{kolumna}` w tekście, autodopasowanie tekstu, zakresy powielane według wierszy.
 4. Przed etapem PDF: pliki czcionek w repozytorium, pomniejszone obrazy, strony jako osobne wiersze w bazie.
-5. Do Twojej decyzji: publiczny link do podglądu (C4), jedno płótno na rozkładówkę (D3), rejestracja tylko dla zaproszonych (B1).
+5. Do Twojej decyzji: jedno płótno na rozkładówkę (D3) – czy elementy mają móc leżeć przez grzbiet.

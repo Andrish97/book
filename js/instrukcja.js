@@ -183,6 +183,19 @@ export const ROZDZIALY = [
     ],
   },
   {
+    tytul: 'Udostępnianie linkiem',
+    wstep: 'Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukarni – wysyłając link.',
+    obraz: 'udostepnianie.png',
+    podpis: 'Okno „Udostępnij podgląd” z gotowym linkiem.',
+    punkty: [
+      'W podglądzie kliknij <b>Udostępnij</b>, potem <b>Utwórz link</b>. Aplikacja przygotuje obrazy wszystkich stron – przy dużym projekcie chwilę to potrwa.',
+      'Skopiuj link i wyślij go. Osoba z linkiem widzi strony tak jak w podglądzie; nie może nic zmienić i nie ma dostępu do reszty Twoich projektów.',
+      'Link pokazuje projekt <b>w stanie z chwili udostępnienia</b>. Po zmianach okno powie, że link jest nieaktualny – kliknij <b>Aktualizuj</b>. Adres zostaje ten sam.',
+      '<b>Wyłącz link</b> usuwa udostępnione strony; stary adres przestaje działać.',
+      'Link jest długi i losowy, więc nie da się go zgadnąć – ale każdy, kto go dostanie, może go przekazać dalej.',
+    ],
+  },
+  {
     tytul: 'Linie i ostrzeżenia',
     wstep: 'Na stronie widać linie pomocnicze. Nie są drukowane.',
     obraz: 'ostrzezenia.png',

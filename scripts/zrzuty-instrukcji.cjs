@@ -188,6 +188,30 @@ async function przykladoweProjekty(strona) {
     await k.click('.konto-nawigacja a:has-text("Wygląd")');
     await zrzut(k, 'motyw.png');
     await k.click('#wybor-motywu label:has-text("Jak w systemie")');
+
+    // Udostępnianie podglądu linkiem
+    await k.click('[data-akcja="do-projektow"]:visible');
+    await k.click('[data-akcja="nowy-projekt"]:visible');
+    await k.fill('#form-nowy input[name=nazwa]', 'Kalendarz 2027');
+    await k.click('#form-nowy button[value=ok]');
+    await k.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+    await k.evaluate(() => {
+      const { edytor } = window.seriodruk;
+      const r = edytor.dodajProstokat();
+      r.set({ left: -3, top: -3, width: 154, height: 62, fill: '#2f5bd3', strokeWidth: 0 });
+      const t = edytor.dodajTekst('Styczeń');
+      t.set({ left: 10, top: 20, fill: '#ffffff', fontFamily: 'Playfair Display', fontWeight: 'bold', fontSize: 30 * 25.4 / 72 });
+      edytor.zatwierdz();
+    });
+    await k.click('[data-akcja="strona-dodaj"]');
+    await k.click('[data-akcja="podglad"]');
+    await k.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+    await k.click('[data-akcja="udostepnij"]');
+    await k.click('#udostepnij-utworz');
+    await k.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
+    await k.evaluate(() => { document.querySelector('#podglad-tresc').scrollTop = 0; });
+    await k.waitForTimeout(600);
+    await zrzut(k, 'udostepnianie.png');
     for (const f of sprzatanie) await f();
   }
 

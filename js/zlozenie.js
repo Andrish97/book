@@ -83,7 +83,7 @@ export async function warstwyWzorcow(projekt, strona, numery) {
 
 // Renderuje stronę albo wzorzec do obrazu PNG (dataURL).
 // opcje: szerokoscPx (z ewentualnym spadem), spad (domyślnie tak), numery.
-export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, numery } = {}) {
+export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, numery, format = 'png', jakosc = 0.88 } = {}) {
   const jestWzorcem = projekt.wzorce.includes(cel);
   const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, cel).wydruk;
   const { szerokosc_mm: w, wysokosc_mm: h } = wydruk;
@@ -101,7 +101,7 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
   for (const o of [...warstwy.pod, ...wlasne, ...warstwy.nad]) plotno.add(o);
   plotno.setViewportTransform([k, 0, 0, k, b * k, b * k]);
   plotno.renderAll();
-  const url = plotno.toDataURL({ format: 'png' });
+  const url = plotno.toDataURL({ format, quality: jakosc });
   plotno.dispose();
   return url;
 }

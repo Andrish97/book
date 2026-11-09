@@ -14,7 +14,7 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Wzorce**: wspólne elementy stron; kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
 - **Edytor** (Fabric.js 5.3.1, wszystko w mm): tekst, kształty, obrazy, grupy, warstwy, wyrównywanie i równe odstępy, blokada, schowek między stronami, cofanie, przyciąganie, ostrzeżenia o marginesach i spadzie.
 - **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu.
-- **Podgląd** bez edycji: cały projekt jak po przycięciu, rozkładówki obok siebie.
+- **Podgląd** bez edycji: cały projekt jak po przycięciu, rozkładówki obok siebie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
 - **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
 - **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok; panele wysuwane z dołu.
 - **Motyw**: jasny, ciemny albo jak w systemie.
@@ -64,7 +64,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/edytor.js` | Silnik strony na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
 | `js/zlozenie.js` | Składanie strony z warstw (tło, wzorce, treść) dla edytora, miniatur i podglądu |
 | `js/wlasciwosci.js`, `js/style-tekstu.js` | Panel właściwości, style tekstu |
-| `js/podglad.js` | Podgląd bez edycji |
+| `js/podglad.js` | Podgląd bez edycji – własnego projektu i udostępnionego linkiem |
 | `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
 | `js/instrukcja.js`, `scripts/zrzuty-instrukcji.cjs` | Instrukcja i generator zrzutów |
 | `js/ui.js`, `js/ikony.js`, `js/czcionki.js`, `js/marka.js`, `js/motyw.js` | Elementy wspólne, ikony, czcionki, nazwa aplikacji, motyw |

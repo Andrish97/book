@@ -4,6 +4,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './konfiguracja.js';
 
 const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
 const BUCKET = 'zasoby';
+const BUCKET_PODGLADOW = 'podglady'; // publiczny: obrazy stron udostępnionych linkiem
 
 let klient = null;
 
@@ -241,6 +242,7 @@ export async function usunZChmury(id) {
       sprawdz(await sb.storage.from(BUCKET).remove(pliki.map((p) => `${folder}/${p.name}`)));
     }
   }
+  await usunPodglady(sb, `${uzytkownik?.id}/${id}`);
   sprawdz(await sb.from('projekty').delete().eq('id', id));
 }
 
@@ -251,4 +253,83 @@ export function blobNaDataUrl(blob) {
     r.onerror = () => blad(r.error);
     r.readAsDataURL(blob);
   });
+}
+
+// ---------- Podgląd udostępniany linkiem ----------
+//
+// Udostępnienie to migawka: obrazy stron i manifest w publicznym buckecie pod
+// ścieżką <konto>/<projekt>/<losowy kod>/. Kto zna link, widzi obrazy; do
+// projektu i jego danych nie ma dostępu. Wyłączenie linku usuwa pliki.
+
+export const adresPodgladu = (sciezka) => `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_PODGLADOW}/${sciezka}`;
+
+async function plikiFolderu(sb, folder) {
+  const wszystkie = [];
+  for (let od = 0; ; od += 1000) {
+    const czesc = sprawdz(await sb.storage.from(BUCKET_PODGLADOW).list(folder, { limit: 1000, offset: od }));
+    wszystkie.push(...czesc);
+    if (czesc.length < 1000) return wszystkie;
+  }
+}
+
+async function usunPliki(sb, sciezki) {
+  for (let i = 0; i < sciezki.length; i += 200) {
+    sprawdz(await sb.storage.from(BUCKET_PODGLADOW).remove(sciezki.slice(i, i + 200)));
+  }
+}
+
+// Usuwa wszystkie udostępnienia projektu (folder <konto>/<projekt>).
+async function usunPodglady(sb, folderProjektu) {
+  try {
+    for (const kod of await plikiFolderu(sb, folderProjektu)) {
+      const folder = `${folderProjektu}/${kod.name}`;
+      await usunPliki(sb, (await plikiFolderu(sb, folder)).map((p) => `${folder}/${p.name}`));
+    }
+  } catch { /* brak bucketu albo plików – nie blokuje usuwania projektu */ }
+}
+
+// uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob JPEG.
+// Zwraca { konto, zaktualizowano }.
+export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}) {
+  const sb = await supabase();
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  const folder = `${uzytkownik.id}/${projektId}/${kod}`;
+  const magazyn = sb.storage.from(BUCKET_PODGLADOW);
+  let gotowe = 0;
+  for (const s of strony) {
+    sprawdz(await magazyn.upload(`${folder}/${s.id}.jpg`, await obraz(s), { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' }));
+    gotowe += 1;
+    postep(gotowe, strony.length);
+  }
+  // Obrazy stron usuniętych od poprzedniej aktualizacji.
+  const potrzebne = new Set([...strony.map((s) => `${s.id}.jpg`), 'manifest.json']);
+  const zbedne = (await plikiFolderu(sb, folder)).filter((p) => !potrzebne.has(p.name)).map((p) => `${folder}/${p.name}`);
+  if (zbedne.length) await usunPliki(sb, zbedne);
+
+  const zaktualizowano = new Date().toISOString();
+  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad };
+  sprawdz(await magazyn.upload(`${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), {
+    upsert: true, contentType: 'application/json', cacheControl: '0',
+  }));
+  return { konto: uzytkownik.id, zaktualizowano };
+}
+
+export async function wylaczPodglad(projektId, kod) {
+  const sb = await supabase();
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  const folder = `${uzytkownik.id}/${projektId}/${kod}`;
+  await usunPliki(sb, (await plikiFolderu(sb, folder)).map((p) => `${folder}/${p.name}`));
+}
+
+// Odczyt bez logowania (zwykłe pobranie pliku z publicznego adresu).
+export async function wczytajPodgladPubliczny(konto, projektId, kod) {
+  if (!chmuraSkonfigurowana()) throw new Error('Podgląd jest niedostępny.');
+  const folder = `${konto}/${projektId}/${kod}`;
+  const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!odp.ok) throw new Error('Ten link nie działa – podgląd został wyłączony albo adres jest niepełny.');
+  const manifest = await odp.json();
+  if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
+  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.jpg`)}?v=${manifest.v}` };
 }

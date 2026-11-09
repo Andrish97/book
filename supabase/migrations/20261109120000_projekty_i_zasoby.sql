@@ -63,6 +63,33 @@ create policy "zasoby: własny folder - usuwanie" on storage.objects
   for delete to authenticated
   using (bucket_id = 'zasoby' and (storage.foldername(name))[1] = (select auth.uid())::text);
 
+-- Podglądy udostępniane linkiem: publiczny bucket z obrazami stron.
+-- Ścieżka <owner_id>/<projekt_id>/<losowy kod>/… – odczyt ma każdy, kto zna
+-- pełny adres pliku; zapis i usuwanie tylko właściciel w swoim folderze.
+insert into storage.buckets (id, name, public)
+values ('podglady', 'podglady', true)
+on conflict (id) do nothing;
+
+drop policy if exists "podglady: własny folder - odczyt" on storage.objects;
+create policy "podglady: własny folder - odczyt" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'podglady' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+drop policy if exists "podglady: własny folder - dodawanie" on storage.objects;
+create policy "podglady: własny folder - dodawanie" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'podglady' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+drop policy if exists "podglady: własny folder - zmiana" on storage.objects;
+create policy "podglady: własny folder - zmiana" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'podglady' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+drop policy if exists "podglady: własny folder - usuwanie" on storage.objects;
+create policy "podglady: własny folder - usuwanie" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'podglady' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
 -- Usunięcie własnego konta z ustawień konta w aplikacji. Projekty znikają
 -- kaskadowo (owner_id ... on delete cascade); pliki ze Storage aplikacja
 -- usuwa wcześniej przez API.
