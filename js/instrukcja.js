@@ -33,15 +33,25 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Ustawienia konta',
-    wstep: 'Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz „Ustawienia konta”.',
+    wstep: 'Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz „Ustawienia konta”. Ustawienia są pogrupowane; lista po lewej przenosi do wybranej grupy.',
     obraz: 'konto.png',
-    podpis: 'Ustawienia konta.',
+    podpis: 'Ustawienia konta z rozwiniętą zmianą adresu e-mail.',
     punkty: [
-      '<b>Nazwa</b> – widoczna w prawym górnym rogu.',
-      '<b>E-mail</b> – po zmianie na nowy adres przychodzi link potwierdzający. Do kliknięcia logujesz się dotychczasowym adresem.',
-      '<b>Hasło</b> – wpisz obecne i dwa razy nowe.',
-      '<b>Wyloguj wszędzie</b> – przydatne po logowaniu na cudzym urządzeniu.',
-      '<b>Usuń konto</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
+      '<b>Profil</b> – nazwa widoczna w prawym górnym rogu.',
+      '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym.',
+      '<b>Urządzenia</b> – wylogowanie tutaj albo na wszystkich urządzeniach naraz.',
+      '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
+    ],
+  },
+  {
+    tytul: 'Jasny i ciemny motyw',
+    wstep: 'Aplikacja ma dwa motywy. Wybór dotyczy urządzenia, na którym go ustawiasz.',
+    obraz: 'motyw.png',
+    podpis: 'Ciemny motyw w ustawieniach konta.',
+    punkty: [
+      'W <b>Ustawieniach konta → Wygląd</b> wybierz: <b>Jak w systemie</b> (zmienia się razem z ustawieniem urządzenia), <b>Jasny</b> albo <b>Ciemny</b>.',
+      'Szybki przełącznik – ikona półkola – jest na ekranie logowania, na liście projektów i w menu <b>⋯</b> edytora.',
+      'Strony publikacji zawsze są pokazywane na białym papierze. Ciemny motyw zmienia tylko interfejs wokół nich.',
     ],
   },
   {

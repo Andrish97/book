@@ -35,7 +35,7 @@ Tego nie mogę zrobić ani sprawdzić z repozytorium.
 ### A3. Wszystko w milimetrach ✅
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** `tests/` – 24 testy przeglądarkowe (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
+**Co jest.** `tests/` – 25 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
 **Słabe.** Atrapa udaje Supabase – prawdziwej bazy, reguł RLS i poczty testy nie sprawdzają. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
 
 ---
@@ -43,13 +43,14 @@ Tego nie mogę zrobić ani sprawdzić z repozytorium.
 ## B. Konto, baza, zapis
 
 ### B1. Rejestracja, logowanie, reset hasła ✅ / ⚠️
-**Co jest.** Jedna karta: Logowanie / Nowe konto. Wymagania hasła zaznaczają się na żywo. Po rejestracji ekran „Sprawdź skrzynkę” z ponowną wysyłką po 60 s. Reset hasła linkiem. Powrót z linku w e-mailu jest rozpoznawany (potwierdzenie, reset, zmiana adresu, wygasły link).
-**Dlaczego tak.** Układ i przebieg wzorowane na familijnej (karta na środku, zasady hasła pod polami, stany „wysłano”); kod napisany od zera, bo jej licencja nie pozwala kopiować.
+**Co jest.** Ekran dzielony na pół: z lewej stała ciemna „okładka” z nazwą, z prawej formularz z przełącznikiem Logowanie / Nowe konto. Wymagania hasła zaznaczają się na żywo. Po rejestracji widok „Sprawdź skrzynkę” z ponowną wysyłką po 60 s. Reset hasła linkiem. Powrót z linku w e-mailu jest rozpoznawany (potwierdzenie, reset, zmiana adresu, wygasły link).
+**Dlaczego tak.** Z familijnej wzięty jest tylko zakres funkcji (rejestracja z potwierdzeniem, zasady hasła, ponowna wysyłka). Wygląd jest własny – po Twojej uwadze (decyzja #27) pierwsza wersja, która układem przypominała familijną, została przeprojektowana.
 **Czego nie ma z familijnej (świadomie):** konta gościa, logowania nazwą użytkownika, limitów „raz na godzinę”, zabezpieczenia przed botami (Turnstile). Dopisz, jeśli któreś jest potrzebne.
 **Słabe.** Działa dopiero po kroku 0.2 (SMTP). Rejestracja jest otwarta dla każdego – jeśli ma być tylko dla zaproszonych, trzeba to dodać.
 
 ### B2. Ustawienia konta ✅
-**Co jest.** `#/konto`: nazwa, zmiana e-maila z potwierdzeniem i ponowną wysyłką, zmiana hasła (ze sprawdzeniem obecnego), wylogowanie wszędzie, usunięcie konta z projektami i obrazami.
+**Co jest.** `#/konto`: jedna kolumna grup (Profil, Logowanie, Wygląd, Urządzenia, Usuwanie konta) z nawigacją po lewej. Każde ustawienie to wiersz „opis – wartość – akcja”; formularze zmiany adresu, hasła i usunięcia konta rozwijają się w swoim wierszu dopiero po kliknięciu.
+**Dlaczego tak.** Ten sam język co panel właściwości w edytorze: cienkie linie, wiersze, bez kart. Zwinięte formularze, bo zmiana hasła czy usunięcie konta to rzadkie czynności – nie powinny stale zajmować ekranu ani kusić przypadkowym kliknięciem.
 **Słabe.** Po zmianie hasła nie przychodzi wiadomość „hasło zmienione” (Supabase ma taką opcję – do włączenia w panelu). Anulowanie rozpoczętej zmiany e-maila nie jest możliwe z aplikacji.
 
 ### B3. Własne e-maile ✅ / ⚠️
@@ -139,8 +140,13 @@ Seriodruk, plik `.seriodruk` (ZIP z manifestem). Nazwa jest w jednym miejscu w k
 ### F2. PWA ⚠️
 Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza kartka z literą „S” – do Twojej oceny.
 
-### F3. Instrukcja ✅
-18 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
+### F3. Ciemny motyw ✅ / ⚠️
+**Co jest.** Trzy możliwości: jak w systemie (domyślnie), jasny, ciemny. Wybór zapamiętany na urządzeniu, ustawiany przed pierwszym rysowaniem strony (bez mignięcia). Szybki przełącznik na logowaniu, liście projektów i w menu edytora; pełny wybór w ustawieniach konta.
+**Dlaczego tak.** Wszystkie kolory interfejsu są zmiennymi, więc ciemny motyw to drugi zestaw wartości, a nie osobne style. Strony publikacji zostają białe – projektujesz na papierze, który będzie biały.
+**Słabe.** Wybór jest per urządzenie, nie per konto. Zrzuty w instrukcji są w jasnym motywie. Wiadomości e-mail są zawsze jasne.
+
+### F4. Instrukcja ✅
+19 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
 
 ---
 

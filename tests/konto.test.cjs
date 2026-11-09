@@ -135,10 +135,12 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   // Nazwa
   await strona.fill('#form-nazwa input[name=nazwa]', 'Anna Nowak');
   await strona.click('#form-nazwa button[type=submit]');
-  await strona.waitForSelector('#form-nazwa .komunikat.sukces');
+  await strona.waitForFunction(() => document.querySelector('#powiadomienie').textContent === 'Nazwa zapisana.');
   assert.equal(baza.konta[0].nazwa, 'Anna Nowak');
 
   // E-mail: różne adresy → błąd; zgodne → oczekiwanie na potwierdzenie
+  assert.ok(await strona.isHidden('#form-email'), 'formularze są zwinięte, dopóki nie są potrzebne');
+  await strona.click('[data-rozwin="form-email"]');
   await strona.fill('#form-email input[name=email]', 'nowa@test.pl');
   await strona.fill('#form-email input[name=email2]', 'inna@test.pl');
   await strona.click('#form-email button[type=submit]');
@@ -150,6 +152,7 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   assert.equal(baza.wyslane.at(-1).typ, 'zmiana-email');
 
   // Hasło: złe obecne → błąd; poprawne → zmiana
+  await strona.click('[data-rozwin="form-haslo"]');
   await strona.fill('#form-haslo input[name=obecne]', 'zle');
   await strona.fill('#form-haslo input[name=nowe]', 'Nowe#Haslo22');
   await strona.fill('#form-haslo input[name=nowe2]', 'Nowe#Haslo22');
@@ -160,7 +163,7 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   await strona.fill('#form-haslo input[name=nowe]', 'Nowe#Haslo22');
   await strona.fill('#form-haslo input[name=nowe2]', 'Nowe#Haslo22');
   await strona.click('#form-haslo button[type=submit]');
-  await strona.waitForSelector('#form-haslo .komunikat.sukces');
+  await strona.waitForFunction(() => document.querySelector('#form-haslo').hidden);
   assert.equal(baza.konta[0].haslo, 'Nowe#Haslo22');
 
   // Odświeżenie zostaje na ustawieniach konta.
@@ -168,6 +171,7 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
 
   // Usunięcie konta
+  await strona.click('[data-rozwin="form-usun"]');
   await strona.fill('#form-usun input[name=haslo]', 'Nowe#Haslo22');
   await strona.click('#form-usun button[type=submit]');
   await strona.click('#potwierdz-tak');
@@ -208,5 +212,26 @@ test('konflikt zapisu: zmiana z innego urządzenia nie jest nadpisywana po cichu
   await strona.click('[data-akcja="dodaj-elipse"]');
   await strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
   assert.equal(baza.projekty[0].wersja, 8);
+  assert.deepEqual(bledy, []);
+});
+
+test('motyw: ciemny i jasny, zapamiętany po odświeżeniu', async (t) => {
+  const { strona, bledy } = await otworz(t, { tryb: 'atrapa' });
+  const motyw = () => strona.evaluate(() => [document.documentElement.dataset.motyw, getComputedStyle(document.body).backgroundColor]);
+  assert.deepEqual(await motyw(), ['jasny', 'rgb(244, 243, 239)']);
+  await strona.click('#ekran-logowania [data-akcja="motyw"]');
+  assert.deepEqual(await motyw(), ['ciemny', 'rgb(21, 20, 18)']);
+  await strona.reload();
+  await strona.waitForSelector('#ekran-logowania', { state: 'visible' });
+  assert.equal((await motyw())[0], 'ciemny');
+
+  // W ustawieniach konta: trzy możliwości.
+  await zalogujIZamknijInstrukcje(strona);
+  await strona.click('#awatar');
+  await strona.click('[data-akcja="ustawienia-konta"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
+  assert.equal(await strona.isChecked('#wybor-motywu input[value=ciemny]'), true);
+  await strona.click('#wybor-motywu label:has-text("Jasny")');
+  assert.equal((await motyw())[0], 'jasny');
   assert.deepEqual(bledy, []);
 });

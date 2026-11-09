@@ -23,7 +23,20 @@
   --blad: #b42318;
   --blad-tlo: #fdecea;
   --sukces: #18794e;
+  --sukces-tlo: #e3f4ea;
   --obszar: #dcdad3;
+  /* kolory pochodne, różne w obu motywach */
+  --na-akcencie-tle: #1d3f9e;   /* tekst na jasnym tle akcentu */
+  --na-ostrzezeniu: #ffffff;    /* tekst na pełnym kolorze ostrzeżenia */
+  --blad-linia: #e9b4ae;
+  --szklo: rgba(255, 255, 255, .92); /* przyciski leżące na miniaturach */
+  --zaslona: rgba(28, 27, 25, .4);
+  --wzorzec: #3b2a6b;           /* tryb edycji wzorca */
+  --wzorzec-tekst: #ffffff;
+  --obszar-wzorca: #d9d3e6;
+  --blask-1: #fbf4e6;
+  --blask-2: #e6ecf9;
+  --cien-strony: 0 2px 4px rgba(28, 27, 25, .1), 0 12px 32px rgba(28, 27, 25, .16);
 
   --r-s: 6px;
   --r-m: 10px;
@@ -35,6 +48,47 @@
   --pasek: 56px;
   --czas: .16s;
   color-scheme: light;
+}
+
+/* Ciemny motyw: te same nazwy, inne wartości. Strony publikacji zostają
+   białe – to papier – zmienia się tylko interfejs wokół nich. */
+:root[data-motyw="ciemny"] {
+  --papier: #151412;
+  --powierzchnia: #1e1d1a;
+  --powierzchnia-2: #242320;
+  --wypelnienie: #2b2a26;
+  --wypelnienie-hover: #35332e;
+  --linia: #33312c;
+  --linia-mocna: #4b4841;
+  --tusz: #f1efe9;
+  --tusz-2: #cdc9bf;
+  --cichy: #99958b;
+  --akcent: #86a3f7;
+  --akcent-hover: #9db5f9;
+  --akcent-tlo: #222a44;
+  --akcent-tekst: #0f1320;
+  --uwaga: #f0a45e;
+  --uwaga-tlo: #382917;
+  --blad: #f28f86;
+  --blad-tlo: #3b1f1c;
+  --sukces: #74d6a3;
+  --sukces-tlo: #17362a;
+  --obszar: #0d0c0b;
+  --na-akcencie-tle: #c3d1fb;
+  --na-ostrzezeniu: #1c1206;
+  --blad-linia: #6b3a35;
+  --szklo: rgba(30, 29, 26, .9);
+  --zaslona: rgba(0, 0, 0, .6);
+  --wzorzec: #b9a5f0;
+  --wzorzec-tekst: #1a1233;
+  --obszar-wzorca: #1b1629;
+  --blask-1: #201c14;
+  --blask-2: #151a29;
+  --cien-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --cien-2: 0 4px 16px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
+  --cien-3: 0 18px 50px rgba(0, 0, 0, .6), 0 4px 12px rgba(0, 0, 0, .4);
+  --cien-strony: 0 2px 6px rgba(0, 0, 0, .5), 0 14px 36px rgba(0, 0, 0, .55);
+  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -154,7 +208,9 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
   border-radius: var(--r-m);
   gap: 2px;
 }
-.przelacznik-segmentowy label { display: flex; }
+/* position: relative trzyma ukryte pola wyboru w etykiecie – inaczej „wystają”
+   poza przewijany obszar i pozwalają przewinąć cały dokument. */
+.przelacznik-segmentowy label { display: flex; position: relative; }
 .przelacznik-segmentowy input { position: absolute; opacity: 0; pointer-events: none; }
 .przelacznik-segmentowy span {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -175,51 +231,52 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
 
 /* ---------- Logowanie i rejestracja ---------- */
 
-body[data-ekran="logowanie"] .ekran-logowania {
-  position: relative; overflow: auto;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-  padding: 32px 16px 20px;
-  background:
-    radial-gradient(900px 500px at 12% 8%, #fbf4e6 0%, transparent 60%),
-    radial-gradient(900px 600px at 92% 96%, #e6ecf9 0%, transparent 62%),
-    var(--papier);
+body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(400px, 1fr); }
+
+/* Lewa połowa: stała, ciemna „okładka” – taka sama w obu motywach. */
+.logowanie-bok {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center; gap: 18px;
+  padding: 56px clamp(32px, 6vw, 88px);
+  background: #1c1b19; color: #f4f3ef;
 }
-.tlo-logowania { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.logowanie-bok .marka { position: absolute; top: 32px; left: clamp(32px, 6vw, 88px); }
+.logowanie-bok .znak-logo { background: #f4f3ef; color: #1c1b19; }
+.logowanie-bok h1 { font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: clamp(30px, 3.4vw, 46px); line-height: 1.12; }
+.logowanie-bok p { max-width: 44ch; color: #c9c6bd; font-size: 15.5px; line-height: 1.55; }
+.podglad-stron { position: relative; height: 210px; margin-top: 22px; }
 .kartka {
-  position: absolute; width: 150px; height: 212px; padding: 24px 18px;
-  background: #fffefb; border-radius: 4px; box-shadow: 0 20px 50px rgba(28, 27, 25, .12);
-  display: flex; flex-direction: column; gap: 10px; opacity: .9;
+  position: absolute; width: 136px; height: 192px; padding: 22px 16px;
+  background: #fbfaf7; border-radius: 3px; box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+  display: flex; flex-direction: column; gap: 9px;
 }
-.kartka span { height: 6px; border-radius: 3px; background: #e6e2d8; }
-.kartka span:first-child { height: 26px; background: var(--akcent); opacity: .85; }
-.kartka span.krotka { width: 58%; }
-.kartka.k1 { left: 7%; top: 14%; transform: rotate(-9deg); }
-.kartka.k2 { right: 8%; top: 20%; transform: rotate(7deg); }
+.kartka span { height: 6px; border-radius: 3px; background: #dcd8cd; }
+.kartka span:first-child { height: 22px; background: #2f5bd3; opacity: .9; }
+.kartka span.krotka { width: 60%; }
+.kartka.k1 { left: 0; transform: rotate(-6deg); }
+.kartka.k2 { left: 116px; top: -8px; transform: rotate(1deg); }
 .kartka.k2 span:first-child { background: #c2410c; }
-.kartka.k3 { left: 13%; bottom: 8%; transform: rotate(5deg); }
+.kartka.k3 { left: 232px; transform: rotate(7deg); }
 .kartka.k3 span:first-child { background: #18794e; }
 
-.karta-logowania {
-  position: relative; z-index: 1;
-  width: min(430px, 100%);
-  display: flex; flex-direction: column; gap: 14px;
-  padding: 30px 30px 26px;
-  background: var(--powierzchnia); border: 1px solid var(--linia); border-radius: 22px;
-  box-shadow: var(--cien-3);
+.logowanie-forma {
+  position: relative; overflow: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+  padding: 64px 24px 24px;
 }
-.marka-duza { justify-content: center; font-size: 19px; gap: 12px; }
-.marka-duza .znak-logo { width: 40px; height: 40px; border-radius: 11px; font-size: 23px; }
-.haslo-marki { text-align: center; color: var(--cichy); margin-top: -8px; font-size: 13.5px; }
+.logowanie-forma .przelacz-motyw { position: absolute; top: 16px; right: 16px; }
+.karta-logowania { width: min(400px, 100%); display: flex; flex-direction: column; gap: 14px; }
+.marka-mobilna { display: none; margin-bottom: 6px; }
 #widok-formularz, .widok-wyslano { display: flex; flex-direction: column; gap: 14px; }
 #widok-formularz.wylaczony { opacity: .5; }
 .zakladki-logowania { display: flex; }
 .zakladki-logowania label { flex: 1; }
 .zakladki-logowania span { flex: 1; min-height: 38px; }
-.karta-logowania h1 { font-size: 20px; }
+.karta-logowania h1 { font-size: 24px; }
 .pole small { font-weight: 400; color: var(--cichy); }
 .przycisk.duzy { min-height: 46px; font-size: 15px; font-weight: 600; }
 .przycisk.maly { min-height: 32px; padding: 0 10px; font-size: 12.5px; }
-.linki-logowania { display: flex; justify-content: center; }
+.linki-logowania { display: flex; }
 
 .zasady-hasla { list-style: none; margin: -2px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .zasady-hasla li {
@@ -229,16 +286,16 @@ body[data-ekran="logowanie"] .ekran-logowania {
   transition: background var(--czas), color var(--czas);
 }
 .zasady-hasla li .ikona { opacity: .35; }
-.zasady-hasla li.spelniona { background: #e3f4ea; color: var(--sukces); }
+.zasady-hasla li.spelniona { background: var(--sukces-tlo); color: var(--sukces); }
 .zasady-hasla li.spelniona .ikona { opacity: 1; }
 
-.widok-wyslano { align-items: center; text-align: center; padding-top: 6px; }
+.widok-wyslano { align-items: flex-start; }
 .widok-wyslano p { color: var(--tusz-2); line-height: 1.55; }
 .ikona-stanu {
-  display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%;
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px;
   background: var(--akcent-tlo); color: var(--akcent);
 }
-.stopka-logowania { position: relative; z-index: 1; font-size: 12px; color: var(--cichy); }
+.stopka-logowania { font-size: 12px; color: var(--cichy); margin-top: auto; }
 .brak-konfiguracji {
   padding: 14px 16px; border-radius: var(--r-m);
   background: var(--uwaga-tlo); color: var(--uwaga);
@@ -247,41 +304,57 @@ body[data-ekran="logowanie"] .ekran-logowania {
 .brak-konfiguracji .przycisk { align-self: flex-start; color: var(--tusz); }
 
 /* ---------- Ustawienia konta ---------- */
+/* Jedna kolumna grup z wierszami „opis po lewej, wartość i akcja po prawej”;
+   formularze rozwijają się w wierszu dopiero wtedy, gdy są potrzebne. */
 
 .ekran-konta { flex-direction: column; }
 .tytul-ekranu { font-size: 16px; font-weight: 600; }
-.konto-tresc { flex: 1; overflow: auto; padding: 28px clamp(16px, 4vw, 48px) 56px; }
-.siatka-konta {
-  max-width: 1200px; margin: 0 auto;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; align-items: stretch;
+.konto-tresc { flex: 1; overflow: auto; scroll-behavior: smooth; }
+.konto-uklad {
+  max-width: 980px; margin: 0 auto; padding: 32px clamp(16px, 4vw, 40px) 72px;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 40px; align-items: start;
 }
-.karta-konta {
-  display: flex; flex-direction: column; gap: 10px;
-  padding: 22px; border-radius: var(--r-l);
-  background: var(--powierzchnia); border: 1px solid var(--linia); box-shadow: var(--cien-1);
-}
-.karta-konta h2 { font-size: 16px; }
-.karta-konta > .ciche { font-size: 13px; line-height: 1.5; }
-.karta-konta .formularz { flex: 1; }
-.karta-konta .formularz .pole { flex: 0 0 auto; }
-.karta-konta.niebezpieczna { border-color: #f1c5c0; }
-.karta-konta.niebezpieczna h2 { color: var(--blad); }
-.stopka-karty { margin-top: auto; padding-top: 6px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
-.stopka-karty .link { margin-right: auto; }
-.przycisk.niebezpieczny { border-color: #e9b4ae; }
-.przycisk.niebezpieczny:hover { background: var(--blad-tlo); border-color: var(--blad); }
-.oczekuje {
+.konto-nawigacja { position: sticky; top: 32px; display: flex; flex-direction: column; gap: 2px; }
+.konto-nawigacja a {
   display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r-m);
+  color: var(--tusz-2); text-decoration: none; font-weight: 500;
+}
+.konto-nawigacja a:hover { background: var(--wypelnienie); color: var(--tusz); }
+.konto-nawigacja a.niebezpieczny:hover { background: var(--blad-tlo); }
+.konto-nawigacja .ikona { color: var(--cichy); }
+.konto-sekcje { display: flex; flex-direction: column; gap: 36px; min-width: 0; }
+.grupa-ustawien { scroll-margin-top: 24px; }
+.grupa-ustawien > h2 { font-size: 20px; margin-bottom: 4px; }
+.grupa-ustawien > .ciche { margin-bottom: 14px; max-width: 60ch; }
+.wiersze-ustawien { border-top: 1px solid var(--linia); }
+.wiersz-ustawien { padding: 16px 0; border-bottom: 1px solid var(--linia); }
+.wiersz-glowny { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 20px; align-items: center; }
+.wiersz-opis { min-width: 0; }
+.wiersz-opis strong { display: block; font-weight: 600; }
+.wiersz-opis span { display: block; color: var(--cichy); font-size: 13px; overflow-wrap: anywhere; }
+.wiersz-opis .wartosc { color: var(--tusz-2); font-size: 14px; }
+.wiersz-akcje { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.wiersz-ustawien .formularz { margin-top: 14px; max-width: 420px; }
+.wiersz-ustawien .formularz .pole { flex: 0 0 auto; }
+.wiersz-ustawien .stopka-formularza { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.wiersz-ustawien .stopka-formularza .link { margin-left: auto; }
+.liczby-konta { display: flex; gap: 28px; flex-wrap: wrap; margin: 0; }
+.liczby-konta div { display: flex; flex-direction: column; }
+.liczby-konta dt { font-size: 12.5px; color: var(--cichy); }
+.liczby-konta dd { margin: 0; font-size: 18px; font-weight: 600; }
+.oczekuje {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px;
   padding: 10px 12px; border-radius: var(--r-m);
-  background: var(--akcent-tlo); color: #1d3f9e; font-size: 13px;
+  background: var(--akcent-tlo); color: var(--na-akcencie-tle); font-size: 13px;
 }
 .oczekuje > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .oczekuje small { color: inherit; opacity: .8; }
-.dane-konta { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.dane-konta div { padding: 10px 12px; border-radius: var(--r-m); background: var(--powierzchnia-2); border: 1px solid var(--linia); }
-.dane-konta dt { font-size: 12px; color: var(--cichy); }
-.dane-konta dd { margin: 2px 0 0; font-weight: 600; }
+.grupa-ustawien.niebezpieczna > h2 { color: var(--blad); }
+.przycisk.niebezpieczny { border-color: var(--blad-linia); }
+.przycisk.niebezpieczny:hover { background: var(--blad-tlo); border-color: var(--blad); }
 .menu-naglowek strong { display: block; color: var(--tusz); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
+.wybor-motywu span { gap: 6px; }
 
 /* ---------- Pasek aplikacji ---------- */
 
@@ -297,7 +370,7 @@ body[data-ekran="logowanie"] .ekran-logowania {
 
 .awatar {
   width: 36px; height: 36px; border-radius: 50%;
-  border: 0; background: var(--akcent); color: #fff; font-weight: 600; cursor: pointer;
+  border: 0; background: var(--akcent); color: var(--akcent-tekst); font-weight: 600; cursor: pointer;
 }
 .menu-uzytkownika, .menu-wiecej { position: relative; }
 .menu {
@@ -357,7 +430,7 @@ body[data-ekran="logowanie"] .ekran-logowania {
 .karta-projektu .opis { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .karta-projektu .opis strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .karta-projektu .opis small { color: var(--cichy); font-size: 12.5px; }
-.karta-projektu .menu-karty { position: absolute; top: 8px; right: 8px; background: rgba(255, 255, 255, .9); --dotyk: 34px; }
+.karta-projektu .menu-karty { position: absolute; top: 8px; right: 8px; background: var(--szklo); --dotyk: 34px; }
 .karta-projektu .menu { top: 46px; right: 8px; min-width: 200px; }
 .karta-projektu.szkielet .okladka { animation: puls 1.4s ease-in-out infinite; }
 
@@ -372,7 +445,7 @@ body[data-ekran="logowanie"] .ekran-logowania {
 .kroki li p { color: var(--cichy); font-size: 13px; margin-top: 2px; }
 .kroki li.wkrotce { opacity: .7; }
 .kroki em { font-style: normal; font-size: 11px; font-weight: 600; color: var(--uwaga); background: var(--uwaga-tlo); padding: 1px 6px; border-radius: 6px; margin-left: 4px; }
-.numer-kroku { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--tusz); color: #fff; font-weight: 600; font-size: 13px; }
+.numer-kroku { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--tusz); color: var(--powierzchnia); font-weight: 600; font-size: 13px; }
 
 /* ---------- Edytor ---------- */
 
@@ -412,7 +485,7 @@ body[data-ekran="logowanie"] .ekran-logowania {
   border-radius: 10px; background: var(--wypelnienie); color: var(--tusz-2);
   font-size: 11.5px; font-weight: 600;
 }
-.licznik.sa { background: var(--uwaga); color: #fff; }
+.licznik.sa { background: var(--uwaga); color: var(--na-ostrzezeniu); }
 
 /* Strony */
 .lista-stron {
@@ -439,7 +512,7 @@ body[data-ekran="logowanie"] .ekran-logowania {
 .strona.aktywna .nazwa { color: var(--akcent); font-weight: 600; }
 .strona .menu-miniatury {
   position: absolute; top: 4px; right: 4px; --dotyk: 30px;
-  background: rgba(255, 255, 255, .92); box-shadow: var(--cien-1);
+  background: var(--szklo); box-shadow: var(--cien-1);
   opacity: 0; transition: opacity var(--czas);
 }
 .strona:hover .menu-miniatury, .strona.aktywna .menu-miniatury, .strona .menu-miniatury:focus-visible { opacity: 1; }
@@ -453,7 +526,7 @@ body[data-ekran="logowanie"] .ekran-logowania {
   touch-action: none; overscroll-behavior: contain;
 }
 .arkusz { margin: auto; padding: 84px 48px 80px; }
-.arkusz .canvas-container { box-shadow: 0 2px 4px rgba(28, 27, 25, .1), 0 12px 32px rgba(28, 27, 25, .16); }
+.arkusz .canvas-container { box-shadow: var(--cien-strony); }
 
 .pasek-narzedzi, .kontrolki-widoku {
   position: absolute; z-index: 5;
@@ -545,7 +618,7 @@ dialog {
   background: var(--powierzchnia); color: var(--tusz);
   box-shadow: var(--cien-3);
 }
-dialog::backdrop { background: rgba(28, 27, 25, .4); backdrop-filter: blur(2px); }
+dialog::backdrop { background: var(--zaslona); backdrop-filter: blur(2px); }
 dialog .formularz { padding: 22px 24px 20px; }
 dialog h2 { font-size: 19px; }
 .dialog-szeroki { width: min(620px, calc(100vw - 24px)); }
@@ -596,7 +669,7 @@ dialog h2 { font-size: 19px; }
 }
 .instrukcja-tresc figcaption { font-size: 12.5px; color: var(--cichy); margin-top: 8px; }
 .instrukcja-tresc ol.punkty, .instrukcja-tresc ul.punkty { margin: 0 0 14px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
-.instrukcja-tresc .rada { padding: 12px 14px; border-radius: var(--r-m); background: var(--akcent-tlo); color: #1d3f9e; font-size: 13.5px; max-width: 70ch; }
+.instrukcja-tresc .rada { padding: 12px 14px; border-radius: var(--r-m); background: var(--akcent-tlo); color: var(--na-akcencie-tle); font-size: 13.5px; max-width: 70ch; }
 .instrukcja-tresc kbd { font: 12px ui-monospace, Menlo, monospace; padding: 1px 6px; border: 1px solid var(--linia-mocna); border-bottom-width: 2px; border-radius: 4px; background: var(--powierzchnia); }
 .instrukcja-stopka { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--linia); }
 .instrukcja-zamknij { position: absolute; top: 10px; right: 10px; }
@@ -606,9 +679,9 @@ dialog h2 { font-size: 19px; }
 .powiadomienie {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100;
   max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: var(--r-m);
-  background: var(--tusz); color: #fff; box-shadow: var(--cien-3); font-size: 13.5px;
+  background: var(--tusz); color: var(--powierzchnia); box-shadow: var(--cien-3); font-size: 13.5px;
 }
-.powiadomienie.blad { background: var(--blad); }
+.powiadomienie.blad { background: var(--blad); color: var(--akcent-tekst); }
 
 /* ---------- Tablet ---------- */
 
@@ -618,10 +691,18 @@ dialog h2 { font-size: 19px; }
   .etyk { display: none; }
 }
 
+@media (max-width: 980px) {
+  body[data-ekran="logowanie"] .ekran-logowania { grid-template-columns: 1fr; }
+  .logowanie-bok { display: none; }
+  .marka-mobilna { display: inline-flex; }
+}
+
 @media (max-width: 760px) {
-  .tlo-logowania { display: none; }
-  .karta-logowania { padding: 24px 20px 20px; }
-  .siatka-konta { grid-template-columns: 1fr; }
+  .konto-uklad { grid-template-columns: 1fr; gap: 20px; padding-top: 20px; }
+  .konto-nawigacja { position: static; flex-direction: row; overflow-x: auto; }
+  .konto-nawigacja a { white-space: nowrap; }
+  .wiersz-glowny { grid-template-columns: 1fr; }
+  .wiersz-akcje { justify-content: flex-start; }
 }
 
 /* ---------- Telefon i tablet w pionie: panele jako arkusze z dołu ---------- */
@@ -716,12 +797,12 @@ dialog h2 { font-size: 19px; }
   display: flex; align-items: center; gap: 10px;
   max-width: calc(100% - 300px);
   padding: 6px 6px 6px 14px;
-  background: #3b2a6b; color: #fff; border-radius: 14px; box-shadow: var(--cien-2);
+  background: var(--wzorzec); color: var(--wzorzec-tekst); border-radius: 14px; box-shadow: var(--cien-2);
   font-size: 13px;
 }
 .pasek-wzorca #pasek-wzorca-tekst { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pasek-wzorca .przycisk { min-height: 34px; background: #fff; border-color: #fff; color: #3b2a6b; }
-body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
+.pasek-wzorca .przycisk { min-height: 34px; background: var(--wzorzec-tekst); border-color: var(--wzorzec-tekst); color: var(--wzorzec); }
+body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .lista-zmiennych { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--tusz-2); }
 .lista-zmiennych code { font-size: 12px; }
 
@@ -739,7 +820,7 @@ body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
 .sasiad {
   flex: none; order: 0; position: relative; z-index: 2;
   padding: 0; border: 0; background: #fff; cursor: pointer; overflow: hidden;
-  box-shadow: 0 2px 4px rgba(28, 27, 25, .1), 0 12px 32px rgba(28, 27, 25, .16);
+  box-shadow: var(--cien-strony);
 }
 .sasiad.po-prawej { order: 2; }
 .sasiad img { display: block; width: 100%; height: 100%; }
@@ -757,7 +838,7 @@ body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
 .strona.w-rozkladowce .numer { display: none; }
 .strona.w-rozkladowce .nazwa { grid-column: 1; }
 .strona.w-rozkladowce .menu-miniatury { --dotyk: 26px; top: 3px; right: 3px; }
-.legenda-prowadnic .grzbiet { border-top: 3px solid rgba(28, 27, 25, .75); }
+.legenda-prowadnic .grzbiet { border-top: 3px solid var(--tusz-2); }
 
 .grupa-pol { border: 0; border-top: 1px solid var(--linia); margin: 0; padding: 12px 0 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .grupa-pol legend { padding: 0 8px 0 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--cichy); }
@@ -774,7 +855,7 @@ body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
 /* ---------- Tekst: style i formatowanie fragmentu ---------- */
 
 .wlasciwosci .segmenty button.tekstowy { font-size: 13px; font-weight: 600; }
-.wlasciwosci .znacznik-fragmentu { padding: 6px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: #1d3f9e; }
+.wlasciwosci .znacznik-fragmentu { padding: 6px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
 .wlasciwosci .rzad-przyciskow .przycisk.niebezpieczny { margin-left: auto; }
 
 /* ---------- Podgląd bez edycji ---------- */
@@ -797,7 +878,7 @@ body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
 .podglad-strona button {
   display: block; width: 100%; height: calc(var(--h) * var(--skala) * 1px);
   padding: 0; border: 0; background: #fff; cursor: pointer;
-  box-shadow: 0 2px 4px rgba(28, 27, 25, .1), 0 12px 32px rgba(28, 27, 25, .16);
+  box-shadow: var(--cien-strony);
 }
 .podglad-strona button:hover { outline: 2px solid var(--akcent); outline-offset: 2px; position: relative; z-index: 1; }
 .podglad-strona img { display: block; width: 100%; height: 100%; }

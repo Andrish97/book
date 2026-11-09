@@ -5,6 +5,7 @@ import * as chmura from './chmura.js';
 import { $, $$, powiadom, potwierdz } from './ui.js';
 import { ikona } from './ikony.js';
 import { NAZWA } from './marka.js';
+import { ustawMotyw, wybranyMotyw } from './motyw.js';
 
 // Te same wymagania co w ustawieniach Supabase
 // (password_requirements = lower_upper_letters_digits_symbols, min. 8 znaków).
@@ -254,7 +255,35 @@ export class Konto {
   // Ustawienia konta
   // ====================================================================
 
+  // Formularze ustawień są zwinięte; rozwijają się w swoim wierszu.
+  rozwin(id) {
+    const f = document.getElementById(id);
+    f.hidden = false;
+    $(`#ekran-konta [data-rozwin="${id}"]`).hidden = true;
+    f.querySelector('input')?.focus();
+  }
+
+  zwin(id) {
+    const f = document.getElementById(id);
+    f.hidden = true;
+    f.reset();
+    f.querySelector('.komunikat').textContent = '';
+    $(`#ekran-konta [data-rozwin="${id}"]`).hidden = false;
+    if (id === 'form-haslo') this.odswiezZasadyKonta?.();
+  }
+
   inicjujUstawienia() {
+    $$('#ekran-konta [data-rozwin]').forEach((b) => b.addEventListener('click', () => this.rozwin(b.dataset.rozwin)));
+    $$('#ekran-konta [data-zwin]').forEach((b) => b.addEventListener('click', () => this.zwin(b.dataset.zwin)));
+    $$('.konto-nawigacja a').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById(a.dataset.do).scrollIntoView({ block: 'start' });
+    }));
+    const zaznaczMotyw = () => $$('#wybor-motywu input').forEach((r) => { r.checked = r.value === wybranyMotyw(); });
+    $('#wybor-motywu').addEventListener('change', (e) => ustawMotyw(e.target.value));
+    document.addEventListener('motyw', zaznaczMotyw);
+    zaznaczMotyw();
+
     const formularz = (id, fn) => $(id).addEventListener('submit', async (e) => {
       e.preventDefault();
       const f = e.target;
@@ -277,7 +306,8 @@ export class Konto {
       const nazwa = f.elements.nazwa.value.trim();
       if (nazwa.length < 2 || nazwa.length > 40) { blad('Nazwa powinna mieć od 2 do 40 znaków.'); return null; }
       this.zaktualizuj(await chmura.zmienNazwe(nazwa));
-      return 'Nazwa zapisana.';
+      powiadom('Nazwa zapisana.');
+      return null;
     });
 
     formularz('#form-email', async (f, blad) => {
@@ -286,7 +316,8 @@ export class Konto {
       if (email !== f.elements.email2.value.trim()) { blad('Adresy e-mail nie są takie same.'); return null; }
       if (email === this.o.stan.uzytkownik.email) { blad('To jest Twój obecny adres.'); return null; }
       this.zaktualizuj(await chmura.zmienEmail(email));
-      f.reset();
+      this.zwin('form-email');
+      powiadom(`Link potwierdzający wysłany na ${email}.`);
       return null;
     });
 
@@ -305,9 +336,9 @@ export class Konto {
         throw e;
       }
       await chmura.ustawNoweHaslo(nowe);
-      f.reset();
-      this.odswiezZasadyKonta();
-      return 'Hasło zmienione.';
+      this.zwin('form-haslo');
+      powiadom('Hasło zostało zmienione.');
+      return null;
     });
 
     $('#konto-reset-hasla').addEventListener('click', async (e) => {
@@ -387,9 +418,9 @@ export class Konto {
   }
 
   pokazUstawienia() {
-    $$('#ekran-konta .komunikat').forEach((k) => { k.textContent = ''; });
-    $$('#ekran-konta form').forEach((f) => f.reset());
-    this.odswiezZasadyKonta?.();
+    for (const id of ['form-email', 'form-haslo', 'form-usun']) this.zwin(id);
+    $('#form-nazwa .komunikat').textContent = '';
+    $('.konto-tresc').scrollTop = 0;
     this.wypelnijUstawienia();
     document.title = `Ustawienia konta – ${NAZWA}`;
   }

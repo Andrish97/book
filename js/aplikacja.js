@@ -25,6 +25,7 @@ import {
 import { NAZWA } from './marka.js';
 import { Konto } from './konto.js';
 import { Podglad } from './podglad.js';
+import { przelaczMotyw } from './motyw.js';
 import { domyslneStyle, zastosujStylWProjekcie, odepnijStyl } from './style-tekstu.js';
 
 
@@ -1516,6 +1517,7 @@ const akcje = {
   'ustawienia-konta': () => { zamknijMenu(); trasa.ustaw('konto'); przejdzDoTrasy(); },
   'importuj-projekt': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
+  motyw: () => { zamknijMenu(); przelaczMotyw(); },
   podglad: () => pokazPodglad(),
   'podglad-zamknij': zamknijPodglad,
   'podglad-plus': () => podglad.powieksz(1.25),

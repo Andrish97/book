@@ -169,7 +169,7 @@ async function przykladoweProjekty(strona) {
     await k.fill('#form-logowania input[name=haslo2]', 'Kalendarz#27');
     await k.click('#przycisk-logowania');
     await k.waitForSelector('#widok-wyslano', { state: 'visible' });
-    await zrzut(k, 'rejestracja-wyslano.png', { clip: { x: 340, y: 120, width: 600, height: 560 } });
+    await zrzut(k, 'rejestracja-wyslano.png', { clip: { x: 584, y: 0, width: 696, height: 520 } });
 
     await k.click('#widok-wyslano [data-tryb="logowanie"]');
     await k.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');
@@ -180,7 +180,14 @@ async function przykladoweProjekty(strona) {
     await k.click('#awatar');
     await k.click('[data-akcja="ustawienia-konta"]');
     await k.waitForFunction(() => document.body.dataset.ekran === 'konto');
+    await k.click('[data-rozwin="form-email"]');
     await zrzut(k, 'konto.png');
+    await k.click('[data-zwin="form-email"]');
+    await k.click('#wybor-motywu label:has-text("Ciemny")');
+    await k.waitForTimeout(400);
+    await k.click('.konto-nawigacja a:has-text("Wygląd")');
+    await zrzut(k, 'motyw.png');
+    await k.click('#wybor-motywu label:has-text("Jak w systemie")');
     for (const f of sprzatanie) await f();
   }
 

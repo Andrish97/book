@@ -58,6 +58,7 @@ const P = {
   rozlozX: '<path d="M4 4v16"/><path d="M20 4v16"/><rect x="9.5" y="7" width="5" height="10" rx="1"/>',
   rozlozY: '<path d="M4 4h16"/><path d="M4 20h16"/><rect x="7" y="9.5" width="10" height="5" rx="1"/>',
   wklej: '<rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 12h6"/><path d="M9 16h4"/>',
+  motyw: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor" stroke="none"/>',
   koperta: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/>',
   ok: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   uzytkownik: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',

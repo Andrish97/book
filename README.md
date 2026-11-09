@@ -17,6 +17,7 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Podgląd** bez edycji: cały projekt jak po przycięciu, rozkładówki obok siebie.
 - **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
 - **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok; panele wysuwane z dołu.
+- **Motyw**: jasny, ciemny albo jak w systemie.
 - **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 
@@ -66,7 +67,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/podglad.js` | Podgląd bez edycji |
 | `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
 | `js/instrukcja.js`, `scripts/zrzuty-instrukcji.cjs` | Instrukcja i generator zrzutów |
-| `js/ui.js`, `js/ikony.js`, `js/czcionki.js`, `js/marka.js` | Elementy wspólne, ikony, czcionki, nazwa aplikacji |
+| `js/ui.js`, `js/ikony.js`, `js/czcionki.js`, `js/marka.js`, `js/motyw.js` | Elementy wspólne, ikony, czcionki, nazwa aplikacji, motyw |
 | `supabase/` | Migracje, konfiguracja, szablony e-maili |
 | `tests/` | Testy przeglądarkowe |
 
