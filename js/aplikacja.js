@@ -2,9 +2,13 @@
 // Główny plik aplikacji: ekrany (logowanie → projekty → edytor), zapis, dialogi.
 
 import {
-  FORMATY, nowyProjekt, nowaStrona, normalizuj, kopiujStrone,
+  FORMATY, nowyProjekt, nowaStrona, nowaSekcja, nowyWzorzec, normalizuj, kopiujStrone, kopiujWzorzec,
+  uporzadkujStrony, sekcjaStrony, wzorzecStrony, zmienneStrony, stronyZWzorcem,
+  WZORZEC_Z_SEKCJI, BEZ_WZORCA,
 } from './projekt.js';
-import { Edytor, podmienZasoby, opisObiektu } from './edytor.js';
+import {
+  Edytor, podmienZasoby, opisObiektu, wstawZmienne,
+} from './edytor.js';
 import { PanelWlasciwosci } from './wlasciwosci.js';
 import { zaladujCzcionki } from './czcionki.js';
 import {
@@ -27,7 +31,10 @@ const stan = {
   uzytkownik: null,
   trybLokalny: false,
   projekt: null,
-  indeks: 0,
+  indeks: 0, // bieżąca strona
+  tryb: 'strona', // 'strona' | 'wzorzec'
+  idWzorca: null,
+  zakladka: 'strony',
   miniatury: new Map(), // id strony -> dataUrl
   timerZapisu: null,
   timerChmury: null,
@@ -391,15 +398,14 @@ $('#dlg-nowy').addEventListener('close', async () => {
   let [w, h] = FORMATY[format] || [Number(f.elements.szerokosc_mm.value) || 148, Number(f.elements.wysokosc_mm.value) || 210];
   if (f.elements.orientacja.value === 'poziom' && h > w) [w, h] = [h, w];
   if (f.elements.orientacja.value === 'pion' && w > h) [w, h] = [h, w];
-  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || 'Nowy projekt');
-  projekt.wydruk = {
-    ...projekt.wydruk,
+  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || 'Nowy projekt', {
     format: FORMATY[format] ? format : 'wlasny',
     szerokosc_mm: Math.max(20, w),
     wysokosc_mm: Math.max(20, h),
     spad_mm: Math.max(0, Number(f.elements.spad_mm.value) || 0),
     marginesy_mm: Math.max(0, Number(f.elements.marginesy_mm.value) || 0),
-  };
+    znaki_ciecia: true,
+  });
   await otworzProjekt(projekt);
   await zapiszTeraz();
 });
@@ -407,28 +413,72 @@ $('#dlg-nowy').addEventListener('close', async () => {
 // ======================================================================
 // Edytor
 // ======================================================================
+//
+// Edytowany „cel” to strona albo wzorzec (stan.tryb). Strona ma format swojej
+// sekcji i pod spodem elementy wzorca; wzorzec ma własny rozmiar.
 
 const edytor = new Edytor($('#plotno'), $('#kontener-plotna'));
 const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
-  strona: () => biezacaStrona(),
-  onStrona: (zmiana) => {
-    Object.assign(biezacaStrona(), zmiana);
-    renderujListeStron();
-    zaplanujZapis();
-  },
-  onFormat: () => otworzDialogWydruku(),
-  opisFormatu: () => opisFormatu(true),
+  tytulPusty: () => (stan.tryb === 'wzorzec' ? 'Wzorzec' : 'Strona'),
+  budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),
 });
 
 const biezacaStrona = () => stan.projekt.strony[stan.indeks];
+const biezacyWzorzec = () => stan.projekt.wzorce.find((w) => w.id === stan.idWzorca);
+const biezacyCel = () => (stan.tryb === 'wzorzec' ? biezacyWzorzec() : biezacaStrona());
+const biezacaSekcja = () => sekcjaStrony(stan.projekt, biezacaStrona());
 
-function opisFormatu(pelny = false) {
-  const w = stan.projekt?.wydruk;
-  if (!w) return '';
-  const nazwa = FORMATY[w.format] ? w.format : `${w.szerokosc_mm}×${w.wysokosc_mm} mm`;
-  const orient = w.szerokosc_mm > w.wysokosc_mm ? ' poziomo' : '';
-  if (!pelny) return `${nazwa}${orient}`;
-  return `${nazwa}${orient} – ${w.szerokosc_mm} × ${w.wysokosc_mm} mm, spad ${w.spad_mm} mm, marginesy ${w.marginesy_mm} mm.`;
+function wydrukCelu() {
+  return stan.tryb === 'wzorzec' ? biezacyWzorzec().wydruk : biezacaSekcja().wydruk;
+}
+
+function nazwaFormatu(w, pelny = false) {
+  const standard = Boolean(FORMATY[w.format]);
+  const orient = standard && w.szerokosc_mm > w.wysokosc_mm ? ' poziomo' : '';
+  if (!pelny) return standard ? `${w.format}${orient}` : `${w.szerokosc_mm}×${w.wysokosc_mm} mm`;
+  return `${standard ? `${w.format}${orient}` : 'Format własny'} – ${w.szerokosc_mm} × ${w.wysokosc_mm} mm, spad ${w.spad_mm} mm, marginesy ${w.marginesy_mm} mm.`;
+}
+
+// Tło strony: własne albo (gdy nie ustawione) z wzorca.
+function tloStrony(strona) {
+  return strona.tlo || wzorzecStrony(stan.projekt, strona)?.tlo || '#ffffff';
+}
+
+function wzorzecDlaEdytora(strona) {
+  const w = wzorzecStrony(stan.projekt, strona);
+  return w ? { obiekty: w.obiekty, zmienne: zmienneStrony(stan.projekt, strona) } : null;
+}
+
+function odswiezPasekEdytora() {
+  const wz = stan.tryb === 'wzorzec';
+  document.body.classList.toggle('tryb-wzorca', wz);
+  $('#pasek-wzorca').hidden = !wz;
+  if (wz) {
+    const w = biezacyWzorzec();
+    const n = stronyZWzorcem(stan.projekt, w.id).length;
+    $('#pasek-wzorca-tekst').textContent = `Edytujesz wzorzec „${w.nazwa}” · ${n ? `widoczny na ${n} ${n === 1 ? 'stronie' : 'stronach'}` : 'nieużywany'}`;
+    $('#opis-formatu').textContent = `Wzorzec · ${w.wydruk.szerokosc_mm}×${w.wydruk.wysokosc_mm}`;
+  } else {
+    $('#opis-formatu').textContent = `${biezacaSekcja().nazwa} · ${nazwaFormatu(biezacaSekcja().wydruk)}`;
+  }
+  $('#przycisk-format').disabled = wz;
+}
+
+// Wczytuje bieżący cel do edytora; dopasowuje widok, gdy zmienił się rozmiar.
+async function zaladujCel({ dopasuj = false } = {}) {
+  const wydruk = wydrukCelu();
+  const poprzedni = edytor.wydruk;
+  const innyRozmiar = !poprzedni || ['szerokosc_mm', 'wysokosc_mm', 'spad_mm'].some((k) => poprzedni[k] !== wydruk[k]);
+  edytor.ustawWydruk(wydruk);
+  const cel = biezacyCel();
+  if (stan.tryb === 'wzorzec') {
+    await edytor.wczytajStrone({ obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff' }, stan.projekt.zasoby, null);
+  } else {
+    await edytor.wczytajStrone({ obiekty: cel.obiekty, tlo: tloStrony(cel) }, stan.projekt.zasoby, wzorzecDlaEdytora(cel));
+  }
+  if (dopasuj || innyRozmiar) edytor.dopasujDoOkna();
+  odswiezPasekEdytora();
+  renderujListe();
 }
 
 function stanZapisu(rodzaj, tekst) {
@@ -444,15 +494,15 @@ async function otworzProjekt(p) {
   await stan.czcionki;
   stan.projekt = normalizuj(p);
   stan.indeks = 0;
+  stan.tryb = 'strona';
+  stan.idWzorca = null;
   stan.miniatury.clear();
+  ustawZakladke('strony');
   pokazEkran('edytor');
   $('#nazwa-projektu').value = stan.projekt.nazwa;
   document.title = `${stan.projekt.nazwa} – Publisher-lite`;
-  $('#opis-formatu').textContent = opisFormatu();
-  edytor.ustawWydruk(stan.projekt.wydruk);
-  await edytor.wczytajStrone(biezacaStrona(), stan.projekt.zasoby);
-  edytor.dopasujDoOkna();
-  renderujListeStron();
+  edytor.wydruk = null;
+  await zaladujCel({ dopasuj: true });
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
   generujMiniatury();
 }
@@ -464,13 +514,25 @@ async function doProjektow() {
   pokazProjekty();
 }
 
-function zapiszBiezacaStrone() {
+// Przepisuje płótno do bieżącego celu (strony lub wzorca).
+function zapiszBiezacyCel() {
   if (!stan.projekt) return;
-  const s = biezacaStrona();
-  s.obiekty = edytor.obiektyStrony();
-  s.tlo = edytor.canvas.backgroundColor || '#ffffff';
-  stan.miniatury.set(s.id, edytor.miniatura(200));
-  stan.projekt.miniatura = stan.miniatury.get(stan.projekt.strony[0].id) || stan.projekt.miniatura;
+  const cel = biezacyCel();
+  if (!cel) return;
+  cel.obiekty = edytor.obiektyStrony();
+  const tlo = edytor.canvas.backgroundColor || '#ffffff';
+  if (stan.tryb === 'strona') {
+    // Tło „z wzorca” zostaje puste, dopóki użytkownik go nie zmieni.
+    const zWzorca = wzorzecStrony(stan.projekt, cel)?.tlo || '#ffffff';
+    if (cel.tlo || tlo !== zWzorca) cel.tlo = tlo;
+  } else {
+    cel.tlo = tlo;
+    // Strony z tym wzorcem trzeba przerysować.
+    for (const s of stronyZWzorcem(stan.projekt, cel.id)) stan.miniatury.delete(s.id);
+  }
+  stan.miniatury.set(cel.id, edytor.miniatura(200));
+  const pierwsza = stan.projekt.strony[0];
+  stan.projekt.miniatura = stan.miniatury.get(pierwsza.id) || stan.projekt.miniatura;
 }
 
 function zaplanujZapis() {
@@ -483,8 +545,8 @@ async function zapiszTeraz() {
   clearTimeout(stan.timerZapisu);
   stan.timerZapisu = null;
   if (!stan.projekt) return stan.zapisywanie;
-  zapiszBiezacaStrone();
-  odswiezMiniature(stan.indeks);
+  zapiszBiezacyCel();
+  odswiezMiniature(biezacyCel()?.id);
   stan.projekt.zmieniono = new Date().toISOString();
   const projekt = stan.projekt;
   stan.zapisywanie = stan.zapisywanie.then(async () => {
@@ -523,71 +585,209 @@ async function synchronizuj() {
   }
 }
 
-// ---------- Strony ----------
+// ---------- Panel: strona i wzorzec ----------
 
-async function przejdzDoStrony(i) {
-  if (i === stan.indeks || i < 0 || i >= stan.projekt.strony.length) return;
-  zapiszBiezacaStrone();
-  odswiezMiniature(stan.indeks);
-  stan.indeks = i;
-  await edytor.wczytajStrone(biezacaStrona(), stan.projekt.zasoby);
+function panelStrony(p) {
+  const strona = biezacaStrona();
+  const sekcja = biezacaSekcja();
+  const s = p.sekcja('Strona');
+  s.append(p.tekst('Nazwa strony', () => strona.nazwa, (v) => {
+    strona.nazwa = v || strona.nazwa;
+    renderujListe();
+    zaplanujZapis();
+  }, true, false));
+
+  const sel = p.wybor('Sekcja', stan.projekt.sekcje.map((x) => [x.id, x.nazwa]), () => strona.sekcja, (v) => przeniesStroneDoSekcji(strona, v));
+  sel.classList.add('szeroki');
+  s.append(sel);
+
+  const opcjeWzorca = [
+    [WZORZEC_Z_SEKCJI, `Jak w sekcji (${stan.projekt.wzorce.find((w) => w.id === sekcja.wzorzec)?.nazwa || 'bez wzorca'})`],
+    [BEZ_WZORCA, 'Bez wzorca'],
+    ...stan.projekt.wzorce.map((w) => [w.id, w.nazwa]),
+  ];
+  const wz = p.wybor('Wzorzec', opcjeWzorca, () => strona.wzorzec, async (v) => {
+    zapiszBiezacyCel();
+    strona.wzorzec = v;
+    stan.miniatury.delete(strona.id);
+    await zaladujCel();
+    zaplanujZapis();
+  });
+  wz.classList.add('szeroki');
+  s.append(wz);
+
+  s.append(p.kolor('Tło', () => edytor.canvas.backgroundColor || '#ffffff', (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+
+  const f = p.sekcja(`Sekcja „${sekcja.nazwa}”`);
+  f.append(p.wskazowka(nazwaFormatu(sekcja.wydruk, true)));
+  f.append(p.akcje([['format', 'Ustawienia sekcji', () => otworzUstawieniaSekcji(sekcja.id)]]));
+
+  p.legendaProwadnic();
+}
+
+function panelWzorca(p) {
+  const w = biezacyWzorzec();
+  const s = p.sekcja('Wzorzec');
+  s.append(p.tekst('Nazwa wzorca', () => w.nazwa, (v) => {
+    w.nazwa = v || w.nazwa;
+    renderujListe();
+    odswiezPasekEdytora();
+    zaplanujZapis();
+  }, true, false));
+  s.append(p.kolor('Tło stron', () => edytor.canvas.backgroundColor || '#ffffff', (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+  s.append(p.wskazowka('Elementy wzorca pojawiają się pod treścią każdej strony, która go używa. Na stronach nie da się ich przypadkiem zaznaczyć ani przesunąć.'));
+
+  const u = p.sekcja('Gdzie jest używany');
+  for (const sek of stan.projekt.sekcje) {
+    u.append(p.przelacznik(`Domyślny w sekcji „${sek.nazwa}”`, () => sek.wzorzec === w.id, (v) => {
+      sek.wzorzec = v ? w.id : (sek.wzorzec === w.id ? null : sek.wzorzec);
+      for (const st of stan.projekt.strony) if (st.sekcja === sek.id) stan.miniatury.delete(st.id);
+      odswiezPasekEdytora();
+      zaplanujZapis();
+    }));
+  }
+  u.append(p.wskazowka('Pojedynczym stronom możesz też wybrać wzorzec w ich właściwościach.'));
+
+  const r = p.sekcja('Rozmiar');
+  const opis = p.wskazowka('');
+  const odswiezOpis = () => { opis.textContent = nazwaFormatu(w.wydruk, true); };
+  odswiezOpis();
+  r.append(opis);
+  const dopasuj = p.wybor('Ustaw rozmiar jak w sekcji', [['', '— wybierz sekcję —'], ...stan.projekt.sekcje.map((x) => [x.id, x.nazwa])], () => '', async (v) => {
+    const sek = stan.projekt.sekcje.find((x) => x.id === v);
+    if (!sek) return;
+    zapiszBiezacyCel();
+    w.wydruk = { ...sek.wydruk };
+    await zaladujCel({ dopasuj: true });
+    zaplanujZapis();
+  });
+  dopasuj.classList.add('szeroki');
+  r.append(dopasuj);
+
+  const z = p.sekcja('Numer strony i inne zmienne');
+  const lista = document.createElement('ul');
+  lista.className = 'lista-zmiennych szeroki';
+  lista.innerHTML = [
+    ['{nr}', 'numer strony w całym projekcie'],
+    ['{nr_w_sekcji}', 'numer strony w jej sekcji'],
+    ['{liczba_stron}', 'liczba wszystkich stron'],
+    ['{sekcja}', 'nazwa sekcji'],
+    ['{strona}', 'nazwa strony'],
+  ].map(([k, o]) => `<li><code>${k}</code> ${o}</li>`).join('');
+  z.append(p.wskazowka('Wpisz w dowolnym tekście wzorca, np. „Strona {nr} z {liczba_stron}”. Na stronach pojawi się właściwa wartość.'), lista);
+
+  p.legendaProwadnic();
+}
+
+// ---------- Lista: strony (pogrupowane w sekcje) i wzorce ----------
+
+function ustawZakladke(nazwa) {
+  stan.zakladka = nazwa;
+  $$('#zakladki-listy input').forEach((r) => { r.checked = r.value === nazwa; });
+  $('#lista-stron').hidden = nazwa !== 'strony';
+  $('#lista-wzorcow').hidden = nazwa !== 'wzorce';
+  $('#stopka-strony').hidden = nazwa !== 'strony';
+  $('#stopka-wzorce').hidden = nazwa !== 'wzorce';
+}
+
+function renderujListe() {
+  if (!stan.projekt) return;
   renderujListeStron();
-  if (document.body.dataset.panel === 'strony') ustawPanel('');
+  renderujListeWzorcow();
+  $('#panel-strony li.aktywna')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  generujMiniatury();
+}
+
+function obrazMiniatury(id, wydruk) {
+  const mini = stan.miniatury.get(id);
+  const el = document.createElement(mini ? 'img' : 'div');
+  if (mini) { el.src = mini; el.alt = ''; } else el.className = 'brak';
+  el.style.aspectRatio = `${wydruk.szerokosc_mm + 2 * wydruk.spad_mm} / ${wydruk.wysokosc_mm + 2 * wydruk.spad_mm}`;
+  return el;
 }
 
 function renderujListeStron() {
   const lista = $('#lista-stron');
   lista.replaceChildren();
-  const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = stan.projekt.wydruk;
-  $('#liczba-stron').textContent = stan.projekt.strony.length;
-  stan.projekt.strony.forEach((s, i) => {
+  const { projekt } = stan;
+  $('#liczba-stron').textContent = projekt.strony.length;
+  for (const sekcja of projekt.sekcje) {
+    const strony = projekt.strony.filter((s) => s.sekcja === sekcja.id);
+    const nag = document.createElement('li');
+    nag.className = 'sekcja-listy';
+    nag.innerHTML = `<div class="opis-sekcji"><strong></strong><small></small></div>
+      <button class="przycisk-ikona maly" aria-label="Opcje sekcji" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
+    $('strong', nag).textContent = sekcja.nazwa;
+    const wz = projekt.wzorce.find((w) => w.id === sekcja.wzorzec);
+    $('small', nag).textContent = `${nazwaFormatu(sekcja.wydruk)} · ${strony.length} str.${wz ? ` · ${wz.nazwa}` : ''}`;
+    $('button', nag).addEventListener('click', (e) => { e.stopPropagation(); otworzMenuSekcji(e.currentTarget, sekcja.id); });
+    lista.append(nag);
+    if (!strony.length) {
+      const pusto = document.createElement('li');
+      pusto.className = 'sekcja-pusta';
+      pusto.innerHTML = '<button class="link">+ Dodaj pierwszą stronę</button>';
+      $('button', pusto).addEventListener('click', () => dodajStrone(sekcja.id));
+      lista.append(pusto);
+    }
+    for (const s of strony) {
+      const i = projekt.strony.indexOf(s);
+      const aktywna = stan.tryb === 'strona' && i === stan.indeks;
+      const li = document.createElement('li');
+      li.className = `strona${aktywna ? ' aktywna' : ''}`;
+      li.dataset.id = s.id;
+      li.innerHTML = `<span class="numer">${i + 1}</span>
+        <button class="miniatura" aria-label="Strona ${i + 1}"></button>
+        <span class="nazwa"></span>
+        <button class="przycisk-ikona menu-miniatury" aria-label="Opcje strony" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
+      if (aktywna) $('.miniatura', li).setAttribute('aria-current', 'page');
+      $('.miniatura', li).append(obrazMiniatury(s.id, sekcja.wydruk));
+      $('.nazwa', li).textContent = s.nazwa;
+      $('.miniatura', li).addEventListener('click', () => przejdzDoStrony(projekt.strony.indexOf(s)));
+      $('.miniatura', li).addEventListener('dblclick', () => zmienNazweStrony(projekt.strony.indexOf(s)));
+      $('.menu-miniatury', li).addEventListener('click', (e) => {
+        e.stopPropagation();
+        otworzMenuStrony(e.currentTarget, projekt.strony.indexOf(s));
+      });
+      lista.append(li);
+    }
+  }
+}
+
+function renderujListeWzorcow() {
+  const lista = $('#lista-wzorcow');
+  lista.replaceChildren();
+  const { projekt } = stan;
+  $('#liczba-wzorcow').textContent = projekt.wzorce.length;
+  if (!projekt.wzorce.length) {
     const li = document.createElement('li');
-    li.className = `strona${i === stan.indeks ? ' aktywna' : ''}`;
-    li.dataset.indeks = i;
-    li.innerHTML = `<span class="numer">${i + 1}</span>
-      <button class="miniatura" aria-label="Strona ${i + 1}"></button>
-      <span class="nazwa"></span>
-      <button class="przycisk-ikona menu-miniatury" aria-label="Opcje strony" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
-    if (i === stan.indeks) $('.miniatura', li).setAttribute('aria-current', 'page');
-    const mini = stan.miniatury.get(s.id);
-    const obraz = document.createElement(mini ? 'img' : 'div');
-    if (mini) { obraz.src = mini; obraz.alt = ''; } else obraz.className = 'brak';
-    obraz.style.aspectRatio = `${w + 2 * b} / ${h + 2 * b}`;
-    $('.miniatura', li).append(obraz);
-    $('.nazwa', li).textContent = s.nazwa;
-    $('.miniatura', li).addEventListener('click', () => przejdzDoStrony(i));
-    $('.miniatura', li).addEventListener('dblclick', () => zmienNazweStrony(i));
-    $('.menu-miniatury', li).addEventListener('click', (e) => {
-      e.stopPropagation();
-      otworzMenuStrony(e.currentTarget, i);
-    });
+    li.className = 'pusto-wzorce';
+    li.innerHTML = '<strong>Brak wzorców</strong><p>Wzorzec to strona ze wspólnymi elementami – tłem, ramką, logo, numerem strony. Rysujesz go raz, a pojawia się na wszystkich stronach, które go używają.</p>';
     lista.append(li);
-  });
+    return;
+  }
+  for (const w of projekt.wzorce) {
+    const aktywny = stan.tryb === 'wzorzec' && w.id === stan.idWzorca;
+    const n = stronyZWzorcem(projekt, w.id).length;
+    const li = document.createElement('li');
+    li.className = `strona wzorzec${aktywny ? ' aktywna' : ''}`;
+    li.dataset.id = w.id;
+    li.innerHTML = `<span class="numer">${ikona('ksiazka', { rozmiar: 14 })}</span>
+      <button class="miniatura"></button>
+      <span class="nazwa"></span>
+      <button class="przycisk-ikona menu-miniatury" aria-label="Opcje wzorca" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
+    $('.miniatura', li).append(obrazMiniatury(w.id, w.wydruk));
+    $('.miniatura', li).setAttribute('aria-label', `Wzorzec ${w.nazwa}`);
+    $('.nazwa', li).textContent = `${w.nazwa} · ${n} str.`;
+    $('.miniatura', li).addEventListener('click', () => edytujWzorzec(w.id));
+    $('.menu-miniatury', li).addEventListener('click', (e) => { e.stopPropagation(); otworzMenuWzorca(e.currentTarget, w.id); });
+    lista.append(li);
+  }
 }
 
-function otworzMenuStrony(przycisk, i) {
-  const menu = $('#menu-strony');
-  const bylo = !menu.hidden && menu.dataset.indeks === String(i);
-  zamknijMenu();
-  if (bylo) return;
-  menu.dataset.indeks = i;
-  $('[data-akcja="strona-gora"]', menu).disabled = i === 0;
-  $('[data-akcja="strona-dol"]', menu).disabled = i === stan.projekt.strony.length - 1;
-  $('[data-akcja="strona-usun"]', menu).disabled = stan.projekt.strony.length <= 1;
-  menu.hidden = false;
-  const r = przycisk.getBoundingClientRect();
-  const mr = menu.getBoundingClientRect();
-  menu.style.left = `${Math.min(window.innerWidth - mr.width - 8, Math.max(8, r.left))}px`;
-  menu.style.top = `${Math.max(8, Math.min(window.innerHeight - mr.height - 8, r.bottom + 4))}px`;
-  przycisk.setAttribute('aria-expanded', 'true');
-}
-
-const indeksZMenu = () => Number($('#menu-strony').dataset.indeks);
-
-function odswiezMiniature(i) {
-  const s = stan.projekt?.strony[i];
-  const mini = s && stan.miniatury.get(s.id);
-  const kontenerMini = $(`#lista-stron li[data-indeks="${i}"] .miniatura`);
+function odswiezMiniature(id) {
+  if (!id) return;
+  const mini = stan.miniatury.get(id);
+  const kontenerMini = $(`#ekran-edytora li[data-id="${id}"] .miniatura`);
   if (!kontenerMini || !mini) return;
   const stary = kontenerMini.firstElementChild;
   if (stary?.tagName === 'IMG') { stary.src = mini; return; }
@@ -598,23 +798,37 @@ function odswiezMiniature(i) {
   if (stary) stary.replaceWith(img); else kontenerMini.append(img);
 }
 
-// Miniatury pozostałych stron renderowane leniwie poza ekranem.
-async function generujMiniatury() {
-  const projekt = stan.projekt;
-  for (let i = 0; i < projekt.strony.length; i += 1) {
-    if (stan.projekt !== projekt) return;
-    const s = projekt.strony[i];
-    if (stan.miniatury.has(s.id)) continue;
-    await new Promise((ok) => (window.requestIdleCallback || setTimeout)(ok));
-    if (stan.projekt !== projekt) return;
-    stan.miniatury.set(s.id, await renderujMiniature(s, projekt));
-    const idx = projekt.strony.indexOf(s);
-    if (idx >= 0) odswiezMiniature(idx);
-  }
+// Miniatury renderowane leniwie poza ekranem (strony z wzorcem pod spodem).
+let generowanie = null;
+function generujMiniatury() {
+  if (generowanie) return;
+  generowanie = (async () => {
+    const projekt = stan.projekt;
+    const cele = [...projekt.strony, ...projekt.wzorce];
+    for (const cel of cele) {
+      if (stan.projekt !== projekt) break;
+      if (stan.miniatury.has(cel.id)) continue;
+      await new Promise((ok) => (window.requestIdleCallback || setTimeout)(ok));
+      if (stan.projekt !== projekt || stan.miniatury.has(cel.id)) continue;
+      stan.miniatury.set(cel.id, await renderujMiniature(cel, projekt));
+      odswiezMiniature(cel.id);
+    }
+  })().finally(() => { generowanie = null; });
 }
 
-async function renderujMiniature(strona, projekt, szerokoscPx = 200) {
-  const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = projekt.wydruk;
+function podstawZmienneWJson(obiekty, zmienne) {
+  return obiekty.map((o) => {
+    const k = { ...o };
+    if (typeof k.text === 'string') k.text = wstawZmienne(k.text, zmienne);
+    if (Array.isArray(k.objects)) k.objects = podstawZmienneWJson(k.objects, zmienne);
+    return k;
+  });
+}
+
+async function renderujMiniature(cel, projekt, szerokoscPx = 200) {
+  const jestWzorcem = projekt.wzorce.includes(cel);
+  const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, cel).wydruk;
+  const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = wydruk;
   const k = szerokoscPx / (w + 2 * b);
   const sc = new fabric.StaticCanvas(null, {
     width: Math.round((w + 2 * b) * k),
@@ -622,8 +836,15 @@ async function renderujMiniature(strona, projekt, szerokoscPx = 200) {
     enableRetinaScaling: false,
     renderOnAddRemove: false,
   });
-  const obiekty = podmienZasoby(strona.obiekty, (id) => projekt.zasoby[id]?.dataUrl || '');
-  await new Promise((ok) => sc.loadFromJSON({ objects: obiekty, backgroundColor: strona.tlo || '#fff' }, ok));
+  let obiekty = cel.obiekty;
+  let tlo = cel.tlo || '#ffffff';
+  if (!jestWzorcem) {
+    const wz = wzorzecStrony(projekt, cel);
+    if (wz) obiekty = [...podstawZmienneWJson(wz.obiekty, zmienneStrony(projekt, cel)), ...cel.obiekty];
+    tlo = cel.tlo || wz?.tlo || '#ffffff';
+  }
+  const zrodla = podmienZasoby(obiekty, (id) => projekt.zasoby[id]?.dataUrl || '');
+  await new Promise((ok) => sc.loadFromJSON({ objects: zrodla, backgroundColor: tlo }, ok));
   sc.setViewportTransform([k, 0, 0, k, b * k, b * k]);
   sc.renderAll();
   const url = sc.toDataURL({ format: 'png' });
@@ -631,26 +852,47 @@ async function renderujMiniature(strona, projekt, szerokoscPx = 200) {
   return url;
 }
 
-async function dodajStrone() {
-  zapiszBiezacaStrone();
-  const nowa = nowaStrona(`Strona ${stan.projekt.strony.length + 1}`);
-  stan.projekt.strony.splice(stan.indeks + 1, 0, nowa);
-  stan.indeks += 1;
-  await edytor.wczytajStrone(nowa, stan.projekt.zasoby);
-  renderujListeStron();
+// ---------- Strony ----------
+
+async function przejdzDoStrony(i) {
+  if (i < 0 || i >= stan.projekt.strony.length) return;
+  if (stan.tryb === 'strona' && i === stan.indeks) return;
+  zapiszBiezacyCel();
+  stan.tryb = 'strona';
+  stan.indeks = i;
+  await zaladujCel();
+  if (document.body.dataset.panel === 'strony') ustawPanel('');
+}
+
+async function dodajStrone(idSekcji = null) {
+  zapiszBiezacyCel();
+  const { projekt } = stan;
+  const sekcja = idSekcji || biezacaSekcja().id;
+  const nowa = nowaStrona(`Strona ${projekt.strony.length + 1}`, sekcja);
+  nowa.tlo = null;
+  const biezaca = biezacaStrona();
+  if (stan.tryb === 'strona' && biezaca.sekcja === sekcja) {
+    projekt.strony.splice(stan.indeks + 1, 0, nowa);
+  } else {
+    projekt.strony.push(nowa);
+    uporzadkujStrony(projekt);
+  }
+  stan.tryb = 'strona';
+  stan.indeks = projekt.strony.indexOf(nowa);
+  ustawZakladke('strony');
+  await zaladujCel();
   $('#lista-stron li.aktywna')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   zaplanujZapis();
 }
 
 async function duplikujStrone(i) {
-  zapiszBiezacaStrone();
+  zapiszBiezacyCel();
   const zrodlo = stan.projekt.strony[i];
   const kopia = kopiujStrone(zrodlo, `${zrodlo.nazwa} (kopia)`);
-  stan.miniatury.set(kopia.id, stan.miniatury.get(zrodlo.id));
   stan.projekt.strony.splice(i + 1, 0, kopia);
+  stan.tryb = 'strona';
   stan.indeks = i + 1;
-  await edytor.wczytajStrone(kopia, stan.projekt.zasoby);
-  renderujListeStron();
+  await zaladujCel();
   zaplanujZapis();
 }
 
@@ -658,24 +900,42 @@ async function usunStrone(i) {
   if (stan.projekt.strony.length <= 1) return;
   const s = stan.projekt.strony[i];
   if (!await potwierdz(`Usunąć stronę „${s.nazwa}”?`, 'Wszystkie elementy z tej strony zostaną usunięte.', 'Usuń stronę', true)) return;
-  zapiszBiezacaStrone();
+  zapiszBiezacyCel();
+  const biezaca = biezacaStrona();
   stan.projekt.strony.splice(i, 1);
   stan.miniatury.delete(s.id);
-  if (i < stan.indeks || stan.indeks >= stan.projekt.strony.length) stan.indeks = Math.max(0, stan.indeks - 1);
-  await edytor.wczytajStrone(biezacaStrona(), stan.projekt.zasoby);
-  renderujListeStron();
+  const nowyIndeks = stan.projekt.strony.indexOf(biezaca);
+  stan.indeks = nowyIndeks >= 0 ? nowyIndeks : Math.min(i, stan.projekt.strony.length - 1);
+  if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();
   zaplanujZapis();
 }
 
+// Przesuwanie w obrębie sekcji (do innej sekcji – przez właściwości strony).
 function przesunStrone(i, kierunek) {
-  const j = i + kierunek;
   const strony = stan.projekt.strony;
-  if (j < 0 || j >= strony.length) return;
-  zapiszBiezacaStrone();
-  const biezaca = strony[stan.indeks];
+  const j = i + kierunek;
+  if (j < 0 || j >= strony.length || strony[j].sekcja !== strony[i].sekcja) return;
+  zapiszBiezacyCel();
+  const biezaca = biezacaStrona();
   [strony[i], strony[j]] = [strony[j], strony[i]];
   stan.indeks = strony.indexOf(biezaca);
-  renderujListeStron();
+  for (const s of strony) if (wzorzecStrony(stan.projekt, s)) stan.miniatury.delete(s.id); // numery stron
+  renderujListe();
+  zaplanujZapis();
+}
+
+async function przeniesStroneDoSekcji(strona, idSekcji) {
+  if (strona.sekcja === idSekcji) return;
+  zapiszBiezacyCel();
+  strona.sekcja = idSekcji;
+  // Na koniec nowej sekcji.
+  const strony = stan.projekt.strony;
+  strony.splice(strony.indexOf(strona), 1);
+  strony.push(strona);
+  uporzadkujStrony(stan.projekt);
+  stan.indeks = strony.indexOf(strona);
+  stan.miniatury.clear();
+  await zaladujCel();
   zaplanujZapis();
 }
 
@@ -684,8 +944,275 @@ async function zmienNazweStrony(i) {
   const nazwa = await zapytajONazwe('Zmień nazwę strony', 'Nazwa strony', s.nazwa);
   if (!nazwa) return;
   s.nazwa = nazwa;
-  renderujListeStron();
-  if (i === stan.indeks && !edytor.aktywny) panel.zbuduj();
+  renderujListe();
+  if (stan.tryb === 'strona' && i === stan.indeks && !edytor.aktywny) panel.zbuduj();
+  zaplanujZapis();
+}
+
+// ---------- Menu kontekstowe (strona, sekcja, wzorzec) ----------
+
+function pokazMenu(menu, przycisk) {
+  menu.hidden = false;
+  const r = przycisk.getBoundingClientRect();
+  const mr = menu.getBoundingClientRect();
+  menu.style.left = `${Math.min(window.innerWidth - mr.width - 8, Math.max(8, r.left))}px`;
+  menu.style.top = `${Math.max(8, Math.min(window.innerHeight - mr.height - 8, r.bottom + 4))}px`;
+  przycisk.setAttribute('aria-expanded', 'true');
+}
+
+function otworzMenuStrony(przycisk, i) {
+  const menu = $('#menu-strony');
+  const bylo = !menu.hidden && menu.dataset.indeks === String(i);
+  zamknijMenu();
+  if (bylo) return;
+  const strony = stan.projekt.strony;
+  menu.dataset.indeks = i;
+  $('[data-akcja="strona-gora"]', menu).disabled = i === 0 || strony[i - 1].sekcja !== strony[i].sekcja;
+  $('[data-akcja="strona-dol"]', menu).disabled = i === strony.length - 1 || strony[i + 1].sekcja !== strony[i].sekcja;
+  $('[data-akcja="strona-usun"]', menu).disabled = strony.length <= 1;
+  pokazMenu(menu, przycisk);
+}
+
+function otworzMenuSekcji(przycisk, id) {
+  const menu = $('#menu-sekcji');
+  const bylo = !menu.hidden && menu.dataset.id === id;
+  zamknijMenu();
+  if (bylo) return;
+  const i = stan.projekt.sekcje.findIndex((s) => s.id === id);
+  menu.dataset.id = id;
+  $('[data-akcja="sekcja-gora"]', menu).disabled = i === 0;
+  $('[data-akcja="sekcja-dol"]', menu).disabled = i === stan.projekt.sekcje.length - 1;
+  $('[data-akcja="sekcja-usun"]', menu).disabled = stan.projekt.sekcje.length <= 1;
+  pokazMenu(menu, przycisk);
+}
+
+function otworzMenuWzorca(przycisk, id) {
+  const menu = $('#menu-wzorca');
+  const bylo = !menu.hidden && menu.dataset.id === id;
+  zamknijMenu();
+  if (bylo) return;
+  menu.dataset.id = id;
+  pokazMenu(menu, przycisk);
+}
+
+const indeksZMenu = () => Number($('#menu-strony').dataset.indeks);
+const sekcjaZMenu = () => $('#menu-sekcji').dataset.id;
+const wzorzecZMenu = () => $('#menu-wzorca').dataset.id;
+
+// ---------- Sekcje ----------
+
+// Dialog ustawień sekcji. id === null → nowa sekcja.
+function otworzUstawieniaSekcji(id) {
+  const dlg = $('#dlg-sekcja');
+  const f = dlg.querySelector('form');
+  const istniejaca = stan.projekt.sekcje.find((s) => s.id === id);
+  const wzor = istniejaca || biezacaSekcja();
+  const w = wzor.wydruk;
+  dlg.dataset.id = id || '';
+  $('#tytul-sekcji').textContent = istniejaca ? 'Ustawienia sekcji' : 'Nowa sekcja';
+  $('#zapisz-sekcje').textContent = istniejaca ? 'Zapisz' : 'Dodaj sekcję';
+  f.elements.nazwa.value = istniejaca ? istniejaca.nazwa : `Sekcja ${stan.projekt.sekcje.length + 1}`;
+  const sel = f.elements.format;
+  sel.replaceChildren();
+  for (const [nazwa, [sz, wy]] of Object.entries(FORMATY)) sel.add(new Option(`${nazwa} (${sz} × ${wy} mm)`, nazwa));
+  sel.add(new Option('Własny', 'wlasny'));
+  sel.value = FORMATY[w.format] ? w.format : 'wlasny';
+  f.elements.szerokosc_mm.value = w.szerokosc_mm;
+  f.elements.wysokosc_mm.value = w.wysokosc_mm;
+  f.elements.spad_mm.value = w.spad_mm;
+  f.elements.marginesy_mm.value = w.marginesy_mm;
+  f.elements.znaki_ciecia.checked = Boolean(w.znaki_ciecia);
+  const wz = f.elements.wzorzec;
+  wz.replaceChildren(new Option('Bez wzorca', ''));
+  for (const x of stan.projekt.wzorce) wz.add(new Option(x.nazwa, x.id));
+  wz.value = istniejaca?.wzorzec || '';
+  dlg.returnValue = '';
+  dlg.showModal();
+  f.elements.nazwa.focus();
+}
+
+function wykryjFormat(sz, wy) {
+  for (const [nazwa, [a, b]] of Object.entries(FORMATY)) {
+    if ((a === sz && b === wy) || (a === wy && b === sz)) return nazwa;
+  }
+  return 'wlasny';
+}
+
+async function zatwierdzSekcje() {
+  const dlg = $('#dlg-sekcja');
+  const f = dlg.querySelector('form');
+  const liczba = (n) => Math.max(0, parseFloat(String(f.elements[n].value).replace(',', '.')) || 0);
+  const sz = Math.max(20, liczba('szerokosc_mm'));
+  const wy = Math.max(20, liczba('wysokosc_mm'));
+  const wydruk = {
+    format: wykryjFormat(sz, wy),
+    szerokosc_mm: sz,
+    wysokosc_mm: wy,
+    spad_mm: liczba('spad_mm'),
+    marginesy_mm: Math.min(liczba('marginesy_mm'), Math.min(sz, wy) / 2 - 1),
+    znaki_ciecia: f.elements.znaki_ciecia.checked,
+  };
+  const nazwa = f.elements.nazwa.value.trim() || 'Sekcja';
+  const wzorzec = f.elements.wzorzec.value || null;
+  zapiszBiezacyCel();
+  const { projekt } = stan;
+  let sekcja = projekt.sekcje.find((s) => s.id === dlg.dataset.id);
+  if (sekcja) {
+    Object.assign(sekcja, { nazwa, wydruk, wzorzec });
+    for (const s of projekt.strony) if (s.sekcja === sekcja.id) stan.miniatury.delete(s.id);
+  } else {
+    sekcja = { ...nowaSekcja(nazwa, wydruk), wzorzec };
+    const i = projekt.sekcje.indexOf(biezacaSekcja());
+    projekt.sekcje.splice(i + 1, 0, sekcja);
+    const strona = nowaStrona(`Strona ${projekt.strony.length + 1}`, sekcja.id);
+    strona.tlo = null;
+    projekt.strony.push(strona);
+    uporzadkujStrony(projekt);
+    stan.tryb = 'strona';
+    stan.indeks = projekt.strony.indexOf(strona);
+    ustawZakladke('strony');
+  }
+  await zaladujCel();
+  zaplanujZapis();
+}
+
+$('#dlg-sekcja').addEventListener('close', () => {
+  if ($('#dlg-sekcja').returnValue === 'ok') zatwierdzSekcje();
+});
+$('#dlg-sekcja select[name="format"]').addEventListener('change', () => {
+  const f = $('#dlg-sekcja form');
+  const wym = FORMATY[f.elements.format.value];
+  if (!wym) return;
+  const poziomo = Number(f.elements.szerokosc_mm.value) > Number(f.elements.wysokosc_mm.value);
+  f.elements.szerokosc_mm.value = poziomo ? Math.max(...wym) : wym[0];
+  f.elements.wysokosc_mm.value = poziomo ? Math.min(...wym) : wym[1];
+});
+for (const n of ['szerokosc_mm', 'wysokosc_mm']) {
+  $(`#dlg-sekcja [name="${n}"]`).addEventListener('input', () => {
+    const f = $('#dlg-sekcja form');
+    f.elements.format.value = wykryjFormat(Number(f.elements.szerokosc_mm.value), Number(f.elements.wysokosc_mm.value));
+  });
+}
+
+async function przesunSekcje(id, kierunek) {
+  const sekcje = stan.projekt.sekcje;
+  const i = sekcje.findIndex((s) => s.id === id);
+  const j = i + kierunek;
+  if (j < 0 || j >= sekcje.length) return;
+  zapiszBiezacyCel();
+  const biezaca = biezacaStrona();
+  [sekcje[i], sekcje[j]] = [sekcje[j], sekcje[i]];
+  uporzadkujStrony(stan.projekt);
+  stan.indeks = stan.projekt.strony.indexOf(biezaca);
+  stan.miniatury.clear();
+  await zaladujCel();
+  zaplanujZapis();
+}
+
+async function usunSekcje(id) {
+  const { projekt } = stan;
+  if (projekt.sekcje.length <= 1) return;
+  const sekcja = projekt.sekcje.find((s) => s.id === id);
+  const strony = projekt.strony.filter((s) => s.sekcja === id);
+  if (strony.length === projekt.strony.length) {
+    powiadom('To jedyne strony w projekcie – przenieś najpierw jakąś stronę do innej sekcji.', true);
+    return;
+  }
+  const ok = await potwierdz(
+    `Usunąć sekcję „${sekcja.nazwa}”?`,
+    strony.length ? `Razem z nią zostanie usuniętych ${strony.length} stron.` : 'Sekcja jest pusta.',
+    'Usuń sekcję',
+    true,
+  );
+  if (!ok) return;
+  zapiszBiezacyCel();
+  const biezaca = biezacaStrona();
+  projekt.sekcje = projekt.sekcje.filter((s) => s.id !== id);
+  projekt.strony = projekt.strony.filter((s) => s.sekcja !== id);
+  const ni = projekt.strony.indexOf(biezaca);
+  stan.indeks = ni >= 0 ? ni : 0;
+  stan.miniatury.clear();
+  await zaladujCel();
+  zaplanujZapis();
+}
+
+// ---------- Wzorce ----------
+
+async function edytujWzorzec(id) {
+  if (stan.tryb === 'wzorzec' && stan.idWzorca === id) return;
+  zapiszBiezacyCel();
+  stan.tryb = 'wzorzec';
+  stan.idWzorca = id;
+  ustawZakladke('wzorce');
+  await zaladujCel();
+  if (document.body.dataset.panel === 'strony') ustawPanel('');
+}
+
+async function wrocDoStron() {
+  if (stan.tryb !== 'wzorzec') return;
+  zapiszBiezacyCel();
+  stan.tryb = 'strona';
+  ustawZakladke('strony');
+  await zaladujCel();
+}
+
+async function dodajWzorzec() {
+  const { projekt } = stan;
+  const sekcja = biezacaSekcja();
+  const w = nowyWzorzec(`Wzorzec ${projekt.wzorce.length + 1}`, sekcja.wydruk);
+  projekt.wzorce.push(w);
+  // Pierwszy wzorzec od razu jako domyślny dla bieżącej sekcji, jeśli nie ma żadnego.
+  if (!sekcja.wzorzec) {
+    sekcja.wzorzec = w.id;
+    powiadom(`Wzorzec będzie widoczny na stronach sekcji „${sekcja.nazwa}”. Zmienisz to w panelu z prawej.`);
+  }
+  await edytujWzorzec(w.id);
+  zaplanujZapis();
+}
+
+async function duplikujWzorzecZ(id) {
+  zapiszBiezacyCel();
+  const zrodlo = stan.projekt.wzorce.find((w) => w.id === id);
+  const kopia = kopiujWzorzec(zrodlo, `${zrodlo.nazwa} (kopia)`);
+  stan.projekt.wzorce.splice(stan.projekt.wzorce.indexOf(zrodlo) + 1, 0, kopia);
+  await edytujWzorzec(kopia.id);
+  zaplanujZapis();
+}
+
+async function zmienNazweWzorca(id) {
+  const w = stan.projekt.wzorce.find((x) => x.id === id);
+  const nazwa = await zapytajONazwe('Zmień nazwę wzorca', 'Nazwa wzorca', w.nazwa);
+  if (!nazwa) return;
+  w.nazwa = nazwa;
+  renderujListe();
+  if (stan.tryb === 'wzorzec') { odswiezPasekEdytora(); if (!edytor.aktywny) panel.zbuduj(); } else if (!edytor.aktywny) panel.zbuduj();
+  zaplanujZapis();
+}
+
+async function usunWzorzec(id) {
+  const { projekt } = stan;
+  const w = projekt.wzorce.find((x) => x.id === id);
+  const n = stronyZWzorcem(projekt, id).length;
+  const ok = await potwierdz(
+    `Usunąć wzorzec „${w.nazwa}”?`,
+    n ? `Zniknie ze ${n} stron, które go używają. Ich własna treść zostanie.` : 'Wzorzec nie jest nigdzie używany.',
+    'Usuń wzorzec',
+    true,
+  );
+  if (!ok) return;
+  zapiszBiezacyCel();
+  for (const s of stronyZWzorcem(projekt, id)) stan.miniatury.delete(s.id);
+  projekt.wzorce = projekt.wzorce.filter((x) => x.id !== id);
+  for (const s of projekt.sekcje) if (s.wzorzec === id) s.wzorzec = null;
+  for (const s of projekt.strony) if (s.wzorzec === id) s.wzorzec = WZORZEC_Z_SEKCJI;
+  stan.miniatury.delete(id);
+  if (stan.tryb === 'wzorzec' && stan.idWzorca === id) {
+    stan.tryb = 'strona';
+    await zaladujCel();
+    ustawZakladke('wzorce');
+  } else {
+    await zaladujCel();
+  }
   zaplanujZapis();
 }
 
@@ -721,77 +1248,6 @@ function renderujOstrzezenia(lista) {
     ul.append(li);
   }
 }
-
-// ---------- Format wydruku ----------
-
-function otworzDialogWydruku() {
-  const dlg = $('#dlg-wydruk');
-  const f = dlg.querySelector('form');
-  const w = stan.projekt.wydruk;
-  const sel = f.elements.format;
-  sel.replaceChildren();
-  for (const [nazwa, [sz, wy]] of Object.entries(FORMATY)) sel.add(new Option(`${nazwa} (${sz} × ${wy} mm)`, nazwa));
-  sel.add(new Option('Własny', 'wlasny'));
-  sel.value = FORMATY[w.format] ? w.format : 'wlasny';
-  f.elements.szerokosc_mm.value = w.szerokosc_mm;
-  f.elements.wysokosc_mm.value = w.wysokosc_mm;
-  f.elements.spad_mm.value = w.spad_mm;
-  f.elements.marginesy_mm.value = w.marginesy_mm;
-  f.elements.znaki_ciecia.checked = Boolean(w.znaki_ciecia);
-  dlg.returnValue = '';
-  dlg.showModal();
-}
-
-function wykryjFormat(sz, wy) {
-  for (const [nazwa, [a, b]] of Object.entries(FORMATY)) {
-    if ((a === sz && b === wy) || (a === wy && b === sz)) return nazwa;
-  }
-  return 'wlasny';
-}
-
-async function zatwierdzWydruk() {
-  const f = $('#dlg-wydruk form');
-  const liczba = (n) => Math.max(0, parseFloat(String(f.elements[n].value).replace(',', '.')) || 0);
-  const sz = Math.max(20, liczba('szerokosc_mm'));
-  const wy = Math.max(20, liczba('wysokosc_mm'));
-  stan.projekt.wydruk = {
-    ...stan.projekt.wydruk,
-    format: wykryjFormat(sz, wy),
-    szerokosc_mm: sz,
-    wysokosc_mm: wy,
-    spad_mm: liczba('spad_mm'),
-    marginesy_mm: Math.min(liczba('marginesy_mm'), Math.min(sz, wy) / 2 - 1),
-    znaki_ciecia: f.elements.znaki_ciecia.checked,
-  };
-  zapiszBiezacaStrone();
-  edytor.ustawWydruk(stan.projekt.wydruk);
-  edytor.dopasujDoOkna();
-  $('#opis-formatu').textContent = opisFormatu();
-  panel.odswiez();
-  stan.miniatury.clear();
-  renderujListeStron();
-  generujMiniatury();
-  zaplanujZapis();
-}
-
-const dlgWydruk = $('#dlg-wydruk');
-dlgWydruk.querySelector('select[name="format"]').addEventListener('change', () => {
-  const f = dlgWydruk.querySelector('form');
-  const wym = FORMATY[f.elements.format.value];
-  if (!wym) return;
-  const poziomo = Number(f.elements.szerokosc_mm.value) > Number(f.elements.wysokosc_mm.value);
-  f.elements.szerokosc_mm.value = poziomo ? Math.max(...wym) : wym[0];
-  f.elements.wysokosc_mm.value = poziomo ? Math.min(...wym) : wym[1];
-});
-for (const n of ['szerokosc_mm', 'wysokosc_mm']) {
-  dlgWydruk.querySelector(`[name="${n}"]`).addEventListener('input', () => {
-    const f = dlgWydruk.querySelector('form');
-    f.elements.format.value = wykryjFormat(Number(f.elements.szerokosc_mm.value), Number(f.elements.wysokosc_mm.value));
-  });
-}
-dlgWydruk.addEventListener('close', () => {
-  if (dlgWydruk.returnValue === 'ok') zatwierdzWydruk();
-});
 
 // ---------- Pliki ----------
 
@@ -842,6 +1298,9 @@ function ustawPanel(nazwa) {
 // Akcje (data-akcja)
 // ======================================================================
 
+const zMenu = (fn) => () => { const v = fn.zrodlo(); zamknijMenu(); fn(v); };
+const przezMenu = (zrodlo, fn) => { const f = (v) => fn(v); f.zrodlo = zrodlo; return zMenu(f); };
+
 const akcje = {
   'nowy-projekt': otworzNowyProjekt,
   instrukcja: () => instrukcja.otworz(0),
@@ -850,7 +1309,11 @@ const akcje = {
   'wczytaj-plik': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
   'pobierz-json': () => { zamknijMenu(); pobierzJsonProjektu({ id: stan.projekt.id }); },
-  png: () => { zamknijMenu(); pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-s${stan.indeks + 1}.png`, edytor.png(150)); },
+  png: () => {
+    zamknijMenu();
+    const nazwa = stan.tryb === 'wzorzec' ? `wzorzec-${biezacyWzorzec().nazwa}` : `s${stan.indeks + 1}`;
+    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-${bezpiecznaNazwa(nazwa)}.png`, edytor.png(150));
+  },
   'usun-projekt': async () => {
     zamknijMenu();
     const p = stan.projekt;
@@ -859,19 +1322,32 @@ const akcje = {
       pokazProjekty();
     }
   },
-  wydruk: otworzDialogWydruku,
+  wydruk: () => otworzUstawieniaSekcji(biezacaSekcja().id),
   'zamknij-panel': () => ustawPanel(''),
   'obroc-format': () => {
-    const f = $('#dlg-wydruk form');
+    const f = $('#dlg-sekcja form');
     [f.elements.szerokosc_mm.value, f.elements.wysokosc_mm.value] = [f.elements.wysokosc_mm.value, f.elements.szerokosc_mm.value];
   },
 
-  'strona-dodaj': dodajStrone,
-  'strona-nazwa': () => { const i = indeksZMenu(); zamknijMenu(); zmienNazweStrony(i); },
-  'strona-duplikuj': () => { const i = indeksZMenu(); zamknijMenu(); duplikujStrone(i); },
-  'strona-usun': () => { const i = indeksZMenu(); zamknijMenu(); usunStrone(i); },
-  'strona-gora': () => { const i = indeksZMenu(); zamknijMenu(); przesunStrone(i, -1); },
-  'strona-dol': () => { const i = indeksZMenu(); zamknijMenu(); przesunStrone(i, 1); },
+  'strona-dodaj': () => dodajStrone(),
+  'strona-nazwa': przezMenu(indeksZMenu, zmienNazweStrony),
+  'strona-duplikuj': przezMenu(indeksZMenu, duplikujStrone),
+  'strona-usun': przezMenu(indeksZMenu, usunStrone),
+  'strona-gora': przezMenu(indeksZMenu, (i) => przesunStrone(i, -1)),
+  'strona-dol': przezMenu(indeksZMenu, (i) => przesunStrone(i, 1)),
+
+  'sekcja-dodaj': () => otworzUstawieniaSekcji(null),
+  'sekcja-ustawienia': przezMenu(sekcjaZMenu, otworzUstawieniaSekcji),
+  'sekcja-strona': przezMenu(sekcjaZMenu, dodajStrone),
+  'sekcja-gora': przezMenu(sekcjaZMenu, (id) => przesunSekcje(id, -1)),
+  'sekcja-dol': przezMenu(sekcjaZMenu, (id) => przesunSekcje(id, 1)),
+  'sekcja-usun': przezMenu(sekcjaZMenu, usunSekcje),
+
+  'wzorzec-dodaj': dodajWzorzec,
+  'wzorzec-nazwa': przezMenu(wzorzecZMenu, zmienNazweWzorca),
+  'wzorzec-duplikuj': przezMenu(wzorzecZMenu, duplikujWzorzecZ),
+  'wzorzec-usun': przezMenu(wzorzecZMenu, usunWzorzec),
+  'wroc-do-stron': wrocDoStron,
 
   'dodaj-tekst': () => edytor.dodajTekst(),
   'dodaj-prostokat': () => edytor.dodajProstokat(),
@@ -891,6 +1367,11 @@ const akcje = {
   'zoom-minus': () => edytor.ustawZoom(edytor.zoom / 1.25),
   'zoom-dopasuj': () => edytor.dopasujDoOkna(),
 };
+
+$('#zakladki-listy').addEventListener('change', (e) => {
+  ustawZakladke(e.target.value);
+  if (e.target.value === 'strony' && stan.tryb === 'wzorzec') wrocDoStron();
+});
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-akcja]');
@@ -993,7 +1474,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && stan.projekt) zapiszTeraz();
 });
 window.addEventListener('beforeunload', () => {
-  if (stan.timerZapisu && stan.projekt) zapiszBiezacaStrone();
+  if (stan.timerZapisu && stan.projekt) zapiszBiezacyCel();
 });
 let timerOkna = null;
 window.addEventListener('resize', () => {
@@ -1041,4 +1522,5 @@ start().catch((e) => {
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
 window.publisher = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
+  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji,
 };

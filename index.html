@@ -118,7 +118,7 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
-      <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Format, spad i marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
+      <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
@@ -133,14 +133,22 @@
     </header>
 
     <div class="uklad-edytora">
-      <aside class="panel panel-strony" id="panel-strony" aria-label="Strony">
+      <aside class="panel panel-strony" id="panel-strony" aria-label="Strony i wzorce">
         <div class="naglowek-panelu">
-          <h2>Strony <span class="licznik" id="liczba-stron">1</span></h2>
+          <div class="przelacznik-segmentowy zakladki-listy" id="zakladki-listy" role="radiogroup" aria-label="Lista">
+            <label><input type="radio" name="zakladka-listy" value="strony" checked><span>Strony <span class="licznik" id="liczba-stron">1</span></span></label>
+            <label><input type="radio" name="zakladka-listy" value="wzorce"><span>Wzorce <span class="licznik" id="liczba-wzorcow">0</span></span></label>
+          </div>
           <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
         </div>
         <ol class="lista-stron" id="lista-stron"></ol>
-        <div class="stopka-panelu">
-          <button class="przycisk pelny" data-akcja="strona-dodaj" data-ikona="plus" id="przycisk-dodaj-strone">Dodaj stronę</button>
+        <ol class="lista-stron lista-wzorcow" id="lista-wzorcow" hidden></ol>
+        <div class="stopka-panelu" id="stopka-strony">
+          <button class="przycisk" data-akcja="strona-dodaj" data-ikona="plus" id="przycisk-dodaj-strone">Strona</button>
+          <button class="przycisk" data-akcja="sekcja-dodaj" data-ikona="plus" title="Nowa sekcja z własnym formatem i marginesami">Sekcja</button>
+        </div>
+        <div class="stopka-panelu" id="stopka-wzorce" hidden>
+          <button class="przycisk pelny" data-akcja="wzorzec-dodaj" data-ikona="plus">Nowy wzorzec</button>
         </div>
       </aside>
 
@@ -155,6 +163,12 @@
 
         <div id="kontener-plotna" class="kontener-plotna">
           <div class="arkusz"><canvas id="plotno"></canvas></div>
+        </div>
+
+        <div class="pasek-wzorca" id="pasek-wzorca" hidden>
+          <span data-ikona="ksiazka" data-rozmiar="18"></span>
+          <span id="pasek-wzorca-tekst"></span>
+          <button class="przycisk" data-akcja="wroc-do-stron">Gotowe</button>
         </div>
 
         <div class="kontrolki-widoku" id="kontrolki-widoku">
@@ -231,12 +245,13 @@
     </form>
   </dialog>
 
-  <dialog id="dlg-wydruk">
+  <dialog id="dlg-sekcja">
     <form method="dialog" class="formularz">
       <div class="naglowek-dialogu">
-        <h2>Format wydruku</h2>
+        <h2 id="tytul-sekcji">Ustawienia sekcji</h2>
         <button class="przycisk-ikona" value="anuluj" formnovalidate data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
+      <label class="pole"><span>Nazwa sekcji</span><input name="nazwa" required maxlength="60" placeholder="np. Okładka, Środek, Wkładka"></label>
       <label class="pole"><span>Format</span><select name="format"></select></label>
       <div class="rzad">
         <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
@@ -247,11 +262,12 @@
         <label class="pole"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
         <label class="pole"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="0.5" required inputmode="decimal"></label>
       </div>
+      <label class="pole"><span>Wzorzec dla stron tej sekcji</span><select name="wzorzec"></select></label>
       <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"><span>Znaki cięcia w pliku PDF</span></label>
-      <p class="podpowiedz">Obiekty zostają w tych samych miejscach (w mm). Po zmianie formatu sprawdź listę ostrzeżeń.</p>
+      <p class="podpowiedz">Ustawienia dotyczą wszystkich stron tej sekcji. Elementy zostają w tych samych miejscach (w mm) – po zmianie formatu sprawdź ostrzeżenia.</p>
       <div class="przyciski-dialogu">
         <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
-        <button class="przycisk glowny" value="ok">Zapisz</button>
+        <button class="przycisk glowny" value="ok" id="zapisz-sekcje">Zapisz</button>
       </div>
     </form>
   </dialog>
@@ -286,6 +302,24 @@
     <button role="menuitem" data-akcja="strona-dol">Przesuń niżej</button>
     <hr>
     <button role="menuitem" class="niebezpieczny" data-akcja="strona-usun">Usuń stronę</button>
+  </div>
+
+  <!-- Menu kontekstowe sekcji -->
+  <div class="menu menu-strony" id="menu-sekcji" role="menu" hidden>
+    <button role="menuitem" data-akcja="sekcja-ustawienia">Ustawienia sekcji</button>
+    <button role="menuitem" data-akcja="sekcja-strona">Dodaj stronę do sekcji</button>
+    <button role="menuitem" data-akcja="sekcja-gora">Przesuń sekcję wyżej</button>
+    <button role="menuitem" data-akcja="sekcja-dol">Przesuń sekcję niżej</button>
+    <hr>
+    <button role="menuitem" class="niebezpieczny" data-akcja="sekcja-usun">Usuń sekcję</button>
+  </div>
+
+  <!-- Menu kontekstowe wzorca -->
+  <div class="menu menu-strony" id="menu-wzorca" role="menu" hidden>
+    <button role="menuitem" data-akcja="wzorzec-nazwa">Zmień nazwę</button>
+    <button role="menuitem" data-akcja="wzorzec-duplikuj">Duplikuj</button>
+    <hr>
+    <button role="menuitem" class="niebezpieczny" data-akcja="wzorzec-usun">Usuń wzorzec</button>
   </div>
 
   <!-- Instrukcja (podręcznik ze zrzutami ekranu) -->

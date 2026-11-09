@@ -155,14 +155,18 @@ export class Edytor extends EventTarget {
 
   // ---------- Wczytywanie i zapis strony ----------
 
-  async wczytajStrone(strona, zasoby) {
+  // wzorzec: { obiekty, zmienne } – elementy wspólne rysowane pod stroną
+  // (widoczne, ale niezaznaczalne i niezapisywane razem ze stroną).
+  async wczytajStrone(strona, zasoby, wzorzec = null) {
     this.zasoby = zasoby;
+    this._wzorzec = wzorzec;
     this._wczytywanie = true;
     this.canvas.discardActiveObject();
     const obiekty = podmienZasoby(strona.obiekty, (id) => zasoby[id]?.dataUrl || ZASTEPCZY_OBRAZ);
     await new Promise((ok) => {
       this.canvas.loadFromJSON({ objects: obiekty, backgroundColor: strona.tlo || '#ffffff' }, ok);
     });
+    await this._dodajWzorzec();
     this._dopasujRozmiar();
     this._wczytywanie = false;
     this._historia = [];
@@ -172,7 +176,29 @@ export class Edytor extends EventTarget {
     this._emitujZaznaczenie();
   }
 
+  async _dodajWzorzec() {
+    const w = this._wzorzec;
+    if (!w || !w.obiekty?.length) return;
+    const zrodla = podmienZasoby(w.obiekty, (id) => this.zasoby[id]?.dataUrl || ZASTEPCZY_OBRAZ);
+    const gotowe = await new Promise((ok) => fabric.util.enlivenObjects(zrodla, ok));
+    const oznacz = (o) => {
+      o.set({
+        zWzorca: true, selectable: false, evented: false, excludeFromExport: true, hoverCursor: 'default',
+      });
+      if (typeof o.text === 'string') o.set('text', wstawZmienne(o.text, w.zmienne || {}));
+      if (o._objects) o._objects.forEach((d) => { if (typeof d.text === 'string') d.set('text', wstawZmienne(d.text, w.zmienne || {})); });
+    };
+    gotowe.forEach((o, i) => { oznacz(o); this.canvas.insertAt(o, i, false); });
+    this.canvas.requestRenderAll();
+  }
+
+  _wzorzecNaSpod() {
+    const elementy = this.canvas.getObjects().filter((o) => o.zWzorca);
+    for (let i = elementy.length - 1; i >= 0; i -= 1) this.canvas.sendToBack(elementy[i]);
+  }
+
   // Zwraca obiekty strony w postaci do zapisu (obrazy jako "zasob:<id>").
+  // Elementy wzorca mają excludeFromExport, więc nie trafiają do zapisu.
   obiektyStrony() {
     const json = this.canvas.toJSON(WLASNE_POLA);
     return podmienZasoby(json.objects, null);
@@ -257,6 +283,7 @@ export class Edytor extends EventTarget {
     this._wczytywanie = true;
     this.canvas.discardActiveObject();
     await new Promise((ok) => this.canvas.loadFromJSON(stan, ok));
+    await this._dodajWzorzec();
     this._dopasujRozmiar();
     this._wczytywanie = false;
     this.przeliczOstrzezenia();
@@ -393,6 +420,7 @@ export class Edytor extends EventTarget {
       nizej: () => c.sendBackwards(akt),
       spod: () => c.sendToBack(akt),
     })[kierunek]();
+    this._wzorzecNaSpod();
     c.requestRenderAll();
     this.oznaczZmiane();
   }
@@ -434,7 +462,7 @@ export class Edytor extends EventTarget {
     const tol = 0.05;
     const lista = [];
     for (const o of this.canvas.getObjects()) {
-      if (o.bez_ostrzezen) continue;
+      if (o.bez_ostrzezen || o.zWzorca) continue;
       o.setCoords();
       const r = o.getBoundingRect(true, true);
       const x1 = r.left; const y1 = r.top;
@@ -614,6 +642,11 @@ export class Edytor extends EventTarget {
 // Rekurencyjnie podmienia src obrazów:
 //  - mapa == null: dataUrl -> "zasob:<id>" (do zapisu),
 //  - mapa(id) -> dataUrl (do wczytania).
+// Podstawia {zmienna} w tekstach wzorca; nieznane zmienne zostają bez zmian.
+export function wstawZmienne(tekst, zmienne) {
+  return tekst.replace(/\{([a-z_]+)\}/gi, (cale, nazwa) => (nazwa in zmienne ? zmienne[nazwa] : cale));
+}
+
 export function podmienZasoby(obiekty, mapa) {
   return (obiekty || []).map((o) => {
     const kopia = { ...o };

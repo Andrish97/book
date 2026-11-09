@@ -616,3 +616,45 @@ dialog h2 { font-size: 19px; }
   .pole-orientacja { flex-basis: 100%; }
   .pole.waskie { flex: 1 1 100px; }
 }
+
+/* ---------- Sekcje i wzorce ---------- */
+
+.zakladki-listy { flex: 1; }
+.zakladki-listy label { flex: 1; }
+.zakladki-listy span { flex: 1; min-height: 32px; padding: 0 8px; font-size: 13px; }
+.zakladki-listy .licznik { min-width: 18px; height: 18px; font-size: 11px; }
+.panel-strony .naglowek-panelu { padding-left: 12px; }
+.panel-strony .stopka-panelu { display: flex; gap: 8px; }
+.panel-strony .stopka-panelu .przycisk { flex: 1; padding: 0 8px; }
+
+.sekcja-listy {
+  display: flex; align-items: center; gap: 4px;
+  margin: 6px -6px -4px; padding: 6px 2px 6px 8px;
+  border-radius: var(--r-s); background: var(--wypelnienie);
+}
+.sekcja-listy:first-child { margin-top: 0; }
+.opis-sekcji { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.opis-sekcji strong { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opis-sekcji small { font-size: 11px; color: var(--cichy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sekcja-pusta { padding: 0 0 0 28px; font-size: 12.5px; }
+.lista-wzorcow .numer { display: grid; place-items: center; color: var(--cichy); padding-top: 4px; }
+.pusto-wzorce { padding: 12px; border-radius: var(--r-m); background: var(--powierzchnia-2); border: 1px dashed var(--linia-mocna); font-size: 12.5px; color: var(--tusz-2); }
+.pusto-wzorce p { margin-top: 6px; color: var(--cichy); line-height: 1.5; }
+
+.pasek-wzorca {
+  position: absolute; left: 14px; bottom: 14px; z-index: 5;
+  display: flex; align-items: center; gap: 10px;
+  max-width: calc(100% - 300px);
+  padding: 6px 6px 6px 14px;
+  background: #3b2a6b; color: #fff; border-radius: 14px; box-shadow: var(--cien-2);
+  font-size: 13px;
+}
+.pasek-wzorca #pasek-wzorca-tekst { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pasek-wzorca .przycisk { min-height: 34px; background: #fff; border-color: #fff; color: #3b2a6b; }
+body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
+.lista-zmiennych { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--tusz-2); }
+.lista-zmiennych code { font-size: 12px; }
+
+@media (max-width: 860px) {
+  .pasek-wzorca { left: 10px; right: 10px; bottom: 64px; max-width: none; }
+}

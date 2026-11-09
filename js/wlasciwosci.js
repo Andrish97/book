@@ -15,14 +15,13 @@ const zaokr = (v, miejsc = 2) => {
 };
 
 export class PanelWlasciwosci {
-  constructor(kontener, tytul, edytor, { strona, onStrona, onFormat, opisFormatu }) {
+  // opcje.tytulPusty(): nagłówek, gdy nic nie jest zaznaczone,
+  // opcje.budujPusty(panel): zawartość panelu dla strony / wzorca.
+  constructor(kontener, tytul, edytor, opcje) {
     this.el = kontener;
     this.tytul = tytul;
     this.edytor = edytor;
-    this.strona = strona; // () => bieżąca strona projektu
-    this.onStrona = onStrona; // zmiana nazwy / tła strony
-    this.onFormat = onFormat; // otwarcie dialogu formatu
-    this.opisFormatu = opisFormatu;
+    this.opcje = opcje;
     this.obj = undefined;
     this.odswiezacze = [];
   }
@@ -47,8 +46,8 @@ export class PanelWlasciwosci {
     this.odswiezacze = [];
     const obj = this.obj;
     if (!obj) {
-      this.tytul.textContent = 'Strona';
-      this.zbudujStrone();
+      this.tytul.textContent = this.opcje.tytulPusty();
+      this.opcje.budujPusty(this);
       return;
     }
     if (obj.type === 'activeSelection') {
@@ -74,18 +73,7 @@ export class PanelWlasciwosci {
     inne.append(this.przelacznik('Wycisz ostrzeżenia dla tego obiektu', () => Boolean(obj.bez_ostrzezen), (v) => { obj.bez_ostrzezen = v || undefined; }));
   }
 
-  zbudujStrone() {
-    const strona = this.strona();
-    const s = this.sekcja('Strona');
-    s.append(this.tekst('Nazwa strony', () => strona.nazwa, (v) => this.onStrona({ nazwa: v }), true, false));
-    s.append(this.kolor('Tło', () => this.edytor.canvas.backgroundColor || '#ffffff', (v) => this.edytor.ustawTlo(v), { bezZatwierdzania: true }));
-
-    const f = this.sekcja('Format wydruku');
-    const opis = this.wskazowka('');
-    this.odswiezacze.push(() => { opis.textContent = this.opisFormatu(); });
-    opis.textContent = this.opisFormatu();
-    f.append(opis, this.akcje([['format', 'Zmień format', () => this.onFormat()]]));
-
+  legendaProwadnic() {
     const l = this.sekcja('Linie na stronie');
     const legenda = document.createElement('ul');
     legenda.className = 'legenda-prowadnic';
@@ -94,6 +82,7 @@ export class PanelWlasciwosci {
       + '<li><i class="margines"></i>Margines – trzymaj w nim teksty</li>';
     l.append(legenda);
     l.append(this.wskazowka('Kliknij element na stronie, aby zmienić jego wygląd. Linie nie są drukowane.'));
+    return l;
   }
 
   zbudujKolejnosc(obj) {
@@ -139,7 +128,9 @@ export class PanelWlasciwosci {
     const tresc = this.obszarTekstu('Treść', () => obj.text, (v) => obj.set('text', v));
     s.append(tresc);
 
+    this._czcionkiWLiscie = true;
     const czcionka = this.wybor('Czcionka', CZCIONKI.map((c) => [c.nazwa, c.nazwa]), () => obj.fontFamily, (v) => obj.set('fontFamily', v));
+    this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
     s.append(czcionka);
     s.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(obj.fontSize * obj.scaleY), 1), (v) => {
@@ -318,7 +309,7 @@ export class PanelWlasciwosci {
       const o = document.createElement('option');
       o.value = wartosc;
       o.textContent = opis;
-      o.style.fontFamily = `"${wartosc}"`;
+      if (this._czcionkiWLiscie) o.style.fontFamily = `"${wartosc}"`;
       sel.append(o);
     }
     const zapisz = this._zapisz(set);
@@ -329,7 +320,7 @@ export class PanelWlasciwosci {
       if (![...sel.options].some((o) => o.value === v)) {
         const o = document.createElement('option');
         o.value = v;
-        o.textContent = `${v} (spoza listy)`;
+        o.textContent = this._czcionkiWLiscie ? `${v} (spoza listy)` : v;
         sel.append(o);
       }
       sel.value = v;

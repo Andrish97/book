@@ -59,7 +59,11 @@ Zasoby: jeden prywatny bucket `zasoby` z folderem na użytkownika (`<owner_id>/<
 
 ### Model danych
 
-Zgodny z sekcją 3 planu. Dodatkowo:
+Zgodny z sekcją 3 planu, z tą różnicą, że format wydruku należy do sekcji, a nie do całego projektu. Dodatkowo:
+- `sekcje`: `[{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy_mm, znaki_ciecia }, wzorzec }]` – części projektu (np. okładka, środek) z własnym formatem i domyślnym wzorcem. Strony są zawsze pogrupowane według kolejności sekcji.
+- `wzorce`: `[{ id, nazwa, wydruk, tlo, obiekty }]` – strony wzorcowe. Ich elementy są rysowane pod treścią stron (niezaznaczalne). W tekstach działają zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
+- `strony[].sekcja` (id sekcji) i `strony[].wzorzec`: `"z_sekcji"` (domyślnie), `"brak"` albo id wzorca.
+- Projekty w starym formacie (jedno `wydruk` na projekt) są przenoszone automatycznie do jednej sekcji „Główna”.
 - `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`. Obrazy na stronach mają `src: "zasob:<id>"`, więc JSON stron jest lekki, a pliki mogą trafić do Storage.
 - `strony[].tlo` (kolor tła) i `strony[].obiekty` (obiekty Fabric z własnymi polami `id`, `nazwa`, `zasob`, `bez_ostrzezen` oraz przygotowanymi na etap 2 `pole`, `autodopasowanie`, `min_rozmiar`).
 - Pola `zrodla`, `tabele`, `zakresy`, `motywy` istnieją w modelu i są puste do kolejnych etapów.

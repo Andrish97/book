@@ -84,11 +84,42 @@ async function przykladoweProjekty(strona) {
     dodaj(new fabric.Line([10, 190, 138, 190], { stroke: '#cfccc3', strokeWidth: 0.3, strokeUniform: true }));
     dodaj(tekst('Notatki', { left: 10, top: 193, width: 60, fontSize: mm(8), fill: '#807d75' }));
     await zapisz();
-    stan.projekt.strony[0].nazwa = 'Miesiąc – lewa';
-    stan.projekt.strony.push(
-      { id: 's2', nazwa: 'Tydzień – prawa', obiekty: [], tlo: '#ffffff' },
-      { id: 's3', nazwa: 'Notatki', obiekty: [], tlo: '#ffffff' },
+
+    // Sekcje: okładka (szeroka, z grzbietem) + środek ze wzorcem.
+    const rnd = () => `o_${Math.random().toString(36).slice(2)}`;
+    const json = (obiekty) => obiekty.map((o) => { o.set({ id: rnd() }); return o.toObject(['id', 'bez_ostrzezen']); });
+    const P = stan.projekt;
+    P.sekcje[0].nazwa = 'Środek';
+    const wz = {
+      id: 'wz_kalendarz', nazwa: 'Strona kalendarza', wydruk: { ...P.sekcje[0].wydruk }, tlo: '#ffffff',
+      obiekty: json([
+        new fabric.Line([10, 199, 138, 199], { stroke: '#cfccc3', strokeWidth: 0.3, strokeUniform: true, bez_ostrzezen: true }),
+        tekst('Kalendarz 2027', { left: 10, top: 201, width: 60, fontSize: mm(7), fill: '#807d75', bez_ostrzezen: true }),
+        tekst('{nr}', { left: 108, top: 201, width: 30, fontSize: mm(7), fill: '#807d75', textAlign: 'right', bez_ostrzezen: true }),
+      ]),
+    };
+    P.wzorce.push(wz);
+    P.sekcje[0].wzorzec = wz.id;
+    P.sekcje.unshift({
+      id: 'sek_okladka', nazwa: 'Okładka', wzorzec: null,
+      wydruk: { format: 'wlasny', szerokosc_mm: 302, wysokosc_mm: 210, spad_mm: 3, marginesy_mm: 10, znaki_ciecia: true },
+    });
+    P.strony[0].nazwa = 'Styczeń';
+    const srodek = P.sekcje[1].id;
+    P.strony.push(
+      { id: 's2', nazwa: 'Luty', sekcja: srodek, wzorzec: 'z_sekcji', obiekty: [], tlo: null },
+      { id: 's3', nazwa: 'Notatki', sekcja: srodek, wzorzec: 'z_sekcji', obiekty: [], tlo: null },
+      {
+        id: 's0', nazwa: 'Okładka', sekcja: 'sek_okladka', wzorzec: 'z_sekcji', tlo: '#1f2a44',
+        obiekty: json([
+          new fabric.Rect({ left: 148, top: -3, width: 6, height: 216, fill: '#f2c66d', strokeWidth: 0, bez_ostrzezen: true }),
+          tekst('Kalendarz', { left: 166, top: 72, width: 126, fontSize: mm(34), fontFamily: 'Playfair Display', fontWeight: 'bold', fill: '#ffffff' }),
+          tekst('2027', { left: 166, top: 100, width: 126, fontSize: mm(34), fontFamily: 'Playfair Display', fill: '#f2c66d' }),
+        ]),
+      },
     );
+    await otworzProjekt(P);
+    stan.projekt.miniatura = edytor.miniatura(200);
     await zapiszLokalnie();
   });
 }
@@ -135,6 +166,7 @@ async function przykladoweProjekty(strona) {
   // Edytor – przegląd z numerkami
   await s.click('.karta-projektu:has-text("Kalendarz 2027") .otworz-projekt');
   await s.waitForSelector('#ekran-edytora', { state: 'visible' });
+  await s.click('#lista-stron li.strona:has-text("Styczeń") .miniatura');
   await s.waitForTimeout(1200);
   await s.evaluate(() => {
     const znacz = (sel, n, dx = 12, dy = 12) => {
@@ -149,7 +181,7 @@ async function przykladoweProjekty(strona) {
       });
       document.body.append(d);
     };
-    znacz('#panel-strony', 1, 150, 14);
+    znacz('#panel-strony', 1, 176, 196);
     znacz('#kontener-plotna', 2, 24, 90);
     znacz('#panel-inspektor', 3, 250, 14);
   });
@@ -172,9 +204,23 @@ async function przykladoweProjekty(strona) {
   // Strony – menu
   await s.evaluate(() => { window.publisher.edytor.canvas.discardActiveObject(); window.publisher.edytor.canvas.requestRenderAll(); });
   await s.waitForTimeout(800);
-  await s.click('#lista-stron .strona:nth-child(1) .menu-miniatury');
+  await s.click('#lista-stron li.strona:has-text("Styczeń") .menu-miniatury');
   await zrzut(s, 'strony.png', { clip: { x: 0, y: 0, width: 560, height: 560 } });
   await s.keyboard.press('Escape');
+
+  // Sekcje: ustawienia sekcji „Okładka”
+  await s.click('#lista-stron .sekcja-listy:has-text("Okładka") button');
+  await s.click('#menu-sekcji [data-akcja="sekcja-ustawienia"]');
+  await zrzut(s, 'sekcje.png');
+  await s.keyboard.press('Escape');
+
+  // Wzorce: edycja wzorca
+  await s.evaluate(() => window.publisher.edytujWzorzec('wz_kalendarz'));
+  await s.waitForTimeout(900);
+  await zrzut(s, 'wzorce.png');
+  await s.click('[data-akcja="wroc-do-stron"]');
+  await s.click('#lista-stron li.strona:has-text("Styczeń") .miniatura');
+  await s.waitForTimeout(800);
 
   // Ostrzeżenia: element w marginesie
   await s.evaluate(() => {
@@ -209,6 +255,7 @@ async function przykladoweProjekty(strona) {
   await t.waitForSelector('#dlg-instrukcja[open]');
   await t.tap('[data-akcja="zamknij-instrukcje"]');
   await przykladoweProjekty(t);
+  await t.evaluate(() => window.publisher.przejdzDoStrony(1));
   await t.waitForTimeout(800);
   await t.evaluate(() => {
     const { edytor } = window.publisher;

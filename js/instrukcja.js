@@ -37,7 +37,7 @@ export const ROZDZIALY = [
       'Wpisz nazwę i wybierz format – kafelki pokazują proporcje strony. <b>Własny</b> pozwala wpisać dowolny wymiar w milimetrach.',
       '<b>Spad</b> to pas za krawędzią strony, który drukarnia odcina. Zwykle 3 mm.',
       '<b>Marginesy</b> wyznaczają bezpieczny obszar na teksty. Aplikacja ostrzeże, jeśli coś z niego wyjdzie.',
-      'Format zmienisz później przyciskiem z nazwą formatu na górnym pasku edytora.',
+      'Projekt zaczyna od jednej sekcji „Główna” w tym formacie. Kolejne sekcje (np. okładkę o innym rozmiarze) dodasz w edytorze.',
     ],
   },
   {
@@ -85,9 +85,36 @@ export const ROZDZIALY = [
     obraz: 'strony.png',
     podpis: 'Menu strony.',
     punkty: [
-      '<b>Dodaj stronę</b> na dole panelu wstawia pustą stronę za bieżącą.',
-      'Przycisk <b>⋯</b> na miniaturze: zmiana nazwy, duplikowanie, przesuwanie w górę i w dół, usuwanie.',
+      '<b>+ Strona</b> na dole panelu wstawia pustą stronę za bieżącą, w tej samej sekcji.',
+      'Przycisk <b>⋯</b> na miniaturze: zmiana nazwy, duplikowanie, przesuwanie w górę i w dół (w obrębie sekcji), usuwanie.',
       'Nazwy stron (np. „Okładka”, „Tydzień – lewa”) pomogą później przy podpinaniu danych.',
+    ],
+  },
+  {
+    tytul: 'Sekcje',
+    wstep: 'Projekt dzieli się na sekcje – części o różnych ustawieniach, np. „Okładka” i „Środek”. Każda sekcja ma własny format, spad i marginesy.',
+    obraz: 'sekcje.png',
+    podpis: 'Ustawienia sekcji „Okładka” – szeroki format z grzbietem.',
+    punkty: [
+      'Na liście stron sekcje są szarymi nagłówkami, a pod nimi ich strony. Obok nazwy widać format, liczbę stron i wzorzec.',
+      '<b>+ Sekcja</b> na dole listy tworzy nową sekcję z pierwszą stroną.',
+      'Przycisk <b>⋯</b> przy nagłówku: ustawienia sekcji, dodanie strony, zmiana kolejności, usunięcie.',
+      'Okładkę z grzbietem ustaw jako jedną szeroką stronę: tył + grzbiet + przód (np. 148 + 6 + 148 mm).',
+      'Stronę przeniesiesz do innej sekcji w jej właściwościach (pole <b>Sekcja</b>). Nazwa i format bieżącej sekcji są też na górnym pasku.',
+    ],
+  },
+  {
+    tytul: 'Wzorce',
+    wstep: 'Wzorzec to strona ze wspólnymi elementami – tłem, ramką, logo, stopką, numerem strony. Rysujesz go raz, a pojawia się pod treścią wszystkich stron, które go używają.',
+    obraz: 'wzorce.png',
+    podpis: 'Edycja wzorca – fioletowe tło przypomina, że to nie zwykła strona.',
+    punkty: [
+      'Wzorce są w zakładce <b>Wzorce</b> nad listą stron. <b>Nowy wzorzec</b> tworzy pusty wzorzec i otwiera go do edycji.',
+      'Wzorzec podpinasz do sekcji (będzie na wszystkich jej stronach) – w panelu wzorca albo w ustawieniach sekcji. Jeden wzorzec może służyć kilku sekcjom.',
+      'Pojedyncza strona może mieć inny wzorzec albo żaden – pole <b>Wzorzec</b> we właściwościach strony.',
+      'Numer strony: wpisz w tekście wzorca <code>{nr}</code>. Działają też <code>{nr_w_sekcji}</code>, <code>{liczba_stron}</code>, <code>{sekcja}</code> i <code>{strona}</code>.',
+      'Na zwykłych stronach elementy wzorca widać, ale nie da się ich zaznaczyć ani przesunąć. Zmieniasz je tylko we wzorcu – i zmieniają się wszędzie.',
+      '<b>Gotowe</b> na fioletowym pasku wraca do stron.',
     ],
   },
   {
