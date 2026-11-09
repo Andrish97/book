@@ -507,7 +507,7 @@ function renderujDialogChmury() {
 
   if (!chmura.chmuraSkonfigurowana()) {
     akapit('Supabase nie jest jeszcze skonfigurowany. Projekty są zapisywane tylko w tej przeglądarce i w pobranych plikach JSON.');
-    akapit('Aby włączyć chmurę: ustaw sekrety SUPABASE_* w repozytorium i zrób push na main – workflow zastosuje migracje i wpisze adres oraz klucz przy deployu (szczegóły w README).', 'podpowiedz');
+    akapit('Aby włączyć chmurę: wpisz adres projektu i klucz anon w js/konfiguracja.js (szczegóły w README).', 'podpowiedz');
     przyciski.append(zamknij);
     el.append(przyciski);
     return;

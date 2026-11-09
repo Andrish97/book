@@ -1,5 +1,5 @@
-# Konfiguracja Supabase CLI / integracji z GitHubem.
-# Migracje bazy: supabase/migrations/*.sql (stosowane w kolejności nazw).
+# Konfiguracja Supabase dla integracji z GitHubem (Supabase → Integrations → GitHub).
+# Po pushu na gałąź produkcyjną integracja stosuje migracje z supabase/migrations/.
 project_id = "book"
 
 [db]
@@ -7,8 +7,6 @@ major_version = 15
 
 [auth]
 # Adres aplikacji i adresy, na które może wrócić link logowania z e-maila.
-site_url = "http://localhost:8000"
-additional_redirect_urls = ["http://localhost:8000", "https://andrish97.github.io/book/"]
-
-[auth.email]
+site_url = "https://andrish97.github.io/book/"
+additional_redirect_urls = ["https://andrish97.github.io/book/**", "http://localhost:8000"]
 enable_signup = true

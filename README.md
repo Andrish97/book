@@ -31,14 +31,12 @@ Na tablecie w tej samej sieci: `http://<adres-komputera>:8000`. Uwaga: `crypto.r
 
 ### Deploy (push na `main`)
 
-Tak samo jak w `brick_ai`: push na `main` uruchamia GitHub Actions.
+- **Baza:** integracja Supabase z GitHubem (Supabase → Integrations → GitHub, włączone *Deploy to production*) po pushu na gałąź produkcyjną stosuje migracje z [`supabase/migrations/`](supabase/migrations/). Sekrety w GitHubie nie są potrzebne.
+- **Aplikacja:** [`pages.yml`](.github/workflows/pages.yml) publikuje ją na GitHub Pages (Settings → Pages → Source: **GitHub Actions**).
+- **Połączenie aplikacji z bazą:** adres projektu i publiczny klucz `anon` są wpisane w [`js/konfiguracja.js`](js/konfiguracja.js), tak jak w `brick_ai`. Dostęp do danych chronią reguły RLS.
+- **Logowanie linkiem z e-maila:** adres strony musi być w Authentication → URL Configuration → *Redirect URLs* (`https://andrish97.github.io/book/**`).
 
-- [`deploy.yml`](.github/workflows/deploy.yml): migracje bazy (`supabase db push`) z [`supabase/migrations/`](supabase/migrations/) oraz Edge Functions z `supabase/functions/<nazwa>/index.ts` (na razie brak).
-- [`pages.yml`](.github/workflows/pages.yml): publikuje aplikację na GitHub Pages. Przy tym generuje `js/konfiguracja.js` z adresem projektu i kluczem anon pobranym z API Supabase oraz dopisuje adres strony do *Redirect URLs* (logowanie linkiem z e-maila).
-
-Potrzebne sekrety repozytorium (Settings → Secrets and variables → Actions): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_URL`. GitHub Pages: Settings → Pages → Source: **GitHub Actions**.
-
-Lokalnie bez Supabase aplikacja działa na IndexedDB i plikach JSON. Żeby lokalnie łączyć się z bazą, wpisz adres i klucz anon w [`js/konfiguracja.js`](js/konfiguracja.js) (nie commituj klucza `service_role`).
+Gdy `js/konfiguracja.js` ma puste pola, aplikacja działa tylko lokalnie (IndexedDB i pliki JSON). Klucza `service_role` nigdy nie wpisuj do frontendu.
 
 Zasoby: jeden prywatny bucket `zasoby` z folderem na użytkownika (`<owner_id>/<projekt>/<zasób>`) zamiast osobnego bucketu na użytkownika – reguły RLS dają ten sam efekt.
 

@@ -6,7 +6,6 @@ on:
       - main
     paths-ignore:
       - "supabase/**"
-      - ".github/workflows/deploy.yml"
       - "docs/**"
       - "README.md"
   workflow_dispatch:
@@ -31,28 +30,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Adres projektu i publiczny klucz anon pobieramy z API Supabase,
-      # więc nie trzeba ich trzymać w repozytorium.
-      - name: Konfiguracja Supabase dla frontendu
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-        run: |
-          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_PROJECT_REF" ]; then
-            echo "::warning::Brak sekretów Supabase – aplikacja będzie działać tylko lokalnie."
-            exit 0
-          fi
-          klucze=$(curl -sf -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys")
-          anon=$(echo "$klucze" | jq -r '(map(select(.name == "anon")) + map(select(.type == "publishable")))[0].api_key // empty')
-          if [ -z "$anon" ]; then echo "::error::Nie znaleziono klucza anon/publishable"; exit 1; fi
-          cat > js/konfiguracja.js <<JS
-          // Wygenerowane przy deployu (.github/workflows/pages.yml).
-          export const SUPABASE_URL = 'https://${SUPABASE_PROJECT_REF}.supabase.co';
-          export const SUPABASE_ANON_KEY = '${anon}';
-          JS
-          sed -i 's/^          //' js/konfiguracja.js
-
       - name: Przygotuj pliki strony
         run: |
           mkdir -p _site
@@ -71,19 +48,3 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      # Link logowania z e-maila może wrócić tylko na adres z listy dozwolonych.
-      # Dopisujemy adres strony (bez usuwania istniejących wpisów).
-      - name: Dodaj adres strony do Redirect URLs
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_PROJECT_REF" ]; then exit 0; fi
-          api="https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth"
-          lista=$(curl -sf -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "$api" | jq -r '.uri_allow_list // ""')
-          nowa=$(printf '%s\n' "$lista" | tr ',' '\n' | sed '/^$/d' | { cat; echo "$PAGE_URL"; echo "${PAGE_URL}**"; } | sort -u | paste -sd, -)
-          if [ "$nowa" = "$lista" ]; then echo "Adres już jest na liście."; exit 0; fi
-          curl -sf -X PATCH -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
-            -d "$(jq -n --arg l "$nowa" '{uri_allow_list: $l}')" "$api" > /dev/null
-          echo "Redirect URLs: $nowa"
