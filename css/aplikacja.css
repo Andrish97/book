@@ -776,3 +776,9 @@ body.tryb-wzorca .kontener-plotna { background: #d9d3e6; }
   .lista-stron > li.strona.w-rozkladowce.lewa { margin-right: -10px; }
   .rzad.cztery .pole { flex: 1 1 40%; }
 }
+
+/* ---------- Tekst: style i formatowanie fragmentu ---------- */
+
+.wlasciwosci .segmenty button.tekstowy { font-size: 13px; font-weight: 600; }
+.wlasciwosci .znacznik-fragmentu { padding: 6px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: #1d3f9e; }
+.wlasciwosci .rzad-przyciskow .przycisk.niebezpieczny { margin-left: auto; }

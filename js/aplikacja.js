@@ -24,6 +24,7 @@ import {
 } from './ui.js';
 import { NAZWA } from './marka.js';
 import { Konto } from './konto.js';
+import { domyslneStyle, zastosujStylWProjekcie, odepnijStyl } from './style-tekstu.js';
 
 
 const OPIS_OSTRZEZEN = {
@@ -386,6 +387,7 @@ $('#dlg-nowy').addEventListener('close', async () => {
     marginesy_mm: Math.max(0, Number(f.elements.marginesy_mm.value) || 0),
     znaki_ciecia: true,
   }), f.elements.uklad.value === 'rozkladowki' ? 'rozkladowki' : 'pojedyncze');
+  projekt.style = domyslneStyle();
   await otworzProjekt(projekt);
   await zapiszTeraz();
 });
@@ -407,8 +409,26 @@ const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), e
     sekcja.append(p.przelacznik('Nad treścią strony (domyślnie pod)', () => obj.warstwa === 'nad', (v) => { obj.warstwa = v ? 'nad' : undefined; }));
   },
   style: () => stan.projekt?.style || [],
-  poZmianieStyli: () => zaplanujZapis(),
+  poZmianieStyli: (zmiana) => poZmianieStyli(zmiana),
 });
+
+// zmiana: null (styl tylko przypisany), styl (zaktualizowany – przepisz do
+// wszystkich tekstów projektu) albo { usuniety: id }.
+async function poZmianieStyli(zmiana) {
+  const { projekt } = stan;
+  if (!zmiana) { edytor.zatwierdz(); panel.odswiez(); return; }
+  const zaznaczony = edytor.aktywny?.id;
+  zapiszBiezacyCel();
+  if (zmiana.usuniety) odepnijStyl(projekt, zmiana.usuniety);
+  else {
+    const n = zastosujStylWProjekcie(projekt, zmiana);
+    powiadom(`Styl „${zmiana.nazwa}” zaktualizowany${n > 1 ? ` – zmieniono ${n} teksty w projekcie` : ''}.`);
+  }
+  stan.miniatury.clear();
+  await zaladujCel();
+  if (zaznaczony) edytor.zaznacz(zaznaczony);
+  zaplanujZapis();
+}
 
 const biezacaStrona = () => stan.projekt.strony[stan.indeks];
 const biezacyWzorzec = () => stan.projekt.wzorce.find((w) => w.id === stan.idWzorca);

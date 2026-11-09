@@ -84,6 +84,8 @@ export class Edytor extends EventTarget {
     c.on('object:removed', () => this.oznaczZmiane());
     c.on('text:editing:exited', () => this.oznaczZmiane());
     c.on('text:changed', () => this._emitujZaznaczenie());
+    c.on('text:selection:changed', () => this._emitujZaznaczenie());
+    c.on('text:editing:entered', () => this._emitujZaznaczenie());
     // Podczas przesuwania/skalowania odświeżamy pola liczbowe na bieżąco.
     for (const zdarzenie of ['object:moving', 'object:scaling', 'object:rotating']) {
       c.on(zdarzenie, () => this._emitujZaznaczenie());
@@ -672,6 +674,10 @@ function utrwalSkaleTekstu(obj) {
   if (obj.type === 'activeSelection' || obj.type === 'group') return;
   if (obj.type !== 'textbox') return;
   if (obj.scaleX === 1 && obj.scaleY === 1) return;
+  // Rozmiary nadane fragmentom skalują się razem z całością.
+  for (const wiersz of Object.values(obj.styles || {})) {
+    for (const znak of Object.values(wiersz || {})) if (znak.fontSize) znak.fontSize *= obj.scaleY;
+  }
   obj.set({
     fontSize: obj.fontSize * obj.scaleY,
     width: obj.width * obj.scaleX,

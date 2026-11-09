@@ -5,6 +5,8 @@ import { CZCIONKI } from './czcionki.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
+import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
+import { zapytajONazwe, potwierdz } from './ui.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse']);
@@ -124,26 +126,72 @@ export class PanelWlasciwosci {
     s.append(this.liczba('Obrót', () => zaokr(obj.angle || 0, 1), (v) => { obj.rotate(((v % 360) + 360) % 360); }, { jednostka: '°', krok: 1 }));
   }
 
+  // ---------- Tekst ----------
+
+  // Zaznaczony fragment podczas pisania na stronie (albo null).
+  _fragment(obj) {
+    return obj.isEditing && obj.selectionStart !== obj.selectionEnd ? [obj.selectionStart, obj.selectionEnd] : null;
+  }
+
+  // Odczyt właściwości tekstu: z zaznaczonego fragmentu albo z całej ramki.
+  _czytajTekst(obj, klucz) {
+    const f = this._fragment(obj);
+    if (!f) return obj[klucz];
+    const st = obj.getSelectionStyles(f[0], f[0] + 1, true)[0] || {};
+    return st[klucz] ?? obj[klucz];
+  }
+
+  // Zapis: na fragment (formatowanie części tekstu) albo na całą ramkę.
+  _ustawTekst(obj, wlasciwosci) {
+    if (this._fragment(obj)) {
+      obj.setSelectionStyles(wlasciwosci);
+    } else {
+      for (const k of Object.keys(wlasciwosci)) obj.removeStyle?.(k);
+      obj.set(wlasciwosci);
+    }
+    obj.initDimensions?.();
+    obj.dirty = true;
+  }
+
   zbudujTekst(obj) {
+    const czytaj = (k) => this._czytajTekst(obj, k);
+    const ustaw = (w) => this._ustawTekst(obj, w);
+
+    this.zbudujStyl(obj);
+
     const s = this.sekcja('Tekst');
     // Edycja treści w zwykłym polu – wygodniejsze na telefonie niż na płótnie (4.7).
-    const tresc = this.obszarTekstu('Treść', () => obj.text, (v) => obj.set('text', v));
-    s.append(tresc);
+    s.append(this.obszarTekstu('Treść', () => obj.text, (v) => obj.set('text', v)));
+
+    const fragment = this.wskazowka('Zmieniasz tylko zaznaczony fragment tekstu.');
+    fragment.classList.add('znacznik-fragmentu');
+    this.odswiezacze.push(() => { fragment.hidden = !this._fragment(obj); });
+    fragment.hidden = !this._fragment(obj);
+    s.append(fragment);
 
     this._czcionkiWLiscie = true;
-    const czcionka = this.wybor('Czcionka', CZCIONKI.map((c) => [c.nazwa, c.nazwa]), () => obj.fontFamily, (v) => obj.set('fontFamily', v));
+    const czcionka = this.wybor('Czcionka', CZCIONKI.map((c) => [c.nazwa, c.nazwa]), () => czytaj('fontFamily'), (v) => ustaw({ fontFamily: v }));
     this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
     s.append(czcionka);
-    s.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(obj.fontSize * obj.scaleY), 1), (v) => {
-      obj.set('fontSize', ptNaMm(Math.max(1, v)) / obj.scaleY);
+    s.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(czytaj('fontSize') * obj.scaleY), 1), (v) => {
+      ustaw({ fontSize: ptNaMm(Math.max(1, v)) / obj.scaleY });
     }, { jednostka: 'pt', krok: 0.5, min: 1 }));
+    s.append(this.kolor('Kolor', () => czytaj('fill'), (v) => ustaw({ fill: v })));
     s.append(this.liczba('Interlinia', () => zaokr(obj.lineHeight, 2), (v) => obj.set('lineHeight', Math.max(0.5, v)), { krok: 0.05, min: 0.5 }));
-    s.append(this.kolor('Kolor', () => obj.fill, (v) => obj.set('fill', v)));
-    s.append(this.segmenty('Styl', [
-      ['pogrubienie', 'Pogrubienie', () => obj.fontWeight === 'bold' || obj.fontWeight >= 600, () => obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold')],
-      ['kursywa', 'Kursywa', () => obj.fontStyle === 'italic', () => obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic')],
-    ]));
+    // Odstęp między literami w tysięcznych wysokości pisma (jak w programach DTP).
+    s.append(this.liczba('Odstęp liter', () => Math.round(obj.charSpacing || 0), (v) => obj.set('charSpacing', Math.max(-200, Math.min(2000, v))), { jednostka: '‰', krok: 10 }));
+
+    const przelacz = (k, wl, wyl) => () => ustaw({ [k]: czytaj(k) === wl ? wyl : wl });
+    const styl = this.segmenty('Wygląd liter', [
+      ['pogrubienie', 'Pogrubienie', () => czytaj('fontWeight') === 'bold' || czytaj('fontWeight') >= 600, przelacz('fontWeight', 'bold', 'normal')],
+      ['kursywa', 'Kursywa', () => czytaj('fontStyle') === 'italic', przelacz('fontStyle', 'italic', 'normal')],
+      ['podkreslenie', 'Podkreślenie', () => Boolean(czytaj('underline')), przelacz('underline', true, false)],
+      ['przekreslenie', 'Przekreślenie', () => Boolean(czytaj('linethrough')), przelacz('linethrough', true, false)],
+    ]);
+    styl.classList.add('szeroki');
+    s.append(styl);
+
     const wyr = this.segmenty('Wyrównanie', [
       ['doLewej', 'Do lewej', () => obj.textAlign === 'left', () => obj.set('textAlign', 'left')],
       ['doSrodka', 'Do środka', () => obj.textAlign === 'center', () => obj.set('textAlign', 'center')],
@@ -152,6 +200,90 @@ export class PanelWlasciwosci {
     ]);
     wyr.classList.add('szeroki');
     s.append(wyr);
+
+    const zmienLitery = (fn) => () => { obj.set('text', fn(obj.text)); obj.initDimensions?.(); };
+    const litery = this.segmenty('Wielkość liter', [
+      ['AA', 'WSZYSTKIE WIELKIE', null, zmienLitery((t) => t.toLocaleUpperCase('pl'))],
+      ['Aa', 'Jak w zdaniu', null, zmienLitery((t) => t.toLocaleLowerCase('pl').replace(/(^|[.!?]\s+|\n)(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('pl')))],
+      ['aa', 'wszystkie małe', null, zmienLitery((t) => t.toLocaleLowerCase('pl'))],
+    ], true);
+    litery.classList.add('szeroki');
+    s.append(litery);
+  }
+
+  // Styl tekstu: wybór, zapis jako nowy, aktualizacja, usunięcie.
+  zbudujStyl(obj) {
+    const style = this.opcje.style?.();
+    if (!style) return;
+    const s = this.sekcja('Styl tekstu');
+    const znajdz = () => style.find((x) => x.id === obj.styl);
+    const rozniSie = () => {
+      const st = znajdz();
+      if (!st) return false;
+      const teraz = stylZObiektu(obj, st.nazwa, st.id);
+      return POLA_STYLU.some((k) => (typeof st[k] === 'number' ? Math.abs(st[k] - teraz[k]) > 0.001 : (st[k] ?? false) !== (teraz[k] ?? false)));
+    };
+    const wybor = this.wybor('Styl', [['', '— bez stylu —'], ...style.map((x) => [x.id, x.nazwa])], () => obj.styl || '', (v) => {
+      const st = style.find((x) => x.id === v);
+      if (st) zastosujStyl(obj, st); else obj.styl = undefined;
+      this.opcje.poZmianieStyli(null);
+    });
+    wybor.classList.add('szeroki');
+    s.append(wybor);
+
+    const zmieniony = this.wskazowka('Ten tekst różni się od swojego stylu.');
+    const przyciski = document.createElement('div');
+    przyciski.className = 'rzad-przyciskow';
+    const przycisk = (tekst, tytul, klik) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'przycisk';
+      b.textContent = tekst;
+      b.title = tytul;
+      b.addEventListener('click', klik);
+      przyciski.append(b);
+      return b;
+    };
+    const nowy = przycisk('Nowy styl', 'Zapisz wygląd tego tekstu jako nowy styl', async () => {
+      const nazwa = await zapytajONazwe('Nowy styl tekstu', 'Nazwa stylu', 'Mój styl');
+      if (!nazwa) return;
+      const st = stylZObiektu(obj, nazwa);
+      style.push(st);
+      obj.styl = st.id;
+      this.opcje.poZmianieStyli(null);
+      this.zbuduj();
+    });
+    const aktualizuj = przycisk('Aktualizuj styl', 'Przenieś wygląd tego tekstu do stylu – zmienią się wszystkie teksty z tym stylem', () => {
+      const st = znajdz();
+      Object.assign(st, stylZObiektu(obj, st.nazwa, st.id));
+      this.opcje.poZmianieStyli(st);
+    });
+    const przywroc = przycisk('Przywróć', 'Wróć do wyglądu zapisanego w stylu', () => {
+      zastosujStyl(obj, znajdz());
+      this.edytor.zatwierdz();
+      this.odswiez();
+    });
+    const usun = przycisk('Usuń styl', 'Usuń styl – teksty zachowają wygląd', async () => {
+      const st = znajdz();
+      if (!await potwierdz(`Usunąć styl „${st.nazwa}”?`, 'Teksty zachowają obecny wygląd, ale przestaną być ze sobą powiązane.', 'Usuń styl', true)) return;
+      style.splice(style.indexOf(st), 1);
+      obj.styl = undefined;
+      this.opcje.poZmianieStyli({ usuniety: st.id });
+      this.zbuduj();
+    });
+    usun.classList.add('niebezpieczny');
+    s.append(zmieniony, przyciski);
+    const odswiez = () => {
+      const ma = Boolean(znajdz());
+      const inny = ma && rozniSie();
+      zmieniony.hidden = !inny;
+      nowy.hidden = false;
+      aktualizuj.hidden = !inny;
+      przywroc.hidden = !inny;
+      usun.hidden = !ma;
+    };
+    this.odswiezacze.push(odswiez);
+    odswiez();
   }
 
   zbudujWypelnienie(obj) {
@@ -384,7 +516,7 @@ export class PanelWlasciwosci {
   }
 
   // Grupa przycisków-ikon; aktywny == null oznacza zwykłą akcję.
-  segmenty(etykieta, definicje) {
+  segmenty(etykieta, definicje, tekstowe = false) {
     const opak = document.createElement('div');
     const tytul = document.createElement('label');
     tytul.textContent = etykieta;
@@ -398,8 +530,9 @@ export class PanelWlasciwosci {
       b.type = 'button';
       b.title = opis;
       b.setAttribute('aria-label', opis);
-      b.innerHTML = ikona(ik, { rozmiar: 18 });
-      b.addEventListener('click', () => { klik(); if (aktywny) zapisz(); else this.odswiez(); });
+      if (tekstowe) { b.textContent = ik; b.classList.add('tekstowy'); } else b.innerHTML = ikona(ik, { rozmiar: 18 });
+      b.addEventListener('mousedown', (e) => e.preventDefault());
+      b.addEventListener('click', () => { klik(); zapisz(); });
       rzad.append(b);
       return [b, aktywny];
     });
