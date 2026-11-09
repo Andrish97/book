@@ -1,0 +1,65 @@
+// Zestaw ikon (SVG, kreska 24×24) rysowany na potrzeby aplikacji.
+
+const P = {
+  tekst: '<path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/>',
+  prostokat: '<rect x="4" y="6" width="16" height="12" rx="1.5"/>',
+  elipsa: '<ellipse cx="12" cy="12" rx="8" ry="6.5"/>',
+  linia: '<path d="M5 19 19 5"/>',
+  obraz: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m20.5 16-4.5-4.5L6 19.5"/>',
+  cofnij: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  ponow: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  kopiuj: '<rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5.5a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/>',
+  kosz: '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 12.5A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.5L18 7"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>',
+  grupuj: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><rect x="7" y="7" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/>',
+  rozgrupuj: '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>',
+  naWierzch: '<path d="M5 3h14"/><path d="m8 11 4-4 4 4"/><path d="M12 7v14"/>',
+  wyzej: '<path d="m7 11 5-5 5 5"/><path d="M12 6v13"/>',
+  nizej: '<path d="m7 13 5 5 5-5"/><path d="M12 18V5"/>',
+  naSpod: '<path d="M5 21h14"/><path d="m8 13 4 4 4-4"/><path d="M12 17V3"/>',
+  plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+  dopasuj: '<path d="M4 9V5a1 1 0 0 1 1-1h4"/><path d="M15 4h4a1 1 0 0 1 1 1v4"/><path d="M20 15v4a1 1 0 0 1-1 1h-4"/><path d="M9 20H5a1 1 0 0 1-1-1v-4"/>',
+  prowadnice: '<rect x="3" y="3" width="18" height="18" rx="1.5"/><rect x="7" y="7" width="10" height="10" stroke-dasharray="2 2"/>',
+  format: '<path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/>',
+  pobierz: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/>',
+  wyslij: '<path d="M12 20V9"/><path d="m7 14 5-5 5 5"/><path d="M4 4h16"/>',
+  chmura: '<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5a4.75 4.75 0 0 1-.5 9.5z"/>',
+  chmuraOk: '<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5a4.75 4.75 0 0 1-.5 9.5z"/><path d="m9.5 13 2 2 3.5-3.5"/>',
+  chmuraOff: '<path d="M3 3l18 18"/><path d="M17.5 18H7a4.5 4.5 0 0 1-1.6-8.7"/><path d="M9.3 6.4A6 6 0 0 1 18 8.5a4.75 4.75 0 0 1 2.4 8.4"/>',
+  wyloguj: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="m10 16-4-4 4-4"/><path d="M6 12h10"/>',
+  wstecz: '<path d="m15 18-6-6 6-6"/>',
+  dalej: '<path d="m9 18 6-6-6-6"/>',
+  pomoc: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><circle cx="12" cy="17.2" r=".4" fill="currentColor"/>',
+  uwaga: '<path d="M10.3 4.2 2.8 17.5A2 2 0 0 0 4.5 20.5h15a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4"/><circle cx="12" cy="16.8" r=".4" fill="currentColor"/>',
+  wiecej: '<circle cx="5.5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18.5" cy="12" r="1.2" fill="currentColor"/>',
+  strony: '<rect x="4" y="3" width="11" height="15" rx="1.5"/><path d="M9 21h9.5a1.5 1.5 0 0 0 1.5-1.5V8"/>',
+  suwaki: '<path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/>',
+  zamknij: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
+  oko: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+  okoOff: '<path d="M3 3l18 18"/><path d="M10.6 5.6A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.6 3.4"/><path d="M6.6 6.6C4 8.3 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.4-1.1"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/>',
+  doLewej: '<path d="M4 6h16"/><path d="M4 10h10"/><path d="M4 14h16"/><path d="M4 18h10"/>',
+  doSrodka: '<path d="M4 6h16"/><path d="M7 10h10"/><path d="M4 14h16"/><path d="M7 18h10"/>',
+  doPrawej: '<path d="M4 6h16"/><path d="M10 10h10"/><path d="M4 14h16"/><path d="M10 18h10"/>',
+  wyjustuj: '<path d="M4 6h16"/><path d="M4 10h16"/><path d="M4 14h16"/><path d="M4 18h16"/>',
+  pogrubienie: '<path d="M7 5h6a3.5 3.5 0 0 1 0 7H7z"/><path d="M7 12h7a3.5 3.5 0 0 1 0 7H7z"/>',
+  kursywa: '<path d="M10 5h8"/><path d="M6 19h8"/><path d="M14 5 10 19"/>',
+  ksiazka: '<path d="M12 6.5C10.5 5 8 4.5 4 4.5v14c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2v-14c-4 0-6.5.5-8 2z"/><path d="M12 6.5v14"/>',
+  szukaj: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
+  dane: '<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9.5h17"/><path d="M3.5 15h17"/><path d="M9.5 4v16"/>',
+  pdf: '<path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="m9.5 14.5 2.5 2.5 2.5-2.5"/>',
+  dlon: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v7"/><path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M17 9.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.8-2.4L4.6 15.4a1.6 1.6 0 0 1 2.4-2.1L8 14.5"/>',
+};
+
+export function ikona(nazwa, { rozmiar = 20, klasa = '' } = {}) {
+  const tresc = P[nazwa];
+  if (!tresc) throw new Error(`Brak ikony: ${nazwa}`);
+  return `<svg class="ikona ${klasa}" width="${rozmiar}" height="${rozmiar}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${tresc}</svg>`;
+}
+
+// Wstawia ikony w elementy z atrybutem data-ikona.
+export function wstawIkony(korzen = document) {
+  korzen.querySelectorAll('[data-ikona]').forEach((el) => {
+    if (el.querySelector(':scope > svg.ikona')) return;
+    el.insertAdjacentHTML('afterbegin', ikona(el.dataset.ikona, { rozmiar: Number(el.dataset.rozmiar) || 20 }));
+  });
+}

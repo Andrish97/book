@@ -29,10 +29,13 @@ async function transakcja(tryb, fn) {
   });
 }
 
-// Rekord: { id, nazwa, zmieniono, projekt, doSynchronizacji }
-export function zapiszLokalnie(projekt, doSynchronizacji = true) {
+// Rekord: { id, wlasciciel, nazwa, zmieniono, miniatura, projekt, doSynchronizacji }
+// wlasciciel: id użytkownika Supabase albo 'lokalny' (praca bez konta).
+export function zapiszLokalnie(projekt, wlasciciel, doSynchronizacji = true) {
   const rekord = {
     id: projekt.id,
+    wlasciciel,
+    miniatura: projekt.miniatura || null,
     nazwa: projekt.nazwa,
     zmieniono: projekt.zmieniono,
     projekt,
@@ -45,10 +48,11 @@ export function wczytajLokalnie(id) {
   return transakcja('readonly', (m) => m.get(id));
 }
 
-export async function listaLokalnych() {
+export async function listaLokalnych(wlasciciel) {
   const wszystkie = await transakcja('readonly', (m) => m.getAll());
   return (wszystkie || [])
-    .map(({ id, nazwa, zmieniono, doSynchronizacji }) => ({ id, nazwa, zmieniono, doSynchronizacji }))
+    .filter((r) => r.wlasciciel === wlasciciel)
+    .map(({ id, nazwa, zmieniono, miniatura, doSynchronizacji }) => ({ id, nazwa, zmieniono, miniatura, doSynchronizacji }))
     .sort((a, b) => (b.zmieniono || '').localeCompare(a.zmieniono || ''));
 }
 

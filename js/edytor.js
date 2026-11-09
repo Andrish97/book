@@ -139,9 +139,14 @@ export class Edytor extends EventTarget {
   dopasujDoOkna() {
     if (!this.wydruk) return;
     const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
-    const margines = 48;
-    const dw = Math.max(100, this.kontener.clientWidth - margines);
-    const dh = Math.max(100, this.kontener.clientHeight - margines);
+    // Odstęp na pływający pasek narzędzi (u góry) i kontrolki widoku (u dołu).
+    const arkusz = this.kontener.firstElementChild;
+    const st = arkusz ? getComputedStyle(arkusz) : null;
+    const px = (v) => parseFloat(v) || 0;
+    const mw = st ? px(st.paddingLeft) + px(st.paddingRight) : 48;
+    const mh = st ? px(st.paddingTop) + px(st.paddingBottom) : 48;
+    const dw = Math.max(100, this.kontener.clientWidth - mw);
+    const dh = Math.max(100, this.kontener.clientHeight - mh);
     const z = Math.min(dw / ((w + 2 * b) * PX_NA_MM), dh / ((h + 2 * b) * PX_NA_MM));
     this.zoom = Math.max(0.1, z);
     this._dopasujRozmiar();

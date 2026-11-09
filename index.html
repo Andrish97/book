@@ -3,146 +3,315 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1f2937">
+  <meta name="theme-color" content="#f4f3ef">
   <title>Publisher-lite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Wyłącznie czcionki na licencji OFL (lista w js/czcionki.js). -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Source+Serif+4:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Source+Serif+4:ital,wght@0,400;0,700;1,400;1,700&display=swap">
   <link rel="stylesheet" href="css/aplikacja.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script type="module" src="js/aplikacja.js"></script>
 </head>
-<body data-panel="">
-  <header class="pasek-gorny">
-    <input id="nazwa-projektu" class="nazwa-projektu" aria-label="Nazwa projektu" spellcheck="false">
-    <div class="przyciski-gorne">
-      <button data-akcja="nowy" title="Nowy projekt">Nowy</button>
-      <button data-akcja="otworz" title="Lista projektów">Otwórz…</button>
-      <button data-akcja="wczytaj-plik" title="Wczytaj projekt z pliku JSON">Z pliku</button>
-      <button data-akcja="pobierz-json" title="Pobierz projekt jako plik JSON">Pobierz JSON</button>
-      <button data-akcja="wydruk" title="Format, spad, marginesy">Format wydruku</button>
-      <button data-akcja="png" title="Pobierz bieżącą stronę jako PNG (ze spadem)">PNG strony</button>
-      <button data-akcja="chmura" id="przycisk-chmura" title="Logowanie i zapis w Supabase">Chmura</button>
-    </div>
-    <span id="status" class="status" role="status" aria-live="polite"></span>
-  </header>
+<body data-ekran="start">
 
-  <div class="uklad">
-    <aside id="panel-strony" class="panel panel-lewy" aria-label="Strony">
-      <div class="naglowek-panelu">
-        <h2>Strony</h2>
-        <button class="zamknij-panel" data-akcja="zamknij-panel" aria-label="Zamknij">✕</button>
-      </div>
-      <ol id="lista-stron" class="lista-stron"></ol>
-      <div class="akcje-stron">
-        <button data-akcja="strona-dodaj">+ Strona</button>
-        <button data-akcja="strona-duplikuj">Duplikuj</button>
-        <button data-akcja="strona-gora" aria-label="Przesuń wyżej">↑</button>
-        <button data-akcja="strona-dol" aria-label="Przesuń niżej">↓</button>
-        <button data-akcja="strona-usun" class="niebezpieczny">Usuń</button>
-      </div>
-    </aside>
-
-    <main class="obszar">
-      <div class="narzedzia" role="toolbar" aria-label="Narzędzia">
-        <div class="grupa">
-          <button data-akcja="dodaj-tekst" title="Tekst (T)">T<span class="etyk"> Tekst</span></button>
-          <button data-akcja="dodaj-prostokat" title="Prostokąt (R)">▭<span class="etyk"> Prostokąt</span></button>
-          <button data-akcja="dodaj-elipse" title="Elipsa (E)">◯<span class="etyk"> Elipsa</span></button>
-          <button data-akcja="dodaj-linie" title="Linia (L)">╱<span class="etyk"> Linia</span></button>
-          <button data-akcja="dodaj-obraz" title="Obraz z dysku">🖼<span class="etyk"> Obraz</span></button>
-        </div>
-        <div class="grupa">
-          <button data-akcja="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij">↶</button>
-          <button data-akcja="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów">↷</button>
-        </div>
-        <div class="grupa wymaga-zaznaczenia">
-          <button data-akcja="duplikuj" title="Duplikuj (Ctrl+D)">⧉</button>
-          <button data-akcja="usun" title="Usuń (Delete)" class="niebezpieczny">🗑</button>
-          <button data-akcja="grupuj" title="Grupuj (Ctrl+G)">Grupuj</button>
-          <button data-akcja="rozgrupuj" title="Rozgrupuj (Ctrl+Shift+G)">Rozgrupuj</button>
-        </div>
-        <div class="grupa wymaga-zaznaczenia">
-          <button data-akcja="warstwa-wierzch" title="Na wierzch">⤒</button>
-          <button data-akcja="warstwa-wyzej" title="Wyżej">↑</button>
-          <button data-akcja="warstwa-nizej" title="Niżej">↓</button>
-          <button data-akcja="warstwa-spod" title="Na spód">⤓</button>
-        </div>
-        <div class="grupa">
-          <button data-akcja="zoom-minus" aria-label="Pomniejsz">−</button>
-          <button data-akcja="zoom-dopasuj" id="wartosc-zoom" title="Dopasuj do okna">100%</button>
-          <button data-akcja="zoom-plus" aria-label="Powiększ">+</button>
-          <label class="przelacznik" title="Spad, linia cięcia i marginesy">
-            <input type="checkbox" id="prowadnice" checked> Prowadnice
-          </label>
-        </div>
-      </div>
-      <div id="kontener-plotna" class="kontener-plotna">
-        <div class="arkusz"><canvas id="plotno"></canvas></div>
-      </div>
-    </main>
-
-    <aside id="panel-wlasciwosci" class="panel panel-prawy" aria-label="Właściwości">
-      <div class="naglowek-panelu">
-        <h2 id="tytul-wlasciwosci">Właściwości</h2>
-        <button class="zamknij-panel" data-akcja="zamknij-panel" aria-label="Zamknij">✕</button>
-      </div>
-      <div id="wlasciwosci" class="wlasciwosci"></div>
-      <section class="sekcja-ostrzezen" id="panel-ostrzezenia">
-        <h2>Ostrzeżenia <span id="licznik-ostrzezen" class="licznik">0</span></h2>
-        <ul id="lista-ostrzezen" class="lista-ostrzezen"></ul>
-      </section>
-    </aside>
+  <!-- ===================== Start (ładowanie) ===================== -->
+  <div class="ekran ekran-start" id="ekran-start">
+    <div class="logo-duze"><span class="znak-logo">P</span></div>
+    <p class="ciche">Wczytywanie…</p>
   </div>
 
-  <nav class="zakladki-mobilne" aria-label="Panele">
-    <button data-panel="strony">Strony</button>
-    <button data-panel="wlasciwosci">Właściwości</button>
-    <button data-panel="ostrzezenia">Ostrzeżenia <span id="licznik-ostrzezen-mobilny" class="licznik">0</span></button>
-  </nav>
+  <!-- ===================== Logowanie ===================== -->
+  <main class="ekran ekran-logowania" id="ekran-logowania">
+    <section class="logowanie-bok" aria-hidden="true">
+      <div class="marka"><span class="znak-logo">P</span> Publisher-lite</div>
+      <h1>Projektuj strony raz.<br>Dane wstawią się same.</h1>
+      <p>Edytor do kalendarzy, planerów i notesów: projektujesz wzór strony, podpinasz arkusz z danymi i dostajesz gotowy PDF do druku.</p>
+      <div class="podglad-stron">
+        <div class="kartka k1"><span></span><span></span><span class="krotka"></span></div>
+        <div class="kartka k2"><span></span><span class="krotka"></span><span></span></div>
+        <div class="kartka k3"><span class="krotka"></span><span></span><span></span></div>
+      </div>
+    </section>
 
-  <!-- Format wydruku -->
-  <dialog id="dlg-wydruk">
-    <form method="dialog" class="formularz">
-      <h2>Format wydruku</h2>
-      <label>Format
-        <select name="format"></select>
+    <section class="logowanie-forma">
+      <div class="karta-logowania">
+        <div class="marka marka-mobilna"><span class="znak-logo">P</span> Publisher-lite</div>
+        <h2 id="tytul-logowania">Zaloguj się</h2>
+        <p class="ciche" id="opis-logowania">Projekty są zapisywane na Twoim koncie i dostępne na każdym urządzeniu.</p>
+
+        <form id="form-logowania" class="formularz" novalidate>
+          <label class="pole">
+            <span>E-mail</span>
+            <input name="email" type="email" autocomplete="email" inputmode="email" required>
+          </label>
+          <label class="pole" id="pole-haslo">
+            <span>Hasło</span>
+            <span class="z-przyciskiem">
+              <input name="haslo" type="password" autocomplete="current-password" minlength="6" required>
+              <button type="button" class="przycisk-ikona" id="pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button>
+            </span>
+          </label>
+          <p class="komunikat" id="komunikat-logowania" role="alert"></p>
+          <button type="submit" class="przycisk glowny pelny" id="przycisk-logowania">Zaloguj się</button>
+        </form>
+
+        <div class="linki-logowania">
+          <button type="button" class="link" data-tryb="reset">Nie pamiętasz hasła?</button>
+          <button type="button" class="link" data-tryb="rejestracja">Nie masz konta? Utwórz je</button>
+          <button type="button" class="link" data-tryb="logowanie" hidden>Masz konto? Zaloguj się</button>
+        </div>
+
+        <div class="brak-konfiguracji" id="brak-konfiguracji" hidden>
+          <strong>Brak połączenia z bazą.</strong>
+          <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase, więc logowanie jest niedostępne.</p>
+          <button type="button" class="przycisk" id="tryb-lokalny">Pracuj bez konta (tylko ta przeglądarka)</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== Projekty ===================== -->
+  <div class="ekran ekran-projektow" id="ekran-projektow">
+    <header class="pasek-aplikacji">
+      <div class="marka"><span class="znak-logo">P</span> Publisher-lite</div>
+      <div class="odstep"></div>
+      <button class="przycisk przezroczysty" data-akcja="instrukcja" data-ikona="ksiazka"><span class="etyk">Instrukcja</span></button>
+      <div class="menu-uzytkownika">
+        <button class="awatar" id="awatar" aria-haspopup="menu" aria-expanded="false" title="Konto"></button>
+        <div class="menu" id="menu-uzytkownika" role="menu" hidden>
+          <div class="menu-naglowek" id="email-uzytkownika"></div>
+          <button role="menuitem" data-akcja="wczytaj-plik" data-ikona="wyslij">Wczytaj projekt z pliku</button>
+          <button role="menuitem" data-akcja="wyloguj" data-ikona="wyloguj">Wyloguj</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="projekty-tresc">
+      <div class="projekty-naglowek">
+        <div>
+          <h1>Twoje projekty</h1>
+          <p class="ciche" id="podsumowanie-projektow"></p>
+        </div>
+        <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Nowy projekt</button>
+      </div>
+
+      <section class="pusto-projekty" id="pusto-projekty" hidden>
+        <h2>Zacznij od pierwszego projektu</h2>
+        <p class="ciche">Tak będzie wyglądać praca z Publisher-lite:</p>
+        <ol class="kroki">
+          <li><span class="numer-kroku">1</span><div><strong>Format</strong><p>Wybierz rozmiar strony, spad i marginesy – np. A5 do kalendarza książkowego.</p></div></li>
+          <li><span class="numer-kroku">2</span><div><strong>Wzory stron</strong><p>Zaprojektuj każdą stronę osobno: teksty, kształty, zdjęcia.</p></div></li>
+          <li class="wkrotce"><span class="numer-kroku">3</span><div><strong>Dane <em>wkrótce</em></strong><p>Podepnij arkusz (CSV, Excel, Google Sheets) – strony powielą się według wierszy.</p></div></li>
+          <li class="wkrotce"><span class="numer-kroku">4</span><div><strong>PDF do druku <em>wkrótce</em></strong><p>Jeden plik ze spadem i znakami cięcia, gotowy dla drukarni.</p></div></li>
+        </ol>
+        <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Utwórz projekt</button>
+      </section>
+
+      <ul class="siatka-projektow" id="siatka-projektow"></ul>
+    </main>
+  </div>
+
+  <!-- ===================== Edytor ===================== -->
+  <div class="ekran ekran-edytora" id="ekran-edytora">
+    <header class="pasek-aplikacji pasek-edytora">
+      <button class="przycisk przezroczysty" data-akcja="do-projektow" data-ikona="wstecz" title="Wróć do listy projektów"><span class="etyk">Projekty</span></button>
+      <div class="separator"></div>
+      <input id="nazwa-projektu" class="nazwa-projektu" aria-label="Nazwa projektu" spellcheck="false">
+      <span class="stan-zapisu" id="stan-zapisu" role="status" aria-live="polite"></span>
+      <div class="odstep"></div>
+      <div class="grupa-przyciskow" id="grupa-historia">
+        <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
+        <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
+      </div>
+      <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Format, spad i marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
+      <button class="przycisk-ikona" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
+      <div class="menu-wiecej">
+        <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
+        <div class="menu" id="menu-wiecej" role="menu" hidden>
+          <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz stronę jako PNG</button>
+          <button role="menuitem" data-akcja="pobierz-json" data-ikona="pobierz">Pobierz kopię projektu (JSON)</button>
+          <button role="menuitem" data-akcja="wczytaj-plik" data-ikona="wyslij">Wczytaj projekt z pliku</button>
+          <hr>
+          <button role="menuitem" class="niebezpieczny" data-akcja="usun-projekt" data-ikona="kosz">Usuń projekt</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="uklad-edytora">
+      <aside class="panel panel-strony" id="panel-strony" aria-label="Strony">
+        <div class="naglowek-panelu">
+          <h2>Strony <span class="licznik" id="liczba-stron">1</span></h2>
+          <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
+        </div>
+        <ol class="lista-stron" id="lista-stron"></ol>
+        <div class="stopka-panelu">
+          <button class="przycisk pelny" data-akcja="strona-dodaj" data-ikona="plus" id="przycisk-dodaj-strone">Dodaj stronę</button>
+        </div>
+      </aside>
+
+      <main class="obszar-roboczy" id="obszar-roboczy">
+        <div class="pasek-narzedzi" id="pasek-narzedzi" role="toolbar" aria-label="Wstaw">
+          <button data-akcja="dodaj-tekst" data-ikona="tekst" title="Tekst (T)"><span>Tekst</span></button>
+          <button data-akcja="dodaj-prostokat" data-ikona="prostokat" title="Prostokąt (R)"><span>Prostokąt</span></button>
+          <button data-akcja="dodaj-elipse" data-ikona="elipsa" title="Elipsa (E)"><span>Elipsa</span></button>
+          <button data-akcja="dodaj-linie" data-ikona="linia" title="Linia (L)"><span>Linia</span></button>
+          <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz z dysku"><span>Obraz</span></button>
+        </div>
+
+        <div id="kontener-plotna" class="kontener-plotna">
+          <div class="arkusz"><canvas id="plotno"></canvas></div>
+        </div>
+
+        <div class="kontrolki-widoku" id="kontrolki-widoku">
+          <button class="przycisk-ikona" data-akcja="prowadnice" id="przycisk-prowadnice" data-ikona="prowadnice" title="Pokaż/ukryj linię cięcia, spad i marginesy" aria-pressed="true"></button>
+          <div class="separator"></div>
+          <button class="przycisk-ikona" data-akcja="zoom-minus" data-ikona="minus" aria-label="Pomniejsz"></button>
+          <button class="wartosc-zoom" data-akcja="zoom-dopasuj" id="wartosc-zoom" title="Dopasuj do okna">100%</button>
+          <button class="przycisk-ikona" data-akcja="zoom-plus" data-ikona="plus" aria-label="Powiększ"></button>
+        </div>
+      </main>
+
+      <aside class="panel panel-inspektor" id="panel-inspektor" aria-label="Właściwości">
+        <div class="naglowek-panelu">
+          <h2 id="tytul-wlasciwosci">Strona</h2>
+          <div class="akcje-obiektu" id="akcje-obiektu" hidden>
+            <button class="przycisk-ikona maly" data-akcja="duplikuj" data-ikona="kopiuj" title="Duplikuj (Ctrl+D)" aria-label="Duplikuj"></button>
+            <button class="przycisk-ikona maly" data-akcja="usun" data-ikona="kosz" title="Usuń (Delete)" aria-label="Usuń"></button>
+          </div>
+          <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
+        </div>
+        <div id="wlasciwosci" class="wlasciwosci"></div>
+        <section class="sekcja-ostrzezen" id="sekcja-ostrzezen">
+          <button class="naglowek-ostrzezen" id="naglowek-ostrzezen" aria-expanded="true">
+            <span data-ikona="uwaga" data-rozmiar="16"></span> Ostrzeżenia <span class="licznik" id="licznik-ostrzezen">0</span>
+          </button>
+          <ul id="lista-ostrzezen" class="lista-ostrzezen"></ul>
+        </section>
+      </aside>
+    </div>
+
+    <nav class="zakladki-mobilne" aria-label="Panele">
+      <button data-panel="strony" data-ikona="strony"><span>Strony</span></button>
+      <button data-panel="inspektor" data-ikona="suwaki"><span>Właściwości</span></button>
+      <button data-panel="ostrzezenia" data-ikona="uwaga"><span>Ostrzeżenia</span><span class="kropka" id="kropka-ostrzezen" hidden></span></button>
+    </nav>
+  </div>
+
+  <!-- ===================== Dialogi ===================== -->
+
+  <dialog id="dlg-nowy" class="dialog-szeroki">
+    <form method="dialog" class="formularz" id="form-nowy">
+      <div class="naglowek-dialogu">
+        <h2>Nowy projekt</h2>
+        <button class="przycisk-ikona" value="anuluj" formnovalidate data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <label class="pole">
+        <span>Nazwa</span>
+        <input name="nazwa" required maxlength="80" placeholder="np. Kalendarz 2027">
       </label>
-      <div class="rzad">
-        <label>Szerokość (mm) <input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required></label>
-        <label>Wysokość (mm) <input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required></label>
-        <button type="button" data-akcja="obroc-format" title="Zamień orientację">⇄</button>
+      <fieldset class="pole">
+        <legend>Format strony</legend>
+        <div class="karty-formatu" id="karty-formatu"></div>
+      </fieldset>
+      <div class="rzad" id="wlasny-format" hidden>
+        <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" inputmode="decimal"></label>
+        <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" inputmode="decimal"></label>
       </div>
       <div class="rzad">
-        <label>Spad (mm) <input name="spad_mm" type="number" min="0" max="20" step="0.5" required></label>
-        <label>Marginesy (mm) <input name="marginesy_mm" type="number" min="0" max="100" step="0.5" required></label>
+        <div class="pole pole-orientacja">
+          <span>Orientacja</span>
+          <div class="przelacznik-segmentowy" role="radiogroup">
+            <label><input type="radio" name="orientacja" value="pion" checked><span>Pionowo</span></label>
+            <label><input type="radio" name="orientacja" value="poziom"><span>Poziomo</span></label>
+          </div>
+        </div>
+        <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" value="3" inputmode="decimal"></label>
+        <label class="pole waskie"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="0.5" value="10" inputmode="decimal"></label>
       </div>
-      <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"> Znaki cięcia w eksporcie PDF</label>
-      <p class="podpowiedz">Obiekty zostają w tych samych miejscach (w mm) – po zmianie formatu sprawdź listę ostrzeżeń.</p>
+      <p class="podpowiedz">Spad to pas za krawędzią strony, który drukarnia odcina – tła i zdjęcia „na spad” sięgają do niego. Wszystko możesz zmienić później.</p>
       <div class="przyciski-dialogu">
-        <button value="anuluj" formnovalidate>Anuluj</button>
-        <button value="ok" class="glowny">Zapisz</button>
+        <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
+        <button class="przycisk glowny" value="ok">Utwórz projekt</button>
       </div>
     </form>
   </dialog>
 
-  <!-- Lista projektów -->
-  <dialog id="dlg-projekty">
-    <div class="formularz">
-      <h2>Projekty</h2>
-      <ul id="lista-projektow" class="lista-projektow"></ul>
-      <div class="przyciski-dialogu">
-        <button data-akcja="zamknij-dialog">Zamknij</button>
-        <button data-akcja="nowy" class="glowny">Nowy projekt</button>
+  <dialog id="dlg-wydruk">
+    <form method="dialog" class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Format wydruku</h2>
+        <button class="przycisk-ikona" value="anuluj" formnovalidate data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
+      <label class="pole"><span>Format</span><select name="format"></select></label>
+      <div class="rzad">
+        <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
+        <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
+        <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="ponow"></button>
+      </div>
+      <div class="rzad">
+        <label class="pole"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
+        <label class="pole"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="0.5" required inputmode="decimal"></label>
+      </div>
+      <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"><span>Znaki cięcia w pliku PDF</span></label>
+      <p class="podpowiedz">Obiekty zostają w tych samych miejscach (w mm). Po zmianie formatu sprawdź listę ostrzeżeń.</p>
+      <div class="przyciski-dialogu">
+        <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
+        <button class="przycisk glowny" value="ok">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-potwierdz">
+    <form method="dialog" class="formularz">
+      <h2 id="potwierdz-tytul"></h2>
+      <p id="potwierdz-tresc" class="ciche"></p>
+      <div class="przyciski-dialogu">
+        <button class="przycisk" value="nie">Anuluj</button>
+        <button class="przycisk glowny" value="tak" id="potwierdz-tak">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-nazwa">
+    <form method="dialog" class="formularz">
+      <h2 id="nazwa-tytul">Zmień nazwę</h2>
+      <label class="pole"><span id="nazwa-etykieta">Nazwa</span><input name="wartosc" required maxlength="80"></label>
+      <div class="przyciski-dialogu">
+        <button class="przycisk" value="nie" formnovalidate>Anuluj</button>
+        <button class="przycisk glowny" value="tak">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Menu kontekstowe strony -->
+  <div class="menu menu-strony" id="menu-strony" role="menu" hidden>
+    <button role="menuitem" data-akcja="strona-nazwa">Zmień nazwę</button>
+    <button role="menuitem" data-akcja="strona-duplikuj">Duplikuj</button>
+    <button role="menuitem" data-akcja="strona-gora">Przesuń wyżej</button>
+    <button role="menuitem" data-akcja="strona-dol">Przesuń niżej</button>
+    <hr>
+    <button role="menuitem" class="niebezpieczny" data-akcja="strona-usun">Usuń stronę</button>
+  </div>
+
+  <!-- Instrukcja (podręcznik ze zrzutami ekranu) -->
+  <dialog id="dlg-instrukcja" class="dialog-instrukcja" aria-labelledby="instrukcja-tytul">
+    <div class="instrukcja">
+      <nav class="instrukcja-spis" aria-label="Rozdziały">
+        <h2 id="instrukcja-tytul">Instrukcja</h2>
+        <ol id="instrukcja-rozdzialy"></ol>
+      </nav>
+      <article class="instrukcja-tresc" id="instrukcja-tresc" tabindex="-1"></article>
+      <div class="instrukcja-stopka">
+        <button class="przycisk" id="instrukcja-wstecz" data-ikona="wstecz">Poprzedni</button>
+        <span class="ciche" id="instrukcja-numer"></span>
+        <button class="przycisk glowny" id="instrukcja-dalej">Następny</button>
+      </div>
+      <button class="przycisk-ikona instrukcja-zamknij" data-akcja="zamknij-instrukcje" data-ikona="zamknij" aria-label="Zamknij instrukcję"></button>
     </div>
   </dialog>
 
-  <!-- Chmura -->
-  <dialog id="dlg-chmura">
-    <div class="formularz" id="tresc-chmury"></div>
-  </dialog>
+  <div class="powiadomienie" id="powiadomienie" role="status" aria-live="polite" hidden></div>
 
   <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
   <input type="file" id="plik-projekt" accept=".json,application/json" hidden>

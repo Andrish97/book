@@ -4,6 +4,7 @@
 import { CZCIONKI } from './czcionki.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
+import { ikona } from './ikony.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse']);
@@ -14,12 +15,14 @@ const zaokr = (v, miejsc = 2) => {
 };
 
 export class PanelWlasciwosci {
-  constructor(kontener, tytul, edytor, { strona, onStrona }) {
+  constructor(kontener, tytul, edytor, { strona, onStrona, onFormat, opisFormatu }) {
     this.el = kontener;
     this.tytul = tytul;
     this.edytor = edytor;
     this.strona = strona; // () => bieżąca strona projektu
     this.onStrona = onStrona; // zmiana nazwy / tła strony
+    this.onFormat = onFormat; // otwarcie dialogu formatu
+    this.opisFormatu = opisFormatu;
     this.obj = undefined;
     this.odswiezacze = [];
   }
@@ -49,18 +52,14 @@ export class PanelWlasciwosci {
       return;
     }
     if (obj.type === 'activeSelection') {
-      this.tytul.textContent = `Zaznaczono: ${obj.size()}`;
-      const p = document.createElement('p');
-      p.className = 'pusto';
-      p.textContent = 'Kilka obiektów. Możesz je przesuwać razem, zgrupować albo ustawić położenie całości.';
-      this.el.append(p);
+      this.tytul.textContent = `Zaznaczono ${obj.size()} obiekty`;
+      const s = this.sekcja('Zaznaczenie');
+      s.append(this.wskazowka('Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
+      s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()]]));
       this.zbudujGeometrie(obj, { tylkoPozycja: true });
       return;
     }
     this.tytul.textContent = nazwaTypu(obj);
-
-    const ogolne = this.sekcja('Obiekt');
-    ogolne.append(this.tekst('Nazwa (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
 
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
     this.zbudujGeometrie(obj);
@@ -68,7 +67,9 @@ export class PanelWlasciwosci {
     if (obj.type === 'line') this.zbudujLinie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
+    this.zbudujKolejnosc(obj);
     const inne = this.sekcja('Inne');
+    inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
     inne.append(this.przelacznik('Wycisz ostrzeżenia dla tego obiektu', () => Boolean(obj.bez_ostrzezen), (v) => { obj.bez_ostrzezen = v || undefined; }));
   }
@@ -77,11 +78,36 @@ export class PanelWlasciwosci {
     const strona = this.strona();
     const s = this.sekcja('Strona');
     s.append(this.tekst('Nazwa strony', () => strona.nazwa, (v) => this.onStrona({ nazwa: v }), true, false));
-    s.append(this.kolor('Tło strony', () => this.edytor.canvas.backgroundColor || '#ffffff', (v) => this.edytor.ustawTlo(v), { bezZatwierdzania: true }));
-    const p = document.createElement('p');
-    p.className = 'pusto szeroki';
-    p.textContent = 'Zaznacz obiekt na stronie, aby zmienić jego właściwości. Czerwona linia to linia cięcia, przyciemniony pas – spad, niebieska przerywana – marginesy.';
-    s.append(p);
+    s.append(this.kolor('Tło', () => this.edytor.canvas.backgroundColor || '#ffffff', (v) => this.edytor.ustawTlo(v), { bezZatwierdzania: true }));
+
+    const f = this.sekcja('Format wydruku');
+    const opis = this.wskazowka('');
+    this.odswiezacze.push(() => { opis.textContent = this.opisFormatu(); });
+    opis.textContent = this.opisFormatu();
+    f.append(opis, this.akcje([['format', 'Zmień format', () => this.onFormat()]]));
+
+    const l = this.sekcja('Linie na stronie');
+    const legenda = document.createElement('ul');
+    legenda.className = 'legenda-prowadnic';
+    legenda.innerHTML = '<li><i class="ciecie"></i>Linia cięcia – krawędź strony po przycięciu</li>'
+      + '<li><i class="spad"></i>Spad – zostanie odcięty</li>'
+      + '<li><i class="margines"></i>Margines – trzymaj w nim teksty</li>';
+    l.append(legenda);
+    l.append(this.wskazowka('Kliknij element na stronie, aby zmienić jego wygląd. Linie nie są drukowane.'));
+  }
+
+  zbudujKolejnosc(obj) {
+    const s = this.sekcja('Kolejność');
+    const e = this.edytor;
+    const seg = this.segmenty('Warstwa', [
+      ['naWierzch', 'Na wierzch', null, () => e.warstwa('wierzch')],
+      ['wyzej', 'Wyżej', null, () => e.warstwa('wyzej')],
+      ['nizej', 'Niżej', null, () => e.warstwa('nizej')],
+      ['naSpod', 'Na spód', null, () => e.warstwa('spod')],
+    ]);
+    seg.classList.add('szeroki');
+    s.append(seg);
+    if (obj.type === 'group') s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()]]));
   }
 
   zbudujGeometrie(obj, { tylkoPozycja = false } = {}) {
@@ -121,15 +147,15 @@ export class PanelWlasciwosci {
     }, { jednostka: 'pt', krok: 0.5, min: 1 }));
     s.append(this.liczba('Interlinia', () => zaokr(obj.lineHeight, 2), (v) => obj.set('lineHeight', Math.max(0.5, v)), { krok: 0.05, min: 0.5 }));
     s.append(this.kolor('Kolor', () => obj.fill, (v) => obj.set('fill', v)));
-    s.append(this.przyciski('Styl', [
-      ['B', 'Pogrubienie', () => obj.fontWeight === 'bold' || obj.fontWeight >= 600, () => obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold')],
-      ['I', 'Kursywa', () => obj.fontStyle === 'italic', () => obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic')],
+    s.append(this.segmenty('Styl', [
+      ['pogrubienie', 'Pogrubienie', () => obj.fontWeight === 'bold' || obj.fontWeight >= 600, () => obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold')],
+      ['kursywa', 'Kursywa', () => obj.fontStyle === 'italic', () => obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic')],
     ]));
-    const wyr = this.przyciski('Wyrównanie', [
-      ['⯇', 'Do lewej', () => obj.textAlign === 'left', () => obj.set('textAlign', 'left')],
-      ['≡', 'Do środka', () => obj.textAlign === 'center', () => obj.set('textAlign', 'center')],
-      ['⯈', 'Do prawej', () => obj.textAlign === 'right', () => obj.set('textAlign', 'right')],
-      ['☰', 'Wyjustuj', () => obj.textAlign === 'justify', () => obj.set('textAlign', 'justify')],
+    const wyr = this.segmenty('Wyrównanie', [
+      ['doLewej', 'Do lewej', () => obj.textAlign === 'left', () => obj.set('textAlign', 'left')],
+      ['doSrodka', 'Do środka', () => obj.textAlign === 'center', () => obj.set('textAlign', 'center')],
+      ['doPrawej', 'Do prawej', () => obj.textAlign === 'right', () => obj.set('textAlign', 'right')],
+      ['wyjustuj', 'Wyjustuj', () => obj.textAlign === 'justify', () => obj.set('textAlign', 'justify')],
     ]);
     wyr.classList.add('szeroki');
     s.append(wyr);
@@ -189,11 +215,11 @@ export class PanelWlasciwosci {
     o.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
     o.append(this.liczba('Grubość obrysu', () => zaokr(obj.strokeWidth || 0, 2), (v) => obj.set({ strokeWidth: Math.max(0, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0 }));
     o.append(this.przelacznik('Odbij lustrzanie w poziomie', () => Boolean(obj.flipX), (v) => obj.set('flipX', v)));
-    const info = document.createElement('p');
-    info.className = 'pusto szeroki';
+    const info = this.wskazowka('');
     this.odswiezacze.push(() => {
       const dpi = Math.round(25.4 / obj.scaleX); // px oryginału na cal wydruku
-      info.textContent = `Oryginał: ${nw} × ${nh} px · ${dpi} dpi w tym rozmiarze${dpi < 300 ? ' (do druku zalecane 300 dpi)' : ''}.`;
+      info.textContent = `Oryginał ${nw} × ${nh} px · ${dpi} dpi w tym rozmiarze.${dpi < 300 ? ' Do druku zalecane jest 300 dpi – zmniejsz obraz albo użyj większego pliku.' : ''}`;
+      info.classList.toggle('uwaga', dpi < 300);
     });
     o.append(info);
     this.odswiezacze.at(-1)();
@@ -203,9 +229,12 @@ export class PanelWlasciwosci {
 
   sekcja(tytul) {
     const f = document.createElement('fieldset');
-    const l = document.createElement('legend');
-    l.textContent = tytul;
-    f.append(l);
+    // Pierwsza sekcja o tej samej nazwie co nagłówek panelu – bez powtórzenia.
+    if (!(this.el.children.length === 0 && tytul === this.tytul.textContent)) {
+      const l = document.createElement('legend');
+      l.textContent = tytul;
+      f.append(l);
+    }
     this.el.append(f);
     return f;
   }
@@ -361,32 +390,58 @@ export class PanelWlasciwosci {
     return label;
   }
 
-  przyciski(etykieta, definicje) {
-    const label = document.createElement('div');
+  // Grupa przycisków-ikon; aktywny == null oznacza zwykłą akcję.
+  segmenty(etykieta, definicje) {
+    const opak = document.createElement('div');
     const tytul = document.createElement('label');
     tytul.textContent = etykieta;
     const rzad = document.createElement('div');
-    rzad.className = 'przyciski';
+    rzad.className = 'segmenty';
+    rzad.setAttribute('role', 'group');
+    rzad.setAttribute('aria-label', etykieta);
     const zapisz = this._zapisz(() => {});
-    const elementy = definicje.map(([tekst, opis, aktywny, klik]) => {
+    const elementy = definicje.map(([ik, opis, aktywny, klik]) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.textContent = tekst;
       b.title = opis;
       b.setAttribute('aria-label', opis);
-      b.addEventListener('click', () => { klik(); zapisz(); });
+      b.innerHTML = ikona(ik, { rozmiar: 18 });
+      b.addEventListener('click', () => { klik(); if (aktywny) zapisz(); else this.odswiez(); });
       rzad.append(b);
       return [b, aktywny];
     });
-    label.append(tytul, rzad);
+    opak.append(tytul, rzad);
     const odswiez = () => elementy.forEach(([b, aktywny]) => {
+      if (!aktywny) return;
       const a = Boolean(aktywny());
       b.classList.toggle('aktywny', a);
       b.setAttribute('aria-pressed', String(a));
     });
     this.odswiezacze.push(odswiez);
     odswiez();
-    return label;
+    return opak;
+  }
+
+  akcje(definicje) {
+    const rzad = document.createElement('div');
+    rzad.className = 'rzad-przyciskow';
+    for (const [ik, tekst, klik] of definicje) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'przycisk';
+      b.innerHTML = ikona(ik, { rozmiar: 16 });
+      b.append(tekst);
+      b.addEventListener('click', klik);
+      rzad.append(b);
+    }
+    return rzad;
+  }
+
+  wskazowka(tekst, uwaga = false) {
+    const p = document.createElement('p');
+    p.className = `wskazowka${uwaga ? ' uwaga' : ''}`;
+    p.textContent = tekst;
+    return p;
   }
 }
 

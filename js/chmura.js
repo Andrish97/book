@@ -33,16 +33,53 @@ export async function biezacyUzytkownik() {
 
 export async function naZmianeSesji(callback) {
   const sb = await supabase();
-  sb.auth.onAuthStateChange((_zdarzenie, sesja) => callback(sesja?.user ?? null));
+  sb.auth.onAuthStateChange((zdarzenie, sesja) => callback(sesja?.user ?? null, zdarzenie));
 }
 
-// Logowanie linkiem wysłanym e-mailem (bez hasła).
-export async function wyslijLinkLogowania(email) {
+const adresPowrotu = () => location.origin + location.pathname;
+
+// Komunikaty Supabase Auth po polsku (najczęstsze przypadki).
+export function komunikatBledu(e) {
+  const m = String(e?.message || e || '');
+  const mapa = [
+    [/invalid login credentials/i, 'Nieprawidłowy e-mail lub hasło.'],
+    [/email not confirmed/i, 'Adres e-mail nie został jeszcze potwierdzony. Sprawdź skrzynkę.'],
+    [/user already registered/i, 'Konto z tym adresem już istnieje. Zaloguj się.'],
+    [/password should be at least (\d+)/i, (r) => `Hasło musi mieć co najmniej ${r[1]} znaków.`],
+    [/unable to validate email|invalid email/i, 'Nieprawidłowy adres e-mail.'],
+    [/rate limit|too many requests|security purposes/i, 'Za dużo prób. Odczekaj chwilę i spróbuj ponownie.'],
+    [/failed to fetch|network/i, 'Brak połączenia z serwerem. Sprawdź internet.'],
+    [/signups not allowed/i, 'Rejestracja nowych kont jest wyłączona.'],
+  ];
+  for (const [wzor, tekst] of mapa) {
+    const r = m.match(wzor);
+    if (r) return typeof tekst === 'function' ? tekst(r) : tekst;
+  }
+  return m || 'Wystąpił nieznany błąd.';
+}
+
+export async function zalogujHaslem(email, haslo) {
   const sb = await supabase();
-  sprawdz(await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true },
+  return sprawdz(await sb.auth.signInWithPassword({ email, password: haslo })).user;
+}
+
+// Zwraca true, jeśli trzeba potwierdzić e-mail przed pierwszym logowaniem.
+export async function zarejestruj(email, haslo) {
+  const sb = await supabase();
+  const dane = sprawdz(await sb.auth.signUp({
+    email, password: haslo, options: { emailRedirectTo: adresPowrotu() },
   }));
+  return !dane.session;
+}
+
+export async function wyslijResetHasla(email) {
+  const sb = await supabase();
+  sprawdz(await sb.auth.resetPasswordForEmail(email, { redirectTo: adresPowrotu() }));
+}
+
+export async function ustawNoweHaslo(haslo) {
+  const sb = await supabase();
+  sprawdz(await sb.auth.updateUser({ password: haslo }));
 }
 
 export async function wyloguj() {
@@ -53,7 +90,7 @@ export async function wyloguj() {
 export async function listaWChmurze() {
   const sb = await supabase();
   return sprawdz(await sb.from('projekty')
-    .select('id, nazwa, zmieniono')
+    .select('id, nazwa, zmieniono, miniatura:dane->>miniatura')
     .order('zmieniono', { ascending: false }));
 }
 

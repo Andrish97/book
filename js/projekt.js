@@ -7,7 +7,7 @@ export const FORMATY = {
   A5: [148, 210],
   A6: [105, 148],
   B5: [176, 250],
-  'Kwadrat 210': [210, 210],
+  Kwadrat: [210, 210],
 };
 
 export const MM_NA_PT = 25.4 / 72;
