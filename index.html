@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f2937">
+  <title>Publisher-lite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Wyłącznie czcionki na licencji OFL (lista w js/czcionki.js). -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Source+Serif+4:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="css/aplikacja.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script type="module" src="js/aplikacja.js"></script>
+</head>
+<body data-panel="">
+  <header class="pasek-gorny">
+    <input id="nazwa-projektu" class="nazwa-projektu" aria-label="Nazwa projektu" spellcheck="false">
+    <div class="przyciski-gorne">
+      <button data-akcja="nowy" title="Nowy projekt">Nowy</button>
+      <button data-akcja="otworz" title="Lista projektów">Otwórz…</button>
+      <button data-akcja="wczytaj-plik" title="Wczytaj projekt z pliku JSON">Z pliku</button>
+      <button data-akcja="pobierz-json" title="Pobierz projekt jako plik JSON">Pobierz JSON</button>
+      <button data-akcja="wydruk" title="Format, spad, marginesy">Format wydruku</button>
+      <button data-akcja="png" title="Pobierz bieżącą stronę jako PNG (ze spadem)">PNG strony</button>
+      <button data-akcja="chmura" id="przycisk-chmura" title="Logowanie i zapis w Supabase">Chmura</button>
+    </div>
+    <span id="status" class="status" role="status" aria-live="polite"></span>
+  </header>
+
+  <div class="uklad">
+    <aside id="panel-strony" class="panel panel-lewy" aria-label="Strony">
+      <div class="naglowek-panelu">
+        <h2>Strony</h2>
+        <button class="zamknij-panel" data-akcja="zamknij-panel" aria-label="Zamknij">✕</button>
+      </div>
+      <ol id="lista-stron" class="lista-stron"></ol>
+      <div class="akcje-stron">
+        <button data-akcja="strona-dodaj">+ Strona</button>
+        <button data-akcja="strona-duplikuj">Duplikuj</button>
+        <button data-akcja="strona-gora" aria-label="Przesuń wyżej">↑</button>
+        <button data-akcja="strona-dol" aria-label="Przesuń niżej">↓</button>
+        <button data-akcja="strona-usun" class="niebezpieczny">Usuń</button>
+      </div>
+    </aside>
+
+    <main class="obszar">
+      <div class="narzedzia" role="toolbar" aria-label="Narzędzia">
+        <div class="grupa">
+          <button data-akcja="dodaj-tekst" title="Tekst (T)">T<span class="etyk"> Tekst</span></button>
+          <button data-akcja="dodaj-prostokat" title="Prostokąt (R)">▭<span class="etyk"> Prostokąt</span></button>
+          <button data-akcja="dodaj-elipse" title="Elipsa (E)">◯<span class="etyk"> Elipsa</span></button>
+          <button data-akcja="dodaj-linie" title="Linia (L)">╱<span class="etyk"> Linia</span></button>
+          <button data-akcja="dodaj-obraz" title="Obraz z dysku">🖼<span class="etyk"> Obraz</span></button>
+        </div>
+        <div class="grupa">
+          <button data-akcja="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij">↶</button>
+          <button data-akcja="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów">↷</button>
+        </div>
+        <div class="grupa wymaga-zaznaczenia">
+          <button data-akcja="duplikuj" title="Duplikuj (Ctrl+D)">⧉</button>
+          <button data-akcja="usun" title="Usuń (Delete)" class="niebezpieczny">🗑</button>
+          <button data-akcja="grupuj" title="Grupuj (Ctrl+G)">Grupuj</button>
+          <button data-akcja="rozgrupuj" title="Rozgrupuj (Ctrl+Shift+G)">Rozgrupuj</button>
+        </div>
+        <div class="grupa wymaga-zaznaczenia">
+          <button data-akcja="warstwa-wierzch" title="Na wierzch">⤒</button>
+          <button data-akcja="warstwa-wyzej" title="Wyżej">↑</button>
+          <button data-akcja="warstwa-nizej" title="Niżej">↓</button>
+          <button data-akcja="warstwa-spod" title="Na spód">⤓</button>
+        </div>
+        <div class="grupa">
+          <button data-akcja="zoom-minus" aria-label="Pomniejsz">−</button>
+          <button data-akcja="zoom-dopasuj" id="wartosc-zoom" title="Dopasuj do okna">100%</button>
+          <button data-akcja="zoom-plus" aria-label="Powiększ">+</button>
+          <label class="przelacznik" title="Spad, linia cięcia i marginesy">
+            <input type="checkbox" id="prowadnice" checked> Prowadnice
+          </label>
+        </div>
+      </div>
+      <div id="kontener-plotna" class="kontener-plotna">
+        <div class="arkusz"><canvas id="plotno"></canvas></div>
+      </div>
+    </main>
+
+    <aside id="panel-wlasciwosci" class="panel panel-prawy" aria-label="Właściwości">
+      <div class="naglowek-panelu">
+        <h2 id="tytul-wlasciwosci">Właściwości</h2>
+        <button class="zamknij-panel" data-akcja="zamknij-panel" aria-label="Zamknij">✕</button>
+      </div>
+      <div id="wlasciwosci" class="wlasciwosci"></div>
+      <section class="sekcja-ostrzezen" id="panel-ostrzezenia">
+        <h2>Ostrzeżenia <span id="licznik-ostrzezen" class="licznik">0</span></h2>
+        <ul id="lista-ostrzezen" class="lista-ostrzezen"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <nav class="zakladki-mobilne" aria-label="Panele">
+    <button data-panel="strony">Strony</button>
+    <button data-panel="wlasciwosci">Właściwości</button>
+    <button data-panel="ostrzezenia">Ostrzeżenia <span id="licznik-ostrzezen-mobilny" class="licznik">0</span></button>
+  </nav>
+
+  <!-- Format wydruku -->
+  <dialog id="dlg-wydruk">
+    <form method="dialog" class="formularz">
+      <h2>Format wydruku</h2>
+      <label>Format
+        <select name="format"></select>
+      </label>
+      <div class="rzad">
+        <label>Szerokość (mm) <input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required></label>
+        <label>Wysokość (mm) <input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required></label>
+        <button type="button" data-akcja="obroc-format" title="Zamień orientację">⇄</button>
+      </div>
+      <div class="rzad">
+        <label>Spad (mm) <input name="spad_mm" type="number" min="0" max="20" step="0.5" required></label>
+        <label>Marginesy (mm) <input name="marginesy_mm" type="number" min="0" max="100" step="0.5" required></label>
+      </div>
+      <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"> Znaki cięcia w eksporcie PDF</label>
+      <p class="podpowiedz">Obiekty zostają w tych samych miejscach (w mm) – po zmianie formatu sprawdź listę ostrzeżeń.</p>
+      <div class="przyciski-dialogu">
+        <button value="anuluj" formnovalidate>Anuluj</button>
+        <button value="ok" class="glowny">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Lista projektów -->
+  <dialog id="dlg-projekty">
+    <div class="formularz">
+      <h2>Projekty</h2>
+      <ul id="lista-projektow" class="lista-projektow"></ul>
+      <div class="przyciski-dialogu">
+        <button data-akcja="zamknij-dialog">Zamknij</button>
+        <button data-akcja="nowy" class="glowny">Nowy projekt</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Chmura -->
+  <dialog id="dlg-chmura">
+    <div class="formularz" id="tresc-chmury"></div>
+  </dialog>
+
+  <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+  <input type="file" id="plik-projekt" accept=".json,application/json" hidden>
+</body>
+</html>
