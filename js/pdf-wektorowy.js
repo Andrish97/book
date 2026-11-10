@@ -23,6 +23,8 @@ import { spakuj } from './pdf-x.js';
 
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
+const PROG_LIGATURY = 0.01; // ligatura jest „widoczna”, gdy różni się od osobnych liter ponad 1% zaczernionych punktów
+const BIALY = /^\s$/u;
 const MAX_PIKSELI_OBRAZU = 36e6;
 const SKOS_KURSYWY = 0.25; // tak przeglądarka pochyla pismo, gdy czcionka nie ma własnej kursywy
 
@@ -110,11 +112,28 @@ async function rozpakujWoff(bufor) {
   return wynik;
 }
 
+// Ligatura (np. „fi” jednym znakiem czcionki) w osadzonej czcionce. Biblioteka PDF zapisuje szerokości i znaczenie
+// tylko tych znaków, które czcionka ma w tabeli znaków – ligatury zwykle w niej nie ma. Dopisujemy ją więc do spisu
+// znaków czcionki: stąd w pliku jej szerokość i litery, które oznacza (tekst da się zaznaczyć i wyszukać).
+// Zwraca false, gdy spisu nie da się uzupełnić – wtedy ligatura nie jest używana.
+function dopiszLigature(pdfFont, glif) {
+  const spis = pdfFont?.embedder?.glyphCache;
+  if (typeof spis?.access !== 'function') return false;
+  const glify = spis.access();
+  if (!Array.isArray(glify)) return false;
+  let a = 0; let b = glify.length;
+  while (a < b) { const s = (a + b) >> 1; if (glify[s].id < glif.id) a = s + 1; else b = s; }
+  if (glify[a]?.id === glif.id) glify[a] = glif; else glify.splice(a, 0, glif);
+  pdfFont.modified = true;
+  return true;
+}
+
 // Czcionki jednego pliku PDF: wyszukanie pliku dla rodziny i odmiany, wczytanie, osadzenie.
 export class CzcionkiPdf {
   constructor(pdf, projekt, fontkit, { krzywe = false } = {}) {
     Object.assign(this, { pdf, projekt, fontkit, krzywe });
     this.gotowe = new Map(); // "rodzina|700|1" → { fk, pdfFont, krzywe, skos } albo { brak: powód }
+    this.szerokosci = new Map(); // "czcionka pomiarowa|napis" → szerokość napisu mierzonego osobno
   }
 
   async _bajty(rodzina, w, kursywa) {
@@ -169,7 +188,9 @@ export class CzcionkiPdf {
       if (zrodlo.woff2) krzywe = `„${rodzina}” (plik WOFF2)`;
       if (zrodlo.skos) krzywe = `„${rodzina}” (kursywa bez własnego pliku)`;
       const pdfFont = this.krzywe || krzywe ? null : await this.pdf.embedFont(zrodlo.bajty, { subset: false });
-      return { fk, pdfFont, krzywe, skos: zrodlo.skos ? SKOS_KURSYWY : 0 };
+      // slowa: słowo → jego ligatury; proby: czy przeglądarka naprawdę rysuje dany zlepek liter ligaturą;
+      // dopisane: numery ligatur dopisanych do osadzonej czcionki (patrz KontekstPdf._ligatury).
+      return { fk, pdfFont, krzywe, skos: zrodlo.skos ? SKOS_KURSYWY : 0, slowa: new Map(), proby: new Map(), dopisane: new Map() };
     } catch (e) {
       return { brak: `pliku czcionki „${rodzina}” nie udało się odczytać` };
     }
@@ -406,6 +427,7 @@ class KontekstPdf {
     // Co w rysowanym właśnie elemencie zapisano inaczej niż tekstem i wektorem: powody.
     this.krzyweTeraz = new Set();
     this.obrazyTeraz = new Set();
+    this.ligaturTeraz = 0; // ile ligatur zapisał rysowany właśnie element
   }
 
   // --- stan ---
@@ -588,14 +610,116 @@ class KontekstPdf {
   // --- tekst ---
   measureText(tekst) { this.pomiar.font = this.font; return this.pomiar.measureText(tekst); }
 
-  // Położenia kolejnych znaków tak, jak ułożyłaby je przeglądarka (z kerningiem).
-  _polozenia(znaki, rozmiar) {
-    this.pomiar.font = this.font.replace(/[\d.]+px/, `${ROZMIAR_POMIARU}px`);
+  // Położenia kolejnych jednostek tekstu (znaków i ligatur) tak, jak ułożyłaby je przeglądarka.
+  // Początek jednostki = szerokość tekstu do niej włącznie − szerokość jej samej; dzięki temu liczy się też
+  // kerning między nią a poprzednim znakiem. Zwraca { x: początki, szer: szerokość całości }.
+  _polozenia(jednostki, rozmiar) {
+    const font = this.font.replace(/[\d.]+px/, `${ROZMIAR_POMIARU}px`);
+    this.pomiar.font = font;
     const k = rozmiar / ROZMIAR_POMIARU;
-    const x = [0];
+    const pamiec = this.czcionki.szerokosci;
+    const x = [];
     let dotad = '';
-    for (const z of znaki) { dotad += z; x.push(this.pomiar.measureText(dotad).width * k); }
-    return x;
+    let koniec = 0;
+    for (const j of jednostki) {
+      dotad += j.napis;
+      koniec = this.pomiar.measureText(dotad).width;
+      const klucz = `${font}|${j.napis}`;
+      let wlasna = pamiec.get(klucz);
+      if (wlasna === undefined) { wlasna = this.pomiar.measureText(j.napis).width; pamiec.set(klucz, wlasna); }
+      x.push((koniec - wlasna) * k);
+    }
+    return { x, szer: koniec * k };
+  }
+
+  // Czy przeglądarka rysuje ten zlepek liter (np. „fi”) widocznie inaczej niż te same litery osobno – czyli ligaturą.
+  // Sprawdzamy to na obrazie: plik czcionki dla ekranu i dla PDF to nie zawsze ten sam plik.
+  _widacLigature(napis) {
+    const R = 200;
+    const font = this.font.replace(/[\d.]+px/, `${R}px`);
+    this.pomiar.font = font;
+    const znaki = Array.from(napis);
+    const gdzie = [];
+    let dotad = '';
+    for (const z of znaki) { dotad += z; gdzie.push(this.pomiar.measureText(dotad).width - this.pomiar.measureText(z).width); }
+    const szer = Math.ceil(this.pomiar.measureText(napis).width) + R;
+    const rysuj = (calosc) => {
+      const c = Object.assign(document.createElement('canvas'), { width: szer, height: R * 2 });
+      const x = c.getContext('2d', { willReadFrequently: true });
+      x.font = font;
+      if (calosc) x.fillText(napis, R / 2, R * 1.3);
+      else znaki.forEach((z, i) => x.fillText(z, R / 2 + gdzie[i], R * 1.3));
+      return x.getImageData(0, 0, c.width, c.height).data;
+    };
+    const a = rysuj(true);
+    const b = rysuj(false);
+    let tusz = 0;
+    let inne = 0;
+    for (let i = 3; i < a.length; i += 4) { if (a[i] > 128) tusz += 1; if (Math.abs(a[i] - b[i]) > 128) inne += 1; }
+    return tusz > 0 && inne / tusz > PROG_LIGATURY;
+  }
+
+  // Ligatury słowa: [[początek, długość, glif]]. Zlepki liter wskazuje czcionka (jej reguły łączenia znaków),
+  // a o użyciu decyduje to, czy przeglądarka naprawdę rysuje je ligaturą – PDF ma wyglądać jak ekran.
+  _ligatury(czcionka, slowo) {
+    const napis = slowo.join('');
+    if (czcionka.slowa.has(napis)) return czcionka.slowa.get(napis);
+    const { fk, pdfFont } = czcionka;
+    const wynik = [];
+    try {
+      const glify = fk.layout(napis).glyphs;
+      if (glify.length < slowo.length) {
+        // Które litery złączyły się w jeden znak: układamy coraz dłuższy początek słowa i patrzymy, kiedy znaków
+        // nie przybywa. (Biblioteka nie podaje tego wiarygodnie – opis znaku pamięta z pierwszego użycia.)
+        const zlepki = []; // [początek, długość]
+        let dotad = '';
+        slowo.forEach((z, n) => {
+          dotad += z;
+          const ile = n === slowo.length - 1 ? glify.length : fk.layout(dotad).glyphs.length;
+          zlepki.push([n, 1]);
+          while (zlepki.length > ile && zlepki.length > 1) { const [, d] = zlepki.pop(); zlepki[zlepki.length - 1][1] += d; }
+          if (zlepki.length !== ile) throw new Error('układ nie do odczytania');
+        });
+        zlepki.forEach(([od, ile], n) => { if (ile > 1) wynik.push([od, ile, glify[n]]); });
+      }
+    } catch (e) {
+      wynik.length = 0;
+    }
+    const uzywane = [];
+    for (const [od, ile, znak] of wynik) {
+      const litery = slowo.slice(od, od + ile);
+      const zlepek = litery.join('');
+      if (!czcionka.proby.has(zlepek)) czcionka.proby.set(zlepek, this._widacLigature(zlepek));
+      if (!czcionka.proby.get(zlepek)) continue;
+      // Własny opis znaku: numer, szerokość, obrys i litery, które oznacza.
+      const glif = { id: znak.id, advanceWidth: znak.advanceWidth, codePoints: litery.map((z) => z.codePointAt(0)), get path() { return znak.path; } };
+      // W pliku z tekstem ligatura musi też trafić do spisu znaków osadzonej czcionki.
+      if (pdfFont && !czcionka.dopisane.has(glif.id)) czcionka.dopisane.set(glif.id, dopiszLigature(pdfFont, glif));
+      if (!pdfFont || czcionka.dopisane.get(glif.id)) uzywane.push([od, ile, glif]);
+    }
+    czcionka.slowa.set(napis, uzywane);
+    return uzywane;
+  }
+
+  // Tekst podzielony na jednostki do narysowania: [{ napis, glif }] – pojedyncze znaki (glif: null) i ligatury.
+  _jednostki(czcionka, znaki) {
+    const jednostki = [];
+    let i = 0;
+    while (i < znaki.length) {
+      if (BIALY.test(znaki[i])) { jednostki.push({ napis: znaki[i], glif: null }); i += 1; continue; }
+      let k = i;
+      while (k < znaki.length && !BIALY.test(znaki[k])) k += 1;
+      const slowo = znaki.slice(i, k);
+      let n = 0;
+      for (const [od, ile, glif] of (slowo.length > 1 ? this._ligatury(czcionka, slowo) : [])) {
+        for (; n < od; n += 1) jednostki.push({ napis: slowo[n], glif: null });
+        jednostki.push({ napis: slowo.slice(od, od + ile).join(''), glif });
+        n = od + ile;
+      }
+      for (; n < slowo.length; n += 1) jednostki.push({ napis: slowo[n], glif: null });
+      i = k;
+    }
+    return jednostki;
   }
 
   fillText(tekst, x, y) { this._tekst(tekst, x, y, false); }
@@ -610,28 +734,33 @@ class KontekstPdf {
     const { fk, pdfFont, rozmiar, skos = 0 } = czcionka;
     const znaki = Array.from(String(tekst));
     if (!znaki.length || !(rozmiar > 0)) return;
-    const gdzie = this._polozenia(znaki, rozmiar);
-    const szer = gdzie[znaki.length];
+    const jednostki = this._jednostki(czcionka, znaki);
+    const gdzie = this._polozenia(jednostki, rozmiar);
+    const { szer } = gdzie;
     const x0 = x - (this.textAlign === 'right' || this.textAlign === 'end' ? szer : (this.textAlign === 'center' ? szer / 2 : 0));
+    // Widoczne jednostki: glif czcionki, jego położenie i – dla zwykłego znaku – sam znak (dla ligatury null).
     const widoczne = [];
-    znaki.forEach((z, i) => {
-      const kod = z.codePointAt(0);
-      if (fk.hasGlyphForCodePoint(kod)) widoczne.push([z, kod, gdzie[i]]);
-      else if (!/^[\s­​-‍﻿]$/u.test(z)) throw new Niewektorowe(`znaku „${z}” nie ma w czcionce „${czcionka.klucz.split('|')[0]}”`);
+    let ligatur = 0;
+    jednostki.forEach((j, i) => {
+      if (j.glif) { widoczne.push({ glif: j.glif, dx: gdzie.x[i], znak: null }); ligatur += 1; return; }
+      const kod = j.napis.codePointAt(0);
+      if (fk.hasGlyphForCodePoint(kod)) widoczne.push({ glif: fk.glyphForCodePoint(kod), dx: gdzie.x[i], znak: j.napis });
+      else if (!/^[\s­​-‍﻿]$/u.test(j.napis)) throw new Niewektorowe(`znaku „${j.napis}” nie ma w czcionce „${czcionka.klucz.split('|')[0]}”`);
     });
     if (!widoczne.length) return;
     const styl = obrys ? this.strokeStyle : this.fillStyle;
     if (typeof styl !== 'string') throw new Niewektorowe('tekst wypełniony gradientem');
+    this.ligaturTeraz += ligatur;
 
     if (this.opcje.krzywe || czcionka.krzywe) {
       // Tekst zamieniony na krzywe: obrysy znaków jako wypełnione kształty (z pochyleniem, gdy kursywy nie ma w pliku).
       if (!this.opcje.krzywe) this.krzyweTeraz.add(czcionka.krzywe);
       const skala = rozmiar / fk.unitsPerEm;
       const sciezka = [];
-      for (const [, kod, dx] of widoczne) {
+      for (const { glif, dx } of widoczne) {
         const p = (gx, gy) => this._p(x0 + dx + (gx + skos * gy) * skala, y - gy * skala);
         let tu = [0, 0];
-        for (const { command: co, args: a } of fk.glyphForCodePoint(kod).path.commands) {
+        for (const { command: co, args: a } of glif.path.commands) {
           if (co === 'moveTo') { sciezka.push(['m', ...p(a[0], a[1])]); tu = [a[0], a[1]]; }
           else if (co === 'lineTo') { sciezka.push(['l', ...p(a[0], a[1])]); tu = [a[0], a[1]]; }
           else if (co === 'bezierCurveTo') { sciezka.push(['c', ...p(a[0], a[1]), ...p(a[2], a[3]), ...p(a[4], a[5])]); tu = [a[4], a[5]]; }
@@ -646,19 +775,20 @@ class KontekstPdf {
     }
 
     // Prawdziwy tekst: znaki osadzonej czcionki ustawione w miejscach z pomiaru przeglądarki.
+    // Ligatura to jeden znak czcionki, zapisany jego numerem; czytnik PDF odczyta z niego zwykłe litery.
     const czesci = [];
-    widoczne.forEach(([z, kod, dx], i) => {
-      czesci.push(pdfFont.encodeText(z).toString());
+    widoczne.forEach(({ glif, dx, znak }, i) => {
+      czesci.push(znak === null ? `<${glif.id.toString(16).toUpperCase().padStart(4, '0')}>` : pdfFont.encodeText(znak).toString());
       const nastepny = widoczne[i + 1];
       if (!nastepny) return;
-      const wlasny = (fk.glyphForCodePoint(kod).advanceWidth / fk.unitsPerEm) * rozmiar;
-      const poprawka = ((wlasny - (nastepny[2] - dx)) / rozmiar) * 1000;
+      const wlasny = (glif.advanceWidth / fk.unitsPerEm) * rozmiar;
+      const poprawka = ((wlasny - (nastepny.dx - dx)) / rozmiar) * 1000;
       if (Math.abs(poprawka) > 0.05) czesci.push(L(poprawka));
     });
     this.op.push('q');
     this._styl(styl, obrys);
     if (obrys) this.op.push(`${L(this.lineWidth)} w`, `${LACZENIA[this.lineJoin] ?? 0} j`);
-    this.op.push('BT', `/${this.strona.czcionka(pdfFont)} ${L(rozmiar)} Tf`, `${obrys ? 1 : 0} Tr`, `1 0 0 -1 ${L(x0 + widoczne[0][2])} ${L(y)} Tm`, `[${czesci.join(' ')}] TJ`, 'ET', 'Q');
+    this.op.push('BT', `/${this.strona.czcionka(pdfFont)} ${L(rozmiar)} Tf`, `${obrys ? 1 : 0} Tr`, `1 0 0 -1 ${L(x0 + widoczne[0].dx)} ${L(y)} Tm`, `[${czesci.join(' ')}] TJ`, 'ET', 'Q');
   }
 
   // --- obrazy ---
@@ -784,7 +914,8 @@ const maMaske = (o) => Boolean(o.clipPath) || (o._objects || []).some(maMaske);
 
 // Rysuje stronę na stronie PDF.
 // srodowisko: { PDFLib, pdf, czcionki: CzcionkiPdf, obrazy: ObrazyPdf, cmyk, krzywe, dpi, uwagi: Map(powód → liczba elementów
-// zapisanych jako obraz), jakoKrzywe: Map(czcionka → liczba elementów z tekstem zapisanym jako krzywe) }
+// zapisanych jako obraz), jakoKrzywe: Map(czcionka → liczba elementów z tekstem zapisanym jako krzywe),
+// ligatury: { ile } – licznik ligatur zapisanych w pliku }
 // m: wymiary z wymiaryStronyPdf (w, h, spad, pas) w mm; obiekty: żywe obiekty Fabric w układzie strony (mm).
 export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m }) {
   const { PDFLib, pdf, czcionki, obrazy, cmyk = false, krzywe = false, dpi = 300, uwagi } = srodowisko;
@@ -812,7 +943,7 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
     try {
       if (maMaske(o)) throw new Niewektorowe('element przycięty maską');
       bezPamieci(o);
-      ctx.krzyweTeraz = new Set(); ctx.obrazyTeraz = new Set();
+      ctx.krzyweTeraz = new Set(); ctx.obrazyTeraz = new Set(); ctx.ligaturTeraz = 0;
       ctx.save();
       o.render(ostrozny(ctx));
       ctx.restore();
@@ -820,6 +951,7 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
       // Element zapisany wektorowo, ale z częścią jako krzywe albo z rysunkiem SVG jako obrazem.
       dolicz(srodowisko.jakoKrzywe, ctx.krzyweTeraz);
       dolicz(uwagi, ctx.obrazyTeraz);
+      if (srodowisko.ligatury) srodowisko.ligatury.ile += ctx.ligaturTeraz;
     } catch (e) {
       if (!e.niewektorowe) throw e;
       // Cofnięcie tego, co element zdążył zapisać, i wstawienie go jako obrazu.

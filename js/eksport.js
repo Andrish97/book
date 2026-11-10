@@ -116,7 +116,7 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) 
 // PDF/X-4 z profilem warunków druku; wtedy cmyk przelicza tekst i kształty przez ten profil, a zdjeciaCmyk
 // (tylko plik wektorowy) – także zdjęcia. `druk` to wczytane już warunki (wczytajWarunki), żeby przy kilku
 // plikach nie czytać profilu za każdym razem.
-export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ciag = rozwin(projekt), postep, przerwij } = {}) {
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), postep, przerwij } = {}) {
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
   const warunki = druk || (pdfx ? await wczytajWarunki(pdfx, profilWlasny) : null);
   const wektor = tryb === 'wektor';
@@ -129,7 +129,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   if (tryb === 'wektor') {
     const fontkit = await biblioteka(FONTKIT_URL, 'fontkit', 'modułu czcionek PDF');
     pdf.registerFontkit(fontkit);
-    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf, { silnik: zdjeciaCmyk ? silnik : null }), cmyk, silnik: cmyk ? silnik : null, krzywe, dpi, uwagi, jakoKrzywe, uzyteCzcionki: new Set() };
+    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf, { silnik: zdjeciaCmyk ? silnik : null }), cmyk, silnik: cmyk ? silnik : null, krzywe, dpi, uwagi, jakoKrzywe, ligatury, uzyteCzcionki: new Set() };
   }
   let nr = 0;
   for (const egz of egzemplarze) {
@@ -216,6 +216,7 @@ export async function plikiCzcionek(projekt) {
 export async function eksportujPdf(projekt, opcje = {}) {
   const uwagi = new Map();
   const jakoKrzywe = new Map();
+  const ligatury = { ile: 0 };
   const ciag = rozwin(projekt);
   const pliki = planPlikow(projekt, wybierzEgzemplarze(ciag, opcje), opcje);
   if (!pliki.length) throw new Error('W wybranym zakresie nie ma stron.');
@@ -226,14 +227,14 @@ export async function eksportujPdf(projekt, opcje = {}) {
   const wyniki = [];
   for (const p of pliki) {
     const start = gotowe;
-    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, druk, uwagi, jakoKrzywe, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
+    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, druk, uwagi, jakoKrzywe, ligatury, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
     wyniki.push({ nazwa: p.nazwa, blob });
   }
   const czcionki = opcje.dolaczCzcionki ? await plikiCzcionek(projekt) : [];
-  if (wyniki.length === 1 && !czcionki.length) return { ...wyniki[0], uwagi: [...uwagi], krzywe: [...jakoKrzywe] };
+  if (wyniki.length === 1 && !czcionki.length) return { ...wyniki[0], uwagi: [...uwagi], krzywe: [...jakoKrzywe], ligatury: ligatury.ile };
   const JSZip = await biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
   const zip = new JSZip();
   for (const w of wyniki) zip.file(w.nazwa, w.blob, { compression: 'STORE' });
   for (const c of czcionki) zip.file(`czcionki/${c.nazwa}`, c.blob, { compression: 'STORE' });
-  return { nazwa: `${bezpiecznaNazwa(projekt.nazwa)} - PDF.zip`, blob: await zip.generateAsync({ type: 'blob' }), uwagi: [...uwagi], krzywe: [...jakoKrzywe] };
+  return { nazwa: `${bezpiecznaNazwa(projekt.nazwa)} - PDF.zip`, blob: await zip.generateAsync({ type: 'blob' }), uwagi: [...uwagi], krzywe: [...jakoKrzywe], ligatury: ligatury.ile };
 }

@@ -8,7 +8,7 @@ const PDFJS_WATEK = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.
 
 // Pomiary zgodności obrazu trafiają do pliku – na serwerze testów wypisuje go ostatni krok.
 const zapiszPomiar = (nazwa, w) => require('node:fs').appendFileSync(require('node:path').join(__dirname, '.pomiary-pdf.txt'),
-  `${nazwa.slice(0, 60)} | ${w.przegladarka} | średnia ${w.srednia.toFixed(3)} | różne ${(w.rozne * 100).toFixed(3)}% | pasy co 10 mm: ${w.pasy.join(' ')}\n`);
+  `${nazwa.slice(0, 60)} | ${w.przegladarka} | średnia ${w.srednia.toFixed(3)} | różne ${(w.rozne * 100).toFixed(3)}%${w.ksztalt == null ? '' : ` | kształt liter ${(w.ksztalt * 100).toFixed(3)}%`} | pasy co 10 mm: ${w.pasy.join(' ')}\n`);
 
 const OBIEKTY = [
   { type: 'rect', left: -3, top: -3, width: 154, height: 24, fill: '#c8102e', id: 'pas' },
@@ -26,7 +26,8 @@ const OBIEKTY = [
 ];
 
 // Wynik eksportu i jego opis: strony, czcionki, polecenia w treści, tekst odczytany czytnikiem, różnica obrazu.
-const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) => {
+// punkty: true – dodatkowo porównanie punkt po punkcie (kształt liter), nie tylko uśrednionych kwadratów.
+const eksportuj = (strona, opcje, { punkty = false } = {}) => strona.evaluate(async ([o, pdfjs, watek, punktPoPunkcie]) => {
   const { stan } = window.seriodruk;
   const { eksportujPdf } = await import('./js/eksport.js');
   const { renderujCel } = await import('./js/zlozenie.js');
@@ -81,20 +82,38 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
     for (let y = y0; y < Math.min(da.height, y0 + naPas); y += 1) for (let x = 0; x < da.width; x += 1) { const i = (y * da.width + x) * 4; sumaPasa += (Math.abs(da.data[i] - db.data[i]) + Math.abs(da.data[i + 1] - db.data[i + 1]) + Math.abs(da.data[i + 2] - db.data[i + 2])) / 3; n += 1; }
     pasy.push(Math.round((sumaPasa / n) * 10) / 10);
   }
+  // Kształt liter, punkt po punkcie: odsetek ciemnych punktów (tekstu), które w drugim obrazie nie mają ciemnego
+  // punktu w promieniu 2 px. Przesunięcie o punkt i inne wygładzanie krawędzi nic tu nie zmieniają; litery o innym
+  // kształcie (np. osobne „f” i „i” zamiast ligatury, kropka nad „i”) dają wyraźny odsetek.
+  let ksztalt = null;
+  if (punktPoPunkcie) {
+    const jasnosc = (c) => { const d = c.getContext('2d').getImageData(0, 0, a.width, a.height).data; const j = new Uint8Array(d.length / 4); for (let i = 0; i < j.length; i += 1) j[i] = (d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2]) / 3; return j; };
+    const ja = jasnosc(a); const jb = jasnosc(b);
+    let tusz = 0; let inne = 0;
+    const brakObok = (obraz, x, y) => { for (let dy = -2; dy <= 2; dy += 1) for (let dx = -2; dx <= 2; dx += 1) if (obraz[(y + dy) * a.width + x + dx] < 160) return false; return true; };
+    for (let y = 2; y < a.height - 2; y += 1) {
+      for (let x = 2; x < a.width - 2; x += 1) {
+        const i = y * a.width + x;
+        if (ja[i] < 96) { tusz += 1; if (brakObok(jb, x, y)) inne += 1; }
+        if (jb[i] < 96) { tusz += 1; if (brakObok(ja, x, y)) inne += 1; }
+      }
+    }
+    ksztalt = inne / tusz;
+  }
   const skala = a.width / 154; // strona 148 mm + 2 × 3 mm spadu
   const wPunkcie = (mmX, mmY) => kolor(da, (mmX + 3) * skala, (mmY + 3) * skala);
   return {
-    nazwa: wynik.nazwa, uwagi: wynik.uwagi, jakoKrzywe: wynik.krzywe, rozmiar: bajty.length, stron: pdf.getPageCount(),
+    nazwa: wynik.nazwa, uwagi: wynik.uwagi, jakoKrzywe: wynik.krzywe, ligatury: wynik.ligatury, rozmiar: bajty.length, stron: pdf.getPageCount(),
     // Ile plików czcionek i obrazów jest w całym dokumencie (każdy powinien być osadzony raz, niezależnie od liczby stron).
     plikiCzcionek: pdf.context.enumerateIndirectObjects().filter(([, o]) => o instanceof PDFDict && String(o.get(PDFName.of('Type'))) === '/FontDescriptor').length,
     plikiObrazow: pdf.context.enumerateIndirectObjects().filter(([, o]) => o.dict && String(o.dict.get(PDFName.of('Subtype'))) === '/Image' && !o.dict.get(PDFName.of('SMask'))?.toString().includes('null') && String(o.dict.get(PDFName.of('ColorSpace'))) !== '/DeviceGray').length,
     jpeg: pdf.context.enumerateIndirectObjects().filter(([, o]) => o.dict && String(o.dict.get(PDFName.of('Filter'))) === '/DCTDecode').map(([, o]) => o.contents.length),
     czcionki: ile('Font'), obrazy: ile('XObject'), gradienty: ile('Shading'),
     tekstowe: liczba(/\bTJ\b/g), rgb: liczba(/\brg\b/g), cmyk: liczba(/ k\b/g), krzywe: liczba(/ c\b/g),
-    tekst, srednia: suma / piks, rozne: rozne / piks, pasy, przegladarka: navigator.userAgent.match(/Chrome\/[\d.]+/)?.[0],
+    tekst, srednia: suma / piks, rozne: rozne / piks, ksztalt, pasy, przegladarka: navigator.userAgent.match(/Chrome\/[\d.]+/)?.[0],
     pas: wPunkcie(70, 8), zolty: wPunkcie(35, 108), polprzezroczysty: wPunkcie(126, 106), cien: wPunkcie(35, 155),
   };
-}, [opcje, PDFJS, PDFJS_WATEK]);
+}, [opcje, PDFJS, PDFJS_WATEK, punkty]);
 
 test('PDF wektorowy: prawdziwy tekst z osadzonymi czcionkami, kształty, gradient, lista – obraz zgodny z aplikacją', async (t) => {
   const { strona, bledy } = await otworz(t);
@@ -286,5 +305,60 @@ test('PDF wektorowy: rysunek SVG idzie jako wektor (kadr, obrót, gradient); rys
   await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
   await strona.waitForSelector('#dlg-pdf', { state: 'hidden' });
   assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisany został 1 element: rysunek SVG z elementem „filter”\.$/);
+  assert.deepEqual(bledy, []);
+});
+
+// Ligatury: „fi”, „fl”, „ff” przeglądarka rysuje w wielu czcionkach jednym, połączonym znakiem. PDF ma wyglądać
+// tak samo, a tekst ma się dać zaznaczyć i wyszukać zwykłymi literami.
+const LIGATURY = [
+  { type: 'textbox', left: 10, top: 8, width: 130, text: 'oficjalny finał – refleks', fontSize: 11, fontFamily: 'Lora', fill: '#111111', styles: [], id: 'l1' },
+  { type: 'textbox', left: 10, top: 30, width: 130, text: 'grafika, fiolet, offline', fontSize: 11, fontFamily: 'Playfair Display', fill: '#1a3c8f', styles: [], id: 'l2' },
+  { type: 'textbox', left: 10, top: 52, width: 130, text: 'fikcja i flet, efekt', fontSize: 11, fontFamily: 'Lora', fontStyle: 'italic', fontWeight: 'bold', fill: '#7a1f1f', styles: [], id: 'l3' },
+  // Wyjustowany akapit: przeglądarka rysuje go słowo po słowie – ligatury zostają w środku słów.
+  { type: 'textbox', left: 10, top: 76, width: 62, text: 'Szefowa firmy „Flora” oferuje fioletowe fiołki, flamastry i grafiki; efekt finalny bywa oficjalnie różny, a refleksje – ulotne.', fontSize: 5.5, fontFamily: 'EB Garamond', textAlign: 'justify', fill: '#222222', styles: [], id: 'l4' },
+  // Litery rozstrzelone: przeglądarka rysuje każdą osobno, bez ligatur – w PDF też.
+  { type: 'textbox', left: 78, top: 76, width: 62, text: 'fiolet i flaga', fontSize: 8, fontFamily: 'Lora', charSpacing: 120, fill: '#222222', styles: [], id: 'l5' },
+  // Zmiana wyglądu w środku „fi” (pogrubione samo „f”) rozdziela ligaturę; w drugim słowie zostaje.
+  { type: 'textbox', left: 78, top: 92, width: 62, text: 'finał filmu', fontSize: 8, fontFamily: 'EB Garamond', fill: '#222222', id: 'l6', styles: [{ start: 0, end: 1, style: { fontWeight: 'bold' } }] },
+  // Czcionka bez ligatur w tych miejscach.
+  { type: 'textbox', left: 10, top: 122, width: 130, text: 'Inter: oficjalny finał – refleks', fontSize: 8, fontFamily: 'Inter', fill: '#111111', styles: [], id: 'l7' },
+  { type: 'textbox', left: 10, top: 140, width: 130, text: 'AVATAR Tofu: kerning', fontSize: 12, fontFamily: 'Playfair Display', fill: '#111111', styles: [], id: 'l8' },
+];
+
+test('PDF wektorowy: ligatury wyglądają jak na ekranie, a tekst zostaje zwykłymi literami', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Ligatury');
+  await strona.evaluate(async (obiekty) => {
+    const { stan, zapiszTeraz, przeladuj } = window.seriodruk;
+    await zapiszTeraz();
+    stan.projekt.strony[0].obiekty = obiekty.map((o) => ({ version: '5.3.0', ...o }));
+    await przeladuj();
+    await document.fonts.ready;
+  }, LIGATURY);
+
+  const w = await eksportuj(strona, { tryb: 'wektor', dpi: 150 }, { punkty: true });
+  assert.deepEqual(w.uwagi, [], 'cała strona jest wektorowa');
+  assert.deepEqual(w.jakoKrzywe, []);
+  // Lora: fi, fi, fl; Playfair Display: fi, fi i zlepek w „offline”; kursywa pogrubiona: fi, fl; do tego wyjustowany akapit i „filmu”.
+  assert.ok(w.ligatury >= 12, `w pliku są ligatury (${w.ligatury})`);
+  // Tekst odczytany czytnikiem PDF to zwykłe litery – także tam, gdzie na stronie stoi ligatura.
+  const bezOdstepow = w.tekst.replace(/\s+/g, '');
+  for (const fragment of ['oficjalny finał – refleks', 'grafika, fiolet, offline', 'fikcja i flet, efekt', 'fioletowe fiołki, flamastry i grafiki', 'efekt finalny bywa oficjalnie', 'fiolet i flaga', 'finał filmu', 'Inter: oficjalny finał – refleks', 'AVATAR Tofu: kerning']) {
+    assert.ok(bezOdstepow.includes(fragment.replace(/\s+/g, '')), `w pliku jest tekst „${fragment}”: ${w.tekst}`);
+  }
+  assert.ok(!/[\ufb00-\ufb06]/.test(w.tekst), 'w odczytanym tekście nie ma znaków-ligatur');
+  zapiszPomiar(t.name, w);
+  assert.ok(w.srednia < 2.5, `średnia różnica obrazu ${w.srednia.toFixed(2)}`);
+  assert.ok(w.rozne < 0.005, `odsetek wyraźnie różnych miejsc ${(w.rozne * 100).toFixed(2)}%`);
+  // Kształt liter punkt po punkcie: bez ligatur ten odsetek wynosi tu ok. 0,3%, z ligaturami – zero.
+  assert.ok(w.ksztalt < 0.001, `litery mają ten sam kształt co w aplikacji (${(w.ksztalt * 100).toFixed(3)}% punktów inaczej)`);
+
+  // Tekst na krzywe: te same ligatury jako kształty.
+  const k = await eksportuj(strona, { tryb: 'wektor', krzywe: true, dpi: 150 }, { punkty: true });
+  assert.equal(k.czcionki, 0);
+  assert.equal(k.ligatury, w.ligatury, 'po zamianie na krzywe ligatur jest tyle samo');
+  zapiszPomiar(`${t.name} (krzywe)`, k);
+  assert.ok(k.srednia < 2.5 && k.rozne < 0.005, `obraz po zamianie na krzywe: ${k.srednia.toFixed(2)}, ${(k.rozne * 100).toFixed(2)}%`);
+  assert.ok(k.ksztalt < 0.001, `kształt liter po zamianie na krzywe (${(k.ksztalt * 100).toFixed(3)}% punktów inaczej)`);
   assert.deepEqual(bledy, []);
 });
