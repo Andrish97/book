@@ -70,6 +70,8 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     projekty: [],
     pliki: new Map(), // Storage: "bucket/ścieżka" -> { typ, tresc }
     wyslania: [], // kolejne wysłane pliki (klucze), także powtórnie
+    strony: new Map(), // wiersze projekty_strony: "projekt/strona" -> dane
+    zapisy: [], // kolejne zapisy projektu: które strony wysłano, ile ich jest
     wyslane: [], // „e-maile”: { typ, email }
     zadania: [],
   };
@@ -139,6 +141,33 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       stan.projekty = stan.projekty.filter((p) => p.owner_id !== k?.id);
       return json(r, 200, null);
     }
+    // Zapis projektu jedną funkcją – ta sama logika co w migracji strony_osobno.
+    if (sc === '/rest/v1/rpc/zapisz_projekt') {
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'JWT', 'PGRST301');
+      stan.zapisy.push({ strony: (tresc.p_strony || []).map((x) => x.id), wszystkie: tresc.p_dane.strony.length });
+      let p = stan.projekty.find((x) => x.id === tresc.p_id);
+      if (p && p.owner_id !== k.id) return blad(r, 409, 'duplicate key value violates unique constraint', '23505');
+      if (!p) {
+        p = { id: tresc.p_id, owner_id: k.id, wersja: 0 };
+        stan.projekty.push(p);
+      } else if (!tresc.p_wymus && tresc.p_znana_wersja !== p.wersja) {
+        return json(r, 200, { konflikt: true, wersja: p.wersja, zmieniono: p.zmieniono });
+      }
+      Object.assign(p, { nazwa: tresc.p_nazwa, dane: tresc.p_dane, zmieniono: tresc.p_zmieniono, wersja: p.wersja + 1 });
+      for (const x of tresc.p_strony || []) stan.strony.set(`${p.id}/${x.id}`, x.dane);
+      const zostaja = new Set(tresc.p_dane.strony.map((id) => `${p.id}/${id}`));
+      for (const klucz of [...stan.strony.keys()]) if (klucz.startsWith(`${p.id}/`) && !zostaja.has(klucz)) stan.strony.delete(klucz);
+      return json(r, 200, { wersja: p.wersja });
+    }
+    if (sc === '/rest/v1/projekty_strony') {
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'JWT', 'PGRST301');
+      const idProjektu = (url.searchParams.get('projekt_id') || '').replace('eq.', '');
+      const p = stan.projekty.find((x) => x.id === idProjektu && x.owner_id === k.id);
+      const wiersze = p ? [...stan.strony].filter(([klucz]) => klucz.startsWith(`${p.id}/`)).map(([klucz, dane]) => ({ strona_id: klucz.slice(p.id.length + 1), dane })) : [];
+      return json(r, 200, wiersze);
+    }
     if (sc === '/rest/v1/projekty') {
       const k = zTokenu(req);
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
@@ -168,7 +197,11 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         Object.assign(p, tresc);
         return json(r, 200, [{ wersja: p.wersja }]);
       }
-      if (m === 'DELETE') { stan.projekty = stan.projekty.filter((p) => !(p.id === id && p.owner_id === k.id)); return json(r, 200, []); }
+      if (m === 'DELETE') {
+        stan.projekty = stan.projekty.filter((p) => !(p.id === id && p.owner_id === k.id));
+        for (const klucz of [...stan.strony.keys()]) if (klucz.startsWith(`${id}/`)) stan.strony.delete(klucz);
+        return json(r, 200, []);
+      }
     }
     if (sc.startsWith('/storage/v1/object/list/')) {
       // Jak w Supabase: bezpośrednie pliki folderu oraz nazwy podfolderów.

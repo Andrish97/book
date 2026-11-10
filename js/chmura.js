@@ -191,39 +191,50 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
 
   const zasobyBezDanych = Object.fromEntries(Object.entries(projekt.zasoby || {})
     .map(([id, { dataUrl, ...reszta }]) => [id, reszta]));
-  const { wersja_chmury: znana, ...bezWersji } = projekt;
-  const pola = { nazwa: projekt.nazwa, dane: { ...bezWersji, zasoby: zasobyBezDanych }, zmieniono: projekt.zmieniono };
-  const tabela = () => sb.from('projekty');
-  const naKoncie = async () => sprawdz(await tabela().select('wersja, zmieniono').eq('id', projekt.id).maybeSingle());
-
-  if (wymus) {
-    const jest = await naKoncie();
-    const wersja = (jest?.wersja || 0) + 1;
-    sprawdz(await tabela().upsert({ id: projekt.id, owner_id: uzytkownik.id, ...pola, wersja }));
-    projekt.wersja_chmury = wersja;
-    return;
-  }
-  if (znana) {
-    const zapisane = sprawdz(await tabela().update({ ...pola, wersja: znana + 1 })
-      .eq('id', projekt.id).eq('wersja', znana).select('wersja'));
-    if (zapisane.length) { projekt.wersja_chmury = znana + 1; return; }
-    const jest = await naKoncie();
-    if (jest) throw new KonfliktZapisu(jest.zmieniono);
-    // Wiersza nie ma (usunięty na innym urządzeniu) – zapisujemy od nowa.
-  }
-  const { error } = await tabela().insert({ id: projekt.id, owner_id: uzytkownik.id, ...pola, wersja: 1 });
-  if (error) {
-    if (error.code === '23505') throw new KonfliktZapisu((await naKoncie())?.zmieniono);
-    sprawdz({ error });
-  }
-  projekt.wersja_chmury = 1;
+  const { wersja_chmury: znana, strony, ...reszta } = projekt;
+  // Strony leżą na koncie w osobnych wierszach. Wysyłamy tylko te, których treść
+  // różni się od ostatnio wysłanej z tego urządzenia; przy wymuszeniu – wszystkie,
+  // bo na koncie może być wersja z innego urządzenia.
+  const teksty = new Map(strony.map((st) => [st.id, JSON.stringify(st)]));
+  const poprzednie = (!wymus && znana && wyslaneStrony.get(projekt.id)) || new Map();
+  const zmienione = [...teksty].filter(([id, tekst]) => poprzednie.get(id) !== tekst).map(([id, tekst]) => ({ id, dane: JSON.parse(tekst) }));
+  const wynik = sprawdz(await sb.rpc('zapisz_projekt', {
+    p_id: projekt.id,
+    p_znana_wersja: znana ?? null,
+    p_wymus: wymus,
+    p_nazwa: projekt.nazwa,
+    p_dane: { ...reszta, zasoby: zasobyBezDanych, strony: strony.map((st) => st.id), strony_osobno: true },
+    p_zmieniono: projekt.zmieniono,
+    p_strony: zmienione,
+  }));
+  if (wynik.konflikt) throw new KonfliktZapisu(wynik.zmieniono);
+  projekt.wersja_chmury = wynik.wersja;
+  wyslaneStrony.set(projekt.id, teksty);
+  return { wyslaneStrony: zmienione.length, wszystkieStrony: strony.length };
 }
+
+// Treść stron ostatnio wysłanych na konto albo z niego wczytanych:
+// id projektu → (id strony → JSON). Tylko w pamięci tej karty.
+const wyslaneStrony = new Map();
 
 export async function wczytajZChmury(id) {
   const sb = await supabase();
   const wiersz = sprawdz(await sb.from('projekty').select('dane, wersja').eq('id', id).single());
   const projekt = wiersz.dane;
   projekt.wersja_chmury = wiersz.wersja;
+  // Nowszy zapis: strony w osobnych wierszach, w projekcie ich kolejność.
+  // Starszy zapis miał strony w środku – wtedy nie ma czego doczytywać.
+  if (projekt.strony_osobno) {
+    const strony = new Map();
+    for (let od = 0; ; od += 1000) {
+      const porcja = sprawdz(await sb.from('projekty_strony').select('strona_id, dane').eq('projekt_id', id).order('strona_id').range(od, od + 999));
+      for (const w of porcja) strony.set(w.strona_id, w.dane);
+      if (porcja.length < 1000) break;
+    }
+    projekt.strony = projekt.strony.map((idStrony) => strony.get(idStrony)).filter(Boolean);
+    delete projekt.strony_osobno;
+    wyslaneStrony.set(id, new Map(projekt.strony.map((st) => [st.id, JSON.stringify(st)])));
+  } else wyslaneStrony.delete(id);
   for (const zasob of Object.values(projekt.zasoby || {})) {
     if (!zasob.sciezka) continue;
     const blob = sprawdz(await sb.storage.from(BUCKET).download(zasob.sciezka));

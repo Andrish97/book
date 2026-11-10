@@ -246,3 +246,49 @@ test('motyw: ciemny i jasny, zapamiętany po odświeżeniu i na koncie', async (
   await strona.waitForFunction(() => document.documentElement.dataset.motyw === 'jasny');
   assert.deepEqual(bledy, []);
 });
+
+test('zapis na koncie: wysyłane są tylko zmienione strony; drugie urządzenie składa projekt z wierszy stron', async (t) => {
+  const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await zalogujIZamknijInstrukcje(strona);
+  await nowyProjekt(strona, 'Strony osobno');
+  const zapisano = () => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 2);
+  await strona.waitForTimeout(3200);
+  await zapisano();
+  const ids = await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.id));
+  assert.equal(baza.strony.size, 3, 'trzy wiersze stron na koncie');
+  assert.deepEqual(baza.projekty[0].dane.strony, ids, 'w projekcie zostaje kolejność stron');
+  assert.equal(JSON.stringify(baza.projekty[0].dane).includes('"obiekty"'), false, 'treść stron nie leży w wierszu projektu');
+
+  // Zmiana tylko na trzeciej stronie: wysłana jedna strona z trzech.
+  const przed = baza.zapisy.length;
+  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.waitForTimeout(3800);
+  await zapisano();
+  const nowe = baza.zapisy.slice(przed);
+  assert.ok(nowe.length >= 1);
+  assert.deepEqual(nowe.at(-1), { strony: [ids[2]], wszystkie: 3 });
+
+  // Usunięcie strony sprząta jej wiersz.
+  await strona.click('#lista-stron li.strona >> nth=1 >> .menu-miniatury');
+  await strona.click('#menu-strony [data-akcja="strona-usun"]');
+  await strona.click('#potwierdz-tak');
+  await strona.waitForTimeout(3800);
+  await zapisano();
+  assert.deepEqual([...baza.strony.keys()].map((k) => k.split('/')[1]).sort(), [ids[0], ids[2]].sort());
+
+  // „Drugie urządzenie”: bez lokalnej kopii projekt jest składany z wiersza projektu i wierszy stron.
+  await strona.click('[data-akcja="do-projektow"]:visible');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.evaluate(() => new Promise((ok) => { const z = indexedDB.deleteDatabase('seriodruk'); z.onsuccess = ok; z.onerror = ok; z.onblocked = ok; }));
+  await strona.reload();
+  await strona.waitForSelector('#ekran-projektow :text("Strony osobno")');
+  await strona.click('#ekran-projektow :text("Strony osobno")');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((x) => x.obiekty.length)), [1, 1]);
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony_osobno), undefined);
+  assert.deepEqual(bledy, []);
+});
