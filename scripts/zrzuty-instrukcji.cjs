@@ -441,6 +441,8 @@ async function przykladoweProjekty(strona) {
   await d.reload();
   await d.click('#tryb-lokalny');
   await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  // Strona wczytuje się chwilę po otwarciu projektu (najpierw pobierają się jej czcionki).
+  await d.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text?.startsWith('Imieniny')));
   await d.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.text?.startsWith('Imieniny')).id); });
   await d.waitForTimeout(700);
   await zrzut(d, 'pola.png');

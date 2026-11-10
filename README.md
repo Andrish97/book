@@ -26,7 +26,7 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze. Czcionki i silnik płótna są w repozytorium, więc edytor działa bez internetu.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 
-Nie ma jeszcze: własnej poczty (czeka na domenę), PDF/X z profilem barwnym, pióra z krzywymi. Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
+Nie ma jeszcze: własnej poczty (czeka na domenę); konflikt zapisu jest rozstrzygany dla całego projektu, nie dla pojedynczych stron (w toku). Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
 
 ## Uruchomienie lokalne
 
@@ -76,6 +76,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/wlasciwosci.js`, `js/style-tekstu.js`, `js/tekst-ramka.js`, `js/watki.js` | Panel właściwości, style tekstu, ramka tekstu o stałej wysokości i listy, przelewanie tekstu między ramkami (także przez strony i w trakcie pisania) |
 | `js/obrazy.js`, `js/wklejanie.js` | Kopie robocze dużych zdjęć; obrazy i SVG ze schowka systemu |
 | `js/eksport.js`, `js/pdf-wektorowy.js`, `js/okno-pdf.js` | Eksport PDF i PNG; PDF wektorowy (kontekst rysowania zapisujący polecenia PDF, osadzanie czcionek i obrazów); okno eksportu |
+| `js/pdf-x.js`, `js/profil-icc.js`, `css/profile/` | PDF/X-4: metadane i profil warunków druku; przeliczanie kolorów i zdjęć na CMYK przez profil ICC; profile barwne z opisem licencji |
 | `js/kontrola.js`, `js/kontrola-skladu.js`, `js/okno-kontroli.js` | Kontrola projektu przed drukiem (dane, powtórzenia, teksty w ramkach) i szablon danych |
 | `js/biblioteki.js`, `js/zewnetrzne/` | Wczytywanie dużych bibliotek na żądanie; Fabric.js w repozytorium |
 | `js/przyciaganie.js`, `js/linijki.js`, `js/widok.js`, `js/warstwy.js`, `js/skroty.js` | Przyciąganie i pomiary, linijki, menu siatki, panel warstw, skróty |
