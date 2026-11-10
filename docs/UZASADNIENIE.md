@@ -1,6 +1,6 @@
 # Uzasadnienie – funkcja po funkcji
 
-Stan na 10 listopada 2026 (decyzje do #49 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
+Stan na 10 listopada 2026 (decyzje do #58 w [DECYZJE.md](DECYZJE.md)). Część „Słabe” przy każdej funkcji została przepisana po Twoich uwagach z decyzji #50: co poprawiłem, jest opisane jako „Poprawione”, a „Słabe” mówi tylko o tym, co naprawdę zostało. Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
 
 Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ nie zrobione / do poprawy.
 
@@ -34,11 +34,11 @@ Robi to integracja Supabase z GitHubem (Project Settings → Integrations → Gi
 **Zabezpieczenie.** W testach doszedł ESLint: nazwa użyta bez importu albo nieużywany import zatrzymuje testy. Po podziale to najłatwiejszy błąd do popełnienia.
 **Słabe.** Moduły w `js/app/` nadal dużo o sobie wiedzą (importują się nawzajem). To podział na czytelne pliki, nie na niezależne części.
 
-### A2. Fabric.js 5.3.1 – zostaje, przypięty w repozytorium ✅ / ⚠️
-**Co jest.** Silnik płótna to Fabric.js 5.3.1, teraz jako plik w repozytorium (`js/zewnetrzne/`), nie z zewnętrznego serwera.
-**Dlaczego nie Fabric 6.** Zrobiłem próbę: po podmianie biblioteki na 6.7 aplikacja w ogóle nie startuje, a z 15 sprawdzonych testów nie przechodzi żaden. Wersja 6 to inna biblioteka pod tą samą nazwą: inne wczytywanie obrazów i kopiowanie obiektów (obietnice zamiast funkcji zwrotnych), przepisane grupy i zaznaczenia, zmienione wnętrze tekstu. A właśnie na wnętrzu tekstu stoją nasze dodatki: ramka o stałej wysokości, listy, przelewanie, pola. Migracja to kilka dni pracy bez żadnej zmiany widocznej dla Ciebie i z dużym ryzykiem cichych błędów w składzie.
-**Co w zamian.** Wersja jest przypięta i leży u nas, więc nic jej nie podmieni ani nie wyłączy. Wszystkie nasze łatki na Fabric są w trzech plikach (`tekst-ramka.js`, `obrazy.js`, `watki.js`) i mają testy – gdy migracja będzie potrzebna (np. błąd bezpieczeństwa albo funkcja tylko z wersji 6), wiadomo, co ruszyć.
-**Słabe.** Wersja 5 nie dostaje już nowych funkcji.
+### A2. Fabric.js 7.4.0, przypięty w repozytorium ✅
+**Co jest.** Silnik płótna to Fabric.js 7.4.0 – najnowsza linia – jako plik w repozytorium (`js/zewnetrzne/`), nie z zewnętrznego serwera.
+**Skąd zmiana.** Wcześniej napisałem, że zostajemy przy 5.3.1, bo po podmianie pliku na wersję 6 aplikacja nie startowała. Zwróciłeś uwagę, że w Twoim innym projekcie działa wersja 7 – miałeś rację, a moja próba była za płytka: „podmień plik i zobacz” to nie migracja. Przepisane zostały miejsca styku z biblioteką: wczytywanie i kopiowanie obiektów (obietnice), grupy i zaznaczenie kilku elementów, zdarzenia myszy, łatki tekstu (ramka o stałej wysokości, listy, wielkość liter, przelewanie) i obrazów.
+**Dlaczego bezpiecznie.** Format zapisu projektów został ten sam: położenie od lewego górnego rogu, typy małymi literami. Ustawienia, które o tym decydują, są w jednym pliku (`js/fabric-ustawienia.js`). Ten sam projekt wczytany w starej i nowej wersji ma identyczne ramki elementów; obraz strony różni się tylko wygładzaniem krawędzi (65 pikseli na 1,4 mln).
+**Słabe.** Na prawdziwym ekranie dotykowym nikt tego jeszcze nie sprawdził – tylko w emulacji. Skalowanie uchwytem narożnym różni się od starej wersji o setne części milimetra.
 
 ### A3. Wszystko w milimetrach ✅
 
@@ -94,7 +94,8 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 **Co jest.** „Udostępnij” w podglądzie tworzy link `#/u/<konto>/<projekt>/<losowy kod>`. Aplikacja rysuje wszystkie strony do obrazów JPEG i wysyła je z małym plikiem opisu do publicznego folderu w Supabase. Osoba z linkiem widzi ten sam widok co podgląd, bez logowania. Link można zaktualizować (adres zostaje) albo wyłączyć (pliki znikają).
 **Dlaczego migawka z obrazów, a nie „żywy” projekt.** Osoba z linkiem dostaje tylko obrazy stron – nie dane projektu, nie zdjęcia w oryginale, nie dostęp do bazy. Nie trzeba otwierać bazy dla niezalogowanych ani ładować edytora i czcionek u oglądającego. Projekt w trakcie pracy nie „przecieka” do klienta, dopóki nie klikniesz Aktualizuj.
 **Poprawione.** Aktualizacja wysyła tylko strony, których obraz się zmienił (skróty obrazów są zapisane w opisie podglądu).
-**Słabe.** Trzeba pamiętać o aktualizacji (okno podpowiada, gdy link jest nieaktualny). Przy aktualizacji aplikacja i tak rysuje wszystkie strony, żeby sprawdzić, które się zmieniły. Nie ma hasła do linku ani daty ważności – pliki leżą w publicznym folderze, więc wymagałoby to osobnej funkcji po stronie serwera.
+**Poprawione.** Projekt ma jeden link. Aktualizuje się sam kilka sekund po zapisie na koncie – rysowane i wysyłane są tylko zmienione strony. „Unieważnij link” go usuwa. Plakietka „Udostępniony” na karcie projektu otwiera okienko z linkiem.
+**Słabe.** Nie ma hasła do linku ani daty ważności – pliki leżą w publicznym folderze, więc wymagałoby to osobnej funkcji po stronie serwera. Aktualizacja działa, gdy projekt jest otwarty na koncie (nie w trybie bez konta).
 
 ---
 
@@ -106,7 +107,8 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 - **Przelewanie tekstu** (`js/watki.js`) – połączone ramki: co nie mieści się w jednej, płynie do następnej. „Podziel na kolumny” robi z ramki 2–4 połączone ramki obok siebie.
 - **Tabela** – siatka linii i osobna ramka tekstu w każdej komórce.
 **Dlaczego tak.** Każda połączona ramka trzyma *swoją* część tekstu, a nie odsyłacz do wspólnej całości. Dzięki temu zapisany projekt wygląda dobrze nawet bez przeliczania, a kopiowanie, cofanie i zapis działają jak dla zwykłych ramek. Przelewanie to osobny krok: skleja części, mierzy, ile wierszy mieści każda ramka, i rozdaje od nowa – w edytorze po każdej zmianie, przy składaniu strony po podstawieniu danych (dla każdego egzemplarza osobno). Kolumny są po prostu połączonymi ramkami, więc jest jeden mechanizm, nie dwa. Tabela z osobnych ramek pozwala pisać w komórkach i wstawiać w nich pola bez budowania drugiego edytora.
-**Słabe.** W trakcie pisania tekst nie przelewa się na bieżąco – dopiero po wyjściu z ramki (kursor nie umie przeskoczyć do następnej ramki). Ramki łączy się w obrębie strony albo rozkładówki, nie przez kilka stron. Tabela nie jest jednym obiektem: zmiana szerokości kolumny to przesunięcie linii i ramek ręcznie. Kapitaliki „na żywo” nadal nie istnieją. Przy autodopasowaniu fragmenty z własnym rozmiarem czcionki nie zmniejszają się razem z resztą.
+**Poprawione.** Tekst przelewa się w trakcie pisania, a kursor przechodzi za nim do następnej ramki. Ramki jednego tekstu mogą leżeć na różnych stronach („Ciąg dalszy na następnej stronie”); podgląd, PDF i kontrola przed drukiem przelewają go przez strony także po podstawieniu danych. Wielkość liter (WIELKIE / małe) jest wyglądem, nie zmianą treści. Tabela jest jednym obiektem (D15).
+**Słabe.** Backspace na początku ramki nie cofa do poprzedniej ramki (tekst wraca sam, gdy zwolni się miejsce). Po przestawieniu stron kolejność ramek tekstu nie zmienia się sama. Kapitaliki nadal nie istnieją. Przy autodopasowaniu fragmenty z własnym rozmiarem czcionki nie zmniejszają się razem z resztą.
 
 ### D2. Wyrównywanie, blokada, schowek ✅
 Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstępy, blokada położenia, kopiuj/wytnij/wklej między stronami – skrótami i przyciskami.
@@ -114,7 +116,8 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 ### D3. Rozkładówki na jednym płótnie ✅ / ⚠️
 **Co jest.** W sekcji z układem „rozkładówki” lewa i prawa strona są jednym płótnem. Marginesy lustrzane, grzbiet, przyciąganie do prowadnic obu stron, lista stron w parach. Element może leżeć przez grzbiet: w podglądzie, na miniaturach i w udostępnionym linku każda strona pokazuje swoją część. W sekcji z pojedynczymi stronami nic się nie zmieniło – rozkładówki są opcją sekcji.
 **Dlaczego tak.** W pliku projektu strony zostały osobne. Element jest zapisany na tej stronie, na której leży jego środek, z położeniem liczonym od jej rogu; może wystawać poza nią. Przy składaniu strony aplikacja dokłada elementy sąsiedniej strony, które sięgają przez grzbiet. Dzięki temu dodawanie, usuwanie i przestawianie stron działa jak dotąd, a starsze projekty otwierają się bez przeróbek. Kolejność warstw między stronami pamięta pole `z` elementu.
-**Słabe.** Po przestawieniu stron element przez grzbiet idzie ze swoją stroną i zachodzi na nowego sąsiada – trzeba to sprawdzić samemu. Elementy wzorców nie przechodzą przez grzbiet (są przycinane do swojej strony). W wewnętrznym pasku spadu miniatura z edytora pokazuje sąsiednią stronę, a miniatura rysowana w tle – własne tło; przy eksporcie do PDF trzeba będzie to ujednolicić. Na telefonie rozkładówka jest mała i trzeba ją powiększać.
+**Poprawione.** Po zmianie kolejności stron aplikacja ostrzega, gdy element leżący przez grzbiet trafił obok innej strony. Element wzorca, który wychodzi przez grzbiet dalej niż na spad, leży na obu stronach – ta sama zasada co dla zwykłych elementów (moja decyzja; alternatywą byłyby osobne „wzorce rozkładówkowe” o szerokości dwóch stron – powiedz, jeśli wolisz). Miniatury są rysowane tym samym kodem co podgląd i PDF, więc wewnętrzny pasek spadu wygląda wszędzie tak samo.
+**Słabe.** Tło wzorca narysowane „z zapasem” większym niż spad pokaże się paskiem na sąsiedniej stronie (aplikacja ostrzega o elemencie poza spadem). Na telefonie rozkładówka jest mała i trzeba ją powiększać.
 **Lepiej.** Przełącznik „pokaż tylko jedną stronę” dla małych ekranów.
 
 ### D4. Linie pomocnicze i ostrzeżenia ✅
@@ -123,12 +126,14 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 ### D11. Siatka, linijki, własne prowadnice ✅ / ⚠️
 **Co jest.** Siatka o zadanym kroku w mm z przyciąganiem; linijki w mm z zerem w rogu strony bieżącej; prowadnice wyciągane z linijek, przesuwane i usuwane przez wyciągnięcie poza stronę. Ustawienia siatki należą do projektu, prowadnice – do strony albo wzorca.
 **Dlaczego tak.** Siatka liczy się od rogu każdej strony, więc na rozkładówce obie strony mają ten sam układ linii. Do siatki trafia lewy górny róg elementu – położenie jest wtedy zawsze wielokrotnością kroku. Prowadnice i krawędzie innych elementów mają pierwszeństwo przed siatką, bo są dokładniejszą wskazówką.
-**Słabe.** Przyciąganie działa przy przesuwaniu, nie przy zmianie rozmiaru uchwytem. Prowadnic nie da się wpisać liczbą ani zablokować. Na telefonie linijki są schowane. Cofanie nie obejmuje prowadnic.
+**Poprawione.** Przyciąganie działa także przy zmianie rozmiaru uchwytem. Prowadnicę wpisuje się liczbą we właściwościach strony (lista prowadnic w mm, dodawanie, usuwanie) – także na telefonie, gdzie linijek nie ma.
+**Słabe.** Prowadnic nie da się zablokować. Cofanie nie obejmuje prowadnic.
 
 ### D12. Odległości i równe odstępy ✅ / ⚠️
 **Co jest.** Przy przesuwaniu: różowe linie wyrównania do krawędzi i środków innych elementów, strzałki z odległością w mm do najbliższych sąsiadów, fioletowe oznaczenie równych odstępów (środek między sąsiadami albo odstęp powtórzony z tego samego rzędu). Alt przy zaznaczonym elemencie pokazuje odległości także do krawędzi strony.
 **Dlaczego tak.** Obliczenia są w osobnym pliku (`js/przyciaganie.js`) na samych prostokątach w mm – dzięki temu mają własne testy, niezależne od płótna.
-**Słabe.** Sąsiad to element leżący „naprzeciwko” (z częścią wspólną w poprzek kierunku); elementy po skosie nie są mierzone. Obrócone elementy liczą się swoim prostokątem otaczającym.
+**Poprawione.** Gdy naprzeciwko nie ma sąsiada, mierzony jest najbliższy element po skosie (z przedłużeniem jego krawędzi). Obrócony element liczy się swoim kształtem, nie prostokątem dookoła.
+**Słabe.** Pomiar po skosie pokazuje odległość w poziomie i w pionie, nie po przekątnej.
 
 ### D13. Skróty klawiszowe ✅
 **Co jest.** Ponad 50 skrótów jak w programach do składu: edycja, zaznaczanie, przesuwanie, układ, tekst (także w trakcie pisania), wstawianie, widok, strony. Alt przy przeciąganiu zostawia kopię, Shift trzyma jedną oś i obraca co 15°, spacja z przeciąganiem przesuwa widok.
@@ -137,13 +142,15 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 
 ### D14. Warstwy ✅ / ⚠️
 **Co jest.** Zakładka z listą elementów strony od wierzchu: zaznaczanie, kolejność przeciąganiem, ukrywanie, blokada, własne nazwy.
-**Słabe.** Na ekranie dotykowym kolejności nie zmienia się przeciąganiem (zostają przyciski kolejności we właściwościach). Elementy wzorców nie są na liście.
+**Poprawione.** Warstwy są zakładką prawego panelu, obok właściwości (dotyczą tego samego: elementów otwartej strony). Kolejność zmienia się też przyciskami ▲▼ – działa na dotyku. Elementy wzorców są na liście, z nazwą wzorca; kliknięcie otwiera wzorzec.
+**Słabe.** Elementów wewnątrz grupy nie widać osobno – grupa jest jednym wierszem.
 
 ### D5. Obrazy ✅ / ⚠️
 **Co jest.** Obraz jest zasobem projektu; strona na niego wskazuje. Kadrowanie przeciąganiem i liczbami. **Nowe:** duże zdjęcia (dłuższy bok ponad 2000 px) pokazują się w edytorze, miniaturach i podglądzie jako lżejsza kopia robocza (1600 px); do PDF i PNG idzie oryginał (`js/obrazy.js`).
 **Dlaczego tak.** Kopia istnieje tylko w pamięci przeglądarki – nie jest zapisywana ani wysyłana, więc nie ma dwóch plików do pilnowania. Wymiary i przycięcie obrazu na stronie są zawsze liczone w pikselach oryginału, dlatego projekt wygląda identycznie z kopią i bez niej, a eksport po prostu podmienia źródło.
 **Wklejanie (decyzja #46).** Ctrl+V wstawia obraz ze schowka systemu: zrzut ekranu, obraz skopiowany ze strony albo z programu graficznego, plik z menedżera plików, kod SVG skopiowany jako tekst (`js/wklejanie.js`). SVG jest porządkowany przed wstawieniem: dostaje rozmiar z `viewBox`, gdy go nie ma (inaczej przeglądarka wczytałaby obraz o zerowych wymiarach), traci skrypty, a mała ikona dostaje większy rozmiar bazowy, żeby nie wyszła rozmyta. Zostaje wektorem – jest ostry w każdym powiększeniu i w PDF. Skopiowanie elementu w aplikacji wpisuje do schowka systemu jego tekst albo nazwę, więc Ctrl+V zawsze wkleja to, co skopiowano ostatnio.
-**Słabe.** SVG jest wstawiany jako jeden obraz: nie da się zmienić koloru jego części ani rozbić go na kształty. Oryginały nadal siedzą w pamięci karty (jako dane projektu) – kopie przyspieszają rysowanie, ale nie zmniejszają zużycia pamięci przy setkach zdjęć. Obróconego albo odbitego obrazu nie kadruje się ramką, tylko liczbami.
+**Poprawione.** Obrócony i odbity obraz kadruje się ramką (na czas kadrowania jest prostowany). Obraz można wkleić ze schowka.
+**Słabe.** SVG jest jednym, nieedytowalnym elementem – tak jak chciałeś: skaluje się, obraca i kadruje, ale nie zmienia się koloru jego części. W PDF wektorowym rysunek SVG idzie jako obraz w wybranej rozdzielczości, nie jako wektor. Oryginały zdjęć nadal siedzą w pamięci karty (jako dane projektu) – lżejsze kopie przyspieszają rysowanie, ale nie zmniejszają zużycia pamięci przy setkach zdjęć; tego nie ruszałem, bo wymaga zmiany sposobu przechowywania zasobów.
 
 ### D6. Cofanie ✅
 **Co jest.** Jedna historia dla całego projektu (`js/historia.js`), 80 kroków: zmiany na stronach i wzorcach, dodawanie, usuwanie i przesuwanie stron, sekcje, style, tabele, serie, ustawienia widoku. Po cofnięciu edytor otwiera stronę albo wzorzec, którego dotyczyła zmiana.
@@ -154,23 +161,27 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Co jest (decyzja #49).** Czcionki to lista plików. Do projektu wgrywasz własne pliki TTF, OTF, WOFF albo WOFF2 (z listy czcionek w panelu tekstu albo z menu ⋯ → „Czcionki projektu”); aplikacja czyta z pliku nazwę rodziny, wagę i kursywę, a przy WOFF2 zgaduje je z nazwy pliku – nazwę rodziny można poprawić. Plik czcionki jest zasobem projektu, tak jak obraz: jedzie z nim na konto i do pliku `.seriodruk`. Obok jest osiem czcionek wbudowanych (Inter, Open Sans, Montserrat, Lora, Merriweather, Playfair Display, Source Serif 4, Caveat) – pliki w repozytorium, licencja OFL.
 **Dlaczego tak.** Zapytałeś, skąd wzięły się te czcionki i czy nie lepiej mieć po prostu listę plików. Osiem wbudowanych to mój wybór na start: popularne, darmowe także w druku komercyjnym, z polskimi znakami. Do prawdziwej pracy potrzebne są Twoje – stąd wgrywanie plików. Czcionka w projekcie, a nie na koncie, bo projekt musi dać się otworzyć z pliku na innym komputerze i wyglądać tak samo.
 **Eksport.** Tekst w PDF jest spłaszczony (część obrazu strony), więc czcionki nie są drukarni potrzebne. Opcja „Dołącz pliki czcionek” dodaje je do archiwum obok PDF.
-**Słabe.** Wgrana czcionka jest dostępna w jednym projekcie – do drugiego trzeba ją wgrać jeszcze raz (albo zduplikować projekt). PDF nie ma osadzonych czcionek i tekstu jako tekstu – to część większej pracy „PDF wektorowy” (I1). Wbudowanych nie da się wyłączyć z listy.
+**Poprawione.** „Moje czcionki”: czcionka wgrana raz jest na liście czcionek w każdym następnym projekcie i – przy pracy z kontem – na każdym urządzeniu (prywatny folder plików na koncie, bez zmian w bazie). PDF wektorowy osadza czcionki i zapisuje tekst jako tekst; opcja „Dołącz pliki czcionek” została.
+**Słabe.** W PDF da się osadzić pliki TTF, OTF i WOFF. Czcionka WOFF2, czcionka zmienna i odmiana bez własnego pliku (np. kursywa „udawana” przez przeglądarkę) trafiają do PDF jako obraz tego tekstu – aplikacja mówi o tym po eksporcie. Wbudowanych nie da się wyłączyć z listy.
 
 ### D8. Kształty, gradienty, cienie ✅ / ⚠️
 **Co jest.** Wielokąt foremny i gwiazda (liczba boków we właściwościach), wypełnienie przejściem dwóch kolorów w trzech kierunkach, cień z przesunięciem i rozmyciem w mm. Panel warstw i linijki są w D11 i D14, zwijane sekcje panelu w D9.
-**Słabe.** Nie ma kształtów rysowanych odręcznie (krzywe, pióro) ani gradientów kołowych i wielokolorowych.
+**Poprawione.** Rysowanie odręczne (narzędzie „Rysuj”, klawisz B). Gradient liniowy albo kołowy z dowolną liczbą kolorów, położeniem każdego koloru, kątem i promieniem.
+**Słabe.** Nie ma pióra z krzywymi i punktami kontrolnymi. Narysowanej linii nie edytuje się punkt po punkcie.
 
 ### D9. Układ ekranu i panel właściwości ✅ / ⚠️
 **Co jest.** Z lewej lista stron i wzorców, w środku płótno z pływającym paskiem narzędzi, z prawej jeden panel: właściwości zaznaczonego elementu albo strony.
 **Dlaczego tak.** Układ znany z programów do składu; jeden panel zmieniający treść zajmuje mniej miejsca niż kilka okienek.
 **Poprawione.** Części panelu zwijają się kliknięciem w tytuł i zostają zwinięte (wybór pamięta urządzenie).
-**Słabe.** Przy tekście panel nadal ma dużo części; na telefonie trzeba je przewijać.
+**Poprawione.** Strony, wzorce i warstwy są w różnych miejscach: strony z lewej, właściwości i warstwy w zakładkach z prawej, wzorce w osobnym oknie z górnego paska. Listy rozwijane, wybór koloru i pola wyboru rysuje aplikacja – wyglądają tak samo na każdym urządzeniu.
+**Słabe.** Panel tekstu nadal ma wiele części (zwijanych). Własna lista rozwijana nie ma wyszukiwania po fragmencie nazwy – tylko przeskok po pierwszych literach.
 
 ### D10. Dotyk i telefon ⚠️
 **Co jest.** Jeden palec zaznacza i przesuwa elementy, dwa – widok. Na telefonie panele wysuwają się z dołu jako arkusze.
 **Poprawione 2026-11-10 po Twoim zrzucie z telefonu.** Górny pasek uciekał poza ekran, a spod dolnego menu wystawał schowany arkusz. Ekran aplikacji jest teraz przypięty do okna (nie liczy wysokości w jednostkach okna, które na telefonie zmieniają się z paskiem adresu), dokument nie daje się przewinąć, zamknięte arkusze zjeżdżają całe poniżej ekranu, a arkusz właściwości ma stałą wysokość, żeby nie skakał przy zmianie zaznaczenia. Strona nie rysuje się już pod paskiem systemowym.
 **Nowe.** „W rozkładówkach pokazuj jedną stronę” (menu z kratką): na wąskim ekranie włączone domyślnie, więc na telefonie edytujesz jedną stronę rozkładówki naraz.
-**Słabe.** Błędu nie umiałem odtworzyć w przeglądarce testowej – poprawka usuwa jego możliwe przyczyny, ale potwierdzić ją może tylko próba na Twoim telefonie. W widoku jednej strony nie widać elementów sąsiedniej strony, które przechodzą przez grzbiet (są na miniaturze i w podglądzie).
+**Poprawione.** Na telefonie edytor działa w poziomie: panele wysuwają się z boków, listwa paneli jest z prawej, strona odsuwa się spod panelu. Telefon w pionie i okno niższe niż 300 px pokazują planszę z prośbą o obrót albo powiększenie okna (lista projektów, logowanie i udostępniony podgląd działają w pionie). Schowane na małym ekranie: wielokąt, tabela, kadrowanie ramką, linijki.
+**Słabe.** Sprawdzone tylko w emulacji telefonu – potwierdzić może próba na Twoim urządzeniu, zwłaszcza „skaczące okienka”, których nie umiałem odtworzyć. Moje odczytanie „zablokować telefon w pionie” to: w pionie edytor jest zablokowany – popraw mnie, jeśli miało być odwrotnie. W widoku jednej strony nie widać elementów sąsiedniej strony, które przechodzą przez grzbiet.
 
 ---
 
@@ -183,6 +194,8 @@ Własny format, spad, cztery marginesy, układ, wzorce domyślne i **numeracja**
 ### E2. Wzorce połączone z motywami ✅
 **Co jest.** Strona może mieć kilka wzorców naraz; każdy element wzorca leży pod albo nad treścią; wzorzec może odbijać się lustrzanie na lewych stronach (numer strony zawsze przy zewnętrznej krawędzi). Pojęcie „motyw” z planu zniknęło – to są wzorce.
 **Poprawione.** Kolejność wzorców zmienia się z menu wzorca (wyżej / niżej). Odbicie lustrzane odbija także układ wewnątrz grupy.
+**Jak działają wzorce i dlaczego były w jednym panelu ze stronami.** Wzorzec to osobna „strona-szablon” z elementami wspólnymi (tło, stopka, numer). Strona nie kopiuje jego elementów – tylko się do niego odwołuje, więc zmiana we wzorcu zmienia naraz wszystkie strony, które go używają. Strona może mieć kilka wzorców (np. tło + stopka); sekcja ma wzorce domyślne, a pojedyncza strona może mieć własny wybór. Wcześniej wzorce i warstwy były zakładkami nad listą stron – wzorowałem to na panelu „Strony” w programach do składu, gdzie strony wzorcowe leżą nad zwykłymi. Miałeś rację, że to mieszało trzy różne rzeczy w jednym miejscu.
+**Zmienione (decyzja #53).** Strony są z lewej. Warstwy są zakładką prawego panelu, obok właściwości. Wzorce mają własne okno otwierane z górnego paska: lista szablonów projektu z przyciskami „Dodaj do tej strony” i „Do całej sekcji” oraz **wzorce standardowe** – numer strony na dole albo przy zewnętrznej krawędzi, stopka, nagłówek, linie do pisania, kratka, ramka, zakładka – które dopasowują się do formatu i marginesów sekcji i po dodaniu do projektu są zwykłymi wzorcami do zmiany.
 
 ### E4. Lista stron ✅
 Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładówkach strony stoją parami. Kolejność zmienia się z menu albo przeciąganiem miniatury myszą (także do innej sekcji). Na ekranie dotykowym zostaje menu.
@@ -197,37 +210,50 @@ Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładó
 ### G1. Tabele z lekkim edytorem ✅ / ⚠️
 **Co jest.** Okno „Dane”: import CSV i Excela (każdy arkusz to tabela), edycja komórek, dodawanie i usuwanie wierszy i kolumn, wklejanie skopiowanych komórek z arkusza, pobranie tabeli jako CSV. Zmiana nazwy kolumny poprawia pola we wszystkich tekstach projektu. Ponowny import pliku o tej samej nazwie podmienia dane tabeli. **Nowe:** kolumnę można oznaczyć znakiem ≠ jako pilnowaną – powtórzone wartości są podświetlone w tabeli i wypisane przed drukiem.
 **Dlaczego tak.** Plan zakładał sam import; poprosiłeś o lekki edytor, więc jest tyle, ile trzeba, żeby poprawić literówkę albo dopisać wiersz bez wracania do arkusza. „Pule wartości” z planu (5.1) zrobiłem jako pilnowanie powtórzeń w kolumnie, bo po wprowadzeniu serii z tabelą tryb „po kolei, w kółko” już istnieje (seria ze stałą liczbą powieleń bierze wiersze w kółko), a tryb „ręcznie” to po prostu wpisanie wartości w komórkę. Brakowało tylko trzeciego: ostrzeżenia, gdy coś, co ma być niepowtarzalne, wypada dwa razy.
-**Słabe.** Przy tabeli dłuższej niż 1500 wierszy okno pokazuje tylko początek. Formatowanie z arkusza nie jest przenoszone. Pilnowanie porównuje wartości dosłownie – „Praca” i „praca” to dla niego dwie różne.
+**Poprawione.** Długa tabela przewija się w całości (wiersze dorysowują się porcjami).
+**Słabe.** Formatowanie z arkusza nie jest przenoszone. Pilnowanie powtórzeń porównuje wartości dosłownie – „Praca” i „praca” to dla niego dwie różne.
 
 ### G2. Pola w tekście i pola dokumentu ✅
 **Co jest.** `{nazwa}` w zwykłym tekście: kolumna tabeli albo pole dokumentu (numer strony w kilku zapisach, numer ogólny i w sekcji, liczba stron, nazwa sekcji i strony, numer i liczba egzemplarzy serii, data, numer pierwszej strony innej sekcji, numer strony o podanej nazwie). Lista „Wstaw pole”, podświetlenie pól w edytorze, ostrzeżenie o nieznanym polu.
 **Dlaczego tak.** Pole jest częścią tekstu, a nie osobnym obiektem – tak ustalił plan i tak da się pisać `{dzien}. {miesiac} {rok}` w jednej linijce. Pola dokumentu działają jak pola w Wordzie: wynikają z projektu, nie z tabeli, więc np. spis treści z numerami stron innych sekcji aktualizuje się sam, także po powieleniu serii.
-**Słabe.** Pole z tabeli działa tylko na stronach serii z tą tabelą; na zwykłej stronie zostaje jako tekst w klamrach (z ostrzeżeniem).
+**Poprawione.** Zwykłe klamry: przełącznik „Klamry { } to zwykły tekst, nie pola” przy tekście. Pola najwygodniej wstawia lista „Wstaw pole”.
+**Słabe.** Przełącznik dotyczy całej ramki – w jednym tekście nie zmieścisz naraz pola i zwykłych klamer. Pole z tabeli działa tylko na stronach serii z tą tabelą.
 
 ### G3. Serie: powielanie stron ✅ / ⚠️
 **Co jest.** Strona wskazuje serię; sąsiednie strony z tą samą serią tworzą blok. Blok powiela się według wierszy tabeli albo stałą liczbę razy. Powielenia widać w podglądzie, na miniaturach, w udostępnionym linku, w numeracji i w PDF. **Nowe:** okno serii pokazuje, jakich pól używają strony bloku, dodaje brakujące kolumny do tabeli (albo tworzy tabelę z pól) i pobiera **szablon danych** – plik Excela z dokładnie tymi kolumnami, istniejącymi danymi i arkuszem „Instrukcja” z opisem każdej kolumny.
 **Dlaczego tak.** Powielone strony nie są zapisywane: `js/serie.js` rozwija projekt przy każdym składaniu, więc 365 stron dni to jedna strona i tabela. Szablon idzie „w drugą stronę”: projekt mówi, jakich danych potrzebuje, zamiast żebyś zgadywał nazwy kolumn. Arkusz „Instrukcja” jest pomijany przy imporcie, więc wypełniony plik wraca bez przeróbek.
-**Słabe.** W rozkładówkach blok o nieparzystej liczbie stron wypada na przemian po lewej i prawej; marginesy lustrzane widać wtedy tylko w podglądzie. Szablon nie ma list rozwijanych w komórkach (plan 5.2) – same nagłówki i opis. Aplikacja nie sprawdza z góry, czy teksty wszystkich wierszy mieszczą się w ramkach – widać to w podglądzie.
+**Poprawione.** „Sprawdź przed drukiem” wstawia dane każdego wiersza i mówi, na których stronach tekst nie mieści się w ramce (G5).
+**Słabe.** W rozkładówkach blok o nieparzystej liczbie stron wypada na przemian po lewej i prawej; marginesy lustrzane widać wtedy tylko w podglądzie. Szablon danych nie ma list rozwijanych w komórkach – same nagłówki i opis.
 
 ### G6. Dodatkowe tabele serii i koniec serii na ostatnim wierszu ✅ / ⚠️
 **Co jest (decyzja #47).** Seria ma tabelę główną (ona wyznacza liczbę stron) i dowolnie wiele tabel dodatkowych. Tabela dodatkowa przechodzi do następnego wiersza co zadaną liczbę stron serii – np. tabela tygodni co 7 stron dni, tytuł rozdziału co 8 stron. Pierwszy wiersz może obowiązywać krócej (rok zaczynający się w środku tygodnia). Pole z tabeli dodatkowej to `{Tabela.kolumna}`; sama nazwa kolumny działa, gdy nie ma jej w tabeli głównej. Przy „jednym wierszu na stronę bloku” seria kończy się na ostatnim wierszu – ostatnie powielenie bloku może być niepełne (opcja „Dokończ ostatni blok” przywraca dawne zachowanie).
 **Dlaczego tak.** Zamiast powielać w tabeli dni tę samą informację o tygodniu w siedmiu wierszach, wpisujesz ją raz. Krok liczony w stronach serii jest jedną regułą na wszystkie przypadki: „co 7 dni” przy jednej stronie na dzień i „raz na blok” przy bloku ośmiu stron to ta sama liczba w tym samym polu. Tabela dodatkowa nie idzie w kółko – gdy zabraknie wierszy, pola są puste, a aplikacja mówi o tym w trzech miejscach (okno serii, właściwości strony, lista przed drukiem) z numerem strony, od której brakuje danych. Ciche powtarzanie starych danych byłoby gorsze niż widoczna dziura.
 **Zmiana zachowania.** Wcześniej niepełny ostatni blok był dokańczany stronami bez danych. Projekty z taką serią będą teraz krótsze o te puste strony, chyba że zaznaczysz „Dokończ ostatni blok”.
-**Słabe.** Krok jest stały – nie da się powiedzieć „nowy wiersz, gdy zmieni się wartość w kolumnie tabeli głównej” (np. nowy miesiąc po 28, 30 albo 31 dniach). Na to trzeba dziś wpisać dane miesiąca w tabeli dni albo zrobić osobną serię na każdy miesiąc.
+**Słabe – wyjaśnienie uwagi o „stałym kroku”.** Tabela dodatkowa zmienia wiersz co stałą liczbę stron: co 7, co 8, co 30. To działa, gdy okresy są równe (tydzień ma zawsze 7 dni, blok zawsze 8 stron). Nie działa, gdy są nierówne – a tak jest z miesiącami: styczeń ma 31 dni, luty 28, kwiecień 30. Jeśli masz serię „strona na dzień” na cały rok i tabelę „Miesiące” (nazwa, kolor, cytat miesiąca), nie ma liczby, którą dałoby się wpisać w „co ile stron”: przy 30 tabela przeskoczy na luty już 31 stycznia, a potem rozjedzie się coraz bardziej. Brakuje reguły „przejdź do następnego wiersza, gdy w tabeli dni zmieni się wartość w kolumnie `miesiac`”. Dziś są dwa obejścia: (1) wpisać dane miesiąca prosto w tabeli dni – kolumny `miesiac_nazwa`, `miesiac_kolor` powtórzone w każdym wierszu dnia (w Excelu to jedno przeciągnięcie); (2) zrobić osobną serię na każdy miesiąc. Jeśli chcesz, dorobię trzeci tryb tabeli dodatkowej: „nowy wiersz, gdy zmieni się kolumna …” – to niewielka zmiana.
 
 ### G7. Kolor i położenie elementu z danych ✅ / ⚠️
 **Co jest (decyzja #48).** Każdy element może brać kolor z pola (kolumna z kolorami) oraz przesunięcie w pionie i w poziomie z pola liczbowego: kolumny tabeli albo pola dokumentu, np. numeru powielenia. Dwa tryby: wartość to numer pozycji (krok w mm, z powrotem do początku co N pozycji) albo wprost milimetry.
 **Dlaczego tak.** Twój przykład – miesiące na brzegu strony, każdy niżej, sześć na wysokość – to „pozycja = numer powielenia, krok = wysokość zakładki, od nowa co 6”. Nie wymaga żadnej kolumny w tabeli: wystarcza pole `{egzemplarz}`. Kolor z tabeli pozwala mieć jeden wzór strony na cały rok w dwunastu barwach. Reguła jest zapisana przy elemencie, a wzór zostaje w projekcie nietknięty – tak samo jak tekst z polami.
-**Słabe.** W edytorze widać tylko wzór (pozycję 1); efekt jest w podglądzie. Z danych nie da się sterować rozmiarem, obrotem ani widocznością elementu. Kolor zastępuje całe wypełnienie – także gradient.
+**Jak to działa, krok po kroku.** Zaznaczasz element (prostokąt, tekst, obraz, grupę) i we właściwościach rozwijasz **Z danych**. Są tam trzy niezależne ustawienia:
+- **Kolor z pola.** Wybierasz kolumnę. Na każdej powielonej stronie aplikacja bierze wartość z tej kolumny w wierszu tej strony i używa jej jako koloru elementu. Rozumie zapisy `#d1495b`, `d1495b`, `rgb(209,73,91)` i angielskie nazwy (`navy`, `tomato`). Kształt z wypełnieniem dostaje nowe wypełnienie; linia i kształt bez wypełnienia – nowy kolor obrysu; tekst – kolor liter. Pusta albo niezrozumiała wartość zostawia kolor wzoru.
+- **Przesunięcie w pionie z pola** i **przesunięcie w poziomie z pola.** Wybierasz pole z liczbą – kolumnę tabeli albo pole dokumentu, np. `egzemplarz` (numer powielenia: 1, 2, 3…), `nr` (numer strony). Potem tryb:
+  - **„Wartość to numer pozycji”**: podajesz **krok** w mm. Pozycja 1 to miejsce, w którym element stoi we wzorze; pozycja 2 jest o jeden krok dalej, pozycja 3 o dwa kroki itd. **„Od nowa co N”** zawija liczenie: przy N = 6 pozycja 7 wraca na miejsce pierwszej, 8 na miejsce drugiej. Przykład zakładek miesięcy: zakładka ma 30 mm wysokości, krok = 30 mm, od nowa co 6, pole = `egzemplarz` – styczeń stoi najwyżej, czerwiec najniżej, lipiec znów najwyżej.
+  - **„Wartość to przesunięcie w mm”**: liczba z tabeli jest wprost przesunięciem względem wzoru (może być ujemna i z przecinkiem). Przydatne, gdy położenia nie da się policzyć krokiem – wpisujesz je w arkuszu.
+- Gdzie widać efekt: w edytorze element stoi w miejscu wzoru (pozycja 1, kolor wzoru) – edytujesz wzór, nie konkretną stronę. Prawdziwy kolor i położenie każdej strony są w **Podglądzie**, na miniaturach, w udostępnionym linku i w PDF.
+- Wzorce: element wzorca też może mieć „Z danych”. Na lewych stronach rozkładówki przy wzorcu z odbiciem lustrzanym przesunięcie w poziomie odwraca się – zakładka trafia na zewnętrzny brzeg.
+- Pole, którego aplikacja nie zna (literówka, usunięta kolumna), trafia na listę ostrzeżeń.
+**Słabe.** W edytorze widać tylko wzór; efekt jest w podglądzie. Z danych nie da się sterować rozmiarem, obrotem ani widocznością elementu (np. „pokaż gwiazdkę tylko w święta”) – to naturalne następne kroki, jeśli będą potrzebne. Kolor zastępuje całe wypełnienie – także gradient.
 
 ### G4. Obraz z kolumny tabeli ✅ / ⚠️
 **Co jest.** Obraz-wzór wyznacza ramkę; kolumna podaje nazwę pliku wgranego do projektu. Podmieniony obraz wpisuje się w ramkę bez zmiany proporcji. **Nowe:** brak pliku o podanej nazwie trafia na listę „Do sprawdzenia przed drukiem” z numerami stron.
-**Słabe.** Obraz nie wypełnia ramki z przycięciem („cover”), tylko się w niej mieści.
+**Poprawione.** Podmieniony obraz może wypełniać ramkę z przycięciem albo mieścić się w niej cały – wybór przy obrazie-wzorze.
+**Słabe.** Przy wypełnianiu kadr jest zawsze ze środka zdjęcia.
 
 ### G5. Kontrola przed drukiem ✅ / ⚠️
 **Co jest.** Okno eksportu PDF pokazuje uwagi do całego projektu, już po powieleniu serii: pola bez wartości, brakujące pliki obrazów, powtórzone wartości w pilnowanych kolumnach (z numerami stron, na których wypadają), niepełny ostatni blok serii (`js/kontrola.js`).
 **Dlaczego tak.** Ostrzeżenia w edytorze dotyczą otwartej strony-wzoru. Tego, że w 212. wierszu tabeli brakuje zdjęcia, na wzorze nie widać – trzeba przejść wszystkie egzemplarze. Uwagi nie blokują eksportu, bo czasem pusty obraz jest zamierzony.
-**Słabe.** Lista jest tylko w oknie PDF. Nie obejmuje tekstu, który nie mieści się w ramce na którymś egzemplarzu – to wymagałoby złożenia każdej strony.
+**Poprawione.** Osobne okno w menu ⋯ („Sprawdź przed drukiem”), nie tylko w oknie PDF. Lista obejmuje teksty, które nie mieszczą się w ramce na którejkolwiek powielonej stronie – z numerami stron i przyciskiem „Pokaż”.
+**Słabe.** Sprawdzanie tekstów w bardzo dużym projekcie trwa (lista uzupełnia się na bieżąco). „Pokaż” otwiera stronę-wzór, nie konkretne powielenie.
 
 ---
 
@@ -253,9 +279,9 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 ## I. Eksport
 
 ### I1. Eksport do PDF ✅ / ⚠️
-**Co jest.** Menu ⋯ → „Eksportuj do PDF”: zakres (cały projekt, sekcja, strony od–do), przeznaczenie (do drukarni ze spadem i znakami cięcia albo do oglądania równo do formatu), jakość (150, 300, 600 dpi), podział (jeden plik, plik na sekcję, części po N stron – kilka plików w archiwum ZIP). Strony idą w kolejności wydruku, z powieleniami serii, każda w formacie swojej sekcji. Plik ma opis formatu po obcięciu (TrimBox) i spadu (BleedBox), który czytają programy drukarni. Znaki cięcia biorą się z ustawienia sekcji.
-**Dlaczego tak.** Każda strona PDF jest obrazem złożonym tą samą funkcją, która rysuje podgląd – więc w pliku jest dokładnie to, co widzisz, łącznie z listami, przelewaniem i polami. Alternatywa, czyli zapisanie tekstu jako tekstu, a kształtów jako kształtów, wymagałaby drugiego, niezależnego „rysownika” dla PDF, który trzeba by pilnować, żeby nigdy nie rozjechał się z ekranem. Przy kalendarzach i planerach 300 dpi daje tekst nieodróżnialny w druku od wektorowego; dla bardzo drobnego tekstu jest 600 dpi.
-**Słabe.** Tekst w pliku nie jest tekstem (nie da się go zaznaczyć ani wyszukać), kolory są w RGB, a pliki są większe niż wektorowe – 100 stron A5 w 300 dpi to kilkadziesiąt megabajtów. Drukarnie zwykle to przyjmują, ale część wymaga CMYK albo PDF/X; wtedy trzeba plik przepuścić przez ich konwerter albo Acrobat. Bardzo długi eksport trzyma cały plik w pamięci przeglądarki – dlatego jest podział na części.
+**Co jest.** Dwa rodzaje pliku. **Wektorowy** (domyślny): tekst jest prawdziwym tekstem z osadzonymi czcionkami, kształty, linie, gradienty i rysunki odręczne są wektorami, zdjęcia JPEG i PNG idą w oryginale – bez ponownej kompresji i raz w pliku. **Obrazy stron**: każda strona jest jednym obrazem w wybranej rozdzielczości (dotychczasowy sposób). W obu: zakres stron, spad i znaki cięcia, informacja o formacie po obcięciu i o spadzie (TrimBox, BleedBox), podział na pliki, powielenia serii, lista uwag przed drukiem. Opcje pliku wektorowego: „Zamień tekst na krzywe” i „Kolory tekstu i kształtów w CMYK”.
+**Dlaczego tak.** Plik wektorowy powstaje z tego samego kodu, który rysuje stronę na ekranie: edytor rysuje element, a zamiast pikseli zapisywane są polecenia PDF. Dzięki temu układ wierszy, listy, pola z danych, wielkość liter i przelewanie są w PDF takie same jak w podglądzie – nie ma drugiego, osobnego „silnika składu”, który mógłby się rozjechać. Czego nie da się zapisać wektorowo (cień, maska, czcionka bez pliku do osadzenia, znak spoza czcionki), idzie jako obraz tego jednego elementu, a aplikacja po eksporcie mówi, ile takich elementów było i dlaczego. Test porównuje stronę z PDF, narysowaną niezależnym czytnikiem, z obrazem z aplikacji i odczytuje z pliku tekst z polskimi znakami.
+**Słabe.** CMYK jest prosty: przelicza kolory tekstu i kształtów bez profilu barwnego (czarny idzie samą czernią), zdjęcia zostają w RGB. To nie jest PDF/X – drukarnia, która wymaga PDF/X-1a albo PDF/X-4 z profilem, musi plik przepuścić przez swój konwerter. Rysunki SVG idą jako obraz. Ligatur (np. „fi” jako jeden znak) w pliku nie ma – litery stoją osobno, w miejscach z pomiaru przeglądarki. Bardzo długi eksport trzyma cały plik w pamięci przeglądarki – dlatego jest podział na części.
 
 ### I2. PNG strony ✅
 **Co jest.** Bieżąca strona albo wzorzec jako PNG w 300 dpi, ze spadem, z oryginalnych zdjęć (wcześniej 150 dpi z tego, co było na płótnie).
@@ -264,9 +290,8 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 
 ## H. Co proponuję dalej
 
-1. **Próba na tablecie i telefonie** – gesty, klawiatura ekranowa, instalacja, wysuwane panele. Tego nie zrobię za Ciebie.
-2. **Poczta**, gdy będzie domena (decyzja #34).
-3. **PDF z tekstem wektorowym i CMYK** – jeśli drukarnia, z którą pracujesz, nie przyjmie stron-obrazów (I1). Warto najpierw wysłać jej próbny plik.
-4. **Tekst płynący przez kilka stron** i przelewanie w trakcie pisania (D1).
-5. **Tabela jako jeden obiekt** ze zmianą szerokości kolumn (D1).
-6. **Listy rozwijane w szablonie danych** i sprawdzanie przed drukiem, czy teksty mieszczą się w ramkach na każdym egzemplarzu (G3, G5).
+1. **Próba na Twoim tablecie i telefonie** – gesty, klawiatura ekranowa, instalacja, panele z boków, plansza w pionie. Tego nie zrobię za Ciebie; to jedyna rzecz, której nie umiem sprawdzić.
+2. **Próbny plik do drukarni** – wyślij PDF wektorowy (z CMYK i bez) i zapytaj, czy go przyjmą. Jeśli wymagają PDF/X z profilem, to jest następna praca przy eksporcie.
+3. **Poczta**, gdy będzie domena (decyzja #34).
+4. **Pióro z krzywymi**, rysunki SVG jako wektory w PDF, listy rozwijane w szablonie danych – mniejsze rzeczy, które zostały z listy.
+5. **Pamięć przy setkach zdjęć** – przechowywanie oryginałów poza pamięcią karty (D5).
