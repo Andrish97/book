@@ -84,7 +84,7 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
   const skala = a.width / 154; // strona 148 mm + 2 × 3 mm spadu
   const wPunkcie = (mmX, mmY) => kolor(da, (mmX + 3) * skala, (mmY + 3) * skala);
   return {
-    nazwa: wynik.nazwa, uwagi: wynik.uwagi, rozmiar: bajty.length, stron: pdf.getPageCount(),
+    nazwa: wynik.nazwa, uwagi: wynik.uwagi, jakoKrzywe: wynik.krzywe, rozmiar: bajty.length, stron: pdf.getPageCount(),
     // Ile plików czcionek i obrazów jest w całym dokumencie (każdy powinien być osadzony raz, niezależnie od liczby stron).
     plikiCzcionek: pdf.context.enumerateIndirectObjects().filter(([, o]) => o instanceof PDFDict && String(o.get(PDFName.of('Type'))) === '/FontDescriptor').length,
     plikiObrazow: pdf.context.enumerateIndirectObjects().filter(([, o]) => o.dict && String(o.dict.get(PDFName.of('Subtype'))) === '/Image' && !o.dict.get(PDFName.of('SMask'))?.toString().includes('null') && String(o.dict.get(PDFName.of('ColorSpace'))) !== '/DeviceGray').length,
@@ -116,6 +116,7 @@ test('PDF wektorowy: prawdziwy tekst z osadzonymi czcionkami, kształty, gradien
   assert.equal(w.gradienty, 1);
   assert.equal(w.obrazy, 1, 'jedynym obrazem jest element z cieniem');
   assert.deepEqual(w.uwagi, [['cień', 1]]);
+  assert.deepEqual(w.jakoKrzywe, [], 'wszystkie czcionki tej strony dało się osadzić');
   // Tekst da się odczytać z pliku – razem z polskimi znakami, numerami listy i wielkimi literami jako wyglądem.
   for (const fragment of ['Zażółć gęślą jaźń – „Święto” 2026', '1.', '2.', '3.', 'Drugi punkt', 'kursywą', 'WIELKIE LITERY JAKO WYGLĄD']) {
     assert.ok(w.tekst.replace(/\s+/g, ' ').includes(fragment) || w.tekst.replace(/\s+/g, '').includes(fragment.replace(/\s+/g, '')), `w pliku jest tekst „${fragment}”: ${w.tekst}`);
@@ -161,7 +162,7 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
   const rozmiarJpeg = await strona.evaluate(async ([ttf, woff2]) => {
     const { stan, edytor, zapiszTeraz, przeladuj, oknoCzcionek } = window.seriodruk;
     const plik = (b64, nazwa, typ) => new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], nazwa, { type: typ });
-    // Własne czcionki: plik TTF (da się osadzić) i WOFF2 (nie da się – tekst pójdzie jako obraz).
+    // Własne czcionki: plik TTF (da się osadzić) i WOFF2 (nie da się osadzić – tekst pójdzie jako krzywe).
     const [ozdobna] = await oknoCzcionek.dodaj([plik(ttf, 'Ozdobna-Regular.ttf', 'font/ttf')]);
     await oknoCzcionek.zmienRodzine(ozdobna.id, 'Ozdobna');
     await oknoCzcionek.dodaj([plik(woff2, 'Odreczna-Regular.woff2', 'font/woff2')]);
@@ -187,7 +188,7 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
       { type: 'polygon', version: '5.3.0', left: 90, top: 75, points: [{ x: 0, y: 30 }, { x: 15, y: 0 }, { x: 30, y: 30 }], fill: '#ffbe0b', stroke: '#000000', strokeWidth: 0.6, id: 'trojkat' },
       { type: 'path', version: '5.3.0', left: 20, top: 115, path: [['M', 0, 20], ['Q', 30, -20, 60, 20], ['L', 100, 0]], fill: '', stroke: '#d00000', strokeWidth: 1.5, strokeLineCap: 'round', id: 'rysunek' },
       { type: 'textbox', version: '5.3.0', left: 20, top: 145, width: 110, text: 'Własna czcionka z pliku TTF', fontSize: 7, fontFamily: 'Ozdobna', fill: '#000000', styles: [], id: 't1' },
-      { type: 'textbox', version: '5.3.0', left: 20, top: 160, width: 110, text: 'Czcionka WOFF2 idzie jako obraz', fontSize: 7, fontFamily: 'Odreczna', fill: '#000000', styles: [], id: 't2' },
+      { type: 'textbox', version: '5.3.0', left: 20, top: 160, width: 110, text: 'Czcionka WOFF2 idzie jako krzywe', fontSize: 7, fontFamily: 'Odreczna', fill: '#000000', styles: [], id: 't2' },
       { type: 'textbox', version: '5.3.0', left: 20, top: 175, width: 110, text: 'Kursywa, której czcionka nie ma', fontSize: 7, fontFamily: 'Caveat', fontStyle: 'italic', fill: '#000000', styles: [], id: 't3' },
       { type: 'textbox', version: '5.3.0', left: 20, top: 190, width: 110, text: 'Znak spoza czcionki: Ж', fontSize: 6, fontFamily: 'Inter', fill: '#000000', styles: [], id: 't4' },
     );
@@ -201,16 +202,16 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
 
   const w = await eksportuj(strona, { tryb: 'wektor', dpi: 150 });
   assert.equal(w.stron, 3);
-  assert.deepEqual(w.uwagi.map(([powod, n]) => [powod.replace(/ – .*/, ''), n]).sort(), [
-    ['znaku „Ж” nie ma w czcionce „Inter”', 3],
-    ['„Caveat” nie ma kursywy', 3],
-    ['„Odreczna” jest w formacie WOFF2', 3],
-  ]);
+  // Jako obraz idzie tylko tekst ze znakiem spoza czcionki. Czcionka z pliku WOFF2 i kursywa, której czcionka
+  // nie ma (przeglądarka pochyla pismo proste), są zapisane jako krzywe – ostre, ale nie do zaznaczenia.
+  assert.deepEqual(w.uwagi, [['znaku „Ж” nie ma w czcionce „Inter”', 3]]);
+  assert.deepEqual([...w.jakoKrzywe].sort(), [['„Caveat” (kursywa bez własnego pliku)', 3], ['„Odreczna” (plik WOFF2)', 3]]);
+  assert.equal(w.obrazy, 3, 'zdjęcie, koło PNG i jeden tekst jako obraz – teksty zapisane krzywymi nie są obrazami');
   assert.equal(w.czcionki, 1, 'na stronie jest jedna osadzona czcionka – własna z pliku TTF');
   assert.equal(w.plikiCzcionek, 1, 'plik czcionki jest w dokumencie raz, choć stron jest trzy');
   assert.deepEqual(w.jpeg, [rozmiarJpeg], 'zdjęcie JPEG jest w pliku raz i bez ponownej kompresji');
   assert.ok(w.tekst.includes('Własna czcionka z pliku TTF'));
-  assert.ok(!w.tekst.includes('WOFF2'), 'tekst zapisany jako obraz nie jest tekstem');
+  assert.ok(!w.tekst.includes('WOFF2') && !w.tekst.includes('Kursywa'), 'tekst zapisany krzywymi nie jest tekstem do zaznaczenia');
   zapiszPomiar(t.name, w);
   assert.ok(w.srednia < 2.5, `średnia różnica obrazu ${w.srednia.toFixed(2)}`);
   assert.ok(w.rozne < 0.005, `odsetek wyraźnie różnych miejsc ${(w.rozne * 100).toFixed(2)}%`);
@@ -235,6 +236,55 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
   assert.equal(plik.suggestedFilename(), 'Wektor 2.pdf');
   await strona.waitForSelector('#dlg-pdf', { state: 'hidden' });
-  assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisanych zostało 9 elementów: .*WOFF2.*\(3\)/);
+  assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisane zostały 3 elementy: znaku „Ж” .*\(3\)\. Tekst jako krzywe \(nie da się go zaznaczyć\) w 6 elementach: .*plik WOFF2\) \(3\)/);
+  assert.deepEqual(bledy, []);
+});
+
+test('PDF wektorowy: rysunek SVG idzie jako wektor (kadr, obrót, gradient); rysunek z filtrem zostaje obrazem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Wektor 3');
+  await strona.evaluate(async () => {
+    const { stan, edytor, zapiszTeraz } = window.seriodruk;
+    const adres = (kod) => `data:image/svg+xml;base64,${btoa(kod)}`;
+    // Rysunek z przesuniętym viewBox, innymi proporcjami niż wymiar (preserveAspectRatio), grupą z przekształceniem,
+    // gradientem, obrysem i krzywą.
+    const rysunek = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="10 20 300 150">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd166"/><stop offset="1" stop-color="#ef476f"/></linearGradient></defs>
+      <rect x="10" y="20" width="300" height="150" fill="#e8f1ff"/>
+      <rect x="30" y="40" width="120" height="60" rx="10" fill="url(#g)" stroke="#073b4c" stroke-width="5"/>
+      <g transform="translate(220 95) rotate(20)"><ellipse cx="0" cy="0" rx="60" ry="35" fill="#06d6a0"/><polygon points="-20,-15 25,0 -20,15" fill="#ffffff"/></g>
+      <path d="M30 150 C 90 90, 150 190, 290 120" fill="none" stroke="#d00000" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="285" cy="45" r="15" fill="#118ab2" fill-opacity="0.6"/>
+    </svg>`;
+    const zFiltrem = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80"><defs><filter id="f"><feGaussianBlur stdDeviation="4"/></filter></defs><rect x="20" y="15" width="80" height="50" fill="#8338ec" filter="url(#f)"/></svg>`;
+    const a = await edytor.dodajObraz(adres(rysunek), 'rysunek.svg', stan.projekt.zasoby);
+    a.set({ left: 15, top: 20, scaleX: 0.5, scaleY: 0.5 });
+    // Ten sam rysunek drugi raz: obrócony i wykadrowany do prawej części.
+    const b = await edytor.dodajObraz(adres(rysunek), 'rysunek.svg', stan.projekt.zasoby);
+    b.set({ left: 30, top: 115, scaleX: 0.45, scaleY: 0.45, cropX: 90, cropY: 20, width: 150, height: 130, angle: -8 });
+    const c = await edytor.dodajObraz(adres(zFiltrem), 'filtr.svg', stan.projekt.zasoby);
+    c.set({ left: 85, top: 180, scaleX: 0.4, scaleY: 0.4 });
+    edytor.canvas.discardActiveObject();
+    edytor.zatwierdz();
+    await zapiszTeraz();
+  });
+
+  const w = await eksportuj(strona, { tryb: 'wektor', dpi: 150 });
+  assert.equal(w.obrazy, 1, 'obrazem jest tylko rysunek z filtrem');
+  assert.deepEqual(w.uwagi, [['rysunek SVG z elementem „filter”', 1]]);
+  assert.deepEqual(w.jakoKrzywe, []);
+  assert.equal(w.gradienty, 2, 'gradient rysunku jest gradientem PDF (rysunek jest na stronie dwa razy)');
+  assert.ok(w.krzywe > 20, `kształty rysunku są krzywymi PDF (${w.krzywe})`);
+  zapiszPomiar(t.name, w);
+  assert.ok(w.srednia < 2.5, `średnia różnica obrazu ${w.srednia.toFixed(2)}`);
+  assert.ok(w.rozne < 0.005, `odsetek wyraźnie różnych miejsc ${(w.rozne * 100).toFixed(2)}%`);
+  // Okno eksportu mówi, co poszło jako obraz.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="pdf"]');
+  await strona.waitForSelector('#dlg-pdf[open]');
+  await strona.selectOption('#form-pdf select[name=dpi]', '150');
+  await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
+  await strona.waitForSelector('#dlg-pdf', { state: 'hidden' });
+  assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisany został 1 element: rysunek SVG z elementem „filter”\.$/);
   assert.deepEqual(bledy, []);
 });

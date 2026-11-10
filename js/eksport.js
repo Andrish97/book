@@ -105,9 +105,10 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }) {
 // Składa jeden plik PDF z podanych egzemplarzy. opcje: tryb ('wektor' | 'obraz'), dpi (strony
 // w trybie obrazów; w wektorowym – elementy, których nie da się zapisać wektorowo), spad (czy dodać
 // spad), znaki ('sekcje' – według ustawień sekcji, true, false), jakosc JPEG, cmyk i krzywe (tylko
-// wektorowy), uwagi (Map: powód → ile elementów trafiło do pliku jako obraz), ciag, postep(nrStrony),
+// wektorowy), uwagi (Map: powód → ile elementów trafiło do pliku jako obraz), jakoKrzywe (Map: czcionka →
+// w ilu elementach tekst zapisano jako krzywe, bo czcionki nie da się osadzić), ciag, postep(nrStrony),
 // przerwij() → true, gdy użytkownik anulował.
-export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, uwagi = new Map(), ciag = rozwin(projekt), postep, przerwij } = {}) {
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, uwagi = new Map(), jakoKrzywe = new Map(), ciag = rozwin(projekt), postep, przerwij } = {}) {
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
   const pdf = await PDFLib.PDFDocument.create();
   pdf.setTitle(projekt.nazwa);
@@ -117,7 +118,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   if (tryb === 'wektor') {
     const fontkit = await biblioteka(FONTKIT_URL, 'fontkit', 'modułu czcionek PDF');
     pdf.registerFontkit(fontkit);
-    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf), cmyk, krzywe, dpi, uwagi, uzyteCzcionki: new Set() };
+    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf), cmyk, krzywe, dpi, uwagi, jakoKrzywe, uzyteCzcionki: new Set() };
   }
   let nr = 0;
   for (const egz of egzemplarze) {
@@ -196,10 +197,12 @@ export async function plikiCzcionek(projekt) {
   return pliki;
 }
 
-// Cały eksport: zwraca { nazwa, blob, uwagi } – jeden PDF albo ZIP (kilka plików PDF, pliki czcionek).
+// Cały eksport: zwraca { nazwa, blob, uwagi, krzywe } – jeden PDF albo ZIP (kilka plików PDF, pliki czcionek).
 // uwagi: [[powód, liczba]] – elementy, które w pliku wektorowym zostały zapisane jako obraz.
+// krzywe: [[czcionka, liczba]] – elementy, w których tekst zapisano jako krzywe (czcionki nie da się osadzić).
 export async function eksportujPdf(projekt, opcje = {}) {
   const uwagi = new Map();
+  const jakoKrzywe = new Map();
   const ciag = rozwin(projekt);
   const pliki = planPlikow(projekt, wybierzEgzemplarze(ciag, opcje), opcje);
   if (!pliki.length) throw new Error('W wybranym zakresie nie ma stron.');
@@ -208,14 +211,14 @@ export async function eksportujPdf(projekt, opcje = {}) {
   const wyniki = [];
   for (const p of pliki) {
     const start = gotowe;
-    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, uwagi, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
+    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, uwagi, jakoKrzywe, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
     wyniki.push({ nazwa: p.nazwa, blob });
   }
   const czcionki = opcje.dolaczCzcionki ? await plikiCzcionek(projekt) : [];
-  if (wyniki.length === 1 && !czcionki.length) return { ...wyniki[0], uwagi: [...uwagi] };
+  if (wyniki.length === 1 && !czcionki.length) return { ...wyniki[0], uwagi: [...uwagi], krzywe: [...jakoKrzywe] };
   const JSZip = await biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
   const zip = new JSZip();
   for (const w of wyniki) zip.file(w.nazwa, w.blob, { compression: 'STORE' });
   for (const c of czcionki) zip.file(`czcionki/${c.nazwa}`, c.blob, { compression: 'STORE' });
-  return { nazwa: `${bezpiecznaNazwa(projekt.nazwa)} - PDF.zip`, blob: await zip.generateAsync({ type: 'blob' }), uwagi: [...uwagi] };
+  return { nazwa: `${bezpiecznaNazwa(projekt.nazwa)} - PDF.zip`, blob: await zip.generateAsync({ type: 'blob' }), uwagi: [...uwagi], krzywe: [...jakoKrzywe] };
 }

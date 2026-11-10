@@ -7,9 +7,15 @@
 // samego kodu, który rysuje stronę na ekranie – układ wierszy, wypunktowania,
 // pola z danych i przelewanie tekstu są takie same.
 //
-// Czego nie da się zapisać wektorowo (cień, element przycięty maską, czcionka
-// bez pliku do osadzenia, znak spoza czcionki), trafia do PDF jako obraz tego
-// jednego elementu w wybranej rozdzielczości. Lista takich miejsc wraca w `uwagi`.
+// Czego nie da się zapisać wektorowo (cień, element przycięty maską, znak spoza
+// czcionki), trafia do PDF jako obraz tego jednego elementu w wybranej
+// rozdzielczości. Lista takich miejsc wraca w `uwagi`.
+//
+// Tekst pisany czcionką, której nie da się osadzić (własny plik WOFF2, czcionka
+// zmienna, kursywa „udawana” przez przeglądarkę), jest zapisywany jako krzywe –
+// obrysy liter jako kształty. Jest ostry, ale nie da się go zaznaczyć; lista
+// takich miejsc wraca w `krzywe`. Rysunki SVG są rozkładane na kształty i też
+// idą jako wektory.
 
 import './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
@@ -17,6 +23,7 @@ import { CZCIONKI } from './czcionki.js';
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
 const MAX_PIKSELI_OBRAZU = 36e6;
+const SKOS_KURSYWY = 0.25; // tak przeglądarka pochyla pismo, gdy czcionka nie ma własnej kursywy
 
 class Niewektorowe extends Error {
   constructor(powod) { super(powod); this.niewektorowe = true; }
@@ -106,14 +113,15 @@ async function rozpakujWoff(bufor) {
 export class CzcionkiPdf {
   constructor(pdf, projekt, fontkit, { krzywe = false } = {}) {
     Object.assign(this, { pdf, projekt, fontkit, krzywe });
-    this.gotowe = new Map(); // "rodzina|700|1" → { fk, pdfFont } albo { brak: powód }
+    this.gotowe = new Map(); // "rodzina|700|1" → { fk, pdfFont, krzywe, skos } albo { brak: powód }
   }
 
   async _bajty(rodzina, w, kursywa) {
     const wlasne = (this.projekt.czcionki || []).filter((c) => c.rodzina === rodzina);
     if (wlasne.length) {
       const tejPochylosci = wlasne.filter((c) => Boolean(c.kursywa) === kursywa);
-      if (!tejPochylosci.length && kursywa) return { brak: `„${rodzina}” nie ma pliku kursywy` };
+      // Kursywa bez własnego pliku: przeglądarka pochyla pismo proste – tutaj to samo, krzywymi.
+      const skos = !tejPochylosci.length && kursywa;
       const kandydaci = tejPochylosci.length ? tejPochylosci : wlasne;
       const c = [...kandydaci].sort((a, b) => Math.abs(a.waga - w) - Math.abs(b.waga - w))[0];
       if (w >= 600 && c.waga < 600) return { brak: `„${rodzina}” nie ma pliku odmiany pogrubionej` };
@@ -121,14 +129,18 @@ export class CzcionkiPdf {
       if (!zasob?.dataUrl) return { brak: `brak pliku czcionki „${rodzina}”` };
       const bufor = await (await fetch(zasob.dataUrl)).arrayBuffer();
       const znak = new TextDecoder('latin1').decode(new Uint8Array(bufor, 0, 4));
-      if (znak === 'wOF2') return { brak: `„${rodzina}” jest w formacie WOFF2 – do osadzenia w PDF wgraj plik TTF, OTF albo WOFF` };
       if (znak === 'ttcf') return { brak: `„${rodzina}” to zbiór czcionek (TTC)` };
-      return { bajty: znak === 'wOFF' ? await rozpakujWoff(bufor) : new Uint8Array(bufor) };
+      // Pliku WOFF2 nie da się osadzić w PDF, ale da się z niego odczytać obrysy liter.
+      if (znak === 'wOF2') return { bajty: new Uint8Array(bufor), woff2: true, wagaPliku: c.waga, skos };
+      return { bajty: znak === 'wOFF' ? await rozpakujWoff(bufor) : new Uint8Array(bufor), wagaPliku: c.waga, skos };
     }
     if (CZCIONKI.some((c) => c.nazwa === rodzina)) {
-      const odp = await fetch(`css/czcionki/pdf/${slug(rodzina)}-${w >= 600 ? 700 : 400}-${kursywa ? 'kursywa' : 'prosta'}.ttf`);
-      if (!odp.ok) return { brak: `„${rodzina}” nie ma ${kursywa ? 'kursywy' : 'tej odmiany'}` };
-      return { bajty: new Uint8Array(await odp.arrayBuffer()) };
+      const plik = (pochylona) => fetch(`css/czcionki/pdf/${slug(rodzina)}-${w >= 600 ? 700 : 400}-${pochylona ? 'kursywa' : 'prosta'}.ttf`);
+      let odp = await plik(kursywa);
+      const skos = !odp.ok && kursywa;
+      if (skos) odp = await plik(false);
+      if (!odp.ok) return { brak: `„${rodzina}” nie ma tej odmiany` };
+      return { bajty: new Uint8Array(await odp.arrayBuffer()), skos };
     }
     return { brak: `czcionki „${rodzina}” nie ma w projekcie` };
   }
@@ -137,10 +149,26 @@ export class CzcionkiPdf {
     try {
       const zrodlo = await this._bajty(rodzina, w, kursywa);
       if (zrodlo.brak) return zrodlo;
-      const fk = this.fontkit.create(zrodlo.bajty);
-      if (fk.variationAxes && Object.keys(fk.variationAxes).length) return { brak: `„${rodzina}” to czcionka zmienna – do osadzenia w PDF wgraj osobne pliki odmian` };
-      const pdfFont = this.krzywe ? null : await this.pdf.embedFont(zrodlo.bajty, { subset: false });
-      return { fk, pdfFont };
+      let fk = this.fontkit.create(zrodlo.bajty);
+      // Powód, dla którego tekst tą czcionką idzie jako krzywe, a nie jako tekst z osadzoną czcionką.
+      let krzywe = null;
+      const osie = fk.variationAxes || {};
+      if (Object.keys(osie).length) {
+        // Czcionka zmienna: przeglądarka rysuje ją w grubości, z jaką plik jest zapisany w projekcie.
+        // Inne osie (np. rozmiar optyczny) przeglądarka dobiera sama – takiej czcionki nie odtworzymy wiernie.
+        if (Object.keys(osie).some((k) => k !== 'wght')) return { brak: `„${rodzina}” to czcionka zmienna z kilkoma osiami – do PDF wgraj osobne pliki odmian` };
+        const os = osie.wght;
+        const grubosc = os ? Math.min(os.max, Math.max(os.min, zrodlo.wagaPliku ?? w)) : null;
+        if (os && grubosc !== os.default) {
+          if (zrodlo.woff2) return { brak: `„${rodzina}” to czcionka zmienna w pliku WOFF2 – do PDF wgraj plik TTF albo osobne pliki odmian` };
+          fk = fk.getVariation({ wght: grubosc });
+        }
+        krzywe = `„${rodzina}” (czcionka zmienna)`;
+      }
+      if (zrodlo.woff2) krzywe = `„${rodzina}” (plik WOFF2)`;
+      if (zrodlo.skos) krzywe = `„${rodzina}” (kursywa bez własnego pliku)`;
+      const pdfFont = this.krzywe || krzywe ? null : await this.pdf.embedFont(zrodlo.bajty, { subset: false });
+      return { fk, pdfFont, krzywe, skos: zrodlo.skos ? SKOS_KURSYWY : 0 };
     } catch (e) {
       return { brak: `pliku czcionki „${rodzina}” nie udało się odczytać` };
     }
@@ -213,7 +241,69 @@ const bajtyZAdresu = async (src) => new Uint8Array(await (await fetch(src)).arra
 
 // Obrazy jednego pliku PDF: każdy plik graficzny jest w nim tylko raz, choćby był na stu stronach.
 export class ObrazyPdf {
-  constructor(pdf) { this.pdf = pdf; this.znane = new Map(); }
+  constructor(pdf) { this.pdf = pdf; this.znane = new Map(); this.svg = new Map(); }
+
+  // Rysunki SVG wśród obiektów (także w grupach) są rozkładane na kształty – raz na cały plik PDF.
+  // this.svg: adres obrazu → { obiekty, w, h } albo { brak: powód } (wtedy rysunek idzie jako obraz).
+  async przygotujSvg(obiekty, czcionki) {
+    const elementy = new Map();
+    const zbierz = (lista) => {
+      for (const o of lista || []) {
+        const el = typeof o.getElement === 'function' ? o.getElement() : null;
+        if (el?.tagName === 'IMG' && /^data:image\/svg\+xml/i.test(el.src) && !this.svg.has(el.src)) elementy.set(el.src, el);
+        if (Array.isArray(o._objects)) zbierz(o._objects);
+      }
+    };
+    zbierz(obiekty);
+    for (const [src, el] of elementy) this.svg.set(src, await this._rozlozSvg(el, czcionki));
+  }
+
+  async _rozlozSvg(el, czcionki) {
+    try {
+      const kod = await (await fetch(el.src)).text();
+      // Rzeczy, których rozkład na kształty nie odtworzy – taki rysunek zostaje obrazem.
+      const nie = /<(filter|mask|pattern|marker|foreignObject|switch|textPath|image|script)\b|@font-face|@import|@media|mix-blend-mode/i.exec(kod);
+      if (nie) return { brak: `rysunek SVG z elementem „${nie[1] || nie[0]}”` };
+      const { objects, options } = await fabric.loadSVGFromString(kod);
+      const czesci = (objects || []).filter(Boolean);
+      if (!czesci.length || !(options?.width > 0) || !(options?.height > 0)) return { brak: 'rysunek SVG, którego nie udało się rozłożyć na kształty' };
+      if (czesci.some(maMaske)) return { brak: 'rysunek SVG z przycięciem (clip-path)' };
+      czesci.forEach(bezPamieci);
+      await czcionki.przygotuj(czesci);
+      if (!this._svgZgodny(el, czesci, options)) return { brak: 'rysunek SVG, którego nie da się wiernie odtworzyć wektorowo' };
+      return { obiekty: czesci, w: options.width, h: options.height };
+    } catch {
+      return { brak: 'rysunek SVG, którego nie udało się rozłożyć na kształty' };
+    }
+  }
+
+  // Zabezpieczenie: kształty z rozkładu narysowane w małej skali muszą wyglądać jak rysunek
+  // narysowany przez przeglądarkę. Jeśli nie – rysunek zostaje obrazem.
+  _svgZgodny(el, czesci, opcje) {
+    const nw = el.naturalWidth || el.width; const nh = el.naturalHeight || el.height;
+    if (!nw || !nh || Math.abs((nw / nh) / (opcje.width / opcje.height) - 1) > 0.02) return false;
+    const W = 200; const H = Math.max(1, Math.round((W * nh) / nw));
+    const plotno = new fabric.StaticCanvas(undefined, { width: W, height: H, enableRetinaScaling: false, renderOnAddRemove: false });
+    plotno.setViewportTransform([W / opcje.width, 0, 0, H / opcje.height, 0, 0]);
+    plotno.add(...czesci);
+    plotno.renderAll();
+    const a = plotno.toCanvasElement().getContext('2d').getImageData(0, 0, W, H).data;
+    plotno.remove(...czesci);
+    plotno.dispose();
+    const wzor = Object.assign(document.createElement('canvas'), { width: W, height: H });
+    const c = wzor.getContext('2d');
+    c.drawImage(el, 0, 0, W, H);
+    const b = c.getImageData(0, 0, W, H).data;
+    // Oba obrazy na białym tle; liczy się średnia różnica i odsetek miejsc wyraźnie różnych.
+    const naBialym = (d, i, k) => (d[i + k] * d[i + 3]) / 255 + 255 - d[i + 3];
+    let suma = 0; let rozne = 0;
+    for (let i = 0; i < a.length; i += 4) {
+      const r = (Math.abs(naBialym(a, i, 0) - naBialym(b, i, 0)) + Math.abs(naBialym(a, i, 1) - naBialym(b, i, 1)) + Math.abs(naBialym(a, i, 2) - naBialym(b, i, 2))) / 3;
+      suma += r; if (r > 80) rozne += 1;
+    }
+    const piks = a.length / 4;
+    return suma / piks < 5 && rozne / piks < 0.02;
+  }
 
   // el: <img>. Zwraca obietnicę obrazu PDF.
   osadz(el, { szerPx } = {}) {
@@ -273,6 +363,9 @@ class KontekstPdf {
       letterSpacing: '0px', fontKerning: 'auto', filter: 'none',
     });
     this.pomiar = document.createElement('canvas').getContext('2d');
+    // Co w rysowanym właśnie elemencie zapisano inaczej niż tekstem i wektorem: powody.
+    this.krzyweTeraz = new Set();
+    this.obrazyTeraz = new Set();
   }
 
   // --- stan ---
@@ -474,7 +567,7 @@ class KontekstPdf {
     if (!/^alphabetic/.test(this.textBaseline)) throw new Niewektorowe('linia bazowa tekstu');
     const czcionka = this.czcionki.znajdz(this.font);
     if (czcionka.brak) throw new Niewektorowe(czcionka.brak);
-    const { fk, pdfFont, rozmiar } = czcionka;
+    const { fk, pdfFont, rozmiar, skos = 0 } = czcionka;
     const znaki = Array.from(String(tekst));
     if (!znaki.length || !(rozmiar > 0)) return;
     const gdzie = this._polozenia(znaki, rozmiar);
@@ -490,12 +583,13 @@ class KontekstPdf {
     const styl = obrys ? this.strokeStyle : this.fillStyle;
     if (typeof styl !== 'string') throw new Niewektorowe('tekst wypełniony gradientem');
 
-    if (this.opcje.krzywe) {
-      // Tekst zamieniony na krzywe: obrysy znaków jako wypełnione kształty.
+    if (this.opcje.krzywe || czcionka.krzywe) {
+      // Tekst zamieniony na krzywe: obrysy znaków jako wypełnione kształty (z pochyleniem, gdy kursywy nie ma w pliku).
+      if (!this.opcje.krzywe) this.krzyweTeraz.add(czcionka.krzywe);
       const skala = rozmiar / fk.unitsPerEm;
       const sciezka = [];
       for (const [, kod, dx] of widoczne) {
-        const p = (gx, gy) => this._p(x0 + dx + gx * skala, y - gy * skala);
+        const p = (gx, gy) => this._p(x0 + dx + (gx + skos * gy) * skala, y - gy * skala);
         let tu = [0, 0];
         for (const { command: co, args: a } of fk.glyphForCodePoint(kod).path.commands) {
           if (co === 'moveTo') { sciezka.push(['m', ...p(a[0], a[1])]); tu = [a[0], a[1]]; }
@@ -538,6 +632,10 @@ class KontekstPdf {
     else if (a.length === 4) [dx, dy, dw, dh] = a;
     else [sx, sy, sw, sh, dx, dy, dw, dh] = a;
     if (!sw || !sh || !dw || !dh) return;
+    // Rysunek SVG rozłożony na kształty idzie jako wektor; gdy się nie da – jako obraz, z powodem w uwagach.
+    const svg = this.strona.obrazy.svg.get(el.src);
+    if (svg && !svg.brak && this._rysujSvg(svg, nw, nh, [sx, sy, sw, sh, dx, dy, dw, dh])) return;
+    if (svg?.brak) this.obrazyTeraz.add(svg.brak);
     // Szerokość w pikselach, jaką obraz zajmie w wybranej rozdzielczości – dla rysunków SVG.
     const skala = Math.hypot(this.m[0], this.m[1]);
     const nazwa = this.strona.obraz(el, { szerPx: Math.abs(dw * (nw / sw)) * skala * this.opcje.pikseliNaJednostke });
@@ -548,6 +646,28 @@ class KontekstPdf {
     this.op.push(`${L(nw * kx)} 0 0 ${L(-nh * ky)} ${L(dx - sx * kx)} ${L(dy - sy * ky + nh * ky)} cm`, `/${nazwa} Do`, 'Q');
   }
 }
+
+// Rysunek SVG jako kształty w miejscu obrazu: układ rysunku → kadr → prostokąt docelowy, przycięte do kadru.
+// Zwraca false (i cofa to, co zdążył zapisać), gdy któregoś kształtu nie da się zapisać wektorowo.
+KontekstPdf.prototype._rysujSvg = function rysujSvg(svg, nw, nh, [sx, sy, sw, sh, dx, dy, dw, dh]) {
+  const przed = { op: this.op.length, stos: this.stos.length, m: this.m, kreski: this.kreski, sciezka: this.sciezka, stan: Object.fromEntries(STAN.map((k) => [k, this[k]])) };
+  const kx = dw / sw; const ky = dh / sh;
+  try {
+    this.save();
+    this.beginPath(); this.rect(dx, dy, dw, dh); this.clip();
+    this.transform((kx * nw) / svg.w, 0, 0, (ky * nh) / svg.h, dx - sx * kx, dy - sy * ky);
+    for (const o of svg.obiekty) { this.save(); o.render(this); this.restore(); }
+    this.restore();
+    this.sciezka = przed.sciezka;
+    return true;
+  } catch (e) {
+    if (!e.niewektorowe) throw e;
+    this.op.length = przed.op; this.stos.length = przed.stos; this.m = przed.m; this.kreski = przed.kreski; this.sciezka = przed.sciezka;
+    Object.assign(this, przed.stan);
+    svg.brak = `rysunek SVG: ${e.message}`; // na kolejnych stronach od razu jako obraz
+    return false;
+  }
+};
 
 // Nieznane polecenia kontekstu kończą próbę wektorową – element trafi do PDF jako obraz.
 const ostrozny = (ctx) => new Proxy(ctx, {
@@ -621,11 +741,14 @@ const bezPamieci = (o) => { o.objectCaching = false; o.dirty = true; for (const 
 const maMaske = (o) => Boolean(o.clipPath) || (o._objects || []).some(maMaske);
 
 // Rysuje stronę na stronie PDF.
-// srodowisko: { PDFLib, pdf, czcionki: CzcionkiPdf, obrazy: ObrazyPdf, cmyk, krzywe, dpi, uwagi: Map(powód → liczba) }
+// srodowisko: { PDFLib, pdf, czcionki: CzcionkiPdf, obrazy: ObrazyPdf, cmyk, krzywe, dpi, uwagi: Map(powód → liczba elementów
+// zapisanych jako obraz), jakoKrzywe: Map(czcionka → liczba elementów z tekstem zapisanym jako krzywe) }
 // m: wymiary z wymiaryStronyPdf (w, h, spad, pas) w mm; obiekty: żywe obiekty Fabric w układzie strony (mm).
 export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m }) {
   const { PDFLib, pdf, czcionki, obrazy, cmyk = false, krzywe = false, dpi = 300, uwagi } = srodowisko;
   await czcionki.przygotuj(obiekty);
+  await obrazy.przygotujSvg(obiekty, czcionki);
+  const dolicz = (mapa, powody) => { if (mapa) for (const p of powody) mapa.set(p, (mapa.get(p) || 0) + 1); };
   const zasoby = new StronaPdf(PDFLib, pdf, strona, obrazy);
   const opcje = { cmyk, krzywe, pikseliNaJednostke: dpi / 25.4 };
   const ctx = new KontekstPdf(zasoby, czcionki, opcje);
@@ -645,10 +768,14 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
     try {
       if (maMaske(o)) throw new Niewektorowe('element przycięty maską');
       bezPamieci(o);
+      ctx.krzyweTeraz = new Set(); ctx.obrazyTeraz = new Set();
       ctx.save();
       o.render(ostrozny(ctx));
       ctx.restore();
       if (ctx.stos.length !== przed.stos) throw new Niewektorowe('niedomknięty stan rysowania');
+      // Element zapisany wektorowo, ale z częścią jako krzywe albo z rysunkiem SVG jako obrazem.
+      dolicz(srodowisko.jakoKrzywe, ctx.krzyweTeraz);
+      dolicz(uwagi, ctx.obrazyTeraz);
     } catch (e) {
       if (!e.niewektorowe) throw e;
       // Cofnięcie tego, co element zdążył zapisać, i wstawienie go jako obrazu.

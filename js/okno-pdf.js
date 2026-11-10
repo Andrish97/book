@@ -91,7 +91,7 @@ export class OknoPdf {
     $('#pdf-opis-trybu').textContent = wektor
       ? (o.krzywe
         ? 'Tekst jest zamieniony na kształty liter: wygląda identycznie wszędzie i drukarnia nie potrzebuje czcionek, ale nie da się go zaznaczyć ani poprawić. Zdjęcia idą w oryginalnej rozdzielczości.'
-        : 'Tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać), kształty są wektorami, zdjęcia idą w oryginalnej rozdzielczości. Elementy z cieniem albo czcionką, której nie da się osadzić, trafiają do pliku jako obraz – po eksporcie zobaczysz ich listę.')
+        : 'Tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać), kształty są wektorami, zdjęcia idą w oryginalnej rozdzielczości. Elementy z cieniem trafiają do pliku jako obraz, a tekst czcionką, której nie da się osadzić (plik WOFF2, czcionka zmienna, kursywa bez własnego pliku) – jako krzywe; po eksporcie zobaczysz ich listę.')
       : 'Każda strona jest jednym obrazem w wybranej rozdzielczości – tekst wygląda tak samo na każdym komputerze, ale nie da się go zaznaczyć, a plik jest większy.';
     const projekt = this.zrodlo.projekt();
     const egz = wybierzEgzemplarze(this.ciag, o);
@@ -121,11 +121,17 @@ export class OknoPdf {
       pobierz(wynik.nazwa, URL.createObjectURL(wynik.blob));
       this.trwa = false;
       this.okno.close();
+      // Co w pliku wektorowym zapisano inaczej niż tekstem i wektorem: osobno obrazy, osobno tekst jako krzywe.
+      const lista = (pary) => pary.map(([powod, n]) => `${powod}${n > 1 ? ` (${n})` : ''}`).join('; ');
+      const suma = (pary) => pary.reduce((s, [, n]) => s + n, 0);
       const jakoObraz = wynik.uwagi || [];
-      const ile = jakoObraz.reduce((s, [, n]) => s + n, 0);
-      powiadom(ile
-        ? `Gotowe: ${wynik.nazwa}. Jako obraz ${odmiana(ile, 'zapisany został', 'zapisane zostały', 'zapisanych zostało')} ${ile} ${odmiana(ile, 'element', 'elementy', 'elementów')}: ${jakoObraz.map(([powod, n]) => `${powod}${n > 1 ? ` (${n})` : ''}`).join('; ')}.`
-        : `Gotowe: ${wynik.nazwa}`);
+      const jakoKrzywe = wynik.krzywe || [];
+      const ile = suma(jakoObraz);
+      const ileKrzywych = suma(jakoKrzywe);
+      const czesci = [`Gotowe: ${wynik.nazwa}${ile || ileKrzywych ? '.' : ''}`];
+      if (ile) czesci.push(`Jako obraz ${odmiana(ile, 'zapisany został', 'zapisane zostały', 'zapisanych zostało')} ${ile} ${odmiana(ile, 'element', 'elementy', 'elementów')}: ${lista(jakoObraz)}.`);
+      if (ileKrzywych) czesci.push(`Tekst jako krzywe (nie da się go zaznaczyć) w ${ileKrzywych} ${odmiana(ileKrzywych, 'elemencie', 'elementach', 'elementach')}: ${lista(jakoKrzywe)}.`);
+      powiadom(czesci.join(' '));
     } catch (blad) {
       komunikat.textContent = blad instanceof Przerwano ? 'Eksport przerwany.' : (blad.message || 'Nie udało się przygotować pliku PDF.');
     } finally {
