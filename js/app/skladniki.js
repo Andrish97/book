@@ -11,8 +11,9 @@ import { OknoCzcionek } from '../okno-czcionek.js';
 import { rodzinyCzcionek, odmianyRodziny } from '../czcionki.js';
 import { uzgodnijZKontem, rodzinySpozaProjektu, poznaj } from '../moje-czcionki.js';
 import { uid } from '../projekt.js';
+import { toRysunekSvg, rozlozRysunek } from '../svg-elementy.js';
 import * as chmura from '../chmura.js';
-import { $, powiadom } from '../ui.js';
+import { $, powiadom, odmiana } from '../ui.js';
 import { Podglad } from '../podglad.js';
 import { odepnijStyl, zastosujStylWProjekcie } from '../style-tekstu.js';
 import { edytor, stan, biezacaStrona, wlasciciel } from './kontekst.js';
@@ -40,6 +41,9 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   pola: () => polaDoWstawienia(),
   kolumnyObrazu: () => (stan.tryb === 'strona' ? tabelaStrony(biezacaStrona())?.kolumny : stan.projekt.tabele.flatMap((t) => t.kolumny)) || [],
   wgrajObrazy: () => $('#pliki-zasoby').click(),
+  // Rysunek SVG zamieniany w grupę zwykłych kształtów i napisów.
+  toRysunekSvg: (obj) => toRysunekSvg(stan.projekt, obj),
+  rozlozRysunek: (obj) => rozlozRysunekNaStronie(obj),
   // Tekst płynący przez strony (tylko na stronach, nie we wzorcach).
   ramkaNaNastepnejStronie: () => (stan.tryb === 'strona' ? ramkaNaNastepnejStronie() : null),
   przejdzDoRamki: (strona, ramka) => przejdzDoRamki(strona, ramka),
@@ -47,6 +51,20 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   naStronie: () => stan.tryb === 'strona',
   poZmianieStyli: (zmiana) => poZmianieStyli(zmiana),
 });
+
+// „Rozłóż rysunek na elementy”: obraz SVG znika, w jego miejscu staje grupa kształtów i napisów.
+async function rozlozRysunekNaStronie(obj) {
+  if (obj.group) { powiadom('Najpierw rozgrupuj – rozłożyć da się rysunek, który nie jest w grupie.'); return; }
+  if (obj.pole?.kolumna) { powiadom('Ten obraz zmienia się według danych – rozłożyć da się tylko stały rysunek.'); return; }
+  const w = await rozlozRysunek(stan.projekt, obj);
+  if (w.blad) { powiadom(w.blad, true); return; }
+  if (!edytor.zastapObiekt(obj, w.grupa)) return;
+  const czesci = [`Rysunek rozłożony na ${w.ile} ${odmiana(w.ile, 'element', 'elementy', 'elementów')} w grupie.`];
+  if (w.zastapione.length) czesci.push(`Czcionki spoza zestawu (${w.zastapione.join(', ')}) zastąpiła domyślna.`);
+  if (w.uwaga) czesci.push(w.uwaga);
+  czesci.push('Ctrl+Z przywraca obraz.');
+  powiadom(czesci.join(' '));
+}
 
 // zmiana: null (styl tylko przypisany), styl (zaktualizowany – przepisz do
 // wszystkich tekstów projektu) albo { usuniety: id }.

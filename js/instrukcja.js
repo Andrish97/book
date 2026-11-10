@@ -167,6 +167,7 @@ export const ROZDZIALY = [
       '<b>Zablokuj położenie i rozmiar</b> chroni element przed przypadkowym przesunięciem.',
       'Ikony nad panelem: <b>kopiuj do schowka</b>, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem <b>Wklej</b> we właściwościach strony (albo <kbd>Ctrl</kbd>+<kbd>V</kbd>) – trafi w to samo miejsce.',
       '<b>Obraz</b>: kliknij go dwa razy (albo <b>Kadruj przeciąganiem</b>), żeby wybrać widoczny fragment ramką – <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. Działa także na obrazie obróconym i odbitym (na czas kadrowania obraz jest prostowany). Do tego przycięcie liczbami, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi).',
+      '<b>Rysunek SVG</b> wstawia się jako obraz: wygląda wiernie, ale nic się w nim nie zmieni, a napisy przeglądarka rysuje czcionką zastępczą. <b>Rozłóż rysunek na elementy</b> (we właściwościach obrazu) zamienia go w zwykłą <b>grupę kształtów i napisów</b> w tym samym miejscu: grupę można rozgrupować, kształtom zmienić kolor, obrys i punkty, a napisy poprawić jak każdy tekst. Napis zachowuje czcionkę, jeśli jest ona w zestawie aplikacji albo wśród czcionek projektu – inną zastępuje domyślna, o czym aplikacja mówi. Rzeczy, których edytor nie ma (filtry, maski, wzory), znikają – wtedy lepiej zostawić obraz; <kbd>Ctrl</kbd>+<kbd>Z</kbd> go przywraca.',
       'Tytuły części panelu (np. <b>Cień</b>, <b>Ramka tekstu</b>) zwijają je i rozwijają. Zwinięte zostają zwinięte przy kolejnych elementach.',
     ],
   },

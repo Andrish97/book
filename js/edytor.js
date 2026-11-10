@@ -1020,6 +1020,25 @@ export class Edytor extends EventTarget {
     }));
   }
 
+  // Podmienia element innym w tym samym miejscu kolejności (jedna zmiana w historii) i zaznacza nowy.
+  zastapObiekt(stary, nowy) {
+    const c = this.canvas;
+    const i = c.getObjects().indexOf(stary);
+    if (i < 0 || stary.group) return false;
+    const bylo = this._wczytywanie;
+    this._wczytywanie = true;
+    c.discardActiveObject();
+    c.remove(stary);
+    c.insertAt(i, nowy);
+    this._wczytywanie = bylo;
+    this._uporzadkujWzorce();
+    c.setActiveObject(nowy);
+    c.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+    return true;
+  }
+
   // Wstawia kopie na arkusz (każda dostaje nowy identyfikator) i zaznacza je.
   _wstawKopie(kopie) {
     for (const k of kopie) { k.set({ id: uid('o') }); this.canvas.add(k); }

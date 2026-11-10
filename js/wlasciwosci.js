@@ -772,6 +772,11 @@ export class PanelWlasciwosci {
     kadrRamka.classList.add('tylko-duzy-ekran');
     kadr.append(kadrRamka);
     kadr.append(this.wskazowka('Albo kliknij obraz dwa razy.'));
+    if (this.opcje.toRysunekSvg?.(obj)) {
+      const r = this.sekcja('Rysunek SVG');
+      r.append(this.akcje([['rozgrupuj', 'Rozłóż rysunek na elementy', () => this.opcje.rozlozRysunek(obj)]]));
+      r.append(this.wskazowka('Obraz zamieni się w grupę zwykłych kształtów i napisów: można ją rozgrupować, zmieniać kolory i punkty, poprawiać napisy. Napis zachowa czcionkę, jeśli jest ona w zestawie albo w projekcie.'));
+    }
     const s = this.sekcja('Przycięcie (% oryginału)');
     const kraw = () => ({
       l: obj.cropX / nw,

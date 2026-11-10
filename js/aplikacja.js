@@ -130,6 +130,10 @@ async function wstawObraz(plik) {
     const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
     const dataUrl = await chmura.blobNaDataUrl(gotowy);
     await edytor.dodajObraz(dataUrl, plik.name, stan.projekt.zasoby);
+    // Napisy w rysunku wstawionym jako obraz przeglądarka rysuje czcionką systemu, nie czcionką z pliku.
+    if (plik.type === 'image/svg+xml' && /<text[\s>]/i.test(await gotowy.text())) {
+      powiadom('Rysunek ma napisy – jako obraz pokaże je czcionką zastępczą. „Rozłóż rysunek na elementy” we właściwościach zamieni je w zwykłe napisy z czcionkami zestawu.');
+    }
   } catch (e) {
     powiadom(e.message, true);
   }
