@@ -344,6 +344,7 @@
         <div class="menu" id="menu-wiecej" role="menu" hidden>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
+          <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
         </div>
       </div>
@@ -657,6 +658,8 @@
         </label>
         <label class="pole waskie" id="pdf-pole-ile" hidden><span>Stron w części</span><input name="ile" type="number" min="1" step="1" value="50" inputmode="numeric"></label>
       </div>
+      <label class="przelacznik"><input type="checkbox" name="czcionki"><span>Dołącz pliki czcionek użytych w projekcie</span></label>
+      <p class="podpowiedz">Tekst w pliku PDF jest spłaszczony – zamieniony na obraz strony, więc wygląda tak samo na każdym komputerze i drukarnia nie potrzebuje czcionek. Pliki czcionek możesz dołączyć osobno (archiwum ZIP), np. dla grafika.</p>
       <p class="podpowiedz" id="pdf-podsumowanie"></p>
       <details class="uwagi-druku" id="pdf-uwagi" hidden>
         <summary></summary>
@@ -670,6 +673,27 @@
       </div>
     </form>
   </dialog>
+
+  <dialog id="dlg-czcionki" class="dialog-szeroki">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Czcionki</h2>
+        <button type="button" class="przycisk-ikona" id="czcionki-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.seriodruk</code>. Wgrywaj czcionki, których licencja pozwala na druk.</p>
+      <fieldset class="grupa-pol">
+        <legend>Własne czcionki projektu</legend>
+        <ul class="lista-czcionek" id="czcionki-wlasne"></ul>
+        <p class="podpowiedz" id="czcionki-pusto">Nie wgrano jeszcze żadnej czcionki.</p>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" id="czcionki-wgraj" data-ikona="wyslij">Wgraj pliki czcionek</button></div>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Wbudowane w aplikację</legend>
+        <p class="podpowiedz" id="czcionki-wbudowane"></p>
+      </fieldset>
+    </div>
+  </dialog>
+  <input type="file" id="pliki-czcionki" multiple hidden>
 
   <dialog id="dlg-potwierdz">
     <form method="dialog" class="formularz">

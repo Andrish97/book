@@ -1,0 +1,131 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { otworz, nowyProjekt } = require('./pomoc.cjs');
+
+const PLIK_CZCIONKI = fs.readFileSync(path.join(__dirname, '..', 'css', 'czcionki', 'caveat-prosta-400-700-latin.woff2'));
+
+test('czcionki (obliczenia): nazwa rodziny, waga i kursywa z pliku TTF oraz z nazwy pliku', async (t) => {
+  const { strona } = await otworz(t);
+  const w = await strona.evaluate(async () => {
+    const { opisCzcionki, czcionkaZNazwyPliku } = await import('./js/czcionki.js');
+    // Najmniejszy plik w układzie TTF: tabela nazw (rodzina, odmiana, rodzina typograficzna) i OS/2 (waga, kursywa).
+    const zbuduj = ({ nazwy, waga, kursywa }) => {
+      const teksty = nazwy.map(([, t]) => { const b = new Uint8Array(t.length * 2); [...t].forEach((z, i) => { b[i * 2 + 1] = z.charCodeAt(0); }); return b; });
+      const dlTekstow = teksty.reduce((s, b) => s + b.length, 0);
+      const name = new DataView(new ArrayBuffer(6 + nazwy.length * 12 + dlTekstow));
+      name.setUint16(2, nazwy.length); name.setUint16(4, 6 + nazwy.length * 12);
+      let o = 0;
+      nazwy.forEach(([id], i) => { const r = 6 + i * 12; name.setUint16(r, 3); name.setUint16(r + 2, 1); name.setUint16(r + 4, 0x409); name.setUint16(r + 6, id); name.setUint16(r + 8, teksty[i].length); name.setUint16(r + 10, o); new Uint8Array(name.buffer).set(teksty[i], 6 + nazwy.length * 12 + o); o += teksty[i].length; });
+      const os2 = new DataView(new ArrayBuffer(96)); os2.setUint16(4, waga); os2.setUint16(62, kursywa ? 1 : 0);
+      const tabele = [['OS/2', os2], ['name', name]];
+      const plik = new DataView(new ArrayBuffer(12 + tabele.length * 16 + os2.byteLength + name.byteLength));
+      plik.setUint32(0, 0x00010000); plik.setUint16(4, tabele.length);
+      let gdzie = 12 + tabele.length * 16;
+      tabele.forEach(([znacznik, dane], i) => { const r = 12 + i * 16; [...znacznik].forEach((z, k) => plik.setUint8(r + k, z.charCodeAt(0))); plik.setUint32(r + 8, gdzie); plik.setUint32(r + 12, dane.byteLength); new Uint8Array(plik.buffer).set(new Uint8Array(dane.buffer), gdzie); gdzie += dane.byteLength; });
+      return plik.buffer;
+    };
+    return {
+      zPliku: await opisCzcionki(zbuduj({ nazwy: [[1, 'Moja Rodzina Black'], [2, 'Italic'], [16, 'Moja Rodzina']], waga: 900, kursywa: true }), 'cokolwiek.ttf'),
+      bezTypograficznej: await opisCzcionki(zbuduj({ nazwy: [[1, 'Prosta'], [2, 'Regular']], waga: 400, kursywa: false }), 'x.otf'),
+      zepsuty: await opisCzcionki(new ArrayBuffer(40), 'Lato-LightItalic.ttf'),
+      zNazw: ['Lato-BoldItalic.woff2', 'OpenSans_SemiBold.ttf', 'Merriweather Sans ExtraBold.otf', 'JosefinSans-VariableFont_wght.ttf', 'kaligrafia.woff'].map((n) => { const c = czcionkaZNazwyPliku(n); return [c.rodzina, c.waga, c.kursywa]; }),
+    };
+  });
+  assert.deepEqual(w.zPliku, { rodzina: 'Moja Rodzina', waga: 900, kursywa: true });
+  assert.deepEqual(w.bezTypograficznej, { rodzina: 'Prosta', waga: 400, kursywa: false });
+  assert.deepEqual(w.zepsuty, { rodzina: 'Lato', waga: 300, kursywa: true });
+  assert.deepEqual(w.zNazw, [['Lato', 700, true], ['Open Sans', 600, false], ['Merriweather Sans', 800, false], ['Josefin Sans wght', 400, false], ['kaligrafia', 400, false]]);
+});
+
+test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekcie, pliki czcionek w eksporcie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Wlasne czcionki');
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.dodajTekst('Zażółć gęślą jaźń'); o.set({ top: 30 }); e.zatwierdz(); });
+
+  // „+ Wgraj własną czcionkę…” na liście czcionek otwiera wybór pliku; zaznaczony tekst dostaje nową czcionkę.
+  const [wybor] = await Promise.all([strona.waitForEvent('filechooser'), strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', '+')]);
+  await wybor.setFiles([{ name: 'Odreczna-Bold.woff2', mimeType: 'font/woff2', buffer: PLIK_CZCIONKI }, { name: 'notatki.txt', mimeType: 'text/plain', buffer: Buffer.from('to nie czcionka') }]);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki?.length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.fontFamily === 'Odreczna');
+  const stan = await strona.evaluate(async () => {
+    await window.seriodruk.zapiszTeraz();
+    const p = window.seriodruk.stan.projekt;
+    const c = p.czcionki[0];
+    return {
+      wpis: [c.rodzina, c.waga, c.kursywa], zasob: [p.zasoby[c.id].nazwa, p.zasoby[c.id].dataUrl.slice(0, 20)],
+      wPrzegladarce: [...document.fonts].some((f) => f.family === 'Odreczna' && f.weight === '700' && f.status === 'loaded'),
+      tekst: p.strony[0].obiekty[0].fontFamily,
+      lista: [...document.querySelectorAll('.wlasciwosci label')].find((l) => l.textContent.startsWith('Czcionka')).querySelectorAll('option')[0].value,
+    };
+  });
+  assert.deepEqual(stan.wpis, ['Odreczna', 700, false]);
+  assert.deepEqual(stan.zasob, ['Odreczna-Bold.woff2', 'data:font/woff2;base']);
+  assert.ok(stan.wPrzegladarce, 'przeglądarka zna nową czcionkę');
+  assert.equal(stan.tekst, 'Odreczna');
+  assert.equal(stan.lista, 'Odreczna', 'własne czcionki są na początku listy');
+
+  // Eksport PDF z plikami czcionek: archiwum z PDF i folderem „czcionki” (wgrany plik; wbudowane tylko, gdy są użyte).
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.odznacz(); const o = e.dodajTekst('Drugi tekst'); o.set({ top: 80, fontFamily: 'Lora' }); e.canvas.discardActiveObject(); e.zatwierdz(); });
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="pdf"]');
+  await strona.waitForSelector('#dlg-pdf[open]');
+  await strona.selectOption('#form-pdf select[name=dpi]', '150');
+  await strona.check('#form-pdf input[name=czcionki]');
+  const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
+  assert.equal(plik.suggestedFilename(), 'Wlasne czcionki - PDF.zip');
+  const pliki = await strona.evaluate(async () => Object.keys((await window.JSZip.loadAsync(window.seriodruk.oknoPdf.ostatni.blob)).files).filter((n) => !n.endsWith('/')).sort());
+  assert.deepEqual(pliki, ['Wlasne czcionki.pdf', 'czcionki/LICENCJA czcionek wbudowanych.txt', 'czcionki/Odreczna-Bold.woff2', 'czcionki/lora-kursywa-400-700-latin-ext.woff2', 'czcionki/lora-kursywa-400-700-latin.woff2', 'czcionki/lora-prosta-400-700-latin-ext.woff2', 'czcionki/lora-prosta-400-700-latin.woff2']);
+
+  // Okno „Czcionki”: lista, poprawka nazwy rodziny (teksty idą za nią), usunięcie.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="czcionki"]');
+  await strona.waitForSelector('#dlg-czcionki[open]');
+  assert.equal(await strona.textContent('#czcionki-wlasne .opis'), 'Bold · Odreczna-Bold.woff2 · używana');
+  assert.match(await strona.textContent('#czcionki-wbudowane'), /^Inter, Open Sans, Montserrat, Lora, Merriweather, Playfair Display, Source Serif 4, Caveat\./);
+  await strona.fill('#czcionki-wlasne input[data-rodzina]', 'Pismo odręczne');
+  await strona.press('#czcionki-wlasne input[data-rodzina]', 'Tab');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty[0].fontFamily === 'Pismo odręczne');
+  await strona.waitForFunction(() => [...document.fonts].some((f) => /Pismo/.test(f.family)));
+  assert.deepEqual(await strona.evaluate(() => [...document.fonts].map((f) => f.family.replace(/"/g, '')).filter((n) => /odr/i.test(n))), ['Pismo odręczne']);
+  await strona.click('#czcionki-wlasne [data-usun]');
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki.length === 0);
+  const poUsunieciu = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return [Object.keys(p.zasoby).length, p.strony[0].obiekty[0].fontFamily]; });
+  assert.deepEqual(poUsunieciu, [0, 'Pismo odręczne'], 'plik znika z projektu; tekst zostaje z nazwą czcionki i pokazuje się zastępczą');
+  assert.ok(await strona.isVisible('#czcionki-pusto'));
+  assert.deepEqual(bledy, []);
+});
+
+test('własna czcionka w pliku projektu: po eksporcie i imporcie czcionka wraca razem z projektem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Z czcionką');
+  const wynik = await strona.evaluate(async (b64) => {
+    const { stan, zapiszTeraz } = window.seriodruk;
+    const { dodajCzcionkiDoProjektu, zarejestrujCzcionkiProjektu } = await import('./js/czcionki.js');
+    const { zapiszPlikProjektu, wczytajPlikProjektu } = await import('./js/plik-projektu.js');
+    const { uid, normalizuj } = await import('./js/projekt.js');
+    const plik = new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], 'Moja Ozdobna-Italic.woff2', { type: 'font/woff2' });
+    await dodajCzcionkiDoProjektu(stan.projekt, [plik], uid);
+    await zapiszTeraz();
+    const zapisany = await zapiszPlikProjektu(stan.projekt, null);
+    const blob = zapisany instanceof Blob ? zapisany : zapisany.blob || zapisany;
+    const wczytany = normalizuj(await wczytajPlikProjektu(new File([blob], 'x.seriodruk')));
+    // „Nowa sesja”: przeglądarka nie zna czcionki, dopóki projekt jej nie zarejestruje.
+    stan.projekt.czcionki = [];
+    await zarejestrujCzcionkiProjektu(stan.projekt);
+    const jest = () => [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Moja Ozdobna' && f.style === 'italic');
+    const przed = jest();
+    const bledy = await zarejestrujCzcionkiProjektu(wczytany);
+    const c = wczytany.czcionki[0];
+    return { przed, po: jest(), bledy, wpis: [c.rodzina, c.waga, c.kursywa], typ: wczytany.zasoby[c.id].dataUrl.slice(0, 15), nazwa: wczytany.zasoby[c.id].nazwa };
+  }, PLIK_CZCIONKI.toString('base64'));
+  assert.equal(wynik.przed, false);
+  assert.equal(wynik.po, true);
+  assert.deepEqual(wynik.bledy, []);
+  assert.deepEqual(wynik.wpis, ['Moja Ozdobna', 400, true]);
+  assert.equal(wynik.typ, 'data:font/woff2');
+  assert.equal(wynik.nazwa, 'Moja Ozdobna-Italic.woff2');
+  assert.deepEqual(bledy, []);
+});

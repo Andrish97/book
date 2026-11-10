@@ -10,6 +10,7 @@ import { renderujCel } from './zlozenie.js';
 import { rozwin } from './serie.js';
 import { biblioteka } from './biblioteki.js';
 import { bezpiecznaNazwa } from './ui.js';
+import { uzyteCzcionki, CZCIONKI } from './czcionki.js';
 
 const PDFLIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
 const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
@@ -131,7 +132,32 @@ export async function zlozPdf(projekt, egzemplarze, { dpi = 300, spad = true, zn
   return new Blob([await pdf.save()], { type: 'application/pdf' });
 }
 
-// Cały eksport: zwraca { nazwa, blob } – jeden PDF albo ZIP z kilkoma plikami PDF.
+// Pliki czcionek użytych w tekstach projektu: [{ nazwa, blob }]. Własne czcionki idą jako
+// wgrane pliki; wbudowane – jako pliki WOFF2 z aplikacji, razem z ich licencją.
+export async function plikiCzcionek(projekt) {
+  const uzyte = uzyteCzcionki(projekt);
+  const pliki = [];
+  for (const c of projekt.czcionki || []) {
+    const zasob = projekt.zasoby[c.id];
+    if (!uzyte.has(c.rodzina) || !zasob?.dataUrl) continue;
+    pliki.push({ nazwa: zasob.nazwa, blob: await (await fetch(zasob.dataUrl)).blob() });
+  }
+  const wlasne = new Set((projekt.czcionki || []).map((c) => c.rodzina));
+  const wbudowane = CZCIONKI.map((c) => c.nazwa).filter((n) => uzyte.has(n) && !wlasne.has(n));
+  if (wbudowane.length) {
+    const css = await (await fetch('css/czcionki.css')).text();
+    for (const [, rodzina, plik] of css.matchAll(/font-family: "([^"]+)";[^}]*?url\("czcionki\/([^"]+)"\)/g)) {
+      if (!wbudowane.includes(rodzina)) continue;
+      const odp = await fetch(`css/czcionki/${plik}`);
+      if (odp.ok) pliki.push({ nazwa: plik, blob: await odp.blob() });
+    }
+    const licencja = await fetch('css/czcionki/LICENCJA.txt');
+    if (licencja.ok) pliki.push({ nazwa: 'LICENCJA czcionek wbudowanych.txt', blob: await licencja.blob() });
+  }
+  return pliki;
+}
+
+// Cały eksport: zwraca { nazwa, blob } – jeden PDF albo ZIP (kilka plików PDF, pliki czcionek).
 export async function eksportujPdf(projekt, opcje = {}) {
   const ciag = rozwin(projekt);
   const pliki = planPlikow(projekt, wybierzEgzemplarze(ciag, opcje), opcje);
@@ -144,9 +170,11 @@ export async function eksportujPdf(projekt, opcje = {}) {
     const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
     wyniki.push({ nazwa: p.nazwa, blob });
   }
-  if (wyniki.length === 1) return wyniki[0];
+  const czcionki = opcje.dolaczCzcionki ? await plikiCzcionek(projekt) : [];
+  if (wyniki.length === 1 && !czcionki.length) return wyniki[0];
   const JSZip = await biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
   const zip = new JSZip();
   for (const w of wyniki) zip.file(w.nazwa, w.blob, { compression: 'STORE' });
+  for (const c of czcionki) zip.file(`czcionki/${c.nazwa}`, c.blob, { compression: 'STORE' });
   return { nazwa: `${bezpiecznaNazwa(projekt.nazwa)} - PDF.zip`, blob: await zip.generateAsync({ type: 'blob' }) };
 }

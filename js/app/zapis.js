@@ -9,6 +9,7 @@ import * as chmura from '../chmura.js';
 import { ikona } from '../ikony.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
+import { zarejestrujCzcionkiProjektu } from '../czcionki.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw } from './skladniki.js';
@@ -129,6 +130,9 @@ export async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
   naPlotnie = null;
   stan.projekt = normalizuj(p);
+  // Własne czcionki muszą być gotowe, zanim tekst zostanie zmierzony na płótnie.
+  const zleCzcionki = await zarejestrujCzcionkiProjektu(stan.projekt);
+  if (zleCzcionki.length) powiadom(`Nie udało się wczytać czcionek: ${zleCzcionki.join(', ')}.`, true);
   stan.indeks = Math.max(0, stan.projekt.strony.findIndex((x) => x.id === cel.strona));
   const wzorzec = cel.wzorzec && stan.projekt.wzorce.find((w) => w.id === cel.wzorzec);
   stan.tryb = wzorzec ? 'wzorzec' : 'strona';

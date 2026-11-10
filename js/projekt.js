@@ -154,6 +154,9 @@ export function normalizuj(p) {
   if (!Array.isArray(p.strony)) throw new Error('Brak listy stron w projekcie.');
   const wynik = { ...nowyProjekt(p.nazwa || 'Projekt'), ...p };
   wynik.zasoby = p.zasoby || {};
+  // Własne czcionki: opis plików czcionek leżących w zasobach (js/czcionki.js).
+  wynik.czcionki = (Array.isArray(p.czcionki) ? p.czcionki : []).filter((c) => c?.id && c.rodzina && wynik.zasoby[c.id])
+    .map((c) => ({ id: c.id, rodzina: String(c.rodzina), waga: Number.isFinite(c.waga) ? c.waga : 400, kursywa: Boolean(c.kursywa) }));
   for (const klucz of ['tabele', 'serie', 'style']) {
     if (!Array.isArray(wynik[klucz])) wynik[klucz] = [];
   }

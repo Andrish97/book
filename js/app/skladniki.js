@@ -7,6 +7,8 @@ import { Dane } from '../dane.js';
 import { PanelWarstw } from '../warstwy.js';
 import { PanelWlasciwosci } from '../wlasciwosci.js';
 import { Instrukcja } from '../instrukcja.js';
+import { OknoCzcionek } from '../okno-czcionek.js';
+import { rodzinyCzcionek } from '../czcionki.js';
 import { $, powiadom } from '../ui.js';
 import { Podglad } from '../podglad.js';
 import { odepnijStyl, zastosujStylWProjekcie } from '../style-tekstu.js';
@@ -26,6 +28,8 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
     sekcja.append(p.przelacznik('Nad treścią strony (domyślnie pod)', () => obj.warstwa === 'nad', (v) => { obj.warstwa = v ? 'nad' : undefined; }));
   },
   style: () => stan.projekt?.style || [],
+  czcionki: () => { const { wlasne, wbudowane } = rodzinyCzcionek(stan.projekt); return [...wlasne, ...wbudowane]; },
+  wgrajCzcionke: () => oknoCzcionek.wybierzPliki(),
   pola: () => polaDoWstawienia(),
   kolumnyObrazu: () => (stan.tryb === 'strona' ? tabelaStrony(biezacaStrona())?.kolumny : stan.projekt.tabele.flatMap((t) => t.kolumny)) || [],
   wgrajObrazy: () => $('#pliki-zasoby').click(),
@@ -51,6 +55,29 @@ async function poZmianieStyli(zmiana) {
 }
 
 // Siatka, przyciąganie, linijki – ustawienia projektu zmieniane z menu przy płótnie.
+// Własne czcionki projektu. Po zmianie strona wczytuje się od nowa (tekst trzeba zmierzyć nową czcionką),
+// a zaznaczony tekst dostaje właśnie wgraną czcionkę.
+export const oknoCzcionek = new OknoCzcionek({
+  projekt: () => stan.projekt,
+  przedZmiana: () => zapiszBiezacyCel(),
+  poZmianie: async (rodzina) => {
+    const zaznaczony = edytor.aktywny?.type === 'textbox' ? edytor.aktywny.id : null;
+    if (zaznaczony && rodzina) {
+      const { projekt } = stan;
+      const znajdz = (obiekty) => { for (const o of obiekty || []) { if (o.id === zaznaczony) return o; const w = znajdz(o.objects); if (w) return w; } return null; };
+      const o = [...projekt.strony, ...projekt.wzorce].map((c) => znajdz(c.obiekty)).find(Boolean);
+      if (o) o.fontFamily = rodzina;
+    }
+    odlaczPlotno();
+    stan.miniatury.clear();
+    await zaladujCel();
+    if (zaznaczony) edytor.zaznacz(zaznaczony);
+    panel.zbuduj();
+    generujMiniatury();
+    zaplanujZapis();
+  },
+});
+
 export const linijki = new Linijki(edytor, $('#obszar-roboczy'));
 export const panelWarstw = new PanelWarstw($('#lista-warstw'), edytor);
 export const menuWidoku = new MenuWidoku({

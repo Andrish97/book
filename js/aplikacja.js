@@ -44,7 +44,7 @@ import {
 } from './app/podglad-ekran.js';
 import { NAZWY_POL_DOKUMENTU, tabeleStrony } from './app/panel-strony.js';
 import { polePoTabelach } from './serie.js';
-import { panel, instrukcja, podglad, dane, menuWidoku } from './app/skladniki.js';
+import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek } from './app/skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
   wzorzecZMenu, ustawZakladke, generujMiniatury, przeniesStrone, przejdzDoStrony,
@@ -186,6 +186,7 @@ const akcje = {
   'podglad-prezentacja': () => podglad.prezentuj(),
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); oknoPdf.otworz(); },
+  czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
   wydruk: () => otworzUstawieniaSekcji(biezacaSekcja().id),
   'zamknij-panel': () => ustawPanel(''),
   'obroc-format': () => {
@@ -525,7 +526,7 @@ start().catch((e) => {
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
-  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane, oknoPdf,
+  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane, oknoPdf, oknoCzcionek,
   // Wczytuje otwartą stronę od nowa z projektu, porzucając to, co jest na płótnie (do testów).
   przeladuj: async () => { odlaczPlotno(); await zaladujCel(); },
 };

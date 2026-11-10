@@ -1,6 +1,6 @@
 # Uzasadnienie – funkcja po funkcji
 
-Stan na 10 listopada 2026 (decyzje do #48 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
+Stan na 10 listopada 2026 (decyzje do #49 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
 
 Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ nie zrobione / do poprawy.
 
@@ -150,10 +150,11 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Dlaczego tak.** Krok historii to stan całego projektu, ale strony, które się nie zmieniły, nie są kopiowane – kolejne kroki dzielą ten sam zapis. 80 kroków w projekcie na 300 stron zajmuje więc niewiele więcej niż sam projekt. Osobne historie stron i osobne „cofnij usunięcie” z poprzedniej rundy zniknęły: jedna reguła zamiast trzech.
 **Słabe.** Historia kończy się z zamknięciem projektu. Zmiany w oknie danych łączą się w jeden krok na jedno otwarcie okna.
 
-### D7. Czcionki ✅
-**Co jest.** 8 rodzin na licencji OFL, teraz jako pliki w repozytorium (`css/czcionki/`, 1,5 MB, znaki łacińskie z polskimi). Aplikacja nie łączy się z serwerami Google.
-**Dlaczego tak.** Wydruk nie może zależeć od tego, czy cudzy serwer działa i czy nie podmienił pliku czcionki na nowszą wersję o innych szerokościach liter – wtedy tekst w gotowym projekcie zawinąłby się inaczej. Pliki pobiera skrypt `scripts/pobierz-czcionki.cjs`; dodanie czcionki to dopisanie jej w dwóch miejscach i uruchomienie skryptu.
-**Słabe.** Lista czcionek jest zamknięta – nie da się wgrać własnej.
+### D7. Czcionki: własne pliki i osiem wbudowanych ✅ / ⚠️
+**Co jest (decyzja #49).** Czcionki to lista plików. Do projektu wgrywasz własne pliki TTF, OTF, WOFF albo WOFF2 (z listy czcionek w panelu tekstu albo z menu ⋯ → „Czcionki projektu”); aplikacja czyta z pliku nazwę rodziny, wagę i kursywę, a przy WOFF2 zgaduje je z nazwy pliku – nazwę rodziny można poprawić. Plik czcionki jest zasobem projektu, tak jak obraz: jedzie z nim na konto i do pliku `.seriodruk`. Obok jest osiem czcionek wbudowanych (Inter, Open Sans, Montserrat, Lora, Merriweather, Playfair Display, Source Serif 4, Caveat) – pliki w repozytorium, licencja OFL.
+**Dlaczego tak.** Zapytałeś, skąd wzięły się te czcionki i czy nie lepiej mieć po prostu listę plików. Osiem wbudowanych to mój wybór na start: popularne, darmowe także w druku komercyjnym, z polskimi znakami. Do prawdziwej pracy potrzebne są Twoje – stąd wgrywanie plików. Czcionka w projekcie, a nie na koncie, bo projekt musi dać się otworzyć z pliku na innym komputerze i wyglądać tak samo.
+**Eksport.** Tekst w PDF jest spłaszczony (część obrazu strony), więc czcionki nie są drukarni potrzebne. Opcja „Dołącz pliki czcionek” dodaje je do archiwum obok PDF.
+**Słabe.** Wgrana czcionka jest dostępna w jednym projekcie – do drugiego trzeba ją wgrać jeszcze raz (albo zduplikować projekt). PDF nie ma osadzonych czcionek i tekstu jako tekstu – to część większej pracy „PDF wektorowy” (I1). Wbudowanych nie da się wyłączyć z listy.
 
 ### D8. Kształty, gradienty, cienie ✅ / ⚠️
 **Co jest.** Wielokąt foremny i gwiazda (liczba boków we właściwościach), wypełnienie przejściem dwóch kolorów w trzech kierunkach, cień z przesunięciem i rozmyciem w mm. Panel warstw i linijki są w D11 i D14, zwijane sekcje panelu w D9.

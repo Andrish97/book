@@ -216,7 +216,12 @@ export class PanelWlasciwosci {
     s.append(fragment);
 
     this._czcionkiWLiscie = true;
-    const czcionka = this.wybor('Czcionka', CZCIONKI.map((c) => [c.nazwa, c.nazwa]), () => czytaj('fontFamily'), (v) => ustaw({ fontFamily: v }));
+    // Własne czcionki projektu, potem wbudowane; ostatnia pozycja wgrywa nowe pliki.
+    const rodziny = this.opcje.czcionki?.() || CZCIONKI.map((c) => c.nazwa);
+    const czcionka = this.wybor('Czcionka', [...rodziny.map((n) => [n, n]), ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
+      if (v === '+') { this.opcje.wgrajCzcionke(); return; }
+      ustaw({ fontFamily: v });
+    });
     this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
     s.append(czcionka);
@@ -691,7 +696,7 @@ export class PanelWlasciwosci {
       const o = document.createElement('option');
       o.value = wartosc;
       o.textContent = opis;
-      if (this._czcionkiWLiscie) o.style.fontFamily = `"${wartosc}"`;
+      if (this._czcionkiWLiscie && wartosc !== '+') o.style.fontFamily = `"${wartosc}"`;
       sel.append(o);
     }
     const zapisz = this._zapisz(set);

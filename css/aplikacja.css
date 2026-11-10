@@ -747,6 +747,13 @@ dialog h2 { font-size: 19px; }
 .wiersz-dodatkowej .pole.waskie { flex: 0 1 132px; }
 @media (max-width: 640px) { .wiersz-dodatkowej { flex-wrap: wrap; } .wiersz-dodatkowej .pole { flex: 1 1 100%; } .wiersz-dodatkowej .pole.waskie { flex: 1 1 40%; } }
 .formularz .rzad-przyciskow { display: flex; gap: 8px; flex-wrap: wrap; }
+.lista-czcionek { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.lista-czcionek li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; grid-template-areas: "probka rodzina usun" "opis opis usun"; gap: 4px 12px; align-items: end; padding: 10px 12px; border: 1px solid var(--linia); border-radius: var(--r-s); }
+.lista-czcionek .probka { grid-area: probka; font-size: 20px; line-height: 1.3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; align-self: center; }
+.lista-czcionek .pole { grid-area: rodzina; }
+.lista-czcionek .opis { grid-area: opis; font-size: 12px; color: var(--cichy); }
+.lista-czcionek [data-usun] { grid-area: usun; align-self: center; }
+@media (max-width: 640px) { .lista-czcionek li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "probka usun" "rodzina usun" "opis opis"; } }
 .uwagi-druku { border: 1px solid var(--linia-mocna); border-radius: var(--r-s); padding: 8px 12px; font-size: 13px; }
 .uwagi-druku summary { cursor: pointer; font-weight: 600; }
 .uwagi-druku ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow: auto; }

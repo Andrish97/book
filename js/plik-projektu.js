@@ -22,6 +22,7 @@ const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min
 const jszip = () => biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
 
 const ROZSZERZENIA = {
+  'font/ttf': 'ttf', 'font/otf': 'otf', 'font/woff': 'woff', 'font/woff2': 'woff2',
   'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'image/gif': 'gif',
 };
 const TYPY = Object.fromEntries(Object.entries(ROZSZERZENIA).map(([t, r]) => [r, t]));

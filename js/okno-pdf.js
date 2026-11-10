@@ -58,6 +58,7 @@ export class OknoPdf {
       znaki: e.druk.value === 'drukarnia' ? 'sekcje' : false,
       podzial: e.podzial.value,
       ileStron: Number(e.ile.value),
+      dolaczCzcionki: e.czcionki.checked,
     };
   }
 
