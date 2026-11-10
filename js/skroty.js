@@ -14,7 +14,8 @@ export const SKROTY = [
   { grupa: 'Edycja', klawisze: ['Ctrl+Shift+KeyZ', 'Ctrl+KeyY'], opis: 'Ponów', akcja: (k) => k.ponow() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyC'], opis: 'Kopiuj', zaznaczenie: true, akcja: (k) => k.edytor.kopiuj() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyX'], opis: 'Wytnij', zaznaczenie: true, akcja: (k) => k.edytor.wytnij() },
-  { grupa: 'Edycja', klawisze: ['Ctrl+KeyV'], opis: 'Wklej (na innej stronie – w to samo miejsce)', kiedy: (k) => k.edytor.maSchowek, akcja: (k) => k.edytor.wklej() },
+  // Wklejanie obsługuje zdarzenie „paste” przeglądarki (aplikacja.js) – tylko ono widzi schowek systemu.
+  { grupa: 'Edycja', klawisze: ['Ctrl+KeyV'], opis: 'Wklej: element skopiowany w aplikacji (na innej stronie – w to samo miejsce) albo obraz ze schowka systemu – zrzut ekranu, skopiowany plik, kod SVG', systemowe: true },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyD'], opis: 'Duplikuj', zaznaczenie: true, akcja: (k) => k.edytor.duplikuj() },
   { grupa: 'Edycja', klawisze: ['Delete', 'Backspace'], opis: 'Usuń', zaznaczenie: true, akcja: (k) => k.edytor.usun() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyS'], opis: 'Zapisz od razu (zapis i tak jest automatyczny)', zawsze: true, akcja: (k) => k.zapisz() },
@@ -109,7 +110,7 @@ for (const s of SKROTY) for (const kl of s.klawisze || []) MAPA.set(kl, s);
 // formularza albo w edytowanym tekście na płótnie. Zwraca true, gdy skrót zadziałał.
 export function obsluzKlawisz(e, k, { wPolu, wEdycji }) {
   const skrot = MAPA.get(kombinacja(e));
-  if (!skrot) return false;
+  if (!skrot || skrot.systemowe) return false;
   if (!skrot.zawsze) {
     if (wPolu) return false;
     if (wEdycji && !skrot.tekst) return false;

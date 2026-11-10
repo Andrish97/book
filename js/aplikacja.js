@@ -19,6 +19,7 @@
 import { uid } from './projekt.js';
 import { opisObiektu } from './edytor.js';
 import { pngCelu } from './eksport.js';
+import { obrazyZeSchowka, uporzadkujPlikSvg } from './wklejanie.js';
 import { OknoPdf } from './okno-pdf.js';
 import { obsluzKlawisz } from './skroty.js';
 import { zaladujCzcionki } from './czcionki.js';
@@ -122,7 +123,9 @@ async function wstawObraz(plik) {
     return;
   }
   try {
-    const dataUrl = await chmura.blobNaDataUrl(plik);
+    // Plik SVG bez podanego rozmiaru (sam viewBox) przeglądarka wczytałaby jako obraz o zerowych wymiarach.
+    const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
+    const dataUrl = await chmura.blobNaDataUrl(gotowy);
     await edytor.dodajObraz(dataUrl, plik.name, stan.projekt.zasoby);
   } catch (e) {
     powiadom(e.message, true);
@@ -398,6 +401,20 @@ document.addEventListener('keydown', (e) => {
   obsluzKlawisz(e, kontekstSkrotow, { wPolu, wEdycji });
 });
 document.addEventListener('keyup', (e) => { if (e.code === 'Space') edytor.ustawReke(false); });
+
+// Wklejanie (Ctrl+V): obraz ze schowka systemu – zrzut ekranu, skopiowany plik albo kod SVG –
+// a gdy go tam nie ma, element skopiowany wcześniej w aplikacji.
+document.addEventListener('paste', async (e) => {
+  if (document.body.dataset.ekran !== 'edytor' || $('dialog[open]') || !stan.projekt) return;
+  const cel = e.target;
+  if (cel instanceof Element && cel.closest('input, textarea, select, [contenteditable]')) return; // także tekst edytowany na stronie
+  if (edytor.aktywny?.isEditing || edytor.kadruje) return;
+  const obrazy = obrazyZeSchowka(e.clipboardData);
+  if (!obrazy.length && !edytor.maSchowek) return;
+  e.preventDefault();
+  if (obrazy.length) for (const plik of obrazy) await wstawObraz(plik);
+  else edytor.wklej();
+});
 window.addEventListener('blur', () => edytor.ustawReke(false));
 
 // Dokument nie ma się przewijać (ekrany przewijają się w środku). Przeglądarka

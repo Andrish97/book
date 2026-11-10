@@ -1,6 +1,6 @@
 # Uzasadnienie – funkcja po funkcji
 
-Stan na 10 listopada 2026 (decyzje do #45 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
+Stan na 10 listopada 2026 (decyzje do #46 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
 
 Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ nie zrobione / do poprawy.
 
@@ -142,7 +142,8 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 ### D5. Obrazy ✅ / ⚠️
 **Co jest.** Obraz jest zasobem projektu; strona na niego wskazuje. Kadrowanie przeciąganiem i liczbami. **Nowe:** duże zdjęcia (dłuższy bok ponad 2000 px) pokazują się w edytorze, miniaturach i podglądzie jako lżejsza kopia robocza (1600 px); do PDF i PNG idzie oryginał (`js/obrazy.js`).
 **Dlaczego tak.** Kopia istnieje tylko w pamięci przeglądarki – nie jest zapisywana ani wysyłana, więc nie ma dwóch plików do pilnowania. Wymiary i przycięcie obrazu na stronie są zawsze liczone w pikselach oryginału, dlatego projekt wygląda identycznie z kopią i bez niej, a eksport po prostu podmienia źródło.
-**Słabe.** Oryginały nadal siedzą w pamięci karty (jako dane projektu) – kopie przyspieszają rysowanie, ale nie zmniejszają zużycia pamięci przy setkach zdjęć. Obróconego albo odbitego obrazu nie kadruje się ramką, tylko liczbami.
+**Wklejanie (decyzja #46).** Ctrl+V wstawia obraz ze schowka systemu: zrzut ekranu, obraz skopiowany ze strony albo z programu graficznego, plik z menedżera plików, kod SVG skopiowany jako tekst (`js/wklejanie.js`). SVG jest porządkowany przed wstawieniem: dostaje rozmiar z `viewBox`, gdy go nie ma (inaczej przeglądarka wczytałaby obraz o zerowych wymiarach), traci skrypty, a mała ikona dostaje większy rozmiar bazowy, żeby nie wyszła rozmyta. Zostaje wektorem – jest ostry w każdym powiększeniu i w PDF. Skopiowanie elementu w aplikacji wpisuje do schowka systemu jego tekst albo nazwę, więc Ctrl+V zawsze wkleja to, co skopiowano ostatnio.
+**Słabe.** SVG jest wstawiany jako jeden obraz: nie da się zmienić koloru jego części ani rozbić go na kształty. Oryginały nadal siedzą w pamięci karty (jako dane projektu) – kopie przyspieszają rysowanie, ale nie zmniejszają zużycia pamięci przy setkach zdjęć. Obróconego albo odbitego obrazu nie kadruje się ramką, tylko liczbami.
 
 ### D6. Cofanie ✅
 **Co jest.** Jedna historia dla całego projektu (`js/historia.js`), 80 kroków: zmiany na stronach i wzorcach, dodawanie, usuwanie i przesuwanie stron, sekcje, style, tabele, serie, ustawienia widoku. Po cofnięciu edytor otwiera stronę albo wzorzec, którego dotyczyła zmiana.

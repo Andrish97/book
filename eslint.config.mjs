@@ -5,7 +5,7 @@ const PRZEGLADARKA = [
   'fetch', 'URL', 'URLSearchParams', 'Blob', 'File', 'FileReader', 'Image', 'Event', 'CustomEvent', 'EventTarget',
   'crypto', 'console', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'requestAnimationFrame',
   'cancelAnimationFrame', 'ResizeObserver', 'MutationObserver', 'IntersectionObserver', 'structuredClone', 'TextDecoder', 'TextEncoder', 'Option', 'matchMedia',
-  'getComputedStyle', 'performance', 'caches', 'self', 'HTMLElement', 'AbortController', 'launchQueue', 'btoa', 'atob',
+  'getComputedStyle', 'performance', 'caches', 'self', 'HTMLElement', 'Element', 'DOMParser', 'XMLSerializer', 'AbortController', 'launchQueue', 'btoa', 'atob',
   'fabric',
 ];
 
