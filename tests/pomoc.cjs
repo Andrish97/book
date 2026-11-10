@@ -242,7 +242,9 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
 // Otwiera aplikację. tryb: 'lokalny' (bez bazy, „Pracuj bez konta”) albo 'atrapa'.
 async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = { width: 1280, height: 800 }, sciezka = '' } = {}) {
   const serwer = await uruchomSerwer();
-  const przegladarka = await chromium.launch();
+  // Bez „dociągania” liter do pikseli: tekst rysuje się tak samo na każdym komputerze, a testy porównujące
+  // obrazy (PDF, podgląd) nie zależą od ustawień czcionek systemu, na którym biegną.
+  const przegladarka = await chromium.launch({ args: ['--font-render-hinting=none'] });
   const kontekst = await przegladarka.newContext({
     // telefon: true – telefon trzymany poziomo (tak pracuje edytor); 'pion' – pionowo.
     ...(telefon ? devices[telefon === 'pion' ? 'Pixel 7' : 'Pixel 7 landscape'] : { viewport: widok }),
