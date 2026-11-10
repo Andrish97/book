@@ -269,10 +269,15 @@ test('zestaw czcionek: pliki pobierają się dopiero przy użyciu; pogrubienie i
   assert.deepEqual(await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return [o.fontFamily, o.fontWeight, o.fontStyle]; }), ['Pacifico', 'normal', 'normal']);
   assert.deepEqual(await przyciski(), [[true, 'Czcionka „Pacifico” nie ma odmiany pogrubionej'], [true, 'Czcionka „Pacifico” nie ma kursywy']]);
   assert.ok((await pobrane()).some((n) => n.startsWith('pacifico-')), 'pliki czcionki pobrane po wybraniu');
-  // Po doczytaniu plików tekst jest zmierzony właściwą czcionką (szerokość inna niż w zastępczej).
-  const szer = await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return o.__charBounds[0].slice(0, 5).map((b) => Math.round(b.width * 100)); });
-  const wzorzec = await strona.evaluate(() => { const c = document.createElement('canvas').getContext('2d'); const o = window.seriodruk.edytor.aktywny; c.font = `400px Pacifico`; return [...o.text.slice(0, 5)].map((z) => Math.round((c.measureText(z).width * o.fontSize / 400) * 100)); });
-  assert.deepEqual(szer, wzorzec);
+  // Po doczytaniu plików tekst jest zmierzony właściwą czcionką (dzieje się to chwilę po pobraniu).
+  await strona.waitForFunction(() => {
+    const o = window.seriodruk.edytor.aktywny;
+    const znaki = o.__charBounds?.[0];
+    if (!znaki || znaki.length < 5) return false;
+    const c = document.createElement('canvas').getContext('2d');
+    c.font = '400px Pacifico';
+    return [...o.text.slice(0, 5)].every((z, i) => Math.abs(znaki[i].width - (c.measureText(z).width * o.fontSize) / 400) < 0.02);
+  });
 
   // Czcionka z pogrubieniem, ale bez kursywy: wyszarzona tylko kursywa.
   await strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', 'Caveat');
