@@ -162,6 +162,14 @@ test('Napisy z rysunku SVG stają się ramkami tekstu: czcionka z zestawu zostaj
   n = await napisy();
   assert.deepEqual(n.map((x) => [x.tekst, x.czcionka]), [['Żółta łódź', 'Lora'], ['do prawej', 'Inter'], ['Od lewej, poprawione', 'Bebas Neue']]);
   blisko((n[0].lewo + n[0].prawo) / 2, 60, 0.15, 'środek pierwszego napisu po wczytaniu');
+  // W PDF wektorowym rozłożony rysunek to zwykłe kształty i prawdziwy tekst: nic nie idzie jako obraz ani jako krzywe.
+  const pdf = await strona.evaluate(async () => {
+    const { eksportujPdf } = await import('./js/eksport.js');
+    const w = await eksportujPdf(window.seriodruk.stan.projekt, { znaki: false, spad: true });
+    return { uwagi: w.uwagi, krzywe: w.krzywe, rozmiar: w.blob.size };
+  });
+  assert.deepEqual([pdf.uwagi, pdf.krzywe], [[], []]);
+  assert.ok(pdf.rozmiar > 2000);
   assert.deepEqual(bledy, []);
 });
 
