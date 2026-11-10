@@ -110,7 +110,8 @@ test('odległości: wyrównanie do innego elementu, strzałki z odległością, 
   let stan = await strona.evaluate(() => { const e = window.seriodruk.edytor; return { linie: e._liniePrzyciagania.map((l) => [l.os, Math.round(l.poz)]), pomiary: e._pomiary.map((m) => [m.os, Math.round(m.wartosc * 10) / 10]) }; });
   // a i c mają tę samą szerokość, więc pasują naraz lewe krawędzie, środki i prawe.
   assert.deepEqual(stan.linie.filter((l) => l[0] === 'x').map((l) => l[1]).sort((p, q) => p - q), [20, 30, 40]);
-  assert.deepEqual(stan.pomiary, [['y', 30]]); // odległość w pionie od a: 80 − 50
+  // W pionie odległość od a (80 − 50); w poziomie – do b, które leży po skosie (50 − 40).
+  assert.deepEqual(stan.pomiary, [['x', 10], ['y', 30]]);
   await strona.mouse.up();
   assert.deepEqual(await polozenie(strona, 'c'), [20, 80]);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor._pomiary.length), 0, 'po puszczeniu strzałki znikają');
@@ -292,5 +293,136 @@ test('warstwy: lista od wierzchu, zaznaczanie, ukrywanie, blokada, zmiana kolejn
   await strona.locator('#lista-warstw li:has-text("dół")').dragTo(strona.locator('#lista-warstw li:has-text("góra")'), { targetPosition: { x: 60, y: 4 } });
   assert.deepEqual(await lista(), ['dół', 'góra', 'środek']);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().map((o) => o.nazwa)), ['środek', 'góra', 'dół']);
+  assert.deepEqual(bledy, []);
+});
+
+test('zmiana rozmiaru uchwytem: krawędź staje na krawędzi sąsiada, prowadnicy i siatce; Ctrl wyłącza', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Rozmiar');
+  await prostokaty(strona, [['a', 20, 30, 30, 20], ['b', 80, 70, 30, 30]]);
+  const wymiary = (nazwa) => strona.evaluate((n) => { const o = window.seriodruk.edytor.canvas.getObjects().find((x) => x.nazwa === n); return [o.left, o.top, o.getScaledWidth(), o.getScaledHeight()].map((v) => Math.round(v * 100) / 100); }, nazwa);
+  const zaznacz = (nazwa) => strona.evaluate((n) => { const e = window.seriodruk.edytor; e.canvas.setActiveObject(e.canvas.getObjects().find((x) => x.nazwa === n)); e.canvas.requestRenderAll(); }, nazwa);
+
+  // Prawy środkowy uchwyt a (50, 40) ciągnięty w okolice lewej krawędzi b (80): szerokość 60, widać linię.
+  await zaznacz('a');
+  await przeciagnij(strona, [50, 40], [79.3, 40], { pusc: false });
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor._liniePrzyciagania.map((l) => [l.os, Math.round(l.poz)])), [['x', 80]]);
+  await strona.mouse.up();
+  assert.deepEqual(await wymiary('a'), [20, 30, 60, 20]);
+
+  // Dolny środkowy uchwyt (50, 50) w okolice górnej krawędzi b (70): wysokość 40, góra zostaje.
+  await przeciagnij(strona, [50, 50], [50, 70.6]);
+  assert.deepEqual(await wymiary('a'), [20, 30, 60, 40]);
+
+  // Lewy środkowy uchwyt (20, 50) do marginesu strony (10 mm): prawa krawędź zostaje na 80.
+  await przeciagnij(strona, [20, 50], [10.5, 50]);
+  assert.deepEqual(await wymiary('a'), [10, 30, 70, 40]);
+
+  // Z Ctrl krawędź nie jest przyciągana.
+  await przeciagnij(strona, [80, 50], [89.3, 50], { klawisz: 'Control' });
+  const bez = await wymiary('a');
+  assert.ok(Math.abs(bez[2] - 79.3) < 0.4 && Math.abs(bez[2] - 80) > 0.2, `bez przyciągania szerokość idzie za myszą (${bez[2]})`);
+
+  // Siatka co 5 mm: prawa krawędź b staje na linii siatki.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.ustawWidok({ siatka: true, siatka_mm: 5, do_siatki: true, do_elementow: false }); });
+  await zaznacz('b');
+  await przeciagnij(strona, [110, 85], [123.1, 85]);
+  assert.deepEqual(await wymiary('b'), [80, 70, 45, 30]);
+  assert.deepEqual(bledy, []);
+});
+
+test('pomiary (obliczenia): sąsiad po skosie z przedłużeniem krawędzi, obrócony element liczony kształtem', async (t) => {
+  const { strona } = await otworz(t);
+  const w = await strona.evaluate(async () => {
+    const { pomiary } = await import('./js/przyciaganie.js');
+    const r = { x: 50, y: 50, w: 20, h: 20 };
+    // Po skosie w prawo i w górę: nie ma wspólnego zakresu ani w pionie, ani w poziomie.
+    const skos = pomiary(r, [{ x: 100, y: 10, w: 20, h: 20 }]);
+    // Kwadrat 20×20 obrócony o 45° (romb) po prawej: prostokąt otaczający zaczyna się w x=100, ale na
+    // wysokości środka r (y=60) romb o środku (114,14; 74,14) zaczyna się dokładnie tam, gdzie jego lewy róg.
+    const s = 10 * Math.SQRT2;
+    const romb = { x: 100, y: 60 - s, w: 2 * s, h: 2 * s, wielokat: [{ x: 100 + s, y: 60 - s }, { x: 100 + 2 * s, y: 60 }, { x: 100 + s, y: 60 + s }, { x: 100, y: 60 }] };
+    const rombWyzej = { ...romb, y: romb.y - 8, wielokat: romb.wielokat.map((p) => ({ x: p.x, y: p.y - 8 })) };
+    const zaokr = (m) => [m.os, Math.round(m.od * 100) / 100, Math.round(m.do * 100) / 100, Math.round(m.wartosc * 100) / 100];
+    return { skos: skos.map((m) => [...zaokr(m), m.poprzek, m.dociagniecie]), romb: pomiary(r, [romb]).map(zaokr), rombWyzej: pomiary(r, [rombWyzej]).map(zaokr) };
+  });
+  assert.deepEqual(w.skos, [
+    ['x', 70, 100, 30, 60, { poz: 100, od: 30, do: 60 }],
+    ['y', 30, 50, 20, 60, { poz: 30, od: 60, do: 100 }],
+  ]);
+  // Romb na tej samej wysokości: 30 mm do jego lewego rogu.
+  assert.deepEqual(w.romb, [['x', 70, 100, 30]]);
+  // Romb przesunięty o 8 mm w górę: na wysokości pomiaru jego krawędź jest dalej niż prostokąt otaczający (100) – to ok. 5,7 mm różnicy.
+  assert.equal(w.rombWyzej[0][0], 'x');
+  assert.ok(w.rombWyzej[0][2] > 104 && w.rombWyzej[0][2] < 108, `krawędź rombu na wysokości pomiaru (${w.rombWyzej[0][2]})`);
+});
+
+test('prowadnice liczbą, warstwy z przyciskami kolejności i elementami wzorców, kadrowanie obróconego obrazu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Narzędzia B');
+  // Prowadnice: dodanie z panelu strony, wpisanie położenia, usunięcie.
+  await strona.click('.wlasciwosci button:has-text("Pionowa")');
+  await strona.fill('.wlasciwosci label:has-text("Pionowa") input', '42.5');
+  await strona.press('.wlasciwosci label:has-text("Pionowa") input', 'Tab');
+  await strona.click('.wlasciwosci button:has-text("Pozioma")');
+  const prowadnice = await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); return window.seriodruk.stan.projekt.strony[0].prowadnice; });
+  assert.deepEqual(prowadnice, { x: [42.5], y: [105] });
+  await strona.click('.wlasciwosci .usun-prowadnice >> nth=0');
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.prowadnice.map((p) => [p.os, p.poz])), [['y', 105]]);
+
+  // Wzorzec z elementem + trzy prostokąty na stronie.
+  await strona.evaluate(async () => {
+    const { stan, zapiszTeraz, przeladuj } = window.seriodruk;
+    await zapiszTeraz();
+    const p = stan.projekt;
+    p.wzorce.push({ id: 'wz1', nazwa: 'Stopka', wydruk: structuredClone(p.sekcje[0].wydruk), tlo: null, lustro: false, obiekty: [{ type: 'rect', version: '5.3.0', left: 10, top: 190, width: 128, height: 5, fill: '#cccccc', strokeWidth: 0, id: 'o_stopka', nazwa: 'Pasek stopki' }] });
+    p.sekcje[0].wzorce = ['wz1'];
+    await przeladuj();
+  });
+  await prostokaty(strona, [['a', 20, 30, 20, 20], ['b', 30, 40, 20, 20], ['c', 40, 50, 20, 20]]);
+  await strona.click('#zakladki-listy label:has-text("Warstwy")');
+  const lista = () => strona.locator('#lista-warstw li.warstwa:not(.ze-wzorca) .warstwa-nazwa').allTextContents();
+  assert.deepEqual(await lista(), ['c', 'b', 'a']);
+  // ▼ przy „c” przesuwa go o jedno miejsce w dół, ▲ przy „a” – w górę.
+  await strona.click('#lista-warstw li.warstwa:has-text("c") .warstwa-nizej');
+  assert.deepEqual(await lista(), ['b', 'c', 'a']);
+  await strona.click('#lista-warstw li.warstwa:has(.warstwa-nazwa:text-is("a")) .warstwa-wyzej');
+  assert.deepEqual(await lista(), ['b', 'a', 'c']);
+  // Element wzorca jest na liście w osobnej części; kliknięcie otwiera wzorzec.
+  assert.equal(await strona.textContent('#lista-warstw .warstwy-naglowek'), 'Ze wzorców (edycja we wzorcu)');
+  assert.equal(await strona.textContent('#lista-warstw li.ze-wzorca .warstwa-nazwa'), 'Pasek stopki');
+  assert.equal(await strona.textContent('#lista-warstw li.ze-wzorca small'), 'Stopka');
+  await strona.click('#lista-warstw li.ze-wzorca');
+  await strona.waitForFunction(() => window.seriodruk.stan.tryb === 'wzorzec' && window.seriodruk.stan.idWzorca === 'wz1');
+
+  // Kadrowanie obrazu obróconego o 90°: przycięta prawa połowa oryginału zostaje tam, gdzie była na stronie.
+  const kadr = await strona.evaluate(async () => {
+    await window.seriodruk.przejdzDoStrony(0);
+    const e = window.seriodruk.edytor;
+    e.canvas.getObjects().filter((o) => !o.zWzorca).forEach((o) => e.canvas.remove(o));
+    const c = document.createElement('canvas'); c.width = 200; c.height = 100;
+    const x = c.getContext('2d'); x.fillStyle = '#ff0000'; x.fillRect(0, 0, 100, 100); x.fillStyle = '#0000ff'; x.fillRect(100, 0, 100, 100);
+    const img = await e.dodajObraz(c.toDataURL('image/png'), 'dwa.png', window.seriodruk.stan.projekt.zasoby);
+    img.set({ scaleX: 0.4, scaleY: 0.4 }); // 80 × 40 mm
+    img.setPositionByOrigin(new fabric.Point(74, 100), 'center', 'center');
+    img.rotate(90); // teraz 40 × 80 mm; czerwona połowa u góry, niebieska u dołu
+    img.setCoords();
+    const przed = e.kadruj(img);
+    const wKadrze = [img.angle, Math.round(img.getCenterPoint().x), Math.round(img.getCenterPoint().y)];
+    // W wyprostowanym obrazie niebieska połowa jest po prawej: ramka = prawa połowa.
+    e.aktywny.set({ left: img.left + 40, width: 40 / (e.aktywny.scaleX || 1) });
+    e.aktywny.setCoords();
+    e.zakonczKadrowanie(true);
+    const s = img.getCenterPoint();
+    const r = img.getBoundingRect(true, true);
+    return { przed, wKadrze, kat: img.angle, crop: [img.cropX, img.cropY, img.width, img.height], srodek: [Math.round(s.x * 10) / 10, Math.round(s.y * 10) / 10], ramka: [r.left, r.top, r.width, r.height].map((v) => Math.round(v * 10) / 10) };
+  });
+  assert.equal(kadr.przed, true, 'obrócony obraz da się kadrować ramką');
+  assert.deepEqual(kadr.wKadrze, [0, 74, 100], 'na czas kadrowania obraz jest wyprostowany wokół środka');
+  assert.equal(kadr.kat, 90);
+  assert.deepEqual(kadr.crop, [100, 0, 100, 100]);
+  // Niebieska połowa była na dole obróconego obrazu: środek (74, 120), obszar 40 × 40 od (54, 100).
+  assert.deepEqual(kadr.srodek, [74, 120]);
+  assert.deepEqual(kadr.ramka, [54, 100, 40, 40]);
   assert.deepEqual(bledy, []);
 });

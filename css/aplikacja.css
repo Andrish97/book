@@ -528,7 +528,7 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 
 /* Warstwy */
 .lista-warstw { flex: 1; overflow: auto; list-style: none; margin: 0; padding: 4px 8px 12px; display: flex; flex-direction: column; gap: 1px; }
-.warstwa { display: grid; grid-template-columns: 28px 20px minmax(0, 1fr) 28px; align-items: center; gap: 4px; min-height: 34px; padding: 0 2px; border-radius: var(--r-s); cursor: pointer; border-top: 2px solid transparent; border-bottom: 2px solid transparent; }
+.warstwa { display: grid; grid-template-columns: 28px 20px minmax(0, 1fr) auto 28px; align-items: center; gap: 4px; min-height: 34px; padding: 0 2px; border-radius: var(--r-s); cursor: pointer; border-top: 2px solid transparent; border-bottom: 2px solid transparent; }
 .warstwa:hover { background: var(--wypelnienie); }
 .warstwa.zaznaczona { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
 .warstwa.ukryta .warstwa-nazwa, .warstwa.ukryta .warstwa-typ { opacity: .45; }
@@ -540,6 +540,12 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 .warstwa button:hover { background: var(--wypelnienie-hover); color: var(--tusz); }
 .warstwa:not(.zablokowana):not(:hover) .warstwa-klodka { opacity: 0; }
 .warstwa .warstwa-klodka:focus-visible { opacity: 1; }
+.warstwa-kolejnosc { display: flex; gap: 0; }
+.warstwa .warstwa-kolejnosc button { width: 22px; font-size: 10px; }
+@media (hover: hover) { .warstwa:not(:hover):not(:focus-within) .warstwa-kolejnosc { opacity: 0; } }
+.warstwa.ze-wzorca { grid-template-columns: 20px minmax(0, 1fr) auto; padding-left: 30px; color: var(--cichy); }
+.warstwa.ze-wzorca small { font-size: 11px; white-space: nowrap; }
+.warstwy-naglowek { margin: 10px 4px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--cichy); list-style: none; }
 
 /* Obszar roboczy */
 .obszar-roboczy { position: relative; min-width: 0; min-height: 0; display: flex; }
@@ -757,6 +763,7 @@ dialog h2 { font-size: 19px; }
 .lista-czcionek .opis { grid-area: opis; font-size: 12px; color: var(--cichy); }
 .lista-czcionek [data-usun] { grid-area: usun; align-self: center; }
 @media (max-width: 640px) { .lista-czcionek li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "probka usun" "rodzina usun" "opis opis"; } }
+.wlasciwosci .usun-prowadnice { flex: none; width: 28px; height: 28px; min-height: 0; font-size: 16px; }
 .lista-uwag { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: min(52vh, 420px); overflow: auto; }
 .lista-uwag li { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--linia); border-left: 3px solid var(--ostrzezenie, #d97706); border-radius: var(--r-s); font-size: 14px; }
 .lista-uwag li:empty { display: none; }

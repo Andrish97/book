@@ -178,6 +178,56 @@ export function generujMiniatury() {
   })().finally(() => { generowanie = null; });
 }
 
+// Miniatura z edytora pojawia się od razu, ale wycina stronę z płótna – w pasku spadu przy
+// grzbiecie i na stronach z danymi różni się od tej z podglądu. Dlatego chwilę po zmianie
+// miniatura jest rysowana jeszcze raz tym samym kodem co podgląd i PDF.
+let timerMiniatur = null;
+const doOdrysowania = new Set();
+export function odrysujMiniaturyWTle(ids) {
+  for (const id of ids || []) if (id) doOdrysowania.add(id);
+  clearTimeout(timerMiniatur);
+  timerMiniatur = setTimeout(async () => {
+    const projekt = stan.projekt;
+    if (!projekt) { doOdrysowania.clear(); return; }
+    const ciag = rozwin(projekt);
+    const kolejka = [...doOdrysowania];
+    doOdrysowania.clear();
+    for (const id of kolejka) {
+      const cel = projekt.strony.find((s) => s.id === id) || projekt.wzorce.find((w) => w.id === id);
+      if (!cel || stan.projekt !== projekt) continue;
+      const obraz = await renderujCel(projekt, cel, { szerokoscPx: 200, ciag });
+      if (stan.projekt !== projekt || doOdrysowania.has(id)) continue;
+      stan.miniatury.set(id, obraz);
+      odswiezMiniature(id);
+    }
+  }, 900);
+}
+
+// Sąsiedzi stron w rozkładówkach: Map(id strony → id strony obok). Do sprawdzenia po zmianie
+// kolejności, czy element leżący przez grzbiet nie trafił obok innej strony niż ta, do której pasował.
+export function sasiedziStron() {
+  const ciag = rozwin(stan.projekt);
+  return new Map(stan.projekt.strony.map((s) => [s.id, ciag.pierwszy.get(s.id)?.sasiad?.strona.id || null]));
+}
+
+export function ostrzezOGrzbiecie(przed) {
+  const { projekt } = stan;
+  const ciag = rozwin(projekt);
+  const zmienione = projekt.strony.filter((s) => {
+    const egz = ciag.pierwszy.get(s.id);
+    if (!egz?.bok || !przed.has(s.id)) return false;
+    const teraz = egz.sasiad?.strona.id || null;
+    if (teraz === przed.get(s.id)) return false;
+    const { szerokosc_mm: w, spad_mm: b } = egz.sekcja.wydruk;
+    // Element wystaje za grzbiet: lewa strona – za prawą krawędź, prawa – za lewą.
+    return s.obiekty.some((o) => {
+      const szer = (o.width || 0) * (o.scaleX ?? 1);
+      return egz.bok === 'lewa' ? (o.left || 0) + szer > w + b + 0.5 : (o.left || 0) < -b - 0.5;
+    });
+  });
+  if (zmienione.length) powiadom(`${zmienione.length === 1 ? `Strona „${zmienione[0].nazwa}” ma element` : `Strony ${zmienione.map((s) => `„${s.nazwa}”`).join(', ')} mają elementy`} przechodzące przez grzbiet, a obok leży teraz inna strona. Sprawdź, czy nadal do siebie pasują.`, true);
+}
+
 // ---------- Strony ----------
 
 export async function przejdzDoStrony(i) {
@@ -246,6 +296,7 @@ export async function przesunStrone(i, kierunek) {
   const j = i + kierunek;
   if (j < 0 || j >= strony.length || strony[j].sekcja !== strony[i].sekcja) return;
   zapiszBiezacyCel();
+  const sasiedziPrzed = sasiedziStron();
   const biezaca = biezacaStrona();
   [strony[i], strony[j]] = [strony[j], strony[i]];
   stan.indeks = strony.indexOf(biezaca);
@@ -255,6 +306,7 @@ export async function przesunStrone(i, kierunek) {
     stan.miniatury.clear();
     if (stan.tryb === 'strona') await zaladujCel();
   }
+  ostrzezOGrzbiecie(sasiedziPrzed);
   renderujListe();
   zaplanujZapis();
 }
@@ -262,6 +314,7 @@ export async function przesunStrone(i, kierunek) {
 export async function przeniesStroneDoSekcji(strona, idSekcji) {
   if (strona.sekcja === idSekcji) return;
   zapiszBiezacyCel();
+  const sasiedziPrzed = sasiedziStron();
   strona.sekcja = idSekcji;
   // Na koniec nowej sekcji.
   const strony = stan.projekt.strony;
@@ -271,6 +324,7 @@ export async function przeniesStroneDoSekcji(strona, idSekcji) {
   stan.indeks = strony.indexOf(strona);
   stan.miniatury.clear();
   await zaladujCel();
+  ostrzezOGrzbiecie(sasiedziPrzed);
   zaplanujZapis();
 }
 
@@ -345,6 +399,7 @@ export async function przeniesStrone(idStrony, idCelu, po) {
   const cel = projekt.strony.find((s) => s.id === idCelu);
   if (!strona || !cel || strona === cel) return;
   zapiszBiezacyCel();
+  const sasiedziPrzed = sasiedziStron();
   const biezaca = biezacaStrona();
   projekt.strony.splice(projekt.strony.indexOf(strona), 1);
   strona.sekcja = cel.sekcja;
@@ -354,5 +409,6 @@ export async function przeniesStrone(idStrony, idCelu, po) {
   stan.miniatury.clear();
   if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();
   generujMiniatury();
+  ostrzezOGrzbiecie(sasiedziPrzed);
   zaplanujZapis();
 }

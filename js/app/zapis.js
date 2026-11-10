@@ -14,7 +14,7 @@ import { zarejestrujCzcionkiProjektu } from '../czcionki.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw } from './skladniki.js';
-import { ustawZakladke, generujMiniatury, renderujListe, odswiezMiniature } from './lista-stron.js';
+import { ustawZakladke, generujMiniatury, renderujListe, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
 
 // ---------- Arkusz: strona albo cała rozkładówka na jednym płótnie ----------
 
@@ -215,6 +215,7 @@ export async function zapiszTeraz() {
   if (!stan.projekt) return stan.zapisywanie;
   zapiszBiezacyCel();
   for (const id of naPlotnie?.strony || [naPlotnie?.wzorzec]) odswiezMiniature(id);
+  odrysujMiniaturyWTle(naPlotnie?.strony || [naPlotnie?.wzorzec]);
   stan.projekt.zmieniono = new Date().toISOString();
   const projekt = stan.projekt;
   stan.zapisywanie = stan.zapisywanie.then(async () => {

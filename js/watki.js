@@ -146,7 +146,7 @@ export function odlaczRamke(r) {
 }
 
 // Właściwości tekstu wspólne dla całego wątku – tekst wygląda tak samo w każdej ramce.
-export const WSPOLNE_W_WATKU = ['fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl'];
+export const WSPOLNE_W_WATKU = ['fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl', 'wielkosc_liter'];
 
 // Kolejność czytania ramek: z góry na dół, a ramki leżące obok siebie – od lewej.
 export function kolejnoscCzytania(ramki) {

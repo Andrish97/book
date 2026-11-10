@@ -8,9 +8,11 @@ import { zapytajONazwe } from './ui.js';
 const IKONY_TYPOW = { textbox: 'tekst', rect: 'prostokat', ellipse: 'elipsa', line: 'linia', image: 'obraz', group: 'grupuj', polygon: 'wielokat' };
 
 export class PanelWarstw {
-  constructor(lista, edytor) {
+  // doWzorca(idWzorca) – otwiera wzorzec do edycji (kliknięcie elementu wzorca na liście).
+  constructor(lista, edytor, { doWzorca } = {}) {
     this.lista = lista;
     this.edytor = edytor;
+    lista.addEventListener('click', (e) => { const li = e.target.closest('li[data-wzorzec]'); if (li && doWzorca) doWzorca(li.dataset.wzorzec); });
     this.widoczny = false;
     for (const zdarzenie of ['zmiana', 'zaznaczenie', 'historia']) edytor.addEventListener(zdarzenie, () => this.odswiez());
 
@@ -19,6 +21,8 @@ export class PanelWarstw {
       if (!li) return;
       const { id } = li.dataset;
       if (e.target.closest('.warstwa-oko')) { edytor.ustawWidocznosc(id, li.classList.contains('ukryta')); return; }
+      const kolejnosc = e.target.closest('.warstwa-wyzej, .warstwa-nizej');
+      if (kolejnosc) { edytor.przesunWarstwe(id, kolejnosc.classList.contains('warstwa-wyzej') ? 1 : -1); return; }
       if (e.target.closest('.warstwa-klodka')) {
         edytor.zaznacz(id);
         if (edytor.aktywny?.id === id) edytor.przelaczBlokade();
@@ -28,7 +32,7 @@ export class PanelWarstw {
     });
     lista.addEventListener('dblclick', async (e) => {
       const li = e.target.closest('li[data-id]');
-      if (!li || e.target.closest('button.warstwa-oko, button.warstwa-klodka')) return;
+      if (!li || e.target.closest('button')) return;
       const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', li.querySelector('.warstwa-nazwa').textContent);
       if (nazwa) edytor.nazwij(li.dataset.id, nazwa);
     });
@@ -76,8 +80,9 @@ export class PanelWarstw {
   odswiez() {
     if (!this.widoczny || !this.edytor.wydruk) return;
     const warstwy = this.edytor.warstwy();
+    const zeWzorcow = this.edytor.warstwyZeWzorcow();
     this.lista.replaceChildren();
-    if (!warstwy.length) {
+    if (!warstwy.length && !zeWzorcow.length) {
       const li = document.createElement('li');
       li.className = 'pusto-wzorce';
       li.innerHTML = '<strong>Pusta strona</strong><p>Tu pojawi się lista elementów strony, od wierzchu do spodu.</p>';
@@ -92,10 +97,28 @@ export class PanelWarstw {
       li.innerHTML = `<button class="warstwa-oko" aria-label="${w.ukryty ? 'Pokaż' : 'Ukryj'}" title="${w.ukryty ? 'Pokaż' : 'Ukryj (nie będzie drukowany)'}">${ikona(w.ukryty ? 'okoOff' : 'oko', { rozmiar: 16 })}</button>
         <span class="warstwa-typ">${ikona(IKONY_TYPOW[w.typ] || 'prostokat', { rozmiar: 16 })}</span>
         <span class="warstwa-nazwa"></span>
+        <span class="warstwa-kolejnosc"><button class="warstwa-wyzej" aria-label="Wyżej" title="Wyżej (bliżej wierzchu)">▲</button><button class="warstwa-nizej" aria-label="Niżej" title="Niżej (bliżej spodu)">▼</button></span>
         <button class="warstwa-klodka" aria-label="${w.zablokowany ? 'Odblokuj' : 'Zablokuj'}" title="${w.zablokowany ? 'Odblokuj' : 'Zablokuj'}">${ikona(w.zablokowany ? 'klodka' : 'klodkaOtwarta', { rozmiar: 16 })}</button>`;
       li.querySelector('.warstwa-nazwa').textContent = w.opis;
       li.querySelector('.warstwa-nazwa').title = w.opis;
       this.lista.append(li);
+    }
+    // Elementy wzorców: widać je na stronie, ale zmienia się je we wzorcu – kliknięcie tam prowadzi.
+    if (zeWzorcow.length) {
+      const naglowek = document.createElement('li');
+      naglowek.className = 'warstwy-naglowek';
+      naglowek.textContent = 'Ze wzorców (edycja we wzorcu)';
+      this.lista.append(naglowek);
+      for (const w of zeWzorcow) {
+        const li = document.createElement('li');
+        li.className = 'warstwa ze-wzorca';
+        if (w.idWzorca) li.dataset.wzorzec = w.idWzorca;
+        li.title = `Element wzorca „${w.wzorzec}” – kliknij, żeby przejść do wzorca`;
+        li.innerHTML = `<span class="warstwa-typ">${ikona(IKONY_TYPOW[w.typ] || 'prostokat', { rozmiar: 16 })}</span><span class="warstwa-nazwa"></span><small></small>`;
+        li.querySelector('.warstwa-nazwa').textContent = w.opis;
+        li.querySelector('small').textContent = `${w.wzorzec}${w.nad ? ' · nad treścią' : ''}`;
+        this.lista.append(li);
+      }
     }
   }
 }

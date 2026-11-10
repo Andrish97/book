@@ -17,11 +17,21 @@ test('tekst: odstęp liter, podkreślenie, wielkość liter', async (t) => {
   await strona.fill('#wlasciwosci label:has-text("Odstęp liter") input', '120');
   await strona.press('#wlasciwosci label:has-text("Odstęp liter") input', 'Tab');
   await strona.click('#wlasciwosci button[aria-label="Podkreślenie"]');
-  await strona.click('#wlasciwosci button[aria-label="WSZYSTKIE WIELKIE"]');
+  const szerokoscPrzed = await strona.evaluate(() => window.seriodruk.edytor.aktywny.getLineWidth(0));
+  await strona.click('#wlasciwosci button[aria-label^="WSZYSTKIE WIELKIE"]');
   const o = await tekst(strona);
   assert.equal(o.odstep, 120);
   assert.equal(o.podkreslenie, true);
-  assert.equal(o.tresc, 'KLIKNIJ DWA RAZY, ABY EDYTOWAĆ');
+  // Wielkie litery to tylko wygląd: treść zostaje, wiersz robi się szerszy, a ustawienie zapisuje się z tekstem.
+  assert.equal(o.tresc, 'Kliknij dwa razy, aby edytować');
+  const wyglad = await strona.evaluate(async () => { const e = window.seriodruk.edytor; await window.seriodruk.zapiszTeraz(); return [e.aktywny.wielkosc_liter, e.aktywny.getLineWidth(0), window.seriodruk.stan.projekt.strony[0].obiekty[0].wielkosc_liter]; });
+  assert.equal(wyglad[0], 'wielkie');
+  assert.ok(wyglad[1] > szerokoscPrzed * 1.1, 'wielkie litery są szersze');
+  assert.equal(wyglad[2], 'wielkie');
+  // „Jak w zdaniu” zmienia treść i wyłącza wygląd.
+  await strona.evaluate(() => { const o2 = window.seriodruk.edytor.aktywny; o2.set('text', 'pierwsze zdanie. drugie {pole} zdanie'); window.seriodruk.edytor.zatwierdz(); });
+  await strona.click('#wlasciwosci button[aria-label^="Jak w zdaniu"]');
+  assert.deepEqual(await strona.evaluate(() => { const o2 = window.seriodruk.edytor.aktywny; return [o2.text, o2.wielkosc_liter]; }), ['Pierwsze zdanie. Drugie {pole} zdanie', undefined]);
   assert.deepEqual(bledy, []);
 });
 

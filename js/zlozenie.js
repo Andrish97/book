@@ -138,7 +138,7 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
     for (const o of obiekty) {
       if (w.lustro && lewa) odbij(o, szerokosc);
       o.set({
-        zWzorca: true, selectable: false, evented: false, excludeFromExport: true, hoverCursor: 'default',
+        zWzorca: true, idWzorca: w.id, nazwaWzorca: w.nazwa, selectable: false, evented: false, excludeFromExport: true, hoverCursor: 'default',
       });
       (o.warstwa === 'nad' ? wynik.nad : wynik.pod).push(o);
     }
@@ -148,7 +148,7 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
 
 // Czy element sąsiedniej strony może sięgać na tę stronę. Liczone z zapasem
 // (okrąg opisany na elemencie), bo resztę i tak przytnie krawędź płótna.
-function siegaPrzezGrzbiet(o, bokElementu, szerokosc, spad) {
+export function siegaPrzezGrzbiet(o, bokElementu, szerokosc, spad) {
   const zasieg = Math.hypot((o.width || 0) * (o.scaleX ?? 1), (o.height || 0) * (o.scaleY ?? 1)) + (o.strokeWidth || 0);
   const x = o.left || 0;
   return bokElementu === 'prawa' ? x - zasieg < spad : x + zasieg > szerokosc - spad;

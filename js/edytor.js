@@ -11,7 +11,7 @@
 import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
-import { przyciagnij, pomiary } from './przyciaganie.js';
+import { przyciagnij, pomiary, przyciagnijKrawedz } from './przyciaganie.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
@@ -34,6 +34,7 @@ export const WLASNE_POLA = [
   'watek', 'watek_nr', 'lacznik', // przelewanie tekstu między ramkami (watki.js)
   'z_danych', // kolor i przesunięcie zależne od pola z danych (pola.js)
   'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
+  'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana
 ];
 
 export const TEKST_ZACHETY = 'Kliknij dwa razy, aby edytować';
@@ -122,6 +123,8 @@ export class Edytor extends EventTarget {
     c.on('selection:updated', () => this._emitujZaznaczenie());
     c.on('selection:cleared', () => this._emitujZaznaczenie());
     c.on('object:moving', (e) => this._przyciagnij(e.target, e.e));
+    c.on('object:scaling', (e) => this._przyciagnijRozmiar(e.target, e.e, e.transform));
+    c.on('object:resizing', (e) => this._przyciagnijRozmiar(e.target, e.e, e.transform));
     c.on('object:rotating', (e) => {
       // Z Shiftem obrót skacze co 15°.
       if (e.e?.shiftKey) e.target.rotate(Math.round(e.target.angle / 15) * 15);
@@ -1169,7 +1172,56 @@ export class Edytor extends EventTarget {
   _ramka(o) {
     o.setCoords();
     const r = o.getBoundingRect(true, true);
-    return { x: r.left, y: r.top, w: r.width, h: r.height };
+    const ramka = { x: r.left, y: r.top, w: r.width, h: r.height };
+    // Obrócony element: do pomiarów idzie jego prawdziwy kształt (cztery rogi), nie prostokąt otaczający.
+    if ((o.angle || 0) % 90 !== 0 && !o.group && o.aCoords) ramka.wielokat = ['tl', 'tr', 'br', 'bl'].map((k) => ({ x: o.aCoords[k].x, y: o.aCoords[k].y }));
+    return ramka;
+  }
+
+  // Przyciąganie przy zmianie rozmiaru uchwytem: przesuwana krawędź zatrzymuje się na
+  // prowadnicach, krawędziach i środkach innych elementów oraz na siatce. Ctrl wyłącza.
+  _przyciagnijRozmiar(obj, zdarzenie, t) {
+    if (!this.wydruk || !t?.corner) return;
+    this._liniePrzyciagania = [];
+    if (zdarzenie?.ctrlKey || zdarzenie?.metaKey || (obj.angle || 0) % 360 !== 0 || obj.group) return;
+    const u = t.corner;
+    const ruchX = u[1] === 'l' ? 'l' : (u[1] === 'r' ? 'r' : null);
+    const ruchY = u === 'mt' || u[0] === 't' ? 't' : (u === 'mb' || u[0] === 'b' ? 'b' : null);
+    const r = this._ramka(obj);
+    if (!this._cele) this._cele = this.widok.do_elementow ? this._ramkiInnych(obj) : [];
+    const linie = this._liniePomocnicze();
+    const krok = this.widok.do_siatki ? this.widok.siatka_mm : 0;
+    const prog = 6 / this.skala;
+    const x = ruchX && przyciagnijKrawedz(ruchX === 'l' ? r.x : r.x + r.w, 'x', r, { linie: linie.x, inne: this._cele, siatka: krok ? { krok, poczatek: this.strony[this.stronaW(r.x + r.w / 2)].x } : null, prog });
+    const y = ruchY && przyciagnijKrawedz(ruchY === 't' ? r.y : r.y + r.h, 'y', r, { linie: linie.y, inne: this._cele, siatka: krok ? { krok, poczatek: 0 } : null, prog });
+    if (!x && !y) return;
+    const kotwica = obj.translateToOriginPoint(obj.getCenterPoint(), t.originX, t.originY);
+    const nowaSzer = x ? r.w + (ruchX === 'r' ? x.d : -x.d) : r.w;
+    const nowaWys = y ? r.h + (ruchY === 'b' ? y.d : -y.d) : r.h;
+    if (nowaSzer < 1 || nowaWys < 1) return;
+    const narozny = Boolean(ruchX && ruchY);
+    const proporcje = narozny && this.canvas.uniformScaling !== zdarzenie?.shiftKey && obj.type !== 'textbox';
+    if (proporcje) {
+      // Uchwyt narożny trzyma proporcje: decyduje krawędź, do której jest bliżej.
+      const wybranyX = x && (!y || Math.abs(x.d) <= Math.abs(y.d));
+      const f = wybranyX ? nowaSzer / r.w : nowaWys / r.h;
+      obj.set({ scaleX: obj.scaleX * f, scaleY: obj.scaleY * f });
+      this._liniePrzyciagania = [wybranyX ? x.linia : y.linia].filter(Boolean);
+    } else {
+      // Obrys o stałej grubości nie rośnie ze skalą – odejmujemy go przed przeliczeniem.
+      if (x) {
+        const obrys = r.w - obj.width * obj.scaleX;
+        if (obj.type === 'textbox' && t.action === 'resizing') obj.set('width', Math.max(1, (nowaSzer - obrys) / obj.scaleX));
+        else obj.set('scaleX', Math.max(0.001, (nowaSzer - obrys) / obj.width));
+      }
+      if (y && !(obj.type === 'textbox' && !(obj.ramka_h > 0))) {
+        const obrys = r.h - obj.height * obj.scaleY;
+        obj.set('scaleY', Math.max(0.001, (nowaWys - obrys) / obj.height));
+      }
+      this._liniePrzyciagania = [x?.linia, y?.linia].filter(Boolean);
+    }
+    obj.setPositionByOrigin(kotwica, t.originX, t.originY);
+    obj.setCoords();
   }
 
   // Prostokąty pozostałych elementów (bez przesuwanego i bez ukrytych).
@@ -1334,6 +1386,22 @@ export class Edytor extends EventTarget {
     this.canvas.defaultCursor = p ? (p.os === 'x' ? 'col-resize' : 'row-resize') : 'default';
   }
 
+  // Prowadnica wpisana liczbą: os 'x' = pionowa (mm od lewej krawędzi strony), 'y' = pozioma (mm od góry).
+  dodajProwadnice(os, mm, strona = this.aktywna) {
+    const x0 = this.strony[strona]?.x || 0;
+    this.prowadnice.push({ os, poz: os === 'x' ? x0 + mm : mm, strona });
+    this._poZmianieProwadnic();
+  }
+
+  // Położenie prowadnicy nr i w mm od rogu jej strony; null usuwa prowadnicę.
+  ustawProwadnice(i, mm) {
+    const p = this.prowadnice[i];
+    if (!p) return;
+    if (mm === null) this.prowadnice.splice(i, 1);
+    else p.poz = p.os === 'x' ? this.strony[p.strona].x + mm : mm;
+    this._poZmianieProwadnic();
+  }
+
   usunProwadnice() {
     if (!this.prowadnice.length) return;
     this.prowadnice = [];
@@ -1357,16 +1425,22 @@ export class Edytor extends EventTarget {
 
   kadruj(obj) {
     if (this._kadr || !obj || obj.type !== 'image' || obj.zablokowany) return false;
-    // Obrócone i odbite obrazy kadruje się liczbami w panelu.
-    if ((obj.angle || 0) % 360 !== 0 || obj.flipX || obj.flipY || obj.group) return false;
+    if (obj.group) return false;
     const { nw, nh } = rozmiarOryginalu(obj);
-    const start = { cropX: obj.cropX, cropY: obj.cropY, width: obj.width, height: obj.height, left: obj.left, top: obj.top };
+    const start = { cropX: obj.cropX, cropY: obj.cropY, width: obj.width, height: obj.height, left: obj.left, top: obj.top, angle: obj.angle || 0, flipX: Boolean(obj.flipX), flipY: Boolean(obj.flipY) };
+    // Obrócony albo odbity obraz na czas kadrowania jest prostowany (wokół swojego środka);
+    // po zatwierdzeniu wraca do obrotu i odbicia, a przycięty fragment zostaje na swoim miejscu.
+    const obrot = { ...start, srodek: obj.getCenterPoint() };
+    if (start.angle % 360 !== 0 || start.flipX || start.flipY) {
+      obj.set({ angle: 0, flipX: false, flipY: false });
+      obj.setPositionByOrigin(obrot.srodek, 'center', 'center');
+    }
     const ramka = new fabric.Rect({
       left: obj.left, top: obj.top, width: obj.width * obj.scaleX, height: obj.height * obj.scaleY,
       fill: 'rgba(0,0,0,0)', strokeWidth: 0, excludeFromExport: true, kadr: true, lockRotation: true,
     });
     ramka.setControlsVisibility({ mtr: false });
-    this._kadr = { obj, ramka, start, nw, nh };
+    this._kadr = { obj, ramka, start, nw, nh, obrot };
     obj.set({ left: obj.left - obj.cropX * obj.scaleX, top: obj.top - obj.cropY * obj.scaleY, cropX: 0, cropY: 0, width: nw, height: nh, selectable: false, evented: false });
     obj.setCoords();
     this.canvas.add(ramka);
@@ -1378,7 +1452,7 @@ export class Edytor extends EventTarget {
   zakonczKadrowanie(zatwierdz = true) {
     const k = this._kadr;
     if (!k) return;
-    const { obj, ramka, start, nw, nh } = k;
+    const { obj, ramka, start, nw, nh, obrot } = k;
     const r = { x1: ramka.left, y1: ramka.top, x2: ramka.left + ramka.getScaledWidth(), y2: ramka.top + ramka.getScaledHeight() };
     this._kadr = null;
     this.canvas.remove(ramka);
@@ -1390,6 +1464,17 @@ export class Edytor extends EventTarget {
       const x2 = Math.min(Math.max(r.x2, x1 + iw * 0.05), ix + iw);
       const y2 = Math.min(Math.max(r.y2, y1 + ih * 0.05), iy + ih);
       obj.set({ cropX: (x1 - ix) / obj.scaleX, cropY: (y1 - iy) / obj.scaleY, width: (x2 - x1) / obj.scaleX, height: (y2 - y1) / obj.scaleY, left: x1, top: y1 });
+      if (obrot.angle % 360 !== 0 || obrot.flipX || obrot.flipY) {
+        // Środek przyciętego fragmentu przesunął się względem dawnego środka – to przesunięcie
+        // trzeba odbić i obrócić tak jak obraz, zanim wróci obrót.
+        const s = obj.getCenterPoint();
+        const dx = (s.x - obrot.srodek.x) * (obrot.flipX ? -1 : 1);
+        const dy = (s.y - obrot.srodek.y) * (obrot.flipY ? -1 : 1);
+        const kat = (obrot.angle * Math.PI) / 180;
+        const nowy = new fabric.Point(obrot.srodek.x + dx * Math.cos(kat) - dy * Math.sin(kat), obrot.srodek.y + dx * Math.sin(kat) + dy * Math.cos(kat));
+        obj.set({ angle: obrot.angle, flipX: obrot.flipX, flipY: obrot.flipY });
+        obj.setPositionByOrigin(nowy, 'center', 'center');
+      }
     } else obj.set(start);
     obj.set({ selectable: true, evented: true });
     obj.setCoords();
@@ -1400,6 +1485,26 @@ export class Edytor extends EventTarget {
   }
 
   // ---------- Warstwy ----------
+
+  // Elementy wzorców widoczne na tej stronie, od wierzchu: [{ id, opis, wzorzec, idWzorca, nad }].
+  // Nie da się ich tu zmienić – edytuje się je we wzorcu.
+  warstwyZeWzorcow() {
+    return this.canvas.getObjects().filter((o) => o.zWzorca).reverse().map((o) => ({
+      id: o.id, typ: o.type, opis: opisObiektu(o), wzorzec: o.nazwaWzorca || 'wzorzec', idWzorca: o.idWzorca || null, nad: o.warstwa === 'nad',
+    }));
+  }
+
+  // Przesuwa element o jedno miejsce w stosie: kierunek +1 = wyżej (ku wierzchowi), −1 = niżej.
+  przesunWarstwe(id, kierunek) {
+    const lista = this.warstwy().map((w) => w.id); // od wierzchu
+    const i = lista.indexOf(id);
+    const j = i - kierunek;
+    if (i < 0 || j < 0 || j >= lista.length) return;
+    lista.splice(i, 1);
+    lista.splice(j, 0, id);
+    // „Nad którym elementem”: następny na liście (leżący bezpośrednio pod spodem).
+    this.przeniesWarstwe(id, lista[j + 1] ?? null);
+  }
 
   // Elementy arkusza od wierzchu do spodu (bez elementów wzorców).
   warstwy() {
@@ -1630,6 +1735,17 @@ export class Edytor extends EventTarget {
       ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
       ctx.stroke();
       ctx.setLineDash([]);
+      // Element po skosie: cienkie przedłużenie jego krawędzi do wysokości pomiaru.
+      if (m.dociagniecie) {
+        const d = m.dociagniecie;
+        ctx.save();
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        if (pion) { ctx.moveTo(X(d.od), Y(d.poz)); ctx.lineTo(X(d.do), Y(d.poz)); } else { ctx.moveTo(X(d.poz), Y(d.od)); ctx.lineTo(X(d.poz), Y(d.do)); }
+        ctx.stroke();
+        ctx.restore();
+      }
       const dlugosc = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (dlugosc > 14) {
         for (const [p, kier] of [[a, 1], [b, -1]]) {

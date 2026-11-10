@@ -109,7 +109,35 @@ export class PanelWlasciwosci {
       + (grzbiet ? '<li><i class="grzbiet"></i>Grzbiet – tu strony są zszyte</li>' : '');
     l.append(legenda);
     l.append(this.wskazowka('Kliknij element na stronie, aby zmienić jego wygląd. Linie nie są drukowane.'));
+    this.zbudujProwadnice();
     return l;
+  }
+
+  // Własne prowadnice: położenie każdej można wpisać liczbą (mm od lewej albo górnej krawędzi strony).
+  zbudujProwadnice() {
+    const e = this.edytor;
+    const s = this.sekcja('Prowadnice');
+    e.prowadnice.forEach((p, i) => {
+      const od = p.os === 'x' ? e.strony[p.strona].x : 0;
+      const pole = this.liczba(`${p.os === 'x' ? 'Pionowa' : 'Pozioma'}${e.strony.length > 1 ? (p.strona ? ', prawa strona' : ', lewa strona') : ''}`, () => zaokr(p.poz - od, 2), (v) => e.ustawProwadnice(i, v), { jednostka: 'mm', krok: 0.5 });
+      const usun = document.createElement('button');
+      usun.type = 'button';
+      usun.className = 'przycisk-ikona usun-prowadnice';
+      usun.title = 'Usuń prowadnicę';
+      usun.setAttribute('aria-label', 'Usuń prowadnicę');
+      usun.textContent = '×';
+      usun.addEventListener('click', () => { e.ustawProwadnice(i, null); this.zbuduj(); });
+      pole.querySelector('.jednostka').append(usun);
+      s.append(pole);
+    });
+    const { szerokosc_mm: w, wysokosc_mm: h } = e.wydruk;
+    s.append(this.akcje([
+      ['plus', 'Pionowa', () => { e.dodajProwadnice('x', zaokr(w / 2, 1)); this.zbuduj(); }],
+      ['plus', 'Pozioma', () => { e.dodajProwadnice('y', zaokr(h / 2, 1)); this.zbuduj(); }],
+    ]));
+    s.append(this.wskazowka(e.prowadnice.length
+      ? 'Wpisz położenie w mm od lewej albo górnej krawędzi strony. Prowadnicę można też przeciągnąć na stronie.'
+      : 'Dodaj prowadnicę tutaj albo wyciągnij ją z linijki. Elementy przyciągają się do prowadnic.'));
   }
 
   zbudujWyrownanie(ile) {
@@ -263,13 +291,13 @@ export class PanelWlasciwosci {
     lista.classList.add('szeroki');
     s.append(lista);
 
-    // Pola w klamrach zostają nietknięte – {dzien} po zamianie na {DZIEN} przestałoby działać.
-    const pozaPolami = (t, fn) => t.split(/(\{[^{}\n]*\})/).map((cz, i) => (i % 2 ? cz : fn(cz))).join('');
-    const zmienLitery = (fn) => () => { obj.set('text', pozaPolami(obj.text, fn)); obj.initDimensions?.(); };
+    // Wielkość liter to wygląd: treść zostaje taka, jak wpisana (pola w klamrach działają bez zmian).
+    const wielkosc = (v) => () => { obj.set('wielkosc_liter', obj.wielkosc_liter === v ? undefined : v); };
+    const zmienLitery = (fn) => () => { obj.set('wielkosc_liter', undefined); obj.set('text', obj.text.split(/(\{[^{}\n]*\})/).map((cz, i) => (i % 2 ? cz : fn(cz))).join('')); obj.initDimensions?.(); };
     const litery = this.segmenty('Wielkość liter', [
-      ['AA', 'WSZYSTKIE WIELKIE', null, zmienLitery((t) => t.toLocaleUpperCase('pl'))],
-      ['Aa', 'Jak w zdaniu', null, zmienLitery((t) => t.toLocaleLowerCase('pl').replace(/(^|[.!?]\s+|\n)(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('pl')))],
-      ['aa', 'wszystkie małe', null, zmienLitery((t) => t.toLocaleLowerCase('pl'))],
+      ['AA', 'WSZYSTKIE WIELKIE – tylko wygląd, treść zostaje', () => obj.wielkosc_liter === 'wielkie', wielkosc('wielkie')],
+      ['aa', 'wszystkie małe – tylko wygląd, treść zostaje', () => obj.wielkosc_liter === 'male', wielkosc('male')],
+      ['Aa', 'Jak w zdaniu – zmienia treść (wielka litera na początku zdań)', null, zmienLitery((t) => t.toLocaleLowerCase('pl').replace(/(^|[.!?]\s+|\n)(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('pl')))],
     ], true);
     litery.classList.add('szeroki');
     s.append(litery);
@@ -510,7 +538,7 @@ export class PanelWlasciwosci {
   zbudujObraz(obj) {
     const { nw, nh } = rozmiarOryginalu(obj);
     const kadr = this.sekcja('Kadrowanie');
-    kadr.append(this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Obrócony, odbity albo zablokowany obraz przytnij liczbami poniżej.'); }]]));
+    kadr.append(this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz albo obraz w grupie przytnij liczbami poniżej.'); }]]));
     kadr.append(this.wskazowka('Albo kliknij obraz dwa razy.'));
     const s = this.sekcja('Przycięcie (% oryginału)');
     const kraw = () => ({

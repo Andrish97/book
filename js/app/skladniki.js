@@ -17,6 +17,7 @@ import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno } from './zap
 import { doEdycji } from './podglad-ekran.js';
 import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './panel-strony.js';
 import { generujMiniatury } from './lista-stron.js';
+import { edytujWzorzec } from './wzorce.js';
 
 export const instrukcja = new Instrukcja();
 export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
@@ -79,7 +80,7 @@ export const oknoCzcionek = new OknoCzcionek({
 });
 
 export const linijki = new Linijki(edytor, $('#obszar-roboczy'));
-export const panelWarstw = new PanelWarstw($('#lista-warstw'), edytor);
+export const panelWarstw = new PanelWarstw($('#lista-warstw'), edytor, { doWzorca: (id) => edytujWzorzec(id) });
 export const menuWidoku = new MenuWidoku({
   widok: () => stan.projekt?.widok,
   poZmianie: (widok) => { edytor.ustawWidok(widok); linijki.ustaw(widok.linijki); zaplanujZapis(); },

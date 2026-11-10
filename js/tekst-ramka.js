@@ -128,5 +128,24 @@ P._renderText = function _renderText(ctx) {
   ctx.restore();
 };
 
+// ---------- Wielkość liter jako wygląd ----------
+//
+// `wielkosc_liter`: 'wielkie' | 'male'. Treść zostaje taka, jak ją wpisano (i taka idzie
+// do pól z danymi) – zmienia się tylko to, jak znaki są mierzone i rysowane.
+const zmienLitery = (o, s) => (o.wielkosc_liter === 'wielkie' ? s.toLocaleUpperCase('pl') : (o.wielkosc_liter === 'male' ? s.toLocaleLowerCase('pl') : s));
+for (const k of ['wielkosc_liter']) {
+  if (!P._dimensionAffectingProps.includes(k)) P._dimensionAffectingProps = [...P._dimensionAffectingProps, k];
+  if (!P.cacheProperties.includes(k)) P.cacheProperties = [...P.cacheProperties, k];
+}
+const mierzZnak = P._measureChar;
+P._measureChar = function _measureChar(znak, styl, poprzedni, stylPoprzedniego) {
+  if (!this.wielkosc_liter) return mierzZnak.call(this, znak, styl, poprzedni, stylPoprzedniego);
+  return mierzZnak.call(this, zmienLitery(this, znak), styl, poprzedni ? zmienLitery(this, poprzedni) : poprzedni, stylPoprzedniego);
+};
+const rysujZnak = P._renderChar;
+P._renderChar = function _renderChar(metoda, ctx, nrWiersza, nrZnaku, znak, lewo, gora) {
+  return rysujZnak.call(this, metoda, ctx, nrWiersza, nrZnaku, this.wielkosc_liter ? zmienLitery(this, znak) : znak, lewo, gora);
+};
+
 // Czy treść wystaje poza ramkę (do ostrzeżeń).
 export const nieMiesciSie = (o) => o.type === 'textbox' && o.ramka_h > 0 && (o._wysokoscTresci ?? 0) > o.ramka_h + 0.05;
