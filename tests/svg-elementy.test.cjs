@@ -86,7 +86,8 @@ test('Rysunek SVG rozkłada się na grupę zwykłych kształtów w tym samym mie
   await zaznacz(strona, 'prosty.svg');
   await strona.click('#wlasciwosci button:has-text("Rozgrupuj")');
   const osobno = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => !o.zWzorca).map((o) => o.type));
-  assert.deepEqual(osobno.slice().sort(), ['ellipse', 'ellipse', 'group', 'line', 'path', 'path', 'path', 'rect', 'rect']);
+  // Elementy stają w kolejności tam, gdzie była grupa – druga grupa zostaje nad nimi.
+  assert.deepEqual(osobno, ['rect', 'rect', 'ellipse', 'path', 'path', 'ellipse', 'path', 'line', 'group']);
   await strona.waitForTimeout(400);
   const r2 = roznica(przed, await obrazStrony(strona));
   assert.ok(r2.srednia < 0.6 && r2.rozne < 0.003, `po rozgrupowaniu: ${r2.srednia.toFixed(3)}, ${(r2.rozne * 100).toFixed(3)}%`);

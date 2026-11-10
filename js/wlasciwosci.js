@@ -108,6 +108,15 @@ export class PanelWlasciwosci {
       this.zbudujKomorke(obj);
       return;
     }
+    // Element otwartej grupy: zmienia się go bez rozgrupowywania. Ustawienia, które dotyczą całego elementu
+    // strony (wyrównanie do marginesów, blokada, zależność od danych, ostrzeżenia), ma grupa.
+    const wGrupie = this.edytor.wOtwartejGrupie(obj);
+    if (wGrupie) {
+      this.tytul.textContent = `${nazwaTypu(obj)} w grupie`;
+      const g = this.sekcja('Element grupy');
+      g.append(this.wskazowka('Zmieniasz jeden element grupy. Kliknij poza grupą albo naciśnij Esc, żeby grupa znów była jednym elementem.'));
+      g.append(this.akcje([['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]]));
+    }
     if (toTabela(obj)) this.zbudujTabele(obj);
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
     this.zbudujGeometrie(obj);
@@ -115,14 +124,15 @@ export class PanelWlasciwosci {
     if (obj.type === 'line' || obj.type === 'path') this.zbudujLinie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
-    this.zbudujWyrownanie(1);
+    if (!wGrupie) this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
     this.zbudujCien(obj);
-    this.zbudujZDanych(obj);
+    if (!wGrupie) this.zbudujZDanych(obj);
     const inne = this.sekcja('Inne');
-    inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
+    if (!wGrupie) inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
+    if (wGrupie) return;
     this.opcje.dodatkiElementu?.(this, obj, inne);
     inne.append(this.przelacznik('Wycisz ostrzeżenia dla tego obiektu', () => Boolean(obj.bez_ostrzezen), (v) => { obj.bez_ostrzezen = v || undefined; }));
   }
@@ -201,30 +211,37 @@ export class PanelWlasciwosci {
     ]);
     seg.classList.add('szeroki');
     s.append(seg);
-    if (obj.type === 'group' && !toTabela(obj)) s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()]]));
+    if (obj.type === 'group' && !toTabela(obj) && !e.wOtwartejGrupie(obj)) {
+      s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()], ...(obj.zablokowany ? [] : [['dlon', 'Zmień element grupy', () => e.otworzGrupe(obj)]])]));
+      s.append(this.wskazowka('Pojedynczy element grupy zmienisz bez rozgrupowywania: kliknij go dwa razy na stronie.'));
+    }
   }
 
   zbudujGeometrie(obj, { tylkoPozycja = false } = {}) {
     const s = this.sekcja('Położenie i rozmiar (mm)');
-    s.append(this.liczba('X', () => zaokr(obj.left), (v) => { obj.left = v; }, { jednostka: 'mm' }));
-    s.append(this.liczba('Y', () => zaokr(obj.top), (v) => { obj.top = v; }, { jednostka: 'mm' }));
+    const e = this.edytor;
+    // Element grupy ma własne położenie, skalę i kąt liczone względem grupy – w polach są wartości na arkuszu.
+    const r = () => e.ukladRodzica(obj);
+    s.append(this.liczba('X', () => zaokr(e.polozenieNaArkuszu(obj).x), (v) => e.ustawPolozenieNaArkuszu(obj, { x: v }), { jednostka: 'mm' }));
+    s.append(this.liczba('Y', () => zaokr(e.polozenieNaArkuszu(obj).y), (v) => e.ustawPolozenieNaArkuszu(obj, { y: v }), { jednostka: 'mm' }));
     if (tylkoPozycja) return;
     if (obj.type === 'line') {
-      s.append(this.liczba('Długość', () => zaokr(Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) * obj.scaleX), (v) => {
+      s.append(this.liczba('Długość', () => zaokr(Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) * obj.scaleX * r().sx), (v) => {
         const dl = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) || 1;
-        obj.scaleX = Math.max(0.1, v) / dl;
+        obj.scaleX = Math.max(0.1, v) / r().sx / dl;
         obj.scaleY = obj.scaleX;
       }, { jednostka: 'mm', min: 0.1 }));
     } else {
-      s.append(this.liczba('Szerokość', () => zaokr(obj.width * obj.scaleX), (v) => {
-        if (obj.type === 'textbox') obj.set('width', Math.max(1, v));
-        else obj.scaleX = Math.max(0.1, v) / obj.width;
+      s.append(this.liczba('Szerokość', () => zaokr(obj.width * obj.scaleX * r().sx), (v) => {
+        if (obj.type === 'textbox') obj.set('width', Math.max(1, v / r().sx));
+        else obj.scaleX = Math.max(0.1, v) / r().sx / obj.width;
       }, { jednostka: 'mm', min: 0.1 }));
-      s.append(this.liczba('Wysokość', () => zaokr(obj.height * obj.scaleY), (v) => {
-        obj.scaleY = Math.max(0.1, v) / obj.height;
+      s.append(this.liczba('Wysokość', () => zaokr(obj.height * obj.scaleY * r().sy), (v) => {
+        obj.scaleY = Math.max(0.1, v) / r().sy / obj.height;
       }, { jednostka: 'mm', min: 0.1, wylaczone: obj.type === 'textbox' }));
     }
-    s.append(this.liczba('Obrót', () => zaokr(obj.angle || 0, 1), (v) => { obj.rotate(((v % 360) + 360) % 360); }, { jednostka: '°', krok: 1 }));
+    const kat = (v) => ((v % 360) + 360) % 360;
+    s.append(this.liczba('Obrót', () => zaokr(obj.parent ? kat((obj.angle || 0) + r().kat) : (obj.angle || 0), 1), (v) => { obj.rotate(kat(v - r().kat)); }, { jednostka: '°', krok: 1 }));
   }
 
   // ---------- Tekst ----------
@@ -349,7 +366,7 @@ export class PanelWlasciwosci {
     if (zajete.w + zajete.ileW < tabela.tabela.wiersze.length) scalanie.push(['grupuj', 'Scal z komórką poniżej', zmien('scal-dol', m)]);
     if (sc) scalanie.push(['rozgrupuj', 'Rozdziel komórki', zmien('rozdziel', m)]);
     if (scalanie.length) s.append(this.akcje(scalanie));
-    if (sc) s.append(this.wskazowka(`Ta komórka zajmuje ${sc.ileK} ${sc.ileK === 1 ? 'kolumnę' : 'kolumny'} i ${sc.ileW} ${sc.ileW === 1 ? 'wiersz' : 'wiersze'}. Tekst komórek, które przykrywa, wróci po rozdzieleniu.`));
+    if (sc) s.append(this.wskazowka(`Ta komórka zajmuje ${sc.ileK} ${sc.ileK === 1 ? 'kolumnę' : 'kolumny'} i ${sc.ileW} ${sc.ileW === 1 ? 'wiersz' : 'wiersze'}. Tekst komórek, które przykryła, jest w niej dopisany; po rozdzieleniu cały zostaje w pierwszej komórce.`));
     s.append(this.liczba('Najmniejsza wysokość tego wiersza', () => zaokr(tabela.tabela.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(tabela, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
     s.append(this.wskazowka(`Teraz ten wiersz ma ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
   }
@@ -514,7 +531,7 @@ export class PanelWlasciwosci {
     }
   }
 
-  // Kolor i przesunięcie elementu zależne od pola z danych (tabela albo pole dokumentu).
+  // Kolor, położenie, rozmiar, obrót i widoczność elementu zależne od pola z danych (tabela albo pole dokumentu).
   zbudujZDanych(obj) {
     const grupy = this.opcje.pola?.() || [];
     const pola = grupy.flatMap((g) => g.pola.map(([nazwa]) => nazwa));
@@ -523,6 +540,7 @@ export class PanelWlasciwosci {
     const zapisz = (zmiana) => {
       const nowe = { ...z(), ...zmiana };
       for (const k of Object.keys(nowe)) if (!nowe[k] || (typeof nowe[k] === 'object' && !nowe[k].pole)) delete nowe[k];
+      if (!nowe.szer && !nowe.wys) delete nowe.kotwica; // punkt zaczepienia ma sens tylko przy rozmiarze z danych
       obj.z_danych = Object.keys(nowe).length ? nowe : undefined;
     };
     // Na liście: pola dostępne na tej stronie i to, które jest już ustawione (nawet nieznane).
@@ -549,6 +567,31 @@ export class PanelWlasciwosci {
         s.append(this.liczba('Od nowa co', () => ust().co || 0, (v) => zapisz({ [os]: { ...ust(), co: Math.max(0, Math.round(v)) } }), { jednostka: 'poz.', krok: 1, min: 0 }));
       }
     }
+    // Rozmiar: szerokość i wysokość z pola z liczbą – procent rozmiaru wzoru albo milimetry, każdy wymiar osobno.
+    const bezWysokosci = obj.type === 'textbox' && !(obj.ramka_h > 0); // wysokość takiego tekstu wynika z treści
+    for (const [wymiar, etykieta] of [['szer', 'Szerokość z pola'], ['wys', 'Wysokość z pola']]) {
+      if (wymiar === 'wys' && bezWysokosci && !z().wys) continue;
+      const ust = () => z()[wymiar] || {};
+      const wybor = this.wybor(etykieta, lista(ust().pole), () => ust().pole || '', (v) => {
+        zapisz({ [wymiar]: v ? { tryb: 'procent', ...ust(), pole: v } : undefined });
+        this.zbuduj();
+      });
+      wybor.classList.add('szeroki');
+      s.append(wybor);
+      if (!ust().pole) continue;
+      const tryb = this.wybor(`${wymiar === 'szer' ? 'Szerokość' : 'Wysokość'}: wartość pola to`, [['procent', 'procent rozmiaru wzoru (100 = bez zmian)'], ['mm', 'rozmiar w mm']], () => ust().tryb || 'procent', (v) => zapisz({ [wymiar]: { ...ust(), tryb: v } }));
+      tryb.classList.add('szeroki');
+      s.append(tryb);
+    }
+    if (z().szer || z().wys) {
+      const kotwica = this.wybor('Przy zmianie rozmiaru na miejscu zostaje', [['', 'lewy górny róg'], ['srodek', 'środek elementu'], ['dol', 'dół (środek dolnej krawędzi)']], () => z().kotwica || '', (v) => zapisz({ kotwica: v || undefined }));
+      kotwica.classList.add('szeroki');
+      s.append(kotwica);
+      const jak = obj.type === 'textbox'
+        ? (bezWysokosci ? 'W tekście zmienia się szerokość ramki – litery zostają, tekst układa się od nowa. Wysokość z danych działa przy włączonej stałej wysokości ramki.' : 'W tekście zmienia się ramka – litery zostają, tekst układa się od nowa.')
+        : (obj.type === 'image' ? 'W obrazie zmienia się ramka: obraz z pola wpisuje się w nią tak, jak ustawiono wyżej, a zwykły obraz wypełnia ją (nadmiar jest przycinany po równo).' : (toTabela(obj) ? 'W tabeli zmieniają się szerokości kolumn i najmniejsze wysokości wierszy.' : 'Element jest skalowany w wybranym kierunku.'));
+      s.append(this.wskazowka(`${jak} Wartość 0 chowa element.`));
+    }
     // Obrót: kąt w stopniach z pola, dodawany do obrotu wzoru (wokół środka elementu).
     const obrot = this.wybor('Obrót z pola (stopnie)', lista(z().obrot), () => z().obrot || '', (v) => zapisz({ obrot: v || undefined }));
     obrot.classList.add('szeroki');
@@ -567,10 +610,10 @@ export class PanelWlasciwosci {
       s.append(poleWidoku);
       if (war().gdy === 'rowne') s.append(this.tekst('Wartość', () => war().wartosc || '', (v) => zapisz({ widok: { ...war(), wartosc: v } }), true));
     }
-    const jest = z().kolor || z().x || z().y || z().obrot || z().widok;
+    const jest = z().kolor || z().x || z().y || z().obrot || z().widok || z().szer || z().wys;
     s.append(this.wskazowka(jest
-      ? 'W edytorze element stoi w miejscu pozycji 1, ma kolor i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
-      : 'Kolor albo położenie mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykład: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej.'));
+      ? 'W edytorze element stoi w miejscu pozycji 1, ma kolor, rozmiar i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
+      : 'Kolor, położenie albo rozmiar mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykłady: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej; słupek wykresu o wysokości z kolumny.'));
   }
 
   // Styl tekstu: wybór, zapis jako nowy, aktualizacja, usunięcie.

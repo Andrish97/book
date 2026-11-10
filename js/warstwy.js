@@ -1,6 +1,7 @@
 // Zakładka „Warstwy”: elementy otwartej strony (albo rozkładówki) od wierzchu
 // do spodu. Kliknięcie zaznacza, oko ukrywa, kłódka blokuje, przeciągnięcie
-// zmienia kolejność, podwójne kliknięcie zmienia nazwę.
+// zmienia kolejność, podwójne kliknięcie zmienia nazwę. Kliknięcie elementu
+// rozwiniętej grupy otwiera grupę i zaznacza ten element (bez rozgrupowywania).
 
 import { ikona } from './ikony.js';
 import { zapytajONazwe } from './ui.js';
@@ -18,11 +19,12 @@ export class PanelWarstw {
     for (const zdarzenie of ['zmiana', 'zaznaczenie', 'historia']) edytor.addEventListener(zdarzenie, () => this.odswiez());
 
     lista.addEventListener('click', (e) => {
-      // Element wewnątrz grupy: oko ukrywa tylko jego; kliknięcie wiersza zaznacza grupę.
+      // Element wewnątrz grupy: oko ukrywa tylko jego; kliknięcie wiersza otwiera grupę i zaznacza ten element
+      // (ukrytego albo w grupie, której nie da się otworzyć – zaznacza całą grupę).
       const wGrupie = e.target.closest('li[data-grupa]');
       if (wGrupie) {
         if (e.target.closest('.warstwa-oko')) edytor.ustawWidocznoscWGrupie(wGrupie.dataset.grupa, Number(wGrupie.dataset.nr), wGrupie.classList.contains('ukryta'));
-        else edytor.zaznacz(wGrupie.dataset.grupa);
+        else if (!edytor.otworzGrupe(wGrupie.dataset.grupa, Number(wGrupie.dataset.nr))) edytor.zaznacz(wGrupie.dataset.grupa);
         return;
       }
       const li = e.target.closest('li[data-id]');
@@ -112,7 +114,7 @@ export class PanelWarstw {
       const li = document.createElement('li');
       li.dataset.id = w.id;
       li.draggable = true;
-      li.className = `warstwa${w.zaznaczony ? ' zaznaczona' : ''}${w.ukryty ? ' ukryta' : ''}${w.zablokowany ? ' zablokowana' : ''}`;
+      li.className = `warstwa${w.zaznaczony ? ' zaznaczona' : ''}${w.otwarta ? ' otwarta' : ''}${w.ukryty ? ' ukryta' : ''}${w.zablokowany ? ' zablokowana' : ''}`;
       li.innerHTML = `<button class="warstwa-oko" aria-label="${w.ukryty ? 'Pokaż' : 'Ukryj'}" title="${w.ukryty ? 'Pokaż' : 'Ukryj (nie będzie drukowany)'}">${ikona(w.ukryty ? 'okoOff' : 'oko', { rozmiar: 16 })}</button>
         <span class="warstwa-typ">${ikona(IKONY_TYPOW[w.typ] || 'prostokat', { rozmiar: 16 })}</span>
         <span class="warstwa-nazwa"></span>
@@ -136,7 +138,8 @@ export class PanelWarstw {
         const wiersz = document.createElement('li');
         wiersz.dataset.grupa = w.id;
         wiersz.dataset.nr = String(d.nr);
-        wiersz.className = `warstwa w-grupie${d.ukryty ? ' ukryta' : ''}`;
+        wiersz.className = `warstwa w-grupie${d.zaznaczony ? ' zaznaczona' : ''}${d.ukryty ? ' ukryta' : ''}`;
+        wiersz.title = 'Kliknij, żeby zmienić ten element bez rozgrupowywania';
         wiersz.innerHTML = `<button class="warstwa-oko" aria-label="${d.ukryty ? 'Pokaż' : 'Ukryj'}" title="${d.ukryty ? 'Pokaż' : 'Ukryj (nie będzie drukowany)'}">${ikona(d.ukryty ? 'okoOff' : 'oko', { rozmiar: 16 })}</button>
           <span class="warstwa-typ">${ikona(IKONY_TYPOW[d.typ] || 'prostokat', { rozmiar: 16 })}</span>
           <span class="warstwa-nazwa"></span>`;

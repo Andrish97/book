@@ -118,7 +118,8 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 **Dlaczego tak.** Tabela to grupa z opisem (szerokości kolumn, wysokości wierszy), a jej układ liczy jedna funkcja – ta sama w edytorze i przy składaniu strony. Dzięki temu tabela z danymi układa się poprawnie w podglądzie, PDF i na miniaturach bez osobnego kodu.
 **Poprawione w rundzie „słabych stron” (decyzja #61).** Tło komórek: osobny kolor dla nagłówka i dla co drugiego wiersza. Każdy wiersz może mieć własną najmniejszą wysokość. Przy skalowaniu uchwytem kolumny i wiersze przeliczają się na bieżąco. „Sprawdź przed drukiem” ostrzega, gdy tabela po wypełnieniu danymi wychodzi poza stronę.
 **Dodane w rundzie „większych prac” (decyzja #63).** Scalanie komórek: w trakcie pisania w komórce przyciski „Scal z komórką po prawej / poniżej” i „Rozdziel komórki”.
-**Słabe.** Tekst komórek schowanych pod scaleniem nie przechodzi do scalonej – zostaje ukryty i wraca po rozdzieleniu. Nie ma osobnych linii dla pojedynczej komórki. Na telefonie przycisk wstawiania tabeli jest schowany.
+**Poprawione (decyzja #65).** Przy scalaniu tekst dołączanych komórek nie znika: dopisuje się do scalonej jako kolejne akapity, wierszami od lewej, razem z pogrubieniami. „Rozdziel” zostawia cały tekst w pierwszej komórce; Ctrl+Z przywraca stan sprzed scalenia.
+**Słabe.** Nie ma osobnych linii dla pojedynczej komórki. Na telefonie przycisk wstawiania tabeli jest schowany.
 
 ### D2. Wyrównywanie, blokada, schowek ✅
 Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstępy, blokada położenia, kopiuj/wytnij/wklej między stronami – skrótami i przyciskami.
@@ -155,7 +156,8 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Co jest.** Zakładka z listą elementów strony od wierzchu: zaznaczanie, kolejność przeciąganiem, ukrywanie, blokada, własne nazwy.
 **Poprawione.** Warstwy są zakładką prawego panelu, obok właściwości (dotyczą tego samego: elementów otwartej strony). Kolejność zmienia się też przyciskami ▲▼ – działa na dotyku. Elementy wzorców są na liście, z nazwą wzorca; kliknięcie otwiera wzorzec.
 **Poprawione w rundzie „słabych stron” (decyzja #61).** Grupę da się rozwinąć na liście warstw: każdy jej element ma własne oko i nazwę.
-**Słabe.** Element grupy zaznacza się razem z grupą – pojedynczo przesuniesz go dopiero po rozgrupowaniu. Tabela jest jednym wierszem bez rozwijania.
+**Poprawione (decyzja #65).** Grupę otwiera podwójne kliknięcie (albo kliknięcie jej elementu na liście warstw): element można przesunąć, przeskalować, obrócić, zmienić we właściwościach i napisać w nim tekst – bez rozgrupowywania. Otwartą grupę widać po pomarańczowej ramce z podpisem; Esc, kliknięcie obok albo „Wróć do całej grupy” ją zamyka, a grupa zachowuje identyfikator i miejsce wśród warstw. Grupowanie i rozgrupowanie nie zmieniają już kolejności: grupa staje tam, gdzie był jej najwyższy element, a elementy po rozgrupowaniu tam, gdzie była grupa.
+**Słabe.** W otwartej grupie zaznacza się po jednym elemencie; obrazu nie kadruje się w niej przeciąganiem, a kształtu nie zmienia punkt po punkcie; grupa w grupie się nie otwiera. Tabela jest jednym wierszem bez rozwijania.
 
 ### D5. Obrazy ✅ / ⚠️
 **Co jest.** Obraz jest zasobem projektu; strona na niego wskazuje. Kadrowanie przeciąganiem i liczbami. **Nowe:** duże zdjęcia (dłuższy bok ponad 2000 px) pokazują się w edytorze, miniaturach i podglądzie jako lżejsza kopia robocza (1600 px); do PDF i PNG idzie oryginał (`js/obrazy.js`).
@@ -266,7 +268,8 @@ Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładó
 - Wzorce: element wzorca też może mieć „Z danych”. Na lewych stronach rozkładówki przy wzorcu z odbiciem lustrzanym przesunięcie w poziomie odwraca się – zakładka trafia na zewnętrzny brzeg.
 - Pole, którego aplikacja nie zna (literówka, usunięta kolumna), trafia na listę ostrzeżeń.
 **Poprawione w rundzie „słabych stron” (decyzja #61).** Z danych można też sterować obrotem (kąt z pola liczbowego) i widocznością elementu: zawsze, gdy pole jest niepuste, puste albo równe podanej wartości – np. gwiazdka tylko w święta.
-**Słabe.** W edytorze widać tylko wzór; efekt jest w podglądzie. Z danych nie da się sterować rozmiarem elementu. Kolor zastępuje całe wypełnienie, także gradient.
+**Poprawione (decyzja #65).** Z danych można sterować rozmiarem: „Szerokość z pola” i „Wysokość z pola”, każda osobno w procentach rozmiaru wzoru albo w mm, z punktem zaczepienia (lewy górny róg, środek, dół) – np. słupek wykresu rosnący od dołu. Tekst i obraz zmieniają ramkę (litery i proporcje zdjęcia zostają), tabela – kolumny i wiersze, kształty i grupy są skalowane. Wartość 0 albo ujemna chowa element.
+**Słabe.** W edytorze widać tylko wzór; efekt jest w podglądzie. Wysokość tekstu bez stałej wysokości ramki nie zmienia się z danych, bo wynika z treści. Kolor zastępuje całe wypełnienie, także gradient.
 
 ### G4. Obraz z kolumny tabeli ✅ / ⚠️
 **Co jest.** Obraz-wzór wyznacza ramkę; kolumna podaje nazwę pliku wgranego do projektu. Podmieniony obraz wpisuje się w ramkę bez zmiany proporcji. **Nowe:** brak pliku o podanej nazwie trafia na listę „Do sprawdzenia przed drukiem” z numerami stron.
@@ -309,7 +312,8 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 **Dlaczego tak.** Plik wektorowy powstaje z tego samego kodu, który rysuje stronę na ekranie: edytor rysuje element, a zamiast pikseli zapisywane są polecenia PDF. Dzięki temu układ wierszy, listy, pola z danych, wielkość liter i przelewanie są w PDF takie same jak w podglądzie – nie ma drugiego, osobnego „silnika składu”, który mógłby się rozjechać. Czego nie da się zapisać wektorowo (cień, maska, czcionka bez pliku do osadzenia, znak spoza czcionki), idzie jako obraz tego jednego elementu, a aplikacja po eksporcie mówi, ile takich elementów było i dlaczego. Test porównuje stronę z PDF, narysowaną niezależnym czytnikiem, z obrazem z aplikacji i odczytuje z pliku tekst z polskimi znakami.
 **Poprawione w rundzie „słabych stron” (decyzja #61).** Rysunki SVG są w pliku wektorami. Tekst pisany czcionką, której nie da się osadzić, idzie jako krzywe zamiast obrazu.
 **Dodane w rundzie „większych prac” (decyzja #63).** PDF/X-4 z profilem barwnym: lista „Standard dla drukarni” (papier powlekany FOGRA39, niepowlekany FOGRA47 albo profil od drukarni). Kolory tekstu i kształtów są przeliczane przez profil (czarny tekst samą czarną farbą), a opcja „Zdjęcia też w CMYK” przelicza przez ten sam profil także zdjęcia.
-**Słabe.** Pliku nie sprawdził żaden program kontrolny (Acrobat Preflight, veraPDF) – ostatecznie potwierdzi go próbny plik w drukarni. Plik na papier powlekany rośnie o ok. 8 MB (osadzony profil). W trybie „Obrazy stron” zdjęcia zostają w RGB z opisem. Ligatur w pliku nie ma.
+**Słabe.** Pliku nie sprawdził żaden program kontrolny (Acrobat Preflight, veraPDF) – ostatecznie potwierdzi go próbny plik w drukarni. Plik na papier powlekany rośnie o ok. 8 MB (osadzony profil). W trybie „Obrazy stron” zdjęcia zostają w RGB z opisem.
+**Poprawione (decyzja #65).** Ligatury („fi”, „fl”, „ffl”) są w pliku tym samym kształtem co na ekranie, a przy zaznaczaniu i wyszukiwaniu zostają zwykłymi literami; tam, gdzie przeglądarka rysuje litery osobno (tekst rozstrzelony), plik też ich nie łączy. Położenie każdej litery uwzględnia kerning. Działa także przy tekście zamienionym na krzywe.
 
 ### I2. PNG strony ✅
 **Co jest.** Bieżąca strona albo wzorzec jako PNG w 300 dpi, ze spadem, z oryginalnych zdjęć (wcześniej 150 dpi z tego, co było na płótnie).

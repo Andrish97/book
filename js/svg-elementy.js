@@ -10,7 +10,7 @@ import './fabric-ustawienia.js';
 import { CZCIONKI, DOMYSLNA, zapewnijRodziny, odmianyRodziny } from './czcionki.js';
 import { blobZasobu } from './zasoby.js';
 import { rozmiarOryginalu } from './obrazy.js';
-import { ObrazyPdf } from './pdf-wektorowy.js';
+import { svgZgodny } from './pdf-wektorowy.js';
 import { uid } from './projekt.js';
 
 // Czy obraz jest rysunkiem SVG.
@@ -153,7 +153,7 @@ export async function rozlozRysunek(projekt, obj) {
   // Czy kształty z rozkładu wyglądają jak rysunek (napisów nie porównujemy: obraz rysuje je czcionką systemu).
   const brak = NIEOBSLUGIWANE.exec(kod);
   let uwaga = brak ? `Rysunek używa elementu „${brak[1] || brak[0]}”, którego edytor nie ma – wygląd mógł się zmienić.` : '';
-  if (!uwaga && !napisy.length && !ObrazyPdf.prototype._svgZgodny(obj.getElement(), pary.map(([o]) => o), opcje)) uwaga = 'Wygląd mógł się trochę zmienić.';
+  if (!uwaga && !napisy.length && !svgZgodny(obj.getElement(), pary.map(([o]) => o), opcje)) uwaga = 'Wygląd mógł się trochę zmienić.';
 
   // Czcionki napisów muszą być wczytane, zanim napisy zostaną zmierzone.
   await zapewnijRodziny([DOMYSLNA, ...napisy.map(([o]) => znanaRodzina(projekt, o.fontFamily)).filter(Boolean)]);

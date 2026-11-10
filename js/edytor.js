@@ -90,6 +90,10 @@ export class Edytor extends EventTarget {
       if (this.strony.length < 2 || !e.scenePoint) return;
       this.ustawAktywna(this.stronaW(e.scenePoint.x), true);
     });
+    // Otwarta grupa zamyka się, gdy zaznaczenie wychodzi poza jej elementy (kliknięcie obok, inny element).
+    for (const zdarzenie of ['selection:created', 'selection:updated', 'selection:cleared']) {
+      c.on(zdarzenie, () => { if (this._otwarta && !this.wOtwartejGrupie()) this.zamknijGrupe(false); });
+    }
     c.on('selection:created', () => this._emitujZaznaczenie());
     c.on('selection:updated', () => this._emitujZaznaczenie());
     c.on('selection:cleared', () => this._emitujZaznaczenie());
@@ -147,12 +151,14 @@ export class Edytor extends EventTarget {
     c.on('text:editing:exited', (e) => { this._poKomorce(e.target); this.oznaczZmiane(); });
     // Kadrowanie: podwójne kliknięcie obrazu zaczyna, kliknięcie poza ramką kończy.
     // Tabela: podwójne kliknięcie komórki zaczyna w niej pisanie.
+    // Zwykła grupa: podwójne kliknięcie otwiera ją i zaznacza element pod kursorem.
     c.on('mouse:dblclick', (e) => {
       const cel = e.target;
       if (!cel || cel.zWzorca) return;
       if (cel.type === 'image') this.kadruj(cel);
       else if (cel.type === 'path') this.edytujPunkty(cel);
       else if (toTabela(cel)) this.edytujKomorke(cel, komorkaWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)), e.e);
+      else if (this._doOtwarcia(cel)) this.otworzGrupe(cel, this._elementGrupyWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)));
     });
     // W trakcie pisania w tabeli kliknięcie innej komórki przenosi tam pisanie.
     c.on('mouse:down', (e) => {
@@ -321,6 +327,7 @@ export class Edytor extends EventTarget {
       }
     });
     this._wczytywanie = true;
+    this._zapomnijOtwarta();
     this.canvas.discardActiveObject();
     const json = strony.length > 1
       ? scalRozkladowke(strony[0].obiekty, strony[1].obiekty).map(({ o, bok }) => (bok === 'prawa' ? { ...o, left: (o.left || 0) + w } : o))
@@ -439,6 +446,7 @@ export class Edytor extends EventTarget {
 
   oznaczZmiane() {
     if (this._wczytywanie || this._kadr) return;
+    this._ulozOtwarta();
     this._pilnujWatkow();
     this.przeliczOstrzezenia();
     this.dispatchEvent(new Event('zmiana'));
@@ -986,6 +994,7 @@ export class Edytor extends EventTarget {
     const obiekty = this.canvas.getActiveObjects();
     if (!obiekty.length) return;
     if (this.aktywny?.isEditing) return;
+    if (this._otwarta) { this._usunZOtwartej(); return; }
     this.canvas.discardActiveObject();
     // Tekst usuwanej ramki wątku przechodzi do sąsiedniej – znika ramka, nie treść.
     for (const o of obiekty) {
@@ -1002,6 +1011,18 @@ export class Edytor extends EventTarget {
     const akt = this.aktywny;
     if (!akt) return;
     const kopie = await this._kopie(akt);
+    const g = this._otwarta;
+    if (g && akt.parent === g && kopie.length === 1) {
+      // Kopia elementu otwartej grupy zostaje w tej grupie (grupa sama przelicza jej położenie i swoją ramkę).
+      const [k] = kopie;
+      k.set({ id: uid('o'), left: k.left + 5, top: k.top + 5 });
+      k.setCoords();
+      g.add(k);
+      this.canvas.setActiveObject(k);
+      this.canvas.requestRenderAll();
+      this.oznaczZmiane();
+      return;
+    }
     this.canvas.discardActiveObject();
     for (const k of kopie) k.set({ left: k.left + 5, top: k.top + 5 });
     this._wstawKopie(kopie);
@@ -1535,7 +1556,7 @@ export class Edytor extends EventTarget {
   // Rozbija zaznaczenie na obiekty z położeniem na stronie, wykonuje fn i zaznacza ponownie.
   _naZaznaczonych(fn) {
     const akt = this.aktywny;
-    if (!akt) return;
+    if (!akt || this._otwarta) return; // element otwartej grupy wyrównuje się ręcznie albo liczbami
     const obiekty = toZaznaczenie(akt) ? akt.getObjects().slice() : [akt];
     this.canvas.discardActiveObject();
     const ramki = obiekty.map((o) => { o.setCoords(); const r = o.getBoundingRect(); return { o, x: r.left, y: r.top, w: r.width, h: r.height }; });
@@ -1609,7 +1630,7 @@ export class Edytor extends EventTarget {
 
   grupuj() {
     const akt = this.aktywny;
-    if (!akt || !toZaznaczenie(akt)) return;
+    if (!akt || !toZaznaczenie(akt) || this._otwarta) return;
     const obiekty = akt.getObjects().slice();
     const c = this.canvas;
     const bylo = this._wczytywanie;
@@ -1617,9 +1638,11 @@ export class Edytor extends EventTarget {
     c.discardActiveObject(); // elementy wracają do położenia na arkuszu
     // Kolejność w grupie taka jak na arkuszu.
     const kolejno = c.getObjects().filter((o) => obiekty.includes(o));
+    // Grupa staje w kolejności tam, gdzie był jej najwyższy element.
+    const miejsce = c.getObjects().indexOf(kolejno[kolejno.length - 1]) - (kolejno.length - 1);
     c.remove(...kolejno);
     const grupa = new fabric.Group(kolejno, { id: uid('o') });
-    c.add(grupa);
+    c.insertAt(Math.max(0, miejsce), grupa);
     this._wczytywanie = bylo;
     this._uporzadkujWzorce();
     c.setActiveObject(grupa);
@@ -1630,15 +1653,16 @@ export class Edytor extends EventTarget {
 
   rozgrupuj() {
     const akt = this.aktywny;
-    if (!akt || akt.type !== 'group' || toTabela(akt)) return; // tabela jest jednym elementem
+    if (!akt || akt.type !== 'group' || toTabela(akt) || akt.parent) return; // tabela jest jednym elementem
     const c = this.canvas;
     const bylo = this._wczytywanie;
     this._wczytywanie = true;
     c.discardActiveObject();
+    const miejsce = c.getObjects().indexOf(akt); // elementy stają w kolejności tam, gdzie była grupa
     c.remove(akt);
     const obiekty = akt.removeAll(); // elementy wracają do położenia na arkuszu
     for (const o of obiekty) { if (!o.id) o.id = uid('o'); o.setCoords(); }
-    c.add(...obiekty);
+    c.insertAt(miejsce, ...obiekty);
     this._wczytywanie = bylo;
     this._uporzadkujWzorce();
     c.setActiveObject(obiekty.length === 1 ? obiekty[0] : new fabric.ActiveSelection(obiekty, { canvas: c }));
@@ -1651,12 +1675,16 @@ export class Edytor extends EventTarget {
     const akt = this.aktywny;
     if (!akt) return;
     const c = this.canvas;
+    // Element otwartej grupy zmienia kolejność wśród elementów tej grupy.
+    const stos = this._otwarta && akt.parent === this._otwarta ? this._otwarta : c;
+    if (stos === c && this._otwarta) return;
     ({
-      wierzch: () => c.bringObjectToFront(akt),
-      wyzej: () => c.bringObjectForward(akt),
-      nizej: () => c.sendObjectBackwards(akt),
-      spod: () => c.sendObjectToBack(akt),
+      wierzch: () => stos.bringObjectToFront(akt),
+      wyzej: () => stos.bringObjectForward(akt),
+      nizej: () => stos.sendObjectBackwards(akt),
+      spod: () => stos.sendObjectToBack(akt),
     })[kierunek]();
+    if (stos !== c) stos.set('dirty', true);
     this._uporzadkujWzorce();
     c.requestRenderAll();
     this.oznaczZmiane();
@@ -1665,7 +1693,8 @@ export class Edytor extends EventTarget {
   przesun(dx, dy) {
     const akt = this.aktywny;
     if (!akt || akt.isEditing || akt.zablokowany) return;
-    akt.set({ left: akt.left + dx, top: akt.top + dy });
+    const d = this._wUkladzieRodzica(akt, dx, dy);
+    akt.set({ left: akt.left + d.x, top: akt.top + d.y });
     akt.setCoords();
     this.canvas.requestRenderAll();
     this._emitujZaznaczenie();
@@ -1686,16 +1715,20 @@ export class Edytor extends EventTarget {
   }
 
   odznacz() {
+    // W otwartej grupie Esc wraca do całej grupy.
+    if (this.zamknijGrupe(true)) return;
     this.canvas.discardActiveObject();
     this.canvas.requestRenderAll();
   }
 
   // Następny (1) albo poprzedni (−1) element w kolejności warstw.
   zaznaczSasiedni(kierunek) {
-    const obiekty = this._zaznaczalne();
+    // W otwartej grupie Tab chodzi po jej elementach.
+    const obiekty = this._otwarta ? this._otwarta.getObjects().filter((o) => o.visible !== false) : this._zaznaczalne();
     if (!obiekty.length) return;
     const i = obiekty.indexOf(this.aktywny);
     const nastepny = obiekty[(i + kierunek + obiekty.length) % obiekty.length] || obiekty[0];
+    if (this._otwarta) { this.canvas.setActiveObject(nastepny); this.canvas.requestRenderAll(); return; }
     this.canvas.discardActiveObject();
     this.canvas.setActiveObject(i < 0 && kierunek < 0 ? obiekty.at(-1) : nastepny);
     this.canvas.requestRenderAll();
@@ -1711,7 +1744,7 @@ export class Edytor extends EventTarget {
 
   przelaczBlokade() {
     const akt = this.aktywny;
-    if (!akt) return;
+    if (!akt || this._otwarta) return; // blokuje się całą grupę, nie jej element
     const obiekty = toZaznaczenie(akt) ? akt.getObjects() : [akt];
     const wlacz = !obiekty.every((o) => o.zablokowany);
     for (const o of obiekty) this.ustawBlokade(o, wlacz);
@@ -1859,9 +1892,187 @@ export class Edytor extends EventTarget {
 
   zaznacz(id) {
     const obj = this.canvas.getObjects().find((o) => o.id === id);
-    if (!obj) return;
+    if (!obj) {
+      // Element wewnątrz zwykłej grupy: grupa otwiera się i zaznaczony jest ten element.
+      for (const g of this.canvas.getObjects()) {
+        const d = this._doOtwarcia(g) && g.getObjects().find((o) => o.id === id);
+        if (d) { this.otworzGrupe(g, d); return; }
+      }
+      return;
+    }
     this.canvas.setActiveObject(obj);
     this.canvas.requestRenderAll();
+  }
+
+  // ---------- Element w grupie bez rozgrupowywania ----------
+  //
+  // Podwójne kliknięcie zwykłej grupy „otwiera” ją: jej elementy dają się zaznaczać, przesuwać, skalować
+  // i zmieniać pojedynczo (grupa Fabric w trybie interactive). Kliknięcie poza elementami grupy albo Esc
+  // zamyka ją – znów jest jednym elementem, z ramką policzoną od nowa. Grupa przez cały czas zostaje na
+  // swoim miejscu w stosie i ma ten sam identyfikator.
+
+  get otwartaGrupa() { return this._otwarta || null; }
+
+  // Czy grupę da się otworzyć: zwykła grupa na arkuszu – nie tabela, nie element wzorca, nie zablokowana.
+  _doOtwarcia(g) {
+    return Boolean(g && g.type === 'group' && !toTabela(g) && !g.zWzorca && !g.zablokowany && !g.parent && g.canvas === this.canvas);
+  }
+
+  // Czy element leży w otwartej grupie (także głębiej – np. komórka tabeli wstawionej do grupy).
+  wOtwartejGrupie(o = this.aktywny) {
+    if (!this._otwarta || !o || toZaznaczenie(o)) return false;
+    for (let p = o.parent; p; p = p.parent) if (p === this._otwarta) return true;
+    return false;
+  }
+
+  // Element grupy (jej bezpośredni składnik) leżący w punkcie arkusza albo null.
+  _elementGrupyWPunkcie(g, punkt) {
+    const bylo = { subTargetCheck: g.subTargetCheck, interactive: g.interactive };
+    g.set({ subTargetCheck: true, interactive: true });
+    g.setCoords(); // elementy grupy dostają aktualne położenie do wskazywania
+    let cel = this.canvas.searchPossibleTargets([g], punkt).target;
+    g.set(bylo);
+    while (cel && cel !== g && cel.parent !== g) cel = cel.parent;
+    return cel && cel !== g ? cel : null;
+  }
+
+  // Otwiera grupę i zaznacza jej element. grupa: obiekt albo identyfikator; element: obiekt, numer w grupie
+  // (od spodu) albo nic – wtedy element z wierzchu. Zwraca zaznaczony element albo null.
+  otworzGrupe(grupa, element) {
+    const g = typeof grupa === 'string' ? this._poId(grupa) : grupa;
+    if (!this._doOtwarcia(g)) return null;
+    const dzieci = g.getObjects();
+    const d = typeof element === 'number' ? dzieci[element] : (element || dzieci.filter((x) => x.visible !== false).at(-1));
+    if (!d || d.parent !== g || d.visible === false) return null;
+    if (this._otwarta && this._otwarta !== g) this.zamknijGrupe(false);
+    if (this._pioro) this.ustawPioro(false);
+    if (this._punkty) this.zakonczPunkty(true);
+    if (this._kadr) this.zakonczKadrowanie(true);
+    const a = this.aktywny;
+    if (a?.isEditing && a !== d) a.exitEditing();
+    for (const x of dzieci) if (!x.id) x.id = uid('o');
+    if (this._otwarta !== g) {
+      // W otwartej grupie zaznacza się po jednym elemencie (bez Shift+kliknięcie).
+      this._klawiszZaznaczania = this.canvas.selectionKey;
+      this.canvas.selectionKey = null;
+      this._otwarta = g;
+    }
+    g.set({ subTargetCheck: true, interactive: true });
+    g.setCoords();
+    this.canvas.setActiveObject(d);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return d;
+  }
+
+  // Zamyka otwartą grupę. zaznacz: po zamknięciu zaznaczona jest cała grupa (gdy zaznaczony był jej element).
+  // Zwraca true, gdy jakaś grupa była otwarta.
+  zamknijGrupe(zaznacz = true) {
+    const g = this._otwarta;
+    if (!g) return false;
+    const a = this.aktywny;
+    const wSrodku = this.wOtwartejGrupie(a);
+    this._zapomnijOtwarta();
+    if (wSrodku) {
+      if (a.isEditing) a.exitEditing();
+      this.canvas.discardActiveObject();
+    }
+    const zamknij = (x) => { x.set({ subTargetCheck: false, interactive: false }); for (const d of x.getObjects()) if (d.getObjects) zamknij(d); };
+    zamknij(g);
+    if (g.canvas === this.canvas) {
+      g.triggerLayout();
+      g.setCoords();
+      g.set('dirty', true);
+      if (zaznacz && wSrodku) this.canvas.setActiveObject(g);
+    }
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  _zapomnijOtwarta() {
+    if (!this._otwarta) return;
+    this._otwarta = null;
+    this.canvas.selectionKey = this._klawiszZaznaczania ?? 'shiftKey';
+  }
+
+  // Po zmianie elementu otwartej grupy jej ramka liczy się od nowa; elementy zostają na swoich miejscach.
+  _ulozOtwarta() {
+    const g = this._otwarta;
+    if (!g) return;
+    if (g.canvas !== this.canvas) { this._zapomnijOtwarta(); return; }
+    g.triggerLayout();
+    g.setCoords();
+    g.set('dirty', true);
+  }
+
+  // Usuwa zaznaczony element otwartej grupy; gdy był ostatni, znika cała grupa.
+  _usunZOtwartej() {
+    const g = this._otwarta;
+    const d = this.aktywny;
+    if (!g || d?.parent !== g) return;
+    this.zamknijGrupe(true);
+    if (g.getObjects().length <= 1) { this.canvas.remove(g); this.canvas.requestRenderAll(); return; }
+    g.remove(d);
+    g.triggerLayout();
+    g.setCoords();
+    g.set('dirty', true);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // Przesunięcie podane w milimetrach arkusza → w układzie grupy, w której leży element (grupa może być
+  // obrócona albo przeskalowana). Element spoza grupy: bez zmian.
+  _wUkladzieRodzica(o, dx, dy) {
+    const v = new fabric.Point(dx, dy);
+    return o.parent ? v.transform(fabric.util.invertTransform(o.parent.calcTransformMatrix()), true) : v;
+  }
+
+  // Położenie elementu na arkuszu (jego lewy górny róg). Element grupy ma własne położenie liczone od środka
+  // grupy – do pokazania i wpisania liczbą trzeba je przeliczyć.
+  polozenieNaArkuszu(o) {
+    const p = new fabric.Point(o.left, o.top);
+    return o.parent ? p.transform(o.parent.calcTransformMatrix()) : p;
+  }
+
+  ustawPolozenieNaArkuszu(o, { x, y }) {
+    const teraz = this.polozenieNaArkuszu(o);
+    const cel = new fabric.Point(x ?? teraz.x, y ?? teraz.y);
+    const p = o.parent ? cel.transform(fabric.util.invertTransform(o.parent.calcTransformMatrix())) : cel;
+    o.set({ left: p.x, top: p.y });
+  }
+
+  // Skala i obrót grupy, w której leży element – do przeliczenia jego rozmiaru i kąta na arkusz.
+  ukladRodzica(o) {
+    if (!o.parent) return { sx: 1, sy: 1, kat: 0 };
+    const r = fabric.util.qrDecompose(o.parent.calcTransformMatrix());
+    return { sx: Math.abs(r.scaleX) || 1, sy: Math.abs(r.scaleY) || 1, kat: r.angle || 0 };
+  }
+
+  // Ramka otwartej grupy na płótnie: przerywana linia i podpis – widać, że zmiany dotyczą jej elementów.
+  _rysujOtwarta(ctx, X, Y) {
+    const g = this._otwarta;
+    if (!g || g.canvas !== this.canvas) return;
+    const rogi = g.getCoords();
+    ctx.save();
+    ctx.strokeStyle = '#ea580c';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    rogi.forEach((p, i) => { if (i === 0) ctx.moveTo(X(p.x), Y(p.y)); else ctx.lineTo(X(p.x), Y(p.y)); });
+    ctx.closePath();
+    ctx.stroke();
+    const tekst = 'Grupa otwarta – Esc zamyka';
+    ctx.font = '600 11px Inter, system-ui, sans-serif';
+    const lewy = Math.min(...rogi.map((p) => X(p.x)));
+    const gora = Math.min(...rogi.map((p) => Y(p.y)));
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath(); ctx.roundRect(lewy, gora - 20, ctx.measureText(tekst).width + 10, 16, 4); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(tekst, lewy + 5, gora - 11.5);
+    ctx.restore();
   }
 
   _emitujZaznaczenie() {
@@ -1987,7 +2198,11 @@ export class Edytor extends EventTarget {
   // Prostokąty pozostałych elementów (bez przesuwanego i bez ukrytych).
   _ramkiInnych(obj) {
     const pomijane = new Set(toZaznaczenie(obj) ? obj.getObjects() : [obj]);
-    return this.canvas.getObjects().filter((o) => !pomijane.has(o) && o.visible !== false).map((o) => this._ramka(o));
+    // Element otwartej grupy przyciąga się do pozostałych elementów tej grupy, a nie do jej ramki
+    // (ta zmienia się razem z nim).
+    const g = this.wOtwartejGrupie(obj) ? this._otwarta : null;
+    const kandydaci = g ? [...this.canvas.getObjects().filter((o) => o !== g), ...g.getObjects()] : this.canvas.getObjects();
+    return kandydaci.filter((o) => !pomijane.has(o) && o.visible !== false).map((o) => this._ramka(o));
   }
 
   // Prowadnice arkusza: krawędzie, marginesy i środki stron oraz prowadnice własne.
@@ -2024,7 +2239,7 @@ export class Edytor extends EventTarget {
     if (!this.wydruk) return;
     this._liniePrzyciagania = [];
     this._pomiary = [];
-    if (zdarzenie?.altKey && !this._kopiaZAlt && !obj.zablokowany) {
+    if (zdarzenie?.altKey && !this._kopiaZAlt && !obj.zablokowany && !obj.parent) {
       this._kopiaZAlt = true;
       this._zostawKopie(obj);
     }
@@ -2047,8 +2262,9 @@ export class Edytor extends EventTarget {
       siatkaY: krok ? { krok, poczatek: 0 } : null,
       prog: 6 / this.skala, // 6 px na ekranie
     });
-    obj.left += wynik.dx;
-    obj.top += wynik.dy;
+    const d = this._wUkladzieRodzica(obj, wynik.dx, wynik.dy);
+    obj.left += d.x;
+    obj.top += d.y;
     obj.setCoords();
     this._liniePrzyciagania = wynik.linie;
     this._pomiary = wynik.pomiary;
@@ -2269,8 +2485,9 @@ export class Edytor extends EventTarget {
     const zaznaczone = new Set(akt ? (toZaznaczenie(akt) ? akt.getObjects() : [akt]) : []);
     return this.canvas.getObjects().filter((o) => !o.zWzorca && !o.kadr).reverse().map((o) => ({
       id: o.id, typ: o.type, opis: opisObiektu(o), ukryty: o.visible === false, zablokowany: Boolean(o.zablokowany), zaznaczony: zaznaczone.has(o),
+      otwarta: o === this._otwarta, // grupa, w której zmieniany jest pojedynczy element
       // Zawartość grupy (od wierzchu); tabela jest jednym elementem i nie pokazuje swoich części.
-      dzieci: o.type === 'group' && !toTabela(o) ? o.getObjects().map((d, nr) => ({ nr, typ: d.type, opis: opisObiektu(d), ukryty: d.visible === false })).reverse() : null,
+      dzieci: o.type === 'group' && !toTabela(o) ? o.getObjects().map((d, nr) => ({ nr, typ: d.type, opis: opisObiektu(d), ukryty: d.visible === false, zaznaczony: zaznaczone.has(d) })).reverse() : null,
     }));
   }
 
@@ -2283,6 +2500,7 @@ export class Edytor extends EventTarget {
   ustawWidocznoscWGrupie(id, nr, widoczny) {
     const { g, d } = this._wGrupie(id, nr);
     if (!d) return;
+    if (!widoczny && this.aktywny === d) this.zamknijGrupe(true);
     d.set({ visible: widoczny });
     g.dirty = true;
     this.canvas.requestRenderAll();
@@ -2304,6 +2522,7 @@ export class Edytor extends EventTarget {
   ustawWidocznosc(id, widoczny) {
     const o = this._poId(id);
     if (!o) return;
+    if (this._otwarta === o) this.zamknijGrupe(true);
     if (!widoczny && this.aktywny === o) this.canvas.discardActiveObject();
     o.set({ visible: widoczny });
     this.canvas.requestRenderAll();
@@ -2315,6 +2534,7 @@ export class Edytor extends EventTarget {
   przeniesWarstwe(id, nadId) {
     const o = this._poId(id);
     if (!o || id === nadId) return;
+    if (this._otwarta === o) this.zamknijGrupe(true);
     const c = this.canvas;
     const bylo = this._wczytywanie;
     this._wczytywanie = true; // bez zdarzeń „dodano/usunięto” po drodze
@@ -2432,6 +2652,7 @@ export class Edytor extends EventTarget {
     if (this.pokazProwadnice) this._podswietlPola(ctx, X, Y);
     if (this.pokazProwadnice) this._rysujWatek(ctx, X, Y);
     if (this._trybPunktow()) this._rysujPunkty(ctx, X, Y);
+    this._rysujOtwarta(ctx, X, Y);
 
     // Kadrowanie: część obrazu poza ramką jest przyciemniona.
     if (this._kadr) {

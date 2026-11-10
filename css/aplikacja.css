@@ -545,6 +545,9 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 @media (hover: hover) { .warstwa:not(:hover):not(:focus-within) .warstwa-kolejnosc { opacity: 0; } }
 .warstwa .warstwa-rozwin { width: 20px; font-size: 11px; }
 .warstwa.w-grupie { grid-template-columns: 28px 20px minmax(0, 1fr); padding-left: 24px; min-height: 30px; }
+/* Grupa, w której zmieniany jest pojedynczy element. */
+.warstwa.otwarta { box-shadow: inset 3px 0 0 #ea580c; }
+.warstwa.otwarta .warstwa-nazwa { font-weight: 600; }
 .warstwa.ze-wzorca { grid-template-columns: 20px minmax(0, 1fr) auto; padding-left: 30px; color: var(--cichy); }
 .warstwa.ze-wzorca small { font-size: 11px; white-space: nowrap; }
 .warstwy-naglowek { margin: 10px 4px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--cichy); list-style: none; }
