@@ -107,10 +107,11 @@ export const ROZDZIALY = [
     podpis: 'Zaznaczony tekst z uchwytami.',
     punkty: [
       '<b>Tekst</b> – kliknij dwa razy, aby pisać bezpośrednio na stronie, albo wpisz treść w polu <b>Treść</b> po prawej.',
-      '<b>Prostokąt, Elipsa, Linia</b> – kształty do ramek, tła i podziałów.',
+      '<b>Prostokąt, Elipsa, Wielokąt, Linia</b> – kształty do ramek, tła i podziałów. Wielokąt zaczyna jako trójkąt; liczbę boków zmienisz we właściwościach, tam też zrobisz z niego gwiazdę.',
+      'Kształt może mieć <b>przejście kolorów</b> (gradient) zamiast jednego koloru, a każdy element – <b>cień</b> z przesunięciem i rozmyciem w mm.',
       '<b>Obraz</b> – zdjęcie lub grafika z dysku. Możesz też przeciągnąć plik na stronę.',
       'Przeciągnij element, aby go przesunąć. Kółka w rogach zmieniają rozmiar, kółko nad elementem go obraca.',
-      'Przy krawędziach, marginesach i środku strony element „przykleja się” – pokazuje to różowa linia.',
+      'Przy krawędziach, marginesach, środku strony i przy innych elementach element „przykleja się” – pokazuje to różowa linia (więcej w rozdziale <b>Odległości i równe odstępy</b>).',
     ],
   },
   {
@@ -138,7 +139,8 @@ export const ROZDZIALY = [
       '<b>Kolejność</b> przenosi element nad lub pod inne.',
       '<b>Zablokuj położenie i rozmiar</b> chroni element przed przypadkowym przesunięciem.',
       'Ikony nad panelem: <b>kopiuj do schowka</b>, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem <b>Wklej</b> we właściwościach strony (albo <kbd>Ctrl</kbd>+<kbd>V</kbd>) – trafi w to samo miejsce.',
-      '<b>Obraz</b>: przycięcie z każdej strony, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi).',
+      '<b>Obraz</b>: kliknij go dwa razy (albo <b>Kadruj przeciąganiem</b>), żeby wybrać widoczny fragment ramką – <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. Do tego przycięcie liczbami, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi).',
+      'Tytuły części panelu (np. <b>Cień</b>, <b>Ramka tekstu</b>) zwijają je i rozwijają. Zwinięte zostają zwinięte przy kolejnych elementach.',
     ],
   },
   {
@@ -148,7 +150,9 @@ export const ROZDZIALY = [
     podpis: 'Menu strony.',
     punkty: [
       '<b>+ Strona</b> na dole panelu wstawia pustą stronę za bieżącą, w tej samej sekcji.',
-      'Przycisk <b>⋯</b> na miniaturze: zmiana nazwy, duplikowanie, przesuwanie (w obrębie sekcji), usuwanie.',
+      'Przycisk <b>⋯</b> na miniaturze: zmiana nazwy, duplikowanie, przesuwanie, usuwanie.',
+      'Kolejność zmienisz też <b>przeciągając miniaturę</b> myszą; upuszczona w innej sekcji strona przechodzi do niej.',
+      'Usunięcie albo przesunięcie strony cofniesz przyciskiem <b>Cofnij</b> w komunikacie na dole ekranu albo <kbd>Ctrl</kbd>+<kbd>Z</kbd> – dopóki nie zmienisz czegoś na stronie.',
       'Gdy nic nie jest zaznaczone, panel z prawej pokazuje ustawienia strony: nazwę, sekcję, tło i wzorce.',
     ],
   },
@@ -260,6 +264,7 @@ export const ROZDZIALY = [
     podpis: 'Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.',
     punkty: [
       'Otwórz go przyciskiem <b>Podgląd</b> na górnym pasku edytora albo z menu <b>⋯</b> projektu na liście.',
+      '<b>Prezentacja</b> pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie. Strzałki i spacja przewracają strony, <kbd>Esc</kbd> zamyka. Działa także w podglądzie otwartym z linku.',
       'Podgląd pokazuje projekt po powieleniu: każdą stronę serii tyle razy, ile wynika z danych, z jej numerem i podpisem „3 z 31”.',
       'Strony idą po kolei, rozkładówki stoją obok siebie. Przyciski <b>−</b> i <b>+</b> zmieniają powiększenie, kliknięcie liczby dopasowuje do okna.',
       'Kliknięcie strony otwiera ją w edytorze. <b>Edytor</b> albo <kbd>Esc</kbd> wraca do edycji.',
@@ -273,7 +278,7 @@ export const ROZDZIALY = [
     punkty: [
       'W podglądzie kliknij <b>Udostępnij</b>, potem <b>Utwórz link</b>. Aplikacja przygotuje obrazy wszystkich stron – przy dużym projekcie chwilę to potrwa.',
       'Skopiuj link i wyślij go. Osoba z linkiem widzi strony tak jak w podglądzie; nie może nic zmienić i nie ma dostępu do reszty Twoich projektów.',
-      'Link pokazuje projekt <b>w stanie z chwili udostępnienia</b>. Po zmianach okno powie, że link jest nieaktualny – kliknij <b>Aktualizuj</b>. Adres zostaje ten sam.',
+      'Link pokazuje projekt <b>w stanie z chwili udostępnienia</b>. Po zmianach okno powie, że link jest nieaktualny – kliknij <b>Aktualizuj</b>. Adres zostaje ten sam, a wysyłane są tylko strony, które się zmieniły.',
       '<b>Wyłącz link</b> usuwa udostępnione strony; stary adres przestaje działać.',
       'Link jest długi i losowy, więc nie da się go zgadnąć – ale każdy, kto go dostanie, może go przekazać dalej.',
     ],

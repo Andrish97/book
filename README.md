@@ -13,10 +13,11 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Rozkładówki**: obie strony na jednym płótnie, marginesy lustrzane (wewnętrzny przy grzbiecie), elementy mogą leżeć przez grzbiet.
 - **Wzorce**: wspólne elementy stron; kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
 - **Edytor** (Fabric.js 5.3.1, wszystko w mm): tekst, kształty, obrazy, grupy, panel warstw, wyrównywanie i równe odstępy, blokada, schowek między stronami, cofanie, ostrzeżenia o marginesach i spadzie.
+- **Kształty i obrazy**: wielokąty i gwiazdy, gradient, cień, kadrowanie obrazu przeciąganiem.
 - **Precyzja**: siatka z przyciąganiem, linijki i własne prowadnice, linie wyrównania do innych elementów, strzałki z odległościami i równe odstępy, ponad 50 skrótów klawiszowych.
 - **Dane**: tabele z importem CSV/Excel i lekkim edytorem, pola `{kolumna}` i pola dokumentu w tekście, serie powielające strony według wierszy, obrazy z kolumny, ramka tekstu z autodopasowaniem.
 - **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu.
-- **Podgląd** bez edycji: cały projekt jak po przycięciu, rozkładówki obok siebie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
+- **Podgląd** bez edycji: cały projekt jak po przycięciu (z powieleniami serii), rozkładówki obok siebie, tryb prezentacji na całym ekranie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
 - **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
 - **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok; panele wysuwane z dołu.
 - **Motyw**: jasny, ciemny albo jak w systemie.
@@ -42,6 +43,7 @@ npm install && npx playwright install chromium
 npm test                                   # testy przeglądarkowe (tests/)
 python3 -m http.server 8000 &
 npm run zrzuty -- http://localhost:8000/   # odświeża img/instrukcja/*.png
+npm run proba                              # próba na prawdziwej bazie (konto testowe, na końcu usuwane)
 ```
 
 Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z prawdziwą bazą. W GitHub Actions uruchamia je workflow „Testy”.

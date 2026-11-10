@@ -40,8 +40,9 @@ Robi to integracja Supabase z GitHubem (Project Settings → Integrations → Gi
 ### A3. Wszystko w milimetrach ✅
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** `tests/` – 40 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, udostępnianie, konflikt zapisu, siatka i odległości, skróty, prowadnice, warstwy, tabele, pola, serie. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
-**Słabe.** Atrapa udaje Supabase – prawdziwej bazy, reguł RLS i poczty testy nie sprawdzają. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
+**Co jest.** `tests/` – 47 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, udostępnianie, konflikt zapisu, siatka i odległości, skróty, prowadnice, warstwy, tabele, pola, serie. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
+**Nowe.** `scripts/proba-na-zywo.cjs` (`npm run proba`) przechodzi opublikowaną aplikację na prawdziwej bazie kontem testowym, które na końcu usuwa: rejestracja, zapis z obrazem, drugie urządzenie, udostępnianie, usunięcie konta.
+**Słabe.** Zwykłe testy używają atrapy Supabase; próbę na prawdziwej bazie trzeba uruchomić ręcznie. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
 
 ---
 
@@ -83,14 +84,14 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 ### C3. Adresy podstron ✅
 `#/projekty`, `#/konto`, `#/p/<id>/s/<strona>`, `#/p/<id>/w/<wzorzec>`, `#/p/<id>/podglad`.
 
-### C4. Podgląd bez edycji ✅ / ⚠️
-**Co jest.** Wszystkie strony po kolei jak po przycięciu, rozkładówki obok siebie, powiększanie, kliknięcie strony otwiera ją w edytorze. Strony rysują się dopiero, gdy są widoczne.
-**Słabe.** Nie ma trybu pełnoekranowego z przewracaniem stron.
+### C4. Podgląd bez edycji ✅
+**Co jest.** Wszystkie strony po kolei jak po przycięciu (z powieleniami serii), rozkładówki obok siebie, pojedyncze strony w rzędach, powiększanie, kliknięcie strony otwiera ją w edytorze. Strony rysują się dopiero, gdy są widoczne. **Nowe:** tryb prezentacji – jedna strona albo rozkładówka naraz na całym ekranie, przewracana strzałkami; działa też w podglądzie z linku.
 
 ### C5. Udostępnianie podglądu linkiem ✅ / ⚠️
 **Co jest.** „Udostępnij” w podglądzie tworzy link `#/u/<konto>/<projekt>/<losowy kod>`. Aplikacja rysuje wszystkie strony do obrazów JPEG i wysyła je z małym plikiem opisu do publicznego folderu w Supabase. Osoba z linkiem widzi ten sam widok co podgląd, bez logowania. Link można zaktualizować (adres zostaje) albo wyłączyć (pliki znikają).
 **Dlaczego migawka z obrazów, a nie „żywy” projekt.** Osoba z linkiem dostaje tylko obrazy stron – nie dane projektu, nie zdjęcia w oryginale, nie dostęp do bazy. Nie trzeba otwierać bazy dla niezalogowanych ani ładować edytora i czcionek u oglądającego. Projekt w trakcie pracy nie „przecieka” do klienta, dopóki nie klikniesz Aktualizuj.
-**Słabe.** Trzeba pamiętać o aktualizacji (okno podpowiada, gdy link jest nieaktualny). Publikacja wysyła wszystkie strony od nowa – przy kilkuset stronach potrwa i zajmie kilkadziesiąt MB. Nie ma hasła do linku ani daty ważności. Wymaga bucketu `podglady` z migracji (punkt 0.1).
+**Poprawione.** Aktualizacja wysyła tylko strony, których obraz się zmienił (skróty obrazów są zapisane w opisie podglądu).
+**Słabe.** Trzeba pamiętać o aktualizacji (okno podpowiada, gdy link jest nieaktualny). Przy aktualizacji aplikacja i tak rysuje wszystkie strony, żeby sprawdzić, które się zmieniły. Nie ma hasła do linku ani daty ważności – pliki leżą w publicznym folderze, więc wymagałoby to osobnej funkcji po stronie serwera.
 
 ---
 
@@ -133,27 +134,33 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Co jest.** Zakładka z listą elementów strony od wierzchu: zaznaczanie, kolejność przeciąganiem, ukrywanie, blokada, własne nazwy.
 **Słabe.** Na ekranie dotykowym kolejności nie zmienia się przeciąganiem (zostają przyciski kolejności we właściwościach). Elementy wzorców nie są na liście.
 
-### D5. Obrazy ⚠️
-Bez zmian: pełna rozdzielczość w pamięci, przycinanie liczbami. Do zrobienia przed pracą z dużymi zdjęciami: pomniejszony podgląd i przycinanie przeciąganiem.
+### D5. Obrazy ✅ / ⚠️
+**Co jest.** Obraz jest zasobem projektu; strona na niego wskazuje. **Nowe:** kadrowanie przeciąganiem (podwójne kliknięcie obrazu: cały obraz z ramką, reszta przyciemniona), obok przycięcia liczbami.
+**Słabe.** Obrazy nadal są trzymane w pamięci w pełnej rozdzielczości – pomniejszone kopie robocze zrobię razem z eksportem PDF, bo dopiero tam potrzebny jest podział na „do ekranu” i „do druku”. Obróconego albo odbitego obrazu nie kadruje się ramką, tylko liczbami.
 
-### D6. Cofanie ⚠️
-Bez zmian: 60 kroków w obrębie bieżącej strony; nie cofa operacji na stronach, sekcjach i stylach.
+### D6. Cofanie ✅ / ⚠️
+**Co jest.** 60 kroków w obrębie otwartej strony albo rozkładówki. **Nowe:** usunięcie strony, sekcji albo wzorca oraz przesunięcie strony da się cofnąć przyciskiem w komunikacie albo Ctrl+Z.
+**Dlaczego tak.** Przed taką operacją aplikacja zapamiętuje cały projekt (bez obrazów). Cofnięcie jest możliwe do pierwszej następnej zmiany na stronie – wtedy zapamiętany stan przestałby pasować i cofnięcie zabrałoby tę zmianę ze sobą. Wolę jasną regułę „od razu po operacji” niż ciche gubienie pracy.
+**Słabe.** To nie jest jedna wspólna historia całego projektu: zmiany stylów, serii i tabel nie cofają się, a historia strony zaczyna się od nowa po przejściu na inną.
 
 ### D7. Czcionki ⚠️
 Bez zmian: 8 czcionek OFL z Google Fonts. Przed eksportem PDF trzeba przenieść pliki czcionek do repozytorium.
 
-### D8. Czego nadal nie ma z programów do składu ❌
-Kształty dowolne, gradienty, cienie, zwijane sekcje panelu właściwości (na telefonie panel jest długi). Panel warstw i linijki są już zrobione (D11, D14).
+### D8. Kształty, gradienty, cienie ✅ / ⚠️
+**Co jest.** Wielokąt foremny i gwiazda (liczba boków we właściwościach), wypełnienie przejściem dwóch kolorów w trzech kierunkach, cień z przesunięciem i rozmyciem w mm. Panel warstw i linijki są w D11 i D14, zwijane sekcje panelu w D9.
+**Słabe.** Nie ma kształtów rysowanych odręcznie (krzywe, pióro) ani gradientów kołowych i wielokolorowych.
 
 ### D9. Układ ekranu i panel właściwości ✅ / ⚠️
 **Co jest.** Z lewej lista stron i wzorców, w środku płótno z pływającym paskiem narzędzi, z prawej jeden panel: właściwości zaznaczonego elementu albo strony.
 **Dlaczego tak.** Układ znany z programów do składu; jeden panel zmieniający treść zajmuje mniej miejsca niż kilka okienek.
-**Słabe.** Panel jest długi i nie ma zwijanych części.
+**Poprawione.** Części panelu zwijają się kliknięciem w tytuł i zostają zwinięte (wybór pamięta urządzenie).
+**Słabe.** Przy tekście panel nadal ma dużo części; na telefonie trzeba je przewijać.
 
 ### D10. Dotyk i telefon ⚠️
 **Co jest.** Jeden palec zaznacza i przesuwa elementy, dwa – widok. Na telefonie panele wysuwają się z dołu jako arkusze.
 **Poprawione 2026-11-10 po Twoim zrzucie z telefonu.** Górny pasek uciekał poza ekran, a spod dolnego menu wystawał schowany arkusz. Ekran aplikacji jest teraz przypięty do okna (nie liczy wysokości w jednostkach okna, które na telefonie zmieniają się z paskiem adresu), dokument nie daje się przewinąć, zamknięte arkusze zjeżdżają całe poniżej ekranu, a arkusz właściwości ma stałą wysokość, żeby nie skakał przy zmianie zaznaczenia. Strona nie rysuje się już pod paskiem systemowym.
-**Słabe.** Błędu nie umiałem odtworzyć w przeglądarce testowej – poprawka usuwa jego możliwe przyczyny, ale potwierdzić ją może tylko próba na Twoim telefonie. Rozkładówka na telefonie jest mała.
+**Nowe.** „W rozkładówkach pokazuj jedną stronę” (menu z kratką): na wąskim ekranie włączone domyślnie, więc na telefonie edytujesz jedną stronę rozkładówki naraz.
+**Słabe.** Błędu nie umiałem odtworzyć w przeglądarce testowej – poprawka usuwa jego możliwe przyczyny, ale potwierdzić ją może tylko próba na Twoim telefonie. W widoku jednej strony nie widać elementów sąsiedniej strony, które przechodzą przez grzbiet (są na miniaturze i w podglądzie).
 
 ---
 
@@ -161,14 +168,14 @@ Kształty dowolne, gradienty, cienie, zwijane sekcje panelu właściwości (na t
 
 ### E1. Sekcje ✅
 Własny format, spad, cztery marginesy, układ, wzorce domyślne i **numeracja** (dalszy ciąg, od numeru, bez numerów).
-**Nie ma.** Automatycznego liczenia szerokości grzbietu okładki z liczby kartek.
+**Nowe.** Kalkulator okładki w ustawieniach sekcji: z szerokości strony środka, liczby stron i grubości kartki liczy grzbiet i szerokość okładki (tył + grzbiet + przód) i wpisuje ją jednym kliknięciem. Grubość kartki trzeba wziąć od drukarni.
 
 ### E2. Wzorce połączone z motywami ✅
 **Co jest.** Strona może mieć kilka wzorców naraz; każdy element wzorca leży pod albo nad treścią; wzorzec może odbijać się lustrzanie na lewych stronach (numer strony zawsze przy zewnętrznej krawędzi). Pojęcie „motyw” z planu zniknęło – to są wzorce.
-**Słabe.** Kolejność wzorców wynika z kolejności na liście wzorców (nie da się jej zmienić przeciąganiem). Odbicie lustrzane grupy przenosi całą grupę, ale nie odbija układu w jej środku.
+**Poprawione.** Kolejność wzorców zmienia się z menu wzorca (wyżej / niżej). Odbicie lustrzane odbija także układ wewnątrz grupy.
 
 ### E4. Lista stron ✅
-Miniatury pogrupowane w sekcje, z numerem strony; w rozkładówkach strony stoją parami. Kolejność zmienia się z menu strony, nie przeciąganiem.
+Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładówkach strony stoją parami. Kolejność zmienia się z menu albo przeciąganiem miniatury myszą (także do innej sekcji). Na ekranie dotykowym zostaje menu.
 
 ### E3. Jedno składanie strony ✅
 `zlozenie.js` składa tło, wzorce i treść dla edytora, miniatur i podglądu – ten sam kod posłuży eksportowi PDF, więc wszędzie wygląda to identycznie.
@@ -209,7 +216,8 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 ### F3. Ciemny motyw ✅ / ⚠️
 **Co jest.** Trzy możliwości: jak w systemie (domyślnie), jasny, ciemny. Wybór zapamiętany na urządzeniu, ustawiany przed pierwszym rysowaniem strony (bez mignięcia). Szybki przełącznik na logowaniu, liście projektów i w menu edytora; pełny wybór w ustawieniach konta.
 **Dlaczego tak.** Wszystkie kolory interfejsu są zmiennymi, więc ciemny motyw to drugi zestaw wartości, a nie osobne style. Strony publikacji zostają białe – projektujesz na papierze, który będzie biały.
-**Słabe.** Wybór jest per urządzenie, nie per konto. Zrzuty w instrukcji są w jasnym motywie. Wiadomości e-mail są zawsze jasne.
+**Poprawione.** Wybór motywu zapisuje się na koncie i obowiązuje na każdym urządzeniu.
+**Słabe.** Zrzuty w instrukcji są w jasnym motywie. Wiadomości e-mail są zawsze jasne.
 
 ### F4. Instrukcja ✅
 27 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
@@ -219,7 +227,7 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 ## H. Co proponuję dalej
 
 1. **Próba na tablecie i telefonie** – gesty, klawiatura ekranowa, instalacja, wysuwane panele.
-2. **Reszta zastrzeżeń** (decyzja #35): zwijane sekcje panelu, cofanie w całym projekcie, przeciąganie stron na liście, kadrowanie obrazu przeciąganiem, tryb prezentacji w podglądzie, podział `aplikacja.js`.
+2. **Zastrzeżenia, które zostały** (decyzja #35): podział `aplikacja.js` (A1), przejście na Fabric 6 (A2), zapis tylko zmienionych stron (B4), jedna historia cofania dla całego projektu (D6), kolumny, tabele i przelewanie tekstu (D1), przyciąganie przy zmianie rozmiaru (D11).
 3. **Eksport PDF**; przed nim pliki czcionek w repozytorium i pomniejszone obrazy do pracy na ekranie.
 4. **Pule wartości i szablon danych** z planu (5.1, 5.2).
 5. **Poczta**, gdy będzie domena (decyzja #34).
