@@ -108,6 +108,15 @@ export class PanelWlasciwosci {
       this.zbudujKomorke(obj);
       return;
     }
+    // Element otwartej grupy: zmienia się go bez rozgrupowywania. Ustawienia, które dotyczą całego elementu
+    // strony (wyrównanie do marginesów, blokada, zależność od danych, ostrzeżenia), ma grupa.
+    const wGrupie = this.edytor.wOtwartejGrupie(obj);
+    if (wGrupie) {
+      this.tytul.textContent = `${nazwaTypu(obj)} w grupie`;
+      const g = this.sekcja('Element grupy');
+      g.append(this.wskazowka('Zmieniasz jeden element grupy. Kliknij poza grupą albo naciśnij Esc, żeby grupa znów była jednym elementem.'));
+      g.append(this.akcje([['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]]));
+    }
     if (toTabela(obj)) this.zbudujTabele(obj);
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
     this.zbudujGeometrie(obj);
@@ -115,14 +124,15 @@ export class PanelWlasciwosci {
     if (obj.type === 'line' || obj.type === 'path') this.zbudujLinie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
-    this.zbudujWyrownanie(1);
+    if (!wGrupie) this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
     this.zbudujCien(obj);
-    this.zbudujZDanych(obj);
+    if (!wGrupie) this.zbudujZDanych(obj);
     const inne = this.sekcja('Inne');
-    inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
+    if (!wGrupie) inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
+    if (wGrupie) return;
     this.opcje.dodatkiElementu?.(this, obj, inne);
     inne.append(this.przelacznik('Wycisz ostrzeżenia dla tego obiektu', () => Boolean(obj.bez_ostrzezen), (v) => { obj.bez_ostrzezen = v || undefined; }));
   }
@@ -201,30 +211,37 @@ export class PanelWlasciwosci {
     ]);
     seg.classList.add('szeroki');
     s.append(seg);
-    if (obj.type === 'group' && !toTabela(obj)) s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()]]));
+    if (obj.type === 'group' && !toTabela(obj) && !e.wOtwartejGrupie(obj)) {
+      s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()], ...(obj.zablokowany ? [] : [['dlon', 'Zmień element grupy', () => e.otworzGrupe(obj)]])]));
+      s.append(this.wskazowka('Pojedynczy element grupy zmienisz bez rozgrupowywania: kliknij go dwa razy na stronie.'));
+    }
   }
 
   zbudujGeometrie(obj, { tylkoPozycja = false } = {}) {
     const s = this.sekcja('Położenie i rozmiar (mm)');
-    s.append(this.liczba('X', () => zaokr(obj.left), (v) => { obj.left = v; }, { jednostka: 'mm' }));
-    s.append(this.liczba('Y', () => zaokr(obj.top), (v) => { obj.top = v; }, { jednostka: 'mm' }));
+    const e = this.edytor;
+    // Element grupy ma własne położenie, skalę i kąt liczone względem grupy – w polach są wartości na arkuszu.
+    const r = () => e.ukladRodzica(obj);
+    s.append(this.liczba('X', () => zaokr(e.polozenieNaArkuszu(obj).x), (v) => e.ustawPolozenieNaArkuszu(obj, { x: v }), { jednostka: 'mm' }));
+    s.append(this.liczba('Y', () => zaokr(e.polozenieNaArkuszu(obj).y), (v) => e.ustawPolozenieNaArkuszu(obj, { y: v }), { jednostka: 'mm' }));
     if (tylkoPozycja) return;
     if (obj.type === 'line') {
-      s.append(this.liczba('Długość', () => zaokr(Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) * obj.scaleX), (v) => {
+      s.append(this.liczba('Długość', () => zaokr(Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) * obj.scaleX * r().sx), (v) => {
         const dl = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) || 1;
-        obj.scaleX = Math.max(0.1, v) / dl;
+        obj.scaleX = Math.max(0.1, v) / r().sx / dl;
         obj.scaleY = obj.scaleX;
       }, { jednostka: 'mm', min: 0.1 }));
     } else {
-      s.append(this.liczba('Szerokość', () => zaokr(obj.width * obj.scaleX), (v) => {
-        if (obj.type === 'textbox') obj.set('width', Math.max(1, v));
-        else obj.scaleX = Math.max(0.1, v) / obj.width;
+      s.append(this.liczba('Szerokość', () => zaokr(obj.width * obj.scaleX * r().sx), (v) => {
+        if (obj.type === 'textbox') obj.set('width', Math.max(1, v / r().sx));
+        else obj.scaleX = Math.max(0.1, v) / r().sx / obj.width;
       }, { jednostka: 'mm', min: 0.1 }));
-      s.append(this.liczba('Wysokość', () => zaokr(obj.height * obj.scaleY), (v) => {
-        obj.scaleY = Math.max(0.1, v) / obj.height;
+      s.append(this.liczba('Wysokość', () => zaokr(obj.height * obj.scaleY * r().sy), (v) => {
+        obj.scaleY = Math.max(0.1, v) / r().sy / obj.height;
       }, { jednostka: 'mm', min: 0.1, wylaczone: obj.type === 'textbox' }));
     }
-    s.append(this.liczba('Obrót', () => zaokr(obj.angle || 0, 1), (v) => { obj.rotate(((v % 360) + 360) % 360); }, { jednostka: '°', krok: 1 }));
+    const kat = (v) => ((v % 360) + 360) % 360;
+    s.append(this.liczba('Obrót', () => zaokr(obj.parent ? kat((obj.angle || 0) + r().kat) : (obj.angle || 0), 1), (v) => { obj.rotate(kat(v - r().kat)); }, { jednostka: '°', krok: 1 }));
   }
 
   // ---------- Tekst ----------

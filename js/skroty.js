@@ -22,7 +22,7 @@ export const SKROTY = [
 
   // ---------- Zaznaczanie ----------
   { grupa: 'Zaznaczanie', klawisze: ['Ctrl+KeyA'], opis: 'Zaznacz wszystko na stronie', akcja: (k) => k.edytor.zaznaczWszystko() },
-  { grupa: 'Zaznaczanie', klawisze: ['Escape'], opis: 'Odznacz', akcja: (k) => k.edytor.odznacz() },
+  { grupa: 'Zaznaczanie', klawisze: ['Escape'], opis: 'Odznacz (w otwartej grupie: wróć do całej grupy)', akcja: (k) => k.edytor.odznacz() },
   { grupa: 'Zaznaczanie', klawisze: ['Tab'], opis: 'Następny element', akcja: (k) => k.edytor.zaznaczSasiedni(1) },
   { grupa: 'Zaznaczanie', klawisze: ['Shift+Tab'], opis: 'Poprzedni element', akcja: (k) => k.edytor.zaznaczSasiedni(-1) },
   { grupa: 'Zaznaczanie', klawisze: ['Enter'], opis: 'Edytuj zaznaczony tekst', kiedy: (k) => k.edytor.aktywny?.type === 'textbox', akcja: (k) => k.edytor.edytujTekst() },

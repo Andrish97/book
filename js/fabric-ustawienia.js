@@ -51,6 +51,9 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
     o.type = this.type;
     // Opis tabeli jest zmieniany w miejscu – zapis dostaje własną kopię, nie odwołanie do żywego obiektu.
     if (o.tabela) o.tabela = JSON.parse(JSON.stringify(o.tabela));
+    // Grupa otwarta w edytorze (zmiana pojedynczego elementu, pisanie w komórce tabeli) w zapisie jest zwykłą grupą.
+    if (o.interactive) o.interactive = false;
+    if (o.subTargetCheck) o.subTargetCheck = false;
     return o;
   };
 }

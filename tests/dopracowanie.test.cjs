@@ -260,10 +260,10 @@ test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną n
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   let grupa = await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type === 'group' && !o.tabela).objects.map((o) => [o.type, o.visible !== false, o.nazwa || null]));
   assert.deepEqual(grupa, [['rect', true, 'Czerwony'], ['ellipse', false, null]]);
-  // Kliknięcie wiersza elementu zaznacza grupę; własna nazwa elementu grupy.
+  // Kliknięcie wiersza elementu otwiera grupę i zaznacza ten element; własna nazwa elementu grupy.
   await strona.click('#lista-warstw li.w-grupie:has-text("Czerwony") .warstwa-nazwa');
-  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny?.type), 'group');
-  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.nazwijWGrupie(e.aktywny.id, 1, 'Kółko'); });
+  assert.deepEqual(await strona.evaluate(() => { const e = window.seriodruk.edytor; return [e.aktywny?.type, e.otwartaGrupa?.type]; }), ['rect', 'group']);
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.nazwijWGrupie(e.otwartaGrupa.id, 1, 'Kółko'); });
   assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [true]', '  Kółko (ukryty)', '  Czerwony']);
   await strona.click('#lista-warstw li.w-grupie:has-text("Kółko") .warstwa-oko');
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());

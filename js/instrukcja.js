@@ -163,6 +163,8 @@ export const ROZDZIALY = [
       '<b>Położenie i rozmiar</b>: dokładne X, Y, szerokość, wysokość i obrót.',
       '<b>Wyrównaj</b>: jeden element wyrównuje się do marginesów strony, kilka zaznaczonych – do siebie. Przy trzech i więcej dochodzą <b>równe odstępy</b>.',
       'Kilka elementów zaznaczysz, przeciągając prostokąt po pustym miejscu strony albo klikając z wciśniętym Shift. Możesz je <b>zgrupować</b> (<kbd>Ctrl</kbd>+<kbd>G</kbd>) – grupa przesuwa się i skaluje jak jeden element; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> ją rozdziela.',
+      '<b>Element w grupie bez rozgrupowywania</b>: kliknij grupę dwa razy – otworzy się, a element pod kursorem będzie zaznaczony. Możesz go przesunąć, przeskalować, obrócić, zmienić we właściwościach albo napisać w nim tekst; kliknięcie innego elementu grupy zaznacza tamten. Otwartą grupę widać po pomarańczowej przerywanej ramce z podpisem. <kbd>Esc</kbd>, kliknięcie poza grupą albo przycisk <b>Wróć do całej grupy</b> zamykają ją: grupa znów jest jednym elementem, na tym samym miejscu wśród warstw, z ramką dopasowaną do nowego układu.',
+      'W otwartej grupie <b>Duplikuj</b> zostawia kopię w grupie, <b>Usuń</b> usuwa tylko zaznaczony element, a przyciski kolejności zmieniają ją wśród elementów grupy. Skopiowany element grupy wkleja się jako osobny element strony. Wyrównanie do marginesów, blokadę i ustawienia „Z danych” ma cała grupa, nie jej element. Obrazu w grupie nie kadruje się przeciąganiem, a kształtu z pióra nie zmienia punkt po punkcie – do tego trzeba grupę rozdzielić.',
       '<b>Kolejność</b> przenosi element nad lub pod inne.',
       '<b>Zablokuj położenie i rozmiar</b> chroni element przed przypadkowym przesunięciem.',
       'Ikony nad panelem: <b>kopiuj do schowka</b>, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem <b>Wklej</b> we właściwościach strony (albo <kbd>Ctrl</kbd>+<kbd>V</kbd>) – trafi w to samo miejsce.',
@@ -481,7 +483,7 @@ export const ROZDZIALY = [
       '<b>Kłódka</b> blokuje położenie i rozmiar.',
       'Podwójne kliknięcie nazwy pozwala ją zmienić.',
       'Na dole i na górze listy widać <b>elementy wzorców</b> tej strony (pod treścią i nad treścią), z nazwą wzorca. Nie zmienisz ich tutaj – kliknięcie otwiera wzorzec do edycji.',
-      'Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie <b>rozwija jej zawartość</b>: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. Kliknięcie elementu grupy zaznacza całą grupę. Tabela jest jednym wierszem bez rozwijania.',
+      'Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie <b>rozwija jej zawartość</b>: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. <b>Kliknięcie elementu grupy otwiera grupę i zaznacza ten element</b> – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka. Tabela jest jednym wierszem bez rozwijania.',
     ],
   },
   {
