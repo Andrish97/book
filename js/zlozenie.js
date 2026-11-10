@@ -190,10 +190,27 @@ export async function tekstyEgzemplarza(projekt, egz, ciag) {
     const ramki = zbierz(podstawWObiektach(obiekty, wartosc)).filter((o) => o.ramka_h > 0 || o.watek);
     if (!ramki.length) continue;
     const zywe = await ozyw(ramki);
-    rozlejWatki(zywe);
+    const idWatkow = new Set(ramki.filter((o) => o.watek).map((o) => o.watek));
+    const zInnychStron = zrodlo === 'strona' && idWatkow.size ? await ramkiWatkowZInnychStron(projekt, egz, ciag, idWatkow, new Set(ramki.map((o) => o.id))) : [];
+    rozlejWatki([...zywe, ...zInnychStron]);
     for (const o of zywe) wynik.push({ obiekt: o, zrodlo, id: o.id });
   }
   return wynik;
+}
+
+// Tekst płynący przez strony: ramki podanych wątków z pozostałych stron, z danymi podstawionymi tak
+// jak na tych stronach. W serii brana jest strona z tego samego powielenia bloku, poza serią –
+// pierwszy egzemplarz strony. Zwraca żywe ramki (do przelewania, nie do rysowania).
+async function ramkiWatkowZInnychStron(projekt, egz, ciag, idWatkow, obecne) {
+  const ramki = [];
+  for (const s of projekt.strony) {
+    if (s === egz.strona || !s.obiekty.some((o) => o.type === 'textbox' && idWatkow.has(o.watek))) continue;
+    const e = (egz.blok && ciag.egzemplarze.find((x) => x.strona === s && x.blok === egz.blok && x.nrEgz === egz.nrEgz)) || ciag.pierwszy.get(s.id);
+    if (!e) continue;
+    const wartosc = wartosciPol(projekt, e, ciag);
+    ramki.push(...podstawWObiektach(s.obiekty.filter((o) => o.type === 'textbox' && idWatkow.has(o.watek) && !obecne.has(o.id)), wartosc));
+  }
+  return ramki.length ? ozyw(ramki) : [];
 }
 
 // Składa stronę (albo wzorzec) do gotowych obiektów: dane podstawione, obrazy wczytane, teksty
@@ -209,14 +226,10 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly)));
   wpiszWRamki(wlasne);
   // Po podstawieniu danych tekst ma inną długość – połączone ramki przelewają go od nowa.
-  // Ramki wątku z sąsiedniej strony rozkładówki biorą udział w przelewaniu, ale nie są tu rysowane.
+  // Ramki tych samych wątków z innych stron biorą udział w przelewaniu, ale nie są tu rysowane.
   const idWatkow = new Set(tresc.filter((o) => o.watek).map((o) => o.watek));
-  let zSasiada = [];
-  if (idWatkow.size && egz?.sasiad) {
-    const obecne = new Set(tresc.map((o) => o.id));
-    zSasiada = await ozyw(trescEgzemplarza(projekt, egz.sasiad, rozwiniety).filter((o) => idWatkow.has(o.watek) && !obecne.has(o.id)));
-  }
-  if (idWatkow.size) rozlejWatki([...wlasne, ...zSasiada]);
+  const zInnychStron = idWatkow.size && egz ? await ramkiWatkowZInnychStron(projekt, egz, rozwiniety, idWatkow, new Set(tresc.map((o) => o.id))) : [];
+  if (idWatkow.size) rozlejWatki([...wlasne, ...zInnychStron]);
   const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety, { oryginaly });
   return { wydruk, tlo: jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona), obiekty: [...warstwy.pod, ...wlasne, ...warstwy.nad] };
 }

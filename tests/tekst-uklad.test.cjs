@@ -244,3 +244,118 @@ test('przelewanie z danymi i łączenie zaznaczonych ramek; wstawianie tabeli', 
   assert.equal(tabela.szer, 28.9); // (148 − 2 × 10 − 0,6) / 4 − 2 × 1,5
   assert.deepEqual(bledy, []);
 });
+
+test('tekst płynie przez strony: ciąg dalszy na następnej stronie, zmiany wracają do obu stron, podgląd i usunięcie strony', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Przez strony');
+  const proj = () => strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.obiekty.filter((o) => o.type === 'textbox').map((o) => ({ tekst: o.text, nr: o.watek_nr, watek: o.watek || null, lacznik: o.lacznik }))));
+  const caly = (strony) => strony.flat().sort((a, b) => a.nr - b.nr).map((r, i) => (i ? (r.lacznik ?? '\n') : '') + r.tekst).join('');
+  await strona.evaluate((tekst) => {
+    const e = window.seriodruk.edytor;
+    const o = e.dodajTekst(tekst);
+    o.set({ left: 15, top: 20, width: 60, ramka_h: 14 }); // mieści trzy wiersze, reszta wystaje
+    o.initDimensions();
+    e.zatwierdz();
+  }, DLUGI);
+
+  // Przycisk w panelu tekstu: powstaje druga strona z ramką, do której płynie reszta tekstu.
+  await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  let p = await proj();
+  assert.equal(p[0].length, 1); assert.equal(p[1].length, 1);
+  assert.equal(p[0][0].watek, p[1][0].watek, 'obie ramki należą do jednego wątku');
+  assert.deepEqual([p[0][0].nr, p[1][0].nr], [0, 1]);
+  assert.ok(p[0][0].tekst.length < DLUGI.length && p[1][0].tekst.length > 0, 'tekst podzielił się między strony');
+  assert.equal(caly(p), DLUGI, 'nic nie zginęło');
+  const naPierwszej = p[0][0].tekst.length;
+  assert.match(await strona.textContent('.wlasciwosci'), /Ramka 2 z 2 połączonych\. Część ramek leży na innej stronie\./);
+
+  // Zwężenie ramki na drugiej stronie niczego nie zmienia na pierwszej; powrót na pierwszą przyciskiem z panelu.
+  await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 0);
+  // Wyższa ramka na pierwszej stronie zabiera tekst z drugiej – także w zapisie drugiej strony.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.aktywny; o.set({ ramka_h: 28 }); o.initDimensions(); e.zatwierdz(); });
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  p = await proj();
+  assert.ok(p[0][0].tekst.length > naPierwszej, 'na pierwszej stronie jest teraz więcej tekstu');
+  assert.equal(caly(p), DLUGI);
+
+  // Pisanie w ramce: tekst przelewa się od razu, bez wychodzenia z ramki; nadmiar trafia na drugą stronę.
+  const przedPisaniem = p[1][0].tekst.length;
+  await strona.evaluate(() => window.seriodruk.edytor.aktywny.enterEditing());
+  await strona.keyboard.press('Control+Home');
+  await strona.keyboard.type('Dopisane na samym początku zdanie, które wypycha resztę dalej. ');
+  const wTrakcie = await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.aktywny; return { pisze: o.isEditing, miesci: (o._wysokoscTresci ?? 0) <= o.ramka_h + 0.05, kursor: o.selectionStart, dalej: e._poza[0].o.text.length }; });
+  assert.ok(wTrakcie.pisze, 'pisanie trwa');
+  assert.ok(wTrakcie.miesci, 'ramka nie jest przepełniona w trakcie pisania');
+  assert.equal(wTrakcie.kursor, 'Dopisane na samym początku zdanie, które wypycha resztę dalej. '.length, 'kursor stoi za wpisanym tekstem');
+  assert.ok(wTrakcie.dalej > przedPisaniem, 'nadmiar popłynął do ramki na drugiej stronie');
+  await strona.keyboard.press('Escape');
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  p = await proj();
+  assert.equal(caly(p), `Dopisane na samym początku zdanie, które wypycha resztę dalej. ${DLUGI}`);
+
+  // Podgląd (składanie stron) pokazuje na każdej stronie jej część – bez ostrzeżenia o niemieszczącym się tekście na pierwszej.
+  const uwagi = await strona.evaluate(async () => {
+    const { sprawdzMieszczenie } = await import('./js/kontrola-skladu.js');
+    const { rozwin } = await import('./js/serie.js');
+    const pr = window.seriodruk.stan.projekt;
+    return (await sprawdzMieszczenie(pr, rozwin(pr))).map((u) => u.opis);
+  });
+  assert.equal(uwagi.filter((u) => /stron[ay] 1\b/.test(u)).length, 0, `pierwsza strona nie ma uwagi: ${uwagi}`);
+
+  // Kopia strony nie jest dalszym ciągiem: jej ramka zostaje zwykłą ramką ze swoim tekstem.
+  await strona.click('#lista-stron li.strona >> nth=1 >> .menu-miniatury');
+  await strona.click('#menu-strony [data-akcja="strona-duplikuj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 3);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  p = await proj();
+  assert.equal(p[2][0].watek, null);
+  assert.equal(p[2][0].tekst, p[1][0].tekst);
+  assert.equal(caly(p.slice(0, 2)), `Dopisane na samym początku zdanie, które wypycha resztę dalej. ${DLUGI}`);
+
+  // Usunięcie drugiej strony: jej tekst wraca do ramki na pierwszej, która zostaje zwykłą ramką.
+  await strona.click('#lista-stron li.strona >> nth=1 >> .menu-miniatury');
+  await strona.click('#menu-strony [data-akcja="strona-usun"]');
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  p = await proj();
+  assert.equal(p[0][0].watek, null);
+  assert.equal(p[0][0].tekst, `Dopisane na samym początku zdanie, które wypycha resztę dalej. ${DLUGI}`);
+  assert.deepEqual(bledy, []);
+});
+
+test('pisanie w połączonych ramkach na jednej stronie: tekst przelewa się na bieżąco, kursor przechodzi do następnej ramki', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Pisanie');
+  await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const o = e.dodajTekst('Krótki początek.');
+    o.set({ left: 15, top: 20, width: 50, ramka_h: 10 });
+    o.initDimensions();
+    e.zatwierdz();
+  });
+  await strona.click('.wlasciwosci button:has-text("Dodaj ramkę z ciągiem dalszym")');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).length === 2);
+  // Pisanie na końcu pierwszej ramki, aż tekst się przeleje.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.canvas.getObjects().find((x) => x.watek_nr === 0); e.canvas.setActiveObject(o); o.enterEditing(); });
+  await strona.keyboard.press('Control+End');
+  await strona.keyboard.type(' Tu dopisuję dalszy ciąg, który nie zmieści się w dwóch wierszach pierwszej ramki i musi przejść do drugiej.');
+  const s = await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const [a, b] = e.canvas.getObjects().filter((o) => o.watek).sort((x, y) => x.watek_nr - y.watek_nr);
+    return { a: a.text, b: b.text, lacznik: b.lacznik, piszeWDrugiej: b.isEditing, piszeWPierwszej: a.isEditing, kursor: b.selectionStart, dlB: b._text.length, miesciA: (a._wysokoscTresci ?? 0) <= a.ramka_h + 0.05 };
+  });
+  assert.ok(s.miesciA && s.a.length > 0 && s.b.length > 0, 'pierwsza ramka trzyma tyle, ile mieści; reszta jest w drugiej');
+  assert.ok(s.piszeWDrugiej && !s.piszeWPierwszej, 'pisanie przeszło do drugiej ramki');
+  assert.equal(s.kursor, s.dlB, 'kursor stoi na końcu wpisanego tekstu');
+  assert.equal(s.a + s.lacznik + s.b, 'Krótki początek. Tu dopisuję dalszy ciąg, który nie zmieści się w dwóch wierszach pierwszej ramki i musi przejść do drugiej.');
+  // Dalsze pisanie trafia już do drugiej ramki.
+  await strona.keyboard.type(' Koniec.');
+  await strona.keyboard.press('Escape');
+  assert.ok(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.watek_nr === 1).text.endsWith('do drugiej. Koniec.')));
+  assert.deepEqual(bledy, []);
+});

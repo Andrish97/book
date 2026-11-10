@@ -317,13 +317,16 @@ export const ROZDZIALY = [
     punkty: [
       '<b>Podziel na kolumny</b> (2, 3 albo 4) we właściwościach tekstu zamienia ramkę na kolumny obok siebie i rozkłada tekst po równo.',
       '<b>Dodaj ramkę z ciągiem dalszym</b> tworzy drugą ramkę – obok, a gdy się nie mieści, pod spodem. Przesuń ją, gdzie chcesz.',
+      '<b>Ciąg dalszy na następnej stronie</b> tworzy ramkę na następnej stronie (gdy bieżąca jest ostatnia w sekcji – razem z nową stroną). Tekst płynie wtedy <b>przez strony</b>: dłuższe opowiadanie, regulamin albo wstęp układasz w ramkach na kolejnych stronach, a aplikacja sama pilnuje, co jest na której.',
       'Dwie istniejące ramki połączysz, zaznaczając je razem i wybierając <b>Połącz ramki tekstu</b>. Tekst płynie z góry na dół, a w ramkach leżących obok siebie – od lewej.',
       'O tym, ile tekstu zostaje w ramce, decyduje jej <b>wysokość</b>. Zmień ją uchwytem albo liczbą, a tekst ułoży się od nowa. Ostatnia ramka bierze całą resztę; jeśli i tam się nie mieści, zobaczysz ostrzeżenie.',
-      'Piszesz w dowolnej z ramek. W trakcie pisania tekst zostaje na miejscu, a po wyjściu z ramki przelewa się dalej.',
+      'Piszesz w dowolnej z ramek, a tekst <b>przelewa się na bieżąco</b>: gdy ramka się zapełni, pisany tekst przechodzi do następnej i kursor idzie za nim; gdy coś usuniesz, tekst z następnych ramek wraca. Jeśli następna ramka jest na innej stronie, kursor zostaje – aplikacja powie, na którą stronę płynie dalszy ciąg.',
+      'Przy ramce połączonej z ramkami na innych stronach panel pokazuje przyciski <b>Poprzednia ramka</b> i <b>Następna ramka</b> z numerem strony – przenoszą prosto do niej.',
       'Wygląd tekstu (czcionka, rozmiar, kolor, wyrównanie, lista) jest wspólny dla połączonych ramek. Pogrubienia i kolory fragmentów wędrują razem z tekstem.',
       'Pola z danych działają jak zwykle: na każdej powielonej stronie tekst przelewa się osobno, zależnie od długości wartości z tabeli.',
       'Usunięcie jednej z ramek nie usuwa tekstu – wraca on do pozostałych. <b>Rozłącz ramki</b> zostawia każdą ramkę z jej częścią tekstu.',
-      'Ramki łączysz w obrębie jednej strony albo rozkładówki. Kopia połączonej ramki jest zwykłą, niepołączoną ramką.',
+      'Zaznaczaniem łączysz ramki widoczne razem (jedna strona albo rozkładówka); między stronami łączy przycisk „Ciąg dalszy na następnej stronie”. Kopia połączonej ramki i kopia całej strony są zwykłymi, niepołączonymi ramkami. Usunięcie strony nie usuwa płynącego przez nią tekstu – wraca on do ramek na pozostałych stronach.',
+      'W serii tekst płynie między stronami tego samego powielenia bloku: każde powielenie przelewa swoje dane osobno.',
     ],
   },
   {

@@ -11,6 +11,7 @@ import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu } from '../czcionki.js';
+import { ramkiZInnychStron } from '../watki.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
@@ -81,6 +82,7 @@ export async function zaladujCel({ dopasuj = false } = {}) {
   if (stan.tryb === 'wzorzec') {
     edytor.ustawWydruk(wydruk, marginesyWzorca(cel));
     await edytor.wczytajStrone({ id: cel.id, obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff', prowadnice: cel.prowadnice }, projekt.zasoby, null);
+    await edytor.ustawRamkiPoza([]);
     naPlotnie = { wzorzec: cel.id };
   } else {
     const ciag = rozwin(projekt);
@@ -92,6 +94,8 @@ export async function zaladujCel({ dopasuj = false } = {}) {
     edytor.ustawWydruk(wydruk, strony.map((s) => marginesyStrony(projekt, s, bokStrony(s, ciag))));
     edytor.ustawAktywna(strony.indexOf(cel));
     await edytor.wczytajArkusz(dane, projekt.zasoby);
+    // Tekst płynący przez strony: ramki tych samych wątków z pozostałych stron.
+    await edytor.ustawRamkiPoza(ramkiZInnychStron(projekt, strony));
     naPlotnie = { strony: strony.map((s) => s.id) };
   }
   edytor.przeliczOstrzezenia(); // które pola są znane, wiadomo dopiero po wczytaniu
@@ -193,6 +197,17 @@ export function zapiszBiezacyCel() {
       cel.tlo = tlo === odziedziczone ? null : tlo;
       stan.miniatury.set(cel.id, edytor.miniatura(200, i));
     });
+    // Tekst, który przepłynął do ramek na innych stronach, wraca do tych stron.
+    const inne = new Set();
+    for (const z of edytor.ramkiPozaDoZapisu()) {
+      const strona = projekt.strony.find((s) => s.id === z.strona);
+      const o = strona?.obiekty.find((x) => x.id === z.id);
+      if (!o) continue;
+      for (const [k, v] of Object.entries(z.pola)) { if (v === undefined) delete o[k]; else o[k] = v; }
+      stan.miniatury.delete(strona.id);
+      inne.add(strona.id);
+    }
+    if (inne.size) odrysujMiniaturyWTle([...inne]);
   }
   const pierwsza = stan.projekt.strony[0];
   stan.projekt.miniatura = stan.miniatury.get(pierwsza.id) || stan.projekt.miniatura;

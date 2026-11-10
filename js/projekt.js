@@ -9,6 +9,8 @@
 // - wzorce (strony wzorcowe) zastępują „motywy” z planu: strona może mieć
 //   kilka wzorców naraz, a każdy element wzorca leży pod albo nad treścią strony.
 
+import { odlaczWatkiKopii } from './watki.js';
+
 export const WERSJA_MODELU = 3;
 
 export const FORMATY = {
@@ -322,6 +324,7 @@ export function kopiujStrone(strona, nazwa) {
   kopia.id = uid('s');
   kopia.nazwa = nazwa;
   odnowIdentyfikatory(kopia.obiekty);
+  odlaczWatkiKopii(kopia, uid);
   return kopia;
 }
 

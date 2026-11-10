@@ -4,6 +4,8 @@ import {
   stronySekcji, stronyZWzorcem, nowaStrona, uporzadkujStrony, kopiujStrone, wzorceStrony, sekcjaStrony,
 } from '../projekt.js';
 import { renderujCel } from '../zlozenie.js';
+import { zachowajTekstStrony } from '../watki.js';
+import { uid } from '../projekt.js';
 import { rozwin, blokiSerii, bokStrony, liczbaPowielen } from '../serie.js';
 import { ikona } from '../ikony.js';
 import { $$, $, potwierdz, powiadom, zapytajONazwe, zamknijMenu } from '../ui.js';
@@ -289,6 +291,52 @@ export async function dodajStrone(idSekcji = null) {
   zaplanujZapis();
 }
 
+// Tekst płynący przez strony: nowa ramka na następnej stronie, z ciągiem dalszym zaznaczonej.
+// Gdy bieżąca strona jest ostatnia w sekcji, powstaje nowa strona.
+export async function ramkaNaNastepnejStronie() {
+  const akt = edytor.aktywny;
+  if (stan.tryb !== 'strona' || !akt || akt.type !== 'textbox' || akt.zWzorca) return;
+  if (akt.isEditing) akt.exitEditing();
+  zapiszBiezacyCel();
+  const p = stan.projekt;
+  const strona = p.strony.find((s) => s.obiekty.some((o) => o.id === akt.id));
+  const zrodlo = strona?.obiekty.find((o) => o.id === akt.id);
+  if (!zrodlo) return;
+  if (!zrodlo.watek) Object.assign(zrodlo, { watek: uid('w'), watek_nr: 0 });
+  if (!(zrodlo.ramka_h > 0)) zrodlo.ramka_h = zrodlo.height;
+  delete zrodlo.autodopasowanie;
+  const i = p.strony.indexOf(strona);
+  let nastepna = p.strony[i + 1];
+  let dodana = false;
+  if (!nastepna || nastepna.sekcja !== strona.sekcja) {
+    nastepna = nowaStrona(`Strona ${p.strony.length + 1}`, strona.sekcja);
+    if (Array.isArray(strona.wzorce)) nastepna.wzorce = [...strona.wzorce];
+    p.strony.splice(i + 1, 0, nastepna);
+    dodana = true;
+  }
+  for (const s of p.strony) for (const o of s.obiekty) if (o.watek === zrodlo.watek && o.watek_nr > zrodlo.watek_nr) o.watek_nr += 1;
+  const nowa = { ...JSON.parse(JSON.stringify(zrodlo)), id: uid('o'), text: '', styles: [], watek_nr: zrodlo.watek_nr + 1, lacznik: '\n' };
+  delete nowa.lista_start; delete nowa.z;
+  nastepna.obiekty.push(nowa);
+  stan.miniatury.clear();
+  stan.indeks = p.strony.indexOf(nastepna);
+  await zaladujCel();
+  edytor.przelejWatki(); // to, co nie mieściło się wcześniej, od razu płynie do nowej ramki
+  edytor.zaznacz(nowa.id);
+  zapiszBiezacyCel();
+  renderujListe();
+  zaplanujZapis();
+  powiadom(dodana ? `Dodano stronę „${nastepna.nazwa}” z ramką na ciąg dalszy tekstu.` : `Ramka z ciągiem dalszym jest na stronie „${nastepna.nazwa}”. Ustaw ją tam, gdzie ma być.`);
+}
+
+// Przechodzi do ramki tego samego wątku na innej stronie i ją zaznacza.
+export async function przejdzDoRamki(idStrony, idRamki) {
+  const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);
+  if (i < 0) return;
+  await przejdzDoStrony(i);
+  edytor.zaznacz(idRamki);
+}
+
 export async function duplikujStrone(i) {
   zapiszBiezacyCel();
   const zrodlo = stan.projekt.strony[i];
@@ -306,8 +354,9 @@ export async function usunStrone(i) {
   if (!await potwierdz(`Usunąć stronę „${s.nazwa}”?`, 'Wszystkie elementy z tej strony zostaną usunięte.', 'Usuń stronę', true)) return;
   zapiszBiezacyCel();
   const biezaca = biezacaStrona();
+  zachowajTekstStrony(stan.projekt, s); // tekst płynący przez strony zostaje w pozostałych ramkach
   stan.projekt.strony.splice(i, 1);
-  stan.miniatury.delete(s.id);
+  stan.miniatury.clear();
   const nowyIndeks = stan.projekt.strony.indexOf(biezaca);
   stan.indeks = nowyIndeks >= 0 ? nowyIndeks : Math.min(i, stan.projekt.strony.length - 1);
   if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();

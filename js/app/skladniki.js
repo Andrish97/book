@@ -19,7 +19,7 @@ import { edytor, stan, biezacaStrona, wlasciciel } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno } from './zapis.js';
 import { doEdycji } from './podglad-ekran.js';
 import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './panel-strony.js';
-import { generujMiniatury } from './lista-stron.js';
+import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 
 export const instrukcja = new Instrukcja();
@@ -39,6 +39,11 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   pola: () => polaDoWstawienia(),
   kolumnyObrazu: () => (stan.tryb === 'strona' ? tabelaStrony(biezacaStrona())?.kolumny : stan.projekt.tabele.flatMap((t) => t.kolumny)) || [],
   wgrajObrazy: () => $('#pliki-zasoby').click(),
+  // Tekst płynący przez strony (tylko na stronach, nie we wzorcach).
+  ramkaNaNastepnejStronie: () => (stan.tryb === 'strona' ? ramkaNaNastepnejStronie() : null),
+  przejdzDoRamki: (strona, ramka) => przejdzDoRamki(strona, ramka),
+  nazwaStrony: (id) => { const i = stan.projekt.strony.findIndex((s) => s.id === id); return i < 0 ? '' : `${i + 1} · ${stan.projekt.strony[i].nazwa}`; },
+  naStronie: () => stan.tryb === 'strona',
   poZmianieStyli: (zmiana) => poZmianieStyli(zmiana),
 });
 

@@ -51,6 +51,7 @@ export class Edytor extends EventTarget {
     this.aktywna = 0; // strona arkusza, do której trafiają nowe elementy
     this.zasoby = {};
     this.ostrzezenia = [];
+    this._poza = []; // ramki wątków leżące na innych stronach: [{ strona, o, odcisk }]
     this._wczytywanie = false;
     this._renderujeEksport = false;
     this._liniePrzyciagania = [];
@@ -122,7 +123,7 @@ export class Edytor extends EventTarget {
     c.on('mouse:dblclick', (e) => { if (e.target?.type === 'image' && !e.target.zWzorca) this.kadruj(e.target); });
     c.on('selection:cleared', () => { if (this._kadr) this.zakonczKadrowanie(true); });
     c.on('selection:updated', () => { if (this._kadr && this.aktywny !== this._kadr.ramka) this.zakonczKadrowanie(true); });
-    c.on('text:changed', () => this._emitujZaznaczenie());
+    c.on('text:changed', (e) => { this._przelejPrzyPisaniu(e.target); this._emitujZaznaczenie(); });
     c.on('text:selection:changed', () => this._emitujZaznaczenie());
     c.on('text:editing:entered', () => this._emitujZaznaczenie());
     // Podczas przesuwania/skalowania odświeżamy pola liczbowe na bieżąco.
@@ -240,6 +241,7 @@ export class Edytor extends EventTarget {
   // strony: [{ id, obiekty, tlo, warstwy }] – jedna albo dwie (lewa, prawa),
   // tyle samo, ile zestawów marginesów dostało ustawWydruk.
   async wczytajArkusz(strony, zasoby) {
+    this._poza = [];
     await przygotujKopie(zasoby, strony.flatMap((s) => s.obiekty || []));
     const w = this.wydruk.szerokosc_mm;
     const b = this.wydruk.spad_mm;
@@ -531,7 +533,7 @@ export class Edytor extends EventTarget {
     this.canvas.discardActiveObject();
     // Tekst usuwanej ramki wątku przechodzi do sąsiedniej – znika ramka, nie treść.
     for (const o of obiekty) {
-      const zostaja = this._ramkiWatku(o).filter((r) => !obiekty.includes(r));
+      const zostaja = this._calyWatek(o.watek).filter((r) => !obiekty.includes(r));
       if (!zostaja.length) continue;
       const przed = zostaja.filter((r) => r.watek_nr < o.watek_nr).at(-1);
       przeniesTekst(o, przed || zostaja[0], Boolean(przed));
@@ -571,38 +573,137 @@ export class Edytor extends EventTarget {
 
   // ---------- Przelewanie tekstu między ramkami, kolumny, tabela ----------
 
+  // Ramki wątku leżące na płótnie (w kolejności czytania).
   _ramkiWatku(obj) {
     return obj?.watek ? (watki(this.canvas.getObjects().filter((o) => !o.zWzorca)).get(obj.watek) || []) : [];
   }
 
-  // Opis wątku zaznaczonej ramki: { nr, ile } albo null.
+  // Cały wątek: ramki z płótna i ramki z innych stron (trzymane w pamięci), w kolejności czytania.
+  _calyWatek(id) {
+    if (!id) return [];
+    const ramki = [...(this._poza || []).filter((p) => p.o.watek === id).map((p) => p.o), ...this.canvas.getObjects().filter((o) => !o.zWzorca && o.type === 'textbox' && o.watek === id)];
+    return ramki.sort((a, b) => (a.watek_nr || 0) - (b.watek_nr || 0));
+  }
+
+  // Ramki wątków, które mają część na otwartych stronach, a część na innych: [{ strona: id, json }].
+  // Ramki z innych stron żyją w pamięci, biorą udział w przelewaniu i wracają do projektu przy zapisie.
+  async ustawRamkiPoza(lista) {
+    const zywe = lista.length ? await fabric.util.enlivenObjects(lista.map((x) => JSON.parse(JSON.stringify(x.json)))) : [];
+    this._poza = lista.map((x) => ({ strona: x.strona, o: zywe.find((o) => o.id === x.json.id) })).filter((x) => x.o);
+    for (const p of this._poza) p.odcisk = this._odciskRamki(p.o);
+    this.canvas.requestRenderAll();
+  }
+
+  _polaRamkiPoza(o) {
+    const pola = { text: o.text, styles: fabric.util.stylesToArray(o.styles || {}, o.text), watek: o.watek, watek_nr: o.watek_nr, lacznik: o.lacznik, lista_start: o.lista_start, ramka_h: o.ramka_h };
+    for (const k of WSPOLNE_W_WATKU) pola[k] = o[k];
+    return pola;
+  }
+
+  _odciskRamki(o) { return JSON.stringify(this._polaRamkiPoza(o)); }
+
+  // Ramki z innych stron zmienione od ostatniego zapisu: [{ strona, id, pola }] (pole undefined = usuń z zapisu).
+  ramkiPozaDoZapisu() {
+    const wynik = [];
+    for (const p of this._poza || []) {
+      const odcisk = this._odciskRamki(p.o);
+      if (odcisk === p.odcisk) continue;
+      p.odcisk = odcisk;
+      wynik.push({ strona: p.strona, id: p.o.id, pola: this._polaRamkiPoza(p.o) });
+    }
+    return wynik;
+  }
+
+  // Opis wątku zaznaczonej ramki albo null: { nr, ile, innychStron, poprzednia, nastepna } –
+  // poprzednia/nastepna to { strona, id } ramki leżącej na innej stronie (albo null).
   watekRamki(obj = this.aktywny) {
-    const ramki = this._ramkiWatku(obj);
-    return ramki.length > 1 ? { nr: ramki.indexOf(obj) + 1, ile: ramki.length } : null;
+    const ramki = this._calyWatek(obj?.watek);
+    if (ramki.length < 2 || !ramki.includes(obj)) return null;
+    const i = ramki.indexOf(obj);
+    const poza = (r) => { const p = r && (this._poza || []).find((x) => x.o === r); return p ? { strona: p.strona, id: r.id } : null; };
+    return {
+      nr: i + 1, ile: ramki.length,
+      innychStron: new Set((this._poza || []).filter((p) => p.o.watek === obj.watek).map((p) => p.strona)).size,
+      poprzednia: poza(ramki[i - 1]), nastepna: poza(ramki[i + 1]),
+    };
+  }
+
+  // Przelewa tekst od razu (np. po dodaniu ramki na innej stronie).
+  przelejWatki() {
+    this._pilnujWatkow();
+    this.canvas.requestRenderAll();
   }
 
   // Porządkuje wątki po każdej zmianie i przelewa tekst. Kopia ramki (powielenie,
   // wklejenie) ma ten sam numer co oryginał – zostaje zwykłą, niepołączoną ramką.
   _pilnujWatkow() {
     const akt = this.aktywny;
-    for (const wszystkie of watki(this.canvas.getObjects().filter((o) => !o.zWzorca)).values()) {
-      const numery = new Set();
-      const ramki = [];
-      for (const r of wszystkie) {
-        if (numery.has(r.watek_nr)) odlaczRamke(r); else { numery.add(r.watek_nr); ramki.push(r); }
+    const naPlotnie = watki(this.canvas.getObjects().filter((o) => !o.zWzorca));
+    const poza = this._poza || [];
+    for (const id of new Set([...naPlotnie.keys(), ...poza.map((p) => p.o.watek).filter(Boolean)])) {
+      const zInnychStron = poza.filter((p) => p.o.watek === id).map((p) => p.o);
+      const numery = new Set(zInnychStron.map((r) => r.watek_nr));
+      const tutaj = [];
+      for (const r of naPlotnie.get(id) || []) {
+        if (numery.has(r.watek_nr)) odlaczRamke(r); else { numery.add(r.watek_nr); tutaj.push(r); }
       }
+      const ramki = [...zInnychStron, ...tutaj].sort((a, b) => (a.watek_nr || 0) - (b.watek_nr || 0));
       if (ramki.length < 2) { ramki.forEach(odlaczRamke); continue; }
       ramki.forEach((r, i) => {
         r.watek_nr = i;
         if (!(r.ramka_h > 0)) r.ramka_h = r.height; // tekst płynie dalej tylko z ramki o stałej wysokości
       });
-      // W trakcie pisania tekst zostaje na miejscu; przeleje się po wyjściu z ramki.
+      // W trakcie pisania tekst przelewa się osobno, z pilnowaniem kursora (_przelejPrzyPisaniu).
       if (ramki.some((r) => r.isEditing)) continue;
       if (ramki.includes(akt)) {
         for (const r of ramki) if (r !== akt) for (const k of WSPOLNE_W_WATKU) if (r[k] !== akt[k]) r.set(k, akt[k]);
       }
       rozlej(ramki);
     }
+  }
+
+  // Pisanie w połączonej ramce: tekst, który przestał się mieścić, od razu płynie dalej, a zwolnione
+  // miejsce wypełnia tekst z następnych ramek. Kursor zostaje przy tym samym znaku – jeśli znak
+  // przeszedł do następnej ramki na tej stronie, pisanie przenosi się tam.
+  _przelejPrzyPisaniu(obj) {
+    if (!obj?.watek || !obj.isEditing || obj.inCompositionMode || obj.zWzorca) return;
+    const ramki = this._calyWatek(obj.watek);
+    if (ramki.length < 2) return;
+    // Miejsce początku części ramki w sklejonym tekście całego wątku.
+    const poczatek = (r) => {
+      let dl = 0;
+      let bylo = false;
+      for (const x of ramki) {
+        const lacznik = bylo && x.text ? (x.lacznik ?? '\n').length : 0;
+        if (x === r) return dl + lacznik;
+        if (!x.text) continue;
+        dl += lacznik + x.text.length;
+        bylo = true;
+      }
+      return dl;
+    };
+    const znakow = (r, n) => (r.graphemeSplit ? r.graphemeSplit(r.text.slice(0, n)).length : n);
+    const kursor = poczatek(obj) + obj._text.slice(0, obj.selectionStart).join('').length;
+    if (!rozlej(ramki)) return;
+    let cel = ramki.at(-1);
+    for (const r of ramki) if (kursor <= poczatek(r) + r.text.length) { cel = r; break; }
+    const lokalnie = Math.max(0, kursor - poczatek(cel));
+    if (cel === obj || !this.canvas.getObjects().includes(cel)) {
+      const gdzie = cel === obj ? Math.min(znakow(obj, lokalnie), obj._text.length) : obj._text.length;
+      obj.selectionStart = gdzie; obj.selectionEnd = gdzie;
+      if (obj.hiddenTextarea) obj.hiddenTextarea.value = obj.text;
+      obj._updateTextarea?.();
+      // Dalszy ciąg jest na innej stronie – kursor zostaje tutaj.
+      if (cel !== obj) this.dispatchEvent(new CustomEvent('tekst-na-innej-stronie', { detail: (this._poza || []).find((p) => p.o === cel)?.strona }));
+    } else {
+      obj.exitEditing();
+      this.canvas.setActiveObject(cel);
+      cel.enterEditing();
+      const gdzie = Math.min(znakow(cel, lokalnie), cel._text.length);
+      cel.selectionStart = gdzie; cel.selectionEnd = gdzie;
+      cel._updateTextarea?.();
+    }
+    this.canvas.requestRenderAll();
   }
 
   // Łączy zaznaczone ramki tekstu: tekst, który nie mieści się w pierwszej,
@@ -631,7 +732,7 @@ export class Edytor extends EventTarget {
   async dodajRamkeDalsza(odstep = 5) {
     const akt = this.aktywny;
     if (!akt || akt.type !== 'textbox' || akt.zWzorca || akt.isEditing) return null;
-    const ramki = this._ramkiWatku(akt);
+    const ramki = this._calyWatek(akt.watek);
     const nowa = await akt.clone();
     const szer = akt.getScaledWidth();
     const wys = akt.getScaledHeight();
@@ -695,7 +796,7 @@ export class Edytor extends EventTarget {
   rozlaczRamki() {
     const akt = this.aktywny;
     const zaznaczone = toZaznaczenie(akt) ? akt.getObjects() : [akt];
-    const ramki = new Set(zaznaczone.flatMap((o) => this._ramkiWatku(o)));
+    const ramki = new Set(zaznaczone.flatMap((o) => this._calyWatek(o?.watek)));
     if (!ramki.size) return false;
     ramki.forEach(odlaczRamke);
     this.canvas.requestRenderAll();

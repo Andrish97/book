@@ -309,14 +309,23 @@ export class PanelWlasciwosci {
     // Przelewanie: połączone ramki i kolumny.
     const w = this.sekcja('Przelewanie tekstu');
     const watek = this.edytor.watekRamki(obj);
+    const naStronie = Boolean(this.opcje.naStronie?.() && this.opcje.ramkaNaNastepnejStronie);
+    const dalejNaStronie = naStronie ? [['plus', 'Ciąg dalszy na następnej stronie', () => this.opcje.ramkaNaNastepnejStronie()]] : [];
     if (watek) {
-      w.append(this.wskazowka(`Ramka ${watek.nr} z ${watek.ile} połączonych. Tekst, który się tu nie mieści, płynie do następnej; wygląd tekstu jest wspólny dla wszystkich.`));
+      const strony = watek.innychStron ? ` Część ramek leży na ${watek.innychStron === 1 ? 'innej stronie' : `innych stronach (${watek.innychStron})`}.` : '';
+      w.append(this.wskazowka(`Ramka ${watek.nr} z ${watek.ile} połączonych.${strony} Tekst, który się tu nie mieści, płynie do następnej; wygląd tekstu jest wspólny dla wszystkich.`));
+      // Sąsiednie ramki z innych stron: przejście jednym kliknięciem.
+      const skoki = [];
+      if (watek.poprzednia) skoki.push(['wstecz', `Poprzednia ramka: strona ${this.opcje.nazwaStrony?.(watek.poprzednia.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.poprzednia.strona, watek.poprzednia.id)]);
+      if (watek.nastepna) skoki.push(['dalej', `Następna ramka: strona ${this.opcje.nazwaStrony?.(watek.nastepna.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.nastepna.strona, watek.nastepna.id)]);
+      if (skoki.length) w.append(this.akcje(skoki));
       w.append(this.akcje([
         ['plus', 'Dodaj ramkę z ciągiem dalszym', () => this.edytor.dodajRamkeDalsza()],
+        ...dalejNaStronie,
         ['rozgrupuj', 'Rozłącz ramki', () => this.edytor.rozlaczRamki()],
       ]));
     } else {
-      w.append(this.akcje([['plus', 'Dodaj ramkę z ciągiem dalszym', () => this.edytor.dodajRamkeDalsza()]]));
+      w.append(this.akcje([['plus', 'Dodaj ramkę z ciągiem dalszym', () => this.edytor.dodajRamkeDalsza()], ...dalejNaStronie]));
       const kolumny = (n) => async () => { if (!await this.edytor.podzielNaKolumny(n)) powiadom('Ramka jest za wąska na tyle kolumn.'); };
       const podzial = this.segmenty('Podziel na kolumny', [['2', '2 kolumny', null, kolumny(2)], ['3', '3 kolumny', null, kolumny(3)], ['4', '4 kolumny', null, kolumny(4)]], true);
       podzial.classList.add('szeroki');

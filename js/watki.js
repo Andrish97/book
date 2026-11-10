@@ -9,6 +9,10 @@
 // rozlej() skleja części w całość i rozdaje od nowa: każda ramka dostaje tyle
 // wierszy, ile mieści jej stała wysokość, ostatnia – całą resztę.
 // Formatowanie fragmentów (pogrubienia, kolory) wędruje razem z tekstem.
+//
+// Ramki jednego wątku mogą leżeć na różnych stronach – tekst płynie wtedy przez
+// strony. Edytor trzyma ramki z pozostałych stron w pamięci (poza płótnem),
+// a składanie strony dobiera je z projektu (zlozenie.js).
 
 // Liczba znaków bez znaków nowej linii – tak Fabric liczy położenia stylów.
 const bezLinii = (t) => t.length - (t.match(/\n/g) || []).length;
@@ -154,4 +158,64 @@ export function kolejnoscCzytania(ramki) {
     const obok = Math.min(a.top + a.getScaledHeight(), b.top + b.getScaledHeight()) - Math.max(a.top, b.top) > Math.min(a.getScaledHeight(), b.getScaledHeight()) / 2;
     return obok ? a.left - b.left : a.top - b.top;
   });
+}
+
+// ---------- Wątki w projekcie (zapis stron, bez żywych obiektów) ----------
+
+const ramkiStrony = (strona) => (strona.obiekty || []).filter((o) => o.type === 'textbox' && o.watek);
+
+// Ramki wątków na stronach projektu: Map(id wątku → [{ strona, o }]) w kolejności czytania.
+export function watkiProjektu(projekt) {
+  const wynik = new Map();
+  for (const strona of projekt.strony) for (const o of ramkiStrony(strona)) wynik.set(o.watek, [...(wynik.get(o.watek) || []), { strona, o }]);
+  for (const ramki of wynik.values()) ramki.sort((a, b) => (a.o.watek_nr || 0) - (b.o.watek_nr || 0));
+  return wynik;
+}
+
+// Ramki wątków obecnych na podanych stronach, leżące na innych stronach: [{ strona: id, json }].
+export function ramkiZInnychStron(projekt, strony) {
+  const tutaj = new Set(strony.flatMap((s) => ramkiStrony(s).map((o) => o.watek)));
+  if (!tutaj.size) return [];
+  const wynik = [];
+  for (const s of projekt.strony) {
+    if (strony.includes(s)) continue;
+    for (const o of ramkiStrony(s)) if (tutaj.has(o.watek)) wynik.push({ strona: s.id, json: o });
+  }
+  return wynik;
+}
+
+const bezWatku = (o) => { delete o.watek; delete o.watek_nr; delete o.lacznik; delete o.lista_start; };
+
+// Kopia strony nie jest dalszym ciągiem oryginału: jej wątki dostają nowe identyfikatory,
+// a ramka, która po skopiowaniu została w wątku sama, staje się zwykłą ramką.
+export function odlaczWatkiKopii(strona, uid) {
+  const nowe = new Map();
+  const ramki = ramkiStrony(strona);
+  for (const o of ramki) { if (!nowe.has(o.watek)) nowe.set(o.watek, uid('w')); o.watek = nowe.get(o.watek); }
+  for (const id of nowe.values()) {
+    const w = ramki.filter((o) => o.watek === id).sort((a, b) => (a.watek_nr || 0) - (b.watek_nr || 0));
+    if (w.length < 2) w.forEach(bezWatku); else w.forEach((o, i) => { o.watek_nr = i; if (!i) delete o.lacznik; });
+  }
+}
+
+// Przed usunięciem strony: tekst jej ramek przechodzi do sąsiedniej ramki tego samego wątku
+// na innej stronie – znika strona, nie treść.
+export function zachowajTekstStrony(projekt, strona) {
+  const czesc = (o, lacznik) => ({ text: o.text || '', styles: Array.isArray(o.styles) ? o.styles : [], lacznik });
+  for (const ramki of watkiProjektu(projekt).values()) {
+    const stad = ramki.filter((r) => r.strona === strona);
+    const reszta = ramki.filter((r) => r.strona !== strona);
+    if (!stad.length || !reszta.length) continue;
+    // Od końca: każda usuwana ramka oddaje tekst poprzedniej zostającej, a gdy takiej nie ma – następnej.
+    for (const { o } of [...stad].reverse()) {
+      const przed = reszta.filter((r) => (r.o.watek_nr || 0) < (o.watek_nr || 0)).at(-1)?.o;
+      const cel = przed || reszta[0].o;
+      if (!o.text) continue;
+      const w = przed ? polaczCzesci([czesc(cel, ''), czesc(o, o.lacznik ?? '\n')]) : polaczCzesci([czesc(o, ''), czesc(cel, cel.lacznik ?? '\n')]);
+      cel.text = w.text; cel.styles = w.styles;
+      if (!przed) { if (o.lacznik === undefined) delete cel.lacznik; else cel.lacznik = o.lacznik; }
+    }
+    if (reszta.length < 2) reszta.forEach((r) => bezWatku(r.o));
+    else reszta.forEach((r, i) => { r.o.watek_nr = i; if (!i) delete r.o.lacznik; });
+  }
 }
