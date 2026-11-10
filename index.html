@@ -802,8 +802,17 @@
         <legend>Jak czytać tabelę</legend>
         <label class="przelacznik"><input type="radio" name="uklad" value="szeroki"><span>Jeden wiersz na cały blok stron</span></label>
         <label class="przelacznik"><input type="radio" name="uklad" value="dlugi"><span>Jeden wiersz na każdą stronę bloku</span></label>
+        <label class="przelacznik" id="seria-pole-dopelnij"><input type="checkbox" name="dopelnij"><span>Dokończ ostatni blok stronami bez danych</span></label>
+        <p class="podpowiedz" id="seria-opis-konca">Seria kończy się na ostatnim wierszu tabeli – jeśli wypada on w środku bloku, dalszych stron bloku nie ma w wydruku.</p>
+      </fieldset>
+      <fieldset class="grupa-pol" id="seria-dodatkowe">
+        <legend>Dodatkowe tabele</legend>
+        <p class="podpowiedz">Dane, które zmieniają się rzadziej niż strony serii – np. hasło tygodnia na stronach dni albo tytuł rozdziału co 8 stron. Pole z takiej tabeli wpisujesz z jej nazwą, np. <code>{Tygodnie.haslo}</code>; znajdziesz je też na liście <b>Wstaw pole</b>.</p>
+        <div id="seria-dodatkowe-lista"></div>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="seria-dodaj-tabele" data-ikona="plus">Dodaj tabelę</button></div>
       </fieldset>
       <p class="podpowiedz" id="seria-podsumowanie"></p>
+      <p class="podpowiedz uwaga-danych" id="seria-braki" role="status" hidden></p>
       <fieldset class="grupa-pol" id="seria-pola">
         <legend>Dane, których potrzebują strony</legend>
         <p class="podpowiedz" id="seria-pola-opis"></p>

@@ -487,6 +487,29 @@ async function przykladoweProjekty(strona) {
   });
   await d.waitForTimeout(500);
   await zrzut(d, 'uklad.png');
+
+  // Wygląd z danych: zakładka na brzegu strony – kolor z kolumny, położenie z numeru powielenia
+  await d.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    await window.seriodruk.zapiszTeraz();
+    const t = p.tabele[0];
+    t.kolumny.push('kolor');
+    ['#d1495b', '#edae49', '#66a182', '#2e86ab', '#8d6a9f', '#00798c'].forEach((k, i) => t.wiersze[i].push(k));
+    p.strony.splice(1); // sama strona dnia
+    p.strony[0].obiekty.push({
+      type: 'rect', version: '5.3.0', left: 136, top: 62, width: 15, height: 20, fill: '#999999', strokeWidth: 0, id: 'o_zakladka', nazwa: 'Zakładka', bez_ostrzezen: true,
+      z_danych: { kolor: 'kolor', y: { pole: 'egzemplarz', tryb: 'pozycja', krok: 22, co: 6 } },
+    });
+    await window.seriodruk.przejdzDoStrony(0);
+    await window.seriodruk.przeladuj();
+    await window.seriodruk.zapiszTeraz();
+  });
+  await d.click('[data-akcja="podglad"]');
+  await d.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await d.click('[data-akcja="podglad-minus"]');
+  await d.click('[data-akcja="podglad-minus"]');
+  await d.waitForTimeout(1800);
+  await zrzut(d, 'zakladki.png');
   await kp.close();
 
   // ---------- Telefon ----------

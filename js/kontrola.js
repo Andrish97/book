@@ -3,7 +3,7 @@
 
 import { polaWObiektach, POLA_DOKUMENTU } from './pola.js';
 import { wzorceStrony } from './projekt.js';
-import { blokiSerii, tabelaSerii, liczbaPowielen, rozwin, wartosciPol } from './serie.js';
+import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol } from './serie.js';
 import { odmiana } from './ui.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
@@ -29,14 +29,17 @@ function polaStrony(projekt, strona, pamiec) {
 
 // Kolumny, których potrzebują strony serii: [{ nazwa, obraz, strony: [nazwy stron] }].
 // Pola dokumentu ({nr}, {sekcja}…) nie są kolumnami, chyba że tabela już ma taką kolumnę.
+// Pola brane z tabel dodatkowych serii należą do tamtych tabel – tu ich nie ma.
 export function kolumnySerii(projekt, seria) {
   const tabela = tabelaSerii(projekt, seria);
+  const dodatkowe = tabeleDodatkowe(projekt, seria).map((d) => d.tabela);
   const wynik = new Map();
   for (const blok of blokiSerii(projekt).filter((b) => b.seria.id === seria.id)) {
     for (const strona of blok.strony) {
       const { pola, obrazy } = polaStrony(projekt, strona);
       for (const nazwa of pola) {
         if (DOKUMENTU.has(nazwa) && !tabela?.kolumny.includes(nazwa)) continue;
+        if (!tabela?.kolumny.includes(nazwa) && polePoTabelach(nazwa, [...(tabela ? [tabela] : []), ...dodatkowe])) continue;
         const wpis = wynik.get(nazwa) || { nazwa, obraz: false, strony: [] };
         wpis.obraz = wpis.obraz || obrazy.has(nazwa);
         if (!wpis.strony.includes(strona.nazwa)) wpis.strony.push(strona.nazwa);
@@ -116,6 +119,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     const wartosc = wartosciPol(projekt, egz, ciag);
     const nr = egz.indeks + 1;
     const tabela = egz.seria ? tabelaSerii(projekt, egz.seria) : null;
+    const tabele = egz.seria ? tabeleSerii(projekt, egz.seria) : [];
     for (const nazwa of pola) {
       const v = wartosc(nazwa, null);
       if (v === undefined) {
@@ -127,12 +131,15 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
         const klucz = `${nazwa}\n${v}`;
         brakObrazu.set(klucz, [...(brakObrazu.get(klucz) || []), nr]);
       }
-      if (tabela?.unikalne?.includes(nazwa) && egz.nrWiersza !== null && String(v).trim()) {
-        const kolumny = uzycia.get(tabela) || new Map();
-        const wartosci = kolumny.get(nazwa) || new Map();
+      // Pilnowane kolumny: z której tabeli (głównej albo dodatkowej) i z którego wiersza przyszła wartość.
+      const zrodlo = tabele.length ? polePoTabelach(nazwa, tabele) : null;
+      if (zrodlo?.tabela.unikalne?.includes(zrodlo.kolumna) && String(v).trim()) {
+        const nrWiersza = zrodlo.tabela === tabela ? egz.nrWiersza : egz.dodatkowe.find((d) => d.tabela === zrodlo.tabela)?.nrWiersza;
+        const kolumny = uzycia.get(zrodlo.tabela) || new Map();
+        const wartosci = kolumny.get(zrodlo.kolumna) || new Map();
         const stan = wartosci.get(String(v).trim()) || { strony: [], wiersze: new Set() };
-        stan.strony.push(nr); stan.wiersze.add(egz.nrWiersza);
-        wartosci.set(String(v).trim(), stan); kolumny.set(nazwa, wartosci); uzycia.set(tabela, kolumny);
+        stan.strony.push(nr); stan.wiersze.add(nrWiersza);
+        wartosci.set(String(v).trim(), stan); kolumny.set(zrodlo.kolumna, wartosci); uzycia.set(zrodlo.tabela, kolumny);
       }
     }
   }
@@ -150,9 +157,10 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       const wartosci = uzycia.get(tabela)?.get(kolumna);
       if (wartosci) {
         for (const [wartosc, stan] of wartosci) {
-          // Ta sama strona widziana dwa razy (wzorzec i treść) to nie powtórzenie.
+          // Powtórzenie to ta sama wartość w dwóch różnych wierszach. Jeden wiersz pokazany na
+          // kilku stronach (np. tydzień na siedmiu stronach dni) powtórzeniem nie jest.
           const strony = [...new Set(stan.strony)];
-          if (strony.length > 1) uwagi.push({ rodzaj: 'powtorzenie', strony, opis: `Wartość „${wartosc}” z kolumny „${kolumna}” (tabela „${tabela.nazwa}”) powtarza się na stronach ${lista(strony)}.` });
+          if (stan.wiersze.size > 1) uwagi.push({ rodzaj: 'powtorzenie', strony, opis: `Wartość „${wartosc}” z kolumny „${kolumna}” (tabela „${tabela.nazwa}”) powtarza się na stronach ${lista(strony)}.` });
         }
       } else {
         for (const p of powtorzenia(tabela, kolumna)) {
@@ -161,13 +169,19 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       }
     }
   }
-  // Seria czytana „wiersz na stronę”, której tabela nie wypełnia ostatniego bloku.
-  for (const blok of blokiSerii(projekt)) {
-    const { seria, strony } = blok;
+  // Serie: brak danych w tabelach dodatkowych, ostatni blok dokańczany pustymi stronami, za mało wartości.
+  for (const seria of projekt.serie) {
     const wierszy = tabelaSerii(projekt, seria)?.wiersze.length || 0;
-    if (seria.tryb === 'tabela' && seria.uklad === 'dlugi' && wierszy % strony.length) {
-      const ile = liczbaPowielen(projekt, seria, strony.length);
-      uwagi.push({ rodzaj: 'niepelny_blok', strony: [], opis: `Seria „${seria.nazwa}”: tabela ma ${wierszy} ${odmiana(wierszy, 'wiersz', 'wiersze', 'wierszy')}, a blok ${strony.length} ${odmiana(strony.length, 'stronę', 'strony', 'stron')} – ostatnie, ${ile}. powielenie zostanie bez części danych.` });
+    for (const blok of bilansSerii(projekt, seria, ciag)) {
+      for (const d of blok.dodatkowe) {
+        if (d.potrzeba > d.jest) {
+          const ostatnia = ciag.egzemplarze.filter((e) => e.seria?.id === seria.id).at(-1).indeks + 1;
+          uwagi.push({ rodzaj: 'brak_danych', strony: [d.brakOd], opis: `Seria „${seria.nazwa}”: tabela „${d.tabela.nazwa}” ma ${d.jest} ${odmiana(d.jest, 'wiersz', 'wiersze', 'wierszy')}, a potrzeba ${d.potrzeba} (nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}). Od strony ${d.brakOd}${ostatnia > d.brakOd ? ` do ${ostatnia}` : ''} jej pola zostaną puste.` });
+        }
+      }
+      if (seria.tryb === 'tabela' && seria.uklad === 'dlugi' && seria.dopelnij && wierszy % blok.dlugosc) {
+        uwagi.push({ rodzaj: 'niepelny_blok', strony: [], opis: `Seria „${seria.nazwa}”: tabela ma ${wierszy} ${odmiana(wierszy, 'wiersz', 'wiersze', 'wierszy')}, a blok ${blok.dlugosc} ${odmiana(blok.dlugosc, 'stronę', 'strony', 'stron')} – ostatnie powielenie jest dokończone stronami bez danych.` });
+      }
     }
     if (seria.tryb === 'stala' && wierszy && seria.ile > wierszy && (tabelaSerii(projekt, seria).unikalne || []).length) {
       uwagi.push({ rodzaj: 'za_malo_wartosci', strony: [], opis: `Seria „${seria.nazwa}” powiela się ${seria.ile} razy, a tabela ma ${wierszy} ${odmiana(wierszy, 'wiersz', 'wiersze', 'wierszy')} – wartości zaczną się powtarzać.` });

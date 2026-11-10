@@ -5,6 +5,12 @@
 // powstają tu, przy składaniu – dlatego podgląd, udostępniony link i wydruk
 // zawsze pokazują aktualne dane.
 //
+// Seria ma tabelę główną (wyznacza, ile razy blok się powiela) i może mieć
+// tabele dodatkowe: `dodatkowe: [{ tabela, co, pierwszy? }]`. Tabela dodatkowa
+// przechodzi do następnego wiersza co `co` stron serii (np. tabela tygodni co
+// 7 stron-dni); `pierwszy` to liczba stron, przez które obowiązuje jej pierwszy
+// wiersz (np. rok zaczyna się w środę – pierwszy tydzień ma 5 dni).
+//
 // rozwin(projekt) zwraca „ciąg”: wszystkie egzemplarze stron w kolejności
 // wydruku, z numerami, stroną rozkładówki i wierszem danych.
 
@@ -23,6 +29,37 @@ export const tabelaSerii = (projekt, seria) => projekt.tabele.find((t) => t.id =
 //  - tryb 'tabela', układ 'szeroki': jeden wiersz = jeden cały blok,
 //  - tryb 'tabela', układ 'dlugi': jeden wiersz = jedna strona bloku,
 //  - tryb 'stala': zadana liczba razy (dane z tabeli, jeśli jest, idą w kółko).
+// Tabele dodatkowe serii, tylko te, które istnieją: [{ tabela, co, pierwszy }].
+export function tabeleDodatkowe(projekt, seria) {
+  return (seria?.dodatkowe || []).map((d) => {
+    const tabela = projekt.tabele.find((t) => t.id === d.tabela);
+    const co = Math.max(1, Math.round(d.co) || 1);
+    const pierwszy = Math.min(co, Math.max(1, Math.round(d.pierwszy) || co));
+    return tabela ? { tabela, co, pierwszy } : null;
+  }).filter(Boolean);
+}
+
+// Wszystkie tabele, z których strona serii może brać pola: główna i dodatkowe.
+export function tabeleSerii(projekt, seria) {
+  const glowna = tabelaSerii(projekt, seria);
+  return [...(glowna ? [glowna] : []), ...tabeleDodatkowe(projekt, seria).map((d) => d.tabela)];
+}
+
+// Rozbiera nazwę pola „Tabela.kolumna” na tabelę i kolumnę; dla zwykłej nazwy
+// szuka pierwszej tabeli, która ma taką kolumnę. Zwraca { tabela, kolumna } albo null.
+export function polePoTabelach(nazwa, tabele) {
+  const mala = nazwa.toLowerCase();
+  for (const tabela of tabele) {
+    const przedrostek = `${tabela.nazwa.trim().toLowerCase()}.`;
+    if (mala.startsWith(przedrostek)) {
+      const kolumna = nazwa.slice(przedrostek.length).trim();
+      if (tabela.kolumny.includes(kolumna)) return { tabela, kolumna };
+    }
+  }
+  const tabela = tabele.find((t) => t.kolumny.includes(nazwa));
+  return tabela ? { tabela, kolumna: nazwa } : null;
+}
+
 export function liczbaPowielen(projekt, seria, dlugoscBloku) {
   if (seria.tryb === 'stala') return Math.max(1, Math.round(seria.ile) || 1);
   const wiersze = tabelaSerii(projekt, seria)?.wiersze.length || 0;
@@ -60,7 +97,7 @@ export function rozwin(projekt) {
     const egz = {
       klucz: dane.nrEgz ? `${strona.id}-${dane.nrEgz}` : strona.id,
       strona, sekcja: sekcjaStrony(projekt, strona), indeks: egzemplarze.length,
-      seria: null, nrEgz: null, ileEgz: null, wiersz: null, nrWiersza: null, bok: null, sasiad: null, nr: null, nrWSekcji: 0, ...dane,
+      seria: null, blok: null, nrEgz: null, ileEgz: null, wiersz: null, nrWiersza: null, dodatkowe: [], bok: null, sasiad: null, nr: null, nrWSekcji: 0, ...dane,
     };
     egzemplarze.push(egz);
     if (!pierwszy.has(strona.id)) pierwszy.set(strona.id, egz);
@@ -74,11 +111,25 @@ export function rozwin(projekt) {
     const { seria, strony } = blok;
     const ile = liczbaPowielen(projekt, seria, strony.length);
     const wiersze = wierszeTabeli(tabelaSerii(projekt, seria));
+    const dodatkowe = tabeleDodatkowe(projekt, seria).map((d) => ({ ...d, wiersze: wierszeTabeli(d.tabela) }));
+    // Przy „jeden wiersz na stronę” seria kończy się na ostatnim wierszu danych: ostatnie powielenie
+    // bloku może być niepełne. Z opcją `dopelnij` blok jest dokańczany stronami bez danych.
+    const ucina = seria.tryb === 'tabela' && seria.uklad === 'dlugi' && wiersze.length > 0 && !seria.dopelnij;
+    let n = 0; // kolejna strona tej serii w tym bloku, od 0
     for (let p = 0; p < ile; p += 1) {
-      strony.forEach((s, k) => {
+      for (const [k, s] of strony.entries()) {
         const nrWiersza = nrWierszaEgzemplarza(seria, wiersze.length, p, k, strony.length);
-        dodaj(s, { seria, nrEgz: p + 1, ileEgz: ile, nrWiersza, wiersz: nrWiersza === null ? null : (wiersze[nrWiersza] || {}) });
-      });
+        if (ucina && nrWiersza >= wiersze.length) break;
+        const nrStrony = n;
+        dodaj(s, {
+          seria, blok, nrEgz: p + 1, ileEgz: ile, nrWiersza, wiersz: nrWiersza === null ? null : (wiersze[nrWiersza] || {}),
+          dodatkowe: dodatkowe.map((d) => {
+            const nr = nrStrony < d.pierwszy ? 0 : 1 + Math.floor((nrStrony - d.pierwszy) / d.co);
+            return { tabela: d.tabela, nrWiersza: nr, wiersz: d.wiersze[nr] || null };
+          }),
+        });
+        n += 1;
+      }
     }
     i += strony.length;
   }
@@ -104,6 +155,36 @@ export function rozwin(projekt) {
   });
   const numery = egzemplarze.map((e) => e.nr).filter((n) => n !== null);
   return { egzemplarze, pierwszy, sekcje, liczbaStron: numery.length ? Math.max(...numery) : 0 };
+}
+
+// Bilans serii po rozwinięciu, osobno dla każdego jej bloku:
+// [{ dlugosc, powielen, stron, ostatniePelne, dodatkowe: [{ tabela, co, potrzeba, jest, brakOd }] }]
+//  - stron: ile stron seria daje w wydruku; ostatniePelne: czy ostatnie powielenie bloku jest całe,
+//  - potrzeba / jest: ile wierszy tabeli dodatkowej potrzeba, a ile jest; brakOd: numer strony
+//    wydruku, od której tabeli dodatkowej brakuje wierszy (null – starcza).
+export function bilansSerii(projekt, seria, ciag = rozwin(projekt)) {
+  const wynik = [];
+  let blok = null;
+  let zrodlo = null;
+  for (const e of ciag.egzemplarze) {
+    if (e.seria?.id !== seria.id) continue;
+    if (e.blok !== zrodlo) {
+      zrodlo = e.blok;
+      blok = { dlugosc: 0, powielen: 0, stron: 0, ostatniePelne: true, wOstatnim: 0, dodatkowe: e.dodatkowe.map((d, i) => ({ tabela: d.tabela, co: tabeleDodatkowe(projekt, seria)[i]?.co, potrzeba: 0, jest: d.tabela.wiersze.length, brakOd: null })) };
+      wynik.push(blok);
+    }
+    blok.stron += 1;
+    if (e.nrEgz !== blok.powielen) { blok.powielen = e.nrEgz; blok.wOstatnim = 0; }
+    blok.wOstatnim += 1;
+    if (e.nrEgz === 1) blok.dlugosc += 1;
+    e.dodatkowe.forEach((d, i) => {
+      const b = blok.dodatkowe[i];
+      b.potrzeba = Math.max(b.potrzeba, d.nrWiersza + 1);
+      if (!d.wiersz && b.brakOd === null) b.brakOd = e.indeks + 1;
+    });
+  }
+  for (const b of wynik) { b.ostatniePelne = b.wOstatnim === b.dlugosc; delete b.wOstatnim; }
+  return wynik;
 }
 
 // Strony edytowane razem na jednym płótnie: [lewa, prawa] albo [strona].
@@ -132,9 +213,15 @@ export function wartosciPol(projekt, egz, ciag) {
     const s = projekt.sekcje.find((x) => x.nazwa.trim().toLowerCase() === String(nazwa || '').trim().toLowerCase());
     return s ? ciag.sekcje.get(s.id).lista : null;
   };
+  const glowna = egz.seria ? tabelaSerii(projekt, egz.seria) : null;
+  const zrodla = [...(glowna && egz.wiersz ? [{ tabela: glowna, wiersz: egz.wiersz }] : []), ...egz.dodatkowe];
+  const tabele = zrodla.map((z) => z.tabela);
   return (nazwa, zapis) => {
-    if (egz.wiersz && Object.prototype.hasOwnProperty.call(egz.wiersz, nazwa)) {
-      const v = egz.wiersz[nazwa];
+    // Kolumna tabeli głównej albo dodatkowej; „Tabela.kolumna” wskazuje tabelę wprost.
+    // Gdy tabeli dodatkowej zabrakło wierszy, pole jest znane, ale puste.
+    const pole = tabele.length ? polePoTabelach(nazwa, tabele) : null;
+    if (pole) {
+      const v = zrodla.find((z) => z.tabela === pole.tabela).wiersz?.[pole.kolumna] ?? '';
       return zapis && /^\d+$/.test(v) ? zapiszLiczbe(Number(v), zapis) : v;
     }
     switch (nazwa) {

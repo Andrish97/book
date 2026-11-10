@@ -1,6 +1,6 @@
 # Uzasadnienie – funkcja po funkcji
 
-Stan na 10 listopada 2026 (decyzje do #46 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
+Stan na 10 listopada 2026 (decyzje do #48 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
 
 Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ nie zrobione / do poprawy.
 
@@ -208,6 +208,17 @@ Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładó
 **Dlaczego tak.** Powielone strony nie są zapisywane: `js/serie.js` rozwija projekt przy każdym składaniu, więc 365 stron dni to jedna strona i tabela. Szablon idzie „w drugą stronę”: projekt mówi, jakich danych potrzebuje, zamiast żebyś zgadywał nazwy kolumn. Arkusz „Instrukcja” jest pomijany przy imporcie, więc wypełniony plik wraca bez przeróbek.
 **Słabe.** W rozkładówkach blok o nieparzystej liczbie stron wypada na przemian po lewej i prawej; marginesy lustrzane widać wtedy tylko w podglądzie. Szablon nie ma list rozwijanych w komórkach (plan 5.2) – same nagłówki i opis. Aplikacja nie sprawdza z góry, czy teksty wszystkich wierszy mieszczą się w ramkach – widać to w podglądzie.
 
+### G6. Dodatkowe tabele serii i koniec serii na ostatnim wierszu ✅ / ⚠️
+**Co jest (decyzja #47).** Seria ma tabelę główną (ona wyznacza liczbę stron) i dowolnie wiele tabel dodatkowych. Tabela dodatkowa przechodzi do następnego wiersza co zadaną liczbę stron serii – np. tabela tygodni co 7 stron dni, tytuł rozdziału co 8 stron. Pierwszy wiersz może obowiązywać krócej (rok zaczynający się w środku tygodnia). Pole z tabeli dodatkowej to `{Tabela.kolumna}`; sama nazwa kolumny działa, gdy nie ma jej w tabeli głównej. Przy „jednym wierszu na stronę bloku” seria kończy się na ostatnim wierszu – ostatnie powielenie bloku może być niepełne (opcja „Dokończ ostatni blok” przywraca dawne zachowanie).
+**Dlaczego tak.** Zamiast powielać w tabeli dni tę samą informację o tygodniu w siedmiu wierszach, wpisujesz ją raz. Krok liczony w stronach serii jest jedną regułą na wszystkie przypadki: „co 7 dni” przy jednej stronie na dzień i „raz na blok” przy bloku ośmiu stron to ta sama liczba w tym samym polu. Tabela dodatkowa nie idzie w kółko – gdy zabraknie wierszy, pola są puste, a aplikacja mówi o tym w trzech miejscach (okno serii, właściwości strony, lista przed drukiem) z numerem strony, od której brakuje danych. Ciche powtarzanie starych danych byłoby gorsze niż widoczna dziura.
+**Zmiana zachowania.** Wcześniej niepełny ostatni blok był dokańczany stronami bez danych. Projekty z taką serią będą teraz krótsze o te puste strony, chyba że zaznaczysz „Dokończ ostatni blok”.
+**Słabe.** Krok jest stały – nie da się powiedzieć „nowy wiersz, gdy zmieni się wartość w kolumnie tabeli głównej” (np. nowy miesiąc po 28, 30 albo 31 dniach). Na to trzeba dziś wpisać dane miesiąca w tabeli dni albo zrobić osobną serię na każdy miesiąc.
+
+### G7. Kolor i położenie elementu z danych ✅ / ⚠️
+**Co jest (decyzja #48).** Każdy element może brać kolor z pola (kolumna z kolorami) oraz przesunięcie w pionie i w poziomie z pola liczbowego: kolumny tabeli albo pola dokumentu, np. numeru powielenia. Dwa tryby: wartość to numer pozycji (krok w mm, z powrotem do początku co N pozycji) albo wprost milimetry.
+**Dlaczego tak.** Twój przykład – miesiące na brzegu strony, każdy niżej, sześć na wysokość – to „pozycja = numer powielenia, krok = wysokość zakładki, od nowa co 6”. Nie wymaga żadnej kolumny w tabeli: wystarcza pole `{egzemplarz}`. Kolor z tabeli pozwala mieć jeden wzór strony na cały rok w dwunastu barwach. Reguła jest zapisana przy elemencie, a wzór zostaje w projekcie nietknięty – tak samo jak tekst z polami.
+**Słabe.** W edytorze widać tylko wzór (pozycję 1); efekt jest w podglądzie. Z danych nie da się sterować rozmiarem, obrotem ani widocznością elementu. Kolor zastępuje całe wypełnienie – także gradient.
+
 ### G4. Obraz z kolumny tabeli ✅ / ⚠️
 **Co jest.** Obraz-wzór wyznacza ramkę; kolumna podaje nazwę pliku wgranego do projektu. Podmieniony obraz wpisuje się w ramkę bez zmiany proporcji. **Nowe:** brak pliku o podanej nazwie trafia na listę „Do sprawdzenia przed drukiem” z numerami stron.
 **Słabe.** Obraz nie wypełnia ramki z przycięciem („cover”), tylko się w niej mieści.
@@ -234,7 +245,7 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 **Słabe.** Zrzuty w instrukcji są w jasnym motywie. Wiadomości e-mail są zawsze jasne.
 
 ### F4. Instrukcja ✅
-29 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
+30 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
 
 ---
 

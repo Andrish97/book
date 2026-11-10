@@ -1,7 +1,7 @@
 // Panel właściwości, gdy nic nie jest zaznaczone: ustawienia strony albo wzorca. Do tego lista pól, które można wstawić w tekst.
 
 import { FORMATY, stronyZWzorcem, tloStrony, WZORCE_Z_SEKCJI, stronySekcji, normalizujWydruk } from '../projekt.js';
-import { bokStrony, rozwin, tabelaSerii } from '../serie.js';
+import { bokStrony, rozwin, tabelaSerii, tabeleSerii } from '../serie.js';
 import { POLA_DOKUMENTU } from '../pola.js';
 import { $ } from '../ui.js';
 import { liczba, stan, biezacyWzorzec, biezacaSekcja, biezacaStrona, edytor, tenSamRozmiar } from './kontekst.js';
@@ -51,13 +51,24 @@ export function tabelaStrony(strona) {
   return seria ? tabelaSerii(stan.projekt, seria) : null;
 }
 
-// Grupy do listy „Wstaw pole”: najpierw tabela bieżącej strony, potem pozostałe, na końcu pola dokumentu.
+// Wszystkie tabele serii strony: główna i dodatkowe (albo pusta lista).
+export function tabeleStrony(strona) {
+  const seria = stan.projekt.serie.find((s) => s.id === strona?.seria);
+  return seria ? tabeleSerii(stan.projekt, seria) : [];
+}
+
+// Grupy do listy „Wstaw pole”: najpierw tabele bieżącej strony (główna, potem dodatkowe),
+// dalej pozostałe, na końcu pola dokumentu. Pole z tabeli dodatkowej wstawia się z nazwą
+// tabeli („Tygodnie.haslo”), żeby było jasne, skąd pochodzi.
 export function polaDoWstawienia() {
   const { projekt } = stan;
-  const wlasna = stan.tryb === 'strona' ? tabelaStrony(biezacaStrona()) : null;
-  const tabele = [...projekt.tabele].sort((a, b) => (b === wlasna) - (a === wlasna));
+  const wlasne = stan.tryb === 'strona' ? tabeleStrony(biezacaStrona()) : [];
+  const [glowna, ...dodatkowe] = wlasne.length && tabelaStrony(biezacaStrona()) === wlasne[0] ? wlasne : [null, ...wlasne];
+  const reszta = projekt.tabele.filter((t) => !wlasne.includes(t));
   return [
-    ...tabele.map((t) => ({ grupa: t === wlasna ? `Tabela tej strony: ${t.nazwa}` : `Tabela: ${t.nazwa}`, pola: t.kolumny.map((k) => [k, '']) })),
+    ...(glowna ? [{ grupa: `Tabela tej strony: ${glowna.nazwa}`, pola: glowna.kolumny.map((k) => [k, '']) }] : []),
+    ...dodatkowe.map((t) => ({ grupa: `Tabela dodatkowa serii: ${t.nazwa}`, pola: t.kolumny.map((k) => [`${t.nazwa}.${k}`, '']) })),
+    ...reszta.map((t) => ({ grupa: `Tabela: ${t.nazwa}`, pola: t.kolumny.map((k) => [k, '']) })),
     { grupa: 'Pola dokumentu', pola: POLA_DOKUMENTU },
   ];
 }
@@ -123,6 +134,8 @@ export function panelStrony(p) {
   se.append(wyborSerii);
   if (seria) {
     se.append(p.wskazowka(dane.opisSerii(seria)));
+    const braki = dane.brakiSerii(seria);
+    if (braki) se.append(p.wskazowka(braki, true));
     se.append(p.akcje([['suwaki', 'Ustawienia serii', () => dane.otworzSerie(seria.id)], ['dane', 'Dane', () => dane.otworz(seria.tabela)]]));
   } else {
     se.append(p.wskazowka('Strony z tą samą serią, leżące obok siebie, powielają się razem – np. według wierszy tabeli.'));

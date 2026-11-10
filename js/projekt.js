@@ -92,7 +92,7 @@ export function nowyProjekt(nazwa = 'Nowy projekt', wydruk = domyslnyWydruk(), u
     wzorce: [],
     style: [], // style tekstu wspólne dla projektu
     tabele: [], // dane: { id, nazwa, kolumny: [nazwa], wiersze: [[tekst]] }
-    serie: [], // powielanie: { id, nazwa, tabela, tryb, ile, uklad } – strona wskazuje serię polem `seria`
+    serie: [], // powielanie: { id, nazwa, tabela, tryb, ile, uklad, dodatkowe, dopelnij } – strona wskazuje serię polem `seria`
     strony: [nowaStrona('Strona 1', sekcja.id)],
     widok: null, // siatka i przyciąganie – uzupełniane w normalizuj()
     // Zasoby (obrazy, później czcionki). Obiekty obrazów odwołują się do nich
@@ -144,7 +144,7 @@ export function normalizujTabele(t, i = 0) {
 }
 
 export function nowaSeria(nazwa = 'Seria') {
-  return { id: uid('se'), nazwa, tabela: null, tryb: 'tabela', ile: 12, uklad: 'szeroki' };
+  return { id: uid('se'), nazwa, tabela: null, tryb: 'tabela', ile: 12, uklad: 'szeroki', dodatkowe: [], dopelnij: false };
 }
 
 // Uzupełnia brakujące pola w projektach wczytanych z pliku lub z bazy
@@ -168,6 +168,13 @@ export function normalizuj(p) {
     tryb: s.tryb === 'stala' ? 'stala' : 'tabela',
     uklad: s.uklad === 'dlugi' ? 'dlugi' : 'szeroki',
     ile: Number.isFinite(s.ile) ? Math.min(2000, Math.max(1, Math.round(s.ile))) : 12,
+    // Tabele dodatkowe: wiersz zmienia się co `co` stron serii; pierwszy wiersz obowiązuje `pierwszy` stron.
+    dodatkowe: (Array.isArray(s.dodatkowe) ? s.dodatkowe : []).filter((d) => idTabel.has(d?.tabela) && d.tabela !== s.tabela).map((d) => {
+      const co = Math.min(2000, Math.max(1, Math.round(d.co) || 1));
+      const pierwszy = Math.round(d.pierwszy);
+      return { tabela: d.tabela, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}) };
+    }),
+    dopelnij: Boolean(s.dopelnij),
   }));
   wynik.widok = normalizujWidok(p.widok);
   delete wynik.motywy; // zastąpione wzorcami

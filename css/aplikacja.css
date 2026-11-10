@@ -741,7 +741,11 @@ dialog h2 { font-size: 19px; }
 .dane-siatka .pilnuj-kolumne[aria-pressed="true"] { opacity: 1; color: var(--akcent); background: var(--akcent-tlo); }
 .dane-siatka .pilnuj-kolumne:hover { background: var(--akcent-tlo); color: var(--akcent); }
 .dane-siatka td.powtorzona { background: var(--blad-tlo); box-shadow: inset 3px 0 0 var(--blad); }
-.dane-powtorzenia { color: var(--blad); }
+.dane-powtorzenia, .uwaga-danych { color: var(--blad); }
+.wiersz-dodatkowej { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px; }
+.wiersz-dodatkowej .pole { flex: 1 1 0; min-width: 0; }
+.wiersz-dodatkowej .pole.waskie { flex: 0 1 132px; }
+@media (max-width: 640px) { .wiersz-dodatkowej { flex-wrap: wrap; } .wiersz-dodatkowej .pole { flex: 1 1 100%; } .wiersz-dodatkowej .pole.waskie { flex: 1 1 40%; } }
 .formularz .rzad-przyciskow { display: flex; gap: 8px; flex-wrap: wrap; }
 .uwagi-druku { border: 1px solid var(--linia-mocna); border-radius: var(--r-s); padding: 8px 12px; font-size: 13px; }
 .uwagi-druku summary { cursor: pointer; font-weight: 600; }

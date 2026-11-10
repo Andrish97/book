@@ -120,7 +120,68 @@ export function podstawWTekscie(tekst, styles, wartosc) {
   return { text: wynik, styles: odcinki };
 }
 
-// Podstawia pola we wszystkich tekstach listy obiektów (także w grupach).
+// ---------- Wygląd z danych: kolor i przesunięcie elementu ----------
+//
+// Element może mieć `z_danych: { kolor?: pole, x?: ust, y?: ust }`, gdzie pole to
+// nazwa kolumny albo pola dokumentu, a ust = { pole, tryb, krok, co }:
+//  - tryb 'mm':      wartość pola to przesunięcie w milimetrach,
+//  - tryb 'pozycja': wartość to numer pozycji (1, 2, 3…); element przesuwa się o
+//                    krok × (numer − 1), a przy `co` > 0 numeracja wraca do początku
+//                    co tyle pozycji (np. 12 miesięcy w dwóch rzędach po 6).
+// W edytorze element stoi w miejscu pozycji 1; przesunięcie i kolor widać na
+// powielonych stronach – w podglądzie, na miniaturach i w PDF.
+
+// Tekst z tabeli → kolor zrozumiały dla przeglądarki albo null. Przyjmuje #rgb, #rrggbb
+// (także bez krzyżyka), rgb(…) i nazwy kolorów CSS.
+export function kolorZWartosci(v) {
+  const t = String(v ?? '').trim();
+  if (!t) return null;
+  if (/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(t)) return t.startsWith('#') ? t : `#${t}`;
+  return typeof CSS !== 'undefined' && CSS.supports?.('color', t) ? t : null;
+}
+
+// Tekst z tabeli → liczba (przecinek albo kropka dziesiętna) albo null.
+export function liczbaZWartosci(v) {
+  const t = String(v ?? '').trim().replace(',', '.');
+  return /^-?\d+(\.\d+)?$/.test(t) ? Number(t) : null;
+}
+
+// Przesunięcie w mm dla ustawienia { pole, tryb, krok, co } i funkcji wartości pól.
+export function przesuniecieZDanych(ust, wartosc) {
+  if (!ust?.pole) return 0;
+  const v = liczbaZWartosci(wartosc(ust.pole, null));
+  if (v === null) return 0;
+  if (ust.tryb === 'mm') return v;
+  const co = Math.round(ust.co) || 0;
+  let pozycja = v - 1;
+  if (co > 0) pozycja = ((pozycja % co) + co) % co;
+  return pozycja * (Number(ust.krok) || 0);
+}
+
+function pokoloruj(o, kolor) {
+  if (Array.isArray(o.objects)) return { ...o, objects: o.objects.map((x) => pokoloruj(x, kolor)) };
+  if (o.type === 'image') return o;
+  // Linia i kształt bez wypełnienia dostają kolor obrysu, reszta – wypełnienia.
+  const obrys = (o.type === 'line' || !o.fill || o.fill === 'transparent') && o.stroke;
+  return obrys ? { ...o, stroke: kolor } : { ...o, fill: kolor };
+}
+
+function zDanych(o, wartosc) {
+  const z = o.z_danych;
+  let k = o;
+  const kolor = z.kolor ? kolorZWartosci(wartosc(z.kolor, null)) : null;
+  if (kolor) k = pokoloruj(k, kolor);
+  const dx = przesuniecieZDanych(z.x, wartosc);
+  const dy = przesuniecieZDanych(z.y, wartosc);
+  if (dx || dy) k = { ...k, left: (k.left || 0) + dx, top: (k.top || 0) + dy };
+  return k;
+}
+
+// Nazwy pól, od których zależy wygląd elementu.
+export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_danych?.y?.pole].filter(Boolean);
+
+// Podstawia pola we wszystkich tekstach listy obiektów (także w grupach) i nadaje
+// elementom kolor oraz przesunięcie zależne od danych.
 export function podstawWObiektach(obiekty, wartosc) {
   return (obiekty || []).map((o) => {
     let k = o;
@@ -129,6 +190,7 @@ export function podstawWObiektach(obiekty, wartosc) {
       if (text !== o.text) k = { ...o, text, styles };
     }
     if (Array.isArray(o.objects)) k = { ...k, objects: podstawWObiektach(o.objects, wartosc) };
+    if (o.z_danych) k = zDanych(k, wartosc);
     return k;
   });
 }
@@ -138,6 +200,7 @@ export function polaWObiektach(obiekty, zbior = new Set()) {
   for (const o of obiekty || []) {
     for (const p of znajdzPola(o.text)) zbior.add(p.nazwa);
     if (o.pole?.kolumna) zbior.add(o.pole.kolumna);
+    for (const n of polaZDanych(o)) zbior.add(n);
     if (Array.isArray(o.objects)) polaWObiektach(o.objects, zbior);
   }
   return zbior;

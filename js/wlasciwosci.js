@@ -90,6 +90,7 @@ export class PanelWlasciwosci {
     this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
     this.zbudujCien(obj);
+    this.zbudujZDanych(obj);
     const inne = this.sekcja('Inne');
     inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
@@ -314,6 +315,47 @@ export class PanelWlasciwosci {
     } else {
       r.append(this.wskazowka('Bez stałej wysokości ramka rośnie razem z tekstem.'));
     }
+  }
+
+  // Kolor i przesunięcie elementu zależne od pola z danych (tabela albo pole dokumentu).
+  zbudujZDanych(obj) {
+    const grupy = this.opcje.pola?.() || [];
+    const pola = grupy.flatMap((g) => g.pola.map(([nazwa]) => nazwa));
+    const s = this.sekcja('Z danych');
+    const z = () => obj.z_danych || {};
+    const zapisz = (zmiana) => {
+      const nowe = { ...z(), ...zmiana };
+      for (const k of Object.keys(nowe)) if (!nowe[k] || (typeof nowe[k] === 'object' && !nowe[k].pole)) delete nowe[k];
+      obj.z_danych = Object.keys(nowe).length ? nowe : undefined;
+    };
+    // Na liście: pola dostępne na tej stronie i to, które jest już ustawione (nawet nieznane).
+    const lista = (wybrane) => [['', '— nie zależy od danych —'], ...[...new Set([...pola, ...(wybrane ? [wybrane] : [])])].map((n) => [n, `{${n}}`])];
+    if (obj.type !== 'image') {
+      const kolor = this.wybor('Kolor z pola', lista(z().kolor), () => z().kolor || '', (v) => zapisz({ kolor: v || undefined }));
+      kolor.classList.add('szeroki');
+      s.append(kolor);
+    }
+    for (const [os, etykieta] of [['y', 'Przesunięcie w pionie z pola'], ['x', 'Przesunięcie w poziomie z pola']]) {
+      const ust = () => z()[os] || {};
+      const wybor = this.wybor(etykieta, lista(ust().pole), () => ust().pole || '', (v) => {
+        zapisz({ [os]: v ? { tryb: 'pozycja', krok: 10, co: 0, ...ust(), pole: v } : undefined });
+        this.zbuduj();
+      });
+      wybor.classList.add('szeroki');
+      s.append(wybor);
+      if (!ust().pole) continue;
+      const tryb = this.wybor('Wartość pola to', [['pozycja', 'numer pozycji (1, 2, 3…)'], ['mm', 'przesunięcie w mm']], () => ust().tryb || 'pozycja', (v) => { zapisz({ [os]: { ...ust(), tryb: v } }); this.zbuduj(); });
+      tryb.classList.add('szeroki');
+      s.append(tryb);
+      if ((ust().tryb || 'pozycja') === 'pozycja') {
+        s.append(this.liczba('Krok', () => ust().krok ?? 10, (v) => zapisz({ [os]: { ...ust(), krok: v } }), { jednostka: 'mm', krok: 1 }));
+        s.append(this.liczba('Od nowa co', () => ust().co || 0, (v) => zapisz({ [os]: { ...ust(), co: Math.max(0, Math.round(v)) } }), { jednostka: 'poz.', krok: 1, min: 0 }));
+      }
+    }
+    const jest = z().kolor || z().x || z().y;
+    s.append(this.wskazowka(jest
+      ? 'W edytorze element stoi w miejscu pozycji 1 i ma kolor wzoru. Właściwe położenie i kolor każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
+      : 'Kolor albo położenie mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykład: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej.'));
   }
 
   // Styl tekstu: wybór, zapis jako nowy, aktualizacja, usunięcie.

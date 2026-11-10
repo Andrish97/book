@@ -42,7 +42,8 @@ import {
   pokazPodglad, otworzUdostepnianie, opublikujUdostepnienie, wylaczUdostepnienie,
   kopiujLinkUdostepnienia, zamknijPodglad, pokazUdostepniony,
 } from './app/podglad-ekran.js';
-import { NAZWY_POL_DOKUMENTU, tabelaStrony } from './app/panel-strony.js';
+import { NAZWY_POL_DOKUMENTU, tabeleStrony } from './app/panel-strony.js';
+import { polePoTabelach } from './serie.js';
 import { panel, instrukcja, podglad, dane, menuWidoku } from './app/skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
@@ -79,9 +80,9 @@ document.addEventListener('motyw', async (e) => {
 // leży tekst. We wzorcu znana jest kolumna dowolnej tabeli – wzorzec trafia na różne strony.
 edytor.znanePole = (nazwa, indeksStrony) => {
   if (NAZWY_POL_DOKUMENTU.has(nazwa) || !stan.projekt) return true;
-  if (naPlotnie?.wzorzec) return stan.projekt.tabele.some((t) => t.kolumny.includes(nazwa));
+  if (naPlotnie?.wzorzec) return Boolean(polePoTabelach(nazwa, stan.projekt.tabele));
   const strona = stan.projekt.strony.find((s) => s.id === naPlotnie?.strony?.[indeksStrony]);
-  return Boolean(tabelaStrony(strona)?.kolumny.includes(nazwa));
+  return Boolean(polePoTabelach(nazwa, tabeleStrony(strona)));
 };
 
 // ---------- Ostrzeżenia ----------

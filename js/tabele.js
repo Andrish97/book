@@ -126,9 +126,28 @@ export function doCsv(tabela) {
   return `﻿${[tabela.kolumny, ...tabela.wiersze].map((w) => w.map(komorka).join(';')).join('\r\n')}\r\n`;
 }
 
+// Po zmianie nazwy tabeli poprawia pola z jej nazwą: {Stara.kolumna} → {Nowa.kolumna}.
+export function zmienNazweTabeliWPolach(projekt, stara, nowa) {
+  let zmienione = 0;
+  const wzor = new RegExp(`\\{\\s*${stara.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.`, 'gi');
+  const popraw = (obiekty) => {
+    for (const o of obiekty || []) {
+      if (typeof o.text === 'string' && o.text.includes('{')) {
+        const nowy = o.text.replace(wzor, `{${nowa}.`);
+        if (nowy !== o.text) { o.text = nowy; zmienione += 1; }
+      }
+      if (Array.isArray(o.objects)) popraw(o.objects);
+    }
+  };
+  for (const s of projekt.strony) popraw(s.obiekty);
+  for (const w of projekt.wzorce) popraw(w.obiekty);
+  return zmienione;
+}
+
 // Zmienia nazwę kolumny w tekstach i obrazach-polach całego projektu:
 // {stara} → {nowa}. Zwraca liczbę zmienionych elementów.
-export function zmienNazwePola(projekt, stara, nowa) {
+// dotyczy(strona albo wzorzec) → false pomija tę stronę (np. gdy pole o tej nazwie bierze tam dane z innej tabeli).
+export function zmienNazwePola(projekt, stara, nowa, dotyczy = () => true) {
   let zmienione = 0;
   const wzor = new RegExp(`\\{\\s*${stara.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(:[^{}\\n]*)?\\}`, 'g');
   const popraw = (obiekty) => {
@@ -140,10 +159,14 @@ export function zmienNazwePola(projekt, stara, nowa) {
         if (nowy !== o.text) { o.text = nowy; zmienione += 1; }
       }
       if (o.pole?.kolumna === stara) { o.pole.kolumna = nowa; zmienione += 1; }
+      // Kolor i przesunięcie zależne od tej kolumny.
+      const z = o.z_danych;
+      if (z?.kolor === stara) { z.kolor = nowa; zmienione += 1; }
+      for (const os of ['x', 'y']) if (z?.[os]?.pole === stara) { z[os].pole = nowa; zmienione += 1; }
       if (Array.isArray(o.objects)) popraw(o.objects);
     }
   };
-  for (const s of projekt.strony) popraw(s.obiekty);
-  for (const w of projekt.wzorce) popraw(w.obiekty);
+  for (const s of projekt.strony) if (dotyczy(s)) popraw(s.obiekty);
+  for (const w of projekt.wzorce) if (dotyczy(w)) popraw(w.obiekty);
   return zmienione;
 }

@@ -15,7 +15,7 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Edytor** (Fabric.js 5.3.1 trzymany w repozytorium, wszystko w mm): tekst, kształty, obrazy, grupy, panel warstw, wyrównywanie i równe odstępy, blokada, schowek między stronami, ostrzeżenia o marginesach i spadzie. **Cofanie** to jedna historia całego projektu (strony, wzorce, sekcje, style, dane).
 - **Kształty i obrazy**: wielokąty i gwiazdy, gradient, cień, kadrowanie obrazu przeciąganiem. Obrazy (PNG, JPEG, WebP, GIF, SVG) z dysku, przez przeciągnięcie albo wklejone ze schowka (Ctrl+V – także zrzut ekranu i kod SVG). Duże zdjęcia pracują w edytorze na lżejszej kopii; do eksportu idzie oryginał.
 - **Precyzja**: siatka z przyciąganiem, linijki i własne prowadnice, linie wyrównania do innych elementów, strzałki z odległościami i równe odstępy, ponad 50 skrótów klawiszowych.
-- **Dane**: tabele z importem CSV/Excel i lekkim edytorem, pola `{kolumna}` i pola dokumentu w tekście, serie powielające strony według wierszy, obrazy z kolumny, ramka tekstu z autodopasowaniem. Szablon danych serii (Excel z arkuszem „Instrukcja”), dodawanie brakujących kolumn, pilnowanie powtórzeń w kolumnie.
+- **Dane**: tabele z importem CSV/Excel i lekkim edytorem, pola `{kolumna}` i pola dokumentu w tekście, serie powielające strony według wierszy, obrazy z kolumny, ramka tekstu z autodopasowaniem. Szablon danych serii (Excel z arkuszem „Instrukcja”), dodawanie brakujących kolumn, pilnowanie powtórzeń w kolumnie. Seria może mieć tabele dodatkowe (nowy wiersz co N stron, pola `{Tabela.kolumna}`) i kończy się na ostatnim wierszu danych. Kolor i położenie elementu mogą zależeć od pola z danych.
 - **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu, listy (punkty, kreski, numery), przelewanie tekstu między połączonymi ramkami, kolumny, tabela.
 - **Eksport**: PDF do drukarni (spad, znaki cięcia, TrimBox/BleedBox, 150/300/600 dpi, zakres stron, podział na sekcje albo części) z listą rzeczy do sprawdzenia przed drukiem; PNG strony w 300 dpi.
 - **Podgląd** bez edycji: cały projekt jak po przycięciu (z powieleniami serii), rozkładówki obok siebie, tryb prezentacji na całym ekranie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
@@ -87,7 +87,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 ## Model projektu (wersja 3)
 
 - `tabele[]`: `{ id, nazwa, kolumny: [nazwa], wiersze: [[tekst]], unikalne?: [nazwa kolumny] }` – `unikalne` to kolumny z pilnowaniem powtórzeń.
-- `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi' }`; strona wskazuje serię polem `seria`. Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
+- `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi', dodatkowe: [{ tabela, co, pierwszy? }], dopelnij }`; strona wskazuje serię polem `seria`. Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
 - `widok`: `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }`; strony i wzorce mogą mieć `prowadnice: { x: [mm], y: [mm] }`.
 
 - `sekcje[]`: `{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy: { gora, dol, wewnetrzny, zewnetrzny }, znaki_ciecia }, uklad: 'pojedyncze' | 'rozkladowki', pierwsza: 'prawa' | 'lewa', wzorce: [id], numeracja: { tryb: 'ciagla' | 'od' | 'brak', od } }`
@@ -95,6 +95,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 - `strony[]`: `{ id, nazwa, sekcja, wzorce: 'z_sekcji' | [id], tlo, obiekty[] }` – w rozkładówce element należy do strony, na której leży jego środek, i może wystawać przez grzbiet na sąsiednią; pole `z` elementu to kolejność warstw na wspólnym płótnie.
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
 - `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`; obrazy na stronach mają `src: "zasob:<id>"`.
+- Element: `z_danych: { kolor?: pole, x?: { pole, tryb: 'pozycja' | 'mm', krok, co }, y?: … }` – kolor i przesunięcie zależne od pola.
 - Tekst: `lista` (`'punkty' | 'kreski' | 'numery'`), `ramka_h` (stała wysokość ramki, mm); połączone ramki mają wspólny `watek`, kolejność `watek_nr` i `lacznik` (co stało między częścią poprzedniej ramki a tą).
 
 Projekty zapisane w starszych wersjach modelu są przenoszone automatycznie przy otwarciu (`normalizuj` w `js/projekt.js`).

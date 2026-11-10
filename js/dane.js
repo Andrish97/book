@@ -4,9 +4,9 @@
 // Zmiany trafiają od razu do projektu; aplikacja zapisuje je tak jak resztę.
 
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
-import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola } from './tabele.js';
+import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia } from './kontrola.js';
-import { blokiSerii, liczbaPowielen } from './serie.js';
+import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
@@ -162,10 +162,20 @@ export class Dane {
     if (POLA_DOKUMENTU.some(([nazwa]) => nazwa === nowa)) {
       powiadom(`Uwaga: „${nowa}” to także nazwa pola dokumentu. Na stronach tej tabeli pole {${nowa}} pokaże wartość z kolumny.`);
     }
+    // Samo {stara} poprawiamy tylko tam, gdzie bierze dane z tej tabeli: na stronach serii, w których
+    // ta nazwa wskazuje właśnie ją, a poza seriami i we wzorcach – gdy żadna inna tabela nie ma takiej kolumny.
+    const p = this.projekt();
+    const jedyna = !p.tabele.some((x) => x !== t && x.kolumny.includes(stara));
+    const zTejTabeli = new Set(p.strony.filter((s) => {
+      const seria = p.serie.find((x) => x.id === s.seria);
+      const tabele = seria ? tabeleSerii(p, seria) : [];
+      return tabele.length ? polePoTabelach(stara, tabele)?.tabela === t : jedyna;
+    }));
     t.kolumny[k] = nowa;
     if (t.unikalne) t.unikalne = t.unikalne.map((u) => (u === stara ? nowa : u));
     el.textContent = nowa;
-    const n = zmienNazwePola(this.projekt(), stara, nowa);
+    const n = zmienNazwePola(p, stara, nowa, (cel) => (p.strony.includes(cel) ? zTejTabeli.has(cel) : jedyna))
+      + zmienNazwePola(p, `${t.nazwa}.${stara}`, `${t.nazwa}.${nowa}`);
     if (n) powiadom(`Zmieniono {${stara}} na {${nowa}} w ${n} ${odmiana(n, 'elemencie', 'elementach', 'elementach')}.`);
     this._zmieniono();
   }
@@ -237,8 +247,10 @@ export class Dane {
 
     $('#dane-nazwa').addEventListener('change', (e) => {
       const t = this.tabela();
-      t.nazwa = e.target.value.trim() || t.nazwa;
+      const stara = t.nazwa;
+      t.nazwa = e.target.value.trim().replace(/[{}:\n]/g, ' ').trim() || t.nazwa;
       e.target.value = t.nazwa;
+      if (stara !== t.nazwa) zmienNazweTabeliWPolach(this.projekt(), stara, t.nazwa);
       this._zmieniono();
     });
     $('#dane-wiersz').addEventListener('click', () => {
@@ -267,6 +279,7 @@ export class Dane {
       if (!await potwierdz(`Usunąć tabelę „${t.nazwa}”?`, opis, 'Usuń tabelę', true)) return;
       p.tabele = p.tabele.filter((x) => x !== t);
       for (const x of serie) x.tabela = null;
+      for (const x of p.serie) x.dodatkowe = (x.dodatkowe || []).filter((d) => d.tabela !== t.id);
       this.idTabeli = p.tabele[0]?.id || null;
       this.rysuj();
       this.poZmianie();
@@ -333,11 +346,37 @@ export class Dane {
     const p = this.projekt();
     const bloki = blokiSerii(p).filter((b) => b.seria === seria);
     if (!bloki.length) return 'Żadna strona nie należy jeszcze do tej serii.';
-    return bloki.map((b) => {
-      const n = b.strony.length;
-      const ile = liczbaPowielen(p, seria, n);
-      return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} × ${ile} ${odmiana(ile, 'powielenie', 'powielenia', 'powieleń')} = ${n * ile} ${odmiana(n * ile, 'strona', 'strony', 'stron')} w wydruku`;
+    return bilansSerii(p, seria).map((b) => {
+      const { dlugosc: n, powielen: ile, stron } = b;
+      const koniec = b.ostatniePelne ? '' : ' (seria kończy się na ostatnim wierszu danych – ostatnie powielenie jest niepełne)';
+      return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} × ${ile} ${odmiana(ile, 'powielenie', 'powielenia', 'powieleń')} = ${stron} ${odmiana(stron, 'strona', 'strony', 'stron')} w wydruku${koniec}`;
     }).join('; ');
+  }
+
+  // Braki danych serii jednym zdaniem (pusty tekst, gdy wszystko jest): tabele dodatkowe, którym zabraknie wierszy.
+  brakiSerii(seria, projekt = this.projekt()) {
+    return bilansSerii(projekt, seria).flatMap((b) => b.dodatkowe.filter((d) => d.potrzeba > d.jest).map((d) => {
+      const brak = d.potrzeba - d.jest;
+      return `Brakuje danych: tabela „${d.tabela.nazwa}” ma ${d.jest} ${odmiana(d.jest, 'wiersz', 'wiersze', 'wierszy')}, a potrzeba ${d.potrzeba} (${brak} za mało). Od strony ${d.brakOd} jej pola będą puste.`;
+    })).join(' ');
+  }
+
+  // Wiersz ustawień tabeli dodatkowej w oknie serii.
+  _wierszDodatkowej(d = {}) {
+    const p = this.projekt();
+    const wiersz = document.createElement('div');
+    wiersz.className = 'wiersz-dodatkowej';
+    wiersz.innerHTML = `
+      <label class="pole"><span>Tabela</span><select data-pole="tabela"></select></label>
+      <label class="pole waskie"><span>Nowy wiersz co … stron</span><input data-pole="co" type="number" min="1" max="2000" step="1" inputmode="numeric"></label>
+      <label class="pole waskie" title="Gdy pierwszy okres jest krótszy – np. rok zaczyna się w środę, więc pierwszy tydzień ma 5 dni"><span>Pierwszy wiersz przez … stron</span><input data-pole="pierwszy" type="number" min="1" max="2000" step="1" inputmode="numeric" placeholder="tyle samo"></label>
+      <button type="button" class="przycisk-ikona" data-usun-dodatkowa title="Usuń tę tabelę z serii" aria-label="Usuń tabelę dodatkową">×</button>`;
+    const sel = wiersz.querySelector('select');
+    for (const t of p.tabele) sel.add(new Option(`${t.nazwa} (${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')})`, t.id));
+    sel.value = d.tabela || '';
+    wiersz.querySelector('[data-pole="co"]').value = d.co || 7;
+    wiersz.querySelector('[data-pole="pierwszy"]').value = d.pierwszy || '';
+    return wiersz;
   }
 
   otworzSerie(id) {
@@ -355,6 +394,8 @@ export class Dane {
     f.elements.tryb.value = seria.tryb;
     f.elements.ile.value = seria.ile;
     f.elements.uklad.value = seria.uklad;
+    f.elements.dopelnij.checked = Boolean(seria.dopelnij);
+    $('#seria-dodatkowe-lista').replaceChildren(...(seria.dodatkowe || []).map((d) => this._wierszDodatkowej(d)));
     this._odswiezSerie();
     dlg.returnValue = '';
     this.przedOtwarciem();
@@ -374,9 +415,24 @@ export class Dane {
     const proba = { ...seria, ...this._zFormularza(f) };
     const p = this.projekt();
     const bloki = blokiSerii(p).filter((b) => b.seria === seria);
+    const dlugi = maTabele && f.elements.tryb.value === 'tabela' && f.elements.uklad.value === 'dlugi';
+    $('#seria-pole-dopelnij').hidden = !dlugi;
+    $('#seria-opis-konca').hidden = !dlugi || f.elements.dopelnij.checked;
+    $('#seria-dodaj-tabele').disabled = p.tabele.filter((t) => t.id !== proba.tabela).length === 0;
+    // Bilans liczony na kopii projektu z serią w wersji z formularza.
+    const probny = { ...p, serie: p.serie.map((s) => (s.id === proba.id ? proba : s)) };
+    const bilans = bilansSerii(probny, proba);
     $('#seria-podsumowanie').textContent = bloki.length
-      ? bloki.map((b) => { const n = b.strony.length; const ile = liczbaPowielen(p, proba, n); return `Blok ${n} ${odmiana(n, 'strony', 'stron', 'stron')} × ${ile} = ${n * ile} ${odmiana(n * ile, 'strona', 'strony', 'stron')} w wydruku.`; }).join(' ')
+      ? bilans.map((b) => {
+        const opis = `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')} × ${b.powielen} = ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')} w wydruku.`;
+        const koniec = b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.';
+        const dodatkowe = b.dodatkowe.map((d) => ` Tabela „${d.tabela.nazwa}”: nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')} – potrzeba ${d.potrzeba} ${odmiana(d.potrzeba, 'wiersza', 'wierszy', 'wierszy')}, ${d.jest >= d.potrzeba ? `jest ${d.jest}` : `a jest tylko ${d.jest}`}.`).join('');
+        return opis + koniec + dodatkowe;
+      }).join(' ')
       : 'Żadna strona nie należy jeszcze do tej serii.';
+    const braki = bloki.length ? this.brakiSerii(proba, probny) : '';
+    $('#seria-braki').hidden = !braki;
+    $('#seria-braki').textContent = braki;
     // Pola użyte na stronach serii i kolumny, których brakuje w wybranej tabeli.
     const potrzebne = kolumnySerii(p, proba);
     const brak = brakujaceKolumny(p, proba);
@@ -402,6 +458,12 @@ export class Dane {
       tryb: f.elements.tryb.value === 'stala' ? 'stala' : 'tabela',
       ile: Math.min(2000, Math.max(1, Math.round(Number(f.elements.ile.value)) || 1)),
       uklad: f.elements.uklad.value === 'dlugi' ? 'dlugi' : 'szeroki',
+      dopelnij: f.elements.dopelnij.checked,
+      dodatkowe: [...f.querySelectorAll('.wiersz-dodatkowej')].map((w) => {
+        const co = Math.min(2000, Math.max(1, Math.round(Number(w.querySelector('[data-pole="co"]').value)) || 1));
+        const pierwszy = Math.round(Number(w.querySelector('[data-pole="pierwszy"]').value));
+        return { tabela: w.querySelector('select').value, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}) };
+      }).filter((d) => d.tabela && d.tabela !== (f.elements.tabela.value || null)),
     };
   }
 
@@ -410,6 +472,22 @@ export class Dane {
     const f = dlg.querySelector('form');
     f.addEventListener('input', () => this._odswiezSerie());
     f.addEventListener('change', () => this._odswiezSerie());
+    $('#seria-dodaj-tabele').addEventListener('click', () => {
+      const p = this.projekt();
+      const { seria, proba } = this._seriaZOkna();
+      const zajete = new Set([proba.tabela, ...proba.dodatkowe.map((d) => d.tabela)]);
+      const wolna = p.tabele.find((t) => !zajete.has(t.id)) || p.tabele.find((t) => t.id !== proba.tabela);
+      if (!wolna) return;
+      // Domyślnie: nowy wiersz raz na powielenie bloku, a dla bloku jednej strony – co 7 stron (tydzień).
+      const dlugosc = blokiSerii(p).find((b) => b.seria === seria)?.strony.length || 1;
+      $('#seria-dodatkowe-lista').append(this._wierszDodatkowej({ tabela: wolna.id, co: dlugosc > 1 ? dlugosc : 7 }));
+      this._odswiezSerie();
+    });
+    $('#seria-dodatkowe-lista').addEventListener('click', (e) => {
+      if (!e.target.closest('[data-usun-dodatkowa]')) return;
+      e.target.closest('.wiersz-dodatkowej').remove();
+      this._odswiezSerie();
+    });
     $('#seria-dodaj-kolumny').addEventListener('click', () => {
       const p = this.projekt();
       const { proba } = this._seriaZOkna();

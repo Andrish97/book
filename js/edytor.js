@@ -12,7 +12,7 @@ import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
 import { przyciagnij, pomiary } from './przyciaganie.js';
-import { znajdzPola } from './pola.js';
+import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
@@ -32,6 +32,7 @@ export const WLASNE_POLA = [
   'boki', 'gwiazda', // wielokąt foremny albo gwiazda (punkty liczone z tych dwóch liczb)
   'lista', 'lista_start', // wypunktowanie / numerowanie akapitów (tekst-ramka.js)
   'watek', 'watek_nr', 'lacznik', // przelewanie tekstu między ramkami (watki.js)
+  'z_danych', // kolor i przesunięcie zależne od pola z danych (pola.js)
 ];
 
 export const TEKST_ZACHETY = 'Kliknij dwa razy, aby edytować';
@@ -1138,8 +1139,9 @@ export class Edytor extends EventTarget {
       }
       if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
       if (nieMiesciSie(o)) lista.push({ id: o.id, typ: 'nie_miesci_sie', obiekt: opisObiektu(o) });
-      const nieznane = this._nieznanePola(o);
-      if (nieznane.length) lista.push({ id: o.id, typ: 'nieznane_pole', obiekt: opisObiektu(o), pola: [...new Set(nieznane.map((p) => p.nazwa))] });
+      const nrStrony = this.strony.length > 1 ? this.stronaW(this._srodekObiektu(o).x) : 0;
+      const nieznane = [...this._nieznanePola(o).map((p) => p.nazwa), ...polaZDanych(o).filter((n) => !this.znanePole(n, nrStrony))];
+      if (nieznane.length) lista.push({ id: o.id, typ: 'nieznane_pole', obiekt: opisObiektu(o), pola: [...new Set(nieznane)] });
     }
     this.ostrzezenia = lista;
     this.dispatchEvent(new CustomEvent('ostrzezenia', { detail: lista }));

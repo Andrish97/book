@@ -63,6 +63,9 @@ test('serie (obliczenia): powielanie bloku, układ długi, stała liczba, numera
     wyniki.arkusze = proj.strony.map((s) => arkuszStrony(s, szeroki).map((x) => x.nazwa).join('+'));
     proj.serie[0].uklad = 'dlugi';
     wyniki.dlugi = opis(rozwin(proj));
+    proj.serie[0].dopelnij = true;
+    wyniki.dopelniony = opis(rozwin(proj));
+    proj.serie[0].dopelnij = false;
     proj.serie[0].tryb = 'stala';
     proj.serie[0].ile = 2;
     wyniki.stala = opis(rozwin(proj));
@@ -76,8 +79,10 @@ test('serie (obliczenia): powielanie bloku, układ długi, stała liczba, numera
   assert.deepEqual(w.szeroki, ['Tytuł:1:p:-', 'Dzień A#1:2:l:1', 'Dzień B#1:3:p:1', 'Dzień A#2:4:l:2', 'Dzień B#2:5:p:2', 'Dzień A#3:6:l:3', 'Dzień B#3:7:p:3', 'Koniec:8:l:-']);
   assert.deepEqual(w.pola, ['b', '4', 'IV', '4', '2', '3', '8', 'Dni', '8', '1', undefined]);
   assert.deepEqual(w.arkusze, ['Tytuł', 'Dzień A+Dzień B', 'Dzień A+Dzień B', 'Koniec']);
-  // Układ długi: 3 wiersze na blok 2 stron = 2 powielenia; ostatnia strona bez danych.
-  assert.deepEqual(w.dlugi, ['Tytuł:1:p:-', 'Dzień A#1:2:l:1', 'Dzień B#1:3:p:2', 'Dzień A#2:4:l:3', 'Dzień B#2:5:p:undefined', 'Koniec:6:l:-']);
+  // Układ długi: 3 wiersze na blok 2 stron – seria kończy się na ostatnim wierszu, drugie powielenie ma jedną stronę.
+  assert.deepEqual(w.dlugi, ['Tytuł:1:p:-', 'Dzień A#1:2:l:1', 'Dzień B#1:3:p:2', 'Dzień A#2:4:l:3', 'Koniec:5:p:-']);
+  // Z opcją „dokończ blok” ostatnia strona bloku zostaje, bez danych.
+  assert.deepEqual(w.dopelniony, ['Tytuł:1:p:-', 'Dzień A#1:2:l:1', 'Dzień B#1:3:p:2', 'Dzień A#2:4:l:3', 'Dzień B#2:5:p:undefined', 'Koniec:6:l:-']);
   assert.deepEqual(w.stala, ['Tytuł:1:p:-', 'Dzień A#1:2:l:1', 'Dzień B#1:3:p:1', 'Dzień A#2:4:l:2', 'Dzień B#2:5:p:2', 'Koniec:6:l:-']);
   assert.deepEqual(w.jedna, ['Tytuł:1:p:-', 'Dzień A#1:2:l:1', 'Dzień A#2:3:p:2', 'Dzień A#3:4:l:3', 'Dzień B:5:p:-', 'Koniec:6:l:-']);
   assert.equal(w.arkuszJednej, 'Dzień A');
@@ -394,5 +399,186 @@ test('szablon danych i kontrola przed drukiem: brakujące kolumny, plik Excela z
     'Nie ma w projekcie obrazu „chmura.png” (kolumna „ikona”) – strona 2.',
     'Wartość „2” z kolumny „dzien” (tabela „Dni”) powtarza się na stronach 2 i 4.',
   ]);
+  assert.deepEqual(bledy, []);
+});
+
+test('serie z dodatkowymi tabelami: wiersz co kilka stron, krótszy pierwszy okres, braki danych, koniec serii na ostatnim wierszu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Tygodnie');
+  const w = await strona.evaluate(async () => {
+    const { stan, zapiszTeraz } = window.seriodruk;
+    const p = stan.projekt;
+    await zapiszTeraz();
+    p.tabele.push({ id: 't_dni', nazwa: 'Dni', kolumny: ['dzien', 'haslo'], wiersze: Array.from({ length: 10 }, (_, i) => [String(i + 1), `dzień ${i + 1}`]) });
+    p.tabele.push({ id: 't_tyg', nazwa: 'Tygodnie', kolumny: ['haslo', 'nr_tyg'], wiersze: [['Start', '1'], ['Rozpęd', '2']], unikalne: ['haslo'] });
+    p.serie.push({ id: 'se1', nazwa: 'Dni', tabela: 't_dni', tryb: 'tabela', uklad: 'dlugi', ile: 1, dodatkowe: [{ tabela: 't_tyg', co: 4, pierwszy: 2 }] });
+    // Blok z trzech stron: 10 wierszy = 3 pełne powielenia i jedna strona czwartego.
+    const wzor = (id, nazwa, tekst) => ({ ...structuredClone(p.strony[0]), id, nazwa, seria: 'se1', obiekty: [{ type: 'textbox', version: '5.3.0', left: 10, top: 10, width: 100, text: tekst, styles: [], fontSize: 5, fontFamily: 'Inter', id: `o_${id}` }] });
+    p.strony = [wzor('s_a', 'A', '{dzien}: {haslo} / {Tygodnie.haslo} (tydzień {nr_tyg})'), wzor('s_b', 'B', '{dzien} {Dni.haslo}'), wzor('s_c', 'C', '{dzien}')];
+    await window.seriodruk.przeladuj();
+    const { rozwin, wartosciPol, bilansSerii, polePoTabelach } = await import('./js/serie.js');
+    const { sprawdzProjekt, kolumnySerii } = await import('./js/kontrola.js');
+    const { podstawWTekscie } = await import('./js/pola.js');
+    const ciag = rozwin(p);
+    const teksty = ciag.egzemplarze.map((e) => `${e.strona.nazwa}${e.nrEgz}: ${podstawWTekscie(e.strona.obiekty[0].text, [], wartosciPol(p, e, ciag)).text}`);
+    const b = bilansSerii(p, p.serie[0], ciag)[0];
+    return {
+      teksty,
+      bilans: [b.dlugosc, b.powielen, b.stron, b.ostatniePelne, b.dodatkowe.map((d) => [d.tabela.nazwa, d.co, d.potrzeba, d.jest, d.brakOd])],
+      uwagi: sprawdzProjekt(p, ciag).map((u) => [u.rodzaj, u.opis]),
+      kolumny: kolumnySerii(p, p.serie[0]).map((k) => k.nazwa),
+      pola: [polePoTabelach('tygodnie.haslo', p.tabele)?.tabela.nazwa, polePoTabelach('haslo', p.tabele)?.tabela.nazwa, polePoTabelach('Tygodnie.brak', p.tabele)],
+      znane: ['haslo', 'Tygodnie.haslo', 'nr_tyg', 'Tygodnie.brak', 'obce'].map((n) => window.seriodruk.edytor.znanePole(n, 0)),
+    };
+  });
+  // Pierwszy wiersz tygodni obowiązuje przez 2 strony, potem nowy co 4; od 7. strony tygodni brakuje – pola są puste.
+  assert.deepEqual(w.teksty, [
+    'A1: 1: dzień 1 / Start (tydzień 1)', 'B1: 2 dzień 2', 'C1: 3',
+    'A2: 4: dzień 4 / Rozpęd (tydzień 2)', 'B2: 5 dzień 5', 'C2: 6',
+    'A3: 7: dzień 7 /  (tydzień )', 'B3: 8 dzień 8', 'C3: 9',
+    'A4: 10: dzień 10 /  (tydzień )',
+  ]);
+  assert.deepEqual(w.bilans, [3, 4, 10, false, [['Tygodnie', 4, 3, 2, 7]]]);
+  assert.deepEqual(w.uwagi, [['brak_danych', 'Seria „Dni”: tabela „Tygodnie” ma 2 wiersze, a potrzeba 3 (nowy wiersz co 4 strony). Od strony 7 do 10 jej pola zostaną puste.']]);
+  // Szablon danych tabeli głównej nie zawiera pól z tabeli dodatkowej.
+  assert.deepEqual(w.kolumny, ['dzien', 'haslo']);
+  assert.deepEqual(w.pola, ['Tygodnie', 'Dni', null]);
+  assert.deepEqual(w.znane, [true, true, true, false, false]);
+
+  // Panel strony pokazuje brak danych; okno serii – bilans, pozwala dodać i usunąć tabelę dodatkową.
+  assert.match(await strona.textContent('.wlasciwosci'), /3 strony × 4 powielenia = 10 stron w wydruku \(seria kończy się na ostatnim wierszu danych/);
+  assert.match(await strona.textContent('.wlasciwosci'), /Brakuje danych: tabela „Tygodnie” ma 2 wiersze, a potrzeba 3 \(1 za mało\)\. Od strony 7 jej pola będą puste\./);
+  await strona.evaluate(() => window.seriodruk.dane.otworzSerie('se1'));
+  await strona.waitForSelector('#dlg-seria[open]');
+  assert.equal(await strona.textContent('#seria-podsumowanie'), 'Blok 3 stron × 4 = 10 stron w wydruku. Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne. Tabela „Tygodnie”: nowy wiersz co 4 strony – potrzeba 3 wierszy, a jest tylko 2.');
+  assert.ok(await strona.isVisible('#seria-braki'));
+  // Dłuższy okres (co 5 stron, pierwszy przez 5): dwa wiersze wystarczą na 10 stron.
+  await strona.fill('.wiersz-dodatkowej [data-pole="co"]', '5');
+  await strona.fill('.wiersz-dodatkowej [data-pole="pierwszy"]', '');
+  assert.match(await strona.textContent('#seria-podsumowanie'), /nowy wiersz co 5 stron – potrzeba 2 wierszy, jest 2\.$/);
+  assert.ok(await strona.isHidden('#seria-braki'));
+  // „Dokończ ostatni blok”: 12 stron zamiast 10.
+  await strona.check('#dlg-seria input[name=dopelnij]');
+  assert.match(await strona.textContent('#seria-podsumowanie'), /^Blok 3 stron × 4 = 12 stron w wydruku\. Tabela/);
+  await strona.uncheck('#dlg-seria input[name=dopelnij]');
+  await strona.click('#dlg-seria #zapisz-serie');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.serie[0].dodatkowe[0].co === 5); // zapis następuje po zamknięciu okna
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.serie[0].dodatkowe), [{ tabela: 't_tyg', co: 5 }]);
+
+  // Lista „Wstaw pole” ma grupę tabeli dodatkowej z nazwą tabeli w polu.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects()[0].id); });
+  const opcje = await strona.locator('.wlasciwosci optgroup[label="Tabela dodatkowa serii: Tygodnie"] option').allTextContents();
+  assert.deepEqual(opcje.map((o) => o.replace(/[{}]/g, '').trim()), ['Tygodnie.haslo', 'Tygodnie.nr_tyg']);
+
+  // Zmiana nazwy tabeli i kolumny poprawia pola z nazwą tabeli.
+  await strona.evaluate(() => { window.seriodruk.edytor.odznacz(); window.seriodruk.dane.otworz('t_tyg'); });
+  await strona.waitForSelector('#dlg-dane[open]');
+  await strona.fill('#dane-nazwa', 'Tyg');
+  await strona.press('#dane-nazwa', 'Tab');
+  await strona.click('#dane-siatka .nazwa-kolumny[data-k="0"]');
+  await strona.keyboard.press('Control+A');
+  await strona.keyboard.type('motto');
+  await strona.keyboard.press('Enter');
+  await strona.click('#dane-zamknij');
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty[0].text), '{dzien}: {haslo} / {Tyg.motto} (tydzień {nr_tyg})');
+
+  // Usunięcie tabeli dodatkowej odpina ją od serii.
+  await strona.evaluate(() => window.seriodruk.dane.otworz('t_tyg'));
+  await strona.click('#dane-usun');
+  await strona.click('#potwierdz-tak');
+  await strona.click('#dane-zamknij');
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.serie[0].dodatkowe), []);
+  assert.deepEqual(bledy, []);
+});
+
+test('wygląd z danych: kolor z kolumny i przesunięcie według numeru powielenia (zakładki na brzegu strony)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Zakładki');
+  const obliczenia = await strona.evaluate(async () => {
+    const { kolorZWartosci, liczbaZWartosci, przesuniecieZDanych } = await import('./js/pola.js');
+    const w = (v) => () => v;
+    return {
+      kolory: ['#C00', 'ff8800', ' rgb(1, 2, 3) ', 'navy', 'niekolor', ''].map(kolorZWartosci),
+      liczby: ['3', '2,5', '-1.25', 'trzy', ''].map(liczbaZWartosci),
+      // Pozycje 1–8 z krokiem 30 mm, od nowa co 6: siódma wraca na miejsce pierwszej.
+      pozycje: [1, 2, 6, 7, 8].map((n) => przesuniecieZDanych({ pole: 'x', tryb: 'pozycja', krok: 30, co: 6 }, w(String(n)))),
+      bezPowrotu: przesuniecieZDanych({ pole: 'x', tryb: 'pozycja', krok: 30 }, w('8')),
+      mm: [przesuniecieZDanych({ pole: 'x', tryb: 'mm' }, w('12,5')), przesuniecieZDanych({ pole: 'x', tryb: 'mm' }, w('abc')), przesuniecieZDanych({ pole: 'x', tryb: 'mm' }, w(undefined))],
+    };
+  });
+  assert.deepEqual(obliczenia.kolory, ['#C00', '#ff8800', 'rgb(1, 2, 3)', 'navy', null, null]);
+  assert.deepEqual(obliczenia.liczby, [3, 2.5, -1.25, null, null]);
+  assert.deepEqual(obliczenia.pozycje, [0, 30, 150, 0, 30]);
+  assert.equal(obliczenia.bezPowrotu, 210);
+  assert.deepEqual(obliczenia.mm, [12.5, 0, 0]);
+
+  // Strona powielana 8 razy; tabela podaje kolor zakładki, a numer powielenia – jej położenie.
+  await strona.evaluate(async () => {
+    const { stan, edytor, zapiszTeraz } = window.seriodruk;
+    const p = stan.projekt;
+    p.tabele.push({ id: 't1', nazwa: 'Miesiące', kolumny: ['miesiac', 'barwa'], wiersze: [['Styczeń', '#ff0000'], ['Luty', '00ff00'], ['Marzec', 'blue'], ['Kwiecień', 'niekolor'], ['Maj', '#ff0000'], ['Czerwiec', '#ff0000'], ['Lipiec', '#00ff00'], ['Sierpień', '']] });
+    p.serie.push({ id: 'se1', nazwa: 'Miesiące', tabela: 't1', tryb: 'tabela', uklad: 'szeroki', ile: 1, dodatkowe: [] });
+    p.strony[0].seria = 'se1';
+    await window.seriodruk.przeladuj();
+    const r = edytor.dodajProstokat();
+    r.set({ left: 130, top: 10, width: 18, height: 20, fill: '#808080', strokeWidth: 0, nazwa: 'Zakładka' });
+    r.setCoords();
+    edytor.zatwierdz();
+    await zapiszTeraz();
+  });
+  // Panel „Z danych”: kolor z kolumny, przesunięcie w pionie z numeru powielenia, krok 30 mm, od nowa co 6.
+  await strona.selectOption('.wlasciwosci label:has-text("Kolor z pola") select', 'barwa');
+  await strona.selectOption('.wlasciwosci label:has-text("Przesunięcie w pionie z pola") select', 'egzemplarz');
+  await strona.fill('.wlasciwosci label:has-text("Krok") input', '30');
+  await strona.press('.wlasciwosci label:has-text("Krok") input', 'Tab');
+  await strona.fill('.wlasciwosci label:has-text("Od nowa co") input', '6');
+  await strona.press('.wlasciwosci label:has-text("Od nowa co") input', 'Tab');
+  const zapis = await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); const o = window.seriodruk.stan.projekt.strony[0].obiekty[0]; return [o.z_danych, o.top, o.fill]; });
+  assert.deepEqual(zapis, [{ kolor: 'barwa', y: { tryb: 'pozycja', krok: 30, co: 6, pole: 'egzemplarz' } }, 10, '#808080'], 'w projekcie zostaje wzór i reguła');
+
+  const piksele = await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    const { rozwin } = await import('./js/serie.js');
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const ciag = rozwin(p);
+    const wynik = [];
+    for (const e of ciag.egzemplarze) {
+      const url = await renderujCel(p, e, { szerokoscPx: 148, spad: false, ciag });
+      const img = new Image();
+      await new Promise((ok) => { img.onload = ok; img.src = url; });
+      const k = document.createElement('canvas'); k.width = img.width; k.height = img.height;
+      const kx = k.getContext('2d'); kx.drawImage(img, 0, 0);
+      const kolor = (y) => [...kx.getImageData(139, y, 1, 1).data].slice(0, 3).join(',');
+      // środek zakładki w każdej z sześciu pozycji (co 30 mm od 10 mm)
+      wynik.push([0, 1, 2, 3, 4, 5].map((i) => kolor(20 + 30 * i)));
+    }
+    return wynik;
+  });
+  const B = '255,255,255';
+  const rzad = (pozycja, kolor) => [0, 1, 2, 3, 4, 5].map((i) => (i === pozycja ? kolor : B));
+  assert.deepEqual(piksele[0], rzad(0, '255,0,0'));
+  assert.deepEqual(piksele[1], rzad(1, '0,255,0'), 'kolor bez krzyżyka też działa');
+  assert.deepEqual(piksele[2], rzad(2, '0,0,255'), 'nazwa koloru');
+  assert.deepEqual(piksele[3], rzad(3, '128,128,128'), 'zła wartość – zostaje kolor wzoru');
+  assert.deepEqual(piksele[5], rzad(5, '255,0,0'));
+  assert.deepEqual(piksele[6], rzad(0, '0,255,0'), 'siódma strona wraca na pierwszą pozycję');
+  assert.deepEqual(piksele[7], rzad(1, '128,128,128'), 'pusta komórka – kolor wzoru');
+
+  // Zmiana nazwy kolumny poprawia regułę; nieznane pole trafia do ostrzeżeń i na listę przed drukiem.
+  const poZmianie = await strona.evaluate(async () => {
+    const { stan, edytor } = window.seriodruk;
+    const { zmienNazwePola } = await import('./js/tabele.js');
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    const p = stan.projekt;
+    p.tabele[0].kolumny[1] = 'kolor';
+    zmienNazwePola(p, 'barwa', 'kolor');
+    const regula = p.strony[0].obiekty[0].z_danych.kolor;
+    p.strony[0].obiekty[0].z_danych.kolor = 'nie_ma_takiej';
+    await window.seriodruk.przeladuj();
+    return { regula, ostrzezenia: edytor.ostrzezenia.filter((o) => o.typ === 'nieznane_pole').map((o) => [o.typ, o.pola]), uwagi: sprawdzProjekt(p).map((u) => u.rodzaj) };
+  });
+  assert.equal(poZmianie.regula, 'kolor');
+  assert.deepEqual(poZmianie.ostrzezenia, [['nieznane_pole', ['nie_ma_takiej']]]);
+  assert.deepEqual(poZmianie.uwagi, ['nieznane_pole']);
   assert.deepEqual(bledy, []);
 });
