@@ -81,7 +81,8 @@ export class OknoCzcionek {
 
   _opisZestawu(rodzina, uzyte) {
     const c = CZCIONKI.find((x) => x.nazwa === rodzina);
-    return `${c.rodzaj} · zwykła i pogrubiona${rodzina === 'Caveat' ? '' : ', prosta i kursywa'}${uzyte.has(rodzina) ? ' · używana w tym projekcie' : ''}`;
+    const odmiany = [c.pogrubiona ? 'zwykła i pogrubiona' : 'jedna grubość', c.kursywa ? 'prosta i kursywa' : 'bez kursywy'].join(', ');
+    return `${c.rodzaj} · ${odmiany}${uzyte.has(rodzina) ? ' · używana w tym projekcie' : ''}`;
   }
 
   // Pliki TTF oficjalnego zestawu (całego albo jednej rodziny) jako archiwum ZIP.

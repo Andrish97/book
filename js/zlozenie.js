@@ -14,6 +14,7 @@ import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach } from './pola.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from './obrazy.js';
 import { rozlejWatki } from './watki.js';
+import { zapewnijCzcionki } from './czcionki.js';
 import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
 
@@ -40,7 +41,8 @@ export function podmienZasoby(obiekty, mapa) {
 // eksporcie (oryginaly = true) zawsze pełny oryginał.
 export const zrodloObrazu = (zasoby, oryginaly = false) => (id) => (!oryginaly && kopiaRobocza(zasoby?.[id])) || zasoby?.[id]?.dataUrl || ZASTEPCZY_OBRAZ;
 
-const ozyw = (json) => fabric.util.enlivenObjects(json);
+// Czcionki użyte w obiektach muszą być wczytane, zanim Fabric zmierzy tekst.
+const ozyw = async (json) => { await zapewnijCzcionki(json); return fabric.util.enlivenObjects(json); };
 
 // Obraz z pola: kolumna tabeli podaje nazwę pliku wgranego do projektu.
 // Podmieniony obraz wpisuje się w ramkę obrazu-wzoru (ramka_pola), bez zmiany proporcji.

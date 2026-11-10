@@ -10,7 +10,7 @@ import { ikona } from '../ikony.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
-import { zarejestrujCzcionkiProjektu } from '../czcionki.js';
+import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
@@ -138,6 +138,9 @@ export async function otworzProjekt(p, cel = {}) {
   // Własne czcionki muszą być gotowe, zanim tekst zostanie zmierzony na płótnie.
   const zleCzcionki = await zarejestrujCzcionkiProjektu(stan.projekt);
   if (zleCzcionki.length) powiadom(`Nie udało się wczytać czcionek: ${zleCzcionki.join(', ')}.`, true);
+  // Czcionki stylów tekstu projektu pobierają się w tle – żeby nadanie stylu od razu mierzyło tekst
+  // właściwą czcionką. Nie wstrzymują otwarcia projektu (czcionki stron wczytuje edytor przed rysowaniem).
+  zapewnijRodziny((stan.projekt.style || []).map((s) => s.fontFamily)).catch(() => {});
   stan.indeks = Math.max(0, stan.projekt.strony.findIndex((x) => x.id === cel.strona));
   const wzorzec = cel.wzorzec && stan.projekt.wzorce.find((w) => w.id === cel.wzorzec);
   stan.tryb = wzorzec ? 'wzorzec' : 'strona';

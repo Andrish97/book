@@ -10,7 +10,7 @@
 
 import { WLASNE_POLA, toZaznaczenie } from './fabric-ustawienia.js';
 import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
-import { DOMYSLNA } from './czcionki.js';
+import { DOMYSLNA, zapewnijCzcionki, zapewnijRodziny } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu, wzorzecPrzezGrzbiet } from './zlozenie.js';
 import { przyciagnij, pomiary, przyciagnijKrawedz } from './przyciaganie.js';
 import { znajdzPola, polaZDanych } from './pola.js';
@@ -269,6 +269,7 @@ export class Edytor extends EventTarget {
   // tyle samo, ile zestawów marginesów dostało ustawWydruk.
   async wczytajArkusz(strony, zasoby) {
     this._poza = [];
+    await zapewnijCzcionki(strony.flatMap((s) => s.obiekty || [])); // tekst mierzy się właściwą czcionką
     await przygotujKopie(zasoby, strony.flatMap((s) => s.obiekty || []));
     const w = this.wydruk.szerokosc_mm;
     const b = this.wydruk.spad_mm;
@@ -657,6 +658,25 @@ export class Edytor extends EventTarget {
       innychStron: new Set((this._poza || []).filter((p) => p.o.watek === obj.watek).map((p) => p.strona)).size,
       poprzednia: poza(ramki[i - 1]), nastepna: poza(ramki[i + 1]),
     };
+  }
+
+  // Po wybraniu czcionki, której przeglądarka jeszcze nie pobrała: gdy pliki dojdą, teksty tą czcionką
+  // są mierzone od nowa (do tej chwili były rysowane czcionką zastępczą).
+  async doczytajCzcionke(rodzina) {
+    await zapewnijRodziny([rodzina]);
+    const przelicz = (lista) => {
+      for (const o of lista) {
+        if (o._objects) { przelicz(o._objects); if (o.tabela) ulozTabele(o); continue; }
+        if (typeof o.text !== 'string') continue;
+        const uzywa = o.fontFamily === rodzina || Object.values(o.styles || {}).some((w) => Object.values(w || {}).some((s) => s?.fontFamily === rodzina));
+        if (uzywa) { o.initDimensions(); o.setCoords(); o.dirty = true; }
+      }
+    };
+    przelicz(this.canvas.getObjects());
+    this._pilnujWatkow();
+    this.przeliczOstrzezenia();
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
   }
 
   // Przelewa tekst od razu (np. po dodaniu ramki na innej stronie).

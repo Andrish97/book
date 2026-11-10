@@ -1,0 +1,62 @@
+// Oficjalny zestaw czcionek aplikacji – jedyne miejsce, w którym się go zmienia.
+// Ten sam zestaw jest na liście czcionek w każdym projekcie, w PDF i w pobieraniu plików.
+//
+// Po zmianie listy uruchom:  node scripts/pobierz-czcionki.cjs
+// (pobiera pliki ekranowe do css/czcionki/, pliki TTF do css/czcionki/pdf/ i zapisuje licencje).
+// `pogrubiona` / `kursywa` – czy czcionka ma taką odmianę; panel tekstu wyszarza przyciski, gdy jej nie ma.
+// Lista jest zapisana jak JSON (cudzysłowy, bez komentarzy w środku) – czytają ją też skrypty.
+
+export const ZESTAW = [
+  {"nazwa": "Inter", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Open Sans", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Montserrat", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Lato", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Roboto", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Source Sans 3", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Nunito", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Poppins", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Raleway", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Work Sans", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "IBM Plex Sans", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Fira Sans", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Rubik", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "DM Sans", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Barlow", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Josefin Sans", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Quicksand", "rodzaj": "bezszeryfowa", "pogrubiona": true, "kursywa": false},
+  {"nazwa": "Oswald", "rodzaj": "wąska", "pogrubiona": true, "kursywa": false},
+  {"nazwa": "Barlow Condensed", "rodzaj": "wąska", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Roboto Condensed", "rodzaj": "wąska", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Bebas Neue", "rodzaj": "wąska", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Anton", "rodzaj": "wąska", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Lora", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Merriweather", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Playfair Display", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Source Serif 4", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "EB Garamond", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Cormorant Garamond", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Libre Baskerville", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Crimson Pro", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "PT Serif", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Spectral", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Literata", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Alegreya", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Bitter", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Roboto Slab", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": false},
+  {"nazwa": "Zilla Slab", "rodzaj": "szeryfowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "DM Serif Display", "rodzaj": "szeryfowa", "pogrubiona": false, "kursywa": true},
+  {"nazwa": "Abril Fatface", "rodzaj": "szeryfowa", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Caveat", "rodzaj": "odręczna", "pogrubiona": true, "kursywa": false},
+  {"nazwa": "Dancing Script", "rodzaj": "odręczna", "pogrubiona": true, "kursywa": false},
+  {"nazwa": "Pacifico", "rodzaj": "odręczna", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Kalam", "rodzaj": "odręczna", "pogrubiona": true, "kursywa": false},
+  {"nazwa": "Patrick Hand", "rodzaj": "odręczna", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Amatic SC", "rodzaj": "odręczna", "pogrubiona": true, "kursywa": false},
+  {"nazwa": "Great Vibes", "rodzaj": "odręczna", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Sacramento", "rodzaj": "odręczna", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Courgette", "rodzaj": "odręczna", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "Lobster", "rodzaj": "odręczna", "pogrubiona": false, "kursywa": false},
+  {"nazwa": "JetBrains Mono", "rodzaj": "maszynowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "Courier Prime", "rodzaj": "maszynowa", "pogrubiona": true, "kursywa": true},
+  {"nazwa": "IBM Plex Mono", "rodzaj": "maszynowa", "pogrubiona": true, "kursywa": true}
+];

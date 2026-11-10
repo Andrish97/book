@@ -282,21 +282,20 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   const widoczne = () => strona.evaluate(() => [...document.querySelectorAll('.wybor-lista .wybor-opcja')].filter((el) => !el.hidden).map((el) => el.textContent));
   await strona.focus(`${czcionka} .wybor-przycisk`);
   await strona.keyboard.press('ArrowDown');
-  assert.equal((await widoczne()).length, 9);
+  assert.equal((await widoczne()).length, 53, 'cały zestaw i wgrywanie własnej');
   assert.ok(await strona.isHidden('.wybor-filtr'));
 
   // Fragment ze środka nazwy.
-  await strona.keyboard.type('sans');
-  assert.deepEqual(await widoczne(), ['Open Sans']);
-  assert.equal(await strona.textContent('.wybor-filtr'), 'Szukaj: sans');
-  // Backspace cofa po znaku; „s” jest w kilku nazwach.
-  await strona.keyboard.press('Backspace');
-  await strona.keyboard.press('Backspace');
-  await strona.keyboard.press('Backspace');
-  assert.deepEqual(await widoczne(), ['Open Sans', 'Montserrat', 'Playfair Display', 'Source Serif 4', '+ Wgraj własną czcionkę…']);
+  await strona.keyboard.type('garam');
+  assert.deepEqual(await widoczne(), ['EB Garamond', 'Cormorant Garamond']);
+  assert.equal(await strona.textContent('.wybor-filtr'), 'Szukaj: garam');
+  // Backspace cofa po znaku; „g” jest w wielu nazwach.
+  for (let i = 0; i < 4; i += 1) await strona.keyboard.press('Backspace');
+  const zG = await widoczne();
+  assert.ok(zG.length > 4 && zG.includes('Great Vibes') && zG.includes('EB Garamond') && !zG.includes('Inter'), `pozycje z „g”: ${zG}`);
   // Esc czyści szukanie (lista zostaje otwarta), dopiero drugi zamyka.
   await strona.keyboard.press('Escape');
-  assert.equal((await widoczne()).length, 9);
+  assert.equal((await widoczne()).length, 53);
   assert.equal(await strona.locator('.wybor-lista').count(), 1);
   // Bez polskich znaków i wielkości liter: „WLASNA” znajduje „własną”.
   await strona.keyboard.type('WLASNA');
@@ -310,8 +309,8 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   assert.equal(await strona.locator('.wybor-lista').count(), 1);
   await strona.keyboard.press('Escape');
   // Strzałki chodzą po zawężonej liście, Enter wybiera.
-  await strona.keyboard.type('er');
-  assert.deepEqual(await widoczne(), ['Inter', 'Montserrat', 'Merriweather', 'Source Serif 4']);
+  await strona.keyboard.type('weat');
+  assert.deepEqual(await widoczne(), ['Merriweather']);
   await strona.keyboard.press('ArrowDown');
   await strona.keyboard.press('ArrowDown');
   await strona.keyboard.press('Enter');

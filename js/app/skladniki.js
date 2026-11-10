@@ -8,7 +8,7 @@ import { PanelWarstw } from '../warstwy.js';
 import { PanelWlasciwosci } from '../wlasciwosci.js';
 import { Instrukcja } from '../instrukcja.js';
 import { OknoCzcionek } from '../okno-czcionek.js';
-import { rodzinyCzcionek } from '../czcionki.js';
+import { rodzinyCzcionek, odmianyRodziny } from '../czcionki.js';
 import { uzgodnijZKontem, rodzinySpozaProjektu, poznaj } from '../moje-czcionki.js';
 import { uid } from '../projekt.js';
 import * as chmura from '../chmura.js';
@@ -34,6 +34,7 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   style: () => stan.projekt?.style || [],
   czcionki: () => { const { wlasne, wbudowane } = rodzinyCzcionek(stan.projekt); return [...wlasne, ...wbudowane]; },
   wgrajCzcionke: () => oknoCzcionek.wybierzPliki(),
+  odmianyCzcionki: (rodzina) => odmianyRodziny(stan.projekt, rodzina),
   mojeCzcionki: () => stan.mojeRodziny || [],
   dodajMojaCzcionke: (rodzina) => oknoCzcionek.dodajZMoich(rodzina),
   pola: () => polaDoWstawienia(),

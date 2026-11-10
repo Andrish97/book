@@ -16,7 +16,7 @@ test('czcionki są w repozytorium: aplikacja nie pyta serwerów Google, polskie 
   });
   const adresy = await strona.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name));
   for (const [nazwa, ok] of Object.entries(stan)) assert.ok(ok, `czcionka ${nazwa} się wczytała`);
-  assert.equal(Object.keys(stan).length, 8);
+  assert.equal(Object.keys(stan).length, 52, 'cały oficjalny zestaw');
   assert.deepEqual(adresy.filter((a) => /fonts\.(googleapis|gstatic)\.com/.test(a)), []);
   assert.ok(adresy.some((a) => /css\/czcionki\/inter-prosta-.*latin-ext\.woff2$/.test(a)), 'polskie znaki Inter z pliku w repozytorium');
   assert.deepEqual(bledy, []);

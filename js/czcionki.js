@@ -1,37 +1,62 @@
 /* global fabric */
-// Lista dozwolonych czcionek (sekcja 11 planu): tylko licencje pozwalające
-// na użycie komercyjne i osadzanie w PDF. Wszystkie poniższe są na licencji
-// SIL Open Font License 1.1 i mają polskie znaki (latin-ext).
-// Pliki czcionek leżą w css/czcionki/ (pobiera je scripts/pobierz-czcionki.cjs),
-// więc aplikacja nie zależy od serwerów Google. Przed dodaniem nowej czcionki
-// sprawdź jej licencję i dopisz ją także w tym skrypcie.
+import { ZESTAW } from './zestaw-czcionek.js';
+// Czcionki aplikacji. Oficjalny zestaw (js/zestaw-czcionek.js) ma tylko licencje pozwalające na druk
+// komercyjny i osadzanie w PDF (OFL 1.1 albo Apache 2.0) i polskie znaki. Pliki leżą w css/czcionki/
+// (pobiera je scripts/pobierz-czcionki.cjs), więc aplikacja nie zależy od serwerów Google.
 
-export const CZCIONKI = [
-  { nazwa: 'Inter', licencja: 'OFL 1.1', rodzaj: 'bezszeryfowa' },
-  { nazwa: 'Open Sans', licencja: 'OFL 1.1', rodzaj: 'bezszeryfowa' },
-  { nazwa: 'Montserrat', licencja: 'OFL 1.1', rodzaj: 'bezszeryfowa' },
-  { nazwa: 'Lora', licencja: 'OFL 1.1', rodzaj: 'szeryfowa' },
-  { nazwa: 'Merriweather', licencja: 'OFL 1.1', rodzaj: 'szeryfowa' },
-  { nazwa: 'Playfair Display', licencja: 'OFL 1.1', rodzaj: 'szeryfowa' },
-  { nazwa: 'Source Serif 4', licencja: 'OFL 1.1', rodzaj: 'szeryfowa' },
-  { nazwa: 'Caveat', licencja: 'OFL 1.1', rodzaj: 'odręczna' },
-];
+export const CZCIONKI = ZESTAW; // oficjalny zestaw aplikacji: js/zestaw-czcionek.js
 
 export const DOMYSLNA = 'Inter';
 
-// Czeka, aż przeglądarka pobierze wszystkie warianty używane na płótnie.
-// Bez tego Fabric zmierzyłby tekst czcionką zastępczą.
-export async function zaladujCzcionki() {
-  if (!document.fonts) return;
-  const warianty = [];
-  for (const c of CZCIONKI) {
-    for (const styl of ['', 'italic ']) {
-      for (const waga of ['400', '700']) {
-        warianty.push(document.fonts.load(`${styl}${waga} 16px "${c.nazwa}"`, 'AaĄąŻż'));
-      }
+// Zestaw ma kilkadziesiąt rodzin, więc przeglądarka pobiera tylko te, których potrzeba: przy starcie
+// czcionkę domyślną, potem czcionki użyte na wczytywanych stronach i tę, którą ktoś wybierze w panelu.
+// Czcionka musi być gotowa, zanim tekst zostanie zmierzony – inaczej wiersze połamią się jak w zastępczej.
+const wczytane = new Map(); // rodzina → obietnica wczytania wszystkich jej odmian
+
+export function zapewnijRodziny(rodziny) {
+  if (typeof document === 'undefined' || !document.fonts) return Promise.resolve();
+  const czekaj = [];
+  for (const rodzina of new Set(rodziny)) {
+    const c = CZCIONKI.find((x) => x.nazwa === rodzina);
+    if (!c) continue; // własne czcionki projektu rejestruje zarejestrujCzcionkiProjektu
+    if (!wczytane.has(rodzina)) {
+      const odmiany = [['', 400], ...(c.pogrubiona ? [['', 700]] : []), ...(c.kursywa ? [['italic ', 400]] : []), ...(c.pogrubiona && c.kursywa ? [['italic ', 700]] : [])];
+      wczytane.set(rodzina, Promise.allSettled(odmiany.map(([styl, waga]) => document.fonts.load(`${styl}${waga} 16px "${rodzina}"`, 'AaĄąŻż')))
+        .then(() => { if (typeof fabric !== 'undefined') fabric.cache.clearFontCache(rodzina); }));
     }
+    czekaj.push(wczytane.get(rodzina));
   }
-  await Promise.allSettled(warianty);
+  return Promise.all(czekaj);
+}
+
+// Rodziny czcionek użyte w obiektach (zapis JSON albo żywe obiekty), także we fragmentach i w grupach.
+export function rodzinyWObiektach(obiekty, zbior = new Set()) {
+  for (const o of obiekty || []) {
+    if (!o) continue;
+    if (typeof o.text === 'string') {
+      if (o.fontFamily) zbior.add(o.fontFamily);
+      const style = Array.isArray(o.styles) ? o.styles.map((s) => s.style) : Object.values(o.styles || {}).flatMap((w) => Object.values(w || {}));
+      for (const s of style) if (s?.fontFamily) zbior.add(s.fontFamily);
+    }
+    const dzieci = Array.isArray(o.objects) ? o.objects : o._objects;
+    if (Array.isArray(dzieci)) rodzinyWObiektach(dzieci, zbior);
+  }
+  return zbior;
+}
+
+export const zapewnijCzcionki = (obiekty) => zapewnijRodziny(rodzinyWObiektach(obiekty));
+
+// Przy starcie: czcionka domyślna (nowe teksty, wzorce standardowe).
+export async function zaladujCzcionki() {
+  await zapewnijRodziny([DOMYSLNA]);
+}
+
+// Czy rodzina ma odmianę pogrubioną i kursywę (własna czcionka projektu – według wgranych plików).
+export function odmianyRodziny(projekt, rodzina) {
+  const wlasne = (projekt?.czcionki || []).filter((c) => c.rodzina === rodzina);
+  if (wlasne.length) return { pogrubiona: wlasne.some((c) => c.waga >= 600), kursywa: wlasne.some((c) => c.kursywa) };
+  const c = CZCIONKI.find((x) => x.nazwa === rodzina);
+  return c ? { pogrubiona: c.pogrubiona, kursywa: c.kursywa } : { pogrubiona: true, kursywa: true };
 }
 
 // ---------- Własne czcionki projektu (pliki TTF, OTF, WOFF, WOFF2) ----------

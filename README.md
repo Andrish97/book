@@ -22,7 +22,7 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie – wysyłane są tylko zmienione strony; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
 - **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok. Na telefonie edytor działa w poziomie (panele wysuwane z boków); w pionie pokazuje prośbę o obrót.
 - **Motyw**: jasny, ciemny albo jak w systemie.
-- **Czcionki**: własne pliki TTF/OTF/WOFF/WOFF2 wgrywane do projektu (jadą z nim na konto i do pliku) oraz osiem wbudowanych na licencji OFL. Wgrana czcionka trafia też do „Moich czcionek” i jest pod ręką w każdym projekcie (na koncie – na każdym urządzeniu). Do eksportu można dołączyć pliki użytych czcionek.
+- **Czcionki**: własne pliki TTF/OTF/WOFF/WOFF2 wgrywane do projektu (jadą z nim na konto i do pliku) oraz oficjalny zestaw 52 rodzin (lista: `js/zestaw-czcionek.js`; licencje OFL i Apache 2.0, polskie znaki), pobieranych przez przeglądarkę dopiero przy użyciu. Wgrana czcionka trafia też do „Moich czcionek” i jest pod ręką w każdym projekcie (na koncie – na każdym urządzeniu). Do eksportu można dołączyć pliki użytych czcionek.
 - **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze. Czcionki i silnik płótna są w repozytorium, więc edytor działa bez internetu.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 

@@ -141,7 +141,9 @@ export const ROZDZIALY = [
     obraz: 'czcionki.png',
     podpis: 'Okno „Czcionki”: oficjalny zestaw aplikacji na dole, wyżej własne czcionki projektu.',
     punkty: [
-      '<b>Zestaw czcionek Seriodruku</b>: Inter, Open Sans, Montserrat (bezszeryfowe), Lora, Merriweather, Playfair Display, Source Serif 4 (szeryfowe), Caveat (odręczna). Każda ma odmianę zwykłą i pogrubioną, prostą i kursywę (Caveat bez kursywy). Wszystkie na licencji SIL Open Font License – wolno ich używać w druku komercyjnym.',
+      '<b>Zestaw czcionek Seriodruku</b> to 52 rodziny: bezszeryfowe do tekstu (m.in. Inter, Open Sans, Lato, Roboto, Poppins), wąskie do nagłówków (Oswald, Bebas Neue), szeryfowe (Lora, Merriweather, Playfair Display, EB Garamond…), odręczne i ozdobne (Caveat, Pacifico, Dancing Script…) oraz maszynowe. Wszystkie mają polskie znaki i licencję pozwalającą na druk komercyjny. Pełną listę z próbkami pokazuje okno czcionek.',
+      'Nie każda czcionka ma wszystkie odmiany – odręczne i nagłówkowe często mają jedną grubość i nie mają kursywy. Wtedy przyciski <b>Pogrubienie</b> i <b>Kursywa</b> w panelu tekstu są wyszarzone, a po wybraniu takiej czcionki tekst wraca do odmiany zwykłej.',
+      'Pliki czcionki pobierają się przy pierwszym użyciu (aplikacja nie ściąga całego zestawu na zapas), a na długiej liście czcionek wystarczy zacząć pisać nazwę, żeby ją znaleźć.',
       'Czcionki z zestawu są na liście w każdym projekcie, na każdym urządzeniu. W pliku PDF wektorowym są osadzone, więc drukarnia nie musi ich mieć.',
       '<b>Pobieranie plików</b>: przy każdej rodzinie jest <b>Pobierz pliki</b>, a pod listą <b>Pobierz cały zestaw (ZIP)</b>. Dostajesz zwykłe pliki TTF z licencją – do zainstalowania u drukarni albo grafika.',
       '<b>Czcionki razem z projektem</b>: w oknie eksportu PDF opcja <b>Dołącz pliki czcionek użytych w projekcie</b> dodaje do pobieranej paczki folder <code>czcionki</code> z plikami TTF. Zaznacza się sama, gdy plik nie ma czcionek w środku (obrazy stron albo tekst zamieniony na krzywe).',

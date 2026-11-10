@@ -84,12 +84,16 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
   await strona.waitForSelector('#dlg-czcionki[open]');
   assert.equal(await strona.textContent('#czcionki-wlasne .opis'), 'Bold · Odreczna-Bold.woff2 · używana');
   // Oficjalny zestaw czcionek aplikacji: lista rodzin z próbkami, pliki do pobrania (jedna rodzina albo cały zestaw).
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('#czcionki-zestaw li')].map((li) => li.dataset.rodzina)), ['Inter', 'Open Sans', 'Montserrat', 'Lora', 'Merriweather', 'Playfair Display', 'Source Serif 4', 'Caveat']);
+  const wOknie = await strona.evaluate(async () => { const { CZCIONKI } = await import('./js/czcionki.js'); return { lista: [...document.querySelectorAll('#czcionki-zestaw li')].map((li) => li.dataset.rodzina), zestaw: CZCIONKI.map((c) => c.nazwa) }; });
+  assert.deepEqual(wOknie.lista, wOknie.zestaw);
+  assert.equal(wOknie.lista.length, 52);
+  assert.match(await strona.textContent('#czcionki-zestaw li[data-rodzina="Pacifico"] .opis'), /odręczna · jedna grubość, bez kursywy/);
   assert.match(await strona.textContent('#czcionki-zestaw li[data-rodzina="Lora"] .opis'), /szeryfowa · zwykła i pogrubiona, prosta i kursywa · używana w tym projekcie/);
   const [zestaw] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-pobierz-zestaw')]);
   assert.equal(zestaw.suggestedFilename(), 'Czcionki Seriodruku.zip');
   const wZestawie = await strona.evaluate(async () => Object.keys((await window.JSZip.loadAsync(window.seriodruk.oknoCzcionek.ostatniZestaw.blob)).files).filter((n) => !n.endsWith('/')));
-  assert.equal(wZestawie.filter((n) => n.endsWith('.ttf')).length, 30, 'osiem rodzin: siedem po cztery odmiany i jedna z dwiema');
+  assert.equal(wZestawie.filter((n) => n.endsWith('.ttf')).length, 165, 'po jednym pliku TTF na każdą odmianę każdej z 52 rodzin');
+  assert.ok(wZestawie.includes('Pacifico/Pacifico-Regular.ttf') && !wZestawie.includes('Pacifico/Pacifico-Bold.ttf'), 'rodzina bez pogrubienia ma jeden plik');
   assert.ok(wZestawie.includes('Open Sans/OpenSans-BoldItalic.ttf') && wZestawie.includes('Caveat/Caveat-Bold.ttf') && wZestawie.includes('LICENCJA czcionek Seriodruku.txt'));
   const [jedna] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-zestaw li[data-rodzina="Inter"] button')]);
   assert.equal(jedna.suggestedFilename(), 'Czcionka Inter.zip');
@@ -242,5 +246,39 @@ test('moje czcionki na koncie: plik i spis w prywatnym folderze, drugie urządze
   await czekaj(() => naKoncie().length === 1);
   assert.deepEqual(spis(), { czcionki: [], usuniete: ['Odreczna|700|0'] });
   await strona.waitForFunction(() => !document.querySelector('#czcionki-moje li'));
+  assert.deepEqual(bledy, []);
+});
+
+test('zestaw czcionek: pliki pobierają się dopiero przy użyciu; pogrubienie i kursywa wyszarzone, gdy czcionka ich nie ma', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Zestaw');
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  const pobrane = () => strona.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name.split('/').pop()).filter((n) => n.endsWith('.woff2')));
+  const przyciski = () => strona.evaluate(() => ['Pogrubienie', 'Kursywa'].map((n) => { const b = [...document.querySelectorAll('.wlasciwosci .segmenty button')].find((x) => x.getAttribute('aria-label') === n); return [b.disabled, b.title]; }));
+  // Na starcie są tylko czcionka domyślna i czcionki stylów tekstu projektu (Tytuł: Playfair Display) –
+  // z 52 rodzin przeglądarka nie pobiera niczego na zapas.
+  await strona.waitForTimeout(400);
+  assert.ok((await pobrane()).every((n) => /^(inter|playfair-display)-/.test(n)), `na starcie tylko Inter i czcionki stylów: ${await pobrane()}`);
+  assert.deepEqual(await przyciski(), [[false, 'Pogrubienie'], [false, 'Kursywa']]);
+
+  // Pogrubiony tekst; czcionka bez pogrubienia i kursywy: tekst wraca do zwykłej odmiany, oba przyciski są wyszarzone.
+  await strona.click('.wlasciwosci .segmenty button[aria-label="Pogrubienie"]');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny.fontWeight), 'bold');
+  await strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', 'Pacifico');
+  await strona.waitForFunction(() => [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Pacifico' && f.status === 'loaded'));
+  assert.deepEqual(await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return [o.fontFamily, o.fontWeight, o.fontStyle]; }), ['Pacifico', 'normal', 'normal']);
+  assert.deepEqual(await przyciski(), [[true, 'Czcionka „Pacifico” nie ma odmiany pogrubionej'], [true, 'Czcionka „Pacifico” nie ma kursywy']]);
+  assert.ok((await pobrane()).some((n) => n.startsWith('pacifico-')), 'pliki czcionki pobrane po wybraniu');
+  // Po doczytaniu plików tekst jest zmierzony właściwą czcionką (szerokość inna niż w zastępczej).
+  const szer = await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return o.__charBounds[0].slice(0, 5).map((b) => Math.round(b.width * 100)); });
+  const wzorzec = await strona.evaluate(() => { const c = document.createElement('canvas').getContext('2d'); const o = window.seriodruk.edytor.aktywny; c.font = `400px Pacifico`; return [...o.text.slice(0, 5)].map((z) => Math.round((c.measureText(z).width * o.fontSize / 400) * 100)); });
+  assert.deepEqual(szer, wzorzec);
+
+  // Czcionka z pogrubieniem, ale bez kursywy: wyszarzona tylko kursywa.
+  await strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', 'Caveat');
+  assert.deepEqual(await przyciski(), [[false, 'Pogrubienie'], [true, 'Czcionka „Caveat” nie ma kursywy']]);
+  // Pełna rodzina: oba dostępne.
+  await strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', 'Lora');
+  assert.deepEqual(await przyciski(), [[false, 'Pogrubienie'], [false, 'Kursywa']]);
   assert.deepEqual(bledy, []);
 });

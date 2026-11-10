@@ -1190,6 +1190,8 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
   body[data-ekran="edytor"] .blokada-ekranu { display: grid; }
 }
 
+.segmenty button:disabled { opacity: .35; cursor: not-allowed; }
+
 /* Wąski ekran (telefon w pionie): cały górny pasek edytora mieści się na ekranie – ciaśniejsze przyciski,
    bez odstępów ozdobnych, nazwa projektu zajmuje to, co zostaje. */
 @media (max-width: 520px) {

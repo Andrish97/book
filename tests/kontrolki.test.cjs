@@ -19,7 +19,9 @@ test('własne kontrolki: lista rozwijana (mysz, klawiatura, grupy) i wybór kolo
 
   // Mysz: otwarcie, wybór pozycji, zmiana na płótnie i w podpisie przycisku.
   await strona.click(`${czcionka} .wybor-przycisk`);
-  assert.deepEqual(await strona.locator('.wybor-lista .wybor-opcja').allTextContents(), ['Inter', 'Open Sans', 'Montserrat', 'Lora', 'Merriweather', 'Playfair Display', 'Source Serif 4', 'Caveat', '+ Wgraj własną czcionkę…']);
+  const zestaw = await strona.evaluate(async () => (await import('./js/czcionki.js')).CZCIONKI.map((c) => c.nazwa));
+  assert.equal(zestaw.length, 52);
+  assert.deepEqual(await strona.locator('.wybor-lista .wybor-opcja').allTextContents(), [...zestaw, '+ Wgraj własną czcionkę…']);
   assert.equal(await strona.locator('.wybor-lista .wybor-opcja:has-text("Lora")').evaluate((el) => el.style.fontFamily), 'Lora', 'pozycja listy pokazuje krój czcionki');
   await strona.click('.wybor-lista .wybor-opcja:has-text("Lora")');
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny.fontFamily), 'Lora');

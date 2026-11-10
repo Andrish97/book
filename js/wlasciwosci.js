@@ -289,7 +289,7 @@ export class PanelWlasciwosci {
     const wzor = () => komorki()[t.naglowek && t.wiersze.length > 1 ? t.kolumny.length : 0];
     this._czcionkiWLiscie = true;
     const rodziny = this.opcje.czcionki?.() || CZCIONKI.map((c) => c.nazwa);
-    const czcionka = this.wybor('Czcionka', rodziny.map((n) => [n, n]), () => wzor().fontFamily, (v) => ustawTekstTabeli(obj, { fontFamily: v }));
+    const czcionka = this.wybor('Czcionka', rodziny.map((n) => [n, n]), () => wzor().fontFamily, (v) => { ustawTekstTabeli(obj, { fontFamily: v }); this.edytor.doczytajCzcionke(v); });
     this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
     x.append(czcionka);
@@ -355,7 +355,10 @@ export class PanelWlasciwosci {
     const czcionka = this.wybor('Czcionka', [...rodziny.map((n) => [n, n]), ...moje, ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
       if (v === '+') { this.opcje.wgrajCzcionke(); return; }
       if (v.startsWith('moja:')) { this.opcje.dodajMojaCzcionke(v.slice(5)); return; }
-      ustaw({ fontFamily: v });
+      // Czcionka bez pogrubienia albo kursywy: tekst wraca do odmiany, którą czcionka ma (bez „udawanej”).
+      const ma = this.opcje.odmianyCzcionki?.(v) || { pogrubiona: true, kursywa: true };
+      ustaw({ fontFamily: v, ...(ma.pogrubiona ? {} : { fontWeight: 'normal' }), ...(ma.kursywa ? {} : { fontStyle: 'normal' }) });
+      this.edytor.doczytajCzcionke(v); // pliki czcionki pobierają się przy pierwszym użyciu
     });
     this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
@@ -381,6 +384,19 @@ export class PanelWlasciwosci {
     ]);
     styl.classList.add('szeroki');
     s.append(styl);
+    // Pogrubienie i kursywa są wyszarzone, gdy czcionka nie ma takiej odmiany (włączoną zawsze da się wyłączyć).
+    const [przPogrubienie, przKursywa] = styl.querySelectorAll('button');
+    const odmiany = () => {
+      const rodzina = czytaj('fontFamily');
+      const ma = this.opcje.odmianyCzcionki?.(rodzina) || { pogrubiona: true, kursywa: true };
+      for (const [b, jest, nazwa, opis] of [[przPogrubienie, ma.pogrubiona, 'Pogrubienie', 'odmiany pogrubionej'], [przKursywa, ma.kursywa, 'Kursywa', 'kursywy']]) {
+        const wlaczona = b.classList.contains('aktywny');
+        b.disabled = !jest && !wlaczona;
+        b.title = jest ? nazwa : `Czcionka „${rodzina}” nie ma ${opis}`;
+      }
+    };
+    this.odswiezacze.push(odmiany);
+    odmiany();
 
     const wyr = this.segmenty('Wyrównanie', [
       ['doLewej', 'Do lewej', () => obj.textAlign === 'left', () => obj.set('textAlign', 'left')],
