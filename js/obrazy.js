@@ -10,11 +10,12 @@
 // w pikselach oryginału, więc projekt wygląda tak samo z kopią i bez niej.
 
 import './fabric-ustawienia.js';
+import { adresZasobu, kluczZasobu, kopiaZMagazynu, zapamietajKopie } from './zasoby.js';
 
 const PROG_PX = 2000; // dłuższy bok, od którego powstaje kopia robocza
 const BOK_PX = 1600; // dłuższy bok kopii roboczej
 
-const kopie = new WeakMap(); // zasób → { dataUrl, obietnica, url }
+const kopie = new WeakMap(); // zasób → { odcisk, obietnica, url }
 const oryginaly = new Map(); // adres kopii roboczej → { szer, wys } oryginału
 
 function wczytajObraz(src) {
@@ -26,12 +27,24 @@ function wczytajObraz(src) {
   });
 }
 
-async function zrobKopie(dataUrl) {
-  if (/^data:image\/svg/i.test(dataUrl)) return null; // rysunek wektorowy skaluje się sam
-  const img = await wczytajObraz(dataUrl);
+// Krótki znak treści świeżo dodanego obrazu (z `dataUrl`) – żeby zauważyć podmianę pliku pod tym samym
+// identyfikatorem, nie trzymając w pamięci całego tekstu.
+const odcisk = (zasob) => (zasob.dataUrl ? `${zasob.dataUrl.length}:${zasob.dataUrl.slice(-48)}` : null);
+
+// zrodlo – adres oryginału; klucz – klucz pliku w magazynie przeglądarki (null dla obrazu jeszcze
+// niezapisanego). Pod tym kluczem kopia jest zapamiętywana, więc przy następnym otwarciu projektu
+// oryginału nie trzeba dekodować.
+async function zrobKopie(zrodlo, zasob, klucz) {
+  if (zasob.typ === 'image/svg+xml' || /^data:image\/svg/i.test(zrodlo)) return null; // rysunek wektorowy skaluje się sam
+  if (klucz) {
+    const z = await kopiaZMagazynu(klucz);
+    if (z?.mala) return null;
+    if (z?.blob) { const url = URL.createObjectURL(z.blob); oryginaly.set(url, { szer: z.szer, wys: z.wys }); return url; }
+  }
+  const img = await wczytajObraz(zrodlo);
   const szer = img.naturalWidth;
   const wys = img.naturalHeight;
-  if (Math.max(szer, wys) <= PROG_PX) return null;
+  if (Math.max(szer, wys) <= PROG_PX) { if (klucz) zapamietajKopie(klucz, { mala: true }); return null; }
   const k = BOK_PX / Math.max(szer, wys);
   const plotno = document.createElement('canvas');
   plotno.width = Math.max(1, Math.round(szer * k));
@@ -43,23 +56,26 @@ async function zrobKopie(dataUrl) {
   const blob = await new Promise((ok) => plotno.toBlob(ok, 'image/webp', 0.86));
   plotno.width = 0; plotno.height = 0;
   if (!blob) return null;
+  if (klucz) zapamietajKopie(klucz, { blob, szer, wys });
   const url = URL.createObjectURL(blob);
   oryginaly.set(url, { szer, wys });
   return url;
 }
 
 function przygotuj(zasob) {
-  if (!zasob?.dataUrl) return null;
+  const zrodlo = adresZasobu(zasob);
+  if (!zrodlo) return null;
   let wpis = kopie.get(zasob);
-  if (!wpis || wpis.dataUrl !== zasob.dataUrl) {
-    wpis = { dataUrl: zasob.dataUrl, url: null, obietnica: null };
-    wpis.obietnica = zrobKopie(zasob.dataUrl).then((url) => { wpis.url = url; }, () => {});
+  // Kopia zostaje, gdy obraz przeszedł z projektu do magazynu; powstaje od nowa, gdy plik podmieniono.
+  if (!wpis || (zasob.dataUrl && wpis.odcisk !== odcisk(zasob))) {
+    wpis = { odcisk: odcisk(zasob), url: null, obietnica: null };
+    wpis.obietnica = zrobKopie(zrodlo, zasob, kluczZasobu(zasob)).then((url) => { wpis.url = url; }, () => {});
     kopie.set(zasob, wpis);
   }
   return wpis.obietnica;
 }
 
-function zbierzZasoby(obiekty, zbior = new Set()) {
+export function zbierzZasoby(obiekty, zbior = new Set()) {
   for (const o of obiekty || []) {
     if (o.type === 'image' && o.zasob) zbior.add(o.zasob);
     if (Array.isArray(o.objects)) zbierzZasoby(o.objects, zbior);
@@ -75,7 +91,7 @@ export async function przygotujKopie(zasoby, obiekty) {
 // Adres kopii roboczej zasobu albo null, gdy obraz jest mały lub kopii jeszcze nie ma.
 export function kopiaRobocza(zasob) {
   const wpis = zasob && kopie.get(zasob);
-  return wpis && wpis.dataUrl === zasob.dataUrl ? wpis.url : null;
+  return wpis && (!zasob.dataUrl || wpis.odcisk === odcisk(zasob)) ? wpis.url : null;
 }
 
 // Rozmiar oryginału w pikselach – niezależnie od tego, czy obiekt pokazuje kopię.

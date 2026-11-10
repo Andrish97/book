@@ -30,9 +30,9 @@ test('eksport do pliku projektu, usunięcie i import z powrotem', async (t) => {
 
   await strona.setInputFiles('#plik-projekt', plik);
   await strona.waitForFunction(() => window.seriodruk.stan.projekt);
-  const p = await strona.evaluate(() => {
+  const p = await strona.evaluate(async () => {
     const pr = window.seriodruk.stan.projekt;
-    return { nazwa: pr.nazwa, strony: pr.strony.length, obraz: Object.values(pr.zasoby)[0].dataUrl.slice(0, 22) };
+    return { nazwa: pr.nazwa, strony: pr.strony.length, obraz: (await (await import('./js/zasoby.js')).dataUrlZasobu(pr, Object.keys(pr.zasoby)[0])).slice(0, 22) };
   });
   assert.deepEqual(p, { nazwa: 'Do pliku', strony: 2, obraz: 'data:image/png;base64,' });
   assert.deepEqual(bledy, []);

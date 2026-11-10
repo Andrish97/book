@@ -45,7 +45,7 @@ test('wklejanie: obraz i kod SVG ze schowka systemu, plik SVG bez rozmiaru, elem
   assert.deepEqual((await obrazy())[2].slice(0, 3), ['logo.svg', 400, 1200]);
 
   // Zapis: obrazy są zasobami projektu, SVG zostaje wektorem.
-  const zasoby = await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); return Object.values(window.seriodruk.stan.projekt.zasoby).map((z) => z.dataUrl.slice(0, 18)); });
+  const zasoby = await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); const { dataUrlZasobu } = await import('./js/zasoby.js'); const p = window.seriodruk.stan.projekt; return Promise.all(Object.keys(p.zasoby).map(async (id) => (await dataUrlZasobu(p, id)).slice(0, 18))); });
   assert.deepEqual(zasoby, ['data:image/png;bas', 'data:image/svg+xml', 'data:image/svg+xml']);
 
   // Ctrl+C / Ctrl+V na elemencie z aplikacji działa jak dotąd (prawdziwe klawisze i prawdziwy schowek).

@@ -11,6 +11,7 @@
 // rozpakować dowolnym programem do ZIP, a manifest pozwala sprawdzić wersję
 // formatu przed wczytaniem.
 
+import { blobZasobu } from './zasoby.js';
 import { NAZWA, ROZSZERZENIE, TYP_MIME, FORMAT_PLIKU } from './marka.js';
 import { biblioteka } from './biblioteki.js';
 
@@ -40,8 +41,8 @@ export async function zapiszPlikProjektu(projekt) {
   const zasoby = {};
   const listaZasobow = [];
   for (const [id, z] of Object.entries(projekt.zasoby || {})) {
-    if (!z.dataUrl) continue;
-    const blob = await dataUrlNaBlob(z.dataUrl);
+    const blob = await blobZasobu(projekt, id); // obrazy leżą w magazynie plików przeglądarki
+    if (!blob) continue;
     const plik = `zasoby/${id}.${ROZSZERZENIA[blob.type] || 'bin'}`;
     zip.file(plik, blob);
     zasoby[id] = { nazwa: z.nazwa, plik };

@@ -243,7 +243,8 @@ test('moje czcionki na koncie: plik i spis w prywatnym folderze, drugie urządze
   await strona.click('[data-akcja="czcionki"]');
   await strona.waitForSelector('#czcionki-moje li');
   await strona.click('#czcionki-moje [data-zapomnij]');
-  await czekaj(() => naKoncie().length === 1);
+  // Plik znika z konta chwilę przed zapisaniem nowego spisu – czekamy na oba.
+  await czekaj(() => naKoncie().length === 1 && spis().usuniete.length === 1);
   assert.deepEqual(spis(), { czcionki: [], usuniete: ['Odreczna|700|0'] });
   await strona.waitForFunction(() => !document.querySelector('#czcionki-moje li'));
   assert.deepEqual(bledy, []);

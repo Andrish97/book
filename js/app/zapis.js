@@ -12,6 +12,7 @@ import { NAZWA } from '../marka.js';
 import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
+import { podlaczZasoby } from '../zasoby.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
@@ -135,6 +136,8 @@ export async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
   naPlotnie = null;
   stan.projekt = normalizuj(p);
+  // Obrazy leżą w magazynie plików przeglądarki – tu dostają adresy (brakujące pobierają się z konta).
+  try { await podlaczZasoby(stan.projekt, stan.uzytkownik ? chmura.pobierzZasob : null); } catch { /* bez magazynu obrazy pokażą się jako brakujące */ }
   // Własne czcionki muszą być gotowe, zanim tekst zostanie zmierzony na płótnie.
   const zleCzcionki = await zarejestrujCzcionkiProjektu(stan.projekt);
   if (zleCzcionki.length) powiadom(`Nie udało się wczytać czcionek: ${zleCzcionki.join(', ')}.`, true);

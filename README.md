@@ -67,7 +67,8 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/historia.js` | Jedna historia cofania całego projektu |
 | `js/konto.js` | Logowanie, rejestracja, reset hasła, ustawienia konta |
 | `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji (strony w osobnych wierszach, zapis funkcją `zapisz_projekt`), obrazy |
-| `js/lokalny.js` | IndexedDB |
+| `js/lokalny.js` | Zapis projektów w przeglądarce (IndexedDB) – bez treści obrazów |
+| `js/zasoby.js` | Oryginały obrazów poza pamięcią karty: osobny magazyn plików w IndexedDB (klucz „projekt/zasób”), adresy `blob:` do rysowania, treść na żądanie (eksport, konto, plik projektu), zapamiętane kopie robocze |
 | `js/projekt.js` | Model projektu: sekcje, wzorce, rozkładówki, numeracja, migracje starszych wersji |
 | `js/edytor.js` | Silnik arkusza (strona albo rozkładówka) na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
 | `js/fabric-ustawienia.js` | Ustawienia Fabric.js 7 wspólne dla edytora i składania: położenie liczone od lewego górnego rogu, wygląd uchwytów, lista własnych pól zapisywanych z obiektem, typ obiektu w zapisie małymi literami |
@@ -99,7 +100,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 - `wzorce[]`: `{ id, nazwa, wydruk, tlo, lustro, obiekty[] }` – element z `warstwa: 'nad'` leży nad treścią strony.
 - `strony[]`: `{ id, nazwa, sekcja, wzorce: 'z_sekcji' | [id], tlo, obiekty[] }` – w rozkładówce element należy do strony, na której leży jego środek, i może wystawać przez grzbiet na sąsiednią; pole `z` elementu to kolejność warstw na wspólnym płótnie.
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
-- `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`; obrazy na stronach mają `src: "zasob:<id>"`.
+- `zasoby`: `{ id: { nazwa, typ, rozmiar, sciezka? } }` – opis pliku; obrazy na stronach mają `src: "zasob:<id>"`. Treść obrazu leży w magazynie plików przeglądarki (`js/zasoby.js`) i na koncie (`sciezka`). Pole `dataUrl` mają tylko: obraz świeżo dodany (do najbliższego zapisu), czcionki własne oraz starsze zapisy – te przechodzą do magazynu przy pierwszym otwarciu.
 - `czcionki[]`: `{ id, rodzina, waga, kursywa }` – własne czcionki; `id` wskazuje plik czcionki w `zasoby`.
 - Element: `z_danych: { kolor?: pole, x?: { pole, tryb: 'pozycja' | 'mm', krok, co }, y?: …, obrot?: pole, widok?: { pole, gdy: 'niepuste' | 'puste' | 'rowne', wartosc? } }` – kolor, przesunięcie, obrót (stopnie, wokół środka) i widoczność zależne od pola. Obraz z kolumny: `pole: { kolumna, tryb?: 'wypelnij', kadr?: 'gora' | 'dol' | 'lewa' | 'prawa' }`. W tekście `{{` i `}}` to zwykłe klamry (w wydruku pojedyncze).
 - Tekst: `lista` (`'punkty' | 'kreski' | 'numery'`), `ramka_h` (stała wysokość ramki, mm); połączone ramki mają wspólny `watek`, kolejność `watek_nr` i `lacznik` (co stało między częścią poprzedniej ramki a tą).
