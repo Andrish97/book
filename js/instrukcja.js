@@ -4,6 +4,15 @@
 
 import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
+import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
+
+// Lista pól dokumentu i zapisów liczb – z tych samych tabel, z których korzysta aplikacja.
+function tabelaPol() {
+  const pola = POLA_DOKUMENTU.map(([nazwa, opis]) => `<tr><td><code>{${nazwa}}</code></td><td>${opis.replace(/\{[^}]+\}/g, (m) => `<code>${m}</code>`)}</td></tr>`).join('');
+  const zapisy = ZAPISY_LICZB.map(([zapis, opis]) => `<tr><td><code>{nr${zapis ? `:${zapis}` : ''}}</code></td><td>${opis}</td></tr>`).join('');
+  return `<h4>Pola dokumentu</h4><table class="skroty"><tbody>${pola}</tbody></table>`
+    + `<h4>Zapis liczby (po dwukropku, przy każdym polu z liczbą)</h4><table class="skroty"><tbody>${zapisy}</tbody></table>`;
+}
 
 // Tabela skrótów powstaje z tej samej listy, z której działa klawiatura.
 function tabelaSkrotow() {
@@ -21,7 +30,7 @@ const KLUCZ_PRZECZYTANA = 'seriodruk:instrukcja-przeczytana';
 export const ROZDZIALY = [
   {
     tytul: 'Na początek',
-    wstep: 'Seriodruk służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a w kolejnych wersjach aplikacja wstawi do nich dane z arkusza i złoży gotowy PDF do druku.',
+    wstep: 'Seriodruk służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a aplikacja wstawia do nich dane z arkusza i powiela strony – po jednej na każdy wiersz. Eksport gotowego PDF do druku będzie w kolejnej wersji.',
     obraz: 'projekty.png',
     podpis: 'Lista projektów po zalogowaniu.',
     punkty: [
@@ -181,8 +190,67 @@ export const ROZDZIALY = [
       'Strona może mieć <b>kilka wzorców naraz</b>, np. „tło miesiąca” i „stopka”. Sekcja ma swoje wzorce domyślne, a pojedyncza strona może mieć własny wybór.',
       'Elementy wzorca leżą <b>pod</b> treścią strony. Zaznacz element we wzorcu i włącz <b>Nad treścią strony</b>, jeśli ma ją przykrywać (ramka, znak wodny).',
       '<b>Odbijaj lustrzanie na lewych stronach</b>: element narysowany przy prawej krawędzi (np. numer strony) na lewych stronach rozkładówek przejdzie na lewą krawędź.',
-      'Numer strony: wpisz w tekście wzorca <code>{nr}</code>. Działają też <code>{nr_w_sekcji}</code>, <code>{liczba_stron}</code>, <code>{sekcja}</code> i <code>{strona}</code>.',
+      'Numer strony: wpisz w tekście wzorca <code>{nr}</code>. Pełna lista pól, także liczby rzymskie i odwołania do innych sekcji, jest w rozdziale <b>Pola w tekście</b>.',
       'Na zwykłych stronach elementów wzorca nie da się zaznaczyć ani przesunąć. <b>Gotowe</b> na fioletowym pasku wraca do stron.',
+    ],
+  },
+  {
+    tytul: 'Dane: tabele',
+    wstep: 'Dane do powielanych stron trzymasz w tabelach projektu. Tabela to arkusz: kolumny mają nazwy, a każdy wiersz to jedna powielona strona (albo jeden blok stron).',
+    obraz: 'dane.png',
+    podpis: 'Okno „Dane”: lista tabel z lewej, edytor tabeli z prawej.',
+    punkty: [
+      'Okno otwiera przycisk <b>Dane</b> na górnym pasku edytora.',
+      '<b>Importuj plik</b> wczytuje CSV albo Excel. Pierwszy wiersz pliku to nazwy kolumn. Z pliku Excela powstaje po jednej tabeli na każdy arkusz. Separator (średnik, przecinek, tabulator) i kodowanie polskich znaków aplikacja rozpoznaje sama.',
+      'Wszystko jest tekstem: liczby i daty trafiają do tabeli tak, jak je widać w arkuszu. Datę najlepiej rozbić na osobne kolumny, np. <code>dzien</code>, <code>miesiac</code>, <code>rok</code>.',
+      'Tabelę możesz <b>poprawiać w aplikacji</b>: kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd> robi nową linię w komórce. <b>+ Wiersz</b> i <b>+ Kolumna</b> dodają miejsce, znak × przy wierszu albo kolumnie je usuwa.',
+      'Dane skopiowane z Excela albo Arkuszy Google wklejasz od zaznaczonej komórki (<kbd>Ctrl</kbd>+<kbd>V</kbd>). Tabela sama rośnie w dół i w prawo.',
+      'Nazwę kolumny zmieniasz, klikając jej nagłówek. Aplikacja poprawi tę nazwę we wszystkich tekstach projektu.',
+      'Poprawiłeś dane w arkuszu? Zaimportuj plik jeszcze raz. Gdy w projekcie jest tabela o tej samej nazwie, aplikacja zapyta, czy podmienić jej dane.',
+      '<b>CSV</b> pobiera tabelę jako plik – np. żeby dokończyć ją w arkuszu.',
+    ],
+  },
+  {
+    tytul: 'Pola w tekście',
+    wstep: 'Pole to nazwa w nawiasach klamrowych wpisana w zwykły tekst, np. <code>{dzien}. {miesiac}</code>. Na powielonej stronie w jego miejsce wchodzi wartość z tabeli. Są też pola dokumentu – numer strony, nazwa sekcji, data – które wynikają z samego projektu, tak jak pola w Wordzie.',
+    obraz: 'pola.png',
+    podpis: 'Pola w edytorze mają fioletowe tło; pole, którego aplikacja nie zna – czerwone.',
+    punkty: [
+      'Pole wpisujesz ręcznie albo wybierasz z listy <b>Wstaw pole</b> we właściwościach tekstu. Lista zaczyna się od kolumn tabeli tej strony.',
+      'Pola z tabeli działają na stronach, które należą do <b>serii</b> z tą tabelą (następny rozdział). Pola dokumentu działają wszędzie, także we wzorcach.',
+      'W edytorze widzisz nazwy pól, a na miniaturze i w <b>Podglądzie</b> – prawdziwe dane.',
+      'Pole o nieznanej nazwie (np. literówka) dostaje czerwone tło i trafia na listę <b>Ostrzeżenia</b>.',
+      'Formatowanie fragmentu z polem zostaje przy wstawionej wartości: pogrubione <code>{dzien}</code> da pogrubioną liczbę.',
+      'Gdy kolumna tabeli nazywa się tak samo jak pole dokumentu, na stronach tej tabeli wygrywa kolumna.',
+    ],
+    html: tabelaPol,
+  },
+  {
+    tytul: 'Serie: powielanie stron',
+    wstep: 'Seria to strona albo kilka sąsiednich stron (blok), które w wydruku powtarzają się wiele razy – np. strona dnia po jednej na każdy wiersz tabeli. W edytorze projektujesz blok raz, jako wzór.',
+    obraz: 'serie.png',
+    podpis: 'Podgląd: strona-wzór powielona dla kolejnych wierszy tabeli, z kolejnymi numerami stron.',
+    punkty: [
+      'We właściwościach strony (nic nie zaznaczone) wybierz <b>Seria → + Nowa seria…</b>. W oknie serii wskaż tabelę z danymi.',
+      'Kilka stron w bloku: nadaj tę samą serię sąsiednim stronom. Powielają się razem, w swojej kolejności.',
+      '<b>Ile razy powielić</b>: tyle razy, ile wierszy ma tabela, albo stałą liczbę razy (np. 12 miesięcy; dane z tabeli idą wtedy w kółko).',
+      '<b>Jak czytać tabelę</b>: jeden wiersz na cały blok (kolumny np. <code>s1_tytul</code>, <code>s2_tytul</code> dla kolejnych stron bloku) albo jeden wiersz na każdą stronę bloku.',
+      'Strony serii mają na liście stron fioletowy znaczek z liczbą powieleń, np. <b>×31</b>.',
+      'Powielone strony nie są zapisywane osobno – powstają na bieżąco. Po zmianie tabeli podgląd od razu pokazuje nowe dane.',
+      'Numery stron liczą się po powieleniu: strona za serią 31 dni dostaje numer o 31 większy. Pole <code>{nr}</code> trzyma się ustawień numeracji sekcji, a <code>{nr_ogolny}</code> liczy wszystkie strony projektu od 1.',
+      'W rozkładówkach blok o nieparzystej liczbie stron wypada na przemian po lewej i prawej. Wzorce z odbiciem lustrzanym ustawiają się wtedy same.',
+    ],
+  },
+  {
+    tytul: 'Ramka tekstu i obrazy z danych',
+    wstep: 'Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. Do tego służy ramka o stałej wysokości. Obraz też może przychodzić z tabeli.',
+    punkty: [
+      'Zaznacz tekst i włącz <b>Stała wysokość ramki</b>. Wysokość wpisujesz w mm albo zmieniasz górnym lub dolnym uchwytem.',
+      '<b>Tekst w pionie</b>: do góry, na środku albo do dołu ramki.',
+      '<b>Zmniejszaj tekst, gdy się nie mieści</b>: czcionka maleje, aż tekst zmieści się w ramce, ale nie poniżej <b>najmniejszego rozmiaru</b>. Krótszy tekst wraca do rozmiaru zadanego.',
+      'Tekst, który mimo to się nie mieści, jest ucinany na dolnej krawędzi ramki i trafia na listę <b>Ostrzeżenia</b>.',
+      '<b>Obraz z danych</b>: wstaw dowolny obraz jako wzór (wyznacza miejsce i rozmiar), zaznacz go i wybierz <b>kolumnę z nazwą pliku</b>. Na każdej powielonej stronie pojawi się obraz o nazwie z tej kolumny, wpisany w ramkę wzoru bez zmiany proporcji.',
+      'Pliki obrazów wgrywasz naraz przyciskiem <b>Wgraj obrazy do projektu</b>. W tabeli wystarczy nazwa pliku, z rozszerzeniem albo bez.',
     ],
   },
   {
@@ -192,6 +260,7 @@ export const ROZDZIALY = [
     podpis: 'Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.',
     punkty: [
       'Otwórz go przyciskiem <b>Podgląd</b> na górnym pasku edytora albo z menu <b>⋯</b> projektu na liście.',
+      'Podgląd pokazuje projekt po powieleniu: każdą stronę serii tyle razy, ile wynika z danych, z jej numerem i podpisem „3 z 31”.',
       'Strony idą po kolei, rozkładówki stoją obok siebie. Przyciski <b>−</b> i <b>+</b> zmieniają powiększenie, kliknięcie liczby dopasowuje do okna.',
       'Kliknięcie strony otwiera ją w edytorze. <b>Edytor</b> albo <kbd>Esc</kbd> wraca do edycji.',
     ],
@@ -220,6 +289,46 @@ export const ROZDZIALY = [
       '<b>Niebieska przerywana</b> – margines. Teksty trzymaj wewnątrz.',
       'Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę <b>Ostrzeżenia</b>. Jeśli to celowe (np. tło na spad), kliknij <b>Wycisz</b>.',
       'Linie ukryjesz przyciskiem w prawym dolnym rogu, obok powiększenia.',
+    ],
+  },
+  {
+    tytul: 'Siatka, linijki i prowadnice',
+    wstep: 'Narzędzia do równego układania elementów. Włączasz je przyciskiem z kratką w prawym dolnym rogu płótna.',
+    obraz: 'siatka.png',
+    podpis: 'Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).',
+    punkty: [
+      '<b>Siatka</b>: linie co zadany krok w mm, liczone od rogu strony. <b>Przyciągaj do siatki</b> sprawia, że lewy górny róg przesuwanego elementu staje na linii siatki.',
+      '<b>Linijki</b> pokazują milimetry; zero leży w rogu strony, na której pracujesz.',
+      '<b>Prowadnica</b>: przeciągnij z górnej linijki w dół (pozioma) albo z lewej w prawo (pionowa). Prowadnicę można przesunąć; wyciągnięta poza stronę znika. Prowadnice zapisują się razem ze stroną.',
+      'Elementy przyciągają się do prowadnic, marginesów, krawędzi i środka strony.',
+      'Przytrzymaj <kbd>Ctrl</kbd> przy przeciąganiu, żeby na chwilę wyłączyć przyciąganie.',
+      'Siatka i prowadnice nie są drukowane. Klawisz <kbd>W</kbd> chowa wszystkie linie pomocnicze.',
+    ],
+  },
+  {
+    tytul: 'Odległości i równe odstępy',
+    wstep: 'Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – tak jak inteligentne linie pomocnicze w programach Adobe.',
+    obraz: 'odleglosci.png',
+    podpis: 'Trzeci kwadrat w równym odstępie od drugiego: oba odstępy mają tę samą liczbę na fioletowym tle.',
+    punkty: [
+      '<b>Różowa linia</b> pojawia się, gdy krawędź albo środek elementu zrównuje się z innym elementem. Element sam „wskakuje” na tę linię.',
+      '<b>Strzałki z liczbą</b> pokazują odległość w mm do najbliższego elementu z lewej, prawej, z góry i z dołu.',
+      '<b>Równe odstępy</b>: gdy odstęp od sąsiada jest taki sam jak inny odstęp w tym rzędzie (albo element stoi dokładnie na środku między sąsiadami), obie strzałki dostają fioletową etykietę.',
+      'Przytrzymaj <kbd>Alt</kbd> przy zaznaczonym elemencie, żeby zobaczyć jego odległości także do krawędzi strony.',
+      'Przyciąganie do elementów wyłączysz w menu z kratką.',
+    ],
+  },
+  {
+    tytul: 'Warstwy',
+    wstep: 'Zakładka „Warstwy” obok listy stron pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.',
+    obraz: 'warstwy.png',
+    podpis: 'Lista warstw: oko ukrywa element, kłódka go blokuje.',
+    punkty: [
+      'Kliknięcie nazwy zaznacza element – przydatne, gdy leży pod innym i trudno w niego trafić.',
+      'Przeciągnij wiersz wyżej albo niżej, żeby zmienić kolejność warstw.',
+      '<b>Oko</b> ukrywa element. Ukryty element zostaje w projekcie, ale nie jest drukowany.',
+      '<b>Kłódka</b> blokuje położenie i rozmiar.',
+      'Podwójne kliknięcie nazwy pozwala ją zmienić.',
     ],
   },
   {
@@ -258,11 +367,11 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Co będzie dalej',
-    wstep: 'Edytor stron jest gotowy. Kolejne etapy:',
+    wstep: 'Edytor, dane i powielanie stron działają. Kolejne etapy:',
     punkty: [
-      '<b>Dane</b>: import CSV i Excel, pola typu <code>{dzien}. {miesiac}</code> w tekście, automatyczne zmniejszanie tekstu, który się nie mieści.',
-      '<b>Powielanie</b>: zakresy stron powtarzane według wierszy arkusza, z numeracją.',
       '<b>PDF do druku</b>: spad, znaki cięcia, obrazy 300 dpi, osobne pliki dla sekcji, podział na części.',
+      '<b>Pule wartości</b>: listy (np. tagów) rozdawane po kolei albo bez powtórzeń.',
+      '<b>Szablon danych</b>: plik arkusza z kolumnami dokładnie takimi, jakich wymaga projekt.',
     ],
   },
 ];

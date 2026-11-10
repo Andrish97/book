@@ -355,6 +355,103 @@ async function przykladoweProjekty(strona) {
   await s.keyboard.press('Escape');
   await kontekst.close();
 
+  // ---------- Narzędzia precyzji i dane: osobny, mały projekt ----------
+  const kp = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block' });
+  await bezBazy(kp);
+  const d = await kp.newPage();
+  d.on('pageerror', (e) => console.error('błąd strony:', e.message));
+  await d.goto(ADRES);
+  await d.click('#tryb-lokalny');
+  await d.waitForSelector('#dlg-instrukcja[open]');
+  await d.click('[data-akcja="zamknij-instrukcje"]');
+  await d.click('[data-akcja="nowy-projekt"]:visible');
+  await d.fill('#form-nowy input[name=nazwa]', 'Planer dzienny');
+  await d.click('#form-nowy button[value=ok]');
+  await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  const naPlotnie = (x, y) => d.evaluate(([mx, my]) => { const e = window.seriodruk.edytor; const r = e.canvas.upperCanvasEl.getBoundingClientRect(); const v = e.canvas.viewportTransform; return { x: r.left + v[4] + mx * v[0], y: r.top + v[5] + my * v[3] }; }, [x, y]);
+
+  // Siatka, linijki, prowadnice
+  await d.evaluate(() => {
+    const { edytor: e, stan } = window.seriodruk;
+    const kolory = ['#d9e6f2', '#f2e2d9', '#dff2d9'];
+    [[20, 30], [55, 30], [100, 110]].forEach(([left, top], i) => { const r = e.dodajProstokat(); r.set({ left, top, width: 25, height: 25, fill: kolory[i], strokeWidth: 0, nazwa: ['Poniedziałek', 'Wtorek', 'Środa'][i] }); r.setCoords(); });
+    const pas = e.dodajProstokat(); pas.set({ left: 20, top: 150, width: 108, height: 12, fill: '#eee3f7', strokeWidth: 0, nazwa: 'Pas na notatki' }); pas.setCoords();
+    e.prowadnice.push({ os: 'x', poz: 74, strona: 0 }, { os: 'y', poz: 140, strona: 0 });
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+    Object.assign(stan.projekt.widok, { siatka: true });
+    e.ustawWidok(stan.projekt.widok);
+  });
+  await d.click('#przycisk-widok');
+  await zrzut(d, 'siatka.png');
+  await d.keyboard.press('Escape');
+  await d.mouse.click(700, 20);
+
+  // Odległości: trzeci kwadrat przeciągany w rząd, w równym odstępie
+  const z = await naPlotnie(112, 122);
+  const na = await naPlotnie(102.8, 42.4);
+  await d.mouse.move(z.x, z.y);
+  await d.mouse.down();
+  await d.mouse.move((z.x + na.x) / 2, (z.y + na.y) / 2, { steps: 4 });
+  await d.mouse.move(na.x, na.y, { steps: 4 });
+  await zrzut(d, 'odleglosci.png', { clip: { x: 236, y: 56, width: 744, height: 520 } });
+  await d.mouse.up();
+
+  // Warstwy
+  await d.click('#zakladki-listy label:has-text("Warstwy")');
+  await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
+  await d.click('#lista-warstw li:has-text("Pas na notatki") .warstwa-oko');
+  await d.hover('#lista-warstw li:has-text("Poniedziałek")');
+  await d.click('#lista-warstw li:has-text("Poniedziałek") .warstwa-klodka');
+  await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
+  await zrzut(d, 'warstwy.png', { clip: { x: 0, y: 56, width: 820, height: 480 } });
+
+  // Dane, pola i serie: strona dnia powielana według tabeli
+  await d.click('#zakladki-listy label:has-text("Strony")');
+  await d.evaluate(async () => {
+    const { edytor: e, stan } = window.seriodruk;
+    const p = stan.projekt;
+    e.canvas.getObjects().slice().forEach((o) => e.canvas.remove(o));
+    e.prowadnice = [];
+    Object.assign(p.widok, { siatka: false });
+    e.ustawWidok(p.widok);
+    p.tabele.push({ id: 't_dni', nazwa: 'Dni stycznia', kolumny: ['dzien', 'dzien_tygodnia', 'imieniny'], wiersze: [
+      ['1', 'piątek', 'Mieczysława, Mieszka'], ['2', 'sobota', 'Izydora, Bazylego'], ['3', 'niedziela', 'Danuty, Genowefy'],
+      ['4', 'poniedziałek', 'Anieli, Eugeniusza'], ['5', 'wtorek', 'Hanny, Szymona'], ['6', 'środa', 'Kacpra, Melchiora, Baltazara'],
+    ] });
+    p.serie.push({ id: 'se_dni', nazwa: 'Dni', tabela: 't_dni', tryb: 'tabela', uklad: 'szeroki', ile: 12 });
+    p.strony[0].seria = 'se_dni';
+    p.strony[0].nazwa = 'Dzień';
+    const pt = (n) => n * 25.4 / 72;
+    const naglowek = e.dodajProstokat(); naglowek.set({ left: -3, top: -3, width: 154, height: 58, fill: '#2f5bd3', strokeWidth: 0, bez_ostrzezen: true });
+    const dzien = e.dodajTekst('{dzien}'); dzien.set({ left: 12, top: 10, width: 60, fontSize: pt(54), fontWeight: 'bold', fontFamily: 'Playfair Display', fill: '#ffffff' });
+    const tydz = e.dodajTekst('{dzien_tygodnia}\nstycznia 2027'); tydz.set({ left: 74, top: 18, width: 64, fontSize: pt(13), fill: '#dbe4fb', textAlign: 'right' });
+    const imie = e.dodajTekst('Imieniny: {imieniny}'); imie.set({ left: 12, top: 64, width: 124, fontSize: pt(10), fill: '#4a4843' });
+    for (let y = 84; y <= 180; y += 12) { const l = e.dodajLinie(); l.set({ left: 12.2, top: y, width: 123.6, stroke: '#d9d4c7', strokeWidth: 0.25 }); }
+    const stopka = e.dodajTekst('Planer 2027 · str. {nr} z {liczba_stron} · {pomylka}'); stopka.set({ left: 12, top: 192, width: 124, fontSize: pt(8), fill: '#807d75' });
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+    await window.seriodruk.zapiszTeraz();
+  });
+  await d.reload();
+  await d.click('#tryb-lokalny');
+  await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await d.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.text?.startsWith('Imieniny')).id); });
+  await d.waitForTimeout(700);
+  await zrzut(d, 'pola.png');
+  await d.evaluate(() => window.seriodruk.edytor.odznacz());
+  await d.click('[data-akcja="dane"]');
+  await d.waitForSelector('#dlg-dane[open]');
+  await zrzut(d, 'dane.png');
+  await d.click('#dane-zamknij');
+  await d.click('[data-akcja="podglad"]');
+  await d.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await d.click('[data-akcja="podglad-minus"]');
+  await d.click('[data-akcja="podglad-minus"]');
+  await d.waitForTimeout(1800);
+  await zrzut(d, 'serie.png');
+  await kp.close();
+
   // ---------- Telefon ----------
   const tel = await przegladarka.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
   await bezBazy(tel);

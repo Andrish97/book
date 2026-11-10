@@ -12,7 +12,9 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Sekcje**: części projektu z własnym formatem, spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki) i numeracją.
 - **Rozkładówki**: obie strony na jednym płótnie, marginesy lustrzane (wewnętrzny przy grzbiecie), elementy mogą leżeć przez grzbiet.
 - **Wzorce**: wspólne elementy stron; kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
-- **Edytor** (Fabric.js 5.3.1, wszystko w mm): tekst, kształty, obrazy, grupy, warstwy, wyrównywanie i równe odstępy, blokada, schowek między stronami, cofanie, przyciąganie, ostrzeżenia o marginesach i spadzie.
+- **Edytor** (Fabric.js 5.3.1, wszystko w mm): tekst, kształty, obrazy, grupy, panel warstw, wyrównywanie i równe odstępy, blokada, schowek między stronami, cofanie, ostrzeżenia o marginesach i spadzie.
+- **Precyzja**: siatka z przyciąganiem, linijki i własne prowadnice, linie wyrównania do innych elementów, strzałki z odległościami i równe odstępy, ponad 50 skrótów klawiszowych.
+- **Dane**: tabele z importem CSV/Excel i lekkim edytorem, pola `{kolumna}` i pola dokumentu w tekście, serie powielające strony według wierszy, obrazy z kolumny, ramka tekstu z autodopasowaniem.
 - **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu.
 - **Podgląd** bez edycji: cały projekt jak po przycięciu, rozkładówki obok siebie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
 - **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
@@ -21,7 +23,7 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 
-Nie ma jeszcze: importu danych i powielania stron (etap 2–3 planu), eksportu PDF (etap 4). Pełna lista braków – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
+Nie ma jeszcze: eksportu PDF (etap 4 planu), pul wartości i szablonu danych (plan 5.1–5.2). Pełna lista braków – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
 
 ## Uruchomienie lokalne
 
@@ -63,7 +65,9 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/projekt.js` | Model projektu: sekcje, wzorce, rozkładówki, numeracja, migracje starszych wersji |
 | `js/edytor.js` | Silnik arkusza (strona albo rozkładówka) na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
 | `js/zlozenie.js` | Składanie strony z warstw (tło, wzorce, treść, elementy sąsiedniej strony przez grzbiet) dla edytora, miniatur i podglądu |
-| `js/wlasciwosci.js`, `js/style-tekstu.js` | Panel właściwości, style tekstu |
+| `js/wlasciwosci.js`, `js/style-tekstu.js`, `js/tekst-ramka.js` | Panel właściwości, style tekstu, ramka tekstu o stałej wysokości |
+| `js/przyciaganie.js`, `js/linijki.js`, `js/widok.js`, `js/warstwy.js`, `js/skroty.js` | Przyciąganie i pomiary, linijki, menu siatki, panel warstw, skróty |
+| `js/pola.js`, `js/serie.js`, `js/tabele.js`, `js/dane.js` | Pola w tekście, rozwijanie serii, odczyt CSV/Excel, okno danych |
 | `js/podglad.js` | Podgląd bez edycji – własnego projektu i udostępnionego linkiem |
 | `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
 | `js/instrukcja.js`, `scripts/zrzuty-instrukcji.cjs` | Instrukcja i generator zrzutów |
@@ -73,11 +77,14 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 
 ## Model projektu (wersja 3)
 
+- `tabele[]`: `{ id, nazwa, kolumny: [nazwa], wiersze: [[tekst]] }`
+- `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi' }`; strona wskazuje serię polem `seria`. Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
+- `widok`: `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }`; strony i wzorce mogą mieć `prowadnice: { x: [mm], y: [mm] }`.
+
 - `sekcje[]`: `{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy: { gora, dol, wewnetrzny, zewnetrzny }, znaki_ciecia }, uklad: 'pojedyncze' | 'rozkladowki', pierwsza: 'prawa' | 'lewa', wzorce: [id], numeracja: { tryb: 'ciagla' | 'od' | 'brak', od } }`
 - `wzorce[]`: `{ id, nazwa, wydruk, tlo, lustro, obiekty[] }` – element z `warstwa: 'nad'` leży nad treścią strony.
 - `strony[]`: `{ id, nazwa, sekcja, wzorce: 'z_sekcji' | [id], tlo, obiekty[] }` – w rozkładówce element należy do strony, na której leży jego środek, i może wystawać przez grzbiet na sąsiednią; pole `z` elementu to kolejność warstw na wspólnym płótnie.
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
 - `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`; obrazy na stronach mają `src: "zasob:<id>"`.
-- `zrodla`, `tabele`, `zakresy`: puste do etapu danych.
 
 Projekty zapisane w starszych wersjach modelu są przenoszone automatycznie przy otwarciu (`normalizuj` w `js/projekt.js`).

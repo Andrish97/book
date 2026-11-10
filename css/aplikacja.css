@@ -986,6 +986,7 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
   padding-bottom: 8px; border-bottom: 1px solid var(--linia-mocna);
 }
 .podglad-wiersz { display: flex; align-items: flex-start; gap: 0; }
+.podglad-wiersz.pojedyncze { flex-wrap: wrap; justify-content: center; gap: 28px 24px; }
 .podglad-strona { margin: 0; width: calc(var(--w) * var(--skala) * 1px); flex: none; }
 .podglad-strona img { display: block; width: 100%; height: 100%; }
 .podglad-strona img:not([src]) { visibility: hidden; }

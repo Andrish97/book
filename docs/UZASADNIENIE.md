@@ -1,6 +1,6 @@
 # Uzasadnienie – funkcja po funkcji
 
-Stan po rundzie poprawek z 9 listopada 2026 (decyzje #19–#25 w [DECYZJE.md](DECYZJE.md)). Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
+Stan na 10 listopada 2026 (decyzje do #42 w [DECYZJE.md](DECYZJE.md)). Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
 
 Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ nie zrobione / do poprawy.
 
@@ -40,7 +40,7 @@ Robi to integracja Supabase z GitHubem (Project Settings → Integrations → Gi
 ### A3. Wszystko w milimetrach ✅
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** `tests/` – 27 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
+**Co jest.** `tests/` – 40 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, udostępnianie, konflikt zapisu, siatka i odległości, skróty, prowadnice, warstwy, tabele, pola, serie. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
 **Słabe.** Atrapa udaje Supabase – prawdziwej bazy, reguł RLS i poczty testy nie sprawdzają. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
 
 ---
@@ -97,9 +97,10 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 ## D. Edytor
 
 ### D1. Tekst ✅ / ⚠️
-**Co jest.** Style tekstu wspólne dla projektu (zmiana stylu zmienia wszystkie teksty), odstęp liter, podkreślenie, przekreślenie, zmiana wielkości liter, formatowanie zaznaczonego fragmentu.
-**Nie ma.** Kolumn, przelewania tekstu między ramkami, tabel, wcięć i wypunktowań, stałej wysokości ramki z wyrównaniem w pionie, kapitalików „na żywo” (zmiana wielkości liter zmienia sam tekst).
-**Słabe.** Formatowanie fragmentu w tekście wzorca ze zmienną `{nr}` może się przesunąć, gdy numer ma inną liczbę cyfr.
+**Co jest.** Style tekstu wspólne dla projektu (zmiana stylu zmienia wszystkie teksty), odstęp liter, podkreślenie, przekreślenie, zmiana wielkości liter, formatowanie zaznaczonego fragmentu. **Nowe:** ramka o stałej wysokości z wyrównaniem w pionie i zmniejszaniem tekstu, który się nie mieści (`js/tekst-ramka.js`).
+**Poprawione.** Formatowanie fragmentu z polem (np. pogrubione `{nr}`) przesuwa się razem z podstawioną wartością – wcześniej mogło się rozjechać, gdy wartość miała inną długość. Zmiana wielkości liter nie rusza nazw pól w klamrach.
+**Nie ma.** Kolumn, przelewania tekstu między ramkami, tabel, wcięć i wypunktowań, kapitalików „na żywo” (zmiana wielkości liter zmienia sam tekst).
+**Słabe.** Przy autodopasowaniu fragmenty z własnym rozmiarem czcionki nie zmniejszają się razem z resztą.
 
 ### D2. Wyrównywanie, blokada, schowek ✅
 Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstępy, blokada położenia, kopiuj/wytnij/wklej między stronami – skrótami i przyciskami.
@@ -110,8 +111,27 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Słabe.** Po przestawieniu stron element przez grzbiet idzie ze swoją stroną i zachodzi na nowego sąsiada – trzeba to sprawdzić samemu. Elementy wzorców nie przechodzą przez grzbiet (są przycinane do swojej strony). W wewnętrznym pasku spadu miniatura z edytora pokazuje sąsiednią stronę, a miniatura rysowana w tle – własne tło; przy eksporcie do PDF trzeba będzie to ujednolicić. Na telefonie rozkładówka jest mała i trzeba ją powiększać.
 **Lepiej.** Przełącznik „pokaż tylko jedną stronę” dla małych ekranów.
 
-### D4. Linie pomocnicze i ostrzeżenia ⚠️
-Bez zmian w zasadzie działania. Nadal brak linijek, własnych prowadnic i przyciągania do innych elementów.
+### D4. Linie pomocnicze i ostrzeżenia ✅
+**Co jest.** Linia cięcia, spad, marginesy, grzbiet; ostrzeżenia o elementach w marginesie, poza spadem i poza stroną. **Nowe:** linijki, własne prowadnice, siatka i przyciąganie do innych elementów (D11, D12); ostrzeżenia o nieznanym polu i o tekście, który nie mieści się w ramce.
+
+### D11. Siatka, linijki, własne prowadnice ✅ / ⚠️
+**Co jest.** Siatka o zadanym kroku w mm z przyciąganiem; linijki w mm z zerem w rogu strony bieżącej; prowadnice wyciągane z linijek, przesuwane i usuwane przez wyciągnięcie poza stronę. Ustawienia siatki należą do projektu, prowadnice – do strony albo wzorca.
+**Dlaczego tak.** Siatka liczy się od rogu każdej strony, więc na rozkładówce obie strony mają ten sam układ linii. Do siatki trafia lewy górny róg elementu – położenie jest wtedy zawsze wielokrotnością kroku. Prowadnice i krawędzie innych elementów mają pierwszeństwo przed siatką, bo są dokładniejszą wskazówką.
+**Słabe.** Przyciąganie działa przy przesuwaniu, nie przy zmianie rozmiaru uchwytem. Prowadnic nie da się wpisać liczbą ani zablokować. Na telefonie linijki są schowane. Cofanie nie obejmuje prowadnic.
+
+### D12. Odległości i równe odstępy ✅ / ⚠️
+**Co jest.** Przy przesuwaniu: różowe linie wyrównania do krawędzi i środków innych elementów, strzałki z odległością w mm do najbliższych sąsiadów, fioletowe oznaczenie równych odstępów (środek między sąsiadami albo odstęp powtórzony z tego samego rzędu). Alt przy zaznaczonym elemencie pokazuje odległości także do krawędzi strony.
+**Dlaczego tak.** Obliczenia są w osobnym pliku (`js/przyciaganie.js`) na samych prostokątach w mm – dzięki temu mają własne testy, niezależne od płótna.
+**Słabe.** Sąsiad to element leżący „naprzeciwko” (z częścią wspólną w poprzek kierunku); elementy po skosie nie są mierzone. Obrócone elementy liczą się swoim prostokątem otaczającym.
+
+### D13. Skróty klawiszowe ✅
+**Co jest.** Ponad 50 skrótów jak w programach do składu: edycja, zaznaczanie, przesuwanie, układ, tekst (także w trakcie pisania), wstawianie, widok, strony. Alt przy przeciąganiu zostawia kopię, Shift trzyma jedną oś i obraca co 15°, spacja z przeciąganiem przesuwa widok.
+**Dlaczego tak.** Skróty są jedną tabelą (`js/skroty.js`): z niej działa klawiatura i z niej powstaje lista w instrukcji, więc nie mogą się rozjechać. Linijki mają Shift+R, a nie Ctrl+R jak w Adobe, bo Ctrl+R w przeglądarce odświeża stronę.
+**Słabe.** Kilku skrótów przeglądarka może nie oddać aplikacji (zależy od przeglądarki i systemu).
+
+### D14. Warstwy ✅ / ⚠️
+**Co jest.** Zakładka z listą elementów strony od wierzchu: zaznaczanie, kolejność przeciąganiem, ukrywanie, blokada, własne nazwy.
+**Słabe.** Na ekranie dotykowym kolejności nie zmienia się przeciąganiem (zostają przyciski kolejności we właściwościach). Elementy wzorców nie są na liście.
 
 ### D5. Obrazy ⚠️
 Bez zmian: pełna rozdzielczość w pamięci, przycinanie liczbami. Do zrobienia przed pracą z dużymi zdjęciami: pomniejszony podgląd i przycinanie przeciąganiem.
@@ -123,7 +143,7 @@ Bez zmian: 60 kroków w obrębie bieżącej strony; nie cofa operacji na stronac
 Bez zmian: 8 czcionek OFL z Google Fonts. Przed eksportem PDF trzeba przenieść pliki czcionek do repozytorium.
 
 ### D8. Czego nadal nie ma z programów do składu ❌
-Panel warstw, linijki, kształty dowolne, gradienty, cienie, zwijane sekcje panelu właściwości (na telefonie panel jest długi).
+Kształty dowolne, gradienty, cienie, zwijane sekcje panelu właściwości (na telefonie panel jest długi). Panel warstw i linijki są już zrobione (D11, D14).
 
 ### D9. Układ ekranu i panel właściwości ✅ / ⚠️
 **Co jest.** Z lewej lista stron i wzorców, w środku płótno z pływającym paskiem narzędzi, z prawej jeden panel: właściwości zaznaczonego elementu albo strony.
@@ -155,6 +175,29 @@ Miniatury pogrupowane w sekcje, z numerem strony; w rozkładówkach strony stoj�
 
 ---
 
+## G. Dane, pola i serie
+
+### G1. Tabele z lekkim edytorem ✅ / ⚠️
+**Co jest.** Okno „Dane”: import CSV i Excela (każdy arkusz to tabela), edycja komórek, dodawanie i usuwanie wierszy i kolumn, wklejanie skopiowanych komórek z arkusza, pobranie tabeli jako CSV. Zmiana nazwy kolumny poprawia pola we wszystkich tekstach projektu. Ponowny import pliku o tej samej nazwie podmienia dane tabeli, a serie zostają z nią powiązane.
+**Dlaczego tak.** Plan zakładał sam import, a pełną edycję tabeli odkładał. Poprosiłeś o lekki edytor, więc jest tyle, ile trzeba, żeby poprawić literówkę albo dopisać wiersz bez wracania do arkusza – bez formuł, sortowania i formatów. Dane leżą w pliku projektu jako tekst, więc jadą z nim na konto i do pliku `.seriodruk`.
+**Słabe.** Przy tabeli dłuższej niż 1500 wierszy okno pokazuje tylko początek. Nie ma cofania w tabeli. Formatowanie z arkusza (pogrubienia, kolory) nie jest przenoszone – tylko tekst i podziały linii.
+
+### G2. Pola w tekście i pola dokumentu ✅
+**Co jest.** `{nazwa}` w zwykłym tekście: kolumna tabeli albo pole dokumentu (numer strony w kilku zapisach, numer ogólny i w sekcji, liczba stron, nazwa sekcji i strony, numer i liczba egzemplarzy serii, data, numer pierwszej strony innej sekcji, numer strony o podanej nazwie). Lista „Wstaw pole”, podświetlenie pól w edytorze, ostrzeżenie o nieznanym polu.
+**Dlaczego tak.** Pole jest częścią tekstu, a nie osobnym obiektem – tak ustalił plan i tak da się pisać `{dzien}. {miesiac} {rok}` w jednej linijce. Pola dokumentu działają jak pola w Wordzie: wynikają z projektu, nie z tabeli, więc np. spis treści z numerami stron innych sekcji aktualizuje się sam, także po powieleniu serii.
+**Słabe.** Pole z tabeli działa tylko na stronach serii z tą tabelą; na zwykłej stronie zostaje jako tekst w klamrach (z ostrzeżeniem).
+
+### G3. Serie: powielanie stron ✅ / ⚠️
+**Co jest.** Strona wskazuje serię; sąsiednie strony z tą samą serią tworzą blok. Blok powiela się według wierszy tabeli (jeden wiersz na blok albo jeden na stronę) albo stałą liczbę razy. Powielenia widać w podglądzie, na miniaturach (pierwszy egzemplarz), w udostępnionym linku i w numeracji.
+**Dlaczego tak.** Powielone strony nie są zapisywane: `js/serie.js` rozwija projekt przy każdym składaniu. Projekt z 365 stronami dni zostaje więc jedną stroną i tabelą – plik jest mały, a zmiana danych od razu zmienia wszystkie egzemplarze. To też rozwiązuje dawną obawę z B4, że projekty urosną przy powielaniu.
+**Słabe.** W rozkładówkach blok o nieparzystej liczbie stron wypada na przemian po lewej i prawej; projektujesz go na jednej stronie, więc marginesy lustrzane widać tylko w podglądzie. Nie ma „pul wartości” z planu (rozdawanie tagów bez powtórzeń) ani eksportu szablonu danych. Aplikacja nie sprawdza z góry, czy teksty wszystkich wierszy mieszczą się w ramkach – widać to dopiero w podglądzie.
+
+### G4. Obraz z kolumny tabeli ✅ / ⚠️
+**Co jest.** Obraz-wzór wyznacza ramkę; kolumna podaje nazwę pliku wgranego do projektu. Podmieniony obraz wpisuje się w ramkę bez zmiany proporcji.
+**Słabe.** Obraz nie wypełnia ramki z przycięciem („cover”), tylko się w niej mieści. Brak pliku o podanej nazwie pokazuje znak zastępczy, ale nie trafia na listę ostrzeżeń.
+
+---
+
 ## F. Pliki, instalacja, pomoc
 
 ### F1. Nazwa i format pliku ✅
@@ -169,14 +212,14 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 **Słabe.** Wybór jest per urządzenie, nie per konto. Zrzuty w instrukcji są w jasnym motywie. Wiadomości e-mail są zawsze jasne.
 
 ### F4. Instrukcja ✅
-20 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
+27 rozdziałów ze zrzutami generowanymi skryptem (`npm run zrzuty`), bez ramek „Dlaczego tak?” – uzasadnienia są w tym dokumencie.
 
 ---
 
-## G. Co proponuję dalej
+## H. Co proponuję dalej
 
-1. **Własny serwer poczty** (punkt 0) – dopiero z nim reset hasła i własne szablony wiadomości działają dla innych osób.
-2. **Próba na tablecie** – gesty, klawiatura ekranowa, instalacja.
-3. **Etap danych z planu**: import CSV/XLSX, pola `{kolumna}` w tekście, autodopasowanie tekstu, zakresy powielane według wierszy.
-4. Przed etapem PDF: pliki czcionek w repozytorium, pomniejszone obrazy, strony jako osobne wiersze w bazie.
-5. Po rozkładówkach na jednym płótnie (D3): widok jednej strony na telefonie.
+1. **Próba na tablecie i telefonie** – gesty, klawiatura ekranowa, instalacja, wysuwane panele.
+2. **Reszta zastrzeżeń** (decyzja #35): zwijane sekcje panelu, cofanie w całym projekcie, przeciąganie stron na liście, kadrowanie obrazu przeciąganiem, tryb prezentacji w podglądzie, podział `aplikacja.js`.
+3. **Eksport PDF**; przed nim pliki czcionek w repozytorium i pomniejszone obrazy do pracy na ekranie.
+4. **Pule wartości i szablon danych** z planu (5.1, 5.2).
+5. **Poczta**, gdy będzie domena (decyzja #34).

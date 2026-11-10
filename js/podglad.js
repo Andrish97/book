@@ -95,9 +95,13 @@ export class Podglad {
       const nag = document.createElement('h2');
       nag.textContent = sekcja.nazwa;
       blok.append(nag);
+      // Pojedyncze strony układają się obok siebie i zawijają do kolejnych rzędów
+      // (przy seriach bywa ich dużo); rozkładówki idą parami, jedna pod drugą.
+      let wspolny = null;
       for (const wiersz of sekcja.wiersze) {
-        const rzad = document.createElement('div');
-        rzad.className = `podglad-wiersz${sekcja.rozkladowki ? ' rozkladowka' : ''}`;
+        const rzad = wspolny || document.createElement('div');
+        rzad.className = `podglad-wiersz${sekcja.rozkladowki ? ' rozkladowka' : ' pojedyncze'}`;
+        if (!sekcja.rozkladowki) wspolny = rzad;
         for (const s of wiersz) {
           const fig = document.createElement('figure');
           fig.className = 'podglad-strona';
@@ -124,7 +128,7 @@ export class Podglad {
           rzad.append(fig);
           this.obserwator.observe(fig);
         }
-        blok.append(rzad);
+        if (!rzad.parentNode) blok.append(rzad);
       }
       this.el.append(blok);
     }
