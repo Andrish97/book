@@ -1,6 +1,7 @@
 # Konfiguracja Supabase dla integracji z GitHubem
 # (Supabase → Project Settings → Integrations → GitHub, opcja „Deploy to production”).
-# Po pushu na main integracja stosuje migracje z supabase/migrations/.
+# Po pushu na main integracja stosuje migracje z supabase/migrations/
+# („Deploy to production” włączone 2026-11-10).
 # Ustawienia logowania z tego pliku przenosi tylko dlatego, że blok [remotes.production]
 # niżej wskazuje ten sam projekt – bez niego integracja je pomija.
 project_id = "pganajmivwtstapnwsgv"
