@@ -144,18 +144,49 @@ P._renderText = function _renderText(ctx) {
 
 // ---------- Wielkość liter jako wygląd ----------
 //
-// `wielkosc_liter`: 'wielkie' | 'male'. Treść zostaje taka, jak ją wpisano (i taka idzie
+// `wielkosc_liter`: 'wielkie' | 'male' | 'kapitaliki'. Treść zostaje taka, jak ją wpisano (i taka idzie
 // do pól z danymi) – zmienia się tylko to, jak znaki są mierzone i rysowane.
-const zmienLitery = (o, s) => (o.wielkosc_liter === 'wielkie' ? s.toLocaleUpperCase('pl') : (o.wielkosc_liter === 'male' ? s.toLocaleLowerCase('pl') : s));
+// Kapitaliki: małe litery są rysowane jako wielkie w mniejszym stopniu, wielkie – bez zmian.
+export const SKALA_KAPITALIKOW = 0.8;
+const wielka = (s) => s.toLocaleUpperCase('pl');
+const zmienLitery = (o, s) => (o.wielkosc_liter === 'wielkie' || o.wielkosc_liter === 'kapitaliki' ? wielka(s) : (o.wielkosc_liter === 'male' ? s.toLocaleLowerCase('pl') : s));
+const malaLitera = (z) => wielka(z) !== z;
+const mniejszy = (styl) => ({ ...styl, fontSize: styl.fontSize * SKALA_KAPITALIKOW });
 wplywaNaUklad('wielkosc_liter');
 const mierzZnak = P._measureChar;
 P._measureChar = function _measureChar(znak, styl, poprzedni, stylPoprzedniego) {
   if (!this.wielkosc_liter) return mierzZnak.call(this, znak, styl, poprzedni, stylPoprzedniego);
+  if (this.wielkosc_liter === 'kapitaliki') {
+    return mierzZnak.call(
+      this, wielka(znak), malaLitera(znak) ? mniejszy(styl) : styl,
+      poprzedni ? wielka(poprzedni) : poprzedni, poprzedni && malaLitera(poprzedni) && stylPoprzedniego?.fontSize ? mniejszy(stylPoprzedniego) : stylPoprzedniego,
+    );
+  }
   return mierzZnak.call(this, zmienLitery(this, znak), styl, poprzedni ? zmienLitery(this, poprzedni) : poprzedni, stylPoprzedniego);
 };
 const rysujZnak = P._renderChar;
 P._renderChar = function _renderChar(metoda, ctx, nrWiersza, nrZnaku, znak, lewo, gora) {
-  return rysujZnak.call(this, metoda, ctx, nrWiersza, nrZnaku, this.wielkosc_liter ? zmienLitery(this, znak) : znak, lewo, gora);
+  if (this.wielkosc_liter !== 'kapitaliki') return rysujZnak.call(this, metoda, ctx, nrWiersza, nrZnaku, this.wielkosc_liter ? zmienLitery(this, znak) : znak, lewo, gora);
+  // Fabric podaje tu kawałek wiersza (czasem cały wiersz) i numer jego ostatniego znaku – przy całym
+  // wierszu zero. Kawałek dzielimy na ciągi małych i pozostałych znaków: każdy ciąg jest rysowany
+  // osobno, w swoim stopniu pisma, w miejscu wynikającym z pomiaru znaków.
+  const znaki = this.graphemeSplit(znak);
+  const pierwszy = znaki.length > 1 && nrZnaku === 0 ? 0 : nrZnaku - znaki.length + 1;
+  const granice = this.__charBounds?.[nrWiersza] || [];
+  const pelnyStyl = this.getCompleteStyleDeclaration;
+  for (let i = 0; i < znaki.length;) {
+    const mala = malaLitera(znaki[i]);
+    let j = i + 1;
+    while (j < znaki.length && malaLitera(znaki[j]) === mala) j += 1;
+    const dx = (granice[pierwszy + i]?.left ?? 0) - (granice[pierwszy]?.left ?? 0);
+    if (mala) this.getCompleteStyleDeclaration = (w, z) => mniejszy(pelnyStyl.call(this, w, z));
+    try {
+      rysujZnak.call(this, metoda, ctx, nrWiersza, pierwszy + i, wielka(znaki.slice(i, j).join('')), lewo + dx, gora);
+    } finally {
+      if (mala) delete this.getCompleteStyleDeclaration;
+    }
+    i = j;
+  }
 };
 
 // Czy treść wystaje poza ramkę (do ostrzeżeń).

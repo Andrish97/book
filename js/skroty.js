@@ -64,6 +64,7 @@ export const SKROTY = [
   { grupa: 'Wstawianie', klawisze: ['KeyE'], opis: 'Elipsa', akcja: (k) => k.edytor.dodajElipse() },
   { grupa: 'Wstawianie', klawisze: ['KeyL'], opis: 'Linia', akcja: (k) => k.edytor.dodajLinie() },
   { grupa: 'Wstawianie', klawisze: ['KeyB'], opis: 'Rysowanie odręczne (włącz / wyłącz; Esc kończy)', akcja: (k) => k.edytor.ustawRysowanie(!k.edytor.rysuje) },
+  { grupa: 'Wstawianie', klawisze: ['KeyN'], opis: 'Pióro: kształt z punktów i krzywych (włącz / wyłącz; Enter kończy kształt, Esc porzuca)', akcja: (k) => k.edytor.ustawPioro(!k.edytor.pioro) },
   { grupa: 'Wstawianie', klawisze: ['KeyP'], opis: 'Wielokąt', akcja: (k) => k.edytor.dodajWielokat() },
   { grupa: 'Wstawianie', klawisze: ['KeyI'], opis: 'Obraz z dysku', akcja: (k) => k.wstawObraz() },
 

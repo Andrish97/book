@@ -19,7 +19,7 @@ import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
 import {
   toTabela, nowaTabela, ulozTabele, przygotujTabele, komorkiTabeli, komorkaWPunkcie, miejsceKomorki, utrwalSkaleTabeli,
-  dodajWiersz, usunWiersz, dodajKolumne, usunKolumne,
+  dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, scalKomorki, rozdzielKomorki, komorkaSchowana,
 } from './tabela-obiekt.js';
 
 export const PX_NA_MM = 96 / 25.4;
@@ -105,6 +105,24 @@ export class Edytor extends EventTarget {
     c.on('mouse:down', () => { this._cele = null; this._kopiaZAlt = false; });
     c.on('mouse:down', (e) => this._chwycProwadnice(e));
     c.on('mouse:move', (e) => this._ruchNadProwadnica(e));
+    // Pióro i edycja punktów kształtu: kliknięcia i ruch myszy idą do nich, nie do zaznaczania.
+    c.on('mouse:down', (e) => {
+      if (!e.scenePoint || this.reka || e.e?.button > 0) return;
+      if (this._pioro) this._pioroMyszWDol(e); else if (this._punkty) this._punktyMyszWDol(e);
+    });
+    c.on('mouse:move', (e) => {
+      if (!e.scenePoint) return;
+      if (this._pioro) this._pioroRuch(e); else if (this._punkty) this._punktyRuch(e);
+    });
+    c.on('mouse:up', () => {
+      if (this._pioro) this._pioro.ciagnie = null;
+      if (this._punkty) this._punkty.ciagnie = null;
+    });
+    c.on('mouse:dblclick', (e) => {
+      if (this._pioro) this.zakonczKsztaltPiora();
+      else if (this._punkty && e.scenePoint && !this._wezelPod(e.scenePoint)) this.dodajPunkt(e.scenePoint);
+    });
+    c.on('object:removed', (e) => { if (this._punkty && e.target === this._punkty.obj) this.zakonczPunkty(false); });
     c.on('mouse:up', () => {
       this._cele = null;
       this._kopiaZAlt = false;
@@ -133,6 +151,7 @@ export class Edytor extends EventTarget {
       const cel = e.target;
       if (!cel || cel.zWzorca) return;
       if (cel.type === 'image') this.kadruj(cel);
+      else if (cel.type === 'path') this.edytujPunkty(cel);
       else if (toTabela(cel)) this.edytujKomorke(cel, komorkaWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)), e.e);
     });
     // W trakcie pisania w tabeli kliknięcie innej komórki przenosi tam pisanie.
@@ -427,6 +446,9 @@ export class Edytor extends EventTarget {
   // ---------- Dodawanie obiektów ----------
 
   _wstaw(obj) {
+    // Wstawienie innego elementu kończy pióro i edycję punktów.
+    if (this._pioro) this.ustawPioro(false);
+    if (this._punkty) this.zakonczPunkty(true);
     obj.set({ id: uid('o') });
     this.canvas.add(obj);
     this.canvas.setActiveObject(obj);
@@ -504,6 +526,8 @@ export class Edytor extends EventTarget {
     if (wlacz === this.rysuje) return;
     if (wlacz) {
       if (this._kadr) this.zakonczKadrowanie(true);
+      if (this._pioro) this.ustawPioro(false);
+      if (this._punkty) this.zakonczPunkty(true);
       c.discardActiveObject();
       const pedzel = new fabric.PencilBrush(c);
       pedzel.color = kolor;
@@ -524,6 +548,406 @@ export class Edytor extends EventTarget {
     c.isDrawingMode = Boolean(wlacz);
     c.requestRenderAll();
     this.dispatchEvent(new CustomEvent('rysowanie', { detail: this.rysuje }));
+  }
+
+  // ---------- Pióro: kształt z punktów i krzywych ----------
+  // Kliknięcie stawia punkt (odcinek prosty), kliknięcie z przeciągnięciem – punkt gładki z uchwytami
+  // (krzywa). Enter albo podwójne kliknięcie kończy kształt otwarty, kliknięcie w pierwszy punkt zamyka,
+  // Backspace cofa ostatni punkt, Esc porzuca zaczęty kształt (bez zaczętego – wyłącza pióro).
+  // Punkt: { x, y, wx, wy (uchwyt wychodzący), ux, uy (uchwyt wchodzący) } – uchwyty tylko w punktach gładkich.
+
+  get pioro() { return Boolean(this._pioro); }
+
+  // Tryby, w których kliknięcia na płótnie nie zaznaczają elementów (pióro, edycja punktów).
+  _trybPunktow() { return Boolean(this._pioro || this._punkty); }
+
+  _ustawTrybPunktow() {
+    const c = this.canvas;
+    const wl = this._trybPunktow();
+    c.skipTargetFind = wl || Boolean(this.reka);
+    c.selection = !c.skipTargetFind;
+    c.defaultCursor = wl ? 'crosshair' : 'default';
+    c.requestRenderAll();
+  }
+
+  ustawPioro(wlacz) {
+    if (Boolean(wlacz) === this.pioro) return;
+    if (wlacz) {
+      if (this._kadr) this.zakonczKadrowanie(true);
+      if (this._punkty) this.zakonczPunkty(true);
+      this.ustawRysowanie(false);
+      if (this.aktywny?.isEditing) this.aktywny.exitEditing();
+      this.canvas.discardActiveObject();
+      this._pioro = { punkty: [], ciagnie: null, kursor: null };
+    } else {
+      if (this._pioro.punkty.length > 1) this._ksztaltZPiora(false);
+      this._pioro = null;
+    }
+    this._ustawTrybPunktow();
+    this.dispatchEvent(new CustomEvent('pioro', { detail: this.pioro }));
+    this._emitujZaznaczenie();
+  }
+
+  // Ile punktów ma zaczęty kształt (do panelu i testów).
+  get punktyPiora() { return this._pioro ? this._pioro.punkty.length : 0; }
+
+  _pioroMyszWDol(e) {
+    const p = e.scenePoint;
+    const { punkty } = this._pioro;
+    const prog = 8 / this.skala;
+    const blisko = (q) => q && Math.hypot(q.x - p.x, q.y - p.y) <= prog;
+    // Kliknięcie w pierwszy punkt zamyka kształt.
+    if (punkty.length > 1 && blisko(punkty[0])) { this._ksztaltZPiora(true); return; }
+    // Drugie kliknięcie w to samo miejsce (podwójne kliknięcie) nie stawia drugiego punktu.
+    if (blisko(punkty.at(-1))) return;
+    const punkt = { x: p.x, y: p.y };
+    punkty.push(punkt);
+    this._pioro.ciagnie = punkt;
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+  }
+
+  _pioroRuch(e) {
+    const p = e.scenePoint;
+    const { ciagnie } = this._pioro;
+    if (ciagnie) {
+      // Przeciągnięcie od postawionego punktu wyciąga z niego dwa uchwyty, symetrycznie.
+      if (Math.hypot(p.x - ciagnie.x, p.y - ciagnie.y) > 3 / this.skala) Object.assign(ciagnie, { wx: p.x, wy: p.y, ux: 2 * ciagnie.x - p.x, uy: 2 * ciagnie.y - p.y });
+    }
+    this._pioro.kursor = { x: p.x, y: p.y };
+    this.canvas.requestRenderAll();
+  }
+
+  // Polecenia ścieżki z punktów pióra (współrzędne w mm arkusza).
+  _sciezkaZPunktow(punkty, zamknieta) {
+    const l = (n) => Math.round(n * 1000) / 1000;
+    const odcinek = (q, p) => (q.wx != null || p.ux != null
+      ? ['C', l(q.wx ?? q.x), l(q.wy ?? q.y), l(p.ux ?? p.x), l(p.uy ?? p.y), l(p.x), l(p.y)]
+      : ['L', l(p.x), l(p.y)]);
+    const d = [['M', l(punkty[0].x), l(punkty[0].y)]];
+    for (let i = 1; i < punkty.length; i += 1) d.push(odcinek(punkty[i - 1], punkty[i]));
+    if (zamknieta) {
+      const q = punkty.at(-1);
+      if (q.wx != null || punkty[0].ux != null) d.push(odcinek(q, punkty[0]));
+      d.push(['Z']);
+    }
+    return d;
+  }
+
+  // Zamienia zaczęty kształt w element strony. Pióro zostaje włączone – można rysować następny.
+  _ksztaltZPiora(zamknieta) {
+    const { punkty } = this._pioro;
+    this._pioro.punkty = [];
+    this._pioro.ciagnie = null;
+    if (punkty.length < 2) { this.canvas.requestRenderAll(); return null; }
+    const d = this._sciezkaZPunktow(punkty, zamknieta).map((k) => k.join(' ')).join(' ');
+    const ksztalt = new fabric.Path(d, {
+      id: uid('o'), fill: '', stroke: '#1a1a1a', strokeWidth: 0.6, strokeUniform: true, strokeLineCap: 'round', strokeLineJoin: 'round',
+    });
+    this.canvas.add(ksztalt);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return ksztalt;
+  }
+
+  // Enter / podwójne kliknięcie: kończy kształt otwarty.
+  zakonczKsztaltPiora() { return this._pioro ? this._ksztaltZPiora(false) : null; }
+
+  // Backspace: cofa ostatni punkt.
+  cofnijPunktPiora() {
+    if (!this._pioro?.punkty.length) return;
+    this._pioro.punkty.pop();
+    this._pioro.ciagnie = null;
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+  }
+
+  // Esc: porzuca zaczęty kształt; gdy nic nie zaczęto – wyłącza pióro.
+  anulujPioro() {
+    if (!this._pioro) return;
+    if (!this._pioro.punkty.length) { this.ustawPioro(false); return; }
+    this._pioro.punkty = [];
+    this._pioro.ciagnie = null;
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+  }
+
+  // ---------- Edycja punktów kształtu (z pióra i z rysowania odręcznego) ----------
+  // Na czas edycji przekształcenie elementu (obrót, skala) jest wpisywane w jego punkty – współrzędne
+  // ścieżki to wtedy po prostu milimetry arkusza. Punkty i uchwyty przeciąga się myszą; podwójne
+  // kliknięcie w linię dodaje punkt, Delete usuwa zaznaczony. Enter zatwierdza, Esc przywraca kształt.
+
+  get edytujePunkty() { return Boolean(this._punkty); }
+
+  edytujPunkty(obj = this.aktywny) {
+    if (this._punkty || !obj || obj.type !== 'path' || obj.zWzorca || obj.zablokowany || obj.group) return false;
+    if (this._pioro) this.ustawPioro(false);
+    this.ustawRysowanie(false);
+    const przed = {
+      path: obj.path.map((k) => [...k]), pathOffset: new fabric.Point(obj.pathOffset.x, obj.pathOffset.y), width: obj.width, height: obj.height,
+      left: obj.left, top: obj.top, angle: obj.angle, scaleX: obj.scaleX, scaleY: obj.scaleY, skewX: obj.skewX, skewY: obj.skewY,
+      flipX: obj.flipX, flipY: obj.flipY, strokeWidth: obj.strokeWidth, strokeUniform: obj.strokeUniform,
+    };
+    const m = obj.calcTransformMatrix();
+    const o = obj.pathOffset;
+    const sciezka = obj.path.map(([co, ...l]) => {
+      const n = [co];
+      for (let i = 0; i < l.length; i += 2) { const p = new fabric.Point(l[i] - o.x, l[i + 1] - o.y).transform(m); n.push(p.x, p.y); }
+      return n;
+    });
+    if (!obj.strokeUniform) obj.strokeWidth *= (Math.abs(obj.scaleX) + Math.abs(obj.scaleY)) / 2;
+    obj.set({ path: sciezka, angle: 0, scaleX: 1, scaleY: 1, skewX: 0, skewY: 0, flipX: false, flipY: false, strokeUniform: true });
+    this._punkty = { obj, przed, wybrany: null, ciagnie: null, zmienione: false };
+    this._odswiezKsztalt();
+    this.canvas.discardActiveObject();
+    this._ustawTrybPunktow();
+    this.dispatchEvent(new CustomEvent('punkty', { detail: true }));
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  // Po zmianie punktów: wymiary i położenie elementu liczone od nowa, punkty zostają na swoich miejscach.
+  _odswiezKsztalt() {
+    const { obj } = this._punkty;
+    obj.setBoundingBox(true);
+    obj.setCoords();
+    obj.dirty = true;
+    this.canvas.requestRenderAll();
+  }
+
+  // Punkty kształtu: [{ i (numer polecenia), a (miejsce współrzędnej w poleceniu), x, y, uchwyt, kotwica }].
+  // Uchwyt krzywej należy do punktu, przy którym leży: pierwszy uchwyt polecenia C – do punktu początkowego,
+  // drugi – do końcowego; uchwyt polecenia Q jest wspólny i przypisujemy go do punktu końcowego.
+  _wezlyKsztaltu() {
+    const wezly = [];
+    let poprzedni = -1;
+    this._punkty.obj.path.forEach((k, i) => {
+      const [co] = k;
+      if (co === 'M' || co === 'L') { wezly.push({ i, a: 1, x: k[1], y: k[2] }); poprzedni = wezly.length - 1; return; }
+      if (co === 'C') {
+        wezly.push({ i, a: 1, x: k[1], y: k[2], uchwyt: true, kotwica: poprzedni });
+        wezly.push({ i, a: 5, x: k[5], y: k[6] });
+        const koniec = wezly.length - 1;
+        wezly.push({ i, a: 3, x: k[3], y: k[4], uchwyt: true, kotwica: koniec });
+        poprzedni = koniec;
+      } else if (co === 'Q') {
+        wezly.push({ i, a: 3, x: k[3], y: k[4] });
+        const koniec = wezly.length - 1;
+        wezly.push({ i, a: 1, x: k[1], y: k[2], uchwyt: true, kotwica: koniec });
+        poprzedni = koniec;
+      }
+    });
+    return wezly;
+  }
+
+  // Liczba punktów kształtu (bez uchwytów) i zaznaczony punkt – do panelu i testów.
+  get punktyKsztaltu() {
+    if (!this._punkty) return null;
+    const wezly = this._wezlyKsztaltu();
+    const w = this._punkty.wybrany;
+    return { ile: wezly.filter((x) => !x.uchwyt).length, wybrany: w ? wezly.filter((x) => !x.uchwyt).findIndex((x) => x.i === w.i && x.a === w.a) : -1, punkty: wezly.filter((x) => !x.uchwyt).map((x) => [x.x, x.y]) };
+  }
+
+  _wezelPod(p) {
+    const prog = 7 / this.skala;
+    const wezly = this._wezlyKsztaltu();
+    const w = this._punkty.wybrany;
+    const wybrany = w ? wezly.findIndex((x) => !x.uchwyt && x.i === w.i && x.a === w.a) : -1;
+    const blisko = (x) => Math.hypot(x.x - p.x, x.y - p.y) <= prog;
+    // Uchwyty widać tylko przy zaznaczonym punkcie – i tylko te da się złapać.
+    return wezly.find((x) => x.uchwyt && x.kotwica === wybrany && blisko(x)) || wezly.find((x) => !x.uchwyt && blisko(x)) || null;
+  }
+
+  _punktyMyszWDol(e) {
+    const stan = this._punkty;
+    const p = e.scenePoint;
+    const wezel = this._wezelPod(p);
+    if (!wezel) { stan.wybrany = null; this.canvas.requestRenderAll(); this._emitujZaznaczenie(); return; }
+    const sciezka = stan.obj.path;
+    // Co przesuwa się razem: punkt ciągnie swoje uchwyty; pierwszy punkt zamkniętego kształtu – także
+    // pokrywający się z nim koniec ostatniego odcinka.
+    const razem = [[wezel.i, wezel.a]];
+    if (!wezel.uchwyt) {
+      stan.wybrany = { i: wezel.i, a: wezel.a };
+      const wezly = this._wezlyKsztaltu();
+      const nr = wezly.indexOf(wezly.find((x) => x.i === wezel.i && x.a === wezel.a));
+      for (const u of wezly) if (u.uchwyt && u.kotwica === nr && sciezka[u.i][0] === 'C') razem.push([u.i, u.a]);
+      if (wezel.i === 0) {
+        const ostatni = [...wezly].reverse().find((x) => !x.uchwyt);
+        if (ostatni && ostatni.i !== 0 && Math.hypot(ostatni.x - wezel.x, ostatni.y - wezel.y) < 0.01) {
+          razem.push([ostatni.i, ostatni.a]);
+          const nrOstatniego = wezly.indexOf(ostatni);
+          for (const u of wezly) if (u.uchwyt && u.kotwica === nrOstatniego && sciezka[u.i][0] === 'C') razem.push([u.i, u.a]);
+        }
+      }
+    }
+    stan.ciagnie = { od: { x: p.x, y: p.y }, razem: razem.map(([i, a]) => ({ i, a, x: sciezka[i][a], y: sciezka[i][a + 1] })) };
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+  }
+
+  _punktyRuch(e) {
+    const stan = this._punkty;
+    if (!stan.ciagnie) return;
+    const dx = e.scenePoint.x - stan.ciagnie.od.x;
+    const dy = e.scenePoint.y - stan.ciagnie.od.y;
+    for (const r of stan.ciagnie.razem) { stan.obj.path[r.i][r.a] = r.x + dx; stan.obj.path[r.i][r.a + 1] = r.y + dy; }
+    stan.zmienione = true;
+    this._odswiezKsztalt();
+  }
+
+  // Przesuwa punkt kształtu o wektor w mm (do skryptów i testów; myszą robi to przeciągnięcie).
+  przesunPunkt(nr, dx, dy) {
+    if (!this._punkty) return false;
+    const punkt = this._wezlyKsztaltu().filter((x) => !x.uchwyt)[nr];
+    if (!punkt) return false;
+    this._punktyMyszWDol({ scenePoint: { x: punkt.x, y: punkt.y } });
+    this._punktyRuch({ scenePoint: { x: punkt.x + dx, y: punkt.y + dy } });
+    this._punkty.ciagnie = null;
+    return true;
+  }
+
+  // Delete: usuwa zaznaczony punkt (kształt musi zachować co najmniej dwa punkty, zamknięty – trzy).
+  usunPunkt() {
+    const stan = this._punkty;
+    if (!stan?.wybrany) return false;
+    const sciezka = stan.obj.path;
+    const zamkniety = sciezka.some((k) => k[0] === 'Z');
+    const ile = this._wezlyKsztaltu().filter((x) => !x.uchwyt).length;
+    if (ile <= (zamkniety ? 3 : 2)) return false;
+    const { i } = stan.wybrany;
+    if (i === 0) {
+      // Początek przechodzi do końca następnego odcinka.
+      const nast = sciezka[1];
+      sciezka.splice(0, 2, ['M', nast.at(-2), nast.at(-1)]);
+      // Zamknięty kształt: odcinek, który wracał do dawnego początku, kończy się teraz w nowym.
+      const ostatni = [...sciezka].reverse().find((k) => k[0] !== 'Z');
+      if (zamkniety && ostatni && ostatni !== sciezka[0] && ostatni[0] === 'C') { ostatni[5] = sciezka[0][1]; ostatni[6] = sciezka[0][2]; }
+    } else sciezka.splice(i, 1);
+    stan.wybrany = null;
+    stan.zmienione = true;
+    this._odswiezKsztalt();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  // Odcinki kształtu z punktami początkowymi: [{ i, od: [x, y], k (polecenie) }]; odcinek zamykający ma i = -1.
+  _odcinkiKsztaltu() {
+    const odcinki = [];
+    let tu = null;
+    let start = null;
+    this._punkty.obj.path.forEach((k, i) => {
+      if (k[0] === 'M') { tu = [k[1], k[2]]; start = tu; return; }
+      if (k[0] === 'Z') { if (tu && start && Math.hypot(tu[0] - start[0], tu[1] - start[1]) > 0.01) odcinki.push({ i: -1, przedZ: i, od: tu, k: ['L', start[0], start[1]] }); return; }
+      odcinki.push({ i, od: tu, k });
+      tu = [k.at(-2), k.at(-1)];
+    });
+    return odcinki;
+  }
+
+  // Dodaje punkt na linii kształtu najbliżej podanego miejsca (podwójne kliknięcie w linię).
+  dodajPunkt(p) {
+    const stan = this._punkty;
+    if (!stan) return false;
+    const mieszaj = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    const naOdcinku = (o, t) => {
+      const { k, od } = o;
+      if (k[0] === 'L') return mieszaj(od, [k[1], k[2]], t);
+      if (k[0] === 'Q') { const a = mieszaj(od, [k[1], k[2]], t); const b = mieszaj([k[1], k[2]], [k[3], k[4]], t); return mieszaj(a, b, t); }
+      const a = mieszaj(od, [k[1], k[2]], t); const b = mieszaj([k[1], k[2]], [k[3], k[4]], t); const c = mieszaj([k[3], k[4]], [k[5], k[6]], t);
+      return mieszaj(mieszaj(a, b, t), mieszaj(b, c, t), t);
+    };
+    let najlepszy = null;
+    for (const o of this._odcinkiKsztaltu()) {
+      for (let n = 1; n < 40; n += 1) {
+        const t = n / 40;
+        const q = naOdcinku(o, t);
+        const d = Math.hypot(q[0] - p.x, q[1] - p.y);
+        if (!najlepszy || d < najlepszy.d) najlepszy = { d, o, t, q };
+      }
+    }
+    if (!najlepszy || najlepszy.d > 8 / this.skala) return false;
+    const { o, t, q } = najlepszy;
+    const { k, od } = o;
+    const sciezka = stan.obj.path;
+    let nowe;
+    if (k[0] === 'L') nowe = [['L', q[0], q[1]], ['L', k[1], k[2]]];
+    else if (k[0] === 'Q') {
+      const a = mieszaj(od, [k[1], k[2]], t); const b = mieszaj([k[1], k[2]], [k[3], k[4]], t);
+      nowe = [['Q', a[0], a[1], q[0], q[1]], ['Q', b[0], b[1], k[3], k[4]]];
+    } else {
+      const a = mieszaj(od, [k[1], k[2]], t); const b = mieszaj([k[1], k[2]], [k[3], k[4]], t); const c = mieszaj([k[3], k[4]], [k[5], k[6]], t);
+      const ab = mieszaj(a, b, t); const bc = mieszaj(b, c, t);
+      nowe = [['C', a[0], a[1], ab[0], ab[1], q[0], q[1]], ['C', bc[0], bc[1], c[0], c[1], k[5], k[6]]];
+    }
+    if (o.i < 0) sciezka.splice(o.przedZ, 0, nowe[0]); // odcinek zamykający: nowy punkt przed „Z”
+    else sciezka.splice(o.i, 1, ...nowe);
+    const i = o.i < 0 ? o.przedZ : o.i;
+    stan.wybrany = { i, a: sciezka[i][0] === 'C' ? 5 : (sciezka[i][0] === 'Q' ? 3 : 1) };
+    stan.zmienione = true;
+    this._odswiezKsztalt();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  // Koniec edycji punktów: zatwierdzenie (krok historii) albo powrót do kształtu sprzed edycji.
+  zakonczPunkty(zatwierdz = true) {
+    const stan = this._punkty;
+    if (!stan) return;
+    this._punkty = null;
+    const { obj } = stan;
+    const naPlotnie = this.canvas.getObjects().includes(obj);
+    if (naPlotnie && !zatwierdz) { obj.set(stan.przed); obj.setCoords(); obj.dirty = true; }
+    this._ustawTrybPunktow();
+    if (naPlotnie) {
+      this.canvas.setActiveObject(obj);
+      if (stan.zmienione) this.oznaczZmiane(); // także po anulowaniu: projekt ma trzymać to, co widać
+    }
+    this.dispatchEvent(new CustomEvent('punkty', { detail: false }));
+    this._emitujZaznaczenie();
+  }
+
+  // Rysuje na wierzchu płótna: zaczęty kształt pióra albo punkty i uchwyty edytowanego kształtu.
+  _rysujPunkty(ctx, X, Y) {
+    const NIEBIESKI = '#2563eb';
+    const kwadrat = (x, y, pelny, r = 3.5) => { ctx.beginPath(); ctx.rect(X(x) - r, Y(y) - r, 2 * r, 2 * r); ctx.fillStyle = pelny ? NIEBIESKI : '#ffffff'; ctx.fill(); ctx.stroke(); };
+    const kolko = (x, y, r = 3) => { ctx.beginPath(); ctx.arc(X(x), Y(y), r, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.stroke(); };
+    const ramie = (x1, y1, x2, y2) => { ctx.beginPath(); ctx.moveTo(X(x1), Y(y1)); ctx.lineTo(X(x2), Y(y2)); ctx.stroke(); };
+    ctx.save();
+    ctx.strokeStyle = NIEBIESKI;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([]);
+    if (this._pioro) {
+      const { punkty, kursor, ciagnie } = this._pioro;
+      if (punkty.length) {
+        ctx.beginPath();
+        ctx.moveTo(X(punkty[0].x), Y(punkty[0].y));
+        for (let i = 1; i < punkty.length; i += 1) {
+          const q = punkty[i - 1]; const p = punkty[i];
+          if (q.wx != null || p.ux != null) ctx.bezierCurveTo(X(q.wx ?? q.x), Y(q.wy ?? q.y), X(p.ux ?? p.x), Y(p.uy ?? p.y), X(p.x), Y(p.y)); else ctx.lineTo(X(p.x), Y(p.y));
+        }
+        ctx.stroke();
+        // Odcinek do kursora – podgląd tego, co powstanie po kliknięciu.
+        const q = punkty.at(-1);
+        if (kursor && !ciagnie) {
+          ctx.save(); ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(X(q.x), Y(q.y));
+          if (q.wx != null) ctx.bezierCurveTo(X(q.wx), Y(q.wy), X(kursor.x), Y(kursor.y), X(kursor.x), Y(kursor.y)); else ctx.lineTo(X(kursor.x), Y(kursor.y));
+          ctx.stroke(); ctx.restore();
+        }
+        ctx.lineWidth = 1;
+        if (q.wx != null) { ramie(q.ux, q.uy, q.wx, q.wy); kolko(q.ux, q.uy); kolko(q.wx, q.wy); }
+        punkty.forEach((p, i) => kwadrat(p.x, p.y, i === punkty.length - 1, i === 0 && punkty.length > 1 ? 5 : 3.5));
+      }
+    } else if (this._punkty && this.canvas.getObjects().includes(this._punkty.obj)) {
+      const wezly = this._wezlyKsztaltu();
+      const w = this._punkty.wybrany;
+      const wybrany = w ? wezly.findIndex((x) => !x.uchwyt && x.i === w.i && x.a === w.a) : -1;
+      ctx.lineWidth = 1;
+      for (const u of wezly) if (u.uchwyt && u.kotwica === wybrany) { ramie(wezly[wybrany].x, wezly[wybrany].y, u.x, u.y); kolko(u.x, u.y); }
+      wezly.forEach((x, nr) => { if (!x.uchwyt) kwadrat(x.x, x.y, nr === wybrany); });
+    }
+    ctx.restore();
   }
 
   dodajLinie() {
@@ -949,12 +1373,19 @@ export class Edytor extends EventTarget {
     const tabela = komorka.group;
     if (!toTabela(tabela)) return;
     let lista = komorkiTabeli(tabela);
-    const i = lista.indexOf(komorka) + (wstecz ? -1 : 1);
+    const krok = wstecz ? -1 : 1;
+    let i = lista.indexOf(komorka) + krok;
+    // Komórki schowane pod scaleniem są pomijane.
+    while (lista[i] && komorkaSchowana(tabela, lista[i])) i += krok;
     if (i < 0) return;
     if (i >= lista.length) {
+      const pierwsza = lista.length;
       if (dodajWiersz(tabela, uid) < 0) return;
       this._przygotujTabele(tabela);
       lista = komorkiTabeli(tabela);
+      i = pierwsza;
+      while (lista[i] && komorkaSchowana(tabela, lista[i])) i += 1;
+      if (!lista[i]) return;
     }
     this.edytujKomorke(tabela, lista[i]);
   }
@@ -976,21 +1407,31 @@ export class Edytor extends EventTarget {
     });
   }
 
-  // Wiersze i kolumny tabeli. co: 'wiersz+' | 'wiersz-' | 'kolumna+' | 'kolumna-'; gdzie: numer wiersza
-  // albo kolumny (dodawanie – za nim, usuwanie – ten); bez numeru chodzi o ostatni.
+  // Wiersze, kolumny i scalenia tabeli. co: 'wiersz+' | 'wiersz-' | 'kolumna+' | 'kolumna-' – gdzie: numer
+  // wiersza albo kolumny (dodawanie – za nim, usuwanie – ten; bez numeru chodzi o ostatni);
+  // 'scal-prawo' | 'scal-dol' | 'rozdziel' – gdzie: { w, k } komórki.
   zmienTabele(tabela, co, gdzie) {
     if (!toTabela(tabela)) return false;
     const akt = this.aktywny;
-    const pisana = akt?.group === tabela && akt.isEditing ? akt : null;
+    let pisana = akt?.group === tabela && akt.isEditing ? akt : null;
     if (pisana) { this._miedzyKomorkami = true; pisana.exitEditing(); this._miedzyKomorkami = false; }
+    const scal = (kierunek) => { const c = scalKomorki(tabela, gdzie.w, gdzie.k, kierunek); if (c && pisana) pisana = c; return Boolean(c); };
     const wynik = {
       'wiersz+': () => dodajWiersz(tabela, uid, gdzie) >= 0,
       'wiersz-': () => usunWiersz(tabela, gdzie),
       'kolumna+': () => dodajKolumne(tabela, uid, gdzie) >= 0,
       'kolumna-': () => usunKolumne(tabela, gdzie),
+      'scal-prawo': () => scal('prawo'),
+      'scal-dol': () => scal('dol'),
+      rozdziel: () => rozdzielKomorki(tabela, gdzie.w, gdzie.k),
     }[co]?.();
     this._przygotujTabele(tabela);
-    // Pisanie wraca do tej samej komórki, jeśli jeszcze istnieje; inaczej zaznaczona zostaje tabela.
+    // Pisanie wraca do tej samej komórki, jeśli jeszcze istnieje i jest widoczna (po scaleniu – do scalonej).
+    if (pisana && pisana.group === tabela && komorkaSchowana(tabela, pisana)) {
+      const m = miejsceKomorki(tabela, pisana);
+      const s = tabela.tabela.scalenia?.find((x) => m.w >= x.w && m.w < x.w + x.ileW && m.k >= x.k && m.k < x.k + x.ileK);
+      pisana = s ? komorkiTabeli(tabela)[s.w * tabela.tabela.kolumny.length + s.k] : null;
+    }
     if (pisana && pisana.group === tabela) this.edytujKomorke(tabela, pisana);
     else { tabela.set({ subTargetCheck: false, interactive: false }); this.canvas.setActiveObject(tabela); }
     tabela.setCoords();
@@ -1002,6 +1443,12 @@ export class Edytor extends EventTarget {
 
   // Miejsce komórki w tabeli: { w, k } albo null.
   miejsceKomorki(komorka = this.aktywny) { return toTabela(komorka?.group) ? miejsceKomorki(komorka.group, komorka) : null; }
+
+  // Scalenie, do którego należy komórka: { w, k, ileW, ileK } albo null.
+  scalenieKomorki(komorka = this.aktywny) {
+    const m = this.miejsceKomorki(komorka);
+    return (m && komorka.group.tabela.scalenia?.find((s) => m.w >= s.w && m.w < s.w + s.ileW && m.k >= s.k && m.k < s.k + s.ileK)) || null;
+  }
 
   // ---------- Schowek (kopiuj / wklej, także między stronami) ----------
 
@@ -1628,7 +2075,7 @@ export class Edytor extends EventTarget {
   // Kliknięcie w prowadnicę (w pustym miejscu) zaczyna jej przesuwanie;
   // wyciągnięta poza stronę znika.
   _chwycProwadnice(e) {
-    if (e.target || !e.scenePoint || this.reka || this.widok.blokada_prowadnic) return;
+    if (e.target || !e.scenePoint || this.reka || this.widok.blokada_prowadnic || this._trybPunktow()) return;
     const p = this._prowadnicaPod(this._punktZdarzenia(e));
     if (!p) return;
     this._prowadnicaWRuchu = p;
@@ -1650,6 +2097,7 @@ export class Edytor extends EventTarget {
   }
 
   _ruchNadProwadnica(e) {
+    if (this._trybPunktow()) return; // pióro i edycja punktów mają własny kursor
     if (this._prowadnicaWRuchu) { this.canvas._groupSelector = null; return; }
     if (e.target || !e.scenePoint || !this.wydruk || this.widok.blokada_prowadnic) { this.canvas.defaultCursor = 'default'; return; }
     const p = this._prowadnicaPod(this._punktZdarzenia(e));
@@ -1944,6 +2392,7 @@ export class Edytor extends EventTarget {
 
     if (this.pokazProwadnice) this._podswietlPola(ctx, X, Y);
     if (this.pokazProwadnice) this._rysujWatek(ctx, X, Y);
+    if (this._trybPunktow()) this._rysujPunkty(ctx, X, Y);
 
     // Kadrowanie: część obrazu poza ramką jest przyciemniona.
     if (this._kadr) {
@@ -2138,8 +2587,8 @@ export class Edytor extends EventTarget {
     if (this.reka === wlacz) return;
     this.reka = wlacz;
     this.kontener.classList.toggle('reka', wlacz);
-    this.canvas.skipTargetFind = wlacz;
-    this.canvas.selection = !wlacz;
+    this.canvas.skipTargetFind = wlacz || this._trybPunktow();
+    this.canvas.selection = !this.canvas.skipTargetFind;
   }
 
   _przerwijTransformacje() {

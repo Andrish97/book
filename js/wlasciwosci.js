@@ -55,6 +55,25 @@ export class PanelWlasciwosci {
     this.el.replaceChildren();
     this.odswiezacze = [];
     const obj = this.obj;
+    // Pióro i edycja punktów kształtu: krótka ściąga zamiast właściwości strony.
+    if (this.edytor.pioro) {
+      this.tytul.textContent = 'Pióro';
+      const s = this.sekcja('Kształt z punktów');
+      const ile = this.edytor.punktyPiora;
+      s.append(this.wskazowka('Kliknięcie stawia punkt, kliknięcie z przeciągnięciem – punkt z łukiem. Kliknięcie w pierwszy punkt zamyka kształt, Enter albo podwójne kliknięcie kończy otwarty. Backspace cofa ostatni punkt, Esc porzuca kształt.'));
+      s.append(this.wskazowka(ile ? `Punktów w zaczętym kształcie: ${ile}.` : 'Kliknij na stronie, żeby zacząć kształt.'));
+      s.append(this.akcje([...(ile > 1 ? [['ok', 'Zakończ kształt', () => this.edytor.zakonczKsztaltPiora()]] : []), ['zamknij', 'Wyłącz pióro', () => this.edytor.ustawPioro(false)]]));
+      return;
+    }
+    if (this.edytor.edytujePunkty) {
+      this.tytul.textContent = 'Punkty kształtu';
+      const s = this.sekcja('Edycja punktów');
+      const p = this.edytor.punktyKsztaltu;
+      s.append(this.wskazowka('Przeciągaj punkty; zaznaczony punkt krzywej pokazuje uchwyty do zmiany łuku. Podwójne kliknięcie w linię dodaje punkt, Delete usuwa zaznaczony.'));
+      s.append(this.wskazowka(`Punktów: ${p.ile}${p.wybrany >= 0 ? ` · zaznaczony ${p.wybrany + 1}` : ''}.`));
+      s.append(this.akcje([...(p.wybrany >= 0 ? [['kosz', 'Usuń punkt', () => { if (!this.edytor.usunPunkt()) powiadom('Kształt musi mieć co najmniej dwa punkty (zamknięty – trzy).'); }]] : []), ['ok', 'Gotowe', () => this.edytor.zakonczPunkty(true)], ['zamknij', 'Anuluj', () => this.edytor.zakonczPunkty(false)]]));
+      return;
+    }
     if (!obj) {
       this.tytul.textContent = this.opcje.tytulPusty();
       this.opcje.budujPusty(this);
@@ -322,6 +341,15 @@ export class PanelWlasciwosci {
     s.append(this.wskazowka(`Komórka w wierszu ${m.w + 1}, kolumnie ${m.k + 1}. Tab przechodzi do następnej komórki, Esc wraca do całej tabeli.`));
     s.append(this.akcje([['plus', 'Wstaw wiersz poniżej', zmien('wiersz+', m.w)], ['minus', 'Usuń ten wiersz', zmien('wiersz-', m.w)]]));
     s.append(this.akcje([['plus', 'Wstaw kolumnę z prawej', zmien('kolumna+', m.k)], ['minus', 'Usuń tę kolumnę', zmien('kolumna-', m.k)]]));
+    // Scalanie: komórka rośnie o sąsiednią po prawej albo poniżej; „Rozdziel” przywraca osobne komórki.
+    const sc = e.scalenieKomorki(obj);
+    const zajete = sc || { w: m.w, k: m.k, ileW: 1, ileK: 1 };
+    const scalanie = [];
+    if (zajete.k + zajete.ileK < tabela.tabela.kolumny.length) scalanie.push(['grupuj', 'Scal z komórką po prawej', zmien('scal-prawo', m)]);
+    if (zajete.w + zajete.ileW < tabela.tabela.wiersze.length) scalanie.push(['grupuj', 'Scal z komórką poniżej', zmien('scal-dol', m)]);
+    if (sc) scalanie.push(['rozgrupuj', 'Rozdziel komórki', zmien('rozdziel', m)]);
+    if (scalanie.length) s.append(this.akcje(scalanie));
+    if (sc) s.append(this.wskazowka(`Ta komórka zajmuje ${sc.ileK} ${sc.ileK === 1 ? 'kolumnę' : 'kolumny'} i ${sc.ileW} ${sc.ileW === 1 ? 'wiersz' : 'wiersze'}. Tekst komórek, które przykrywa, wróci po rozdzieleniu.`));
     s.append(this.liczba('Najmniejsza wysokość tego wiersza', () => zaokr(tabela.tabela.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(tabela, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
     s.append(this.wskazowka(`Teraz ten wiersz ma ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
   }
@@ -400,6 +428,7 @@ export class PanelWlasciwosci {
     const litery = this.segmenty('Wielkość liter', [
       ['AA', 'WSZYSTKIE WIELKIE – tylko wygląd, treść zostaje', () => obj.wielkosc_liter === 'wielkie', wielkosc('wielkie')],
       ['aa', 'wszystkie małe – tylko wygląd, treść zostaje', () => obj.wielkosc_liter === 'male', wielkosc('male')],
+      ['Aᴀ', 'Kapitaliki: małe litery jako mniejsze wielkie – tylko wygląd, treść zostaje', () => obj.wielkosc_liter === 'kapitaliki', wielkosc('kapitaliki')],
       ['Aa', 'Jak w zdaniu – zmienia treść (wielka litera na początku zdań)', null, zmienLitery((t) => t.toLocaleLowerCase('pl').replace(/(^|[.!?]\s+|\n)(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('pl')))],
     ], true);
     litery.classList.add('szeroki');
@@ -711,6 +740,13 @@ export class PanelWlasciwosci {
     const s = this.sekcja('Linia');
     s.append(this.kolor('Kolor', () => obj.stroke, (v) => obj.set('stroke', v)));
     s.append(this.liczba('Grubość', () => zaokr(obj.strokeWidth, 2), (v) => obj.set({ strokeWidth: Math.max(0.05, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0.05 }));
+    if (obj.type !== 'path') return;
+    // Zamknięty kształt (z pióra) może mieć wypełnienie.
+    if (obj.path?.some((k) => k[0] === 'Z')) s.append(this.kolor('Wypełnienie', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
+    const punkty = this.akcje([['suwaki', 'Edytuj punkty', () => { if (!this.edytor.edytujPunkty(obj)) powiadom('Punkty edytuje się w kształcie, który nie jest zablokowany ani zgrupowany.'); }]]);
+    punkty.classList.add('tylko-duzy-ekran');
+    s.append(punkty);
+    s.append(this.wskazowka('Albo kliknij kształt dwa razy.'));
   }
 
   zbudujObraz(obj) {

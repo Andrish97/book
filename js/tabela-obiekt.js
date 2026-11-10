@@ -3,7 +3,10 @@
 //
 // Tabela to grupa Fabric z opisem w polu `tabela`:
 //   { kolumny: [szerokości mm], wiersze: [najmniejsze wysokości mm], naglowek, linia: { kolor, grubosc },
-//     tlo: { naglowek: kolor | null, zebra: kolor | null } }
+//     tlo: { naglowek: kolor | null, zebra: kolor | null },
+//     scalenia: [{ w, k, ileW, ileK }] }
+// Scalenie: komórka w wierszu `w` i kolumnie `k` zajmuje ileW wierszy i ileK kolumn. Komórki, które
+// przykrywa, zostają w grupie (ukryte, ze swoim tekstem) – po rozdzieleniu wracają na miejsce.
 // W grupie leżą: prostokąty tła wierszy (na spodzie), ramki tekstu komórek (wierszami, od lewej)
 // i – za nimi – linie siatki.
 // Komórka to zwykły tekst: pola {…}, formatowanie fragmentów i style działają jak wszędzie.
@@ -43,9 +46,94 @@ export function miejsceKomorki(g, komorka) {
 
 // Rzeczywiste wysokości wierszy (po ostatnim ułożeniu).
 export function wysokosciWierszy(g) {
+  if (g._wysWierszy?.length === g.tabela.wiersze.length) return [...g._wysWierszy];
   const K = g.tabela.kolumny.length;
   const komorki = komorkiTabeli(g);
   return g.tabela.wiersze.map((min, w) => komorki[w * K]?.ramka_h || min);
+}
+
+// ---------- Scalanie komórek ----------
+
+const obejmuje = (s, w, k) => w >= s.w && w < s.w + s.ileW && k >= s.k && k < s.k + s.ileK;
+const nachodza = (a, b) => a.w < b.w + b.ileW && b.w < a.w + a.ileW && a.k < b.k + b.ileK && b.k < a.k + a.ileK;
+
+// Porządkuje listę scaleń: w granicach tabeli, bez scaleń jednej komórki i bez nachodzących na siebie.
+function uporzadkujScalenia(t) {
+  const W = t.wiersze.length;
+  const K = t.kolumny.length;
+  const dobre = [];
+  for (const s of Array.isArray(t.scalenia) ? t.scalenia : []) {
+    const w = Math.max(0, Math.round(s.w) || 0);
+    const k = Math.max(0, Math.round(s.k) || 0);
+    const n = { w, k, ileW: Math.min(W - w, Math.round(s.ileW) || 1), ileK: Math.min(K - k, Math.round(s.ileK) || 1) };
+    if (n.ileW < 1 || n.ileK < 1 || (n.ileW === 1 && n.ileK === 1) || dobre.some((d) => nachodza(d, n))) continue;
+    dobre.push(n);
+  }
+  if (dobre.length) t.scalenia = dobre; else delete t.scalenia;
+  return dobre;
+}
+
+// Dla każdej komórki (wierszami): scalenie, które ją obejmuje, albo null.
+function mapaScalen(t) {
+  const K = t.kolumny.length;
+  const mapa = Array.from({ length: t.wiersze.length * K }, () => null);
+  for (const s of t.scalenia || []) for (let w = s.w; w < s.w + s.ileW; w += 1) for (let k = s.k; k < s.k + s.ileK; k += 1) mapa[w * K + k] = s;
+  return mapa;
+}
+
+// Scalenie obejmujące komórkę (w, k) albo null.
+export function scalenieKomorki(g, w, k) {
+  return (g.tabela.scalenia || []).find((s) => obejmuje(s, w, k)) || null;
+}
+
+// Czy komórka jest schowana pod scaleniem (nie jest jego lewą górną komórką).
+export function komorkaSchowana(g, komorka) {
+  const m = miejsceKomorki(g, komorka);
+  const s = m && scalenieKomorki(g, m.w, m.k);
+  return Boolean(s && (s.w !== m.w || s.k !== m.k));
+}
+
+// Scala komórkę (w, k) – albo scalenie, do którego należy – z sąsiednią po prawej ('prawo') albo
+// poniżej ('dol'). Gdy sąsiad sam jest scaleniem, powstaje prostokąt obejmujący oba.
+// Zwraca lewą górną komórkę nowego scalenia albo null, gdy nie ma z czym scalić.
+export function scalKomorki(g, w, k, kierunek) {
+  const t = g.tabela;
+  const W = t.wiersze.length;
+  const K = t.kolumny.length;
+  const s = scalenieKomorki(g, w, k) || { w, k, ileW: 1, ileK: 1 };
+  let r = { ...s };
+  if (kierunek === 'prawo') { if (r.k + r.ileK >= K) return null; r.ileK += 1; } else { if (r.w + r.ileW >= W) return null; r.ileW += 1; }
+  // Prostokąt rośnie, aż obejmie w całości każde scalenie, o które zahacza.
+  for (let zmiana = true; zmiana;) {
+    zmiana = false;
+    for (const m of t.scalenia || []) {
+      if (!nachodza(r, m)) continue;
+      const n = { w: Math.min(r.w, m.w), k: Math.min(r.k, m.k) };
+      n.ileW = Math.max(r.w + r.ileW, m.w + m.ileW) - n.w;
+      n.ileK = Math.max(r.k + r.ileK, m.k + m.ileK) - n.k;
+      if (n.w !== r.w || n.k !== r.k || n.ileW !== r.ileW || n.ileK !== r.ileK) { r = n; zmiana = true; }
+    }
+  }
+  t.scalenia = [...(t.scalenia || []).filter((m) => !nachodza(r, m)), r];
+  ulozTabele(g);
+  return komorkiTabeli(g)[r.w * K + r.k] || null;
+}
+
+// Rozdziela scalenie, do którego należy komórka (w, k). Zwraca true, gdy było co rozdzielać.
+export function rozdzielKomorki(g, w, k) {
+  const s = scalenieKomorki(g, w, k);
+  if (!s) return false;
+  g.tabela.scalenia = g.tabela.scalenia.filter((m) => m !== s);
+  ulozTabele(g);
+  return true;
+}
+
+// Lewa górna komórka scalenia przejmuje treść i wygląd od komórki, która ją zastępuje (przy usuwaniu
+// wiersza albo kolumny z początkiem scalenia).
+function przeniesTresc(z, cel) {
+  if (!z || !cel) return;
+  cel.set({ text: z.text, styles: JSON.parse(JSON.stringify(z.styles || {})) });
+  for (const p of TEKST_KOMORKI) cel.set(p, z[p]);
 }
 
 // Wygląd tekstu przenoszony na nowe komórki i ustawiany dla całej tabeli naraz.
@@ -98,78 +186,120 @@ export function ulozTabele(g) {
   const W = t.wiersze.length;
   const komorki = komorkiTabeli(g);
   t.kolumny = t.kolumny.map((s) => Math.max(MIN_KOLUMNA, s));
+  uporzadkujScalenia(t);
+  const mapa = mapaScalen(t);
+  const poczatek = (i) => { const s = mapa[i]; return !s || (s.w === Math.floor(i / K) && s.k === i % K); };
   const wys = t.wiersze.map((min) => Math.max(MIN_WIERSZ, min));
-  // Pomiar: szerokość komórki z kolumny, wysokość treści wyznacza wysokość wiersza.
+  // Pomiar: szerokość komórki z kolumny (scalonej – z kilku), wysokość treści wyznacza wysokość wiersza.
+  const wysokie = []; // komórki scalone w pionie: [pierwszy wiersz, liczba wierszy, potrzebna wysokość]
   komorki.forEach((c, i) => {
     const k = i % K;
     const w = Math.floor(i / K);
+    const s = mapa[i];
     c.autodopasowanie = undefined;
-    c.set({ width: Math.max(1, t.kolumny[k] - 2 * ODSTEP_X), ...BEZ_PRZEKSZTALCEN });
+    // Komórka schowana pod scaleniem zostaje w grupie ze swoim tekstem, ale nie jest rysowana ani mierzona.
+    c.visible = poczatek(i);
+    c.evented = c.visible;
+    const szer = c.visible && s ? suma(t.kolumny.slice(k, k + s.ileK)) : t.kolumny[k];
+    c.set({ width: Math.max(1, szer - 2 * ODSTEP_X), ...BEZ_PRZEKSZTALCEN });
     c.initDimensions();
-    if (w < W) wys[w] = Math.max(wys[w], (c._wysokoscTresci ?? c.height) + 2 * ODSTEP_Y);
+    if (!c.visible || w >= W) return;
+    const potrzeba = (c._wysokoscTresci ?? c.height) + 2 * ODSTEP_Y;
+    if (s && s.ileW > 1) wysokie.push([w, s.ileW, potrzeba]);
+    else wys[w] = Math.max(wys[w], potrzeba);
   });
+  // Tekst komórki scalonej w pionie, który nie mieści się w jej wierszach, wydłuża ostatni z nich.
+  for (const [w, ile, potrzeba] of wysokie) {
+    const brak = potrzeba - suma(wys.slice(w, w + ile));
+    if (brak > 0) wys[w + ile - 1] += brak;
+  }
+  g._wysWierszy = [...wys];
   const SZER = suma(t.kolumny);
   const WYS = suma(wys);
-  let y = -WYS / 2;
+  const lewa = (k) => -SZER / 2 + suma(t.kolumny.slice(0, k));
+  const gorna = (w) => -WYS / 2 + suma(wys.slice(0, w));
   for (let w = 0; w < W; w += 1) {
-    let x = -SZER / 2;
     for (let k = 0; k < K; k += 1) {
       const c = komorki[w * K + k];
-      if (c) {
-        // Ramka komórki zajmuje cały wiersz – kliknięcie gdziekolwiek w komórce trafia w jej tekst.
-        c.ramka_h = wys[w];
-        c.height = wys[w];
-        c.set({ left: x + ODSTEP_X, top: y });
-        c.setCoords();
-        c.dirty = true;
-      }
-      x += t.kolumny[k];
+      if (!c) continue;
+      const s = c.visible ? mapa[w * K + k] : null;
+      // Ramka komórki zajmuje całą jej wysokość – kliknięcie gdziekolwiek w komórce trafia w jej tekst.
+      const h = s ? suma(wys.slice(w, w + s.ileW)) : wys[w];
+      c.ramka_h = h;
+      c.height = h;
+      c.set({ left: lewa(k) + ODSTEP_X, top: gorna(w) });
+      c.setCoords();
+      c.dirty = true;
     }
-    y += wys[w];
   }
 
   // Tło wierszy: nagłówek i co drugi wiersz treści („zebra”). Zwykłe prostokąty na spodzie grupy –
-  // rysują się tak samo na ekranie, w podglądzie i w PDF.
-  const tla = [];
-  y = -WYS / 2;
+  // rysują się tak samo na ekranie, w podglądzie i w PDF. Komórka scalona w pionie ma w całości tło
+  // swojego pierwszego wiersza.
+  const kolorWiersza = (w) => { const tresci = w - (t.naglowek ? 1 : 0); return (t.naglowek && w === 0 ? t.tlo?.naglowek : (tresci % 2 === 1 ? t.tlo?.zebra : null)) || null; };
+  const pionowe = (i) => Boolean(mapa[i] && mapa[i].ileW > 1);
+  const tla = []; // [lewo, góra, szerokość, wysokość, kolor]
   for (let w = 0; w < W; w += 1) {
-    const tresci = w - (t.naglowek ? 1 : 0);
-    const kolorTla = t.naglowek && w === 0 ? t.tlo?.naglowek : (tresci % 2 === 1 ? t.tlo?.zebra : null);
-    if (kolorTla) tla.push([y, wys[w], kolorTla]);
-    y += wys[w];
+    const kolorTla = kolorWiersza(w);
+    for (let k = 0; k < K;) {
+      const s = mapa[w * K + k];
+      if (pionowe(w * K + k)) {
+        const tu = s.w === w && s.k === k;
+        if (tu && kolorTla) tla.push([lewa(k), gorna(w), suma(t.kolumny.slice(k, k + s.ileK)), suma(wys.slice(w, w + s.ileW)), kolorTla]);
+        k += tu ? s.ileK : 1;
+        continue;
+      }
+      // Ciąg komórek tego wiersza, które nie należą do scalenia pionowego.
+      let koniec = k;
+      while (koniec < K && !pionowe(w * K + koniec)) koniec += 1;
+      if (kolorTla) tla.push([lewa(k), gorna(w), suma(t.kolumny.slice(k, koniec)), wys[w], kolorTla]);
+      k = koniec;
+    }
   }
   let prostokaty = g.getObjects().filter((o) => o.type === 'rect');
   if (prostokaty.length > tla.length) g.remove(...prostokaty.slice(tla.length));
   if (prostokaty.length < tla.length) g.insertAt(0, ...Array.from({ length: tla.length - prostokaty.length }, () => new fabric.Rect({ strokeWidth: 0, evented: false, selectable: false })));
   prostokaty = g.getObjects().filter((o) => o.type === 'rect');
-  tla.forEach(([gora, wysokosc, kolorTla], i) => {
-    prostokaty[i].set({ left: -SZER / 2, top: gora, width: SZER, height: wysokosc, fill: kolorTla, strokeWidth: 0, evented: false, selectable: false, ...BEZ_PRZEKSZTALCEN });
+  tla.forEach(([lewo, gora, szerokosc, wysokosc, kolorTla], i) => {
+    prostokaty[i].set({ left: lewo, top: gora, width: szerokosc, height: wysokosc, fill: kolorTla, strokeWidth: 0, evented: false, selectable: false, ...BEZ_PRZEKSZTALCEN });
     prostokaty[i].setCoords();
   });
 
-  // Linie siatki: pionowe na granicach kolumn, poziome na granicach wierszy.
-  const potrzeba = K + 1 + W + 1;
+  // Linie siatki: odcinki na granicach kolumn i wierszy; przez środek scalonej komórki linia nie przechodzi.
+  const wSrodku = (a, b) => Boolean(mapa[a] && mapa[a] === mapa[b]);
+  const odcinki = []; // [x1, y1, x2, y2, mnożnik grubości]
+  for (let k = 0; k <= K; k += 1) {
+    const zaslonieta = (w) => k > 0 && k < K && wSrodku(w * K + k - 1, w * K + k);
+    for (let w = 0; w < W;) {
+      if (zaslonieta(w)) { w += 1; continue; }
+      let koniec = w;
+      while (koniec < W && !zaslonieta(koniec)) koniec += 1;
+      odcinki.push([lewa(k), gorna(w), lewa(k), gorna(koniec), 1]);
+      w = koniec;
+    }
+  }
+  for (let w = 0; w <= W; w += 1) {
+    const zaslonieta = (k) => w > 0 && w < W && wSrodku((w - 1) * K + k, w * K + k);
+    for (let k = 0; k < K;) {
+      if (zaslonieta(k)) { k += 1; continue; }
+      let koniec = k;
+      while (koniec < K && !zaslonieta(koniec)) koniec += 1;
+      odcinki.push([lewa(k), gorna(w), lewa(koniec), gorna(w), t.naglowek && w === 1 && W > 1 ? 2 : 1]);
+      k = koniec;
+    }
+  }
   let linie = g.getObjects().filter((o) => o.type === 'line');
-  if (linie.length > potrzeba) g.remove(...linie.slice(potrzeba));
-  if (linie.length < potrzeba) g.add(...Array.from({ length: potrzeba - linie.length }, () => new fabric.Line([0, 0, 1, 0], { evented: false, selectable: false, strokeUniform: true })));
+  if (linie.length > odcinki.length) g.remove(...linie.slice(odcinki.length));
+  if (linie.length < odcinki.length) g.add(...Array.from({ length: odcinki.length - linie.length }, () => new fabric.Line([0, 0, 1, 0], { evented: false, selectable: false, strokeUniform: true })));
   linie = g.getObjects().filter((o) => o.type === 'line');
   const kolor = t.linia?.kolor || '#1a1a1a';
   const grubosc = Math.max(0, t.linia?.grubosc ?? 0.25);
-  const ustaw = (l, x1, y1, x2, y2, mnoznik = 1) => {
+  odcinki.forEach(([x1, y1, x2, y2, mnoznik], i) => {
+    const l = linie[i];
     l.set({ stroke: kolor, strokeWidth: grubosc * mnoznik, visible: grubosc > 0, evented: false, selectable: false, ...BEZ_PRZEKSZTALCEN });
     l.set({ x1, y1, x2, y2 }); // linia sama ustawia się środkiem między końcami
     l.setCoords();
-  };
-  let x = -SZER / 2;
-  for (let k = 0; k <= K; k += 1) {
-    ustaw(linie[k], x, -WYS / 2, x, WYS / 2);
-    x += t.kolumny[k] || 0;
-  }
-  y = -WYS / 2;
-  for (let w = 0; w <= W; w += 1) {
-    ustaw(linie[K + 1 + w], -SZER / 2, y, SZER / 2, y, t.naglowek && w === 1 && W > 1 ? 2 : 1);
-    y += wys[w] || 0;
-  }
+  });
 
   g.set({ width: SZER, height: WYS });
   g.setCoords();
@@ -199,7 +329,10 @@ export function komorkaWPunkcie(g, punkt) {
   const wys = wysokosciWierszy(g);
   let y = -suma(wys) / 2;
   const w = wys.findIndex((h) => { const jest = p.y >= y && p.y <= y + h; y += h; return jest; });
-  return k < 0 || w < 0 ? null : komorkiTabeli(g)[w * t.kolumny.length + k] || null;
+  if (k < 0 || w < 0) return null;
+  // Punkt w scalonej komórce wskazuje jej lewą górną komórkę – tę, w której jest tekst.
+  const s = scalenieKomorki(g, w, k);
+  return komorkiTabeli(g)[(s ? s.w : w) * t.kolumny.length + (s ? s.k : k)] || null;
 }
 
 // Szerokość kolumny k. Granica między kolumnami przesuwa się kosztem sąsiedniej (tabela nie zmienia
@@ -236,6 +369,8 @@ export function dodajWiersz(g, uid, po = g.tabela.wiersze.length - 1) {
   });
   g.insertAt(przedKomorkami(g) + (po + 1) * K, ...nowe);
   t.wiersze.splice(po + 1, 0, t.wiersze[Math.max(wzor, 0)] ?? t.wiersze.at(-1));
+  // Scalenia poniżej przesuwają się o wiersz; scalenie, w którego środek wszedł nowy wiersz, wydłuża się.
+  for (const s of t.scalenia || []) { if (s.w > po) s.w += 1; else if (s.w + s.ileW - 1 > po) s.ileW += 1; }
   ulozTabele(g);
   return po + 1;
 }
@@ -244,7 +379,16 @@ export function usunWiersz(g, w = g.tabela.wiersze.length - 1) {
   const t = g.tabela;
   if (t.wiersze.length <= 1 || !(w >= 0 && w < t.wiersze.length)) return false;
   const K = t.kolumny.length;
-  g.remove(...komorkiTabeli(g).slice(w * K, (w + 1) * K));
+  const komorki = komorkiTabeli(g);
+  for (const s of t.scalenia || []) {
+    if (w < s.w) s.w -= 1;
+    else if (w < s.w + s.ileW) {
+      // Znika pierwszy wiersz scalenia: treść przechodzi do komórki poniżej, która zostaje jego początkiem.
+      if (w === s.w && s.ileW > 1) przeniesTresc(komorki[w * K + s.k], komorki[(w + 1) * K + s.k]);
+      s.ileW -= 1;
+    }
+  }
+  g.remove(...komorki.slice(w * K, (w + 1) * K));
   t.wiersze.splice(w, 1);
   ulozTabele(g);
   return true;
@@ -264,6 +408,7 @@ export function dodajKolumne(g, uid, po = g.tabela.kolumny.length - 1) {
   const szer = suma(t.kolumny);
   t.kolumny = t.kolumny.map((s) => zaokr((s * K) / (K + 1)));
   t.kolumny.splice(po + 1, 0, zaokr(szer / (K + 1)));
+  for (const s of t.scalenia || []) { if (s.k > po) s.k += 1; else if (s.k + s.ileK - 1 > po) s.ileK += 1; }
   ulozTabele(g);
   return po + 1;
 }
@@ -273,6 +418,13 @@ export function usunKolumne(g, k = g.tabela.kolumny.length - 1) {
   const K = t.kolumny.length;
   if (K <= 1 || !(k >= 0 && k < K)) return false;
   const komorki = komorkiTabeli(g);
+  for (const s of t.scalenia || []) {
+    if (k < s.k) s.k -= 1;
+    else if (k < s.k + s.ileK) {
+      if (k === s.k && s.ileK > 1) przeniesTresc(komorki[s.w * K + k], komorki[s.w * K + k + 1]);
+      s.ileK -= 1;
+    }
+  }
   g.remove(...t.wiersze.map((_, w) => komorki[w * K + k]).filter(Boolean));
   const szer = suma(t.kolumny);
   t.kolumny.splice(k, 1);
