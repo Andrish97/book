@@ -108,6 +108,8 @@ export const ROZDZIALY = [
     wstep: 'Pasek nad stroną wstawia nowe elementy na stronę.',
     obraz: 'wstawianie.png',
     podpis: 'Zaznaczony tekst z uchwytami.',
+    obraz2: 'pioro.png',
+    podpis2: 'Kształt narysowany piórem w trakcie edycji punktów: punkty kształtu i uchwyty łuków.',
     punkty: [
       '<b>Tekst</b> – kliknij dwa razy, aby pisać bezpośrednio na stronie, albo wpisz treść w polu <b>Treść</b> po prawej.',
       '<b>Prostokąt, Elipsa, Wielokąt, Linia</b> – kształty do ramek, tła i podziałów. Wielokąt zaczyna jako trójkąt; liczbę boków zmienisz we właściwościach, tam też zrobisz z niego gwiazdę.',
@@ -159,6 +161,8 @@ export const ROZDZIALY = [
     wstep: 'Poniżej ustawień wyglądu każdy element ma dokładne położenie i narzędzia do układania.',
     obraz: 'wyrownanie.png',
     podpis: 'Kilka zaznaczonych elementów: wyrównanie do siebie i równe odstępy.',
+    obraz2: 'rysunek-svg.png',
+    podpis2: 'U góry rysunek SVG wstawiony jako obraz, na dole ten sam po rozłożeniu na elementy: napis jest zwykłym tekstem w czcionce z zestawu, a kształt ma inny kolor.',
     punkty: [
       '<b>Położenie i rozmiar</b>: dokładne X, Y, szerokość, wysokość i obrót.',
       '<b>Wyrównaj</b>: jeden element wyrównuje się do marginesów strony, kilka zaznaczonych – do siebie. Przy trzech i więcej dochodzą <b>równe odstępy</b>.',
@@ -309,6 +313,8 @@ export const ROZDZIALY = [
   {
     tytul: 'Ramka tekstu i obrazy z danych',
     wstep: 'Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. Do tego służy ramka o stałej wysokości. Obraz też może przychodzić z tabeli.',
+    obraz: 'ramka-tekstu.png',
+    podpis: 'Ramka o stałej wysokości: tekst wyrównany do dołu, zmniejszany, gdy się nie mieści. Ustawienia są we właściwościach tekstu.',
     punkty: [
       'Zaznacz tekst i włącz <b>Stała wysokość ramki</b>. Wysokość wpisujesz w mm albo zmieniasz górnym lub dolnym uchwytem.',
       '<b>Tekst w pionie</b>: do góry, na środku albo do dołu ramki.',
@@ -344,6 +350,8 @@ export const ROZDZIALY = [
   {
     tytul: 'Tabela',
     wstep: 'Tabela to jeden element strony z wierszami i kolumnami. Wstawiasz ją przyciskiem <b>Tabela</b> na pasku nad stroną.',
+    obraz: 'tabela.png',
+    podpis: 'Tabela z tłem nagłówka, co drugim wierszem w kolorze i scaloną komórką; po prawej jej ustawienia.',
     punkty: [
       '<b>Pojedyncze kliknięcie</b> zaznacza całą tabelę – przesuwasz ją, obracasz i układasz w warstwach jak każdy inny element. Na liście warstw to jeden wiersz „Tabela”.',
       '<b>Podwójne kliknięcie komórki</b> zaczyna w niej pisanie. <kbd>Tab</kbd> przechodzi do następnej komórki, <kbd>Shift</kbd>+<kbd>Tab</kbd> do poprzedniej; <kbd>Tab</kbd> w ostatniej komórce dodaje nowy wiersz. Kliknięcie innej komórki przenosi tam pisanie, <kbd>Esc</kbd> kończy je i wraca do zaznaczenia całej tabeli.',
@@ -531,7 +539,6 @@ export const ROZDZIALY = [
     punkty: [
       '<b>Własna poczta</b>: wiadomości z potwierdzeniem konta i resetem hasła z własnej domeny.',
       '<b>Zdjęcia CMYK w trybie „Obrazy stron”</b>: PDF/X-4 z profilem jest w obu rodzajach pliku, ale przeliczanie zdjęć na CMYK tylko w wektorowym.',
-      '<b>Biblioteka gotowych układów stron</b>.',
     ],
   },
 ];
@@ -597,6 +604,8 @@ export class Instrukcja {
         + `${r.podpis ? `<figcaption>${r.podpis}</figcaption>` : ''}</figure>`);
     }
     if (r.punkty?.length) html.push(`<ul class="punkty">${r.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
+    // Drugi obrazek rozdziału – pod punktami.
+    if (r.obraz2) html.push(`<figure><img src="img/instrukcja/${r.obraz2}" alt="${r.podpis2 || ''}" loading="lazy">${r.podpis2 ? `<figcaption>${r.podpis2}</figcaption>` : ''}</figure>`);
     if (r.html) html.push(r.html());
     if (r.rada) html.push(`<p class="rada">${r.rada}</p>`);
     this.tresc.innerHTML = html.join('');

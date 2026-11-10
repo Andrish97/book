@@ -552,6 +552,117 @@ async function przykladoweProjekty(strona) {
   await d.waitForTimeout(2500);
   await zrzut(d, 'kontrola.png');
   await d.click('#kontrola-zamknij');
+
+  // Pusta strona pod kolejne zrzuty: bez serii, bez elementów.
+  const pustaStrona = () => d.evaluate(() => {
+    const { edytor: e, stan } = window.seriodruk;
+    delete stan.projekt.strony[0].seria;
+    e.canvas.getObjects().filter((o) => !o.zWzorca).forEach((o) => e.canvas.remove(o));
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+  });
+  const doSekcjiPanelu = (tekst) => d.evaluate((t) => {
+    const el = [...document.querySelectorAll('#wlasciwosci *')].filter((x) => x.textContent.includes(t)).pop();
+    el?.scrollIntoView({ block: 'center' });
+  }, tekst);
+
+  // Ramka tekstu o stałej wysokości
+  await pustaStrona();
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const pt = (n) => n * 25.4 / 72;
+    const tlo = e.dodajProstokat(); tlo.set({ left: 12, top: 40, width: 124, height: 46, fill: '#eef2fb', stroke: '#2f5bd3', strokeWidth: 0.3 });
+    const tytul = e.dodajTekst('Imieniny'); tytul.set({ left: 16, top: 44, width: 116, fontSize: pt(11), fontWeight: 'bold', fill: '#2f5bd3' });
+    const t = e.dodajTekst('Kacpra, Melchiora, Baltazara, Andrzeja, Bolemira, Epifanii, Karola, Miłowita, Norberta'); t.set({ left: 16, top: 52, width: 116, fontSize: pt(16), fontFamily: 'Lora', ramka_h: 30, wyrownanie_pion: 'dol', autodopasowanie: true, rozmiar_bazowy: pt(16), min_rozmiar: 9 });
+    t.initDimensions();
+    e.zatwierdz();
+    e.odznacz();
+    e.zaznacz(t.id);
+  });
+  await d.waitForTimeout(700);
+  await doSekcjiPanelu('Stała wysokość ramki');
+  await d.waitForTimeout(200);
+  await zrzut(d, 'ramka-tekstu.png');
+
+  // Tabela: tło nagłówka, co drugi wiersz, scalona komórka
+  await pustaStrona();
+  await d.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    const { komorkiTabeli, scalKomorki, ustawTloTabeli, ulozTabele } = await import('./js/tabela-obiekt.js');
+    const g = e.dodajTabele({ wiersze: 6, kolumny: 4 });
+    const tresc = [
+      ['Dzień', 'Rano', 'Po południu', 'Uwagi'],
+      ['Poniedziałek', 'Basen', 'Angielski', 'Strój i czepek'],
+      ['Wtorek', 'Wycieczka do muzeum', '', 'Zbiórka 8.15'],
+      ['Środa', 'Plastyka', 'Szachy', ''],
+      ['Czwartek', 'Basen', 'Chór', ''],
+      ['Piątek', 'Biblioteka', 'Zajęcia sportowe', 'Zwrot książek'],
+    ];
+    komorkiTabeli(g).forEach((c, i) => c.set('text', tresc[Math.floor(i / 4)][i % 4]));
+    scalKomorki(g, 2, 1, 'prawo');
+    ustawTloTabeli(g, { naglowek: '#dbe4fb', zebra: '#f4f1ea' });
+    ulozTabele(g);
+    g.set({ top: 40 });
+    g.setCoords();
+    e.zatwierdz();
+    e.zaznacz(g.id);
+  });
+  await d.waitForTimeout(700);
+  await zrzut(d, 'tabela.png');
+
+  // Pióro: kształt z łukami w trakcie edycji punktów
+  await pustaStrona();
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const k = new fabric.Path('M 30 120 C 30 80 60 60 75 85 C 90 60 120 80 120 120 C 120 150 90 165 75 180 C 60 165 30 150 30 120 Z', { fill: '#f6c9d0', stroke: '#b3263c', strokeWidth: 0.8, strokeUniform: true });
+    e._wstaw(k);
+    e.zatwierdz();
+    e.edytujPunkty(k);
+  });
+  // Kliknięty punkt pokazuje uchwyty łuków.
+  const punkt = await d.evaluate(() => {
+    const c = window.seriodruk.edytor.canvas;
+    const v = c.viewportTransform;
+    const r = c.upperCanvasEl.getBoundingClientRect();
+    return [r.left + 120 * v[0] + v[4], r.top + 120 * v[3] + v[5]];
+  });
+  await d.mouse.click(...punkt);
+  await d.evaluate(() => { document.querySelector('#powiadomienie').hidden = true; });
+  await d.waitForTimeout(500);
+  await zrzut(d, 'pioro.png', { clip: { x: 236, y: 56, width: 744, height: 620 } });
+  await d.keyboard.press('Escape');
+
+  // Rysunek SVG: jako obraz i po rozłożeniu na elementy
+  await pustaStrona();
+  await d.evaluate(async () => {
+    const { edytor: e, stan } = window.seriodruk;
+    const { rozlozRysunek } = await import('./js/svg-elementy.js');
+    const kod = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="240" viewBox="0 0 480 240">
+      <rect width="480" height="240" rx="18" fill="#fff8e1"/>
+      <circle cx="90" cy="120" r="56" fill="#ffb703"/>
+      <path d="M40 190 C 120 130, 200 230, 290 170 S 420 150, 450 190" fill="none" stroke="#219ebc" stroke-width="10" stroke-linecap="round"/>
+      <polygon points="410,36 456,104 364,104" fill="#8ecae6" stroke="#023047" stroke-width="4"/>
+      <text x="170" y="92" font-family="Playfair Display" font-size="40" font-weight="bold" fill="#023047">Wakacje</text>
+      <text x="172" y="128" font-family="Lora" font-size="20" fill="#5c4b00">nad jeziorem</text>
+    </svg>`;
+    const adres = `data:image/svg+xml;base64,${btoa(kod)}`;
+    const a = await e.dodajObraz(adres, 'wakacje.svg', stan.projekt.zasoby);
+    a.set({ left: 14, top: 22, scaleX: 0.25, scaleY: 0.25 }); a.setCoords();
+    const b = await e.dodajObraz(adres, 'wakacje.svg', stan.projekt.zasoby);
+    b.set({ left: 14, top: 100, scaleX: 0.25, scaleY: 0.25 }); b.setCoords();
+    const w = await rozlozRysunek(stan.projekt, b);
+    e.zastapObiekt(b, w.grupa);
+    e.rozgrupuj();
+    const kolo = e.canvas.getObjects().find((o) => o.type === 'ellipse');
+    kolo.set('fill', '#fb8500');
+    const napis = e.canvas.getObjects().find((o) => o.type === 'textbox' && o.text === 'Wakacje');
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+    e.zaznacz(napis.id);
+    document.querySelector('#powiadomienie').hidden = true;
+  });
+  await d.waitForTimeout(700);
+  await zrzut(d, 'rysunek-svg.png');
   await kp.close();
 
   // ---------- Telefon ----------
