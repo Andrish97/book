@@ -852,7 +852,7 @@ dialog h2 { font-size: 19px; }
 
 /* ---------- Telefon i tablet w pionie: panele jako arkusze z dołu ---------- */
 
-@media (max-width: 860px) {
+@media (max-width: 860px), (max-height: 520px) {
   .uklad-edytora { grid-template-columns: minmax(0, 1fr); }
   /* Na telefonie linijki zabierałyby miejsce, a prowadnic i tak nie da się wygodnie wyciągać palcem. */
   .z-linijkami .linijka { display: none; }
@@ -974,7 +974,7 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .lista-zmiennych { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--tusz-2); }
 .lista-zmiennych code { font-size: 12px; }
 
-@media (max-width: 860px) {
+@media (max-width: 860px), (max-height: 520px) {
   .pasek-wzorca { left: 10px; right: 10px; bottom: 64px; max-width: none; }
 }
 
@@ -1005,7 +1005,7 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .rzad.cztery .pole { flex: 1 1 0; }
 .lista-wyboru { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 
-@media (max-width: 860px) {
+@media (max-width: 860px), (max-height: 520px) {
   .lista-stron { display: flex; }
   .lista-stron > li.strona.w-rozkladowce { flex: 0 0 84px; }
   .lista-stron > li.strona.w-rozkladowce.lewa { margin-right: -10px; }
@@ -1041,7 +1041,7 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .podglad-strona figcaption { margin-top: 8px; font-size: 12px; color: var(--tusz-2); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .podglad-strona.pusta { visibility: hidden; }
 
-@media (max-width: 860px) {
+@media (max-width: 860px), (max-height: 520px) {
   .podglad-tresc { padding: 16px 12px 60px; }
   .podglad-opis { display: none; }
 }
@@ -1162,3 +1162,56 @@ input[type="checkbox"]:disabled, input[type="radio"]:disabled { opacity: .5; cur
 input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { appearance: none; -webkit-appearance: none; margin: 0; }
 .wlasciwosci input[type="checkbox"], .wlasciwosci input[type="radio"], dialog input[type="checkbox"], dialog input[type="radio"] { min-height: 0; padding: 0; }
+
+/* ---------- Telefon ----------
+   Edytor na telefonie działa w poziomie. W pionie ekran jest za wąski na stronę i panel naraz,
+   a wysuwane z dołu arkusze zasłaniały to, co się zmienia – stąd plansza z prośbą o obrót.
+   Lista projektów, logowanie i udostępniony podgląd działają w pionie normalnie. */
+.blokada-ekranu { display: none; position: fixed; inset: 0; z-index: 900; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; background: var(--tlo, var(--powierzchnia)); color: var(--tusz); }
+.blokada-ekranu svg { width: 56px; height: 56px; color: var(--akcent); }
+.blokada-ekranu h2 { font-size: 20px; }
+.blokada-ekranu p { max-width: 30ch; color: var(--tusz-2); line-height: 1.5; }
+.blokada-ekranu .przycisk { margin-top: 6px; }
+@media (orientation: portrait) and (max-width: 600px) {
+  body[data-ekran="edytor"] .blokada-ekranu { display: grid; }
+  body[data-ekran="edytor"] .blokada-ekranu .za-niskie { display: none; }
+}
+@media (max-height: 300px) {
+  body[data-ekran="edytor"] .blokada-ekranu { display: grid; }
+  body[data-ekran="edytor"] .blokada-ekranu .obroc { display: none; }
+}
+
+/* Niski ekran (telefon w poziomie): panele wysuwają się z boków, nie z dołu,
+   a przyciski paneli stoją w pionowej listwie po prawej. */
+@media (max-height: 520px) and (min-width: 521px) {
+  body[data-ekran="edytor"] #ekran-edytora { display: grid; grid-template-columns: minmax(0, 1fr) 68px; grid-template-rows: 48px minmax(0, 1fr); }
+  .pasek-edytora { grid-column: 1 / -1; min-height: 48px; height: 48px; padding-top: 0; padding-bottom: 0; }
+  .uklad-edytora { grid-column: 1; grid-row: 2; }
+  .zakladki-mobilne { grid-column: 2; grid-row: 2; flex-direction: column; justify-content: flex-start; padding: 6px 5px; border-top: 0; border-left: 1px solid var(--linia); }
+  .zakladki-mobilne button { flex: none; height: 52px; font-size: 9.5px; letter-spacing: -.01em; }
+  .panel {
+    top: 48px; bottom: 0; left: auto; right: auto; width: min(330px, 54vw); max-height: none;
+    border-radius: 0; box-shadow: 0 0 24px rgba(28, 27, 25, .22);
+  }
+  .panel::before { display: none; }
+  .panel-strony { left: 0; transform: translateX(-110%); }
+  .panel-inspektor { right: 68px; transform: translateX(calc(100% + 80px)); }
+  /* Otwarty panel nie zasłania strony: arkusz odsuwa się w wolną część ekranu. */
+  body[data-panel="inspektor"] .arkusz, body[data-panel="ostrzezenia"] .arkusz { padding-right: calc(min(330px, 54vw) + 16px); }
+  body[data-panel="strony"] .arkusz { padding-left: calc(min(330px, 54vw) + 16px); }
+  body[data-panel="strony"] .pasek-narzedzi { display: none; }
+  .lista-stron > .sekcja-listy { flex: 0 0 100%; margin: 0; }
+  body[data-panel="inspektor"] .panel-inspektor, body[data-panel="ostrzezenia"] .panel-inspektor { height: auto; }
+  .lista-stron { flex-direction: row; flex-wrap: wrap; overflow-x: hidden; overflow-y: auto; align-content: flex-start; }
+  .pasek-narzedzi, .z-linijkami .pasek-narzedzi { top: 50%; left: 8px; transform: translateY(-50%); flex-direction: column; }
+  .pasek-narzedzi button { min-width: 44px; height: 42px; }
+  .arkusz, .z-linijkami .arkusz { padding: 16px 20px 16px 72px; }
+  .kontrolki-widoku { right: 8px; bottom: 8px; }
+  .pasek-wzorca { left: 68px; right: 8px; bottom: 8px; }
+  .stopka-panelu { padding-bottom: 8px; }
+}
+
+/* Narzędzia trudne do obsługi palcem na małym ekranie są tam schowane (wielokąt, tabela, kadrowanie ramką). */
+@media (max-height: 520px), (max-width: 600px) {
+  .tylko-duzy-ekran { display: none !important; }
+}

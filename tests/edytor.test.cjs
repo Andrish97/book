@@ -85,34 +85,60 @@ test('format własny i orientacja z kreatora trafiają do sekcji', async (t) => 
   assert.equal(w.format, 'wlasny');
 });
 
-test('telefon: panele z dołu, dodanie strony i tekstu', async (t) => {
+test('telefon: praca w poziomie – panele z boków, ukryte trudne narzędzia; w pionie i w zbyt niskim oknie plansza', async (t) => {
   const { strona, bledy } = await otworz(t, { telefon: true });
   await nowyProjekt(strona, 'Telefon');
   await strona.tap('[data-akcja="dodaj-tekst"]');
 
-  // Ekran trzyma się okna: pasek u góry, menu na samym dole, zamknięte arkusze
-  // niewidoczne i w całości poniżej ekranu, dokument nie daje się przewinąć.
+  // Ekran trzyma się okna: pasek u góry, listwa paneli po prawej na całą wysokość, zamknięte
+  // panele niewidoczne i w całości poza ekranem, dokument nie daje się przewinąć.
   const uklad = () => strona.evaluate(() => {
-    const r = (s) => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); return { gora: Math.round(b.top), dol: Math.round(b.bottom), widac: getComputedStyle(e).visibility === 'visible' }; };
+    const r = (s) => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); return { lewo: Math.round(b.left), prawo: Math.round(b.right), gora: Math.round(b.top), dol: Math.round(b.bottom), widac: getComputedStyle(e).visibility === 'visible' }; };
     window.scrollTo(0, 200);
-    return { okno: window.innerHeight, przewiniecie: window.scrollY + document.body.scrollTop, pasek: r('#ekran-edytora > :first-child'), menu: r('.zakladki-mobilne'), strony: r('.panel-strony'), wlasciwosci: r('.panel-inspektor') };
+    return { okno: [window.innerWidth, window.innerHeight], przewiniecie: window.scrollY + document.body.scrollTop, pasek: r('#ekran-edytora > :first-child'), listwa: r('.zakladki-mobilne'), strony: r('.panel-strony'), wlasciwosci: r('.panel-inspektor'), plansza: getComputedStyle(document.querySelector('#blokada-ekranu')).display };
   });
   let u = await uklad();
   assert.equal(u.przewiniecie, 0);
-  assert.equal(u.pasek.gora, 0);
-  assert.equal(u.menu.dol, u.okno);
-  assert.ok(!u.strony.widac && u.strony.gora >= u.okno, 'zamknięty arkusz stron nie wystaje');
-  assert.ok(!u.wlasciwosci.widac && u.wlasciwosci.gora >= u.okno, 'zamknięty arkusz właściwości nie wystaje');
+  assert.equal(u.plansza, 'none');
+  assert.deepEqual([u.pasek.gora, u.pasek.dol], [0, 48]);
+  assert.deepEqual([u.listwa.prawo, u.listwa.gora, u.listwa.dol], [u.okno[0], 48, u.okno[1]]);
+  assert.ok(!u.strony.widac && u.strony.prawo <= 0, 'zamknięty panel stron jest poza lewą krawędzią');
+  assert.ok(!u.wlasciwosci.widac && u.wlasciwosci.lewo >= u.okno[0], 'zamknięty panel właściwości jest poza prawą krawędzią');
+  // Trudne narzędzia są schowane; podstawowe zostają.
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz']);
 
-  // Okno zmienia wysokość (chowany pasek adresu) – układ idzie za nim.
-  await strona.setViewportSize({ width: 412, height: 700 });
+  // Właściwości wysuwają się z prawej, na całą wysokość pod paskiem; strona odsuwa się spod panelu.
+  await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
+  await strona.waitForFunction(() => getComputedStyle(document.querySelector('.panel-inspektor')).visibility === 'visible');
+  await strona.waitForTimeout(300);
   u = await uklad();
-  assert.deepEqual([u.pasek.gora, u.menu.dol], [0, 700]);
+  assert.deepEqual([u.wlasciwosci.gora, u.wlasciwosci.dol, u.wlasciwosci.prawo], [48, u.okno[1], u.listwa.lewo]);
+  const stronaNaEkranie = await strona.evaluate(() => { const b = document.querySelector('.arkusz .canvas-container').getBoundingClientRect(); return Math.round(b.right); });
+  assert.ok(stronaNaEkranie <= u.wlasciwosci.lewo + 2, `strona mieści się obok panelu (${stronaNaEkranie} ≤ ${u.wlasciwosci.lewo})`);
 
+  // Strony – z lewej; dodanie strony działa.
   await strona.tap('.zakladki-mobilne [data-panel="strony"]');
   await strona.waitForFunction(() => getComputedStyle(document.querySelector('.panel-strony')).visibility === 'visible');
+  await strona.waitForTimeout(300);
+  u = await uklad();
+  assert.deepEqual([u.strony.lewo, u.strony.gora, u.strony.dol], [0, 48, u.okno[1]]);
   await strona.tap('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
+
+  // Telefon obrócony do pionu: plansza „Obróć telefon poziomo”; przycisk wraca do projektów, gdzie pion jest w porządku.
+  await strona.setViewportSize({ width: 412, height: 915 });
+  assert.equal((await uklad()).plansza, 'grid');
+  assert.ok(await strona.isVisible('#blokada-ekranu h2.obroc'));
+  assert.ok(await strona.isHidden('#blokada-ekranu h2.za-niskie'));
+  // Zbyt niskie okno (np. klawiatura ekranowa w poziomie): osobny komunikat.
+  await strona.setViewportSize({ width: 800, height: 280 });
+  assert.ok(await strona.isVisible('#blokada-ekranu h2.za-niskie'));
+  assert.ok(await strona.isHidden('#blokada-ekranu h2.obroc'));
+  await strona.setViewportSize({ width: 412, height: 915 });
+  await strona.tap('#blokada-ekranu [data-akcja="do-projektow"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  assert.equal(await strona.evaluate(() => getComputedStyle(document.querySelector('#blokada-ekranu')).display), 'none');
+  assert.ok(await strona.isVisible('.karta-projektu'));
   assert.deepEqual(bledy, []);
 });
 

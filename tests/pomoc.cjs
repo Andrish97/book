@@ -239,7 +239,8 @@ async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = 
   const serwer = await uruchomSerwer();
   const przegladarka = await chromium.launch();
   const kontekst = await przegladarka.newContext({
-    ...(telefon ? devices['Pixel 7'] : { viewport: widok }),
+    // telefon: true – telefon trzymany poziomo (tak pracuje edytor); 'pion' – pionowo.
+    ...(telefon ? devices[telefon === 'pion' ? 'Pixel 7' : 'Pixel 7 landscape'] : { viewport: widok }),
     serviceWorkers: 'block',
     acceptDownloads: true,
   });

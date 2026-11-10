@@ -538,7 +538,9 @@ export class PanelWlasciwosci {
   zbudujObraz(obj) {
     const { nw, nh } = rozmiarOryginalu(obj);
     const kadr = this.sekcja('Kadrowanie');
-    kadr.append(this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz albo obraz w grupie przytnij liczbami poniżej.'); }]]));
+    const kadrRamka = this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz albo obraz w grupie przytnij liczbami poniżej.'); }]]);
+    kadrRamka.classList.add('tylko-duzy-ekran');
+    kadr.append(kadrRamka);
     kadr.append(this.wskazowka('Albo kliknij obraz dwa razy.'));
     const s = this.sekcja('Przycięcie (% oryginału)');
     const kraw = () => ({
