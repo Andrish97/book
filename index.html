@@ -390,7 +390,19 @@
         </div>
 
         <div class="kontrolki-widoku" id="kontrolki-widoku">
-          <button class="przycisk-ikona" data-akcja="prowadnice" id="przycisk-prowadnice" data-ikona="prowadnice" title="Pokaż/ukryj linię cięcia, spad i marginesy" aria-pressed="true"></button>
+          <button class="przycisk-ikona" data-akcja="prowadnice" id="przycisk-prowadnice" data-ikona="prowadnice" title="Pokaż/ukryj linie pomocnicze (W)" aria-pressed="true"></button>
+          <div class="menu-widoku-opak">
+            <button class="przycisk-ikona" id="przycisk-widok" data-ikona="siatka" title="Siatka, przyciąganie, linijki" aria-label="Siatka, przyciąganie, linijki" aria-haspopup="menu" aria-expanded="false"></button>
+            <div class="menu menu-widoku" id="menu-widoku" role="group" aria-label="Siatka i przyciąganie" hidden>
+              <label class="przelacznik"><input type="checkbox" id="widok-siatka"><span>Siatka</span><kbd>Ctrl '</kbd></label>
+              <label class="przelacznik"><input type="checkbox" id="widok-do-siatki"><span>Przyciągaj do siatki</span><kbd>Ctrl Shift '</kbd></label>
+              <label class="pole-widoku"><span>Krok siatki</span><span class="z-jednostka"><input type="text" inputmode="decimal" id="widok-krok" aria-label="Krok siatki w milimetrach"><i>mm</i></span></label>
+              <hr>
+              <label class="przelacznik"><input type="checkbox" id="widok-do-elementow"><span>Przyciągaj do elementów i pokazuj odległości</span></label>
+              <label class="przelacznik"><input type="checkbox" id="widok-linijki"><span>Linijki</span><kbd>Ctrl R</kbd></label>
+              <p class="podpowiedz-widoku">Przytrzymaj <kbd>Ctrl</kbd> przy przeciąganiu, żeby na chwilę wyłączyć przyciąganie. <kbd>Alt</kbd> pokazuje odległości zaznaczonego elementu.</p>
+            </div>
+          </div>
           <div class="separator"></div>
           <button class="przycisk-ikona" data-akcja="zoom-minus" data-ikona="minus" aria-label="Pomniejsz"></button>
           <button class="wartosc-zoom" data-akcja="zoom-dopasuj" id="wartosc-zoom" title="Dopasuj do okna">100%</button>

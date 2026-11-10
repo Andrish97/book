@@ -95,12 +95,31 @@ export function nowyProjekt(nazwa = 'Nowy projekt', wydruk = domyslnyWydruk(), u
     tabele: [],
     strony: [nowaStrona('Strona 1', sekcja.id)],
     zakresy: [],
+    widok: null, // siatka i przyciąganie – uzupełniane w normalizuj()
     // Zasoby (obrazy, później czcionki). Obiekty obrazów odwołują się do nich
     // przez src = "zasob:<id>", dzięki czemu JSON projektu pozostaje lekki,
     // a zasoby mogą trafić do Supabase Storage.
     zasoby: {},
     zmieniono: new Date().toISOString(),
   };
+}
+
+// ---------- Widok: siatka i przyciąganie (ustawienia projektu) ----------
+
+export const DOMYSLNY_WIDOK = {
+  siatka_mm: 5, // krok siatki
+  siatka: false, // czy siatkę widać
+  do_siatki: false, // przyciąganie do siatki
+  do_elementow: true, // przyciąganie do innych elementów i strzałki z odległościami
+  linijki: true,
+};
+
+export function normalizujWidok(w) {
+  const wynik = { ...DOMYSLNY_WIDOK, ...(w && typeof w === 'object' ? w : {}) };
+  const krok = Number(wynik.siatka_mm);
+  wynik.siatka_mm = Number.isFinite(krok) && krok >= 0.5 ? Math.min(100, krok) : DOMYSLNY_WIDOK.siatka_mm;
+  for (const k of ['siatka', 'do_siatki', 'do_elementow', 'linijki']) wynik[k] = Boolean(wynik[k]);
+  return wynik;
 }
 
 // Uzupełnia brakujące pola w projektach wczytanych z pliku lub z bazy
@@ -113,6 +132,7 @@ export function normalizuj(p) {
   for (const klucz of ['zrodla', 'tabele', 'zakresy', 'style']) {
     if (!Array.isArray(wynik[klucz])) wynik[klucz] = [];
   }
+  wynik.widok = normalizujWidok(p.widok);
   delete wynik.motywy; // zastąpione wzorcami
   delete wynik.uklad;
 

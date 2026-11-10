@@ -548,6 +548,19 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 }
 .pasek-narzedzi button:hover { background: var(--wypelnienie); color: var(--tusz); }
 .kontrolki-widoku { right: 14px; bottom: 14px; }
+.menu-widoku-opak { position: relative; display: flex; }
+.menu-widoku { top: auto; bottom: calc(100% + 12px); right: -8px; width: 300px; padding: 10px 12px; gap: 2px; }
+.menu-widoku .przelacznik { min-height: 36px; font-size: 13px; }
+.menu-widoku .przelacznik span { flex: 1; }
+.menu-widoku kbd, .podpowiedz-widoku kbd {
+  font: 500 11px/1 Inter, system-ui, sans-serif; color: var(--cichy);
+  padding: 3px 5px; border: 1px solid var(--linia-mocna); border-radius: 4px; white-space: nowrap;
+}
+.pole-widoku { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding-left: 28px; font-size: 13px; color: var(--tusz-2); }
+.pole-widoku .z-jednostka { display: inline-flex; align-items: center; gap: 6px; }
+.pole-widoku input { width: 64px; height: 32px; padding: 0 8px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); text-align: right; }
+.pole-widoku i { font-style: normal; color: var(--cichy); font-size: 12px; }
+.podpowiedz-widoku { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--linia); font-size: 12px; line-height: 1.6; color: var(--cichy); }
 .kontrolki-widoku .separator { margin: 6px 2px; }
 .wartosc-zoom {
   min-width: 58px; height: 36px; border: 0; border-radius: 8px; background: none; cursor: pointer;

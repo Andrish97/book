@@ -11,6 +11,7 @@
 import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
+import { przyciagnij, pomiary } from './przyciaganie.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -63,6 +64,10 @@ export class Edytor extends EventTarget {
     this._wczytywanie = false;
     this._renderujeEksport = false;
     this._liniePrzyciagania = [];
+    this._pomiary = []; // strzałki z odległościami do sąsiednich elementów
+    this._cele = null; // ramki innych elementów, zapamiętane na czas jednego przeciągnięcia
+    this.widok = { siatka_mm: 5, siatka: false, do_siatki: false, do_elementow: true };
+    this.prowadniceWlasne = { x: [], y: [] }; // w mm, w układzie arkusza
     this._historia = [];
     this._pozycjaHistorii = -1;
     this._timerHistorii = null;
@@ -88,10 +93,13 @@ export class Edytor extends EventTarget {
     c.on('selection:created', () => this._emitujZaznaczenie());
     c.on('selection:updated', () => this._emitujZaznaczenie());
     c.on('selection:cleared', () => this._emitujZaznaczenie());
-    c.on('object:moving', (e) => this._przyciagnij(e.target));
+    c.on('object:moving', (e) => this._przyciagnij(e.target, e.e));
+    c.on('mouse:down', () => { this._cele = null; });
     c.on('mouse:up', () => {
-      if (this._liniePrzyciagania.length) {
+      this._cele = null;
+      if (this._liniePrzyciagania.length || (this._pomiary.length && !this._pomiaryStale)) {
         this._liniePrzyciagania = [];
+        this._pomiary = [];
         c.requestRenderAll();
       }
     });
@@ -754,35 +762,74 @@ export class Edytor extends EventTarget {
     this.dispatchEvent(new CustomEvent('ostrzezenia', { detail: lista }));
   }
 
-  // ---------- Przyciąganie do prowadnic (4.7) ----------
+  // ---------- Przyciąganie: prowadnice, inne elementy, równe odstępy, siatka ----------
 
-  _przyciagnij(obj) {
-    if (!this.wydruk) return;
+  // widok: { siatka_mm, siatka, do_siatki, do_elementow } – ustawienia projektu.
+  ustawWidok(widok) {
+    this.widok = { ...this.widok, ...widok };
+    this.canvas.requestRenderAll();
+  }
+
+  _ramka(o) {
+    o.setCoords();
+    const r = o.getBoundingRect(true, true);
+    return { x: r.left, y: r.top, w: r.width, h: r.height };
+  }
+
+  // Prostokąty pozostałych elementów (bez przesuwanego i bez ukrytych).
+  _ramkiInnych(obj) {
+    const pomijane = new Set(obj.type === 'activeSelection' ? obj.getObjects() : [obj]);
+    return this.canvas.getObjects().filter((o) => !pomijane.has(o) && o.visible !== false).map((o) => this._ramka(o));
+  }
+
+  // Prowadnice arkusza: krawędzie, marginesy i środki stron oraz prowadnice własne.
+  _liniePomocnicze() {
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
     const m = this.marg;
-    const prog = 6 / this.skala; // 6 px na ekranie
-    obj.setCoords();
-    const r = obj.getBoundingRect(true, true);
-    const pion = this.strony.flatMap((s) => [s.x, s.x + s.marg.lewy, s.x + w / 2, s.x + w - s.marg.prawy, s.x + w]);
-    const poziom = [0, m.gora, h / 2, h - m.dol, h];
-    const krawedzieX = [r.left, r.left + r.width / 2, r.left + r.width];
-    const krawedzieY = [r.top, r.top + r.height / 2, r.top + r.height];
-    const najblizsza = (krawedzie, linie) => {
-      let best = null;
-      for (const k of krawedzie) {
-        for (const l of linie) {
-          const d = l - k;
-          if (Math.abs(d) <= prog && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, l };
-        }
-      }
-      return best;
+    return {
+      x: [...this.strony.flatMap((s) => [s.x, s.x + s.marg.lewy, s.x + w / 2, s.x + w - s.marg.prawy, s.x + w]), ...this.prowadniceWlasne.x],
+      y: [0, m.gora, h / 2, h - m.dol, h, ...this.prowadniceWlasne.y],
     };
-    const bx = najblizsza(krawedzieX, pion);
-    const by = najblizsza(krawedzieY, poziom);
+  }
+
+  // Z Ctrl (⌘) przesuwanie jest swobodne – bez przyciągania.
+  _przyciagnij(obj, zdarzenie) {
+    if (!this.wydruk) return;
     this._liniePrzyciagania = [];
-    if (bx) { obj.left += bx.d; this._liniePrzyciagania.push({ x: bx.l }); }
-    if (by) { obj.top += by.d; this._liniePrzyciagania.push({ y: by.l }); }
+    this._pomiary = [];
+    if (zdarzenie?.ctrlKey || zdarzenie?.metaKey) return;
+    const r = this._ramka(obj);
+    if (!this._cele) this._cele = this.widok.do_elementow ? this._ramkiInnych(obj) : [];
+    const linie = this._liniePomocnicze();
+    const krok = this.widok.do_siatki ? this.widok.siatka_mm : 0;
+    const wynik = przyciagnij(r, {
+      linieX: linie.x,
+      linieY: linie.y,
+      inne: this._cele,
+      siatkaX: krok ? { krok, poczatek: this.strony[this.stronaW(r.x + r.w / 2)].x } : null,
+      siatkaY: krok ? { krok, poczatek: 0 } : null,
+      prog: 6 / this.skala, // 6 px na ekranie
+    });
+    obj.left += wynik.dx;
+    obj.top += wynik.dy;
     obj.setCoords();
+    this._liniePrzyciagania = wynik.linie;
+    this._pomiary = wynik.pomiary;
+  }
+
+  // Odległości zaznaczonego elementu do sąsiadów i krawędzi strony (przytrzymany Alt).
+  pokazPomiary(wlacz) {
+    const obj = this.aktywny;
+    if (!wlacz || !obj || obj.isEditing || !this.wydruk) {
+      if (this._pomiaryStale) { this._pomiaryStale = false; this._pomiary = []; this.canvas.requestRenderAll(); }
+      return;
+    }
+    const r = this._ramka(obj);
+    const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+    const strona = this.strony[this.stronaW(r.x + r.w / 2)];
+    this._pomiary = pomiary(r, this._ramkiInnych(obj), { x: strona.x, y: 0, w, h });
+    this._pomiaryStale = true;
+    this.canvas.requestRenderAll();
   }
 
   // ---------- Prowadnice: spad, linia cięcia, marginesy ----------
@@ -799,6 +846,28 @@ export class Edytor extends EventTarget {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     const dpr = this.canvas.getRetinaScaling();
     ctx.scale(dpr, dpr);
+
+    if (this.pokazProwadnice && this.widok.siatka && this.widok.siatka_mm > 0) {
+      // Siatka: liczona od rogu każdej strony. Przy małym powiększeniu rysujemy
+      // co którąś linię, żeby nie zlała się w szarą plamę.
+      const krok = this.widok.siatka_mm;
+      const co = Math.max(1, Math.ceil(5 / (krok * s)));
+      ctx.lineWidth = 1;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      for (const { x } of this.strony) {
+        for (let k = co; k * krok < wStrony - 0.01; k += co) {
+          const px = Math.round(X(x + k * krok)) + 0.5;
+          ctx.moveTo(px, Y(0)); ctx.lineTo(px, Y(h));
+        }
+      }
+      for (let k = co; k * krok < h - 0.01; k += co) {
+        const py = Math.round(Y(k * krok)) + 0.5;
+        ctx.moveTo(X(0), py); ctx.lineTo(X(w), py);
+      }
+      ctx.strokeStyle = 'rgba(37, 99, 235, 0.16)';
+      ctx.stroke();
+    }
 
     if (this.pokazProwadnice) {
       // Spad: przyciemniony pas, który zostanie odcięty.
@@ -852,17 +921,67 @@ export class Edytor extends EventTarget {
       }
     }
 
-    // Linie przyciągania.
+    // Linie przyciągania: do prowadnicy przez całe płótno, do innego elementu –
+    // na odcinku obejmującym oba elementy.
     if (this._liniePrzyciagania.length) {
       ctx.strokeStyle = '#db2777';
       ctx.lineWidth = 1;
       ctx.setLineDash([]);
       for (const l of this._liniePrzyciagania) {
         ctx.beginPath();
-        if (l.x !== undefined) { ctx.moveTo(X(l.x) + 0.5, 0); ctx.lineTo(X(l.x) + 0.5, this.canvas.getHeight()); }
-        else { ctx.moveTo(0, Y(l.y) + 0.5); ctx.lineTo(this.canvas.getWidth(), Y(l.y) + 0.5); }
+        if (l.os === 'x') {
+          const px = Math.round(X(l.poz)) + 0.5;
+          ctx.moveTo(px, l.od === undefined ? 0 : Y(l.od) - 6); ctx.lineTo(px, l.do === undefined ? this.canvas.getHeight() : Y(l.do) + 6);
+        } else {
+          const py = Math.round(Y(l.poz)) + 0.5;
+          ctx.moveTo(l.od === undefined ? 0 : X(l.od) - 6, py); ctx.lineTo(l.do === undefined ? this.canvas.getWidth() : X(l.do) + 6, py);
+        }
         ctx.stroke();
       }
+    }
+
+    // Odległości do sąsiadów: odcinek ze strzałkami i liczbą w mm. Równe odstępy
+    // mają pełną etykietę, zwykłe – samą liczbę w obwódce.
+    for (const m of this._pomiary) {
+      const pion = m.os === 'y';
+      const a = pion ? [X(m.poprzek), Y(m.od)] : [X(m.od), Y(m.poprzek)];
+      const b = pion ? [X(m.poprzek), Y(m.do)] : [X(m.do), Y(m.poprzek)];
+      const kolor = m.rowne ? '#7c3aed' : '#db2777';
+      ctx.strokeStyle = kolor;
+      ctx.fillStyle = kolor;
+      ctx.lineWidth = m.rowne ? 1.5 : 1;
+      ctx.setLineDash(m.doKrawedzi ? [3, 3] : []);
+      ctx.beginPath();
+      ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const dlugosc = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (dlugosc > 14) {
+        for (const [p, kier] of [[a, 1], [b, -1]]) {
+          ctx.beginPath();
+          if (pion) { ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] - 3.5, p[1] + 6 * kier); ctx.lineTo(p[0] + 3.5, p[1] + 6 * kier); }
+          else { ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] + 6 * kier, p[1] - 3.5); ctx.lineTo(p[0] + 6 * kier, p[1] + 3.5); }
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+      const tekst = String(Math.round(m.wartosc * 10) / 10).replace('.', ',');
+      ctx.font = '600 11px Inter, system-ui, sans-serif';
+      const szer = ctx.measureText(tekst).width + 10;
+      let sx = (a[0] + b[0]) / 2;
+      let sy = (a[1] + b[1]) / 2;
+      // Etykieta, która nie mieści się na odcinku, staje obok niego.
+      if (pion && dlugosc < 20) sx += szer / 2 + 6;
+      if (!pion && dlugosc < szer + 14) sy -= 14;
+      ctx.beginPath();
+      ctx.roundRect(sx - szer / 2, sy - 8, szer, 16, 4);
+      ctx.fillStyle = m.rowne ? kolor : '#ffffff';
+      ctx.fill();
+      if (!m.rowne) { ctx.lineWidth = 1; ctx.stroke(); }
+      ctx.fillStyle = m.rowne ? '#ffffff' : kolor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tekst, sx, sy + 0.5);
     }
     ctx.restore();
   }

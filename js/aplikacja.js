@@ -10,6 +10,7 @@ import {
 } from './projekt.js';
 import { Edytor, opisObiektu } from './edytor.js';
 import { warstwyWzorcow, renderujCel } from './zlozenie.js';
+import { MenuWidoku } from './widok.js';
 import { PanelWlasciwosci } from './wlasciwosci.js';
 import { zaladujCzcionki } from './czcionki.js';
 import {
@@ -538,11 +539,18 @@ async function zaladujCel({ dopasuj = false } = {}) {
     await edytor.wczytajArkusz(dane, projekt.zasoby);
     naPlotnie = { strony: strony.map((s) => s.id) };
   }
+  edytor.ustawWidok(projekt.widok);
   if (dopasuj || innyRozmiar || bylaRozkladowka !== edytor.rozkladowka) edytor.dopasujDoOkna();
   odswiezPasekEdytora();
   renderujListe();
   trasa.ustaw(`p/${projekt.id}/${stan.tryb === 'wzorzec' ? `w/${cel.id}` : `s/${cel.id}`}`, { zastap: true });
 }
+
+// Siatka, przyciąganie, linijki – ustawienia projektu zmieniane z menu przy płótnie.
+const menuWidoku = new MenuWidoku({
+  widok: () => stan.projekt?.widok,
+  poZmianie: (widok) => { edytor.ustawWidok(widok); zaplanujZapis(); },
+});
 
 // Druga strona tej samej rozkładówki staje się bieżącą – bez wczytywania od nowa.
 function wybierzStroneArkusza(k) {
@@ -1749,6 +1757,7 @@ document.addEventListener('click', (e) => {
 
 $('#awatar').addEventListener('click', (e) => przelaczMenu(e.currentTarget, $('#menu-uzytkownika')));
 $('#przycisk-wiecej').addEventListener('click', (e) => przelaczMenu(e.currentTarget, $('#menu-wiecej')));
+$('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); przelaczMenu(e.currentTarget, $('#menu-widoku')); });
 $('#naglowek-ostrzezen').addEventListener('click', (e) => {
   const b = e.currentTarget;
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
@@ -1805,6 +1814,13 @@ edytor.addEventListener('historia', () => {
 });
 
 // ---------- Skróty klawiszowe ----------
+
+// Alt przy zaznaczonym elemencie: odległości do sąsiadów i krawędzi strony.
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Alt' && document.body.dataset.ekran === 'edytor' && !$('dialog[open]')) { e.preventDefault(); edytor.pokazPomiary(true); }
+});
+document.addEventListener('keyup', (e) => { if (e.key === 'Alt') edytor.pokazPomiary(false); });
+window.addEventListener('blur', () => edytor.pokazPomiary(false));
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') zamknijMenu();
