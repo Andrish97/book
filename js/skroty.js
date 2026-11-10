@@ -10,7 +10,7 @@ const mm = (pt) => (pt * 25.4) / 72;
 // k – kontekst przekazany z aplikacji: { edytor, widok, strony, podglad, … }.
 export const SKROTY = [
   // ---------- Edycja ----------
-  { grupa: 'Edycja', klawisze: ['Ctrl+KeyZ'], opis: 'Cofnij', akcja: (k) => k.edytor.cofnij() },
+  { grupa: 'Edycja', klawisze: ['Ctrl+KeyZ'], opis: 'Cofnij (także usunięcie albo przesunięcie strony, zaraz po nim)', akcja: (k) => k.cofnij() },
   { grupa: 'Edycja', klawisze: ['Ctrl+Shift+KeyZ', 'Ctrl+KeyY'], opis: 'Ponów', akcja: (k) => k.edytor.ponow() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyC'], opis: 'Kopiuj', zaznaczenie: true, akcja: (k) => k.edytor.kopiuj() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyX'], opis: 'Wytnij', zaznaczenie: true, akcja: (k) => k.edytor.wytnij() },

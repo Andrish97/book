@@ -72,13 +72,27 @@ function wpiszWRamki(obiekty) {
 // wyrównanie tekstu zmienia się na przeciwne.
 function odbij(o, szerokosc) {
   const srodek = o.getCenterPoint();
+  odbijWMiejscu(o);
+  o.setPositionByOrigin(new fabric.Point(szerokosc - srodek.x, srodek.y), 'center', 'center');
+  o.setCoords();
+}
+
+// Odbicie samego elementu: obrót w drugą stronę, wyrównanie tekstu na przeciwne;
+// w grupie – także układ jej części (położenia części liczą się od środka grupy).
+function odbijWMiejscu(o) {
   o.set({ angle: -(o.angle || 0) });
   if (o.type === 'line') o.set('flipX', !o.flipX);
   if (typeof o.textAlign === 'string') {
     o.set('textAlign', { left: 'right', right: 'left' }[o.textAlign] || o.textAlign);
   }
-  o.setPositionByOrigin(new fabric.Point(szerokosc - srodek.x, srodek.y), 'center', 'center');
-  o.setCoords();
+  if (o.type !== 'group') return;
+  for (const czesc of o.getObjects()) {
+    const s = czesc.getCenterPoint();
+    odbijWMiejscu(czesc);
+    czesc.setPositionByOrigin(new fabric.Point(-s.x, s.y), 'center', 'center');
+    czesc.setCoords();
+  }
+  o.dirty = true;
 }
 
 // cel: strona projektu albo egzemplarz z ciągu → egzemplarz (dla strony: pierwszy).

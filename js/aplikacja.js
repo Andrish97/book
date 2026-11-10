@@ -525,6 +525,57 @@ function odswiezPasekEdytora() {
 // wolno przepisywać do projektu.
 let naPlotnie = null;
 
+// „W rozkładówkach pokazuj jedną stronę” – ustawienie urządzenia, domyślnie
+// włączone na wąskim ekranie, gdzie cała rozkładówka byłaby za mała do pracy.
+const KLUCZ_JEDNA = 'seriodruk:jedna-strona';
+function jednaStrona() {
+  try {
+    const v = localStorage.getItem(KLUCZ_JEDNA);
+    if (v !== null) return v === '1';
+  } catch { /* tryb prywatny */ }
+  return window.matchMedia('(max-width: 860px)').matches;
+}
+
+// ---------- Cofnięcie operacji na stronach, sekcjach i wzorcach ----------
+// Przed taką operacją zapamiętujemy cały projekt (bez obrazów – te się nie
+// zmieniają). Cofnąć można do pierwszej następnej zmiany na stronie: wtedy
+// zapamiętany stan przestaje pasować i znika.
+
+function zapamietajDoCofniecia(opis) {
+  const { projekt } = stan;
+  stan.doCofniecia = {
+    opis,
+    dane: JSON.stringify({ ...projekt, zasoby: undefined }),
+    indeks: stan.indeks, tryb: stan.tryb, idWzorca: stan.idWzorca,
+  };
+  odswiezCofanie();
+}
+
+async function cofnijOperacje() {
+  const z = stan.doCofniecia;
+  if (!z || !stan.projekt) return;
+  stan.doCofniecia = null;
+  naPlotnie = null; // płótno pokazuje stan po operacji – nie wolno go przepisać do projektu
+  const { projekt } = stan;
+  const { zasoby } = projekt;
+  for (const k of Object.keys(projekt)) delete projekt[k];
+  Object.assign(projekt, JSON.parse(z.dane), { zasoby });
+  stan.indeks = Math.min(z.indeks, projekt.strony.length - 1);
+  stan.tryb = z.tryb;
+  stan.idWzorca = z.idWzorca;
+  stan.miniatury.clear();
+  await zaladujCel();
+  odswiezCofanie();
+  generujMiniatury();
+  zaplanujZapis();
+  powiadom(`Cofnięto: ${z.opis}.`);
+}
+
+function odswiezCofanie() {
+  $('[data-akcja="cofnij"]').disabled = !(edytor.moznaCofnac || stan.doCofniecia);
+  $('[data-akcja="ponow"]').disabled = !edytor.moznaPonowic;
+}
+
 // Wczytuje bieżący cel do edytora; dopasowuje widok, gdy zmienił się rozmiar.
 async function zaladujCel({ dopasuj = false } = {}) {
   const { projekt } = stan;
@@ -540,7 +591,7 @@ async function zaladujCel({ dopasuj = false } = {}) {
     naPlotnie = { wzorzec: cel.id };
   } else {
     const ciag = rozwin(projekt);
-    const strony = arkuszStrony(cel, ciag);
+    const strony = jednaStrona() ? [cel] : arkuszStrony(cel, ciag);
     const dane = [];
     for (const s of strony) {
       dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), prowadnice: s.prowadnice, warstwy: await warstwyWzorcow(projekt, s, ciag) });
@@ -1185,11 +1236,13 @@ function renderujListeStron() {
       if (bok === 'prawa' && k === 0) li.classList.add('sama');
       if (blok) li.classList.add('w-serii');
       li.dataset.id = s.id;
+      li.draggable = true;
       li.innerHTML = `<span class="numer">${nr ?? '–'}</span>
         <button class="miniatura"></button>
         <span class="nazwa"></span>
         <button class="przycisk-ikona menu-miniatury" aria-label="Opcje strony" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
       $('.miniatura', li).setAttribute('aria-label', `Strona ${nr ?? ''} ${s.nazwa}`);
+      $('.miniatura', li).draggable = true; // przeciąganie zaczyna się zwykle na miniaturze
       if (aktywna) $('.miniatura', li).setAttribute('aria-current', 'page');
       $('.miniatura', li).append(obrazMiniatury(s.id, sekcja.wydruk));
       if (blok) {
@@ -1330,6 +1383,7 @@ async function usunStrone(i) {
   const s = stan.projekt.strony[i];
   if (!await potwierdz(`Usunąć stronę „${s.nazwa}”?`, 'Wszystkie elementy z tej strony zostaną usunięte.', 'Usuń stronę', true)) return;
   zapiszBiezacyCel();
+  zapamietajDoCofniecia(`usunięcie strony „${s.nazwa}”`);
   const biezaca = biezacaStrona();
   stan.projekt.strony.splice(i, 1);
   stan.miniatury.delete(s.id);
@@ -1337,6 +1391,7 @@ async function usunStrone(i) {
   stan.indeks = nowyIndeks >= 0 ? nowyIndeks : Math.min(i, stan.projekt.strony.length - 1);
   if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();
   zaplanujZapis();
+  powiadom(`Usunięto stronę „${s.nazwa}”.`, false, { etykieta: 'Cofnij', fn: cofnijOperacje });
 }
 
 // Przesuwanie w obrębie sekcji (do innej sekcji – przez właściwości strony).
@@ -1345,6 +1400,7 @@ async function przesunStrone(i, kierunek) {
   const j = i + kierunek;
   if (j < 0 || j >= strony.length || strony[j].sekcja !== strony[i].sekcja) return;
   zapiszBiezacyCel();
+  zapamietajDoCofniecia('przesunięcie strony');
   const biezaca = biezacaStrona();
   [strony[i], strony[j]] = [strony[j], strony[i]];
   stan.indeks = strony.indexOf(biezaca);
@@ -1361,6 +1417,7 @@ async function przesunStrone(i, kierunek) {
 async function przeniesStroneDoSekcji(strona, idSekcji) {
   if (strona.sekcja === idSekcji) return;
   zapiszBiezacyCel();
+  zapamietajDoCofniecia('przeniesienie strony do innej sekcji');
   strona.sekcja = idSekcji;
   // Na koniec nowej sekcji.
   const strony = stan.projekt.strony;
@@ -1426,6 +1483,9 @@ function otworzMenuWzorca(przycisk, id) {
   zamknijMenu();
   if (bylo) return;
   menu.dataset.id = id;
+  const i = stan.projekt.wzorce.findIndex((w) => w.id === id);
+  $('[data-akcja="wzorzec-gora"]', menu).disabled = i <= 0;
+  $('[data-akcja="wzorzec-dol"]', menu).disabled = i >= stan.projekt.wzorce.length - 1;
   pokazMenu(menu, przycisk);
 }
 
@@ -1602,6 +1662,7 @@ async function usunSekcje(id) {
   );
   if (!ok) return;
   zapiszBiezacyCel();
+  zapamietajDoCofniecia(`usunięcie sekcji „${sekcja.nazwa}”`);
   const biezaca = biezacaStrona();
   projekt.sekcje = projekt.sekcje.filter((s) => s.id !== id);
   projekt.strony = projekt.strony.filter((s) => s.sekcja !== id);
@@ -1610,6 +1671,7 @@ async function usunSekcje(id) {
   stan.miniatury.clear();
   await zaladujCel();
   zaplanujZapis();
+  powiadom(`Usunięto sekcję „${sekcja.nazwa}”.`, false, { etykieta: 'Cofnij', fn: cofnijOperacje });
 }
 
 // ---------- Wzorce ----------
@@ -1675,6 +1737,7 @@ async function usunWzorzec(id) {
   );
   if (!ok) return;
   zapiszBiezacyCel();
+  zapamietajDoCofniecia(`usunięcie wzorca „${w.nazwa}”`);
   for (const s of stronyZWzorcem(projekt, id)) stan.miniatury.delete(s.id);
   projekt.wzorce = projekt.wzorce.filter((x) => x.id !== id);
   for (const s of projekt.sekcje) s.wzorce = s.wzorce.filter((x) => x !== id);
@@ -1687,6 +1750,42 @@ async function usunWzorzec(id) {
   } else {
     await zaladujCel();
   }
+  zaplanujZapis();
+  powiadom(`Usunięto wzorzec „${w.nazwa}”.`, false, { etykieta: 'Cofnij', fn: cofnijOperacje });
+}
+
+// Kolejność wzorców: pierwszy na liście leży najniżej na stronie.
+async function przesunWzorzec(id, kierunek) {
+  const { wzorce } = stan.projekt;
+  const i = wzorce.findIndex((w) => w.id === id);
+  const j = i + kierunek;
+  if (i < 0 || j < 0 || j >= wzorce.length) return;
+  zapiszBiezacyCel();
+  [wzorce[i], wzorce[j]] = [wzorce[j], wzorce[i]];
+  stan.miniatury.clear();
+  await zaladujCel();
+  generujMiniatury();
+  zaplanujZapis();
+}
+
+// Przeciągnięcie strony na liście: przed stronę docelową albo za nią. Strona
+// upuszczona w innej sekcji przechodzi do niej.
+async function przeniesStrone(idStrony, idCelu, po) {
+  const { projekt } = stan;
+  const strona = projekt.strony.find((s) => s.id === idStrony);
+  const cel = projekt.strony.find((s) => s.id === idCelu);
+  if (!strona || !cel || strona === cel) return;
+  zapiszBiezacyCel();
+  zapamietajDoCofniecia('przesunięcie strony');
+  const biezaca = biezacaStrona();
+  projekt.strony.splice(projekt.strony.indexOf(strona), 1);
+  strona.sekcja = cel.sekcja;
+  projekt.strony.splice(projekt.strony.indexOf(cel) + (po ? 1 : 0), 0, strona);
+  uporzadkujStrony(projekt);
+  stan.indeks = projekt.strony.indexOf(biezaca);
+  stan.miniatury.clear();
+  if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();
+  generujMiniatury();
   zaplanujZapis();
 }
 
@@ -1824,6 +1923,8 @@ const akcje = {
   'wzorzec-nazwa': przezMenu(wzorzecZMenu, zmienNazweWzorca),
   'wzorzec-duplikuj': przezMenu(wzorzecZMenu, duplikujWzorzecZ),
   'wzorzec-usun': przezMenu(wzorzecZMenu, usunWzorzec),
+  'wzorzec-gora': przezMenu(wzorzecZMenu, (id) => przesunWzorzec(id, -1)),
+  'wzorzec-dol': przezMenu(wzorzecZMenu, (id) => przesunWzorzec(id, 1)),
   'wroc-do-stron': wrocDoStron,
 
   'dodaj-tekst': () => edytor.dodajTekst(),
@@ -1831,7 +1932,7 @@ const akcje = {
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-obraz': () => $('#plik-obraz').click(),
-  cofnij: () => edytor.cofnij(),
+  cofnij: () => (edytor.moznaCofnac || !stan.doCofniecia ? edytor.cofnij() : cofnijOperacje()),
   ponow: () => edytor.ponow(),
   duplikuj: () => edytor.duplikuj(),
   kopiuj: async () => { if (await edytor.kopiuj()) powiadom('Skopiowano. Wklej na tej albo innej stronie: Ctrl+V lub „Wklej” we właściwościach strony.'); },
@@ -1866,7 +1967,7 @@ document.addEventListener('click', (e) => {
 
 $('#awatar').addEventListener('click', (e) => przelaczMenu(e.currentTarget, $('#menu-uzytkownika')));
 $('#przycisk-wiecej').addEventListener('click', (e) => przelaczMenu(e.currentTarget, $('#menu-wiecej')));
-$('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); przelaczMenu(e.currentTarget, $('#menu-widoku')); });
+$('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); $('#widok-jedna').checked = jednaStrona(); przelaczMenu(e.currentTarget, $('#menu-widoku')); });
 $('#naglowek-ostrzezen').addEventListener('click', (e) => {
   const b = e.currentTarget;
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
@@ -1936,9 +2037,47 @@ edytor.addEventListener('zoom', (e) => {
 });
 edytor.addEventListener('strona', (e) => wybierzStroneArkusza(e.detail));
 edytor.addEventListener('prowadnice', zaplanujZapis);
-edytor.addEventListener('historia', () => {
-  $('[data-akcja="cofnij"]').disabled = !edytor.moznaCofnac;
-  $('[data-akcja="ponow"]').disabled = !edytor.moznaPonowic;
+edytor.addEventListener('historia', odswiezCofanie);
+// Zmiana na stronie unieważnia zapamiętany stan sprzed operacji na stronach.
+edytor.addEventListener('zmiana', () => { if (stan.doCofniecia) { stan.doCofniecia = null; odswiezCofanie(); } });
+
+// Przeciąganie stron na liście (mysz).
+{
+  const lista = $('#lista-stron');
+  let ciagnieta = null;
+  const znacznik = (li, po) => {
+    lista.querySelectorAll('.cel-przed, .cel-po').forEach((x) => x.classList.remove('cel-przed', 'cel-po'));
+    if (li) li.classList.add(po ? 'cel-po' : 'cel-przed');
+  };
+  const czyPo = (li, e) => { const r = li.getBoundingClientRect(); return li.classList.contains('w-rozkladowce') ? e.clientX > r.left + r.width / 2 : e.clientY > r.top + r.height / 2; };
+  lista.addEventListener('dragstart', (e) => {
+    const li = e.target.closest('li.strona');
+    if (!li) return;
+    ciagnieta = li.dataset.id;
+    li.classList.add('ciagnieta');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', ciagnieta);
+  });
+  lista.addEventListener('dragover', (e) => {
+    const li = e.target.closest('li.strona');
+    if (!ciagnieta || !li || li.dataset.id === ciagnieta) { znacznik(null); return; }
+    e.preventDefault();
+    znacznik(li, czyPo(li, e));
+  });
+  lista.addEventListener('drop', (e) => {
+    const li = e.target.closest('li.strona');
+    if (!ciagnieta || !li) return;
+    e.preventDefault();
+    przeniesStrone(ciagnieta, li.dataset.id, czyPo(li, e));
+  });
+  lista.addEventListener('dragend', () => { ciagnieta = null; znacznik(null); lista.querySelectorAll('.ciagnieta').forEach((x) => x.classList.remove('ciagnieta')); });
+}
+
+// Jedna strona zamiast rozkładówki – ustawienie tego urządzenia.
+$('#widok-jedna').addEventListener('change', async (e) => {
+  try { localStorage.setItem(KLUCZ_JEDNA, e.target.checked ? '1' : '0'); } catch { /* tryb prywatny */ }
+  zapiszBiezacyCel();
+  await zaladujCel({ dopasuj: true });
 });
 
 // ---------- Skróty klawiszowe ----------
@@ -1952,6 +2091,7 @@ window.addEventListener('blur', () => edytor.pokazPomiary(false));
 
 const kontekstSkrotow = {
   edytor,
+  cofnij: () => akcje.cofnij(),
   widok: menuWidoku,
   zapisz: () => zapiszTeraz().then(() => synchronizuj()),
   wstawObraz: () => $('#plik-obraz').click(),

@@ -602,6 +602,12 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
 }
 .wlasciwosci fieldset:first-child { border-top: 0; padding-top: 2px; }
+.wlasciwosci .zwijak { display: flex; align-items: center; gap: 6px; width: 100%; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.wlasciwosci .zwijak::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid var(--cichy); border-bottom: 1.5px solid var(--cichy); transform: rotate(45deg); margin: 0 3px 3px 1px; transition: transform var(--czas); }
+.wlasciwosci fieldset.zwinieta .zwijak::before { transform: rotate(-45deg); margin-bottom: 0; }
+.wlasciwosci fieldset.zwinieta { padding-bottom: 6px; }
+.wlasciwosci fieldset.zwinieta > :not(legend) { display: none; }
+.wlasciwosci fieldset.zwinieta legend { margin-bottom: 0; }
 .wlasciwosci legend { float: left; width: 100%; padding: 0; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--tusz-2); grid-column: 1 / -1; }
 .wlasciwosci label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--cichy); min-width: 0; }
 .wlasciwosci .szeroki { grid-column: 1 / -1; }
@@ -783,6 +789,8 @@ dialog h2 { font-size: 19px; }
   background: var(--tusz); color: var(--powierzchnia); box-shadow: var(--cien-3); font-size: 13.5px;
 }
 .powiadomienie.blad { background: var(--blad); color: var(--akcent-tekst); }
+.powiadomienie:not([hidden]) { display: flex; align-items: center; gap: 14px; }
+.powiadomienie button { border: 0; border-radius: var(--r-s); padding: 5px 10px; background: var(--powierzchnia); color: var(--tusz); font-weight: 600; cursor: pointer; }
 
 /* ---------- Tablet ---------- */
 
@@ -940,6 +948,10 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 /* ---------- Rozkładówki ---------- */
 
 /* Druga strona rozkładówki otwartej w edytorze. */
+/* Przeciąganie stron na liście: znacznik miejsca wstawienia. */
+.strona.cel-przed .miniatura { box-shadow: -4px 0 0 0 var(--akcent), 0 -4px 0 0 var(--akcent); }
+.strona.cel-po .miniatura { box-shadow: 4px 0 0 0 var(--akcent), 0 4px 0 0 var(--akcent); }
+.strona.ciagnieta { opacity: .45; }
 .strona.na-arkuszu .miniatura { border-color: color-mix(in srgb, var(--akcent) 45%, transparent); }
 
 .lista-stron { display: grid; grid-template-columns: 1fr 1fr; align-content: start; column-gap: 8px; }

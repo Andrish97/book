@@ -16,6 +16,11 @@ const zaokr = (v, miejsc = 2) => {
   return Math.round(v * k) / k;
 };
 
+const KLUCZ_ZWINIETE = 'seriodruk:zwiniete-sekcje';
+function zwiniete() {
+  try { return new Set(JSON.parse(localStorage.getItem(KLUCZ_ZWINIETE) || '[]')); } catch { return new Set(); }
+}
+
 export class PanelWlasciwosci {
   // opcje.tytulPusty(): nagłówek, gdy nic nie jest zaznaczone,
   // opcje.budujPusty(panel): zawartość panelu dla strony / wzorca.
@@ -429,12 +434,27 @@ export class PanelWlasciwosci {
 
   // ---------- Kontrolki ----------
 
+  // Sekcję panelu można zwinąć kliknięciem w jej tytuł; wybór jest pamiętany
+  // na urządzeniu (osobno dla każdego tytułu), bo panel bywa długi.
   sekcja(tytul) {
     const f = document.createElement('fieldset');
     // Pierwsza sekcja o tej samej nazwie co nagłówek panelu – bez powtórzenia.
     if (!(this.el.children.length === 0 && tytul === this.tytul.textContent)) {
+      const klucz = tytul.replace(/„.*”/, '').trim();
       const l = document.createElement('legend');
-      l.textContent = tytul;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'zwijak';
+      b.textContent = tytul;
+      const ustaw = (zwinieta) => { f.classList.toggle('zwinieta', zwinieta); b.setAttribute('aria-expanded', String(!zwinieta)); };
+      ustaw(zwiniete().has(klucz));
+      b.addEventListener('click', () => {
+        const z = zwiniete();
+        if (z.has(klucz)) z.delete(klucz); else z.add(klucz);
+        try { localStorage.setItem(KLUCZ_ZWINIETE, JSON.stringify([...z])); } catch { /* tryb prywatny */ }
+        ustaw(z.has(klucz));
+      });
+      l.append(b);
       f.append(l);
     }
     this.el.append(f);

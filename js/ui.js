@@ -5,13 +5,21 @@ export const $ = (sel, korzen = document) => korzen.querySelector(sel);
 export const $$ = (sel, korzen = document) => [...korzen.querySelectorAll(sel)];
 
 let timerPowiadomienia = null;
-export function powiadom(tekst, blad = false) {
+// akcja: opcjonalnie { etykieta, fn } – przycisk w powiadomieniu (np. „Cofnij”).
+export function powiadom(tekst, blad = false, akcja = null) {
   const el = $('#powiadomienie');
   el.textContent = tekst;
+  if (akcja) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = akcja.etykieta;
+    b.addEventListener('click', () => { el.hidden = true; akcja.fn(); });
+    el.append(b);
+  }
   el.classList.toggle('blad', blad);
   el.hidden = false;
   clearTimeout(timerPowiadomienia);
-  timerPowiadomienia = setTimeout(() => { el.hidden = true; }, blad ? 6000 : 3000);
+  timerPowiadomienia = setTimeout(() => { el.hidden = true; }, akcja ? 9000 : (blad ? 6000 : 3000));
 }
 
 export function potwierdz(tytul, tresc, tak = 'OK', niebezpieczne = false, nie = 'Anuluj') {
