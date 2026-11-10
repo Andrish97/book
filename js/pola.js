@@ -306,8 +306,44 @@ function zDanych(o, wartosc) {
   return k;
 }
 
-// Nazwy pól, od których zależy wygląd elementu.
-export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_danych?.y?.pole, o.z_danych?.obrot, o.z_danych?.widok?.pole, o.z_danych?.szer?.pole, o.z_danych?.wys?.pole].filter(Boolean);
+// Nazwy pól, od których zależy wygląd elementu (także kolumna z kadrem obrazu z danych).
+export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_danych?.y?.pole, o.z_danych?.obrot, o.z_danych?.widok?.pole, o.z_danych?.szer?.pole, o.z_danych?.wys?.pole, o.pole?.kolumna && o.pole.kadr_z].filter(Boolean);
+
+// ---------- Kadr obrazu z danych ----------
+//
+// Obraz z kolumny, który wypełnia ramkę (`pole.tryb: 'wypelnij'`), jest przycinany. Która część zdjęcia
+// zostaje, mówi punkt { x, y } w ułamkach szerokości i wysokości zdjęcia (0,5 i 0,5 = środek): kadr ustawia
+// się tak, żeby ten punkt był w jego środku – na ile pozwalają brzegi zdjęcia. Punkt bierze się z ustawienia
+// obrazu-wzoru (`pole.kadr`: 'gora' | 'dol' | 'lewa' | 'prawa') albo, osobno dla każdego wiersza, z kolumny
+// tabeli (`pole.kadr_z`: nazwa kolumny).
+
+// Wartości, które rozumie kolumna z kadrem (do opisu i list rozwijanych w szablonie danych).
+export const WARTOSCI_KADRU = ['środek', 'góra', 'dół', 'lewa', 'prawa'];
+
+const SLOWA_KADRU = {
+  srodek: {}, srodkowa: {}, centrum: {}, center: {}, centre: {}, middle: {},
+  gora: { y: 0 }, gorna: { y: 0 }, top: { y: 0 }, up: { y: 0 },
+  dol: { y: 1 }, dolna: { y: 1 }, bottom: { y: 1 }, down: { y: 1 },
+  lewa: { x: 0 }, lewo: { x: 0 }, lewy: { x: 0 }, left: { x: 0 },
+  prawa: { x: 1 }, prawo: { x: 1 }, prawy: { x: 1 }, right: { x: 1 },
+};
+
+// Ustawienie obrazu-wzoru ('gora', 'dol', 'lewa', 'prawa' albo brak) → punkt kadru.
+export const punktKadru = (kadr) => ({ x: 0.5, y: 0.5, ...SLOWA_KADRU[kadr] });
+
+// Wartość z tabeli → punkt kadru { x, y } albo null (pusta albo niezrozumiała – obowiązuje ustawienie wzoru).
+// Słowa: góra, dół, lewa, prawa, środek (także bez polskich znaków, po angielsku i po dwa: „góra lewa”);
+// liczby: „30% 20%” – punkt zdjęcia od lewej i od góry (jedna liczba = sam poziom).
+export function kadrZWartosci(v) {
+  const t = String(v ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l');
+  if (!t) return null;
+  const czesci = t.split(/[\s;/|]+/).filter(Boolean);
+  if (czesci.every((c) => SLOWA_KADRU[c])) return Object.assign({ x: 0.5, y: 0.5 }, ...czesci.map((c) => SLOWA_KADRU[c]));
+  const liczby = czesci.map((c) => (/^\d+([.,]\d+)?%?$/.test(c) ? Number(c.replace('%', '').replace(',', '.')) : NaN));
+  if (liczby.length > 2 || liczby.some((n) => !Number.isFinite(n))) return null;
+  const ulamek = (n) => Math.min(1, Math.max(0, n / 100));
+  return { x: ulamek(liczby[0]), y: liczby.length > 1 ? ulamek(liczby[1]) : 0.5 };
+}
 
 // Podstawia pola we wszystkich tekstach listy obiektów (także w grupach) i nadaje
 // elementom kolor, rozmiar oraz przesunięcie zależne od danych.

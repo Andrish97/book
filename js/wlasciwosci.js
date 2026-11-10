@@ -866,6 +866,11 @@ export class PanelWlasciwosci {
           const kadr = this.wybor('Zostaje część zdjęcia', [['', 'środek'], ['gora', 'góra'], ['dol', 'dół'], ['lewa', 'lewa strona'], ['prawa', 'prawa strona']], () => obj.pole?.kadr || '', (v) => { obj.pole = { ...obj.pole, kadr: v || undefined }; });
           kadr.classList.add('szeroki');
           d.append(kadr);
+          // Kadr osobno dla każdego wiersza: kolumna z nazwą części zdjęcia albo z punktem w procentach.
+          const zKolumny = this.wybor('Kadr z kolumny', [['', 'ten sam na każdej stronie'], ...kolumny.filter((k) => k !== obj.pole.kolumna).map((k) => [k, k])], () => obj.pole?.kadr_z || '', (v) => { obj.pole = { ...obj.pole, kadr_z: v || undefined }; this.zbuduj(); });
+          zKolumny.classList.add('szeroki');
+          d.append(zKolumny);
+          if (obj.pole?.kadr_z) d.append(this.wskazowka('W tej kolumnie wpisz, która część zdjęcia ma zostać: góra, dół, lewa, prawa, środek – albo punkt zdjęcia w procentach od lewej i od góry, np. „30% 20%”. Pusta komórka zostawia ustawienie powyżej.'));
         }
       }
     }

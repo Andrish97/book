@@ -159,10 +159,11 @@ export function zmienNazwePola(projekt, stara, nowa, dotyczy = () => true) {
         if (nowy !== o.text) { o.text = nowy; zmienione += 1; }
       }
       if (o.pole?.kolumna === stara) { o.pole.kolumna = nowa; zmienione += 1; }
-      // Kolor i przesunięcie zależne od tej kolumny.
+      if (o.pole?.kadr_z === stara) { o.pole.kadr_z = nowa; zmienione += 1; }
+      // Kolor, przesunięcie, rozmiar i widoczność zależne od tej kolumny.
       const z = o.z_danych;
       if (z?.kolor === stara) { z.kolor = nowa; zmienione += 1; }
-      for (const os of ['x', 'y', 'widok']) if (z?.[os]?.pole === stara) { z[os].pole = nowa; zmienione += 1; }
+      for (const os of ['x', 'y', 'widok', 'szer', 'wys']) if (z?.[os]?.pole === stara) { z[os].pole = nowa; zmienione += 1; }
       if (z?.obrot === stara) { z.obrot = nowa; zmienione += 1; }
       if (Array.isArray(o.objects)) popraw(o.objects);
     }
