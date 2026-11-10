@@ -8,6 +8,7 @@
 // (serie.js): z jego numerem, stroną rozkładówki, wierszem danych i sąsiadem,
 // którego elementy mogą przechodzić przez grzbiet.
 
+import './fabric-ustawienia.js';
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach } from './pola.js';
@@ -38,7 +39,7 @@ export function podmienZasoby(obiekty, mapa) {
 // eksporcie (oryginaly = true) zawsze pełny oryginał.
 export const zrodloObrazu = (zasoby, oryginaly = false) => (id) => (!oryginaly && kopiaRobocza(zasoby?.[id])) || zasoby?.[id]?.dataUrl || ZASTEPCZY_OBRAZ;
 
-const ozyw = (json) => new Promise((ok) => fabric.util.enlivenObjects(json, ok));
+const ozyw = (json) => fabric.util.enlivenObjects(json);
 
 // Obraz z pola: kolumna tabeli podaje nazwę pliku wgranego do projektu.
 // Podmieniony obraz wpisuje się w ramkę obrazu-wzoru (ramka_pola), bez zmiany proporcji.
@@ -85,7 +86,7 @@ function wpiszWRamki(obiekty) {
 // element przechodzi na drugą stronę, tekst i obraz nie są odwracane,
 // wyrównanie tekstu zmienia się na przeciwne.
 function odbij(o, szerokosc) {
-  const srodek = o.getCenterPoint();
+  const srodek = o.getRelativeCenterPoint();
   odbijWMiejscu(o);
   o.setPositionByOrigin(new fabric.Point(szerokosc - srodek.x, srodek.y), 'center', 'center');
   o.setCoords();
@@ -101,7 +102,7 @@ function odbijWMiejscu(o) {
   }
   if (o.type !== 'group') return;
   for (const czesc of o.getObjects()) {
-    const s = czesc.getCenterPoint();
+    const s = czesc.getRelativeCenterPoint(); // położenie części liczone od środka grupy
     odbijWMiejscu(czesc);
     czesc.setPositionByOrigin(new fabric.Point(-s.x, s.y), 'center', 'center');
     czesc.setCoords();
@@ -195,10 +196,6 @@ export async function tekstyEgzemplarza(projekt, egz, ciag) {
   return wynik;
 }
 
-// Renderuje stronę (jej pierwszy egzemplarz), egzemplarz z ciągu albo wzorzec
-// do obrazu (dataURL). opcje: szerokoscPx (z ewentualnym spadem), spad
-// (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach),
-// oryginaly (pełne obrazy zamiast kopii roboczych – do eksportu).
 // Składa stronę (albo wzorzec) do gotowych obiektów: dane podstawione, obrazy wczytane, teksty
 // wpisane w ramki i przelane, warstwy wzorców pod i nad treścią. Zwraca { wydruk, tlo, obiekty }
 // – obiekty w kolejności rysowania, w układzie strony (mm).
@@ -224,12 +221,16 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   return { wydruk, tlo: jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona), obiekty: [...warstwy.pod, ...wlasne, ...warstwy.nad] };
 }
 
+// Renderuje stronę (jej pierwszy egzemplarz), egzemplarz z ciągu albo wzorzec
+// do obrazu (dataURL). opcje: szerokoscPx (z ewentualnym spadem), spad
+// (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach),
+// oryginaly (pełne obrazy zamiast kopii roboczych – do eksportu).
 export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false } = {}) {
   const { wydruk, tlo, obiekty } = await zlozCel(projekt, cel, { ciag, oryginaly });
   const { szerokosc_mm: w, wysokosc_mm: h } = wydruk;
   const b = spad ? wydruk.spad_mm : 0;
   const k = szerokoscPx / (w + 2 * b);
-  const plotno = new fabric.StaticCanvas(null, {
+  const plotno = new fabric.StaticCanvas(undefined, {
     width: Math.round((w + 2 * b) * k),
     height: Math.round((h + 2 * b) * k),
     enableRetinaScaling: false,

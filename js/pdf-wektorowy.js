@@ -11,6 +11,7 @@
 // bez pliku do osadzenia, znak spoza czcionki), trafia do PDF jako obraz tego
 // jednego elementu w wybranej rozdzielczości. Lista takich miejsc wraca w `uwagi`.
 
+import './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 
 const PT = 72 / 25.4;
@@ -681,7 +682,7 @@ async function wstawJakoObraz(ctx, zasoby, obrazy, o, pole, dpi) {
   let k = dpi / 25.4;
   k = Math.min(k, Math.sqrt(MAX_PIKSELI_OBRAZU / ((x1 - x0) * (y1 - y0))));
   // Zwykłe płótno edytora (bez ekranu): cień i maski rysują się na nim tak jak w podglądzie.
-  const plotno = new fabric.StaticCanvas(null, {
+  const plotno = new fabric.StaticCanvas(undefined, {
     width: Math.max(1, Math.round((x1 - x0) * k)), height: Math.max(1, Math.round((y1 - y0) * k)), enableRetinaScaling: false, renderOnAddRemove: false,
   });
   plotno.setViewportTransform([k, 0, 0, k, -x0 * k, -y0 * k]);

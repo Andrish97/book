@@ -154,8 +154,7 @@ test('wzorzec z odbiciem lustrzanym odbija także układ wewnątrz grupy', async
     for (const s of proj.strony) {
       const { pod } = await warstwyWzorcow(proj, s, ciag);
       const g = pod[0];
-      const m = g.calcTransformMatrix();
-      wynik[ciag.pierwszy.get(s.id).bok] = Object.fromEntries(g.getObjects().map((o) => [o.nazwa, Math.round(fabric.util.transformPoint(o.getCenterPoint(), m).x)]));
+      wynik[ciag.pierwszy.get(s.id).bok] = Object.fromEntries(g.getObjects().map((o) => [o.nazwa, Math.round(o.getCenterPoint().x)]));
     }
     return wynik;
   });

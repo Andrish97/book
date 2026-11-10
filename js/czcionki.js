@@ -165,7 +165,7 @@ export async function zarejestrujCzcionkiProjektu(projekt) {
       await face.load();
       document.fonts.add(face);
       zarejestrowane.set(c.id, { face, klucz: `${c.rodzina}|${c.waga}|${c.kursywa}` });
-      if (typeof fabric !== 'undefined') fabric.util.clearFabricFontCache(c.rodzina);
+      if (typeof fabric !== 'undefined') fabric.cache.clearFontCache(c.rodzina);
     } catch {
       bledy.push(zasob.nazwa || c.rodzina);
     }

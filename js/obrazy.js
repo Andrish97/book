@@ -9,6 +9,8 @@
 // wysyłana. Obiekt obrazu na stronie zawsze ma wymiary i przycięcie liczone
 // w pikselach oryginału, więc projekt wygląda tak samo z kopią i bez niej.
 
+import './fabric-ustawienia.js';
+
 const PROG_PX = 2000; // dłuższy bok, od którego powstaje kopia robocza
 const BOK_PX = 1600; // dłuższy bok kopii roboczej
 
@@ -86,10 +88,10 @@ export function rozmiarOryginalu(obj) {
 // Fabric rysuje obraz wycinkiem „szerokość × wysokość od przycięcia” w pikselach
 // źródła. Gdy źródłem jest kopia robocza, przeliczamy ten wycinek na jej piksele.
 // Dzieje się to przy każdym rysowaniu, więc działa także po powieleniu obiektu.
-if (typeof fabric !== 'undefined' && !fabric.Image.prototype._zKopiaRobocza) {
-  const rysuj = fabric.Image.prototype._renderFill;
-  fabric.Image.prototype._zKopiaRobocza = true;
-  fabric.Image.prototype._renderFill = function renderFill(ctx) {
+if (typeof fabric !== 'undefined' && !fabric.FabricImage.prototype._zKopiaRobocza) {
+  const rysuj = fabric.FabricImage.prototype._renderFill;
+  fabric.FabricImage.prototype._zKopiaRobocza = true;
+  fabric.FabricImage.prototype._renderFill = function renderFill(ctx) {
     const el = this._element;
     const o = el && oryginaly.get(el.src);
     if (o) {

@@ -1,6 +1,7 @@
 /* global fabric */
 // Panel właściwości: pola liczbowe w mm (4.7 – precyzja na tablecie).
 
+import { toZaznaczenie } from './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
@@ -65,7 +66,7 @@ export class PanelWlasciwosci {
       s.append(this.akcje([['ok', 'Zastosuj', () => this.edytor.zakonczKadrowanie(true)], ['zamknij', 'Anuluj', () => this.edytor.zakonczKadrowanie(false)]]));
       return;
     }
-    if (obj.type === 'activeSelection') {
+    if (toZaznaczenie(obj)) {
       this.tytul.textContent = `Zaznaczone elementy: ${obj.size()}`;
       const s = this.sekcja('Zaznaczenie');
       s.append(this.wskazowka('Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
@@ -559,7 +560,7 @@ export class PanelWlasciwosci {
 
   // Cień: przesunięcie i rozmycie w mm, kolor z przezroczystością.
   zbudujCien(obj) {
-    if (obj.type === 'activeSelection' || obj.type === 'group') return;
+    if (toZaznaczenie(obj) || obj.type === 'group') return;
     const c = this.sekcja('Cień');
     const kolorCienia = () => new fabric.Color(obj.shadow?.color || 'rgba(0,0,0,0.35)');
     const ustaw = (zmiana) => {

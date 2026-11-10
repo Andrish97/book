@@ -8,6 +8,7 @@
 // zaczyna się w x = szerokość strony. Na piksele przeliczamy tylko widok:
 // viewportTransform = skala (px/mm × zoom) + przesunięcie o spad.
 
+import { WLASNE_POLA, toZaznaczenie } from './fabric-ustawienia.js';
 import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
@@ -19,23 +20,7 @@ import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W
 
 export const PX_NA_MM = 96 / 25.4;
 
-// Własne właściwości obiektów, które zapisujemy razem z JSON-em Fabric.
-export const WLASNE_POLA = [
-  'id', 'nazwa', 'zasob', 'bez_ostrzezen',
-  'warstwa', // element wzorca: 'nad' = nad treścią strony (domyślnie pod)
-  'zablokowany', 'styl',
-  'z', // kolejność na rozkładówce (żeby po zapisie stron osobno dało się ją odtworzyć)
-  // Na etap 2 (pola z danymi): już teraz przenoszone przez zapis.
-  'pole', 'autodopasowanie', 'min_rozmiar',
-  'ramka_h', 'wyrownanie_pion', 'rozmiar_bazowy', // ramka tekstu o stałej wysokości (tekst-ramka.js)
-  'ramka_pola',
-  'boki', 'gwiazda', // wielokąt foremny albo gwiazda (punkty liczone z tych dwóch liczb)
-  'lista', 'lista_start', // wypunktowanie / numerowanie akapitów (tekst-ramka.js)
-  'watek', 'watek_nr', 'lacznik', // przelewanie tekstu między ramkami (watki.js)
-  'z_danych', // kolor i przesunięcie zależne od pola z danych (pola.js)
-  'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
-  'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana
-];
+export { WLASNE_POLA };
 
 export const TEKST_ZACHETY = 'Kliknij dwa razy, aby edytować';
 
@@ -53,28 +38,6 @@ export function punktyWielokata(boki, gwiazda = false, r = 20) {
   return punkty;
 }
 
-
-// Fabric 5 ustawia nieistniejącą wartość textBaseline ('alphabetical'), co przy
-// każdym rysowaniu tekstu wypisuje ostrzeżenie w konsoli. Ta sama funkcja z poprawną wartością.
-fabric.Text.prototype._setTextStyles = function _setTextStyles(ctx, charStyle, forMeasuring) {
-  ctx.textBaseline = 'alphabetic';
-  if (this.path) {
-    ctx.textBaseline = { center: 'middle', ascender: 'top', descender: 'bottom' }[this.pathAlign] || 'alphabetic';
-  }
-  ctx.font = this._getFontDeclaration(charStyle, forMeasuring);
-};
-
-// Wygląd uchwytów: powiększony obszar dotyku na tablecie (4.7).
-fabric.Object.prototype.set({
-  transparentCorners: false,
-  cornerColor: '#ffffff',
-  cornerStrokeColor: '#2563eb',
-  borderColor: '#2563eb',
-  cornerStyle: 'circle',
-  cornerSize: 11,
-  touchCornerSize: 40,
-  borderScaleFactor: 1.5,
-});
 
 export class Edytor extends EventTarget {
   constructor(elementPlotna, kontener) {
@@ -104,6 +67,10 @@ export class Edytor extends EventTarget {
     this.canvas = new fabric.Canvas(elementPlotna, {
       preserveObjectStacking: true,
       stopContextMenu: true,
+      // Prawy i środkowy przycisk myszy nie zaczynają zaznaczania ani przesuwania prowadnic
+      // (Fabric 7 domyślnie zgłasza je jak zwykłe kliknięcie).
+      fireRightClick: false,
+      fireMiddleClick: false,
       selectionColor: 'rgba(37, 99, 235, 0.08)',
       selectionBorderColor: '#2563eb',
       selectionLineWidth: 1,
@@ -115,9 +82,8 @@ export class Edytor extends EventTarget {
     c.on('after:render', (e) => this._poRenderowaniu(e.ctx));
     // Kliknięcie w drugą stronę rozkładówki robi z niej stronę bieżącą.
     c.on('mouse:down', (e) => {
-      if (this.strony.length < 2 || !e.pointer) return;
-      const v = c.viewportTransform;
-      this.ustawAktywna(this.stronaW((e.pointer.x - v[4]) / v[0]), true);
+      if (this.strony.length < 2 || !e.scenePoint) return;
+      this.ustawAktywna(this.stronaW(e.scenePoint.x), true);
     });
     c.on('selection:created', () => this._emitujZaznaczenie());
     c.on('selection:updated', () => this._emitujZaznaczenie());
@@ -206,8 +172,7 @@ export class Edytor extends EventTarget {
 
   // Środek obiektu w układzie arkusza – także wtedy, gdy obiekt jest częścią zaznaczenia.
   _srodekObiektu(o) {
-    const p = o.getCenterPoint();
-    return o.group ? fabric.util.transformPoint(p, o.group.calcTransformMatrix()) : p;
+    return o.getCenterPoint();
   }
 
   _dopasujRozmiar() {
@@ -308,9 +273,7 @@ export class Edytor extends EventTarget {
       ? scalRozkladowke(strony[0].obiekty, strony[1].obiekty).map(({ o, bok }) => (bok === 'prawa' ? { ...o, left: (o.left || 0) + w } : o))
       : strony[0].obiekty;
     const obiekty = podmienZasoby(json, zrodloObrazu(zasoby));
-    await new Promise((ok) => {
-      this.canvas.loadFromJSON({ objects: obiekty }, ok);
-    });
+    await this.canvas.loadFromJSON({ objects: obiekty });
     for (const o of this.canvas.getObjects()) if (!o.id) o.id = uid('o'); // starsze projekty
     this._dodajWzorce();
     this._zastosujBlokady();
@@ -322,7 +285,7 @@ export class Edytor extends EventTarget {
 
   _dodajWzorce() {
     const { pod, nad } = this._warstwy;
-    pod.forEach((o, i) => this.canvas.insertAt(o, i, false));
+    pod.forEach((o, i) => this.canvas.insertAt(i, o));
     nad.forEach((o) => this.canvas.add(o));
     this.canvas.requestRenderAll();
   }
@@ -333,8 +296,8 @@ export class Edytor extends EventTarget {
     if (!pod.length && !nad.length) return;
     const bylo = this._wczytywanie;
     this._wczytywanie = true;
-    for (let i = pod.length - 1; i >= 0; i -= 1) this.canvas.sendToBack(pod[i]);
-    for (const o of nad) this.canvas.bringToFront(o);
+    for (let i = pod.length - 1; i >= 0; i -= 1) this.canvas.sendObjectToBack(pod[i]);
+    for (const o of nad) this.canvas.bringObjectToFront(o);
     this._wczytywanie = bylo;
   }
 
@@ -349,7 +312,7 @@ export class Edytor extends EventTarget {
   // Elementy wzorca mają excludeFromExport, więc nie trafiają do zapisu.
   obiektyStron() {
     const zywe = this.canvas.getObjects().filter((o) => !o.excludeFromExport);
-    const json = podmienZasoby(this.canvas.toJSON(WLASNE_POLA).objects, null);
+    const json = podmienZasoby(this.canvas.toObject().objects, null);
     if (!this.rozkladowka) return [json];
     const w = this.wydruk.szerokosc_mm;
     const wynik = this.strony.map(() => []);
@@ -486,11 +449,11 @@ export class Edytor extends EventTarget {
 
   // Zmienia liczbę boków wielokąta albo robi z niego gwiazdę; środek i wielkość zostają.
   przeksztalcWielokat(obj, boki, gwiazda) {
-    const srodek = obj.getCenterPoint();
+    const srodek = obj.getRelativeCenterPoint();
     const [w, h] = [obj.getScaledWidth(), obj.getScaledHeight()];
     obj.set({ boki: Math.min(24, Math.max(3, Math.round(boki) || 3)), gwiazda: gwiazda || undefined });
     obj.set({ points: punktyWielokata(obj.boki, gwiazda, 18) });
-    obj._setPositionDimensions({});
+    obj.setBoundingBox();
     obj.set({ scaleX: w / (obj.width + obj.strokeWidth), scaleY: h / (obj.height + obj.strokeWidth) });
     obj.setPositionByOrigin(srodek, 'center', 'center');
     obj.dirty = true;
@@ -543,9 +506,8 @@ export class Edytor extends EventTarget {
     zasoby[id] = { nazwa: nazwaPliku, dataUrl };
     // Duże zdjęcie pokazujemy lżejszą kopią roboczą; wymiary obiektu zostają w pikselach oryginału.
     await przygotujKopie(zasoby, [{ type: 'image', zasob: id }]);
-    const img = await new Promise((ok, blad) => {
-      fabric.Image.fromURL(zrodloObrazu(zasoby)(id), (o) => (o ? ok(o) : blad(new Error('Nie udało się wczytać obrazu.'))));
-    });
+    let img;
+    try { img = await fabric.FabricImage.fromURL(zrodloObrazu(zasoby)(id)); } catch { throw new Error('Nie udało się wczytać obrazu.'); }
     const { nw, nh } = rozmiarOryginalu(img);
     img.set({ width: nw, height: nh });
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
@@ -581,17 +543,29 @@ export class Edytor extends EventTarget {
   async duplikuj() {
     const akt = this.aktywny;
     if (!akt) return;
-    const kopia = await new Promise((ok) => akt.clone(ok, WLASNE_POLA));
+    const kopie = await this._kopie(akt);
     this.canvas.discardActiveObject();
-    kopia.set({ left: kopia.left + 5, top: kopia.top + 5, evented: true });
-    if (kopia.type === 'activeSelection') {
-      kopia.canvas = this.canvas;
-      kopia.forEachObject((o) => { o.set({ id: uid('o') }); this.canvas.add(o); });
-      kopia.setCoords();
-      this.canvas.setActiveObject(kopia);
-    } else {
-      this._wstaw(kopia);
-    }
+    for (const k of kopie) k.set({ left: k.left + 5, top: k.top + 5 });
+    this._wstawKopie(kopie);
+  }
+
+  // Kopie zaznaczonego elementu albo wszystkich elementów zaznaczenia – każda z położeniem
+  // na arkuszu (element w zaznaczeniu ma położenie liczone względem tego zaznaczenia).
+  async _kopie(obj) {
+    const obiekty = toZaznaczenie(obj) ? obj.getObjects() : [obj];
+    return Promise.all(obiekty.map(async (o) => {
+      const k = await o.clone();
+      if (o.group) fabric.util.applyTransformToObject(k, o.calcTransformMatrix());
+      k.set({ evented: true });
+      k.setCoords();
+      return k;
+    }));
+  }
+
+  // Wstawia kopie na arkusz (każda dostaje nowy identyfikator) i zaznacza je.
+  _wstawKopie(kopie) {
+    for (const k of kopie) { k.set({ id: uid('o') }); this.canvas.add(k); }
+    this.canvas.setActiveObject(kopie.length === 1 ? kopie[0] : new fabric.ActiveSelection(kopie, { canvas: this.canvas }));
     this.canvas.requestRenderAll();
   }
 
@@ -635,7 +609,7 @@ export class Edytor extends EventTarget {
   // płynie do następnej (kolejność: z góry na dół, obok siebie – od lewej).
   polaczRamki() {
     const akt = this.aktywny;
-    if (!akt || akt.type !== 'activeSelection') return false;
+    if (!akt || !toZaznaczenie(akt)) return false;
     const wybrane = akt.getObjects();
     if (wybrane.length < 2 || wybrane.some((o) => o.type !== 'textbox' || o.zWzorca)) return false;
     this.canvas.discardActiveObject(); // poza zaznaczeniem ramki mają położenie na stronie
@@ -658,7 +632,7 @@ export class Edytor extends EventTarget {
     const akt = this.aktywny;
     if (!akt || akt.type !== 'textbox' || akt.zWzorca || akt.isEditing) return null;
     const ramki = this._ramkiWatku(akt);
-    const nowa = await new Promise((ok) => akt.clone(ok, WLASNE_POLA));
+    const nowa = await akt.clone();
     const szer = akt.getScaledWidth();
     const wys = akt.getScaledHeight();
     const prawaKrawedz = this.strony[this.aktywna].x + this.wydruk.szerokosc_mm;
@@ -703,7 +677,7 @@ export class Edytor extends EventTarget {
     }
     // Najpierw wszystkie kopie (to trwa chwilę), dopiero potem łączenie – jednym ruchem,
     // żeby porządkowanie wątków nie zobaczyło ramki połączonej z niczym.
-    const nowe = await Promise.all(Array.from({ length: n - 1 }, () => new Promise((ok) => akt.clone(ok, WLASNE_POLA))));
+    const nowe = await Promise.all(Array.from({ length: n - 1 }, () => akt.clone()));
     const id = uid('w');
     akt.set({ watek: id, watek_nr: 0 });
     nowe.forEach((nowa, i) => {
@@ -720,7 +694,7 @@ export class Edytor extends EventTarget {
   // Rozłącza wątek zaznaczonej ramki: każda ramka zostaje ze swoją częścią tekstu.
   rozlaczRamki() {
     const akt = this.aktywny;
-    const zaznaczone = akt?.type === 'activeSelection' ? akt.getObjects() : [akt];
+    const zaznaczone = toZaznaczenie(akt) ? akt.getObjects() : [akt];
     const ramki = new Set(zaznaczone.flatMap((o) => this._ramkiWatku(o)));
     if (!ramki.size) return false;
     ramki.forEach(odlaczRamke);
@@ -780,7 +754,7 @@ export class Edytor extends EventTarget {
   async kopiuj() {
     const akt = this.aktywny;
     if (!akt || akt.isEditing) return false;
-    this._schowek = await new Promise((ok) => akt.clone(ok, WLASNE_POLA));
+    this._schowek = await this._kopie(akt);
     this._wklejen = 0;
     this._schowekZ = this._znacznikStrony;
     this._schowekX = this.strony[this.stronaW(this._srodekObiektu(akt).x)].x;
@@ -799,28 +773,19 @@ export class Edytor extends EventTarget {
   // samo miejsce strony bieżącej.
   async wklej() {
     if (!this._schowek) return;
-    const kopia = await new Promise((ok) => this._schowek.clone(ok, WLASNE_POLA));
-    let dx = 0;
     if (this._schowekZ === this._znacznikStrony) this._wklejen += 1;
     else {
-      dx = this.strony[this.aktywna].x - this._schowekX;
-      this._schowek.set({ left: this._schowek.left + dx });
+      const dx = this.strony[this.aktywna].x - this._schowekX;
+      for (const o of this._schowek) o.set({ left: o.left + dx });
       this._schowekX += dx;
       this._wklejen = 0;
       this._schowekZ = this._znacznikStrony;
     }
     const d = 5 * this._wklejen;
+    const kopie = await Promise.all(this._schowek.map((o) => o.clone()));
     this.canvas.discardActiveObject();
-    kopia.set({ left: kopia.left + dx + d, top: kopia.top + d, evented: true });
-    if (kopia.type === 'activeSelection') {
-      kopia.canvas = this.canvas;
-      kopia.forEachObject((o) => { o.set({ id: uid('o') }); this.canvas.add(o); });
-      kopia.setCoords();
-      this.canvas.setActiveObject(kopia);
-    } else {
-      this._wstaw(kopia);
-    }
-    this.canvas.requestRenderAll();
+    for (const k of kopie) k.set({ left: k.left + d, top: k.top + d, evented: true });
+    this._wstawKopie(kopie);
   }
 
   // ---------- Wyrównywanie i rozmieszczanie ----------
@@ -829,9 +794,9 @@ export class Edytor extends EventTarget {
   _naZaznaczonych(fn) {
     const akt = this.aktywny;
     if (!akt) return;
-    const obiekty = akt.type === 'activeSelection' ? akt.getObjects().slice() : [akt];
+    const obiekty = toZaznaczenie(akt) ? akt.getObjects().slice() : [akt];
     this.canvas.discardActiveObject();
-    const ramki = obiekty.map((o) => { o.setCoords(); const r = o.getBoundingRect(true, true); return { o, x: r.left, y: r.top, w: r.width, h: r.height }; });
+    const ramki = obiekty.map((o) => { o.setCoords(); const r = o.getBoundingRect(); return { o, x: r.left, y: r.top, w: r.width, h: r.height }; });
     fn(ramki);
     for (const { o } of ramki) o.setCoords();
     if (obiekty.length > 1) this.canvas.setActiveObject(new fabric.ActiveSelection(obiekty, { canvas: this.canvas }));
@@ -902,10 +867,21 @@ export class Edytor extends EventTarget {
 
   grupuj() {
     const akt = this.aktywny;
-    if (!akt || akt.type !== 'activeSelection') return;
-    const grupa = akt.toGroup();
-    grupa.set({ id: uid('o') });
-    this.canvas.requestRenderAll();
+    if (!akt || !toZaznaczenie(akt)) return;
+    const obiekty = akt.getObjects().slice();
+    const c = this.canvas;
+    const bylo = this._wczytywanie;
+    this._wczytywanie = true; // jedna zmiana, nie osobna na każdy element
+    c.discardActiveObject(); // elementy wracają do położenia na arkuszu
+    // Kolejność w grupie taka jak na arkuszu.
+    const kolejno = c.getObjects().filter((o) => obiekty.includes(o));
+    c.remove(...kolejno);
+    const grupa = new fabric.Group(kolejno, { id: uid('o') });
+    c.add(grupa);
+    this._wczytywanie = bylo;
+    this._uporzadkujWzorce();
+    c.setActiveObject(grupa);
+    c.requestRenderAll();
     this._emitujZaznaczenie();
     this.oznaczZmiane();
   }
@@ -913,8 +889,18 @@ export class Edytor extends EventTarget {
   rozgrupuj() {
     const akt = this.aktywny;
     if (!akt || akt.type !== 'group') return;
-    akt.toActiveSelection();
-    this.canvas.requestRenderAll();
+    const c = this.canvas;
+    const bylo = this._wczytywanie;
+    this._wczytywanie = true;
+    c.discardActiveObject();
+    c.remove(akt);
+    const obiekty = akt.removeAll(); // elementy wracają do położenia na arkuszu
+    for (const o of obiekty) { if (!o.id) o.id = uid('o'); o.setCoords(); }
+    c.add(...obiekty);
+    this._wczytywanie = bylo;
+    this._uporzadkujWzorce();
+    c.setActiveObject(obiekty.length === 1 ? obiekty[0] : new fabric.ActiveSelection(obiekty, { canvas: c }));
+    c.requestRenderAll();
     this._emitujZaznaczenie();
     this.oznaczZmiane();
   }
@@ -924,10 +910,10 @@ export class Edytor extends EventTarget {
     if (!akt) return;
     const c = this.canvas;
     ({
-      wierzch: () => c.bringToFront(akt),
-      wyzej: () => c.bringForward(akt),
-      nizej: () => c.sendBackwards(akt),
-      spod: () => c.sendToBack(akt),
+      wierzch: () => c.bringObjectToFront(akt),
+      wyzej: () => c.bringObjectForward(akt),
+      nizej: () => c.sendObjectBackwards(akt),
+      spod: () => c.sendObjectToBack(akt),
     })[kierunek]();
     this._uporzadkujWzorce();
     c.requestRenderAll();
@@ -984,7 +970,7 @@ export class Edytor extends EventTarget {
   przelaczBlokade() {
     const akt = this.aktywny;
     if (!akt) return;
-    const obiekty = akt.type === 'activeSelection' ? akt.getObjects() : [akt];
+    const obiekty = toZaznaczenie(akt) ? akt.getObjects() : [akt];
     const wlacz = !obiekty.every((o) => o.zablokowany);
     for (const o of obiekty) this.ustawBlokade(o, wlacz);
     this._emitujZaznaczenie();
@@ -1053,9 +1039,9 @@ export class Edytor extends EventTarget {
   // Połączone ramki: gdy zaznaczona jest jedna z nich, linia pokazuje, dokąd płynie tekst.
   _rysujWatek(ctx, X, Y) {
     const akt = this.aktywny;
-    const zaznaczone = akt?.type === 'activeSelection' ? akt.getObjects() : (akt ? [akt] : []);
+    const zaznaczone = toZaznaczenie(akt) ? akt.getObjects() : (akt ? [akt] : []);
     const ramka = zaznaczone.find((o) => o.watek);
-    if (!ramka || akt.type === 'activeSelection') return;
+    if (!ramka || toZaznaczenie(akt)) return;
     const ramki = this._ramkiWatku(ramka);
     if (ramki.length < 2) return;
     ctx.save();
@@ -1108,7 +1094,7 @@ export class Edytor extends EventTarget {
           const y2 = y1 + o.getHeightOfLine(w) / o.lineHeight;
           ctx.beginPath();
           [[cz.x1, y1], [cz.x2, y1], [cz.x2, y2], [cz.x1, y2]].forEach(([px, py], n) => {
-            const pkt = fabric.util.transformPoint({ x: px, y: py }, m);
+            const pkt = new fabric.Point(px, py).transform(m);
             if (n === 0) ctx.moveTo(X(pkt.x), Y(pkt.y)); else ctx.lineTo(X(pkt.x), Y(pkt.y));
           });
           ctx.closePath();
@@ -1187,11 +1173,7 @@ export class Edytor extends EventTarget {
   // Prostokąt opisany na elemencie, w milimetrach strony. Element z zaznaczenia
   // kilku naraz ma położenie liczone względem tego zaznaczenia – trzeba je przeliczyć.
   _prostokatNaStronie(o) {
-    if (!o.group) return o.getBoundingRect(true, true);
-    const m = o.calcTransformMatrix();
-    const d = o._getNonTransformedDimensions();
-    const rogi = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => fabric.util.transformPoint({ x: (a * d.x) / 2, y: (b * d.y) / 2 }, m));
-    return fabric.util.makeBoundingBoxFromPoints(rogi);
+    return o.getBoundingRect();
   }
 
   // ---------- Przyciąganie: prowadnice, inne elementy, równe odstępy, siatka ----------
@@ -1204,7 +1186,7 @@ export class Edytor extends EventTarget {
 
   _ramka(o) {
     o.setCoords();
-    const r = o.getBoundingRect(true, true);
+    const r = o.getBoundingRect();
     const ramka = { x: r.left, y: r.top, w: r.width, h: r.height };
     // Obrócony element: do pomiarów idzie jego prawdziwy kształt (cztery rogi), nie prostokąt otaczający.
     if ((o.angle || 0) % 90 !== 0 && !o.group && o.aCoords) ramka.wielokat = ['tl', 'tr', 'br', 'bl'].map((k) => ({ x: o.aCoords[k].x, y: o.aCoords[k].y }));
@@ -1228,7 +1210,7 @@ export class Edytor extends EventTarget {
     const x = ruchX && przyciagnijKrawedz(ruchX === 'l' ? r.x : r.x + r.w, 'x', r, { linie: linie.x, inne: this._cele, siatka: krok ? { krok, poczatek: this.strony[this.stronaW(r.x + r.w / 2)].x } : null, prog });
     const y = ruchY && przyciagnijKrawedz(ruchY === 't' ? r.y : r.y + r.h, 'y', r, { linie: linie.y, inne: this._cele, siatka: krok ? { krok, poczatek: 0 } : null, prog });
     if (!x && !y) return;
-    const kotwica = obj.translateToOriginPoint(obj.getCenterPoint(), t.originX, t.originY);
+    const kotwica = obj.translateToOriginPoint(obj.getRelativeCenterPoint(), t.originX, t.originY);
     const nowaSzer = x ? r.w + (ruchX === 'r' ? x.d : -x.d) : r.w;
     const nowaWys = y ? r.h + (ruchY === 'b' ? y.d : -y.d) : r.h;
     if (nowaSzer < 1 || nowaWys < 1) return;
@@ -1259,7 +1241,7 @@ export class Edytor extends EventTarget {
 
   // Prostokąty pozostałych elementów (bez przesuwanego i bez ukrytych).
   _ramkiInnych(obj) {
-    const pomijane = new Set(obj.type === 'activeSelection' ? obj.getObjects() : [obj]);
+    const pomijane = new Set(toZaznaczenie(obj) ? obj.getObjects() : [obj]);
     return this.canvas.getObjects().filter((o) => !pomijane.has(o) && o.visible !== false).map((o) => this._ramka(o));
   }
 
@@ -1277,19 +1259,16 @@ export class Edytor extends EventTarget {
   async _zostawKopie(obj) {
     const start = this.canvas._currentTransform?.original;
     if (!start) return;
-    const kopia = await new Promise((ok) => obj.clone(ok, WLASNE_POLA));
-    kopia.set({ left: start.left, top: start.top });
-    const indeks = this.canvas.getObjects().indexOf(obj);
-    if (kopia.type === 'activeSelection') {
-      kopia.canvas = this.canvas;
-      const czesci = kopia.getObjects().slice();
-      kopia.destroy(); // przywraca częściom położenie na arkuszu
-      for (const o of czesci) { o.set({ id: uid('o') }); this.canvas.add(o); o.setCoords(); }
-    } else {
-      kopia.set({ id: uid('o') });
+    // Kopie stają tam, skąd ruszył element: cofamy im dotychczasowe przesunięcie.
+    const dx = obj.left - start.left;
+    const dy = obj.top - start.top;
+    const kopie = await this._kopie(obj);
+    const indeks = toZaznaczenie(obj) ? -1 : this.canvas.getObjects().indexOf(obj);
+    for (const k of kopie) {
+      k.set({ id: uid('o'), left: k.left - dx, top: k.top - dy });
       // Kopia zostaje pod przeciąganym elementem, na jego dotychczasowym miejscu w stosie.
-      if (indeks >= 0) this.canvas.insertAt(kopia, indeks, false); else this.canvas.add(kopia);
-      kopia.setCoords();
+      if (indeks >= 0) this.canvas.insertAt(indeks, k); else this.canvas.add(k);
+      k.setCoords();
     }
     this._cele = null; // kopia też jest celem przyciągania
     this.canvas.requestRenderAll();
@@ -1384,14 +1363,13 @@ export class Edytor extends EventTarget {
   }
 
   _punktZdarzenia(e) {
-    const v = this.canvas.viewportTransform;
-    return { x: (e.pointer.x - v[4]) / v[0], y: (e.pointer.y - v[5]) / v[3] };
+    return { x: e.scenePoint.x, y: e.scenePoint.y };
   }
 
   // Kliknięcie w prowadnicę (w pustym miejscu) zaczyna jej przesuwanie;
   // wyciągnięta poza stronę znika.
   _chwycProwadnice(e) {
-    if (e.target || !e.pointer || this.reka) return;
+    if (e.target || !e.scenePoint || this.reka) return;
     const p = this._prowadnicaPod(this._punktZdarzenia(e));
     if (!p) return;
     this._prowadnicaWRuchu = p;
@@ -1414,7 +1392,7 @@ export class Edytor extends EventTarget {
 
   _ruchNadProwadnica(e) {
     if (this._prowadnicaWRuchu) { this.canvas._groupSelector = null; return; }
-    if (e.target || !e.pointer || !this.wydruk) { this.canvas.defaultCursor = 'default'; return; }
+    if (e.target || !e.scenePoint || !this.wydruk) { this.canvas.defaultCursor = 'default'; return; }
     const p = this._prowadnicaPod(this._punktZdarzenia(e));
     this.canvas.defaultCursor = p ? (p.os === 'x' ? 'col-resize' : 'row-resize') : 'default';
   }
@@ -1463,7 +1441,7 @@ export class Edytor extends EventTarget {
     const start = { cropX: obj.cropX, cropY: obj.cropY, width: obj.width, height: obj.height, left: obj.left, top: obj.top, angle: obj.angle || 0, flipX: Boolean(obj.flipX), flipY: Boolean(obj.flipY) };
     // Obrócony albo odbity obraz na czas kadrowania jest prostowany (wokół swojego środka);
     // po zatwierdzeniu wraca do obrotu i odbicia, a przycięty fragment zostaje na swoim miejscu.
-    const obrot = { ...start, srodek: obj.getCenterPoint() };
+    const obrot = { ...start, srodek: obj.getRelativeCenterPoint() };
     if (start.angle % 360 !== 0 || start.flipX || start.flipY) {
       obj.set({ angle: 0, flipX: false, flipY: false });
       obj.setPositionByOrigin(obrot.srodek, 'center', 'center');
@@ -1500,7 +1478,7 @@ export class Edytor extends EventTarget {
       if (obrot.angle % 360 !== 0 || obrot.flipX || obrot.flipY) {
         // Środek przyciętego fragmentu przesunął się względem dawnego środka – to przesunięcie
         // trzeba odbić i obrócić tak jak obraz, zanim wróci obrót.
-        const s = obj.getCenterPoint();
+        const s = obj.getRelativeCenterPoint();
         const dx = (s.x - obrot.srodek.x) * (obrot.flipX ? -1 : 1);
         const dy = (s.y - obrot.srodek.y) * (obrot.flipY ? -1 : 1);
         const kat = (obrot.angle * Math.PI) / 180;
@@ -1542,7 +1520,7 @@ export class Edytor extends EventTarget {
   // Elementy arkusza od wierzchu do spodu (bez elementów wzorców).
   warstwy() {
     const akt = this.aktywny;
-    const zaznaczone = new Set(akt ? (akt.type === 'activeSelection' ? akt.getObjects() : [akt]) : []);
+    const zaznaczone = new Set(akt ? (toZaznaczenie(akt) ? akt.getObjects() : [akt]) : []);
     return this.canvas.getObjects().filter((o) => !o.zWzorca && !o.kadr).reverse().map((o) => ({
       id: o.id, typ: o.type, opis: opisObiektu(o), ukryty: o.visible === false, zablokowany: Boolean(o.zablokowany), zaznaczony: zaznaczone.has(o),
     }));
@@ -1574,7 +1552,7 @@ export class Edytor extends EventTarget {
     const cel = nadId ? this._poId(nadId) : null;
     const wszystkie = c.getObjects();
     const indeks = cel ? wszystkie.indexOf(cel) + 1 : wszystkie.filter((x) => x.zWzorca && x.warstwa !== 'nad').length;
-    c.insertAt(o, indeks, false);
+    c.insertAt(indeks, o);
     this._wczytywanie = bylo;
     this._uporzadkujWzorce();
     c.requestRenderAll();
@@ -1729,7 +1707,7 @@ export class Edytor extends EventTarget {
       ctx.setLineDash([6, 3]);
       for (const o of this.canvas.getObjects()) {
         if (!ids.has(o.id)) continue;
-        const r = o.getBoundingRect(true, true);
+        const r = o.getBoundingRect();
         ctx.strokeRect(X(r.left) - 2, Y(r.top) - 2, r.width * s + 4, r.height * s + 4);
       }
     }
@@ -1904,7 +1882,7 @@ export class Edytor extends EventTarget {
 // żeby w panelu i w wydruku rozmiar w pt był prawdziwy.
 function utrwalSkaleTekstu(obj) {
   if (!obj) return;
-  if (obj.type === 'activeSelection' || obj.type === 'group') return;
+  if (toZaznaczenie(obj) || obj.type === 'group') return;
   if (obj.type !== 'textbox') return;
   if (obj.scaleX === 1 && obj.scaleY === 1) return;
   // Ramka o stałej wysokości: górny i dolny uchwyt zmieniają wysokość ramki,
