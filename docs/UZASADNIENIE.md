@@ -1,6 +1,6 @@
 # Uzasadnienie – funkcja po funkcji
 
-Stan na 10 listopada 2026 (decyzje do #58 w [DECYZJE.md](DECYZJE.md)). Część „Słabe” przy każdej funkcji została przepisana po Twoich uwagach z decyzji #50: co poprawiłem, jest opisane jako „Poprawione”, a „Słabe” mówi tylko o tym, co naprawdę zostało. Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
+Stan na 10 listopada 2026 (decyzje do #61 w [DECYZJE.md](DECYZJE.md)). Część „Słabe” przy każdej funkcji została przepisana po Twoich uwagach z decyzji #50: co poprawiłem, jest opisane jako „Poprawione”, a „Słabe” mówi tylko o tym, co naprawdę zostało. Ładniejsza wersja do czytania: artefakt „Uzasadnienie Seriodruku”. Przy każdej funkcji: co jest, dlaczego tak, co zostało słabe i co można zrobić lepiej.
 
 Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ nie zrobione / do poprawy.
 
@@ -108,12 +108,14 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 - **Tabela** – siatka linii i osobna ramka tekstu w każdej komórce.
 **Dlaczego tak.** Każda połączona ramka trzyma *swoją* część tekstu, a nie odsyłacz do wspólnej całości. Dzięki temu zapisany projekt wygląda dobrze nawet bez przeliczania, a kopiowanie, cofanie i zapis działają jak dla zwykłych ramek. Przelewanie to osobny krok: skleja części, mierzy, ile wierszy mieści każda ramka, i rozdaje od nowa – w edytorze po każdej zmianie, przy składaniu strony po podstawieniu danych (dla każdego egzemplarza osobno). Kolumny są po prostu połączonymi ramkami, więc jest jeden mechanizm, nie dwa. Tabela z osobnych ramek pozwala pisać w komórkach i wstawiać w nich pola bez budowania drugiego edytora.
 **Poprawione.** Tekst przelewa się w trakcie pisania, a kursor przechodzi za nim do następnej ramki. Ramki jednego tekstu mogą leżeć na różnych stronach („Ciąg dalszy na następnej stronie”); podgląd, PDF i kontrola przed drukiem przelewają go przez strony także po podstawieniu danych. Wielkość liter (WIELKIE / małe) jest wyglądem, nie zmianą treści. Tabela jest jednym obiektem (D15).
-**Słabe.** Backspace na początku ramki nie cofa do poprzedniej ramki (tekst wraca sam, gdy zwolni się miejsce). Po przestawieniu stron kolejność ramek tekstu nie zmienia się sama. Kapitaliki nadal nie istnieją. Przy autodopasowaniu fragmenty z własnym rozmiarem czcionki nie zmniejszają się razem z resztą.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Backspace na początku połączonej ramki usuwa znak z końca poprzedniej, Delete na końcu – z początku następnej, a strzałki przechodzą między ramkami. Po przestawieniu stron tekst płynie przez ramki w nowej kolejności stron. Autodopasowanie zmniejsza także fragmenty z własnym rozmiarem czcionki.
+**Słabe.** Kapitaliki nadal nie istnieją. Gdy sąsiednia ramka jest na innej stronie, kursor za tekstem tam nie przechodzi – zostaje, a aplikacja mówi, dokąd płynie tekst.
 
 ### D15. Tabela jako jeden obiekt ✅ / ⚠️
 **Co jest (decyzja #58).** Tabela jest jednym elementem strony: jedno kliknięcie zaznacza ją całą, przesuwa się, obraca i układa w warstwach jak każdy inny element. Podwójne kliknięcie komórki zaczyna w niej pisanie; Tab przechodzi do następnej komórki (w ostatniej dodaje wiersz), Shift+Tab do poprzedniej, Esc wraca do zaznaczenia tabeli. Komórka to zwykły tekst – pola z danych i formatowanie fragmentów działają. Wiersz sam rośnie, gdy tekst się nie mieści, także na stronach powielanych z danych, osobno dla każdej. Szerokość kolumn zmieniają niebieskie znaczniki nad zaznaczoną tabelą albo liczby w panelu; w panelu są też wiersze i kolumny (dodaj / usuń), wiersz nagłówka, najmniejsza wysokość wierszy, kolor i grubość linii, pismo wszystkich komórek naraz.
 **Dlaczego tak.** Tabela to grupa z opisem (szerokości kolumn, wysokości wierszy), a jej układ liczy jedna funkcja – ta sama w edytorze i przy składaniu strony. Dzięki temu tabela z danymi układa się poprawnie w podglądzie, PDF i na miniaturach bez osobnego kodu.
-**Słabe.** Nie ma scalania komórek, tła komórek ani osobnej wysokości każdego wiersza. Przy skalowaniu uchwytem tabela na chwilę wygląda na rozciągniętą – wymiary przeliczają się po puszczeniu uchwytu. „Sprawdź przed drukiem” nie ostrzega, gdy urosła tabela wyjdzie poza stronę. Na telefonie przycisk wstawiania tabeli jest schowany. Stare tabele (siatka i osobne ramki) nie zamieniają się same na nowe.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Tło komórek: osobny kolor dla nagłówka i dla co drugiego wiersza. Każdy wiersz może mieć własną najmniejszą wysokość. Przy skalowaniu uchwytem kolumny i wiersze przeliczają się na bieżąco. „Sprawdź przed drukiem” ostrzega, gdy tabela po wypełnieniu danymi wychodzi poza stronę.
+**Słabe.** Nie ma scalania komórek ani osobnych linii dla pojedynczej komórki. Na telefonie przycisk wstawiania tabeli jest schowany. Stare tabele (siatka i osobne ramki) nie zamieniają się same na nowe.
 
 ### D2. Wyrównywanie, blokada, schowek ✅
 Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstępy, blokada położenia, kopiuj/wytnij/wklej między stronami – skrótami i przyciskami.
@@ -132,7 +134,8 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Co jest.** Siatka o zadanym kroku w mm z przyciąganiem; linijki w mm z zerem w rogu strony bieżącej; prowadnice wyciągane z linijek, przesuwane i usuwane przez wyciągnięcie poza stronę. Ustawienia siatki należą do projektu, prowadnice – do strony albo wzorca.
 **Dlaczego tak.** Siatka liczy się od rogu każdej strony, więc na rozkładówce obie strony mają ten sam układ linii. Do siatki trafia lewy górny róg elementu – położenie jest wtedy zawsze wielokrotnością kroku. Prowadnice i krawędzie innych elementów mają pierwszeństwo przed siatką, bo są dokładniejszą wskazówką.
 **Poprawione.** Przyciąganie działa także przy zmianie rozmiaru uchwytem. Prowadnicę wpisuje się liczbą we właściwościach strony (lista prowadnic w mm, dodawanie, usuwanie) – także na telefonie, gdzie linijek nie ma.
-**Słabe.** Prowadnic nie da się zablokować. Cofanie nie obejmuje prowadnic.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Prowadnice można zablokować (menu z kratką): zablokowanych nie da się złapać myszą. Cofanie obejmuje prowadnice – wcześniejsza uwaga, że nie obejmuje, była nieaktualna; teraz pilnuje tego test.
+**Słabe.** Zablokowaną prowadnicę nadal da się zmienić liczbą we właściwościach strony – to celowe.
 
 ### D12. Odległości i równe odstępy ✅ / ⚠️
 **Co jest.** Przy przesuwaniu: różowe linie wyrównania do krawędzi i środków innych elementów, strzałki z odległością w mm do najbliższych sąsiadów, fioletowe oznaczenie równych odstępów (środek między sąsiadami albo odstęp powtórzony z tego samego rzędu). Alt przy zaznaczonym elemencie pokazuje odległości także do krawędzi strony.
@@ -148,14 +151,16 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 ### D14. Warstwy ✅ / ⚠️
 **Co jest.** Zakładka z listą elementów strony od wierzchu: zaznaczanie, kolejność przeciąganiem, ukrywanie, blokada, własne nazwy.
 **Poprawione.** Warstwy są zakładką prawego panelu, obok właściwości (dotyczą tego samego: elementów otwartej strony). Kolejność zmienia się też przyciskami ▲▼ – działa na dotyku. Elementy wzorców są na liście, z nazwą wzorca; kliknięcie otwiera wzorzec.
-**Słabe.** Elementów wewnątrz grupy nie widać osobno – grupa jest jednym wierszem.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Grupę da się rozwinąć na liście warstw: każdy jej element ma własne oko i nazwę.
+**Słabe.** Element grupy zaznacza się razem z grupą – pojedynczo przesuniesz go dopiero po rozgrupowaniu. Tabela jest jednym wierszem bez rozwijania.
 
 ### D5. Obrazy ✅ / ⚠️
 **Co jest.** Obraz jest zasobem projektu; strona na niego wskazuje. Kadrowanie przeciąganiem i liczbami. **Nowe:** duże zdjęcia (dłuższy bok ponad 2000 px) pokazują się w edytorze, miniaturach i podglądzie jako lżejsza kopia robocza (1600 px); do PDF i PNG idzie oryginał (`js/obrazy.js`).
 **Dlaczego tak.** Kopia istnieje tylko w pamięci przeglądarki – nie jest zapisywana ani wysyłana, więc nie ma dwóch plików do pilnowania. Wymiary i przycięcie obrazu na stronie są zawsze liczone w pikselach oryginału, dlatego projekt wygląda identycznie z kopią i bez niej, a eksport po prostu podmienia źródło.
 **Wklejanie (decyzja #46).** Ctrl+V wstawia obraz ze schowka systemu: zrzut ekranu, obraz skopiowany ze strony albo z programu graficznego, plik z menedżera plików, kod SVG skopiowany jako tekst (`js/wklejanie.js`). SVG jest porządkowany przed wstawieniem: dostaje rozmiar z `viewBox`, gdy go nie ma (inaczej przeglądarka wczytałaby obraz o zerowych wymiarach), traci skrypty, a mała ikona dostaje większy rozmiar bazowy, żeby nie wyszła rozmyta. Zostaje wektorem – jest ostry w każdym powiększeniu i w PDF. Skopiowanie elementu w aplikacji wpisuje do schowka systemu jego tekst albo nazwę, więc Ctrl+V zawsze wkleja to, co skopiowano ostatnio.
 **Poprawione.** Obrócony i odbity obraz kadruje się ramką (na czas kadrowania jest prostowany). Obraz można wkleić ze schowka.
-**Słabe.** SVG jest jednym, nieedytowalnym elementem – tak jak chciałeś: skaluje się, obraca i kadruje, ale nie zmienia się koloru jego części. W PDF wektorowym rysunek SVG idzie jako obraz w wybranej rozdzielczości, nie jako wektor. Oryginały zdjęć nadal siedzą w pamięci karty (jako dane projektu) – lżejsze kopie przyspieszają rysowanie, ale nie zmniejszają zużycia pamięci przy setkach zdjęć; tego nie ruszałem, bo wymaga zmiany sposobu przechowywania zasobów.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** W PDF wektorowym rysunek SVG jest wektorem (kształty rozłożone raz na cały plik); obrazem zostaje tylko rysunek z filtrem, maską, wzorem albo osadzonym zdjęciem.
+**Słabe.** SVG jest jednym, nieedytowalnym elementem – tak jak chciałeś. Oryginały zdjęć nadal siedzą w pamięci karty; przy setkach zdjęć może być ciężko. Tego nie ruszałem, bo wymaga zmiany sposobu przechowywania plików w całej aplikacji.
 
 ### D6. Cofanie ✅
 **Co jest.** Jedna historia dla całego projektu (`js/historia.js`), 80 kroków: zmiany na stronach i wzorcach, dodawanie, usuwanie i przesuwanie stron, sekcje, style, tabele, serie, ustawienia widoku. Po cofnięciu edytor otwiera stronę albo wzorzec, którego dotyczyła zmiana.
@@ -168,7 +173,8 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Eksport.** Tekst w PDF jest spłaszczony (część obrazu strony), więc czcionki nie są drukarni potrzebne. Opcja „Dołącz pliki czcionek” dodaje je do archiwum obok PDF.
 **Oficjalny zestaw (decyzja #60).** Aplikacja ma jeden zestaw czcionek dla wszystkich projektów i użytkowników. Okno „Czcionki” pokazuje go z próbkami i pozwala pobrać pliki TTF (jedną rodzinę albo cały zestaw, z licencją). Do pobieranej paczki PDF pliki użytych czcionek z zestawu dołączają się same, gdy plik nie ma czcionek w środku, a na życzenie zawsze. Skład zestawu to nadal osiem rodzin, które wybrałem sam – czeka na Twoją decyzję. Własne czcionki są dodatkiem.
 **Poprawione.** „Moje czcionki”: czcionka wgrana raz jest na liście czcionek w każdym następnym projekcie i – przy pracy z kontem – na każdym urządzeniu (prywatny folder plików na koncie, bez zmian w bazie). PDF wektorowy osadza czcionki i zapisuje tekst jako tekst; opcja „Dołącz pliki czcionek” została.
-**Słabe.** W PDF da się osadzić pliki TTF, OTF i WOFF. Czcionka WOFF2, czcionka zmienna i odmiana bez własnego pliku (np. kursywa „udawana” przez przeglądarkę) trafiają do PDF jako obraz tego tekstu – aplikacja mówi o tym po eksporcie. Wbudowanych nie da się wyłączyć z listy.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Tekst pisany własną czcionką WOFF2 i kursywą bez własnego pliku trafia do PDF jako krzywe (ostre w każdym powiększeniu), a nie jako obraz. Aplikacja po eksporcie mówi osobno, co poszło jako krzywe, a co jako obraz.
+**Słabe.** Skład oficjalnego zestawu to nadal osiem rodzin, które wybrałem sam – czeka na Twoją decyzję. Tekst zapisany jako krzywe nie da się zaznaczyć. Czcionka zmienna w WOFF2 w grubości innej niż podstawowa i udawane pogrubienie nadal idą jako obraz.
 
 ### D8. Kształty, gradienty, cienie ✅ / ⚠️
 **Co jest.** Wielokąt foremny i gwiazda (liczba boków we właściwościach), wypełnienie przejściem dwóch kolorów w trzech kierunkach, cień z przesunięciem i rozmyciem w mm. Panel warstw i linijki są w D11 i D14, zwijane sekcje panelu w D9.
@@ -180,7 +186,8 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Dlaczego tak.** Układ znany z programów do składu; jeden panel zmieniający treść zajmuje mniej miejsca niż kilka okienek.
 **Poprawione.** Części panelu zwijają się kliknięciem w tytuł i zostają zwinięte (wybór pamięta urządzenie).
 **Poprawione.** Strony, wzorce i warstwy są w różnych miejscach: strony z lewej, właściwości i warstwy w zakładkach z prawej, wzorce w osobnym oknie z górnego paska. Listy rozwijane, wybór koloru i pola wyboru rysuje aplikacja – wyglądają tak samo na każdym urządzeniu.
-**Słabe.** Panel tekstu nadal ma wiele części (zwijanych). Własna lista rozwijana nie ma wyszukiwania po fragmencie nazwy – tylko przeskok po pierwszych literach.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Na dłuższych listach rozwijanych (ponad 8 pozycji) pisanie zawęża listę do pozycji zawierających wpisany fragment, bez rozróżniania wielkości liter i polskich znaków.
+**Słabe.** Panel tekstu nadal ma wiele części (zwijanych).
 
 ### D10. Dotyk i telefon ⚠️
 **Co jest.** Jeden palec zaznacza i przesuwa elementy, dwa – widok. Na telefonie panele wysuwają się z dołu jako arkusze.
@@ -217,13 +224,15 @@ Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładó
 **Co jest.** Okno „Dane”: import CSV i Excela (każdy arkusz to tabela), edycja komórek, dodawanie i usuwanie wierszy i kolumn, wklejanie skopiowanych komórek z arkusza, pobranie tabeli jako CSV. Zmiana nazwy kolumny poprawia pola we wszystkich tekstach projektu. Ponowny import pliku o tej samej nazwie podmienia dane tabeli. **Nowe:** kolumnę można oznaczyć znakiem ≠ jako pilnowaną – powtórzone wartości są podświetlone w tabeli i wypisane przed drukiem.
 **Dlaczego tak.** Plan zakładał sam import; poprosiłeś o lekki edytor, więc jest tyle, ile trzeba, żeby poprawić literówkę albo dopisać wiersz bez wracania do arkusza. „Pule wartości” z planu (5.1) zrobiłem jako pilnowanie powtórzeń w kolumnie, bo po wprowadzeniu serii z tabelą tryb „po kolei, w kółko” już istnieje (seria ze stałą liczbą powieleń bierze wiersze w kółko), a tryb „ręcznie” to po prostu wpisanie wartości w komórkę. Brakowało tylko trzeciego: ostrzeżenia, gdy coś, co ma być niepowtarzalne, wypada dwa razy.
 **Poprawione.** Długa tabela przewija się w całości (wiersze dorysowują się porcjami).
-**Słabe.** Formatowanie z arkusza nie jest przenoszone. Pilnowanie powtórzeń porównuje wartości dosłownie – „Praca” i „praca” to dla niego dwie różne.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Pilnowanie powtórzeń nie rozróżnia wielkości liter ani zbędnych spacji: „Praca”, „praca ” i „PRACA” to jedna wartość.
+**Słabe.** Formatowanie z arkusza (kolory, pogrubienia) nie jest przenoszone – tabela to sam tekst.
 
 ### G2. Pola w tekście i pola dokumentu ✅
 **Co jest.** `{nazwa}` w zwykłym tekście: kolumna tabeli albo pole dokumentu (numer strony w kilku zapisach, numer ogólny i w sekcji, liczba stron, nazwa sekcji i strony, numer i liczba egzemplarzy serii, data, numer pierwszej strony innej sekcji, numer strony o podanej nazwie). Lista „Wstaw pole”, podświetlenie pól w edytorze, ostrzeżenie o nieznanym polu.
 **Dlaczego tak.** Pole jest częścią tekstu, a nie osobnym obiektem – tak ustalił plan i tak da się pisać `{dzien}. {miesiac} {rok}` w jednej linijce. Pola dokumentu działają jak pola w Wordzie: wynikają z projektu, nie z tabeli, więc np. spis treści z numerami stron innych sekcji aktualizuje się sam, także po powieleniu serii.
 **Poprawione.** Zwykłe klamry: przełącznik „Klamry { } to zwykły tekst, nie pola” przy tekście. Pola najwygodniej wstawia lista „Wstaw pole”.
-**Słabe.** Przełącznik dotyczy całej ramki – w jednym tekście nie zmieścisz naraz pola i zwykłych klamer. Pole z tabeli działa tylko na stronach serii z tą tabelą.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Zwykłe klamry obok pól w jednym tekście: podwójne `{{` i `}}` dają w podglądzie i PDF pojedyncze klamry, a pola obok działają.
+**Słabe.** Pole z tabeli działa tylko na stronach serii z tą tabelą. Zmiana nazwy kolumny poprawi też napis w podwójnych klamrach o tej samej nazwie.
 
 ### G3. Serie: powielanie stron ✅ / ⚠️
 **Co jest.** Strona wskazuje serię; sąsiednie strony z tą samą serią tworzą blok. Blok powiela się według wierszy tabeli albo stałą liczbę razy. Powielenia widać w podglądzie, na miniaturach, w udostępnionym linku, w numeracji i w PDF. **Nowe:** okno serii pokazuje, jakich pól używają strony bloku, dodaje brakujące kolumny do tabeli (albo tworzy tabelę z pól) i pobiera **szablon danych** – plik Excela z dokładnie tymi kolumnami, istniejącymi danymi i arkuszem „Instrukcja” z opisem każdej kolumny.
@@ -235,7 +244,8 @@ Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładó
 **Co jest (decyzja #47).** Seria ma tabelę główną (ona wyznacza liczbę stron) i dowolnie wiele tabel dodatkowych. Tabela dodatkowa przechodzi do następnego wiersza co zadaną liczbę stron serii – np. tabela tygodni co 7 stron dni, tytuł rozdziału co 8 stron. Pierwszy wiersz może obowiązywać krócej (rok zaczynający się w środku tygodnia). Pole z tabeli dodatkowej to `{Tabela.kolumna}`; sama nazwa kolumny działa, gdy nie ma jej w tabeli głównej. Przy „jednym wierszu na stronę bloku” seria kończy się na ostatnim wierszu – ostatnie powielenie bloku może być niepełne (opcja „Dokończ ostatni blok” przywraca dawne zachowanie).
 **Dlaczego tak.** Zamiast powielać w tabeli dni tę samą informację o tygodniu w siedmiu wierszach, wpisujesz ją raz. Krok liczony w stronach serii jest jedną regułą na wszystkie przypadki: „co 7 dni” przy jednej stronie na dzień i „raz na blok” przy bloku ośmiu stron to ta sama liczba w tym samym polu. Tabela dodatkowa nie idzie w kółko – gdy zabraknie wierszy, pola są puste, a aplikacja mówi o tym w trzech miejscach (okno serii, właściwości strony, lista przed drukiem) z numerem strony, od której brakuje danych. Ciche powtarzanie starych danych byłoby gorsze niż widoczna dziura.
 **Zmiana zachowania.** Wcześniej niepełny ostatni blok był dokańczany stronami bez danych. Projekty z taką serią będą teraz krótsze o te puste strony, chyba że zaznaczysz „Dokończ ostatni blok”.
-**Słabe – wyjaśnienie uwagi o „stałym kroku”.** Tabela dodatkowa zmienia wiersz co stałą liczbę stron: co 7, co 8, co 30. To działa, gdy okresy są równe (tydzień ma zawsze 7 dni, blok zawsze 8 stron). Nie działa, gdy są nierówne – a tak jest z miesiącami: styczeń ma 31 dni, luty 28, kwiecień 30. Jeśli masz serię „strona na dzień” na cały rok i tabelę „Miesiące” (nazwa, kolor, cytat miesiąca), nie ma liczby, którą dałoby się wpisać w „co ile stron”: przy 30 tabela przeskoczy na luty już 31 stycznia, a potem rozjedzie się coraz bardziej. Brakuje reguły „przejdź do następnego wiersza, gdy w tabeli dni zmieni się wartość w kolumnie `miesiac`”. Dziś są dwa obejścia: (1) wpisać dane miesiąca prosto w tabeli dni – kolumny `miesiac_nazwa`, `miesiac_kolor` powtórzone w każdym wierszu dnia (w Excelu to jedno przeciągnięcie); (2) zrobić osobną serię na każdy miesiąc. Jeśli chcesz, dorobię trzeci tryb tabeli dodatkowej: „nowy wiersz, gdy zmieni się kolumna …” – to niewielka zmiana.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Tabela dodatkowa ma drugi tryb: „nowy wiersz, gdy zmieni się kolumna” tabeli głównej. Tabela miesięcy przechodzi do następnego wiersza dokładnie tam, gdzie w tabeli dni zmienia się miesiąc – niezależnie od tego, czy ma 28, czy 31 dni.
+**Słabe.** Tryb patrzy na jedną kolumnę; zmiany „gdy zmieni się miesiąc albo rok” trzeba ująć w jednej kolumnie (np. „2027-01”).
 
 ### G7. Kolor i położenie elementu z danych ✅ / ⚠️
 **Co jest (decyzja #48).** Każdy element może brać kolor z pola (kolumna z kolorami) oraz przesunięcie w pionie i w poziomie z pola liczbowego: kolumny tabeli albo pola dokumentu, np. numeru powielenia. Dwa tryby: wartość to numer pozycji (krok w mm, z powrotem do początku co N pozycji) albo wprost milimetry.
@@ -248,18 +258,21 @@ Miniatury pogrupowane w sekcje, z numerem strony i znaczkiem serii; w rozkładó
 - Gdzie widać efekt: w edytorze element stoi w miejscu wzoru (pozycja 1, kolor wzoru) – edytujesz wzór, nie konkretną stronę. Prawdziwy kolor i położenie każdej strony są w **Podglądzie**, na miniaturach, w udostępnionym linku i w PDF.
 - Wzorce: element wzorca też może mieć „Z danych”. Na lewych stronach rozkładówki przy wzorcu z odbiciem lustrzanym przesunięcie w poziomie odwraca się – zakładka trafia na zewnętrzny brzeg.
 - Pole, którego aplikacja nie zna (literówka, usunięta kolumna), trafia na listę ostrzeżeń.
-**Słabe.** W edytorze widać tylko wzór; efekt jest w podglądzie. Z danych nie da się sterować rozmiarem, obrotem ani widocznością elementu (np. „pokaż gwiazdkę tylko w święta”) – to naturalne następne kroki, jeśli będą potrzebne. Kolor zastępuje całe wypełnienie – także gradient.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Z danych można też sterować obrotem (kąt z pola liczbowego) i widocznością elementu: zawsze, gdy pole jest niepuste, puste albo równe podanej wartości – np. gwiazdka tylko w święta.
+**Słabe.** W edytorze widać tylko wzór; efekt jest w podglądzie. Z danych nie da się sterować rozmiarem elementu. Kolor zastępuje całe wypełnienie, także gradient.
 
 ### G4. Obraz z kolumny tabeli ✅ / ⚠️
 **Co jest.** Obraz-wzór wyznacza ramkę; kolumna podaje nazwę pliku wgranego do projektu. Podmieniony obraz wpisuje się w ramkę bez zmiany proporcji. **Nowe:** brak pliku o podanej nazwie trafia na listę „Do sprawdzenia przed drukiem” z numerami stron.
 **Poprawione.** Podmieniony obraz może wypełniać ramkę z przycięciem albo mieścić się w niej cały – wybór przy obrazie-wzorze.
-**Słabe.** Przy wypełnianiu kadr jest zawsze ze środka zdjęcia.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Przy wypełnianiu ramki wybierasz, która część zdjęcia zostaje: środek, góra, dół, lewa albo prawa.
+**Słabe.** Kadru nie ustawia się osobno dla każdego wiersza danych – jedno ustawienie na obraz-wzór.
 
 ### G5. Kontrola przed drukiem ✅ / ⚠️
 **Co jest.** Okno eksportu PDF pokazuje uwagi do całego projektu, już po powieleniu serii: pola bez wartości, brakujące pliki obrazów, powtórzone wartości w pilnowanych kolumnach (z numerami stron, na których wypadają), niepełny ostatni blok serii (`js/kontrola.js`).
 **Dlaczego tak.** Ostrzeżenia w edytorze dotyczą otwartej strony-wzoru. Tego, że w 212. wierszu tabeli brakuje zdjęcia, na wzorze nie widać – trzeba przejść wszystkie egzemplarze. Uwagi nie blokują eksportu, bo czasem pusty obraz jest zamierzony.
 **Poprawione.** Osobne okno w menu ⋯ („Sprawdź przed drukiem”), nie tylko w oknie PDF. Lista obejmuje teksty, które nie mieszczą się w ramce na którejkolwiek powielonej stronie – z numerami stron i przyciskiem „Pokaż”.
-**Słabe.** Sprawdzanie tekstów w bardzo dużym projekcie trwa (lista uzupełnia się na bieżąco). „Pokaż” otwiera stronę-wzór, nie konkretne powielenie.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** „Pokaż” przy uwadze otwiera podgląd przewinięty do pierwszej strony, której uwaga dotyczy, z wyróżnioną kartką; „Otwórz wzór” otwiera stronę w edytorze. Nowa uwaga: tabela, która po wypełnieniu danymi wychodzi poza stronę.
+**Słabe.** Sprawdzanie tekstów w bardzo dużym projekcie trwa; lista uzupełnia się na bieżąco.
 
 ---
 
@@ -287,7 +300,8 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 ### I1. Eksport do PDF ✅ / ⚠️
 **Co jest.** Dwa rodzaje pliku. **Wektorowy** (domyślny): tekst jest prawdziwym tekstem z osadzonymi czcionkami, kształty, linie, gradienty i rysunki odręczne są wektorami, zdjęcia JPEG i PNG idą w oryginale – bez ponownej kompresji i raz w pliku. **Obrazy stron**: każda strona jest jednym obrazem w wybranej rozdzielczości (dotychczasowy sposób). W obu: zakres stron, spad i znaki cięcia, informacja o formacie po obcięciu i o spadzie (TrimBox, BleedBox), podział na pliki, powielenia serii, lista uwag przed drukiem. Opcje pliku wektorowego: „Zamień tekst na krzywe” i „Kolory tekstu i kształtów w CMYK”.
 **Dlaczego tak.** Plik wektorowy powstaje z tego samego kodu, który rysuje stronę na ekranie: edytor rysuje element, a zamiast pikseli zapisywane są polecenia PDF. Dzięki temu układ wierszy, listy, pola z danych, wielkość liter i przelewanie są w PDF takie same jak w podglądzie – nie ma drugiego, osobnego „silnika składu”, który mógłby się rozjechać. Czego nie da się zapisać wektorowo (cień, maska, czcionka bez pliku do osadzenia, znak spoza czcionki), idzie jako obraz tego jednego elementu, a aplikacja po eksporcie mówi, ile takich elementów było i dlaczego. Test porównuje stronę z PDF, narysowaną niezależnym czytnikiem, z obrazem z aplikacji i odczytuje z pliku tekst z polskimi znakami.
-**Słabe.** CMYK jest prosty: przelicza kolory tekstu i kształtów bez profilu barwnego (czarny idzie samą czernią), zdjęcia zostają w RGB. To nie jest PDF/X – drukarnia, która wymaga PDF/X-1a albo PDF/X-4 z profilem, musi plik przepuścić przez swój konwerter. Rysunki SVG idą jako obraz. Ligatur (np. „fi” jako jeden znak) w pliku nie ma – litery stoją osobno, w miejscach z pomiaru przeglądarki. Na systemach, które „dociągają” litery do pikseli (część Linuksów), drobny tekst na ekranie może stać o ułamek milimetra inaczej niż w PDF – plik ma położenia dokładne. Bardzo długi eksport trzyma cały plik w pamięci przeglądarki – dlatego jest podział na części.
+**Poprawione w rundzie „słabych stron” (decyzja #61).** Rysunki SVG są w pliku wektorami. Tekst pisany czcionką, której nie da się osadzić, idzie jako krzywe zamiast obrazu.
+**Słabe.** CMYK jest prosty: przelicza kolory tekstu i kształtów bez profilu barwnego, a zdjęcia zostają w RGB. To nie jest PDF/X. Ligatur (np. „fi” jako jeden znak) w pliku nie ma. Bardzo długi eksport trzyma cały plik w pamięci przeglądarki – dlatego jest podział na części.
 
 ### I2. PNG strony ✅
 **Co jest.** Bieżąca strona albo wzorzec jako PNG w 300 dpi, ze spadem, z oryginalnych zdjęć (wcześniej 150 dpi z tego, co było na płótnie).
