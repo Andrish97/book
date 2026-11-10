@@ -12,6 +12,7 @@ import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projek
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach } from './pola.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from './obrazy.js';
+import { rozlejWatki } from './watki.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -126,6 +127,7 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
     if (!oryginaly) await przygotujKopie(projekt.zasoby, surowe);
     const obiekty = await ozyw(podmienZasoby(surowe, zrodloObrazu(projekt.zasoby, oryginaly)));
     wpiszWRamki(obiekty);
+    rozlejWatki(obiekty); // po podstawieniu danych tekst ma inną długość
     for (const o of obiekty) {
       if (w.lustro && lewa) odbij(o, szerokosc);
       o.set({
@@ -184,6 +186,15 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly)));
   wpiszWRamki(wlasne);
+  // Po podstawieniu danych tekst ma inną długość – połączone ramki przelewają go od nowa.
+  // Ramki wątku z sąsiedniej strony rozkładówki biorą udział w przelewaniu, ale nie są tu rysowane.
+  const idWatkow = new Set(tresc.filter((o) => o.watek).map((o) => o.watek));
+  let zSasiada = [];
+  if (idWatkow.size && egz?.sasiad) {
+    const obecne = new Set(tresc.map((o) => o.id));
+    zSasiada = await ozyw(trescEgzemplarza(projekt, egz.sasiad, rozwiniety).filter((o) => idWatkow.has(o.watek) && !obecne.has(o.id)));
+  }
+  if (idWatkow.size) rozlejWatki([...wlasne, ...zSasiada]);
   const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety, { oryginaly });
   plotno.backgroundColor = jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona);
   for (const o of [...warstwy.pod, ...wlasne, ...warstwy.nad]) plotno.add(o);

@@ -293,10 +293,16 @@ export function tloStrony(projekt, strona) {
 
 // ---------- Kopie ----------
 
-function odnowIdentyfikatory(obiekty) {
+// Kopia dostaje też nowe identyfikatory wątków tekstu – inaczej ramki kopii
+// i oryginału, leżąc na jednej rozkładówce, połączyłyby się w jeden wątek.
+function odnowIdentyfikatory(obiekty, watki = new Map()) {
   obiekty.forEach((o) => {
     o.id = uid('o');
-    if (Array.isArray(o.objects)) odnowIdentyfikatory(o.objects);
+    if (o.watek) {
+      if (!watki.has(o.watek)) watki.set(o.watek, uid('w'));
+      o.watek = watki.get(o.watek);
+    }
+    if (Array.isArray(o.objects)) odnowIdentyfikatory(o.objects, watki);
   });
 }
 

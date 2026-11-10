@@ -1958,6 +1958,12 @@ const oknoPdf = new OknoPdf({
   przedEksportem: zapiszBiezacyCel,
 });
 
+$('#dlg-tabela').addEventListener('close', (e) => {
+  if (e.target.returnValue !== 'tak') return;
+  const f = e.target.querySelector('form').elements;
+  edytor.dodajTabele({ wiersze: Number(f.wiersze.value), kolumny: Number(f.kolumny.value), wysokoscWiersza: Number(f.wysokosc.value), naglowek: f.naglowek.checked });
+});
+
 const zMenu = (fn) => () => { const v = fn.zrodlo(); zamknijMenu(); fn(v); };
 const przezMenu = (zrodlo, fn) => { const f = (v) => fn(v); f.zrodlo = zrodlo; return zMenu(f); };
 
@@ -2018,6 +2024,7 @@ const akcje = {
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => edytor.dodajWielokat(),
   'dodaj-obraz': () => $('#plik-obraz').click(),
+  'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
   cofnij: () => cofnijKrok(-1),
   ponow: () => cofnijKrok(1),
   duplikuj: () => edytor.duplikuj(),

@@ -14,7 +14,8 @@ const liczDomyslnie = fabric.Textbox.prototype.initDimensions;
 fabric.Textbox.prototype.initDimensions = function initDimensions() {
   if (this.__skipDimension) return;
   const ramka = this.ramka_h > 0;
-  if (ramka && this.autodopasowanie && this.rozmiar_bazowy > 0) {
+  // Ramka połączona z innymi (js/watki.js) nie zmniejsza tekstu – nadmiar płynie dalej.
+  if (ramka && this.autodopasowanie && this.rozmiar_bazowy > 0 && !this.watek) {
     const min = Math.min(this.rozmiar_bazowy, (this.min_rozmiar || 6) * PT);
     this.fontSize = this.rozmiar_bazowy;
     liczDomyslnie.call(this);
@@ -51,6 +52,81 @@ fabric.Textbox.prototype.getSelectionStartFromPointer = function getSelectionSta
     return p;
   };
   try { return kursorZWskaznika.call(this, e); } finally { delete this.getLocalPointer; }
+};
+
+// ---------- Lista: wypunktowanie i numerowanie akapitów ----------
+//
+// `lista`: 'punkty' | 'kreski' | 'numery'. Każdy akapit dostaje znak przed
+// pierwszym wierszem, a cały tekst jest wcięty, więc dalsze wiersze akapitu
+// stoją równo pod pierwszym. Znak jest rysowany, nie wpisany w treść – pola
+// {…} i dane z tabeli działają bez zmian. `lista_start` to numer pierwszego
+// akapitu (ustawia go przelewanie tekstu w kolejnej ramce).
+
+const ZNAKI_LISTY = { punkty: '•', kreski: '–' };
+export const wciecieListy = (o) => (o.lista ? o.fontSize * (o.lista === 'numery' ? 1.9 : 1.2) : 0);
+
+const P = fabric.Textbox.prototype;
+for (const k of ['lista', 'lista_start']) {
+  if (!P._dimensionAffectingProps.includes(k)) P._dimensionAffectingProps = [...P._dimensionAffectingProps, k];
+  if (!P.cacheProperties.includes(k)) P.cacheProperties = [...P.cacheProperties, k];
+}
+
+const zawin = P._wrapLine;
+P._wrapLine = function _wrapLine(linia, nr, szerokosc, zarezerwowane) {
+  return zawin.call(this, linia, nr, szerokosc, (zarezerwowane || 0) + wciecieListy(this));
+};
+
+const odLewej = P._getLineLeftOffset;
+P._getLineLeftOffset = function _getLineLeftOffset(nr) {
+  const baza = odLewej.call(this, nr);
+  const w = wciecieListy(this);
+  if (!w) return baza;
+  const koniec = this.isEndOfWrapping(nr);
+  const a = this.textAlign;
+  if (a === 'right' || (a === 'justify-right' && koniec)) return baza;
+  if (a === 'center' || (a === 'justify-center' && koniec)) return baza + w / 2;
+  return baza + w;
+};
+
+// Justowanie rozciąga wiersz do szerokości pomniejszonej o wcięcie.
+const rozciagnij = P.enlargeSpaces;
+P.enlargeSpaces = function enlargeSpaces() {
+  const w = wciecieListy(this);
+  if (!w) { rozciagnij.call(this); return; }
+  const szerokosc = this.width;
+  this.width = szerokosc - w;
+  try { rozciagnij.call(this); } finally { this.width = szerokosc; }
+};
+
+const rysujTekst = P._renderText;
+P._renderText = function _renderText(ctx) {
+  rysujTekst.call(this, ctx);
+  if (!this.lista || !this._styleMap) return;
+  const w = wciecieListy(this);
+  const lewo = this._getLeftOffset();
+  let y = this._getTopOffset();
+  let numer = this.lista_start || 1;
+  // Pierwszy akapit ramki z ciągiem dalszym (środek akapitu) nie dostaje znaku.
+  const ciagDalszy = this.watek && this.watek_nr > 0 && this.lacznik !== undefined && this.lacznik !== '\n';
+  ctx.save();
+  for (let i = 0; i < this._textLines.length; i += 1) {
+    const wysokosc = this.getHeightOfLine(i);
+    const m = this._styleMap[i];
+    const poczatekAkapitu = m && m.offset === 0 && this._unwrappedTextLines[m.line].join('').trim() !== '';
+    if (poczatekAkapitu && !(ciagDalszy && m.line === 0)) {
+      const styl = this.getCompleteStyleDeclaration(i, 0);
+      ctx.font = this._getFontDeclaration(styl);
+      ctx.fillStyle = typeof styl.fill === 'string' ? styl.fill : (typeof this.fill === 'string' ? this.fill : '#000000');
+      ctx.textBaseline = 'alphabetic';
+      ctx.textAlign = 'right'; // znak kończy się tuż przed tekstem – numery równają do kropki
+      const znak = this.lista === 'numery' ? `${numer}.` : (ZNAKI_LISTY[this.lista] || '•');
+      const podstawa = y + wysokosc / this.lineHeight - (wysokosc * this._fontSizeFraction) / this.lineHeight;
+      ctx.fillText(znak, lewo + this._getLineLeftOffset(i) - styl.fontSize * 0.4, podstawa);
+      numer += 1;
+    }
+    y += wysokosc;
+  }
+  ctx.restore();
 };
 
 // Czy treść wystaje poza ramkę (do ostrzeżeń).

@@ -54,6 +54,8 @@ export const SKROTY = [
   { grupa: 'Tekst', klawisze: ['Ctrl+Shift+KeyJ'], opis: 'Wyjustuj', tekst: true, akcja: (k) => k.edytor.formatujTekst(() => ({ textAlign: 'justify' }), true) },
   { grupa: 'Tekst', klawisze: ['Ctrl+Shift+Period'], pokaz: 'Ctrl+Shift+.', opis: 'Większa czcionka (o 1 pt)', tekst: true, akcja: (k) => k.edytor.formatujTekst((c) => ({ fontSize: c('fontSize') + mm(1) })) },
   { grupa: 'Tekst', klawisze: ['Ctrl+Shift+Comma'], pokaz: 'Ctrl+Shift+,', opis: 'Mniejsza czcionka (o 1 pt)', tekst: true, akcja: (k) => k.edytor.formatujTekst((c) => ({ fontSize: Math.max(mm(2), c('fontSize') - mm(1)) })) },
+  { grupa: 'Tekst', klawisze: ['Ctrl+Shift+Digit8'], pokaz: 'Ctrl+Shift+8', opis: 'Lista z punktami (włącz / wyłącz)', tekst: true, akcja: (k) => k.edytor.formatujTekst((c) => ({ lista: c('lista') === 'punkty' ? undefined : 'punkty' }), true) },
+  { grupa: 'Tekst', klawisze: ['Ctrl+Shift+Digit7'], pokaz: 'Ctrl+Shift+7', opis: 'Lista numerowana (włącz / wyłącz)', tekst: true, akcja: (k) => k.edytor.formatujTekst((c) => ({ lista: c('lista') === 'numery' ? undefined : 'numery' }), true) },
 
   // ---------- Wstawianie ----------
   { grupa: 'Wstawianie', klawisze: ['KeyT'], opis: 'Tekst', akcja: (k) => k.edytor.dodajTekst() },

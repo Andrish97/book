@@ -70,6 +70,11 @@ export class PanelWlasciwosci {
       const s = this.sekcja('Zaznaczenie');
       s.append(this.wskazowka('Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
       s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()]]));
+      if (obj.getObjects().every((o) => o.type === 'textbox')) {
+        const p = this.sekcja('Przelewanie tekstu');
+        p.append(this.wskazowka('Po połączeniu tekst, który nie mieści się w pierwszej ramce, płynie do następnej (z góry na dół, obok siebie – od lewej).'));
+        p.append(this.akcje([['link', 'Połącz ramki tekstu', () => this.edytor.polaczRamki()]]));
+      }
       this.zbudujWyrownanie(obj.size());
       this.zbudujGeometrie(obj, { tylkoPozycja: true });
       return;
@@ -244,6 +249,9 @@ export class PanelWlasciwosci {
     ]);
     wyr.classList.add('szeroki');
     s.append(wyr);
+    const lista = this.wybor('Lista', [['', 'Brak'], ['punkty', '• Punkty'], ['kreski', '– Kreski'], ['numery', '1. Numery']], () => obj.lista || '', (v) => obj.set('lista', v || undefined));
+    lista.classList.add('szeroki');
+    s.append(lista);
 
     // Pola w klamrach zostają nietknięte – {dzien} po zamianie na {DZIEN} przestałoby działać.
     const pozaPolami = (t, fn) => t.split(/(\{[^{}\n]*\})/).map((cz, i) => (i % 2 ? cz : fn(cz))).join('');
@@ -256,10 +264,29 @@ export class PanelWlasciwosci {
     litery.classList.add('szeroki');
     s.append(litery);
 
+    // Przelewanie: połączone ramki i kolumny.
+    const w = this.sekcja('Przelewanie tekstu');
+    const watek = this.edytor.watekRamki(obj);
+    if (watek) {
+      w.append(this.wskazowka(`Ramka ${watek.nr} z ${watek.ile} połączonych. Tekst, który się tu nie mieści, płynie do następnej; wygląd tekstu jest wspólny dla wszystkich.`));
+      w.append(this.akcje([
+        ['plus', 'Dodaj ramkę z ciągiem dalszym', () => this.edytor.dodajRamkeDalsza()],
+        ['rozgrupuj', 'Rozłącz ramki', () => this.edytor.rozlaczRamki()],
+      ]));
+    } else {
+      w.append(this.akcje([['plus', 'Dodaj ramkę z ciągiem dalszym', () => this.edytor.dodajRamkeDalsza()]]));
+      const kolumny = (n) => async () => { if (!await this.edytor.podzielNaKolumny(n)) powiadom('Ramka jest za wąska na tyle kolumn.'); };
+      const podzial = this.segmenty('Podziel na kolumny', [['2', '2 kolumny', null, kolumny(2)], ['3', '3 kolumny', null, kolumny(3)], ['4', '4 kolumny', null, kolumny(4)]], true);
+      podzial.classList.add('szeroki');
+      w.append(podzial);
+      w.append(this.wskazowka('Kolumny to połączone ramki obok siebie. Dwie istniejące ramki połączysz, zaznaczając je razem.'));
+    }
+
     // Ramka: stała wysokość, wyrównanie w pionie, zmniejszanie tekstu, który się nie mieści.
     const r = this.sekcja('Ramka tekstu');
     const przelicz = () => { obj.initDimensions(); obj.setCoords(); };
     const stala = this.przelacznik('Stała wysokość ramki', () => obj.ramka_h > 0, (v) => {
+      if (!v && obj.watek) { powiadom('Połączona ramka ma stałą wysokość – inaczej tekst nie miałby dokąd płynąć.'); this.zbuduj(); return; }
       obj.ramka_h = v ? Math.max(obj._wysokoscTresci || obj.height, 3) : undefined;
       if (!v) { obj.autodopasowanie = undefined; if (obj.rozmiar_bazowy) obj.fontSize = obj.rozmiar_bazowy; obj.rozmiar_bazowy = undefined; }
       przelicz();
@@ -274,7 +301,7 @@ export class PanelWlasciwosci {
         ['wyrownajDol', 'Do dołu ramki', () => obj.wyrownanie_pion === 'dol', () => { obj.wyrownanie_pion = 'dol'; przelicz(); }],
       ]);
       r.append(pion);
-      r.append(this.przelacznik('Zmniejszaj tekst, gdy się nie mieści', () => Boolean(obj.autodopasowanie), (v) => {
+      if (!obj.watek) r.append(this.przelacznik('Zmniejszaj tekst, gdy się nie mieści', () => Boolean(obj.autodopasowanie), (v) => {
         obj.autodopasowanie = v || undefined;
         if (v) { obj.rozmiar_bazowy = obj.fontSize; obj.min_rozmiar = obj.min_rozmiar || 6; } else { if (obj.rozmiar_bazowy) obj.fontSize = obj.rozmiar_bazowy; obj.rozmiar_bazowy = undefined; }
         przelicz();

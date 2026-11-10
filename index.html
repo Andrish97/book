@@ -378,6 +378,7 @@
           <button data-akcja="dodaj-wielokat" data-ikona="wielokat" title="Wielokąt albo gwiazda (P)"><span>Wielokąt</span></button>
           <button data-akcja="dodaj-linie" data-ikona="linia" title="Linia (L)"><span>Linia</span></button>
           <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz z dysku"><span>Obraz</span></button>
+          <button data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: siatka i ramki tekstu w komórkach"><span>Tabela</span></button>
         </div>
 
         <div id="kontener-plotna" class="kontener-plotna">
@@ -676,6 +677,23 @@
       <div class="przyciski-dialogu">
         <button class="przycisk" value="nie" id="potwierdz-nie">Anuluj</button>
         <button class="przycisk glowny" value="tak" id="potwierdz-tak">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-tabela">
+    <form method="dialog" class="formularz">
+      <h2>Wstaw tabelę</h2>
+      <p class="ciche">Powstanie siatka linii i osobna ramka tekstu w każdej komórce – w komórkach piszesz i wstawiasz pola jak w zwykłym tekście.</p>
+      <div class="rzad">
+        <label class="pole"><span>Wiersze</span><input name="wiersze" type="number" min="1" max="40" step="1" value="4" required inputmode="numeric"></label>
+        <label class="pole"><span>Kolumny</span><input name="kolumny" type="number" min="1" max="12" step="1" value="3" required inputmode="numeric"></label>
+        <label class="pole"><span>Wysokość wiersza (mm)</span><input name="wysokosc" type="number" min="3" max="100" step="0.5" value="9" required inputmode="decimal"></label>
+      </div>
+      <label class="przelacznik"><input name="naglowek" type="checkbox" checked><span>Pierwszy wiersz to nagłówek</span></label>
+      <div class="przyciski-dialogu">
+        <button class="przycisk" value="nie" formnovalidate>Anuluj</button>
+        <button class="przycisk glowny" value="tak">Wstaw</button>
       </div>
     </form>
   </dialog>

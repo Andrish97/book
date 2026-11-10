@@ -15,6 +15,7 @@ import { przyciagnij, pomiary } from './przyciaganie.js';
 import { znajdzPola } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
+import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -29,7 +30,11 @@ export const WLASNE_POLA = [
   'ramka_h', 'wyrownanie_pion', 'rozmiar_bazowy', // ramka tekstu o stałej wysokości (tekst-ramka.js)
   'ramka_pola',
   'boki', 'gwiazda', // wielokąt foremny albo gwiazda (punkty liczone z tych dwóch liczb)
+  'lista', 'lista_start', // wypunktowanie / numerowanie akapitów (tekst-ramka.js)
+  'watek', 'watek_nr', 'lacznik', // przelewanie tekstu między ramkami (watki.js)
 ];
+
+export const TEKST_ZACHETY = 'Kliknij dwa razy, aby edytować';
 
 // Punkty wielokąta foremnego (albo gwiazdy) wpisanego w okrąg o promieniu r,
 // z wierzchołkiem u góry.
@@ -413,6 +418,7 @@ export class Edytor extends EventTarget {
 
   oznaczZmiane() {
     if (this._wczytywanie || this._kadr) return;
+    this._pilnujWatkow();
     this.przeliczOstrzezenia();
     this.dispatchEvent(new Event('zmiana'));
   }
@@ -433,7 +439,7 @@ export class Edytor extends EventTarget {
     return { left: this.strony[this.aktywna].x + (w - szer) / 2, top: (h - wys) / 2 };
   }
 
-  dodajTekst(tresc = 'Kliknij dwa razy, aby edytować') {
+  dodajTekst(tresc = TEKST_ZACHETY) {
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
     const szer = Math.max(20, w - this.marg.lewy - this.marg.prawy);
     const t = new fabric.Textbox(tresc, {
@@ -523,6 +529,13 @@ export class Edytor extends EventTarget {
     if (!obiekty.length) return;
     if (this.aktywny?.isEditing) return;
     this.canvas.discardActiveObject();
+    // Tekst usuwanej ramki wątku przechodzi do sąsiedniej – znika ramka, nie treść.
+    for (const o of obiekty) {
+      const zostaja = this._ramkiWatku(o).filter((r) => !obiekty.includes(r));
+      if (!zostaja.length) continue;
+      const przed = zostaja.filter((r) => r.watek_nr < o.watek_nr).at(-1);
+      przeniesTekst(o, przed || zostaja[0], Boolean(przed));
+    }
     obiekty.forEach((o) => this.canvas.remove(o));
     this.canvas.requestRenderAll();
   }
@@ -542,6 +555,184 @@ export class Edytor extends EventTarget {
       this._wstaw(kopia);
     }
     this.canvas.requestRenderAll();
+  }
+
+  // ---------- Przelewanie tekstu między ramkami, kolumny, tabela ----------
+
+  _ramkiWatku(obj) {
+    return obj?.watek ? (watki(this.canvas.getObjects().filter((o) => !o.zWzorca)).get(obj.watek) || []) : [];
+  }
+
+  // Opis wątku zaznaczonej ramki: { nr, ile } albo null.
+  watekRamki(obj = this.aktywny) {
+    const ramki = this._ramkiWatku(obj);
+    return ramki.length > 1 ? { nr: ramki.indexOf(obj) + 1, ile: ramki.length } : null;
+  }
+
+  // Porządkuje wątki po każdej zmianie i przelewa tekst. Kopia ramki (powielenie,
+  // wklejenie) ma ten sam numer co oryginał – zostaje zwykłą, niepołączoną ramką.
+  _pilnujWatkow() {
+    const akt = this.aktywny;
+    for (const wszystkie of watki(this.canvas.getObjects().filter((o) => !o.zWzorca)).values()) {
+      const numery = new Set();
+      const ramki = [];
+      for (const r of wszystkie) {
+        if (numery.has(r.watek_nr)) odlaczRamke(r); else { numery.add(r.watek_nr); ramki.push(r); }
+      }
+      if (ramki.length < 2) { ramki.forEach(odlaczRamke); continue; }
+      ramki.forEach((r, i) => {
+        r.watek_nr = i;
+        if (!(r.ramka_h > 0)) r.ramka_h = r.height; // tekst płynie dalej tylko z ramki o stałej wysokości
+      });
+      // W trakcie pisania tekst zostaje na miejscu; przeleje się po wyjściu z ramki.
+      if (ramki.some((r) => r.isEditing)) continue;
+      if (ramki.includes(akt)) {
+        for (const r of ramki) if (r !== akt) for (const k of WSPOLNE_W_WATKU) if (r[k] !== akt[k]) r.set(k, akt[k]);
+      }
+      rozlej(ramki);
+    }
+  }
+
+  // Łączy zaznaczone ramki tekstu: tekst, który nie mieści się w pierwszej,
+  // płynie do następnej (kolejność: z góry na dół, obok siebie – od lewej).
+  polaczRamki() {
+    const akt = this.aktywny;
+    if (!akt || akt.type !== 'activeSelection') return false;
+    const wybrane = akt.getObjects();
+    if (wybrane.length < 2 || wybrane.some((o) => o.type !== 'textbox' || o.zWzorca)) return false;
+    this.canvas.discardActiveObject(); // poza zaznaczeniem ramki mają położenie na stronie
+    const id = uid('w');
+    kolejnoscCzytania(wybrane).forEach((r, i) => {
+      if (r.text === TEKST_ZACHETY && i) { r.text = ''; r.styles = {}; }
+      r.set({ watek: id, watek_nr: i, lacznik: i ? '\n' : undefined });
+      if (!(r.ramka_h > 0)) r.ramka_h = r.height;
+      r.autodopasowanie = undefined;
+    });
+    this.canvas.setActiveObject(new fabric.ActiveSelection(wybrane, { canvas: this.canvas }));
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  // Nowa ramka z ciągiem dalszym tekstu: obok zaznaczonej, a gdy się nie mieści – pod nią.
+  async dodajRamkeDalsza(odstep = 5) {
+    const akt = this.aktywny;
+    if (!akt || akt.type !== 'textbox' || akt.zWzorca || akt.isEditing) return null;
+    const ramki = this._ramkiWatku(akt);
+    const nowa = await new Promise((ok) => akt.clone(ok, WLASNE_POLA));
+    const szer = akt.getScaledWidth();
+    const wys = akt.getScaledHeight();
+    const prawaKrawedz = this.strony[this.aktywna].x + this.wydruk.szerokosc_mm;
+    const obok = akt.left + 2 * szer + odstep <= prawaKrawedz + 0.01;
+    if (!(akt.ramka_h > 0)) akt.ramka_h = akt.height;
+    akt.autodopasowanie = undefined;
+    if (!akt.watek) akt.set({ watek: uid('w'), watek_nr: 0 });
+    for (const r of ramki) if (r.watek_nr > akt.watek_nr) r.watek_nr += 1;
+    nowa.set({
+      id: uid('o'), text: '', styles: {}, evented: true,
+      left: obok ? akt.left + szer + odstep : akt.left,
+      top: obok ? akt.top : akt.top + wys + odstep,
+      ramka_h: akt.ramka_h, autodopasowanie: undefined,
+      watek: akt.watek, watek_nr: akt.watek_nr + 1, lacznik: '\n',
+    });
+    this.canvas.add(nowa);
+    this.canvas.setActiveObject(nowa);
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+    return nowa;
+  }
+
+  // Dzieli ramkę na n kolumn: połączone ramki obok siebie, przez które płynie tekst.
+  async podzielNaKolumny(n, odstep = 4) {
+    const akt = this.aktywny;
+    if (!akt || akt.type !== 'textbox' || akt.zWzorca || akt.isEditing || akt.watek || !(n > 1)) return false;
+    const szer = akt.getScaledWidth();
+    const kolumna = (szer - (n - 1) * odstep) / n;
+    if (kolumna < 8) return false;
+    const stala = akt.ramka_h > 0;
+    akt.autodopasowanie = undefined;
+    akt.set({ width: kolumna / akt.scaleX });
+    akt.initDimensions();
+    if (!stala) {
+      // Kolumny równej wysokości: tyle wierszy na kolumnę, żeby tekst rozłożył się po równo.
+      const wierszy = Math.ceil(akt._textLines.length / n);
+      let h = 0;
+      for (let i = 0; i < wierszy; i += 1) h += akt.getHeightOfLine(i);
+      akt.ramka_h = Math.max(h, akt.getHeightOfLine(0)) + 0.01;
+      akt.initDimensions();
+    }
+    // Najpierw wszystkie kopie (to trwa chwilę), dopiero potem łączenie – jednym ruchem,
+    // żeby porządkowanie wątków nie zobaczyło ramki połączonej z niczym.
+    const nowe = await Promise.all(Array.from({ length: n - 1 }, () => new Promise((ok) => akt.clone(ok, WLASNE_POLA))));
+    const id = uid('w');
+    akt.set({ watek: id, watek_nr: 0 });
+    nowe.forEach((nowa, i) => {
+      nowa.set({ id: uid('o'), text: '', styles: {}, evented: true, left: akt.left + (i + 1) * (kolumna + odstep), watek: id, watek_nr: i + 1, lacznik: '\n' });
+      this.canvas.add(nowa);
+    });
+    akt.setCoords();
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  // Rozłącza wątek zaznaczonej ramki: każda ramka zostaje ze swoją częścią tekstu.
+  rozlaczRamki() {
+    const akt = this.aktywny;
+    const zaznaczone = akt?.type === 'activeSelection' ? akt.getObjects() : [akt];
+    const ramki = new Set(zaznaczone.flatMap((o) => this._ramkiWatku(o)));
+    if (!ramki.size) return false;
+    ramki.forEach(odlaczRamke);
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  // Tabela: siatka linii (jedna grupa) i osobna ramka tekstu w każdej komórce.
+  // Komórki są zwykłymi ramkami – można w nich pisać, wstawiać pola i je formatować.
+  dodajTabele({ wiersze = 3, kolumny = 3, naglowek = true, wysokoscWiersza = 9 } = {}) {
+    const W = Math.min(40, Math.max(1, Math.round(wiersze)));
+    const K = Math.min(12, Math.max(1, Math.round(kolumny)));
+    const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+    // Linie siatki mają grubość – tabela jest o włos węższa niż pole między marginesami.
+    const szer = Math.max(20, w - this.marg.lewy - this.marg.prawy) - 0.6;
+    const x0 = this.strony[this.aktywna].x + this.marg.lewy + 0.3;
+    const wys = Math.min(wysokoscWiersza * W, h - 20);
+    const hw = wys / W;
+    const y0 = (h - wys) / 2;
+    const kol = szer / K;
+    // Linia jest kładziona środkiem – inaczej Fabric przesuwa ją o pół grubości kreski.
+    const linia = (x1, y1, x2, y2, grubosc = 0.25) => new fabric.Line([x1, y1, x2, y2], {
+      stroke: '#1a1a1a', strokeWidth: grubosc, strokeUniform: true, originX: 'center', originY: 'center', left: (x1 + x2) / 2, top: (y1 + y2) / 2,
+    });
+    const linie = [];
+    for (let i = 0; i <= K; i += 1) linie.push(linia(x0 + i * kol, y0, x0 + i * kol, y0 + wys));
+    for (let i = 0; i <= W; i += 1) linie.push(linia(x0, y0 + i * hw, x0 + szer, y0 + i * hw, naglowek && i === 1 ? 0.5 : 0.25));
+    const siatka = new fabric.Group(linie, { id: uid('o'), nazwa: `Siatka tabeli ${W}×${K}` });
+    const odstep = 1.5;
+    const komorki = [];
+    for (let r = 0; r < W; r += 1) {
+      for (let k = 0; k < K; k += 1) {
+        const pierwszy = naglowek && r === 0;
+        komorki.push(new fabric.Textbox(pierwszy ? `Kolumna ${k + 1}` : '', {
+          id: uid('o'), nazwa: `Komórka ${String.fromCharCode(65 + k)}${r + 1}`,
+          left: x0 + k * kol + odstep, top: y0 + r * hw, width: kol - 2 * odstep,
+          ramka_h: hw, wyrownanie_pion: 'srodek',
+          fontFamily: DOMYSLNA, fontSize: ptNaMm(9), fontWeight: pierwszy ? 'bold' : 'normal', lineHeight: 1.15,
+          fill: '#1a1a1a', textAlign: 'left', strokeWidth: 0,
+        }));
+      }
+    }
+    this.canvas.discardActiveObject();
+    this.canvas.add(siatka, ...komorki);
+    this.canvas.setActiveObject(new fabric.ActiveSelection([siatka, ...komorki], { canvas: this.canvas }));
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    return { siatka, komorki };
   }
 
   // ---------- Schowek (kopiuj / wklej, także między stronami) ----------
@@ -818,6 +1009,30 @@ export class Edytor extends EventTarget {
     return znajdzPola(o.text).filter((p) => !this.znanePole(p.nazwa, strona));
   }
 
+  // Połączone ramki: gdy zaznaczona jest jedna z nich, linia pokazuje, dokąd płynie tekst.
+  _rysujWatek(ctx, X, Y) {
+    const akt = this.aktywny;
+    const zaznaczone = akt?.type === 'activeSelection' ? akt.getObjects() : (akt ? [akt] : []);
+    const ramka = zaznaczone.find((o) => o.watek);
+    if (!ramka || akt.type === 'activeSelection') return;
+    const ramki = this._ramkiWatku(ramka);
+    if (ramki.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = '#7c3aed';
+    ctx.fillStyle = '#7c3aed';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    for (let i = 0; i < ramki.length - 1; i += 1) {
+      const a = ramki[i].aCoords?.br;
+      const b = ramki[i + 1].aCoords?.tl;
+      if (!a || !b) continue;
+      ctx.beginPath(); ctx.moveTo(X(a.x), Y(a.y)); ctx.lineTo(X(b.x), Y(b.y)); ctx.stroke();
+      ctx.beginPath(); ctx.arc(X(a.x), Y(a.y), 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), 3.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
   // Tło pod polami {…} w tekstach: fioletowe – pole zostanie podstawione,
   // czerwone – takiego pola nie ma. Tylko w edytorze, nie w wydruku.
   _podswietlPola(ctx, X, Y) {
@@ -901,7 +1116,7 @@ export class Edytor extends EventTarget {
     for (const o of this.canvas.getObjects()) {
       if (o.bez_ostrzezen || o.zWzorca || o.kadr || o === this._kadr?.obj) continue;
       o.setCoords();
-      const r = o.getBoundingRect(true, true);
+      const r = this._prostokatNaStronie(o);
       const x1 = r.left; const y1 = r.top;
       const x2 = r.left + r.width; const y2 = r.top + r.height;
       // Obszar bezpieczny: marginesy strony z elementem albo – dla elementu
@@ -925,6 +1140,16 @@ export class Edytor extends EventTarget {
     }
     this.ostrzezenia = lista;
     this.dispatchEvent(new CustomEvent('ostrzezenia', { detail: lista }));
+  }
+
+  // Prostokąt opisany na elemencie, w milimetrach strony. Element z zaznaczenia
+  // kilku naraz ma położenie liczone względem tego zaznaczenia – trzeba je przeliczyć.
+  _prostokatNaStronie(o) {
+    if (!o.group) return o.getBoundingRect(true, true);
+    const m = o.calcTransformMatrix();
+    const d = o._getNonTransformedDimensions();
+    const rogi = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => fabric.util.transformPoint({ x: (a * d.x) / 2, y: (b * d.y) / 2 }, m));
+    return fabric.util.makeBoundingBoxFromPoints(rogi);
   }
 
   // ---------- Przyciąganie: prowadnice, inne elementy, równe odstępy, siatka ----------
@@ -1313,6 +1538,7 @@ export class Edytor extends EventTarget {
     }
 
     if (this.pokazProwadnice) this._podswietlPola(ctx, X, Y);
+    if (this.pokazProwadnice) this._rysujWatek(ctx, X, Y);
 
     // Kadrowanie: część obrazu poza ramką jest przyciemniona.
     if (this._kadr) {
