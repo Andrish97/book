@@ -8,18 +8,19 @@ Dopisz uwagi pod punktami (np. „→ zmień na…”), a ja przeniosę decyzje 
 
 ---
 
-## 0. Co musisz zrobić w Supabase, żeby konta i zapis działały
+## 0. Supabase: jak to jest podpięte
 
-Jedna rzecz, raz. Bez tokenów i bez wklejania czegokolwiek.
+**Działa od 2026-11-10.** Nic więcej nie musisz robić. Każdy push na `main`, z dowolnej rozmowy, wdraża to, co jest w folderze `supabase/`:
+- migracje z `supabase/migrations/` (tabela `projekty` z licznikiem wersji, foldery `zasoby` i `podglady`, reguły dostępu, funkcja `usun_konto`),
+- ustawienia logowania z `supabase/config.toml`: adres aplikacji i adresy powrotu, wymagania hasła, rejestracja bez potwierdzania e-mailem. Integracja przenosi je dlatego, że w `config.toml` jest blok `[remotes.production]` z identyfikatorem projektu.
 
-1. **Włącz wdrażanie z GitHuba.** Supabase → Project Settings → Integrations → GitHub: w polu **Working directory** kropka (`.`), włączone **Deploy to production**, zapisz. Samo podpięcie repozytorium nie wystarcza – bez tej opcji integracja nic nie robi po pushu. Od tej chwili każdy push na `main`, z dowolnej rozmowy, stosuje to, co jest w folderze `supabase/`:
-   - migracje z `supabase/migrations/` (tabela `projekty` z licznikiem wersji, foldery `zasoby` i `podglady`, reguły dostępu, funkcja `usun_konto`),
-   - ustawienia logowania z `supabase/config.toml`: adres aplikacji i adresy powrotu, wymagania hasła, rejestracja bez potwierdzania e-mailem, tematy i szablony wiadomości. Integracja przenosi je dlatego, że w `config.toml` jest blok `[remotes.production]` z identyfikatorem projektu.
-2. **Gdyby po pushu nadal nic się nie działo:** Supabase → Branches → `main` → View logs pokazuje, na którym kroku wdrożenie stanęło.
+Robi to integracja Supabase z GitHubem (Project Settings → Integrations → GitHub) z włączoną opcją **Deploy to production**. Samo podpięcie repozytorium nie wystarczało – bez tej opcji integracja nic nie robiła.
 
-Czego stąd nie widzę: ustawień integracji ani jej logów. Wiem tylko, czy tabela `projekty` odpowiada pod publicznym adresem projektu.
+**Gdzie widać wynik wdrożenia.** Na GitHubie przy commicie na `main` jest znaczek „Supabase Preview”: zielony albo czerwony z treścią błędu. To samo w Supabase → Branches → `main` → View logs. Jeśli ustawienia się nie przyjmą, migracje też się nie wykonają – wdrożenie staje na pierwszym błędzie.
 
-**Poczta – nie teraz.** Wbudowana poczta Supabase dostarcza wiadomości tylko właścicielom projektu i ma limit kilku na godzinę. Dlatego rejestracja działa bez linku potwierdzającego (decyzja #33). Reset hasła i zmiana adresu e-mail u innych osób zaczną działać dopiero po podpięciu własnego serwera poczty: Authentication → Emails → SMTP Settings (np. Resend, Brevo). Wtedy można też z powrotem włączyć potwierdzanie (`enable_confirmations = true` w `config.toml`).
+**Sprawdzone na prawdziwej bazie** (opublikowana aplikacja, konto testowe, potem usunięte): rejestracja, zapis projektu z obrazem, odczyt na drugim urządzeniu, udostępnienie linkiem i otwarcie go bez konta, wyłączenie linku, usunięcie konta.
+
+**Poczta – czego nie ma.** Wbudowana poczta Supabase dostarcza wiadomości tylko właścicielom projektu i ma limit kilku na godzinę. Dlatego rejestracja działa bez linku potwierdzającego (decyzja #33). Reset hasła i zmiana adresu e-mail u innych osób zaczną działać dopiero po podpięciu własnego serwera poczty: Authentication → Emails → SMTP Settings (np. Resend, Brevo). Dopiero wtedy da się też włączyć własne szablony wiadomości z `supabase/templates/` – na darmowym planie bez własnej poczty Supabase odrzuca ich zmianę, więc w `config.toml` są zakomentowane.
 
 **Domena.** W dniu wyboru nazwy wolne były `seriodruk.com`, `seriodruk.app` i `seriodruk.pl`. Po podpięciu domeny trzeba zmienić Site URL, Redirect URLs i `site_url` w `config.toml`.
 
@@ -59,7 +60,7 @@ Czego stąd nie widzę: ustawień integracji ani jej logów. Wiem tylko, czy tab
 
 ### B3. Własne e-maile ✅ / ⚠️
 **Co jest.** Trzy szablony HTML w stylu aplikacji: potwierdzenie konta, nowe hasło, nowy adres.
-**Słabe.** Patrz punkt 0 – szablony przenosi integracja, ale wysyłka do innych osób wymaga własnego serwera poczty.
+**Słabe.** Szablony leżą w repozytorium, ale nie są używane: Supabase pozwala je zmienić dopiero z własnym serwerem poczty (punkt 0).
 
 ### B4. Zapis: urządzenie → konto, z wykrywaniem konfliktu ✅ / ⚠️
 **Co jest.** Zapis w przeglądarce po 0,7 s, na konto po 2,5 s. Każdy zapis podnosi licznik wersji; jeśli na koncie jest wersja z innego urządzenia, aplikacja pyta, którą zachować, zamiast nadpisać.
@@ -161,7 +162,7 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 
 ## G. Co proponuję dalej
 
-1. **Supabase – punkt 0**: jedno włączenie „Deploy to production” (bez tego konta i zapis na koncie nie działają).
+1. **Własny serwer poczty** (punkt 0) – dopiero z nim reset hasła i własne szablony wiadomości działają dla innych osób.
 2. **Próba na tablecie** – gesty, klawiatura ekranowa, instalacja.
 3. **Etap danych z planu**: import CSV/XLSX, pola `{kolumna}` w tekście, autodopasowanie tekstu, zakresy powielane według wierszy.
 4. Przed etapem PDF: pliki czcionek w repozytorium, pomniejszone obrazy, strony jako osobne wiersze w bazie.

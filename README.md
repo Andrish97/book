@@ -7,7 +7,7 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 
 ## Co działa
 
-- **Konto** (Supabase Auth): rejestracja (potwierdzanie e-mailem do włączenia w `supabase/config.toml`), logowanie, reset hasła, ustawienia konta (nazwa, e-mail, hasło, wylogowanie wszędzie, usunięcie konta). Własne szablony wiadomości w `supabase/templates/`.
+- **Konto** (Supabase Auth): rejestracja (potwierdzanie e-mailem do włączenia w `supabase/config.toml`), logowanie, reset hasła, ustawienia konta (nazwa, e-mail, hasło, wylogowanie wszędzie, usunięcie konta). Szablony wiadomości w `supabase/templates/` czekają na własny serwer poczty.
 - **Projekty**: lista z miniaturami, kreator (format, spad, marginesy, układ), duplikowanie, eksport i import pliku `.seriodruk`.
 - **Sekcje**: części projektu z własnym formatem, spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki) i numeracją.
 - **Rozkładówki**: obie strony na jednym płótnie, marginesy lustrzane (wewnętrzny przy grzbiecie), elementy mogą leżeć przez grzbiet.
@@ -49,7 +49,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 - **Aplikacja:** workflow [`pages.yml`](.github/workflows/pages.yml) publikuje ją na GitHub Pages.
 - **Baza i logowanie:** integracja Supabase z GitHubem stosuje migracje z [`supabase/migrations/`](supabase/migrations/) i ustawienia logowania z [`supabase/config.toml`](supabase/config.toml).
 - **Połączenie z bazą:** adres projektu i publiczny klucz są w [`js/konfiguracja.js`](js/konfiguracja.js). Dostęp do danych chronią reguły RLS. Klucza `service_role` nigdy nie wpisuj do frontendu.
-- **Do zrobienia raz w Supabase:** włączyć „Deploy to production” w integracji z GitHubem – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md), punkt 0.
+- **Wynik wdrożenia bazy** widać przy commicie na `main` (znaczek „Supabase Preview”). Szczegóły i ograniczenia poczty: [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md), punkt 0.
 
 ## Struktura
 
