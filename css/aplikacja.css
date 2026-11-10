@@ -469,7 +469,7 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 
 .uklad-edytora {
   flex: 1; min-height: 0;
-  display: grid; grid-template-columns: 208px minmax(0, 1fr) 300px;
+  display: grid; grid-template-columns: 236px minmax(0, 1fr) 300px;
 }
 
 .panel {
@@ -523,6 +523,21 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 .strona:hover .menu-miniatury, .strona.aktywna .menu-miniatury, .strona .menu-miniatury:focus-visible { opacity: 1; }
 .stopka-panelu { padding: 12px 14px; border-top: 1px solid var(--linia); }
 
+/* Warstwy */
+.lista-warstw { flex: 1; overflow: auto; list-style: none; margin: 0; padding: 4px 8px 12px; display: flex; flex-direction: column; gap: 1px; }
+.warstwa { display: grid; grid-template-columns: 28px 20px minmax(0, 1fr) 28px; align-items: center; gap: 4px; min-height: 34px; padding: 0 2px; border-radius: var(--r-s); cursor: pointer; border-top: 2px solid transparent; border-bottom: 2px solid transparent; }
+.warstwa:hover { background: var(--wypelnienie); }
+.warstwa.zaznaczona { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
+.warstwa.ukryta .warstwa-nazwa, .warstwa.ukryta .warstwa-typ { opacity: .45; }
+.warstwa.cel-nad { border-top-color: var(--akcent); }
+.warstwa.cel-pod { border-bottom-color: var(--akcent); }
+.warstwa-nazwa { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.warstwa-typ { display: grid; place-items: center; color: var(--cichy); }
+.warstwa button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--r-s); background: none; color: var(--cichy); cursor: pointer; }
+.warstwa button:hover { background: var(--wypelnienie-hover); color: var(--tusz); }
+.warstwa:not(.zablokowana):not(:hover) .warstwa-klodka { opacity: 0; }
+.warstwa .warstwa-klodka:focus-visible { opacity: 1; }
+
 /* Obszar roboczy */
 .obszar-roboczy { position: relative; min-width: 0; min-height: 0; display: flex; }
 .kontener-plotna {
@@ -550,6 +565,16 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 }
 .pasek-narzedzi button:hover { background: var(--wypelnienie); color: var(--tusz); }
 .kontrolki-widoku { right: 14px; bottom: 14px; }
+/* Linijki: nad płótnem i z lewej; z nich wyciąga się prowadnice. */
+.linijka { display: none; position: absolute; z-index: 4; }
+.z-linijkami .linijka { display: block; }
+.linijka-x { top: 0; left: 0; cursor: row-resize; touch-action: none; }
+.linijka-y { top: 0; left: 0; cursor: col-resize; touch-action: none; }
+.linijka-rog { top: 0; left: 0; width: 20px; height: 20px; z-index: 5; background: var(--powierzchnia-2); border-right: 1px solid var(--linia-mocna); border-bottom: 1px solid var(--linia-mocna); }
+.z-linijkami .pasek-narzedzi { top: 32px; }
+.z-linijkami .arkusz { padding-top: 104px; padding-left: 64px; }
+
+.menu-widoku .przycisk { margin-top: 6px; justify-content: center; }
 .menu-widoku-opak { position: relative; display: flex; }
 .menu-widoku { top: auto; bottom: calc(100% + 12px); right: -8px; width: 300px; padding: 10px 12px; gap: 2px; }
 .menu-widoku .przelacznik { min-height: 36px; font-size: 13px; }
@@ -733,6 +758,11 @@ dialog h2 { font-size: 19px; }
 
 @media (max-width: 860px) {
   .uklad-edytora { grid-template-columns: minmax(0, 1fr); }
+  /* Na telefonie linijki zabierałyby miejsce, a prowadnic i tak nie da się wygodnie wyciągać palcem. */
+  .z-linijkami .linijka { display: none; }
+  .z-linijkami .pasek-narzedzi { top: 10px; }
+  .z-linijkami .arkusz { padding: 72px 20px 72px; }
+  .lista-warstw { max-height: 44vh; }
   .stan-zapisu .tekst { display: none; }
   .nazwa-projektu { flex-basis: 120px; font-size: 14px; }
   #przycisk-format { display: none; }
@@ -805,9 +835,11 @@ dialog h2 { font-size: 19px; }
 
 .zakladki-listy { flex: 1; }
 .zakladki-listy label { flex: 1; }
-.zakladki-listy span { flex: 1; min-height: 32px; padding: 0 8px; font-size: 13px; }
+.zakladki-listy span { flex: 1; min-height: 32px; padding: 0 5px; font-size: 12.5px; gap: 4px; }
+.panel-strony .naglowek-panelu { padding-left: 8px; padding-right: 8px; }
+.zakladki-listy { min-width: 0; }
 .zakladki-listy .licznik { min-width: 18px; height: 18px; font-size: 11px; }
-.panel-strony .naglowek-panelu { padding-left: 12px; }
+.panel-strony .naglowek-panelu { padding-left: 8px; }
 .panel-strony .stopka-panelu { display: flex; gap: 8px; }
 .panel-strony .stopka-panelu .przycisk { flex: 1; padding: 0 8px; }
 

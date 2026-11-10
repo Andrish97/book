@@ -354,11 +354,13 @@
           <div class="przelacznik-segmentowy zakladki-listy" id="zakladki-listy" role="radiogroup" aria-label="Lista">
             <label><input type="radio" name="zakladka-listy" value="strony" checked><span>Strony <span class="licznik" id="liczba-stron">1</span></span></label>
             <label><input type="radio" name="zakladka-listy" value="wzorce"><span>Wzorce <span class="licznik" id="liczba-wzorcow">0</span></span></label>
+            <label><input type="radio" name="zakladka-listy" value="warstwy"><span>Warstwy</span></label>
           </div>
           <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
         </div>
         <ol class="lista-stron" id="lista-stron"></ol>
         <ol class="lista-stron lista-wzorcow" id="lista-wzorcow" hidden></ol>
+        <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu" hidden></ol>
         <div class="stopka-panelu" id="stopka-strony">
           <button class="przycisk" data-akcja="strona-dodaj" data-ikona="plus" id="przycisk-dodaj-strone">Strona</button>
           <button class="przycisk" data-akcja="sekcja-dodaj" data-ikona="plus" title="Nowa sekcja z własnym formatem i marginesami">Sekcja</button>
@@ -400,7 +402,8 @@
               <hr>
               <label class="przelacznik"><input type="checkbox" id="widok-do-elementow"><span>Przyciągaj do elementów i pokazuj odległości</span></label>
               <label class="przelacznik"><input type="checkbox" id="widok-linijki"><span>Linijki</span><kbd>Shift R</kbd></label>
-              <p class="podpowiedz-widoku">Przytrzymaj <kbd>Ctrl</kbd> przy przeciąganiu, żeby na chwilę wyłączyć przyciąganie. <kbd>Alt</kbd> pokazuje odległości zaznaczonego elementu.</p>
+              <button class="przycisk" data-akcja="prowadnice-usun" id="przycisk-usun-prowadnice">Usuń prowadnice z tej strony</button>
+              <p class="podpowiedz-widoku">Prowadnicę wyciągasz z linijki; wyciągnięta poza stronę znika. Przytrzymaj <kbd>Ctrl</kbd> przy przeciąganiu, żeby na chwilę wyłączyć przyciąganie. <kbd>Alt</kbd> pokazuje odległości zaznaczonego elementu.</p>
             </div>
           </div>
           <div class="separator"></div>

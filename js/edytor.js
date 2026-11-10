@@ -67,7 +67,10 @@ export class Edytor extends EventTarget {
     this._pomiary = []; // strzałki z odległościami do sąsiednich elementów
     this._cele = null; // ramki innych elementów, zapamiętane na czas jednego przeciągnięcia
     this.widok = { siatka_mm: 5, siatka: false, do_siatki: false, do_elementow: true };
-    this.prowadniceWlasne = { x: [], y: [] }; // w mm, w układzie arkusza
+    // Prowadnice własne: { os: 'x' | 'y', poz (mm na arkuszu), strona (indeks strony arkusza) }.
+    // Pionowa (os x) stoi w poz na osi x; pozioma biegnie przez swoją stronę.
+    this.prowadnice = [];
+    this._prowadnicaWRuchu = null;
     this._historia = [];
     this._pozycjaHistorii = -1;
     this._timerHistorii = null;
@@ -99,6 +102,8 @@ export class Edytor extends EventTarget {
       if (e.e?.shiftKey) e.target.rotate(Math.round(e.target.angle / 15) * 15);
     });
     c.on('mouse:down', () => { this._cele = null; this._kopiaZAlt = false; });
+    c.on('mouse:down', (e) => this._chwycProwadnice(e));
+    c.on('mouse:move', (e) => this._ruchNadProwadnica(e));
     c.on('mouse:up', () => {
       this._cele = null;
       this._kopiaZAlt = false;
@@ -163,6 +168,7 @@ export class Edytor extends EventTarget {
     const nowa = Math.min(this.strony.length - 1, Math.max(0, i));
     if (nowa === this.aktywna) return;
     this.aktywna = nowa;
+    this.dispatchEvent(new Event('geometria')); // linijki liczą od rogu strony bieżącej
     if (zKlikniecia) this.dispatchEvent(new CustomEvent('strona', { detail: nowa }));
   }
 
@@ -183,6 +189,7 @@ export class Edytor extends EventTarget {
     this.canvas.setViewportTransform([s, 0, 0, s, b * s, b * s]);
     this.canvas.calcOffset();
     this.canvas.requestRenderAll();
+    this.dispatchEvent(new Event('geometria'));
   }
 
   ustawZoom(zoom, punktEkranu = null) {
@@ -242,6 +249,10 @@ export class Edytor extends EventTarget {
     this.zasoby = zasoby;
     this._znacznikStrony = strony.map((s) => s.id).join('+') || Symbol('strona');
     this.tla = strony.map((s) => s.tlo || '#ffffff');
+    this.prowadnice = strony.flatMap((s, i) => [
+      ...(s.prowadnice?.x || []).map((poz) => ({ os: 'x', poz: poz + i * w, strona: i })),
+      ...(s.prowadnice?.y || []).map((poz) => ({ os: 'y', poz, strona: i })),
+    ]);
     this._warstwy = { pod: [], nad: [] };
     strony.forEach((s, i) => {
       for (const rodzaj of ['pod', 'nad']) {
@@ -267,6 +278,7 @@ export class Edytor extends EventTarget {
     await new Promise((ok) => {
       this.canvas.loadFromJSON({ objects: obiekty }, ok);
     });
+    for (const o of this.canvas.getObjects()) if (!o.id) o.id = uid('o'); // starsze projekty
     this._dodajWzorce();
     this._zastosujBlokady();
     this._dopasujRozmiar();
@@ -866,8 +878,8 @@ export class Edytor extends EventTarget {
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
     const m = this.marg;
     return {
-      x: [...this.strony.flatMap((s) => [s.x, s.x + s.marg.lewy, s.x + w / 2, s.x + w - s.marg.prawy, s.x + w]), ...this.prowadniceWlasne.x],
-      y: [0, m.gora, h / 2, h - m.dol, h, ...this.prowadniceWlasne.y],
+      x: [...this.strony.flatMap((s) => [s.x, s.x + s.marg.lewy, s.x + w / 2, s.x + w - s.marg.prawy, s.x + w]), ...this.prowadnice.filter((p) => p.os === 'x').map((p) => p.poz)],
+      y: [0, m.gora, h / 2, h - m.dol, h, ...this.prowadnice.filter((p) => p.os === 'y').map((p) => p.poz)],
     };
   }
 
@@ -926,6 +938,163 @@ export class Edytor extends EventTarget {
     obj.setCoords();
     this._liniePrzyciagania = wynik.linie;
     this._pomiary = wynik.pomiary;
+  }
+
+  // ---------- Prowadnice własne ----------
+
+  // Położenie na arkuszu (mm) dla punktu okna przeglądarki.
+  naArkuszu(clientX, clientY) {
+    const r = this.canvas.upperCanvasEl.getBoundingClientRect();
+    const v = this.canvas.viewportTransform;
+    return { x: (clientX - r.left - v[4]) / v[0], y: (clientY - r.top - v[5]) / v[3] };
+  }
+
+  // Ustawia przeciąganą prowadnicę w punkcie (mm). Położenie zaokrągla się do
+  // kroku siatki (gdy przyciąganie do siatki jest włączone) albo do 0,5 mm.
+  _ustawProwadnice(p, punkt, swobodnie = false) {
+    const krok = this.widok.do_siatki ? this.widok.siatka_mm : 0.5;
+    const strona = this.stronaW(punkt.x);
+    const x0 = this.strony[strona].x;
+    const zaokr = (v) => (swobodnie ? v : Math.round(v / krok) * krok);
+    if (p.os === 'x') { p.poz = x0 + zaokr(punkt.x - x0); p.strona = this.stronaW(p.poz); } else { p.poz = zaokr(punkt.y); p.strona = strona; }
+    p.pozaStrona = p.os === 'x' ? (punkt.x < 0 || punkt.x > this.szerokoscArkusza) : (punkt.y < 0 || punkt.y > this.wydruk.wysokosc_mm || punkt.x < 0 || punkt.x > this.szerokoscArkusza);
+    this.canvas.requestRenderAll();
+  }
+
+  // Nowa prowadnica wyciągana z linijki: os 'x' = pionowa, 'y' = pozioma.
+  // Zwraca funkcje { ruch(clientX, clientY, swobodnie), koniec() }.
+  wyciagnijProwadnice(os) {
+    const p = { os, poz: 0, strona: 0, pozaStrona: true };
+    this._prowadnicaWRuchu = p;
+    return {
+      ruch: (clientX, clientY, swobodnie) => this._ustawProwadnice(p, this.naArkuszu(clientX, clientY), swobodnie),
+      koniec: () => {
+        this._prowadnicaWRuchu = null;
+        if (!p.pozaStrona) { delete p.pozaStrona; this.prowadnice.push(p); this._poZmianieProwadnic(); }
+        this.canvas.requestRenderAll();
+      },
+    };
+  }
+
+  _poZmianieProwadnic() {
+    this.canvas.requestRenderAll();
+    this.dispatchEvent(new Event('prowadnice'));
+  }
+
+  // Prowadnica pod kursorem (w zasięgu kilku pikseli) albo null.
+  _prowadnicaPod(punkt) {
+    if (!this.pokazProwadnice) return null;
+    const prog = 4 / this.skala;
+    const w = this.wydruk.szerokosc_mm;
+    return this.prowadnice.find((p) => {
+      if (p.os === 'x') return Math.abs(p.poz - punkt.x) <= prog;
+      const s = this.strony[Math.min(p.strona, this.strony.length - 1)];
+      return Math.abs(p.poz - punkt.y) <= prog && punkt.x >= s.x && punkt.x <= s.x + w;
+    }) || null;
+  }
+
+  _punktZdarzenia(e) {
+    const v = this.canvas.viewportTransform;
+    return { x: (e.pointer.x - v[4]) / v[0], y: (e.pointer.y - v[5]) / v[3] };
+  }
+
+  // Kliknięcie w prowadnicę (w pustym miejscu) zaczyna jej przesuwanie;
+  // wyciągnięta poza stronę znika.
+  _chwycProwadnice(e) {
+    if (e.target || !e.pointer || this.reka) return;
+    const p = this._prowadnicaPod(this._punktZdarzenia(e));
+    if (!p) return;
+    this._prowadnicaWRuchu = p;
+    this.canvas._groupSelector = null; // bez ramki zaznaczania
+    const ruch = (ev) => this._ustawProwadnice(p, this.naArkuszu(ev.clientX, ev.clientY), ev.ctrlKey || ev.metaKey);
+    const koniec = () => {
+      window.removeEventListener('mousemove', ruch);
+      window.removeEventListener('touchmove', dotyk);
+      this._prowadnicaWRuchu = null;
+      if (p.pozaStrona) this.prowadnice = this.prowadnice.filter((x) => x !== p);
+      delete p.pozaStrona;
+      this._poZmianieProwadnic();
+    };
+    const dotyk = (ev) => { if (ev.touches[0]) ruch(ev.touches[0]); };
+    window.addEventListener('mousemove', ruch);
+    window.addEventListener('touchmove', dotyk, { passive: true });
+    window.addEventListener('mouseup', koniec, { once: true });
+    window.addEventListener('touchend', koniec, { once: true });
+  }
+
+  _ruchNadProwadnica(e) {
+    if (this._prowadnicaWRuchu) { this.canvas._groupSelector = null; return; }
+    if (e.target || !e.pointer || !this.wydruk) { this.canvas.defaultCursor = 'default'; return; }
+    const p = this._prowadnicaPod(this._punktZdarzenia(e));
+    this.canvas.defaultCursor = p ? (p.os === 'x' ? 'col-resize' : 'row-resize') : 'default';
+  }
+
+  usunProwadnice() {
+    if (!this.prowadnice.length) return;
+    this.prowadnice = [];
+    this._poZmianieProwadnic();
+  }
+
+  // Prowadnice do zapisu, osobno dla każdej strony arkusza: [{ x: [], y: [] }, …]
+  // – położenia liczone od rogu strony.
+  prowadniceStron() {
+    return this.strony.map((s, i) => ({
+      x: this.prowadnice.filter((p) => p.os === 'x' && p.strona === i).map((p) => Math.round((p.poz - s.x) * 100) / 100),
+      y: this.prowadnice.filter((p) => p.os === 'y' && p.strona === i).map((p) => Math.round(p.poz * 100) / 100),
+    }));
+  }
+
+  // ---------- Warstwy ----------
+
+  // Elementy arkusza od wierzchu do spodu (bez elementów wzorców).
+  warstwy() {
+    const akt = this.aktywny;
+    const zaznaczone = new Set(akt ? (akt.type === 'activeSelection' ? akt.getObjects() : [akt]) : []);
+    return this.canvas.getObjects().filter((o) => !o.zWzorca).reverse().map((o) => ({
+      id: o.id, typ: o.type, opis: opisObiektu(o), ukryty: o.visible === false, zablokowany: Boolean(o.zablokowany), zaznaczony: zaznaczone.has(o),
+    }));
+  }
+
+  _poId(id) {
+    return this.canvas.getObjects().find((o) => o.id === id && !o.zWzorca) || null;
+  }
+
+  // Ukryty element nie jest widoczny ani drukowany, ale zostaje w projekcie.
+  ustawWidocznosc(id, widoczny) {
+    const o = this._poId(id);
+    if (!o) return;
+    if (!widoczny && this.aktywny === o) this.canvas.discardActiveObject();
+    o.set({ visible: widoczny });
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // Przenosi element na miejsce nad elementem `nadId` (albo na sam spód, gdy null).
+  przeniesWarstwe(id, nadId) {
+    const o = this._poId(id);
+    if (!o || id === nadId) return;
+    const c = this.canvas;
+    const bylo = this._wczytywanie;
+    this._wczytywanie = true; // bez zdarzeń „dodano/usunięto” po drodze
+    c.remove(o);
+    const cel = nadId ? this._poId(nadId) : null;
+    const wszystkie = c.getObjects();
+    const indeks = cel ? wszystkie.indexOf(cel) + 1 : wszystkie.filter((x) => x.zWzorca && x.warstwa !== 'nad').length;
+    c.insertAt(o, indeks, false);
+    this._wczytywanie = bylo;
+    this._uporzadkujWzorce();
+    c.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  nazwij(id, nazwa) {
+    const o = this._poId(id);
+    if (!o) return;
+    o.nazwa = nazwa || undefined;
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
   }
 
   // Odległości zaznaczonego elementu do sąsiadów i krawędzi strony (przytrzymany Alt).
@@ -1017,6 +1186,33 @@ export class Edytor extends EventTarget {
         ctx.stroke();
         ctx.lineWidth = 1;
       }
+    }
+
+    // Prowadnice własne (i ta właśnie przeciągana – z położeniem w mm).
+    if (this.pokazProwadnice || this._prowadnicaWRuchu) {
+      const rysuj = (p, wRuchu) => {
+        const strona = this.strony[Math.min(p.strona, this.strony.length - 1)];
+        ctx.strokeStyle = wRuchu ? '#0e7490' : 'rgba(8, 145, 178, 0.85)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        if (p.os === 'x') { const px = Math.round(X(p.poz)) + 0.5; ctx.moveTo(px, Y(-b)); ctx.lineTo(px, Y(h + b)); }
+        else { const py = Math.round(Y(p.poz)) + 0.5; ctx.moveTo(X(strona.x), py); ctx.lineTo(X(strona.x + wStrony), py); }
+        ctx.stroke();
+        if (!wRuchu) return;
+        const wartosc = p.os === 'x' ? p.poz - strona.x : p.poz;
+        const tekst = `${String(Math.round(wartosc * 10) / 10).replace('.', ',')} mm`;
+        ctx.font = '600 11px Inter, system-ui, sans-serif';
+        const szer = ctx.measureText(tekst).width + 10;
+        const tx = p.os === 'x' ? X(p.poz) + 6 : X(strona.x) + 6;
+        const ty = p.os === 'x' ? Y(0) + 6 : Y(p.poz) + 6;
+        ctx.fillStyle = '#0e7490';
+        ctx.beginPath(); ctx.roundRect(tx, ty, szer, 16, 4); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(tekst, tx + 5, ty + 8.5);
+      };
+      if (this.pokazProwadnice) for (const p of this.prowadnice) if (p !== this._prowadnicaWRuchu) rysuj(p, false);
+      if (this._prowadnicaWRuchu) rysuj(this._prowadnicaWRuchu, true);
     }
 
     // Obiekty z ostrzeżeniem: pomarańczowa ramka.

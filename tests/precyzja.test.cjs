@@ -210,3 +210,87 @@ test('skróty: zaznaczanie, kolejność, blokada, tekst, widok, kopia z Alt, ruc
   assert.ok(await strona.locator('#instrukcja-tresc table.skroty tr').count() > 40);
   assert.deepEqual(bledy, []);
 });
+
+test('linijki i prowadnice: wyciągnięcie z linijki, przyciąganie do prowadnicy, zapis ze stroną, usunięcie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Prowadnice');
+  await prostokaty(strona, [['a', 30, 30, 20, 20]]);
+  assert.ok(await strona.isVisible('.linijka-x'), 'linijki są domyślnie widoczne');
+
+  // Pionowa prowadnica z lewej linijki na 60 mm, pozioma z górnej na 90 mm.
+  const cel = await naEkranie(strona, 60.2, 50);
+  const lewa = await strona.locator('.linijka-y').boundingBox();
+  await strona.mouse.move(lewa.x + 8, cel.y);
+  await strona.mouse.down();
+  await strona.mouse.move(cel.x, cel.y, { steps: 5 });
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor._prowadnicaWRuchu?.os), 'x');
+  await strona.mouse.up();
+  const cel2 = await naEkranie(strona, 50, 89.9);
+  const gorna = await strona.locator('.linijka-x').boundingBox();
+  await strona.mouse.move(cel2.x, gorna.y + 8);
+  await strona.mouse.down();
+  await strona.mouse.move(cel2.x, cel2.y, { steps: 5 });
+  await strona.mouse.up();
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.prowadniceStron()), [{ x: [60], y: [90] }]);
+
+  // Element przyciąga się do prowadnicy (lewa krawędź w 60 mm).
+  await przeciagnij(strona, [40, 40], [70.8, 40]);
+  assert.deepEqual(await polozenie(strona, 'a'), [60, 30]);
+
+  // Prowadnice zapisują się ze stroną i wracają po przejściu na inną stronę i z powrotem.
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].prowadnice), { x: [60], y: [90] });
+  await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.prowadnice.length), 0);
+  await strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.prowadnice.length === 2);
+
+  // Prowadnica przeciągnięta poza stronę znika.
+  const p = await naEkranie(strona, 60, 150);
+  const poza = await naEkranie(strona, -30, 150);
+  await strona.mouse.move(p.x, p.y);
+  await strona.mouse.down();
+  await strona.mouse.move(poza.x, poza.y, { steps: 5 });
+  await strona.mouse.up();
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.prowadniceStron()), [{ x: [], y: [90] }]);
+
+  // Skrót chowa linijki; menu usuwa pozostałe prowadnice.
+  await strona.keyboard.press('Shift+r');
+  assert.ok(await strona.isHidden('.linijka-x'));
+  await strona.click('#przycisk-widok');
+  await strona.click('[data-akcja="prowadnice-usun"]');
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].prowadnice), undefined);
+  assert.deepEqual(bledy, []);
+});
+
+test('warstwy: lista od wierzchu, zaznaczanie, ukrywanie, blokada, zmiana kolejności przeciąganiem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Warstwy');
+  await prostokaty(strona, [['dół', 20, 30, 40, 40], ['środek', 30, 40, 40, 40], ['góra', 40, 50, 40, 40]]);
+  await strona.click('#zakladki-listy label:has-text("Warstwy")');
+  const lista = () => strona.locator('#lista-warstw .warstwa-nazwa').allTextContents();
+  assert.deepEqual(await lista(), ['góra', 'środek', 'dół']);
+
+  await strona.click('#lista-warstw li:has-text("środek") .warstwa-nazwa');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny.nazwa), 'środek');
+  assert.ok(await strona.locator('#lista-warstw li.zaznaczona:has-text("środek")').count());
+
+  // Ukryty element znika ze strony i z jej obrazu, ale zostaje w projekcie.
+  await strona.click('#lista-warstw li:has-text("góra") .warstwa-oko');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.nazwa === 'góra').visible), false);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.nazwa === 'góra').visible), false);
+  await strona.click('#lista-warstw li:has-text("góra") .warstwa-oko');
+
+  await strona.hover('#lista-warstw li:has-text("dół")');
+  await strona.click('#lista-warstw li:has-text("dół") .warstwa-klodka');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.nazwa === 'dół').zablokowany), true);
+
+  // „dół” przeciągnięty na samą górę listy = na wierzch stosu.
+  await strona.locator('#lista-warstw li:has-text("dół")').dragTo(strona.locator('#lista-warstw li:has-text("góra")'), { targetPosition: { x: 60, y: 4 } });
+  assert.deepEqual(await lista(), ['dół', 'góra', 'środek']);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().map((o) => o.nazwa)), ['środek', 'góra', 'dół']);
+  assert.deepEqual(bledy, []);
+});

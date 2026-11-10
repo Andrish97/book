@@ -12,6 +12,8 @@ import { Edytor, opisObiektu } from './edytor.js';
 import { warstwyWzorcow, renderujCel } from './zlozenie.js';
 import { MenuWidoku } from './widok.js';
 import { obsluzKlawisz } from './skroty.js';
+import { Linijki } from './linijki.js';
+import { PanelWarstw } from './warstwy.js';
 import { PanelWlasciwosci } from './wlasciwosci.js';
 import { zaladujCzcionki } from './czcionki.js';
 import {
@@ -526,14 +528,14 @@ async function zaladujCel({ dopasuj = false } = {}) {
   naPlotnie = null;
   if (stan.tryb === 'wzorzec') {
     edytor.ustawWydruk(wydruk, marginesyWzorca(cel));
-    await edytor.wczytajStrone({ id: cel.id, obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff' }, projekt.zasoby, null);
+    await edytor.wczytajStrone({ id: cel.id, obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff', prowadnice: cel.prowadnice }, projekt.zasoby, null);
     naPlotnie = { wzorzec: cel.id };
   } else {
     const strony = stronyArkusza(projekt, cel);
     const numery = numeryStron(projekt);
     const dane = [];
     for (const s of strony) {
-      dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), warstwy: await warstwyWzorcow(projekt, s, numery) });
+      dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), prowadnice: s.prowadnice, warstwy: await warstwyWzorcow(projekt, s, numery) });
     }
     edytor.ustawWydruk(wydruk, strony.map((s) => marginesyStrony(projekt, s)));
     edytor.ustawAktywna(strony.indexOf(cel));
@@ -541,6 +543,8 @@ async function zaladujCel({ dopasuj = false } = {}) {
     naPlotnie = { strony: strony.map((s) => s.id) };
   }
   edytor.ustawWidok(projekt.widok);
+  linijki.ustaw(projekt.widok.linijki);
+  panelWarstw.odswiez();
   if (dopasuj || innyRozmiar || bylaRozkladowka !== edytor.rozkladowka) edytor.dopasujDoOkna();
   odswiezPasekEdytora();
   renderujListe();
@@ -548,9 +552,11 @@ async function zaladujCel({ dopasuj = false } = {}) {
 }
 
 // Siatka, przyciąganie, linijki – ustawienia projektu zmieniane z menu przy płótnie.
+const linijki = new Linijki(edytor, $('#obszar-roboczy'));
+const panelWarstw = new PanelWarstw($('#lista-warstw'), edytor);
 const menuWidoku = new MenuWidoku({
   widok: () => stan.projekt?.widok,
-  poZmianie: (widok) => { edytor.ustawWidok(widok); zaplanujZapis(); },
+  poZmianie: (widok) => { edytor.ustawWidok(widok); linijki.ustaw(widok.linijki); zaplanujZapis(); },
 });
 
 // Druga strona tej samej rozkładówki staje się bieżącą – bez wczytywania od nowa.
@@ -769,6 +775,11 @@ async function doProjektow() {
   pokazProjekty();
 }
 
+// Własne prowadnice strony albo wzorca; puste nie zajmują miejsca w pliku.
+function zapiszProwadnice(cel, p) {
+  if (p && (p.x.length || p.y.length)) cel.prowadnice = p; else delete cel.prowadnice;
+}
+
 // Przepisuje płótno do tego, co jest na nim wczytane: wzorca albo stron arkusza
 // (w rozkładówce – obu naraz; element należy do strony, na której leży jego środek).
 function zapiszBiezacyCel() {
@@ -778,6 +789,7 @@ function zapiszBiezacyCel() {
     const cel = projekt.wzorce.find((w) => w.id === naPlotnie.wzorzec);
     if (!cel) return;
     cel.obiekty = edytor.obiektyStrony();
+    zapiszProwadnice(cel, edytor.prowadniceStron()[0]);
     // Białe tło wzorca znaczy „bez tła” – nie nadpisuje innych wzorców.
     const tlo = kolor(edytor.tla[0] || '#ffffff');
     cel.tlo = tlo === '#ffffff' ? null : tlo;
@@ -786,10 +798,12 @@ function zapiszBiezacyCel() {
     stan.miniatury.set(cel.id, edytor.miniatura(200, 0));
   } else {
     const obiekty = edytor.obiektyStron();
+    const prowadnice = edytor.prowadniceStron();
     naPlotnie.strony.forEach((id, i) => {
       const cel = projekt.strony.find((s) => s.id === id);
       if (!cel) return;
       cel.obiekty = obiekty[i];
+      zapiszProwadnice(cel, prowadnice[i]);
       // Własne tło zapisujemy tylko wtedy, gdy różni się od tła z wzorców.
       const tlo = kolor(edytor.tla[i] || '#ffffff');
       const odziedziczone = kolor(tloStrony(projekt, { ...cel, tlo: null }));
@@ -1028,6 +1042,8 @@ function ustawZakladke(nazwa) {
   $$('#zakladki-listy input').forEach((r) => { r.checked = r.value === nazwa; });
   $('#lista-stron').hidden = nazwa !== 'strony';
   $('#lista-wzorcow').hidden = nazwa !== 'wzorce';
+  $('#lista-warstw').hidden = nazwa !== 'warstwy';
+  panelWarstw.pokaz(nazwa === 'warstwy');
   $('#stopka-strony').hidden = nazwa !== 'strony';
   $('#stopka-wzorce').hidden = nazwa !== 'wzorce';
 }
@@ -1735,6 +1751,7 @@ const akcje = {
     $('#przycisk-prowadnice').setAttribute('aria-pressed', String(edytor.pokazProwadnice));
     edytor.canvas.requestRenderAll();
   },
+  'prowadnice-usun': () => { edytor.usunProwadnice(); zamknijMenu(); },
   'zoom-plus': () => edytor.ustawZoom(edytor.zoom * 1.25),
   'zoom-minus': () => edytor.ustawZoom(edytor.zoom / 1.25),
   'zoom-dopasuj': () => edytor.dopasujDoOkna(),
@@ -1809,6 +1826,7 @@ edytor.addEventListener('zoom', (e) => {
   $('#wartosc-zoom').textContent = `${Math.round(e.detail * 100)}%`;
 });
 edytor.addEventListener('strona', (e) => wybierzStroneArkusza(e.detail));
+edytor.addEventListener('prowadnice', zaplanujZapis);
 edytor.addEventListener('historia', () => {
   $('[data-akcja="cofnij"]').disabled = !edytor.moznaCofnac;
   $('[data-akcja="ponow"]').disabled = !edytor.moznaPonowic;
