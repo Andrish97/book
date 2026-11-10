@@ -166,4 +166,95 @@ export class Podglad {
   powieksz(mnoznik) {
     this.ustawSkale(this.skala * mnoznik);
   }
+
+  // ---------- Prezentacja: jedna strona albo rozkładówka naraz, na całym ekranie ----------
+
+  get wPrezentacji() { return Boolean(this.prezentacja); }
+
+  prezentuj() {
+    if (!this.uklad || this.prezentacja) return;
+    const kroki = this.uklad.sekcje.flatMap((sekcja) => sekcja.wiersze.map((strony) => ({ sekcja, strony })));
+    if (!kroki.length) return;
+    // Zaczynamy od strony, którą widać w środku okna podglądu.
+    const srodek = this.el.getBoundingClientRect().top + this.el.clientHeight / 2;
+    const widoczna = [...this.el.querySelectorAll('.podglad-strona[data-id]')].find((f) => f.getBoundingClientRect().bottom > srodek - 40);
+    const start = Math.max(0, kroki.findIndex((k) => k.strony.some((s) => s && s.id === widoczna?.dataset.id)));
+
+    const el = document.createElement('div');
+    el.className = 'prezentacja';
+    el.innerHTML = '<div class="prezentacja-scena"></div>'
+      + '<button type="button" class="prezentacja-strzalka wstecz" aria-label="Poprzednia strona">‹</button>'
+      + '<button type="button" class="prezentacja-strzalka dalej" aria-label="Następna strona">›</button>'
+      + '<div class="prezentacja-pasek"><span class="prezentacja-licznik"></span><button type="button" class="prezentacja-zamknij">Zamknij (Esc)</button></div>';
+    this.el.parentElement.append(el);
+    const p = { el, kroki, i: start };
+    this.prezentacja = p;
+    p.klawisze = (e) => {
+      if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) this._krokPrezentacji(1);
+      else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) this._krokPrezentacji(-1);
+      else if (e.key === 'Home') this._krokPrezentacji(-p.i);
+      else if (e.key === 'End') this._krokPrezentacji(kroki.length - 1 - p.i);
+      else if (e.key === 'Escape') this.zamknijPrezentacje();
+      else return;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    p.rozmiar = () => this._rysujPrezentacje();
+    p.pelnyEkran = () => { if (!document.fullscreenElement && p.bylPelny) this.zamknijPrezentacje(); };
+    document.addEventListener('keydown', p.klawisze, true);
+    window.addEventListener('resize', p.rozmiar);
+    document.addEventListener('fullscreenchange', p.pelnyEkran);
+    el.querySelector('.wstecz').addEventListener('click', () => this._krokPrezentacji(-1));
+    el.querySelector('.dalej').addEventListener('click', () => this._krokPrezentacji(1));
+    el.querySelector('.prezentacja-zamknij').addEventListener('click', () => this.zamknijPrezentacje());
+    // Pełny ekran, jeśli przeglądarka pozwala; bez niego prezentacja wypełnia okno.
+    el.requestFullscreen?.().then(() => { p.bylPelny = true; }).catch(() => {});
+    this._rysujPrezentacje();
+  }
+
+  _krokPrezentacji(o) {
+    const p = this.prezentacja;
+    const i = Math.min(p.kroki.length - 1, Math.max(0, p.i + o));
+    if (i === p.i) return;
+    p.i = i;
+    this._rysujPrezentacje();
+  }
+
+  _rysujPrezentacje() {
+    const p = this.prezentacja;
+    if (!p) return;
+    const { sekcja, strony } = p.kroki[p.i];
+    const scena = p.el.querySelector('.prezentacja-scena');
+    const skala = Math.min((scena.clientWidth - 32) / (strony.length * sekcja.w), (scena.clientHeight - 32) / sekcja.h);
+    scena.replaceChildren();
+    for (const s of strony) {
+      const kartka = document.createElement('div');
+      kartka.className = `prezentacja-kartka${s ? '' : ' pusta'}`;
+      kartka.style.width = `${sekcja.w * skala}px`;
+      kartka.style.height = `${sekcja.h * skala}px`;
+      if (s) {
+        const img = document.createElement('img');
+        img.alt = `Strona ${s.nr ?? ''} ${s.nazwa}`;
+        kartka.append(img);
+        const szer = Math.min(MAKS_PX, Math.round(sekcja.w * skala * Math.max(2, window.devicePixelRatio || 1)));
+        Promise.resolve(this.zrodlo.obraz(s, szer)).then((url) => { if (this.prezentacja === p) img.src = url; });
+      }
+      scena.append(kartka);
+    }
+    const numery = strony.filter(Boolean).map((s) => s.nr ?? '–').join('–');
+    p.el.querySelector('.prezentacja-licznik').textContent = `${sekcja.nazwa} · str. ${numery} · ${p.i + 1} z ${p.kroki.length}`;
+    p.el.querySelector('.wstecz').disabled = p.i === 0;
+    p.el.querySelector('.dalej').disabled = p.i === p.kroki.length - 1;
+  }
+
+  zamknijPrezentacje() {
+    const p = this.prezentacja;
+    if (!p) return;
+    this.prezentacja = null;
+    document.removeEventListener('keydown', p.klawisze, true);
+    window.removeEventListener('resize', p.rozmiar);
+    document.removeEventListener('fullscreenchange', p.pelnyEkran);
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    p.el.remove();
+  }
 }

@@ -69,6 +69,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     konta: poczatkowe.konta || [{ id: '11111111-1111-4111-8111-111111111111', email: 'anna@test.pl', haslo: 'Dobre#Haslo1', potwierdzone: true, nazwa: 'Anna' }],
     projekty: [],
     pliki: new Map(), // Storage: "bucket/ścieżka" -> { typ, tresc }
+    wyslania: [], // kolejne wysłane pliki (klucze), także powtórnie
     wyslane: [], // „e-maile”: { typ, email }
     zadania: [],
   };
@@ -77,7 +78,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     const user = {
       id: k.id, email: k.email, aud: 'authenticated', role: 'authenticated',
       email_confirmed_at: k.potwierdzone ? new Date().toISOString() : null,
-      user_metadata: { nazwa: k.nazwa || '' }, new_email: k.nowyEmail || undefined,
+      user_metadata: { nazwa: k.nazwa || '', ...(k.motyw ? { motyw: k.motyw } : {}) }, new_email: k.nowyEmail || undefined,
     };
     const token = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: k.id, email: k.email, exp, role: 'authenticated', aud: 'authenticated' })}.podpis`;
     return { access_token: token, token_type: 'bearer', expires_in: 3600, expires_at: exp, refresh_token: `r-${k.id}`, user };
@@ -127,7 +128,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
           if (tresc.password === k.haslo) return blad(r, 422, 'New password should be different from the old password.', 'same_password');
           k.haslo = tresc.password;
         }
-        if (tresc.data) k.nazwa = tresc.data.nazwa ?? k.nazwa;
+        if (tresc.data) { k.nazwa = tresc.data.nazwa ?? k.nazwa; k.motyw = tresc.data.motyw ?? k.motyw; }
         if (tresc.email) { k.nowyEmail = tresc.email; stan.wyslane.push({ typ: 'zmiana-email', email: tresc.email }); }
       }
       return json(r, 200, sesja(k).user);
@@ -191,6 +192,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (m === 'POST' || m === 'PUT') {
         if (!zTokenu(req)) return blad(r, 401, 'JWT', 'unauthorized');
         stan.pliki.set(klucz, plikZZadania(req));
+        stan.wyslania.push(klucz);
       }
       return json(r, 200, { Key: klucz });
     }

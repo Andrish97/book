@@ -452,6 +452,7 @@
       <h1 class="tytul-ekranu" id="podglad-tytul"></h1>
       <span class="ciche podglad-opis" id="podglad-opis"></span>
       <div class="odstep"></div>
+      <button class="przycisk" data-akcja="podglad-prezentacja" data-ikona="dopasuj" title="Jedna strona albo rozkładówka naraz, na całym ekranie"><span class="etyk">Prezentacja</span></button>
       <button class="przycisk tylko-wlasciciel" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
       <button class="przycisk-ikona tylko-gosc" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="grupa-przyciskow">
@@ -537,6 +538,17 @@
           <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
         </div>
       </fieldset>
+
+      <details class="kalkulator-grzbietu" id="kalkulator-grzbietu">
+        <summary>Okładka z grzbietem: policz szerokość</summary>
+        <div class="rzad">
+          <label class="pole"><span>Szerokość strony środka (mm)</span><input id="grzbiet-strona" type="number" min="20" max="1000" step="0.1" inputmode="decimal"></label>
+          <label class="pole"><span>Stron w środku</span><input id="grzbiet-strony" type="number" min="2" max="5000" step="2" inputmode="numeric"></label>
+          <label class="pole"><span>Grubość kartki (mm)</span><input id="grzbiet-kartka" type="number" min="0.03" max="1" step="0.01" value="0.1" inputmode="decimal"></label>
+        </div>
+        <p class="podpowiedz" id="grzbiet-wynik"></p>
+        <button type="button" class="przycisk" id="grzbiet-ustaw">Ustaw tę szerokość</button>
+      </details>
 
       <fieldset class="grupa-pol">
         <legend>Marginesy (mm)</legend>

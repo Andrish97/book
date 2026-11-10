@@ -62,9 +62,15 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.click('[data-akcja="podglad"]');
   await strona.click('[data-akcja="udostepnij"]');
   assert.match(await strona.textContent('#udostepnij-stan'), /zmienił się/);
+  const przedAktualizacja = baza.wyslania.length;
   await strona.click('#udostepnij-utworz');
   await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
   assert.equal(await strona.inputValue('#udostepnij-link'), link, 'aktualizacja nie zmienia adresu');
+  // Zmieniła się jedna strona z dwóch: wysłany jest tylko jej obraz i opis.
+  const ponownie = baza.wyslania.slice(przedAktualizacja).filter((k) => k.startsWith('podglady/'));
+  assert.equal(ponownie.filter((k) => k.endsWith('.jpg')).length, 1);
+  assert.equal(ponownie.filter((k) => k.endsWith('manifest.json')).length, 1);
+  assert.match(await strona.textContent('#udostepnij-komunikat'), /Wysłano 1 z 2 stron/);
 
   // Wyłączenie linku usuwa pliki; link przestaje działać.
   await strona.click('#udostepnij-wylacz');

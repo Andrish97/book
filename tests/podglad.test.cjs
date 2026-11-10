@@ -43,3 +43,35 @@ test('podgląd: wszystkie strony bez edycji, rozkładówki w parach, powrót do 
   assert.equal(await ekran(strona), 'edytor');
   assert.deepEqual(bledy, []);
 });
+
+test('prezentacja: rozkładówka po rozkładówce, strzałki i Esc', async (t) => {
+  const { otworz } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await strona.click('[data-akcja="nowy-projekt"]:visible');
+  await strona.fill('#form-nowy input[name=nazwa]', 'Pokaz');
+  await strona.click('#form-nowy label:has-text("Rozkładówki")');
+  await strona.click('#form-nowy button[value=ok]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  for (let i = 0; i < 3; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 4);
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.evaluate(() => { document.querySelector('#podglad-tresc').scrollTop = 0; });
+  await strona.click('[data-akcja="podglad-prezentacja"]');
+  await strona.waitForSelector('.prezentacja');
+  const licznik = () => strona.textContent('.prezentacja-licznik');
+  // Strona 1 stoi sama po prawej (pusta kartka z lewej), potem para 2–3, potem 4.
+  assert.match(await licznik(), /str\. 1 · 1 z 3/);
+  assert.equal(await strona.locator('.prezentacja-kartka.pusta').count(), 1);
+  await strona.keyboard.press('ArrowRight');
+  assert.match(await licznik(), /str\. 2–3 · 2 z 3/);
+  await strona.waitForFunction(() => [...document.querySelectorAll('.prezentacja-kartka img')].every((i) => i.naturalWidth > 0));
+  await strona.click('.prezentacja-strzalka.dalej');
+  assert.match(await licznik(), /str\. 4 · 3 z 3/);
+  assert.ok(await strona.isDisabled('.prezentacja-strzalka.dalej'));
+  // Esc zamyka prezentację, ale zostaje w podglądzie.
+  await strona.keyboard.press('Escape');
+  await strona.waitForSelector('.prezentacja', { state: 'detached' });
+  assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'podglad');
+  assert.deepEqual(bledy, []);
+});

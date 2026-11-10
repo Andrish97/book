@@ -32,7 +32,7 @@ import {
 import { NAZWA } from './marka.js';
 import { Konto } from './konto.js';
 import { Podglad, ukladProjektu, stronyUkladu } from './podglad.js';
-import { przelaczMotyw } from './motyw.js';
+import { przelaczMotyw, ustawMotyw, wybranyMotyw } from './motyw.js';
 import { domyslneStyle, zastosujStylWProjekcie, odepnijStyl } from './style-tekstu.js';
 
 
@@ -192,8 +192,19 @@ function odswiezNaglowek() {
   $('[data-akcja="wyloguj"]').lastChild.textContent = u ? 'Wyloguj' : 'Przejdź do logowania';
 }
 
+// Motyw wybrany na koncie obowiązuje na każdym urządzeniu; zmiana motywu
+// zapisuje się na koncie.
+document.addEventListener('motyw', async (e) => {
+  const u = stan.uzytkownik;
+  if (!u || u.user_metadata?.motyw === e.detail.wybor) return;
+  u.user_metadata = { ...u.user_metadata, motyw: e.detail.wybor };
+  try { await chmura.zapiszMotyw(e.detail.wybor); } catch { /* zostaje na urządzeniu */ }
+});
+
 async function poZalogowaniu(uzytkownik) {
   stan.uzytkownik = uzytkownik;
+  const motywKonta = uzytkownik?.user_metadata?.motyw;
+  if (motywKonta && motywKonta !== wybranyMotyw()) ustawMotyw(motywKonta);
   odswiezNaglowek();
   await przejdzDoTrasy();
   if (document.body.dataset.ekran === 'start' || document.body.dataset.ekran === 'logowanie') await pokazProjekty();
@@ -830,7 +841,9 @@ async function opublikujUdostepnienie() {
       komunikat.textContent = `Wysyłam strony: ${i} z ${n}…`;
     });
     p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk: odciskTresci(p) };
-    komunikat.textContent = 'Gotowe. Skopiuj link i wyślij go, komu chcesz.';
+    komunikat.textContent = wynik.wyslane < wynik.wszystkie
+      ? `Gotowe. Wysłano ${wynik.wyslane} z ${wynik.wszystkie} stron – reszta się nie zmieniła.`
+      : 'Gotowe. Skopiuj link i wyślij go, komu chcesz.';
     komunikat.classList.add('sukces');
     await zapiszTeraz();
   } catch (e) {
@@ -1504,6 +1517,9 @@ function otworzUstawieniaSekcji(id) {
   const wzor = istniejaca || biezacaSekcja();
   const w = wzor.wydruk;
   dlg.dataset.id = id || '';
+  $('#kalkulator-grzbietu').open = false;
+  $('#grzbiet-strona').value = '';
+  $('#grzbiet-strony').value = '';
   $('#tytul-sekcji').textContent = istniejaca ? 'Ustawienia sekcji' : 'Nowa sekcja';
   $('#zapisz-sekcje').textContent = istniejaca ? 'Zapisz' : 'Dodaj sekcję';
   f.elements.nazwa.value = istniejaca ? istniejaca.nazwa : `Sekcja ${projekt.sekcje.length + 1}`;
@@ -1554,6 +1570,40 @@ function odswiezPolaSekcji() {
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
   if (['uklad', 'numeracja'].includes(e.target.name)) odswiezPolaSekcji();
+});
+
+// Kalkulator okładki: tył + grzbiet + przód. Grzbiet = liczba kartek × grubość kartki.
+function policzGrzbiet() {
+  const strona = Number($('#grzbiet-strona').value);
+  const strony = Number($('#grzbiet-strony').value);
+  const kartka = Number($('#grzbiet-kartka').value);
+  if (!(strona > 0 && strony > 0 && kartka > 0)) { $('#grzbiet-wynik').textContent = 'Podaj trzy liczby.'; return null; }
+  const grzbiet = Math.round((strony / 2) * kartka * 10) / 10;
+  const szerokosc = Math.round((2 * strona + grzbiet) * 10) / 10;
+  $('#grzbiet-wynik').textContent = `Grzbiet: ${liczba(grzbiet)} mm (${strony / 2} kartek × ${liczba(kartka)} mm). Okładka: ${liczba(strona)} + ${liczba(grzbiet)} + ${liczba(strona)} = ${liczba(szerokosc)} mm szerokości. Grubość kartki podaje drukarnia; papier 80 g ma zwykle ok. 0,1 mm.`;
+  return szerokosc;
+}
+$('#kalkulator-grzbietu').addEventListener('input', policzGrzbiet);
+$('#kalkulator-grzbietu').addEventListener('toggle', () => {
+  if (!$('#kalkulator-grzbietu').open || !stan.projekt) return;
+  // Podpowiedź: największa inna sekcja projektu jest najpewniej środkiem.
+  const idTej = $('#dlg-sekcja').dataset.id;
+  const ciag = rozwin(stan.projekt);
+  const inne = stan.projekt.sekcje.filter((s) => s.id !== idTej).map((s) => ({ s, n: ciag.sekcje.get(s.id).lista.length })).sort((a, b) => b.n - a.n)[0];
+  if (inne && !$('#grzbiet-strona').value) {
+    $('#grzbiet-strona').value = inne.s.wydruk.szerokosc_mm;
+    $('#grzbiet-strony').value = inne.n + (inne.n % 2);
+  }
+  policzGrzbiet();
+});
+$('#grzbiet-ustaw').addEventListener('click', () => {
+  const szerokosc = policzGrzbiet();
+  if (!szerokosc) return;
+  const f = $('#dlg-sekcja form');
+  f.elements.szerokosc_mm.value = szerokosc;
+  f.elements.format.value = 'wlasny';
+  f.elements.uklad.value = 'pojedyncze';
+  odswiezPolaSekcji();
 });
 
 function wykryjFormat(sz, wy) {
@@ -1893,6 +1943,7 @@ const akcje = {
   'podglad-plus': () => podglad.powieksz(1.25),
   'podglad-minus': () => podglad.powieksz(0.8),
   'podglad-dopasuj': () => podglad.dopasuj(),
+  'podglad-prezentacja': () => podglad.prezentuj(),
   png: () => {
     zamknijMenu();
     const nazwa = stan.tryb === 'wzorzec' ? `wzorzec-${biezacyWzorzec().nazwa}` : `s${stan.indeks + 1}`;
@@ -2104,7 +2155,7 @@ const kontekstSkrotow = {
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') zamknijMenu();
-  if (document.body.dataset.ekran === 'podglad' && e.key === 'Escape' && !$('dialog[open]')) { zamknijPodglad(); return; }
+  if (document.body.dataset.ekran === 'podglad' && e.key === 'Escape' && !$('dialog[open]') && !podglad.wPrezentacji) { zamknijPodglad(); return; }
   if (document.body.dataset.ekran !== 'edytor' || $('dialog[open]')) return;
   const cel = e.target;
   const wPolu = Boolean(cel !== document.body && cel.closest('input, textarea:not([data-fabric-hiddentextarea]), select, [contenteditable]'));

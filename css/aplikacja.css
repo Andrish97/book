@@ -1013,6 +1013,29 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 /* ---------- Podgląd udostępniony linkiem ---------- */
 
 .tylko-gosc { display: none !important; }
+/* Prezentacja */
+.ekran-podgladu { position: relative; }
+.prezentacja { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; background: #16150f; color: #f1efe9; }
+.prezentacja-scena { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.prezentacja-kartka { background: #fff; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); }
+.prezentacja-kartka + .prezentacja-kartka { box-shadow: inset 1px 0 0 rgba(28, 27, 25, .18), 0 10px 40px rgba(0, 0, 0, .5); }
+.prezentacja-kartka.pusta { background: none; box-shadow: none; }
+.prezentacja-kartka img { display: block; width: 100%; height: 100%; }
+.prezentacja-strzalka { position: absolute; top: 0; bottom: 48px; width: 18%; min-width: 56px; border: 0; background: none; color: rgba(241, 239, 233, .55); font-size: 44px; cursor: pointer; }
+.prezentacja-strzalka:hover { color: #fff; background: rgba(255, 255, 255, .04); }
+.prezentacja-strzalka:disabled { opacity: 0; cursor: default; }
+.prezentacja-strzalka.wstecz { left: 0; text-align: left; padding-left: 16px; }
+.prezentacja-strzalka.dalej { right: 0; text-align: right; padding-right: 16px; }
+.prezentacja-pasek { flex: none; height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; font-size: 13px; color: rgba(241, 239, 233, .75); }
+.prezentacja-zamknij { border: 1px solid rgba(241, 239, 233, .3); border-radius: var(--r-s); background: none; color: inherit; padding: 6px 12px; cursor: pointer; }
+.prezentacja-zamknij:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+
+.kalkulator-grzbietu { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 10px 14px; }
+.kalkulator-grzbietu summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--tusz-2); }
+.kalkulator-grzbietu[open] { display: flex; flex-direction: column; gap: 10px; }
+.kalkulator-grzbietu[open] summary { margin-bottom: 4px; }
+.kalkulator-grzbietu .przycisk { align-self: flex-start; }
+
 body.podglad-publiczny .tylko-gosc { display: inline-flex !important; }
 body.podglad-publiczny .tylko-wlasciciel { display: none !important; }
 a.marka { color: inherit; text-decoration: none; }

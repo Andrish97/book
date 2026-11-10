@@ -215,8 +215,9 @@ test('konflikt zapisu: zmiana z innego urządzenia nie jest nadpisywana po cichu
   assert.deepEqual(bledy, []);
 });
 
-test('motyw: ciemny i jasny, zapamiętany po odświeżeniu', async (t) => {
-  const { strona, bledy } = await otworz(t, { tryb: 'atrapa' });
+test('motyw: ciemny i jasny, zapamiętany po odświeżeniu i na koncie', async (t) => {
+  const dane = await otworz(t, { tryb: 'atrapa' });
+  const { strona, bledy } = dane;
   const motyw = () => strona.evaluate(() => [document.documentElement.dataset.motyw, getComputedStyle(document.body).backgroundColor]);
   assert.deepEqual(await motyw(), ['jasny', 'rgb(244, 243, 239)']);
   await strona.click('#ekran-logowania [data-akcja="motyw"]');
@@ -233,5 +234,15 @@ test('motyw: ciemny i jasny, zapamiętany po odświeżeniu', async (t) => {
   assert.equal(await strona.isChecked('#wybor-motywu input[value=ciemny]'), true);
   await strona.click('#wybor-motywu label:has-text("Jasny")');
   assert.equal((await motyw())[0], 'jasny');
+
+  // Wybór zapisuje się na koncie i obowiązuje na innym urządzeniu (tu: po zmianie ustawienia w przeglądarce).
+  await strona.waitForFunction(() => true);
+  const { baza } = dane;
+  await strona.waitForTimeout(300);
+  assert.equal(baza.konta.find((k) => k.email === 'anna@test.pl').motyw, 'jasny');
+  await strona.evaluate(() => localStorage.setItem('seriodruk:motyw', 'ciemny'));
+  await strona.reload();
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'konto' || document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.documentElement.dataset.motyw === 'jasny');
   assert.deepEqual(bledy, []);
 });

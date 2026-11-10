@@ -296,9 +296,23 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
   const folder = `${uzytkownik.id}/${projektId}/${kod}`;
   const magazyn = sb.storage.from(BUCKET_PODGLADOW);
+  // Skróty obrazów z poprzedniej publikacji: strona, której obraz się nie
+  // zmienił, nie jest wysyłana drugi raz.
+  let poprzednie = {};
+  try {
+    const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
+    if (odp.ok) poprzednie = (await odp.json()).skroty || {};
+  } catch { /* pierwsza publikacja albo brak sieci – wyślemy wszystko */ }
+  const skroty = {};
   let gotowe = 0;
+  let wyslane = 0;
   for (const s of strony) {
-    sprawdz(await magazyn.upload(`${folder}/${s.id}.jpg`, await obraz(s), { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' }));
+    const plik = await obraz(s);
+    skroty[s.id] = await skrotPliku(plik);
+    if (poprzednie[s.id] !== skroty[s.id]) {
+      sprawdz(await magazyn.upload(`${folder}/${s.id}.jpg`, plik, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' }));
+      wyslane += 1;
+    }
     gotowe += 1;
     postep(gotowe, strony.length);
   }
@@ -308,11 +322,22 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
   if (zbedne.length) await usunPliki(sb, zbedne);
 
   const zaktualizowano = new Date().toISOString();
-  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad };
+  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty };
   sprawdz(await magazyn.upload(`${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), {
     upsert: true, contentType: 'application/json', cacheControl: '0',
   }));
-  return { konto: uzytkownik.id, zaktualizowano };
+  return { konto: uzytkownik.id, zaktualizowano, wyslane, wszystkie: strony.length };
+}
+
+async function skrotPliku(plik) {
+  const bajty = new Uint8Array(await crypto.subtle.digest('SHA-256', await plik.arrayBuffer()));
+  return [...bajty].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Wybór motywu zapisany na koncie – ten sam na każdym urządzeniu.
+export async function zapiszMotyw(motyw) {
+  const sb = await supabase();
+  return sprawdz(await sb.auth.updateUser({ data: { motyw } })).user;
 }
 
 export async function wylaczPodglad(projektId, kod) {
