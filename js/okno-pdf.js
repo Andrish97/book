@@ -62,6 +62,9 @@ export class OknoPdf {
       sekcja: this.zrodlo.sekcja()?.id,
       od: Number(e.od.value),
       do: Number(e.do.value),
+      tryb: e.tryb.value,
+      krzywe: e.tryb.value === 'wektor' && e.krzywe.checked,
+      cmyk: e.tryb.value === 'wektor' && e.cmyk.checked,
       dpi: Number(e.dpi.value),
       spad: e.druk.value === 'drukarnia',
       znaki: e.druk.value === 'drukarnia' ? 'sekcje' : false,
@@ -75,6 +78,14 @@ export class OknoPdf {
     const o = this.opcje();
     $('#pdf-pole-strony').hidden = o.zakres !== 'strony';
     $('#pdf-pole-ile').hidden = o.podzial !== 'czesci';
+    const wektor = o.tryb === 'wektor';
+    $('#pdf-opcje-wektora').hidden = !wektor;
+    $('#pdf-etykieta-dpi').textContent = wektor ? 'Jakość elementów zapisanych jako obraz' : 'Jakość';
+    $('#pdf-opis-trybu').textContent = wektor
+      ? (o.krzywe
+        ? 'Tekst jest zamieniony na kształty liter: wygląda identycznie wszędzie i drukarnia nie potrzebuje czcionek, ale nie da się go zaznaczyć ani poprawić. Zdjęcia idą w oryginalnej rozdzielczości.'
+        : 'Tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać), kształty są wektorami, zdjęcia idą w oryginalnej rozdzielczości. Elementy z cieniem albo czcionką, której nie da się osadzić, trafiają do pliku jako obraz – po eksporcie zobaczysz ich listę.')
+      : 'Każda strona jest jednym obrazem w wybranej rozdzielczości – tekst wygląda tak samo na każdym komputerze, ale nie da się go zaznaczyć, a plik jest większy.';
     const projekt = this.zrodlo.projekt();
     const egz = wybierzEgzemplarze(this.ciag, o);
     const pliki = planPlikow(projekt, egz, o);
@@ -103,7 +114,11 @@ export class OknoPdf {
       pobierz(wynik.nazwa, URL.createObjectURL(wynik.blob));
       this.trwa = false;
       this.okno.close();
-      powiadom(`Gotowe: ${wynik.nazwa}`);
+      const jakoObraz = wynik.uwagi || [];
+      const ile = jakoObraz.reduce((s, [, n]) => s + n, 0);
+      powiadom(ile
+        ? `Gotowe: ${wynik.nazwa}. Jako obraz ${odmiana(ile, 'zapisany został', 'zapisane zostały', 'zapisanych zostało')} ${ile} ${odmiana(ile, 'element', 'elementy', 'elementów')}: ${jakoObraz.map(([powod, n]) => `${powod}${n > 1 ? ` (${n})` : ''}`).join('; ')}.`
+        : `Gotowe: ${wynik.nazwa}`);
     } catch (blad) {
       komunikat.textContent = blad instanceof Przerwano ? 'Eksport przerwany.' : (blad.message || 'Nie udało się przygotować pliku PDF.');
     } finally {

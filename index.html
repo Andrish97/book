@@ -642,6 +642,12 @@
         <button type="button" class="przycisk-ikona" id="pdf-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
       <p class="ciche">Każda strona osobno, w kolejności wydruku, razem z powieleniami serii. Zdjęcia idą w pełnej jakości.</p>
+      <label class="pole"><span>Rodzaj pliku</span>
+        <select name="tryb">
+          <option value="wektor" selected>Wektorowy – tekst i kształty ostre w każdym powiększeniu</option>
+          <option value="obraz">Obrazy stron – każda strona jako jedno zdjęcie</option>
+        </select>
+      </label>
       <label class="pole"><span>Zakres</span>
         <select name="zakres">
           <option value="wszystko">Cały projekt</option>
@@ -659,7 +665,11 @@
           <option value="podglad">Do oglądania – równo do formatu</option>
         </select>
       </label>
-      <label class="pole"><span>Jakość</span><select name="dpi"></select></label>
+      <label class="pole"><span id="pdf-etykieta-dpi">Jakość</span><select name="dpi"></select></label>
+      <div id="pdf-opcje-wektora">
+        <label class="przelacznik"><input type="checkbox" name="krzywe"><span>Zamień tekst na krzywe (bez czcionek w pliku)</span></label>
+        <label class="przelacznik"><input type="checkbox" name="cmyk"><span>Kolory tekstu i kształtów w CMYK (czarny jako sama czerń)</span></label>
+      </div>
       <div class="rzad">
         <label class="pole"><span>Podział na pliki</span>
           <select name="podzial">
@@ -671,7 +681,7 @@
         <label class="pole waskie" id="pdf-pole-ile" hidden><span>Stron w części</span><input name="ile" type="number" min="1" step="1" value="50" inputmode="numeric"></label>
       </div>
       <label class="przelacznik"><input type="checkbox" name="czcionki"><span>Dołącz pliki czcionek użytych w projekcie</span></label>
-      <p class="podpowiedz">Tekst w pliku PDF jest spłaszczony – zamieniony na obraz strony, więc wygląda tak samo na każdym komputerze i drukarnia nie potrzebuje czcionek. Pliki czcionek możesz dołączyć osobno (archiwum ZIP), np. dla grafika.</p>
+      <p class="podpowiedz" id="pdf-opis-trybu"></p>
       <p class="podpowiedz" id="pdf-podsumowanie"></p>
       <details class="uwagi-druku" id="pdf-uwagi" hidden>
         <summary></summary>

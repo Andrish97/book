@@ -199,20 +199,14 @@ export async function tekstyEgzemplarza(projekt, egz, ciag) {
 // do obrazu (dataURL). opcje: szerokoscPx (z ewentualnym spadem), spad
 // (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach),
 // oryginaly (pełne obrazy zamiast kopii roboczych – do eksportu).
-export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false } = {}) {
+// Składa stronę (albo wzorzec) do gotowych obiektów: dane podstawione, obrazy wczytane, teksty
+// wpisane w ramki i przelane, warstwy wzorców pod i nad treścią. Zwraca { wydruk, tlo, obiekty }
+// – obiekty w kolejności rysowania, w układzie strony (mm).
+export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const jestWzorcem = projekt.wzorce.includes(cel);
   const rozwiniety = jestWzorcem ? null : (ciag || rozwin(projekt));
   const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
   const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, egz.strona).wydruk;
-  const { szerokosc_mm: w, wysokosc_mm: h } = wydruk;
-  const b = spad ? wydruk.spad_mm : 0;
-  const k = szerokoscPx / (w + 2 * b);
-  const plotno = new fabric.StaticCanvas(null, {
-    width: Math.round((w + 2 * b) * k),
-    height: Math.round((h + 2 * b) * k),
-    enableRetinaScaling: false,
-    renderOnAddRemove: false,
-  });
   const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly)));
@@ -227,8 +221,22 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
   }
   if (idWatkow.size) rozlejWatki([...wlasne, ...zSasiada]);
   const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety, { oryginaly });
-  plotno.backgroundColor = jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona);
-  for (const o of [...warstwy.pod, ...wlasne, ...warstwy.nad]) plotno.add(o);
+  return { wydruk, tlo: jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona), obiekty: [...warstwy.pod, ...wlasne, ...warstwy.nad] };
+}
+
+export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false } = {}) {
+  const { wydruk, tlo, obiekty } = await zlozCel(projekt, cel, { ciag, oryginaly });
+  const { szerokosc_mm: w, wysokosc_mm: h } = wydruk;
+  const b = spad ? wydruk.spad_mm : 0;
+  const k = szerokoscPx / (w + 2 * b);
+  const plotno = new fabric.StaticCanvas(null, {
+    width: Math.round((w + 2 * b) * k),
+    height: Math.round((h + 2 * b) * k),
+    enableRetinaScaling: false,
+    renderOnAddRemove: false,
+  });
+  plotno.backgroundColor = tlo;
+  for (const o of obiekty) plotno.add(o);
   plotno.setViewportTransform([k, 0, 0, k, b * k, b * k]);
   plotno.renderAll();
   const url = plotno.toDataURL({ format, quality: jakosc });

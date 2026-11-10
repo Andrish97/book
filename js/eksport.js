@@ -1,12 +1,15 @@
 // Eksport do druku: PNG jednej strony i PDF całego projektu.
 //
 // PDF składa się ze stron w kolejności wydruku, razem z powieleniami serii.
-// Każda strona jest obrazem w wybranej rozdzielczości (z oryginalnych zdjęć,
-// nie z kopii roboczych), a plik niesie informacje dla drukarni: format po
-// obcięciu (TrimBox), obszar ze spadem (BleedBox) i znaki cięcia.
-// Kolory są w RGB – zamianę na CMYK robi drukarnia.
+// Plik niesie informacje dla drukarni: format po obcięciu (TrimBox), obszar ze
+// spadem (BleedBox) i znaki cięcia. Są dwa rodzaje pliku:
+//  – wektorowy (domyślny): tekst pisany osadzonymi czcionkami, kształty jako
+//    wektory, zdjęcia w oryginalnej rozdzielczości (js/pdf-wektorowy.js);
+//  – obrazy stron: każda strona jest jednym obrazem w wybranej rozdzielczości.
+// Kolory są w RGB; w pliku wektorowym tekst i kształty mogą iść w CMYK.
 
-import { renderujCel } from './zlozenie.js';
+import { renderujCel, zlozCel } from './zlozenie.js';
+import { rysujStroneWektorowo, CzcionkiPdf, ObrazyPdf } from './pdf-wektorowy.js';
 import { rozwin } from './serie.js';
 import { biblioteka } from './biblioteki.js';
 import { bezpiecznaNazwa } from './ui.js';
@@ -14,6 +17,7 @@ import { uzyteCzcionki, CZCIONKI } from './czcionki.js';
 
 const PDFLIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
 const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+const FONTKIT_URL = 'https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js';
 
 const PT = 72 / 25.4; // punktów PDF w milimetrze
 const ZNAK_DLUGOSC = 5; // mm
@@ -98,30 +102,45 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }) {
   }
 }
 
-// Składa jeden plik PDF z podanych egzemplarzy. opcje: dpi, spad (czy dodać
-// spad), znaki ('sekcje' – według ustawień sekcji, true, false), jakosc JPEG,
-// ciag, postep(nrStrony), przerwij() → true, gdy użytkownik anulował.
-export async function zlozPdf(projekt, egzemplarze, { dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, ciag = rozwin(projekt), postep, przerwij } = {}) {
+// Składa jeden plik PDF z podanych egzemplarzy. opcje: tryb ('wektor' | 'obraz'), dpi (strony
+// w trybie obrazów; w wektorowym – elementy, których nie da się zapisać wektorowo), spad (czy dodać
+// spad), znaki ('sekcje' – według ustawień sekcji, true, false), jakosc JPEG, cmyk i krzywe (tylko
+// wektorowy), uwagi (Map: powód → ile elementów trafiło do pliku jako obraz), ciag, postep(nrStrony),
+// przerwij() → true, gdy użytkownik anulował.
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, uwagi = new Map(), ciag = rozwin(projekt), postep, przerwij } = {}) {
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
   const pdf = await PDFLib.PDFDocument.create();
   pdf.setTitle(projekt.nazwa);
   pdf.setCreator('Seriodruk');
   pdf.setProducer('Seriodruk (pdf-lib)');
+  let srodowisko = null;
+  if (tryb === 'wektor') {
+    const fontkit = await biblioteka(FONTKIT_URL, 'fontkit', 'modułu czcionek PDF');
+    pdf.registerFontkit(fontkit);
+    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf), cmyk, krzywe, dpi, uwagi, uzyteCzcionki: new Set() };
+  }
   let nr = 0;
   for (const egz of egzemplarze) {
     if (przerwij?.()) throw new Przerwano();
     const { wydruk } = egz.sekcja;
     const zeZnakami = znaki === 'sekcje' ? Boolean(wydruk.znaki_ciecia) : Boolean(znaki);
     const m = wymiaryStronyPdf(wydruk, { spad, znaki: zeZnakami });
-    const url = await renderujCel(projekt, egz, {
-      szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true,
-    });
-    if (!url.startsWith('data:image/jpeg')) throw new Error('Strona jest za duża na tę rozdzielczość. Wybierz niższą jakość.');
-    const obraz = await pdf.embedJpg(url);
     const szer = (m.w + 2 * m.pas) * PT;
     const wys = (m.h + 2 * m.pas) * PT;
-    const strona = pdf.addPage([szer, wys]);
-    strona.drawImage(obraz, { x: (m.pas - m.spad) * PT, y: (m.pas - m.spad) * PT, width: (m.w + 2 * m.spad) * PT, height: (m.h + 2 * m.spad) * PT });
+    let strona;
+    if (srodowisko) {
+      const { tlo, obiekty } = await zlozCel(projekt, egz, { ciag, oryginaly: true });
+      strona = pdf.addPage([szer, wys]);
+      await rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m });
+    } else {
+      const url = await renderujCel(projekt, egz, {
+        szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true,
+      });
+      if (!url.startsWith('data:image/jpeg')) throw new Error('Strona jest za duża na tę rozdzielczość. Wybierz niższą jakość.');
+      const obraz = await pdf.embedJpg(url);
+      strona = pdf.addPage([szer, wys]);
+      strona.drawImage(obraz, { x: (m.pas - m.spad) * PT, y: (m.pas - m.spad) * PT, width: (m.w + 2 * m.spad) * PT, height: (m.h + 2 * m.spad) * PT });
+    }
     strona.setTrimBox(m.pas * PT, m.pas * PT, m.w * PT, m.h * PT);
     strona.setBleedBox((m.pas - m.spad) * PT, (m.pas - m.spad) * PT, (m.w + 2 * m.spad) * PT, (m.h + 2 * m.spad) * PT);
     if (zeZnakami) rysujZnaki(strona, PDFLib, m);
@@ -129,6 +148,8 @@ export async function zlozPdf(projekt, egzemplarze, { dpi = 300, spad = true, zn
     postep?.(nr);
     await new Promise((ok) => setTimeout(ok)); // oddaj głos przeglądarce – postęp się odmaluje
   }
+  // Czcionki wczytane, ale ostatecznie nieużyte (np. tekst poszedł jako obraz), nie trafiają do pliku.
+  if (srodowisko) pdf.fonts = pdf.fonts.filter((f) => srodowisko.uzyteCzcionki.has(f));
   return new Blob([await pdf.save()], { type: 'application/pdf' });
 }
 
@@ -157,8 +178,10 @@ export async function plikiCzcionek(projekt) {
   return pliki;
 }
 
-// Cały eksport: zwraca { nazwa, blob } – jeden PDF albo ZIP (kilka plików PDF, pliki czcionek).
+// Cały eksport: zwraca { nazwa, blob, uwagi } – jeden PDF albo ZIP (kilka plików PDF, pliki czcionek).
+// uwagi: [[powód, liczba]] – elementy, które w pliku wektorowym zostały zapisane jako obraz.
 export async function eksportujPdf(projekt, opcje = {}) {
+  const uwagi = new Map();
   const ciag = rozwin(projekt);
   const pliki = planPlikow(projekt, wybierzEgzemplarze(ciag, opcje), opcje);
   if (!pliki.length) throw new Error('W wybranym zakresie nie ma stron.');
@@ -167,14 +190,14 @@ export async function eksportujPdf(projekt, opcje = {}) {
   const wyniki = [];
   for (const p of pliki) {
     const start = gotowe;
-    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
+    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, uwagi, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
     wyniki.push({ nazwa: p.nazwa, blob });
   }
   const czcionki = opcje.dolaczCzcionki ? await plikiCzcionek(projekt) : [];
-  if (wyniki.length === 1 && !czcionki.length) return wyniki[0];
+  if (wyniki.length === 1 && !czcionki.length) return { ...wyniki[0], uwagi: [...uwagi] };
   const JSZip = await biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
   const zip = new JSZip();
   for (const w of wyniki) zip.file(w.nazwa, w.blob, { compression: 'STORE' });
   for (const c of czcionki) zip.file(`czcionki/${c.nazwa}`, c.blob, { compression: 'STORE' });
-  return { nazwa: `${bezpiecznaNazwa(projekt.nazwa)} - PDF.zip`, blob: await zip.generateAsync({ type: 'blob' }) };
+  return { nazwa: `${bezpiecznaNazwa(projekt.nazwa)} - PDF.zip`, blob: await zip.generateAsync({ type: 'blob' }), uwagi: [...uwagi] };
 }
