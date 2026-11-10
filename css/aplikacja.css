@@ -543,6 +543,8 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 .warstwa-kolejnosc { display: flex; gap: 0; }
 .warstwa .warstwa-kolejnosc button { width: 22px; font-size: 10px; }
 @media (hover: hover) { .warstwa:not(:hover):not(:focus-within) .warstwa-kolejnosc { opacity: 0; } }
+.warstwa .warstwa-rozwin { width: 20px; font-size: 11px; }
+.warstwa.w-grupie { grid-template-columns: 28px 20px minmax(0, 1fr); padding-left: 24px; min-height: 30px; }
 .warstwa.ze-wzorca { grid-template-columns: 20px minmax(0, 1fr) auto; padding-left: 30px; color: var(--cichy); }
 .warstwa.ze-wzorca small { font-size: 11px; white-space: nowrap; }
 .warstwy-naglowek { margin: 10px 4px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--cichy); list-style: none; }
@@ -1125,6 +1127,8 @@ button.podglad-kartka:hover { outline: 2px solid var(--akcent); outline-offset: 
 .wybor-lista { padding: 5px; max-width: min(420px, calc(100vw - 16px)); outline: none; }
 .wybor-opcja { padding: 8px 10px; border-radius: var(--r-s); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wybor-opcja.w-grupie { padding-left: 18px; }
+.wybor-lista [hidden] { display: none !important; }
+.wybor-filtr { position: sticky; top: -5px; z-index: 1; margin: -5px -5px 4px; padding: 7px 10px; font-size: 12px; color: var(--cichy); background: var(--powierzchnia); border-bottom: 1px solid var(--linia); }
 .wybor-opcja.aktywna { background: var(--wypelnienie); }
 .wybor-opcja[aria-selected="true"] { color: var(--akcent); font-weight: 600; }
 .wybor-opcja[aria-selected="true"].aktywna { background: var(--akcent-tlo); }

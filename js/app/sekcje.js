@@ -6,7 +6,7 @@ import { $, $$, powiadom, potwierdz } from '../ui.js';
 import { stan, biezacaSekcja, tenSamRozmiar, liczba, edytor, biezacaStrona } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { panel } from './skladniki.js';
-import { ustawZakladke } from './lista-stron.js';
+import { ustawZakladke, przelejPoZmianieKolejnosci } from './lista-stron.js';
 
 // ---------- Sekcje ----------
 
@@ -191,6 +191,7 @@ export async function przesunSekcje(id, kierunek) {
   const biezaca = biezacaStrona();
   [sekcje[i], sekcje[j]] = [sekcje[j], sekcje[i]];
   uporzadkujStrony(stan.projekt);
+  await przelejPoZmianieKolejnosci();
   stan.indeks = stan.projekt.strony.indexOf(biezaca);
   stan.miniatury.clear();
   await zaladujCel();

@@ -14,12 +14,25 @@ export class PanelWarstw {
     this.edytor = edytor;
     lista.addEventListener('click', (e) => { const li = e.target.closest('li[data-wzorzec]'); if (li && doWzorca) doWzorca(li.dataset.wzorzec); });
     this.widoczny = false;
+    this.rozwiniete = new Set(); // identyfikatory grup pokazanych z zawartością
     for (const zdarzenie of ['zmiana', 'zaznaczenie', 'historia']) edytor.addEventListener(zdarzenie, () => this.odswiez());
 
     lista.addEventListener('click', (e) => {
+      // Element wewnątrz grupy: oko ukrywa tylko jego; kliknięcie wiersza zaznacza grupę.
+      const wGrupie = e.target.closest('li[data-grupa]');
+      if (wGrupie) {
+        if (e.target.closest('.warstwa-oko')) edytor.ustawWidocznoscWGrupie(wGrupie.dataset.grupa, Number(wGrupie.dataset.nr), wGrupie.classList.contains('ukryta'));
+        else edytor.zaznacz(wGrupie.dataset.grupa);
+        return;
+      }
       const li = e.target.closest('li[data-id]');
       if (!li) return;
       const { id } = li.dataset;
+      if (e.target.closest('.warstwa-rozwin')) {
+        if (this.rozwiniete.has(id)) this.rozwiniete.delete(id); else this.rozwiniete.add(id);
+        this.odswiez();
+        return;
+      }
       if (e.target.closest('.warstwa-oko')) { edytor.ustawWidocznosc(id, li.classList.contains('ukryta')); return; }
       const kolejnosc = e.target.closest('.warstwa-wyzej, .warstwa-nizej');
       if (kolejnosc) { edytor.przesunWarstwe(id, kolejnosc.classList.contains('warstwa-wyzej') ? 1 : -1); return; }
@@ -31,6 +44,12 @@ export class PanelWarstw {
       if (!li.classList.contains('ukryta')) edytor.zaznacz(id);
     });
     lista.addEventListener('dblclick', async (e) => {
+      const wGrupie = e.target.closest('li[data-grupa]');
+      if (wGrupie && !e.target.closest('button')) {
+        const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', wGrupie.querySelector('.warstwa-nazwa').textContent);
+        if (nazwa) edytor.nazwijWGrupie(wGrupie.dataset.grupa, Number(wGrupie.dataset.nr), nazwa);
+        return;
+      }
       const li = e.target.closest('li[data-id]');
       if (!li || e.target.closest('button')) return;
       const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', li.querySelector('.warstwa-nazwa').textContent);
@@ -102,6 +121,29 @@ export class PanelWarstw {
       li.querySelector('.warstwa-nazwa').textContent = w.opis;
       li.querySelector('.warstwa-nazwa').title = w.opis;
       this.lista.append(li);
+      if (!w.dzieci) continue;
+      // Grupa: znaczek typu jest przyciskiem, który rozwija jej zawartość.
+      const otwarta = this.rozwiniete.has(w.id);
+      const rozwin = document.createElement('button');
+      rozwin.className = 'warstwa-rozwin';
+      rozwin.setAttribute('aria-expanded', String(otwarta));
+      rozwin.setAttribute('aria-label', otwarta ? 'Zwiń grupę' : 'Pokaż elementy grupy');
+      rozwin.title = otwarta ? 'Zwiń grupę' : `Pokaż elementy grupy (${w.dzieci.length})`;
+      rozwin.textContent = otwarta ? '▾' : '▸';
+      li.querySelector('.warstwa-typ').replaceWith(rozwin);
+      if (!otwarta) continue;
+      for (const d of w.dzieci) {
+        const wiersz = document.createElement('li');
+        wiersz.dataset.grupa = w.id;
+        wiersz.dataset.nr = String(d.nr);
+        wiersz.className = `warstwa w-grupie${d.ukryty ? ' ukryta' : ''}`;
+        wiersz.innerHTML = `<button class="warstwa-oko" aria-label="${d.ukryty ? 'Pokaż' : 'Ukryj'}" title="${d.ukryty ? 'Pokaż' : 'Ukryj (nie będzie drukowany)'}">${ikona(d.ukryty ? 'okoOff' : 'oko', { rozmiar: 16 })}</button>
+          <span class="warstwa-typ">${ikona(IKONY_TYPOW[d.typ] || 'prostokat', { rozmiar: 16 })}</span>
+          <span class="warstwa-nazwa"></span>`;
+        wiersz.querySelector('.warstwa-nazwa').textContent = d.opis;
+        wiersz.querySelector('.warstwa-nazwa').title = d.opis;
+        this.lista.append(wiersz);
+      }
     }
     // Elementy wzorców: widać je na stronie, ale zmienia się je we wzorcu – kliknięcie tam prowadzi.
     if (zeWzorcow.length) {

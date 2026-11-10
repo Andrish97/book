@@ -30,6 +30,27 @@ fabric.Textbox.prototype.initDimensions = function initDimensions() {
   if (ramka) this.height = this.ramka_h;
 };
 
+// Fragmenty z własnym rozmiarem czcionki zmniejszają się razem z resztą tekstu. W zapisie fragment
+// trzyma rozmiar zadany (taki, jaki ma przy rozmiarze bazowym ramki); przy mierzeniu i rysowaniu
+// jest mnożony przez to, o ile autodopasowanie zmniejszyło cały tekst. Po powrocie do rozmiaru
+// bazowego mnożnik wynosi 1 i fragmenty mają znów swoje rozmiary.
+const skalaFragmentow = (o) => (o.ramka_h > 0 && o.autodopasowanie && o.rozmiar_bazowy > 0 && !o.watek && o.fontSize > 0 ? o.fontSize / o.rozmiar_bazowy : 1);
+
+const stylZnaku = fabric.Textbox.prototype._getStyleDeclaration;
+fabric.Textbox.prototype._getStyleDeclaration = function _getStyleDeclaration(wiersz, znak) {
+  const styl = stylZnaku.call(this, wiersz, znak);
+  if (!styl || !(styl.fontSize > 0)) return styl;
+  const k = skalaFragmentow(this);
+  return Math.abs(k - 1) < 1e-6 ? styl : { ...styl, fontSize: styl.fontSize * k };
+};
+// Zapis stylu znaku idzie w drugą stronę: rozmiar widoczny na ekranie wraca do rozmiaru zadanego.
+const zapiszStylZnaku = fabric.Textbox.prototype._setStyleDeclaration;
+fabric.Textbox.prototype._setStyleDeclaration = function _setStyleDeclaration(wiersz, znak, styl) {
+  const k = skalaFragmentow(this);
+  const doZapisu = styl && styl.fontSize > 0 && Math.abs(k - 1) >= 1e-6 ? { ...styl, fontSize: styl.fontSize / k } : styl;
+  return zapiszStylZnaku.call(this, wiersz, znak, doZapisu);
+};
+
 // Przesunięcie treści w pionie wewnątrz ramki.
 function luzWRamce(o) {
   if (!(o.ramka_h > 0)) return 0;

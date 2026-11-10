@@ -95,6 +95,8 @@ export class Edytor extends EventTarget {
     c.on('selection:cleared', () => this._emitujZaznaczenie());
     c.on('object:moving', (e) => this._przyciagnij(e.target, e.e));
     c.on('object:scaling', (e) => this._przyciagnijRozmiar(e.target, e.e, e.transform));
+    // Tabela skalowana uchwytem: kolumny i wiersze zmieniają wymiary od razu, pismo zostaje w swoim rozmiarze.
+    c.on('object:scaling', (e) => this._skalujTabele(e.target, e.transform));
     c.on('object:resizing', (e) => this._przyciagnijRozmiar(e.target, e.e, e.transform));
     c.on('object:rotating', (e) => {
       // Z Shiftem obrót skacze co 15°.
@@ -152,6 +154,9 @@ export class Edytor extends EventTarget {
     for (const zdarzenie of ['object:moving', 'object:scaling', 'object:rotating']) {
       c.on(zdarzenie, () => this._emitujZaznaczenie());
     }
+
+    // Klawisze na granicy połączonych ramek tekstu – przed obsługą klawiszy samego tekstu.
+    document.addEventListener('keydown', (e) => this._klawiszNaGranicyRamek(e), true);
 
     this._obslugaGestow();
   }
@@ -688,6 +693,52 @@ export class Edytor extends EventTarget {
     }
   }
 
+  // Miejsce początku części ramki w sklejonym tekście całego wątku.
+  _poczatekWWatku(ramki, r) {
+    let dl = 0;
+    let bylo = false;
+    for (const x of ramki) {
+      const lacznik = bylo && x.text ? (x.lacznik ?? '\n').length : 0;
+      if (x === r) return dl + lacznik;
+      if (!x.text) continue;
+      dl += lacznik + x.text.length;
+      bylo = true;
+    }
+    return dl;
+  }
+
+  // Przenosi pisanie do innej ramki na płótnie, z kursorem przy znaku `indeks`.
+  _piszW(cel, indeks, z) {
+    if (z?.isEditing) z.exitEditing();
+    this.canvas.setActiveObject(cel);
+    cel.enterEditing();
+    const gdzie = Math.min(Math.max(0, indeks), cel._text.length);
+    cel.selectionStart = gdzie; cel.selectionEnd = gdzie;
+    cel._updateTextarea?.();
+    this.canvas.requestRenderAll();
+  }
+
+  // Przelewa wątek i stawia kursor przy znaku, który w sklejonym tekście wątku stoi na miejscu `kursor`.
+  // Jeśli znak trafił do innej ramki na tej stronie, pisanie przenosi się tam; jeśli do ramki na innej
+  // stronie – kursor zostaje w `obj` (gdyPoza: 'koniec' albo 'poczatek' tej ramki).
+  // zawsze: ustaw kursor także wtedy, gdy przelewanie niczego nie przesunęło.
+  _przelejZKursorem(ramki, obj, kursor, { gdyPoza = 'koniec', zawsze = false } = {}) {
+    if (!rozlej(ramki) && !zawsze) return;
+    const znakow = (r, n) => (r.graphemeSplit ? r.graphemeSplit(r.text.slice(0, n)).length : n);
+    let cel = ramki.at(-1);
+    for (const r of ramki) if (kursor <= this._poczatekWWatku(ramki, r) + r.text.length) { cel = r; break; }
+    const lokalnie = Math.max(0, kursor - this._poczatekWWatku(ramki, cel));
+    if (cel === obj || !this.canvas.getObjects().includes(cel)) {
+      const gdzie = cel === obj ? Math.min(znakow(obj, lokalnie), obj._text.length) : (gdyPoza === 'poczatek' ? 0 : obj._text.length);
+      obj.selectionStart = gdzie; obj.selectionEnd = gdzie;
+      if (obj.hiddenTextarea) obj.hiddenTextarea.value = obj.text;
+      obj._updateTextarea?.();
+      // Dalszy ciąg jest na innej stronie – kursor zostaje tutaj.
+      if (cel !== obj && gdyPoza === 'koniec') this.dispatchEvent(new CustomEvent('tekst-na-innej-stronie', { detail: (this._poza || []).find((p) => p.o === cel)?.strona }));
+    } else this._piszW(cel, znakow(cel, lokalnie), obj);
+    this.canvas.requestRenderAll();
+  }
+
   // Pisanie w połączonej ramce: tekst, który przestał się mieścić, od razu płynie dalej, a zwolnione
   // miejsce wypełnia tekst z następnych ramek. Kursor zostaje przy tym samym znaku – jeśli znak
   // przeszedł do następnej ramki na tej stronie, pisanie przenosi się tam.
@@ -695,41 +746,44 @@ export class Edytor extends EventTarget {
     if (!obj?.watek || !obj.isEditing || obj.inCompositionMode || obj.zWzorca) return;
     const ramki = this._calyWatek(obj.watek);
     if (ramki.length < 2) return;
-    // Miejsce początku części ramki w sklejonym tekście całego wątku.
-    const poczatek = (r) => {
-      let dl = 0;
-      let bylo = false;
-      for (const x of ramki) {
-        const lacznik = bylo && x.text ? (x.lacznik ?? '\n').length : 0;
-        if (x === r) return dl + lacznik;
-        if (!x.text) continue;
-        dl += lacznik + x.text.length;
-        bylo = true;
-      }
-      return dl;
-    };
-    const znakow = (r, n) => (r.graphemeSplit ? r.graphemeSplit(r.text.slice(0, n)).length : n);
-    const kursor = poczatek(obj) + obj._text.slice(0, obj.selectionStart).join('').length;
-    if (!rozlej(ramki)) return;
-    let cel = ramki.at(-1);
-    for (const r of ramki) if (kursor <= poczatek(r) + r.text.length) { cel = r; break; }
-    const lokalnie = Math.max(0, kursor - poczatek(cel));
-    if (cel === obj || !this.canvas.getObjects().includes(cel)) {
-      const gdzie = cel === obj ? Math.min(znakow(obj, lokalnie), obj._text.length) : obj._text.length;
-      obj.selectionStart = gdzie; obj.selectionEnd = gdzie;
-      if (obj.hiddenTextarea) obj.hiddenTextarea.value = obj.text;
-      obj._updateTextarea?.();
-      // Dalszy ciąg jest na innej stronie – kursor zostaje tutaj.
-      if (cel !== obj) this.dispatchEvent(new CustomEvent('tekst-na-innej-stronie', { detail: (this._poza || []).find((p) => p.o === cel)?.strona }));
-    } else {
-      obj.exitEditing();
-      this.canvas.setActiveObject(cel);
-      cel.enterEditing();
-      const gdzie = Math.min(znakow(cel, lokalnie), cel._text.length);
-      cel.selectionStart = gdzie; cel.selectionEnd = gdzie;
-      cel._updateTextarea?.();
+    const kursor = this._poczatekWWatku(ramki, obj) + obj._text.slice(0, obj.selectionStart).join('').length;
+    this._przelejZKursorem(ramki, obj, kursor);
+  }
+
+  // Klawisze na granicy połączonych ramek. Backspace na samym początku ramki usuwa znak sprzed kursora –
+  // czyli koniec poprzedniej części (albo odstęp między częściami); Delete na końcu – początek następnej.
+  // Strzałki w lewo i w prawo przechodzą do sąsiedniej ramki, jeśli leży na tej stronie.
+  _klawiszNaGranicyRamek(e) {
+    const o = this.aktywny;
+    if (!o?.isEditing || !o.watek || o.zWzorca || o.inCompositionMode || e.target !== o.hiddenTextarea) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    if (o.selectionStart !== o.selectionEnd) return;
+    const wstecz = e.key === 'Backspace' || e.key === 'ArrowLeft';
+    if (o.selectionStart !== (wstecz ? 0 : o._text.length)) return;
+    const ramki = this._calyWatek(o.watek);
+    const i = ramki.indexOf(o);
+    // Wstecz: najbliższa wcześniejsza ramka z tekstem; w przód: najbliższa dalsza z tekstem.
+    const sasiad = wstecz ? ramki.slice(0, i).reverse().find((r) => r.text) : ramki.slice(i + 1).find((r) => r.text);
+    if (!sasiad) return;
+    const naPlotnie = this.canvas.getObjects().includes(sasiad);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      if (!naPlotnie) return;
+      e.preventDefault(); e.stopPropagation();
+      this._piszW(sasiad, wstecz ? sasiad._text.length : 0, o);
+      return;
     }
-    this.canvas.requestRenderAll();
+    e.preventDefault(); e.stopPropagation();
+    if (wstecz) {
+      // Między częściami stoi łącznik (spacja albo nowy akapit) – on znika pierwszy; inaczej ostatni znak poprzedniej części.
+      if (o.text && (o.lacznik ?? '\n')) o.lacznik = '';
+      else sasiad.removeChars(sasiad._text.length - 1, sasiad._text.length);
+      this._przelejZKursorem(ramki, o, this._poczatekWWatku(ramki, o), { gdyPoza: 'poczatek', zawsze: true });
+    } else {
+      const kursor = this._poczatekWWatku(ramki, o) + o.text.length;
+      if (ramki.slice(0, ramki.indexOf(sasiad)).some((r) => r.text) && (sasiad.lacznik ?? '\n')) sasiad.lacznik = '';
+      else sasiad.removeChars(0, 1);
+      this._przelejZKursorem(ramki, o, kursor, { gdyPoza: 'koniec', zawsze: true });
+    }
   }
 
   // Łączy zaznaczone ramki tekstu: tekst, który nie mieści się w pierwszej,
@@ -849,6 +903,17 @@ export class Edytor extends EventTarget {
     this.canvas.requestRenderAll();
     this.oznaczZmiane();
     return tabela;
+  }
+
+  // Skalowanie tabeli uchwytem narożnym na bieżąco: skala zamienia się w wymiary kolumn i wierszy,
+  // a narożnik naprzeciwko uchwytu zostaje na miejscu.
+  _skalujTabele(tabela, przeksztalcenie) {
+    if (!toTabela(tabela) || !przeksztalcenie) return;
+    const { originX, originY } = przeksztalcenie;
+    const kotwica = tabela.translateToOriginPoint(tabela.getRelativeCenterPoint(), originX, originY);
+    if (!utrwalSkaleTabeli(tabela)) return;
+    tabela.setPositionByOrigin(kotwica, originX, originY);
+    tabela.setCoords();
   }
 
   // Uchwyty kolumn i klawisz Tab w komórkach – dla każdej tabeli na płótnie.
@@ -1563,7 +1628,7 @@ export class Edytor extends EventTarget {
   // Kliknięcie w prowadnicę (w pustym miejscu) zaczyna jej przesuwanie;
   // wyciągnięta poza stronę znika.
   _chwycProwadnice(e) {
-    if (e.target || !e.scenePoint || this.reka) return;
+    if (e.target || !e.scenePoint || this.reka || this.widok.blokada_prowadnic) return;
     const p = this._prowadnicaPod(this._punktZdarzenia(e));
     if (!p) return;
     this._prowadnicaWRuchu = p;
@@ -1586,7 +1651,7 @@ export class Edytor extends EventTarget {
 
   _ruchNadProwadnica(e) {
     if (this._prowadnicaWRuchu) { this.canvas._groupSelector = null; return; }
-    if (e.target || !e.scenePoint || !this.wydruk) { this.canvas.defaultCursor = 'default'; return; }
+    if (e.target || !e.scenePoint || !this.wydruk || this.widok.blokada_prowadnic) { this.canvas.defaultCursor = 'default'; return; }
     const p = this._prowadnicaPod(this._punktZdarzenia(e));
     this.canvas.defaultCursor = p ? (p.os === 'x' ? 'col-resize' : 'row-resize') : 'default';
   }
@@ -1717,7 +1782,31 @@ export class Edytor extends EventTarget {
     const zaznaczone = new Set(akt ? (toZaznaczenie(akt) ? akt.getObjects() : [akt]) : []);
     return this.canvas.getObjects().filter((o) => !o.zWzorca && !o.kadr).reverse().map((o) => ({
       id: o.id, typ: o.type, opis: opisObiektu(o), ukryty: o.visible === false, zablokowany: Boolean(o.zablokowany), zaznaczony: zaznaczone.has(o),
+      // Zawartość grupy (od wierzchu); tabela jest jednym elementem i nie pokazuje swoich części.
+      dzieci: o.type === 'group' && !toTabela(o) ? o.getObjects().map((d, nr) => ({ nr, typ: d.type, opis: opisObiektu(d), ukryty: d.visible === false })).reverse() : null,
     }));
+  }
+
+  _wGrupie(id, nr) {
+    const g = this._poId(id);
+    return g?.type === 'group' && !toTabela(g) ? { g, d: g.getObjects()[nr] || null } : { g: null, d: null };
+  }
+
+  // Ukrywa albo pokazuje pojedynczy element grupy (nr = miejsce w grupie, od spodu).
+  ustawWidocznoscWGrupie(id, nr, widoczny) {
+    const { g, d } = this._wGrupie(id, nr);
+    if (!d) return;
+    d.set({ visible: widoczny });
+    g.dirty = true;
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+  }
+
+  nazwijWGrupie(id, nr, nazwa) {
+    const { d } = this._wGrupie(id, nr);
+    if (!d) return;
+    d.nazwa = nazwa || undefined;
+    this.oznaczZmiane();
   }
 
   _poId(id) {

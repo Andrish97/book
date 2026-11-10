@@ -219,3 +219,35 @@ export function zachowajTekstStrony(projekt, strona) {
     else reszta.forEach((r, i) => { r.o.watek_nr = i; if (!i) delete r.o.lacznik; });
   }
 }
+
+// Po zmianie kolejności stron: ramki wątku idą w kolejności stron (na jednej stronie – jak dotąd),
+// tekst zostaje w dotychczasowej kolejności czytania i przelewa się przez ramki od nowa – płynie
+// zawsze „do przodu”. Zwraca identyfikatory stron, których zapis się zmienił.
+export async function uporzadkujWatkiPoStronach(projekt) {
+  const zmienione = new Set();
+  const nrStrony = new Map(projekt.strony.map((s, i) => [s, i]));
+  for (const ramki of watkiProjektu(projekt).values()) {
+    const nowa = [...ramki].sort((a, b) => (nrStrony.get(a.strona) - nrStrony.get(b.strona)) || ((a.o.watek_nr || 0) - (b.o.watek_nr || 0)));
+    if (nowa.every((r, i) => r === ramki[i])) continue;
+    const caly = polaczCzesci(ramki.map((r, i) => ({ text: r.o.text || '', styles: Array.isArray(r.o.styles) ? r.o.styles : [], lacznik: i ? (r.o.lacznik ?? '\n') : '' })));
+    // Cały tekst trafia do pierwszej ramki w nowej kolejności, a stamtąd przelewa się dalej.
+    nowa.forEach((r, i) => {
+      r.o.watek_nr = i;
+      r.o.text = i ? '' : caly.text;
+      r.o.styles = i ? [] : caly.styles;
+      if (i) r.o.lacznik = '\n'; else delete r.o.lacznik;
+      delete r.o.lista_start;
+      zmienione.add(r.strona.id);
+    });
+    const zywe = await fabric.util.enlivenObjects(nowa.map((r) => JSON.parse(JSON.stringify(r.o))));
+    if (zywe.length !== nowa.length) continue; // przeleje się przy otwarciu strony
+    rozlej(zywe);
+    nowa.forEach((r, i) => {
+      const z = zywe[i];
+      r.o.text = z.text;
+      r.o.styles = fabric.util.stylesToArray(z.styles || {}, z.text);
+      for (const k of ['lacznik', 'lista_start']) { if (z[k] === undefined) delete r.o[k]; else r.o[k] = z[k]; }
+    });
+  }
+  return [...zmienione];
+}

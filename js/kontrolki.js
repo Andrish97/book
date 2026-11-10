@@ -136,18 +136,46 @@ function ulepszSelect(sel) {
       pozycje[aktywna]?.classList.add('aktywna');
       if (przewin) pozycje[aktywna]?.scrollIntoView({ block: 'nearest' });
     };
+    // Długa lista: pisanie zawęża ją do pozycji zawierających wpisany fragment
+    // (bez rozróżniania wielkości liter i polskich znaków).
+    const DLUGA = pozycje.length > 8;
+    let filtr = '';
+    const pasek = document.createElement('div');
+    pasek.className = 'wybor-filtr';
+    pasek.hidden = true;
+    if (DLUGA) lista.prepend(pasek);
+    const widoczne = () => pozycje.filter((p) => !p.hidden);
+    const filtruj = () => {
+      const f = bezOgonkow(filtr);
+      for (const el of lista.querySelectorAll('.wybor-opcja')) el.hidden = Boolean(f) && !bezOgonkow(el.textContent).includes(f);
+      // Nagłówek grupy bez widocznych pozycji też znika.
+      for (const g of lista.querySelectorAll('.wybor-grupa')) {
+        let jest = false;
+        for (let el = g.nextElementSibling; el && !el.classList.contains('wybor-grupa'); el = el.nextElementSibling) if (el.classList.contains('wybor-opcja') && !el.hidden) jest = true;
+        g.hidden = !jest;
+      }
+      const w = widoczne();
+      pasek.hidden = !filtr;
+      pasek.textContent = filtr ? `Szukaj: ${filtr}${w.length ? '' : ' – nic nie pasuje'}` : '';
+      if (w.length) zaznacz(pozycje.indexOf(w.includes(pozycje[aktywna]) && !filtr ? pozycje[aktywna] : w[0]));
+    };
+    // Strzałki chodzą tylko po widocznych pozycjach.
+    const krok = (o) => { const w = widoczne(); if (!w.length) return; const i = w.indexOf(pozycje[aktywna]); zaznacz(pozycje.indexOf(w[Math.min(w.length - 1, Math.max(0, (i < 0 ? 0 : i) + o))])); };
     lista.addEventListener('pointermove', (e) => { const el = e.target.closest('.wybor-opcja'); const i = pozycje.indexOf(el); if (i >= 0 && i !== aktywna) zaznacz(i, false); });
     lista.addEventListener('click', (e) => { const el = e.target.closest('.wybor-opcja'); if (el && pozycje.includes(el)) wybierz(el.dataset.wartosc); });
     let wpisane = '';
     let czasWpisu = 0;
     lista.addEventListener('keydown', (e) => {
       e.stopPropagation(); // klawisze w otwartej liście nie są skrótami edytora
-      if (e.key === 'ArrowDown') { e.preventDefault(); zaznacz(aktywna + 1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); zaznacz(aktywna - 1); }
-      else if (e.key === 'Home') { e.preventDefault(); zaznacz(0); }
-      else if (e.key === 'End') { e.preventDefault(); zaznacz(pozycje.length - 1); }
-      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (pozycje[aktywna]) wybierz(pozycje[aktywna].dataset.wartosc); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); krok(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); krok(-1); }
+      else if (e.key === 'Home') { e.preventDefault(); krok(-pozycje.length); }
+      else if (e.key === 'End') { e.preventDefault(); krok(pozycje.length); }
+      else if (e.key === 'Enter' || (e.key === ' ' && !filtr)) { e.preventDefault(); if (pozycje[aktywna] && !pozycje[aktywna].hidden) wybierz(pozycje[aktywna].dataset.wartosc); }
+      else if (e.key === 'Escape' && filtr) { e.preventDefault(); filtr = ''; filtruj(); } // pierwszy Esc czyści szukanie, drugi zamyka listę
       else if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); e.stopPropagation(); zamknijOkienko(); przycisk.focus(); }
+      else if (DLUGA && e.key === 'Backspace') { e.preventDefault(); if (filtr) { filtr = filtr.slice(0, -1); filtruj(); } }
+      else if (DLUGA && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); filtr += e.key; filtruj(); }
       else if (e.key.length === 1) {
         // Pisanie liter przeskakuje do pierwszej pasującej pozycji.
         const teraz = Date.now();
@@ -170,6 +198,11 @@ function ulepszSelect(sel) {
   przycisk.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); otworz(); }
   });
+}
+
+// Tekst do porównywania przy szukaniu: małe litery, bez polskich znaków.
+function bezOgonkow(t) {
+  return String(t).trim().toLocaleLowerCase('pl').replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 // ---------- Wybór koloru ----------
