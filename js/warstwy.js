@@ -5,7 +5,7 @@
 import { ikona } from './ikony.js';
 import { zapytajONazwe } from './ui.js';
 
-const IKONY_TYPOW = { textbox: 'tekst', rect: 'prostokat', ellipse: 'elipsa', line: 'linia', image: 'obraz', group: 'grupuj', polygon: 'wielokat' };
+const IKONY_TYPOW = { textbox: 'tekst', rect: 'prostokat', ellipse: 'elipsa', line: 'linia', image: 'obraz', group: 'grupuj', polygon: 'wielokat', path: 'rysuj' };
 
 export class PanelWarstw {
   // doWzorca(idWzorca) – otwiera wzorzec do edycji (kliknięcie elementu wzorca na liście).

@@ -497,6 +497,39 @@ export class Edytor extends EventTarget {
     obj.setCoords();
   }
 
+  // ---------- Rysowanie odręczne ----------
+  // W tym trybie przeciągnięcie po stronie rysuje wygładzoną linię (zwykły element: można go
+  // przesuwać, skalować, zmieniać kolor i grubość). Tryb zostaje włączony do wyłączenia albo Esc.
+
+  get rysuje() { return Boolean(this.canvas.isDrawingMode); }
+
+  ustawRysowanie(wlacz, { kolor = '#1a1a1a', grubosc = 0.6 } = {}) {
+    const c = this.canvas;
+    if (wlacz === this.rysuje) return;
+    if (wlacz) {
+      if (this._kadr) this.zakonczKadrowanie(true);
+      c.discardActiveObject();
+      const pedzel = new fabric.PencilBrush(c);
+      pedzel.color = kolor;
+      pedzel.width = grubosc;
+      pedzel.decimate = 0.4; // wygładza drżenie ręki
+      pedzel.strokeLineCap = 'round';
+      pedzel.strokeLineJoin = 'round';
+      c.freeDrawingBrush = pedzel;
+      if (!this._rysunekPodpiety) {
+        this._rysunekPodpiety = true;
+        c.on('path:created', (e) => {
+          e.path.set({ id: uid('o'), fill: '', strokeUniform: true, strokeLineCap: 'round', strokeLineJoin: 'round' });
+          e.path.setCoords();
+          this.oznaczZmiane();
+        });
+      }
+    }
+    c.isDrawingMode = Boolean(wlacz);
+    c.requestRenderAll();
+    this.dispatchEvent(new CustomEvent('rysowanie', { detail: this.rysuje }));
+  }
+
   dodajLinie() {
     const { left, top } = this._srodek(60, 0);
     return this._wstaw(new fabric.Line([left, top, left + 60, top], {
@@ -1901,7 +1934,7 @@ function utrwalSkaleTekstu(obj) {
 
 const NAZWY_TYPOW = {
   textbox: 'Tekst', 'i-text': 'Tekst', text: 'Tekst', rect: 'Prostokąt',
-  ellipse: 'Elipsa', line: 'Linia', image: 'Obraz', group: 'Grupa', polygon: 'Wielokąt',
+  ellipse: 'Elipsa', line: 'Linia', image: 'Obraz', group: 'Grupa', polygon: 'Wielokąt', path: 'Rysunek',
 };
 
 export function opisObiektu(o) {

@@ -3,6 +3,7 @@
 const P = {
   tekst: '<path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/>',
   prostokat: '<rect x="4" y="6" width="16" height="12" rx="1.5"/>',
+  rysuj: '<path d="M4 20c2.5-.4 3.8-1.8 4.2-3.6L18.5 6.1a2.1 2.1 0 0 0-3-3L5.2 13.4C3.6 14 3.2 16.500 4 20Z"/><path d="m14 5 3.500 3.500"/>',
   tabela: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 10h18"/><path d="M3 14.5h18"/><path d="M9 5v14"/><path d="M15 5v14"/>',
   elipsa: '<ellipse cx="12" cy="12" rx="8" ry="6.5"/>',
   linia: '<path d="M5 19 19 5"/>',

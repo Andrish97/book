@@ -179,7 +179,7 @@ test('kształty: wielokąt i gwiazda, wypełnienie gradientem, cień – zapisuj
   assert.equal(gwiazda.punkty, 10);
   assert.deepEqual(gwiazda.srodek, start.srodek, 'środek zostaje w miejscu');
 
-  await strona.check('#wlasciwosci label:has-text("Przejście kolorów") input');
+  await strona.selectOption('#wlasciwosci select:has(option[value="kolowy"])', 'liniowy');
   await strona.click('#wlasciwosci button[title="Pionowo"]');
   await strona.check('#wlasciwosci label:has-text("Cień pod elementem") input');
   await strona.fill('#wlasciwosci label:has-text("Rozmycie") input', '4');
@@ -187,6 +187,23 @@ test('kształty: wielokąt i gwiazda, wypełnienie gradientem, cień – zapisuj
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   const zapis = await strona.evaluate(() => { const o = window.seriodruk.stan.projekt.strony[0].obiekty[0]; return { boki: o.boki, gwiazda: o.gwiazda, gradient: [o.fill.type, o.fill.coords.y2, o.fill.colorStops.length], cien: [o.shadow.blur, o.shadow.offsetX] }; });
   assert.deepEqual(zapis, { boki: 5, gwiazda: true, gradient: ['linear', 1, 2], cien: [4, 1.5] });
+
+  // Trzeci kolor w przejściu, kąt wpisany liczbą, potem przejście kołowe z promieniem.
+  await strona.click('#wlasciwosci button:has-text("Dodaj kolor")');
+  await strona.fill('#wlasciwosci label:has-text("Kąt") input', '180');
+  await strona.press('#wlasciwosci label:has-text("Kąt") input', 'Tab');
+  let przejscie = await strona.evaluate(() => { const f = window.seriodruk.edytor.aktywny.fill; return [f.type, f.colorStops.map((s) => s.offset).sort(), [f.coords.x1, f.coords.y1, f.coords.x2, f.coords.y2]]; });
+  assert.deepEqual(przejscie, ['linear', [0, 0.5, 1], [1, 0.5, 0, 0.5]]);
+  await strona.selectOption('#wlasciwosci select:has(option[value="kolowy"])', 'kolowy');
+  await strona.fill('#wlasciwosci label:has-text("Promień") input', '80');
+  await strona.press('#wlasciwosci label:has-text("Promień") input', 'Tab');
+  await strona.click('#wlasciwosci button[aria-label="Usuń kolor 2"]');
+  przejscie = await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); const f = window.seriodruk.stan.projekt.strony[0].obiekty[0].fill; return [f.type, f.colorStops.length, f.coords.r1, f.coords.r2, f.coords.x1, f.gradientUnits]; });
+  assert.deepEqual(przejscie, ['radial', 2, 0, 0.8, 0.5, 'percentage']);
+  // „Jeden kolor” wraca do pierwszego koloru przejścia.
+  await strona.selectOption('#wlasciwosci select:has(option[value="kolowy"])', 'kolor');
+  assert.equal(typeof await strona.evaluate(() => window.seriodruk.edytor.aktywny.fill), 'string');
+  await strona.selectOption('#wlasciwosci select:has(option[value="kolowy"])', 'kolowy');
 
   // Po ponownym otwarciu kształt wraca z gradientem i cieniem, a strona daje się narysować.
   await strona.reload();
@@ -235,5 +252,70 @@ test('kadrowanie obrazu przeciąganiem: ramka wyznacza fragment, Enter zatwierdz
   assert.deepEqual(await obraz(), [70, 50, 100, 40, 100, 60]);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.length), 1);
+  assert.deepEqual(bledy, []);
+});
+
+test('rysowanie odręczne: przeciągnięcie tworzy linię, która jest zwykłym elementem; Esc kończy tryb', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Rysunek');
+  const przycisk = '[data-akcja="rysuj"]';
+  assert.equal(await strona.getAttribute(przycisk, 'aria-pressed'), 'false');
+  await strona.click(przycisk);
+  assert.equal(await strona.getAttribute(przycisk, 'aria-pressed'), 'true');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), true);
+
+  // Punkt strony (mm) → punkt ekranu.
+  const naEkranie = (x, y) => strona.evaluate(([mx, my]) => {
+    const c = window.seriodruk.edytor.canvas;
+    const v = c.viewportTransform;
+    const r = c.upperCanvasEl.getBoundingClientRect();
+    return [r.left + mx * v[0] + v[4], r.top + my * v[3] + v[5]];
+  }, [x, y]);
+  const kreska = async (punkty) => {
+    const [p0, ...reszta] = await Promise.all(punkty.map(([x, y]) => naEkranie(x, y)));
+    await strona.mouse.move(...p0);
+    await strona.mouse.down();
+    for (const p of reszta) await strona.mouse.move(...p, { steps: 6 });
+    await strona.mouse.up();
+  };
+  await kreska([[30, 40], [60, 70], [90, 40], [120, 70]]);
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'path'));
+  // Tryb zostaje – druga kreska to drugi element (i osobny krok historii).
+  await strona.waitForTimeout(450);
+  await kreska([[30, 100], [120, 100]]);
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'path').length === 2);
+
+  const opis = await strona.evaluate(() => {
+    const o = window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'path');
+    const b = o.getBoundingRect(true, true);
+    return { id: Boolean(o.id), fill: o.fill, kolor: o.stroke, grubosc: o.strokeWidth, lewo: b.left, gora: b.top, szer: b.width, wys: b.height };
+  });
+  assert.ok(opis.id, 'rysunek ma identyfikator jak każdy element');
+  assert.equal(opis.fill, '', 'sama linia, bez wypełnienia');
+  assert.equal(opis.grubosc, 0.6);
+  // Linia leży tam, gdzie ją narysowano (w milimetrach strony).
+  assert.ok(Math.abs(opis.lewo - 30) < 2 && Math.abs(opis.gora - 40) < 2, JSON.stringify(opis));
+  assert.ok(Math.abs(opis.szer - 90) < 3 && Math.abs(opis.wys - 30) < 3, JSON.stringify(opis));
+
+  await strona.keyboard.press('Escape');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), false);
+  assert.equal(await strona.getAttribute(przycisk, 'aria-pressed'), 'false');
+
+  // Po wyjściu z trybu rysunek zaznacza się kliknięciem i ma w panelu kolor oraz grubość linii.
+  await strona.mouse.click(...(await naEkranie(75, 100)));
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'path');
+  assert.equal(await strona.textContent('#tytul-wlasciwosci'), 'Rysunek');
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  const zapisane = await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.map((o) => o.type));
+  assert.deepEqual(zapisane, ['path', 'path']);
+
+  // Klawisz B włącza tryb, drugi raz wyłącza; cofnięcie zdejmuje ostatnią kreskę.
+  await strona.keyboard.press('Escape');
+  await strona.keyboard.press('b');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), true);
+  await strona.keyboard.press('b');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), false);
+  await strona.keyboard.press('Control+z');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'path').length === 1);
   assert.deepEqual(bledy, []);
 });

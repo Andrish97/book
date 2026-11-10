@@ -105,7 +105,7 @@ test('telefon: praca w poziomie – panele z boków, ukryte trudne narzędzia; w
   assert.ok(!u.strony.widac && u.strony.prawo <= 0, 'zamknięty panel stron jest poza lewą krawędzią');
   assert.ok(!u.wlasciwosci.widac && u.wlasciwosci.lewo >= u.okno[0], 'zamknięty panel właściwości jest poza prawą krawędzią');
   // Trudne narzędzia są schowane; podstawowe zostają.
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'rysuj']);
 
   // Właściwości wysuwają się z prawej, na całą wysokość pod paskiem; strona odsuwa się spod panelu.
   await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');

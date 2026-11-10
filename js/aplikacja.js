@@ -236,6 +236,7 @@ const akcje = {
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => edytor.dodajWielokat(),
   'dodaj-obraz': () => $('#plik-obraz').click(),
+  rysuj: () => edytor.ustawRysowanie(!edytor.rysuje),
   'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
   cofnij: () => cofnijKrok(-1),
   ponow: () => cofnijKrok(1),
@@ -347,6 +348,10 @@ edytor.addEventListener('zaznaczenie', (e) => {
   panel.pokaz(obj);
 });
 edytor.addEventListener('zmiana', zaplanujZapis);
+edytor.addEventListener('rysowanie', (e) => {
+  $('[data-akcja="rysuj"]').setAttribute('aria-pressed', String(e.detail));
+  if (e.detail) powiadom('Rysowanie odręczne: przeciągaj po stronie. Esc albo ponowne kliknięcie „Rysuj” kończy.');
+});
 edytor.addEventListener('schowek', () => { if (!edytor.aktywny) panel.zbuduj(); });
 edytor.addEventListener('ostrzezenia', (e) => renderujOstrzezenia(e.detail));
 edytor.addEventListener('zoom', (e) => {
@@ -424,6 +429,7 @@ document.addEventListener('keydown', (e) => {
   const cel = e.target;
   const wPolu = Boolean(cel !== document.body && cel.closest('input, textarea:not([data-fabric-hiddentextarea]), select, [contenteditable]'));
   const wEdycji = Boolean(edytor.aktywny?.isEditing);
+  if (edytor.rysuje && e.key === 'Escape') { e.preventDefault(); edytor.ustawRysowanie(false); return; }
   if (edytor.kadruje && !wPolu && (e.key === 'Enter' || e.key === 'Escape')) { e.preventDefault(); edytor.zakonczKadrowanie(e.key === 'Enter'); return; }
   if (e.code === 'Space' && !wPolu && !wEdycji) { e.preventDefault(); edytor.ustawReke(true); return; }
   obsluzKlawisz(e, kontekstSkrotow, { wPolu, wEdycji });

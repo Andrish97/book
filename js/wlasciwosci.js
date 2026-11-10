@@ -84,7 +84,7 @@ export class PanelWlasciwosci {
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
     this.zbudujGeometrie(obj);
     if (KSZTALTY.has(obj.type)) this.zbudujWypelnienie(obj);
-    if (obj.type === 'line') this.zbudujLinie(obj);
+    if (obj.type === 'line' || obj.type === 'path') this.zbudujLinie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
     this.zbudujWyrownanie(1);
@@ -477,30 +477,75 @@ export class PanelWlasciwosci {
       k.append(this.przelacznik('Gwiazda', () => Boolean(obj.gwiazda), (v) => this.edytor.przeksztalcWielokat(obj, obj.boki || 5, v)));
     }
     const s = this.sekcja('Wypełnienie i obrys');
-    // Wypełnienie: jeden kolor albo przejście między dwoma (gradient liniowy).
+    // Wypełnienie: jeden kolor, przejście liniowe albo kołowe – z dowolną liczbą kolorów.
     const gradient = () => (obj.fill && typeof obj.fill === 'object' && obj.fill.colorStops ? obj.fill : null);
+    const rodzaj = () => (gradient() ? (gradient().type === 'radial' ? 'kolowy' : 'liniowy') : (!obj.fill || obj.fill === 'transparent' ? 'brak' : 'kolor'));
+    const przystanki = () => [...gradient().colorStops].sort((p, q) => p.offset - q.offset).map((p) => ({ offset: p.offset, color: p.color }));
     const KIERUNKI = { poziomo: [0, 0, 1, 0], pionowo: [0, 0, 0, 1], ukos: [0, 0, 1, 1] };
-    const kierunek = () => { const c = gradient()?.coords; return c ? (Object.keys(KIERUNKI).find((n) => KIERUNKI[n].join() === [c.x1, c.y1, c.x2, c.y2].join()) || 'poziomo') : 'poziomo'; };
-    const ustawGradient = (od, do_, jak = kierunek()) => {
-      const [x1, y1, x2, y2] = KIERUNKI[jak];
-      obj.set('fill', new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage', coords: { x1, y1, x2, y2 }, colorStops: [{ offset: 0, color: od }, { offset: 1, color: do_ }] }));
+    const wspolrzedne = () => { const c = gradient()?.coords; return c ? [c.x1, c.y1, c.x2, c.y2] : KIERUNKI.poziomo; };
+    const kierunek = () => Object.keys(KIERUNKI).find((n) => KIERUNKI[n].join() === wspolrzedne().join()) || null;
+    const kat = () => { const [x1, y1, x2, y2] = wspolrzedne(); return Math.round(((Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI + 360) % 360); };
+    const promien = () => Math.round((gradient()?.coords.r2 ?? 0.5) * 100);
+    // Buduje gradient od nowa: typ, przystanki i – dla liniowego – współrzędne kierunku, dla kołowego – promień.
+    const ustawGradient = ({ typ = rodzaj(), kolory = przystanki(), wsp = wspolrzedne(), r = promien() } = {}) => {
+      const coords = typ === 'kolowy'
+        ? { x1: 0.5, y1: 0.5, r1: 0, x2: 0.5, y2: 0.5, r2: Math.max(0.05, r / 100) }
+        : { x1: wsp[0], y1: wsp[1], x2: wsp[2], y2: wsp[3] };
+      obj.set('fill', new fabric.Gradient({ type: typ === 'kolowy' ? 'radial' : 'linear', gradientUnits: 'percentage', coords, colorStops: kolory }));
     };
-    const kolorOd = () => (gradient() ? gradient().colorStops[0].color : obj.fill);
-    const kolorDo = () => gradient()?.colorStops.at(-1).color || '#ffffff';
-    s.append(this.kolor(gradient() ? 'Wypełnienie – od' : 'Wypełnienie', kolorOd, (v) => (gradient() && v ? ustawGradient(v, kolorDo()) : obj.set('fill', v)), { brak: true }));
-    if (gradient()) s.append(this.kolor('Wypełnienie – do', kolorDo, (v) => ustawGradient(kolorOd(), v)));
-    const przejscie = this.przelacznik('Przejście kolorów (gradient)', () => Boolean(gradient()), (v) => {
-      if (v) ustawGradient(naHex(obj.fill) || '#2f5bd3', '#ffffff'); else obj.set('fill', kolorOd());
+    const pierwszyKolor = () => (gradient() ? przystanki()[0].color : (naHex(obj.fill) || '#2f5bd3'));
+    const wyborRodzaju = this.wybor('Wypełnienie', [['kolor', 'Jeden kolor'], ['liniowy', 'Przejście liniowe'], ['kolowy', 'Przejście kołowe'], ['brak', 'Brak']], rodzaj, (v) => {
+      const kolor = pierwszyKolor();
+      if (v === 'kolor') obj.set('fill', kolor);
+      else if (v === 'brak') obj.set('fill', '');
+      else ustawGradient({ typ: v, kolory: gradient() ? przystanki() : [{ offset: 0, color: kolor }, { offset: 1, color: '#ffffff' }], wsp: gradient()?.type === 'linear' ? wspolrzedne() : KIERUNKI.poziomo, r: 50 });
       this.zbuduj();
     });
-    s.append(przejscie);
+    wyborRodzaju.classList.add('szeroki');
+    s.append(wyborRodzaju);
+    if (rodzaj() === 'kolor') s.append(this.kolor('Kolor wypełnienia', () => obj.fill, (v) => obj.set('fill', v)));
     if (gradient()) {
-      const kier = this.segmenty('Kierunek przejścia', [
-        ['wyrownajSrodekY', 'Poziomo', () => kierunek() === 'poziomo', () => ustawGradient(kolorOd(), kolorDo(), 'poziomo')],
-        ['wyrownajSrodekX', 'Pionowo', () => kierunek() === 'pionowo', () => ustawGradient(kolorOd(), kolorDo(), 'pionowo')],
-        ['linia', 'Po skosie', () => kierunek() === 'ukos', () => ustawGradient(kolorOd(), kolorDo(), 'ukos')],
-      ]);
-      s.append(kier);
+      // Kolory przejścia: każdy ma położenie w procentach; dwa skrajne zostają zawsze.
+      przystanki().forEach((p, i, wszystkie) => {
+        s.append(this.kolor(`Kolor ${i + 1}`, () => przystanki()[i]?.color, (v) => { const k = przystanki(); k[i].color = v; ustawGradient({ kolory: k }); }));
+        const polozenie = this.liczba('Położenie', () => Math.round((przystanki()[i]?.offset ?? 0) * 100), (v) => { const k = przystanki(); k[i].offset = Math.min(100, Math.max(0, v)) / 100; ustawGradient({ kolory: k }); this.zbuduj(); }, { jednostka: '%', krok: 5, min: 0 });
+        if (wszystkie.length > 2) {
+          const usun = document.createElement('button');
+          usun.type = 'button';
+          usun.className = 'przycisk-ikona usun-prowadnice';
+          usun.title = 'Usuń ten kolor z przejścia';
+          usun.setAttribute('aria-label', `Usuń kolor ${i + 1}`);
+          usun.textContent = '×';
+          usun.addEventListener('click', () => { const k = przystanki(); k.splice(i, 1); ustawGradient({ kolory: k }); this.edytor.zatwierdz(); this.zbuduj(); });
+          polozenie.querySelector('.jednostka').append(usun);
+        }
+        s.append(polozenie);
+      });
+      s.append(this.akcje([['plus', 'Dodaj kolor', () => {
+        // Nowy kolor staje w połowie największej przerwy między sąsiednimi.
+        const k = przystanki();
+        let gdzie = 0;
+        for (let i = 1; i < k.length - 1; i += 1) if (k[i + 1].offset - k[i].offset > k[gdzie + 1].offset - k[gdzie].offset) gdzie = i;
+        k.splice(gdzie + 1, 0, { offset: (k[gdzie].offset + k[gdzie + 1].offset) / 2, color: k[gdzie + 1].color });
+        ustawGradient({ kolory: k });
+        this.edytor.zatwierdz();
+        this.zbuduj();
+      }]]));
+      if (rodzaj() === 'liniowy') {
+        const kier = this.segmenty('Kierunek przejścia', [
+          ['wyrownajSrodekY', 'Poziomo', () => kierunek() === 'poziomo', () => ustawGradient({ wsp: KIERUNKI.poziomo })],
+          ['wyrownajSrodekX', 'Pionowo', () => kierunek() === 'pionowo', () => ustawGradient({ wsp: KIERUNKI.pionowo })],
+          ['linia', 'Po skosie', () => kierunek() === 'ukos', () => ustawGradient({ wsp: KIERUNKI.ukos })],
+        ]);
+        s.append(kier);
+        s.append(this.liczba('Kąt', kat, (v) => {
+          const rad = (v * Math.PI) / 180;
+          const [dx, dy] = [Math.cos(rad) / 2, Math.sin(rad) / 2];
+          ustawGradient({ wsp: [0.5 - dx, 0.5 - dy, 0.5 + dx, 0.5 + dy].map((x) => Math.round(x * 1000) / 1000) });
+        }, { jednostka: '°', krok: 15 }));
+      } else {
+        s.append(this.liczba('Promień', promien, (v) => ustawGradient({ r: Math.min(200, Math.max(5, v)) }), { jednostka: '%', krok: 5, min: 5 }));
+      }
     }
     s.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
     s.append(this.liczba('Grubość obrysu', () => zaokr(obj.strokeWidth, 2), (v) => obj.set({ strokeWidth: Math.max(0, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0 }));
