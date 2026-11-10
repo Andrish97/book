@@ -5,7 +5,7 @@
 
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
-import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia } from './kontrola.js';
+import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku } from './kontrola.js';
 import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
@@ -190,6 +190,8 @@ export class Dane {
     }));
     t.kolumny[k] = nowa;
     if (t.unikalne) t.unikalne = t.unikalne.map((u) => (u === stara ? nowa : u));
+    // Tabele dodatkowe, które zmieniają wiersz razem z tą kolumną, idą za nową nazwą.
+    for (const x of p.serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana === stara) d.zmiana = nowa;
     el.textContent = nowa;
     const n = zmienNazwePola(p, stara, nowa, (cel) => (p.strony.includes(cel) ? zTejTabeli.has(cel) : jedyna))
       + zmienNazwePola(p, `${t.nazwa}.${stara}`, `${t.nazwa}.${nowa}`);
@@ -259,6 +261,7 @@ export class Dane {
         const k = Number(kolumna.dataset.k);
         if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, 'Pola z tej kolumny przestaną się wypełniać.', 'Usuń kolumnę', true)) return;
         if (t.unikalne) t.unikalne = t.unikalne.filter((u) => u !== t.kolumny[k]);
+        for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana === t.kolumny[k]) delete d.zmiana;
         t.kolumny.splice(k, 1);
         for (const w of t.wiersze) w.splice(k, 1);
       } else if (wiersz) t.wiersze.splice(Number(wiersz.dataset.w), 1);
@@ -390,6 +393,7 @@ export class Dane {
     wiersz.className = 'wiersz-dodatkowej';
     wiersz.innerHTML = `
       <label class="pole"><span>Tabela</span><select data-pole="tabela"></select></label>
+      <label class="pole"><span>Nowy wiersz</span><select data-pole="kiedy"></select></label>
       <label class="pole waskie"><span>Nowy wiersz co … stron</span><input data-pole="co" type="number" min="1" max="2000" step="1" inputmode="numeric"></label>
       <label class="pole waskie" title="Gdy pierwszy okres jest krótszy – np. rok zaczyna się w środę, więc pierwszy tydzień ma 5 dni"><span>Pierwszy wiersz przez … stron</span><input data-pole="pierwszy" type="number" min="1" max="2000" step="1" inputmode="numeric" placeholder="tyle samo"></label>
       <button type="button" class="przycisk-ikona" data-usun-dodatkowa title="Usuń tę tabelę z serii" aria-label="Usuń tabelę dodatkową">×</button>`;
@@ -398,7 +402,24 @@ export class Dane {
     sel.value = d.tabela || '';
     wiersz.querySelector('[data-pole="co"]').value = d.co || 7;
     wiersz.querySelector('[data-pole="pierwszy"]').value = d.pierwszy || '';
+    this._ustawKiedy(wiersz, d.zmiana ? `k:${d.zmiana}` : '');
     return wiersz;
+  }
+
+  // Lista „Nowy wiersz”: co stałą liczbę stron albo gdy zmieni się wartość w wybranej kolumnie tabeli głównej
+  // (np. miesiąc w tabeli dni – miesiące mają 28–31 stron, więc stały krok tu nie działa).
+  _ustawKiedy(wiersz, wybrana = null) {
+    const sel = wiersz.querySelector('[data-pole="kiedy"]');
+    const idGlownej = $('#dlg-seria form').elements.tabela.value || '';
+    const glowna = this.projekt().tabele.find((t) => t.id === idGlownej);
+    const klucz = `${idGlownej}|${(glowna?.kolumny || []).join('\n')}`;
+    if (wiersz.dataset.glowna !== klucz) {
+      const obecna = wybrana ?? sel.value;
+      wiersz.dataset.glowna = klucz;
+      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...(glowna?.kolumny || []).map((k) => new Option(`gdy zmieni się kolumna „${k}”`, `k:${k}`)));
+      sel.value = [...sel.options].some((o) => o.value === obecna) ? obecna : '';
+    }
+    for (const pole of ['co', 'pierwszy']) wiersz.querySelector(`[data-pole="${pole}"]`).closest('label').hidden = Boolean(sel.value);
   }
 
   otworzSerie(id) {
@@ -437,6 +458,7 @@ export class Dane {
     const proba = { ...seria, ...this._zFormularza(f) };
     const p = this.projekt();
     const bloki = blokiSerii(p).filter((b) => b.seria === seria);
+    for (const w of f.querySelectorAll('.wiersz-dodatkowej')) this._ustawKiedy(w);
     const dlugi = maTabele && f.elements.tryb.value === 'tabela' && f.elements.uklad.value === 'dlugi';
     $('#seria-pole-dopelnij').hidden = !dlugi;
     $('#seria-opis-konca').hidden = !dlugi || f.elements.dopelnij.checked;
@@ -448,7 +470,7 @@ export class Dane {
       ? bilans.map((b) => {
         const opis = `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')} × ${b.powielen} = ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')} w wydruku.`;
         const koniec = b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.';
-        const dodatkowe = b.dodatkowe.map((d) => ` Tabela „${d.tabela.nazwa}”: nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')} – potrzeba ${d.potrzeba} ${odmiana(d.potrzeba, 'wiersza', 'wierszy', 'wierszy')}, ${d.jest >= d.potrzeba ? `jest ${d.jest}` : `a jest tylko ${d.jest}`}.`).join('');
+        const dodatkowe = b.dodatkowe.map((d) => ` Tabela „${d.tabela.nazwa}”: ${opisKroku(d)} – potrzeba ${d.potrzeba} ${odmiana(d.potrzeba, 'wiersza', 'wierszy', 'wierszy')}, ${d.jest >= d.potrzeba ? `jest ${d.jest}` : `a jest tylko ${d.jest}`}.`).join('');
         return opis + koniec + dodatkowe;
       }).join(' ')
       : 'Żadna strona nie należy jeszcze do tej serii.';
@@ -484,7 +506,8 @@ export class Dane {
       dodatkowe: [...f.querySelectorAll('.wiersz-dodatkowej')].map((w) => {
         const co = Math.min(2000, Math.max(1, Math.round(Number(w.querySelector('[data-pole="co"]').value)) || 1));
         const pierwszy = Math.round(Number(w.querySelector('[data-pole="pierwszy"]').value));
-        return { tabela: w.querySelector('select').value, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}) };
+        const kiedy = w.querySelector('[data-pole="kiedy"]')?.value || '';
+        return { tabela: w.querySelector('select').value, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(kiedy.startsWith('k:') ? { zmiana: kiedy.slice(2) } : {}) };
       }).filter((d) => d.tabela && d.tabela !== (f.elements.tabela.value || null)),
     };
   }

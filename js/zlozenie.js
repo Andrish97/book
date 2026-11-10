@@ -74,10 +74,14 @@ function wpiszWRamki(obiekty) {
     const { nw, nh } = rozmiarOryginalu(o);
     o.set({ width: nw, height: nh });
     if (o.pole?.tryb === 'wypelnij') {
-      // Obraz wypełnia całą ramkę: skala według ciaśniejszego boku, nadmiar przycięty po równo z obu stron.
+      // Obraz wypełnia całą ramkę: skala według ciaśniejszego boku, nadmiar przycięty. Domyślnie po równo
+      // z obu stron (zostaje środek zdjęcia); `pole.kadr` wybiera, która część ma zostać: góra, dół, lewa, prawa.
       const skala = Math.max(r.w / nw, r.h / nh);
       const [szer, wys] = [r.w / skala, r.h / skala];
-      o.set({ width: szer, height: wys, cropX: (nw - szer) / 2, cropY: (nh - wys) / 2, scaleX: skala, scaleY: skala });
+      const kadr = o.pole.kadr;
+      const cropX = kadr === 'lewa' ? 0 : (kadr === 'prawa' ? nw - szer : (nw - szer) / 2);
+      const cropY = kadr === 'gora' ? 0 : (kadr === 'dol' ? nh - wys : (nh - wys) / 2);
+      o.set({ width: szer, height: wys, cropX, cropY, scaleX: skala, scaleY: skala });
     } else {
       const skala = Math.min(r.w / o.width, r.h / o.height);
       const srodek = { x: o.left + r.w / 2, y: o.top + r.h / 2 }; // obrót ramki pomijamy przy środkowaniu
@@ -193,6 +197,7 @@ export async function tekstyEgzemplarza(projekt, egz, ciag) {
   const wartosc = wartosciPol(projekt, egz, ciag);
   const zbierz = (obiekty, wynik = []) => {
     for (const o of obiekty || []) {
+      if (o.visible === false) continue; // ukryte (także warunkiem „Z danych”) nie są drukowane
       if (o.type === 'textbox') wynik.push(o);
       // Komórki tabeli nie są sprawdzane: wiersz rośnie razem z tekstem, więc tekst zawsze się mieści.
       if (Array.isArray(o.objects) && !o.tabela) zbierz(o.objects, wynik);
@@ -226,6 +231,23 @@ async function ramkiWatkowZInnychStron(projekt, egz, ciag, idWatkow, obecne) {
     ramki.push(...podstawWObiektach(s.obiekty.filter((o) => o.type === 'textbox' && idWatkow.has(o.watek) && !obecne.has(o.id)), wartosc));
   }
   return ramki.length ? ozyw(ramki) : [];
+}
+
+// Tabele strony (i jej wzorców) po podstawieniu danych i ułożeniu wierszy – do sprawdzenia, czy
+// urośnięta tabela mieści się na stronie. Zwraca [{ obiekt, zrodlo, id }]; bez tabel – od razu [].
+export async function tabeleEgzemplarza(projekt, egz, ciag) {
+  const zrodla = [['strona', egz.strona.obiekty], ...wzorceStrony(projekt, egz.strona).map((w) => ['wzorzec', w.obiekty])];
+  if (!zrodla.some(([, obiekty]) => (obiekty || []).some((o) => o.tabela))) return [];
+  const wartosc = wartosciPol(projekt, egz, ciag);
+  const wynik = [];
+  for (const [zrodlo, obiekty] of zrodla) {
+    const tabele = podstawWObiektach((obiekty || []).filter((o) => o.tabela), wartosc).filter((o) => o.visible !== false);
+    if (!tabele.length) continue;
+    const zywe = await ozyw(tabele);
+    wpiszWRamki(zywe);
+    for (const o of zywe) wynik.push({ obiekt: o, zrodlo, id: o.id });
+  }
+  return wynik;
 }
 
 // Składa stronę (albo wzorzec) do gotowych obiektów: dane podstawione, obrazy wczytane, teksty

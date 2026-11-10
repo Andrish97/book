@@ -26,14 +26,16 @@ export async function doEdycji(idStrony) {
   }
 }
 
-export async function pokazPodglad() {
+// opcje.nrStrony: numer strony w wydruku, na której podgląd ma się otworzyć (z listy uwag przed drukiem).
+export async function pokazPodglad(opcje = null) {
   if (!stan.projekt) return;
+  const nrStrony = Number.isInteger(opcje?.nrStrony) ? opcje.nrStrony : null;
   await zapiszTeraz();
   const biezaca = stan.tryb === 'strona' ? biezacaStrona().id : null;
   pokazEkran('podglad');
   trasa.ustaw(`p/${stan.projekt.id}/podglad`);
   document.title = `${stan.projekt.nazwa} – podgląd – ${NAZWA}`;
-  podglad.pokazProjekt(stan.projekt, biezaca);
+  podglad.pokazProjekt(stan.projekt, biezaca, nrStrony);
   $('#podglad-tresc').focus({ preventScroll: true });
 }
 

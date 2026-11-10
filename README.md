@@ -92,7 +92,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 ## Model projektu (wersja 3)
 
 - `tabele[]`: `{ id, nazwa, kolumny: [nazwa], wiersze: [[tekst]], unikalne?: [nazwa kolumny] }` – `unikalne` to kolumny z pilnowaniem powtórzeń.
-- `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi', dodatkowe: [{ tabela, co, pierwszy? }], dopelnij }`; strona wskazuje serię polem `seria`. Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
+- `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi', dodatkowe: [{ tabela, co, pierwszy?, zmiana? }], dopelnij }`; strona wskazuje serię polem `seria`. Tabela dodatkowa zmienia wiersz co `co` stron (pierwszy wiersz przez `pierwszy` stron) albo – gdy ma `zmiana` (nazwa kolumny tabeli głównej) – wtedy, gdy zmieni się wartość w tej kolumnie. Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
 - `widok`: `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }`; strony i wzorce mogą mieć `prowadnice: { x: [mm], y: [mm] }`.
 
 - `sekcje[]`: `{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy: { gora, dol, wewnetrzny, zewnetrzny }, znaki_ciecia }, uklad: 'pojedyncze' | 'rozkladowki', pierwsza: 'prawa' | 'lewa', wzorce: [id], numeracja: { tryb: 'ciagla' | 'od' | 'brak', od } }`
@@ -101,7 +101,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
 - `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`; obrazy na stronach mają `src: "zasob:<id>"`.
 - `czcionki[]`: `{ id, rodzina, waga, kursywa }` – własne czcionki; `id` wskazuje plik czcionki w `zasoby`.
-- Element: `z_danych: { kolor?: pole, x?: { pole, tryb: 'pozycja' | 'mm', krok, co }, y?: … }` – kolor i przesunięcie zależne od pola.
+- Element: `z_danych: { kolor?: pole, x?: { pole, tryb: 'pozycja' | 'mm', krok, co }, y?: …, obrot?: pole, widok?: { pole, gdy: 'niepuste' | 'puste' | 'rowne', wartosc? } }` – kolor, przesunięcie, obrót (stopnie, wokół środka) i widoczność zależne od pola. Obraz z kolumny: `pole: { kolumna, tryb?: 'wypelnij', kadr?: 'gora' | 'dol' | 'lewa' | 'prawa' }`. W tekście `{{` i `}}` to zwykłe klamry (w wydruku pojedyncze).
 - Tekst: `lista` (`'punkty' | 'kreski' | 'numery'`), `ramka_h` (stała wysokość ramki, mm); połączone ramki mają wspólny `watek`, kolejność `watek_nr` i `lacznik` (co stało między częścią poprzedniej ramki a tą).
 
 Projekty zapisane w starszych wersjach modelu są przenoszone automatycznie przy otwarciu (`normalizuj` w `js/projekt.js`).

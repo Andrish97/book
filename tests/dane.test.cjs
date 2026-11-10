@@ -627,13 +627,27 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
   assert.deepEqual(w.obraz, ['255,0,0', '255,0,0', '255,0,0', '255,255,255', '255,255,255']);
   assert.deepEqual(w.uwagi, [['nie_miesci_sie', [2], true, 'o_opis', 'Tekst „Bardzo długi opis, który na pe…” nie mieści się w ramce – strona 2.']]);
 
-  // Okno „Sprawdź przed drukiem”: ta sama uwaga, „Pokaż” otwiera stronę i zaznacza ramkę.
-  await strona.click('#przycisk-wiecej');
-  await strona.click('[data-akcja="kontrola"]');
-  await strona.waitForSelector('#dlg-kontrola[open]');
-  await strona.waitForFunction(() => /1 uwaga do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
+  // Okno „Sprawdź przed drukiem”: ta sama uwaga. „Pokaż” otwiera podgląd na stronie, której dotyczy uwaga
+  // (druga strona wydruku – drugie powielenie, z jego danymi), „Otwórz wzór” – stronę-wzór z zaznaczoną ramką.
+  const otworzKontrole = async () => {
+    await strona.click('#przycisk-wiecej');
+    await strona.click('[data-akcja="kontrola"]');
+    await strona.waitForSelector('#dlg-kontrola[open]');
+    await strona.waitForFunction(() => /1 uwaga do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
+  };
+  await otworzKontrole();
   assert.equal(await strona.textContent('#kontrola-lista li span'), 'Tekst „Bardzo długi opis, który na pe…” nie mieści się w ramce – strona 2.');
-  await strona.click('#kontrola-lista li button');
+  assert.deepEqual(await strona.locator('#kontrola-lista li button').allTextContents(), ['Pokaż', 'Otwórz wzór']);
+  await strona.click('#kontrola-lista li button:has-text("Pokaż")');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad' && document.querySelector('.podglad-strona.wskazana'));
+  const wskazana = await strona.evaluate(() => { const f = document.querySelector('.podglad-strona.wskazana'); return [[...document.querySelectorAll('.podglad-strona[data-id]')].indexOf(f), f.querySelector('figcaption').textContent]; });
+  assert.equal(wskazana[0], 1, 'wyróżniona jest druga strona wydruku');
+  assert.match(wskazana[1], /2 z 3/);
+  await strona.click('[data-akcja="podglad-zamknij"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
+  await strona.evaluate(() => window.seriodruk.edytor.odznacz());
+  await otworzKontrole();
+  await strona.click('#kontrola-lista li button:has-text("Otwórz wzór")');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.id === 'o_opis');
   // Przełącznik klamr jest w panelu tekstu, gdy w tekście są klamry.
   assert.ok(await strona.locator('.wlasciwosci label:has-text("Klamry { } to zwykły tekst")').count());

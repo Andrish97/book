@@ -58,7 +58,8 @@ export class Podglad {
   }
 
   // Własny projekt: strony rysowane z danych projektu.
-  pokazProjekt(projekt, idStrony = null) {
+  // nrStrony: numer strony w wydruku (po powieleniu serii), do której podgląd ma się przewinąć.
+  pokazProjekt(projekt, idStrony = null, nrStrony = null) {
     const ciag = rozwin(projekt);
     const poKluczu = new Map(ciag.egzemplarze.map((e) => [e.klucz, e]));
     this.pokaz(ukladProjektu(projekt, ciag), {
@@ -66,6 +67,7 @@ export class Podglad {
       klikalne: true,
       opis: 'podgląd bez edycji',
       idStrony,
+      klucz: nrStrony ? ciag.egzemplarze[nrStrony - 1]?.klucz : null,
     });
   }
 
@@ -78,7 +80,13 @@ export class Podglad {
     $('#podglad-opis').textContent = `${n} ${odmianaStron(n)} · ${zrodlo.opis}`;
     this.buduj();
     this.dopasuj();
-    if (zrodlo.idStrony) this.el.querySelector(`[data-strona="${zrodlo.idStrony}"]`)?.scrollIntoView({ block: 'center' });
+    // Wskazana strona wydruku (np. z listy „Sprawdź przed drukiem”): przewinięcie i chwilowe wyróżnienie.
+    const wskazana = zrodlo.klucz ? [...this.el.querySelectorAll('.podglad-strona[data-id]')].find((f) => f.dataset.id === zrodlo.klucz) : null;
+    if (wskazana) {
+      wskazana.scrollIntoView({ block: 'center' });
+      wskazana.classList.add('wskazana');
+      setTimeout(() => wskazana.classList.remove('wskazana'), 4000);
+    } else if (zrodlo.idStrony) this.el.querySelector(`[data-strona="${zrodlo.idStrony}"]`)?.scrollIntoView({ block: 'center' });
     else this.el.scrollTop = 0;
   }
 
