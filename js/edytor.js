@@ -12,6 +12,7 @@ import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
 import { przyciagnij, pomiary } from './przyciaganie.js';
+import { znajdzPola } from './pola.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -71,6 +72,8 @@ export class Edytor extends EventTarget {
     // Pionowa (os x) stoi w poz na osi x; pozioma biegnie przez swoją stronę.
     this.prowadnice = [];
     this._prowadnicaWRuchu = null;
+    // Czy pole {nazwa} jest znane na stronie arkusza o danym indeksie (ustawia aplikacja).
+    this.znanePole = () => true;
     this._historia = [];
     this._pozycjaHistorii = -1;
     this._timerHistorii = null;
@@ -791,6 +794,82 @@ export class Edytor extends EventTarget {
     return true;
   }
 
+  // Wstawia pole {nazwa} do zaznaczonego tekstu: w trakcie pisania – w miejscu
+  // kursora, poza tym – na końcu tekstu.
+  wstawPole(nazwa) {
+    const obj = this.aktywny;
+    if (!obj || obj.type !== 'textbox') return;
+    const pole = `{${nazwa}}`;
+    if (obj.isEditing) {
+      const start = obj.selectionStart;
+      obj.insertChars(pole, null, start, obj.selectionEnd);
+      obj.selectionStart = start + pole.length;
+      obj.selectionEnd = start + pole.length;
+      if (obj.hiddenTextarea) obj.hiddenTextarea.value = obj.text;
+      obj._updateTextarea?.();
+    } else {
+      const t = obj.text || '';
+      obj.set('text', t === 'Kliknij dwa razy, aby edytować' ? pole : `${t}${t && !/\s$/.test(t) ? ' ' : ''}${pole}`);
+    }
+    obj.initDimensions();
+    obj.dirty = true;
+    obj.setCoords();
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // Pola nieznane na stronie, na której leży tekst (do ostrzeżeń i podświetlenia).
+  _nieznanePola(o) {
+    if (o.type !== 'textbox' || !o.text.includes('{')) return [];
+    const strona = this.strony.length > 1 ? this.stronaW(this._srodekObiektu(o).x) : 0;
+    return znajdzPola(o.text).filter((p) => !this.znanePole(p.nazwa, strona));
+  }
+
+  // Tło pod polami {…} w tekstach: fioletowe – pole zostanie podstawione,
+  // czerwone – takiego pola nie ma. Tylko w edytorze, nie w wydruku.
+  _podswietlPola(ctx, X, Y) {
+    for (const o of this.canvas.getObjects()) {
+      if (o.zWzorca || o.type !== 'textbox' || o.visible === false || !o.text.includes('{') || !o.__charBounds) continue;
+      const pola = znajdzPola(o.text);
+      if (!pola.length) continue;
+      const nieznane = new Set(this._nieznanePola(o).map((x) => x.start));
+      const m = o.calcTransformMatrix();
+      const lewo0 = o._getLeftOffset();
+      const gora0 = o._getTopOffset();
+      const goraWiersza = [];
+      for (const p of pola) {
+        // Prostokąty pola – osobny dla każdego wiersza, przez który przechodzi.
+        const czesci = new Map();
+        for (let i = p.start; i < p.koniec; i += 1) {
+          const { lineIndex: w, charIndex: z } = o.get2DCursorLocation(i);
+          const znak = o.__charBounds[w]?.[z];
+          if (!znak) continue;
+          const x = lewo0 + o._getLineLeftOffset(w) + znak.left;
+          const cz = czesci.get(w);
+          if (cz) cz.x2 = Math.max(cz.x2, x + znak.kernedWidth); else czesci.set(w, { x1: x, x2: x + znak.kernedWidth });
+        }
+        ctx.fillStyle = nieznane.has(p.start) ? 'rgba(220, 38, 38, 0.22)' : 'rgba(124, 58, 237, 0.16)';
+        for (const [w, cz] of czesci) {
+          if (goraWiersza[w] === undefined) {
+            let y = gora0;
+            for (let k = 0; k < w; k += 1) y += o.getHeightOfLine(k);
+            goraWiersza[w] = y;
+          }
+          const y1 = goraWiersza[w];
+          const y2 = y1 + o.getHeightOfLine(w) / o.lineHeight;
+          ctx.beginPath();
+          [[cz.x1, y1], [cz.x2, y1], [cz.x2, y2], [cz.x1, y2]].forEach(([px, py], n) => {
+            const pkt = fabric.util.transformPoint({ x: px, y: py }, m);
+            if (n === 0) ctx.moveTo(X(pkt.x), Y(pkt.y)); else ctx.lineTo(X(pkt.x), Y(pkt.y));
+          });
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+  }
+
   // Po zmianie właściwości z panelu.
   zatwierdz() {
     const akt = this.aktywny;
@@ -848,6 +927,8 @@ export class Edytor extends EventTarget {
         typ = 'w_marginesie';
       }
       if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
+      const nieznane = this._nieznanePola(o);
+      if (nieznane.length) lista.push({ id: o.id, typ: 'nieznane_pole', obiekt: opisObiektu(o), pola: [...new Set(nieznane.map((p) => p.nazwa))] });
     }
     this.ostrzezenia = lista;
     this.dispatchEvent(new CustomEvent('ostrzezenia', { detail: lista }));
@@ -1187,6 +1268,8 @@ export class Edytor extends EventTarget {
         ctx.lineWidth = 1;
       }
     }
+
+    if (this.pokazProwadnice) this._podswietlPola(ctx, X, Y);
 
     // Prowadnice własne (i ta właśnie przeciągana – z położeniem w mm).
     if (this.pokazProwadnice || this._prowadnicaWRuchu) {

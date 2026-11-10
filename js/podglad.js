@@ -6,7 +6,7 @@
 //  - podgląd udostępniony linkiem: gotowe obrazy stron z chwili udostępnienia.
 // Oba źródła sprowadzają się do „układu”: sekcje → wiersze → strony.
 
-import { numeryStron, stronySekcji, stronaRozkladowki } from './projekt.js';
+import { rozwin } from './serie.js';
 import { renderujCel } from './zlozenie.js';
 import { $ } from './ui.js';
 
@@ -15,21 +15,25 @@ const MAKS_PX = 1800; // górna granica szerokości renderowanego obrazu
 const odmianaStron = (n) => (n === 1 ? 'strona' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'strony' : 'stron'));
 
 // Układ podglądu z projektu: { nazwa, sekcje: [{ nazwa, w, h, rozkladowki, wiersze: [[strona | null]] }] }
-// gdzie strona = { id, nr, nazwa }. W rozkładówkach wiersz to para [lewa, prawa].
-export function ukladProjektu(projekt) {
-  const numery = numeryStron(projekt);
-  const opis = (s) => (s ? { id: s.id, nr: numery.get(s.id), nazwa: s.nazwa } : null);
+// gdzie strona = { id, strona, nr, nazwa, egz }. Układ powstaje z rozwiniętego
+// ciągu, więc zawiera wszystkie powielenia serii; id to klucz egzemplarza,
+// strona – identyfikator strony projektu, z której powstał. W rozkładówkach
+// wiersz to para [lewa, prawa].
+export function ukladProjektu(projekt, ciag = rozwin(projekt)) {
+  const opis = (e) => (e ? {
+    id: e.klucz, strona: e.strona.id, nr: e.nr, nazwa: e.strona.nazwa, ...(e.nrEgz ? { egz: `${e.nrEgz} z ${e.ileEgz}` } : {}),
+  } : null);
   return {
     nazwa: projekt.nazwa,
     sekcje: projekt.sekcje.map((sekcja) => {
-      const strony = stronySekcji(projekt, sekcja);
+      const { lista } = ciag.sekcje.get(sekcja.id);
       const rozkladowki = sekcja.uklad === 'rozkladowki';
       let wiersze = [];
-      if (!rozkladowki) wiersze = strony.map((s) => [opis(s)]);
+      if (!rozkladowki) wiersze = lista.map((e) => [opis(e)]);
       else {
         let i = 0;
-        while (i < strony.length) {
-          if (stronaRozkladowki(projekt, strony[i]) === 'lewa') { wiersze.push([opis(strony[i]), opis(strony[i + 1])]); i += 2; } else { wiersze.push([null, opis(strony[i])]); i += 1; }
+        while (i < lista.length) {
+          if (lista[i].bok === 'lewa') { wiersze.push([opis(lista[i]), opis(lista[i + 1])]); i += 2; } else { wiersze.push([null, opis(lista[i])]); i += 1; }
         }
       }
       return {
@@ -55,9 +59,10 @@ export class Podglad {
 
   // Własny projekt: strony rysowane z danych projektu.
   pokazProjekt(projekt, idStrony = null) {
-    const numery = numeryStron(projekt);
-    this.pokaz(ukladProjektu(projekt), {
-      obraz: (strona, szer) => renderujCel(projekt, projekt.strony.find((s) => s.id === strona.id), { szerokoscPx: szer, spad: false, numery }),
+    const ciag = rozwin(projekt);
+    const poKluczu = new Map(ciag.egzemplarze.map((e) => [e.klucz, e]));
+    this.pokaz(ukladProjektu(projekt, ciag), {
+      obraz: (strona, szer) => renderujCel(projekt, poKluczu.get(strona.id), { szerokoscPx: szer, spad: false, ciag }),
       klikalne: true,
       opis: 'podgląd bez edycji',
       idStrony,
@@ -73,7 +78,7 @@ export class Podglad {
     $('#podglad-opis').textContent = `${n} ${odmianaStron(n)} · ${zrodlo.opis}`;
     this.buduj();
     this.dopasuj();
-    if (zrodlo.idStrony) this.el.querySelector(`[data-id="${zrodlo.idStrony}"]`)?.scrollIntoView({ block: 'center' });
+    if (zrodlo.idStrony) this.el.querySelector(`[data-strona="${zrodlo.idStrony}"]`)?.scrollIntoView({ block: 'center' });
     else this.el.scrollTop = 0;
   }
 
@@ -100,20 +105,21 @@ export class Podglad {
           fig.style.setProperty('--h', sekcja.h);
           if (!s) { fig.classList.add('pusta'); rzad.append(fig); continue; }
           fig.dataset.id = s.id;
+          fig.dataset.strona = s.strona || s.id;
           fig._strona = s;
           const ramka = document.createElement(this.zrodlo.klikalne ? 'button' : 'div');
           ramka.className = 'podglad-kartka';
           if (this.zrodlo.klikalne) {
             ramka.type = 'button';
             ramka.title = 'Kliknij, aby edytować tę stronę';
-            ramka.addEventListener('click', () => this.o.naKlik?.(s.id));
+            ramka.addEventListener('click', () => this.o.naKlik?.(s.strona || s.id));
           }
           const img = document.createElement('img');
           img.alt = `Strona ${s.nr ?? ''} ${s.nazwa}`;
           img.decoding = 'async';
           ramka.append(img);
           const podpis = document.createElement('figcaption');
-          podpis.textContent = `${s.nr ?? '–'} · ${s.nazwa}`;
+          podpis.textContent = `${s.nr ?? '–'} · ${s.nazwa}${s.egz ? ` · ${s.egz}` : ''}`;
           fig.append(ramka, podpis);
           rzad.append(fig);
           this.obserwator.observe(fig);

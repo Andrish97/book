@@ -61,7 +61,7 @@ test('wzorce: kilka na stronę, pod i nad treścią, numer strony, cofanie', asy
   assert.ok(obiekty.every((o) => o.zWzorca));
 
   // Własny wybór na stronie: tylko pierwszy wzorzec.
-  await strona.selectOption('#wlasciwosci select >> nth=1', 'wlasne');
+  await strona.selectOption('#wlasciwosci label:has-text("Wzorce na tej stronie") select', 'wlasne');
   await strona.waitForSelector('#wlasciwosci label.przelacznik:has-text("Wzorzec 2")');
   await strona.click('#wlasciwosci label.przelacznik:has-text("Wzorzec 2") input');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 1);

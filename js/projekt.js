@@ -91,10 +91,9 @@ export function nowyProjekt(nazwa = 'Nowy projekt', wydruk = domyslnyWydruk(), u
     sekcje: [sekcja],
     wzorce: [],
     style: [], // style tekstu wspólne dla projektu
-    zrodla: [],
-    tabele: [],
+    tabele: [], // dane: { id, nazwa, kolumny: [nazwa], wiersze: [[tekst]] }
+    serie: [], // powielanie: { id, nazwa, tabela, tryb, ile, uklad } – strona wskazuje serię polem `seria`
     strony: [nowaStrona('Strona 1', sekcja.id)],
-    zakresy: [],
     widok: null, // siatka i przyciąganie – uzupełniane w normalizuj()
     // Zasoby (obrazy, później czcionki). Obiekty obrazów odwołują się do nich
     // przez src = "zasob:<id>", dzięki czemu JSON projektu pozostaje lekki,
@@ -122,6 +121,30 @@ export function normalizujWidok(w) {
   return wynik;
 }
 
+// ---------- Dane: tabele i serie ----------
+
+export function nowaTabela(nazwa = 'Tabela', kolumny = ['kolumna_1'], wiersze = [['']]) {
+  return { id: uid('t'), nazwa, kolumny, wiersze };
+}
+
+// Tabela zawsze jest prostokątna: każdy wiersz ma tyle komórek, ile jest kolumn,
+// a wszystkie wartości są tekstem (plan 4.3). Nazwy kolumn są niepuste i różne.
+export function normalizujTabele(t, i = 0) {
+  const kolumny = [];
+  for (const [k, surowa] of (Array.isArray(t?.kolumny) ? t.kolumny : []).entries()) {
+    let nazwa = String(surowa ?? '').trim().replace(/[{}:\n]/g, ' ').trim() || `kolumna_${k + 1}`;
+    for (let n = 2; kolumny.includes(nazwa); n += 1) nazwa = `${nazwa.replace(/_\d+$/, '')}_${n}`;
+    kolumny.push(nazwa);
+  }
+  if (!kolumny.length) kolumny.push('kolumna_1');
+  const wiersze = (Array.isArray(t?.wiersze) ? t.wiersze : []).map((w) => kolumny.map((_, k) => String((Array.isArray(w) ? w[k] : '') ?? '')));
+  return { id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze };
+}
+
+export function nowaSeria(nazwa = 'Seria') {
+  return { id: uid('se'), nazwa, tabela: null, tryb: 'tabela', ile: 12, uklad: 'szeroki' };
+}
+
 // Uzupełnia brakujące pola w projektach wczytanych z pliku lub z bazy
 // i przenosi projekty ze starszych wersji modelu.
 export function normalizuj(p) {
@@ -129,9 +152,21 @@ export function normalizuj(p) {
   if (!Array.isArray(p.strony)) throw new Error('Brak listy stron w projekcie.');
   const wynik = { ...nowyProjekt(p.nazwa || 'Projekt'), ...p };
   wynik.zasoby = p.zasoby || {};
-  for (const klucz of ['zrodla', 'tabele', 'zakresy', 'style']) {
+  for (const klucz of ['tabele', 'serie', 'style']) {
     if (!Array.isArray(wynik[klucz])) wynik[klucz] = [];
   }
+  delete wynik.zrodla; // szkic z planu, nigdy nieużywane
+  delete wynik.zakresy;
+  wynik.tabele = wynik.tabele.map((t, i) => normalizujTabele(t, i));
+  const idTabel = new Set(wynik.tabele.map((t) => t.id));
+  wynik.serie = wynik.serie.map((s, i) => ({
+    ...nowaSeria(`Seria ${i + 1}`),
+    ...s,
+    tabela: idTabel.has(s.tabela) ? s.tabela : null,
+    tryb: s.tryb === 'stala' ? 'stala' : 'tabela',
+    uklad: s.uklad === 'dlugi' ? 'dlugi' : 'szeroki',
+    ile: Number.isFinite(s.ile) ? Math.min(2000, Math.max(1, Math.round(s.ile))) : 12,
+  }));
   wynik.widok = normalizujWidok(p.widok);
   delete wynik.motywy; // zastąpione wzorcami
   delete wynik.uklad;
@@ -180,6 +215,7 @@ export function normalizuj(p) {
     else if (s.wzorzec === 'brak') strona.wzorce = [];
     else strona.wzorce = tylkoIstniejace([s.wzorzec]);
     delete strona.wzorzec;
+    if (!wynik.serie.some((x) => x.id === strona.seria)) delete strona.seria;
     return strona;
   });
   if (wynik.strony.length === 0) wynik.strony.push(nowaStrona('Strona 1', wynik.sekcje[0].id));
@@ -205,32 +241,6 @@ export const stronySekcji = (projekt, sekcja) => projekt.strony.filter((s) => s.
 
 // ---------- Rozkładówki ----------
 
-// 'lewa' | 'prawa' dla strony w sekcji z rozkładówkami, null dla pojedynczych.
-export function stronaRozkladowki(projekt, strona) {
-  const sekcja = sekcjaStrony(projekt, strona);
-  if (sekcja.uklad !== 'rozkladowki') return null;
-  const k = stronySekcji(projekt, sekcja).indexOf(strona);
-  const parzysta = k % 2 === 0;
-  if (sekcja.pierwsza === 'prawa') return parzysta ? 'prawa' : 'lewa';
-  return parzysta ? 'lewa' : 'prawa';
-}
-
-// Druga strona tej samej rozkładówki (albo null: pojedyncze strony, pierwsza/ostatnia bez pary).
-export function sasiadStrony(projekt, strona) {
-  const bok = stronaRozkladowki(projekt, strona);
-  if (!bok) return null;
-  const strony = stronySekcji(projekt, sekcjaStrony(projekt, strona));
-  const k = strony.indexOf(strona);
-  return strony[bok === 'lewa' ? k + 1 : k - 1] || null;
-}
-
-// Strony, które edytuje się razem na jednym płótnie: [lewa, prawa] albo [strona].
-export function stronyArkusza(projekt, strona) {
-  const sasiad = sasiadStrony(projekt, strona);
-  if (!sasiad) return [strona];
-  return stronaRozkladowki(projekt, strona) === 'lewa' ? [strona, sasiad] : [sasiad, strona];
-}
-
 // Łączy elementy lewej i prawej strony w jedną kolejność warstw rozkładówki.
 // Kolejność wewnątrz każdej strony zostaje; o przeplocie decyduje pole `z`
 // zapisane przy ostatniej edycji rozkładówki. Bez `z`: lewa strona pod prawą.
@@ -246,10 +256,11 @@ export function scalRozkladowke(lewe = [], prawe = []) {
   return wynik;
 }
 
-// Marginesy konkretnej strony: w rozkładówce wewnętrzny jest przy grzbiecie.
-export function marginesyStrony(projekt, strona) {
+// Marginesy strony: w rozkładówce wewnętrzny jest przy grzbiecie.
+// bok: 'lewa' | 'prawa' | null – z rozwiniętego ciągu (serie.js), bo powielone
+// strony wcześniejszych serii przesuwają strony na przemian w lewo i w prawo.
+export function marginesyStrony(projekt, strona, bok) {
   const { marginesy: m } = sekcjaStrony(projekt, strona).wydruk;
-  const bok = stronaRozkladowki(projekt, strona);
   if (bok === 'lewa') return { lewy: m.zewnetrzny, prawy: m.wewnetrzny, gora: m.gora, dol: m.dol, grzbiet: 'prawy' };
   return { lewy: m.wewnetrzny, prawy: m.zewnetrzny, gora: m.gora, dol: m.dol, grzbiet: bok ? 'lewy' : null };
 }
@@ -276,39 +287,6 @@ export function tloStrony(projekt, strona) {
   if (strona.tlo) return strona.tlo;
   const zTlem = wzorceStrony(projekt, strona).filter((w) => w.tlo);
   return zTlem.length ? zTlem.at(-1).tlo : '#ffffff';
-}
-
-// ---------- Numeracja i zmienne ----------
-
-// Numer każdej strony projektu z uwzględnieniem ustawień sekcji:
-// 'ciagla' – dalej po poprzedniej sekcji, 'od' – od zadanej liczby,
-// 'brak' – strony bez numeru (nie liczą się do numeracji).
-export function numeryStron(projekt) {
-  const numery = new Map();
-  let nastepny = 1;
-  for (const sekcja of projekt.sekcje) {
-    const { tryb, od } = sekcja.numeracja || { tryb: 'ciagla' };
-    if (tryb === 'od') nastepny = od;
-    for (const s of stronySekcji(projekt, sekcja)) {
-      if (tryb === 'brak') numery.set(s.id, null);
-      else { numery.set(s.id, nastepny); nastepny += 1; }
-    }
-  }
-  return numery;
-}
-
-// Zmienne dostępne w tekstach wzorca: {nr}, {nr_w_sekcji}, {sekcja}, {strona}, {liczba_stron}.
-export function zmienneStrony(projekt, strona, numery = numeryStron(projekt)) {
-  const sekcja = sekcjaStrony(projekt, strona);
-  const nr = numery.get(strona.id);
-  const liczone = [...numery.values()].filter((n) => n !== null);
-  return {
-    nr: nr === null || nr === undefined ? '' : String(nr),
-    nr_w_sekcji: String(stronySekcji(projekt, sekcja).indexOf(strona) + 1),
-    sekcja: sekcja.nazwa,
-    strona: strona.nazwa,
-    liczba_stron: String(liczone.length ? Math.max(...liczone) : 0),
-  };
 }
 
 // ---------- Kopie ----------

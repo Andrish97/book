@@ -187,6 +187,7 @@ export class PanelWlasciwosci {
     const s = this.sekcja('Tekst');
     // Edycja treści w zwykłym polu – wygodniejsze na telefonie niż na płótnie (4.7).
     s.append(this.obszarTekstu('Treść', () => obj.text, (v) => obj.set('text', v)));
+    s.append(this.wstawianiePola());
 
     const fragment = this.wskazowka('Zmieniasz tylko zaznaczony fragment tekstu.');
     fragment.classList.add('znacznik-fragmentu');
@@ -226,7 +227,9 @@ export class PanelWlasciwosci {
     wyr.classList.add('szeroki');
     s.append(wyr);
 
-    const zmienLitery = (fn) => () => { obj.set('text', fn(obj.text)); obj.initDimensions?.(); };
+    // Pola w klamrach zostają nietknięte – {dzien} po zamianie na {DZIEN} przestałoby działać.
+    const pozaPolami = (t, fn) => t.split(/(\{[^{}\n]*\})/).map((cz, i) => (i % 2 ? cz : fn(cz))).join('');
+    const zmienLitery = (fn) => () => { obj.set('text', pozaPolami(obj.text, fn)); obj.initDimensions?.(); };
     const litery = this.segmenty('Wielkość liter', [
       ['AA', 'WSZYSTKIE WIELKIE', null, zmienLitery((t) => t.toLocaleUpperCase('pl'))],
       ['Aa', 'Jak w zdaniu', null, zmienLitery((t) => t.toLocaleLowerCase('pl').replace(/(^|[.!?]\s+|\n)(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('pl')))],
@@ -439,6 +442,29 @@ export class PanelWlasciwosci {
     const odswiez = () => { if (document.activeElement !== input) input.value = get(); };
     this.odswiezacze.push(odswiez);
     odswiez();
+    return label;
+  }
+
+  // Lista „Wstaw pole”: kolumny tabel i pola dokumentu. Wybrane pole trafia
+  // do tekstu jako {nazwa} – w miejscu kursora albo na końcu.
+  wstawianiePola() {
+    const label = document.createElement('label');
+    label.className = 'szeroki';
+    label.append('Wstaw pole');
+    const sel = document.createElement('select');
+    sel.className = 'wstaw-pole';
+    sel.append(new Option('Wybierz pole z tabeli albo dokumentu…', ''));
+    for (const { grupa, pola } of this.opcje.pola?.() || []) {
+      const g = document.createElement('optgroup');
+      g.label = grupa;
+      for (const [nazwa, opis] of pola) g.append(new Option(opis ? `{${nazwa}} – ${opis}` : `{${nazwa}}`, nazwa));
+      sel.append(g);
+    }
+    sel.addEventListener('change', () => {
+      if (sel.value) this.edytor.wstawPole(sel.value);
+      sel.value = '';
+    });
+    label.append(sel);
     return label;
   }
 

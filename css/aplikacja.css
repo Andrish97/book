@@ -689,6 +689,58 @@ dialog h2 { font-size: 19px; }
 /* ---------- Instrukcja ---------- */
 
 .dialog-instrukcja { width: min(1040px, calc(100vw - 24px)); height: min(720px, calc(100dvh - 24px)); }
+
+/* ---------- Dane: tabele ---------- */
+.dialog-dane { width: min(1180px, calc(100vw - 24px)); height: min(780px, calc(100dvh - 24px)); padding: 0; }
+.dane { position: relative; height: 100%; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
+.dane-lista { padding: 22px 12px 16px 20px; background: var(--powierzchnia-2); border-right: 1px solid var(--linia); display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+.dane-lista h2 { margin-left: 8px; }
+.dane-lista ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.dane-lista ol button { width: 100%; display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 0; border-radius: var(--r-s); background: none; text-align: left; cursor: pointer; }
+.dane-lista ol button:hover { background: var(--wypelnienie); }
+.dane-lista ol button[aria-current="true"] { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
+.dane-lista ol strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dane-lista ol small { color: var(--cichy); font-size: 12px; }
+.dane-akcje { display: flex; flex-direction: column; gap: 8px; }
+.dane-akcje .przycisk { justify-content: flex-start; }
+.dane-tresc { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.dane-pusto { margin: auto; max-width: 440px; padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.dane-pusto h3 { font-size: 18px; }
+.dane-pusto p { color: var(--tusz-2); line-height: 1.6; }
+.dane-edytor { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 18px 20px 14px; }
+.dane-pasek { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-right: 44px; }
+.nazwa-tabeli { flex: 0 1 260px; min-width: 120px; height: 38px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--r-s); background: none; font-size: 17px; font-weight: 600; }
+.nazwa-tabeli:hover { border-color: var(--linia-mocna); }
+.nazwa-tabeli:focus { border-color: var(--akcent); background: var(--powierzchnia); outline: none; }
+.dane-siatka-opak { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); }
+.dane-siatka { border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.dane-siatka th, .dane-siatka td { border-right: 1px solid var(--linia); border-bottom: 1px solid var(--linia); padding: 0; }
+.dane-siatka thead th { position: sticky; top: 0; z-index: 2; background: var(--powierzchnia-2); border-bottom-color: var(--linia-mocna); }
+.dane-siatka th.nr, .dane-siatka th.rog { position: sticky; left: 0; z-index: 1; min-width: 44px; background: var(--powierzchnia-2); color: var(--cichy); font-weight: 500; font-variant-numeric: tabular-nums; text-align: center; }
+.dane-siatka th.rog { z-index: 3; }
+.dane-siatka td { min-width: 120px; max-width: 320px; padding: 6px 8px; vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; outline: none; cursor: text; }
+.dane-siatka td:focus { box-shadow: inset 0 0 0 2px var(--akcent); background: var(--akcent-tlo); }
+.naglowek-kolumny { display: flex; align-items: center; gap: 2px; min-width: 120px; }
+.nazwa-kolumny { flex: 1; padding: 7px 8px; font-weight: 600; text-align: left; outline: none; white-space: nowrap; cursor: text; }
+.nazwa-kolumny:focus { box-shadow: inset 0 0 0 2px var(--akcent); background: var(--powierzchnia); }
+.dane-siatka button { border: 0; background: none; color: var(--cichy); cursor: pointer; font-size: 15px; line-height: 1; padding: 4px 6px; border-radius: 4px; }
+.dane-siatka button:hover { background: var(--blad-tlo); color: var(--blad); }
+.dane-siatka th.nr { position: sticky; }
+.dane-siatka th.nr button { display: none; }
+.dane-siatka tr:hover th.nr span, .dane-siatka th.nr:focus-within span { display: none; }
+.dane-siatka tr:hover th.nr button, .dane-siatka th.nr:focus-within button { display: inline-block; }
+.dane-siatka .usun-kolumne { opacity: 0; }
+.dane-siatka th:hover .usun-kolumne, .dane-siatka .usun-kolumne:focus-visible { opacity: 1; }
+.dialog-dane kbd { font: 12px ui-monospace, Menlo, monospace; padding: 1px 5px; border: 1px solid var(--linia-mocna); border-radius: 4px; }
+#dlg-seria .grupa-pol .przelacznik { min-height: 34px; }
+#dlg-seria .przyciski-dialogu { align-items: center; }
+
+/* Strony serii na liście stron */
+.strona .znak-serii {
+  position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 1px 6px; border-radius: 999px;
+  background: var(--wzorzec); color: var(--wzorzec-tekst); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.strona.w-serii .miniatura { position: relative; }
 .instrukcja {
   position: relative; height: 100%;
   display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 1fr auto;
@@ -763,6 +815,13 @@ dialog h2 { font-size: 19px; }
   .z-linijkami .pasek-narzedzi { top: 10px; }
   .z-linijkami .arkusz { padding: 72px 20px 72px; }
   .lista-warstw { max-height: 44vh; }
+  .dialog-dane { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border-radius: 0; }
+  .dane { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .dane-lista { border-right: 0; border-bottom: 1px solid var(--linia); padding: 14px 56px 12px 14px; max-height: 36vh; }
+  .dane-lista .podpowiedz { display: none; }
+  .dane-akcje { flex-direction: row; }
+  .dane-edytor { padding: 12px; }
+  .dane-pasek { padding-right: 0; }
   .stan-zapisu .tekst { display: none; }
   .nazwa-projektu { flex-basis: 120px; font-size: 14px; }
   #przycisk-format { display: none; }
@@ -886,7 +945,8 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .lista-stron { display: grid; grid-template-columns: 1fr 1fr; align-content: start; column-gap: 8px; }
 .lista-stron > li { grid-column: 1 / -1; }
 .lista-stron > li.strona.w-rozkladowce { grid-column: auto; grid-template-columns: 1fr; }
-.lista-stron > li.strona.w-rozkladowce.sama { grid-column: 2; }
+.lista-stron > li.strona.w-rozkladowce.lewa { grid-column: 1; }
+.lista-stron > li.strona.w-rozkladowce.prawa { grid-column: 2; }
 .strona.w-rozkladowce .numer { display: none; }
 .strona.w-rozkladowce .nazwa { grid-column: 1; }
 .strona.w-rozkladowce .menu-miniatury { --dotyk: 26px; top: 3px; right: 3px; }

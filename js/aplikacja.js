@@ -5,14 +5,17 @@ import {
   FORMATY, nowyProjekt, nowaStrona, nowaSekcja, nowyWzorzec, normalizuj, normalizujWydruk,
   kopiujStrone, kopiujWzorzec, kopiujProjekt,
   uporzadkujStrony, sekcjaStrony, stronySekcji, wzorceStrony, stronyZWzorcem, tloStrony,
-  stronaRozkladowki, stronyArkusza, marginesyStrony, marginesyWzorca, numeryStron,
+  marginesyStrony, marginesyWzorca,
   WZORCE_Z_SEKCJI,
 } from './projekt.js';
 import { Edytor, opisObiektu } from './edytor.js';
 import { warstwyWzorcow, renderujCel } from './zlozenie.js';
+import { rozwin, arkuszStrony, bokStrony, blokiSerii, liczbaPowielen, tabelaSerii } from './serie.js';
+import { POLA_DOKUMENTU } from './pola.js';
 import { MenuWidoku } from './widok.js';
 import { obsluzKlawisz } from './skroty.js';
 import { Linijki } from './linijki.js';
+import { Dane } from './dane.js';
 import { PanelWarstw } from './warstwy.js';
 import { PanelWlasciwosci } from './wlasciwosci.js';
 import { zaladujCzcionki } from './czcionki.js';
@@ -37,6 +40,7 @@ const OPIS_OSTRZEZEN = {
   poza_strona: 'Poza stroną – nie będzie widoczny w druku.',
   poza_spadem: 'Wychodzi poza spad – część zostanie ucięta.',
   w_marginesie: 'Wchodzi w margines – może zostać przycięty.',
+  nieznane_pole: 'Pole w klamrach nie pasuje do kolumny tabeli tej strony ani do pola dokumentu.',
 };
 
 const stan = {
@@ -444,6 +448,7 @@ const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), e
     sekcja.append(p.przelacznik('Nad treścią strony (domyślnie pod)', () => obj.warstwa === 'nad', (v) => { obj.warstwa = v ? 'nad' : undefined; }));
   },
   style: () => stan.projekt?.style || [],
+  pola: () => polaDoWstawienia(),
   poZmianieStyli: (zmiana) => poZmianieStyli(zmiana),
 });
 
@@ -504,7 +509,7 @@ function odswiezPasekEdytora() {
     $('#opis-formatu').textContent = `Wzorzec · ${liczba(w.wydruk.szerokosc_mm)}×${liczba(w.wydruk.wysokosc_mm)}`;
   } else {
     const sek = biezacaSekcja();
-    const bok = stronaRozkladowki(stan.projekt, biezacaStrona());
+    const bok = bokStrony(biezacaStrona(), rozwin(stan.projekt));
     $('#opis-formatu').textContent = `${sek.nazwa} · ${nazwaFormatu(sek.wydruk)}${bok ? ` · ${bok}` : ''}`;
   }
   $('#przycisk-format').disabled = wz;
@@ -531,17 +536,18 @@ async function zaladujCel({ dopasuj = false } = {}) {
     await edytor.wczytajStrone({ id: cel.id, obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff', prowadnice: cel.prowadnice }, projekt.zasoby, null);
     naPlotnie = { wzorzec: cel.id };
   } else {
-    const strony = stronyArkusza(projekt, cel);
-    const numery = numeryStron(projekt);
+    const ciag = rozwin(projekt);
+    const strony = arkuszStrony(cel, ciag);
     const dane = [];
     for (const s of strony) {
-      dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), prowadnice: s.prowadnice, warstwy: await warstwyWzorcow(projekt, s, numery) });
+      dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), prowadnice: s.prowadnice, warstwy: await warstwyWzorcow(projekt, s, ciag) });
     }
-    edytor.ustawWydruk(wydruk, strony.map((s) => marginesyStrony(projekt, s)));
+    edytor.ustawWydruk(wydruk, strony.map((s) => marginesyStrony(projekt, s, bokStrony(s, ciag))));
     edytor.ustawAktywna(strony.indexOf(cel));
     await edytor.wczytajArkusz(dane, projekt.zasoby);
     naPlotnie = { strony: strony.map((s) => s.id) };
   }
+  edytor.przeliczOstrzezenia(); // które pola są znane, wiadomo dopiero po wczytaniu
   edytor.ustawWidok(projekt.widok);
   linijki.ustaw(projekt.widok.linijki);
   panelWarstw.odswiez();
@@ -551,12 +557,58 @@ async function zaladujCel({ dopasuj = false } = {}) {
   trasa.ustaw(`p/${projekt.id}/${stan.tryb === 'wzorzec' ? `w/${cel.id}` : `s/${cel.id}`}`, { zastap: true });
 }
 
+// ---------- Pola: co można wstawić i co jest znane na otwartej stronie ----------
+
+const NAZWY_POL_DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
+
+// Tabela, z której strona bierze dane (przez swoją serię), albo null.
+function tabelaStrony(strona) {
+  const seria = stan.projekt.serie.find((s) => s.id === strona?.seria);
+  return seria ? tabelaSerii(stan.projekt, seria) : null;
+}
+
+// Grupy do listy „Wstaw pole”: najpierw tabela bieżącej strony, potem pozostałe, na końcu pola dokumentu.
+function polaDoWstawienia() {
+  const { projekt } = stan;
+  const wlasna = stan.tryb === 'strona' ? tabelaStrony(biezacaStrona()) : null;
+  const tabele = [...projekt.tabele].sort((a, b) => (b === wlasna) - (a === wlasna));
+  return [
+    ...tabele.map((t) => ({ grupa: t === wlasna ? `Tabela tej strony: ${t.nazwa}` : `Tabela: ${t.nazwa}`, pola: t.kolumny.map((k) => [k, '']) })),
+    { grupa: 'Pola dokumentu', pola: POLA_DOKUMENTU },
+  ];
+}
+
+// Pole jest znane, gdy to pole dokumentu albo kolumna tabeli strony, na której
+// leży tekst. We wzorcu znana jest kolumna dowolnej tabeli – wzorzec trafia na różne strony.
+edytor.znanePole = (nazwa, indeksStrony) => {
+  if (NAZWY_POL_DOKUMENTU.has(nazwa) || !stan.projekt) return true;
+  if (naPlotnie?.wzorzec) return stan.projekt.tabele.some((t) => t.kolumny.includes(nazwa));
+  const strona = stan.projekt.strony.find((s) => s.id === naPlotnie?.strony?.[indeksStrony]);
+  return Boolean(tabelaStrony(strona)?.kolumny.includes(nazwa));
+};
+
 // Siatka, przyciąganie, linijki – ustawienia projektu zmieniane z menu przy płótnie.
 const linijki = new Linijki(edytor, $('#obszar-roboczy'));
 const panelWarstw = new PanelWarstw($('#lista-warstw'), edytor);
 const menuWidoku = new MenuWidoku({
   widok: () => stan.projekt?.widok,
   poZmianie: (widok) => { edytor.ustawWidok(widok); linijki.ustaw(widok.linijki); zaplanujZapis(); },
+});
+
+// Dane: tabele i serie. Po zmianie danych strony trzeba narysować od nowa.
+const dane = new Dane({
+  projekt: () => stan.projekt,
+  // Okna danych zmieniają projekt bezpośrednio (np. nazwę pola we wszystkich
+  // tekstach), więc płótno najpierw oddaje swoją treść i zostaje odłączone –
+  // inaczej automatyczny zapis nadpisałby te zmiany starą treścią płótna.
+  przedOtwarciem: () => { zapiszBiezacyCel(); naPlotnie = null; },
+  poZmianie: () => { stan.miniatury.clear(); zaplanujZapis(); },
+  poZamknieciu: async () => {
+    if (!stan.projekt) return;
+    await zaladujCel();
+    panel.zbuduj();
+    generujMiniatury();
+  },
 });
 
 // Druga strona tej samej rozkładówki staje się bieżącą – bez wczytywania od nowa.
@@ -709,12 +761,13 @@ async function opublikujUdostepnienie() {
     await zapiszTeraz();
     const kod = p.udostepnienie?.kod
       || [...crypto.getRandomValues(new Uint8Array(12))].map((b) => b.toString(16).padStart(2, '0')).join('');
-    const uklad = ukladProjektu(p);
+    const ciag = rozwin(p);
+    const poKluczu = new Map(ciag.egzemplarze.map((e) => [e.klucz, e]));
+    const uklad = ukladProjektu(p, ciag);
     const strony = stronyUkladu(uklad);
-    const numery = numeryStron(p);
     const obraz = async (s) => {
-      const url = await renderujCel(p, p.strony.find((x) => x.id === s.id), {
-        szerokoscPx: 1200, spad: false, numery, format: 'jpeg',
+      const url = await renderujCel(p, poKluczu.get(s.id), {
+        szerokoscPx: 1200, spad: false, ciag, format: 'jpeg',
       });
       return (await fetch(url)).blob();
     };
@@ -920,7 +973,7 @@ function panelStrony(p) {
   const { projekt } = stan;
   const strona = biezacaStrona();
   const sekcja = biezacaSekcja();
-  const bok = stronaRozkladowki(projekt, strona);
+  const bok = bokStrony(strona, rozwin(projekt));
   const s = p.sekcja('Strona');
   s.append(p.tekst('Nazwa strony', () => strona.nazwa, (v) => {
     strona.nazwa = v || strona.nazwa;
@@ -943,6 +996,28 @@ function panelStrony(p) {
 
   if (edytor.maSchowek) {
     s.append(p.akcje([['wklej', 'Wklej skopiowane elementy', () => edytor.wklej()]]));
+  }
+
+  // Seria: powielanie strony według tabeli albo zadaną liczbę razy.
+  const se = p.sekcja('Seria (powielanie)');
+  const seria = projekt.serie.find((x) => x.id === strona.seria);
+  const wyborSerii = p.wybor('Seria', [['', 'Brak – strona pojedyncza'], ...projekt.serie.map((x) => [x.id, x.nazwa]), ['+', '+ Nowa seria…']], () => strona.seria || '', async (v) => {
+    const nowa = v === '+' ? dane.nowaSeria() : null;
+    if (v === '') delete strona.seria; else strona.seria = nowa ? nowa.id : v;
+    zapiszBiezacyCel();
+    stan.miniatury.clear();
+    await zaladujCel();
+    panel.zbuduj();
+    zaplanujZapis();
+    if (nowa) dane.otworzSerie(nowa.id);
+  });
+  wyborSerii.classList.add('szeroki');
+  se.append(wyborSerii);
+  if (seria) {
+    se.append(p.wskazowka(dane.opisSerii(seria)));
+    se.append(p.akcje([['suwaki', 'Ustawienia serii', () => dane.otworzSerie(seria.id)], ['dane', 'Dane', () => dane.otworz(seria.tabela)]]));
+  } else {
+    se.append(p.wskazowka('Strony z tą samą serią, leżące obok siebie, powielają się razem – np. według wierszy tabeli.'));
   }
 
   if (projekt.wzorce.length) {
@@ -1068,7 +1143,9 @@ function renderujListeStron() {
   const lista = $('#lista-stron');
   lista.replaceChildren();
   const { projekt } = stan;
-  const numery = numeryStron(projekt);
+  const ciag = rozwin(projekt);
+  const blokStrony = new Map();
+  for (const blok of blokiSerii(projekt)) for (const s of blok.strony) blokStrony.set(s, blok);
   $('#liczba-stron').textContent = projekt.strony.length;
   for (const sekcja of projekt.sekcje) {
     const strony = stronySekcji(projekt, sekcja);
@@ -1096,12 +1173,14 @@ function renderujListeStron() {
       const i = projekt.strony.indexOf(s);
       const aktywna = stan.tryb === 'strona' && i === stan.indeks;
       const naArkuszu = stan.tryb === 'strona' && !aktywna && Boolean(naPlotnie?.strony?.includes(s.id));
-      const bok = stronaRozkladowki(projekt, s);
-      const nr = numery.get(s.id);
+      const bok = bokStrony(s, ciag);
+      const nr = ciag.pierwszy.get(s.id).nr;
+      const blok = blokStrony.get(s);
       const li = document.createElement('li');
       li.className = `strona${aktywna ? ' aktywna' : ''}${naArkuszu ? ' na-arkuszu' : ''}${bok ? ` w-rozkladowce ${bok}` : ''}`;
       // Pierwsza prawa strona sekcji stoi sama w prawej kolumnie.
       if (bok === 'prawa' && k === 0) li.classList.add('sama');
+      if (blok) li.classList.add('w-serii');
       li.dataset.id = s.id;
       li.innerHTML = `<span class="numer">${nr ?? '–'}</span>
         <button class="miniatura"></button>
@@ -1110,6 +1189,14 @@ function renderujListeStron() {
       $('.miniatura', li).setAttribute('aria-label', `Strona ${nr ?? ''} ${s.nazwa}`);
       if (aktywna) $('.miniatura', li).setAttribute('aria-current', 'page');
       $('.miniatura', li).append(obrazMiniatury(s.id, sekcja.wydruk));
+      if (blok) {
+        const ile = liczbaPowielen(projekt, blok.seria, blok.strony.length);
+        const znak = document.createElement('span');
+        znak.className = 'znak-serii';
+        znak.textContent = `×${ile}`;
+        $('.miniatura', li).append(znak);
+        $('.miniatura', li).title = `Seria „${blok.seria.nazwa}”: ta strona powiela się ${ile} razy`;
+      }
       $('.nazwa', li).textContent = bok ? `${nr ?? '–'} · ${s.nazwa}` : s.nazwa;
       $('.nazwa', li).title = s.nazwa;
       $('.miniatura', li).addEventListener('click', () => przejdzDoStrony(projekt.strony.indexOf(s)));
@@ -1175,14 +1262,14 @@ function generujMiniatury() {
   if (generowanie) return;
   generowanie = (async () => {
     const projekt = stan.projekt;
-    const numery = numeryStron(projekt);
+    const ciag = rozwin(projekt);
     const cele = [...projekt.strony, ...projekt.wzorce];
     for (const cel of cele) {
       if (stan.projekt !== projekt) break;
       if (stan.miniatury.has(cel.id)) continue;
       await new Promise((ok) => (window.requestIdleCallback || setTimeout)(ok));
       if (stan.projekt !== projekt || stan.miniatury.has(cel.id)) continue;
-      stan.miniatury.set(cel.id, await renderujCel(projekt, cel, { szerokoscPx: 200, numery }));
+      stan.miniatury.set(cel.id, await renderujCel(projekt, cel, { szerokoscPx: 200, ciag }));
       odswiezMiniature(cel.id);
     }
   })().finally(() => { generowanie = null; });
@@ -1752,6 +1839,7 @@ const akcje = {
     edytor.canvas.requestRenderAll();
   },
   'prowadnice-usun': () => { edytor.usunProwadnice(); zamknijMenu(); },
+  dane: () => dane.otworz(),
   'zoom-plus': () => edytor.ustawZoom(edytor.zoom * 1.25),
   'zoom-minus': () => edytor.ustawZoom(edytor.zoom / 1.25),
   'zoom-dopasuj': () => edytor.dopasujDoOkna(),
@@ -1980,5 +2068,5 @@ start().catch((e) => {
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
-  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz,
+  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane,
 };

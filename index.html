@@ -336,7 +336,8 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
-      <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji"><span class="etyk">Podgląd</span></button>
+      <button class="przycisk przezroczysty" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
+      <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)"><span class="etyk">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
@@ -654,6 +655,78 @@
     <hr>
     <button role="menuitem" class="niebezpieczny" data-akcja="wzorzec-usun">Usuń wzorzec</button>
   </div>
+
+  <!-- Dane: tabele projektu z lekkim edytorem -->
+  <dialog id="dlg-dane" class="dialog-dane" aria-labelledby="dane-tytul">
+    <div class="dane">
+      <aside class="dane-lista">
+        <h2 id="dane-tytul">Dane</h2>
+        <ol id="dane-tabele"></ol>
+        <div class="dane-akcje">
+          <button type="button" class="przycisk" id="dane-importuj" data-ikona="wyslij">Importuj plik</button>
+          <button type="button" class="przycisk" id="dane-nowa" data-ikona="plus">Nowa tabela</button>
+        </div>
+        <p class="podpowiedz">CSV albo Excel. Pierwszy wiersz pliku to nazwy kolumn. Import pliku o nazwie istniejącej tabeli pozwala podmienić jej dane.</p>
+        <input type="file" id="plik-dane" accept=".csv,.txt,.tsv,.xlsx,.xls,.xlsm,.ods" hidden>
+      </aside>
+      <section class="dane-tresc">
+        <div class="dane-pusto" id="dane-pusto">
+          <h3>Tu trafiają dane do pól i serii</h3>
+          <p>Każda tabela to arkusz: kolumny mają nazwy, a każdy wiersz to jedno powielenie strony. Nazwę kolumny wpisujesz w tekście w nawiasach klamrowych, np. <code>{dzien}. {miesiac}</code>.</p>
+          <button type="button" class="przycisk glowny" id="dane-importuj-2" data-ikona="wyslij">Importuj CSV albo Excel</button>
+        </div>
+        <div class="dane-edytor" id="dane-edytor" hidden>
+          <div class="dane-pasek">
+            <input id="dane-nazwa" class="nazwa-tabeli" aria-label="Nazwa tabeli" maxlength="60">
+            <span class="odstep"></span>
+            <button type="button" class="przycisk" id="dane-wiersz" data-ikona="plus">Wiersz</button>
+            <button type="button" class="przycisk" id="dane-kolumna" data-ikona="plus">Kolumna</button>
+            <button type="button" class="przycisk" id="dane-csv" data-ikona="pobierz" title="Pobierz tabelę jako plik CSV">CSV</button>
+            <button type="button" class="przycisk" id="dane-usun" data-ikona="kosz" title="Usuń tabelę" aria-label="Usuń tabelę"></button>
+          </div>
+          <p class="podpowiedz" id="dane-opis"></p>
+          <div class="dane-siatka-opak"><table class="dane-siatka" id="dane-siatka"></table></div>
+          <p class="podpowiedz">Kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd> robi nową linię w komórce. Dane skopiowane z Excela albo Arkuszy Google wklejasz od zaznaczonej komórki (<kbd>Ctrl</kbd>+<kbd>V</kbd>).</p>
+        </div>
+      </section>
+      <button type="button" class="przycisk-ikona instrukcja-zamknij" id="dane-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+    </div>
+  </dialog>
+
+  <!-- Ustawienia serii (powielanie stron) -->
+  <dialog id="dlg-seria" class="dialog-szeroki">
+    <form method="dialog" class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Seria</h2>
+        <button class="przycisk-ikona" value="anuluj" formnovalidate data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="podpowiedz">Strony z tą samą serią, leżące obok siebie, tworzą blok. Blok powiela się w wydruku tyle razy, ile tu ustawisz; w edytorze widzisz go raz, jako wzór.</p>
+      <div class="rzad">
+        <label class="pole"><span>Nazwa serii</span><input name="nazwa" required maxlength="60" placeholder="np. Dni, Tygodnie, Miesiące"></label>
+        <label class="pole"><span>Dane z tabeli</span><select name="tabela"></select></label>
+      </div>
+      <fieldset class="grupa-pol">
+        <legend>Ile razy powielić</legend>
+        <label class="przelacznik"><input type="radio" name="tryb" value="tabela"><span>Tyle razy, ile wierszy ma tabela</span></label>
+        <div class="rzad">
+          <label class="przelacznik"><input type="radio" name="tryb" value="stala"><span>Stałą liczbę razy</span></label>
+          <label class="pole waskie" id="seria-pole-ile"><span>Liczba powieleń</span><input name="ile" type="number" min="1" max="2000" step="1" inputmode="numeric"></label>
+        </div>
+      </fieldset>
+      <fieldset class="grupa-pol" id="seria-pole-uklad">
+        <legend>Jak czytać tabelę</legend>
+        <label class="przelacznik"><input type="radio" name="uklad" value="szeroki"><span>Jeden wiersz na cały blok stron</span></label>
+        <label class="przelacznik"><input type="radio" name="uklad" value="dlugi"><span>Jeden wiersz na każdą stronę bloku</span></label>
+      </fieldset>
+      <p class="podpowiedz" id="seria-podsumowanie"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" id="seria-usun">Usuń serię</button>
+        <span class="odstep"></span>
+        <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
+        <button class="przycisk glowny" value="ok" id="zapisz-serie">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
 
   <!-- Instrukcja (podręcznik ze zrzutami ekranu) -->
   <dialog id="dlg-instrukcja" class="dialog-instrukcja" aria-labelledby="instrukcja-tytul">

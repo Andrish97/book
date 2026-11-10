@@ -1,14 +1,16 @@
 /* global fabric */
 // Składanie strony z warstw: tło → elementy wzorców „pod” → treść strony →
 // elementy wzorców „nad”. Jedno miejsce używane przez edytor, miniatury,
-// podgląd i (później) eksport do PDF, żeby wszędzie wyglądało to tak samo.
-// W rozkładówce do treści strony dochodzą elementy sąsiedniej strony, które
-// przechodzą przez grzbiet.
+// podgląd, udostępnianie i (później) eksport do PDF, żeby wszędzie wyglądało
+// to tak samo.
+//
+// Składa się zawsze konkretny egzemplarz strony z rozwiniętego ciągu
+// (serie.js): z jego numerem, stroną rozkładówki, wierszem danych i sąsiadem,
+// którego elementy mogą przechodzić przez grzbiet.
 
-import {
-  sekcjaStrony, wzorceStrony, zmienneStrony, stronaRozkladowki, sasiadStrony, scalRozkladowke,
-  tloStrony, numeryStron,
-} from './projekt.js';
+import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
+import { rozwin, wartosciPol } from './serie.js';
+import { podstawWObiektach } from './pola.js';
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150">'
@@ -31,21 +33,36 @@ export function podmienZasoby(obiekty, mapa) {
 
 export const zrodloObrazu = (zasoby) => (id) => zasoby?.[id]?.dataUrl || ZASTEPCZY_OBRAZ;
 
-// Podstawia {zmienna} w tekście; nieznane zmienne zostają bez zmian.
-export function wstawZmienne(tekst, zmienne) {
-  return tekst.replace(/\{([a-z_]+)\}/gi, (cale, nazwa) => (nazwa in zmienne ? zmienne[nazwa] : cale));
-}
+const ozyw = (json) => new Promise((ok) => fabric.util.enlivenObjects(json, ok));
 
-function zmienneWJson(obiekty, zmienne) {
+// Obraz z pola: kolumna tabeli podaje nazwę pliku wgranego do projektu.
+// Podmieniony obraz wpisuje się w ramkę obrazu-wzoru (ramka_pola), bez zmiany proporcji.
+const bezRozszerzenia = (n) => String(n || '').trim().toLowerCase().replace(/\.[a-z0-9]{2,5}$/, '');
+
+function obrazyZPol(obiekty, wartosc, zasoby) {
   return obiekty.map((o) => {
-    const k = { ...o };
-    if (typeof k.text === 'string') k.text = wstawZmienne(k.text, zmienne);
-    if (Array.isArray(k.objects)) k.objects = zmienneWJson(k.objects, zmienne);
-    return k;
+    if (Array.isArray(o.objects)) return { ...o, objects: obrazyZPol(o.objects, wartosc, zasoby) };
+    if (o.type !== 'image' || !o.pole?.kolumna) return o;
+    const nazwa = wartosc(o.pole.kolumna, null);
+    if (nazwa === undefined) return o;
+    const id = Object.keys(zasoby || {}).find((k) => bezRozszerzenia(zasoby[k].nazwa) === bezRozszerzenia(nazwa));
+    const ramka = { w: (o.width || 0) * (o.scaleX ?? 1), h: (o.height || 0) * (o.scaleY ?? 1) };
+    // Brak pliku o tej nazwie: znak „brak obrazu” w miejscu ramki.
+    return { ...o, zasob: id || 'brak-pliku', ramka_pola: ramka, cropX: 0, cropY: 0, width: undefined, height: undefined };
   });
 }
 
-const ozyw = (json) => new Promise((ok) => fabric.util.enlivenObjects(json, ok));
+function wpiszWRamki(obiekty) {
+  for (const o of obiekty) {
+    if (o.type === 'group') { wpiszWRamki(o.getObjects()); continue; }
+    const r = o.ramka_pola;
+    if (o.type !== 'image' || !r || !o.width || !o.height) continue;
+    const skala = Math.min(r.w / o.width, r.h / o.height);
+    const srodek = { x: o.left + r.w / 2, y: o.top + r.h / 2 }; // obrót ramki pomijamy przy środkowaniu
+    o.set({ scaleX: skala, scaleY: skala, left: srodek.x - (o.width * skala) / 2, top: srodek.y - (o.height * skala) / 2 });
+    o.setCoords();
+  }
+}
 
 // Odbicie lustrzane położenia względem pionowej osi strony (plan 4.6):
 // element przechodzi na drugą stronę, tekst i obraz nie są odwracane,
@@ -61,18 +78,30 @@ function odbij(o, szerokosc) {
   o.setCoords();
 }
 
-// Elementy wzorców dla strony jako gotowe obiekty Fabric: { pod: [], nad: [] }.
-export async function warstwyWzorcow(projekt, strona, numery) {
+// cel: strona projektu albo egzemplarz z ciągu → egzemplarz (dla strony: pierwszy).
+const egzemplarz = (cel, ciag) => (cel && cel.klucz && cel.strona ? cel : ciag.pierwszy.get(cel.id));
+
+// Treść egzemplarza z podstawionymi polami (teksty i obrazy z kolumn).
+function trescEgzemplarza(projekt, egz, ciag) {
+  const wartosc = wartosciPol(projekt, egz, ciag);
+  return obrazyZPol(podstawWObiektach(egz.strona.obiekty, wartosc), wartosc, projekt.zasoby);
+}
+
+// Elementy wzorców dla strony (jej pierwszego egzemplarza) albo dla egzemplarza,
+// jako gotowe obiekty Fabric: { pod: [], nad: [] }.
+export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt)) {
   const wynik = { pod: [], nad: [] };
-  const wzorce = wzorceStrony(projekt, strona);
+  const egz = egzemplarz(cel, ciag);
+  const wzorce = wzorceStrony(projekt, egz.strona);
   if (!wzorce.length) return wynik;
-  const zmienne = zmienneStrony(projekt, strona, numery);
-  const lewa = stronaRozkladowki(projekt, strona) === 'lewa';
-  const szerokosc = sekcjaStrony(projekt, strona).wydruk.szerokosc_mm;
+  const wartosc = wartosciPol(projekt, egz, ciag);
+  const lewa = egz.bok === 'lewa';
+  const szerokosc = egz.sekcja.wydruk.szerokosc_mm;
   for (const w of wzorce) {
     if (!w.obiekty.length) continue;
-    const json = podmienZasoby(zmienneWJson(w.obiekty, zmienne), zrodloObrazu(projekt.zasoby));
+    const json = podmienZasoby(obrazyZPol(podstawWObiektach(w.obiekty, wartosc), wartosc, projekt.zasoby), zrodloObrazu(projekt.zasoby));
     const obiekty = await ozyw(json);
+    wpiszWRamki(obiekty);
     for (const o of obiekty) {
       if (w.lustro && lewa) odbij(o, szerokosc);
       o.set({
@@ -92,25 +121,31 @@ function siegaPrzezGrzbiet(o, bokElementu, szerokosc, spad) {
   return bokElementu === 'prawa' ? x - zasieg < spad : x + zasieg > szerokosc - spad;
 }
 
-// Elementy strony w kolejności warstw, razem z tymi z sąsiedniej strony
+// Elementy egzemplarza w kolejności warstw, razem z tymi z sąsiedniej strony
 // rozkładówki, które przechodzą przez grzbiet (przesunięte do układu tej strony).
-export function obiektyZSasiadem(projekt, strona) {
-  const sasiad = sasiadStrony(projekt, strona);
-  if (!sasiad) return strona.obiekty;
-  const { szerokosc_mm: w, spad_mm: b } = sekcjaStrony(projekt, strona).wydruk;
-  const lewa = stronaRozkladowki(projekt, strona) === 'lewa';
+// Każda strona ma podstawione własne dane.
+export function obiektyZSasiadem(projekt, cel, ciag = rozwin(projekt)) {
+  const egz = egzemplarz(cel, ciag);
+  const wlasne = trescEgzemplarza(projekt, egz, ciag);
+  if (!egz.sasiad) return wlasne;
+  const obce = trescEgzemplarza(projekt, egz.sasiad, ciag);
+  const { szerokosc_mm: w, spad_mm: b } = egz.sekcja.wydruk;
+  const lewa = egz.bok === 'lewa';
   const obcy = lewa ? 'prawa' : 'lewa';
-  const [l, p] = lewa ? [strona.obiekty, sasiad.obiekty] : [sasiad.obiekty, strona.obiekty];
+  const [l, p] = lewa ? [wlasne, obce] : [obce, wlasne];
   return scalRozkladowke(l, p)
     .filter(({ o, bok }) => bok !== obcy || siegaPrzezGrzbiet(o, obcy, w, b))
     .map(({ o, bok }) => (bok === obcy ? { ...o, left: (o.left || 0) + (lewa ? w : -w) } : o));
 }
 
-// Renderuje stronę albo wzorzec do obrazu PNG (dataURL).
-// opcje: szerokoscPx (z ewentualnym spadem), spad (domyślnie tak), numery.
-export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, numery, format = 'png', jakosc = 0.88 } = {}) {
+// Renderuje stronę (jej pierwszy egzemplarz), egzemplarz z ciągu albo wzorzec
+// do obrazu (dataURL). opcje: szerokoscPx (z ewentualnym spadem), spad
+// (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach).
+export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88 } = {}) {
   const jestWzorcem = projekt.wzorce.includes(cel);
-  const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, cel).wydruk;
+  const rozwiniety = jestWzorcem ? null : (ciag || rozwin(projekt));
+  const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
+  const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, egz.strona).wydruk;
   const { szerokosc_mm: w, wysokosc_mm: h } = wydruk;
   const b = spad ? wydruk.spad_mm : 0;
   const k = szerokoscPx / (w + 2 * b);
@@ -120,10 +155,11 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
     enableRetinaScaling: false,
     renderOnAddRemove: false,
   });
-  const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, cel);
+  const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby)));
-  const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, cel, numery);
-  plotno.backgroundColor = jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, cel);
+  wpiszWRamki(wlasne);
+  const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety);
+  plotno.backgroundColor = jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona);
   for (const o of [...warstwy.pod, ...wlasne, ...warstwy.nad]) plotno.add(o);
   plotno.setViewportTransform([k, 0, 0, k, b * k, b * k]);
   plotno.renderAll();
@@ -131,5 +167,3 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
   plotno.dispose();
   return url;
 }
-
-export { numeryStron };
