@@ -779,6 +779,19 @@
   </dialog>
   <input type="file" id="pliki-czcionki" multiple hidden>
 
+  <dialog id="dlg-konflikt" class="dialog-szeroki">
+    <form method="dialog" class="formularz">
+      <h2>To samo zmieniono na dwóch urządzeniach</h2>
+      <p class="ciche" id="konflikt-opis"></p>
+      <ul class="lista-konfliktow" id="konflikt-lista"></ul>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" id="konflikt-wszystko-konto">Wszędzie wersja z konta</button>
+        <span class="odstep"></span>
+        <button class="przycisk glowny" value="ok" id="konflikt-zastosuj">Zastosuj</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="dlg-potwierdz">
     <form method="dialog" class="formularz">
       <h2 id="potwierdz-tytul"></h2>

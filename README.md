@@ -19,14 +19,14 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu, listy (punkty, kreski, numery), przelewanie tekstu między połączonymi ramkami, kolumny, tabela.
 - **Eksport**: PDF do drukarni – **wektorowy** (prawdziwy tekst z osadzonymi czcionkami, kształty i gradienty jako wektory, zdjęcia w oryginale; opcje: tekst na krzywe, kolory tekstu i kształtów w CMYK) albo jako obrazy stron (150/300/600 dpi). Spad, znaki cięcia, TrimBox/BleedBox, zakres stron, podział na sekcje albo części. „Sprawdź przed drukiem”: lista uwag do całego projektu, łącznie z tekstami, które nie mieszczą się w ramkach na powielonych stronach. PNG strony w 300 dpi.
 - **Podgląd** bez edycji: cały projekt jak po przycięciu (z powieleniami serii), rozkładówki obok siebie, tryb prezentacji na całym ekranie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
-- **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie – wysyłane są tylko zmienione strony; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
+- **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie – wysyłane są tylko zmienione strony. Zmiany z dwóch urządzeń łączą się część po części (strony, wzorce, tabele, sekcje, serie, style); pytanie dotyczy tylko części zmienionych w obu miejscach, z wyborem wersji przy każdej.
 - **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok. Na telefonie edytor działa w poziomie (panele wysuwane z boków); w pionie pokazuje prośbę o obrót.
 - **Motyw**: jasny, ciemny albo jak w systemie.
 - **Czcionki**: własne pliki TTF/OTF/WOFF/WOFF2 wgrywane do projektu (jadą z nim na konto i do pliku) oraz oficjalny zestaw 52 rodzin (lista: `js/zestaw-czcionek.js`; licencje OFL i Apache 2.0, polskie znaki), pobieranych przez przeglądarkę dopiero przy użyciu. Wgrana czcionka trafia też do „Moich czcionek” i jest pod ręką w każdym projekcie (na koncie – na każdym urządzeniu). Do eksportu można dołączyć pliki użytych czcionek.
 - **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze. Czcionki i silnik płótna są w repozytorium, więc edytor działa bez internetu.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 
-Nie ma jeszcze: własnej poczty (czeka na domenę); konflikt zapisu jest rozstrzygany dla całego projektu, nie dla pojedynczych stron (w toku). Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
+Nie ma jeszcze: własnej poczty (czeka na domenę). Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
 
 ## Uruchomienie lokalne
 
@@ -67,6 +67,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/historia.js` | Jedna historia cofania całego projektu |
 | `js/konto.js` | Logowanie, rejestracja, reset hasła, ustawienia konta |
 | `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji (strony w osobnych wierszach, zapis funkcją `zapisz_projekt`), obrazy |
+| `js/laczenie.js` | Łączenie zmian z dwóch urządzeń: odciski części projektu, porównanie trzech stanów (ostatnio uzgodniony, ten z urządzenia, ten z konta), lista części zmienionych po obu stronach |
 | `js/lokalny.js` | Zapis projektów w przeglądarce (IndexedDB) – bez treści obrazów |
 | `js/zasoby.js` | Oryginały obrazów poza pamięcią karty: osobny magazyn plików w IndexedDB (klucz „projekt/zasób”), adresy `blob:` do rysowania, treść na żądanie (eksport, konto, plik projektu), zapamiętane kopie robocze |
 | `js/projekt.js` | Model projektu: sekcje, wzorce, rozkładówki, numeracja, migracje starszych wersji |
@@ -103,6 +104,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
 - `zasoby`: `{ id: { nazwa, typ, rozmiar, sciezka? } }` – opis pliku; obrazy na stronach mają `src: "zasob:<id>"`. Treść obrazu leży w magazynie plików przeglądarki (`js/zasoby.js`) i na koncie (`sciezka`). Pole `dataUrl` mają tylko: obraz świeżo dodany (do najbliższego zapisu), czcionki własne oraz starsze zapisy – te przechodzą do magazynu przy pierwszym otwarciu.
 - `czcionki[]`: `{ id, rodzina, waga, kursywa }` – własne czcionki; `id` wskazuje plik czcionki w `zasoby`.
+- `wersja_chmury`, `podstawa_chmury`: tylko w kopii na urządzeniu. Pierwsze to numer wersji projektu na koncie, którą to urządzenie widziało ostatnio (baza przyjmuje zapis tylko z aktualnym numerem). Drugie to odciski części projektu z tej chwili: `{ listy: { strony: { kolejnosc: [id], elementy: { id: odcisk } }, … }, reszta: { pole: odcisk } }`. Gdy baza odmówi zapisu, `js/laczenie.js` porównuje z nimi stan z urządzenia i stan z konta: część zmieniona po jednej stronie przechodzi sama, o zmienioną po obu aplikacja pyta. Na konto i do pliku `.seriodruk` `podstawa_chmury` nie trafia.
 - Element: `z_danych: { kolor?: pole, x?: { pole, tryb: 'pozycja' | 'mm', krok, co }, y?: …, obrot?: pole, widok?: { pole, gdy: 'niepuste' | 'puste' | 'rowne', wartosc? } }` – kolor, przesunięcie, obrót (stopnie, wokół środka) i widoczność zależne od pola. Obraz z kolumny: `pole: { kolumna, tryb?: 'wypelnij', kadr?: 'gora' | 'dol' | 'lewa' | 'prawa' }`. W tekście `{{` i `}}` to zwykłe klamry (w wydruku pojedyncze).
 - Tekst: `lista` (`'punkty' | 'kreski' | 'numery'`), `ramka_h` (stała wysokość ramki, mm); połączone ramki mają wspólny `watek`, kolejność `watek_nr` i `lacznik` (co stało między częścią poprzedniej ramki a tą).
 

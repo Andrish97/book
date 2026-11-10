@@ -4,6 +4,7 @@
 //
 // Rejestruje konto testowe (losowy adres w domenie example.com, bez wysyłki
 // poczty), zapisuje projekt z obrazem, sprawdza odczyt na drugim urządzeniu,
+// zmienia różne strony na dwóch urządzeniach naraz (zmiany mają się połączyć),
 // udostępnia podgląd linkiem, otwiera go bez konta, wyłącza link i na koniec
 // USUWA konto testowe. Zwykłe testy (npm test) używają atrapy bazy – ta próba
 // jest jedynym sprawdzeniem prawdziwego Supabase, reguł dostępu i plików.
@@ -94,6 +95,46 @@ const krok = async (nazwa, fn) => {
       await k2.close();
       if (s.includes('BRAK')) throw new Error(s);
       return `${s}; czcionka ze zbioru pobrana`;
+    });
+    await krok('dwa urządzenia zmieniają różne strony – obie zmiany zostają', async () => {
+      const typy = (strona) => strona.obiekty.map((o) => String(o.type).toLowerCase());
+      // Urządzenie 2 otwiera projekt z konta i dodaje prostokąt na swojej stronie.
+      const k2 = await b.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: 'block' });
+      try {
+        const p2 = await k2.newPage();
+        p2.setDefaultTimeout(30000);
+        await p2.goto(ADRES);
+        await p2.fill('#form-logowania input[name=email]', email);
+        await p2.fill('#form-logowania input[name=haslo]', haslo);
+        await p2.click('#przycisk-logowania');
+        await p2.waitForSelector('#dlg-instrukcja[open]');
+        await p2.click('[data-akcja="zamknij-instrukcje"]');
+        await p2.click('#ekran-projektow :text("Test bazy")');
+        await p2.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+        const otwarta = (s) => s.evaluate(() => { const st = window.seriodruk.stan; return st.projekt.strony[st.indeks].id; });
+        const [tam, tu] = [await otwarta(p2), await otwarta(p)];
+        if (tam === tu) throw new Error('oba urządzenia mają otwartą tę samą stronę – próba niczego by nie sprawdziła');
+        const przed = await p2.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury);
+        await p2.click('[data-akcja="dodaj-prostokat"]');
+        await p2.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury > w && document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', przed, { timeout: 40000 });
+        const poDrugim = await p2.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury);
+        // Urządzenie 1 nic o tym nie wie i dodaje elipsę na swojej stronie: zapis ma połączyć obie zmiany bez pytania.
+        await p.click('[data-akcja="dodaj-elipse"]');
+        await Promise.race([
+          p.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury === w + 1 && document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', poDrugim, { timeout: 60000 }),
+          p.waitForSelector('dialog[open]', { timeout: 60000 }).then(async () => { throw new Error(`aplikacja zapytała zamiast połączyć: ${(await p.textContent('dialog[open]')).replace(/\s+/g, ' ').trim().slice(0, 140)}`); }),
+        ]);
+        const lokalnie = await p.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => ({ id: s.id, obiekty: s.obiekty.map((o) => ({ type: o.type })) })));
+        // Stan konta czytany z drugiego urządzenia – wprost z bazy, nie z jego kopii.
+        const naKoncie = await p2.evaluate(async (id) => { const ch = await import('./js/chmura.js'); const pr = await ch.wczytajZChmury(id); return pr.strony.map((s) => ({ id: s.id, obiekty: s.obiekty.map((o) => ({ type: o.type })) })); }, idProjektu);
+        for (const [gdzie, strony] of [['na urządzeniu 1', lokalnie], ['na koncie', naKoncie]]) {
+          if (!typy(strony.find((s) => s.id === tam)).includes('rect')) throw new Error(`${gdzie} brak prostokąta dodanego na urządzeniu 2`);
+          if (!typy(strony.find((s) => s.id === tu)).includes('ellipse')) throw new Error(`${gdzie} brak elipsy dodanej na urządzeniu 1`);
+        }
+        return `połączone bez pytania; wersja na koncie ${poDrugim + 1}`;
+      } finally {
+        await k2.close();
+      }
     });
     let link;
     await krok('udostępnienie podglądu linkiem', async () => {

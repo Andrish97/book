@@ -1229,3 +1229,8 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .panel-inspektor .lista-warstw { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px 10px 12px; list-style: none; }
 #przycisk-wiecej ~ .menu { z-index: 60; }
 [data-akcja="wzorce"] .licznik { margin-left: 2px; }
+
+/* Łączenie zmian z dwóch urządzeń: części zmienione w obu miejscach, przy każdej wybór wersji. */
+.lista-konfliktow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; }
+.lista-konfliktow li { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--linia); border-radius: var(--r-s); }
+.lista-konfliktow label { display: flex; align-items: center; gap: 8px; cursor: pointer; }

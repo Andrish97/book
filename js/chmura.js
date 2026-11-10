@@ -2,6 +2,7 @@
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './konfiguracja.js';
 import { blobZasobu } from './zasoby.js';
+import { podstawaProjektu, kanon } from './laczenie.js';
 
 const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
 const BUCKET = 'zasoby';
@@ -195,10 +196,14 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   const zasobyBezDanych = Object.fromEntries(Object.entries(projekt.zasoby || {})
     .map(([id, { dataUrl, ...reszta }]) => [id, reszta]));
   const { wersja_chmury: znana, strony, ...reszta } = projekt;
+  delete reszta.podstawa_chmury; // odciski ostatnio uzgodnionego stanu – sprawa tego urządzenia, nie konta
+  // Odciski tego, co właśnie wysyłamy: po udanym zapisie to jest stan uzgodniony z kontem (js/laczenie.js).
+  const podstawa = podstawaProjektu(projekt);
   // Strony leżą na koncie w osobnych wierszach. Wysyłamy tylko te, których treść
   // różni się od ostatnio wysłanej z tego urządzenia; przy wymuszeniu – wszystkie,
-  // bo na koncie może być wersja z innego urządzenia.
-  const teksty = new Map(strony.map((st) => [st.id, JSON.stringify(st)]));
+  // bo na koncie może być wersja z innego urządzenia. Porównujemy zapis o ustalonej
+  // kolejności pól: baza oddaje pola w innej kolejności, niż je dostała.
+  const teksty = new Map(strony.map((st) => [st.id, kanon(st)]));
   const poprzednie = (!wymus && znana && wyslaneStrony.get(projekt.id)) || new Map();
   const zmienione = [...teksty].filter(([id, tekst]) => poprzednie.get(id) !== tekst).map(([id, tekst]) => ({ id, dane: JSON.parse(tekst) }));
   const wynik = sprawdz(await sb.rpc('zapisz_projekt', {
@@ -212,6 +217,7 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   }));
   if (wynik.konflikt) throw new KonfliktZapisu(wynik.zmieniono);
   projekt.wersja_chmury = wynik.wersja;
+  projekt.podstawa_chmury = podstawa;
   wyslaneStrony.set(projekt.id, teksty);
   return { wyslaneStrony: zmienione.length, wszystkieStrony: strony.length };
 }
@@ -236,7 +242,7 @@ export async function wczytajZChmury(id) {
     }
     projekt.strony = projekt.strony.map((idStrony) => strony.get(idStrony)).filter(Boolean);
     delete projekt.strony_osobno;
-    wyslaneStrony.set(id, new Map(projekt.strony.map((st) => [st.id, JSON.stringify(st)])));
+    wyslaneStrony.set(id, new Map(projekt.strony.map((st) => [st.id, kanon(st)])));
   } else wyslaneStrony.delete(id);
   // Czcionki własne są potrzebne od razu i są małe – wracają w projekcie. Obrazy pobiera dopiero
   // otwarcie projektu, prosto do magazynu plików przeglądarki (js/zasoby.js: podlaczZasoby),

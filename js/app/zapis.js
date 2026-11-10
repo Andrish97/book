@@ -13,6 +13,7 @@ import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { podlaczZasoby } from '../zasoby.js';
+import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu } from '../laczenie.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
@@ -283,8 +284,112 @@ export async function synchronizuj({ wymus = false } = {}) {
 }
 
 // Na koncie jest wersja zapisana z innego urządzenia – nic nie nadpisujemy po cichu.
+// Łączymy zmiany część po części (js/laczenie.js): strony, wzorce, tabele, sekcje, serie, style
+// i ustawienia zmienione tylko po jednej stronie przechodzą same. Pytamy wyłącznie o te części,
+// które zmieniono po obu stronach inaczej. Połączony projekt idzie na konto zwykłym zapisem,
+// ze znaną już wersją z konta – gdyby w tym czasie zapisało jeszcze inne urządzenie, baza znów
+// odmówi i łączenie zacznie się od nowa.
 async function rozstrzygnijKonflikt(p, e) {
   if (stan.konflikt === p.id) return;
+  // Bez zapamiętanego stanu uzgodnionego z kontem (projekt zapisany przed wprowadzeniem łączenia albo
+  // wczytany z pliku w miejsce istniejącego) nie wiadomo, kto co zmienił – zostaje pytanie o cały projekt.
+  if (!p.podstawa_chmury) { await zapytajOCalyProjekt(p, e); return; }
+  stan.konflikt = p.id;
+  try {
+    stanZapisu('zapis', 'Łączę zmiany z innego urządzenia…');
+    const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));
+    // Obrazy, które doszły na koncie, pobieramy zawczasu – po połączeniu płótno ma się odświeżyć od razu.
+    try { await podlaczZasoby(zKonta, chmura.pobierzZasob); } catch { /* brakujące obrazy pokażą się jako brakujące */ }
+    const kontoDoPorownan = postacDoPorownan(zKonta);
+    const plan = () => {
+      if (stan.projekt === p) zapiszBiezacyCel();
+      return polaczProjekty(postacDoPorownan(p), kontoDoPorownan, p.podstawa_chmury);
+    };
+    let wybory = new Map();
+    const pytania = plan().konflikty;
+    if (pytania.length) {
+      stanZapisu('blad', 'To samo zmieniono na dwóch urządzeniach – wybierz wersję');
+      wybory = await zapytajOKonflikty(p, pytania);
+    }
+    if (stan.projekt !== p) { stan.konflikt = null; return; } // projekt zamknięto – łączenie wróci przy następnym zapisie
+    const ostateczny = plan(); // jeszcze raz, tuż przed zastosowaniem: w czasie pytania projekt mógł się zmienić
+    const zaznaczony = edytor.aktywny?.id;
+    const biezaca = p.strony[stan.indeks]?.id;
+    zastosujPolaczenie(p, zKonta, ostateczny, wybory);
+    const ileZKonta = ostateczny.zKonta + [...wybory.values()].filter((w) => w === 'konto').length;
+    p.wersja_chmury = zKonta.wersja_chmury;
+    p.podstawa_chmury = podstawaProjektu(zKonta);
+    p.zmieniono = new Date().toISOString(); // drugie urządzenie ma zobaczyć, że na koncie jest coś nowszego niż u niego
+    if (ileZKonta) {
+      // Połączone części mogą wskazywać na coś, co druga strona usunęła (sekcję, wzorzec, serię) – porządkujemy.
+      Object.assign(p, normalizuj(p));
+      // Płótno pokazuje stan sprzed połączenia – nie wolno go już przepisać do projektu.
+      naPlotnie = null;
+      stan.indeks = Math.max(0, p.strony.findIndex((x) => x.id === biezaca));
+      if (stan.tryb === 'wzorzec' && !p.wzorce.some((w) => w.id === stan.idWzorca)) { stan.tryb = 'strona'; ustawZakladke('strony'); }
+      stan.miniatury.clear();
+      await zarejestrujCzcionkiProjektu(p);
+    }
+    if (ileZKonta && stan.projekt === p) {
+      await zaladujCel();
+      if (zaznaczony) edytor.zaznacz(zaznaczony);
+      panel.zbuduj();
+      $('#nazwa-projektu').value = p.nazwa;
+      document.title = `${p.nazwa} – ${NAZWA}`;
+      // Cofanie zaczyna się od połączonego stanu – inaczej „Cofnij” zdjęłoby po cichu zmiany z drugiego urządzenia.
+      clearTimeout(stan.timerHistorii);
+      stan.doHistorii = false;
+      historia.wyczysc();
+      historia.zapisz(p);
+      odswiezCofanie();
+      generujMiniatury();
+      powiadom(`Połączono zmiany z innego urządzenia (z konta: ${ileZKonta} ${ileZKonta === 1 ? 'część' : 'części'} projektu). Twoje zmiany zostały.`);
+    }
+    await zapiszLokalnie(p, wlasciciel(), true);
+    stan.konflikt = null;
+    await synchronizuj();
+  } catch (blad) {
+    // Nic nie wysłano; następny zapis spróbuje połączyć jeszcze raz.
+    stan.konflikt = null;
+    stanZapisu('blad', `Nie udało się połączyć zmian z konta: ${chmura.komunikatBledu(blad)}`);
+  }
+}
+
+// Pytanie o części zmienione po obu stronach: przy każdej wybór „z tego urządzenia” albo „z konta”.
+// Zwraca Map(klucz pytania → 'moje' | 'konto').
+function zapytajOKonflikty(p, konflikty) {
+  const dlg = $('#dlg-konflikt');
+  const lista = $('#konflikt-lista');
+  $('#konflikt-opis').textContent = `Projekt „${p.nazwa}” zmieniono też na innym urządzeniu. Wszystko, co zmieniono tylko po jednej stronie, zostało połączone. ${konflikty.length === 1 ? 'Jedną część zmieniono' : `${konflikty.length} części zmieniono`} w obu miejscach – wybierz, która wersja ma zostać.`;
+  lista.replaceChildren(...konflikty.map((k, i) => {
+    const li = document.createElement('li');
+    li.dataset.klucz = k.klucz;
+    li.innerHTML = '<strong></strong><label><input type="radio" value="moje" checked><span></span></label><label><input type="radio" value="konto"><span></span></label>';
+    li.querySelector('strong').textContent = k.nazwa;
+    const [moje, konto] = li.querySelectorAll('label');
+    for (const pole of li.querySelectorAll('input')) pole.name = `konflikt-${i}`;
+    moje.querySelector('span').textContent = `Z tego urządzenia (${k.moje})`;
+    konto.querySelector('span').textContent = `Z konta (${k.konto})`;
+    return li;
+  }));
+  return new Promise((ok) => {
+    const anuluj = (ev) => ev.preventDefault(); // bez decyzji zapis by stał – okno zamyka tylko „Zastosuj”
+    const wszystko = () => { for (const pole of lista.querySelectorAll('input[value="konto"]')) pole.checked = true; };
+    const zamknij = () => {
+      dlg.removeEventListener('cancel', anuluj);
+      dlg.removeEventListener('close', zamknij);
+      $('#konflikt-wszystko-konto').removeEventListener('click', wszystko);
+      ok(new Map([...lista.children].map((li) => [li.dataset.klucz, li.querySelector('input:checked')?.value || 'moje'])));
+    };
+    dlg.addEventListener('cancel', anuluj);
+    dlg.addEventListener('close', zamknij);
+    $('#konflikt-wszystko-konto').addEventListener('click', wszystko);
+    dlg.showModal();
+  });
+}
+
+// Pytanie o cały projekt – tylko wtedy, gdy nie ma z czym porównać zmian (patrz wyżej).
+async function zapytajOCalyProjekt(p, e) {
   stan.konflikt = p.id;
   stanZapisu('blad', 'Nowsza wersja na koncie – wybierz, którą zachować');
   const kiedyTamta = e.zmieniono ? ` (zapisana ${kiedy(e.zmieniono)})` : '';
@@ -302,6 +407,7 @@ async function rozstrzygnijKonflikt(p, e) {
   }
   try {
     const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));
+    zKonta.podstawa_chmury = podstawaProjektu(zKonta);
     await zapiszLokalnie(zKonta, wlasciciel(), false);
     stan.konflikt = null;
     clearTimeout(stan.timerZapisu);
