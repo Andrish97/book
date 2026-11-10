@@ -2,9 +2,12 @@
 // Składanie strony z warstw: tło → elementy wzorców „pod” → treść strony →
 // elementy wzorców „nad”. Jedno miejsce używane przez edytor, miniatury,
 // podgląd i (później) eksport do PDF, żeby wszędzie wyglądało to tak samo.
+// W rozkładówce do treści strony dochodzą elementy sąsiedniej strony, które
+// przechodzą przez grzbiet.
 
 import {
-  sekcjaStrony, wzorceStrony, zmienneStrony, stronaRozkladowki, tloStrony, numeryStron,
+  sekcjaStrony, wzorceStrony, zmienneStrony, stronaRozkladowki, sasiadStrony, scalRozkladowke,
+  tloStrony, numeryStron,
 } from './projekt.js';
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -81,6 +84,28 @@ export async function warstwyWzorcow(projekt, strona, numery) {
   return wynik;
 }
 
+// Czy element sąsiedniej strony może sięgać na tę stronę. Liczone z zapasem
+// (okrąg opisany na elemencie), bo resztę i tak przytnie krawędź płótna.
+function siegaPrzezGrzbiet(o, bokElementu, szerokosc, spad) {
+  const zasieg = Math.hypot((o.width || 0) * (o.scaleX ?? 1), (o.height || 0) * (o.scaleY ?? 1)) + (o.strokeWidth || 0);
+  const x = o.left || 0;
+  return bokElementu === 'prawa' ? x - zasieg < spad : x + zasieg > szerokosc - spad;
+}
+
+// Elementy strony w kolejności warstw, razem z tymi z sąsiedniej strony
+// rozkładówki, które przechodzą przez grzbiet (przesunięte do układu tej strony).
+export function obiektyZSasiadem(projekt, strona) {
+  const sasiad = sasiadStrony(projekt, strona);
+  if (!sasiad) return strona.obiekty;
+  const { szerokosc_mm: w, spad_mm: b } = sekcjaStrony(projekt, strona).wydruk;
+  const lewa = stronaRozkladowki(projekt, strona) === 'lewa';
+  const obcy = lewa ? 'prawa' : 'lewa';
+  const [l, p] = lewa ? [strona.obiekty, sasiad.obiekty] : [sasiad.obiekty, strona.obiekty];
+  return scalRozkladowke(l, p)
+    .filter(({ o, bok }) => bok !== obcy || siegaPrzezGrzbiet(o, obcy, w, b))
+    .map(({ o, bok }) => (bok === obcy ? { ...o, left: (o.left || 0) + (lewa ? w : -w) } : o));
+}
+
 // Renderuje stronę albo wzorzec do obrazu PNG (dataURL).
 // opcje: szerokoscPx (z ewentualnym spadem), spad (domyślnie tak), numery.
 export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, numery, format = 'png', jakosc = 0.88 } = {}) {
@@ -95,7 +120,8 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
     enableRetinaScaling: false,
     renderOnAddRemove: false,
   });
-  const wlasne = await ozyw(podmienZasoby(cel.obiekty, zrodloObrazu(projekt.zasoby)));
+  const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, cel);
+  const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby)));
   const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, cel, numery);
   plotno.backgroundColor = jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, cel);
   for (const o of [...warstwy.pod, ...wlasne, ...warstwy.nad]) plotno.add(o);

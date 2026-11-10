@@ -73,7 +73,7 @@ async function przykladoweProjekty(strona) {
 
     // 3. Kalendarz 2027 – kilka stron
     await otworzProjekt(nowy('Kalendarz 2027', {}));
-    dodaj(new fabric.Rect({ left: -3, top: -3, width: 154, height: 62, fill: '#2f5bd3', strokeWidth: 0, bez_ostrzezen: true }));
+    dodaj(new fabric.Rect({ left: -3, top: -3, width: 151, height: 62, fill: '#2f5bd3', strokeWidth: 0, bez_ostrzezen: true })); // do grzbietu (lewa strona)
     dodaj(tekst('Styczeń', { left: 10, top: 18, width: 120, fontSize: mm(30), fontFamily: 'Playfair Display', fontWeight: 'bold', fill: '#ffffff' }));
     dodaj(tekst('2027', { left: 10, top: 40, width: 60, fontSize: mm(12), fill: '#dbe4fb' }));
     const dni = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
@@ -110,7 +110,7 @@ async function przykladoweProjekty(strona) {
     const styczen = P.strony[0];
     Object.assign(styczen, { id: 's_styczen', nazwa: 'Styczeń', sekcja: srodek.id });
     const linie = [];
-    for (let y = 40; y <= 180; y += 10) linie.push(new fabric.Line([16, y, 138, y], { stroke: '#d9d4c7', strokeWidth: 0.25, strokeUniform: true }));
+    for (let y = 40; y <= 180; y += 10) linie.push(new fabric.Line([16.2, y, 137.8, y], { stroke: '#d9d4c7', strokeWidth: 0.25, strokeUniform: true }));
     P.strony = [
       {
         id: 's_okladka', nazwa: 'Okładka', sekcja: 'sek_okladka', wzorce: 'z_sekcji', tlo: '#1f2a44',
@@ -272,7 +272,7 @@ async function przykladoweProjekty(strona) {
   await zrzut(s, 'wstawianie.png', { clip: { x: 208, y: 56, width: 772, height: 744 } });
 
   // Właściwości tekstu
-  await zrzut(s, 'wlasciwosci.png', { clip: { x: 600, y: 56, width: 680, height: 744 } });
+  await zrzut(s, 'wlasciwosci.png', { clip: { x: 240, y: 56, width: 1040, height: 744 } });
 
   // Strony – menu
   await s.evaluate(() => { window.seriodruk.edytor.canvas.discardActiveObject(); window.seriodruk.edytor.canvas.requestRenderAll(); });
@@ -295,8 +295,18 @@ async function przykladoweProjekty(strona) {
   await s.click('#lista-stron li.strona:has-text("Styczeń") .miniatura');
   await s.waitForTimeout(800);
 
-  // Rozkładówka: lewa strona (Styczeń) edytowana, prawa (Notatki) obok
+  // Rozkładówka: obie strony (Styczeń, Notatki) na jednym płótnie, pas przez grzbiet
+  await s.evaluate(() => {
+    const { edytor } = window.seriodruk;
+    const w = edytor.wydruk.szerokosc_mm;
+    const h = edytor.wydruk.wysokosc_mm;
+    const pas = edytor.dodajProstokat();
+    pas.set({ left: 14, top: h - 26, width: 2 * w - 28, height: 5, fill: '#2f5bd3', strokeWidth: 0, nazwa: 'Pas przez grzbiet' });
+    edytor.zatwierdz();
+  });
+  await s.waitForTimeout(500);
   await zrzut(s, 'rozkladowki.png');
+  await s.evaluate(() => { window.seriodruk.edytor.canvas.discardActiveObject(); window.seriodruk.edytor.canvas.requestRenderAll(); });
 
   // Podgląd bez edycji
   await s.click('[data-akcja="podglad"]');
@@ -315,7 +325,7 @@ async function przykladoweProjekty(strona) {
     edytor.canvas.requestRenderAll();
     edytor._emitujZaznaczenie();
   });
-  await zrzut(s, 'wyrownanie.png', { clip: { x: 600, y: 56, width: 680, height: 560 } });
+  await zrzut(s, 'wyrownanie.png', { clip: { x: 240, y: 56, width: 1040, height: 560 } });
   await s.evaluate(() => { window.seriodruk.edytor.canvas.discardActiveObject(); window.seriodruk.edytor.canvas.requestRenderAll(); });
 
   // Ostrzeżenia: element w marginesie
@@ -329,7 +339,7 @@ async function przykladoweProjekty(strona) {
   });
   await s.waitForTimeout(500);
   await s.evaluate(() => { document.getElementById('panel-inspektor').scrollTop = 1e6; });
-  await zrzut(s, 'ostrzezenia.png', { clip: { x: 380, y: 300, width: 900, height: 500 } });
+  await zrzut(s, 'ostrzezenia.png', { clip: { x: 240, y: 300, width: 1040, height: 500 } });
   await s.evaluate(() => {
     const { edytor } = window.seriodruk;
     edytor.zaznacz('o_przyklad');

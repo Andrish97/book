@@ -1,11 +1,12 @@
-# Konfiguracja Supabase dla integracji z GitHubem (Supabase → Integrations → GitHub).
-# Po pushu na gałąź produkcyjną integracja stosuje migracje z supabase/migrations/.
-# Jeśli integracja nie przenosi ustawień logowania i szablonów wiadomości,
-# ustaw je ręcznie w panelu: Authentication → Sign In / Providers, URL Configuration, Emails.
+# Konfiguracja Supabase dla integracji z GitHubem
+# (Supabase → Project Settings → Integrations → GitHub, opcja „Deploy to production”).
+# Po pushu na main integracja stosuje migracje z supabase/migrations/.
+# Ustawienia logowania z tego pliku przenosi tylko dlatego, że blok [remotes.production]
+# niżej wskazuje ten sam projekt – bez niego integracja je pomija.
 project_id = "pganajmivwtstapnwsgv"
 
-[db]
-major_version = 15
+[remotes.production]
+project_id = "pganajmivwtstapnwsgv"
 
 [auth]
 # Adres aplikacji i adresy, na które może wrócić link z e-maila.
@@ -17,8 +18,10 @@ password_requirements = "lower_upper_letters_digits_symbols"
 
 [auth.email]
 enable_signup = true
-# Konto działa dopiero po kliknięciu linku z wiadomości.
-enable_confirmations = true
+# Konto działa od razu po rejestracji, bez linku w wiadomości: wbudowana poczta
+# Supabase dostarcza wiadomości tylko właścicielom projektu. Po podpięciu własnego
+# serwera poczty (SMTP) można zmienić na true – aplikacja obsługuje oba warianty.
+enable_confirmations = false
 # Zmianę adresu potwierdza się linkiem z nowej skrzynki.
 double_confirm_changes = false
 secure_password_change = false

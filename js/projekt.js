@@ -204,6 +204,28 @@ export function sasiadStrony(projekt, strona) {
   return strony[bok === 'lewa' ? k + 1 : k - 1] || null;
 }
 
+// Strony, które edytuje się razem na jednym płótnie: [lewa, prawa] albo [strona].
+export function stronyArkusza(projekt, strona) {
+  const sasiad = sasiadStrony(projekt, strona);
+  if (!sasiad) return [strona];
+  return stronaRozkladowki(projekt, strona) === 'lewa' ? [strona, sasiad] : [sasiad, strona];
+}
+
+// Łączy elementy lewej i prawej strony w jedną kolejność warstw rozkładówki.
+// Kolejność wewnątrz każdej strony zostaje; o przeplocie decyduje pole `z`
+// zapisane przy ostatniej edycji rozkładówki. Bez `z`: lewa strona pod prawą.
+export function scalRozkladowke(lewe = [], prawe = []) {
+  const wynik = [];
+  let i = 0;
+  let j = 0;
+  const z = (o, zapas) => (Number.isFinite(o.z) ? o.z : zapas);
+  while (i < lewe.length || j < prawe.length) {
+    const zLewej = j >= prawe.length || (i < lewe.length && z(lewe[i], -Infinity) <= z(prawe[j], Infinity));
+    if (zLewej) { wynik.push({ o: lewe[i], bok: 'lewa' }); i += 1; } else { wynik.push({ o: prawe[j], bok: 'prawa' }); j += 1; }
+  }
+  return wynik;
+}
+
 // Marginesy konkretnej strony: w rozkładówce wewnętrzny jest przy grzbiecie.
 export function marginesyStrony(projekt, strona) {
   const { marginesy: m } = sekcjaStrony(projekt, strona).wydruk;

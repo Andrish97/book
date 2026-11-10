@@ -7,10 +7,10 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 
 ## Co działa
 
-- **Konto** (Supabase Auth): rejestracja z potwierdzeniem e-maila, logowanie, reset hasła, ustawienia konta (nazwa, e-mail, hasło, wylogowanie wszędzie, usunięcie konta). Własne szablony wiadomości w `supabase/templates/`.
+- **Konto** (Supabase Auth): rejestracja (potwierdzanie e-mailem do włączenia w `supabase/config.toml`), logowanie, reset hasła, ustawienia konta (nazwa, e-mail, hasło, wylogowanie wszędzie, usunięcie konta). Własne szablony wiadomości w `supabase/templates/`.
 - **Projekty**: lista z miniaturami, kreator (format, spad, marginesy, układ), duplikowanie, eksport i import pliku `.seriodruk`.
 - **Sekcje**: części projektu z własnym formatem, spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki) i numeracją.
-- **Rozkładówki**: marginesy lustrzane (wewnętrzny przy grzbiecie), sąsiednia strona obok edytowanej.
+- **Rozkładówki**: obie strony na jednym płótnie, marginesy lustrzane (wewnętrzny przy grzbiecie), elementy mogą leżeć przez grzbiet.
 - **Wzorce**: wspólne elementy stron; kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
 - **Edytor** (Fabric.js 5.3.1, wszystko w mm): tekst, kształty, obrazy, grupy, warstwy, wyrównywanie i równe odstępy, blokada, schowek między stronami, cofanie, przyciąganie, ostrzeżenia o marginesach i spadzie.
 - **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu.
@@ -47,9 +47,9 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 ## Wdrożenie (push na `main`)
 
 - **Aplikacja:** workflow [`pages.yml`](.github/workflows/pages.yml) publikuje ją na GitHub Pages.
-- **Baza:** integracja Supabase z GitHubem stosuje migracje z [`supabase/migrations/`](supabase/migrations/) i ustawienia z [`supabase/config.toml`](supabase/config.toml). Jeśli integracja nie działa, migrację można wkleić w SQL Editor.
+- **Baza i logowanie:** integracja Supabase z GitHubem stosuje migracje z [`supabase/migrations/`](supabase/migrations/) i ustawienia logowania z [`supabase/config.toml`](supabase/config.toml).
 - **Połączenie z bazą:** adres projektu i publiczny klucz są w [`js/konfiguracja.js`](js/konfiguracja.js). Dostęp do danych chronią reguły RLS. Klucza `service_role` nigdy nie wpisuj do frontendu.
-- **Do ustawienia ręcznie w Supabase** (SMTP, szablony, adresy powrotu, wymagania hasła): [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md), punkt 0.
+- **Do zrobienia raz w Supabase:** włączyć „Deploy to production” w integracji z GitHubem – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md), punkt 0.
 
 ## Struktura
 
@@ -61,8 +61,8 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji, obrazy |
 | `js/lokalny.js` | IndexedDB |
 | `js/projekt.js` | Model projektu: sekcje, wzorce, rozkładówki, numeracja, migracje starszych wersji |
-| `js/edytor.js` | Silnik strony na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
-| `js/zlozenie.js` | Składanie strony z warstw (tło, wzorce, treść) dla edytora, miniatur i podglądu |
+| `js/edytor.js` | Silnik arkusza (strona albo rozkładówka) na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
+| `js/zlozenie.js` | Składanie strony z warstw (tło, wzorce, treść, elementy sąsiedniej strony przez grzbiet) dla edytora, miniatur i podglądu |
 | `js/wlasciwosci.js`, `js/style-tekstu.js` | Panel właściwości, style tekstu |
 | `js/podglad.js` | Podgląd bez edycji – własnego projektu i udostępnionego linkiem |
 | `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
@@ -75,7 +75,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 
 - `sekcje[]`: `{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy: { gora, dol, wewnetrzny, zewnetrzny }, znaki_ciecia }, uklad: 'pojedyncze' | 'rozkladowki', pierwsza: 'prawa' | 'lewa', wzorce: [id], numeracja: { tryb: 'ciagla' | 'od' | 'brak', od } }`
 - `wzorce[]`: `{ id, nazwa, wydruk, tlo, lustro, obiekty[] }` – element z `warstwa: 'nad'` leży nad treścią strony.
-- `strony[]`: `{ id, nazwa, sekcja, wzorce: 'z_sekcji' | [id], tlo, obiekty[] }`
+- `strony[]`: `{ id, nazwa, sekcja, wzorce: 'z_sekcji' | [id], tlo, obiekty[] }` – w rozkładówce element należy do strony, na której leży jego środek, i może wystawać przez grzbiet na sąsiednią; pole `z` elementu to kolejność warstw na wspólnym płótnie.
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
 - `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`; obrazy na stronach mają `src: "zasob:<id>"`.
 - `zrodla`, `tabele`, `zakresy`: puste do etapu danych.

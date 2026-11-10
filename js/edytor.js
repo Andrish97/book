@@ -1,11 +1,14 @@
 /* global fabric */
-// Silnik edycji jednej strony (sekcja 4 planu).
+// Silnik edycji arkusza (sekcja 4 planu). Arkusz to jedna strona albo
+// rozkładówka: dwie strony obok siebie na wspólnym płótnie, żeby element
+// mógł leżeć przez grzbiet.
 //
 // Wszystkie obiekty Fabric mają współrzędne w milimetrach. Punkt (0, 0) to
-// lewy górny róg strony po przycięciu (bez spadu). Na piksele przeliczamy
-// tylko widok: viewportTransform = skala (px/mm × zoom) + przesunięcie o spad.
+// lewy górny róg arkusza po przycięciu (bez spadu); prawa strona rozkładówki
+// zaczyna się w x = szerokość strony. Na piksele przeliczamy tylko widok:
+// viewportTransform = skala (px/mm × zoom) + przesunięcie o spad.
 
-import { uid, ptNaMm } from './projekt.js';
+import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
 
@@ -16,6 +19,7 @@ export const WLASNE_POLA = [
   'id', 'nazwa', 'zasob', 'bez_ostrzezen',
   'warstwa', // element wzorca: 'nad' = nad treścią strony (domyślnie pod)
   'zablokowany', 'styl',
+  'z', // kolejność na rozkładówce (żeby po zapisie stron osobno dało się ją odtworzyć)
   // Na etap 2 (pola z danymi): już teraz przenoszone przez zapis.
   'pole', 'autodopasowanie', 'min_rozmiar',
 ];
@@ -51,6 +55,9 @@ export class Edytor extends EventTarget {
     this.zoom = 1;
     this.pokazProwadnice = true;
     this.wydruk = null;
+    this.strony = []; // strony arkusza: { x, marg }
+    this.tla = ['#ffffff'];
+    this.aktywna = 0; // strona arkusza, do której trafiają nowe elementy
     this.zasoby = {};
     this.ostrzezenia = [];
     this._wczytywanie = false;
@@ -62,7 +69,6 @@ export class Edytor extends EventTarget {
 
     this.canvas = new fabric.Canvas(elementPlotna, {
       preserveObjectStacking: true,
-      backgroundColor: '#ffffff',
       stopContextMenu: true,
       selectionColor: 'rgba(37, 99, 235, 0.08)',
       selectionBorderColor: '#2563eb',
@@ -71,7 +77,14 @@ export class Edytor extends EventTarget {
     });
 
     const c = this.canvas;
+    c.on('before:render', (e) => this._rysujTla(e.ctx));
     c.on('after:render', (e) => this._poRenderowaniu(e.ctx));
+    // Kliknięcie w drugą stronę rozkładówki robi z niej stronę bieżącą.
+    c.on('mouse:down', (e) => {
+      if (this.strony.length < 2 || !e.pointer) return;
+      const v = c.viewportTransform;
+      this.ustawAktywna(this.stronaW((e.pointer.x - v[4]) / v[0]), true);
+    });
     c.on('selection:created', () => this._emitujZaznaczenie());
     c.on('selection:updated', () => this._emitujZaznaczenie());
     c.on('selection:cleared', () => this._emitujZaznaczenie());
@@ -112,16 +125,43 @@ export class Edytor extends EventTarget {
 
   // marginesy: { lewy, prawy, gora, dol, grzbiet: 'lewy' | 'prawy' | null }
   // – już przeliczone dla konkretnej strony (w rozkładówkach są lustrzane).
+  // Tablica dwóch zestawów = rozkładówka: [lewa strona, prawa strona].
   ustawWydruk(wydruk, marginesy) {
     this.wydruk = { ...wydruk };
     const m = wydruk.marginesy || {};
-    this.marg = marginesy || { lewy: m.wewnetrzny ?? 10, prawy: m.zewnetrzny ?? 10, gora: m.gora ?? 10, dol: m.dol ?? 10, grzbiet: null };
+    const lista = [].concat(marginesy || { lewy: m.wewnetrzny ?? 10, prawy: m.zewnetrzny ?? 10, gora: m.gora ?? 10, dol: m.dol ?? 10, grzbiet: null });
+    this.strony = lista.map((marg, i) => ({ x: i * wydruk.szerokosc_mm, marg }));
+    this.aktywna = Math.min(this.aktywna, this.strony.length - 1);
     this._dopasujRozmiar();
     this.przeliczOstrzezenia();
   }
 
+  // Marginesy strony bieżącej.
+  get marg() { return this.strony[this.aktywna].marg; }
+  get rozkladowka() { return this.strony.length > 1; }
+  get szerokoscArkusza() { return this.strony.length * this.wydruk.szerokosc_mm; }
+
+  // Indeks strony arkusza, na której leży punkt x (mm).
+  stronaW(x) {
+    return Math.min(this.strony.length - 1, Math.max(0, Math.floor(x / this.wydruk.szerokosc_mm)));
+  }
+
+  ustawAktywna(i, zKlikniecia = false) {
+    const nowa = Math.min(this.strony.length - 1, Math.max(0, i));
+    if (nowa === this.aktywna) return;
+    this.aktywna = nowa;
+    if (zKlikniecia) this.dispatchEvent(new CustomEvent('strona', { detail: nowa }));
+  }
+
+  // Środek obiektu w układzie arkusza – także wtedy, gdy obiekt jest częścią zaznaczenia.
+  _srodekObiektu(o) {
+    const p = o.getCenterPoint();
+    return o.group ? fabric.util.transformPoint(p, o.group.calcTransformMatrix()) : p;
+  }
+
   _dopasujRozmiar() {
-    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const { wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const w = this.szerokoscArkusza;
     const s = this.skala;
     this.canvas.setDimensions({
       width: Math.round((w + 2 * b) * s),
@@ -156,7 +196,8 @@ export class Edytor extends EventTarget {
 
   dopasujDoOkna() {
     if (!this.wydruk) return;
-    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const { wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const w = this.szerokoscArkusza;
     // Odstęp na pływający pasek narzędzi (u góry) i kontrolki widoku (u dołu).
     const arkusz = this.kontener.firstElementChild;
     const st = arkusz ? getComputedStyle(arkusz) : null;
@@ -165,25 +206,53 @@ export class Edytor extends EventTarget {
     const mh = st ? px(st.paddingTop) + px(st.paddingBottom) : 48;
     const dw = Math.max(100, this.kontener.clientWidth - mw);
     const dh = Math.max(100, this.kontener.clientHeight - mh);
-    const z = Math.min(dw / ((w + 2 * b + (this.obokMm || 0)) * PX_NA_MM), dh / ((h + 2 * b) * PX_NA_MM));
+    const z = Math.min(dw / ((w + 2 * b) * PX_NA_MM), dh / ((h + 2 * b) * PX_NA_MM));
     this.zoom = Math.max(0.1, z);
     this._dopasujRozmiar();
     this.dispatchEvent(new CustomEvent('zoom', { detail: this.zoom }));
   }
 
-  // ---------- Wczytywanie i zapis strony ----------
+  // ---------- Wczytywanie i zapis arkusza ----------
 
   // warstwy: { pod: [], nad: [] } – gotowe elementy wzorców (zlozenie.js):
   // widoczne, ale niezaznaczalne i niezapisywane razem ze stroną.
-  async wczytajStrone(strona, zasoby, warstwy = null) {
+  wczytajStrone(strona, zasoby, warstwy = null) {
+    return this.wczytajArkusz([{ ...strona, warstwy }], zasoby);
+  }
+
+  // strony: [{ id, obiekty, tlo, warstwy }] – jedna albo dwie (lewa, prawa),
+  // tyle samo, ile zestawów marginesów dostało ustawWydruk.
+  async wczytajArkusz(strony, zasoby) {
+    const w = this.wydruk.szerokosc_mm;
+    const b = this.wydruk.spad_mm;
+    const h = this.wydruk.wysokosc_mm;
     this.zasoby = zasoby;
-    this._znacznikStrony = strona.id || Symbol('strona');
-    this._warstwy = warstwy || { pod: [], nad: [] };
+    this._znacznikStrony = strony.map((s) => s.id).join('+') || Symbol('strona');
+    this.tla = strony.map((s) => s.tlo || '#ffffff');
+    this._warstwy = { pod: [], nad: [] };
+    strony.forEach((s, i) => {
+      for (const rodzaj of ['pod', 'nad']) {
+        for (const o of s.warstwy?.[rodzaj] || []) {
+          if (strony.length > 1) {
+            // Element wzorca należy do swojej strony: nie wychodzi przez grzbiet na sąsiednią.
+            o.set({ left: o.left + i * w });
+            o.clipPath = new fabric.Rect({
+              left: i === 0 ? -b : w, top: -b, width: w + b, height: h + 2 * b, absolutePositioned: true,
+            });
+            o.setCoords();
+          }
+          this._warstwy[rodzaj].push(o);
+        }
+      }
+    });
     this._wczytywanie = true;
     this.canvas.discardActiveObject();
-    const obiekty = podmienZasoby(strona.obiekty, zrodloObrazu(zasoby));
+    const json = strony.length > 1
+      ? scalRozkladowke(strony[0].obiekty, strony[1].obiekty).map(({ o, bok }) => (bok === 'prawa' ? { ...o, left: (o.left || 0) + w } : o))
+      : strony[0].obiekty;
+    const obiekty = podmienZasoby(json, zrodloObrazu(zasoby));
     await new Promise((ok) => {
-      this.canvas.loadFromJSON({ objects: obiekty, backgroundColor: strona.tlo || '#ffffff' }, ok);
+      this.canvas.loadFromJSON({ objects: obiekty }, ok);
     });
     this._dodajWzorce();
     this._zastosujBlokady();
@@ -218,43 +287,81 @@ export class Edytor extends EventTarget {
     return Boolean(this._warstwy && (this._warstwy.pod.length || this._warstwy.nad.length));
   }
 
-  // Zwraca obiekty strony w postaci do zapisu (obrazy jako "zasob:<id>").
+  // Obiekty arkusza w postaci do zapisu (obrazy jako "zasob:<id>"), osobno dla
+  // każdej strony: [[...], [...]]. Na rozkładówce element należy do strony, na
+  // której leży jego środek; współrzędne są liczone od rogu tej strony, a pole
+  // `z` pamięta kolejność na wspólnym płótnie.
   // Elementy wzorca mają excludeFromExport, więc nie trafiają do zapisu.
-  obiektyStrony() {
-    const json = this.canvas.toJSON(WLASNE_POLA);
-    return podmienZasoby(json.objects, null);
+  obiektyStron() {
+    const zywe = this.canvas.getObjects().filter((o) => !o.excludeFromExport);
+    const json = podmienZasoby(this.canvas.toJSON(WLASNE_POLA).objects, null);
+    if (!this.rozkladowka) return [json];
+    const w = this.wydruk.szerokosc_mm;
+    const wynik = this.strony.map(() => []);
+    json.forEach((o, k) => {
+      const i = zywe[k] ? this.stronaW(this._srodekObiektu(zywe[k]).x) : 0;
+      wynik[i].push({ ...o, left: (o.left || 0) - i * w, z: k });
+    });
+    return wynik;
   }
 
-  ustawTlo(kolor) {
-    this.canvas.backgroundColor = kolor;
+  // Obiekty pojedynczej strony (arkusz z jedną stroną albo wzorzec).
+  obiektyStrony() {
+    return this.obiektyStron().flat();
+  }
+
+  get tloAktywnej() { return this.tla[this.aktywna] || '#ffffff'; }
+
+  ustawTlo(kolor, i = this.aktywna) {
+    this.tla[i] = kolor;
     this.canvas.requestRenderAll();
     this.oznaczZmiane();
   }
 
-  // Miniatura bieżącego płótna (bez prowadnic i uchwytów).
-  miniatura(szerokoscPx = 160) {
+  // Tła stron rysujemy pod obiektami (każda strona rozkładówki ma swoje).
+  _rysujTla(ctx) {
+    if (!this.wydruk) return;
+    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const v = this.canvas.viewportTransform;
+    const n = this.strony.length;
+    ctx.save();
+    ctx.transform(v[0], 0, 0, v[3], v[4], v[5]);
+    this.strony.forEach((s, i) => {
+      ctx.fillStyle = this.tla[i] || '#ffffff';
+      const x1 = i === 0 ? -b : s.x;
+      const x2 = i === n - 1 ? s.x + w + b : s.x + w;
+      ctx.fillRect(x1, -b, x2 - x1, h + 2 * b);
+    });
+    ctx.restore();
+  }
+
+  // Wycinek płótna z jedną stroną arkusza (ze spadem), w pikselach płótna.
+  _wycinek(i) {
+    if (!this.rozkladowka) return {};
+    const { szerokosc_mm: w, spad_mm: b } = this.wydruk;
+    const s = this.skala;
+    return { left: this.strony[i].x * s, top: 0, width: (w + 2 * b) * s, height: this.canvas.getHeight() };
+  }
+
+  _obraz(mnoznik, i) {
     this._renderujeEksport = true;
     try {
-      return this.canvas.toDataURL({
-        format: 'png',
-        multiplier: szerokoscPx / this.canvas.getWidth(),
-      });
+      return this.canvas.toDataURL({ format: 'png', multiplier: mnoznik, ...this._wycinek(i) });
     } finally {
       this._renderujeEksport = false;
       this.canvas.requestRenderAll();
     }
   }
 
-  // PNG bieżącej strony w zadanej rozdzielczości (ze spadem).
-  png(dpi = 150) {
-    const mnoznik = (dpi / 25.4) / this.skala;
-    this._renderujeEksport = true;
-    try {
-      return this.canvas.toDataURL({ format: 'png', multiplier: mnoznik });
-    } finally {
-      this._renderujeEksport = false;
-      this.canvas.requestRenderAll();
-    }
+  // Miniatura strony arkusza (bez prowadnic i uchwytów).
+  miniatura(szerokoscPx = 160, i = this.aktywna) {
+    const { szerokosc_mm: w, spad_mm: b } = this.wydruk;
+    return this._obraz(szerokoscPx / ((w + 2 * b) * this.skala), i);
+  }
+
+  // PNG strony arkusza w zadanej rozdzielczości (ze spadem).
+  png(dpi = 150, i = this.aktywna) {
+    return this._obraz((dpi / 25.4) / this.skala, i);
   }
 
   // ---------- Zmiany i historia (cofanie) ----------
@@ -270,7 +377,7 @@ export class Edytor extends EventTarget {
   _stan() {
     return JSON.stringify({
       objects: this.canvas.toJSON(WLASNE_POLA).objects,
-      backgroundColor: this.canvas.backgroundColor,
+      tla: this.tla,
     });
   }
 
@@ -303,7 +410,9 @@ export class Edytor extends EventTarget {
   async _przywroc(stan) {
     this._wczytywanie = true;
     this.canvas.discardActiveObject();
-    await new Promise((ok) => this.canvas.loadFromJSON(stan, ok));
+    const { objects, tla } = JSON.parse(stan);
+    this.tla = tla;
+    await new Promise((ok) => this.canvas.loadFromJSON({ objects }, ok));
     this._dodajWzorce();
     this._zastosujBlokady();
     this._dopasujRozmiar();
@@ -324,16 +433,17 @@ export class Edytor extends EventTarget {
     return obj;
   }
 
+  // Położenie nowego elementu: środek strony bieżącej.
   _srodek(szer, wys) {
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
-    return { left: (w - szer) / 2, top: (h - wys) / 2 };
+    return { left: this.strony[this.aktywna].x + (w - szer) / 2, top: (h - wys) / 2 };
   }
 
   dodajTekst(tresc = 'Kliknij dwa razy, aby edytować') {
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
     const szer = Math.max(20, w - this.marg.lewy - this.marg.prawy);
     const t = new fabric.Textbox(tresc, {
-      left: this.marg.lewy,
+      left: this.strony[this.aktywna].x + this.marg.lewy,
       top: (h - 10) / 2,
       width: szer,
       fontFamily: DOMYSLNA,
@@ -424,6 +534,7 @@ export class Edytor extends EventTarget {
     this._schowek = await new Promise((ok) => akt.clone(ok, WLASNE_POLA));
     this._wklejen = 0;
     this._schowekZ = this._znacznikStrony;
+    this._schowekX = this.strony[this.stronaW(this._srodekObiektu(akt).x)].x;
     this.dispatchEvent(new Event('schowek'));
     return true;
   }
@@ -432,14 +543,23 @@ export class Edytor extends EventTarget {
     if (await this.kopiuj()) this.usun();
   }
 
-  // Na tej samej stronie wklejka jest lekko przesunięta, na innej trafia w to samo miejsce.
+  // Na tym samym arkuszu wklejka jest lekko przesunięta, na innym trafia w to
+  // samo miejsce strony bieżącej.
   async wklej() {
     if (!this._schowek) return;
     const kopia = await new Promise((ok) => this._schowek.clone(ok, WLASNE_POLA));
-    if (this._schowekZ === this._znacznikStrony) this._wklejen += 1; else { this._wklejen = 0; this._schowekZ = this._znacznikStrony; }
+    let dx = 0;
+    if (this._schowekZ === this._znacznikStrony) this._wklejen += 1;
+    else {
+      dx = this.strony[this.aktywna].x - this._schowekX;
+      this._schowek.set({ left: this._schowek.left + dx });
+      this._schowekX += dx;
+      this._wklejen = 0;
+      this._schowekZ = this._znacznikStrony;
+    }
     const d = 5 * this._wklejen;
     this.canvas.discardActiveObject();
-    kopia.set({ left: kopia.left + d, top: kopia.top + d, evented: true });
+    kopia.set({ left: kopia.left + dx + d, top: kopia.top + d, evented: true });
     if (kopia.type === 'activeSelection') {
       kopia.canvas = this.canvas;
       kopia.forEachObject((o) => { o.set({ id: uid('o') }); this.canvas.add(o); });
@@ -470,17 +590,23 @@ export class Edytor extends EventTarget {
   }
 
   // jak: 'lewo' | 'srodekX' | 'prawo' | 'gora' | 'srodekY' | 'dol'.
-  // Kilka obiektów wyrównuje się do siebie, jeden – do obszaru w marginesach.
+  // Kilka obiektów wyrównuje się do siebie, jeden – do obszaru w marginesach
+  // strony, na której leży (element przez grzbiet: do obu stron razem).
   wyrownaj(jak) {
     this._naZaznaczonych((ramki) => {
       const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
-      const m = this.marg;
+      const obszar = (r) => {
+        const przez = this._przezGrzbiet(r.x, r.x + r.w);
+        const a = przez ? this.strony[0] : this.strony[this.stronaW(r.x + r.w / 2)];
+        const z = przez ? this.strony[1] : a;
+        return { x1: a.x + a.marg.lewy, x2: z.x + w - z.marg.prawy, y1: a.marg.gora, y2: h - a.marg.dol };
+      };
       const pole = ramki.length > 1
         ? {
           x1: Math.min(...ramki.map((r) => r.x)), x2: Math.max(...ramki.map((r) => r.x + r.w)),
           y1: Math.min(...ramki.map((r) => r.y)), y2: Math.max(...ramki.map((r) => r.y + r.h)),
         }
-        : { x1: m.lewy, x2: w - m.prawy, y1: m.gora, y2: h - m.dol };
+        : obszar(ramki[0]);
       for (const r of ramki) {
         if (r.o.zablokowany) continue;
         const dx = { lewo: pole.x1 - r.x, srodekX: (pole.x1 + pole.x2) / 2 - (r.x + r.w / 2), prawo: pole.x2 - (r.x + r.w) }[jak] || 0;
@@ -587,10 +713,19 @@ export class Edytor extends EventTarget {
 
   // ---------- Ostrzeżenia o układzie (4.5) ----------
 
+  // Czy ramka x1..x2 leży świadomie na obu stronach rozkładówki: zaczyna się
+  // przed wewnętrznym marginesem lewej strony i kończy za wewnętrznym prawej.
+  // Element, który tylko wystaje w pas przy grzbiecie, nadal dostaje ostrzeżenie.
+  _przezGrzbiet(x1, x2) {
+    if (!this.rozkladowka) return false;
+    const [l, p] = this.strony;
+    return x1 < p.x - l.marg.prawy && x2 > p.x + p.marg.lewy;
+  }
+
   przeliczOstrzezenia() {
     if (!this.wydruk) return;
-    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
-    const m = this.marg;
+    const { szerokosc_mm: wStrony, wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const w = this.szerokoscArkusza;
     const tol = 0.05;
     const lista = [];
     for (const o of this.canvas.getObjects()) {
@@ -599,6 +734,12 @@ export class Edytor extends EventTarget {
       const r = o.getBoundingRect(true, true);
       const x1 = r.left; const y1 = r.top;
       const x2 = r.left + r.width; const y2 = r.top + r.height;
+      // Obszar bezpieczny: marginesy strony z elementem albo – dla elementu
+      // przez grzbiet – zewnętrzne marginesy obu stron.
+      const przez = this._przezGrzbiet(x1, x2);
+      const a = przez ? this.strony[0] : this.strony[this.stronaW((x1 + x2) / 2)];
+      const z = przez ? this.strony[1] : a;
+      const m = { lewy: a.x + a.marg.lewy, prawy: w - (z.x + wStrony - z.marg.prawy), gora: a.marg.gora, dol: a.marg.dol };
       let typ = null;
       if (x2 < -b || y2 < -b || x1 > w + b || y1 > h + b) {
         typ = 'poza_strona';
@@ -622,7 +763,7 @@ export class Edytor extends EventTarget {
     const prog = 6 / this.skala; // 6 px na ekranie
     obj.setCoords();
     const r = obj.getBoundingRect(true, true);
-    const pion = [0, m.lewy, w / 2, w - m.prawy, w];
+    const pion = this.strony.flatMap((s) => [s.x, s.x + s.marg.lewy, s.x + w / 2, s.x + w - s.marg.prawy, s.x + w]);
     const poziom = [0, m.gora, h / 2, h - m.dol, h];
     const krawedzieX = [r.left, r.left + r.width / 2, r.left + r.width];
     const krawedzieY = [r.top, r.top + r.height / 2, r.top + r.height];
@@ -648,8 +789,8 @@ export class Edytor extends EventTarget {
 
   _poRenderowaniu(ctx) {
     if (this._renderujeEksport || !this.wydruk) return;
-    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = this.wydruk;
-    const m = this.marg;
+    const { szerokosc_mm: wStrony, wysokosc_mm: h, spad_mm: b } = this.wydruk;
+    const w = this.szerokoscArkusza;
     const v = this.canvas.viewportTransform;
     const s = v[0];
     const X = (mm) => v[4] + mm * s;
@@ -673,18 +814,20 @@ export class Edytor extends EventTarget {
       ctx.lineWidth = 1;
       ctx.setLineDash([]);
       ctx.strokeRect(Math.round(X(0)) + 0.5, Math.round(Y(0)) + 0.5, Math.round(w * s) - 1, Math.round(h * s) - 1);
-      // Obszar bezpieczny (marginesy).
-      if (m.lewy + m.prawy + m.gora + m.dol > 0) {
+      // Obszar bezpieczny (marginesy) każdej strony arkusza.
+      for (const { x, marg: m } of this.strony) {
+        if (m.lewy + m.prawy + m.gora + m.dol <= 0) continue;
         ctx.strokeStyle = 'rgba(37, 99, 235, 0.8)';
         ctx.setLineDash([4, 4]);
         ctx.strokeRect(
-          Math.round(X(m.lewy)) + 0.5, Math.round(Y(m.gora)) + 0.5,
-          Math.round((w - m.lewy - m.prawy) * s) - 1, Math.round((h - m.gora - m.dol) * s) - 1,
+          Math.round(X(x + m.lewy)) + 0.5, Math.round(Y(m.gora)) + 0.5,
+          Math.round((wStrony - m.lewy - m.prawy) * s) - 1, Math.round((h - m.gora - m.dol) * s) - 1,
         );
       }
       // Grzbiet w rozkładówce: gruba linia po stronie zszycia.
-      if (m.grzbiet) {
-        const gx = Math.round(X(m.grzbiet === 'lewy' ? 0 : w)) + 0.5;
+      const grzbiet = this.strony[0].marg.grzbiet;
+      if (grzbiet) {
+        const gx = Math.round(X(grzbiet === 'lewy' ? 0 : wStrony)) + 0.5;
         ctx.strokeStyle = 'rgba(28, 27, 25, 0.75)';
         ctx.lineWidth = 2;
         ctx.setLineDash([]);

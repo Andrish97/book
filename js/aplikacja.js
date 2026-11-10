@@ -5,7 +5,7 @@ import {
   FORMATY, nowyProjekt, nowaStrona, nowaSekcja, nowyWzorzec, normalizuj, normalizujWydruk,
   kopiujStrone, kopiujWzorzec, kopiujProjekt,
   uporzadkujStrony, sekcjaStrony, stronySekcji, wzorceStrony, stronyZWzorcem, tloStrony,
-  stronaRozkladowki, sasiadStrony, marginesyStrony, marginesyWzorca, numeryStron,
+  stronaRozkladowki, stronyArkusza, marginesyStrony, marginesyWzorca, numeryStron,
   WZORCE_Z_SEKCJI,
 } from './projekt.js';
 import { Edytor, opisObiektu } from './edytor.js';
@@ -506,65 +506,55 @@ function odswiezPasekEdytora() {
   $('#przycisk-format').disabled = wz;
 }
 
-// ---------- Rozkładówka: sąsiednia strona obok edytowanej ----------
+// ---------- Arkusz: strona albo cała rozkładówka na jednym płótnie ----------
 
-const sasiad = { strona: null, bok: null };
-
-async function odswiezSasiada() {
-  const el = $('#sasiad');
-  const s = stan.tryb === 'strona' ? sasiadStrony(stan.projekt, biezacaStrona()) : null;
-  sasiad.strona = s;
-  if (!s) {
-    el.hidden = true;
-    edytor.obokMm = 0;
-    return;
-  }
-  const wydruk = biezacaSekcja().wydruk;
-  sasiad.bok = stronaRozkladowki(stan.projekt, s); // po której stronie leży sąsiad
-  edytor.obokMm = wydruk.szerokosc_mm - wydruk.spad_mm;
-  el.hidden = false;
-  el.classList.toggle('po-prawej', sasiad.bok === 'prawa');
-  el.title = `${s.nazwa} – kliknij, aby edytować`;
-  ustawRozmiarSasiada();
-  const projekt = stan.projekt;
-  const url = await renderujCel(projekt, s, { szerokoscPx: Math.min(1400, Math.round(wydruk.szerokosc_mm * 8)), spad: false });
-  if (stan.projekt === projekt && sasiad.strona === s) $('img', el).src = url;
-}
-
-function ustawRozmiarSasiada() {
-  if (!sasiad.strona || !edytor.wydruk) return;
-  const el = $('#sasiad');
-  const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: b } = edytor.wydruk;
-  const sk = edytor.skala;
-  el.style.width = `${w * sk}px`;
-  el.style.height = `${h * sk}px`;
-  el.style.marginTop = `${b * sk}px`;
-  // Sąsiad zakrywa wewnętrzny spad edytowanej strony – krawędzie stykają się na grzbiecie.
-  el.style.marginRight = sasiad.bok === 'lewa' ? `${-b * sk}px` : '';
-  el.style.marginLeft = sasiad.bok === 'prawa' ? `${-b * sk}px` : '';
-}
+// Co jest teraz wczytane do edytora: { wzorzec: id } albo { strony: [id, …] }
+// (rozkładówka: lewa, prawa). null w trakcie wczytywania – wtedy płótna nie
+// wolno przepisywać do projektu.
+let naPlotnie = null;
 
 // Wczytuje bieżący cel do edytora; dopasowuje widok, gdy zmienił się rozmiar.
 async function zaladujCel({ dopasuj = false } = {}) {
+  const { projekt } = stan;
   const wydruk = wydrukCelu();
   const cel = biezacyCel();
   const poprzedni = edytor.wydruk;
-  const mialSasiada = Boolean(sasiad.strona);
+  const bylaRozkladowka = poprzedni ? edytor.rozkladowka : null;
   const innyRozmiar = !poprzedni || ['szerokosc_mm', 'wysokosc_mm', 'spad_mm'].some((k) => poprzedni[k] !== wydruk[k]);
+  naPlotnie = null;
   if (stan.tryb === 'wzorzec') {
     edytor.ustawWydruk(wydruk, marginesyWzorca(cel));
-    await edytor.wczytajStrone({ obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff' }, stan.projekt.zasoby, null);
+    await edytor.wczytajStrone({ id: cel.id, obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff' }, projekt.zasoby, null);
+    naPlotnie = { wzorzec: cel.id };
   } else {
-    edytor.ustawWydruk(wydruk, marginesyStrony(stan.projekt, cel));
-    const warstwy = await warstwyWzorcow(stan.projekt, cel);
-    await edytor.wczytajStrone({ obiekty: cel.obiekty, tlo: tloStrony(stan.projekt, cel) }, stan.projekt.zasoby, warstwy);
+    const strony = stronyArkusza(projekt, cel);
+    const numery = numeryStron(projekt);
+    const dane = [];
+    for (const s of strony) {
+      dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), warstwy: await warstwyWzorcow(projekt, s, numery) });
+    }
+    edytor.ustawWydruk(wydruk, strony.map((s) => marginesyStrony(projekt, s)));
+    edytor.ustawAktywna(strony.indexOf(cel));
+    await edytor.wczytajArkusz(dane, projekt.zasoby);
+    naPlotnie = { strony: strony.map((s) => s.id) };
   }
-  odswiezSasiada();
-  if (dopasuj || innyRozmiar || mialSasiada !== Boolean(sasiad.strona)) edytor.dopasujDoOkna();
-  ustawRozmiarSasiada();
+  if (dopasuj || innyRozmiar || bylaRozkladowka !== edytor.rozkladowka) edytor.dopasujDoOkna();
   odswiezPasekEdytora();
   renderujListe();
-  trasa.ustaw(`p/${stan.projekt.id}/${stan.tryb === 'wzorzec' ? `w/${cel.id}` : `s/${cel.id}`}`, { zastap: true });
+  trasa.ustaw(`p/${projekt.id}/${stan.tryb === 'wzorzec' ? `w/${cel.id}` : `s/${cel.id}`}`, { zastap: true });
+}
+
+// Druga strona tej samej rozkładówki staje się bieżącą – bez wczytywania od nowa.
+function wybierzStroneArkusza(k) {
+  const id = naPlotnie?.strony?.[k];
+  const i = stan.projekt.strony.findIndex((s) => s.id === id);
+  if (i < 0 || (stan.tryb === 'strona' && i === stan.indeks)) return;
+  stan.indeks = i;
+  edytor.ustawAktywna(k);
+  odswiezPasekEdytora();
+  renderujListe();
+  trasa.ustaw(`p/${stan.projekt.id}/s/${id}`, { zastap: true });
+  if (!edytor.aktywny) panel.zbuduj();
 }
 
 function stanZapisu(rodzaj, tekst) {
@@ -579,6 +569,7 @@ function stanZapisu(rodzaj, tekst) {
 // cel: { strona: id, wzorzec: id } – opcjonalnie, np. z adresu strony.
 async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
+  naPlotnie = null;
   stan.projekt = normalizuj(p);
   stan.indeks = Math.max(0, stan.projekt.strony.findIndex((x) => x.id === cel.strona));
   const wzorzec = cel.wzorzec && stan.projekt.wzorce.find((w) => w.id === cel.wzorzec);
@@ -611,6 +602,7 @@ async function doEdycji(idStrony) {
   } else {
     trasa.ustaw(`p/${stan.projekt.id}`);
     await przejdzDoStrony(i);
+    edytor.canvas.calcOffset();
   }
 }
 
@@ -768,24 +760,34 @@ async function doProjektow() {
   pokazProjekty();
 }
 
-// Przepisuje płótno do bieżącego celu (strony lub wzorca).
+// Przepisuje płótno do tego, co jest na nim wczytane: wzorca albo stron arkusza
+// (w rozkładówce – obu naraz; element należy do strony, na której leży jego środek).
 function zapiszBiezacyCel() {
-  if (!stan.projekt) return;
-  const cel = biezacyCel();
-  if (!cel) return;
-  cel.obiekty = edytor.obiektyStrony();
-  const tlo = kolor(edytor.canvas.backgroundColor || '#ffffff');
-  if (stan.tryb === 'strona') {
-    // Własne tło zapisujemy tylko wtedy, gdy różni się od tła z wzorców.
-    const odziedziczone = kolor(tloStrony(stan.projekt, { ...cel, tlo: null }));
-    cel.tlo = tlo === odziedziczone ? null : tlo;
-  } else {
+  const { projekt } = stan;
+  if (!projekt || !naPlotnie) return;
+  if (naPlotnie.wzorzec) {
+    const cel = projekt.wzorce.find((w) => w.id === naPlotnie.wzorzec);
+    if (!cel) return;
+    cel.obiekty = edytor.obiektyStrony();
     // Białe tło wzorca znaczy „bez tła” – nie nadpisuje innych wzorców.
+    const tlo = kolor(edytor.tla[0] || '#ffffff');
     cel.tlo = tlo === '#ffffff' ? null : tlo;
     // Strony z tym wzorcem trzeba przerysować.
-    for (const s of stronyZWzorcem(stan.projekt, cel.id)) stan.miniatury.delete(s.id);
+    for (const s of stronyZWzorcem(projekt, cel.id)) stan.miniatury.delete(s.id);
+    stan.miniatury.set(cel.id, edytor.miniatura(200, 0));
+  } else {
+    const obiekty = edytor.obiektyStron();
+    naPlotnie.strony.forEach((id, i) => {
+      const cel = projekt.strony.find((s) => s.id === id);
+      if (!cel) return;
+      cel.obiekty = obiekty[i];
+      // Własne tło zapisujemy tylko wtedy, gdy różni się od tła z wzorców.
+      const tlo = kolor(edytor.tla[i] || '#ffffff');
+      const odziedziczone = kolor(tloStrony(projekt, { ...cel, tlo: null }));
+      cel.tlo = tlo === odziedziczone ? null : tlo;
+      stan.miniatury.set(cel.id, edytor.miniatura(200, i));
+    });
   }
-  stan.miniatury.set(cel.id, edytor.miniatura(200));
   const pierwsza = stan.projekt.strony[0];
   stan.projekt.miniatura = stan.miniatury.get(pierwsza.id) || stan.projekt.miniatura;
 }
@@ -801,7 +803,7 @@ async function zapiszTeraz() {
   stan.timerZapisu = null;
   if (!stan.projekt) return stan.zapisywanie;
   zapiszBiezacyCel();
-  odswiezMiniature(biezacyCel()?.id);
+  for (const id of naPlotnie?.strony || [naPlotnie?.wzorzec]) odswiezMiniature(id);
   stan.projekt.zmieniono = new Date().toISOString();
   const projekt = stan.projekt;
   stan.zapisywanie = stan.zapisywanie.then(async () => {
@@ -907,7 +909,7 @@ function panelStrony(p) {
   sel.classList.add('szeroki');
   s.append(sel);
 
-  s.append(p.kolor('Tło', () => edytor.canvas.backgroundColor || '#ffffff', (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+  s.append(p.kolor('Tło', () => edytor.tloAktywnej, (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
   if (strona.tlo) {
     s.append(p.akcje([['cofnij', 'Tło z wzorca', () => {
       edytor.ustawTlo(tloStrony(projekt, { ...strona, tlo: null }));
@@ -943,6 +945,7 @@ function panelStrony(p) {
 
   const f = p.sekcja(`Sekcja „${sekcja.nazwa}”`);
   f.append(p.wskazowka(`${sekcja.uklad === 'rozkladowki' ? `Rozkładówki – to strona ${bok}. ` : ''}${nazwaFormatu(sekcja.wydruk, true, sekcja.uklad === 'rozkladowki')}`));
+  if (edytor.rozkladowka) f.append(p.wskazowka('Obie strony rozkładówki edytujesz razem. Element może leżeć przez grzbiet – na każdej stronie wydrukuje się jego część.'));
   f.append(p.akcje([['format', 'Ustawienia sekcji', () => otworzUstawieniaSekcji(sekcja.id)]]));
 
   p.legendaProwadnic(Boolean(bok));
@@ -958,7 +961,7 @@ function panelWzorca(p) {
     odswiezPasekEdytora();
     zaplanujZapis();
   }, true, false));
-  s.append(p.kolor('Tło stron', () => edytor.canvas.backgroundColor || '#ffffff', (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+  s.append(p.kolor('Tło stron', () => edytor.tloAktywnej, (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
   s.append(p.wskazowka('Białe tło znaczy „bez tła” – wzorzec nie zmienia wtedy koloru strony.'));
   s.append(p.przelacznik('Odbijaj lustrzanie na lewych stronach rozkładówek', () => w.lustro, (v) => {
     w.lustro = v;
@@ -1067,10 +1070,11 @@ function renderujListeStron() {
     strony.forEach((s, k) => {
       const i = projekt.strony.indexOf(s);
       const aktywna = stan.tryb === 'strona' && i === stan.indeks;
+      const naArkuszu = stan.tryb === 'strona' && !aktywna && Boolean(naPlotnie?.strony?.includes(s.id));
       const bok = stronaRozkladowki(projekt, s);
       const nr = numery.get(s.id);
       const li = document.createElement('li');
-      li.className = `strona${aktywna ? ' aktywna' : ''}${bok ? ` w-rozkladowce ${bok}` : ''}`;
+      li.className = `strona${aktywna ? ' aktywna' : ''}${naArkuszu ? ' na-arkuszu' : ''}${bok ? ` w-rozkladowce ${bok}` : ''}`;
       // Pierwsza prawa strona sekcji stoi sama w prawej kolumnie.
       if (bok === 'prawa' && k === 0) li.classList.add('sama');
       li.dataset.id = s.id;
@@ -1164,10 +1168,14 @@ function generujMiniatury() {
 async function przejdzDoStrony(i) {
   if (i < 0 || i >= stan.projekt.strony.length) return;
   if (stan.tryb === 'strona' && i === stan.indeks) return;
-  zapiszBiezacyCel();
-  stan.tryb = 'strona';
-  stan.indeks = i;
-  await zaladujCel();
+  const naArkuszu = stan.tryb === 'strona' ? (naPlotnie?.strony || []).indexOf(stan.projekt.strony[i].id) : -1;
+  if (naArkuszu >= 0) wybierzStroneArkusza(naArkuszu);
+  else {
+    zapiszBiezacyCel();
+    stan.tryb = 'strona';
+    stan.indeks = i;
+    await zaladujCel();
+  }
   if (document.body.dataset.panel === 'strony') ustawPanel('');
 }
 
@@ -1217,7 +1225,7 @@ async function usunStrone(i) {
 }
 
 // Przesuwanie w obrębie sekcji (do innej sekcji – przez właściwości strony).
-function przesunStrone(i, kierunek) {
+async function przesunStrone(i, kierunek) {
   const strony = stan.projekt.strony;
   const j = i + kierunek;
   if (j < 0 || j >= strony.length || strony[j].sekcja !== strony[i].sekcja) return;
@@ -1226,6 +1234,11 @@ function przesunStrone(i, kierunek) {
   [strony[i], strony[j]] = [strony[j], strony[i]];
   stan.indeks = strony.indexOf(biezaca);
   for (const s of strony) if (wzorceStrony(stan.projekt, s).length) stan.miniatury.delete(s.id); // numery stron
+  // W rozkładówkach zmienia się para stron i ich marginesy.
+  if (sekcjaStrony(stan.projekt, strony[i]).uklad === 'rozkladowki') {
+    stan.miniatury.clear();
+    if (stan.tryb === 'strona') await zaladujCel();
+  }
   renderujListe();
   zaplanujZapis();
 }
@@ -1784,11 +1797,8 @@ edytor.addEventListener('schowek', () => { if (!edytor.aktywny) panel.zbuduj(); 
 edytor.addEventListener('ostrzezenia', (e) => renderujOstrzezenia(e.detail));
 edytor.addEventListener('zoom', (e) => {
   $('#wartosc-zoom').textContent = `${Math.round(e.detail * 100)}%`;
-  ustawRozmiarSasiada();
 });
-$('#sasiad').addEventListener('click', () => {
-  if (sasiad.strona) przejdzDoStrony(stan.projekt.strony.indexOf(sasiad.strona));
-});
+edytor.addEventListener('strona', (e) => wybierzStroneArkusza(e.detail));
 edytor.addEventListener('historia', () => {
   $('[data-akcja="cofnij"]').disabled = !edytor.moznaCofnac;
   $('[data-akcja="ponow"]').disabled = !edytor.moznaPonowic;
@@ -1932,5 +1942,5 @@ start().catch((e) => {
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
-  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle,
+  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz,
 };

@@ -815,21 +815,8 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 
 /* ---------- Rozkładówki ---------- */
 
-.arkusz { display: flex; align-items: flex-start; }
-.arkusz .canvas-container { flex: none; order: 1; }
-.sasiad {
-  flex: none; order: 0; position: relative; z-index: 2;
-  padding: 0; border: 0; background: #fff; cursor: pointer; overflow: hidden;
-  box-shadow: var(--cien-strony);
-}
-.sasiad.po-prawej { order: 2; }
-.sasiad img { display: block; width: 100%; height: 100%; }
-.sasiad::after {
-  content: "Kliknij, aby edytować"; position: absolute; inset: auto 0 0 0;
-  padding: 6px; background: rgba(28, 27, 25, .7); color: #fff; font-size: 12px; text-align: center;
-  opacity: 0; transition: opacity var(--czas);
-}
-.sasiad:hover::after, .sasiad:focus-visible::after { opacity: 1; }
+/* Druga strona rozkładówki otwartej w edytorze. */
+.strona.na-arkuszu .miniatura { border-color: color-mix(in srgb, var(--akcent) 45%, transparent); }
 
 .lista-stron { display: grid; grid-template-columns: 1fr 1fr; align-content: start; column-gap: 8px; }
 .lista-stron > li { grid-column: 1 / -1; }

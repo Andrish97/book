@@ -10,14 +10,18 @@ Dopisz uwagi pod punktami (np. „→ zmień na…”), a ja przeniosę decyzje 
 
 ## 0. Co musisz zrobić w Supabase, żeby konta i zapis działały
 
-Tego nie mogę zrobić ani sprawdzić z repozytorium.
+Jedna rzecz, raz. Bez tokenów i bez wklejania czegokolwiek.
 
-1. **Baza.** Tabeli `projekty` nadal nie ma – integracja z GitHubem nie wykonała migracji. Wklej `supabase/migrations/20261109120000_projekty_i_zasoby.sql` w SQL Editor i uruchom (tworzy tabelę z licznikiem wersji, buckety `zasoby` i `podglady`, reguły dostępu i funkcję `usun_konto`). Albo popraw integrację (Deploy to production, gałąź `main`).
-2. **Poczta (SMTP).** Wbudowana poczta Supabase wysyła tylko na adresy członków Twojego zespołu w Supabase i ma limit kilku wiadomości na godzinę. Żeby rejestracja działała dla innych osób, podepnij własny SMTP: Authentication → Emails → SMTP Settings (np. Resend, Brevo). Bez tego potwierdzenie konta dojdzie tylko do Ciebie.
-3. **Szablony wiadomości.** Są w `supabase/templates/` i w `supabase/config.toml`. Jeśli integracja ich nie przeniesie, wklej treść plików w Authentication → Emails → Templates (Confirm signup, Reset password, Change email address) i ustaw tematy z `config.toml`.
-4. **Adresy powrotu.** Authentication → URL Configuration: Site URL `https://andrish97.github.io/book/`, Redirect URLs `https://andrish97.github.io/book/**`. Bez tego linki z wiadomości nie wrócą do aplikacji.
-5. **Hasła.** Authentication → Sign In / Providers → Email: minimalna długość 8 i wymagane małe, wielkie litery, cyfry i znaki specjalne (aplikacja sprawdza to samo po swojej stronie).
-6. **Domena.** W dniu wyboru nazwy wolne były `seriodruk.com`, `seriodruk.app` i `seriodruk.pl`. Po podpięciu domeny trzeba zmienić Site URL, Redirect URLs i `site_url` w `config.toml`.
+1. **Włącz wdrażanie z GitHuba.** Supabase → Project Settings → Integrations → GitHub: w polu **Working directory** kropka (`.`), włączone **Deploy to production**, zapisz. Samo podpięcie repozytorium nie wystarcza – bez tej opcji integracja nic nie robi po pushu. Od tej chwili każdy push na `main`, z dowolnej rozmowy, stosuje to, co jest w folderze `supabase/`:
+   - migracje z `supabase/migrations/` (tabela `projekty` z licznikiem wersji, foldery `zasoby` i `podglady`, reguły dostępu, funkcja `usun_konto`),
+   - ustawienia logowania z `supabase/config.toml`: adres aplikacji i adresy powrotu, wymagania hasła, rejestracja bez potwierdzania e-mailem, tematy i szablony wiadomości. Integracja przenosi je dlatego, że w `config.toml` jest blok `[remotes.production]` z identyfikatorem projektu.
+2. **Gdyby po pushu nadal nic się nie działo:** Supabase → Branches → `main` → View logs pokazuje, na którym kroku wdrożenie stanęło.
+
+Czego stąd nie widzę: ustawień integracji ani jej logów. Wiem tylko, czy tabela `projekty` odpowiada pod publicznym adresem projektu.
+
+**Poczta – nie teraz.** Wbudowana poczta Supabase dostarcza wiadomości tylko właścicielom projektu i ma limit kilku na godzinę. Dlatego rejestracja działa bez linku potwierdzającego (decyzja #33). Reset hasła i zmiana adresu e-mail u innych osób zaczną działać dopiero po podpięciu własnego serwera poczty: Authentication → Emails → SMTP Settings (np. Resend, Brevo). Wtedy można też z powrotem włączyć potwierdzanie (`enable_confirmations = true` w `config.toml`).
+
+**Domena.** W dniu wyboru nazwy wolne były `seriodruk.com`, `seriodruk.app` i `seriodruk.pl`. Po podpięciu domeny trzeba zmienić Site URL, Redirect URLs i `site_url` w `config.toml`.
 
 ---
 
@@ -35,7 +39,7 @@ Tego nie mogę zrobić ani sprawdzić z repozytorium.
 ### A3. Wszystko w milimetrach ✅
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** `tests/` – 26 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
+**Co jest.** `tests/` – 27 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, konflikt zapisu. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”).
 **Słabe.** Atrapa udaje Supabase – prawdziwej bazy, reguł RLS i poczty testy nie sprawdzają. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
 
 ---
@@ -46,7 +50,7 @@ Tego nie mogę zrobić ani sprawdzić z repozytorium.
 **Co jest.** Ekran dzielony na pół: z lewej stała ciemna „okładka” z nazwą, z prawej formularz z przełącznikiem Logowanie / Nowe konto. Wymagania hasła zaznaczają się na żywo. Po rejestracji widok „Sprawdź skrzynkę” z ponowną wysyłką po 60 s. Reset hasła linkiem. Powrót z linku w e-mailu jest rozpoznawany (potwierdzenie, reset, zmiana adresu, wygasły link).
 **Dlaczego tak.** Z familijnej wzięty jest tylko zakres funkcji (rejestracja z potwierdzeniem, zasady hasła, ponowna wysyłka). Wygląd jest własny – po Twojej uwadze (decyzja #27) pierwsza wersja, która układem przypominała familijną, została przeprojektowana.
 **Czego nie ma z familijnej (świadomie):** konta gościa, logowania nazwą użytkownika, limitów „raz na godzinę”, zabezpieczenia przed botami (Turnstile). Dopisz, jeśli któreś jest potrzebne.
-**Słabe.** Działa dopiero po kroku 0.2 (SMTP). Rejestracja jest otwarta dla każdego – świadomie (decyzja #29).
+**Słabe.** Konto działa od razu, bez potwierdzania adresu (decyzja #33) – ktoś może się zarejestrować na cudzy e-mail. Rejestracja jest otwarta dla każdego – świadomie (decyzja #29).
 
 ### B2. Ustawienia konta ✅
 **Co jest.** `#/konto`: jedna kolumna grup (Profil, Logowanie, Wygląd, Urządzenia, Usuwanie konta) z nawigacją po lewej. Każde ustawienie to wiersz „opis – wartość – akcja”; formularze zmiany adresu, hasła i usunięcia konta rozwijają się w swoim wierszu dopiero po kliknięciu.
@@ -55,7 +59,7 @@ Tego nie mogę zrobić ani sprawdzić z repozytorium.
 
 ### B3. Własne e-maile ✅ / ⚠️
 **Co jest.** Trzy szablony HTML w stylu aplikacji: potwierdzenie konta, nowe hasło, nowy adres.
-**Słabe.** Patrz 0.2 i 0.3 – wysyłka i wgranie szablonów zależą od ustawień w Supabase.
+**Słabe.** Patrz punkt 0 – szablony przenosi integracja, ale wysyłka do innych osób wymaga własnego serwera poczty.
 
 ### B4. Zapis: urządzenie → konto, z wykrywaniem konfliktu ✅ / ⚠️
 **Co jest.** Zapis w przeglądarce po 0,7 s, na konto po 2,5 s. Każdy zapis podnosi licznik wersji; jeśli na koncie jest wersja z innego urządzenia, aplikacja pyta, którą zachować, zamiast nadpisać.
@@ -99,10 +103,11 @@ Doszedł wybór układu: pojedyncze strony albo rozkładówki. Nowy projekt dost
 ### D2. Wyrównywanie, blokada, schowek ✅
 Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstępy, blokada położenia, kopiuj/wytnij/wklej między stronami – skrótami i przyciskami.
 
-### D3. Rozkładówki z marginesami lustrzanymi ✅ / ⚠️
-**Co jest.** Układ sekcji „rozkładówki”, marginesy wewnętrzny/zewnętrzny, grzbiet, sąsiednia strona widoczna obok edytowanej, lista stron w parach.
-**Słabe.** Edytujesz jedną stronę naraz – element nie może leżeć na obu stronach rozkładówki (np. zdjęcie przez grzbiet). Sąsiednia strona jest obrazem, nie da się do niej przyciągać.
-**Lepiej.** Jedno płótno na całą rozkładówkę – większa przebudowa silnika; do decyzji, czy potrzebne.
+### D3. Rozkładówki na jednym płótnie ✅ / ⚠️
+**Co jest.** W sekcji z układem „rozkładówki” lewa i prawa strona są jednym płótnem. Marginesy lustrzane, grzbiet, przyciąganie do prowadnic obu stron, lista stron w parach. Element może leżeć przez grzbiet: w podglądzie, na miniaturach i w udostępnionym linku każda strona pokazuje swoją część. W sekcji z pojedynczymi stronami nic się nie zmieniło – rozkładówki są opcją sekcji.
+**Dlaczego tak.** W pliku projektu strony zostały osobne. Element jest zapisany na tej stronie, na której leży jego środek, z położeniem liczonym od jej rogu; może wystawać poza nią. Przy składaniu strony aplikacja dokłada elementy sąsiedniej strony, które sięgają przez grzbiet. Dzięki temu dodawanie, usuwanie i przestawianie stron działa jak dotąd, a starsze projekty otwierają się bez przeróbek. Kolejność warstw między stronami pamięta pole `z` elementu.
+**Słabe.** Po przestawieniu stron element przez grzbiet idzie ze swoją stroną i zachodzi na nowego sąsiada – trzeba to sprawdzić samemu. Elementy wzorców nie przechodzą przez grzbiet (są przycinane do swojej strony). W wewnętrznym pasku spadu miniatura z edytora pokazuje sąsiednią stronę, a miniatura rysowana w tle – własne tło; przy eksporcie do PDF trzeba będzie to ujednolicić. Na telefonie rozkładówka jest mała i trzeba ją powiększać.
+**Lepiej.** Przełącznik „pokaż tylko jedną stronę” dla małych ekranów.
 
 ### D4. Linie pomocnicze i ostrzeżenia ⚠️
 Bez zmian w zasadzie działania. Nadal brak linijek, własnych prowadnic i przyciągania do innych elementów.
@@ -156,8 +161,8 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 
 ## G. Co proponuję dalej
 
-1. **Supabase – punkt 0** (bez tego konta i zapis na koncie nie działają).
+1. **Supabase – punkt 0**: jedno włączenie „Deploy to production” (bez tego konta i zapis na koncie nie działają).
 2. **Próba na tablecie** – gesty, klawiatura ekranowa, instalacja.
 3. **Etap danych z planu**: import CSV/XLSX, pola `{kolumna}` w tekście, autodopasowanie tekstu, zakresy powielane według wierszy.
 4. Przed etapem PDF: pliki czcionek w repozytorium, pomniejszone obrazy, strony jako osobne wiersze w bazie.
-5. Do Twojej decyzji: jedno płótno na rozkładówkę (D3) – czy elementy mają móc leżeć przez grzbiet.
+5. Po rozkładówkach na jednym płótnie (D3): widok jednej strony na telefonie.
