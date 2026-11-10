@@ -13,10 +13,8 @@
   <link rel="icon" href="img/ikony/ikona.svg" type="image/svg+xml">
   <link rel="icon" href="img/ikony/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="img/ikony/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Wyłącznie czcionki na licencji OFL (lista w js/czcionki.js). -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Source+Serif+4:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <!-- Czcionki leżą w repozytorium (css/czcionki/), wyłącznie na licencji OFL – lista w js/czcionki.js. -->
+  <link rel="stylesheet" href="css/czcionki.css">
   <script>
     (function () {
       var wybor = 'system';
@@ -343,6 +341,7 @@
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
         <div class="menu" id="menu-wiecej" role="menu" hidden>
+          <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
         </div>
@@ -619,6 +618,51 @@
         <button type="button" class="przycisk glowny" id="udostepnij-utworz" data-akcja="udostepnij-utworz">Utwórz link</button>
       </div>
     </div>
+  </dialog>
+
+  <dialog id="dlg-pdf">
+    <form class="formularz" id="form-pdf">
+      <div class="naglowek-dialogu">
+        <h2>Eksport do PDF</h2>
+        <button type="button" class="przycisk-ikona" id="pdf-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Każda strona osobno, w kolejności wydruku, razem z powieleniami serii. Zdjęcia idą w pełnej jakości.</p>
+      <label class="pole"><span>Zakres</span>
+        <select name="zakres">
+          <option value="wszystko">Cały projekt</option>
+          <option value="sekcja">Tylko bieżąca sekcja</option>
+          <option value="strony">Strony od–do</option>
+        </select>
+      </label>
+      <div class="rzad" id="pdf-pole-strony" hidden>
+        <label class="pole"><span>Od strony</span><input name="od" type="number" min="1" step="1" inputmode="numeric"></label>
+        <label class="pole"><span>Do strony</span><input name="do" type="number" min="1" step="1" inputmode="numeric"></label>
+      </div>
+      <label class="pole"><span>Przeznaczenie</span>
+        <select name="druk">
+          <option value="drukarnia">Do drukarni – ze spadem, znaki cięcia według ustawień sekcji</option>
+          <option value="podglad">Do oglądania – równo do formatu, bez spadu i znaków</option>
+        </select>
+      </label>
+      <label class="pole"><span>Jakość</span><select name="dpi"></select></label>
+      <div class="rzad">
+        <label class="pole"><span>Podział na pliki</span>
+          <select name="podzial">
+            <option value="jeden">Jeden plik</option>
+            <option value="sekcje">Osobny plik dla każdej sekcji</option>
+            <option value="czesci">Części po tyle stron</option>
+          </select>
+        </label>
+        <label class="pole waskie" id="pdf-pole-ile" hidden><span>Stron w części</span><input name="ile" type="number" min="1" step="1" value="50" inputmode="numeric"></label>
+      </div>
+      <p class="podpowiedz" id="pdf-podsumowanie"></p>
+      <p class="komunikat" id="pdf-komunikat" role="status"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" id="pdf-anuluj">Anuluj</button>
+        <span class="odstep"></span>
+        <button class="przycisk glowny" id="pdf-eksportuj">Eksportuj</button>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="dlg-potwierdz">

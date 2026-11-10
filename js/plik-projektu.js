@@ -12,26 +12,14 @@
 // formatu przed wczytaniem.
 
 import { NAZWA, ROZSZERZENIE, TYP_MIME, FORMAT_PLIKU } from './marka.js';
+import { biblioteka } from './biblioteki.js';
 
 export { ROZSZERZENIE, TYP_MIME };
 export const WERSJA_FORMATU = 1;
 
 const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
 
-let ladowanie = null;
-function jszip() {
-  if (window.JSZip) return Promise.resolve(window.JSZip);
-  if (!ladowanie) {
-    ladowanie = new Promise((ok, blad) => {
-      const skrypt = document.createElement('script');
-      skrypt.src = JSZIP_URL;
-      skrypt.onload = () => ok(window.JSZip);
-      skrypt.onerror = () => { ladowanie = null; blad(new Error('Nie udało się wczytać modułu ZIP. Sprawdź internet.')); };
-      document.head.append(skrypt);
-    });
-  }
-  return ladowanie;
-}
+const jszip = () => biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
 
 const ROZSZERZENIA = {
   'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'image/gif': 'gif',

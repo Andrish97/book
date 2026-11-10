@@ -7,11 +7,10 @@ import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, zmienNazwePola } from './tabele.js';
 import { blokiSerii, liczbaPowielen } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
-import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa } from './ui.js';
+import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
 
 const MAKS_WIERSZY_NA_EKRANIE = 1500;
-const odmiana = (n, jeden, kilka, wiele) => (n === 1 ? jeden : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? kilka : wiele));
 
 export class Dane {
   // projekt: () => bieżący projekt; przedOtwarciem() – aplikacja przepisuje

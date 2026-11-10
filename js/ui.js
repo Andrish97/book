@@ -77,6 +77,9 @@ export function pobierz(nazwa, url) {
   a.remove();
 }
 
+// Polska odmiana po liczbie: odmiana(3, 'strona', 'strony', 'stron') → 'strony'.
+export const odmiana = (n, jeden, kilka, wiele) => (n === 1 ? jeden : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? kilka : wiele));
+
 export const bezpiecznaNazwa = (s) => (s || 'projekt').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'projekt';
 
 export function kiedy(iso) {

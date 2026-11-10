@@ -14,6 +14,7 @@ import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
 import { przyciagnij, pomiary } from './przyciaganie.js';
 import { znajdzPola } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
+import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -264,6 +265,7 @@ export class Edytor extends EventTarget {
   // strony: [{ id, obiekty, tlo, warstwy }] – jedna albo dwie (lewa, prawa),
   // tyle samo, ile zestawów marginesów dostało ustawWydruk.
   async wczytajArkusz(strony, zasoby) {
+    await przygotujKopie(zasoby, strony.flatMap((s) => s.obiekty || []));
     const w = this.wydruk.szerokosc_mm;
     const b = this.wydruk.spad_mm;
     const h = this.wydruk.wysokosc_mm;
@@ -495,9 +497,13 @@ export class Edytor extends EventTarget {
   async dodajObraz(dataUrl, nazwaPliku, zasoby) {
     const id = uid('z');
     zasoby[id] = { nazwa: nazwaPliku, dataUrl };
+    // Duże zdjęcie pokazujemy lżejszą kopią roboczą; wymiary obiektu zostają w pikselach oryginału.
+    await przygotujKopie(zasoby, [{ type: 'image', zasob: id }]);
     const img = await new Promise((ok, blad) => {
-      fabric.Image.fromURL(dataUrl, (o) => (o ? ok(o) : blad(new Error('Nie udało się wczytać obrazu.'))));
+      fabric.Image.fromURL(zrodloObrazu(zasoby)(id), (o) => (o ? ok(o) : blad(new Error('Nie udało się wczytać obrazu.'))));
     });
+    const { nw, nh } = rozmiarOryginalu(img);
+    img.set({ width: nw, height: nh });
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
     const skala = Math.min((w * 0.6) / img.width, (h * 0.6) / img.height);
     img.set({ zasob: id, nazwa: nazwaPliku, scaleX: skala, scaleY: skala });
@@ -1122,9 +1128,7 @@ export class Edytor extends EventTarget {
     if (this._kadr || !obj || obj.type !== 'image' || obj.zablokowany) return false;
     // Obrócone i odbite obrazy kadruje się liczbami w panelu.
     if ((obj.angle || 0) % 360 !== 0 || obj.flipX || obj.flipY || obj.group) return false;
-    const el = obj.getElement();
-    const nw = el.naturalWidth || el.width;
-    const nh = el.naturalHeight || el.height;
+    const { nw, nh } = rozmiarOryginalu(obj);
     const start = { cropX: obj.cropX, cropY: obj.cropY, width: obj.width, height: obj.height, left: obj.left, top: obj.top };
     const ramka = new fabric.Rect({
       left: obj.left, top: obj.top, width: obj.width * obj.scaleX, height: obj.height * obj.scaleY,

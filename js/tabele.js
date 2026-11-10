@@ -2,23 +2,12 @@
 // Wszystko jest tekstem (plan 4.3) – liczby i daty trafiają do tabeli tak, jak
 // je widać w arkuszu.
 
+import { biblioteka } from './biblioteki.js';
+
 const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-let obietnicaXlsx = null;
 
 // Biblioteka do plików Excela jest duża, więc wczytuje się dopiero przy imporcie.
-function xlsx() {
-  if (window.XLSX) return Promise.resolve(window.XLSX);
-  if (!obietnicaXlsx) {
-    obietnicaXlsx = new Promise((ok, blad) => {
-      const skrypt = document.createElement('script');
-      skrypt.src = XLSX_URL;
-      skrypt.onload = () => ok(window.XLSX);
-      skrypt.onerror = () => { obietnicaXlsx = null; blad(new Error('Nie udało się wczytać obsługi plików Excela. Sprawdź połączenie z internetem.')); };
-      document.head.append(skrypt);
-    });
-  }
-  return obietnicaXlsx;
-}
+const xlsx = () => biblioteka(XLSX_URL, 'XLSX', 'obsługi plików Excela');
 
 // Separator kolumn: ten, który w pierwszych wierszach występuje najrówniej
 // (poza cudzysłowami). Kandydaci: średnik, przecinek, tabulator.

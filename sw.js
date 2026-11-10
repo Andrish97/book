@@ -2,12 +2,12 @@
 //
 // - pliki aplikacji (ta sama domena): najpierw sieć, przy braku sieci kopia
 //   z pamięci – dzięki temu po każdym wdrożeniu od razu działa nowa wersja;
-// - biblioteki z CDN i czcionki Google: najpierw pamięć (mają wersję w adresie);
+// - biblioteki z CDN: najpierw pamięć (mają wersję w adresie);
 // - Supabase (logowanie, dane): zawsze sieć, nic nie jest zapamiętywane.
 
 const PAMIEC = 'seriodruk-v1';
 const PODSTAWA = ['./', './index.html', './manifest.webmanifest', './img/ikony/ikona-192.png'];
-const CDN = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
+const CDN = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(PAMIEC).then((c) => c.addAll(PODSTAWA)).then(() => self.skipWaiting()));

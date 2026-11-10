@@ -1,7 +1,9 @@
 // Lista dozwolonych czcionek (sekcja 11 planu): tylko licencje pozwalające
 // na użycie komercyjne i osadzanie w PDF. Wszystkie poniższe są na licencji
 // SIL Open Font License 1.1 i mają polskie znaki (latin-ext).
-// Przed dodaniem nowej czcionki sprawdź jej licencję na fonts.google.com.
+// Pliki czcionek leżą w css/czcionki/ (pobiera je scripts/pobierz-czcionki.cjs),
+// więc aplikacja nie zależy od serwerów Google. Przed dodaniem nowej czcionki
+// sprawdź jej licencję i dopisz ją także w tym skrypcie.
 
 export const CZCIONKI = [
   { nazwa: 'Inter', licencja: 'OFL 1.1', rodzaj: 'bezszeryfowa' },

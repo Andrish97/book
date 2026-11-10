@@ -10,6 +10,8 @@ import {
 } from './projekt.js';
 import { Edytor, opisObiektu } from './edytor.js';
 import { warstwyWzorcow, renderujCel } from './zlozenie.js';
+import { pngCelu } from './eksport.js';
+import { OknoPdf } from './okno-pdf.js';
 import { rozwin, arkuszStrony, bokStrony, blokiSerii, liczbaPowielen, tabelaSerii } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
 import { MenuWidoku } from './widok.js';
@@ -1938,6 +1940,24 @@ function ustawPanel(nazwa) {
 // Akcje (data-akcja)
 // ======================================================================
 
+// PNG bieżącej strony albo wzorca: 300 dpi, ze spadem, z oryginalnych zdjęć.
+async function pobierzPng() {
+  zapiszBiezacyCel();
+  const cel = biezacyCel();
+  const nazwa = stan.tryb === 'wzorzec' ? `wzorzec-${cel.nazwa}` : `s${stan.indeks + 1}`;
+  try {
+    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-${bezpiecznaNazwa(nazwa)}.png`, await pngCelu(stan.projekt, cel, 300));
+  } catch (blad) {
+    powiadom(blad.message || 'Nie udało się przygotować obrazu.');
+  }
+}
+
+const oknoPdf = new OknoPdf({
+  projekt: () => stan.projekt,
+  sekcja: () => (stan.tryb === 'strona' ? biezacaSekcja() : stan.projekt.sekcje[0]),
+  przedEksportem: zapiszBiezacyCel,
+});
+
 const zMenu = (fn) => () => { const v = fn.zrodlo(); zamknijMenu(); fn(v); };
 const przezMenu = (zrodlo, fn) => { const f = (v) => fn(v); f.zrodlo = zrodlo; return zMenu(f); };
 
@@ -1961,11 +1981,8 @@ const akcje = {
   'podglad-minus': () => podglad.powieksz(0.8),
   'podglad-dopasuj': () => podglad.dopasuj(),
   'podglad-prezentacja': () => podglad.prezentuj(),
-  png: () => {
-    zamknijMenu();
-    const nazwa = stan.tryb === 'wzorzec' ? `wzorzec-${biezacyWzorzec().nazwa}` : `s${stan.indeks + 1}`;
-    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-${bezpiecznaNazwa(nazwa)}.png`, edytor.png(150));
-  },
+  png: () => { zamknijMenu(); pobierzPng(); },
+  pdf: () => { zamknijMenu(); oknoPdf.otworz(); },
   wydruk: () => otworzUstawieniaSekcji(biezacaSekcja().id),
   'zamknij-panel': () => ustawPanel(''),
   'obroc-format': () => {
@@ -2297,5 +2314,5 @@ start().catch((e) => {
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
-  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane,
+  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane, oknoPdf,
 };

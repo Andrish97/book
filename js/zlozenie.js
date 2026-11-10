@@ -11,6 +11,7 @@
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach } from './pola.js';
+import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from './obrazy.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -32,7 +33,9 @@ export function podmienZasoby(obiekty, mapa) {
   });
 }
 
-export const zrodloObrazu = (zasoby) => (id) => zasoby?.[id]?.dataUrl || ZASTEPCZY_OBRAZ;
+// Adres obrazu zasobu: zwykle lżejsza kopia robocza (js/obrazy.js), a przy
+// eksporcie (oryginaly = true) zawsze pełny oryginał.
+export const zrodloObrazu = (zasoby, oryginaly = false) => (id) => (!oryginaly && kopiaRobocza(zasoby?.[id])) || zasoby?.[id]?.dataUrl || ZASTEPCZY_OBRAZ;
 
 const ozyw = (json) => new Promise((ok) => fabric.util.enlivenObjects(json, ok));
 
@@ -60,6 +63,9 @@ function wpiszWRamki(obiekty) {
     if (o.type === 'group') { wpiszWRamki(o.getObjects()); continue; }
     const r = o.ramka_pola;
     if (o.type !== 'image' || !r || !o.width || !o.height) continue;
+    // Podmieniony obraz dostał wymiary źródła – przeliczamy je na piksele oryginału.
+    const { nw, nh } = rozmiarOryginalu(o);
+    o.set({ width: nw, height: nh });
     const skala = Math.min(r.w / o.width, r.h / o.height);
     const srodek = { x: o.left + r.w / 2, y: o.top + r.h / 2 }; // obrót ramki pomijamy przy środkowaniu
     o.set({ scaleX: skala, scaleY: skala, left: srodek.x - (o.width * skala) / 2, top: srodek.y - (o.height * skala) / 2 });
@@ -106,7 +112,7 @@ function trescEgzemplarza(projekt, egz, ciag) {
 
 // Elementy wzorców dla strony (jej pierwszego egzemplarza) albo dla egzemplarza,
 // jako gotowe obiekty Fabric: { pod: [], nad: [] }.
-export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt)) {
+export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { oryginaly = false } = {}) {
   const wynik = { pod: [], nad: [] };
   const egz = egzemplarz(cel, ciag);
   const wzorce = wzorceStrony(projekt, egz.strona);
@@ -116,8 +122,9 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt)) {
   const szerokosc = egz.sekcja.wydruk.szerokosc_mm;
   for (const w of wzorce) {
     if (!w.obiekty.length) continue;
-    const json = podmienZasoby(obrazyZPol(podstawWObiektach(w.obiekty, wartosc), wartosc, projekt.zasoby), zrodloObrazu(projekt.zasoby));
-    const obiekty = await ozyw(json);
+    const surowe = obrazyZPol(podstawWObiektach(w.obiekty, wartosc), wartosc, projekt.zasoby);
+    if (!oryginaly) await przygotujKopie(projekt.zasoby, surowe);
+    const obiekty = await ozyw(podmienZasoby(surowe, zrodloObrazu(projekt.zasoby, oryginaly)));
     wpiszWRamki(obiekty);
     for (const o of obiekty) {
       if (w.lustro && lewa) odbij(o, szerokosc);
@@ -157,8 +164,9 @@ export function obiektyZSasiadem(projekt, cel, ciag = rozwin(projekt)) {
 
 // Renderuje stronę (jej pierwszy egzemplarz), egzemplarz z ciągu albo wzorzec
 // do obrazu (dataURL). opcje: szerokoscPx (z ewentualnym spadem), spad
-// (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach).
-export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88 } = {}) {
+// (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach),
+// oryginaly (pełne obrazy zamiast kopii roboczych – do eksportu).
+export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false } = {}) {
   const jestWzorcem = projekt.wzorce.includes(cel);
   const rozwiniety = jestWzorcem ? null : (ciag || rozwin(projekt));
   const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
@@ -173,9 +181,10 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
     renderOnAddRemove: false,
   });
   const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
-  const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby)));
+  if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
+  const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly)));
   wpiszWRamki(wlasne);
-  const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety);
+  const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety, { oryginaly });
   plotno.backgroundColor = jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona);
   for (const o of [...warstwy.pod, ...wlasne, ...warstwy.nad]) plotno.add(o);
   plotno.setViewportTransform([k, 0, 0, k, b * k, b * k]);

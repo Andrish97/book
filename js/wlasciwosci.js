@@ -2,6 +2,7 @@
 // Panel właściwości: pola liczbowe w mm (4.7 – precyzja na tablecie).
 
 import { CZCIONKI } from './czcionki.js';
+import { rozmiarOryginalu } from './obrazy.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
@@ -429,9 +430,7 @@ export class PanelWlasciwosci {
   }
 
   zbudujObraz(obj) {
-    const el = obj.getElement();
-    const nw = el.naturalWidth || el.width;
-    const nh = el.naturalHeight || el.height;
+    const { nw, nh } = rozmiarOryginalu(obj);
     const kadr = this.sekcja('Kadrowanie');
     kadr.append(this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Obrócony, odbity albo zablokowany obraz przytnij liczbami poniżej.'); }]]));
     kadr.append(this.wskazowka('Albo kliknij obraz dwa razy.'));
