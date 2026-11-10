@@ -215,7 +215,7 @@ export const ROZDZIALY = [
     punkty: [
       'Okno otwiera przycisk <b>Wzorce</b> na górnym pasku edytora (liczba obok to liczba wzorców w projekcie).',
       '<b>Wzorce w tym projekcie</b>: każdy ma miniaturę i dwa przyciski. <b>+ Dodaj do tej strony</b> włącza go na otwartej stronie, <b>+ Do całej sekcji</b> – na wszystkich stronach sekcji, które nie mają własnego wyboru. Ponowne kliknięcie (✓) go zdejmuje.',
-      'Kliknięcie miniatury otwiera wzorzec do edycji. <b>Nowy pusty wzorzec</b> tworzy czysty szablon. Menu <b>⋯</b>: nazwa, duplikowanie, kolejność, usunięcie.',
+      '<b>Edytuj</b> (albo kliknięcie miniatury) otwiera wzorzec do edycji. <b>Nowy pusty wzorzec</b> tworzy czysty szablon. Menu <b>⋯</b>: nazwa, duplikowanie, kolejność, usunięcie.',
       '<b>Wzorce standardowe</b> to gotowe szablony: numer strony na dole albo przy zewnętrznej krawędzi, stopka, nagłówek, linie do pisania, kratka, ramka, zakładka na brzegu. Dopasowują się do formatu i marginesów bieżącej sekcji. Po <b>Dodaj do projektu</b> zmieniasz je jak własne.',
       'Strona może mieć <b>kilka wzorców naraz</b>, np. „tło miesiąca” i „stopka”. Sekcja ma swoje wzorce domyślne, a pojedyncza strona może mieć własny wybór (właściwości strony → <b>Wzorce</b>).',
       'Elementy wzorca leżą <b>pod</b> treścią strony. Zaznacz element we wzorcu i włącz <b>Nad treścią strony</b>, jeśli ma ją przykrywać (ramka, znak wodny).',

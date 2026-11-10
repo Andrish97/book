@@ -254,9 +254,7 @@ async function przykladoweProjekty(strona) {
       });
       document.body.append(d);
     };
-    znacz('#panel-strony', 1, 176, 196);
-    znacz('#kontener-plotna', 2, 24, 90);
-    znacz('#panel-inspektor', 3, 250, 14);
+    void znacz; // numerki nie są już potrzebne – rozdział opisuje części edytora słowami
   });
   await zrzut(s, 'edytor.png');
   await s.evaluate(() => document.querySelectorAll('.znacznik-zrzutu').forEach((d) => d.remove()));
@@ -294,6 +292,13 @@ async function przykladoweProjekty(strona) {
   await s.click('[data-akcja="wroc-do-stron"]');
   await s.click('#lista-stron li.strona:has-text("Styczeń") .miniatura');
   await s.waitForTimeout(800);
+
+  // Okno „Wzorce”: szablony projektu i wzorce standardowe
+  await s.click('[data-akcja="wzorce"]');
+  await s.waitForSelector('#dlg-wzorce[open]');
+  await s.waitForTimeout(900);
+  await zrzut(s, 'okno-wzorcow.png');
+  await s.click('#wzorce-zamknij');
 
   // Rozkładówka: obie strony (Styczeń, Notatki) na jednym płótnie, pas przez grzbiet
   await s.evaluate(() => {
@@ -385,7 +390,7 @@ async function przykladoweProjekty(strona) {
   await d.click('#przycisk-widok');
   await zrzut(d, 'siatka.png');
   await d.keyboard.press('Escape');
-  await d.mouse.click(700, 20);
+  { const pusto = await naPlotnie(6, 200); await d.mouse.click(pusto.x, pusto.y); }
 
   // Odległości: trzeci kwadrat przeciągany w rząd, w równym odstępie
   const z = await naPlotnie(112, 122);
@@ -510,6 +515,39 @@ async function przykladoweProjekty(strona) {
   await d.click('[data-akcja="podglad-minus"]');
   await d.waitForTimeout(1800);
   await zrzut(d, 'zakladki.png');
+  // Czcionki: plik w projekcie i czcionka z innego projektu („Moje czcionki”)
+  await d.click('[data-akcja="podglad-zamknij"]');
+  await d.waitForFunction(() => document.body.dataset.ekran === 'edytor');
+  await d.evaluate(async () => {
+    const { oknoCzcionek } = window.seriodruk;
+    const plik = async (adres, nazwa, typ) => new File([await (await fetch(adres)).arrayBuffer()], nazwa, { type: typ });
+    const [pierwsza] = await oknoCzcionek.dodaj([await plik('css/czcionki/pdf/playfair-display-400-prosta.ttf', 'Ozdobna-Regular.ttf', 'font/ttf')]);
+    await oknoCzcionek.zmienRodzine(pierwsza.id, 'Ozdobna');
+    const [druga] = await oknoCzcionek.dodaj([await plik('css/czcionki/pdf/caveat-700-prosta.ttf', 'Pisanka-Bold.ttf', 'font/ttf')]);
+    await oknoCzcionek.zmienRodzine(druga.id, 'Pisanka');
+    await oknoCzcionek.usun(druga.id); // zostaje w „Moich czcionkach”
+  });
+  await d.waitForTimeout(600);
+  await d.click('#przycisk-wiecej');
+  await d.click('[data-akcja="czcionki"]');
+  await d.waitForSelector('#czcionki-moje li');
+  await zrzut(d, 'czcionki.png');
+  await d.click('#czcionki-zamknij');
+
+  // Sprawdź przed drukiem: nieznane pole i tekst, który nie mieści się w ramce
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const a = e.dodajTekst('Hasło dnia: {haslo_dnia}'); a.set({ left: 12, top: 150, width: 80 }); a.initDimensions();
+    const b = e.dodajTekst('Ten tekst jest za długi na swoją ramkę i w druku zostałby ucięty na dolnej krawędzi.'); b.set({ left: 12, top: 165, width: 60, ramka_h: 8 }); b.initDimensions();
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+  });
+  await d.click('#przycisk-wiecej');
+  await d.click('[data-akcja="kontrola"]');
+  await d.waitForSelector('#dlg-kontrola[open]');
+  await d.waitForTimeout(2500);
+  await zrzut(d, 'kontrola.png');
+  await d.click('#kontrola-zamknij');
   await kp.close();
 
   // ---------- Telefon ----------
