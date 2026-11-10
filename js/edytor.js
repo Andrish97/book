@@ -17,6 +17,10 @@ import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
+import {
+  toTabela, nowaTabela, ulozTabele, przygotujTabele, komorkiTabeli, komorkaWPunkcie, miejsceKomorki, utrwalSkaleTabeli,
+  dodajWiersz, usunWiersz, dodajKolumne, usunKolumne,
+} from './tabela-obiekt.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -110,20 +114,38 @@ export class Edytor extends EventTarget {
     });
     c.on('object:modified', (e) => {
       utrwalSkaleTekstu(e.target);
+      utrwalSkaleTabeli(e.target);
       this.oznaczZmiane();
     });
     c.on('object:added', (e) => {
+      if (toTabela(e.target) && !e.target.zWzorca) this._przygotujTabele(e.target);
       if (this._wczytywanie || e.target?.zWzorca) return;
       this._uporzadkujWzorce();
       this.oznaczZmiane();
     });
     c.on('object:removed', () => this.oznaczZmiane());
-    c.on('text:editing:exited', () => this.oznaczZmiane());
+    c.on('text:editing:exited', (e) => { this._poKomorce(e.target); this.oznaczZmiane(); });
     // Kadrowanie: podwójne kliknięcie obrazu zaczyna, kliknięcie poza ramką kończy.
-    c.on('mouse:dblclick', (e) => { if (e.target?.type === 'image' && !e.target.zWzorca) this.kadruj(e.target); });
+    // Tabela: podwójne kliknięcie komórki zaczyna w niej pisanie.
+    c.on('mouse:dblclick', (e) => {
+      const cel = e.target;
+      if (!cel || cel.zWzorca) return;
+      if (cel.type === 'image') this.kadruj(cel);
+      else if (toTabela(cel)) this.edytujKomorke(cel, komorkaWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)), e.e);
+    });
+    // W trakcie pisania w tabeli kliknięcie innej komórki przenosi tam pisanie.
+    c.on('mouse:down', (e) => {
+      const a = c.getActiveObject();
+      if (a && a === e.target && a.type === 'textbox' && toTabela(a.group) && !a.isEditing) this.edytujKomorke(a.group, a, e.e);
+    });
     c.on('selection:cleared', () => { if (this._kadr) this.zakonczKadrowanie(true); });
     c.on('selection:updated', () => { if (this._kadr && this.aktywny !== this._kadr.ramka) this.zakonczKadrowanie(true); });
-    c.on('text:changed', (e) => { this._przelejPrzyPisaniu(e.target); this._emitujZaznaczenie(); });
+    c.on('text:changed', (e) => {
+      // Komórka tabeli: wiersz rośnie razem z tekstem.
+      if (toTabela(e.target?.group)) { ulozTabele(e.target.group); c.requestRenderAll(); }
+      this._przelejPrzyPisaniu(e.target);
+      this._emitujZaznaczenie();
+    });
     c.on('text:selection:changed', () => this._emitujZaznaczenie());
     c.on('text:editing:entered', () => this._emitujZaznaczenie());
     // Podczas przesuwania/skalowania odświeżamy pola liczbowe na bieżąco.
@@ -805,48 +827,112 @@ export class Edytor extends EventTarget {
     return true;
   }
 
-  // Tabela: siatka linii (jedna grupa) i osobna ramka tekstu w każdej komórce.
-  // Komórki są zwykłymi ramkami – można w nich pisać, wstawiać pola i je formatować.
+  // Tabela: jeden element strony (js/tabela-obiekt.js). Pojedyncze kliknięcie zaznacza całość,
+  // podwójne kliknięcie komórki zaczyna w niej pisanie.
   dodajTabele({ wiersze = 3, kolumny = 3, naglowek = true, wysokoscWiersza = 9 } = {}) {
-    const W = Math.min(40, Math.max(1, Math.round(wiersze)));
-    const K = Math.min(12, Math.max(1, Math.round(kolumny)));
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
-    // Linie siatki mają grubość – tabela jest o włos węższa niż pole między marginesami.
-    const szer = Math.max(20, w - this.marg.lewy - this.marg.prawy) - 0.6;
-    const x0 = this.strony[this.aktywna].x + this.marg.lewy + 0.3;
-    const wys = Math.min(wysokoscWiersza * W, h - 20);
-    const hw = wys / W;
-    const y0 = (h - wys) / 2;
-    const kol = szer / K;
-    // Linia jest kładziona środkiem – inaczej Fabric przesuwa ją o pół grubości kreski.
-    const linia = (x1, y1, x2, y2, grubosc = 0.25) => new fabric.Line([x1, y1, x2, y2], {
-      stroke: '#1a1a1a', strokeWidth: grubosc, strokeUniform: true, originX: 'center', originY: 'center', left: (x1 + x2) / 2, top: (y1 + y2) / 2,
-    });
-    const linie = [];
-    for (let i = 0; i <= K; i += 1) linie.push(linia(x0 + i * kol, y0, x0 + i * kol, y0 + wys));
-    for (let i = 0; i <= W; i += 1) linie.push(linia(x0, y0 + i * hw, x0 + szer, y0 + i * hw, naglowek && i === 1 ? 0.5 : 0.25));
-    const siatka = new fabric.Group(linie, { id: uid('o'), nazwa: `Siatka tabeli ${W}×${K}` });
-    const odstep = 1.5;
-    const komorki = [];
-    for (let r = 0; r < W; r += 1) {
-      for (let k = 0; k < K; k += 1) {
-        const pierwszy = naglowek && r === 0;
-        komorki.push(new fabric.Textbox(pierwszy ? `Kolumna ${k + 1}` : '', {
-          id: uid('o'), nazwa: `Komórka ${String.fromCharCode(65 + k)}${r + 1}`,
-          left: x0 + k * kol + odstep, top: y0 + r * hw, width: kol - 2 * odstep,
-          ramka_h: hw, wyrownanie_pion: 'srodek',
-          fontFamily: DOMYSLNA, fontSize: ptNaMm(9), fontWeight: pierwszy ? 'bold' : 'normal', lineHeight: 1.15,
-          fill: '#1a1a1a', textAlign: 'left', strokeWidth: 0,
-        }));
-      }
-    }
+    const szer = Math.max(20, w - this.marg.lewy - this.marg.prawy);
+    const tabela = nowaTabela({
+      wiersze, kolumny, naglowek, wysokoscWiersza, szerokosc: szer,
+      lewo: this.strony[this.aktywna].x + this.marg.lewy, gora: 0,
+      wyglad: { fontFamily: DOMYSLNA, fontSize: ptNaMm(9) },
+    }, uid);
+    tabela.set({ top: Math.max(this.marg.gora, (h - tabela.height) / 2) });
+    tabela.setCoords();
     this.canvas.discardActiveObject();
-    this.canvas.add(siatka, ...komorki);
-    this.canvas.setActiveObject(new fabric.ActiveSelection([siatka, ...komorki], { canvas: this.canvas }));
+    this.canvas.add(tabela);
+    this.canvas.setActiveObject(tabela);
     this.canvas.requestRenderAll();
     this.oznaczZmiane();
-    return { siatka, komorki };
+    return tabela;
   }
+
+  // Uchwyty kolumn i klawisz Tab w komórkach – dla każdej tabeli na płótnie.
+  _przygotujTabele(tabela) {
+    przygotujTabele(tabela, { naTab: (komorka, wstecz) => this._nastepnaKomorka(komorka, wstecz) });
+  }
+
+  // Komórki tabeli wierszami (do skryptów i testów).
+  komorkiTabeli(tabela = this.aktywny) { return toTabela(tabela) ? komorkiTabeli(tabela) : []; }
+
+  // Zaczyna pisanie w komórce. komorka: obiekt komórki albo [wiersz, kolumna]; zdarzenie: kliknięcie
+  // (kursor staje w miejscu kliknięcia) – bez niego zaznaczony jest cały tekst komórki.
+  edytujKomorke(tabela, komorka, zdarzenie) {
+    if (!toTabela(tabela) || tabela.zWzorca) return null;
+    const c = Array.isArray(komorka) ? komorkiTabeli(tabela)[komorka[0] * tabela.tabela.kolumny.length + komorka[1]] : komorka;
+    if (!c || c.group !== tabela) return null;
+    const poprzednia = this.aktywny;
+    this._miedzyKomorkami = true;
+    if (poprzednia?.isEditing && poprzednia !== c) poprzednia.exitEditing();
+    this._miedzyKomorkami = false;
+    // Na czas pisania komórki tabeli dają się wskazać; po wyjściu tabela znów jest jednym elementem.
+    tabela.set({ subTargetCheck: true, interactive: true });
+    this.canvas.setActiveObject(c);
+    c.enterEditing(zdarzenie);
+    if (zdarzenie) c.setCursorByClick(zdarzenie); else c.selectAll();
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return c;
+  }
+
+  // Tab / Shift+Tab: następna / poprzednia komórka. Tab w ostatniej komórce dodaje wiersz.
+  _nastepnaKomorka(komorka, wstecz) {
+    const tabela = komorka.group;
+    if (!toTabela(tabela)) return;
+    let lista = komorkiTabeli(tabela);
+    const i = lista.indexOf(komorka) + (wstecz ? -1 : 1);
+    if (i < 0) return;
+    if (i >= lista.length) {
+      if (dodajWiersz(tabela, uid) < 0) return;
+      this._przygotujTabele(tabela);
+      lista = komorkiTabeli(tabela);
+    }
+    this.edytujKomorke(tabela, lista[i]);
+  }
+
+  // Po wyjściu z pisania w komórce: układ tabeli od nowa i powrót do zaznaczenia całej tabeli
+  // (chyba że pisanie przeszło do innej komórki albo kliknięto coś innego).
+  _poKomorce(komorka) {
+    const tabela = komorka?.group;
+    if (!toTabela(tabela)) return;
+    ulozTabele(tabela);
+    if (this._miedzyKomorkami) return;
+    Promise.resolve().then(() => {
+      const a = this.canvas.getActiveObject();
+      if (a?.group === tabela && a.isEditing) return;
+      tabela.set({ subTargetCheck: false, interactive: false });
+      if (a?.group === tabela) this.canvas.setActiveObject(tabela);
+      this.canvas.requestRenderAll();
+      this._emitujZaznaczenie();
+    });
+  }
+
+  // Wiersze i kolumny tabeli. co: 'wiersz+' | 'wiersz-' | 'kolumna+' | 'kolumna-'; gdzie: numer wiersza
+  // albo kolumny (dodawanie – za nim, usuwanie – ten); bez numeru chodzi o ostatni.
+  zmienTabele(tabela, co, gdzie) {
+    if (!toTabela(tabela)) return false;
+    const akt = this.aktywny;
+    const pisana = akt?.group === tabela && akt.isEditing ? akt : null;
+    if (pisana) { this._miedzyKomorkami = true; pisana.exitEditing(); this._miedzyKomorkami = false; }
+    const wynik = {
+      'wiersz+': () => dodajWiersz(tabela, uid, gdzie) >= 0,
+      'wiersz-': () => usunWiersz(tabela, gdzie),
+      'kolumna+': () => dodajKolumne(tabela, uid, gdzie) >= 0,
+      'kolumna-': () => usunKolumne(tabela, gdzie),
+    }[co]?.();
+    this._przygotujTabele(tabela);
+    // Pisanie wraca do tej samej komórki, jeśli jeszcze istnieje; inaczej zaznaczona zostaje tabela.
+    if (pisana && pisana.group === tabela) this.edytujKomorke(tabela, pisana);
+    else { tabela.set({ subTargetCheck: false, interactive: false }); this.canvas.setActiveObject(tabela); }
+    tabela.setCoords();
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+    return Boolean(wynik);
+  }
+
+  // Miejsce komórki w tabeli: { w, k } albo null.
+  miejsceKomorki(komorka = this.aktywny) { return toTabela(komorka?.group) ? miejsceKomorki(komorka.group, komorka) : null; }
 
   // ---------- Schowek (kopiuj / wklej, także między stronami) ----------
 
@@ -989,7 +1075,7 @@ export class Edytor extends EventTarget {
 
   rozgrupuj() {
     const akt = this.aktywny;
-    if (!akt || akt.type !== 'group') return;
+    if (!akt || akt.type !== 'group' || toTabela(akt)) return; // tabela jest jednym elementem
     const c = this.canvas;
     const bylo = this._wczytywanie;
     this._wczytywanie = true;
@@ -1208,6 +1294,9 @@ export class Edytor extends EventTarget {
   // Po zmianie właściwości z panelu.
   zatwierdz() {
     const akt = this.aktywny;
+    // Zmiana w tabeli albo w jej komórce: układ liczy się od nowa.
+    const tabela = toTabela(akt) ? akt : (toTabela(akt?.group) ? akt.group : null);
+    if (tabela) { if (!utrwalSkaleTabeli(tabela)) ulozTabele(tabela); this._przygotujTabele(tabela); }
     if (akt) akt.setCoords();
     this.canvas.requestRenderAll();
     this.oznaczZmiane();
@@ -2018,6 +2107,7 @@ const NAZWY_TYPOW = {
 
 export function opisObiektu(o) {
   if (o.nazwa) return o.nazwa;
+  if (toTabela(o)) return `Tabela ${o.tabela.wiersze.length}×${o.tabela.kolumny.length}`;
   const typ = NAZWY_TYPOW[o.type] || o.type;
   if (o.text) {
     const t = o.text.replace(/\s+/g, ' ').trim();
@@ -2027,5 +2117,7 @@ export function opisObiektu(o) {
 }
 
 export function nazwaTypu(o) {
+  if (toTabela(o)) return 'Tabela';
+  if (toTabela(o.group)) return 'Komórka tabeli';
   return NAZWY_TYPOW[o.type] || o.type;
 }

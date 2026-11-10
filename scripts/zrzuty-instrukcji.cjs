@@ -482,11 +482,13 @@ async function przykladoweProjekty(strona) {
     l.set({ left: 12, top: 76, width: 58, fontSize: pt(10), lista: 'numery' }); l.initDimensions();
     const p = e.dodajTekst('Podlać kwiaty na balkonie i w kuchni, zanim zrobi się gorąco\nOddać książki do biblioteki\nZadzwonić do babci');
     p.set({ left: 78, top: 76, width: 58, fontSize: pt(10), lista: 'punkty' }); p.initDimensions();
-    const { komorki, siatka } = e.dodajTabele({ wiersze: 4, kolumny: 3 });
-    e.canvas.discardActiveObject();
-    for (const x of [siatka, ...komorki]) { x.top += 40; x.setCoords(); }
+    // Tabela jest jednym elementem: przesuwamy ją całą, a teksty wpisujemy w jej komórki.
+    const tabela = e.dodajTabele({ wiersze: 4, kolumny: 3 });
+    const komorki = e.komorkiTabeli(tabela);
+    tabela.set({ top: tabela.top + 40 });
     ['Dzień', 'Do zrobienia', 'Uwagi'].forEach((t, i) => komorki[i].set('text', t));
     ['Poniedziałek', 'Plan tygodnia', '', 'Wtorek', 'Zakupy', 'lista wyżej'].forEach((t, i) => komorki[3 + i].set('text', t));
+    e.zatwierdz(); // układ tabeli po wpisaniu tekstów
     e.canvas.setActiveObject(e.canvas.getObjects().find((x) => x.watek_nr === 0));
     e.zatwierdz();
   });

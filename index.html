@@ -374,7 +374,7 @@
           <button data-akcja="dodaj-linie" data-ikona="linia" title="Linia (L)"><span>Linia</span></button>
           <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz z dysku"><span>Obraz</span></button>
           <button data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false" title="Rysowanie odręczne (B) – przeciągaj po stronie; Esc kończy"><span>Rysuj</span></button>
-          <button class="tylko-duzy-ekran" data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: siatka i ramki tekstu w komórkach"><span>Tabela</span></button>
+          <button class="tylko-duzy-ekran" data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: jeden element z wierszami i kolumnami; dwuklik komórki zaczyna pisanie"><span>Tabela</span></button>
         </div>
 
         <div id="kontener-plotna" class="kontener-plotna">
@@ -777,11 +777,11 @@
   <dialog id="dlg-tabela">
     <form method="dialog" class="formularz">
       <h2>Wstaw tabelę</h2>
-      <p class="ciche">Powstanie siatka linii i osobna ramka tekstu w każdej komórce – w komórkach piszesz i wstawiasz pola jak w zwykłym tekście.</p>
+      <p class="ciche">Tabela jest jednym elementem strony. Kliknij dwa razy komórkę, żeby w niej pisać; w komórkach wstawiasz pola z danych jak w zwykłym tekście. Wiersze i kolumny dodasz później we właściwościach.</p>
       <div class="rzad">
-        <label class="pole"><span>Wiersze</span><input name="wiersze" type="number" min="1" max="40" step="1" value="4" required inputmode="numeric"></label>
+        <label class="pole"><span>Wiersze</span><input name="wiersze" type="number" min="1" max="60" step="1" value="4" required inputmode="numeric"></label>
         <label class="pole"><span>Kolumny</span><input name="kolumny" type="number" min="1" max="12" step="1" value="3" required inputmode="numeric"></label>
-        <label class="pole"><span>Wysokość wiersza (mm)</span><input name="wysokosc" type="number" min="3" max="100" step="0.5" value="9" required inputmode="decimal"></label>
+        <label class="pole"><span>Najmniejsza wysokość wiersza (mm)</span><input name="wysokosc" type="number" min="3" max="100" step="0.5" value="9" required inputmode="decimal"></label>
       </div>
       <label class="przelacznik"><input name="naglowek" type="checkbox" checked><span>Pierwszy wiersz to nagłówek</span></label>
       <div class="przyciski-dialogu">
