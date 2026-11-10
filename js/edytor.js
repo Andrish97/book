@@ -33,6 +33,7 @@ export const WLASNE_POLA = [
   'lista', 'lista_start', // wypunktowanie / numerowanie akapitów (tekst-ramka.js)
   'watek', 'watek_nr', 'lacznik', // przelewanie tekstu między ramkami (watki.js)
   'z_danych', // kolor i przesunięcie zależne od pola z danych (pola.js)
+  'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
 ];
 
 export const TEKST_ZACHETY = 'Kliknij dwa razy, aby edytować';
@@ -1008,7 +1009,7 @@ export class Edytor extends EventTarget {
 
   // Pola nieznane na stronie, na której leży tekst (do ostrzeżeń i podświetlenia).
   _nieznanePola(o) {
-    if (o.type !== 'textbox' || !o.text.includes('{')) return [];
+    if (o.type !== 'textbox' || !o.text.includes('{') || o.bez_pol) return [];
     const strona = this.strony.length > 1 ? this.stronaW(this._srodekObiektu(o).x) : 0;
     return znajdzPola(o.text).filter((p) => !this.znanePole(p.nazwa, strona));
   }
@@ -1041,7 +1042,7 @@ export class Edytor extends EventTarget {
   // czerwone – takiego pola nie ma. Tylko w edytorze, nie w wydruku.
   _podswietlPola(ctx, X, Y) {
     for (const o of this.canvas.getObjects()) {
-      if (o.zWzorca || o.type !== 'textbox' || o.visible === false || !o.text.includes('{') || !o.__charBounds) continue;
+      if (o.zWzorca || o.type !== 'textbox' || o.visible === false || o.bez_pol || !o.text.includes('{') || !o.__charBounds) continue;
       const pola = znajdzPola(o.text);
       if (!pola.length) continue;
       const nieznane = new Set(this._nieznanePola(o).map((x) => x.start));

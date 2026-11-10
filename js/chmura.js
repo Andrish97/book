@@ -156,7 +156,7 @@ export async function usunKonto() {
 export async function listaWChmurze() {
   const sb = await supabase();
   return sprawdz(await sb.from('projekty')
-    .select('id, nazwa, zmieniono, miniatura:dane->>miniatura')
+    .select('id, nazwa, zmieniono, miniatura:dane->>miniatura, udostepnienie:dane->udostepnienie')
     .order('zmieniono', { ascending: false }));
 }
 
@@ -301,7 +301,8 @@ async function usunPodglady(sb, folderProjektu) {
 
 // uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob JPEG.
 // Zwraca { konto, zaktualizowano }.
-export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}) {
+// odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
+export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
@@ -310,14 +311,21 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
   // Skróty obrazów z poprzedniej publikacji: strona, której obraz się nie
   // zmienił, nie jest wysyłana drugi raz.
   let poprzednie = {};
+  let poprzednieTresci = {};
   try {
     const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
-    if (odp.ok) poprzednie = (await odp.json()).skroty || {};
+    if (odp.ok) { const m = await odp.json(); poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; }
   } catch { /* pierwsza publikacja albo brak sieci – wyślemy wszystko */ }
   const skroty = {};
   let gotowe = 0;
   let wyslane = 0;
   for (const s of strony) {
+    if (odciski && poprzednie[s.id] && poprzednieTresci[s.id] === odciski[s.id]) {
+      skroty[s.id] = poprzednie[s.id];
+      gotowe += 1;
+      postep(gotowe, strony.length);
+      continue;
+    }
     const plik = await obraz(s);
     skroty[s.id] = await skrotPliku(plik);
     if (poprzednie[s.id] !== skroty[s.id]) {
@@ -333,7 +341,7 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
   if (zbedne.length) await usunPliki(sb, zbedne);
 
   const zaktualizowano = new Date().toISOString();
-  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty };
+  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, ...(odciski ? { tresci: odciski } : {}) };
   sprawdz(await magazyn.upload(`${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), {
     upsert: true, contentType: 'application/json', cacheControl: '0',
   }));

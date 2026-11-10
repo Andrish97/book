@@ -152,7 +152,7 @@ export function zmienNazwePola(projekt, stara, nowa, dotyczy = () => true) {
   const wzor = new RegExp(`\\{\\s*${stara.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(:[^{}\\n]*)?\\}`, 'g');
   const popraw = (obiekty) => {
     for (const o of obiekty || []) {
-      if (typeof o.text === 'string' && o.text.includes('{')) {
+      if (typeof o.text === 'string' && o.text.includes('{') && !o.bez_pol) {
         // Nazwa tej samej długości nie przesuwa formatowania fragmentów; przy innej
         // długości formatowanie fragmentów tego tekstu zostaje na swoich miejscach.
         const nowy = o.text.replace(wzor, (_, zapis) => `{${nowa}${zapis || ''}}`);

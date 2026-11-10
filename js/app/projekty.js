@@ -10,6 +10,7 @@ import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { wlasciciel, stan, pokazEkran, trasa } from './kontekst.js';
 import { otworzProjekt, zapiszTeraz } from './zapis.js';
+import { otworzUdostepnianie } from './podglad-ekran.js';
 import { przejdzDoTrasy } from './trasy.js';
 
 function odmianaProjektow(n) {
@@ -32,6 +33,7 @@ export async function wpisyProjektow() {
       for (const c of await chmura.listaWChmurze()) {
         const w = wpisy.get(c.id) || { id: c.id, nazwa: c.nazwa, miniatura: c.miniatura };
         w.wChmurze = c.zmieniono;
+        if (!w.lokalnie || !w.doSynchronizacji) w.udostepniony = Boolean(c.udostepnienie);
         if (!w.lokalnie || (!w.doSynchronizacji && c.zmieniono > (w.zmieniono || ''))) {
           w.nazwa = c.nazwa;
           w.miniatura = c.miniatura || w.miniatura;
@@ -65,6 +67,7 @@ export async function pokazProjekty() {
         <div class="okladka">${w.miniatura ? '<img alt="">' : '<div class="pusta-okladka"></div>'}</div>
         <div class="opis"><strong></strong><small></small></div>
       </button>
+      ${w.udostepniony ? `<button class="plakietka-linku" title="Projekt ma link do podglądu – kliknij, żeby go skopiować albo unieważnić">${ikona('link', { rozmiar: 14 })}Udostępniony</button>` : ''}
       <button class="przycisk-ikona menu-karty" aria-label="Opcje projektu" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
         <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>
@@ -79,6 +82,9 @@ export async function pokazProjekty() {
     const niewyslany = stan.uzytkownik && w.lokalnie && w.doSynchronizacji;
     $('small', li).textContent = `Zmieniono ${kiedy(najnowsza(w))}${niewyslany ? ' · czeka na wysłanie' : ''}`;
     $('.otworz-projekt', li).addEventListener('click', () => otworzZListy(w));
+    $('.plakietka-linku', li)?.addEventListener('click', async () => {
+      try { otworzUdostepnianie(await wczytajProjektZWpisu(w)); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
+    });
     const menu = $('.menu', li);
     $('.menu-karty', li).addEventListener('click', (e) => przelaczMenu(e.currentTarget, menu));
     menu.addEventListener('click', async (e) => {
@@ -115,7 +121,7 @@ async function otworzZListy(w) {
   }
 }
 
-async function zapiszGdziekolwiek(projekt) {
+export async function zapiszGdziekolwiek(projekt) {
   await zapiszLokalnie(projekt, wlasciciel(), Boolean(stan.uzytkownik));
   if (!stan.uzytkownik) return;
   try {

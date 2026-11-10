@@ -3,6 +3,7 @@
 import { $, pobierz, powiadom, odmiana } from './ui.js';
 import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
+import { sprawdzMieszczenie } from './kontrola-skladu.js';
 import { eksportujPdf, wybierzEgzemplarze, planPlikow, JAKOSCI_PDF, Przerwano } from './eksport.js';
 
 export class OknoPdf {
@@ -31,14 +32,22 @@ export class OknoPdf {
     od.value = 1; doStrony.value = ile;
     $('#pdf-komunikat').textContent = '';
     // Rzeczy do sprawdzenia przed drukiem – nie blokują eksportu.
-    const uwagi = sprawdzProjekt(this.zrodlo.projekt(), this.ciag);
     const blok = $('#pdf-uwagi');
-    blok.hidden = !uwagi.length;
-    blok.open = uwagi.length > 0 && uwagi.length <= 3;
-    blok.querySelector('summary').textContent = `Do sprawdzenia przed drukiem: ${uwagi.length} ${odmiana(uwagi.length, 'uwaga', 'uwagi', 'uwag')}`;
-    blok.querySelector('ul').replaceChildren(...uwagi.map((u) => Object.assign(document.createElement('li'), { textContent: u.opis })));
+    const pokazUwagi = (uwagi) => {
+      blok.hidden = !uwagi.length;
+      blok.open = uwagi.length > 0 && uwagi.length <= 3;
+      blok.querySelector('summary').textContent = `Do sprawdzenia przed drukiem: ${uwagi.length} ${odmiana(uwagi.length, 'uwaga', 'uwagi', 'uwag')}`;
+      blok.querySelector('ul').replaceChildren(...uwagi.map((u) => Object.assign(document.createElement('li'), { textContent: u.opis })));
+    };
+    const uwagi = sprawdzProjekt(this.zrodlo.projekt(), this.ciag);
+    pokazUwagi(uwagi);
     this.odswiez();
     this.okno.showModal();
+    // Teksty w ramkach na wszystkich powielonych stronach – to trwa chwilę, więc lista uzupełnia się po otwarciu okna.
+    const nr = this.nrSprawdzenia = (this.nrSprawdzenia || 0) + 1;
+    sprawdzMieszczenie(this.zrodlo.projekt(), this.ciag, { przerwij: () => nr !== this.nrSprawdzenia || !this.okno.open }).then((teksty) => {
+      if (nr === this.nrSprawdzenia && this.okno.open && teksty.length) pokazUwagi([...uwagi, ...teksty]);
+    });
   }
 
   zamknij() {

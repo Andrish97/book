@@ -344,6 +344,7 @@
         <div class="menu" id="menu-wiecej" role="menu" hidden>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
+          <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
         </div>
@@ -602,7 +603,7 @@
         <h2>Udostępnij podgląd</h2>
         <button class="przycisk-ikona" data-akcja="udostepnij-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche" id="udostepnij-opis">Każdy, kto dostanie link, zobaczy strony projektu – bez konta i bez możliwości zmiany. Link pokazuje projekt w stanie z chwili udostępnienia.</p>
+      <p class="ciche" id="udostepnij-opis">Każdy, kto dostanie link, zobaczy strony projektu – bez konta i bez możliwości zmiany. Projekt ma jeden link; aktualizuje się on sam, chwilę po zapisaniu zmian na koncie.</p>
 
       <div id="udostepnij-link-blok" hidden>
         <label class="pole"><span>Link do podglądu</span>
@@ -616,8 +617,9 @@
 
       <p class="komunikat" id="udostepnij-komunikat" role="status"></p>
       <div class="przyciski-dialogu">
-        <button type="button" class="przycisk niebezpieczny" id="udostepnij-wylacz" data-akcja="udostepnij-wylacz" hidden>Wyłącz link</button>
+        <button type="button" class="przycisk niebezpieczny" id="udostepnij-wylacz" data-akcja="udostepnij-wylacz" hidden>Unieważnij link</button>
         <span class="odstep"></span>
+        <button type="button" class="przycisk" id="udostepnij-teraz" data-akcja="udostepnij-utworz" hidden>Aktualizuj teraz</button>
         <button type="button" class="przycisk glowny" id="udostepnij-utworz" data-akcja="udostepnij-utworz">Utwórz link</button>
       </div>
     </div>
@@ -672,6 +674,18 @@
         <button class="przycisk glowny" id="pdf-eksportuj">Eksportuj</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="dlg-kontrola" class="dialog-szeroki">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Sprawdź przed drukiem</h2>
+        <button type="button" class="przycisk-ikona" id="kontrola-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Uwagi do całego projektu, już po powieleniu serii: pola bez wartości, brakujące obrazy, powtórzenia, braki danych i teksty, które nie mieszczą się w ramkach.</p>
+      <ul class="lista-uwag" id="kontrola-lista"></ul>
+      <p class="podpowiedz" id="kontrola-stan" role="status"></p>
+    </div>
   </dialog>
 
   <dialog id="dlg-czcionki" class="dialog-szeroki">

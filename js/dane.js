@@ -11,7 +11,8 @@ import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
 
-const MAKS_WIERSZY_NA_EKRANIE = 1500;
+// Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
+const PORCJA_WIERSZY = 400;
 
 export class Dane {
   // projekt: () => bieżący projekt; przedOtwarciem() – aplikacja przepisuje
@@ -74,27 +75,42 @@ export class Dane {
     if (!t) return;
     $('#dane-nazwa').value = t.nazwa;
     const serie = this.projekt().serie.filter((s) => s.tabela === t.id).map((s) => `„${s.nazwa}”`);
-    const pokazane = Math.min(t.wiersze.length, MAKS_WIERSZY_NA_EKRANIE);
     $('#dane-opis').textContent = [
       serie.length ? `Używana w ${serie.length === 1 ? 'serii' : 'seriach'}: ${serie.join(', ')}.` : 'Nie jest jeszcze używana w żadnej serii – serię ustawiasz we właściwościach strony.',
-      t.wiersze.length > pokazane ? `Pokazuję pierwsze ${pokazane} z ${t.wiersze.length} wierszy; reszta jest w projekcie.` : '',
     ].filter(Boolean).join(' ');
 
     const html = ['<thead><tr><th class="rog"></th>'];
     t.kolumny.forEach((k, i) => {
       html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
     });
-    html.push('</tr></thead><tbody>');
-    for (let w = 0; w < pokazane; w += 1) {
+    html.push('</tr></thead><tbody></tbody>');
+    this.siatka.innerHTML = html.join('');
+    this.siatka.querySelectorAll('.nazwa-kolumny').forEach((el) => { el.textContent = t.kolumny[Number(el.dataset.k)]; });
+    this._narysowane = 0;
+    this._dopiszWiersze(PORCJA_WIERSZY);
+    this._oznaczPowtorzenia();
+  }
+
+  // Dorysowuje wiersze tabeli, aż będzie ich co najmniej `doIlu` (albo wszystkie).
+  _dopiszWiersze(doIlu) {
+    const t = this.tabela();
+    const cel = Math.min(t.wiersze.length, doIlu);
+    if (cel <= this._narysowane) return;
+    const html = [];
+    for (let w = this._narysowane; w < cel; w += 1) {
       html.push(`<tr><th class="nr"><span>${w + 1}</span><button type="button" class="usun-wiersz" data-w="${w}" title="Usuń wiersz" aria-label="Usuń wiersz ${w + 1}">×</button></th>`);
       for (let k = 0; k < t.kolumny.length; k += 1) html.push(`<td contenteditable="plaintext-only" spellcheck="false" data-w="${w}" data-k="${k}"></td>`);
       html.push('</tr>');
     }
-    html.push('</tbody>');
-    this.siatka.innerHTML = html.join('');
-    this.siatka.querySelectorAll('.nazwa-kolumny').forEach((el) => { el.textContent = t.kolumny[Number(el.dataset.k)]; });
-    this.siatka.querySelectorAll('td').forEach((td) => { td.textContent = t.wiersze[Number(td.dataset.w)][Number(td.dataset.k)]; });
-    this._oznaczPowtorzenia();
+    const od = this._narysowane;
+    this._narysowane = cel;
+    const tbody = this.siatka.tBodies[0];
+    tbody.insertAdjacentHTML('beforeend', html.join(''));
+    for (let w = od; w < cel; w += 1) {
+      const komorki = tbody.rows[w].cells;
+      for (let k = 0; k < t.kolumny.length; k += 1) komorki[k + 1].textContent = t.wiersze[w][k];
+    }
+    if (od > 0 && t.unikalne?.length) this._oznaczPowtorzenia();
   }
 
   // Powtórzone wartości w kolumnach pilnowanych: podświetlone komórki i opis pod tabelą.
@@ -114,6 +130,7 @@ export class Dane {
   }
 
   _komorka(w, k) {
+    if (w >= (this._narysowane || 0)) this._dopiszWiersze(w + PORCJA_WIERSZY);
     return this.siatka.querySelector(`td[data-w="${w}"][data-k="${k}"]`);
   }
 
@@ -182,6 +199,11 @@ export class Dane {
 
   _zdarzeniaTabel() {
     const s = this.siatka;
+    // Przewijanie blisko końca narysowanej części dorysowuje następną porcję wierszy.
+    const opak = s.closest('.dane-siatka-opak');
+    opak.addEventListener('scroll', () => {
+      if (this.tabela() && opak.scrollTop + opak.clientHeight > opak.scrollHeight - 600) this._dopiszWiersze(this._narysowane + PORCJA_WIERSZY);
+    }, { passive: true });
     s.addEventListener('input', (e) => {
       const td = e.target.closest('td');
       if (!td) return;

@@ -179,7 +179,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
           if (!p) return blad(r, 406, 'brak wiersza', 'PGRST116');
           return json(r, 200, { dane: p.dane, wersja: p.wersja, zmieniono: p.zmieniono });
         }
-        return json(r, 200, moje.map((p) => ({ id: p.id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null })));
+        return json(r, 200, moje.map((p) => ({ id: p.id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null, udostepnienie: p.dane.udostepnienie || null })));
       }
       if (m === 'POST') {
         const w = Array.isArray(tresc) ? tresc[0] : tresc;

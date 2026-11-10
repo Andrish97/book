@@ -21,6 +21,7 @@ import { opisObiektu } from './edytor.js';
 import { pngCelu } from './eksport.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from './wklejanie.js';
 import { OknoPdf } from './okno-pdf.js';
+import { OknoKontroli } from './okno-kontroli.js';
 import { obsluzKlawisz } from './skroty.js';
 import { zaladujCzcionki } from './czcionki.js';
 import * as chmura from './chmura.js';
@@ -149,6 +150,17 @@ async function pobierzPng() {
   }
 }
 
+const oknoKontroli = new OknoKontroli({
+  projekt: () => stan.projekt,
+  przedSprawdzeniem: zapiszBiezacyCel,
+  pokaz: async (idStrony, idObiektu) => {
+    const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);
+    if (i < 0) return;
+    await przejdzDoStrony(i);
+    if (idObiektu) edytor.zaznacz(idObiektu);
+  },
+});
+
 const oknoPdf = new OknoPdf({
   projekt: () => stan.projekt,
   sekcja: () => (stan.tryb === 'strona' ? biezacaSekcja() : stan.projekt.sekcje[0]),
@@ -187,6 +199,7 @@ const akcje = {
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); oknoPdf.otworz(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
+  kontrola: () => { zamknijMenu(); oknoKontroli.otworz(); },
   wydruk: () => otworzUstawieniaSekcji(biezacaSekcja().id),
   'zamknij-panel': () => ustawPanel(''),
   'obroc-format': () => {
@@ -526,7 +539,7 @@ start().catch((e) => {
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
-  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane, oknoPdf, oknoCzcionek,
+  przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane, oknoPdf, oknoCzcionek, oknoKontroli,
   // Wczytuje otwartą stronę od nowa z projektu, porzucając to, co jest na płótnie (do testów).
   przeladuj: async () => { odlaczPlotno(); await zaladujCel(); },
 };

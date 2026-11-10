@@ -53,29 +53,36 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   assert.equal(await obca.locator('canvas').count() >= 0, true);
   assert.deepEqual(bledyGoscia, []);
 
-  // Zmiana w projekcie → okno mówi, że link jest nieaktualny.
+  // Zmiana w projekcie → link aktualizuje się sam, chwilę po zapisie na koncie; adres zostaje ten sam.
   await strona.click('[data-akcja="udostepnij-zamknij"]');
   await strona.keyboard.press('Escape');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
-  await strona.waitForTimeout(400);
-  await strona.click('[data-akcja="podglad"]');
-  await strona.click('[data-akcja="udostepnij"]');
-  assert.match(await strona.textContent('#udostepnij-stan'), /zmienił się/);
   const przedAktualizacja = baza.wyslania.length;
-  await strona.click('#udostepnij-utworz');
-  await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
-  assert.equal(await strona.inputValue('#udostepnij-link'), link, 'aktualizacja nie zmienia adresu');
-  // Zmieniła się jedna strona z dwóch: wysłany jest tylko jej obraz i opis.
+  const stanPrzed = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano);
+  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.waitForFunction((z) => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano !== z, stanPrzed, { timeout: 25000 });
+  // Zmieniła się jedna strona z dwóch: narysowany i wysłany jest tylko jej obraz, do tego opis.
   const ponownie = baza.wyslania.slice(przedAktualizacja).filter((k) => k.startsWith('podglady/'));
   assert.equal(ponownie.filter((k) => k.endsWith('.jpg')).length, 1);
   assert.equal(ponownie.filter((k) => k.endsWith('manifest.json')).length, 1);
-  assert.match(await strona.textContent('#udostepnij-komunikat'), /Wysłano 1 z 2 stron/);
+  await strona.click('[data-akcja="podglad"]');
+  await strona.click('[data-akcja="udostepnij"]');
+  assert.match(await strona.textContent('#udostepnij-stan'), /aktualny stan/);
+  assert.equal(await strona.inputValue('#udostepnij-link'), link, 'aktualizacja nie zmienia adresu');
+  assert.ok(await strona.isHidden('#udostepnij-utworz'), 'projekt ma jeden link – drugiego się nie tworzy');
+  assert.ok(await strona.isVisible('#udostepnij-teraz'));
+
+  // Plakietka na karcie projektu otwiera to samo okienko – z linkiem i unieważnieniem.
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.pokazProjekty(); });
+  await strona.click('.karta-projektu .plakietka-linku');
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  assert.equal(await strona.inputValue('#udostepnij-link'), link);
 
   // Wyłączenie linku usuwa pliki; link przestaje działać.
   await strona.click('#udostepnij-wylacz');
   await strona.click('#potwierdz-tak');
-  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat').textContent === 'Link wyłączony.');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat').textContent === 'Link unieważniony.');
   assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/')).length, 0);
   await obca.reload();
   await obca.waitForSelector('.podglad-pusto');

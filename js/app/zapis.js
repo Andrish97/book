@@ -9,6 +9,7 @@ import * as chmura from '../chmura.js';
 import { ikona } from '../ikony.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
+import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu } from '../czcionki.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
@@ -249,6 +250,7 @@ export async function synchronizuj({ wymus = false } = {}) {
     await zapiszLokalnie(p, wlasciciel(), p.zmieniono !== wersja);
     await oznaczZsynchronizowany(p.id, wersja);
     if (stan.projekt === p && !stan.timerZapisu) stanZapisu('ok', 'Zapisano');
+    if (stan.projekt === p) zaplanujAktualizacjeLinku(); // udostępniony link idzie za zapisanymi zmianami
   } catch (e) {
     if (e.konflikt) { rozstrzygnijKonflikt(p, e); return; }
     stanZapisu('blad', `Nie wysłano: ${chmura.komunikatBledu(e)}`);

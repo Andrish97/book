@@ -185,7 +185,8 @@ export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_d
 export function podstawWObiektach(obiekty, wartosc) {
   return (obiekty || []).map((o) => {
     let k = o;
-    if (typeof o.text === 'string' && o.text.includes('{')) {
+    // Tekst z przełącznikiem „klamry to zwykły tekst” (bez_pol) zostaje nietknięty.
+    if (typeof o.text === 'string' && o.text.includes('{') && !o.bez_pol) {
       const { text, styles } = podstawWTekscie(o.text, o.styles, wartosc);
       if (text !== o.text) k = { ...o, text, styles };
     }
@@ -198,7 +199,7 @@ export function podstawWObiektach(obiekty, wartosc) {
 // Nazwy pól użytych w obiektach (do ostrzeżeń i podpowiedzi).
 export function polaWObiektach(obiekty, zbior = new Set()) {
   for (const o of obiekty || []) {
-    for (const p of znajdzPola(o.text)) zbior.add(p.nazwa);
+    if (!o.bez_pol) for (const p of znajdzPola(o.text)) zbior.add(p.nazwa);
     if (o.pole?.kolumna) zbior.add(o.pole.kolumna);
     for (const n of polaZDanych(o)) zbior.add(n);
     if (Array.isArray(o.objects)) polaWObiektach(o.objects, zbior);

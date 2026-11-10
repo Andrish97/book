@@ -67,9 +67,16 @@ function wpiszWRamki(obiekty) {
     // Podmieniony obraz dostał wymiary źródła – przeliczamy je na piksele oryginału.
     const { nw, nh } = rozmiarOryginalu(o);
     o.set({ width: nw, height: nh });
-    const skala = Math.min(r.w / o.width, r.h / o.height);
-    const srodek = { x: o.left + r.w / 2, y: o.top + r.h / 2 }; // obrót ramki pomijamy przy środkowaniu
-    o.set({ scaleX: skala, scaleY: skala, left: srodek.x - (o.width * skala) / 2, top: srodek.y - (o.height * skala) / 2 });
+    if (o.pole?.tryb === 'wypelnij') {
+      // Obraz wypełnia całą ramkę: skala według ciaśniejszego boku, nadmiar przycięty po równo z obu stron.
+      const skala = Math.max(r.w / nw, r.h / nh);
+      const [szer, wys] = [r.w / skala, r.h / skala];
+      o.set({ width: szer, height: wys, cropX: (nw - szer) / 2, cropY: (nh - wys) / 2, scaleX: skala, scaleY: skala });
+    } else {
+      const skala = Math.min(r.w / o.width, r.h / o.height);
+      const srodek = { x: o.left + r.w / 2, y: o.top + r.h / 2 }; // obrót ramki pomijamy przy środkowaniu
+      o.set({ scaleX: skala, scaleY: skala, left: srodek.x - (o.width * skala) / 2, top: srodek.y - (o.height * skala) / 2 });
+    }
     o.setCoords();
   }
 }
@@ -162,6 +169,30 @@ export function obiektyZSasiadem(projekt, cel, ciag = rozwin(projekt)) {
   return scalRozkladowke(l, p)
     .filter(({ o, bok }) => bok !== obcy || siegaPrzezGrzbiet(o, obcy, w, b))
     .map(({ o, bok }) => (bok === obcy ? { ...o, left: (o.left || 0) + (lewa ? w : -w) } : o));
+}
+
+// Ramki tekstu egzemplarza po podstawieniu danych i przelaniu – same teksty, bez rysowania.
+// Służy do sprawdzenia przed drukiem, czy tekst mieści się w ramce na każdej powielonej stronie.
+// Zwraca [{ obiekt (Fabric), zrodlo: 'strona' | 'wzorzec', id }].
+export async function tekstyEgzemplarza(projekt, egz, ciag) {
+  const wartosc = wartosciPol(projekt, egz, ciag);
+  const zbierz = (obiekty, wynik = []) => {
+    for (const o of obiekty || []) {
+      if (o.type === 'textbox') wynik.push(o);
+      if (Array.isArray(o.objects)) zbierz(o.objects, wynik);
+    }
+    return wynik;
+  };
+  const wynik = [];
+  const zrodla = [['strona', egz.strona.obiekty], ...wzorceStrony(projekt, egz.strona).map((w) => ['wzorzec', w.obiekty])];
+  for (const [zrodlo, obiekty] of zrodla) {
+    const ramki = zbierz(podstawWObiektach(obiekty, wartosc)).filter((o) => o.ramka_h > 0 || o.watek);
+    if (!ramki.length) continue;
+    const zywe = await ozyw(ramki);
+    rozlejWatki(zywe);
+    for (const o of zywe) wynik.push({ obiekt: o, zrodlo, id: o.id });
+  }
+  return wynik;
 }
 
 // Renderuje stronę (jej pierwszy egzemplarz), egzemplarz z ciągu albo wzorzec

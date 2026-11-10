@@ -208,6 +208,10 @@ export class PanelWlasciwosci {
     // Edycja treści w zwykłym polu – wygodniejsze na telefonie niż na płótnie (4.7).
     s.append(this.obszarTekstu('Treść', () => obj.text, (v) => obj.set('text', v)));
     s.append(this.wstawianiePola());
+    // Klamry pokazują się tylko wtedy, gdy są w tekście – inaczej przełącznik tylko by zawadzał.
+    if (obj.text.includes('{') || obj.bez_pol) {
+      s.append(this.przelacznik('Klamry { } to zwykły tekst, nie pola', () => Boolean(obj.bez_pol), (v) => { obj.bez_pol = v || undefined; obj.dirty = true; }));
+    }
 
     const fragment = this.wskazowka('Zmieniasz tylko zaznaczony fragment tekstu.');
     fragment.classList.add('znacznik-fragmentu');
@@ -542,9 +546,14 @@ export class PanelWlasciwosci {
     const kolumny = this.opcje.kolumnyObrazu?.() || [];
     const d = this.sekcja('Obraz z danych');
     if (kolumny.length) {
-      const wybor = this.wybor('Kolumna z nazwą pliku', [['', 'Stały obraz'], ...kolumny.map((k) => [k, k])], () => obj.pole?.kolumna || '', (v) => { obj.pole = v ? { kolumna: v } : undefined; });
+      const wybor = this.wybor('Kolumna z nazwą pliku', [['', 'Stały obraz'], ...kolumny.map((k) => [k, k])], () => obj.pole?.kolumna || '', (v) => { obj.pole = v ? { ...obj.pole, kolumna: v } : undefined; this.zbuduj(); });
       wybor.classList.add('szeroki');
       d.append(wybor);
+      if (obj.pole?.kolumna) {
+        const tryb = this.wybor('Podmieniony obraz', [['zmiesc', 'mieści się w ramce (cały widoczny)'], ['wypelnij', 'wypełnia ramkę (brzegi przycięte)']], () => obj.pole?.tryb || 'zmiesc', (v) => { obj.pole = { ...obj.pole, tryb: v === 'wypelnij' ? 'wypelnij' : undefined }; });
+        tryb.classList.add('szeroki');
+        d.append(tryb);
+      }
     }
     d.append(this.wskazowka(kolumny.length
       ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj przyciskiem poniżej.'

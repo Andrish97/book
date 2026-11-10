@@ -582,3 +582,82 @@ test('wygląd z danych: kolor z kolumny i przesunięcie według numeru powieleni
   assert.deepEqual(poZmianie.uwagi, ['nieznane_pole']);
   assert.deepEqual(bledy, []);
 });
+
+test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszystkich powielonych stronach, długa tabela', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kontrola');
+  const w = await strona.evaluate(async () => {
+    const { stan, zapiszTeraz } = window.seriodruk;
+    const p = stan.projekt;
+    await zapiszTeraz();
+    const plama = (kolor, sz, wy) => { const c = document.createElement('canvas'); c.width = sz; c.height = wy; const x = c.getContext('2d'); x.fillStyle = kolor; x.fillRect(0, 0, sz, wy); x.fillStyle = '#0000ff'; x.fillRect(0, 0, sz / 4, wy); return c.toDataURL('image/png'); };
+    p.zasoby.z_wzor = { nazwa: 'wzor.png', dataUrl: plama('#888888', 40, 40) };
+    p.zasoby.z_a = { nazwa: 'szeroki.png', dataUrl: plama('#ff0000', 160, 40) }; // 4:1, lewa ćwiartka niebieska
+    p.tabele.push({ id: 't1', nazwa: 'Opisy', kolumny: ['plik', 'opis'], wiersze: [['szeroki', 'Krótko'], ['szeroki', 'Bardzo długi opis, który na pewno nie zmieści się w jednym wierszu tak wąskiej ramki tekstu'], ['szeroki', 'Też krótko']] });
+    p.serie.push({ id: 'se1', nazwa: 'Opisy', tabela: 't1', tryb: 'tabela', uklad: 'szeroki', ile: 1, dodatkowe: [] });
+    p.strony[0].seria = 'se1';
+    const tekst = (id, text, top, dodatki = {}) => ({ type: 'textbox', version: '5.3.0', left: 10, top, width: 40, text, styles: [], fontSize: 5, fontFamily: 'Inter', fill: '#000000', lineHeight: 1.2, id, ...dodatki });
+    p.strony[0].obiekty = [
+      tekst('o_opis', '{opis}', 10, { ramka_h: 7 }),
+      tekst('o_klamry', 'Wzór: f(x) = {x + 1} i {opis}', 30, { width: 120, bez_pol: true }),
+      { type: 'image', version: '5.3.0', left: 50, top: 100, width: 40, height: 40, scaleX: 1, scaleY: 1, zasob: 'z_wzor', src: 'zasob:z_wzor', pole: { kolumna: 'plik', tryb: 'wypelnij' }, id: 'o_obraz' },
+    ];
+    await window.seriodruk.przeladuj();
+    const { rozwin, wartosciPol } = await import('./js/serie.js');
+    const { podstawWObiektach } = await import('./js/pola.js');
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const { sprawdzWszystko } = await import('./js/kontrola-skladu.js');
+    const ciag = rozwin(p);
+    const url = await renderujCel(p, ciag.egzemplarze[0], { szerokoscPx: 148, spad: false, ciag });
+    const img = new Image();
+    await new Promise((ok) => { img.onload = ok; img.src = url; });
+    const k = document.createElement('canvas'); k.width = img.width; k.height = img.height;
+    const kx = k.getContext('2d'); kx.drawImage(img, 0, 0);
+    const piksel = (px, py) => [...kx.getImageData(px, py, 1, 1).data].slice(0, 3).join(',');
+    return {
+      klamry: podstawWObiektach(p.strony[0].obiekty, wartosciPol(p, ciag.egzemplarze[0], ciag)).map((o) => o.text).slice(0, 2),
+      ostrzezenia: window.seriodruk.edytor.ostrzezenia.filter((o) => o.typ === 'nieznane_pole').length,
+      // Ramka 40 × 40 mm od (50, 100). Obraz 4:1 wypełnia ją na wysokość: widać środkowy kwadrat, czerwony aż po rogi.
+      obraz: [piksel(52, 102), piksel(88, 138), piksel(70, 120), piksel(48, 120), piksel(92, 120)],
+      uwagi: (await sprawdzWszystko(p, ciag)).map((u) => [u.rodzaj, u.strony, u.idStrony === p.strony[0].id, u.idObiektu, u.opis]),
+    };
+  });
+  assert.deepEqual(w.klamry, ['Krótko', 'Wzór: f(x) = {x + 1} i {opis}'], 'tekst z przełącznikiem zostaje dosłowny');
+  assert.equal(w.ostrzezenia, 0, 'zwykłe klamry nie dają ostrzeżenia o nieznanym polu');
+  assert.deepEqual(w.obraz, ['255,0,0', '255,0,0', '255,0,0', '255,255,255', '255,255,255']);
+  assert.deepEqual(w.uwagi, [['nie_miesci_sie', [2], true, 'o_opis', 'Tekst „Bardzo długi opis, który na pe…” nie mieści się w ramce – strona 2.']]);
+
+  // Okno „Sprawdź przed drukiem”: ta sama uwaga, „Pokaż” otwiera stronę i zaznacza ramkę.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="kontrola"]');
+  await strona.waitForSelector('#dlg-kontrola[open]');
+  await strona.waitForFunction(() => /1 uwaga do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
+  assert.equal(await strona.textContent('#kontrola-lista li span'), 'Tekst „Bardzo długi opis, który na pe…” nie mieści się w ramce – strona 2.');
+  await strona.click('#kontrola-lista li button');
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.id === 'o_opis');
+  // Przełącznik klamr jest w panelu tekstu, gdy w tekście są klamry.
+  assert.ok(await strona.locator('.wlasciwosci label:has-text("Klamry { } to zwykły tekst")').count());
+  // Okno PDF dopisuje tę uwagę po chwili.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="pdf"]');
+  await strona.waitForFunction(() => /1 uwaga/.test(document.querySelector('#pdf-uwagi summary').textContent));
+  await strona.click('#pdf-anuluj');
+
+  // Długa tabela: wiersze dorysowują się przy przewijaniu, a przejście do dalekiej komórki ją pokazuje.
+  await strona.evaluate(() => {
+    const p = window.seriodruk.stan.projekt;
+    p.tabele.push({ id: 't_dluga', nazwa: 'Długa', kolumny: ['nr', 'tekst'], wiersze: Array.from({ length: 2600 }, (_, i) => [String(i + 1), `wiersz ${i + 1}`]) });
+    window.seriodruk.dane.otworz('t_dluga');
+  });
+  await strona.waitForSelector('#dlg-dane[open]');
+  assert.equal(await strona.locator('#dane-siatka tbody tr').count(), 400);
+  await strona.evaluate(() => { const o = document.querySelector('.dane-siatka-opak'); o.scrollTop = o.scrollHeight; });
+  await strona.waitForFunction(() => document.querySelectorAll('#dane-siatka tbody tr').length === 800);
+  const daleka = await strona.evaluate(() => { const d = window.seriodruk.dane; const td = d._komorka(2599, 1); return [td?.textContent, document.querySelectorAll('#dane-siatka tbody tr').length]; });
+  assert.deepEqual(daleka, ['wiersz 2600', 2600]);
+  await strona.click('#dane-siatka td[data-w="2599"][data-k="1"]');
+  await strona.keyboard.press('Control+A');
+  await strona.keyboard.type('ostatni');
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele[1].wiersze[2599][1]), 'ostatni');
+  assert.deepEqual(bledy, []);
+});
