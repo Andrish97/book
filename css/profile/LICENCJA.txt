@@ -1,0 +1,32 @@
+Profile barwne ICC w tym katalogu opisują warunki druku offsetowego. Aplikacja
+osadza je w plikach PDF/X-4 (jako „warunki druku”) i przelicza przez nie kolory
+na CMYK. Pliki są niezmienione – takie, jak udostępnili je wydawcy.
+
+1. Coated_Fogra39L_VIGC_300.icc
+   Warunki druku: offset arkuszowy, papier powlekany (ISO 12647-2:2004, typ 1 i 2),
+   dane charakteryzacyjne FOGRA39, suma farb do 300%.
+   Wydawca: VIGC. Prawa autorskie: X-Rite, Inc.
+   Źródło: rejestr profili ICC,
+   https://www.color.org/registry/Coated_Fogra39L_VIGC_300.xalter
+   Warunki (z rejestru ICC): „This profile is made available by VIGC, with
+   permission of X-rite, and may be used, embedded, exchanged, and shared without
+   restriction. It may not be altered or sold without written permission of VIGC.”
+
+2. PSO_Uncoated_ISO12647_eci.icc
+   Warunki druku: offset arkuszowy, papier niepowlekany biały (ISO 12647-2:2004,
+   typ 4), dane charakteryzacyjne FOGRA47.
+   Wydawca: ECI European Color Initiative (www.eci.org), pakiet „ECI Offset 2009”.
+   Źródło: https://www.eci.org/doku.php?id=en:downloads (plik eci_offset_2009.zip)
+   Warunki (zapisane w samym profilu): „This profile is made available by ECI
+   European Color Initiative, with permission of Heidelberger Druckmaschinen AG,
+   and may be used, embedded, exchanged, and shared without restriction. It may
+   not be altered or sold without written permission of ECI European Color
+   Initiative.”
+
+Czego tu świadomie nie ma: profili „ISO Coated v2 (ECI)” i „PSO Coated v3” –
+pierwszy nie niesie wyraźnej zgody na rozpowszechnianie, drugi jej zabrania
+(„may not be distributed”). Jeśli drukarnia wymaga któregoś z nich, pobierz go
+ze strony ECI i wskaż w oknie eksportu jako „profil od drukarni”.
+
+Profil sRGB, którym opisywane są kolory RGB w pliku PDF/X, nie jest plikiem –
+aplikacja buduje go z liczb definiujących sRGB (js/profil-icc.js).

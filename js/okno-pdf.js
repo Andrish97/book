@@ -5,6 +5,7 @@ import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
 import { eksportujPdf, wybierzEgzemplarze, planPlikow, JAKOSCI_PDF, Przerwano } from './eksport.js';
+import { WARUNKI_DRUKU } from './profil-icc.js';
 
 export class OknoPdf {
   // projekt() → bieżący projekt, sekcja() → bieżąca sekcja, przedEksportem() –
@@ -22,6 +23,15 @@ export class OknoPdf {
       const el = this.f.elements;
       if (e.target === el.czcionki) this.czcionkiRecznie = true;
       else if (!this.czcionkiRecznie && (e.target === el.tryb || e.target === el.krzywe)) el.czcionki.checked = el.tryb.value === 'obraz' || el.krzywe.checked;
+      this.odswiez();
+    });
+    // Profil od drukarni: plik .icc wczytany z dysku (zostaje w pamięci okna, nie w projekcie).
+    this.profilWlasny = null;
+    $('#pdf-wybierz-profil').addEventListener('click', () => $('#pdf-plik-profilu').click());
+    $('#pdf-plik-profilu').addEventListener('change', async (e) => {
+      const plik = e.target.files[0]; e.target.value = '';
+      if (!plik) return;
+      this.profilWlasny = { nazwa: plik.name, bajty: new Uint8Array(await plik.arrayBuffer()) };
       this.odswiez();
     });
     this.f.addEventListener('submit', (e) => { e.preventDefault(); this.eksportuj(); });
@@ -72,6 +82,9 @@ export class OknoPdf {
       tryb: e.tryb.value,
       krzywe: e.tryb.value === 'wektor' && e.krzywe.checked,
       cmyk: e.tryb.value === 'wektor' && e.cmyk.checked,
+      pdfx: e.pdfx.value,
+      profilWlasny: e.pdfx.value === 'wlasny' ? this.profilWlasny : null,
+      zdjeciaCmyk: e.tryb.value === 'wektor' && Boolean(e.pdfx.value) && e.zdjeciaCmyk.checked,
       dpi: Number(e.dpi.value),
       spad: e.druk.value === 'drukarnia',
       znaki: e.druk.value === 'drukarnia' ? 'sekcje' : false,
@@ -93,6 +106,19 @@ export class OknoPdf {
         ? 'Tekst jest zamieniony na kształty liter: wygląda identycznie wszędzie i drukarnia nie potrzebuje czcionek, ale nie da się go zaznaczyć ani poprawić. Zdjęcia idą w oryginalnej rozdzielczości.'
         : 'Tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać), kształty są wektorami, zdjęcia idą w oryginalnej rozdzielczości. Elementy z cieniem trafiają do pliku jako obraz, a tekst czcionką, której nie da się osadzić (plik WOFF2, czcionka zmienna, kursywa bez własnego pliku) – jako krzywe; po eksporcie zobaczysz ich listę.')
       : 'Każda strona jest jednym obrazem w wybranej rozdzielczości – tekst wygląda tak samo na każdym komputerze, ale nie da się go zaznaczyć, a plik jest większy.';
+    // Standard dla drukarni: co plik będzie zawierał, prostymi słowami.
+    $('#pdf-pole-zdjecia').hidden = !o.pdfx;
+    $('#pdf-pole-profil').hidden = o.pdfx !== 'wlasny';
+    $('#pdf-nazwa-profilu').textContent = this.profilWlasny ? this.profilWlasny.nazwa : 'Nie wybrano pliku.';
+    const opisPdfx = $('#pdf-opis-pdfx');
+    opisPdfx.hidden = !o.pdfx;
+    if (o.pdfx) {
+      const papier = o.pdfx === 'wlasny' ? 'warunki druku z profilu drukarni' : `warunki druku: ${WARUNKI_DRUKU[o.pdfx].nazwa}`;
+      const kolory = !wektor
+        ? 'Obrazy stron zostają w RGB z opisem sRGB – na farby drukarskie przeliczy je drukarnia według dołączonego profilu.'
+        : `${o.cmyk ? 'Tekst i kształty są przeliczone na CMYK przez ten profil (czerń i szarości samą czarną farbą).' : 'Tekst i kształty zostają w RGB z opisem sRGB.'} ${o.zdjeciaCmyk ? 'Zdjęcia są przeliczone na CMYK przez ten profil, w rozdzielczości z pola „Jakość”, bez strat – plik będzie wyraźnie większy.' : 'Zdjęcia zostają w RGB z opisem sRGB – na farby przeliczy je drukarnia według dołączonego profilu (to zgodne z PDF/X-4).'}`;
+      opisPdfx.textContent = `Plik PDF/X-4: zawiera profil barwny (${papier}) i oznaczenia, po których programy drukarni rozpoznają standard. ${kolory}${o.pdfx === 'fogra39' ? ' Profil papieru powlekanego dodaje do pliku ok. 8 MB.' : ''} Przed pierwszym zleceniem wyślij drukarni próbny plik.`;
+    }
     const projekt = this.zrodlo.projekt();
     const egz = wybierzEgzemplarze(this.ciag, o);
     const pliki = planPlikow(projekt, egz, o);
@@ -101,7 +127,7 @@ export class OknoPdf {
     $('#pdf-podsumowanie').textContent = egz.length
       ? `Do eksportu: ${stron}${powielone ? ` (w tym ${powielone} z powieleń serii)` : ''}${pliki.length > 1 ? `, ${pliki.length} ${odmiana(pliki.length, 'plik', 'pliki', 'plików')} PDF w jednym archiwum ZIP` : ''}.`
       : 'W wybranym zakresie nie ma stron.';
-    $('#pdf-eksportuj').disabled = this.trwa || !egz.length;
+    $('#pdf-eksportuj').disabled = this.trwa || !egz.length || (o.pdfx === 'wlasny' && !this.profilWlasny);
   }
 
   async eksportuj() {

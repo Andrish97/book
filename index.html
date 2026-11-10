@@ -668,7 +668,21 @@
       <div id="pdf-opcje-wektora">
         <label class="przelacznik"><input type="checkbox" name="krzywe"><span>Zamień tekst na krzywe (bez czcionek w pliku)</span></label>
         <label class="przelacznik"><input type="checkbox" name="cmyk"><span>Kolory tekstu i kształtów w CMYK (czarny jako sama czerń)</span></label>
+        <label class="przelacznik" id="pdf-pole-zdjecia"><input type="checkbox" name="zdjeciaCmyk"><span>Zdjęcia też w CMYK (większy plik)</span></label>
       </div>
+      <label class="pole"><span>Standard dla drukarni</span>
+        <select name="pdfx">
+          <option value="" selected>Bez standardu – zwykły PDF</option>
+          <option value="fogra39">PDF/X-4 – papier powlekany (FOGRA39)</option>
+          <option value="fogra47">PDF/X-4 – papier niepowlekany (FOGRA47)</option>
+          <option value="wlasny">PDF/X-4 – profil od drukarni (plik .icc)</option>
+        </select>
+      </label>
+      <div id="pdf-pole-profil" hidden>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="pdf-wybierz-profil" data-ikona="wyslij">Wybierz plik profilu…</button><span class="podpowiedz" id="pdf-nazwa-profilu">Nie wybrano pliku.</span></div>
+        <input type="file" id="pdf-plik-profilu" accept=".icc,.icm" hidden>
+      </div>
+      <p class="podpowiedz" id="pdf-opis-pdfx" hidden></p>
       <div class="rzad">
         <label class="pole"><span>Podział na pliki</span>
           <select name="podzial">

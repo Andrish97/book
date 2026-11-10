@@ -7,9 +7,12 @@
 //    wektory, zdjęcia w oryginalnej rozdzielczości (js/pdf-wektorowy.js);
 //  – obrazy stron: każda strona jest jednym obrazem w wybranej rozdzielczości.
 // Kolory są w RGB; w pliku wektorowym tekst i kształty mogą iść w CMYK.
+// Standard dla drukarni (PDF/X-4, js/pdf-x.js): plik niesie profil barwny warunków druku, a kolory
+// i zdjęcia można przeliczyć na CMYK przez ten profil (js/profil-icc.js).
 
 import { renderujCel, zlozCel } from './zlozenie.js';
 import { rysujStroneWektorowo, CzcionkiPdf, ObrazyPdf } from './pdf-wektorowy.js';
+import { wczytajWarunki, dodajPdfX, naglowekPdfX } from './pdf-x.js';
 import { rozwin } from './serie.js';
 import { biblioteka } from './biblioteki.js';
 import { bezpiecznaNazwa } from './ui.js';
@@ -89,8 +92,8 @@ export function wymiaryStronyPdf(wydruk, { spad = true, znaki = true } = {}) {
   return { w: wydruk.szerokosc_mm, h: wydruk.wysokosc_mm, spad: b, pas, odstep, znaki };
 }
 
-function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }) {
-  const czarny = PDFLib.rgb(0, 0, 0);
+function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) {
+  const czarny = czarnaFarba ? PDFLib.cmyk(0, 0, 0, 1) : PDFLib.rgb(0, 0, 0);
   const linia = (x1, y1, x2, y2) => strona.drawLine({ start: { x: x1 * PT, y: y1 * PT }, end: { x: x2 * PT, y: y2 * PT }, thickness: 0.25, color: czarny });
   for (const x of [pas, pas + w]) {
     linia(x, pas - odstep, x, pas - odstep - ZNAK_DLUGOSC);
@@ -108,8 +111,16 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }) {
 // wektorowy), uwagi (Map: powód → ile elementów trafiło do pliku jako obraz), jakoKrzywe (Map: czcionka →
 // w ilu elementach tekst zapisano jako krzywe, bo czcionki nie da się osadzić), ciag, postep(nrStrony),
 // przerwij() → true, gdy użytkownik anulował.
-export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, uwagi = new Map(), jakoKrzywe = new Map(), ciag = rozwin(projekt), postep, przerwij } = {}) {
+//
+// Standard dla drukarni: pdfx ('fogra39' | 'fogra47' | 'wlasny' + profilWlasny { nazwa, bajty }) daje plik
+// PDF/X-4 z profilem warunków druku; wtedy cmyk przelicza tekst i kształty przez ten profil, a zdjeciaCmyk
+// (tylko plik wektorowy) – także zdjęcia. `druk` to wczytane już warunki (wczytajWarunki), żeby przy kilku
+// plikach nie czytać profilu za każdym razem.
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ciag = rozwin(projekt), postep, przerwij } = {}) {
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
+  const warunki = druk || (pdfx ? await wczytajWarunki(pdfx, profilWlasny) : null);
+  const wektor = tryb === 'wektor';
+  const silnik = warunki && wektor && (cmyk || zdjeciaCmyk) ? warunki.silnik() : null;
   const pdf = await PDFLib.PDFDocument.create();
   pdf.setTitle(projekt.nazwa);
   pdf.setCreator('Seriodruk');
@@ -118,7 +129,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   if (tryb === 'wektor') {
     const fontkit = await biblioteka(FONTKIT_URL, 'fontkit', 'modułu czcionek PDF');
     pdf.registerFontkit(fontkit);
-    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf), cmyk, krzywe, dpi, uwagi, jakoKrzywe, uzyteCzcionki: new Set() };
+    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf, { silnik: zdjeciaCmyk ? silnik : null }), cmyk, silnik: cmyk ? silnik : null, krzywe, dpi, uwagi, jakoKrzywe, uzyteCzcionki: new Set() };
   }
   let nr = 0;
   for (const egz of egzemplarze) {
@@ -144,14 +155,16 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     }
     strona.setTrimBox(m.pas * PT, m.pas * PT, m.w * PT, m.h * PT);
     strona.setBleedBox((m.pas - m.spad) * PT, (m.pas - m.spad) * PT, (m.w + 2 * m.spad) * PT, (m.h + 2 * m.spad) * PT);
-    if (zeZnakami) rysujZnaki(strona, PDFLib, m);
+    if (zeZnakami) rysujZnaki(strona, PDFLib, m, Boolean(warunki) || (wektor && cmyk));
     nr += 1;
     postep?.(nr);
     await new Promise((ok) => setTimeout(ok)); // oddaj głos przeglądarce – postęp się odmaluje
   }
   // Czcionki wczytane, ale ostatecznie nieużyte (np. tekst poszedł jako obraz), nie trafiają do pliku.
   if (srodowisko) pdf.fonts = pdf.fonts.filter((f) => srodowisko.uzyteCzcionki.has(f));
-  return new Blob([await pdf.save()], { type: 'application/pdf' });
+  if (warunki) await dodajPdfX(PDFLib, pdf, warunki, { tytul: projekt.nazwa });
+  const bajty = await pdf.save();
+  return new Blob([warunki ? naglowekPdfX(bajty) : bajty], { type: 'application/pdf' });
 }
 
 // Pliki jednej rodziny z oficjalnego zestawu czcionek aplikacji: zwykłe pliki TTF, po jednym
@@ -207,11 +220,13 @@ export async function eksportujPdf(projekt, opcje = {}) {
   const pliki = planPlikow(projekt, wybierzEgzemplarze(ciag, opcje), opcje);
   if (!pliki.length) throw new Error('W wybranym zakresie nie ma stron.');
   const razem = pliki.reduce((s, p) => s + p.egzemplarze.length, 0);
+  // Profil warunków druku wczytuje się raz na cały eksport.
+  const druk = opcje.pdfx ? await wczytajWarunki(opcje.pdfx, opcje.profilWlasny) : null;
   let gotowe = 0;
   const wyniki = [];
   for (const p of pliki) {
     const start = gotowe;
-    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, uwagi, jakoKrzywe, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
+    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, druk, uwagi, jakoKrzywe, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
     wyniki.push({ nazwa: p.nazwa, blob });
   }
   const czcionki = opcje.dolaczCzcionki ? await plikiCzcionek(projekt) : [];
