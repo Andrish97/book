@@ -30,3 +30,7 @@ jobs:
 
       - name: Testy przeglądarkowe
         run: npm test
+
+      - name: Pomiary testów PDF (zgodność obrazu z aplikacją)
+        if: always()
+        run: cat tests/.pomiary-pdf.txt 2>/dev/null || echo "brak pomiarów"

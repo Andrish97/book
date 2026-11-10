@@ -6,6 +6,10 @@ const { otworz, nowyProjekt } = require('./pomoc.cjs');
 const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WATEK = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+// Pomiary zgodności obrazu trafiają do pliku – na serwerze testów wypisuje go ostatni krok.
+const zapiszPomiar = (nazwa, w) => require('node:fs').appendFileSync(require('node:path').join(__dirname, '.pomiary-pdf.txt'),
+  `${nazwa.slice(0, 60)} | ${w.przegladarka} | średnia ${w.srednia.toFixed(3)} | różne ${(w.rozne * 100).toFixed(3)}% | pasy co 10 mm: ${w.pasy.join(' ')}\n`);
+
 const OBIEKTY = [
   { type: 'rect', left: -3, top: -3, width: 154, height: 24, fill: '#c8102e', id: 'pas' },
   { type: 'textbox', left: 15, top: 30, width: 120, text: 'Zażółć gęślą jaźń – „Święto” 2026', fontSize: 9, fontFamily: 'Lora', fontWeight: 'bold', textAlign: 'center', fill: '#1a3c8f', styles: [], id: 'tytul' },
@@ -69,6 +73,14 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
     suma += r; if (r > 48) rozne += 1;
   }
   const piks = da.data.length / 4;
+  // Średnia różnica w poziomych pasach strony po 10 mm – pokazuje, którego elementu dotyczy rozbieżność.
+  const pasy = [];
+  const naPas = Math.max(1, Math.round((10 * (a.width / 154)) / 12));
+  for (let y0 = 0; y0 < da.height; y0 += naPas) {
+    let sumaPasa = 0; let n = 0;
+    for (let y = y0; y < Math.min(da.height, y0 + naPas); y += 1) for (let x = 0; x < da.width; x += 1) { const i = (y * da.width + x) * 4; sumaPasa += (Math.abs(da.data[i] - db.data[i]) + Math.abs(da.data[i + 1] - db.data[i + 1]) + Math.abs(da.data[i + 2] - db.data[i + 2])) / 3; n += 1; }
+    pasy.push(Math.round((sumaPasa / n) * 10) / 10);
+  }
   const skala = a.width / 154; // strona 148 mm + 2 × 3 mm spadu
   const wPunkcie = (mmX, mmY) => kolor(da, (mmX + 3) * skala, (mmY + 3) * skala);
   return {
@@ -79,7 +91,7 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
     jpeg: pdf.context.enumerateIndirectObjects().filter(([, o]) => o.dict && String(o.dict.get(PDFName.of('Filter'))) === '/DCTDecode').map(([, o]) => o.contents.length),
     czcionki: ile('Font'), obrazy: ile('XObject'), gradienty: ile('Shading'),
     tekstowe: liczba(/\bTJ\b/g), rgb: liczba(/\brg\b/g), cmyk: liczba(/ k\b/g), krzywe: liczba(/ c\b/g),
-    tekst, srednia: suma / piks, rozne: rozne / piks,
+    tekst, srednia: suma / piks, rozne: rozne / piks, pasy, przegladarka: navigator.userAgent.match(/Chrome\/[\d.]+/)?.[0],
     pas: wPunkcie(70, 8), zolty: wPunkcie(35, 108), polprzezroczysty: wPunkcie(126, 106), cien: wPunkcie(35, 155),
   };
 }, [opcje, PDFJS, PDFJS_WATEK]);
@@ -114,7 +126,7 @@ test('PDF wektorowy: prawdziwy tekst z osadzonymi czcionkami, kształty, gradien
   assert.ok(blisko(w.zolty, [255, 209, 102]), `żółty prostokąt: ${w.zolty}`);
   assert.ok(blisko(w.polprzezroczysty, [131, 157, 165]), `półprzezroczysty prostokąt: ${w.polprzezroczysty}`);
   assert.ok(blisko(w.cien, [131, 56, 236]), `element z cieniem: ${w.cien}`);
-  t.diagnostic(`obraz PDF a obraz z aplikacji: średnia różnica ${w.srednia.toFixed(3)} (na 255), wyraźnie różnych miejsc ${(w.rozne * 100).toFixed(3)}%`);
+  zapiszPomiar(t.name, w);
   assert.ok(w.srednia < 2.5, `średnia różnica obrazu ${w.srednia.toFixed(2)}`);
   assert.ok(w.rozne < 0.005, `odsetek wyraźnie różnych miejsc ${(w.rozne * 100).toFixed(2)}%`);
 
@@ -124,7 +136,7 @@ test('PDF wektorowy: prawdziwy tekst z osadzonymi czcionkami, kształty, gradien
   assert.equal(k.tekstowe, 0);
   assert.ok(k.krzywe > w.krzywe + 200, 'litery jako krzywe');
   assert.equal(k.tekst.trim(), '');
-  t.diagnostic(`tekst na krzywe: średnia różnica ${k.srednia.toFixed(3)}, wyraźnie różnych miejsc ${(k.rozne * 100).toFixed(3)}%`);
+  zapiszPomiar(`${t.name} (krzywe)`, k);
   assert.ok(k.srednia < 2.5 && k.rozne < 0.005, `obraz po zamianie na krzywe: ${k.srednia.toFixed(2)}, ${(k.rozne * 100).toFixed(2)}%`);
 
   // CMYK: kolory tekstu i kształtów zapisane czterema składowymi.
@@ -199,7 +211,7 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
   assert.deepEqual(w.jpeg, [rozmiarJpeg], 'zdjęcie JPEG jest w pliku raz i bez ponownej kompresji');
   assert.ok(w.tekst.includes('Własna czcionka z pliku TTF'));
   assert.ok(!w.tekst.includes('WOFF2'), 'tekst zapisany jako obraz nie jest tekstem');
-  t.diagnostic(`obraz PDF a obraz z aplikacji: średnia różnica ${w.srednia.toFixed(3)} (na 255), wyraźnie różnych miejsc ${(w.rozne * 100).toFixed(3)}%`);
+  zapiszPomiar(t.name, w);
   assert.ok(w.srednia < 2.5, `średnia różnica obrazu ${w.srednia.toFixed(2)}`);
   assert.ok(w.rozne < 0.005, `odsetek wyraźnie różnych miejsc ${(w.rozne * 100).toFixed(2)}%`);
 

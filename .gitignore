@@ -5,3 +5,4 @@ package-lock.json
 
 # Katalogi robocze narzędzi
 .claude/worktrees/
+tests/.pomiary-pdf.txt
