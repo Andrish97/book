@@ -1090,3 +1090,75 @@ button.podglad-kartka:hover { outline: 2px solid var(--akcent); outline-offset: 
 .podglad-pusto h2 { font-size: 19px; }
 #dlg-udostepnij .przyciski-dialogu { align-items: center; }
 #udostepnij-link { font-size: 13px; }
+
+/* ---------- Własne kontrolki (js/kontrolki.js) ---------- */
+/* Lista rozwijana: systemowy <select> leży niewidoczny pod własnym przyciskiem. */
+.wybor { position: relative; display: block; min-width: 0; }
+.wybor-natywny { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.wybor-przycisk {
+  width: 100%; min-height: var(--dotyk); padding: 8px 9px 8px 11px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); color: inherit;
+  font: inherit; text-align: left; cursor: pointer; transition: border-color var(--czas), box-shadow var(--czas);
+}
+.wybor-przycisk:hover { border-color: var(--cichy); }
+.wybor-przycisk:focus-visible, .wybor-przycisk[aria-expanded="true"] { outline: none; border-color: var(--akcent); box-shadow: 0 0 0 3px var(--akcent-tlo); }
+.wybor-przycisk:disabled { opacity: .55; cursor: default; }
+.wybor-przycisk svg { flex: none; color: var(--cichy); transition: transform var(--czas); }
+.wybor-przycisk[aria-expanded="true"] svg { transform: rotate(180deg); }
+.wybor-tekst { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wlasciwosci .wybor-przycisk { min-height: 36px; padding: 6px 7px 6px 9px; font-size: 13px; color: var(--tusz); }
+.wybor-lista, .kolor-okienko {
+  position: fixed; z-index: 1000; overflow: auto; overscroll-behavior: contain;
+  background: var(--powierzchnia); color: var(--tusz); border: 1px solid var(--linia-mocna); border-radius: var(--r-m);
+  box-shadow: var(--cien-3); font-size: 14px;
+}
+.wybor-lista { padding: 5px; max-width: min(420px, calc(100vw - 16px)); outline: none; }
+.wybor-opcja { padding: 8px 10px; border-radius: var(--r-s); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wybor-opcja.w-grupie { padding-left: 18px; }
+.wybor-opcja.aktywna { background: var(--wypelnienie); }
+.wybor-opcja[aria-selected="true"] { color: var(--akcent); font-weight: 600; }
+.wybor-opcja[aria-selected="true"].aktywna { background: var(--akcent-tlo); }
+.wybor-opcja[aria-disabled="true"] { color: var(--cichy); cursor: default; }
+.wybor-grupa { padding: 9px 10px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--cichy); }
+@media (pointer: coarse) { .wybor-opcja { padding: 11px 12px; } }
+
+/* Wybór koloru */
+.wybor-koloru { position: relative; display: inline-block; }
+.kolor-natywny { position: absolute; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; pointer-events: none; }
+.kolor-przycisk { width: 36px; height: 36px; padding: 3px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); cursor: pointer; display: block; }
+.kolor-przycisk i { display: block; width: 100%; height: 100%; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+.kolor-przycisk:focus-visible, .kolor-przycisk[aria-expanded="true"] { outline: none; border-color: var(--akcent); box-shadow: 0 0 0 3px var(--akcent-tlo); }
+.kolor-przycisk:disabled { opacity: .45; cursor: default; }
+.kolor-okienko { width: 236px; padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow: visible; }
+.kolor-pole { position: relative; height: 140px; border-radius: var(--r-s); cursor: crosshair; touch-action: none; }
+.kolor-pole i { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .5); pointer-events: none; }
+.kolor-barwa { position: relative; height: 14px; border-radius: 7px; cursor: pointer; touch-action: none; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+.kolor-barwa i { position: absolute; top: -2px; width: 8px; height: 18px; margin-left: -4px; border-radius: 4px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .5); pointer-events: none; }
+.kolor-pole:focus-visible, .kolor-barwa:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; }
+.kolor-hex { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cichy); white-space: nowrap; }
+.kolor-hex input { min-height: 32px; padding: 4px 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.kolor-paleta { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.kolor-paleta button { aspect-ratio: 1; padding: 0; border: 0; border-radius: 4px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); }
+.kolor-paleta button:hover, .kolor-paleta button:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.kolor-paleta.ostatnie { padding-top: 8px; border-top: 1px solid var(--linia); }
+
+/* Pola wyboru i opcje: własny wygląd zamiast systemowego. */
+input[type="checkbox"], input[type="radio"] {
+  appearance: none; -webkit-appearance: none; flex: none; width: 18px; height: 18px; margin: 0;
+  border: 1.5px solid var(--linia-mocna); background: var(--powierzchnia); cursor: pointer; display: inline-grid; place-content: center;
+  transition: background var(--czas), border-color var(--czas);
+}
+input[type="checkbox"] { border-radius: 5px; }
+input[type="radio"] { border-radius: 50%; }
+input[type="checkbox"]::before { content: ""; width: 10px; height: 10px; transform: scale(0); background: var(--akcent-tekst); clip-path: polygon(14% 52%, 0 67%, 40% 100%, 100% 22%, 86% 9%, 39% 70%); transition: transform 90ms; }
+input[type="radio"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; transform: scale(0); background: var(--akcent-tekst); transition: transform 90ms; }
+input[type="checkbox"]:checked, input[type="radio"]:checked { background: var(--akcent); border-color: var(--akcent); }
+input[type="checkbox"]:checked::before, input[type="radio"]:checked::before { transform: scale(1); }
+input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--akcent-tlo); border-color: var(--akcent); }
+input[type="checkbox"]:disabled, input[type="radio"]:disabled { opacity: .5; cursor: default; }
+
+/* Pola liczbowe bez systemowych strzałek (strzałki na klawiaturze nadal zmieniają wartość). */
+input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { appearance: none; -webkit-appearance: none; margin: 0; }
+.wlasciwosci input[type="checkbox"], .wlasciwosci input[type="radio"], dialog input[type="checkbox"], dialog input[type="radio"] { min-height: 0; padding: 0; }

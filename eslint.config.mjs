@@ -6,7 +6,7 @@ const PRZEGLADARKA = [
   'crypto', 'console', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'requestAnimationFrame',
   'cancelAnimationFrame', 'ResizeObserver', 'MutationObserver', 'IntersectionObserver', 'structuredClone', 'TextDecoder', 'TextEncoder', 'Option', 'matchMedia',
   'getComputedStyle', 'performance', 'caches', 'self', 'HTMLElement', 'Element', 'DOMParser', 'XMLSerializer', 'AbortController', 'launchQueue', 'btoa', 'atob',
-  'fabric', 'CSS', 'FontFace', 'DataView', 'DecompressionStream', 'Response',
+  'fabric', 'CSS', 'HTMLSelectElement', 'HTMLInputElement', 'FontFace', 'DataView', 'DecompressionStream', 'Response',
 ];
 
 export default [

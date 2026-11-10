@@ -21,6 +21,7 @@ import { opisObiektu } from './edytor.js';
 import { pngCelu } from './eksport.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from './wklejanie.js';
 import { OknoPdf } from './okno-pdf.js';
+import { wlaczWlasneKontrolki } from './kontrolki.js';
 import { OknoKontroli } from './okno-kontroli.js';
 import { obsluzKlawisz } from './skroty.js';
 import { zaladujCzcionki } from './czcionki.js';
@@ -537,6 +538,9 @@ start().catch((e) => {
 });
 
 // Dostęp z konsoli i dla skryptu zrzutów ekranu.
+// Listy rozwijane i wybór koloru rysuje aplikacja, nie system (js/kontrolki.js).
+wlaczWlasneKontrolki();
+
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
   przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane, oknoPdf, oknoCzcionek, oknoKontroli,
