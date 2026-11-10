@@ -450,6 +450,43 @@ async function przykladoweProjekty(strona) {
   await d.click('[data-akcja="podglad-minus"]');
   await d.waitForTimeout(1800);
   await zrzut(d, 'serie.png');
+
+  // Eksport do PDF: okno z listą rzeczy do sprawdzenia przed drukiem
+  await d.click('[data-akcja="podglad-zamknij"]');
+  await d.waitForFunction(() => document.body.dataset.ekran === 'edytor');
+  await d.click('#przycisk-wiecej');
+  await d.click('[data-akcja="pdf"]');
+  await d.waitForSelector('#dlg-pdf[open]');
+  await d.evaluate(() => { document.querySelector('#pdf-uwagi').open = true; });
+  await zrzut(d, 'pdf.png');
+  await d.click('#pdf-anuluj');
+
+  // Układ tekstu: kolumny (połączone ramki), listy i tabela
+  await d.click('[data-akcja="strona-dodaj"]');
+  await d.waitForFunction(() => window.seriodruk.stan.indeks === 1);
+  await d.waitForTimeout(400);
+  await d.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    const pt = (n) => n * 25.4 / 72;
+    const tytul = e.dodajTekst('Notatki do planera'); tytul.set({ left: 12, top: 12, width: 124, fontSize: pt(20), fontWeight: 'bold', fontFamily: 'Playfair Display' });
+    const o = e.dodajTekst('Tekst w kolumnach płynie z ramki do ramki. Gdy w pierwszej zabraknie miejsca, dalszy ciąg pojawia się w następnej – tak jak w gazecie. Ramki można przesuwać i zmieniać ich wysokość, a tekst sam układa się od nowa. Formatowanie fragmentów wędruje razem z tekstem, a pola z danych działają jak zwykle.');
+    o.set({ left: 12, top: 28, width: 124, fontSize: pt(9) }); o.initDimensions();
+    e.canvas.setActiveObject(o);
+    await e.podzielNaKolumny(3);
+    const l = e.dodajTekst('Zakupy na sobotę\nChleb razowy na zakwasie, najlepiej jeszcze ciepły, z piekarni za rogiem\nMasło i ser\nJabłka');
+    l.set({ left: 12, top: 76, width: 58, fontSize: pt(10), lista: 'numery' }); l.initDimensions();
+    const p = e.dodajTekst('Podlać kwiaty na balkonie i w kuchni, zanim zrobi się gorąco\nOddać książki do biblioteki\nZadzwonić do babci');
+    p.set({ left: 78, top: 76, width: 58, fontSize: pt(10), lista: 'punkty' }); p.initDimensions();
+    const { komorki, siatka } = e.dodajTabele({ wiersze: 4, kolumny: 3 });
+    e.canvas.discardActiveObject();
+    for (const x of [siatka, ...komorki]) { x.top += 40; x.setCoords(); }
+    ['Dzień', 'Do zrobienia', 'Uwagi'].forEach((t, i) => komorki[i].set('text', t));
+    ['Poniedziałek', 'Plan tygodnia', '', 'Wtorek', 'Zakupy', 'lista wyżej'].forEach((t, i) => komorki[3 + i].set('text', t));
+    e.canvas.setActiveObject(e.canvas.getObjects().find((x) => x.watek_nr === 0));
+    e.zatwierdz();
+  });
+  await d.waitForTimeout(500);
+  await zrzut(d, 'uklad.png');
   await kp.close();
 
   // ---------- Telefon ----------

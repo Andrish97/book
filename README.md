@@ -1,6 +1,6 @@
 # Seriodruk
 
-Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy): projektujesz wzory stron, a w kolejnych etapach aplikacja podstawi do nich dane z arkusza i złoży PDF do druku.
+Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy): projektujesz wzory stron, aplikacja podstawia do nich dane z arkusza i składa PDF do druku.
 
 - Aplikacja: https://andrish97.github.io/book/
 - Plan: [docs/PLAN.md](docs/PLAN.md) · Decyzje: [docs/DECYZJE.md](docs/DECYZJE.md) · Uzasadnienie i lista braków: [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md)
@@ -12,19 +12,20 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Sekcje**: części projektu z własnym formatem, spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki) i numeracją.
 - **Rozkładówki**: obie strony na jednym płótnie, marginesy lustrzane (wewnętrzny przy grzbiecie), elementy mogą leżeć przez grzbiet.
 - **Wzorce**: wspólne elementy stron; kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
-- **Edytor** (Fabric.js 5.3.1, wszystko w mm): tekst, kształty, obrazy, grupy, panel warstw, wyrównywanie i równe odstępy, blokada, schowek między stronami, cofanie, ostrzeżenia o marginesach i spadzie.
-- **Kształty i obrazy**: wielokąty i gwiazdy, gradient, cień, kadrowanie obrazu przeciąganiem.
+- **Edytor** (Fabric.js 5.3.1 trzymany w repozytorium, wszystko w mm): tekst, kształty, obrazy, grupy, panel warstw, wyrównywanie i równe odstępy, blokada, schowek między stronami, ostrzeżenia o marginesach i spadzie. **Cofanie** to jedna historia całego projektu (strony, wzorce, sekcje, style, dane).
+- **Kształty i obrazy**: wielokąty i gwiazdy, gradient, cień, kadrowanie obrazu przeciąganiem. Duże zdjęcia pracują w edytorze na lżejszej kopii; do eksportu idzie oryginał.
 - **Precyzja**: siatka z przyciąganiem, linijki i własne prowadnice, linie wyrównania do innych elementów, strzałki z odległościami i równe odstępy, ponad 50 skrótów klawiszowych.
-- **Dane**: tabele z importem CSV/Excel i lekkim edytorem, pola `{kolumna}` i pola dokumentu w tekście, serie powielające strony według wierszy, obrazy z kolumny, ramka tekstu z autodopasowaniem.
-- **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu.
+- **Dane**: tabele z importem CSV/Excel i lekkim edytorem, pola `{kolumna}` i pola dokumentu w tekście, serie powielające strony według wierszy, obrazy z kolumny, ramka tekstu z autodopasowaniem. Szablon danych serii (Excel z arkuszem „Instrukcja”), dodawanie brakujących kolumn, pilnowanie powtórzeń w kolumnie.
+- **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu, listy (punkty, kreski, numery), przelewanie tekstu między połączonymi ramkami, kolumny, tabela.
+- **Eksport**: PDF do drukarni (spad, znaki cięcia, TrimBox/BleedBox, 150/300/600 dpi, zakres stron, podział na sekcje albo części) z listą rzeczy do sprawdzenia przed drukiem; PNG strony w 300 dpi.
 - **Podgląd** bez edycji: cały projekt jak po przycięciu (z powieleniami serii), rozkładówki obok siebie, tryb prezentacji na całym ekranie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
-- **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
+- **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie – wysyłane są tylko zmienione strony; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
 - **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok; panele wysuwane z dołu.
 - **Motyw**: jasny, ciemny albo jak w systemie.
-- **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze.
+- **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze. Czcionki i silnik płótna są w repozytorium, więc edytor działa bez internetu.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 
-Nie ma jeszcze: eksportu PDF (etap 4 planu), pul wartości i szablonu danych (plan 5.1–5.2). Pełna lista braków – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
+Nie ma jeszcze: własnej poczty (czeka na domenę), PDF z tekstem wektorowym i CMYK, tekstu płynącego przez kilka stron. Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
 
 ## Uruchomienie lokalne
 
@@ -60,26 +61,32 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | Plik | Rola |
 |---|---|
 | `index.html`, `css/aplikacja.css` | Ekrany: logowanie, projekty, konto, edytor, podgląd; dialogi |
-| `js/aplikacja.js` | Rdzeń: adresy podstron, lista projektów, edytor, sekcje, wzorce, zapis |
+| `js/aplikacja.js` | Plik startowy: przyciski, zdarzenia edytora, skróty, start |
+| `js/app/` | Części aplikacji: `kontekst` (wspólny stan), `skladniki` (panel, linijki, okno danych…), `zapis` (płótno ↔ projekt, zapis, cofanie), `trasy`, `logowanie`, `projekty`, `lista-stron`, `sekcje`, `wzorce`, `panel-strony`, `podglad-ekran` |
+| `js/historia.js` | Jedna historia cofania całego projektu |
 | `js/konto.js` | Logowanie, rejestracja, reset hasła, ustawienia konta |
-| `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji, obrazy |
+| `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji (strony w osobnych wierszach, zapis funkcją `zapisz_projekt`), obrazy |
 | `js/lokalny.js` | IndexedDB |
 | `js/projekt.js` | Model projektu: sekcje, wzorce, rozkładówki, numeracja, migracje starszych wersji |
 | `js/edytor.js` | Silnik arkusza (strona albo rozkładówka) na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
 | `js/zlozenie.js` | Składanie strony z warstw (tło, wzorce, treść, elementy sąsiedniej strony przez grzbiet) dla edytora, miniatur i podglądu |
-| `js/wlasciwosci.js`, `js/style-tekstu.js`, `js/tekst-ramka.js` | Panel właściwości, style tekstu, ramka tekstu o stałej wysokości |
+| `js/wlasciwosci.js`, `js/style-tekstu.js`, `js/tekst-ramka.js`, `js/watki.js` | Panel właściwości, style tekstu, ramka tekstu o stałej wysokości i listy, przelewanie tekstu między ramkami |
+| `js/obrazy.js` | Kopie robocze dużych zdjęć |
+| `js/eksport.js`, `js/okno-pdf.js`, `js/kontrola.js` | Eksport PDF i PNG, okno eksportu, kontrola projektu przed drukiem i szablon danych |
+| `js/biblioteki.js`, `js/zewnetrzne/` | Wczytywanie dużych bibliotek na żądanie; Fabric.js w repozytorium |
 | `js/przyciaganie.js`, `js/linijki.js`, `js/widok.js`, `js/warstwy.js`, `js/skroty.js` | Przyciąganie i pomiary, linijki, menu siatki, panel warstw, skróty |
 | `js/pola.js`, `js/serie.js`, `js/tabele.js`, `js/dane.js` | Pola w tekście, rozwijanie serii, odczyt CSV/Excel, okno danych |
 | `js/podglad.js` | Podgląd bez edycji – własnego projektu i udostępnionego linkiem |
 | `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
 | `js/instrukcja.js`, `scripts/zrzuty-instrukcji.cjs` | Instrukcja i generator zrzutów |
 | `js/ui.js`, `js/ikony.js`, `js/czcionki.js`, `js/marka.js`, `js/motyw.js` | Elementy wspólne, ikony, czcionki, nazwa aplikacji, motyw |
+| `css/czcionki.css`, `css/czcionki/`, `scripts/pobierz-czcionki.cjs` | Czcionki w repozytorium (OFL) i skrypt, który je pobiera |
 | `supabase/` | Migracje, konfiguracja, szablony e-maili |
-| `tests/` | Testy przeglądarkowe |
+| `tests/`, `eslint.config.mjs` | Testy przeglądarkowe (`npm test`) i sprawdzenie kodu (`npm run lint`) |
 
 ## Model projektu (wersja 3)
 
-- `tabele[]`: `{ id, nazwa, kolumny: [nazwa], wiersze: [[tekst]] }`
+- `tabele[]`: `{ id, nazwa, kolumny: [nazwa], wiersze: [[tekst]], unikalne?: [nazwa kolumny] }` – `unikalne` to kolumny z pilnowaniem powtórzeń.
 - `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi' }`; strona wskazuje serię polem `seria`. Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
 - `widok`: `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }`; strony i wzorce mogą mieć `prowadnice: { x: [mm], y: [mm] }`.
 
@@ -88,5 +95,6 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 - `strony[]`: `{ id, nazwa, sekcja, wzorce: 'z_sekcji' | [id], tlo, obiekty[] }` – w rozkładówce element należy do strony, na której leży jego środek, i może wystawać przez grzbiet na sąsiednią; pole `z` elementu to kolejność warstw na wspólnym płótnie.
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
 - `zasoby`: `{ id: { nazwa, dataUrl, sciezka? } }`; obrazy na stronach mają `src: "zasob:<id>"`.
+- Tekst: `lista` (`'punkty' | 'kreski' | 'numery'`), `ramka_h` (stała wysokość ramki, mm); połączone ramki mają wspólny `watek`, kolejność `watek_nr` i `lacznik` (co stało między częścią poprzedniej ramki a tą).
 
 Projekty zapisane w starszych wersjach modelu są przenoszone automatycznie przy otwarciu (`normalizuj` w `js/projekt.js`).
