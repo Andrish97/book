@@ -4,7 +4,7 @@ import {
   stronySekcji, stronyZWzorcem, nowaStrona, uporzadkujStrony, kopiujStrone, wzorceStrony, sekcjaStrony,
 } from '../projekt.js';
 import { renderujCel } from '../zlozenie.js';
-import { zachowajTekstStrony } from '../watki.js';
+import { zachowajTekstStrony, uporzadkujWatkiPoStronach } from '../watki.js';
 import { uid } from '../projekt.js';
 import { rozwin, blokiSerii, bokStrony, liczbaPowielen } from '../serie.js';
 import { ikona } from '../ikony.js';
@@ -364,6 +364,15 @@ export async function usunStrone(i) {
   powiadom(`Usunięto stronę „${s.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
 }
 
+// Po zmianie kolejności stron tekst płynący przez strony układa się w nowej kolejności stron.
+// Zwraca true, gdy coś się zmieniło – płótno trzeba wtedy wczytać od nowa.
+export async function przelejPoZmianieKolejnosci() {
+  const zmienione = await uporzadkujWatkiPoStronach(stan.projekt);
+  if (!zmienione.length) return false;
+  stan.miniatury.clear();
+  return true;
+}
+
 // Przesuwanie w obrębie sekcji (do innej sekcji – przez właściwości strony).
 export async function przesunStrone(i, kierunek) {
   const strony = stan.projekt.strony;
@@ -375,10 +384,12 @@ export async function przesunStrone(i, kierunek) {
   [strony[i], strony[j]] = [strony[j], strony[i]];
   stan.indeks = strony.indexOf(biezaca);
   for (const s of strony) if (wzorceStrony(stan.projekt, s).length) stan.miniatury.delete(s.id); // numery stron
+  const przelane = await przelejPoZmianieKolejnosci();
   // W rozkładówkach zmienia się para stron i ich marginesy.
-  if (sekcjaStrony(stan.projekt, strony[i]).uklad === 'rozkladowki') {
+  if (przelane || sekcjaStrony(stan.projekt, strony[i]).uklad === 'rozkladowki') {
     stan.miniatury.clear();
     if (stan.tryb === 'strona') await zaladujCel();
+    if (przelane) generujMiniatury();
   }
   ostrzezOGrzbiecie(sasiedziPrzed);
   renderujListe();
@@ -395,6 +406,7 @@ export async function przeniesStroneDoSekcji(strona, idSekcji) {
   strony.splice(strony.indexOf(strona), 1);
   strony.push(strona);
   uporzadkujStrony(stan.projekt);
+  await przelejPoZmianieKolejnosci();
   stan.indeks = strony.indexOf(strona);
   stan.miniatury.clear();
   await zaladujCel();
@@ -479,6 +491,7 @@ export async function przeniesStrone(idStrony, idCelu, po) {
   strona.sekcja = cel.sekcja;
   projekt.strony.splice(projekt.strony.indexOf(cel) + (po ? 1 : 0), 0, strona);
   uporzadkujStrony(projekt);
+  await przelejPoZmianieKolejnosci();
   stan.indeks = projekt.strony.indexOf(biezaca);
   stan.miniatury.clear();
   if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();

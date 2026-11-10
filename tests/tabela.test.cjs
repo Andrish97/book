@@ -315,3 +315,66 @@ test('tabela z danymi: w serii wiersz rośnie zależnie od treści powielenia; P
   assert.ok(wynik.pdf.teksty[1].includes('Dzień 2') && wynik.pdf.teksty[1].replace(/\s+/g, '').includes(DLUGI.replace(/\s+/g, '')), wynik.pdf.teksty[1]);
   assert.deepEqual(bledy, []);
 });
+
+test('tabela: tło nagłówka i co drugiego wiersza, własna wysokość jednego wiersza, skalowanie przelicza wymiary już w trakcie przeciągania', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Tabela – wygląd');
+  await wstawTabele(strona, 4, 3);
+  const tla = () => strona.evaluate(() => { const g = window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela); return g.getObjects().filter((o) => o.type === 'rect').map((r) => [r.fill, Math.round(r.top * 10) / 10, Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10]); });
+  assert.deepEqual(await tla(), [], 'nowa tabela nie ma tła');
+
+  // Tło nagłówka i „zebra”: prostokąty na spodzie grupy, pod tekstem komórek.
+  await strona.check('.wlasciwosci label:has-text("Tło wiersza nagłówka") input');
+  await strona.check('.wlasciwosci label:has-text("Tło co drugiego wiersza") input');
+  let s = await stanTabeli(strona);
+  const p = await tla();
+  assert.equal(p.length, 2, 'nagłówek i jeden z trzech wierszy treści (drugi)');
+  assert.deepEqual(p.map((x) => x[0]), ['#e8e6e1', '#f4f2ee']);
+  assert.ok(p.every((x) => Math.abs(x[2] - s.szer) < 0.11), 'tło na całą szerokość tabeli');
+  assert.ok(Math.abs(p[1][1] - (-s.wys / 2 + s.wysokosci[0] + s.wysokosci[1])) < 0.11, 'zebra leży w trzecim wierszu tabeli (drugim wierszu treści)');
+  const kolejnosc = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela).getObjects().map((o) => o.type[0]).join(''));
+  assert.match(kolejnosc, /^r+t+l+$/, `tło pod tekstem, linie na wierzchu: ${kolejnosc}`);
+  // Dodanie wiersza i kolumny przy włączonym tle nie miesza komórek.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; const g = e.aktywny; e.komorkiTabeli(g)[4].set('text', 'B2'); e.zatwierdz(); });
+  await strona.click('.wlasciwosci button:has-text("Dodaj wiersz")');
+  await strona.click('.wlasciwosci button:has-text("Dodaj kolumnę")');
+  s = await stanTabeli(strona);
+  assert.equal(s.teksty[1][1], 'B2');
+  assert.deepEqual([s.teksty.length, s.teksty[0].length], [5, 4]);
+  assert.equal((await tla()).length, 3, 'pięć wierszy: nagłówek i dwa wiersze zebry');
+  // Zapis i ponowne wczytanie: tło zostaje, nie dubluje się.
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
+  assert.equal((await tla()).length, 3);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty[0].tabela.tlo), { naglowek: '#e8e6e1', zebra: '#f4f2ee' });
+
+  // Własna najmniejsza wysokość jednego wiersza: z panelu tabeli i z panelu komórki w trakcie pisania.
+  await strona.evaluate(() => window.seriodruk.edytor.zaznacz(window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela).id));
+  await strona.fill('.wlasciwosci fieldset:has-text("Wysokości wierszy") label:has-text("Wiersz 3") input', '20');
+  await strona.press('.wlasciwosci fieldset:has-text("Wysokości wierszy") label:has-text("Wiersz 3") input', 'Tab');
+  s = await stanTabeli(strona);
+  assert.deepEqual(s.wysokosci, [9, 9, 20, 9, 9]);
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.edytujKomorke(e.aktywny, [1, 0]); });
+  await strona.fill('.wlasciwosci label:has-text("Najmniejsza wysokość tego wiersza") input', '14');
+  await strona.press('.wlasciwosci label:has-text("Najmniejsza wysokość tego wiersza") input', 'Tab');
+  s = await stanTabeli(strona);
+  assert.deepEqual(s.wysokosci, [9, 14, 20, 9, 9]);
+
+  // Skalowanie narożnym uchwytem: w połowie ruchu (przed puszczeniem) tabela ma już nowe szerokości kolumn i skalę 1.
+  await strona.keyboard.press('Escape');
+  await strona.evaluate(() => window.seriodruk.edytor.zaznacz(window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela).id));
+  s = await stanTabeli(strona);
+  const rog = await naEkranie(strona, s.lewo + s.szer, s.gora + s.wys);
+  const cel = await naEkranie(strona, s.lewo + s.szer * 0.75, s.gora + s.wys * 0.75);
+  await strona.mouse.move(...rog);
+  await strona.mouse.down();
+  await strona.mouse.move(...cel, { steps: 8 });
+  const wTrakcie = await stanTabeli(strona);
+  assert.deepEqual(wTrakcie.skala, [1, 1], 'w trakcie przeciągania tabela nie jest rozciągnięta');
+  assert.ok(wTrakcie.szer < s.szer * 0.85 && wTrakcie.szer > s.szer * 0.65, `szerokość w trakcie: ${s.szer} → ${wTrakcie.szer}`);
+  assert.deepEqual([wTrakcie.lewo, wTrakcie.gora], [s.lewo, s.gora], 'lewy górny róg stoi w miejscu');
+  await strona.mouse.up();
+  const po = await stanTabeli(strona);
+  assert.deepEqual(po.kolumny, wTrakcie.kolumny);
+  assert.ok(Math.abs((await tla())[0][2] - po.szer) < 0.11, 'tło idzie za szerokością tabeli');
+  assert.deepEqual(bledy, []);
+});

@@ -113,13 +113,14 @@ export const DOMYSLNY_WIDOK = {
   do_siatki: false, // przyciąganie do siatki
   do_elementow: true, // przyciąganie do innych elementów i strzałki z odległościami
   linijki: true,
+  blokada_prowadnic: false, // prowadnic nie da się złapać ani przesunąć myszą
 };
 
 export function normalizujWidok(w) {
   const wynik = { ...DOMYSLNY_WIDOK, ...(w && typeof w === 'object' ? w : {}) };
   const krok = Number(wynik.siatka_mm);
   wynik.siatka_mm = Number.isFinite(krok) && krok >= 0.5 ? Math.min(100, krok) : DOMYSLNY_WIDOK.siatka_mm;
-  for (const k of ['siatka', 'do_siatki', 'do_elementow', 'linijki']) wynik[k] = Boolean(wynik[k]);
+  for (const k of ['siatka', 'do_siatki', 'do_elementow', 'linijki', 'blokada_prowadnic']) wynik[k] = Boolean(wynik[k]);
   return wynik;
 }
 

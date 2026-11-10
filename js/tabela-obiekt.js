@@ -2,8 +2,10 @@
 // Tabela jako jeden element strony.
 //
 // Tabela to grupa Fabric z opisem w polu `tabela`:
-//   { kolumny: [szerokości mm], wiersze: [najmniejsze wysokości mm], naglowek, linia: { kolor, grubosc } }
-// W grupie leżą ramki tekstu komórek (wierszami, od lewej) i – za nimi – linie siatki.
+//   { kolumny: [szerokości mm], wiersze: [najmniejsze wysokości mm], naglowek, linia: { kolor, grubosc },
+//     tlo: { naglowek: kolor | null, zebra: kolor | null } }
+// W grupie leżą: prostokąty tła wierszy (na spodzie), ramki tekstu komórek (wierszami, od lewej)
+// i – za nimi – linie siatki.
 // Komórka to zwykły tekst: pola {…}, formatowanie fragmentów i style działają jak wszędzie.
 //
 // Cały układ liczy ulozTabele(): szerokość komórki wynika z kolumny, wysokość wiersza to
@@ -30,6 +32,8 @@ export const toTabela = (o) => Boolean(o && o.tabela && Array.isArray(o.tabela.k
 
 // Komórki tabeli wierszami, od lewej.
 export const komorkiTabeli = (g) => g.getObjects().filter((o) => o.type === 'textbox');
+// Ile elementów grupy leży przed pierwszą komórką (prostokąty tła wierszy).
+const przedKomorkami = (g) => { const i = g.getObjects().findIndex((o) => o.type === 'textbox'); return i < 0 ? 0 : i; };
 
 export function miejsceKomorki(g, komorka) {
   const i = komorkiTabeli(g).indexOf(komorka);
@@ -124,6 +128,25 @@ export function ulozTabele(g) {
     y += wys[w];
   }
 
+  // Tło wierszy: nagłówek i co drugi wiersz treści („zebra”). Zwykłe prostokąty na spodzie grupy –
+  // rysują się tak samo na ekranie, w podglądzie i w PDF.
+  const tla = [];
+  y = -WYS / 2;
+  for (let w = 0; w < W; w += 1) {
+    const tresci = w - (t.naglowek ? 1 : 0);
+    const kolorTla = t.naglowek && w === 0 ? t.tlo?.naglowek : (tresci % 2 === 1 ? t.tlo?.zebra : null);
+    if (kolorTla) tla.push([y, wys[w], kolorTla]);
+    y += wys[w];
+  }
+  let prostokaty = g.getObjects().filter((o) => o.type === 'rect');
+  if (prostokaty.length > tla.length) g.remove(...prostokaty.slice(tla.length));
+  if (prostokaty.length < tla.length) g.insertAt(0, ...Array.from({ length: tla.length - prostokaty.length }, () => new fabric.Rect({ strokeWidth: 0, evented: false, selectable: false })));
+  prostokaty = g.getObjects().filter((o) => o.type === 'rect');
+  tla.forEach(([gora, wysokosc, kolorTla], i) => {
+    prostokaty[i].set({ left: -SZER / 2, top: gora, width: SZER, height: wysokosc, fill: kolorTla, strokeWidth: 0, evented: false, selectable: false, ...BEZ_PRZEKSZTALCEN });
+    prostokaty[i].setCoords();
+  });
+
   // Linie siatki: pionowe na granicach kolumn, poziome na granicach wierszy.
   const potrzeba = K + 1 + W + 1;
   let linie = g.getObjects().filter((o) => o.type === 'line');
@@ -211,7 +234,7 @@ export function dodajWiersz(g, uid, po = g.tabela.wiersze.length - 1) {
     if (t.naglowek && wzor === 0) w.fontWeight = 'normal';
     return nowaKomorka(uid, '', w);
   });
-  g.insertAt((po + 1) * K, ...nowe);
+  g.insertAt(przedKomorkami(g) + (po + 1) * K, ...nowe);
   t.wiersze.splice(po + 1, 0, t.wiersze[Math.max(wzor, 0)] ?? t.wiersze.at(-1));
   ulozTabele(g);
   return po + 1;
@@ -236,7 +259,7 @@ export function dodajKolumne(g, uid, po = g.tabela.kolumny.length - 1) {
   const komorki = komorkiTabeli(g);
   for (let w = W - 1; w >= 0; w -= 1) {
     const pierwszy = t.naglowek && w === 0;
-    g.insertAt(w * K + po + 1, nowaKomorka(uid, pierwszy ? `Kolumna ${K + 1}` : '', wygladKomorki(komorki[w * K + po])));
+    g.insertAt(przedKomorkami(g) + w * K + po + 1, nowaKomorka(uid, pierwszy ? `Kolumna ${K + 1}` : '', wygladKomorki(komorki[w * K + po])));
   }
   const szer = suma(t.kolumny);
   t.kolumny = t.kolumny.map((s) => zaokr((s * K) / (K + 1)));
@@ -265,6 +288,23 @@ export function ustawNaglowek(g, jest) {
   t.naglowek = Boolean(jest);
   for (const c of komorkiTabeli(g).slice(0, t.kolumny.length)) c.set('fontWeight', jest ? 'bold' : 'normal');
   ulozTabele(g);
+}
+
+// Tło wierszy: { naglowek: kolor | null, zebra: kolor | null } – podane pola zastępują dotychczasowe.
+export function ustawTloTabeli(g, tlo) {
+  const t = g.tabela;
+  t.tlo = { naglowek: t.tlo?.naglowek || null, zebra: t.tlo?.zebra || null, ...tlo };
+  if (!t.tlo.naglowek && !t.tlo.zebra) delete t.tlo;
+  ulozTabele(g);
+}
+
+// Najmniejsza wysokość jednego wiersza (mm).
+export function ustawWysokoscWiersza(g, w, wysokosc) {
+  const t = g.tabela;
+  if (!(w >= 0 && w < t.wiersze.length) || !Number.isFinite(wysokosc)) return false;
+  t.wiersze[w] = zaokr(Math.max(MIN_WIERSZ, wysokosc));
+  ulozTabele(g);
+  return true;
 }
 
 // Wygląd tekstu wszystkich komórek naraz (np. { fontFamily: 'Lora' }). Pogrubienie nagłówka zostaje.
@@ -341,5 +381,5 @@ export function przygotujTabele(g, { naTab } = {}) {
       c.keysMap = { ...c.keysMap, 9: '_tabWTabeli' };
     }
   }
-  for (const l of g.getObjects()) if (l.type === 'line') l.set({ evented: false, selectable: false });
+  for (const l of g.getObjects()) if (l.type === 'line' || l.type === 'rect') l.set({ evented: false, selectable: false });
 }

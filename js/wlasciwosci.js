@@ -9,7 +9,7 @@ import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
-import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy } from './tabela-obiekt.js';
+import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza } from './tabela-obiekt.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
@@ -250,7 +250,13 @@ export class PanelWlasciwosci {
     s.append(this.akcje([['plus', 'Dodaj kolumnę', zmien('kolumna+')], ['minus', 'Usuń ostatnią kolumnę', zmien('kolumna-')]]));
     s.append(this.przelacznik('Pierwszy wiersz to nagłówek', () => Boolean(t.naglowek), (v) => ustawNaglowek(obj, v)));
     s.append(this.liczba('Najmniejsza wysokość wiersza', () => zaokr(Math.min(...t.wiersze), 1), (v) => { t.wiersze = t.wiersze.map(() => Math.max(3, v)); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
-    s.append(this.wskazowka('Wiersz sam rośnie, gdy tekst komórki nie mieści się w jego wysokości – także na stronach powielanych z danych.'));
+    s.append(this.wskazowka('Wiersz sam rośnie, gdy tekst komórki nie mieści się w jego wysokości – także na stronach powielanych z danych. Wysokość jednego wiersza ustawisz niżej albo w trakcie pisania w jego komórce.'));
+
+    // Każdy wiersz może mieć własną najmniejszą wysokość.
+    const wr = this.sekcja('Wysokości wierszy (mm)');
+    t.wiersze.forEach((_, i) => {
+      wr.append(this.liczba(`Wiersz ${i + 1}${t.naglowek && i === 0 ? ' (nagłówek)' : ''}`, () => zaokr(t.wiersze[i], 1), (v) => { ustawWysokoscWiersza(obj, i, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
+    });
 
     const k = this.sekcja('Szerokości kolumn (mm)');
     t.kolumny.forEach((_, i) => {
@@ -267,6 +273,15 @@ export class PanelWlasciwosci {
     const l = this.sekcja('Linie tabeli');
     l.append(this.kolor('Kolor linii', () => t.linia?.kolor || '#1a1a1a', (v) => { t.linia = { ...t.linia, kolor: v }; ulozTabele(obj); }));
     l.append(this.liczba('Grubość linii', () => zaokr(t.linia?.grubosc ?? 0.25, 2), (v) => { t.linia = { ...t.linia, grubosc: Math.max(0, v) }; }, { jednostka: 'mm', krok: 0.05, min: 0 }));
+
+    // Tło wierszy: nagłówek i co drugi wiersz treści.
+    const tl = this.sekcja('Tło wierszy');
+    const tlo = (klucz, etykieta, domyslny) => {
+      tl.append(this.przelacznik(etykieta, () => Boolean(t.tlo?.[klucz]), (v) => { ustawTloTabeli(obj, { [klucz]: v ? domyslny : null }); this.zbuduj(); }));
+      if (t.tlo?.[klucz]) tl.append(this.kolor(klucz === 'naglowek' ? 'Kolor tła nagłówka' : 'Kolor tła co drugiego wiersza', () => t.tlo?.[klucz] || domyslny, (v) => ustawTloTabeli(obj, { [klucz]: v })));
+    };
+    if (t.naglowek) tlo('naglowek', 'Tło wiersza nagłówka', '#e8e6e1');
+    tlo('zebra', 'Tło co drugiego wiersza', '#f4f2ee');
 
     // Wygląd tekstu wszystkich komórek naraz; pojedynczą komórkę zmienia się w trakcie pisania w niej.
     const x = this.sekcja('Tekst w komórkach');
@@ -307,7 +322,8 @@ export class PanelWlasciwosci {
     s.append(this.wskazowka(`Komórka w wierszu ${m.w + 1}, kolumnie ${m.k + 1}. Tab przechodzi do następnej komórki, Esc wraca do całej tabeli.`));
     s.append(this.akcje([['plus', 'Wstaw wiersz poniżej', zmien('wiersz+', m.w)], ['minus', 'Usuń ten wiersz', zmien('wiersz-', m.w)]]));
     s.append(this.akcje([['plus', 'Wstaw kolumnę z prawej', zmien('kolumna+', m.k)], ['minus', 'Usuń tę kolumnę', zmien('kolumna-', m.k)]]));
-    s.append(this.wskazowka(`Wysokość tego wiersza: ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
+    s.append(this.liczba('Najmniejsza wysokość tego wiersza', () => zaokr(tabela.tabela.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(tabela, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
+    s.append(this.wskazowka(`Teraz ten wiersz ma ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
   }
 
   zbudujTekst(obj, { komorka = false } = {}) {
