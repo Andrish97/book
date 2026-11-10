@@ -222,6 +222,11 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         for (const p of tresc.prefixes || []) stan.pliki.delete(`${bucket}/${p}`);
         return json(r, 200, []);
       }
+      if (m === 'GET') {
+        const plik = stan.pliki.get(klucz.replace(/^authenticated\//, ''));
+        if (!plik) return blad(r, 404, 'Object not found', 'not_found');
+        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc });
+      }
       if (m === 'POST' || m === 'PUT') {
         if (!zTokenu(req)) return blad(r, 401, 'JWT', 'unauthorized');
         stan.pliki.set(klucz, plikZZadania(req));

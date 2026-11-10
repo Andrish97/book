@@ -763,6 +763,9 @@ dialog h2 { font-size: 19px; }
 .lista-czcionek .pole { grid-area: rodzina; }
 .lista-czcionek .opis { grid-area: opis; font-size: 12px; color: var(--cichy); }
 .lista-czcionek [data-usun] { grid-area: usun; align-self: center; }
+.lista-czcionek.moje li { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "probka dodaj usun" "opis dodaj usun"; align-items: center; }
+.lista-czcionek.moje [data-rola="dodaj"] { grid-area: dodaj; }
+.lista-czcionek.moje [data-rola="zapomnij"] { grid-area: usun; }
 @media (max-width: 640px) { .lista-czcionek li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "probka usun" "rodzina usun" "opis opis"; } }
 .wlasciwosci .usun-prowadnice { flex: none; width: 28px; height: 28px; min-height: 0; font-size: 16px; }
 .lista-uwag { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: min(52vh, 420px); overflow: auto; }

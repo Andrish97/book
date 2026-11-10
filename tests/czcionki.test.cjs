@@ -94,7 +94,7 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki.length === 0);
   const poUsunieciu = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return [Object.keys(p.zasoby).length, p.strony[0].obiekty[0].fontFamily]; });
   assert.deepEqual(poUsunieciu, [0, 'Pismo odręczne'], 'plik znika z projektu; tekst zostaje z nazwą czcionki i pokazuje się zastępczą');
-  assert.ok(await strona.isVisible('#czcionki-pusto'));
+  await strona.waitForSelector('#czcionki-pusto', { state: 'visible' });
   assert.deepEqual(bledy, []);
 });
 
@@ -127,5 +127,111 @@ test('własna czcionka w pliku projektu: po eksporcie i imporcie czcionka wraca 
   assert.deepEqual(wynik.wpis, ['Moja Ozdobna', 400, true]);
   assert.equal(wynik.typ, 'data:font/woff2');
   assert.equal(wynik.nazwa, 'Moja Ozdobna-Italic.woff2');
+  assert.deepEqual(bledy, []);
+});
+
+const wgraj = (strona, nazwa) => strona.evaluate(async ([b64, n]) => {
+  const plik = new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], n, { type: 'font/woff2' });
+  await window.seriodruk.oknoCzcionek.dodaj([plik]);
+}, [PLIK_CZCIONKI.toString('base64'), nazwa]);
+const opcjeCzcionek = (strona) => strona.evaluate(() => [...[...document.querySelectorAll('.wlasciwosci label')].find((l) => l.textContent.startsWith('Czcionka')).querySelectorAll('option')].map((o) => o.value));
+const doProjektow = async (strona) => {
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  await strona.click('#ekran-edytora [data-akcja="do-projektow"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+};
+
+test('moje czcionki: czcionka wgrana w jednym projekcie jest pod ręką w następnym; usunięta nie wraca', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Pierwszy');
+  await wgraj(strona, 'Odreczna-Bold.woff2');
+  await wgraj(strona, 'Odreczna-Regular.woff2');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki?.length === 2);
+  await doProjektow(strona);
+
+  // W nowym projekcie czcionki nie ma, ale lista w panelu tekstu ją proponuje.
+  await nowyProjekt(strona, 'Drugi');
+  assert.equal(await strona.evaluate(() => (window.seriodruk.stan.projekt.czcionki || []).length), 0);
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.mojeRodziny?.length === 1);
+  await strona.waitForFunction(() => [...document.querySelectorAll('.wlasciwosci option')].some((o) => o.value === 'moja:Odreczna'));
+  // Wybranie jej dodaje do projektu wszystkie odmiany i ustawia czcionkę zaznaczonego tekstu.
+  await strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', 'moja:Odreczna');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki?.length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.fontFamily === 'Odreczna');
+  await strona.waitForFunction(() => window.seriodruk.stan.mojeRodziny.length === 0);
+  const opcje = await opcjeCzcionek(strona);
+  assert.equal(opcje[0], 'Odreczna');
+  assert.ok(!opcje.includes('moja:Odreczna'), 'czcionka jest już w projekcie, nie na liście „moich”');
+  assert.ok(await strona.evaluate(() => [...document.fonts].some((f) => f.family === 'Odreczna' && f.weight === '700' && f.status === 'loaded')));
+
+  // Usunięta z projektu wraca do „Moich czcionek” w oknie; stamtąd da się ją dodać przyciskiem albo usunąć na dobre.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="czcionki"]');
+  await strona.waitForSelector('#dlg-czcionki[open]');
+  assert.ok(await strona.isVisible('#czcionki-moje-pusto'));
+  for (let i = 0; i < 2; i += 1) {
+    await strona.click('#czcionki-wlasne [data-usun] >> nth=0');
+    if (await strona.isVisible('#dlg-potwierdz[open]')) await strona.click('#potwierdz-tak');
+    await strona.waitForFunction((n) => window.seriodruk.stan.projekt.czcionki.length === n, 1 - i);
+  }
+  await strona.waitForSelector('#czcionki-moje li');
+  assert.equal(await strona.textContent('#czcionki-moje .probka'), 'Odreczna');
+  assert.equal(await strona.textContent('#czcionki-moje .opis'), 'Regular, Bold · 2 pliki');
+  await strona.click('#czcionki-moje [data-dodaj]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki.length === 2);
+  await strona.waitForFunction(() => !document.querySelector('#czcionki-moje li'));
+
+  // „Usuń z moich czcionek”: projekt zachowuje kopię, ale w następnych projektach czcionki już nie ma –
+  // także po ponownym otwarciu projektu, który jej używa.
+  await strona.evaluate(async () => { const { zapomnij } = await import('./js/moje-czcionki.js'); await zapomnij('lokalny', 'Odreczna'); });
+  await strona.click('#czcionki-zamknij');
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.czcionki.length), 2);
+  await doProjektow(strona);
+  await strona.click('.karta-projektu:has-text("Pierwszy")');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Pierwszy' && window.seriodruk.edytor.wydruk);
+  await doProjektow(strona);
+  await nowyProjekt(strona, 'Trzeci');
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  await strona.waitForTimeout(300);
+  assert.ok(!(await opcjeCzcionek(strona)).some((o) => o.startsWith('moja:')));
+  assert.deepEqual(bledy, []);
+});
+
+test('moje czcionki na koncie: plik i spis w prywatnym folderze, drugie urządzenie dostaje czcionkę, usunięcie znika wszędzie', async (t) => {
+  const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForSelector('#dlg-instrukcja[open]');
+  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  const folder = 'zasoby/11111111-1111-4111-8111-111111111111/_czcionki/';
+  const naKoncie = () => [...baza.pliki.keys()].filter((k) => k.startsWith(folder)).map((k) => k.slice(folder.length));
+  const spis = () => JSON.parse(baza.pliki.get(`${folder}spis.json`).tresc.toString());
+  const czekaj = async (warunek) => { for (let i = 0; i < 100 && !warunek(); i += 1) await strona.waitForTimeout(100); assert.ok(warunek(), 'konto nie dostało zmiany na czas'); };
+
+  await nowyProjekt(strona, 'Z kontem');
+  await wgraj(strona, 'Odreczna-Bold.woff2');
+  await czekaj(() => naKoncie().includes('spis.json'));
+  assert.equal(naKoncie().length, 2, 'spis i jeden plik czcionki');
+  assert.deepEqual(spis().czcionki.map((c) => [c.klucz, c.nazwa]), [['Odreczna|700|0', 'Odreczna-Bold.woff2']]);
+  assert.ok(baza.pliki.get(folder + spis().czcionki[0].plik).tresc.equals(PLIK_CZCIONKI), 'na koncie leży ten sam plik');
+  await doProjektow(strona);
+
+  // „Drugie urządzenie”: ta sama osoba, przeglądarka bez zbioru czcionek.
+  await strona.evaluate(() => new Promise((ok) => { const r = indexedDB.deleteDatabase('seriodruk-czcionki'); r.onsuccess = r.onerror = r.onblocked = () => ok(); }));
+  await nowyProjekt(strona, 'Na drugim urządzeniu');
+  await strona.waitForFunction(() => window.seriodruk.stan.mojeRodziny?.includes('Odreczna'));
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  await strona.waitForFunction(() => [...document.querySelectorAll('.wlasciwosci option')].some((o) => o.value === 'moja:Odreczna'));
+
+  // Usunięcie z moich czcionek: plik znika z konta, w spisie zostaje znacznik.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="czcionki"]');
+  await strona.waitForSelector('#czcionki-moje li');
+  await strona.click('#czcionki-moje [data-zapomnij]');
+  await czekaj(() => naKoncie().length === 1);
+  assert.deepEqual(spis(), { czcionki: [], usuniete: ['Odreczna|700|0'] });
+  await strona.waitForFunction(() => !document.querySelector('#czcionki-moje li'));
   assert.deepEqual(bledy, []);
 });

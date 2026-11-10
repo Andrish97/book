@@ -9,10 +9,13 @@ import { PanelWlasciwosci } from '../wlasciwosci.js';
 import { Instrukcja } from '../instrukcja.js';
 import { OknoCzcionek } from '../okno-czcionek.js';
 import { rodzinyCzcionek } from '../czcionki.js';
+import { uzgodnijZKontem, rodzinySpozaProjektu, poznaj } from '../moje-czcionki.js';
+import { uid } from '../projekt.js';
+import * as chmura from '../chmura.js';
 import { $, powiadom } from '../ui.js';
 import { Podglad } from '../podglad.js';
 import { odepnijStyl, zastosujStylWProjekcie } from '../style-tekstu.js';
-import { edytor, stan, biezacaStrona } from './kontekst.js';
+import { edytor, stan, biezacaStrona, wlasciciel } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno } from './zapis.js';
 import { doEdycji } from './podglad-ekran.js';
 import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './panel-strony.js';
@@ -31,6 +34,8 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   style: () => stan.projekt?.style || [],
   czcionki: () => { const { wlasne, wbudowane } = rodzinyCzcionek(stan.projekt); return [...wlasne, ...wbudowane]; },
   wgrajCzcionke: () => oknoCzcionek.wybierzPliki(),
+  mojeCzcionki: () => stan.mojeRodziny || [],
+  dodajMojaCzcionke: (rodzina) => oknoCzcionek.dodajZMoich(rodzina),
   pola: () => polaDoWstawienia(),
   kolumnyObrazu: () => (stan.tryb === 'strona' ? tabelaStrony(biezacaStrona())?.kolumny : stan.projekt.tabele.flatMap((t) => t.kolumny)) || [],
   wgrajObrazy: () => $('#pliki-zasoby').click(),
@@ -60,6 +65,8 @@ async function poZmianieStyli(zmiana) {
 // a zaznaczony tekst dostaje właśnie wgraną czcionkę.
 export const oknoCzcionek = new OknoCzcionek({
   projekt: () => stan.projekt,
+  wlasciciel: () => wlasciciel(),
+  poZmianieZbioru: () => odswiezMojeCzcionki({ zKontem: true }),
   przedZmiana: () => zapiszBiezacyCel(),
   poZmianie: async (rodzina) => {
     const zaznaczony = edytor.aktywny?.type === 'textbox' ? edytor.aktywny.id : null;
@@ -107,3 +114,23 @@ export const dane = new Dane({
 export const podglad = new Podglad({
   naKlik: (idStrony) => doEdycji(idStrony),
 });
+
+// „Moje czcionki”: czcionki wgrane w innych projektach. Lista rodzin spoza otwartego projektu
+// trafia do listy czcionek w panelu; przy pracy z kontem zbiór jest uzgadniany z kontem.
+// Wywołania idą jedno po drugim, żeby dwa uzgodnienia nie wysłały tego samego pliku.
+let kolejkaCzcionek = Promise.resolve();
+export function odswiezMojeCzcionki({ zKontem = false, projekt = null } = {}) {
+  kolejkaCzcionek = kolejkaCzcionek.then(async () => {
+    const kto = wlasciciel();
+    try {
+      if (projekt && await poznaj(kto, projekt)) zKontem = true;
+      if (zKontem && stan.uzytkownik) await uzgodnijZKontem(kto, await chmura.kontoCzcionek(), uid);
+    } catch { /* bez połączenia zbiór zostaje na urządzeniu i uzgodni się następnym razem */ }
+    const przedtem = JSON.stringify(stan.mojeRodziny || []);
+    try { stan.mojeRodziny = stan.projekt ? await rodzinySpozaProjektu(kto, stan.projekt) : []; } catch { stan.mojeRodziny = []; }
+    if (oknoCzcionek.okno.open) oknoCzcionek.rysuj();
+    // Lista czcionek w panelu tekstu ma nowe pozycje – ale nie w trakcie pisania.
+    if (przedtem !== JSON.stringify(stan.mojeRodziny) && edytor.aktywny?.type === 'textbox' && !edytor.aktywny.isEditing) panel.zbuduj();
+  });
+  return kolejkaCzcionek;
+}

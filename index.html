@@ -733,12 +733,17 @@
         <h2>Czcionki</h2>
         <button type="button" class="przycisk-ikona" id="czcionki-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.seriodruk</code>. Wgrywaj czcionki, których licencja pozwala na druk.</p>
+      <p class="ciche">Własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.seriodruk</code>. Raz wgrana czcionka zostaje też w „Moich czcionkach” i jest pod ręką w każdym następnym projekcie. Wgrywaj czcionki, których licencja pozwala na druk.</p>
       <fieldset class="grupa-pol">
         <legend>Własne czcionki projektu</legend>
         <ul class="lista-czcionek" id="czcionki-wlasne"></ul>
         <p class="podpowiedz" id="czcionki-pusto">Nie wgrano jeszcze żadnej czcionki.</p>
         <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" id="czcionki-wgraj" data-ikona="wyslij">Wgraj pliki czcionek</button></div>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Moje czcionki z innych projektów</legend>
+        <ul class="lista-czcionek moje" id="czcionki-moje"></ul>
+        <p class="podpowiedz" id="czcionki-moje-pusto">Tu pojawią się czcionki wgrane w innych projektach – dodasz je do tego projektu jednym kliknięciem, bez szukania pliku. Są też na liście czcionek w panelu tekstu.</p>
       </fieldset>
       <fieldset class="grupa-pol">
         <legend>Wbudowane w aplikację</legend>

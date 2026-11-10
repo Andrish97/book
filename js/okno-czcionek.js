@@ -6,12 +6,16 @@ import { wstawIkony } from './ikony.js';
 import {
   CZCIONKI, ROZSZERZENIA_CZCIONEK, dodajCzcionkiDoProjektu, zarejestrujCzcionkiProjektu, nazwaOdmiany, uzyteCzcionki,
 } from './czcionki.js';
+import { mojeCzcionki, zapamietaj, zapomnij, dodajRodzineDoProjektu, kluczOdmiany } from './moje-czcionki.js';
+
+const probki = new Map(); // rodzina ze zbioru → nazwa, pod którą przeglądarka zna jej próbkę
 
 export class OknoCzcionek {
   // projekt() → bieżący projekt; przedZmiana() – płótno oddaje treść do projektu;
-  // poZmianie(rodzina) – zapis i ponowne wczytanie strony (tekst trzeba zmierzyć od nowa).
-  constructor({ projekt, przedZmiana, poZmianie }) {
-    this.zrodlo = { projekt, przedZmiana, poZmianie };
+  // poZmianie(rodzina) – zapis i ponowne wczytanie strony (tekst trzeba zmierzyć od nowa);
+  // wlasciciel() – czyje są „Moje czcionki”; poZmianieZbioru() – po zmianie tego zbioru.
+  constructor({ projekt, przedZmiana, poZmianie, wlasciciel = () => 'lokalny', poZmianieZbioru = () => {} }) {
+    this.zrodlo = { projekt, przedZmiana, poZmianie, wlasciciel, poZmianieZbioru };
     this.okno = $('#dlg-czcionki');
     this.plik = $('#pliki-czcionki');
     this.plik.accept = ROZSZERZENIA_CZCIONEK.map((r) => `.${r}`).join(',');
@@ -20,6 +24,11 @@ export class OknoCzcionek {
     this.plik.addEventListener('change', async (e) => { const pliki = [...e.target.files]; e.target.value = ''; await this.dodaj(pliki); });
     $('#czcionki-wlasne').addEventListener('click', (e) => { const b = e.target.closest('[data-usun]'); if (b) this.usun(b.dataset.usun); });
     $('#czcionki-wlasne').addEventListener('change', (e) => { const i = e.target.closest('input[data-rodzina]'); if (i) this.zmienRodzine(i.dataset.rodzina, i.value); });
+    $('#czcionki-moje').addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (b?.dataset.dodaj) this.dodajZMoich(b.dataset.dodaj);
+      else if (b?.dataset.zapomnij) this.usunZMoich(b.dataset.zapomnij);
+    });
   }
 
   otworz() { this.rysuj(); this.okno.showModal(); }
@@ -47,8 +56,71 @@ export class OknoCzcionek {
       lista.append(li);
     }
     $('#czcionki-pusto').hidden = wlasne.length > 0;
+    this.rysujMoje();
     $('#czcionki-wbudowane').textContent = `${CZCIONKI.map((c) => c.nazwa).join(', ')}. Wszystkie na licencji SIL Open Font License – wolno ich używać w druku komercyjnym.`;
     wstawIkony(this.okno);
+  }
+
+  // „Moje czcionki”: rodziny wgrane w innych projektach, których w tym jeszcze nie ma.
+  async rysujMoje() {
+    const p = this.zrodlo.projekt();
+    const wProjekcie = new Set((p.czcionki || []).map((c) => c.rodzina));
+    let moje = [];
+    try { moje = (await mojeCzcionki(this.zrodlo.wlasciciel())).filter((c) => !wProjekcie.has(c.rodzina)); } catch { /* przeglądarka bez pamięci lokalnej */ }
+    const rodziny = new Map();
+    for (const c of moje) rodziny.set(c.rodzina, [...(rodziny.get(c.rodzina) || []), c]);
+    const lista = $('#czcionki-moje');
+    lista.replaceChildren();
+    for (const [rodzina, odmiany] of rodziny) {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span class="probka"></span>
+        <span class="opis"></span>
+        <button type="button" class="przycisk" data-rola="dodaj">Dodaj do projektu</button>
+        <button type="button" class="przycisk-ikona" data-rola="zapomnij" data-ikona="kosz" title="Usuń z moich czcionek (projekty zachowują swoje kopie)" aria-label="Usuń z moich czcionek"></button>`;
+      li.dataset.rodzina = rodzina;
+      const probka = li.querySelector('.probka');
+      probka.textContent = rodzina;
+      const wzor = odmiany.find((c) => c.waga === 400 && !c.kursywa) || odmiany[0];
+      this._probka(wzor).then((nazwa) => { if (nazwa) Object.assign(probka.style, { fontFamily: `"${nazwa}"`, fontWeight: wzor.waga, fontStyle: wzor.kursywa ? 'italic' : 'normal' }); });
+      li.querySelector('.opis').textContent = `${odmiany.map(nazwaOdmiany).join(', ')} · ${odmiany.length} ${odmiana(odmiany.length, 'plik', 'pliki', 'plików')}`;
+      li.querySelector('[data-rola="dodaj"]').dataset.dodaj = rodzina;
+      li.querySelector('[data-rola="zapomnij"]').dataset.zapomnij = rodzina;
+      lista.append(li);
+    }
+    $('#czcionki-moje-pusto').hidden = rodziny.size > 0;
+    wstawIkony(lista);
+  }
+
+  // Próbka pisma dla czcionki, której nie ma w projekcie: osobna nazwa, żeby nie mieszała się z czcionkami projektu.
+  async _probka(c) {
+    if (probki.has(c.id)) return probki.get(c.id);
+    const nazwa = `probka-pisma-${probki.size + 1}`;
+    try {
+      const face = new FontFace(nazwa, await (await fetch(c.dataUrl)).arrayBuffer(), { weight: String(c.waga), style: c.kursywa ? 'italic' : 'normal' });
+      await face.load();
+      document.fonts.add(face);
+      probki.set(c.id, nazwa);
+      return nazwa;
+    } catch { return null; }
+  }
+
+  // Dodaje do projektu rodzinę z „Moich czcionek” (wszystkie jej odmiany).
+  async dodajZMoich(rodzina) {
+    this.zrodlo.przedZmiana();
+    const ile = await dodajRodzineDoProjektu(this.zrodlo.wlasciciel(), this.zrodlo.projekt(), rodzina, uid);
+    if (!ile) { powiadom(`Nie znaleziono czcionki „${rodzina}” w moich czcionkach.`, true); return; }
+    powiadom(`Dodano do projektu czcionkę „${rodzina}” (${ile} ${odmiana(ile, 'odmiana', 'odmiany', 'odmian')}).`);
+    await this.zrodlo.poZmianie(rodzina);
+    await this.zrodlo.poZmianieZbioru();
+    if (this.okno.open) this.rysuj();
+  }
+
+  async usunZMoich(rodzina) {
+    await zapomnij(this.zrodlo.wlasciciel(), rodzina);
+    powiadom(`Usunięto „${rodzina}” z moich czcionek. Projekty, które jej używają, zachowują swoją kopię.`);
+    await this.zrodlo.poZmianieZbioru();
+    if (this.okno.open) this.rysuj();
   }
 
   // Dodaje pliki; zwraca wpisy dodanych czcionek.
@@ -61,6 +133,8 @@ export class OknoCzcionek {
       const rodziny = [...new Set(dodane.map((c) => c.rodzina))];
       powiadom(`Dodano ${dodane.length} ${odmiana(dodane.length, 'plik czcionki', 'pliki czcionek', 'plików czcionek')}: ${rodziny.join(', ')}.`);
       await this.zrodlo.poZmianie(rodziny[0]);
+      try { await zapamietaj(this.zrodlo.wlasciciel(), this.zrodlo.projekt(), dodane); } catch { /* zbiór jest tylko ułatwieniem */ }
+      this.zrodlo.poZmianieZbioru();
     }
     if (this.okno.open) this.rysuj();
     return dodane;
@@ -79,6 +153,7 @@ export class OknoCzcionek {
     await zarejestrujCzcionkiProjektu(p);
     await this.zrodlo.poZmianie(null);
     this.rysuj();
+    this.zrodlo.poZmianieZbioru();
   }
 
   // Poprawka nazwy rodziny (gdy plik nie podaje jej dobrze). Teksty z dawną nazwą przechodzą na nową.
@@ -89,7 +164,10 @@ export class OknoCzcionek {
     if (!c || !nowa || nowa === c.rodzina) { this.rysuj(); return; }
     this.zrodlo.przedZmiana();
     const stara = c.rodzina;
+    const staryKlucz = kluczOdmiany(c);
     c.rodzina = nowa;
+    // „Moje czcionki” idą za poprawioną nazwą.
+    try { await zapomnij(this.zrodlo.wlasciciel(), stara, staryKlucz); await zapamietaj(this.zrodlo.wlasciciel(), p, [c]); } catch { /* zbiór jest tylko ułatwieniem */ }
     if (!p.czcionki.some((x) => x.rodzina === stara)) {
       const popraw = (obiekty) => {
         for (const o of obiekty || []) {
@@ -105,5 +183,6 @@ export class OknoCzcionek {
     await zarejestrujCzcionkiProjektu(p);
     await this.zrodlo.poZmianie(null);
     this.rysuj();
+    this.zrodlo.poZmianieZbioru();
   }
 }

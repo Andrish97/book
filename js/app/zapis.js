@@ -13,7 +13,7 @@ import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu } from '../czcionki.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
-import { panel, linijki, panelWarstw } from './skladniki.js';
+import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
 import { ustawZakladke, generujMiniatury, renderujListe, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
 
 // ---------- Arkusz: strona albo cała rozkładówka na jednym płótnie ----------
@@ -153,6 +153,9 @@ export async function otworzProjekt(p, cel = {}) {
   odswiezCofanie();
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
   generujMiniatury();
+  // Czcionki tego projektu trafiają do „Moich czcionek”; lista w panelu dostaje czcionki z innych projektów.
+  stan.mojeRodziny = [];
+  odswiezMojeCzcionki({ projekt: stan.projekt, zKontem: true });
 }
 
 // Własne prowadnice strony albo wzorca; puste nie zajmują miejsca w pliku.

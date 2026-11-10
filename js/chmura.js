@@ -149,6 +149,7 @@ export async function wyloguj(wszedzie = false) {
 export async function usunKonto() {
   const sb = await supabase();
   for (const p of await listaWChmurze()) await usunZChmury(p.id);
+  try { const k = await kontoCzcionek(); await k.usun((await k.pliki()).map((p) => p.name)); } catch { /* brak plików */ }
   sprawdz(await sb.rpc('usun_konto'));
   await sb.auth.signOut({ scope: 'local' }).catch(() => {});
 }
@@ -255,6 +256,34 @@ export async function usunZChmury(id) {
   }
   await usunPodglady(sb, `${uzytkownik?.id}/${id}`);
   sprawdz(await sb.from('projekty').delete().eq('id', id));
+}
+
+// ---------- „Moje czcionki” na koncie ----------
+//
+// Pliki czcionek użytkownika i ich spis leżą w jego prywatnym folderze w buckecie
+// zasobów (<konto>/_czcionki/), więc obowiązują je te same zasady dostępu co obrazy projektów.
+const FOLDER_CZCIONEK = '_czcionki';
+const SPIS_CZCIONEK = 'spis.json';
+
+export async function kontoCzcionek() {
+  const sb = await supabase();
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  const folder = `${uzytkownik.id}/${FOLDER_CZCIONEK}`;
+  const magazyn = sb.storage.from(BUCKET);
+  const pliki = async () => sprawdz(await magazyn.list(folder, { limit: 1000 })) || [];
+  return {
+    pliki,
+    // Najpierw lista plików: brak spisu to pusty zbiór, a brak połączenia to błąd (nie „pusto”).
+    spis: async () => {
+      if (!(await pliki()).some((p) => p.name === SPIS_CZCIONEK)) return { czcionki: [], usuniete: [] };
+      return JSON.parse(await sprawdz(await magazyn.download(`${folder}/${SPIS_CZCIONEK}`)).text());
+    },
+    zapiszSpis: async (spis) => sprawdz(await magazyn.upload(`${folder}/${SPIS_CZCIONEK}`, new Blob([JSON.stringify(spis)], { type: 'application/json' }), { upsert: true, contentType: 'application/json', cacheControl: '0' })),
+    wyslij: async (plik, blob) => sprawdz(await magazyn.upload(`${folder}/${plik}`, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' })),
+    pobierz: async (plik) => sprawdz(await magazyn.download(`${folder}/${plik}`)),
+    usun: async (lista) => (lista.length ? sprawdz(await magazyn.remove(lista.map((n) => `${folder}/${n}`))) : null),
+  };
 }
 
 export function blobNaDataUrl(blob) {

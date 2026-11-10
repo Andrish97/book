@@ -250,8 +250,11 @@ export class PanelWlasciwosci {
     this._czcionkiWLiscie = true;
     // Własne czcionki projektu, potem wbudowane; ostatnia pozycja wgrywa nowe pliki.
     const rodziny = this.opcje.czcionki?.() || CZCIONKI.map((c) => c.nazwa);
-    const czcionka = this.wybor('Czcionka', [...rodziny.map((n) => [n, n]), ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
+    // „Moje czcionki” – wgrane kiedyś w innym projekcie; wybranie dodaje je do tego projektu.
+    const moje = (this.opcje.mojeCzcionki?.() || []).map((n) => [`moja:${n}`, `${n} – z moich czcionek`]);
+    const czcionka = this.wybor('Czcionka', [...rodziny.map((n) => [n, n]), ...moje, ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
       if (v === '+') { this.opcje.wgrajCzcionke(); return; }
+      if (v.startsWith('moja:')) { this.opcje.dodajMojaCzcionke(v.slice(5)); return; }
       ustaw({ fontFamily: v });
     });
     this._czcionkiWLiscie = false;
