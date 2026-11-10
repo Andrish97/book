@@ -11,7 +11,7 @@
 import { WLASNE_POLA, toZaznaczenie } from './fabric-ustawienia.js';
 import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA } from './czcionki.js';
-import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
+import { podmienZasoby, zrodloObrazu, wzorzecPrzezGrzbiet } from './zlozenie.js';
 import { przyciagnij, pomiary, przyciagnijKrawedz } from './przyciaganie.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
@@ -258,11 +258,15 @@ export class Edytor extends EventTarget {
       for (const rodzaj of ['pod', 'nad']) {
         for (const o of s.warstwy?.[rodzaj] || []) {
           if (strony.length > 1) {
-            // Element wzorca należy do swojej strony: nie wychodzi przez grzbiet na sąsiednią.
+            // Element wzorca należy do swojej strony i jest do niej przycięty – chyba że wychodzi przez
+            // grzbiet dalej niż na spad: wtedy, jak zwykły element, leży na obu stronach rozkładówki.
+            const przezGrzbiet = wzorzecPrzezGrzbiet(o, i === 0 ? 'lewa' : 'prawa', w, b);
             o.set({ left: o.left + i * w });
-            o.clipPath = new fabric.Rect({
-              left: i === 0 ? -b : w, top: -b, width: w + b, height: h + 2 * b, absolutePositioned: true,
-            });
+            if (!przezGrzbiet) {
+              o.clipPath = new fabric.Rect({
+                left: i === 0 ? -b : w, top: -b, width: w + b, height: h + 2 * b, absolutePositioned: true,
+              });
+            }
             o.setCoords();
           }
           this._warstwy[rodzaj].push(o);

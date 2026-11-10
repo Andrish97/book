@@ -327,3 +327,47 @@ test('okno „Wzorce”: wzorce standardowe, dodanie do strony i do sekcji, wars
   assert.ok(await strona.isVisible('#wlasciwosci'));
   assert.deepEqual(bledy, []);
 });
+
+test('rozkładówki: element wzorca wychodzący przez grzbiet leży na obu stronach; zwykły zostaje na swojej', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowaKsiazka(strona, 3);
+  // Wzorzec sekcji: niebieski pas od 100 mm do 60 mm za krawędzią strony (148 mm) i żółte tło na całą stronę ze spadem.
+  await strona.evaluate(async () => {
+    const { stan, zapiszTeraz, przeladuj } = window.seriodruk;
+    await zapiszTeraz();
+    const p = stan.projekt;
+    const s = p.sekcje[0];
+    p.wzorce.push({
+      id: 'wz_pas', nazwa: 'Pas', wydruk: { ...s.wydruk }, lustro: false, tlo: null, obiekty: [
+        { type: 'rect', version: '5.3.0', left: -3, top: -3, width: 154, height: 20, fill: '#ffff00', strokeWidth: 0, id: 'tlo' },
+        { type: 'rect', version: '5.3.0', left: 100, top: 60, width: 108, height: 20, fill: '#0000ff', strokeWidth: 0, id: 'pas' },
+      ],
+    });
+    s.wzorce = ['wz_pas'];
+    for (const st of p.strony) st.wzorce = 'z_sekcji';
+    await przeladuj();
+  });
+  const piksele = (i, punkty) => strona.evaluate(async ([n, pkt]) => {
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const p = window.seriodruk.stan.projekt;
+    const url = await renderujCel(p, p.strony[n], { szerokoscPx: 148, spad: false });
+    const img = new Image();
+    await new Promise((ok) => { img.onload = ok; img.src = url; });
+    const c = Object.assign(document.createElement('canvas'), { width: img.width, height: img.height });
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    return pkt.map(([x, y]) => [...ctx.getImageData(x, y, 1, 1).data].slice(0, 3).join(','));
+  }, [i, punkty]);
+  // Strona 2 (lewa): własny pas od 100 mm do krawędzi. Strona 3 (prawa): ciąg dalszy pasa lewej strony (0–60 mm)
+  // i własny pas od 100 mm. Żółte tło wystaje tylko na spad – nie przechodzi na sąsiada jako osobny pasek.
+  assert.deepEqual(await piksele(1, [[50, 70], [120, 70], [146, 70], [146, 30]]), ['255,255,255', '0,0,255', '0,0,255', '255,255,255']);
+  assert.deepEqual(await piksele(2, [[10, 70], [55, 70], [80, 70], [120, 70], [2, 30]]), ['0,0,255', '0,0,255', '255,255,255', '0,0,255', '255,255,255']);
+  // Żółte tło: na górze każdej strony, od krawędzi do krawędzi.
+  assert.deepEqual(await piksele(2, [[1, 5], [146, 5]]), ['255,255,0', '255,255,0']);
+
+  // W edytorze (obie strony na jednym płótnie): pas lewej strony nie jest przycięty przy grzbiecie, tło – jest.
+  await przejdz(strona, 1);
+  const naPlotnie = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.zWzorca).map((o) => [o.id, Math.round(o.left), Boolean(o.clipPath)]));
+  assert.deepEqual(naPlotnie.sort(), [['pas', 100, false], ['pas', 248, true], ['tlo', -3, true], ['tlo', 145, true]].sort());
+  assert.deepEqual(bledy, []);
+});

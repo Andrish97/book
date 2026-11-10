@@ -149,6 +149,15 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
 
 // Czy element sąsiedniej strony może sięgać na tę stronę. Liczone z zapasem
 // (okrąg opisany na elemencie), bo resztę i tak przytnie krawędź płótna.
+// Element wzorca (żywy obiekt w układzie swojej strony) wychodzi przez grzbiet dalej niż na spad –
+// jego dalsza część należy wtedy do sąsiedniej strony rozkładówki, tak jak przy zwykłych elementach.
+export function wzorzecPrzezGrzbiet(o, bok, szerokosc, spad) {
+  o.setCoords();
+  const x = Object.values(o.aCoords || {}).map((p) => p.x);
+  if (!x.length) return false;
+  return bok === 'lewa' ? Math.max(...x) > szerokosc + spad + 0.01 : Math.min(...x) < -spad - 0.01;
+}
+
 export function siegaPrzezGrzbiet(o, bokElementu, szerokosc, spad) {
   const zasieg = Math.hypot((o.width || 0) * (o.scaleX ?? 1), (o.height || 0) * (o.scaleY ?? 1)) + (o.strokeWidth || 0);
   const x = o.left || 0;
@@ -231,6 +240,19 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const zInnychStron = idWatkow.size && egz ? await ramkiWatkowZInnychStron(projekt, egz, rozwiniety, idWatkow, new Set(tresc.map((o) => o.id))) : [];
   if (idWatkow.size) rozlejWatki([...wlasne, ...zInnychStron]);
   const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety, { oryginaly });
+  // Elementy wzorców sąsiedniej strony rozkładówki, które przechodzą przez grzbiet, widać także tutaj.
+  if (egz?.sasiad) {
+    const { szerokosc_mm: w, spad_mm: b } = wydruk;
+    const obce = await warstwyWzorcow(projekt, egz.sasiad, rozwiniety, { oryginaly });
+    for (const rodzaj of ['pod', 'nad']) {
+      for (const o of obce[rodzaj]) {
+        if (!wzorzecPrzezGrzbiet(o, egz.sasiad.bok, w, b)) continue;
+        o.set({ left: o.left + (egz.bok === 'lewa' ? w : -w) });
+        o.setCoords();
+        warstwy[rodzaj].push(o);
+      }
+    }
+  }
   return { wydruk, tlo: jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona), obiekty: [...warstwy.pod, ...wlasne, ...warstwy.nad] };
 }
 
