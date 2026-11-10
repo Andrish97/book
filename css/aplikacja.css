@@ -530,6 +530,8 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
   background: var(--obszar);
   touch-action: none; overscroll-behavior: contain;
 }
+.kontener-plotna.reka, .kontener-plotna.reka canvas { cursor: grab !important; }
+.kontener-plotna.przesuwa, .kontener-plotna.przesuwa canvas { cursor: grabbing !important; }
 .arkusz { margin: auto; padding: 84px 48px 80px; }
 .arkusz .canvas-container { box-shadow: var(--cien-strony); }
 
@@ -689,6 +691,10 @@ dialog h2 { font-size: 19px; }
 .instrukcja-tresc ol.punkty, .instrukcja-tresc ul.punkty { margin: 0 0 14px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
 .instrukcja-tresc .rada { padding: 12px 14px; border-radius: var(--r-m); background: var(--akcent-tlo); color: var(--na-akcencie-tle); font-size: 13.5px; max-width: 70ch; }
 .instrukcja-tresc kbd { font: 12px ui-monospace, Menlo, monospace; padding: 1px 6px; border: 1px solid var(--linia-mocna); border-bottom-width: 2px; border-radius: 4px; background: var(--powierzchnia); }
+.instrukcja-tresc h4 { margin: 18px 0 6px; font-size: 13px; font-weight: 600; color: var(--tusz-2); text-transform: uppercase; letter-spacing: .05em; }
+.instrukcja-tresc table.skroty { width: 100%; max-width: 640px; border-collapse: collapse; font-size: 13.5px; }
+.instrukcja-tresc table.skroty td { padding: 6px 0; border-top: 1px solid var(--linia); vertical-align: top; }
+.instrukcja-tresc table.skroty td:first-child { width: 44%; padding-right: 12px; white-space: nowrap; }
 .instrukcja-stopka { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--linia); }
 .instrukcja-zamknij { position: absolute; top: 10px; right: 10px; }
 

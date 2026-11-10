@@ -3,6 +3,18 @@
 // wystarczy go uruchomić ponownie.
 
 import { wstawIkony } from './ikony.js';
+import { SKROTY, opisKlawiszy } from './skroty.js';
+
+// Tabela skrótów powstaje z tej samej listy, z której działa klawiatura.
+function tabelaSkrotow() {
+  const grupy = [];
+  for (const s of SKROTY) {
+    let g = grupy.find((x) => x.nazwa === s.grupa);
+    if (!g) { g = { nazwa: s.grupa, wiersze: [] }; grupy.push(g); }
+    g.wiersze.push(`<tr><td>${opisKlawiszy(s).split('+').map((k) => `<kbd>${k}</kbd>`).join(' ')}</td><td>${s.opis}</td></tr>`);
+  }
+  return grupy.map((g) => `<h4>${g.nazwa}</h4><table class="skroty"><tbody>${g.wiersze.join('')}</tbody></table>`).join('');
+}
 
 const KLUCZ_PRZECZYTANA = 'seriodruk:instrukcja-przeczytana';
 
@@ -240,16 +252,9 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Skróty klawiszowe',
-    wstep: 'Przy pracy na komputerze lub z klawiaturą:',
-    punkty: [
-      '<kbd>T</kbd> tekst, <kbd>R</kbd> prostokąt, <kbd>E</kbd> elipsa, <kbd>L</kbd> linia',
-      '<kbd>Ctrl</kbd>+<kbd>C</kbd> kopiuj, <kbd>Ctrl</kbd>+<kbd>X</kbd> wytnij, <kbd>Ctrl</kbd>+<kbd>V</kbd> wklej, <kbd>Ctrl</kbd>+<kbd>D</kbd> duplikuj, <kbd>Delete</kbd> usuń',
-      '<kbd>Ctrl</kbd>+<kbd>Z</kbd> cofnij, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> ponów',
-      '<kbd>Ctrl</kbd>+<kbd>G</kbd> grupuj, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> rozgrupuj',
-      'Strzałki przesuwają o 1 mm, z <kbd>Shift</kbd> o 10 mm, z <kbd>Alt</kbd> o 0,1 mm',
-      '<kbd>Page Up</kbd> / <kbd>Page Down</kbd> poprzednia / następna strona',
-      '<kbd>Ctrl</kbd> + kółko myszy – powiększenie, <kbd>Esc</kbd> – wyjście z podglądu',
-    ],
+    wstep: 'Skróty są takie jak w programach do składu i grafiki. <kbd>Ctrl</kbd> na Macu to <kbd>⌘</kbd>. Tę listę otwiera klawisz <kbd>?</kbd>.',
+    html: tabelaSkrotow,
+    rada: 'Skróty z literami działają, gdy kursor nie stoi w polu formularza. W trakcie pisania tekstu na stronie działają skróty z grupy „Tekst”.',
   },
   {
     tytul: 'Co będzie dalej',
@@ -301,6 +306,10 @@ export class Instrukcja {
     this.tresc.focus();
   }
 
+  otworzRozdzial(tytul) {
+    this.otworz(Math.max(0, ROZDZIALY.findIndex((r) => r.tytul === tytul)));
+  }
+
   zamknij() {
     this.oznaczPrzeczytana(); // od razu – zdarzenie „close” przychodzi z opóźnieniem
     this.dlg.close();
@@ -319,6 +328,7 @@ export class Instrukcja {
         + `${r.podpis ? `<figcaption>${r.podpis}</figcaption>` : ''}</figure>`);
     }
     if (r.punkty?.length) html.push(`<ul class="punkty">${r.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
+    if (r.html) html.push(r.html());
     if (r.rada) html.push(`<p class="rada">${r.rada}</p>`);
     this.tresc.innerHTML = html.join('');
     this.tresc.scrollTop = 0;

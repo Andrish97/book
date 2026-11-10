@@ -130,3 +130,83 @@ test('odległości: wyrównanie do innego elementu, strzałki z odległością, 
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor._pomiary.length), 0);
   assert.deepEqual(bledy, []);
 });
+
+test('skróty: zaznaczanie, kolejność, blokada, tekst, widok, kopia z Alt, ruch w jednej osi z Shift', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Skróty');
+  await prostokaty(strona, [['a', 20, 30, 20, 20], ['b', 60, 30, 20, 20]]);
+  const nazwy = () => strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().map((o) => o.nazwa || o.type));
+  const aktywny = () => strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return o ? (o.type === 'activeSelection' ? `zaznaczenie:${o.size()}` : o.nazwa || o.type) : null; });
+
+  await strona.keyboard.press('Control+a');
+  assert.equal(await aktywny(), 'zaznaczenie:2');
+  await strona.keyboard.press('Escape');
+  assert.equal(await aktywny(), null);
+  await strona.keyboard.press('Tab');
+  assert.equal(await aktywny(), 'a');
+  await strona.keyboard.press('Tab');
+  assert.equal(await aktywny(), 'b');
+  await strona.keyboard.press('Shift+Tab');
+  assert.equal(await aktywny(), 'a');
+
+  // Kolejność warstw i blokada.
+  await strona.keyboard.press('Control+Shift+BracketRight');
+  assert.deepEqual(await nazwy(), ['b', 'a']);
+  await strona.keyboard.press('Control+BracketLeft');
+  assert.deepEqual(await nazwy(), ['a', 'b']);
+  await strona.keyboard.press('Control+l');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny.zablokowany), true);
+  await strona.keyboard.press('ArrowRight');
+  assert.deepEqual(await polozenie(strona, 'a'), [20, 30], 'zablokowany element nie rusza się strzałkami');
+  await strona.keyboard.press('Control+l');
+  await strona.keyboard.press('Shift+ArrowRight');
+  assert.deepEqual(await polozenie(strona, 'a'), [30, 30]);
+
+  // Tekst: pogrubienie, wyrównanie, rozmiar; w trakcie pisania – tylko zaznaczony fragment.
+  await strona.keyboard.press('t');
+  const tekst = () => strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return [o.fontWeight, o.textAlign, Math.round(o.fontSize * 72 / 25.4)]; });
+  await strona.keyboard.press('Control+b');
+  await strona.keyboard.press('Control+Shift+e');
+  await strona.keyboard.press('Control+Shift+Period');
+  assert.deepEqual(await tekst(), ['bold', 'center', 15]);
+  await strona.keyboard.press('Control+b');
+  await strona.keyboard.press('Enter');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny.isEditing), true);
+  await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; o.setSelectionStart(0); o.setSelectionEnd(7); });
+  await strona.keyboard.press('Control+i');
+  const style = await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return [o.fontStyle, o.getSelectionStyles(0, 1)[0].fontStyle, o.getSelectionStyles(10, 11)[0].fontStyle || null]; });
+  assert.deepEqual(style, ['normal', 'italic', null]);
+  await strona.evaluate(() => window.seriodruk.edytor.aktywny.exitEditing());
+  await strona.keyboard.press('Delete');
+
+  // Widok: linie pomocnicze, siatka, powiększenie.
+  await strona.keyboard.press('w');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.pokazProwadnice), false);
+  await strona.keyboard.press('w');
+  await strona.keyboard.press('Control+Quote');
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.widok.siatka), true);
+  await strona.keyboard.press('Control+Quote');
+  await strona.keyboard.press('Control+1');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.zoom), 1);
+  await strona.keyboard.press('Control+0');
+
+  // Alt przy przeciąganiu zostawia kopię w miejscu startu.
+  await przeciagnij(strona, [70, 40], [70, 90], { klawisz: 'Alt' });
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 3);
+  const b = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.nazwa === 'b').map((o) => [Math.round(o.left), Math.round(o.top)]).sort((p, q) => p[1] - q[1]));
+  assert.deepEqual(b, [[60, 30], [60, 80]]);
+
+  // Shift: ruch tylko w osi, w której przesunięcie jest większe.
+  await strona.keyboard.press('Escape');
+  await przeciagnij(strona, [40, 40], [47, 96.3], { klawisz: 'Shift' });
+  const a = await polozenie(strona, 'a');
+  assert.equal(a[0], 30, 'w poziomie bez zmian');
+  assert.ok(Math.abs(a[1] - 86) < 1.5, `w pionie przesunięty: ${a}`);
+
+  // ? otwiera listę skrótów w instrukcji.
+  await strona.keyboard.press('Shift+Slash');
+  await strona.waitForSelector('#dlg-instrukcja[open]');
+  assert.equal(await strona.textContent('#instrukcja-tresc h3'), 'Skróty klawiszowe');
+  assert.ok(await strona.locator('#instrukcja-tresc table.skroty tr').count() > 40);
+  assert.deepEqual(bledy, []);
+});

@@ -94,9 +94,14 @@ export class Edytor extends EventTarget {
     c.on('selection:updated', () => this._emitujZaznaczenie());
     c.on('selection:cleared', () => this._emitujZaznaczenie());
     c.on('object:moving', (e) => this._przyciagnij(e.target, e.e));
-    c.on('mouse:down', () => { this._cele = null; });
+    c.on('object:rotating', (e) => {
+      // Z Shiftem obrót skacze co 15°.
+      if (e.e?.shiftKey) e.target.rotate(Math.round(e.target.angle / 15) * 15);
+    });
+    c.on('mouse:down', () => { this._cele = null; this._kopiaZAlt = false; });
     c.on('mouse:up', () => {
       this._cele = null;
+      this._kopiaZAlt = false;
       if (this._liniePrzyciagania.length || (this._pomiary.length && !this._pomiaryStale)) {
         this._liniePrzyciagania = [];
         this._pomiary = [];
@@ -700,6 +705,80 @@ export class Edytor extends EventTarget {
     this.oznaczZmiane();
   }
 
+  // Elementy, które da się zaznaczyć (bez elementów wzorców i ukrytych).
+  _zaznaczalne() {
+    return this.canvas.getObjects().filter((o) => !o.zWzorca && o.visible !== false && o.selectable !== false);
+  }
+
+  zaznaczWszystko() {
+    const obiekty = this._zaznaczalne();
+    if (!obiekty.length) return;
+    this.canvas.discardActiveObject();
+    this.canvas.setActiveObject(obiekty.length === 1 ? obiekty[0] : new fabric.ActiveSelection(obiekty, { canvas: this.canvas }));
+    this.canvas.requestRenderAll();
+  }
+
+  odznacz() {
+    this.canvas.discardActiveObject();
+    this.canvas.requestRenderAll();
+  }
+
+  // Następny (1) albo poprzedni (−1) element w kolejności warstw.
+  zaznaczSasiedni(kierunek) {
+    const obiekty = this._zaznaczalne();
+    if (!obiekty.length) return;
+    const i = obiekty.indexOf(this.aktywny);
+    const nastepny = obiekty[(i + kierunek + obiekty.length) % obiekty.length] || obiekty[0];
+    this.canvas.discardActiveObject();
+    this.canvas.setActiveObject(i < 0 && kierunek < 0 ? obiekty.at(-1) : nastepny);
+    this.canvas.requestRenderAll();
+  }
+
+  edytujTekst() {
+    const akt = this.aktywny;
+    if (!akt || akt.type !== 'textbox' || akt.isEditing) return;
+    akt.enterEditing();
+    akt.selectAll();
+    this.canvas.requestRenderAll();
+  }
+
+  przelaczBlokade() {
+    const akt = this.aktywny;
+    if (!akt) return;
+    const obiekty = akt.type === 'activeSelection' ? akt.getObjects() : [akt];
+    const wlacz = !obiekty.every((o) => o.zablokowany);
+    for (const o of obiekty) this.ustawBlokade(o, wlacz);
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // Formatowanie tekstu ze skrótu: w trakcie pisania dotyczy zaznaczonego
+  // fragmentu, poza tym – całego tekstu. zmiana(czytaj) zwraca właściwości do
+  // ustawienia; caly = właściwość całego akapitu (np. wyrównanie).
+  formatujTekst(zmiana, caly = false) {
+    const obj = this.aktywny;
+    if (!obj || obj.type !== 'textbox') return false;
+    const fragment = !caly && obj.isEditing && obj.selectionStart !== obj.selectionEnd;
+    const czytaj = (klucz) => {
+      if (!fragment) return obj[klucz];
+      const st = obj.getSelectionStyles(obj.selectionStart, obj.selectionStart + 1, true)[0] || {};
+      return st[klucz] ?? obj[klucz];
+    };
+    const wlasciwosci = zmiana(czytaj);
+    if (fragment) obj.setSelectionStyles(wlasciwosci);
+    else {
+      if (!caly) for (const klucz of Object.keys(wlasciwosci)) obj.removeStyle?.(klucz);
+      obj.set(wlasciwosci);
+    }
+    obj.initDimensions?.();
+    obj.dirty = true;
+    obj.setCoords();
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+    return true;
+  }
+
   // Po zmianie właściwości z panelu.
   zatwierdz() {
     const akt = this.aktywny;
@@ -792,11 +871,43 @@ export class Edytor extends EventTarget {
     };
   }
 
+  // Przeciąganie z Alt: w miejscu, z którego ruszył element, zostaje jego kopia.
+  async _zostawKopie(obj) {
+    const start = this.canvas._currentTransform?.original;
+    if (!start) return;
+    const kopia = await new Promise((ok) => obj.clone(ok, WLASNE_POLA));
+    kopia.set({ left: start.left, top: start.top });
+    const indeks = this.canvas.getObjects().indexOf(obj);
+    if (kopia.type === 'activeSelection') {
+      kopia.canvas = this.canvas;
+      const czesci = kopia.getObjects().slice();
+      kopia.destroy(); // przywraca częściom położenie na arkuszu
+      for (const o of czesci) { o.set({ id: uid('o') }); this.canvas.add(o); o.setCoords(); }
+    } else {
+      kopia.set({ id: uid('o') });
+      // Kopia zostaje pod przeciąganym elementem, na jego dotychczasowym miejscu w stosie.
+      if (indeks >= 0) this.canvas.insertAt(kopia, indeks, false); else this.canvas.add(kopia);
+      kopia.setCoords();
+    }
+    this._cele = null; // kopia też jest celem przyciągania
+    this.canvas.requestRenderAll();
+  }
+
   // Z Ctrl (⌘) przesuwanie jest swobodne – bez przyciągania.
   _przyciagnij(obj, zdarzenie) {
     if (!this.wydruk) return;
     this._liniePrzyciagania = [];
     this._pomiary = [];
+    if (zdarzenie?.altKey && !this._kopiaZAlt && !obj.zablokowany) {
+      this._kopiaZAlt = true;
+      this._zostawKopie(obj);
+    }
+    // Z Shiftem ruch tylko wzdłuż jednej osi – tej, w której przesunięcie jest większe.
+    const start = this.canvas._currentTransform?.original;
+    if (zdarzenie?.shiftKey && start) {
+      if (Math.abs(obj.left - start.left) >= Math.abs(obj.top - start.top)) obj.top = start.top; else obj.left = start.left;
+      obj.setCoords();
+    }
     if (zdarzenie?.ctrlKey || zdarzenie?.metaKey) return;
     const r = this._ramka(obj);
     if (!this._cele) this._cele = this.widok.do_elementow ? this._ramkiInnych(obj) : [];
@@ -1023,12 +1134,38 @@ export class Edytor extends EventTarget {
     k.addEventListener('touchend', koniec, { capture: true });
     k.addEventListener('touchcancel', koniec, { capture: true });
 
+    // „Rączka”: przytrzymana spacja albo środkowy przycisk myszy przesuwa widok.
+    let reka = null;
+    const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
+    k.addEventListener('mousedown', (e) => {
+      if (!(this.reka || e.button === 1)) return;
+      stop(e);
+      reka = { x: e.clientX, y: e.clientY };
+      k.classList.add('przesuwa');
+    }, { capture: true });
+    window.addEventListener('mousemove', (e) => {
+      if (!reka) return;
+      k.scrollLeft -= e.clientX - reka.x;
+      k.scrollTop -= e.clientY - reka.y;
+      reka = { x: e.clientX, y: e.clientY };
+    });
+    window.addEventListener('mouseup', () => { reka = null; k.classList.remove('przesuwa'); });
+
     // Ctrl/⌘ + kółko (lub szczypanie na gładziku): zoom.
     k.addEventListener('wheel', (e) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       this.ustawZoom(this.zoom * Math.exp(-e.deltaY * 0.01), { x: e.clientX, y: e.clientY });
     }, { passive: false });
+  }
+
+  // Tryb „rączki” (spacja): kliknięcia nie zaznaczają, przeciąganie przesuwa widok.
+  ustawReke(wlacz) {
+    if (this.reka === wlacz) return;
+    this.reka = wlacz;
+    this.kontener.classList.toggle('reka', wlacz);
+    this.canvas.skipTargetFind = wlacz;
+    this.canvas.selection = !wlacz;
   }
 
   _przerwijTransformacje() {

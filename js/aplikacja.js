@@ -11,6 +11,7 @@ import {
 import { Edytor, opisObiektu } from './edytor.js';
 import { warstwyWzorcow, renderujCel } from './zlozenie.js';
 import { MenuWidoku } from './widok.js';
+import { obsluzKlawisz } from './skroty.js';
 import { PanelWlasciwosci } from './wlasciwosci.js';
 import { zaladujCzcionki } from './czcionki.js';
 import {
@@ -1822,40 +1823,30 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('keyup', (e) => { if (e.key === 'Alt') edytor.pokazPomiary(false); });
 window.addEventListener('blur', () => edytor.pokazPomiary(false));
 
+const kontekstSkrotow = {
+  edytor,
+  widok: menuWidoku,
+  zapisz: () => zapiszTeraz().then(() => synchronizuj()),
+  wstawObraz: () => $('#plik-obraz').click(),
+  przelaczProwadnice: () => akcje.prowadnice(),
+  podglad: () => pokazPodglad(),
+  strona: (o) => przejdzDoStrony(stan.indeks + o),
+  nowaStrona: () => dodajStrone(),
+  pomoc: () => instrukcja.otworzRozdzial('Skróty klawiszowe'),
+};
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') zamknijMenu();
   if (document.body.dataset.ekran === 'podglad' && e.key === 'Escape' && !$('dialog[open]')) { zamknijPodglad(); return; }
-  if (document.body.dataset.ekran !== 'edytor') return;
+  if (document.body.dataset.ekran !== 'edytor' || $('dialog[open]')) return;
   const cel = e.target;
-  const wPolu = cel !== document.body && cel.closest('input, textarea, select, [contenteditable]');
-  const mod = e.ctrlKey || e.metaKey;
-  if (mod && e.key.toLowerCase() === 's') {
-    e.preventDefault();
-    zapiszTeraz().then(() => synchronizuj());
-    return;
-  }
-  if (wPolu || edytor.aktywny?.isEditing || $('dialog[open]')) return;
-  const k = e.key.toLowerCase();
-  if (mod && k === 'z') { e.preventDefault(); (e.shiftKey ? edytor.ponow() : edytor.cofnij()); return; }
-  if (mod && k === 'y') { e.preventDefault(); edytor.ponow(); return; }
-  if (mod && k === 'd') { e.preventDefault(); edytor.duplikuj(); return; }
-  if (mod && k === 'c') { if (edytor.aktywny) { e.preventDefault(); edytor.kopiuj(); } return; }
-  if (mod && k === 'x') { if (edytor.aktywny) { e.preventDefault(); edytor.wytnij(); } return; }
-  if (mod && k === 'v') { if (edytor.maSchowek) { e.preventDefault(); edytor.wklej(); } return; }
-  if (mod && k === 'g') { e.preventDefault(); (e.shiftKey ? edytor.rozgrupuj() : edytor.grupuj()); return; }
-  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); edytor.usun(); return; }
-  if (e.key === 'Escape') { edytor.canvas.discardActiveObject(); edytor.canvas.requestRenderAll(); return; }
-  const krok = e.shiftKey ? 10 : (e.altKey ? 0.1 : 1);
-  const strzalki = { ArrowLeft: [-krok, 0], ArrowRight: [krok, 0], ArrowUp: [0, -krok], ArrowDown: [0, krok] };
-  if (strzalki[e.key] && edytor.aktywny) { e.preventDefault(); edytor.przesun(...strzalki[e.key]); return; }
-  if (mod) return;
-  if (k === 't') edytor.dodajTekst();
-  else if (k === 'r') edytor.dodajProstokat();
-  else if (k === 'e') edytor.dodajElipse();
-  else if (k === 'l') edytor.dodajLinie();
-  else if (e.key === 'PageUp') przejdzDoStrony(stan.indeks - 1);
-  else if (e.key === 'PageDown') przejdzDoStrony(stan.indeks + 1);
+  const wPolu = Boolean(cel !== document.body && cel.closest('input, textarea:not([data-fabric-hiddentextarea]), select, [contenteditable]'));
+  const wEdycji = Boolean(edytor.aktywny?.isEditing);
+  if (e.code === 'Space' && !wPolu && !wEdycji) { e.preventDefault(); edytor.ustawReke(true); return; }
+  obsluzKlawisz(e, kontekstSkrotow, { wPolu, wEdycji });
 });
+document.addEventListener('keyup', (e) => { if (e.code === 'Space') edytor.ustawReke(false); });
+window.addEventListener('blur', () => edytor.ustawReke(false));
 
 // Dokument nie ma się przewijać (ekrany przewijają się w środku). Przeglądarka
 // na telefonie potrafi go jednak przesunąć sama, np. gdy fokus dostaje pole
