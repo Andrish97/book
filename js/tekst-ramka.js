@@ -102,7 +102,6 @@ const rysujTekst = P._renderText;
 P._renderText = function _renderText(ctx) {
   rysujTekst.call(this, ctx);
   if (!this.lista || !this._styleMap) return;
-  const w = wciecieListy(this);
   const lewo = this._getLeftOffset();
   let y = this._getTopOffset();
   let numer = this.lista_start || 1;

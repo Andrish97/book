@@ -25,5 +25,8 @@ jobs:
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
 
+      - name: Sprawdzenie kodu (nazwy bez definicji, nieużywane importy)
+        run: npm run lint
+
       - name: Testy przeglądarkowe
         run: npm test
