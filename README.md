@@ -11,22 +11,22 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Projekty**: lista z miniaturami, kreator (format, spad, marginesy, układ), duplikowanie, eksport i import pliku `.seriodruk`.
 - **Sekcje**: części projektu z własnym formatem, spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki) i numeracją.
 - **Rozkładówki**: obie strony na jednym płótnie, marginesy lustrzane (wewnętrzny przy grzbiecie), elementy mogą leżeć przez grzbiet.
-- **Wzorce**: wspólne elementy stron; kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
+- **Wzorce**: szablony wspólnych elementów stron w osobnym oknie, z gotowymi wzorcami standardowymi (numer strony, stopka, nagłówek, linie, kratka, ramka, zakładka); kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
 - **Edytor** (Fabric.js 7.4.0 trzymany w repozytorium, wszystko w mm): tekst, kształty, obrazy, grupy, panel warstw, wyrównywanie i równe odstępy, blokada, schowek między stronami, ostrzeżenia o marginesach i spadzie. **Cofanie** to jedna historia całego projektu (strony, wzorce, sekcje, style, dane).
-- **Kształty i obrazy**: wielokąty i gwiazdy, gradient, cień, kadrowanie obrazu przeciąganiem. Obrazy (PNG, JPEG, WebP, GIF, SVG) z dysku, przez przeciągnięcie albo wklejone ze schowka (Ctrl+V – także zrzut ekranu i kod SVG). Duże zdjęcia pracują w edytorze na lżejszej kopii; do eksportu idzie oryginał.
+- **Kształty i obrazy**: wielokąty i gwiazdy, rysowanie odręczne, gradient liniowy i kołowy z wieloma kolorami, cień, kadrowanie obrazu przeciąganiem (także obróconego). Obrazy (PNG, JPEG, WebP, GIF, SVG) z dysku, przez przeciągnięcie albo wklejone ze schowka (Ctrl+V – także zrzut ekranu i kod SVG). Duże zdjęcia pracują w edytorze na lżejszej kopii; do eksportu idzie oryginał.
 - **Precyzja**: siatka z przyciąganiem, linijki i własne prowadnice, linie wyrównania do innych elementów, strzałki z odległościami i równe odstępy, ponad 50 skrótów klawiszowych.
 - **Dane**: tabele z importem CSV/Excel i lekkim edytorem, pola `{kolumna}` i pola dokumentu w tekście, serie powielające strony według wierszy, obrazy z kolumny, ramka tekstu z autodopasowaniem. Szablon danych serii (Excel z arkuszem „Instrukcja”), dodawanie brakujących kolumn, pilnowanie powtórzeń w kolumnie. Seria może mieć tabele dodatkowe (nowy wiersz co N stron, pola `{Tabela.kolumna}`) i kończy się na ostatnim wierszu danych. Kolor i położenie elementu mogą zależeć od pola z danych.
 - **Tekst**: style wspólne dla projektu, odstęp liter, podkreślenie, przekreślenie, formatowanie zaznaczonego fragmentu, listy (punkty, kreski, numery), przelewanie tekstu między połączonymi ramkami, kolumny, tabela.
-- **Eksport**: PDF do drukarni (spad, znaki cięcia, TrimBox/BleedBox, 150/300/600 dpi, zakres stron, podział na sekcje albo części) z listą rzeczy do sprawdzenia przed drukiem; PNG strony w 300 dpi.
+- **Eksport**: PDF do drukarni – **wektorowy** (prawdziwy tekst z osadzonymi czcionkami, kształty i gradienty jako wektory, zdjęcia w oryginale; opcje: tekst na krzywe, kolory tekstu i kształtów w CMYK) albo jako obrazy stron (150/300/600 dpi). Spad, znaki cięcia, TrimBox/BleedBox, zakres stron, podział na sekcje albo części. „Sprawdź przed drukiem”: lista uwag do całego projektu, łącznie z tekstami, które nie mieszczą się w ramkach na powielonych stronach. PNG strony w 300 dpi.
 - **Podgląd** bez edycji: cały projekt jak po przycięciu (z powieleniami serii), rozkładówki obok siebie, tryb prezentacji na całym ekranie. Można go **udostępnić linkiem** osobie bez konta (obrazy stron z chwili udostępnienia).
 - **Zapis**: automatyczny, najpierw w przeglądarce (IndexedDB), potem na koncie – wysyłane są tylko zmienione strony; konflikt z innym urządzeniem kończy się pytaniem, którą wersję zachować.
-- **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok; panele wysuwane z dołu.
+- **Dotyk i telefon**: jeden palec przesuwa elementy, dwa – widok. Na telefonie edytor działa w poziomie (panele wysuwane z boków); w pionie pokazuje prośbę o obrót.
 - **Motyw**: jasny, ciemny albo jak w systemie.
-- **Czcionki**: własne pliki TTF/OTF/WOFF/WOFF2 wgrywane do projektu (jadą z nim na konto i do pliku) oraz osiem wbudowanych na licencji OFL; do eksportu można dołączyć pliki użytych czcionek.
+- **Czcionki**: własne pliki TTF/OTF/WOFF/WOFF2 wgrywane do projektu (jadą z nim na konto i do pliku) oraz osiem wbudowanych na licencji OFL. Wgrana czcionka trafia też do „Moich czcionek” i jest pod ręką w każdym projekcie (na koncie – na każdym urządzeniu). Do eksportu można dołączyć pliki użytych czcionek.
 - **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze. Czcionki i silnik płótna są w repozytorium, więc edytor działa bez internetu.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 
-Nie ma jeszcze: własnej poczty (czeka na domenę), PDF z tekstem wektorowym i CMYK, tekstu płynącego przez kilka stron. Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
+Nie ma jeszcze: własnej poczty (czeka na domenę), PDF/X z profilem barwnym, pióra z krzywymi. Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
 
 ## Uruchomienie lokalne
 
@@ -72,9 +72,10 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/edytor.js` | Silnik arkusza (strona albo rozkładówka) na Fabric.js: mm ↔ px, prowadnice, przyciąganie, ostrzeżenia, gesty, historia, schowek, wyrównywanie |
 | `js/fabric-ustawienia.js` | Ustawienia Fabric.js 7 wspólne dla edytora i składania: położenie liczone od lewego górnego rogu, wygląd uchwytów, lista własnych pól zapisywanych z obiektem, typ obiektu w zapisie małymi literami |
 | `js/zlozenie.js` | Składanie strony z warstw (tło, wzorce, treść, elementy sąsiedniej strony przez grzbiet) dla edytora, miniatur i podglądu |
-| `js/wlasciwosci.js`, `js/style-tekstu.js`, `js/tekst-ramka.js`, `js/watki.js` | Panel właściwości, style tekstu, ramka tekstu o stałej wysokości i listy, przelewanie tekstu między ramkami |
+| `js/wlasciwosci.js`, `js/style-tekstu.js`, `js/tekst-ramka.js`, `js/watki.js` | Panel właściwości, style tekstu, ramka tekstu o stałej wysokości i listy, przelewanie tekstu między ramkami (także przez strony i w trakcie pisania) |
 | `js/obrazy.js`, `js/wklejanie.js` | Kopie robocze dużych zdjęć; obrazy i SVG ze schowka systemu |
-| `js/eksport.js`, `js/okno-pdf.js`, `js/kontrola.js` | Eksport PDF i PNG, okno eksportu, kontrola projektu przed drukiem i szablon danych |
+| `js/eksport.js`, `js/pdf-wektorowy.js`, `js/okno-pdf.js` | Eksport PDF i PNG; PDF wektorowy (kontekst rysowania zapisujący polecenia PDF, osadzanie czcionek i obrazów); okno eksportu |
+| `js/kontrola.js`, `js/kontrola-skladu.js`, `js/okno-kontroli.js` | Kontrola projektu przed drukiem (dane, powtórzenia, teksty w ramkach) i szablon danych |
 | `js/biblioteki.js`, `js/zewnetrzne/` | Wczytywanie dużych bibliotek na żądanie; Fabric.js w repozytorium |
 | `js/przyciaganie.js`, `js/linijki.js`, `js/widok.js`, `js/warstwy.js`, `js/skroty.js` | Przyciąganie i pomiary, linijki, menu siatki, panel warstw, skróty |
 | `js/pola.js`, `js/serie.js`, `js/tabele.js`, `js/dane.js` | Pola w tekście, rozwijanie serii, odczyt CSV/Excel, okno danych |
@@ -82,8 +83,9 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
 | `js/instrukcja.js`, `scripts/zrzuty-instrukcji.cjs` | Instrukcja i generator zrzutów |
 | `js/ui.js`, `js/ikony.js`, `js/marka.js`, `js/motyw.js` | Elementy wspólne, ikony, nazwa aplikacji, motyw |
-| `js/czcionki.js`, `js/okno-czcionek.js` | Czcionki wbudowane i własne (odczyt plików czcionek, rejestracja w przeglądarce), okno „Czcionki” |
+| `js/czcionki.js`, `js/moje-czcionki.js`, `js/okno-czcionek.js` | Czcionki wbudowane i własne (odczyt plików czcionek, rejestracja w przeglądarce), zbiór „Moje czcionki” (przeglądarka + konto), okno „Czcionki” |
 | `css/czcionki.css`, `css/czcionki/`, `scripts/pobierz-czcionki.cjs` | Czcionki w repozytorium (OFL) i skrypt, który je pobiera |
+| `css/czcionki/pdf/`, `scripts/pobierz-czcionki-pdf.cjs` | Zwykłe pliki TTF wbudowanych czcionek – do osadzania w PDF (wczytywane dopiero przy eksporcie) |
 | `supabase/` | Migracje, konfiguracja, szablony e-maili |
 | `tests/`, `eslint.config.mjs` | Testy przeglądarkowe (`npm test`) i sprawdzenie kodu (`npm run lint`) |
 
