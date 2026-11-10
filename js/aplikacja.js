@@ -5,7 +5,7 @@ import {
   FORMATY, nowyProjekt, nowaStrona, nowaSekcja, nowyWzorzec, normalizuj, normalizujWydruk,
   kopiujStrone, kopiujWzorzec, kopiujProjekt,
   uporzadkujStrony, sekcjaStrony, stronySekcji, wzorceStrony, stronyZWzorcem, tloStrony,
-  marginesyStrony, marginesyWzorca,
+  marginesyStrony, marginesyWzorca, uid,
   WZORCE_Z_SEKCJI,
 } from './projekt.js';
 import { Edytor, opisObiektu } from './edytor.js';
@@ -41,6 +41,7 @@ const OPIS_OSTRZEZEN = {
   poza_spadem: 'Wychodzi poza spad – część zostanie ucięta.',
   w_marginesie: 'Wchodzi w margines – może zostać przycięty.',
   nieznane_pole: 'Pole w klamrach nie pasuje do kolumny tabeli tej strony ani do pola dokumentu.',
+  nie_miesci_sie: 'Tekst nie mieści się w ramce – dół zostanie ucięty.',
 };
 
 const stan = {
@@ -449,6 +450,8 @@ const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), e
   },
   style: () => stan.projekt?.style || [],
   pola: () => polaDoWstawienia(),
+  kolumnyObrazu: () => (stan.tryb === 'strona' ? tabelaStrony(biezacaStrona())?.kolumny : stan.projekt.tabele.flatMap((t) => t.kolumny)) || [],
+  wgrajObrazy: () => $('#pliki-zasoby').click(),
   poZmianieStyli: (zmiana) => poZmianieStyli(zmiana),
 });
 
@@ -1867,6 +1870,24 @@ $('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); pr
 $('#naglowek-ostrzezen').addEventListener('click', (e) => {
   const b = e.currentTarget;
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
+});
+
+// Obrazy do pól: trafiają do zasobów projektu pod nazwą pliku, bez wstawiania
+// na stronę. Plik o nazwie, która już jest, zastępuje poprzedni.
+$('#pliki-zasoby').addEventListener('change', async (e) => {
+  const pliki = [...e.target.files];
+  const { zasoby } = stan.projekt;
+  for (const plik of pliki) {
+    const dataUrl = await new Promise((ok, blad) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => blad(r.error); r.readAsDataURL(plik); });
+    const id = Object.keys(zasoby).find((k) => zasoby[k].nazwa === plik.name) || uid('z');
+    zasoby[id] = { nazwa: plik.name, dataUrl };
+  }
+  e.target.value = '';
+  if (!pliki.length) return;
+  stan.miniatury.clear();
+  generujMiniatury();
+  zaplanujZapis();
+  powiadom(`Wgrano ${pliki.length} ${pliki.length === 1 ? 'obraz' : 'obrazy/obrazów'}. W tabeli wpisz ich nazwy plików.`);
 });
 
 // Pole wyboru pliku czyścimy dopiero po wczytaniu – wyczyszczenie wcześniej

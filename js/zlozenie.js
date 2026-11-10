@@ -11,6 +11,7 @@
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach } from './pola.js';
+import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150">'
@@ -47,8 +48,10 @@ function obrazyZPol(obiekty, wartosc, zasoby) {
     if (nazwa === undefined) return o;
     const id = Object.keys(zasoby || {}).find((k) => bezRozszerzenia(zasoby[k].nazwa) === bezRozszerzenia(nazwa));
     const ramka = { w: (o.width || 0) * (o.scaleX ?? 1), h: (o.height || 0) * (o.scaleY ?? 1) };
+    // Rozmiar i przycięcie należały do obrazu-wzoru; podmieniony obraz ma własne.
+    const { width, height, cropX, cropY, ...reszta } = o;
     // Brak pliku o tej nazwie: znak „brak obrazu” w miejscu ramki.
-    return { ...o, zasob: id || 'brak-pliku', ramka_pola: ramka, cropX: 0, cropY: 0, width: undefined, height: undefined };
+    return { ...reszta, zasob: id || 'brak-pliku', ramka_pola: ramka };
   });
 }
 

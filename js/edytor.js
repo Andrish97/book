@@ -13,6 +13,7 @@ import { DOMYSLNA } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu } from './zlozenie.js';
 import { przyciagnij, pomiary } from './przyciaganie.js';
 import { znajdzPola } from './pola.js';
+import { nieMiesciSie } from './tekst-ramka.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -24,6 +25,8 @@ export const WLASNE_POLA = [
   'z', // kolejność na rozkładówce (żeby po zapisie stron osobno dało się ją odtworzyć)
   // Na etap 2 (pola z danymi): już teraz przenoszone przez zapis.
   'pole', 'autodopasowanie', 'min_rozmiar',
+  'ramka_h', 'wyrownanie_pion', 'rozmiar_bazowy', // ramka tekstu o stałej wysokości (tekst-ramka.js)
+  'ramka_pola',
 ];
 
 const MAKS_HISTORIA = 60;
@@ -927,6 +930,7 @@ export class Edytor extends EventTarget {
         typ = 'w_marginesie';
       }
       if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
+      if (nieMiesciSie(o)) lista.push({ id: o.id, typ: 'nie_miesci_sie', obiekt: opisObiektu(o) });
       const nieznane = this._nieznanePola(o);
       if (nieznane.length) lista.push({ id: o.id, typ: 'nieznane_pole', obiekt: opisObiektu(o), pola: [...new Set(nieznane.map((p) => p.nazwa))] });
     }
@@ -1473,6 +1477,18 @@ function utrwalSkaleTekstu(obj) {
   if (obj.type === 'activeSelection' || obj.type === 'group') return;
   if (obj.type !== 'textbox') return;
   if (obj.scaleX === 1 && obj.scaleY === 1) return;
+  // Ramka o stałej wysokości: górny i dolny uchwyt zmieniają wysokość ramki,
+  // nie rozmiar pisma.
+  if (obj.ramka_h > 0) {
+    obj.ramka_h *= obj.scaleY;
+    if (Math.abs(obj.scaleX - 1) < 1e-6) {
+      obj.set({ scaleY: 1 });
+      obj.initDimensions();
+      obj.setCoords();
+      return;
+    }
+    if (obj.rozmiar_bazowy) obj.rozmiar_bazowy *= obj.scaleY;
+  }
   // Rozmiary nadane fragmentom skalują się razem z całością.
   for (const wiersz of Object.values(obj.styles || {})) {
     for (const znak of Object.values(wiersz || {})) if (znak.fontSize) znak.fontSize *= obj.scaleY;

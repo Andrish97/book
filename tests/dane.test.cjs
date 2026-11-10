@@ -232,3 +232,70 @@ test('serie: strona powielona według tabeli – lista stron, pola, ostrzeżenie
   await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor' && window.seriodruk.stan.indeks === 1);
   assert.deepEqual(bledy, []);
 });
+
+test('ramka tekstu i obraz z kolumny: stała wysokość, wyrównanie w pionie, zmniejszanie tekstu, podmiana obrazu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Ramka');
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  const tekst = () => strona.evaluate(() => { const o = window.seriodruk.edytor.canvas.getObjects()[0]; return { h: Math.round(o.height * 10) / 10, pt: Math.round(o.fontSize * 72 / 25.4 * 10) / 10, gora: Math.round((o._getTopOffset() + o.height / 2) * 10) / 10, tresc: Math.round(o._wysokoscTresci * 10) / 10 }; });
+  const naturalna = (await tekst()).h;
+
+  // Stała wysokość 30 mm, tekst na środku w pionie.
+  await strona.check('#wlasciwosci label:has-text("Stała wysokość ramki") input');
+  await strona.fill('#wlasciwosci label:has-text("Wysokość ramki") input:not([type=checkbox])', '30');
+  await strona.press('#wlasciwosci label:has-text("Wysokość ramki") input:not([type=checkbox])', 'Tab');
+  await strona.click('#wlasciwosci button[title="Na środku ramki"]');
+  let s = await tekst();
+  assert.equal(s.h, 30);
+  assert.ok(Math.abs(s.gora - (30 - naturalna) / 2) < 0.2, `treść odsunięta od góry o połowę luzu: ${JSON.stringify(s)}`);
+
+  // Długi tekst nie mieści się w ramce: ostrzeżenie; z autodopasowaniem czcionka maleje, aż się zmieści.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.canvas.getObjects()[0].set('text', 'Bardzo długi opis dnia, który zajmuje wiele wierszy. '.repeat(12)); e.zatwierdz(); });
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.map((o) => o.typ)), ['nie_miesci_sie']);
+  await strona.check('#wlasciwosci label:has-text("Zmniejszaj tekst") input');
+  s = await tekst();
+  assert.ok(s.pt < 14 && s.pt >= 6, `czcionka zmniejszona: ${s.pt} pt`);
+  assert.ok(s.tresc <= 30.05, `treść mieści się w ramce: ${s.tresc} mm`);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.map((o) => o.typ)), []);
+  // Krótszy tekst wraca do zadanego rozmiaru; ustawienia przechodzą przez zapis.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.canvas.getObjects()[0].set('text', 'Krótko'); e.zatwierdz(); });
+  assert.equal((await tekst()).pt, 14);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  const zapis = await strona.evaluate(() => { const o = window.seriodruk.stan.projekt.strony[0].obiekty[0]; return [o.ramka_h, o.wyrownanie_pion, o.autodopasowanie, o.min_rozmiar, Math.round(o.rozmiar_bazowy * 72 / 25.4)]; });
+  assert.deepEqual(zapis, [30, 'srodek', true, 6, 14]);
+
+  // Obraz z kolumny: na każdym egzemplarzu plik o nazwie z tabeli, wpisany w ramkę wzoru.
+  const kolory = await strona.evaluate(async () => {
+    const plama = (kolor, w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.fillStyle = kolor; x.fillRect(0, 0, w, h); return c.toDataURL('image/png'); };
+    const { stan, edytor } = window.seriodruk;
+    const p = stan.projekt;
+    p.zasoby.z_wzor = { nazwa: 'wzor.png', dataUrl: plama('#888888', 40, 40) };
+    p.zasoby.z_a = { nazwa: 'Czerwony.PNG', dataUrl: plama('#ff0000', 80, 40) };
+    p.zasoby.z_b = { nazwa: 'zielony.png', dataUrl: plama('#00ff00', 20, 60) };
+    p.tabele.push({ id: 't1', nazwa: 'Zdjęcia', kolumny: ['plik'], wiersze: [['czerwony'], ['zielony.png'], ['nie-ma-takiego']] });
+    p.serie.push({ id: 'se1', nazwa: 'Zdjęcia', tabela: 't1', tryb: 'tabela', uklad: 'szeroki', ile: 1 });
+    p.strony[0].seria = 'se1';
+    // Ramka wzoru: 40 × 40 mm w punkcie (50, 100).
+    p.strony[0].obiekty = [{ type: 'image', version: '5.3.0', left: 50, top: 100, width: 40, height: 40, scaleX: 1, scaleY: 1, zasob: 'z_wzor', src: 'zasob:z_wzor', pole: { kolumna: 'plik' }, id: 'o_obraz' }];
+    const { rozwin } = await import('./js/serie.js');
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const ciag = rozwin(p);
+    const wynik = [];
+    for (const e of ciag.egzemplarze) {
+      const url = await renderujCel(p, e, { szerokoscPx: 148, spad: false, ciag });
+      const img = new Image();
+      await new Promise((ok) => { img.onload = ok; img.src = url; });
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+      const piksel = (px, py) => [...x.getImageData(px, py, 1, 1).data].slice(0, 3).join(',');
+      // środek ramki, punkt przy górnej krawędzi ramki, punkt przy lewej krawędzi ramki
+      wynik.push([piksel(70, 120), piksel(70, 103), piksel(53, 120)]);
+    }
+    return wynik;
+  });
+  // Szeroki czerwony (80×40) wypełnia szerokość ramki, zostawia pasy u góry i dołu; wąski zielony – pasy po bokach.
+  assert.deepEqual(kolory[0], ['255,0,0', '255,255,255', '255,0,0']);
+  assert.deepEqual(kolory[1], ['0,255,0', '0,255,0', '255,255,255']);
+  assert.notEqual(kolory[2][0], '255,255,255', 'brak pliku: w ramce znak zastępczy');
+  assert.deepEqual(bledy, []);
+});

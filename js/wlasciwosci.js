@@ -200,8 +200,12 @@ export class PanelWlasciwosci {
     this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
     s.append(czcionka);
-    s.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(czytaj('fontSize') * obj.scaleY), 1), (v) => {
-      ustaw({ fontSize: ptNaMm(Math.max(1, v)) / obj.scaleY });
+    // Przy autodopasowaniu pole pokazuje rozmiar zadany; tekst może być mniejszy, gdy się nie mieści.
+    const zadany = () => (obj.autodopasowanie && obj.rozmiar_bazowy && !this._fragment(obj) ? obj.rozmiar_bazowy : czytaj('fontSize'));
+    s.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(zadany() * obj.scaleY), 1), (v) => {
+      const rozmiar = ptNaMm(Math.max(1, v)) / obj.scaleY;
+      if (!this._fragment(obj) && obj.rozmiar_bazowy) obj.rozmiar_bazowy = rozmiar;
+      ustaw({ fontSize: rozmiar });
     }, { jednostka: 'pt', krok: 0.5, min: 1 }));
     s.append(this.kolor('Kolor', () => czytaj('fill'), (v) => ustaw({ fill: v })));
     s.append(this.liczba('Interlinia', () => zaokr(obj.lineHeight, 2), (v) => obj.set('lineHeight', Math.max(0.5, v)), { krok: 0.05, min: 0.5 }));
@@ -237,6 +241,38 @@ export class PanelWlasciwosci {
     ], true);
     litery.classList.add('szeroki');
     s.append(litery);
+
+    // Ramka: stała wysokość, wyrównanie w pionie, zmniejszanie tekstu, który się nie mieści.
+    const r = this.sekcja('Ramka tekstu');
+    const przelicz = () => { obj.initDimensions(); obj.setCoords(); };
+    const stala = this.przelacznik('Stała wysokość ramki', () => obj.ramka_h > 0, (v) => {
+      obj.ramka_h = v ? Math.max(obj._wysokoscTresci || obj.height, 3) : undefined;
+      if (!v) { obj.autodopasowanie = undefined; if (obj.rozmiar_bazowy) obj.fontSize = obj.rozmiar_bazowy; obj.rozmiar_bazowy = undefined; }
+      przelicz();
+      this.zbuduj();
+    });
+    r.append(stala);
+    if (obj.ramka_h > 0) {
+      r.append(this.liczba('Wysokość ramki', () => zaokr(obj.ramka_h * obj.scaleY, 1), (v) => { obj.ramka_h = Math.max(1, v) / obj.scaleY; przelicz(); }, { jednostka: 'mm', krok: 1, min: 1 }));
+      const pion = this.segmenty('Tekst w pionie', [
+        ['wyrownajGora', 'Do góry ramki', () => !obj.wyrownanie_pion || obj.wyrownanie_pion === 'gora', () => { obj.wyrownanie_pion = undefined; przelicz(); }],
+        ['wyrownajSrodekY', 'Na środku ramki', () => obj.wyrownanie_pion === 'srodek', () => { obj.wyrownanie_pion = 'srodek'; przelicz(); }],
+        ['wyrownajDol', 'Do dołu ramki', () => obj.wyrownanie_pion === 'dol', () => { obj.wyrownanie_pion = 'dol'; przelicz(); }],
+      ]);
+      r.append(pion);
+      r.append(this.przelacznik('Zmniejszaj tekst, gdy się nie mieści', () => Boolean(obj.autodopasowanie), (v) => {
+        obj.autodopasowanie = v || undefined;
+        if (v) { obj.rozmiar_bazowy = obj.fontSize; obj.min_rozmiar = obj.min_rozmiar || 6; } else { if (obj.rozmiar_bazowy) obj.fontSize = obj.rozmiar_bazowy; obj.rozmiar_bazowy = undefined; }
+        przelicz();
+        this.zbuduj();
+      }));
+      if (obj.autodopasowanie) {
+        r.append(this.liczba('Najmniejszy rozmiar', () => obj.min_rozmiar || 6, (v) => { obj.min_rozmiar = Math.max(1, v); przelicz(); }, { jednostka: 'pt', krok: 0.5, min: 1 }));
+      }
+      r.append(this.wskazowka('Tekst dłuższy niż ramka jest ucinany na jej dolnej krawędzi – aplikacja o tym ostrzega. Przy danych z tabeli ramka trzyma układ strony niezależnie od długości tekstu.'));
+    } else {
+      r.append(this.wskazowka('Bez stałej wysokości ramka rośnie razem z tekstem.'));
+    }
   }
 
   // Styl tekstu: wybór, zapis jako nowy, aktualizacja, usunięcie.
@@ -363,6 +399,19 @@ export class PanelWlasciwosci {
     };
     const pole = (etyk, klucz) => this.liczba(etyk, () => zaokr(kraw()[klucz] * 100, 1), (v) => ustaw({ [klucz]: v / 100 }), { jednostka: '%', krok: 1, min: 0 });
     s.append(pole('Z lewej', 'l'), pole('Z prawej', 'r'), pole('Z góry', 't'), pole('Z dołu', 'b'));
+
+    // Obraz z danych: kolumna tabeli podaje nazwę pliku wgranego do projektu.
+    const kolumny = this.opcje.kolumnyObrazu?.() || [];
+    const d = this.sekcja('Obraz z danych');
+    if (kolumny.length) {
+      const wybor = this.wybor('Kolumna z nazwą pliku', [['', 'Stały obraz'], ...kolumny.map((k) => [k, k])], () => obj.pole?.kolumna || '', (v) => { obj.pole = v ? { kolumna: v } : undefined; });
+      wybor.classList.add('szeroki');
+      d.append(wybor);
+    }
+    d.append(this.wskazowka(kolumny.length
+      ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj przyciskiem poniżej.'
+      : 'Gdy strona należy do serii z tabelą, ten obraz może się zmieniać na każdej powielonej stronie – według nazwy pliku z wybranej kolumny.'));
+    if (this.opcje.wgrajObrazy) d.append(this.akcje([['wyslij', 'Wgraj obrazy do projektu', () => this.opcje.wgrajObrazy()]]));
 
     const o = this.sekcja('Obrys i odbicie');
     o.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
