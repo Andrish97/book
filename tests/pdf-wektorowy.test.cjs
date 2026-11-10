@@ -224,11 +224,13 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
   assert.match(await strona.textContent('#pdf-opis-trybu'), /prawdziwym tekstem z osadzonymi czcionkami/);
   await strona.selectOption('#form-pdf select[name=tryb]', 'obraz');
   assert.ok(await strona.isHidden('#pdf-opcje-wektora'));
+  assert.ok(await strona.isChecked('#form-pdf input[name=czcionki]'), 'plik bez czcionek w środku: pliki czcionek dołączają się same');
   assert.match(await strona.textContent('#pdf-opis-trybu'), /jednym obrazem/);
   await strona.selectOption('#form-pdf select[name=tryb]', 'wektor');
   await strona.check('#form-pdf input[name=krzywe]');
   assert.match(await strona.textContent('#pdf-opis-trybu'), /zamieniony na kształty liter/);
   await strona.uncheck('#form-pdf input[name=krzywe]');
+  assert.ok(!(await strona.isChecked('#form-pdf input[name=czcionki]')), 'PDF z osadzonymi czcionkami nie potrzebuje plików obok');
   await strona.selectOption('#form-pdf select[name=dpi]', '150');
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
   assert.equal(plik.suggestedFilename(), 'Wektor 2.pdf');

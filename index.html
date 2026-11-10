@@ -447,13 +447,11 @@
     </nav>
   </div>
 
-  <!-- Telefon w pionie albo zbyt niskie okno: edytor prosi o obrót (css: .blokada-ekranu). -->
+  <!-- Telefon trzymany poziomo albo zbyt niskie okno: edytor prosi o obrót albo więcej miejsca (css: .blokada-ekranu). -->
   <div class="blokada-ekranu" id="blokada-ekranu" role="alert">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M3 9a9 9 0 0 1 3-4"/><path d="m3 5 0 4 4 0"/><path d="M21 15a9 9 0 0 1-3 4"/><path d="m21 19 0-4-4 0"/></svg>
-    <h2 class="obroc">Obróć telefon poziomo</h2>
-    <p class="obroc">Edytor potrzebuje szerokiego ekranu: strona i jej ustawienia mieszczą się wtedy obok siebie.</p>
-    <h2 class="za-niskie">Okno jest za niskie</h2>
-    <p class="za-niskie">Powiększ okno przeglądarki albo schowaj klawiaturę ekranową, żeby wrócić do edycji.</p>
+    <h2>Za mało miejsca na wysokość</h2>
+    <p>Na telefonie trzymaj go pionowo – edytor jest ułożony do pionu. Na komputerze powiększ okno przeglądarki.</p>
     <button class="przycisk" data-akcja="do-projektow">Wróć do projektów</button>
   </div>
 
@@ -743,7 +741,7 @@
         <h2>Czcionki</h2>
         <button type="button" class="przycisk-ikona" id="czcionki-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.seriodruk</code>. Raz wgrana czcionka zostaje też w „Moich czcionkach” i jest pod ręką w każdym następnym projekcie. Wgrywaj czcionki, których licencja pozwala na druk.</p>
+      <p class="ciche">Na co dzień korzystasz z oficjalnego zestawu czcionek aplikacji (na dole okna). Jeśli potrzebujesz innej, własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.seriodruk</code>. Raz wgrana czcionka zostaje też w „Moich czcionkach” i jest pod ręką w każdym następnym projekcie. Wgrywaj czcionki, których licencja pozwala na druk.</p>
       <fieldset class="grupa-pol">
         <legend>Własne czcionki projektu</legend>
         <ul class="lista-czcionek" id="czcionki-wlasne"></ul>
@@ -756,8 +754,10 @@
         <p class="podpowiedz" id="czcionki-moje-pusto">Tu pojawią się czcionki wgrane w innych projektach – dodasz je do tego projektu jednym kliknięciem, bez szukania pliku. Są też na liście czcionek w panelu tekstu.</p>
       </fieldset>
       <fieldset class="grupa-pol">
-        <legend>Wbudowane w aplikację</legend>
-        <p class="podpowiedz" id="czcionki-wbudowane"></p>
+        <legend>Zestaw czcionek Seriodruku</legend>
+        <p class="podpowiedz">Oficjalny zestaw aplikacji – ten sam dla wszystkich projektów i wszystkich użytkowników. Te czcionki są na liście w każdym projekcie, trafiają do pliku PDF, a ich pliki można pobrać (np. dla drukarni albo grafika). Wszystkie na licencji SIL Open Font License – wolno ich używać w druku komercyjnym.</p>
+        <ul class="lista-czcionek zestaw" id="czcionki-zestaw"></ul>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="czcionki-pobierz-zestaw" data-ikona="pobierz">Pobierz cały zestaw (ZIP)</button></div>
       </fieldset>
     </div>
   </dialog>

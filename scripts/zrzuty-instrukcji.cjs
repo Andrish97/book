@@ -553,7 +553,7 @@ async function przykladoweProjekty(strona) {
   await kp.close();
 
   // ---------- Telefon ----------
-  const tel = await przegladarka.newContext({ ...devices['Pixel 7 landscape'], serviceWorkers: 'block' });
+  const tel = await przegladarka.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
   await bezBazy(tel);
   const t = await tel.newPage();
   await t.goto(ADRES);

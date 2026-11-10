@@ -153,8 +153,34 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   return new Blob([await pdf.save()], { type: 'application/pdf' });
 }
 
-// Pliki czcionek użytych w tekstach projektu: [{ nazwa, blob }]. Własne czcionki idą jako
-// wgrane pliki; wbudowane – jako pliki WOFF2 z aplikacji, razem z ich licencją.
+// Pliki jednej rodziny z oficjalnego zestawu czcionek aplikacji: zwykłe pliki TTF, po jednym
+// na odmianę – takie, jakie drukarnia albo grafik może zainstalować u siebie.
+const ODMIANY_ZESTAWU = [[400, false, 'Regular'], [700, false, 'Bold'], [400, true, 'Italic'], [700, true, 'BoldItalic']];
+async function plikiRodzinyZestawu(rodzina) {
+  const pliki = [];
+  for (const [waga, kursywa, nazwa] of ODMIANY_ZESTAWU) {
+    const odp = await fetch(`css/czcionki/pdf/${rodzina.toLowerCase().replace(/\s+/g, '-')}-${waga}-${kursywa ? 'kursywa' : 'prosta'}.ttf`);
+    if (odp.ok) pliki.push({ nazwa: `${rodzina.replace(/\s+/g, '')}-${nazwa}.ttf`, blob: await odp.blob() });
+  }
+  return pliki;
+}
+
+async function licencjaZestawu() {
+  const licencja = await fetch('css/czcionki/LICENCJA.txt');
+  return licencja.ok ? [{ nazwa: 'LICENCJA czcionek Seriodruku.txt', blob: await licencja.blob() }] : [];
+}
+
+// Oficjalny zestaw czcionek aplikacji (albo wybrane rodziny) jako archiwum ZIP: { nazwa, blob }.
+export async function zestawCzcionek(rodziny = CZCIONKI.map((c) => c.nazwa)) {
+  const JSZip = await biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
+  const zip = new JSZip();
+  for (const r of rodziny) for (const p of await plikiRodzinyZestawu(r)) zip.file(`${r}/${p.nazwa}`, p.blob, { compression: 'STORE' });
+  for (const p of await licencjaZestawu()) zip.file(p.nazwa, p.blob);
+  return { nazwa: rodziny.length === 1 ? `Czcionka ${rodziny[0]}.zip` : 'Czcionki Seriodruku.zip', blob: await zip.generateAsync({ type: 'blob' }) };
+}
+
+// Pliki czcionek użytych w tekstach projektu: [{ nazwa, blob }]. Czcionki z oficjalnego zestawu
+// idą jako pliki TTF z licencją; własne czcionki projektu – jako wgrane pliki.
 export async function plikiCzcionek(projekt) {
   const uzyte = uzyteCzcionki(projekt);
   const pliki = [];
@@ -164,17 +190,9 @@ export async function plikiCzcionek(projekt) {
     pliki.push({ nazwa: zasob.nazwa, blob: await (await fetch(zasob.dataUrl)).blob() });
   }
   const wlasne = new Set((projekt.czcionki || []).map((c) => c.rodzina));
-  const wbudowane = CZCIONKI.map((c) => c.nazwa).filter((n) => uzyte.has(n) && !wlasne.has(n));
-  if (wbudowane.length) {
-    const css = await (await fetch('css/czcionki.css')).text();
-    for (const [, rodzina, plik] of css.matchAll(/font-family: "([^"]+)";[^}]*?url\("czcionki\/([^"]+)"\)/g)) {
-      if (!wbudowane.includes(rodzina)) continue;
-      const odp = await fetch(`css/czcionki/${plik}`);
-      if (odp.ok) pliki.push({ nazwa: plik, blob: await odp.blob() });
-    }
-    const licencja = await fetch('css/czcionki/LICENCJA.txt');
-    if (licencja.ok) pliki.push({ nazwa: 'LICENCJA czcionek wbudowanych.txt', blob: await licencja.blob() });
-  }
+  const zZestawu = CZCIONKI.map((c) => c.nazwa).filter((n) => uzyte.has(n) && !wlasne.has(n));
+  for (const r of zZestawu) pliki.push(...await plikiRodzinyZestawu(r));
+  if (zZestawu.length) pliki.push(...await licencjaZestawu());
   return pliki;
 }
 

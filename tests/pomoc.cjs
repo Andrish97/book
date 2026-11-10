@@ -246,8 +246,8 @@ async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = 
   // obrazy (PDF, podgląd) nie zależą od ustawień czcionek systemu, na którym biegną.
   const przegladarka = await chromium.launch({ args: ['--font-render-hinting=none'] });
   const kontekst = await przegladarka.newContext({
-    // telefon: true – telefon trzymany poziomo (tak pracuje edytor); 'pion' – pionowo.
-    ...(telefon ? devices[telefon === 'pion' ? 'Pixel 7' : 'Pixel 7 landscape'] : { viewport: widok }),
+    // telefon: true – telefon trzymany pionowo (tak pracuje edytor); 'poziom' – poziomo.
+    ...(telefon ? devices[telefon === 'poziom' ? 'Pixel 7 landscape' : 'Pixel 7'] : { viewport: widok }),
     serviceWorkers: 'block',
     acceptDownloads: true,
   });

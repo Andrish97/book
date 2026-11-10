@@ -16,7 +16,14 @@ export class OknoPdf {
     this.trwa = false;
     this.przerwane = false;
     this.f.elements.dpi.replaceChildren(...JAKOSCI_PDF.map((j) => new Option(j.opis, j.dpi, j.dpi === 300, j.dpi === 300)));
-    this.f.addEventListener('input', () => this.odswiez());
+    this.f.addEventListener('input', (e) => {
+      // Plik bez czcionek w środku (obrazy stron, tekst na krzywe): pliki czcionek dołączają się do pobrania,
+      // chyba że to pole zostało już przestawione ręcznie.
+      const el = this.f.elements;
+      if (e.target === el.czcionki) this.czcionkiRecznie = true;
+      else if (!this.czcionkiRecznie && (e.target === el.tryb || e.target === el.krzywe)) el.czcionki.checked = el.tryb.value === 'obraz' || el.krzywe.checked;
+      this.odswiez();
+    });
     this.f.addEventListener('submit', (e) => { e.preventDefault(); this.eksportuj(); });
     $('#pdf-anuluj').addEventListener('click', () => this.zamknij());
     $('#pdf-zamknij').addEventListener('click', () => this.zamknij());

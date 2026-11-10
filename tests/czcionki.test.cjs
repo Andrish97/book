@@ -76,14 +76,23 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
   assert.equal(plik.suggestedFilename(), 'Wlasne czcionki - PDF.zip');
   const pliki = await strona.evaluate(async () => Object.keys((await window.JSZip.loadAsync(window.seriodruk.oknoPdf.ostatni.blob)).files).filter((n) => !n.endsWith('/')).sort());
-  assert.deepEqual(pliki, ['Wlasne czcionki.pdf', 'czcionki/LICENCJA czcionek wbudowanych.txt', 'czcionki/Odreczna-Bold.woff2', 'czcionki/lora-kursywa-400-700-latin-ext.woff2', 'czcionki/lora-kursywa-400-700-latin.woff2', 'czcionki/lora-prosta-400-700-latin-ext.woff2', 'czcionki/lora-prosta-400-700-latin.woff2']);
+  assert.deepEqual(pliki, ['Wlasne czcionki.pdf', 'czcionki/LICENCJA czcionek Seriodruku.txt', 'czcionki/Lora-Bold.ttf', 'czcionki/Lora-BoldItalic.ttf', 'czcionki/Lora-Italic.ttf', 'czcionki/Lora-Regular.ttf', 'czcionki/Odreczna-Bold.woff2']);
 
   // Okno „Czcionki”: lista, poprawka nazwy rodziny (teksty idą za nią), usunięcie.
   await strona.click('#przycisk-wiecej');
   await strona.click('[data-akcja="czcionki"]');
   await strona.waitForSelector('#dlg-czcionki[open]');
   assert.equal(await strona.textContent('#czcionki-wlasne .opis'), 'Bold · Odreczna-Bold.woff2 · używana');
-  assert.match(await strona.textContent('#czcionki-wbudowane'), /^Inter, Open Sans, Montserrat, Lora, Merriweather, Playfair Display, Source Serif 4, Caveat\./);
+  // Oficjalny zestaw czcionek aplikacji: lista rodzin z próbkami, pliki do pobrania (jedna rodzina albo cały zestaw).
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('#czcionki-zestaw li')].map((li) => li.dataset.rodzina)), ['Inter', 'Open Sans', 'Montserrat', 'Lora', 'Merriweather', 'Playfair Display', 'Source Serif 4', 'Caveat']);
+  assert.match(await strona.textContent('#czcionki-zestaw li[data-rodzina="Lora"] .opis'), /szeryfowa · zwykła i pogrubiona, prosta i kursywa · używana w tym projekcie/);
+  const [zestaw] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-pobierz-zestaw')]);
+  assert.equal(zestaw.suggestedFilename(), 'Czcionki Seriodruku.zip');
+  const wZestawie = await strona.evaluate(async () => Object.keys((await window.JSZip.loadAsync(window.seriodruk.oknoCzcionek.ostatniZestaw.blob)).files).filter((n) => !n.endsWith('/')));
+  assert.equal(wZestawie.filter((n) => n.endsWith('.ttf')).length, 30, 'osiem rodzin: siedem po cztery odmiany i jedna z dwiema');
+  assert.ok(wZestawie.includes('Open Sans/OpenSans-BoldItalic.ttf') && wZestawie.includes('Caveat/Caveat-Bold.ttf') && wZestawie.includes('LICENCJA czcionek Seriodruku.txt'));
+  const [jedna] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-zestaw li[data-rodzina="Inter"] button')]);
+  assert.equal(jedna.suggestedFilename(), 'Czcionka Inter.zip');
   await strona.fill('#czcionki-wlasne input[data-rodzina]', 'Pismo odręczne');
   await strona.press('#czcionki-wlasne input[data-rodzina]', 'Tab');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty[0].fontFamily === 'Pismo odręczne');

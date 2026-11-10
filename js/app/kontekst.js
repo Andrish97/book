@@ -99,7 +99,7 @@ export function jednaStrona() {
     const v = localStorage.getItem(KLUCZ_JEDNA);
     if (v !== null) return v === '1';
   } catch { /* tryb prywatny */ }
-  return window.matchMedia('(max-width: 860px), (max-height: 520px)').matches;
+  return window.matchMedia('(max-width: 860px)').matches;
 }
 
 // ---------- Cofanie: jedna historia całego projektu (historia.js) ----------

@@ -1,6 +1,6 @@
 // Okno „Czcionki”: własne pliki czcionek projektu i lista czcionek wbudowanych.
 
-import { $, powiadom, potwierdz, odmiana } from './ui.js';
+import { $, powiadom, potwierdz, odmiana, pobierz } from './ui.js';
 import { uid } from './projekt.js';
 import { wstawIkony } from './ikony.js';
 import {
@@ -21,6 +21,7 @@ export class OknoCzcionek {
     this.plik.accept = ROZSZERZENIA_CZCIONEK.map((r) => `.${r}`).join(',');
     $('#czcionki-zamknij').addEventListener('click', () => this.okno.close());
     $('#czcionki-wgraj').addEventListener('click', () => this.wybierzPliki());
+    $('#czcionki-pobierz-zestaw').addEventListener('click', () => this.pobierzZestaw());
     this.plik.addEventListener('change', async (e) => { const pliki = [...e.target.files]; e.target.value = ''; await this.dodaj(pliki); });
     $('#czcionki-wlasne').addEventListener('click', (e) => { const b = e.target.closest('[data-usun]'); if (b) this.usun(b.dataset.usun); });
     $('#czcionki-wlasne').addEventListener('change', (e) => { const i = e.target.closest('input[data-rodzina]'); if (i) this.zmienRodzine(i.dataset.rodzina, i.value); });
@@ -57,8 +58,40 @@ export class OknoCzcionek {
     }
     $('#czcionki-pusto').hidden = wlasne.length > 0;
     this.rysujMoje();
-    $('#czcionki-wbudowane').textContent = `${CZCIONKI.map((c) => c.nazwa).join(', ')}. Wszystkie na licencji SIL Open Font License – wolno ich używać w druku komercyjnym.`;
+    this.rysujZestaw(uzyte);
     wstawIkony(this.okno);
+  }
+
+  // Oficjalny zestaw czcionek aplikacji: próbka każdej rodziny i pobieranie jej plików.
+  rysujZestaw(uzyte) {
+    const lista = $('#czcionki-zestaw');
+    if (lista.children.length) { for (const li of lista.children) li.querySelector('.opis').textContent = this._opisZestawu(li.dataset.rodzina, uzyte); return; }
+    for (const c of CZCIONKI) {
+      const li = document.createElement('li');
+      li.dataset.rodzina = c.nazwa;
+      li.innerHTML = '<span class="probka"></span><span class="opis"></span><button type="button" class="przycisk maly">Pobierz pliki</button>';
+      const probka = li.querySelector('.probka');
+      probka.textContent = `${c.nazwa} – Zażółć gęślą jaźń`;
+      probka.style.fontFamily = `"${c.nazwa}"`;
+      li.querySelector('.opis').textContent = this._opisZestawu(c.nazwa, uzyte);
+      li.querySelector('button').addEventListener('click', () => this.pobierzZestaw([c.nazwa]));
+      lista.append(li);
+    }
+  }
+
+  _opisZestawu(rodzina, uzyte) {
+    const c = CZCIONKI.find((x) => x.nazwa === rodzina);
+    return `${c.rodzaj} · zwykła i pogrubiona${rodzina === 'Caveat' ? '' : ', prosta i kursywa'}${uzyte.has(rodzina) ? ' · używana w tym projekcie' : ''}`;
+  }
+
+  // Pliki TTF oficjalnego zestawu (całego albo jednej rodziny) jako archiwum ZIP.
+  async pobierzZestaw(rodziny) {
+    try {
+      const { zestawCzcionek } = await import('./eksport.js');
+      const wynik = await zestawCzcionek(rodziny);
+      this.ostatniZestaw = wynik; // do testów
+      pobierz(wynik.nazwa, URL.createObjectURL(wynik.blob));
+    } catch (e) { powiadom(`Nie udało się przygotować plików czcionek: ${e.message}`, true); }
   }
 
   // „Moje czcionki”: rodziny wgrane w innych projektach, których w tym jeszcze nie ma.
