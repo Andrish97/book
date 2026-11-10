@@ -44,7 +44,6 @@ export function punktyWielokata(boki, gwiazda = false, r = 20) {
   return punkty;
 }
 
-const MAKS_HISTORIA = 60;
 
 // Fabric 5 ustawia nieistniejącą wartość textBaseline ('alphabetical'), co przy
 // każdym rysowaniu tekstu wypisuje ostrzeżenie w konsoli. Ta sama funkcja z poprawną wartością.
@@ -92,9 +91,6 @@ export class Edytor extends EventTarget {
     this._prowadnicaWRuchu = null;
     // Czy pole {nazwa} jest znane na stronie arkusza o danym indeksie (ustawia aplikacja).
     this.znanePole = () => true;
-    this._historia = [];
-    this._pozycjaHistorii = -1;
-    this._timerHistorii = null;
 
     this.canvas = new fabric.Canvas(elementPlotna, {
       preserveObjectStacking: true,
@@ -308,9 +304,6 @@ export class Edytor extends EventTarget {
     this._zastosujBlokady();
     this._dopasujRozmiar();
     this._wczytywanie = false;
-    this._historia = [];
-    this._pozycjaHistorii = -1;
-    this._zapiszHistorie();
     this.przeliczOstrzezenia();
     this._emitujZaznaczenie();
   }
@@ -420,57 +413,6 @@ export class Edytor extends EventTarget {
     if (this._wczytywanie || this._kadr) return;
     this.przeliczOstrzezenia();
     this.dispatchEvent(new Event('zmiana'));
-    clearTimeout(this._timerHistorii);
-    this._timerHistorii = setTimeout(() => this._zapiszHistorie(), 250);
-  }
-
-  _stan() {
-    return JSON.stringify({
-      objects: this.canvas.toJSON(WLASNE_POLA).objects,
-      tla: this.tla,
-    });
-  }
-
-  _zapiszHistorie() {
-    const stan = this._stan();
-    if (this._historia[this._pozycjaHistorii] === stan) return;
-    this._historia = this._historia.slice(0, this._pozycjaHistorii + 1);
-    this._historia.push(stan);
-    if (this._historia.length > MAKS_HISTORIA) this._historia.shift();
-    this._pozycjaHistorii = this._historia.length - 1;
-    this.dispatchEvent(new Event('historia'));
-  }
-
-  get moznaCofnac() { return this._pozycjaHistorii > 0; }
-  get moznaPonowic() { return this._pozycjaHistorii < this._historia.length - 1; }
-
-  async cofnij() {
-    if (!this.moznaCofnac) return;
-    clearTimeout(this._timerHistorii);
-    this._pozycjaHistorii -= 1;
-    await this._przywroc(this._historia[this._pozycjaHistorii]);
-  }
-
-  async ponow() {
-    if (!this.moznaPonowic) return;
-    this._pozycjaHistorii += 1;
-    await this._przywroc(this._historia[this._pozycjaHistorii]);
-  }
-
-  async _przywroc(stan) {
-    this._wczytywanie = true;
-    this.canvas.discardActiveObject();
-    const { objects, tla } = JSON.parse(stan);
-    this.tla = tla;
-    await new Promise((ok) => this.canvas.loadFromJSON({ objects }, ok));
-    this._dodajWzorce();
-    this._zastosujBlokady();
-    this._dopasujRozmiar();
-    this._wczytywanie = false;
-    this.przeliczOstrzezenia();
-    this._emitujZaznaczenie();
-    this.dispatchEvent(new Event('zmiana'));
-    this.dispatchEvent(new Event('historia'));
   }
 
   // ---------- Dodawanie obiektów ----------

@@ -16,6 +16,7 @@ import { MenuWidoku } from './widok.js';
 import { obsluzKlawisz } from './skroty.js';
 import { Linijki } from './linijki.js';
 import { Dane } from './dane.js';
+import { Historia } from './historia.js';
 import { PanelWarstw } from './warstwy.js';
 import { PanelWlasciwosci } from './wlasciwosci.js';
 import { zaladujCzcionki } from './czcionki.js';
@@ -547,44 +548,53 @@ function jednaStrona() {
   return window.matchMedia('(max-width: 860px)').matches;
 }
 
-// ---------- Cofnięcie operacji na stronach, sekcjach i wzorcach ----------
-// Przed taką operacją zapamiętujemy cały projekt (bez obrazów – te się nie
-// zmieniają). Cofnąć można do pierwszej następnej zmiany na stronie: wtedy
-// zapamiętany stan przestaje pasować i znika.
+// ---------- Cofanie: jedna historia całego projektu (historia.js) ----------
+// Krok historii powstaje chwilę po każdej zmianie – na stronie, w układzie
+// stron, w sekcjach, wzorcach, stylach, seriach i tabelach.
 
-function zapamietajDoCofniecia(opis) {
-  const { projekt } = stan;
-  stan.doCofniecia = {
-    opis,
-    dane: JSON.stringify({ ...projekt, zasoby: undefined }),
-    indeks: stan.indeks, tryb: stan.tryb, idWzorca: stan.idWzorca,
-  };
+const historia = new Historia();
+
+// Przepisuje płótno do projektu i zapamiętuje stan jako krok historii.
+function zapamietajStan() {
+  clearTimeout(stan.timerHistorii);
+  if (!stan.projekt || !stan.doHistorii) return;
+  stan.doHistorii = false;
+  zapiszBiezacyCel();
+  historia.zapisz(stan.projekt);
   odswiezCofanie();
 }
 
-async function cofnijOperacje() {
-  const z = stan.doCofniecia;
-  if (!z || !stan.projekt) return;
-  stan.doCofniecia = null;
-  naPlotnie = null; // płótno pokazuje stan po operacji – nie wolno go przepisać do projektu
-  const { projekt } = stan;
-  const { zasoby } = projekt;
-  for (const k of Object.keys(projekt)) delete projekt[k];
-  Object.assign(projekt, JSON.parse(z.dane), { zasoby });
-  stan.indeks = Math.min(z.indeks, projekt.strony.length - 1);
-  stan.tryb = z.tryb;
-  stan.idWzorca = z.idWzorca;
+// kierunek: −1 cofnij, 1 ponów. Po cofnięciu edytor otwiera stronę albo
+// wzorzec, którego dotyczyła zmiana.
+async function cofnijKrok(kierunek) {
+  const p = stan.projekt;
+  if (!p || $('dialog[open]')) return;
+  zapamietajStan();
+  const zaznaczony = edytor.aktywny?.id;
+  const zmiana = kierunek < 0 ? historia.cofnij(p) : historia.ponow(p);
+  if (!zmiana) return;
+  naPlotnie = null; // płótno pokazuje stan sprzed cofnięcia – nie wolno go przepisać do projektu
+  const strona = p.strony.findIndex((s) => zmiana.strony.includes(s.id));
+  const wzorzec = p.wzorce.find((w) => zmiana.wzorce.includes(w.id));
+  const naPlotnieWzorzec = stan.tryb === 'wzorzec' && p.wzorce.some((w) => w.id === stan.idWzorca);
+  if (wzorzec && (naPlotnieWzorzec || strona < 0)) { stan.tryb = 'wzorzec'; stan.idWzorca = wzorzec.id; }
+  else if (strona >= 0) { stan.tryb = 'strona'; stan.indeks = strona; }
+  else if (!naPlotnieWzorzec) stan.tryb = 'strona';
+  stan.indeks = Math.min(Math.max(0, stan.indeks), p.strony.length - 1);
   stan.miniatury.clear();
+  $('#nazwa-projektu').value = p.nazwa;
+  ustawZakladke(stan.tryb === 'wzorzec' ? 'wzorce' : (stan.zakladka === 'warstwy' ? 'warstwy' : 'strony'));
   await zaladujCel();
+  if (zaznaczony) edytor.zaznacz(zaznaczony);
+  panel.zbuduj();
   odswiezCofanie();
   generujMiniatury();
-  zaplanujZapis();
-  powiadom(`Cofnięto: ${z.opis}.`);
+  zaplanujZapis({ historia: false });
 }
 
 function odswiezCofanie() {
-  $('[data-akcja="cofnij"]').disabled = !(edytor.moznaCofnac || stan.doCofniecia);
-  $('[data-akcja="ponow"]').disabled = !edytor.moznaPonowic;
+  $('[data-akcja="cofnij"]').disabled = !historia.moznaCofnac && !stan.doHistorii;
+  $('[data-akcja="ponow"]').disabled = !historia.moznaPonowic;
 }
 
 // Wczytuje bieżący cel do edytora; dopasowuje widok, gdy zmienił się rozmiar.
@@ -714,7 +724,12 @@ async function otworzProjekt(p, cel = {}) {
   $('#nazwa-projektu').value = stan.projekt.nazwa;
   document.title = `${stan.projekt.nazwa} – ${NAZWA}`;
   edytor.wydruk = null;
+  clearTimeout(stan.timerHistorii);
+  stan.doHistorii = false;
+  historia.wyczysc();
+  historia.zapisz(stan.projekt); // stan wyjściowy – do niego wraca pierwsze cofnięcie
   await zaladujCel({ dopasuj: true });
+  odswiezCofanie();
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
   generujMiniatury();
 }
@@ -935,10 +950,18 @@ function zapiszBiezacyCel() {
   stan.projekt.miniatura = stan.miniatury.get(pierwsza.id) || stan.projekt.miniatura;
 }
 
-function zaplanujZapis() {
+// Każda zmiana projektu przechodzi tędy: zapis za chwilę i (domyślnie) krok historii.
+function zaplanujZapis({ historia: doHistorii = true } = {}) {
   stanZapisu('zapis', 'Zapisywanie…');
   clearTimeout(stan.timerZapisu);
   stan.timerZapisu = setTimeout(zapiszTeraz, 700);
+  if (doHistorii) {
+    stan.doHistorii = true;
+    clearTimeout(stan.timerHistorii);
+    // Przy otwartym oknie (dane, serie, sekcje) krok powstaje dopiero po jego zamknięciu.
+    stan.timerHistorii = setTimeout(() => { if ($('dialog[open]')) zaplanujZapis(); else zapamietajStan(); }, 300);
+    odswiezCofanie();
+  }
 }
 
 async function zapiszTeraz() {
@@ -1396,7 +1419,6 @@ async function usunStrone(i) {
   const s = stan.projekt.strony[i];
   if (!await potwierdz(`Usunąć stronę „${s.nazwa}”?`, 'Wszystkie elementy z tej strony zostaną usunięte.', 'Usuń stronę', true)) return;
   zapiszBiezacyCel();
-  zapamietajDoCofniecia(`usunięcie strony „${s.nazwa}”`);
   const biezaca = biezacaStrona();
   stan.projekt.strony.splice(i, 1);
   stan.miniatury.delete(s.id);
@@ -1404,7 +1426,7 @@ async function usunStrone(i) {
   stan.indeks = nowyIndeks >= 0 ? nowyIndeks : Math.min(i, stan.projekt.strony.length - 1);
   if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();
   zaplanujZapis();
-  powiadom(`Usunięto stronę „${s.nazwa}”.`, false, { etykieta: 'Cofnij', fn: cofnijOperacje });
+  powiadom(`Usunięto stronę „${s.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
 }
 
 // Przesuwanie w obrębie sekcji (do innej sekcji – przez właściwości strony).
@@ -1413,7 +1435,6 @@ async function przesunStrone(i, kierunek) {
   const j = i + kierunek;
   if (j < 0 || j >= strony.length || strony[j].sekcja !== strony[i].sekcja) return;
   zapiszBiezacyCel();
-  zapamietajDoCofniecia('przesunięcie strony');
   const biezaca = biezacaStrona();
   [strony[i], strony[j]] = [strony[j], strony[i]];
   stan.indeks = strony.indexOf(biezaca);
@@ -1430,7 +1451,6 @@ async function przesunStrone(i, kierunek) {
 async function przeniesStroneDoSekcji(strona, idSekcji) {
   if (strona.sekcja === idSekcji) return;
   zapiszBiezacyCel();
-  zapamietajDoCofniecia('przeniesienie strony do innej sekcji');
   strona.sekcja = idSekcji;
   // Na koniec nowej sekcji.
   const strony = stan.projekt.strony;
@@ -1712,7 +1732,6 @@ async function usunSekcje(id) {
   );
   if (!ok) return;
   zapiszBiezacyCel();
-  zapamietajDoCofniecia(`usunięcie sekcji „${sekcja.nazwa}”`);
   const biezaca = biezacaStrona();
   projekt.sekcje = projekt.sekcje.filter((s) => s.id !== id);
   projekt.strony = projekt.strony.filter((s) => s.sekcja !== id);
@@ -1721,7 +1740,7 @@ async function usunSekcje(id) {
   stan.miniatury.clear();
   await zaladujCel();
   zaplanujZapis();
-  powiadom(`Usunięto sekcję „${sekcja.nazwa}”.`, false, { etykieta: 'Cofnij', fn: cofnijOperacje });
+  powiadom(`Usunięto sekcję „${sekcja.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
 }
 
 // ---------- Wzorce ----------
@@ -1787,7 +1806,6 @@ async function usunWzorzec(id) {
   );
   if (!ok) return;
   zapiszBiezacyCel();
-  zapamietajDoCofniecia(`usunięcie wzorca „${w.nazwa}”`);
   for (const s of stronyZWzorcem(projekt, id)) stan.miniatury.delete(s.id);
   projekt.wzorce = projekt.wzorce.filter((x) => x.id !== id);
   for (const s of projekt.sekcje) s.wzorce = s.wzorce.filter((x) => x !== id);
@@ -1801,7 +1819,7 @@ async function usunWzorzec(id) {
     await zaladujCel();
   }
   zaplanujZapis();
-  powiadom(`Usunięto wzorzec „${w.nazwa}”.`, false, { etykieta: 'Cofnij', fn: cofnijOperacje });
+  powiadom(`Usunięto wzorzec „${w.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
 }
 
 // Kolejność wzorców: pierwszy na liście leży najniżej na stronie.
@@ -1826,7 +1844,6 @@ async function przeniesStrone(idStrony, idCelu, po) {
   const cel = projekt.strony.find((s) => s.id === idCelu);
   if (!strona || !cel || strona === cel) return;
   zapiszBiezacyCel();
-  zapamietajDoCofniecia('przesunięcie strony');
   const biezaca = biezacaStrona();
   projekt.strony.splice(projekt.strony.indexOf(strona), 1);
   strona.sekcja = cel.sekcja;
@@ -1984,8 +2001,8 @@ const akcje = {
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => edytor.dodajWielokat(),
   'dodaj-obraz': () => $('#plik-obraz').click(),
-  cofnij: () => (edytor.moznaCofnac || !stan.doCofniecia ? edytor.cofnij() : cofnijOperacje()),
-  ponow: () => edytor.ponow(),
+  cofnij: () => cofnijKrok(-1),
+  ponow: () => cofnijKrok(1),
   duplikuj: () => edytor.duplikuj(),
   kopiuj: async () => { if (await edytor.kopiuj()) powiadom('Skopiowano. Wklej na tej albo innej stronie: Ctrl+V lub „Wklej” we właściwościach strony.'); },
   usun: () => edytor.usun(),
@@ -2089,9 +2106,6 @@ edytor.addEventListener('zoom', (e) => {
 });
 edytor.addEventListener('strona', (e) => wybierzStroneArkusza(e.detail));
 edytor.addEventListener('prowadnice', zaplanujZapis);
-edytor.addEventListener('historia', odswiezCofanie);
-// Zmiana na stronie unieważnia zapamiętany stan sprzed operacji na stronach.
-edytor.addEventListener('zmiana', () => { if (stan.doCofniecia) { stan.doCofniecia = null; odswiezCofanie(); } });
 
 // Przeciąganie stron na liście (mysz).
 {
@@ -2144,6 +2158,7 @@ window.addEventListener('blur', () => edytor.pokazPomiary(false));
 const kontekstSkrotow = {
   edytor,
   cofnij: () => akcje.cofnij(),
+  ponow: () => akcje.ponow(),
   widok: menuWidoku,
   zapisz: () => zapiszTeraz().then(() => synchronizuj()),
   wstawObraz: () => $('#plik-obraz').click(),

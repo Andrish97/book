@@ -4,44 +4,69 @@ const { otworz, nowyProjekt } = require('./pomoc.cjs');
 
 const nazwyStron = (strona) => strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.nazwa));
 
-test('cofanie operacji na stronach: usunięcie strony wraca przyciskiem i skrótem; zmiana na stronie zamyka tę możliwość', async (t) => {
+test('cofanie: jedna historia całego projektu – strony, przejścia między stronami, dane, ponawianie', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Cofanie');
+  const krok = () => strona.waitForTimeout(450); // osobny krok historii
+  const elementy = () => strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.obiekty.length));
+  assert.ok(await strona.isDisabled('[data-akcja="cofnij"]'), 'nowy projekt nie ma czego cofać');
+
   await strona.click('[data-akcja="dodaj-tekst"]');
+  await krok();
   await strona.click('[data-akcja="strona-dodaj"]');
-  await strona.click('[data-akcja="strona-dodaj"]');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 3);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
+  await krok();
+  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await krok();
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.deepEqual(await elementy(), [1, 1]);
 
   // Usunięcie pierwszej strony (z tekstem) i cofnięcie przyciskiem w powiadomieniu.
   await strona.click('#lista-stron li.strona >> nth=0 >> .menu-miniatury');
   await strona.click('#menu-strony [data-akcja="strona-usun"]');
   await strona.click('#potwierdz-tak');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
-  assert.deepEqual(await nazwyStron(strona), ['Strona 2', 'Strona 3']);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 1);
   await strona.click('#powiadomienie button');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 3);
-  assert.deepEqual(await nazwyStron(strona), ['Strona 1', 'Strona 2', 'Strona 3']);
-  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.length), 1, 'strona wróciła z treścią');
-
-  // To samo skrótem Ctrl+Z, zaraz po usunięciu.
-  await strona.click('#lista-stron li.strona >> nth=1 >> .menu-miniatury');
-  await strona.click('#menu-strony [data-akcja="strona-usun"]');
-  await strona.click('#potwierdz-tak');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
-  await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 3);
+  assert.deepEqual(await nazwyStron(strona), ['Strona 1', 'Strona 2']);
+  assert.deepEqual(await elementy(), [1, 1], 'strona wróciła z treścią');
 
-  // Po zmianie na stronie cofnięcie usunięcia nie jest już możliwe (Ctrl+Z cofa zmianę na stronie).
-  await strona.click('#lista-stron li.strona >> nth=2 >> .menu-miniatury');
-  await strona.click('#menu-strony [data-akcja="strona-usun"]');
-  await strona.click('#potwierdz-tak');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
-  await strona.click('[data-akcja="dodaj-prostokat"]');
-  await strona.waitForTimeout(400);
+  // Ctrl+Z cofa po kolei, także to, co zrobiono na innej stronie: prostokąt ze strony 2,
+  // dodanie strony 2, a na końcu tekst ze strony 1 – edytor sam przechodzi tam, gdzie była zmiana.
   await strona.keyboard.press('Escape');
   await strona.keyboard.press('Control+z');
-  await strona.waitForTimeout(300);
-  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony.length), 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[1]?.obiekty.length === 0);
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.indeks), 1);
+  await strona.keyboard.press('Control+z');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 1);
+  await strona.keyboard.press('Control+z');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty.length === 0 && window.seriodruk.edytor.canvas.getObjects().length === 0);
+  assert.ok(await strona.isDisabled('[data-akcja="cofnij"]'));
+
+  // Ponów ×3 przywraca wszystko.
+  for (let i = 0; i < 3; i += 1) { await strona.keyboard.press('Control+Shift+z'); await strona.waitForTimeout(250); }
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
+  assert.deepEqual(await elementy(), [1, 1]);
+  // Dalej w przód jest jeszcze cofnięte wcześniej usunięcie strony.
+  assert.ok(await strona.isEnabled('[data-akcja="ponow"]'));
+
+  // Zmiana w tabeli też jest krokiem historii (po zamknięciu okna danych).
+  await strona.click('[data-akcja="dane"]');
+  await strona.click('#dane-nowa');
+  await strona.locator('#dane-siatka td[data-w="0"][data-k="0"]').click();
+  await strona.keyboard.type('abc');
+  await strona.click('#dane-zamknij');
+  await strona.waitForFunction(() => !document.querySelector('#dlg-dane').open);
+  await krok();
+  await strona.waitForTimeout(400);
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.length), 1);
+  await strona.keyboard.press('Control+z');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele.length === 0);
+
+  // Nowa zmiana po cofnięciu odcina kroki „do przodu”.
+  await strona.click('[data-akcja="dodaj-elipse"]');
+  await krok();
+  assert.ok(await strona.isDisabled('[data-akcja="ponow"]'));
   assert.deepEqual(bledy, []);
 });
 
@@ -58,6 +83,7 @@ test('lista stron: przeciągnięcie zmienia kolejność; wzorce: kolejność z m
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].nazwa === 'Strona 3');
   assert.deepEqual(await nazwyStron(strona), ['Strona 3', 'Strona 1', 'Strona 2']);
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[window.seriodruk.stan.indeks].nazwa), 'Strona 3', 'bieżąca strona zostaje bieżącą');
+  await strona.waitForTimeout(450);
   await strona.keyboard.press('Control+z');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].nazwa === 'Strona 1');
 
