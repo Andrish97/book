@@ -407,10 +407,8 @@ test('tabela: scalanie komórek w poziomie i w pionie, Tab pomija schowane, wier
   const kol = 128 / 3; // szerokość kolumny (128 mm między marginesami)
   const blisko = (a, b, tol = 0.05) => Math.abs(a - b) <= tol;
 
-  // Treść w komórkach, które zaraz zostaną przykryte – po rozdzieleniu ma wrócić.
+  // Treść scalonej komórki (co dzieje się z tekstem dołączanych komórek, sprawdza następny test).
   await pisz(1, 0); await strona.keyboard.insertText('Razem');
-  await pisz(1, 1); await strona.keyboard.insertText('przykryta');
-  await pisz(1, 0);
   let o = await opis();
   assert.equal(o.linii, 9);
 
@@ -458,12 +456,12 @@ test('tabela: scalanie komórek w poziomie i w pionie, Tab pomija schowane, wier
   assert.deepEqual(o.tla[0].slice(0, 3).concat(o.tla[0][4]).map((x) => (typeof x === 'number' ? Math.round(x) : x)), [0, 0, 128, '#dddddd']);
   assert.ok(blisko(o.tla[1][0], 2 * kol) && blisko(o.tla[1][2], kol) && o.tla[1][4] === '#eeeeee', `zebra tylko w trzeciej kolumnie: ${o.tla[1]}`);
 
-  // Zapis i ponowne wczytanie: scalenie, schowane komórki i ich tekst zostają.
+  // Zapis i ponowne wczytanie: scalenie i schowane komórki zostają.
   await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
   o = await opis();
   assert.deepEqual(o.scalenia, [[1, 0, 2, 2]]);
   assert.deepEqual(o.widoczne, ['111', '101', '001', '111']);
-  assert.equal(o.teksty[1][1], 'przykryta');
+  assert.equal(o.teksty[1][1], '');
   // Składanie strony (podgląd, PDF) nie rysuje schowanych komórek.
   const zlozone = await strona.evaluate(async () => {
     const { zlozCel } = await import('./js/zlozenie.js');
@@ -501,5 +499,85 @@ test('tabela: scalanie komórek w poziomie i w pionie, Tab pomija schowane, wier
   await strona.keyboard.press('Control+z');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((x) => x.tabela)?.tabela.scalenia?.length === 1);
   assert.deepEqual((await opis()).widoczne, ['11', '11', '01', '11']);
+  assert.deepEqual(bledy, []);
+});
+
+test('tabela: przy scalaniu tekst dołączanych komórek przechodzi do scalonej; rozdzielenie zostawia go w pierwszej, cofnięcie przywraca', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Scalanie tekstu');
+  await wstawTabele(strona, 4, 3);
+  const opis = () => strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const g = e.canvas.getObjects().find((o) => o.tabela);
+    const k = e.komorkiTabeli(g);
+    const K = g.tabela.kolumny.length;
+    return {
+      scalenia: (g.tabela.scalenia || []).map((s) => [s.w, s.k, s.ileW, s.ileK]),
+      teksty: g.tabela.wiersze.map((_, w) => k.slice(w * K, (w + 1) * K).map((c) => c.text)),
+      // Akapity komórki (1, 0), w których są pogrubione znaki.
+      pogrubione: Object.entries(k[K].styles || {}).filter(([, wiersz]) => Object.values(wiersz).some((z) => z.fontWeight === 'bold')).map(([nr]) => Number(nr)),
+      wys: k.map((c) => Math.round(c.ramka_h * 100) / 100),
+    };
+  });
+  const pisz = async (w, k, tekst) => {
+    await strona.evaluate(([ww, kk]) => { const e = window.seriodruk.edytor; e.edytujKomorke(e.canvas.getObjects().find((o) => o.tabela), [ww, kk]); }, [w, k]);
+    if (tekst) await strona.keyboard.insertText(tekst);
+  };
+  const zmien = (co, w, k) => strona.evaluate(([c, ww, kk]) => { const e = window.seriodruk.edytor; return e.zmienTabele(e.canvas.getObjects().find((o) => o.tabela), c, { w: ww, k: kk }); }, [co, w, k]);
+
+  // Wiersz 2: trzy komórki z tekstem, środkowa z pogrubionym słowem; wiersz 3: tekst tylko w środkowej.
+  await pisz(1, 1, 'Środkowa gruba');
+  await strona.evaluate(() => window.seriodruk.edytor.aktywny.setSelectionStyles({ fontWeight: 'bold' }, 9, 14));
+  await pisz(1, 2, 'Prawa');
+  await pisz(2, 1, 'Dolna');
+  await pisz(1, 0, 'Lewa');
+  const przed = await opis();
+  assert.deepEqual(przed.teksty.slice(1, 3), [['Lewa', 'Środkowa gruba', 'Prawa'], ['', 'Dolna', '']]);
+  await krok(strona);
+
+  // Scalenie w prawo (przycisk w panelu komórki): tekst dołączonej komórki dochodzi jako nowy akapit – z pogrubieniem;
+  // dołączona komórka zostaje pusta.
+  await strona.click('.wlasciwosci button:has-text("Scal z komórką po prawej")');
+  let o = await opis();
+  assert.deepEqual(o.scalenia, [[1, 0, 1, 2]]);
+  assert.deepEqual(o.teksty[1], ['Lewa\nŚrodkowa gruba', '', 'Prawa']);
+  assert.deepEqual(o.pogrubione, [1], 'pogrubienie przeszło razem z tekstem, do drugiego akapitu');
+  assert.ok(o.wys[3] > przed.wys[3], 'wiersz urósł, bo scalona komórka ma dwa akapity');
+  assert.match(await strona.textContent('.wlasciwosci'), /Tekst komórek, które przykryła, jest w niej dopisany/);
+  // Jeszcze raz w prawo i w dół: kolejność wierszami, od lewej; puste komórki niczego nie dopisują.
+  await strona.click('.wlasciwosci button:has-text("Scal z komórką po prawej")');
+  await strona.click('.wlasciwosci button:has-text("Scal z komórką poniżej")');
+  await strona.keyboard.press('Escape');
+  o = await opis();
+  assert.deepEqual(o.scalenia, [[1, 0, 2, 3]]);
+  assert.deepEqual(o.teksty.slice(1, 3), [['Lewa\nŚrodkowa gruba\nPrawa\nDolna', '', ''], ['', '', '']]);
+
+  // Zapis i wczytanie: tekst jest w scalonej komórce, schowane są puste.
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
+  o = await opis();
+  assert.deepEqual(o.teksty.slice(1, 3), [['Lewa\nŚrodkowa gruba\nPrawa\nDolna', '', ''], ['', '', '']]);
+  assert.deepEqual(o.pogrubione, [1]);
+
+  // Rozdzielenie: osobne komórki wracają, cały tekst zostaje w pierwszej.
+  await zmien('rozdziel', 1, 0);
+  o = await opis();
+  assert.deepEqual(o.scalenia, []);
+  assert.deepEqual(o.teksty.slice(1, 3), [['Lewa\nŚrodkowa gruba\nPrawa\nDolna', '', ''], ['', '', '']]);
+
+  // Pusta komórka scalana z niepustą przejmuje jej tekst bez pustego akapitu na początku.
+  await pisz(3, 1, 'Sama');
+  await pisz(3, 0);
+  await krok(strona);
+  await strona.click('.wlasciwosci button:has-text("Scal z komórką po prawej")');
+  await strona.keyboard.press('Escape');
+  o = await opis();
+  assert.deepEqual([o.scalenia, o.teksty[3]], [[[3, 0, 1, 2]], ['Sama', '', '']]);
+  await krok(strona);
+  // Cofnięcie przywraca stan sprzed scalenia: tekst wraca do swojej komórki.
+  await strona.keyboard.press('Control+z');
+  await strona.waitForFunction(() => { const e = window.seriodruk.edytor; const g = e.canvas.getObjects().find((x) => x.tabela); return g && !g.tabela.scalenia?.length && e.komorkiTabeli(g)[10].text === 'Sama'; });
+  o = await opis();
+  assert.deepEqual(o.teksty[3], ['', 'Sama', '']);
+  assert.deepEqual(o.teksty[1], ['Lewa\nŚrodkowa gruba\nPrawa\nDolna', '', ''], 'wcześniejsze kroki zostały');
   assert.deepEqual(bledy, []);
 });

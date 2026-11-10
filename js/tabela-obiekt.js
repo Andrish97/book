@@ -6,7 +6,8 @@
 //     tlo: { naglowek: kolor | null, zebra: kolor | null },
 //     scalenia: [{ w, k, ileW, ileK }] }
 // Scalenie: komórka w wierszu `w` i kolumnie `k` zajmuje ileW wierszy i ileK kolumn. Komórki, które
-// przykrywa, zostają w grupie (ukryte, ze swoim tekstem) – po rozdzieleniu wracają na miejsce.
+// przykrywa, zostają w grupie (ukryte i puste – ich tekst przy scalaniu przechodzi do scalonej komórki);
+// po rozdzieleniu wracają na miejsce.
 // W grupie leżą: prostokąty tła wierszy (na spodzie), ramki tekstu komórek (wierszami, od lewej)
 // i – za nimi – linie siatki.
 // Komórka to zwykły tekst: pola {…}, formatowanie fragmentów i style działają jak wszędzie.
@@ -114,12 +115,35 @@ export function scalKomorki(g, w, k, kierunek) {
       if (n.w !== r.w || n.k !== r.k || n.ileW !== r.ileW || n.ileK !== r.ileK) { r = n; zmiana = true; }
     }
   }
+  // Tekst komórek, które scalona komórka przykryje, nie znika: dochodzi do niej kolejnymi akapitami
+  // (wierszami, od lewej), a przykryte komórki zostają puste.
+  const komorki = komorkiTabeli(g);
+  const cel = komorki[r.w * K + r.k];
+  for (let ww = r.w; cel && ww < r.w + r.ileW; ww += 1) {
+    for (let kk = r.k; kk < r.k + r.ileK; kk += 1) {
+      const c = komorki[ww * K + kk];
+      // Komórki schowane już wcześniej zostają, jak były.
+      if (!c || c === cel || komorkaSchowana(g, c)) continue;
+      if (c.text.trim()) dopiszTekst(cel, c);
+      c.set({ text: '', styles: {} });
+    }
+  }
   t.scalenia = [...(t.scalenia || []).filter((m) => !nachodza(r, m)), r];
   ulozTabele(g);
-  return komorkiTabeli(g)[r.w * K + r.k] || null;
+  return cel || null;
 }
 
-// Rozdziela scalenie, do którego należy komórka (w, k). Zwraca true, gdy było co rozdzielać.
+// Dopisuje do komórki `cel` tekst komórki `z` jako nowy akapit – razem z formatowaniem fragmentów.
+function dopiszTekst(cel, z) {
+  const pusta = !cel.text.trim();
+  const przesuniecie = pusta ? 0 : cel.text.split('\n').length;
+  const style = pusta ? {} : JSON.parse(JSON.stringify(cel.styles || {}));
+  for (const [nr, wiersz] of Object.entries(z.styles || {})) style[Number(nr) + przesuniecie] = JSON.parse(JSON.stringify(wiersz));
+  cel.set({ text: pusta ? z.text : `${cel.text}\n${z.text}`, styles: style });
+}
+
+// Rozdziela scalenie, do którego należy komórka (w, k): wracają osobne komórki, a cały tekst zostaje
+// w pierwszej (lewej górnej). Zwraca true, gdy było co rozdzielać.
 export function rozdzielKomorki(g, w, k) {
   const s = scalenieKomorki(g, w, k);
   if (!s) return false;
@@ -197,7 +221,7 @@ export function ulozTabele(g) {
     const w = Math.floor(i / K);
     const s = mapa[i];
     c.autodopasowanie = undefined;
-    // Komórka schowana pod scaleniem zostaje w grupie ze swoim tekstem, ale nie jest rysowana ani mierzona.
+    // Komórka schowana pod scaleniem zostaje w grupie, ale nie jest rysowana ani mierzona.
     c.visible = poczatek(i);
     c.evented = c.visible;
     const szer = c.visible && s ? suma(t.kolumny.slice(k, k + s.ileK)) : t.kolumny[k];

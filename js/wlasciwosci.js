@@ -349,7 +349,7 @@ export class PanelWlasciwosci {
     if (zajete.w + zajete.ileW < tabela.tabela.wiersze.length) scalanie.push(['grupuj', 'Scal z komórką poniżej', zmien('scal-dol', m)]);
     if (sc) scalanie.push(['rozgrupuj', 'Rozdziel komórki', zmien('rozdziel', m)]);
     if (scalanie.length) s.append(this.akcje(scalanie));
-    if (sc) s.append(this.wskazowka(`Ta komórka zajmuje ${sc.ileK} ${sc.ileK === 1 ? 'kolumnę' : 'kolumny'} i ${sc.ileW} ${sc.ileW === 1 ? 'wiersz' : 'wiersze'}. Tekst komórek, które przykrywa, wróci po rozdzieleniu.`));
+    if (sc) s.append(this.wskazowka(`Ta komórka zajmuje ${sc.ileK} ${sc.ileK === 1 ? 'kolumnę' : 'kolumny'} i ${sc.ileW} ${sc.ileW === 1 ? 'wiersz' : 'wiersze'}. Tekst komórek, które przykryła, jest w niej dopisany; po rozdzieleniu cały zostaje w pierwszej komórce.`));
     s.append(this.liczba('Najmniejsza wysokość tego wiersza', () => zaokr(tabela.tabela.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(tabela, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
     s.append(this.wskazowka(`Teraz ten wiersz ma ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
   }
