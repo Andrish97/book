@@ -14,6 +14,7 @@ import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach } from './pola.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from './obrazy.js';
 import { rozlejWatki } from './watki.js';
+import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -62,7 +63,11 @@ function obrazyZPol(obiekty, wartosc, zasoby) {
 
 function wpiszWRamki(obiekty) {
   for (const o of obiekty) {
-    if (o.type === 'group') { wpiszWRamki(o.getObjects()); continue; }
+    if (o.type === 'group') {
+      wpiszWRamki(o.getObjects());
+      if (toTabela(o)) ulozTabele(o); // po podstawieniu danych wiersze tabeli rosną razem z treścią
+      continue;
+    }
     const r = o.ramka_pola;
     if (o.type !== 'image' || !r || !o.width || !o.height) continue;
     // Podmieniony obraz dostał wymiary źródła – przeliczamy je na piksele oryginału.
@@ -100,7 +105,7 @@ function odbijWMiejscu(o) {
   if (typeof o.textAlign === 'string') {
     o.set('textAlign', { left: 'right', right: 'left' }[o.textAlign] || o.textAlign);
   }
-  if (o.type !== 'group') return;
+  if (o.type !== 'group' || toTabela(o)) return; // tabela przechodzi na drugą stronę, ale kolumny zostają w swojej kolejności
   for (const czesc of o.getObjects()) {
     const s = czesc.getRelativeCenterPoint(); // położenie części liczone od środka grupy
     odbijWMiejscu(czesc);
@@ -189,7 +194,8 @@ export async function tekstyEgzemplarza(projekt, egz, ciag) {
   const zbierz = (obiekty, wynik = []) => {
     for (const o of obiekty || []) {
       if (o.type === 'textbox') wynik.push(o);
-      if (Array.isArray(o.objects)) zbierz(o.objects, wynik);
+      // Komórki tabeli nie są sprawdzane: wiersz rośnie razem z tekstem, więc tekst zawsze się mieści.
+      if (Array.isArray(o.objects) && !o.tabela) zbierz(o.objects, wynik);
     }
     return wynik;
   };

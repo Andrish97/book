@@ -9,6 +9,7 @@ import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
+import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy } from './tabela-obiekt.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
@@ -82,6 +83,13 @@ export class PanelWlasciwosci {
     }
     this.tytul.textContent = nazwaTypu(obj);
 
+    // Komórka tabeli w trakcie pisania: wygląd tekstu tej komórki i działania na jej wierszu i kolumnie.
+    if (toTabela(obj.group)) {
+      this.zbudujTekst(obj, { komorka: true });
+      this.zbudujKomorke(obj);
+      return;
+    }
+    if (toTabela(obj)) this.zbudujTabele(obj);
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
     this.zbudujGeometrie(obj);
     if (KSZTALTY.has(obj.type)) this.zbudujWypelnienie(obj);
@@ -174,7 +182,7 @@ export class PanelWlasciwosci {
     ]);
     seg.classList.add('szeroki');
     s.append(seg);
-    if (obj.type === 'group') s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()]]));
+    if (obj.type === 'group' && !toTabela(obj)) s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()]]));
   }
 
   zbudujGeometrie(obj, { tylkoPozycja = false } = {}) {
@@ -227,7 +235,82 @@ export class PanelWlasciwosci {
     obj.dirty = true;
   }
 
-  zbudujTekst(obj) {
+  // ---------- Tabela ----------
+
+  zbudujTabele(obj) {
+    const e = this.edytor;
+    const t = obj.tabela;
+    const zmien = (co, gdzie) => () => { e.zmienTabele(obj, co, gdzie); this.zbuduj(); };
+    const s = this.sekcja('Tabela');
+    s.append(this.wskazowka('Kliknij dwa razy komórkę, żeby w niej pisać. Tab przechodzi do następnej komórki, Esc kończy pisanie.'));
+    const ile = this.wskazowka(`Wierszy: ${t.wiersze.length}, kolumn: ${t.kolumny.length}.`);
+    ile.classList.add('licznik-tabeli');
+    s.append(ile);
+    s.append(this.akcje([['plus', 'Dodaj wiersz', zmien('wiersz+')], ['minus', 'Usuń ostatni wiersz', zmien('wiersz-')]]));
+    s.append(this.akcje([['plus', 'Dodaj kolumnę', zmien('kolumna+')], ['minus', 'Usuń ostatnią kolumnę', zmien('kolumna-')]]));
+    s.append(this.przelacznik('Pierwszy wiersz to nagłówek', () => Boolean(t.naglowek), (v) => ustawNaglowek(obj, v)));
+    s.append(this.liczba('Najmniejsza wysokość wiersza', () => zaokr(Math.min(...t.wiersze), 1), (v) => { t.wiersze = t.wiersze.map(() => Math.max(3, v)); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
+    s.append(this.wskazowka('Wiersz sam rośnie, gdy tekst komórki nie mieści się w jego wysokości – także na stronach powielanych z danych.'));
+
+    const k = this.sekcja('Szerokości kolumn (mm)');
+    t.kolumny.forEach((_, i) => {
+      k.append(this.liczba(`Kolumna ${i + 1}`, () => zaokr(t.kolumny[i], 1), (v) => { ustawSzerokoscKolumny(obj, i, v, { kosztemSasiedniej: false }); }, { jednostka: 'mm', krok: 0.5, min: 5 }));
+    });
+    k.append(this.akcje([['rozlozX', 'Równe szerokości', () => {
+      const szer = t.kolumny.reduce((a, b) => a + b, 0) / t.kolumny.length;
+      t.kolumny = t.kolumny.map(() => szer);
+      e.zatwierdz();
+      this.odswiez();
+    }]]));
+    k.append(this.wskazowka('Granicę kolumn przesuniesz też niebieskim znacznikiem nad zaznaczoną tabelą.'));
+
+    const l = this.sekcja('Linie tabeli');
+    l.append(this.kolor('Kolor linii', () => t.linia?.kolor || '#1a1a1a', (v) => { t.linia = { ...t.linia, kolor: v }; ulozTabele(obj); }));
+    l.append(this.liczba('Grubość linii', () => zaokr(t.linia?.grubosc ?? 0.25, 2), (v) => { t.linia = { ...t.linia, grubosc: Math.max(0, v) }; }, { jednostka: 'mm', krok: 0.05, min: 0 }));
+
+    // Wygląd tekstu wszystkich komórek naraz; pojedynczą komórkę zmienia się w trakcie pisania w niej.
+    const x = this.sekcja('Tekst w komórkach');
+    const komorki = () => komorkiTabeli(obj);
+    const wzor = () => komorki()[t.naglowek && t.wiersze.length > 1 ? t.kolumny.length : 0];
+    this._czcionkiWLiscie = true;
+    const rodziny = this.opcje.czcionki?.() || CZCIONKI.map((c) => c.nazwa);
+    const czcionka = this.wybor('Czcionka', rodziny.map((n) => [n, n]), () => wzor().fontFamily, (v) => ustawTekstTabeli(obj, { fontFamily: v }));
+    this._czcionkiWLiscie = false;
+    czcionka.classList.add('szeroki');
+    x.append(czcionka);
+    x.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(wzor().fontSize), 1), (v) => ustawTekstTabeli(obj, { fontSize: ptNaMm(Math.max(1, v)) }), { jednostka: 'pt', krok: 0.5, min: 1 }));
+    x.append(this.kolor('Kolor', () => wzor().fill, (v) => ustawTekstTabeli(obj, { fill: v })));
+    const wyr = this.segmenty('Wyrównanie', [
+      ['doLewej', 'Do lewej', () => wzor().textAlign === 'left', () => ustawTekstTabeli(obj, { textAlign: 'left' })],
+      ['doSrodka', 'Do środka', () => wzor().textAlign === 'center', () => ustawTekstTabeli(obj, { textAlign: 'center' })],
+      ['doPrawej', 'Do prawej', () => wzor().textAlign === 'right', () => ustawTekstTabeli(obj, { textAlign: 'right' })],
+    ]);
+    wyr.classList.add('szeroki');
+    x.append(wyr);
+    const pion = this.segmenty('Tekst w pionie', [
+      ['wyrownajGora', 'Do góry komórki', () => !wzor().wyrownanie_pion || wzor().wyrownanie_pion === 'gora', () => ustawTekstTabeli(obj, { wyrownanie_pion: undefined })],
+      ['wyrownajSrodekY', 'Na środku komórki', () => wzor().wyrownanie_pion === 'srodek', () => ustawTekstTabeli(obj, { wyrownanie_pion: 'srodek' })],
+      ['wyrownajDol', 'Do dołu komórki', () => wzor().wyrownanie_pion === 'dol', () => ustawTekstTabeli(obj, { wyrownanie_pion: 'dol' })],
+    ]);
+    pion.classList.add('szeroki');
+    x.append(pion);
+  }
+
+  // Działania na wierszu i kolumnie komórki, w której trwa pisanie.
+  zbudujKomorke(obj) {
+    const e = this.edytor;
+    const tabela = obj.group;
+    const m = e.miejsceKomorki(obj);
+    if (!m) return;
+    const zmien = (co, gdzie) => () => { e.zmienTabele(tabela, co, gdzie); if (this.obj === e.aktywny) this.zbuduj(); };
+    const s = this.sekcja('Tabela');
+    s.append(this.wskazowka(`Komórka w wierszu ${m.w + 1}, kolumnie ${m.k + 1}. Tab przechodzi do następnej komórki, Esc wraca do całej tabeli.`));
+    s.append(this.akcje([['plus', 'Wstaw wiersz poniżej', zmien('wiersz+', m.w)], ['minus', 'Usuń ten wiersz', zmien('wiersz-', m.w)]]));
+    s.append(this.akcje([['plus', 'Wstaw kolumnę z prawej', zmien('kolumna+', m.k)], ['minus', 'Usuń tę kolumnę', zmien('kolumna-', m.k)]]));
+    s.append(this.wskazowka(`Wysokość tego wiersza: ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
+  }
+
+  zbudujTekst(obj, { komorka = false } = {}) {
     const czytaj = (k) => this._czytajTekst(obj, k);
     const ustaw = (w) => this._ustawTekst(obj, w);
 
@@ -305,6 +388,9 @@ export class PanelWlasciwosci {
     ], true);
     litery.classList.add('szeroki');
     s.append(litery);
+
+    // Komórka tabeli nie ma własnej ramki ani przelewania – jej rozmiarem rządzi tabela.
+    if (komorka) return;
 
     // Przelewanie: połączone ramki i kolumny.
     const w = this.sekcja('Przelewanie tekstu');

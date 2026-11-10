@@ -215,7 +215,7 @@ test('przelewanie z danymi i łączenie zaznaczonych ramek; wstawianie tabeli', 
   // W projekcie nadal jest wzór z polem, nie podstawiony tekst.
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.map((o) => o.text)), ['{opis}', '']);
 
-  // Tabela: okno, siatka w jednej grupie i ramka tekstu w każdej komórce.
+  // Tabela: okno wstawiania; powstaje jeden element z komórkami i liniami w środku (szczegóły: tabela.test.cjs).
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
   await strona.click('[data-akcja="dodaj-tabele"]');
@@ -223,25 +223,27 @@ test('przelewanie z danymi i łączenie zaznaczonych ramek; wstawianie tabeli', 
   await strona.fill('#dlg-tabela input[name=wiersze]', '3');
   await strona.fill('#dlg-tabela input[name=kolumny]', '4');
   await strona.click('#dlg-tabela button[value=tak]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 13);
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 1 && window.seriodruk.edytor.aktywny?.tabela);
   // Tabela jest zaznaczona w całości; żaden element nie zgłasza ostrzeżenia (także o marginesie).
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.map((o) => o.typ)), []);
   const tabela = await strona.evaluate(async () => {
     await window.seriodruk.zapiszTeraz();
     const ob = window.seriodruk.stan.projekt.strony[1].obiekty;
-    const komorki = ob.filter((o) => o.type === 'textbox');
+    const g = ob[0];
+    const komorki = g.objects.filter((o) => o.type === 'textbox');
     return {
-      typy: ob.map((o) => o.type).sort().join(','), siatka: ob.find((o) => o.type === 'group').nazwa, linii: ob.find((o) => o.type === 'group').objects.length,
-      naglowki: komorki.slice(0, 4).map((o) => [o.text, o.fontWeight, o.nazwa]), reszta: komorki.slice(4).every((o) => o.text === '' && o.ramka_h === 9 && o.wyrownanie_pion === 'srodek'),
-      szer: Math.round(komorki[0].width * 10) / 10,
+      typy: ob.map((o) => o.type).join(','), opis: g.tabela, linii: g.objects.filter((o) => o.type === 'line').length,
+      naglowki: komorki.slice(0, 4).map((o) => [o.text, o.fontWeight]), reszta: komorki.slice(4).every((o) => o.text === '' && o.ramka_h === 9 && o.wyrownanie_pion === 'srodek'),
+      szer: Math.round(komorki[0].width * 10) / 10, szerTabeli: g.width,
     };
   });
-  assert.equal(tabela.typy, ['group', ...Array(12).fill('textbox')].join(','));
-  assert.equal(tabela.siatka, 'Siatka tabeli 3×4');
+  assert.equal(tabela.typy, 'group', 'tabela jest jednym elementem strony');
+  assert.deepEqual(tabela.opis, { kolumny: [32, 32, 32, 32], wiersze: [9, 9, 9], naglowek: true, linia: { kolor: '#1a1a1a', grubosc: 0.25 } });
   assert.equal(tabela.linii, 9);
-  assert.deepEqual(tabela.naglowki, [['Kolumna 1', 'bold', 'Komórka A1'], ['Kolumna 2', 'bold', 'Komórka B1'], ['Kolumna 3', 'bold', 'Komórka C1'], ['Kolumna 4', 'bold', 'Komórka D1']]);
+  assert.deepEqual(tabela.naglowki, [['Kolumna 1', 'bold'], ['Kolumna 2', 'bold'], ['Kolumna 3', 'bold'], ['Kolumna 4', 'bold']]);
   assert.ok(tabela.reszta);
-  assert.equal(tabela.szer, 28.9); // (148 − 2 × 10 − 0,6) / 4 − 2 × 1,5
+  assert.equal(tabela.szer, 29); // (148 − 2 × 10) / 4 − 2 × 1,5
+  assert.equal(tabela.szerTabeli, 128);
   assert.deepEqual(bledy, []);
 });
 

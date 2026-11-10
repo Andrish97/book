@@ -18,6 +18,7 @@ export const WLASNE_POLA = [
   'z_danych', // kolor i przesunięcie zależne od pola z danych (pola.js)
   'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
   'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana
+  'tabela', // tabela jako jeden element: { kolumny, wiersze, naglowek, linia } (tabela-obiekt.js)
 ];
 
 if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
@@ -48,6 +49,8 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   fabric.BaseFabricObject.prototype.toObject = function toObject(pola) {
     const o = zapis.call(this, pola);
     o.type = this.type;
+    // Opis tabeli jest zmieniany w miejscu – zapis dostaje własną kopię, nie odwołanie do żywego obiektu.
+    if (o.tabela) o.tabela = JSON.parse(JSON.stringify(o.tabela));
     return o;
   };
 }
