@@ -1,6 +1,8 @@
 // Lewa kolumna edytora: lista stron w sekcjach, lista wzorców, miniatury, operacje na stronach i menu kontekstowe.
 
-import { stronySekcji, stronyZWzorcem, nowaStrona, uporzadkujStrony, kopiujStrone, wzorceStrony, sekcjaStrony } from '../projekt.js';
+import {
+  stronySekcji, stronyZWzorcem, nowaStrona, uporzadkujStrony, kopiujStrone, wzorceStrony, sekcjaStrony,
+} from '../projekt.js';
 import { renderujCel } from '../zlozenie.js';
 import { rozwin, blokiSerii, bokStrony, liczbaPowielen } from '../serie.js';
 import { ikona } from '../ikony.js';
@@ -13,15 +15,17 @@ import { edytujWzorzec } from './wzorce.js';
 
 // ---------- Lista: strony (pogrupowane w sekcje) i wzorce ----------
 
+// Prawy panel ma dwie zakładki: Właściwości i Warstwy. (Strony są zawsze z lewej, a wzorce
+// w osobnym oknie – inne nazwy zakładek zostają bez skutku.)
 export function ustawZakladke(nazwa) {
+  if (nazwa !== 'warstwy' && nazwa !== 'wlasciwosci') return;
+  const warstwy = nazwa === 'warstwy';
   stan.zakladka = nazwa;
-  $$('#zakladki-listy input').forEach((r) => { r.checked = r.value === nazwa; });
-  $('#lista-stron').hidden = nazwa !== 'strony';
-  $('#lista-wzorcow').hidden = nazwa !== 'wzorce';
-  $('#lista-warstw').hidden = nazwa !== 'warstwy';
-  panelWarstw.pokaz(nazwa === 'warstwy');
-  $('#stopka-strony').hidden = nazwa !== 'strony';
-  $('#stopka-wzorce').hidden = nazwa !== 'wzorce';
+  $$('#zakladki-panelu input').forEach((r) => { r.checked = r.value === nazwa; });
+  $('#lista-warstw').hidden = !warstwy;
+  $('#wlasciwosci').hidden = warstwy;
+  $('#naglowek-wlasciwosci').hidden = warstwy;
+  panelWarstw.pokaz(warstwy);
 }
 
 export function renderujListe() {
@@ -32,7 +36,7 @@ export function renderujListe() {
   generujMiniatury();
 }
 
-function obrazMiniatury(id, wydruk) {
+export function obrazMiniatury(id, wydruk) {
   const mini = stan.miniatury.get(id);
   const el = document.createElement(mini ? 'img' : 'div');
   if (mini) { el.src = mini; el.alt = ''; } else el.className = 'brak';
@@ -113,31 +117,52 @@ function renderujListeStron() {
   }
 }
 
+// Wzorce projektu w oknie „Wzorce”: miniatura, liczba stron, dodawanie do bieżącej strony i sekcji.
 function renderujListeWzorcow() {
   const lista = $('#lista-wzorcow');
   lista.replaceChildren();
   const { projekt } = stan;
   $('#liczba-wzorcow').textContent = projekt.wzorce.length;
+  $('#liczba-wzorcow').hidden = projekt.wzorce.length === 0;
   if (!projekt.wzorce.length) {
     const li = document.createElement('li');
     li.className = 'pusto-wzorce';
-    li.innerHTML = '<strong>Brak wzorców</strong><p>Wzorzec to strona ze wspólnymi elementami – tłem, ramką, logo, numerem strony. Rysujesz go raz, a pojawia się na wszystkich stronach, które go używają.</p>';
+    li.innerHTML = '<strong>Brak wzorców</strong><p>Dodaj pusty wzorzec i narysuj go sam albo wybierz jeden ze standardowych poniżej.</p>';
     lista.append(li);
     return;
   }
+  const strona = stan.tryb === 'strona' ? biezacaStrona() : null;
+  const sekcja = strona ? sekcjaStrony(projekt, strona) : null;
+  const naStronie = strona ? new Set(wzorceStrony(projekt, strona).map((w) => w.id)) : new Set();
   for (const w of projekt.wzorce) {
     const aktywny = stan.tryb === 'wzorzec' && w.id === stan.idWzorca;
     const n = stronyZWzorcem(projekt, w.id).length;
     const li = document.createElement('li');
     li.className = `strona wzorzec${aktywny ? ' aktywna' : ''}`;
     li.dataset.id = w.id;
-    li.innerHTML = `<span class="numer">${ikona('ksiazka', { rozmiar: 14 })}</span>
-      <button class="miniatura"></button>
-      <span class="nazwa"></span>
+    li.innerHTML = `<button class="miniatura" title="Edytuj wzorzec"></button>
+      <div class="opis-wzorca"><strong class="nazwa"></strong><small></small>
+        <div class="rzad-przyciskow">
+          <button type="button" class="przycisk maly" data-op="strona" aria-pressed="false"></button>
+          <button type="button" class="przycisk maly" data-op="sekcja" aria-pressed="false"></button>
+          <button type="button" class="przycisk maly" data-op="edytuj">Edytuj</button>
+        </div>
+      </div>
       <button class="przycisk-ikona menu-miniatury" aria-label="Opcje wzorca" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
     $('.miniatura', li).append(obrazMiniatury(w.id, w.wydruk));
     $('.miniatura', li).setAttribute('aria-label', `Wzorzec ${w.nazwa}`);
-    $('.nazwa', li).textContent = `${w.nazwa} · ${n} str.`;
+    $('.nazwa', li).textContent = w.nazwa;
+    $('small', li).textContent = `${n} str.${w.lustro ? ' · odbicie na lewych stronach' : ''}`;
+    const [naStr, wSek] = [$('[data-op="strona"]', li), $('[data-op="sekcja"]', li)];
+    naStr.hidden = !strona; wSek.hidden = !strona;
+    if (strona) {
+      const jest = naStronie.has(w.id);
+      naStr.textContent = jest ? '✓ Na tej stronie' : '+ Dodaj do tej strony';
+      naStr.setAttribute('aria-pressed', String(jest));
+      const wSekcji = sekcja.wzorce.includes(w.id);
+      wSek.textContent = wSekcji ? `✓ W sekcji „${sekcja.nazwa}”` : `+ Do całej sekcji „${sekcja.nazwa}”`;
+      wSek.setAttribute('aria-pressed', String(wSekcji));
+    }
     $('.miniatura', li).addEventListener('click', () => edytujWzorzec(w.id));
     $('.menu-miniatury', li).addEventListener('click', (e) => { e.stopPropagation(); otworzMenuWzorca(e.currentTarget, w.id); });
     lista.append(li);
@@ -147,7 +172,7 @@ function renderujListeWzorcow() {
 export function odswiezMiniature(id) {
   if (!id) return;
   const mini = stan.miniatury.get(id);
-  const kontenerMini = $(`#ekran-edytora li[data-id="${id}"] .miniatura`);
+  const kontenerMini = document.querySelector(`#lista-stron li[data-id="${id}"] .miniatura, #lista-wzorcow li[data-id="${id}"] .miniatura`);
   if (!kontenerMini || !mini) return;
   const stary = kontenerMini.firstElementChild;
   if (stary?.tagName === 'IMG') { stary.src = mini; return; }

@@ -7,7 +7,7 @@ const naPlotnie = (strona) => strona.evaluate(() => window.seriodruk.edytor.canv
 })));
 
 async function dodajWzorzec(strona, budowa) {
-  await strona.click('#zakladki-listy label:has-text("Wzorce")');
+  await strona.click('[data-akcja="wzorce"]');
   await strona.click('[data-akcja="wzorzec-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.tryb === 'wzorzec');
   await strona.evaluate(budowa);
@@ -264,5 +264,66 @@ test('rozkładówki: element przez grzbiet widać na obu stronach, kolejność w
     e.zatwierdz();
   });
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.map((o) => [o.obiekt, o.typ])), [['kwadrat', 'w_marginesie']]);
+  assert.deepEqual(bledy, []);
+});
+
+test('okno „Wzorce”: wzorce standardowe, dodanie do strony i do sekcji, warstwy w prawym panelu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Szablony');
+  await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
+
+  // Strony są z lewej (bez zakładek), wzorce w osobnym oknie, warstwy jako zakładka prawego panelu.
+  assert.equal(await strona.locator('#panel-strony #zakladki-listy').count(), 0);
+  assert.ok(await strona.isHidden('#liczba-wzorcow'), 'bez wzorców nie ma licznika');
+  await strona.click('[data-akcja="wzorce"]');
+  await strona.waitForSelector('#dlg-wzorce[open]');
+  assert.match(await strona.textContent('#lista-wzorcow'), /Brak wzorców/);
+  assert.equal(await strona.locator('#wzorce-standardowe li').count(), 8);
+
+  // Wzorzec standardowy trafia do projektu, ale nie na strony – dopóki się go nie doda.
+  await strona.click('#wzorce-standardowe button[data-standard="stopka"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.wzorce.length === 1);
+  let stan = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return { nazwa: p.wzorce[0].nazwa, teksty: p.wzorce[0].obiekty.map((o) => o.text || o.type), sekcja: p.sekcje[0].wzorce, strony: p.strony.map((s) => s.wzorce) }; });
+  assert.deepEqual(stan, { nazwa: 'Stopka: nazwa projektu i numer', teksty: ['rect', '{projekt}', 'str. {nr} z {liczba_stron}'], sekcja: [], strony: ['z_sekcji', 'z_sekcji'] });
+  assert.equal(await strona.textContent('#liczba-wzorcow'), '1');
+  assert.equal(await strona.textContent('#lista-wzorcow li small'), '0 str.');
+
+  // „Dodaj do tej strony”: tylko bieżąca strona (druga) dostaje wzorzec.
+  await strona.click('#lista-wzorcow [data-op="strona"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.zWzorca));
+  stan = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return [p.sekcje[0].wzorce.length, p.strony.map((s) => (Array.isArray(s.wzorce) ? s.wzorce.length : s.wzorce))]; });
+  assert.deepEqual(stan, [0, ['z_sekcji', 1]]);
+  assert.equal(await strona.getAttribute('#lista-wzorcow [data-op="strona"]', 'aria-pressed'), 'true');
+  assert.equal(await strona.textContent('#lista-wzorcow li small'), '1 str.');
+  // Tekst stopki ze wzorca ma na tej stronie podstawiony numer: „str. 2 z 2”.
+  assert.ok(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.zWzorca && o.text === 'str. 2 z 2')));
+
+  // „Do całej sekcji”: wzorzec dostają też strony biorące wzorce z sekcji.
+  await strona.click('#lista-wzorcow [data-op="sekcja"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.sekcje[0].wzorce.length === 1);
+  assert.equal(await strona.textContent('#lista-wzorcow li small'), '2 str.');
+
+  // Drugi raz ten sam standardowy dostaje kolejny numer w nazwie; zakładka ma regułę „z danych” i odbicie.
+  await strona.click('#wzorce-standardowe button[data-standard="stopka"]');
+  await strona.click('#wzorce-standardowe button[data-standard="zakladka"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.wzorce.length === 3);
+  stan = await strona.evaluate(() => { const w = window.seriodruk.stan.projekt.wzorce; return [w[1].nazwa, w[2].lustro, w[2].obiekty[0].z_danych.y.pole, w[2].obiekty[0].z_danych.y.co]; });
+  assert.deepEqual(stan, ['Stopka: nazwa projektu i numer 2', true, 'egzemplarz', 6]);
+
+  // „Edytuj” zamyka okno i otwiera wzorzec; „Gotowe” wraca do strony.
+  await strona.click('#lista-wzorcow li >> nth=0 >> [data-op="edytuj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.tryb === 'wzorzec');
+  assert.ok(await strona.isHidden('#dlg-wzorce'));
+  await strona.click('[data-akcja="wroc-do-stron"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.tryb === 'strona');
+
+  // Warstwy: zakładka w prawym panelu; element wzorca jest na liście.
+  await strona.click('#zakladki-panelu label:has-text("Warstwy")');
+  assert.ok(await strona.isVisible('#panel-inspektor #lista-warstw'));
+  assert.ok(await strona.isHidden('#wlasciwosci'));
+  assert.equal(await strona.locator('#lista-warstw li.ze-wzorca').count(), 3);
+  await strona.click('#zakladki-panelu label:has-text("Właściwości")');
+  assert.ok(await strona.isVisible('#wlasciwosci'));
   assert.deepEqual(bledy, []);
 });

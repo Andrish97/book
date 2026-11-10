@@ -335,6 +335,7 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
+      <button class="przycisk przezroczysty" data-akcja="wzorce" data-ikona="ksiazka" title="Wzorce: wspólne elementy stron – tła, stopki, numery"><span class="etyk">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
       <button class="przycisk przezroczysty" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
       <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)"><span class="etyk">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
@@ -354,22 +355,13 @@
     <div class="uklad-edytora">
       <aside class="panel panel-strony" id="panel-strony" aria-label="Strony i wzorce">
         <div class="naglowek-panelu">
-          <div class="przelacznik-segmentowy zakladki-listy" id="zakladki-listy" role="radiogroup" aria-label="Lista">
-            <label><input type="radio" name="zakladka-listy" value="strony" checked><span>Strony <span class="licznik" id="liczba-stron">1</span></span></label>
-            <label><input type="radio" name="zakladka-listy" value="wzorce"><span>Wzorce <span class="licznik" id="liczba-wzorcow">0</span></span></label>
-            <label><input type="radio" name="zakladka-listy" value="warstwy"><span>Warstwy</span></label>
-          </div>
+          <h2>Strony <span class="licznik" id="liczba-stron">1</span></h2>
           <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
         </div>
         <ol class="lista-stron" id="lista-stron"></ol>
-        <ol class="lista-stron lista-wzorcow" id="lista-wzorcow" hidden></ol>
-        <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu" hidden></ol>
         <div class="stopka-panelu" id="stopka-strony">
           <button class="przycisk" data-akcja="strona-dodaj" data-ikona="plus" id="przycisk-dodaj-strone">Strona</button>
           <button class="przycisk" data-akcja="sekcja-dodaj" data-ikona="plus" title="Nowa sekcja z własnym formatem i marginesami">Sekcja</button>
-        </div>
-        <div class="stopka-panelu" id="stopka-wzorce" hidden>
-          <button class="przycisk pelny" data-akcja="wzorzec-dodaj" data-ikona="plus">Nowy wzorzec</button>
         </div>
       </aside>
 
@@ -420,17 +412,24 @@
         </div>
       </main>
 
-      <aside class="panel panel-inspektor" id="panel-inspektor" aria-label="Właściwości">
-        <div class="naglowek-panelu">
+      <aside class="panel panel-inspektor" id="panel-inspektor" aria-label="Właściwości i warstwy">
+        <div class="naglowek-panelu zakladki-panelu-opak">
+          <div class="przelacznik-segmentowy zakladki-listy" id="zakladki-panelu" role="radiogroup" aria-label="Panel">
+            <label><input type="radio" name="zakladka-panelu" value="wlasciwosci" checked><span>Właściwości</span></label>
+            <label><input type="radio" name="zakladka-panelu" value="warstwy"><span>Warstwy</span></label>
+          </div>
+          <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
+        </div>
+        <div class="naglowek-panelu" id="naglowek-wlasciwosci">
           <h2 id="tytul-wlasciwosci">Strona</h2>
           <div class="akcje-obiektu" id="akcje-obiektu" hidden>
             <button class="przycisk-ikona maly" data-akcja="kopiuj" data-ikona="wklej" title="Kopiuj do schowka – wkleisz na tej lub innej stronie (Ctrl+C)" aria-label="Kopiuj do schowka"></button>
             <button class="przycisk-ikona maly" data-akcja="duplikuj" data-ikona="kopiuj" title="Duplikuj (Ctrl+D)" aria-label="Duplikuj"></button>
             <button class="przycisk-ikona maly" data-akcja="usun" data-ikona="kosz" title="Usuń (Delete)" aria-label="Usuń"></button>
           </div>
-          <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
         </div>
         <div id="wlasciwosci" class="wlasciwosci"></div>
+        <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu" hidden></ol>
         <section class="sekcja-ostrzezen" id="sekcja-ostrzezen">
           <button class="naglowek-ostrzezen" id="naglowek-ostrzezen" aria-expanded="true">
             <span data-ikona="uwaga" data-rozmiar="16"></span> Ostrzeżenia <span class="licznik" id="licznik-ostrzezen">0</span>
@@ -686,6 +685,35 @@
     </form>
   </dialog>
 
+  <!-- Wzorce: szablony wspólnych elementów stron -->
+  <dialog id="dlg-wzorce" class="dialog-wzorce">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Wzorce</h2>
+        <button type="button" class="przycisk-ikona" id="wzorce-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Wzorzec to szablon z elementami wspólnymi dla wielu stron: tłem, stopką, numerem strony. Rysujesz go raz i dodajesz do stron albo do całej sekcji – zmiana we wzorcu zmienia wszystkie te strony.</p>
+      <fieldset class="grupa-pol">
+        <legend>Wzorce w tym projekcie</legend>
+        <ol class="galeria-wzorcow" id="lista-wzorcow"></ol>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="wzorzec-dodaj" data-ikona="plus">Nowy pusty wzorzec</button></div>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Wzorce standardowe</legend>
+        <p class="podpowiedz">Gotowe szablony dopasowane do formatu i marginesów bieżącej sekcji. Po dodaniu do projektu możesz je zmieniać jak własne.</p>
+        <ul class="galeria-wzorcow standardowe" id="wzorce-standardowe"></ul>
+      </fieldset>
+    </div>
+    <div class="menu menu-strony" id="menu-wzorca" role="menu" hidden>
+      <button role="menuitem" data-akcja="wzorzec-nazwa">Zmień nazwę</button>
+      <button role="menuitem" data-akcja="wzorzec-duplikuj">Duplikuj</button>
+      <button role="menuitem" data-akcja="wzorzec-gora" title="Wzorzec wyżej na liście leży niżej na stronie">Przesuń wyżej</button>
+      <button role="menuitem" data-akcja="wzorzec-dol">Przesuń niżej</button>
+      <hr>
+      <button role="menuitem" class="niebezpieczny" data-akcja="wzorzec-usun">Usuń wzorzec</button>
+    </div>
+  </dialog>
+
   <dialog id="dlg-kontrola" class="dialog-szeroki">
     <div class="formularz">
       <div class="naglowek-dialogu">
@@ -779,14 +807,6 @@
   </div>
 
   <!-- Menu kontekstowe wzorca -->
-  <div class="menu menu-strony" id="menu-wzorca" role="menu" hidden>
-    <button role="menuitem" data-akcja="wzorzec-nazwa">Zmień nazwę</button>
-    <button role="menuitem" data-akcja="wzorzec-duplikuj">Duplikuj</button>
-    <button role="menuitem" data-akcja="wzorzec-gora" title="Wzorzec wyżej na liście leży niżej na stronie">Przesuń wyżej</button>
-    <button role="menuitem" data-akcja="wzorzec-dol">Przesuń niżej</button>
-    <hr>
-    <button role="menuitem" class="niebezpieczny" data-akcja="wzorzec-usun">Usuń wzorzec</button>
-  </div>
 
   <!-- Dane: tabele projektu z lekkim edytorem -->
   <dialog id="dlg-dane" class="dialog-dane" aria-labelledby="dane-tytul">

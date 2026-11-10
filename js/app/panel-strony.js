@@ -80,7 +80,7 @@ export function nazwyWzorcow(ids) {
   return nazwy.length ? nazwy.join(', ') : 'bez wzorców';
 }
 
-async function poZmianieWzorcowStrony(strona) {
+export async function poZmianieWzorcowStrony(strona) {
   zapiszBiezacyCel();
   stan.miniatury.delete(strona.id);
   await zaladujCel();

@@ -398,7 +398,7 @@ async function przykladoweProjekty(strona) {
   await d.mouse.up();
 
   // Warstwy
-  await d.click('#zakladki-listy label:has-text("Warstwy")');
+  await d.click('#zakladki-panelu label:has-text("Warstwy")');
   await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
   await d.click('#lista-warstw li:has-text("Pas na notatki") .warstwa-oko');
   await d.hover('#lista-warstw li:has-text("Poniedziałek")');
@@ -407,7 +407,7 @@ async function przykladoweProjekty(strona) {
   await zrzut(d, 'warstwy.png', { clip: { x: 0, y: 56, width: 820, height: 480 } });
 
   // Dane, pola i serie: strona dnia powielana według tabeli
-  await d.click('#zakladki-listy label:has-text("Strony")');
+  await d.click('#zakladki-panelu label:has-text("Właściwości")');
   await d.evaluate(async () => {
     const { edytor: e, stan } = window.seriodruk;
     const p = stan.projekt;

@@ -55,8 +55,7 @@ import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje } from './app/sekcje.
 import { przejdzDoTrasy } from './app/trasy.js';
 import { wyloguj, konto, odswiezNaglowek, poZalogowaniu } from './app/logowanie.js';
 import {
-  dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron,
-  edytujWzorzec,
+  dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
 } from './app/wzorce.js';
 
 const OPIS_OSTRZEZEN = {
@@ -222,6 +221,7 @@ const akcje = {
   'sekcja-dol': przezMenu(sekcjaZMenu, (id) => przesunSekcje(id, 1)),
   'sekcja-usun': przezMenu(sekcjaZMenu, usunSekcje),
 
+  wzorce: otworzWzorce,
   'wzorzec-dodaj': dodajWzorzec,
   'wzorzec-nazwa': przezMenu(wzorzecZMenu, zmienNazweWzorca),
   'wzorzec-duplikuj': przezMenu(wzorzecZMenu, duplikujWzorzecZ),
@@ -254,9 +254,21 @@ const akcje = {
   'zoom-dopasuj': () => edytor.dopasujDoOkna(),
 };
 
-$('#zakladki-listy').addEventListener('change', (e) => {
-  ustawZakladke(e.target.value);
-  if (e.target.value === 'strony' && stan.tryb === 'wzorzec') wrocDoStron();
+$('#zakladki-panelu').addEventListener('change', (e) => ustawZakladke(e.target.value));
+
+// Okno „Wzorce”: dodawanie do strony i sekcji, edycja, wzorce standardowe.
+$('#wzorce-zamknij').addEventListener('click', () => $('#dlg-wzorce').close());
+$('#lista-wzorcow').addEventListener('click', (e) => {
+  const przycisk = e.target.closest('[data-op]');
+  const id = przycisk?.closest('li[data-id]')?.dataset.id;
+  if (!id) return;
+  if (przycisk.dataset.op === 'strona') przelaczWzorzecNaStronie(id);
+  if (przycisk.dataset.op === 'sekcja') przelaczWzorzecWSekcji(id);
+  if (przycisk.dataset.op === 'edytuj') edytujWzorzec(id);
+});
+$('#wzorce-standardowe').addEventListener('click', (e) => {
+  const klucz = e.target.closest('[data-standard]')?.dataset.standard;
+  if (klucz) dodajWzorzecStandardowy(klucz);
 });
 
 document.addEventListener('click', (e) => {

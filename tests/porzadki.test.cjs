@@ -89,13 +89,13 @@ test('lista stron: przeciągnięcie zmienia kolejność; wzorce: kolejność z m
 
   // Dwa wzorce; drugi przesunięty wyżej leży potem pierwszy na liście (czyli niżej na stronie).
   for (let i = 0; i < 2; i += 1) {
-    await strona.click('#zakladki-listy label:has-text("Wzorce")');
+    await strona.click('[data-akcja="wzorce"]');
     await strona.click('[data-akcja="wzorzec-dodaj"]');
     await strona.waitForFunction((n) => window.seriodruk.stan.projekt.wzorce.length === n, i + 1);
     await strona.click('[data-akcja="wroc-do-stron"]');
     await strona.waitForFunction(() => window.seriodruk.stan.tryb === 'strona');
   }
-  await strona.click('#zakladki-listy label:has-text("Wzorce")');
+  await strona.click('[data-akcja="wzorce"]');
   await strona.click('#lista-wzorcow li >> nth=1 >> .menu-miniatury');
   await strona.click('#menu-wzorca [data-akcja="wzorzec-gora"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.wzorce[0].nazwa === 'Wzorzec 2');

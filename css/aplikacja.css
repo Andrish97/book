@@ -1215,3 +1215,24 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 @media (max-height: 520px), (max-width: 600px) {
   .tylko-duzy-ekran { display: none !important; }
 }
+
+/* ---------- Okno „Wzorce” i zakładki prawego panelu ---------- */
+.dialog-wzorce { width: min(720px, calc(100vw - 24px)); }
+.galeria-wzorcow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.galeria-wzorcow > li.wzorzec { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); }
+.galeria-wzorcow > li.wzorzec.aktywna { border-color: var(--wzorzec); }
+.galeria-wzorcow .miniatura { width: 84px; padding: 0; border: 1px solid var(--linia-mocna); border-radius: 4px; background: #fff; cursor: pointer; overflow: hidden; display: block; }
+.galeria-wzorcow .miniatura img, .galeria-wzorcow .miniatura > * { display: block; width: 100%; height: auto; }
+.opis-wzorca { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.opis-wzorca strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opis-wzorca small { color: var(--cichy); font-size: 12.5px; line-height: 1.4; }
+.opis-wzorca .rzad-przyciskow { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+.galeria-wzorcow [aria-pressed="true"] { background: var(--akcent-tlo); border-color: var(--akcent); color: var(--na-akcencie-tle); }
+.galeria-wzorcow.standardowe { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.galeria-wzorcow.standardowe > li.wzorzec { grid-template-columns: minmax(0, 1fr) auto; }
+@media (max-width: 640px) { .galeria-wzorcow.standardowe { grid-template-columns: minmax(0, 1fr); } .galeria-wzorcow > li.wzorzec { grid-template-columns: 64px minmax(0, 1fr) auto; } .galeria-wzorcow .miniatura { width: 64px; } }
+.panel-strony .naglowek-panelu h2 { padding-left: 6px; }
+.zakladki-panelu-opak { padding: 8px 10px 0; min-height: 0; }
+.panel-inspektor .lista-warstw { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px 10px 12px; list-style: none; }
+#przycisk-wiecej ~ .menu { z-index: 60; }
+[data-akcja="wzorce"] .licznik { margin-left: 2px; }
