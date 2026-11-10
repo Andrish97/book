@@ -19,6 +19,7 @@
 
 import './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
+import { spakuj } from './pdf-x.js';
 
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
@@ -241,7 +242,8 @@ const bajtyZAdresu = async (src) => new Uint8Array(await (await fetch(src)).arra
 
 // Obrazy jednego pliku PDF: każdy plik graficzny jest w nim tylko raz, choćby był na stu stronach.
 export class ObrazyPdf {
-  constructor(pdf) { this.pdf = pdf; this.znane = new Map(); this.svg = new Map(); }
+  // silnik: przeliczanie przez profil drukarski (js/profil-icc.js) – wtedy obrazy trafiają do pliku w CMYK.
+  constructor(pdf, { silnik = null } = {}) { this.pdf = pdf; this.silnik = silnik; this.znane = new Map(); this.svg = new Map(); }
 
   // Rysunki SVG wśród obiektów (także w grupach) są rozkładane na kształty – raz na cały plik PDF.
   // this.svg: adres obrazu → { obiekty, w, h } albo { brak: powód } (wtedy rysunek idzie jako obraz).
@@ -307,9 +309,46 @@ export class ObrazyPdf {
 
   // el: <img>. Zwraca obietnicę obrazu PDF.
   osadz(el, { szerPx } = {}) {
-    const klucz = el.src;
-    if (!this.znane.has(klucz)) this.znane.set(klucz, this._osadz(el, szerPx));
+    // W CMYK obraz jest zapisywany w rozdzielczości, w jakiej jest użyty (zaokrąglonej w górę) –
+    // to samo zdjęcie użyte dużo większe dostaje osobną, dokładniejszą kopię.
+    const szer = this.silnik ? this._szerokoscCmyk(el, szerPx) : 0;
+    const klucz = this.silnik ? `${el.src}|${szer}` : el.src;
+    if (!this.znane.has(klucz)) this.znane.set(klucz, this.silnik ? this._osadzCmyk(el, szer) : this._osadz(el, szerPx));
     return this.znane.get(klucz);
+  }
+
+  _szerokoscCmyk(el, szerPx) {
+    const nw = el.naturalWidth || el.width; const nh = el.naturalHeight || el.height;
+    const wektor = /^data:image\/svg\+xml/i.test(el.src);
+    let szer = szerPx > 0 ? Math.ceil(szerPx / 64) * 64 : nw;
+    if (!wektor) szer = Math.min(nw, szer); // zdjęcia nie powiększamy ponad oryginał
+    return Math.max(1, Math.min(szer, Math.floor(Math.sqrt((MAX_PIKSELI_OBRAZU * nw) / nh))));
+  }
+
+  async _osadzCmyk(el, szer) {
+    const nw = el.naturalWidth || el.width; const nh = el.naturalHeight || el.height;
+    const plotno = document.createElement('canvas');
+    plotno.width = szer; plotno.height = Math.max(1, Math.round((szer * nh) / nw));
+    const c = plotno.getContext('2d');
+    c.imageSmoothingQuality = 'high';
+    c.drawImage(el, 0, 0, plotno.width, plotno.height);
+    return this.osadzPlotno(plotno);
+  }
+
+  // Piksele płótna → obraz PDF w CMYK (bezstratnie spakowany), przezroczystość jako osobna maska.
+  async _plotnoCmyk(plotno) {
+    const { width: w, height: h } = plotno;
+    const rgba = plotno.getContext('2d').getImageData(0, 0, w, h).data;
+    const ctx = this.pdf.context;
+    const opis = { Type: 'XObject', Subtype: 'Image', Width: w, Height: h, BitsPerComponent: 8, Filter: 'FlateDecode' };
+    let maska = null;
+    for (let i = 3; i < rgba.length; i += 4) if (rgba[i] < 255) { maska = new Uint8Array(w * h); break; }
+    if (maska) {
+      for (let i = 0; i < maska.length; i += 1) maska[i] = rgba[i * 4 + 3];
+      opis.SMask = ctx.register(ctx.stream(await spakuj(maska), { ...opis, ColorSpace: 'DeviceGray' }));
+    }
+    const ref = ctx.register(ctx.stream(await spakuj(this.silnik.obraz(rgba)), { ...opis, ColorSpace: 'DeviceCMYK' }));
+    return { ref };
   }
 
   async _osadz(el, szerPx) {
@@ -331,6 +370,7 @@ export class ObrazyPdf {
   }
 
   async osadzPlotno(plotno, bezPrzezroczystosci = false) {
+    if (this.silnik) { const obraz = await this._plotnoCmyk(plotno); plotno.width = 0; plotno.height = 0; return obraz; }
     const url = bezPrzezroczystosci ? plotno.toDataURL('image/jpeg', 0.92) : plotno.toDataURL('image/png');
     const obraz = await (bezPrzezroczystosci ? this.pdf.embedJpg(url) : this.pdf.embedPng(url));
     plotno.width = 0; plotno.height = 0;
@@ -473,7 +513,7 @@ class KontekstPdf {
 
   _kolor(k, obrys) {
     const [r, g, b] = k;
-    if (this.opcje.cmyk) return `${naCmyk([r, g, b]).map(L).join(' ')} ${obrys ? 'K' : 'k'}`;
+    if (this.opcje.cmyk) return `${this.opcje.naCmyk([r, g, b]).map(L).join(' ')} ${obrys ? 'K' : 'k'}`;
     return `${L(r)} ${L(g)} ${L(b)} ${obrys ? 'RG' : 'rg'}`;
   }
 
@@ -504,7 +544,7 @@ class KontekstPdf {
     const gradient = this._styl(this.fillStyle, false);
     if (gradient) {
       this._krycie(this.globalAlpha);
-      this.op.push(...czesci, parzyste ? 'W* n' : 'W n', `/${this.strona.cieniowanie(gradient, this.opcje.cmyk)} sh`);
+      this.op.push(...czesci, parzyste ? 'W* n' : 'W n', `/${this.strona.cieniowanie(gradient, this.opcje.cmyk ? this.opcje.naCmyk : null)} sh`);
     } else this.op.push(...czesci, parzyste ? 'f*' : 'f');
     this.op.push('Q');
   }
@@ -638,7 +678,8 @@ class KontekstPdf {
     if (svg?.brak) this.obrazyTeraz.add(svg.brak);
     // Szerokość w pikselach, jaką obraz zajmie w wybranej rozdzielczości – dla rysunków SVG.
     const skala = Math.hypot(this.m[0], this.m[1]);
-    const nazwa = this.strona.obraz(el, { szerPx: Math.abs(dw * (nw / sw)) * skala * this.opcje.pikseliNaJednostke });
+    // Szerokość całego obrazu w pikselach przy wybranej rozdzielczości (skala jest w punktach PDF na jednostkę, stąd dzielenie przez PT).
+    const nazwa = this.strona.obraz(el, { szerPx: (Math.abs(dw * (nw / sw)) * skala * this.opcje.pikseliNaJednostke) / PT });
     const kx = dw / sw; const ky = dh / sh;
     this.op.push('q');
     this._krycie(this.globalAlpha);
@@ -715,13 +756,14 @@ class StronaPdf {
 
   obrazGotowy(pdfImage) { return this._nazwa(pdfImage, (n) => this.strona.node.setXObject(n, pdfImage.ref)); }
 
+  // cmyk: funkcja przeliczająca kolor [r, g, b] na CMYK albo null (gradient zostaje w RGB).
   cieniowanie(g, cmyk) {
     return this._nazwa(g, (n) => {
       const kolory = [...g.kolory].sort((a, b) => a[0] - b[0]);
       if (!kolory.length) throw new Niewektorowe('gradient bez kolorów');
       if (kolory.some(([, k]) => k[3] < 1)) throw new Niewektorowe('gradient z przezroczystością');
       if (kolory.length === 1) kolory.push([1, kolory[0][1]]);
-      const barwa = (k) => (cmyk ? naCmyk(k) : k.slice(0, 3));
+      const barwa = (k) => (cmyk ? cmyk(k) : k.slice(0, 3));
       // Punkty od 0 do 1: kolor przed pierwszym i za ostatnim przystankiem jest stały.
       const pkt = kolory.map(([miejsce, k]) => [miejsce, barwa(k)]);
       if (pkt[0][0] > 0) pkt.unshift([0, pkt[0][1]]);
@@ -750,7 +792,9 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
   await obrazy.przygotujSvg(obiekty, czcionki);
   const dolicz = (mapa, powody) => { if (mapa) for (const p of powody) mapa.set(p, (mapa.get(p) || 0) + 1); };
   const zasoby = new StronaPdf(PDFLib, pdf, strona, obrazy);
-  const opcje = { cmyk, krzywe, pikseliNaJednostke: dpi / 25.4 };
+  // Kolory tekstu i kształtów w CMYK: przez profil drukarni, gdy jest (PDF/X), inaczej prostym wzorem.
+  const { silnik = null } = srodowisko;
+  const opcje = { cmyk, krzywe, pikseliNaJednostke: dpi / 25.4, naCmyk: silnik ? (k) => silnik.wektor(k[0], k[1], k[2]) : naCmyk };
   const ctx = new KontekstPdf(zasoby, czcionki, opcje);
   const pole = [-m.spad, -m.spad, m.w + 2 * m.spad, m.h + 2 * m.spad];
 
@@ -815,7 +859,7 @@ async function wstawJakoObraz(ctx, zasoby, obrazy, o, pole, dpi) {
   plotno.setViewportTransform([k, 0, 0, k, -x0 * k, -y0 * k]);
   plotno.add(o);
   plotno.renderAll();
-  const obraz = await obrazy.pdf.embedPng(plotno.toDataURL({ format: 'png' }));
+  const obraz = await obrazy.osadzPlotno(plotno.toCanvasElement());
   plotno.remove(o);
   plotno.dispose();
   const nazwa = zasoby.obrazGotowy(obraz);
