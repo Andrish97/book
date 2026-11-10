@@ -5,6 +5,7 @@ const P = {
   prostokat: '<rect x="4" y="6" width="16" height="12" rx="1.5"/>',
   elipsa: '<ellipse cx="12" cy="12" rx="8" ry="6.5"/>',
   linia: '<path d="M5 19 19 5"/>',
+  wielokat: '<path d="M12 4.5 20 19H4z"/>',
   obraz: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m20.5 16-4.5-4.5L6 19.5"/>',
   cofnij: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   ponow: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',

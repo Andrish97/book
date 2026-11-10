@@ -27,7 +27,22 @@ export const WLASNE_POLA = [
   'pole', 'autodopasowanie', 'min_rozmiar',
   'ramka_h', 'wyrownanie_pion', 'rozmiar_bazowy', // ramka tekstu o stałej wysokości (tekst-ramka.js)
   'ramka_pola',
+  'boki', 'gwiazda', // wielokąt foremny albo gwiazda (punkty liczone z tych dwóch liczb)
 ];
+
+// Punkty wielokąta foremnego (albo gwiazdy) wpisanego w okrąg o promieniu r,
+// z wierzchołkiem u góry.
+export function punktyWielokata(boki, gwiazda = false, r = 20) {
+  const n = Math.min(24, Math.max(3, Math.round(boki) || 3));
+  const punkty = [];
+  const krokow = gwiazda ? n * 2 : n;
+  for (let i = 0; i < krokow; i += 1) {
+    const promien = gwiazda && i % 2 ? r * 0.45 : r;
+    const kat = (i / krokow) * 2 * Math.PI - Math.PI / 2;
+    punkty.push({ x: r + promien * Math.cos(kat), y: r + promien * Math.sin(kat) });
+  }
+  return punkty;
+}
 
 const MAKS_HISTORIA = 60;
 
@@ -130,6 +145,10 @@ export class Edytor extends EventTarget {
     });
     c.on('object:removed', () => this.oznaczZmiane());
     c.on('text:editing:exited', () => this.oznaczZmiane());
+    // Kadrowanie: podwójne kliknięcie obrazu zaczyna, kliknięcie poza ramką kończy.
+    c.on('mouse:dblclick', (e) => { if (e.target?.type === 'image' && !e.target.zWzorca) this.kadruj(e.target); });
+    c.on('selection:cleared', () => { if (this._kadr) this.zakonczKadrowanie(true); });
+    c.on('selection:updated', () => { if (this._kadr && this.aktywny !== this._kadr.ramka) this.zakonczKadrowanie(true); });
     c.on('text:changed', () => this._emitujZaznaczenie());
     c.on('text:selection:changed', () => this._emitujZaznaczenie());
     c.on('text:editing:entered', () => this._emitujZaznaczenie());
@@ -398,7 +417,7 @@ export class Edytor extends EventTarget {
   // ---------- Zmiany i historia (cofanie) ----------
 
   oznaczZmiane() {
-    if (this._wczytywanie) return;
+    if (this._wczytywanie || this._kadr) return;
     this.przeliczOstrzezenia();
     this.dispatchEvent(new Event('zmiana'));
     clearTimeout(this._timerHistorii);
@@ -499,6 +518,28 @@ export class Edytor extends EventTarget {
       ...this._srodek(36, 24), rx: 18, ry: 12,
       fill: '#f2e2d9', stroke: '#1a1a1a', strokeWidth: 0.3, strokeUniform: true,
     }));
+  }
+
+  // Wielokąt foremny (domyślnie trójkąt); liczbę boków i gwiazdę zmienia się we właściwościach.
+  dodajWielokat(boki = 3, gwiazda = false) {
+    const p = new fabric.Polygon(punktyWielokata(boki, gwiazda, 18), {
+      fill: '#e2f2d9', stroke: '#1a1a1a', strokeWidth: 0.3, strokeUniform: true, boki, gwiazda: gwiazda || undefined,
+    });
+    p.set(this._srodek(p.width, p.height));
+    return this._wstaw(p);
+  }
+
+  // Zmienia liczbę boków wielokąta albo robi z niego gwiazdę; środek i wielkość zostają.
+  przeksztalcWielokat(obj, boki, gwiazda) {
+    const srodek = obj.getCenterPoint();
+    const [w, h] = [obj.getScaledWidth(), obj.getScaledHeight()];
+    obj.set({ boki: Math.min(24, Math.max(3, Math.round(boki) || 3)), gwiazda: gwiazda || undefined });
+    obj.set({ points: punktyWielokata(obj.boki, gwiazda, 18) });
+    obj._setPositionDimensions({});
+    obj.set({ scaleX: w / (obj.width + obj.strokeWidth), scaleY: h / (obj.height + obj.strokeWidth) });
+    obj.setPositionByOrigin(srodek, 'center', 'center');
+    obj.dirty = true;
+    obj.setCoords();
   }
 
   dodajLinie() {
@@ -725,7 +766,7 @@ export class Edytor extends EventTarget {
 
   // Elementy, które da się zaznaczyć (bez elementów wzorców i ukrytych).
   _zaznaczalne() {
-    return this.canvas.getObjects().filter((o) => !o.zWzorca && o.visible !== false && o.selectable !== false);
+    return this.canvas.getObjects().filter((o) => !o.zWzorca && !o.kadr && o.visible !== false && o.selectable !== false);
   }
 
   zaznaczWszystko() {
@@ -910,7 +951,7 @@ export class Edytor extends EventTarget {
     const tol = 0.05;
     const lista = [];
     for (const o of this.canvas.getObjects()) {
-      if (o.bez_ostrzezen || o.zWzorca) continue;
+      if (o.bez_ostrzezen || o.zWzorca || o.kadr || o === this._kadr?.obj) continue;
       o.setCoords();
       const r = o.getBoundingRect(true, true);
       const x1 = r.left; const y1 = r.top;
@@ -1129,13 +1170,65 @@ export class Edytor extends EventTarget {
     }));
   }
 
+  // ---------- Kadrowanie obrazu przeciąganiem ----------
+  // Na czas kadrowania obraz pokazuje się cały, a ramka z uchwytami wyznacza
+  // widoczny fragment. Reszta obrazu jest przyciemniona.
+
+  get kadruje() { return Boolean(this._kadr); }
+
+  kadruj(obj) {
+    if (this._kadr || !obj || obj.type !== 'image' || obj.zablokowany) return false;
+    // Obrócone i odbite obrazy kadruje się liczbami w panelu.
+    if ((obj.angle || 0) % 360 !== 0 || obj.flipX || obj.flipY || obj.group) return false;
+    const el = obj.getElement();
+    const nw = el.naturalWidth || el.width;
+    const nh = el.naturalHeight || el.height;
+    const start = { cropX: obj.cropX, cropY: obj.cropY, width: obj.width, height: obj.height, left: obj.left, top: obj.top };
+    const ramka = new fabric.Rect({
+      left: obj.left, top: obj.top, width: obj.width * obj.scaleX, height: obj.height * obj.scaleY,
+      fill: 'rgba(0,0,0,0)', strokeWidth: 0, excludeFromExport: true, kadr: true, lockRotation: true,
+    });
+    ramka.setControlsVisibility({ mtr: false });
+    this._kadr = { obj, ramka, start, nw, nh };
+    obj.set({ left: obj.left - obj.cropX * obj.scaleX, top: obj.top - obj.cropY * obj.scaleY, cropX: 0, cropY: 0, width: nw, height: nh, selectable: false, evented: false });
+    obj.setCoords();
+    this.canvas.add(ramka);
+    this.canvas.setActiveObject(ramka);
+    this.canvas.requestRenderAll();
+    return true;
+  }
+
+  zakonczKadrowanie(zatwierdz = true) {
+    const k = this._kadr;
+    if (!k) return;
+    const { obj, ramka, start, nw, nh } = k;
+    const r = { x1: ramka.left, y1: ramka.top, x2: ramka.left + ramka.getScaledWidth(), y2: ramka.top + ramka.getScaledHeight() };
+    this._kadr = null;
+    this.canvas.remove(ramka);
+    if (zatwierdz) {
+      // Ramka przycięta do obrazu; co najmniej 5% jego boku.
+      const [ix, iy, iw, ih] = [obj.left, obj.top, nw * obj.scaleX, nh * obj.scaleY];
+      const x1 = Math.min(Math.max(r.x1, ix), ix + iw * 0.95);
+      const y1 = Math.min(Math.max(r.y1, iy), iy + ih * 0.95);
+      const x2 = Math.min(Math.max(r.x2, x1 + iw * 0.05), ix + iw);
+      const y2 = Math.min(Math.max(r.y2, y1 + ih * 0.05), iy + ih);
+      obj.set({ cropX: (x1 - ix) / obj.scaleX, cropY: (y1 - iy) / obj.scaleY, width: (x2 - x1) / obj.scaleX, height: (y2 - y1) / obj.scaleY, left: x1, top: y1 });
+    } else obj.set(start);
+    obj.set({ selectable: true, evented: true });
+    obj.setCoords();
+    this.canvas.setActiveObject(obj);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
   // ---------- Warstwy ----------
 
   // Elementy arkusza od wierzchu do spodu (bez elementów wzorców).
   warstwy() {
     const akt = this.aktywny;
     const zaznaczone = new Set(akt ? (akt.type === 'activeSelection' ? akt.getObjects() : [akt]) : []);
-    return this.canvas.getObjects().filter((o) => !o.zWzorca).reverse().map((o) => ({
+    return this.canvas.getObjects().filter((o) => !o.zWzorca && !o.kadr).reverse().map((o) => ({
       id: o.id, typ: o.type, opis: opisObiektu(o), ukryty: o.visible === false, zablokowany: Boolean(o.zablokowany), zaznaczony: zaznaczone.has(o),
     }));
   }
@@ -1274,6 +1367,16 @@ export class Edytor extends EventTarget {
     }
 
     if (this.pokazProwadnice) this._podswietlPola(ctx, X, Y);
+
+    // Kadrowanie: część obrazu poza ramką jest przyciemniona.
+    if (this._kadr) {
+      const { obj, ramka, nw, nh } = this._kadr;
+      ctx.fillStyle = 'rgba(28, 27, 25, 0.55)';
+      ctx.beginPath();
+      ctx.rect(X(obj.left), Y(obj.top), nw * obj.scaleX * s, nh * obj.scaleY * s);
+      ctx.rect(X(ramka.left), Y(ramka.top), ramka.getScaledWidth() * s, ramka.getScaledHeight() * s);
+      ctx.fill('evenodd');
+    }
 
     // Prowadnice własne (i ta właśnie przeciągana – z położeniem w mm).
     if (this.pokazProwadnice || this._prowadnicaWRuchu) {
@@ -1504,7 +1607,7 @@ function utrwalSkaleTekstu(obj) {
 
 const NAZWY_TYPOW = {
   textbox: 'Tekst', 'i-text': 'Tekst', text: 'Tekst', rect: 'Prostokąt',
-  ellipse: 'Elipsa', line: 'Linia', image: 'Obraz', group: 'Grupa',
+  ellipse: 'Elipsa', line: 'Linia', image: 'Obraz', group: 'Grupa', polygon: 'Wielokąt',
 };
 
 export function opisObiektu(o) {

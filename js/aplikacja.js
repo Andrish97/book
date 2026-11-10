@@ -1982,6 +1982,7 @@ const akcje = {
   'dodaj-prostokat': () => edytor.dodajProstokat(),
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
+  'dodaj-wielokat': () => edytor.dodajWielokat(),
   'dodaj-obraz': () => $('#plik-obraz').click(),
   cofnij: () => (edytor.moznaCofnac || !stan.doCofniecia ? edytor.cofnij() : cofnijOperacje()),
   ponow: () => edytor.ponow(),
@@ -2160,6 +2161,7 @@ document.addEventListener('keydown', (e) => {
   const cel = e.target;
   const wPolu = Boolean(cel !== document.body && cel.closest('input, textarea:not([data-fabric-hiddentextarea]), select, [contenteditable]'));
   const wEdycji = Boolean(edytor.aktywny?.isEditing);
+  if (edytor.kadruje && !wPolu && (e.key === 'Enter' || e.key === 'Escape')) { e.preventDefault(); edytor.zakonczKadrowanie(e.key === 'Enter'); return; }
   if (e.code === 'Space' && !wPolu && !wEdycji) { e.preventDefault(); edytor.ustawReke(true); return; }
   obsluzKlawisz(e, kontekstSkrotow, { wPolu, wEdycji });
 });

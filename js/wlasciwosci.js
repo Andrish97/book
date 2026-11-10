@@ -6,10 +6,10 @@ import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
-import { zapytajONazwe, potwierdz } from './ui.js';
+import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
-const KSZTALTY = new Set(['rect', 'ellipse']);
+const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
 
 const zaokr = (v, miejsc = 2) => {
   const k = 10 ** miejsc;
@@ -57,6 +57,13 @@ export class PanelWlasciwosci {
       this.opcje.budujPusty(this);
       return;
     }
+    if (obj.kadr) {
+      this.tytul.textContent = 'Kadrowanie';
+      const s = this.sekcja('Kadr');
+      s.append(this.wskazowka('Przesuń i rozciągnij ramkę – zostanie tylko jasna część obrazu. Enter zatwierdza, Esc anuluje.'));
+      s.append(this.akcje([['ok', 'Zastosuj', () => this.edytor.zakonczKadrowanie(true)], ['zamknij', 'Anuluj', () => this.edytor.zakonczKadrowanie(false)]]));
+      return;
+    }
     if (obj.type === 'activeSelection') {
       this.tytul.textContent = `Zaznaczone elementy: ${obj.size()}`;
       const s = this.sekcja('Zaznaczenie');
@@ -76,6 +83,7 @@ export class PanelWlasciwosci {
 
     this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
+    this.zbudujCien(obj);
     const inne = this.sekcja('Inne');
     inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
@@ -356,13 +364,62 @@ export class PanelWlasciwosci {
   }
 
   zbudujWypelnienie(obj) {
+    if (obj.type === 'polygon') {
+      const k = this.sekcja('Kształt');
+      k.append(this.liczba('Liczba boków', () => obj.boki || obj.points.length, (v) => this.edytor.przeksztalcWielokat(obj, v, obj.gwiazda), { krok: 1, min: 3 }));
+      k.append(this.przelacznik('Gwiazda', () => Boolean(obj.gwiazda), (v) => this.edytor.przeksztalcWielokat(obj, obj.boki || 5, v)));
+    }
     const s = this.sekcja('Wypełnienie i obrys');
-    s.append(this.kolor('Wypełnienie', () => obj.fill, (v) => obj.set('fill', v), { brak: true }));
+    // Wypełnienie: jeden kolor albo przejście między dwoma (gradient liniowy).
+    const gradient = () => (obj.fill && typeof obj.fill === 'object' && obj.fill.colorStops ? obj.fill : null);
+    const KIERUNKI = { poziomo: [0, 0, 1, 0], pionowo: [0, 0, 0, 1], ukos: [0, 0, 1, 1] };
+    const kierunek = () => { const c = gradient()?.coords; return c ? (Object.keys(KIERUNKI).find((n) => KIERUNKI[n].join() === [c.x1, c.y1, c.x2, c.y2].join()) || 'poziomo') : 'poziomo'; };
+    const ustawGradient = (od, do_, jak = kierunek()) => {
+      const [x1, y1, x2, y2] = KIERUNKI[jak];
+      obj.set('fill', new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage', coords: { x1, y1, x2, y2 }, colorStops: [{ offset: 0, color: od }, { offset: 1, color: do_ }] }));
+    };
+    const kolorOd = () => (gradient() ? gradient().colorStops[0].color : obj.fill);
+    const kolorDo = () => gradient()?.colorStops.at(-1).color || '#ffffff';
+    s.append(this.kolor(gradient() ? 'Wypełnienie – od' : 'Wypełnienie', kolorOd, (v) => (gradient() && v ? ustawGradient(v, kolorDo()) : obj.set('fill', v)), { brak: true }));
+    if (gradient()) s.append(this.kolor('Wypełnienie – do', kolorDo, (v) => ustawGradient(kolorOd(), v)));
+    const przejscie = this.przelacznik('Przejście kolorów (gradient)', () => Boolean(gradient()), (v) => {
+      if (v) ustawGradient(naHex(obj.fill) || '#2f5bd3', '#ffffff'); else obj.set('fill', kolorOd());
+      this.zbuduj();
+    });
+    s.append(przejscie);
+    if (gradient()) {
+      const kier = this.segmenty('Kierunek przejścia', [
+        ['wyrownajSrodekY', 'Poziomo', () => kierunek() === 'poziomo', () => ustawGradient(kolorOd(), kolorDo(), 'poziomo')],
+        ['wyrownajSrodekX', 'Pionowo', () => kierunek() === 'pionowo', () => ustawGradient(kolorOd(), kolorDo(), 'pionowo')],
+        ['linia', 'Po skosie', () => kierunek() === 'ukos', () => ustawGradient(kolorOd(), kolorDo(), 'ukos')],
+      ]);
+      s.append(kier);
+    }
     s.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
     s.append(this.liczba('Grubość obrysu', () => zaokr(obj.strokeWidth, 2), (v) => obj.set({ strokeWidth: Math.max(0, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0 }));
     if (obj.type === 'rect') {
       s.append(this.liczba('Zaokrąglenie', () => zaokr(obj.rx || 0, 1), (v) => obj.set({ rx: Math.max(0, v), ry: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
     }
+  }
+
+  // Cień: przesunięcie i rozmycie w mm, kolor z przezroczystością.
+  zbudujCien(obj) {
+    if (obj.type === 'activeSelection' || obj.type === 'group') return;
+    const c = this.sekcja('Cień');
+    const kolorCienia = () => new fabric.Color(obj.shadow?.color || 'rgba(0,0,0,0.35)');
+    const ustaw = (zmiana) => {
+      const k = kolorCienia();
+      const obecny = { hex: `#${k.toHex()}`, moc: k.getAlpha(), x: obj.shadow?.offsetX ?? 1.5, y: obj.shadow?.offsetY ?? 1.5, blur: obj.shadow?.blur ?? 3, ...zmiana };
+      const [r, g, b] = new fabric.Color(obecny.hex).getSource();
+      obj.set('shadow', new fabric.Shadow({ color: `rgba(${r},${g},${b},${obecny.moc})`, offsetX: obecny.x, offsetY: obecny.y, blur: obecny.blur }));
+    };
+    c.append(this.przelacznik('Cień pod elementem', () => Boolean(obj.shadow), (v) => { if (v) ustaw({}); else obj.set('shadow', null); this.zbuduj(); }));
+    if (!obj.shadow) return;
+    c.append(this.kolor('Kolor cienia', () => `#${kolorCienia().toHex()}`, (v) => ustaw({ hex: v })));
+    c.append(this.liczba('Siła', () => Math.round(kolorCienia().getAlpha() * 100), (v) => ustaw({ moc: Math.min(100, Math.max(5, v)) / 100 }), { jednostka: '%', krok: 5, min: 5 }));
+    c.append(this.liczba('W prawo', () => zaokr(obj.shadow.offsetX, 1), (v) => ustaw({ x: v }), { jednostka: 'mm', krok: 0.5 }));
+    c.append(this.liczba('W dół', () => zaokr(obj.shadow.offsetY, 1), (v) => ustaw({ y: v }), { jednostka: 'mm', krok: 0.5 }));
+    c.append(this.liczba('Rozmycie', () => zaokr(obj.shadow.blur, 1), (v) => ustaw({ blur: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
   }
 
   zbudujLinie(obj) {
@@ -375,6 +432,9 @@ export class PanelWlasciwosci {
     const el = obj.getElement();
     const nw = el.naturalWidth || el.width;
     const nh = el.naturalHeight || el.height;
+    const kadr = this.sekcja('Kadrowanie');
+    kadr.append(this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Obrócony, odbity albo zablokowany obraz przytnij liczbami poniżej.'); }]]));
+    kadr.append(this.wskazowka('Albo kliknij obraz dwa razy.'));
     const s = this.sekcja('Przycięcie (% oryginału)');
     const kraw = () => ({
       l: obj.cropX / nw,

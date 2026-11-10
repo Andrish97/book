@@ -137,3 +137,77 @@ test('wzorzec z odbiciem lustrzanym odbija także układ wewnątrz grupy', async
   assert.deepEqual(srodki, { prawa: { a: 105, b: 135 }, lewa: { a: 43, b: 13 } });
   assert.deepEqual(bledy, []);
 });
+
+test('kształty: wielokąt i gwiazda, wypełnienie gradientem, cień – zapisują się i rysują w podglądzie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kształty');
+  await strona.keyboard.press('p');
+  const ksztalt = () => strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; const c = o.getCenterPoint(); return { typ: o.type, punkty: o.points.length, srodek: [Math.round(c.x), Math.round(c.y)], szer: Math.round(o.getScaledWidth()) }; });
+  const start = await ksztalt();
+  assert.deepEqual([start.typ, start.punkty], ['polygon', 3]);
+
+  await strona.fill('#wlasciwosci label:has-text("Liczba boków") input', '5');
+  await strona.press('#wlasciwosci label:has-text("Liczba boków") input', 'Tab');
+  await strona.check('#wlasciwosci label:has-text("Gwiazda") input');
+  const gwiazda = await ksztalt();
+  assert.equal(gwiazda.punkty, 10);
+  assert.deepEqual(gwiazda.srodek, start.srodek, 'środek zostaje w miejscu');
+
+  await strona.check('#wlasciwosci label:has-text("Przejście kolorów") input');
+  await strona.click('#wlasciwosci button[title="Pionowo"]');
+  await strona.check('#wlasciwosci label:has-text("Cień pod elementem") input');
+  await strona.fill('#wlasciwosci label:has-text("Rozmycie") input', '4');
+  await strona.press('#wlasciwosci label:has-text("Rozmycie") input', 'Tab');
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  const zapis = await strona.evaluate(() => { const o = window.seriodruk.stan.projekt.strony[0].obiekty[0]; return { boki: o.boki, gwiazda: o.gwiazda, gradient: [o.fill.type, o.fill.coords.y2, o.fill.colorStops.length], cien: [o.shadow.blur, o.shadow.offsetX] }; });
+  assert.deepEqual(zapis, { boki: 5, gwiazda: true, gradient: ['linear', 1, 2], cien: [4, 1.5] });
+
+  // Po ponownym otwarciu kształt wraca z gradientem i cieniem, a strona daje się narysować.
+  await strona.reload();
+  await strona.click('#tryb-lokalny');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.canvas.getObjects().length === 1);
+  const poWczytaniu = await strona.evaluate(async () => {
+    const o = window.seriodruk.edytor.canvas.getObjects()[0];
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const p = window.seriodruk.stan.projekt;
+    const url = await renderujCel(p, p.strony[0], { szerokoscPx: 200 });
+    return [o.points.length, typeof o.fill, Boolean(o.shadow), url.startsWith('data:image/png')];
+  });
+  assert.deepEqual(poWczytaniu, [10, 'object', true, true]);
+  assert.deepEqual(bledy, []);
+});
+
+test('kadrowanie obrazu przeciąganiem: ramka wyznacza fragment, Enter zatwierdza, Esc anuluje', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kadr');
+  // Obraz 200 × 100 px wstawiony w skali 0,5 mm/px: 100 × 50 mm w punkcie (20, 30).
+  await strona.evaluate(async () => {
+    const c = document.createElement('canvas'); c.width = 200; c.height = 100;
+    const x = c.getContext('2d'); x.fillStyle = '#2f5bd3'; x.fillRect(0, 0, 200, 100);
+    const { edytor, stan } = window.seriodruk;
+    const img = await edytor.dodajObraz(c.toDataURL('image/png'), 'niebieski.png', stan.projekt.zasoby);
+    img.set({ left: 20, top: 30, scaleX: 0.5, scaleY: 0.5 });
+    edytor.zatwierdz();
+  });
+  const obraz = () => strona.evaluate(() => { const o = window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'image'); return [o.left, o.top, o.cropX, o.cropY, o.width, o.height].map((v) => Math.round(v)); });
+  assert.deepEqual(await obraz(), [20, 30, 0, 0, 200, 100]);
+
+  await strona.click('#wlasciwosci button:has-text("Kadruj przeciąganiem")');
+  assert.equal(await strona.textContent('#tytul-wlasciwosci'), 'Kadrowanie');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.kadruje), true);
+  // Ramka zwężona do prawej połowy i dolnych 60% obrazu.
+  await strona.evaluate(() => { const r = window.seriodruk.edytor.aktywny; r.set({ left: 70, top: 50, width: 50, height: 30, scaleX: 1, scaleY: 1 }); r.setCoords(); });
+  await strona.keyboard.press('Enter');
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.kadruje), false);
+  // 50 mm od lewej krawędzi obrazu = 100 px, 20 mm od góry = 40 px; treść obrazu nie zmienia miejsca.
+  assert.deepEqual(await obraz(), [70, 50, 100, 40, 100, 60]);
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().length), 1, 'ramka kadrowania znika');
+
+  // Drugie kadrowanie pokazuje cały obraz; Esc przywraca poprzedni kadr.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.kadruj(e.aktywny); e.aktywny.set({ left: 20, top: 30, width: 10, height: 10 }); });
+  await strona.keyboard.press('Escape');
+  assert.deepEqual(await obraz(), [70, 50, 100, 40, 100, 60]);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.length), 1);
+  assert.deepEqual(bledy, []);
+});

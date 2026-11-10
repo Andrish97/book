@@ -5,7 +5,7 @@
 import { ikona } from './ikony.js';
 import { zapytajONazwe } from './ui.js';
 
-const IKONY_TYPOW = { textbox: 'tekst', rect: 'prostokat', ellipse: 'elipsa', line: 'linia', image: 'obraz', group: 'grupuj' };
+const IKONY_TYPOW = { textbox: 'tekst', rect: 'prostokat', ellipse: 'elipsa', line: 'linia', image: 'obraz', group: 'grupuj', polygon: 'wielokat' };
 
 export class PanelWarstw {
   constructor(lista, edytor) {
