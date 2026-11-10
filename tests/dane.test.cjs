@@ -299,3 +299,100 @@ test('ramka tekstu i obraz z kolumny: stała wysokość, wyrównanie w pionie, z
   assert.notEqual(kolory[2][0], '255,255,255', 'brak pliku: w ramce znak zastępczy');
   assert.deepEqual(bledy, []);
 });
+
+test('szablon danych i kontrola przed drukiem: brakujące kolumny, plik Excela z instrukcją, pilnowanie powtórzeń', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Planer');
+  const obliczenia = await strona.evaluate(async () => {
+    const { stan, zapiszTeraz } = window.seriodruk;
+    const p = stan.projekt;
+    await zapiszTeraz();
+    p.tabele.push({ id: 't1', nazwa: 'Dni', kolumny: ['dzien', 'tag'], wiersze: [['1', 'praca'], ['2', 'dom'], ['3', 'praca'], ['4', '']], unikalne: ['tag'] });
+    p.serie.push({ id: 'se1', nazwa: 'Dni', tabela: 't1', tryb: 'tabela', uklad: 'szeroki', ile: 1 });
+    p.zasoby.z1 = { nazwa: 'slonce.png', dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==' };
+    p.strony[0].seria = 'se1';
+    p.strony[0].nazwa = 'Dzień';
+    p.strony[0].obiekty = [
+      { type: 'textbox', version: '5.3.0', left: 10, top: 10, width: 100, text: '{dzien} – {tag}, {pogoda}, strona {nr}', styles: [], fontSize: 5, fontFamily: 'Inter', id: 'o1' },
+      { type: 'image', version: '5.3.0', left: 10, top: 40, width: 2, height: 2, scaleX: 10, scaleY: 10, zasob: 'z1', src: 'zasob:z1', pole: { kolumna: 'ikona' }, id: 'o2' },
+    ];
+    await window.seriodruk.przeladuj(); // płótno wczytuje stronę od nowa
+    const k = await import('./js/kontrola.js');
+    const seria = p.serie[0];
+    const szablon = k.szablonSerii(p, seria);
+    return {
+      potrzebne: k.kolumnySerii(p, seria).map((x) => [x.nazwa, x.obraz, x.strony]),
+      brak: k.brakujaceKolumny(p, seria),
+      szablon: [szablon.nazwa, szablon.kolumny, szablon.wiersze[0], szablon.instrukcja.slice(4).map((w) => w[0])],
+      powtorzenia: k.powtorzenia(p.tabele[0], 'tag'),
+      uwagi: k.sprawdzProjekt(p).map((u) => [u.rodzaj, u.strony, u.opis]),
+    };
+  });
+  // {nr} to pole dokumentu – nie jest kolumną; {ikona} to obraz z kolumny.
+  assert.deepEqual(obliczenia.potrzebne, [['dzien', false, ['Dzień']], ['tag', false, ['Dzień']], ['pogoda', false, ['Dzień']], ['ikona', true, ['Dzień']]]);
+  assert.deepEqual(obliczenia.brak, ['pogoda', 'ikona']);
+  assert.deepEqual(obliczenia.szablon, ['Dni', ['dzien', 'tag', 'pogoda', 'ikona'], ['1', 'praca', '', ''], ['dzien', 'tag', 'pogoda', 'ikona']]);
+  assert.deepEqual(obliczenia.powtorzenia, [{ wartosc: 'praca', wiersze: [0, 2] }]);
+  assert.deepEqual(obliczenia.uwagi, [
+    ['nieznane_pole', [1, 2, 3, 4], 'Pole {pogoda} nie ma skąd wziąć wartości (nie ma takiej kolumny ani pola dokumentu) – strony 1, 2, 3 i 4.'],
+    ['nieznane_pole', [1, 2, 3, 4], 'Pole {ikona} nie ma skąd wziąć wartości (nie ma takiej kolumny ani pola dokumentu) – strony 1, 2, 3 i 4.'],
+    ['powtorzenie', [1, 3], 'Wartość „praca” z kolumny „tag” (tabela „Dni”) powtarza się na stronach 1 i 3.'],
+  ]);
+
+  // Okno serii: opis pól, dodanie brakujących kolumn, szablon w Excelu.
+  await strona.evaluate(() => window.seriodruk.dane.otworzSerie('se1'));
+  await strona.waitForSelector('#dlg-seria[open]');
+  assert.equal(await strona.textContent('#seria-pola-opis'), 'Pola na stronach serii: {dzien}, {tag}, {pogoda}, {ikona}. W tabeli brakuje kolumn: pogoda, ikona.');
+  await strona.click('#seria-dodaj-kolumny');
+  assert.equal(await strona.textContent('#seria-pola-opis'), 'Pola na stronach serii: {dzien}, {tag}, {pogoda}, {ikona}. Tabela ma wszystkie potrzebne kolumny.');
+  assert.ok(await strona.isHidden('#seria-dodaj-kolumny'));
+  const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#seria-szablon')]);
+  assert.equal(plik.suggestedFilename(), 'Planer - Dni - szablon.xlsx');
+  const arkusze = await strona.evaluate(async () => {
+    const wb = window.XLSX.read(await window.seriodruk.dane.ostatniSzablon.arrayBuffer(), { type: 'array' });
+    return wb.SheetNames.map((n) => [n, window.XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' })]);
+  });
+  assert.deepEqual(arkusze[0], ['Dni', [['dzien', 'tag', 'pogoda', 'ikona'], ['1', 'praca', '', ''], ['2', 'dom', '', ''], ['3', 'praca', '', ''], ['4', '', '', '']]]);
+  assert.equal(arkusze[1][0], 'Instrukcja');
+  assert.deepEqual(arkusze[1][1][5], ['tag', 'Dzień', 'Tekst, który pojawi się w miejscu {tag}. Wartości nie mogą się powtarzać.']);
+  assert.deepEqual(arkusze[1][1][7], ['ikona', 'Dzień', 'Nazwę pliku obrazu wgranego do projektu, np. zdjecie.jpg.']);
+  await strona.click('#dlg-seria #zapisz-serie');
+
+  // Wypełniony szablon wraca importem: dane podmienione, arkusz „Instrukcja” pominięty, pilnowanie zostaje.
+  const wypelniony = await strona.evaluate(async () => {
+    const wb = window.XLSX.read(await window.seriodruk.dane.ostatniSzablon.arrayBuffer(), { type: 'array' });
+    window.XLSX.utils.sheet_add_aoa(wb.Sheets.Dni, [['1', 'praca', 'słońce', 'slonce'], ['2', 'dom', 'deszcz', 'chmura.png'], ['3', 'ogród', 'wiatr', '']], { origin: 'A2' });
+    return window.XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+  });
+  await strona.evaluate(() => window.seriodruk.dane.otworz('t1'));
+  await strona.waitForSelector('#dlg-dane[open]');
+  assert.equal(await strona.locator('#dane-siatka td.powtorzona').count(), 2);
+  assert.equal(await strona.textContent('#dane-powtorzenia'), 'Powtórzone wartości – „tag”: „praca” (wiersze 1, 3).');
+  await strona.setInputFiles('#plik-dane', { name: 'Planer - Dni - szablon.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(wypelniony, 'base64') });
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].wiersze[2]?.[1] === 'ogród');
+  const poImporcie = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return [p.tabele.length, p.tabele[0].kolumny, p.tabele[0].wiersze.length, p.tabele[0].unikalne]; });
+  assert.deepEqual(poImporcie, [1, ['dzien', 'tag', 'pogoda', 'ikona'], 4, ['tag']]);
+  assert.equal(await strona.locator('#dane-siatka td.powtorzona').count(), 0);
+  assert.ok(await strona.isHidden('#dane-powtorzenia'));
+
+  // Przełącznik ≠ w nagłówku kolumny: wpisane powtórzenie od razu widać.
+  await strona.click('#dane-siatka .pilnuj-kolumne[data-k="0"]');
+  await strona.click('#dane-siatka td[data-w="3"][data-k="0"]');
+  await strona.keyboard.press('Control+A');
+  await strona.keyboard.type('2');
+  assert.equal(await strona.locator('#dane-siatka td.powtorzona').count(), 2);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele[0].unikalne), ['tag', 'dzien']);
+  await strona.click('#dane-zamknij');
+
+  // Okno PDF pokazuje, co sprawdzić: powtórzenie i brak pliku obrazu.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="pdf"]');
+  await strona.waitForSelector('#dlg-pdf[open]');
+  assert.equal(await strona.textContent('#pdf-uwagi summary'), 'Do sprawdzenia przed drukiem: 2 uwagi');
+  assert.deepEqual(await strona.locator('#pdf-uwagi li').allTextContents(), [
+    'Nie ma w projekcie obrazu „chmura.png” (kolumna „ikona”) – strona 2.',
+    'Wartość „2” z kolumny „dzien” (tabela „Dni”) powtarza się na stronach 2 i 4.',
+  ]);
+  assert.deepEqual(bledy, []);
+});

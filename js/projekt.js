@@ -138,7 +138,9 @@ export function normalizujTabele(t, i = 0) {
   }
   if (!kolumny.length) kolumny.push('kolumna_1');
   const wiersze = (Array.isArray(t?.wiersze) ? t.wiersze : []).map((w) => kolumny.map((_, k) => String((Array.isArray(w) ? w[k] : '') ?? '')));
-  return { id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze };
+  // Kolumny, w których wartości nie mogą się powtarzać (pilnowane w oknie danych i przed drukiem).
+  const unikalne = (Array.isArray(t?.unikalne) ? t.unikalne : []).filter((k) => kolumny.includes(k));
+  return { id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze, ...(unikalne.length ? { unikalne } : {}) };
 }
 
 export function nowaSeria(nazwa = 'Seria') {

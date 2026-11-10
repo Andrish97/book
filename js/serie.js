@@ -30,11 +30,11 @@ export function liczbaPowielen(projekt, seria, dlugoscBloku) {
   return seria.uklad === 'dlugi' ? Math.ceil(wiersze / dlugoscBloku) : wiersze;
 }
 
-function wierszEgzemplarza(seria, wiersze, powielenie, miejsceWBloku, dlugoscBloku) {
-  if (!wiersze.length) return null;
-  if (seria.tryb === 'stala') return wiersze[powielenie % wiersze.length];
-  if (seria.uklad === 'dlugi') return wiersze[powielenie * dlugoscBloku + miejsceWBloku] || {};
-  return wiersze[powielenie] || {};
+// Numer wiersza tabeli (od 0), z którego egzemplarz bierze dane; null – bez danych.
+function nrWierszaEgzemplarza(seria, ileWierszy, powielenie, miejsceWBloku, dlugoscBloku) {
+  if (!ileWierszy) return null;
+  if (seria.tryb === 'stala') return powielenie % ileWierszy;
+  return seria.uklad === 'dlugi' ? powielenie * dlugoscBloku + miejsceWBloku : powielenie;
 }
 
 // Bloki serii w projekcie: [{ seria, strony: [...] }] – każdy ciąg sąsiednich
@@ -60,7 +60,7 @@ export function rozwin(projekt) {
     const egz = {
       klucz: dane.nrEgz ? `${strona.id}-${dane.nrEgz}` : strona.id,
       strona, sekcja: sekcjaStrony(projekt, strona), indeks: egzemplarze.length,
-      seria: null, nrEgz: null, ileEgz: null, wiersz: null, bok: null, sasiad: null, nr: null, nrWSekcji: 0, ...dane,
+      seria: null, nrEgz: null, ileEgz: null, wiersz: null, nrWiersza: null, bok: null, sasiad: null, nr: null, nrWSekcji: 0, ...dane,
     };
     egzemplarze.push(egz);
     if (!pierwszy.has(strona.id)) pierwszy.set(strona.id, egz);
@@ -75,7 +75,10 @@ export function rozwin(projekt) {
     const ile = liczbaPowielen(projekt, seria, strony.length);
     const wiersze = wierszeTabeli(tabelaSerii(projekt, seria));
     for (let p = 0; p < ile; p += 1) {
-      strony.forEach((s, k) => dodaj(s, { seria, nrEgz: p + 1, ileEgz: ile, wiersz: wierszEgzemplarza(seria, wiersze, p, k, strony.length) }));
+      strony.forEach((s, k) => {
+        const nrWiersza = nrWierszaEgzemplarza(seria, wiersze.length, p, k, strony.length);
+        dodaj(s, { seria, nrEgz: p + 1, ileEgz: ile, nrWiersza, wiersz: nrWiersza === null ? null : (wiersze[nrWiersza] || {}) });
+      });
     }
     i += strony.length;
   }

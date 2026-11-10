@@ -736,6 +736,16 @@ dialog h2 { font-size: 19px; }
 .dane-siatka tr:hover th.nr span, .dane-siatka th.nr:focus-within span { display: none; }
 .dane-siatka tr:hover th.nr button, .dane-siatka th.nr:focus-within button { display: inline-block; }
 .dane-siatka .usun-kolumne { opacity: 0; }
+.dane-siatka .pilnuj-kolumne { opacity: 0; font-weight: 700; }
+.dane-siatka th:hover .pilnuj-kolumne, .dane-siatka .pilnuj-kolumne:focus-visible { opacity: 1; }
+.dane-siatka .pilnuj-kolumne[aria-pressed="true"] { opacity: 1; color: var(--akcent); background: var(--akcent-tlo); }
+.dane-siatka .pilnuj-kolumne:hover { background: var(--akcent-tlo); color: var(--akcent); }
+.dane-siatka td.powtorzona { background: var(--blad-tlo); box-shadow: inset 3px 0 0 var(--blad); }
+.dane-powtorzenia { color: var(--blad); }
+.formularz .rzad-przyciskow { display: flex; gap: 8px; flex-wrap: wrap; }
+.uwagi-druku { border: 1px solid var(--linia-mocna); border-radius: var(--r-s); padding: 8px 12px; font-size: 13px; }
+.uwagi-druku summary { cursor: pointer; font-weight: 600; }
+.uwagi-druku ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow: auto; }
 .dane-siatka th:hover .usun-kolumne, .dane-siatka .usun-kolumne:focus-visible { opacity: 1; }
 .dialog-dane kbd { font: 12px ui-monospace, Menlo, monospace; padding: 1px 5px; border: 1px solid var(--linia-mocna); border-radius: 4px; }
 #dlg-seria .grupa-pol .przelacznik { min-height: 34px; }

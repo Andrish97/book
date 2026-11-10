@@ -84,13 +84,13 @@ test('eksport PDF: strony z powieleniami serii, spad i znaki cięcia, podział n
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Do druku');
   await strona.evaluate(async () => {
-    const { stan, zapiszTeraz, przejdzDoStrony } = window.seriodruk;
+    const { stan, zapiszTeraz, przeladuj } = window.seriodruk;
     const p = stan.projekt;
     await zapiszTeraz();
     p.serie.push({ id: 'se1', nazwa: 'Dni', tabela: null, tryb: 'stala', ile: 3, uklad: 'szeroki' });
     p.strony[0].obiekty = [{ type: 'rect', version: '5.3.0', left: -3, top: -3, width: 154, height: 30, fill: '#cc0000', id: 'o1' }];
     p.strony.push({ ...structuredClone(p.strony[0]), id: 's_druga', nazwa: 'Dzień', seria: 'se1', obiekty: [{ type: 'textbox', version: '5.3.0', left: 20, top: 40, width: 100, text: 'Dzień {egzemplarz}', fontSize: 8, fontFamily: 'Inter', fill: '#000000', id: 'o2' }] });
-    await przejdzDoStrony(0);
+    await przeladuj();
   });
 
   // Okno: podsumowanie liczy powielenia; eksport do drukarni w 150 dpi.

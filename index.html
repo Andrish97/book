@@ -656,6 +656,10 @@
         <label class="pole waskie" id="pdf-pole-ile" hidden><span>Stron w części</span><input name="ile" type="number" min="1" step="1" value="50" inputmode="numeric"></label>
       </div>
       <p class="podpowiedz" id="pdf-podsumowanie"></p>
+      <details class="uwagi-druku" id="pdf-uwagi" hidden>
+        <summary></summary>
+        <ul></ul>
+      </details>
       <p class="komunikat" id="pdf-komunikat" role="status"></p>
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk" id="pdf-anuluj">Anuluj</button>
@@ -746,8 +750,9 @@
             <button type="button" class="przycisk" id="dane-usun" data-ikona="kosz" title="Usuń tabelę" aria-label="Usuń tabelę"></button>
           </div>
           <p class="podpowiedz" id="dane-opis"></p>
+          <p class="podpowiedz dane-powtorzenia" id="dane-powtorzenia" role="status" hidden></p>
           <div class="dane-siatka-opak"><table class="dane-siatka" id="dane-siatka"></table></div>
-          <p class="podpowiedz">Kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd> robi nową linię w komórce. Dane skopiowane z Excela albo Arkuszy Google wklejasz od zaznaczonej komórki (<kbd>Ctrl</kbd>+<kbd>V</kbd>).</p>
+          <p class="podpowiedz">Kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd> robi nową linię w komórce. Znak <strong>≠</strong> przy nazwie kolumny włącza pilnowanie powtórzeń. Dane skopiowane z Excela albo Arkuszy Google wklejasz od zaznaczonej komórki (<kbd>Ctrl</kbd>+<kbd>V</kbd>).</p>
         </div>
       </section>
       <button type="button" class="przycisk-ikona instrukcja-zamknij" id="dane-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
@@ -780,6 +785,14 @@
         <label class="przelacznik"><input type="radio" name="uklad" value="dlugi"><span>Jeden wiersz na każdą stronę bloku</span></label>
       </fieldset>
       <p class="podpowiedz" id="seria-podsumowanie"></p>
+      <fieldset class="grupa-pol" id="seria-pola">
+        <legend>Dane, których potrzebują strony</legend>
+        <p class="podpowiedz" id="seria-pola-opis"></p>
+        <div class="rzad-przyciskow">
+          <button type="button" class="przycisk" id="seria-dodaj-kolumny" data-ikona="plus">Dodaj brakujące kolumny do tabeli</button>
+          <button type="button" class="przycisk" id="seria-szablon" data-ikona="pobierz" title="Plik Excela z kolumnami dokładnie takimi, jakich wymagają strony – do wypełnienia i zaimportowania">Pobierz szablon danych (Excel)</button>
+        </div>
+      </fieldset>
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk" id="seria-usun">Usuń serię</button>
         <span class="odstep"></span>

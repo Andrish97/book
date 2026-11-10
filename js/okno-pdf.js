@@ -2,6 +2,7 @@
 
 import { $, pobierz, powiadom, odmiana } from './ui.js';
 import { rozwin } from './serie.js';
+import { sprawdzProjekt } from './kontrola.js';
 import { eksportujPdf, wybierzEgzemplarze, planPlikow, JAKOSCI_PDF, Przerwano } from './eksport.js';
 
 export class OknoPdf {
@@ -29,6 +30,13 @@ export class OknoPdf {
     od.max = ile; doStrony.max = ile;
     od.value = 1; doStrony.value = ile;
     $('#pdf-komunikat').textContent = '';
+    // Rzeczy do sprawdzenia przed drukiem – nie blokują eksportu.
+    const uwagi = sprawdzProjekt(this.zrodlo.projekt(), this.ciag);
+    const blok = $('#pdf-uwagi');
+    blok.hidden = !uwagi.length;
+    blok.open = uwagi.length > 0 && uwagi.length <= 3;
+    blok.querySelector('summary').textContent = `Do sprawdzenia przed drukiem: ${uwagi.length} ${odmiana(uwagi.length, 'uwaga', 'uwagi', 'uwag')}`;
+    blok.querySelector('ul').replaceChildren(...uwagi.map((u) => Object.assign(document.createElement('li'), { textContent: u.opis })));
     this.odswiez();
     this.okno.showModal();
   }

@@ -2315,4 +2315,6 @@ start().catch((e) => {
 window.seriodruk = {
   stan, edytor, opisObiektu, instrukcja, poZalogowaniu, pokazProjekty, otworzProjekt,
   przejdzDoStrony, edytujWzorzec, otworzUstawieniaSekcji, domyslneStyle, zapiszTeraz, dane, oknoPdf,
+  // Wczytuje otwartą stronę od nowa z projektu, porzucając to, co jest na płótnie (do testów).
+  przeladuj: async () => { naPlotnie = null; await zaladujCel(); },
 };

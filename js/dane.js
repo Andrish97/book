@@ -4,7 +4,8 @@
 // Zmiany trafiają od razu do projektu; aplikacja zapisuje je tak jak resztę.
 
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
-import { wczytajPlik, parsujTekst, doCsv, zmienNazwePola } from './tabele.js';
+import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola } from './tabele.js';
+import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia } from './kontrola.js';
 import { blokiSerii, liczbaPowielen } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
@@ -81,7 +82,7 @@ export class Dane {
 
     const html = ['<thead><tr><th class="rog"></th>'];
     t.kolumny.forEach((k, i) => {
-      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
+      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
     });
     html.push('</tr></thead><tbody>');
     for (let w = 0; w < pokazane; w += 1) {
@@ -93,6 +94,23 @@ export class Dane {
     this.siatka.innerHTML = html.join('');
     this.siatka.querySelectorAll('.nazwa-kolumny').forEach((el) => { el.textContent = t.kolumny[Number(el.dataset.k)]; });
     this.siatka.querySelectorAll('td').forEach((td) => { td.textContent = t.wiersze[Number(td.dataset.w)][Number(td.dataset.k)]; });
+    this._oznaczPowtorzenia();
+  }
+
+  // Powtórzone wartości w kolumnach pilnowanych: podświetlone komórki i opis pod tabelą.
+  _oznaczPowtorzenia() {
+    const t = this.tabela();
+    for (const td of this.siatka.querySelectorAll('td.powtorzona')) td.classList.remove('powtorzona');
+    const opisy = [];
+    for (const kolumna of t.unikalne || []) {
+      const k = t.kolumny.indexOf(kolumna);
+      const znalezione = powtorzenia(t, kolumna);
+      for (const p of znalezione) for (const w of p.wiersze) this._komorka(w, k)?.classList.add('powtorzona');
+      if (znalezione.length) opisy.push(`„${kolumna}”: ${znalezione.slice(0, 4).map((p) => `„${p.wartosc}” (wiersze ${p.wiersze.map((w) => w + 1).join(', ')})`).join('; ')}${znalezione.length > 4 ? ` i ${znalezione.length - 4} więcej` : ''}`);
+    }
+    const el = $('#dane-powtorzenia');
+    el.hidden = !opisy.length;
+    el.textContent = opisy.length ? `Powtórzone wartości – ${opisy.join('. ')}.` : '';
   }
 
   _komorka(w, k) {
@@ -145,6 +163,7 @@ export class Dane {
       powiadom(`Uwaga: „${nowa}” to także nazwa pola dokumentu. Na stronach tej tabeli pole {${nowa}} pokaże wartość z kolumny.`);
     }
     t.kolumny[k] = nowa;
+    if (t.unikalne) t.unikalne = t.unikalne.map((u) => (u === stara ? nowa : u));
     el.textContent = nowa;
     const n = zmienNazwePola(this.projekt(), stara, nowa);
     if (n) powiadom(`Zmieniono {${stara}} na {${nowa}} w ${n} ${odmiana(n, 'elemencie', 'elementach', 'elementach')}.`);
@@ -157,6 +176,7 @@ export class Dane {
       const td = e.target.closest('td');
       if (!td) return;
       this.tabela().wiersze[Number(td.dataset.w)][Number(td.dataset.k)] = td.textContent.replace(/\n$/, '');
+      if (this.tabela().unikalne?.length) this._oznaczPowtorzenia();
       this.poZmianie();
     });
     s.addEventListener('focusout', (e) => {
@@ -191,10 +211,22 @@ export class Dane {
       const t = this.tabela();
       const kolumna = e.target.closest('.usun-kolumne');
       const wiersz = e.target.closest('.usun-wiersz');
+      const pilnuj = e.target.closest('.pilnuj-kolumne');
+      if (pilnuj) {
+        const nazwa = t.kolumny[Number(pilnuj.dataset.k)];
+        const bylo = t.unikalne?.includes(nazwa);
+        t.unikalne = bylo ? t.unikalne.filter((u) => u !== nazwa) : [...(t.unikalne || []), nazwa];
+        if (!t.unikalne.length) delete t.unikalne;
+        pilnuj.setAttribute('aria-pressed', String(!bylo));
+        this._oznaczPowtorzenia();
+        this._zmieniono();
+        return;
+      }
       if (kolumna) {
         if (t.kolumny.length <= 1) { powiadom('Tabela musi mieć przynajmniej jedną kolumnę.', true); return; }
         const k = Number(kolumna.dataset.k);
         if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, 'Pola z tej kolumny przestaną się wypełniać.', 'Usuń kolumnę', true)) return;
+        if (t.unikalne) t.unikalne = t.unikalne.filter((u) => u !== t.kolumny[k]);
         t.kolumny.splice(k, 1);
         for (const w of t.wiersze) w.splice(k, 1);
       } else if (wiersz) t.wiersze.splice(Number(wiersz.dataset.w), 1);
@@ -270,6 +302,7 @@ export class Dane {
       if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.`, 'Podmień dane', false, 'Dodaj osobno')) {
         stara.kolumny = nowa.kolumny;
         stara.wiersze = nowa.wiersze;
+        if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
         ostatnia = stara;
       } else {
         if (stara) nowa.nazwa = `${nowa.nazwa} (2)`;
@@ -344,6 +377,22 @@ export class Dane {
     $('#seria-podsumowanie').textContent = bloki.length
       ? bloki.map((b) => { const n = b.strony.length; const ile = liczbaPowielen(p, proba, n); return `Blok ${n} ${odmiana(n, 'strony', 'stron', 'stron')} × ${ile} = ${n * ile} ${odmiana(n * ile, 'strona', 'strony', 'stron')} w wydruku.`; }).join(' ')
       : 'Żadna strona nie należy jeszcze do tej serii.';
+    // Pola użyte na stronach serii i kolumny, których brakuje w wybranej tabeli.
+    const potrzebne = kolumnySerii(p, proba);
+    const brak = brakujaceKolumny(p, proba);
+    $('#seria-pola-opis').textContent = potrzebne.length
+      ? `Pola na stronach serii: ${potrzebne.map((k) => `{${k.nazwa}}`).join(', ')}.${brak.length ? ` W tabeli brakuje ${odmiana(brak.length, 'kolumny', 'kolumn', 'kolumn')}: ${brak.join(', ')}.` : (maTabele ? ' Tabela ma wszystkie potrzebne kolumny.' : '')}`
+      : 'Na stronach tej serii nie ma jeszcze pól z danymi. Pole wstawiasz w tekście jako nazwę kolumny w nawiasach klamrowych, np. {dzien}.';
+    $('#seria-dodaj-kolumny').hidden = !brak.length;
+    $('#seria-dodaj-kolumny').textContent = maTabele ? 'Dodaj brakujące kolumny do tabeli' : 'Utwórz tabelę z tych pól';
+    $('#seria-szablon').hidden = !bloki.length;
+  }
+
+  // Seria z okna, z wartościami wpisanymi w formularzu (jeszcze przed zapisaniem).
+  _seriaZOkna() {
+    const dlg = $('#dlg-seria');
+    const seria = this.projekt().serie.find((s) => s.id === dlg.dataset.id);
+    return { seria, proba: { ...seria, ...this._zFormularza(dlg.querySelector('form')) } };
   }
 
   _zFormularza(f) {
@@ -361,6 +410,38 @@ export class Dane {
     const f = dlg.querySelector('form');
     f.addEventListener('input', () => this._odswiezSerie());
     f.addEventListener('change', () => this._odswiezSerie());
+    $('#seria-dodaj-kolumny').addEventListener('click', () => {
+      const p = this.projekt();
+      const { proba } = this._seriaZOkna();
+      const brak = brakujaceKolumny(p, proba);
+      let t = p.tabele.find((x) => x.id === proba.tabela);
+      if (t) {
+        // Pusta kolumna „kolumna_1” z nowej tabeli ustępuje miejsca prawdziwym.
+        if (t.kolumny.length === 1 && /^kolumna_\d+$/.test(t.kolumny[0]) && t.wiersze.every((w) => w[0] === '')) { t.kolumny = []; t.wiersze = t.wiersze.map(() => []); }
+        for (const k of brak) { t.kolumny.push(k); for (const w of t.wiersze) w.push(''); }
+      } else {
+        const ile = proba.tryb === 'stala' ? Math.min(proba.ile, 500) : 1;
+        t = nowaTabela(proba.nazwa || 'Dane serii', brak, Array.from({ length: ile }, () => brak.map(() => '')));
+        p.tabele.push(t);
+        f.elements.tabela.add(new Option(`${t.nazwa} (${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')})`, t.id));
+        f.elements.tabela.value = t.id;
+      }
+      this.poZmianie();
+      this._odswiezSerie();
+      powiadom(`Dodano ${odmiana(brak.length, 'kolumnę', 'kolumny', 'kolumn')}: ${brak.join(', ')}. Dane wpiszesz w oknie „Dane”.`);
+    });
+    $('#seria-szablon').addEventListener('click', async () => {
+      const p = this.projekt();
+      const { proba } = this._seriaZOkna();
+      const s = szablonSerii(p, proba);
+      try {
+        const blob = await doXlsx([{ nazwa: s.nazwa, wiersze: [s.kolumny, ...s.wiersze] }, { nazwa: 'Instrukcja', wiersze: s.instrukcja }]);
+        this.ostatniSzablon = blob; // do testów
+        pobierz(`${bezpiecznaNazwa(p.nazwa)} - ${bezpiecznaNazwa(s.nazwa)} - szablon.xlsx`, URL.createObjectURL(blob));
+      } catch (e) {
+        powiadom(e.message, true);
+      }
+    });
     $('#seria-usun').addEventListener('click', async () => {
       const p = this.projekt();
       const seria = p.serie.find((s) => s.id === dlg.dataset.id);

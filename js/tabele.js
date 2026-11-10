@@ -88,7 +88,9 @@ export async function wczytajPlik(plik) {
   if (/\.(xlsx|xlsm|xls|ods)$/i.test(plik.name)) {
     const XLSX = await xlsx();
     const skoroszyt = XLSX.read(bufor, { type: 'array' });
-    const tabele = skoroszyt.SheetNames.map((nazwa) => {
+    // Arkusz „Instrukcja” z szablonu danych to objaśnienia, nie dane.
+    const arkusze = skoroszyt.SheetNames.filter((n) => skoroszyt.SheetNames.length === 1 || n.trim().toLowerCase() !== 'instrukcja');
+    const tabele = arkusze.map((nazwa) => {
       const dane = XLSX.utils.sheet_to_json(skoroszyt.Sheets[nazwa], { header: 1, raw: false, defval: '' });
       return { nazwa: skoroszyt.SheetNames.length > 1 ? nazwa : bezRozszerzenia(plik.name), ...zWierszy(dane) };
     }).filter((t) => t.wiersze.length || t.kolumny.some((k) => k && !/^kolumna_\d+$/.test(k)));
@@ -98,6 +100,24 @@ export async function wczytajPlik(plik) {
   const tekst = dekoduj(bufor);
   if (!tekst.trim()) throw new Error('Plik jest pusty.');
   return [{ nazwa: bezRozszerzenia(plik.name), ...zWierszy(parsujTekst(tekst)) }];
+}
+
+// Arkusze [{ nazwa, wiersze }] → plik Excela (wszystkie komórki jako tekst).
+export async function doXlsx(arkusze) {
+  const XLSX = await xlsx();
+  const skoroszyt = XLSX.utils.book_new();
+  const uzyte = new Set();
+  for (const a of arkusze) {
+    const arkusz = XLSX.utils.aoa_to_sheet(a.wiersze.map((w) => w.map((v) => String(v ?? ''))));
+    const kolumn = Math.max(1, ...a.wiersze.map((w) => w.length));
+    arkusz['!cols'] = Array.from({ length: kolumn }, (_, k) => ({ wch: Math.min(60, Math.max(12, ...a.wiersze.map((w) => String(w[k] ?? '').length + 2))) }));
+    // Excel: nazwa arkusza do 31 znaków, bez znaków \ / ? * [ ] :
+    let nazwa = String(a.nazwa || 'Arkusz').replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 31) || 'Arkusz';
+    for (let n = 2; uzyte.has(nazwa.toLowerCase()); n += 1) nazwa = `${nazwa.slice(0, 28)} ${n}`;
+    uzyte.add(nazwa.toLowerCase());
+    XLSX.utils.book_append_sheet(skoroszyt, arkusz, nazwa);
+  }
+  return new Blob([XLSX.write(skoroszyt, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
 // Tabela → CSV ze średnikami (tak otwiera go polski Excel), z BOM dla polskich znaków.
