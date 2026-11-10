@@ -162,7 +162,8 @@ export function zmienNazwePola(projekt, stara, nowa, dotyczy = () => true) {
       // Kolor i przesunięcie zależne od tej kolumny.
       const z = o.z_danych;
       if (z?.kolor === stara) { z.kolor = nowa; zmienione += 1; }
-      for (const os of ['x', 'y']) if (z?.[os]?.pole === stara) { z[os].pole = nowa; zmienione += 1; }
+      for (const os of ['x', 'y', 'widok']) if (z?.[os]?.pole === stara) { z[os].pole = nowa; zmienione += 1; }
+      if (z?.obrot === stara) { z.obrot = nowa; zmienione += 1; }
       if (Array.isArray(o.objects)) popraw(o.objects);
     }
   };

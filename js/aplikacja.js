@@ -160,6 +160,7 @@ const oknoKontroli = new OknoKontroli({
     await przejdzDoStrony(i);
     if (idObiektu) edytor.zaznacz(idObiektu);
   },
+  pokazWPodgladzie: (nrStrony) => pokazPodglad({ nrStrony }),
 });
 
 const oknoPdf = new OknoPdf({

@@ -488,9 +488,27 @@ export class PanelWlasciwosci {
         s.append(this.liczba('Od nowa co', () => ust().co || 0, (v) => zapisz({ [os]: { ...ust(), co: Math.max(0, Math.round(v)) } }), { jednostka: 'poz.', krok: 1, min: 0 }));
       }
     }
-    const jest = z().kolor || z().x || z().y;
+    // Obrót: kąt w stopniach z pola, dodawany do obrotu wzoru (wokół środka elementu).
+    const obrot = this.wybor('Obrót z pola (stopnie)', lista(z().obrot), () => z().obrot || '', (v) => zapisz({ obrot: v || undefined }));
+    obrot.classList.add('szeroki');
+    s.append(obrot);
+    // Widoczność: element jest na stronie tylko wtedy, gdy pole spełnia warunek (np. gwiazdka tylko w święta).
+    const war = () => z().widok || {};
+    const widok = this.wybor('Pokaż element', [['', 'zawsze'], ['niepuste', 'tylko gdy pole nie jest puste'], ['puste', 'tylko gdy pole jest puste'], ['rowne', 'tylko gdy pole równa się…']], () => (war().pole ? (war().gdy || 'niepuste') : ''), (v) => {
+      zapisz({ widok: v ? { pole: pola[0] || '', ...war(), gdy: v } : undefined });
+      this.zbuduj();
+    });
+    widok.classList.add('szeroki');
+    s.append(widok);
+    if (war().pole) {
+      const poleWidoku = this.wybor('Pole, od którego to zależy', lista(war().pole).slice(1), () => war().pole, (v) => zapisz({ widok: { ...war(), pole: v } }));
+      poleWidoku.classList.add('szeroki');
+      s.append(poleWidoku);
+      if (war().gdy === 'rowne') s.append(this.tekst('Wartość', () => war().wartosc || '', (v) => zapisz({ widok: { ...war(), wartosc: v } }), true));
+    }
+    const jest = z().kolor || z().x || z().y || z().obrot || z().widok;
     s.append(this.wskazowka(jest
-      ? 'W edytorze element stoi w miejscu pozycji 1 i ma kolor wzoru. Właściwe położenie i kolor każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
+      ? 'W edytorze element stoi w miejscu pozycji 1, ma kolor i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
       : 'Kolor albo położenie mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykład: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej.'));
   }
 
@@ -724,9 +742,15 @@ export class PanelWlasciwosci {
       wybor.classList.add('szeroki');
       d.append(wybor);
       if (obj.pole?.kolumna) {
-        const tryb = this.wybor('Podmieniony obraz', [['zmiesc', 'mieści się w ramce (cały widoczny)'], ['wypelnij', 'wypełnia ramkę (brzegi przycięte)']], () => obj.pole?.tryb || 'zmiesc', (v) => { obj.pole = { ...obj.pole, tryb: v === 'wypelnij' ? 'wypelnij' : undefined }; });
+        const tryb = this.wybor('Podmieniony obraz', [['zmiesc', 'mieści się w ramce (cały widoczny)'], ['wypelnij', 'wypełnia ramkę (brzegi przycięte)']], () => obj.pole?.tryb || 'zmiesc', (v) => { obj.pole = { ...obj.pole, tryb: v === 'wypelnij' ? 'wypelnij' : undefined }; this.zbuduj(); });
         tryb.classList.add('szeroki');
         d.append(tryb);
+        if (obj.pole?.tryb === 'wypelnij') {
+          // Która część zdjęcia zostaje po przycięciu – np. „góra”, żeby nie ucinać głów na portretach.
+          const kadr = this.wybor('Zostaje część zdjęcia', [['', 'środek'], ['gora', 'góra'], ['dol', 'dół'], ['lewa', 'lewa strona'], ['prawa', 'prawa strona']], () => obj.pole?.kadr || '', (v) => { obj.pole = { ...obj.pole, kadr: v || undefined }; });
+          kadr.classList.add('szeroki');
+          d.append(kadr);
+        }
       }
     }
     d.append(this.wskazowka(kolumny.length

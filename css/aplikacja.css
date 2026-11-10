@@ -752,7 +752,8 @@ dialog h2 { font-size: 19px; }
 .dane-siatka .pilnuj-kolumne:hover { background: var(--akcent-tlo); color: var(--akcent); }
 .dane-siatka td.powtorzona { background: var(--blad-tlo); box-shadow: inset 3px 0 0 var(--blad); }
 .dane-powtorzenia, .uwaga-danych { color: var(--blad); }
-.wiersz-dodatkowej { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px; }
+.wiersz-dodatkowej { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--linia); }
+.wiersz-dodatkowej [hidden] { display: none; }
 .wiersz-dodatkowej .pole { flex: 1 1 0; min-width: 0; }
 .wiersz-dodatkowej .pole.waskie { flex: 0 1 132px; }
 @media (max-width: 640px) { .wiersz-dodatkowej { flex-wrap: wrap; } .wiersz-dodatkowej .pole { flex: 1 1 100%; } .wiersz-dodatkowej .pole.waskie { flex: 1 1 40%; } }
@@ -773,6 +774,8 @@ dialog h2 { font-size: 19px; }
 .lista-uwag { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: min(52vh, 420px); overflow: auto; }
 .lista-uwag li { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--linia); border-left: 3px solid var(--ostrzezenie, #d97706); border-radius: var(--r-s); font-size: 14px; }
 .lista-uwag li:empty { display: none; }
+.lista-uwag .przyciski-uwagi { display: flex; gap: 6px; flex: none; }
+.podglad-strona.wskazana .podglad-kartka { outline: 3px solid var(--ostrzezenie, #d97706); outline-offset: 3px; }
 .przycisk.maly { min-height: 30px; padding: 0 10px; font-size: 13px; flex: none; }
 .uwagi-druku li { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; }
 .uwagi-druku { border: 1px solid var(--linia-mocna); border-radius: var(--r-s); padding: 8px 12px; font-size: 13px; }

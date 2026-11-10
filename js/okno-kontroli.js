@@ -5,27 +5,35 @@ import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
 
-// Wypełnia listę uwagami; przy uwadze, która wskazuje stronę, jest przycisk „Pokaż”.
-export function rysujUwagi(ul, uwagi, pokaz) {
+// Wypełnia listę uwagami. Przy uwadze z numerami stron jest „Pokaż” – otwiera podgląd na pierwszej z tych
+// stron (już z danymi tego powielenia); przy uwadze o konkretnym elemencie także „Otwórz wzór” – stronę
+// w edytorze, z zaznaczonym elementem.
+export function rysujUwagi(ul, uwagi, { wPodgladzie, wzor } = {}) {
   ul.replaceChildren(...uwagi.map((u) => {
     const li = document.createElement('li');
     const opis = document.createElement('span');
     opis.textContent = u.opis;
     li.append(opis);
-    if (pokaz && u.idStrony) {
-      const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: 'Pokaż' });
-      b.addEventListener('click', () => pokaz(u.idStrony, u.idObiektu));
-      li.append(b);
-    }
+    const przyciski = document.createElement('span');
+    przyciski.className = 'przyciski-uwagi';
+    const dodaj = (tekst, tytul, fn) => {
+      const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: tekst, title: tytul });
+      b.addEventListener('click', fn);
+      przyciski.append(b);
+    };
+    if (wPodgladzie && u.strony?.length) dodaj('Pokaż', 'Pokaż tę stronę w podglądzie – z danymi tego powielenia', () => wPodgladzie(Math.min(...u.strony)));
+    if (wzor && u.idStrony) dodaj('Otwórz wzór', 'Otwórz stronę-wzór w edytorze i zaznacz element', () => wzor(u.idStrony, u.idObiektu));
+    if (przyciski.children.length) li.append(przyciski);
     return li;
   }));
 }
 
 export class OknoKontroli {
   // projekt() → bieżący projekt; przedSprawdzeniem() – płótno oddaje treść do projektu;
-  // pokaz(idStrony, idObiektu) – otwiera stronę i zaznacza element.
-  constructor({ projekt, przedSprawdzeniem, pokaz }) {
-    this.zrodlo = { projekt, przedSprawdzeniem, pokaz };
+  // pokaz(idStrony, idObiektu) – otwiera stronę-wzór i zaznacza element;
+  // pokazWPodgladzie(nr) – otwiera podgląd na stronie o tym numerze w wydruku.
+  constructor({ projekt, przedSprawdzeniem, pokaz, pokazWPodgladzie }) {
+    this.zrodlo = { projekt, przedSprawdzeniem, pokaz, pokazWPodgladzie };
     this.okno = $('#dlg-kontrola');
     this.nr = 0;
     $('#kontrola-zamknij').addEventListener('click', () => this.okno.close());
@@ -39,7 +47,10 @@ export class OknoKontroli {
     const nr = this.nr += 1;
     const lista = $('#kontrola-lista');
     const stan = $('#kontrola-stan');
-    const pokaz = (idStrony, idObiektu) => { this.okno.close(); this.zrodlo.pokaz(idStrony, idObiektu); };
+    const pokaz = {
+      wzor: (idStrony, idObiektu) => { this.okno.close(); this.zrodlo.pokaz(idStrony, idObiektu); },
+      wPodgladzie: this.zrodlo.pokazWPodgladzie ? (nrStrony) => { this.okno.close(); this.zrodlo.pokazWPodgladzie(nrStrony); } : null,
+    };
     let uwagi = sprawdzProjekt(projekt, ciag);
     rysujUwagi(lista, uwagi, pokaz);
     stan.textContent = `Sprawdzam, czy teksty mieszczą się w ramkach na ${ciag.egzemplarze.length} ${odmiana(ciag.egzemplarze.length, 'stronie', 'stronach', 'stronach')}…`;

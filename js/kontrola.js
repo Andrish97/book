@@ -86,17 +86,29 @@ export function szablonSerii(projekt, seria) {
   return { nazwa: tabela?.nazwa || seria.nazwa, kolumny, wiersze, instrukcja };
 }
 
+// Ta sama wartość mimo innej wielkości liter i zbędnych spacji: „Praca”, „praca ” i „PRACA”.
+export const tasama = (v) => String(v ?? '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pl');
+
 // Powtórzone wartości w kolumnie tabeli: [{ wartosc, wiersze: [numery od 0] }].
+// Wielkość liter i zbędne spacje nie mają znaczenia; `wartosc` to pierwszy napotkany zapis.
 export function powtorzenia(tabela, kolumna) {
   const k = tabela.kolumny.indexOf(kolumna);
   if (k < 0) return [];
   const gdzie = new Map();
   tabela.wiersze.forEach((w, i) => {
     const v = (w[k] ?? '').trim();
-    if (v) gdzie.set(v, [...(gdzie.get(v) || []), i]);
+    if (!v) return;
+    const wpis = gdzie.get(tasama(v)) || { wartosc: v, wiersze: [] };
+    wpis.wiersze.push(i);
+    gdzie.set(tasama(v), wpis);
   });
-  return [...gdzie].filter(([, wiersze]) => wiersze.length > 1).map(([wartosc, wiersze]) => ({ wartosc, wiersze }));
+  return [...gdzie.values()].filter((p) => p.wiersze.length > 1);
 }
+
+// Kiedy tabela dodatkowa przechodzi do następnego wiersza – słowami, do komunikatów.
+export const opisKroku = (d) => (d.zmiana
+  ? `nowy wiersz, gdy zmieni się kolumna „${d.zmiana}”`
+  : `nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}`);
 
 const lista = (numery, ile = 6) => {
   const n = [...new Set(numery)].sort((a, b) => a - b);
@@ -137,9 +149,9 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
         const nrWiersza = zrodlo.tabela === tabela ? egz.nrWiersza : egz.dodatkowe.find((d) => d.tabela === zrodlo.tabela)?.nrWiersza;
         const kolumny = uzycia.get(zrodlo.tabela) || new Map();
         const wartosci = kolumny.get(zrodlo.kolumna) || new Map();
-        const stan = wartosci.get(String(v).trim()) || { strony: [], wiersze: new Set() };
+        const stan = wartosci.get(tasama(v)) || { wartosc: String(v).trim(), strony: [], wiersze: new Set() };
         stan.strony.push(nr); stan.wiersze.add(nrWiersza);
-        wartosci.set(String(v).trim(), stan); kolumny.set(zrodlo.kolumna, wartosci); uzycia.set(zrodlo.tabela, kolumny);
+        wartosci.set(tasama(v), stan); kolumny.set(zrodlo.kolumna, wartosci); uzycia.set(zrodlo.tabela, kolumny);
       }
     }
   }
@@ -156,7 +168,8 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     for (const kolumna of tabela.unikalne || []) {
       const wartosci = uzycia.get(tabela)?.get(kolumna);
       if (wartosci) {
-        for (const [wartosc, stan] of wartosci) {
+        for (const stan of wartosci.values()) {
+          const { wartosc } = stan;
           // Powtórzenie to ta sama wartość w dwóch różnych wierszach. Jeden wiersz pokazany na
           // kilku stronach (np. tydzień na siedmiu stronach dni) powtórzeniem nie jest.
           const strony = [...new Set(stan.strony)];
@@ -176,7 +189,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       for (const d of blok.dodatkowe) {
         if (d.potrzeba > d.jest) {
           const ostatnia = ciag.egzemplarze.filter((e) => e.seria?.id === seria.id).at(-1).indeks + 1;
-          uwagi.push({ rodzaj: 'brak_danych', strony: [d.brakOd], opis: `Seria „${seria.nazwa}”: tabela „${d.tabela.nazwa}” ma ${d.jest} ${odmiana(d.jest, 'wiersz', 'wiersze', 'wierszy')}, a potrzeba ${d.potrzeba} (nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}). Od strony ${d.brakOd}${ostatnia > d.brakOd ? ` do ${ostatnia}` : ''} jej pola zostaną puste.` });
+          uwagi.push({ rodzaj: 'brak_danych', strony: [d.brakOd], opis: `Seria „${seria.nazwa}”: tabela „${d.tabela.nazwa}” ma ${d.jest} ${odmiana(d.jest, 'wiersz', 'wiersze', 'wierszy')}, a potrzeba ${d.potrzeba} (${opisKroku(d)}). Od strony ${d.brakOd}${ostatnia > d.brakOd ? ` do ${ostatnia}` : ''} jej pola zostaną puste.` });
         }
       }
       if (seria.tryb === 'tabela' && seria.uklad === 'dlugi' && seria.dopelnij && wierszy % blok.dlugosc) {

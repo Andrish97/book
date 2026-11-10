@@ -2,7 +2,34 @@
 // z kolumny o tej nazwie; pole dokumentu (numer strony, nazwa sekcji, data…)
 // wynika z samego projektu – jak pola w Wordzie. Czyste funkcje, bez Fabric.
 
-const WZOR = /\{([^{}\n:]+)(?::([^{}\n]*))?\}/g;
+// Podwójne klamry – {{ i }} – to zwykłe klamry: w edytorze widać podwójne, w podglądzie i PDF pojedyncze.
+// Dzięki temu w jednym tekście mogą stać obok siebie pole i napis w klamrach.
+
+const WZOR = /\{([^{}\n:]+)(?::([^{}\n]*))?\}/y;
+
+// Rozbiera tekst od lewej: pola {nazwa} i podwójne klamry. Zwraca { pola, klamry }.
+function rozbierz(tekst) {
+  const pola = [];
+  const klamry = [];
+  if (typeof tekst !== 'string' || (!tekst.includes('{') && !tekst.includes('}}'))) return { pola, klamry };
+  let i = 0;
+  while (i < tekst.length) {
+    const z = tekst[i];
+    if (z === '{' && tekst[i + 1] === '{') { klamry.push({ start: i, koniec: i + 2, znak: '{' }); i += 2; continue; }
+    if (z === '}' && tekst[i + 1] === '}') { klamry.push({ start: i, koniec: i + 2, znak: '}' }); i += 2; continue; }
+    if (z === '{') {
+      WZOR.lastIndex = i;
+      const m = WZOR.exec(tekst);
+      if (m) {
+        pola.push({ start: i, koniec: i + m[0].length, nazwa: m[1].trim(), zapis: m[2] === undefined ? null : m[2].trim(), cale: m[0] });
+        i += m[0].length;
+        continue;
+      }
+    }
+    i += 1;
+  }
+  return { pola, klamry };
+}
 
 // Pola dokumentu: nazwa → opis (lista do wstawiania i do instrukcji).
 export const POLA_DOKUMENTU = [
@@ -35,13 +62,9 @@ export const ZAPISY_LICZB = [
   ['a', 'a, b, c'],
 ];
 
+// Pola w tekście (bez podwójnych klamer – te są zwykłym tekstem).
 export function znajdzPola(tekst) {
-  const wynik = [];
-  if (typeof tekst !== 'string' || !tekst.includes('{')) return wynik;
-  for (const m of tekst.matchAll(WZOR)) {
-    wynik.push({ start: m.index, koniec: m.index + m[0].length, nazwa: m[1].trim(), zapis: m[2] === undefined ? null : m[2].trim(), cale: m[0] });
-  }
-  return wynik;
+  return rozbierz(tekst).pola;
 }
 
 function rzymskie(n) {
@@ -77,8 +100,10 @@ export function zapiszLiczbe(n, zapis) {
 // przesuwa się razem z tekstem; wstawiona wartość dostaje wygląd pierwszego
 // znaku pola.
 export function podstawWTekscie(tekst, styles, wartosc) {
-  const pola = znajdzPola(tekst);
-  if (!pola.length) return { text: tekst, styles };
+  const { pola: samePola, klamry } = rozbierz(tekst);
+  if (!samePola.length && !klamry.length) return { text: tekst, styles };
+  // Pola i podwójne klamry w kolejności występowania; podwójna klamra „ma wartość” – pojedynczą klamrę.
+  const pola = [...samePola, ...klamry.map((k) => ({ ...k, cale: tekst.slice(k.start, k.koniec) }))].sort((a, b) => a.start - b.start);
   const maStyle = Array.isArray(styles) && styles.length > 0;
   // Styl każdego znaku (bez znaków nowej linii).
   const stylZnaku = [];
@@ -96,7 +121,7 @@ export function podstawWTekscie(tekst, styles, wartosc) {
     }
   };
   for (const p of pola) {
-    const v = wartosc(p.nazwa, p.zapis);
+    const v = p.znak || wartosc(p.nazwa, p.zapis);
     if (v === undefined || v === null) continue;
     przepisz(p.start);
     const styl = stylZnaku[bezNl] || null;
@@ -122,14 +147,17 @@ export function podstawWTekscie(tekst, styles, wartosc) {
 
 // ---------- Wygląd z danych: kolor i przesunięcie elementu ----------
 //
-// Element może mieć `z_danych: { kolor?: pole, x?: ust, y?: ust }`, gdzie pole to
+// Element może mieć `z_danych: { kolor?: pole, x?: ust, y?: ust, obrot?: pole, widok?: war }`, gdzie pole to
 // nazwa kolumny albo pola dokumentu, a ust = { pole, tryb, krok, co }:
 //  - tryb 'mm':      wartość pola to przesunięcie w milimetrach,
 //  - tryb 'pozycja': wartość to numer pozycji (1, 2, 3…); element przesuwa się o
 //                    krok × (numer − 1), a przy `co` > 0 numeracja wraca do początku
 //                    co tyle pozycji (np. 12 miesięcy w dwóch rzędach po 6).
-// W edytorze element stoi w miejscu pozycji 1; przesunięcie i kolor widać na
-// powielonych stronach – w podglądzie, na miniaturach i w PDF.
+// `obrot` – pole z kątem w stopniach, dodawanym do obrotu wzoru (obrót wokół środka elementu).
+// `widok` = { pole, gdy: 'niepuste' | 'puste' | 'rowne', wartosc } – element jest na stronie tylko wtedy,
+// gdy pole spełnia warunek (np. gwiazdka tylko w święta).
+// W edytorze element stoi w miejscu pozycji 1 i jest zawsze widoczny; przesunięcie, kolor, obrót
+// i widoczność widać na powielonych stronach – w podglądzie, na miniaturach i w PDF.
 
 // Tekst z tabeli → kolor zrozumiały dla przeglądarki albo null. Przyjmuje #rgb, #rrggbb
 // (także bez krzyżyka), rgb(…) i nazwy kolorów CSS.
@@ -166,6 +194,36 @@ function pokoloruj(o, kolor) {
   return obrys ? { ...o, stroke: kolor } : { ...o, fill: kolor };
 }
 
+// Porównanie wartości z danych: bez wielkości liter i zbędnych spacji.
+const jednolicie = (v) => String(v ?? '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pl');
+
+// Czy element ma być na stronie, według warunku { pole, gdy, wartosc }. Nieznane pole liczy się jak puste.
+export function widocznyZDanych(war, wartosc) {
+  if (!war?.pole) return true;
+  const v = jednolicie(wartosc(war.pole, null));
+  if (war.gdy === 'puste') return v === '';
+  if (war.gdy === 'rowne') return v === jednolicie(war.wartosc);
+  return v !== '';
+}
+
+// Obrót elementu (zapis Fabric) o kąt w stopniach wokół jego środka. Położenie w zapisie to
+// róg (albo inny punkt zaczepienia), więc razem z kątem trzeba je przeliczyć.
+function obrocWokolSrodka(o, kat) {
+  const a0 = o.angle || 0;
+  const ile = { left: 0.5, center: 0, right: -0.5, top: 0.5, bottom: -0.5 };
+  const fx = ile[o.originX || 'left'] ?? 0.5;
+  const fy = ile[o.originY || 'top'] ?? 0.5;
+  const sx = o.scaleX ?? 1;
+  const sy = o.scaleY ?? 1;
+  const kreska = o.strokeWidth ?? 1;
+  const w = o.strokeUniform ? (o.width || 0) * sx + kreska : ((o.width || 0) + kreska) * sx;
+  const h = o.strokeUniform ? (o.height || 0) * sy + kreska : ((o.height || 0) + kreska) * sy;
+  const obroc = (x, y, stopnie) => { const r = (stopnie * Math.PI) / 180; return [x * Math.cos(r) - y * Math.sin(r), x * Math.sin(r) + y * Math.cos(r)]; };
+  const [dx0, dy0] = obroc(fx * w, fy * h, a0);
+  const [dx1, dy1] = obroc(fx * w, fy * h, a0 + kat);
+  return { ...o, angle: a0 + kat, left: (o.left || 0) + dx0 - dx1, top: (o.top || 0) + dy0 - dy1 };
+}
+
 function zDanych(o, wartosc) {
   const z = o.z_danych;
   let k = o;
@@ -174,11 +232,14 @@ function zDanych(o, wartosc) {
   const dx = przesuniecieZDanych(z.x, wartosc);
   const dy = przesuniecieZDanych(z.y, wartosc);
   if (dx || dy) k = { ...k, left: (k.left || 0) + dx, top: (k.top || 0) + dy };
+  const kat = z.obrot ? liczbaZWartosci(wartosc(z.obrot, null)) : null;
+  if (kat) k = obrocWokolSrodka(k, kat);
+  if (!widocznyZDanych(z.widok, wartosc)) k = { ...k, visible: false };
   return k;
 }
 
 // Nazwy pól, od których zależy wygląd elementu.
-export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_danych?.y?.pole].filter(Boolean);
+export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_danych?.y?.pole, o.z_danych?.obrot, o.z_danych?.widok?.pole].filter(Boolean);
 
 // Podstawia pola we wszystkich tekstach listy obiektów (także w grupach) i nadaje
 // elementom kolor oraz przesunięcie zależne od danych.
@@ -186,7 +247,7 @@ export function podstawWObiektach(obiekty, wartosc) {
   return (obiekty || []).map((o) => {
     let k = o;
     // Tekst z przełącznikiem „klamry to zwykły tekst” (bez_pol) zostaje nietknięty.
-    if (typeof o.text === 'string' && o.text.includes('{') && !o.bez_pol) {
+    if (typeof o.text === 'string' && (o.text.includes('{') || o.text.includes('}}')) && !o.bez_pol) {
       const { text, styles } = podstawWTekscie(o.text, o.styles, wartosc);
       if (text !== o.text) k = { ...o, text, styles };
     }
