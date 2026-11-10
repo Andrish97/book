@@ -15,7 +15,7 @@ const ADRES = process.argv[2] || 'https://andrish97.github.io/book/';
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 const email = `seriodruk-test-${crypto.randomBytes(5).toString('hex')}@example.com`;
 const haslo = `Tt#9${crypto.randomBytes(8).toString('hex')}`;
-const wyniki = [];
+const wyniki = [`konto testowe: ${email}`];
 const krok = async (nazwa, fn) => {
   const t = Date.now();
   try { const w = await fn(); wyniki.push(`OK   ${nazwa}${w ? ` – ${w}` : ''} (${Date.now() - t} ms)`); }
@@ -63,6 +63,17 @@ const krok = async (nazwa, fn) => {
       const s = await p.evaluate(() => { const pr = window.seriodruk.stan.projekt; return `wersja na koncie ${pr.wersja_chmury}, obraz: ${Object.values(pr.zasoby)[0]?.sciezka ? 'wysłany' : 'tylko lokalnie'}`; });
       return s;
     });
+    await krok('wgrana czcionka trafia do „Moich czcionek” na koncie', async () => {
+      await p.evaluate(async () => {
+        const plik = new File([await (await fetch('css/czcionki/pdf/caveat-400-prosta.ttf')).arrayBuffer()], 'Probna-Regular.ttf', { type: 'font/ttf' });
+        const [c] = await window.seriodruk.oknoCzcionek.dodaj([plik]);
+        await window.seriodruk.oknoCzcionek.zmienRodzine(c.id, 'Próbna');
+      });
+      // Zbiór uzgadnia się z kontem w tle – czekamy, aż spis na koncie pokaże plik.
+      await p.waitForFunction(async () => { const ch = await import('./js/chmura.js'); const spis = await (await ch.kontoCzcionek()).spis(); return spis.czcionki.some((c) => c.rodzina === 'Próbna'); }, null, { timeout: 40000, polling: 1500 });
+      await p.waitForFunction(() => document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', null, { timeout: 40000 });
+      return 'plik i spis w prywatnym folderze konta';
+    });
     await krok('drugie urządzenie widzi projekt po zalogowaniu', async () => {
       const k2 = await b.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: 'block' });
       const p2 = await k2.newPage();
@@ -77,9 +88,11 @@ const krok = async (nazwa, fn) => {
       await p2.click('#ekran-projektow :text("Test bazy")');
       await p2.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
       const s = await p2.evaluate(() => { const pr = window.seriodruk.stan.projekt; return `${pr.strony.length} strony, ${pr.strony.reduce((n, x) => n + x.obiekty.length, 0)} elementy, obraz ${Object.values(pr.zasoby)[0]?.dataUrl?.startsWith('data:image') ? 'pobrany' : 'BRAK'}`; });
+      // „Moje czcionki” na drugim urządzeniu: zbiór pobrany z konta.
+      await p2.waitForFunction(async () => { const m = await import('./js/moje-czcionki.js'); const moje = await m.mojeCzcionki(window.seriodruk.stan.uzytkownik.id); return moje.some((c) => c.rodzina === 'Próbna' && c.dataUrl); }, null, { timeout: 40000, polling: 1500 });
       await k2.close();
       if (s.includes('BRAK')) throw new Error(s);
-      return s;
+      return `${s}; czcionka ze zbioru pobrana`;
     });
     let link;
     await krok('udostępnienie podglądu linkiem', async () => {
@@ -104,10 +117,10 @@ const krok = async (nazwa, fn) => {
       await g.close();
       return s;
     });
-    await krok('wyłączenie linku', async () => {
+    await krok('unieważnienie linku', async () => {
       await p.click('[data-akcja="udostepnij-wylacz"]');
       await p.click('#potwierdz-tak');
-      await p.waitForFunction(() => /Link wyłączony/.test(document.querySelector('#udostepnij-komunikat')?.textContent || ''));
+      await p.waitForFunction(() => /Link unieważniony/.test(document.querySelector('#udostepnij-komunikat')?.textContent || ''));
       const r = await p.evaluate(async (l) => { const [, konto, proj, kod] = l.match(/#\/u\/([^/]+)\/([^/]+)\/([^/]+)$/); const m = await import('./js/konfiguracja.js'); const x = await fetch(`${m.SUPABASE_URL}/storage/v1/object/public/podglady/${konto}/${proj}/${kod}/manifest.json`, { cache: 'no-store' }); return x.status; }, link);
       await p.click('[data-akcja="udostepnij-zamknij"]');
       return `plik pod starym adresem: ${r}`;
@@ -118,6 +131,8 @@ const krok = async (nazwa, fn) => {
     if (zalogowany) {
       try {
         await krok('usunięcie konta testowego', async () => {
+          // Pełne przeładowanie: zamyka okna, które mogły zostać otwarte po przerwanym kroku.
+          await p.goto('about:blank');
           await p.goto(`${ADRES}#/konto`);
           await p.waitForSelector('#ekran-konta', { state: 'visible' });
           await p.click('[data-rozwin="form-usun"]');
@@ -133,7 +148,15 @@ const krok = async (nazwa, fn) => {
           await p.waitForFunction(() => document.querySelector('#komunikat-logowania')?.textContent.trim().length > 0);
           return await p.textContent('#komunikat-logowania');
         });
-      } catch (e) { wyniki.push(`UWAGA: konto testowe mogło zostać w bazie (${e.message.split('\n')[0]})`); }
+      } catch (e) {
+        // Ostatnia deska ratunku: usunięcie konta wprost przez aplikację, bez klikania.
+        try {
+          await p.goto('about:blank'); await p.goto(ADRES);
+          await p.waitForFunction(() => window.seriodruk?.stan?.uzytkownik, null, { timeout: 20000 });
+          await p.evaluate(async () => { const ch = await import('./js/chmura.js'); await ch.usunKonto(); });
+          wyniki.push('OK   konto testowe usunięte awaryjnie (kroki w ustawieniach konta nie przeszły)');
+        } catch (e2) { wyniki.push(`UWAGA: konto testowe ${email} mogło zostać w bazie (${e.message.split('\n')[0]})`); }
+      }
     }
     console.log(wyniki.join('\n'));
     console.log('--- odpowiedzi z błędem / błędy strony:', bledy.length ? `\n${[...new Set(bledy)].join('\n')}` : 'brak');
