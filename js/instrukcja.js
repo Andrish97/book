@@ -500,6 +500,7 @@ export const ROZDZIALY = [
       'Jeśli ten sam projekt zmieniono w międzyczasie na innym urządzeniu, aplikacja nic nie nadpisze, tylko zapyta: <b>zachować wersję z tego urządzenia</b> czy <b>wczytać wersję z konta</b>.',
       '<b>Cofnij</b> i <b>Ponów</b> (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) obejmują cały projekt: zmiany na stronach i wzorcach, dodawanie i usuwanie stron, sekcje, style, dane i serie. Po cofnięciu edytor otwiera stronę, której dotyczyła zmiana. Historia sięga 80 kroków wstecz i kończy się z zamknięciem projektu.',
       'Na konto wysyłane są tylko te strony, które się zmieniły – duży projekt zapisuje się tak samo szybko jak mały.',
+      '<b>Zdjęcia nie obciążają pamięci.</b> Oryginał każdego obrazu leży w osobnym magazynie przeglądarki (na dysku), a w edytorze pracuje lżejsza kopia. Projekt z setkami zdjęć otwiera się i zapisuje tak jak mały; po oryginał aplikacja sięga dopiero przy eksporcie do PDF, PNG albo do pliku projektu. Na drugim urządzeniu obrazy pobierają się z konta raz, przy pierwszym otwarciu projektu.',
       '<b>Eksport</b> zapisuje cały projekt do pliku <code>.seriodruk</code> (kopia zapasowa), <b>Importuj</b> wczytuje go z powrotem, <b>Duplikuj</b> tworzy kopię projektu, np. na kolejny rok.',
       'W edytorze menu <b>⋯</b> eksportuje projekt do <b>PDF</b> (osobny rozdział) i pobiera bieżącą stronę jako obraz PNG w 300 dpi, ze spadem.',
       'Czcionki i silnik edytora są częścią aplikacji – nie są pobierane z zewnętrznych serwerów, więc edytor działa także bez internetu.',

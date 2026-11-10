@@ -87,7 +87,8 @@ const krok = async (nazwa, fn) => {
       await p2.waitForSelector('#ekran-projektow :text("Test bazy")');
       await p2.click('#ekran-projektow :text("Test bazy")');
       await p2.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
-      const s = await p2.evaluate(() => { const pr = window.seriodruk.stan.projekt; return `${pr.strony.length} strony, ${pr.strony.reduce((n, x) => n + x.obiekty.length, 0)} elementy, obraz ${Object.values(pr.zasoby)[0]?.dataUrl?.startsWith('data:image') ? 'pobrany' : 'BRAK'}`; });
+      // Obraz leży w magazynie plików przeglądarki (js/zasoby.js), pobrany z konta przy otwarciu projektu.
+      const s = await p2.evaluate(async () => { const pr = window.seriodruk.stan.projekt; const { dataUrlZasobu } = await import('./js/zasoby.js'); const d = await dataUrlZasobu(pr, Object.keys(pr.zasoby).find((id) => !(pr.czcionki || []).some((c) => c.id === id))); return `${pr.strony.length} strony, ${pr.strony.reduce((n, x) => n + x.obiekty.length, 0)} elementy, obraz ${d?.startsWith('data:image') ? 'pobrany' : 'BRAK'}`; });
       // „Moje czcionki” na drugim urządzeniu: zbiór pobrany z konta.
       await p2.waitForFunction(async () => { const m = await import('./js/moje-czcionki.js'); const moje = await m.mojeCzcionki(window.seriodruk.stan.uzytkownik.id); return moje.some((c) => c.rodzina === 'Próbna' && c.dataUrl); }, null, { timeout: 40000, polling: 1500 });
       await k2.close();

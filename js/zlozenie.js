@@ -12,7 +12,8 @@ import './fabric-ustawienia.js';
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach } from './pola.js';
-import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from './obrazy.js';
+import { przygotujKopie, kopiaRobocza, rozmiarOryginalu, zbierzZasoby } from './obrazy.js';
+import { adresZasobu, dataUrlZasobu } from './zasoby.js';
 import { rozlejWatki } from './watki.js';
 import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
@@ -38,7 +39,18 @@ export function podmienZasoby(obiekty, mapa) {
 
 // Adres obrazu zasobu: zwykle lżejsza kopia robocza (js/obrazy.js), a przy
 // eksporcie (oryginaly = true) zawsze pełny oryginał.
-export const zrodloObrazu = (zasoby, oryginaly = false) => (id) => (!oryginaly && kopiaRobocza(zasoby?.[id])) || zasoby?.[id]?.dataUrl || ZASTEPCZY_OBRAZ;
+// `oryginaly` to wtedy mapa id → treść oryginału (patrz oryginalyObrazow); wystarczy też `true` –
+// obraz wczyta się wprost z pliku w magazynie przeglądarki.
+export const zrodloObrazu = (zasoby, oryginaly = false) => (id) => (oryginaly && oryginaly.get?.(id)) || (!oryginaly && kopiaRobocza(zasoby?.[id])) || adresZasobu(zasoby?.[id]) || ZASTEPCZY_OBRAZ;
+
+// Do eksportu w pełnej jakości: oryginały obrazów użytych w podanych obiektach jako tekst „data:”
+// (PDF rozpoznaje po nim rodzaj pliku i osadza zdjęcie bez ponownej kompresji). Tylko te obrazy
+// i tylko na czas składania tej strony – reszta zostaje na dysku.
+async function oryginalyObrazow(projekt, obiekty) {
+  const mapa = new Map();
+  for (const id of zbierzZasoby(obiekty)) { const d = await dataUrlZasobu(projekt, id); if (d) mapa.set(id, d); }
+  return mapa;
+}
 
 const ozyw = (json) => fabric.util.enlivenObjects(json);
 
@@ -142,7 +154,7 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
     if (!w.obiekty.length) continue;
     const surowe = obrazyZPol(podstawWObiektach(w.obiekty, wartosc), wartosc, projekt.zasoby);
     if (!oryginaly) await przygotujKopie(projekt.zasoby, surowe);
-    const obiekty = await ozyw(podmienZasoby(surowe, zrodloObrazu(projekt.zasoby, oryginaly)));
+    const obiekty = await ozyw(podmienZasoby(surowe, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, surowe))));
     wpiszWRamki(obiekty);
     rozlejWatki(obiekty); // po podstawieniu danych tekst ma inną długość
     for (const o of obiekty) {
@@ -260,7 +272,7 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, egz.strona).wydruk;
   const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
-  const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly)));
+  const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, tresc))));
   wpiszWRamki(wlasne);
   // Po podstawieniu danych tekst ma inną długość – połączone ramki przelewają go od nowa.
   // Ramki tych samych wątków z innych stron biorą udział w przelewaniu, ale nie są tu rysowane.

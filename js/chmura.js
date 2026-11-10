@@ -1,6 +1,7 @@
 // Zapis projektów w Supabase: tabela `projekty` (jsonb) + bucket `zasoby`.
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './konfiguracja.js';
+import { blobZasobu } from './zasoby.js';
 
 const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
 const BUCKET = 'zasoby';
@@ -181,8 +182,9 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
 
   for (const [id, zasob] of Object.entries(projekt.zasoby || {})) {
-    if (zasob.sciezka || !zasob.dataUrl) continue;
-    const blob = await (await fetch(zasob.dataUrl)).blob();
+    if (zasob.sciezka) continue;
+    const blob = await blobZasobu(projekt, id); // świeży obraz ma treść w projekcie, zapisany – w magazynie przeglądarki
+    if (!blob) continue;
     const sciezka = `${uzytkownik.id}/${projekt.id}/${id}`;
     sprawdz(await sb.storage.from(BUCKET).upload(sciezka, blob, {
       upsert: true, contentType: blob.type || 'application/octet-stream',
@@ -236,12 +238,21 @@ export async function wczytajZChmury(id) {
     delete projekt.strony_osobno;
     wyslaneStrony.set(id, new Map(projekt.strony.map((st) => [st.id, JSON.stringify(st)])));
   } else wyslaneStrony.delete(id);
-  for (const zasob of Object.values(projekt.zasoby || {})) {
-    if (!zasob.sciezka) continue;
-    const blob = sprawdz(await sb.storage.from(BUCKET).download(zasob.sciezka));
-    zasob.dataUrl = await blobNaDataUrl(blob);
+  // Czcionki własne są potrzebne od razu i są małe – wracają w projekcie. Obrazy pobiera dopiero
+  // otwarcie projektu, prosto do magazynu plików przeglądarki (js/zasoby.js: podlaczZasoby),
+  // i tylko te, których na tym urządzeniu jeszcze nie ma.
+  const czcionki = new Set((projekt.czcionki || []).map((c) => c.id));
+  for (const [idZasobu, zasob] of Object.entries(projekt.zasoby || {})) {
+    if (!zasob.sciezka || !czcionki.has(idZasobu)) continue;
+    zasob.dataUrl = await blobNaDataUrl(await pobierzZasob(zasob.sciezka));
   }
   return projekt;
+}
+
+// Plik zasobu z konta (obraz albo czcionka) jako Blob.
+export async function pobierzZasob(sciezka) {
+  const sb = await supabase();
+  return sprawdz(await sb.storage.from(BUCKET).download(sciezka));
 }
 
 export async function usunZChmury(id) {

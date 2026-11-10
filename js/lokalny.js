@@ -1,4 +1,8 @@
 // Lokalna pamięć projektów w IndexedDB (sekcja 9: praca przy słabym połączeniu).
+// Rekord projektu nie zawiera oryginałów obrazów – leżą w osobnym magazynie (js/zasoby.js),
+// więc zapis po każdej zmianie przepisuje tylko układ stron, nie megabajty zdjęć.
+
+import { odlozZasoby, usunPlikiProjektu } from './zasoby.js';
 
 const BAZA = 'seriodruk';
 const MAGAZYN = 'projekty';
@@ -64,7 +68,10 @@ async function transakcja(tryb, fn) {
 
 // Rekord: { id, wlasciciel, nazwa, zmieniono, miniatura, projekt, doSynchronizacji }
 // wlasciciel: id użytkownika Supabase albo 'lokalny' (praca bez konta).
-export function zapiszLokalnie(projekt, wlasciciel, doSynchronizacji = true) {
+export async function zapiszLokalnie(projekt, wlasciciel, doSynchronizacji = true) {
+  // Nowe obrazy trafiają do magazynu plików, a z projektu znika ich treść. Gdyby magazyn zawiódł
+  // (np. brak miejsca), obraz zostaje w projekcie jak dawniej – zapis nie może przepaść.
+  try { await odlozZasoby(projekt); } catch { /* treść obrazu zostaje w rekordzie projektu */ }
   const rekord = {
     id: projekt.id,
     wlasciciel,
@@ -89,8 +96,9 @@ export async function listaLokalnych(wlasciciel) {
     .sort((a, b) => (b.zmieniono || '').localeCompare(a.zmieniono || ''));
 }
 
-export function usunLokalnie(id) {
-  return transakcja('readwrite', (m) => m.delete(id));
+export async function usunLokalnie(id) {
+  await transakcja('readwrite', (m) => m.delete(id));
+  try { await usunPlikiProjektu(id); } catch { /* sprzątanie plików nie może zepsuć usuwania projektu */ }
 }
 
 export async function oznaczZsynchronizowany(id, zmieniono) {
@@ -108,4 +116,5 @@ export async function usunLokalneWlasciciela(wlasciciel) {
   const moje = (wszystkie || []).filter((r) => r.wlasciciel === wlasciciel);
   if (!moje.length) return;
   await transakcja('readwrite', (m) => { for (const r of moje) m.delete(r.id); });
+  for (const r of moje) { try { await usunPlikiProjektu(r.id); } catch { /* jw. */ } }
 }

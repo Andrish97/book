@@ -3,6 +3,7 @@
 import { normalizuj, kopiujProjekt, FORMATY, nowyProjekt, normalizujWydruk } from '../projekt.js';
 import { listaLokalnych, wczytajLokalnie, zapiszLokalnie, oznaczZsynchronizowany, usunLokalnie } from '../lokalny.js';
 import * as chmura from '../chmura.js';
+import { odlozZasoby, podlaczZasoby, kopiujPliki } from '../zasoby.js';
 import { ikona } from '../ikony.js';
 import { zapiszPlikProjektu, ROZSZERZENIE, wczytajPlikProjektu as odczytajPlik } from '../plik-projektu.js';
 import { powiadom, $, kiedy, przelaczMenu, zamknijMenu, zapytajONazwe, pobierz, bezpiecznaNazwa, potwierdz } from '../ui.js';
@@ -105,10 +106,22 @@ export async function wczytajProjektZWpisu(w) {
   const lokalny = w.lokalnie ? (await wczytajLokalnie(w.id))?.projekt : null;
   // Nowsza wersja wygrywa; niewysłane zmiany lokalne mają pierwszeństwo.
   const chmuraNowsza = w.wChmurze && (!lokalny || (!w.doSynchronizacji && w.wChmurze > (lokalny.zmieniono || '')));
-  if (!chmuraNowsza) return lokalny;
+  if (!chmuraNowsza) {
+    // Starszy zapis trzymał obrazy w środku projektu – przy pierwszym otwarciu przechodzą do magazynu plików.
+    if (lokalny && await odlozZasoby(lokalny)) await zapiszLokalnie(lokalny, wlasciciel(), Boolean(w.doSynchronizacji));
+    if (lokalny) await podlaczObrazy(lokalny);
+    return lokalny;
+  }
   const projekt = normalizuj(await chmura.wczytajZChmury(w.id));
   await zapiszLokalnie(projekt, wlasciciel(), false);
+  await podlaczObrazy(projekt);
   return projekt;
+}
+
+// Obrazy projektu dostają adresy plików z magazynu przeglądarki; brakujące są pobierane z konta.
+export async function podlaczObrazy(projekt) {
+  const brak = await podlaczZasoby(projekt, stan.uzytkownik ? chmura.pobierzZasob : null);
+  if (brak.length) powiadom(`Nie udało się wczytać ${brak.length === 1 ? `obrazu „${brak[0]}”` : `obrazów (${brak.length}): ${brak.slice(0, 3).join(', ')}${brak.length > 3 ? '…' : ''}`}.${navigator.onLine ? '' : ' Są na koncie – pobiorą się po powrocie internetu.'}`, true);
 }
 
 async function otworzZListy(w) {
@@ -136,6 +149,7 @@ async function duplikujProjekt(w) {
   try {
     const zrodlo = await wczytajProjektZWpisu(w);
     const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
+    await kopiujPliki(zrodlo, kopia); // kopia ma własne pliki obrazów – podmiana zdjęcia w niej nie rusza oryginału
     await zapiszGdziekolwiek(kopia);
     powiadom(`Utworzono „${kopia.nazwa}”.`);
   } catch (e) {

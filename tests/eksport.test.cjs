@@ -62,7 +62,7 @@ test('duże zdjęcie: na płótnie lżejsza kopia, w projekcie wymiary oryginał
       szerObiektu: obraz.width, wysObiektu: obraz.height, szerNaStronie: Math.round(obraz.width * obraz.scaleX * 10) / 10,
       szerElementu: el.naturalWidth, wysElementu: el.naturalHeight,
       zapisane: zapisane.map((o) => [o.type, o.width, o.height, o.src.startsWith('zasob:')]),
-      robocze: zrodloObrazu(p.zasoby)(id).slice(0, 5), pelne: zrodloObrazu(p.zasoby, true)(id).slice(0, 15),
+      robocze: zrodloObrazu(p.zasoby)(id).slice(0, 5), pelne: (await (await import('./js/zasoby.js')).dataUrlZasobu(p, id)).slice(0, 15),
       zasob: Object.keys(p.zasoby[id]).sort(),
       zKopii, zOryginalu, przyciete,
     };
@@ -72,7 +72,7 @@ test('duże zdjęcie: na płótnie lżejsza kopia, w projekcie wymiary oryginał
   assert.deepEqual(w.zapisane, [['image', 3000, 2000, true], ['image', 3000, 2000, true]], 'powielony obraz też ma wymiary oryginału');
   assert.equal(w.robocze, 'blob:');
   assert.equal(w.pelne, 'data:image/png;');
-  assert.deepEqual(w.zasob, ['dataUrl', 'nazwa'], 'kopia robocza nie trafia do projektu');
+  assert.deepEqual(w.zasob, ['nazwa', 'rozmiar', 'typ'], 'w projekcie zostaje opis obrazu – bez treści i bez kopii roboczej');
   const oczekiwane = ['255,0,0', '0,0,255', '0,0,255', '255,255,255'];
   assert.deepEqual(w.zKopii, oczekiwane);
   assert.deepEqual(w.zOryginalu, oczekiwane);
