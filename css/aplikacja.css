@@ -102,7 +102,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
-body { overflow: hidden; }
+/* Dokument się nie przewija – ekrany przewijają się w środku. Na telefonie pasek
+   adresu i pasek systemowy zmieniają wysokość okna; body przypięte do okna
+   (zamiast wysokości liczonej w jednostkach okna) zawsze pokrywa dokładnie to,
+   co widać, razem z wysuwanymi panelami, które też są przypięte do okna. */
+html { overflow: hidden; overscroll-behavior: none; }
+body { position: fixed; inset: 0; height: auto; overflow: hidden; overscroll-behavior: none; }
 
 h1, h2, h3 { margin: 0; letter-spacing: -.01em; }
 p { margin: 0; }
@@ -115,7 +120,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 
 /* ---------- Ekrany ---------- */
 
-.ekran { display: none; height: 100dvh; }
+.ekran { display: none; height: 100%; }
 body[data-ekran="start"] #ekran-start,
 body[data-ekran="logowanie"] #ekran-logowania,
 body[data-ekran="projekty"] #ekran-projektow,
@@ -712,19 +717,28 @@ dialog h2 { font-size: 19px; }
   .stan-zapisu .tekst { display: none; }
   .nazwa-projektu { flex-basis: 120px; font-size: 14px; }
   #przycisk-format { display: none; }
+  /* Wysokość w svh (okno z widocznym paskiem adresu), żeby arkusz nie zmieniał
+     rozmiaru, gdy pasek się chowa. Zamknięty arkusz zjeżdża cały poniżej ekranu
+     i staje się niewidoczny – nic nie wystaje spod dolnego menu. */
   .panel {
     position: fixed; left: 0; right: 0; z-index: 20;
     bottom: calc(60px + env(safe-area-inset-bottom));
-    max-height: 62dvh;
+    max-height: 62vh; max-height: 62svh;
     border: 0 !important; border-radius: 18px 18px 0 0;
-    box-shadow: 0 -10px 40px rgba(28, 27, 25, .2);
-    transform: translateY(115%); transition: transform .22s ease;
+    box-shadow: 0 -6px 24px rgba(28, 27, 25, .18);
+    transform: translateY(calc(100% + 100px + env(safe-area-inset-bottom)));
+    visibility: hidden;
+    transition: transform .2s ease-out, visibility 0s linear .2s;
+    will-change: transform; contain: layout paint;
   }
   .panel::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--linia-mocna); margin: 8px auto 0; }
   .zamknij-arkusz { display: inline-flex !important; }
   body[data-panel="strony"] .panel-strony,
   body[data-panel="inspektor"] .panel-inspektor,
-  body[data-panel="ostrzezenia"] .panel-inspektor { transform: none; }
+  body[data-panel="ostrzezenia"] .panel-inspektor { transform: none; visibility: visible; transition: transform .2s ease-out, visibility 0s; }
+  /* Właściwości mają stałą wysokość: treść zmienia się przy każdym zaznaczeniu
+     i arkusz o wysokości „do treści” skakałby razem z nią. */
+  body[data-panel="inspektor"] .panel-inspektor { height: 56vh; height: 56svh; }
   body[data-panel="ostrzezenia"] .wlasciwosci,
   body[data-panel="ostrzezenia"] .panel-inspektor > .naglowek-panelu { display: none; }
   body[data-panel="inspektor"] .sekcja-ostrzezen { display: none; }

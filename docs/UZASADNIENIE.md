@@ -125,6 +125,16 @@ Bez zmian: 8 czcionek OFL z Google Fonts. Przed eksportem PDF trzeba przenieść
 ### D8. Czego nadal nie ma z programów do składu ❌
 Panel warstw, linijki, kształty dowolne, gradienty, cienie, zwijane sekcje panelu właściwości (na telefonie panel jest długi).
 
+### D9. Układ ekranu i panel właściwości ✅ / ⚠️
+**Co jest.** Z lewej lista stron i wzorców, w środku płótno z pływającym paskiem narzędzi, z prawej jeden panel: właściwości zaznaczonego elementu albo strony.
+**Dlaczego tak.** Układ znany z programów do składu; jeden panel zmieniający treść zajmuje mniej miejsca niż kilka okienek.
+**Słabe.** Panel jest długi i nie ma zwijanych części.
+
+### D10. Dotyk i telefon ⚠️
+**Co jest.** Jeden palec zaznacza i przesuwa elementy, dwa – widok. Na telefonie panele wysuwają się z dołu jako arkusze.
+**Poprawione 2026-11-10 po Twoim zrzucie z telefonu.** Górny pasek uciekał poza ekran, a spod dolnego menu wystawał schowany arkusz. Ekran aplikacji jest teraz przypięty do okna (nie liczy wysokości w jednostkach okna, które na telefonie zmieniają się z paskiem adresu), dokument nie daje się przewinąć, zamknięte arkusze zjeżdżają całe poniżej ekranu, a arkusz właściwości ma stałą wysokość, żeby nie skakał przy zmianie zaznaczenia. Strona nie rysuje się już pod paskiem systemowym.
+**Słabe.** Błędu nie umiałem odtworzyć w przeglądarce testowej – poprawka usuwa jego możliwe przyczyny, ale potwierdzić ją może tylko próba na Twoim telefonie. Rozkładówka na telefonie jest mała.
+
 ---
 
 ## E. Sekcje i wzorce
@@ -136,6 +146,9 @@ Własny format, spad, cztery marginesy, układ, wzorce domyślne i **numeracja**
 ### E2. Wzorce połączone z motywami ✅
 **Co jest.** Strona może mieć kilka wzorców naraz; każdy element wzorca leży pod albo nad treścią; wzorzec może odbijać się lustrzanie na lewych stronach (numer strony zawsze przy zewnętrznej krawędzi). Pojęcie „motyw” z planu zniknęło – to są wzorce.
 **Słabe.** Kolejność wzorców wynika z kolejności na liście wzorców (nie da się jej zmienić przeciąganiem). Odbicie lustrzane grupy przenosi całą grupę, ale nie odbija układu w jej środku.
+
+### E4. Lista stron ✅
+Miniatury pogrupowane w sekcje, z numerem strony; w rozkładówkach strony stoją parami. Kolejność zmienia się z menu strony, nie przeciąganiem.
 
 ### E3. Jedno składanie strony ✅
 `zlozenie.js` składa tło, wzorce i treść dla edytora, miniatur i podglądu – ten sam kod posłuży eksportowi PDF, więc wszędzie wygląda to identycznie.

@@ -89,7 +89,28 @@ test('telefon: panele z dołu, dodanie strony i tekstu', async (t) => {
   const { strona, bledy } = await otworz(t, { telefon: true });
   await nowyProjekt(strona, 'Telefon');
   await strona.tap('[data-akcja="dodaj-tekst"]');
+
+  // Ekran trzyma się okna: pasek u góry, menu na samym dole, zamknięte arkusze
+  // niewidoczne i w całości poniżej ekranu, dokument nie daje się przewinąć.
+  const uklad = () => strona.evaluate(() => {
+    const r = (s) => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); return { gora: Math.round(b.top), dol: Math.round(b.bottom), widac: getComputedStyle(e).visibility === 'visible' }; };
+    window.scrollTo(0, 200);
+    return { okno: window.innerHeight, przewiniecie: window.scrollY + document.body.scrollTop, pasek: r('#ekran-edytora > :first-child'), menu: r('.zakladki-mobilne'), strony: r('.panel-strony'), wlasciwosci: r('.panel-inspektor') };
+  });
+  let u = await uklad();
+  assert.equal(u.przewiniecie, 0);
+  assert.equal(u.pasek.gora, 0);
+  assert.equal(u.menu.dol, u.okno);
+  assert.ok(!u.strony.widac && u.strony.gora >= u.okno, 'zamknięty arkusz stron nie wystaje');
+  assert.ok(!u.wlasciwosci.widac && u.wlasciwosci.gora >= u.okno, 'zamknięty arkusz właściwości nie wystaje');
+
+  // Okno zmienia wysokość (chowany pasek adresu) – układ idzie za nim.
+  await strona.setViewportSize({ width: 412, height: 700 });
+  u = await uklad();
+  assert.deepEqual([u.pasek.gora, u.menu.dol], [0, 700]);
+
   await strona.tap('.zakladki-mobilne [data-panel="strony"]');
+  await strona.waitForFunction(() => getComputedStyle(document.querySelector('.panel-strony')).visibility === 'visible');
   await strona.tap('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
   assert.deepEqual(bledy, []);

@@ -1841,6 +1841,19 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'PageDown') przejdzDoStrony(stan.indeks + 1);
 });
 
+// Dokument nie ma się przewijać (ekrany przewijają się w środku). Przeglądarka
+// na telefonie potrafi go jednak przesunąć sama, np. gdy fokus dostaje pole
+// tekstowe – a użytkownik nie ma jak go cofnąć. Wracamy wtedy na miejsce.
+function dokumentNaMiejsce() {
+  const pole = document.activeElement;
+  if (pole && /^(INPUT|TEXTAREA|SELECT)$/.test(pole.tagName)) return; // klawiatura ekranowa w użyciu
+  if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+  if (document.body.scrollTop || document.body.scrollLeft) { document.body.scrollTop = 0; document.body.scrollLeft = 0; }
+}
+window.addEventListener('scroll', dokumentNaMiejsce, { passive: true });
+document.body.addEventListener('scroll', dokumentNaMiejsce, { passive: true });
+document.addEventListener('focusout', () => setTimeout(dokumentNaMiejsce, 150));
+
 window.addEventListener('online', () => zaplanujChmure(500));
 window.addEventListener('offline', () => { if (stan.projekt && stan.uzytkownik) stanZapisu('offline', 'Offline – zapisano na urządzeniu'); });
 document.addEventListener('visibilitychange', () => {
