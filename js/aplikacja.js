@@ -16,6 +16,7 @@
 //
 // Moduły importują się nawzajem (funkcje), ale żaden nie zależy od tego pliku.
 
+import { toZaznaczenie } from './fabric-ustawienia.js';
 import { uid } from './projekt.js';
 import { opisObiektu } from './edytor.js';
 import { pngCelu } from './eksport.js';
@@ -344,7 +345,7 @@ $('#nazwa-projektu').addEventListener('keydown', (e) => { if (e.key === 'Enter')
 
 edytor.addEventListener('zaznaczenie', (e) => {
   const obj = e.detail;
-  $('#akcje-obiektu').hidden = !obj || obj.type === 'activeSelection';
+  $('#akcje-obiektu').hidden = !obj || toZaznaczenie(obj);
   panel.pokaz(obj);
 });
 edytor.addEventListener('zmiana', zaplanujZapis);
@@ -427,7 +428,7 @@ document.addEventListener('keydown', (e) => {
   if (document.body.dataset.ekran === 'podglad' && e.key === 'Escape' && !$('dialog[open]') && !podglad.wPrezentacji) { zamknijPodglad(); return; }
   if (document.body.dataset.ekran !== 'edytor' || $('dialog[open]')) return;
   const cel = e.target;
-  const wPolu = Boolean(cel !== document.body && cel.closest('input, textarea:not([data-fabric-hiddentextarea]), select, [contenteditable]'));
+  const wPolu = Boolean(cel !== document.body && cel.closest('input, textarea:not([data-fabric="textarea"]), select, [contenteditable]'));
   const wEdycji = Boolean(edytor.aktywny?.isEditing);
   if (edytor.rysuje && e.key === 'Escape') { e.preventDefault(); edytor.ustawRysowanie(false); return; }
   if (edytor.kadruje && !wPolu && (e.key === 'Enter' || e.key === 'Escape')) { e.preventDefault(); edytor.zakonczKadrowanie(e.key === 'Enter'); return; }

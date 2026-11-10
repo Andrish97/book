@@ -8,11 +8,13 @@
 // licząc od `rozmiar_bazowy`). Działa tak samo w edytorze i przy składaniu
 // stron z danymi – dlatego jest łatką na sam obiekt tekstu.
 
+import './fabric-ustawienia.js';
+
 const PT = 25.4 / 72;
 const liczDomyslnie = fabric.Textbox.prototype.initDimensions;
 
 fabric.Textbox.prototype.initDimensions = function initDimensions() {
-  if (this.__skipDimension) return;
+  if (!this.initialized) return;
   const ramka = this.ramka_h > 0;
   // Ramka połączona z innymi (js/watki.js) nie zmniejsza tekstu – nadmiar płynie dalej.
   if (ramka && this.autodopasowanie && this.rozmiar_bazowy > 0 && !this.watek) {
@@ -39,20 +41,8 @@ fabric.Textbox.prototype._getTopOffset = function _getTopOffset() {
   return -this.height / 2 + luzWRamce(this);
 };
 
-// Kliknięcie w tekst: kursor trafia we właściwy wiersz także wtedy, gdy treść
-// jest odsunięta od górnej krawędzi ramki.
-const kursorZWskaznika = fabric.Textbox.prototype.getSelectionStartFromPointer;
-fabric.Textbox.prototype.getSelectionStartFromPointer = function getSelectionStartFromPointer(e) {
-  const luz = luzWRamce(this);
-  if (!luz) return kursorZWskaznika.call(this, e);
-  const lokalny = this.getLocalPointer;
-  this.getLocalPointer = (...argumenty) => {
-    const p = lokalny.apply(this, argumenty);
-    p.y -= luz * this.scaleY;
-    return p;
-  };
-  try { return kursorZWskaznika.call(this, e); } finally { delete this.getLocalPointer; }
-};
+// Kliknięcie w tekst trafia we właściwy wiersz także wtedy, gdy treść jest odsunięta od górnej
+// krawędzi ramki: Fabric 7 liczy położenie kursora od tego samego _getTopOffset.
 
 // ---------- Lista: wypunktowanie i numerowanie akapitów ----------
 //
@@ -66,14 +56,17 @@ const ZNAKI_LISTY = { punkty: '•', kreski: '–' };
 export const wciecieListy = (o) => (o.lista ? o.fontSize * (o.lista === 'numery' ? 1.9 : 1.2) : 0);
 
 const P = fabric.Textbox.prototype;
-for (const k of ['lista', 'lista_start']) {
-  if (!P._dimensionAffectingProps.includes(k)) P._dimensionAffectingProps = [...P._dimensionAffectingProps, k];
-  if (!P.cacheProperties.includes(k)) P.cacheProperties = [...P.cacheProperties, k];
+// Właściwości, po których zmianie tekst trzeba zmierzyć i narysować od nowa.
+function wplywaNaUklad(k) {
+  const T = fabric.Textbox;
+  if (!T.textLayoutProperties.includes(k)) T.textLayoutProperties = [...T.textLayoutProperties, k];
+  if (!T.cacheProperties.includes(k)) T.cacheProperties = [...T.cacheProperties, k];
 }
+for (const k of ['lista', 'lista_start']) wplywaNaUklad(k);
 
 const zawin = P._wrapLine;
-P._wrapLine = function _wrapLine(linia, nr, szerokosc, zarezerwowane) {
-  return zawin.call(this, linia, nr, szerokosc, (zarezerwowane || 0) + wciecieListy(this));
+P._wrapLine = function _wrapLine(nr, szerokosc, dane, zarezerwowane) {
+  return zawin.call(this, nr, szerokosc, dane, (zarezerwowane || 0) + wciecieListy(this));
 };
 
 const odLewej = P._getLineLeftOffset;
@@ -119,7 +112,7 @@ P._renderText = function _renderText(ctx) {
       ctx.textBaseline = 'alphabetic';
       ctx.textAlign = 'right'; // znak kończy się tuż przed tekstem – numery równają do kropki
       const znak = this.lista === 'numery' ? `${numer}.` : (ZNAKI_LISTY[this.lista] || '•');
-      const podstawa = y + wysokosc / this.lineHeight - (wysokosc * this._fontSizeFraction) / this.lineHeight;
+      const podstawa = y + this.getHeightOfLineImpl(i) * (1 - this._fontSizeFraction);
       ctx.fillText(znak, lewo + this._getLineLeftOffset(i) - styl.fontSize * 0.4, podstawa);
       numer += 1;
     }
@@ -133,10 +126,7 @@ P._renderText = function _renderText(ctx) {
 // `wielkosc_liter`: 'wielkie' | 'male'. Treść zostaje taka, jak ją wpisano (i taka idzie
 // do pól z danymi) – zmienia się tylko to, jak znaki są mierzone i rysowane.
 const zmienLitery = (o, s) => (o.wielkosc_liter === 'wielkie' ? s.toLocaleUpperCase('pl') : (o.wielkosc_liter === 'male' ? s.toLocaleLowerCase('pl') : s));
-for (const k of ['wielkosc_liter']) {
-  if (!P._dimensionAffectingProps.includes(k)) P._dimensionAffectingProps = [...P._dimensionAffectingProps, k];
-  if (!P.cacheProperties.includes(k)) P.cacheProperties = [...P.cacheProperties, k];
-}
+wplywaNaUklad('wielkosc_liter');
 const mierzZnak = P._measureChar;
 P._measureChar = function _measureChar(znak, styl, poprzedni, stylPoprzedniego) {
   if (!this.wielkosc_liter) return mierzZnak.call(this, znak, styl, poprzedni, stylPoprzedniego);

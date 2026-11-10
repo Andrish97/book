@@ -137,7 +137,7 @@ test('skróty: zaznaczanie, kolejność, blokada, tekst, widok, kopia z Alt, ruc
   await nowyProjekt(strona, 'Skróty');
   await prostokaty(strona, [['a', 20, 30, 20, 20], ['b', 60, 30, 20, 20]]);
   const nazwy = () => strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().map((o) => o.nazwa || o.type));
-  const aktywny = () => strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return o ? (o.type === 'activeSelection' ? `zaznaczenie:${o.size()}` : o.nazwa || o.type) : null; });
+  const aktywny = () => strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return o ? (o.type === 'activeselection' ? `zaznaczenie:${o.size()}` : o.nazwa || o.type) : null; });
 
   await strona.keyboard.press('Control+a');
   assert.equal(await aktywny(), 'zaznaczenie:2');
