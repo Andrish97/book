@@ -62,6 +62,16 @@ function plikZZadania(req) {
   return plik || { typ, tresc: cialo };
 }
 
+// Baza trzyma projekt i strony w kolumnach jsonb, a te nie pamiętają kolejności pól: oddają je
+// posortowane po długości nazwy, potem alfabetycznie. Atrapa oddaje dane tak samo, żeby żaden test
+// nie przechodził dzięki kolejności, której prawdziwa baza nie zachowa.
+function jakJsonb(x) {
+  if (Array.isArray(x)) return x.map(jakJsonb);
+  if (!x || typeof x !== 'object') return x;
+  const klucze = Object.keys(x).sort((a, b) => a.length - b.length || (a < b ? -1 : (a > b ? 1 : 0)));
+  return Object.fromEntries(klucze.map((k) => [k, jakJsonb(x[k])]));
+}
+
 // Atrapa Supabase: konta w pamięci, tabela projekty, storage – tyle, ile używa aplikacja.
 function atrapaSupabase(kontekst, poczatkowe = {}) {
   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
@@ -165,7 +175,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
       const idProjektu = (url.searchParams.get('projekt_id') || '').replace('eq.', '');
       const p = stan.projekty.find((x) => x.id === idProjektu && x.owner_id === k.id);
-      const wiersze = p ? [...stan.strony].filter(([klucz]) => klucz.startsWith(`${p.id}/`)).map(([klucz, dane]) => ({ strona_id: klucz.slice(p.id.length + 1), dane })) : [];
+      const wiersze = p ? [...stan.strony].filter(([klucz]) => klucz.startsWith(`${p.id}/`)).map(([klucz, dane]) => ({ strona_id: klucz.slice(p.id.length + 1), dane: jakJsonb(dane) })) : [];
       return json(r, 200, wiersze);
     }
     if (sc === '/rest/v1/projekty') {
@@ -177,7 +187,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         if (id) {
           const p = moje.find((x) => x.id === id);
           if (!p) return blad(r, 406, 'brak wiersza', 'PGRST116');
-          return json(r, 200, { dane: p.dane, wersja: p.wersja, zmieniono: p.zmieniono });
+          return json(r, 200, { dane: jakJsonb(p.dane), wersja: p.wersja, zmieniono: p.zmieniono });
         }
         return json(r, 200, moje.map((p) => ({ id: p.id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null, udostepnienie: p.dane.udostepnienie || null })));
       }

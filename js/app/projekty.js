@@ -4,6 +4,7 @@ import { normalizuj, kopiujProjekt, FORMATY, nowyProjekt, normalizujWydruk } fro
 import { listaLokalnych, wczytajLokalnie, zapiszLokalnie, oznaczZsynchronizowany, usunLokalnie } from '../lokalny.js';
 import * as chmura from '../chmura.js';
 import { odlozZasoby, podlaczZasoby, kopiujPliki } from '../zasoby.js';
+import { podstawaProjektu } from '../laczenie.js';
 import { ikona } from '../ikony.js';
 import { zapiszPlikProjektu, ROZSZERZENIE, wczytajPlikProjektu as odczytajPlik } from '../plik-projektu.js';
 import { powiadom, $, kiedy, przelaczMenu, zamknijMenu, zapytajONazwe, pobierz, bezpiecznaNazwa, potwierdz } from '../ui.js';
@@ -113,6 +114,7 @@ export async function wczytajProjektZWpisu(w) {
     return lokalny;
   }
   const projekt = normalizuj(await chmura.wczytajZChmury(w.id));
+  projekt.podstawa_chmury = podstawaProjektu(projekt); // stan uzgodniony z kontem – punkt odniesienia przy łączeniu zmian
   await zapiszLokalnie(projekt, wlasciciel(), false);
   await podlaczObrazy(projekt);
   return projekt;
@@ -267,6 +269,9 @@ export async function doProjektow() {
 export async function wczytajPlikProjektu(plik) {
   try {
     const projekt = normalizuj(await odczytajPlik(plik));
+    // Plik nie wie, co jest teraz na koncie: gdy zastąpi projekt zmieniony w międzyczasie gdzie indziej,
+    // aplikacja zapyta o cały projekt, zamiast łączyć zmiany (js/laczenie.js).
+    delete projekt.podstawa_chmury;
     const istniejacy = await wczytajLokalnie(projekt.id);
     if (istniejacy) {
       const zastap = await potwierdz(

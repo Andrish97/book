@@ -38,6 +38,7 @@ export async function zapiszPlikProjektu(projekt) {
   zip.file('mimetype', TYP_MIME, { compression: 'STORE' });
 
   const { miniatura, ...dane } = projekt;
+  delete dane.podstawa_chmury; // wiedza tego urządzenia o stanie konta – do pliku nie należy
   const zasoby = {};
   const listaZasobow = [];
   for (const [id, z] of Object.entries(projekt.zasoby || {})) {

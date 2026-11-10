@@ -181,7 +181,9 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   assert.deepEqual(bledy, []);
 });
 
-test('konflikt zapisu: zmiana z innego urządzenia nie jest nadpisywana po cichu', async (t) => {
+// Łączenie zmian część po części sprawdza tests/laczenie.test.cjs. Tu: projekt, dla którego urządzenie nie ma
+// zapamiętanego stanu uzgodnionego z kontem (zapisany przed wprowadzeniem łączenia) – zostaje pytanie o cały projekt.
+test('konflikt zapisu bez punktu odniesienia: pytanie o cały projekt, zmiana z innego urządzenia nie jest nadpisywana po cichu', async (t) => {
   const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
   await zalogujIZamknijInstrukcje(strona);
   await nowyProjekt(strona, 'Wspólny');
@@ -192,6 +194,9 @@ test('konflikt zapisu: zmiana z innego urządzenia nie jest nadpisywana po cichu
   await strona.click('[data-akcja="dodaj-linie"]');
   await new Promise((ok) => setTimeout(ok, 4500));
   assert.ok(baza.projekty[0].wersja > pierwsza, 'każdy zapis podnosi wersję');
+
+  assert.ok(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.podstawa_chmury)), 'udany zapis zostawia punkt odniesienia do łączenia');
+  await strona.evaluate(() => { delete window.seriodruk.stan.projekt.podstawa_chmury; });
 
   // „Inne urządzenie” zapisało w międzyczasie.
   baza.projekty[0].wersja = 7;
@@ -207,6 +212,7 @@ test('konflikt zapisu: zmiana z innego urządzenia nie jest nadpisywana po cichu
   await strona.click('#potwierdz-nie');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Wspólny (z telefonu)');
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury), 7);
+  assert.ok(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.podstawa_chmury)), 'wczytana wersja z konta jest nowym punktem odniesienia');
 
   // Kolejna zmiana zapisuje się już normalnie.
   await strona.click('[data-akcja="dodaj-elipse"]');
