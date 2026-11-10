@@ -291,7 +291,7 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Kolor i położenie z danych',
-    wstep: 'Element może zmieniać kolor albo miejsce na kolejnych powielonych stronach. Tak robi się na przykład zakładki na brzegu strony: na każdej stronie niżej i w innym kolorze.',
+    wstep: 'Element może zmieniać kolor, miejsce albo rozmiar na kolejnych powielonych stronach. Tak robi się na przykład zakładki na brzegu strony: na każdej stronie niżej i w innym kolorze – albo słupki o wysokości z tabeli.',
     obraz: 'zakladki.png',
     podpis: 'Podgląd: ta sama zakładka na sześciu powielonych stronach – kolor z kolumny tabeli, położenie z numeru powielenia.',
     punkty: [
@@ -300,9 +300,11 @@ export const ROZDZIALY = [
       '<b>Przesunięcie w pionie / w poziomie z pola</b>: wybierz pole z liczbą. Może to być kolumna tabeli albo pole dokumentu, np. <code>{egzemplarz}</code> – numer powielenia serii (1, 2, 3…).',
       '<b>Wartość pola to numer pozycji</b>: element przesuwa się o <b>krok</b> (w mm) za każdą kolejną pozycję. <b>Od nowa co 6</b> znaczy, że pozycja 7 wraca na miejsce pierwszej – dwanaście miesięcy ułoży się w dwóch seriach po sześć na wysokość strony.',
       '<b>Wartość pola to przesunięcie w mm</b>: liczba z tabeli jest wprost przesunięciem względem wzoru (może być ujemna, z przecinkiem).',
+      '<b>Szerokość z pola / Wysokość z pola</b>: wybierz pole z liczbą – każdy wymiar osobno. Wartość to <b>procent rozmiaru wzoru</b> (100 = bez zmian, 50 = połowa) albo <b>rozmiar w mm</b>. Lista <b>Przy zmianie rozmiaru na miejscu zostaje</b> wybiera punkt zaczepienia: lewy górny róg, środek albo dół – słupek wykresu z kotwicą „dół” rośnie w górę. Wartość 0 chowa element; pole puste albo bez liczby zostawia rozmiar wzoru.',
+      'Co znaczy zmiana rozmiaru: <b>tekst</b> dostaje węższą albo szerszą ramkę i układa się od nowa (wysokość działa przy stałej wysokości ramki) – litery się nie rozciągają; <b>obraz</b> zmienia ramkę – obraz z kolumny wpisuje się w nią tak, jak ustawiono („zmieść” albo „wypełnij”), zwykły obraz ją wypełnia, a nadmiar jest przycinany; <b>tabela</b> zmienia szerokości kolumn i najmniejsze wysokości wierszy; <b>kształty i grupy</b> są skalowane.',
       '<b>Obrót z pola</b>: liczba z pola to kąt w stopniach, dodawany do obrotu wzoru. Element obraca się wokół swojego środka – np. wskazówka albo strzałka ustawiona inaczej na każdej stronie.',
       '<b>Pokaż element</b>: zawsze albo tylko wtedy, gdy wybrane pole <b>nie jest puste</b>, <b>jest puste</b> albo <b>równa się</b> wpisanej wartości (wielkość liter nie ma znaczenia). Tak robi się np. gwiazdkę przy świętach: kolumna <code>swieto</code> wypełniona tylko w niektórych wierszach i gwiazdka pokazywana „gdy pole nie jest puste”.',
-      'W edytorze element stoi w miejscu pozycji 1, ma kolor i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej strony widać w <b>Podglądzie</b> i w PDF.',
+      'W edytorze element stoi w miejscu pozycji 1, ma kolor, rozmiar i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej strony widać w <b>Podglądzie</b>, na miniaturach i w PDF.',
       'Na lewych stronach rozkładówki element wzorca z odbiciem lustrzanym przesuwa się lustrzanie – zakładka trafia na zewnętrzny brzeg.',
       'Pole, którego aplikacja nie zna, trafia na listę <b>Ostrzeżenia</b>, tak jak nieznane pole w tekście.',
     ],

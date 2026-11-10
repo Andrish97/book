@@ -147,8 +147,8 @@ export function podstawWTekscie(tekst, styles, wartosc) {
 
 // ---------- Wygląd z danych: kolor i przesunięcie elementu ----------
 //
-// Element może mieć `z_danych: { kolor?: pole, x?: ust, y?: ust, obrot?: pole, widok?: war }`, gdzie pole to
-// nazwa kolumny albo pola dokumentu, a ust = { pole, tryb, krok, co }:
+// Element może mieć `z_danych: { kolor?: pole, x?: ust, y?: ust, obrot?: pole, widok?: war, szer?: wym, wys?: wym,
+// kotwica? }`, gdzie pole to nazwa kolumny albo pola dokumentu, a ust = { pole, tryb, krok, co }:
 //  - tryb 'mm':      wartość pola to przesunięcie w milimetrach,
 //  - tryb 'pozycja': wartość to numer pozycji (1, 2, 3…); element przesuwa się o
 //                    krok × (numer − 1), a przy `co` > 0 numeracja wraca do początku
@@ -156,8 +156,17 @@ export function podstawWTekscie(tekst, styles, wartosc) {
 // `obrot` – pole z kątem w stopniach, dodawanym do obrotu wzoru (obrót wokół środka elementu).
 // `widok` = { pole, gdy: 'niepuste' | 'puste' | 'rowne', wartosc } – element jest na stronie tylko wtedy,
 // gdy pole spełnia warunek (np. gwiazdka tylko w święta).
-// W edytorze element stoi w miejscu pozycji 1 i jest zawsze widoczny; przesunięcie, kolor, obrót
-// i widoczność widać na powielonych stronach – w podglądzie, na miniaturach i w PDF.
+// `szer`, `wys` = { pole, tryb } – szerokość i wysokość elementu z pola z liczbą:
+//  - tryb 'procent': wartość to procent rozmiaru wzoru (100 = bez zmian),
+//  - tryb 'mm':      wartość to rozmiar w milimetrach.
+// `kotwica` – punkt elementu, który przy zmianie rozmiaru zostaje na miejscu: brak = lewy górny róg,
+// 'srodek' = środek, 'dol' = środek dolnej krawędzi (np. słupek wykresu rosnący w górę).
+// Co się zmienia, zależy od elementu: tekst – szerokość ramki (i wysokość ramki o stałej wysokości), litery
+// się nie rozciągają; obraz – ramka (obraz z pola wpisuje się w nią według swojego trybu, zwykły wypełnia ją
+// z przycięciem nadmiaru); tabela – szerokości kolumn i najmniejsze wysokości wierszy; pozostałe elementy
+// i grupy – skala. Wymiar zerowy (albo ujemny) chowa element.
+// W edytorze element stoi w miejscu pozycji 1, ma rozmiar wzoru i jest zawsze widoczny; przesunięcie, kolor,
+// obrót, rozmiar i widoczność widać na powielonych stronach – w podglądzie, na miniaturach i w PDF.
 
 // Tekst z tabeli → kolor zrozumiały dla przeglądarki albo null. Przyjmuje #rgb, #rrggbb
 // (także bez krzyżyka), rgb(…) i nazwy kolorów CSS.
@@ -224,11 +233,70 @@ function obrocWokolSrodka(o, kat) {
   return { ...o, angle: a0 + kat, left: (o.left || 0) + dx0 - dx1, top: (o.top || 0) + dy0 - dy1 };
 }
 
+// O ile zmienia się wymiar: ustawienie { pole, tryb }, wymiar wzoru w mm → mnożnik (≥ 0) albo null (bez zmiany:
+// brak ustawienia, pole puste albo bez liczby).
+function mnoznikWymiaru(ust, wymiar, wartosc) {
+  if (!ust?.pole) return null;
+  const v = liczbaZWartosci(wartosc(ust.pole, null));
+  if (v === null) return null;
+  if (ust.tryb === 'mm') return wymiar > 0 ? Math.max(0, v) / wymiar : null;
+  return Math.max(0, v) / 100;
+}
+
+const suma = (t) => t.reduce((s, x) => s + x, 0);
+
+// Rozmiar elementu (zapis Fabric) według ustawień `szer`, `wys` i `kotwica`.
+function zmienRozmiar(o, z, wartosc) {
+  const sx = Math.abs(o.scaleX ?? 1) || 1;
+  const sy = Math.abs(o.scaleY ?? 1) || 1;
+  const tabela = o.tabela && Array.isArray(o.tabela.kolumny) && Array.isArray(o.tabela.wiersze) ? o.tabela : null;
+  const tekst = o.type === 'textbox';
+  const stalaRamka = tekst && o.ramka_h > 0;
+  // Wymiary wzoru w mm (bez obrysu). Tekst bez stałej wysokości ramki ma wysokość z treści – tej nie zmieniamy.
+  const w0 = tabela ? suma(tabela.kolumny) : (o.width || 0) * sx;
+  const h0 = tabela ? suma(tabela.wiersze) : (tekst ? (stalaRamka ? o.ramka_h * sy : 0) : (o.height || 0) * sy);
+  const fx = mnoznikWymiaru(z.szer, w0, wartosc);
+  const fy = tekst && !stalaRamka ? null : mnoznikWymiaru(z.wys, h0, wartosc);
+  if (fx === null && fy === null) return o;
+  const w1 = w0 * (fx ?? 1);
+  const h1 = h0 * (fy ?? 1);
+  if ((fx !== null && w1 < 0.01) || (fy !== null && h1 < 0.01)) return { ...o, visible: false };
+  let k = { ...o };
+  if (tabela) {
+    k.tabela = { ...tabela, kolumny: tabela.kolumny.map((x) => x * (fx ?? 1)), wiersze: tabela.wiersze.map((x) => x * (fy ?? 1)) };
+  } else if (tekst) {
+    if (fx !== null) k.width = o.width * fx;
+    if (fy !== null) k.ramka_h = o.ramka_h * fy;
+  } else if (o.type === 'image' && !(o.pole?.kolumna && wartosc(o.pole.kolumna, null) !== undefined) && o.width > 0 && o.height > 0) {
+    // Zwykły obraz wypełnia nową ramkę bez zniekształcenia: wspólna skala, nadmiar przycięty po równo z obu stron.
+    const skala = Math.max(w1 / o.width, h1 / o.height);
+    const [szer, wys] = [w1 / skala, h1 / skala];
+    k = { ...k, scaleX: skala, scaleY: skala, width: szer, height: wys, cropX: (o.cropX || 0) + (o.width - szer) / 2, cropY: (o.cropY || 0) + (o.height - wys) / 2 };
+  } else {
+    // Kształt, linia, grupa – skala; obraz z pola – ramka, w którą wpisze się podmieniony obraz.
+    if (fx !== null) k.scaleX = (o.scaleX ?? 1) * fx;
+    if (fy !== null) k.scaleY = (o.scaleY ?? 1) * fy;
+  }
+  // Punkt zaczepienia zostaje na miejscu: położenie w zapisie to (zwykle) lewy górny róg, więc trzeba je przesunąć.
+  const [ax, ay] = { srodek: [0.5, 0.5], dol: [0.5, 1] }[z.kotwica] || [0, 0];
+  const ox = { left: 0, center: 0.5, right: 1 }[o.originX || 'left'] ?? 0;
+  const oy = { top: 0, center: 0.5, bottom: 1 }[o.originY || 'top'] ?? 0;
+  const dx = (ox - ax) * (w1 - w0);
+  const dy = (oy - ay) * (h1 - h0);
+  if (dx || dy) {
+    const r = ((o.angle || 0) * Math.PI) / 180;
+    k.left = (o.left || 0) + dx * Math.cos(r) - dy * Math.sin(r);
+    k.top = (o.top || 0) + dx * Math.sin(r) + dy * Math.cos(r);
+  }
+  return k;
+}
+
 function zDanych(o, wartosc) {
   const z = o.z_danych;
   let k = o;
   const kolor = z.kolor ? kolorZWartosci(wartosc(z.kolor, null)) : null;
   if (kolor) k = pokoloruj(k, kolor);
+  if (z.szer || z.wys) k = zmienRozmiar(k, z, wartosc);
   const dx = przesuniecieZDanych(z.x, wartosc);
   const dy = przesuniecieZDanych(z.y, wartosc);
   if (dx || dy) k = { ...k, left: (k.left || 0) + dx, top: (k.top || 0) + dy };
@@ -239,10 +307,10 @@ function zDanych(o, wartosc) {
 }
 
 // Nazwy pól, od których zależy wygląd elementu.
-export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_danych?.y?.pole, o.z_danych?.obrot, o.z_danych?.widok?.pole].filter(Boolean);
+export const polaZDanych = (o) => [o.z_danych?.kolor, o.z_danych?.x?.pole, o.z_danych?.y?.pole, o.z_danych?.obrot, o.z_danych?.widok?.pole, o.z_danych?.szer?.pole, o.z_danych?.wys?.pole].filter(Boolean);
 
 // Podstawia pola we wszystkich tekstach listy obiektów (także w grupach) i nadaje
-// elementom kolor oraz przesunięcie zależne od danych.
+// elementom kolor, rozmiar oraz przesunięcie zależne od danych.
 export function podstawWObiektach(obiekty, wartosc) {
   return (obiekty || []).map((o) => {
     let k = o;

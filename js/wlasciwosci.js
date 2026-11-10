@@ -531,7 +531,7 @@ export class PanelWlasciwosci {
     }
   }
 
-  // Kolor i przesunięcie elementu zależne od pola z danych (tabela albo pole dokumentu).
+  // Kolor, położenie, rozmiar, obrót i widoczność elementu zależne od pola z danych (tabela albo pole dokumentu).
   zbudujZDanych(obj) {
     const grupy = this.opcje.pola?.() || [];
     const pola = grupy.flatMap((g) => g.pola.map(([nazwa]) => nazwa));
@@ -540,6 +540,7 @@ export class PanelWlasciwosci {
     const zapisz = (zmiana) => {
       const nowe = { ...z(), ...zmiana };
       for (const k of Object.keys(nowe)) if (!nowe[k] || (typeof nowe[k] === 'object' && !nowe[k].pole)) delete nowe[k];
+      if (!nowe.szer && !nowe.wys) delete nowe.kotwica; // punkt zaczepienia ma sens tylko przy rozmiarze z danych
       obj.z_danych = Object.keys(nowe).length ? nowe : undefined;
     };
     // Na liście: pola dostępne na tej stronie i to, które jest już ustawione (nawet nieznane).
@@ -566,6 +567,31 @@ export class PanelWlasciwosci {
         s.append(this.liczba('Od nowa co', () => ust().co || 0, (v) => zapisz({ [os]: { ...ust(), co: Math.max(0, Math.round(v)) } }), { jednostka: 'poz.', krok: 1, min: 0 }));
       }
     }
+    // Rozmiar: szerokość i wysokość z pola z liczbą – procent rozmiaru wzoru albo milimetry, każdy wymiar osobno.
+    const bezWysokosci = obj.type === 'textbox' && !(obj.ramka_h > 0); // wysokość takiego tekstu wynika z treści
+    for (const [wymiar, etykieta] of [['szer', 'Szerokość z pola'], ['wys', 'Wysokość z pola']]) {
+      if (wymiar === 'wys' && bezWysokosci && !z().wys) continue;
+      const ust = () => z()[wymiar] || {};
+      const wybor = this.wybor(etykieta, lista(ust().pole), () => ust().pole || '', (v) => {
+        zapisz({ [wymiar]: v ? { tryb: 'procent', ...ust(), pole: v } : undefined });
+        this.zbuduj();
+      });
+      wybor.classList.add('szeroki');
+      s.append(wybor);
+      if (!ust().pole) continue;
+      const tryb = this.wybor(`${wymiar === 'szer' ? 'Szerokość' : 'Wysokość'}: wartość pola to`, [['procent', 'procent rozmiaru wzoru (100 = bez zmian)'], ['mm', 'rozmiar w mm']], () => ust().tryb || 'procent', (v) => zapisz({ [wymiar]: { ...ust(), tryb: v } }));
+      tryb.classList.add('szeroki');
+      s.append(tryb);
+    }
+    if (z().szer || z().wys) {
+      const kotwica = this.wybor('Przy zmianie rozmiaru na miejscu zostaje', [['', 'lewy górny róg'], ['srodek', 'środek elementu'], ['dol', 'dół (środek dolnej krawędzi)']], () => z().kotwica || '', (v) => zapisz({ kotwica: v || undefined }));
+      kotwica.classList.add('szeroki');
+      s.append(kotwica);
+      const jak = obj.type === 'textbox'
+        ? (bezWysokosci ? 'W tekście zmienia się szerokość ramki – litery zostają, tekst układa się od nowa. Wysokość z danych działa przy włączonej stałej wysokości ramki.' : 'W tekście zmienia się ramka – litery zostają, tekst układa się od nowa.')
+        : (obj.type === 'image' ? 'W obrazie zmienia się ramka: obraz z pola wpisuje się w nią tak, jak ustawiono wyżej, a zwykły obraz wypełnia ją (nadmiar jest przycinany po równo).' : (toTabela(obj) ? 'W tabeli zmieniają się szerokości kolumn i najmniejsze wysokości wierszy.' : 'Element jest skalowany w wybranym kierunku.'));
+      s.append(this.wskazowka(`${jak} Wartość 0 chowa element.`));
+    }
     // Obrót: kąt w stopniach z pola, dodawany do obrotu wzoru (wokół środka elementu).
     const obrot = this.wybor('Obrót z pola (stopnie)', lista(z().obrot), () => z().obrot || '', (v) => zapisz({ obrot: v || undefined }));
     obrot.classList.add('szeroki');
@@ -584,10 +610,10 @@ export class PanelWlasciwosci {
       s.append(poleWidoku);
       if (war().gdy === 'rowne') s.append(this.tekst('Wartość', () => war().wartosc || '', (v) => zapisz({ widok: { ...war(), wartosc: v } }), true));
     }
-    const jest = z().kolor || z().x || z().y || z().obrot || z().widok;
+    const jest = z().kolor || z().x || z().y || z().obrot || z().widok || z().szer || z().wys;
     s.append(this.wskazowka(jest
-      ? 'W edytorze element stoi w miejscu pozycji 1, ma kolor i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
-      : 'Kolor albo położenie mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykład: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej.'));
+      ? 'W edytorze element stoi w miejscu pozycji 1, ma kolor, rozmiar i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
+      : 'Kolor, położenie albo rozmiar mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykłady: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej; słupek wykresu o wysokości z kolumny.'));
   }
 
   // Styl tekstu: wybór, zapis jako nowy, aktualizacja, usunięcie.

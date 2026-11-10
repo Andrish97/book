@@ -243,3 +243,171 @@ test('obraz wypełniający ramkę: wybór zachowanej części zdjęcia; tabela, 
   assert.deepEqual(await strona.locator('#kontrola-lista li button').allTextContents(), ['Pokaż', 'Otwórz wzór']);
   assert.deepEqual(bledy, []);
 });
+
+test('z danych: szerokość i wysokość elementu – procent wzoru albo milimetry, punkt zaczepienia; tekst, obraz, grupa, tabela; panel i ostrzeżenie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Rozmiar');
+  const w = await strona.evaluate(async () => {
+    const { stan, zapiszTeraz, edytor } = window.seriodruk;
+    const p = stan.projekt;
+    // Obraz 200 × 100: lewa ćwiartka czerwona, środek zielony, prawa ćwiartka niebieska.
+    const c = Object.assign(document.createElement('canvas'), { width: 200, height: 100 });
+    const x = c.getContext('2d');
+    [['#ff0000', 0, 50], ['#00ff00', 50, 100], ['#0000ff', 150, 50]].forEach(([k, od, ile]) => { x.fillStyle = k; x.fillRect(od, 0, ile, 100); });
+    const obraz = await edytor.dodajObraz(c.toDataURL('image/png'), 'pasy.png', p.zasoby);
+    obraz.set({ left: 10, top: 150, scaleX: 0.2, scaleY: 0.2 }); // 40 × 20 mm
+    edytor.zatwierdz();
+    await zapiszTeraz();
+    const zwykly = { ...p.strony[0].obiekty[0], id: 'obraz', z_danych: { szer: { pole: 'proc', tryb: 'procent' } } };
+    const zPola = { ...p.strony[0].obiekty[0], id: 'obrazZPola', left: 80, pole: { kolumna: 'plik', tryb: 'wypelnij' }, z_danych: { szer: { pole: 'proc', tryb: 'procent' }, kotwica: 'srodek' } };
+    p.tabele.push({ id: 't1', nazwa: 'Dane', kolumny: ['proc', 'mm', 'zero', 'plik'], wiersze: [['100', '30', '5', 'pasy.png'], ['50', '60', '0', 'pasy.png'], ['200', '15', '', 'pasy.png'], ['bez liczby', '', '-3', 'pasy.png']] });
+    p.serie.push({ id: 'se1', nazwa: 'Dane', tabela: 't1', tryb: 'tabela', uklad: 'szeroki', ile: 1 });
+    p.strony[0].seria = 'se1';
+    const prostokat = (id, left, top, width, height, fill, zDanych) => ({ type: 'rect', version: '5.3.0', left, top, width, height, strokeWidth: 0, fill, id, z_danych: zDanych });
+    p.strony[0].obiekty = [
+      // Słupek: wysokość w procentach, dół zostaje na miejscu (60 mm).
+      prostokat('slupek', 10, 20, 20, 40, '#ff0000', { wys: { pole: 'proc', tryb: 'procent' }, kotwica: 'dol' }),
+      // Pasek: szerokość w mm, lewy górny róg zostaje.
+      prostokat('pasek', 50, 20, 40, 10, '#0000ff', { szer: { pole: 'mm', tryb: 'mm' } }),
+      // Oba wymiary naraz, każdy w innym trybie, środek (110, 40) zostaje.
+      prostokat('srodek', 100, 30, 20, 20, '#00aa00', { szer: { pole: 'proc', tryb: 'procent' }, wys: { pole: 'mm', tryb: 'mm' }, kotwica: 'srodek' }),
+      // Wymiar zerowy albo ujemny chowa element; puste pole zostawia rozmiar wzoru.
+      prostokat('znika', 130, 20, 10, 10, '#000000', { wys: { pole: 'zero', tryb: 'mm' } }),
+      // Obrócony o 90° pasek rosnący „w dół” od swojego rogu: szerokość biegnie wtedy pionowo.
+      { ...prostokat('obrocony', 140, 60, 20, 4, '#aa00aa', { szer: { pole: 'proc', tryb: 'procent' }, kotwica: 'srodek' }), angle: 90 },
+      // Tekst: zmienia się szerokość ramki, nie litery; wysokość bez stałej ramki wynika z treści.
+      { type: 'textbox', version: '5.3.0', left: 10, top: 80, width: 60, text: 'Tekst, który układa się od nowa w węższej ramce', styles: [], fontSize: 3, fontFamily: 'Inter', id: 'tekst', z_danych: { szer: { pole: 'mm', tryb: 'mm' }, wys: { pole: 'proc', tryb: 'procent' } } },
+      // Tekst w ramce o stałej wysokości: zmienia się wysokość ramki.
+      { type: 'textbox', version: '5.3.0', left: 80, top: 80, width: 50, ramka_h: 20, strokeWidth: 0, text: 'Ramka', styles: [], fontSize: 5, fontFamily: 'Inter', id: 'ramka', z_danych: { wys: { pole: 'proc', tryb: 'procent' }, kotwica: 'dol' } },
+      zwykly, zPola,
+      // Grupa: skala.
+      { type: 'group', version: '5.3.0', left: 10, top: 120, width: 40, height: 10, id: 'grupa', z_danych: { szer: { pole: 'proc', tryb: 'procent' } }, objects: [
+        { type: 'rect', version: '5.3.0', left: -20, top: -5, width: 20, height: 10, strokeWidth: 0, fill: '#ffaa00' },
+        { type: 'rect', version: '5.3.0', left: 0, top: -5, width: 20, height: 10, strokeWidth: 0, fill: '#00aaff' }] },
+      // Nieznane pole → ostrzeżenie.
+      prostokat('nieznane', 100, 120, 10, 10, '#777777', { szer: { pole: 'nie_ma', tryb: 'mm' } }),
+    ];
+    await window.seriodruk.przeladuj();
+    // Tabela (element strony): kolumny i wiersze.
+    const tabela = edytor.dodajTabele({ wiersze: 2, kolumny: 2 });
+    tabela.set({ left: 10, top: 180, nazwa: 'Tab' });
+    tabela.z_danych = { szer: { pole: 'proc', tryb: 'procent' }, wys: { pole: 'proc', tryb: 'procent' } };
+    edytor.canvas.discardActiveObject();
+    edytor.zatwierdz();
+    await zapiszTeraz();
+
+    const { rozwin, wartosciPol } = await import('./js/serie.js');
+    const { podstawWObiektach, polaZDanych } = await import('./js/pola.js');
+    const { renderujCel, zlozCel } = await import('./js/zlozenie.js');
+    const ciag = rozwin(p);
+    const z = (v) => Math.round(v * 100) / 100;
+    const strony = ciag.egzemplarze.map((e) => Object.fromEntries(podstawWObiektach(p.strony[0].obiekty, wartosciPol(p, e, ciag)).map((o) => [o.tabela ? 'Tab' : o.id, o])));
+    const ramka = (o) => (o.visible === false ? 'schowany' : [z(o.left), z(o.top), z(o.width * (o.scaleX ?? 1)), z(o.height * (o.scaleY ?? 1))]);
+    // Obraz stron (tak powstają podgląd i miniatury) i żywe obiekty (z nich powstaje PDF).
+    const piksele = [];
+    const zlozone = [];
+    for (const e of ciag.egzemplarze) {
+      const img = new Image();
+      await new Promise(async (ok) => { img.onload = ok; img.src = await renderujCel(p, e, { szerokoscPx: 148, spad: false, ciag }); });
+      const k = Object.assign(document.createElement('canvas'), { width: img.width, height: img.height });
+      const y = k.getContext('2d'); y.drawImage(img, 0, 0);
+      const kolor = (px, py) => [...y.getImageData(px, py, 1, 1).data].slice(0, 3).join(',');
+      // [słupek u góry wzoru, słupek tuż nad dołem, 10 mm nad wzorem słupka, pasek w 75 mm, pasek w 95 mm,
+      //  zwykły obraz: lewy skraj ramki, obraz z pola: środek]
+      piksele.push([kolor(20, 25), kolor(20, 58), kolor(20, 10), kolor(75, 25), kolor(95, 25), kolor(12, 160), kolor(100, 160)]);
+      const { obiekty } = await zlozCel(p, e, ciag);
+      const zywe = Object.fromEntries(obiekty.map((o) => [o.id, o]));
+      const r = (o) => { o.setCoords(); const b = o.getBoundingRect(); return [z(b.left), z(b.top), z(b.width), z(b.height)]; };
+      zlozone.push({
+        slupek: r(zywe.slupek), tekst: [z(zywe.tekst.width), z(zywe.tekst.fontSize), zywe.tekst.scaleX, zywe.tekst.textLines.length], ramka: r(zywe.ramka),
+        obrazZPola: r(zywe.obrazZPola), tabela: [z(obiekty.find((o) => o.tabela).width), obiekty.find((o) => o.tabela).tabela.kolumny.map(z)],
+      });
+    }
+    return {
+      slupek: strony.map((s) => ramka(s.slupek)), pasek: strony.map((s) => ramka(s.pasek)), srodek: strony.map((s) => ramka(s.srodek)), znika: strony.map((s) => ramka(s.znika)),
+      obrocony: strony.map((s) => [z(s.obrocony.left), z(s.obrocony.top), z(s.obrocony.width * (s.obrocony.scaleX ?? 1))]),
+      tekst: strony.map((s) => [z(s.tekst.width), s.tekst.scaleX ?? 1, s.tekst.fontSize, s.tekst.ramka_h ?? null]),
+      ramkaTekstu: strony.map((s) => [z(s.ramka.top), z(s.ramka.ramka_h), z(s.ramka.width)]),
+      obraz: strony.map((s) => { const o = s.obraz; return [z(o.left), z(o.width * o.scaleX), z(o.height * o.scaleY), z(o.scaleX), z(o.scaleY), z(o.width), z(o.height), z(o.cropX || 0), z(o.cropY || 0)]; }),
+      grupa: strony.map((s) => [z(s.grupa.left), z(s.grupa.scaleX ?? 1), z(s.grupa.scaleY ?? 1)]),
+      tabela: strony.map((s) => [s.Tab.tabela.kolumny.map(z), s.Tab.tabela.wiersze.map(z)]),
+      pola: p.strony[0].obiekty.filter((o) => ['slupek', 'srodek', 'nieznane'].includes(o.id)).map((o) => polaZDanych(o)),
+      piksele, zlozone,
+      ostrzezenia: edytor.ostrzezenia.filter((o) => o.typ === 'nieznane_pole').map((o) => [o.id, o.pola]),
+      wEdytorze: (() => { const o = edytor.canvas.getObjects().find((q) => q.id === 'slupek'); return [o.left, o.top, o.getScaledWidth(), o.getScaledHeight()]; })(),
+    };
+  });
+  // Wiersze tabeli: procent 100 / 50 / 200 / „bez liczby”; mm 30 / 60 / 15 / puste.
+  // Słupek 20 × 40 mm stojący na 60 mm: wysokość 40, 20, 80 – dół zostaje; bez liczby – rozmiar wzoru.
+  assert.deepEqual(w.slupek, [[10, 20, 20, 40], [10, 40, 20, 20], [10, -20, 20, 80], [10, 20, 20, 40]]);
+  // Pasek: szerokość wprost w mm, lewy róg na miejscu; puste pole zostawia 40 mm wzoru.
+  assert.deepEqual(w.pasek, [[50, 20, 30, 10], [50, 20, 60, 10], [50, 20, 15, 10], [50, 20, 40, 10]]);
+  // Szerokość w procentach i wysokość w mm naraz; środek (110, 40) zostaje.
+  assert.deepEqual(w.srodek, [[100, 25, 20, 30], [105, 10, 10, 60], [90, 32.5, 40, 15], [100, 30, 20, 20]]);
+  // 5 mm, 0 (schowany), puste (wzór), −3 (schowany).
+  assert.deepEqual(w.znika, [[130, 20, 10, 5], 'schowany', [130, 20, 10, 10], 'schowany']);
+  // Obrócony o 90° pasek 20 × 4: jego „szerokość” biegnie w dół strony; środek zostaje, więc róg przesuwa się w pionie.
+  assert.deepEqual(w.obrocony, [[140, 60, 20], [140, 65, 10], [140, 50, 40], [140, 60, 20]]);
+  // Tekst: szerokość ramki 30 / 60 / 15 mm, skala i rozmiar pisma bez zmian; wysokości bez stałej ramki nie ruszamy.
+  assert.deepEqual(w.tekst, [[30, 1, 3, null], [60, 1, 3, null], [15, 1, 3, null], [60, 1, 3, null]]);
+  // Ramka o stałej wysokości 20 mm (dół na 100 mm): 20, 10, 40 mm – szerokość zostaje.
+  assert.deepEqual(w.ramkaTekstu, [[80, 20, 50], [90, 10, 50], [60, 40, 50], [80, 20, 50]]);
+  // Zwykły obraz 40 × 20 mm (200 × 100 px): ramka 20 mm pokazuje środek bez zniekształcenia (ta sama skala, przycięte boki);
+  // ramka 80 mm – obraz dwa razy większy, przycięty w pionie.
+  assert.deepEqual(w.obraz, [
+    [10, 40, 20, 0.2, 0.2, 200, 100, 0, 0],
+    [10, 20, 20, 0.2, 0.2, 100, 100, 50, 0],
+    [10, 80, 20, 0.4, 0.4, 200, 50, 0, 25],
+    [10, 40, 20, 0.2, 0.2, 200, 100, 0, 0],
+  ]);
+  // Grupa: skala w poziomie.
+  assert.deepEqual(w.grupa, [[10, 1, 1], [10, 0.5, 1], [10, 2, 1], [10, 1, 1]]);
+  // Tabela: kolumny i najmniejsze wysokości wierszy.
+  const kolumna = w.tabela[0][0][0];
+  assert.deepEqual(w.tabela.map(([k, wiersze]) => [k.map((x) => Math.round((x / kolumna) * 100) / 100), wiersze]), [[[1, 1], [9, 9]], [[0.5, 0.5], [4.5, 4.5]], [[2, 2], [18, 18]], [[1, 1], [9, 9]]]);
+  assert.deepEqual(w.pola, [['proc'], ['proc', 'mm'], ['nie_ma']]);
+  assert.deepEqual(w.ostrzezenia, [['nieznane', ['nie_ma']]], 'nieznane pole trafia do ostrzeżeń');
+  assert.deepEqual(w.wEdytorze, [10, 20, 20, 40], 'w edytorze element ma rozmiar wzoru');
+
+  // Obraz stron (podgląd, miniatury): słupek, pasek, obraz przycięty do środka i obraz z pola wypełniający nową ramkę.
+  const [B, R, N, G] = ['255,255,255', '255,0,0', '0,0,255', '0,255,0'];
+  assert.deepEqual(w.piksele, [
+    [R, R, B, N, B, R, G],
+    [B, R, B, N, N, G, G],
+    [R, R, R, B, B, R, G],
+    [R, R, B, N, B, R, G],
+  ]);
+  // Żywe obiekty strony (z nich powstaje PDF): te same wymiary; tekst ma węższą ramkę i więcej wierszy, nie mniejsze litery.
+  assert.deepEqual(w.zlozone.map((s) => s.slupek), [[10, 20, 20, 40], [10, 40, 20, 20], [10, -20, 20, 80], [10, 20, 20, 40]]);
+  assert.deepEqual(w.zlozone.map((s) => s.tekst.slice(0, 3)), [[30, 3, 1], [60, 3, 1], [15, 3, 1], [60, 3, 1]]);
+  assert.ok(w.zlozone[2].tekst[3] > w.zlozone[0].tekst[3] && w.zlozone[0].tekst[3] > w.zlozone[1].tekst[3], `węższa ramka – więcej wierszy: ${w.zlozone.map((s) => s.tekst[3])}`);
+  assert.deepEqual(w.zlozone.map((s) => s.ramka), [[80, 80, 50, 20], [80, 90, 50, 10], [80, 60, 50, 40], [80, 80, 50, 20]]);
+  // Obraz z pola (wypełnij ramkę): ramka 40 → 20 → 80 mm wokół środka (100 mm), wysokość 20 mm.
+  assert.deepEqual(w.zlozone.map((s) => s.obrazZPola), [[80, 150, 40, 20], [90, 150, 20, 20], [60, 150, 80, 20], [80, 150, 40, 20]]);
+  assert.deepEqual(w.zlozone.map((s) => Math.round((s.tabela[0] / w.zlozone[0].tabela[0]) * 100) / 100), [1, 0.5, 2, 1], 'tabela ma szerokość z danych');
+
+  // Panel „Z danych”: szerokość i wysokość z pola, tryb każdej osobno, punkt zaczepienia.
+  await strona.evaluate(() => window.seriodruk.edytor.zaznacz('pasek'));
+  const zapisane = async () => { await strona.evaluate(() => window.seriodruk.zapiszTeraz()); return strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.id === 'pasek').z_danych); };
+  assert.equal(await strona.inputValue('.wlasciwosci label:has-text("Szerokość z pola") select'), 'mm');
+  assert.equal(await strona.inputValue('.wlasciwosci label:has-text("Szerokość: wartość pola to") select'), 'mm');
+  assert.equal(await strona.locator('.wlasciwosci label:has-text("Wysokość: wartość pola to")').count(), 0, 'tryb pokazuje się po wybraniu pola');
+  await strona.selectOption('.wlasciwosci label:has-text("Wysokość z pola") select', 'proc');
+  assert.equal(await strona.inputValue('.wlasciwosci label:has-text("Wysokość: wartość pola to") select'), 'procent', 'domyślnie procent rozmiaru wzoru');
+  await strona.selectOption('.wlasciwosci label:has-text("Szerokość: wartość pola to") select', 'procent');
+  await strona.selectOption('.wlasciwosci label:has-text("Przy zmianie rozmiaru na miejscu zostaje") select', 'dol');
+  assert.deepEqual(await zapisane(), { szer: { pole: 'mm', tryb: 'procent' }, wys: { tryb: 'procent', pole: 'proc' }, kotwica: 'dol' });
+  assert.match(await strona.textContent('.wlasciwosci'), /Element jest skalowany w wybranym kierunku\. Wartość 0 chowa element\./);
+  // Wyłączenie obu wymiarów usuwa też punkt zaczepienia.
+  await strona.selectOption('.wlasciwosci label:has-text("Szerokość z pola") select', '');
+  await strona.selectOption('.wlasciwosci label:has-text("Wysokość z pola") select', '');
+  assert.equal(await zapisane(), undefined);
+  assert.equal(await strona.locator('.wlasciwosci label:has-text("Przy zmianie rozmiaru na miejscu zostaje")').count(), 0);
+  // Tekst w ramce o stałej wysokości ma oba wymiary; tekst bez niej – tylko szerokość (wysokość wynika z treści).
+  await strona.evaluate(() => window.seriodruk.edytor.zaznacz('ramka'));
+  assert.equal(await strona.locator('.wlasciwosci label:has-text("Wysokość z pola")').count(), 1);
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz('pasek'); const tekst = e.dodajTekst('Zwykły tekst'); tekst.set({ top: 5 }); e.zatwierdz(); });
+  assert.equal(await strona.locator('.wlasciwosci label:has-text("Szerokość z pola")').count(), 1);
+  assert.equal(await strona.locator('.wlasciwosci label:has-text("Wysokość z pola")').count(), 0);
+  assert.deepEqual(bledy, []);
+});
