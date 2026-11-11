@@ -8,6 +8,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { atrapaAi } = require('./atrapa-ai.cjs');
 
 const KORZEN = path.join(__dirname, '..');
 const TYPY = {
@@ -90,6 +91,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     zadania: [],
     kanaly: { dolaczenia: 0, wyslane: 0, wylaczone: Boolean(poczatkowe.bezKanalu) }, // Realtime: ile dołączeń, ile wiadomości o zmianach
   };
+  stan.ai = atrapaAi(stan); // funkcje dostępu dla AI: stan.ai(nazwa funkcji, parametry, konto)
   const sesja = (k) => {
     const exp = Math.floor(Date.now() / 1000) + 3600;
     const user = {
@@ -260,6 +262,15 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return json(r, 200, null);
       }
       if (funkcja === 'usun_udostepnienie_chronione') { stan.chronione.delete(klucz); return json(r, 200, null); }
+    }
+    // Dostęp dla AI (migracja dostep_ai): klucze właściciela i funkcje posiadacza klucza.
+    if (sc.startsWith('/rest/v1/rpc/') && /dostep_ai|dostepy_ai|^\/rest\/v1\/rpc\/ai_/.test(sc)) {
+      stan.ai = stan.ai || atrapaAi(stan);
+      try {
+        return json(r, 200, stan.ai(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)));
+      } catch (e) {
+        return blad(r, e.status || 400, e.message, 'P0001');
+      }
     }
     if (sc === '/rest/v1/rpc/usun_konto') {
       const k = zTokenu(req);

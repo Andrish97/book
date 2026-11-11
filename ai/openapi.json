@@ -1,0 +1,94 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Seriodruk – dostęp dla AI",
+    "version": "1.0.0",
+    "description": "Czytanie i zmiany jednego projektu Seriodruku kluczem dostępu z aplikacji (menu ⋯ edytora → Dostęp dla AI). Klucz (sdk_…) podawaj jako p_klucz. Nagłówek apikey to publiczny klucz bazy (sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq) – ustaw go w uwierzytelnianiu akcji. Model projektu: https://andrish97.github.io/book/ai/format-seriodruk.md, opis: https://andrish97.github.io/book/ai/api.md"
+  },
+  "servers": [{ "url": "https://pganajmivwtstapnwsgv.supabase.co" }],
+  "security": [{ "kluczBazy": [] }],
+  "paths": {
+    "/rest/v1/rpc/ai_projekt": {
+      "post": {
+        "operationId": "ai_projekt",
+        "summary": "Pobierz projekt",
+        "description": "Zwraca projekt (strony w środku, zasoby tylko z nazwą i typem), numer wersji i rodzaj dostępu. Pobierz przed każdą zmianą; wersję podaj potem w ai_zapisz.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["p_klucz"],
+            "properties": { "p_klucz": { "type": "string", "description": "Klucz dostępu sdk_… od właściciela projektu." } }
+          } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Projekt albo {blad} przy złym, wygasłym lub odebranym kluczu.",
+            "content": { "application/json": { "schema": {
+              "type": "object",
+              "properties": {
+                "dostep": { "type": "object", "properties": { "rola": { "type": "string", "enum": ["odczyt", "edycja"] }, "opis": { "type": "string" }, "wazny_do": { "type": "string" } } },
+                "wersja": { "type": "integer" },
+                "projekt": { "type": "object", "description": "Model projektu (format-seriodruk.md): nazwa, sekcje, strony, wzorce, style, tabele, serie, widok, zasoby {id: {nazwa, typ}}.", "additionalProperties": true },
+                "blad": { "type": "string" }
+              }
+            } } }
+          }
+        }
+      }
+    },
+    "/rest/v1/rpc/ai_zapisz": {
+      "post": {
+        "operationId": "ai_zapisz",
+        "summary": "Zapisz zmiany projektu",
+        "description": "Zapisuje wybrane części projektu, jeśli p_znana_wersja jest aktualna. Przy {konflikt: true} pobierz projekt na nowo (ai_projekt) i nanieś zmianę jeszcze raz. Niespójne zmiany wracają jako {blad, szczegoly}. Zmieniając styl w „style”, zmień też te same pola w tekstach, które mają ten „styl”.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["p_klucz", "p_znana_wersja", "p_zmiany"],
+            "properties": {
+              "p_klucz": { "type": "string", "description": "Klucz dostępu sdk_…" },
+              "p_znana_wersja": { "type": "integer", "description": "Wersja z ostatniego ai_projekt." },
+              "p_zmiany": {
+                "type": "object", "additionalProperties": false,
+                "description": "Tylko zmieniane części.",
+                "properties": {
+                  "nazwa": { "type": "string", "description": "Nazwa projektu." },
+                  "sekcje": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "Pełna lista sekcji (zastępuje dotychczasową)." },
+                  "wzorce": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "Pełna lista wzorców." },
+                  "style": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "Pełna lista stylów tekstu." },
+                  "tabele": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "Pełna lista tabel danych." },
+                  "serie": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "Pełna lista serii." },
+                  "widok": { "type": "object", "additionalProperties": true, "description": "Ustawienia widoku." },
+                  "strony": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "description": "Pełne obiekty stron nowych albo zmienionych; pozostałe strony zostają. Nowe trafiają na koniec." },
+                  "usun_strony": { "type": "array", "items": { "type": "string" }, "description": "Id stron do usunięcia." },
+                  "kolejnosc_stron": { "type": "array", "items": { "type": "string" }, "description": "Nowa kolejność: id każdej strony dokładnie raz." }
+                }
+              }
+            }
+          } } }
+        },
+        "responses": {
+          "200": {
+            "description": "{wersja, strony_zapisane} po zapisie; {konflikt, wersja, blad} przy nieaktualnej wersji; {blad, szczegoly} przy odmowie.",
+            "content": { "application/json": { "schema": {
+              "type": "object",
+              "properties": {
+                "wersja": { "type": "integer" },
+                "strony_zapisane": { "type": "integer" },
+                "konflikt": { "type": "boolean" },
+                "blad": { "type": "string" },
+                "szczegoly": { "type": "array", "items": { "type": "string" } }
+              }
+            } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "securitySchemes": {
+      "kluczBazy": { "type": "apiKey", "in": "header", "name": "apikey", "description": "Publiczny klucz bazy Seriodruku (nie jest tajny)." }
+    }
+  }
+}

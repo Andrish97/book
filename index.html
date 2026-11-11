@@ -351,6 +351,7 @@
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
+          <button role="menuitem" data-akcja="dostep-ai" data-ikona="link">Dostęp dla AI…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
           <button role="menuitem" class="tylko-waski-pasek" data-akcja="pelny-ekran" data-ikona="pelny-ekran" hidden>Pełny ekran</button>
         </div>
@@ -766,6 +767,54 @@
       <p class="ciche">Uwagi do całego projektu, już po powieleniu serii: pola bez wartości, brakujące obrazy, powtórzenia, braki danych i teksty, które nie mieszczą się w ramkach.</p>
       <ul class="lista-uwag" id="kontrola-lista"></ul>
       <p class="podpowiedz" id="kontrola-stan" role="status"></p>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-dostep-ai" class="dialog-szeroki">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Dostęp dla AI</h2>
+        <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Klucz pozwala asystentowi AI (np. Claude albo ChatGPT) czytać i – jeśli zechcesz – zmieniać <b>ten jeden projekt</b>, równolegle z Tobą. Jego zmiany pojawiają się w edytorze na żywo. Klucz nie daje dostępu do konta ani do innych projektów; możesz go odebrać w każdej chwili.</p>
+      <fieldset class="grupa-pol" id="dostep-ai-nowy">
+        <legend>Nowy klucz</legend>
+        <label class="pole"><span>Opis (dla Ciebie)</span><input id="dostep-ai-opis" maxlength="120" placeholder="np. Claude – poprawki kalendarza"></label>
+        <div class="rzad">
+          <label class="pole"><span>AI może</span><select id="dostep-ai-rola"><option value="edycja">czytać i zmieniać projekt</option><option value="odczyt">tylko czytać projekt</option></select></label>
+          <label class="pole"><span>Ważny przez</span><select id="dostep-ai-dni"><option value="1">1 dzień</option><option value="7" selected>7 dni</option><option value="30">30 dni</option></select></label>
+        </div>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="dostep-ai-utworz" data-ikona="plus">Utwórz klucz</button></div>
+      </fieldset>
+      <fieldset class="grupa-pol" id="dostep-ai-gotowy" hidden>
+        <legend>Twój klucz – skopiuj go teraz</legend>
+        <p class="podpowiedz">Klucz widać tylko teraz. Po zamknięciu okna nie da się go odczytać – najwyżej utworzyć nowy.</p>
+        <label class="pole"><span>Klucz dostępu</span>
+          <span class="z-przyciskiem">
+            <input id="dostep-ai-klucz" type="text" readonly>
+            <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj" data-ikona="kopiuj" title="Kopiuj klucz" aria-label="Kopiuj klucz"></button>
+          </span>
+        </label>
+        <details class="dostep-ai-jak">
+          <summary>Jak podłączyć Claude (aplikacja na komputer)</summary>
+          <p class="podpowiedz">Pobierz plik <a href="ai/mcp/seriodruk-mcp.mjs" download>seriodruk-mcp.mjs</a> (potrzebny jest Node.js 18 lub nowszy). W Claude otwórz Ustawienia → Developer → Edit Config i dopisz do <code>mcpServers</code> (podaj prawdziwą ścieżkę do pobranego pliku):</p>
+          <pre id="dostep-ai-claude-desktop"></pre>
+          <p class="podpowiedz">Uruchom Claude ponownie – w rozmowie pojawią się narzędzia „seriodruk”.</p>
+        </details>
+        <details class="dostep-ai-jak">
+          <summary>Jak podłączyć Claude Code</summary>
+          <pre id="dostep-ai-claude-code"></pre>
+        </details>
+        <details class="dostep-ai-jak">
+          <summary>ChatGPT i inne</summary>
+          <p class="podpowiedz">Opis dla własnego GPT (akcje) i dla innych asystentów: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
+        </details>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Klucze tego projektu</legend>
+        <ul class="lista-dostepow" id="dostep-ai-lista"></ul>
+        <p class="podpowiedz" id="dostep-ai-pusto">Ten projekt nie ma jeszcze żadnego klucza.</p>
+      </fieldset>
     </div>
   </dialog>
 

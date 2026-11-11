@@ -209,6 +209,45 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="udostepnij-zamknij"]');
       return `plik pod starym adresem: ${r}`;
     });
+    await krok('dostęp dla AI: klucz z aplikacji zapisuje zmianę, edytor ją widzi, odebrany klucz przestaje działać', async () => {
+      await p.keyboard.press('Escape');
+      await p.waitForSelector('#przycisk-wiecej', { state: 'visible' });
+      await p.click('#przycisk-wiecej');
+      await p.click('[data-akcja="dostep-ai"]');
+      await p.fill('#dostep-ai-opis', 'Próba na żywo');
+      await p.click('[data-akcja="dostep-ai-utworz"]');
+      await p.waitForSelector('#dostep-ai-gotowy:not([hidden])');
+      const klucz = await p.inputValue('#dostep-ai-klucz');
+      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      const rpc = (funkcja, tresc) => p.evaluate(async ([f, t]) => {
+        const m = await import('./js/konfiguracja.js');
+        const x = await fetch(`${m.SUPABASE_URL}/rest/v1/rpc/${f}`, { method: 'POST', headers: { apikey: m.SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify(t) });
+        return { status: x.status, dane: await x.json() };
+      }, [funkcja, tresc]);
+      const odczyt = await rpc('ai_projekt', { p_klucz: klucz });
+      if (odczyt.status !== 200 || !odczyt.dane.projekt) throw new Error(`odczyt: ${odczyt.status} ${JSON.stringify(odczyt.dane).slice(0, 200)}`);
+      const s = odczyt.dane.projekt.strony[0];
+      const zapis = await rpc('ai_zapisz', {
+        p_klucz: klucz, p_znana_wersja: odczyt.dane.wersja,
+        p_zmiany: { nazwa: 'Test bazy (AI)', strony: [{ ...s, obiekty: [...s.obiekty, { id: 'ai_proba', type: 'rect', left: 10, top: 10, width: 20, height: 20, fill: '#c1121f' }] }] },
+      });
+      if (!zapis.dane?.wersja || zapis.dane.blad) throw new Error(`zapis: ${zapis.status} ${JSON.stringify(zapis.dane).slice(0, 300)}`);
+      const konflikt = await rpc('ai_zapisz', { p_klucz: klucz, p_znana_wersja: odczyt.dane.wersja, p_zmiany: { nazwa: 'X' } });
+      if (!konflikt.dane?.konflikt) throw new Error(`stara wersja nie dała konfliktu: ${JSON.stringify(konflikt.dane)}`);
+      await p.waitForFunction(() => {
+        const pr = window.seriodruk.stan.projekt;
+        return pr?.nazwa === 'Test bazy (AI)' && pr.strony.some((x) => (x.obiekty || []).some((o) => o.id === 'ai_proba'));
+      }, null, { timeout: 30000 });
+      await p.click('#przycisk-wiecej');
+      await p.click('[data-akcja="dostep-ai"]');
+      await p.click('#dostep-ai-lista li:has-text("Próba na żywo") button');
+      await p.click('#potwierdz-tak');
+      await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li button'));
+      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      const poOdebraniu = await rpc('ai_projekt', { p_klucz: klucz });
+      if (!/odebrany/.test(poOdebraniu.dane?.blad || '')) throw new Error(`odebrany klucz dalej działa: ${JSON.stringify(poOdebraniu.dane).slice(0, 200)}`);
+      return `wersja po zapisie AI: ${zapis.dane.wersja}`;
+    });
   } catch (e) {
     wyniki.push(`przerwano: ${e.message.split('\n')[0]}`);
   } finally {

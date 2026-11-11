@@ -475,6 +475,18 @@ export const ROZDZIALY = [
     ],
   },
   {
+    tytul: 'Praca z AI',
+    wstep: 'Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili – tak jak zmiany z drugiego urządzenia.',
+    punkty: [
+      'W edytorze menu <b>⋯</b> → <b>Dostęp dla AI…</b>. Wpisz, dla kogo jest klucz, wybierz <b>Czyta i zmienia</b> albo <b>Tylko czyta</b> i ważność (1, 7 albo 30 dni), potem <b>Utwórz klucz</b>.',
+      'Klucz widać <b>tylko raz</b> – skopiuj go od razu. Okno pokazuje gotowe ustawienia dla Claude Desktop i Claude Code; opis podłączenia ChatGPT jest w dokumencie <a href="ai/api.md" target="_blank" rel="noopener">Dostęp dla AI</a>.',
+      'Klucz otwiera <b>tylko ten projekt</b>: AI może zmieniać strony, elementy, wzorce, style, tabele danych, serie i sekcje, ale nie utworzy ani nie usunie projektu, nie wgra obrazów ani czcionek i nie zobaczy innych projektów.',
+      'Zmiany AI łączą się z Twoimi element po elemencie: gdy Ty przesuwasz zdjęcie, a AI poprawia tytuł, zostają obie zmiany. <b>Cofnij</b> zdejmuje tylko Twoje zmiany.',
+      'Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. <b>Odbierz</b> wyłącza klucz od razu.',
+    ],
+    rada: 'Klucz trafia do firmy, która prowadzi AI. Dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Przed dużymi zmianami zrób <b>Eksport</b> projektu.',
+  },
+  {
     tytul: 'Linie i ostrzeżenia',
     wstep: 'Na stronie widać linie pomocnicze. Nie są drukowane.',
     obraz: 'ostrzezenia.png',
