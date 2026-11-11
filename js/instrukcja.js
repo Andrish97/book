@@ -1,6 +1,6 @@
 // Instrukcja obsługi: rozdziały ze zrzutami ekranu (img/instrukcja/*.png).
-// Zrzuty generuje skrypt scripts/zrzuty-instrukcji.mjs – po zmianach w wyglądzie
-// wystarczy go uruchomić ponownie.
+// Zrzuty generuje skrypt scripts/zrzuty-instrukcji.cjs (z argumentem „ciemny” – komplet w ciemnym
+// motywie, img/instrukcja/ciemny/) – po zmianach w wyglądzie wystarczy go uruchomić ponownie.
 
 import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
@@ -49,8 +49,8 @@ export const ROZDZIALY = [
     obraz: 'rejestracja.png',
     podpis: 'Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.',
     punkty: [
-      '<b>Nowe konto</b>: wpisz e-mail i dwa razy hasło. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.',
-      'Konto działa od razu po założeniu. Jeśli administrator włączy potwierdzanie adresu, na podany e-mail przyjdzie wiadomość z przyciskiem <b>Potwierdź konto</b> i dopiero po kliknięciu można się zalogować (wiadomość można wysłać ponownie po minucie).',
+      '<b>Nowe konto</b>: wpisz swoją nazwę (tak aplikacja będzie się do Ciebie zwracać), e-mail i dwa razy hasło. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.',
+      'Konto działa od razu po założeniu. Jeśli administrator włączy potwierdzanie adresu, na podany e-mail przyjdzie wiadomość „Potwierdź swoje konto” z przyciskiem i dopiero po kliknięciu można się zalogować (wiadomość można wysłać ponownie po minucie).',
       '<b>Nie pamiętasz hasła?</b> – podaj e-mail, a dostaniesz link do ustawienia nowego hasła.',
       'Link z wiadomości działa jeden raz. Jeśli wygasł, aplikacja o tym powie – poproś wtedy o nowy.',
     ],
@@ -63,7 +63,8 @@ export const ROZDZIALY = [
     punkty: [
       '<b>Profil</b> – nazwa widoczna w prawym górnym rogu.',
       '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. <b>Wpisz inny adres</b> zastępuje oczekujący adres nowym.',
-      '<b>Urządzenia</b> – wylogowanie tutaj albo na wszystkich urządzeniach naraz.',
+      '<b>Wygląd</b> – jasny albo ciemny motyw (następny rozdział).',
+      '<b>Urządzenia</b> – <b>Wyloguj</b> wylogowuje tylko to urządzenie, <b>Wyloguj wszędzie</b> – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).',
       '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
     ],
   },
@@ -74,7 +75,7 @@ export const ROZDZIALY = [
     podpis: 'Ciemny motyw w ustawieniach konta.',
     punkty: [
       'W <b>Ustawieniach konta → Wygląd</b> wybierz: <b>Jak w systemie</b> (zmienia się razem z ustawieniem urządzenia), <b>Jasny</b> albo <b>Ciemny</b>.',
-      'Szybki przełącznik – ikona półkola – jest na ekranie logowania, na liście projektów i w menu <b>⋯</b> edytora.',
+      'Szybki przełącznik – ikona półkola – jest na ekranie logowania, na liście projektów, w menu <b>⋯</b> edytora i w podglądzie otwartym z linku.',
       'Strony publikacji zawsze są pokazywane na białym papierze. Ciemny motyw zmienia tylko interfejs wokół nich.',
     ],
   },
@@ -84,9 +85,9 @@ export const ROZDZIALY = [
     obraz: 'nowy-projekt.png',
     podpis: 'Okno „Nowy projekt”.',
     punkty: [
-      'Wpisz nazwę i wybierz format – kafelki pokazują proporcje strony. <b>Własny</b> pozwala wpisać dowolny wymiar w milimetrach.',
+      'Wpisz nazwę i wybierz format – kafelki pokazują proporcje strony. <b>Własny</b> pozwala wpisać dowolny wymiar w milimetrach, a <b>Orientacja</b> obraca stronę (pionowo albo poziomo).',
       '<b>Spad</b> to pas za krawędzią strony, który drukarnia odcina. Zwykle 3 mm.',
-      '<b>Marginesy</b> wyznaczają bezpieczny obszar na teksty.',
+      '<b>Marginesy</b> wyznaczają bezpieczny obszar na teksty. Wszystkie te ustawienia zmienisz później w ustawieniach sekcji.',
       '<b>Układ stron</b>: pojedyncze strony albo rozkładówki (lewa + prawa, jak w książce).',
       'Projekt zaczyna od jednej sekcji „Główna”. Kolejne sekcje, np. okładkę o innym rozmiarze, dodasz w edytorze.',
     ],
@@ -100,7 +101,7 @@ export const ROZDZIALY = [
       '<b>Strony</b> (z lewej) – miniatury wszystkich stron, pogrupowane w sekcje. Kolejność miniatur to kolejność w publikacji.',
       '<b>Strona</b> (pośrodku) – tu układasz elementy. Nad nią pasek <b>Wstaw</b>, w prawym dolnym rogu powiększenie oraz menu siatki i linii pomocniczych.',
       '<b>Właściwości</b> i <b>Warstwy</b> (z prawej, dwie zakładki) – ustawienia zaznaczonego elementu albo strony oraz lista elementów otwartej strony. Są obok siebie, bo dotyczą tego samego: tego, co leży na otwartej stronie.',
-      'Górny pasek: powrót do projektów, nazwa projektu, stan zapisu, cofanie, <b>Wzorce</b> (szablony wspólnych elementów stron), <b>Dane</b> (tabele do pól i serii), <b>Podgląd</b>, sekcja i jej format, instrukcja, menu <b>⋯</b> (PDF, PNG, sprawdzenie przed drukiem, czcionki, motyw).',
+      'Górny pasek: powrót do projektów, nazwa projektu (kliknij, żeby ją zmienić), stan zapisu, cofanie, <b>Wzorce</b> (szablony wspólnych elementów stron), <b>Dane</b> (tabele do pól i serii), <b>Podgląd</b>, sekcja i jej format, <b>pełny ekran</b>, instrukcja i menu <b>⋯</b> (PDF, PNG, sprawdzenie przed drukiem, czcionki, motyw; na wąskim ekranie także pełny ekran).',
       'Listy rozwijane, wybór koloru i pola wyboru wyglądają i działają tak samo na każdym urządzeniu – rysuje je aplikacja, nie system. W długiej liście (np. czcionek) wystarczy zacząć pisać: zostają tylko pozycje zawierające wpisany fragment, bez rozróżniania wielkości liter i polskich znaków; <kbd>Backspace</kbd> cofa, <kbd>Esc</kbd> czyści szukanie. Wybór koloru ma pole barw, kod koloru, paletę i ostatnio używane kolory.',
     ],
   },
@@ -118,7 +119,7 @@ export const ROZDZIALY = [
       '<b>Pióro</b> (klawisz <kbd>N</kbd>) – kształt z punktów. Kliknięcie stawia punkt, a kolejne punkty łączą się prostymi odcinkami. Kliknięcie z przeciągnięciem stawia punkt z łukiem: im dalej przeciągniesz, tym łagodniejszy łuk. <kbd>Enter</kbd> albo podwójne kliknięcie kończy kształt otwarty, kliknięcie w pierwszy punkt go zamyka. <kbd>Backspace</kbd> cofa ostatni punkt, <kbd>Esc</kbd> porzuca zaczęty kształt, a drugi <kbd>Esc</kbd> wyłącza pióro. Gotowy kształt jest zwykłym elementem: ma kolor i grubość linii, a zamknięty – także wypełnienie.',
       '<b>Edycja punktów</b>: kliknij dwa razy kształt z pióra albo linię narysowaną odręcznie (albo wybierz <b>Edytuj punkty</b> we właściwościach). Pojawią się punkty – przeciągaj je myszą. Zaznaczony punkt łuku pokazuje uchwyty, którymi zmieniasz wygięcie. Podwójne kliknięcie w linię dodaje punkt, <kbd>Delete</kbd> usuwa zaznaczony. <kbd>Enter</kbd> zatwierdza zmiany, <kbd>Esc</kbd> przywraca kształt sprzed edycji.',
       '<b>Wypełnienie</b> kształtu: jeden kolor, <b>gradient liniowy</b> albo <b>kołowy</b>, albo brak. Gradient może mieć dowolną liczbę kolorów – każdy ma swoje położenie w procentach; do tego kierunek (gotowy albo kąt), a w kołowym promień. Każdy element może mieć też <b>cień</b> z przesunięciem i rozmyciem w mm.',
-      '<b>Obraz</b> – zdjęcie lub grafika z dysku (PNG, JPEG, WebP, GIF, SVG). Możesz też przeciągnąć plik na stronę albo <b>wkleić obraz ze schowka</b> (<kbd>Ctrl</kbd>+<kbd>V</kbd>): zrzut ekranu, obraz skopiowany ze strony internetowej albo z programu graficznego, a także kod SVG skopiowany jako tekst. Rysunek SVG jest jednym elementem – nie edytujesz jego części, ale możesz go skalować, obracać i kadrować, a po powiększeniu zostaje ostry. Duże zdjęcia aplikacja pokazuje w edytorze lżejszą kopią, żeby praca była płynna; do pliku PDF i PNG zawsze idzie oryginał.',
+      '<b>Obraz</b> – zdjęcie lub grafika z dysku (PNG, JPEG, WebP, GIF, SVG). Możesz też przeciągnąć plik na stronę albo <b>wkleić obraz ze schowka</b> (<kbd>Ctrl</kbd>+<kbd>V</kbd>): zrzut ekranu, obraz skopiowany ze strony internetowej albo z programu graficznego, a także kod SVG skopiowany jako tekst. Rysunek SVG wstawia się jako jeden element – możesz go skalować, obracać i kadrować, a po powiększeniu zostaje ostry; żeby zmieniać jego części, rozłóż go na elementy (rozdział <b>Położenie, wyrównanie, schowek</b>). Duże zdjęcia aplikacja pokazuje w edytorze lżejszą kopią, żeby praca była płynna; do pliku PDF i PNG zawsze idzie oryginał.',
       '<b>Tabela</b> – podajesz liczbę wierszy i kolumn. Tabela jest jednym elementem: przesuwasz ją i obracasz w całości, a po dwukrotnym kliknięciu komórki piszesz w niej (więcej w rozdziale <b>Tabela</b>).',
       'Przeciągnij element, aby go przesunąć. Kółka w rogach zmieniają rozmiar, kółko nad elementem go obraca.',
       'Przy przesuwaniu i przy zmianie rozmiaru element „przykleja się” do krawędzi, marginesów, środka strony, prowadnic i innych elementów – pokazuje to różowa linia (więcej w rozdziale <b>Odległości i równe odstępy</b>).',
@@ -175,7 +176,7 @@ export const ROZDZIALY = [
       '<b>Grupa w grupie</b>: podwójne kliknięcie grupy leżącej w otwartej grupie otwiera ją jako kolejny poziom – podpis ramki mówi wtedy „Grupa w grupie”, a bledsze ramki pokazują grupy nad nią. <kbd>Esc</kbd> wraca o jeden poziom, kliknięcie poza grupą zamyka wszystkie. Na liście warstw rozwinięta grupa pokazuje też zawartość grup w niej, z wcięciem; kliknięcie elementu z głębi otwiera od razu potrzebne poziomy.',
       '<b>Kolejność</b> przenosi element nad lub pod inne.',
       '<b>Zablokuj położenie i rozmiar</b> chroni element przed przypadkowym przesunięciem.',
-      'Ikony nad panelem: <b>kopiuj do schowka</b>, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem <b>Wklej</b> we właściwościach strony (albo <kbd>Ctrl</kbd>+<kbd>V</kbd>) – trafi w to samo miejsce.',
+      'Ikony nad panelem: <b>kopiuj do schowka</b>, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem <b>Wklej skopiowane elementy</b> we właściwościach strony (albo <kbd>Ctrl</kbd>+<kbd>V</kbd>) – trafi w to samo miejsce.',
       '<b>Obraz</b>: kliknij go dwa razy (albo <b>Kadruj przeciąganiem</b>), żeby wybrać widoczny fragment ramką – <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. Działa także na obrazie obróconym i odbitym (na czas kadrowania obraz jest prostowany). Do tego przycięcie liczbami, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi).',
       '<b>Rysunek SVG</b> wstawia się jako obraz: wygląda wiernie, ale nic się w nim nie zmieni, a napisy przeglądarka rysuje czcionką zastępczą. <b>Rozłóż rysunek na elementy</b> (we właściwościach obrazu) zamienia go w zwykłą <b>grupę kształtów i napisów</b> w tym samym miejscu: grupę można rozgrupować, kształtom zmienić kolor, obrys i punkty, a napisy poprawić jak każdy tekst. Napis zachowuje czcionkę, jeśli jest ona w zestawie aplikacji albo wśród czcionek projektu – inną zastępuje domyślna, o czym aplikacja mówi. Napis ułożony w rysunku w kilku wierszach zostaje jedną ramką z wierszami. Zdjęcie osadzone w rysunku staje się zwykłym obrazem projektu. Jeśli obraz był przycięty, grupa jest przycięta tak samo – przycięcie zdejmuje <b>Pokaż cały rysunek</b> we właściwościach grupy (po rozgrupowaniu elementy widać w całości). Rzeczy, których edytor nie ma (filtry, maski, wzory), znikają – wtedy lepiej zostawić obraz; <kbd>Ctrl</kbd>+<kbd>Z</kbd> go przywraca.',
       'Tytuły części panelu (np. <b>Cień</b>, <b>Ramka tekstu</b>) zwijają je i rozwijają. Zwinięte zostają zwinięte przy kolejnych elementach.',
@@ -204,7 +205,8 @@ export const ROZDZIALY = [
       'Każda sekcja ma własny <b>format</b>, <b>spad</b> i cztery <b>marginesy</b>.',
       '<b>Układ stron</b>: pojedyncze albo rozkładówki. <b>Numeracja</b>: dalszy ciąg poprzedniej sekcji, od wybranego numeru albo bez numerów (np. okładka).',
       'Na liście stron sekcje są szarymi nagłówkami. Przycisk <b>⋯</b> przy nagłówku: ustawienia, dodanie strony, zmiana kolejności, usunięcie. <b>+ Sekcja</b> tworzy nową.',
-      'Okładkę z grzbietem ustaw jako jedną szeroką stronę: tył + grzbiet + przód (np. 148 + 6 + 148 mm).',
+      'Okładkę z grzbietem ustaw jako jedną szeroką stronę: tył + grzbiet + przód (np. 148 + 6 + 148 mm). W ustawieniach sekcji jest kalkulator <b>Okładka z grzbietem: policz szerokość</b>: wpisz szerokość strony środka, liczbę stron w środku i grubość kartki (podaje ją drukarnia), a <b>Ustaw tę szerokość</b> wpisze szerokość okładki razem z grzbietem.',
+      '<b>Pierwsza strona sekcji</b> w rozkładówkach: prawa (jak w książce) albo lewa (od razu pełna rozkładówka). <b>Wzorce na stronach tej sekcji</b> wybierają wzorce domyślne sekcji (rozdział <b>Wzorce</b>). <b>Znaki cięcia w pliku PDF</b> dodaje znaki cięcia na stronach tej sekcji przy eksporcie do drukarni.',
       'Stronę przeniesiesz do innej sekcji w jej właściwościach (pole <b>Sekcja</b>).',
     ],
   },
@@ -300,7 +302,7 @@ export const ROZDZIALY = [
       'Wiersze pomijane mogą stać także <b>w środku tabeli</b> (np. tydzień przerwy) – zawsze znaczą to samo: miejsce jest zajęte, strony nie ma. Przy „jednym wierszu na cały blok” wiersz pomijany pomija <b>całe powielenie bloku</b>. Przy stałej liczbie powieleń dane idą w kółko tylko po wierszach z danymi.',
       'Liczenie się nie przesuwa: <b>tabele dodatkowe</b> („co 8 stron”, „gdy zmieni się kolumna”) i pole <code>{egzemplarz}</code> liczą miejsca razem z pomijanymi. Tabela tygodni ustawiona „co 8 stron” sama trafia więc w granice tygodni – pierwszy, niepełny tydzień jest tygodniem numer 1 i nie trzeba wpisywać, przez ile stron obowiązuje pierwszy wiersz. Pola <code>{nr}</code> i <code>{liczba_stron}</code> liczą tylko strony, które naprawdę powstają.',
       'Okno serii i właściwości strony pokazują, <b>ile stron wyjdzie w wydruku i ile wierszy jest pomijanych</b>. Fioletowy znaczek na liście stron (np. <b>×52</b>) liczy, ile razy ta strona naprawdę wychodzi; <b>×0</b> znaczy, że wszystkie jej wiersze są pomijane i w wydruku jej nie ma.',
-      '<b>Dodatkowe tabele</b>: dane, które zmieniają się rzadziej niż strony serii. Przykład: strony dni biorą dane z tabeli dni, a hasło tygodnia – z tabeli tygodni, która przechodzi do następnego wiersza <b>co 7 stron</b>. Gdy pierwszy okres jest krótszy (rok zaczyna się w środę), wpisz, przez ile stron obowiązuje pierwszy wiersz.',
+      '<b>Dodatkowe tabele</b>: dane, które zmieniają się rzadziej niż strony serii. Przykład: strony dni biorą dane z tabeli dni, a hasło tygodnia – z tabeli tygodni, która przechodzi do następnego wiersza <b>co 7 stron</b>. Gdy pierwszy okres jest krótszy (rok zaczyna się w środę), wpisz, przez ile stron obowiązuje pierwszy wiersz – albo dodaj na początku tabeli dni wiersze pomijane (wyżej), wtedy nic nie trzeba wpisywać.',
       'Okresy nierównej długości – np. <b>miesiące</b> (28–31 dni): na liście <b>Nowy wiersz</b> zamiast stałej liczby stron wybierz <b>gdy zmieni się kolumna…</b> i wskaż kolumnę tabeli głównej, np. <code>miesiac</code>. Tabela miesięcy przejdzie do następnego wiersza dokładnie tam, gdzie w tabeli dni zmienia się miesiąc.',
       'Gdy okres wyznaczają <b>dwie kolumny</b> – np. miesiąc i rok w kalendarzu na kilka lat – po wybraniu pierwszej kolumny pojawia się lista <b>albo kolumna</b>: wskaż w niej drugą (i kolejne). Nowy wiersz zaczyna się, gdy zmieni się wartość w <b>którejkolwiek</b> z nich, więc grudzień 2027 i grudzień 2028 to dwa osobne okresy, nawet gdy stoją obok siebie.',
       'Pole z tabeli dodatkowej wpisujesz z nazwą tabeli: <code>{Tygodnie.haslo}</code>. Sama nazwa kolumny też działa, jeśli nie ma jej w tabeli głównej. Na liście <b>Wstaw pole</b> tabele dodatkowe mają własną grupę.',
@@ -326,8 +328,8 @@ export const ROZDZIALY = [
       '<b>Kolor z pola</b>: wybierz kolumnę, w której wpisane są kolory, np. <code>#d1495b</code>, <code>2e86ab</code> albo nazwę koloru po angielsku (<code>navy</code>). Pusta albo błędna wartość zostawia kolor wzoru. Linia i kształt bez wypełnienia dostają kolor obrysu.',
       'Gdy element jest wypełniony <b>przejściem kolorów</b>, przejście zostaje, a pod listą pól wybierasz, co kolor z pola w nim zmienia: <b>pierwszy kolor</b> (tak jest od razu po wybraniu pola), <b>ostatni kolor</b> albo <b>całe przejście w odcieniach</b> koloru z pola – pierwszy kolor to kolor z pola, a pozostałe są od niego jaśniejsze albo ciemniejsze tak jak we wzorze. Ostatnia możliwość, <b>całe wypełnienie</b>, zastępuje przejście jednym kolorem.',
       '<b>Przesunięcie w pionie / w poziomie z pola</b>: wybierz pole z liczbą. Może to być kolumna tabeli albo pole dokumentu, np. <code>{egzemplarz}</code> – numer powielenia serii (1, 2, 3…).',
-      '<b>Wartość pola to numer pozycji</b>: element przesuwa się o <b>krok</b> (w mm) za każdą kolejną pozycję. <b>Od nowa co 6</b> znaczy, że pozycja 7 wraca na miejsce pierwszej – dwanaście miesięcy ułoży się w dwóch seriach po sześć na wysokość strony.',
-      '<b>Wartość pola to przesunięcie w mm</b>: liczba z tabeli jest wprost przesunięciem względem wzoru (może być ujemna, z przecinkiem).',
+      'Lista <b>Wartość pola to</b> → <b>numer pozycji</b>: element przesuwa się o <b>krok</b> (w mm) za każdą kolejną pozycję. <b>Od nowa co 6</b> znaczy, że pozycja 7 wraca na miejsce pierwszej – dwanaście miesięcy ułoży się w dwóch seriach po sześć na wysokość strony.',
+      '<b>Wartość pola to</b> → <b>przesunięcie w mm</b>: liczba z tabeli jest wprost przesunięciem względem wzoru (może być ujemna, z przecinkiem).',
       '<b>Szerokość z pola / Wysokość z pola</b>: wybierz pole z liczbą – każdy wymiar osobno. Wartość to <b>procent rozmiaru wzoru</b> (100 = bez zmian, 50 = połowa) albo <b>rozmiar w mm</b>. Lista <b>Przy zmianie rozmiaru na miejscu zostaje</b> wybiera punkt zaczepienia: lewy górny róg, środek albo dół – słupek wykresu z kotwicą „dół” rośnie w górę. Wartość 0 chowa element; pole puste albo bez liczby zostawia rozmiar wzoru.',
       'Co znaczy zmiana rozmiaru: <b>tekst</b> dostaje węższą albo szerszą ramkę i układa się od nowa (wysokość działa przy stałej wysokości ramki) – litery się nie rozciągają; <b>obraz</b> zmienia ramkę – obraz z kolumny wpisuje się w nią tak, jak ustawiono („zmieść” albo „wypełnij”), zwykły obraz ją wypełnia, a nadmiar jest przycinany; <b>tabela</b> zmienia szerokości kolumn i najmniejsze wysokości wierszy; <b>kształty i grupy</b> są skalowane.',
       '<b>Obrót z pola</b>: liczba z pola to kąt w stopniach, dodawany do obrotu wzoru. Element obraca się wokół swojego środka – np. wskazówka albo strzałka ustawiona inaczej na każdej stronie.',
@@ -437,6 +439,7 @@ export const ROZDZIALY = [
       '<b>Powtórzenia</b> w kolumnach oznaczonych znakiem ≠ – z numerami stron, na których ta sama wartość wypada dwa razy.',
       '<b>Wartości spoza listy</b> w kolumnach z listą dozwolonych wartości (znak ☰) – z numerami wierszy tabeli.',
       '<b>Brak danych</b> w tabeli dodatkowej serii i <b>niepełny ostatni blok</b> serii.',
+      '<b>Strony serii w rozkładówkach</b>: gdzie aplikacja wstawiła puste strony, a przy wyłączonym <b>Pilnuj lewej i prawej strony</b> – od której strony strony bloku wychodzą po przeciwnej stronie rozkładówki. Seria, której wszystkie wiersze są pomijane, też dostaje uwagę.',
       '<b>Tabela wychodzi poza stronę</b>: wiersze tabeli rosną razem z treścią, więc na stronie z dłuższymi danymi tabela może wyjść poza kartkę. Uwaga podaje, na których stronach i o ile milimetrów.',
       'Przycisk <b>Pokaż</b> przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy – już z danymi tego powielenia, z wyróżnioną kartką. <b>Otwórz wzór</b> otwiera w edytorze stronę-wzór z zaznaczonym elementem, żeby od razu go poprawić. Sprawdzanie tekstów w dużym projekcie trwa chwilę – lista uzupełnia się na bieżąco.',
     ],
@@ -486,7 +489,7 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Siatka, linijki i prowadnice',
-    wstep: 'Narzędzia do równego układania elementów. Włączasz je przyciskiem z kratką w prawym dolnym rogu płótna.',
+    wstep: 'Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: <b>Siatka</b>, <b>Przyciągaj do siatki</b>, <b>Krok siatki</b>, <b>Przyciągaj do elementów i pokazuj odległości</b>, <b>Linijki</b>, <b>Zablokuj prowadnice</b>, <b>Usuń prowadnice z tej strony</b> i <b>W rozkładówkach pokazuj jedną stronę</b>.',
     obraz: 'siatka.png',
     podpis: 'Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).',
     punkty: [
@@ -566,7 +569,9 @@ export const ROZDZIALY = [
       '<b>Zdjęcia nie obciążają pamięci.</b> Oryginał każdego obrazu leży w osobnym magazynie przeglądarki (na dysku), a w edytorze pracuje lżejsza kopia. Projekt z setkami zdjęć otwiera się i zapisuje tak jak mały; po oryginał aplikacja sięga dopiero przy eksporcie do PDF, PNG albo do pliku projektu. Na drugim urządzeniu obrazy pobierają się z konta raz, przy pierwszym otwarciu projektu.',
       '<b>Eksport</b> zapisuje cały projekt do pliku <code>.seriodruk</code> (kopia zapasowa), <b>Importuj</b> wczytuje go z powrotem, <b>Duplikuj</b> tworzy kopię projektu, np. na kolejny rok.',
       'W edytorze menu <b>⋯</b> eksportuje projekt do <b>PDF</b> (osobny rozdział) i pobiera bieżącą stronę jako obraz PNG w 300 dpi, ze spadem.',
-      'Czcionki i silnik edytora są częścią aplikacji – nie są pobierane z zewnętrznych serwerów, więc edytor działa także bez internetu.',
+      'Czcionki i silnik edytora są częścią aplikacji, a przeglądarka zapamiętuje je po pierwszym uruchomieniu – kolejne starty nie czekają na sieć, a edytor działa także bez internetu. Eksport do PDF, wczytywanie arkuszy Excela i pliki ZIP korzystają z bibliotek pobieranych przy pierwszym użyciu; potem też działają bez sieci.',
+      'Lista projektów otwiera się szybko, bo nie wczytuje edytora – ten doczytuje się w tle. Jeśli otworzysz projekt, zanim skończy, przez chwilę zobaczysz „Wczytuję edytor…”.',
+      'Po wdrożeniu nowej wersji aplikacji, gdy masz otwarty projekt, na dole ekranu pojawi się <b>Jest nowa wersja aplikacji</b> z przyciskiem <b>Odśwież</b> – zmiany zapiszą się przed odświeżeniem. Bez otwartego projektu nowa wersja włącza się sama.',
       'Każdy ekran ma własny adres – odświeżenie zostawia Cię w tym samym miejscu, a „Wstecz” w przeglądarce wraca do poprzedniego ekranu.',
     ],
   },
