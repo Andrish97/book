@@ -202,5 +202,12 @@
    "opis": "Kształt narysowany piórem w trakcie edycji punktów",
    "podpis": "Kształt z pióra w trakcie edycji punktów."
   }
+ ],
+ "D16": [
+  {
+   "plik": "obrazy-projektu.png",
+   "opis": "Okno Obrazy projektu z miniaturami, nazwami i zaznaczonymi dwoma obrazami",
+   "podpis": "Obrazy projektu: pełne nazwy, gdzie użyte, zaznaczanie z „Kopiuj nazwy” i „Usuń”."
+  }
  ]
 }

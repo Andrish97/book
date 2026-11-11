@@ -353,7 +353,7 @@
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
-          <button role="menuitem" data-akcja="wgraj-obrazy" data-ikona="obraz">Wgraj obrazy do projektu…</button>
+          <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
           <button role="menuitem" data-akcja="dostep-ai" data-ikona="link">Dostęp dla AI…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
@@ -382,7 +382,7 @@
           <button data-akcja="dodaj-elipse" data-ikona="elipsa" title="Elipsa (E)"><span>Elipsa</span></button>
           <button class="tylko-duzy-ekran" data-akcja="dodaj-wielokat" data-ikona="wielokat" title="Wielokąt albo gwiazda (P)"><span>Wielokąt</span></button>
           <button data-akcja="dodaj-linie" data-ikona="linia" title="Linia (L)"><span>Linia</span></button>
-          <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz z dysku"><span>Obraz</span></button>
+          <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz: z urządzenia albo z obrazów projektu"><span>Obraz</span></button>
           <button data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false" title="Rysowanie odręczne (B) – przeciągaj po stronie; Esc kończy"><span>Rysuj</span></button>
           <button data-akcja="pioro" data-ikona="pioro" aria-pressed="false" title="Pióro (N) – kliknięcia stawiają punkty, przeciągnięcie robi łuk; Enter kończy kształt"><span>Pióro</span></button>
           <button data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: jeden element z wierszami i kolumnami; dwuklik komórki zaczyna pisanie"><span>Tabela</span></button>
@@ -855,6 +855,63 @@
     </div>
   </dialog>
   <input type="file" id="pliki-czcionki" multiple hidden>
+
+  <dialog id="dlg-obrazy" class="dialog-szeroki dialog-obrazy" aria-labelledby="obrazy-tytul">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2 id="obrazy-tytul"><span id="obrazy-tytul-tekst">Obrazy projektu</span> <span class="licznik" id="obrazy-licznik">0</span></h2>
+        <button type="button" class="przycisk-ikona" id="obrazy-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche" id="obrazy-opis">Wszystkie obrazy projektu – wstawione na strony i wgrane tutaj – w jednym miejscu. W tabeli danych wpisz nazwę pliku z rozszerzeniem: „Kopiuj nazwę” albo zaznacz kilka obrazów i „Kopiuj nazwy”, a potem wklej je w kolumnę.</p>
+      <div class="obrazy-pasek" id="obrazy-pasek">
+        <span class="obrazy-pasek-opis" id="obrazy-zaznaczone">Kliknij obraz, żeby go zaznaczyć (Ctrl – kilka, Shift – zakres).</span>
+        <span class="odstep"></span>
+        <button type="button" class="przycisk maly" id="obrazy-tryb-zaznaczania" data-ikona="ok" aria-pressed="false">Zaznacz</button>
+        <button type="button" class="przycisk maly" id="obrazy-kopiuj-nazwy" data-ikona="kopiuj" hidden>Kopiuj nazwy</button>
+        <button type="button" class="przycisk maly" id="obrazy-usun-zaznaczone" data-ikona="kosz" hidden>Usuń</button>
+        <button type="button" class="przycisk maly" id="obrazy-odznacz" hidden>Odznacz</button>
+      </div>
+      <ul class="siatka-obrazow" id="obrazy-lista" role="listbox" aria-multiselectable="true" aria-labelledby="obrazy-tytul"></ul>
+      <p class="podpowiedz" id="obrazy-pusto" hidden>W projekcie nie ma jeszcze obrazów. Wgraj je tutaj albo wstaw obraz na stronę – trafi tu sam.</p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk tylko-zarzadzanie" id="obrazy-usun-nieuzywane" data-ikona="kosz" hidden>Usuń nieużywane</button>
+        <button type="button" class="przycisk tylko-wybor" id="obrazy-anuluj" hidden>Anuluj</button>
+        <span class="odstep"></span>
+        <button type="button" class="przycisk" id="obrazy-wgraj" data-ikona="wyslij">Wgraj obrazy…</button>
+        <button type="button" class="przycisk glowny tylko-wybor" id="obrazy-wybierz" hidden disabled>Wstaw</button>
+      </div>
+    </div>
+  </dialog>
+  <input type="file" id="plik-podmiana-okno" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
+
+  <dialog id="dlg-zrodlo-obrazu">
+    <form method="dialog" class="formularz">
+      <h2 id="zrodlo-obrazu-tytul">Wstaw obraz</h2>
+      <div class="zrodlo-obrazu">
+        <button type="button" class="przycisk" id="zrodlo-urzadzenie" data-ikona="wyslij">Wgraj z urządzenia…</button>
+        <button type="button" class="przycisk" id="zrodlo-projekt" data-ikona="obraz">Wybierz z obrazów projektu…</button>
+      </div>
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-obraz-duplikat" class="dialog-szeroki">
+    <form method="dialog" class="formularz">
+      <h2>Obraz o tej nazwie już jest</h2>
+      <div class="duplikat-porownanie">
+        <figure><img id="duplikat-stary" alt="Obraz w projekcie"><figcaption>W projekcie</figcaption></figure>
+        <figure><img id="duplikat-nowy" alt="Nowy plik"><figcaption>Nowy plik</figcaption></figure>
+      </div>
+      <p class="ciche" id="duplikat-opis"></p>
+      <label class="przelacznik"><input type="checkbox" id="duplikat-wszystkie"><span>Tak samo dla pozostałych plików o powtórzonych nazwach</span></label>
+      <div class="przyciski-dialogu duplikat-przyciski">
+        <button class="przycisk" value="pomin">Pomiń</button>
+        <span class="odstep"></span>
+        <button class="przycisk" value="oba" id="duplikat-oba">Zachowaj oba</button>
+        <button class="przycisk glowny" value="zastap" id="duplikat-zastap">Zastąp</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="dlg-konflikt" class="dialog-szeroki">
     <form method="dialog" class="formularz">

@@ -20,12 +20,12 @@
 
 import './edytor-instancja.js';
 import { toZaznaczenie } from '../fabric-ustawienia.js';
-import { uid } from '../projekt.js';
 import { opisObiektu } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
+import { przyjmijPlik } from '../obrazy-projektu.js';
+import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
 import { OknoKontroli } from '../okno-kontroli.js';
 import { obsluzKlawisz } from '../skroty.js';
-import * as chmura from '../chmura.js';
 import { $, powiadom, pobierz, bezpiecznaNazwa, zamknijMenu, przelaczMenu } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
@@ -46,7 +46,7 @@ import { polePoTabelach } from '../serie.js';
 import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek, podmiana } from './skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
-  wzorzecZMenu, ustawZakladke, generujMiniatury, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
+  wzorzecZMenu, ustawZakladke, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
 } from './lista-stron.js';
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje } from './sekcje.js';
 import {
@@ -112,8 +112,10 @@ async function wstawObraz(plik) {
   try {
     // Plik SVG bez podanego rozmiaru (sam viewBox) przeglądarka wczytałaby jako obraz o zerowych wymiarach.
     const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
-    const dataUrl = await chmura.blobNaDataUrl(gotowy);
-    await edytor.dodajObraz(dataUrl, plik.name, stan.projekt.zasoby);
+    // Każdy obraz wstawiony na stronę trafia do „Obrazów projektu” (js/obrazy-projektu.js: przyjmijPlik):
+    // ten sam plik drugi raz używa obrazu, który już jest; inny plik o zajętej nazwie dostaje „(2)”.
+    const { id, nazwa } = await przyjmijPlik(stan.projekt, gotowy, plik.name);
+    await edytor.dodajObraz(null, nazwa, stan.projekt.zasoby, { id });
     // Napisy w rysunku wstawionym jako obraz przeglądarka rysuje czcionką systemu, nie czcionką z pliku.
     if (plik.type === 'image/svg+xml' && /<text[\s>]/i.test(await gotowy.text())) {
       powiadom('Rysunek ma napisy – jako obraz pokaże je czcionką zastępczą. „Rozłóż rysunek na elementy” we właściwościach zamieni je w zwykłe napisy z czcionkami zestawu.');
@@ -129,7 +131,27 @@ async function podmienObraz(obj, plik) {
   if (!edytor.canvas.getObjects().includes(obj) && !obj.group) return; // obraz zniknął ze strony w międzyczasie
   try {
     const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
-    await edytor.podmienObraz(obj, await chmura.blobNaDataUrl(gotowy), plik.name, stan.projekt.zasoby);
+    // Jak przy wstawianiu: nowe zdjęcie trafia do „Obrazów projektu” (bez kopii tego samego pliku). Poprzednie
+    // zostaje tam jako obraz projektu – jeśli nigdzie go już nie ma, widać przy nim „nieużywany”.
+    const { id, nazwa } = await przyjmijPlik(stan.projekt, gotowy, plik.name);
+    await edytor.podmienObraz(obj, null, nazwa, stan.projekt.zasoby, { id });
+    panel.zbuduj();
+  } catch (blad) {
+    powiadom(blad.message || 'Nie udało się podmienić zdjęcia.', true);
+  }
+}
+
+// Wstawienie albo podmiana obrazem, który już jest w projekcie (wybór w oknie „Obrazy projektu”).
+async function wstawZProjektu(id) {
+  const z = stan.projekt.zasoby[id];
+  if (!z) return;
+  try { await edytor.dodajObraz(null, z.nazwa, stan.projekt.zasoby, { id }); } catch (blad) { powiadom(blad.message, true); }
+}
+export async function podmienZProjektu(obj, id) {
+  const z = stan.projekt.zasoby[id];
+  if (!z || (!edytor.canvas.getObjects().includes(obj) && !obj.group)) return;
+  try {
+    await edytor.podmienObraz(obj, null, z.nazwa, stan.projekt.zasoby, { id });
     panel.zbuduj();
   } catch (blad) {
     powiadom(blad.message || 'Nie udało się podmienić zdjęcia.', true);
@@ -217,7 +239,7 @@ export const akcje = {
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
   'dostep-ai': () => { zamknijMenu(); otworzDostepAi(); },
   // Wiele zdjęć naraz – np. dla obrazów z danych (nazwy plików w tabeli); także na telefonie.
-  'wgraj-obrazy': () => { zamknijMenu(); $('#pliki-zasoby').click(); },
+  obrazy: async () => { zamknijMenu(); (await oknoObrazow()).otworzObrazy(); },
   'dostep-ai-utworz': () => utworzKluczAi(),
   'dostep-ai-kopiuj': () => kopiujKluczAi(),
   'dostep-ai-kopiuj-adres': () => kopiujAdresAi(),
@@ -257,7 +279,12 @@ export const akcje = {
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => edytor.dodajWielokat(),
-  'dodaj-obraz': () => $('#plik-obraz').click(),
+  // Narzędzie „Obraz”: z urządzenia albo z obrazów projektu (bez obrazów w projekcie – od razu wybór pliku).
+  'dodaj-obraz': () => wybierzZrodloObrazu({
+    tytul: 'Wstaw obraz',
+    zUrzadzenia: () => $('#plik-obraz').click(),
+    zProjektu: async () => (await oknoObrazow()).otworzObrazy({ wybierz: { etykieta: 'Wstaw', fn: wstawZProjektu } }),
+  }),
   rysuj: () => edytor.ustawRysowanie(!edytor.rysuje),
   pioro: () => edytor.ustawPioro(!edytor.pioro),
   'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
@@ -302,22 +329,14 @@ $('#naglowek-ostrzezen').addEventListener('click', (e) => {
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
 });
 
-// Obrazy do pól: trafiają do zasobów projektu pod nazwą pliku, bez wstawiania
-// na stronę. Plik o nazwie, która już jest, zastępuje poprzedni.
+// Obrazy do pól: trafiają do obrazów projektu pod nazwą pliku, bez wstawiania na stronę. Ten sam plik
+// drugi raz nie jest dodawany; o plik o powtórzonej nazwie aplikacja pyta (js/app/obrazy-okno.js).
+const oknoObrazow = () => import('./obrazy-okno.js');
 $('#pliki-zasoby').addEventListener('change', async (e) => {
   const pliki = [...e.target.files];
-  const { zasoby } = stan.projekt;
-  for (const plik of pliki) {
-    const dataUrl = await new Promise((ok, blad) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => blad(r.error); r.readAsDataURL(plik); });
-    const id = Object.keys(zasoby).find((k) => zasoby[k].nazwa === plik.name) || uid('z');
-    zasoby[id] = { nazwa: plik.name, dataUrl };
-  }
   e.target.value = '';
-  if (!pliki.length) return;
-  stan.miniatury.clear();
-  generujMiniatury();
-  zaplanujZapis();
-  powiadom(`Wgrano ${pliki.length} ${pliki.length === 1 ? 'obraz' : 'obrazy/obrazów'}. W tabeli wpisz ich nazwy plików.`);
+  if (!pliki.length || !stan.projekt) return;
+  try { await (await oknoObrazow()).wgrajObrazy(pliki); } catch (blad) { powiadom(`Nie udało się wgrać obrazów: ${blad.message}`, true); }
 });
 
 // Pole wyboru pliku czyścimy dopiero po wczytaniu – wyczyszczenie wcześniej

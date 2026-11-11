@@ -198,7 +198,7 @@ test('telefon: arkusz właściwości – od góry, bez krzyżyka, uchwyt, elemen
   // Zaznaczony obraz widać nad arkuszem (pod paskiem wstawiania).
   assert.ok(s.el.gora >= s.pasek.bottom - 1 && s.el.dol <= s.panel.top + 1, `obraz ${JSON.stringify(s.el)} między paskiem ${s.pasek.bottom} a arkuszem ${s.panel.top}`);
   // Przyciski zdjęcia są zaraz pod nagłówkiem.
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.wlasciwosci > :first-child button')].map((b) => b.textContent.trim())), ['Podmień zdjęcie', 'Wgraj obrazy do projektu']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.wlasciwosci > :first-child button')].map((b) => b.textContent.trim())), ['Podmień zdjęcie', 'Obrazy projektu…']);
   // Położenie i rozmiar w dwóch rzędach.
   const rzedy = await strona.evaluate(() => new Set([...document.querySelectorAll('.geometria > label')].map((l) => Math.round(l.getBoundingClientRect().top))).size);
   assert.equal(rzedy, 2);

@@ -5,9 +5,9 @@ import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU } from './pola.js';
 import { wzorceStrony } from './projekt.js';
 import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
 import { odmiana } from './ui.js';
+import { obrazZNazwy } from './nazwy-obrazow.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
-const bezRozszerzenia = (n) => String(n || '').trim().toLowerCase().replace(/\.[a-z0-9]{2,5}$/, '');
 
 function obrazyZPol(obiekty, zbior = new Set()) {
   for (const o of obiekty || []) {
@@ -209,7 +209,8 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   const nieznane = new Map(); // pole → strony
   const brakObrazu = new Map(); // "kolumna\nplik" → strony
   const uzycia = new Map(); // tabela → kolumna → wartość → strony
-  const nazwyZasobow = new Set(Object.values(projekt.zasoby || {}).map((z) => bezRozszerzenia(z.nazwa)));
+  const czcionki = new Set((projekt.czcionki || []).map((c) => c.id));
+  const niejednoznaczne = new Map(); // "kolumna\nplik" → strony
 
   for (const egz of ciag.egzemplarze) {
     const { pola, obrazy } = polaStrony(projekt, egz.strona, pamiec);
@@ -225,9 +226,11 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
         if (!DOKUMENTU.has(nazwa)) nieznane.set(nazwa, [...(nieznane.get(nazwa) || []), nr]);
         continue;
       }
-      if (obrazy.has(nazwa) && String(v).trim() && !nazwyZasobow.has(bezRozszerzenia(v))) {
+      if (obrazy.has(nazwa) && String(v).trim()) {
+        const obraz = obrazZNazwy(projekt.zasoby, v, czcionki);
         const klucz = `${nazwa}\n${v}`;
-        brakObrazu.set(klucz, [...(brakObrazu.get(klucz) || []), nr]);
+        if (!obraz) brakObrazu.set(klucz, [...(brakObrazu.get(klucz) || []), nr]);
+        else if (obraz.niejednoznaczne) niejednoznaczne.set(klucz, [...(niejednoznaczne.get(klucz) || []), nr]);
       }
       // Pilnowane kolumny: z której tabeli (głównej albo dodatkowej) i z którego wiersza przyszła wartość.
       const zrodlo = tabele.length ? polePoTabelach(nazwa, tabele) : null;
@@ -248,6 +251,11 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   for (const [klucz, strony] of brakObrazu) {
     const [kolumna, plik] = klucz.split('\n');
     uwagi.push({ rodzaj: 'brak_obrazu', strony, opis: `Nie ma w projekcie obrazu „${plik}” (kolumna „${kolumna}”) – ${odmiana(new Set(strony).size, 'strona', 'strony', 'strony')} ${lista(strony)}.` });
+  }
+  for (const [klucz, strony] of niejednoznaczne) {
+    const [kolumna, plik] = klucz.split('\n');
+    const pasuja = obrazZNazwy(projekt.zasoby, plik, czcionki).niejednoznaczne.map((id) => `„${projekt.zasoby[id].nazwa}”`).join(', ');
+    uwagi.push({ rodzaj: 'brak_obrazu', strony, opis: `Niejednoznaczna nazwa obrazu „${plik}” (kolumna „${kolumna}”): pasuje kilka plików (${pasuja}) – dopisz w tabeli rozszerzenie. ${odmiana(new Set(strony).size, 'Strona', 'Strony', 'Strony')} ${lista(strony)}.` });
   }
   // Powtórzenia: na stronach, a gdy kolumna nie jest nigdzie użyta – w samej tabeli.
   for (const tabela of projekt.tabele) {

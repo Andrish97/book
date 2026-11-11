@@ -931,7 +931,7 @@ export class PanelWlasciwosci {
   zbudujAkcjeObrazu(obj) {
     const definicje = [];
     if (this.opcje.podmienObraz) definicje.push(['obraz', 'Podmień zdjęcie', () => this.opcje.podmienObraz(obj)]);
-    if (this.opcje.wgrajObrazy) definicje.push(['wyslij', 'Wgraj obrazy do projektu', () => this.opcje.wgrajObrazy()]);
+    if (this.opcje.obrazyProjektu) definicje.push(['warstwy', 'Obrazy projektu…', () => this.opcje.obrazyProjektu()]);
     if (!definicje.length) return;
     const rzad = this.akcje(definicje);
     rzad.classList.add('akcje-obrazu');
@@ -1011,7 +1011,7 @@ export class PanelWlasciwosci {
       }
     }
     d.append(this.wskazowka(kolumny.length
-      ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj przyciskiem „Wgraj obrazy do projektu” u góry panelu.'
+      ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj w oknie „Obrazy projektu” (przycisk u góry panelu) – tam też skopiujesz ich nazwy do tabeli.'
       : 'Gdy strona należy do serii z tabelą, ten obraz może się zmieniać na każdej powielonej stronie – według nazwy pliku z wybranej kolumny.'));
 
     const o = this.sekcja('Obrys i odbicie');

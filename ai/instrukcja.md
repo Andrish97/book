@@ -25,21 +25,22 @@ Seriodruk (https://andrish97.github.io/book/) to edytor publikacji z powtarzanym
 17. Serie: powielanie stron
 18. Kolor i położenie z danych
 19. Ramka tekstu i obrazy z danych
-20. Kolumny i przelewanie tekstu
-21. Tabela
-22. Eksport do PDF
-23. Sprawdź przed drukiem
-24. Podgląd
-25. Udostępnianie linkiem
-26. Praca z AI
-27. Linie i ostrzeżenia
-28. Siatka, linijki i prowadnice
-29. Odległości i równe odstępy
-30. Warstwy
-31. Tablet, telefon i instalacja
-32. Zapis, pliki i kilka urządzeń
-33. Skróty klawiszowe
-34. Co będzie dalej
+20. Obrazy projektu
+21. Kolumny i przelewanie tekstu
+22. Tabela
+23. Eksport do PDF
+24. Sprawdź przed drukiem
+25. Podgląd
+26. Udostępnianie linkiem
+27. Praca z AI
+28. Linie i ostrzeżenia
+29. Siatka, linijki i prowadnice
+30. Odległości i równe odstępy
+31. Warstwy
+32. Tablet, telefon i instalacja
+33. Zapis, pliki i kilka urządzeń
+34. Skróty klawiszowe
+35. Co będzie dalej
 
 ## 1. Na początek
 
@@ -130,7 +131,7 @@ Pasek nad stroną wstawia nowe elementy na stronę.
 - **Pióro** (klawisz `N`) – kształt z punktów. Kliknięcie stawia punkt, a kolejne punkty łączą się prostymi odcinkami. Kliknięcie z przeciągnięciem stawia punkt z łukiem: im dalej przeciągniesz, tym łagodniejszy łuk. `Enter` albo podwójne kliknięcie kończy kształt otwarty, kliknięcie w pierwszy punkt go zamyka. `Backspace` cofa ostatni punkt, `Esc` porzuca zaczęty kształt, a drugi `Esc` wyłącza pióro. Gotowy kształt jest zwykłym elementem: ma kolor i grubość linii, a zamknięty – także wypełnienie.
 - **Edycja punktów**: kliknij dwa razy kształt z pióra albo linię narysowaną odręcznie (albo wybierz **Edytuj punkty** we właściwościach). Pojawią się punkty – przeciągaj je myszą. Zaznaczony punkt łuku pokazuje uchwyty, którymi zmieniasz wygięcie. Podwójne kliknięcie w linię dodaje punkt, `Delete` usuwa zaznaczony. `Enter` zatwierdza zmiany, `Esc` przywraca kształt sprzed edycji.
 - **Wypełnienie** kształtu: jeden kolor, **gradient liniowy** albo **kołowy**, albo brak. Gradient może mieć dowolną liczbę kolorów – każdy ma swoje położenie w procentach; do tego kierunek (gotowy albo kąt), a w kołowym promień. Każdy element może mieć też **cień** z przesunięciem i rozmyciem w mm.
-- **Obraz** – zdjęcie lub grafika z dysku (PNG, JPEG, WebP, GIF, SVG). Możesz też przeciągnąć plik na stronę albo **wkleić obraz ze schowka** (`Ctrl`+`V`): zrzut ekranu, obraz skopiowany ze strony internetowej albo z programu graficznego, a także kod SVG skopiowany jako tekst. Rysunek SVG wstawia się jako jeden element – możesz go skalować, obracać i kadrować, a po powiększeniu zostaje ostry; żeby zmieniać jego części, rozłóż go na elementy (rozdział **Położenie, wyrównanie, schowek**). Duże zdjęcia aplikacja pokazuje w edytorze lżejszą kopią, żeby praca była płynna; do pliku PDF i PNG zawsze idzie oryginał.
+- **Obraz** – zdjęcie lub grafika (PNG, JPEG, WebP, GIF, SVG). Przycisk pyta: **Wgraj z urządzenia** albo **Wybierz z obrazów projektu** (obraz, który już jest w projekcie – bez drugiej kopii); w projekcie bez obrazów od razu otwiera wybór pliku. Każdy wstawiony obraz trafia do okna **Obrazy projektu**. Możesz też przeciągnąć plik na stronę albo **wkleić obraz ze schowka** (`Ctrl`+`V`): zrzut ekranu, obraz skopiowany ze strony internetowej albo z programu graficznego, a także kod SVG skopiowany jako tekst. Rysunek SVG wstawia się jako jeden element – możesz go skalować, obracać i kadrować, a po powiększeniu zostaje ostry; żeby zmieniać jego części, rozłóż go na elementy (rozdział **Położenie, wyrównanie, schowek**). Duże zdjęcia aplikacja pokazuje w edytorze lżejszą kopią, żeby praca była płynna; do pliku PDF i PNG zawsze idzie oryginał.
 - **Tabela** – podajesz liczbę wierszy i kolumn. Tabela jest jednym elementem: przesuwasz ją i obracasz w całości, a po dwukrotnym kliknięciu komórki piszesz w niej (więcej w rozdziale **Tabela**).
 - Przeciągnij element, aby go przesunąć. Kółka w rogach zmieniają rozmiar, kółko nad elementem go obraca.
 - Przy przesuwaniu i przy zmianie rozmiaru element „przykleja się” do krawędzi, marginesów, środka strony, prowadnic i innych elementów – pokazuje to różowa linia (więcej w rozdziale **Odległości i równe odstępy**).
@@ -399,9 +400,28 @@ Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. 
 - **Obraz z danych**: wstaw dowolny obraz jako wzór (wyznacza miejsce i rozmiar), zaznacz go i wybierz **kolumnę z nazwą pliku**. Na każdej powielonej stronie pojawi się obraz o nazwie z tej kolumny, bez zmiany proporcji.
 - **Podmieniony obraz** może **mieścić się w ramce** (cały widoczny, z wolnym miejscem po bokach albo u góry) albo **wypełniać ramkę** (bez pustych pasów, brzegi przycięte) – wybierz to, gdy zdjęcia mają różne proporcje, a układ ma być równy. Przy wypełnianiu wybierasz też, **która część zdjęcia zostaje**: środek, góra, dół, lewa albo prawa strona (np. „góra” przy portretach, żeby nie ucinać głów).
 - Gdy każde zdjęcie wymaga innego przycięcia, wybierz **Kadr z kolumny**: w tej kolumnie tabeli wpisujesz dla każdego wiersza `góra`, `dół`, `lewa`, `prawa` albo `środek` (można po dwa: `góra lewa`; także bez polskich znaków i po angielsku), albo **punkt zdjęcia w procentach** od lewej i od góry, np. `30% 20%` – kadr ustawi się tak, żeby ten punkt był w środku ramki. Pusta komórka zostawia ustawienie obrazu-wzoru.
-- Pliki obrazów wgrywasz naraz przyciskiem **Wgraj obrazy do projektu** (we właściwościach obrazu albo w menu **⋯** – także na telefonie, gdzie telefon pokaże galerię). W tabeli wystarczy nazwa pliku, z rozszerzeniem albo bez.
+- Pliki obrazów do danych wgrywasz naraz w oknie **⋯ → Obrazy projektu** (przycisk **Wgraj obrazy…**; we właściwościach obrazu jest przycisk **Obrazy projektu…**; na telefonie telefon pokaże galerię). Obrazy wstawione na strony też tam są i też można ich użyć w danych. W tabeli wpisz **nazwę pliku z rozszerzeniem**, np. `las.jpg` – najprościej skopiować ją w oknie (**Kopiuj nazwę** albo zaznacz kilka obrazów i **Kopiuj nazwy**). Rozszerzenie się liczy: `las.jpg` i `las.png` to dwa różne obrazy (wielkość liter nie ma znaczenia). Nazwa bez rozszerzenia działa tylko wtedy, gdy pasuje dokładnie jeden plik – przy kilku strona pokaże brak obrazu, a **Sprawdź przed drukiem** poprosi o dopisanie rozszerzenia.
 
-## 20. Kolumny i przelewanie tekstu
+## 20. Obrazy projektu
+
+Wszystkie obrazy projektu są w jednym miejscu: wstawione na strony (narzędziem, przeciągnięciem, ze schowka, przez „Podmień zdjęcie”) i wgrane do pól z danych. Okno otwiera **⋯ → Obrazy projektu** (obok „Czcionki projektu”) albo przycisk **Obrazy projektu…** we właściwościach obrazu.
+
+![Okno „Obrazy projektu”: miniatury z pełnymi nazwami, wymiarami i rozmiarem pliku; przy każdym obrazie – gdzie jest użyty.](https://andrish97.github.io/book/img/instrukcja/obrazy-projektu.png)
+*Okno „Obrazy projektu”: miniatury z pełnymi nazwami, wymiarami i rozmiarem pliku; przy każdym obrazie – gdzie jest użyty.*
+
+- Przy każdym obrazie jest miniatura, **pełna nazwa pliku** (z rozszerzeniem – tak wpisuje się ją w tabeli), wymiary w pikselach, rozmiar pliku i to, **gdzie jest użyty**: numery stron, wzorce albo „w danych” (gdy jego nazwa jest w tabeli). Obraz nigdzie nieużyty ma napis **nieużywany** i przerywaną ramkę.
+- **Wgraj obrazy…** dodaje pliki z urządzenia (kilka naraz). Wgrane obrazy zostają zaznaczone – od razu możesz skopiować ich nazwy.
+- **Kopiuj nazwę** (ikona przy obrazie) kopiuje nazwę jednego pliku. **Zaznaczanie**: kliknij obraz (albo jego pole wyboru); `Ctrl` dodaje kolejne, `Shift` – cały zakres. Na telefonie przytrzymaj obraz albo stuknij **Zaznacz** i stukaj kolejne. Gdy coś jest zaznaczone, na pasku są **Kopiuj nazwy** (nazwy jedna pod drugą – wklejone w tabelę albo w Excela wypełnią kolejne wiersze kolumny), **Usuń** i **Odznacz**.
+- **Zmień nazwę**: kliknij nazwę albo ikonę. Nazwa musi być inna niż pozostałych obrazów (dane wskazują obrazy nazwą). Gdy obraz jest w tabeli danych, komórki z jego nazwą dostają nową.
+- **Podmień plik** wstawia nowy plik w miejsce starego: wszędzie, gdzie obraz był, pojawia się nowy, w tym samym miejscu i rozmiarze. Nazwa zostaje, więc dane dalej go znajdują. **Pokaż** (oko) otwiera stronę albo wzorzec z obrazem i go zaznacza.
+- **Usuń** usuwa zaznaczone obrazy z projektu, z urządzenia i z konta. Obrazów, które są użyte, aplikacja nie usunie – powie, gdzie są (najpierw usuń je ze strony albo z tabeli, albo podmień plik). **Usuń nieużywane** sprząta naraz wszystkie obrazy, których nigdzie nie ma.
+- Usuniętego obrazu nie przywróci ani **Cofnij**, ani drugie urządzenie. Jeśli obraz był przed chwilą na stronie, a element usunięto, aplikacja uprzedzi, że cofnięcie przywróci element już bez obrazu. Po „Podmień zdjęcie” we właściwościach poprzednie zdjęcie zostaje w oknie – jeśli nigdzie go nie ma, jako nieużywane.
+- **Wybór z obrazów projektu** (narzędzie „Obraz” i „Podmień zdjęcie”): to samo okno, w którym stukasz obraz i **Wstaw** (albo **Podmień**), albo klikasz go dwa razy.
+- **Ten sam plik drugi raz** nie tworzy kopii: wstawiony na stronę używa obrazu, który już jest, a przy wgrywaniu pojawia się informacja „Ten obraz już jest jako …”. Aplikacja rozpoznaje to po treści pliku, nie po nazwie.
+- **Inny plik o tej samej nazwie** (ta sama nazwa z rozszerzeniem, bez względu na wielkość liter): przy wgrywaniu aplikacja pokazuje oba obrazy obok siebie i pyta – **Zastąp** (jak „Podmień plik”), **Zachowaj oba** (nowy dostaje dopisek „(2)”) albo **Pomiń**. Przy kilku plikach można zaznaczyć **Tak samo dla pozostałych**. Obraz wstawiany na stronę dostaje dopisek „(2)” sam. `las.jpg` i `las.png` to różne nazwy.
+- Gdy okno jest otwarte, zmiany z innego urządzenia czekają, aż je zamkniesz – tak jak przy każdym innym oknie.
+
+## 21. Kolumny i przelewanie tekstu
 
 Dłuższy tekst może płynąć przez kilka ramek: to, co nie mieści się w pierwszej, pojawia się w następnej. Tak powstają kolumny i teksty, które zaczynają się w jednym miejscu strony, a kończą w innym.
 
@@ -424,7 +444,7 @@ Dłuższy tekst może płynąć przez kilka ramek: to, co nie mieści się w pie
 - Zaznaczaniem łączysz ramki widoczne razem (jedna strona albo rozkładówka); między stronami łączy przycisk „Ciąg dalszy na następnej stronie”. Kopia połączonej ramki i kopia całej strony są zwykłymi, niepołączonymi ramkami. Usunięcie strony nie usuwa płynącego przez nią tekstu – wraca on do ramek na pozostałych stronach.
 - W serii tekst płynie między stronami tego samego powielenia bloku: każde powielenie przelewa swoje dane osobno.
 
-## 21. Tabela
+## 22. Tabela
 
 Tabela to jeden element strony z wierszami i kolumnami. Wstawiasz ją przyciskiem **Tabela** na pasku nad stroną.
 
@@ -447,7 +467,7 @@ Tabela to jeden element strony z wierszami i kolumnami. Wstawiasz ją przyciskie
 - Na telefonie tabelę wstawiasz tym samym przyciskiem, a pisanie w komórce zaczynasz, **stukając w nią dwa razy**. Szerokości kolumn, wiersze i wygląd zmienisz w panelu właściwości.
 - Tabele wstawione w starszej wersji (siatka i osobne ramki tekstu) zostają takie, jak były.
 
-## 22. Eksport do PDF
+## 23. Eksport do PDF
 
 Plik PDF do drukarni albo do obejrzenia: wszystkie strony w kolejności wydruku, razem z powieleniami serii. Znajdziesz go w menu **⋯** w edytorze.
 
@@ -473,7 +493,7 @@ Plik PDF do drukarni albo do obejrzenia: wszystkie strony w kolejności wydruku,
 - **Dołącz pliki czcionek użytych w projekcie**: dostaniesz archiwum ZIP z plikiem PDF i folderem `czcionki` ze zwykłymi plikami TTF z oficjalnego zestawu (i z własnymi czcionkami projektu). Opcja zaznacza się sama, gdy plik nie ma czcionek w środku: przy obrazach stron i przy tekście zamienionym na krzywe.
 - **Do sprawdzenia przed drukiem**: na dole okna jest lista uwag do całego projektu (następny rozdział). Uwagi nie blokują eksportu. Długi eksport możesz przerwać przyciskiem **Przerwij**.
 
-## 23. Sprawdź przed drukiem
+## 24. Sprawdź przed drukiem
 
 Zanim wyślesz plik do drukarni, aplikacja przegląda cały projekt – już po powieleniu serii – i wypisuje miejsca, na które warto spojrzeć. Okno otwierasz z menu **⋯ → Sprawdź przed drukiem**; ta sama lista jest w oknie eksportu PDF.
 
@@ -490,7 +510,7 @@ Zanim wyślesz plik do drukarni, aplikacja przegląda cały projekt – już po 
 - **Tabela wychodzi poza stronę**: wiersze tabeli rosną razem z treścią, więc na stronie z dłuższymi danymi tabela może wyjść poza kartkę. Uwaga podaje, na których stronach i o ile milimetrów.
 - Przycisk **Pokaż** przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy – już z danymi tego powielenia, z wyróżnioną kartką. **Otwórz wzór** otwiera w edytorze stronę-wzór z zaznaczonym elementem, żeby od razu go poprawić. Sprawdzanie tekstów w dużym projekcie trwa chwilę – lista uzupełnia się na bieżąco.
 
-## 24. Podgląd
+## 25. Podgląd
 
 Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – bez linii pomocniczych i bez możliwości przypadkowej zmiany.
 
@@ -504,7 +524,7 @@ Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – b
 - Kliknięcie strony otwiera ją w edytorze. **Edytor** albo `Esc` wraca do edycji.
 - **Otwarty podgląd odświeża się sam**, gdy projekt zmieni się gdzie indziej – na innym urządzeniu albo przez asystenta AI. Podgląd zostaje w tym samym miejscu i w tym samym powiększeniu, a od nowa rysują się tylko strony, które wyglądają inaczej. Dzięki temu możesz np. trzymać podgląd na telefonie i patrzeć, jak zmienia się projekt, nad którym pracuje AI.
 
-## 25. Udostępnianie linkiem
+## 26. Udostępnianie linkiem
 
 Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukarni – wysyłając link. Projekt ma jeden link.
 
@@ -523,7 +543,7 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 - Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.
 - Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.
 
-## 26. Praca z AI
+## 27. Praca z AI
 
 Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Podłączasz go adresem łącznika Seriodruk – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.
 
@@ -542,7 +562,7 @@ Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z T
 
 > Adres łącznika (z kluczem) trafia do firmy, która prowadzi AI. Dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Przed dużymi zmianami zrób **Eksport** projektu.
 
-## 27. Linie i ostrzeżenia
+## 28. Linie i ostrzeżenia
 
 Na stronie widać linie pomocnicze. Nie są drukowane.
 
@@ -555,7 +575,7 @@ Na stronie widać linie pomocnicze. Nie są drukowane.
 - Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę **Ostrzeżenia**. Jeśli to celowe (np. tło na spad), kliknij **Wycisz**.
 - Linie ukryjesz przyciskiem w prawym dolnym rogu, obok powiększenia.
 
-## 28. Siatka, linijki i prowadnice
+## 29. Siatka, linijki i prowadnice
 
 Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: **Siatka**, **Przyciągaj do siatki**, **Krok siatki**, **Przyciągaj do elementów i pokazuj odległości**, **Linijki**, **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** i **W rozkładówkach pokazuj jedną stronę**.
 
@@ -572,7 +592,7 @@ Narzędzia do równego układania elementów. Włączasz je w menu pod przyciski
 - Dodanie, przesunięcie i usunięcie prowadnicy cofniesz `Ctrl`+`Z`, jak każdą inną zmianę.
 - Siatka i prowadnice nie są drukowane. Klawisz `W` chowa wszystkie linie pomocnicze.
 
-## 29. Odległości i równe odstępy
+## 30. Odległości i równe odstępy
 
 Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – tak jak inteligentne linie pomocnicze w programach Adobe.
 
@@ -585,7 +605,7 @@ Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – 
 - Przytrzymaj `Alt` przy zaznaczonym elemencie, żeby zobaczyć jego odległości także do krawędzi strony.
 - Przyciąganie do elementów wyłączysz w menu z kratką.
 
-## 30. Warstwy
+## 31. Warstwy
 
 Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.
 
@@ -601,7 +621,7 @@ Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wsz
 - Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie **rozwija jej zawartość**: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. **Kliknięcie elementu grupy otwiera grupę i zaznacza ten element** – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka.
 - **Tabelę też rozwiniesz** trójkątem: pod nią stoją jej komórki wierszami – numer „wiersz.kolumna” i początek treści. Kliknięcie komórki na liście **zaczyna w niej pisanie**, tak jak podwójne kliknięcie na stronie; przydaje się w gęstej tabeli i przy małych komórkach. Komórki nie mają własnego oka ani kłódki – ukrywa się i blokuje całą tabelę.
 
-## 31. Tablet, telefon i instalacja
+## 32. Tablet, telefon i instalacja
 
 Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można ją też zainstalować jak zwykły program.
 
@@ -612,7 +632,7 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 - **Na telefonie edytor działa w pionie.** Panele **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** otwierasz przyciskami na dole ekranu; panel wysuwa się z dołu na niecałą połowę ekranu i ma stałą wysokość, więc nie skacze, gdy przeglądarka chowa pasek adresu. Widok sam przesuwa się tak, żeby zaznaczony element był widoczny nad panelem, a po zamknięciu panelu wraca na miejsce.
 - **Uchwyt** (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel prawie na cały ekran, w dół – żeby go zmniejszyć albo zamknąć; stuknięcie przełącza wysokość. Panel zamyka też ponowne stuknięcie jego przycisku na dole ekranu – krzyżyka nie ma.
 - Na wąskim ekranie górny pasek zostawia miejsce na nazwę projektu: **Wzorce**, **Dane** i **Instrukcja** są w menu **⋯**. Ucięta nazwa pokazuje się w całości po stuknięciu w nią.
-- We właściwościach obrazu na samej górze są przyciski **Podmień zdjęcie** (nowe zdjęcie z galerii w tej samej ramce i miejscu) i **Wgraj obrazy do projektu**.
+- We właściwościach obrazu na samej górze są przyciski **Podmień zdjęcie** (nowe zdjęcie z galerii albo z obrazów projektu, w tej samej ramce i miejscu) i **Obrazy projektu…**.
 - Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” – pasek adresu i panele nie zostawiają wtedy miejsca na stronę. To samo zobaczysz na komputerze w bardzo niskim oknie (poniżej 480 px). Lista projektów, logowanie i udostępniony podgląd działają w obu ułożeniach.
 - **Dwa szybkie stuknięcia** działają jak podwójne kliknięcie: zaczynają pisanie w komórce tabeli, otwierają grupę, zaczynają edycję punktów kształtu. **Tabela** i **pióro** są na pasku wstawiania także na telefonie: piórem stawiasz punkty stuknięciami, a kształt kończysz przyciskiem **Zakończ kształt** we właściwościach (albo stuknięciem w pierwszy punkt – wtedy kształt jest zamknięty). Punkty kształtu przeciągasz palcem po stuknięciu **Edytuj punkty** – przed przeciąganiem zamknij panel właściwości, żeby nie zasłaniał strony.
 - Na małym ekranie schowane są narzędzia, którymi trudno sterować palcem: wielokąt, kadrowanie ramką i linijki. Prowadnice wpisujesz liczbą, a obraz przytniesz liczbami we właściwościach. Gdy pasek wstawiania nie zmieści się na bardzo wąskim ekranie, przewija się w bok, a jego wygaszony brzeg pokazuje, że dalej są kolejne przyciski.
@@ -621,7 +641,7 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 - **Instalacja na Macu** (Chrome lub Edge): ikona instalacji w pasku adresu. W Safari: Plik → **Dodaj do Docka**.
 - Zainstalowana aplikacja na komputerze otwiera pliki `.seriodruk` dwuklikiem.
 
-## 32. Zapis, pliki i kilka urządzeń
+## 33. Zapis, pliki i kilka urządzeń
 
 Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na koncie.
 
@@ -645,7 +665,7 @@ Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na ko
 - Po wdrożeniu nowej wersji aplikacji, gdy masz otwarty projekt, na dole ekranu pojawi się **Jest nowa wersja aplikacji** z przyciskiem **Odśwież** – zmiany zapiszą się przed odświeżeniem. Bez otwartego projektu nowa wersja włącza się sama.
 - Każdy ekran ma własny adres – odświeżenie zostawia Cię w tym samym miejscu, a „Wstecz” w przeglądarce wraca do poprzedniego ekranu.
 
-## 33. Skróty klawiszowe
+## 34. Skróty klawiszowe
 
 Skróty są takie jak w programach do składu i grafiki. `Ctrl` na Macu to `⌘`. Tę listę otwiera klawisz `?`.
 
@@ -752,7 +772,7 @@ Skróty są takie jak w programach do składu i grafiki. `Ctrl` na Macu to `⌘`
 
 > Skróty z literami działają, gdy kursor nie stoi w polu formularza. W trakcie pisania tekstu na stronie działają skróty z grupy „Tekst”.
 
-## 34. Co będzie dalej
+## 35. Co będzie dalej
 
 Edytor, dane, powielanie stron i eksport do PDF działają. Co jeszcze przed nami:
 

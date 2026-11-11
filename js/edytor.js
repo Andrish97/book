@@ -1060,9 +1060,10 @@ export class Edytor extends EventTarget {
   }
 
   // dataUrl -> obraz dopasowany do 60% szerokości strony.
-  async dodajObraz(dataUrl, nazwaPliku, zasoby) {
-    const id = uid('z');
-    zasoby[id] = { nazwa: nazwaPliku, dataUrl };
+  // opcje.id: obraz, który już jest w projekcie (js/obrazy-projektu.js: przyjmijPlik) – bez nowego wpisu.
+  async dodajObraz(dataUrl, nazwaPliku, zasoby, { id: istniejacy = null } = {}) {
+    const id = istniejacy && zasoby[istniejacy] ? istniejacy : uid('z');
+    if (id !== istniejacy) zasoby[id] = { nazwa: nazwaPliku, dataUrl };
     // Duże zdjęcie pokazujemy lżejszą kopią roboczą; wymiary obiektu zostają w pikselach oryginału.
     await przygotujKopie(zasoby, [{ type: 'image', zasob: id }]);
     let img;
@@ -1080,10 +1081,11 @@ export class Edytor extends EventTarget {
   // Nowe zdjęcie w miejscu starego: ramka (rozmiar na stronie), środek, obrót, odbicie, obrys, cień, krycie
   // i ustawienia z danych zostają. Zdjęcie wypełnia ramkę; z inną proporcją boków nadmiar jest przycięty
   // wokół tego samego punktu, wokół którego był przycięty stary obraz (bez przycięcia – wokół środka).
-  async podmienObraz(obj, dataUrl, nazwaPliku, zasoby) {
+  // opcje.id: obraz, który już jest w projekcie – bez nowego wpisu (js/obrazy-projektu.js: przyjmijPlik).
+  async podmienObraz(obj, dataUrl, nazwaPliku, zasoby, { id: istniejacy = null } = {}) {
     if (obj?.type !== 'image') return false;
-    const id = uid('z');
-    zasoby[id] = { nazwa: nazwaPliku, dataUrl };
+    const id = istniejacy && zasoby[istniejacy] ? istniejacy : uid('z');
+    if (id !== istniejacy) zasoby[id] = { nazwa: nazwaPliku, dataUrl };
     await przygotujKopie(zasoby, [{ type: 'image', zasob: id }]);
     let nowy;
     try { nowy = await fabric.FabricImage.fromURL(zrodloObrazu(zasoby)(id)); } catch { throw new Error('Nie udało się wczytać obrazu.'); }
