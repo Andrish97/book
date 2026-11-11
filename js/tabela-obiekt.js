@@ -216,6 +216,44 @@ export function ustawKrawedzKomorki(g, w, k, strona, linia) {
   return true;
 }
 
+// Linie wielu komórek naraz: całego wiersza, całej kolumny albo całej tabeli.
+// zakres: 'wiersz' (wiersz komórki `w`, `k` – albo wszystkie wiersze jej scalenia), 'kolumna', 'tabela'.
+// czesc: 'obramowanie' (brzeg zakresu), 'poziome' / 'pionowe' (linie wewnątrz zakresu), 'wszystkie'.
+// linia: { grubosc, kolor } (grubosc 0 = bez linii) albo null – jak w całej tabeli.
+// To te same wpisy co przy pojedynczej komórce (jeden na odcinek siatki). Zwraca liczbę zmienionych odcinków.
+export const ZAKRESY_LINII = ['wiersz', 'kolumna', 'tabela'];
+export const CZESCI_LINII = ['obramowanie', 'poziome', 'pionowe', 'wszystkie'];
+
+export function ustawLinieZakresu(g, zakres, { w = 0, k = 0 } = {}, czesc, linia) {
+  if (!ZAKRESY_LINII.includes(zakres) || !CZESCI_LINII.includes(czesc)) return 0;
+  const t = g.tabela;
+  const W = t.wiersze.length;
+  const K = t.kolumny.length;
+  const s = scalenieKomorki(g, w, k) || { w, k, ileW: 1, ileK: 1 };
+  const [w0, w1] = zakres === 'wiersz' ? [s.w, s.w + s.ileW] : [0, W];
+  const [k0, k1] = zakres === 'kolumna' ? [s.k, s.k + s.ileK] : [0, K];
+  const brzeg = czesc === 'obramowanie' || czesc === 'wszystkie';
+  const poziome = czesc === 'poziome' || czesc === 'wszystkie';
+  const pionowe = czesc === 'pionowe' || czesc === 'wszystkie';
+  // Odcinek przez środek scalonej komórki nie istnieje – nie dostaje wpisu.
+  const scalone = (wA, kA, wB, kB) => { const a = scalenieKomorki(g, wA, kA); return Boolean(a) && a === scalenieKomorki(g, wB, kB); };
+  const odcinki = [];
+  for (let i = w0; i <= w1; i += 1) {
+    if (!(i === w0 || i === w1 ? brzeg : poziome)) continue;
+    for (let j = k0; j < k1; j += 1) if (!(i > 0 && i < W && scalone(i - 1, j, i, j))) odcinki.push({ os: 'h', w: i, k: j });
+  }
+  for (let j = k0; j <= k1; j += 1) {
+    if (!(j === k0 || j === k1 ? brzeg : pionowe)) continue;
+    for (let i = w0; i < w1; i += 1) if (!(j > 0 && j < K && scalone(i, j - 1, i, j))) odcinki.push({ os: 'v', w: i, k: j });
+  }
+  const klucze = new Set(odcinki.map((o) => kluczLinii(o.os, o.w, o.k)));
+  const zostaja = (t.linie_komorek || []).filter((l) => !klucze.has(kluczLinii(l.os, l.w, l.k)));
+  const nowe = linia ? odcinki.map((o) => ({ ...o, grubosc: Math.max(0, Number(linia.grubosc) || 0), ...(linia.kolor ? { kolor: linia.kolor } : {}) })) : [];
+  t.linie_komorek = [...zostaja, ...nowe];
+  ulozTabele(g);
+  return odcinki.length;
+}
+
 // Po wstawieniu wiersza (albo kolumny) numer `n`: linie dalszych wierszy przesuwają się, linia na granicy
 // zostaje przy wierszu powyżej (dolny brzeg tabeli zostaje dolnym brzegiem), a nowy wiersz dostaje linie
 // boczne takie jak wiersz, za którym stanął. wzdluz: 'w' dla wierszy, 'k' dla kolumn.

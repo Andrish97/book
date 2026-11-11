@@ -10,7 +10,7 @@ import { ikona } from './ikony.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
-import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza, krawedzKomorki, ustawKrawedzKomorki } from './tabela-obiekt.js';
+import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza, krawedzKomorki, ustawKrawedzKomorki, ustawLinieZakresu } from './tabela-obiekt.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
@@ -320,6 +320,7 @@ export class PanelWlasciwosci {
     const l = this.sekcja('Linie tabeli');
     l.append(this.kolor('Kolor linii', () => t.linia?.kolor || '#1a1a1a', (v) => { t.linia = { ...t.linia, kolor: v }; ulozTabele(obj); }));
     l.append(this.liczba('Grubość linii', () => zaokr(t.linia?.grubosc ?? 0.25, 2), (v) => { t.linia = { ...t.linia, grubosc: Math.max(0, v) }; }, { jednostka: 'mm', krok: 0.05, min: 0 }));
+    this.zbudujLinieZakresu(obj);
 
     // Tło wierszy: nagłówek i co drugi wiersz treści.
     const tl = this.sekcja('Tło wierszy');
@@ -401,7 +402,51 @@ export class PanelWlasciwosci {
       grubosc.classList.add('szeroki');
       lin.append(grubosc);
     }
-    lin.append(this.wskazowka('Krawędź jest wspólna z sąsiednią komórką – zmienia się u obu. Linie całej tabeli ustawisz po zaznaczeniu tabeli (Esc).'));
+    lin.append(this.wskazowka('Krawędź jest wspólna z sąsiednią komórką – zmienia się u obu.'));
+    this.zbudujLinieZakresu(tabela, m);
+  }
+
+  // Linie wielu komórek naraz: obramowanie i linie wewnętrzne całego wiersza, kolumny albo tabeli.
+  // m: miejsce komórki, w której trwa pisanie ({ w, k }) – bez niego (zaznaczona cała tabela) zakresem jest tabela.
+  zbudujLinieZakresu(tabela, m = null) {
+    const e = this.edytor;
+    const st = this._linieZakresu || (this._linieZakresu = { zakres: 'wiersz', czesc: 'obramowanie', grubosc: 0.5, kolor: '#1a1a1a' });
+    const zakres = () => (m ? st.zakres : 'tabela');
+    const s = this.sekcja(m ? 'Linie wiersza, kolumny, tabeli' : 'Obramowanie i linie wewnętrzne');
+    s.dataset.linieZakresu = '';
+    if (m) {
+      const gdzie = this.wybor('Zastosuj do', [['wiersz', 'tego wiersza'], ['kolumna', 'tej kolumny'], ['tabela', 'całej tabeli']], () => st.zakres, (v) => { st.zakres = v; });
+      gdzie.classList.add('szeroki');
+      gdzie.dataset.linie = 'zakres';
+      s.append(gdzie);
+    }
+    const ktore = this.wybor('Które linie', [['obramowanie', 'obramowanie (linie zewnętrzne)'], ['poziome', 'wewnętrzne poziome'], ['pionowe', 'wewnętrzne pionowe'], ['wszystkie', 'wszystkie']], () => st.czesc, (v) => { st.czesc = v; });
+    ktore.classList.add('szeroki');
+    ktore.dataset.linie = 'czesc';
+    s.append(ktore);
+    const kolor = this.kolor('Kolor', () => st.kolor, (v) => { st.kolor = v; }, { bezZatwierdzania: true });
+    kolor.dataset.linie = 'kolor';
+    s.append(kolor);
+    const grubosc = this.liczba('Grubość', () => st.grubosc, (v) => { st.grubosc = Math.max(0.05, zaokr(v, 2)); }, { jednostka: 'mm', krok: 0.05, min: 0.05 });
+    grubosc.dataset.linie = 'grubosc';
+    s.append(grubosc);
+    // linia: funkcja zwracająca ustawienie w chwili kliknięcia (kolor i grubość mogły się zmienić).
+    const zastosuj = (linia) => () => {
+      ustawLinieZakresu(tabela, zakres(), m || {}, st.czesc, linia());
+      e.canvas.requestRenderAll();
+      e.zatwierdz();
+      this.zbuduj();
+    };
+    const przyciski = this.akcje([
+      ['ok', 'Ustaw te linie', zastosuj(() => ({ grubosc: st.grubosc, kolor: st.kolor }))],
+      ['minus', 'Bez linii', zastosuj(() => ({ grubosc: 0 }))],
+      ['cofnij', 'Jak w tabeli', zastosuj(() => null)],
+    ]);
+    przyciski.dataset.linie = 'przyciski';
+    s.append(przyciski);
+    s.append(this.wskazowka(m
+      ? 'Ustawia naraz linie wybranej części: całego wiersza, kolumny albo tabeli. „Jak w tabeli” zdejmuje własne ustawienia tych linii.'
+      : 'Ustawia naraz obramowanie albo linie wewnętrzne całej tabeli – niezależnie od koloru i grubości siatki powyżej. Linie wiersza, kolumny i pojedynczej komórki ustawisz w trakcie pisania w komórce.'));
   }
 
   zbudujTekst(obj, { komorka = false } = {}) {
