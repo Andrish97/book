@@ -41,3 +41,7 @@ max_frequency = "1m0s"
 # [auth.email.template.email_change]
 # subject = "Seriodruk – potwierdź nowy adres e-mail"
 # content_path = "./supabase/templates/zmiana-email.html"
+
+# Funkcje Edge wdrażane przez integrację z GitHubem – tylko te zadeklarowane tutaj.
+[functions.zdrowie]
+verify_jwt = false
