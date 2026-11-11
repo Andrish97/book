@@ -524,6 +524,11 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 
 Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili – tak jak zmiany z drugiego urządzenia.
 
+![Nowy klucz dla AI z gotowymi ustawieniami dla Claude.](https://andrish97.github.io/book/img/instrukcja/dostep-ai.png)
+*Nowy klucz dla AI z gotowymi ustawieniami dla Claude.*
+
+- **Podłączenie Claude krok po kroku** (aplikacja Claude na komputer): 1) zainstaluj [Node.js](https://nodejs.org/), jeśli go nie masz; 2) w edytorze utwórz klucz (niżej) i pobierz z okna plik **seriodruk-mcp.mjs** – zapisz go np. w Dokumentach; 3) w Claude: **Settings → Developer → Edit Config** (po polsku: Ustawienia → Programista → Edytuj konfigurację) i wklej tekst z okna „Dostęp dla AI”, wpisując w nim ścieżkę do pobranego pliku; 4) zamknij i otwórz Claude ponownie – w narzędziach rozmowy pojawi się **seriodruk**; 5) napisz np. „Przejrzyj mój projekt w Seriodruku i popraw literówki w tytułach”.
+- W **Claude Code** wystarczą dwa polecenia, które okno pokazuje gotowe do skopiowania. **ChatGPT** podłącza się przez własnego GPT z akcjami – krok po kroku w dokumencie [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
 - W edytorze menu **⋯** → **Dostęp dla AI…**. Wpisz, dla kogo jest klucz, wybierz **Czyta i zmienia** albo **Tylko czyta** i ważność (1, 7 albo 30 dni), potem **Utwórz klucz**.
 - Klucz widać **tylko raz** – skopiuj go od razu. Okno pokazuje gotowe ustawienia dla Claude Desktop i Claude Code; opis podłączenia ChatGPT jest w dokumencie [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
 - Klucz otwiera **tylko ten projekt**: AI może zmieniać strony, elementy, wzorce, style, tabele danych, serie i sekcje, ale nie utworzy ani nie usunie projektu, nie wgra obrazów ani czcionek i nie zobaczy innych projektów.

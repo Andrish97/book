@@ -552,6 +552,17 @@ async function przykladoweProjekty(strona) {
   await zrzut(d, 'kontrola.png');
   await d.click('#kontrola-zamknij');
 
+  // Dostęp dla AI: nowy klucz z gotowymi ustawieniami dla Claude
+  await d.click('#przycisk-wiecej');
+  await d.click('[data-akcja="dostep-ai"]');
+  await d.waitForSelector('#dlg-dostep-ai[open]');
+  await d.fill('#dostep-ai-opis', 'Claude – poprawki kalendarza');
+  await d.click('[data-akcja="dostep-ai-utworz"]');
+  await d.waitForSelector('#dostep-ai-gotowy:not([hidden])');
+  await d.evaluate(() => { const s = document.querySelector('.dostep-ai-jak'); if (s) s.open = true; });
+  await zrzut(d, 'dostep-ai.png');
+  await d.click('[data-akcja="dostep-ai-zamknij"]');
+
   // Pusta strona pod kolejne zrzuty: bez serii, bez elementów.
   const pustaStrona = () => d.evaluate(() => {
     const { edytor: e, stan } = window.seriodruk;
