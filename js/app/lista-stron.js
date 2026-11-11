@@ -337,6 +337,48 @@ export async function przejdzDoRamki(idStrony, idRamki) {
   edytor.zaznacz(idRamki);
 }
 
+// Pisanie w połączonym tekście doszło do ramki na innej stronie: bieżąca strona jest zapisywana, otwiera się
+// strona z tą ramką i pisanie idzie dalej, z kursorem przy znaku `indeks`. Znaki wciśnięte w czasie
+// wczytywania strony czekają i trafiają do nowej ramki; inne klawisze w tej chwili przepadają (nie
+// uruchamiają skrótów). Zwraca false, gdy przejść się nie da – wtedy kursor zostaje, gdzie był.
+let przejscieZaKursorem = false;
+let ostatniaPodpowiedzWatku = 0;
+export async function piszNaInnejStronie({ strona, id, indeks, wPrzod }) {
+  const i = stan.projekt.strony.findIndex((s) => s.id === strona);
+  const jest = i >= 0 && stan.projekt.strony[i].obiekty.some((o) => o.id === id);
+  const podpowiedz = (tekst) => {
+    if (Date.now() - ostatniaPodpowiedzWatku < 15000) return;
+    ostatniaPodpowiedzWatku = Date.now();
+    powiadom(tekst);
+  };
+  if (!jest || stan.tryb !== 'strona' || przejscieZaKursorem || $('dialog[open]')) {
+    if (wPrzod) podpowiedz(`Ramka jest pełna – dalszy ciąg tekstu płynie na stronę ${i >= 0 ? `${i + 1} („${stan.projekt.strony[i].nazwa}”)` : 'następną'}.`);
+    return false;
+  }
+  przejscieZaKursorem = true;
+  const znaki = [];
+  const lap = (e) => {
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (e.key.length === 1) znaki.push(e.key);
+    else if (e.key === 'Enter') znaki.push('\n');
+    else if (e.key === 'Backspace') znaki.pop();
+  };
+  window.addEventListener('keydown', lap, true);
+  try {
+    // Koniec pisania w dotychczasowej ramce jest zmianą (krok historii obejmie obie strony).
+    const akt = edytor.aktywny;
+    if (akt?.isEditing) akt.exitEditing();
+    await przejdzDoStrony(i);
+  } finally {
+    window.removeEventListener('keydown', lap, true);
+    przejscieZaKursorem = false;
+  }
+  if (!edytor.piszWRamce(id, indeks, znaki.join(''))) return false;
+  podpowiedz(`Tekst płynie dalej na stronie ${i + 1} („${stan.projekt.strony[i].nazwa}”) – piszesz tam, gdzie stoi kursor.`);
+  return true;
+}
+
 export async function duplikujStrone(i) {
   zapiszBiezacyCel();
   const zrodlo = stan.projekt.strony[i];

@@ -1202,9 +1202,37 @@ export class Edytor extends EventTarget {
     this.canvas.requestRenderAll();
   }
 
+  // Pisanie ma iść dalej w ramce `cel`, która leży na innej stronie: aplikacja otwiera tę stronę i wchodzi
+  // w ramkę (js/app/lista-stron.js: piszNaInnejStronie). indeks: miejsce kursora w tej ramce (w znakach).
+  _piszNaInnejStronie(cel, indeks, wPrzod) {
+    const p = (this._poza || []).find((x) => x.o === cel);
+    if (p) this.dispatchEvent(new CustomEvent('pisanie-na-innej-stronie', { detail: { strona: p.strona, id: cel.id, indeks, wPrzod } }));
+  }
+
+  // Po przejściu na stronę z dalszym ciągiem tekstu: pisanie w ramce `id`, kursor przy znaku `indeks`.
+  // dopisz: znaki wciśnięte w czasie, gdy strona się wczytywała.
+  piszWRamce(id, indeks, dopisz = '') {
+    const cel = this.canvas.getObjects().find((o) => o.id === id && o.type === 'textbox' && !o.zWzorca);
+    if (!cel) return false;
+    this._piszW(cel, indeks);
+    if (dopisz) {
+      const od = cel.selectionStart;
+      cel.insertChars(dopisz, undefined, od, od);
+      const za = od + cel.graphemeSplit(dopisz).length;
+      cel.selectionStart = za; cel.selectionEnd = za;
+      if (cel.hiddenTextarea) cel.hiddenTextarea.value = cel.text;
+      cel._updateTextarea?.();
+      this._przelejPrzyPisaniu(cel);
+    }
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
   // Przelewa wątek i stawia kursor przy znaku, który w sklejonym tekście wątku stoi na miejscu `kursor`.
   // Jeśli znak trafił do innej ramki na tej stronie, pisanie przenosi się tam; jeśli do ramki na innej
-  // stronie – kursor zostaje w `obj` (gdyPoza: 'koniec' albo 'poczatek' tej ramki).
+  // stronie – aplikacja otwiera tę stronę i pisanie idzie dalej w tamtej ramce. Do tej chwili (i wtedy,
+  // gdy przejście jest niemożliwe) kursor stoi w `obj` (gdyPoza: 'koniec' albo 'poczatek' tej ramki).
   // zawsze: ustaw kursor także wtedy, gdy przelewanie niczego nie przesunęło.
   _przelejZKursorem(ramki, obj, kursor, { gdyPoza = 'koniec', zawsze = false } = {}) {
     if (!rozlej(ramki) && !zawsze) return;
@@ -1217,8 +1245,8 @@ export class Edytor extends EventTarget {
       obj.selectionStart = gdzie; obj.selectionEnd = gdzie;
       if (obj.hiddenTextarea) obj.hiddenTextarea.value = obj.text;
       obj._updateTextarea?.();
-      // Dalszy ciąg jest na innej stronie – kursor zostaje tutaj.
-      if (cel !== obj && gdyPoza === 'koniec') this.dispatchEvent(new CustomEvent('tekst-na-innej-stronie', { detail: (this._poza || []).find((p) => p.o === cel)?.strona }));
+      // Miejsce kursora jest w ramce na innej stronie – pisanie przenosi się tam.
+      if (cel !== obj) this._piszNaInnejStronie(cel, Math.min(znakow(cel, lokalnie), cel._text.length), gdyPoza === 'koniec');
     } else this._piszW(cel, znakow(cel, lokalnie), obj);
     this.canvas.requestRenderAll();
   }
@@ -1236,7 +1264,7 @@ export class Edytor extends EventTarget {
 
   // Klawisze na granicy połączonych ramek. Backspace na samym początku ramki usuwa znak sprzed kursora –
   // czyli koniec poprzedniej części (albo odstęp między częściami); Delete na końcu – początek następnej.
-  // Strzałki w lewo i w prawo przechodzą do sąsiedniej ramki, jeśli leży na tej stronie.
+  // Strzałki w lewo i w prawo przechodzą do sąsiedniej ramki – także na innej stronie.
   _klawiszNaGranicyRamek(e) {
     const o = this.aktywny;
     if (!o?.isEditing || !o.watek || o.zWzorca || o.inCompositionMode || e.target !== o.hiddenTextarea) return;
@@ -1251,9 +1279,9 @@ export class Edytor extends EventTarget {
     if (!sasiad) return;
     const naPlotnie = this.canvas.getObjects().includes(sasiad);
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      if (!naPlotnie) return;
       e.preventDefault(); e.stopPropagation();
-      this._piszW(sasiad, wstecz ? sasiad._text.length : 0, o);
+      if (naPlotnie) this._piszW(sasiad, wstecz ? sasiad._text.length : 0, o);
+      else this._piszNaInnejStronie(sasiad, wstecz ? sasiad._text.length : 0, !wstecz);
       return;
     }
     e.preventDefault(); e.stopPropagation();
