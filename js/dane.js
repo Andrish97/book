@@ -450,6 +450,8 @@ export class Dane {
     const p = this.projekt();
     const seria = nowaSeria(`Seria ${p.serie.length + 1}`);
     seria.tabela = p.tabele[0]?.id || null;
+    // W projekcie z rozkładówkami nowa seria od razu pilnuje, żeby strony lewe wychodziły po lewej, a prawe po prawej.
+    seria.pilnuj_stron = p.sekcje.some((s) => s.uklad === 'rozkladowki');
     if (!seria.tabela) seria.tryb = 'stala';
     p.serie.push(seria);
     return seria;
@@ -462,7 +464,9 @@ export class Dane {
     if (!bloki.length) return 'Żadna strona nie należy jeszcze do tej serii.';
     return bilansSerii(p, seria).map((b) => {
       const { dlugosc: n, powielen: ile, stron } = b;
-      const koniec = b.ostatniePelne ? '' : ' (seria kończy się na ostatnim wierszu danych – ostatnie powielenie jest niepełne)';
+      const koniec = (b.ostatniePelne ? '' : ' (seria kończy się na ostatnim wierszu danych – ostatnie powielenie jest niepełne)')
+        + (b.puste.length ? `; do tego ${b.puste.length} ${odmiana(b.puste.length, 'pusta strona', 'puste strony', 'pustych stron')}, żeby lewe strony zostały po lewej` : '')
+        + (b.zamianaOd !== null ? `; uwaga: od strony ${b.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki` : '');
       if (b.pominietych) return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} w bloku, ${stron} ${odmiana(stron, 'strona', 'strony', 'stron')} w wydruku – ${b.pominietych} ${odmiana(b.pominietych, 'wiersz pomijany', 'wiersze pomijane', 'wierszy pomijanych')}${koniec}`;
       return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} × ${ile} ${odmiana(ile, 'powielenie', 'powielenia', 'powieleń')} = ${stron} ${odmiana(stron, 'strona', 'strony', 'stron')} w wydruku${koniec}`;
     }).join('; ');
@@ -555,6 +559,7 @@ export class Dane {
     f.elements.ile.value = seria.ile;
     f.elements.uklad.value = seria.uklad;
     f.elements.dopelnij.checked = Boolean(seria.dopelnij);
+    f.elements.pilnuj_stron.checked = Boolean(seria.pilnuj_stron);
     $('#seria-dodatkowe-lista').replaceChildren(...(seria.dodatkowe || []).map((d) => this._wierszDodatkowej(d)));
     this._odswiezSerie();
     dlg.returnValue = '';
@@ -579,6 +584,8 @@ export class Dane {
     const dlugi = maTabele && f.elements.tryb.value === 'tabela' && f.elements.uklad.value === 'dlugi';
     $('#seria-pole-dopelnij').hidden = !dlugi;
     $('#seria-opis-konca').hidden = !dlugi || f.elements.dopelnij.checked;
+    // Lewa i prawa strona: ustawienie jest tylko w projekcie, który ma sekcję z rozkładówkami.
+    $('#seria-pole-strony').hidden = !p.sekcje.some((s) => s.uklad === 'rozkladowki');
     $('#seria-dodaj-tabele').disabled = p.tabele.filter((t) => t.id !== proba.tabela).length === 0;
     // Bilans liczony na kopii projektu z serią w wersji z formularza.
     const probny = { ...p, serie: p.serie.map((s) => (s.id === proba.id ? proba : s)) };
@@ -588,7 +595,9 @@ export class Dane {
         const opis = b.pominietych
           ? `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')}: w wydruku ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')}. ${b.pominietych} ${odmiana(b.pominietych, 'wiersz tabeli jest pomijany', 'wiersze tabeli są pomijane', 'wierszy tabeli jest pomijanych')} (${ZNACZNIK_POMIJANIA}) – ${odmiana(b.pominietych, 'zajmuje', 'zajmują', 'zajmuje')} miejsce w bloku, ale ${odmiana(b.pominietych, 'jego strona', 'ich strony', 'ich strony')} nie ${odmiana(b.pominietych, 'powstaje', 'powstają', 'powstają')}.`
           : `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')} × ${b.powielen} = ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')} w wydruku.`;
-        const koniec = b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.';
+        const koniec = (b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.')
+          + (b.puste.length ? ` Do tego ${b.puste.length} ${odmiana(b.puste.length, 'pusta strona', 'puste strony', 'pustych stron')} (${odmiana(b.puste.length, 'strona', 'strony', 'strony')} ${b.puste.join(', ')}), żeby lewe strony zostały po lewej, a prawe po prawej.` : '')
+          + (b.zamianaOd !== null ? ` Uwaga: od strony ${b.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki – zaznacz „Pilnuj lewej i prawej strony”.` : '');
         const dodatkowe = b.dodatkowe.map((d) => ` Tabela „${d.tabela.nazwa}”: ${opisKroku(d)} – potrzeba ${d.potrzeba} ${odmiana(d.potrzeba, 'wiersza', 'wierszy', 'wierszy')}, ${d.jest >= d.potrzeba ? `jest ${d.jest}` : `a jest tylko ${d.jest}`}.`).join('');
         return opis + koniec + dodatkowe;
       }).join(' ')
@@ -622,6 +631,7 @@ export class Dane {
       ile: Math.min(2000, Math.max(1, Math.round(Number(f.elements.ile.value)) || 1)),
       uklad: f.elements.uklad.value === 'dlugi' ? 'dlugi' : 'szeroki',
       dopelnij: f.elements.dopelnij.checked,
+      pilnuj_stron: f.elements.pilnuj_stron.checked,
       dodatkowe: [...f.querySelectorAll('.wiersz-dodatkowej')].map((w) => {
         const co = Math.min(2000, Math.max(1, Math.round(Number(w.querySelector('[data-pole="co"]').value)) || 1));
         const pierwszy = Math.round(Number(w.querySelector('[data-pole="pierwszy"]').value));

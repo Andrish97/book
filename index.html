@@ -923,6 +923,11 @@
         <p class="podpowiedz" id="seria-opis-konca">Seria kończy się na ostatnim wierszu tabeli – jeśli wypada on w środku bloku, dalszych stron bloku nie ma w wydruku.</p>
         <p class="podpowiedz" id="seria-opis-pomijania">Gdy dane mają zacząć się w środku bloku (np. rok zaczyna się w czwartek, a blok to tydzień), dopisz na początku tabeli <b>wiersze pomijane</b>: <code>[pomiń]</code> w pierwszej komórce. Zajmują miejsce w bloku, ale ich strony nie powstają. W oknie Dane wstawia je przycisk <b>Wiersz pomijany</b>.</p>
       </fieldset>
+      <fieldset class="grupa-pol" id="seria-pole-strony">
+        <legend>Rozkładówki</legend>
+        <label class="przelacznik"><input type="checkbox" name="pilnuj_stron"><span>Pilnuj lewej i prawej strony – wstaw pustą stronę, gdy trzeba</span></label>
+        <p class="podpowiedz">Strona zaprojektowana jako lewa wychodzi po lewej, a prawa po prawej – także gdy seria zaczyna się od wierszy pomijanych albo kończy na nieparzystej liczbie stron. Tam, gdzie strona wypadłaby po przeciwnej stronie, aplikacja wstawia pustą, białą stronę (liczy się w numeracji). Dotyczy też pierwszej strony za serią.</p>
+      </fieldset>
       <fieldset class="grupa-pol" id="seria-dodatkowe">
         <legend>Dodatkowe tabele</legend>
         <p class="podpowiedz">Dane, które zmieniają się rzadziej niż strony serii – np. hasło tygodnia na stronach dni albo tytuł rozdziału co 8 stron. Pole z takiej tabeli wpisujesz z jej nazwą, np. <code>{Tygodnie.haslo}</code>; znajdziesz je też na liście <b>Wstaw pole</b>.</p>

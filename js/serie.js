@@ -21,6 +21,12 @@
 // wyrównania danych z blokiem: rok zaczynający się w czwartek dostaje na początku trzy takie wiersze
 // i pierwsza strona wydruku to czwarta strona bloku-tygodnia.
 //
+// Lewa i prawa strona (`pilnuj_stron`, tylko w sekcjach z rozkładówkami): strona bloku ma w wydruku
+// stać po tej stronie rozkładówki, po której stoi w układzie stron – a strona za serią po tej, po
+// której stałaby, gdyby blok wystąpił raz. Gdy po rozwinięciu wypadłaby po przeciwnej (seria zaczyna
+// się od wierszy pomijanych, kończy na nieparzystej liczbie stron, ma pominięty wiersz w środku),
+// w tym miejscu staje pusta strona: egzemplarz `pusta: true`, bez treści i wzorców, liczony w numeracji.
+//
 // rozwin(projekt) zwraca „ciąg”: wszystkie egzemplarze stron w kolejności
 // wydruku, z numerami, stroną rozkładówki i wierszem danych.
 
@@ -121,6 +127,7 @@ export function rozwin(projekt) {
   const bloki = []; // opis każdego bloku serii po rozwinięciu (do bilansu i uwag)
   const blokStrony = new Map();
   for (const blok of blokiSerii(projekt)) for (const s of blok.strony) blokStrony.set(s, blok);
+  const wSekcji = new Map(); // id sekcji → ile jej stron jest już w ciągu (od tego zależy strona rozkładówki)
 
   const dodaj = (strona, dane) => {
     const egz = {
@@ -129,8 +136,15 @@ export function rozwin(projekt) {
       seria: null, blok: null, nrEgz: null, ileEgz: null, wiersz: null, nrWiersza: null, dodatkowe: [], bok: null, sasiad: null, nr: null, nrWSekcji: 0, ...dane,
     };
     egzemplarze.push(egz);
-    if (!pierwszy.has(strona.id)) pierwszy.set(strona.id, egz);
+    wSekcji.set(egz.sekcja.id, (wSekcji.get(egz.sekcja.id) || 0) + 1);
+    if (!egz.pusta && !pierwszy.has(strona.id)) pierwszy.set(strona.id, egz);
     return egz;
+  };
+  // Pusta strona wstawiona, żeby następna stanęła po właściwej stronie rozkładówki: biała, bez wzorców.
+  // `przy` to strona projektu, do której prowadzi kliknięcie w podglądzie.
+  const pusta = (sekcja, seria, przy) => {
+    const klucz = `pusta-${seria.id}-${egzemplarze.length}`;
+    return dodaj({ id: klucz, nazwa: 'Pusta strona', sekcja: sekcja.id, wzorce: [], obiekty: [], tlo: '#ffffff', pusta: true }, { klucz, pusta: true, pustaZa: seria, przy });
   };
 
   let i = 0;
@@ -148,8 +162,22 @@ export function rozwin(projekt) {
     // Przy „jeden wiersz na stronę” seria kończy się na ostatnim wierszu danych: ostatnie powielenie
     // bloku może być niepełne. Z opcją `dopelnij` blok jest dokańczany stronami bez danych.
     const ucina = seria.tryb === 'tabela' && seria.uklad === 'dlugi' && wiersze.length > 0 && !seria.dopelnij;
-    const info = { blok, seria, dlugosc: strony.length, powielen: ile, pominiete: new Set(), ostatniePelne: true, dodatkowe: dodatkowe.map((d) => ({ tabela: d.tabela, co: d.co, zmiana: d.zmiana || null })) };
+    const sekcja = sekcjaStrony(projekt, strona);
+    const rozkladowki = sekcja.uklad === 'rozkladowki';
+    const start = wSekcji.get(sekcja.id) || 0; // miejsce w sekcji, na którym staje pierwsza strona bloku
+    const info = {
+      blok, seria, sekcja, start, dlugosc: strony.length, powielen: ile, pominiete: new Set(), ostatniePelne: true,
+      pilnuj: rozkladowki && Boolean(seria.pilnuj_stron), puste: [], zamiana: null,
+      dodatkowe: dodatkowe.map((d) => ({ tabela: d.tabela, co: d.co, zmiana: d.zmiana || null })),
+      // Dane wzoru dla strony, która nie ma żadnego egzemplarza: pierwszy wiersz z danymi.
+      wzor: { nrWiersza: zDanymi.length ? zDanymi[0] : null, wiersz: zDanymi.length ? wiersze[zDanymi[0]] : (wiersze.length ? {} : null), dodatkowe: dodatkowe.map((d) => ({ tabela: d.tabela, nrWiersza: 0, wiersz: d.wiersze[0] || null })) },
+    };
     bloki.push(info);
+    // Czy strona na miejscu `miejsce` serii stanęłaby teraz po przeciwnej stronie rozkładówki niż w układzie stron.
+    const poZlejStronie = (miejsce) => rozkladowki && ((wSekcji.get(sekcja.id) || 0) - (start + miejsce)) % 2 !== 0;
+    // W bloku o nieparzystej liczbie stron strony z natury stoją na przemian po lewej i prawej – tam pilnuje się
+    // tylko strony za serią.
+    const parzysty = strony.length % 2 === 0;
     let n = 0; // kolejne miejsce w serii (strona bloku w kolejnym powieleniu), od 0 – liczone razem z pomijanymi
     let koniec = false;
     for (let p = 0; p < ile && !koniec; p += 1) {
@@ -161,6 +189,10 @@ export function rozwin(projekt) {
         // Wiersz pomijany zajmuje miejsce (tabele dodatkowe liczą je jak każde inne), ale strona nie powstaje.
         if (seria.tryb === 'tabela' && nrWiersza !== null && pomijane[nrWiersza]) { info.pominiete.add(nrWiersza); continue; }
         const wiersz = nrWiersza === null ? null : (wiersze[nrWiersza] || {});
+        if (parzysty && poZlejStronie(nrStrony)) {
+          if (info.pilnuj) info.puste.push(pusta(sekcja, seria, s));
+          else if (info.zamiana === null) info.zamiana = egzemplarze.length;
+        }
         dodaj(s, {
           seria, blok, nrEgz: p + 1, ileEgz: ile, nrWiersza, wiersz,
           dodatkowe: dodatkowe.map((d) => {
@@ -179,17 +211,9 @@ export function rozwin(projekt) {
       }
     }
     info.ostatniePelne = n % strony.length === 0;
-    // Strona bloku, której żaden egzemplarz nie powstaje (wszystkie jej wiersze są pomijane), dostaje wzór:
-    // edytor i miniatura mają co pokazać, ale w wydruku jej nie ma.
-    for (const s of strony) {
-      if (pierwszy.has(s.id)) continue;
-      const nrWiersza = zDanymi.length ? zDanymi[0] : null;
-      pierwszy.set(s.id, {
-        klucz: `${s.id}-wzor`, strona: s, sekcja: sekcjaStrony(projekt, s), indeks: null, widmo: true,
-        seria, blok, nrEgz: 1, ileEgz: ile, nrWiersza, wiersz: nrWiersza === null ? (wiersze.length ? {} : null) : wiersze[nrWiersza],
-        dodatkowe: dodatkowe.map((d) => ({ tabela: d.tabela, nrWiersza: 0, wiersz: d.wiersze[0] || null })), bok: null, sasiad: null, nr: null, nrWSekcji: 0,
-      });
-    }
+    // Za serią: następna strona tej sekcji ma stanąć tam, gdzie stałaby, gdyby blok wystąpił raz.
+    const nastepna = projekt.strony[i + strony.length];
+    if (info.pilnuj && nastepna && sekcjaStrony(projekt, nastepna) === sekcja && poZlejStronie(strony.length)) info.puste.push(pusta(sekcja, seria, strony.at(-1)));
     i += strony.length;
   }
 
@@ -211,21 +235,47 @@ export function rozwin(projekt) {
     });
     sekcje.set(sekcja.id, { nr: nrSekcji + 1, lista });
   });
-  // Wzór strony, która nie ma egzemplarza: w rozkładówkach stoi po tej stronie, po której stałby w swoim bloku.
+  // Wzory stron do edycji. Strona bloku bez żadnego egzemplarza (wszystkie jej wiersze są pomijane) dostaje wzór,
+  // żeby edytor i miniatura miały co pokazać. Przy pilnowaniu stron wzór dostaje też strona, której nie ma
+  // w pierwszym powieleniu: w edytorze blok wygląda wtedy zawsze tak samo – strony stoją parami jak w układzie
+  // stron, niezależnie od tego, od którego miejsca zaczynają się dane.
+  const paryWzoru = new Map(); // id strony → strona, z którą tworzy rozkładówkę we wzorze
   for (const info of bloki) {
-    const sekcja = sekcjaStrony(projekt, info.blok.strony[0]);
-    if (sekcja.uklad !== 'rozkladowki') continue;
-    const realny = info.blok.strony.map((s) => pierwszy.get(s.id)).find((e) => !e.widmo);
-    info.blok.strony.forEach((s, j) => {
-      const e = pierwszy.get(s.id);
-      if (!e.widmo) return;
-      if (!realny) { e.bok = bokMiejsca(sekcja, ilePrzed(egzemplarze, projekt, s, sekcja) + j); return; }
-      const odstep = j - info.blok.strony.indexOf(realny.strona);
-      e.bok = odstep % 2 === 0 ? realny.bok : (realny.bok === 'lewa' ? 'prawa' : 'lewa');
+    const { strony } = info.blok;
+    const rozkladowki = info.sekcja.uklad === 'rozkladowki';
+    const widma = new Map();
+    strony.forEach((s, j) => {
+      const realny = pierwszy.get(s.id);
+      if (realny && (realny.nrEgz === 1 || !info.pilnuj)) return;
+      const wzor = {
+        ...(realny || { strona: s, sekcja: info.sekcja, indeks: null, seria: info.seria, blok: info.blok, nrEgz: 1, ileEgz: info.powielen, ...info.wzor, nr: null, nrWSekcji: 0 }),
+        klucz: `${s.id}-wzor`, widmo: true, bok: null, sasiad: null,
+      };
+      pierwszy.set(s.id, wzor);
+      widma.set(j, wzor);
     });
+    if (!rozkladowki || !widma.size) continue;
+    if (info.pilnuj) {
+      for (const [j, wzor] of widma) wzor.bok = bokMiejsca(info.sekcja, info.start + j);
+      strony.forEach((s, j) => {
+        if (j + 1 >= strony.length || bokMiejsca(info.sekcja, info.start + j) !== 'lewa' || !(widma.has(j) || widma.has(j + 1))) return;
+        const prawa = strony[j + 1];
+        paryWzoru.set(s.id, prawa);
+        paryWzoru.set(prawa.id, s);
+        if (widma.has(j)) widma.get(j).sasiad = pierwszy.get(prawa.id);
+        if (widma.has(j + 1)) widma.get(j + 1).sasiad = pierwszy.get(s.id);
+      });
+    } else {
+      // Bez pilnowania: wzór stoi po tej stronie, po której stałby względem najbliższej prawdziwej strony bloku.
+      const realny = strony.map((s) => pierwszy.get(s.id)).find((e) => !e.widmo);
+      for (const [j, wzor] of widma) {
+        if (!realny) { wzor.bok = bokMiejsca(info.sekcja, info.start + j); continue; }
+        wzor.bok = (j - strony.indexOf(realny.strona)) % 2 === 0 ? realny.bok : (realny.bok === 'lewa' ? 'prawa' : 'lewa');
+      }
+    }
   }
   const numery = egzemplarze.map((e) => e.nr).filter((n) => n !== null);
-  return { egzemplarze, pierwszy, sekcje, bloki, liczbaStron: numery.length ? Math.max(...numery) : 0 };
+  return { egzemplarze, pierwszy, sekcje, bloki, paryWzoru, liczbaStron: numery.length ? Math.max(...numery) : 0 };
 }
 
 // Strona rozkładówki dla miejsca k (od 0) w sekcji.
@@ -233,14 +283,8 @@ function bokMiejsca(sekcja, k) {
   return (sekcja.pierwsza === 'prawa') === (k % 2 === 0) ? 'prawa' : 'lewa';
 }
 
-// Ile stron sekcji stoi w ciągu przed blokiem, do którego należy strona (gdy sam blok nie daje żadnej strony).
-function ilePrzed(egzemplarze, projekt, strona, sekcja) {
-  const przed = new Set(projekt.strony.slice(0, projekt.strony.indexOf(strona)).map((s) => s.id));
-  return egzemplarze.filter((e) => e.sekcja === sekcja && przed.has(e.strona.id)).length;
-}
-
 // Bilans serii po rozwinięciu, osobno dla każdego jej bloku:
-// [{ dlugosc, powielen, stron, pominietych, ostatniePelne, dodatkowe: [{ tabela, co, zmiana, potrzeba, jest, brakOd }] }]
+// [{ dlugosc, powielen, stron, pominietych, ostatniePelne, puste, zamianaOd, wRozkladowkach, dodatkowe: [{ tabela, co, zmiana, potrzeba, jest, brakOd }] }]
 //  - stron: ile stron seria daje w wydruku; pominietych: ile wierszy tabeli jest pomijanych;
 //    ostatniePelne: czy ostatnie powielenie bloku doszło do jego ostatniej strony,
 //  - potrzeba / jest: ile wierszy tabeli dodatkowej potrzeba, a ile jest; brakOd: numer strony
@@ -251,6 +295,9 @@ export function bilansSerii(projekt, seria, ciag = rozwin(projekt)) {
     if (info.seria.id !== seria.id) continue;
     wynik.set(info.blok, {
       dlugosc: info.dlugosc, powielen: 0, stron: 0, pominietych: info.pominiete.size, ostatniePelne: info.ostatniePelne,
+      // Puste strony wstawione przy pilnowaniu lewej i prawej strony (numery w wydruku) albo – bez pilnowania –
+      // numer strony, od której strony bloku wypadają po przeciwnej stronie rozkładówki (null – nigdzie).
+      puste: info.puste.map((e) => e.indeks + 1), zamianaOd: info.zamiana === null ? null : info.zamiana + 1, wRozkladowkach: info.sekcja.uklad === 'rozkladowki',
       dodatkowe: info.dodatkowe.map((d) => ({ ...d, potrzeba: 0, jest: d.tabela.wiersze.length, brakOd: null })),
     });
   }
@@ -274,6 +321,9 @@ export function bilansSerii(projekt, seria, ciag = rozwin(projekt)) {
 // przemian lewe i prawe) jest edytowana sama.
 export function arkuszStrony(strona, ciag) {
   const egz = ciag.pierwszy.get(strona.id);
+  // Blok z pilnowaniem stron, którego początek jest pomijany: para taka jak w układzie stron.
+  const para = ciag.paryWzoru?.get(strona.id);
+  if (para) return egz.bok === 'lewa' ? [strona, para] : [para, strona];
   const sasiad = egz?.sasiad;
   if (!sasiad || sasiad.strona === strona || ciag.pierwszy.get(sasiad.strona.id) !== sasiad) return [strona];
   return egz.bok === 'lewa' ? [strona, sasiad.strona] : [sasiad.strona, strona];

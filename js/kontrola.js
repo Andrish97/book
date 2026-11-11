@@ -281,6 +281,13 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     const wierszy = tabelaSerii(projekt, seria)?.wiersze.length || 0;
     const zDanymi = wierszyZDanymi(tabelaSerii(projekt, seria));
     for (const blok of bilansSerii(projekt, seria, ciag)) {
+      if (blok.puste.length) {
+        const ile = blok.puste.length;
+        uwagi.push({ rodzaj: 'pusta_strona', strony: blok.puste, opis: `Seria „${seria.nazwa}”: ${odmiana(ile, 'wstawiona została pusta strona', 'wstawione zostały puste strony', 'wstawionych zostało pustych stron')} (${odmiana(ile, 'strona', 'strony', 'strony')} ${lista(blok.puste)}), żeby strony lewe zostały po lewej, a prawe po prawej. Pusta strona jest biała i liczy się w numeracji.` });
+      }
+      if (blok.zamianaOd !== null) {
+        uwagi.push({ rodzaj: 'zamiana_stron', strony: [blok.zamianaOd], opis: `Seria „${seria.nazwa}”: od strony ${blok.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki niż w układzie stron (lewa po prawej, prawa po lewej). Zaznacz w oknie serii „Pilnuj lewej i prawej strony”, a w takim miejscu stanie pusta strona.` });
+      }
       if (!blok.stron && blok.pominietych) {
         uwagi.push({ rodzaj: 'seria_bez_stron', strony: [], opis: `Seria „${seria.nazwa}”: wszystkie wiersze tabeli są pomijane (${ZNACZNIK_POMIJANIA}) – seria nie daje żadnej strony.` });
       }

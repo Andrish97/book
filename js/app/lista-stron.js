@@ -239,7 +239,7 @@ export function odrysujMiniaturyWTle(ids) {
 // kolejności, czy element leżący przez grzbiet nie trafił obok innej strony niż ta, do której pasował.
 export function sasiedziStron() {
   const ciag = rozwin(stan.projekt);
-  return new Map(stan.projekt.strony.map((s) => [s.id, ciag.pierwszy.get(s.id)?.sasiad?.strona.id || null]));
+  return new Map(stan.projekt.strony.map((s) => { const obok = ciag.pierwszy.get(s.id)?.sasiad; return [s.id, (obok && !obok.pusta && obok.strona.id) || null]; }));
 }
 
 export function ostrzezOGrzbiecie(przed) {
@@ -248,7 +248,7 @@ export function ostrzezOGrzbiecie(przed) {
   const zmienione = projekt.strony.filter((s) => {
     const egz = ciag.pierwszy.get(s.id);
     if (!egz?.bok || !przed.has(s.id)) return false;
-    const teraz = egz.sasiad?.strona.id || null;
+    const teraz = (egz.sasiad && !egz.sasiad.pusta && egz.sasiad.strona.id) || null;
     if (teraz === przed.get(s.id)) return false;
     const { szerokosc_mm: w, spad_mm: b } = egz.sekcja.wydruk;
     // Element wystaje za grzbiet: lewa strona – za prawą krawędź, prawa – za lewą.

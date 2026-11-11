@@ -163,3 +163,183 @@ test('wiersze pomijane w aplikacji: przycisk i znacznik w oknie Dane, okno serii
   assert.match(await strona.textContent('#dlg-kontrola'), /Wszystko w porządku: 4 strony bez uwag\./);
   assert.deepEqual(bledy, []);
 });
+
+test('lewa i prawa strona (obliczenia): puste strony na początku serii, w jej środku i za nią; wzór bloku w edytorze; bez pilnowania – uwaga o zamianie stron', async (t) => {
+  const { strona } = await otworz(t);
+  const w = await strona.evaluate(async () => {
+    const { nowyProjekt: nowy, nowaStrona, normalizuj } = await import('./js/projekt.js');
+    const { rozwin, arkuszStrony, bokStrony, bilansSerii, wartosciPol } = await import('./js/serie.js');
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    const { ukladProjektu } = await import('./js/podglad.js');
+    const p = nowy('Kalendarz', undefined, 'rozkladowki');
+    const sek = p.sekcje[0].id;
+    p.strony = ['Tytuł', ...Array.from({ length: 8 }, (_, i) => `D${i + 1}`), 'Koniec'].map((n) => nowaStrona(n, sek));
+    for (const s of p.strony.slice(1, 9)) s.seria = 's1';
+    // Trzy wiersze pomijane, potem 10 dni: dane kończą się na piątej stronie bloku (lewej).
+    p.tabele = [{ id: 't1', nazwa: 'Dni', kolumny: ['dzien'], wiersze: [['[pomiń]'], ['[pomiń]'], ['[pomiń]'], ...Array.from({ length: 10 }, (_, i) => [String(i + 1)])] }];
+    p.serie = [{ id: 's1', nazwa: 'Dni', tabela: 't1', tryb: 'tabela', uklad: 'dlugi', ile: 1, pilnuj_stron: true }];
+    const proj = normalizuj(p);
+    const opis = (c) => c.egzemplarze.map((e) => `${e.pusta ? 'pusta' : e.strona.nazwa}:${e.bok[0]}:${e.nr}`);
+    const ciag = rozwin(proj);
+    const wyniki = {
+      pilnowane: opis(ciag),
+      // Wzór w edytorze: strony stoją parami jak w układzie stron, choć pierwsze trzy nie mają egzemplarza w pierwszym powieleniu.
+      arkusze: proj.strony.map((s) => arkuszStrony(s, ciag).map((x) => x.nazwa).join('+')),
+      boki: proj.strony.map((s) => bokStrony(s, ciag)[0]).join(''),
+      wzory: proj.strony.slice(1, 9).map((s) => Boolean(ciag.pierwszy.get(s.id).widmo)),
+      // Wzór strony D1 pokazuje dane jej pierwszego prawdziwego egzemplarza (dzień 6, drugie powielenie).
+      wzorD1: (() => { const e = ciag.pierwszy.get(proj.strony[1].id); const pole = wartosciPol(proj, e, ciag); return [pole('dzien', null), pole('nr', null), e.sasiad?.strona.nazwa]; })(),
+      bilans: bilansSerii(proj, proj.serie[0], ciag).map((b) => [b.stron, b.pominietych, b.puste, b.zamianaOd]),
+      uwagi: sprawdzProjekt(proj, ciag).map((u) => [u.rodzaj, u.strony, u.opis]),
+      podglad: ukladProjektu(proj, ciag).sekcje[0].wiersze.map((r) => r.map((s) => (s ? `${s.pusta ? 'pusta' : s.nazwa}${s.pusta ? `→${proj.strony.find((x) => x.id === s.strona).nazwa}` : ''}` : '·')).join('|')),
+      liczbaStron: ciag.liczbaStron,
+    };
+    // To samo bez pilnowania: żadnych pustych stron, strony bloku po przeciwnej stronie – uwaga przed drukiem.
+    proj.serie[0].pilnuj_stron = false;
+    const bez = rozwin(proj);
+    wyniki.bez = opis(bez).slice(0, 4);
+    wyniki.bezUwagi = sprawdzProjekt(proj, bez).map((u) => [u.rodzaj, u.strony]);
+    wyniki.bezOpis = sprawdzProjekt(proj, bez)[0].opis;
+    wyniki.bezBilans = bilansSerii(proj, proj.serie[0], bez).map((b) => [b.puste, b.zamianaOd]);
+    // Wiersz pomijany w środku bloku dwóch stron: pusta strona w miejscu pominiętej.
+    const srodek = normalizuj({ ...p, strony: ['A', 'B', 'Koniec'].map((n) => nowaStrona(n, sek)) });
+    srodek.strony[0].seria = 's1'; srodek.strony[1].seria = 's1';
+    srodek.serie[0].pilnuj_stron = true;
+    srodek.tabele[0].wiersze = [['a'], ['b'], ['[pomiń]'], ['d']];
+    wyniki.srodek = opis(rozwin(srodek));
+    // Blok jednostronicowy: strony z natury na przemian; pilnowana jest tylko strona za serią.
+    const jedna = normalizuj({ ...p, strony: ['Tytuł', 'Dzień', 'Koniec'].map((n) => nowaStrona(n, sek)) });
+    jedna.strony[1].seria = 's1';
+    jedna.serie[0].pilnuj_stron = true;
+    jedna.tabele[0].wiersze = [['a'], ['[pomiń]'], ['c']];
+    wyniki.jednaParzyscie = opis(rozwin(jedna)); // dwie strony dni: za nimi pusta
+    jedna.tabele[0].wiersze = [['a'], ['b'], ['c']];
+    wyniki.jednaNieparzyscie = opis(rozwin(jedna)); // trzy strony dni: bez pustej
+    // Seria na końcu sekcji nie dostaje pustej strony za sobą.
+    jedna.strony.pop();
+    jedna.tabele[0].wiersze = [['a'], ['b']];
+    wyniki.naKoncu = opis(rozwin(jedna));
+    // Starsza seria (bez ustawienia) zachowuje się jak dotąd.
+    wyniki.starsza = normalizuj({ ...p, serie: [{ id: 's1', nazwa: 'Dni', tabela: 't1', tryb: 'tabela', uklad: 'dlugi', ile: 1 }] }).serie[0].pilnuj_stron;
+    return wyniki;
+  });
+  // Tytuł po prawej; D4 ma stać po prawej, więc przed nim pusta lewa. Dane kończą się na D5 (lewa): po prawej pusta,
+  // a „Koniec” staje po lewej – tak jak w układzie stron.
+  assert.deepEqual(w.pilnowane, ['Tytuł:p:1', 'pusta:l:2', 'D4:p:3', 'D5:l:4', 'D6:p:5', 'D7:l:6', 'D8:p:7', 'D1:l:8', 'D2:p:9', 'D3:l:10', 'D4:p:11', 'D5:l:12', 'pusta:p:13', 'Koniec:l:14']);
+  assert.equal(w.liczbaStron, 14);
+  assert.deepEqual(w.arkusze, ['Tytuł', 'D1+D2', 'D1+D2', 'D3+D4', 'D3+D4', 'D5+D6', 'D5+D6', 'D7+D8', 'D7+D8', 'Koniec']);
+  assert.equal(w.boki, 'plplplplpl');
+  assert.deepEqual(w.wzory, [true, true, true, false, false, false, false, false]);
+  assert.deepEqual(w.wzorD1, ['6', '8', 'D2']);
+  assert.deepEqual(w.bilans, [[10, 3, [2, 13], null]]);
+  assert.deepEqual(w.uwagi.map((u) => [u[0], u[1]]), [['pusta_strona', [2, 13]]]);
+  assert.equal(w.uwagi[0][2], 'Seria „Dni”: wstawione zostały puste strony (strony 2 i 13), żeby strony lewe zostały po lewej, a prawe po prawej. Pusta strona jest biała i liczy się w numeracji.');
+  // Podgląd w parach: pusta strona zajmuje swoje miejsce w rozkładówce i prowadzi do strony serii.
+  assert.deepEqual(w.podglad, ['·|Tytuł', 'pusta→D4|D4', 'D5|D6', 'D7|D8', 'D1|D2', 'D3|D4', 'D5|pusta→D8', 'Koniec|·']);
+  assert.deepEqual(w.bez, ['Tytuł:p:1', 'D4:l:2', 'D5:p:3', 'D6:l:4']);
+  assert.deepEqual(w.bezUwagi, [['zamiana_stron', [2]]]);
+  assert.match(w.bezOpis, /^Seria „Dni”: od strony 2 strony bloku wychodzą po przeciwnej stronie rozkładówki niż w układzie stron .* Zaznacz w oknie serii „Pilnuj lewej i prawej strony”, a w takim miejscu stanie pusta strona\.$/);
+  assert.deepEqual(w.bezBilans, [[[], 2]]);
+  // Sekcja zaczyna się od prawej: A po prawej, B po lewej; po wierszu pomijanym B ma znów stać po lewej.
+  assert.deepEqual(w.srodek, ['A:p:1', 'B:l:2', 'pusta:p:3', 'B:l:4', 'Koniec:p:5']);
+  assert.deepEqual(w.jednaParzyscie, ['Tytuł:p:1', 'Dzień:l:2', 'Dzień:p:3', 'pusta:l:4', 'Koniec:p:5']);
+  assert.deepEqual(w.jednaNieparzyscie, ['Tytuł:p:1', 'Dzień:l:2', 'Dzień:p:3', 'Dzień:l:4', 'Koniec:p:5']);
+  assert.deepEqual(w.naKoncu, ['Tytuł:p:1', 'Dzień:l:2', 'Dzień:p:3']);
+  assert.equal(w.starsza, false);
+});
+
+test('lewa i prawa strona w aplikacji: ustawienie w oknie serii, edytor otwiera parę ze wzorem, podgląd, PDF i „Sprawdź przed drukiem” z pustymi stronami', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Rozkładówki');
+  // W projekcie bez rozkładówek ustawienia nie ma, a nowa seria go nie włącza.
+  await strona.evaluate(() => { window.seriodruk.stan.projekt.tabele.push({ id: 't1', nazwa: 'Dni', kolumny: ['dzien'], wiersze: [['[pomiń]'], ['pon'], ['wt'], ['śr']] }); });
+  await strona.selectOption('#wlasciwosci label:has-text("Seria") select', '+');
+  await strona.waitForSelector('#dlg-seria[open]');
+  assert.ok(await strona.isHidden('#seria-pole-strony'));
+  await strona.click('#zapisz-serie');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.serie.length === 1);
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.serie[0].pilnuj_stron), false);
+
+  // Projekt z rozkładówkami: Tytuł, blok A+B (jeden wiersz na stronę), Koniec.
+  await strona.evaluate(async () => {
+    const { stan, zapiszTeraz, przeladuj, przejdzDoStrony } = window.seriodruk;
+    const { nowaStrona } = await import('./js/projekt.js');
+    const p = stan.projekt;
+    const sek = p.sekcje[0];
+    sek.uklad = 'rozkladowki';
+    sek.pierwsza = 'prawa';
+    p.serie = [];
+    const tekst = (t0) => ({ type: 'textbox', left: 15, top: 30, width: 110, text: t0, fontSize: 6, fontFamily: 'Inter', fill: '#111111', styles: [], id: `o_${Math.random().toString(36).slice(2, 8)}` });
+    p.strony = [
+      { ...nowaStrona('Tytuł', sek.id), obiekty: [tekst('Tytuł')] },
+      { ...nowaStrona('A', sek.id), obiekty: [tekst('A {dzien}')] },
+      { ...nowaStrona('B', sek.id), obiekty: [tekst('B {dzien}')] },
+      { ...nowaStrona('Koniec', sek.id), obiekty: [tekst('Koniec {nr}')] },
+    ];
+    await przeladuj();
+    await zapiszTeraz();
+    await przejdzDoStrony(1);
+  });
+  // Nowa seria w projekcie z rozkładówkami ma pilnowanie włączone i widoczne w oknie.
+  await strona.selectOption('#wlasciwosci label:has-text("Seria") select', '+');
+  await strona.waitForSelector('#dlg-seria[open]');
+  assert.ok(await strona.isVisible('#seria-pole-strony'));
+  assert.equal(await strona.isChecked('#dlg-seria input[name=pilnuj_stron]'), true);
+  await strona.check('#dlg-seria input[name=uklad][value=dlugi]');
+  await strona.fill('#dlg-seria input[name=nazwa]', 'Dni');
+  await strona.click('#zapisz-serie');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.serie[0]?.nazwa === 'Dni');
+  await strona.evaluate(async () => { window.seriodruk.stan.projekt.strony[2].seria = window.seriodruk.stan.projekt.serie[0].id; await window.seriodruk.przeladuj(); await window.seriodruk.zapiszTeraz(); });
+  // Miejsca: [pomiń] pon | wt śr → B(pon), A(wt), B(śr). A stoi po lewej, B po prawej: przed pierwszym B pusta lewa strona.
+  const ciag = () => strona.evaluate(async () => {
+    const { rozwin } = await import('./js/serie.js');
+    return rozwin(window.seriodruk.stan.projekt).egzemplarze.map((e) => `${e.pusta ? 'pusta' : e.strona.nazwa}:${e.bok[0]}`);
+  });
+  assert.deepEqual(await ciag(), ['Tytuł:p', 'pusta:l', 'B:p', 'A:l', 'B:p', 'Koniec:l']);
+  await strona.evaluate(() => window.seriodruk.dane.otworzSerie(window.seriodruk.stan.projekt.serie[0].id));
+  await strona.waitForSelector('#dlg-seria[open]');
+  assert.equal(await strona.textContent('#seria-podsumowanie'), 'Blok 2 stron: w wydruku 3 strony. 1 wiersz tabeli jest pomijany ([pomiń]) – zajmuje miejsce w bloku, ale jego strona nie powstaje. Do tego 1 pusta strona (strona 2), żeby lewe strony zostały po lewej, a prawe po prawej.');
+  // Wyłączenie pilnowania w oknie od razu pokazuje ostrzeżenie w podsumowaniu.
+  await strona.uncheck('#dlg-seria input[name=pilnuj_stron]');
+  assert.match(await strona.textContent('#seria-podsumowanie'), /Uwaga: od strony 2 strony bloku wychodzą po przeciwnej stronie rozkładówki – zaznacz „Pilnuj lewej i prawej strony”\.$/);
+  await strona.check('#dlg-seria input[name=pilnuj_stron]');
+  await strona.click('#zapisz-serie');
+
+  // Edytor: strona A (jej pierwszego powielenia nie ma w wydruku) otwiera się w parze z B, A po lewej.
+  await strona.evaluate(() => window.seriodruk.przejdzDoStrony(1));
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => /^[AB] /.test(o.text || '')).length === 2);
+  const naPlotnie = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => /^[AB] /.test(o.text || '')).sort((a, b) => a.left - b.left).map((o) => o.text));
+  assert.deepEqual(naPlotnie, ['A {dzien}', 'B {dzien}']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('#lista-stron li.strona')].map((li) => `${li.querySelector('.nazwa').title}:${li.classList.contains('lewa') ? 'l' : 'p'}`)), ['Tytuł:p', 'A:l', 'B:p', 'Koniec:l']);
+
+  // Podgląd, PDF (pusta strona jest w pliku i jest biała), kontrola przed drukiem.
+  const wynik = await strona.evaluate(async () => {
+    const { stan } = window.seriodruk;
+    const { rozwin } = await import('./js/serie.js');
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const { eksportujPdf } = await import('./js/eksport.js');
+    const ciagP = rozwin(stan.projekt);
+    const pdf = await eksportujPdf(stan.projekt, { znaki: false, spad: false });
+    const dok = await window.PDFLib.PDFDocument.load(new Uint8Array(await pdf.blob.arrayBuffer()));
+    const obraz = await new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); renderujCel(stan.projekt, ciagP.egzemplarze[1], { szerokoscPx: 60, ciag: ciagP }).then((u) => { i.src = u; }); });
+    const c = Object.assign(document.createElement('canvas'), { width: obraz.width, height: obraz.height });
+    c.getContext('2d').drawImage(obraz, 0, 0);
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let niebiale = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i] < 250 || d[i + 1] < 250 || d[i + 2] < 250) niebiale += 1;
+    return { pdf: dok.getPageCount(), uwagi: pdf.uwagi, niebiale };
+  });
+  assert.equal(wynik.pdf, 6);
+  assert.equal(wynik.niebiale, 0, 'pusta strona jest biała');
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  assert.deepEqual(await strona.locator('.podglad-strona figcaption').allTextContents(), ['1 · Tytuł', '2 · Pusta strona', '3 · B · 1 z 2', '4 · A · 2 z 2', '5 · B · 2 z 2', '6 · Koniec']);
+  await strona.click('[data-akcja="podglad-zamknij"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="kontrola"]');
+  await strona.waitForSelector('#dlg-kontrola[open]');
+  await strona.waitForFunction(() => /do sprawdzenia|bez uwag/.test(document.querySelector('#kontrola-stan').textContent));
+  assert.match(await strona.textContent('#kontrola-lista'), /Seria „Dni”: wstawiona została pusta strona \(strona 2\), żeby strony lewe zostały po lewej, a prawe po prawej\./);
+  assert.deepEqual(bledy, []);
+});

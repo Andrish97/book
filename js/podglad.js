@@ -21,7 +21,8 @@ const odmianaStron = (n) => (n === 1 ? 'strona' : (n % 10 >= 2 && n % 10 <= 4 &&
 // wiersz to para [lewa, prawa].
 export function ukladProjektu(projekt, ciag = rozwin(projekt)) {
   const opis = (e) => (e ? {
-    id: e.klucz, strona: e.strona.id, nr: e.nr, nazwa: e.strona.nazwa, ...(e.nrEgz ? { egz: `${e.nrEgz} z ${e.ileEgz}` } : {}),
+    // Pusta strona (wstawiona, żeby następna stanęła po właściwej stronie rozkładówki) prowadzi do strony serii.
+    id: e.klucz, strona: e.pusta ? e.przy.id : e.strona.id, nr: e.nr, nazwa: e.strona.nazwa, ...(e.pusta ? { pusta: true } : {}), ...(e.nrEgz ? { egz: `${e.nrEgz} z ${e.ileEgz}` } : {}),
   } : null);
   return {
     nazwa: projekt.nazwa,

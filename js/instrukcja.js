@@ -221,6 +221,7 @@ export const ROZDZIALY = [
       'Gruba ciemna linia to <b>grzbiet</b>. Tekstu i drobnych elementów nie kładź tuż przy nim – po zszyciu może ich nie być widać. Aplikacja ostrzega o elemencie, który tylko wystaje w pas przy grzbiecie; o takim, który świadomie leży na obu stronach, już nie.',
       'Pierwsza strona sekcji jest zwykle prawa i stoi sama – tak jak pierwsza strona książki. Zmienisz to w ustawieniach sekcji.',
       'Na liście stron rozkładówki są pokazane parami.',
+      '<b>Strony powielane z danych</b> (serie) też trzymają swoją stronę rozkładówki: przy serii z włączonym <b>Pilnuj lewej i prawej strony</b> aplikacja wstawia pustą, białą stronę tam, gdzie strona wypadłaby po przeciwnej stronie – np. gdy dane kończą się na lewej stronie, a prawej już nie ma. Szczegóły są w rozdziale „Serie: powielanie stron”.',
     ],
   },
   {
@@ -306,7 +307,10 @@ export const ROZDZIALY = [
       'W szablonie komórki części kolumn mają <b>listę rozwijaną</b>: kolumna z dozwolonymi wartościami (☰ w oknie Dane) – tylko te wartości; kolumna z nazwą pliku obrazu – nazwy obrazów wgranych do projektu; kolumna z kadrem – góra, dół, lewa, prawa, środek; kolumna, od której zależy widoczność elementu – sprawdzana wartość. Trzy ostatnie listy to podpowiedzi: komórka przyjmie też inną wartość (np. punkt kadru w procentach).',
       'Powielone strony nie są zapisywane osobno – powstają na bieżąco. Po zmianie tabeli podgląd od razu pokazuje nowe dane.',
       'Numery stron liczą się po powieleniu: strona za serią 31 dni dostaje numer o 31 większy. Pole <code>{nr}</code> trzyma się ustawień numeracji sekcji, a <code>{nr_ogolny}</code> liczy wszystkie strony projektu od 1.',
-      'W rozkładówkach blok o nieparzystej liczbie stron wypada na przemian po lewej i prawej. Wzorce z odbiciem lustrzanym ustawiają się wtedy same.',
+      '<b>Serie w rozkładówkach – lewa i prawa strona.</b> W oknie serii jest ustawienie <b>Pilnuj lewej i prawej strony – wstaw pustą stronę, gdy trzeba</b> (widoczne, gdy projekt ma rozkładówki; w nowych seriach od razu włączone). Z nim strona zaprojektowana jako lewa wychodzi w wydruku po lewej, a prawa po prawej – cokolwiek dzieje się z danymi.',
+      'Kiedy pojawia się <b>pusta strona</b>: gdy seria zaczyna się od nieparzystej liczby wierszy pomijanych (pierwsza prawdziwa strona jest prawa, więc przed nią staje pusta lewa); gdy wiersz pomijany stoi w środku danych; oraz <b>za serią</b>, gdy dane kończą się na lewej stronie – wtedy prawa jest pusta, a następna strona projektu stoi tam, gdzie stała w układzie stron. Pusta strona jest biała, bez wzorców i bez numeru na kartce, ale <b>liczy się w numeracji</b> – tak jak w drukowanych książkach.',
+      'W edytorze blok wygląda zawsze tak samo: strony stoją parami jak na liście stron, niezależnie od tego, od którego miejsca zaczynają się dane. <b>Sprawdź przed drukiem</b> wypisuje, na których stronach stoją puste strony. Gdy ustawienie jest wyłączone, a strony bloku wypadają po przeciwnej stronie rozkładówki, ta sama lista ostrzega o tym i mówi, od której strony.',
+      'Blok o <b>nieparzystej</b> liczbie stron (np. jedna strona na dzień) z natury wychodzi na przemian po lewej i po prawej – wzorce z odbiciem lustrzanym ustawiają się wtedy same. W takim bloku ustawienie pilnuje tylko strony <b>za serią</b>. Starsze serie mają ustawienie wyłączone, żeby ich wydruk się nie zmienił; włączysz je jednym kliknięciem w oknie serii.',
     ],
   },
   {
