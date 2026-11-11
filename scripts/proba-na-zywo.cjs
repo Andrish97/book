@@ -159,6 +159,39 @@ const krok = async (nazwa, fn) => {
       await g.close();
       return s;
     });
+    await krok('link z hasłem: bez hasła nie ma obrazów, z hasłem są', async () => {
+      await p.check('#udostepnij-haslo-wl');
+      await p.fill('#udostepnij-haslo', 'proba-hasla');
+      await p.click('#udostepnij-ochrona-zapisz');
+      await Promise.race([
+        p.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 60000 }),
+        p.waitForFunction(() => /Nie udało się/.test(document.querySelector('#udostepnij-komunikat')?.textContent || ''), null, { timeout: 60000 }).then(async () => { throw new Error(await p.textContent('#udostepnij-komunikat')); }),
+      ]);
+      // Publiczny plik zniknął, a funkcja bazy bez hasła nie wydaje stron.
+      const publiczny = await p.evaluate(async (l) => { const [, konto, proj, kod] = l.match(/#\/u\/([^/]+)\/([^/]+)\/([^/]+)$/); const m = await import('./js/konfiguracja.js'); return (await fetch(`${m.SUPABASE_URL}/storage/v1/object/public/podglady/${konto}/${proj}/${kod}/manifest.json`, { cache: 'no-store' })).status; }, link);
+      if (publiczny === 200) throw new Error('obrazy linku z hasłem nadal są w publicznym folderze');
+      const g = await b.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+      const o = await g.newPage();
+      o.setDefaultTimeout(30000);
+      await o.goto(link);
+      await o.waitForSelector('#podglad-haslo input[name=haslo]');
+      const bezHasla = await o.evaluate(async (l) => {
+        const [, konto, proj, kod] = l.match(/#\/u\/([^/]+)\/([^/]+)\/([^/]+)$/);
+        const m = await import('./js/konfiguracja.js');
+        const x = await fetch(`${m.SUPABASE_URL}/rest/v1/rpc/podglad_chroniony`, { method: 'POST', headers: { apikey: m.SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ p_konto: konto, p_projekt: proj, p_kod: kod, p_nazwy: ['manifest.json'] }) });
+        return (await x.json()).stan;
+      }, link);
+      if (bezHasla !== 'haslo') throw new Error(`bez hasła baza odpowiada: ${bezHasla}`);
+      await o.fill('#podglad-haslo input[name=haslo]', 'zle-haslo');
+      await o.click('#podglad-haslo button');
+      await o.waitForFunction(() => /nie zgadza/.test(document.querySelector('#podglad-haslo .komunikat')?.textContent || ''));
+      await o.fill('#podglad-haslo input[name=haslo]', 'proba-hasla');
+      await o.click('#podglad-haslo button');
+      await o.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id]').length === 2);
+      await o.waitForFunction(() => document.querySelector('.podglad-strona[data-id] img')?.naturalWidth > 0);
+      await g.close();
+      return `publiczny plik: ${publiczny}, bez hasła: ${bezHasla}, z hasłem: 2 strony z obrazami`;
+    });
     await krok('unieważnienie linku', async () => {
       await p.click('[data-akcja="udostepnij-wylacz"]');
       await p.click('#potwierdz-tak');
