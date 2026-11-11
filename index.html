@@ -776,7 +776,7 @@
         <h2>Dostęp dla AI</h2>
         <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Klucz pozwala asystentowi AI (np. Claude albo ChatGPT) czytać i – jeśli zechcesz – zmieniać <b>ten jeden projekt</b>, równolegle z Tobą. Jego zmiany pojawiają się w edytorze na żywo. Klucz nie daje dostępu do konta ani do innych projektów; możesz go odebrać w każdej chwili.</p>
+      <p class="ciche">Klucz pozwala asystentowi AI (np. Claude albo ChatGPT) czytać i – jeśli zechcesz – zmieniać <b>ten jeden projekt</b>, równolegle z Tobą. Dostajesz adres łącznika, który dodajesz w ustawieniach AI. Jego zmiany pojawiają się w edytorze na żywo. Klucz nie daje dostępu do konta ani do innych projektów; możesz go odebrać w każdej chwili.</p>
       <fieldset class="grupa-pol" id="dostep-ai-nowy">
         <legend>Nowy klucz</legend>
         <label class="pole"><span>Opis (dla Ciebie)</span><input id="dostep-ai-opis" maxlength="120" placeholder="np. Claude – poprawki kalendarza"></label>
@@ -787,27 +787,33 @@
         <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="dostep-ai-utworz" data-ikona="plus">Utwórz klucz</button></div>
       </fieldset>
       <fieldset class="grupa-pol" id="dostep-ai-gotowy" hidden>
-        <legend>Twój klucz – skopiuj go teraz</legend>
-        <p class="podpowiedz">Klucz widać tylko teraz. Po zamknięciu okna nie da się go odczytać – najwyżej utworzyć nowy.</p>
-        <label class="pole"><span>Klucz dostępu</span>
+        <legend>Adres łącznika – skopiuj go teraz</legend>
+        <p class="podpowiedz">Adres zawiera klucz i widać go tylko teraz. Po zamknięciu okna nie da się go odczytać – najwyżej utworzyć nowy klucz.</p>
+        <label class="pole"><span>Adres łącznika dla AI</span>
           <span class="z-przyciskiem">
-            <input id="dostep-ai-klucz" type="text" readonly>
-            <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj" data-ikona="kopiuj" title="Kopiuj klucz" aria-label="Kopiuj klucz"></button>
+            <input id="dostep-ai-adres" type="text" readonly>
+            <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj-adres" data-ikona="kopiuj" title="Kopiuj adres" aria-label="Kopiuj adres łącznika"></button>
           </span>
         </label>
+        <ol class="dostep-ai-kroki">
+          <li><b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <i>Dostosuj</i> (Customize) → <i>Łączniki</i> (Connectors) → <b>+</b> → <i>Dodaj własny łącznik</i> (Add custom connector). Nazwa: Seriodruk, adres: wklej powyższy, logowanie: <i>bez logowania</i> (No sign-in).</li>
+          <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>. Wklej adres, uwierzytelnianie: <i>No Authentication</i>, potwierdź. Jeśli tej opcji nie ma, włącz tryb dewelopera: Ustawienia → Aplikacje → Zaawansowane.</li>
+          <li>W rozmowie włącz łącznik Seriodruk i napisz, co zmienić – np. „popraw literówki na okładce”. Zmiany AI zobaczysz w edytorze na żywo.</li>
+        </ol>
+        <p class="podpowiedz">AI nie łączy się z bazą samo i nie trzeba niczego odblokowywać ani instalować – łącznik działa po stronie Seriodruku.</p>
         <details class="dostep-ai-jak">
-          <summary>Jak podłączyć Claude (aplikacja na komputer)</summary>
-          <p class="podpowiedz">Pobierz plik <a href="ai/mcp/seriodruk-mcp.mjs" download>seriodruk-mcp.mjs</a> (potrzebny jest Node.js 18 lub nowszy). W Claude otwórz Ustawienia → Developer → Edit Config i dopisz do <code>mcpServers</code> (podaj prawdziwą ścieżkę do pobranego pliku):</p>
-          <pre id="dostep-ai-claude-desktop"></pre>
-          <p class="podpowiedz">Uruchom Claude ponownie – w rozmowie pojawią się narzędzia „seriodruk”.</p>
-        </details>
-        <details class="dostep-ai-jak">
-          <summary>Jak podłączyć Claude Code</summary>
+          <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
+          <label class="pole"><span>Klucz dostępu</span>
+            <span class="z-przyciskiem">
+              <input id="dostep-ai-klucz" type="text" readonly>
+              <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj" data-ikona="kopiuj" title="Kopiuj klucz" aria-label="Kopiuj klucz"></button>
+            </span>
+          </label>
+          <p class="podpowiedz">Claude Code (zdalny łącznik, nic do pobrania):</p>
           <pre id="dostep-ai-claude-code"></pre>
-        </details>
-        <details class="dostep-ai-jak">
-          <summary>ChatGPT i inne</summary>
-          <p class="podpowiedz">Opis dla własnego GPT (akcje) i dla innych asystentów: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
+          <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/seriodruk-mcp.mjs" download>seriodruk-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
+          <pre id="dostep-ai-claude-desktop"></pre>
+          <p class="podpowiedz">Opis narzędzi i formatu projektu: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
         </details>
       </fieldset>
       <fieldset class="grupa-pol">

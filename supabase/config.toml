@@ -48,3 +48,4 @@ max_frequency = "1m0s"
 [functions.mcp]
 enabled = true
 verify_jwt = false
+entrypoint = "./functions/mcp/index.ts"

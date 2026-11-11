@@ -31,7 +31,7 @@ import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { stan, edytor, biezacyCel, biezacaSekcja, ustawPanel, jednaStrona, KLUCZ_JEDNA } from './kontekst.js';
 import { wczytajPlikProjektu } from './projekty.js';
-import { otworzDostepAi, utworzKluczAi, kopiujKluczAi, zamknijDostepAi } from './dostep-ai.js';
+import { otworzDostepAi, utworzKluczAi, kopiujKluczAi, kopiujAdresAi, zamknijDostepAi } from './dostep-ai.js';
 import {
   naPlotnie, zapiszBiezacyCel, cofnijKrok, zaplanujZapis, wybierzStroneArkusza, zaladujCel,
   zapiszTeraz, synchronizuj, zaplanujChmure, stanZapisu, otworzProjekt, odlaczPlotno,
@@ -204,6 +204,7 @@ export const akcje = {
   'dostep-ai': () => { zamknijMenu(); otworzDostepAi(); },
   'dostep-ai-utworz': () => utworzKluczAi(),
   'dostep-ai-kopiuj': () => kopiujKluczAi(),
+  'dostep-ai-kopiuj-adres': () => kopiujAdresAi(),
   'dostep-ai-zamknij': () => zamknijDostepAi(),
   kontrola: () => { zamknijMenu(); oknoKontroli.otworz(); },
   wydruk: () => otworzUstawieniaSekcji(biezacaSekcja().id),

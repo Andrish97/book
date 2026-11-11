@@ -166,7 +166,7 @@ test('łącznik MCP przez HTTP: CORS, OPTIONS, GET 405, brak OAuth, Origin, bł�
 test('serwer stdio jest złożony z aktualnego rdzenia; funkcja zadeklarowana do wdrożenia bez JWT', () => {
   execFileSync(process.execPath, [path.join(KORZEN, 'scripts', 'mcp-buduj.cjs'), '--sprawdz']);
   const config = fs.readFileSync(path.join(KORZEN, 'supabase', 'config.toml'), 'utf8');
-  assert.match(config, /\[functions\.mcp\]\s*\nenabled = true\s*\nverify_jwt = false/);
+  assert.match(config, /\[functions\.mcp\]\s*\nenabled = true\s*\nverify_jwt = false\s*\nentrypoint = "\.\/functions\/mcp\/index\.ts"/);
   const funkcja = fs.readFileSync(path.join(KORZEN, 'supabase', 'functions', 'mcp', 'index.ts'), 'utf8');
   assert.match(funkcja, /from '\.\.\/_shared\/mcp-http\.mjs'/);
   assert.doesNotMatch(funkcja + fs.readFileSync(path.join(KORZEN, 'supabase', 'functions', '_shared', 'mcp-http.mjs'), 'utf8'), /SERVICE_ROLE|service_role/);

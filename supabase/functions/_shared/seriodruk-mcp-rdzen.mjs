@@ -161,8 +161,7 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron.';
-
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk (nie proś użytkownika o odblokowanie domen).';
 
 export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).' }) {
   const ADRES = String(adres || '').replace(/\/+$/, '');

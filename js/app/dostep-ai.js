@@ -1,16 +1,19 @@
 // Okno „Dostęp dla AI”: klucz, którym asystent AI czyta i zmienia ten jeden projekt (ai/api.md).
-// Klucz pokazuje się raz – w bazie zostaje tylko jego skrót. Zmiany AI przychodzą do edytora tak jak
+// Główna droga to adres zdalnego łącznika MCP (Funkcja Edge supabase/functions/mcp) z kluczem w adresie –
+// Claude i ChatGPT łączą się z nim ze swoich serwerów, więc AI nie potrzebuje dostępu do bazy z własnej
+// piaskownicy. Klucz pokazuje się raz – w bazie zostaje tylko jego skrót. Zmiany AI przychodzą do edytora tak jak
 // zmiany z drugiego urządzenia (zapis na żywo i łączenie element po elemencie).
 
 import * as chmura from '../chmura.js';
 import { $, powiadom, kiedy, potwierdz } from '../ui.js';
+import { SUPABASE_URL } from '../konfiguracja.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, synchronizuj } from './zapis.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 
-// Adres pliku serwera MCP na opublikowanej stronie (obok aplikacji).
-const adresMcp = () => new URL('ai/mcp/seriodruk-mcp.mjs', document.baseURI).href;
+// Adres zdalnego łącznika MCP z kluczem (do dodania jako własny łącznik w Claude / serwer MCP w ChatGPT).
+export const adresLacznika = (klucz) => `${SUPABASE_URL}/functions/v1/mcp/${klucz}`;
 
 function instrukcje(klucz) {
   const konfiguracja = {
@@ -23,7 +26,7 @@ function instrukcje(klucz) {
     },
   };
   $('#dostep-ai-claude-desktop').textContent = JSON.stringify(konfiguracja, null, 2);
-  $('#dostep-ai-claude-code').textContent = `curl -o seriodruk-mcp.mjs ${adresMcp()}\nclaude mcp add seriodruk -e SERIODRUK_KLUCZ=${klucz} -- node "$PWD/seriodruk-mcp.mjs"`;
+  $('#dostep-ai-claude-code').textContent = `claude mcp add --transport http seriodruk ${adresLacznika(klucz)}`;
 }
 
 async function odswiezListe() {
@@ -67,6 +70,7 @@ export async function otworzDostepAi() {
   if (!stan.uzytkownik) { powiadom('Dostęp dla AI wymaga zalogowania.', true); return; }
   $('#dostep-ai-gotowy').hidden = true;
   $('#dostep-ai-klucz').value = '';
+  $('#dostep-ai-adres').value = '';
   $('#dostep-ai-opis').value = '';
   $('#dlg-dostep-ai').showModal();
   odswiezListe();
@@ -85,9 +89,10 @@ export async function utworzKluczAi() {
       dni: Number($('#dostep-ai-dni').value) || 7,
     });
     $('#dostep-ai-klucz').value = wynik.klucz;
+    $('#dostep-ai-adres').value = adresLacznika(wynik.klucz);
     instrukcje(wynik.klucz);
     $('#dostep-ai-gotowy').hidden = false;
-    $('#dostep-ai-klucz').select();
+    $('#dostep-ai-adres').select();
     odswiezListe();
   } catch (e) {
     powiadom(chmura.komunikatBledu(e), true);
@@ -96,18 +101,22 @@ export async function utworzKluczAi() {
   }
 }
 
-export async function kopiujKluczAi() {
-  const pole = $('#dostep-ai-klucz');
+async function kopiuj(pole, co) {
   try {
     await navigator.clipboard.writeText(pole.value);
-    powiadom('Klucz skopiowany.');
+    powiadom(`${co[0].toUpperCase()}${co.slice(1)} skopiowany.`);
   } catch {
     pole.select();
-    powiadom('Zaznaczyłem klucz – skopiuj go skrótem Ctrl+C.');
+    powiadom(`Zaznaczyłem ${co} – skopiuj go skrótem Ctrl+C.`);
   }
 }
 
+export const kopiujKluczAi = () => kopiuj($('#dostep-ai-klucz'), 'klucz');
+export const kopiujAdresAi = () => kopiuj($('#dostep-ai-adres'), 'adres');
+
 export function zamknijDostepAi() {
-  $('#dostep-ai-klucz').value = ''; // klucz nie zostaje w oknie po zamknięciu
+  // Klucz (także w adresie i poleceniach) nie zostaje w oknie po zamknięciu.
+  for (const id of ['#dostep-ai-klucz', '#dostep-ai-adres']) $(id).value = '';
+  for (const id of ['#dostep-ai-claude-code', '#dostep-ai-claude-desktop']) $(id).textContent = '';
   $('#dlg-dostep-ai').close();
 }
