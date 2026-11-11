@@ -20,6 +20,7 @@
 import './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { spakuj } from './pdf-x.js';
+import { jpegCmyk } from './jpeg-cmyk.js';
 
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
@@ -301,6 +302,9 @@ function obrotJpeg(b) {
   return 1;
 }
 
+// Jakość JPEG zdjęć zapisywanych w czterech farbach – ta sama co zdjęć przerysowywanych do RGB.
+const JAKOSC_ZDJEC_CMYK = 0.92;
+
 const bajtyZAdresu = async (src) => new Uint8Array(await (await fetch(src)).arrayBuffer());
 
 // Zabezpieczenie: kształty z rozkładu narysowane w małej skali muszą wyglądać jak rysunek
@@ -395,11 +399,13 @@ export class ObrazyPdf {
     const c = plotno.getContext('2d');
     c.imageSmoothingQuality = 'high';
     c.drawImage(el, 0, 0, plotno.width, plotno.height);
-    return this.osadzPlotno(plotno);
+    // Zdjęcie, które przyszło jako JPEG, zostaje JPEG-iem – tyle że w czterech farbach. Inne obrazy (PNG, rysunki) bez strat.
+    return this.osadzPlotno(plotno, /^data:image\/jpeg/i.test(el.src));
   }
 
-  // Piksele płótna → obraz PDF w CMYK (bezstratnie spakowany), przezroczystość jako osobna maska.
-  async _plotnoCmyk(plotno) {
+  // Piksele płótna → obraz PDF w CMYK, przezroczystość jako osobna maska. Bez strat (Flate) albo – dla zdjęć
+  // bez przezroczystości (`zdjecie`) – jako JPEG w czterech farbach, kilka razy mniejszy.
+  async _plotnoCmyk(plotno, zdjecie = false) {
     const { width: w, height: h } = plotno;
     const rgba = plotno.getContext('2d').getImageData(0, 0, w, h).data;
     const ctx = this.pdf.context;
@@ -410,8 +416,12 @@ export class ObrazyPdf {
       for (let i = 0; i < maska.length; i += 1) maska[i] = rgba[i * 4 + 3];
       opis.SMask = ctx.register(ctx.stream(await spakuj(maska), { ...opis, ColorSpace: 'DeviceGray' }));
     }
-    const ref = ctx.register(ctx.stream(await spakuj(this.silnik.obraz(rgba)), { ...opis, ColorSpace: 'DeviceCMYK' }));
-    return { ref };
+    const cmyk = this.silnik.obraz(rgba);
+    const bezStrat = await spakuj(cmyk);
+    // Zdjęcie jako JPEG – chyba że bez strat wychodzi mniejsze (gładka grafika zapisana jako JPEG).
+    const jpeg = zdjecie && !maska ? await jpegCmyk(cmyk, w, h, JAKOSC_ZDJEC_CMYK) : null;
+    if (jpeg && jpeg.length < bezStrat.length) return { ref: ctx.register(ctx.stream(jpeg, { ...opis, ColorSpace: 'DeviceCMYK', Filter: 'DCTDecode', DecodeParms: { ColorTransform: 0 } })) };
+    return { ref: ctx.register(ctx.stream(bezStrat, { ...opis, ColorSpace: 'DeviceCMYK' })) };
   }
 
   async _osadz(el, szerPx) {
@@ -433,7 +443,7 @@ export class ObrazyPdf {
   }
 
   async osadzPlotno(plotno, bezPrzezroczystosci = false) {
-    if (this.silnik) { const obraz = await this._plotnoCmyk(plotno); plotno.width = 0; plotno.height = 0; return obraz; }
+    if (this.silnik) { const obraz = await this._plotnoCmyk(plotno, bezPrzezroczystosci); plotno.width = 0; plotno.height = 0; return obraz; }
     const url = bezPrzezroczystosci ? plotno.toDataURL('image/jpeg', 0.92) : plotno.toDataURL('image/png');
     const obraz = await (bezPrzezroczystosci ? this.pdf.embedJpg(url) : this.pdf.embedPng(url));
     plotno.width = 0; plotno.height = 0;

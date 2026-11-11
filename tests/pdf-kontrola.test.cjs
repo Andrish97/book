@@ -73,6 +73,8 @@ async function zbudujStrone(strona) {
     let ziarno = 12345;
     const los = () => { ziarno = (ziarno * 1103515245 + 12345) % 2147483648; return ziarno / 2147483648; };
     for (let i = 0; i < 3000; i += 1) { c.fillStyle = `rgba(${Math.floor(los() * 255)},${Math.floor(los() * 255)},${Math.floor(los() * 255)},0.3)`; c.fillRect(los() * 800, los() * 600, 8, 8); }
+    // Gładkie zielone pole w rogu zdjęcia – jego farby da się porównać z tym, co daje sam profil.
+    c.fillStyle = '#2a9d8f'; c.fillRect(560, 400, 220, 180);
     const img = await edytor.dodajObraz(p.toDataURL('image/jpeg', 0.9), 'zdjecie.jpg', stan.projekt.zasoby);
     img.set({ left: 14, top: 20, scaleX: 0.15, scaleY: 0.15 });
     const pt = (n) => (n * 25.4) / 72;
@@ -150,6 +152,7 @@ function sprawdzPdfX(plik, katalog, { profil }) {
       assert.equal((polecenia.match(/(^|\s)(rg|RG)(?=\s|$)/g) || []).length, 0, 'treść strony bez poleceń RGB');
     }
     for (const o of s.images) assert.equal(o.colorspace, '/DeviceCMYK', `obraz ${o.name} w CMYK`);
+    assert.ok(s.images.length >= 1 || s.contents.length, 'strona ma treść');
   }
   // Nic w pliku nie jest opisane wprost w RGB (obraz, gradient). Sam opis „czym jest RGB” (DefaultRGB z profilem
   // sRGB) może w pliku być – PDF/X-4 go dopuszcza, tu nic z niego nie korzysta.
@@ -157,7 +160,11 @@ function sprawdzPdfX(plik, katalog, { profil }) {
 
   // 5. Obrazy według popplera.
   const obrazy = tabela(uruchom('pdfimages', ['-list', plik]).stdout);
-  for (const o of obrazy) assert.equal(o.color, 'cmyk', `pdfimages: obraz ${o.num} w CMYK`);
+  for (const o of obrazy) {
+    // Maska (jeden bit na piksel) nie ma barwy; każdy obraz z barwą ma być w czterech farbach.
+    if (o.type === 'image') assert.equal(o.color, 'cmyk', `pdfimages: obraz ${o.num} w CMYK`);
+    else assert.ok(['mask', 'stencil', 'smask'].includes(o.type), `pdfimages: nieznany rodzaj obrazu ${o.type}`);
+  }
 
   // 6. Rozbarwienie: Ghostscript rysuje stronę w czterech farbach, bez wygładzania.
   const tiff = path.join(katalog, `${path.basename(plik, '.pdf')}.tif`);
@@ -179,8 +186,23 @@ function sprawdzPdfX(plik, katalog, { profil }) {
   return { b, obrazy, obraz, punkt, obszar };
 }
 
+// Kolor przeliczony przez profil warunków druku (tym samym kodem, którego używa eksport): [C, M, Y, K] w 0–255.
+const przezProfil = (strona, warunki, kolor) => strona.evaluate(async ([w, k]) => {
+  const { czytajProfil, SilnikCmyk, WARUNKI_DRUKU } = await import('./js/profil-icc.js');
+  const silnik = new SilnikCmyk(czytajProfil(await (await fetch(WARUNKI_DRUKU[w].plik)).arrayBuffer()));
+  return silnik.cmyk(...k.map((v) => v / 255)).map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255));
+}, [warunki, kolor]);
+
+// Łączna wielkość obrazów w pliku (po spakowaniu), w bajtach – bez profilu barwnego i reszty.
+const wielkoscObrazow = (b) => Object.values(b.obiekty).filter((o) => o.stream?.dict?.['/Subtype'] === '/Image').reduce((s, o) => s + o.stream.dict['/Length'], 0);
+
 // Farby w miejscach strony próbnej – te same oczekiwania dla pliku wektorowego i dla obrazów stron.
-function sprawdzFarby({ obraz, punkt, obszar }, opis, limitFarby) {
+// zielony: farby gładkiego pola zdjęcia według profilu.
+function sprawdzFarby({ obraz, punkt, obszar }, opis, limitFarby, zielony) {
+  // Zdjęcie jest w pliku JPEG-iem w czterech farbach: po odczytaniu innym programem farby gładkiego pola
+  // zgadzają się z profilem (zapas na stratny zapis zdjęcia źródłowego i wynikowego).
+  const pole = punkt(114, 93);
+  assert.ok(pole.every((v, i) => Math.abs(v - zielony[i]) <= 8), `${opis}: zielone pole zdjęcia ${pole} wobec profilu ${zielony}`);
   // Czarny tekst na białym papierze: w całym pasie tekstu nie ma ani odrobiny farb kolorowych.
   const tekst = obszar(14, 121, 134, 133);
   assert.equal(tekst.filter(([c, m, y]) => c || m || y).length, 0, `${opis}: czarny tekst to sama czarna farba`);
@@ -237,7 +259,10 @@ test('PDF sprawdzony niezależnymi programami (qpdf, poppler, Ghostscript): PDF/
   // Tekst w treści strony jest tekstem (BT … ET), czarny jako sama czerń.
   const tresc = w.b.strony[0].contents.map((o) => w.b.strumien(o).toString('latin1')).join('\n');
   assert.ok(/\bBT\b/.test(tresc) && /(^|\s)0 0 0 1 k(\s|$)/.test(tresc), 'tekst jako tekst, czerń 0 0 0 1 k');
-  const pokrycieWektora = sprawdzFarby(w, 'wektor', LIMIT);
+  const zielony = await przezProfil(strona, 'fogra39', [0x2a, 0x9d, 0x8f]);
+  const pokrycieWektora = sprawdzFarby(w, 'wektor', LIMIT, zielony);
+  // Zdjęcie JPEG zostaje w pliku JPEG-iem (w czterech farbach), nie obrazem bez strat.
+  assert.deepEqual(w.b.strony[0].images.map((o) => o.filter), [['/DCTDecode']]);
 
   // --- Obrazy stron w CMYK ---
   const obrazy = path.join(katalog, 'obrazy.pdf');
@@ -245,7 +270,22 @@ test('PDF sprawdzony niezależnymi programami (qpdf, poppler, Ghostscript): PDF/
   const o = sprawdzPdfX(obrazy, katalog, { profil: 'FOGRA39' });
   assert.equal(tabela(uruchom('pdffonts', [obrazy]).stdout).length, 0, 'obrazy stron nie mają czcionek');
   assert.ok(o.obrazy.length >= 1, 'strona jest obrazem');
-  const pokrycieObrazow = sprawdzFarby(o, 'obrazy stron', LIMIT);
+  const pokrycieObrazow = sprawdzFarby(o, 'obrazy stron', LIMIT, zielony);
+  // Strona to dwie warstwy: zdjęcie jako JPEG pod spodem, reszta bez strat na wierzchu, z maską.
+  const obrazyStrony = o.b.strony[0].images;
+  const jpeg = obrazyStrony.filter((x) => x.filter[0] === '/DCTDecode');
+  const calaStrona = obrazyStrony.filter((x) => x.filter[0] === '/FlateDecode');
+  assert.deepEqual([jpeg.length, calaStrona.length, obrazyStrony.length], [1, 1, 2], obrazyStrony.map((x) => `${x.name} ${x.filter[0]} ${x.width}x${x.height}`).join(' | '));
+  assert.deepEqual([calaStrona[0].width, calaStrona[0].height], [1819, 2551]);
+  assert.ok(jpeg[0].width < 1819 && jpeg[0].height < 2551 / 2, 'JPEG obejmuje samo zdjęcie, nie całą stronę');
+  const bezStrat = o.b.obiekty[`obj:${calaStrona[0].object}`].stream.dict;
+  assert.ok(bezStrat['/Mask'], 'warstwa bez strat ma maskę w miejscu zdjęć');
+  assert.equal(o.b.obiekty[`obj:${bezStrat['/Mask']}`].stream.dict['/ImageMask'], true);
+  // Zdjęcie jest rysowane pod warstwą bez strat.
+  const kolejnosc = o.b.strony[0].contents.map((x) => o.b.strumien(x).toString('latin1')).join('\n').match(/\/(Zdjecia\d+|Strona) Do/g);
+  assert.deepEqual(kolejnosc, ['/Zdjecia1 Do', '/Strona Do']);
+  // Wielkość: ta sama strona zapisana w całości bez strat miała 2,6 MB obrazu.
+  assert.ok(wielkoscObrazow(o.b) < 1500 * 1024, `obrazy strony zajmują ${(wielkoscObrazow(o.b) / 1024).toFixed(0)} kB`);
 
   // --- Zwykły plik wektorowy (bez standardu): składnia i czcionki ---
   const zwykly = path.join(katalog, 'zwykly.pdf');
@@ -259,6 +299,9 @@ test('PDF sprawdzony niezależnymi programami (qpdf, poppler, Ghostscript): PDF/
   for (const dl of czcionkiWPliku) assert.ok(dl < 12000, `plik czcionki w PDF ma ${dl} B`);
   t.diagnostic(`pliki czcionek w PDF (po spakowaniu): ${czcionkiWPliku.join(' + ')} B`);
 
+  // Próbki można zostawić do obejrzenia albo wysłania drukarni: SERIODRUK_PROBKI=<katalog> przy uruchomieniu testu.
+  if (process.env.SERIODRUK_PROBKI) for (const f of [wektor, obrazy, zwykly]) fs.copyFileSync(f, path.join(process.env.SERIODRUK_PROBKI, path.basename(f)));
+  t.diagnostic(`same obrazy w pliku: wektor ${(wielkoscObrazow(w.b) / 1024).toFixed(0)} kB, obrazy stron ${(wielkoscObrazow(o.b) / 1024).toFixed(0)} kB`);
   t.diagnostic(`wektor PDF/X-4: ${(rozmiarWektora / 1024).toFixed(0)} kB, pokrycie do ${pokrycieWektora}%; obrazy stron CMYK: ${(rozmiarObrazow / 1024).toFixed(0)} kB, pokrycie do ${pokrycieObrazow}%; zwykły wektor: ${(rozmiarZwyklego / 1024).toFixed(0)} kB`);
   assert.deepEqual(bledy, []);
 });

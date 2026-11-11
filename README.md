@@ -77,7 +77,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/wlasciwosci.js`, `js/style-tekstu.js`, `js/tekst-ramka.js`, `js/watki.js` | Panel właściwości, style tekstu, ramka tekstu o stałej wysokości i listy, przelewanie tekstu między ramkami (także przez strony i w trakcie pisania) |
 | `js/obrazy.js`, `js/wklejanie.js` | Kopie robocze dużych zdjęć; obrazy i SVG ze schowka systemu |
 | `js/eksport.js`, `js/pdf-wektorowy.js`, `js/okno-pdf.js` | Eksport PDF i PNG; PDF wektorowy (kontekst rysowania zapisujący polecenia PDF, osadzanie czcionek – tylko użytych znaków – i obrazów); okno eksportu |
-| `js/pdf-x.js`, `js/profil-icc.js`, `js/strona-cmyk.js`, `css/profile/` | PDF/X-4: metadane i profil warunków druku; przeliczanie kolorów i zdjęć na CMYK przez profil ICC; obraz całej strony w CMYK (tryb „Obrazy stron”); profile barwne z opisem licencji |
+| `js/pdf-x.js`, `js/profil-icc.js`, `js/strona-cmyk.js`, `css/profile/` | PDF/X-4: metadane i profil warunków druku; przeliczanie kolorów i zdjęć na CMYK przez profil ICC; obraz całej strony w CMYK (tryb „Obrazy stron”: zdjęcia jako JPEG w czterech farbach pod warstwą bez strat – `js/jpeg-cmyk.js`); profile barwne z opisem licencji |
 | `js/kontrola.js`, `js/kontrola-skladu.js`, `js/okno-kontroli.js` | Kontrola projektu przed drukiem (dane, powtórzenia, teksty w ramkach) i szablon danych |
 | `js/biblioteki.js`, `js/zewnetrzne/` | Wczytywanie dużych bibliotek na żądanie; Fabric.js w repozytorium |
 | `js/przyciaganie.js`, `js/linijki.js`, `js/widok.js`, `js/warstwy.js`, `js/skroty.js` | Przyciąganie i pomiary, linijki, menu siatki, panel warstw, skróty |

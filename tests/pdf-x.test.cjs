@@ -131,12 +131,12 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
   for (const ref of (strumienie.asArray ? strumienie.asArray() : [strumienie])) { const s = pdf.context.lookup(ref); tresc += new TextDecoder('latin1').decode(s instanceof PDFRawStream ? decodePDFRawStream(s).decode() : s.getUnencodedContents()); }
   const liczba = (wzor) => (tresc.match(wzor) || []).length;
   const obrazy = obiekty.filter((x) => x.dict && String(x.dict.get(N('Subtype'))) === '/Image');
-  const opisObrazu = (x) => `${String(x.dict.get(N('ColorSpace')))} ${String(x.dict.get(N('Filter')))} ${x.dict.get(N('Width'))}x${x.dict.get(N('Height'))}${x.dict.get(N('SMask')) ? ' +maska' : ''}${x.dict.get(N('DecodeParms')) ? ' +przewidywanie' : ''}`;
+  const opisObrazu = (x) => `${x.dict.get(N('ImageMask')) ? 'maska' : String(x.dict.get(N('ColorSpace')))} ${String(x.dict.get(N('Filter')))} ${x.dict.get(N('Width'))}x${x.dict.get(N('Height'))}${x.dict.get(N('SMask')) ? ' +maska' : ''}${x.dict.get(N('Mask')) ? ' +wycięcie' : ''}${String(x.dict.get(N('Filter'))) === '/FlateDecode' && x.dict.get(N('DecodeParms')) ? ' +przewidywanie' : ''}`;
   const cieniowania = obiekty.filter((x) => x instanceof PDFDict && x.get(N('ShadingType'))).map((x) => String(x.get(N('ColorSpace'))));
 
   // Piksel ze środka największego (w pikselach) obrazu CMYK i to samo policzone wprost przez profil (zdjęcie testowe ma na środku jeden kolor).
   let piksel = null;
-  const cmykowe = obrazy.filter((x) => String(x.dict.get(N('ColorSpace'))) === '/DeviceCMYK').sort((a, b) => b.dict.get(N('Width')).asNumber() * b.dict.get(N('Height')).asNumber() - a.dict.get(N('Width')).asNumber() * a.dict.get(N('Height')).asNumber());
+  const cmykowe = obrazy.filter((x) => String(x.dict.get(N('ColorSpace'))) === '/DeviceCMYK' && String(x.dict.get(N('Filter'))) === '/FlateDecode').sort((a, b) => b.dict.get(N('Width')).asNumber() * b.dict.get(N('Height')).asNumber() - a.dict.get(N('Width')).asNumber() * a.dict.get(N('Height')).asNumber());
   if (cmykowe.length && o.kolorZdjecia) {
     const x = cmykowe[0]; const dane = rozpakuj(x);
     const szer = x.dict.get(N('Width')).asNumber(); const wys = x.dict.get(N('Height')).asNumber();
@@ -270,6 +270,9 @@ test('PDF/X-4: warunki druku z profilem, metadane, kolory i zdjęcia w CMYK prze
   // Obrazy: zdjęcie w rozdzielczości użycia (60 mm przy 150 dpi → 384 px po zaokrągleniu), koło i element z cieniem z maską przezroczystości.
   assert.equal(w.obrazy.filter((o) => o.startsWith('/DeviceCMYK')).length, 3, w.obrazy.join(' | '));
   assert.equal(w.obrazy.filter((o) => o.startsWith('/DeviceGray')).length, 2, 'maski przezroczystości koła i elementu z cieniem');
+  // Zdjęcie JPEG zostaje JPEG-iem w czterech farbach, chyba że bez strat wychodzi mniejsze – jak tutaj, bo zdjęcie
+  // testowe to trzy gładkie pola. Obrazy z przezroczystością są zawsze bez strat. (Prawdziwe zdjęcie jako JPEG
+  // i jego farby po odczytaniu innym programem sprawdza tests/pdf-kontrola.test.cjs.)
   assert.ok(w.obrazy.every((o) => /^\/Device(CMYK|Gray) \/FlateDecode/.test(o)), w.obrazy.join(' | '));
   assert.deepEqual(w.piksel.wymiary, [384, 288]);
   assert.ok(w.piksel.wPliku.every((v, i) => Math.abs(v - w.piksel.zProfilu[i]) <= 6), `piksel zdjęcia ${w.piksel.wPliku} ≈ kolor przeliczony przez profil ${w.piksel.zProfilu}`);
@@ -346,7 +349,8 @@ test('PDF/X-4 w trybie „Obrazy stron”: obraz strony w CMYK przez profil; cze
   });
   const probki = { czerwony: [30, 20], szary: [80, 20], czarny: [120, 20], papier: [140, 60], zdjecieZielone: [30, 100], zdjecieSzare: [70, 100], zdjecieCzarne: [70, 125], tabliczka: [26, 132], pasekNaZdjeciu: [85, 90], pasekNaPapierze: [100, 90] };
   const wzorce = { czerwony: [0xc8, 0x10, 0x2e], zielony: [0x2a, 0x9d, 0x8f], szary: [128, 128, 128], czarny: [0, 0, 0], szaryPodPaskiem: [64, 64, 64] };
-  const w = await eksportuj(strona, { tryb: 'obraz', pdfx: 'fogra47', zdjeciaCmyk: true, dpi: 150, znaki: true, probki, wzorce });
+  // Najpierw cała strona bez strat (jakość 1): farby każdego miejsca da się wtedy odczytać z pliku co do piksela.
+  const w = await eksportuj(strona, { tryb: 'obraz', pdfx: 'fogra47', zdjeciaCmyk: true, dpi: 150, znaki: true, jakosc: 1, probki, wzorce });
   assert.equal(w.blad, undefined);
   assert.equal(w.naglowek, '%PDF-1.6');
   assert.equal(w.zamiar.id, 'FOGRA47');
@@ -380,6 +384,30 @@ test('PDF/X-4 w trybie „Obrazy stron”: obraz strony w CMYK przez profil; cze
   t.diagnostic(`Obrazy stron w CMYK: średnia różnica ${w.srednia.toFixed(2)}, kształt ${(w.ksztalt * 100).toFixed(3)}%, plik ${(w.rozmiar / 1024).toFixed(0)} kB`);
   assert.ok(w.ksztalt < 0.003, `kształty na miejscu (${(w.ksztalt * 100).toFixed(3)}% miejsc różnych jasnością)`);
   assert.ok(w.srednia < 12, `średnia różnica odcieni ${w.srednia.toFixed(1)}`);
+
+  // Zwykły eksport (jakość domyślna): zdjęcie idzie pod spodem osobnym obrazem, a reszta strony bez strat na
+  // wierzchu, z wycięciem w miejscu pikseli zdjęcia. Zdjęcie jest JPEG-iem w czterech farbach, chyba że bez
+  // strat wychodzi mniejsze – jak tutaj, bo zdjęcie testowe to trzy gładkie pola (prawdziwe zdjęcie jako JPEG
+  // i zysk na wielkości pliku sprawdza tests/pdf-kontrola.test.cjs).
+  const d = await eksportuj(strona, { tryb: 'obraz', pdfx: 'fogra47', zdjeciaCmyk: true, dpi: 150, znaki: true, probki, wzorce });
+  assert.equal(d.blad, undefined);
+  assert.equal(d.obrazy.length, 3, d.obrazy.join(' | '));
+  assert.ok(d.obrazy.includes('/DeviceCMYK /FlateDecode 909x1275 +wycięcie +przewidywanie') && d.obrazy.includes('maska /FlateDecode 909x1275'), d.obrazy.join(' | '));
+  const jpeg = d.obrazy.find((o) => /^\/DeviceCMYK \/FlateDecode \d+x\d+ \+przewidywanie$/.test(o));
+  const [, sz, wy] = /(\d+)x(\d+) /.exec(jpeg).map(Number);
+  // Zdjęcie ma 80 × 60 mm, czyli 472 × 354 piksele w 150 dpi; prostokąt JPEG to ono z kilkoma pikselami zapasu.
+  assert.ok(sz >= 472 && sz <= 490 && wy >= 354 && wy <= 372, `prostokąt zdjęcia ${jpeg}`);
+  assert.equal(d.rgb, 0);
+  const pd = d.probki.punkty;
+  // Warstwa bez strat: poza zdjęciem to samo co przedtem, w miejscu pikseli zdjęcia – nic.
+  for (const nazwa of ['czerwony', 'szary', 'czarny', 'papier', 'tabliczka', 'pasekNaPapierze']) assert.deepEqual(pd[nazwa], p[nazwa], `warstwa bez strat: ${nazwa}`);
+  for (const nazwa of ['zdjecieZielone', 'zdjecieSzare', 'zdjecieCzarne', 'pasekNaZdjeciu']) assert.deepEqual(pd[nazwa], [0, 0, 0, 0], `warstwa bez strat jest pusta tam, gdzie zdjęcie: ${nazwa}`);
+  assert.ok(d.probki.czystaCzern > 20000 && d.probki.samaCzern > 20000, 'litery nadal bez strat, samą czarną farbą');
+  // Złożona strona w czytniku PDF wygląda tak samo jak zapisana w całości bez strat.
+  t.diagnostic(`Obrazy stron w CMYK, zdjęcia jako JPEG: średnia różnica ${d.srednia.toFixed(2)}, kształt ${(d.ksztalt * 100).toFixed(3)}%, plik ${(d.rozmiar / 1024).toFixed(0)} kB (bez strat ${(w.rozmiar / 1024).toFixed(0)} kB)`);
+  assert.ok(d.ksztalt < 0.003 && d.srednia < 12, `obraz strony: kształt ${(d.ksztalt * 100).toFixed(3)}%, średnia ${d.srednia.toFixed(1)}`);
+  assert.ok(Math.abs(d.srednia - w.srednia) < 0.5, `ten sam obraz co bez strat: ${d.srednia.toFixed(2)} wobec ${w.srednia.toFixed(2)}`);
+  assert.ok(d.rozmiar < w.rozmiar + 4096, `plik nie większy niż bez strat (poza maską): ${d.rozmiar} wobec ${w.rozmiar}`);
 
   // Strona bez zdjęć: każda czerń i szarość samą czarną farbą.
   await strona.evaluate(async () => {
@@ -442,5 +470,51 @@ test('okno eksportu: standard dla drukarni, zdjęcia w CMYK, profil z pliku', as
     return [new TextDecoder('latin1').decode(bajty.slice(0, 8)), zamiar.get(PDFName.of('OutputConditionIdentifier')).decodeText(), zamiar.get(PDFName.of('Info')).decodeText()];
   });
   assert.deepEqual(zapisany, ['%PDF-1.6', 'Custom', 'PSO Uncoated ISO12647 (ECI)']);
+  assert.deepEqual(bledy, []);
+});
+
+test('zdjęcie w CMYK jest w pliku JPEG-iem w czterech farbach (własny koder): tryb wektorowy i obrazy stron, obraz zgodny z aplikacją', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Zdjęcie CMYK');
+  // Zdjęcie ze szczegółami (przejście barw i drobne plamy) – takie, które bez strat zajmuje dużo; obok czarny tekst.
+  await strona.evaluate(async () => {
+    const { stan, edytor, zapiszTeraz } = window.seriodruk;
+    const c = Object.assign(document.createElement('canvas'), { width: 1003, height: 701 }); // wymiary niepodzielne przez 8
+    const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 1003, 701);
+    g.addColorStop(0, '#0b132b'); g.addColorStop(0.5, '#e63946'); g.addColorStop(1, '#f1faee');
+    x.fillStyle = g; x.fillRect(0, 0, 1003, 701);
+    let ziarno = 4321;
+    const los = () => { ziarno = (ziarno * 1103515245 + 12345) % 2147483648; return ziarno / 2147483648; };
+    for (let i = 0; i < 4000; i += 1) { x.fillStyle = `rgba(${Math.floor(los() * 255)},${Math.floor(los() * 255)},${Math.floor(los() * 255)},0.3)`; x.fillRect(los() * 1003, los() * 701, 9, 9); }
+    const zdjecie = await edytor.dodajObraz(c.toDataURL('image/jpeg', 0.9), 'widok.jpg', stan.projekt.zasoby);
+    zdjecie.set({ left: 14, top: 20, scaleX: 0.12, scaleY: 0.12, angle: 3 });
+    edytor.dodajTekst('Podpis pod zdjęciem – czarny tekst.').set({ left: 14, top: 120, width: 120, fontSize: 5, fontFamily: 'Lora', fill: '#000000' });
+    edytor.canvas.discardActiveObject();
+    edytor.zatwierdz();
+    await zapiszTeraz();
+    await document.fonts.ready;
+  });
+  // Wektorowy: zdjęcie jako JPEG w czterech farbach, w rozdzielczości użycia.
+  const w = await eksportuj(strona, { tryb: 'wektor', pdfx: 'fogra47', cmyk: true, zdjeciaCmyk: true, dpi: 150 });
+  assert.equal(w.blad, undefined);
+  assert.equal(w.obrazy.length, 1, w.obrazy.join(' | '));
+  assert.match(w.obrazy[0], /^\/DeviceCMYK \/DCTDecode \d+x\d+$/);
+  assert.equal(w.rgb, 0);
+  t.diagnostic(`wektor, zdjęcie JPEG w CMYK: średnia różnica ${w.srednia.toFixed(2)}, kształt ${(w.ksztalt * 100).toFixed(3)}%, plik ${(w.rozmiar / 1024).toFixed(0)} kB`);
+  assert.ok(w.ksztalt < 0.003 && w.srednia < 12, `wektor: kształt ${(w.ksztalt * 100).toFixed(3)}%, średnia ${w.srednia.toFixed(1)}`);
+  // Obrazy stron: zdjęcie jako JPEG pod warstwą bez strat; ta sama strona w całości bez strat jest kilka razy większa.
+  const o = await eksportuj(strona, { tryb: 'obraz', pdfx: 'fogra47', zdjeciaCmyk: true, dpi: 150 });
+  assert.equal(o.blad, undefined);
+  assert.equal(o.obrazy.length, 3, o.obrazy.join(' | '));
+  assert.ok(o.obrazy.some((x) => /^\/DeviceCMYK \/DCTDecode \d+x\d+$/.test(x)) && o.obrazy.includes('/DeviceCMYK /FlateDecode 909x1275 +wycięcie +przewidywanie') && o.obrazy.includes('maska /FlateDecode 909x1275'), o.obrazy.join(' | '));
+  const calosc = await eksportuj(strona, { tryb: 'obraz', pdfx: 'fogra47', zdjeciaCmyk: true, dpi: 150, jakosc: 1 });
+  assert.deepEqual(calosc.obrazy, ['/DeviceCMYK /FlateDecode 909x1275 +przewidywanie']);
+  t.diagnostic(`obrazy stron: zdjęcie jako JPEG ${(o.rozmiar / 1024).toFixed(0)} kB, cała strona bez strat ${(calosc.rozmiar / 1024).toFixed(0)} kB; średnia różnica ${o.srednia.toFixed(2)} wobec ${calosc.srednia.toFixed(2)}`);
+  assert.ok(o.ksztalt < 0.003 && o.srednia < 12, `obrazy stron: kształt ${(o.ksztalt * 100).toFixed(3)}%, średnia ${o.srednia.toFixed(1)}`);
+  // Stratny zapis zdjęcia nie zmienia obrazu strony w sposób, który widać w porównaniu z aplikacją.
+  assert.ok(Math.abs(o.srednia - calosc.srednia) < 0.6, `jak bez strat: ${o.srednia.toFixed(2)} wobec ${calosc.srednia.toFixed(2)}`);
+  // Profil (ok. 1,8 MB) jest w obu plikach ten sam; różnica to same obrazy strony.
+  assert.ok(calosc.rozmiar - o.rozmiar > 200 * 1024, `plik mniejszy o ${((calosc.rozmiar - o.rozmiar) / 1024).toFixed(0)} kB`);
   assert.deepEqual(bledy, []);
 });
