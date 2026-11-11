@@ -62,7 +62,7 @@ export const ROZDZIALY = [
     podpis: 'Ustawienia konta z rozwiniętą zmianą adresu e-mail.',
     punkty: [
       '<b>Profil</b> – nazwa widoczna w prawym górnym rogu.',
-      '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym.',
+      '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. <b>Wpisz inny adres</b> zastępuje oczekujący adres nowym.',
       '<b>Urządzenia</b> – wylogowanie tutaj albo na wszystkich urządzeniach naraz.',
       '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
     ],
