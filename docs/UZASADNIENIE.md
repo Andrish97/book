@@ -43,7 +43,7 @@ Robi to integracja Supabase z GitHubem (Project Settings → Integrations → Gi
 ### A3. Wszystko w milimetrach ✅
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** `tests/` – 56 testów przeglądarkowych (Playwright + `node --test`): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst, narzędzia, podgląd, udostępnianie, konflikt zapisu, siatka i odległości, skróty, prowadnice, warstwy, tabele, pola, serie, a od tej rundy także: jedna historia cofania, zapis tylko zmienionych stron, czcionki, kopie robocze zdjęć, eksport PDF, szablon danych i kontrola przed drukiem, listy, przelewanie tekstu, kolumny, tabela. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”), razem ze sprawdzeniem kodu (ESLint).
+**Co jest.** `tests/` – 129 testów przeglądarkowych (Playwright + `node --test`; stan na 2026-11-11): edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst i jego przelewanie przez strony, narzędzia precyzji, podgląd, udostępnianie, łączenie zmian z dwóch urządzeń, warstwy i grupy, tabela, dane, pola i serie, czcionki, obrazy poza pamięcią karty, rozkładanie rysunków SVG, eksport PDF (wektorowy, PDF/X-4, CMYK – z porównaniem obrazu pliku z obrazem z aplikacji) i kontrola przed drukiem. Supabase zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”), razem ze sprawdzeniem kodu (ESLint).
 **Próba na żywo.** `scripts/proba-na-zywo.cjs` (`npm run proba`) przechodzi opublikowaną aplikację na prawdziwej bazie kontem testowym, które na końcu usuwa. Uruchomiona po wdrożeniu zapisu stron osobno – przeszła.
 **Słabe.** Próbę na prawdziwej bazie trzeba uruchomić ręcznie. Na prawdziwym tablecie nikt tego jeszcze nie przeklikał.
 
@@ -320,7 +320,8 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 **Dlaczego tak.** Plik wektorowy powstaje z tego samego kodu, który rysuje stronę na ekranie: edytor rysuje element, a zamiast pikseli zapisywane są polecenia PDF. Dzięki temu układ wierszy, listy, pola z danych, wielkość liter i przelewanie są w PDF takie same jak w podglądzie – nie ma drugiego, osobnego „silnika składu”, który mógłby się rozjechać. Czego nie da się zapisać wektorowo (cień, maska, czcionka bez pliku do osadzenia, znak spoza czcionki), idzie jako obraz tego jednego elementu, a aplikacja po eksporcie mówi, ile takich elementów było i dlaczego. Test porównuje stronę z PDF, narysowaną niezależnym czytnikiem, z obrazem z aplikacji i odczytuje z pliku tekst z polskimi znakami.
 **Poprawione w rundzie „słabych stron” (decyzja #61).** Rysunki SVG są w pliku wektorami. Tekst pisany czcionką, której nie da się osadzić, idzie jako krzywe zamiast obrazu.
 **Dodane w rundzie „większych prac” (decyzja #63).** PDF/X-4 z profilem barwnym: lista „Standard dla drukarni” (papier powlekany FOGRA39, niepowlekany FOGRA47 albo profil od drukarni). Kolory tekstu i kształtów są przeliczane przez profil (czarny tekst samą czarną farbą), a opcja „Zdjęcia też w CMYK” przelicza przez ten sam profil także zdjęcia.
-**Słabe.** Pliku nie sprawdził żaden program kontrolny (Acrobat Preflight, veraPDF) – ostatecznie potwierdzi go próbny plik w drukarni. Plik na papier powlekany rośnie o ok. 8 MB (osadzony profil). 
+**Sprawdzone 2026-11-11 niezależnymi programami** (qpdf, poppler, pypdf, Ghostscript) na dwóch próbkach PDF/X-4 FOGRA39 – wektorowej i „Obrazy stron w CMYK”: składnia bez błędów; oznaczenie PDF/X-4 w informacjach i w metadanych; osadzony profil drukarski CMYK; pola strony po obcięciu i spadu; wszystkie czcionki osadzone; ani jednego polecenia RGB; w rozbarwieniach czarny tekst to sama czerń 100%, szary pas sama czerń 63%, papier czysty, największe łączne pokrycie farbą 221% i 232%. To sprawdzenie budowy pliku i farb, nie certyfikat zgodności.
+**Słabe.** Pełnej zgodności z PDF/X-4 nie potwierdził program do tego przeznaczony (Preflight w Acrobacie Pro, narzędzia drukarni) – ostatecznie potwierdzi ją próbny plik w drukarni. Czcionki są osadzane w całości, nie tylko użyte znaki. Plik na papier powlekany rośnie o ok. 8 MB (osadzony profil). 
 **Poprawione (decyzja #66).** Także w trybie „Obrazy stron” plik może być w CMYK: przy PDF/X-4 pole „Obrazy stron w CMYK” przelicza cały obraz strony przez profil drukarni i zapisuje go bez strat. Czerń i szarości tekstu oraz kształtów idą samą czarną farbą, biel to czysty papier, a zdjęcia przechodzą przez profil (ich czerń jest z czterech farb). Co jest zdjęciem, rozstrzyga drugi obraz tej samej strony ze schowanymi zdjęciami.
 **Słabe (tryb obrazów w CMYK).** Zapis jest bezstratny, więc strony ze zdjęciami dają duże pliki; strona ze zdjęciami jest rysowana dwa razy. Kolorowy gradient przechodzący dokładnie przez neutralną szarość dostaje w tym miejscu samą czerń – na oko niewidoczne, w druku niesprawdzone.
 **Poprawione (decyzja #65).** Ligatury („fi”, „fl”, „ffl”) są w pliku tym samym kształtem co na ekranie, a przy zaznaczaniu i wyszukiwaniu zostają zwykłymi literami; tam, gdzie przeglądarka rysuje litery osobno (tekst rozstrzelony), plik też ich nie łączy. Położenie każdej litery uwzględnia kerning. Działa także przy tekście zamienionym na krzywe.
@@ -332,8 +333,13 @@ Bez zmian; nadal nie sprawdzone na prawdziwym urządzeniu. Ikona to moja robocza
 
 ## H. Co proponuję dalej
 
-1. **Próba na Twoim tablecie i telefonie** – gesty, klawiatura ekranowa, instalacja, panele z boków, plansza w pionie. Tego nie zrobię za Ciebie; to jedyna rzecz, której nie umiem sprawdzić.
-2. **Próbny plik do drukarni** – wyślij PDF wektorowy (z CMYK i bez) i zapytaj, czy go przyjmą. Jeśli wymagają PDF/X z profilem, to jest następna praca przy eksporcie.
-3. **Poczta**, gdy będzie domena (decyzja #34).
-4. **Pióro z krzywymi**, rysunki SVG jako wektory w PDF, listy rozwijane w szablonie danych – mniejsze rzeczy, które zostały z listy.
-5. **Pamięć przy setkach zdjęć** – przechowywanie oryginałów poza pamięcią karty (D5).
+Stan na 2026-11-11, po decyzji #66.
+
+1. **Próba na Twoim tablecie i telefonie** – gesty, klawiatura ekranowa, instalacja, plansza w pionie. To jedyna rzecz, której nie umiem sprawdzić.
+2. **Próbny plik w drukarni albo Preflight w Acrobacie Pro** – próbki PDF/X-4 przeszły sprawdzenie budowy i farb (I1); pełną zgodność potwierdzi narzędzie drukarni.
+3. **Zapis na żywo** – wysyłka zmian na konto zaraz po zapisie, powiadomienia między urządzeniami i łączenie zmian element po elemencie (B4).
+4. **Hasło i data ważności linku do podglądu** (C5).
+5. **PDF**: sprawdzanie próbek niezależnymi programami w automatycznych testach, osadzanie tylko użytych znaków czcionek, mniejsze pliki „Obrazy stron w CMYK”.
+6. **Poczta**, gdy będzie domena (decyzja #34).
+
+Do rozstrzygnięcia przez Ciebie: czy usunąć tryb bez konta całkiem (dziś jest niedostępny w działającej aplikacji i służy tylko testom) i czy edytor ma być doczytywany dopiero przy otwarciu projektu (A1).
