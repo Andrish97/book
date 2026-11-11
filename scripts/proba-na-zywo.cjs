@@ -5,7 +5,8 @@
 // Rejestruje konto testowe (losowy adres w domenie example.com, bez wysyłki
 // poczty), zapisuje projekt z obrazem, sprawdza odczyt na drugim urządzeniu,
 // zmienia różne strony na dwóch urządzeniach naraz (zmiany mają się połączyć),
-// udostępnia podgląd linkiem, otwiera go bez konta, wyłącza link i na koniec
+// udostępnia podgląd linkiem, otwiera go bez konta, wyłącza link, sprawdza dostęp dla AI
+// (funkcje bazy i zdalny łącznik MCP – Funkcję Edge mcp) i na koniec
 // USUWA konto testowe. Zwykłe testy (npm test) używają atrapy bazy – ta próba
 // jest jedynym sprawdzeniem prawdziwego Supabase, reguł dostępu i plików.
 // Uruchamiaj po zmianach w supabase/ albo w js/chmura.js.
@@ -247,6 +248,51 @@ const krok = async (nazwa, fn) => {
       const poOdebraniu = await rpc('ai_projekt', { p_klucz: klucz });
       if (!/odebrany/.test(poOdebraniu.dane?.blad || '')) throw new Error(`odebrany klucz dalej działa: ${JSON.stringify(poOdebraniu.dane).slice(0, 200)}`);
       return `wersja po zapisie AI: ${zapis.dane.wersja}`;
+    });
+    // Zdalny łącznik MCP (Funkcja Edge supabase/functions/mcp): tak łączą się Claude i ChatGPT.
+    // Wymaga wdrożonej funkcji (integracja Supabase z GitHubem, [functions.mcp] w supabase/config.toml).
+    await krok('zdalny łącznik MCP: adres z okna działa (initialize, lista narzędzi, odczyt, zmiana widoczna w edytorze), odebrany klucz przestaje działać', async () => {
+      await p.click('#przycisk-wiecej');
+      await p.click('[data-akcja="dostep-ai"]');
+      await p.fill('#dostep-ai-opis', 'Łącznik na żywo');
+      await p.click('[data-akcja="dostep-ai-utworz"]');
+      await p.waitForSelector('#dostep-ai-gotowy:not([hidden])');
+      const adres = await p.inputValue('#dostep-ai-adres');
+      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      if (!/\/functions\/v1\/mcp\/sdk_[0-9a-f]{32}_/.test(adres)) throw new Error('okno nie pokazało adresu łącznika');
+      // Wywołanie z przeglądarki (Origin strony aplikacji – sprawdza też CORS i OPTIONS funkcji).
+      let nr = 0;
+      const mcp = (tresc, naglowki = {}, metoda = 'POST') => p.evaluate(async ([u, t, n, m]) => {
+        const x = await fetch(u, { method: m, headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', ...n }, ...(m === 'POST' ? { body: JSON.stringify(t) } : {}) });
+        const tekst = await x.text();
+        let dane = null; try { dane = JSON.parse(tekst); } catch { dane = tekst.slice(0, 200); }
+        return { status: x.status, dane };
+      }, [adres, tresc, naglowki, metoda]);
+      const wywolaj = async (method, params) => {
+        const w = await mcp({ jsonrpc: '2.0', id: (nr += 1), method, params }, { 'mcp-protocol-version': '2025-06-18' });
+        if (w.status !== 200 || w.dane?.error) throw new Error(`${method}: ${w.status} ${JSON.stringify(w.dane).slice(0, 300)}`);
+        return w.dane.result;
+      };
+      const init = await wywolaj('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'proba-na-zywo', version: '1' } });
+      if (init.serverInfo?.name !== 'seriodruk') throw new Error(`initialize: ${JSON.stringify(init).slice(0, 200)}`);
+      const lista = await wywolaj('tools/list', {});
+      if (!lista.tools.some((x) => x.name === 'zmien_elementy')) throw new Error('brak narzędzi na liście');
+      const przeglad = await wywolaj('tools/call', { name: 'przeglad_projektu', arguments: {} });
+      if (przeglad.isError || !/Projekt „/.test(przeglad.content[0].text)) throw new Error(`przeglad_projektu: ${przeglad.content?.[0]?.text?.slice(0, 200)}`);
+      const zmiana = await wywolaj('tools/call', { name: 'nazwa_projektu', arguments: { nazwa: 'Test łącznika (AI)' } });
+      if (zmiana.isError) throw new Error(`nazwa_projektu: ${zmiana.content[0].text.slice(0, 200)}`);
+      await p.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Test łącznika (AI)', null, { timeout: 30000 });
+      const get = await mcp(null, {}, 'GET');
+      if (get.status !== 405) throw new Error(`GET powinien dać 405, dał ${get.status}`);
+      await p.click('#przycisk-wiecej');
+      await p.click('[data-akcja="dostep-ai"]');
+      await p.click('#dostep-ai-lista li:has-text("Łącznik na żywo") button');
+      await p.click('#potwierdz-tak');
+      await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li button'));
+      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      const po = await wywolaj('tools/call', { name: 'przeglad_projektu', arguments: {} });
+      if (!po.isError || !/odebrany/.test(po.content[0].text)) throw new Error(`odebrany klucz dalej działa w łączniku: ${JSON.stringify(po).slice(0, 200)}`);
+      return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi`;
     });
   } catch (e) {
     wyniki.push(`przerwano: ${e.message.split('\n')[0]}`);

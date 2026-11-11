@@ -4,7 +4,7 @@ Ten dokument opisuje, jak samodzielnie zbudować projekt [Seriodruku](https://an
 
 Instrukcja obsługi aplikacji (co robi każdy przycisk): [ai/instrukcja.md](https://andrish97.github.io/book/ai/instrukcja.md).
 
-Ten sam model zmienia AI podłączone do istniejącego projektu kluczem dostępu (serwer MCP albo akcje GPT): [ai/api.md](https://andrish97.github.io/book/ai/api.md).
+Ten sam model zmienia AI podłączone do istniejącego projektu łącznikiem Seriodruk (adres z okna „Dostęp dla AI”, dodany w Claude albo ChatGPT jako własny łącznik MCP): [ai/api.md](https://andrish97.github.io/book/ai/api.md). Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk.
 
 ## 1. Dwie postacie pliku
 

@@ -24,7 +24,14 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   await strona.waitForSelector('#dostep-ai-gotowy:not([hidden])');
   const klucz = await strona.inputValue('#dostep-ai-klucz');
   assert.match(klucz, /^sdk_[0-9a-f]{32}_[A-Za-z0-9_-]{40,}$/);
-  assert.ok((await strona.textContent('#dostep-ai-claude-desktop')).includes(klucz), 'gotowa konfiguracja dla Claude zawiera klucz');
+  // Na pierwszym miejscu adres zdalnego łącznika (z kluczem; w testach baza to atrapa) i kroki dla Claude i ChatGPT; reszta zwinięta.
+  assert.equal(await strona.inputValue('#dostep-ai-adres'), `https://atrapa.supabase.co/functions/v1/mcp/${klucz}`);
+  assert.equal(await strona.isVisible('#dostep-ai-adres'), true);
+  assert.equal(await strona.isVisible('#dostep-ai-klucz'), false, 'sam klucz jest w zwiniętej części dla zaawansowanych');
+  assert.match(await strona.textContent('.dostep-ai-kroki'), /Claude.*Dodaj własny łącznik.*ChatGPT.*Add custom MCP server/s);
+  assert.doesNotMatch(await strona.textContent('#dlg-dostep-ai'), /dozwolon|allowlist|odblokuj domen/i);
+  assert.ok((await strona.textContent('#dostep-ai-claude-code')).includes(`/functions/v1/mcp/${klucz}`), 'polecenie dla Claude Code używa zdalnego łącznika');
+  assert.ok((await strona.textContent('#dostep-ai-claude-desktop')).includes(klucz), 'gotowa konfiguracja serwera u siebie zawiera klucz');
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 1);
   assert.match(await strona.textContent('#dostep-ai-lista li'), /Claude – test.*czyta i zmienia.*jeszcze nieużyty/s);
   // Po zamknięciu i ponownym otwarciu klucza już nie widać.
@@ -33,6 +40,8 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   await strona.click('[data-akcja="dostep-ai"]');
   await strona.waitForSelector('#dlg-dostep-ai[open]');
   assert.equal(await strona.inputValue('#dostep-ai-klucz'), '');
+  assert.equal(await strona.inputValue('#dostep-ai-adres'), '');
+  assert.equal(await strona.textContent('#dostep-ai-claude-code'), '');
   assert.equal(await strona.isVisible('#dostep-ai-gotowy'), false);
   await strona.click('[data-akcja="dostep-ai-zamknij"]');
 

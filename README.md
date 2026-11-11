@@ -59,8 +59,9 @@ Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla
 - `llms.txt` – spis dokumentów dla AI (https://andrish97.github.io/book/llms.txt).
 - `ai/instrukcja.md` – instrukcja w Markdownie, generowana z `js/instrukcja.js`. Po każdej zmianie instrukcji: `node scripts/instrukcja-md.cjs` (test `tests/instrukcja-md.test.cjs` pada, gdy plik jest nieaktualny).
 - `ai/format-seriodruk.md` – jak zbudować plik `.json` albo `.seriodruk`, który użytkownik wczyta przyciskiem Importuj, z gotowym poleceniem dla innego AI.
-- `ai/api.md` – dostęp dla AI do jednego projektu kluczem (okno „Dostęp dla AI” w edytorze): podłączenie Claude i ChatGPT, funkcje bazy `ai_projekt` i `ai_zapisz` (migracja `20261111200000_dostep_ai.sql`).
-- `ai/mcp/seriodruk-mcp.mjs` – serwer MCP (jeden plik, bez zależności) dla Claude Desktop, Claude Code i innych klientów MCP; test `tests/mcp.test.cjs` uruchamia go przeciw atrapie bazy (`tests/atrapa-ai.cjs`).
+- `ai/api.md` – dostęp dla AI do jednego projektu kluczem (okno „Dostęp dla AI” w edytorze): adres łącznika, dodanie go w Claude i ChatGPT, funkcje bazy `ai_projekt` i `ai_zapisz` (migracja `20261111200000_dostep_ai.sql`).
+- `supabase/functions/mcp` – zdalny łącznik MCP (Funkcja Edge, Streamable HTTP, bez stanu): `https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/<klucz>`. Claude i ChatGPT łączą się z nim ze swoich serwerów, więc AI nie potrzebuje dostępu do bazy z własnej piaskownicy. Wdraża go integracja Supabase z GitHubem (blok `[functions.mcp]` w `supabase/config.toml`, `verify_jwt = false` – klucz sprawdza baza). Logika w `supabase/functions/_shared/mcp-http.mjs`, narzędzia we wspólnym rdzeniu `_shared/seriodruk-mcp-rdzen.mjs`; test `tests/lacznik-mcp.test.cjs` uruchamia ją w Node przeciw atrapie bazy.
+- `ai/mcp/seriodruk-mcp.mjs` – ten sam serwer do uruchomienia u siebie (stdio, jeden plik, bez zależności), składany z rdzenia poleceniem `node scripts/mcp-buduj.cjs`; test `tests/mcp.test.cjs` uruchamia go przeciw atrapie bazy (`tests/atrapa-ai.cjs`).
 - `ai/openapi.json` – opis funkcji AI dla akcji własnego GPT w ChatGPT.
 - `ai/przyklady/*.json` – przykłady (minimalny i kalendarz 2027) budowane przez `node scripts/przyklady-ai.cjs`; test `tests/format-ai.test.cjs` wczytuje je w aplikacji jak plik użytkownika.
 

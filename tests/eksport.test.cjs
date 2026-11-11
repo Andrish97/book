@@ -72,7 +72,8 @@ test('duże zdjęcie: na płótnie lżejsza kopia, w projekcie wymiary oryginał
   assert.deepEqual(w.zapisane, [['image', 3000, 2000, true], ['image', 3000, 2000, true]], 'powielony obraz też ma wymiary oryginału');
   assert.equal(w.robocze, 'blob:');
   assert.equal(w.pelne, 'data:image/png;');
-  assert.deepEqual(w.zasob, ['nazwa', 'rozmiar', 'typ'], 'w projekcie zostaje opis obrazu – bez treści i bez kopii roboczej');
+  // Z kontem opis dostaje też `sciezka`, gdy wysyłka na konto zdąży się skończyć – to zależy od tempa, nie od treści.
+  assert.deepEqual(w.zasob.filter((k) => k !== 'sciezka'), ['nazwa', 'rozmiar', 'typ'], 'w projekcie zostaje opis obrazu – bez treści i bez kopii roboczej');
   const oczekiwane = ['255,0,0', '0,0,255', '0,0,255', '255,255,255'];
   assert.deepEqual(w.zKopii, oczekiwane);
   assert.deepEqual(w.zOryginalu, oczekiwane);

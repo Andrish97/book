@@ -552,14 +552,15 @@ async function przykladoweProjekty(strona) {
   await zrzut(d, 'kontrola.png');
   await d.click('#kontrola-zamknij');
 
-  // Dostęp dla AI: nowy klucz z gotowymi ustawieniami dla Claude
+  // Dostęp dla AI: nowy klucz – adres łącznika i kroki dla Claude i ChatGPT
   await d.click('#przycisk-wiecej');
   await d.click('[data-akcja="dostep-ai"]');
   await d.waitForSelector('#dlg-dostep-ai[open]');
   await d.fill('#dostep-ai-opis', 'Claude – poprawki kalendarza');
   await d.click('[data-akcja="dostep-ai-utworz"]');
   await d.waitForSelector('#dostep-ai-gotowy:not([hidden])');
-  await d.evaluate(() => { const s = document.querySelector('.dostep-ai-jak'); if (s) s.open = true; });
+  // Zrzut pokazuje adres prawdziwej bazy, nie atrapy, z której korzysta skrypt.
+  await d.evaluate(() => { const p = document.querySelector('#dostep-ai-adres'); p.value = p.value.replace('atrapa.supabase.co', 'pganajmivwtstapnwsgv.supabase.co'); p.setSelectionRange(0, 0); p.scrollLeft = 0; });
   await zrzut(d, 'dostep-ai.png');
   await d.click('[data-akcja="dostep-ai-zamknij"]');
 

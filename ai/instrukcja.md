@@ -522,20 +522,22 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 
 ## 26. Praca z AI
 
-Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili – tak jak zmiany z drugiego urządzenia.
+Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Podłączasz go adresem łącznika Seriodruk – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.
 
-![Nowy klucz dla AI z gotowymi ustawieniami dla Claude.](https://andrish97.github.io/book/img/instrukcja/dostep-ai.png)
-*Nowy klucz dla AI z gotowymi ustawieniami dla Claude.*
+![Nowy klucz dla AI: adres łącznika do skopiowania i kroki dla Claude i ChatGPT.](https://andrish97.github.io/book/img/instrukcja/dostep-ai.png)
+*Nowy klucz dla AI: adres łącznika do skopiowania i kroki dla Claude i ChatGPT.*
 
-- **Podłączenie Claude krok po kroku** (aplikacja Claude na komputer): 1) zainstaluj [Node.js](https://nodejs.org/), jeśli go nie masz; 2) w edytorze utwórz klucz (niżej) i pobierz z okna plik **seriodruk-mcp.mjs** – zapisz go np. w Dokumentach; 3) w Claude: **Settings → Developer → Edit Config** (po polsku: Ustawienia → Programista → Edytuj konfigurację) i wklej tekst z okna „Dostęp dla AI”, wpisując w nim ścieżkę do pobranego pliku; 4) zamknij i otwórz Claude ponownie – w narzędziach rozmowy pojawi się **seriodruk**; 5) napisz np. „Przejrzyj mój projekt w Seriodruku i popraw literówki w tytułach”.
-- W **Claude Code** wystarczą dwa polecenia, które okno pokazuje gotowe do skopiowania. **ChatGPT** podłącza się przez własnego GPT z akcjami – krok po kroku w dokumencie [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
 - W edytorze menu **⋯** → **Dostęp dla AI…**. Wpisz, dla kogo jest klucz, wybierz **Czyta i zmienia** albo **Tylko czyta** i ważność (1, 7 albo 30 dni), potem **Utwórz klucz**.
-- Klucz widać **tylko raz** – skopiuj go od razu. Okno pokazuje gotowe ustawienia dla Claude Desktop i Claude Code; opis podłączenia ChatGPT jest w dokumencie [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
+- Okno pokaże **adres łącznika** (z kluczem w środku). Widać go **tylko raz** – skopiuj go od razu przyciskiem obok.
+- **Claude** (claude.ai, aplikacja na komputer i telefon): **Dostosuj → Łączniki** (Customize → Connectors) → **+** → **Dodaj własny łącznik**. Nazwa: Seriodruk, adres: wklej skopiowany, logowanie: **bez logowania** (No sign-in). W rozmowie włącz łącznik i napisz np. „Przejrzyj mój projekt w Seriodruku i popraw literówki w tytułach”.
+- **ChatGPT**: **chatgpt.com/plugins** → **+** → **Add custom MCP server**, wklej adres, uwierzytelnianie **No Authentication**, potwierdź. Gdy tej opcji nie ma, włącz tryb dewelopera (Ustawienia → Aplikacje → Zaawansowane).
+- Łącznik działa po stronie Seriodruku: Claude i ChatGPT łączą się z nim ze swoich serwerów. Jeśli AI prosi o odblokowanie domeny albo zmianę ustawień sieci, nie rób tego – poproś, żeby użyło narzędzi łącznika Seriodruk (a jeśli ich nie ma, dodaj łącznik jak wyżej).
+- W części **Dla zaawansowanych** okno ma sam klucz, polecenie dla **Claude Code** i serwer do uruchomienia u siebie. Szczegóły: [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
 - Klucz otwiera **tylko ten projekt**: AI może zmieniać strony, elementy, wzorce, style, tabele danych, serie i sekcje, ale nie utworzy ani nie usunie projektu, nie wgra obrazów ani czcionek i nie zobaczy innych projektów.
 - Zmiany AI łączą się z Twoimi element po elemencie: gdy Ty przesuwasz zdjęcie, a AI poprawia tytuł, zostają obie zmiany. **Cofnij** zdejmuje tylko Twoje zmiany.
-- Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz od razu.
+- Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz – i adres łącznika – od razu.
 
-> Klucz trafia do firmy, która prowadzi AI. Dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Przed dużymi zmianami zrób **Eksport** projektu.
+> Adres łącznika (z kluczem) trafia do firmy, która prowadzi AI. Dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Przed dużymi zmianami zrób **Eksport** projektu.
 
 ## 27. Linie i ostrzeżenia
 
