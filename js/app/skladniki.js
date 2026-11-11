@@ -23,6 +23,8 @@ import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki } from './lis
 import { edytujWzorzec } from './wzorce.js';
 
 export { instrukcja } from './instrukcja-leniwa.js';
+// Obraz, który dostanie plik wybrany przyciskiem „Podmień zdjęcie”.
+export const podmiana = { obj: null };
 export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
   tytulPusty: () => (stan.tryb === 'wzorzec' ? 'Wzorzec' : 'Strona'),
   budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),
@@ -40,6 +42,8 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   pola: () => polaDoWstawienia(),
   kolumnyObrazu: () => (stan.tryb === 'strona' ? tabelaStrony(biezacaStrona())?.kolumny : stan.projekt.tabele.flatMap((t) => t.kolumny)) || [],
   wgrajObrazy: () => $('#pliki-zasoby').click(),
+  // „Podmień zdjęcie”: plik wybrany w oknie systemu trafia w ramkę tego obrazu (js/app/edytor-start.js).
+  podmienObraz: (obj) => { podmiana.obj = obj; $('#plik-podmiana').click(); },
   // Rysunek SVG zamieniany w grupę zwykłych kształtów i napisów.
   toRysunekSvg: (obj) => toRysunekSvg(stan.projekt, obj),
   rozlozRysunek: (obj) => rozlozRysunekNaStronie(obj),

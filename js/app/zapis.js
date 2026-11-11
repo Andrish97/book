@@ -21,6 +21,9 @@ import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
 import { ustawZakladke, generujMiniatury, renderujListe, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
 
+// Nazwa projektu w górnym pasku; pełna także w dymku – na wąskim ekranie pole bywa ucięte.
+const pokazNazwe = (nazwa) => { const pole = $('#nazwa-projektu'); pole.value = nazwa; pole.title = nazwa; };
+
 // ---------- Arkusz: strona albo cała rozkładówka na jednym płótnie ----------
 
 // Co jest teraz wczytane do edytora: { wzorzec: id } albo { strony: [id, …] }
@@ -59,7 +62,7 @@ export async function cofnijKrok(kierunek) {
   else if (!naPlotnieWzorzec) stan.tryb = 'strona';
   stan.indeks = Math.min(Math.max(0, stan.indeks), p.strony.length - 1);
   stan.miniatury.clear();
-  $('#nazwa-projektu').value = p.nazwa;
+  pokazNazwe(p.nazwa);
   ustawZakladke(stan.tryb === 'wzorzec' ? 'wzorce' : (stan.zakladka === 'warstwy' ? 'warstwy' : 'strony'));
   await zaladujCel();
   if (zaznaczony) edytor.zaznacz(zaznaczony);
@@ -191,7 +194,7 @@ export async function otworzProjekt(p, cel = {}) {
   ustawZakladke(wzorzec ? 'wzorce' : 'strony');
   pokazEkran('edytor');
   if (trasa.odczytaj().id !== stan.projekt.id) trasa.ustaw(`p/${stan.projekt.id}`);
-  $('#nazwa-projektu').value = stan.projekt.nazwa;
+  pokazNazwe(stan.projekt.nazwa);
   document.title = `${stan.projekt.nazwa} – ${NAZWA}`;
   edytor.wydruk = null;
   clearTimeout(stan.timerHistorii);
@@ -480,7 +483,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
           await zaladujCel();
           if (!(pisanie && wrocDoPisania(pisanie)) && zaznaczony) edytor.zaznacz(zaznaczony);
           panel.zbuduj();
-          $('#nazwa-projektu').value = p.nazwa;
+          pokazNazwe(p.nazwa);
           document.title = `${p.nazwa} – ${NAZWA}`;
           generujMiniatury();
         }

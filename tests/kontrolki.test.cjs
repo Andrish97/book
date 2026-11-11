@@ -87,7 +87,7 @@ test('własne kontrolki: lista rozwijana (mysz, klawiatura, grupy) i wybór kolo
 test('dymki z podpowiedzią zamiast systemowych: najechanie myszą, Tab, Esc, zmiana podpowiedzi w trakcie, krawędź okna, okno dialogowe', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Dymki');
-  const cofnij = '.pasek-edytora [data-akcja="wzorce"]';
+  const cofnij = '.pasek-edytora > [data-akcja="wzorce"]';
   const WZORCE = 'Wzorce: wspólne elementy stron – tła, stopki, numery';
   const dymek = () => strona.evaluate(() => { const d = document.querySelector('.dymek'); return d && d.isConnected ? d.textContent : null; });
   // Mysz: po chwili własny dymek; „title” przeniesiony, więc przeglądarka nie pokazuje swojego.
@@ -123,7 +123,7 @@ test('dymki z podpowiedzią zamiast systemowych: najechanie myszą, Tab, Esc, zm
   // Klawiatura: fokus z klawiatury pokazuje dymek od razu.
   // (Tab w edytorze obsługują skróty aplikacji – po naciśnięciu klawisza fokus ustawiony z kodu też jest „z klawiatury”.)
   await strona.keyboard.press('Shift');
-  await strona.locator('.pasek-edytora [data-akcja="dane"]').focus();
+  await strona.locator('.pasek-edytora > [data-akcja="dane"]').focus();
   assert.equal(await strona.evaluate(() => document.activeElement.dataset.akcja), 'dane');
   assert.equal(await dymek(), 'Tabele z danymi do pól i serii');
   await strona.keyboard.press('Escape');

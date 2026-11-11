@@ -139,6 +139,114 @@ test('telefon: praca w pionie – panele z dołu, schowany wielokąt; trzymany p
   assert.deepEqual(bledy, []);
 });
 
+test('telefon: arkusz właściwości – od góry, bez krzyżyka, uchwyt, element widoczny nad arkuszem, podmiana zdjęcia', async (t) => {
+  const { strona, bledy } = await otworz(t, { telefon: true });
+  await nowyProjekt(strona, 'Dziennik lekcyjny 2026');
+  // Górny pasek oddaje miejsce nazwie projektu: wzorce, dane i instrukcja są na wąskim ekranie w menu ⋯.
+  const pasek = () => strona.evaluate(() => {
+    const p = document.querySelector('#nazwa-projektu');
+    const wPasku = ['wzorce', 'dane', 'instrukcja'].filter((a) => document.querySelector(`.pasek-edytora > [data-akcja="${a}"]`).offsetParent);
+    const n = document.querySelector('.pasek-narzedzi');
+    const ostatni = [...n.querySelectorAll('button')].filter((b) => b.offsetParent).at(-1).getBoundingClientRect();
+    return { pelnaNazwa: p.scrollWidth <= p.clientWidth, tytul: p.title, wPasku, wstawianieMiesci: n.scrollWidth <= n.clientWidth && ostatni.right <= n.getBoundingClientRect().right };
+  });
+  assert.deepEqual(await pasek(), { pelnaNazwa: true, tytul: 'Dziennik lekcyjny 2026', wPasku: [], wstawianieMiesci: true });
+  await strona.tap('#przycisk-wiecej');
+  assert.ok(await strona.isVisible('#menu-wiecej [data-akcja="dane"]'));
+  await strona.tap('#menu-wiecej [data-akcja="dane"]');
+  await strona.waitForSelector('#menu-wiecej', { state: 'hidden' });
+  await strona.keyboard.press('Escape');
+  await strona.evaluate(() => document.querySelectorAll('dialog[open]').forEach((d) => d.close()));
+  await strona.setViewportSize({ width: 360, height: 800 });
+  assert.equal((await pasek()).wstawianieMiesci, true, 'na 360 px mieszczą się wszystkie przyciski wstawiania');
+  await strona.setViewportSize({ width: 412, height: 915 });
+
+  // Obraz na dole strony – arkusz by go zasłonił.
+  await strona.setInputFiles('#plik-obraz', { name: 'zdjecie.png', mimeType: 'image/png', buffer: PNG_2X2 });
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'image');
+  await strona.evaluate(() => {
+    const { edytor: e } = window.seriodruk;
+    const o = e.aktywny;
+    o.set({ scaleX: 30, scaleY: 20, left: 40, top: 160 });
+    o.setCoords();
+    e.zatwierdz();
+  });
+  const widokPrzed = await strona.evaluate(() => { const k = window.seriodruk.edytor.kontener; return [k.scrollLeft, k.scrollTop, window.seriodruk.edytor.zoom]; });
+  const otwarty = () => strona.waitForFunction(() => getComputedStyle(document.querySelector('.panel-inspektor')).transform === 'none');
+  const stanArkusza = () => strona.evaluate(() => {
+    const r = (s) => document.querySelector(s).getBoundingClientRect();
+    const e = window.seriodruk.edytor;
+    const o = e.aktywny; o.setCoords();
+    const b = o.getBoundingRect(); const v = e.canvas.viewportTransform; const c = e.canvas.upperCanvasEl.getBoundingClientRect();
+    const el = { gora: c.top + v[5] + b.top * v[3], dol: c.top + v[5] + (b.top + b.height) * v[3] };
+    return {
+      zakladki: r('.zakladki-panelu-opak'), naglowek: r('#naglowek-wlasciwosci'), panel: r('.panel-inspektor'), pasek: r('#pasek-narzedzi'),
+      el, krzyzyk: [...document.querySelectorAll('.panel-inspektor button')].some((x) => x.offsetParent && /zamknij/i.test(x.getAttribute('aria-label') || '')),
+      przewiniecie: document.querySelector('.wlasciwosci').scrollTop, okno: window.innerHeight,
+    };
+  });
+  await strona.evaluate(() => { document.querySelector('.wlasciwosci').scrollTop = 500; });
+  await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
+  await otwarty();
+  await strona.waitForTimeout(100);
+  let s = await stanArkusza();
+  // Arkusz zaczyna się od góry: zakładki nad nagłówkiem elementu, nic na nic nie nachodzi; bez krzyżyka.
+  assert.equal(s.przewiniecie, 0);
+  assert.ok(s.zakladki.height >= 36 && s.zakladki.bottom <= s.naglowek.top + 0.5, `zakładki ${JSON.stringify(s.zakladki)} nad nagłówkiem ${JSON.stringify(s.naglowek)}`);
+  assert.equal(s.krzyzyk, false);
+  assert.ok(Math.abs(s.panel.height - s.okno * 0.45) < 2, `arkusz na 45% ekranu: ${s.panel.height}`);
+  // Zaznaczony obraz widać nad arkuszem (pod paskiem wstawiania).
+  assert.ok(s.el.gora >= s.pasek.bottom - 1 && s.el.dol <= s.panel.top + 1, `obraz ${JSON.stringify(s.el)} między paskiem ${s.pasek.bottom} a arkuszem ${s.panel.top}`);
+  // Przyciski zdjęcia są zaraz pod nagłówkiem.
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.wlasciwosci > :first-child button')].map((b) => b.textContent.trim())), ['Podmień zdjęcie', 'Wgraj obrazy do projektu']);
+  // Położenie i rozmiar w dwóch rzędach.
+  const rzedy = await strona.evaluate(() => new Set([...document.querySelectorAll('.geometria > label')].map((l) => Math.round(l.getBoundingClientRect().top))).size);
+  assert.equal(rzedy, 2);
+  assert.ok(await strona.evaluate(() => [...document.querySelectorAll('.wlasciwosci input:not([type=checkbox]):not([type=radio]):not([type=color])')].filter((i) => i.offsetParent).every((i) => i.getBoundingClientRect().height >= 40)), 'pola co najmniej 40 px wysokości');
+
+  // „Podmień zdjęcie”: nowy plik w tej samej ramce i w tym samym miejscu.
+  const przed = await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; const c = o.getCenterPoint(); return { w: o.getScaledWidth(), h: o.getScaledHeight(), x: c.x, y: c.y, zasob: o.zasob }; });
+  const [wybor] = await Promise.all([strona.waitForEvent('filechooser'), strona.tap('.wlasciwosci button:has-text("Podmień zdjęcie")')]);
+  const PNG_4X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAAEElEQVR4nGP4z8AARwzIHABvqgf5gNwAKAAAAABJRU5ErkJggg==', 'base64');
+  await wybor.setFiles({ name: 'nowe.png', mimeType: 'image/png', buffer: PNG_4X2 });
+  await strona.waitForFunction((z) => window.seriodruk.edytor.aktywny?.zasob !== z, przed.zasob);
+  const po = await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; const c = o.getCenterPoint(); return { w: o.getScaledWidth(), h: o.getScaledHeight(), x: c.x, y: c.y, nazwa: window.seriodruk.stan.projekt.zasoby[o.zasob].nazwa, cropX: o.cropX }; });
+  for (const k of ['w', 'h', 'x', 'y']) assert.ok(Math.abs(po[k] - przed[k]) < 0.01, `${k}: ${przed[k]} → ${po[k]}`);
+  assert.equal(po.nazwa, 'nowe.png');
+  assert.ok(po.cropX > 0, 'zdjęcie o innych proporcjach wypełnia ramkę, nadmiar jest przycięty');
+
+  // Ponowne stuknięcie zakładki zamyka arkusz; widok wraca tam, gdzie był.
+  await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
+  assert.equal(await strona.evaluate(() => document.body.dataset.panel), '');
+  const widok = () => strona.evaluate(() => { const k = window.seriodruk.edytor.kontener; return [k.scrollLeft, k.scrollTop, window.seriodruk.edytor.zoom]; });
+  assert.deepEqual(await widok(), widokPrzed);
+  await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
+  await otwarty();
+
+  // Uchwyt: przeciągnięcie w górę powiększa, stuknięcie wraca do zwykłej wysokości, w dół zamyka.
+  const uchwyt = await strona.evaluate(() => { const r = document.querySelector('.panel-inspektor .uchwyt-arkusza').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+  const cdp = await strona.context().newCDPSession(strona);
+  const ciagnij = async ([x, y], dy) => {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let i = 1; i <= 8; i += 1) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y + (dy * i) / 8 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await strona.waitForTimeout(350);
+  };
+  await ciagnij(uchwyt, -200);
+  s = await stanArkusza();
+  assert.equal(await strona.evaluate(() => document.body.dataset.arkusz), 'pelny');
+  assert.ok(s.panel.height > s.okno * 0.75, `powiększony arkusz: ${s.panel.height}`);
+  await strona.tap('.panel-inspektor .uchwyt-arkusza');
+  await strona.waitForTimeout(350);
+  s = await stanArkusza();
+  assert.ok(Math.abs(s.panel.height - s.okno * 0.45) < 2, 'stuknięcie w uchwyt wraca do zwykłej wysokości');
+  const uchwyt2 = await strona.evaluate(() => { const r = document.querySelector('.panel-inspektor .uchwyt-arkusza').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+  await ciagnij(uchwyt2, 200);
+  assert.equal(await strona.evaluate(() => document.body.dataset.panel), '');
+  assert.deepEqual(await widok(), widokPrzed);
+  assert.deepEqual(bledy, []);
+});
+
 test('dotyk: jeden palec przesuwa element, dwa palce powiększają widok bez ruszania elementu', async (t) => {
   const { strona, kontekst } = await otworz(t, { widok: { width: 1024, height: 700 } });
   await nowyProjekt(strona, 'Dotyk');

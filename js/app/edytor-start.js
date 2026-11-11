@@ -29,7 +29,8 @@ import * as chmura from '../chmura.js';
 import { $, powiadom, pobierz, bezpiecznaNazwa, zamknijMenu, przelaczMenu } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
-import { stan, edytor, biezacyCel, biezacaSekcja, ustawPanel, jednaStrona, KLUCZ_JEDNA } from './kontekst.js';
+import { stan, edytor, biezacyCel, biezacaSekcja, jednaStrona, KLUCZ_JEDNA } from './kontekst.js';
+import { podlaczArkusze } from './arkusze.js';
 import { wczytajPlikProjektu } from './projekty.js';
 import { otworzDostepAi, utworzKluczAi, kopiujKluczAi, kopiujAdresAi, zamknijDostepAi } from './dostep-ai.js';
 import {
@@ -42,7 +43,7 @@ import {
 } from './podglad-ekran.js';
 import { NAZWY_POL_DOKUMENTU, tabeleStrony } from './panel-strony.js';
 import { polePoTabelach } from '../serie.js';
-import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek } from './skladniki.js';
+import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek, podmiana } from './skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
   wzorzecZMenu, ustawZakladke, generujMiniatury, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
@@ -119,6 +120,19 @@ async function wstawObraz(plik) {
     }
   } catch (e) {
     powiadom(e.message, true);
+  }
+}
+
+// Nowe zdjęcie w ramce zaznaczonego obrazu (przycisk „Podmień zdjęcie” we właściwościach).
+async function podmienObraz(obj, plik) {
+  if (!plik.type.startsWith('image/')) { powiadom('To nie jest plik obrazu.', true); return; }
+  if (!edytor.canvas.getObjects().includes(obj) && !obj.group) return; // obraz zniknął ze strony w międzyczasie
+  try {
+    const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
+    await edytor.podmienObraz(obj, await chmura.blobNaDataUrl(gotowy), plik.name, stan.projekt.zasoby);
+    panel.zbuduj();
+  } catch (blad) {
+    powiadom(blad.message || 'Nie udało się podmienić zdjęcia.', true);
   }
 }
 
@@ -210,7 +224,6 @@ export const akcje = {
   'dostep-ai-zamknij': () => zamknijDostepAi(),
   kontrola: () => { zamknijMenu(); oknoKontroli.otworz(); },
   wydruk: () => otworzUstawieniaSekcji(biezacaSekcja().id),
-  'zamknij-panel': () => ustawPanel(''),
   'obroc-format': () => {
     const f = $('#dlg-sekcja form');
     [f.elements.szerokosc_mm.value, f.elements.wysokosc_mm.value] = [f.elements.wysokosc_mm.value, f.elements.szerokosc_mm.value];
@@ -314,6 +327,13 @@ $('#plik-obraz').addEventListener('change', async (e) => {
   if (plik) await wstawObraz(plik);
   e.target.value = '';
 });
+$('#plik-podmiana').addEventListener('change', async (e) => {
+  const plik = e.target.files[0];
+  const obj = podmiana.obj;
+  podmiana.obj = null;
+  if (plik && obj) await podmienObraz(obj, plik);
+  e.target.value = '';
+});
 
 const kontener = $('#kontener-plotna');
 kontener.addEventListener('dragover', (e) => e.preventDefault());
@@ -328,6 +348,7 @@ kontener.addEventListener('drop', (e) => {
 $('#nazwa-projektu').addEventListener('change', (e) => {
   stan.projekt.nazwa = e.target.value.trim() || 'Bez nazwy';
   e.target.value = stan.projekt.nazwa;
+  e.target.title = stan.projekt.nazwa;
   document.title = `${stan.projekt.nazwa} – ${NAZWA}`;
   zaplanujZapis();
 });
@@ -341,6 +362,7 @@ edytor.addEventListener('zaznaczenie', (e) => {
   panel.pokaz(obj);
 });
 edytor.addEventListener('zmiana', zaplanujZapis);
+podlaczArkusze(); // telefon: arkusze z dołu – uchwyt i widok nad otwartym arkuszem
 // Tekst w trakcie pisania jest zapisywany (i wysyłany na konto) po każdej krótkiej przerwie, nie dopiero po
 // wyjściu z ramki; krok cofania powstaje jak dotąd – po zakończeniu pisania.
 edytor.addEventListener('pisanie', () => zaplanujZapis({ historia: false }));
