@@ -1,4 +1,4 @@
-// Własne kontrolki zamiast systemowych: lista rozwijana i wybór koloru.
+// Własne kontrolki zamiast systemowych: lista rozwijana, wybór koloru i wybór daty.
 //
 // W kodzie aplikacji nadal są zwykłe <select> i <input type="color"> – to one
 // trzymają wartość i wysyłają zdarzenia „input” i „change”. Ten moduł dokłada
@@ -349,17 +349,258 @@ function ulepszKolor(input) {
   przycisk.addEventListener('click', (e) => { e.preventDefault(); if (otwarte?.przycisk === przycisk) zamknijOkienko(); else otworz(); });
 }
 
+// ---------- Wybór daty ----------
+//
+// <input type="date"> zostaje (trzyma wartość RRRR-MM-DD i wysyła „input”/„change”), a obok staje
+// przycisk z datą po polsku i własny kalendarz miesiąca. Atrybut min="dzis" (albo zwykłe min=RRRR-MM-DD)
+// wyłącza dni wcześniejsze.
+
+const MIESIACE = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'];
+const MIESIACA = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
+const DNI_TYGODNIA = ['pn', 'wt', 'śr', 'cz', 'pt', 'so', 'nd'];
+const naIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const zIso = (t) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t || ''); return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null; };
+const dataSlownie = (iso) => { const d = zIso(iso); return d ? `${d.getDate()} ${MIESIACA[d.getMonth()]} ${d.getFullYear()}` : ''; };
+const IKONA_KALENDARZA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+
+function ulepszDate(input) {
+  if (input.dataset.data) return;
+  input.dataset.data = '1';
+  const opak = document.createElement('span');
+  opak.className = 'wybor wybor-daty';
+  const przycisk = document.createElement('button');
+  przycisk.type = 'button';
+  przycisk.className = 'wybor-przycisk';
+  przycisk.setAttribute('aria-haspopup', 'dialog');
+  przycisk.setAttribute('aria-expanded', 'false');
+  przycisk.innerHTML = `<span class="wybor-tekst"></span>${IKONA_KALENDARZA}`;
+  input.before(opak);
+  opak.append(input, przycisk);
+  input.classList.add('wybor-natywny');
+  input.tabIndex = -1;
+  input.setAttribute('aria-hidden', 'true');
+  if (input.id) {
+    const etykieta = document.querySelector(`label[for="${input.id}"]`) || input.closest('label');
+    const tekst = etykieta?.querySelector('span')?.textContent || etykieta?.textContent;
+    if (tekst) przycisk.dataset.etykieta = tekst.trim();
+  }
+  const najwczesniej = () => (input.getAttribute('min') === 'dzis' ? naIso(new Date()) : input.getAttribute('min') || '');
+  const odswiez = () => {
+    const v = wartoscInput.get.call(input);
+    przycisk.querySelector('.wybor-tekst').textContent = v ? dataSlownie(v) : 'Wybierz dzień';
+    przycisk.classList.toggle('pusty', !v);
+    przycisk.disabled = input.disabled;
+    przycisk.setAttribute('aria-label', `${przycisk.dataset.etykieta ? `${przycisk.dataset.etykieta}: ` : ''}${v ? dataSlownie(v) : 'nie wybrano'} – zmień`);
+  };
+  Object.defineProperty(input, 'value', { configurable: true, get() { return wartoscInput.get.call(this); }, set(v) { wartoscInput.set.call(this, v); odswiez(); } });
+  new MutationObserver(odswiez).observe(input, { attributes: true, attributeFilter: ['disabled'] });
+  odswiez();
+
+  const otworz = () => {
+    if (input.disabled) return;
+    const dzis = naIso(new Date());
+    const min = najwczesniej();
+    const wybrany = wartoscInput.get.call(input);
+    let aktywny = zIso(wybrany) || (min && min > dzis ? zIso(min) : new Date());
+    const okienko = document.createElement('div');
+    okienko.className = 'kalendarz-okienko';
+    okienko.setAttribute('role', 'dialog');
+    okienko.setAttribute('aria-label', 'Wybór dnia');
+    okienko.innerHTML = `
+      <div class="kalendarz-naglowek">
+        <button type="button" class="przycisk-ikona maly" data-krok="-1" aria-label="Poprzedni miesiąc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 6-6 6 6 6"/></svg></button>
+        <strong aria-live="polite"></strong>
+        <button type="button" class="przycisk-ikona maly" data-krok="1" aria-label="Następny miesiąc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 6 6 6-6 6"/></svg></button>
+      </div>
+      <div class="kalendarz-siatka" role="grid" tabindex="0"></div>
+      <div class="kalendarz-stopka"><button type="button" class="przycisk maly" data-dzis>Dziś</button></div>`;
+    const siatka = okienko.querySelector('.kalendarz-siatka');
+    const wolno = (iso) => !min || iso >= min;
+    const rysuj = () => {
+      const rok = aktywny.getFullYear(); const mies = aktywny.getMonth();
+      okienko.querySelector('strong').textContent = `${MIESIACE[mies]} ${rok}`;
+      const pierwszy = new Date(rok, mies, 1);
+      const przesuniecie = (pierwszy.getDay() + 6) % 7; // poniedziałek pierwszy
+      const dni = new Date(rok, mies + 1, 0).getDate();
+      const komorki = DNI_TYGODNIA.map((d) => `<span class="kalendarz-dzien-tyg" role="columnheader">${d}</span>`);
+      for (let i = 0; i < przesuniecie; i += 1) komorki.push('<span></span>');
+      for (let d = 1; d <= dni; d += 1) {
+        const iso = naIso(new Date(rok, mies, d));
+        const klasy = ['kalendarz-dzien', iso === dzis ? 'dzis' : '', iso === naIso(aktywny) ? 'aktywny' : ''].filter(Boolean).join(' ');
+        komorki.push(`<button type="button" tabindex="-1" role="gridcell" class="${klasy}" data-dzien="${iso}" aria-selected="${iso === wybrany}" ${wolno(iso) ? '' : 'disabled'} aria-label="${d} ${MIESIACA[mies]} ${rok}">${d}</button>`);
+      }
+      siatka.innerHTML = komorki.join('');
+      siatka.setAttribute('aria-activedescendant', '');
+    };
+    const wybierz = (iso) => {
+      if (!iso || !wolno(iso)) return;
+      const zmiana = iso !== wartoscInput.get.call(input);
+      input.value = iso;
+      zamknijOkienko();
+      przycisk.focus();
+      if (zmiana) { input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); }
+    };
+    const przesun = (dniO) => { aktywny = new Date(aktywny.getFullYear(), aktywny.getMonth(), aktywny.getDate() + dniO); rysuj(); };
+    okienko.addEventListener('click', (e) => {
+      const krok = e.target.closest('[data-krok]');
+      if (krok) { aktywny = new Date(aktywny.getFullYear(), aktywny.getMonth() + Number(krok.dataset.krok), 1); rysuj(); return; }
+      if (e.target.closest('[data-dzis]')) { wybierz(dzis); return; }
+      const dzien = e.target.closest('[data-dzien]');
+      if (dzien) wybierz(dzien.dataset.dzien);
+    });
+    siatka.addEventListener('keydown', (e) => {
+      const ruchy = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+      if (ruchy[e.key]) { e.preventDefault(); przesun(ruchy[e.key]); }
+      else if (e.key === 'PageUp' || e.key === 'PageDown') { e.preventDefault(); aktywny = new Date(aktywny.getFullYear(), aktywny.getMonth() + (e.key === 'PageUp' ? -1 : 1), Math.min(aktywny.getDate(), 28)); rysuj(); }
+      else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); przesun(e.key === 'Home' ? -((aktywny.getDay() + 6) % 7) : 6 - ((aktywny.getDay() + 6) % 7)); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wybierz(naIso(aktywny)); }
+    });
+    okienko.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); zamknijOkienko(); przycisk.focus(); }
+    });
+    rysuj();
+    otworzOkienko(okienko, przycisk, { poZamknieciu: () => przycisk.setAttribute('aria-expanded', 'false') });
+    przycisk.setAttribute('aria-expanded', 'true');
+    siatka.focus();
+  };
+  przycisk.addEventListener('click', (e) => { e.preventDefault(); if (otwarte?.przycisk === przycisk) zamknijOkienko(); else otworz(); });
+  przycisk.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); otworz(); } });
+}
+
+// ---------- Sprawdzanie formularzy ----------
+//
+// Formularze bez własnej obsługi błędów (okna: nowy projekt, sekcja, nazwa, tabela, seria…) dostają
+// „novalidate” – przeglądarka nie pokazuje swoich dymków – a przed zatwierdzeniem aplikacja sprawdza
+// te same reguły (required, min, max, step, minlength, typ) i pisze komunikat po polsku pod polem.
+// Przycisk z „formnovalidate” (Anuluj, Zamknij) zamyka okno bez sprawdzania, jak dotąd.
+
+const liczba = (v) => String(Number(v)).replace('.', ',');
+
+function nazwaPola(pole) {
+  const etykieta = (pole.id && document.querySelector(`label[for="${pole.id}"]`)) || pole.closest('label');
+  const tekst = (etykieta?.querySelector('span')?.textContent || etykieta?.textContent || pole.getAttribute('aria-label') || pole.name || '').trim();
+  const m = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(tekst); // „Szerokość (mm)” → nazwa i jednostka
+  return m ? { nazwa: m[1], jednostka: m[2] } : { nazwa: tekst, jednostka: '' };
+}
+
+export function komunikatPola(pole) {
+  const v = pole.validity;
+  if (v.valid) return '';
+  const { nazwa, jednostka } = nazwaPola(pole);
+  const j = jednostka ? ` ${jednostka}` : '';
+  const min = pole.getAttribute('min'); const max = pole.getAttribute('max');
+  const zakres = () => {
+    if (min != null && max != null) return `${nazwa}: od ${liczba(min)} do ${liczba(max)}${j}.`;
+    if (min != null) return `${nazwa}: co najmniej ${liczba(min)}${j}.`;
+    return `${nazwa}: najwyżej ${liczba(max)}${j}.`;
+  };
+  if (v.badInput) return `${nazwa}: wpisz liczbę.`;
+  if (v.valueMissing) return `Uzupełnij pole „${nazwa}”.`;
+  if (v.rangeUnderflow || v.rangeOverflow) return zakres();
+  if (v.stepMismatch) return `${nazwa}: wpisz wielokrotność ${liczba(pole.getAttribute('step'))}${j}.`;
+  if (v.tooShort) return `${nazwa}: co najmniej ${pole.getAttribute('minlength')} znaki.`;
+  if (v.tooLong) return `${nazwa}: najwyżej ${pole.getAttribute('maxlength')} znaków.`;
+  if (v.typeMismatch && pole.type === 'email') return 'Wpisz poprawny adres e-mail.';
+  return `Sprawdź pole „${nazwa}”.`;
+}
+
+function pokazBlad(pole, tekst) {
+  const id = `${pole.name || pole.id || 'pole'}-blad-${Math.random().toString(36).slice(2, 7)}`;
+  let p = pole.__blad;
+  if (!p) {
+    p = document.createElement('p');
+    p.className = 'blad-pola';
+    p.id = id;
+    p.setAttribute('role', 'alert');
+    // Pod polem; gdy pole stoi w rzędzie obok innych (np. szerokość i wysokość), pod całym rzędem.
+    const etykieta = pole.closest('label') || pole;
+    const rzad = etykieta.parentElement?.closest('.rzad');
+    (rzad && rzad.contains(etykieta) ? rzad : etykieta).after(p);
+    pole.__blad = p;
+    const opis = pole.getAttribute('aria-describedby') || '';
+    pole.setAttribute('aria-describedby', `${opis} ${p.id}`.trim());
+  }
+  p.textContent = tekst;
+  pole.classList.add('z-bledem');
+  pole.setAttribute('aria-invalid', 'true');
+}
+
+function schowajBlad(pole) {
+  const p = pole.__blad;
+  if (!p) return;
+  p.remove();
+  pole.__blad = null;
+  pole.classList.remove('z-bledem');
+  pole.removeAttribute('aria-invalid');
+  const opis = (pole.getAttribute('aria-describedby') || '').split(' ').filter((x) => x && x !== p.id).join(' ');
+  if (opis) pole.setAttribute('aria-describedby', opis); else pole.removeAttribute('aria-describedby');
+}
+
+// Sprawdza formularz; pokazuje komunikaty i ustawia fokus na pierwszym błędnym polu. Zwraca true, gdy wszystko dobrze.
+export function sprawdzFormularz(form) {
+  let pierwsze = null;
+  for (const pole of form.querySelectorAll('input, select, textarea')) {
+    if (pole.disabled || pole.closest('[hidden]') || pole.type === 'hidden') { schowajBlad(pole); continue; }
+    const tekst = komunikatPola(pole);
+    if (tekst) { pokazBlad(pole, tekst); pierwsze ||= pole; } else schowajBlad(pole);
+  }
+  if (pierwsze) {
+    const cel = pierwsze.classList.contains('wybor-natywny') ? pierwsze.parentElement.querySelector('.wybor-przycisk') : pierwsze;
+    cel.focus();
+    cel.scrollIntoView?.({ block: 'nearest' });
+  }
+  return !pierwsze;
+}
+
+function ulepszFormularz(form) {
+  if (form.dataset.sprawdzanie || form.noValidate) return; // formularz z własną obsługą błędów
+  form.dataset.sprawdzanie = '1';
+  form.noValidate = true;
+  // Poprawione pole od razu traci komunikat; formularz wraca do stanu bez błędów przy każdym otwarciu okna.
+  form.addEventListener('input', (e) => { if (e.target.__blad && !komunikatPola(e.target)) schowajBlad(e.target); });
+  form.addEventListener('change', (e) => { if (e.target.__blad && !komunikatPola(e.target)) schowajBlad(e.target); });
+  form.closest('dialog')?.addEventListener('close', () => form.querySelectorAll('.z-bledem').forEach(schowajBlad));
+}
+
+// Zatwierdzenie formularza z błędami: zatrzymane, zanim zobaczy je kod aplikacji (i zanim okno się zamknie).
+document.addEventListener('submit', (e) => {
+  const form = e.target;
+  if (!form.dataset?.sprawdzanie || e.submitter?.formNoValidate) return;
+  if (!sprawdzFormularz(form)) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
+
 // ---------- Podpinanie ----------
 
 function ulepsz(korzen) {
   if (korzen.nodeType !== 1) return;
   if (korzen.matches?.('select')) ulepszSelect(korzen);
   if (korzen.matches?.('input[type="color"]')) ulepszKolor(korzen);
+  if (korzen.matches?.('input[type="date"]')) ulepszDate(korzen);
+  if (korzen.matches?.('form')) ulepszFormularz(korzen);
+  korzen.querySelectorAll?.('form:not([data-sprawdzanie])').forEach(ulepszFormularz);
   korzen.querySelectorAll?.('select:not([data-wybor])').forEach(ulepszSelect);
   korzen.querySelectorAll?.('input[type="color"]:not([data-kolor])').forEach(ulepszKolor);
+  korzen.querySelectorAll?.('input[type="date"]:not([data-data])').forEach(ulepszDate);
+}
+
+// Enter w polu okna zatwierdza okno jego głównym przyciskiem („Zapisz”, „Utwórz”). Bez tego przeglądarka
+// użyłaby pierwszego przycisku formularza – w oknach z krzyżykiem w nagłówku to „Zamknij”, więc Enter
+// zamykał okno bez zapisu.
+const POLA_ENTER = new Set(['text', 'number', 'email', 'password', 'search', 'tel', 'url', '']);
+function enterZatwierdza(e) {
+  if (e.key !== 'Enter' || e.defaultPrevented || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey || e.isComposing) return;
+  const pole = e.target;
+  if (pole?.tagName !== 'INPUT' || !POLA_ENTER.has(pole.type) || pole.readOnly) return;
+  const f = pole.form;
+  if (!f || f.getAttribute('method') !== 'dialog') return;
+  const glowny = f.querySelector('button[value="ok"]:not([disabled])');
+  if (!glowny) return;
+  e.preventDefault();
+  f.requestSubmit(glowny);
 }
 
 export function wlaczWlasneKontrolki() {
+  document.addEventListener('keydown', enterZatwierdza);
   ulepsz(document.body);
   new MutationObserver((zmiany) => {
     for (const z of zmiany) for (const w of z.addedNodes) ulepsz(w);

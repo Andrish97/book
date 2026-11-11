@@ -1152,7 +1152,7 @@ button.podglad-kartka:hover { outline: 2px solid var(--akcent); outline-offset: 
 .wybor-przycisk[aria-expanded="true"] svg { transform: rotate(180deg); }
 .wybor-tekst { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wlasciwosci .wybor-przycisk { min-height: 36px; padding: 6px 7px 6px 9px; font-size: 13px; color: var(--tusz); }
-.wybor-lista, .kolor-okienko {
+.wybor-lista, .kolor-okienko, .kalendarz-okienko {
   position: fixed; z-index: 1000; overflow: auto; overscroll-behavior: contain;
   background: var(--powierzchnia); color: var(--tusz); border: 1px solid var(--linia-mocna); border-radius: var(--r-m);
   box-shadow: var(--cien-3); font-size: 14px;
@@ -1274,4 +1274,60 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 @media (max-width: 860px) {
   .pasek-edytora .pelny-ekran, .pasek-podgladu .pelny-ekran { display: none; }
   .menu .tylko-waski-pasek:not([hidden]) { display: flex; }
+}
+
+/* Zwijane części <details>: zamiast systemowego trójkąta ten sam znaczek co przy zwijanych częściach
+   panelu właściwości (skośna strzałka, obracana przy otwarciu). */
+details > summary { list-style: none; display: flex; align-items: center; gap: 6px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::marker { content: ""; }
+details > summary::before {
+  content: ""; flex: none; width: 6px; height: 6px; border-right: 1.5px solid var(--cichy); border-bottom: 1.5px solid var(--cichy);
+  transform: rotate(-45deg); margin: 0 3px 0 1px; transition: transform var(--czas);
+}
+details[open] > summary::before { transform: rotate(45deg); margin-bottom: 3px; }
+details > summary:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; border-radius: 4px; }
+
+/* Wybór daty (js/kontrolki.js): przycisk z datą po polsku i kalendarz miesiąca. */
+.wybor-przycisk.pusty .wybor-tekst { color: var(--cichy); }
+.kalendarz-okienko { padding: 10px; width: 272px; }
+.kalendarz-naglowek { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
+.kalendarz-naglowek strong { font-size: 14px; font-weight: 600; }
+.kalendarz-naglowek strong::first-letter { text-transform: uppercase; }
+.kalendarz-siatka { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; outline: none; }
+.kalendarz-dzien-tyg { text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--cichy); padding: 4px 0; }
+.kalendarz-dzien {
+  aspect-ratio: 1; display: grid; place-items: center; border: 0; border-radius: var(--r-s); background: none; color: inherit;
+  font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.kalendarz-dzien:hover:not(:disabled) { background: var(--wypelnienie); }
+.kalendarz-dzien.dzis { box-shadow: inset 0 0 0 1.5px var(--akcent); }
+.kalendarz-dzien[aria-selected="true"] { background: var(--akcent); color: var(--akcent-tekst); font-weight: 600; }
+.kalendarz-siatka:focus-visible .kalendarz-dzien.aktywny { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.kalendarz-dzien:disabled { color: var(--linia-mocna); cursor: default; }
+.kalendarz-stopka { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
+
+/* Błąd w formularzu (js/kontrolki.js): komunikat pod polem zamiast systemowego dymku. */
+.blad-pola { margin: -2px 0 0; font-size: 12.5px; color: var(--blad, #b42318); grid-column: 1 / -1; }
+input.z-bledem, select.z-bledem, textarea.z-bledem, .z-bledem + .wybor-przycisk,
+input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b42318) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blad, #b42318) 22%, transparent) !important; outline: none; }
+
+/* Dymek z podpowiedzią (js/dymki.js) – zamiast systemowego dymku z atrybutu „title”. */
+.dymek {
+  position: fixed; z-index: 2000; max-width: min(320px, calc(100vw - 8px)); padding: 6px 9px;
+  background: var(--tusz); color: var(--papier); border-radius: 6px; box-shadow: var(--cien-2, 0 4px 14px rgba(0, 0, 0, .18));
+  font: 500 12.5px/1.35 Inter, system-ui, sans-serif; letter-spacing: 0; text-align: left; white-space: normal;
+  pointer-events: none; animation: dymek-wejscie 120ms ease-out;
+}
+@keyframes dymek-wejscie { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
+
+/* Paski przewijania: cienkie, w kolorach motywu (także w oknach, panelach, liście stron i oknie Dane).
+   Tylko przy myszy – na ekranach dotykowych system pokazuje własne, nakładane i znikające paski. */
+@media (hover: hover) and (pointer: fine) {
+  * { scrollbar-width: thin; scrollbar-color: var(--linia-mocna) transparent; }
+  *:hover { scrollbar-color: var(--cichy) transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--linia-mocna); border: 3px solid transparent; border-radius: 10px; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--cichy); }
 }

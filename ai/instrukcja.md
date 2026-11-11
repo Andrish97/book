@@ -515,7 +515,7 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 - **Unieważnij link** usuwa udostępnione strony; stary adres przestaje działać. Ponowne udostępnienie daje nowy adres.
 - Projekt z czynnym linkiem ma na liście projektów plakietkę **Udostępniony** – kliknięcie otwiera to samo okienko, bez wchodzenia do projektu.
 - Link jest długi i losowy, więc nie da się go zgadnąć – ale każdy, kto go dostanie, może go przekazać dalej.
-- **Ochrona linku** (w tym samym okienku): **Hasło** – osoba z linkiem widzi najpierw pole hasła i dopiero po wpisaniu poprawnego zobaczy strony. **Ważny do wybranego dnia** – po tym dniu link pokazuje „Link wygasł”. Możesz ustawić jedno, drugie albo oba, także przed utworzeniem linku. **Zapisz ochronę** zmienia ustawienia istniejącego linku – adres zostaje ten sam.
+- **Ochrona linku** (w tym samym okienku): **Hasło** – osoba z linkiem widzi najpierw pole hasła i dopiero po wpisaniu poprawnego zobaczy strony. **Ważny do wybranego dnia** – dzień wybierasz w kalendarzu (strzałki obok nazwy miesiąca zmieniają miesiąc, **Dziś** wybiera dzisiejszy dzień; dni, które już minęły, są wyszarzone); po tym dniu link pokazuje „Link wygasł”. Możesz ustawić jedno, drugie albo oba, także przed utworzeniem linku. **Zapisz ochronę** zmienia ustawienia istniejącego linku – adres zostaje ten sam.
 - Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.
 - Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.
 
