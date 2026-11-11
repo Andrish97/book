@@ -110,8 +110,11 @@ test('odległości: wyrównanie do innego elementu, strzałki z odległością, 
   let stan = await strona.evaluate(() => { const e = window.seriodruk.edytor; return { linie: e._liniePrzyciagania.map((l) => [l.os, Math.round(l.poz)]), pomiary: e._pomiary.map((m) => [m.os, Math.round(m.wartosc * 10) / 10]) }; });
   // a i c mają tę samą szerokość, więc pasują naraz lewe krawędzie, środki i prawe.
   assert.deepEqual(stan.linie.filter((l) => l[0] === 'x').map((l) => l[1]).sort((p, q) => p - q), [20, 30, 40]);
-  // W pionie odległość od a (80 − 50); w poziomie – do b, które leży po skosie (50 − 40).
-  assert.deepEqual(stan.pomiary, [['x', 10], ['y', 30]]);
+  // W pionie odległość od a (80 − 50); w poziomie – do b, które leży po skosie (50 − 40). Do b jest też
+  // pomiar w linii prostej, między najbliższymi narożnikami: √(10² + 30²) ≈ 31,6.
+  assert.deepEqual(stan.pomiary, [['x', 10], ['y', 30], ['skos', 31.6]]);
+  const przekatna = await strona.evaluate(() => { const m = window.seriodruk.edytor._pomiary.find((x) => x.os === 'skos'); return [m.a, m.b]; });
+  assert.deepEqual(przekatna, [{ x: 40, y: 80 }, { x: 50, y: 50 }], 'odcinek łączy prawy górny róg c z lewym dolnym rogiem b');
   await strona.mouse.up();
   assert.deepEqual(await polozenie(strona, 'c'), [20, 80]);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor._pomiary.length), 0, 'po puszczeniu strzałki znikają');
@@ -331,7 +334,7 @@ test('zmiana rozmiaru uchwytem: krawędź staje na krawędzi sąsiada, prowadnic
   assert.deepEqual(bledy, []);
 });
 
-test('pomiary (obliczenia): sąsiad po skosie z przedłużeniem krawędzi, obrócony element liczony kształtem', async (t) => {
+test('pomiary (obliczenia): sąsiad po skosie z przedłużeniem krawędzi i odległością po przekątnej, obrócony element liczony kształtem', async (t) => {
   const { strona } = await otworz(t);
   const w = await strona.evaluate(async () => {
     const { pomiary } = await import('./js/przyciaganie.js');
@@ -344,12 +347,32 @@ test('pomiary (obliczenia): sąsiad po skosie z przedłużeniem krawędzi, obró
     const romb = { x: 100, y: 60 - s, w: 2 * s, h: 2 * s, wielokat: [{ x: 100 + s, y: 60 - s }, { x: 100 + 2 * s, y: 60 }, { x: 100 + s, y: 60 + s }, { x: 100, y: 60 }] };
     const rombWyzej = { ...romb, y: romb.y - 8, wielokat: romb.wielokat.map((p) => ({ x: p.x, y: p.y - 8 })) };
     const zaokr = (m) => [m.os, Math.round(m.od * 100) / 100, Math.round(m.do * 100) / 100, Math.round(m.wartosc * 100) / 100];
-    return { skos: skos.map((m) => [...zaokr(m), m.poprzek, m.dociagniecie]), romb: pomiary(r, [romb]).map(zaokr), rombWyzej: pomiary(r, [rombWyzej]).map(zaokr) };
+    const z2 = (v) => Math.round(v * 100) / 100;
+    const poOsiach = (lista) => lista.filter((m) => m.os !== 'skos');
+    const przekatne = (lista) => lista.filter((m) => m.os === 'skos').map((m) => [z2(m.a.x), z2(m.a.y), z2(m.b.x), z2(m.b.y), z2(m.wartosc)]);
+    // Romb po skosie (w prawo i w dół): najbliżej jest jego lewy górny bok, nie róg.
+    const rombSkos = { x: 100, y: 100, w: 2 * s, h: 2 * s, wielokat: [{ x: 100 + s, y: 100 }, { x: 100 + 2 * s, y: 100 + s }, { x: 100 + s, y: 100 + 2 * s }, { x: 100, y: 100 + s }] };
+    // Dwóch sąsiadów po skosie i jeden naprzeciwko: przekątne tylko do tych po skosie, każda raz.
+    const kilku = pomiary(r, [{ x: 100, y: 10, w: 20, h: 20 }, { x: 10, y: 100, w: 20, h: 20 }, { x: 55, y: 120, w: 10, h: 10 }]);
+    return {
+      skos: poOsiach(skos).map((m) => [...zaokr(m), m.poprzek, m.dociagniecie]), przekatna: przekatne(skos), klucze: skos.map((m) => Object.keys(m).includes('sasiad')),
+      romb: poOsiach(pomiary(r, [romb])).map(zaokr), rombPrzekatne: przekatne(pomiary(r, [romb])), rombWyzej: poOsiach(pomiary(r, [rombWyzej])).map(zaokr),
+      rombSkos: przekatne(pomiary(r, [rombSkos])), kilku: przekatne(kilku),
+    };
   });
   assert.deepEqual(w.skos, [
     ['x', 70, 100, 30, 60, { poz: 100, od: 30, do: 60 }],
     ['y', 30, 50, 20, 60, { poz: 30, od: 60, do: 100 }],
   ]);
+  // Po przekątnej: od prawego górnego rogu r (70, 50) do lewego dolnego rogu sąsiada (100, 30) – √(30² + 20²).
+  assert.deepEqual(w.przekatna, [[70, 50, 100, 30, 36.06]]);
+  assert.deepEqual(w.klucze, [false, false, false], 'pomiar nie niesie odwołania do sąsiada');
+  // Sąsiad naprzeciwko (wspólny zakres w pionie) nie dostaje przekątnej.
+  assert.deepEqual(w.rombPrzekatne, []);
+  // Obrócony sąsiad po skosie: najbliższy punkt leży na jego boku, prostopadle od rogu r (70, 70).
+  // Bok leży na prostej x + y = 200 + 10√2, więc odległość to (200 + 10√2 − 140) / √2 ≈ 52,43.
+  assert.deepEqual(w.rombSkos, [[70, 70, 107.07, 107.07, 52.43]]);
+  assert.deepEqual(w.kilku, [[50, 70, 30, 100, 36.06], [70, 50, 100, 30, 36.06]]);
   // Romb na tej samej wysokości: 30 mm do jego lewego rogu.
   assert.deepEqual(w.romb, [['x', 70, 100, 30]]);
   // Romb przesunięty o 8 mm w górę: na wysokości pomiaru jego krawędź jest dalej niż prostokąt otaczający (100) – to ok. 5,7 mm różnicy.

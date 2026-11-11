@@ -21,7 +21,7 @@ export const SKROTY = [
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyS'], opis: 'Zapisz od razu (zapis i tak jest automatyczny)', zawsze: true, akcja: (k) => k.zapisz() },
 
   // ---------- Zaznaczanie ----------
-  { grupa: 'Zaznaczanie', klawisze: ['Ctrl+KeyA'], opis: 'Zaznacz wszystko na stronie', akcja: (k) => k.edytor.zaznaczWszystko() },
+  { grupa: 'Zaznaczanie', klawisze: ['Ctrl+KeyA'], opis: 'Zaznacz wszystko na stronie (w otwartej grupie: jej elementy)', akcja: (k) => k.edytor.zaznaczWszystko() },
   { grupa: 'Zaznaczanie', klawisze: ['Escape'], opis: 'Odznacz (w otwartej grupie: wróć do całej grupy)', akcja: (k) => k.edytor.odznacz() },
   { grupa: 'Zaznaczanie', klawisze: ['Tab'], opis: 'Następny element', akcja: (k) => k.edytor.zaznaczSasiedni(1) },
   { grupa: 'Zaznaczanie', klawisze: ['Shift+Tab'], opis: 'Poprzedni element', akcja: (k) => k.edytor.zaznaczSasiedni(-1) },

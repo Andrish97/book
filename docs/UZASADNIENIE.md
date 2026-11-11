@@ -147,7 +147,7 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Co jest.** Przy przesuwaniu: różowe linie wyrównania do krawędzi i środków innych elementów, strzałki z odległością w mm do najbliższych sąsiadów, fioletowe oznaczenie równych odstępów (środek między sąsiadami albo odstęp powtórzony z tego samego rzędu). Alt przy zaznaczonym elemencie pokazuje odległości także do krawędzi strony.
 **Dlaczego tak.** Obliczenia są w osobnym pliku (`js/przyciaganie.js`) na samych prostokątach w mm – dzięki temu mają własne testy, niezależne od płótna.
 **Poprawione.** Gdy naprzeciwko nie ma sąsiada, mierzony jest najbliższy element po skosie (z przedłużeniem jego krawędzi). Obrócony element liczy się swoim kształtem, nie prostokątem dookoła.
-**Słabe.** Pomiar po skosie pokazuje odległość w poziomie i w pionie, nie po przekątnej.
+**Poprawione (decyzja #66).** Sąsiad po skosie dostaje, oprócz odległości w poziomie i w pionie, przerywany odcinek z odległością w linii prostej – między najbliższymi sobie punktami obu elementów (narożniki, a przy elemencie obróconym także punkt na boku).
 
 ### D13. Skróty klawiszowe ✅
 **Co jest.** Ponad 50 skrótów jak w programach do składu: edycja, zaznaczanie, przesuwanie, układ, tekst (także w trakcie pisania), wstawianie, widok, strony. Alt przy przeciąganiu zostawia kopię, Shift trzyma jedną oś i obraca co 15°, spacja z przeciąganiem przesuwa widok.
@@ -159,7 +159,8 @@ Wyrównanie do marginesów (jeden element) lub do siebie (kilka), równe odstęp
 **Poprawione.** Warstwy są zakładką prawego panelu, obok właściwości (dotyczą tego samego: elementów otwartej strony). Kolejność zmienia się też przyciskami ▲▼ – działa na dotyku. Elementy wzorców są na liście, z nazwą wzorca; kliknięcie otwiera wzorzec.
 **Poprawione w rundzie „słabych stron” (decyzja #61).** Grupę da się rozwinąć na liście warstw: każdy jej element ma własne oko i nazwę.
 **Poprawione (decyzja #65).** Grupę otwiera podwójne kliknięcie (albo kliknięcie jej elementu na liście warstw): element można przesunąć, przeskalować, obrócić, zmienić we właściwościach i napisać w nim tekst – bez rozgrupowywania. Otwartą grupę widać po pomarańczowej ramce z podpisem; Esc, kliknięcie obok albo „Wróć do całej grupy” ją zamyka, a grupa zachowuje identyfikator i miejsce wśród warstw. Grupowanie i rozgrupowanie nie zmieniają już kolejności: grupa staje tam, gdzie był jej najwyższy element, a elementy po rozgrupowaniu tam, gdzie była grupa.
-**Słabe.** W otwartej grupie zaznacza się po jednym elemencie; obrazu nie kadruje się w niej przeciąganiem, a kształtu nie zmienia punkt po punkcie; grupa w grupie się nie otwiera.
+**Poprawione (decyzja #66).** W otwartej grupie działa kadrowanie obrazu przeciąganiem i edycja punktów kształtu (także w grupie obróconej), zaznaczanie kilku elementów naraz (Shift+kliknięcie, Ctrl+A) z przesuwaniem, wyrównaniem, kopiowaniem i usuwaniem oraz grupa w grupie: podwójne kliknięcie otwiera kolejny poziom, Esc wraca o jeden. Lista warstw pokazuje zagnieżdżenie z wcięciem.
+**Słabe.** W otwartej grupie nie ma ramki zaznaczenia przeciąganiem. Na czas kadrowania i edycji punktów element jest rysowany nad całą grupą. Kolejność zmienia się tylko dla pojedynczego elementu grupy; blokadę i „Z danych” ma cała grupa.
 
 ### D5. Obrazy ✅ / ⚠️
 **Co jest.** Obraz jest zasobem projektu; strona na niego wskazuje. Kadrowanie przeciąganiem i liczbami. **Nowe:** duże zdjęcia (dłuższy bok ponad 2000 px) pokazują się w edytorze, miniaturach i podglądzie jako lżejsza kopia robocza (1600 px); do PDF i PNG idzie oryginał (`js/obrazy.js`).

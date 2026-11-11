@@ -89,8 +89,11 @@ export class PanelWlasciwosci {
     if (toZaznaczenie(obj)) {
       this.tytul.textContent = `Zaznaczone elementy: ${obj.size()}`;
       const s = this.sekcja('Zaznaczenie');
-      s.append(this.wskazowka('Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
-      s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()]]));
+      const wOtwartej = this.edytor.wOtwartejGrupie(obj);
+      s.append(this.wskazowka(wOtwartej
+        ? 'To elementy otwartej grupy: przesuwasz je razem i wyrównujesz do siebie. „Zgrupuj” zrobi z nich grupę w tej grupie. Esc wraca do całej grupy.'
+        : 'Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
+      s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()], ...(wOtwartej ? [['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]] : [])]));
       if (obj.getObjects().every((o) => o.type === 'textbox')) {
         const p = this.sekcja('Przelewanie tekstu');
         p.append(this.wskazowka('Po połączeniu tekst, który nie mieści się w pierwszej ramce, płynie do następnej (z góry na dół, obok siebie – od lewej).'));
@@ -114,7 +117,7 @@ export class PanelWlasciwosci {
     if (wGrupie) {
       this.tytul.textContent = `${nazwaTypu(obj)} w grupie`;
       const g = this.sekcja('Element grupy');
-      g.append(this.wskazowka('Zmieniasz jeden element grupy. Kliknij poza grupą albo naciśnij Esc, żeby grupa znów była jednym elementem.'));
+      g.append(this.wskazowka('Zmieniasz jeden element grupy. Z Shiftem zaznaczysz kilka naraz. Kliknij poza grupą albo naciśnij Esc, żeby grupa znów była jednym elementem.'));
       g.append(this.akcje([['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]]));
     }
     if (toTabela(obj)) this.zbudujTabele(obj);
@@ -124,7 +127,7 @@ export class PanelWlasciwosci {
     if (obj.type === 'line' || obj.type === 'path') this.zbudujLinie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
-    if (!wGrupie) this.zbudujWyrownanie(1);
+    this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
     this.zbudujCien(obj);
     if (!wGrupie) this.zbudujZDanych(obj);
@@ -211,13 +214,16 @@ export class PanelWlasciwosci {
     ]);
     seg.classList.add('szeroki');
     s.append(seg);
-    if (obj.type === 'group' && !toTabela(obj) && !e.wOtwartejGrupie(obj)) {
+    if (obj.type === 'group' && !toTabela(obj)) {
+      // Grupa na arkuszu albo grupa leżąca w otwartej grupie (ta otwiera się jako kolejny poziom).
       s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()], ...(obj.zablokowany ? [] : [['dlon', 'Zmień element grupy', () => e.otworzGrupe(obj)]])]));
       // Grupa z rozłożonego rysunku SVG, który był przycięty jako obraz.
       if (obj.clipPath && !obj.clipPath.absolutePositioned) {
         s.append(this.akcje([['dopasuj', 'Pokaż cały rysunek (zdejmij przycięcie)', () => { obj.set({ clipPath: undefined, dirty: true }); e.canvas.requestRenderAll(); e.oznaczZmiane(); this.zbuduj(); }]]));
       }
-      s.append(this.wskazowka('Pojedynczy element grupy zmienisz bez rozgrupowywania: kliknij go dwa razy na stronie.'));
+      s.append(this.wskazowka(e.wOtwartejGrupie(obj)
+        ? 'To grupa w grupie: kliknij ją dwa razy, żeby zmienić jej element. Esc wraca poziom wyżej.'
+        : 'Pojedynczy element grupy zmienisz bez rozgrupowywania: kliknij go dwa razy na stronie.'));
     }
   }
 
@@ -828,7 +834,7 @@ export class PanelWlasciwosci {
     if (obj.type !== 'path') return;
     // Zamknięty kształt (z pióra) może mieć wypełnienie.
     if (obj.path?.some((k) => k[0] === 'Z')) s.append(this.kolor('Wypełnienie', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
-    const punkty = this.akcje([['suwaki', 'Edytuj punkty', () => { if (!this.edytor.edytujPunkty(obj)) powiadom('Punkty edytuje się w kształcie, który nie jest zablokowany ani zgrupowany.'); }]]);
+    const punkty = this.akcje([['suwaki', 'Edytuj punkty', () => { if (!this.edytor.edytujPunkty(obj)) powiadom('Punkty edytuje się w kształcie, który nie jest zablokowany. Kształt w grupie: najpierw kliknij grupę dwa razy.'); }]]);
     punkty.classList.add('tylko-duzy-ekran');
     s.append(punkty);
     s.append(this.wskazowka('Albo kliknij kształt dwa razy.'));
@@ -837,7 +843,7 @@ export class PanelWlasciwosci {
   zbudujObraz(obj) {
     const { nw, nh } = rozmiarOryginalu(obj);
     const kadr = this.sekcja('Kadrowanie');
-    const kadrRamka = this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz albo obraz w grupie przytnij liczbami poniżej.'); }]]);
+    const kadrRamka = this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz przytnij liczbami poniżej.'); }]]);
     kadrRamka.classList.add('tylko-duzy-ekran');
     kadr.append(kadrRamka);
     kadr.append(this.wskazowka('Albo kliknij obraz dwa razy.'));
