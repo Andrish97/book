@@ -82,6 +82,10 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     wyslania: [], // kolejne wysłane pliki (klucze), także powtórnie
     strony: new Map(), // wiersze projekty_strony: "projekt/strona" -> dane
     zapisy: [], // kolejne zapisy projektu: które strony wysłano, ile ich jest
+    opoznienieZapisu: 0, // ms – „wolna sieć” przy zapisie projektu
+    wTrakcieZapisu: 0, // ile zapisów projektu czeka teraz na odpowiedź
+    najwiecejNaraz: 0, // największa liczba zapisów biegnących jednocześnie
+    konflikty: 0, // ile razy baza odmówiła zapisu, bo urządzenie nie znało bieżącej wersji
     wyslane: [], // „e-maile”: { typ, email }
     zadania: [],
   };
@@ -156,12 +160,18 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       const k = zTokenu(req);
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
       stan.zapisy.push({ strony: (tresc.p_strony || []).map((x) => x.id), wszystkie: tresc.p_dane.strony.length });
+      stan.wTrakcieZapisu += 1;
+      stan.najwiecejNaraz = Math.max(stan.najwiecejNaraz, stan.wTrakcieZapisu);
+      // Wolna sieć na życzenie testu: odpowiedź przychodzi po chwili.
+      if (stan.opoznienieZapisu) await new Promise((ok) => { setTimeout(ok, stan.opoznienieZapisu); });
+      stan.wTrakcieZapisu -= 1;
       let p = stan.projekty.find((x) => x.id === tresc.p_id);
       if (p && p.owner_id !== k.id) return blad(r, 409, 'duplicate key value violates unique constraint', '23505');
       if (!p) {
         p = { id: tresc.p_id, owner_id: k.id, wersja: 0 };
         stan.projekty.push(p);
       } else if (!tresc.p_wymus && tresc.p_znana_wersja !== p.wersja) {
+        stan.konflikty += 1;
         return json(r, 200, { konflikt: true, wersja: p.wersja, zmieniono: p.zmieniono });
       }
       Object.assign(p, { nazwa: tresc.p_nazwa, dane: tresc.p_dane, zmieniono: tresc.p_zmieniono, wersja: p.wersja + 1 });

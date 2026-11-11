@@ -529,7 +529,7 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Zapis, pliki i kilka urządzeń',
-    wstep: 'Zmiany zapisują się same: najpierw na urządzeniu, kilka sekund później na koncie.',
+    wstep: 'Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na koncie.',
     obraz: 'menu.png',
     podpis: 'Menu projektu na liście projektów.',
     punkty: [

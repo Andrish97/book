@@ -255,13 +255,32 @@ export async function zapiszTeraz() {
   return stan.zapisywanie;
 }
 
-export function zaplanujChmure(opoznienie = 2500) {
+// Wysyłka na konto rusza zaraz po zapisie w przeglądarce (razem ok. sekundy od zmiany).
+const OPOZNIENIE_KONTA = 300;
+
+export function zaplanujChmure(opoznienie = OPOZNIENIE_KONTA) {
   if (!stan.uzytkownik) return;
   clearTimeout(stan.timerChmury);
   stan.timerChmury = setTimeout(synchronizuj, opoznienie);
 }
 
-export async function synchronizuj({ wymus = false } = {}) {
+// Naraz biegnie jedna wysyłka. Zmiany zrobione w jej trakcie nie ruszają drugiej obok – czeka jedna
+// następna, która po zakończeniu poprzedniej wyśle najnowszy stan (baza nie dostaje zapisu na każde
+// naciśnięcie klawisza, a druga wysyłka nie rozmija się z numerem wersji pierwszej).
+let kolejkaKonta = Promise.resolve();
+let czekaWysylka = false;
+
+export function synchronizuj({ wymus = false } = {}) {
+  if (czekaWysylka && !wymus) return kolejkaKonta;
+  if (!wymus) czekaWysylka = true;
+  kolejkaKonta = kolejkaKonta.then(() => {
+    if (!wymus) czekaWysylka = false;
+    return wyslijNaKonto({ wymus });
+  });
+  return kolejkaKonta;
+}
+
+async function wyslijNaKonto({ wymus = false } = {}) {
   const p = stan.projekt;
   if (!stan.uzytkownik || !p) return;
   if (!navigator.onLine) {
