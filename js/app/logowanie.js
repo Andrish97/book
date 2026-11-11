@@ -39,9 +39,9 @@ export function odswiezNaglowek() {
   const u = stan.uzytkownik;
   const nazwa = u ? chmura.nazwaUzytkownika(u) : '';
   $('#awatar').textContent = (nazwa || '?')[0].toUpperCase();
-  $('#awatar').title = u ? `Konto: ${nazwa}` : 'Tryb bez konta';
-  $('#nazwa-uzytkownika').textContent = u ? nazwa : 'Tryb bez konta';
-  $('#email-uzytkownika').textContent = u ? u.email : 'Projekty tylko w tej przeglądarce';
+  $('#awatar').title = u ? `Konto: ${nazwa}` : 'Nie zalogowano';
+  $('#nazwa-uzytkownika').textContent = u ? nazwa : 'Nie zalogowano';
+  $('#email-uzytkownika').textContent = u ? u.email : '';
   $('#pozycja-konto').hidden = !u;
   $('[data-akcja="wyloguj"]').lastChild.textContent = u ? 'Wyloguj' : 'Przejdź do logowania';
 }
