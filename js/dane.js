@@ -8,7 +8,7 @@ import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabe
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
 import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany, wierszPomijany, ZNACZNIK_POMIJANIA } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
-import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana, zapytajONazwe } from './ui.js';
+import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
@@ -193,6 +193,23 @@ export class Dane {
     if (poz < tekst.length) td.append(tekst.slice(poz));
   }
 
+  // Okno listy dozwolonych wartości kolumny: zwraca listę wartości, [] (usuń listę) albo null (anulowano).
+  _zapytajOListe(nazwa, wartosci) {
+    const dlg = $('#dlg-lista-kolumny');
+    $('#lista-kolumny-tytul').textContent = `Dozwolone wartości kolumny „${nazwa}”`;
+    const pole = $('#lista-kolumny-wartosci');
+    pole.value = wartosci.join('\n');
+    $('#lista-kolumny-usun').hidden = !wartosci.length;
+    dlg.returnValue = '';
+    dlg.showModal();
+    pole.focus();
+    return new Promise((ok) => dlg.addEventListener('close', () => {
+      if (dlg.returnValue === 'usun') ok([]);
+      else if (dlg.returnValue === 'tak') ok([...new Set(pole.value.split(/[;\n]/).map((v) => v.trim()).filter(Boolean))]);
+      else ok(null);
+    }, { once: true }));
+  }
+
   _komorka(w, k) {
     if (w >= (this._narysowane || 0)) this._dopiszWiersze(w + PORCJA_WIERSZY);
     return this.siatka.querySelector(`td[data-w="${w}"][data-k="${k}"]`);
@@ -333,11 +350,10 @@ export class Dane {
       const pilnuj = e.target.closest('.pilnuj-kolumne');
       const lista = e.target.closest('.lista-kolumny');
       if (lista) {
-        // Lista dozwolonych wartości: wpisywane po średniku; samo „-” usuwa listę.
+        // Lista dozwolonych wartości: każda w osobnym wierszu albo po średniku; „Usuń listę” ją usuwa.
         const nazwa = t.kolumny[Number(lista.dataset.k)];
-        const odp = await zapytajONazwe(`Dozwolone wartości kolumny „${nazwa}”`, 'Wartości po średniku, np. tak; nie. Samo „-” usuwa listę.', (t.listy?.[nazwa] || []).join('; '));
-        if (odp === null) return;
-        const wartosci = [...new Set(odp.split(/[;\n]/).map((v) => v.trim()).filter((v) => v && v !== '-'))];
+        const wartosci = await this._zapytajOListe(nazwa, t.listy?.[nazwa] || []);
+        if (wartosci === null) return;
         t.listy = { ...t.listy };
         if (wartosci.length) t.listy[nazwa] = wartosci; else delete t.listy[nazwa];
         if (!Object.keys(t.listy).length) delete t.listy;

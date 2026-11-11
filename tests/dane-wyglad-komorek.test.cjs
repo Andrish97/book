@@ -117,3 +117,34 @@ test('import pliku bez wyglądu (CSV) w miejsce tabeli zachowuje wygląd komóre
   assert.equal((await tabela(strona)).wyglad, undefined);
   assert.deepEqual(bledy, []);
 });
+
+test('lista dozwolonych wartości kolumny: okno z wartościami w wierszach, zapis, anulowanie i „Usuń listę”', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Lista kolumny');
+  await strona.evaluate(() => {
+    window.seriodruk.stan.projekt.tabele.push({ id: 't1', nazwa: 'Dni', kolumny: ['dzien', 'typ'], wiersze: [['1', 'święto'], ['2', 'zwykły']] });
+  });
+  await strona.evaluate(() => window.seriodruk.dane.otworz());
+  await strona.waitForSelector('#dlg-dane[open]');
+  await strona.click('#dane-siatka .lista-kolumny[data-k="1"]');
+  await strona.waitForSelector('#dlg-lista-kolumny[open]');
+  assert.equal(await strona.isVisible('#lista-kolumny-usun'), false, 'bez listy nie ma czego usuwać');
+  await strona.fill('#lista-kolumny-wartosci', 'święto\nwolne; zwykły\n\nświęto');
+  await strona.click('#dlg-lista-kolumny button[value="tak"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].listy);
+  assert.deepEqual((await tabela(strona)).listy, { typ: ['święto', 'wolne', 'zwykły'] });
+  assert.equal(await strona.getAttribute('#dane-siatka .lista-kolumny[data-k="1"]', 'aria-pressed'), 'true');
+  // Anulowanie niczego nie zmienia; okno pokazuje wartości po jednej w wierszu.
+  await strona.click('#dane-siatka .lista-kolumny[data-k="1"]');
+  assert.equal(await strona.inputValue('#lista-kolumny-wartosci'), 'święto\nwolne\nzwykły');
+  await strona.click('#dlg-lista-kolumny button[value="nie"]');
+  await strona.waitForSelector('#dlg-lista-kolumny', { state: 'hidden' });
+  assert.deepEqual((await tabela(strona)).listy, { typ: ['święto', 'wolne', 'zwykły'] });
+  // „Usuń listę” usuwa ją jednym kliknięciem.
+  await strona.click('#dane-siatka .lista-kolumny[data-k="1"]');
+  await strona.click('#lista-kolumny-usun');
+  await strona.waitForFunction(() => !window.seriodruk.stan.projekt.tabele[0].listy);
+  assert.equal((await tabela(strona)).listy, undefined);
+  assert.equal(await strona.getAttribute('#dane-siatka .lista-kolumny[data-k="1"]', 'aria-pressed'), 'false');
+  assert.deepEqual(bledy, []);
+});

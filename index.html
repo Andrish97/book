@@ -834,6 +834,21 @@
     </form>
   </dialog>
 
+  <!-- Lista dozwolonych wartości kolumny (okno Dane, ☰ przy kolumnie) -->
+  <dialog id="dlg-lista-kolumny">
+    <form method="dialog" class="formularz">
+      <h2 id="lista-kolumny-tytul">Dozwolone wartości</h2>
+      <label class="pole"><span>Wartości – każda w osobnym wierszu albo po średniku</span><textarea id="lista-kolumny-wartosci" rows="6"></textarea></label>
+      <p class="podpowiedz">Komórki z inną wartością są podświetlone i trafiają na listę „Sprawdź przed drukiem”. W szablonie danych komórki tej kolumny dostaną listę rozwijaną.</p>
+      <div class="przyciski-dialogu">
+        <button class="przycisk niebezpieczny" value="usun" id="lista-kolumny-usun" formnovalidate>Usuń listę</button>
+        <span class="odstep"></span>
+        <button class="przycisk" value="nie" formnovalidate>Anuluj</button>
+        <button class="przycisk glowny" value="tak">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Menu kontekstowe strony -->
   <div class="menu menu-strony" id="menu-strony" role="menu" hidden>
     <button role="menuitem" data-akcja="strona-nazwa">Zmień nazwę</button>

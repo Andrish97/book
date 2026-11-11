@@ -260,7 +260,7 @@ export const ROZDZIALY = [
       '<b>Wiersz pomijany</b> wstawia wiersz ze znacznikiem <code>[pomiń]</code> w pierwszej komórce – nad wierszem, w którym stoi kursor, a bez kursora na początku tabeli. W serii taki wiersz zajmuje miejsce w bloku stron, ale strona dla niego nie powstaje; służy do wyrównania danych z blokiem (rozdział „Serie: powielanie stron”). Wiersz jest szary i ma podpis „pomijany”.',
       'Długa tabela (tysiące wierszy) przewija się w całości – kolejne wiersze dorysowują się w miarę przewijania.',
       '<b>Pilnowanie powtórzeń</b>: znak <b>≠</b> przy nazwie kolumny oznacza, że wartości w niej nie powinny się powtarzać (np. tagi, hasła dnia). Powtórzone komórki są podświetlone na czerwono, a przed drukiem aplikacja pokaże, na których stronach ta sama wartość wypada dwa razy. Wielkość liter i zbędne spacje nie mają znaczenia: „Praca”, „praca ” i „PRACA” to ta sama wartość.',
-      '<b>Lista dozwolonych wartości</b>: znak <b>☰</b> przy nazwie kolumny otwiera pole, w którym wpisujesz wartości po średniku, np. <code>praca; dom; wolne</code> (samo <code>-</code> usuwa listę). Komórki z inną wartością są podświetlone, przed drukiem aplikacja je wymieni, a w szablonie danych komórki tej kolumny dostają listę rozwijaną.',
+      '<b>Lista dozwolonych wartości</b>: znak <b>☰</b> przy nazwie kolumny otwiera okno, w którym wpisujesz wartości – każdą w osobnym wierszu albo po średniku, np. <code>praca; dom; wolne</code>. Przycisk <b>Usuń listę</b> ją usuwa. Komórki z inną wartością są podświetlone, przed drukiem aplikacja je wymieni, a w szablonie danych komórki tej kolumny dostają listę rozwijaną.',
     ],
   },
   {

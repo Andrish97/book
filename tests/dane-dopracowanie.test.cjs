@@ -284,9 +284,9 @@ test('szablon danych: listy rozwijane w komórkach (kadr, pliki obrazów, warune
   await strona.evaluate(() => window.seriodruk.dane.otworz('t1'));
   await strona.waitForSelector('#dlg-dane[open]');
   await strona.click('#dane-siatka .lista-kolumny[data-k="4"]');
-  await strona.waitForSelector('#dlg-nazwa[open]');
-  await strona.fill('#dlg-nazwa input', 'praca; dom ;; wolne; dom');
-  await strona.click('#dlg-nazwa button[value=tak]');
+  await strona.waitForSelector('#dlg-lista-kolumny[open]');
+  await strona.fill('#lista-kolumny-wartosci', 'praca; dom ;; wolne; dom');
+  await strona.click('#dlg-lista-kolumny button[value=tak]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].listy);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele[0].listy), { rodzaj: ['praca', 'dom', 'wolne'] });
   assert.equal(await strona.getAttribute('#dane-siatka .lista-kolumny[data-k="4"]', 'aria-pressed'), 'true');
