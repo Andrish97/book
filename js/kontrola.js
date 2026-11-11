@@ -3,7 +3,7 @@
 
 import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU } from './pola.js';
 import { wzorceStrony } from './projekt.js';
-import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany } from './serie.js';
+import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
 import { odmiana } from './ui.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
@@ -99,7 +99,7 @@ export function spozaListy(tabela, kolumna) {
   const gdzie = new Map();
   tabela.wiersze.forEach((w, i) => {
     const v = (w[k] ?? '').trim();
-    if (!v || dozwolone.has(tasama(v))) return;
+    if (!v || dozwolone.has(tasama(v)) || wierszPomijany(w)) return; // wiersz pomijany nie niesie danych
     const wpis = gdzie.get(tasama(v)) || { kolumna, wartosc: v, wiersze: [] };
     wpis.wiersze.push(i);
     gdzie.set(tasama(v), wpis);
@@ -128,7 +128,11 @@ export function szablonSerii(projekt, seria) {
     : `Jeden wiersz to jedno powielenie bloku (${n} ${odmiana(n, 'strona', 'strony', 'stron')}).`;
   const role = roleKolumn(projekt, seria);
   const listy = [];
-  kolumny.forEach((k, i) => { const l = listaKolumny(projekt, tabela, k, role.get(k)); if (l) listy.push({ kolumna: i, ...l }); });
+  kolumny.forEach((k, i) => {
+    const l = listaKolumny(projekt, tabela, k, role.get(k));
+    // Ścisła lista w pierwszej kolumnie musi przepuścić znacznik wiersza pomijanego.
+    if (l) listy.push({ kolumna: i, ...l, ...(i === 0 && l.scisla && seria.tryb === 'tabela' ? { wartosci: [...l.wartosci, ZNACZNIK_POMIJANIA] } : {}) });
+  });
   // Co wpisać w kolumnie – według tego, do czego strony jej używają (kolumna może mieć kilka zastosowań).
   const coWpisac = (k) => {
     const r = role.get(k) || { warunki: new Set() };
@@ -141,9 +145,13 @@ export function szablonSerii(projekt, seria) {
       r.warunek ? `Od tej kolumny zależy, czy element jest na stronie${r.warunki.size ? ` (sprawdzana wartość: ${[...r.warunki].join(', ')})` : ''}.` : '',
     ].filter(Boolean).join(' ');
   };
+  // Wiersz pomijany: jak go wpisać w arkuszu i co robi.
+  const pomijanie = seria.tryb === 'tabela'
+    ? ` Wiersz pomijany: wpisz ${ZNACZNIK_POMIJANIA} w pierwszej komórce wiersza (kolumna „${kolumny[0]}”), a ${seria.uklad === 'dlugi' ? 'strona dla tego wiersza nie powstanie, choć wiersz zajmie swoje miejsce w bloku' : 'całe powielenie bloku dla tego wiersza nie powstanie'} – tak wyrównuje się dane z blokiem, np. gdy rok zaczyna się w środku tygodnia.`
+    : '';
   const instrukcja = [
     ['Seria', seria.nazwa],
-    ['Jak wypełniać', `${coWiersz} Pierwszy wiersz arkusza to nazwy kolumn – nie zmieniaj ich. Gotowy plik zaimportuj w oknie „Dane”.${listy.length ? ' Komórki niektórych kolumn mają listę rozwijaną z wartościami do wyboru.' : ''}`],
+    ['Jak wypełniać', `${coWiersz} Pierwszy wiersz arkusza to nazwy kolumn – nie zmieniaj ich. Gotowy plik zaimportuj w oknie „Dane”.${pomijanie}${listy.length ? ' Komórki niektórych kolumn mają listę rozwijaną z wartościami do wyboru.' : ''}`],
     [],
     ['Kolumna', 'Gdzie jest użyta', 'Co wpisać'],
     ...kolumny.map((k, i) => {
@@ -171,7 +179,7 @@ export function powtorzenia(tabela, kolumna) {
   const gdzie = new Map();
   tabela.wiersze.forEach((w, i) => {
     const v = (w[k] ?? '').trim();
-    if (!v) return;
+    if (!v || wierszPomijany(w)) return; // wiersz pomijany nie niesie danych
     const wpis = gdzie.get(tasama(v)) || { wartosc: v, wiersze: [] };
     wpis.wiersze.push(i);
     gdzie.set(tasama(v), wpis);
@@ -271,7 +279,18 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   // Serie: brak danych w tabelach dodatkowych, ostatni blok dokańczany pustymi stronami, za mało wartości.
   for (const seria of projekt.serie) {
     const wierszy = tabelaSerii(projekt, seria)?.wiersze.length || 0;
+    const zDanymi = wierszyZDanymi(tabelaSerii(projekt, seria));
     for (const blok of bilansSerii(projekt, seria, ciag)) {
+      if (blok.puste.length) {
+        const ile = blok.puste.length;
+        uwagi.push({ rodzaj: 'pusta_strona', strony: blok.puste, opis: `Seria „${seria.nazwa}”: ${odmiana(ile, 'wstawiona została pusta strona', 'wstawione zostały puste strony', 'wstawionych zostało pustych stron')} (${odmiana(ile, 'strona', 'strony', 'strony')} ${lista(blok.puste)}), żeby strony lewe zostały po lewej, a prawe po prawej. Pusta strona jest biała i liczy się w numeracji.` });
+      }
+      if (blok.zamianaOd !== null) {
+        uwagi.push({ rodzaj: 'zamiana_stron', strony: [blok.zamianaOd], opis: `Seria „${seria.nazwa}”: od strony ${blok.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki niż w układzie stron (lewa po prawej, prawa po lewej). Zaznacz w oknie serii „Pilnuj lewej i prawej strony”, a w takim miejscu stanie pusta strona.` });
+      }
+      if (!blok.stron && blok.pominietych) {
+        uwagi.push({ rodzaj: 'seria_bez_stron', strony: [], opis: `Seria „${seria.nazwa}”: wszystkie wiersze tabeli są pomijane (${ZNACZNIK_POMIJANIA}) – seria nie daje żadnej strony.` });
+      }
       for (const d of blok.dodatkowe) {
         if (d.potrzeba > d.jest) {
           const ostatnia = ciag.egzemplarze.filter((e) => e.seria?.id === seria.id).at(-1).indeks + 1;
@@ -282,8 +301,8 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
         uwagi.push({ rodzaj: 'niepelny_blok', strony: [], opis: `Seria „${seria.nazwa}”: tabela ma ${wierszy} ${odmiana(wierszy, 'wiersz', 'wiersze', 'wierszy')}, a blok ${blok.dlugosc} ${odmiana(blok.dlugosc, 'stronę', 'strony', 'stron')} – ostatnie powielenie jest dokończone stronami bez danych.` });
       }
     }
-    if (seria.tryb === 'stala' && wierszy && seria.ile > wierszy && (tabelaSerii(projekt, seria).unikalne || []).length) {
-      uwagi.push({ rodzaj: 'za_malo_wartosci', strony: [], opis: `Seria „${seria.nazwa}” powiela się ${seria.ile} razy, a tabela ma ${wierszy} ${odmiana(wierszy, 'wiersz', 'wiersze', 'wierszy')} – wartości zaczną się powtarzać.` });
+    if (seria.tryb === 'stala' && zDanymi && seria.ile > zDanymi && (tabelaSerii(projekt, seria).unikalne || []).length) {
+      uwagi.push({ rodzaj: 'za_malo_wartosci', strony: [], opis: `Seria „${seria.nazwa}” powiela się ${seria.ile} razy, a tabela ma ${zDanymi} ${odmiana(zDanymi, 'wiersz', 'wiersze', 'wierszy')}${zDanymi < wierszy ? ' z danymi' : ''} – wartości zaczną się powtarzać.` });
     }
   }
   return uwagi;

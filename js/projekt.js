@@ -170,7 +170,7 @@ export function normalizujTabele(t, i = 0) {
 }
 
 export function nowaSeria(nazwa = 'Seria') {
-  return { id: uid('se'), nazwa, tabela: null, tryb: 'tabela', ile: 12, uklad: 'szeroki', dodatkowe: [], dopelnij: false };
+  return { id: uid('se'), nazwa, tabela: null, tryb: 'tabela', ile: 12, uklad: 'szeroki', dodatkowe: [], dopelnij: false, pilnuj_stron: false };
 }
 
 // Uzupełnia brakujące pola w projektach wczytanych z pliku lub z bazy
@@ -207,6 +207,9 @@ export function normalizuj(p) {
       return { tabela: d.tabela, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(zmiana ? { zmiana } : {}) };
     }),
     dopelnij: Boolean(s.dopelnij),
+    // Lewa i prawa strona w rozkładówkach: pusta strona tam, gdzie strona wypadłaby po przeciwnej stronie.
+    // Starsze serie tego nie mają – ich wydruk zostaje taki, jaki był.
+    pilnuj_stron: Boolean(s.pilnuj_stron),
   }));
   wynik.widok = normalizujWidok(p.widok);
   delete wynik.motywy; // zastąpione wzorcami
