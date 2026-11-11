@@ -877,11 +877,13 @@
             <input id="dane-nazwa" class="nazwa-tabeli" aria-label="Nazwa tabeli" maxlength="60">
             <span class="odstep"></span>
             <button type="button" class="przycisk" id="dane-wiersz" data-ikona="plus">Wiersz</button>
+            <button type="button" class="przycisk" id="dane-pomijany" data-ikona="plus" title="Wstawia wiersz ze znacznikiem [pomiń] nad wierszem, w którym stoi kursor (bez kursora – na początku tabeli). Taki wiersz zajmuje miejsce w bloku serii, ale strona dla niego nie powstaje.">Wiersz pomijany</button>
             <button type="button" class="przycisk" id="dane-kolumna" data-ikona="plus">Kolumna</button>
             <button type="button" class="przycisk" id="dane-csv" data-ikona="pobierz" title="Pobierz tabelę jako plik CSV">CSV</button>
             <button type="button" class="przycisk" id="dane-usun" data-ikona="kosz" title="Usuń tabelę" aria-label="Usuń tabelę"></button>
           </div>
           <p class="podpowiedz" id="dane-opis"></p>
+          <p class="podpowiedz dane-pomijane" id="dane-pomijane" role="status" hidden></p>
           <label class="przelacznik" id="dane-wyglad-pole" hidden><input type="checkbox" id="dane-wyglad"><span>Przenoś wygląd z arkusza na strony (pogrubienia, kursywa, kolory liter)</span></label>
           <p class="podpowiedz dane-powtorzenia" id="dane-powtorzenia" role="status" hidden></p>
           <p class="podpowiedz dane-powtorzenia" id="dane-spoza-listy" role="status" hidden></p>
@@ -919,6 +921,7 @@
         <label class="przelacznik"><input type="radio" name="uklad" value="dlugi"><span>Jeden wiersz na każdą stronę bloku</span></label>
         <label class="przelacznik" id="seria-pole-dopelnij"><input type="checkbox" name="dopelnij"><span>Dokończ ostatni blok stronami bez danych</span></label>
         <p class="podpowiedz" id="seria-opis-konca">Seria kończy się na ostatnim wierszu tabeli – jeśli wypada on w środku bloku, dalszych stron bloku nie ma w wydruku.</p>
+        <p class="podpowiedz" id="seria-opis-pomijania">Gdy dane mają zacząć się w środku bloku (np. rok zaczyna się w czwartek, a blok to tydzień), dopisz na początku tabeli <b>wiersze pomijane</b>: <code>[pomiń]</code> w pierwszej komórce. Zajmują miejsce w bloku, ale ich strony nie powstają. W oknie Dane wstawia je przycisk <b>Wiersz pomijany</b>.</p>
       </fieldset>
       <fieldset class="grupa-pol" id="seria-dodatkowe">
         <legend>Dodatkowe tabele</legend>

@@ -6,7 +6,7 @@
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
-import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany } from './serie.js';
+import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany, wierszPomijany, ZNACZNIK_POMIJANIA } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana, zapytajONazwe } from './ui.js';
 import { wstawIkony } from './ikony.js';
@@ -94,6 +94,7 @@ export class Dane {
     this._narysowane = 0;
     this._dopiszWiersze(PORCJA_WIERSZY);
     this._oznaczPowtorzenia();
+    this._opiszPomijane();
   }
 
   // Dorysowuje wiersze tabeli, aż będzie ich co najmniej `doIlu` (albo wszystkie).
@@ -103,7 +104,7 @@ export class Dane {
     if (cel <= this._narysowane) return;
     const html = [];
     for (let w = this._narysowane; w < cel; w += 1) {
-      html.push(`<tr><th class="nr"><span>${w + 1}</span><button type="button" class="usun-wiersz" data-w="${w}" title="Usuń wiersz" aria-label="Usuń wiersz ${w + 1}">×</button></th>`);
+      html.push(`<tr${wierszPomijany(t.wiersze[w]) ? ' class="pomijany" title="Wiersz pomijany: zajmuje miejsce w bloku serii, ale strona dla niego nie powstaje"' : ''}><th class="nr"><span>${w + 1}</span><button type="button" class="usun-wiersz" data-w="${w}" title="Usuń wiersz" aria-label="Usuń wiersz ${w + 1}">×</button></th>`);
       for (let k = 0; k < t.kolumny.length; k += 1) html.push(`<td contenteditable="plaintext-only" spellcheck="false" data-w="${w}" data-k="${k}"></td>`);
       html.push('</tr>');
     }
@@ -149,6 +150,31 @@ export class Dane {
     const el = $('#dane-powtorzenia');
     el.hidden = !opisy.length;
     el.textContent = opisy.length ? `Powtórzone wartości – ${opisy.join('. ')}.` : '';
+  }
+
+  _oznaczPomijany(tr, w) {
+    const pomijany = wierszPomijany(this.tabela().wiersze[w]);
+    tr.classList.toggle('pomijany', pomijany);
+    tr.title = pomijany ? 'Wiersz pomijany: zajmuje miejsce w bloku serii, ale strona dla niego nie powstaje' : '';
+    this._opiszPomijane();
+  }
+
+  // Ile wierszy tabeli jest pomijanych – jedno zdanie pod nazwą tabeli.
+  _opiszPomijane() {
+    const t = this.tabela();
+    const ile = t ? t.wiersze.filter(wierszPomijany).length : 0;
+    const el = $('#dane-pomijane');
+    el.hidden = !ile;
+    el.textContent = ile ? `${ile} ${odmiana(ile, 'wiersz pomijany', 'wiersze pomijane', 'wierszy pomijanych')} (${ZNACZNIK_POMIJANIA} w pierwszej komórce): ${odmiana(ile, 'zajmuje', 'zajmują', 'zajmuje')} miejsce w bloku serii, ale ${odmiana(ile, 'strona dla niego nie powstaje', 'strony dla nich nie powstają', 'strony dla nich nie powstają')}.` : '';
+  }
+
+  // Wstawia wiersz pomijany nad wierszem `przed` (bez wskazania – na początku tabeli).
+  _wstawPomijany(przed = 0) {
+    const t = this.tabela();
+    const w = Math.min(Math.max(0, przed), t.wiersze.length);
+    t.wiersze.splice(w, 0, t.kolumny.map((_, k) => (k === 0 ? ZNACZNIK_POMIJANIA : '')));
+    t.wyglad?.splice(w, 0, null);
+    return w;
   }
 
   _komorka(w, k) {
@@ -233,12 +259,19 @@ export class Dane {
       const td = e.target.closest('td');
       if (!td) return;
       this.tabela().wiersze[Number(td.dataset.w)][Number(td.dataset.k)] = td.textContent.replace(/\n$/, '');
+      // Znacznik [pomiń] wpisany (albo usunięty) w pierwszej komórce od razu zmienia wygląd wiersza.
+      if (td.dataset.k === '0') this._oznaczPomijany(td.closest('tr'), Number(td.dataset.w));
       if (this.tabela().unikalne?.length || this.tabela().listy) this._oznaczPowtorzenia();
       this.poZmianie();
     });
     s.addEventListener('focusout', (e) => {
       const el = e.target.closest('.nazwa-kolumny');
       if (el) this._zmienNazweKolumny(el);
+    });
+    // Wiersz, w którym ostatnio stał kursor – nad nim staje wstawiany wiersz pomijany.
+    s.addEventListener('focusin', (e) => {
+      const td = e.target.closest('td');
+      if (td) this._ostatniWiersz = { tabela: this.idTabeli, w: Number(td.dataset.w) };
     });
     s.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' || e.shiftKey) return; // Shift+Enter: nowa linia w komórce
@@ -328,6 +361,14 @@ export class Dane {
       this._dodajWiersz();
       this.rysujTabele();
       this._komorka(this.tabela().wiersze.length - 1, 0)?.focus();
+      this._zmieniono();
+    });
+    $('#dane-pomijany').addEventListener('click', () => {
+      const gdzie = this._ostatniWiersz?.tabela === this.idTabeli ? this._ostatniWiersz.w : 0;
+      const w = this._wstawPomijany(gdzie);
+      this._ostatniWiersz = { tabela: this.idTabeli, w: w + 1 }; // kolejny pomijany stanie pod tym, nad tym samym wierszem danych
+      this.rysujTabele();
+      this._komorka(w, 0)?.scrollIntoView({ block: 'nearest' });
       this._zmieniono();
     });
     $('#dane-kolumna').addEventListener('click', () => {
@@ -422,6 +463,7 @@ export class Dane {
     return bilansSerii(p, seria).map((b) => {
       const { dlugosc: n, powielen: ile, stron } = b;
       const koniec = b.ostatniePelne ? '' : ' (seria kończy się na ostatnim wierszu danych – ostatnie powielenie jest niepełne)';
+      if (b.pominietych) return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} w bloku, ${stron} ${odmiana(stron, 'strona', 'strony', 'stron')} w wydruku – ${b.pominietych} ${odmiana(b.pominietych, 'wiersz pomijany', 'wiersze pomijane', 'wierszy pomijanych')}${koniec}`;
       return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} × ${ile} ${odmiana(ile, 'powielenie', 'powielenia', 'powieleń')} = ${stron} ${odmiana(stron, 'strona', 'strony', 'stron')} w wydruku${koniec}`;
     }).join('; ');
   }
@@ -543,7 +585,9 @@ export class Dane {
     const bilans = bilansSerii(probny, proba);
     $('#seria-podsumowanie').textContent = bloki.length
       ? bilans.map((b) => {
-        const opis = `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')} × ${b.powielen} = ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')} w wydruku.`;
+        const opis = b.pominietych
+          ? `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')}: w wydruku ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')}. ${b.pominietych} ${odmiana(b.pominietych, 'wiersz tabeli jest pomijany', 'wiersze tabeli są pomijane', 'wierszy tabeli jest pomijanych')} (${ZNACZNIK_POMIJANIA}) – ${odmiana(b.pominietych, 'zajmuje', 'zajmują', 'zajmuje')} miejsce w bloku, ale ${odmiana(b.pominietych, 'jego strona', 'ich strony', 'ich strony')} nie ${odmiana(b.pominietych, 'powstaje', 'powstają', 'powstają')}.`
+          : `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')} × ${b.powielen} = ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')} w wydruku.`;
         const koniec = b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.';
         const dodatkowe = b.dodatkowe.map((d) => ` Tabela „${d.tabela.nazwa}”: ${opisKroku(d)} – potrzeba ${d.potrzeba} ${odmiana(d.potrzeba, 'wiersza', 'wierszy', 'wierszy')}, ${d.jest >= d.potrzeba ? `jest ${d.jest}` : `a jest tylko ${d.jest}`}.`).join('');
         return opis + koniec + dodatkowe;

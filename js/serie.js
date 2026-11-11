@@ -16,11 +16,23 @@
 // `zmiana` może też być listą kolumn (np. ['miesiac', 'rok']): nowy wiersz, gdy zmieni
 // się wartość w którejkolwiek z nich – grudzień 2027 i grudzień 2028 to dwa różne okresy.
 //
+// Wiersz pomijany: wiersz tabeli głównej, który w pierwszej komórce ma znacznik [pomiń]. Zajmuje
+// swoje miejsce w bloku (i w liczeniu tabel dodatkowych), ale strona dla niego nie powstaje. Służy do
+// wyrównania danych z blokiem: rok zaczynający się w czwartek dostaje na początku trzy takie wiersze
+// i pierwsza strona wydruku to czwarta strona bloku-tygodnia.
+//
 // rozwin(projekt) zwraca „ciąg”: wszystkie egzemplarze stron w kolejności
 // wydruku, z numerami, stroną rozkładówki i wierszem danych.
 
 import { sekcjaStrony } from './projekt.js';
 import { zapiszLiczbe } from './pola.js';
+
+// Znacznik wiersza pomijanego – wpisywany w pierwszej komórce wiersza (w Excelu, CSV albo w oknie Dane).
+export const ZNACZNIK_POMIJANIA = '[pomiń]';
+// Rozpoznawany bez względu na wielkość liter i polski znak: [pomiń], [POMIŃ], [pomin], [ pomiń ].
+export const wierszPomijany = (wiersz) => /^\[\s*pomi[nń]\s*\]$/i.test(String(wiersz?.[0] ?? '').trim());
+// Ile wierszy tabeli niesie dane (bez pomijanych).
+export const wierszyZDanymi = (tabela) => (tabela ? tabela.wiersze.filter((w) => !wierszPomijany(w)).length : 0);
 
 // Wiersze tabeli jako obiekty { kolumna: wartość }.
 export function wierszeTabeli(tabela) {
@@ -83,9 +95,10 @@ export function liczbaPowielen(projekt, seria, dlugoscBloku) {
 }
 
 // Numer wiersza tabeli (od 0), z którego egzemplarz bierze dane; null – bez danych.
-function nrWierszaEgzemplarza(seria, ileWierszy, powielenie, miejsceWBloku, dlugoscBloku) {
+// zDanymi: numery wierszy niepomijanych – przy stałej liczbie powieleń dane idą w kółko tylko po nich.
+function nrWierszaEgzemplarza(seria, ileWierszy, zDanymi, powielenie, miejsceWBloku, dlugoscBloku) {
   if (!ileWierszy) return null;
-  if (seria.tryb === 'stala') return powielenie % ileWierszy;
+  if (seria.tryb === 'stala') return zDanymi.length ? zDanymi[powielenie % zDanymi.length] : null;
   return seria.uklad === 'dlugi' ? powielenie * dlugoscBloku + miejsceWBloku : powielenie;
 }
 
@@ -104,7 +117,8 @@ export function blokiSerii(projekt) {
 
 export function rozwin(projekt) {
   const egzemplarze = [];
-  const pierwszy = new Map(); // id strony → jej pierwszy egzemplarz
+  const pierwszy = new Map(); // id strony → jej pierwszy egzemplarz (albo wzór, gdy żaden nie powstaje)
+  const bloki = []; // opis każdego bloku serii po rozwinięciu (do bilansu i uwag)
   const blokStrony = new Map();
   for (const blok of blokiSerii(projekt)) for (const s of blok.strony) blokStrony.set(s, blok);
 
@@ -116,6 +130,7 @@ export function rozwin(projekt) {
     };
     egzemplarze.push(egz);
     if (!pierwszy.has(strona.id)) pierwszy.set(strona.id, egz);
+    return egz;
   };
 
   let i = 0;
@@ -125,17 +140,26 @@ export function rozwin(projekt) {
     if (!blok) { dodaj(strona, {}); i += 1; continue; }
     const { seria, strony } = blok;
     const ile = liczbaPowielen(projekt, seria, strony.length);
-    const wiersze = wierszeTabeli(tabelaSerii(projekt, seria));
+    const tabela = tabelaSerii(projekt, seria);
+    const wiersze = wierszeTabeli(tabela);
+    const pomijane = tabela ? tabela.wiersze.map(wierszPomijany) : [];
+    const zDanymi = pomijane.map((x, nr) => (x ? -1 : nr)).filter((nr) => nr >= 0);
     const dodatkowe = tabeleDodatkowe(projekt, seria).map((d) => ({ ...d, wiersze: wierszeTabeli(d.tabela), nr: 0, poprzednia: undefined }));
     // Przy „jeden wiersz na stronę” seria kończy się na ostatnim wierszu danych: ostatnie powielenie
     // bloku może być niepełne. Z opcją `dopelnij` blok jest dokańczany stronami bez danych.
     const ucina = seria.tryb === 'tabela' && seria.uklad === 'dlugi' && wiersze.length > 0 && !seria.dopelnij;
-    let n = 0; // kolejna strona tej serii w tym bloku, od 0
-    for (let p = 0; p < ile; p += 1) {
+    const info = { blok, seria, dlugosc: strony.length, powielen: ile, pominiete: new Set(), ostatniePelne: true, dodatkowe: dodatkowe.map((d) => ({ tabela: d.tabela, co: d.co, zmiana: d.zmiana || null })) };
+    bloki.push(info);
+    let n = 0; // kolejne miejsce w serii (strona bloku w kolejnym powieleniu), od 0 – liczone razem z pomijanymi
+    let koniec = false;
+    for (let p = 0; p < ile && !koniec; p += 1) {
       for (const [k, s] of strony.entries()) {
-        const nrWiersza = nrWierszaEgzemplarza(seria, wiersze.length, p, k, strony.length);
-        if (ucina && nrWiersza >= wiersze.length) break;
+        const nrWiersza = nrWierszaEgzemplarza(seria, wiersze.length, zDanymi, p, k, strony.length);
+        if (ucina && nrWiersza >= wiersze.length) { koniec = true; break; }
         const nrStrony = n;
+        n += 1;
+        // Wiersz pomijany zajmuje miejsce (tabele dodatkowe liczą je jak każde inne), ale strona nie powstaje.
+        if (seria.tryb === 'tabela' && nrWiersza !== null && pomijane[nrWiersza]) { info.pominiete.add(nrWiersza); continue; }
         const wiersz = nrWiersza === null ? null : (wiersze[nrWiersza] || {});
         dodaj(s, {
           seria, blok, nrEgz: p + 1, ileEgz: ile, nrWiersza, wiersz,
@@ -144,7 +168,7 @@ export function rozwin(projekt) {
             if (d.zmiana) {
               // Nowy wiersz, gdy zmieni się wartość w kolumnie tabeli głównej (przy kilku kolumnach – w którejkolwiek);
               // strona bez danych niczego nie zmienia.
-              const v = wiersz && nrWiersza < wiersze.length ? kolumnyZmiany(d.zmiana).map((k) => String(wiersz[k] ?? '').trim()).join('\n') : d.poprzednia;
+              const v = wiersz && nrWiersza < wiersze.length ? kolumnyZmiany(d.zmiana).map((x) => String(wiersz[x] ?? '').trim()).join('\n') : d.poprzednia;
               if (d.poprzednia !== undefined && v !== d.poprzednia) d.nr += 1;
               d.poprzednia = v;
               nr = d.nr;
@@ -152,8 +176,19 @@ export function rozwin(projekt) {
             return { tabela: d.tabela, nrWiersza: nr, wiersz: d.wiersze[nr] || null };
           }),
         });
-        n += 1;
       }
+    }
+    info.ostatniePelne = n % strony.length === 0;
+    // Strona bloku, której żaden egzemplarz nie powstaje (wszystkie jej wiersze są pomijane), dostaje wzór:
+    // edytor i miniatura mają co pokazać, ale w wydruku jej nie ma.
+    for (const s of strony) {
+      if (pierwszy.has(s.id)) continue;
+      const nrWiersza = zDanymi.length ? zDanymi[0] : null;
+      pierwszy.set(s.id, {
+        klucz: `${s.id}-wzor`, strona: s, sekcja: sekcjaStrony(projekt, s), indeks: null, widmo: true,
+        seria, blok, nrEgz: 1, ileEgz: ile, nrWiersza, wiersz: nrWiersza === null ? (wiersze.length ? {} : null) : wiersze[nrWiersza],
+        dodatkowe: dodatkowe.map((d) => ({ tabela: d.tabela, nrWiersza: 0, wiersz: d.wiersze[0] || null })), bok: null, sasiad: null, nr: null, nrWSekcji: 0,
+      });
     }
     i += strony.length;
   }
@@ -170,45 +205,67 @@ export function rozwin(projekt) {
       e.nrWSekcji = k + 1;
       if (tryb !== 'brak') { e.nr = nastepny; nastepny += 1; }
       if (rozkladowki) {
-        const parzysta = k % 2 === 0;
-        e.bok = (sekcja.pierwsza === 'prawa') === parzysta ? 'prawa' : 'lewa';
+        e.bok = bokMiejsca(sekcja, k);
         e.sasiad = lista[e.bok === 'lewa' ? k + 1 : k - 1] || null;
       }
     });
     sekcje.set(sekcja.id, { nr: nrSekcji + 1, lista });
   });
+  // Wzór strony, która nie ma egzemplarza: w rozkładówkach stoi po tej stronie, po której stałby w swoim bloku.
+  for (const info of bloki) {
+    const sekcja = sekcjaStrony(projekt, info.blok.strony[0]);
+    if (sekcja.uklad !== 'rozkladowki') continue;
+    const realny = info.blok.strony.map((s) => pierwszy.get(s.id)).find((e) => !e.widmo);
+    info.blok.strony.forEach((s, j) => {
+      const e = pierwszy.get(s.id);
+      if (!e.widmo) return;
+      if (!realny) { e.bok = bokMiejsca(sekcja, ilePrzed(egzemplarze, projekt, s, sekcja) + j); return; }
+      const odstep = j - info.blok.strony.indexOf(realny.strona);
+      e.bok = odstep % 2 === 0 ? realny.bok : (realny.bok === 'lewa' ? 'prawa' : 'lewa');
+    });
+  }
   const numery = egzemplarze.map((e) => e.nr).filter((n) => n !== null);
-  return { egzemplarze, pierwszy, sekcje, liczbaStron: numery.length ? Math.max(...numery) : 0 };
+  return { egzemplarze, pierwszy, sekcje, bloki, liczbaStron: numery.length ? Math.max(...numery) : 0 };
+}
+
+// Strona rozkładówki dla miejsca k (od 0) w sekcji.
+function bokMiejsca(sekcja, k) {
+  return (sekcja.pierwsza === 'prawa') === (k % 2 === 0) ? 'prawa' : 'lewa';
+}
+
+// Ile stron sekcji stoi w ciągu przed blokiem, do którego należy strona (gdy sam blok nie daje żadnej strony).
+function ilePrzed(egzemplarze, projekt, strona, sekcja) {
+  const przed = new Set(projekt.strony.slice(0, projekt.strony.indexOf(strona)).map((s) => s.id));
+  return egzemplarze.filter((e) => e.sekcja === sekcja && przed.has(e.strona.id)).length;
 }
 
 // Bilans serii po rozwinięciu, osobno dla każdego jej bloku:
-// [{ dlugosc, powielen, stron, ostatniePelne, dodatkowe: [{ tabela, co, zmiana, potrzeba, jest, brakOd }] }]
-//  - stron: ile stron seria daje w wydruku; ostatniePelne: czy ostatnie powielenie bloku jest całe,
+// [{ dlugosc, powielen, stron, pominietych, ostatniePelne, dodatkowe: [{ tabela, co, zmiana, potrzeba, jest, brakOd }] }]
+//  - stron: ile stron seria daje w wydruku; pominietych: ile wierszy tabeli jest pomijanych;
+//    ostatniePelne: czy ostatnie powielenie bloku doszło do jego ostatniej strony,
 //  - potrzeba / jest: ile wierszy tabeli dodatkowej potrzeba, a ile jest; brakOd: numer strony
 //    wydruku, od której tabeli dodatkowej brakuje wierszy (null – starcza).
 export function bilansSerii(projekt, seria, ciag = rozwin(projekt)) {
-  const wynik = [];
-  let blok = null;
-  let zrodlo = null;
+  const wynik = new Map();
+  for (const info of ciag.bloki) {
+    if (info.seria.id !== seria.id) continue;
+    wynik.set(info.blok, {
+      dlugosc: info.dlugosc, powielen: 0, stron: 0, pominietych: info.pominiete.size, ostatniePelne: info.ostatniePelne,
+      dodatkowe: info.dodatkowe.map((d) => ({ ...d, potrzeba: 0, jest: d.tabela.wiersze.length, brakOd: null })),
+    });
+  }
   for (const e of ciag.egzemplarze) {
-    if (e.seria?.id !== seria.id) continue;
-    if (e.blok !== zrodlo) {
-      zrodlo = e.blok;
-      blok = { dlugosc: 0, powielen: 0, stron: 0, ostatniePelne: true, wOstatnim: 0, dodatkowe: e.dodatkowe.map((d, i) => ({ tabela: d.tabela, co: tabeleDodatkowe(projekt, seria)[i]?.co, zmiana: tabeleDodatkowe(projekt, seria)[i]?.zmiana || null, potrzeba: 0, jest: d.tabela.wiersze.length, brakOd: null })) };
-      wynik.push(blok);
-    }
+    const blok = e.blok && wynik.get(e.blok);
+    if (!blok) continue;
     blok.stron += 1;
-    if (e.nrEgz !== blok.powielen) { blok.powielen = e.nrEgz; blok.wOstatnim = 0; }
-    blok.wOstatnim += 1;
-    if (e.nrEgz === 1) blok.dlugosc += 1;
+    blok.powielen = Math.max(blok.powielen, e.nrEgz);
     e.dodatkowe.forEach((d, i) => {
       const b = blok.dodatkowe[i];
       b.potrzeba = Math.max(b.potrzeba, d.nrWiersza + 1);
       if (!d.wiersz && b.brakOd === null) b.brakOd = e.indeks + 1;
     });
   }
-  for (const b of wynik) { b.ostatniePelne = b.wOstatnim === b.dlugosc; delete b.wOstatnim; }
-  return wynik;
+  return [...wynik.values()];
 }
 
 // Strony edytowane razem na jednym płótnie: [lewa, prawa] albo [strona].

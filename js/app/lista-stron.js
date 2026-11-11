@@ -6,7 +6,7 @@ import {
 import { renderujCel } from '../zlozenie.js';
 import { zachowajTekstStrony, uporzadkujWatkiPoStronach } from '../watki.js';
 import { uid } from '../projekt.js';
-import { rozwin, blokiSerii, bokStrony, liczbaPowielen } from '../serie.js';
+import { rozwin, blokiSerii, bokStrony } from '../serie.js';
 import { ikona } from '../ikony.js';
 import { $$, $, potwierdz, powiadom, zapytajONazwe, zamknijMenu } from '../ui.js';
 import { stan, ustawPanel, biezacaSekcja, biezacaStrona, edytor } from './kontekst.js';
@@ -53,6 +53,9 @@ function renderujListeStron() {
   const ciag = rozwin(projekt);
   const blokStrony = new Map();
   for (const blok of blokiSerii(projekt)) for (const s of blok.strony) blokStrony.set(s, blok);
+  // Ile razy każda strona naprawdę wychodzi w wydruku (wiersze pomijane nie dają stron).
+  const ileRazy = new Map();
+  for (const e of ciag.egzemplarze) ileRazy.set(e.strona.id, (ileRazy.get(e.strona.id) || 0) + 1);
   $('#liczba-stron').textContent = projekt.strony.length;
   for (const sekcja of projekt.sekcje) {
     const strony = stronySekcji(projekt, sekcja);
@@ -99,12 +102,14 @@ function renderujListeStron() {
       if (aktywna) $('.miniatura', li).setAttribute('aria-current', 'page');
       $('.miniatura', li).append(obrazMiniatury(s.id, sekcja.wydruk));
       if (blok) {
-        const ile = liczbaPowielen(projekt, blok.seria, blok.strony.length);
+        const ile = ileRazy.get(s.id) || 0;
         const znak = document.createElement('span');
         znak.className = 'znak-serii';
         znak.textContent = `×${ile}`;
         $('.miniatura', li).append(znak);
-        $('.miniatura', li).title = `Seria „${blok.seria.nazwa}”: ta strona powiela się ${ile} razy`;
+        $('.miniatura', li).title = ile
+          ? `Seria „${blok.seria.nazwa}”: ta strona wychodzi w wydruku ${ile} ${ile === 1 ? 'raz' : 'razy'}`
+          : `Seria „${blok.seria.nazwa}”: tej strony nie ma w wydruku – wszystkie jej wiersze są pomijane`;
       }
       $('.nazwa', li).textContent = bok ? `${nr ?? '–'} · ${s.nazwa}` : s.nazwa;
       $('.nazwa', li).title = s.nazwa;
