@@ -69,11 +69,11 @@ const przesunProstokat = (strona, lewo) => strona.evaluate((l) => {
   const o = e.canvas.getObjects().find((x) => x.type === 'rect' && !x.zWzorca);
   o.set({ left: l }); o.setCoords(); e.zatwierdz();
 }, lewo);
-const prostokatNa = (strona, lewo) => strona.waitForFunction((l) => window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'rect' && !x.zWzorca)?.left === l, lewo, { timeout: 8000 });
+const prostokatNa = (strona, lewo) => strona.waitForFunction((l) => window.seriodruk.edytor?.canvas.getObjects().find((x) => x.type === 'rect' && !x.zWzorca)?.left === l, lewo, { timeout: 8000 });
 const otworzZListy = async (strona, nazwa) => {
   await strona.waitForFunction((n) => [...document.querySelectorAll('#siatka-projektow .karta-projektu strong')].some((e) => e.textContent === n), nazwa, { timeout: 10000 });
   await strona.click(`.karta-projektu:has(strong:text-is("${nazwa}")) .otworz-projekt`);
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk && document.body.dataset.ekran === 'edytor');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk && document.body.dataset.ekran === 'edytor');
 };
 
 test('zmiana na jednym urządzeniu pojawia się na drugim bez przeładowania; lista projektów odświeża się sama', async (t) => {
@@ -89,7 +89,7 @@ test('zmiana na jednym urządzeniu pojawia się na drugim bez przeładowania; li
   await przesunProstokat(a.strona, 20);
   await zapisano(a.strona);
   await otworzZListy(b.strona, 'Wspólny');
-  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((x) => x.type === 'rect' && !x.zWzorca));
+  await b.strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((x) => x.type === 'rect' && !x.zWzorca));
   assert.equal(await prostokat(b.strona), 20);
   await zapisano(b.strona);
 
@@ -120,7 +120,7 @@ test('zmiana na jednym urządzeniu pojawia się na drugim bez przeładowania; li
   // Okno otwarte na B wstrzymuje wczytanie zmiany strony, którą B ma na płótnie; po zamknięciu zmiana wchodzi.
   await zapisano(b.strona);
   await b.strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
-  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((x) => x.type === 'rect' && !x.zWzorca));
+  await b.strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((x) => x.type === 'rect' && !x.zWzorca));
   await b.strona.click('[data-akcja="dane"]');
   await b.strona.waitForSelector('#dlg-dane[open]');
   await przesunProstokat(a.strona, 47);
@@ -143,7 +143,7 @@ test('bez kanału powiadomień zmiana dochodzi przy powrocie do karty', async (t
   const b = await drugieUrzadzenie(a);
   await zaloguj(b.strona);
   await otworzZListy(b.strona, 'Bez kanału');
-  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((x) => x.type === 'rect' && !x.zWzorca));
+  await b.strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((x) => x.type === 'rect' && !x.zWzorca));
   await przesunProstokat(a.strona, 61);
   await zapisano(a.strona);
   await b.strona.waitForTimeout(1200);
@@ -270,7 +270,7 @@ test('dwa urządzenia na tej samej stronie: przesunięcie na jednym i pisanie na
   const b = await drugieUrzadzenie(a);
   await zaloguj(b.strona);
   await otworzZListy(b.strona, 'Jedna strona');
-  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((x) => !x.zWzorca).length === 2);
+  await b.strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((x) => !x.zWzorca).length === 2);
   await zapisano(b.strona);
 
   // B pisze w tekście (zostaje w trybie pisania), A w tym czasie przesuwa prostokąt.
@@ -284,7 +284,7 @@ test('dwa urządzenia na tej samej stronie: przesunięcie na jednym i pisanie na
   await b.strona.keyboard.type('!', { delay: 40 });
   // Na A: tekst z B dochodzi, prostokąt zostaje.
   // B nie wyszedł z ramki – tekst w trakcie pisania jest zapisywany po krótkiej przerwie.
-  await a.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'textbox' && !x.zWzorca)?.text === 'Tytuł roku!', null, { timeout: 10000 });
+  await a.strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((x) => x.type === 'textbox' && !x.zWzorca)?.text === 'Tytuł roku!', null, { timeout: 10000 });
   assert.equal(await prostokat(a.strona), 64);
   assert.equal(await a.strona.locator('#dlg-konflikt[open]').count() + await b.strona.locator('#dlg-konflikt[open]').count(), 0);
   await b.strona.keyboard.press('Escape');
@@ -322,7 +322,7 @@ test('„Cofnij” po dołączeniu zmian z innego urządzenia cofa tylko własne
   const b = await drugieUrzadzenie(a);
   await zaloguj(b.strona);
   await otworzZListy(b.strona, 'Cofanie');
-  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((x) => !x.zWzorca).length === 2);
+  await b.strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((x) => !x.zWzorca).length === 2);
   await zapisano(b.strona);
 
   const stanA = () => a.strona.evaluate(() => {
@@ -339,7 +339,7 @@ test('„Cofnij” po dołączeniu zmian z innego urządzenia cofa tylko własne
   // B dostaje obie zmiany i przesuwa elipsę.
   await b.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2, null, { timeout: 8000 });
   await b.strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
-  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((x) => x.type === 'ellipse'));
+  await b.strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((x) => x.type === 'ellipse'));
   await b.strona.evaluate(() => {
     const e = window.seriodruk.edytor;
     const o = e.canvas.getObjects().find((x) => x.type === 'ellipse');

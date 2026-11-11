@@ -7,8 +7,8 @@ import { Konto } from '../konto.js';
 import { wybranyMotyw, ustawMotyw } from '../motyw.js';
 import { stan, trasa, pokazEkran } from './kontekst.js';
 import { wpisyProjektow, pokazProjekty, plikiDoOtwarcia, otworzOczekujacePliki } from './projekty.js';
-import { zapiszTeraz } from './zapis.js';
-import { instrukcja } from './skladniki.js';
+import { instrukcja } from './instrukcja-leniwa.js';
+import { edytorGotowy } from './doczytaj.js';
 import { przejdzDoTrasy } from './trasy.js';
 import { wlaczNaZywo, wylaczNaZywo } from './na-zywo.js';
 
@@ -59,7 +59,7 @@ export async function poZalogowaniu(uzytkownik) {
 
 export async function wyloguj(wszedzie = false) {
   zamknijMenu();
-  if (stan.projekt) await zapiszTeraz();
+  if (stan.projekt) await edytorGotowy()?.zapiszTeraz(); // otwarty projekt = edytor już wczytany
   stan.projekt = null;
   if (stan.uzytkownik) {
     try { await chmura.wyloguj(wszedzie); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }

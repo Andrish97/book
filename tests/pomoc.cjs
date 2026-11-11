@@ -390,7 +390,7 @@ async function nowyProjekt(strona, nazwa = 'Test') {
   await strona.fill('#form-nowy input[name=nazwa]', nazwa);
   await strona.click('#form-nowy button[value=ok]');
   await strona.waitForSelector('#ekran-edytora', { state: 'visible' });
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
 }
 
 const ekran = (strona) => strona.evaluate(() => document.body.dataset.ekran);

@@ -60,7 +60,7 @@ test('tekst: formatowanie zaznaczonego fragmentu nie zmienia reszty', async (t) 
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.canvas.getObjects().length === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().length === 1);
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects()[0].getSelectionStyles(0, 1, true)[0].fontWeight), 'bold');
   assert.deepEqual(bledy, []);
 });
@@ -92,7 +92,7 @@ test('style tekstu: nadanie, aktualizacja zmienia teksty na innych stronach, now
 
   // Strona 1 ma nowy rozmiar, choć nie była otwarta.
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.canvas.getObjects().length === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().length === 1);
   o = await tekst(strona);
   assert.equal(o.pt, 22);
 

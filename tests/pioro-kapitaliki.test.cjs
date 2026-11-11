@@ -84,7 +84,7 @@ test('pióro: punkty i łuki, cofanie punktu, kształt otwarty i zamknięty, wyp
 
   // Zamknięty kształt jest zwykłym elementem: zaznacza się kliknięciem, ma kolor linii i wypełnienie.
   await klik(strona, 50, 100);
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'path');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.type === 'path');
   assert.equal(await strona.textContent('#tytul-wlasciwosci'), 'Rysunek');
   assert.ok(await strona.isVisible('.wlasciwosci label:has-text("Wypełnienie")'));
   await strona.waitForTimeout(450); // narysowanie kształtu i zmiana wypełnienia to osobne kroki cofania
@@ -100,9 +100,9 @@ test('pióro: punkty i łuki, cofanie punktu, kształt otwarty i zamknięty, wyp
   await strona.keyboard.press('n');
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.pioro), false);
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'path').at(-1)?.fill === '');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'path').at(-1)?.fill === '');
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'path').length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'path').length === 1);
   assert.deepEqual(bledy, []);
 });
 
@@ -126,7 +126,7 @@ test('edycja punktów kształtu: przesuwanie punktu i uchwytu, dodanie i usunię
 
   // Podwójne kliknięcie kształtu zaczyna edycję punktów.
   await strona.mouse.dblclick(...(await naEkranie(strona, 50, 110)));
-  await strona.waitForFunction(() => window.seriodruk.edytor.edytujePunkty);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.edytujePunkty);
   assert.equal(await strona.textContent('#tytul-wlasciwosci'), 'Punkty kształtu');
   let p = await punkty();
   assert.equal(p.ile, 3);
@@ -167,7 +167,7 @@ test('edycja punktów kształtu: przesuwanie punktu i uchwytu, dodanie i usunię
   await strona.waitForTimeout(450);
   await strona.keyboard.press('Escape');
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => { const o = window.seriodruk.edytor.canvas.getObjects().find((x) => x.id === 'trojkat'); return o && Math.abs(o.getBoundingRect().width - 40.6) < 0.2; });
+  await strona.waitForFunction(() => { const o = window.seriodruk.edytor?.canvas.getObjects().find((x) => x.id === 'trojkat'); return o && Math.abs(o.getBoundingRect().width - 40.6) < 0.2; });
 
   // Krzywa: zaznaczony punkt pokazuje uchwyty; przesunięcie uchwytu zmienia łuk, punkt zostaje.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.edytujPunkty(e.canvas.getObjects().find((x) => x.id === 'fala')); });

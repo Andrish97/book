@@ -27,7 +27,7 @@ const zaznacz = (strona, nazwa) => strona.evaluate((n) => {
 const rozloz = async (strona, nazwa) => {
   await zaznacz(strona, nazwa);
   await strona.click('#wlasciwosci button:has-text("Rozłóż rysunek na elementy")');
-  await strona.waitForFunction((n) => window.seriodruk.edytor.canvas.getObjects().every((o) => !(o.type === 'image' && o.nazwa === n)), nazwa);
+  await strona.waitForFunction((n) => window.seriodruk.edytor?.canvas.getObjects().every((o) => !(o.type === 'image' && o.nazwa === n)), nazwa);
   await strona.waitForTimeout(400); // krok historii powstaje chwilę po zmianie
 };
 const ADRES = '(kod) => `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(kod)))}`';
@@ -94,7 +94,7 @@ test('Rysunek SVG rozkłada się na grupę zwykłych kształtów w tym samym mie
   // Cofnięcie trzech kroków przywraca oba obrazy.
   for (const zostaje of [['group', 'group'], ['group', 'image'], ['image', 'image']]) {
     await strona.click('[data-akcja="cofnij"]');
-    await strona.waitForFunction((typy) => JSON.stringify(window.seriodruk.edytor.canvas.getObjects().filter((o) => !o.zWzorca).map((o) => o.type).sort()) === JSON.stringify(typy), zostaje);
+    await strona.waitForFunction((typy) => JSON.stringify(window.seriodruk.edytor?.canvas.getObjects().filter((o) => !o.zWzorca).map((o) => o.type).sort()) === JSON.stringify(typy), zostaje);
   }
   const r3 = roznica(przed, await obrazStrony(strona));
   assert.ok(r3.srednia < 0.05, `po cofnięciu: ${r3.srednia.toFixed(3)}`);
@@ -112,7 +112,7 @@ test('Napisy z rysunku SVG stają się ramkami tekstu: czcionka z zestawu zostaj
     <g font-family="Bebas Neue"><text x="20" y="170" font-size="24" font-weight="700">Od lewej</text></g>
   </svg>`;
   await strona.setInputFiles('#plik-obraz', { name: 'napisy.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(rysunek) });
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'image');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.type === 'image');
   await strona.waitForFunction(() => /^Rysunek ma napisy – jako obraz pokaże je czcionką zastępczą\. „Rozłóż rysunek na elementy”/.test(document.querySelector('#powiadomienie').textContent));
   await strona.evaluate(() => {
     const { edytor } = window.seriodruk;
@@ -223,7 +223,7 @@ test('Przycięty rysunek SVG: przycięcie przechodzi na grupę – na stronie, p
   assert.ok(r.srednia < 0.4 && r.rozne < 0.002, `strona po rozłożeniu wygląda jak przed: ${r.srednia.toFixed(3)}, ${(r.rozne * 100).toFixed(3)}%`);
   // Zapis i ponowne wczytanie: przycięcie zostaje przy grupie.
   await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'group' && o.clipPath));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'group' && o.clipPath));
   const r2 = roznica(przed, await obrazStrony(strona));
   assert.ok(r2.srednia < 0.4 && r2.rozne < 0.002, `po wczytaniu: ${r2.srednia.toFixed(3)}, ${(r2.rozne * 100).toFixed(3)}%`);
   // PDF wektorowy: grupa nie idzie jako obraz, a ukryta część rysunku (lewy kwadrat) jest w pliku niewidoczna.
@@ -291,7 +291,7 @@ test('Rysunek SVG z napisem w kilku wierszach i z osadzonym zdjęciem: wiersze z
   assert.deepEqual([zdjecie.lewo, zdjecie.gora, zdjecie.szer, zdjecie.wys], [80, 36, 24, 12]);
   // Zapis, wczytanie i PDF: zdjęcie i tekst są w pliku, nic nie idzie jako obraz całego elementu.
   await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'group'));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'group'));
   const pdf = await pdfStrony(strona, [[92, 42]]);
   assert.deepEqual([pdf.uwagi, pdf.krzywe], [[], []]);
   assert.ok(pdf.kolory[0][0] > 150 && pdf.kolory[0][1] < 60, `zdjęcie jest w PDF: ${pdf.kolory[0]}`);

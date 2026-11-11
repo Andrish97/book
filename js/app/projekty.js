@@ -11,8 +11,12 @@ import { powiadom, $, kiedy, przelaczMenu, zamknijMenu, zapytajONazwe, pobierz, 
 import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { wlasciciel, stan, pokazEkran, trasa } from './kontekst.js';
-import { otworzProjekt, zapiszTeraz } from './zapis.js';
-import { otworzUdostepnianie } from './podglad-ekran.js';
+import { czekajNaEdytor, edytorGotowy, doczytajWTle } from './doczytaj.js';
+
+// Edytor wczytuje się dopiero przy otwarciu projektu (js/app/doczytaj.js); do tego czasu nie ma czego zapisywać.
+const otworzProjekt = async (...a) => (await czekajNaEdytor()).otworzProjekt(...a);
+const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
+const otworzUdostepnianie = async (projekt) => (await czekajNaEdytor()).otworzUdostepnianie(projekt);
 import { przejdzDoTrasy } from './trasy.js';
 
 function odmianaProjektow(n) {
@@ -61,6 +65,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
   }
   const wpisy = await wpisyProjektow();
   if (cicho && document.body.dataset.ekran !== 'projekty') return; // w międzyczasie otwarto projekt
+  doczytajWTle(); // edytor przyjdzie w tle, zanim ktoś kliknie projekt
   siatka.replaceChildren();
   $('#pusto-projekty').hidden = wpisy.length > 0;
   $('.projekty-naglowek .przyciski-naglowka').hidden = wpisy.length === 0;

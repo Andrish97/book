@@ -3,11 +3,16 @@
 import { powiadom } from '../ui.js';
 import { trasa, stan, pokazEkran, edytor } from './kontekst.js';
 import { doProjektow, pokazProjekty, wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
-import { zapiszTeraz, otworzProjekt } from './zapis.js';
-import { pokazUdostepniony, pokazPodglad } from './podglad-ekran.js';
-import { przejdzDoStrony } from './lista-stron.js';
+import { pokazUdostepniony } from './udostepnione.js';
 import { konto } from './logowanie.js';
-import { edytujWzorzec } from './wzorce.js';
+import { czekajNaEdytor, edytorGotowy } from './doczytaj.js';
+
+// Funkcje edytora: wczytują go, gdy adres prowadzi do projektu (js/app/doczytaj.js).
+const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
+const otworzProjekt = async (...a) => (await czekajNaEdytor()).otworzProjekt(...a);
+const pokazPodglad = async (...a) => (await czekajNaEdytor()).pokazPodglad(...a);
+const przejdzDoStrony = async (i) => (await czekajNaEdytor()).przejdzDoStrony(i);
+const edytujWzorzec = async (id) => (await czekajNaEdytor()).edytujWzorzec(id);
 
 let obslugaTrasy = Promise.resolve();
 export function przejdzDoTrasy() {

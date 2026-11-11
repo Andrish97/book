@@ -293,7 +293,7 @@ test('zapis na koncie: wysyłane są tylko zmienione strony; drugie urządzenie 
   await strona.reload();
   await strona.waitForSelector('#ekran-projektow :text("Strony osobno")');
   await strona.click('#ekran-projektow :text("Strony osobno")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((x) => x.obiekty.length)), [1, 1]);
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony_osobno), undefined);
   assert.deepEqual(bledy, []);

@@ -40,7 +40,7 @@ test('cofanie: jedna historia całego projektu – strony, przejścia między st
   await strona.keyboard.press('Control+z');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 1);
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty.length === 0 && window.seriodruk.edytor.canvas.getObjects().length === 0);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty.length === 0 && window.seriodruk.edytor?.canvas.getObjects().length === 0);
   assert.ok(await strona.isDisabled('[data-akcja="cofnij"]'));
 
   // Ponów ×3 przywraca wszystko.
@@ -108,10 +108,10 @@ test('panel: sekcje da się zwijać i zostają zwinięte; rozkładówka jako jed
   await strona.fill('#form-nowy input[name=nazwa]', 'Panel');
   await strona.click('#form-nowy label:has-text("Rozkładówki")');
   await strona.click('#form-nowy button[value=ok]');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.click('[data-akcja="strona-dodaj"]');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 2 && window.seriodruk.edytor.strony.length === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 2 && window.seriodruk.edytor?.strony.length === 2);
 
   // Zwinięcie sekcji „Seria (powielanie)” chowa jej pola; po przebudowaniu panelu zostaje zwinięta.
   const pole = strona.locator('#wlasciwosci label:has-text("Seria") select');
@@ -127,10 +127,10 @@ test('panel: sekcje da się zwijać i zostają zwinięte; rozkładówka jako jed
   // Jedna strona zamiast rozkładówki: płótno ma jedną stronę z marginesami jej strony rozkładówki.
   await strona.click('#przycisk-widok');
   await strona.check('#widok-jedna');
-  await strona.waitForFunction(() => window.seriodruk.edytor.strony.length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.strony.length === 1);
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.marg.grzbiet), 'lewy'); // strona 3 jest prawa
   await strona.uncheck('#widok-jedna');
-  await strona.waitForFunction(() => window.seriodruk.edytor.strony.length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.strony.length === 2);
   assert.deepEqual(bledy, []);
 });
 
@@ -206,7 +206,7 @@ test('kształty: wielokąt i gwiazda, wypełnienie gradientem, cień – zapisuj
 
   // Po ponownym otwarciu kształt wraca z gradientem i cieniem, a strona daje się narysować.
   await strona.reload();
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.canvas.getObjects().length === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.canvas.getObjects().length === 1);
   const poWczytaniu = await strona.evaluate(async () => {
     const o = window.seriodruk.edytor.canvas.getObjects()[0];
     const { renderujCel } = await import('./js/zlozenie.js');
@@ -277,11 +277,11 @@ test('rysowanie odręczne: przeciągnięcie tworzy linię, która jest zwykłym 
     await strona.mouse.up();
   };
   await kreska([[30, 40], [60, 70], [90, 40], [120, 70]]);
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'path'));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'path'));
   // Tryb zostaje – druga kreska to drugi element (i osobny krok historii).
   await strona.waitForTimeout(450);
   await kreska([[30, 100], [120, 100]]);
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'path').length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'path').length === 2);
 
   const opis = await strona.evaluate(() => {
     const o = window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'path');
@@ -301,7 +301,7 @@ test('rysowanie odręczne: przeciągnięcie tworzy linię, która jest zwykłym 
 
   // Po wyjściu z trybu rysunek zaznacza się kliknięciem i ma w panelu kolor oraz grubość linii.
   await strona.mouse.click(...(await naEkranie(75, 100)));
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'path');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.type === 'path');
   assert.equal(await strona.textContent('#tytul-wlasciwosci'), 'Rysunek');
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   const zapisane = await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.map((o) => o.type));
@@ -314,6 +314,6 @@ test('rysowanie odręczne: przeciągnięcie tworzy linię, która jest zwykłym 
   await strona.keyboard.press('b');
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), false);
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'path').length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'path').length === 1);
   assert.deepEqual(bledy, []);
 });

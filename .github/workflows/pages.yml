@@ -35,6 +35,8 @@ jobs:
           mkdir -p _site
           cp -r index.html manifest.webmanifest sw.js css js img _site/
           touch _site/.nojekyll
+          # Numer wersji i lista plików kodu dla service workera (pamięć jednej wersji naraz).
+          python3 scripts/wersja-sw.py _site "${GITHUB_SHA::12}"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

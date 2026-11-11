@@ -2,9 +2,8 @@
 // Ten moduł nie zależy od pozostałych części aplikacji – wszystkie mogą z niego korzystać.
 
 import { sekcjaStrony } from '../projekt.js';
-import { Edytor } from '../edytor.js';
 import { Historia } from '../historia.js';
-import { zamknijMenu, $, $$ } from '../ui.js';
+import { zamknijMenu, $$ } from '../ui.js';
 
 export const stan = {
   uzytkownik: null,
@@ -74,7 +73,11 @@ export const trasa = {
 // Edytowany „cel” to strona albo wzorzec (stan.tryb). Strona ma format swojej
 // sekcji i pod spodem elementy wzorca; wzorzec ma własny rozmiar.
 
-export const edytor = new Edytor($('#plotno'), $('#kontener-plotna'));
+// Edytor powstaje dopiero wtedy, gdy aplikacja doczyta kod edytora (js/app/doczytaj.js) – ekran logowania
+// i lista projektów go nie potrzebują. Do tego czasu `edytor` jest pusty; moduły edytora korzystają z niego
+// dopiero po doczytaniu (js/app/edytor-instancja.js ustawia go, zanim wykonają się pozostałe).
+export let edytor = null;
+export function ustawEdytor(e) { edytor = e; }
 
 export const biezacaStrona = () => stan.projekt.strony[stan.indeks];
 export const biezacyWzorzec = () => stan.projekt.wzorce.find((w) => w.id === stan.idWzorca);

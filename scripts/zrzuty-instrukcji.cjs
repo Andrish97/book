@@ -34,6 +34,7 @@ async function zrzut(strona, nazwa, opcje = {}) {
 
 // Przykładowe projekty budowane przez API edytora.
 async function przykladoweProjekty(strona) {
+  await strona.evaluate(() => window.seriodruk.doczytajEdytor()); // edytor wczytuje się dopiero po zalogowaniu, w tle
   await strona.evaluate(async () => {
     const { otworzProjekt, edytor, stan } = window.seriodruk;
     const mm = (pt) => pt * 25.4 / 72;
@@ -197,7 +198,7 @@ async function przykladoweProjekty(strona) {
     await k.click('[data-akcja="nowy-projekt"]:visible');
     await k.fill('#form-nowy input[name=nazwa]', 'Kalendarz 2027');
     await k.click('#form-nowy button[value=ok]');
-    await k.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+    await k.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
     await k.evaluate(() => {
       const { edytor } = window.seriodruk;
       const r = edytor.dodajProstokat();
@@ -371,7 +372,7 @@ async function przykladoweProjekty(strona) {
   await d.click('[data-akcja="nowy-projekt"]:visible');
   await d.fill('#form-nowy input[name=nazwa]', 'Planer dzienny');
   await d.click('#form-nowy button[value=ok]');
-  await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   const naPlotnie = (x, y) => d.evaluate(([mx, my]) => { const e = window.seriodruk.edytor; const r = e.canvas.upperCanvasEl.getBoundingClientRect(); const v = e.canvas.viewportTransform; return { x: r.left + v[4] + mx * v[0], y: r.top + v[5] + my * v[3] }; }, [x, y]);
 
   // Siatka, linijki, prowadnice
@@ -438,9 +439,9 @@ async function przykladoweProjekty(strona) {
     await window.seriodruk.zapiszTeraz();
   });
   await d.reload();
-  await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   // Strona wczytuje się chwilę po otwarciu projektu (najpierw pobierają się jej czcionki).
-  await d.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text?.startsWith('Imieniny')));
+  await d.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.text?.startsWith('Imieniny')));
   await d.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.text?.startsWith('Imieniny')).id); });
   await d.waitForTimeout(700);
   await zrzut(d, 'pola.png');

@@ -98,7 +98,7 @@ test('przelewanie: ramka z ciągiem dalszym, zmiana wysokości, usunięcie ramki
 
   // Nowa ramka z ciągiem dalszym; pierwsza dostaje wysokość trzech wierszy.
   await strona.click('.wlasciwosci button:has-text("Dodaj ramkę z ciągiem dalszym")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.watek).length === 2);
   await strona.evaluate(() => {
     const e = window.seriodruk.edytor;
     const pierwsza = e.canvas.getObjects().find((o) => o.watek_nr === 0);
@@ -149,7 +149,7 @@ test('przelewanie: ramka z ciągiem dalszym, zmiana wysokości, usunięcie ramki
     e.zatwierdz?.();
   });
   await strona.click('.wlasciwosci [aria-label="Podziel na kolumny"] button[title="3 kolumny"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).length === 3);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.watek).length === 3);
   const kolumny = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).sort((a, b) => a.watek_nr - b.watek_nr)
     .map((o) => ({ lewo: Math.round(o.left * 10) / 10, szer: Math.round(o.width * 10) / 10, h: Math.round(o.ramka_h * 100), wierszy: o._textLines.length, tekst: o.text, lacznik: o.lacznik })));
   assert.deepEqual(kolumny.map((k) => [k.lewo, k.szer]), [[15, 36.7], [55.7, 36.7], [96.3, 36.7]]);
@@ -223,7 +223,7 @@ test('przelewanie z danymi i łączenie zaznaczonych ramek; wstawianie tabeli', 
   await strona.fill('#dlg-tabela input[name=wiersze]', '3');
   await strona.fill('#dlg-tabela input[name=kolumny]', '4');
   await strona.click('#dlg-tabela button[value=tak]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 1 && window.seriodruk.edytor.aktywny?.tabela);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 1 && window.seriodruk.edytor?.aktywny?.tabela);
   // Tabela jest zaznaczona w całości; żaden element nie zgłasza ostrzeżenia (także o marginesie).
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.map((o) => o.typ)), []);
   const tabela = await strona.evaluate(async () => {
@@ -263,7 +263,7 @@ test('tekst płynie przez strony: ciąg dalszy na następnej stronie, zmiany wra
   // Przycisk w panelu tekstu: powstaje druga strona z ramką, do której płynie reszta tekstu.
   await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1);
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.watek_nr === 1);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   let p = await proj();
   assert.equal(p[0].length, 1); assert.equal(p[1].length, 1);
@@ -276,7 +276,7 @@ test('tekst płynie przez strony: ciąg dalszy na następnej stronie, zmiany wra
 
   // Zwężenie ramki na drugiej stronie niczego nie zmienia na pierwszej; powrót na pierwszą przyciskiem z panelu.
   await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 0);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.aktywny?.watek_nr === 0);
   // Wyższa ramka na pierwszej stronie zabiera tekst z drugiej – także w zapisie drugiej strony.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.aktywny; o.set({ ramka_h: 28 }); o.initDimensions(); e.zatwierdz(); });
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
@@ -341,7 +341,7 @@ test('pisanie w połączonych ramkach na jednej stronie: tekst przelewa się na 
     e.zatwierdz();
   });
   await strona.click('.wlasciwosci button:has-text("Dodaj ramkę z ciągiem dalszym")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.watek).length === 2);
   // Pisanie na końcu pierwszej ramki, aż tekst się przeleje.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.canvas.getObjects().find((x) => x.watek_nr === 0); e.canvas.setActiveObject(o); o.enterEditing(); });
   await strona.keyboard.press('Control+End');

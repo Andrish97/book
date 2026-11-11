@@ -47,25 +47,8 @@ export function zamknijPodglad() {
 // ---------- Podgląd udostępniony linkiem ----------
 
 // Widok dla osoby z linkiem: bez logowania, same obrazy stron.
-export async function pokazUdostepniony(t) {
-  document.body.classList.add('podglad-publiczny');
-  pokazEkran('podglad');
-  try {
-    const { manifest, adresObrazu } = await chmura.wczytajPodgladPubliczny(t.konto, t.projekt, t.kod);
-    document.title = `${manifest.uklad.nazwa} – ${NAZWA}`;
-    const kiedyStan = new Date(manifest.zaktualizowano).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
-    podglad.pokaz(manifest.uklad, {
-      obraz: (strona) => adresObrazu(strona.id), stale: true, klikalne: false, opis: `stan z ${kiedyStan}`,
-    });
-  } catch (e) {
-    document.title = NAZWA;
-    $('#podglad-tytul').textContent = 'Podgląd niedostępny';
-    $('#podglad-opis').textContent = '';
-    const el = $('#podglad-tresc');
-    el.innerHTML = '<div class="podglad-pusto"><h2>Ten link nie działa</h2><p class="ciche"></p><a class="przycisk" href="./">Przejdź do Seriodruku</a></div>';
-    $('p', el).textContent = e.message;
-  }
-}
+// pokazUdostepniony mieszka w lekkim module js/app/udostepnione.js (bez edytora); tu zostaje dla zgodności.
+export { pokazUdostepniony } from './udostepnione.js';
 
 // Skrót treści projektu – pozwala powiedzieć, czy link pokazuje aktualny stan.
 function skrot(tekst) {

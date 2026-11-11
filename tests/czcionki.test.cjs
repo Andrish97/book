@@ -48,7 +48,7 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
   const [wybor] = await Promise.all([strona.waitForEvent('filechooser'), strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', '+')]);
   await wybor.setFiles([{ name: 'Odreczna-Bold.woff2', mimeType: 'font/woff2', buffer: PLIK_CZCIONKI }, { name: 'notatki.txt', mimeType: 'text/plain', buffer: Buffer.from('to nie czcionka') }]);
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki?.length === 1);
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.fontFamily === 'Odreczna');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.fontFamily === 'Odreczna');
   const stan = await strona.evaluate(async () => {
     await window.seriodruk.zapiszTeraz();
     const p = window.seriodruk.stan.projekt;
@@ -171,7 +171,7 @@ test('moje czcionki: czcionka wgrana w jednym projekcie jest pod ręką w nastę
   // Wybranie jej dodaje do projektu wszystkie odmiany i ustawia czcionkę zaznaczonego tekstu.
   await strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', 'moja:Odreczna');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.czcionki?.length === 2);
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.fontFamily === 'Odreczna');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.fontFamily === 'Odreczna');
   await strona.waitForFunction(() => window.seriodruk.stan.mojeRodziny.length === 0);
   const opcje = await opcjeCzcionek(strona);
   assert.equal(opcje[0], 'Odreczna');
@@ -202,7 +202,7 @@ test('moje czcionki: czcionka wgrana w jednym projekcie jest pod ręką w nastę
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.czcionki.length), 2);
   await doProjektow(strona);
   await strona.click('.karta-projektu:has-text("Pierwszy")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Pierwszy' && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Pierwszy' && window.seriodruk.edytor?.wydruk);
   await doProjektow(strona);
   await nowyProjekt(strona, 'Trzeci');
   await strona.click('[data-akcja="dodaj-tekst"]');

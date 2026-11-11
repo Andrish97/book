@@ -10,7 +10,7 @@ test('eksport do pliku projektu, usunięcie i import z powrotem', async (t) => {
   await nowyProjekt(strona, 'Do pliku');
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.setInputFiles('#plik-obraz', { name: 'a.png', mimeType: 'image/png', buffer: PNG_2X2 });
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 2);
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForTimeout(1000);
   await strona.click('[data-akcja="do-projektow"]:visible');

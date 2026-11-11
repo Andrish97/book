@@ -68,7 +68,7 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
 
   // Ponowne otwarcie aplikacji: obrazy wczytują się z magazynu, a kopie robocze nie powstają od nowa z oryginałów.
   await strona.reload(); // adres strony pamięta otwarty projekt – po wejściu aplikacja otwiera go od razu
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'image').length === 12);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image').length === 12);
   const naPlotnie = await obrazyNaPlotnie(strona);
   assert.deepEqual(naPlotnie, Array(12).fill([true, 1800, 1200]), 'obrazy są na płótnie i mają wymiary oryginału');
   const poOtwarciu = await pomiar(strona);
@@ -108,7 +108,7 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
   };
   await usun('Zdjecia');
   await strona.click('.karta-projektu:has-text("Zdjecia (kopia)")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Zdjecia (kopia)' && window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'image').length === 12);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Zdjecia (kopia)' && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image').length === 12);
   assert.deepEqual(await obrazyNaPlotnie(strona), Array(12).fill([true, 1800, 1200]), 'kopia projektu ma swoje obrazy po usunięciu oryginału');
   assert.equal((await pomiar(strona)).oryginaly.length, 12);
   await strona.click('#ekran-edytora [data-akcja="do-projektow"]');
@@ -136,7 +136,7 @@ test('starszy zapis z obrazami w środku projektu przechodzi do magazynu plików
     });
   });
   await strona.reload();
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'image' && o.getElement().naturalWidth === 60));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'image' && o.getElement().naturalWidth === 60));
   const w = await strona.evaluate(async () => {
     const { wczytajLokalnie } = await import('./js/lokalny.js');
     const { dataUrlZasobu } = await import('./js/zasoby.js');
@@ -171,7 +171,7 @@ test('obrazy na koncie: drugie urządzenie pobiera je prosto do magazynu plików
   const pobrania = () => baza.zadania.filter((z) => z.startsWith('GET /storage/v1/object/zasoby/') && !z.includes('_czcionki')).length;
   const przedtem = pobrania();
   await strona.reload(); // sesja i adres projektu zostają – aplikacja otwiera go od razu
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'image' && o.getElement().naturalWidth > 0).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image' && o.getElement().naturalWidth > 0).length === 2);
   assert.equal(pobrania() - przedtem, 2, 'każdy obraz pobrany raz');
   const w = await strona.evaluate(() => Object.values(window.seriodruk.stan.projekt.zasoby).map((z) => [Boolean(z.sciezka), Boolean(z.dataUrl), z.typ]));
   assert.deepEqual(w, [[true, false, 'image/jpeg'], [true, false, 'image/jpeg']]);
@@ -180,7 +180,7 @@ test('obrazy na koncie: drugie urządzenie pobiera je prosto do magazynu plików
   await strona.waitForSelector('.karta-projektu:not(.szkielet)');
   const przedDrugim = pobrania();
   await strona.click('.karta-projektu:has-text("Na koncie")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'image' && o.getElement().naturalWidth > 0).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image' && o.getElement().naturalWidth > 0).length === 2);
   assert.equal(pobrania() - przedDrugim, 0);
   assert.deepEqual(bledy, []);
 });
