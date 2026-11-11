@@ -360,7 +360,8 @@ test('szablon danych i kontrola przed drukiem: brakujące kolumny, plik Excela z
   assert.deepEqual(arkusze[0], ['Dni', [['dzien', 'tag', 'pogoda', 'ikona'], ['1', 'praca', '', ''], ['2', 'dom', '', ''], ['3', 'praca', '', ''], ['4', '', '', '']]]);
   assert.equal(arkusze[1][0], 'Instrukcja');
   assert.deepEqual(arkusze[1][1][5], ['tag', 'Dzień', 'Tekst, który pojawi się w miejscu {tag}. Wartości nie mogą się powtarzać.']);
-  assert.deepEqual(arkusze[1][1][7], ['ikona', 'Dzień', 'Nazwę pliku obrazu wgranego do projektu, np. zdjecie.jpg.']);
+  // Projekt ma wgrany obraz, więc kolumna z nazwą pliku dostaje w szablonie listę rozwijaną z nazwami obrazów.
+  assert.deepEqual(arkusze[1][1][7], ['ikona', 'Dzień', 'Nazwę pliku obrazu wgranego do projektu, np. zdjecie.jpg. W komórce jest lista rozwijana z podpowiedziami.']);
   await strona.click('#dlg-seria #zapisz-serie');
 
   // Wypełniony szablon wraca importem: dane podmienione, arkusz „Instrukcja” pominięty, pilnowanie zostaje.

@@ -252,6 +252,7 @@ export const ROZDZIALY = [
       '<b>CSV</b> pobiera tabelę jako plik – np. żeby dokończyć ją w arkuszu.',
       'Długa tabela (tysiące wierszy) przewija się w całości – kolejne wiersze dorysowują się w miarę przewijania.',
       '<b>Pilnowanie powtórzeń</b>: znak <b>≠</b> przy nazwie kolumny oznacza, że wartości w niej nie powinny się powtarzać (np. tagi, hasła dnia). Powtórzone komórki są podświetlone na czerwono, a przed drukiem aplikacja pokaże, na których stronach ta sama wartość wypada dwa razy. Wielkość liter i zbędne spacje nie mają znaczenia: „Praca”, „praca ” i „PRACA” to ta sama wartość.',
+      '<b>Lista dozwolonych wartości</b>: znak <b>☰</b> przy nazwie kolumny otwiera pole, w którym wpisujesz wartości po średniku, np. <code>praca; dom; wolne</code> (samo <code>-</code> usuwa listę). Komórki z inną wartością są podświetlone, przed drukiem aplikacja je wymieni, a w szablonie danych komórki tej kolumny dostają listę rozwijaną.',
     ],
   },
   {
@@ -290,6 +291,7 @@ export const ROZDZIALY = [
       '<b>Brak danych</b>: gdy tabeli dodatkowej zabraknie wierszy przed końcem serii, okno serii i właściwości strony pokazują to na czerwono (ile wierszy jest, ile potrzeba, od której strony pola będą puste). To samo trafia na listę uwag przed eksportem PDF.',
       'Okno serii pokazuje, <b>jakich danych potrzebują strony</b>: wszystkie pola użyte na stronach bloku. Jeśli w tabeli brakuje kolumny, <b>Dodaj brakujące kolumny</b> dopisze je jednym kliknięciem (bez tabeli – utworzy ją z tych pól).',
       '<b>Pobierz szablon danych (Excel)</b> daje plik z kolumnami dokładnie takimi, jakich wymagają strony, razem z tym, co już jest w tabeli. Drugi arkusz, „Instrukcja”, opisuje każdą kolumnę. Wypełniony plik importujesz w oknie <b>Dane</b> – aplikacja zaproponuje podmianę danych tabeli.',
+      'W szablonie komórki części kolumn mają <b>listę rozwijaną</b>: kolumna z dozwolonymi wartościami (☰ w oknie Dane) – tylko te wartości; kolumna z nazwą pliku obrazu – nazwy obrazów wgranych do projektu; kolumna z kadrem – góra, dół, lewa, prawa, środek; kolumna, od której zależy widoczność elementu – sprawdzana wartość. Trzy ostatnie listy to podpowiedzi: komórka przyjmie też inną wartość (np. punkt kadru w procentach).',
       'Powielone strony nie są zapisywane osobno – powstają na bieżąco. Po zmianie tabeli podgląd od razu pokazuje nowe dane.',
       'Numery stron liczą się po powieleniu: strona za serią 31 dni dostaje numer o 31 większy. Pole <code>{nr}</code> trzyma się ustawień numeracji sekcji, a <code>{nr_ogolny}</code> liczy wszystkie strony projektu od 1.',
       'W rozkładówkach blok o nieparzystej liczbie stron wypada na przemian po lewej i prawej. Wzorce z odbiciem lustrzanym ustawiają się wtedy same.',
@@ -410,6 +412,7 @@ export const ROZDZIALY = [
       '<b>Pole bez wartości</b>: w tekście jest pole, którego aplikacja nie zna (literówka, usunięta kolumna).',
       '<b>Brak pliku obrazu</b>: w kolumnie z nazwami obrazów jest nazwa, do której nie wgrano pliku.',
       '<b>Powtórzenia</b> w kolumnach oznaczonych znakiem ≠ – z numerami stron, na których ta sama wartość wypada dwa razy.',
+      '<b>Wartości spoza listy</b> w kolumnach z listą dozwolonych wartości (znak ☰) – z numerami wierszy tabeli.',
       '<b>Brak danych</b> w tabeli dodatkowej serii i <b>niepełny ostatni blok</b> serii.',
       '<b>Tabela wychodzi poza stronę</b>: wiersze tabeli rosną razem z treścią, więc na stronie z dłuższymi danymi tabela może wyjść poza kartkę. Uwaga podaje, na których stronach i o ile milimetrów.',
       'Przycisk <b>Pokaż</b> przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy – już z danymi tego powielenia, z wyróżnioną kartką. <b>Otwórz wzór</b> otwiera w edytorze stronę-wzór z zaznaczonym elementem, żeby od razu go poprawić. Sprawdzanie tekstów w dużym projekcie trwa chwilę – lista uzupełnia się na bieżąco.',

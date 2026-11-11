@@ -5,10 +5,10 @@
 
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
-import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku } from './kontrola.js';
+import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
 import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
-import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
+import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana, zapytajONazwe } from './ui.js';
 import { wstawIkony } from './ikony.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
@@ -81,7 +81,7 @@ export class Dane {
 
     const html = ['<thead><tr><th class="rog"></th>'];
     t.kolumny.forEach((k, i) => {
-      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
+      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="lista-kolumny" data-k="${i}" aria-pressed="${Boolean(t.listy?.[k]?.length)}" title="Lista dozwolonych wartości kolumny – w szablonie danych komórki dostaną listę rozwijaną" aria-label="Lista dozwolonych wartości kolumny">☰</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
     });
     html.push('</tr></thead><tbody></tbody>');
     this.siatka.innerHTML = html.join('');
@@ -110,13 +110,24 @@ export class Dane {
       const komorki = tbody.rows[w].cells;
       for (let k = 0; k < t.kolumny.length; k += 1) komorki[k + 1].textContent = t.wiersze[w][k];
     }
-    if (od > 0 && t.unikalne?.length) this._oznaczPowtorzenia();
+    if (od > 0 && (t.unikalne?.length || t.listy)) this._oznaczPowtorzenia();
   }
 
-  // Powtórzone wartości w kolumnach pilnowanych: podświetlone komórki i opis pod tabelą.
+  // Powtórzone wartości w kolumnach pilnowanych i wartości spoza listy dozwolonych: podświetlone komórki
+  // i opis pod tabelą.
   _oznaczPowtorzenia() {
     const t = this.tabela();
-    for (const td of this.siatka.querySelectorAll('td.powtorzona')) td.classList.remove('powtorzona');
+    for (const td of this.siatka.querySelectorAll('td.powtorzona, td.spoza-listy')) td.classList.remove('powtorzona', 'spoza-listy');
+    const spoza = [];
+    for (const kolumna of Object.keys(t.listy || {})) {
+      const k = t.kolumny.indexOf(kolumna);
+      const znalezione = spozaListy(t, kolumna);
+      for (const s of znalezione) for (const w of s.wiersze) this._komorka(w, k)?.classList.add('spoza-listy');
+      if (znalezione.length) spoza.push(`„${kolumna}”: ${znalezione.slice(0, 4).map((s) => `„${s.wartosc}” (${odmiana(s.wiersze.length, 'wiersz', 'wiersze', 'wiersze')} ${s.wiersze.map((w) => w + 1).join(', ')})`).join('; ')}${znalezione.length > 4 ? ` i ${znalezione.length - 4} więcej` : ''}`);
+    }
+    const uwaga = $('#dane-spoza-listy');
+    uwaga.hidden = !spoza.length;
+    uwaga.textContent = spoza.length ? `Wartości spoza listy – ${spoza.join('. ')}.` : '';
     const opisy = [];
     for (const kolumna of t.unikalne || []) {
       const k = t.kolumny.indexOf(kolumna);
@@ -190,6 +201,7 @@ export class Dane {
     }));
     t.kolumny[k] = nowa;
     if (t.unikalne) t.unikalne = t.unikalne.map((u) => (u === stara ? nowa : u));
+    if (t.listy?.[stara]) { t.listy[nowa] = t.listy[stara]; delete t.listy[stara]; }
     // Tabele dodatkowe, które zmieniają wiersz razem z tą kolumną, idą za nową nazwą.
     for (const x of p.serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (kolumnyZmiany(d.zmiana).includes(stara)) d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).map((z) => (z === stara ? nowa : z)));
     el.textContent = nowa;
@@ -210,7 +222,7 @@ export class Dane {
       const td = e.target.closest('td');
       if (!td) return;
       this.tabela().wiersze[Number(td.dataset.w)][Number(td.dataset.k)] = td.textContent.replace(/\n$/, '');
-      if (this.tabela().unikalne?.length) this._oznaczPowtorzenia();
+      if (this.tabela().unikalne?.length || this.tabela().listy) this._oznaczPowtorzenia();
       this.poZmianie();
     });
     s.addEventListener('focusout', (e) => {
@@ -246,6 +258,21 @@ export class Dane {
       const kolumna = e.target.closest('.usun-kolumne');
       const wiersz = e.target.closest('.usun-wiersz');
       const pilnuj = e.target.closest('.pilnuj-kolumne');
+      const lista = e.target.closest('.lista-kolumny');
+      if (lista) {
+        // Lista dozwolonych wartości: wpisywane po średniku; samo „-” usuwa listę.
+        const nazwa = t.kolumny[Number(lista.dataset.k)];
+        const odp = await zapytajONazwe(`Dozwolone wartości kolumny „${nazwa}”`, 'Wartości po średniku, np. tak; nie. Samo „-” usuwa listę.', (t.listy?.[nazwa] || []).join('; '));
+        if (odp === null) return;
+        const wartosci = [...new Set(odp.split(/[;\n]/).map((v) => v.trim()).filter((v) => v && v !== '-'))];
+        t.listy = { ...t.listy };
+        if (wartosci.length) t.listy[nazwa] = wartosci; else delete t.listy[nazwa];
+        if (!Object.keys(t.listy).length) delete t.listy;
+        lista.setAttribute('aria-pressed', String(wartosci.length > 0));
+        this._oznaczPowtorzenia();
+        this._zmieniono();
+        return;
+      }
       if (pilnuj) {
         const nazwa = t.kolumny[Number(pilnuj.dataset.k)];
         const bylo = t.unikalne?.includes(nazwa);
@@ -261,6 +288,7 @@ export class Dane {
         const k = Number(kolumna.dataset.k);
         if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, 'Pola z tej kolumny przestaną się wypełniać.', 'Usuń kolumnę', true)) return;
         if (t.unikalne) t.unikalne = t.unikalne.filter((u) => u !== t.kolumny[k]);
+        if (t.listy) { delete t.listy[t.kolumny[k]]; if (!Object.keys(t.listy).length) delete t.listy; }
         for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana) { d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).filter((z) => z !== t.kolumny[k])); if (!d.zmiana) delete d.zmiana; }
         t.kolumny.splice(k, 1);
         for (const w of t.wiersze) w.splice(k, 1);
@@ -341,6 +369,7 @@ export class Dane {
         stara.kolumny = nowa.kolumny;
         stara.wiersze = nowa.wiersze;
         if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
+        if (stara.listy) { for (const k of Object.keys(stara.listy)) if (!nowa.kolumny.includes(k)) delete stara.listy[k]; if (!Object.keys(stara.listy).length) delete stara.listy; }
         ostatnia = stara;
       } else {
         if (stara) nowa.nazwa = `${nowa.nazwa} (2)`;
@@ -587,7 +616,7 @@ export class Dane {
       const { proba } = this._seriaZOkna();
       const s = szablonSerii(p, proba);
       try {
-        const blob = await doXlsx([{ nazwa: s.nazwa, wiersze: [s.kolumny, ...s.wiersze] }, { nazwa: 'Instrukcja', wiersze: s.instrukcja }]);
+        const blob = await doXlsx([{ nazwa: s.nazwa, wiersze: [s.kolumny, ...s.wiersze], listy: s.listy }, { nazwa: 'Instrukcja', wiersze: s.instrukcja }]);
         this.ostatniSzablon = blob; // do testów
         pobierz(`${bezpiecznaNazwa(p.nazwa)} - ${bezpiecznaNazwa(s.nazwa)} - szablon.xlsx`, URL.createObjectURL(blob));
       } catch (e) {

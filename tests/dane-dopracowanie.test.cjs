@@ -255,3 +255,119 @@ test('tabela dodatkowa zmienia wiersz, gdy zmieni się którakolwiek z kilku kol
   assert.equal((await dodatkowe())[0].zmiana, 'mies');
   assert.deepEqual(bledy, []);
 });
+
+test('szablon danych: listy rozwijane w komórkach (kadr, pliki obrazów, warunek, lista dozwolonych wartości); lista kolumny w oknie danych i w kontroli', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Listy');
+  await strona.evaluate(async () => {
+    const { stan, zapiszTeraz, edytor } = window.seriodruk;
+    const p = stan.projekt;
+    const c = Object.assign(document.createElement('canvas'), { width: 20, height: 20 });
+    c.getContext('2d').fillRect(0, 0, 20, 20);
+    await edytor.dodajObraz(c.toDataURL('image/png'), 'kot.png', p.zasoby);
+    await edytor.dodajObraz(c.toDataURL('image/png'), 'Ala, pies.png', p.zasoby); // przecinek w nazwie: lista bierze wartości z arkusza pomocniczego
+    edytor.zatwierdz();
+    await zapiszTeraz();
+    p.tabele.push({ id: 't1', nazwa: 'Dni', kolumny: ['dzien', 'plik', 'kadr', 'swieto', 'rodzaj', 'kolor'], wiersze: [['1', 'kot.png', 'góra', 'tak', 'praca', '#ff0000'], ['2', '', '', '', 'urlop', ''], ['3', '', '', '', 'Dom', '']] });
+    p.serie.push({ id: 'se1', nazwa: 'Dni', tabela: 't1', tryb: 'tabela', uklad: 'szeroki', ile: 1 });
+    p.strony[0].seria = 'se1';
+    const [obraz] = p.strony[0].obiekty;
+    p.strony[0].obiekty = [
+      { ...obraz, id: 'obraz', pole: { kolumna: 'plik', tryb: 'wypelnij', kadr_z: 'kadr' } },
+      { type: 'textbox', version: '5.3.0', left: 10, top: 10, width: 100, text: '{dzien} {rodzaj}', styles: [], fontSize: 5, fontFamily: 'Inter', id: 'tekst' },
+      { type: 'rect', version: '5.3.0', left: 10, top: 60, width: 20, height: 20, strokeWidth: 0, fill: '#cccccc', id: 'znak', z_danych: { kolor: 'kolor', widok: { pole: 'swieto', gdy: 'rowne', wartosc: 'tak' } } },
+    ];
+    await window.seriodruk.przeladuj();
+  });
+
+  // Lista dozwolonych wartości kolumny „rodzaj”: przycisk ☰ w nagłówku; wartość spoza listy jest podświetlona.
+  await strona.evaluate(() => window.seriodruk.dane.otworz('t1'));
+  await strona.waitForSelector('#dlg-dane[open]');
+  await strona.click('#dane-siatka .lista-kolumny[data-k="4"]');
+  await strona.waitForSelector('#dlg-nazwa[open]');
+  await strona.fill('#dlg-nazwa input', 'praca; dom ;; wolne; dom');
+  await strona.click('#dlg-nazwa button[value=tak]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].listy);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele[0].listy), { rodzaj: ['praca', 'dom', 'wolne'] });
+  assert.equal(await strona.getAttribute('#dane-siatka .lista-kolumny[data-k="4"]', 'aria-pressed'), 'true');
+  // „Dom” pasuje do „dom” (wielkość liter nie ma znaczenia), „urlop” jest spoza listy.
+  assert.deepEqual(await strona.locator('#dane-siatka td.spoza-listy').evaluateAll((l) => l.map((td) => td.textContent)), ['urlop']);
+  assert.equal(await strona.textContent('#dane-spoza-listy'), 'Wartości spoza listy – „rodzaj”: „urlop” (wiersz 2).');
+  // Zmiana nazwy kolumny zabiera listę ze sobą.
+  await strona.click('.nazwa-kolumny[data-k="4"]');
+  await strona.keyboard.press('Control+a');
+  await strona.keyboard.type('typ');
+  await strona.keyboard.press('Enter');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].kolumny[4] === 'typ');
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele[0].listy), { typ: ['praca', 'dom', 'wolne'] });
+  await strona.click('#dane-zamknij');
+
+  const w = await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    const k = await import('./js/kontrola.js');
+    const { normalizujTabele } = await import('./js/projekt.js');
+    const s = k.szablonSerii(p, p.serie[0]);
+    return {
+      listy: s.listy,
+      opisy: Object.fromEntries(s.instrukcja.slice(4).map((x) => [x[0], x[2]])),
+      jak: s.instrukcja[1][1],
+      uwagi: k.sprawdzProjekt(p).filter((u) => u.rodzaj === 'spoza_listy').map((u) => u.opis),
+      poOtwarciu: normalizujTabele({ ...p.tabele[0], listy: { typ: ['a', ' a ', '', 'b'], nie_ma: ['x'], dzien: [] } }).listy,
+    };
+  });
+  assert.deepEqual(w.listy, [
+    { kolumna: 1, wartosci: ['Ala, pies.png', 'kot.png'], scisla: false },
+    { kolumna: 2, wartosci: ['środek', 'góra', 'dół', 'lewa', 'prawa'], scisla: false },
+    { kolumna: 3, wartosci: ['tak'], scisla: false },
+    { kolumna: 4, wartosci: ['praca', 'dom', 'wolne'], scisla: true },
+  ]);
+  assert.match(w.jak, /Komórki niektórych kolumn mają listę rozwijaną z wartościami do wyboru\.$/);
+  assert.equal(w.opisy.plik, 'Nazwę pliku obrazu wgranego do projektu, np. zdjecie.jpg. W komórce jest lista rozwijana z podpowiedziami.');
+  assert.match(w.opisy.kadr, /^Którą część zdjęcia pokazać: góra, dół, lewa, prawa, środek – albo punkt zdjęcia w procentach.*W komórce jest lista rozwijana z podpowiedziami\.$/);
+  assert.equal(w.opisy.swieto, 'Od tej kolumny zależy, czy element jest na stronie (sprawdzana wartość: tak). W komórce jest lista rozwijana z podpowiedziami.');
+  assert.equal(w.opisy.typ, 'Tekst, który pojawi się w miejscu {typ}. Tylko wartości z listy: praca, dom, wolne.');
+  assert.equal(w.opisy.kolor, 'Kolor: zapis #d1495b albo nazwę po angielsku, np. navy. Pusta komórka zostawia kolor wzoru.');
+  assert.equal(w.opisy.dzien, 'Tekst, który pojawi się w miejscu {dzien}.');
+  assert.deepEqual(w.uwagi, ['Wartość „urlop” w kolumnie „typ” (tabela „Dni”) nie jest na liście dozwolonych wartości – wiersz 2.']);
+  assert.deepEqual(w.poOtwarciu, { typ: ['a', 'b'] });
+
+  // Plik szablonu: reguły list w arkuszu danych, arkusz pomocniczy ukryty, plik dalej czyta się jak zwykły arkusz.
+  await strona.evaluate(() => window.seriodruk.dane.otworzSerie('se1'));
+  await strona.waitForSelector('#dlg-seria[open]');
+  await Promise.all([strona.waitForEvent('download'), strona.click('#seria-szablon')]);
+  const plik = await strona.evaluate(async () => {
+    const bufor = await window.seriodruk.dane.ostatniSzablon.arrayBuffer();
+    const zip = await window.JSZip.loadAsync(bufor);
+    const arkusz = await zip.file('xl/worksheets/sheet1.xml').async('string');
+    const dok = new DOMParser().parseFromString(arkusz, 'application/xml');
+    const skoroszyt = new DOMParser().parseFromString(await zip.file('xl/workbook.xml').async('string'), 'application/xml');
+    const wb = window.XLSX.read(bufor, { type: 'array' });
+    const { wczytajPlik } = await import('./js/tabele.js');
+    const tabele = await wczytajPlik(new File([bufor], 'szablon.xlsx'));
+    return {
+      blad: dok.querySelector('parsererror')?.textContent || null,
+      kolejnosc: [...dok.documentElement.children].map((e) => e.localName),
+      ile: dok.querySelector('dataValidations').getAttribute('count'),
+      reguly: [...dok.querySelectorAll('dataValidation')].map((r) => [r.getAttribute('sqref'), r.getAttribute('type'), r.getAttribute('showErrorMessage'), r.getAttribute('errorStyle'), r.querySelector('formula1').textContent]),
+      arkusze: [...skoroszyt.querySelectorAll('sheet')].map((a) => [a.getAttribute('name'), a.getAttribute('state')]),
+      pomocniczy: window.XLSX.utils.sheet_to_json(wb.Sheets['Listy rozwijane'], { header: 1, raw: false, defval: '' }),
+      wczytane: tabele.map((x) => [x.nazwa, x.kolumny, x.wiersze.length]),
+    };
+  });
+  assert.equal(plik.blad, null);
+  // Reguły stoją w arkuszu za danymi i przed marginesami wydruku – w tej kolejności wymaga ich format pliku.
+  const kol = plik.kolejnosc;
+  assert.ok(kol.indexOf('sheetData') < kol.indexOf('dataValidations'), kol.join(' '));
+  for (const el of ['pageMargins', 'ignoredErrors']) if (kol.includes(el)) assert.ok(kol.indexOf('dataValidations') < kol.indexOf(el), kol.join(' '));
+  assert.equal(plik.ile, '4');
+  assert.deepEqual(plik.reguly, [
+    ['B2:B1000', 'list', '0', null, "'Listy rozwijane'!$A$1:$A$2"],
+    ['C2:C1000', 'list', '0', null, '"środek,góra,dół,lewa,prawa"'],
+    ['D2:D1000', 'list', '0', null, '"tak"'],
+    ['E2:E1000', 'list', '1', 'stop', '"praca,dom,wolne"'],
+  ]);
+  assert.deepEqual(plik.arkusze, [['Dni', null], ['Instrukcja', null], ['Listy rozwijane', 'hidden']]);
+  assert.deepEqual(plik.pomocniczy, [['Ala, pies.png'], ['kot.png']]);
+  assert.deepEqual(plik.wczytane, [['Dni', ['dzien', 'plik', 'kadr', 'swieto', 'typ', 'kolor'], 3]], 'przy imporcie arkusze pomocnicze są pomijane');
+  assert.deepEqual(bledy, []);
+});

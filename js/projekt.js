@@ -143,7 +143,13 @@ export function normalizujTabele(t, i = 0) {
   const wiersze = (Array.isArray(t?.wiersze) ? t.wiersze : []).map((w) => kolumny.map((_, k) => String((Array.isArray(w) ? w[k] : '') ?? '')));
   // Kolumny, w których wartości nie mogą się powtarzać (pilnowane w oknie danych i przed drukiem).
   const unikalne = (Array.isArray(t?.unikalne) ? t.unikalne : []).filter((k) => kolumny.includes(k));
-  return { id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze, ...(unikalne.length ? { unikalne } : {}) };
+  // Listy dozwolonych wartości kolumn: { kolumna: [wartości] } – podświetlanie w oknie danych, lista rozwijana w szablonie.
+  const listy = {};
+  for (const [k, wartosci] of Object.entries(t?.listy && typeof t.listy === 'object' ? t.listy : {})) {
+    const czyste = [...new Set((Array.isArray(wartosci) ? wartosci : []).map((v) => String(v ?? '').trim()).filter(Boolean))];
+    if (kolumny.includes(k) && czyste.length) listy[k] = czyste;
+  }
+  return { id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze, ...(unikalne.length ? { unikalne } : {}), ...(Object.keys(listy).length ? { listy } : {}) };
 }
 
 export function nowaSeria(nazwa = 'Seria') {
