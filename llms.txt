@@ -1,0 +1,15 @@
+# Seriodruk
+
+> Seriodruk to edytor publikacji z powtarzanymi stronami (kalendarze, planery, notesy) działający w przeglądarce: wzory stron, dane z arkusza, serie powielające strony według wierszy, PDF do druku (także PDF/X-4 w CMYK). Aplikacja i dokumentacja są po polsku.
+
+Aplikacja: https://andrish97.github.io/book/ (wymaga konta). Treść instrukcji pokazuje się dopiero w uruchomionej aplikacji – poniższe pliki są jej wersją do czytania.
+
+## Dokumentacja
+
+- [Instrukcja obsługi](https://andrish97.github.io/book/ai/instrukcja.md): wszystkie rozdziały instrukcji z aplikacji – funkcje, przyciski, skróty klawiszowe, pola w tekście.
+- [Format pliku projektu](https://andrish97.github.io/book/ai/format-seriodruk.md): jak zbudować plik `.json` albo `.seriodruk`, który użytkownik wczyta przyciskiem Importuj – model projektu, elementy stron, tabele, serie, dane w elementach, gotowe polecenie dla AI.
+
+## Przykłady
+
+- [Projekt minimalny](https://andrish97.github.io/book/ai/przyklady/minimalny.json): jedna strona A5.
+- [Kalendarz 2027](https://andrish97.github.io/book/ai/przyklady/kalendarz.json): okładka, 365 stron dni z tabeli (z wierszami [pomiń]), zdjęcie z danych, stopka z numerem, tabela.
