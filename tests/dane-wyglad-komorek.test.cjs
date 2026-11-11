@@ -90,3 +90,30 @@ test('wygląd części komórki z Excela: kawałki tekstu o różnym wyglądzie 
   assert.equal((await tabela(strona)).wyglad, undefined, 'komórka nie miała wyglądu całej komórki, tylko części');
   assert.deepEqual(bledy, []);
 });
+
+test('import pliku bez wyglądu (CSV) w miejsce tabeli zachowuje wygląd komórek, których wartość się nie zmieniła', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Import bez wyglądu');
+  await strona.evaluate(() => {
+    const p = window.seriodruk.stan.projekt;
+    p.tabele.push({ id: 't1', nazwa: 'Dni', kolumny: ['dzien', 'opis'], wiersze: [['1', 'Nowy Rok'], ['2', 'zwykły'], ['3', 'Trzech Króli']],
+      wyglad: [[null, { pogrubienie: true }], [{ kursywa: true }, { kolor: '#ff0000' }], [null, { czesci: [{ od: 0, do: 6, pogrubienie: true }] }]] });
+  });
+  await strona.evaluate(() => window.seriodruk.dane.otworz());
+  await strona.waitForSelector('#dlg-dane[open]');
+  // CSV: kolumny w innej kolejności, wiersz 2 ma zmieniony opis, wiersz 3 bez zmian, doszedł wiersz 4.
+  await importuj(strona, 'Dni.csv', 'text/csv', Buffer.from('opis;dzien\nNowy Rok;1\ninny opis;2\nTrzech Króli;3\nNowy;4\n'));
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].wiersze.length === 4);
+  const t1 = await tabela(strona);
+  assert.deepEqual(t1.wiersze, [['Nowy Rok', '1'], ['inny opis', '2'], ['Trzech Króli', '3'], ['Nowy', '4']]);
+  // Wygląd idzie za kolumną; zmieniona wartość traci wygląd, niezmieniona go zachowuje (także części).
+  assert.deepEqual(t1.wyglad, [[{ pogrubienie: true }, null], [null, { kursywa: true }], [{ czesci: [{ od: 0, do: 6, pogrubienie: true }] }, null], null]);
+  assert.match(await strona.textContent('#powiadomienie'), /Plik nie niesie wyglądu komórek: wygląd został w 3 z 4 komórek – tam, gdzie wartość się nie zmieniła\./);
+  // Plik, w którym nic się nie powtarza, zdejmuje wygląd całkiem.
+  await importuj(strona, 'Dni.csv', 'text/csv', Buffer.from('dzien;opis\n10;a\n11;b\n'));
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].wiersze.length === 2);
+  assert.equal((await tabela(strona)).wyglad, undefined);
+  assert.deepEqual(bledy, []);
+});

@@ -450,13 +450,30 @@ export class Dane {
     let wczytane;
     try { wczytane = await wczytajPlik(plik); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return; }
     let ostatnia = null;
+    let zachowano = null; // wygląd zachowany przy imporcie pliku bez wyglądu: { ile, bylo }
     for (const surowa of wczytane) {
       const nowa = normalizujTabele({ ...surowa, id: undefined });
       const stara = p.tabele.find((t) => t.nazwa.trim().toLowerCase() === nowa.nazwa.trim().toLowerCase());
       if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.`, 'Podmień dane', false, 'Dodaj osobno')) {
+        // Plik bez wyglądu (CSV, .xls, .ods, szablon danych) nie kasuje wyglądu komórek, których wartość się nie zmieniła
+        // (dopasowanie po numerze wiersza i nazwie kolumny).
+        if (!nowa.wyglad && stara.wyglad) {
+          let ile = 0;
+          const wyglad = nowa.wiersze.map((wiersz, w) => {
+            const komorki = nowa.kolumny.map((kol, k) => {
+              const ks = stara.kolumny.indexOf(kol);
+              const x = ks >= 0 ? stara.wyglad[w]?.[ks] : null;
+              return x && stara.wiersze[w]?.[ks] === wiersz[k] ? x : null;
+            });
+            ile += komorki.filter(Boolean).length;
+            return komorki.some(Boolean) ? komorki : null;
+          });
+          if (ile) { nowa.wyglad = wyglad; if (stara.wyglad_wyl) nowa.wyglad_wyl = true; }
+          zachowano = { ile, bylo: stara.wyglad.reduce((s, w) => s + (w || []).filter(Boolean).length, 0) };
+        }
         stara.kolumny = nowa.kolumny;
         stara.wiersze = nowa.wiersze;
-        if (nowa.wyglad) stara.wyglad = nowa.wyglad; else { delete stara.wyglad; delete stara.wyglad_wyl; }
+        if (nowa.wyglad) { stara.wyglad = nowa.wyglad; if (!nowa.wyglad_wyl) delete stara.wyglad_wyl; } else { delete stara.wyglad; delete stara.wyglad_wyl; }
         if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
         if (stara.listy) { for (const k of Object.keys(stara.listy)) if (!nowa.kolumny.includes(k)) delete stara.listy[k]; if (!Object.keys(stara.listy).length) delete stara.listy; }
         ostatnia = stara;
@@ -469,7 +486,8 @@ export class Dane {
     this.idTabeli = ostatnia.id;
     this.rysuj();
     this.poZmianie();
-    powiadom(`Wczytano: ${ostatnia.wiersze.length} ${odmiana(ostatnia.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}, ${ostatnia.kolumny.length} ${odmiana(ostatnia.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}.`);
+    const oWygladzie = zachowano ? ` Plik nie niesie wyglądu komórek: wygląd został w ${zachowano.ile} z ${zachowano.bylo} ${odmiana(zachowano.bylo, 'komórki', 'komórek', 'komórek')} – tam, gdzie wartość się nie zmieniła.` : '';
+    powiadom(`Wczytano: ${ostatnia.wiersze.length} ${odmiana(ostatnia.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}, ${ostatnia.kolumny.length} ${odmiana(ostatnia.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}.${oWygladzie}`);
   }
 
   // ---------- Serie ----------
