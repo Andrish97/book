@@ -8,6 +8,7 @@ Aplikacja: https://andrish97.github.io/book/ (wymaga konta). Treść instrukcji 
 
 - [Instrukcja obsługi](https://andrish97.github.io/book/ai/instrukcja.md): wszystkie rozdziały instrukcji z aplikacji – funkcje, przyciski, skróty klawiszowe, pola w tekście.
 - [Format pliku projektu](https://andrish97.github.io/book/ai/format-seriodruk.md): jak zbudować plik `.json` albo `.seriodruk`, który użytkownik wczyta przyciskiem Importuj – model projektu, elementy stron, tabele, serie, dane w elementach, gotowe polecenie dla AI.
+- [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md): jak AI (Claude, ChatGPT) czyta i zmienia jeden projekt kluczem dostępu – serwer MCP, akcje GPT, funkcje bazy.
 
 ## Przykłady
 

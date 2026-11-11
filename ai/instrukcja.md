@@ -31,14 +31,15 @@ Seriodruk (https://andrish97.github.io/book/) to edytor publikacji z powtarzanym
 23. Sprawdź przed drukiem
 24. Podgląd
 25. Udostępnianie linkiem
-26. Linie i ostrzeżenia
-27. Siatka, linijki i prowadnice
-28. Odległości i równe odstępy
-29. Warstwy
-30. Tablet, telefon i instalacja
-31. Zapis, pliki i kilka urządzeń
-32. Skróty klawiszowe
-33. Co będzie dalej
+26. Praca z AI
+27. Linie i ostrzeżenia
+28. Siatka, linijki i prowadnice
+29. Odległości i równe odstępy
+30. Warstwy
+31. Tablet, telefon i instalacja
+32. Zapis, pliki i kilka urządzeń
+33. Skróty klawiszowe
+34. Co będzie dalej
 
 ## 1. Na początek
 
@@ -519,7 +520,19 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 - Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.
 - Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.
 
-## 26. Linie i ostrzeżenia
+## 26. Praca z AI
+
+Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili – tak jak zmiany z drugiego urządzenia.
+
+- W edytorze menu **⋯** → **Dostęp dla AI…**. Wpisz, dla kogo jest klucz, wybierz **Czyta i zmienia** albo **Tylko czyta** i ważność (1, 7 albo 30 dni), potem **Utwórz klucz**.
+- Klucz widać **tylko raz** – skopiuj go od razu. Okno pokazuje gotowe ustawienia dla Claude Desktop i Claude Code; opis podłączenia ChatGPT jest w dokumencie [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
+- Klucz otwiera **tylko ten projekt**: AI może zmieniać strony, elementy, wzorce, style, tabele danych, serie i sekcje, ale nie utworzy ani nie usunie projektu, nie wgra obrazów ani czcionek i nie zobaczy innych projektów.
+- Zmiany AI łączą się z Twoimi element po elemencie: gdy Ty przesuwasz zdjęcie, a AI poprawia tytuł, zostają obie zmiany. **Cofnij** zdejmuje tylko Twoje zmiany.
+- Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz od razu.
+
+> Klucz trafia do firmy, która prowadzi AI. Dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Przed dużymi zmianami zrób **Eksport** projektu.
+
+## 27. Linie i ostrzeżenia
 
 Na stronie widać linie pomocnicze. Nie są drukowane.
 
@@ -532,7 +545,7 @@ Na stronie widać linie pomocnicze. Nie są drukowane.
 - Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę **Ostrzeżenia**. Jeśli to celowe (np. tło na spad), kliknij **Wycisz**.
 - Linie ukryjesz przyciskiem w prawym dolnym rogu, obok powiększenia.
 
-## 27. Siatka, linijki i prowadnice
+## 28. Siatka, linijki i prowadnice
 
 Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: **Siatka**, **Przyciągaj do siatki**, **Krok siatki**, **Przyciągaj do elementów i pokazuj odległości**, **Linijki**, **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** i **W rozkładówkach pokazuj jedną stronę**.
 
@@ -549,7 +562,7 @@ Narzędzia do równego układania elementów. Włączasz je w menu pod przyciski
 - Dodanie, przesunięcie i usunięcie prowadnicy cofniesz `Ctrl`+`Z`, jak każdą inną zmianę.
 - Siatka i prowadnice nie są drukowane. Klawisz `W` chowa wszystkie linie pomocnicze.
 
-## 28. Odległości i równe odstępy
+## 29. Odległości i równe odstępy
 
 Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – tak jak inteligentne linie pomocnicze w programach Adobe.
 
@@ -562,7 +575,7 @@ Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – 
 - Przytrzymaj `Alt` przy zaznaczonym elemencie, żeby zobaczyć jego odległości także do krawędzi strony.
 - Przyciąganie do elementów wyłączysz w menu z kratką.
 
-## 29. Warstwy
+## 30. Warstwy
 
 Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.
 
@@ -578,7 +591,7 @@ Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wsz
 - Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie **rozwija jej zawartość**: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. **Kliknięcie elementu grupy otwiera grupę i zaznacza ten element** – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka.
 - **Tabelę też rozwiniesz** trójkątem: pod nią stoją jej komórki wierszami – numer „wiersz.kolumna” i początek treści. Kliknięcie komórki na liście **zaczyna w niej pisanie**, tak jak podwójne kliknięcie na stronie; przydaje się w gęstej tabeli i przy małych komórkach. Komórki nie mają własnego oka ani kłódki – ukrywa się i blokuje całą tabelę.
 
-## 30. Tablet, telefon i instalacja
+## 31. Tablet, telefon i instalacja
 
 Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można ją też zainstalować jak zwykły program.
 
@@ -595,7 +608,7 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 - **Instalacja na Macu** (Chrome lub Edge): ikona instalacji w pasku adresu. W Safari: Plik → **Dodaj do Docka**.
 - Zainstalowana aplikacja na komputerze otwiera pliki `.seriodruk` dwuklikiem.
 
-## 31. Zapis, pliki i kilka urządzeń
+## 32. Zapis, pliki i kilka urządzeń
 
 Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na koncie.
 
@@ -619,7 +632,7 @@ Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na ko
 - Po wdrożeniu nowej wersji aplikacji, gdy masz otwarty projekt, na dole ekranu pojawi się **Jest nowa wersja aplikacji** z przyciskiem **Odśwież** – zmiany zapiszą się przed odświeżeniem. Bez otwartego projektu nowa wersja włącza się sama.
 - Każdy ekran ma własny adres – odświeżenie zostawia Cię w tym samym miejscu, a „Wstecz” w przeglądarce wraca do poprzedniego ekranu.
 
-## 32. Skróty klawiszowe
+## 33. Skróty klawiszowe
 
 Skróty są takie jak w programach do składu i grafiki. `Ctrl` na Macu to `⌘`. Tę listę otwiera klawisz `?`.
 
@@ -726,7 +739,7 @@ Skróty są takie jak w programach do składu i grafiki. `Ctrl` na Macu to `⌘`
 
 > Skróty z literami działają, gdy kursor nie stoi w polu formularza. W trakcie pisania tekstu na stronie działają skróty z grupy „Tekst”.
 
-## 33. Co będzie dalej
+## 34. Co będzie dalej
 
 Edytor, dane, powielanie stron i eksport do PDF działają. Co jeszcze przed nami:
 
