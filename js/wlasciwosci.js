@@ -7,6 +7,7 @@ import { rozmiarOryginalu } from './obrazy.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
+import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
 import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza } from './tabela-obiekt.js';
@@ -541,14 +542,25 @@ export class PanelWlasciwosci {
       const nowe = { ...z(), ...zmiana };
       for (const k of Object.keys(nowe)) if (!nowe[k] || (typeof nowe[k] === 'object' && !nowe[k].pole)) delete nowe[k];
       if (!nowe.szer && !nowe.wys) delete nowe.kotwica; // punkt zaczepienia ma sens tylko przy rozmiarze z danych
+      if (!nowe.kolor) delete nowe.kolor_w;
       obj.z_danych = Object.keys(nowe).length ? nowe : undefined;
     };
     // Na liście: pola dostępne na tej stronie i to, które jest już ustawione (nawet nieznane).
     const lista = (wybrane) => [['', '— nie zależy od danych —'], ...[...new Set([...pola, ...(wybrane ? [wybrane] : [])])].map((n) => [n, `{${n}}`])];
     if (obj.type !== 'image') {
-      const kolor = this.wybor('Kolor z pola', lista(z().kolor), () => z().kolor || '', (v) => zapisz({ kolor: v || undefined }));
+      // Wypełnienie przejściem kolorów: kolor z danych domyślnie zmienia pierwszy kolor, a przejście zostaje.
+      const przejscie = maPrzejscie(obj);
+      const kolor = this.wybor('Kolor z pola', lista(z().kolor), () => z().kolor || '', (v) => {
+        zapisz({ kolor: v || undefined, ...(v && przejscie && !z().kolor ? { kolor_w: 'pierwszy' } : {}) });
+        this.zbuduj();
+      });
       kolor.classList.add('szeroki');
       s.append(kolor);
+      if (z().kolor && przejscie) {
+        const gdzie = this.wybor('W przejściu kolorów pole zmienia', [['pierwszy', 'pierwszy kolor (reszta zostaje)'], ['ostatni', 'ostatni kolor (reszta zostaje)'], ['odcienie', 'całe przejście – odcienie koloru z pola'], ['', 'całe wypełnienie – jeden kolor, bez przejścia']], () => z().kolor_w || '', (v) => zapisz({ kolor_w: v || undefined }));
+        gdzie.classList.add('szeroki');
+        s.append(gdzie);
+      }
     }
     for (const [os, etykieta] of [['y', 'Przesunięcie w pionie z pola'], ['x', 'Przesunięcie w poziomie z pola']]) {
       const ust = () => z()[os] || {};

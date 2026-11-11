@@ -302,6 +302,7 @@ export const ROZDZIALY = [
     punkty: [
       'Zaznacz element i rozwiń <b>Z danych</b> we właściwościach.',
       '<b>Kolor z pola</b>: wybierz kolumnę, w której wpisane są kolory, np. <code>#d1495b</code>, <code>2e86ab</code> albo nazwę koloru po angielsku (<code>navy</code>). Pusta albo błędna wartość zostawia kolor wzoru. Linia i kształt bez wypełnienia dostają kolor obrysu.',
+      'Gdy element jest wypełniony <b>przejściem kolorów</b>, przejście zostaje, a pod listą pól wybierasz, co kolor z pola w nim zmienia: <b>pierwszy kolor</b> (tak jest od razu po wybraniu pola), <b>ostatni kolor</b> albo <b>całe przejście w odcieniach</b> koloru z pola – pierwszy kolor to kolor z pola, a pozostałe są od niego jaśniejsze albo ciemniejsze tak jak we wzorze. Ostatnia możliwość, <b>całe wypełnienie</b>, zastępuje przejście jednym kolorem.',
       '<b>Przesunięcie w pionie / w poziomie z pola</b>: wybierz pole z liczbą. Może to być kolumna tabeli albo pole dokumentu, np. <code>{egzemplarz}</code> – numer powielenia serii (1, 2, 3…).',
       '<b>Wartość pola to numer pozycji</b>: element przesuwa się o <b>krok</b> (w mm) za każdą kolejną pozycję. <b>Od nowa co 6</b> znaczy, że pozycja 7 wraca na miejsce pierwszej – dwanaście miesięcy ułoży się w dwóch seriach po sześć na wysokość strony.',
       '<b>Wartość pola to przesunięcie w mm</b>: liczba z tabeli jest wprost przesunięciem względem wzoru (może być ujemna, z przecinkiem).',

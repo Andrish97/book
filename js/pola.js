@@ -147,12 +147,14 @@ export function podstawWTekscie(tekst, styles, wartosc) {
 
 // ---------- Wygląd z danych: kolor i przesunięcie elementu ----------
 //
-// Element może mieć `z_danych: { kolor?: pole, x?: ust, y?: ust, obrot?: pole, widok?: war, szer?: wym, wys?: wym,
-// kotwica? }`, gdzie pole to nazwa kolumny albo pola dokumentu, a ust = { pole, tryb, krok, co }:
+// Element może mieć `z_danych: { kolor?: pole, kolor_w?, x?: ust, y?: ust, obrot?: pole, widok?: war, szer?: wym,
+// wys?: wym, kotwica? }`, gdzie pole to nazwa kolumny albo pola dokumentu, a ust = { pole, tryb, krok, co }:
 //  - tryb 'mm':      wartość pola to przesunięcie w milimetrach,
 //  - tryb 'pozycja': wartość to numer pozycji (1, 2, 3…); element przesuwa się o
 //                    krok × (numer − 1), a przy `co` > 0 numeracja wraca do początku
 //                    co tyle pozycji (np. 12 miesięcy w dwóch rzędach po 6).
+// `kolor_w` – co kolor z danych zmienia w wypełnieniu, które jest przejściem kolorów: 'pierwszy' albo 'ostatni'
+// kolor przejścia, 'odcienie' (całe przejście w odcieniach koloru z danych); brak = całe wypełnienie jednym kolorem.
 // `obrot` – pole z kątem w stopniach, dodawanym do obrotu wzoru (obrót wokół środka elementu).
 // `widok` = { pole, gdy: 'niepuste' | 'puste' | 'rowne', wartosc } – element jest na stronie tylko wtedy,
 // gdy pole spełnia warunek (np. gwiazdka tylko w święta).
@@ -195,12 +197,82 @@ export function przesuniecieZDanych(ust, wartosc) {
   return pozycja * (Number(ust.krok) || 0);
 }
 
-function pokoloruj(o, kolor) {
-  if (Array.isArray(o.objects)) return { ...o, objects: o.objects.map((x) => pokoloruj(x, kolor)) };
+// Kolor CSS → [r, g, b, a] (0–255, a: 0–1) albo null. Przeglądarka sama rozumie nazwy i zapisy rgb()/hsl().
+let probnik = null;
+function skladoweKoloru(kolor) {
+  if (typeof document === 'undefined') return null;
+  probnik = probnik || document.createElement('canvas').getContext('2d');
+  probnik.fillStyle = '#000000';
+  probnik.fillStyle = String(kolor);
+  const k = probnik.fillStyle; // '#rrggbb' albo 'rgba(r, g, b, a)'
+  if (k.startsWith('#')) return [parseInt(k.slice(1, 3), 16), parseInt(k.slice(3, 5), 16), parseInt(k.slice(5, 7), 16), 1];
+  const m = k.match(/[\d.]+/g);
+  return m && m.length >= 3 ? [Number(m[0]), Number(m[1]), Number(m[2]), m[3] === undefined ? 1 : Number(m[3])] : null;
+}
+
+function naHsl([r, g, b]) {
+  const [R, G, B] = [r / 255, g / 255, b / 255];
+  const max = Math.max(R, G, B); const min = Math.min(R, G, B);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === R ? ((G - B) / d + (G < B ? 6 : 0)) : (max === G ? (B - R) / d + 2 : (R - G) / d + 4);
+  return [h / 6, s, l];
+}
+
+function zHsl([h, s, l]) {
+  if (!s) return [l, l, l].map((v) => Math.round(v * 255));
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const skladowa = (t) => {
+    const u = ((t % 1) + 1) % 1;
+    if (u < 1 / 6) return p + (q - p) * 6 * u;
+    if (u < 1 / 2) return q;
+    if (u < 2 / 3) return p + (q - p) * (2 / 3 - u) * 6;
+    return p;
+  };
+  return [h + 1 / 3, h, h - 1 / 3].map((t) => Math.round(skladowa(t) * 255));
+}
+
+const zapisKoloru = ([r, g, b], a = 1) => (a >= 1 ? `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}` : `rgba(${r},${g},${b},${Math.round(a * 1000) / 1000})`);
+
+// Przejście kolorów (przystanki gradientu) z kolorem z danych. `w`:
+//  - 'pierwszy' / 'ostatni': kolor z danych zastępuje pierwszy albo ostatni kolor przejścia, reszta zostaje,
+//  - 'odcienie': całe przejście w odcieniach koloru z danych – pierwszy kolor to kolor z danych, a każdy następny
+//    jest od niego jaśniejszy albo ciemniejszy o tyle, o ile we wzorze różni się jasnością od pierwszego.
+export function przystankiZKolorem(przystanki, kolor, w) {
+  const kolejno = przystanki.map((p, i) => i).sort((a, b) => (przystanki[a].offset || 0) - (przystanki[b].offset || 0));
+  if (!kolejno.length) return przystanki;
+  if (w !== 'odcienie') {
+    const ktory = w === 'ostatni' ? kolejno.at(-1) : kolejno[0];
+    return przystanki.map((p, i) => (i === ktory ? { ...p, color: kolor } : p));
+  }
+  const nowy = skladoweKoloru(kolor);
+  const wzory = przystanki.map((p) => skladoweKoloru(p.color));
+  if (!nowy || wzory.some((x) => !x)) return przystanki.map((p, i) => (i === kolejno[0] ? { ...p, color: kolor } : p));
+  const [h, s, l] = naHsl(nowy);
+  const l0 = naHsl(wzory[kolejno[0]])[2];
+  return przystanki.map((p, i) => ({ ...p, color: zapisKoloru(zHsl([h, s, Math.min(1, Math.max(0, l + naHsl(wzory[i])[2] - l0))]), wzory[i][3] * nowy[3]) }));
+}
+
+// `w` (z_danych.kolor_w): co kolor z danych robi z wypełnieniem, które jest przejściem kolorów – patrz wyżej.
+// Bez tego ustawienia (starsze projekty) kolor zastępuje całe wypełnienie i przejście znika.
+function pokoloruj(o, kolor, w) {
+  if (Array.isArray(o.objects)) return { ...o, objects: o.objects.map((x) => pokoloruj(x, kolor, w)) };
   if (o.type === 'image') return o;
   // Linia i kształt bez wypełnienia dostają kolor obrysu, reszta – wypełnienia.
   const obrys = (o.type === 'line' || !o.fill || o.fill === 'transparent') && o.stroke;
-  return obrys ? { ...o, stroke: kolor } : { ...o, fill: kolor };
+  if (obrys) return { ...o, stroke: kolor };
+  if (w && maPrzejscie(o)) return { ...o, fill: { ...o.fill, colorStops: przystankiZKolorem(o.fill.colorStops, kolor, w) } };
+  return { ...o, fill: kolor };
+}
+
+// Czy wypełnienie elementu (zapis albo żywy obiekt) jest przejściem kolorów; dla grupy – czy ma je któraś część.
+export function maPrzejscie(o) {
+  const czesci = Array.isArray(o?.objects) ? o.objects : (Array.isArray(o?._objects) ? o._objects : null);
+  if (czesci) return czesci.some(maPrzejscie);
+  return Boolean(o?.fill && typeof o.fill === 'object' && Array.isArray(o.fill.colorStops) && o.fill.colorStops.length);
 }
 
 // Porównanie wartości z danych: bez wielkości liter i zbędnych spacji.
@@ -295,7 +367,7 @@ function zDanych(o, wartosc) {
   const z = o.z_danych;
   let k = o;
   const kolor = z.kolor ? kolorZWartosci(wartosc(z.kolor, null)) : null;
-  if (kolor) k = pokoloruj(k, kolor);
+  if (kolor) k = pokoloruj(k, kolor, z.kolor_w);
   if (z.szer || z.wys) k = zmienRozmiar(k, z, wartosc);
   const dx = przesuniecieZDanych(z.x, wartosc);
   const dy = przesuniecieZDanych(z.y, wartosc);
