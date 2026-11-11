@@ -729,3 +729,58 @@ test('tabela: linie pojedynczej komórki – własna i bez linii, krawędź wsp�
   assert.deepEqual(await linieTabeli(strona), przedZmianami);
   assert.deepEqual(bledy, []);
 });
+
+test('tabela na liście warstw: rozwinięcie pokazuje komórki z początkiem treści, kliknięcie komórki zaczyna w niej pisanie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Tabela w warstwach');
+  await wstawTabele(strona, 3, 2);
+  await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const g = e.aktywny;
+    const k = e.komorkiTabeli(g);
+    k[2].set('text', 'Poniedziałek');
+    k[3].set('text', 'Bardzo długi opis dnia, który na liście warstw widać tylko w skrócie, bo się nie mieści');
+    k[4].set('text', 'Dwa\nwiersze');
+    e.zatwierdz();
+    const r = e.dodajProstokat(); r.set({ left: 20, top: 150, width: 30, height: 20 }); r.setCoords();
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+  });
+  await strona.click('#zakladki-panelu label:has-text("Warstwy")');
+  const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => (li.classList.contains('w-tabeli')
+    ? `  ${li.querySelector('.warstwa-adres').textContent} ${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('zaznaczona') ? ' *' : ''}`
+    : `${li.querySelector('.warstwa-nazwa').textContent}${li.querySelector('.warstwa-rozwin') ? ` [${li.querySelector('.warstwa-rozwin').getAttribute('aria-expanded')}]` : ''}${li.classList.contains('zaznaczona') ? ' *' : ''}`)));
+  assert.deepEqual(await wiersze(), ['Prostokąt', 'Tabela 3×2 [false]']);
+  await strona.click('#lista-warstw li:has-text("Tabela") .warstwa-rozwin');
+  const KOMORKI = ['  1.1 Kolumna 1', '  1.2 Kolumna 2', '  2.1 Poniedziałek', '  2.2 Bardzo długi opis dnia, który na liście …', '  3.1 Dwa wiersze', '  3.2 (pusta)'];
+  assert.deepEqual(await wiersze(), ['Prostokąt', 'Tabela 3×2 [true]', ...KOMORKI]);
+
+  // Kliknięcie komórki na liście: pisanie w tej komórce (cały jej tekst zaznaczony), wiersz listy jest podświetlony.
+  await strona.click('#lista-warstw li.w-tabeli:has-text("3.2")');
+  assert.equal((await stanTabeli(strona)).zaznaczone, 'komórka [2,1] – pisanie');
+  await strona.keyboard.type('Wpisane z listy');
+  await strona.click('#lista-warstw li.w-tabeli:has-text("Poniedziałek")');
+  let s = await stanTabeli(strona);
+  assert.equal(s.zaznaczone, 'komórka [1,0] – pisanie', 'kliknięcie innej komórki przenosi pisanie');
+  assert.equal(s.teksty[2][1], 'Wpisane z listy');
+  assert.deepEqual(await wiersze(), ['Prostokąt', 'Tabela 3×2 [true]', ...KOMORKI.slice(0, 2), '  2.1 Poniedziałek *', KOMORKI[3], KOMORKI[4], '  3.2 Wpisane z listy']);
+  assert.match(await strona.textContent('#tytul-wlasciwosci'), /Komórka tabeli/);
+  await strona.keyboard.type('Wtorek');
+  await strona.keyboard.press('Escape');
+  s = await stanTabeli(strona);
+  assert.equal(s.zaznaczone, 'tabela');
+  assert.equal(s.teksty[1][0], 'Wtorek');
+  assert.equal((await wiersze())[1], 'Tabela 3×2 [true] *', 'po Esc zaznaczona jest cała tabela');
+
+  // Scalona komórka jest na liście raz; schowanych pod nią nie ma.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zmienTabele(e.aktywny, 'scal-prawo', { w: 0, k: 0 }); e.canvas.discardActiveObject(); e.zatwierdz(); });
+  assert.deepEqual((await wiersze()).slice(2, 4), ['  1.1 Kolumna 1 Kolumna 2', '  2.1 Wtorek']);
+  // Zablokowana tabela: kliknięcie komórki niczego nie zaczyna.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.tabela).id); e.przelaczBlokade(); e.canvas.discardActiveObject(); e.zatwierdz(); });
+  await strona.click('#lista-warstw li.w-tabeli:has-text("Wtorek")');
+  assert.equal(await strona.evaluate(() => Boolean(window.seriodruk.edytor.aktywny?.isEditing)), false);
+  // Zwinięcie.
+  await strona.click('#lista-warstw li:has-text("Tabela") .warstwa-rozwin');
+  assert.equal((await wiersze()).length, 2);
+  assert.deepEqual(bledy, []);
+});

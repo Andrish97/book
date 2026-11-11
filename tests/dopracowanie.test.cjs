@@ -310,7 +310,7 @@ test('prowadnice: zmiany są krokami cofania; zablokowanych nie da się przesun�
   assert.deepEqual(bledy, []);
 });
 
-test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną nazwą; tabela zostaje jednym wierszem', async (t) => {
+test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną nazwą; tabela rozwija się osobno (komórki)', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Grupa w warstwach');
   await strona.evaluate(() => {
@@ -325,13 +325,13 @@ test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną n
   });
   await strona.click('#zakladki-panelu label:has-text("Warstwy")');
   const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => `${li.classList.contains('w-grupie') ? '  ' : ''}${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('ukryta') ? ' (ukryty)' : ''}${li.querySelector('.warstwa-rozwin') ? ` [${li.querySelector('.warstwa-rozwin').getAttribute('aria-expanded')}]` : ''}`));
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [false]'], 'grupa ma przycisk rozwijania, tabela nie');
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [false]'], 'grupa i tabela mają przycisk rozwijania');
 
-  await strona.click('#lista-warstw .warstwa-rozwin');
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [true]', '  Elipsa', '  Czerwony'], 'elementy grupy od wierzchu');
+  await strona.click('#lista-warstw li:has-text("Grupa") .warstwa-rozwin');
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [true]', '  Elipsa', '  Czerwony'], 'elementy grupy od wierzchu');
   // Oko przy elemencie grupy ukrywa tylko jego; zapis grupy to pamięta.
   await strona.click('#lista-warstw li.w-grupie:has-text("Elipsa") .warstwa-oko');
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [true]', '  Elipsa (ukryty)', '  Czerwony']);
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [true]', '  Elipsa (ukryty)', '  Czerwony']);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   let grupa = await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type === 'group' && !o.tabela).objects.map((o) => [o.type, o.visible !== false, o.nazwa || null]));
   assert.deepEqual(grupa, [['rect', true, 'Czerwony'], ['ellipse', false, null]]);
@@ -339,13 +339,13 @@ test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną n
   await strona.click('#lista-warstw li.w-grupie:has-text("Czerwony") .warstwa-nazwa');
   assert.deepEqual(await strona.evaluate(() => { const e = window.seriodruk.edytor; return [e.aktywny?.type, e.otwartaGrupa?.type]; }), ['rect', 'group']);
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.nazwijWGrupie(e.otwartaGrupa.id, 1, 'Kółko'); });
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [true]', '  Kółko (ukryty)', '  Czerwony']);
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [true]', '  Kółko (ukryty)', '  Czerwony']);
   await strona.click('#lista-warstw li.w-grupie:has-text("Kółko") .warstwa-oko');
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   grupa = await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type === 'group' && !o.tabela).objects.map((o) => [o.type, o.visible !== false, o.nazwa || null]));
   assert.deepEqual(grupa, [['rect', true, 'Czerwony'], ['ellipse', true, 'Kółko']]);
-  await strona.click('#lista-warstw .warstwa-rozwin');
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [false]']);
+  await strona.click('#lista-warstw li:has-text("Grupa") .warstwa-rozwin');
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [false]']);
   assert.deepEqual(bledy, []);
 });
 

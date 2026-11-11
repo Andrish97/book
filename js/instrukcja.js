@@ -357,7 +357,7 @@ export const ROZDZIALY = [
     obraz: 'tabela.png',
     podpis: 'Tabela z tłem nagłówka, co drugim wierszem w kolorze i scaloną komórką; po prawej jej ustawienia.',
     punkty: [
-      '<b>Pojedyncze kliknięcie</b> zaznacza całą tabelę – przesuwasz ją, obracasz i układasz w warstwach jak każdy inny element. Na liście warstw to jeden wiersz „Tabela”.',
+      '<b>Pojedyncze kliknięcie</b> zaznacza całą tabelę – przesuwasz ją, obracasz i układasz w warstwach jak każdy inny element. Na liście warstw to jeden wiersz „Tabela”; trójkąt przy nim pokazuje jej komórki, a kliknięcie komórki na liście zaczyna w niej pisanie.',
       '<b>Podwójne kliknięcie komórki</b> zaczyna w niej pisanie. <kbd>Tab</kbd> przechodzi do następnej komórki, <kbd>Shift</kbd>+<kbd>Tab</kbd> do poprzedniej; <kbd>Tab</kbd> w ostatniej komórce dodaje nowy wiersz. Kliknięcie innej komórki przenosi tam pisanie, <kbd>Esc</kbd> kończy je i wraca do zaznaczenia całej tabeli.',
       'Komórka to zwykły tekst: wstawisz w niej <b>pole z danych</b> (np. <code>{opis}</code>), pogrubisz fragment, zmienisz czcionkę. W trakcie pisania panel z prawej pokazuje ustawienia tekstu tej komórki.',
       '<b>Wiersz rośnie razem z tekstem.</b> Gdy treść komórki nie mieści się w wysokości wiersza, cały wiersz robi się wyższy – także na stronach powielanych z danych, osobno dla każdej strony. Tekst w tabeli nigdy nie jest ucinany.',
@@ -495,7 +495,8 @@ export const ROZDZIALY = [
       '<b>Kłódka</b> blokuje położenie i rozmiar.',
       'Podwójne kliknięcie nazwy pozwala ją zmienić.',
       'Na dole i na górze listy widać <b>elementy wzorców</b> tej strony (pod treścią i nad treścią), z nazwą wzorca. Nie zmienisz ich tutaj – kliknięcie otwiera wzorzec do edycji.',
-      'Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie <b>rozwija jej zawartość</b>: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. <b>Kliknięcie elementu grupy otwiera grupę i zaznacza ten element</b> – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka. Tabela jest jednym wierszem bez rozwijania.',
+      'Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie <b>rozwija jej zawartość</b>: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. <b>Kliknięcie elementu grupy otwiera grupę i zaznacza ten element</b> – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka.',
+      '<b>Tabelę też rozwiniesz</b> trójkątem: pod nią stoją jej komórki wierszami – numer „wiersz.kolumna” i początek treści. Kliknięcie komórki na liście <b>zaczyna w niej pisanie</b>, tak jak podwójne kliknięcie na stronie; przydaje się w gęstej tabeli i przy małych komórkach. Komórki nie mają własnego oka ani kłódki – ukrywa się i blokuje całą tabelę.',
     ],
   },
   {

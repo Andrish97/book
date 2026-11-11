@@ -1538,6 +1538,28 @@ export class Edytor extends EventTarget {
     return (m && komorka.group.tabela.scalenia?.find((s) => m.w >= s.w && m.w < s.w + s.ileW && m.k >= s.k && m.k < s.k + s.ileK)) || null;
   }
 
+  // Komórki tabeli do listy warstw (wierszami, bez schowanych pod scaleniem): [{ w, k, tekst, pisana }];
+  // null, gdy element nie jest tabelą.
+  komorkiNaLiscie(id) {
+    const g = this._poId(id);
+    if (!toTabela(g)) return null;
+    const K = g.tabela.kolumny.length;
+    const akt = this.aktywny;
+    return komorkiTabeli(g).map((c, i) => ({ c, w: Math.floor(i / K), k: i % K })).filter((x) => !komorkaSchowana(g, x.c))
+      .map(({ c, w, k }) => ({ w, k, tekst: c.text.replace(/\s+/g, ' ').trim(), pisana: akt === c }));
+  }
+
+  // Zaczyna pisanie w komórce (w, k) tabeli – z listy warstw. Zwraca false, gdy się nie da
+  // (tabela ukryta albo zablokowana, komórka schowana pod scaleniem).
+  piszWKomorce(id, w, k) {
+    const g = this._poId(id);
+    if (!toTabela(g) || g.zablokowany || g.visible === false) return false;
+    const c = komorkiTabeli(g)[w * g.tabela.kolumny.length + k];
+    if (!c || komorkaSchowana(g, c)) return false;
+    if (this._otwarta) this.zamknijGrupe();
+    return Boolean(this.edytujKomorke(g, c));
+  }
+
   // ---------- Schowek (kopiuj / wklej, także między stronami) ----------
 
   get maSchowek() { return Boolean(this._schowek); }
