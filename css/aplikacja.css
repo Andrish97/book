@@ -1307,6 +1307,10 @@ details > summary:focus-visible { outline: 2px solid var(--akcent); outline-offs
 .kalendarz-dzien:disabled { color: var(--linia-mocna); cursor: default; }
 .kalendarz-stopka { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
 
+/* Błąd w formularzu (js/kontrolki.js): komunikat pod polem zamiast systemowego dymku. */
+.blad-pola { margin: -2px 0 0; font-size: 12.5px; color: var(--blad, #b42318); grid-column: 1 / -1; }
+input.z-bledem, select.z-bledem, textarea.z-bledem, .z-bledem + .wybor-przycisk { border-color: var(--blad, #b42318) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blad, #b42318) 18%, transparent); }
+
 /* Dymek z podpowiedzią (js/dymki.js) – zamiast systemowego dymku z atrybutu „title”. */
 .dymek {
   position: fixed; z-index: 2000; max-width: min(320px, calc(100vw - 8px)); padding: 6px 9px;

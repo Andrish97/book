@@ -195,6 +195,44 @@ test('wybór daty: własny kalendarz zamiast systemowego – data po polsku, mie
   assert.deepEqual(bledy, []);
 });
 
+test('formularze: komunikat błędu pod polem po polsku zamiast systemowego dymku; Anuluj bez sprawdzania; poprawka chowa komunikat', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  // Nowy projekt bez nazwy: okno zostaje, pod polem komunikat, fokus na polu.
+  await strona.click('[data-akcja="nowy-projekt"]:visible');
+  await strona.waitForSelector('#dlg-nowy[open]');
+  assert.equal(await strona.evaluate(() => document.querySelector('#form-nowy').noValidate), true, 'bez systemowego sprawdzania');
+  await strona.fill('#form-nowy input[name=nazwa]', '');
+  await strona.click('#form-nowy button[value=ok]');
+  assert.equal(await strona.locator('#dlg-nowy[open]').count(), 1, 'okno nie zamyka się z błędem');
+  assert.equal(await strona.textContent('#form-nowy .blad-pola'), 'Uzupełnij pole „Nazwa”.');
+  assert.deepEqual(await strona.evaluate(() => { const p = document.querySelector('#form-nowy input[name=nazwa]'); return [document.activeElement === p, p.getAttribute('aria-invalid'), p.classList.contains('z-bledem'), document.getElementById(p.getAttribute('aria-describedby'))?.className]; }), [true, 'true', true, 'blad-pola']);
+  // Poprawka chowa komunikat od razu.
+  await strona.fill('#form-nowy input[name=nazwa]', 'Projekt');
+  assert.equal(await strona.locator('#form-nowy .blad-pola').count(), 0);
+  // Anuluj zamyka bez sprawdzania; po ponownym otwarciu nie ma starych komunikatów.
+  await strona.fill('#form-nowy input[name=nazwa]', '');
+  await strona.click('#form-nowy button[value=ok]');
+  await strona.click('#form-nowy button[value=anuluj] >> nth=-1');
+  await strona.waitForSelector('#dlg-nowy', { state: 'hidden' });
+  await strona.click('[data-akcja="nowy-projekt"]:visible');
+  await strona.waitForSelector('#dlg-nowy[open]');
+  assert.equal(await strona.locator('#form-nowy .blad-pola').count(), 0);
+  await strona.click('#form-nowy button[value=anuluj] >> nth=-1');
+  // Ustawienia sekcji: wymiar poza zakresem – komunikat z zakresem i jednostką.
+  await nowyProjekt(strona, 'Formularze');
+  await strona.click('[data-akcja="wydruk"]');
+  await strona.waitForSelector('#dlg-sekcja[open]');
+  await strona.fill('#dlg-sekcja input[name=szerokosc_mm]', '5');
+  await strona.click('#zapisz-sekcje');
+  assert.equal(await strona.locator('#dlg-sekcja[open]').count(), 1);
+  assert.equal(await strona.textContent('#dlg-sekcja .blad-pola'), 'Szerokość: od 20 do 1000 mm.');
+  await strona.fill('#dlg-sekcja input[name=szerokosc_mm]', '150');
+  assert.equal(await strona.locator('#dlg-sekcja .blad-pola').count(), 0);
+  // Formularze z własną obsługą błędów (np. logowanie) nie są ruszane.
+  assert.equal(await strona.evaluate(() => document.querySelector('#form-logowania')?.dataset.sprawdzanie), undefined);
+  assert.deepEqual(bledy, []);
+});
+
 test('dymki: na ekranie dotykowym się nie pokazują – stuknięcie to zwykłe kliknięcie', async (t) => {
   const { strona, bledy } = await otworz(t, { telefon: true });
   await nowyProjekt(strona, 'Dymki dotyk');

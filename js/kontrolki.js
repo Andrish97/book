@@ -467,6 +467,105 @@ function ulepszDate(input) {
   przycisk.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); otworz(); } });
 }
 
+// ---------- Sprawdzanie formularzy ----------
+//
+// Formularze bez własnej obsługi błędów (okna: nowy projekt, sekcja, nazwa, tabela, seria…) dostają
+// „novalidate” – przeglądarka nie pokazuje swoich dymków – a przed zatwierdzeniem aplikacja sprawdza
+// te same reguły (required, min, max, step, minlength, typ) i pisze komunikat po polsku pod polem.
+// Przycisk z „formnovalidate” (Anuluj, Zamknij) zamyka okno bez sprawdzania, jak dotąd.
+
+const liczba = (v) => String(Number(v)).replace('.', ',');
+
+function nazwaPola(pole) {
+  const etykieta = (pole.id && document.querySelector(`label[for="${pole.id}"]`)) || pole.closest('label');
+  const tekst = (etykieta?.querySelector('span')?.textContent || etykieta?.textContent || pole.getAttribute('aria-label') || pole.name || '').trim();
+  const m = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(tekst); // „Szerokość (mm)” → nazwa i jednostka
+  return m ? { nazwa: m[1], jednostka: m[2] } : { nazwa: tekst, jednostka: '' };
+}
+
+export function komunikatPola(pole) {
+  const v = pole.validity;
+  if (v.valid) return '';
+  const { nazwa, jednostka } = nazwaPola(pole);
+  const j = jednostka ? ` ${jednostka}` : '';
+  const min = pole.getAttribute('min'); const max = pole.getAttribute('max');
+  const zakres = () => {
+    if (min != null && max != null) return `${nazwa}: od ${liczba(min)} do ${liczba(max)}${j}.`;
+    if (min != null) return `${nazwa}: co najmniej ${liczba(min)}${j}.`;
+    return `${nazwa}: najwyżej ${liczba(max)}${j}.`;
+  };
+  if (v.badInput) return `${nazwa}: wpisz liczbę.`;
+  if (v.valueMissing) return `Uzupełnij pole „${nazwa}”.`;
+  if (v.rangeUnderflow || v.rangeOverflow) return zakres();
+  if (v.stepMismatch) return `${nazwa}: wpisz wielokrotność ${liczba(pole.getAttribute('step'))}${j}.`;
+  if (v.tooShort) return `${nazwa}: co najmniej ${pole.getAttribute('minlength')} znaki.`;
+  if (v.tooLong) return `${nazwa}: najwyżej ${pole.getAttribute('maxlength')} znaków.`;
+  if (v.typeMismatch && pole.type === 'email') return 'Wpisz poprawny adres e-mail.';
+  return `Sprawdź pole „${nazwa}”.`;
+}
+
+function pokazBlad(pole, tekst) {
+  const id = `${pole.name || pole.id || 'pole'}-blad-${Math.random().toString(36).slice(2, 7)}`;
+  let p = pole.__blad;
+  if (!p) {
+    p = document.createElement('p');
+    p.className = 'blad-pola';
+    p.id = id;
+    p.setAttribute('role', 'alert');
+    (pole.closest('label') || pole).after(p);
+    pole.__blad = p;
+    const opis = pole.getAttribute('aria-describedby') || '';
+    pole.setAttribute('aria-describedby', `${opis} ${p.id}`.trim());
+  }
+  p.textContent = tekst;
+  pole.classList.add('z-bledem');
+  pole.setAttribute('aria-invalid', 'true');
+}
+
+function schowajBlad(pole) {
+  const p = pole.__blad;
+  if (!p) return;
+  p.remove();
+  pole.__blad = null;
+  pole.classList.remove('z-bledem');
+  pole.removeAttribute('aria-invalid');
+  const opis = (pole.getAttribute('aria-describedby') || '').split(' ').filter((x) => x && x !== p.id).join(' ');
+  if (opis) pole.setAttribute('aria-describedby', opis); else pole.removeAttribute('aria-describedby');
+}
+
+// Sprawdza formularz; pokazuje komunikaty i ustawia fokus na pierwszym błędnym polu. Zwraca true, gdy wszystko dobrze.
+export function sprawdzFormularz(form) {
+  let pierwsze = null;
+  for (const pole of form.querySelectorAll('input, select, textarea')) {
+    if (pole.disabled || pole.closest('[hidden]') || pole.type === 'hidden') { schowajBlad(pole); continue; }
+    const tekst = komunikatPola(pole);
+    if (tekst) { pokazBlad(pole, tekst); pierwsze ||= pole; } else schowajBlad(pole);
+  }
+  if (pierwsze) {
+    const cel = pierwsze.classList.contains('wybor-natywny') ? pierwsze.parentElement.querySelector('.wybor-przycisk') : pierwsze;
+    cel.focus();
+    cel.scrollIntoView?.({ block: 'nearest' });
+  }
+  return !pierwsze;
+}
+
+function ulepszFormularz(form) {
+  if (form.dataset.sprawdzanie || form.noValidate) return; // formularz z własną obsługą błędów
+  form.dataset.sprawdzanie = '1';
+  form.noValidate = true;
+  // Poprawione pole od razu traci komunikat; formularz wraca do stanu bez błędów przy każdym otwarciu okna.
+  form.addEventListener('input', (e) => { if (e.target.__blad && !komunikatPola(e.target)) schowajBlad(e.target); });
+  form.addEventListener('change', (e) => { if (e.target.__blad && !komunikatPola(e.target)) schowajBlad(e.target); });
+  form.closest('dialog')?.addEventListener('close', () => form.querySelectorAll('.z-bledem').forEach(schowajBlad));
+}
+
+// Zatwierdzenie formularza z błędami: zatrzymane, zanim zobaczy je kod aplikacji (i zanim okno się zamknie).
+document.addEventListener('submit', (e) => {
+  const form = e.target;
+  if (!form.dataset?.sprawdzanie || e.submitter?.formNoValidate) return;
+  if (!sprawdzFormularz(form)) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
+
 // ---------- Podpinanie ----------
 
 function ulepsz(korzen) {
@@ -474,6 +573,8 @@ function ulepsz(korzen) {
   if (korzen.matches?.('select')) ulepszSelect(korzen);
   if (korzen.matches?.('input[type="color"]')) ulepszKolor(korzen);
   if (korzen.matches?.('input[type="date"]')) ulepszDate(korzen);
+  if (korzen.matches?.('form')) ulepszFormularz(korzen);
+  korzen.querySelectorAll?.('form:not([data-sprawdzanie])').forEach(ulepszFormularz);
   korzen.querySelectorAll?.('select:not([data-wybor])').forEach(ulepszSelect);
   korzen.querySelectorAll?.('input[type="color"]:not([data-kolor])').forEach(ulepszKolor);
   korzen.querySelectorAll?.('input[type="date"]:not([data-data])').forEach(ulepszDate);
