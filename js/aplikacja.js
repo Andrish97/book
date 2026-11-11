@@ -55,6 +55,7 @@ import {
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje } from './app/sekcje.js';
 import { przejdzDoTrasy } from './app/trasy.js';
 import { wyloguj, konto, odswiezNaglowek, poZalogowaniu } from './app/logowanie.js';
+import { wylaczNaZywo } from './app/na-zywo.js';
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
 } from './app/wzorce.js';
@@ -378,6 +379,9 @@ edytor.addEventListener('zaznaczenie', (e) => {
   panel.pokaz(obj);
 });
 edytor.addEventListener('zmiana', zaplanujZapis);
+// Tekst w trakcie pisania jest zapisywany (i wysyłany na konto) po każdej krótkiej przerwie, nie dopiero po
+// wyjściu z ramki; krok cofania powstaje jak dotąd – po zakończeniu pisania.
+edytor.addEventListener('pisanie', () => zaplanujZapis({ historia: false }));
 // Kursor w połączonym tekście doszedł do ramki na innej stronie – aplikacja otwiera tę stronę i pisanie idzie dalej.
 edytor.addEventListener('pisanie-na-innej-stronie', (e) => { piszNaInnejStronie(e.detail); });
 edytor.addEventListener('rysowanie', (e) => {
@@ -552,6 +556,7 @@ async function start() {
   try {
     await chmura.naZmianeSesji((uzytkownik, zdarzenie) => {
       if (zdarzenie === 'SIGNED_OUT') {
+        wylaczNaZywo();
         if (!['logowanie', 'start'].includes(document.body.dataset.ekran)) {
           stan.uzytkownik = null;
           stan.projekt = null;

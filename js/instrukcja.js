@@ -540,13 +540,16 @@ export const ROZDZIALY = [
   },
   {
     tytul: 'Zapis, pliki i kilka urządzeń',
-    wstep: 'Zmiany zapisują się same: najpierw na urządzeniu, kilka sekund później na koncie.',
+    wstep: 'Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na koncie.',
     obraz: 'menu.png',
     podpis: 'Menu projektu na liście projektów.',
     punkty: [
       'Stan zapisu widać obok nazwy projektu: <b>Zapisano</b>, <b>Zapisywanie…</b> albo <b>Offline</b> – wtedy zmiany czekają na urządzeniu.',
+      '<b>Zmiany na żywo.</b> Gdy ten sam projekt masz otwarty na dwóch urządzeniach (albo w dwóch kartach), zmiana zapisana na jednym pojawia się na drugim po chwili – bez odświeżania strony. Jeśli akurat piszesz, przeciągasz element albo masz otwarte okno, aplikacja poczeka, aż skończysz, i wróci kursorem w to samo miejsce. Zmiana strony, której nie masz na ekranie, w ogóle nie rusza tego, nad czym pracujesz – odświeża się tylko jej miniatura. Lista projektów też aktualizuje się sama.',
+      'Gdy połączenie na żywo nie działa (np. w sieci firmowej), aplikacja sprawdza konto sama: po powrocie do karty, po odzyskaniu internetu i co pół minuty.',
       '<b>Praca na dwóch urządzeniach.</b> Jeśli ten sam projekt zmieniono w międzyczasie gdzie indziej, aplikacja nic nie nadpisze, tylko <b>połączy zmiany</b>: strony, wzorce, tabele danych, sekcje, serie i style zmienione tylko w jednym miejscu zostają z obu urządzeń, bez pytania. Zobaczysz komunikat „Połączono zmiany z innego urządzenia”.',
-      'Pytanie pojawia się tylko wtedy, gdy <b>tę samą stronę</b> (albo ten sam wzorzec, tę samą tabelę…) zmieniono w obu miejscach. Okno wymienia wyłącznie takie części i przy każdej pozwala wybrać: <b>z tego urządzenia</b> albo <b>z konta</b>. Reszta projektu łączy się sama. Po połączeniu „Cofnij” zaczyna liczyć kroki od nowa.',
+      'Na tej samej stronie (i w tym samym wzorcu) zmiany łączą się <b>element po elemencie</b>: gdy na jednym urządzeniu przesuniesz zdjęcie, a na drugim poprawisz tytuł, zostaną obie zmiany. Pytanie pojawia się tylko wtedy, gdy <b>ten sam element</b> (albo to samo ustawienie strony, np. tło czy nazwę, albo tę samą tabelę danych, styl…) zmieniono w obu miejscach. Okno wymienia wyłącznie takie rzeczy i przy każdej pozwala wybrać: <b>z tego urządzenia</b> albo <b>z konta</b>. Tekst płynący przez kilka połączonych ramek jest jedną całością: pytanie dotyczy całego tekstu, a wybrana wersja obejmuje wszystkie jego ramki.',
+      'Po połączeniu <b>Cofnij</b> działa dalej: cofa tylko to, co zrobiono na tym urządzeniu. Zmiany, które przyszły z innego urządzenia, zostają przy każdym kroku wstecz i do przodu.',
       'Wyjątek: gdy projekt wczytasz z pliku <code>.seriodruk</code> w miejsce istniejącego, a na koncie jest już inna wersja, aplikacja nie ma z czym porównać zmian i pyta o cały projekt: zachować wersję z tego urządzenia czy wczytać wersję z konta.',
       '<b>Cofnij</b> i <b>Ponów</b> (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) obejmują cały projekt: zmiany na stronach i wzorcach, dodawanie i usuwanie stron, sekcje, style, dane i serie. Po cofnięciu edytor otwiera stronę, której dotyczyła zmiana. Historia sięga 80 kroków wstecz i kończy się z zamknięciem projektu.',
       'Na konto wysyłane są tylko te strony, które się zmieniły – duży projekt zapisuje się tak samo szybko jak mały.',

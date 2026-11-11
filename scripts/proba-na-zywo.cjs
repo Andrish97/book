@@ -96,7 +96,7 @@ const krok = async (nazwa, fn) => {
       if (s.includes('BRAK')) throw new Error(s);
       return `${s}; czcionka ze zbioru pobrana`;
     });
-    await krok('dwa urządzenia zmieniają różne strony – obie zmiany zostają', async () => {
+    await krok('zmiana z urządzenia 2 dochodzi na żywo do urządzenia 1; zmiany na różnych stronach zostają obie', async () => {
       const typy = (strona) => strona.obiekty.map((o) => String(o.type).toLowerCase());
       // Urządzenie 2 otwiera projekt z konta i dodaje prostokąt na swojej stronie.
       const k2 = await b.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: 'block' });
@@ -118,7 +118,16 @@ const krok = async (nazwa, fn) => {
         await p2.click('[data-akcja="dodaj-prostokat"]');
         await p2.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury > w && document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', przed, { timeout: 40000 });
         const poDrugim = await p2.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury);
-        // Urządzenie 1 nic o tym nie wie i dodaje elipsę na swojej stronie: zapis ma połączyć obie zmiany bez pytania.
+        // Urządzenie 1 ma projekt otwarty i nic nie robi: prostokąt z urządzenia 2 ma się u niego pojawić sam,
+        // bez przeładowania strony. Kanałem na żywo trwa to chwilę; bez kanału zadziała dopiero zapas (co 30 s).
+        const start = Date.now();
+        await p.waitForFunction(([id, w]) => {
+          const pr = window.seriodruk.stan.projekt;
+          return pr.wersja_chmury === w && pr.strony.find((s) => s.id === id)?.obiekty.some((o) => String(o.type).toLowerCase() === 'rect');
+        }, [tam, poDrugim], { timeout: 50000 });
+        const czas = (Date.now() - start) / 1000;
+        const jak = czas < 10 ? `na żywo po ${czas.toFixed(1)} s` : `dopiero po ${czas.toFixed(0)} s – KANAŁ NA ŻYWO NIE DZIAŁA, zadziałało sprawdzanie zapasowe`;
+        // Potem urządzenie 1 dodaje elipsę na swojej stronie: obie zmiany mają zostać, bez pytania.
         await p.click('[data-akcja="dodaj-elipse"]');
         await Promise.race([
           p.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury === w + 1 && document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', poDrugim, { timeout: 60000 }),
@@ -131,7 +140,7 @@ const krok = async (nazwa, fn) => {
           if (!typy(strony.find((s) => s.id === tam)).includes('rect')) throw new Error(`${gdzie} brak prostokąta dodanego na urządzeniu 2`);
           if (!typy(strony.find((s) => s.id === tu)).includes('ellipse')) throw new Error(`${gdzie} brak elipsy dodanej na urządzeniu 1`);
         }
-        return `połączone bez pytania; wersja na koncie ${poDrugim + 1}`;
+        return `${jak}; obie zmiany zostały bez pytania; wersja na koncie ${poDrugim + 1}`;
       } finally {
         await k2.close();
       }
