@@ -1,0 +1,206 @@
+{
+ "B1": [
+  {
+   "plik": "rejestracja.png",
+   "opis": "Ekran rejestracji z listą wymagań hasła",
+   "podpis": "Rejestracja: wymagania hasła odhaczają się podczas pisania."
+  }
+ ],
+ "B2": [
+  {
+   "plik": "konto.png",
+   "opis": "Ustawienia konta w jednej kolumnie grup",
+   "podpis": "Ustawienia konta."
+  }
+ ],
+ "C1": [
+  {
+   "plik": "projekty.png",
+   "opis": "Lista projektów z miniaturami",
+   "podpis": "Lista projektów."
+  }
+ ],
+ "C2": [
+  {
+   "plik": "nowy-projekt.png",
+   "opis": "Okno nowego projektu",
+   "podpis": "Kreator projektu."
+  }
+ ],
+ "C4": [
+  {
+   "plik": "podglad.png",
+   "opis": "Podgląd: rozkładówka obok siebie",
+   "podpis": "Podgląd: pas leżący przez grzbiet widać na obu stronach."
+  }
+ ],
+ "C5": [
+  {
+   "plik": "udostepnianie.png",
+   "opis": "Okno udostępniania z gotowym linkiem",
+   "podpis": "Okno „Udostępnij podgląd”."
+  }
+ ],
+ "D9": [
+  {
+   "plik": "edytor.png",
+   "opis": "Ekran edytora: lista stron, płótno, panel właściwości",
+   "podpis": "Ekran edytora."
+  }
+ ],
+ "D1": [
+  {
+   "plik": "uklad.png",
+   "opis": "Trzy kolumny tekstu, lista numerowana, lista z punktami i tabela",
+   "podpis": "Kolumny, listy i tabela. Fioletowa linia pokazuje, dokąd płynie tekst z zaznaczonej ramki."
+  }
+ ],
+ "D2": [
+  {
+   "plik": "wyrownanie.png",
+   "opis": "Kilka zaznaczonych elementów i przyciski wyrównania",
+   "podpis": "Wyrównywanie kilku elementów do siebie."
+  }
+ ],
+ "D4": [
+  {
+   "plik": "ostrzezenia.png",
+   "opis": "Element w marginesie z pomarańczową ramką i lista ostrzeżeń",
+   "podpis": "Element w marginesie i jego ostrzeżenie."
+  }
+ ],
+ "D11": [
+  {
+   "plik": "siatka.png",
+   "opis": "Siatka, linijki i menu z ustawieniami siatki",
+   "podpis": "Siatka co 5 mm, linijki i menu z ustawieniami."
+  }
+ ],
+ "D12": [
+  {
+   "plik": "odleglosci.png",
+   "opis": "Przeciągany kwadrat z liniami wyrównania i równymi odstępami",
+   "podpis": "Trzeci kwadrat w równym odstępie: obie strzałki mają tę samą liczbę na fioletowym tle."
+  }
+ ],
+ "D14": [
+  {
+   "plik": "warstwy.png",
+   "opis": "Lista warstw z okiem i kłódką",
+   "podpis": "Lista warstw: oko ukrywa element, kłódka go blokuje."
+  }
+ ],
+ "D5": [
+  {
+   "plik": "rysunek-svg.png",
+   "opis": "Rysunek SVG jako obraz i po rozłożeniu na elementy",
+   "podpis": "U góry rysunek SVG jako obraz, na dole po rozłożeniu: napis jest zwykłym tekstem w czcionce z zestawu, a koło ma inny kolor."
+  }
+ ],
+ "D7": [
+  {
+   "plik": "czcionki.png",
+   "opis": "Okno czcionek: plik projektu i czcionka z innego projektu",
+   "podpis": "Okno „Czcionki”: pliki tego projektu i „Moje czcionki” z innych projektów."
+  }
+ ],
+ "E4": [
+  {
+   "plik": "strony.png",
+   "opis": "Lista stron z miniaturami i menu strony",
+   "podpis": "Lista stron i menu strony."
+  }
+ ],
+ "E1": [
+  {
+   "plik": "sekcje.png",
+   "opis": "Okno ustawień sekcji",
+   "podpis": "Ustawienia sekcji."
+  }
+ ],
+ "D3": [
+  {
+   "plik": "rozkladowki.png",
+   "opis": "Rozkładówka w edytorze: dwie strony i niebieski pas przez grzbiet",
+   "podpis": "Obie strony na jednym płótnie. Niebieski pas leży przez grzbiet."
+  }
+ ],
+ "E2": [
+  {
+   "plik": "okno-wzorcow.png",
+   "opis": "Okno wzorców z szablonami projektu i wzorcami standardowymi",
+   "podpis": "Okno „Wzorce”: szablony projektu i wzorce standardowe."
+  }
+ ],
+ "F3": [
+  {
+   "plik": "motyw.png",
+   "opis": "Ustawienia konta w ciemnym motywie",
+   "podpis": "Ciemny motyw."
+  }
+ ],
+ "G1": [
+  {
+   "plik": "dane.png",
+   "opis": "Okno danych z tabelą dni",
+   "podpis": "Okno „Dane”: lista tabel z lewej, edytor z prawej."
+  }
+ ],
+ "G2": [
+  {
+   "plik": "pola.png",
+   "opis": "Strona dnia z polami podświetlonymi na fioletowo",
+   "podpis": "Pola mają fioletowe tło; pole, którego aplikacja nie zna, czerwone."
+  }
+ ],
+ "G3": [
+  {
+   "plik": "serie.png",
+   "opis": "Podgląd: strona dnia powielona sześć razy z kolejnymi danymi",
+   "podpis": "Podgląd: jedna strona-wzór powielona dla kolejnych wierszy tabeli."
+  }
+ ],
+ "G7": [
+  {
+   "plik": "zakladki.png",
+   "opis": "Sześć powielonych stron z zakładką w innym kolorze i na innej wysokości",
+   "podpis": "Ta sama zakładka na sześciu powielonych stronach: kolor z kolumny tabeli, położenie z numeru powielenia."
+  }
+ ],
+ "G5": [
+  {
+   "plik": "kontrola.png",
+   "opis": "Okno „Sprawdź przed drukiem” z trzema uwagami",
+   "podpis": "„Sprawdź przed drukiem”: uwagi z numerami stron."
+  }
+ ],
+ "I1": [
+  {
+   "plik": "pdf.png",
+   "opis": "Okno eksportu do PDF z wyborem rodzaju pliku",
+   "podpis": "Okno eksportu: rodzaj pliku, opcje i lista rzeczy do sprawdzenia."
+  }
+ ],
+ "D10": [
+  {
+   "plik": "telefon.png",
+   "opis": "Edytor na telefonie w pionie",
+   "podpis": "Telefon w pionie: strona u góry, właściwości w dolnym panelu.",
+   "waski": true
+  }
+ ],
+ "D15": [
+  {
+   "plik": "tabela.png",
+   "opis": "Tabela z tłem nagłówka i scaloną komórką",
+   "podpis": "Tabela jako jeden element: tło nagłówka, co drugi wiersz w kolorze, scalona komórka."
+  }
+ ],
+ "D8": [
+  {
+   "plik": "pioro.png",
+   "opis": "Kształt narysowany piórem w trakcie edycji punktów",
+   "podpis": "Kształt z pióra w trakcie edycji punktów."
+  }
+ ]
+}
