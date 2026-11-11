@@ -784,3 +784,91 @@ test('tabela na liście warstw: rozwinięcie pokazuje komórki z początkiem tre
   assert.equal((await wiersze()).length, 2);
   assert.deepEqual(bledy, []);
 });
+
+test('tabela: linie całego wiersza, kolumny i tabeli naraz – obramowanie, linie wewnętrzne, bez linii, powrót do siatki; scalenie, zapis, cofnięcie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Linie zakresu');
+  await wstawTabele(strona, 4, 3);
+  const C = '#1a1a1a';
+  const pisz = (w, k) => strona.evaluate(([ww, kk]) => { const e = window.seriodruk.edytor; e.edytujKomorke(e.canvas.getObjects().find((o) => o.tabela), [ww, kk]); }, [w, k]);
+  const pole = (ktore) => `.wlasciwosci [data-linie="${ktore}"]`;
+  const ustaw = async ({ zakres, czesc, grubosc }) => {
+    if (zakres) await strona.selectOption(`${pole('zakres')} select`, zakres);
+    if (czesc) await strona.selectOption(`${pole('czesc')} select`, czesc);
+    if (grubosc) { await strona.fill(`${pole('grubosc')} input`, String(grubosc)); await strona.press(`${pole('grubosc')} input`, 'Tab'); }
+  };
+  const kliknij = (napis) => strona.click(`${pole('przyciski')} button:has-text("${napis}")`);
+
+  // W trakcie pisania w komórce [2,1]: obramowanie całego wiersza.
+  await pisz(2, 1);
+  await ustaw({ zakres: 'wiersz', czesc: 'obramowanie', grubosc: 0.8 });
+  await kliknij('Ustaw te linie');
+  let l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, [`h2,0:0.8${C}`, `h2,1:0.8${C}`, `h2,2:0.8${C}`, `h3,0:0.8${C}`, `h3,1:0.8${C}`, `h3,2:0.8${C}`, `v2,0:0.8${C}`, `v2,3:0.8${C}`]);
+  assert.deepEqual(l.rysowane.filter((x) => x.includes(' 0.8 ')), [`h2 0-3 0.8 ${C}`, `h3 0-3 0.8 ${C}`, `v0 2-3 0.8 ${C}`, `v3 2-3 0.8 ${C}`]);
+  assert.equal((await stanTabeli(strona)).zaznaczone, 'komórka [2,1] – pisanie', 'pisanie w komórce trwa');
+  assert.equal(await strona.inputValue(`${pole('zakres')} select`), 'wiersz', 'wybór zakresu zostaje po przebudowaniu panelu');
+
+  // Cała kolumna bez żadnych linii: znikają jej boki i poziome odcinki w tej kolumnie (także te z obramowania wiersza).
+  await ustaw({ zakres: 'kolumna', czesc: 'wszystkie' });
+  await kliknij('Bez linii');
+  l = await linieTabeli(strona);
+  assert.equal(l.wpisy.filter((x) => x.endsWith(':0')).length, 5 + 2 * 4, 'pięć poziomych i dwa razy po cztery pionowe odcinki bez linii');
+  assert.deepEqual(l.rysowane.filter((x) => /^v[12] /.test(x)), [], 'boków środkowej kolumny nie ma');
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('h')), [
+    `h0 0-1 0.25 ${C}`, `h0 2-3 0.25 ${C}`, `h1 0-1 0.5 ${C}`, `h1 2-3 0.5 ${C}`, `h2 0-1 0.8 ${C}`, `h2 2-3 0.8 ${C}`,
+    `h3 0-1 0.8 ${C}`, `h3 2-3 0.8 ${C}`, `h4 0-1 0.25 ${C}`, `h4 2-3 0.25 ${C}`,
+  ]);
+
+  // „Jak w tabeli” dla całej tabeli zdejmuje wszystkie własne ustawienia.
+  await ustaw({ zakres: 'tabela', czesc: 'wszystkie' });
+  await kliknij('Jak w tabeli');
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, []);
+  assert.equal(l.rysowane.length, 9);
+
+  // Zaznaczona cała tabela: grube obramowanie, potem bez poziomych linii wewnętrznych.
+  await strona.evaluate(() => window.seriodruk.edytor.aktywny.hiddenTextarea.focus()); // kursor wraca z panelu do komórki
+  await strona.keyboard.press('Escape');
+  assert.equal((await stanTabeli(strona)).zaznaczone, 'tabela');
+  assert.equal(await strona.locator(`${pole('zakres')}`).count(), 0, 'przy zaznaczonej tabeli zakresem jest cała tabela');
+  await ustaw({ czesc: 'obramowanie', grubosc: 1 });
+  await kliknij('Ustaw te linie');
+  await strona.waitForTimeout(400); // osobny krok historii
+  await ustaw({ czesc: 'poziome' });
+  await kliknij('Bez linii');
+  l = await linieTabeli(strona);
+  assert.equal(l.wpisy.length, 2 * 3 + 2 * 4 + 3 * 3);
+  assert.deepEqual(l.rysowane, [`h0 0-3 1 ${C}`, `h4 0-3 1 ${C}`, `v0 0-4 1 ${C}`, `v1 0-4 0.25 ${C}`, `v2 0-4 0.25 ${C}`, `v3 0-4 1 ${C}`]);
+
+  // Zapis w projekcie i cofnięcie ostatniego kroku (wracają linie poziome).
+  await strona.waitForTimeout(400);
+  const zapis = await strona.evaluate(async () => {
+    await window.seriodruk.zapiszTeraz();
+    return window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.tabela).tabela.linie_komorek.length;
+  });
+  assert.equal(zapis, 23);
+  await strona.click('[data-akcja="cofnij"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela)?.tabela.linie_komorek?.length === 14);
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('h')), [`h0 0-3 1 ${C}`, `h1 0-3 0.5 ${C}`, `h2 0-3 0.25 ${C}`, `h3 0-3 0.25 ${C}`, `h4 0-3 1 ${C}`]);
+
+  // Scalona komórka: odcinek przez jej środek nie dostaje wpisu; wiersz scalenia to wszystkie jego wiersze.
+  const scalone = await strona.evaluate(async () => {
+    const { scalKomorki, ustawLinieZakresu } = await import('./js/tabela-obiekt.js');
+    const g = window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela);
+    ustawLinieZakresu(g, 'tabela', {}, 'wszystkie', null);
+    scalKomorki(g, 1, 0, 'prawo');
+    scalKomorki(g, 1, 0, 'dol');
+    const pionowe = ustawLinieZakresu(g, 'tabela', {}, 'pionowe', { grubosc: 0.6 });
+    const wpisyPionowe = g.tabela.linie_komorek.map((x) => `${x.os}${x.w},${x.k}`).sort();
+    ustawLinieZakresu(g, 'tabela', {}, 'wszystkie', null);
+    const wiersz = ustawLinieZakresu(g, 'wiersz', { w: 2, k: 1 }, 'obramowanie', { grubosc: 0.7, kolor: '#c1121f' });
+    return { pionowe, wpisyPionowe, wiersz, wpisyWiersza: g.tabela.linie_komorek.map((x) => `${x.os}${x.w},${x.k}:${x.grubosc}${x.kolor}`).sort() };
+  });
+  assert.equal(scalone.pionowe, 6, 'osiem odcinków wewnętrznych pionowych minus dwa w środku scalenia');
+  assert.deepEqual(scalone.wpisyPionowe, ['v0,1', 'v0,2', 'v1,2', 'v2,2', 'v3,1', 'v3,2']);
+  assert.equal(scalone.wiersz, 3 + 3 + 2 + 2, 'obramowanie dwóch wierszy scalenia: góra, dół i po dwa odcinki z boków');
+  assert.deepEqual(scalone.wpisyWiersza.filter((x) => x.startsWith('v')), ['v1,0:0.7#c1121f', 'v1,3:0.7#c1121f', 'v2,0:0.7#c1121f', 'v2,3:0.7#c1121f']);
+  assert.deepEqual(bledy, []);
+});

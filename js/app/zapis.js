@@ -89,11 +89,16 @@ export async function zaladujCel({ dopasuj = false } = {}) {
     naPlotnie = { wzorzec: cel.id };
   } else {
     const ciag = rozwin(projekt);
-    const strony = jednaStrona() ? [cel] : arkuszStrony(cel, ciag);
+    const arkusz = arkuszStrony(cel, ciag);
+    const strony = jednaStrona() ? [cel] : arkusz;
     const dane = [];
     for (const s of strony) {
       dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), prowadnice: s.prowadnice, warstwy: await warstwyWzorcow(projekt, s, ciag) });
     }
+    // Widok jednej strony rozkładówki: sąsiednia strona idzie do edytora osobno – widać z niej to,
+    // co przechodzi przez grzbiet na tę stronę (bez możliwości zmiany).
+    const sasiad = strony.length === 1 ? arkusz.find((s) => s !== cel) : null;
+    if (sasiad) dane[0].sasiednia = { bok: arkusz.indexOf(sasiad) === 0 ? 'lewa' : 'prawa', obiekty: sasiad.obiekty, warstwy: await warstwyWzorcow(projekt, sasiad, ciag) };
     edytor.ustawWydruk(wydruk, strony.map((s) => marginesyStrony(projekt, s, bokStrony(s, ciag))));
     edytor.ustawAktywna(strony.indexOf(cel));
     await edytor.wczytajArkusz(dane, projekt.zasoby);

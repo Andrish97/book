@@ -631,3 +631,96 @@ test('grupa otwarta: obraz kadruje się przeciąganiem, a kształt zmienia punkt
   assert.deepEqual([o.wGrupie, o.naArkuszu, o.otwarta], [['Obraz', 'Kształt', 'Kwadrat'], ['group'], id]);
   assert.deepEqual(bledy, []);
 });
+
+test('grupa otwarta: ramka zaznaczenia przeciąganiem wybiera elementy grupy (z Shiftem dokłada); kolejność zmienia się dla kilku zaznaczonych naraz', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Grupa – ramka');
+  // Na spodzie „Tło”, nad nim grupa trzech kwadratów A, B, C z odstępami, na wierzchu „Kółko”.
+  const id = await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const kwadrat = (nazwa, left, top, fill) => { const r = e.dodajProstokat(); r.set({ left, top, width: 20, height: 20, fill, strokeWidth: 0, nazwa }); r.setCoords(); return r; };
+    kwadrat('Tło', 10, 150, '#dddddd');
+    const trojka = [kwadrat('A', 20, 20, '#e63946'), kwadrat('B', 50, 20, '#2a9d8f'), kwadrat('C', 80, 20, '#457b9d')];
+    e.canvas.setActiveObject(new window.fabric.ActiveSelection(trojka, { canvas: e.canvas }));
+    e.grupuj();
+    const g = e.aktywny;
+    const k = e.dodajElipse(); k.set({ left: 100, top: 150, nazwa: 'Kółko' }); k.setCoords();
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+    return g.id;
+  });
+  const zaznaczone = () => strona.evaluate(() => window.seriodruk.edytor.canvas.getActiveObjects().map((o) => o.nazwa || o.type).sort());
+  const wGrupie = async () => (await stan(strona)).kolejnoscWGrupie;
+  const ramkaPrzed = (await stan(strona)).grupa.ramka;
+
+  await dwuklik(strona, 30, 30);
+  assert.deepEqual([await zaznaczone(), (await stan(strona)).otwarta], [['A'], id]);
+  // Ramka zaczęta w odstępie między A i B, przeciągnięta przez B: zaznaczony B, grupa zostaje otwarta i na miejscu.
+  await przeciagnij(strona, [45, 24], [75, 36]);
+  let s = await stan(strona);
+  assert.deepEqual([await zaznaczone(), s.otwarta, s.grupa.ramka], [['B'], id, ramkaPrzed]);
+  // Szersza ramka obejmuje B i C.
+  await przeciagnij(strona, [45, 24], [95, 36]);
+  assert.deepEqual([await zaznaczone(), (await stan(strona)).otwarta], [['B', 'C'], id]);
+  assert.equal(await strona.textContent('#tytul-wlasciwosci'), 'Zaznaczone elementy: 2');
+  // Ramka, która niczego nie objęła, zostawia zaznaczenie; z Shiftem ramka dokłada elementy.
+  await przeciagnij(strona, [45, 24], [75, 36]);
+  await przeciagnij(strona, [42, 22], [48, 38]);
+  assert.deepEqual([await zaznaczone(), (await stan(strona)).otwarta], [['B'], id]);
+  await strona.keyboard.down('Shift');
+  await przeciagnij(strona, [44, 24], [25, 36]);
+  await strona.keyboard.up('Shift');
+  assert.deepEqual([await zaznaczone(), (await stan(strona)).otwarta], [['A', 'B'], id]);
+  // Elementy arkusza poza grupą (Tło, Kółko) nie wchodzą do zaznaczenia, a nic się nie przesunęło.
+  s = await stan(strona);
+  assert.deepEqual([s.dzieci.A.slice(0, 2), s.dzieci.B.slice(0, 2), s.dzieci.C.slice(0, 2)], [[20, 20], [50, 20], [80, 20]]);
+
+  // Kolejność dla dwóch zaznaczonych elementów grupy: razem na wierzch, o jedno niżej, na spód, o jedno wyżej.
+  assert.deepEqual(await wGrupie(), ['A', 'B', 'C']);
+  await strona.click('.wlasciwosci button[title="Na wierzch"]');
+  assert.deepEqual(await wGrupie(), ['C', 'A', 'B']);
+  await krok(strona);
+  await strona.click('.wlasciwosci button[title="Niżej"]');
+  assert.deepEqual(await wGrupie(), ['A', 'B', 'C']);
+  await strona.click('.wlasciwosci button[title="Niżej"]');
+  assert.deepEqual(await wGrupie(), ['A', 'B', 'C'], 'niżej już się nie da');
+  await strona.keyboard.down('Shift');
+  await klik(strona, 30, 30); // A wychodzi z zaznaczenia
+  await klik(strona, 90, 30); // C wchodzi
+  await strona.keyboard.up('Shift');
+  assert.deepEqual(await zaznaczone(), ['B', 'C']);
+  await strona.click('.wlasciwosci button[title="Na spód"]');
+  assert.deepEqual(await wGrupie(), ['B', 'C', 'A']);
+  await strona.click('.wlasciwosci button[title="Wyżej"]');
+  assert.deepEqual(await wGrupie(), ['A', 'B', 'C']);
+  s = await stan(strona);
+  assert.deepEqual([s.otwarta, s.kolejnosc], [id, ['Tło', 'group', 'Kółko']], 'grupa zostaje otwarta i na swoim miejscu wśród elementów strony');
+  // Cofnięcie wraca do kolejności sprzed ostatniego kroku.
+  await krok(strona);
+  await strona.click('[data-akcja="cofnij"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.type === 'group').getObjects().map((d) => d.nazwa).join('') === 'CAB');
+  // Krok był zapisany, gdy dwa elementy grupy były zaznaczone razem – po wczytaniu stoją tam, gdzie stały.
+  s = await stan(strona);
+  assert.deepEqual([s.dzieci.A.slice(0, 2), s.dzieci.B.slice(0, 2), s.dzieci.C.slice(0, 2), s.grupa.ramka], [[20, 20], [50, 20], [80, 20], ramkaPrzed]);
+
+  await krok(strona); // strona po cofnięciu wczytuje się do końca
+  // Samo kliknięcie w puste miejsce w ramce grupy zamyka ją i zaznacza całą – jak dotąd.
+  await dwuklik(strona, 30, 30);
+  assert.equal((await stan(strona)).otwarta, id);
+  await klik(strona, 45, 30);
+  s = await stan(strona);
+  assert.deepEqual([s.otwarta, s.aktywny], [null, 'group']);
+
+  // Kilka elementów na arkuszu (bez otwartej grupy) też zmienia kolejność razem.
+  await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const o = e.canvas.getObjects();
+    e.canvas.discardActiveObject();
+    e.canvas.setActiveObject(new window.fabric.ActiveSelection([o.find((x) => x.nazwa === 'Tło'), o.find((x) => x.type === 'group')], { canvas: e.canvas }));
+    e.warstwa('wierzch');
+  });
+  assert.deepEqual((await stan(strona)).kolejnosc, ['Kółko', 'Tło', 'group']);
+  await strona.evaluate(() => window.seriodruk.edytor.warstwa('nizej'));
+  assert.deepEqual((await stan(strona)).kolejnosc, ['Tło', 'group', 'Kółko']);
+  assert.deepEqual(bledy, []);
+});

@@ -94,6 +94,11 @@ export class Edytor extends EventTarget {
     for (const zdarzenie of ['selection:created', 'selection:updated', 'selection:cleared']) {
       c.on(zdarzenie, () => this._pilnujOtwartej());
     }
+    // Element sąsiedniej strony (widok jednej strony rozkładówki) – nie da się go tu zmienić.
+    c.on('mouse:down', (e) => { if (e.target?.zSasiedniej) this.dispatchEvent(new Event('element-sasiedniej-strony')); });
+    // Otwarta grupa: przeciągnięcie od pustego miejsca w jej ramce zaznacza elementy objęte ramką.
+    c.on('mouse:down:before', (e) => this._zacznijRamkeGrupy(e));
+    c.on('mouse:up:before', (e) => this._zakonczRamkeGrupy(e));
     c.on('selection:created', () => this._emitujZaznaczenie());
     c.on('selection:updated', () => this._emitujZaznaczenie());
     c.on('selection:cleared', () => this._emitujZaznaczenie());
@@ -121,6 +126,23 @@ export class Edytor extends EventTarget {
     c.on('mouse:up', () => {
       if (this._pioro) this._pioro.ciagnie = null;
       if (this._punkty) this._punkty.ciagnie = null;
+    });
+    // Dotyk: przeglądarka nie zgłasza podwójnego kliknięcia na płótnie, więc dwa szybkie stuknięcia w to samo
+    // miejsce (bez przesuwania palca) działają jak podwójne kliknięcie – komórka tabeli, grupa, obraz, punkty.
+    c.on('mouse:down', (e) => { if (/touch/.test(e.e?.type || '') || e.e?.pointerType === 'touch') this._stukniecie = { ...this._stukniecie, dol: c.getViewportPoint(e.e) }; });
+    c.on('mouse:up', (e) => {
+      const dotyk = /touch/.test(e.e?.type || '') || e.e?.pointerType === 'touch';
+      if (!dotyk || !this._stukniecie?.dol) return;
+      const p = c.getViewportPoint(e.e);
+      const s = this._stukniecie;
+      if (Math.hypot(p.x - s.dol.x, p.y - s.dol.y) > 10) { this._stukniecie = null; return; } // palec przesunął element
+      const teraz = Date.now();
+      if (s.czas && teraz - s.czas < 400 && Math.hypot(p.x - s.x, p.y - s.y) < 24) {
+        this._stukniecie = null;
+        c.fire('mouse:dblclick', { e: e.e, target: e.target, scenePoint: c.getScenePoint(e.e), viewportPoint: p });
+        return;
+      }
+      this._stukniecie = { czas: teraz, x: p.x, y: p.y };
     });
     c.on('mouse:dblclick', (e) => {
       if (this._pioro) this.zakonczKsztaltPiora();
@@ -294,10 +316,15 @@ export class Edytor extends EventTarget {
 
   // strony: [{ id, obiekty, tlo, warstwy }] – jedna albo dwie (lewa, prawa),
   // tyle samo, ile zestawów marginesów dostało ustawWydruk.
+  // Jedna strona rozkładówki może mieć pole `sasiednia`: { bok: 'lewa' | 'prawa', obiekty, warstwy } – drugą
+  // stronę tej rozkładówki. Jej elementy, które przechodzą przez grzbiet, są wtedy widoczne na tej stronie
+  // (przycięte do niej ze spadem), ale nie da się ich tu zmienić ani zapisać – należą do sąsiedniej strony.
   async wczytajArkusz(strony, zasoby) {
     this._poza = [];
-    await zapewnijCzcionki(strony.flatMap((s) => s.obiekty || [])); // tekst mierzy się właściwą czcionką
-    await przygotujKopie(zasoby, strony.flatMap((s) => s.obiekty || []));
+    const sasiednia = strony.length === 1 ? strony[0].sasiednia || null : null;
+    const doWczytania = [...strony.flatMap((s) => s.obiekty || []), ...(sasiednia?.obiekty || [])];
+    await zapewnijCzcionki(doWczytania); // tekst mierzy się właściwą czcionką
+    await przygotujKopie(zasoby, doWczytania);
     const w = this.wydruk.szerokosc_mm;
     const b = this.wydruk.spad_mm;
     const h = this.wydruk.wysokosc_mm;
@@ -328,14 +355,42 @@ export class Edytor extends EventTarget {
         }
       }
     });
+    // Widok jednej strony: elementy wzorca sąsiedniej strony, które wychodzą przez grzbiet dalej niż na spad.
+    const przesuniecie = sasiednia ? (sasiednia.bok === 'lewa' ? -w : w) : 0;
+    const kadrStrony = () => new fabric.Rect({ left: -b, top: -b, width: w + 2 * b, height: h + 2 * b, absolutePositioned: true });
+    if (sasiednia) {
+      for (const rodzaj of ['pod', 'nad']) {
+        for (const o of sasiednia.warstwy?.[rodzaj] || []) {
+          if (!wzorzecPrzezGrzbiet(o, sasiednia.bok, w, b)) continue;
+          o.set({ left: o.left + przesuniecie, zSasiedniej: true, clipPath: kadrStrony() });
+          o.setCoords();
+          this._warstwy[rodzaj].push(o);
+        }
+      }
+    }
     this._wczytywanie = true;
     this._zapomnijOtwarta();
     this.canvas.discardActiveObject();
-    const json = strony.length > 1
-      ? scalRozkladowke(strony[0].obiekty, strony[1].obiekty).map(({ o, bok }) => (bok === 'prawa' ? { ...o, left: (o.left || 0) + w } : o))
-      : strony[0].obiekty;
+    let json = strony[0].obiekty;
+    if (strony.length > 1) json = scalRozkladowke(strony[0].obiekty, strony[1].obiekty).map(({ o, bok }) => (bok === 'prawa' ? { ...o, left: (o.left || 0) + w } : o));
+    else if (sasiednia) {
+      // Kolejność jak na wspólnym płótnie rozkładówki; elementy sąsiedniej strony dostają znacznik.
+      const lewe = sasiednia.bok === 'lewa' ? sasiednia.obiekty : strony[0].obiekty;
+      const prawe = sasiednia.bok === 'lewa' ? strony[0].obiekty : sasiednia.obiekty;
+      json = scalRozkladowke(lewe || [], prawe || []).map(({ o, bok }) => (bok === sasiednia.bok ? { ...o, left: (o.left || 0) + przesuniecie, zSasiedniej: true } : o));
+    }
     const obiekty = podmienZasoby(json, zrodloObrazu(zasoby));
     await this.canvas.loadFromJSON({ objects: obiekty });
+    if (sasiednia) {
+      // Zostają tylko te elementy sąsiedniej strony, które naprawdę zachodzą na tę stronę (ze spadem).
+      for (const o of this.canvas.getObjects().filter((x) => x.zSasiedniej && !x.zWzorca)) {
+        o.setCoords();
+        const r = o.getBoundingRect();
+        const zachodzi = sasiednia.bok === 'lewa' ? r.left + r.width > -b + 0.01 : r.left < w + b - 0.01;
+        if (!zachodzi) { this.canvas.remove(o); continue; }
+        o.set({ zWzorca: true, selectable: false, evented: true, excludeFromExport: true, hoverCursor: 'default', clipPath: kadrStrony() });
+      }
+    }
     for (const o of this.canvas.getObjects()) if (!o.id) o.id = uid('o'); // starsze projekty
     this._dodajWzorce();
     this._zastosujBlokady();
@@ -363,6 +418,11 @@ export class Edytor extends EventTarget {
     this._wczytywanie = bylo;
   }
 
+  // Elementy sąsiedniej strony rozkładówki widoczne w widoku jednej strony (zachodzą przez grzbiet).
+  get elementySasiedniejStrony() {
+    return this.canvas.getObjects().filter((o) => o.zSasiedniej);
+  }
+
   get maWzorce() {
     return Boolean(this._warstwy && (this._warstwy.pod.length || this._warstwy.nad.length));
   }
@@ -374,7 +434,9 @@ export class Edytor extends EventTarget {
   // Elementy wzorca mają excludeFromExport, więc nie trafiają do zapisu.
   obiektyStron() {
     const zywe = this.canvas.getObjects().filter((o) => !o.excludeFromExport);
-    const json = podmienZasoby(this.canvas.toObject().objects, null);
+    const przywroc = this._wUkladzieGrupyDoZapisu();
+    let json;
+    try { json = podmienZasoby(this.canvas.toObject().objects, null); } finally { przywroc(); }
     if (!this.rozkladowka) return [json];
     const w = this.wydruk.szerokosc_mm;
     const wynik = this.strony.map(() => []);
@@ -383,6 +445,33 @@ export class Edytor extends EventTarget {
       wynik[i].push({ ...o, left: (o.left || 0) - i * w, z: k });
     });
     return wynik;
+  }
+
+  // Kilka elementów otwartej grupy zaznaczonych razem ma na czas zaznaczenia położenie liczone względem
+  // zaznaczenia, a nie grupy (tak działa Fabric). Zapis grupy wziąłby te liczby wprost i po wczytaniu elementy
+  // stałyby gdzie indziej. Na czas zapisu dostają więc położenie w układzie swojej grupy.
+  // Zwraca funkcję, która przywraca stan sprzed zapisu.
+  _wUkladzieGrupyDoZapisu() {
+    const a = this.aktywny;
+    if (!a || !toZaznaczenie(a)) return () => {};
+    const POLA = ['left', 'top', 'scaleX', 'scaleY', 'angle', 'skewX', 'skewY', 'flipX', 'flipY'];
+    const cofnij = [];
+    for (const o of a.getObjects()) {
+      const g = o.parent;
+      if (!g || g === a || g.type !== 'group') continue;
+      const m = fabric.util.multiplyTransformMatrices(fabric.util.invertTransform(g.calcTransformMatrix()), o.calcTransformMatrix());
+      const bylo = Object.fromEntries(POLA.map((k) => [k, o[k]]));
+      const d = fabric.util.qrDecompose(m);
+      // Odbicie zostaje odbiciem (a nie obrotem o 180° z ujemną skalą) – zapis wygląda tak samo jak bez zaznaczenia.
+      let { angle, scaleY } = d;
+      const flipX = Boolean(o.flipX);
+      if (flipX) { angle += 180; scaleY = -scaleY; }
+      const flipY = scaleY < 0;
+      o.set({ angle: ((angle % 360) + 360) % 360, scaleX: d.scaleX, scaleY: Math.abs(scaleY), skewX: d.skewX, skewY: d.skewY, flipX, flipY });
+      o.setPositionByOrigin(new fabric.Point(d.translateX, d.translateY), 'center', 'center');
+      cofnij.push(() => o.set(bylo));
+    }
+    return () => { for (const f of cofnij) f(); };
   }
 
   // Obiekty pojedynczej strony (arkusz z jedną stroną albo wzorzec).
@@ -998,6 +1087,7 @@ export class Edytor extends EventTarget {
     const obiekty = this.canvas.getActiveObjects();
     if (!obiekty.length) return;
     if (this.aktywny?.isEditing) return;
+    if (this.calyTekstZaznaczony) { this.usunCalyTekst(); return; } // znika tekst wątku, ramki zostają
     if (this._otwarta) { this._usunZOtwartej(); return; }
     this.canvas.discardActiveObject();
     // Tekst usuwanej ramki wątku przechodzi do sąsiedniej – znika ramka, nie treść.
@@ -1277,8 +1367,14 @@ export class Edytor extends EventTarget {
   _klawiszNaGranicyRamek(e) {
     const o = this.aktywny;
     if (!o?.isEditing || !o.watek || o.zWzorca || o.inCompositionMode || e.target !== o.hiddenTextarea) return;
-    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    // Ctrl+A drugi raz (gdy tekst tej ramki jest już zaznaczony w całości): cały połączony tekst.
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.code === 'KeyA' && o.selectionStart === 0 && o.selectionEnd === o._text.length) {
+      if (this.zaznaczCalyTekst(o)) { e.preventDefault(); e.stopPropagation(); }
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
     if (o.selectionStart !== o.selectionEnd) return;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { this._strzalkaMiedzyRamkami(e, o); return; }
     const wstecz = e.key === 'Backspace' || e.key === 'ArrowLeft';
     if (o.selectionStart !== (wstecz ? 0 : o._text.length)) return;
     const ramki = this._calyWatek(o.watek);
@@ -1305,6 +1401,101 @@ export class Edytor extends EventTarget {
       else sasiad.removeChars(0, 1);
       this._przelejZKursorem(ramki, o, kursor, { gdyPoza: 'koniec', zawsze: true });
     }
+  }
+
+  // Strzałka w górę w pierwszym wierszu ramki przechodzi do ostatniego wiersza poprzedniej ramki wątku,
+  // strzałka w dół w ostatnim wierszu – do pierwszego wiersza następnej; kursor staje możliwie pod (nad)
+  // miejscem, w którym stał – liczonym od lewego brzegu ramki. Działa także na ramkę z innej strony.
+  _strzalkaMiedzyRamkami(e, o) {
+    const wGore = e.key === 'ArrowUp';
+    const wiersz = o.get2DCursorLocation(o.selectionStart).lineIndex;
+    if (wiersz !== (wGore ? 0 : o._textLines.length - 1)) return;
+    const ramki = this._calyWatek(o.watek);
+    const i = ramki.indexOf(o);
+    const sasiad = wGore ? ramki.slice(0, i).reverse().find((r) => r.text) : ramki.slice(i + 1).find((r) => r.text);
+    if (!sasiad) return;
+    e.preventDefault(); e.stopPropagation();
+    // Odległość kursora od lewego brzegu ramki (w jednostkach ramki).
+    const b = o._getCursorBoundaries(o.selectionStart);
+    const x = b.left + b.leftOffset + o.width / 2;
+    // Ramka z innej strony żyje w pamięci i nie była rysowana – wiersze i położenia znaków liczymy teraz.
+    if (!sasiad._textLines?.length) sasiad.initDimensions();
+    const cel = wGore ? sasiad._textLines.length - 1 : 0;
+    sasiad.measureLine(cel);
+    const granice = sasiad.__charBounds[cel] || [];
+    const od = sasiad._getLineLeftOffset(cel);
+    let znak = 0;
+    let najblizej = Infinity;
+    for (let k = 0; k <= sasiad._textLines[cel].length; k += 1) {
+      const gdzie = od + (granice[k]?.left ?? ((granice[k - 1]?.left ?? 0) + (granice[k - 1]?.width ?? 0)));
+      if (Math.abs(gdzie - x) < najblizej) { najblizej = Math.abs(gdzie - x); znak = k; }
+    }
+    // Numer znaku w ramce: wiersz i miejsce w wierszu → miejsce w całym tekście ramki.
+    let indeks = wGore ? sasiad._text.length : 0;
+    for (let n = 0; n <= sasiad._text.length; n += 1) {
+      const m = sasiad.get2DCursorLocation(n);
+      if (m.lineIndex === cel && m.charIndex === znak) { indeks = n; break; }
+    }
+    if (this.canvas.getObjects().includes(sasiad)) this._piszW(sasiad, indeks, o);
+    else this._piszNaInnejStronie(sasiad, indeks, !wGore);
+  }
+
+  // ---------- Cały połączony tekst ----------
+  // Zaznaczenie w tekście żyje w jednej ramce – nie da się go rozciągnąć na następną. Zamiast tego jest tryb
+  // „cały połączony tekst”: ramka zostaje zaznaczona (bez pisania), a zmiana wyglądu, kopiowanie i usuwanie
+  // dotyczą tekstu wszystkich ramek wątku, także tych z innych stron.
+
+  // Włącza tryb dla wątku ramki. Zwraca { ramek, znakow } albo null (ramka bez połączeń).
+  zaznaczCalyTekst(obj = this.aktywny) {
+    const ramki = this._calyWatek(obj?.watek);
+    if (!obj || obj.type !== 'textbox' || obj.zWzorca || ramki.length < 2 || !ramki.includes(obj)) return null;
+    if (obj.isEditing) obj.exitEditing();
+    if (this.aktywny !== obj) this.canvas.setActiveObject(obj);
+    this._calyTekst = obj.watek;
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return { ramek: ramki.length, znakow: this.calyTekst().length };
+  }
+
+  // Identyfikator wątku, którego cały tekst jest zaznaczony (albo null). Tryb kończy się sam, gdy zaznaczona
+  // jest inna rzecz albo zaczyna się pisanie.
+  get calyTekstZaznaczony() {
+    const a = this.aktywny;
+    if (this._calyTekst && !(a && a.type === 'textbox' && a.watek === this._calyTekst && !a.isEditing)) this._calyTekst = null;
+    return this._calyTekst || null;
+  }
+
+  // Sklejony tekst całego wątku (domyślnie: wątku zaznaczonego w całości).
+  calyTekst(watek = this.calyTekstZaznaczony || this.aktywny?.watek) {
+    return this._calyWatek(watek).filter((r) => r.text).map((r, i) => (i ? (r.lacznik ?? '\n') : '') + r.text).join('');
+  }
+
+  // Wygląd nadany całemu połączonemu tekstowi: znika własny wygląd fragmentów we wszystkich ramkach wątku
+  // (samą właściwość roznosi po ramkach _pilnujWatkow).
+  ujednolicCalyTekst(wlasciwosci) {
+    const watek = this.calyTekstZaznaczony;
+    if (!watek) return false;
+    for (const r of this._calyWatek(watek)) {
+      for (const k of Object.keys(wlasciwosci)) r.removeStyle?.(k);
+      r.set(wlasciwosci);
+      r.initDimensions?.();
+      r.dirty = true;
+    }
+    return true;
+  }
+
+  // Usuwa tekst wszystkich ramek wątku; ramki zostają połączone i puste.
+  usunCalyTekst() {
+    const watek = this.calyTekstZaznaczony;
+    if (!watek) return false;
+    const ramki = this._calyWatek(watek);
+    for (const r of ramki) { r.set({ text: '', styles: {} }); r.initDimensions?.(); r.dirty = true; }
+    rozlej(ramki);
+    this._calyTekst = null;
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+    return true;
   }
 
   // Łączy zaznaczone ramki tekstu: tekst, który nie mieści się w pierwszej,
@@ -1576,6 +1767,14 @@ export class Edytor extends EventTarget {
   async kopiuj() {
     const akt = this.aktywny;
     if (!akt || akt.isEditing) return false;
+    // Cały połączony tekst: do schowka systemu idzie tekst wszystkich ramek wątku (nie kopia ramki).
+    if (this.calyTekstZaznaczony) {
+      navigator.clipboard?.writeText(this.calyTekst()).catch(() => {});
+      // Wcześniej skopiowany element nie wraca przy Ctrl+V – ostatnio skopiowany jest tekst.
+      this._schowek = null;
+      this.dispatchEvent(new Event('schowek'));
+      return true;
+    }
     this._schowek = await this._kopie(akt);
     this._wklejen = 0;
     this._schowekZ = this._znacznikStrony;
@@ -1753,15 +1952,32 @@ export class Edytor extends EventTarget {
     const akt = this.aktywny;
     if (!akt) return;
     const c = this.canvas;
+    // Kilka zaznaczonych elementów (na arkuszu albo w otwartej grupie) zmienia kolejność razem;
+    // między sobą zostają ułożone tak jak były.
+    const kilka = toZaznaczenie(akt) ? akt.getObjects() : null;
+    const wGrupie = this._otwarta && (kilka ? kilka.every((o) => o.parent === this._otwarta) : akt.parent === this._otwarta);
     // Element otwartej grupy zmienia kolejność wśród elementów tej grupy.
-    const stos = this._otwarta && akt.parent === this._otwarta ? this._otwarta : c;
+    const stos = wGrupie ? this._otwarta : c;
     if (stos === c && this._otwarta) return;
-    ({
-      wierzch: () => stos.bringObjectToFront(akt),
-      wyzej: () => stos.bringObjectForward(akt),
-      nizej: () => stos.sendObjectBackwards(akt),
-      spod: () => stos.sendObjectToBack(akt),
-    })[kierunek]();
+    if (kilka) {
+      const lista = () => stos.getObjects();
+      const wybrane = lista().filter((o) => kilka.includes(o)); // od spodu
+      const zajete = new Set(wybrane);
+      ({
+        wierzch: () => { for (const o of wybrane) stos.bringObjectToFront(o); },
+        spod: () => { for (const o of [...wybrane].reverse()) stos.sendObjectToBack(o); },
+        // O jedno miejsce: element przeskakuje sąsiada, który nie jest zaznaczony (zaczynając od strony ruchu).
+        wyzej: () => { for (const o of [...wybrane].reverse()) { const nad = lista()[lista().indexOf(o) + 1]; if (nad && !zajete.has(nad)) stos.moveObjectTo(o, lista().indexOf(o) + 1); } },
+        nizej: () => { for (const o of wybrane) { const pod = lista()[lista().indexOf(o) - 1]; if (pod && !zajete.has(pod) && !pod.zWzorca) stos.moveObjectTo(o, lista().indexOf(o) - 1); } },
+      })[kierunek]();
+    } else {
+      ({
+        wierzch: () => stos.bringObjectToFront(akt),
+        wyzej: () => stos.bringObjectForward(akt),
+        nizej: () => stos.sendObjectBackwards(akt),
+        spod: () => stos.sendObjectToBack(akt),
+      })[kierunek]();
+    }
     if (stos !== c) stos.set('dirty', true);
     this._uporzadkujWzorce();
     c.requestRenderAll();
@@ -2055,6 +2271,65 @@ export class Edytor extends EventTarget {
       }
     }
     while (this._otwarta && !this.wOtwartejGrupie()) this._zamknijPoziom(false);
+  }
+
+  // Ramka zaznaczenia w otwartej grupie. Wciśnięcie przycisku na pustym miejscu w ramce grupy (nie na jej
+  // elemencie ani na uchwycie zaznaczenia) zaczyna zwykłą ramkę zaznaczenia; na ten jeden gest grupa przestaje
+  // być „do złapania”, więc Fabric rysuje ramkę zamiast przesuwać całą grupę.
+  _zacznijRamkeGrupy(e) {
+    const g = this._otwarta;
+    const c = this.canvas;
+    this._ramkaGrupy = null;
+    if (!g || this._wyjety || this._pioro || this._kadr || this._punkty || c.isDrawingMode || (e.e.button || 0) > 0) return;
+    const a = this.aktywny;
+    const p = c.getScenePoint(e.e);
+    if (a && a !== g) {
+      if (a.findControl?.(c.getViewportPoint(e.e), e.e.pointerType === 'touch' || e.e.type?.startsWith('touch'))) return;
+      if (toZaznaczenie(a) && a.containsPoint(p)) return; // przeciąganie zaznaczonych elementów
+    }
+    if (!g.containsPoint(p) || this._elementGrupyWPunkcie(g, p)) return;
+    const przed = !a ? [] : (toZaznaczenie(a) ? a.getObjects() : [a]).filter((o) => o.parent === g);
+    this._ramkaGrupy = { g, start: p, przed, dodaj: Boolean(e.e.shiftKey), selectable: g.selectable, trzymaj: this._trzymajOtwarta };
+    if (a?.isEditing) a.exitEditing();
+    g.selectable = false;
+    this._trzymajOtwarta = true;
+  }
+
+  // Koniec ramki: zaznaczone zostają elementy grupy, których ramka dotknęła (z Shiftem – razem z dotychczasowymi).
+  // Samo kliknięcie w puste miejsce zamyka grupę i zaznacza ją całą, jak dotąd; ramka, która niczego
+  // nie objęła, zostawia zaznaczenie bez zmian.
+  _zakonczRamkeGrupy(e) {
+    const r = this._ramkaGrupy;
+    if (!r) return;
+    const c = this.canvas;
+    this._ramkaGrupy = null;
+    r.g.selectable = r.selectable;
+    this._trzymajOtwarta = r.trzymaj;
+    c._groupSelector = null; // Fabric nie zaznacza po swojemu elementów arkusza
+    c.clearContext(c.contextTop);
+    if (this._otwarta !== r.g || r.g.canvas !== c) return;
+    const koniec = c.getScenePoint(e.e);
+    const skala = c.getZoom();
+    const wybierz = (lista) => {
+      const wKolejnosci = r.g.getObjects().filter((o) => lista.includes(o));
+      this._trzymajac(() => {
+        c.discardActiveObject();
+        if (wKolejnosci.length) c.setActiveObject(wKolejnosci.length === 1 ? wKolejnosci[0] : new fabric.ActiveSelection(wKolejnosci, { canvas: c }));
+      });
+      c.requestRenderAll();
+      this._emitujZaznaczenie();
+    };
+    if (Math.hypot(koniec.x - r.start.x, koniec.y - r.start.y) * skala < 4) {
+      // Kliknięcie bez przeciągania.
+      this._zamknijPoziom(false);
+      if (!r.g.parent || r.g.parent === this._otwarta) { c.setActiveObject(r.g); c.requestRenderAll(); this._emitujZaznaczenie(); }
+      return;
+    }
+    const tl = new fabric.Point(Math.min(r.start.x, koniec.x), Math.min(r.start.y, koniec.y));
+    const br = new fabric.Point(Math.max(r.start.x, koniec.x), Math.max(r.start.y, koniec.y));
+    const trafione = r.g.getObjects().filter((o) => o.visible !== false && (o.setCoords(), o.intersectsWithRect(tl, br) || o.isContainedWithinRect(tl, br)));
+    const zostaja = r.przed.filter((o) => o.parent === r.g);
+    wybierz(trafione.length ? [...new Set([...(r.dodaj ? zostaja : []), ...trafione])] : zostaja);
   }
 
   // Element grupy (jej bezpośredni składnik) leżący w punkcie arkusza albo null.
@@ -2695,7 +2970,7 @@ export class Edytor extends EventTarget {
   // Elementy wzorców widoczne na tej stronie, od wierzchu: [{ id, opis, wzorzec, idWzorca, nad }].
   // Nie da się ich tu zmienić – edytuje się je we wzorcu.
   warstwyZeWzorcow() {
-    return this.canvas.getObjects().filter((o) => o.zWzorca).reverse().map((o) => ({
+    return this.canvas.getObjects().filter((o) => o.zWzorca && !o.zSasiedniej).reverse().map((o) => ({
       id: o.id, typ: o.type, opis: opisObiektu(o), wzorzec: o.nazwaWzorca || 'wzorzec', idWzorca: o.idWzorca || null, nad: o.warstwa === 'nad',
     }));
   }
@@ -2837,6 +3112,19 @@ export class Edytor extends EventTarget {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     const dpr = this.canvas.getRetinaScaling();
     ctx.scale(dpr, dpr);
+
+    // Cały połączony tekst: wszystkie ramki wątku na tej stronie są podświetlone jak zaznaczony tekst.
+    if (this.calyTekstZaznaczony) {
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.16)';
+      for (const r of this._calyWatek(this._calyTekst)) {
+        if (!this.canvas.getObjects().includes(r)) continue;
+        const rogi = r.getCoords();
+        ctx.beginPath();
+        rogi.forEach((p, i) => (i ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y))));
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
 
     if (this.pokazProwadnice && this.widok.siatka && this.widok.siatka_mm > 0) {
       // Siatka: liczona od rogu każdej strony. Przy małym powiększeniu rysujemy

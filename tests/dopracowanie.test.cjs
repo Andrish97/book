@@ -403,3 +403,151 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   await strona.keyboard.press('Escape');
   assert.deepEqual(bledy, []);
 });
+
+// Miejsce kursora w ramce, w której trwa pisanie: odległość od lewego brzegu ramki (mm), wiersz, liczba wierszy.
+const kursorWRamce = (strona) => strona.evaluate(() => {
+  const o = window.seriodruk.edytor.aktywny;
+  if (!o?.isEditing) return null;
+  const b = o._getCursorBoundaries(o.selectionStart);
+  return { x: b.left + b.leftOffset + o.width / 2, wiersz: o.get2DCursorLocation(o.selectionStart).lineIndex, wierszy: o._textLines.length, nr: o.watek_nr, strona: window.seriodruk.stan.indeks };
+});
+
+test('połączone ramki: strzałki w górę i w dół przechodzą między ramkami – na tej samej stronie i na inną stronę – z kursorem pod tym samym miejscem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Strzałki góra–dół');
+  await strona.evaluate((tekst) => {
+    const e = window.seriodruk.edytor;
+    const o = e.dodajTekst(tekst);
+    o.set({ left: 15, top: 20, width: 60, ramka_h: 14 });
+    o.initDimensions();
+    e.zatwierdz();
+  }, DLUGI);
+  await strona.click('.wlasciwosci button:has-text("Dodaj ramkę z ciągiem dalszym")');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).length === 2);
+  // Trzecia ramka wątku na następnej stronie.
+  await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.aktywny?.watek_nr === 2);
+  await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  const pisze = (nr, indeks) => strona.waitForFunction(([n, i]) => window.seriodruk.edytor.aktywny?.isEditing && window.seriodruk.edytor.aktywny.watek_nr === n && window.seriodruk.stan.indeks === i, [nr, indeks]);
+  const blisko = (a, b, co) => assert.ok(Math.abs(a - b) <= 2.6, `${co}: ${a.toFixed(2)} wobec ${b.toFixed(2)} mm`);
+  // Kursor w ostatnim wierszu ramki, w której trwa pisanie, `n` znaków od jego początku.
+  const wOstatnimWierszu = (n) => strona.evaluate((ile) => {
+    const o = window.seriodruk.edytor.aktywny;
+    const ostatni = o._textLines.length - 1;
+    let i = 0;
+    while (o.get2DCursorLocation(i).lineIndex < ostatni) i += 1;
+    o.selectionStart = i + ile; o.selectionEnd = i + ile;
+    o._updateTextarea();
+    window.seriodruk.edytor.canvas.requestRenderAll();
+  }, n);
+
+  // Pierwsza ramka, ostatni wiersz, kursor kilka znaków od lewej.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; const a = e.canvas.getObjects().find((o) => o.watek_nr === 0); e.canvas.setActiveObject(a); a.enterEditing(); });
+  await wOstatnimWierszu(7);
+  let k = await kursorWRamce(strona);
+  assert.deepEqual([k.nr, k.wiersz], [0, k.wierszy - 1]);
+  const x0 = k.x;
+  assert.ok(x0 > 5, 'kursor stoi kilka znaków od lewego brzegu');
+  // W dół: pierwszy wiersz drugiej ramki, pod tym samym miejscem.
+  await strona.keyboard.press('ArrowDown');
+  k = await kursorWRamce(strona);
+  assert.deepEqual([k.nr, k.wiersz, k.strona], [1, 0, 0]);
+  blisko(k.x, x0, 'kursor w drugiej ramce');
+  // W górę: z powrotem ostatni wiersz pierwszej ramki; jeszcze raz w górę – zwykły ruch wewnątrz ramki.
+  await strona.keyboard.press('ArrowUp');
+  k = await kursorWRamce(strona);
+  assert.deepEqual([k.nr, k.wiersz], [0, k.wierszy - 1]);
+  blisko(k.x, x0, 'kursor po powrocie do pierwszej ramki');
+  await strona.keyboard.press('ArrowUp');
+  k = await kursorWRamce(strona);
+  assert.deepEqual([k.nr, k.wiersz], [0, k.wierszy - 2], 'w środku ramki strzałka działa jak zwykle');
+
+  // Z ostatniego wiersza drugiej ramki w dół: aplikacja otwiera następną stronę i pisanie idzie w trzeciej ramce.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; const a = e.canvas.getObjects().find((o) => o.watek_nr === 1); e.aktywny.exitEditing(); e.canvas.setActiveObject(a); a.enterEditing(); });
+  await wOstatnimWierszu(4);
+  const x1 = (await kursorWRamce(strona)).x;
+  await strona.keyboard.press('ArrowDown');
+  await pisze(2, 1);
+  k = await kursorWRamce(strona);
+  assert.deepEqual([k.nr, k.wiersz, k.strona], [2, 0, 1]);
+  blisko(k.x, x1, 'kursor na następnej stronie');
+  // I w górę z pierwszego wiersza: powrót na pierwszą stronę, do ostatniego wiersza drugiej ramki.
+  await strona.keyboard.press('ArrowUp');
+  await pisze(1, 0);
+  k = await kursorWRamce(strona);
+  assert.deepEqual([k.nr, k.wiersz, k.strona], [1, k.wierszy - 1, 0]);
+  blisko(k.x, x1, 'kursor po powrocie na pierwszą stronę');
+  assert.equal((await watek(strona)).caly, DLUGI, 'tekst się nie zmienił');
+  assert.deepEqual(bledy, []);
+});
+
+test('cały połączony tekst: Ctrl+A drugi raz zaznacza tekst wszystkich ramek – wygląd, kopia i usunięcie dotyczą całości (także ramki na innej stronie); cofnięcie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Cały tekst');
+  await strona.evaluate((tekst) => {
+    const e = window.seriodruk.edytor;
+    const o = e.dodajTekst(tekst);
+    o.set({ left: 15, top: 20, width: 60, ramka_h: 14 });
+    o.initDimensions();
+    e.zatwierdz();
+  }, DLUGI);
+  await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  // Fragment drugiej ramki ma własny wygląd (kursywa).
+  await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const a = e.aktywny;
+    a.setSelectionStyles({ fontStyle: 'italic' }, 0, 10);
+    e.zatwierdz();
+  });
+  await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 0);
+  await strona.evaluate(() => { window.__skopiowane = []; navigator.clipboard.writeText = async (x) => { window.__skopiowane.push(x); }; });
+  const ramki = () => strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    return [...e.canvas.getObjects().filter((o) => o.watek), ...e._poza.map((p) => p.o)].sort((a, b) => a.watek_nr - b.watek_nr)
+      .map((r) => ({ tekst: r.text, gruba: r.fontWeight, wlasne: JSON.stringify(r.styles).includes('italic') }));
+  });
+  assert.deepEqual((await ramki()).map((r) => [r.gruba, r.wlasne]), [['normal', false], ['normal', true]]);
+
+  // Pisanie w pierwszej ramce: pierwsze Ctrl+A zaznacza jej tekst, drugie – cały połączony tekst.
+  await strona.evaluate(() => window.seriodruk.edytor.aktywny.enterEditing());
+  await strona.keyboard.press('Control+a');
+  assert.equal(await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return o.isEditing && o.selectionStart === 0 && o.selectionEnd === o._text.length; }), true);
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.calyTekstZaznaczony), null);
+  await strona.keyboard.press('Control+a');
+  assert.equal(await strona.evaluate(() => { const e = window.seriodruk.edytor; return Boolean(e.calyTekstZaznaczony) && !e.aktywny.isEditing && e.calyTekst(); }), DLUGI);
+  assert.match(await strona.textContent('.wlasciwosci [data-caly-tekst]'), /Zaznaczony jest cały połączony tekst \(2 ramki\)/);
+  // Pogrubienie obejmuje obie ramki i zdejmuje własny wygląd fragmentu tylko dla zmienianej właściwości.
+  await strona.click('.wlasciwosci button[title="Pogrubienie"]');
+  assert.deepEqual((await ramki()).map((r) => [r.gruba, r.wlasne]), [['bold', false], ['bold', true]]);
+  await strona.click('.wlasciwosci button[title="Kursywa"]');
+  assert.deepEqual((await ramki()).map((r) => r.wlasne), [false, false], 'kursywa nadana całości zastępuje kursywę fragmentu');
+  assert.equal(Boolean(await strona.evaluate(() => window.seriodruk.edytor.calyTekstZaznaczony)), true, 'tryb zostaje po zmianie wyglądu');
+  // Ctrl+C kopiuje tekst całości.
+  await strona.locator('#plotno').focus().catch(() => {});
+  await strona.evaluate(() => window.seriodruk.edytor.kopiuj());
+  assert.deepEqual(await strona.evaluate(() => window.__skopiowane), [DLUGI]);
+  await strona.waitForTimeout(450);
+  // Usunięcie: znika tekst obu ramek, ramki zostają połączone.
+  await strona.click('.wlasciwosci button:has-text("Usuń cały tekst")');
+  assert.deepEqual((await ramki()).map((r) => r.tekst), ['', '']);
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.calyTekstZaznaczony), null);
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.watekRamki()?.ile), 2);
+  // Zapis obu stron i cofnięcie: tekst wraca na obie strony.
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.obiekty.find((o) => o.watek).text)), ['', '']);
+  await strona.waitForTimeout(450);
+  await strona.click('[data-akcja="cofnij"]');
+  await strona.waitForFunction((caly) => {
+    const p = window.seriodruk.stan.projekt.strony.map((s) => s.obiekty.find((o) => o.watek));
+    return p.every(Boolean) && p[0].text + (p[1].lacznik ?? '\n') + p[1].text === caly;
+  }, DLUGI);
+  // Ramka bez połączeń nie ma tego trybu; przycisk w panelu włącza go bez pisania.
+  assert.equal(await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.dodajTekst('sam'); return e.zaznaczCalyTekst(o); }), null);
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.watek_nr === 0).id); });
+  await strona.click('.wlasciwosci button:has-text("Zaznacz cały połączony tekst")');
+  assert.equal(Boolean(await strona.evaluate(() => window.seriodruk.edytor.calyTekstZaznaczony)), true);
+  assert.deepEqual(bledy, []);
+});

@@ -10,7 +10,7 @@ import { ikona } from './ikony.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
-import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza, krawedzKomorki, ustawKrawedzKomorki } from './tabela-obiekt.js';
+import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza, krawedzKomorki, ustawKrawedzKomorki, ustawLinieZakresu } from './tabela-obiekt.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
@@ -38,10 +38,13 @@ export class PanelWlasciwosci {
   }
 
   pokaz(obj) {
-    if (obj === this.obj && obj) {
+    // Włączenie albo wyłączenie trybu „cały połączony tekst” zmienia zawartość panelu tej samej ramki.
+    const caly = this.edytor.calyTekstZaznaczony || null;
+    if (obj === this.obj && obj && caly === (this._calyTekst || null)) {
       this.odswiez();
       return;
     }
+    this._calyTekst = caly;
     this.obj = obj;
     this.zbuduj();
   }
@@ -102,6 +105,17 @@ export class PanelWlasciwosci {
       }
       this.zbudujWyrownanie(obj.size());
       this.zbudujGeometrie(obj, { tylkoPozycja: true });
+      // Kolejność kilku elementów naraz: przesuwają się razem, między sobą zostają ułożone jak były.
+      const kol = this.sekcja('Kolejność');
+      const e = this.edytor;
+      const seg = this.segmenty('Warstwa', [
+        ['naWierzch', 'Na wierzch', null, () => e.warstwa('wierzch')],
+        ['wyzej', 'Wyżej', null, () => e.warstwa('wyzej')],
+        ['nizej', 'Niżej', null, () => e.warstwa('nizej')],
+        ['naSpod', 'Na spód', null, () => e.warstwa('spod')],
+      ]);
+      seg.classList.add('szeroki');
+      kol.append(seg);
       return;
     }
     this.tytul.textContent = nazwaTypu(obj);
@@ -274,6 +288,8 @@ export class PanelWlasciwosci {
   _ustawTekst(obj, wlasciwosci) {
     if (this._fragment(obj)) {
       obj.setSelectionStyles(wlasciwosci);
+    } else if (this.edytor.calyTekstZaznaczony && this.edytor.ujednolicCalyTekst(wlasciwosci)) {
+      // Cały połączony tekst: ta sama zmiana we wszystkich ramkach wątku, razem z fragmentami o własnym wyglądzie.
     } else {
       for (const k of Object.keys(wlasciwosci)) obj.removeStyle?.(k);
       obj.set(wlasciwosci);
@@ -320,6 +336,7 @@ export class PanelWlasciwosci {
     const l = this.sekcja('Linie tabeli');
     l.append(this.kolor('Kolor linii', () => t.linia?.kolor || '#1a1a1a', (v) => { t.linia = { ...t.linia, kolor: v }; ulozTabele(obj); }));
     l.append(this.liczba('Grubość linii', () => zaokr(t.linia?.grubosc ?? 0.25, 2), (v) => { t.linia = { ...t.linia, grubosc: Math.max(0, v) }; }, { jednostka: 'mm', krok: 0.05, min: 0 }));
+    this.zbudujLinieZakresu(obj);
 
     // Tło wierszy: nagłówek i co drugi wiersz treści.
     const tl = this.sekcja('Tło wierszy');
@@ -401,7 +418,51 @@ export class PanelWlasciwosci {
       grubosc.classList.add('szeroki');
       lin.append(grubosc);
     }
-    lin.append(this.wskazowka('Krawędź jest wspólna z sąsiednią komórką – zmienia się u obu. Linie całej tabeli ustawisz po zaznaczeniu tabeli (Esc).'));
+    lin.append(this.wskazowka('Krawędź jest wspólna z sąsiednią komórką – zmienia się u obu.'));
+    this.zbudujLinieZakresu(tabela, m);
+  }
+
+  // Linie wielu komórek naraz: obramowanie i linie wewnętrzne całego wiersza, kolumny albo tabeli.
+  // m: miejsce komórki, w której trwa pisanie ({ w, k }) – bez niego (zaznaczona cała tabela) zakresem jest tabela.
+  zbudujLinieZakresu(tabela, m = null) {
+    const e = this.edytor;
+    const st = this._linieZakresu || (this._linieZakresu = { zakres: 'wiersz', czesc: 'obramowanie', grubosc: 0.5, kolor: '#1a1a1a' });
+    const zakres = () => (m ? st.zakres : 'tabela');
+    const s = this.sekcja(m ? 'Linie wiersza, kolumny, tabeli' : 'Obramowanie i linie wewnętrzne');
+    s.dataset.linieZakresu = '';
+    if (m) {
+      const gdzie = this.wybor('Zastosuj do', [['wiersz', 'tego wiersza'], ['kolumna', 'tej kolumny'], ['tabela', 'całej tabeli']], () => st.zakres, (v) => { st.zakres = v; });
+      gdzie.classList.add('szeroki');
+      gdzie.dataset.linie = 'zakres';
+      s.append(gdzie);
+    }
+    const ktore = this.wybor('Które linie', [['obramowanie', 'obramowanie (linie zewnętrzne)'], ['poziome', 'wewnętrzne poziome'], ['pionowe', 'wewnętrzne pionowe'], ['wszystkie', 'wszystkie']], () => st.czesc, (v) => { st.czesc = v; });
+    ktore.classList.add('szeroki');
+    ktore.dataset.linie = 'czesc';
+    s.append(ktore);
+    const kolor = this.kolor('Kolor', () => st.kolor, (v) => { st.kolor = v; }, { bezZatwierdzania: true });
+    kolor.dataset.linie = 'kolor';
+    s.append(kolor);
+    const grubosc = this.liczba('Grubość', () => st.grubosc, (v) => { st.grubosc = Math.max(0.05, zaokr(v, 2)); }, { jednostka: 'mm', krok: 0.05, min: 0.05 });
+    grubosc.dataset.linie = 'grubosc';
+    s.append(grubosc);
+    // linia: funkcja zwracająca ustawienie w chwili kliknięcia (kolor i grubość mogły się zmienić).
+    const zastosuj = (linia) => () => {
+      ustawLinieZakresu(tabela, zakres(), m || {}, st.czesc, linia());
+      e.canvas.requestRenderAll();
+      e.zatwierdz();
+      this.zbuduj();
+    };
+    const przyciski = this.akcje([
+      ['ok', 'Ustaw te linie', zastosuj(() => ({ grubosc: st.grubosc, kolor: st.kolor }))],
+      ['minus', 'Bez linii', zastosuj(() => ({ grubosc: 0 }))],
+      ['cofnij', 'Jak w tabeli', zastosuj(() => null)],
+    ]);
+    przyciski.dataset.linie = 'przyciski';
+    s.append(przyciski);
+    s.append(this.wskazowka(m
+      ? 'Ustawia naraz linie wybranej części: całego wiersza, kolumny albo tabeli. „Jak w tabeli” zdejmuje własne ustawienia tych linii.'
+      : 'Ustawia naraz obramowanie albo linie wewnętrzne całej tabeli – niezależnie od koloru i grubości siatki powyżej. Linie wiersza, kolumny i pojedynczej komórki ustawisz w trakcie pisania w komórce.'));
   }
 
   zbudujTekst(obj, { komorka = false } = {}) {
@@ -516,6 +577,19 @@ export class PanelWlasciwosci {
       if (watek.poprzednia) skoki.push(['wstecz', `Poprzednia ramka: strona ${this.opcje.nazwaStrony?.(watek.poprzednia.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.poprzednia.strona, watek.poprzednia.id)]);
       if (watek.nastepna) skoki.push(['dalej', `Następna ramka: strona ${this.opcje.nazwaStrony?.(watek.nastepna.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.nastepna.strona, watek.nastepna.id)]);
       if (skoki.length) w.append(this.akcje(skoki));
+      // Cały połączony tekst naraz: wygląd, kopia, usunięcie (zaznaczenia w tekście nie da się rozciągnąć przez ramki).
+      if (this.edytor.calyTekstZaznaczony) {
+        const caly = this.wskazowka(`Zaznaczony jest cały połączony tekst (${watek.ile} ${watek.ile < 5 ? 'ramki' : 'ramek'}). Zmiana wyglądu obejmie wszystkie ramki, także fragmenty z własnym wyglądem. Ctrl+C kopiuje cały tekst, Delete go usuwa (ramki zostają).`);
+        caly.classList.add('znacznik-fragmentu');
+        caly.dataset.calyTekst = '';
+        w.append(caly);
+        w.append(this.akcje([
+          ['kopiuj', 'Kopiuj cały tekst', async () => { await this.edytor.kopiuj(); powiadom('Skopiowano cały połączony tekst.'); }],
+          ['kosz', 'Usuń cały tekst', () => this.edytor.usunCalyTekst()],
+        ]));
+      } else if (!obj.isEditing || obj.selectionStart === obj.selectionEnd) {
+        w.append(this.akcje([['tekst', 'Zaznacz cały połączony tekst', () => { this.edytor.zaznaczCalyTekst(obj); }]]));
+      }
       w.append(this.akcje([
         ['plus', 'Dodaj ramkę z ciągiem dalszym', () => this.edytor.dodajRamkeDalsza()],
         ...dalejNaStronie,
@@ -847,9 +921,8 @@ export class PanelWlasciwosci {
     // Zamknięty kształt (z pióra) może mieć wypełnienie.
     if (obj.path?.some((k) => k[0] === 'Z')) s.append(this.kolor('Wypełnienie', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
     const punkty = this.akcje([['suwaki', 'Edytuj punkty', () => { if (!this.edytor.edytujPunkty(obj)) powiadom('Punkty edytuje się w kształcie, który nie jest zablokowany. Kształt w grupie: najpierw kliknij grupę dwa razy.'); }]]);
-    punkty.classList.add('tylko-duzy-ekran');
     s.append(punkty);
-    s.append(this.wskazowka('Albo kliknij kształt dwa razy.'));
+    s.append(this.wskazowka('Albo kliknij kształt dwa razy (na ekranie dotykowym: stuknij dwa razy).'));
   }
 
   zbudujObraz(obj) {
