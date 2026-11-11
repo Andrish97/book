@@ -931,7 +931,13 @@ export class PanelWlasciwosci {
     const kadrRamka = this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz przytnij liczbami poniżej.'); }]]);
     kadrRamka.classList.add('tylko-duzy-ekran');
     kadr.append(kadrRamka);
-    kadr.append(this.wskazowka('Albo kliknij obraz dwa razy.'));
+    const albo = this.wskazowka('Albo kliknij obraz dwa razy.');
+    albo.classList.add('tylko-duzy-ekran');
+    kadr.append(albo);
+    // Na telefonie kadrowania ramką nie ma – zostaje przycięcie liczbami.
+    const telefon = this.wskazowka('Na telefonie przytniesz obraz liczbami w części „Przycięcie” niżej.');
+    telefon.classList.add('tylko-maly-ekran');
+    kadr.append(telefon);
     if (this.opcje.toRysunekSvg?.(obj)) {
       const r = this.sekcja('Rysunek SVG');
       r.append(this.akcje([['rozgrupuj', 'Rozłóż rysunek na elementy', () => this.opcje.rozlozRysunek(obj)]]));

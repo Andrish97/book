@@ -202,6 +202,8 @@ export const akcje = {
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
   'dostep-ai': () => { zamknijMenu(); otworzDostepAi(); },
+  // Wiele zdjęć naraz – np. dla obrazów z danych (nazwy plików w tabeli); także na telefonie.
+  'wgraj-obrazy': () => { zamknijMenu(); $('#pliki-zasoby').click(); },
   'dostep-ai-utworz': () => utworzKluczAi(),
   'dostep-ai-kopiuj': () => kopiujKluczAi(),
   'dostep-ai-kopiuj-adres': () => kopiujAdresAi(),

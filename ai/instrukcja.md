@@ -399,7 +399,7 @@ Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. 
 - **Obraz z danych**: wstaw dowolny obraz jako wzór (wyznacza miejsce i rozmiar), zaznacz go i wybierz **kolumnę z nazwą pliku**. Na każdej powielonej stronie pojawi się obraz o nazwie z tej kolumny, bez zmiany proporcji.
 - **Podmieniony obraz** może **mieścić się w ramce** (cały widoczny, z wolnym miejscem po bokach albo u góry) albo **wypełniać ramkę** (bez pustych pasów, brzegi przycięte) – wybierz to, gdy zdjęcia mają różne proporcje, a układ ma być równy. Przy wypełnianiu wybierasz też, **która część zdjęcia zostaje**: środek, góra, dół, lewa albo prawa strona (np. „góra” przy portretach, żeby nie ucinać głów).
 - Gdy każde zdjęcie wymaga innego przycięcia, wybierz **Kadr z kolumny**: w tej kolumnie tabeli wpisujesz dla każdego wiersza `góra`, `dół`, `lewa`, `prawa` albo `środek` (można po dwa: `góra lewa`; także bez polskich znaków i po angielsku), albo **punkt zdjęcia w procentach** od lewej i od góry, np. `30% 20%` – kadr ustawi się tak, żeby ten punkt był w środku ramki. Pusta komórka zostawia ustawienie obrazu-wzoru.
-- Pliki obrazów wgrywasz naraz przyciskiem **Wgraj obrazy do projektu**. W tabeli wystarczy nazwa pliku, z rozszerzeniem albo bez.
+- Pliki obrazów wgrywasz naraz przyciskiem **Wgraj obrazy do projektu** (we właściwościach obrazu albo w menu **⋯** – także na telefonie, gdzie telefon pokaże galerię). W tabeli wystarczy nazwa pliku, z rozszerzeniem albo bez.
 
 ## 20. Kolumny i przelewanie tekstu
 

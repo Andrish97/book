@@ -352,7 +352,7 @@ export const ROZDZIALY = [
       '<b>Obraz z danych</b>: wstaw dowolny obraz jako wzór (wyznacza miejsce i rozmiar), zaznacz go i wybierz <b>kolumnę z nazwą pliku</b>. Na każdej powielonej stronie pojawi się obraz o nazwie z tej kolumny, bez zmiany proporcji.',
       '<b>Podmieniony obraz</b> może <b>mieścić się w ramce</b> (cały widoczny, z wolnym miejscem po bokach albo u góry) albo <b>wypełniać ramkę</b> (bez pustych pasów, brzegi przycięte) – wybierz to, gdy zdjęcia mają różne proporcje, a układ ma być równy. Przy wypełnianiu wybierasz też, <b>która część zdjęcia zostaje</b>: środek, góra, dół, lewa albo prawa strona (np. „góra” przy portretach, żeby nie ucinać głów).',
       'Gdy każde zdjęcie wymaga innego przycięcia, wybierz <b>Kadr z kolumny</b>: w tej kolumnie tabeli wpisujesz dla każdego wiersza <code>góra</code>, <code>dół</code>, <code>lewa</code>, <code>prawa</code> albo <code>środek</code> (można po dwa: <code>góra lewa</code>; także bez polskich znaków i po angielsku), albo <b>punkt zdjęcia w procentach</b> od lewej i od góry, np. <code>30% 20%</code> – kadr ustawi się tak, żeby ten punkt był w środku ramki. Pusta komórka zostawia ustawienie obrazu-wzoru.',
-      'Pliki obrazów wgrywasz naraz przyciskiem <b>Wgraj obrazy do projektu</b>. W tabeli wystarczy nazwa pliku, z rozszerzeniem albo bez.',
+      'Pliki obrazów wgrywasz naraz przyciskiem <b>Wgraj obrazy do projektu</b> (we właściwościach obrazu albo w menu <b>⋯</b> – także na telefonie, gdzie telefon pokaże galerię). W tabeli wystarczy nazwa pliku, z rozszerzeniem albo bez.',
     ],
   },
   {

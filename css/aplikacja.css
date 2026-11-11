@@ -1240,6 +1240,7 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
    Tabela, pióro i edycja punktów działają dotykiem: dwa szybkie stuknięcia to podwójne kliknięcie. */
 @media (max-width: 600px) {
   .tylko-duzy-ekran { display: none !important; }
+  .tylko-maly-ekran { display: revert !important; }
 }
 
 /* ---------- Okno „Wzorce” i zakładki prawego panelu ---------- */
@@ -1341,3 +1342,6 @@ input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b4231
 .dostep-ai-jak { margin-top: 4px; }
 .dostep-ai-jak pre { margin: 6px 0; padding: 10px; overflow-x: auto; font-size: 12px; line-height: 1.45; background: var(--wypelnienie); border-radius: var(--r-s); white-space: pre; }
 #dostep-ai-klucz, #dostep-ai-adres { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+
+/* Odwrotność .tylko-duzy-ekran: widoczne tylko na małym ekranie (np. wskazówki zastępujące schowane narzędzia). */
+.tylko-maly-ekran { display: none; }
