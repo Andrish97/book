@@ -102,6 +102,17 @@ export class PanelWlasciwosci {
       }
       this.zbudujWyrownanie(obj.size());
       this.zbudujGeometrie(obj, { tylkoPozycja: true });
+      // Kolejność kilku elementów naraz: przesuwają się razem, między sobą zostają ułożone jak były.
+      const kol = this.sekcja('Kolejność');
+      const e = this.edytor;
+      const seg = this.segmenty('Warstwa', [
+        ['naWierzch', 'Na wierzch', null, () => e.warstwa('wierzch')],
+        ['wyzej', 'Wyżej', null, () => e.warstwa('wyzej')],
+        ['nizej', 'Niżej', null, () => e.warstwa('nizej')],
+        ['naSpod', 'Na spód', null, () => e.warstwa('spod')],
+      ]);
+      seg.classList.add('szeroki');
+      kol.append(seg);
       return;
     }
     this.tytul.textContent = nazwaTypu(obj);

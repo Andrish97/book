@@ -94,6 +94,9 @@ export class Edytor extends EventTarget {
     for (const zdarzenie of ['selection:created', 'selection:updated', 'selection:cleared']) {
       c.on(zdarzenie, () => this._pilnujOtwartej());
     }
+    // Otwarta grupa: przeciągnięcie od pustego miejsca w jej ramce zaznacza elementy objęte ramką.
+    c.on('mouse:down:before', (e) => this._zacznijRamkeGrupy(e));
+    c.on('mouse:up:before', (e) => this._zakonczRamkeGrupy(e));
     c.on('selection:created', () => this._emitujZaznaczenie());
     c.on('selection:updated', () => this._emitujZaznaczenie());
     c.on('selection:cleared', () => this._emitujZaznaczenie());
@@ -372,7 +375,9 @@ export class Edytor extends EventTarget {
   // Elementy wzorca mają excludeFromExport, więc nie trafiają do zapisu.
   obiektyStron() {
     const zywe = this.canvas.getObjects().filter((o) => !o.excludeFromExport);
-    const json = podmienZasoby(this.canvas.toObject().objects, null);
+    const przywroc = this._wUkladzieGrupyDoZapisu();
+    let json;
+    try { json = podmienZasoby(this.canvas.toObject().objects, null); } finally { przywroc(); }
     if (!this.rozkladowka) return [json];
     const w = this.wydruk.szerokosc_mm;
     const wynik = this.strony.map(() => []);
@@ -381,6 +386,33 @@ export class Edytor extends EventTarget {
       wynik[i].push({ ...o, left: (o.left || 0) - i * w, z: k });
     });
     return wynik;
+  }
+
+  // Kilka elementów otwartej grupy zaznaczonych razem ma na czas zaznaczenia położenie liczone względem
+  // zaznaczenia, a nie grupy (tak działa Fabric). Zapis grupy wziąłby te liczby wprost i po wczytaniu elementy
+  // stałyby gdzie indziej. Na czas zapisu dostają więc położenie w układzie swojej grupy.
+  // Zwraca funkcję, która przywraca stan sprzed zapisu.
+  _wUkladzieGrupyDoZapisu() {
+    const a = this.aktywny;
+    if (!a || !toZaznaczenie(a)) return () => {};
+    const POLA = ['left', 'top', 'scaleX', 'scaleY', 'angle', 'skewX', 'skewY', 'flipX', 'flipY'];
+    const cofnij = [];
+    for (const o of a.getObjects()) {
+      const g = o.parent;
+      if (!g || g === a || g.type !== 'group') continue;
+      const m = fabric.util.multiplyTransformMatrices(fabric.util.invertTransform(g.calcTransformMatrix()), o.calcTransformMatrix());
+      const bylo = Object.fromEntries(POLA.map((k) => [k, o[k]]));
+      const d = fabric.util.qrDecompose(m);
+      // Odbicie zostaje odbiciem (a nie obrotem o 180° z ujemną skalą) – zapis wygląda tak samo jak bez zaznaczenia.
+      let { angle, scaleY } = d;
+      const flipX = Boolean(o.flipX);
+      if (flipX) { angle += 180; scaleY = -scaleY; }
+      const flipY = scaleY < 0;
+      o.set({ angle: ((angle % 360) + 360) % 360, scaleX: d.scaleX, scaleY: Math.abs(scaleY), skewX: d.skewX, skewY: d.skewY, flipX, flipY });
+      o.setPositionByOrigin(new fabric.Point(d.translateX, d.translateY), 'center', 'center');
+      cofnij.push(() => o.set(bylo));
+    }
+    return () => { for (const f of cofnij) f(); };
   }
 
   // Obiekty pojedynczej strony (arkusz z jedną stroną albo wzorzec).
@@ -1751,15 +1783,32 @@ export class Edytor extends EventTarget {
     const akt = this.aktywny;
     if (!akt) return;
     const c = this.canvas;
+    // Kilka zaznaczonych elementów (na arkuszu albo w otwartej grupie) zmienia kolejność razem;
+    // między sobą zostają ułożone tak jak były.
+    const kilka = toZaznaczenie(akt) ? akt.getObjects() : null;
+    const wGrupie = this._otwarta && (kilka ? kilka.every((o) => o.parent === this._otwarta) : akt.parent === this._otwarta);
     // Element otwartej grupy zmienia kolejność wśród elementów tej grupy.
-    const stos = this._otwarta && akt.parent === this._otwarta ? this._otwarta : c;
+    const stos = wGrupie ? this._otwarta : c;
     if (stos === c && this._otwarta) return;
-    ({
-      wierzch: () => stos.bringObjectToFront(akt),
-      wyzej: () => stos.bringObjectForward(akt),
-      nizej: () => stos.sendObjectBackwards(akt),
-      spod: () => stos.sendObjectToBack(akt),
-    })[kierunek]();
+    if (kilka) {
+      const lista = () => stos.getObjects();
+      const wybrane = lista().filter((o) => kilka.includes(o)); // od spodu
+      const zajete = new Set(wybrane);
+      ({
+        wierzch: () => { for (const o of wybrane) stos.bringObjectToFront(o); },
+        spod: () => { for (const o of [...wybrane].reverse()) stos.sendObjectToBack(o); },
+        // O jedno miejsce: element przeskakuje sąsiada, który nie jest zaznaczony (zaczynając od strony ruchu).
+        wyzej: () => { for (const o of [...wybrane].reverse()) { const nad = lista()[lista().indexOf(o) + 1]; if (nad && !zajete.has(nad)) stos.moveObjectTo(o, lista().indexOf(o) + 1); } },
+        nizej: () => { for (const o of wybrane) { const pod = lista()[lista().indexOf(o) - 1]; if (pod && !zajete.has(pod) && !pod.zWzorca) stos.moveObjectTo(o, lista().indexOf(o) - 1); } },
+      })[kierunek]();
+    } else {
+      ({
+        wierzch: () => stos.bringObjectToFront(akt),
+        wyzej: () => stos.bringObjectForward(akt),
+        nizej: () => stos.sendObjectBackwards(akt),
+        spod: () => stos.sendObjectToBack(akt),
+      })[kierunek]();
+    }
     if (stos !== c) stos.set('dirty', true);
     this._uporzadkujWzorce();
     c.requestRenderAll();
@@ -2053,6 +2102,65 @@ export class Edytor extends EventTarget {
       }
     }
     while (this._otwarta && !this.wOtwartejGrupie()) this._zamknijPoziom(false);
+  }
+
+  // Ramka zaznaczenia w otwartej grupie. Wciśnięcie przycisku na pustym miejscu w ramce grupy (nie na jej
+  // elemencie ani na uchwycie zaznaczenia) zaczyna zwykłą ramkę zaznaczenia; na ten jeden gest grupa przestaje
+  // być „do złapania”, więc Fabric rysuje ramkę zamiast przesuwać całą grupę.
+  _zacznijRamkeGrupy(e) {
+    const g = this._otwarta;
+    const c = this.canvas;
+    this._ramkaGrupy = null;
+    if (!g || this._wyjety || this._pioro || this._kadr || this._punkty || c.isDrawingMode || (e.e.button || 0) > 0) return;
+    const a = this.aktywny;
+    const p = c.getScenePoint(e.e);
+    if (a && a !== g) {
+      if (a.findControl?.(c.getViewportPoint(e.e), e.e.pointerType === 'touch' || e.e.type?.startsWith('touch'))) return;
+      if (toZaznaczenie(a) && a.containsPoint(p)) return; // przeciąganie zaznaczonych elementów
+    }
+    if (!g.containsPoint(p) || this._elementGrupyWPunkcie(g, p)) return;
+    const przed = !a ? [] : (toZaznaczenie(a) ? a.getObjects() : [a]).filter((o) => o.parent === g);
+    this._ramkaGrupy = { g, start: p, przed, dodaj: Boolean(e.e.shiftKey), selectable: g.selectable, trzymaj: this._trzymajOtwarta };
+    if (a?.isEditing) a.exitEditing();
+    g.selectable = false;
+    this._trzymajOtwarta = true;
+  }
+
+  // Koniec ramki: zaznaczone zostają elementy grupy, których ramka dotknęła (z Shiftem – razem z dotychczasowymi).
+  // Samo kliknięcie w puste miejsce zamyka grupę i zaznacza ją całą, jak dotąd; ramka, która niczego
+  // nie objęła, zostawia zaznaczenie bez zmian.
+  _zakonczRamkeGrupy(e) {
+    const r = this._ramkaGrupy;
+    if (!r) return;
+    const c = this.canvas;
+    this._ramkaGrupy = null;
+    r.g.selectable = r.selectable;
+    this._trzymajOtwarta = r.trzymaj;
+    c._groupSelector = null; // Fabric nie zaznacza po swojemu elementów arkusza
+    c.clearContext(c.contextTop);
+    if (this._otwarta !== r.g || r.g.canvas !== c) return;
+    const koniec = c.getScenePoint(e.e);
+    const skala = c.getZoom();
+    const wybierz = (lista) => {
+      const wKolejnosci = r.g.getObjects().filter((o) => lista.includes(o));
+      this._trzymajac(() => {
+        c.discardActiveObject();
+        if (wKolejnosci.length) c.setActiveObject(wKolejnosci.length === 1 ? wKolejnosci[0] : new fabric.ActiveSelection(wKolejnosci, { canvas: c }));
+      });
+      c.requestRenderAll();
+      this._emitujZaznaczenie();
+    };
+    if (Math.hypot(koniec.x - r.start.x, koniec.y - r.start.y) * skala < 4) {
+      // Kliknięcie bez przeciągania.
+      this._zamknijPoziom(false);
+      if (!r.g.parent || r.g.parent === this._otwarta) { c.setActiveObject(r.g); c.requestRenderAll(); this._emitujZaznaczenie(); }
+      return;
+    }
+    const tl = new fabric.Point(Math.min(r.start.x, koniec.x), Math.min(r.start.y, koniec.y));
+    const br = new fabric.Point(Math.max(r.start.x, koniec.x), Math.max(r.start.y, koniec.y));
+    const trafione = r.g.getObjects().filter((o) => o.visible !== false && (o.setCoords(), o.intersectsWithRect(tl, br) || o.isContainedWithinRect(tl, br)));
+    const zostaja = r.przed.filter((o) => o.parent === r.g);
+    wybierz(trafione.length ? [...new Set([...(r.dodaj ? zostaja : []), ...trafione])] : zostaja);
   }
 
   // Element grupy (jej bezpośredni składnik) leżący w punkcie arkusza albo null.
