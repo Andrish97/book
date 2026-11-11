@@ -24,6 +24,9 @@ const RESZTA = 'seriodruk-pliki';
 const BIBLIOTEKI = 'seriodruk-biblioteki';
 const PODSTAWA = ['./', './index.html', './manifest.webmanifest'];
 const CDN = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
+// Duże biblioteki używane rzadko (PDF, Excel, ZIP) – w repozytorium, z wersją w nazwie pliku. Nie są pobierane
+// przy każdym wdrożeniu: trafiają do pamięci przy pierwszym użyciu i zostają w niej między wersjami aplikacji.
+const toRzadkaBiblioteka = (sciezka) => /\/js\/zewnetrzne\/(pdf-lib|fontkit|jszip|xlsx)-[\d.]+[^/]*\.js$/.test(sciezka);
 const toKod = (sciezka) => sciezka === '/' || /\/(index\.html|manifest\.webmanifest|sw\.js)$/.test(sciezka) || /\/(js|css)\//.test(sciezka);
 
 self.addEventListener('install', (e) => {
@@ -68,6 +71,10 @@ self.addEventListener('fetch', (e) => {
       // Bez wdrożenia: najpierw sieć, przy braku sieci kopia.
       e.respondWith(zSieci(req, KOD).catch(async () => (await caches.match(req, { ignoreSearch: true }))
         || (nawigacja ? caches.match('./index.html') : Response.error())));
+      return;
+    }
+    if (toRzadkaBiblioteka(url.pathname)) {
+      e.respondWith(caches.open(BIBLIOTEKI).then(async (c) => (await c.match(req)) || zSieci(req, BIBLIOTEKI)));
       return;
     }
     if (nawigacja || toKod(url.pathname)) {

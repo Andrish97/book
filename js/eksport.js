@@ -19,9 +19,9 @@ import { biblioteka } from './biblioteki.js';
 import { bezpiecznaNazwa } from './ui.js';
 import { uzyteCzcionki, CZCIONKI } from './czcionki.js';
 
-const PDFLIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
-const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-const FONTKIT_URL = 'https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js';
+const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
+const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
+const FONTKIT_URL = 'js/zewnetrzne/fontkit-1.1.1.umd.min.js';
 
 const PT = 72 / 25.4; // punktów PDF w milimetrze
 const ZNAK_DLUGOSC = 5; // mm

@@ -3,8 +3,10 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './konfiguracja.js';
 import { blobZasobu } from './zasoby.js';
 import { podstawaProjektu, kanon } from './laczenie.js';
+import { biblioteka } from './biblioteki.js';
 
-const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
+// Biblioteka Supabase leży w repozytorium (js/zewnetrzne/) – aplikacja nie pobiera kodu z obcych serwerów.
+const SUPABASE_JS = 'js/zewnetrzne/supabase-js-2.57.4.umd.js';
 const BUCKET = 'zasoby';
 const BUCKET_PODGLADOW = 'podglady'; // publiczny: obrazy stron udostępnionych linkiem
 
@@ -15,7 +17,7 @@ export const chmuraSkonfigurowana = () => Boolean(SUPABASE_URL && SUPABASE_ANON_
 export async function supabase() {
   if (!chmuraSkonfigurowana()) throw new Error('Supabase nie jest skonfigurowany (js/konfiguracja.js).');
   if (!klient) {
-    const { createClient } = await import(SUPABASE_JS);
+    const { createClient } = await biblioteka(SUPABASE_JS, 'supabase', 'biblioteki logowania');
     klient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true },
     });

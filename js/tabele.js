@@ -5,8 +5,8 @@
 import { biblioteka } from './biblioteki.js';
 import { wygladArkuszy } from './arkusz-wyglad.js';
 
-const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+const XLSX_URL = 'js/zewnetrzne/xlsx-0.18.5.full.min.js';
+const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
 // Arkusz pomocniczy z wartościami list rozwijanych (ukryty; przy imporcie pomijany, tak jak „Instrukcja”).
 const ARKUSZ_LIST = 'Listy rozwijane';
 

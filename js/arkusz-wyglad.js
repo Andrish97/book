@@ -11,7 +11,7 @@
 import { biblioteka } from './biblioteki.js';
 import { naHsl, zHsl } from './pola.js';
 
-const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
 
 const dzieci = (el, nazwa) => (el ? [...el.children].filter((d) => d.localName === nazwa) : []);
 const pierwsze = (el, nazwa) => dzieci(el, nazwa)[0] || null;

@@ -19,3 +19,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Pozostałe biblioteki (pobrane z cdnjs.cloudflare.com i cdn.jsdelivr.net, sumy kontrolne zgodne z opublikowanymi):
+
+pdf-lib-1.17.1.min.js – pdf-lib 1.17.1, https://pdf-lib.js.org, licencja MIT, Copyright (c) 2019 Andrew Dillon.
+fontkit-1.1.1.umd.min.js – @pdf-lib/fontkit 1.1.1 (fork fontkit), https://github.com/Hopding/fontkit, licencja MIT, Copyright (c) 2014-present Devon Govett.
+jszip-3.10.1.min.js – JSZip 3.10.1, https://stuk.github.io/jszip/, licencja MIT (do wyboru MIT albo GPLv3), Copyright (c) 2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso.
+xlsx-0.18.5.full.min.js – SheetJS Community Edition 0.18.5, https://sheetjs.com, licencja Apache 2.0, Copyright (C) 2012-present SheetJS LLC.
+supabase-js-2.57.4.umd.js – @supabase/supabase-js 2.57.4, https://supabase.com, licencja MIT, Copyright (c) 2020 Supabase.
+
+Treść licencji MIT jak wyżej (dla Fabric.js). Pełny tekst licencji Apache 2.0: https://www.apache.org/licenses/LICENSE-2.0

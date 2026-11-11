@@ -19,9 +19,13 @@ import sys
 def main(katalog, wersja):
     korzen = pathlib.Path(katalog)
     sw = korzen / 'sw.js'
+    # Rzadko używane biblioteki (PDF, Excel, ZIP) nie są pobierane przy każdym wdrożeniu – service worker
+    # zapamiętuje je przy pierwszym użyciu (toRzadkaBiblioteka w sw.js).
+    rzadkie = re.compile(r'/js/zewnetrzne/(pdf-lib|fontkit|jszip|xlsx)-[\d.]+[^/]*\.js$')
     pliki = sorted(
         './' + p.relative_to(korzen).as_posix()
         for p in list((korzen / 'js').rglob('*.js')) + list((korzen / 'css').glob('*.css'))
+        if not rzadkie.search('/' + p.relative_to(korzen).as_posix())
     )
     tekst = sw.read_text(encoding='utf8')
     wersja = re.sub(r'[^0-9A-Za-z._-]', '', wersja)[:40] or 'brak'

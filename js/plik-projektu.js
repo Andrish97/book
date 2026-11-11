@@ -18,7 +18,7 @@ import { biblioteka } from './biblioteki.js';
 export { ROZSZERZENIE, TYP_MIME };
 export const WERSJA_FORMATU = 1;
 
-const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
 
 const jszip = () => biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
 
