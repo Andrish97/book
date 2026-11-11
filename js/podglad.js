@@ -215,7 +215,12 @@ export class Podglad {
     fig.dataset.px = szer;
     // Skrót liczony razem z rysowaniem – opisuje dokładnie ten stan projektu, z którego powstaje obraz.
     const odcisk = zrodlo.odcisk?.(fig._strona);
-    const url = await zrodlo.obraz(fig._strona, szer);
+    let url;
+    try { url = await zrodlo.obraz(fig._strona, szer); } catch {
+      // Nie udało się narysować (np. obraz linku jeszcze się nie wczytał) – spróbujemy, gdy strona znów będzie widoczna.
+      if (Number(fig.dataset.px) === szer) delete fig.dataset.px;
+      return;
+    }
     if (this.uklad === uklad && Number(fig.dataset.px) === szer) {
       fig.querySelector('img').src = url;
       if (odcisk) fig.dataset.odcisk = odcisk;
@@ -303,6 +308,7 @@ export class Podglad {
     const { sekcja, strony } = p.kroki[p.i];
     const scena = p.el.querySelector('.prezentacja-scena');
     const skala = Math.min((scena.clientWidth - 32) / (strony.length * sekcja.w), (scena.clientHeight - 32) / sekcja.h);
+    const szer = Math.min(MAKS_PX, Math.round(sekcja.w * skala * Math.max(2, window.devicePixelRatio || 1)));
     scena.replaceChildren();
     for (const s of strony) {
       const kartka = document.createElement('div');
@@ -310,18 +316,58 @@ export class Podglad {
       kartka.style.width = `${sekcja.w * skala}px`;
       kartka.style.height = `${sekcja.h * skala}px`;
       if (s) {
+        // Do czasu narysowania strona jest białą kartką ze wskaźnikiem – nie pustym obrazkiem, który
+        // przeglądarka pokazałaby jako „zepsuty obraz”. Jeśli ta strona jest już narysowana w siatce
+        // podglądu, jej obraz pojawia się od razu i tylko wyostrza się po narysowaniu w pełnej wielkości.
         const img = document.createElement('img');
         img.alt = `Strona ${s.nr ?? ''} ${s.nazwa}`;
+        const gotowy = this._obrazPrezentacji(s, szer, false);
+        if (gotowy) img.src = gotowy;
+        else {
+          const zSiatki = this._obrazZSiatki(s);
+          if (zSiatki) img.src = zSiatki; else kartka.classList.add('wczytuje');
+          this._obrazPrezentacji(s, szer).then((url) => {
+            if (this.prezentacja !== p || !url) return;
+            img.src = url;
+            kartka.classList.remove('wczytuje');
+          });
+        }
         kartka.append(img);
-        const szer = Math.min(MAKS_PX, Math.round(sekcja.w * skala * Math.max(2, window.devicePixelRatio || 1)));
-        Promise.resolve(this.zrodlo.obraz(s, szer)).then((url) => { if (this.prezentacja === p) img.src = url; });
       }
       scena.append(kartka);
+    }
+    // Sąsiednie kroki rysują się zawczasu – przewracanie stron nie czeka.
+    for (const o of [1, -1]) {
+      const k = p.kroki[p.i + o];
+      if (k) for (const s of k.strony) if (s) this._obrazPrezentacji(s, szer);
     }
     const numery = strony.filter(Boolean).map((s) => s.nr ?? '–').join('–');
     p.el.querySelector('.prezentacja-licznik').textContent = `${sekcja.nazwa} · str. ${numery} · ${p.i + 1} z ${p.kroki.length}`;
     p.el.querySelector('.wstecz').disabled = p.i === 0;
     p.el.querySelector('.dalej').disabled = p.i === p.kroki.length - 1;
+  }
+
+  // Obraz strony do prezentacji z pamięci (ta sama strona, ta sama szerokość i ten sam skrót treści).
+  // czekaj = false: tylko gotowy adres albo null.
+  _obrazPrezentacji(s, szer, czekaj = true) {
+    this._pamiecPrezentacji ||= new Map();
+    const klucz = `${s.id}|${szer}|${this.zrodlo.odcisk?.(s) ?? ''}`;
+    let wpis = this._pamiecPrezentacji.get(klucz);
+    if (!wpis) {
+      if (this._pamiecPrezentacji.size > 40) this._pamiecPrezentacji.delete(this._pamiecPrezentacji.keys().next().value);
+      wpis = { url: null };
+      wpis.obietnica = Promise.resolve(this.zrodlo.obraz(s, szer)).then((url) => { wpis.url = url; return url; }, () => {
+        this._pamiecPrezentacji.delete(klucz); // nieudane rysowanie – następnym razem od nowa
+        return null;
+      });
+      this._pamiecPrezentacji.set(klucz, wpis);
+    }
+    return czekaj ? wpis.obietnica : wpis.url;
+  }
+
+  _obrazZSiatki(s) {
+    const fig = [...this.el.querySelectorAll('.podglad-strona[data-id]')].find((f) => f.dataset.id === s.id);
+    return fig?.querySelector('img')?.getAttribute('src') || null;
   }
 
   zamknijPrezentacje() {

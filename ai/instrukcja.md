@@ -498,7 +498,7 @@ Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – b
 *Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.*
 
 - Otwórz go przyciskiem **Podgląd** na górnym pasku edytora albo z menu **⋯** projektu na liście.
-- **Prezentacja** pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie. Strzałki i spacja przewracają strony, `Esc` zamyka. Działa także w podglądzie otwartym z linku.
+- **Prezentacja** pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie. Strzałki i spacja przewracają strony, `Esc` zamyka. Następna i poprzednia strona rysują się zawczasu, a strona, która jeszcze się rysuje, jest białą kartką z paskiem postępu u dołu. Działa także w podglądzie otwartym z linku.
 - Podgląd pokazuje projekt po powieleniu: każdą stronę serii tyle razy, ile wynika z danych, z jej numerem i podpisem „3 z 31”.
 - Strony idą po kolei, rozkładówki stoją obok siebie. Przyciski **−** i **+** zmieniają powiększenie, kliknięcie liczby dopasowuje do okna.
 - Kliknięcie strony otwiera ją w edytorze. **Edytor** albo `Esc` wraca do edycji.

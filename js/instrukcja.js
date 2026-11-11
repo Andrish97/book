@@ -451,7 +451,7 @@ export const ROZDZIALY = [
     podpis: 'Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.',
     punkty: [
       'Otwórz go przyciskiem <b>Podgląd</b> na górnym pasku edytora albo z menu <b>⋯</b> projektu na liście.',
-      '<b>Prezentacja</b> pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie. Strzałki i spacja przewracają strony, <kbd>Esc</kbd> zamyka. Działa także w podglądzie otwartym z linku.',
+      '<b>Prezentacja</b> pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie. Strzałki i spacja przewracają strony, <kbd>Esc</kbd> zamyka. Następna i poprzednia strona rysują się zawczasu, a strona, która jeszcze się rysuje, jest białą kartką z paskiem postępu u dołu. Działa także w podglądzie otwartym z linku.',
       'Podgląd pokazuje projekt po powieleniu: każdą stronę serii tyle razy, ile wynika z danych, z jej numerem i podpisem „3 z 31”.',
       'Strony idą po kolei, rozkładówki stoją obok siebie. Przyciski <b>−</b> i <b>+</b> zmieniają powiększenie, kliknięcie liczby dopasowuje do okna.',
       'Kliknięcie strony otwiera ją w edytorze. <b>Edytor</b> albo <kbd>Esc</kbd> wraca do edycji.',

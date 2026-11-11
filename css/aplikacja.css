@@ -1158,6 +1158,15 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .prezentacja-kartka + .prezentacja-kartka { box-shadow: inset 1px 0 0 rgba(28, 27, 25, .18), 0 10px 40px rgba(0, 0, 0, .5); }
 .prezentacja-kartka.pusta { background: none; box-shadow: none; }
 .prezentacja-kartka img { display: block; width: 100%; height: 100%; }
+.prezentacja-kartka img:not([src]) { visibility: hidden; }
+/* Strona jeszcze się rysuje: biała kartka z cienkim paskiem postępu u dołu zamiast pustego obrazka. */
+.prezentacja-kartka.wczytuje { position: relative; overflow: hidden; }
+.prezentacja-kartka.wczytuje::after {
+  content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 30%;
+  background: var(--akcent, #2f6fde); animation: prezentacja-wczytuje 1.1s ease-in-out infinite;
+}
+@keyframes prezentacja-wczytuje { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+@media (prefers-reduced-motion: reduce) { .prezentacja-kartka.wczytuje::after { animation: none; width: 100%; opacity: .4; } }
 .prezentacja-strzalka { position: absolute; top: 0; bottom: 48px; width: 18%; min-width: 56px; border: 0; background: none; color: rgba(241, 239, 233, .55); font-size: 44px; cursor: pointer; }
 .prezentacja-strzalka:hover { color: #fff; background: rgba(255, 255, 255, .04); }
 .prezentacja-strzalka:disabled { opacity: 0; cursor: default; }

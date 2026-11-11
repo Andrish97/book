@@ -62,9 +62,20 @@ test('prezentacja: rozkładówka po rozkładówce, strzałki i Esc', async (t) =
   // Strona 1 stoi sama po prawej (pusta kartka z lewej), potem para 2–3, potem 4.
   assert.match(await licznik(), /str\. 1 · 1 z 3/);
   assert.equal(await strona.locator('.prezentacja-kartka.pusta').count(), 1);
+  // Strona, która jeszcze się rysuje, nie jest „zepsutym obrazkiem”: obrazek bez treści jest ukryty
+  // (biała kartka z paskiem postępu) albo od razu pokazuje obraz z siatki podglądu.
+  const bezZepsutych = () => strona.evaluate(() => [...document.querySelectorAll('.prezentacja-kartka img')]
+    .every((i) => i.getAttribute('src') || getComputedStyle(i).visibility === 'hidden'));
   await strona.keyboard.press('ArrowRight');
   assert.match(await licznik(), /str\. 2–3 · 2 z 3/);
+  assert.ok(await bezZepsutych(), 'w czasie rysowania nie widać ikonki zepsutego obrazu');
   await strona.waitForFunction(() => [...document.querySelectorAll('.prezentacja-kartka img')].every((i) => i.naturalWidth > 0));
+  // Powrót do narysowanej już strony: obraz jest od razu, bez ponownego rysowania.
+  await strona.keyboard.press('ArrowLeft');
+  assert.equal(await strona.evaluate(() => [...document.querySelectorAll('.prezentacja-kartka img')].every((i) => i.getAttribute('src'))), true);
+  assert.equal(await strona.locator('.prezentacja-kartka.wczytuje').count(), 0);
+  await strona.keyboard.press('ArrowRight');
+  assert.ok(await bezZepsutych());
   await strona.click('.prezentacja-strzalka.dalej');
   assert.match(await licznik(), /str\. 4 · 3 z 3/);
   assert.ok(await strona.isDisabled('.prezentacja-strzalka.dalej'));
