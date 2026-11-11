@@ -1028,6 +1028,7 @@ export class Edytor extends EventTarget {
     const obiekty = this.canvas.getActiveObjects();
     if (!obiekty.length) return;
     if (this.aktywny?.isEditing) return;
+    if (this.calyTekstZaznaczony) { this.usunCalyTekst(); return; } // znika tekst wątku, ramki zostają
     if (this._otwarta) { this._usunZOtwartej(); return; }
     this.canvas.discardActiveObject();
     // Tekst usuwanej ramki wątku przechodzi do sąsiedniej – znika ramka, nie treść.
@@ -1307,8 +1308,14 @@ export class Edytor extends EventTarget {
   _klawiszNaGranicyRamek(e) {
     const o = this.aktywny;
     if (!o?.isEditing || !o.watek || o.zWzorca || o.inCompositionMode || e.target !== o.hiddenTextarea) return;
-    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    // Ctrl+A drugi raz (gdy tekst tej ramki jest już zaznaczony w całości): cały połączony tekst.
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.code === 'KeyA' && o.selectionStart === 0 && o.selectionEnd === o._text.length) {
+      if (this.zaznaczCalyTekst(o)) { e.preventDefault(); e.stopPropagation(); }
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
     if (o.selectionStart !== o.selectionEnd) return;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { this._strzalkaMiedzyRamkami(e, o); return; }
     const wstecz = e.key === 'Backspace' || e.key === 'ArrowLeft';
     if (o.selectionStart !== (wstecz ? 0 : o._text.length)) return;
     const ramki = this._calyWatek(o.watek);
@@ -1335,6 +1342,101 @@ export class Edytor extends EventTarget {
       else sasiad.removeChars(0, 1);
       this._przelejZKursorem(ramki, o, kursor, { gdyPoza: 'koniec', zawsze: true });
     }
+  }
+
+  // Strzałka w górę w pierwszym wierszu ramki przechodzi do ostatniego wiersza poprzedniej ramki wątku,
+  // strzałka w dół w ostatnim wierszu – do pierwszego wiersza następnej; kursor staje możliwie pod (nad)
+  // miejscem, w którym stał – liczonym od lewego brzegu ramki. Działa także na ramkę z innej strony.
+  _strzalkaMiedzyRamkami(e, o) {
+    const wGore = e.key === 'ArrowUp';
+    const wiersz = o.get2DCursorLocation(o.selectionStart).lineIndex;
+    if (wiersz !== (wGore ? 0 : o._textLines.length - 1)) return;
+    const ramki = this._calyWatek(o.watek);
+    const i = ramki.indexOf(o);
+    const sasiad = wGore ? ramki.slice(0, i).reverse().find((r) => r.text) : ramki.slice(i + 1).find((r) => r.text);
+    if (!sasiad) return;
+    e.preventDefault(); e.stopPropagation();
+    // Odległość kursora od lewego brzegu ramki (w jednostkach ramki).
+    const b = o._getCursorBoundaries(o.selectionStart);
+    const x = b.left + b.leftOffset + o.width / 2;
+    // Ramka z innej strony żyje w pamięci i nie była rysowana – wiersze i położenia znaków liczymy teraz.
+    if (!sasiad._textLines?.length) sasiad.initDimensions();
+    const cel = wGore ? sasiad._textLines.length - 1 : 0;
+    sasiad.measureLine(cel);
+    const granice = sasiad.__charBounds[cel] || [];
+    const od = sasiad._getLineLeftOffset(cel);
+    let znak = 0;
+    let najblizej = Infinity;
+    for (let k = 0; k <= sasiad._textLines[cel].length; k += 1) {
+      const gdzie = od + (granice[k]?.left ?? ((granice[k - 1]?.left ?? 0) + (granice[k - 1]?.width ?? 0)));
+      if (Math.abs(gdzie - x) < najblizej) { najblizej = Math.abs(gdzie - x); znak = k; }
+    }
+    // Numer znaku w ramce: wiersz i miejsce w wierszu → miejsce w całym tekście ramki.
+    let indeks = wGore ? sasiad._text.length : 0;
+    for (let n = 0; n <= sasiad._text.length; n += 1) {
+      const m = sasiad.get2DCursorLocation(n);
+      if (m.lineIndex === cel && m.charIndex === znak) { indeks = n; break; }
+    }
+    if (this.canvas.getObjects().includes(sasiad)) this._piszW(sasiad, indeks, o);
+    else this._piszNaInnejStronie(sasiad, indeks, !wGore);
+  }
+
+  // ---------- Cały połączony tekst ----------
+  // Zaznaczenie w tekście żyje w jednej ramce – nie da się go rozciągnąć na następną. Zamiast tego jest tryb
+  // „cały połączony tekst”: ramka zostaje zaznaczona (bez pisania), a zmiana wyglądu, kopiowanie i usuwanie
+  // dotyczą tekstu wszystkich ramek wątku, także tych z innych stron.
+
+  // Włącza tryb dla wątku ramki. Zwraca { ramek, znakow } albo null (ramka bez połączeń).
+  zaznaczCalyTekst(obj = this.aktywny) {
+    const ramki = this._calyWatek(obj?.watek);
+    if (!obj || obj.type !== 'textbox' || obj.zWzorca || ramki.length < 2 || !ramki.includes(obj)) return null;
+    if (obj.isEditing) obj.exitEditing();
+    if (this.aktywny !== obj) this.canvas.setActiveObject(obj);
+    this._calyTekst = obj.watek;
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return { ramek: ramki.length, znakow: this.calyTekst().length };
+  }
+
+  // Identyfikator wątku, którego cały tekst jest zaznaczony (albo null). Tryb kończy się sam, gdy zaznaczona
+  // jest inna rzecz albo zaczyna się pisanie.
+  get calyTekstZaznaczony() {
+    const a = this.aktywny;
+    if (this._calyTekst && !(a && a.type === 'textbox' && a.watek === this._calyTekst && !a.isEditing)) this._calyTekst = null;
+    return this._calyTekst || null;
+  }
+
+  // Sklejony tekst całego wątku (domyślnie: wątku zaznaczonego w całości).
+  calyTekst(watek = this.calyTekstZaznaczony || this.aktywny?.watek) {
+    return this._calyWatek(watek).filter((r) => r.text).map((r, i) => (i ? (r.lacznik ?? '\n') : '') + r.text).join('');
+  }
+
+  // Wygląd nadany całemu połączonemu tekstowi: znika własny wygląd fragmentów we wszystkich ramkach wątku
+  // (samą właściwość roznosi po ramkach _pilnujWatkow).
+  ujednolicCalyTekst(wlasciwosci) {
+    const watek = this.calyTekstZaznaczony;
+    if (!watek) return false;
+    for (const r of this._calyWatek(watek)) {
+      for (const k of Object.keys(wlasciwosci)) r.removeStyle?.(k);
+      r.set(wlasciwosci);
+      r.initDimensions?.();
+      r.dirty = true;
+    }
+    return true;
+  }
+
+  // Usuwa tekst wszystkich ramek wątku; ramki zostają połączone i puste.
+  usunCalyTekst() {
+    const watek = this.calyTekstZaznaczony;
+    if (!watek) return false;
+    const ramki = this._calyWatek(watek);
+    for (const r of ramki) { r.set({ text: '', styles: {} }); r.initDimensions?.(); r.dirty = true; }
+    rozlej(ramki);
+    this._calyTekst = null;
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+    return true;
   }
 
   // Łączy zaznaczone ramki tekstu: tekst, który nie mieści się w pierwszej,
@@ -1606,6 +1708,14 @@ export class Edytor extends EventTarget {
   async kopiuj() {
     const akt = this.aktywny;
     if (!akt || akt.isEditing) return false;
+    // Cały połączony tekst: do schowka systemu idzie tekst wszystkich ramek wątku (nie kopia ramki).
+    if (this.calyTekstZaznaczony) {
+      navigator.clipboard?.writeText(this.calyTekst()).catch(() => {});
+      // Wcześniej skopiowany element nie wraca przy Ctrl+V – ostatnio skopiowany jest tekst.
+      this._schowek = null;
+      this.dispatchEvent(new Event('schowek'));
+      return true;
+    }
     this._schowek = await this._kopie(akt);
     this._wklejen = 0;
     this._schowekZ = this._znacznikStrony;
@@ -2943,6 +3053,19 @@ export class Edytor extends EventTarget {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     const dpr = this.canvas.getRetinaScaling();
     ctx.scale(dpr, dpr);
+
+    // Cały połączony tekst: wszystkie ramki wątku na tej stronie są podświetlone jak zaznaczony tekst.
+    if (this.calyTekstZaznaczony) {
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.16)';
+      for (const r of this._calyWatek(this._calyTekst)) {
+        if (!this.canvas.getObjects().includes(r)) continue;
+        const rogi = r.getCoords();
+        ctx.beginPath();
+        rogi.forEach((p, i) => (i ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y))));
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
 
     if (this.pokazProwadnice && this.widok.siatka && this.widok.siatka_mm > 0) {
       // Siatka: liczona od rogu każdej strony. Przy małym powiększeniu rysujemy

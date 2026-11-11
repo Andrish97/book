@@ -38,10 +38,13 @@ export class PanelWlasciwosci {
   }
 
   pokaz(obj) {
-    if (obj === this.obj && obj) {
+    // Włączenie albo wyłączenie trybu „cały połączony tekst” zmienia zawartość panelu tej samej ramki.
+    const caly = this.edytor.calyTekstZaznaczony || null;
+    if (obj === this.obj && obj && caly === (this._calyTekst || null)) {
       this.odswiez();
       return;
     }
+    this._calyTekst = caly;
     this.obj = obj;
     this.zbuduj();
   }
@@ -285,6 +288,8 @@ export class PanelWlasciwosci {
   _ustawTekst(obj, wlasciwosci) {
     if (this._fragment(obj)) {
       obj.setSelectionStyles(wlasciwosci);
+    } else if (this.edytor.calyTekstZaznaczony && this.edytor.ujednolicCalyTekst(wlasciwosci)) {
+      // Cały połączony tekst: ta sama zmiana we wszystkich ramkach wątku, razem z fragmentami o własnym wyglądzie.
     } else {
       for (const k of Object.keys(wlasciwosci)) obj.removeStyle?.(k);
       obj.set(wlasciwosci);
@@ -572,6 +577,19 @@ export class PanelWlasciwosci {
       if (watek.poprzednia) skoki.push(['wstecz', `Poprzednia ramka: strona ${this.opcje.nazwaStrony?.(watek.poprzednia.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.poprzednia.strona, watek.poprzednia.id)]);
       if (watek.nastepna) skoki.push(['dalej', `Następna ramka: strona ${this.opcje.nazwaStrony?.(watek.nastepna.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.nastepna.strona, watek.nastepna.id)]);
       if (skoki.length) w.append(this.akcje(skoki));
+      // Cały połączony tekst naraz: wygląd, kopia, usunięcie (zaznaczenia w tekście nie da się rozciągnąć przez ramki).
+      if (this.edytor.calyTekstZaznaczony) {
+        const caly = this.wskazowka(`Zaznaczony jest cały połączony tekst (${watek.ile} ${watek.ile < 5 ? 'ramki' : 'ramek'}). Zmiana wyglądu obejmie wszystkie ramki, także fragmenty z własnym wyglądem. Ctrl+C kopiuje cały tekst, Delete go usuwa (ramki zostają).`);
+        caly.classList.add('znacznik-fragmentu');
+        caly.dataset.calyTekst = '';
+        w.append(caly);
+        w.append(this.akcje([
+          ['kopiuj', 'Kopiuj cały tekst', async () => { await this.edytor.kopiuj(); powiadom('Skopiowano cały połączony tekst.'); }],
+          ['kosz', 'Usuń cały tekst', () => this.edytor.usunCalyTekst()],
+        ]));
+      } else if (!obj.isEditing || obj.selectionStart === obj.selectionEnd) {
+        w.append(this.akcje([['tekst', 'Zaznacz cały połączony tekst', () => { this.edytor.zaznaczCalyTekst(obj); }]]));
+      }
       w.append(this.akcje([
         ['plus', 'Dodaj ramkę z ciągiem dalszym', () => this.edytor.dodajRamkeDalsza()],
         ...dalejNaStronie,
