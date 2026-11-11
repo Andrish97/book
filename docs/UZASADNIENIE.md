@@ -81,7 +81,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Co jest.** Ekran `#/konto`: jedna kolumna grup – Profil (nazwa), Logowanie (adres e-mail, hasło), Wygląd (motyw), Urządzenia (wylogowanie tej przeglądarki albo wszystkich urządzeń), Usuwanie konta – z nawigacją po lewej. Każde ustawienie to wiersz „opis – wartość – akcja”; formularze zmiany adresu, hasła i usunięcia konta rozwijają się w swoim wierszu dopiero po kliknięciu.
 **Dlaczego tak.** Ten sam wygląd co panel właściwości w edytorze: cienkie linie, wiersze, bez kart. Formularze są zwinięte, bo zmiana hasła czy usunięcie konta to rzadkie czynności – nie powinny stale zajmować ekranu ani kusić przypadkowym kliknięciem.
 **Twoje decyzje.** Ustawienia konta w stylu aplikacji, nie skopiowane (#27).
-**Słabe.** Po zmianie hasła nie przychodzi wiadomość „hasło zmienione” (Supabase ma taką opcję – do włączenia w panelu). Rozpoczętej zmiany adresu e-mail nie da się anulować z aplikacji.
+**Słabe.** Po zmianie hasła nie przychodzi wiadomość „hasło zmienione” (Supabase ma taką opcję – do włączenia w panelu). Rozpoczętej zmiany adresu e-mail nie da się anulować – Supabase pomija zmianę na obecny adres, a innej drogi bez klucza administratora nie ma (sprawdzone w kodzie Supabase Auth). Ustawienia mówią, że bez kliknięcia linku nic się nie stanie, i pozwalają wpisać inny adres.
 
 ### B3. Własne wiadomości e-mail ⚠️
 **Co jest.** Trzy szablony HTML w stylu aplikacji leżą w `supabase/templates/`: potwierdzenie konta, nowe hasło, nowy adres.
@@ -130,7 +130,8 @@ Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu pro
 **Co jest.** „Udostępnij” w podglądzie tworzy link z losowym kodem. Aplikacja rysuje strony do obrazów JPEG i wysyła je z małym plikiem opisu do publicznego folderu. Osoba z linkiem widzi ten sam widok co podgląd, bez logowania. Projekt ma jeden link; aktualizuje się on sam kilka sekund po zapisie na koncie, a wysyłane są tylko strony, których obraz się zmienił. „Unieważnij link” usuwa pliki.
 **Dlaczego tak.** Osoba z linkiem dostaje tylko obrazy stron – nie dane projektu, nie zdjęcia w oryginale, nie dostęp do bazy. Nie trzeba otwierać bazy dla niezalogowanych ani ładować u oglądającego edytora i czcionek.
 **Twoje decyzje.** Podgląd udostępniany linkiem (#28). Jeden link na projekt, aktualizowany samoczynnie (#50, #51).
-**Słabe.** Nie ma hasła do linku ani daty ważności – pliki leżą w publicznym folderze, więc wymagałoby to funkcji po stronie bazy. Link aktualizuje się tylko przy pracy z kontem, gdy projekt jest otwarty i zapisywany.
+**Poprawione (#67).** Link może mieć hasło i datę ważności (część „Ochrona linku” w oknie Udostępnij). Obrazy takiego linku nie leżą w publicznym folderze: są w tabeli bazy, a wydaje je tylko funkcja bazy po sprawdzeniu daty i hasła (skrót bcrypt; po 10 złych próbach link nie przyjmuje haseł przez 15 minut). Oglądający widzi pole hasła albo „Link wygasł”. Zwykłe linki działają jak dotąd.
+**Słabe.** Obrazy linków chronionych zajmują miejsce w bazie (darmowy plan ma 500 MB), nie w folderze plików. Gość wpisuje hasło po każdym odświeżeniu strony. Data ważności to koniec dnia według zegara urządzenia właściciela. Link aktualizuje się tylko, gdy projekt jest otwarty i zapisywany.
 
 ## D. Edytor
 

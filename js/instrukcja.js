@@ -62,7 +62,7 @@ export const ROZDZIALY = [
     podpis: 'Ustawienia konta z rozwiniętą zmianą adresu e-mail.',
     punkty: [
       '<b>Profil</b> – nazwa widoczna w prawym górnym rogu.',
-      '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym.',
+      '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. <b>Wpisz inny adres</b> zastępuje oczekujący adres nowym.',
       '<b>Urządzenia</b> – wylogowanie tutaj albo na wszystkich urządzeniach naraz.',
       '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
     ],
@@ -466,6 +466,9 @@ export const ROZDZIALY = [
       '<b>Unieważnij link</b> usuwa udostępnione strony; stary adres przestaje działać. Ponowne udostępnienie daje nowy adres.',
       'Projekt z czynnym linkiem ma na liście projektów plakietkę <b>Udostępniony</b> – kliknięcie otwiera to samo okienko, bez wchodzenia do projektu.',
       'Link jest długi i losowy, więc nie da się go zgadnąć – ale każdy, kto go dostanie, może go przekazać dalej.',
+      '<b>Ochrona linku</b> (w tym samym okienku): <b>Hasło</b> – osoba z linkiem widzi najpierw pole hasła i dopiero po wpisaniu poprawnego zobaczy strony. <b>Ważny do wybranego dnia</b> – po tym dniu link pokazuje „Link wygasł”. Możesz ustawić jedno, drugie albo oba, także przed utworzeniem linku. <b>Zapisz ochronę</b> zmienia ustawienia istniejącego linku – adres zostaje ten sam.',
+      'Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.',
+      'Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.',
     ],
   },
   {

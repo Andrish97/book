@@ -150,6 +150,17 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   await strona.waitForSelector('#email-oczekuje', { state: 'visible' });
   assert.equal(await strona.textContent('#email-oczekuje-adres'), 'nowa@test.pl');
   assert.equal(baza.wyslane.at(-1).typ, 'zmiana-email');
+  // Oczekującej zmiany nie da się anulować (Supabase na to nie pozwala) – aplikacja to mówi
+  // i pozwala wpisać inny adres, który zastąpi oczekujący.
+  assert.match(await strona.textContent('#email-oczekuje-anuluj'), /nie da się cofnąć z aplikacji.*link wygaśnie.*zastąpi ten/);
+  await strona.click('#email-inny');
+  assert.ok(await strona.isVisible('#form-email'));
+  assert.equal(await strona.evaluate(() => document.activeElement?.name), 'email');
+  await strona.fill('#form-email input[name=email]', 'druga@test.pl');
+  await strona.fill('#form-email input[name=email2]', 'druga@test.pl');
+  await strona.click('#form-email button[type=submit]');
+  await strona.waitForFunction(() => document.querySelector('#email-oczekuje-adres').textContent === 'druga@test.pl');
+  assert.deepEqual(baza.wyslane.slice(-2).map((w) => [w.typ, w.email]), [['zmiana-email', 'nowa@test.pl'], ['zmiana-email', 'druga@test.pl']]);
 
   // Hasło: złe obecne → błąd; poprawne → zmiana
   await strona.click('[data-rozwin="form-haslo"]');

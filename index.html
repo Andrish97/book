@@ -169,8 +169,12 @@
                 </div>
                 <div class="oczekuje" id="email-oczekuje" hidden>
                   <span data-ikona="koperta" data-rozmiar="18"></span>
-                  <div>Czeka na potwierdzenie: <strong id="email-oczekuje-adres"></strong><br><small>Kliknij link w wiadomości wysłanej na ten adres. Do tego czasu logujesz się dotychczasowym.</small></div>
-                  <button type="button" class="przycisk maly" id="email-ponownie">Wyślij ponownie</button>
+                  <div>Nowy adres czeka na potwierdzenie: <strong id="email-oczekuje-adres"></strong><br><small>Kliknij link w wiadomości wysłanej na ten adres. Do tego czasu logujesz się dotychczasowym.</small>
+                    <br><small id="email-oczekuje-anuluj">Pomyłka? Zmiany nie da się cofnąć z aplikacji, ale bez kliknięcia linku nic się nie stanie: link wygaśnie, a konto zostanie przy obecnym adresie. Możesz też wpisać inny adres – zastąpi ten.</small></div>
+                  <div class="wiersz-akcje">
+                    <button type="button" class="przycisk maly" id="email-ponownie">Wyślij ponownie</button>
+                    <button type="button" class="przycisk maly" id="email-inny">Wpisz inny adres</button>
+                  </div>
                 </div>
                 <form id="form-email" class="formularz" novalidate hidden>
                   <label class="pole"><span>Nowy e-mail</span><input name="email" type="email" autocomplete="off" inputmode="email"></label>
@@ -628,6 +632,18 @@
         </label>
         <p class="podpowiedz" id="udostepnij-stan"></p>
       </div>
+
+      <fieldset class="ochrona-linku" id="udostepnij-ochrona" hidden>
+        <legend>Ochrona linku</legend>
+        <label class="przelacznik"><input type="checkbox" id="udostepnij-haslo-wl"><span>Hasło – bez niego podglądu nie zobaczy nikt</span></label>
+        <label class="pole" id="udostepnij-haslo-pole" hidden><span>Hasło do linku</span>
+          <input id="udostepnij-haslo" type="password" autocomplete="new-password" minlength="4" placeholder="co najmniej 4 znaki">
+        </label>
+        <label class="przelacznik"><input type="checkbox" id="udostepnij-termin-wl"><span>Ważny do wybranego dnia</span></label>
+        <label class="pole" id="udostepnij-termin-pole" hidden><span>Ostatni dzień ważności</span><input id="udostepnij-termin" type="date"></label>
+        <p class="podpowiedz" id="udostepnij-ochrona-stan"></p>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="udostepnij-ochrona-zapisz" data-akcja="udostepnij-ochrona">Zapisz ochronę</button></div>
+      </fieldset>
 
       <p class="komunikat" id="udostepnij-komunikat" role="status"></p>
       <div class="przyciski-dialogu">

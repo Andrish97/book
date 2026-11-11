@@ -1127,6 +1127,12 @@ button.podglad-kartka:hover { outline: 2px solid var(--akcent); outline-offset: 
 }
 .podglad-pusto h2 { font-size: 19px; }
 #dlg-udostepnij .przyciski-dialogu { align-items: center; }
+/* Ochrona linku (hasło, data ważności) w oknie „Udostępnij” i pole hasła u oglądającego. */
+.ochrona-linku { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 10px 14px 12px; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.ochrona-linku legend { padding: 0 6px; font-size: 13px; color: var(--cichy); }
+.podglad-pusto form { display: flex; gap: 8px; width: 100%; }
+.podglad-pusto form input { flex: 1; min-width: 0; }
+.podglad-pusto .komunikat { min-height: 1.2em; }
 #udostepnij-link { font-size: 13px; }
 
 /* ---------- Własne kontrolki (js/kontrolki.js) ---------- */

@@ -465,3 +465,140 @@ export async function wczytajPodgladPubliczny(konto, projektId, kod) {
   if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
   return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.jpg`)}?v=${manifest.v}` };
 }
+
+// ---------- Link chroniony: hasło albo data ważności ----------
+//
+// Link z hasłem albo z datą ważności nie trzyma plików w publicznym folderze, tylko w tabeli
+// public.udostepnienia_pliki (migracja udostepnienia_chronione). Oglądający dostaje je wyłącznie
+// przez funkcję bazy podglad_chroniony – po sprawdzeniu daty ważności i hasła. Hasło jest
+// w bazie tylko jako skrót bcrypt.
+
+const naBase64 = async (blob) => {
+  const bajty = new Uint8Array(await blob.arrayBuffer());
+  let s = '';
+  for (let i = 0; i < bajty.length; i += 0x8000) s += String.fromCharCode(...bajty.subarray(i, i + 0x8000));
+  return btoa(s);
+};
+const zBase64 = (b64, typ) => {
+  const s = atob(b64);
+  const bajty = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i += 1) bajty[i] = s.charCodeAt(i);
+  return new Blob([bajty], { type: typ });
+};
+
+// Błąd z czytelnym stanem linku (pole stanLinku): 'brak', 'wygasl', 'haslo', 'zle_haslo', 'blokada'.
+function bladLinku(stan, doKiedy = null) {
+  const teksty = {
+    brak: 'Ten link nie działa – podgląd został wyłączony albo adres jest niepełny.',
+    wygasl: 'Link wygasł – minęła data ważności ustawiona przez osobę, która go udostępniła.',
+    haslo: 'Ten podgląd jest chroniony hasłem.',
+    zle_haslo: 'Hasło się nie zgadza.',
+    blokada: `Za dużo prób z błędnym hasłem. Spróbuj ponownie${doKiedy ? ` po ${new Date(doKiedy).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}` : ' za kwadrans'}.`,
+  };
+  const e = new Error(teksty[stan] || teksty.brak);
+  e.stanLinku = teksty[stan] ? stan : 'brak';
+  return e;
+}
+
+async function wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, nazwy) {
+  const w = sprawdz(await sb.rpc('podglad_chroniony', { p_konto: konto, p_projekt: projektId, p_kod: kod, p_haslo: haslo || null, p_nazwy: nazwy || null }));
+  if (w?.stan !== 'ok') throw bladLinku(w?.stan, w?.do);
+  return w;
+}
+
+// Właściciel: hasło (zmienHaslo: false – bez zmian; puste hasło – bez hasła) i data ważności (ISO albo null).
+// Zwraca { haslo: bool, wazny_do }.
+export async function ustawOchroneLinku(projektId, kod, { zmienHaslo = false, haslo = '', waznyDo = null } = {}) {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('ustaw_ochrone_udostepnienia', {
+    p_projekt: projektId, p_kod: kod, p_zmien_haslo: Boolean(zmienHaslo), p_haslo: haslo || null, p_wazny_do: waznyDo || null,
+  }));
+}
+
+// Właściciel: koniec ochrony albo unieważnienie chronionego linku (ustawienia i pliki znikają).
+export async function usunPodgladChroniony(projektId, kod) {
+  const sb = await supabase();
+  sprawdz(await sb.rpc('usun_udostepnienie_chronione', { p_projekt: projektId, p_kod: kod }));
+}
+
+// Właściciel: ta sama publikacja co opublikujPodglad, ale do tabeli chronionego linku.
+// pelna: true – wysyła wszystkie strony (np. przy przejściu z linku publicznego).
+export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false } = {}) {
+  const sb = await supabase();
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  let poprzednie = {};
+  let poprzednieTresci = {};
+  if (!pelna) {
+    try {
+      const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null, ['manifest.json']);
+      const plik = w.pliki?.['manifest.json'];
+      if (plik) { const m = JSON.parse(await zBase64(plik.dane, plik.typ).text()); poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; }
+    } catch { /* pierwsza publikacja – wyślemy wszystko */ }
+  }
+  const zapisz = async (nazwa, typ, blob) => sprawdz(await sb.rpc('zapisz_plik_udostepnienia', {
+    p_projekt: projektId, p_kod: kod, p_nazwa: nazwa, p_typ: typ, p_dane: await naBase64(blob),
+  }));
+  const skroty = {};
+  let gotowe = 0;
+  let wyslane = 0;
+  for (const s of strony) {
+    if (odciski && poprzednie[s.id] && poprzednieTresci[s.id] === odciski[s.id]) {
+      skroty[s.id] = poprzednie[s.id];
+    } else {
+      const plik = await obraz(s);
+      skroty[s.id] = await skrotPliku(plik);
+      if (poprzednie[s.id] !== skroty[s.id]) { await zapisz(`${s.id}.jpg`, 'image/jpeg', plik); wyslane += 1; }
+    }
+    gotowe += 1;
+    postep(gotowe, strony.length);
+  }
+  sprawdz(await sb.rpc('porzadkuj_pliki_udostepnienia', { p_projekt: projektId, p_kod: kod, p_zostaja: [...strony.map((s) => `${s.id}.jpg`), 'manifest.json'] }));
+  const zaktualizowano = new Date().toISOString();
+  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, ...(odciski ? { tresci: odciski } : {}) };
+  await zapisz('manifest.json', 'application/json', new Blob([JSON.stringify(manifest)], { type: 'application/json' }));
+  return { konto: uzytkownik.id, zaktualizowano, wyslane, wszystkie: strony.length };
+}
+
+// Oglądający: stan chronionego linku bez hasła. Rzuca błąd z polem stanLinku ('brak', 'wygasl',
+// 'haslo', 'blokada'); dla linku z samą datą ważności zwraca { stan: 'ok' }.
+export async function sprawdzLinkChroniony(konto, projektId, kod) {
+  if (!chmuraSkonfigurowana()) throw new Error('Podgląd jest niedostępny.');
+  const sb = await supabase();
+  return wywolajPodgladChroniony(sb, konto, projektId, kod, null, null);
+}
+
+// Oglądający: opis podglądu i obrazy stron chronionego linku. Obrazy pobierane są paczkami
+// (do 6 stron w jednym zapytaniu); adresObrazu(id) zwraca obietnicę adresu obrazu w pamięci.
+export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '') {
+  const sb = await supabase();
+  const w = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, ['manifest.json']);
+  const plik = w.pliki?.['manifest.json'];
+  if (!plik) throw bladLinku('brak');
+  const manifest = JSON.parse(await zBase64(plik.dane, plik.typ).text());
+  if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
+  const obietnice = new Map(); // id strony → obietnica adresu obrazu
+  const kolejka = [];
+  let timer = null;
+  const wyslij = async () => {
+    const paczka = kolejka.splice(0, 6);
+    timer = kolejka.length ? setTimeout(wyslij, 0) : null;
+    try {
+      const odp = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, paczka.map((x) => `${x.id}.jpg`));
+      for (const x of paczka) {
+        const p = odp.pliki?.[`${x.id}.jpg`];
+        if (p) x.ok(URL.createObjectURL(zBase64(p.dane, p.typ))); else { obietnice.delete(x.id); x.zle(new Error('Brak obrazu strony.')); }
+      }
+    } catch (e) {
+      for (const x of paczka) { obietnice.delete(x.id); x.zle(e); }
+    }
+  };
+  const adresObrazu = (id) => {
+    if (!obietnice.has(id)) {
+      obietnice.set(id, new Promise((ok, zle) => { kolejka.push({ id, ok, zle }); }));
+      if (!timer) timer = setTimeout(wyslij, 20);
+    }
+    return obietnice.get(id);
+  };
+  return { manifest, adresObrazu };
+}
