@@ -19,7 +19,6 @@ import { wlaczNaZywo, wylaczNaZywo } from './na-zywo.js';
 export const konto = new Konto({
   stan,
   poZalogowaniu: (u) => poZalogowaniu(u),
-  trybLokalny: () => { stan.trybLokalny = true; return poZalogowaniu(null); },
   wyloguj: (wszedzie) => wyloguj(wszedzie),
   odswiezNaglowek: () => odswiezNaglowek(),
   liczbaProjektow: async () => (await wpisyProjektow()).length,
@@ -66,7 +65,6 @@ export async function wyloguj(wszedzie = false) {
     try { await chmura.wyloguj(wszedzie); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
   }
   stan.uzytkownik = null;
-  stan.trybLokalny = false;
   wylaczNaZywo();
   konto.ustawTryb('logowanie');
   trasa.ustaw('projekty', { zastap: true });

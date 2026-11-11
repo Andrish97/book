@@ -606,7 +606,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 if ('launchQueue' in window) {
   window.launchQueue.setConsumer(async (params) => {
     for (const uchwyt of params.files || []) plikiDoOtwarcia.push(await uchwyt.getFile());
-    if (stan.uzytkownik || stan.trybLokalny) otworzOczekujacePliki();
+    if (stan.uzytkownik) otworzOczekujacePliki();
   });
 }
 

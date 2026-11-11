@@ -36,7 +36,7 @@ Aplikacja jest statyczna, bez kroku budowania. Moduły ES wymagają serwera HTTP
 python3 -m http.server 8000     # http://localhost:8000
 ```
 
-Z pustym `js/konfiguracja.js` aplikacja działa bez konta, tylko w tej przeglądarce.
+Aplikacja działa tylko z kontem: z pustym `js/konfiguracja.js` pokazuje jedynie komunikat o braku konfiguracji. Projekty są też zapisywane w przeglądarce (IndexedDB) jako kopia na pracę bez sieci.
 
 ## Testy i zrzuty do instrukcji
 

@@ -206,7 +206,6 @@ test('kształty: wielokąt i gwiazda, wypełnienie gradientem, cień – zapisuj
 
   // Po ponownym otwarciu kształt wraca z gradientem i cieniem, a strona daje się narysować.
   await strona.reload();
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.canvas.getObjects().length === 1);
   const poWczytaniu = await strona.evaluate(async () => {
     const o = window.seriodruk.edytor.canvas.getObjects()[0];

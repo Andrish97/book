@@ -47,7 +47,6 @@ test('projekt: elementy, strony, ostrzeżenia, cofanie i zapis po odświeżeniu'
   await strona.waitForTimeout(1200);
   const adres = strona.url();
   await strona.reload();
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt);
   assert.equal(await ekran(strona), 'edytor');
   assert.equal(strona.url(), adres);

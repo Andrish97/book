@@ -94,7 +94,6 @@ test('siatka: widoczna z menu, element przeciągnięty myszą staje na linii sia
   // Ustawienia siatki wracają po ponownym otwarciu projektu.
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   await strona.reload();
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
   assert.deepEqual(await strona.evaluate(() => { const w = window.seriodruk.edytor.widok; return [w.siatka, w.do_siatki, w.siatka_mm]; }), [true, true, 10]);
   assert.deepEqual(bledy, []);

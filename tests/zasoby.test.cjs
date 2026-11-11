@@ -51,7 +51,8 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
   const po = await pomiar(strona);
   t.diagnostic(`12 zdjęć, razem ${(rozmiary.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB tekstu „data:”. Dane projektu w pamięci: przed zapisem ${(przed.wPamieci / 1e6).toFixed(2)} MB, po ${(po.wPamieci / 1e3).toFixed(1)} kB. Rekord zapisu lokalnego: ${(po.wRekordzie / 1e3).toFixed(1)} kB. Oryginały na dysku: ${(po.oryginaly.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB w ${po.oryginaly.length} plikach.`);
   assert.equal(po.zTrescia, 0, 'po zapisie treść obrazów znika z projektu');
-  assert.deepEqual([...new Set(po.opisy)], ['nazwa,rozmiar,typ']);
+  // Opis obrazu: nazwa, rozmiar, typ – a gdy plik zdążył już trafić na konto, także ścieżka do niego.
+  assert.ok(po.opisy.every((o) => ['nazwa,rozmiar,typ', 'nazwa,rozmiar,sciezka,typ'].includes(o)), `opisy obrazów: ${[...new Set(po.opisy)]}`);
   assert.equal(po.oryginaly.length, 12);
   assert.ok(po.wPamieci < przed.wPamieci / 100, `dane projektu w pamięci zmalały ponad stukrotnie (${przed.wPamieci} → ${po.wPamieci})`);
   assert.ok(po.wRekordzie < 200000, `rekord zapisu lokalnego jest mały (${po.wRekordzie})`);
@@ -67,7 +68,6 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
 
   // Ponowne otwarcie aplikacji: obrazy wczytują się z magazynu, a kopie robocze nie powstają od nowa z oryginałów.
   await strona.reload(); // adres strony pamięta otwarty projekt – po wejściu aplikacja otwiera go od razu
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'image').length === 12);
   const naPlotnie = await obrazyNaPlotnie(strona);
   assert.deepEqual(naPlotnie, Array(12).fill([true, 1800, 1200]), 'obrazy są na płótnie i mają wymiary oryginału');
@@ -132,11 +132,10 @@ test('starszy zapis z obrazami w środku projektu przechodzi do magazynu plików
     p.strony[0].obiekty = [{ type: 'image', version: '5.3.0', left: 20, top: 20, width: 60, height: 40, src: 'zasob:z_stary', zasob: 'z_stary', id: 'o_stary' }];
     await new Promise((ok, blad) => {
       const req = indexedDB.open('seriodruk');
-      req.onsuccess = () => { const tx = req.result.transaction('projekty', 'readwrite'); tx.objectStore('projekty').put({ id: p.id, wlasciciel: 'lokalny', nazwa: p.nazwa, zmieniono: p.zmieniono, miniatura: null, projekt: p, doSynchronizacji: false }); tx.oncomplete = () => { req.result.close(); ok(); }; tx.onerror = () => blad(tx.error); };
+      req.onsuccess = () => { const tx = req.result.transaction('projekty', 'readwrite'); tx.objectStore('projekty').put({ id: p.id, wlasciciel: window.seriodruk.stan.uzytkownik.id, nazwa: p.nazwa, zmieniono: p.zmieniono, miniatura: null, projekt: p, doSynchronizacji: false }); tx.oncomplete = () => { req.result.close(); ok(); }; tx.onerror = () => blad(tx.error); };
     });
   });
   await strona.reload();
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'image' && o.getElement().naturalWidth === 60));
   const w = await strona.evaluate(async () => {
     const { wczytajLokalnie } = await import('./js/lokalny.js');

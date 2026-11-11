@@ -197,7 +197,7 @@ test('moje czcionki: czcionka wgrana w jednym projekcie jest pod ręką w nastę
 
   // „Usuń z moich czcionek”: projekt zachowuje kopię, ale w następnych projektach czcionki już nie ma –
   // także po ponownym otwarciu projektu, który jej używa.
-  await strona.evaluate(async () => { const { zapomnij } = await import('./js/moje-czcionki.js'); await zapomnij('lokalny', 'Odreczna'); });
+  await strona.evaluate(async () => { const { zapomnij } = await import('./js/moje-czcionki.js'); await zapomnij(window.seriodruk.stan.uzytkownik.id, 'Odreczna'); });
   await strona.click('#czcionki-zamknij');
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.czcionki.length), 2);
   await doProjektow(strona);

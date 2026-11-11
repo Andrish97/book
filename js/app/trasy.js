@@ -15,7 +15,7 @@ export function przejdzDoTrasy() {
     const t = trasa.odczytaj();
     if (t.ekran === 'udostepnione') { await pokazUdostepniony(t); return; }
     if (document.body.classList.contains('podglad-publiczny')) { location.reload(); return; }
-    if (!stan.uzytkownik && !stan.trybLokalny) return;
+    if (!stan.uzytkownik) return;
     if (t.ekran === 'konto' && stan.uzytkownik) {
       if (stan.projekt) { await zapiszTeraz(); stan.projekt = null; }
       pokazEkran('konto');

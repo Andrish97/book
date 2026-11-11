@@ -27,7 +27,6 @@ test('podgląd: wszystkie strony bez edycji, rozkładówki w parach, powrót do 
 
   // Odświeżenie zostaje w podglądzie.
   await strona.reload();
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
   assert.equal(await strona.locator('.podglad-strona[data-id]').count(), 4);
 

@@ -8,7 +8,6 @@ import { zamknijMenu, $, $$ } from '../ui.js';
 
 export const stan = {
   uzytkownik: null,
-  trybLokalny: false,
   projekt: null,
   indeks: 0, // bieżąca strona
   tryb: 'strona', // 'strona' | 'wzorzec'

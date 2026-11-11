@@ -88,7 +88,7 @@ const TRYBY = {
 };
 
 export class Konto {
-  // opcje: stan, poZalogowaniu(u), trybLokalny(), poWylogowaniu(), doProjektow(),
+  // opcje: stan, poZalogowaniu(u), poWylogowaniu(), doProjektow(),
   //        liczbaProjektow(), usunDaneLokalne(idUzytkownika)
   constructor(opcje) {
     this.o = opcje;
@@ -108,7 +108,6 @@ export class Konto {
     $$('#ekran-logowania .pokaz-haslo, #ekran-konta .pokaz-haslo').forEach(przelacznikWidocznosci);
     this.odswiezZasady = listaZasad($('#zasady-hasla'), f.elements.haslo);
     $('#wyslij-ponownie').addEventListener('click', () => this.wyslijPonownie());
-    $('#tryb-lokalny').addEventListener('click', () => this.o.trybLokalny());
 
     if (!chmura.chmuraSkonfigurowana()) {
       $('#brak-konfiguracji').hidden = false;

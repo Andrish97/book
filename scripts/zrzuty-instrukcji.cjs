@@ -10,7 +10,7 @@
 
 const path = require('path');
 const { chromium, devices } = require('playwright');
-const { otworz: otworzZAtrapa } = require('../tests/pomoc.cjs');
+const { otworz: otworzZAtrapa, podlaczAtrape, zaloguj } = require('../tests/pomoc.cjs');
 
 const ADRES = process.argv[2] || 'http://localhost:8000/';
 // Drugi argument „ciemny” robi ten sam komplet w ciemnym motywie (img/instrukcja/ciemny/).
@@ -23,10 +23,8 @@ const WIDOK = { width: 1280, height: 800 };
 // Konfiguracja z fikcyjnym adresem – tylko po to, by ekran logowania
 // wyglądał jak w działającej aplikacji. Żadne zapytanie nie wychodzi.
 const FAKE_KONFIG = "export const SUPABASE_URL = 'https://przyklad.supabase.co';\nexport const SUPABASE_ANON_KEY = 'sb_publishable_przyklad';\n";
-// Pusta konfiguracja – reszta zrzutów powstaje w trybie bez konta, na
-// przykładowych projektach, bez łączenia z prawdziwą bazą.
-const BEZ_KONFIGU = "export const SUPABASE_URL = '';\nexport const SUPABASE_ANON_KEY = '';\n";
-const bezBazy = (k) => k.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: BEZ_KONFIGU }));
+// Reszta zrzutów powstaje na koncie w atrapie bazy z testów (tests/pomoc.cjs) – na przykładowych
+// projektach, bez łączenia z prawdziwą bazą.
 
 async function zrzut(strona, nazwa, opcje = {}) {
   await strona.waitForTimeout(350);
@@ -222,13 +220,11 @@ async function przykladoweProjekty(strona) {
 
   // ---------- Desktop / tablet w poziomie ----------  // ---------- Desktop / tablet w poziomie ----------
   const kontekst = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block', ...MOTYW });
-  await bezBazy(kontekst);
+  const bazakontekst = await podlaczAtrape(kontekst);
   const s = await kontekst.newPage();
   s.on('pageerror', (e) => console.error('błąd strony:', e.message));
   await s.goto(ADRES);
-  await s.click('#tryb-lokalny');
-  await s.waitForSelector('#dlg-instrukcja[open]');
-  await s.click('[data-akcja="zamknij-instrukcje"]');
+  await zaloguj(s, bazakontekst);
   await przykladoweProjekty(s);
   await s.click('[data-akcja="do-projektow"]:visible');
   await s.waitForSelector('.karta-projektu:not(.szkielet)');
@@ -367,13 +363,11 @@ async function przykladoweProjekty(strona) {
 
   // ---------- Narzędzia precyzji i dane: osobny, mały projekt ----------
   const kp = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block', ...MOTYW });
-  await bezBazy(kp);
+  const bazakp = await podlaczAtrape(kp);
   const d = await kp.newPage();
   d.on('pageerror', (e) => console.error('błąd strony:', e.message));
   await d.goto(ADRES);
-  await d.click('#tryb-lokalny');
-  await d.waitForSelector('#dlg-instrukcja[open]');
-  await d.click('[data-akcja="zamknij-instrukcje"]');
+  await zaloguj(d, bazakp);
   await d.click('[data-akcja="nowy-projekt"]:visible');
   await d.fill('#form-nowy input[name=nazwa]', 'Planer dzienny');
   await d.click('#form-nowy button[value=ok]');
@@ -444,7 +438,6 @@ async function przykladoweProjekty(strona) {
     await window.seriodruk.zapiszTeraz();
   });
   await d.reload();
-  await d.click('#tryb-lokalny');
   await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
   // Strona wczytuje się chwilę po otwarciu projektu (najpierw pobierają się jej czcionki).
   await d.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text?.startsWith('Imieniny')));
@@ -674,12 +667,10 @@ async function przykladoweProjekty(strona) {
 
   // ---------- Telefon ----------
   const tel = await przegladarka.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block', ...MOTYW });
-  await bezBazy(tel);
+  const bazatel = await podlaczAtrape(tel);
   const t = await tel.newPage();
   await t.goto(ADRES);
-  await t.tap('#tryb-lokalny');
-  await t.waitForSelector('#dlg-instrukcja[open]');
-  await t.tap('[data-akcja="zamknij-instrukcje"]');
+  await zaloguj(t, bazatel);
   await przykladoweProjekty(t);
   await t.evaluate(() => window.seriodruk.przejdzDoStrony(window.seriodruk.stan.projekt.strony.findIndex((x) => x.nazwa === 'Styczeń')));
   await t.waitForTimeout(800);
