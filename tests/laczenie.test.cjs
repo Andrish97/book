@@ -179,7 +179,7 @@ test('dwa urządzenia zmieniają różne strony i tabelę danych: obie zmiany zo
   assert.deepEqual(baza.projekty[0].dane.tabele.map((x) => x.nazwa), ['Z telefonu']);
   assert.deepEqual(baza.zapisy.at(-1), { strony: [p.strony[1]], wszystkie: 2 }, 'po połączeniu wysłana tylko strona zmieniona tutaj');
 
-  // Na tym urządzeniu to samo; otwarta strona została, a cofanie zaczyna się od połączonego stanu.
+  // Na tym urządzeniu to samo; otwarta strona została, a historia cofania została (z dołączonymi zmianami z konta).
   const tu = await strona.evaluate(() => {
     const { stan, edytor } = window.seriodruk;
     return {
@@ -190,7 +190,7 @@ test('dwa urządzenia zmieniają różne strony i tabelę danych: obie zmiany zo
       cofnij: document.querySelector('[data-akcja="cofnij"]').disabled,
     };
   });
-  assert.deepEqual(tu, { strony: [['Okładka z telefonu', 2], ['Strona 2', 2]], tabele: ['Z telefonu'], indeks: 1, naPlotnie: 2, cofnij: true });
+  assert.deepEqual(tu, { strony: [['Okładka z telefonu', 2], ['Strona 2', 2]], tabele: ['Z telefonu'], indeks: 1, naPlotnie: 2, cofnij: false });
 
   // Strona z telefonu otwiera się z jego elementem; kolejna zmiana zapisuje się już zwyczajnie.
   await strona.click('#lista-stron li.strona >> nth=0 >> .miniatura');

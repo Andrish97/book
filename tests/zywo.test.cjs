@@ -308,3 +308,64 @@ test('dwa urządzenia na tej samej stronie: przesunięcie na jednym i pisanie na
   assert.equal([...a.baza.strony.values()][0].obiekty.find((o) => o.type.toLowerCase() === 'rect').left, 71);
   assert.deepEqual([a.bledy, b.bledy], [[], []]);
 });
+
+// ---------- Cofanie po połączeniu ----------
+
+test('„Cofnij” po dołączeniu zmian z innego urządzenia cofa tylko własne kroki – zmiany z konta zostają', async (t) => {
+  const a = await otworz(t, { tryb: 'atrapa' });
+  await zaloguj(a.strona);
+  await nowyProjekt(a.strona, 'Cofanie');
+  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await przesunProstokat(a.strona, 20);
+  await a.strona.click('[data-akcja="dodaj-elipse"]');
+  await zapisano(a.strona);
+  const b = await drugieUrzadzenie(a);
+  await zaloguj(b.strona);
+  await otworzZListy(b.strona, 'Cofanie');
+  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((x) => !x.zWzorca).length === 2);
+  await zapisano(b.strona);
+
+  const stanA = () => a.strona.evaluate(() => {
+    const s = window.seriodruk.stan.projekt.strony;
+    const ob = s[0].obiekty;
+    return { rect: ob.find((o) => o.type.toLowerCase() === 'rect')?.left, elipsa: ob.find((o) => o.type.toLowerCase() === 'ellipse')?.left, stron: s.length };
+  });
+  // A: dwa własne kroki – przesunięcie prostokąta, potem nowa strona.
+  await przesunProstokat(a.strona, 35);
+  await a.strona.waitForTimeout(500);
+  await a.strona.click('[data-akcja="strona-dodaj"]');
+  await a.strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
+  await zapisano(a.strona);
+  // B dostaje obie zmiany i przesuwa elipsę.
+  await b.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2, null, { timeout: 8000 });
+  await b.strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
+  await b.strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((x) => x.type === 'ellipse'));
+  await b.strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const o = e.canvas.getObjects().find((x) => x.type === 'ellipse');
+    o.set({ left: 90 }); o.setCoords(); e.zatwierdz();
+  });
+  await zapisano(b.strona);
+  await a.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type.toLowerCase() === 'ellipse')?.left === 90, null, { timeout: 10000 });
+  assert.deepEqual(await stanA(), { rect: 35, elipsa: 90, stron: 2 });
+
+  // Cofnij: znika nowa strona z A; elipsa przesunięta na B zostaje.
+  await a.strona.click('[data-akcja="cofnij"]');
+  await a.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 1);
+  assert.deepEqual(await stanA(), { rect: 35, elipsa: 90, stron: 1 });
+  // Jeszcze raz: wraca dawne położenie prostokąta, elipsa dalej tam, gdzie ją ustawiono na B.
+  await a.strona.click('[data-akcja="cofnij"]');
+  await a.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type.toLowerCase() === 'rect')?.left === 20);
+  assert.deepEqual(await stanA(), { rect: 20, elipsa: 90, stron: 1 });
+  // Ponów dwa razy: z powrotem stan po połączeniu.
+  await a.strona.click('[data-akcja="ponow"]');
+  await a.strona.click('[data-akcja="ponow"]');
+  await a.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
+  assert.deepEqual(await stanA(), { rect: 35, elipsa: 90, stron: 2 });
+  // Cofnięcia idą na konto jak zwykłe zmiany i docierają do B.
+  await a.strona.click('[data-akcja="cofnij"]');
+  await b.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 1, null, { timeout: 10000 });
+  assert.equal(await b.strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type.toLowerCase() === 'ellipse').left), 90);
+  assert.equal(await a.strona.locator('#dlg-konflikt[open]').count() + await b.strona.locator('#dlg-konflikt[open]').count(), 0);
+  assert.deepEqual([a.bledy, b.bledy], [[], []]);
+});

@@ -32,6 +32,13 @@ function takieSame(a, b) {
   });
 }
 
+// Przepisuje migawkę do projektu (w miejscu), w nowych obiektach.
+function odtworz(projekt, m) {
+  const reszta = JSON.parse(m.reszta);
+  RESZTA.forEach((k, n) => { projekt[k] = reszta[n]; });
+  for (const lista of LISTY) projekt[lista] = [...m[lista].values()].map((t) => JSON.parse(t));
+}
+
 // Identyfikatory części, które różnią się między migawkami i istnieją w docelowej.
 function zmienione(z, na, lista) {
   return [...na[lista]].filter(([id, tekst]) => z[lista].get(id) !== tekst).map(([id]) => id);
@@ -63,14 +70,27 @@ export class Historia {
     return true;
   }
 
+  // Przelicza wszystkie kroki (także te „do przodu”): każdy krok jest odtwarzany jako projekt – części spoza
+  // historii bierze z `wzor` – i zmieniany w miejscu przez fn(projekt). Tak zmiany z innego urządzenia trafiają
+  // do każdego kroku: cofanie zdejmuje potem tylko to, co zrobiono tutaj.
+  przelicz(wzor, fn) {
+    let poprzednia = null;
+    this.kroki = this.kroki.map((k) => {
+      const p = { ...wzor };
+      odtworz(p, k);
+      fn(p);
+      poprzednia = migawka(p, poprzednia);
+      return poprzednia;
+    });
+  }
+
   // Przepisuje krok do projektu (w miejscu). Zwraca, co się zmieniło:
   // { strony: [id], wzorce: [id], tabele: [id], reszta: bool }.
   _przejdz(projekt, cel) {
     const z = this.kroki[this.i];
     const na = this.kroki[cel];
     this.i = cel;
-    RESZTA.forEach((k, n) => { projekt[k] = JSON.parse(na.reszta)[n]; });
-    for (const lista of LISTY) projekt[lista] = [...na[lista].values()].map((t) => JSON.parse(t));
+    odtworz(projekt, na);
     return {
       strony: zmienione(z, na, 'strony'), wzorce: zmienione(z, na, 'wzorce'), tabele: zmienione(z, na, 'tabele'),
       reszta: z.reszta !== na.reszta,

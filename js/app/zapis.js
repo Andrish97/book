@@ -419,6 +419,10 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
     const zaznaczony = edytor.aktywny?.id;
     const pisanie = miejscePisania();
     const biezaca = p.strony[stan.indeks]?.id;
+    // Ostatnia zmiana z tego urządzenia, która jeszcze nie stała się krokiem cofania – staje się nim teraz,
+    // żeby po połączeniu dało się ją cofnąć osobno.
+    if (stan.doHistorii) { clearTimeout(stan.timerHistorii); stan.doHistorii = false; historia.zapisz(p); }
+    const staraPodstawa = p.podstawa_chmury;
     const zmienione = zastosujPolaczenie(p, zKonta, ostateczny, wybory);
     const ileZKonta = ostateczny.zKonta + [...wybory.values()].filter((w) => w === 'konto').length;
     p.wersja_chmury = zKonta.wersja_chmury;
@@ -448,10 +452,13 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
         renderujListe();
         odrysujMiniaturyWTle(zmienione.strony);
       }
-      // Cofanie zaczyna się od połączonego stanu – inaczej „Cofnij” zdjęłoby po cichu zmiany z drugiego urządzenia.
-      clearTimeout(stan.timerHistorii);
-      stan.doHistorii = false;
-      historia.wyczysc();
+      // Historia zostaje, ale każdy jej krok dostaje zmiany z drugiego urządzenia – tak samo połączone, z tymi
+      // samymi wyborami. „Cofnij” zdejmuje więc tylko to, co zrobiono tutaj, a zmian z konta nie rusza.
+      // (Krok, w którym to urządzenie zmieniło coś, co zmieniło też konto, a o co nie było pytania, bo później
+      // zostało cofnięte, zostaje przy wersji z tego urządzenia – cofnięcie przywraca dawną własną zmianę.)
+      historia.przelicz(p, (s) => {
+        zastosujPolaczenie(s, zKonta, polaczProjekty(postacDoPorownan(s), kontoDoPorownan, staraPodstawa), wybory);
+      });
       historia.zapisz(p);
       odswiezCofanie();
     }
