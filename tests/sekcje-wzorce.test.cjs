@@ -371,3 +371,104 @@ test('rozkładówki: element wzorca wychodzący przez grzbiet leży na obu stron
   assert.deepEqual(naPlotnie.sort(), [['pas', 100, false], ['pas', 248, true], ['tlo', -3, true], ['tlo', 145, true]].sort());
   assert.deepEqual(bledy, []);
 });
+
+// Kliknięcie w punkt strony podany w milimetrach.
+const klikNaStronie = async (strona, x, y) => {
+  const [px, py] = await strona.evaluate(([mx, my]) => {
+    const c = window.seriodruk.edytor.canvas;
+    const v = c.viewportTransform;
+    const r = c.upperCanvasEl.getBoundingClientRect();
+    return [r.left + mx * v[0] + v[4], r.top + my * v[3] + v[5]];
+  }, [x, y]);
+  await strona.mouse.click(px, py);
+};
+
+test('rozkładówki w widoku jednej strony: widać elementy sąsiedniej strony przechodzące przez grzbiet (także z wzorca) – bez zaznaczania i bez zapisu na tej stronie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowaKsiazka(strona, 3);
+  await przejdz(strona, 1);
+  // Czerwony pas przez grzbiet (środek na prawej stronie), zielony kwadrat na lewej nad pasem, szary kwadrat na
+  // prawej z dala od grzbietu. Wzorzec: niebieski pas od 100 mm do 60 mm za krawędzią strony.
+  await strona.evaluate(async () => {
+    const { stan, edytor: e, zapiszTeraz, przeladuj } = window.seriodruk;
+    const pas = e.dodajProstokat(); pas.set({ left: 60, top: 40, width: 180, height: 30, fill: '#ff0000', strokeWidth: 0, nazwa: 'pas' }); pas.setCoords();
+    const kwadrat = e.dodajProstokat(); kwadrat.set({ left: 90, top: 30, width: 40, height: 50, fill: '#00ff00', strokeWidth: 0, nazwa: 'kwadrat' }); kwadrat.setCoords();
+    const daleko = e.dodajProstokat(); daleko.set({ left: 148 + 90, top: 120, width: 30, height: 30, fill: '#888888', strokeWidth: 0, nazwa: 'daleko' }); daleko.setCoords();
+    e.canvas.discardActiveObject();
+    e.zatwierdz();
+    await zapiszTeraz();
+    const p = stan.projekt;
+    const s = p.sekcje[0];
+    p.wzorce.push({ id: 'wz_pas', nazwa: 'Pas', wydruk: { ...s.wydruk }, lustro: false, tlo: null, obiekty: [
+      { type: 'rect', version: '5.3.0', left: 100, top: 90, width: 108, height: 20, fill: '#0000ff', strokeWidth: 0, id: 'pas_wzorca' },
+    ] });
+    s.wzorce = ['wz_pas'];
+    for (const st of p.strony) st.wzorce = 'z_sekcji';
+    localStorage.setItem('seriodruk:jedna-strona', '1');
+    await przeladuj();
+  });
+  const zapis = () => strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.obiekty.map((o) => o.nazwa)));
+  assert.deepEqual(await zapis(), [[], ['kwadrat'], ['pas', 'daleko']]);
+  const stan = () => strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const z = (x) => Math.round(x * 100) / 100;
+    return {
+      rozkladowka: e.rozkladowka, indeks: window.seriodruk.stan.indeks,
+      plotno: e.canvas.getObjects().map((o) => `${o.nazwa || o.id}${o.zSasiedniej ? '*' : ''}${o.zWzorca && !o.zSasiedniej ? ' (wzorzec)' : ''}`),
+      sasiednie: e.elementySasiedniejStrony.map((o) => [o.nazwa || o.id, z(o.left), o.selectable, Boolean(o.excludeFromExport)]),
+      warstwy: e.warstwy().map((w) => w.opis),
+      zeWzorcow: e.warstwyZeWzorcow().map((w) => w.opis),
+      aktywny: e.aktywny?.nazwa || null,
+    };
+  });
+  // Kolor płótna edytora w punkcie strony (mm).
+  const kolor = (x, y) => strona.evaluate(([mx, my]) => {
+    const c = window.seriodruk.edytor.canvas;
+    c.discardActiveObject();
+    c.renderAll();
+    const v = c.viewportTransform;
+    const r = c.getRetinaScaling();
+    return [...c.lowerCanvasEl.getContext('2d').getImageData(Math.round((mx * v[0] + v[4]) * r), Math.round((my * v[3] + v[5]) * r), 1, 1).data].slice(0, 3).join(',');
+  }, [x, y]);
+
+  // Lewa strona osobno: czerwony pas z prawej strony jest widoczny (od 60 mm), pod zielonym kwadratem.
+  let s = await stan();
+  assert.deepEqual([s.rozkladowka, s.indeks], [false, 1]);
+  assert.deepEqual(s.plotno, ['pas_wzorca (wzorzec)', 'pas*', 'kwadrat']);
+  assert.deepEqual(s.sasiednie, [['pas', 60, false, true]]);
+  assert.deepEqual([s.warstwy, s.zeWzorcow.length], [['kwadrat'], 1], 'na liście warstw są tylko elementy tej strony i jej wzorca');
+  assert.deepEqual([await kolor(70, 55), await kolor(110, 55), await kolor(30, 55), await kolor(140, 55)], ['255,0,0', '0,255,0', '255,255,255', '255,0,0']);
+  // Kliknięcie pasa niczego nie zaznacza – aplikacja mówi, czyj to element, i proponuje rozkładówkę.
+  await klikNaStronie(strona, 70, 45);
+  s = await stan();
+  assert.equal(s.aktywny, null);
+  assert.match(await strona.textContent('#powiadomienie'), /Ten element leży na sąsiedniej stronie i przechodzi przez grzbiet/);
+  // Zmiana na tej stronie i zapis: pas nie trafia do tej strony ani nie znika z sąsiedniej.
+  await strona.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    const k = e.canvas.getObjects().find((o) => o.nazwa === 'kwadrat');
+    k.set({ top: 32 }); k.setCoords();
+    e.zatwierdz();
+    await window.seriodruk.zapiszTeraz();
+  });
+  assert.deepEqual(await zapis(), [[], ['kwadrat'], ['pas', 'daleko']]);
+
+  // Prawa strona osobno: z lewej strony zachodzi tylko niebieski pas jej wzorca (0–60 mm); zielony kwadrat nie.
+  await przejdz(strona, 2);
+  s = await stan();
+  assert.deepEqual([s.rozkladowka, s.indeks], [false, 2]);
+  assert.deepEqual(s.sasiednie, [['pas_wzorca', -48, false, true]]);
+  assert.deepEqual(s.warstwy, ['daleko', 'pas']);
+  assert.deepEqual([await kolor(30, 100), await kolor(80, 100), await kolor(120, 100), await kolor(30, 55)], ['0,0,255', '255,255,255', '0,0,255', '255,0,0']);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.deepEqual(await zapis(), [[], ['kwadrat'], ['pas', 'daleko']]);
+
+  // Przycisk z podpowiedzi wraca do rozkładówki – wszystko jest zwykłymi elementami.
+  await przejdz(strona, 1);
+  await klikNaStronie(strona, 70, 45);
+  await strona.click('#powiadomienie button:has-text("Pokaż rozkładówkę")');
+  await strona.waitForFunction(() => window.seriodruk.edytor.rozkladowka === true);
+  s = await stan();
+  assert.deepEqual([s.sasiednie, s.warstwy.slice().sort()], [[], ['daleko', 'kwadrat', 'pas']]);
+  assert.deepEqual(bledy, []);
+});

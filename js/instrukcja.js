@@ -221,6 +221,7 @@ export const ROZDZIALY = [
       'Gruba ciemna linia to <b>grzbiet</b>. Tekstu i drobnych elementów nie kładź tuż przy nim – po zszyciu może ich nie być widać. Aplikacja ostrzega o elemencie, który tylko wystaje w pas przy grzbiecie; o takim, który świadomie leży na obu stronach, już nie.',
       'Pierwsza strona sekcji jest zwykle prawa i stoi sama – tak jak pierwsza strona książki. Zmienisz to w ustawieniach sekcji.',
       'Na liście stron rozkładówki są pokazane parami.',
+      'Na małym ekranie możesz w menu widoku włączyć <b>W rozkładówkach pokazuj jedną stronę</b>. Widać wtedy także to, co z <b>sąsiedniej strony</b> przechodzi przez grzbiet na tę (np. pas na całą rozkładówkę, także z wzorca) – przycięte do tej strony ze spadem. Takich elementów nie da się tu zaznaczyć ani zmienić; kliknięcie podpowiada przejście do widoku rozkładówki.',
     ],
   },
   {

@@ -357,6 +357,13 @@ edytor.addEventListener('zaznaczenie', (e) => {
 edytor.addEventListener('zmiana', zaplanujZapis);
 // Kursor w połączonym tekście doszedł do ramki na innej stronie – aplikacja otwiera tę stronę i pisanie idzie dalej.
 edytor.addEventListener('pisanie-na-innej-stronie', (e) => { piszNaInnejStronie(e.detail); });
+// Widok jednej strony rozkładówki: kliknięty element należy do sąsiedniej strony i tylko zachodzi na tę.
+edytor.addEventListener('element-sasiedniej-strony', () => {
+  powiadom('Ten element leży na sąsiedniej stronie i przechodzi przez grzbiet. Zmienisz go na jego stronie albo w widoku rozkładówki.', false, {
+    etykieta: 'Pokaż rozkładówkę',
+    fn: () => { const p = $('#widok-jedna'); p.checked = false; p.dispatchEvent(new Event('change')); },
+  });
+});
 edytor.addEventListener('rysowanie', (e) => {
   $('[data-akcja="rysuj"]').setAttribute('aria-pressed', String(e.detail));
   if (e.detail) powiadom('Rysowanie odręczne: przeciągaj po stronie. Esc albo ponowne kliknięcie „Rysuj” kończy.');

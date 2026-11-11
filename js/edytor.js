@@ -94,6 +94,8 @@ export class Edytor extends EventTarget {
     for (const zdarzenie of ['selection:created', 'selection:updated', 'selection:cleared']) {
       c.on(zdarzenie, () => this._pilnujOtwartej());
     }
+    // Element sąsiedniej strony (widok jednej strony rozkładówki) – nie da się go tu zmienić.
+    c.on('mouse:down', (e) => { if (e.target?.zSasiedniej) this.dispatchEvent(new Event('element-sasiedniej-strony')); });
     // Otwarta grupa: przeciągnięcie od pustego miejsca w jej ramce zaznacza elementy objęte ramką.
     c.on('mouse:down:before', (e) => this._zacznijRamkeGrupy(e));
     c.on('mouse:up:before', (e) => this._zakonczRamkeGrupy(e));
@@ -295,10 +297,15 @@ export class Edytor extends EventTarget {
 
   // strony: [{ id, obiekty, tlo, warstwy }] – jedna albo dwie (lewa, prawa),
   // tyle samo, ile zestawów marginesów dostało ustawWydruk.
+  // Jedna strona rozkładówki może mieć pole `sasiednia`: { bok: 'lewa' | 'prawa', obiekty, warstwy } – drugą
+  // stronę tej rozkładówki. Jej elementy, które przechodzą przez grzbiet, są wtedy widoczne na tej stronie
+  // (przycięte do niej ze spadem), ale nie da się ich tu zmienić ani zapisać – należą do sąsiedniej strony.
   async wczytajArkusz(strony, zasoby) {
     this._poza = [];
-    await zapewnijCzcionki(strony.flatMap((s) => s.obiekty || [])); // tekst mierzy się właściwą czcionką
-    await przygotujKopie(zasoby, strony.flatMap((s) => s.obiekty || []));
+    const sasiednia = strony.length === 1 ? strony[0].sasiednia || null : null;
+    const doWczytania = [...strony.flatMap((s) => s.obiekty || []), ...(sasiednia?.obiekty || [])];
+    await zapewnijCzcionki(doWczytania); // tekst mierzy się właściwą czcionką
+    await przygotujKopie(zasoby, doWczytania);
     const w = this.wydruk.szerokosc_mm;
     const b = this.wydruk.spad_mm;
     const h = this.wydruk.wysokosc_mm;
@@ -329,14 +336,42 @@ export class Edytor extends EventTarget {
         }
       }
     });
+    // Widok jednej strony: elementy wzorca sąsiedniej strony, które wychodzą przez grzbiet dalej niż na spad.
+    const przesuniecie = sasiednia ? (sasiednia.bok === 'lewa' ? -w : w) : 0;
+    const kadrStrony = () => new fabric.Rect({ left: -b, top: -b, width: w + 2 * b, height: h + 2 * b, absolutePositioned: true });
+    if (sasiednia) {
+      for (const rodzaj of ['pod', 'nad']) {
+        for (const o of sasiednia.warstwy?.[rodzaj] || []) {
+          if (!wzorzecPrzezGrzbiet(o, sasiednia.bok, w, b)) continue;
+          o.set({ left: o.left + przesuniecie, zSasiedniej: true, clipPath: kadrStrony() });
+          o.setCoords();
+          this._warstwy[rodzaj].push(o);
+        }
+      }
+    }
     this._wczytywanie = true;
     this._zapomnijOtwarta();
     this.canvas.discardActiveObject();
-    const json = strony.length > 1
-      ? scalRozkladowke(strony[0].obiekty, strony[1].obiekty).map(({ o, bok }) => (bok === 'prawa' ? { ...o, left: (o.left || 0) + w } : o))
-      : strony[0].obiekty;
+    let json = strony[0].obiekty;
+    if (strony.length > 1) json = scalRozkladowke(strony[0].obiekty, strony[1].obiekty).map(({ o, bok }) => (bok === 'prawa' ? { ...o, left: (o.left || 0) + w } : o));
+    else if (sasiednia) {
+      // Kolejność jak na wspólnym płótnie rozkładówki; elementy sąsiedniej strony dostają znacznik.
+      const lewe = sasiednia.bok === 'lewa' ? sasiednia.obiekty : strony[0].obiekty;
+      const prawe = sasiednia.bok === 'lewa' ? strony[0].obiekty : sasiednia.obiekty;
+      json = scalRozkladowke(lewe || [], prawe || []).map(({ o, bok }) => (bok === sasiednia.bok ? { ...o, left: (o.left || 0) + przesuniecie, zSasiedniej: true } : o));
+    }
     const obiekty = podmienZasoby(json, zrodloObrazu(zasoby));
     await this.canvas.loadFromJSON({ objects: obiekty });
+    if (sasiednia) {
+      // Zostają tylko te elementy sąsiedniej strony, które naprawdę zachodzą na tę stronę (ze spadem).
+      for (const o of this.canvas.getObjects().filter((x) => x.zSasiedniej && !x.zWzorca)) {
+        o.setCoords();
+        const r = o.getBoundingRect();
+        const zachodzi = sasiednia.bok === 'lewa' ? r.left + r.width > -b + 0.01 : r.left < w + b - 0.01;
+        if (!zachodzi) { this.canvas.remove(o); continue; }
+        o.set({ zWzorca: true, selectable: false, evented: true, excludeFromExport: true, hoverCursor: 'default', clipPath: kadrStrony() });
+      }
+    }
     for (const o of this.canvas.getObjects()) if (!o.id) o.id = uid('o'); // starsze projekty
     this._dodajWzorce();
     this._zastosujBlokady();
@@ -362,6 +397,11 @@ export class Edytor extends EventTarget {
     for (let i = pod.length - 1; i >= 0; i -= 1) this.canvas.sendObjectToBack(pod[i]);
     for (const o of nad) this.canvas.bringObjectToFront(o);
     this._wczytywanie = bylo;
+  }
+
+  // Elementy sąsiedniej strony rozkładówki widoczne w widoku jednej strony (zachodzą przez grzbiet).
+  get elementySasiedniejStrony() {
+    return this.canvas.getObjects().filter((o) => o.zSasiedniej);
   }
 
   get maWzorce() {
@@ -2911,7 +2951,7 @@ export class Edytor extends EventTarget {
   // Elementy wzorców widoczne na tej stronie, od wierzchu: [{ id, opis, wzorzec, idWzorca, nad }].
   // Nie da się ich tu zmienić – edytuje się je we wzorcu.
   warstwyZeWzorcow() {
-    return this.canvas.getObjects().filter((o) => o.zWzorca).reverse().map((o) => ({
+    return this.canvas.getObjects().filter((o) => o.zWzorca && !o.zSasiedniej).reverse().map((o) => ({
       id: o.id, typ: o.type, opis: opisObiektu(o), wzorzec: o.nazwaWzorca || 'wzorzec', idWzorca: o.idWzorca || null, nad: o.warstwa === 'nad',
     }));
   }
