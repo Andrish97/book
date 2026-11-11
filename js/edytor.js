@@ -127,6 +127,23 @@ export class Edytor extends EventTarget {
       if (this._pioro) this._pioro.ciagnie = null;
       if (this._punkty) this._punkty.ciagnie = null;
     });
+    // Dotyk: przeglądarka nie zgłasza podwójnego kliknięcia na płótnie, więc dwa szybkie stuknięcia w to samo
+    // miejsce (bez przesuwania palca) działają jak podwójne kliknięcie – komórka tabeli, grupa, obraz, punkty.
+    c.on('mouse:down', (e) => { if (/touch/.test(e.e?.type || '') || e.e?.pointerType === 'touch') this._stukniecie = { ...this._stukniecie, dol: c.getViewportPoint(e.e) }; });
+    c.on('mouse:up', (e) => {
+      const dotyk = /touch/.test(e.e?.type || '') || e.e?.pointerType === 'touch';
+      if (!dotyk || !this._stukniecie?.dol) return;
+      const p = c.getViewportPoint(e.e);
+      const s = this._stukniecie;
+      if (Math.hypot(p.x - s.dol.x, p.y - s.dol.y) > 10) { this._stukniecie = null; return; } // palec przesunął element
+      const teraz = Date.now();
+      if (s.czas && teraz - s.czas < 400 && Math.hypot(p.x - s.x, p.y - s.y) < 24) {
+        this._stukniecie = null;
+        c.fire('mouse:dblclick', { e: e.e, target: e.target, scenePoint: c.getScenePoint(e.e), viewportPoint: p });
+        return;
+      }
+      this._stukniecie = { czas: teraz, x: p.x, y: p.y };
+    });
     c.on('mouse:dblclick', (e) => {
       if (this._pioro) this.zakonczKsztaltPiora();
       else if (this._punkty && e.scenePoint && !this._wezelPod(e.scenePoint)) this.dodajPunkt(e.scenePoint);

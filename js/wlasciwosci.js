@@ -921,9 +921,8 @@ export class PanelWlasciwosci {
     // Zamknięty kształt (z pióra) może mieć wypełnienie.
     if (obj.path?.some((k) => k[0] === 'Z')) s.append(this.kolor('Wypełnienie', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
     const punkty = this.akcje([['suwaki', 'Edytuj punkty', () => { if (!this.edytor.edytujPunkty(obj)) powiadom('Punkty edytuje się w kształcie, który nie jest zablokowany. Kształt w grupie: najpierw kliknij grupę dwa razy.'); }]]);
-    punkty.classList.add('tylko-duzy-ekran');
     s.append(punkty);
-    s.append(this.wskazowka('Albo kliknij kształt dwa razy.'));
+    s.append(this.wskazowka('Albo kliknij kształt dwa razy (na ekranie dotykowym: stuknij dwa razy).'));
   }
 
   zbudujObraz(obj) {
