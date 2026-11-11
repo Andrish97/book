@@ -13,6 +13,8 @@
 // Zamiast stałego kroku może mieć `zmiana`: nazwę kolumny tabeli głównej – wtedy
 // przechodzi do następnego wiersza, gdy wartość w tej kolumnie się zmieni
 // (np. tabela miesięcy przy kolumnie `miesiac` tabeli dni: 31, 28, 30… stron).
+// `zmiana` może też być listą kolumn (np. ['miesiac', 'rok']): nowy wiersz, gdy zmieni
+// się wartość w którejkolwiek z nich – grudzień 2027 i grudzień 2028 to dwa różne okresy.
 //
 // rozwin(projekt) zwraca „ciąg”: wszystkie egzemplarze stron w kolejności
 // wydruku, z numerami, stroną rozkładówki i wierszem danych.
@@ -32,15 +34,22 @@ export const tabelaSerii = (projekt, seria) => projekt.tabele.find((t) => t.id =
 //  - tryb 'tabela', układ 'szeroki': jeden wiersz = jeden cały blok,
 //  - tryb 'tabela', układ 'dlugi': jeden wiersz = jedna strona bloku,
 //  - tryb 'stala': zadana liczba razy (dane z tabeli, jeśli jest, idą w kółko).
+// Kolumny z ustawienia `zmiana` (napis albo lista) jako lista bez powtórzeń.
+export const kolumnyZmiany = (zmiana) => [...new Set((Array.isArray(zmiana) ? zmiana : [zmiana]).filter((k) => typeof k === 'string' && k))];
+
+// Lista kolumn z powrotem do zapisu: jedna kolumna to napis (jak w starszych projektach), kilka – lista, żadna – brak.
+export const zapisZmiany = (kolumny) => (kolumny.length > 1 ? kolumny : (kolumny[0] || undefined));
+
 // Tabele dodatkowe serii, tylko te, które istnieją: [{ tabela, co, pierwszy, zmiana }].
-// `zmiana` jest ustawiona tylko wtedy, gdy tabela główna naprawdę ma taką kolumnę – inaczej działa stały krok.
+// `zmiana` (napis albo lista kolumn) zawiera tylko kolumny, które tabela główna naprawdę ma; gdy nie ma żadnej,
+// jest pusta i działa stały krok.
 export function tabeleDodatkowe(projekt, seria) {
   const glowna = tabelaSerii(projekt, seria);
   return (seria?.dodatkowe || []).map((d) => {
     const tabela = projekt.tabele.find((t) => t.id === d.tabela);
     const co = Math.max(1, Math.round(d.co) || 1);
     const pierwszy = Math.min(co, Math.max(1, Math.round(d.pierwszy) || co));
-    const zmiana = d.zmiana && glowna?.kolumny.includes(d.zmiana) ? d.zmiana : null;
+    const zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).filter((k) => glowna?.kolumny.includes(k))) || null;
     return tabela ? { tabela, co, pierwszy, zmiana } : null;
   }).filter(Boolean);
 }
@@ -133,8 +142,9 @@ export function rozwin(projekt) {
           dodatkowe: dodatkowe.map((d) => {
             let nr;
             if (d.zmiana) {
-              // Nowy wiersz, gdy zmieni się wartość w kolumnie tabeli głównej; strona bez danych niczego nie zmienia.
-              const v = wiersz && nrWiersza < wiersze.length ? String(wiersz[d.zmiana] ?? '').trim() : d.poprzednia;
+              // Nowy wiersz, gdy zmieni się wartość w kolumnie tabeli głównej (przy kilku kolumnach – w którejkolwiek);
+              // strona bez danych niczego nie zmienia.
+              const v = wiersz && nrWiersza < wiersze.length ? kolumnyZmiany(d.zmiana).map((k) => String(wiersz[k] ?? '').trim()).join('\n') : d.poprzednia;
               if (d.poprzednia !== undefined && v !== d.poprzednia) d.nr += 1;
               d.poprzednia = v;
               nr = d.nr;
@@ -228,9 +238,9 @@ export function wartosciPol(projekt, egz, ciag) {
     return s ? ciag.sekcje.get(s.id).lista : null;
   };
   const glowna = egz.seria ? tabelaSerii(projekt, egz.seria) : null;
-  const zrodla = [...(glowna && egz.wiersz ? [{ tabela: glowna, wiersz: egz.wiersz }] : []), ...egz.dodatkowe];
+  const zrodla = [...(glowna && egz.wiersz ? [{ tabela: glowna, wiersz: egz.wiersz, nrWiersza: egz.nrWiersza }] : []), ...egz.dodatkowe];
   const tabele = zrodla.map((z) => z.tabela);
-  return (nazwa, zapis) => {
+  const wartosc = (nazwa, zapis) => {
     // Kolumna tabeli głównej albo dodatkowej; „Tabela.kolumna” wskazuje tabelę wprost.
     // Gdy tabeli dodatkowej zabrakło wierszy, pole jest znane, ale puste.
     const pole = tabele.length ? polePoTabelach(nazwa, tabele) : null;
@@ -262,4 +272,17 @@ export function wartosciPol(projekt, egz, ciag) {
       default: return undefined;
     }
   };
+  // Wygląd komórki przeniesiony z arkusza (pogrubienie, kursywa, kolor liter) jako formatowanie fragmentu tekstu
+  // – tylko dla pól z tabel, które go mają i nie mają go wyłączonego.
+  if (tabele.some((t) => t.wyglad && !t.wyglad_wyl)) {
+    wartosc.wyglad = (nazwa) => {
+      const pole = polePoTabelach(nazwa, tabele);
+      if (!pole || !pole.tabela.wyglad || pole.tabela.wyglad_wyl) return null;
+      const nr = zrodla.find((z) => z.tabela === pole.tabela).nrWiersza;
+      const w = pole.tabela.wyglad[nr]?.[pole.tabela.kolumny.indexOf(pole.kolumna)];
+      if (!w) return null;
+      return { ...(w.pogrubienie ? { fontWeight: 'bold' } : {}), ...(w.kursywa ? { fontStyle: 'italic' } : {}), ...(w.kolor ? { fill: w.kolor } : {}) };
+    };
+  }
+  return wartosc;
 }

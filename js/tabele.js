@@ -3,8 +3,12 @@
 // je widać w arkuszu.
 
 import { biblioteka } from './biblioteki.js';
+import { wygladArkuszy } from './arkusz-wyglad.js';
 
 const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+// Arkusz pomocniczy z wartościami list rozwijanych (ukryty; przy imporcie pomijany, tak jak „Instrukcja”).
+const ARKUSZ_LIST = 'Listy rozwijane';
 
 // Biblioteka do plików Excela jest duża, więc wczytuje się dopiero przy imporcie.
 const xlsx = () => biblioteka(XLSX_URL, 'XLSX', 'obsługi plików Excela');
@@ -88,11 +92,27 @@ export async function wczytajPlik(plik) {
   if (/\.(xlsx|xlsm|xls|ods)$/i.test(plik.name)) {
     const XLSX = await xlsx();
     const skoroszyt = XLSX.read(bufor, { type: 'array' });
-    // Arkusz „Instrukcja” z szablonu danych to objaśnienia, nie dane.
-    const arkusze = skoroszyt.SheetNames.filter((n) => skoroszyt.SheetNames.length === 1 || n.trim().toLowerCase() !== 'instrukcja');
+    // Arkusze „Instrukcja” i „Listy rozwijane” z szablonu danych to objaśnienia i wartości list, nie dane.
+    const pomocnicze = ['instrukcja', ARKUSZ_LIST.toLowerCase()];
+    const arkusze = skoroszyt.SheetNames.filter((n) => skoroszyt.SheetNames.length === 1 || !pomocnicze.includes(n.trim().toLowerCase()));
+    // Pogrubienia, kursywa i kolory liter komórek (tylko pliki .xlsx i .xlsm); błąd odczytu wyglądu nie psuje importu.
+    let wyglad = new Map();
+    if (/\.xls[xm]$/i.test(plik.name)) { try { wyglad = await wygladArkuszy(bufor); } catch { wyglad = new Map(); } }
     const tabele = arkusze.map((nazwa) => {
-      const dane = XLSX.utils.sheet_to_json(skoroszyt.Sheets[nazwa], { header: 1, raw: false, defval: '' });
-      return { nazwa: skoroszyt.SheetNames.length > 1 ? nazwa : bezRozszerzenia(plik.name), ...zWierszy(dane) };
+      const arkusz = skoroszyt.Sheets[nazwa];
+      const dane = XLSX.utils.sheet_to_json(arkusz, { header: 1, raw: false, defval: '' });
+      const tabela = { nazwa: skoroszyt.SheetNames.length > 1 ? nazwa : bezRozszerzenia(plik.name), ...zWierszy(dane) };
+      const komorki = wyglad.get(nazwa);
+      if (komorki && arkusz['!ref']) {
+        // Wiersz 0 danych to nagłówki; dane zaczynają się w lewym górnym rogu zajętego obszaru arkusza.
+        const { s: poczatek } = XLSX.utils.decode_range(arkusz['!ref']);
+        const zArkusza = tabela.wiersze.map((_, w) => {
+          const wiersz = tabela.kolumny.map((__, k) => komorki.get(`${poczatek.r + 1 + w},${poczatek.c + k}`) || null);
+          return wiersz.some(Boolean) ? wiersz : null;
+        });
+        if (zArkusza.some(Boolean)) tabela.wyglad = zArkusza;
+      }
+      return tabela;
     }).filter((t) => t.wiersze.length || t.kolumny.some((k) => k && !/^kolumna_\d+$/.test(k)));
     if (!tabele.length) throw new Error('W pliku nie ma danych.');
     return tabele;
@@ -102,11 +122,75 @@ export async function wczytajPlik(plik) {
   return [{ nazwa: bezRozszerzenia(plik.name), ...zWierszy(parsujTekst(tekst)) }];
 }
 
-// Arkusze [{ nazwa, wiersze }] → plik Excela (wszystkie komórki jako tekst).
+const naXml = (v) => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// Litera kolumny arkusza: 0 → A, 25 → Z, 26 → AA.
+function literaKolumny(k) {
+  let n = k + 1;
+  let wynik = '';
+  while (n > 0) { n -= 1; wynik = String.fromCharCode(65 + (n % 26)) + wynik; n = Math.floor(n / 26); }
+  return wynik;
+}
+
+// Wpis <dataValidations> arkusza. listy: [{ kolumna (numer od 0), wartosci, scisla, zrodlo? }]; `zrodlo` to zakres
+// w arkuszu pomocniczym (gdy wartości nie da się wpisać wprost). Lista ścisła nie przyjmuje innych wartości;
+// zwykła tylko podpowiada (komórka przyjmie też np. punkt w procentach albo nazwę pliku, którego jeszcze nie ma).
+function xmlList(listy, wierszy) {
+  const wpisy = listy.map((l) => {
+    const zakres = `${literaKolumny(l.kolumna)}2:${literaKolumny(l.kolumna)}${Math.max(1000, wierszy + 200)}`;
+    const formula = l.zrodlo || `"${l.wartosci.map((v) => v.replace(/"/g, '""')).join(',')}"`;
+    const blad = l.scisla
+      ? ' showErrorMessage="1" errorStyle="stop" errorTitle="Wartość spoza listy" error="Wybierz jedną z wartości z listy."'
+      : ' showErrorMessage="0"';
+    return `<dataValidation type="list" allowBlank="1" showInputMessage="1"${blad} sqref="${zakres}"><formula1>${naXml(formula)}</formula1></dataValidation>`;
+  });
+  return `<dataValidations count="${wpisy.length}">${wpisy.join('')}</dataValidations>`;
+}
+
+// Elementy arkusza, które w pliku muszą stać po sprawdzaniu poprawności (kolejność wymagana przez format).
+const PO_LISTACH = ['hyperlinks', 'printOptions', 'pageMargins', 'pageSetup', 'headerFooter', 'rowBreaks', 'colBreaks', 'customProperties', 'cellWatches', 'ignoredErrors', 'smartTags', 'drawing', 'legacyDrawing', 'legacyDrawingHF', 'picture', 'oleObjects', 'controls', 'webPublishItems', 'tableParts', 'extLst'];
+
+// Biblioteka arkuszy nie zapisuje list rozwijanych, więc dopisujemy je do gotowego pliku (to archiwum ZIP z plikami XML).
+async function dopiszListy(bajty, listyArkuszy) {
+  const JSZip = await biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
+  const zip = await JSZip.loadAsync(bajty);
+  for (const [nr, { listy, wierszy }] of listyArkuszy) {
+    const plik = zip.file(`xl/worksheets/sheet${nr + 1}.xml`);
+    if (!plik) continue;
+    const xml = await plik.async('string');
+    const miejsca = PO_LISTACH.map((el) => xml.search(new RegExp(`<${el}[\\s/>]`))).filter((i) => i >= 0);
+    const gdzie = miejsca.length ? Math.min(...miejsca) : xml.lastIndexOf('</worksheet>');
+    if (gdzie < 0) continue;
+    zip.file(`xl/worksheets/sheet${nr + 1}.xml`, xml.slice(0, gdzie) + xmlList(listy, wierszy) + xml.slice(gdzie));
+  }
+  return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
+}
+
+// Arkusze [{ nazwa, wiersze, listy? }] → plik Excela (wszystkie komórki jako tekst).
+// listy: [{ kolumna (numer od 0), wartosci: [tekst], scisla? }] – lista rozwijana w komórkach tej kolumny (od drugiego wiersza).
 export async function doXlsx(arkusze) {
   const XLSX = await xlsx();
   const skoroszyt = XLSX.utils.book_new();
   const uzyte = new Set();
+  // Listy, których wartości nie da się wpisać wprost do reguły (przecinek w wartości, razem ponad 250 znaków),
+  // biorą wartości z arkusza pomocniczego – każda lista to jedna jego kolumna.
+  const pomocnicze = [];
+  const listyArkuszy = new Map();
+  arkusze.forEach((a, nr) => {
+    const listy = (a.listy || []).map((l) => ({ ...l, wartosci: [...new Set(l.wartosci.map((v) => String(v ?? '').trim()).filter(Boolean))] })).filter((l) => l.wartosci.length && l.kolumna >= 0);
+    for (const l of listy) {
+      const wprost = l.wartosci.every((v) => !v.includes(',')) && l.wartosci.join(',').length <= 250;
+      if (wprost) continue;
+      pomocnicze.push(l.wartosci);
+      const litera = literaKolumny(pomocnicze.length - 1);
+      l.zrodlo = `'${ARKUSZ_LIST}'!$${litera}$1:$${litera}$${l.wartosci.length}`;
+    }
+    if (listy.length) listyArkuszy.set(nr, { listy, wierszy: a.wiersze.length });
+  });
+  if (pomocnicze.length) {
+    const dlugosc = Math.max(...pomocnicze.map((p) => p.length));
+    arkusze = [...arkusze, { nazwa: ARKUSZ_LIST, ukryty: true, wiersze: Array.from({ length: dlugosc }, (_, w) => pomocnicze.map((p) => p[w] ?? '')) }];
+  }
   for (const a of arkusze) {
     const arkusz = XLSX.utils.aoa_to_sheet(a.wiersze.map((w) => w.map((v) => String(v ?? ''))));
     const kolumn = Math.max(1, ...a.wiersze.map((w) => w.length));
@@ -117,7 +201,10 @@ export async function doXlsx(arkusze) {
     uzyte.add(nazwa.toLowerCase());
     XLSX.utils.book_append_sheet(skoroszyt, arkusz, nazwa);
   }
-  return new Blob([XLSX.write(skoroszyt, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  if (arkusze.some((a) => a.ukryty)) skoroszyt.Workbook = { Sheets: arkusze.map((a) => ({ Hidden: a.ukryty ? 1 : 0 })) };
+  let bajty = XLSX.write(skoroszyt, { bookType: 'xlsx', type: 'array' });
+  if (listyArkuszy.size) bajty = await dopiszListy(bajty, listyArkuszy);
+  return new Blob([bajty], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
 // Tabela → CSV ze średnikami (tak otwiera go polski Excel), z BOM dla polskich znaków.
@@ -159,10 +246,11 @@ export function zmienNazwePola(projekt, stara, nowa, dotyczy = () => true) {
         if (nowy !== o.text) { o.text = nowy; zmienione += 1; }
       }
       if (o.pole?.kolumna === stara) { o.pole.kolumna = nowa; zmienione += 1; }
-      // Kolor i przesunięcie zależne od tej kolumny.
+      if (o.pole?.kadr_z === stara) { o.pole.kadr_z = nowa; zmienione += 1; }
+      // Kolor, przesunięcie, rozmiar i widoczność zależne od tej kolumny.
       const z = o.z_danych;
       if (z?.kolor === stara) { z.kolor = nowa; zmienione += 1; }
-      for (const os of ['x', 'y', 'widok']) if (z?.[os]?.pole === stara) { z[os].pole = nowa; zmienione += 1; }
+      for (const os of ['x', 'y', 'widok', 'szer', 'wys']) if (z?.[os]?.pole === stara) { z[os].pole = nowa; zmienione += 1; }
       if (z?.obrot === stara) { z.obrot = nowa; zmienione += 1; }
       if (Array.isArray(o.objects)) popraw(o.objects);
     }

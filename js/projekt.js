@@ -143,7 +143,30 @@ export function normalizujTabele(t, i = 0) {
   const wiersze = (Array.isArray(t?.wiersze) ? t.wiersze : []).map((w) => kolumny.map((_, k) => String((Array.isArray(w) ? w[k] : '') ?? '')));
   // Kolumny, w których wartości nie mogą się powtarzać (pilnowane w oknie danych i przed drukiem).
   const unikalne = (Array.isArray(t?.unikalne) ? t.unikalne : []).filter((k) => kolumny.includes(k));
-  return { id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze, ...(unikalne.length ? { unikalne } : {}) };
+  // Listy dozwolonych wartości kolumn: { kolumna: [wartości] } – podświetlanie w oknie danych, lista rozwijana w szablonie.
+  const listy = {};
+  for (const [k, wartosci] of Object.entries(t?.listy && typeof t.listy === 'object' ? t.listy : {})) {
+    const czyste = [...new Set((Array.isArray(wartosci) ? wartosci : []).map((v) => String(v ?? '').trim()).filter(Boolean))];
+    if (kolumny.includes(k) && czyste.length) listy[k] = czyste;
+  }
+  // Wygląd komórek przeniesiony z arkusza: wiersz po wierszu, [null | [null | { pogrubienie?, kursywa?, kolor? }]].
+  // `wyglad_wyl` wyłącza przenoszenie go na strony (wygląd zostaje zapisany).
+  const wyglad = (Array.isArray(t?.wyglad) ? t.wyglad : []).slice(0, wiersze.length).map((w) => {
+    if (!Array.isArray(w)) return null;
+    const komorki = kolumny.map((_, k) => {
+      const x = w[k];
+      if (!x || typeof x !== 'object') return null;
+      const czysty = { ...(x.pogrubienie ? { pogrubienie: true } : {}), ...(x.kursywa ? { kursywa: true } : {}), ...(typeof x.kolor === 'string' && /^#[0-9a-f]{6}$/i.test(x.kolor) ? { kolor: x.kolor.toLowerCase() } : {}) };
+      return Object.keys(czysty).length ? czysty : null;
+    });
+    return komorki.some(Boolean) ? komorki : null;
+  });
+  const maWyglad = wyglad.some(Boolean);
+  return {
+    id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze,
+    ...(unikalne.length ? { unikalne } : {}), ...(Object.keys(listy).length ? { listy } : {}),
+    ...(maWyglad ? { wyglad } : {}), ...(maWyglad && t?.wyglad_wyl ? { wyglad_wyl: true } : {}),
+  };
 }
 
 export function nowaSeria(nazwa = 'Seria') {
@@ -175,10 +198,13 @@ export function normalizuj(p) {
     uklad: s.uklad === 'dlugi' ? 'dlugi' : 'szeroki',
     ile: Number.isFinite(s.ile) ? Math.min(2000, Math.max(1, Math.round(s.ile))) : 12,
     // Tabele dodatkowe: wiersz zmienia się co `co` stron serii; pierwszy wiersz obowiązuje `pierwszy` stron.
+    // `zmiana` – zamiast stałego kroku: kolumna tabeli głównej (napis) albo kilka kolumn (lista).
     dodatkowe: (Array.isArray(s.dodatkowe) ? s.dodatkowe : []).filter((d) => idTabel.has(d?.tabela) && d.tabela !== s.tabela).map((d) => {
       const co = Math.min(2000, Math.max(1, Math.round(d.co) || 1));
       const pierwszy = Math.round(d.pierwszy);
-      return { tabela: d.tabela, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}) };
+      const kolumny = [...new Set((Array.isArray(d.zmiana) ? d.zmiana : [d.zmiana]).filter((k) => typeof k === 'string' && k))];
+      const zmiana = kolumny.length > 1 ? kolumny : kolumny[0];
+      return { tabela: d.tabela, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(zmiana ? { zmiana } : {}) };
     }),
     dopelnij: Boolean(s.dopelnij),
   }));

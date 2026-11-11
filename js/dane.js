@@ -5,10 +5,10 @@
 
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
-import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku } from './kontrola.js';
-import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach } from './serie.js';
+import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
+import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
-import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
+import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana, zapytajONazwe } from './ui.js';
 import { wstawIkony } from './ikony.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
@@ -79,9 +79,14 @@ export class Dane {
       serie.length ? `Używana w ${serie.length === 1 ? 'serii' : 'seriach'}: ${serie.join(', ')}.` : 'Nie jest jeszcze używana w żadnej serii – serię ustawiasz we właściwościach strony.',
     ].filter(Boolean).join(' ');
 
+    // Przełącznik wyglądu z arkusza jest tylko przy tabeli, która taki wygląd ma.
+    const maWyglad = Boolean(t.wyglad?.some(Boolean));
+    $('#dane-wyglad-pole').hidden = !maWyglad;
+    $('#dane-wyglad').checked = maWyglad && !t.wyglad_wyl;
+
     const html = ['<thead><tr><th class="rog"></th>'];
     t.kolumny.forEach((k, i) => {
-      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
+      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="lista-kolumny" data-k="${i}" aria-pressed="${Boolean(t.listy?.[k]?.length)}" title="Lista dozwolonych wartości kolumny – w szablonie danych komórki dostaną listę rozwijaną" aria-label="Lista dozwolonych wartości kolumny">☰</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
     });
     html.push('</tr></thead><tbody></tbody>');
     this.siatka.innerHTML = html.join('');
@@ -106,17 +111,34 @@ export class Dane {
     this._narysowane = cel;
     const tbody = this.siatka.tBodies[0];
     tbody.insertAdjacentHTML('beforeend', html.join(''));
+    const zWygladem = t.wyglad && !t.wyglad_wyl;
     for (let w = od; w < cel; w += 1) {
       const komorki = tbody.rows[w].cells;
-      for (let k = 0; k < t.kolumny.length; k += 1) komorki[k + 1].textContent = t.wiersze[w][k];
+      for (let k = 0; k < t.kolumny.length; k += 1) {
+        komorki[k + 1].textContent = t.wiersze[w][k];
+        // Komórka wygląda tak, jak jej wartość będzie wyglądać na stronie (wygląd przeniesiony z arkusza).
+        const wyglad = zWygladem ? t.wyglad[w]?.[k] : null;
+        if (wyglad) Object.assign(komorki[k + 1].style, { fontWeight: wyglad.pogrubienie ? '700' : '', fontStyle: wyglad.kursywa ? 'italic' : '', color: wyglad.kolor || '' });
+      }
     }
-    if (od > 0 && t.unikalne?.length) this._oznaczPowtorzenia();
+    if (od > 0 && (t.unikalne?.length || t.listy)) this._oznaczPowtorzenia();
   }
 
-  // Powtórzone wartości w kolumnach pilnowanych: podświetlone komórki i opis pod tabelą.
+  // Powtórzone wartości w kolumnach pilnowanych i wartości spoza listy dozwolonych: podświetlone komórki
+  // i opis pod tabelą.
   _oznaczPowtorzenia() {
     const t = this.tabela();
-    for (const td of this.siatka.querySelectorAll('td.powtorzona')) td.classList.remove('powtorzona');
+    for (const td of this.siatka.querySelectorAll('td.powtorzona, td.spoza-listy')) td.classList.remove('powtorzona', 'spoza-listy');
+    const spoza = [];
+    for (const kolumna of Object.keys(t.listy || {})) {
+      const k = t.kolumny.indexOf(kolumna);
+      const znalezione = spozaListy(t, kolumna);
+      for (const s of znalezione) for (const w of s.wiersze) this._komorka(w, k)?.classList.add('spoza-listy');
+      if (znalezione.length) spoza.push(`„${kolumna}”: ${znalezione.slice(0, 4).map((s) => `„${s.wartosc}” (${odmiana(s.wiersze.length, 'wiersz', 'wiersze', 'wiersze')} ${s.wiersze.map((w) => w + 1).join(', ')})`).join('; ')}${znalezione.length > 4 ? ` i ${znalezione.length - 4} więcej` : ''}`);
+    }
+    const uwaga = $('#dane-spoza-listy');
+    uwaga.hidden = !spoza.length;
+    uwaga.textContent = spoza.length ? `Wartości spoza listy – ${spoza.join('. ')}.` : '';
     const opisy = [];
     for (const kolumna of t.unikalne || []) {
       const k = t.kolumny.indexOf(kolumna);
@@ -190,8 +212,9 @@ export class Dane {
     }));
     t.kolumny[k] = nowa;
     if (t.unikalne) t.unikalne = t.unikalne.map((u) => (u === stara ? nowa : u));
+    if (t.listy?.[stara]) { t.listy[nowa] = t.listy[stara]; delete t.listy[stara]; }
     // Tabele dodatkowe, które zmieniają wiersz razem z tą kolumną, idą za nową nazwą.
-    for (const x of p.serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana === stara) d.zmiana = nowa;
+    for (const x of p.serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (kolumnyZmiany(d.zmiana).includes(stara)) d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).map((z) => (z === stara ? nowa : z)));
     el.textContent = nowa;
     const n = zmienNazwePola(p, stara, nowa, (cel) => (p.strony.includes(cel) ? zTejTabeli.has(cel) : jedyna))
       + zmienNazwePola(p, `${t.nazwa}.${stara}`, `${t.nazwa}.${nowa}`);
@@ -210,7 +233,7 @@ export class Dane {
       const td = e.target.closest('td');
       if (!td) return;
       this.tabela().wiersze[Number(td.dataset.w)][Number(td.dataset.k)] = td.textContent.replace(/\n$/, '');
-      if (this.tabela().unikalne?.length) this._oznaczPowtorzenia();
+      if (this.tabela().unikalne?.length || this.tabela().listy) this._oznaczPowtorzenia();
       this.poZmianie();
     });
     s.addEventListener('focusout', (e) => {
@@ -246,6 +269,21 @@ export class Dane {
       const kolumna = e.target.closest('.usun-kolumne');
       const wiersz = e.target.closest('.usun-wiersz');
       const pilnuj = e.target.closest('.pilnuj-kolumne');
+      const lista = e.target.closest('.lista-kolumny');
+      if (lista) {
+        // Lista dozwolonych wartości: wpisywane po średniku; samo „-” usuwa listę.
+        const nazwa = t.kolumny[Number(lista.dataset.k)];
+        const odp = await zapytajONazwe(`Dozwolone wartości kolumny „${nazwa}”`, 'Wartości po średniku, np. tak; nie. Samo „-” usuwa listę.', (t.listy?.[nazwa] || []).join('; '));
+        if (odp === null) return;
+        const wartosci = [...new Set(odp.split(/[;\n]/).map((v) => v.trim()).filter((v) => v && v !== '-'))];
+        t.listy = { ...t.listy };
+        if (wartosci.length) t.listy[nazwa] = wartosci; else delete t.listy[nazwa];
+        if (!Object.keys(t.listy).length) delete t.listy;
+        lista.setAttribute('aria-pressed', String(wartosci.length > 0));
+        this._oznaczPowtorzenia();
+        this._zmieniono();
+        return;
+      }
       if (pilnuj) {
         const nazwa = t.kolumny[Number(pilnuj.dataset.k)];
         const bylo = t.unikalne?.includes(nazwa);
@@ -261,11 +299,12 @@ export class Dane {
         const k = Number(kolumna.dataset.k);
         if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, 'Pola z tej kolumny przestaną się wypełniać.', 'Usuń kolumnę', true)) return;
         if (t.unikalne) t.unikalne = t.unikalne.filter((u) => u !== t.kolumny[k]);
-        for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana === t.kolumny[k]) delete d.zmiana;
+        if (t.listy) { delete t.listy[t.kolumny[k]]; if (!Object.keys(t.listy).length) delete t.listy; }
+        for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana) { d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).filter((z) => z !== t.kolumny[k])); if (!d.zmiana) delete d.zmiana; }
         t.kolumny.splice(k, 1);
         for (const w of t.wiersze) w.splice(k, 1);
-      } else if (wiersz) t.wiersze.splice(Number(wiersz.dataset.w), 1);
-      else return;
+        for (const w of t.wyglad || []) w?.splice(k, 1);
+      } else if (wiersz) { t.wiersze.splice(Number(wiersz.dataset.w), 1); t.wyglad?.splice(Number(wiersz.dataset.w), 1); } else return;
       this.rysujTabele();
       this._zmieniono();
     });
@@ -276,6 +315,13 @@ export class Dane {
       t.nazwa = e.target.value.trim().replace(/[{}:\n]/g, ' ').trim() || t.nazwa;
       e.target.value = t.nazwa;
       if (stara !== t.nazwa) zmienNazweTabeliWPolach(this.projekt(), stara, t.nazwa);
+      this._zmieniono();
+    });
+    // Wygląd przeniesiony z arkusza można wyłączyć – zostaje zapisany, ale strony go nie pokazują.
+    $('#dane-wyglad').addEventListener('change', (e) => {
+      const t = this.tabela();
+      if (e.target.checked) delete t.wyglad_wyl; else t.wyglad_wyl = true;
+      this.rysujTabele();
       this._zmieniono();
     });
     $('#dane-wiersz').addEventListener('click', () => {
@@ -340,7 +386,9 @@ export class Dane {
       if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.`, 'Podmień dane', false, 'Dodaj osobno')) {
         stara.kolumny = nowa.kolumny;
         stara.wiersze = nowa.wiersze;
+        if (nowa.wyglad) stara.wyglad = nowa.wyglad; else { delete stara.wyglad; delete stara.wyglad_wyl; }
         if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
+        if (stara.listy) { for (const k of Object.keys(stara.listy)) if (!nowa.kolumny.includes(k)) delete stara.listy[k]; if (!Object.keys(stara.listy).length) delete stara.listy; }
         ostatnia = stara;
       } else {
         if (stara) nowa.nazwa = `${nowa.nazwa} (2)`;
@@ -402,24 +450,51 @@ export class Dane {
     sel.value = d.tabela || '';
     wiersz.querySelector('[data-pole="co"]').value = d.co || 7;
     wiersz.querySelector('[data-pole="pierwszy"]').value = d.pierwszy || '';
-    this._ustawKiedy(wiersz, d.zmiana ? `k:${d.zmiana}` : '');
+    this._ustawKiedy(wiersz, kolumnyZmiany(d.zmiana));
     return wiersz;
   }
 
   // Lista „Nowy wiersz”: co stałą liczbę stron albo gdy zmieni się wartość w wybranej kolumnie tabeli głównej
-  // (np. miesiąc w tabeli dni – miesiące mają 28–31 stron, więc stały krok tu nie działa).
-  _ustawKiedy(wiersz, wybrana = null) {
+  // (np. miesiąc w tabeli dni – miesiące mają 28–31 stron, więc stały krok tu nie działa). Po wybraniu kolumny
+  // pojawia się lista „albo kolumna” – kolejne kolumny, których zmiana też zaczyna nowy wiersz (np. rok obok miesiąca).
+  // wybrane: kolumny do ustawienia (przy otwarciu okna); null – zostaje to, co jest wybrane w oknie.
+  _ustawKiedy(wiersz, wybrane = null) {
     const sel = wiersz.querySelector('[data-pole="kiedy"]');
     const idGlownej = $('#dlg-seria form').elements.tabela.value || '';
     const glowna = this.projekt().tabele.find((t) => t.id === idGlownej);
-    const klucz = `${idGlownej}|${(glowna?.kolumny || []).join('\n')}`;
+    const kolumny = glowna?.kolumny || [];
+    const klucz = `${idGlownej}|${kolumny.join('\n')}`;
     if (wiersz.dataset.glowna !== klucz) {
-      const obecna = wybrana ?? sel.value;
+      const obecna = wybrane ? (wybrane[0] ? `k:${wybrane[0]}` : '') : sel.value;
       wiersz.dataset.glowna = klucz;
-      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...(glowna?.kolumny || []).map((k) => new Option(`gdy zmieni się kolumna „${k}”`, `k:${k}`)));
+      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...kolumny.map((k) => new Option(`gdy zmieni się kolumna „${k}”`, `k:${k}`)));
       sel.value = [...sel.options].some((o) => o.value === obecna) ? obecna : '';
     }
     for (const pole of ['co', 'pierwszy']) wiersz.querySelector(`[data-pole="${pole}"]`).closest('label').hidden = Boolean(sel.value);
+    // Kolejne kolumny: tyle list, ile wybranych kolumn, i jedna pusta na następną.
+    const stare = [...wiersz.querySelectorAll('[data-pole="kiedy-wiecej"]')];
+    const pierwsza = sel.value.startsWith('k:') ? sel.value.slice(2) : '';
+    const dalsze = pierwsza ? [...new Set(wybrane ? wybrane.slice(1) : stare.map((x) => x.value))].filter((k) => k && k !== pierwsza && kolumny.includes(k)) : [];
+    const wolne = kolumny.filter((k) => k !== pierwsza && !dalsze.includes(k));
+    const uklad = pierwsza ? [...dalsze, ...(wolne.length ? [''] : [])] : [];
+    const odcisk = `${klucz}|${pierwsza}|${uklad.join('\n')}`;
+    if (wiersz.dataset.wiecej === odcisk) return;
+    wiersz.dataset.wiecej = odcisk;
+    const aktywna = stare.indexOf(document.activeElement);
+    for (const x of stare) x.closest('label').remove();
+    let po = sel.closest('label');
+    const nowe = uklad.map((wartosc) => {
+      const pole = document.createElement('label');
+      pole.className = 'pole';
+      pole.innerHTML = '<span>albo kolumna</span><select data-pole="kiedy-wiecej"></select>';
+      const lista = pole.querySelector('select');
+      lista.replaceChildren(new Option(wartosc ? '— usuń tę kolumnę —' : '— żadna więcej —', ''), ...[...(wartosc ? [wartosc] : []), ...wolne].map((k) => new Option(`„${k}”`, k)));
+      lista.value = wartosc;
+      po.after(pole);
+      po = pole;
+      return lista;
+    });
+    if (aktywna >= 0) (nowe[aktywna] || nowe.at(-1) || sel).focus();
   }
 
   otworzSerie(id) {
@@ -507,7 +582,9 @@ export class Dane {
         const co = Math.min(2000, Math.max(1, Math.round(Number(w.querySelector('[data-pole="co"]').value)) || 1));
         const pierwszy = Math.round(Number(w.querySelector('[data-pole="pierwszy"]').value));
         const kiedy = w.querySelector('[data-pole="kiedy"]')?.value || '';
-        return { tabela: w.querySelector('select').value, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(kiedy.startsWith('k:') ? { zmiana: kiedy.slice(2) } : {}) };
+        // Jedna kolumna to napis, kilka – lista (kolumna wybrana w liście „albo kolumna”).
+        const zmiana = kiedy.startsWith('k:') ? zapisZmiany(kolumnyZmiany([kiedy.slice(2), ...[...w.querySelectorAll('[data-pole="kiedy-wiecej"]')].map((x) => x.value)])) : undefined;
+        return { tabela: w.querySelector('select').value, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(zmiana ? { zmiana } : {}) };
       }).filter((d) => d.tabela && d.tabela !== (f.elements.tabela.value || null)),
     };
   }
@@ -558,7 +635,7 @@ export class Dane {
       const { proba } = this._seriaZOkna();
       const s = szablonSerii(p, proba);
       try {
-        const blob = await doXlsx([{ nazwa: s.nazwa, wiersze: [s.kolumny, ...s.wiersze] }, { nazwa: 'Instrukcja', wiersze: s.instrukcja }]);
+        const blob = await doXlsx([{ nazwa: s.nazwa, wiersze: [s.kolumny, ...s.wiersze], listy: s.listy }, { nazwa: 'Instrukcja', wiersze: s.instrukcja }]);
         this.ostatniSzablon = blob; // do testów
         pobierz(`${bezpiecznaNazwa(p.nazwa)} - ${bezpiecznaNazwa(s.nazwa)} - szablon.xlsx`, URL.createObjectURL(blob));
       } catch (e) {

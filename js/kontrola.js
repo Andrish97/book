@@ -1,9 +1,9 @@
 // Kontrola danych przed drukiem i szablon danych serii (plan 5.1 i 5.2).
 // Czyste funkcje: dostają projekt, niczego w nim nie zmieniają.
 
-import { polaWObiektach, POLA_DOKUMENTU } from './pola.js';
+import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU } from './pola.js';
 import { wzorceStrony } from './projekt.js';
-import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol } from './serie.js';
+import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany } from './serie.js';
 import { odmiana } from './ui.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
@@ -50,6 +50,63 @@ export function kolumnySerii(projekt, seria) {
   return [...wynik.values()];
 }
 
+// Do czego strony serii używają kolumn: nazwa → { tekst, obraz, kadr, kolor, liczba, warunki: Set }.
+// (Z tego wynika opis kolumny w szablonie danych i jej lista rozwijana.)
+export function roleKolumn(projekt, seria) {
+  const role = new Map();
+  const rola = (nazwa) => { if (!role.has(nazwa)) role.set(nazwa, { warunki: new Set() }); return role.get(nazwa); };
+  const przejrzyj = (obiekty) => {
+    for (const o of obiekty || []) {
+      if (!o.bez_pol && typeof o.text === 'string') for (const m of o.text.matchAll(/\{([^{}\n:]+)(?::[^{}\n]*)?\}/g)) rola(m[1].trim()).tekst = true;
+      if (o.type === 'image' && o.pole?.kolumna) { rola(o.pole.kolumna).obraz = true; if (o.pole.kadr_z) rola(o.pole.kadr_z).kadr = true; }
+      const z = o.z_danych;
+      if (z?.kolor) rola(z.kolor).kolor = true;
+      for (const klucz of ['x', 'y', 'szer', 'wys']) if (z?.[klucz]?.pole) rola(z[klucz].pole).liczba = true;
+      if (z?.obrot) rola(z.obrot).liczba = true;
+      if (z?.widok?.pole) { const r = rola(z.widok.pole); r.warunek = true; if (z.widok.gdy === 'rowne' && String(z.widok.wartosc ?? '').trim()) r.warunki.add(String(z.widok.wartosc).trim()); }
+      if (Array.isArray(o.objects)) przejrzyj(o.objects);
+    }
+  };
+  for (const blok of blokiSerii(projekt).filter((b) => b.seria.id === seria.id)) {
+    for (const strona of blok.strony) for (const obiekty of [strona.obiekty, ...wzorceStrony(projekt, strona).map((w) => w.obiekty)]) przejrzyj(obiekty);
+  }
+  return role;
+}
+
+// Nazwy plików obrazów wgranych do projektu (bez czcionek), alfabetycznie.
+function nazwyObrazow(projekt) {
+  const czcionki = new Set((projekt.czcionki || []).map((c) => c.id));
+  return [...new Set(Object.entries(projekt.zasoby || {}).filter(([id, z]) => !czcionki.has(id) && z?.nazwa && !/^font\//.test(z.typ || '')).map(([, z]) => z.nazwa))].sort((a, b) => a.localeCompare(b, 'pl'));
+}
+
+// Lista rozwijana kolumny w szablonie danych: { wartosci, scisla } albo null.
+//  - lista podana przy kolumnie w oknie danych – ścisła (inna wartość jest błędem),
+//  - kolumna z kadrem obrazu, kolumna z nazwą pliku obrazu, kolumna z warunkiem „równe …” – podpowiedź.
+function listaKolumny(projekt, tabela, nazwa, rola) {
+  if (tabela?.listy?.[nazwa]?.length) return { wartosci: tabela.listy[nazwa], scisla: true };
+  if (rola?.kadr) return { wartosci: WARTOSCI_KADRU, scisla: false };
+  if (rola?.obraz) { const pliki = nazwyObrazow(projekt); return pliki.length ? { wartosci: pliki, scisla: false } : null; }
+  if (rola?.warunki.size && !rola.tekst) return { wartosci: [...rola.warunki], scisla: false };
+  return null;
+}
+
+// Wartości spoza listy dozwolonych wartości kolumny: [{ kolumna, wartosc, wiersze: [numery od 0] }].
+export function spozaListy(tabela, kolumna) {
+  const k = tabela.kolumny.indexOf(kolumna);
+  const lista = tabela.listy?.[kolumna];
+  if (k < 0 || !lista?.length) return [];
+  const dozwolone = new Set(lista.map(tasama));
+  const gdzie = new Map();
+  tabela.wiersze.forEach((w, i) => {
+    const v = (w[k] ?? '').trim();
+    if (!v || dozwolone.has(tasama(v))) return;
+    const wpis = gdzie.get(tasama(v)) || { kolumna, wartosc: v, wiersze: [] };
+    wpis.wiersze.push(i);
+    gdzie.set(tasama(v), wpis);
+  });
+  return [...gdzie.values()];
+}
+
 export function brakujaceKolumny(projekt, seria) {
   const tabela = tabelaSerii(projekt, seria);
   return kolumnySerii(projekt, seria).map((k) => k.nazwa).filter((n) => !tabela?.kolumny.includes(n));
@@ -69,21 +126,38 @@ export function szablonSerii(projekt, seria) {
   const coWiersz = seria.uklad === 'dlugi' && seria.tryb === 'tabela'
     ? `Jeden wiersz to jedna strona; blok serii ma ${n} ${odmiana(n, 'stronę', 'strony', 'stron')}.`
     : `Jeden wiersz to jedno powielenie bloku (${n} ${odmiana(n, 'strona', 'strony', 'stron')}).`;
+  const role = roleKolumn(projekt, seria);
+  const listy = [];
+  kolumny.forEach((k, i) => { const l = listaKolumny(projekt, tabela, k, role.get(k)); if (l) listy.push({ kolumna: i, ...l }); });
+  // Co wpisać w kolumnie – według tego, do czego strony jej używają (kolumna może mieć kilka zastosowań).
+  const coWpisac = (k) => {
+    const r = role.get(k) || { warunki: new Set() };
+    return [
+      r.tekst ? `Tekst, który pojawi się w miejscu {${k}}.` : '',
+      r.obraz ? 'Nazwę pliku obrazu wgranego do projektu, np. zdjecie.jpg.' : '',
+      r.kadr ? 'Którą część zdjęcia pokazać: góra, dół, lewa, prawa, środek – albo punkt zdjęcia w procentach od lewej i od góry, np. 30% 20%. Pusta komórka zostawia ustawienie wzoru.' : '',
+      r.kolor ? 'Kolor: zapis #d1495b albo nazwę po angielsku, np. navy. Pusta komórka zostawia kolor wzoru.' : '',
+      r.liczba ? 'Liczbę (przesunięcie, rozmiar albo kąt – według ustawień elementu „Z danych”).' : '',
+      r.warunek ? `Od tej kolumny zależy, czy element jest na stronie${r.warunki.size ? ` (sprawdzana wartość: ${[...r.warunki].join(', ')})` : ''}.` : '',
+    ].filter(Boolean).join(' ');
+  };
   const instrukcja = [
     ['Seria', seria.nazwa],
-    ['Jak wypełniać', `${coWiersz} Pierwszy wiersz arkusza to nazwy kolumn – nie zmieniaj ich. Gotowy plik zaimportuj w oknie „Dane”.`],
+    ['Jak wypełniać', `${coWiersz} Pierwszy wiersz arkusza to nazwy kolumn – nie zmieniaj ich. Gotowy plik zaimportuj w oknie „Dane”.${listy.length ? ' Komórki niektórych kolumn mają listę rozwijaną z wartościami do wyboru.' : ''}`],
     [],
     ['Kolumna', 'Gdzie jest użyta', 'Co wpisać'],
-    ...kolumny.map((k) => {
+    ...kolumny.map((k, i) => {
       const p = potrzebne.find((x) => x.nazwa === k);
+      const lista = listy.find((l) => l.kolumna === i);
       const uwagi = [
-        !p ? 'Kolumna nie jest użyta na stronach serii.' : (p.obraz ? 'Nazwę pliku obrazu wgranego do projektu, np. zdjecie.jpg.' : `Tekst, który pojawi się w miejscu {${k}}.`),
+        !p ? 'Kolumna nie jest użyta na stronach serii.' : (coWpisac(k) || `Tekst, który pojawi się w miejscu {${k}}.`),
+        lista?.scisla ? `Tylko wartości z listy: ${lista.wartosci.join(', ')}.` : (lista ? 'W komórce jest lista rozwijana z podpowiedziami.' : ''),
         tabela?.unikalne?.includes(k) ? 'Wartości nie mogą się powtarzać.' : '',
       ].filter(Boolean).join(' ');
       return [k, p ? p.strony.join(', ') : '', uwagi];
     }),
   ];
-  return { nazwa: tabela?.nazwa || seria.nazwa, kolumny, wiersze, instrukcja };
+  return { nazwa: tabela?.nazwa || seria.nazwa, kolumny, wiersze, instrukcja, listy };
 }
 
 // Ta sama wartość mimo innej wielkości liter i zbędnych spacji: „Praca”, „praca ” i „PRACA”.
@@ -106,9 +180,13 @@ export function powtorzenia(tabela, kolumna) {
 }
 
 // Kiedy tabela dodatkowa przechodzi do następnego wiersza – słowami, do komunikatów.
-export const opisKroku = (d) => (d.zmiana
-  ? `nowy wiersz, gdy zmieni się kolumna „${d.zmiana}”`
-  : `nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}`);
+export const opisKroku = (d) => {
+  const kolumny = kolumnyZmiany(d.zmiana);
+  if (kolumny.length > 1) return `nowy wiersz, gdy zmieni się kolumna ${kolumny.map((x) => `„${x}”`).join(' albo ')}`;
+  return kolumny.length
+    ? `nowy wiersz, gdy zmieni się kolumna „${kolumny[0]}”`
+    : `nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}`;
+};
 
 const lista = (numery, ile = 6) => {
   const n = [...new Set(numery)].sort((a, b) => a - b);
@@ -179,6 +257,14 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
         for (const p of powtorzenia(tabela, kolumna)) {
           uwagi.push({ rodzaj: 'powtorzenie', strony: [], opis: `Wartość „${p.wartosc}” w kolumnie „${kolumna}” (tabela „${tabela.nazwa}”) powtarza się w wierszach ${lista(p.wiersze.map((i) => i + 1))}.` });
         }
+      }
+    }
+  }
+  // Wartości spoza listy dozwolonych wartości kolumny.
+  for (const tabela of projekt.tabele) {
+    for (const kolumna of Object.keys(tabela.listy || {})) {
+      for (const s of spozaListy(tabela, kolumna)) {
+        uwagi.push({ rodzaj: 'spoza_listy', strony: [], opis: `Wartość „${s.wartosc}” w kolumnie „${kolumna}” (tabela „${tabela.nazwa}”) nie jest na liście dozwolonych wartości – ${odmiana(s.wiersze.length, 'wiersz', 'wiersze', 'wiersze')} ${lista(s.wiersze.map((i) => i + 1))}.` });
       }
     }
   }

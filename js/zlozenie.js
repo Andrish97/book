@@ -11,7 +11,7 @@
 import './fabric-ustawienia.js';
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
 import { rozwin, wartosciPol } from './serie.js';
-import { podstawWObiektach } from './pola.js';
+import { podstawWObiektach, kadrZWartosci, punktKadru } from './pola.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu, zbierzZasoby } from './obrazy.js';
 import { adresZasobu, dataUrlZasobu } from './zasoby.js';
 import { rozlejWatki } from './watki.js';
@@ -68,6 +68,9 @@ function obrazyZPol(obiekty, wartosc, zasoby) {
     if (nazwa === undefined) return o;
     const id = Object.keys(zasoby || {}).find((k) => bezRozszerzenia(zasoby[k].nazwa) === bezRozszerzenia(nazwa));
     const ramka = { w: (o.width || 0) * (o.scaleX ?? 1), h: (o.height || 0) * (o.scaleY ?? 1) };
+    // Kadr z kolumny: osobny dla każdego wiersza danych; pusta albo niezrozumiała wartość zostawia ustawienie wzoru.
+    const kadr = o.pole.kadr_z ? kadrZWartosci(wartosc(o.pole.kadr_z, null)) : null;
+    if (kadr) ramka.kadr = kadr;
     // Rozmiar i przycięcie należały do obrazu-wzoru; podmieniony obraz ma własne.
     const { width, height, cropX, cropY, ...reszta } = o;
     // Brak pliku o tej nazwie: znak „brak obrazu” w miejscu ramki.
@@ -89,12 +92,13 @@ function wpiszWRamki(obiekty) {
     o.set({ width: nw, height: nh });
     if (o.pole?.tryb === 'wypelnij') {
       // Obraz wypełnia całą ramkę: skala według ciaśniejszego boku, nadmiar przycięty. Domyślnie po równo
-      // z obu stron (zostaje środek zdjęcia); `pole.kadr` wybiera, która część ma zostać: góra, dół, lewa, prawa.
+      // z obu stron (zostaje środek zdjęcia); `pole.kadr` wybiera, która część ma zostać: góra, dół, lewa, prawa,
+      // a kolumna `pole.kadr_z` – punkt zdjęcia osobno dla każdego wiersza (kadr ustawia się wokół tego punktu).
       const skala = Math.max(r.w / nw, r.h / nh);
       const [szer, wys] = [r.w / skala, r.h / skala];
-      const kadr = o.pole.kadr;
-      const cropX = kadr === 'lewa' ? 0 : (kadr === 'prawa' ? nw - szer : (nw - szer) / 2);
-      const cropY = kadr === 'gora' ? 0 : (kadr === 'dol' ? nh - wys : (nh - wys) / 2);
+      const punkt = r.kadr || punktKadru(o.pole.kadr);
+      const cropX = Math.min(nw - szer, Math.max(0, punkt.x * nw - szer / 2));
+      const cropY = Math.min(nh - wys, Math.max(0, punkt.y * nh - wys / 2));
       o.set({ width: szer, height: wys, cropX, cropY, scaleX: skala, scaleY: skala });
     } else {
       const skala = Math.min(r.w / o.width, r.h / o.height);
