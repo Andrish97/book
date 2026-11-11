@@ -84,7 +84,8 @@ export class OknoPdf {
       cmyk: e.tryb.value === 'wektor' && e.cmyk.checked,
       pdfx: e.pdfx.value,
       profilWlasny: e.pdfx.value === 'wlasny' ? this.profilWlasny : null,
-      zdjeciaCmyk: e.tryb.value === 'wektor' && Boolean(e.pdfx.value) && e.zdjeciaCmyk.checked,
+      // W pliku wektorowym: zdjęcia przez profil; w obrazach stron: cały obraz strony przez profil.
+      zdjeciaCmyk: Boolean(e.pdfx.value) && e.zdjeciaCmyk.checked,
       dpi: Number(e.dpi.value),
       spad: e.druk.value === 'drukarnia',
       znaki: e.druk.value === 'drukarnia' ? 'sekcje' : false,
@@ -108,6 +109,7 @@ export class OknoPdf {
       : 'Każda strona jest jednym obrazem w wybranej rozdzielczości – tekst wygląda tak samo na każdym komputerze, ale nie da się go zaznaczyć, a plik jest większy.';
     // Standard dla drukarni: co plik będzie zawierał, prostymi słowami.
     $('#pdf-pole-zdjecia').hidden = !o.pdfx;
+    $('#pdf-etykieta-zdjecia').textContent = wektor ? 'Zdjęcia też w CMYK (większy plik)' : 'Obrazy stron w CMYK (większy plik)';
     $('#pdf-pole-profil').hidden = o.pdfx !== 'wlasny';
     $('#pdf-nazwa-profilu').textContent = this.profilWlasny ? this.profilWlasny.nazwa : 'Nie wybrano pliku.';
     const opisPdfx = $('#pdf-opis-pdfx');
@@ -115,7 +117,9 @@ export class OknoPdf {
     if (o.pdfx) {
       const papier = o.pdfx === 'wlasny' ? 'warunki druku z profilu drukarni' : `warunki druku: ${WARUNKI_DRUKU[o.pdfx].nazwa}`;
       const kolory = !wektor
-        ? 'Obrazy stron zostają w RGB z opisem sRGB – na farby drukarskie przeliczy je drukarnia według dołączonego profilu.'
+        ? (o.zdjeciaCmyk
+          ? 'Obrazy stron są przeliczone na CMYK przez ten profil i zapisane bez strat – plik będzie wyraźnie większy. Czarny i szary tekst, kształty i cienie idą samą czarną farbą (także gdy leżą na zdjęciu), więc litery są ostre; same zdjęcia – czterema farbami, jak wynika z profilu.'
+          : 'Obrazy stron zostają w RGB z opisem sRGB – na farby drukarskie przeliczy je drukarnia według dołączonego profilu.')
         : `${o.cmyk ? 'Tekst i kształty są przeliczone na CMYK przez ten profil (czerń i szarości samą czarną farbą).' : 'Tekst i kształty zostają w RGB z opisem sRGB.'} ${o.zdjeciaCmyk ? 'Zdjęcia są przeliczone na CMYK przez ten profil, w rozdzielczości z pola „Jakość”, bez strat – plik będzie wyraźnie większy.' : 'Zdjęcia zostają w RGB z opisem sRGB – na farby przeliczy je drukarnia według dołączonego profilu (to zgodne z PDF/X-4).'}`;
       opisPdfx.textContent = `Plik PDF/X-4: zawiera profil barwny (${papier}) i oznaczenia, po których programy drukarni rozpoznają standard. ${kolory}${o.pdfx === 'fogra39' ? ' Profil papieru powlekanego dodaje do pliku ok. 8 MB.' : ''} Przed pierwszym zleceniem wyślij drukarni próbny plik.`;
     }

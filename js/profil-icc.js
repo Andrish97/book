@@ -172,6 +172,16 @@ export class SilnikCmyk {
     return w;
   }
 
+  // Ilość samej czarnej farby (0–255) dla każdej szarości 0–255, o jasności dobranej według profilu –
+  // do obrazów całych stron, w których czarny i szary tekst ma zostać czystą czernią.
+  czernSzarosci() {
+    if (!this._czern) {
+      this._czern = new Uint8Array(256);
+      for (let v = 0; v < 256; v += 1) this._czern[v] = Math.round(this.wektor(v / 255, v / 255, v / 255)[3] * 255);
+    }
+    return this._czern;
+  }
+
   // Gotowa siatka sRGB → CMYK (33 węzły na oś) do szybkiego przeliczania milionów pikseli.
   _siatkaObrazu() {
     if (this._siatka) return this._siatka;
