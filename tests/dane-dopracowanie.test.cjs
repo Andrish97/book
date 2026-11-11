@@ -371,3 +371,125 @@ test('szablon danych: listy rozwijane w komórkach (kadr, pliki obrazów, warune
   assert.deepEqual(plik.wczytane, [['Dni', ['dzien', 'plik', 'kadr', 'swieto', 'typ', 'kolor'], 3]], 'przy imporcie arkusze pomocnicze są pomijane');
   assert.deepEqual(bledy, []);
 });
+
+test('import z Excela przenosi wygląd komórek (pogrubienie, kursywa, kolor liter) na strony; okno danych go pokazuje i pozwala wyłączyć', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Wygląd z arkusza');
+  // Plik Excela ze stylami: arkusz zapisany biblioteką, a style, numery stylów komórek i tekst w kawałkach dopisane ręcznie
+  // (dane zaczynają się w komórce B3, żeby sprawdzić przeliczanie położenia).
+  const plik = await strona.evaluate(async () => {
+    const { biblioteka } = await import('./js/biblioteki.js');
+    const XLSX = await biblioteka('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', 'XLSX', 'arkuszy');
+    const JSZip = await biblioteka('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'JSZip', 'ZIP');
+    const wb = XLSX.utils.book_new();
+    const dane = [['dzien', 'opis', 'uwaga'], ['1', 'Nowy Rok', 'wolne'], ['2', 'zwykły', ''], ['3', 'Trzech Króli', 'mieszany tekst'], ['4', 'cały pogrubiony', 'czarny']];
+    const ws = XLSX.utils.aoa_to_sheet(dane, { origin: 'B3' });
+    ws['!ref'] = 'B3:D7'; // zajęty obszar arkusza – tak zapisuje go Excel, gdy dane nie zaczynają się w A1
+    XLSX.utils.book_append_sheet(wb, ws, 'Dni');
+    const zip = await JSZip.loadAsync(XLSX.write(wb, { bookType: 'xlsx', type: 'array', bookSST: true }));
+    const czcionka = (srodek) => `<font>${srodek}<sz val="11"/><name val="Calibri"/></font>`;
+    zip.file('xl/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="5">${czcionka('<color theme="1"/>')}${czcionka('<b/>')}${czcionka('<i/><color rgb="FFFF0000"/>')}${czcionka('<color theme="5"/>')}${czcionka('<b val="0"/><color rgb="FF000000"/>')}</fonts>
+<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
+<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="5">${[0, 1, 2, 3, 4].map((f) => `<xf numFmtId="0" fontId="${f}" fillId="0" borderId="0" xfId="0"/>`).join('')}</cellXfs>
+</styleSheet>`);
+    let arkusz = await zip.file('xl/worksheets/sheet1.xml').async('string');
+    for (const [adres, styl] of [['C4', 1], ['D4', 2], ['C6', 3], ['D7', 4]]) {
+      if (!arkusz.includes(`<c r="${adres}"`)) throw new Error(`brak komórki ${adres}`);
+      arkusz = arkusz.replace(`<c r="${adres}"`, `<c r="${adres}" s="${styl}"`);
+    }
+    zip.file('xl/worksheets/sheet1.xml', arkusz);
+    let teksty = await zip.file('xl/sharedStrings.xml').async('string');
+    const kawalki = (tekst, czesci) => {
+      const wzor = new RegExp(`<si><t[^>]*>${tekst}</t></si>`);
+      if (!wzor.test(teksty)) throw new Error(`brak tekstu ${tekst}`);
+      teksty = teksty.replace(wzor, `<si>${czesci.map(([wyglad, t]) => `<r>${wyglad === null ? '' : `<rPr>${wyglad}<sz val="11"/></rPr>`}<t xml:space="preserve">${t}</t></r>`).join('')}</si>`);
+    };
+    kawalki('mieszany tekst', [['<b/>', 'mieszany'], ['', ' tekst']]); // różne kawałki – wygląd nie jest przenoszony
+    kawalki('cały pogrubiony', [['<b/>', 'cały '], ['<b/>', 'pogrubiony']]); // jednakowe kawałki – to wygląd komórki
+    zip.file('xl/sharedStrings.xml', teksty);
+    return zip.generateAsync({ type: 'base64' });
+  });
+  await strona.evaluate(() => window.seriodruk.dane.otworz());
+  await strona.waitForSelector('#dlg-dane[open]');
+  await strona.setInputFiles('#plik-dane', { name: 'Dni.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(plik, 'base64') });
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele.length === 1);
+  const tabela = () => strona.evaluate(() => { const x = window.seriodruk.stan.projekt.tabele[0]; return { kolumny: x.kolumny, wiersze: x.wiersze, wyglad: x.wyglad, wyl: x.wyglad_wyl }; });
+  const poImporcie = await tabela();
+  assert.deepEqual(poImporcie.kolumny, ['dzien', 'opis', 'uwaga']);
+  assert.deepEqual(poImporcie.wiersze[3], ['4', 'cały pogrubiony', 'czarny']);
+  assert.deepEqual(poImporcie.wyglad, [
+    [null, { pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }],
+    null,
+    [null, { kolor: '#c0504d' }, null], // kolor motywu arkusza; „mieszany tekst” ma różne kawałki – bez wyglądu
+    [null, { pogrubienie: true }, null], // jednakowe kawałki dają wygląd komórki; czarny, niepogrubiony tekst to brak wyglądu
+  ]);
+
+  // Okno danych: komórki wyglądają jak w arkuszu, przełącznik jest zaznaczony.
+  const wOknie = () => strona.locator('#dane-siatka td').evaluateAll((l) => l.filter((td) => td.style.fontWeight || td.style.fontStyle || td.style.color).map((td) => [td.textContent, td.style.fontWeight, td.style.fontStyle, td.style.color]));
+  assert.deepEqual(await wOknie(), [['Nowy Rok', '700', '', ''], ['wolne', '', 'italic', 'rgb(255, 0, 0)'], ['Trzech Króli', '', '', 'rgb(192, 80, 77)'], ['cały pogrubiony', '700', '', '']]);
+  assert.ok(await strona.isVisible('#dane-wyglad-pole'));
+  assert.equal(await strona.isChecked('#dane-wyglad'), true);
+  await strona.click('#dane-zamknij');
+
+  // Na stronach: wartość pola dostaje wygląd komórki jako formatowanie fragmentu; własne formatowanie tekstu zostaje.
+  const naStronach = async () => strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    if (!p.serie.length) {
+      p.serie.push({ id: 'se1', nazwa: 'Dni', tabela: p.tabele[0].id, tryb: 'tabela', uklad: 'szeroki', ile: 1 });
+      p.strony[0].seria = 'se1';
+      p.strony[0].obiekty = [
+        { type: 'textbox', version: '5.3.0', left: 10, top: 10, width: 120, text: '{dzien}. {opis} ({uwaga})', styles: [], fontSize: 5, fontFamily: 'Inter', id: 'zwykly' },
+        { type: 'textbox', version: '5.3.0', left: 10, top: 40, width: 120, text: 'Dziś: {opis}!', styles: [{ start: 0, end: 12, style: { underline: true } }, { start: 12, end: 13, style: { fontSize: 9 } }], fontSize: 5, fontFamily: 'Inter', id: 'sformatowany' },
+      ];
+      await window.seriodruk.przeladuj();
+    }
+    const { rozwin, wartosciPol } = await import('./js/serie.js');
+    const { podstawWObiektach } = await import('./js/pola.js');
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const ciag = rozwin(p);
+    const teksty = ciag.egzemplarze.map((e) => podstawWObiektach(p.strony[0].obiekty, wartosciPol(p, e, ciag)).map((o) => [o.text, o.styles]));
+    await renderujCel(p, ciag.egzemplarze[0], { szerokoscPx: 148, spad: false, ciag }); // strona z takim formatowaniem składa się bez błędu
+    return teksty;
+  });
+  const strony = await naStronach();
+  // Strona 1: „1. Nowy Rok (wolne)” – „Nowy Rok” pogrubione (znaki 3–11), „wolne” kursywą na czerwono (13–18).
+  assert.deepEqual(strony[0][0], ['1. Nowy Rok (wolne)', [{ start: 3, end: 11, style: { fontWeight: 'bold' } }, { start: 13, end: 18, style: { fontStyle: 'italic', fill: '#ff0000' } }]]);
+  // Tekst z własnym formatowaniem: podkreślenie zostaje, pogrubienie z arkusza dochodzi tylko do wartości pola.
+  assert.deepEqual(strony[0][1], ['Dziś: Nowy Rok!', [{ start: 0, end: 6, style: { underline: true } }, { start: 6, end: 14, style: { underline: true, fontWeight: 'bold' } }, { start: 14, end: 15, style: { fontSize: 9 } }]]);
+  assert.deepEqual(strony[1][0], ['2. zwykły ()', []], 'wiersz bez wyglądu zostaje zwykłym tekstem');
+  assert.deepEqual(strony[2][0], ['3. Trzech Króli (mieszany tekst)', [{ start: 3, end: 15, style: { fill: '#c0504d' } }]]);
+
+  // Przełącznik wyłącza przenoszenie: wygląd zostaje zapisany, ale strony i okno danych go nie pokazują.
+  await strona.evaluate(() => window.seriodruk.dane.otworz());
+  await strona.waitForSelector('#dlg-dane[open]');
+  await strona.uncheck('#dane-wyglad');
+  assert.equal((await tabela()).wyl, true);
+  assert.deepEqual(await wOknie(), []);
+  assert.deepEqual((await naStronach())[0][0], ['1. Nowy Rok (wolne)', []]);
+  await strona.check('#dane-wyglad');
+  assert.equal((await tabela()).wyl, undefined);
+  assert.equal((await wOknie()).length, 4);
+  // Usunięcie wiersza i kolumny przesuwa wygląd razem z danymi.
+  await strona.hover('#dane-siatka tbody tr:nth-child(2) th.nr');
+  await strona.click('#dane-siatka .usun-wiersz[data-w="1"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].wiersze.length === 3);
+  await strona.click('#dane-siatka .usun-kolumne[data-k="0"]');
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].kolumny.length === 2);
+  assert.deepEqual((await tabela()).wyglad, [[{ pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }], [{ kolor: '#c0504d' }, null], [{ pogrubienie: true }, null]]);
+  assert.deepEqual((await wOknie()).map((x) => x[0]), ['Nowy Rok', 'wolne', 'Trzech Króli', 'cały pogrubiony']);
+  // Ponowne otwarcie projektu zachowuje wygląd; śmieci w zapisie są odrzucane.
+  const poOtwarciu = await strona.evaluate(async () => {
+    const { normalizujTabele } = await import('./js/projekt.js');
+    const x = window.seriodruk.stan.projekt.tabele[0];
+    return [normalizujTabele(JSON.parse(JSON.stringify(x))).wyglad, normalizujTabele({ ...x, wyglad: [[{ kolor: 'czerwony' }, 'x'], [null, null], 5], wyglad_wyl: true })];
+  });
+  assert.deepEqual(poOtwarciu[0], [[{ pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }], [{ kolor: '#c0504d' }, null], [{ pogrubienie: true }, null]]);
+  assert.equal(poOtwarciu[1].wyglad, undefined);
+  assert.equal(poOtwarciu[1].wyglad_wyl, undefined);
+  assert.deepEqual(bledy, []);
+});

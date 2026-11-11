@@ -244,6 +244,7 @@ export const ROZDZIALY = [
     punkty: [
       'Okno otwiera przycisk <b>Dane</b> na górnym pasku edytora.',
       '<b>Importuj plik</b> wczytuje CSV albo Excel. Pierwszy wiersz pliku to nazwy kolumn. Z pliku Excela powstaje po jednej tabeli na każdy arkusz. Separator (średnik, przecinek, tabulator) i kodowanie polskich znaków aplikacja rozpoznaje sama.',
+      'Z pliku Excela (<code>.xlsx</code>) przechodzi też <b>wygląd komórek</b>: pogrubienie, kursywa i kolor liter. Komórka wygląda tak samo w oknie Dane, a na stronie jej wartość wstawiona w pole dostaje ten wygląd – np. święta pogrubione na czerwono wprost z arkusza. Przełącznik <b>Przenoś wygląd z arkusza na strony</b> nad tabelą to wyłącza. Liczy się wygląd całej komórki (jedno pogrubione słowo w komórce nie jest przenoszone), a zmienia się go w arkuszu i importuje plik ponownie; plik CSV i szablon danych wyglądu nie niosą.',
       'Wszystko jest tekstem: liczby i daty trafiają do tabeli tak, jak je widać w arkuszu. Datę najlepiej rozbić na osobne kolumny, np. <code>dzien</code>, <code>miesiac</code>, <code>rok</code>.',
       'Tabelę możesz <b>poprawiać w aplikacji</b>: kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd> robi nową linię w komórce. <b>+ Wiersz</b> i <b>+ Kolumna</b> dodają miejsce, znak × przy wierszu albo kolumnie je usuwa.',
       'Dane skopiowane z Excela albo Arkuszy Google wklejasz od zaznaczonej komórki (<kbd>Ctrl</kbd>+<kbd>V</kbd>). Tabela sama rośnie w dół i w prawo.',

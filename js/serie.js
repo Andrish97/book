@@ -238,9 +238,9 @@ export function wartosciPol(projekt, egz, ciag) {
     return s ? ciag.sekcje.get(s.id).lista : null;
   };
   const glowna = egz.seria ? tabelaSerii(projekt, egz.seria) : null;
-  const zrodla = [...(glowna && egz.wiersz ? [{ tabela: glowna, wiersz: egz.wiersz }] : []), ...egz.dodatkowe];
+  const zrodla = [...(glowna && egz.wiersz ? [{ tabela: glowna, wiersz: egz.wiersz, nrWiersza: egz.nrWiersza }] : []), ...egz.dodatkowe];
   const tabele = zrodla.map((z) => z.tabela);
-  return (nazwa, zapis) => {
+  const wartosc = (nazwa, zapis) => {
     // Kolumna tabeli głównej albo dodatkowej; „Tabela.kolumna” wskazuje tabelę wprost.
     // Gdy tabeli dodatkowej zabrakło wierszy, pole jest znane, ale puste.
     const pole = tabele.length ? polePoTabelach(nazwa, tabele) : null;
@@ -272,4 +272,17 @@ export function wartosciPol(projekt, egz, ciag) {
       default: return undefined;
     }
   };
+  // Wygląd komórki przeniesiony z arkusza (pogrubienie, kursywa, kolor liter) jako formatowanie fragmentu tekstu
+  // – tylko dla pól z tabel, które go mają i nie mają go wyłączonego.
+  if (tabele.some((t) => t.wyglad && !t.wyglad_wyl)) {
+    wartosc.wyglad = (nazwa) => {
+      const pole = polePoTabelach(nazwa, tabele);
+      if (!pole || !pole.tabela.wyglad || pole.tabela.wyglad_wyl) return null;
+      const nr = zrodla.find((z) => z.tabela === pole.tabela).nrWiersza;
+      const w = pole.tabela.wyglad[nr]?.[pole.tabela.kolumny.indexOf(pole.kolumna)];
+      if (!w) return null;
+      return { ...(w.pogrubienie ? { fontWeight: 'bold' } : {}), ...(w.kursywa ? { fontStyle: 'italic' } : {}), ...(w.kolor ? { fill: w.kolor } : {}) };
+    };
+  }
+  return wartosc;
 }

@@ -149,7 +149,24 @@ export function normalizujTabele(t, i = 0) {
     const czyste = [...new Set((Array.isArray(wartosci) ? wartosci : []).map((v) => String(v ?? '').trim()).filter(Boolean))];
     if (kolumny.includes(k) && czyste.length) listy[k] = czyste;
   }
-  return { id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze, ...(unikalne.length ? { unikalne } : {}), ...(Object.keys(listy).length ? { listy } : {}) };
+  // Wygląd komórek przeniesiony z arkusza: wiersz po wierszu, [null | [null | { pogrubienie?, kursywa?, kolor? }]].
+  // `wyglad_wyl` wyłącza przenoszenie go na strony (wygląd zostaje zapisany).
+  const wyglad = (Array.isArray(t?.wyglad) ? t.wyglad : []).slice(0, wiersze.length).map((w) => {
+    if (!Array.isArray(w)) return null;
+    const komorki = kolumny.map((_, k) => {
+      const x = w[k];
+      if (!x || typeof x !== 'object') return null;
+      const czysty = { ...(x.pogrubienie ? { pogrubienie: true } : {}), ...(x.kursywa ? { kursywa: true } : {}), ...(typeof x.kolor === 'string' && /^#[0-9a-f]{6}$/i.test(x.kolor) ? { kolor: x.kolor.toLowerCase() } : {}) };
+      return Object.keys(czysty).length ? czysty : null;
+    });
+    return komorki.some(Boolean) ? komorki : null;
+  });
+  const maWyglad = wyglad.some(Boolean);
+  return {
+    id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze,
+    ...(unikalne.length ? { unikalne } : {}), ...(Object.keys(listy).length ? { listy } : {}),
+    ...(maWyglad ? { wyglad } : {}), ...(maWyglad && t?.wyglad_wyl ? { wyglad_wyl: true } : {}),
+  };
 }
 
 export function nowaSeria(nazwa = 'Seria') {

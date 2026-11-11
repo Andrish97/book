@@ -79,6 +79,11 @@ export class Dane {
       serie.length ? `Używana w ${serie.length === 1 ? 'serii' : 'seriach'}: ${serie.join(', ')}.` : 'Nie jest jeszcze używana w żadnej serii – serię ustawiasz we właściwościach strony.',
     ].filter(Boolean).join(' ');
 
+    // Przełącznik wyglądu z arkusza jest tylko przy tabeli, która taki wygląd ma.
+    const maWyglad = Boolean(t.wyglad?.some(Boolean));
+    $('#dane-wyglad-pole').hidden = !maWyglad;
+    $('#dane-wyglad').checked = maWyglad && !t.wyglad_wyl;
+
     const html = ['<thead><tr><th class="rog"></th>'];
     t.kolumny.forEach((k, i) => {
       html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="lista-kolumny" data-k="${i}" aria-pressed="${Boolean(t.listy?.[k]?.length)}" title="Lista dozwolonych wartości kolumny – w szablonie danych komórki dostaną listę rozwijaną" aria-label="Lista dozwolonych wartości kolumny">☰</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
@@ -106,9 +111,15 @@ export class Dane {
     this._narysowane = cel;
     const tbody = this.siatka.tBodies[0];
     tbody.insertAdjacentHTML('beforeend', html.join(''));
+    const zWygladem = t.wyglad && !t.wyglad_wyl;
     for (let w = od; w < cel; w += 1) {
       const komorki = tbody.rows[w].cells;
-      for (let k = 0; k < t.kolumny.length; k += 1) komorki[k + 1].textContent = t.wiersze[w][k];
+      for (let k = 0; k < t.kolumny.length; k += 1) {
+        komorki[k + 1].textContent = t.wiersze[w][k];
+        // Komórka wygląda tak, jak jej wartość będzie wyglądać na stronie (wygląd przeniesiony z arkusza).
+        const wyglad = zWygladem ? t.wyglad[w]?.[k] : null;
+        if (wyglad) Object.assign(komorki[k + 1].style, { fontWeight: wyglad.pogrubienie ? '700' : '', fontStyle: wyglad.kursywa ? 'italic' : '', color: wyglad.kolor || '' });
+      }
     }
     if (od > 0 && (t.unikalne?.length || t.listy)) this._oznaczPowtorzenia();
   }
@@ -292,8 +303,8 @@ export class Dane {
         for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana) { d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).filter((z) => z !== t.kolumny[k])); if (!d.zmiana) delete d.zmiana; }
         t.kolumny.splice(k, 1);
         for (const w of t.wiersze) w.splice(k, 1);
-      } else if (wiersz) t.wiersze.splice(Number(wiersz.dataset.w), 1);
-      else return;
+        for (const w of t.wyglad || []) w?.splice(k, 1);
+      } else if (wiersz) { t.wiersze.splice(Number(wiersz.dataset.w), 1); t.wyglad?.splice(Number(wiersz.dataset.w), 1); } else return;
       this.rysujTabele();
       this._zmieniono();
     });
@@ -304,6 +315,13 @@ export class Dane {
       t.nazwa = e.target.value.trim().replace(/[{}:\n]/g, ' ').trim() || t.nazwa;
       e.target.value = t.nazwa;
       if (stara !== t.nazwa) zmienNazweTabeliWPolach(this.projekt(), stara, t.nazwa);
+      this._zmieniono();
+    });
+    // Wygląd przeniesiony z arkusza można wyłączyć – zostaje zapisany, ale strony go nie pokazują.
+    $('#dane-wyglad').addEventListener('change', (e) => {
+      const t = this.tabela();
+      if (e.target.checked) delete t.wyglad_wyl; else t.wyglad_wyl = true;
+      this.rysujTabele();
       this._zmieniono();
     });
     $('#dane-wiersz').addEventListener('click', () => {
@@ -368,6 +386,7 @@ export class Dane {
       if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.`, 'Podmień dane', false, 'Dodaj osobno')) {
         stara.kolumny = nowa.kolumny;
         stara.wiersze = nowa.wiersze;
+        if (nowa.wyglad) stara.wyglad = nowa.wyglad; else { delete stara.wyglad; delete stara.wyglad_wyl; }
         if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
         if (stara.listy) { for (const k of Object.keys(stara.listy)) if (!nowa.kolumny.includes(k)) delete stara.listy[k]; if (!Object.keys(stara.listy).length) delete stara.listy; }
         ostatnia = stara;

@@ -98,13 +98,18 @@ export function zapiszLiczbe(n, zapis) {
 // (pole nieznane – zostaje bez zmian). Formatowanie fragmentów (styles w zapisie
 // Fabric: [{ start, end, style }], numeracja znaków bez znaków nowej linii)
 // przesuwa się razem z tekstem; wstawiona wartość dostaje wygląd pierwszego
-// znaku pola.
+// znaku pola. Funkcja wartości może mieć też `wartosc.wyglad(nazwa)` – wygląd
+// przeniesiony z arkusza ({ fontWeight?, fontStyle?, fill? } albo null): wstawiona
+// wartość dostaje go dodatkowo, jako formatowanie fragmentu.
 export function podstawWTekscie(tekst, styles, wartosc) {
   const { pola: samePola, klamry } = rozbierz(tekst);
   if (!samePola.length && !klamry.length) return { text: tekst, styles };
   // Pola i podwójne klamry w kolejności występowania; podwójna klamra „ma wartość” – pojedynczą klamrę.
   const pola = [...samePola, ...klamry.map((k) => ({ ...k, cale: tekst.slice(k.start, k.koniec) }))].sort((a, b) => a.start - b.start);
   const maStyle = Array.isArray(styles) && styles.length > 0;
+  // Wygląd z arkusza dokładamy tylko tam, gdzie formatowanie fragmentów jest listą (albo go nie ma).
+  const zArkusza = typeof wartosc.wyglad === 'function' && (!styles || Array.isArray(styles) || Object.keys(styles).length === 0);
+  let dolozono = false;
   // Styl każdego znaku (bez znaków nowej linii).
   const stylZnaku = [];
   if (maStyle) for (const s of styles) for (let i = s.start; i < s.end; i += 1) stylZnaku[i] = s.style;
@@ -124,7 +129,9 @@ export function podstawWTekscie(tekst, styles, wartosc) {
     const v = p.znak || wartosc(p.nazwa, p.zapis);
     if (v === undefined || v === null) continue;
     przepisz(p.start);
-    const styl = stylZnaku[bezNl] || null;
+    let styl = stylZnaku[bezNl] || null;
+    const dodatek = zArkusza && !p.znak ? wartosc.wyglad(p.nazwa) : null;
+    if (dodatek) { styl = { ...styl, ...dodatek }; dolozono = true; }
     const wstawka = String(v);
     wynik += wstawka;
     for (const z of wstawka) if (z !== '\n') noweStyle.push(styl);
@@ -132,7 +139,7 @@ export function podstawWTekscie(tekst, styles, wartosc) {
     bezNl += p.cale.length; // pole nie zawiera nowych linii
   }
   przepisz(tekst.length);
-  if (!maStyle) return { text: wynik, styles };
+  if (!maStyle && !dolozono) return { text: wynik, styles };
 
   // Z powrotem do odcinków { start, end, style }.
   const odcinki = [];
@@ -210,7 +217,7 @@ function skladoweKoloru(kolor) {
   return m && m.length >= 3 ? [Number(m[0]), Number(m[1]), Number(m[2]), m[3] === undefined ? 1 : Number(m[3])] : null;
 }
 
-function naHsl([r, g, b]) {
+export function naHsl([r, g, b]) {
   const [R, G, B] = [r / 255, g / 255, b / 255];
   const max = Math.max(R, G, B); const min = Math.min(R, G, B);
   const l = (max + min) / 2;
@@ -221,7 +228,7 @@ function naHsl([r, g, b]) {
   return [h / 6, s, l];
 }
 
-function zHsl([h, s, l]) {
+export function zHsl([h, s, l]) {
   if (!s) return [l, l, l].map((v) => Math.round(v * 255));
   const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
   const p = 2 * l - q;

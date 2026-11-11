@@ -3,6 +3,7 @@
 // je widać w arkuszu.
 
 import { biblioteka } from './biblioteki.js';
+import { wygladArkuszy } from './arkusz-wyglad.js';
 
 const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
@@ -94,9 +95,24 @@ export async function wczytajPlik(plik) {
     // Arkusze „Instrukcja” i „Listy rozwijane” z szablonu danych to objaśnienia i wartości list, nie dane.
     const pomocnicze = ['instrukcja', ARKUSZ_LIST.toLowerCase()];
     const arkusze = skoroszyt.SheetNames.filter((n) => skoroszyt.SheetNames.length === 1 || !pomocnicze.includes(n.trim().toLowerCase()));
+    // Pogrubienia, kursywa i kolory liter komórek (tylko pliki .xlsx i .xlsm); błąd odczytu wyglądu nie psuje importu.
+    let wyglad = new Map();
+    if (/\.xls[xm]$/i.test(plik.name)) { try { wyglad = await wygladArkuszy(bufor); } catch { wyglad = new Map(); } }
     const tabele = arkusze.map((nazwa) => {
-      const dane = XLSX.utils.sheet_to_json(skoroszyt.Sheets[nazwa], { header: 1, raw: false, defval: '' });
-      return { nazwa: skoroszyt.SheetNames.length > 1 ? nazwa : bezRozszerzenia(plik.name), ...zWierszy(dane) };
+      const arkusz = skoroszyt.Sheets[nazwa];
+      const dane = XLSX.utils.sheet_to_json(arkusz, { header: 1, raw: false, defval: '' });
+      const tabela = { nazwa: skoroszyt.SheetNames.length > 1 ? nazwa : bezRozszerzenia(plik.name), ...zWierszy(dane) };
+      const komorki = wyglad.get(nazwa);
+      if (komorki && arkusz['!ref']) {
+        // Wiersz 0 danych to nagłówki; dane zaczynają się w lewym górnym rogu zajętego obszaru arkusza.
+        const { s: poczatek } = XLSX.utils.decode_range(arkusz['!ref']);
+        const zArkusza = tabela.wiersze.map((_, w) => {
+          const wiersz = tabela.kolumny.map((__, k) => komorki.get(`${poczatek.r + 1 + w},${poczatek.c + k}`) || null);
+          return wiersz.some(Boolean) ? wiersz : null;
+        });
+        if (zArkusza.some(Boolean)) tabela.wyglad = zArkusza;
+      }
+      return tabela;
     }).filter((t) => t.wiersze.length || t.kolumny.some((k) => k && !/^kolumna_\d+$/.test(k)));
     if (!tabele.length) throw new Error('W pliku nie ma danych.');
     return tabele;
