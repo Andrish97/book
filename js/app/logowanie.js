@@ -1,6 +1,7 @@
 // Logowanie: ekran konta, nagłówek z nazwą użytkownika, wejście po zalogowaniu i wylogowanie.
 
 import { usunLokalneWlasciciela } from '../lokalny.js';
+import { usunHistorieWlasciciela } from '../historia-zapis.js';
 import * as chmura from '../chmura.js';
 import { powiadom, $, zamknijMenu } from '../ui.js';
 import { Konto } from '../konto.js';
@@ -22,7 +23,7 @@ export const konto = new Konto({
   wyloguj: (wszedzie) => wyloguj(wszedzie),
   odswiezNaglowek: () => odswiezNaglowek(),
   liczbaProjektow: async () => (await wpisyProjektow()).length,
-  usunDaneLokalne: (id) => usunLokalneWlasciciela(id),
+  usunDaneLokalne: async (id) => { await usunLokalneWlasciciela(id); await usunHistorieWlasciciela(id); },
   poUsunieciuKonta: async () => {
     wylaczNaZywo();
     stan.uzytkownik = null;

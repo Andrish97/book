@@ -67,7 +67,8 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | `js/aplikacja.js` | Plik startowy (lekki): przyciski wspólne, logowanie, lista projektów, podgląd z linku, start, nowe wersje aplikacji |
 | `js/app/edytor-start.js` | Część edytora (doczytywana): przyciski edytora, zdarzenia płótna, skróty |
 | `js/app/` | Części aplikacji: `kontekst` (wspólny stan), `skladniki` (panel, linijki, okno danych…), `zapis` (płótno ↔ projekt, zapis, dołączanie zmian z konta, cofanie), `na-zywo` (powiadomienia o zmianach z innych urządzeń), `trasy`, `logowanie`, `projekty`, `lista-stron`, `sekcje`, `wzorce`, `panel-strony`, `podglad-ekran`, `udostepnione` (podgląd z linku bez edytora), `doczytaj` (doczytywanie edytora), `edytor-instancja`, `instrukcja-leniwa` |
-| `js/historia.js` | Jedna historia cofania całego projektu |
+| `js/historia.js` | Jedna historia cofania całego projektu (kroki jako migawki części projektu; postać do zapisu z pulą tekstów) |
+| `js/historia-zapis.js` | Historia cofania zapisana na urządzeniu (IndexedDB `seriodruk-historia`, rekord na konto i projekt z numerem wersji z konta) – wraca po ponownym otwarciu projektu |
 | `js/konto.js` | Logowanie, rejestracja, reset hasła, ustawienia konta |
 | `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji (strony w osobnych wierszach, zapis funkcją `zapisz_projekt`), obrazy |
 | `js/laczenie.js` | Łączenie zmian z dwóch urządzeń: odciski części projektu, porównanie trzech stanów (ostatnio uzgodniony, ten z urządzenia, ten z konta), lista części zmienionych po obu stronach |

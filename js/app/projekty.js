@@ -2,6 +2,7 @@
 
 import { normalizuj, kopiujProjekt, FORMATY, nowyProjekt, normalizujWydruk } from '../projekt.js';
 import { listaLokalnych, wczytajLokalnie, zapiszLokalnie, oznaczZsynchronizowany, usunLokalnie } from '../lokalny.js';
+import { usunHistorie } from '../historia-zapis.js';
 import * as chmura from '../chmura.js';
 import { odlozZasoby, podlaczZasoby, kopiujPliki } from '../zasoby.js';
 import { podstawaProjektu } from '../laczenie.js';
@@ -206,6 +207,7 @@ async function usunProjekt(w) {
   if (!ok) return false;
   try {
     await usunLokalnie(w.id);
+    await usunHistorie(w.id);
     if (stan.uzytkownik) await chmura.usunZChmury(w.id);
     powiadom('Projekt usunięty.');
   } catch (e) {
@@ -292,6 +294,8 @@ export async function wczytajPlikProjektu(plik) {
       if (!zastap) projekt.id = crypto.randomUUID();
     }
     if (stan.projekt) await zapiszTeraz();
+    // Plik w miejsce projektu: dawna historia cofania do niego nie pasuje.
+    if (istniejacy && projekt.id === istniejacy.id) await usunHistorie(projekt.id);
     await otworzProjekt(projekt);
     await zapiszTeraz();
     powiadom(`Wczytano „${projekt.nazwa}”.`);
