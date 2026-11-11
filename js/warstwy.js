@@ -23,8 +23,9 @@ export class PanelWarstw {
       // (ukrytego albo w grupie, której nie da się otworzyć – zaznacza całą grupę).
       const wGrupie = e.target.closest('li[data-grupa]');
       if (wGrupie) {
-        if (e.target.closest('.warstwa-oko')) edytor.ustawWidocznoscWGrupie(wGrupie.dataset.grupa, Number(wGrupie.dataset.nr), wGrupie.classList.contains('ukryta'));
-        else if (!edytor.otworzGrupe(wGrupie.dataset.grupa, Number(wGrupie.dataset.nr))) edytor.zaznacz(wGrupie.dataset.grupa);
+        // data-nr: numer elementu w grupie albo ścieżka numerów przez grupy w grupach („2.0.1”).
+        if (e.target.closest('.warstwa-oko')) edytor.ustawWidocznoscWGrupie(wGrupie.dataset.grupa, wGrupie.dataset.nr, wGrupie.classList.contains('ukryta'));
+        else if (!edytor.otworzGrupe(wGrupie.dataset.grupa, wGrupie.dataset.nr)) edytor.zaznacz(wGrupie.dataset.grupa);
         return;
       }
       const li = e.target.closest('li[data-id]');
@@ -49,7 +50,7 @@ export class PanelWarstw {
       const wGrupie = e.target.closest('li[data-grupa]');
       if (wGrupie && !e.target.closest('button')) {
         const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', wGrupie.querySelector('.warstwa-nazwa').textContent);
-        if (nazwa) edytor.nazwijWGrupie(wGrupie.dataset.grupa, Number(wGrupie.dataset.nr), nazwa);
+        if (nazwa) edytor.nazwijWGrupie(wGrupie.dataset.grupa, wGrupie.dataset.nr, nazwa);
         return;
       }
       const li = e.target.closest('li[data-id]');
@@ -138,7 +139,9 @@ export class PanelWarstw {
         const wiersz = document.createElement('li');
         wiersz.dataset.grupa = w.id;
         wiersz.dataset.nr = String(d.nr);
-        wiersz.className = `warstwa w-grupie${d.zaznaczony ? ' zaznaczona' : ''}${d.ukryty ? ' ukryta' : ''}`;
+        wiersz.className = `warstwa w-grupie${d.zaznaczony ? ' zaznaczona' : ''}${d.otwarta ? ' otwarta' : ''}${d.ukryty ? ' ukryta' : ''}`;
+        // Element grupy leżącej w grupie: wcięcie o poziom głębiej.
+        if (d.poziom > 1) wiersz.style.paddingLeft = `${24 + (d.poziom - 1) * 16}px`;
         wiersz.title = 'Kliknij, żeby zmienić ten element bez rozgrupowywania';
         wiersz.innerHTML = `<button class="warstwa-oko" aria-label="${d.ukryty ? 'Pokaż' : 'Ukryj'}" title="${d.ukryty ? 'Pokaż' : 'Ukryj (nie będzie drukowany)'}">${ikona(d.ukryty ? 'okoOff' : 'oko', { rozmiar: 16 })}</button>
           <span class="warstwa-typ">${ikona(IKONY_TYPOW[d.typ] || 'prostokat', { rozmiar: 16 })}</span>
