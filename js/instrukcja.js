@@ -479,7 +479,7 @@ export const ROZDZIALY = [
     podpis: 'Trzeci kwadrat w równym odstępie od drugiego: oba odstępy mają tę samą liczbę na fioletowym tle.',
     punkty: [
       '<b>Różowa linia</b> pojawia się, gdy krawędź albo środek elementu zrównuje się z innym elementem. Element sam „wskakuje” na tę linię.',
-      '<b>Strzałki z liczbą</b> pokazują odległość w mm do najbliższego elementu z lewej, prawej, z góry i z dołu. Gdy naprzeciwko nie ma sąsiada, mierzony jest najbliższy element po skosie – cienka linia przedłuża wtedy jego krawędź. Obrócony element liczy się swoim prawdziwym kształtem, nie prostokątem dookoła.',
+      '<b>Strzałki z liczbą</b> pokazują odległość w mm do najbliższego elementu z lewej, prawej, z góry i z dołu. Gdy naprzeciwko nie ma sąsiada, mierzony jest najbliższy element po skosie – cienka linia przedłuża wtedy jego krawędź. Do takiego sąsiada widać też <b>odległość w linii prostej</b> (po przekątnej): przerywany odcinek z liczbą łączy najbliższe sobie punkty obu elementów – zwykle narożniki, a przy elemencie obróconym także punkt na jego boku. Obrócony element liczy się swoim prawdziwym kształtem, nie prostokątem dookoła.',
       '<b>Równe odstępy</b>: gdy odstęp od sąsiada jest taki sam jak inny odstęp w tym rzędzie (albo element stoi dokładnie na środku między sąsiadami), obie strzałki dostają fioletową etykietę.',
       'Przytrzymaj <kbd>Alt</kbd> przy zaznaczonym elemencie, żeby zobaczyć jego odległości także do krawędzi strony.',
       'Przyciąganie do elementów wyłączysz w menu z kratką.',

@@ -134,7 +134,33 @@ function pomiarPoSkosie(r, inne, os, strona) {
   return {
     os, od: strona === 'przed' ? krawedz : r[p] + r[s], do: strona === 'przed' ? r[p] : krawedz, poprzek, wartosc: odstep, rowne: false,
     dociagniecie: { poz: krawedz, od: Math.min(poprzek, blizszy), do: Math.max(poprzek, blizszy) },
+    sasiad: o,
   };
+}
+
+// Rogi elementu: obrócony ma `wielokat`, zwykły – rogi swojego prostokąta.
+const rogi = (o) => o.wielokat || [{ x: o.x, y: o.y }, { x: o.x + o.w, y: o.y }, { x: o.x + o.w, y: o.y + o.h }, { x: o.x, y: o.y + o.h }];
+
+// Najbliższe sobie punkty obrysów dwóch elementów: { a, b, d } – punkt na pierwszym, na drugim i odległość
+// między nimi w linii prostej. Dla dwóch prostokątów po skosie to ich najbliższe narożniki; dla elementu
+// obróconego punkt może wypaść na jego boku.
+function najblizszePunkty(pierwszy, drugi) {
+  let najlepszy = null;
+  const sprawdz = (punkt, wielokat, odwrotnie) => {
+    wielokat.forEach((q1, i) => {
+      const q2 = wielokat[(i + 1) % wielokat.length];
+      const dx = q2.x - q1.x;
+      const dy = q2.y - q1.y;
+      const dl2 = dx * dx + dy * dy;
+      const t = dl2 ? Math.max(0, Math.min(1, ((punkt.x - q1.x) * dx + (punkt.y - q1.y) * dy) / dl2)) : 0;
+      const q = { x: q1.x + t * dx, y: q1.y + t * dy };
+      const d = Math.hypot(punkt.x - q.x, punkt.y - q.y);
+      if (!najlepszy || d < najlepszy.d - EPS) najlepszy = odwrotnie ? { d, a: q, b: { x: punkt.x, y: punkt.y } } : { d, a: { x: punkt.x, y: punkt.y }, b: q };
+    });
+  };
+  for (const punkt of rogi(pierwszy)) sprawdz(punkt, rogi(drugi), false);
+  for (const punkt of rogi(drugi)) sprawdz(punkt, rogi(pierwszy), true);
+  return najlepszy;
 }
 
 // Przyciąganie jednej krawędzi przy zmianie rozmiaru uchwytem. poz – położenie krawędzi
@@ -163,8 +189,11 @@ export function przyciagnijKrawedz(poz, os, r, { linie = [], inne = [], siatka =
 // Odległości prostokąta do najbliższych sąsiadów w czterech kierunkach.
 // obszar: opcjonalnie { x, y, w, h } strony – gdy w danym kierunku nie ma
 // sąsiada, mierzona jest odległość do krawędzi strony.
+// Sąsiad leżący po skosie dostaje, oprócz odległości w poziomie i w pionie, także pomiar w linii prostej
+// (po przekątnej): { os: 'skos', a, b, wartosc } – odcinek między najbliższymi punktami obu elementów.
 export function pomiary(r, inne, obszar = null) {
   const wynik = [];
+  const poSkosie = new Set();
   for (const os of ['x', 'y']) {
     const [p, s, q, t] = OSIE[os];
     const { przed, za } = sasiedziNaOsi(r, inne, os);
@@ -172,14 +201,21 @@ export function pomiary(r, inne, obszar = null) {
     const a = przed ? pomiarMiedzy(przed, r, os) : pomiarPoSkosie(r, inne, os, 'przed');
     const b = za ? pomiarMiedzy(r, za, os) : pomiarPoSkosie(r, inne, os, 'za');
     if (a && b && Math.abs(a.wartosc - b.wartosc) < EPS) { a.rowne = true; b.rowne = true; }
-    if (a) wynik.push(a);
-    if (b) wynik.push(b);
+    for (const m of [a, b]) {
+      if (!m) continue;
+      if (m.sasiad) { poSkosie.add(m.sasiad); delete m.sasiad; }
+      wynik.push(m);
+    }
     if (obszar) {
       const poprzek = r[q] + r[t] / 2;
       if (!przed && !a && r[p] - obszar[p] > EPS) wynik.push({ os, od: obszar[p], do: r[p], poprzek, wartosc: r[p] - obszar[p], rowne: false, doKrawedzi: true });
       const koniec = obszar[p] + obszar[s];
       if (!za && !b && koniec - (r[p] + r[s]) > EPS) wynik.push({ os, od: r[p] + r[s], do: koniec, poprzek, wartosc: koniec - (r[p] + r[s]), rowne: false, doKrawedzi: true });
     }
+  }
+  for (const o of poSkosie) {
+    const n = najblizszePunkty(r, o);
+    if (n && n.d > EPS) wynik.push({ os: 'skos', a: n.a, b: n.b, wartosc: n.d, rowne: false });
   }
   return wynik;
 }

@@ -2916,6 +2916,33 @@ export class Edytor extends EventTarget {
     // Odległości do sąsiadów: odcinek ze strzałkami i liczbą w mm. Równe odstępy
     // mają pełną etykietę, zwykłe – samą liczbę w obwódce.
     for (const m of this._pomiary) {
+      // Odległość w linii prostej do elementu po skosie: przerywany odcinek między najbliższymi punktami
+      // obu elementów, z liczbą pośrodku.
+      if (m.os === 'skos') {
+        const [ax, ay, bx, by] = [X(m.a.x), Y(m.a.y), X(m.b.x), Y(m.b.y)];
+        ctx.strokeStyle = '#db2777';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 3]);
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#db2777';
+        for (const [px, py] of [[ax, ay], [bx, by]]) { ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2); ctx.fill(); }
+        const napis = String(Math.round(m.wartosc * 10) / 10).replace('.', ',');
+        ctx.font = '600 11px Inter, system-ui, sans-serif';
+        const szerokosc = ctx.measureText(napis).width + 10;
+        ctx.beginPath();
+        ctx.roundRect((ax + bx) / 2 - szerokosc / 2, (ay + by) / 2 - 8, szerokosc, 16, 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.setLineDash([3, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#db2777';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(napis, (ax + bx) / 2, (ay + by) / 2 + 0.5);
+        continue;
+      }
       const pion = m.os === 'y';
       const a = pion ? [X(m.poprzek), Y(m.od)] : [X(m.od), Y(m.poprzek)];
       const b = pion ? [X(m.poprzek), Y(m.do)] : [X(m.do), Y(m.poprzek)];
