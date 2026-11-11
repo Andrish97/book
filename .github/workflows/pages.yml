@@ -37,6 +37,8 @@ jobs:
           touch _site/.nojekyll
           # Numer wersji i lista plików kodu dla service workera (pamięć jednej wersji naraz).
           python3 scripts/wersja-sw.py _site "${GITHUB_SHA::12}"
+          # Rozszerzenie Claude Desktop (.mcpb) z łącznikiem – pobierane z okna „Dostęp dla AI”.
+          python3 scripts/rozszerzenie-mcpb.py _site/ai/mcp/seriodruk.mcpb
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
