@@ -49,13 +49,18 @@ export async function wpisyProjektow() {
   return [...wpisy.values()].sort((a, b) => najnowsza(b).localeCompare(najnowsza(a)));
 }
 
-export async function pokazProjekty() {
-  pokazEkran('projekty');
-  trasa.ustaw('projekty');
+// cicho: odświeżenie listy, która już jest na ekranie (zmiana na koncie z innego urządzenia) – bez
+// szkieletu ładowania i bez ruszania adresu.
+export async function pokazProjekty({ cicho = false } = {}) {
   const siatka = $('#siatka-projektow');
-  siatka.innerHTML = '<li class="karta-projektu szkielet"><div class="okladka"></div><div class="opis"><strong>&nbsp;</strong><small>&nbsp;</small></div></li>'.repeat(3);
-  $('#pusto-projekty').hidden = true;
+  if (!cicho) {
+    pokazEkran('projekty');
+    trasa.ustaw('projekty');
+    siatka.innerHTML = '<li class="karta-projektu szkielet"><div class="okladka"></div><div class="opis"><strong>&nbsp;</strong><small>&nbsp;</small></div></li>'.repeat(3);
+    $('#pusto-projekty').hidden = true;
+  }
   const wpisy = await wpisyProjektow();
+  if (cicho && document.body.dataset.ekran !== 'projekty') return; // w międzyczasie otwarto projekt
   siatka.replaceChildren();
   $('#pusto-projekty').hidden = wpisy.length > 0;
   $('.projekty-naglowek .przyciski-naglowka').hidden = wpisy.length === 0;

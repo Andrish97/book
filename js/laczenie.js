@@ -58,6 +58,14 @@ export function postacDoPorownan(projekt) {
 // Odciski stanu uzgodnionego z kontem – zapamiętywane w projekcie jako `podstawa_chmury`.
 export const podstawaProjektu = (projekt) => odciskiProjektu(postacDoPorownan(projekt));
 
+// Czy projekt jest taki sam jak stan o podanych odciskach – z dokładnością do ustawień widoku (siatka,
+// linijki), które każde urządzenie ma swoje. Tak aplikacja rozstrzyga, czy po dołączeniu zmian z konta
+// ma jeszcze coś do wysłania; bez tego dwa urządzenia z różnym widokiem wysyłałyby projekt w kółko.
+export function tenSamStan(projekt, odciski) {
+  const bezMoich = (o) => ({ listy: o?.listy, reszta: Object.fromEntries(Object.entries(o?.reszta || {}).filter(([k]) => !MOJE_BEZ_PYTANIA.has(k))) });
+  return kanon(bezMoich(podstawaProjektu(projekt))) === kanon(bezMoich(odciski));
+}
+
 // Odciski wszystkich części projektu: { listy: { strony: { kolejnosc: [id], elementy: { id: odcisk } }, … }, reszta: { klucz: odcisk } }.
 export function odciskiProjektu(projekt) {
   const listy = {};
@@ -162,13 +170,16 @@ export function polaczProjekty(moj, konto, podstawa = null) {
 
 // Składa połączony projekt w miejscu (w obiekcie `moj`, żeby reszta aplikacji trzymała ten sam projekt).
 // wybory: Map(klucz pytania → 'moje' | 'konto'); pytanie bez odpowiedzi zostaje przy wersji z tego urządzenia.
-// Zwraca identyfikatory stron i wzorców, których treść przyszła z konta.
+// Zwraca, co przyszło z konta: { strony: [id], wzorce: [id] } – strony i wzorce o zmienionej treści,
+// `ukladStron` – zmieniła się lista stron (kolejność, dodane, usunięte), `inne` – cokolwiek poza treścią
+// stron (wzorce, tabele, sekcje, serie, style, czcionki, ustawienia).
 export function zastosujPolaczenie(moj, konto, plan, wybory = new Map()) {
   const skad = (w) => (w.konflikt === undefined ? w.zrodlo : (wybory.get(w.konflikt) || 'moje'));
-  const zmienione = { strony: [], wzorce: [] };
+  const zmienione = { strony: [], wzorce: [], ukladStron: false, inne: false };
   for (const l of LISTY) {
     const m = new Map((moj[l] || []).map((e) => [e.id, e]));
     const k = new Map((konto[l] || []).map((e) => [e.id, e]));
+    const przedtem = (moj[l] || []).map((e) => e.id);
     const lista = [];
     for (const w of plan.listy[l]) {
       const zKonta = skad(w) === 'konto';
@@ -176,11 +187,16 @@ export function zastosujPolaczenie(moj, konto, plan, wybory = new Map()) {
       if (!e) continue; // wybrano stronę, po której element jest usunięty
       lista.push(e);
       if (zKonta && zmienione[l]) zmienione[l].push(w.id);
+      if (zKonta && l !== 'strony') zmienione.inne = true;
     }
     moj[l] = lista;
+    if (lista.length !== przedtem.length || lista.some((e, i) => e.id !== przedtem[i])) {
+      if (l === 'strony') zmienione.ukladStron = true; else zmienione.inne = true;
+    }
   }
   for (const [klucz, w] of Object.entries(plan.reszta)) {
     if (skad(w) !== 'konto') continue;
+    zmienione.inne = true;
     if (konto[klucz] === undefined) delete moj[klucz]; else moj[klucz] = konto[klucz];
   }
   // Pliki (obrazy, czcionki): suma obu stron; opis z konta uzupełnia brakującą ścieżkę na koncie.

@@ -258,9 +258,9 @@ test('ta sama strona zmieniona na dwóch urządzeniach: pytanie tylko o nią, wy
   assert.match(await strona.textContent('#konflikt-opis'), /Jedną część zmieniono w obu miejscach/);
   await strona.click('#konflikt-wszystko-konto');
   await strona.click('#konflikt-zastosuj');
-  await polaczono(strona);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].nazwa === 'Okładka – wersja z telefonu');
   await zapisano(strona);
-  assert.equal(baza.projekty[0].wersja, wersja + 2);
+  assert.equal(baza.projekty[0].wersja, wersja + 1, 'po wybraniu wersji z konta to urządzenie ma to samo co konto – nic nie wysyła');
   assert.deepEqual(await strona.evaluate(() => { const s = window.seriodruk.stan.projekt.strony[0]; return [s.nazwa, s.obiekty.length]; }), ['Okładka – wersja z telefonu', elementow]);
   assert.deepEqual([naKoncie(p.strony[0]).nazwa, naKoncie(p.strony[0]).obiekty.length], ['Okładka – wersja z telefonu', elementow]);
   assert.deepEqual(bledy, []);

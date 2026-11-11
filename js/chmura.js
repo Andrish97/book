@@ -163,6 +163,48 @@ export async function listaWChmurze() {
     .order('zmieniono', { ascending: false }));
 }
 
+// Numer wersji projektu na koncie (tanie zapytanie o jedną liczbę) albo null, gdy projektu tam nie ma.
+export async function wersjaNaKoncie(id) {
+  const sb = await supabase();
+  const wiersz = sprawdz(await sb.from('projekty').select('wersja, zmieniono').eq('id', id).maybeSingle());
+  return wiersz ? { wersja: Number(wiersz.wersja), zmieniono: wiersz.zmieniono } : null;
+}
+
+// ---------- Zmiany na żywo (Supabase Realtime) ----------
+//
+// Każdy zapis projektu zmienia jego wiersz w tabeli `projekty` (rośnie numer wersji). Kanał Realtime
+// przekazuje to od razu pozostałym urządzeniom zalogowanym na to samo konto; RLS pilnuje, żeby nikt
+// nie dostał cudzych wierszy. Z wiadomości bierzemy tylko identyfikator i numer wersji – treść
+// projektu aplikacja pobiera sama, zwykłym zapytaniem.
+let kanal = null;
+
+// naZmiane({ id, wersja, zmieniono }) – projekt zapisano albo dodano na koncie (także z tego urządzenia);
+// naStan(polaczony) – kanał działa albo przestał. Zwraca dopiero po zgłoszeniu kanału (nie po połączeniu).
+export async function sluchajZmian(uzytkownik, naZmiane, naStan = () => {}) {
+  const sb = await supabase();
+  await przestanSluchac();
+  // Kanał musi dołączyć już z tokenem zalogowanego konta – inaczej serwer traktuje go jak gościa
+  // i (przez RLS) nie wysyła żadnych wierszy. Odświeżone tokeny biblioteka dosyła sama.
+  const { data } = await sb.auth.getSession();
+  if (data.session?.access_token) await sb.realtime.setAuth(data.session.access_token);
+  const filtr = { schema: 'public', table: 'projekty', filter: `owner_id=eq.${uzytkownik.id}` };
+  const przekaz = (z) => {
+    const w = z?.new;
+    if (w?.id) naZmiane({ id: w.id, wersja: Number(w.wersja), zmieniono: w.zmieniono });
+  };
+  kanal = sb.channel(`projekty-${uzytkownik.id}`)
+    .on('postgres_changes', { event: 'INSERT', ...filtr }, przekaz)
+    .on('postgres_changes', { event: 'UPDATE', ...filtr }, przekaz)
+    .subscribe((status) => naStan(status === 'SUBSCRIBED'));
+}
+
+export async function przestanSluchac() {
+  if (!kanal) return;
+  const stary = kanal;
+  kanal = null;
+  try { await (await supabase()).removeChannel(stary); } catch { /* kanał już zamknięty */ }
+}
+
 // Zapis odrzucony, bo na koncie jest wersja zapisana z innego urządzenia.
 export class KonfliktZapisu extends Error {
   constructor(zmieniono) {

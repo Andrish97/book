@@ -10,6 +10,7 @@ import { wpisyProjektow, pokazProjekty, plikiDoOtwarcia, otworzOczekujacePliki }
 import { zapiszTeraz } from './zapis.js';
 import { instrukcja } from './skladniki.js';
 import { przejdzDoTrasy } from './trasy.js';
+import { wlaczNaZywo, wylaczNaZywo } from './na-zywo.js';
 
 // ======================================================================
 // Logowanie
@@ -24,6 +25,7 @@ export const konto = new Konto({
   liczbaProjektow: async () => (await wpisyProjektow()).length,
   usunDaneLokalne: (id) => usunLokalneWlasciciela(id),
   poUsunieciuKonta: async () => {
+    wylaczNaZywo();
     stan.uzytkownik = null;
     stan.projekt = null;
     trasa.ustaw('projekty', { zastap: true });
@@ -46,6 +48,7 @@ export function odswiezNaglowek() {
 
 export async function poZalogowaniu(uzytkownik) {
   stan.uzytkownik = uzytkownik;
+  wlaczNaZywo(uzytkownik); // powiadomienia o zmianach z innych urządzeń; nie wstrzymuje wejścia
   const motywKonta = uzytkownik?.user_metadata?.motyw;
   if (motywKonta && motywKonta !== wybranyMotyw()) ustawMotyw(motywKonta);
   odswiezNaglowek();
@@ -64,6 +67,7 @@ export async function wyloguj(wszedzie = false) {
   }
   stan.uzytkownik = null;
   stan.trybLokalny = false;
+  wylaczNaZywo();
   konto.ustawTryb('logowanie');
   trasa.ustaw('projekty', { zastap: true });
   pokazEkran('logowanie');

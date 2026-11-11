@@ -55,6 +55,7 @@ import {
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje } from './app/sekcje.js';
 import { przejdzDoTrasy } from './app/trasy.js';
 import { wyloguj, konto, odswiezNaglowek, poZalogowaniu } from './app/logowanie.js';
+import { wylaczNaZywo } from './app/na-zywo.js';
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
 } from './app/wzorce.js';
@@ -528,6 +529,7 @@ async function start() {
   try {
     await chmura.naZmianeSesji((uzytkownik, zdarzenie) => {
       if (zdarzenie === 'SIGNED_OUT') {
+        wylaczNaZywo();
         if (!['logowanie', 'start'].includes(document.body.dataset.ekran)) {
           stan.uzytkownik = null;
           stan.projekt = null;

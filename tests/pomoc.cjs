@@ -88,6 +88,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     konflikty: 0, // ile razy baza odmówiła zapisu, bo urządzenie nie znało bieżącej wersji
     wyslane: [], // „e-maile”: { typ, email }
     zadania: [],
+    kanaly: { dolaczenia: 0, wyslane: 0, wylaczone: Boolean(poczatkowe.bezKanalu) }, // Realtime: ile dołączeń, ile wiadomości o zmianach
   };
   const sesja = (k) => {
     const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -106,7 +107,69 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
   const json = (r, kod, tresc) => r.fulfill({ status: kod, contentType: 'application/json', body: JSON.stringify(tresc) });
   const blad = (r, kod, msg, code) => json(r, kod, { code: code || 'blad', error_code: code, msg, message: msg, error_description: msg });
 
-  kontekst.route('https://atrapa.supabase.co/**', async (r) => {
+  // ---------- Kanały Realtime: protokół Phoenix po WebSocket, tyle, ile używa aplikacja ----------
+  // Urządzenie dołącza do tematu z listą obserwowanych zmian (postgres_changes); atrapa odpowiada tak jak
+  // serwer i przy każdym zapisie projektu rozsyła wiadomość do urządzeń tego samego konta (jak RLS).
+  const gniazda = new Set();
+  let nrWiazania = 0;
+  const kontoZTokenu = (token) => {
+    try { return stan.konta.find((k) => k.id === JSON.parse(Buffer.from(String(token).split('.')[1], 'base64url').toString()).sub) || null; } catch { return null; }
+  };
+  const doGniazda = (g, temat, zdarzenie, tresc, ref = null, refDolaczenia = null) => {
+    const w = g.tablica ? [refDolaczenia, ref, temat, zdarzenie, tresc] : { topic: temat, event: zdarzenie, payload: tresc, ref, join_ref: refDolaczenia };
+    if (process.env.KANALY_LOG) console.log('WS <', JSON.stringify(w).slice(0, 260));
+    try { g.ws.send(JSON.stringify(w)); } catch (e) { if (process.env.KANALY_LOG) console.log('WS błąd', e.message); }
+  };
+  const podlaczKanaly = (k) => k.routeWebSocket(/^wss:\/\/atrapa\.supabase\.co\/realtime\//, (ws) => {
+    if (stan.kanaly.wylaczone) { ws.close(); return; }
+    const g = { ws, tematy: new Map(), tablica: false };
+    gniazda.add(g);
+    ws.onClose(() => gniazda.delete(g));
+    ws.onMessage((surowa) => {
+      let w;
+      try { w = JSON.parse(surowa); } catch { return; }
+      g.tablica = Array.isArray(w);
+      if (process.env.KANALY_LOG) console.log('WS >', String(surowa).slice(0, 260));
+      const [refDolaczenia, ref, temat, zdarzenie, tresc] = g.tablica ? w : [w.join_ref, w.ref, w.topic, w.event, w.payload];
+      const ok = (odp = {}) => doGniazda(g, temat, 'phx_reply', { status: 'ok', response: odp }, ref, refDolaczenia);
+      if (zdarzenie === 'heartbeat') { ok(); return; }
+      if (zdarzenie === 'phx_join') {
+        const wiazania = (tresc?.config?.postgres_changes || []).map((b) => ({ id: (nrWiazania += 1), event: b.event, schema: b.schema, table: b.table, filter: b.filter }));
+        g.tematy.set(temat, { konto: kontoZTokenu(tresc?.access_token), wiazania });
+        stan.kanaly.dolaczenia += 1;
+        if (process.env.KANALY_LOG) console.log('dołączenie', temat, JSON.stringify(tresc).slice(0, 600));
+        ok({ postgres_changes: wiazania });
+        doGniazda(g, temat, 'system', { status: 'ok', message: 'Subscribed to PostgreSQL', channel: temat.replace(/^realtime:/, ''), extension: 'postgres_changes' });
+        return;
+      }
+      if (zdarzenie === 'access_token') { const t = g.tematy.get(temat); if (t) t.konto = kontoZTokenu(tresc?.access_token) || t.konto; return; }
+      if (zdarzenie === 'phx_leave') { g.tematy.delete(temat); ok(); }
+    });
+  });
+  // Rozgłasza zmianę wiersza projektu (zapis z dowolnego urządzenia) do wszystkich podłączonych urządzeń konta.
+  stan.oglos = (projekt, typ = 'UPDATE') => {
+    for (const g of gniazda) {
+      for (const [temat, t] of g.tematy) {
+        if (!t.konto || t.konto.id !== projekt.owner_id) continue; // RLS: cudzych wierszy nikt nie dostaje
+        const ids = t.wiazania.filter((b) => (b.event === '*' || b.event === typ) && b.table === 'projekty' && (!b.filter || b.filter === `owner_id=eq.${projekt.owner_id}`)).map((b) => b.id);
+        if (!ids.length) continue;
+        stan.kanaly.wyslane += 1;
+        doGniazda(g, temat, 'postgres_changes', {
+          ids,
+          data: {
+            schema: 'public', table: 'projekty', type: typ, commit_timestamp: new Date().toISOString(), errors: null,
+            columns: [{ name: 'id', type: 'uuid' }, { name: 'owner_id', type: 'uuid' }, { name: 'nazwa', type: 'text' }, { name: 'wersja', type: 'int8' }, { name: 'zmieniono', type: 'timestamptz' }],
+            record: { id: projekt.id, owner_id: projekt.owner_id, nazwa: projekt.nazwa, wersja: projekt.wersja, zmieniono: projekt.zmieniono },
+            old_record: { id: projekt.id },
+          },
+        });
+      }
+    }
+  };
+
+  // Podłącza atrapę do kontekstu przeglądarki – każde „urządzenie” w teście to osobny kontekst z tą samą bazą.
+  stan.podlacz = (k) => { podlaczHttp(k); podlaczKanaly(k); };
+  const podlaczHttp = (k) => k.route('https://atrapa.supabase.co/**', async (r) => {
     const req = r.request();
     const url = new URL(req.url());
     const m = req.method();
@@ -178,6 +241,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       for (const x of tresc.p_strony || []) stan.strony.set(`${p.id}/${x.id}`, x.dane);
       const zostaja = new Set(tresc.p_dane.strony.map((id) => `${p.id}/${id}`));
       for (const klucz of [...stan.strony.keys()]) if (klucz.startsWith(`${p.id}/`) && !zostaja.has(klucz)) stan.strony.delete(klucz);
+      stan.oglos(p, p.wersja === 1 ? 'INSERT' : 'UPDATE');
       return json(r, 200, { wersja: p.wersja });
     }
     if (sc === '/rest/v1/projekty_strony') {
@@ -196,8 +260,10 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (m === 'GET') {
         if (id) {
           const p = moje.find((x) => x.id === id);
-          if (!p) return blad(r, 406, 'brak wiersza', 'PGRST116');
-          return json(r, 200, { dane: jakJsonb(p.dane), wersja: p.wersja, zmieniono: p.zmieniono });
+          const jeden = (req.headers().accept || '').includes('vnd.pgrst.object');
+          if (!p) return jeden ? blad(r, 406, 'brak wiersza', 'PGRST116') : json(r, 200, []);
+          const wiersz = { dane: jakJsonb(p.dane), wersja: p.wersja, zmieniono: p.zmieniono };
+          return json(r, 200, jeden ? wiersz : [wiersz]);
         }
         return json(r, 200, moje.map((p) => ({ id: p.id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null, udostepnienie: p.dane.udostepnienie || null })));
       }
@@ -215,6 +281,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         const oczekiwana = (url.searchParams.get('wersja') || '').replace('eq.', '');
         if (!p || (oczekiwana && String(p.wersja) !== oczekiwana)) return json(r, 200, []);
         Object.assign(p, tresc);
+        stan.oglos(p);
         return json(r, 200, [{ wersja: p.wersja }]);
       }
       if (m === 'DELETE') {
@@ -256,11 +323,12 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     }
     return json(r, 200, {});
   });
+  stan.podlacz(kontekst);
   return stan;
 }
 
 // Otwiera aplikację. tryb: 'lokalny' (bez bazy, „Pracuj bez konta”) albo 'atrapa'.
-async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = { width: 1280, height: 800 }, sciezka = '' } = {}) {
+async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = { width: 1280, height: 800 }, sciezka = '', bezKanalu = false } = {}) {
   const serwer = await uruchomSerwer();
   // Bez „dociągania” liter do pikseli: tekst rysuje się tak samo na każdym komputerze, a testy porównujące
   // obrazy (PDF, podgląd) nie zależą od ustawień czcionek systemu, na którym biegną.
@@ -272,7 +340,7 @@ async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = 
     acceptDownloads: true,
   });
   await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: tryb === 'atrapa' ? Z_ATRAPA : BEZ_BAZY }));
-  const baza = tryb === 'atrapa' ? atrapaSupabase(kontekst, { konta }) : null;
+  const baza = tryb === 'atrapa' ? atrapaSupabase(kontekst, { konta, bezKanalu }) : null;
   const strona = await kontekst.newPage();
   const bledy = [];
   strona.on('pageerror', (e) => bledy.push(e.message));
@@ -284,6 +352,19 @@ async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = 
     await strona.click('[data-akcja="zamknij-instrukcje"]');
   }
   return { strona, kontekst, baza, bledy, adres: serwer.adres, przegladarka, Z_ATRAPA };
+}
+
+// Drugie urządzenie: osobny kontekst tej samej przeglądarki (własne ciasteczka, własny magazyn projektów),
+// podłączony do tej samej atrapy konta. Przyjmuje wynik otworz(..., { tryb: 'atrapa' }).
+async function drugieUrzadzenie({ przegladarka, baza, adres }, { widok = { width: 1280, height: 800 } } = {}) {
+  const kontekst = await przegladarka.newContext({ viewport: widok, serviceWorkers: 'block', acceptDownloads: true });
+  await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
+  baza.podlacz(kontekst);
+  const strona = await kontekst.newPage();
+  const bledy = [];
+  strona.on('pageerror', (e) => bledy.push(e.message));
+  await strona.goto(adres);
+  return { strona, kontekst, bledy };
 }
 
 async function nowyProjekt(strona, nazwa = 'Test') {
@@ -299,4 +380,4 @@ const wAplikacji = (strona, fn, arg) => strona.evaluate(fn, arg);
 
 const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 
-module.exports = { otworz, nowyProjekt, ekran, wAplikacji, PNG_2X2 };
+module.exports = { otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2 };

@@ -13,7 +13,8 @@ import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { podlaczZasoby } from '../zasoby.js';
-import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu } from '../laczenie.js';
+import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan } from '../laczenie.js';
+import { toTabela, miejsceKomorki } from '../tabela-obiekt.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
@@ -167,6 +168,8 @@ export async function otworzProjekt(p, cel = {}) {
   // Czcionki tego projektu trafiają do „Moich czcionek”; lista w panelu dostaje czcionki z innych projektów.
   stan.mojeRodziny = [];
   odswiezMojeCzcionki({ projekt: stan.projekt, zKontem: true });
+  // Projekt mógł się zmienić na innym urządzeniu, gdy to miało niewysłane zmiany – dołączamy od razu.
+  if (stan.uzytkownik) sprawdzKonto();
 }
 
 // Własne prowadnice strony albo wzorca; puste nie zajmują miejsca w pliku.
@@ -280,6 +283,9 @@ export function synchronizuj({ wymus = false } = {}) {
   return kolejkaKonta;
 }
 
+// Wysyłka pominięta, bo akurat trwało dołączanie zmian z konta – po nim trzeba ją nadrobić.
+let pominietaWysylka = false;
+
 async function wyslijNaKonto({ wymus = false } = {}) {
   const p = stan.projekt;
   if (!stan.uzytkownik || !p) return;
@@ -287,7 +293,7 @@ async function wyslijNaKonto({ wymus = false } = {}) {
     stanZapisu('offline', 'Offline – zapisano na urządzeniu');
     return;
   }
-  if (stan.konflikt === p.id && !wymus) return; // czekamy na decyzję użytkownika
+  if (stan.konflikt === p.id && !wymus) { pominietaWysylka = true; return; } // trwa łączenie albo czekamy na decyzję użytkownika
   const wersja = p.zmieniono;
   try {
     await chmura.zapiszWChmurze(p, { wymus });
@@ -297,80 +303,182 @@ async function wyslijNaKonto({ wymus = false } = {}) {
     if (stan.projekt === p && !stan.timerZapisu) stanZapisu('ok', 'Zapisano');
     if (stan.projekt === p) zaplanujAktualizacjeLinku(); // udostępniony link idzie za zapisanymi zmianami
   } catch (e) {
-    if (e.konflikt) { rozstrzygnijKonflikt(p, e); return; }
+    if (e.konflikt) { polaczZKontem(p, { konflikt: e }); return; }
     stanZapisu('blad', `Nie wysłano: ${chmura.komunikatBledu(e)}`);
   }
 }
 
+// ---------- Zmiany z innego urządzenia ----------
+
+// Sprawdza, czy na koncie jest nowsza wersja otwartego projektu niż znana temu urządzeniu, i jeśli tak –
+// pobiera ją i dołącza. `wersja`: numer z powiadomienia na żywo; bez niego pytamy konto (jedna liczba).
+// Staje w kolejce za trwającą wysyłką: dopiero po niej wiadomo, czy nowa wersja nie jest naszą własną.
+export function sprawdzKonto({ wersja = null } = {}) {
+  kolejkaKonta = kolejkaKonta.then(async () => {
+    const p = stan.projekt;
+    if (!stan.uzytkownik || !p || !navigator.onLine || stan.konflikt === p.id) return;
+    if (!p.wersja_chmury) return; // projektu nie ma jeszcze na koncie – pierwsza wysyłka go tam zapisze
+    try {
+      const naKoncie = wersja ?? (await chmura.wersjaNaKoncie(p.id))?.wersja;
+      if (stan.projekt !== p || !naKoncie || naKoncie <= p.wersja_chmury) return;
+      polaczZKontem(p); // bez czekania: na końcu samo staje w tej kolejce ze swoją wysyłką
+    } catch { /* brak sieci – sprawdzimy przy następnej okazji */ }
+  });
+  return kolejkaKonta;
+}
+
+// Czy użytkownik jest w trakcie czynności, której wczytanie strony od nowa by nie przeżyło.
+let ostatniKlawisz = 0;
+window.addEventListener('keydown', () => { ostatniKlawisz = Date.now(); }, true);
+function zajety() {
+  if ($('dialog[open]')) return true;
+  if (edytor.canvas?._currentTransform) return true; // przeciąganie, skalowanie, obracanie
+  if (edytor.kadruje || edytor.rysuje || edytor._pioro || edytor._punkty) return true;
+  // Pisanie: dopóki od ostatniego klawisza nie minęła chwila. Potem kursor wraca na swoje miejsce.
+  return Boolean(edytor.aktywny?.isEditing) && Date.now() - ostatniKlawisz < 1500;
+}
+async function kiedyWolne(p) {
+  while (stan.projekt === p && zajety()) await new Promise((ok) => { setTimeout(ok, 300); });
+}
+
+// Miejsce pisania (ramka i kursor albo komórka tabeli) – żeby po wczytaniu strony od nowa do niego wrócić.
+function miejscePisania() {
+  const a = edytor.aktywny;
+  if (!a?.isEditing) return null;
+  if (toTabela(a.group)) return { tabela: a.group.id, ...miejsceKomorki(a.group, a), kursor: a.selectionStart };
+  return { id: a.id, kursor: a.selectionStart };
+}
+function wrocDoPisania(m) {
+  if (m.tabela) {
+    if (!edytor.piszWKomorce(m.tabela, m.w, m.k)) return false;
+    const c = edytor.aktywny;
+    if (c?.isEditing) { c.selectionStart = Math.min(m.kursor, c.text.length); c.selectionEnd = c.selectionStart; }
+    return true;
+  }
+  return edytor.piszWRamce(m.id, m.kursor);
+}
+
+// Czy to, co przyszło z konta, widać na płótnie – wtedy trzeba je wczytać od nowa.
+// zmienione: wynik zastosujPolaczenie(). Liczone przed odłączeniem płótna.
+function dotykaPlotna(p, zmienione) {
+  if (zmienione.inne || zmienione.ukladStron || !naPlotnie?.strony) return true;
+  const otwarte = new Set(naPlotnie.strony);
+  if (zmienione.strony.some((id) => otwarte.has(id))) return true;
+  // Tekst płynący przez strony: zmieniona strona ma ramkę tekstu, którego część leży na płótnie.
+  const watki = new Set(p.strony.filter((s) => otwarte.has(s.id)).flatMap((s) => s.obiekty.map((o) => o.watek).filter(Boolean)));
+  return watki.size > 0 && p.strony.some((s) => zmienione.strony.includes(s.id) && s.obiekty.some((o) => watki.has(o.watek)));
+}
+
+let ostatnieWczytanie = 0;
+
 // Na koncie jest wersja zapisana z innego urządzenia – nic nie nadpisujemy po cichu.
-// Łączymy zmiany część po części (js/laczenie.js): strony, wzorce, tabele, sekcje, serie, style
-// i ustawienia zmienione tylko po jednej stronie przechodzą same. Pytamy wyłącznie o te części,
-// które zmieniono po obu stronach inaczej. Połączony projekt idzie na konto zwykłym zapisem,
-// ze znaną już wersją z konta – gdyby w tym czasie zapisało jeszcze inne urządzenie, baza znów
-// odmówi i łączenie zacznie się od nowa.
-async function rozstrzygnijKonflikt(p, e) {
+// Tędy idą oba przypadki: baza odmówiła zapisu (`konflikt`), bo nie znaliśmy bieżącej wersji, albo przyszło
+// powiadomienie, że na koncie jest coś nowszego. Łączymy część po części (js/laczenie.js): strony, wzorce,
+// tabele, sekcje, serie, style i ustawienia zmienione tylko po jednej stronie przechodzą same. Pytamy
+// wyłącznie o części zmienione po obu stronach inaczej. Jeśli po połączeniu to urządzenie ma coś, czego
+// nie ma na koncie, projekt idzie tam zwykłym zapisem ze znaną już wersją – gdyby w tym czasie zapisało
+// jeszcze inne urządzenie, baza znów odmówi i łączenie zacznie się od nowa.
+async function polaczZKontem(p, { konflikt = null } = {}) {
   if (stan.konflikt === p.id) return;
   // Bez zapamiętanego stanu uzgodnionego z kontem (projekt zapisany przed wprowadzeniem łączenia albo
-  // wczytany z pliku w miejsce istniejącego) nie wiadomo, kto co zmienił – zostaje pytanie o cały projekt.
-  if (!p.podstawa_chmury) { await zapytajOCalyProjekt(p, e); return; }
+  // wczytany z pliku w miejsce istniejącego) nie wiadomo, kto co zmienił – zostaje pytanie o cały projekt,
+  // ale dopiero przy zapisie: samo powiadomienie niczego nie rusza.
+  if (!p.podstawa_chmury) { if (konflikt) await zapytajOCalyProjekt(p, konflikt); return; }
   stan.konflikt = p.id;
+  pominietaWysylka = false;
+  const koniec = () => {
+    stan.konflikt = null;
+    if (pominietaWysylka && stan.projekt === p) synchronizuj(); // zmiany zrobione w trakcie łączenia
+  };
   try {
-    stanZapisu('zapis', 'Łączę zmiany z innego urządzenia…');
+    if (konflikt) stanZapisu('zapis', 'Łączę zmiany z innego urządzenia…');
     const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));
+    if (zKonta.wersja_chmury === p.wersja_chmury) { koniec(); return; } // to już mamy
     // Obrazy, które doszły na koncie, pobieramy zawczasu – po połączeniu płótno ma się odświeżyć od razu.
     try { await podlaczZasoby(zKonta, chmura.pobierzZasob); } catch { /* brakujące obrazy pokażą się jako brakujące */ }
     const kontoDoPorownan = postacDoPorownan(zKonta);
+    const podstawaKonta = podstawaProjektu(zKonta);
     const plan = () => {
       if (stan.projekt === p) zapiszBiezacyCel();
       return polaczProjekty(postacDoPorownan(p), kontoDoPorownan, p.podstawa_chmury);
     };
+    let pierwszy = plan();
+    if (pierwszy.zKonta || pierwszy.konflikty.length) {
+      // Zmiany z konta trafią na płótno albo padnie pytanie – nie w pół ruchu ani w pół słowa.
+      await kiedyWolne(p);
+      if (stan.projekt !== p) { stan.konflikt = null; return; }
+      pierwszy = plan();
+    }
     let wybory = new Map();
-    const pytania = plan().konflikty;
-    if (pytania.length) {
+    if (pierwszy.konflikty.length) {
       stanZapisu('blad', 'To samo zmieniono na dwóch urządzeniach – wybierz wersję');
-      wybory = await zapytajOKonflikty(p, pytania);
+      wybory = await zapytajOKonflikty(p, pierwszy.konflikty);
     }
     if (stan.projekt !== p) { stan.konflikt = null; return; } // projekt zamknięto – łączenie wróci przy następnym zapisie
     const ostateczny = plan(); // jeszcze raz, tuż przed zastosowaniem: w czasie pytania projekt mógł się zmienić
     const zaznaczony = edytor.aktywny?.id;
+    const pisanie = miejscePisania();
     const biezaca = p.strony[stan.indeks]?.id;
-    zastosujPolaczenie(p, zKonta, ostateczny, wybory);
+    const zmienione = zastosujPolaczenie(p, zKonta, ostateczny, wybory);
     const ileZKonta = ostateczny.zKonta + [...wybory.values()].filter((w) => w === 'konto').length;
     p.wersja_chmury = zKonta.wersja_chmury;
-    p.podstawa_chmury = podstawaProjektu(zKonta);
-    p.zmieniono = new Date().toISOString(); // drugie urządzenie ma zobaczyć, że na koncie jest coś nowszego niż u niego
+    p.podstawa_chmury = podstawaKonta;
     if (ileZKonta) {
-      // Połączone części mogą wskazywać na coś, co druga strona usunęła (sekcję, wzorzec, serię) – porządkujemy.
-      Object.assign(p, normalizuj(p));
-      // Płótno pokazuje stan sprzed połączenia – nie wolno go już przepisać do projektu.
-      naPlotnie = null;
-      stan.indeks = Math.max(0, p.strony.findIndex((x) => x.id === biezaca));
-      if (stan.tryb === 'wzorzec' && !p.wzorce.some((w) => w.id === stan.idWzorca)) { stan.tryb = 'strona'; ustawZakladke('strony'); }
-      stan.miniatury.clear();
-      await zarejestrujCzcionkiProjektu(p);
-    }
-    if (ileZKonta && stan.projekt === p) {
-      await zaladujCel();
-      if (zaznaczony) edytor.zaznacz(zaznaczony);
-      panel.zbuduj();
-      $('#nazwa-projektu').value = p.nazwa;
-      document.title = `${p.nazwa} – ${NAZWA}`;
+      const odNowa = dotykaPlotna(p, zmienione);
+      if (odNowa) {
+        // Połączone części mogą wskazywać na coś, co druga strona usunęła (sekcję, wzorzec, serię) – porządkujemy.
+        Object.assign(p, normalizuj(p));
+        // Płótno pokazuje stan sprzed połączenia – nie wolno go już przepisać do projektu.
+        naPlotnie = null;
+        stan.indeks = Math.max(0, p.strony.findIndex((x) => x.id === biezaca));
+        if (stan.tryb === 'wzorzec' && !p.wzorce.some((w) => w.id === stan.idWzorca)) { stan.tryb = 'strona'; ustawZakladke('strony'); }
+        stan.miniatury.clear();
+        await zarejestrujCzcionkiProjektu(p);
+        if (stan.projekt === p) {
+          await zaladujCel();
+          if (!(pisanie && wrocDoPisania(pisanie)) && zaznaczony) edytor.zaznacz(zaznaczony);
+          panel.zbuduj();
+          $('#nazwa-projektu').value = p.nazwa;
+          document.title = `${p.nazwa} – ${NAZWA}`;
+          generujMiniatury();
+        }
+      } else {
+        // Zmieniły się tylko strony, których nie ma na płótnie: wystarczą nowe miniatury.
+        for (const id of zmienione.strony) stan.miniatury.delete(id);
+        renderujListe();
+        odrysujMiniaturyWTle(zmienione.strony);
+      }
       // Cofanie zaczyna się od połączonego stanu – inaczej „Cofnij” zdjęłoby po cichu zmiany z drugiego urządzenia.
       clearTimeout(stan.timerHistorii);
       stan.doHistorii = false;
       historia.wyczysc();
       historia.zapisz(p);
       odswiezCofanie();
-      generujMiniatury();
-      powiadom(`Połączono zmiany z innego urządzenia (z konta: ${ileZKonta} ${ileZKonta === 1 ? 'część' : 'części'} projektu). Twoje zmiany zostały.`);
     }
-    await zapiszLokalnie(p, wlasciciel(), true);
-    stan.konflikt = null;
-    await synchronizuj();
+    // Czy to urządzenie ma po połączeniu coś, czego nie ma na koncie.
+    const doWyslania = !tenSamStan(p, podstawaKonta);
+    if (ileZKonta && doWyslania) {
+      powiadom(`Połączono zmiany z innego urządzenia (z konta: ${ileZKonta} ${ileZKonta === 1 ? 'część' : 'części'} projektu). Twoje zmiany zostały.`);
+    } else if (ileZKonta && Date.now() - ostatnieWczytanie > 20000) {
+      ostatnieWczytanie = Date.now();
+      powiadom('Wczytano zmiany z innego urządzenia.');
+    }
+    if (doWyslania) {
+      p.zmieniono = new Date().toISOString(); // drugie urządzenie ma zobaczyć, że na koncie jest coś nowszego niż u niego
+      await zapiszLokalnie(p, wlasciciel(), true);
+      stan.konflikt = null;
+      pominietaWysylka = false;
+      await synchronizuj();
+    } else {
+      if (zKonta.zmieniono) p.zmieniono = zKonta.zmieniono;
+      await zapiszLokalnie(p, wlasciciel(), false);
+      if (stan.projekt === p && !stan.timerZapisu && !pominietaWysylka) stanZapisu('ok', 'Zapisano');
+      koniec();
+    }
   } catch (blad) {
-    // Nic nie wysłano; następny zapis spróbuje połączyć jeszcze raz.
+    // Nic nie wysłano; następny zapis albo następne powiadomienie spróbuje połączyć jeszcze raz.
     stan.konflikt = null;
-    stanZapisu('blad', `Nie udało się połączyć zmian z konta: ${chmura.komunikatBledu(blad)}`);
+    if (konflikt) stanZapisu('blad', `Nie udało się połączyć zmian z konta: ${chmura.komunikatBledu(blad)}`);
   }
 }
 
