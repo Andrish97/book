@@ -99,8 +99,9 @@ export function zapiszLiczbe(n, zapis) {
 // Fabric: [{ start, end, style }], numeracja znaków bez znaków nowej linii)
 // przesuwa się razem z tekstem; wstawiona wartość dostaje wygląd pierwszego
 // znaku pola. Funkcja wartości może mieć też `wartosc.wyglad(nazwa)` – wygląd
-// przeniesiony z arkusza ({ fontWeight?, fontStyle?, fill? } albo null): wstawiona
-// wartość dostaje go dodatkowo, jako formatowanie fragmentu.
+// komórki ({ fontWeight?, fontStyle?, fill?, czesci?: [{ od, do, styl }] } albo null): wstawiona
+// wartość dostaje go dodatkowo, jako formatowanie fragmentu; części (zakresy znaków wartości)
+// dostają jeszcze swój wygląd.
 export function podstawWTekscie(tekst, styles, wartosc) {
   const { pola: samePola, klamry } = rozbierz(tekst);
   if (!samePola.length && !klamry.length) return { text: tekst, styles };
@@ -131,10 +132,20 @@ export function podstawWTekscie(tekst, styles, wartosc) {
     przepisz(p.start);
     let styl = stylZnaku[bezNl] || null;
     const dodatek = zArkusza && !p.znak ? wartosc.wyglad(p.nazwa) : null;
-    if (dodatek) { styl = { ...styl, ...dodatek }; dolozono = true; }
+    const { czesci, ...baza } = dodatek || {};
+    if (Object.keys(baza).length) styl = { ...styl, ...baza };
+    if (dodatek) dolozono = true;
     const wstawka = String(v);
     wynik += wstawka;
-    for (const z of wstawka) if (z !== '\n') noweStyle.push(styl);
+    if (czesci?.length) {
+      // Styl znaku w części: wygląd pola, komórki i części; jeden obiekt na część, żeby odcinki się łączyły.
+      const stylCzesci = czesci.map((c) => ({ ...c, s: { ...styl, ...c.styl } }));
+      let poz = 0;
+      for (const z of wstawka) {
+        if (z !== '\n') noweStyle.push(stylCzesci.find((c) => poz >= c.od && poz < c.do)?.s || styl);
+        poz += z.length;
+      }
+    } else for (const z of wstawka) if (z !== '\n') noweStyle.push(styl);
     pozycja = p.koniec;
     bezNl += p.cale.length; // pole nie zawiera nowych linii
   }

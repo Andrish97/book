@@ -112,15 +112,9 @@ export class Dane {
     this._narysowane = cel;
     const tbody = this.siatka.tBodies[0];
     tbody.insertAdjacentHTML('beforeend', html.join(''));
-    const zWygladem = t.wyglad && !t.wyglad_wyl;
     for (let w = od; w < cel; w += 1) {
       const komorki = tbody.rows[w].cells;
-      for (let k = 0; k < t.kolumny.length; k += 1) {
-        komorki[k + 1].textContent = t.wiersze[w][k];
-        // Komórka wygląda tak, jak jej wartość będzie wyglądać na stronie (wygląd przeniesiony z arkusza).
-        const wyglad = zWygladem ? t.wyglad[w]?.[k] : null;
-        if (wyglad) Object.assign(komorki[k + 1].style, { fontWeight: wyglad.pogrubienie ? '700' : '', fontStyle: wyglad.kursywa ? 'italic' : '', color: wyglad.kolor || '' });
-      }
+      for (let k = 0; k < t.kolumny.length; k += 1) this._pokazKomorke(komorki[k + 1], w, k);
     }
     if (od > 0 && (t.unikalne?.length || t.listy)) this._oznaczPowtorzenia();
   }
@@ -175,6 +169,28 @@ export class Dane {
     t.wiersze.splice(w, 0, t.kolumny.map((_, k) => (k === 0 ? ZNACZNIK_POMIJANIA : '')));
     t.wyglad?.splice(w, 0, null);
     return w;
+  }
+
+  // Treść komórki i jej wygląd: komórka wygląda tak, jak jej wartość będzie wyglądać na stronie
+  // (wygląd całej komórki i części tekstu – z arkusza albo ustawiony tutaj).
+  _pokazKomorke(td, w, k) {
+    const t = this.tabela();
+    const tekst = t.wiersze[w][k];
+    const wyglad = t.wyglad && !t.wyglad_wyl ? t.wyglad[w]?.[k] : null;
+    const css = (x) => ({ fontWeight: x?.pogrubienie ? '700' : '', fontStyle: x?.kursywa ? 'italic' : '', color: x?.kolor || '' });
+    Object.assign(td.style, css(wyglad));
+    if (!wyglad?.czesci?.length) { td.textContent = tekst; return; }
+    td.textContent = '';
+    let poz = 0;
+    for (const c of wyglad.czesci) {
+      if (c.od > poz) td.append(tekst.slice(poz, c.od));
+      const s = document.createElement('span');
+      s.textContent = tekst.slice(c.od, c.do);
+      Object.assign(s.style, Object.fromEntries(Object.entries(css(c)).filter(([, v]) => v)));
+      td.append(s);
+      poz = c.do;
+    }
+    if (poz < tekst.length) td.append(tekst.slice(poz));
   }
 
   _komorka(w, k) {
@@ -258,7 +274,19 @@ export class Dane {
     s.addEventListener('input', (e) => {
       const td = e.target.closest('td');
       if (!td) return;
-      this.tabela().wiersze[Number(td.dataset.w)][Number(td.dataset.k)] = td.textContent.replace(/\n$/, '');
+      const tab = this.tabela();
+      const [nw, nk] = [Number(td.dataset.w), Number(td.dataset.k)];
+      tab.wiersze[nw][nk] = td.textContent.replace(/\n$/, '');
+      // Po zmianie tekstu wygląd części (zakresy znaków) przestaje pasować – zostaje wygląd całej komórki.
+      const x = tab.wyglad?.[nw]?.[nk];
+      if (x?.czesci) {
+        delete x.czesci;
+        if (!Object.keys(x).length) {
+          tab.wyglad[nw][nk] = null;
+          if (!tab.wyglad[nw].some(Boolean)) tab.wyglad[nw] = null;
+          if (!tab.wyglad.some(Boolean)) { delete tab.wyglad; delete tab.wyglad_wyl; }
+        }
+      }
       // Znacznik [pomiń] wpisany (albo usunięty) w pierwszej komórce od razu zmienia wygląd wiersza.
       if (td.dataset.k === '0') this._oznaczPomijany(td.closest('tr'), Number(td.dataset.w));
       if (this.tabela().unikalne?.length || this.tabela().listy) this._oznaczPowtorzenia();
@@ -271,7 +299,8 @@ export class Dane {
     // Wiersz, w którym ostatnio stał kursor – nad nim staje wstawiany wiersz pomijany.
     s.addEventListener('focusin', (e) => {
       const td = e.target.closest('td');
-      if (td) this._ostatniWiersz = { tabela: this.idTabeli, w: Number(td.dataset.w) };
+      if (!td) return;
+      this._ostatniWiersz = { tabela: this.idTabeli, w: Number(td.dataset.w) };
     });
     s.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' || e.shiftKey) return; // Shift+Enter: nowa linia w komórce

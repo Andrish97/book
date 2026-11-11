@@ -388,7 +388,9 @@ export function wartosciPol(projekt, egz, ciag) {
       const nr = zrodla.find((z) => z.tabela === pole.tabela).nrWiersza;
       const w = pole.tabela.wyglad[nr]?.[pole.tabela.kolumny.indexOf(pole.kolumna)];
       if (!w) return null;
-      return { ...(w.pogrubienie ? { fontWeight: 'bold' } : {}), ...(w.kursywa ? { fontStyle: 'italic' } : {}), ...(w.kolor ? { fill: w.kolor } : {}) };
+      const naStyl = (x) => ({ ...(x.pogrubienie ? { fontWeight: 'bold' } : {}), ...(x.kursywa ? { fontStyle: 'italic' } : {}), ...(x.kolor ? { fill: x.kolor } : {}) });
+      const wynik = { ...naStyl(w), ...(w.czesci?.length ? { czesci: w.czesci.map((c) => ({ od: c.od, do: c.do, styl: naStyl(c) })) } : {}) };
+      return Object.keys(wynik).length ? wynik : null;
     };
   }
   return wartosc;

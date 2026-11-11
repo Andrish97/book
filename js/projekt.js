@@ -149,14 +149,21 @@ export function normalizujTabele(t, i = 0) {
     const czyste = [...new Set((Array.isArray(wartosci) ? wartosci : []).map((v) => String(v ?? '').trim()).filter(Boolean))];
     if (kolumny.includes(k) && czyste.length) listy[k] = czyste;
   }
-  // Wygląd komórek przeniesiony z arkusza: wiersz po wierszu, [null | [null | { pogrubienie?, kursywa?, kolor? }]].
-  // `wyglad_wyl` wyłącza przenoszenie go na strony (wygląd zostaje zapisany).
-  const wyglad = (Array.isArray(t?.wyglad) ? t.wyglad : []).slice(0, wiersze.length).map((w) => {
+  // Wygląd komórek (z arkusza albo ustawiony w oknie Dane): wiersz po wierszu, [null | [null | wygląd]], gdzie
+  // wygląd = { pogrubienie?, kursywa?, kolor?, czesci?: [{ od, do, pogrubienie?, kursywa?, kolor? }] }. Części to
+  // fragmenty tekstu komórki (indeksy znaków od – do, bez końca) z własnym wyglądem, nadpisującym wygląd komórki.
+  // `wyglad_wyl` wyłącza przenoszenie wyglądu na strony (wygląd zostaje zapisany).
+  const cechy = (x) => ({ ...(x.pogrubienie ? { pogrubienie: true } : {}), ...(x.kursywa ? { kursywa: true } : {}), ...(typeof x.kolor === 'string' && /^#[0-9a-f]{6}$/i.test(x.kolor) ? { kolor: x.kolor.toLowerCase() } : {}) });
+  const wyglad = (Array.isArray(t?.wyglad) ? t.wyglad : []).slice(0, wiersze.length).map((w, nw) => {
     if (!Array.isArray(w)) return null;
     const komorki = kolumny.map((_, k) => {
       const x = w[k];
       if (!x || typeof x !== 'object') return null;
-      const czysty = { ...(x.pogrubienie ? { pogrubienie: true } : {}), ...(x.kursywa ? { kursywa: true } : {}), ...(typeof x.kolor === 'string' && /^#[0-9a-f]{6}$/i.test(x.kolor) ? { kolor: x.kolor.toLowerCase() } : {}) };
+      const dlugosc = String(wiersze[nw]?.[k] ?? '').length;
+      const czesci = (Array.isArray(x.czesci) ? x.czesci : [])
+        .filter((c) => c && Number.isInteger(c.od) && Number.isInteger(c.do) && c.od >= 0 && c.do > c.od && c.do <= dlugosc)
+        .map((c) => ({ od: c.od, do: c.do, ...cechy(c) })).filter((c) => Object.keys(c).length > 2);
+      const czysty = { ...cechy(x), ...(czesci.length ? { czesci } : {}) };
       return Object.keys(czysty).length ? czysty : null;
     });
     return komorki.some(Boolean) ? komorki : null;

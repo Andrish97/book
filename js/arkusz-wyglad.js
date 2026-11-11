@@ -4,8 +4,9 @@
 // z plikami XML (style w xl/styles.xml, arkusze w xl/worksheets/, teksty wspólne w xl/sharedStrings.xml).
 // Wynik: nazwa arkusza → Map „wiersz,kolumna” (od 0) → { pogrubienie?, kursywa?, kolor? }.
 //
-// Liczy się wygląd całej komórki. Gdy tekst komórki jest sformatowany kawałkami, a wszystkie kawałki wyglądają
-// tak samo, to jest to wygląd komórki; różne kawałki (np. jedno słowo pogrubione) nie są przenoszone.
+// Gdy tekst komórki jest sformatowany kawałkami i wszystkie kawałki wyglądają tak samo, to jest to wygląd komórki.
+// Kawałki o różnym wyglądzie (np. jedno słowo pogrubione) dają części: { czesci: [{ od, do, …wygląd }] } – zakresy
+// znaków tekstu komórki. Kawałek bez własnego opisu czcionki ma wygląd komórki.
 
 import { biblioteka } from './biblioteki.js';
 import { naHsl, zHsl } from './pola.js';
@@ -46,13 +47,35 @@ function wygladCzcionki(el, motyw) {
   return Object.keys(w).length ? w : null;
 }
 
-// Tekst z kawałkami (<si> albo <is>): wspólny wygląd wszystkich kawałków z treścią albo undefined, gdy tekst
-// nie ma kawałków albo kawałki się różnią (wtedy liczy się wygląd komórki).
-function wygladKawalkow(el, motyw) {
-  const kawalki = dzieci(el, 'r').filter((r) => (pierwsze(r, 't')?.textContent || '').trim());
+// Tekst z kawałkami (<si> albo <is>) → lista kawałków { dl, wyglad, wlasny } albo undefined, gdy tekstu nie
+// podzielono na kawałki. `wlasny` – kawałek ma własny opis czcionki (bez niego ma wygląd komórki).
+function kawalkiTekstu(el, motyw) {
+  const kawalki = dzieci(el, 'r');
   if (!kawalki.length) return undefined;
-  const style = kawalki.map((r) => JSON.stringify(wygladCzcionki(pierwsze(r, 'rPr'), motyw)));
-  return style.every((s) => s === style[0]) && kawalki.every((r) => pierwsze(r, 'rPr')) ? JSON.parse(style[0]) : undefined;
+  return kawalki.map((r) => {
+    const rPr = pierwsze(r, 'rPr');
+    return { dl: (pierwsze(r, 't')?.textContent || '').length, pusty: !(pierwsze(r, 't')?.textContent || '').trim(), wyglad: wygladCzcionki(rPr, motyw), wlasny: Boolean(rPr) };
+  });
+}
+
+// Wygląd komórki z kawałkami tekstu: wspólny wygląd (gdy wszystkie kawałki z treścią wyglądają tak samo) albo części.
+function wygladZKawalkow(kawalki, stylKomorki) {
+  const pelne = kawalki.map((k) => ({ ...k, wyglad: k.wlasny ? k.wyglad : stylKomorki }));
+  const zTrescia = pelne.filter((k) => !k.pusty);
+  if (!zTrescia.length) return stylKomorki;
+  const klucze = zTrescia.map((k) => JSON.stringify(k.wyglad));
+  if (klucze.every((s) => s === klucze[0])) return zTrescia[0].wyglad;
+  const czesci = [];
+  let od = 0;
+  for (const k of pelne) {
+    if (k.wyglad && k.dl) {
+      const ostatnia = czesci.at(-1);
+      if (ostatnia && ostatnia.do === od && JSON.stringify({ ...ostatnia, od: 0, do: 0 }) === JSON.stringify({ od: 0, do: 0, ...k.wyglad })) ostatnia.do += k.dl;
+      else czesci.push({ od, do: od + k.dl, ...k.wyglad });
+    }
+    od += k.dl;
+  }
+  return czesci.length ? { czesci } : null;
 }
 
 // „B12” → [11, 1].
@@ -83,9 +106,9 @@ export async function wygladArkuszy(bufor) {
 
   const czcionki = dzieci(wszystkie(style, 'fonts')[0], 'font').map((f) => wygladCzcionki(f, motyw));
   const wygladStylu = dzieci(wszystkie(style, 'cellXfs')[0], 'xf').map((xf) => czcionki[Number(xf.getAttribute('fontId')) || 0] || null);
-  const wygladTekstu = teksty ? wszystkie(teksty, 'si').map((si) => wygladKawalkow(si, motyw)) : [];
-  // Gdy żaden styl ani tekst nie ma wyglądu, nie ma czego szukać w arkuszach.
-  if (!wygladStylu.some(Boolean) && !wygladTekstu.some(Boolean)) return wynik;
+  const kawalkiWspolne = teksty ? wszystkie(teksty, 'si').map((si) => kawalkiTekstu(si, motyw)) : [];
+  // Gdy żaden styl ani kawałek tekstu nie ma wyglądu, nie ma czego szukać w arkuszach.
+  if (!wygladStylu.some(Boolean) && !kawalkiWspolne.some((k) => k?.some((x) => x.wyglad))) return wynik;
 
   const cele = new Map(wszystkie(powiazania, 'Relationship').map((r) => [r.getAttribute('Id'), r.getAttribute('Target')]));
   for (const arkusz of wszystkie(skoroszyt, 'sheet')) {
@@ -103,9 +126,10 @@ export async function wygladArkuszy(bufor) {
         const m = miejsce(c.getAttribute('r'));
         k = m ? m[1] : k + 1;
         const typ = c.getAttribute('t');
-        // Wygląd kawałków tekstu (gdy jednolity) ma pierwszeństwo przed wyglądem komórki.
-        const zTekstu = typ === 's' ? wygladTekstu[Number(pierwsze(c, 'v')?.textContent)] : (typ === 'inlineStr' ? wygladKawalkow(pierwsze(c, 'is'), motyw) : undefined);
-        const wyglad = zTekstu !== undefined ? zTekstu : wygladStylu[Number(c.getAttribute('s')) || 0];
+        // Kawałki tekstu (gdy są) mają pierwszeństwo przed wyglądem komórki; kawałek bez opisu czcionki ma wygląd komórki.
+        const stylKomorki = wygladStylu[Number(c.getAttribute('s')) || 0];
+        const kawalki = typ === 's' ? kawalkiWspolne[Number(pierwsze(c, 'v')?.textContent)] : (typ === 'inlineStr' ? kawalkiTekstu(pierwsze(c, 'is'), motyw) : undefined);
+        const wyglad = kawalki ? wygladZKawalkow(kawalki, stylKomorki) : stylKomorki;
         if (wyglad) komorki.set(`${m ? m[0] : w},${k}`, wyglad);
       }
     }
