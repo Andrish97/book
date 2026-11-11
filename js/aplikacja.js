@@ -11,6 +11,7 @@ import { wstawIkony } from './ikony.js';
 import { $, powiadom, zamknijMenu, przelaczMenu } from './ui.js';
 import { przelaczMotyw } from './motyw.js';
 import { wlaczWlasneKontrolki } from './kontrolki.js';
+import { wlaczDymki } from './dymki.js';
 import { zaladujCzcionki } from './czcionki.js';
 import { stan, trasa, ustawPanel, pokazEkran, edytor } from './app/kontekst.js';
 import {
@@ -229,8 +230,10 @@ window.seriodruk = {
 };
 Object.defineProperty(window.seriodruk, 'edytor', { get: () => edytor, configurable: true });
 
-// Listy rozwijane i wybór koloru rysuje aplikacja, nie system (js/kontrolki.js).
+// Listy rozwijane, wybór koloru i daty, sprawdzanie formularzy (js/kontrolki.js) oraz dymki z podpowiedziami
+// (js/dymki.js) rysuje aplikacja, nie system.
 wlaczWlasneKontrolki();
+wlaczDymki();
 
 start().catch((e) => {
   console.error(e);

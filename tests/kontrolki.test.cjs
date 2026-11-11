@@ -83,3 +83,64 @@ test('własne kontrolki: lista rozwijana (mysz, klawiatura, grupy) i wybór kolo
   assert.equal(await strona.inputValue('#form-pdf select[name=dpi]'), '150');
   assert.deepEqual(bledy, []);
 });
+
+test('dymki z podpowiedzią zamiast systemowych: najechanie myszą, Tab, Esc, zmiana podpowiedzi w trakcie, krawędź okna, okno dialogowe', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Dymki');
+  const cofnij = '.pasek-edytora [data-akcja="wzorce"]';
+  const WZORCE = 'Wzorce: wspólne elementy stron – tła, stopki, numery';
+  const dymek = () => strona.evaluate(() => { const d = document.querySelector('.dymek'); return d && d.isConnected ? d.textContent : null; });
+  // Mysz: po chwili własny dymek; „title” przeniesiony, więc przeglądarka nie pokazuje swojego.
+  await strona.hover(cofnij);
+  assert.equal(await dymek(), null, 'nie od razu');
+  await strona.waitForSelector('.dymek');
+  assert.equal(await dymek(), WZORCE);
+  const opis = await strona.evaluate((s) => {
+    const b = document.querySelector(s); const d = document.querySelector('.dymek').getBoundingClientRect(); const r = b.getBoundingClientRect();
+    return { title: b.getAttribute('title'), aria: b.getAttribute('aria-describedby'), rola: document.querySelector('.dymek').getAttribute('role'), pod: d.top >= r.bottom, wOknie: d.left >= 0 && d.right <= innerWidth };
+  }, cofnij);
+  assert.deepEqual(opis, { title: null, aria: 'dymek', rola: 'tooltip', pod: true, wOknie: true });
+  // Wyjście myszą chowa dymek i oddaje „title”.
+  await strona.mouse.move(600, 500);
+  assert.equal(await dymek(), null);
+  assert.equal(await strona.getAttribute(cofnij, 'title'), WZORCE);
+  assert.equal(await strona.getAttribute(cofnij, 'aria-describedby'), null);
+  // Esc chowa dymek.
+  await strona.hover(cofnij);
+  await strona.waitForSelector('.dymek');
+  await strona.keyboard.press('Escape');
+  assert.equal(await dymek(), null);
+  // Przy prawej krawędzi okna dymek dalej mieści się w oknie.
+  await strona.evaluate(() => document.querySelector('#przycisk-wiecej').setAttribute('title', 'Więcej poleceń dla tego projektu i jego stron'));
+  await strona.hover('#przycisk-wiecej');
+  await strona.waitForSelector('.dymek');
+  assert.ok(await strona.evaluate(() => document.querySelector('.dymek').getBoundingClientRect().right <= innerWidth), 'dymek w oknie');
+  // Kod zmienia podpowiedź w trakcie – dymek pokazuje nowy tekst, a po wyjściu wraca nowy „title”.
+  await strona.evaluate(() => { document.querySelector('#przycisk-wiecej').title = 'Nowa podpowiedź'; });
+  await strona.waitForFunction(() => document.querySelector('.dymek')?.textContent === 'Nowa podpowiedź');
+  await strona.mouse.move(600, 500);
+  assert.equal(await strona.getAttribute('#przycisk-wiecej', 'title'), 'Nowa podpowiedź');
+  // Klawiatura: fokus z klawiatury pokazuje dymek od razu.
+  // (Tab w edytorze obsługują skróty aplikacji – po naciśnięciu klawisza fokus ustawiony z kodu też jest „z klawiatury”.)
+  await strona.keyboard.press('Shift');
+  await strona.locator('.pasek-edytora [data-akcja="dane"]').focus();
+  assert.equal(await strona.evaluate(() => document.activeElement.dataset.akcja), 'dane');
+  assert.equal(await dymek(), 'Tabele z danymi do pól i serii');
+  await strona.keyboard.press('Escape');
+  // Okno dialogowe: dymek jest w oknie (inaczej leżałby pod nim).
+  await strona.click('[data-akcja="wydruk"]');
+  await strona.waitForSelector('dialog[open] [title]');
+  await strona.locator('dialog[open] [title]').first().hover();
+  await strona.waitForSelector('.dymek');
+  assert.ok(await strona.evaluate(() => Boolean(document.querySelector('.dymek').closest('dialog[open]'))));
+  assert.deepEqual(bledy, []);
+});
+
+test('dymki: na ekranie dotykowym się nie pokazują – stuknięcie to zwykłe kliknięcie', async (t) => {
+  const { strona, bledy } = await otworz(t, { telefon: true });
+  await nowyProjekt(strona, 'Dymki dotyk');
+  await strona.tap('.zakladki-mobilne [data-panel="strony"]');
+  await strona.waitForTimeout(700);
+  assert.equal(await strona.locator('.dymek').count(), 0);
+  assert.deepEqual(bledy, []);
+});
