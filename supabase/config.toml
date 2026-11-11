@@ -41,3 +41,10 @@ max_frequency = "1m0s"
 # [auth.email.template.email_change]
 # subject = "Seriodruk – potwierdź nowy adres e-mail"
 # content_path = "./supabase/templates/zmiana-email.html"
+
+# Zdalny łącznik MCP dla AI (supabase/functions/mcp): Claude i ChatGPT łączą się z nim ze swoich serwerów.
+# Integracja z GitHubem wdraża tylko funkcje wpisane tutaj. Bez sprawdzania JWT – dostęp daje klucz sdk_…
+# z adresu łącznika, który sprawdza baza (funkcje ai_projekt / ai_zapisz).
+[functions.mcp]
+enabled = true
+verify_jwt = false
