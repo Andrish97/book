@@ -102,7 +102,7 @@ test('łączenie części projektu: zmiany po jednej stronie przechodzą same, p
       ),
       toSamo: polacz((m) => { strona_(m, 'A').obiekty[0].left = 50; }, (k) => { strona_(k, 'A').obiekty[0].left = 50; }),
       obie: polacz((m) => { strona_(m, 'A').obiekty[0].left = 50; }, (k) => { strona_(k, 'A').obiekty[0].left = 70; strona_(k, 'B').obiekty[0].left = 70; }),
-      obieKonto: polacz((m) => { strona_(m, 'A').obiekty[0].left = 50; }, (k) => { strona_(k, 'A').obiekty[0].left = 70; }, [['strony:A', 'konto']]),
+      obieKonto: polacz((m) => { strona_(m, 'A').obiekty[0].left = 50; }, (k) => { strona_(k, 'A').obiekty[0].left = 70; }, [['strony:A#oA', 'konto']]),
       usunietaTam: polacz((m) => { strona_(m, 'C').obiekty[0].left = 50; }, (k) => { k.strony = k.strony.filter((s) => s.id !== 'C'); }),
       usunietaTamKonto: polacz((m) => { strona_(m, 'C').obiekty[0].left = 50; }, (k) => { k.strony = k.strony.filter((s) => s.id !== 'C'); }, [['strony:C', 'konto']]),
       usunietaTu: polacz((m) => { m.strony = m.strony.filter((s) => s.id !== 'C'); }, (k) => { strona_(k, 'C').obiekty[0].left = 70; }),
@@ -127,8 +127,8 @@ test('łączenie części projektu: zmiany po jednej stronie przechodzą same, p
   // Ta sama zmiana po obu stronach to nie konflikt.
   assert.deepEqual([w.toSamo.pytania, w.toSamo.zKonta], [[], 0]);
 
-  // Ta sama strona zmieniona inaczej: jedno pytanie o tę stronę; druga strona przechodzi sama.
-  assert.deepEqual(w.obie.pytania, [['strony:A', 'Strona „Strona A”', 'zmieniona tutaj', 'zmieniona na koncie']]);
+  // Ten sam element strony zmieniony inaczej: jedno pytanie o ten element; druga strona przechodzi sama.
+  assert.deepEqual(w.obie.pytania, [['strony:A#oA', 'Strona „Strona A”: prostokąt', 'zmieniony tutaj', 'zmieniony na koncie']]);
   assert.deepEqual([w.obie.lewe.A, w.obie.lewe.B], [50, 70], 'bez odpowiedzi zostaje wersja z tego urządzenia');
   assert.equal(w.obieKonto.lewe.A, 70, 'wybrana wersja z konta');
 
@@ -204,13 +204,15 @@ test('dwa urządzenia zmieniają różne strony i tabelę danych: obie zmiany zo
   assert.deepEqual(bledy, []);
 });
 
-test('ta sama strona zmieniona na dwóch urządzeniach: pytanie tylko o nią, wybór przy każdej stronie osobno', async (t) => {
+test('ta sama strona zmieniona na dwóch urządzeniach: różne elementy łączą się same, pytanie tylko o element zmieniony w obu miejscach', async (t) => {
   const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
   await zaloguj(strona);
   const p = await projektNaKoncie(strona, 'Ta sama strona');
   const naKoncie = (id) => baza.strony.get(`${p.id}/${id}`);
+  const typy = (s) => s.obiekty.map((o) => o.type.toLowerCase()).sort().join('+');
 
-  // „Telefon” zmienił obie strony i dodał tabelę; tutaj też zmieniamy obie strony.
+  // „Telefon” dodał po elemencie na obu stronach, zmienił ich nazwy i dodał tabelę; tutaj na obu stronach
+  // dochodzi inny element. Nic się nie pokrywa – wszystko łączy się bez pytania.
   let wersja = baza.projekty[0].wersja;
   zapisZInnegoUrzadzenia(baza, p.id, {
     strony: { [p.strony[0]]: zElementem('Okładka z telefonu', 'tel-1'), [p.strony[1]]: zElementem('Druga z telefonu', 'tel-2') },
@@ -220,49 +222,57 @@ test('ta sama strona zmieniona na dwóch urządzeniach: pytanie tylko o nią, wy
   await strona.click('#lista-stron li.strona >> nth=0 >> .miniatura');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.canvas.getObjects().length > 0);
   await strona.click('[data-akcja="dodaj-linie"]');
+  await polaczono(strona);
+  await zapisano(strona);
+  assert.equal(await strona.locator('#dlg-konflikt[open]').count(), 0, 'różne elementy tej samej strony nie wymagają pytania');
+  assert.equal(baza.projekty[0].wersja, wersja + 2);
+  const stan1 = await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => [s.nazwa, s.obiekty.map((o) => o.type.toLowerCase()).sort().join('+'), s.obiekty.map((o) => o.id)]));
+  assert.deepEqual(stan1.map((s) => s.slice(0, 2)), [['Okładka z telefonu', 'line+textbox+textbox'], ['Druga z telefonu', 'ellipse+rect+rect']], 'na obu stronach są elementy z obu urządzeń, nazwy z telefonu');
+  assert.ok(stan1[0][2].includes('tel-1') && stan1[1][2].includes('tel-2'));
+  assert.deepEqual([naKoncie(p.strony[0]).nazwa, typy(naKoncie(p.strony[0]))], ['Okładka z telefonu', 'line+textbox+textbox'], 'połączona pierwsza strona trafiła na konto');
+  assert.deepEqual([naKoncie(p.strony[1]).nazwa, typy(naKoncie(p.strony[1]))], ['Druga z telefonu', 'ellipse+rect+rect']);
+  assert.deepEqual(baza.projekty[0].dane.tabele.map((x) => x.nazwa), ['Z telefonu']);
+  // Elementy z telefonu są też na płótnie.
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => !o.zWzorca).length), 3);
 
+  // Ten sam element przesunięty na obu urządzeniach (a do tego telefon zmienił nazwę strony): pytanie tylko o niego.
+  wersja = baza.projekty[0].wersja;
+  const przesun = (lewo, nazwa) => (s) => ({ ...s, nazwa: nazwa || s.nazwa, obiekty: s.obiekty.map((o) => (o.id === 'tel-1' ? { ...o, left: lewo } : o)) });
+  const tutaj = (lewo) => strona.evaluate((l) => { const e = window.seriodruk.edytor; const o = e.canvas.getObjects().find((x) => x.id === 'tel-1'); o.set({ left: l }); o.setCoords(); e.zatwierdz(); }, lewo);
+  const lewoTutaj = () => strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.id === 'tel-1').left);
+  zapisZInnegoUrzadzenia(baza, p.id, { strony: { [p.strony[0]]: przesun(91, 'Okładka – druga wersja') } });
+  await tutaj(77);
   await strona.waitForSelector('#dlg-konflikt[open]', { timeout: 15000 });
   assert.equal(baza.projekty[0].wersja, wersja + 1, 'przed decyzją nic nie zostało nadpisane');
-  assert.deepEqual(await strona.$$eval('#konflikt-lista li', (l) => l.map((li) => [li.dataset.klucz, li.querySelector('strong').textContent, li.querySelector('input:checked').value])), [
-    [`strony:${p.strony[0]}`, 'Strona „Strona 1”', 'moje'],
-    [`strony:${p.strony[1]}`, 'Strona „Strona 2”', 'moje'],
-  ], 'na liście są tylko strony zmienione w obu miejscach – tabela z telefonu przechodzi sama');
-  assert.match(await strona.textContent('#konflikt-opis'), /2 części zmieniono w obu miejscach/);
+  const pytania = await strona.$$eval('#konflikt-lista li', (l) => l.map((li) => [li.dataset.klucz, li.querySelector('strong').textContent, li.querySelector('input:checked').value, ...[...li.querySelectorAll('label span')].map((s) => s.textContent)]));
+  assert.equal(pytania.length, 1, 'jedno pytanie – o element, nie o stronę');
+  assert.equal(pytania[0][0], `strony:${p.strony[0]}#tel-1`);
+  assert.match(pytania[0][1], /^Strona „Okładka z telefonu”: tekst „Kliknij dwa razy/);
+  assert.deepEqual(pytania[0].slice(2), ['moje', 'Z tego urządzenia (zmieniony tutaj)', 'Z konta (zmieniony na koncie)']);
+  assert.match(await strona.textContent('#konflikt-opis'), /Jedną część zmieniono w obu miejscach/);
   // Esc nie zamyka okna bez decyzji.
   await strona.keyboard.press('Escape');
   assert.equal(await strona.locator('#dlg-konflikt[open]').count(), 1);
-
-  // Pierwsza strona: moja wersja; druga: wersja z konta.
-  await strona.check(`#konflikt-lista li[data-klucz="strony:${p.strony[1]}"] input[value=konto]`);
-  await strona.click('#konflikt-zastosuj');
-  await polaczono(strona);
-  await zapisano(strona);
-  assert.equal(baza.projekty[0].wersja, wersja + 2);
-  const stan1 = await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => [s.nazwa, s.obiekty.map((o) => o.type.toLowerCase()).sort().join('+')]));
-  assert.equal(stan1[0][0], 'Strona 1', 'pierwsza strona została moja');
-  assert.match(stan1[0][1], /line/);
-  assert.deepEqual(stan1[1], ['Druga z telefonu', 'rect+rect'], 'druga strona jest z konta – bez mojej elipsy');
-  assert.equal(naKoncie(p.strony[0]).nazwa, 'Strona 1');
-  assert.ok(naKoncie(p.strony[0]).obiekty.some((o) => o.type.toLowerCase() === 'line'), 'moja pierwsza strona trafiła na konto');
-  assert.equal(naKoncie(p.strony[1]).nazwa, 'Druga z telefonu');
-  assert.deepEqual(baza.projekty[0].dane.tabele.map((x) => x.nazwa), ['Z telefonu']);
-  assert.deepEqual(baza.zapisy.at(-1).strony, [p.strony[0]], 'na konto poszła tylko strona, przy której wybrano moją wersję');
-
-  // Drugi raz: jedna strona zmieniona w obu miejscach, „Wszędzie wersja z konta”.
-  wersja = baza.projekty[0].wersja;
-  const elementow = naKoncie(p.strony[0]).obiekty.length;
-  zapisZInnegoUrzadzenia(baza, p.id, { strony: { [p.strony[0]]: (s) => ({ ...s, nazwa: 'Okładka – wersja z telefonu' }) } });
-  await strona.click('[data-akcja="dodaj-prostokat"]');
-  await strona.waitForSelector('#dlg-konflikt[open]', { timeout: 15000 });
-  assert.equal(await strona.locator('#konflikt-lista li').count(), 1);
-  assert.match(await strona.textContent('#konflikt-opis'), /Jedną część zmieniono w obu miejscach/);
+  // Wybór: wersja z konta. Nazwa strony z telefonu przechodzi sama; to urządzenie nie ma już nic do wysłania.
   await strona.click('#konflikt-wszystko-konto');
   await strona.click('#konflikt-zastosuj');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].nazwa === 'Okładka – wersja z telefonu');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].nazwa === 'Okładka – druga wersja');
   await zapisano(strona);
+  assert.equal(await lewoTutaj(), 91);
   assert.equal(baza.projekty[0].wersja, wersja + 1, 'po wybraniu wersji z konta to urządzenie ma to samo co konto – nic nie wysyła');
-  assert.deepEqual(await strona.evaluate(() => { const s = window.seriodruk.stan.projekt.strony[0]; return [s.nazwa, s.obiekty.length]; }), ['Okładka – wersja z telefonu', elementow]);
-  assert.deepEqual([naKoncie(p.strony[0]).nazwa, naKoncie(p.strony[0]).obiekty.length], ['Okładka – wersja z telefonu', elementow]);
+
+  // Jeszcze raz, tym razem zostaje wersja z tego urządzenia – i tylko ta strona idzie na konto.
+  wersja = baza.projekty[0].wersja;
+  zapisZInnegoUrzadzenia(baza, p.id, { strony: { [p.strony[0]]: przesun(12) } });
+  await tutaj(55);
+  await strona.waitForSelector('#dlg-konflikt[open]', { timeout: 15000 });
+  assert.equal(await strona.locator('#konflikt-lista li').count(), 1);
+  await strona.click('#konflikt-zastosuj');
+  await strona.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury === w + 2, wersja, { timeout: 15000 });
+  await zapisano(strona);
+  assert.equal(await lewoTutaj(), 55);
+  assert.equal(naKoncie(p.strony[0]).obiekty.find((o) => o.id === 'tel-1').left, 55, 'moja wersja elementu trafiła na konto');
+  assert.deepEqual(baza.zapisy.at(-1).strony, [p.strony[0]], 'na konto poszła tylko ta strona');
   assert.deepEqual(bledy, []);
 });
 

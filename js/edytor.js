@@ -172,6 +172,8 @@ export class Edytor extends EventTarget {
       if (toTabela(e.target?.group)) { ulozTabele(e.target.group); c.requestRenderAll(); }
       this._przelejPrzyPisaniu(e.target);
       this._emitujZaznaczenie();
+      // Pisanie jeszcze trwa (krok historii powstanie po wyjściu z ramki), ale tekst już jest do zapisania.
+      if (!this._wczytywanie) this.dispatchEvent(new Event('pisanie'));
     });
     c.on('text:selection:changed', () => this._emitujZaznaczenie());
     c.on('text:editing:entered', () => this._emitujZaznaczenie());

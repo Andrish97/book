@@ -356,6 +356,9 @@ edytor.addEventListener('zaznaczenie', (e) => {
   panel.pokaz(obj);
 });
 edytor.addEventListener('zmiana', zaplanujZapis);
+// Tekst w trakcie pisania jest zapisywany (i wysyłany na konto) po każdej krótkiej przerwie, nie dopiero po
+// wyjściu z ramki; krok cofania powstaje jak dotąd – po zakończeniu pisania.
+edytor.addEventListener('pisanie', () => zaplanujZapis({ historia: false }));
 // Kursor w połączonym tekście doszedł do ramki na innej stronie – aplikacja otwiera tę stronę i pisanie idzie dalej.
 edytor.addEventListener('pisanie-na-innej-stronie', (e) => { piszNaInnejStronie(e.detail); });
 edytor.addEventListener('rysowanie', (e) => {
