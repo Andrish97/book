@@ -1275,3 +1275,15 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
   .pasek-edytora .pelny-ekran, .pasek-podgladu .pelny-ekran { display: none; }
   .menu .tylko-waski-pasek:not([hidden]) { display: flex; }
 }
+
+/* Zwijane części <details>: zamiast systemowego trójkąta ten sam znaczek co przy zwijanych częściach
+   panelu właściwości (skośna strzałka, obracana przy otwarciu). */
+details > summary { list-style: none; display: flex; align-items: center; gap: 6px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::marker { content: ""; }
+details > summary::before {
+  content: ""; flex: none; width: 6px; height: 6px; border-right: 1.5px solid var(--cichy); border-bottom: 1.5px solid var(--cichy);
+  transform: rotate(-45deg); margin: 0 3px 0 1px; transition: transform var(--czas);
+}
+details[open] > summary::before { transform: rotate(45deg); margin-bottom: 3px; }
+details > summary:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; border-radius: 4px; }
