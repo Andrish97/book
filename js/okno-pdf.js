@@ -118,9 +118,9 @@ export class OknoPdf {
       const papier = o.pdfx === 'wlasny' ? 'warunki druku z profilu drukarni' : `warunki druku: ${WARUNKI_DRUKU[o.pdfx].nazwa}`;
       const kolory = !wektor
         ? (o.zdjeciaCmyk
-          ? 'Obrazy stron są przeliczone na CMYK przez ten profil i zapisane bez strat – plik będzie wyraźnie większy. Czarny i szary tekst, kształty i cienie idą samą czarną farbą (także gdy leżą na zdjęciu), więc litery są ostre; same zdjęcia – czterema farbami, jak wynika z profilu.'
+          ? 'Obrazy stron są przeliczone na CMYK przez ten profil. Czarny i szary tekst, kształty i cienie idą samą czarną farbą (także gdy leżą na zdjęciu) i są zapisane bez strat, więc litery są ostre; same zdjęcia – czterema farbami, jak wynika z profilu, jako JPEG. Plik jest większy niż zwykłe obrazy stron.'
           : 'Obrazy stron zostają w RGB z opisem sRGB – na farby drukarskie przeliczy je drukarnia według dołączonego profilu.')
-        : `${o.cmyk ? 'Tekst i kształty są przeliczone na CMYK przez ten profil (czerń i szarości samą czarną farbą).' : 'Tekst i kształty zostają w RGB z opisem sRGB.'} ${o.zdjeciaCmyk ? 'Zdjęcia są przeliczone na CMYK przez ten profil, w rozdzielczości z pola „Jakość”, bez strat – plik będzie wyraźnie większy.' : 'Zdjęcia zostają w RGB z opisem sRGB – na farby przeliczy je drukarnia według dołączonego profilu (to zgodne z PDF/X-4).'}`;
+        : `${o.cmyk ? 'Tekst i kształty są przeliczone na CMYK przez ten profil (czerń i szarości samą czarną farbą).' : 'Tekst i kształty zostają w RGB z opisem sRGB.'} ${o.zdjeciaCmyk ? 'Zdjęcia są przeliczone na CMYK przez ten profil, w rozdzielczości z pola „Jakość” (zdjęcia JPEG zostają JPEG-iem w czterech farbach, pozostałe obrazy bez strat) – plik będzie większy.' : 'Zdjęcia zostają w RGB z opisem sRGB – na farby przeliczy je drukarnia według dołączonego profilu (to zgodne z PDF/X-4).'}`;
       opisPdfx.textContent = `Plik PDF/X-4: zawiera profil barwny (${papier}) i oznaczenia, po których programy drukarni rozpoznają standard. ${kolory}${o.pdfx === 'fogra39' ? ' Profil papieru powlekanego dodaje do pliku ok. 8 MB.' : ''} Przed pierwszym zleceniem wyślij drukarni próbny plik.`;
     }
     const projekt = this.zrodlo.projekt();

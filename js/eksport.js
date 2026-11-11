@@ -12,7 +12,7 @@
 
 import { renderujCel, zlozCel, naPlotnieCelu } from './zlozenie.js';
 import { obrazStronyCmyk } from './strona-cmyk.js';
-import { rysujStroneWektorowo, CzcionkiPdf, ObrazyPdf } from './pdf-wektorowy.js';
+import { rysujStroneWektorowo, CzcionkiPdf, ObrazyPdf, poprawOpisCzcionekOtf } from './pdf-wektorowy.js';
 import { wczytajWarunki, dodajPdfX, naglowekPdfX } from './pdf-x.js';
 import { rozwin } from './serie.js';
 import { biblioteka } from './biblioteki.js';
@@ -108,7 +108,7 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) 
 
 // Składa jeden plik PDF z podanych egzemplarzy. opcje: tryb ('wektor' | 'obraz'), dpi (strony
 // w trybie obrazów; w wektorowym – elementy, których nie da się zapisać wektorowo), spad (czy dodać
-// spad), znaki ('sekcje' – według ustawień sekcji, true, false), jakosc JPEG, cmyk i krzywe (tylko
+// spad), znaki ('sekcje' – według ustawień sekcji, true, false), jakosc JPEG (obrazy stron; 1 w CMYK = bez strat), cmyk i krzywe (tylko
 // wektorowy), uwagi (Map: powód → ile elementów trafiło do pliku jako obraz), jakoKrzywe (Map: czcionka →
 // w ilu elementach tekst zapisano jako krzywe, bo czcionki nie da się osadzić), ciag, postep(nrStrony),
 // przerwij() → true, gdy użytkownik anulował.
@@ -148,16 +148,21 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
       await rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m });
     } else if (silnikStron) {
       // Obraz strony w CMYK przez profil; czerń i szarości poza zdjęciami samą czarną farbą.
+      // Zdjęcia idą pod spodem jako JPEG w czterech farbach, reszta strony na wierzchu bez strat (js/strona-cmyk.js).
       const obraz = await naPlotnieCelu(projekt, egz, { szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, oryginaly: true },
-        (plotno, obiekty) => obrazStronyCmyk(pdf, silnikStron, plotno, obiekty));
+        (plotno, obiekty) => obrazStronyCmyk(pdf, silnikStron, plotno, obiekty, { jakosc }));
       strona = pdf.addPage([szer, wys]);
-      strona.node.setXObject(PDFLib.PDFName.of('Strona'), obraz);
-      strona.pushOperators(
-        PDFLib.pushGraphicsState(),
-        PDFLib.concatTransformationMatrix((m.w + 2 * m.spad) * PT, 0, 0, (m.h + 2 * m.spad) * PT, (m.pas - m.spad) * PT, (m.pas - m.spad) * PT),
-        PDFLib.drawObject('Strona'),
-        PDFLib.popGraphicsState(),
-      );
+      const poleSzer = (m.w + 2 * m.spad) * PT; const poleWys = (m.h + 2 * m.spad) * PT; const odBrzegu = (m.pas - m.spad) * PT;
+      const rysuj = (nazwa, x, y, w, h) => {
+        strona.pushOperators(PDFLib.pushGraphicsState(), PDFLib.concatTransformationMatrix(w, 0, 0, h, x, y), PDFLib.drawObject(nazwa), PDFLib.popGraphicsState());
+      };
+      obraz.zdjecia.forEach((z, i) => {
+        strona.node.setXObject(PDFLib.PDFName.of(`Zdjecia${i + 1}`), z.obraz);
+        // Piksele strony liczą się od góry, punkty PDF od dołu.
+        rysuj(`Zdjecia${i + 1}`, odBrzegu + (z.x / obraz.w) * poleSzer, odBrzegu + ((obraz.h - z.y - z.h) / obraz.h) * poleWys, (z.w / obraz.w) * poleSzer, (z.h / obraz.h) * poleWys);
+      });
+      strona.node.setXObject(PDFLib.PDFName.of('Strona'), obraz.strona);
+      rysuj('Strona', odBrzegu, odBrzegu, poleSzer, poleWys);
     } else {
       const url = await renderujCel(projekt, egz, {
         szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true,
@@ -176,6 +181,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   }
   // Czcionki wczytane, ale ostatecznie nieużyte (np. tekst poszedł jako obraz), nie trafiają do pliku.
   if (srodowisko) pdf.fonts = pdf.fonts.filter((f) => srodowisko.uzyteCzcionki.has(f));
+  if (srodowisko) await poprawOpisCzcionekOtf(PDFLib, pdf);
   if (warunki) await dodajPdfX(PDFLib, pdf, warunki, { tytul: projekt.nazwa });
   const bajty = await pdf.save();
   return new Blob([warunki ? naglowekPdfX(bajty) : bajty], { type: 'application/pdf' });

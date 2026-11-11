@@ -185,6 +185,7 @@ const przezMenu = (zrodlo, fn) => { const f = (v) => fn(v); f.zrodlo = zrodlo; r
 // Pełny ekran: cała aplikacja bez pasków przeglądarki. Przycisk pokazuje się tylko tam, gdzie przeglądarka
 // na to pozwala (iPhone nie pozwala stronie – pełny ekran daje tam zainstalowanie aplikacji).
 function przelaczPelnyEkran() {
+  zamknijMenu();
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => powiadom('Przeglądarka nie pozwoliła włączyć pełnego ekranu.', true));
 }
@@ -194,7 +195,8 @@ function odswiezPelnyEkran() {
     b.hidden = !document.fullscreenEnabled;
     b.setAttribute('aria-pressed', String(wlaczony));
     b.title = wlaczony ? 'Zamknij pełny ekran (Esc)' : 'Pełny ekran';
-    b.setAttribute('aria-label', b.title);
+    if (b.getAttribute('role') === 'menuitem') b.lastChild.textContent = wlaczony ? 'Zamknij pełny ekran' : 'Pełny ekran';
+    else b.setAttribute('aria-label', b.title);
     b.querySelector(':scope > svg.ikona')?.remove();
     b.dataset.ikona = wlaczony ? 'zwin-ekran' : 'pelny-ekran';
   });

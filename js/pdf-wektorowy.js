@@ -20,6 +20,7 @@
 import './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { spakuj } from './pdf-x.js';
+import { jpegCmyk } from './jpeg-cmyk.js';
 
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
@@ -115,17 +116,53 @@ async function rozpakujWoff(bufor) {
 // Ligatura (np. „fi” jednym znakiem czcionki) w osadzonej czcionce. Biblioteka PDF zapisuje szerokości i znaczenie
 // tylko tych znaków, które czcionka ma w tabeli znaków – ligatury zwykle w niej nie ma. Dopisujemy ją więc do spisu
 // znaków czcionki: stąd w pliku jej szerokość i litery, które oznacza (tekst da się zaznaczyć i wyszukać).
-// Zwraca false, gdy spisu nie da się uzupełnić – wtedy ligatura nie jest używana.
+// Zwraca numer, pod którym ligatura jest w osadzonej czcionce, albo 0, gdy spisu nie da się uzupełnić –
+// wtedy ligatura nie jest używana.
 function dopiszLigature(pdfFont, glif) {
-  const spis = pdfFont?.embedder?.glyphCache;
-  if (typeof spis?.access !== 'function') return false;
+  const osadzanie = pdfFont?.embedder;
+  const spis = osadzanie?.glyphCache;
+  if (typeof spis?.access !== 'function') return 0;
+  // Czcionka osadzana w części (tylko użyte znaki): znaki dostają w pliku własne, kolejne numery.
+  if (osadzanie.subset) {
+    if (typeof osadzanie.subset.includeGlyph !== 'function' || !Array.isArray(osadzanie.glyphs) || !(osadzanie.glyphIdMap instanceof Map) || typeof spis.invalidate !== 'function') return 0;
+    const nr = osadzanie.subset.includeGlyph(glif.id);
+    osadzanie.glyphs[nr - 1] = glif;
+    osadzanie.glyphIdMap.set(glif.id, nr);
+    spis.invalidate();
+    pdfFont.modified = true;
+    return nr;
+  }
   const glify = spis.access();
-  if (!Array.isArray(glify)) return false;
+  if (!Array.isArray(glify)) return 0;
   let a = 0; let b = glify.length;
   while (a < b) { const s = (a + b) >> 1; if (glify[s].id < glif.id) a = s + 1; else b = s; }
   if (glify[a]?.id === glif.id) glify[a] = glif; else glify.splice(a, 0, glif);
   pdfFont.modified = true;
-  return true;
+  return glif.id;
+}
+
+// Nazwa czcionki osadzonej w części zaczyna się od sześciu wielkich liter i plusa (np. „QKXDPA+Lora-Regular”) –
+// po tym programy rozpoznają, że w pliku jest tylko część znaków. Każda czcionka pliku dostaje inne litery.
+const znacznikCzesci = (nr) => Array.from({ length: 6 }, (_, i) => String.fromCharCode(65 + (Math.floor((nr * 7919 + 104729) / 26 ** i) % 26))).join('');
+
+// Czcionka OpenType z obrysami CFF (plik „OTTO”) jest w pliku PDF w całości, jako plik OpenType. Biblioteka PDF
+// nie rozpoznaje takiego pliku osadzanego w całości i opisuje go jak czcionkę TrueType – inne programy zgłaszają
+// wtedy niezgodność rodzaju czcionki. Dlatego: przy osadzaniu mówimy bibliotece, że to obrysy CFF (opisCff),
+// a po zapisaniu czcionek do dokumentu poprawiamy opis strumienia z „gołej tabeli obrysów” na „OpenType”
+// i usuwamy wpis, który dotyczy tylko czcionek TrueType. (Części takich czcionek nie wycinamy, więc każdy
+// strumień z obrysami CFF to cały plik.)
+const opisCff = (pdfFont) => { if (pdfFont?.embedder) pdfFont.embedder.isCFF = () => true; return pdfFont; };
+
+export async function poprawOpisCzcionekOtf(PDFLib, pdf) {
+  await pdf.flush();
+  const { PDFName } = PDFLib;
+  const rodzaj = PDFName.of('Subtype');
+  for (const [, obiekt] of pdf.context.enumerateIndirectObjects()) {
+    const slownik = obiekt?.dict || (typeof obiekt?.get === 'function' && typeof obiekt?.set === 'function' ? obiekt : null);
+    if (!slownik) continue;
+    if (slownik.get(rodzaj) === PDFName.of('CIDFontType0C')) slownik.set(rodzaj, PDFName.of('OpenType'));
+    if (slownik.get(rodzaj) === PDFName.of('CIDFontType0')) slownik.delete(PDFName.of('CIDToGIDMap'));
+  }
 }
 
 // Czcionki jednego pliku PDF: wyszukanie pliku dla rodziny i odmiany, wczytanie, osadzenie.
@@ -187,7 +224,13 @@ export class CzcionkiPdf {
       }
       if (zrodlo.woff2) krzywe = `„${rodzina}” (plik WOFF2)`;
       if (zrodlo.skos) krzywe = `„${rodzina}” (kursywa bez własnego pliku)`;
-      const pdfFont = this.krzywe || krzywe ? null : await this.pdf.embedFont(zrodlo.bajty, { subset: false });
+      // Do pliku trafiają tylko użyte znaki czcionki (plik jest mniejszy; przy dużej własnej czcionce – dużo mniejszy).
+      // Wyjątek: czcionka OpenType z obrysami CFF (plik zaczyna się od „OTTO”) idzie w całości – jej część
+      // wycięta przez bibliotekę bywa nieczytelna dla innych programów (poppler zgłasza błąd czcionki).
+      const wCzesci = new TextDecoder('latin1').decode(zrodlo.bajty.subarray(0, 4)) !== 'OTTO';
+      const opcje = wCzesci ? { subset: true, customName: `${znacznikCzesci(this.gotowe.size)}+${String(fk.postscriptName || rodzina).replace(/[^A-Za-z0-9-]/g, '')}` } : { subset: false };
+      let pdfFont = this.krzywe || krzywe ? null : await this.pdf.embedFont(zrodlo.bajty, opcje);
+      if (!wCzesci) pdfFont = opisCff(pdfFont);
       // slowa: słowo → jego ligatury; proby: czy przeglądarka naprawdę rysuje dany zlepek liter ligaturą;
       // dopisane: numery ligatur dopisanych do osadzonej czcionki (patrz KontekstPdf._ligatury).
       return { fk, pdfFont, krzywe, skos: zrodlo.skos ? SKOS_KURSYWY : 0, slowa: new Map(), proby: new Map(), dopisane: new Map() };
@@ -258,6 +301,9 @@ function obrotJpeg(b) {
   }
   return 1;
 }
+
+// Jakość JPEG zdjęć zapisywanych w czterech farbach – ta sama co zdjęć przerysowywanych do RGB.
+const JAKOSC_ZDJEC_CMYK = 0.92;
 
 const bajtyZAdresu = async (src) => new Uint8Array(await (await fetch(src)).arrayBuffer());
 
@@ -353,11 +399,13 @@ export class ObrazyPdf {
     const c = plotno.getContext('2d');
     c.imageSmoothingQuality = 'high';
     c.drawImage(el, 0, 0, plotno.width, plotno.height);
-    return this.osadzPlotno(plotno);
+    // Zdjęcie, które przyszło jako JPEG, zostaje JPEG-iem – tyle że w czterech farbach. Inne obrazy (PNG, rysunki) bez strat.
+    return this.osadzPlotno(plotno, /^data:image\/jpeg/i.test(el.src));
   }
 
-  // Piksele płótna → obraz PDF w CMYK (bezstratnie spakowany), przezroczystość jako osobna maska.
-  async _plotnoCmyk(plotno) {
+  // Piksele płótna → obraz PDF w CMYK, przezroczystość jako osobna maska. Bez strat (Flate) albo – dla zdjęć
+  // bez przezroczystości (`zdjecie`) – jako JPEG w czterech farbach, kilka razy mniejszy.
+  async _plotnoCmyk(plotno, zdjecie = false) {
     const { width: w, height: h } = plotno;
     const rgba = plotno.getContext('2d').getImageData(0, 0, w, h).data;
     const ctx = this.pdf.context;
@@ -368,8 +416,12 @@ export class ObrazyPdf {
       for (let i = 0; i < maska.length; i += 1) maska[i] = rgba[i * 4 + 3];
       opis.SMask = ctx.register(ctx.stream(await spakuj(maska), { ...opis, ColorSpace: 'DeviceGray' }));
     }
-    const ref = ctx.register(ctx.stream(await spakuj(this.silnik.obraz(rgba)), { ...opis, ColorSpace: 'DeviceCMYK' }));
-    return { ref };
+    const cmyk = this.silnik.obraz(rgba);
+    const bezStrat = await spakuj(cmyk);
+    // Zdjęcie jako JPEG – chyba że bez strat wychodzi mniejsze (gładka grafika zapisana jako JPEG).
+    const jpeg = zdjecie && !maska ? await jpegCmyk(cmyk, w, h, JAKOSC_ZDJEC_CMYK) : null;
+    if (jpeg && jpeg.length < bezStrat.length) return { ref: ctx.register(ctx.stream(jpeg, { ...opis, ColorSpace: 'DeviceCMYK', Filter: 'DCTDecode', DecodeParms: { ColorTransform: 0 } })) };
+    return { ref: ctx.register(ctx.stream(bezStrat, { ...opis, ColorSpace: 'DeviceCMYK' })) };
   }
 
   async _osadz(el, szerPx) {
@@ -391,7 +443,7 @@ export class ObrazyPdf {
   }
 
   async osadzPlotno(plotno, bezPrzezroczystosci = false) {
-    if (this.silnik) { const obraz = await this._plotnoCmyk(plotno); plotno.width = 0; plotno.height = 0; return obraz; }
+    if (this.silnik) { const obraz = await this._plotnoCmyk(plotno, bezPrzezroczystosci); plotno.width = 0; plotno.height = 0; return obraz; }
     const url = bezPrzezroczystosci ? plotno.toDataURL('image/jpeg', 0.92) : plotno.toDataURL('image/png');
     const obraz = await (bezPrzezroczystosci ? this.pdf.embedJpg(url) : this.pdf.embedPng(url));
     plotno.width = 0; plotno.height = 0;
@@ -778,7 +830,7 @@ class KontekstPdf {
     // Ligatura to jeden znak czcionki, zapisany jego numerem; czytnik PDF odczyta z niego zwykłe litery.
     const czesci = [];
     widoczne.forEach(({ glif, dx, znak }, i) => {
-      czesci.push(znak === null ? `<${glif.id.toString(16).toUpperCase().padStart(4, '0')}>` : pdfFont.encodeText(znak).toString());
+      czesci.push(znak === null ? `<${czcionka.dopisane.get(glif.id).toString(16).toUpperCase().padStart(4, '0')}>` : pdfFont.encodeText(znak).toString());
       const nastepny = widoczne[i + 1];
       if (!nastepny) return;
       const wlasny = (glif.advanceWidth / fk.unitsPerEm) * rozmiar;

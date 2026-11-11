@@ -25,6 +25,11 @@ jobs:
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
 
+      # Niezależne programy do kontroli plików PDF (tests/pdf-kontrola.test.cjs): składnia, czcionki,
+      # obrazy i rozbarwienie na farby. Bez nich ten jeden test się pomija.
+      - name: Programy do kontroli PDF
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ghostscript qpdf poppler-utils
+
       - name: Sprawdzenie kodu (nazwy bez definicji, nieużywane importy)
         run: npm run lint
 
