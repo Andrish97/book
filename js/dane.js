@@ -8,7 +8,7 @@ import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabe
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
 import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany, wierszPomijany, ZNACZNIK_POMIJANIA } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
-import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana, zapytajONazwe } from './ui.js';
+import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
@@ -112,16 +112,11 @@ export class Dane {
     this._narysowane = cel;
     const tbody = this.siatka.tBodies[0];
     tbody.insertAdjacentHTML('beforeend', html.join(''));
-    const zWygladem = t.wyglad && !t.wyglad_wyl;
     for (let w = od; w < cel; w += 1) {
       const komorki = tbody.rows[w].cells;
-      for (let k = 0; k < t.kolumny.length; k += 1) {
-        komorki[k + 1].textContent = t.wiersze[w][k];
-        // Komórka wygląda tak, jak jej wartość będzie wyglądać na stronie (wygląd przeniesiony z arkusza).
-        const wyglad = zWygladem ? t.wyglad[w]?.[k] : null;
-        if (wyglad) Object.assign(komorki[k + 1].style, { fontWeight: wyglad.pogrubienie ? '700' : '', fontStyle: wyglad.kursywa ? 'italic' : '', color: wyglad.kolor || '' });
-      }
+      for (let k = 0; k < t.kolumny.length; k += 1) this._pokazKomorke(komorki[k + 1], w, k);
     }
+    this._oznaczZaznaczone();
     if (od > 0 && (t.unikalne?.length || t.listy)) this._oznaczPowtorzenia();
   }
 
@@ -175,6 +170,101 @@ export class Dane {
     t.wiersze.splice(w, 0, t.kolumny.map((_, k) => (k === 0 ? ZNACZNIK_POMIJANIA : '')));
     t.wyglad?.splice(w, 0, null);
     return w;
+  }
+
+  // Treść komórki i jej wygląd: komórka wygląda tak, jak jej wartość będzie wyglądać na stronie
+  // (wygląd całej komórki i części tekstu – z arkusza albo ustawiony tutaj).
+  _pokazKomorke(td, w, k) {
+    const t = this.tabela();
+    const tekst = t.wiersze[w][k];
+    const wyglad = t.wyglad && !t.wyglad_wyl ? t.wyglad[w]?.[k] : null;
+    const css = (x) => ({ fontWeight: x?.pogrubienie ? '700' : '', fontStyle: x?.kursywa ? 'italic' : '', color: x?.kolor || '' });
+    Object.assign(td.style, css(wyglad));
+    if (!wyglad?.czesci?.length) { td.textContent = tekst; return; }
+    td.textContent = '';
+    let poz = 0;
+    for (const c of wyglad.czesci) {
+      if (c.od > poz) td.append(tekst.slice(poz, c.od));
+      const s = document.createElement('span');
+      s.textContent = tekst.slice(c.od, c.do);
+      Object.assign(s.style, Object.fromEntries(Object.entries(css(c)).filter(([, v]) => v)));
+      td.append(s);
+      poz = c.do;
+    }
+    if (poz < tekst.length) td.append(tekst.slice(poz));
+  }
+
+  // Zaznaczone komórki: prostokąt od komórki-kotwicy do komórki klikniętej z Shiftem.
+  _komorkiZaznaczone() {
+    const z = this._zaznaczenie;
+    if (!z || z.tabela !== this.idTabeli) return [];
+    const t = this.tabela();
+    const wynik = [];
+    for (let w = Math.min(z.w0, z.w1); w <= Math.min(Math.max(z.w0, z.w1), t.wiersze.length - 1); w += 1) {
+      for (let k = Math.min(z.k0, z.k1); k <= Math.min(Math.max(z.k0, z.k1), t.kolumny.length - 1); k += 1) wynik.push([w, k]);
+    }
+    return wynik;
+  }
+
+  _oznaczZaznaczone() {
+    for (const td of this.siatka.querySelectorAll('td.zaznaczona')) td.classList.remove('zaznaczona');
+    const komorki = this._komorkiZaznaczone();
+    if (komorki.length > 1) for (const [w, k] of komorki) this.siatka.querySelector(`td[data-w="${w}"][data-k="${k}"]`)?.classList.add('zaznaczona');
+  }
+
+  // Zmienia wygląd zaznaczonych komórek. zmiana: { pogrubienie | kursywa: 'przelacz' } | { kolor } | { bez: true }.
+  // Ustawiona cecha obowiązuje w całej komórce – znika też z części tekstu.
+  _ustawWyglad(zmiana) {
+    const t = this.tabela();
+    const komorki = this._komorkiZaznaczone();
+    if (!t || !komorki.length) { powiadom('Kliknij komórkę (Shift+kliknięcie zaznacza kilka), a potem wybierz wygląd.'); return; }
+    const wyglad = (t.wyglad || []).slice(0, t.wiersze.length);
+    while (wyglad.length < t.wiersze.length) wyglad.push(null);
+    const komorka = (w, k) => wyglad[w]?.[k] || null;
+    let wlacz;
+    for (const cecha of ['pogrubienie', 'kursywa']) if (zmiana[cecha]) wlacz = !komorki.every(([w, k]) => komorka(w, k)?.[cecha]);
+    for (const [w, k] of komorki) {
+      let x = { ...komorka(w, k) };
+      if (zmiana.bez) x = {};
+      for (const cecha of ['pogrubienie', 'kursywa']) {
+        if (!zmiana[cecha]) continue;
+        if (wlacz) x[cecha] = true; else delete x[cecha];
+        if (x.czesci) x.czesci = x.czesci.map((c) => { const { [cecha]: _pomin, ...reszta } = c; return reszta; });
+      }
+      if ('kolor' in zmiana) {
+        if (zmiana.kolor && zmiana.kolor !== '#000000') x.kolor = zmiana.kolor; else delete x.kolor;
+        if (x.czesci) x.czesci = x.czesci.map((c) => { const { kolor: _pomin, ...reszta } = c; return reszta; });
+      }
+      if (x.czesci) { x.czesci = x.czesci.filter((c) => Object.keys(c).length > 2); if (!x.czesci.length) delete x.czesci; }
+      if (!wyglad[w]) wyglad[w] = t.kolumny.map(() => null);
+      wyglad[w][k] = Object.keys(x).length ? x : null;
+      if (!wyglad[w].some(Boolean)) wyglad[w] = null;
+    }
+    if (wyglad.some(Boolean)) t.wyglad = wyglad; else { delete t.wyglad; delete t.wyglad_wyl; }
+    // Ustawiony wygląd ma być widać – także gdy przenoszenie było wyłączone.
+    if (!zmiana.bez) delete t.wyglad_wyl;
+    const maWyglad = Boolean(t.wyglad?.some(Boolean));
+    $('#dane-wyglad-pole').hidden = !maWyglad;
+    $('#dane-wyglad').checked = maWyglad && !t.wyglad_wyl;
+    for (const [w, k] of komorki) { const td = this.siatka.querySelector(`td[data-w="${w}"][data-k="${k}"]`); if (td) this._pokazKomorke(td, w, k); }
+    this._zmieniono();
+  }
+
+  // Okno listy dozwolonych wartości kolumny: zwraca listę wartości, [] (usuń listę) albo null (anulowano).
+  _zapytajOListe(nazwa, wartosci) {
+    const dlg = $('#dlg-lista-kolumny');
+    $('#lista-kolumny-tytul').textContent = `Dozwolone wartości kolumny „${nazwa}”`;
+    const pole = $('#lista-kolumny-wartosci');
+    pole.value = wartosci.join('\n');
+    $('#lista-kolumny-usun').hidden = !wartosci.length;
+    dlg.returnValue = '';
+    dlg.showModal();
+    pole.focus();
+    return new Promise((ok) => dlg.addEventListener('close', () => {
+      if (dlg.returnValue === 'usun') ok([]);
+      else if (dlg.returnValue === 'tak') ok([...new Set(pole.value.split(/[;\n]/).map((v) => v.trim()).filter(Boolean))]);
+      else ok(null);
+    }, { once: true }));
   }
 
   _komorka(w, k) {
@@ -258,7 +348,19 @@ export class Dane {
     s.addEventListener('input', (e) => {
       const td = e.target.closest('td');
       if (!td) return;
-      this.tabela().wiersze[Number(td.dataset.w)][Number(td.dataset.k)] = td.textContent.replace(/\n$/, '');
+      const tab = this.tabela();
+      const [nw, nk] = [Number(td.dataset.w), Number(td.dataset.k)];
+      tab.wiersze[nw][nk] = td.textContent.replace(/\n$/, '');
+      // Po zmianie tekstu wygląd części (zakresy znaków) przestaje pasować – zostaje wygląd całej komórki.
+      const x = tab.wyglad?.[nw]?.[nk];
+      if (x?.czesci) {
+        delete x.czesci;
+        if (!Object.keys(x).length) {
+          tab.wyglad[nw][nk] = null;
+          if (!tab.wyglad[nw].some(Boolean)) tab.wyglad[nw] = null;
+          if (!tab.wyglad.some(Boolean)) { delete tab.wyglad; delete tab.wyglad_wyl; }
+        }
+      }
       // Znacznik [pomiń] wpisany (albo usunięty) w pierwszej komórce od razu zmienia wygląd wiersza.
       if (td.dataset.k === '0') this._oznaczPomijany(td.closest('tr'), Number(td.dataset.w));
       if (this.tabela().unikalne?.length || this.tabela().listy) this._oznaczPowtorzenia();
@@ -271,8 +373,29 @@ export class Dane {
     // Wiersz, w którym ostatnio stał kursor – nad nim staje wstawiany wiersz pomijany.
     s.addEventListener('focusin', (e) => {
       const td = e.target.closest('td');
-      if (td) this._ostatniWiersz = { tabela: this.idTabeli, w: Number(td.dataset.w) };
+      if (!td) return;
+      this._ostatniWiersz = { tabela: this.idTabeli, w: Number(td.dataset.w) };
+      if (!this._shift) {
+        const [w, k] = [Number(td.dataset.w), Number(td.dataset.k)];
+        this._zaznaczenie = { tabela: this.idTabeli, w0: w, k0: k, w1: w, k1: k };
+        this._oznaczZaznaczone();
+      }
     });
+    // Shift+kliknięcie komórki zaznacza prostokąt komórek od poprzednio klikniętej (do zmiany wyglądu).
+    s.addEventListener('pointerdown', (e) => {
+      this._shift = e.shiftKey;
+      const td = e.target.closest('td');
+      if (!td || !e.shiftKey || this._zaznaczenie?.tabela !== this.idTabeli) return;
+      Object.assign(this._zaznaczenie, { w1: Number(td.dataset.w), k1: Number(td.dataset.k) });
+      this._oznaczZaznaczone();
+    });
+    s.addEventListener('pointerup', () => { this._shift = false; });
+    // Przyciski wyglądu nie zabierają kursora z komórki.
+    for (const id of ['#dane-pogrubienie', '#dane-kursywa', '#dane-bez-wygladu']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());
+    $('#dane-pogrubienie').addEventListener('click', () => this._ustawWyglad({ pogrubienie: 'przelacz' }));
+    $('#dane-kursywa').addEventListener('click', () => this._ustawWyglad({ kursywa: 'przelacz' }));
+    $('#dane-kolor').addEventListener('change', (e) => this._ustawWyglad({ kolor: e.target.value.toLowerCase() }));
+    $('#dane-bez-wygladu').addEventListener('click', () => this._ustawWyglad({ bez: true }));
     s.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' || e.shiftKey) return; // Shift+Enter: nowa linia w komórce
       const naglowek = e.target.closest('.nazwa-kolumny');
@@ -304,11 +427,10 @@ export class Dane {
       const pilnuj = e.target.closest('.pilnuj-kolumne');
       const lista = e.target.closest('.lista-kolumny');
       if (lista) {
-        // Lista dozwolonych wartości: wpisywane po średniku; samo „-” usuwa listę.
+        // Lista dozwolonych wartości: każda w osobnym wierszu albo po średniku; „Usuń listę” ją usuwa.
         const nazwa = t.kolumny[Number(lista.dataset.k)];
-        const odp = await zapytajONazwe(`Dozwolone wartości kolumny „${nazwa}”`, 'Wartości po średniku, np. tak; nie. Samo „-” usuwa listę.', (t.listy?.[nazwa] || []).join('; '));
-        if (odp === null) return;
-        const wartosci = [...new Set(odp.split(/[;\n]/).map((v) => v.trim()).filter((v) => v && v !== '-'))];
+        const wartosci = await this._zapytajOListe(nazwa, t.listy?.[nazwa] || []);
+        if (wartosci === null) return;
         t.listy = { ...t.listy };
         if (wartosci.length) t.listy[nazwa] = wartosci; else delete t.listy[nazwa];
         if (!Object.keys(t.listy).length) delete t.listy;
@@ -421,13 +543,30 @@ export class Dane {
     let wczytane;
     try { wczytane = await wczytajPlik(plik); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return; }
     let ostatnia = null;
+    let zachowano = null; // wygląd zachowany przy imporcie pliku bez wyglądu: { ile, bylo }
     for (const surowa of wczytane) {
       const nowa = normalizujTabele({ ...surowa, id: undefined });
       const stara = p.tabele.find((t) => t.nazwa.trim().toLowerCase() === nowa.nazwa.trim().toLowerCase());
       if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.`, 'Podmień dane', false, 'Dodaj osobno')) {
+        // Plik bez wyglądu (CSV, .xls, .ods, szablon danych) nie kasuje wyglądu komórek, których wartość się nie zmieniła
+        // (dopasowanie po numerze wiersza i nazwie kolumny).
+        if (!nowa.wyglad && stara.wyglad) {
+          let ile = 0;
+          const wyglad = nowa.wiersze.map((wiersz, w) => {
+            const komorki = nowa.kolumny.map((kol, k) => {
+              const ks = stara.kolumny.indexOf(kol);
+              const x = ks >= 0 ? stara.wyglad[w]?.[ks] : null;
+              return x && stara.wiersze[w]?.[ks] === wiersz[k] ? x : null;
+            });
+            ile += komorki.filter(Boolean).length;
+            return komorki.some(Boolean) ? komorki : null;
+          });
+          if (ile) { nowa.wyglad = wyglad; if (stara.wyglad_wyl) nowa.wyglad_wyl = true; }
+          zachowano = { ile, bylo: stara.wyglad.reduce((s, w) => s + (w || []).filter(Boolean).length, 0) };
+        }
         stara.kolumny = nowa.kolumny;
         stara.wiersze = nowa.wiersze;
-        if (nowa.wyglad) stara.wyglad = nowa.wyglad; else { delete stara.wyglad; delete stara.wyglad_wyl; }
+        if (nowa.wyglad) { stara.wyglad = nowa.wyglad; if (!nowa.wyglad_wyl) delete stara.wyglad_wyl; } else { delete stara.wyglad; delete stara.wyglad_wyl; }
         if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
         if (stara.listy) { for (const k of Object.keys(stara.listy)) if (!nowa.kolumny.includes(k)) delete stara.listy[k]; if (!Object.keys(stara.listy).length) delete stara.listy; }
         ostatnia = stara;
@@ -440,7 +579,8 @@ export class Dane {
     this.idTabeli = ostatnia.id;
     this.rysuj();
     this.poZmianie();
-    powiadom(`Wczytano: ${ostatnia.wiersze.length} ${odmiana(ostatnia.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}, ${ostatnia.kolumny.length} ${odmiana(ostatnia.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}.`);
+    const oWygladzie = zachowano ? ` Plik nie niesie wyglądu komórek: wygląd został w ${zachowano.ile} z ${zachowano.bylo} ${odmiana(zachowano.bylo, 'komórki', 'komórek', 'komórek')} – tam, gdzie wartość się nie zmieniła.` : '';
+    powiadom(`Wczytano: ${ostatnia.wiersze.length} ${odmiana(ostatnia.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}, ${ostatnia.kolumny.length} ${odmiana(ostatnia.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}.${oWygladzie}`);
   }
 
   // ---------- Serie ----------

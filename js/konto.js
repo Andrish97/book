@@ -353,6 +353,14 @@ export class Konto {
       }
     });
 
+    // Oczekującej zmiany adresu nie da się anulować bez uprawnień administratora (Supabase Auth
+    // pomija zmianę na obecny adres, a innej drogi dla zwykłego konta nie ma). Nowy adres zastępuje
+    // oczekujący; bez kliknięcia linku zmiana nigdy nie nastąpi.
+    $('#email-inny').addEventListener('click', () => {
+      this.rozwin('form-email');
+      $('#form-email input[name=email]').focus();
+    });
+
     $('#email-ponownie').addEventListener('click', async (e) => {
       const nowy = this.o.stan.uzytkownik.new_email;
       try {

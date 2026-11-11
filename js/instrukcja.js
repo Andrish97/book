@@ -62,7 +62,7 @@ export const ROZDZIALY = [
     podpis: 'Ustawienia konta z rozwiniętą zmianą adresu e-mail.',
     punkty: [
       '<b>Profil</b> – nazwa widoczna w prawym górnym rogu.',
-      '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym.',
+      '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. <b>Wpisz inny adres</b> zastępuje oczekujący adres nowym.',
       '<b>Urządzenia</b> – wylogowanie tutaj albo na wszystkich urządzeniach naraz.',
       '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
     ],
@@ -250,7 +250,9 @@ export const ROZDZIALY = [
     punkty: [
       'Okno otwiera przycisk <b>Dane</b> na górnym pasku edytora.',
       '<b>Importuj plik</b> wczytuje CSV albo Excel. Pierwszy wiersz pliku to nazwy kolumn. Z pliku Excela powstaje po jednej tabeli na każdy arkusz. Separator (średnik, przecinek, tabulator) i kodowanie polskich znaków aplikacja rozpoznaje sama.',
-      'Z pliku Excela (<code>.xlsx</code>) przechodzi też <b>wygląd komórek</b>: pogrubienie, kursywa i kolor liter. Komórka wygląda tak samo w oknie Dane, a na stronie jej wartość wstawiona w pole dostaje ten wygląd – np. święta pogrubione na czerwono wprost z arkusza. Przełącznik <b>Przenoś wygląd z arkusza na strony</b> nad tabelą to wyłącza. Liczy się wygląd całej komórki (jedno pogrubione słowo w komórce nie jest przenoszone), a zmienia się go w arkuszu i importuje plik ponownie; plik CSV i szablon danych wyglądu nie niosą.',
+      'Z pliku Excela (<code>.xlsx</code>) przechodzi też <b>wygląd komórek</b>: pogrubienie, kursywa i kolor liter. Komórka wygląda tak samo w oknie Dane, a na stronie jej wartość wstawiona w pole dostaje ten wygląd – np. święta pogrubione na czerwono wprost z arkusza. Przechodzi też wygląd <b>części tekstu</b> w komórce – np. jedno pogrubione słowo zostaje pogrubione na stronie. Przełącznik <b>Przenoś wygląd komórek na strony</b> nad tabelą to wyłącza (wygląd zostaje zapisany).',
+      '<b>Wygląd komórki w oknie Dane</b>: kliknij komórkę (<kbd>Shift</kbd>+kliknięcie zaznacza prostokąt kilku komórek) i użyj przycisków <b>B</b> (pogrubienie), <b>I</b> (kursywa), koloru liter albo <b>Bez wyglądu</b>. Pogrubienie i kursywa przełączają się: gdy wszystkie zaznaczone komórki je mają – znikają. Zmiana tekstu komórki zdejmuje wygląd części tekstu (przestaje pasować do liter), wygląd całej komórki zostaje.',
+      'Plik CSV, <code>.xls</code>, <code>.ods</code> i szablon danych nie niosą wyglądu. Gdy takim plikiem podmieniasz dane tabeli, wygląd <b>zostaje w komórkach, których wartość się nie zmieniła</b> (ten sam wiersz i ta sama kolumna); przy zmienionych wartościach znika. Po imporcie aplikacja mówi, w ilu komórkach wygląd został.',
       'Wszystko jest tekstem: liczby i daty trafiają do tabeli tak, jak je widać w arkuszu. Datę najlepiej rozbić na osobne kolumny, np. <code>dzien</code>, <code>miesiac</code>, <code>rok</code>.',
       'Tabelę możesz <b>poprawiać w aplikacji</b>: kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd> robi nową linię w komórce. <b>+ Wiersz</b> i <b>+ Kolumna</b> dodają miejsce, znak × przy wierszu albo kolumnie je usuwa.',
       'Dane skopiowane z Excela albo Arkuszy Google wklejasz od zaznaczonej komórki (<kbd>Ctrl</kbd>+<kbd>V</kbd>). Tabela sama rośnie w dół i w prawo.',
@@ -260,7 +262,7 @@ export const ROZDZIALY = [
       '<b>Wiersz pomijany</b> wstawia wiersz ze znacznikiem <code>[pomiń]</code> w pierwszej komórce – nad wierszem, w którym stoi kursor, a bez kursora na początku tabeli. W serii taki wiersz zajmuje miejsce w bloku stron, ale strona dla niego nie powstaje; służy do wyrównania danych z blokiem (rozdział „Serie: powielanie stron”). Wiersz jest szary i ma podpis „pomijany”.',
       'Długa tabela (tysiące wierszy) przewija się w całości – kolejne wiersze dorysowują się w miarę przewijania.',
       '<b>Pilnowanie powtórzeń</b>: znak <b>≠</b> przy nazwie kolumny oznacza, że wartości w niej nie powinny się powtarzać (np. tagi, hasła dnia). Powtórzone komórki są podświetlone na czerwono, a przed drukiem aplikacja pokaże, na których stronach ta sama wartość wypada dwa razy. Wielkość liter i zbędne spacje nie mają znaczenia: „Praca”, „praca ” i „PRACA” to ta sama wartość.',
-      '<b>Lista dozwolonych wartości</b>: znak <b>☰</b> przy nazwie kolumny otwiera pole, w którym wpisujesz wartości po średniku, np. <code>praca; dom; wolne</code> (samo <code>-</code> usuwa listę). Komórki z inną wartością są podświetlone, przed drukiem aplikacja je wymieni, a w szablonie danych komórki tej kolumny dostają listę rozwijaną.',
+      '<b>Lista dozwolonych wartości</b>: znak <b>☰</b> przy nazwie kolumny otwiera okno, w którym wpisujesz wartości – każdą w osobnym wierszu albo po średniku, np. <code>praca; dom; wolne</code>. Przycisk <b>Usuń listę</b> ją usuwa. Komórki z inną wartością są podświetlone, przed drukiem aplikacja je wymieni, a w szablonie danych komórki tej kolumny dostają listę rozwijaną.',
     ],
   },
   {
@@ -464,6 +466,9 @@ export const ROZDZIALY = [
       '<b>Unieważnij link</b> usuwa udostępnione strony; stary adres przestaje działać. Ponowne udostępnienie daje nowy adres.',
       'Projekt z czynnym linkiem ma na liście projektów plakietkę <b>Udostępniony</b> – kliknięcie otwiera to samo okienko, bez wchodzenia do projektu.',
       'Link jest długi i losowy, więc nie da się go zgadnąć – ale każdy, kto go dostanie, może go przekazać dalej.',
+      '<b>Ochrona linku</b> (w tym samym okienku): <b>Hasło</b> – osoba z linkiem widzi najpierw pole hasła i dopiero po wpisaniu poprawnego zobaczy strony. <b>Ważny do wybranego dnia</b> – po tym dniu link pokazuje „Link wygasł”. Możesz ustawić jedno, drugie albo oba, także przed utworzeniem linku. <b>Zapisz ochronę</b> zmienia ustawienia istniejącego linku – adres zostaje ten sam.',
+      'Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.',
+      'Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.',
     ],
   },
   {

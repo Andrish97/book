@@ -167,8 +167,12 @@
                 </div>
                 <div class="oczekuje" id="email-oczekuje" hidden>
                   <span data-ikona="koperta" data-rozmiar="18"></span>
-                  <div>Czeka na potwierdzenie: <strong id="email-oczekuje-adres"></strong><br><small>Kliknij link w wiadomości wysłanej na ten adres. Do tego czasu logujesz się dotychczasowym.</small></div>
-                  <button type="button" class="przycisk maly" id="email-ponownie">Wyślij ponownie</button>
+                  <div>Nowy adres czeka na potwierdzenie: <strong id="email-oczekuje-adres"></strong><br><small>Kliknij link w wiadomości wysłanej na ten adres. Do tego czasu logujesz się dotychczasowym.</small>
+                    <br><small id="email-oczekuje-anuluj">Pomyłka? Zmiany nie da się cofnąć z aplikacji, ale bez kliknięcia linku nic się nie stanie: link wygaśnie, a konto zostanie przy obecnym adresie. Możesz też wpisać inny adres – zastąpi ten.</small></div>
+                  <div class="wiersz-akcje">
+                    <button type="button" class="przycisk maly" id="email-ponownie">Wyślij ponownie</button>
+                    <button type="button" class="przycisk maly" id="email-inny">Wpisz inny adres</button>
+                  </div>
                 </div>
                 <form id="form-email" class="formularz" novalidate hidden>
                   <label class="pole"><span>Nowy e-mail</span><input name="email" type="email" autocomplete="off" inputmode="email"></label>
@@ -627,6 +631,18 @@
         <p class="podpowiedz" id="udostepnij-stan"></p>
       </div>
 
+      <fieldset class="ochrona-linku" id="udostepnij-ochrona" hidden>
+        <legend>Ochrona linku</legend>
+        <label class="przelacznik"><input type="checkbox" id="udostepnij-haslo-wl"><span>Hasło – bez niego podglądu nie zobaczy nikt</span></label>
+        <label class="pole" id="udostepnij-haslo-pole" hidden><span>Hasło do linku</span>
+          <input id="udostepnij-haslo" type="password" autocomplete="new-password" minlength="4" placeholder="co najmniej 4 znaki">
+        </label>
+        <label class="przelacznik"><input type="checkbox" id="udostepnij-termin-wl"><span>Ważny do wybranego dnia</span></label>
+        <label class="pole" id="udostepnij-termin-pole" hidden><span>Ostatni dzień ważności</span><input id="udostepnij-termin" type="date"></label>
+        <p class="podpowiedz" id="udostepnij-ochrona-stan"></p>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="udostepnij-ochrona-zapisz" data-akcja="udostepnij-ochrona">Zapisz ochronę</button></div>
+      </fieldset>
+
       <p class="komunikat" id="udostepnij-komunikat" role="status"></p>
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk niebezpieczny" id="udostepnij-wylacz" data-akcja="udostepnij-wylacz" hidden>Unieważnij link</button>
@@ -833,6 +849,21 @@
     </form>
   </dialog>
 
+  <!-- Lista dozwolonych wartości kolumny (okno Dane, ☰ przy kolumnie) -->
+  <dialog id="dlg-lista-kolumny">
+    <form method="dialog" class="formularz">
+      <h2 id="lista-kolumny-tytul">Dozwolone wartości</h2>
+      <label class="pole"><span>Wartości – każda w osobnym wierszu albo po średniku</span><textarea id="lista-kolumny-wartosci" rows="6"></textarea></label>
+      <p class="podpowiedz">Komórki z inną wartością są podświetlone i trafiają na listę „Sprawdź przed drukiem”. W szablonie danych komórki tej kolumny dostaną listę rozwijaną.</p>
+      <div class="przyciski-dialogu">
+        <button class="przycisk niebezpieczny" value="usun" id="lista-kolumny-usun" formnovalidate>Usuń listę</button>
+        <span class="odstep"></span>
+        <button class="przycisk" value="nie" formnovalidate>Anuluj</button>
+        <button class="przycisk glowny" value="tak">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Menu kontekstowe strony -->
   <div class="menu menu-strony" id="menu-strony" role="menu" hidden>
     <button role="menuitem" data-akcja="strona-nazwa">Zmień nazwę</button>
@@ -886,7 +917,14 @@
           </div>
           <p class="podpowiedz" id="dane-opis"></p>
           <p class="podpowiedz dane-pomijane" id="dane-pomijane" role="status" hidden></p>
-          <label class="przelacznik" id="dane-wyglad-pole" hidden><input type="checkbox" id="dane-wyglad"><span>Przenoś wygląd z arkusza na strony (pogrubienia, kursywa, kolory liter)</span></label>
+          <div class="dane-wyglad-pasek" role="toolbar" aria-label="Wygląd zaznaczonych komórek">
+            <span class="podpowiedz">Wygląd komórki:</span>
+            <button type="button" class="przycisk-ikona maly" id="dane-pogrubienie" title="Pogrubienie zaznaczonych komórek (Shift+kliknięcie zaznacza kilka)" aria-label="Pogrubienie"><strong>B</strong></button>
+            <button type="button" class="przycisk-ikona maly" id="dane-kursywa" title="Kursywa zaznaczonych komórek" aria-label="Kursywa"><em>I</em></button>
+            <label class="dane-kolor" title="Kolor liter zaznaczonych komórek"><span class="ukryte">Kolor liter</span><input type="color" id="dane-kolor" value="#c1121f"></label>
+            <button type="button" class="przycisk maly" id="dane-bez-wygladu" title="Usuwa pogrubienie, kursywę i kolor z zaznaczonych komórek">Bez wyglądu</button>
+          </div>
+          <label class="przelacznik" id="dane-wyglad-pole" hidden><input type="checkbox" id="dane-wyglad"><span>Przenoś wygląd komórek na strony (pogrubienia, kursywa, kolory liter)</span></label>
           <p class="podpowiedz dane-powtorzenia" id="dane-powtorzenia" role="status" hidden></p>
           <p class="podpowiedz dane-powtorzenia" id="dane-spoza-listy" role="status" hidden></p>
           <div class="dane-siatka-opak"><table class="dane-siatka" id="dane-siatka"></table></div>

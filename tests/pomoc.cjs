@@ -212,6 +212,55 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       return json(r, 200, sesja(k).user);
     }
+    // Link chroniony (migracja udostepnienia_chronione): te same zasady co funkcje w bazie.
+    if (sc.startsWith('/rest/v1/rpc/') && /udostepnieni|podglad_chroniony/.test(sc)) {
+      const k = zTokenu(req);
+      const funkcja = sc.slice('/rest/v1/rpc/'.length);
+      stan.chronione = stan.chronione || new Map(); // "konto/projekt/kod" -> { haslo, wazny_do, nieudane, blokada_do, pliki: Map }
+      if (funkcja === 'podglad_chroniony') {
+        const u = stan.chronione.get(`${tresc.p_konto}/${tresc.p_projekt}/${tresc.p_kod}`);
+        if (!u) return json(r, 200, { stan: 'brak' });
+        if (!(k && k.id === tresc.p_konto)) {
+          if (u.wazny_do && new Date(u.wazny_do) < new Date()) return json(r, 200, { stan: 'wygasl' });
+          if (u.haslo) {
+            if (u.blokada_do && new Date(u.blokada_do) > new Date()) return json(r, 200, { stan: 'blokada', do: u.blokada_do });
+            if (!tresc.p_haslo) return json(r, 200, { stan: 'haslo', wazny_do: u.wazny_do });
+            if (tresc.p_haslo !== u.haslo) {
+              u.nieudane += 1;
+              if (u.nieudane >= 10) { u.nieudane = 0; u.blokada_do = new Date(Date.now() + 15 * 60000).toISOString(); }
+              return json(r, 200, { stan: 'zle_haslo' });
+            }
+            u.nieudane = 0;
+          }
+        }
+        if (!tresc.p_nazwy) return json(r, 200, { stan: 'ok', haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
+        stan.pobraniaChronione = (stan.pobraniaChronione || 0) + 1;
+        const pliki = {};
+        for (const n of tresc.p_nazwy.slice(0, 12)) if (u.pliki.has(n)) pliki[n] = u.pliki.get(n);
+        return json(r, 200, { stan: 'ok', pliki });
+      }
+      if (!k) return blad(r, 401, 'JWT', 'PGRST301');
+      const klucz = `${k.id}/${tresc.p_projekt}/${tresc.p_kod}`;
+      if (funkcja === 'ustaw_ochrone_udostepnienia') {
+        if (tresc.p_zmien_haslo && tresc.p_haslo && tresc.p_haslo.length < 4) return blad(r, 400, 'Hasło do linku musi mieć co najmniej 4 znaki', 'P0001');
+        const u = stan.chronione.get(klucz) || { haslo: null, wazny_do: null, nieudane: 0, blokada_do: null, pliki: new Map() };
+        if (tresc.p_zmien_haslo) u.haslo = tresc.p_haslo || null;
+        Object.assign(u, { wazny_do: tresc.p_wazny_do || null, nieudane: 0, blokada_do: null });
+        stan.chronione.set(klucz, u);
+        return json(r, 200, { haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
+      }
+      const u = stan.chronione.get(klucz);
+      if (funkcja === 'zapisz_plik_udostepnienia') {
+        if (!u) return blad(r, 409, 'insert or update violates foreign key constraint', '23503');
+        u.pliki.set(tresc.p_nazwa, { typ: tresc.p_typ, dane: tresc.p_dane });
+        return json(r, 200, null);
+      }
+      if (funkcja === 'porzadkuj_pliki_udostepnienia') {
+        if (u) for (const n of [...u.pliki.keys()]) if (!tresc.p_zostaja.includes(n)) u.pliki.delete(n);
+        return json(r, 200, null);
+      }
+      if (funkcja === 'usun_udostepnienie_chronione') { stan.chronione.delete(klucz); return json(r, 200, null); }
+    }
     if (sc === '/rest/v1/rpc/usun_konto') {
       const k = zTokenu(req);
       stan.konta = stan.konta.filter((x) => x !== k);
