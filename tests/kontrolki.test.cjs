@@ -136,6 +136,65 @@ test('dymki z podpowiedzią zamiast systemowych: najechanie myszą, Tab, Esc, zm
   assert.deepEqual(bledy, []);
 });
 
+test('wybór daty: własny kalendarz zamiast systemowego – data po polsku, miesiące, dni przed dzisiaj wyłączone, klawiatura, Esc', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kalendarz');
+  // Pole daty dodane do strony dostaje własny wybór (tak jak listy i kolory).
+  await strona.evaluate(() => {
+    const l = document.createElement('label');
+    l.className = 'pole';
+    l.style.cssText = 'position:fixed;left:40px;top:120px;width:260px;z-index:500';
+    l.innerHTML = '<span>Termin</span><input id="proba-daty" type="date" min="dzis">';
+    document.body.append(l);
+    window.__zmiany = 0;
+    l.querySelector('input').addEventListener('change', () => { window.__zmiany += 1; });
+  });
+  const przycisk = '#proba-daty + .wybor-przycisk';
+  await strona.waitForSelector(przycisk);
+  assert.equal(await strona.evaluate(() => getComputedStyle(document.querySelector('#proba-daty')).opacity), '0', 'systemowe pole niewidoczne');
+  assert.equal(await strona.textContent(`${przycisk} .wybor-tekst`), 'Wybierz dzień');
+  // Wartość ustawiona z kodu pokazuje się po polsku.
+  await strona.evaluate(() => { document.querySelector('#proba-daty').value = '2031-12-31'; });
+  assert.equal(await strona.textContent(`${przycisk} .wybor-tekst`), '31 grudnia 2031');
+  // Kalendarz otwiera się na wybranym miesiącu; poniedziałek pierwszy; nagłówek po polsku.
+  await strona.click(przycisk);
+  await strona.waitForSelector('.kalendarz-okienko');
+  assert.equal(await strona.textContent('.kalendarz-okienko strong'), 'grudzień 2031');
+  assert.deepEqual(await strona.locator('.kalendarz-dzien-tyg').allTextContents(), ['pn', 'wt', 'śr', 'cz', 'pt', 'so', 'nd']);
+  assert.equal(await strona.getAttribute('[data-dzien="2031-12-31"]', 'aria-selected'), 'true');
+  // 1 grudnia 2031 to poniedziałek – pierwsza komórka po nagłówkach.
+  assert.equal(await strona.evaluate(() => document.querySelector('.kalendarz-siatka').children[7].dataset.dzien), '2031-12-01');
+  // Następny miesiąc i wybór myszą.
+  await strona.click('.kalendarz-okienko [data-krok="1"]');
+  assert.equal(await strona.textContent('.kalendarz-okienko strong'), 'styczeń 2032');
+  await strona.click('[data-dzien="2032-01-15"]');
+  assert.equal(await strona.inputValue('#proba-daty'), '2032-01-15');
+  assert.equal(await strona.textContent(`${przycisk} .wybor-tekst`), '15 stycznia 2032');
+  assert.equal(await strona.evaluate(() => window.__zmiany), 1);
+  // Dni przed dzisiaj są wyłączone; dzisiejszy zaznaczony.
+  await strona.evaluate(() => { document.querySelector('#proba-daty').value = ''; });
+  await strona.click(przycisk);
+  const dzis = await strona.evaluate(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
+  assert.equal(await strona.getAttribute('.kalendarz-dzien.dzis', 'data-dzien'), dzis);
+  await strona.click('.kalendarz-okienko [data-krok="-1"]');
+  assert.equal(await strona.locator('.kalendarz-dzien:not(:disabled)').count(), 0, 'cały poprzedni miesiąc wyłączony');
+  // Klawiatura: PageDown wraca, strzałka w dół o tydzień, Enter wybiera; Esc zamyka bez zmiany.
+  await strona.keyboard.press('PageDown');
+  await strona.keyboard.press('Escape');
+  assert.equal(await strona.locator('.kalendarz-okienko').count(), 0);
+  assert.equal(await strona.inputValue('#proba-daty'), '');
+  await strona.click(przycisk);
+  await strona.keyboard.press('ArrowDown');
+  await strona.keyboard.press('Enter');
+  const zaTydzien = await strona.evaluate(() => { const d = new Date(Date.now() + 7 * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
+  assert.equal(await strona.inputValue('#proba-daty'), zaTydzien);
+  // „Dziś” wybiera dzisiejszy dzień.
+  await strona.click(przycisk);
+  await strona.click('.kalendarz-okienko [data-dzis]');
+  assert.equal(await strona.inputValue('#proba-daty'), dzis);
+  assert.deepEqual(bledy, []);
+});
+
 test('dymki: na ekranie dotykowym się nie pokazują – stuknięcie to zwykłe kliknięcie', async (t) => {
   const { strona, bledy } = await otworz(t, { telefon: true });
   await nowyProjekt(strona, 'Dymki dotyk');

@@ -184,7 +184,15 @@ test('link z hasłem i datą ważności: obrazy poza publicznym folderem, pole h
   await strona.uncheck('#udostepnij-haslo-wl');
   await strona.check('#udostepnij-termin-wl');
   const jutro = await strona.evaluate(() => { const d = new Date(Date.now() + 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
-  await strona.fill('#udostepnij-termin', jutro);
+  // Własny kalendarz: otwiera się na dzisiejszym dniu, strzałka w prawo i Enter wybierają jutro.
+  await strona.click('#udostepnij-termin-pole .wybor-przycisk');
+  await strona.waitForSelector('.kalendarz-okienko');
+  assert.equal(await strona.locator('.kalendarz-okienko .kalendarz-dzien.dzis').count(), 1);
+  await strona.keyboard.press('ArrowRight');
+  await strona.keyboard.press('Enter');
+  assert.equal(await strona.locator('.kalendarz-okienko').count(), 0);
+  assert.equal(await strona.inputValue('#udostepnij-termin'), jutro);
+  assert.match(await strona.textContent('#udostepnij-termin-pole .wybor-tekst'), /^\d+ \S+ \d{4}$/);
   await strona.click('#udostepnij-ochrona-zapisz');
   await strona.waitForSelector('#udostepnij-komunikat.sukces');
   assert.match(await strona.textContent('#udostepnij-komunikat'), /^Zapisano\. Link ważny do \d+ \S+ \d{4}\.$/);

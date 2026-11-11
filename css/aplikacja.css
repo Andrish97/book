@@ -1152,7 +1152,7 @@ button.podglad-kartka:hover { outline: 2px solid var(--akcent); outline-offset: 
 .wybor-przycisk[aria-expanded="true"] svg { transform: rotate(180deg); }
 .wybor-tekst { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wlasciwosci .wybor-przycisk { min-height: 36px; padding: 6px 7px 6px 9px; font-size: 13px; color: var(--tusz); }
-.wybor-lista, .kolor-okienko {
+.wybor-lista, .kolor-okienko, .kalendarz-okienko {
   position: fixed; z-index: 1000; overflow: auto; overscroll-behavior: contain;
   background: var(--powierzchnia); color: var(--tusz); border: 1px solid var(--linia-mocna); border-radius: var(--r-m);
   box-shadow: var(--cien-3); font-size: 14px;
@@ -1287,6 +1287,25 @@ details > summary::before {
 }
 details[open] > summary::before { transform: rotate(45deg); margin-bottom: 3px; }
 details > summary:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; border-radius: 4px; }
+
+/* Wybór daty (js/kontrolki.js): przycisk z datą po polsku i kalendarz miesiąca. */
+.wybor-przycisk.pusty .wybor-tekst { color: var(--cichy); }
+.kalendarz-okienko { padding: 10px; width: 272px; }
+.kalendarz-naglowek { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
+.kalendarz-naglowek strong { font-size: 14px; font-weight: 600; }
+.kalendarz-naglowek strong::first-letter { text-transform: uppercase; }
+.kalendarz-siatka { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; outline: none; }
+.kalendarz-dzien-tyg { text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--cichy); padding: 4px 0; }
+.kalendarz-dzien {
+  aspect-ratio: 1; display: grid; place-items: center; border: 0; border-radius: var(--r-s); background: none; color: inherit;
+  font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.kalendarz-dzien:hover:not(:disabled) { background: var(--wypelnienie); }
+.kalendarz-dzien.dzis { box-shadow: inset 0 0 0 1.5px var(--akcent); }
+.kalendarz-dzien[aria-selected="true"] { background: var(--akcent); color: var(--akcent-tekst); font-weight: 600; }
+.kalendarz-siatka:focus-visible .kalendarz-dzien.aktywny { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.kalendarz-dzien:disabled { color: var(--linia-mocna); cursor: default; }
+.kalendarz-stopka { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
 
 /* Dymek z podpowiedzią (js/dymki.js) – zamiast systemowego dymku z atrybutu „title”. */
 .dymek {

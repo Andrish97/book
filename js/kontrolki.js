@@ -1,4 +1,4 @@
-// Własne kontrolki zamiast systemowych: lista rozwijana i wybór koloru.
+// Własne kontrolki zamiast systemowych: lista rozwijana, wybór koloru i wybór daty.
 //
 // W kodzie aplikacji nadal są zwykłe <select> i <input type="color"> – to one
 // trzymają wartość i wysyłają zdarzenia „input” i „change”. Ten moduł dokłada
@@ -349,14 +349,134 @@ function ulepszKolor(input) {
   przycisk.addEventListener('click', (e) => { e.preventDefault(); if (otwarte?.przycisk === przycisk) zamknijOkienko(); else otworz(); });
 }
 
+// ---------- Wybór daty ----------
+//
+// <input type="date"> zostaje (trzyma wartość RRRR-MM-DD i wysyła „input”/„change”), a obok staje
+// przycisk z datą po polsku i własny kalendarz miesiąca. Atrybut min="dzis" (albo zwykłe min=RRRR-MM-DD)
+// wyłącza dni wcześniejsze.
+
+const MIESIACE = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'];
+const MIESIACA = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
+const DNI_TYGODNIA = ['pn', 'wt', 'śr', 'cz', 'pt', 'so', 'nd'];
+const naIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const zIso = (t) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t || ''); return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null; };
+const dataSlownie = (iso) => { const d = zIso(iso); return d ? `${d.getDate()} ${MIESIACA[d.getMonth()]} ${d.getFullYear()}` : ''; };
+const IKONA_KALENDARZA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+
+function ulepszDate(input) {
+  if (input.dataset.data) return;
+  input.dataset.data = '1';
+  const opak = document.createElement('span');
+  opak.className = 'wybor wybor-daty';
+  const przycisk = document.createElement('button');
+  przycisk.type = 'button';
+  przycisk.className = 'wybor-przycisk';
+  przycisk.setAttribute('aria-haspopup', 'dialog');
+  przycisk.setAttribute('aria-expanded', 'false');
+  przycisk.innerHTML = `<span class="wybor-tekst"></span>${IKONA_KALENDARZA}`;
+  input.before(opak);
+  opak.append(input, przycisk);
+  input.classList.add('wybor-natywny');
+  input.tabIndex = -1;
+  input.setAttribute('aria-hidden', 'true');
+  if (input.id) {
+    const etykieta = document.querySelector(`label[for="${input.id}"]`) || input.closest('label');
+    const tekst = etykieta?.querySelector('span')?.textContent || etykieta?.textContent;
+    if (tekst) przycisk.dataset.etykieta = tekst.trim();
+  }
+  const najwczesniej = () => (input.getAttribute('min') === 'dzis' ? naIso(new Date()) : input.getAttribute('min') || '');
+  const odswiez = () => {
+    const v = wartoscInput.get.call(input);
+    przycisk.querySelector('.wybor-tekst').textContent = v ? dataSlownie(v) : 'Wybierz dzień';
+    przycisk.classList.toggle('pusty', !v);
+    przycisk.disabled = input.disabled;
+    przycisk.setAttribute('aria-label', `${przycisk.dataset.etykieta ? `${przycisk.dataset.etykieta}: ` : ''}${v ? dataSlownie(v) : 'nie wybrano'} – zmień`);
+  };
+  Object.defineProperty(input, 'value', { configurable: true, get() { return wartoscInput.get.call(this); }, set(v) { wartoscInput.set.call(this, v); odswiez(); } });
+  new MutationObserver(odswiez).observe(input, { attributes: true, attributeFilter: ['disabled'] });
+  odswiez();
+
+  const otworz = () => {
+    if (input.disabled) return;
+    const dzis = naIso(new Date());
+    const min = najwczesniej();
+    const wybrany = wartoscInput.get.call(input);
+    let aktywny = zIso(wybrany) || (min && min > dzis ? zIso(min) : new Date());
+    const okienko = document.createElement('div');
+    okienko.className = 'kalendarz-okienko';
+    okienko.setAttribute('role', 'dialog');
+    okienko.setAttribute('aria-label', 'Wybór dnia');
+    okienko.innerHTML = `
+      <div class="kalendarz-naglowek">
+        <button type="button" class="przycisk-ikona maly" data-krok="-1" aria-label="Poprzedni miesiąc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 6-6 6 6 6"/></svg></button>
+        <strong aria-live="polite"></strong>
+        <button type="button" class="przycisk-ikona maly" data-krok="1" aria-label="Następny miesiąc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 6 6 6-6 6"/></svg></button>
+      </div>
+      <div class="kalendarz-siatka" role="grid" tabindex="0"></div>
+      <div class="kalendarz-stopka"><button type="button" class="przycisk maly" data-dzis>Dziś</button></div>`;
+    const siatka = okienko.querySelector('.kalendarz-siatka');
+    const wolno = (iso) => !min || iso >= min;
+    const rysuj = () => {
+      const rok = aktywny.getFullYear(); const mies = aktywny.getMonth();
+      okienko.querySelector('strong').textContent = `${MIESIACE[mies]} ${rok}`;
+      const pierwszy = new Date(rok, mies, 1);
+      const przesuniecie = (pierwszy.getDay() + 6) % 7; // poniedziałek pierwszy
+      const dni = new Date(rok, mies + 1, 0).getDate();
+      const komorki = DNI_TYGODNIA.map((d) => `<span class="kalendarz-dzien-tyg" role="columnheader">${d}</span>`);
+      for (let i = 0; i < przesuniecie; i += 1) komorki.push('<span></span>');
+      for (let d = 1; d <= dni; d += 1) {
+        const iso = naIso(new Date(rok, mies, d));
+        const klasy = ['kalendarz-dzien', iso === dzis ? 'dzis' : '', iso === naIso(aktywny) ? 'aktywny' : ''].filter(Boolean).join(' ');
+        komorki.push(`<button type="button" tabindex="-1" role="gridcell" class="${klasy}" data-dzien="${iso}" aria-selected="${iso === wybrany}" ${wolno(iso) ? '' : 'disabled'} aria-label="${d} ${MIESIACA[mies]} ${rok}">${d}</button>`);
+      }
+      siatka.innerHTML = komorki.join('');
+      siatka.setAttribute('aria-activedescendant', '');
+    };
+    const wybierz = (iso) => {
+      if (!iso || !wolno(iso)) return;
+      const zmiana = iso !== wartoscInput.get.call(input);
+      input.value = iso;
+      zamknijOkienko();
+      przycisk.focus();
+      if (zmiana) { input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); }
+    };
+    const przesun = (dniO) => { aktywny = new Date(aktywny.getFullYear(), aktywny.getMonth(), aktywny.getDate() + dniO); rysuj(); };
+    okienko.addEventListener('click', (e) => {
+      const krok = e.target.closest('[data-krok]');
+      if (krok) { aktywny = new Date(aktywny.getFullYear(), aktywny.getMonth() + Number(krok.dataset.krok), 1); rysuj(); return; }
+      if (e.target.closest('[data-dzis]')) { wybierz(dzis); return; }
+      const dzien = e.target.closest('[data-dzien]');
+      if (dzien) wybierz(dzien.dataset.dzien);
+    });
+    siatka.addEventListener('keydown', (e) => {
+      const ruchy = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+      if (ruchy[e.key]) { e.preventDefault(); przesun(ruchy[e.key]); }
+      else if (e.key === 'PageUp' || e.key === 'PageDown') { e.preventDefault(); aktywny = new Date(aktywny.getFullYear(), aktywny.getMonth() + (e.key === 'PageUp' ? -1 : 1), Math.min(aktywny.getDate(), 28)); rysuj(); }
+      else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); przesun(e.key === 'Home' ? -((aktywny.getDay() + 6) % 7) : 6 - ((aktywny.getDay() + 6) % 7)); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wybierz(naIso(aktywny)); }
+    });
+    okienko.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); zamknijOkienko(); przycisk.focus(); }
+    });
+    rysuj();
+    otworzOkienko(okienko, przycisk, { poZamknieciu: () => przycisk.setAttribute('aria-expanded', 'false') });
+    przycisk.setAttribute('aria-expanded', 'true');
+    siatka.focus();
+  };
+  przycisk.addEventListener('click', (e) => { e.preventDefault(); if (otwarte?.przycisk === przycisk) zamknijOkienko(); else otworz(); });
+  przycisk.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); otworz(); } });
+}
+
 // ---------- Podpinanie ----------
 
 function ulepsz(korzen) {
   if (korzen.nodeType !== 1) return;
   if (korzen.matches?.('select')) ulepszSelect(korzen);
   if (korzen.matches?.('input[type="color"]')) ulepszKolor(korzen);
+  if (korzen.matches?.('input[type="date"]')) ulepszDate(korzen);
   korzen.querySelectorAll?.('select:not([data-wybor])').forEach(ulepszSelect);
   korzen.querySelectorAll?.('input[type="color"]:not([data-kolor])').forEach(ulepszKolor);
+  korzen.querySelectorAll?.('input[type="date"]:not([data-data])').forEach(ulepszDate);
 }
 
 export function wlaczWlasneKontrolki() {
