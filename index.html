@@ -32,7 +32,7 @@
 
   <!-- ===================== Start (ładowanie) ===================== -->
   <div class="ekran ekran-start" id="ekran-start">
-    <div class="logo-duze"><span class="znak-logo">P</span></div>
+    <div class="logo-duze"><span class="znak-logo">S</span></div>
     <p class="ciche">Wczytywanie…</p>
   </div>
 
@@ -281,6 +281,7 @@
       <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
       <div class="odstep"></div>
       <button class="przycisk przezroczysty" data-akcja="instrukcja" data-ikona="ksiazka"><span class="etyk">Instrukcja</span></button>
+      <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="menu-uzytkownika">
         <button class="awatar" id="awatar" aria-haspopup="menu" aria-expanded="false" title="Konto"></button>
@@ -310,8 +311,8 @@
         <ol class="kroki">
           <li><span class="numer-kroku">1</span><div><strong>Format</strong><p>Wybierz rozmiar strony, spad i marginesy – np. A5 do kalendarza książkowego.</p></div></li>
           <li><span class="numer-kroku">2</span><div><strong>Wzory stron</strong><p>Zaprojektuj każdą stronę osobno: teksty, kształty, zdjęcia.</p></div></li>
-          <li class="wkrotce"><span class="numer-kroku">3</span><div><strong>Dane <em>wkrótce</em></strong><p>Podepnij arkusz (CSV, Excel, Google Sheets) – strony powielą się według wierszy.</p></div></li>
-          <li class="wkrotce"><span class="numer-kroku">4</span><div><strong>PDF do druku <em>wkrótce</em></strong><p>Jeden plik ze spadem i znakami cięcia, gotowy dla drukarni.</p></div></li>
+          <li><span class="numer-kroku">3</span><div><strong>Dane</strong><p>Wczytaj arkusz (Excel albo CSV) – strony powielą się według wierszy, a pola w tekście wypełnią się danymi.</p></div></li>
+          <li><span class="numer-kroku">4</span><div><strong>PDF do druku</strong><p>Jeden plik ze spadem i znakami cięcia, z osadzonymi czcionkami – także PDF/X-4 w CMYK dla drukarni.</p></div></li>
         </ol>
         <div class="przyciski-naglowka">
           <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Utwórz projekt</button>
@@ -339,6 +340,7 @@
       <button class="przycisk przezroczysty" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
       <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)"><span class="etyk">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
+      <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
@@ -468,6 +470,7 @@
       <div class="odstep"></div>
       <button class="przycisk" data-akcja="podglad-prezentacja" data-ikona="dopasuj" title="Jedna strona albo rozkładówka naraz, na całym ekranie"><span class="etyk">Prezentacja</span></button>
       <button class="przycisk tylko-wlasciciel" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
+      <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona tylko-gosc" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="grupa-przyciskow">
         <button class="przycisk-ikona" data-akcja="podglad-minus" data-ikona="minus" aria-label="Pomniejsz"></button>

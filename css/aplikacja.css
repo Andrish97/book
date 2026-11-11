@@ -230,8 +230,9 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
 .znak-logo {
   display: inline-grid; place-items: center;
   width: 30px; height: 30px; border-radius: 8px;
-  background: var(--tusz); color: var(--papier);
-  font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 17px;
+  /* Ten sam znak co ikona aplikacji (img/ikony/): biała litera S na niebieskim tle. */
+  background: #2f5bd3; color: #ffffff;
+  font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 18px;
 }
 
 /* ---------- Logowanie i rejestracja ---------- */
@@ -246,7 +247,7 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
   background: #1c1b19; color: #f4f3ef;
 }
 .logowanie-bok .marka { position: absolute; top: 32px; left: clamp(32px, 6vw, 88px); }
-.logowanie-bok .znak-logo { background: #f4f3ef; color: #1c1b19; }
+
 .logowanie-bok h1 { font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: clamp(30px, 3.4vw, 46px); line-height: 1.12; }
 .logowanie-bok p { max-width: 44ch; color: #c9c6bd; font-size: 15.5px; line-height: 1.55; }
 .podglad-stron { position: relative; height: 210px; margin-top: 22px; }
@@ -394,7 +395,9 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 .menu button:hover { background: var(--wypelnienie); }
 .menu hr { border: 0; border-top: 1px solid var(--linia); margin: 6px 0; width: 100%; }
 .menu-naglowek { padding: 8px 10px 10px; font-size: 13px; color: var(--cichy); border-bottom: 1px solid var(--linia); margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; }
-.menu-strony { position: fixed; min-width: 190px; }
+/* Menu przy miniaturze strony, sekcji i wzorca: ustawiane w miejscu przycisku, szerokie na swoją treść
+   (bez „right: 0” z .menu, które rozciągało je do prawej krawędzi okna). */
+.menu-strony { position: fixed; right: auto; min-width: 190px; width: max-content; max-width: min(320px, calc(100vw - 16px)); }
 
 /* ---------- Projekty ---------- */
 

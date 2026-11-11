@@ -22,6 +22,8 @@ const P = {
   naSpod: '<path d="M5 21h14"/><path d="m8 13 4 4 4-4"/><path d="M12 17V3"/>',
   plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
   minus: '<path d="M5 12h14"/>',
+  'pelny-ekran': '<path d="M4 9V4h5"/><path d="M15 4h5v5"/><path d="M20 15v5h-5"/><path d="M9 20H4v-5"/>',
+  'zwin-ekran': '<path d="M9 4v5H4"/><path d="M20 9h-5V4"/><path d="M15 20v-5h5"/><path d="M4 15h5v5"/>',
   dopasuj: '<path d="M4 9V5a1 1 0 0 1 1-1h4"/><path d="M15 4h4a1 1 0 0 1 1 1v4"/><path d="M20 15v4a1 1 0 0 1-1 1h-4"/><path d="M9 20H5a1 1 0 0 1-1-1v-4"/>',
   prowadnice: '<rect x="3" y="3" width="18" height="18" rx="1.5"/><rect x="7" y="7" width="10" height="10" stroke-dasharray="2 2"/>',
   siatka: '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M9.2 3.5v17"/><path d="M14.8 3.5v17"/><path d="M3.5 9.2h17"/><path d="M3.5 14.8h17"/>',

@@ -182,6 +182,26 @@ $('#dlg-tabela').addEventListener('close', (e) => {
 const zMenu = (fn) => () => { const v = fn.zrodlo(); zamknijMenu(); fn(v); };
 const przezMenu = (zrodlo, fn) => { const f = (v) => fn(v); f.zrodlo = zrodlo; return zMenu(f); };
 
+// Pełny ekran: cała aplikacja bez pasków przeglądarki. Przycisk pokazuje się tylko tam, gdzie przeglądarka
+// na to pozwala (iPhone nie pozwala stronie – pełny ekran daje tam zainstalowanie aplikacji).
+function przelaczPelnyEkran() {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => powiadom('Przeglądarka nie pozwoliła włączyć pełnego ekranu.', true));
+}
+function odswiezPelnyEkran() {
+  const wlaczony = Boolean(document.fullscreenElement);
+  document.querySelectorAll('[data-akcja="pelny-ekran"]').forEach((b) => {
+    b.hidden = !document.fullscreenEnabled;
+    b.setAttribute('aria-pressed', String(wlaczony));
+    b.title = wlaczony ? 'Zamknij pełny ekran (Esc)' : 'Pełny ekran';
+    b.setAttribute('aria-label', b.title);
+    b.querySelector(':scope > svg.ikona')?.remove();
+    b.dataset.ikona = wlaczony ? 'zwin-ekran' : 'pelny-ekran';
+  });
+  wstawIkony();
+}
+document.addEventListener('fullscreenchange', odswiezPelnyEkran);
+
 const akcje = {
   'nowy-projekt': otworzNowyProjekt,
   instrukcja: () => instrukcja.otworz(0),
@@ -191,6 +211,7 @@ const akcje = {
   'importuj-projekt': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
   motyw: () => { zamknijMenu(); przelaczMotyw(); },
+  'pelny-ekran': () => przelaczPelnyEkran(),
   podglad: () => pokazPodglad(),
   udostepnij: otworzUdostepnianie,
   'udostepnij-zamknij': () => $('#dlg-udostepnij').close(),
@@ -509,6 +530,7 @@ window.addEventListener('resize', () => {
 
 async function start() {
   wstawIkony();
+  odswiezPelnyEkran();
   konto.inicjuj();
 
   // Link do udostępnionego podglądu działa bez logowania i bez edytora.

@@ -1,11 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#1c1b19"/>
-  <rect x="148" y="104" width="216" height="304" rx="10" fill="#f4f3ef"/>
-  <rect x="148" y="104" width="216" height="92" rx="10" fill="#2f5bd3"/>
-  <rect x="148" y="170" width="216" height="26" fill="#2f5bd3"/>
-  <text x="256" y="174" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="78" fill="#f4f3ef">S</text>
-  <rect x="180" y="232" width="152" height="14" rx="7" fill="#cfccc3"/>
-  <rect x="180" y="268" width="120" height="14" rx="7" fill="#cfccc3"/>
-  <rect x="180" y="304" width="140" height="14" rx="7" fill="#cfccc3"/>
-  <rect x="180" y="340" width="90" height="14" rx="7" fill="#c2410c"/>
+  <rect width="512" height="512" rx="112" fill="#2f5bd3"/>
+  <path transform="translate(98.44 430.83) scale(0.23499 -0.23499)" fill="#ffffff" d="M681 -22Q502 -22 369.5 33Q237 88 163 196Q89 304 85 462L382 462Q388 387 427 336.5Q466 286 531 261Q596 236 678 236Q760 236 820.5 259.5Q881 283 915 326Q949 369 949 426Q949 477 918.5 511.5Q888 546 831 571Q774 596 692 615L528 656Q339 702 232 800.5Q125 899 125 1061Q125 1196 197.5 1297Q270 1398 396.5 1454Q523 1510 685 1510Q850 1510 973 1453.5Q1096 1397 1165 1296.5Q1234 1196 1236 1065L941 1065Q933 1155 864.5 1204Q796 1253 682 1253Q605 1253 550 1231Q495 1209 466.5 1170Q438 1131 438 1081Q438 1026 471 989.5Q504 953 559 930.5Q614 908 676 893L811 860Q905 839 986 803Q1067 767 1128 714.5Q1189 662 1222.5 590Q1256 518 1256 424Q1256 289 1188 188.5Q1120 88 991 33Q862 -22 681 -22Z"/>
 </svg>
