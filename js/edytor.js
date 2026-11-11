@@ -1077,6 +1077,40 @@ export class Edytor extends EventTarget {
     return this._wstaw(img);
   }
 
+  // Nowe zdjęcie w miejscu starego: ramka (rozmiar na stronie), środek, obrót, odbicie, obrys, cień, krycie
+  // i ustawienia z danych zostają. Zdjęcie wypełnia ramkę; z inną proporcją boków nadmiar jest przycięty
+  // wokół tego samego punktu, wokół którego był przycięty stary obraz (bez przycięcia – wokół środka).
+  async podmienObraz(obj, dataUrl, nazwaPliku, zasoby) {
+    if (obj?.type !== 'image') return false;
+    const id = uid('z');
+    zasoby[id] = { nazwa: nazwaPliku, dataUrl };
+    await przygotujKopie(zasoby, [{ type: 'image', zasob: id }]);
+    let nowy;
+    try { nowy = await fabric.FabricImage.fromURL(zrodloObrazu(zasoby)(id)); } catch { throw new Error('Nie udało się wczytać obrazu.'); }
+    const stary = rozmiarOryginalu(obj);
+    const ramka = { w: obj.width * obj.scaleX, h: obj.height * obj.scaleY };
+    const punkt = { x: (obj.cropX + obj.width / 2) / stary.nw, y: (obj.cropY + obj.height / 2) / stary.nh };
+    const srodek = obj.getRelativeCenterPoint();
+    // Nazwa nadana elementowi ręcznie zostaje; nazwa pliku zmienia się na nową.
+    const nazwa = !obj.nazwa || obj.nazwa === zasoby[obj.zasob]?.nazwa ? nazwaPliku : obj.nazwa;
+    obj.setElement(nowy.getElement());
+    const { nw, nh } = rozmiarOryginalu(obj);
+    const skala = Math.max(ramka.w / nw, ramka.h / nh);
+    const [szer, wys] = [Math.min(nw, ramka.w / skala), Math.min(nh, ramka.h / skala)];
+    obj.set({
+      width: szer, height: wys, scaleX: skala, scaleY: skala,
+      cropX: Math.min(nw - szer, Math.max(0, punkt.x * nw - szer / 2)),
+      cropY: Math.min(nh - wys, Math.max(0, punkt.y * nh - wys / 2)),
+      zasob: id, nazwa,
+    });
+    obj.setPositionByOrigin(srodek, 'center', 'center');
+    obj.setCoords();
+    obj.group?.setCoords?.();
+    this.dispatchEvent(new Event('zasoby'));
+    this.zatwierdz();
+    return true;
+  }
+
   // ---------- Operacje na zaznaczeniu ----------
 
   get aktywny() {

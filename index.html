@@ -338,15 +338,18 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
-      <button class="przycisk przezroczysty" data-akcja="wzorce" data-ikona="ksiazka" title="Wzorce: wspólne elementy stron – tła, stopki, numery"><span class="etyk">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
-      <button class="przycisk przezroczysty" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
+      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="ksiazka" title="Wzorce: wspólne elementy stron – tła, stopki, numery"><span class="etyk">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
+      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
       <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)"><span class="etyk">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
-      <button class="przycisk-ikona" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
+      <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
         <div class="menu" id="menu-wiecej" role="menu" hidden>
+          <button role="menuitem" class="tylko-waski-telefon" data-akcja="wzorce" data-ikona="ksiazka">Wzorce…</button>
+          <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
+          <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="pomoc">Instrukcja</button>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
@@ -361,9 +364,9 @@
 
     <div class="uklad-edytora">
       <aside class="panel panel-strony" id="panel-strony" aria-label="Strony i wzorce">
+        <button type="button" class="uchwyt-arkusza" aria-label="Uchwyt panelu: przeciągnij w dół, żeby zamknąć"></button>
         <div class="naglowek-panelu">
           <h2>Strony <span class="licznik" id="liczba-stron">1</span></h2>
-          <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
         </div>
         <ol class="lista-stron" id="lista-stron"></ol>
         <div class="stopka-panelu" id="stopka-strony">
@@ -423,12 +426,12 @@
       </main>
 
       <aside class="panel panel-inspektor" id="panel-inspektor" aria-label="Właściwości i warstwy">
+        <button type="button" class="uchwyt-arkusza" aria-label="Uchwyt panelu: stuknij, żeby powiększyć albo zmniejszyć; przeciągnij w dół, żeby zamknąć"></button>
         <div class="naglowek-panelu zakladki-panelu-opak">
           <div class="przelacznik-segmentowy zakladki-listy" id="zakladki-panelu" role="radiogroup" aria-label="Panel">
             <label><input type="radio" name="zakladka-panelu" value="wlasciwosci" checked><span>Właściwości</span></label>
             <label><input type="radio" name="zakladka-panelu" value="warstwy"><span>Warstwy</span></label>
           </div>
-          <button class="przycisk-ikona maly zamknij-arkusz" data-akcja="zamknij-panel" data-ikona="zamknij" aria-label="Zamknij"></button>
         </div>
         <div class="naglowek-panelu" id="naglowek-wlasciwosci">
           <h2 id="tytul-wlasciwosci">Strona</h2>
@@ -1070,6 +1073,7 @@
 
   <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
   <input type="file" id="pliki-zasoby" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden>
+  <input type="file" id="plik-podmiana" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
   <input type="file" id="plik-projekt" accept=".seriodruk,.json,application/vnd.seriodruk+zip,application/zip,application/json" hidden>
 </body>
 </html>

@@ -135,6 +135,7 @@ export class PanelWlasciwosci {
       g.append(this.wskazowka('Zmieniasz jeden element grupy. Z Shiftem zaznaczysz kilka naraz. Kliknij poza grupą albo naciśnij Esc, żeby grupa znów była jednym elementem.'));
       g.append(this.akcje([['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]]));
     }
+    if (obj.type === 'image') this.zbudujAkcjeObrazu(obj);
     if (toTabela(obj)) this.zbudujTabele(obj);
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
     this.zbudujGeometrie(obj);
@@ -244,29 +245,30 @@ export class PanelWlasciwosci {
 
   zbudujGeometrie(obj, { tylkoPozycja = false } = {}) {
     const s = this.sekcja('Położenie i rozmiar (mm)');
+    s.classList.add('geometria');
     const e = this.edytor;
     // Element grupy ma własne położenie, skalę i kąt liczone względem grupy – w polach są wartości na arkuszu.
     const r = () => e.ukladRodzica(obj);
-    s.append(this.liczba('X', () => zaokr(e.polozenieNaArkuszu(obj).x), (v) => e.ustawPolozenieNaArkuszu(obj, { x: v }), { jednostka: 'mm' }));
-    s.append(this.liczba('Y', () => zaokr(e.polozenieNaArkuszu(obj).y), (v) => e.ustawPolozenieNaArkuszu(obj, { y: v }), { jednostka: 'mm' }));
+    s.append(this.liczba('X', () => zaokr(e.polozenieNaArkuszu(obj).x), (v) => e.ustawPolozenieNaArkuszu(obj, { x: v }), { jednostka: 'mm', krotko: 'X' }));
+    s.append(this.liczba('Y', () => zaokr(e.polozenieNaArkuszu(obj).y), (v) => e.ustawPolozenieNaArkuszu(obj, { y: v }), { jednostka: 'mm', krotko: 'Y' }));
     if (tylkoPozycja) return;
     if (obj.type === 'line') {
       s.append(this.liczba('Długość', () => zaokr(Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) * obj.scaleX * r().sx), (v) => {
         const dl = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) || 1;
         obj.scaleX = Math.max(0.1, v) / r().sx / dl;
         obj.scaleY = obj.scaleX;
-      }, { jednostka: 'mm', min: 0.1 }));
+      }, { jednostka: 'mm', min: 0.1, krotko: 'Dł.' }));
     } else {
       s.append(this.liczba('Szerokość', () => zaokr(obj.width * obj.scaleX * r().sx), (v) => {
         if (obj.type === 'textbox') obj.set('width', Math.max(1, v / r().sx));
         else obj.scaleX = Math.max(0.1, v) / r().sx / obj.width;
-      }, { jednostka: 'mm', min: 0.1 }));
+      }, { jednostka: 'mm', min: 0.1, krotko: 'Szer.' }));
       s.append(this.liczba('Wysokość', () => zaokr(obj.height * obj.scaleY * r().sy), (v) => {
         obj.scaleY = Math.max(0.1, v) / r().sy / obj.height;
-      }, { jednostka: 'mm', min: 0.1, wylaczone: obj.type === 'textbox' }));
+      }, { jednostka: 'mm', min: 0.1, wylaczone: obj.type === 'textbox', krotko: 'Wys.' }));
     }
     const kat = (v) => ((v % 360) + 360) % 360;
-    s.append(this.liczba('Obrót', () => zaokr(obj.parent ? kat((obj.angle || 0) + r().kat) : (obj.angle || 0), 1), (v) => { obj.rotate(kat(v - r().kat)); }, { jednostka: '°', krok: 1 }));
+    s.append(this.liczba('Obrót', () => zaokr(obj.parent ? kat((obj.angle || 0) + r().kat) : (obj.angle || 0), 1), (v) => { obj.rotate(kat(v - r().kat)); }, { jednostka: '°', krok: 1, krotko: 'Obr.' }));
   }
 
   // ---------- Tekst ----------
@@ -925,6 +927,17 @@ export class PanelWlasciwosci {
     s.append(this.wskazowka('Albo kliknij kształt dwa razy (na ekranie dotykowym: stuknij dwa razy).'));
   }
 
+  // Najczęstsze działania na zdjęciu – na samej górze, zaraz pod nagłówkiem (na telefonie bez przewijania).
+  zbudujAkcjeObrazu(obj) {
+    const definicje = [];
+    if (this.opcje.podmienObraz) definicje.push(['obraz', 'Podmień zdjęcie', () => this.opcje.podmienObraz(obj)]);
+    if (this.opcje.wgrajObrazy) definicje.push(['wyslij', 'Wgraj obrazy do projektu', () => this.opcje.wgrajObrazy()]);
+    if (!definicje.length) return;
+    const rzad = this.akcje(definicje);
+    rzad.classList.add('akcje-obrazu');
+    this.el.append(rzad);
+  }
+
   zbudujObraz(obj) {
     const { nw, nh } = rozmiarOryginalu(obj);
     const kadr = this.sekcja('Kadrowanie');
@@ -998,9 +1011,8 @@ export class PanelWlasciwosci {
       }
     }
     d.append(this.wskazowka(kolumny.length
-      ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj przyciskiem poniżej.'
+      ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj przyciskiem „Wgraj obrazy do projektu” u góry panelu.'
       : 'Gdy strona należy do serii z tabelą, ten obraz może się zmieniać na każdej powielonej stronie – według nazwy pliku z wybranej kolumny.'));
-    if (this.opcje.wgrajObrazy) d.append(this.akcje([['wyslij', 'Wgraj obrazy do projektu', () => this.opcje.wgrajObrazy()]]));
 
     const o = this.sekcja('Obrys i odbicie');
     o.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
@@ -1053,11 +1065,26 @@ export class PanelWlasciwosci {
     };
   }
 
-  liczba(etykieta, get, set, { jednostka = '', krok = 0.5, min, wylaczone = false } = {}) {
+  // krotko – skrót nazwy pokazywany na telefonie w samym polu (zamiast nazwy nad nim), np. „Szer.”.
+  liczba(etykieta, get, set, { jednostka = '', krok = 0.5, min, wylaczone = false, krotko = '' } = {}) {
     const label = document.createElement('label');
-    label.append(etykieta);
     const opak = document.createElement('div');
     opak.className = 'jednostka';
+    if (krotko) {
+      const pelna = document.createElement('span');
+      pelna.className = 'nazwa-pelna';
+      pelna.textContent = etykieta;
+      label.append(pelna);
+      label.classList.add('z-krotka');
+      label.style.setProperty('--krotko', String(krotko.length));
+      const k = document.createElement('i');
+      k.className = 'nazwa-krotka';
+      k.setAttribute('aria-hidden', 'true');
+      k.textContent = krotko;
+      opak.append(k);
+    } else {
+      label.append(etykieta);
+    }
     const input = document.createElement('input');
     input.type = 'number';
     input.step = String(krok);

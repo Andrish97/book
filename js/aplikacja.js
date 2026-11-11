@@ -84,6 +84,8 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-akcja]');
   if (b) {
     const nazwa = b.dataset.akcja;
+    // Przyciski paska przeniesione na wąskim ekranie do menu ⋯ (wzorce, dane, instrukcja) zamykają menu.
+    if (b.classList.contains('tylko-waski-telefon')) zamknijMenu();
     const zLinku = podgladZLinku();
     if (zLinku && akcjePodgladuZLinku[nazwa]) { e.preventDefault(); akcjePodgladuZLinku[nazwa](zLinku); return; }
     if (akcje[nazwa]) { e.preventDefault(); akcje[nazwa](); return; }

@@ -112,8 +112,11 @@ export const historia = new Historia();
 
 // ---------- Panele (telefon) ----------
 
+// Stuknięcie w zakładkę otwartego panelu zamyka go. Każde otwarcie zaczyna od zwykłej wysokości arkusza
+// (powiększenie uchwytem – js/app/arkusze.js – dotyczy tylko bieżącego otwarcia).
 export function ustawPanel(nazwa) {
   document.body.dataset.panel = document.body.dataset.panel === nazwa ? '' : nazwa;
+  document.body.dataset.arkusz = '';
   $$('.zakladki-mobilne button').forEach((b) => {
     b.classList.toggle('aktywny', b.dataset.panel === document.body.dataset.panel);
   });

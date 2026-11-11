@@ -463,7 +463,7 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 .ekran-edytora { flex-direction: column; }
 .pasek-edytora { padding-left: 8px; }
 .nazwa-projektu {
-  flex: 0 1 280px; min-width: 80px;
+  flex: 0 1 280px; min-width: 80px; text-overflow: ellipsis;
   border-color: transparent !important; background: transparent !important;
   font-weight: 600; font-size: 15px;
 }
@@ -489,8 +489,12 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
   min-height: 52px; padding: 8px 10px 8px 16px;
 }
 .naglowek-panelu h2 { flex: 1; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+/* Nagłówki panelu nie kurczą się, gdy treść jest wyższa niż panel. Bez tego zakładki „Właściwości | Warstwy”
+   (opakowanie ma min-height: 0) zjeżdżały do kilku pikseli wysokości i nachodziły na nagłówek elementu. */
+.panel > .naglowek-panelu, .panel > .uchwyt-arkusza { flex: none; }
 .akcje-obiektu { display: flex; gap: 2px; }
-.zamknij-arkusz { display: none !important; }
+/* Uchwyt arkusza jest tylko na telefonie (panel jako arkusz z dołu – js/app/arkusze.js). */
+.uchwyt-arkusza { display: none; }
 .licznik {
   display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
   border-radius: 10px; background: var(--wypelnienie); color: var(--tusz-2);
@@ -638,6 +642,11 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 .wlasciwosci .jednostka { position: relative; }
 .wlasciwosci .jednostka input { padding-right: 32px; font-variant-numeric: tabular-nums; }
 .wlasciwosci .jednostka span { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 11.5px; color: var(--cichy); pointer-events: none; }
+/* Skrót nazwy w samym polu („Szer.”) – tylko na telefonie, gdzie zastępuje nazwę nad polem. */
+.wlasciwosci .nazwa-krotka { display: none; }
+/* „Podmień zdjęcie” i „Wgraj obrazy do projektu” – zaraz pod nagłówkiem obrazu. */
+.wlasciwosci > .akcje-obrazu { padding: 2px 0 12px; }
+.wlasciwosci > .akcje-obrazu .przycisk { flex: 1 1 auto; justify-content: center; }
 .wlasciwosci .kolor { display: flex; align-items: center; gap: 8px; }
 .wlasciwosci input[type="color"] {
   width: 36px; height: 36px; min-height: 0; padding: 3px;
@@ -893,7 +902,6 @@ dialog h2 { font-size: 19px; }
   .z-linijkami .linijka { display: none; }
   .z-linijkami .pasek-narzedzi { top: 10px; }
   .z-linijkami .arkusz { padding: 72px 20px 72px; }
-  .lista-warstw { max-height: 44vh; }
   .dialog-dane { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border-radius: 0; }
   .dane { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .dane-lista { border-right: 0; border-bottom: 1px solid var(--linia); padding: 14px 56px 12px 14px; max-height: 36vh; }
@@ -915,19 +923,62 @@ dialog h2 { font-size: 19px; }
     box-shadow: 0 -6px 24px rgba(28, 27, 25, .18);
     transform: translateY(calc(100% + 100px + env(safe-area-inset-bottom)));
     visibility: hidden;
-    transition: transform .2s ease-out, visibility 0s linear .2s;
+    transition: transform .2s ease-out, height .2s ease-out, visibility 0s linear .2s;
     will-change: transform; contain: layout paint;
   }
-  .panel::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--linia-mocna); margin: 8px auto 0; }
-  .zamknij-arkusz { display: inline-flex !important; }
+  /* Uchwyt arkusza (zamiast krzyżyka): przeciągnięcie w dół zamyka, w górę powiększa, stuknięcie przełącza
+     wysokość. Arkusz zamyka też ponowne stuknięcie jego zakładki w dolnym menu. */
+  .uchwyt-arkusza {
+    display: block; position: relative; width: 100%; height: 26px; padding: 0; border: 0; background: none;
+    cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  }
+  .uchwyt-arkusza::before {
+    content: ""; position: absolute; left: 50%; top: 10px; width: 40px; height: 5px; border-radius: 3px;
+    background: var(--linia-mocna); transform: translateX(-50%);
+  }
+  .uchwyt-arkusza:focus-visible { outline: none; }
+  .uchwyt-arkusza:focus-visible::before { background: var(--akcent); }
+  .panel.ciagniety { transition: none !important; }
   body[data-panel="strony"] .panel-strony,
   body[data-panel="inspektor"] .panel-inspektor,
-  body[data-panel="ostrzezenia"] .panel-inspektor { transform: none; visibility: visible; transition: transform .2s ease-out, visibility 0s; }
-  /* Właściwości mają stałą wysokość: treść zmienia się przy każdym zaznaczeniu
-     i arkusz o wysokości „do treści” skakałby razem z nią. */
-  body[data-panel="inspektor"] .panel-inspektor { height: 56vh; height: 56svh; }
+  body[data-panel="ostrzezenia"] .panel-inspektor { transform: none; visibility: visible; transition: transform .2s ease-out, height .2s ease-out, visibility 0s; }
+  /* Właściwości mają stałą wysokość: treść zmienia się przy każdym zaznaczeniu i arkusz o wysokości
+     „do treści” skakałby razem z nią. Zwykle zajmują mniej niż połowę ekranu (nad nimi widać zaznaczony
+     element); uchwytem można je powiększyć do wysokości pod górnym paskiem. Przewija się tylko treść –
+     uchwyt, zakładki i nagłówek elementu stoją w miejscu. */
+  .panel-inspektor { overflow: hidden; }
+  .panel-inspektor > .wlasciwosci, .panel-inspektor > .sekcja-ostrzezen { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  body[data-panel="inspektor"] .panel-inspektor,
+  body[data-panel="ostrzezenia"] .panel-inspektor { height: 45vh; height: 45svh; max-height: none; }
+  body[data-arkusz="pelny"] .panel-inspektor { height: calc(100vh - 124px); height: calc(100svh - 124px - env(safe-area-inset-bottom)); }
+  #naglowek-wlasciwosci { min-height: 44px; padding-top: 4px; padding-bottom: 4px; }
   body[data-panel="ostrzezenia"] .wlasciwosci,
+  body[data-panel="ostrzezenia"] .lista-warstw,
   body[data-panel="ostrzezenia"] .panel-inspektor > .naglowek-panelu { display: none; }
+
+  /* Gęstsze pola właściwości: mniej odstępów, pola wciąż wygodne pod palec (40 px). */
+  .wlasciwosci { padding: 0 14px 14px; gap: 0; }
+  .wlasciwosci fieldset { padding: 10px 0 10px; gap: 8px; }
+  .wlasciwosci fieldset:first-child { padding-top: 0; }
+  .wlasciwosci label { gap: 3px; font-size: 11.5px; }
+  .wlasciwosci input, .wlasciwosci select { min-height: 40px; padding: 5px 8px; }
+  .wlasciwosci input[type="color"] { width: 40px; height: 40px; }
+  .wlasciwosci .segmenty button { height: 34px; }
+  .wlasciwosci .rzad-przyciskow .przycisk { min-height: 40px; }
+  .wlasciwosci .wskazowka { font-size: 12px; line-height: 1.45; }
+  /* Położenie i rozmiar: X i Y w pierwszym rzędzie, szerokość, wysokość i obrót w drugim; nazwa skrócona
+     w samym polu zamiast nad nim. */
+  .wlasciwosci fieldset.geometria { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .geometria > label { grid-column: span 3; }
+  .geometria > label:nth-of-type(n + 3) { grid-column: span 2; }
+  .geometria > label:nth-of-type(3):nth-last-of-type(2), .geometria > label:nth-of-type(4):last-of-type { grid-column: span 3; }
+  .geometria .nazwa-pelna { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .geometria .nazwa-krotka {
+    display: block; position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+    font-style: normal; font-size: 11.5px; font-weight: 500; color: var(--cichy); pointer-events: none;
+  }
+  .geometria .z-krotka input { padding-left: calc(var(--krotko) * .62em + 12px); padding-right: 26px; }
+  .geometria .jednostka span { right: 7px; }
   body[data-panel="inspektor"] .sekcja-ostrzezen { display: none; }
   .sekcja-ostrzezen { border-top: 0; }
   .lista-stron { flex-direction: row; overflow-x: auto; padding-bottom: 10px; }
@@ -940,7 +991,19 @@ dialog h2 { font-size: 19px; }
   .pasek-narzedzi button span { display: none; }
   /* Na bardzo wąskim ekranie pasek wstawiania przewija się w bok zamiast wychodzić poza ekran. */
   .pasek-narzedzi { max-width: calc(100vw - 8px); overflow-x: auto; scrollbar-width: none; }
+  .pasek-narzedzi::-webkit-scrollbar { display: none; }
   .pasek-narzedzi button { flex: none; }
+  /* Gdy przyciski się nie mieszczą (bardzo wąski ekran), brzeg z ukrytymi przyciskami gaśnie – widać,
+     że pasek przewija się w bok (klasy ustawia js/app/arkusze.js). */
+  .pasek-narzedzi.dalej-prawo { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+  .pasek-narzedzi.dalej-lewo { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+  .pasek-narzedzi.dalej-lewo.dalej-prawo { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+  /* Na telefonie przyciski wstawiania dzielą szerokość ekranu po równo (najmniej 40 px) – mieszczą się
+     wszystkie, bez ostatniego uciętego w połowie. */
+  @media (max-width: 520px) {
+    .pasek-narzedzi { width: calc(100vw - 16px); gap: 0; }
+    .pasek-narzedzi button { flex: 1 1 0; min-width: 40px; padding: 4px 0; }
+  }
   .kontrolki-widoku { right: 10px; bottom: 10px; }
   .arkusz { padding: 72px 20px 72px; }
   .zakladki-mobilne {
@@ -1225,6 +1288,7 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 
 .segmenty button:disabled { opacity: .35; cursor: not-allowed; }
 
+.menu .tylko-waski-telefon { display: none; }
 /* Wąski ekran (telefon w pionie): cały górny pasek edytora mieści się na ekranie – ciaśniejsze przyciski,
    bez odstępów ozdobnych, nazwa projektu zajmuje to, co zostaje. */
 @media (max-width: 520px) {
@@ -1234,6 +1298,9 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
   .pasek-edytora .grupa-przyciskow { gap: 0; }
   .pasek-edytora .nazwa-projektu { flex: 1 1 36px; min-width: 36px; width: auto; padding-left: 4px; padding-right: 2px; }
   .pasek-edytora .stan-zapisu { flex: none; margin: 0 2px; }
+  /* Nazwa projektu ma pierwszeństwo: wzorce, dane i instrukcja przechodzą do menu ⋯. */
+  .pasek-edytora .poza-waskim-paskiem { display: none; }
+  .menu .tylko-waski-telefon { display: flex; }
 }
 
 /* Narzędzia trudne do obsługi palcem na małym ekranie są tam schowane (wielokąt, kadrowanie ramką).
