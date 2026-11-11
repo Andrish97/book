@@ -749,6 +749,15 @@ dialog h2 { font-size: 19px; }
 .dane-siatka th.rog { z-index: 3; }
 .dane-siatka td { min-width: 120px; max-width: 320px; padding: 6px 8px; vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; outline: none; cursor: text; }
 .dane-siatka td:focus { box-shadow: inset 0 0 0 2px var(--akcent); background: var(--akcent-tlo); }
+.dane-siatka td.zaznaczona { background: var(--akcent-tlo); box-shadow: inset 0 0 0 1px var(--akcent); }
+.dane-wyglad-pasek { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.dane-wyglad-pasek .podpowiedz { margin: 0 4px 0 0; }
+.dane-wyglad-pasek .dane-kolor { display: inline-flex; }
+.dane-wyglad-pasek input[type="color"] { width: 32px; height: 28px; padding: 0; border: 1px solid var(--linia); border-radius: var(--r-s); background: none; cursor: pointer; }
+.ukryte { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+#dlg-lista-kolumny textarea { width: 100%; font: inherit; resize: vertical; }
+#dlg-lista-kolumny .przyciski-dialogu { display: flex; align-items: center; gap: 8px; }
+#dlg-lista-kolumny .odstep { flex: 1; }
 /* Wiersz pomijany ([pomiń] w pierwszej komórce): szary, z podpisem przy numerze. */
 .dane-siatka tr.pomijany td { background: var(--powierzchnia-2); color: var(--cichy); font-style: italic; }
 .dane-siatka tr.pomijany th.nr span::after { content: ' pomijany'; font-size: 10px; font-style: italic; }

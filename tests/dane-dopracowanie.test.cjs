@@ -284,9 +284,9 @@ test('szablon danych: listy rozwijane w komórkach (kadr, pliki obrazów, warune
   await strona.evaluate(() => window.seriodruk.dane.otworz('t1'));
   await strona.waitForSelector('#dlg-dane[open]');
   await strona.click('#dane-siatka .lista-kolumny[data-k="4"]');
-  await strona.waitForSelector('#dlg-nazwa[open]');
-  await strona.fill('#dlg-nazwa input', 'praca; dom ;; wolne; dom');
-  await strona.click('#dlg-nazwa button[value=tak]');
+  await strona.waitForSelector('#dlg-lista-kolumny[open]');
+  await strona.fill('#lista-kolumny-wartosci', 'praca; dom ;; wolne; dom');
+  await strona.click('#dlg-lista-kolumny button[value=tak]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].listy);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele[0].listy), { rodzaj: ['praca', 'dom', 'wolne'] });
   assert.equal(await strona.getAttribute('#dane-siatka .lista-kolumny[data-k="4"]', 'aria-pressed'), 'true');
@@ -408,7 +408,7 @@ test('import z Excela przenosi wygląd komórek (pogrubienie, kursywa, kolor lit
       if (!wzor.test(teksty)) throw new Error(`brak tekstu ${tekst}`);
       teksty = teksty.replace(wzor, `<si>${czesci.map(([wyglad, t]) => `<r>${wyglad === null ? '' : `<rPr>${wyglad}<sz val="11"/></rPr>`}<t xml:space="preserve">${t}</t></r>`).join('')}</si>`);
     };
-    kawalki('mieszany tekst', [['<b/>', 'mieszany'], ['', ' tekst']]); // różne kawałki – wygląd nie jest przenoszony
+    kawalki('mieszany tekst', [['<b/>', 'mieszany'], ['', ' tekst']]); // różne kawałki – wygląd części tekstu
     kawalki('cały pogrubiony', [['<b/>', 'cały '], ['<b/>', 'pogrubiony']]); // jednakowe kawałki – to wygląd komórki
     zip.file('xl/sharedStrings.xml', teksty);
     return zip.generateAsync({ type: 'base64' });
@@ -424,7 +424,7 @@ test('import z Excela przenosi wygląd komórek (pogrubienie, kursywa, kolor lit
   assert.deepEqual(poImporcie.wyglad, [
     [null, { pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }],
     null,
-    [null, { kolor: '#c0504d' }, null], // kolor motywu arkusza; „mieszany tekst” ma różne kawałki – bez wyglądu
+    [null, { kolor: '#c0504d' }, { czesci: [{ od: 0, do: 8, pogrubienie: true }] }], // kolor motywu arkusza; „mieszany tekst” ma różne kawałki – części
     [null, { pogrubienie: true }, null], // jednakowe kawałki dają wygląd komórki; czarny, niepogrubiony tekst to brak wyglądu
   ]);
 
@@ -461,7 +461,7 @@ test('import z Excela przenosi wygląd komórek (pogrubienie, kursywa, kolor lit
   // Tekst z własnym formatowaniem: podkreślenie zostaje, pogrubienie z arkusza dochodzi tylko do wartości pola.
   assert.deepEqual(strony[0][1], ['Dziś: Nowy Rok!', [{ start: 0, end: 6, style: { underline: true } }, { start: 6, end: 14, style: { underline: true, fontWeight: 'bold' } }, { start: 14, end: 15, style: { fontSize: 9 } }]]);
   assert.deepEqual(strony[1][0], ['2. zwykły ()', []], 'wiersz bez wyglądu zostaje zwykłym tekstem');
-  assert.deepEqual(strony[2][0], ['3. Trzech Króli (mieszany tekst)', [{ start: 3, end: 15, style: { fill: '#c0504d' } }]]);
+  assert.deepEqual(strony[2][0], ['3. Trzech Króli (mieszany tekst)', [{ start: 3, end: 15, style: { fill: '#c0504d' } }, { start: 17, end: 25, style: { fontWeight: 'bold' } }]]);
 
   // Przełącznik wyłącza przenoszenie: wygląd zostaje zapisany, ale strony i okno danych go nie pokazują.
   await strona.evaluate(() => window.seriodruk.dane.otworz());
@@ -480,7 +480,7 @@ test('import z Excela przenosi wygląd komórek (pogrubienie, kursywa, kolor lit
   await strona.click('#dane-siatka .usun-kolumne[data-k="0"]');
   await strona.click('#potwierdz-tak');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].kolumny.length === 2);
-  assert.deepEqual((await tabela()).wyglad, [[{ pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }], [{ kolor: '#c0504d' }, null], [{ pogrubienie: true }, null]]);
+  assert.deepEqual((await tabela()).wyglad, [[{ pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }], [{ kolor: '#c0504d' }, { czesci: [{ od: 0, do: 8, pogrubienie: true }] }], [{ pogrubienie: true }, null]]);
   assert.deepEqual((await wOknie()).map((x) => x[0]), ['Nowy Rok', 'wolne', 'Trzech Króli', 'cały pogrubiony']);
   // Ponowne otwarcie projektu zachowuje wygląd; śmieci w zapisie są odrzucane.
   const poOtwarciu = await strona.evaluate(async () => {
@@ -488,7 +488,7 @@ test('import z Excela przenosi wygląd komórek (pogrubienie, kursywa, kolor lit
     const x = window.seriodruk.stan.projekt.tabele[0];
     return [normalizujTabele(JSON.parse(JSON.stringify(x))).wyglad, normalizujTabele({ ...x, wyglad: [[{ kolor: 'czerwony' }, 'x'], [null, null], 5], wyglad_wyl: true })];
   });
-  assert.deepEqual(poOtwarciu[0], [[{ pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }], [{ kolor: '#c0504d' }, null], [{ pogrubienie: true }, null]]);
+  assert.deepEqual(poOtwarciu[0], [[{ pogrubienie: true }, { kursywa: true, kolor: '#ff0000' }], [{ kolor: '#c0504d' }, { czesci: [{ od: 0, do: 8, pogrubienie: true }] }], [{ pogrubienie: true }, null]]);
   assert.equal(poOtwarciu[1].wyglad, undefined);
   assert.equal(poOtwarciu[1].wyglad_wyl, undefined);
   assert.deepEqual(bledy, []);
