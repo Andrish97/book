@@ -512,7 +512,10 @@ function pokazBlad(pole, tekst) {
     p.className = 'blad-pola';
     p.id = id;
     p.setAttribute('role', 'alert');
-    (pole.closest('label') || pole).after(p);
+    // Pod polem; gdy pole stoi w rzędzie obok innych (np. szerokość i wysokość), pod całym rzędem.
+    const etykieta = pole.closest('label') || pole;
+    const rzad = etykieta.parentElement?.closest('.rzad');
+    (rzad && rzad.contains(etykieta) ? rzad : etykieta).after(p);
     pole.__blad = p;
     const opis = pole.getAttribute('aria-describedby') || '';
     pole.setAttribute('aria-describedby', `${opis} ${p.id}`.trim());

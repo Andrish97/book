@@ -1309,7 +1309,8 @@ details > summary:focus-visible { outline: 2px solid var(--akcent); outline-offs
 
 /* Błąd w formularzu (js/kontrolki.js): komunikat pod polem zamiast systemowego dymku. */
 .blad-pola { margin: -2px 0 0; font-size: 12.5px; color: var(--blad, #b42318); grid-column: 1 / -1; }
-input.z-bledem, select.z-bledem, textarea.z-bledem, .z-bledem + .wybor-przycisk { border-color: var(--blad, #b42318) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blad, #b42318) 18%, transparent); }
+input.z-bledem, select.z-bledem, textarea.z-bledem, .z-bledem + .wybor-przycisk,
+input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b42318) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blad, #b42318) 22%, transparent) !important; outline: none; }
 
 /* Dymek z podpowiedzią (js/dymki.js) – zamiast systemowego dymku z atrybutu „title”. */
 .dymek {
