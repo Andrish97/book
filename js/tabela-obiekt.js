@@ -4,10 +4,15 @@
 // Tabela to grupa Fabric z opisem w polu `tabela`:
 //   { kolumny: [szerokości mm], wiersze: [najmniejsze wysokości mm], naglowek, linia: { kolor, grubosc },
 //     tlo: { naglowek: kolor | null, zebra: kolor | null },
-//     scalenia: [{ w, k, ileW, ileK }] }
+//     scalenia: [{ w, k, ileW, ileK }],
+//     linie_komorek: [{ os: 'h' | 'v', w, k, grubosc, kolor }] }
 // Scalenie: komórka w wierszu `w` i kolumnie `k` zajmuje ileW wierszy i ileK kolumn. Komórki, które
 // przykrywa, zostają w grupie (ukryte i puste – ich tekst przy scalaniu przechodzi do scalonej komórki);
 // po rozdzieleniu wracają na miejsce.
+// Linie pojedynczych komórek: wpis dotyczy jednego odcinka siatki. os 'h' – odcinek poziomy nad wierszem `w`
+// w kolumnie `k` (w = liczba wierszy to dolny brzeg tabeli); os 'v' – odcinek pionowy z lewej strony kolumny
+// `k` w wierszu `w` (k = liczba kolumn to prawy brzeg). grubosc 0 znaczy „bez linii”; bez wpisu odcinek
+// wygląda jak cała siatka (`linia`). Krawędź należy do obu sąsiednich komórek – jest zapisana raz.
 // W grupie leżą: prostokąty tła wierszy (na spodzie), ramki tekstu komórek (wierszami, od lewej)
 // i – za nimi – linie siatki.
 // Komórka to zwykły tekst: pola {…}, formatowanie fragmentów i style działają jak wszędzie.
@@ -152,6 +157,98 @@ export function rozdzielKomorki(g, w, k) {
   return true;
 }
 
+// ---------- Linie pojedynczych komórek ----------
+
+export const STRONY_KOMORKI = ['gora', 'dol', 'lewo', 'prawo'];
+
+const kluczLinii = (os, w, k) => `${os}${w},${k}`;
+
+// Porządkuje wpisy: tylko odcinki mieszczące się w tabeli, po jednym wpisie na odcinek (ostatni wygrywa).
+function uporzadkujLinie(t) {
+  const W = t.wiersze.length;
+  const K = t.kolumny.length;
+  const dobre = new Map();
+  for (const l of Array.isArray(t.linie_komorek) ? t.linie_komorek : []) {
+    const w = Math.round(l?.w);
+    const k = Math.round(l?.k);
+    const wTabeli = l?.os === 'h' ? (w >= 0 && w <= W && k >= 0 && k < K) : (l?.os === 'v' && w >= 0 && w < W && k >= 0 && k <= K);
+    if (!wTabeli || !Number.isFinite(Number(l.grubosc))) continue;
+    const wpis = { os: l.os, w, k, grubosc: zaokr(Math.max(0, Number(l.grubosc))) };
+    if (typeof l.kolor === 'string' && l.kolor) wpis.kolor = l.kolor;
+    dobre.set(kluczLinii(l.os, w, k), wpis);
+  }
+  if (dobre.size) t.linie_komorek = [...dobre.values()]; else delete t.linie_komorek;
+  return dobre;
+}
+
+// Jak wygląda odcinek siatki bez własnego ustawienia (linia pod nagłówkiem jest dwa razy grubsza).
+function liniaSiatki(t, os, w) {
+  const grubosc = Math.max(0, t.linia?.grubosc ?? 0.25);
+  return { grubosc: grubosc * (os === 'h' && t.naglowek && w === 1 && t.wiersze.length > 1 ? 2 : 1), kolor: t.linia?.kolor || '#1a1a1a' };
+}
+
+// Odcinki siatki na jednej krawędzi komórki (w, k) – albo scalenia, do którego należy.
+function odcinkiKrawedzi(g, w, k, strona) {
+  const s = scalenieKomorki(g, w, k) || { w, k, ileW: 1, ileK: 1 };
+  if (strona === 'gora' || strona === 'dol') return Array.from({ length: s.ileK }, (_, i) => ({ os: 'h', w: strona === 'gora' ? s.w : s.w + s.ileW, k: s.k + i }));
+  return Array.from({ length: s.ileW }, (_, i) => ({ os: 'v', w: s.w + i, k: strona === 'lewo' ? s.k : s.k + s.ileK }));
+}
+
+// Linia na krawędzi komórki: { wlasna, grubosc, kolor }. strona: 'gora' | 'dol' | 'lewo' | 'prawo'.
+export function krawedzKomorki(g, w, k, strona) {
+  const [o] = odcinkiKrawedzi(g, w, k, strona);
+  const wpis = (g.tabela.linie_komorek || []).find((l) => l.os === o.os && l.w === o.w && l.k === o.k);
+  const siatka = liniaSiatki(g.tabela, o.os, o.w);
+  return wpis ? { wlasna: true, grubosc: wpis.grubosc, kolor: wpis.kolor || siatka.kolor } : { wlasna: false, ...siatka };
+}
+
+// Ustawia linię na krawędzi komórki. linia: { grubosc, kolor } (grubosc 0 = bez linii) albo null – jak w całej tabeli.
+// Podane pola zastępują dotychczasowe. Sąsiednia komórka ma tę samą krawędź, więc zmienia się i u niej.
+export function ustawKrawedzKomorki(g, w, k, strona, linia) {
+  if (!STRONY_KOMORKI.includes(strona)) return false;
+  const t = g.tabela;
+  const odcinki = odcinkiKrawedzi(g, w, k, strona);
+  const obecna = krawedzKomorki(g, w, k, strona);
+  const zostaja = (t.linie_komorek || []).filter((l) => !odcinki.some((o) => o.os === l.os && o.w === l.w && o.k === l.k));
+  const nowe = linia ? odcinki.map((o) => ({ ...o, grubosc: Math.max(0, linia.grubosc ?? obecna.grubosc), kolor: linia.kolor || obecna.kolor })) : [];
+  t.linie_komorek = [...zostaja, ...nowe];
+  ulozTabele(g);
+  return true;
+}
+
+// Po wstawieniu wiersza (albo kolumny) numer `n`: linie dalszych wierszy przesuwają się, linia na granicy
+// zostaje przy wierszu powyżej (dolny brzeg tabeli zostaje dolnym brzegiem), a nowy wiersz dostaje linie
+// boczne takie jak wiersz, za którym stanął. wzdluz: 'w' dla wierszy, 'k' dla kolumn.
+function przesunLiniePoWstawieniu(t, n, bylo, wzdluz) {
+  if (!t.linie_komorek) return;
+  const graniczne = wzdluz === 'w' ? 'h' : 'v';
+  const wynik = [];
+  for (const l of t.linie_komorek) {
+    const i = l[wzdluz];
+    if (l.os === graniczne) wynik.push({ ...l, [wzdluz]: i > n || (i === n && n === bylo) ? i + 1 : i });
+    else {
+      wynik.push({ ...l, [wzdluz]: i >= n ? i + 1 : i });
+      if (i === n - 1) wynik.push({ ...l, [wzdluz]: n });
+    }
+  }
+  t.linie_komorek = wynik;
+}
+
+// Po usunięciu wiersza (albo kolumny) numer `n`: jego linie boczne znikają, z dwóch granic zostaje górna
+// (przy ostatnim wierszu – brzeg tabeli), a linie dalszych wierszy przesuwają się.
+function przesunLiniePoUsunieciu(t, n, bylo, wzdluz) {
+  if (!t.linie_komorek) return;
+  const graniczne = wzdluz === 'w' ? 'h' : 'v';
+  const znika = n === bylo - 1 ? n : n + 1;
+  const wynik = [];
+  for (const l of t.linie_komorek) {
+    const i = l[wzdluz];
+    if (l.os === graniczne) { if (i !== znika) wynik.push({ ...l, [wzdluz]: i > znika ? i - 1 : i }); }
+    else if (i !== n) wynik.push({ ...l, [wzdluz]: i > n ? i - 1 : i });
+  }
+  t.linie_komorek = wynik;
+}
+
 // Lewa górna komórka scalenia przejmuje treść i wygląd od komórki, która ją zastępuje (przy usuwaniu
 // wiersza albo kolumny z początkiem scalenia).
 function przeniesTresc(z, cel) {
@@ -290,15 +387,25 @@ export function ulozTabele(g) {
   });
 
   // Linie siatki: odcinki na granicach kolumn i wierszy; przez środek scalonej komórki linia nie przechodzi.
+  // Sąsiednie odcinki o tym samym wyglądzie są jedną linią; odcinek z własnym ustawieniem komórki
+  // (linie_komorek) ma swoją grubość i kolor albo nie ma go wcale.
   const wSrodku = (a, b) => Boolean(mapa[a] && mapa[a] === mapa[b]);
-  const odcinki = []; // [x1, y1, x2, y2, mnożnik grubości]
+  const wlasne = uporzadkujLinie(t);
+  const wyglad = (os, w, k) => {
+    const l = wlasne.get(kluczLinii(os, w, k));
+    const siatka = liniaSiatki(t, os, w);
+    return l ? { grubosc: l.grubosc, kolor: l.kolor || siatka.kolor, wlasna: true } : { ...siatka, wlasna: false };
+  };
+  const tenSam = (a, b) => a.grubosc === b.grubosc && a.kolor === b.kolor && a.wlasna === b.wlasna;
+  const odcinki = []; // [x1, y1, x2, y2, wygląd]
   for (let k = 0; k <= K; k += 1) {
     const zaslonieta = (w) => k > 0 && k < K && wSrodku(w * K + k - 1, w * K + k);
     for (let w = 0; w < W;) {
       if (zaslonieta(w)) { w += 1; continue; }
-      let koniec = w;
-      while (koniec < W && !zaslonieta(koniec)) koniec += 1;
-      odcinki.push([lewa(k), gorna(w), lewa(k), gorna(koniec), 1]);
+      const jaka = wyglad('v', w, k);
+      let koniec = w + 1;
+      while (koniec < W && !zaslonieta(koniec) && tenSam(jaka, wyglad('v', koniec, k))) koniec += 1;
+      odcinki.push([lewa(k), gorna(w), lewa(k), gorna(koniec), jaka]);
       w = koniec;
     }
   }
@@ -306,21 +413,23 @@ export function ulozTabele(g) {
     const zaslonieta = (k) => w > 0 && w < W && wSrodku((w - 1) * K + k, w * K + k);
     for (let k = 0; k < K;) {
       if (zaslonieta(k)) { k += 1; continue; }
-      let koniec = k;
-      while (koniec < K && !zaslonieta(koniec)) koniec += 1;
-      odcinki.push([lewa(k), gorna(w), lewa(koniec), gorna(w), t.naglowek && w === 1 && W > 1 ? 2 : 1]);
+      const jaka = wyglad('h', w, k);
+      let koniec = k + 1;
+      while (koniec < K && !zaslonieta(koniec) && tenSam(jaka, wyglad('h', w, koniec))) koniec += 1;
+      odcinki.push([lewa(k), gorna(w), lewa(koniec), gorna(w), jaka]);
       k = koniec;
     }
   }
+  // Linie z własnym ustawieniem leżą na wierzchu – grubsza krawędź komórki nie chowa się pod siatką.
+  odcinki.sort((a, b) => Number(a[4].wlasna) - Number(b[4].wlasna));
   let linie = g.getObjects().filter((o) => o.type === 'line');
   if (linie.length > odcinki.length) g.remove(...linie.slice(odcinki.length));
   if (linie.length < odcinki.length) g.add(...Array.from({ length: odcinki.length - linie.length }, () => new fabric.Line([0, 0, 1, 0], { evented: false, selectable: false, strokeUniform: true })));
   linie = g.getObjects().filter((o) => o.type === 'line');
-  const kolor = t.linia?.kolor || '#1a1a1a';
-  const grubosc = Math.max(0, t.linia?.grubosc ?? 0.25);
-  odcinki.forEach(([x1, y1, x2, y2, mnoznik], i) => {
+  odcinki.forEach(([x1, y1, x2, y2, jaka], i) => {
     const l = linie[i];
-    l.set({ stroke: kolor, strokeWidth: grubosc * mnoznik, visible: grubosc > 0, evented: false, selectable: false, ...BEZ_PRZEKSZTALCEN });
+    // Własna krawędź ma końce wysunięte o pół grubości – narożniki obramowanej komórki są pełne.
+    l.set({ stroke: jaka.kolor, strokeWidth: jaka.grubosc, strokeLineCap: jaka.wlasna ? 'square' : 'butt', visible: jaka.grubosc > 0, evented: false, selectable: false, ...BEZ_PRZEKSZTALCEN });
     l.set({ x1, y1, x2, y2 }); // linia sama ustawia się środkiem między końcami
     l.setCoords();
   });
@@ -395,6 +504,7 @@ export function dodajWiersz(g, uid, po = g.tabela.wiersze.length - 1) {
   t.wiersze.splice(po + 1, 0, t.wiersze[Math.max(wzor, 0)] ?? t.wiersze.at(-1));
   // Scalenia poniżej przesuwają się o wiersz; scalenie, w którego środek wszedł nowy wiersz, wydłuża się.
   for (const s of t.scalenia || []) { if (s.w > po) s.w += 1; else if (s.w + s.ileW - 1 > po) s.ileW += 1; }
+  przesunLiniePoWstawieniu(t, po + 1, t.wiersze.length - 1, 'w');
   ulozTabele(g);
   return po + 1;
 }
@@ -413,6 +523,7 @@ export function usunWiersz(g, w = g.tabela.wiersze.length - 1) {
     }
   }
   g.remove(...komorki.slice(w * K, (w + 1) * K));
+  przesunLiniePoUsunieciu(t, w, t.wiersze.length, 'w');
   t.wiersze.splice(w, 1);
   ulozTabele(g);
   return true;
@@ -433,6 +544,7 @@ export function dodajKolumne(g, uid, po = g.tabela.kolumny.length - 1) {
   t.kolumny = t.kolumny.map((s) => zaokr((s * K) / (K + 1)));
   t.kolumny.splice(po + 1, 0, zaokr(szer / (K + 1)));
   for (const s of t.scalenia || []) { if (s.k > po) s.k += 1; else if (s.k + s.ileK - 1 > po) s.ileK += 1; }
+  przesunLiniePoWstawieniu(t, po + 1, K, 'k');
   ulozTabele(g);
   return po + 1;
 }
@@ -450,6 +562,7 @@ export function usunKolumne(g, k = g.tabela.kolumny.length - 1) {
     }
   }
   g.remove(...t.wiersze.map((_, w) => komorki[w * K + k]).filter(Boolean));
+  przesunLiniePoUsunieciu(t, k, K, 'k');
   const szer = suma(t.kolumny);
   t.kolumny.splice(k, 1);
   const reszta = suma(t.kolumny);

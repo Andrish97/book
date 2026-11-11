@@ -50,7 +50,7 @@ import { polePoTabelach } from './serie.js';
 import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek } from './app/skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
-  wzorzecZMenu, ustawZakladke, generujMiniatury, przeniesStrone, przejdzDoStrony,
+  wzorzecZMenu, ustawZakladke, generujMiniatury, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
 } from './app/lista-stron.js';
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje } from './app/sekcje.js';
 import { przejdzDoTrasy } from './app/trasy.js';
@@ -355,14 +355,8 @@ edytor.addEventListener('zaznaczenie', (e) => {
   panel.pokaz(obj);
 });
 edytor.addEventListener('zmiana', zaplanujZapis);
-// Pisany tekst przelał się do ramki na innej stronie – jedna podpowiedź, nie przy każdym znaku.
-let ostatniaPodpowiedzWatku = 0;
-edytor.addEventListener('tekst-na-innej-stronie', (e) => {
-  if (Date.now() - ostatniaPodpowiedzWatku < 15000) return;
-  ostatniaPodpowiedzWatku = Date.now();
-  const i = stan.projekt.strony.findIndex((s) => s.id === e.detail);
-  powiadom(`Ramka jest pełna – dalszy ciąg tekstu płynie na stronę ${i >= 0 ? `${i + 1} („${stan.projekt.strony[i].nazwa}”)` : 'następną'}.`);
-});
+// Kursor w połączonym tekście doszedł do ramki na innej stronie – aplikacja otwiera tę stronę i pisanie idzie dalej.
+edytor.addEventListener('pisanie-na-innej-stronie', (e) => { piszNaInnejStronie(e.detail); });
 edytor.addEventListener('rysowanie', (e) => {
   $('[data-akcja="rysuj"]').setAttribute('aria-pressed', String(e.detail));
   if (e.detail) powiadom('Rysowanie odręczne: przeciągaj po stronie. Esc albo ponowne kliknięcie „Rysuj” kończy.');

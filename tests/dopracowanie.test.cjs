@@ -99,16 +99,16 @@ test('tekst przez strony: po przestawieniu stron tekst płynie w nowej kolejnoś
   assert.equal(caly(p), DLUGI);
   const naPierwszej = p[0].ramki[0].tekst;
 
-  // Backspace na początku ramki na drugiej stronie: znak znika z ramki na pierwszej stronie (albo odstęp między nimi), kursor zostaje.
+  // Backspace na początku ramki na drugiej stronie: znika odstęp między stronami, słowa z obu stron sklejają się w jedno.
   await strona.evaluate(() => window.seriodruk.edytor.aktywny.enterEditing());
   await strona.keyboard.press('Control+Home');
   await strona.keyboard.press('Backspace');
+  // Kursor stoi w miejscu sklejenia – jeśli to miejsce jest w ramce na pierwszej stronie, aplikacja ją otwiera.
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.isEditing);
   const w = await watek(strona);
   assert.equal(w.caly, DLUGI.slice(0, naPierwszej.length) + DLUGI.slice(naPierwszej.length + 1), 'zniknął odstęp między stronami');
-  // Słowa z obu stron skleiły się w jedno; kursor stoi w miejscu sklejenia (w ramce na tej stronie) albo – gdy to
-  // miejsce zostało na poprzedniej stronie – na początku tutejszej ramki.
-  assert.equal(w.pisze, 1, 'pisanie zostało w ramce na tej stronie');
-  assert.ok(w.kursor === naPierwszej.length || w.lokalny === 0, `kursor przy usuniętym znaku: ${w.kursor} / ${naPierwszej.length}, w ramce ${w.lokalny}`);
+  assert.equal(w.kursor, naPierwszej.length, 'kursor przy usuniętym znaku');
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.indeks), w.pisze, 'otwarta jest strona z ramką, w której stoi kursor');
   await strona.keyboard.type(' ');
   await strona.keyboard.press('Escape');
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
@@ -137,6 +137,81 @@ test('tekst przez strony: po przestawieniu stron tekst płynie w nowej kolejnoś
   p = await proj();
   assert.deepEqual(p.map((s) => s.ramki[0].nr), [0, 1]);
   assert.equal(caly(p), DLUGI);
+  assert.deepEqual(bledy, []);
+});
+
+test('tekst przez strony: kursor idzie za tekstem na następną stronę i wraca strzałkami; znaki pisane w trakcie przejścia nie giną; cofanie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kursor przez strony');
+  const proj = () => strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.obiekty.filter((o) => o.type === 'textbox').map((o) => ({ tekst: o.text, nr: o.watek_nr, lacznik: o.lacznik }))));
+  const caly = (strony) => strony.flat().sort((a, b) => a.nr - b.nr).map((r, i) => (i ? (r.lacznik ?? '\n') : '') + r.tekst).join('');
+  const pisze = () => strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.isEditing);
+  const gdzie = async () => { await pisze(); return { ...(await watek(strona)), strona: await strona.evaluate(() => window.seriodruk.stan.indeks) }; };
+  await strona.evaluate((tekst) => {
+    const e = window.seriodruk.edytor;
+    const o = e.dodajTekst(tekst);
+    o.set({ left: 15, top: 20, width: 60, ramka_h: 14 });
+    o.initDimensions();
+    e.zatwierdz();
+  }, DLUGI);
+  await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 0);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  await strona.waitForTimeout(450); // dotychczasowe zmiany to osobny krok historii
+  const n1 = (await proj())[0][0].tekst.length;
+
+  // Pisanie na końcu ramki na pierwszej stronie: słowa, które się nie mieszczą, płyną na drugą stronę,
+  // a aplikacja otwiera ją i pisanie idzie dalej – także dla znaków wciśniętych, zanim strona się wczytała.
+  await strona.evaluate(() => window.seriodruk.edytor.aktywny.enterEditing());
+  await strona.keyboard.press('Control+End');
+  const DOPISANE = ' Dopisane zdanie, które nie mieści się już w pierwszej ramce i płynie dalej.';
+  await strona.keyboard.type(DOPISANE);
+  let w = await gdzie();
+  const POTEM = DLUGI.slice(0, n1) + DOPISANE + DLUGI.slice(n1);
+  assert.equal(w.caly, POTEM, 'żaden znak nie zginął ani się nie podwoił');
+  assert.deepEqual([w.strona, w.pisze], [1, 1], 'otwarta jest druga strona, pisanie trwa w jej ramce');
+  assert.equal(w.kursor, n1 + DOPISANE.length, 'kursor stoi za dopisanym tekstem');
+  assert.match(await strona.textContent('#powiadomienie'), /^Tekst płynie dalej na stronie 2 /);
+
+  // Strzałka w lewo na początku ramki wraca na pierwszą stronę (kursor na końcu jej ramki), w prawo – z powrotem.
+  await strona.keyboard.press('Control+Home');
+  await strona.keyboard.press('ArrowLeft');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0);
+  w = await gdzie();
+  assert.deepEqual([w.strona, w.pisze, w.lokalny], [0, 0, w.czesci[0].length]);
+  await strona.keyboard.press('ArrowRight');
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
+  w = await gdzie();
+  assert.deepEqual([w.strona, w.pisze, w.lokalny], [1, 1, 0]);
+  assert.equal(w.caly, POTEM, 'przechodzenie strzałkami niczego nie zmienia');
+
+  // Backspace kasuje wstecz przez granicę stron; gdy kursor trafia do ramki na pierwszej stronie, aplikacja ją otwiera.
+  const przed = w.kursor;
+  for (let i = 0; i < 12; i += 1) { await strona.keyboard.press('Backspace'); await pisze(); }
+  w = await gdzie();
+  assert.equal(w.caly.length, POTEM.length - 12, 'zniknęło dokładnie dwanaście znaków');
+  assert.equal(w.caly, POTEM.slice(0, w.kursor) + POTEM.slice(w.kursor + 12), 'zniknęły znaki sprzed kursora');
+  assert.ok(w.kursor <= przed && w.kursor >= przed - 12, `kursor cofnął się razem z kasowaniem: ${w.kursor} / ${przed}`);
+  assert.equal(w.strona, w.pisze, 'otwarta jest strona z ramką, w której stoi kursor');
+  const POKASOWANIU = w.caly;
+  await strona.keyboard.press('Escape');
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  assert.equal(caly(await proj()), POKASOWANIU, 'zapis ma ten sam tekst co ekran');
+
+  // Cofanie: każdy krok to cały tekst w jednym z wcześniejszych stanów (nic w połowie), a na końcu tekst wyjściowy.
+  await strona.waitForTimeout(450);
+  const stany = [];
+  for (let i = 0; i < 8; i += 1) {
+    if (await strona.evaluate(() => document.querySelector('[data-akcja="cofnij"]').disabled)) break;
+    await strona.click('[data-akcja="cofnij"]');
+    await strona.waitForTimeout(250);
+    stany.push(caly(await proj()));
+    if (stany.at(-1) === DLUGI) break;
+  }
+  assert.equal(stany.at(-1), DLUGI, `cofanie wraca do tekstu wyjściowego: ${JSON.stringify(stany.map((s) => s.length))}`);
+  for (const s of stany) assert.ok(s === DLUGI || (s.startsWith(DLUGI.slice(0, 40)) && s.endsWith(DLUGI.slice(-40)) && s.length >= DLUGI.length - 12 && s.length <= POTEM.length), `stan pośredni jest całym tekstem (${s.length} znaków)`);
   assert.deepEqual(bledy, []);
 });
 
@@ -235,7 +310,7 @@ test('prowadnice: zmiany są krokami cofania; zablokowanych nie da się przesun�
   assert.deepEqual(bledy, []);
 });
 
-test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną nazwą; tabela zostaje jednym wierszem', async (t) => {
+test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną nazwą; tabela rozwija się osobno (komórki)', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Grupa w warstwach');
   await strona.evaluate(() => {
@@ -250,13 +325,13 @@ test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną n
   });
   await strona.click('#zakladki-panelu label:has-text("Warstwy")');
   const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => `${li.classList.contains('w-grupie') ? '  ' : ''}${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('ukryta') ? ' (ukryty)' : ''}${li.querySelector('.warstwa-rozwin') ? ` [${li.querySelector('.warstwa-rozwin').getAttribute('aria-expanded')}]` : ''}`));
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [false]'], 'grupa ma przycisk rozwijania, tabela nie');
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [false]'], 'grupa i tabela mają przycisk rozwijania');
 
-  await strona.click('#lista-warstw .warstwa-rozwin');
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [true]', '  Elipsa', '  Czerwony'], 'elementy grupy od wierzchu');
+  await strona.click('#lista-warstw li:has-text("Grupa") .warstwa-rozwin');
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [true]', '  Elipsa', '  Czerwony'], 'elementy grupy od wierzchu');
   // Oko przy elemencie grupy ukrywa tylko jego; zapis grupy to pamięta.
   await strona.click('#lista-warstw li.w-grupie:has-text("Elipsa") .warstwa-oko');
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [true]', '  Elipsa (ukryty)', '  Czerwony']);
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [true]', '  Elipsa (ukryty)', '  Czerwony']);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   let grupa = await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type === 'group' && !o.tabela).objects.map((o) => [o.type, o.visible !== false, o.nazwa || null]));
   assert.deepEqual(grupa, [['rect', true, 'Czerwony'], ['ellipse', false, null]]);
@@ -264,13 +339,13 @@ test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną n
   await strona.click('#lista-warstw li.w-grupie:has-text("Czerwony") .warstwa-nazwa');
   assert.deepEqual(await strona.evaluate(() => { const e = window.seriodruk.edytor; return [e.aktywny?.type, e.otwartaGrupa?.type]; }), ['rect', 'group']);
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.nazwijWGrupie(e.otwartaGrupa.id, 1, 'Kółko'); });
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [true]', '  Kółko (ukryty)', '  Czerwony']);
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [true]', '  Kółko (ukryty)', '  Czerwony']);
   await strona.click('#lista-warstw li.w-grupie:has-text("Kółko") .warstwa-oko');
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   grupa = await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.find((o) => o.type === 'group' && !o.tabela).objects.map((o) => [o.type, o.visible !== false, o.nazwa || null]));
   assert.deepEqual(grupa, [['rect', true, 'Czerwony'], ['ellipse', true, 'Kółko']]);
-  await strona.click('#lista-warstw .warstwa-rozwin');
-  assert.deepEqual(await wiersze(), ['Tabela 2×2', 'Grupa [false]']);
+  await strona.click('#lista-warstw li:has-text("Grupa") .warstwa-rozwin');
+  assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [false]']);
   assert.deepEqual(bledy, []);
 });
 

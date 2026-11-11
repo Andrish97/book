@@ -2,6 +2,7 @@
 // do spodu. Kliknięcie zaznacza, oko ukrywa, kłódka blokuje, przeciągnięcie
 // zmienia kolejność, podwójne kliknięcie zmienia nazwę. Kliknięcie elementu
 // rozwiniętej grupy otwiera grupę i zaznacza ten element (bez rozgrupowywania).
+// Tabelę też da się rozwinąć: pod nią stoją jej komórki, a kliknięcie komórki zaczyna w niej pisanie.
 
 import { ikona } from './ikony.js';
 import { zapytajONazwe } from './ui.js';
@@ -19,6 +20,12 @@ export class PanelWarstw {
     for (const zdarzenie of ['zmiana', 'zaznaczenie', 'historia']) edytor.addEventListener(zdarzenie, () => this.odswiez());
 
     lista.addEventListener('click', (e) => {
+      // Komórka rozwiniętej tabeli: kliknięcie zaczyna w niej pisanie (gdy się nie da – zaznacza całą tabelę).
+      const komorka = e.target.closest('li[data-tabela]');
+      if (komorka) {
+        if (!edytor.piszWKomorce(komorka.dataset.tabela, Number(komorka.dataset.w), Number(komorka.dataset.k))) edytor.zaznacz(komorka.dataset.tabela);
+        return;
+      }
       // Element wewnątrz grupy: oko ukrywa tylko jego; kliknięcie wiersza otwiera grupę i zaznacza ten element
       // (ukrytego albo w grupie, której nie da się otworzyć – zaznacza całą grupę).
       const wGrupie = e.target.closest('li[data-grupa]');
@@ -98,6 +105,37 @@ export class PanelWarstw {
     if (widoczny) this.odswiez();
   }
 
+  // Tabela na liście: znaczek typu jest przyciskiem, który pokazuje jej komórki (wierszami, z początkiem treści).
+  _komorkiTabeli(li, w) {
+    const komorki = this.edytor.komorkiNaLiscie(w.id);
+    if (!komorki) return;
+    const otwarta = this.rozwiniete.has(w.id);
+    const rozwin = document.createElement('button');
+    rozwin.className = 'warstwa-rozwin';
+    rozwin.setAttribute('aria-expanded', String(otwarta));
+    rozwin.setAttribute('aria-label', otwarta ? 'Zwiń tabelę' : 'Pokaż komórki tabeli');
+    rozwin.title = otwarta ? 'Zwiń tabelę' : `Pokaż komórki tabeli (${komorki.length})`;
+    rozwin.textContent = otwarta ? '▾' : '▸';
+    li.querySelector('.warstwa-typ').replaceWith(rozwin);
+    if (!otwarta) return;
+    let wiersz = -1;
+    for (const k of komorki) {
+      const el = document.createElement('li');
+      el.dataset.tabela = w.id;
+      el.dataset.w = String(k.w);
+      el.dataset.k = String(k.k);
+      el.className = `warstwa w-grupie w-tabeli${k.pisana ? ' zaznaczona' : ''}${k.w !== wiersz ? ' nowy-wiersz' : ''}${w.ukryty ? ' ukryta' : ''}`;
+      wiersz = k.w;
+      el.title = `Wiersz ${k.w + 1}, kolumna ${k.k + 1} – kliknij, żeby pisać w tej komórce`;
+      el.innerHTML = '<span class="warstwa-adres"></span><span class="warstwa-nazwa"></span>';
+      el.querySelector('.warstwa-adres').textContent = `${k.w + 1}.${k.k + 1}`;
+      const nazwa = el.querySelector('.warstwa-nazwa');
+      nazwa.textContent = k.tekst ? (k.tekst.length > 40 ? `${k.tekst.slice(0, 40)}…` : k.tekst) : '(pusta)';
+      if (!k.tekst) nazwa.classList.add('pusta');
+      this.lista.append(el);
+    }
+  }
+
   odswiez() {
     if (!this.widoczny || !this.edytor.wydruk) return;
     const warstwy = this.edytor.warstwy();
@@ -123,6 +161,7 @@ export class PanelWarstw {
       li.querySelector('.warstwa-nazwa').textContent = w.opis;
       li.querySelector('.warstwa-nazwa').title = w.opis;
       this.lista.append(li);
+      this._komorkiTabeli(li, w);
       if (!w.dzieci) continue;
       // Grupa: znaczek typu jest przyciskiem, który rozwija jej zawartość.
       const otwarta = this.rozwiniete.has(w.id);

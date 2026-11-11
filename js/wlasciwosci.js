@@ -9,7 +9,7 @@ import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
-import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza } from './tabela-obiekt.js';
+import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza, krawedzKomorki, ustawKrawedzKomorki } from './tabela-obiekt.js';
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
@@ -373,6 +373,28 @@ export class PanelWlasciwosci {
     if (sc) s.append(this.wskazowka(`Ta komórka zajmuje ${sc.ileK} ${sc.ileK === 1 ? 'kolumnę' : 'kolumny'} i ${sc.ileW} ${sc.ileW === 1 ? 'wiersz' : 'wiersze'}. Tekst komórek, które przykryła, jest w niej dopisany; po rozdzieleniu cały zostaje w pierwszej komórce.`));
     s.append(this.liczba('Najmniejsza wysokość tego wiersza', () => zaokr(tabela.tabela.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(tabela, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
     s.append(this.wskazowka(`Teraz ten wiersz ma ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
+
+    // Linie tej jednej komórki: każda krawędź osobno – jak w całej tabeli, bez linii albo własna.
+    const lin = this.sekcja('Linie tej komórki');
+    const przebuduj = () => { if (this.obj === e.aktywny) this.zbuduj(); };
+    for (const [strona, nazwa] of [['gora', 'U góry'], ['dol', 'U dołu'], ['lewo', 'Z lewej'], ['prawo', 'Z prawej']]) {
+      const jaka = () => krawedzKomorki(tabela, m.w, m.k, strona);
+      const rodzaj = () => (!jaka().wlasna ? '' : (jaka().grubosc > 0 ? 'wlasna' : 'brak'));
+      const wybor = this.wybor(nazwa, [['', 'jak w tabeli'], ['brak', 'bez linii'], ['wlasna', 'własna']], rodzaj, (v) => {
+        const siatka = tabela.tabela.linia?.grubosc ?? 0.25;
+        ustawKrawedzKomorki(tabela, m.w, m.k, strona, v === '' ? null : { grubosc: v === 'brak' ? 0 : Math.max(0.5, zaokr(siatka * 3, 2)) });
+        przebuduj();
+      });
+      wybor.dataset.krawedz = strona;
+      if (rodzaj() !== 'wlasna') wybor.classList.add('szeroki');
+      lin.append(wybor);
+      if (rodzaj() !== 'wlasna') continue;
+      lin.append(this.kolor('Kolor', () => jaka().kolor, (v) => ustawKrawedzKomorki(tabela, m.w, m.k, strona, { kolor: v })));
+      const grubosc = this.liczba(`Grubość (${nazwa.toLowerCase()})`, () => zaokr(jaka().grubosc, 2), (v) => { ustawKrawedzKomorki(tabela, m.w, m.k, strona, { grubosc: Math.max(0.05, v) }); }, { jednostka: 'mm', krok: 0.05, min: 0.05 });
+      grubosc.classList.add('szeroki');
+      lin.append(grubosc);
+    }
+    lin.append(this.wskazowka('Krawędź jest wspólna z sąsiednią komórką – zmienia się u obu. Linie całej tabeli ustawisz po zaznaczeniu tabeli (Esc).'));
   }
 
   zbudujTekst(obj, { komorka = false } = {}) {
