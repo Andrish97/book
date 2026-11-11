@@ -59,17 +59,80 @@ export class Podglad {
 
   // Własny projekt: strony rysowane z danych projektu.
   // nrStrony: numer strony w wydruku (po powieleniu serii), do której podgląd ma się przewinąć.
-  pokazProjekt(projekt, idStrony = null, nrStrony = null) {
+  // odcisk(egz, ciag): skrót wszystkiego, od czego zależy wygląd strony – pozwala po zmianie projektu
+  // przerysować tylko te strony, które naprawdę się zmieniły (odswiezProjekt).
+  pokazProjekt(projekt, idStrony = null, nrStrony = null, odcisk = null) {
     const ciag = rozwin(projekt);
-    const poKluczu = new Map(ciag.egzemplarze.map((e) => [e.klucz, e]));
     this.pokaz(ukladProjektu(projekt, ciag), {
-      // Składanie stron (biblioteka płótna) wczytuje się dopiero tu – podgląd z linku dostaje gotowe obrazy.
-      obraz: async (strona, szer) => (await import('./zlozenie.js')).renderujCel(projekt, poKluczu.get(strona.id), { szerokoscPx: szer, spad: false, ciag }),
-      klikalne: true,
-      opis: 'podgląd bez edycji',
+      ...this._zrodloProjektu(projekt, ciag, odcisk),
       idStrony,
       klucz: nrStrony ? ciag.egzemplarze[nrStrony - 1]?.klucz : null,
     });
+  }
+
+  _zrodloProjektu(projekt, ciag, odcisk) {
+    const poKluczu = new Map(ciag.egzemplarze.map((e) => [e.klucz, e]));
+    return {
+      // Składanie stron (biblioteka płótna) wczytuje się dopiero tu – podgląd z linku dostaje gotowe obrazy.
+      obraz: async (strona, szer) => (await import('./zlozenie.js')).renderujCel(projekt, poKluczu.get(strona.id), { szerokoscPx: szer, spad: false, ciag }),
+      odcisk: odcisk ? (strona) => odcisk(poKluczu.get(strona.id), ciag) : null,
+      projekt,
+      klikalne: true,
+      opis: 'podgląd bez edycji',
+    };
+  }
+
+  // Projekt zmienił się, gdy podgląd był otwarty (np. zmiana z innego urządzenia albo od AI).
+  // Podgląd zostaje tam, gdzie był: ta sama skala i to samo miejsce przewinięcia. Strony bez zmian
+  // zachowują gotowe obrazy; zmienione rysują się od nowa, a do tego czasu widać ich poprzedni wygląd.
+  odswiezProjekt(projekt, odcisk = null) {
+    if (!this.uklad || this.zrodlo?.projekt !== projekt) return;
+    const ciag = rozwin(projekt);
+    this.odswiez(ukladProjektu(projekt, ciag), this._zrodloProjektu(projekt, ciag, odcisk));
+  }
+
+  // Nowy układ i nowe źródło obrazów w miejsce bieżących, bez zmiany skali i miejsca przewinięcia.
+  // zrodlo.odcisk(strona) mówi, czy obraz strony jest ten sam co poprzednio (jeśli brak – rysujemy wszystko).
+  odswiez(uklad, zrodlo) {
+    if (!this.uklad) return;
+    // Co już narysowano: obraz, jego rozdzielczość i skrót stanu, z którego powstał.
+    const bylo = new Map();
+    for (const fig of this.el.querySelectorAll('.podglad-strona[data-id]')) {
+      const src = fig.querySelector('img')?.getAttribute('src');
+      if (src) bylo.set(fig.dataset.id, { src, px: fig.dataset.px, odcisk: fig.dataset.odcisk });
+    }
+    // Punkt zaczepienia: pierwsza strona widoczna u góry okna i jej odległość od tej krawędzi.
+    const gora = this.el.getBoundingClientRect().top;
+    const kotwica = [...this.el.querySelectorAll('.podglad-strona[data-id]')].find((f) => f.getBoundingClientRect().bottom > gora);
+    const przesuniecie = kotwica ? kotwica.getBoundingClientRect().top - gora : 0;
+    const przewiniecie = this.el.scrollTop;
+
+    this.uklad = uklad;
+    this.zrodlo = zrodlo;
+    const n = stronyUkladu(this.uklad).length;
+    $('#podglad-tytul').textContent = this.uklad.nazwa;
+    $('#podglad-opis').textContent = `${n} ${odmianaStron(n)} · ${zrodlo.opis}`;
+    this.buduj();
+    for (const fig of this.el.querySelectorAll('.podglad-strona[data-id]')) {
+      const stare = bylo.get(fig.dataset.id);
+      if (!stare) continue;
+      fig.querySelector('img').src = stare.src;
+      // Ten sam skrót – obraz jest aktualny i nie trzeba go rysować ponownie.
+      if (stare.odcisk && zrodlo.odcisk && stare.odcisk === zrodlo.odcisk(fig._strona)) {
+        fig.dataset.px = stare.px;
+        fig.dataset.odcisk = stare.odcisk;
+      }
+    }
+    const nowa = kotwica && [...this.el.querySelectorAll('.podglad-strona[data-id]')].find((f) => f.dataset.id === kotwica.dataset.id);
+    if (nowa) this.el.scrollTop += nowa.getBoundingClientRect().top - this.el.getBoundingClientRect().top - przesuniecie;
+    else this.el.scrollTop = przewiniecie;
+    if (this.prezentacja) {
+      const p = this.prezentacja;
+      p.kroki = this.uklad.sekcje.flatMap((sekcja) => sekcja.wiersze.map((strony) => ({ sekcja, strony })));
+      if (!p.kroki.length) { this.zamknijPrezentacje(); return; }
+      p.i = Math.min(p.i, p.kroki.length - 1);
+      this._rysujPrezentacje();
+    }
   }
 
   // zrodlo.obraz(strona, szerokoscPx) → adres obrazu (albo obietnica adresu).
@@ -150,8 +213,13 @@ export class Podglad {
     // Gotowe obrazy (podgląd udostępniony) wczytujemy raz; rysowane – ponownie, gdy trzeba większych.
     if (zrodlo.stale ? fig.dataset.px : Number(fig.dataset.px) >= szer) return;
     fig.dataset.px = szer;
+    // Skrót liczony razem z rysowaniem – opisuje dokładnie ten stan projektu, z którego powstaje obraz.
+    const odcisk = zrodlo.odcisk?.(fig._strona);
     const url = await zrodlo.obraz(fig._strona, szer);
-    if (this.uklad === uklad && Number(fig.dataset.px) === szer) fig.querySelector('img').src = url;
+    if (this.uklad === uklad && Number(fig.dataset.px) === szer) {
+      fig.querySelector('img').src = url;
+      if (odcisk) fig.dataset.odcisk = odcisk;
+    }
   }
 
   ustawSkale(skala) {

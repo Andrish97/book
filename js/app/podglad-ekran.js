@@ -35,8 +35,16 @@ export async function pokazPodglad(opcje = null) {
   pokazEkran('podglad');
   trasa.ustaw(`p/${stan.projekt.id}/podglad`);
   document.title = `${stan.projekt.nazwa} – podgląd – ${NAZWA}`;
-  podglad.pokazProjekt(stan.projekt, biezaca, nrStrony);
+  podglad.pokazProjekt(stan.projekt, biezaca, nrStrony, odciskPodgladu);
   $('#podglad-tresc').focus({ preventScroll: true });
+}
+
+// Otwarty podgląd po zmianie projektu z innego urządzenia albo od AI (js/app/zapis.js: polaczZKontem).
+// Podgląd zostaje w tym samym miejscu, a przerysowują się tylko strony, które wyglądają inaczej.
+export function odswiezPodglad() {
+  if (!stan.projekt || document.body.dataset.ekran !== 'podglad' || document.body.classList.contains('podglad-publiczny')) return;
+  document.title = `${stan.projekt.nazwa} – podgląd – ${NAZWA}`;
+  podglad.odswiezProjekt(stan.projekt, odciskPodgladu);
 }
 
 export function zamknijPodglad() {
@@ -67,6 +75,15 @@ function odciskStrony(projekt, egz, ciag) {
     egz.wiersz, egz.dodatkowe.map((d) => d.wiersz), egz.nr, egz.indeks, egz.nrWSekcji, egz.nrEgz, egz.ileEgz, egz.bok, ciag.liczbaStron, ciag.egzemplarze.length,
     projekt.czcionki, projekt.sekcje.map((s) => s.nazwa), projekt.strony.map((s) => s.nazwa),
   ]));
+}
+
+// Skrót strony podglądu: to samo co przy linku, a do tego style tekstu i tekst płynący z innych stron
+// (ramki tego samego wątku) – zmiana gdziekolwiek w wątku może przesunąć tekst na tej stronie.
+function odciskPodgladu(egz, ciag) {
+  const p = stan.projekt;
+  const watki = new Set(egz.strona.obiekty.map((o) => o.watek).filter(Boolean));
+  const watek = watki.size ? p.strony.flatMap((s) => s.obiekty.filter((o) => watki.has(o.watek))) : [];
+  return skrot(JSON.stringify([odciskStrony(p, egz, ciag), p.style, watek]));
 }
 
 function linkUdostepnienia(p) {
@@ -280,9 +297,13 @@ export async function opublikujUdostepnienie() {
 
 // Link aktualizuje się sam: chwilę po tym, jak zmiany zapiszą się na koncie.
 // Kolejna zmiana w tym czasie odsuwa aktualizację, żeby nie rysować stron po każdym ruchu.
+// Zmiany, które przyszły z konta (inne urządzenie, AI), czekają dłużej: jeśli zrobiono je w aplikacji na
+// innym urządzeniu, ono samo zaktualizuje link, a wiadomość o tym zdąży tu dojść – link nie jest rysowany
+// dwa razy. Zmiany od AI nikt inny nie narysuje, więc robi to otwarta tu aplikacja.
 const OPOZNIENIE_LINKU_MS = 4000;
+export const OPOZNIENIE_LINKU_Z_KONTA_MS = 15000;
 let timerLinku = null;
-export function zaplanujAktualizacjeLinku() {
+export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
   clearTimeout(timerLinku);
   const p = stan.projekt;
   if (!p?.udostepnienie || !stan.uzytkownik || p.udostepnienie.odcisk === odciskTresci(p)) return;
@@ -298,7 +319,7 @@ export function zaplanujAktualizacjeLinku() {
       trwaPublikacja = false;
       if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     }
-  }, OPOZNIENIE_LINKU_MS);
+  }, opoznienie);
 }
 
 function odswiezOknoUdostepnianiaZachowujacKomunikat() {

@@ -369,3 +369,53 @@ test('„Cofnij” po dołączeniu zmian z innego urządzenia cofa tylko własne
   assert.equal(await a.strona.locator('#dlg-konflikt[open]').count() + await b.strona.locator('#dlg-konflikt[open]').count(), 0);
   assert.deepEqual([a.bledy, b.bledy], [[], []]);
 });
+
+test('otwarty podgląd odświeża się sam po zmianie z innego urządzenia: tylko zmieniona strona, bez przewijania', async (t) => {
+  const a = await otworz(t, { tryb: 'atrapa' });
+  await zaloguj(a.strona);
+  const b = await drugieUrzadzenie(a);
+  await zaloguj(b.strona);
+
+  // A: trzy strony, na pierwszej i trzeciej prostokąt.
+  await nowyProjekt(a.strona, 'Podgląd na żywo');
+  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.click('[data-akcja="strona-dodaj"]');
+  await a.strona.click('[data-akcja="strona-dodaj"]');
+  await a.strona.waitForFunction(() => window.seriodruk.stan.indeks === 2);
+  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await przesunProstokat(a.strona, 20);
+  await zapisano(a.strona);
+
+  // B otwiera projekt i podgląd; wszystkie trzy strony są narysowane.
+  await otworzZListy(b.strona, 'Podgląd na żywo');
+  await b.strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 3);
+  await b.strona.click('[data-akcja="podglad"]');
+  const obrazy = () => b.strona.evaluate(() => [...document.querySelectorAll('#podglad-tresc .podglad-strona[data-id] img')].map((i) => i.getAttribute('src')));
+  await b.strona.waitForFunction(() => {
+    const img = [...document.querySelectorAll('#podglad-tresc .podglad-strona[data-id] img')];
+    return img.length === 3 && img.every((i) => i.getAttribute('src'));
+  }, null, { timeout: 10000 });
+  const przed = await obrazy();
+  const przewiniecie = await b.strona.evaluate(() => document.querySelector('#podglad-tresc').scrollTop);
+  const zapisowB = a.baza.zapisy.length;
+
+  // A przesuwa prostokąt na trzeciej stronie – na B zmienia się obraz tylko tej strony.
+  await przesunProstokat(a.strona, 60);
+  await zapisano(a.strona);
+  await b.strona.waitForFunction((stary) => document.querySelectorAll('#podglad-tresc .podglad-strona[data-id] img')[2]?.getAttribute('src') !== stary, przed[2], { timeout: 8000 });
+  const po = await obrazy();
+  assert.equal(po.length, 3);
+  assert.deepEqual(po.slice(0, 2), przed.slice(0, 2), 'strony bez zmian nie są rysowane od nowa');
+  assert.equal(await b.strona.evaluate(() => document.body.dataset.ekran), 'podglad', 'podgląd zostaje otwarty');
+  assert.equal(await b.strona.evaluate(() => document.querySelector('#podglad-tresc').scrollTop), przewiniecie);
+
+  // A dodaje stronę – podgląd na B pokazuje cztery strony, bez zamykania.
+  await a.strona.click('[data-akcja="strona-dodaj"]');
+  await zapisano(a.strona);
+  await b.strona.waitForFunction(() => document.querySelectorAll('#podglad-tresc .podglad-strona[data-id]').length === 4, null, { timeout: 8000 });
+  assert.match(await b.strona.textContent('#podglad-opis'), /^4 strony/);
+  assert.deepEqual((await obrazy()).slice(0, 2), przed.slice(0, 2), 'po dodaniu strony stare obrazy zostają');
+  assert.equal(a.baza.konflikty, 0);
+  assert.ok(a.baza.zapisy.length >= zapisowB);
+  assert.deepEqual([a.bledy, b.bledy], [[], []]);
+});

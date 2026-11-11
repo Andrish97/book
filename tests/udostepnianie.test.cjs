@@ -65,6 +65,16 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   const ponownie = baza.wyslania.slice(przedAktualizacja).filter((k) => k.startsWith('podglady/'));
   assert.equal(ponownie.filter((k) => k.endsWith('.jpg')).length, 1);
   assert.equal(ponownie.filter((k) => k.endsWith('manifest.json')).length, 1);
+  // Otwarty u gościa link sprawdza się sam (co minutę i przy powrocie do karty): podmienia się tylko
+  // obraz zmienionej strony, a druga zostaje.
+  const obrazyGoscia = () => obca.evaluate(() => [...document.querySelectorAll('.podglad-strona[data-id] img')].map((i) => i.getAttribute('src')));
+  const uGosciaPrzed = await obrazyGoscia();
+  await obca.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await obca.waitForFunction((przed) => [...document.querySelectorAll('.podglad-strona[data-id] img')].some((i, n) => i.getAttribute('src') !== przed[n]), uGosciaPrzed, { timeout: 8000 });
+  const uGosciaPo = await obrazyGoscia();
+  assert.equal(uGosciaPo.filter((s, n) => s !== uGosciaPrzed[n]).length, 1, 'u gościa zmienia się obraz jednej strony');
+  assert.equal(await obca.evaluate(() => document.body.dataset.ekran), 'podglad');
+  assert.deepEqual(bledyGoscia, []);
   await strona.click('[data-akcja="podglad"]');
   await strona.click('[data-akcja="udostepnij"]');
   assert.match(await strona.textContent('#udostepnij-stan'), /aktualny stan/);

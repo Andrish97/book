@@ -12,7 +12,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 - PDF wektorowy z prawdziwym tekstem, osadzonymi czcionkami i ligaturami; PDF/X-4 z profilem drukarni i CMYK – także w trybie „Obrazy stron”. Próbki sprawdzone czterema niezależnymi programami.
 - Tekst płynie przez ramki i strony, a kursor idzie za nim; tabela jest jednym elementem; rysunek SVG rozkłada się na edytowalne elementy; element grupy zmienia się bez rozgrupowywania.
 - „Sprawdź przed drukiem” przechodzi każdą powieloną stronę: brakujące dane i obrazy, powtórzenia, teksty, które się nie mieszczą.
-- Push na `main` wdraża aplikację i bazę, a 129 testów w przeglądarce pilnuje, żeby nic się nie psuło.
+- Push na `main` wdraża aplikację i bazę, a 179 testów w przeglądarce pilnuje, żeby nic się nie psuło.
 
 **Słabe.**
 - Zmiany trafiają na konto po około 3 sekundach, a drugie urządzenie dowiaduje się o nich dopiero przy własnym zapisie albo otwarciu projektu – stąd pytania o połączenie zmian (B4).
@@ -64,7 +64,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Dlaczego tak.** Projekt trafia do druku, a drukarnia mówi w milimetrach. Dzięki temu eksport do PDF to proste przeliczenie mm na punkty, bez zgadywania rozdzielczości ekranu, a to samo położenie znaczy to samo w edytorze, podglądzie i pliku.
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** W `tests/` jest 129 testów w 27 plikach. Otwierają aplikację w przeglądarce i klikają jak człowiek: edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst i jego przelewanie przez strony, narzędzia precyzji, podgląd, udostępnianie, łączenie zmian z dwóch urządzeń, warstwy i grupy, tabela, dane, pola i serie, czcionki, obrazy, rozkładanie rysunków SVG, eksport PDF (wektorowy, PDF/X-4, CMYK – z porównaniem obrazu pliku z obrazem z aplikacji) i kontrola przed drukiem. Bazę zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”): najpierw sprawdzenie kodu, potem testy, na końcu wypisane pomiary zgodności PDF.
+**Co jest.** W `tests/` jest 179 testów w 38 plikach. Otwierają aplikację w przeglądarce i klikają jak człowiek: edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst i jego przelewanie przez strony, narzędzia precyzji, podgląd, udostępnianie, łączenie zmian z dwóch urządzeń, warstwy i grupy, tabela, dane, pola i serie, czcionki, obrazy, rozkładanie rysunków SVG, eksport PDF (wektorowy, PDF/X-4, CMYK – z porównaniem obrazu pliku z obrazem z aplikacji) i kontrola przed drukiem. Bazę zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”): najpierw sprawdzenie kodu, potem testy, na końcu wypisane pomiary zgodności PDF.
 **Dlaczego tak.** Aplikacja ma dużo części, które od siebie zależą (serie, przelewanie tekstu, składanie strony). Test, który klika, wyłapuje to, czego nie widać przy czytaniu kodu. Porównanie PDF z obrazem z aplikacji robi niezależny czytnik PDF, więc pilnuje tego, co naprawdę zobaczy drukarnia.
 **Sprawdzone.** Osobny skrypt `npm run proba` przechodzi opublikowaną aplikację na prawdziwej bazie (0.2).
 **Słabe.** Próbę na prawdziwej bazie trzeba uruchomić ręcznie. Na prawdziwym tablecie i telefonie nikt aplikacji jeszcze nie przeklikał.
@@ -122,16 +122,17 @@ Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu pro
 **Twoje decyzje.** Podział na podstrony z identyfikatorem projektu (#14).
 
 ### C4. Podgląd bez edycji i prezentacja ✅
-**Co jest.** Wszystkie strony po kolei, tak jak po przycięciu, z powieleniami serii: rozkładówki obok siebie, pojedyncze strony w rzędach. Powiększanie; kliknięcie strony otwiera ją w edytorze. Strony rysują się dopiero, gdy są widoczne. Tryb prezentacji pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie, przewracaną strzałkami – działa też w podglądzie z linku.
+**Co jest.** Wszystkie strony po kolei, tak jak po przycięciu, z powieleniami serii: rozkładówki obok siebie, pojedyncze strony w rzędach. Powiększanie; kliknięcie strony otwiera ją w edytorze. Strony rysują się dopiero, gdy są widoczne. Tryb prezentacji pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie, przewracaną strzałkami – działa też w podglądzie z linku. Otwarty podgląd odświeża się sam, gdy projekt zmieni się na innym urządzeniu albo przez AI: zostaje w tym samym miejscu i powiększeniu, a od nowa rysują się tylko strony, których skrót (treść strony, wzorce, dane wiersza, numer, style, tekst płynący z innych stron) się zmienił; do tego czasu widać poprzedni obraz.
 **Dlaczego tak.** W edytorze widać wzór i linie pomocnicze; podgląd pokazuje to, co wyjdzie z drukarni. Rysowanie na żądanie sprawia, że projekt z setkami powielonych stron otwiera się od razu.
-**Twoje decyzje.** Podgląd bez edycji (#21). Podgląd pokazuje powielenia serii (#40).
+**Twoje decyzje.** Podgląd bez edycji (#21). Podgląd pokazuje powielenia serii (#40). Otwarty podgląd odświeża się sam po zmianach z innego miejsca (#68).
 
 ### C5. Udostępnianie podglądu linkiem ✅ / ⚠️
 **Co jest.** „Udostępnij” w podglądzie tworzy link z losowym kodem. Aplikacja rysuje strony do obrazów JPEG i wysyła je z małym plikiem opisu do publicznego folderu. Osoba z linkiem widzi ten sam widok co podgląd, bez logowania. Projekt ma jeden link; aktualizuje się on sam kilka sekund po zapisie na koncie, a wysyłane są tylko strony, których obraz się zmienił. „Unieważnij link” usuwa pliki.
 **Dlaczego tak.** Osoba z linkiem dostaje tylko obrazy stron – nie dane projektu, nie zdjęcia w oryginale, nie dostęp do bazy. Nie trzeba otwierać bazy dla niezalogowanych ani ładować u oglądającego edytora i czcionek.
 **Twoje decyzje.** Podgląd udostępniany linkiem (#28). Jeden link na projekt, aktualizowany samoczynnie (#50, #51).
 **Poprawione (#67).** Link może mieć hasło i datę ważności (część „Ochrona linku” w oknie Udostępnij). Obrazy takiego linku nie leżą w publicznym folderze: są w tabeli bazy, a wydaje je tylko funkcja bazy po sprawdzeniu daty i hasła (skrót bcrypt; po 10 złych próbach link nie przyjmuje haseł przez 15 minut). Oglądający widzi pole hasła albo „Link wygasł”. Zwykłe linki działają jak dotąd.
-**Słabe.** Obrazy linków chronionych zajmują miejsce w bazie (darmowy plan ma 500 MB), nie w folderze plików. Gość wpisuje hasło po każdym odświeżeniu strony. Data ważności to koniec dnia według zegara urządzenia właściciela. Link aktualizuje się tylko, gdy projekt jest otwarty i zapisywany.
+**Słabe.** Obrazy linków chronionych zajmują miejsce w bazie (darmowy plan ma 500 MB), nie w folderze plików. Gość wpisuje hasło po każdym odświeżeniu strony. Data ważności to koniec dnia według zegara urządzenia właściciela. Link aktualizuje się tylko wtedy, gdy projekt jest gdzieś otwarty (obrazy stron rysuje aplikacja właściciela): po zmianie od AI otwarta aplikacja aktualizuje go po ok. 15 s, a przy zamkniętym projekcie link czeka do następnego otwarcia.
+**Poprawione (#68).** Otwarty u gościa link sam sprawdza co minutę (i po powrocie do karty), czy jest nowsza wersja, i podmienia tylko obrazy zmienionych stron. Zmiany, które przyszły z konta (inne urządzenie, AI), też aktualizują link – z dłuższym opóźnieniem, żeby dwa otwarte urządzenia nie rysowały go jednocześnie.
 
 ## D. Edytor
 

@@ -84,3 +84,52 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   assert.match(baza.ai('ai_projekt', { p_klucz: klucz }).blad, /odebrany/);
   assert.deepEqual(bledy, []);
 });
+
+test('zmiana od AI przy otwartym podglądzie: podgląd przerysowuje się sam, a udostępniony link idzie za nią', async (t) => {
+  const { strona, baza, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Podgląd i AI');
+  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
+  await zapisano(strona);
+
+  // Podgląd z udostępnionym linkiem; okno udostępniania zamknięte, podgląd zostaje otwarty.
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await zapisano(strona);
+  const manifest = () => {
+    const k = [...baza.pliki.keys()].find((x) => x.startsWith('podglady/') && x.endsWith('manifest.json'));
+    return JSON.parse(baza.pliki.get(k).tresc.toString());
+  };
+  const linkPrzed = manifest().zaktualizowano;
+  const obrazy = () => strona.evaluate(() => [...document.querySelectorAll('#podglad-tresc .podglad-strona[data-id] img')].map((i) => i.getAttribute('src')));
+  await strona.waitForFunction(() => [...document.querySelectorAll('#podglad-tresc .podglad-strona[data-id] img')].every((i) => i.getAttribute('src')));
+  const przed = await obrazy();
+
+  // AI zmienia kolor prostokąta na pierwszej stronie.
+  const { klucz } = await strona.evaluate(async (id) => (await import('./js/chmura.js')).utworzDostepAi(id, { opis: 'AI', dni: 1 }), await strona.evaluate(() => window.seriodruk.stan.projekt.id));
+  const odczyt = baza.ai('ai_projekt', { p_klucz: klucz });
+  const s = odczyt.projekt.strony[0];
+  const zmiana = baza.ai('ai_zapisz', {
+    p_klucz: klucz, p_znana_wersja: odczyt.wersja,
+    p_zmiany: { strony: [{ ...s, obiekty: s.obiekty.map((o) => (o.type.toLowerCase() === 'rect' ? { ...o, fill: '#c1121f' } : o)) }] },
+  });
+  assert.equal(zmiana.strony_zapisane, 1, JSON.stringify(zmiana));
+
+  // Podgląd: nowy obraz pierwszej strony, druga bez zmian, nadal podgląd.
+  await strona.waitForFunction((stary) => document.querySelector('#podglad-tresc .podglad-strona[data-id] img')?.getAttribute('src') !== stary, przed[0], { timeout: 15000 });
+  const po = await obrazy();
+  assert.equal(po[1], przed[1], 'strona bez zmian nie jest rysowana od nowa');
+  assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'podglad');
+  // Link dla gości aktualizuje się sam także po zmianie od AI (nikt inny by go nie narysował).
+  const start = Date.now();
+  while (manifest().zaktualizowano === linkPrzed) {
+    assert.ok(Date.now() - start < 30000, 'link nie zaktualizował się po zmianie od AI');
+    await strona.waitForTimeout(250);
+  }
+  assert.deepEqual(bledy, []);
+});

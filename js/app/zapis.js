@@ -10,7 +10,7 @@ import * as chmura from '../chmura.js';
 import { ikona } from '../ikony.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
-import { zaplanujAktualizacjeLinku } from './podglad-ekran.js';
+import { zaplanujAktualizacjeLinku, odswiezPodglad, OPOZNIENIE_LINKU_Z_KONTA_MS } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { podlaczZasoby } from '../zasoby.js';
@@ -499,6 +499,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       });
       historia.zapisz(p);
       odswiezCofanie();
+      odswiezPodglad(); // otwarty podgląd pokazuje zmiany od razu, bez zamykania i otwierania
     }
     // Czy to urządzenie ma po połączeniu coś, czego nie ma na koncie.
     const doWyslania = !tenSamStan(p, podstawaKonta);
@@ -520,6 +521,8 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       await zapiszLokalnie(p, wlasciciel(), false);
       await zachowajHistorie(p);
       if (stan.projekt === p && !stan.timerZapisu && !pominietaWysylka) stanZapisu('ok', 'Zapisano');
+      // Udostępniony link idzie także za zmianami z konta (np. od AI, którego nikt inny nie narysuje).
+      if (ileZKonta && stan.projekt === p) zaplanujAktualizacjeLinku(OPOZNIENIE_LINKU_Z_KONTA_MS);
       koniec();
     }
   } catch (blad) {

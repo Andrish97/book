@@ -29,21 +29,69 @@ export async function pokazUdostepniony(t) {
         throw e.stanLinku && e.stanLinku !== 'brak' ? e : bladPubliczny;
       }
       dane = await chmura.wczytajPodgladChroniony(t.konto, t.projekt, t.kod);
+      dane.chroniony = true;
     }
-    pokazStronyLinku(dane);
+    pokazStronyLinku(dane, t);
   } catch (e) {
     pokazBladLinku(e);
   }
 }
 
-function pokazStronyLinku({ manifest, adresObrazu }) {
-  document.title = `${manifest.uklad.nazwa} – ${NAZWA}`;
+// Otwarty link sam sprawdza, czy właściciel go nie zaktualizował: co minutę i przy powrocie do karty.
+// Nowa wersja podmienia tylko obrazy stron, które się zmieniły – reszta i miejsce przewinięcia zostają.
+const CO_ILE_SPRAWDZAC = 60000;
+let sledzony = null; // { t, haslo, chroniony, zaktualizowano, timer }
+
+function zrodloLinku({ manifest, adresObrazu }) {
   const kiedyStan = new Date(manifest.zaktualizowano).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
-  podgladPubliczny ||= new Podglad();
-  podgladPubliczny.pokaz(manifest.uklad, {
-    obraz: (strona) => adresObrazu(strona.id), stale: true, klikalne: false, opis: `stan z ${kiedyStan}`,
-  });
+  return {
+    obraz: (strona) => adresObrazu(strona.id),
+    odcisk: manifest.skroty ? (strona) => manifest.skroty[strona.id] : null,
+    stale: true,
+    klikalne: false,
+    opis: `stan z ${kiedyStan}`,
+  };
 }
+
+function pokazStronyLinku(dane, t, haslo = '') {
+  const { manifest } = dane;
+  document.title = `${manifest.uklad.nazwa} – ${NAZWA}`;
+  podgladPubliczny ||= new Podglad();
+  podgladPubliczny.pokaz(manifest.uklad, zrodloLinku(dane));
+  sledzLink(t, haslo, Boolean(dane.chroniony), manifest.zaktualizowano);
+}
+
+function sledzLink(t, haslo, chroniony, zaktualizowano) {
+  clearTimeout(sledzony?.timer);
+  sledzony = { t, haslo, chroniony, zaktualizowano, timer: null };
+  zaplanujSprawdzenie();
+}
+
+function zaplanujSprawdzenie() {
+  const s = sledzony;
+  if (!s) return;
+  clearTimeout(s.timer);
+  s.timer = setTimeout(async () => { await sprawdzLink(); zaplanujSprawdzenie(); }, CO_ILE_SPRAWDZAC);
+}
+
+async function sprawdzLink() {
+  const s = sledzony;
+  if (!s || !podgladZLinku() || document.visibilityState !== 'visible' || !navigator.onLine) return;
+  if (podgladPubliczny.wPrezentacji) return; // w czasie prezentacji nic nie podmieniamy pod rękami
+  try {
+    const dane = s.chroniony
+      ? await chmura.wczytajPodgladChroniony(s.t.konto, s.t.projekt, s.t.kod, s.haslo)
+      : await chmura.wczytajPodgladPubliczny(s.t.konto, s.t.projekt, s.t.kod);
+    if (sledzony !== s || dane.manifest.zaktualizowano === s.zaktualizowano) return;
+    s.zaktualizowano = dane.manifest.zaktualizowano;
+    document.title = `${dane.manifest.uklad.nazwa} – ${NAZWA}`;
+    podgladPubliczny.odswiez(dane.manifest.uklad, zrodloLinku(dane));
+  } catch { /* link wyłączony albo brak sieci – zostaje to, co widać */ }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && sledzony) { sprawdzLink(); zaplanujSprawdzenie(); }
+});
 
 function pokazBladLinku(e) {
   document.title = NAZWA;
@@ -73,7 +121,8 @@ function pokazPoleHasla(t) {
     przycisk.disabled = true;
     komunikat.textContent = 'Sprawdzam hasło…';
     try {
-      pokazStronyLinku(await chmura.wczytajPodgladChroniony(t.konto, t.projekt, t.kod, form.elements.haslo.value));
+      const haslo = form.elements.haslo.value;
+      pokazStronyLinku({ ...(await chmura.wczytajPodgladChroniony(t.konto, t.projekt, t.kod, haslo)), chroniony: true }, t, haslo);
     } catch (blad) {
       if (blad.stanLinku === 'wygasl' || blad.stanLinku === 'brak') { pokazBladLinku(blad); return; }
       komunikat.textContent = blad.stanLinku ? blad.message : `Nie udało się wczytać podglądu: ${chmura.komunikatBledu(blad)}`;

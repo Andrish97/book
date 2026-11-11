@@ -502,6 +502,7 @@ Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – b
 - Podgląd pokazuje projekt po powieleniu: każdą stronę serii tyle razy, ile wynika z danych, z jej numerem i podpisem „3 z 31”.
 - Strony idą po kolei, rozkładówki stoją obok siebie. Przyciski **−** i **+** zmieniają powiększenie, kliknięcie liczby dopasowuje do okna.
 - Kliknięcie strony otwiera ją w edytorze. **Edytor** albo `Esc` wraca do edycji.
+- **Otwarty podgląd odświeża się sam**, gdy projekt zmieni się gdzie indziej – na innym urządzeniu albo przez asystenta AI. Podgląd zostaje w tym samym miejscu i w tym samym powiększeniu, a od nowa rysują się tylko strony, które wyglądają inaczej. Dzięki temu możesz np. trzymać podgląd na telefonie i patrzeć, jak zmienia się projekt, nad którym pracuje AI.
 
 ## 25. Udostępnianie linkiem
 
@@ -513,6 +514,8 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 - W podglądzie kliknij **Udostępnij**, potem **Utwórz link**. Aplikacja przygotuje obrazy wszystkich stron – przy dużym projekcie chwilę to potrwa.
 - Skopiuj link i wyślij go. Osoba z linkiem widzi strony tak jak w podglądzie; nie może nic zmienić i nie ma dostępu do reszty Twoich projektów.
 - **Link aktualizuje się sam**: kilka sekund po zapisaniu zmian na koncie aplikacja wysyła obrazy tych stron, które się zmieniły. Adres zostaje ten sam. **Aktualizuj teraz** robi to od ręki.
+- Obrazy stron rysuje Twoja aplikacja, więc link nadąża za zmianami wtedy, gdy masz projekt otwarty (w edytorze albo w podglądzie, na dowolnym urządzeniu). Zmiany od asystenta AI też trafiają do linku – kilkanaście sekund po tym, jak dojdą do otwartego projektu. Gdy projekt jest zamknięty, link pokazuje ostatni stan i zaktualizuje się po otwarciu.
+- Osoba, która ma link otwarty, nie musi go odświeżać: strona co minutę (i po powrocie do karty) sprawdza, czy jest nowsza wersja, i podmienia tylko obrazy zmienionych stron.
 - **Unieważnij link** usuwa udostępnione strony; stary adres przestaje działać. Ponowne udostępnienie daje nowy adres.
 - Projekt z czynnym linkiem ma na liście projektów plakietkę **Udostępniony** – kliknięcie otwiera to samo okienko, bez wchodzenia do projektu.
 - Link jest długi i losowy, więc nie da się go zgadnąć – ale każdy, kto go dostanie, może go przekazać dalej.
