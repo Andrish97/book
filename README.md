@@ -95,7 +95,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 ## Model projektu (wersja 3)
 
 - `tabele[]`: `{ id, nazwa, kolumny: [nazwa], wiersze: [[tekst]], unikalne?: [nazwa kolumny] }` – `unikalne` to kolumny z pilnowaniem powtórzeń.
-- `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi', dodatkowe: [{ tabela, co, pierwszy?, zmiana? }], dopelnij }`; strona wskazuje serię polem `seria`. Tabela dodatkowa zmienia wiersz co `co` stron (pierwszy wiersz przez `pierwszy` stron) albo – gdy ma `zmiana` (nazwa kolumny tabeli głównej) – wtedy, gdy zmieni się wartość w tej kolumnie. Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
+- `serie[]`: `{ id, nazwa, tabela, tryb: 'tabela' | 'stala', ile, uklad: 'szeroki' | 'dlugi', dodatkowe: [{ tabela, co, pierwszy?, zmiana? }], dopelnij }`; strona wskazuje serię polem `seria`. Tabela dodatkowa zmienia wiersz co `co` stron (pierwszy wiersz przez `pierwszy` stron) albo – gdy ma `zmiana` (nazwa kolumny tabeli głównej albo lista kilku nazw, np. `['miesiac', 'rok']`) – wtedy, gdy zmieni się wartość w tej kolumnie (przy liście: w którejkolwiek z nich). Powielone strony nie są zapisywane – powstają w `js/serie.js` przy składaniu.
 - `widok`: `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }`; strony i wzorce mogą mieć `prowadnice: { x: [mm], y: [mm] }`.
 
 - `sekcje[]`: `{ id, nazwa, wydruk: { format, szerokosc_mm, wysokosc_mm, spad_mm, marginesy: { gora, dol, wewnetrzny, zewnetrzny }, znaki_ciecia }, uklad: 'pojedyncze' | 'rozkladowki', pierwsza: 'prawa' | 'lewa', wzorce: [id], numeracja: { tryb: 'ciagla' | 'od' | 'brak', od } }`

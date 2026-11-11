@@ -175,10 +175,13 @@ export function normalizuj(p) {
     uklad: s.uklad === 'dlugi' ? 'dlugi' : 'szeroki',
     ile: Number.isFinite(s.ile) ? Math.min(2000, Math.max(1, Math.round(s.ile))) : 12,
     // Tabele dodatkowe: wiersz zmienia się co `co` stron serii; pierwszy wiersz obowiązuje `pierwszy` stron.
+    // `zmiana` – zamiast stałego kroku: kolumna tabeli głównej (napis) albo kilka kolumn (lista).
     dodatkowe: (Array.isArray(s.dodatkowe) ? s.dodatkowe : []).filter((d) => idTabel.has(d?.tabela) && d.tabela !== s.tabela).map((d) => {
       const co = Math.min(2000, Math.max(1, Math.round(d.co) || 1));
       const pierwszy = Math.round(d.pierwszy);
-      return { tabela: d.tabela, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}) };
+      const kolumny = [...new Set((Array.isArray(d.zmiana) ? d.zmiana : [d.zmiana]).filter((k) => typeof k === 'string' && k))];
+      const zmiana = kolumny.length > 1 ? kolumny : kolumny[0];
+      return { tabela: d.tabela, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(zmiana ? { zmiana } : {}) };
     }),
     dopelnij: Boolean(s.dopelnij),
   }));

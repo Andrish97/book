@@ -6,7 +6,7 @@
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku } from './kontrola.js';
-import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach } from './serie.js';
+import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
@@ -191,7 +191,7 @@ export class Dane {
     t.kolumny[k] = nowa;
     if (t.unikalne) t.unikalne = t.unikalne.map((u) => (u === stara ? nowa : u));
     // Tabele dodatkowe, które zmieniają wiersz razem z tą kolumną, idą za nową nazwą.
-    for (const x of p.serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana === stara) d.zmiana = nowa;
+    for (const x of p.serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (kolumnyZmiany(d.zmiana).includes(stara)) d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).map((z) => (z === stara ? nowa : z)));
     el.textContent = nowa;
     const n = zmienNazwePola(p, stara, nowa, (cel) => (p.strony.includes(cel) ? zTejTabeli.has(cel) : jedyna))
       + zmienNazwePola(p, `${t.nazwa}.${stara}`, `${t.nazwa}.${nowa}`);
@@ -261,7 +261,7 @@ export class Dane {
         const k = Number(kolumna.dataset.k);
         if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, 'Pola z tej kolumny przestaną się wypełniać.', 'Usuń kolumnę', true)) return;
         if (t.unikalne) t.unikalne = t.unikalne.filter((u) => u !== t.kolumny[k]);
-        for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana === t.kolumny[k]) delete d.zmiana;
+        for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana) { d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).filter((z) => z !== t.kolumny[k])); if (!d.zmiana) delete d.zmiana; }
         t.kolumny.splice(k, 1);
         for (const w of t.wiersze) w.splice(k, 1);
       } else if (wiersz) t.wiersze.splice(Number(wiersz.dataset.w), 1);
@@ -402,24 +402,51 @@ export class Dane {
     sel.value = d.tabela || '';
     wiersz.querySelector('[data-pole="co"]').value = d.co || 7;
     wiersz.querySelector('[data-pole="pierwszy"]').value = d.pierwszy || '';
-    this._ustawKiedy(wiersz, d.zmiana ? `k:${d.zmiana}` : '');
+    this._ustawKiedy(wiersz, kolumnyZmiany(d.zmiana));
     return wiersz;
   }
 
   // Lista „Nowy wiersz”: co stałą liczbę stron albo gdy zmieni się wartość w wybranej kolumnie tabeli głównej
-  // (np. miesiąc w tabeli dni – miesiące mają 28–31 stron, więc stały krok tu nie działa).
-  _ustawKiedy(wiersz, wybrana = null) {
+  // (np. miesiąc w tabeli dni – miesiące mają 28–31 stron, więc stały krok tu nie działa). Po wybraniu kolumny
+  // pojawia się lista „albo kolumna” – kolejne kolumny, których zmiana też zaczyna nowy wiersz (np. rok obok miesiąca).
+  // wybrane: kolumny do ustawienia (przy otwarciu okna); null – zostaje to, co jest wybrane w oknie.
+  _ustawKiedy(wiersz, wybrane = null) {
     const sel = wiersz.querySelector('[data-pole="kiedy"]');
     const idGlownej = $('#dlg-seria form').elements.tabela.value || '';
     const glowna = this.projekt().tabele.find((t) => t.id === idGlownej);
-    const klucz = `${idGlownej}|${(glowna?.kolumny || []).join('\n')}`;
+    const kolumny = glowna?.kolumny || [];
+    const klucz = `${idGlownej}|${kolumny.join('\n')}`;
     if (wiersz.dataset.glowna !== klucz) {
-      const obecna = wybrana ?? sel.value;
+      const obecna = wybrane ? (wybrane[0] ? `k:${wybrane[0]}` : '') : sel.value;
       wiersz.dataset.glowna = klucz;
-      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...(glowna?.kolumny || []).map((k) => new Option(`gdy zmieni się kolumna „${k}”`, `k:${k}`)));
+      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...kolumny.map((k) => new Option(`gdy zmieni się kolumna „${k}”`, `k:${k}`)));
       sel.value = [...sel.options].some((o) => o.value === obecna) ? obecna : '';
     }
     for (const pole of ['co', 'pierwszy']) wiersz.querySelector(`[data-pole="${pole}"]`).closest('label').hidden = Boolean(sel.value);
+    // Kolejne kolumny: tyle list, ile wybranych kolumn, i jedna pusta na następną.
+    const stare = [...wiersz.querySelectorAll('[data-pole="kiedy-wiecej"]')];
+    const pierwsza = sel.value.startsWith('k:') ? sel.value.slice(2) : '';
+    const dalsze = pierwsza ? [...new Set(wybrane ? wybrane.slice(1) : stare.map((x) => x.value))].filter((k) => k && k !== pierwsza && kolumny.includes(k)) : [];
+    const wolne = kolumny.filter((k) => k !== pierwsza && !dalsze.includes(k));
+    const uklad = pierwsza ? [...dalsze, ...(wolne.length ? [''] : [])] : [];
+    const odcisk = `${klucz}|${pierwsza}|${uklad.join('\n')}`;
+    if (wiersz.dataset.wiecej === odcisk) return;
+    wiersz.dataset.wiecej = odcisk;
+    const aktywna = stare.indexOf(document.activeElement);
+    for (const x of stare) x.closest('label').remove();
+    let po = sel.closest('label');
+    const nowe = uklad.map((wartosc) => {
+      const pole = document.createElement('label');
+      pole.className = 'pole';
+      pole.innerHTML = '<span>albo kolumna</span><select data-pole="kiedy-wiecej"></select>';
+      const lista = pole.querySelector('select');
+      lista.replaceChildren(new Option(wartosc ? '— usuń tę kolumnę —' : '— żadna więcej —', ''), ...[...(wartosc ? [wartosc] : []), ...wolne].map((k) => new Option(`„${k}”`, k)));
+      lista.value = wartosc;
+      po.after(pole);
+      po = pole;
+      return lista;
+    });
+    if (aktywna >= 0) (nowe[aktywna] || nowe.at(-1) || sel).focus();
   }
 
   otworzSerie(id) {
@@ -507,7 +534,9 @@ export class Dane {
         const co = Math.min(2000, Math.max(1, Math.round(Number(w.querySelector('[data-pole="co"]').value)) || 1));
         const pierwszy = Math.round(Number(w.querySelector('[data-pole="pierwszy"]').value));
         const kiedy = w.querySelector('[data-pole="kiedy"]')?.value || '';
-        return { tabela: w.querySelector('select').value, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(kiedy.startsWith('k:') ? { zmiana: kiedy.slice(2) } : {}) };
+        // Jedna kolumna to napis, kilka – lista (kolumna wybrana w liście „albo kolumna”).
+        const zmiana = kiedy.startsWith('k:') ? zapisZmiany(kolumnyZmiany([kiedy.slice(2), ...[...w.querySelectorAll('[data-pole="kiedy-wiecej"]')].map((x) => x.value)])) : undefined;
+        return { tabela: w.querySelector('select').value, co, ...(pierwszy >= 1 && pierwszy < co ? { pierwszy } : {}), ...(zmiana ? { zmiana } : {}) };
       }).filter((d) => d.tabela && d.tabela !== (f.elements.tabela.value || null)),
     };
   }

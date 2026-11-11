@@ -169,3 +169,89 @@ test('kolor z danych w wypełnieniu przejściem kolorów: pierwszy albo ostatni 
   assert.deepEqual(await zapis('zwykly'), { kolor: 'kolor' });
   assert.deepEqual(bledy, []);
 });
+
+test('tabela dodatkowa zmienia wiersz, gdy zmieni się którakolwiek z kilku kolumn (miesiąc albo rok); okno serii, zmiana nazwy i usunięcie kolumny', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Dwie kolumny');
+  const w = await strona.evaluate(async () => {
+    const { stan, zapiszTeraz } = window.seriodruk;
+    const p = stan.projekt;
+    await zapiszTeraz();
+    // Dwa razy grudzień, ale w różnych latach; między nimi nic – sama kolumna miesiąca nie zauważy zmiany roku.
+    const dni = [['30', 'grudzień', '2027'], ['31', 'grudzień', '2027'], ['30', 'grudzień', '2028'], ['31', 'grudzień', '2028'], ['1', 'styczeń', '2029']];
+    p.tabele.push({ id: 't_dni', nazwa: 'Dni', kolumny: ['dzien', 'miesiac', 'rok'], wiersze: dni });
+    p.tabele.push({ id: 't_okr', nazwa: 'Okresy', kolumny: ['haslo'], wiersze: [['A'], ['B'], ['C']] });
+    p.serie.push({ id: 'se1', nazwa: 'Dni', tabela: 't_dni', tryb: 'tabela', uklad: 'szeroki', ile: 1, dodatkowe: [{ tabela: 't_okr', co: 7, zmiana: ['miesiac', 'rok'] }] });
+    p.strony[0].seria = 'se1';
+    p.strony[0].obiekty = [{ type: 'textbox', version: '5.3.0', left: 10, top: 10, width: 100, text: '{dzien} {miesiac} {rok}: {Okresy.haslo}', styles: [], fontSize: 5, fontFamily: 'Inter', id: 'o1' }];
+    await window.seriodruk.przeladuj();
+    const { rozwin, bilansSerii, tabeleDodatkowe } = await import('./js/serie.js');
+    const { opisKroku } = await import('./js/kontrola.js');
+    const numery = (zmiana) => rozwin({ ...p, serie: [{ ...p.serie[0], dodatkowe: [{ tabela: 't_okr', co: 2, zmiana }] }] }).egzemplarze.map((e) => e.dodatkowe[0].nrWiersza);
+    const ciag = rozwin(p);
+    return {
+      dwie: ciag.egzemplarze.map((e) => e.dodatkowe[0].nrWiersza),
+      jedna: numery('miesiac'),
+      jednaWLiscie: numery(['miesiac']),
+      zNieznana: numery(['nie_ma', 'rok']),
+      sameNieznane: numery(['nie_ma', 'tez_nie']),
+      bilans: bilansSerii(p, p.serie[0], ciag)[0].dodatkowe.map((d) => [d.zmiana, d.potrzeba, d.jest]),
+      opis: opisKroku(tabeleDodatkowe(p, p.serie[0])[0]),
+    };
+  });
+  assert.deepEqual(w.dwie, [0, 0, 1, 1, 2], 'grudzień 2027, grudzień 2028 i styczeń 2029 to trzy okresy');
+  assert.deepEqual(w.jedna, [0, 0, 0, 0, 1], 'sama kolumna miesiąca łączy oba grudnie');
+  assert.deepEqual(w.jednaWLiscie, w.jedna);
+  assert.deepEqual(w.zNieznana, [0, 0, 1, 1, 2], 'kolumna, której nie ma, jest pomijana – liczy się rok');
+  assert.deepEqual(w.sameNieznane, [0, 0, 1, 1, 2], 'bez żadnej znanej kolumny działa stały krok (co 2 strony)');
+  assert.deepEqual(w.bilans, [[['miesiac', 'rok'], 3, 3]]);
+  assert.equal(w.opis, 'nowy wiersz, gdy zmieni się kolumna „miesiac” albo „rok”');
+
+  // Okno serii: po kolumnie „miesiac” jest lista „albo kolumna” z „rok” i pusta lista na następną.
+  await strona.evaluate(() => window.seriodruk.dane.otworzSerie('se1'));
+  await strona.waitForSelector('#dlg-seria[open]');
+  const listy = () => strona.locator('.wiersz-dodatkowej [data-pole="kiedy-wiecej"]').evaluateAll((l) => l.map((x) => [x.value, [...x.options].map((o) => o.value)]));
+  assert.equal(await strona.inputValue('.wiersz-dodatkowej [data-pole="kiedy"]'), 'k:miesiac');
+  assert.deepEqual(await listy(), [['rok', ['', 'rok', 'dzien']], ['', ['', 'dzien']]]);
+  assert.match(await strona.textContent('#seria-podsumowanie'), /Tabela „Okresy”: nowy wiersz, gdy zmieni się kolumna „miesiac” albo „rok” – potrzeba 3 wierszy, jest 3\.$/);
+  // Zdjęcie drugiej kolumny: zostaje sam miesiąc i jedna pusta lista; podsumowanie liczy od nowa.
+  await strona.selectOption('.wiersz-dodatkowej [data-pole="kiedy-wiecej"] >> nth=0', '');
+  assert.deepEqual(await listy(), [['', ['', 'dzien', 'rok']]]);
+  assert.match(await strona.textContent('#seria-podsumowanie'), /gdy zmieni się kolumna „miesiac” – potrzeba 2 wierszy, jest 3\.$/);
+  // Stały krok chowa listy dodatkowych kolumn; powrót do kolumny pokazuje pustą listę.
+  await strona.selectOption('.wiersz-dodatkowej [data-pole="kiedy"]', '');
+  assert.deepEqual(await listy(), []);
+  await strona.selectOption('.wiersz-dodatkowej [data-pole="kiedy"]', 'k:rok');
+  assert.deepEqual(await listy(), [['', ['', 'dzien', 'miesiac']]]);
+  await strona.selectOption('.wiersz-dodatkowej [data-pole="kiedy-wiecej"] >> nth=0', 'miesiac');
+  assert.deepEqual(await listy(), [['miesiac', ['', 'miesiac', 'dzien']], ['', ['', 'dzien']]]);
+  await strona.waitForTimeout(200); // nowa lista dostaje własną kontrolkę chwilę po dodaniu – okno musi przestać się układać
+  await strona.click('#dlg-seria #zapisz-serie');
+  await strona.waitForSelector('#dlg-seria', { state: 'hidden' });
+  const dodatkowe = () => strona.evaluate(() => window.seriodruk.stan.projekt.serie[0].dodatkowe);
+  assert.deepEqual(await dodatkowe(), [{ tabela: 't_okr', co: 7, zmiana: ['rok', 'miesiac'] }]);
+  // Ustawienie przeżywa ponowne otwarcie projektu – i jako lista, i jako napis (starsze projekty).
+  const poOtwarciu = await strona.evaluate(async () => {
+    const { normalizuj } = await import('./js/projekt.js');
+    const p = JSON.parse(JSON.stringify(window.seriodruk.stan.projekt));
+    const jedna = JSON.parse(JSON.stringify(p));
+    jedna.serie[0].dodatkowe[0].zmiana = 'rok';
+    return [normalizuj(p).serie[0].dodatkowe, normalizuj(jedna).serie[0].dodatkowe];
+  });
+  assert.deepEqual(poOtwarciu, [[{ tabela: 't_okr', co: 7, zmiana: ['rok', 'miesiac'] }], [{ tabela: 't_okr', co: 7, zmiana: 'rok' }]]);
+
+  // Zmiana nazwy kolumny tabeli głównej idzie za listą; usunięcie kolumny zostawia pozostałą jako napis.
+  await strona.evaluate(() => window.seriodruk.dane.otworz('t_dni'));
+  await strona.waitForSelector('#dlg-dane[open]');
+  await strona.click('.nazwa-kolumny[data-k="1"]');
+  await strona.keyboard.press('Control+a');
+  await strona.keyboard.type('mies');
+  await strona.keyboard.press('Enter');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].kolumny[1] === 'mies');
+  assert.deepEqual((await dodatkowe())[0].zmiana, ['rok', 'mies']);
+  await strona.click('.usun-kolumne[data-k="2"]');
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele[0].kolumny.length === 2);
+  assert.equal((await dodatkowe())[0].zmiana, 'mies');
+  assert.deepEqual(bledy, []);
+});

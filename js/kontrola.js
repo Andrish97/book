@@ -3,7 +3,7 @@
 
 import { polaWObiektach, POLA_DOKUMENTU } from './pola.js';
 import { wzorceStrony } from './projekt.js';
-import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol } from './serie.js';
+import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany } from './serie.js';
 import { odmiana } from './ui.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
@@ -106,9 +106,13 @@ export function powtorzenia(tabela, kolumna) {
 }
 
 // Kiedy tabela dodatkowa przechodzi do następnego wiersza – słowami, do komunikatów.
-export const opisKroku = (d) => (d.zmiana
-  ? `nowy wiersz, gdy zmieni się kolumna „${d.zmiana}”`
-  : `nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}`);
+export const opisKroku = (d) => {
+  const kolumny = kolumnyZmiany(d.zmiana);
+  if (kolumny.length > 1) return `nowy wiersz, gdy zmieni się kolumna ${kolumny.map((x) => `„${x}”`).join(' albo ')}`;
+  return kolumny.length
+    ? `nowy wiersz, gdy zmieni się kolumna „${kolumny[0]}”`
+    : `nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}`;
+};
 
 const lista = (numery, ile = 6) => {
   const n = [...new Set(numery)].sort((a, b) => a - b);
