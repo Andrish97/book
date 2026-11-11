@@ -12,7 +12,7 @@
 
 import { renderujCel, zlozCel, naPlotnieCelu } from './zlozenie.js';
 import { obrazStronyCmyk } from './strona-cmyk.js';
-import { rysujStroneWektorowo, CzcionkiPdf, ObrazyPdf } from './pdf-wektorowy.js';
+import { rysujStroneWektorowo, CzcionkiPdf, ObrazyPdf, poprawOpisCzcionekOtf } from './pdf-wektorowy.js';
 import { wczytajWarunki, dodajPdfX, naglowekPdfX } from './pdf-x.js';
 import { rozwin } from './serie.js';
 import { biblioteka } from './biblioteki.js';
@@ -176,6 +176,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   }
   // Czcionki wczytane, ale ostatecznie nieużyte (np. tekst poszedł jako obraz), nie trafiają do pliku.
   if (srodowisko) pdf.fonts = pdf.fonts.filter((f) => srodowisko.uzyteCzcionki.has(f));
+  if (srodowisko) await poprawOpisCzcionekOtf(PDFLib, pdf);
   if (warunki) await dodajPdfX(PDFLib, pdf, warunki, { tytul: projekt.nazwa });
   const bajty = await pdf.save();
   return new Blob([warunki ? naglowekPdfX(bajty) : bajty], { type: 'application/pdf' });
