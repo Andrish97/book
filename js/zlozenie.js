@@ -303,6 +303,20 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
 // (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach),
 // oryginaly (pełne obrazy zamiast kopii roboczych – do eksportu).
 export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false } = {}) {
+  const { plotno } = await plotnoCelu(projekt, cel, { szerokoscPx, spad, ciag, oryginaly });
+  const url = plotno.toDataURL({ format, quality: jakosc });
+  plotno.dispose();
+  return url;
+}
+
+// Ta sama strona jako płótno z narysowaną treścią: `uzyj(plotno, obiekty)` dostaje je na czas pracy
+// (np. żeby odczytać piksele pasami), potem płótno jest zwalniane. Zwraca to, co zwróci `uzyj`.
+export async function naPlotnieCelu(projekt, cel, opcje, uzyj) {
+  const { plotno, obiekty } = await plotnoCelu(projekt, cel, opcje);
+  try { return await uzyj(plotno, obiekty); } finally { plotno.dispose(); }
+}
+
+async function plotnoCelu(projekt, cel, { szerokoscPx = 200, spad = true, ciag, oryginaly = false } = {}) {
   const { wydruk, tlo, obiekty } = await zlozCel(projekt, cel, { ciag, oryginaly });
   const { szerokosc_mm: w, wysokosc_mm: h } = wydruk;
   const b = spad ? wydruk.spad_mm : 0;
@@ -317,7 +331,5 @@ export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true
   for (const o of obiekty) plotno.add(o);
   plotno.setViewportTransform([k, 0, 0, k, b * k, b * k]);
   plotno.renderAll();
-  const url = plotno.toDataURL({ format, quality: jakosc });
-  plotno.dispose();
-  return url;
+  return { plotno, obiekty };
 }

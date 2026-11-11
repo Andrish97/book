@@ -88,6 +88,24 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
   const N = (n) => PDFName.of(n);
   const tekstZ = (v) => (v && v.decodeText ? v.decodeText() : String(v));
   const rozpakuj = (s) => (s.dict.get(N('Filter')) ? decodePDFRawStream(s).decode() : s.contents);
+  // Piksele obrazu: gdy wiersze są zapisane z „przewidywaniem” PNG (różnica z lewej albo z góry), odtwarzamy je.
+  const piksele = (x) => {
+    const dane = rozpakuj(x);
+    const parametry = x.dict.lookupMaybe(N('DecodeParms'), PDFDict);
+    if (!parametry) return dane;
+    const kanaly = parametry.get(N('Colors')).asNumber(); const dl = parametry.get(N('Columns')).asNumber() * kanaly;
+    const wierszy = dane.length / (dl + 1);
+    const wynik = new Uint8Array(wierszy * dl);
+    for (let w = 0; w < wierszy; w += 1) {
+      const typ = dane[w * (dl + 1)];
+      if (typ !== 1 && typ !== 2) throw new Error(`nieznane przewidywanie ${typ}`);
+      for (let i = 0; i < dl; i += 1) {
+        const obok = typ === 1 ? (i >= kanaly ? wynik[w * dl + i - kanaly] : 0) : (w ? wynik[(w - 1) * dl + i] : 0);
+        wynik[w * dl + i] = (dane[w * (dl + 1) + 1 + i] + obok) & 255;
+      }
+    }
+    return wynik;
+  };
   const obiekty = pdf.context.enumerateIndirectObjects().map(([, x]) => x);
   const kartka = pdf.getPage(0);
   const zasoby = kartka.node.Resources();
@@ -113,7 +131,7 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
   for (const ref of (strumienie.asArray ? strumienie.asArray() : [strumienie])) { const s = pdf.context.lookup(ref); tresc += new TextDecoder('latin1').decode(s instanceof PDFRawStream ? decodePDFRawStream(s).decode() : s.getUnencodedContents()); }
   const liczba = (wzor) => (tresc.match(wzor) || []).length;
   const obrazy = obiekty.filter((x) => x.dict && String(x.dict.get(N('Subtype'))) === '/Image');
-  const opisObrazu = (x) => `${String(x.dict.get(N('ColorSpace')))} ${String(x.dict.get(N('Filter')))} ${x.dict.get(N('Width'))}x${x.dict.get(N('Height'))}${x.dict.get(N('SMask')) ? ' +maska' : ''}`;
+  const opisObrazu = (x) => `${String(x.dict.get(N('ColorSpace')))} ${String(x.dict.get(N('Filter')))} ${x.dict.get(N('Width'))}x${x.dict.get(N('Height'))}${x.dict.get(N('SMask')) ? ' +maska' : ''}${x.dict.get(N('DecodeParms')) ? ' +przewidywanie' : ''}`;
   const cieniowania = obiekty.filter((x) => x instanceof PDFDict && x.get(N('ShadingType'))).map((x) => String(x.get(N('ColorSpace'))));
 
   // Piksel ze środka największego (w pikselach) obrazu CMYK i to samo policzone wprost przez profil (zdjęcie testowe ma na środku jeden kolor).
@@ -125,6 +143,32 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
     const p = (Math.floor(wys / 2) * szer + Math.floor(szer / 2)) * 4;
     const silnik = new SilnikCmyk(czytajProfil(o.pdfx === 'wlasny' ? o.profilWlasny.bajty : await (await fetch(WARUNKI_DRUKU[o.pdfx].plik)).arrayBuffer()));
     piksel = { wPliku: [...dane.slice(p, p + 4)], zProfilu: silnik.cmyk(...o.kolorZdjecia.map((v) => v / 255)).map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)), wymiary: [szer, wys], dlugosc: dane.length };
+  }
+
+  // Obraz całej strony w CMYK (tryb „Obrazy stron”): piksele w podanych miejscach strony (mm) i to,
+  // co daje dla wzorcowych kolorów sam profil.
+  let probki = null;
+  if (cmykowe.length && o.probki) {
+    const x = cmykowe[0]; const dane = piksele(x);
+    const szer = x.dict.get(N('Width')).asNumber(); const wys = x.dict.get(N('Height')).asNumber();
+    const { szerokosc_mm: W, wysokosc_mm: H, spad_mm: S } = stan.projekt.sekcje[0].wydruk;
+    const silnik = new SilnikCmyk(czytajProfil(await (await fetch(WARUNKI_DRUKU[o.pdfx].plik)).arrayBuffer()));
+    const bajty255 = (v) => v.map((k) => Math.round(Math.min(1, Math.max(0, k)) * 255));
+    let czystaCzern = 0; let samaCzern = 0; let czteryFarby = 0;
+    for (let i = 0; i < dane.length; i += 4) {
+      if (dane[i] || dane[i + 1] || dane[i + 2]) czteryFarby += 1;
+      else if (dane[i + 3] === 255) czystaCzern += 1;
+      else if (dane[i + 3]) samaCzern += 1;
+    }
+    probki = {
+      wymiary: [szer, wys], dlugosc: dane.length, czystaCzern, samaCzern, czteryFarby,
+      punkty: Object.fromEntries(Object.entries(o.probki).map(([nazwa, [mx, my]]) => {
+        const p = (Math.round(((my + S) / (H + 2 * S)) * wys) * szer + Math.round(((mx + S) / (W + 2 * S)) * szer)) * 4;
+        return [nazwa, [...dane.slice(p, p + 4)]];
+      })),
+      zProfilu: Object.fromEntries(Object.entries(o.wzorce || {}).map(([nazwa, k]) => [nazwa, bajty255(silnik.cmyk(...k.map((v) => v / 255)))])),
+      czernSzarosci128: silnik.czernSzarosci()[128],
+    };
   }
 
   // Obraz strony z czytnika PDF i z aplikacji.
@@ -167,7 +211,7 @@ const eksportuj = (strona, opcje) => strona.evaluate(async ([o, pdfjs, watek]) =
     pudelka: pdf.getPages().every((k) => k.node.get(N('TrimBox')) && k.node.get(N('BleedBox'))),
     rgb: liczba(/\b(rg|RG)\b/g), cmyk: liczba(/ [kK]\b/g), czystaCzern: liczba(/\b0 0 0 1 k\b/g), tekstowe: liczba(/\bTJ\b/g),
     obrazy: obrazy.map(opisObrazu).sort(), cieniowania, czcionkiOsadzone: obiekty.filter((x) => x instanceof PDFDict && String(x.get(N('Type'))) === '/FontDescriptor').every((x) => x.get(N('FontFile2')) || x.get(N('FontFile3'))),
-    piksel, tekst, srednia: suma / piks, rozne: rozne / piks, ksztalt: ksztalt / piks,
+    piksel, probki, tekst, srednia: suma / piks, rozne: rozne / piks, ksztalt: ksztalt / piks,
   };
 }, [opcje, PDFJS, PDFJS_WATEK]);
 
@@ -255,6 +299,8 @@ test('PDF/X-4: warunki druku z profilem, metadane, kolory i zdjęcia w CMYK prze
   assert.equal(o.zamiar.id, 'FOGRA47');
   assert.equal(o.domyslnyRgb, '/ICCBased N=3');
   assert.equal(o.info.wersja, 'PDF/X-4');
+  assert.equal(o.obrazy.length, 1);
+  assert.match(o.obrazy[0], /^\/DeviceRGB \/DCTDecode /, 'bez opcji CMYK obraz strony zostaje w RGB');
 
   // 4. Profil od drukarni: plik .icc jako warunki druku; plik, który nie jest profilem CMYK, daje jasny komunikat.
   const wl = await eksportuj(strona, { tryb: 'wektor', pdfx: 'wlasny', profilWlasny: 'fogra47', cmyk: true, dpi: 150 });
@@ -270,6 +316,80 @@ test('PDF/X-4: warunki druku z profilem, metadane, kolory i zdjęcia w CMYK prze
   assert.equal(z.zamiar, null);
   assert.equal(z.meta, null);
   assert.equal(z.domyslnyRgb, null);
+  assert.deepEqual(bledy, []);
+});
+
+test('PDF/X-4 w trybie „Obrazy stron”: obraz strony w CMYK przez profil; czerń i szarości poza zdjęciami samą czarną farbą', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Strony CMYK');
+  // Kształty: czerwony, szary i czarny; czarny tekst; zdjęcie (PNG, bez strat) z polem zielonym, szarym i czarnym;
+  // na zdjęciu czarna tabliczka (kształt), obok zdjęcia półprzezroczysty czarny pasek zachodzący na zdjęcie.
+  await strona.evaluate(async () => {
+    const { stan, edytor, zapiszTeraz, przeladuj } = window.seriodruk;
+    const c = Object.assign(document.createElement('canvas'), { width: 400, height: 300 });
+    const x = c.getContext('2d');
+    x.fillStyle = '#2a9d8f'; x.fillRect(0, 0, 200, 300); x.fillStyle = '#808080'; x.fillRect(200, 0, 200, 150); x.fillStyle = '#000000'; x.fillRect(200, 150, 200, 150);
+    const zdjecie = await edytor.dodajObraz(c.toDataURL('image/png'), 'pola.png', stan.projekt.zasoby);
+    zdjecie.set({ left: 10, top: 80, scaleX: 0.2, scaleY: 0.2 }); // 80 × 60 mm
+    edytor.zatwierdz();
+    await zapiszTeraz();
+    stan.projekt.strony[0].obiekty.push(...[
+      { type: 'rect', left: 10, top: 10, width: 40, height: 20, fill: '#c8102e', strokeWidth: 0, id: 'czerwony' },
+      { type: 'rect', left: 60, top: 10, width: 40, height: 20, fill: '#808080', strokeWidth: 0, id: 'szary' },
+      { type: 'rect', left: 110, top: 10, width: 20, height: 20, fill: '#000000', strokeWidth: 0, id: 'czarny' },
+      { type: 'textbox', left: 10, top: 40, width: 120, text: 'Zażółć gęślą jaźń', fontSize: 9, fontFamily: 'Inter', fontWeight: 'bold', fill: '#000000', styles: [], id: 'tekst' },
+      { type: 'rect', left: 20, top: 128, width: 12, height: 8, fill: '#000000', strokeWidth: 0, id: 'tabliczka' },
+      { type: 'rect', left: 80, top: 85, width: 30, height: 10, fill: '#000000', opacity: 0.5, strokeWidth: 0, id: 'polprzezroczysty' },
+    ].map((o) => ({ version: '5.3.0', ...o })));
+    await przeladuj();
+    await document.fonts.ready;
+  });
+  const probki = { czerwony: [30, 20], szary: [80, 20], czarny: [120, 20], papier: [140, 60], zdjecieZielone: [30, 100], zdjecieSzare: [70, 100], zdjecieCzarne: [70, 125], tabliczka: [26, 132], pasekNaZdjeciu: [85, 90], pasekNaPapierze: [100, 90] };
+  const wzorce = { czerwony: [0xc8, 0x10, 0x2e], zielony: [0x2a, 0x9d, 0x8f], szary: [128, 128, 128], czarny: [0, 0, 0], szaryPodPaskiem: [64, 64, 64] };
+  const w = await eksportuj(strona, { tryb: 'obraz', pdfx: 'fogra47', zdjeciaCmyk: true, dpi: 150, znaki: true, probki, wzorce });
+  assert.equal(w.blad, undefined);
+  assert.equal(w.naglowek, '%PDF-1.6');
+  assert.equal(w.zamiar.id, 'FOGRA47');
+  assert.ok(w.profil.niezmieniony);
+  assert.equal(w.info.wersja, 'PDF/X-4');
+  // Jedyny obraz w pliku to strona ze spadem: 154 × 216 mm w 150 dpi (909 × 1275 pikseli), CMYK, spakowana bez strat.
+  assert.deepEqual(w.obrazy, ['/DeviceCMYK /FlateDecode 909x1275 +przewidywanie']);
+  assert.equal(w.probki.dlugosc, 909 * 1275 * 4);
+  assert.equal(w.rgb, 0, 'w treści strony nie ma kolorów RGB (znaki cięcia też w CMYK)');
+  const p = w.probki.punkty; const wz = w.probki.zProfilu;
+  const blisko = (a, b, tol, opis) => assert.ok(a.every((v, i) => Math.abs(v - b[i]) <= tol), `${opis}: ${a} wobec ${b}`);
+  // Kolor kształtu i kolor zdjęcia – przez profil.
+  blisko(p.czerwony, wz.czerwony, 3, 'czerwony kształt');
+  blisko(p.zdjecieZielone, wz.zielony, 3, 'zielone pole zdjęcia');
+  // Poza zdjęciami czerń i szarość to sama czarna farba, biel to czysty papier.
+  assert.deepEqual(p.czarny, [0, 0, 0, 255]);
+  assert.deepEqual(p.szary, [0, 0, 0, w.probki.czernSzarosci128]);
+  assert.ok(w.probki.czernSzarosci128 > 115 && w.probki.czernSzarosci128 < 190, `szary kształt: K = ${w.probki.czernSzarosci128}`);
+  assert.deepEqual(p.papier, [0, 0, 0, 0]);
+  assert.deepEqual(p.tabliczka, [0, 0, 0, 255], 'czarny kształt leżący na zdjęciu też jest samą czernią');
+  assert.deepEqual(p.pasekNaPapierze.slice(0, 3), [0, 0, 0], 'półprzezroczysta czerń na papierze to szarość z samej czarnej farby');
+  // Na zdjęciu szarość i czerń są z czterech farb, tak jak daje profil – także pod półprzezroczystym paskiem.
+  blisko(p.zdjecieSzare, wz.szary, 3, 'szare pole zdjęcia');
+  blisko(p.zdjecieCzarne, wz.czarny, 3, 'czarne pole zdjęcia');
+  assert.ok(p.zdjecieSzare[0] > 40 && p.zdjecieSzare[1] > 30 && p.zdjecieSzare[2] > 30, `szarość zdjęcia z czterech farb: ${p.zdjecieSzare}`);
+  assert.ok(p.zdjecieCzarne.slice(0, 3).every((v) => v > 100), `czerń zdjęcia głęboka: ${p.zdjecieCzarne}`);
+  blisko(p.pasekNaZdjeciu, wz.szaryPodPaskiem, 4, 'pasek na zdjęciu');
+  // Litery tekstu: wnętrze czystą czernią, wygładzone brzegi samą czarną farbą.
+  assert.ok(w.probki.czystaCzern > 20000 && w.probki.samaCzern > 20000, `czysta czerń ${w.probki.czystaCzern}, szarości z samej czerni ${w.probki.samaCzern}`);
+  // Obraz strony z czytnika PDF: kształty na miejscu, odcienie w granicach prostej zamiany CMYK na ekran (jak w teście wektorowym).
+  t.diagnostic(`Obrazy stron w CMYK: średnia różnica ${w.srednia.toFixed(2)}, kształt ${(w.ksztalt * 100).toFixed(3)}%, plik ${(w.rozmiar / 1024).toFixed(0)} kB`);
+  assert.ok(w.ksztalt < 0.003, `kształty na miejscu (${(w.ksztalt * 100).toFixed(3)}% miejsc różnych jasnością)`);
+  assert.ok(w.srednia < 12, `średnia różnica odcieni ${w.srednia.toFixed(1)}`);
+
+  // Strona bez zdjęć: każda czerń i szarość samą czarną farbą.
+  await strona.evaluate(async () => {
+    const { stan, przeladuj } = window.seriodruk;
+    stan.projekt.strony[0].obiekty = stan.projekt.strony[0].obiekty.filter((o) => o.type !== 'image');
+    await przeladuj();
+  });
+  const b = await eksportuj(strona, { tryb: 'obraz', pdfx: 'fogra47', zdjeciaCmyk: true, dpi: 150, probki, wzorce });
+  assert.deepEqual([b.probki.punkty.zdjecieSzare, b.probki.punkty.zdjecieCzarne, b.probki.punkty.tabliczka], [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 255]]);
+  blisko(b.probki.punkty.czerwony, wz.czerwony, 3, 'czerwony kształt bez zdjęć');
   assert.deepEqual(bledy, []);
 });
 
@@ -290,6 +410,18 @@ test('okno eksportu: standard dla drukarni, zdjęcia w CMYK, profil z pliku', as
   await strona.check('#form-pdf input[name=cmyk]');
   await strona.check('#form-pdf input[name=zdjeciaCmyk]');
   assert.match(await strona.textContent('#pdf-opis-pdfx'), /Tekst i kształty są przeliczone na CMYK przez ten profil.*Zdjęcia są przeliczone na CMYK przez ten profil/);
+  assert.equal(await strona.textContent('#pdf-etykieta-zdjecia'), 'Zdjęcia też w CMYK (większy plik)');
+  // Obrazy stron: to samo pole przelicza cały obraz strony; opcje pliku wektorowego znikają.
+  await strona.selectOption('#form-pdf select[name=tryb]', 'obraz');
+  assert.ok(await strona.isHidden('#pdf-opcje-wektora'));
+  assert.ok(await strona.isVisible('#pdf-pole-zdjecia'));
+  assert.equal(await strona.textContent('#pdf-etykieta-zdjecia'), 'Obrazy stron w CMYK (większy plik)');
+  assert.match(await strona.textContent('#pdf-opis-pdfx'), /Obrazy stron są przeliczone na CMYK przez ten profil.*samą czarną farbą/);
+  assert.equal(await strona.evaluate(() => window.seriodruk.oknoPdf.opcje().zdjeciaCmyk), true);
+  await strona.uncheck('#form-pdf input[name=zdjeciaCmyk]');
+  assert.match(await strona.textContent('#pdf-opis-pdfx'), /Obrazy stron zostają w RGB z opisem sRGB/);
+  await strona.check('#form-pdf input[name=zdjeciaCmyk]');
+  await strona.selectOption('#form-pdf select[name=tryb]', 'wektor');
   // Profil od drukarni: bez pliku nie da się eksportować; po wskazaniu pliku – tak.
   await strona.selectOption('#form-pdf select[name=pdfx]', 'wlasny');
   assert.ok(await strona.isVisible('#pdf-pole-profil'));

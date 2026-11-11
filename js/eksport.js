@@ -10,7 +10,8 @@
 // Standard dla drukarni (PDF/X-4, js/pdf-x.js): plik niesie profil barwny warunków druku, a kolory
 // i zdjęcia można przeliczyć na CMYK przez ten profil (js/profil-icc.js).
 
-import { renderujCel, zlozCel } from './zlozenie.js';
+import { renderujCel, zlozCel, naPlotnieCelu } from './zlozenie.js';
+import { obrazStronyCmyk } from './strona-cmyk.js';
 import { rysujStroneWektorowo, CzcionkiPdf, ObrazyPdf } from './pdf-wektorowy.js';
 import { wczytajWarunki, dodajPdfX, naglowekPdfX } from './pdf-x.js';
 import { rozwin } from './serie.js';
@@ -113,14 +114,15 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) 
 // przerwij() → true, gdy użytkownik anulował.
 //
 // Standard dla drukarni: pdfx ('fogra39' | 'fogra47' | 'wlasny' + profilWlasny { nazwa, bajty }) daje plik
-// PDF/X-4 z profilem warunków druku; wtedy cmyk przelicza tekst i kształty przez ten profil, a zdjeciaCmyk
-// (tylko plik wektorowy) – także zdjęcia. `druk` to wczytane już warunki (wczytajWarunki), żeby przy kilku
-// plikach nie czytać profilu za każdym razem.
+// PDF/X-4 z profilem warunków druku; wtedy cmyk przelicza tekst i kształty przez ten profil, a zdjeciaCmyk –
+// także zdjęcia. W trybie obrazów zdjeciaCmyk przelicza przez profil cały obraz strony (js/strona-cmyk.js).
+// `druk` to wczytane już warunki (wczytajWarunki), żeby przy kilku plikach nie czytać profilu za każdym razem.
 export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), postep, przerwij } = {}) {
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
   const warunki = druk || (pdfx ? await wczytajWarunki(pdfx, profilWlasny) : null);
   const wektor = tryb === 'wektor';
   const silnik = warunki && wektor && (cmyk || zdjeciaCmyk) ? warunki.silnik() : null;
+  const silnikStron = warunki && !wektor && zdjeciaCmyk ? warunki.silnik() : null;
   const pdf = await PDFLib.PDFDocument.create();
   pdf.setTitle(projekt.nazwa);
   pdf.setCreator('Seriodruk');
@@ -144,6 +146,18 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
       const { tlo, obiekty } = await zlozCel(projekt, egz, { ciag, oryginaly: true });
       strona = pdf.addPage([szer, wys]);
       await rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m });
+    } else if (silnikStron) {
+      // Obraz strony w CMYK przez profil; czerń i szarości poza zdjęciami samą czarną farbą.
+      const obraz = await naPlotnieCelu(projekt, egz, { szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, oryginaly: true },
+        (plotno, obiekty) => obrazStronyCmyk(pdf, silnikStron, plotno, obiekty));
+      strona = pdf.addPage([szer, wys]);
+      strona.node.setXObject(PDFLib.PDFName.of('Strona'), obraz);
+      strona.pushOperators(
+        PDFLib.pushGraphicsState(),
+        PDFLib.concatTransformationMatrix((m.w + 2 * m.spad) * PT, 0, 0, (m.h + 2 * m.spad) * PT, (m.pas - m.spad) * PT, (m.pas - m.spad) * PT),
+        PDFLib.drawObject('Strona'),
+        PDFLib.popGraphicsState(),
+      );
     } else {
       const url = await renderujCel(projekt, egz, {
         szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true,
