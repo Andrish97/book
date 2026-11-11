@@ -12,7 +12,7 @@ const wstawTabele = async (strona, wiersze, kolumny) => {
   await strona.fill('#dlg-tabela input[name=wiersze]', String(wiersze));
   await strona.fill('#dlg-tabela input[name=kolumny]', String(kolumny));
   await strona.click('#dlg-tabela button[value=tak]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.tabela);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.tabela);
 };
 
 // Stan tabeli na płótnie: opis, wymiary, teksty komórek wierszami, wysokości wierszy, co jest zaznaczone.
@@ -75,7 +75,7 @@ test('tabela jest jednym elementem: wstawienie, pisanie w komórce po dwukliku, 
 
   // Dwuklik w komórkę drugiego wiersza, pierwszej kolumny: pisanie w niej; panel pokazuje tekst komórki.
   await strona.mouse.dblclick(...(await naEkranie(strona, s.lewo + 16, s.gora + 9 + 4.5)));
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.isEditing);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.isEditing);
   s = await stanTabeli(strona);
   assert.equal(s.zaznaczone, 'komórka [1,0] – pisanie');
   assert.equal(s.tytul, 'Komórka tabeli');
@@ -95,12 +95,12 @@ test('tabela jest jednym elementem: wstawienie, pisanie w komórce po dwukliku, 
   await strona.keyboard.type('C2');
   // Kliknięcie innej komórki w trakcie pisania przenosi tam pisanie.
   await strona.mouse.click(...(await naEkranie(strona, s.lewo + 32 * 3 + 20, s.gora + 4)));
-  await strona.waitForFunction(() => window.seriodruk.edytor.miejsceKomorki()?.w === 0);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.miejsceKomorki()?.w === 0);
   await strona.keyboard.press('Control+End');
   await strona.keyboard.type('!');
   // Esc kończy pisanie i wraca do zaznaczenia całej tabeli.
   await strona.keyboard.press('Escape');
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.tabela);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.tabela);
   s = await stanTabeli(strona);
   assert.equal(s.zaznaczone, 'tabela');
   assert.equal(s.tytul, 'Tabela');
@@ -113,7 +113,7 @@ test('tabela jest jednym elementem: wstawienie, pisanie w komórce po dwukliku, 
   await strona.keyboard.press('Tab');
   await strona.keyboard.type('nowy wiersz');
   await strona.keyboard.press('Escape');
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.tabela);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.tabela);
   s = await stanTabeli(strona);
   assert.equal(s.wiersze.length, 4);
   assert.deepEqual(s.teksty[3], ['nowy wiersz', '', '', '']);
@@ -189,7 +189,7 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
   await krok(strona);
   // Cofnięcie przywraca usunięty wiersz i kolumnę (jeden krok historii na zmianę).
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela)?.tabela.kolumny.length === 4);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.tabela)?.tabela.kolumny.length === 4);
   s = await stanTabeli(strona);
   assert.deepEqual([s.wiersze.length, s.kolumny.length, s.teksty[0][3]], [4, 4, 'Kolumna 4']);
 
@@ -202,7 +202,7 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
   assert.equal(s.zaznaczone, 'komórka [1,1] – pisanie', 'pisanie trwa w tej samej komórce');
   assert.deepEqual(s.teksty[2], ['', '', '', ''], 'nowy wiersz jest pod bieżącym');
   await strona.click('.wlasciwosci button:has-text("Usuń tę kolumnę")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.tabela);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.tabela);
   s = await stanTabeli(strona);
   assert.equal(s.kolumny.length, 3);
   assert.ok(!s.teksty.flat().includes('środek'), 'kolumna z komórką usunięta');
@@ -240,7 +240,7 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
 
   // Kopia (Ctrl+D) jest osobną tabelą: zmiana kolumny w kopii nie rusza oryginału. Rozgrupować tabeli się nie da.
   await strona.keyboard.press('Control+d');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.tabela).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.tabela).length === 2);
   await strona.fill('.wlasciwosci label:has-text("Kolumna 1") input', '15');
   await strona.press('.wlasciwosci label:has-text("Kolumna 1") input', 'Tab');
   const [oryginal, kopia] = [await stanTabeli(strona, 0), await stanTabeli(strona, 1)];
@@ -497,7 +497,7 @@ test('tabela: scalanie komórek w poziomie i w pionie, Tab pomija schowane, wier
   await strona.keyboard.press('Escape');
   await krok(strona);
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((x) => x.tabela)?.tabela.scalenia?.length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((x) => x.tabela)?.tabela.scalenia?.length === 1);
   assert.deepEqual((await opis()).widoczne, ['11', '11', '01', '11']);
   assert.deepEqual(bledy, []);
 });
@@ -725,7 +725,7 @@ test('tabela: linie pojedynczej komórki – własna i bez linii, krawędź wsp�
   await strona.keyboard.press('Escape');
   await krok(strona);
   await strona.click('[data-akcja="cofnij"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela)?.tabela.linie_komorek?.length === 3);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.tabela)?.tabela.linie_komorek?.length === 3);
   assert.deepEqual(await linieTabeli(strona), przedZmianami);
   assert.deepEqual(bledy, []);
 });
@@ -849,7 +849,7 @@ test('tabela: linie całego wiersza, kolumny i tabeli naraz – obramowanie, lin
   });
   assert.equal(zapis, 23);
   await strona.click('[data-akcja="cofnij"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela)?.tabela.linie_komorek?.length === 14);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.tabela)?.tabela.linie_komorek?.length === 14);
   l = await linieTabeli(strona);
   assert.deepEqual(l.rysowane.filter((x) => x.startsWith('h')), [`h0 0-3 1 ${C}`, `h1 0-3 0.5 ${C}`, `h2 0-3 0.25 ${C}`, `h3 0-3 0.25 ${C}`, `h4 0-3 1 ${C}`]);
 

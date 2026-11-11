@@ -6,7 +6,6 @@ import { Linijki } from '../linijki.js';
 import { Dane } from '../dane.js';
 import { PanelWarstw } from '../warstwy.js';
 import { PanelWlasciwosci } from '../wlasciwosci.js';
-import { Instrukcja } from '../instrukcja.js';
 import { OknoCzcionek } from '../okno-czcionek.js';
 import { rodzinyCzcionek, odmianyRodziny } from '../czcionki.js';
 import { uzgodnijZKontem, rodzinySpozaProjektu, poznaj } from '../moje-czcionki.js';
@@ -23,7 +22,7 @@ import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './pane
 import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 
-export const instrukcja = new Instrukcja();
+export { instrukcja } from './instrukcja-leniwa.js';
 export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
   tytulPusty: () => (stan.tryb === 'wzorzec' ? 'Wzorzec' : 'Strona'),
   budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),

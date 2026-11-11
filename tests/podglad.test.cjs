@@ -8,7 +8,7 @@ test('podgląd: wszystkie strony bez edycji, rozkładówki w parach, powrót do 
   await strona.fill('#form-nowy input[name=nazwa]', 'Do podglądu');
   await strona.click('#form-nowy label:has-text("Rozkładówki")');
   await strona.click('#form-nowy button[value=ok]');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   await strona.click('[data-akcja="dodaj-tekst"]');
   for (let i = 0; i < 3; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 4);
@@ -27,7 +27,6 @@ test('podgląd: wszystkie strony bez edycji, rozkładówki w parach, powrót do 
 
   // Odświeżenie zostaje w podglądzie.
   await strona.reload();
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
   assert.equal(await strona.locator('.podglad-strona[data-id]').count(), 4);
 
@@ -51,7 +50,7 @@ test('prezentacja: rozkładówka po rozkładówce, strzałki i Esc', async (t) =
   await strona.fill('#form-nowy input[name=nazwa]', 'Pokaz');
   await strona.click('#form-nowy label:has-text("Rozkładówki")');
   await strona.click('#form-nowy button[value=ok]');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   for (let i = 0; i < 3; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 4);
   await strona.click('[data-akcja="podglad"]');

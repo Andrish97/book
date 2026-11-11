@@ -55,7 +55,7 @@ test('blokada: zablokowanego elementu nie da się przesunąć ani wyrównać, po
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.canvas.getObjects().length === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().length === 1);
   assert.deepEqual(await strona.evaluate(() => { const o = window.seriodruk.edytor.canvas.getObjects()[0]; return [o.zablokowany, o.lockMovementX, o.hasControls]; }), [true, true, false]);
   assert.deepEqual(bledy, []);
 });
@@ -66,17 +66,17 @@ test('schowek: kopiowanie i wklejanie na innej stronie w tym samym miejscu', asy
   await strona.click('[data-akcja="dodaj-tekst"]');
   const zrodlo = (await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return [o.left, o.top, o.text]; }));
   await strona.keyboard.press('Control+c');
-  await strona.waitForFunction(() => window.seriodruk.edytor.maSchowek);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.maSchowek);
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
   // Przycisk we właściwościach strony (dla ekranów dotykowych).
   await strona.click('#wlasciwosci button:has-text("Wklej skopiowane elementy")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 1);
   assert.deepEqual(await strona.evaluate(() => { const o = window.seriodruk.edytor.canvas.getObjects()[0]; return [o.left, o.top, o.text]; }), zrodlo);
   // Drugie wklejenie na tej samej stronie jest przesunięte.
   await strona.evaluate(() => window.seriodruk.edytor.canvas.discardActiveObject());
   await strona.keyboard.press('Control+v');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 2);
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects()[1].left), zrodlo[0] + 5);
   assert.deepEqual(bledy, []);
 });

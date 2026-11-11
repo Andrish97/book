@@ -125,7 +125,7 @@ test('grupa: podwójne kliknięcie otwiera – element da się przesunąć, zmie
   // Cofanie: jedna zmiana = jeden krok; po cofnięciu ten sam element jest znów zaznaczony w otwartej grupie.
   await strona.evaluate(() => document.activeElement?.blur()); // skrót ma trafić do strony, nie do pola z liczbą
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => { const g = window.seriodruk.edytor.canvas.getObjects().find((o) => o.type === 'group'); return g && Math.abs(g.getObjects()[0].getScaledWidth() - 30) < 0.01; });
+  await strona.waitForFunction(() => { const g = window.seriodruk.edytor?.canvas.getObjects().find((o) => o.type === 'group'); return g && Math.abs(g.getObjects()[0].getScaledWidth() - 30) < 0.01; });
   s = await stan(strona);
   assert.deepEqual([s.dzieci.Czerwony[0], s.dzieci.Czerwony[2]], [35, 30], 'cofnięta tylko szerokość');
   assert.deepEqual([s.aktywny, s.otwarta, s.grupa.id], ['Czerwony', id, id]);
@@ -222,7 +222,7 @@ test('grupa w warstwach: kliknięcie elementu rozwiniętej grupy otwiera grupę 
 
   // Duplikuj (Ctrl+D): kopia zostaje w grupie, 5 mm obok, i jest zaznaczona.
   await strona.evaluate(() => window.seriodruk.edytor.duplikuj());
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.type === 'group').getObjects().length === 3);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.type === 'group').getObjects().length === 3);
   s = await stan(strona);
   assert.deepEqual([s.kolejnosc, s.otwarta, s.aktywny], [['Tło', 'group', 'Kółko'], id, 'Czerwony']);
   const kopia = await strona.evaluate(() => { const e = window.seriodruk.edytor; const p = e.polozenieNaArkuszu(e.aktywny); return [Math.round(p.x * 100) / 100, Math.round(p.y * 100) / 100, e.aktywny.id !== e.otwartaGrupa.getObjects()[1].id]; });
@@ -237,7 +237,7 @@ test('grupa w warstwach: kliknięcie elementu rozwiniętej grupy otwiera grupę 
   await krok(strona);
   // Cofnięcie usunięcia przywraca kopię.
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.type === 'group')?.getObjects().length === 3);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.type === 'group')?.getObjects().length === 3);
 
   // Kopiuj element grupy i wklej: wklejka jest osobnym elementem strony, w tym samym miejscu + 5 mm.
   await strona.evaluate((gid) => window.seriodruk.edytor.otworzGrupe(gid, 1), id);
@@ -263,11 +263,11 @@ test('grupa obrócona i na rozkładówce: element przesuwany strzałkami i liczb
   await strona.fill('#form-nowy input[name=nazwa]', 'Grupa na rozkładówce');
   await strona.click('#form-nowy label:has-text("Rozkładówki")');
   await strona.click('#form-nowy button[value=ok]');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   for (let i = 1; i < 3; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 3);
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(1));
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.strony.length === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.strony.length === 2);
 
   // Grupa na prawej stronie rozkładówki (strona ma 148 mm szerokości), obrócona o 30° i powiększona 1,5×.
   const id = await strona.evaluate(() => {
@@ -327,7 +327,7 @@ test('grupa obrócona i na rozkładówce: element przesuwany strzałkami i liczb
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0);
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(2));
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 2 && window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'group'));
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 2 && window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'group'));
   po = await srodki();
   for (const n of ['Czerwony', 'Niebieski']) assert.ok(blisko(po[n][0], wOtwartej[n][0], 0.02) && blisko(po[n][1], wOtwartej[n][1], 0.02), `po wczytaniu ${n}: ${wOtwartej[n]} → ${po[n]}`);
   s = await stan(strona);
@@ -391,7 +391,7 @@ test('grupa otwarta: kilka elementów naraz – Shift+kliknięcie, przesuwanie, 
 
   // Duplikuj: kopie obu elementów zostają w grupie i są zaznaczone.
   await strona.evaluate(() => window.seriodruk.edytor.duplikuj());
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.type === 'group').getObjects().length === 4);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.type === 'group').getObjects().length === 4);
   s = await stan(strona);
   assert.deepEqual([s.kolejnoscWGrupie, await zaznaczone(), s.otwarta, s.kolejnosc], [['Czerwony', 'Napis', 'Czerwony', 'Napis'], ['Czerwony', 'Napis'], id, ['Tło', 'group', 'Kółko']]);
   await krok(strona);
@@ -604,9 +604,9 @@ test('grupa otwarta: obraz kadruje się przeciąganiem, a kształt zmienia punkt
   await krok(strona);
   // Cofnięcie edycji punktów i kadrowania – po jednym kroku.
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => { const g = window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'group'); const k = g?.getObjects().find((x) => x.type === 'path'); if (!k) return false; k.setCoords(); return Math.abs(k.getBoundingRect().height - 30.5) < 1; });
+  await strona.waitForFunction(() => { const g = window.seriodruk.edytor?.canvas.getObjects().find((x) => x.type === 'group'); const k = g?.getObjects().find((x) => x.type === 'path'); if (!k) return false; k.setCoords(); return Math.abs(k.getBoundingRect().height - 30.5) < 1; });
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => { const g = window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'group'); const i = g?.getObjects().find((x) => x.type === 'image'); return i && Math.abs(i.width - 200) < 0.5; });
+  await strona.waitForFunction(() => { const g = window.seriodruk.edytor?.canvas.getObjects().find((x) => x.type === 'group'); const i = g?.getObjects().find((x) => x.type === 'image'); return i && Math.abs(i.width - 200) < 0.5; });
 
   // Grupa obrócona: kadrowanie i edycja punktów nie przestawiają elementów; anulowanie zostawia wszystko jak było.
   await strona.evaluate((gid) => { const e = window.seriodruk.edytor; const g = e.canvas.getObjects().find((x) => x.id === gid); g.rotate(25); g.setCoords(); e.canvas.discardActiveObject(); e.zatwierdz(); }, id);
@@ -698,7 +698,7 @@ test('grupa otwarta: ramka zaznaczenia przeciąganiem wybiera elementy grupy (z 
   // Cofnięcie wraca do kolejności sprzed ostatniego kroku.
   await krok(strona);
   await strona.click('[data-akcja="cofnij"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.type === 'group').getObjects().map((d) => d.nazwa).join('') === 'CAB');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.type === 'group').getObjects().map((d) => d.nazwa).join('') === 'CAB');
   // Krok był zapisany, gdy dwa elementy grupy były zaznaczone razem – po wczytaniu stoją tam, gdzie stały.
   s = await stan(strona);
   assert.deepEqual([s.dzieci.A.slice(0, 2), s.dzieci.B.slice(0, 2), s.dzieci.C.slice(0, 2), s.grupa.ramka], [[20, 20], [50, 20], [80, 20], ramkaPrzed]);

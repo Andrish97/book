@@ -3,11 +3,16 @@
 import { powiadom } from '../ui.js';
 import { trasa, stan, pokazEkran, edytor } from './kontekst.js';
 import { doProjektow, pokazProjekty, wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
-import { zapiszTeraz, otworzProjekt } from './zapis.js';
-import { pokazUdostepniony, pokazPodglad } from './podglad-ekran.js';
-import { przejdzDoStrony } from './lista-stron.js';
+import { pokazUdostepniony } from './udostepnione.js';
 import { konto } from './logowanie.js';
-import { edytujWzorzec } from './wzorce.js';
+import { czekajNaEdytor, edytorGotowy } from './doczytaj.js';
+
+// Funkcje edytora: wczytują go, gdy adres prowadzi do projektu (js/app/doczytaj.js).
+const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
+const otworzProjekt = async (...a) => (await czekajNaEdytor()).otworzProjekt(...a);
+const pokazPodglad = async (...a) => (await czekajNaEdytor()).pokazPodglad(...a);
+const przejdzDoStrony = async (i) => (await czekajNaEdytor()).przejdzDoStrony(i);
+const edytujWzorzec = async (id) => (await czekajNaEdytor()).edytujWzorzec(id);
 
 let obslugaTrasy = Promise.resolve();
 export function przejdzDoTrasy() {
@@ -15,7 +20,7 @@ export function przejdzDoTrasy() {
     const t = trasa.odczytaj();
     if (t.ekran === 'udostepnione') { await pokazUdostepniony(t); return; }
     if (document.body.classList.contains('podglad-publiczny')) { location.reload(); return; }
-    if (!stan.uzytkownik && !stan.trybLokalny) return;
+    if (!stan.uzytkownik) return;
     if (t.ekran === 'konto' && stan.uzytkownik) {
       if (stan.projekt) { await zapiszTeraz(); stan.projekt = null; }
       pokazEkran('konto');

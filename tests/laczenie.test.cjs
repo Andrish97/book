@@ -154,9 +154,9 @@ test('dwa urządzenia zmieniają różne strony i tabelę danych: obie zmiany zo
 
   // Odświeżenie karty: punkt odniesienia do łączenia leży w zapisie projektu na urządzeniu, nie w pamięci karty.
   await strona.reload();
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   await strona.click('#lista-stron li.strona >> nth=1 >> .miniatura');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'rect'));
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'rect'));
 
   // „Telefon” zmienił pierwszą stronę i dodał tabelę danych.
   const wersja = baza.projekty[0].wersja;
@@ -194,7 +194,7 @@ test('dwa urządzenia zmieniają różne strony i tabelę danych: obie zmiany zo
 
   // Strona z telefonu otwiera się z jego elementem; kolejna zmiana zapisuje się już zwyczajnie.
   await strona.click('#lista-stron li.strona >> nth=0 >> .miniatura');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.canvas.getObjects().some((o) => o.id === 'z-telefonu'));
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().some((o) => o.id === 'z-telefonu'));
   await strona.click('[data-akcja="dodaj-linie"]');
   await strona.waitForTimeout(3400);
   await zapisano(strona);
@@ -220,7 +220,7 @@ test('ta sama strona zmieniona na dwóch urządzeniach: różne elementy łącz�
   });
   await strona.click('[data-akcja="dodaj-elipse"]');
   await strona.click('#lista-stron li.strona >> nth=0 >> .miniatura');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.canvas.getObjects().length > 0);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().length > 0);
   await strona.click('[data-akcja="dodaj-linie"]');
   await polaczono(strona);
   await zapisano(strona);
@@ -281,7 +281,7 @@ test('strona ze zdjęciem dodanym na innym urządzeniu: po połączeniu obraz je
   await zaloguj(strona);
   await nowyProjekt(strona, 'Zdjęcie z telefonu');
   await strona.setInputFiles('#plik-obraz', { name: 'moje.png', mimeType: 'image/png', buffer: PNG_2X2 });
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'image'));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'image'));
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
   await strona.click('[data-akcja="dodaj-prostokat"]');
@@ -316,6 +316,6 @@ test('strona ze zdjęciem dodanym na innym urządzeniu: po połączeniu obraz je
 
   // Strona z telefonu rysuje oba zdjęcia.
   await strona.click('#lista-stron li.strona >> nth=0 >> .miniatura');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'image' && o.getElement()?.naturalWidth > 0).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image' && o.getElement()?.naturalWidth > 0).length === 2);
   assert.deepEqual(bledy, []);
 });

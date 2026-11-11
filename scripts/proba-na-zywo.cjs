@@ -54,11 +54,11 @@ const krok = async (nazwa, fn) => {
       await p.fill('#form-nowy input[name=nazwa]', 'Test bazy');
       await p.click('#form-nowy label:has-text("Rozkładówki")');
       await p.click('#form-nowy button[value=ok]');
-      await p.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+      await p.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
       await p.click('[data-akcja="dodaj-tekst"]');
       await p.click('[data-akcja="strona-dodaj"]');
       await p.setInputFiles('#plik-obraz', { name: 'a.png', mimeType: 'image/png', buffer: PNG });
-      await p.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'image'));
+      await p.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'image'));
       await p.waitForFunction(() => document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', null, { timeout: 40000 });
       idProjektu = await p.evaluate(() => window.seriodruk.stan.projekt.id);
       const s = await p.evaluate(() => { const pr = window.seriodruk.stan.projekt; return `wersja na koncie ${pr.wersja_chmury}, obraz: ${Object.values(pr.zasoby)[0]?.sciezka ? 'wysłany' : 'tylko lokalnie'}`; });
@@ -87,7 +87,7 @@ const krok = async (nazwa, fn) => {
       await p2.click('[data-akcja="zamknij-instrukcje"]');
       await p2.waitForSelector('#ekran-projektow :text("Test bazy")');
       await p2.click('#ekran-projektow :text("Test bazy")');
-      await p2.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+      await p2.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
       // Obraz leży w magazynie plików przeglądarki (js/zasoby.js), pobrany z konta przy otwarciu projektu.
       const s = await p2.evaluate(async () => { const pr = window.seriodruk.stan.projekt; const { dataUrlZasobu } = await import('./js/zasoby.js'); const d = await dataUrlZasobu(pr, Object.keys(pr.zasoby).find((id) => !(pr.czcionki || []).some((c) => c.id === id))); return `${pr.strony.length} strony, ${pr.strony.reduce((n, x) => n + x.obiekty.length, 0)} elementy, obraz ${d?.startsWith('data:image') ? 'pobrany' : 'BRAK'}`; });
       // „Moje czcionki” na drugim urządzeniu: zbiór pobrany z konta.
@@ -110,7 +110,7 @@ const krok = async (nazwa, fn) => {
         await p2.waitForSelector('#dlg-instrukcja[open]');
         await p2.click('[data-akcja="zamknij-instrukcje"]');
         await p2.click('#ekran-projektow :text("Test bazy")');
-        await p2.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+        await p2.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
         const otwarta = (s) => s.evaluate(() => { const st = window.seriodruk.stan; return st.projekt.strony[st.indeks].id; });
         const [tam, tu] = [await otwarta(p2), await otwarta(p)];
         if (tam === tu) throw new Error('oba urządzenia mają otwartą tę samą stronę – próba niczego by nie sprawdziła');

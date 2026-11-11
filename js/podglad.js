@@ -7,7 +7,6 @@
 // Oba źródła sprowadzają się do „układu”: sekcje → wiersze → strony.
 
 import { rozwin } from './serie.js';
-import { renderujCel } from './zlozenie.js';
 import { $ } from './ui.js';
 
 const MAKS_PX = 1800; // górna granica szerokości renderowanego obrazu
@@ -64,7 +63,8 @@ export class Podglad {
     const ciag = rozwin(projekt);
     const poKluczu = new Map(ciag.egzemplarze.map((e) => [e.klucz, e]));
     this.pokaz(ukladProjektu(projekt, ciag), {
-      obraz: (strona, szer) => renderujCel(projekt, poKluczu.get(strona.id), { szerokoscPx: szer, spad: false, ciag }),
+      // Składanie stron (biblioteka płótna) wczytuje się dopiero tu – podgląd z linku dostaje gotowe obrazy.
+      obraz: async (strona, szer) => (await import('./zlozenie.js')).renderujCel(projekt, poKluczu.get(strona.id), { szerokoscPx: szer, spad: false, ciag }),
       klikalne: true,
       opis: 'podgląd bez edycji',
       idStrony,

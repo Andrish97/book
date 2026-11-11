@@ -8,8 +8,11 @@
 import * as chmura from '../chmura.js';
 import { $ } from '../ui.js';
 import { stan } from './kontekst.js';
-import { sprawdzKonto } from './zapis.js';
+import { edytorGotowy } from './doczytaj.js';
 import { pokazProjekty } from './projekty.js';
+
+// Otwarty projekt oznacza wczytany edytor – sprawdzenie konta robi zapis (js/app/zapis.js).
+const sprawdzKonto = (opcje) => edytorGotowy()?.sprawdzKonto(opcje);
 
 const CO_BEZ_KANALU = 30000; // ms między sprawdzeniami, gdy kanał nie działa
 const CO_Z_KANALEM = 120000; // z działającym kanałem – tylko na wszelki wypadek

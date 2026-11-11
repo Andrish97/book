@@ -46,7 +46,7 @@ test('wzorce: kilka na stronę, pod i nad treścią, numer strony, cofanie', asy
 
   // Strona 2: tekst ze wzorca na dole stosu, ramka na wierzchu, własny element pomiędzy.
   await strona.click('#lista-stron li.strona >> nth=1 >> .miniatura');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.canvas.getObjects().length === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.canvas.getObjects().length === 2);
   await strona.click('[data-akcja="dodaj-elipse"]');
   let obiekty = await naPlotnie(strona);
   assert.deepEqual(obiekty.map((o) => [o.typ, o.zWzorca]), [['textbox', true], ['ellipse', false], ['rect', true]]);
@@ -56,7 +56,7 @@ test('wzorce: kilka na stronę, pod i nad treścią, numer strony, cofanie', asy
   await strona.waitForTimeout(400);
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.obiektyStrony().length), 1);
   await strona.click('[data-akcja="cofnij"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 2);
   obiekty = await naPlotnie(strona);
   assert.ok(obiekty.every((o) => o.zWzorca));
 
@@ -64,7 +64,7 @@ test('wzorce: kilka na stronę, pod i nad treścią, numer strony, cofanie', asy
   await strona.selectOption('#wlasciwosci label:has-text("Wzorce na tej stronie") select', 'wlasne');
   await strona.waitForSelector('#wlasciwosci label.przelacznik:has-text("Wzorzec 2")');
   await strona.click('#wlasciwosci label.przelacznik:has-text("Wzorzec 2") input');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 1);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[1].wzorce.length), 1);
   assert.deepEqual(bledy, []);
 });
@@ -103,7 +103,7 @@ test('sekcje: własny format, numeracja od zadanej liczby i bez numerów', async
 
   // Okładka nie liczy się do numeracji: pierwsza strona środka ma numer 1.
   await strona.click('#lista-stron li.strona >> nth=1 >> .miniatura');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.canvas.getObjects().length === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.canvas.getObjects().length === 1);
   assert.equal((await naPlotnie(strona))[0].tekst, '1');
   assert.deepEqual(await strona.$$eval('#lista-stron li.strona .numer', (l) => l.map((x) => x.textContent)), ['–', '1', '2']);
 
@@ -113,7 +113,7 @@ test('sekcje: własny format, numeracja od zadanej liczby i bez numerów', async
   await strona.selectOption('#dlg-sekcja select[name=numeracja]', 'od');
   await strona.fill('#dlg-sekcja input[name=numeracja_od]', '5');
   await strona.click('#zapisz-sekcje');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects()[0]?.text === '5');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects()[0]?.text === '5');
   assert.deepEqual(bledy, []);
 });
 
@@ -122,7 +122,7 @@ async function nowaKsiazka(strona, liczbaStron) {
   await strona.fill('#form-nowy input[name=nazwa]', 'Książka');
   await strona.click('#form-nowy label:has-text("Rozkładówki")');
   await strona.click('#form-nowy button[value=ok]');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   for (let i = 1; i < liczbaStron; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction((n) => window.seriodruk.stan.projekt.strony.length === n, liczbaStron);
 }
@@ -173,7 +173,7 @@ test('rozkładówki: marginesy lustrzane, obie strony na jednym płótnie, wzorz
     window.seriodruk.stan.projekt.wzorce[0].lustro = true;
   });
   await przejdz(strona, 1);
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.zWzorca).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.zWzorca).length === 2);
   const zWzorca = (await naPlotnie(strona)).filter((o) => o.zWzorca);
   const lewa = zWzorca.find((o) => o.tekst === '2');
   const prawa = zWzorca.find((o) => o.tekst === '3');
@@ -252,7 +252,7 @@ test('rozkładówki: element przez grzbiet widać na obu stronach, kolejność w
   assert.deepEqual(await zapis(), [[], [['pas', 10, 0], ['kwadrat', 90, 1]], []]);
   await strona.waitForTimeout(400);
   await strona.click('[data-akcja="cofnij"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects()[0]?.left === 60);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects()[0]?.left === 60);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   assert.deepEqual(await zapis(), [[], [['kwadrat', 90, 1]], [['pas', -88, 0]]]);
 
@@ -291,7 +291,7 @@ test('okno „Wzorce”: wzorce standardowe, dodanie do strony i do sekcji, wars
 
   // „Dodaj do tej strony”: tylko bieżąca strona (druga) dostaje wzorzec.
   await strona.click('#lista-wzorcow [data-op="strona"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.zWzorca));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.zWzorca));
   stan = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return [p.sekcje[0].wzorce.length, p.strony.map((s) => (Array.isArray(s.wzorce) ? s.wzorce.length : s.wzorce))]; });
   assert.deepEqual(stan, [0, ['z_sekcji', 1]]);
   assert.equal(await strona.getAttribute('#lista-wzorcow [data-op="strona"]', 'aria-pressed'), 'true');
@@ -467,7 +467,7 @@ test('rozkładówki w widoku jednej strony: widać elementy sąsiedniej strony p
   await przejdz(strona, 1);
   await klikNaStronie(strona, 70, 45);
   await strona.click('#powiadomienie button:has-text("Pokaż rozkładówkę")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.rozkladowka === true);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.rozkladowka === true);
   s = await stan();
   assert.deepEqual([s.sasiednie, s.warstwy.slice().sort()], [[], ['daleko', 'kwadrat', 'pas']]);
   assert.deepEqual(bledy, []);

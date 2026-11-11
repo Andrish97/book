@@ -94,8 +94,7 @@ test('siatka: widoczna z menu, element przeciągnięty myszą staje na linii sia
   // Ustawienia siatki wracają po ponownym otwarciu projektu.
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   await strona.reload();
-  await strona.click('#tryb-lokalny');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   assert.deepEqual(await strona.evaluate(() => { const w = window.seriodruk.edytor.widok; return [w.siatka, w.do_siatki, w.siatka_mm]; }), [true, true, 10]);
   assert.deepEqual(bledy, []);
 });
@@ -196,7 +195,7 @@ test('skróty: zaznaczanie, kolejność, blokada, tekst, widok, kopia z Alt, ruc
 
   // Alt przy przeciąganiu zostawia kopię w miejscu startu.
   await przeciagnij(strona, [70, 40], [70, 90], { klawisz: 'Alt' });
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 3);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 3);
   const b = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.nazwa === 'b').map((o) => [Math.round(o.left), Math.round(o.top)]).sort((p, q) => p[1] - q[1]));
   assert.deepEqual(b, [[60, 30], [60, 80]]);
 
@@ -248,7 +247,7 @@ test('linijki i prowadnice: wyciągnięcie z linijki, przyciąganie do prowadnic
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.prowadnice.length), 0);
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.prowadnice.length === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.prowadnice.length === 2);
 
   // Prowadnica przeciągnięta poza stronę znika.
   const p = await naEkranie(strona, 60, 150);

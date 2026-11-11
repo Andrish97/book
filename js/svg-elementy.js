@@ -11,7 +11,6 @@ import { CZCIONKI, DOMYSLNA, zapewnijRodziny, odmianyRodziny } from './czcionki.
 import { blobZasobu } from './zasoby.js';
 import { rozmiarOryginalu, przygotujKopie } from './obrazy.js';
 import { zrodloObrazu } from './zlozenie.js';
-import { svgZgodny } from './pdf-wektorowy.js';
 import { uid } from './projekt.js';
 
 // Czy obraz jest rysunkiem SVG.
@@ -259,7 +258,11 @@ export async function rozlozRysunek(projekt, obj) {
   const brak = NIEOBSLUGIWANE.exec(kod);
   let uwaga = brak ? `Rysunek używa elementu „${brak[1] || brak[0]}”, którego edytor nie ma – wygląd mógł się zmienić.` : '';
   const zdjecia = pary.filter(([o]) => o.type === 'image');
-  if (!uwaga && !napisy.length && !zdjecia.length && !svgZgodny(obj.getElement(), pary.map(([o]) => o), opcje)) uwaga = 'Wygląd mógł się trochę zmienić.';
+  // Porównanie z rysunkiem robi ten sam kod co PDF wektorowy – wczytywany dopiero tu (razem z resztą zapisu PDF).
+  if (!uwaga && !napisy.length && !zdjecia.length) {
+    const { svgZgodny } = await import('./pdf-wektorowy.js');
+    if (!svgZgodny(obj.getElement(), pary.map(([o]) => o), opcje)) uwaga = 'Wygląd mógł się trochę zmienić.';
+  }
 
   // Czcionki napisów muszą być wczytane, zanim napisy zostaną zmierzone.
   await zapewnijRodziny([DOMYSLNA, ...napisy.map(([o]) => znanaRodzina(projekt, o.fontFamily)).filter(Boolean)]);

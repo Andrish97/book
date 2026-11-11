@@ -24,6 +24,8 @@ Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy):
 - **Motyw**: jasny, ciemny albo jak w systemie.
 - **Czcionki**: własne pliki TTF/OTF/WOFF/WOFF2 wgrywane do projektu (jadą z nim na konto i do pliku) oraz oficjalny zestaw 52 rodzin (lista: `js/zestaw-czcionek.js`; licencje OFL i Apache 2.0, polskie znaki), pobieranych przez przeglądarkę dopiero przy użyciu. Wgrana czcionka trafia też do „Moich czcionek” i jest pod ręką w każdym projekcie (na koncie – na każdym urządzeniu). Do eksportu można dołączyć pliki użytych czcionek.
 - **PWA**: manifest, ikony, service worker; instalacja na Androidzie i komputerze. Czcionki i silnik płótna są w repozytorium, więc edytor działa bez internetu.
+- **Ładowanie**: ekran logowania, lista projektów, ustawienia konta i podgląd z linku wczytują tylko lekką część aplikacji (`js/aplikacja.js`, ok. 0,27 MB kodu). Edytor z biblioteką płótna (`js/app/edytor-start.js`, `js/zewnetrzne/fabric-*.js`, ok. 1,1 MB) doczytuje się w tle po pokazaniu listy projektów, a najpóźniej przy otwarciu projektu (`js/app/doczytaj.js`); eksport PDF, instrukcja i porównanie rozłożonego rysunku SVG – przy pierwszym użyciu. `scripts/graf-modulow.py` pokazuje, co wczytuje się razem z danym plikiem, a `scripts/pomiar-ladowania.cjs` mierzy ekrany w przeglądarce.
+- **Service worker** (`sw.js`): kod aplikacji jednej wersji leży w pamięci przeglądarki i z niej jest podawany, więc kolejne uruchomienie nie czeka na sieć. Przy wdrożeniu `scripts/wersja-sw.py` wpisuje numer wersji (skrót commita) i listę plików kodu; nowa wersja pobiera je w całości przy instalacji i włącza się od razu, gdy nie ma otwartego projektu (w projekcie – po kliknięciu „Odśwież”), a najpóźniej przy następnym uruchomieniu. Czcionki, obrazy i profile są podawane z pamięci i odświeżane w tle. Bez wdrożenia (serwer na własnym komputerze) kod idzie najpierw z sieci.
 - **Instrukcja** w aplikacji ze zrzutami ekranu.
 
 Nie ma jeszcze: własnej poczty (czeka na domenę). Pełna lista słabych stron – [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md).
@@ -36,7 +38,7 @@ Aplikacja jest statyczna, bez kroku budowania. Moduły ES wymagają serwera HTTP
 python3 -m http.server 8000     # http://localhost:8000
 ```
 
-Z pustym `js/konfiguracja.js` aplikacja działa bez konta, tylko w tej przeglądarce.
+Aplikacja działa tylko z kontem: z pustym `js/konfiguracja.js` pokazuje jedynie komunikat o braku konfiguracji. Projekty są też zapisywane w przeglądarce (IndexedDB) jako kopia na pracę bez sieci.
 
 ## Testy i zrzuty do instrukcji
 
@@ -62,8 +64,9 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 | Plik | Rola |
 |---|---|
 | `index.html`, `css/aplikacja.css` | Ekrany: logowanie, projekty, konto, edytor, podgląd; dialogi |
-| `js/aplikacja.js` | Plik startowy: przyciski, zdarzenia edytora, skróty, start |
-| `js/app/` | Części aplikacji: `kontekst` (wspólny stan), `skladniki` (panel, linijki, okno danych…), `zapis` (płótno ↔ projekt, zapis, dołączanie zmian z konta, cofanie), `na-zywo` (powiadomienia o zmianach z innych urządzeń), `trasy`, `logowanie`, `projekty`, `lista-stron`, `sekcje`, `wzorce`, `panel-strony`, `podglad-ekran` |
+| `js/aplikacja.js` | Plik startowy (lekki): przyciski wspólne, logowanie, lista projektów, podgląd z linku, start, nowe wersje aplikacji |
+| `js/app/edytor-start.js` | Część edytora (doczytywana): przyciski edytora, zdarzenia płótna, skróty |
+| `js/app/` | Części aplikacji: `kontekst` (wspólny stan), `skladniki` (panel, linijki, okno danych…), `zapis` (płótno ↔ projekt, zapis, dołączanie zmian z konta, cofanie), `na-zywo` (powiadomienia o zmianach z innych urządzeń), `trasy`, `logowanie`, `projekty`, `lista-stron`, `sekcje`, `wzorce`, `panel-strony`, `podglad-ekran`, `udostepnione` (podgląd z linku bez edytora), `doczytaj` (doczytywanie edytora), `edytor-instancja`, `instrukcja-leniwa` |
 | `js/historia.js` | Jedna historia cofania całego projektu |
 | `js/konto.js` | Logowanie, rejestracja, reset hasła, ustawienia konta |
 | `js/chmura.js`, `js/konfiguracja.js` | Supabase: konto, projekty z licznikiem wersji (strony w osobnych wierszach, zapis funkcją `zapisz_projekt`), obrazy |

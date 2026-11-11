@@ -225,9 +225,15 @@ test('tabela dodatkowa zmienia wiersz, gdy zmieni się którakolwiek z kilku kol
   assert.deepEqual(await listy(), [['', ['', 'dzien', 'miesiac']]]);
   await strona.selectOption('.wiersz-dodatkowej [data-pole="kiedy-wiecej"] >> nth=0', 'miesiac');
   assert.deepEqual(await listy(), [['miesiac', ['', 'miesiac', 'dzien']], ['', ['', 'dzien']]]);
-  await strona.waitForTimeout(200); // nowa lista dostaje własną kontrolkę chwilę po dodaniu – okno musi przestać się układać
+  // Nowa lista dostaje własną kontrolkę chwilę po dodaniu; zapisujemy dopiero, gdy wszystkie ją mają,
+  // a wybór w oknie jest nadal taki, jak ustawiony (zamiast sztywnego czekania).
+  await strona.waitForFunction(() => [...document.querySelectorAll('#dlg-seria select')].every((s) => s.dataset.wybor || s.multiple)
+    && document.querySelector('.wiersz-dodatkowej [data-pole="kiedy"]').value === 'k:rok'
+    && document.querySelector('.wiersz-dodatkowej [data-pole="kiedy-wiecej"]').value === 'miesiac');
   await strona.click('#dlg-seria #zapisz-serie');
   await strona.waitForSelector('#dlg-seria', { state: 'hidden' });
+  // Okno zapisuje serię chwilę po zamknięciu – czekamy na wynik, zamiast czytać od razu.
+  await strona.waitForFunction(() => JSON.stringify(window.seriodruk.stan.projekt.serie[0].dodatkowe[0].zmiana) === '["rok","miesiac"]');
   const dodatkowe = () => strona.evaluate(() => window.seriodruk.stan.projekt.serie[0].dodatkowe);
   assert.deepEqual(await dodatkowe(), [{ tabela: 't_okr', co: 7, zmiana: ['rok', 'miesiac'] }]);
   // Ustawienie przeżywa ponowne otwarcie projektu – i jako lista, i jako napis (starsze projekty).

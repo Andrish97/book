@@ -11,7 +11,7 @@ test('projekt: elementy, strony, ostrzeżenia, cofanie i zapis po odświeżeniu'
   await strona.click('[data-akcja="dodaj-elipse"]');
   await strona.click('[data-akcja="dodaj-linie"]');
   await strona.setInputFiles('#plik-obraz', { name: 'a.png', mimeType: 'image/png', buffer: PNG_2X2 });
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().length === 5);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 5);
 
   // Nowy tekst mieści się w marginesach – bez ostrzeżeń.
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.length), 0);
@@ -30,7 +30,7 @@ test('projekt: elementy, strony, ostrzeżenia, cofanie i zapis po odświeżeniu'
   // Cofnięcie przywraca położenie.
   await strona.waitForTimeout(400);
   await strona.click('[data-akcja="cofnij"]');
-  await strona.waitForFunction(() => window.seriodruk.edytor.ostrzezenia.length === 0);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.ostrzezenia.length === 0);
 
   // Druga strona, obraz zapisany jako zasób.
   await strona.click('[data-akcja="strona-dodaj"]');
@@ -47,7 +47,6 @@ test('projekt: elementy, strony, ostrzeżenia, cofanie i zapis po odświeżeniu'
   await strona.waitForTimeout(1200);
   const adres = strona.url();
   await strona.reload();
-  await strona.click('#tryb-lokalny');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt);
   assert.equal(await ekran(strona), 'edytor');
   assert.equal(strona.url(), adres);
@@ -196,13 +195,13 @@ test('telefon: tabela, pióro i edycja punktów są dostępne i działają dotyk
   await strona.tap('[data-akcja="dodaj-tabele"]');
   await strona.waitForSelector('#dlg-tabela[open]');
   await strona.tap('#dlg-tabela button:has-text("Wstaw")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.tabela));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.tabela));
   const tab = await strona.evaluate(() => { const g = window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela); g.setCoords(); const r = g.getBoundingRect(); return [r.left, r.top]; });
   const [x, y] = await naEkranie(tab[0] + 5, tab[1] + 13);
   await strona.touchscreen.tap(x, y);
   await strona.waitForTimeout(80);
   await strona.touchscreen.tap(x, y);
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.isEditing);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.isEditing);
   await strona.keyboard.type('Abc');
   assert.deepEqual(await strona.evaluate(() => { const a = window.seriodruk.edytor.aktywny; return [Boolean(a.group?.tabela), a.text]; }), [true, 'Abc']);
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.exitEditing(); e.canvas.discardActiveObject(); e.canvas.requestRenderAll(); });

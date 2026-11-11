@@ -25,7 +25,6 @@
   </script>
   <link rel="stylesheet" href="css/aplikacja.css">
   <!-- Silnik płótna leży w repozytorium (przypięta wersja; powody w docs/DECYZJE.md #44). -->
-  <script src="js/zewnetrzne/fabric-7.4.0.min.js"></script>
   <script type="module" src="js/aplikacja.js"></script>
 </head>
 <body data-ekran="start">
@@ -107,8 +106,7 @@
 
       <div class="brak-konfiguracji" id="brak-konfiguracji" hidden>
         <strong>Brak połączenia z bazą.</strong>
-        <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase, więc konta są niedostępne.</p>
-        <button type="button" class="przycisk" id="tryb-lokalny">Pracuj bez konta (tylko ta przeglądarka)</button>
+        <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase. Aplikacja działa tylko z kontem, więc bez tej konfiguracji nie da się z niej korzystać.</p>
       </div>
       </div>
       <footer class="stopka-logowania">Seriodruk · edytor kalendarzy, planerów i notesów</footer>

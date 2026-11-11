@@ -133,7 +133,7 @@ test('wiersze pomijane w aplikacji: przycisk i znacznik w oknie Dane, okno serii
 
   // Edytor otwiera stronę, której nie ma w wydruku (wzór), bez błędów.
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(0));
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text?.startsWith('A:')));
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.text?.startsWith('A:')));
 
   // Podgląd, numeracja i PDF: cztery strony.
   const wynik = await strona.evaluate(async () => {
@@ -307,7 +307,7 @@ test('lewa i prawa strona w aplikacji: ustawienie w oknie serii, edytor otwiera 
 
   // Edytor: strona A (jej pierwszego powielenia nie ma w wydruku) otwiera się w parze z B, A po lewej.
   await strona.evaluate(() => window.seriodruk.przejdzDoStrony(1));
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => /^[AB] /.test(o.text || '')).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => /^[AB] /.test(o.text || '')).length === 2);
   const naPlotnie = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => /^[AB] /.test(o.text || '')).sort((a, b) => a.left - b.left).map((o) => o.text));
   assert.deepEqual(naPlotnie, ['A {dzien}', 'B {dzien}']);
   assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('#lista-stron li.strona')].map((li) => `${li.querySelector('.nazwa').title}:${li.classList.contains('lewa') ? 'l' : 'p'}`)), ['Tytuł:p', 'A:l', 'B:p', 'Koniec:l']);

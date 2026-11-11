@@ -46,76 +46,9 @@ export function zamknijPodglad() {
 
 // ---------- Podgląd udostępniony linkiem ----------
 
-// Widok dla osoby z linkiem: bez logowania, same obrazy stron. Link bez ochrony czyta pliki
-// z publicznego folderu; link z hasłem albo datą ważności – przez funkcję bazy (chmura.js).
-export async function pokazUdostepniony(t) {
-  document.body.classList.add('podglad-publiczny');
-  pokazEkran('podglad');
-  try {
-    let dane;
-    try {
-      dane = await chmura.wczytajPodgladPubliczny(t.konto, t.projekt, t.kod);
-    } catch (bladPubliczny) {
-      try {
-        await chmura.sprawdzLinkChroniony(t.konto, t.projekt, t.kod);
-      } catch (e) {
-        if (e.stanLinku === 'haslo') { pokazPoleHasla(t); return; }
-        throw e.stanLinku && e.stanLinku !== 'brak' ? e : bladPubliczny;
-      }
-      dane = await chmura.wczytajPodgladChroniony(t.konto, t.projekt, t.kod);
-    }
-    pokazStronyLinku(dane);
-  } catch (e) {
-    pokazBladLinku(e);
-  }
-}
-
-function pokazStronyLinku({ manifest, adresObrazu }) {
-  document.title = `${manifest.uklad.nazwa} – ${NAZWA}`;
-  const kiedyStan = new Date(manifest.zaktualizowano).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
-  podglad.pokaz(manifest.uklad, {
-    obraz: (strona) => adresObrazu(strona.id), stale: true, klikalne: false, opis: `stan z ${kiedyStan}`,
-  });
-}
-
-function pokazBladLinku(e) {
-  document.title = NAZWA;
-  $('#podglad-tytul').textContent = 'Podgląd niedostępny';
-  $('#podglad-opis').textContent = '';
-  const el = $('#podglad-tresc');
-  el.innerHTML = `<div class="podglad-pusto"><h2>${e.stanLinku === 'wygasl' ? 'Link wygasł' : 'Ten link nie działa'}</h2><p class="ciche"></p><a class="przycisk" href="./">Przejdź do Seriodruku</a></div>`;
-  $('p', el).textContent = e.message;
-}
-
-// Link chroniony hasłem: pole hasła; dopiero poprawne hasło pokazuje strony.
-function pokazPoleHasla(t) {
-  document.title = NAZWA;
-  $('#podglad-tytul').textContent = 'Podgląd chroniony hasłem';
-  $('#podglad-opis').textContent = '';
-  const el = $('#podglad-tresc');
-  el.innerHTML = `<div class="podglad-pusto" id="podglad-haslo"><h2>Podgląd chroniony hasłem</h2>
-    <p class="ciche">Osoba, która udostępniła ten podgląd, ustawiła hasło. Wpisz je, żeby zobaczyć strony.</p>
-    <form><input type="password" name="haslo" autocomplete="current-password" aria-label="Hasło do podglądu" placeholder="Hasło" required><button type="submit" class="przycisk glowny">Pokaż</button></form>
-    <p class="komunikat" role="status"></p></div>`;
-  const form = $('form', el);
-  form.elements.haslo.focus();
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const komunikat = $('.komunikat', el);
-    const przycisk = $('button', form);
-    przycisk.disabled = true;
-    komunikat.textContent = 'Sprawdzam hasło…';
-    try {
-      pokazStronyLinku(await chmura.wczytajPodgladChroniony(t.konto, t.projekt, t.kod, form.elements.haslo.value));
-    } catch (blad) {
-      if (blad.stanLinku === 'wygasl' || blad.stanLinku === 'brak') { pokazBladLinku(blad); return; }
-      komunikat.textContent = blad.stanLinku ? blad.message : `Nie udało się wczytać podglądu: ${chmura.komunikatBledu(blad)}`;
-      form.elements.haslo.select();
-    } finally {
-      przycisk.disabled = false;
-    }
-  });
-}
+// Widok dla osoby z linkiem: bez logowania, same obrazy stron.
+// pokazUdostepniony mieszka w lekkim module js/app/udostepnione.js (bez edytora); tu zostaje dla zgodności.
+export { pokazUdostepniony } from './udostepnione.js';
 
 // Skrót treści projektu – pozwala powiedzieć, czy link pokazuje aktualny stan.
 function skrot(tekst) {
@@ -156,7 +89,7 @@ function odswiezOknoUdostepniania() {
   $('#udostepnij-wylacz').hidden = !u;
   $('#udostepnij-utworz').hidden = !zKontem || Boolean(u) || !otwarty;
   $('#udostepnij-teraz').hidden = !zKontem || !u || !otwarty;
-  $('#udostepnij-komunikat').textContent = zKontem ? '' : 'Udostępnianie wymaga konta – w trybie bez konta projekty są tylko w tej przeglądarce.';
+  $('#udostepnij-komunikat').textContent = zKontem ? '' : 'Udostępnianie wymaga zalogowania.';
   $('#udostepnij-komunikat').classList.remove('sukces');
   odswiezOchrone(p, zKontem && otwarty);
   if (!u) return;

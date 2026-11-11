@@ -376,8 +376,10 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
   return stan;
 }
 
-// Otwiera aplikację. tryb: 'lokalny' (bez bazy, „Pracuj bez konta”) albo 'atrapa'.
-async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = { width: 1280, height: 800 }, sciezka = '', bezKanalu = false } = {}) {
+// Otwiera aplikację. tryb: 'zalogowany' (domyślnie: atrapa bazy i zalogowane konto testowe, instrukcja zamknięta),
+// 'atrapa' (atrapa bazy, ekran logowania) albo 'bez-bazy' (pusta konfiguracja – sam komunikat).
+// Dawna nazwa 'lokalny' znaczy to samo co 'zalogowany' (aplikacja nie ma już pracy bez konta).
+async function otworz(test, { tryb = 'zalogowany', telefon = false, konta, widok = { width: 1280, height: 800 }, sciezka = '', bezKanalu = false } = {}) {
   const serwer = await uruchomSerwer();
   // Bez „dociągania” liter do pikseli: tekst rysuje się tak samo na każdym komputerze, a testy porównujące
   // obrazy (PDF, podgląd) nie zależą od ustawień czcionek systemu, na którym biegną.
@@ -388,19 +390,35 @@ async function otworz(test, { tryb = 'lokalny', telefon = false, konta, widok = 
     serviceWorkers: 'block',
     acceptDownloads: true,
   });
-  await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: tryb === 'atrapa' ? Z_ATRAPA : BEZ_BAZY }));
-  const baza = tryb === 'atrapa' ? atrapaSupabase(kontekst, { konta, bezKanalu }) : null;
+  if (tryb === 'lokalny') tryb = 'zalogowany';
+  const zBaza = tryb !== 'bez-bazy';
+  await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: zBaza ? Z_ATRAPA : BEZ_BAZY }));
+  const baza = zBaza ? atrapaSupabase(kontekst, { konta, bezKanalu }) : null;
   const strona = await kontekst.newPage();
   const bledy = [];
   strona.on('pageerror', (e) => bledy.push(e.message));
   test.after(async () => { await przegladarka.close(); await serwer.zamknij(); });
   await strona.goto(serwer.adres + sciezka);
-  if (tryb === 'lokalny') {
-    await strona.click('#tryb-lokalny');
-    await strona.waitForSelector('#dlg-instrukcja[open]');
-    await strona.click('[data-akcja="zamknij-instrukcje"]');
-  }
+  if (tryb === 'zalogowany') await zaloguj(strona, baza);
   return { strona, kontekst, baza, bledy, adres: serwer.adres, przegladarka, Z_ATRAPA };
+}
+
+// Kontekst przeglądarki podłączony do atrapy bazy – dla skryptów spoza testów (zrzuty do instrukcji).
+async function podlaczAtrape(kontekst, opcje = {}) {
+  await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
+  return atrapaSupabase(kontekst, opcje);
+}
+
+// Logowanie pierwszym kontem atrapy; zamyka instrukcję, która otwiera się przy pierwszym wejściu.
+async function zaloguj(strona, baza) {
+  const k = baza.konta[0];
+  await strona.waitForSelector('#form-logowania input[name=email]', { state: 'visible' });
+  await strona.fill('#form-logowania input[name=email]', k.email);
+  await strona.fill('#form-logowania input[name=haslo]', k.haslo);
+  await strona.click('#przycisk-logowania');
+  await strona.waitForSelector('#dlg-instrukcja[open]');
+  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
 }
 
 // Drugie urządzenie: osobny kontekst tej samej przeglądarki (własne ciasteczka, własny magazyn projektów),
@@ -421,7 +439,7 @@ async function nowyProjekt(strona, nazwa = 'Test') {
   await strona.fill('#form-nowy input[name=nazwa]', nazwa);
   await strona.click('#form-nowy button[value=ok]');
   await strona.waitForSelector('#ekran-edytora', { state: 'visible' });
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor.wydruk);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
 }
 
 const ekran = (strona) => strona.evaluate(() => document.body.dataset.ekran);
@@ -429,4 +447,4 @@ const wAplikacji = (strona, fn, arg) => strona.evaluate(fn, arg);
 
 const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 
-module.exports = { otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2 };
+module.exports = { otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj };

@@ -31,7 +31,7 @@ test('połączone ramki: Backspace, Delete i strzałki na granicy ramek działaj
     e.zatwierdz();
   }, DLUGI);
   await strona.click('.wlasciwosci button:has-text("Dodaj ramkę z ciągiem dalszym")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.watek).length === 2);
   let w = await watek(strona);
   assert.equal(w.caly, DLUGI);
   const granica = w.czesci[0].length; // miejsce w sklejonym tekście, w którym kończy się pierwsza ramka
@@ -92,7 +92,7 @@ test('tekst przez strony: po przestawieniu stron tekst płynie w nowej kolejnoś
     e.zatwierdz();
   }, DLUGI);
   await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.aktywny?.watek_nr === 1);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   let p = await proj();
   assert.deepEqual(p.map((s) => s.ramki[0].nr), [0, 1]);
@@ -104,7 +104,7 @@ test('tekst przez strony: po przestawieniu stron tekst płynie w nowej kolejnoś
   await strona.keyboard.press('Control+Home');
   await strona.keyboard.press('Backspace');
   // Kursor stoi w miejscu sklejenia – jeśli to miejsce jest w ramce na pierwszej stronie, aplikacja ją otwiera.
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.isEditing);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.isEditing);
   const w = await watek(strona);
   assert.equal(w.caly, DLUGI.slice(0, naPierwszej.length) + DLUGI.slice(naPierwszej.length + 1), 'zniknął odstęp między stronami');
   assert.equal(w.kursor, naPierwszej.length, 'kursor przy usuniętym znaku');
@@ -145,7 +145,7 @@ test('tekst przez strony: kursor idzie za tekstem na następną stronę i wraca 
   await nowyProjekt(strona, 'Kursor przez strony');
   const proj = () => strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => s.obiekty.filter((o) => o.type === 'textbox').map((o) => ({ tekst: o.text, nr: o.watek_nr, lacznik: o.lacznik }))));
   const caly = (strony) => strony.flat().sort((a, b) => a.nr - b.nr).map((r, i) => (i ? (r.lacznik ?? '\n') : '') + r.tekst).join('');
-  const pisze = () => strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.isEditing);
+  const pisze = () => strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.isEditing);
   const gdzie = async () => { await pisze(); return { ...(await watek(strona)), strona: await strona.evaluate(() => window.seriodruk.stan.indeks) }; };
   await strona.evaluate((tekst) => {
     const e = window.seriodruk.edytor;
@@ -155,9 +155,9 @@ test('tekst przez strony: kursor idzie za tekstem na następną stronę i wraca 
     e.zatwierdz();
   }, DLUGI);
   await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.aktywny?.watek_nr === 1);
   await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 0);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.aktywny?.watek_nr === 0);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   await strona.waitForTimeout(450); // dotychczasowe zmiany to osobny krok historii
   const n1 = (await proj())[0][0].tekst.length;
@@ -281,15 +281,15 @@ test('prowadnice: zmiany są krokami cofania; zablokowanych nie da się przesun�
   await krok();
   assert.deepEqual(await prowadnice(), []);
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.prowadnice.length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.prowadnice.length === 1);
   assert.deepEqual(await prowadnice(), [['x', 60]], 'cofnięte usunięcie');
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.prowadnice[0]?.poz === 40);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.prowadnice[0]?.poz === 40);
   assert.deepEqual(await prowadnice(), [['x', 40]], 'cofnięte przesunięcie');
   await strona.keyboard.press('Control+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.prowadnice.length === 0);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.prowadnice.length === 0);
   await strona.keyboard.press('Control+Shift+z');
-  await strona.waitForFunction(() => window.seriodruk.edytor.prowadnice.length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.prowadnice.length === 1);
   assert.deepEqual(await prowadnice(), [['x', 40]], 'ponowione dodanie');
 
   // Blokada z menu przy płótnie: prowadnica zostaje na miejscu, ustawienie zapisuje się w projekcie.
@@ -423,13 +423,13 @@ test('połączone ramki: strzałki w górę i w dół przechodzą między ramkam
     e.zatwierdz();
   }, DLUGI);
   await strona.click('.wlasciwosci button:has-text("Dodaj ramkę z ciągiem dalszym")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.watek).length === 2);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.watek).length === 2);
   // Trzecia ramka wątku na następnej stronie.
   await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.aktywny?.watek_nr === 2);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.aktywny?.watek_nr === 2);
   await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 1);
-  const pisze = (nr, indeks) => strona.waitForFunction(([n, i]) => window.seriodruk.edytor.aktywny?.isEditing && window.seriodruk.edytor.aktywny.watek_nr === n && window.seriodruk.stan.indeks === i, [nr, indeks]);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.aktywny?.watek_nr === 1);
+  const pisze = (nr, indeks) => strona.waitForFunction(([n, i]) => window.seriodruk.edytor?.aktywny?.isEditing && window.seriodruk.edytor?.aktywny.watek_nr === n && window.seriodruk.stan.indeks === i, [nr, indeks]);
   const blisko = (a, b, co) => assert.ok(Math.abs(a - b) <= 2.6, `${co}: ${a.toFixed(2)} wobec ${b.toFixed(2)} mm`);
   // Kursor w ostatnim wierszu ramki, w której trwa pisanie, `n` znaków od jego początku.
   const wOstatnimWierszu = (n) => strona.evaluate((ile) => {
@@ -493,7 +493,7 @@ test('cały połączony tekst: Ctrl+A drugi raz zaznacza tekst wszystkich ramek 
     e.zatwierdz();
   }, DLUGI);
   await strona.click('.wlasciwosci button:has-text("Ciąg dalszy na następnej stronie")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.aktywny?.watek_nr === 1);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2 && window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.aktywny?.watek_nr === 1);
   // Fragment drugiej ramki ma własny wygląd (kursywa).
   await strona.evaluate(() => {
     const e = window.seriodruk.edytor;
@@ -502,7 +502,7 @@ test('cały połączony tekst: Ctrl+A drugi raz zaznacza tekst wszystkich ramek 
     e.zatwierdz();
   });
   await strona.click('.wlasciwosci button:has-text("Poprzednia ramka: strona 1")');
-  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor.aktywny?.watek_nr === 0);
+  await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.aktywny?.watek_nr === 0);
   await strona.evaluate(() => { window.__skopiowane = []; navigator.clipboard.writeText = async (x) => { window.__skopiowane.push(x); }; });
   const ramki = () => strona.evaluate(() => {
     const e = window.seriodruk.edytor;

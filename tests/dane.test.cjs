@@ -127,7 +127,7 @@ test('dane: nowa tabela, pisanie w komórkach, wklejanie z arkusza, zmiana nazwy
   assert.equal((await tabela()).wiersze.length, 3);
   await strona.click('#dane-zamknij');
   await strona.waitForFunction(() => !document.querySelector('#dlg-dane').open);
-  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects()[0]?.text === '{dzien}. {kolumna_2:00}');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects()[0]?.text === '{dzien}. {kolumna_2:00}');
   assert.deepEqual(bledy, []);
 });
 
@@ -194,7 +194,7 @@ test('serie: strona powielona według tabeli – lista stron, pola, ostrzeżenie
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.serie[0]?.nazwa === 'Dni');
   await strona.waitForSelector('#lista-stron li.w-serii .znak-serii');
   assert.equal(await strona.textContent('#lista-stron li.w-serii .znak-serii'), '×3');
-  await strona.waitForFunction(() => window.seriodruk.edytor.ostrzezenia.filter((o) => o.typ === 'nieznane_pole').length === 1);
+  await strona.waitForFunction(() => window.seriodruk.edytor?.ostrzezenia.filter((o) => o.typ === 'nieznane_pole').length === 1);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.filter((o) => o.typ === 'nieznane_pole').map((o) => o.pola)), [['literowka']]);
 
   // Lista „Wstaw pole” zaczyna się od tabeli tej strony.
@@ -649,7 +649,7 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
   await strona.evaluate(() => window.seriodruk.edytor.odznacz());
   await otworzKontrole();
   await strona.click('#kontrola-lista li button:has-text("Otwórz wzór")');
-  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.id === 'o_opis');
+  await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.id === 'o_opis');
   // Przełącznik klamr jest w panelu tekstu, gdy w tekście są klamry.
   assert.ok(await strona.locator('.wlasciwosci label:has-text("Klamry { } to zwykły tekst")').count());
   // Okno PDF dopisuje tę uwagę po chwili.
