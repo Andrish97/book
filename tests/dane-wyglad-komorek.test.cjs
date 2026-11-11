@@ -148,3 +148,51 @@ test('lista dozwolonych wartości kolumny: okno z wartościami w wierszach, zapi
   assert.equal(await strona.getAttribute('#dane-siatka .lista-kolumny[data-k="1"]', 'aria-pressed'), 'false');
   assert.deepEqual(bledy, []);
 });
+
+test('wygląd komórki ustawiany w oknie danych: pogrubienie, kursywa, kolor i „Bez wyglądu” dla jednej albo kilku komórek; przechodzi na strony', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Wygląd w oknie');
+  await strona.evaluate(() => {
+    window.seriodruk.stan.projekt.tabele.push({ id: 't1', nazwa: 'Dni', kolumny: ['dzien', 'opis'], wiersze: [['1', 'Nowy Rok'], ['2', 'zwykły'], ['3', 'Trzech Króli']],
+      wyglad: [null, null, [null, { czesci: [{ od: 0, do: 6, kursywa: true, kolor: '#00ff00' }] }]] });
+  });
+  await strona.evaluate(() => window.seriodruk.dane.otworz());
+  await strona.waitForSelector('#dlg-dane[open]');
+  // Bez zaznaczonej komórki – podpowiedź.
+  await strona.click('#dane-pogrubienie');
+  assert.match(await strona.textContent('#powiadomienie'), /Kliknij komórkę/);
+  // Jedna komórka: pogrubienie.
+  await strona.click('#dane-siatka td[data-w="0"][data-k="1"]');
+  await strona.click('#dane-pogrubienie');
+  assert.deepEqual((await tabela(strona)).wyglad, [[null, { pogrubienie: true }], null, [null, { czesci: [{ od: 0, do: 6, kursywa: true, kolor: '#00ff00' }] }]]);
+  assert.equal(await strona.locator('#dane-siatka td[data-w="0"][data-k="1"]').evaluate((td) => td.style.fontWeight), '700');
+  assert.ok(await strona.isVisible('#dane-wyglad-pole'));
+  // Kilka komórek (Shift+kliknięcie): kursywa i kolor; kursywa ustawiona na komórce znika z jej części.
+  await strona.click('#dane-siatka td[data-w="1"][data-k="0"]');
+  await strona.click('#dane-siatka td[data-w="2"][data-k="1"]', { modifiers: ['Shift'] });
+  assert.equal(await strona.locator('#dane-siatka td.zaznaczona').count(), 4);
+  await strona.click('#dane-kursywa');
+  await strona.locator('#dane-kolor').evaluate((el) => { el.value = '#1d3557'; el.dispatchEvent(new Event('change', { bubbles: true })); });
+  assert.deepEqual((await tabela(strona)).wyglad, [
+    [null, { pogrubienie: true }],
+    [{ kursywa: true, kolor: '#1d3557' }, { kursywa: true, kolor: '#1d3557' }],
+    [{ kursywa: true, kolor: '#1d3557' }, { kursywa: true, kolor: '#1d3557' }],
+  ]);
+  // Drugie kliknięcie kursywy na komórkach, które wszystkie ją mają – zdejmuje ją.
+  await strona.click('#dane-kursywa');
+  assert.deepEqual((await tabela(strona)).wyglad[1], [{ kolor: '#1d3557' }, { kolor: '#1d3557' }]);
+  await strona.click('#dane-zamknij');
+  const strony = await naStronach(strona);
+  assert.deepEqual(strony[0], ['1: Nowy Rok', [{ start: 3, end: 11, style: { fontWeight: 'bold' } }]]);
+  assert.deepEqual(strony[1], ['2: zwykły', [{ start: 0, end: 1, style: { fill: '#1d3557' } }, { start: 3, end: 9, style: { fill: '#1d3557' } }]]);
+  // „Bez wyglądu” na wszystkich komórkach zdejmuje wygląd z tabeli.
+  await strona.evaluate(() => window.seriodruk.dane.otworz());
+  await strona.waitForSelector('#dlg-dane[open]');
+  await strona.click('#dane-siatka td[data-w="0"][data-k="0"]');
+  await strona.click('#dane-siatka td[data-w="2"][data-k="1"]', { modifiers: ['Shift'] });
+  await strona.click('#dane-bez-wygladu');
+  const t1 = await tabela(strona);
+  assert.equal(t1.wyglad, undefined);
+  assert.equal(await strona.isVisible('#dane-wyglad-pole'), false);
+  assert.deepEqual(bledy, []);
+});

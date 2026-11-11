@@ -116,6 +116,7 @@ export class Dane {
       const komorki = tbody.rows[w].cells;
       for (let k = 0; k < t.kolumny.length; k += 1) this._pokazKomorke(komorki[k + 1], w, k);
     }
+    this._oznaczZaznaczone();
     if (od > 0 && (t.unikalne?.length || t.listy)) this._oznaczPowtorzenia();
   }
 
@@ -191,6 +192,62 @@ export class Dane {
       poz = c.do;
     }
     if (poz < tekst.length) td.append(tekst.slice(poz));
+  }
+
+  // Zaznaczone komórki: prostokąt od komórki-kotwicy do komórki klikniętej z Shiftem.
+  _komorkiZaznaczone() {
+    const z = this._zaznaczenie;
+    if (!z || z.tabela !== this.idTabeli) return [];
+    const t = this.tabela();
+    const wynik = [];
+    for (let w = Math.min(z.w0, z.w1); w <= Math.min(Math.max(z.w0, z.w1), t.wiersze.length - 1); w += 1) {
+      for (let k = Math.min(z.k0, z.k1); k <= Math.min(Math.max(z.k0, z.k1), t.kolumny.length - 1); k += 1) wynik.push([w, k]);
+    }
+    return wynik;
+  }
+
+  _oznaczZaznaczone() {
+    for (const td of this.siatka.querySelectorAll('td.zaznaczona')) td.classList.remove('zaznaczona');
+    const komorki = this._komorkiZaznaczone();
+    if (komorki.length > 1) for (const [w, k] of komorki) this.siatka.querySelector(`td[data-w="${w}"][data-k="${k}"]`)?.classList.add('zaznaczona');
+  }
+
+  // Zmienia wygląd zaznaczonych komórek. zmiana: { pogrubienie | kursywa: 'przelacz' } | { kolor } | { bez: true }.
+  // Ustawiona cecha obowiązuje w całej komórce – znika też z części tekstu.
+  _ustawWyglad(zmiana) {
+    const t = this.tabela();
+    const komorki = this._komorkiZaznaczone();
+    if (!t || !komorki.length) { powiadom('Kliknij komórkę (Shift+kliknięcie zaznacza kilka), a potem wybierz wygląd.'); return; }
+    const wyglad = (t.wyglad || []).slice(0, t.wiersze.length);
+    while (wyglad.length < t.wiersze.length) wyglad.push(null);
+    const komorka = (w, k) => wyglad[w]?.[k] || null;
+    let wlacz;
+    for (const cecha of ['pogrubienie', 'kursywa']) if (zmiana[cecha]) wlacz = !komorki.every(([w, k]) => komorka(w, k)?.[cecha]);
+    for (const [w, k] of komorki) {
+      let x = { ...komorka(w, k) };
+      if (zmiana.bez) x = {};
+      for (const cecha of ['pogrubienie', 'kursywa']) {
+        if (!zmiana[cecha]) continue;
+        if (wlacz) x[cecha] = true; else delete x[cecha];
+        if (x.czesci) x.czesci = x.czesci.map((c) => { const { [cecha]: _pomin, ...reszta } = c; return reszta; });
+      }
+      if ('kolor' in zmiana) {
+        if (zmiana.kolor && zmiana.kolor !== '#000000') x.kolor = zmiana.kolor; else delete x.kolor;
+        if (x.czesci) x.czesci = x.czesci.map((c) => { const { kolor: _pomin, ...reszta } = c; return reszta; });
+      }
+      if (x.czesci) { x.czesci = x.czesci.filter((c) => Object.keys(c).length > 2); if (!x.czesci.length) delete x.czesci; }
+      if (!wyglad[w]) wyglad[w] = t.kolumny.map(() => null);
+      wyglad[w][k] = Object.keys(x).length ? x : null;
+      if (!wyglad[w].some(Boolean)) wyglad[w] = null;
+    }
+    if (wyglad.some(Boolean)) t.wyglad = wyglad; else { delete t.wyglad; delete t.wyglad_wyl; }
+    // Ustawiony wygląd ma być widać – także gdy przenoszenie było wyłączone.
+    if (!zmiana.bez) delete t.wyglad_wyl;
+    const maWyglad = Boolean(t.wyglad?.some(Boolean));
+    $('#dane-wyglad-pole').hidden = !maWyglad;
+    $('#dane-wyglad').checked = maWyglad && !t.wyglad_wyl;
+    for (const [w, k] of komorki) { const td = this.siatka.querySelector(`td[data-w="${w}"][data-k="${k}"]`); if (td) this._pokazKomorke(td, w, k); }
+    this._zmieniono();
   }
 
   // Okno listy dozwolonych wartości kolumny: zwraca listę wartości, [] (usuń listę) albo null (anulowano).
@@ -318,7 +375,27 @@ export class Dane {
       const td = e.target.closest('td');
       if (!td) return;
       this._ostatniWiersz = { tabela: this.idTabeli, w: Number(td.dataset.w) };
+      if (!this._shift) {
+        const [w, k] = [Number(td.dataset.w), Number(td.dataset.k)];
+        this._zaznaczenie = { tabela: this.idTabeli, w0: w, k0: k, w1: w, k1: k };
+        this._oznaczZaznaczone();
+      }
     });
+    // Shift+kliknięcie komórki zaznacza prostokąt komórek od poprzednio klikniętej (do zmiany wyglądu).
+    s.addEventListener('pointerdown', (e) => {
+      this._shift = e.shiftKey;
+      const td = e.target.closest('td');
+      if (!td || !e.shiftKey || this._zaznaczenie?.tabela !== this.idTabeli) return;
+      Object.assign(this._zaznaczenie, { w1: Number(td.dataset.w), k1: Number(td.dataset.k) });
+      this._oznaczZaznaczone();
+    });
+    s.addEventListener('pointerup', () => { this._shift = false; });
+    // Przyciski wyglądu nie zabierają kursora z komórki.
+    for (const id of ['#dane-pogrubienie', '#dane-kursywa', '#dane-bez-wygladu']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());
+    $('#dane-pogrubienie').addEventListener('click', () => this._ustawWyglad({ pogrubienie: 'przelacz' }));
+    $('#dane-kursywa').addEventListener('click', () => this._ustawWyglad({ kursywa: 'przelacz' }));
+    $('#dane-kolor').addEventListener('change', (e) => this._ustawWyglad({ kolor: e.target.value.toLowerCase() }));
+    $('#dane-bez-wygladu').addEventListener('click', () => this._ustawWyglad({ bez: true }));
     s.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' || e.shiftKey) return; // Shift+Enter: nowa linia w komórce
       const naglowek = e.target.closest('.nazwa-kolumny');
