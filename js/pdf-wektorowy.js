@@ -911,6 +911,12 @@ class StronaPdf {
 
 const bezPamieci = (o) => { o.objectCaching = false; o.dirty = true; for (const d of o._objects || []) bezPamieci(d); };
 const maMaske = (o) => Boolean(o.clipPath) || (o._objects || []).some(maMaske);
+// Przycięcie zwykłym prostokątem liczonym względem elementu (grupa z rozłożonego rysunku SVG) da się zapisać
+// w PDF jako ścieżka przycinania – element zostaje wektorowy.
+const prostyKadr = (o) => {
+  const k = o.clipPath;
+  return k && k.type === 'rect' && !k.rx && !k.ry && !k.inverted && !k.absolutePositioned && !k.clipPath && !(o._objects || []).some(maMaske) ? k : null;
+};
 
 // Rysuje stronę na stronie PDF.
 // srodowisko: { PDFLib, pdf, czcionki: CzcionkiPdf, obrazy: ObrazyPdf, cmyk, krzywe, dpi, uwagi: Map(powód → liczba elementów
@@ -941,11 +947,20 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
     if (o.visible === false) continue;
     const przed = { op: ctx.op.length, stos: ctx.stos.length, m: ctx.m, stan: Object.fromEntries(STAN.map((k) => [k, ctx[k]])), kreski: ctx.kreski, czcionki: [...zasoby.uzyteCzcionki] };
     try {
-      if (maMaske(o)) throw new Niewektorowe('element przycięty maską');
+      const kadr = prostyKadr(o);
+      if (!kadr && maMaske(o)) throw new Niewektorowe('element przycięty maską');
       bezPamieci(o);
       ctx.krzyweTeraz = new Set(); ctx.obrazyTeraz = new Set(); ctx.ligaturTeraz = 0;
       ctx.save();
-      o.render(ostrozny(ctx));
+      if (kadr) {
+        // Ścieżka przycinania w układzie elementu; potem rysowanie wraca do układu strony.
+        const uklad = ctx.getTransform();
+        ctx.transform(...fabric.util.multiplyTransformMatrices(o.calcTransformMatrix(), kadr.calcTransformMatrix()));
+        ctx.beginPath(); ctx.rect(-kadr.width / 2, -kadr.height / 2, kadr.width, kadr.height); ctx.clip(); ctx.beginPath();
+        ctx.setTransform(uklad);
+        o.clipPath = undefined;
+      }
+      try { o.render(ostrozny(ctx)); } finally { if (kadr) o.clipPath = kadr; }
       ctx.restore();
       if (ctx.stos.length !== przed.stos) throw new Niewektorowe('niedomknięty stan rysowania');
       // Element zapisany wektorowo, ale z częścią jako krzywe albo z rysunkiem SVG jako obrazem.

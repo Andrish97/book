@@ -13,7 +13,11 @@ const { chromium, devices } = require('playwright');
 const { otworz: otworzZAtrapa } = require('../tests/pomoc.cjs');
 
 const ADRES = process.argv[2] || 'http://localhost:8000/';
-const KATALOG = path.join(__dirname, '..', 'img', 'instrukcja');
+// Drugi argument „ciemny” robi ten sam komplet w ciemnym motywie (img/instrukcja/ciemny/).
+const CIEMNY = process.argv[3] === 'ciemny';
+const KATALOG = path.join(__dirname, '..', 'img', 'instrukcja', ...(CIEMNY ? ['ciemny'] : []));
+const MOTYW = { colorScheme: CIEMNY ? 'dark' : 'light' };
+require('node:fs').mkdirSync(KATALOG, { recursive: true });
 const WIDOK = { width: 1280, height: 800 };
 
 // Konfiguracja z fikcyjnym adresem – tylko po to, by ekran logowania
@@ -153,6 +157,7 @@ async function przykladoweProjekty(strona) {
       tryb: 'atrapa',
       konta: [{ id: '11111111-1111-4111-8111-111111111111', email: 'anna@przyklad.pl', haslo: 'Dobre#Haslo1', potwierdzone: true, nazwa: 'Anna' }],
     });
+    await k.emulateMedia(MOTYW);
     await k.waitForSelector('#ekran-logowania', { state: 'visible' });
     await k.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');
     await k.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
@@ -216,7 +221,7 @@ async function przykladoweProjekty(strona) {
   }
 
   // ---------- Desktop / tablet w poziomie ----------  // ---------- Desktop / tablet w poziomie ----------
-  const kontekst = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block' });
+  const kontekst = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block', ...MOTYW });
   await bezBazy(kontekst);
   const s = await kontekst.newPage();
   s.on('pageerror', (e) => console.error('błąd strony:', e.message));
@@ -361,7 +366,7 @@ async function przykladoweProjekty(strona) {
   await kontekst.close();
 
   // ---------- Narzędzia precyzji i dane: osobny, mały projekt ----------
-  const kp = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block' });
+  const kp = await przegladarka.newContext({ viewport: WIDOK, serviceWorkers: 'block', ...MOTYW });
   await bezBazy(kp);
   const d = await kp.newPage();
   d.on('pageerror', (e) => console.error('błąd strony:', e.message));
@@ -605,7 +610,9 @@ async function przykladoweProjekty(strona) {
     g.set({ top: 40 });
     g.setCoords();
     e.zatwierdz();
+    e.odznacz();
     e.zaznacz(g.id);
+    document.querySelector('#wlasciwosci').firstElementChild?.scrollIntoView({ block: 'start' });
   });
   await d.waitForTimeout(700);
   await zrzut(d, 'tabela.png');
@@ -666,7 +673,7 @@ async function przykladoweProjekty(strona) {
   await kp.close();
 
   // ---------- Telefon ----------
-  const tel = await przegladarka.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
+  const tel = await przegladarka.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block', ...MOTYW });
   await bezBazy(tel);
   const t = await tel.newPage();
   await t.goto(ADRES);

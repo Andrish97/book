@@ -5,6 +5,7 @@
 import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
 import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
+import { czyCiemny } from './motyw.js';
 
 // Lista pól dokumentu i zapisów liczb – z tych samych tabel, z których korzysta aplikacja.
 function tabelaPol() {
@@ -173,7 +174,7 @@ export const ROZDZIALY = [
       '<b>Zablokuj położenie i rozmiar</b> chroni element przed przypadkowym przesunięciem.',
       'Ikony nad panelem: <b>kopiuj do schowka</b>, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem <b>Wklej</b> we właściwościach strony (albo <kbd>Ctrl</kbd>+<kbd>V</kbd>) – trafi w to samo miejsce.',
       '<b>Obraz</b>: kliknij go dwa razy (albo <b>Kadruj przeciąganiem</b>), żeby wybrać widoczny fragment ramką – <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. Działa także na obrazie obróconym i odbitym (na czas kadrowania obraz jest prostowany). Do tego przycięcie liczbami, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi).',
-      '<b>Rysunek SVG</b> wstawia się jako obraz: wygląda wiernie, ale nic się w nim nie zmieni, a napisy przeglądarka rysuje czcionką zastępczą. <b>Rozłóż rysunek na elementy</b> (we właściwościach obrazu) zamienia go w zwykłą <b>grupę kształtów i napisów</b> w tym samym miejscu: grupę można rozgrupować, kształtom zmienić kolor, obrys i punkty, a napisy poprawić jak każdy tekst. Napis zachowuje czcionkę, jeśli jest ona w zestawie aplikacji albo wśród czcionek projektu – inną zastępuje domyślna, o czym aplikacja mówi. Rzeczy, których edytor nie ma (filtry, maski, wzory), znikają – wtedy lepiej zostawić obraz; <kbd>Ctrl</kbd>+<kbd>Z</kbd> go przywraca.',
+      '<b>Rysunek SVG</b> wstawia się jako obraz: wygląda wiernie, ale nic się w nim nie zmieni, a napisy przeglądarka rysuje czcionką zastępczą. <b>Rozłóż rysunek na elementy</b> (we właściwościach obrazu) zamienia go w zwykłą <b>grupę kształtów i napisów</b> w tym samym miejscu: grupę można rozgrupować, kształtom zmienić kolor, obrys i punkty, a napisy poprawić jak każdy tekst. Napis zachowuje czcionkę, jeśli jest ona w zestawie aplikacji albo wśród czcionek projektu – inną zastępuje domyślna, o czym aplikacja mówi. Napis ułożony w rysunku w kilku wierszach zostaje jedną ramką z wierszami. Zdjęcie osadzone w rysunku staje się zwykłym obrazem projektu. Jeśli obraz był przycięty, grupa jest przycięta tak samo – przycięcie zdejmuje <b>Pokaż cały rysunek</b> we właściwościach grupy (po rozgrupowaniu elementy widać w całości). Rzeczy, których edytor nie ma (filtry, maski, wzory), znikają – wtedy lepiej zostawić obraz; <kbd>Ctrl</kbd>+<kbd>Z</kbd> go przywraca.',
       'Tytuły części panelu (np. <b>Cień</b>, <b>Ramka tekstu</b>) zwijają je i rozwijają. Zwinięte zostają zwinięte przy kolejnych elementach.',
     ],
   },
@@ -551,6 +552,8 @@ export const ROZDZIALY = [
 export class Instrukcja {
   constructor() {
     this.dlg = document.getElementById('dlg-instrukcja');
+    // Zmiana motywu przy otwartej instrukcji podmienia zrzuty na pasujące.
+    document.addEventListener('motyw', () => { if (this.dlg?.open && this.indeks >= 0) this.pokaz(this.indeks); });
     this.spis = document.getElementById('instrukcja-rozdzialy');
     this.tresc = document.getElementById('instrukcja-tresc');
     this.numer = document.getElementById('instrukcja-numer');
@@ -604,13 +607,15 @@ export class Instrukcja {
     this.spis.children[i].scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
     const html = [`<h3>${r.tytul}</h3>`, `<p class="wstep">${r.wstep}</p>`];
+    // Zrzuty są w dwóch kompletach: jasnym i ciemnym – instrukcja pokazuje ten, który pasuje do motywu.
+    const katalog = czyCiemny() ? 'img/instrukcja/ciemny/' : 'img/instrukcja/';
     if (r.obraz) {
-      html.push(`<figure><img src="img/instrukcja/${r.obraz}" alt="${r.podpis || ''}" loading="lazy"${r.obrazWaski ? ' style="max-width:320px"' : ''}>`
+      html.push(`<figure><img src="${katalog}${r.obraz}" alt="${r.podpis || ''}" loading="lazy"${r.obrazWaski ? ' style="max-width:320px"' : ''}>`
         + `${r.podpis ? `<figcaption>${r.podpis}</figcaption>` : ''}</figure>`);
     }
     if (r.punkty?.length) html.push(`<ul class="punkty">${r.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
     // Drugi obrazek rozdziału – pod punktami.
-    if (r.obraz2) html.push(`<figure><img src="img/instrukcja/${r.obraz2}" alt="${r.podpis2 || ''}" loading="lazy">${r.podpis2 ? `<figcaption>${r.podpis2}</figcaption>` : ''}</figure>`);
+    if (r.obraz2) html.push(`<figure><img src="${katalog}${r.obraz2}" alt="${r.podpis2 || ''}" loading="lazy">${r.podpis2 ? `<figcaption>${r.podpis2}</figcaption>` : ''}</figure>`);
     if (r.html) html.push(r.html());
     if (r.rada) html.push(`<p class="rada">${r.rada}</p>`);
     this.tresc.innerHTML = html.join('');

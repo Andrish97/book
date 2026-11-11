@@ -2129,7 +2129,15 @@ export class Edytor extends EventTarget {
   // Prostokąt opisany na elemencie, w milimetrach strony. Element z zaznaczenia
   // kilku naraz ma położenie liczone względem tego zaznaczenia – trzeba je przeliczyć.
   _prostokatNaStronie(o) {
-    return o.getBoundingRect();
+    const r = o.getBoundingRect();
+    // Element przycięty prostokątem (grupa z przyciętego rysunku SVG): liczy się część, którą widać.
+    const k = o.clipPath;
+    if (!k || k.absolutePositioned || k.inverted) return r;
+    const m = fabric.util.multiplyTransformMatrices(o.calcTransformMatrix(), k.calcTransformMatrix());
+    const rogi = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => fabric.util.transformPoint({ x: (x * k.width) / 2, y: (y * k.height) / 2 }, m));
+    const x1 = Math.max(r.left, Math.min(...rogi.map((p) => p.x))); const y1 = Math.max(r.top, Math.min(...rogi.map((p) => p.y)));
+    const x2 = Math.min(r.left + r.width, Math.max(...rogi.map((p) => p.x))); const y2 = Math.min(r.top + r.height, Math.max(...rogi.map((p) => p.y)));
+    return x2 > x1 && y2 > y1 ? { left: x1, top: y1, width: x2 - x1, height: y2 - y1 } : r;
   }
 
   // ---------- Przyciąganie: prowadnice, inne elementy, równe odstępy, siatka ----------
@@ -2699,7 +2707,7 @@ export class Edytor extends EventTarget {
       ctx.setLineDash([6, 3]);
       for (const o of this.canvas.getObjects()) {
         if (!ids.has(o.id)) continue;
-        const r = o.getBoundingRect();
+        const r = this._prostokatNaStronie(o);
         ctx.strokeRect(X(r.left) - 2, Y(r.top) - 2, r.width * s + 4, r.height * s + 4);
       }
     }

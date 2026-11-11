@@ -213,6 +213,10 @@ export class PanelWlasciwosci {
     s.append(seg);
     if (obj.type === 'group' && !toTabela(obj) && !e.wOtwartejGrupie(obj)) {
       s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()], ...(obj.zablokowany ? [] : [['dlon', 'Zmień element grupy', () => e.otworzGrupe(obj)]])]));
+      // Grupa z rozłożonego rysunku SVG, który był przycięty jako obraz.
+      if (obj.clipPath && !obj.clipPath.absolutePositioned) {
+        s.append(this.akcje([['dopasuj', 'Pokaż cały rysunek (zdejmij przycięcie)', () => { obj.set({ clipPath: undefined, dirty: true }); e.canvas.requestRenderAll(); e.oznaczZmiane(); this.zbuduj(); }]]));
+      }
       s.append(this.wskazowka('Pojedynczy element grupy zmienisz bez rozgrupowywania: kliknij go dwa razy na stronie.'));
     }
   }

@@ -9,7 +9,8 @@
 import './fabric-ustawienia.js';
 import { CZCIONKI, DOMYSLNA, zapewnijRodziny, odmianyRodziny } from './czcionki.js';
 import { blobZasobu } from './zasoby.js';
-import { rozmiarOryginalu } from './obrazy.js';
+import { rozmiarOryginalu, przygotujKopie } from './obrazy.js';
+import { zrodloObrazu } from './zlozenie.js';
 import { svgZgodny } from './pdf-wektorowy.js';
 import { uid } from './projekt.js';
 
@@ -107,7 +108,110 @@ function naTekst(projekt, t, el, m) {
   tb.setPositionByOrigin(punkt, kotwica, 'top');
   tb.setCoords();
   const pierwsza = String(t.fontFamily || '').split(',')[0].trim().replace(/^['"]|['"]$/g, '');
-  return { obiekt: tb, zastapiona: rodzina ? null : (pierwsza || 'bez nazwy') };
+  return { obiekt: tb, zastapiona: rodzina ? null : (pierwsza || 'bez nazwy'), punkt, kotwica };
+}
+
+// Rozmiar pisma napisu w SVG (własny albo odziedziczony), w jednostkach rysunku.
+function rozmiarPisma(el) {
+  for (let e = el; e && e.nodeType === 1; e = e.parentNode) {
+    const v = parseFloat(e.style?.fontSize || e.getAttribute('font-size'));
+    if (v > 0) return v;
+  }
+  return 16;
+}
+
+// Przygotowanie kodu rysunku do rozkładu. Zwraca { kod, pominiete: liczba zdjęć spod adresów w sieci }.
+// 1. Napis złożony z części o własnym położeniu (<tspan x= y= dy=>, np. kilka wierszy) Fabric skleiłby
+//    w jeden wiersz. Każda taka część staje się osobnym napisem; części jednego napisu mają wspólny
+//    znacznik data-napis, po którym wiersze o równych odstępach łączą się potem w jedną ramkę.
+// 2. Zdjęcia wskazane adresem w sieci znikają: w rysunku wstawionym jako obraz też ich nie widać,
+//    a rozkład nie może czekać na obcy serwer.
+function przygotujRysunek(kod) {
+  const dok = new DOMParser().parseFromString(kod, 'image/svg+xml');
+  if (dok.querySelector('parsererror')) return { kod, pominiete: 0 };
+  const pierwsza = (v) => String(v ?? '').trim().split(/[\s,]+/)[0];
+  let pominiete = 0;
+  for (const z of [...dok.querySelectorAll('image')]) {
+    const adres = z.getAttribute('href') || z.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || '';
+    if (!/^data:image\//i.test(adres.trim())) { z.remove(); pominiete += 1; }
+  }
+  let nr = 0;
+  for (const t of [...dok.querySelectorAll('text')]) {
+    const em = rozmiarPisma(t);
+    const liczba = (v) => parseFloat(pierwsza(v)) || 0;
+    const dlugosc = (v) => liczba(v) * (/em$/.test(pierwsza(v)) ? em : 1);
+    let czesc = { x: liczba(t.getAttribute('x')) + dlugosc(t.getAttribute('dx')), y: liczba(t.getAttribute('y')) + dlugosc(t.getAttribute('dy')), tekst: '', wzor: null };
+    const czesci = [czesc];
+    for (const w of t.childNodes) {
+      if (w.nodeType === 3) czesc.tekst += w.nodeValue;
+      else if (w.nodeType === 1 && w.localName === 'tspan' && (w.hasAttribute('x') || w.hasAttribute('y'))) {
+        czesc = {
+          x: w.hasAttribute('x') ? liczba(w.getAttribute('x')) + dlugosc(w.getAttribute('dx')) : czesc.x,
+          y: (w.hasAttribute('y') ? liczba(w.getAttribute('y')) : czesc.y) + dlugosc(w.getAttribute('dy')),
+          tekst: w.textContent,
+          wzor: w,
+        };
+        czesci.push(czesc);
+      } else if (w.nodeType === 1) czesc.tekst += w.textContent;
+    }
+    if (czesci.length < 2) continue;
+    nr += 1;
+    for (const c of czesci) {
+      const tekst = c.tekst.replace(/\s+/g, ' ').trim();
+      if (!tekst) continue;
+      const n = t.cloneNode(false);
+      for (const a of ['dx', 'dy', 'rotate', 'textLength']) n.removeAttribute(a);
+      for (const a of c.wzor?.attributes || []) {
+        if (['x', 'y', 'dx', 'dy'].includes(a.name)) continue;
+        n.setAttribute(a.name, a.name === 'style' ? `${t.getAttribute('style') || ''};${a.value}` : a.value);
+      }
+      n.setAttribute('x', String(c.x));
+      n.setAttribute('y', String(c.y));
+      n.setAttribute('data-napis', String(nr));
+      n.textContent = tekst;
+      t.parentNode.insertBefore(n, t);
+    }
+    t.remove();
+  }
+  return { kod: new XMLSerializer().serializeToString(dok), pominiete };
+}
+
+// Kolejne wiersze jednego napisu (ten sam wygląd, to samo zaczepienie, równe odstępy) → jedna ramka tekstu.
+// wiersze: [{ obiekt, punkt, kotwica }]. Zwraca listę ramek: jedną, gdy da się połączyć, inaczej wszystkie.
+function polaczWiersze(wiersze) {
+  const [p] = wiersze;
+  const a = p.obiekt;
+  const odstep = wiersze.length > 1 ? (wiersze[wiersze.length - 1].punkt.y - p.punkt.y) / (wiersze.length - 1) : 0;
+  const taki = (w, i) => {
+    const o = w.obiekt;
+    return w.kotwica === p.kotwica && Math.abs(w.punkt.x - p.punkt.x) < a.fontSize * 0.02
+      && Math.abs(w.punkt.y - (p.punkt.y + i * odstep)) < a.fontSize * 0.05
+      && Math.abs(o.angle % 360) < 0.01 && o.scaleX === 1 && o.scaleY === 1
+      && ['fontFamily', 'fontWeight', 'fontStyle', 'stroke', 'charSpacing'].every((k) => o[k] === a[k])
+      && Math.abs(o.fontSize - a.fontSize) < a.fontSize * 0.005 && String(o.fill) === String(a.fill);
+  };
+  if (wiersze.length < 2 || odstep < a.fontSize * 0.5 || odstep > a.fontSize * 4 || !wiersze.every(taki)) return wiersze.map((w) => w.obiekt);
+  // Odległość góry ramki od pierwszej linii pisma nie zależy od interlinii, więc pierwszy wiersz zostaje w miejscu.
+  a.set({ width: 1e6, text: wiersze.map((w) => w.obiekt.text).join('\n'), lineHeight: odstep / (a.fontSize * a._fontSizeMult) });
+  a.set('width', a.calcTextWidth() + a.fontSize * 0.05);
+  a.setPositionByOrigin(p.punkt, p.kotwica, 'top');
+  a.setCoords();
+  return [a];
+}
+
+// Zdjęcie osadzone w rysunku staje się zwykłym obrazem projektu (z własnym plikiem wśród obrazów).
+async function naObraz(projekt, o, nazwa) {
+  const zrodlo = o.getSrc?.() || '';
+  const typ = /^data:image\/([a-z0-9.+-]+)/i.exec(zrodlo);
+  if (!typ) return null;
+  const id = uid('z');
+  projekt.zasoby[id] = { nazwa: `${nazwa}.${typ[1].toLowerCase().replace('jpeg', 'jpg').replace('svg+xml', 'svg')}`, dataUrl: zrodlo };
+  await przygotujKopie(projekt.zasoby, [{ type: 'image', zasob: id }]);
+  let img;
+  try { img = await fabric.FabricImage.fromURL(zrodloObrazu(projekt.zasoby)(id)); } catch { delete projekt.zasoby[id]; return null; }
+  img.set({ width: o.width, height: o.height, cropX: o.cropX || 0, cropY: o.cropY || 0, opacity: o.opacity, zasob: id, nazwa: projekt.zasoby[id].nazwa });
+  nadajMacierz(img, o.calcOwnMatrix());
+  return img;
 }
 
 // Kształt bez obrysu ma w SVG domyślną grubość 1 – niewidoczną, ale poszerzającą ramkę elementu.
@@ -123,6 +227,7 @@ function bezPustegoObrysu(o) {
 function naStrone(o, m) {
   const { scaleX, scaleY, skewX } = fabric.util.qrDecompose(mnoz(m, o.calcOwnMatrix()));
   nadajMacierz(o, mnoz(m, o.calcOwnMatrix()));
+  if (o.type === 'image') return o;
   if (!(scaleY > 0 && Math.abs(scaleX / scaleY - 1) < 0.01 && Math.abs(skewX) < 0.01)) return o;
   const s = scaleX;
   const srodek = o.getCenterPoint();
@@ -142,9 +247,9 @@ export async function rozlozRysunek(projekt, obj) {
   if (!toRysunekSvg(projekt, obj)) return { blad: 'To nie jest rysunek SVG.' };
   let kod;
   try { kod = await (await blobZasobu(projekt, obj.zasob)).text(); } catch { return { blad: 'Nie udało się odczytać pliku rysunku.' }; }
-  if (/<image\b/i.test(kod)) return { blad: 'Ten rysunek zawiera wstawione zdjęcia – rozłożyć da się rysunek z samych kształtów i napisów.' };
+  const gotowy = przygotujRysunek(kod);
   let wynik;
-  try { wynik = await fabric.loadSVGFromString(kod); } catch { wynik = null; }
+  try { wynik = await fabric.loadSVGFromString(gotowy.kod); } catch { wynik = null; }
   const opcje = wynik?.options;
   const pary = (wynik?.objects || []).map((o, i) => [o, wynik.elements?.[i]]).filter(([o]) => o && o.visible !== false);
   if (!pary.length || !(opcje?.width > 0) || !(opcje?.height > 0)) return { blad: 'Tego rysunku nie da się rozłożyć na elementy.' };
@@ -153,7 +258,8 @@ export async function rozlozRysunek(projekt, obj) {
   // Czy kształty z rozkładu wyglądają jak rysunek (napisów nie porównujemy: obraz rysuje je czcionką systemu).
   const brak = NIEOBSLUGIWANE.exec(kod);
   let uwaga = brak ? `Rysunek używa elementu „${brak[1] || brak[0]}”, którego edytor nie ma – wygląd mógł się zmienić.` : '';
-  if (!uwaga && !napisy.length && !svgZgodny(obj.getElement(), pary.map(([o]) => o), opcje)) uwaga = 'Wygląd mógł się trochę zmienić.';
+  const zdjecia = pary.filter(([o]) => o.type === 'image');
+  if (!uwaga && !napisy.length && !zdjecia.length && !svgZgodny(obj.getElement(), pary.map(([o]) => o), opcje)) uwaga = 'Wygląd mógł się trochę zmienić.';
 
   // Czcionki napisów muszą być wczytane, zanim napisy zostaną zmierzone.
   await zapewnijRodziny([DOMYSLNA, ...napisy.map(([o]) => znanaRodzina(projekt, o.fontFamily)).filter(Boolean)]);
@@ -163,20 +269,43 @@ export async function rozlozRysunek(projekt, obj) {
   const sx = Math.abs(obj.scaleX); const sy = Math.abs(obj.scaleY);
   const m = [sx * (nw / opcje.width), 0, 0, sy * (nh / opcje.height), -sx * (obj.cropX + obj.width / 2), -sy * (obj.cropY + obj.height / 2)];
   const zastapione = new Set();
-  const obiekty = pary.map(([o, el]) => {
+  const obiekty = [];
+  let wiersze = []; // kolejne części jednego napisu (data-napis)
+  let napis = null;
+  const zamknijNapis = () => { if (wiersze.length) obiekty.push(...polaczWiersze(wiersze)); wiersze = []; napis = null; };
+  const bezRozszerzenia = String(obj.nazwa || 'rysunek').replace(/\.[a-z0-9]+$/i, '');
+  let { pominiete } = gotowy;
+  for (const [o, el] of pary) {
     if (typeof o.text === 'string') {
-      const { obiekt, zastapiona } = naTekst(projekt, o, el, m);
-      if (zastapiona) zastapione.add(zastapiona);
-      return obiekt;
+      const w = naTekst(projekt, o, el, m);
+      if (w.zastapiona) zastapione.add(w.zastapiona);
+      const znacznik = el?.getAttribute?.('data-napis') || null;
+      if (!znacznik || znacznik !== napis) zamknijNapis();
+      if (znacznik) { napis = znacznik; wiersze.push(w); } else obiekty.push(w.obiekt);
+      continue;
+    }
+    zamknijNapis();
+    if (o.type === 'image') {
+      const img = await naObraz(projekt, o, `${bezRozszerzenia} – zdjęcie ${zdjecia.findIndex(([z]) => z === o) + 1}`);
+      if (img) obiekty.push(naStrone(img, m)); else pominiete += 1;
+      continue;
     }
     bezPustegoObrysu(o);
-    if (o.type === 'polygon' || o.type === 'polyline') return naStrone(naKsztalt(o), m);
-    if (o.type === 'circle') return naStrone(naElipse(o), m);
-    return naStrone(o, m);
-  });
+    if (o.type === 'polygon' || o.type === 'polyline') obiekty.push(naStrone(naKsztalt(o), m));
+    else if (o.type === 'circle') obiekty.push(naStrone(naElipse(o), m));
+    else obiekty.push(naStrone(o, m));
+  }
+  zamknijNapis();
+  if (!obiekty.length) return { blad: 'Tego rysunku nie da się rozłożyć na elementy.' };
   for (const o of obiekty) o.set({ id: uid('o') });
 
   const grupa = new fabric.Group(obiekty, { id: uid('o'), nazwa: obj.nazwa || undefined, opacity: obj.opacity, warstwa: obj.warstwa });
+  // Przycięcie obrazu przechodzi na grupę: prostokąt widocznej części, liczony od środka grupy.
+  const przyciety = obj.cropX > 0.5 || obj.cropY > 0.5 || obj.width < nw - 0.5 || obj.height < nh - 0.5;
+  if (przyciety) {
+    const c = grupa.getCenterPoint();
+    grupa.clipPath = new fabric.Rect({ originX: 'center', originY: 'center', left: -c.x, top: -c.y, width: obj.width * sx, height: obj.height * sy, strokeWidth: 0 });
+  }
   // Grupa przejmuje obrót i odbicie obrazu; jej środek trafia tam, gdzie wypada w obrazie.
   const srodek = obj.getCenterPoint();
   const naStronie = fabric.util.composeMatrix({ translateX: srodek.x, translateY: srodek.y, angle: obj.angle || 0, flipX: obj.flipX, flipY: obj.flipY });
@@ -185,7 +314,9 @@ export async function rozlozRysunek(projekt, obj) {
   grupa.setPositionByOrigin(srodekGrupy, 'center', 'center');
   grupa.setCoords();
   for (const o of obiekty) o.setCoords();
-  const przyciety = obj.cropX > 0.5 || obj.cropY > 0.5 || obj.width < nw - 0.5 || obj.height < nh - 0.5;
-  if (przyciety) uwaga = `Obraz był przycięty – po rozłożeniu widać cały rysunek.${uwaga ? ` ${uwaga}` : ''}`;
-  return { grupa, ile: obiekty.length, napisy: napisy.length, zastapione: [...zastapione], uwaga };
+  const uwagi = [];
+  if (przyciety) uwagi.push('Grupa jest przycięta tak jak obraz (przycięcie zdejmiesz we właściwościach grupy).');
+  if (pominiete) uwagi.push('Zdjęcie wskazane adresem w sieci zostało pominięte.');
+  if (uwaga) uwagi.push(uwaga);
+  return { grupa, ile: obiekty.length, napisy: napisy.length, zastapione: [...zastapione], uwaga: uwagi.join(' ') };
 }
