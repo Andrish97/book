@@ -5,6 +5,7 @@ import { marginesyWzorca, tloStrony, marginesyStrony, normalizuj, stronyZWzorcem
 import { warstwyWzorcow } from '../zlozenie.js';
 import { rozwin, arkuszStrony, bokStrony } from '../serie.js';
 import { zapiszLokalnie, oznaczZsynchronizowany } from '../lokalny.js';
+import { zapiszHistorie, wczytajHistorie, usunHistorie } from '../historia-zapis.js';
 import * as chmura from '../chmura.js';
 import { ikona } from '../ikony.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
@@ -66,6 +67,37 @@ export async function cofnijKrok(kierunek) {
   odswiezCofanie();
   generujMiniatury();
   zaplanujZapis({ historia: false });
+}
+
+// Historia cofania zapisana na urządzeniu (js/historia-zapis.js) – po zamknięciu i ponownym otwarciu
+// projektu „Cofnij” działa dalej. Zapis idzie po każdym zapisie projektu w przeglądarce, razem z numerem
+// wersji z konta: po nim przy otwarciu poznajemy, czy w międzyczasie coś przyszło z innego urządzenia.
+async function zachowajHistorie(p) {
+  if (p !== stan.projekt) return;
+  try {
+    await zapiszHistorie(wlasciciel(), { id: p.id, wersja_chmury: p.wersja_chmury }, historia.doZapisu());
+  } catch { /* bez historii na dysku cofanie działa do zamknięcia projektu, jak dawniej */ }
+}
+
+// Przy otwarciu projektu: zapisana historia wraca tylko wtedy, gdy na pewno pasuje do projektu.
+// - jej ostatni krok to dokładnie ten projekt – wraca bez zmian;
+// - projekt różni się, ale numer wersji z konta jest ten sam – różnicę zrobiono na tym urządzeniu (zmiana tuż
+//   przed zamknięciem nie zdążyła stać się krokiem); staje się nowym krokiem;
+// - numer wersji jest inny – projekt zmieniono na innym urządzeniu; historia zaczyna się od nowa, żeby
+//   cofnięcie nie nadpisało tamtych zmian. (Gdy projekt otwiera się z kopii na urządzeniu, a nowsze zmiany
+//   z konta dochodzą dopiero po otwarciu, łączenie przelicza historię jak przy zmianach na żywo.)
+async function przywrocHistorie(p) {
+  historia.wyczysc();
+  let zapis = null;
+  try { zapis = await wczytajHistorie(wlasciciel(), p.id); } catch { /* brak magazynu – historia od zera */ }
+  if (zapis && historia.zZapisu(zapis.historia)) {
+    if (historia.zgodnaZ(p)) return;
+    if ((zapis.wersja_chmury ?? null) === (p.wersja_chmury ?? null)) { historia.zapisz(p); return; }
+    const byloCoCofac = historia.moznaCofnac || historia.moznaPonowic;
+    historia.wyczysc();
+    if (byloCoCofac) powiadom('Historia cofania zaczyna się od nowa – projekt zmienił się na innym urządzeniu od ostatniej pracy na tym.');
+  }
+  historia.zapisz(p); // stan wyjściowy – do niego wraca pierwsze cofnięcie
 }
 
 function odswiezCofanie() {
@@ -164,8 +196,7 @@ export async function otworzProjekt(p, cel = {}) {
   edytor.wydruk = null;
   clearTimeout(stan.timerHistorii);
   stan.doHistorii = false;
-  historia.wyczysc();
-  historia.zapisz(stan.projekt); // stan wyjściowy – do niego wraca pierwsze cofnięcie
+  await przywrocHistorie(stan.projekt);
   await zaladujCel({ dopasuj: true });
   odswiezCofanie();
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
@@ -254,6 +285,7 @@ export async function zapiszTeraz() {
   stan.zapisywanie = stan.zapisywanie.then(async () => {
     try {
       await zapiszLokalnie(projekt, wlasciciel(), Boolean(stan.uzytkownik));
+      await zachowajHistorie(projekt);
       if (stan.uzytkownik) zaplanujChmure();
       else stanZapisu('ok', 'Zapisano w przeglądarce');
     } catch (e) {
@@ -304,6 +336,7 @@ async function wyslijNaKonto({ wymus = false } = {}) {
     await chmura.zapiszWChmurze(p, { wymus });
     stan.konflikt = null;
     await zapiszLokalnie(p, wlasciciel(), p.zmieniono !== wersja);
+    await zachowajHistorie(p); // nowy numer wersji z konta
     await oznaczZsynchronizowany(p.id, wersja);
     if (stan.projekt === p && !stan.timerZapisu) stanZapisu('ok', 'Zapisano');
     if (stan.projekt === p) zaplanujAktualizacjeLinku(); // udostępniony link idzie za zapisanymi zmianami
@@ -478,12 +511,14 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
     if (doWyslania) {
       p.zmieniono = new Date().toISOString(); // drugie urządzenie ma zobaczyć, że na koncie jest coś nowszego niż u niego
       await zapiszLokalnie(p, wlasciciel(), true);
+      await zachowajHistorie(p);
       stan.konflikt = null;
       pominietaWysylka = false;
       await synchronizuj();
     } else {
       if (zKonta.zmieniono) p.zmieniono = zKonta.zmieniono;
       await zapiszLokalnie(p, wlasciciel(), false);
+      await zachowajHistorie(p);
       if (stan.projekt === p && !stan.timerZapisu && !pominietaWysylka) stanZapisu('ok', 'Zapisano');
       koniec();
     }
@@ -552,6 +587,7 @@ async function zapytajOCalyProjekt(p, e) {
     clearTimeout(stan.timerZapisu);
     stan.timerZapisu = null;
     stan.projekt = null; // żeby otwarcie nie zapisało porzucanej wersji
+    await usunHistorie(zKonta.id); // historia porzucanej wersji nie pasuje do wersji z konta
     await otworzProjekt(zKonta);
     powiadom('Wczytano wersję z konta.');
   } catch (blad) {

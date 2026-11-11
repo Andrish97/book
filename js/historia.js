@@ -7,6 +7,9 @@
 // historii – nigdy nie są usuwane, więc cofnięty element znajdzie swój plik.
 
 const MAKS_KROKOW = 80;
+// Zapisana na urządzeniu historia nie może rosnąć bez końca: gdy jej teksty przekroczą ten rozmiar
+// (w znakach), najstarsze kroki odpadają.
+const MAKS_ZNAKOW_ZAPISU = 24 * 1024 * 1024;
 const RESZTA = ['nazwa', 'sekcje', 'style', 'serie', 'widok'];
 const LISTY = ['strony', 'wzorce', 'tabele'];
 
@@ -82,6 +85,53 @@ export class Historia {
       poprzednia = migawka(p, poprzednia);
       return poprzednia;
     });
+  }
+
+  // Czy bieżący krok historii to dokładnie ten stan projektu.
+  zgodnaZ(projekt) {
+    return this.i >= 0 && takieSame(migawka(projekt, this.kroki[this.i]), this.kroki[this.i]);
+  }
+
+  // Postać do zapisania na urządzeniu (IndexedDB). Każdy tekst (strona, wzorzec, tabela, reszta) jest
+  // w puli raz, a kroki wskazują na niego numerem – tak jak w pamięci, gdzie niezmienione części
+  // kolejnych kroków są tym samym tekstem. Zwraca { i, pula, kroki, znakow }.
+  doZapisu() {
+    const pula = [];
+    const numery = new Map();
+    let znakow = 0;
+    const numer = (tekst) => {
+      let n = numery.get(tekst);
+      if (n === undefined) { n = pula.length; pula.push(tekst); numery.set(tekst, n); znakow += tekst.length; }
+      return n;
+    };
+    // Od najnowszego kroku do najstarszego; bieżący i wszystkie „do przodu” zostają zawsze.
+    const zapisane = [];
+    for (let k = this.kroki.length - 1; k >= 0; k -= 1) {
+      if (k < this.i && znakow > MAKS_ZNAKOW_ZAPISU) break;
+      const m = this.kroki[k];
+      const krok = { r: numer(m.reszta) };
+      for (const lista of LISTY) krok[lista] = [...m[lista]].map(([id, tekst]) => [id, numer(tekst)]);
+      zapisane.unshift(krok);
+    }
+    const pominiete = this.kroki.length - zapisane.length;
+    return { i: this.i - pominiete, pula, kroki: zapisane, znakow };
+  }
+
+  // Odtwarza historię zapisaną przez doZapisu(). Zwraca false, gdy zapis jest niepełny.
+  zZapisu(dane) {
+    if (!dane || !Array.isArray(dane.kroki) || !Array.isArray(dane.pula) || !dane.kroki.length) return false;
+    const { pula } = dane;
+    const kroki = dane.kroki.map((k) => {
+      const m = { reszta: pula[k.r] };
+      for (const lista of LISTY) m[lista] = new Map((k[lista] || []).map(([id, n]) => [id, pula[n]]));
+      return m;
+    });
+    if (kroki.some((m) => typeof m.reszta !== 'string' || LISTY.some((l) => [...m[l].values()].some((x) => typeof x !== 'string')))) return false;
+    const i = Number(dane.i);
+    if (!(i >= 0 && i < kroki.length)) return false;
+    this.kroki = kroki;
+    this.i = i;
+    return true;
   }
 
   // Przepisuje krok do projektu (w miejscu). Zwraca, co się zmieniło:
