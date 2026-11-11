@@ -90,7 +90,7 @@ Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](http
 | `zmien_czesc` | ogólna zmiana jednej sekcji, wzorca, stylu, tabeli albo serii (nowa, zmiana, usunięcie). Zmiana stylu przepisuje go do tekstów, które go używają – jak w aplikacji; usunięty styl odpina się od tekstów |
 | `zmien_projekt` | ogólny zapis kilku części naraz (dla zmian, których inne narzędzia nie obejmują) |
 | `nazwa_projektu` | nowa nazwa |
-| `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące pliki obrazów z danych, elementy poza stroną |
+| `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące albo niejednoznaczne pliki obrazów z danych (rozszerzenie się liczy: `a.jpg` ≠ `a.png`; nazwa bez rozszerzenia działa tylko przy jednym pasującym pliku), elementy poza stroną |
 | `opis_formatu` | ten sam opis modelu co [format-seriodruk.md](https://andrish97.github.io/book/ai/format-seriodruk.md) |
 
 Każda zmiana działa tak: pobierz projekt → zmień → zapisz z numerem wersji. Jeśli w międzyczasie zmieniłeś coś w edytorze, baza odmawia, a łącznik pobiera projekt na nowo i nanosi zmianę jeszcze raz.

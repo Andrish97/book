@@ -537,6 +537,46 @@ async function przykladoweProjekty(strona) {
   await zrzut(d, 'czcionki.png');
   await d.click('#czcionki-zamknij');
 
+  // Obrazy projektu: trzy wgrane obrazy, jeden wstawiony na stronę, jeden nieużywany
+  await d.evaluate(async () => {
+    const obraz = (nazwa, a, b, typ = 'image/jpeg') => new Promise((ok) => {
+      const c = document.createElement('canvas');
+      c.width = 1200; c.height = 800;
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 1200, 800);
+      g.addColorStop(0, a); g.addColorStop(1, b);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 1200, 800);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.beginPath(); ctx.arc(860, 300, 170, 0, Math.PI * 2); ctx.fill();
+      c.toBlob((blob) => ok(new File([blob], nazwa, { type: typ })), typ, 0.9);
+    });
+    const { wgrajObrazy } = await import('./js/app/obrazy-okno.js');
+    await wgrajObrazy([await obraz('gory-zima.jpg', '#1e3a8a', '#93c5fd'), await obraz('laka-wiosna.jpg', '#166534', '#fde68a'), await obraz('morze.jpg', '#0e7490', '#f0abfc')]);
+    const p = window.seriodruk.stan.projekt;
+    const id = Object.keys(p.zasoby).find((k) => p.zasoby[k].nazwa === 'gory-zima.jpg');
+    const img = await window.seriodruk.edytor.dodajObraz(null, 'gory-zima.jpg', p.zasoby, { id });
+    img.set({ left: 14, top: 40 }); img.setCoords();
+    window.seriodruk.edytor.canvas.discardActiveObject();
+    window.seriodruk.edytor.zatwierdz();
+  });
+  await d.waitForTimeout(600);
+  await d.click('#przycisk-wiecej');
+  await d.click('[data-akcja="obrazy"]');
+  await d.waitForSelector('#dlg-obrazy[open]');
+  await d.waitForFunction(() => [...document.querySelectorAll('#obrazy-lista .obraz-wymiary')].every((e) => /px/.test(e.textContent)));
+  // Dwa zaznaczone obrazy: pasek z „Kopiuj nazwy” i „Usuń”.
+  await d.locator('#obrazy-lista li').nth(1).locator('.obraz-miniatura').click();
+  await d.locator('#obrazy-lista li').nth(2).locator('.obraz-miniatura').click({ modifiers: ['Control'] });
+  await d.mouse.move(5, 5);
+  await zrzut(d, 'obrazy-projektu.png');
+  await d.click('#obrazy-zamknij');
+  // Obraz wstawiony tylko do zrzutu znika – dalsze zrzuty mają stronę jak dotąd.
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const o = e.canvas.getObjects().find((x) => x.type === 'image' && x.nazwa === 'gory-zima.jpg');
+    if (o) { e.canvas.setActiveObject(o); e.usun(); }
+  });
+
   // Sprawdź przed drukiem: nieznane pole i tekst, który nie mieści się w ramce
   await d.evaluate(() => {
     const e = window.seriodruk.edytor;

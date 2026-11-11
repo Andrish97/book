@@ -135,8 +135,15 @@ function przeglad(w) {
 export function kontrola(p) {
   const uwagi = [];
   const tabela = (id) => (p.tabele || []).find((t) => t.id === id);
-  const nazwyZasobow = new Set(Object.values(p.zasoby || {}).map((z) => String(z.nazwa || '').toLowerCase()));
-  const zBezRozszerzenia = new Set([...nazwyZasobow].map((n) => n.replace(/\.[^.]+$/, '')));
+  // Nazwa z tabeli wskazuje obraz pełną nazwą z rozszerzeniem (wielkość liter bez znaczenia); nazwa bez
+  // rozszerzenia – tylko gdy pasuje dokładnie jeden plik (ta sama reguła co w aplikacji, js/nazwy-obrazow.js).
+  const nazwyZasobow = Object.values(p.zasoby || {}).map((z) => String(z.nazwa || '').trim().toLowerCase());
+  const obraz = (n) => {
+    const x = n.toLowerCase();
+    if (nazwyZasobow.includes(x)) return 'jest';
+    const ile = nazwyZasobow.filter((z) => z.replace(/\.[a-z0-9]{2,5}$/, '') === x).length;
+    return ile === 1 ? 'jest' : (ile > 1 ? 'niejednoznaczna' : 'brak');
+  };
   for (const s of p.strony) {
     const seria = (p.serie || []).find((x) => x.id === s.seria);
     const tabele = seria ? [tabela(seria.tabela), ...(seria.dodatkowe || []).map((d) => tabela(d.tabela))].filter(Boolean) : [];
@@ -157,9 +164,11 @@ export function kontrola(p) {
         const i = t ? t.kolumny.indexOf(o.pole.kolumna) : -1;
         if (!t) uwagi.push(`Strona „${s.nazwa || s.id}”: obraz z kolumny „${o.pole.kolumna}”, której nie ma w tabelach serii.`);
         else {
-          const braki = [...new Set(t.wiersze.map((w) => String(w[i] ?? '').trim()).filter((n) => n && !/^\[\s*pomi[nń]\s*\]$/i.test(n)))]
-            .filter((n) => !nazwyZasobow.has(n.toLowerCase()) && !zBezRozszerzenia.has(n.toLowerCase()));
-          if (braki.length) uwagi.push(`Strona „${s.nazwa || s.id}”: w kolumnie „${o.pole.kolumna}” są nazwy plików, których nie wgrano do projektu: ${braki.slice(0, 8).join(', ')}${braki.length > 8 ? '…' : ''} (właściciel wgrywa je w aplikacji).`);
+          const nazwy = [...new Set(t.wiersze.map((w) => String(w[i] ?? '').trim()).filter((n) => n && !/^\[\s*pomi[nń]\s*\]$/i.test(n)))];
+          const braki = nazwy.filter((n) => obraz(n) === 'brak');
+          const dwuznaczne = nazwy.filter((n) => obraz(n) === 'niejednoznaczna');
+          if (braki.length) uwagi.push(`Strona „${s.nazwa || s.id}”: w kolumnie „${o.pole.kolumna}” są nazwy plików, których nie wgrano do projektu: ${braki.slice(0, 8).join(', ')}${braki.length > 8 ? '…' : ''} (właściciel wgrywa je w aplikacji; rozszerzenie się liczy – „a.jpg” to nie „a.png”).`);
+          if (dwuznaczne.length) uwagi.push(`Strona „${s.nazwa || s.id}”: w kolumnie „${o.pole.kolumna}” nazwy bez rozszerzenia pasują do kilku plików: ${dwuznaczne.slice(0, 8).join(', ')} – dopisz rozszerzenie (np. „.jpg”).`);
         }
       }
       const szer = (o.width || 0) * (o.scaleX ?? 1);

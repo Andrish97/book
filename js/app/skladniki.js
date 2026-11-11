@@ -21,6 +21,7 @@ import { doEdycji } from './podglad-ekran.js';
 import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './panel-strony.js';
 import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
+import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
 
 export { instrukcja } from './instrukcja-leniwa.js';
 // Obraz, który dostanie plik wybrany przyciskiem „Podmień zdjęcie”.
@@ -41,9 +42,17 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   dodajMojaCzcionke: (rodzina) => oknoCzcionek.dodajZMoich(rodzina),
   pola: () => polaDoWstawienia(),
   kolumnyObrazu: () => (stan.tryb === 'strona' ? tabelaStrony(biezacaStrona())?.kolumny : stan.projekt.tabele.flatMap((t) => t.kolumny)) || [],
-  wgrajObrazy: () => $('#pliki-zasoby').click(),
+  obrazyProjektu: async () => (await import('./obrazy-okno.js')).otworzObrazy(),
   // „Podmień zdjęcie”: plik wybrany w oknie systemu trafia w ramkę tego obrazu (js/app/edytor-start.js).
-  podmienObraz: (obj) => { podmiana.obj = obj; $('#plik-podmiana').click(); },
+  // „Podmień zdjęcie”: nowe z urządzenia albo jeden z obrazów projektu.
+  podmienObraz: (obj) => wybierzZrodloObrazu({
+    tytul: 'Podmień zdjęcie',
+    pomin: obj.zasob,
+    zUrzadzenia: () => { podmiana.obj = obj; $('#plik-podmiana').click(); },
+    zProjektu: async () => (await import('./obrazy-okno.js')).otworzObrazy({
+      wybierz: { etykieta: 'Podmień', fn: async (id) => (await import('./edytor-start.js')).podmienZProjektu(obj, id) },
+    }),
+  }),
   // Rysunek SVG zamieniany w grupę zwykłych kształtów i napisów.
   toRysunekSvg: (obj) => toRysunekSvg(stan.projekt, obj),
   rozlozRysunek: (obj) => rozlozRysunekNaStronie(obj),

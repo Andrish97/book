@@ -104,6 +104,11 @@ export async function odlozZasoby(projekt) {
 // Zwraca listę nazw obrazów, których nie udało się znaleźć.
 export async function podlaczZasoby(projekt, pobierz = null) {
   const pomin = czcionki(projekt);
+  // Obrazy usunięte na innym urządzeniu: ich pliki znikają też stąd.
+  const usuniete = (projekt?.zasoby_usuniete || []).map((id) => klucz(projekt, id));
+  if (usuniete.length) {
+    try { await transakcja('readwrite', (m) => { for (const k of usuniete) { m.delete(k); m.delete(KOPIA + k); } }); } catch { /* sprzątanie przy następnym otwarciu */ }
+  }
   const wpisy = [];
   for (const [id, z] of Object.entries(projekt?.zasoby || {})) {
     if (!z || z.dataUrl || pomin.has(id)) continue;
@@ -178,6 +183,14 @@ export async function spisPlikow() {
     tx.oncomplete = () => { db.close(); ok(wynik); };
     tx.onerror = tx.onabort = () => { db.close(); blad(tx.error); };
   });
+}
+
+// Usuwa z magazynu plik jednego zasobu i jego kopię roboczą (obraz usunięty z projektu, js/obrazy-projektu.js).
+export async function usunPlikZasobu(projekt, id) {
+  const k = klucz(projekt, id);
+  await transakcja('readwrite', (m) => { m.delete(k); m.delete(KOPIA + k); });
+  const adres = adresy.get(k);
+  if (adres) { URL.revokeObjectURL(adres); adresy.delete(k); }
 }
 
 // Usuwa z magazynu wszystkie pliki projektu (po usunięciu projektu z tego urządzenia).

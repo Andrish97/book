@@ -14,7 +14,7 @@ import { zaplanujAktualizacjeLinku, odswiezPodglad, OPOZNIENIE_LINKU_Z_KONTA_MS 
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { podlaczZasoby } from '../zasoby.js';
-import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan } from '../laczenie.js';
+import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan, noweNagrobki } from '../laczenie.js';
 import { toTabela, miejsceKomorki } from '../tabela-obiekt.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
@@ -505,7 +505,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       odswiezPodglad(); // otwarty podgląd pokazuje zmiany od razu, bez zamykania i otwierania
     }
     // Czy to urządzenie ma po połączeniu coś, czego nie ma na koncie.
-    const doWyslania = !tenSamStan(p, podstawaKonta);
+    const doWyslania = !tenSamStan(p, podstawaKonta) || noweNagrobki(p, zKonta);
     if (ileZKonta && doWyslania) {
       powiadom(`Połączono zmiany z innego urządzenia (z konta: ${ileZKonta} ${ileZKonta === 1 ? 'część' : 'części'} projektu). Twoje zmiany zostały.`);
     } else if (ileZKonta && Date.now() - ostatnieWczytanie > 20000) {

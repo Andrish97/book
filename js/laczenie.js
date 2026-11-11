@@ -24,7 +24,7 @@ import { normalizuj } from './projekt.js';
 // Części projektu będące listami elementów z identyfikatorem.
 export const LISTY = ['strony', 'wzorce', 'tabele', 'sekcje', 'serie', 'style', 'czcionki'];
 // Pola, które nie biorą udziału w łączeniu (identyfikator, znaczniki zapisu, pliki – te łączą się osobno).
-const POMIJANE = new Set(['id', 'wersja_chmury', 'podstawa_chmury', 'zmieniono', 'miniatura', 'zasoby', 'strony_osobno', ...LISTY]);
+const POMIJANE = new Set(['id', 'wersja_chmury', 'podstawa_chmury', 'zmieniono', 'miniatura', 'zasoby', 'zasoby_usuniete', 'strony_osobno', ...LISTY]);
 // Ustawienia widoku (siatka, linijki) nie są warte pytania – zostają z tego urządzenia.
 const MOJE_BEZ_PYTANIA = new Set(['widok']);
 
@@ -52,6 +52,15 @@ export function odcisk(x) {
 }
 
 const klucze = (p) => Object.keys(p || {}).filter((k) => !POMIJANE.has(k));
+
+// Nagrobki usuniętych obrazów z obu stron razem.
+const nagrobki = (a, b) => new Set([...(a?.zasoby_usuniete || []), ...(b?.zasoby_usuniete || [])]);
+
+// Czy to urządzenie zna usunięte obrazy, o których konto jeszcze nie wie (wtedy po łączeniu trzeba wysłać).
+export const noweNagrobki = (moj, konto) => {
+  const naKoncie = new Set(konto?.zasoby_usuniete || []);
+  return (moj?.zasoby_usuniete || []).some((id) => !naKoncie.has(id));
+};
 
 // Listy, których części (strony, wzorce) łączymy element po elemencie.
 const Z_ELEMENTAMI = new Set(['strony', 'wzorce']);
@@ -371,10 +380,17 @@ export function zastosujPolaczenie(moj, konto, plan, wybory = new Map()) {
     if (konto[klucz] === undefined) delete moj[klucz]; else moj[klucz] = konto[klucz];
   }
   // Pliki (obrazy, czcionki): suma obu stron; opis z konta uzupełnia brakującą ścieżkę na koncie.
+  // Obraz usunięty po którejkolwiek stronie (nagrobek w `zasoby_usuniete`) nie wraca.
   moj.zasoby = moj.zasoby || {};
+  const usuniete = nagrobki(moj, konto);
   for (const [id, z] of Object.entries(konto.zasoby || {})) {
+    if (usuniete.has(id)) continue;
     if (!moj.zasoby[id]) moj.zasoby[id] = z;
     else if (!moj.zasoby[id].sciezka && z.sciezka && !moj.zasoby[id].dataUrl) moj.zasoby[id].sciezka = z.sciezka;
+  }
+  if (usuniete.size) {
+    for (const id of usuniete) delete moj.zasoby[id];
+    moj.zasoby_usuniete = [...usuniete];
   }
   return zmienione;
 }

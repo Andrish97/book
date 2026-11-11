@@ -187,6 +187,10 @@ export function normalizuj(p) {
   if (!Array.isArray(p.strony)) throw new Error('Brak listy stron w projekcie.');
   const wynik = { ...nowyProjekt(p.nazwa || 'Projekt'), ...p };
   wynik.zasoby = p.zasoby || {};
+  // Obrazy usunięte z projektu („nagrobki”): łączenie z innym urządzeniem nie przywraca ich z powrotem.
+  wynik.zasoby_usuniete = [...new Set((Array.isArray(p.zasoby_usuniete) ? p.zasoby_usuniete : []).filter((id) => typeof id === 'string' && id))];
+  for (const id of wynik.zasoby_usuniete) delete wynik.zasoby[id];
+  if (!wynik.zasoby_usuniete.length) delete wynik.zasoby_usuniete;
   // Własne czcionki: opis plików czcionek leżących w zasobach (js/czcionki.js).
   wynik.czcionki = (Array.isArray(p.czcionki) ? p.czcionki : []).filter((c) => c?.id && c.rodzina && wynik.zasoby[c.id])
     .map((c) => ({ id: c.id, rodzina: String(c.rodzina), waga: Number.isFinite(c.waga) ? c.waga : 400, kursywa: Boolean(c.kursywa) }));

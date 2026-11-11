@@ -12,7 +12,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 - PDF wektorowy z prawdziwym tekstem, osadzonymi czcionkami i ligaturami; PDF/X-4 z profilem drukarni i CMYK – także w trybie „Obrazy stron”. Próbki sprawdzone czterema niezależnymi programami.
 - Tekst płynie przez ramki i strony, a kursor idzie za nim; tabela jest jednym elementem; rysunek SVG rozkłada się na edytowalne elementy; element grupy zmienia się bez rozgrupowywania.
 - „Sprawdź przed drukiem” przechodzi każdą powieloną stronę: brakujące dane i obrazy, powtórzenia, teksty, które się nie mieszczą.
-- Push na `main` wdraża aplikację i bazę, a 179 testów w przeglądarce pilnuje, żeby nic się nie psuło.
+- Push na `main` wdraża aplikację i bazę, a 184 testy w przeglądarce pilnuje, żeby nic się nie psuło.
 
 **Słabe.**
 - Zmiany trafiają na konto po około 3 sekundach, a drugie urządzenie dowiaduje się o nich dopiero przy własnym zapisie albo otwarciu projektu – stąd pytania o połączenie zmian (B4).
@@ -64,7 +64,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Dlaczego tak.** Projekt trafia do druku, a drukarnia mówi w milimetrach. Dzięki temu eksport do PDF to proste przeliczenie mm na punkty, bez zgadywania rozdzielczości ekranu, a to samo położenie znaczy to samo w edytorze, podglądzie i pliku.
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** W `tests/` jest 179 testów w 38 plikach. Otwierają aplikację w przeglądarce i klikają jak człowiek: edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst i jego przelewanie przez strony, narzędzia precyzji, podgląd, udostępnianie, łączenie zmian z dwóch urządzeń, warstwy i grupy, tabela, dane, pola i serie, czcionki, obrazy, rozkładanie rysunków SVG, eksport PDF (wektorowy, PDF/X-4, CMYK – z porównaniem obrazu pliku z obrazem z aplikacji) i kontrola przed drukiem. Bazę zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”): najpierw sprawdzenie kodu, potem testy, na końcu wypisane pomiary zgodności PDF.
+**Co jest.** W `tests/` są 184 testy w 39 plikach. Otwierają aplikację w przeglądarce i klikają jak człowiek: edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst i jego przelewanie przez strony, narzędzia precyzji, podgląd, udostępnianie, łączenie zmian z dwóch urządzeń, warstwy i grupy, tabela, dane, pola i serie, czcionki, obrazy, rozkładanie rysunków SVG, eksport PDF (wektorowy, PDF/X-4, CMYK – z porównaniem obrazu pliku z obrazem z aplikacji) i kontrola przed drukiem. Bazę zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”): najpierw sprawdzenie kodu, potem testy, na końcu wypisane pomiary zgodności PDF.
 **Dlaczego tak.** Aplikacja ma dużo części, które od siebie zależą (serie, przelewanie tekstu, składanie strony). Test, który klika, wyłapuje to, czego nie widać przy czytaniu kodu. Porównanie PDF z obrazem z aplikacji robi niezależny czytnik PDF, więc pilnuje tego, co naprawdę zobaczy drukarnia.
 **Sprawdzone.** Osobny skrypt `npm run proba` przechodzi opublikowaną aplikację na prawdziwej bazie (0.2).
 **Słabe.** Próbę na prawdziwej bazie trzeba uruchomić ręcznie. Na prawdziwym tablecie i telefonie nikt aplikacji jeszcze nie przeklikał.
@@ -200,6 +200,26 @@ Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu pro
 **Twoje decyzje.** Wklejanie obrazów i SVG (#46). Kadrowanie obrazów obróconych (#52). Oryginały poza pamięcią karty (#63). SVG jako edytowalna grupa (#64), z wierszami napisów, przycięciem i osadzonymi zdjęciami (#66).
 **Słabe.** Po rozłożeniu znikają filtry, maski i wzory (aplikacja o tym mówi). Ramka zaznaczenia przyciętej grupy obejmuje także część ukrytą; po rozgrupowaniu elementy widać w całości. Zdjęcie wskazane w rysunku adresem w sieci jest pomijane (w obrazie też go nie widać). Magazyn plików dotyczy tej przeglądarki: na nowym urządzeniu zdjęcia są pobierane z konta przy otwarciu projektu.
 
+### D16. Obrazy projektu w jednym miejscu ✅ / ⚠️
+**Co jest.** Okno „Obrazy projektu” (menu ⋯, obok „Czcionki projektu”; przycisk „Obrazy projektu…” we właściwościach obrazu) pokazuje wszystkie obrazy projektu – wstawione na strony i wgrane do pól z danych: miniaturę, pełną nazwę pliku z rozszerzeniem, wymiary, rozmiar pliku i to, gdzie obraz jest użyty (strony, wzorce, dane) albo „nieużywany”. Działania:
+- „Wgraj obrazy…” (kilka naraz);
+- „Kopiuj nazwę”; zaznaczanie kilku (Ctrl, Shift, na telefonie przytrzymanie albo „Zaznacz”) i „Kopiuj nazwy” – jedna pod drugą, do wklejenia jako część kolumny tabeli albo w Excelu;
+- „Zmień nazwę” (kliknięciem nazwy, z kontrolą powtórzeń; komórki tabel z tą nazwą zmieniają się razem z nią);
+- „Podmień plik” (wszędzie, gdzie obraz jest użyty), „Pokaż” (strona z obrazem);
+- „Usuń” przy zaznaczonych i „Usuń nieużywane”.
+
+Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z obrazów projektu (wtedy to samo okno służy do wyboru). Każdy obraz wstawiony na stronę – narzędziem, przeciągnięciem, ze schowka, podmianą – trafia do tego samego zbioru.
+**Jak to działa.**
+- Ten sam plik drugi raz nie tworzy kopii: aplikacja liczy skrót SHA-256 treści (zapamiętany przy obrazie; dla starszych obrazów liczony tylko przy tym samym rozmiarze pliku). Wstawiony na stronę używa obrazu, który już jest; przy wgrywaniu jest informacja „Ten obraz już jest jako …”.
+- Inny plik o tej samej nazwie (pełnej, z rozszerzeniem, bez względu na wielkość liter): przy wgrywaniu pytanie z podglądem obu obrazów – „Zastąp”, „Zachowaj oba” (dopisek „(2)”), „Pomiń”, także „tak samo dla pozostałych”; przy wstawianiu na stronę dopisek „(2)” bez pytania.
+- Plik pod danym identyfikatorem nigdy się nie zmienia (inne urządzenia trzymają go u siebie i drugi raz nie pobierają). Dlatego podmiana pliku i zmiana nazwy dają nowy identyfikator, a elementy stron i wzorców są do niego przepinane – także w każdym kroku historii cofania, żeby cofnięcie nie wróciło do elementu bez pliku.
+- Usunięty obraz znika z projektu, z magazynu przeglądarki i z konta, a jego identyfikator trafia do listy `zasoby_usuniete`. Łączenie zmian z innym urządzeniem sumuje te listy, więc usunięty obraz nie wraca. Użytego obrazu aplikacja nie usuwa – mówi, gdzie jest.
+- Tabela rozróżnia rozszerzenia: `las.jpg` i `las.png` to dwa obrazy (js/nazwy-obrazow.js – jedna reguła dla składania stron, kontroli przed drukiem, okna obrazów i łącznika AI). Nazwa bez rozszerzenia trafia w obraz tylko wtedy, gdy pasuje dokładnie jeden plik; przy kilku strona pokazuje znak braku obrazu, a kontrola prosi o dopisanie rozszerzenia.
+**Dlaczego tak.** Wcześniej plik o tej samej nazwie po cichu nadpisywał poprzedni (a na innym urządzeniu zostawał stary), każde wstawienie tego samego zdjęcia robiło nową kopię, a obrazów nie dało się zobaczyć ani usunąć. Jedno miejsce z pełnymi nazwami i kopiowaniem nazw skraca drogę od zdjęć do tabeli danych.
+**Twoje decyzje.** Okno obrazów, duplikaty, jedno miejsce, wybór z obrazów projektu, kopiowanie nazw, zaznaczanie, rozróżnianie rozszerzeń (#69).
+**Sprawdzone.** Testy w `tests/obrazy-projektu.test.cjs`: duplikaty przy wstawianiu i wgrywaniu, wybór z obrazów projektu przy wstawianiu i podmianie, kopiowanie nazw, zaznaczanie i usuwanie (plik znika z magazynu i z konta), blokada usuwania użytego, podmiana z przepięciem (także w historii), zmiana nazwy z komórkami tabeli, `las.jpg`/`las.png` i nazwy bez rozszerzenia, nagrobek po łączeniu z drugim urządzeniem.
+**Słabe.** Przy otwartym oknie zmiany z innego urządzenia czekają (jak przy każdym oknie). Zmiana nazwy i podmiana pliku wysyłają obraz na konto drugi raz (nowy identyfikator). Po „Podmień zdjęcie” we właściwościach poprzednie zdjęcie zostaje w projekcie jako nieużywane – sprząta je „Usuń nieużywane”. Plik usunięty bez sieci zostaje na koncie jako zajęte miejsce (projekt go już nie wskazuje).
+
 ### D6. Cofanie ✅
 **Co jest.** Jedna historia dla całego projektu, 80 kroków: zmiany na stronach i wzorcach, dodawanie, usuwanie i przesuwanie stron, sekcje, style, tabele, serie, prowadnice. Po cofnięciu edytor otwiera stronę albo wzorzec, którego dotyczyła zmiana. Krok powstaje chwilę (0,3 s) po zmianie, więc szybka seria drobnych zmian jest jednym krokiem.
 **Dlaczego tak.** Krok historii to stan całego projektu, ale strony, które się nie zmieniły, nie są kopiowane – kolejne kroki dzielą ten sam zapis w pamięci, więc 80 kroków dużego projektu nie kosztuje 80 jego kopii. Jedna historia zamiast osobnych dla stron i dla usuwania to jedna reguła zamiast trzech.
@@ -295,7 +315,7 @@ Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu pro
 **Słabe.** W edytorze widać tylko wzór (pozycja 1, kolor wzoru); prawdziwy wygląd każdej strony jest w podglądzie, na miniaturach powieleń, w udostępnionym linku i w PDF. Wysokość tekstu bez stałej wysokości ramki nie zmienia się z danych, bo wynika z treści.
 
 ### G4. Obraz z kolumny tabeli ✅
-**Co jest.** Obraz-wzór wyznacza ramkę; kolumna podaje nazwę pliku wgranego do projektu (z rozszerzeniem albo bez). Podmieniony obraz może mieścić się w ramce cały albo wypełniać ją z przycięciem. Przy wypełnianiu wybierasz, która część zdjęcia zostaje: środek, góra, dół, lewa albo prawa – albo bierzesz kadr z kolumny, osobno dla każdego wiersza: słowem (także po dwa naraz) albo punktem zdjęcia, np. „30% 20%”. Pliki wgrywa się naraz przyciskiem „Wgraj obrazy do projektu”. Brak pliku o podanej nazwie trafia na listę przed drukiem z numerami stron.
+**Co jest.** Obraz-wzór wyznacza ramkę; kolumna podaje nazwę pliku z „Obrazów projektu” – z rozszerzeniem (`las.jpg` i `las.png` to dwa obrazy); nazwa bez rozszerzenia działa, gdy pasuje dokładnie jeden plik (D16). Podmieniony obraz może mieścić się w ramce cały albo wypełniać ją z przycięciem. Przy wypełnianiu wybierasz, która część zdjęcia zostaje: środek, góra, dół, lewa albo prawa – albo bierzesz kadr z kolumny, osobno dla każdego wiersza: słowem (także po dwa naraz) albo punktem zdjęcia, np. „30% 20%”. Pliki wgrywa się naraz przyciskiem „Wgraj obrazy do projektu”. Brak pliku o podanej nazwie trafia na listę przed drukiem z numerami stron.
 **Dlaczego tak.** Ramka z wzoru trzyma układ strony niezależnie od proporcji zdjęć. Kadr z kolumny pozwala np. nie ucinać głów na portretach bez osobnego ustawiania każdej strony.
 **Twoje decyzje.** Wypełnianie ramki (#51). Wybór części zdjęcia (#61). Kadr z kolumny (#66).
 

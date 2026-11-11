@@ -48,7 +48,8 @@ Wszystkie wymiary są w **milimetrach**. Rozmiar pisma też w mm: `mm = pt × 25
 | `style` | lista stylów tekstu | rozdział 6 |
 | `tabele` | lista tabel z danymi | rozdział 7 |
 | `serie` | lista serii | powielanie stron według tabel; rozdział 8 |
-| `zasoby` | `{ id: { nazwa, dataUrl } }` | obrazy i pliki czcionek; `nazwa` z rozszerzeniem, np. `styczen.jpg` |
+| `zasoby` | `{ id: { nazwa, dataUrl } }` | obrazy i pliki czcionek; `nazwa` z rozszerzeniem, np. `styczen.jpg`; nazwy obrazów są różne (bez względu na wielkość liter) |
+| `zasoby_usuniete` | `[id]` (opcjonalne) | identyfikatory obrazów usuniętych z projektu – żeby łączenie z innym urządzeniem ich nie przywróciło; nie używaj tych identyfikatorów |
 | `czcionki` | `[{ id, rodzina, waga, kursywa }]` | tylko własne czcionki spoza zestawu; `id` wskazuje plik w `zasoby`; `waga` 100–900 (400 zwykła, 700 pogrubiona) |
 | `widok` | `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }` | nieobowiązkowe ustawienia edytora |
 
@@ -201,7 +202,7 @@ Zapis liczby po dwukropku: `{nr:00}` (01, 02), `{nr:I}` / `{nr:i}` (rzymskie), `
 - `pilnuj_stron` (tylko sekcje z rozkładówkami): strona bloku zawsze wychodzi po swojej stronie rozkładówki; gdy trzeba, aplikacja wstawia pustą stronę.
 - Wiersze `[pomiń]` liczą się jako miejsca w bloku i w tabelach dodatkowych, ale nie dają stron ani numerów.
 
-**Obraz z danych** – obraz-wzór wyznacza ramkę, kolumna podaje nazwę pliku z `zasoby` (z rozszerzeniem albo bez):
+**Obraz z danych** – obraz-wzór wyznacza ramkę, kolumna podaje nazwę pliku z `zasoby`. Rozszerzenie się liczy: `las.jpg` i `las.png` to dwa różne obrazy (wielkość liter bez znaczenia). Nazwa bez rozszerzenia (`las`) działa tylko wtedy, gdy pasuje dokładnie jeden plik – przy kilku strona pokazuje brak obrazu, więc najlepiej wpisywać pełne nazwy:
 `"pole": { "kolumna": "zdjecie", "tryb": "wypelnij", "kadr": "gora", "kadr_z": "kadr" }` – bez `tryb` obraz mieści się w ramce w całości; `wypelnij` – wypełnia ją z przycięciem; `kadr` (`gora`, `dol`, `lewa`, `prawa`; brak = środek) – która część zostaje; `kadr_z` – kolumna z kadrem osobnym dla każdego wiersza (słowo albo `"30% 20%"`).
 
 **Wygląd z danych** – `z_danych` na dowolnym elemencie (pole = kolumna albo pole dokumentu, np. `egzemplarz`):

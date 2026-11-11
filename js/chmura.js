@@ -270,6 +270,14 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
 // id projektu → (id strony → JSON). Tylko w pamięci tej karty.
 const wyslaneStrony = new Map();
 
+// Usuwa z konta plik obrazu usuniętego z projektu (js/obrazy-projektu.js). Bez sieci plik zostaje –
+// nic nie wskazuje na niego w projekcie, więc jest tylko zajętym miejscem.
+export async function usunZasobZKonta(sciezka) {
+  if (!sciezka) return;
+  const sb = await supabase();
+  sprawdz(await sb.storage.from(BUCKET).remove([sciezka]));
+}
+
 export async function wczytajZChmury(id) {
   const sb = await supabase();
   const wiersz = sprawdz(await sb.from('projekty').select('dane, wersja').eq('id', id).single());

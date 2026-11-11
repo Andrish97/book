@@ -17,6 +17,7 @@ import { adresZasobu, dataUrlZasobu } from './zasoby.js';
 import { rozlejWatki } from './watki.js';
 import { zapewnijCzcionki } from './czcionki.js';
 import { toTabela, ulozTabele } from './tabela-obiekt.js';
+import { obrazZNazwy } from './nazwy-obrazow.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -58,7 +59,7 @@ const ozyw = async (json) => { await zapewnijCzcionki(json); return fabric.util.
 
 // Obraz z pola: kolumna tabeli podaje nazwę pliku wgranego do projektu.
 // Podmieniony obraz wpisuje się w ramkę obrazu-wzoru (ramka_pola), bez zmiany proporcji.
-const bezRozszerzenia = (n) => String(n || '').trim().toLowerCase().replace(/\.[a-z0-9]{2,5}$/, '');
+// Nazwa wskazuje obraz według reguły z js/nazwy-obrazow.js (rozszerzenie się liczy).
 
 function obrazyZPol(obiekty, wartosc, zasoby) {
   return obiekty.map((o) => {
@@ -66,7 +67,7 @@ function obrazyZPol(obiekty, wartosc, zasoby) {
     if (o.type !== 'image' || !o.pole?.kolumna) return o;
     const nazwa = wartosc(o.pole.kolumna, null);
     if (nazwa === undefined) return o;
-    const id = Object.keys(zasoby || {}).find((k) => bezRozszerzenia(zasoby[k].nazwa) === bezRozszerzenia(nazwa));
+    const id = obrazZNazwy(zasoby, nazwa)?.id;
     const ramka = { w: (o.width || 0) * (o.scaleX ?? 1), h: (o.height || 0) * (o.scaleY ?? 1) };
     // Kadr z kolumny: osobny dla każdego wiersza danych; pusta albo niezrozumiała wartość zostawia ustawienie wzoru.
     const kadr = o.pole.kadr_z ? kadrZWartosci(wartosc(o.pole.kadr_z, null)) : null;
