@@ -581,3 +581,151 @@ test('tabela: przy scalaniu tekst dołączanych komórek przechodzi do scalonej;
   assert.deepEqual(o.teksty[1], ['Lewa\nŚrodkowa gruba\nPrawa\nDolna', '', ''], 'wcześniejsze kroki zostały');
   assert.deepEqual(bledy, []);
 });
+
+// Linie siatki tabeli: wpisy własnych krawędzi i to, co jest narysowane. Narysowana linia to np. „h1 0-3 0.5 #1a1a1a”:
+// pozioma na granicy nad wierszem 1, od granicy kolumn 0 do 3, grubość w mm, kolor.
+const linieTabeli = (strona) => strona.evaluate(async () => {
+  const { wysokosciWierszy } = await import('./js/tabela-obiekt.js');
+  const g = window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela);
+  const z = (x) => Math.round(x * 100) / 100;
+  const granice = (wymiary) => wymiary.reduce((lista, s) => [...lista, lista.at(-1) + s], [0]);
+  const nr = (lista, x) => lista.findIndex((v) => Math.abs(v - x) < 0.02);
+  const X = granice(g.tabela.kolumny);
+  const Y = granice(wysokosciWierszy(g));
+  return {
+    wpisy: (g.tabela.linie_komorek || []).map((l) => `${l.os}${l.w},${l.k}:${l.grubosc}${l.kolor || ''}`).sort(),
+    rysowane: g.getObjects().filter((o) => o.type === 'line' && o.visible).map((l) => {
+      const poziom = Math.abs(l.y1 - l.y2) < 0.001;
+      const [x1, x2] = [l.x1, l.x2].map((x) => nr(X, x + g.width / 2)).sort((a, b) => a - b);
+      const [y1, y2] = [l.y1, l.y2].map((y) => nr(Y, y + g.height / 2)).sort((a, b) => a - b);
+      return poziom ? `h${y1} ${x1}-${x2} ${z(l.strokeWidth)} ${l.stroke}` : `v${x1} ${y1}-${y2} ${z(l.strokeWidth)} ${l.stroke}`;
+    }).sort(),
+  };
+});
+
+test('tabela: linie pojedynczej komórki – własna i bez linii, krawędź wspólna z sąsiadem, scalona komórka, wiersze i kolumny, zapis, PDF, cofnięcie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Linie komórek');
+  await wstawTabele(strona, 3, 3);
+  const C = '#1a1a1a';
+  const pisz = (w, k) => strona.evaluate(([ww, kk]) => { const e = window.seriodruk.edytor; e.edytujKomorke(e.canvas.getObjects().find((o) => o.tabela), [ww, kk]); }, [w, k]);
+  const krawedz = (ktora) => `.wlasciwosci label[data-krawedz="${ktora}"] select`;
+  let l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, []);
+  assert.deepEqual(l.rysowane, [`h0 0-3 0.25 ${C}`, `h1 0-3 0.5 ${C}`, `h2 0-3 0.25 ${C}`, `h3 0-3 0.25 ${C}`, `v0 0-3 0.25 ${C}`, `v1 0-3 0.25 ${C}`, `v2 0-3 0.25 ${C}`, `v3 0-3 0.25 ${C}`]);
+
+  // Środkowa komórka: własna linia u góry (w trakcie pisania w niej) – reszta linii pod nagłówkiem zostaje, jaka była.
+  await pisz(1, 1);
+  assert.equal(await strona.inputValue(krawedz('gora')), '');
+  await strona.selectOption(krawedz('gora'), 'wlasna');
+  await strona.fill('.wlasciwosci label:has-text("Grubość (u góry)") input', '1.2');
+  await strona.press('.wlasciwosci label:has-text("Grubość (u góry)") input', 'Tab');
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, [`h1,1:1.2${C}`]);
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('h1')), [`h1 0-1 0.5 ${C}`, `h1 1-2 1.2 ${C}`, `h1 2-3 0.5 ${C}`]);
+  assert.equal((await stanTabeli(strona)).zaznaczone, 'komórka [1,1] – pisanie', 'pisanie w komórce trwa');
+  // Kolor własnej linii.
+  await strona.evaluate(async () => {
+    const { ustawKrawedzKomorki } = await import('./js/tabela-obiekt.js');
+    const e = window.seriodruk.edytor;
+    ustawKrawedzKomorki(e.canvas.getObjects().find((o) => o.tabela), 1, 1, 'gora', { kolor: '#c1121f' });
+    e.zatwierdz();
+  });
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('h1')), [`h1 0-1 0.5 ${C}`, `h1 1-2 1.2 #c1121f`, `h1 2-3 0.5 ${C}`]);
+
+  // Bez linii z prawej: ta sama krawędź jest lewą krawędzią sąsiada – u niego widać to samo ustawienie.
+  await pisz(1, 1);
+  await strona.selectOption(krawedz('prawo'), 'brak');
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, ['h1,1:1.2#c1121f', `v1,2:0${C}`]);
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('v2')), [`v2 0-1 0.25 ${C}`, `v2 2-3 0.25 ${C}`]);
+  await pisz(1, 2);
+  assert.equal(await strona.inputValue(krawedz('lewo')), 'brak');
+  await strona.selectOption(krawedz('lewo'), '');
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, ['h1,1:1.2#c1121f']);
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('v2')), [`v2 0-3 0.25 ${C}`]);
+
+  // Scalona komórka: krawędź obejmuje wszystkie jej odcinki.
+  await pisz(1, 1);
+  await strona.click('.wlasciwosci button:has-text("Scal z komórką po prawej")');
+  await strona.selectOption(krawedz('dol'), 'wlasna');
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, ['h1,1:1.2#c1121f', `h2,1:0.75${C}`, `h2,2:0.75${C}`]);
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('h2')), [`h2 0-1 0.25 ${C}`, `h2 1-3 0.75 ${C}`]);
+  assert.deepEqual(l.rysowane.filter((x) => x.startsWith('v2')), [`v2 0-1 0.25 ${C}`, `v2 2-3 0.25 ${C}`], 'przez środek scalonej komórki linia nie przechodzi');
+  const przedZmianami = l;
+
+  // Nowy wiersz pod nagłówkiem: linia pod nagłówkiem zostaje pod nim, linie niższych wierszy jadą w dół. Usunięcie go przywraca stan.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zmienTabele(e.canvas.getObjects().find((o) => o.tabela), 'wiersz+', 0); });
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, ['h1,1:1.2#c1121f', `h3,1:0.75${C}`, `h3,2:0.75${C}`]);
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zmienTabele(e.canvas.getObjects().find((o) => o.tabela), 'wiersz-', 1); });
+  assert.deepEqual(await linieTabeli(strona), przedZmianami);
+  // Nowa kolumna za pierwszą: linie dalszych kolumn jadą w prawo. Usunięcie jej przywraca stan.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zmienTabele(e.canvas.getObjects().find((o) => o.tabela), 'kolumna+', 0); });
+  l = await linieTabeli(strona);
+  assert.deepEqual(l.wpisy, ['h1,2:1.2#c1121f', `h2,2:0.75${C}`, `h2,3:0.75${C}`]);
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.zmienTabele(e.canvas.getObjects().find((o) => o.tabela), 'kolumna-', 1); });
+  assert.deepEqual((await linieTabeli(strona)).wpisy, przedZmianami.wpisy);
+  // Linia boczna wiersza przechodzi na wiersz wstawiony pod nim; usunięcie ostatniego wiersza zostawia dolny brzeg tabeli.
+  const boki = await strona.evaluate(async () => {
+    const { ustawKrawedzKomorki, dodajWiersz, usunWiersz } = await import('./js/tabela-obiekt.js');
+    const { uid } = await import('./js/projekt.js');
+    const e = window.seriodruk.edytor;
+    const g = e.canvas.getObjects().find((o) => o.tabela);
+    const wpisy = () => (g.tabela.linie_komorek || []).filter((x) => x.os === 'v' || x.w >= 3).map((x) => `${x.os}${x.w},${x.k}:${x.grubosc}`).sort();
+    ustawKrawedzKomorki(g, 2, 0, 'lewo', { grubosc: 0 });
+    ustawKrawedzKomorki(g, 2, 0, 'dol', { grubosc: 1 });
+    const a = wpisy();
+    dodajWiersz(g, uid, 2);
+    const b = wpisy();
+    usunWiersz(g, 3);
+    const c = wpisy();
+    ustawKrawedzKomorki(g, 2, 0, 'lewo', null);
+    ustawKrawedzKomorki(g, 2, 0, 'dol', null);
+    e.zatwierdz();
+    return { a, b, c };
+  });
+  assert.deepEqual(boki.a, ['h3,0:1', 'v2,0:0']);
+  assert.deepEqual(boki.b, ['h4,0:1', 'v2,0:0', 'v3,0:0'], 'nowy ostatni wiersz: dolny brzeg tabeli zostaje dolnym brzegiem, linia boczna jak w wierszu wyżej');
+  assert.deepEqual(boki.c, ['h3,0:1', 'v2,0:0']);
+  assert.deepEqual((await linieTabeli(strona)).wpisy, przedZmianami.wpisy);
+
+  // Zapis i ponowne wczytanie strony; złożona strona (podgląd, PDF) ma te same linie.
+  await strona.keyboard.press('Escape');
+  const poWczytaniu = await strona.evaluate(async () => {
+    const { zapiszTeraz, przeladuj, stan } = window.seriodruk;
+    await zapiszTeraz();
+    await przeladuj();
+    const { rozwin } = await import('./js/serie.js');
+    const { zlozCel } = await import('./js/zlozenie.js');
+    const { eksportujPdf } = await import('./js/eksport.js');
+    const ciag = rozwin(stan.projekt);
+    const { obiekty } = await zlozCel(stan.projekt, ciag.egzemplarze[0], { ciag });
+    const tab = obiekty.find((o) => o.tabela);
+    const pdf = await eksportujPdf(stan.projekt, { tryb: 'wektor', dpi: 150, znaki: false });
+    return {
+      zapis: stan.projekt.strony[0].obiekty.find((o) => o.tabela).tabela.linie_komorek.map((x) => `${x.os}${x.w},${x.k}:${x.grubosc}`).sort(),
+      zlozone: tab.getObjects().filter((o) => o.type === 'line' && o.visible).map((x) => `${Math.round(x.strokeWidth * 100) / 100} ${x.stroke}`).filter((x) => !x.startsWith('0.25 ') && !x.startsWith('0.5 ')).sort(),
+      jakoObraz: pdf.uwagi,
+    };
+  });
+  assert.deepEqual(poWczytaniu.zapis, ['h1,1:1.2', 'h2,1:0.75', 'h2,2:0.75']);
+  assert.deepEqual(poWczytaniu.zlozone, [`0.75 ${C}`, '1.2 #c1121f']);
+  assert.deepEqual(poWczytaniu.jakoObraz, [], 'tabela z własnymi liniami jest w PDF wektorem');
+  assert.deepEqual(await linieTabeli(strona), przedZmianami);
+
+  // Cofnięcie zmiany linii.
+  await krok(strona);
+  await pisz(2, 0);
+  await strona.selectOption(krawedz('lewo'), 'brak');
+  assert.equal((await linieTabeli(strona)).wpisy.length, 4);
+  await strona.keyboard.press('Escape');
+  await krok(strona);
+  await strona.click('[data-akcja="cofnij"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela)?.tabela.linie_komorek?.length === 3);
+  assert.deepEqual(await linieTabeli(strona), przedZmianami);
+  assert.deepEqual(bledy, []);
+});
