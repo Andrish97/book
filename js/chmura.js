@@ -602,3 +602,24 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
   };
   return { manifest, adresObrazu };
 }
+
+// ---------- Dostęp dla AI (klucz do jednego projektu) ----------
+//
+// Klucz tworzy i odbiera właściciel projektu; w bazie zostaje tylko jego skrót. Asystent AI używa
+// klucza w funkcjach ai_projekt i ai_zapisz (supabase/migrations/20261111200000_dostep_ai.sql).
+
+// Zwraca { id, klucz, wazny_do } – klucz jest w odpowiedzi jedyny raz.
+export async function utworzDostepAi(projektId, { opis = '', rola = 'edycja', dni = 7 } = {}) {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('utworz_dostep_ai', { p_projekt: projektId, p_opis: opis, p_rola: rola, p_dni: dni }));
+}
+
+export async function dostepyAi(projektId) {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('dostepy_ai', { p_projekt: projektId })) || [];
+}
+
+export async function odwolajDostepAi(id) {
+  const sb = await supabase();
+  sprawdz(await sb.rpc('odwolaj_dostep_ai', { p_id: id }));
+}
