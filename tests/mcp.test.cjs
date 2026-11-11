@@ -234,3 +234,27 @@ test('MCP: listy pól i stylów zgodne z aplikacją', async () => {
   assert.deepEqual(mcp.POLA_STYLU, lista('style-tekstu.js', 'POLA_STYLU'));
   assert.deepEqual(mcp.POLA_FRAGMENTU, lista('style-tekstu.js', 'POLA_FRAGMENTU'));
 });
+
+test('openapi.json dla ChatGPT: poprawny opis funkcji z migracji dostępnych bez logowania', () => {
+  const api = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'ai', 'openapi.json'), 'utf8'));
+  assert.equal(api.openapi, '3.1.0');
+  const sql = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261111200000_dostep_ai.sql'), 'utf8');
+  // Funkcje dla anon w migracji = ścieżki w opisie, z tymi samymi parametrami.
+  const dlaAnon = [...sql.matchAll(/grant execute on function public\.(\w+)\([^)]*\) to anon/g)].map((m) => m[1]).sort();
+  const sciezki = Object.keys(api.paths).map((p) => p.replace('/rest/v1/rpc/', '')).sort();
+  assert.deepEqual(sciezki, dlaAnon);
+  for (const f of dlaAnon) {
+    const parametry = [...new RegExp(`function public\\.${f}\\(([^)]*)\\)`).exec(sql)[1].matchAll(/(p_\w+)/g)].map((m) => m[1]);
+    const op = api.paths[`/rest/v1/rpc/${f}`].post;
+    assert.equal(op.operationId, f);
+    const schemat = op.requestBody.content['application/json'].schema;
+    assert.deepEqual(Object.keys(schemat.properties), parametry, f);
+    assert.deepEqual(schemat.required, parametry, f);
+  }
+  // Części zmian = te, które przyjmuje migracja.
+  const czesci = /v_klucz not in \(([^)]*)\)/.exec(sql)[1].match(/'(\w+)'/g).map((x) => x.slice(1, -1));
+  assert.deepEqual(Object.keys(api.paths['/rest/v1/rpc/ai_zapisz'].post.requestBody.content['application/json'].schema.properties.p_zmiany.properties), czesci);
+  assert.equal(api.components.securitySchemes.kluczBazy.name, 'apikey');
+  // Odnośniki w opisie wskazują istniejące pliki ai/.
+  for (const [, plik] of JSON.stringify(api).matchAll(/andrish97\.github\.io\/book\/(ai\/[\w./-]+?\.md)/g)) assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), plik);
+});
