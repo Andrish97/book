@@ -52,6 +52,15 @@ npm run proba                              # próba na prawdziwej bazie (konto t
 
 Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z prawdziwą bazą. W GitHub Actions uruchamia je workflow „Testy”.
 
+## Dla AI
+
+Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla AI (i wyszukiwarek) strona publikuje jej wersję tekstową oraz opis formatu pliku projektu:
+
+- `llms.txt` – spis dokumentów dla AI (https://andrish97.github.io/book/llms.txt).
+- `ai/instrukcja.md` – instrukcja w Markdownie, generowana z `js/instrukcja.js`. Po każdej zmianie instrukcji: `node scripts/instrukcja-md.cjs` (test `tests/instrukcja-md.test.cjs` pada, gdy plik jest nieaktualny).
+- `ai/format-seriodruk.md` – jak zbudować plik `.json` albo `.seriodruk`, który użytkownik wczyta przyciskiem Importuj, z gotowym poleceniem dla innego AI.
+- `ai/przyklady/*.json` – przykłady (minimalny i kalendarz 2027) budowane przez `node scripts/przyklady-ai.cjs`; test `tests/format-ai.test.cjs` wczytuje je w aplikacji jak plik użytkownika.
+
 ## Wdrożenie (push na `main`)
 
 - **Aplikacja:** workflow [`pages.yml`](.github/workflows/pages.yml) publikuje ją na GitHub Pages.

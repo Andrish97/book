@@ -1,0 +1,4527 @@
+{
+ "nazwa": "Kalendarz 2027 (przykład)",
+ "sekcje": [
+  {
+   "id": "sek_okl",
+   "nazwa": "Okładka",
+   "wydruk": {
+    "format": "A5",
+    "szerokosc_mm": 148,
+    "wysokosc_mm": 210,
+    "spad_mm": 3,
+    "marginesy": {
+     "gora": 10,
+     "dol": 10,
+     "wewnetrzny": 10,
+     "zewnetrzny": 10
+    },
+    "znaki_ciecia": true
+   },
+   "uklad": "pojedyncze",
+   "numeracja": {
+    "tryb": "brak",
+    "od": 1
+   }
+  },
+  {
+   "id": "sek_kal",
+   "nazwa": "Kalendarz",
+   "wydruk": {
+    "format": "A5",
+    "szerokosc_mm": 148,
+    "wysokosc_mm": 210,
+    "spad_mm": 3,
+    "marginesy": {
+     "gora": 10,
+     "dol": 14,
+     "wewnetrzny": 12,
+     "zewnetrzny": 12
+    },
+    "znaki_ciecia": true
+   },
+   "uklad": "pojedyncze",
+   "wzorce": [
+    "wz_stopka"
+   ],
+   "numeracja": {
+    "tryb": "od",
+    "od": 1
+   }
+  }
+ ],
+ "wzorce": [
+  {
+   "id": "wz_stopka",
+   "nazwa": "Stopka z numerem",
+   "wydruk": {
+    "format": "A5",
+    "szerokosc_mm": 148,
+    "wysokosc_mm": 210,
+    "spad_mm": 3,
+    "marginesy": {
+     "gora": 10,
+     "dol": 14,
+     "wewnetrzny": 12,
+     "zewnetrzny": 12
+    }
+   },
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_stopka",
+     "text": "{nr}",
+     "left": 12,
+     "top": 200,
+     "width": 124,
+     "fontSize": 2.822,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "center",
+     "strokeWidth": 0
+    }
+   ]
+  }
+ ],
+ "style": [
+  {
+   "id": "st_tytul",
+   "nazwa": "Tytuł",
+   "fontFamily": "Playfair Display",
+   "fontSize": 9.878,
+   "fontWeight": "bold",
+   "fontStyle": "normal",
+   "underline": false,
+   "linethrough": false,
+   "lineHeight": 1.1,
+   "charSpacing": 0,
+   "fill": "#1a1a1a",
+   "textAlign": "left"
+  }
+ ],
+ "tabele": [
+  {
+   "id": "t_dni",
+   "nazwa": "Dni",
+   "kolumny": [
+    "dzien",
+    "dzien_tygodnia",
+    "miesiac",
+    "zdjecie",
+    "niedziela"
+   ],
+   "wiersze": [
+    [
+     "[pomiń]",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "[pomiń]",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "[pomiń]",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "[pomiń]",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "1",
+     "piątek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "2",
+     "sobota",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "3",
+     "niedziela",
+     "styczeń",
+     "styczen.png",
+     "tak"
+    ],
+    [
+     "4",
+     "poniedziałek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "5",
+     "wtorek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "6",
+     "środa",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "7",
+     "czwartek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "8",
+     "piątek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "9",
+     "sobota",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "10",
+     "niedziela",
+     "styczeń",
+     "styczen.png",
+     "tak"
+    ],
+    [
+     "11",
+     "poniedziałek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "12",
+     "wtorek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "13",
+     "środa",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "14",
+     "czwartek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "15",
+     "piątek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "16",
+     "sobota",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "17",
+     "niedziela",
+     "styczeń",
+     "styczen.png",
+     "tak"
+    ],
+    [
+     "18",
+     "poniedziałek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "19",
+     "wtorek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "20",
+     "środa",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "21",
+     "czwartek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "22",
+     "piątek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "23",
+     "sobota",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "24",
+     "niedziela",
+     "styczeń",
+     "styczen.png",
+     "tak"
+    ],
+    [
+     "25",
+     "poniedziałek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "26",
+     "wtorek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "27",
+     "środa",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "28",
+     "czwartek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "29",
+     "piątek",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "30",
+     "sobota",
+     "styczeń",
+     "styczen.png",
+     "nie"
+    ],
+    [
+     "31",
+     "niedziela",
+     "styczeń",
+     "styczen.png",
+     "tak"
+    ],
+    [
+     "1",
+     "poniedziałek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "2",
+     "wtorek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "3",
+     "środa",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "4",
+     "czwartek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "5",
+     "piątek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "6",
+     "sobota",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "7",
+     "niedziela",
+     "luty",
+     "luty.png",
+     "tak"
+    ],
+    [
+     "8",
+     "poniedziałek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "9",
+     "wtorek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "10",
+     "środa",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "11",
+     "czwartek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "12",
+     "piątek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "13",
+     "sobota",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "14",
+     "niedziela",
+     "luty",
+     "luty.png",
+     "tak"
+    ],
+    [
+     "15",
+     "poniedziałek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "16",
+     "wtorek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "17",
+     "środa",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "18",
+     "czwartek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "19",
+     "piątek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "20",
+     "sobota",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "21",
+     "niedziela",
+     "luty",
+     "luty.png",
+     "tak"
+    ],
+    [
+     "22",
+     "poniedziałek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "23",
+     "wtorek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "24",
+     "środa",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "25",
+     "czwartek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "26",
+     "piątek",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "27",
+     "sobota",
+     "luty",
+     "luty.png",
+     "nie"
+    ],
+    [
+     "28",
+     "niedziela",
+     "luty",
+     "luty.png",
+     "tak"
+    ],
+    [
+     "1",
+     "poniedziałek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "2",
+     "wtorek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "3",
+     "środa",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "4",
+     "czwartek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "5",
+     "piątek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "6",
+     "sobota",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "7",
+     "niedziela",
+     "marzec",
+     "marzec.png",
+     "tak"
+    ],
+    [
+     "8",
+     "poniedziałek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "9",
+     "wtorek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "10",
+     "środa",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "11",
+     "czwartek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "12",
+     "piątek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "13",
+     "sobota",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "14",
+     "niedziela",
+     "marzec",
+     "marzec.png",
+     "tak"
+    ],
+    [
+     "15",
+     "poniedziałek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "16",
+     "wtorek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "17",
+     "środa",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "18",
+     "czwartek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "19",
+     "piątek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "20",
+     "sobota",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "21",
+     "niedziela",
+     "marzec",
+     "marzec.png",
+     "tak"
+    ],
+    [
+     "22",
+     "poniedziałek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "23",
+     "wtorek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "24",
+     "środa",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "25",
+     "czwartek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "26",
+     "piątek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "27",
+     "sobota",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "28",
+     "niedziela",
+     "marzec",
+     "marzec.png",
+     "tak"
+    ],
+    [
+     "29",
+     "poniedziałek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "30",
+     "wtorek",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "31",
+     "środa",
+     "marzec",
+     "marzec.png",
+     "nie"
+    ],
+    [
+     "1",
+     "czwartek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "2",
+     "piątek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "3",
+     "sobota",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "4",
+     "niedziela",
+     "kwiecień",
+     "kwiecien.png",
+     "tak"
+    ],
+    [
+     "5",
+     "poniedziałek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "6",
+     "wtorek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "7",
+     "środa",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "8",
+     "czwartek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "9",
+     "piątek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "10",
+     "sobota",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "11",
+     "niedziela",
+     "kwiecień",
+     "kwiecien.png",
+     "tak"
+    ],
+    [
+     "12",
+     "poniedziałek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "13",
+     "wtorek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "14",
+     "środa",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "15",
+     "czwartek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "16",
+     "piątek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "17",
+     "sobota",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "18",
+     "niedziela",
+     "kwiecień",
+     "kwiecien.png",
+     "tak"
+    ],
+    [
+     "19",
+     "poniedziałek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "20",
+     "wtorek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "21",
+     "środa",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "22",
+     "czwartek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "23",
+     "piątek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "24",
+     "sobota",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "25",
+     "niedziela",
+     "kwiecień",
+     "kwiecien.png",
+     "tak"
+    ],
+    [
+     "26",
+     "poniedziałek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "27",
+     "wtorek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "28",
+     "środa",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "29",
+     "czwartek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "30",
+     "piątek",
+     "kwiecień",
+     "kwiecien.png",
+     "nie"
+    ],
+    [
+     "1",
+     "sobota",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "2",
+     "niedziela",
+     "maj",
+     "maj.png",
+     "tak"
+    ],
+    [
+     "3",
+     "poniedziałek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "4",
+     "wtorek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "5",
+     "środa",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "6",
+     "czwartek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "7",
+     "piątek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "8",
+     "sobota",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "9",
+     "niedziela",
+     "maj",
+     "maj.png",
+     "tak"
+    ],
+    [
+     "10",
+     "poniedziałek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "11",
+     "wtorek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "12",
+     "środa",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "13",
+     "czwartek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "14",
+     "piątek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "15",
+     "sobota",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "16",
+     "niedziela",
+     "maj",
+     "maj.png",
+     "tak"
+    ],
+    [
+     "17",
+     "poniedziałek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "18",
+     "wtorek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "19",
+     "środa",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "20",
+     "czwartek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "21",
+     "piątek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "22",
+     "sobota",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "23",
+     "niedziela",
+     "maj",
+     "maj.png",
+     "tak"
+    ],
+    [
+     "24",
+     "poniedziałek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "25",
+     "wtorek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "26",
+     "środa",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "27",
+     "czwartek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "28",
+     "piątek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "29",
+     "sobota",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "30",
+     "niedziela",
+     "maj",
+     "maj.png",
+     "tak"
+    ],
+    [
+     "31",
+     "poniedziałek",
+     "maj",
+     "maj.png",
+     "nie"
+    ],
+    [
+     "1",
+     "wtorek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "2",
+     "środa",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "3",
+     "czwartek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "4",
+     "piątek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "5",
+     "sobota",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "6",
+     "niedziela",
+     "czerwiec",
+     "czerwiec.png",
+     "tak"
+    ],
+    [
+     "7",
+     "poniedziałek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "8",
+     "wtorek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "9",
+     "środa",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "10",
+     "czwartek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "11",
+     "piątek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "12",
+     "sobota",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "13",
+     "niedziela",
+     "czerwiec",
+     "czerwiec.png",
+     "tak"
+    ],
+    [
+     "14",
+     "poniedziałek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "15",
+     "wtorek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "16",
+     "środa",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "17",
+     "czwartek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "18",
+     "piątek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "19",
+     "sobota",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "20",
+     "niedziela",
+     "czerwiec",
+     "czerwiec.png",
+     "tak"
+    ],
+    [
+     "21",
+     "poniedziałek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "22",
+     "wtorek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "23",
+     "środa",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "24",
+     "czwartek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "25",
+     "piątek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "26",
+     "sobota",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "27",
+     "niedziela",
+     "czerwiec",
+     "czerwiec.png",
+     "tak"
+    ],
+    [
+     "28",
+     "poniedziałek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "29",
+     "wtorek",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "30",
+     "środa",
+     "czerwiec",
+     "czerwiec.png",
+     "nie"
+    ],
+    [
+     "1",
+     "czwartek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "2",
+     "piątek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "3",
+     "sobota",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "4",
+     "niedziela",
+     "lipiec",
+     "lipiec.png",
+     "tak"
+    ],
+    [
+     "5",
+     "poniedziałek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "6",
+     "wtorek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "7",
+     "środa",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "8",
+     "czwartek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "9",
+     "piątek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "10",
+     "sobota",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "11",
+     "niedziela",
+     "lipiec",
+     "lipiec.png",
+     "tak"
+    ],
+    [
+     "12",
+     "poniedziałek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "13",
+     "wtorek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "14",
+     "środa",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "15",
+     "czwartek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "16",
+     "piątek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "17",
+     "sobota",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "18",
+     "niedziela",
+     "lipiec",
+     "lipiec.png",
+     "tak"
+    ],
+    [
+     "19",
+     "poniedziałek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "20",
+     "wtorek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "21",
+     "środa",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "22",
+     "czwartek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "23",
+     "piątek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "24",
+     "sobota",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "25",
+     "niedziela",
+     "lipiec",
+     "lipiec.png",
+     "tak"
+    ],
+    [
+     "26",
+     "poniedziałek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "27",
+     "wtorek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "28",
+     "środa",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "29",
+     "czwartek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "30",
+     "piątek",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "31",
+     "sobota",
+     "lipiec",
+     "lipiec.png",
+     "nie"
+    ],
+    [
+     "1",
+     "niedziela",
+     "sierpień",
+     "sierpien.png",
+     "tak"
+    ],
+    [
+     "2",
+     "poniedziałek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "3",
+     "wtorek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "4",
+     "środa",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "5",
+     "czwartek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "6",
+     "piątek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "7",
+     "sobota",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "8",
+     "niedziela",
+     "sierpień",
+     "sierpien.png",
+     "tak"
+    ],
+    [
+     "9",
+     "poniedziałek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "10",
+     "wtorek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "11",
+     "środa",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "12",
+     "czwartek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "13",
+     "piątek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "14",
+     "sobota",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "15",
+     "niedziela",
+     "sierpień",
+     "sierpien.png",
+     "tak"
+    ],
+    [
+     "16",
+     "poniedziałek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "17",
+     "wtorek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "18",
+     "środa",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "19",
+     "czwartek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "20",
+     "piątek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "21",
+     "sobota",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "22",
+     "niedziela",
+     "sierpień",
+     "sierpien.png",
+     "tak"
+    ],
+    [
+     "23",
+     "poniedziałek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "24",
+     "wtorek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "25",
+     "środa",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "26",
+     "czwartek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "27",
+     "piątek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "28",
+     "sobota",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "29",
+     "niedziela",
+     "sierpień",
+     "sierpien.png",
+     "tak"
+    ],
+    [
+     "30",
+     "poniedziałek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "31",
+     "wtorek",
+     "sierpień",
+     "sierpien.png",
+     "nie"
+    ],
+    [
+     "1",
+     "środa",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "2",
+     "czwartek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "3",
+     "piątek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "4",
+     "sobota",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "5",
+     "niedziela",
+     "wrzesień",
+     "wrzesien.png",
+     "tak"
+    ],
+    [
+     "6",
+     "poniedziałek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "7",
+     "wtorek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "8",
+     "środa",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "9",
+     "czwartek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "10",
+     "piątek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "11",
+     "sobota",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "12",
+     "niedziela",
+     "wrzesień",
+     "wrzesien.png",
+     "tak"
+    ],
+    [
+     "13",
+     "poniedziałek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "14",
+     "wtorek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "15",
+     "środa",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "16",
+     "czwartek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "17",
+     "piątek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "18",
+     "sobota",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "19",
+     "niedziela",
+     "wrzesień",
+     "wrzesien.png",
+     "tak"
+    ],
+    [
+     "20",
+     "poniedziałek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "21",
+     "wtorek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "22",
+     "środa",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "23",
+     "czwartek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "24",
+     "piątek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "25",
+     "sobota",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "26",
+     "niedziela",
+     "wrzesień",
+     "wrzesien.png",
+     "tak"
+    ],
+    [
+     "27",
+     "poniedziałek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "28",
+     "wtorek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "29",
+     "środa",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "30",
+     "czwartek",
+     "wrzesień",
+     "wrzesien.png",
+     "nie"
+    ],
+    [
+     "1",
+     "piątek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "2",
+     "sobota",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "3",
+     "niedziela",
+     "październik",
+     "pazdziernik.png",
+     "tak"
+    ],
+    [
+     "4",
+     "poniedziałek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "5",
+     "wtorek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "6",
+     "środa",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "7",
+     "czwartek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "8",
+     "piątek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "9",
+     "sobota",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "10",
+     "niedziela",
+     "październik",
+     "pazdziernik.png",
+     "tak"
+    ],
+    [
+     "11",
+     "poniedziałek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "12",
+     "wtorek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "13",
+     "środa",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "14",
+     "czwartek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "15",
+     "piątek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "16",
+     "sobota",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "17",
+     "niedziela",
+     "październik",
+     "pazdziernik.png",
+     "tak"
+    ],
+    [
+     "18",
+     "poniedziałek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "19",
+     "wtorek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "20",
+     "środa",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "21",
+     "czwartek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "22",
+     "piątek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "23",
+     "sobota",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "24",
+     "niedziela",
+     "październik",
+     "pazdziernik.png",
+     "tak"
+    ],
+    [
+     "25",
+     "poniedziałek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "26",
+     "wtorek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "27",
+     "środa",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "28",
+     "czwartek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "29",
+     "piątek",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "30",
+     "sobota",
+     "październik",
+     "pazdziernik.png",
+     "nie"
+    ],
+    [
+     "31",
+     "niedziela",
+     "październik",
+     "pazdziernik.png",
+     "tak"
+    ],
+    [
+     "1",
+     "poniedziałek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "2",
+     "wtorek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "3",
+     "środa",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "4",
+     "czwartek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "5",
+     "piątek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "6",
+     "sobota",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "7",
+     "niedziela",
+     "listopad",
+     "listopad.png",
+     "tak"
+    ],
+    [
+     "8",
+     "poniedziałek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "9",
+     "wtorek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "10",
+     "środa",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "11",
+     "czwartek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "12",
+     "piątek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "13",
+     "sobota",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "14",
+     "niedziela",
+     "listopad",
+     "listopad.png",
+     "tak"
+    ],
+    [
+     "15",
+     "poniedziałek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "16",
+     "wtorek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "17",
+     "środa",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "18",
+     "czwartek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "19",
+     "piątek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "20",
+     "sobota",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "21",
+     "niedziela",
+     "listopad",
+     "listopad.png",
+     "tak"
+    ],
+    [
+     "22",
+     "poniedziałek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "23",
+     "wtorek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "24",
+     "środa",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "25",
+     "czwartek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "26",
+     "piątek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "27",
+     "sobota",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "28",
+     "niedziela",
+     "listopad",
+     "listopad.png",
+     "tak"
+    ],
+    [
+     "29",
+     "poniedziałek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "30",
+     "wtorek",
+     "listopad",
+     "listopad.png",
+     "nie"
+    ],
+    [
+     "1",
+     "środa",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "2",
+     "czwartek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "3",
+     "piątek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "4",
+     "sobota",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "5",
+     "niedziela",
+     "grudzień",
+     "grudzien.png",
+     "tak"
+    ],
+    [
+     "6",
+     "poniedziałek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "7",
+     "wtorek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "8",
+     "środa",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "9",
+     "czwartek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "10",
+     "piątek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "11",
+     "sobota",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "12",
+     "niedziela",
+     "grudzień",
+     "grudzien.png",
+     "tak"
+    ],
+    [
+     "13",
+     "poniedziałek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "14",
+     "wtorek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "15",
+     "środa",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "16",
+     "czwartek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "17",
+     "piątek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "18",
+     "sobota",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "19",
+     "niedziela",
+     "grudzień",
+     "grudzien.png",
+     "tak"
+    ],
+    [
+     "20",
+     "poniedziałek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "21",
+     "wtorek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "22",
+     "środa",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "23",
+     "czwartek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "24",
+     "piątek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "25",
+     "sobota",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "26",
+     "niedziela",
+     "grudzień",
+     "grudzien.png",
+     "tak"
+    ],
+    [
+     "27",
+     "poniedziałek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "28",
+     "wtorek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "29",
+     "środa",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "30",
+     "czwartek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ],
+    [
+     "31",
+     "piątek",
+     "grudzień",
+     "grudzien.png",
+     "nie"
+    ]
+   ],
+   "listy": {
+    "niedziela": [
+     "tak",
+     "nie"
+    ]
+   }
+  },
+  {
+   "id": "t_mies",
+   "nazwa": "Miesiace",
+   "kolumny": [
+    "miesiac_nazwa",
+    "haslo"
+   ],
+   "wiersze": [
+    [
+     "styczeń",
+     "Nowy początek"
+    ],
+    [
+     "luty",
+     "Krótki miesiąc"
+    ],
+    [
+     "marzec",
+     "Pierwsze kwiaty"
+    ],
+    [
+     "kwiecień",
+     "Deszcz i słońce"
+    ],
+    [
+     "maj",
+     "Majówka"
+    ],
+    [
+     "czerwiec",
+     "Najdłuższe dni"
+    ],
+    [
+     "lipiec",
+     "Wakacje"
+    ],
+    [
+     "sierpień",
+     "Żniwa"
+    ],
+    [
+     "wrzesień",
+     "Powrót"
+    ],
+    [
+     "październik",
+     "Złota jesień"
+    ],
+    [
+     "listopad",
+     "Wspomnienia"
+    ],
+    [
+     "grudzień",
+     "Święta"
+    ]
+   ]
+  }
+ ],
+ "serie": [
+  {
+   "id": "se_dni",
+   "nazwa": "Dni roku",
+   "tabela": "t_dni",
+   "tryb": "tabela",
+   "uklad": "dlugi",
+   "ile": 1,
+   "dodatkowe": [
+    {
+     "tabela": "t_mies",
+     "co": 1,
+     "zmiana": "miesiac"
+    }
+   ],
+   "dopelnij": false,
+   "pilnuj_stron": false
+  }
+ ],
+ "strony": [
+  {
+   "id": "s_okladka",
+   "nazwa": "Okładka",
+   "sekcja": "sek_okl",
+   "wzorce": [],
+   "obiekty": [
+    {
+     "type": "image",
+     "id": "o_okl_foto",
+     "left": -3,
+     "top": -3,
+     "width": 12,
+     "height": 8,
+     "scaleX": 12.833333333333334,
+     "scaleY": 27,
+     "zasob": "z_okladka",
+     "src": "zasob:z_okladka",
+     "bez_ostrzezen": true
+    },
+    {
+     "type": "textbox",
+     "id": "o_okl_tytul",
+     "text": "Kalendarz 2027",
+     "left": 12,
+     "top": 150,
+     "width": 124,
+     "fontSize": 11.289,
+     "fontFamily": "Playfair Display",
+     "fill": "#ffffff",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold",
+     "styl": "st_tytul"
+    }
+   ]
+  },
+  {
+   "id": "s_dzien_1",
+   "nazwa": "Poniedziałek",
+   "sekcja": "sek_kal",
+   "seria": "se_dni",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_d0_data",
+     "text": "{dzien} {miesiac} 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Playfair Display",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_d0_tydz",
+     "text": "{dzien_tygodnia} · {Miesiace.haslo}",
+     "left": 12,
+     "top": 22,
+     "width": 124,
+     "fontSize": 3.175,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    },
+    {
+     "type": "image",
+     "id": "o_d0_foto",
+     "left": 12,
+     "top": 30,
+     "width": 12,
+     "height": 8,
+     "scaleX": 10.333333333333334,
+     "scaleY": 8.75,
+     "zasob": "z_styczen",
+     "src": "zasob:z_styczen",
+     "pole": {
+      "kolumna": "zdjecie",
+      "tryb": "wypelnij"
+     }
+    },
+    {
+     "type": "ellipse",
+     "id": "o_d0_niedz",
+     "left": 128,
+     "top": 13,
+     "rx": 4,
+     "ry": 4,
+     "fill": "#d62828",
+     "strokeWidth": 0,
+     "z_danych": {
+      "widok": {
+       "pole": "niedziela",
+       "gdy": "rowne",
+       "wartosc": "tak"
+      }
+     }
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l0",
+     "left": 12,
+     "top": 110,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l1",
+     "left": 12,
+     "top": 119,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l2",
+     "left": 12,
+     "top": 128,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l3",
+     "left": 12,
+     "top": 137,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l4",
+     "left": 12,
+     "top": 146,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l5",
+     "left": 12,
+     "top": 155,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l6",
+     "left": 12,
+     "top": 164,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l7",
+     "left": 12,
+     "top": 173,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d0_l8",
+     "left": 12,
+     "top": 182,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    }
+   ]
+  },
+  {
+   "id": "s_dzien_2",
+   "nazwa": "Wtorek",
+   "sekcja": "sek_kal",
+   "seria": "se_dni",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_d1_data",
+     "text": "{dzien} {miesiac} 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Playfair Display",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_d1_tydz",
+     "text": "{dzien_tygodnia} · {Miesiace.haslo}",
+     "left": 12,
+     "top": 22,
+     "width": 124,
+     "fontSize": 3.175,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    },
+    {
+     "type": "image",
+     "id": "o_d1_foto",
+     "left": 12,
+     "top": 30,
+     "width": 12,
+     "height": 8,
+     "scaleX": 10.333333333333334,
+     "scaleY": 8.75,
+     "zasob": "z_styczen",
+     "src": "zasob:z_styczen",
+     "pole": {
+      "kolumna": "zdjecie",
+      "tryb": "wypelnij"
+     }
+    },
+    {
+     "type": "ellipse",
+     "id": "o_d1_niedz",
+     "left": 128,
+     "top": 13,
+     "rx": 4,
+     "ry": 4,
+     "fill": "#d62828",
+     "strokeWidth": 0,
+     "z_danych": {
+      "widok": {
+       "pole": "niedziela",
+       "gdy": "rowne",
+       "wartosc": "tak"
+      }
+     }
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l0",
+     "left": 12,
+     "top": 110,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l1",
+     "left": 12,
+     "top": 119,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l2",
+     "left": 12,
+     "top": 128,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l3",
+     "left": 12,
+     "top": 137,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l4",
+     "left": 12,
+     "top": 146,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l5",
+     "left": 12,
+     "top": 155,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l6",
+     "left": 12,
+     "top": 164,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l7",
+     "left": 12,
+     "top": 173,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d1_l8",
+     "left": 12,
+     "top": 182,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    }
+   ]
+  },
+  {
+   "id": "s_dzien_3",
+   "nazwa": "Środa",
+   "sekcja": "sek_kal",
+   "seria": "se_dni",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_d2_data",
+     "text": "{dzien} {miesiac} 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Playfair Display",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_d2_tydz",
+     "text": "{dzien_tygodnia} · {Miesiace.haslo}",
+     "left": 12,
+     "top": 22,
+     "width": 124,
+     "fontSize": 3.175,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    },
+    {
+     "type": "image",
+     "id": "o_d2_foto",
+     "left": 12,
+     "top": 30,
+     "width": 12,
+     "height": 8,
+     "scaleX": 10.333333333333334,
+     "scaleY": 8.75,
+     "zasob": "z_styczen",
+     "src": "zasob:z_styczen",
+     "pole": {
+      "kolumna": "zdjecie",
+      "tryb": "wypelnij"
+     }
+    },
+    {
+     "type": "ellipse",
+     "id": "o_d2_niedz",
+     "left": 128,
+     "top": 13,
+     "rx": 4,
+     "ry": 4,
+     "fill": "#d62828",
+     "strokeWidth": 0,
+     "z_danych": {
+      "widok": {
+       "pole": "niedziela",
+       "gdy": "rowne",
+       "wartosc": "tak"
+      }
+     }
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l0",
+     "left": 12,
+     "top": 110,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l1",
+     "left": 12,
+     "top": 119,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l2",
+     "left": 12,
+     "top": 128,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l3",
+     "left": 12,
+     "top": 137,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l4",
+     "left": 12,
+     "top": 146,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l5",
+     "left": 12,
+     "top": 155,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l6",
+     "left": 12,
+     "top": 164,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l7",
+     "left": 12,
+     "top": 173,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d2_l8",
+     "left": 12,
+     "top": 182,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    }
+   ]
+  },
+  {
+   "id": "s_dzien_4",
+   "nazwa": "Czwartek",
+   "sekcja": "sek_kal",
+   "seria": "se_dni",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_d3_data",
+     "text": "{dzien} {miesiac} 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Playfair Display",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_d3_tydz",
+     "text": "{dzien_tygodnia} · {Miesiace.haslo}",
+     "left": 12,
+     "top": 22,
+     "width": 124,
+     "fontSize": 3.175,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    },
+    {
+     "type": "image",
+     "id": "o_d3_foto",
+     "left": 12,
+     "top": 30,
+     "width": 12,
+     "height": 8,
+     "scaleX": 10.333333333333334,
+     "scaleY": 8.75,
+     "zasob": "z_styczen",
+     "src": "zasob:z_styczen",
+     "pole": {
+      "kolumna": "zdjecie",
+      "tryb": "wypelnij"
+     }
+    },
+    {
+     "type": "ellipse",
+     "id": "o_d3_niedz",
+     "left": 128,
+     "top": 13,
+     "rx": 4,
+     "ry": 4,
+     "fill": "#d62828",
+     "strokeWidth": 0,
+     "z_danych": {
+      "widok": {
+       "pole": "niedziela",
+       "gdy": "rowne",
+       "wartosc": "tak"
+      }
+     }
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l0",
+     "left": 12,
+     "top": 110,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l1",
+     "left": 12,
+     "top": 119,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l2",
+     "left": 12,
+     "top": 128,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l3",
+     "left": 12,
+     "top": 137,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l4",
+     "left": 12,
+     "top": 146,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l5",
+     "left": 12,
+     "top": 155,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l6",
+     "left": 12,
+     "top": 164,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l7",
+     "left": 12,
+     "top": 173,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d3_l8",
+     "left": 12,
+     "top": 182,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    }
+   ]
+  },
+  {
+   "id": "s_dzien_5",
+   "nazwa": "Piątek",
+   "sekcja": "sek_kal",
+   "seria": "se_dni",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_d4_data",
+     "text": "{dzien} {miesiac} 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Playfair Display",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_d4_tydz",
+     "text": "{dzien_tygodnia} · {Miesiace.haslo}",
+     "left": 12,
+     "top": 22,
+     "width": 124,
+     "fontSize": 3.175,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    },
+    {
+     "type": "image",
+     "id": "o_d4_foto",
+     "left": 12,
+     "top": 30,
+     "width": 12,
+     "height": 8,
+     "scaleX": 10.333333333333334,
+     "scaleY": 8.75,
+     "zasob": "z_styczen",
+     "src": "zasob:z_styczen",
+     "pole": {
+      "kolumna": "zdjecie",
+      "tryb": "wypelnij"
+     }
+    },
+    {
+     "type": "ellipse",
+     "id": "o_d4_niedz",
+     "left": 128,
+     "top": 13,
+     "rx": 4,
+     "ry": 4,
+     "fill": "#d62828",
+     "strokeWidth": 0,
+     "z_danych": {
+      "widok": {
+       "pole": "niedziela",
+       "gdy": "rowne",
+       "wartosc": "tak"
+      }
+     }
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l0",
+     "left": 12,
+     "top": 110,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l1",
+     "left": 12,
+     "top": 119,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l2",
+     "left": 12,
+     "top": 128,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l3",
+     "left": 12,
+     "top": 137,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l4",
+     "left": 12,
+     "top": 146,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l5",
+     "left": 12,
+     "top": 155,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l6",
+     "left": 12,
+     "top": 164,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l7",
+     "left": 12,
+     "top": 173,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d4_l8",
+     "left": 12,
+     "top": 182,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    }
+   ]
+  },
+  {
+   "id": "s_dzien_6",
+   "nazwa": "Sobota",
+   "sekcja": "sek_kal",
+   "seria": "se_dni",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_d5_data",
+     "text": "{dzien} {miesiac} 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Playfair Display",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_d5_tydz",
+     "text": "{dzien_tygodnia} · {Miesiace.haslo}",
+     "left": 12,
+     "top": 22,
+     "width": 124,
+     "fontSize": 3.175,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    },
+    {
+     "type": "image",
+     "id": "o_d5_foto",
+     "left": 12,
+     "top": 30,
+     "width": 12,
+     "height": 8,
+     "scaleX": 10.333333333333334,
+     "scaleY": 8.75,
+     "zasob": "z_styczen",
+     "src": "zasob:z_styczen",
+     "pole": {
+      "kolumna": "zdjecie",
+      "tryb": "wypelnij"
+     }
+    },
+    {
+     "type": "ellipse",
+     "id": "o_d5_niedz",
+     "left": 128,
+     "top": 13,
+     "rx": 4,
+     "ry": 4,
+     "fill": "#d62828",
+     "strokeWidth": 0,
+     "z_danych": {
+      "widok": {
+       "pole": "niedziela",
+       "gdy": "rowne",
+       "wartosc": "tak"
+      }
+     }
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l0",
+     "left": 12,
+     "top": 110,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l1",
+     "left": 12,
+     "top": 119,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l2",
+     "left": 12,
+     "top": 128,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l3",
+     "left": 12,
+     "top": 137,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l4",
+     "left": 12,
+     "top": 146,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l5",
+     "left": 12,
+     "top": 155,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l6",
+     "left": 12,
+     "top": 164,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l7",
+     "left": 12,
+     "top": 173,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d5_l8",
+     "left": 12,
+     "top": 182,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    }
+   ]
+  },
+  {
+   "id": "s_dzien_7",
+   "nazwa": "Niedziela",
+   "sekcja": "sek_kal",
+   "seria": "se_dni",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_d6_data",
+     "text": "{dzien} {miesiac} 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Playfair Display",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_d6_tydz",
+     "text": "{dzien_tygodnia} · {Miesiace.haslo}",
+     "left": 12,
+     "top": 22,
+     "width": 124,
+     "fontSize": 3.175,
+     "fontFamily": "Inter",
+     "fill": "#6b6861",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    },
+    {
+     "type": "image",
+     "id": "o_d6_foto",
+     "left": 12,
+     "top": 30,
+     "width": 12,
+     "height": 8,
+     "scaleX": 10.333333333333334,
+     "scaleY": 8.75,
+     "zasob": "z_styczen",
+     "src": "zasob:z_styczen",
+     "pole": {
+      "kolumna": "zdjecie",
+      "tryb": "wypelnij"
+     }
+    },
+    {
+     "type": "ellipse",
+     "id": "o_d6_niedz",
+     "left": 128,
+     "top": 13,
+     "rx": 4,
+     "ry": 4,
+     "fill": "#d62828",
+     "strokeWidth": 0,
+     "z_danych": {
+      "widok": {
+       "pole": "niedziela",
+       "gdy": "rowne",
+       "wartosc": "tak"
+      }
+     }
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l0",
+     "left": 12,
+     "top": 110,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l1",
+     "left": 12,
+     "top": 119,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l2",
+     "left": 12,
+     "top": 128,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l3",
+     "left": 12,
+     "top": 137,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l4",
+     "left": 12,
+     "top": 146,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l5",
+     "left": 12,
+     "top": 155,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l6",
+     "left": 12,
+     "top": 164,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l7",
+     "left": 12,
+     "top": 173,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    },
+    {
+     "type": "line",
+     "id": "o_d6_l8",
+     "left": 12,
+     "top": 182,
+     "x1": 0,
+     "y1": 0,
+     "x2": 124,
+     "y2": 0,
+     "width": 124,
+     "height": 0,
+     "stroke": "#cfccc3",
+     "strokeWidth": 0.25,
+     "strokeUniform": true
+    }
+   ]
+  },
+  {
+   "id": "s_cele",
+   "nazwa": "Cele",
+   "sekcja": "sek_kal",
+   "obiekty": [
+    {
+     "type": "textbox",
+     "id": "o_cele_tytul",
+     "text": "Cele na 2027",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "fontSize": 6.35,
+     "fontFamily": "Inter",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "group",
+     "id": "o_cele",
+     "left": 12,
+     "top": 40,
+     "width": 124,
+     "height": 36,
+     "layoutManager": {
+      "type": "layoutManager",
+      "strategy": "fixed"
+     },
+     "subTargetCheck": false,
+     "interactive": false,
+     "tabela": {
+      "kolumny": [
+       62,
+       31,
+       31
+      ],
+      "wiersze": [
+       9,
+       9,
+       9,
+       9
+      ],
+      "naglowek": true,
+      "linia": {
+       "kolor": "#1a1a1a",
+       "grubosc": 0.25
+      },
+      "tlo": {
+       "naglowek": "#dbe4fb",
+       "zebra": null
+      }
+     },
+     "objects": [
+      {
+       "type": "textbox",
+       "id": "o_cel_0_0",
+       "text": "Cel na rok",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "bold",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_0_1",
+       "text": "Termin",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "bold",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_0_2",
+       "text": "Zrobione",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "bold",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_1_0",
+       "text": "Przeczytać 12 książek",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_1_1",
+       "text": "grudzień",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_1_2",
+       "text": "",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_2_0",
+       "text": "Nauczyć się pływać",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_2_1",
+       "text": "lipiec",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_2_2",
+       "text": "",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_3_0",
+       "text": "Wycieczka w góry",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_3_1",
+       "text": "wrzesień",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      },
+      {
+       "type": "textbox",
+       "id": "o_cel_3_2",
+       "text": "",
+       "width": 30,
+       "fontSize": 3.175,
+       "fontFamily": "Inter",
+       "fontWeight": "normal",
+       "fill": "#1a1a1a",
+       "strokeWidth": 0,
+       "lineHeight": 1.15,
+       "wyrownanie_pion": "srodek"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "zasoby": {
+  "z_okladka": {
+   "nazwa": "okladka.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGPQj75MEDGMKgIAcY2C4QfnwLEAAAAASUVORK5CYII="
+  },
+  "z_styczen": {
+   "nazwa": "styczen.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGOQNQ0niBhGFQEAkQQ/YeAoMdsAAAAASUVORK5CYII="
+  },
+  "z_luty": {
+   "nazwa": "luty.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGNwrZ5LEDGMKgIAjg2C4ZToej8AAAAASUVORK5CYII="
+  },
+  "z_marzec": {
+   "nazwa": "marzec.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGPQmttPEDGMKgIABJ6AQSG9JIwAAAAASUVORK5CYII="
+  },
+  "z_kwiecien": {
+   "nazwa": "kwiecien.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGPo2lhLEDGMKgIAb5mlAdR41scAAAAASUVORK5CYII="
+  },
+  "z_maj": {
+   "nazwa": "maj.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGN4eSSLIGIYVQQANBTIoah1V00AAAAASUVORK5CYII="
+  },
+  "z_czerwiec": {
+   "nazwa": "czerwiec.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGP4siiRIGIYVQQASyu8oc9DzOsAAAAASUVORK5CYII="
+  },
+  "z_lipiec": {
+   "nazwa": "lipiec.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGN4nh9IEDGMKgIA8z2eoVIXIXoAAAAASUVORK5CYII="
+  },
+  "z_sierpien": {
+   "nazwa": "sierpien.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGO4pqFBEDGMKgIAAyhuQQMIx60AAAAASUVORK5CYII="
+  },
+  "z_wrzesien": {
+   "nazwa": "wrzesien.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGOYHfuUIGIYVQQAVPGy4U20KHoAAAAASUVORK5CYII="
+  },
+  "z_pazdziernik": {
+   "nazwa": "pazdziernik.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGOItb9MEDGMKgIAagmJoUE6KeUAAAAASUVORK5CYII="
+  },
+  "z_listopad": {
+   "nazwa": "listopad.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGNwjUohiBhGFQEAH1BhIYoPqFcAAAAASUVORK5CYII="
+  },
+  "z_grudzien": {
+   "nazwa": "grudzien.png",
+   "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAEUlEQVR4nGNQVNUkiBhGFQEAEBApofvjopUAAAAASUVORK5CYII="
+  }
+ }
+}

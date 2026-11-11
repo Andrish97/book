@@ -1,0 +1,71 @@
+{
+ "nazwa": "Przykład minimalny",
+ "sekcje": [
+  {
+   "id": "sek_a5",
+   "nazwa": "Główna",
+   "wydruk": {
+    "format": "A5",
+    "szerokosc_mm": 148,
+    "wysokosc_mm": 210,
+    "spad_mm": 3,
+    "marginesy": {
+     "gora": 12,
+     "dol": 12,
+     "wewnetrzny": 12,
+     "zewnetrzny": 12
+    },
+    "znaki_ciecia": true
+   },
+   "uklad": "pojedyncze"
+  }
+ ],
+ "strony": [
+  {
+   "id": "s_1",
+   "nazwa": "Strona 1",
+   "sekcja": "sek_a5",
+   "obiekty": [
+    {
+     "type": "rect",
+     "id": "o_tlo",
+     "left": 12,
+     "top": 12,
+     "width": 124,
+     "height": 40,
+     "fill": "#2f5bd3",
+     "strokeWidth": 0
+    },
+    {
+     "type": "textbox",
+     "id": "o_tytul",
+     "text": "Witaj w Seriodruku",
+     "left": 18,
+     "top": 22,
+     "width": 112,
+     "fontSize": 7.761,
+     "fontFamily": "Playfair Display",
+     "fill": "#ffffff",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0,
+     "fontWeight": "bold"
+    },
+    {
+     "type": "textbox",
+     "id": "o_opis",
+     "text": "Ten projekt powstał z pliku JSON napisanego ręcznie.",
+     "left": 12,
+     "top": 62,
+     "width": 124,
+     "fontSize": 3.881,
+     "fontFamily": "Inter",
+     "fill": "#1a1a1a",
+     "lineHeight": 1.2,
+     "textAlign": "left",
+     "strokeWidth": 0
+    }
+   ]
+  }
+ ]
+}
