@@ -125,7 +125,7 @@ with open("styczen.jpg", "rb") as f:
 print(r.json())  # {"wgrane": [{"nazwa": "styczen.jpg", "id": "z_ai…", "szer": 4000, "wys": 3000, "byl": false}], "opis": "…"}
 ```
 
-   Parametry: `nazwa` (z rozszerzeniem), opcjonalnie `zastap` (id albo nazwa obrazu do podmiany). Odpowiedź JSON: `wgrane` albo `blad`. Te same zasady i limity co w `wgraj_obraz` (obraz do 15 MB, plik do 50 MB, ZIP do 100 obrazów).
+   Parametry: `nazwa` (z rozszerzeniem), opcjonalnie `zastap` (id albo nazwa obrazu do podmiany). Odpowiedź JSON: `wgrane` albo `blad`. Te same zasady i limity co w `wgraj_obraz` (obraz do 25 MB, plik do 50 MB, ZIP do 100 obrazów). Łącznik sam dzieli większy obraz na kawałki po 512 KB (patrz `ai_wgraj_poczatek` niżej) – tak przechodzą zdjęcia z telefonu i aparatu.
 5. **Małe obrazy** (do ok. 200 kB) AI może przekazać wprost jako `dane_base64`, a rysunki SVG – jako kod (`svg`).
 
 ## 4. Funkcje bazy (dla programistów)
@@ -151,9 +151,17 @@ Treść: `{"p_klucz": "sdk_…", "p_znana_wersja": 12, "p_zmiany": {…}}`. Czę
 
 Wynik: `{"wersja": 13, "strony_zapisane": 1}`; przy nieaktualnej wersji `{"konflikt": true, "wersja": 13, "blad": "…"}` – pobierz projekt na nowo. Zmiana stylu w `style` nie przepisuje się sama do tekstów (robi to łącznik); przy zapisie bezpośrednio zmień też pola tekstów, które mają ten `styl`.
 
-### `ai_wgraj_obraz` – obraz do projektu
+### `ai_wgraj_obraz` – mały obraz do projektu (do 1 MB)
 
-Treść: `{"p_klucz": "sdk_…", "p_nazwa": "las.jpg", "p_typ": "image/jpeg", "p_dane": "<base64>", "p_szer": 4000, "p_wys": 3000, "p_zastap": null}`. Baza sprawdza rodzaj pliku po pierwszych bajtach, liczy skrót SHA-256 i rozmiar. Ten sam plik → `{"id", "nazwa", "byl": true}` (nic nie dodaje). Zajęta nazwa → nazwa z „(2)”. `p_zastap` (id obrazu) → nowy obraz pod tą samą nazwą, elementy przepięte, stary w `zasoby_usuniete`. Plik czeka w tabeli `obrazy_ai`, a w projekcie ma ścieżkę `ai:<id>` – aplikacja właściciela przenosi go przy najbliższym zapisie do folderu plików konta. Wynik: `{"id", "nazwa", "typ", "szer", "wys", "rozmiar", "byl", "nazwa_zmieniona", "zastapiony"?, "wersja"}`.
+Jedno zapytanie z całym plikiem: tylko do **1 MB**. Większy plik nie zdążyłby się zapisać w limicie czasu jednego zapytania do bazy (sprawdzone na żywo: 2–10 MB przerywane po kilku sekundach) – dla niego są kawałki (niżej) albo wysyłka wprost `POST …/obraz` (łącznik dzieli plik sam). Treść: `{"p_klucz": "sdk_…", "p_nazwa": "las.jpg", "p_typ": "image/jpeg", "p_dane": "<base64>", "p_szer": 4000, "p_wys": 3000, "p_zastap": null}`. Baza sprawdza rodzaj pliku po pierwszych bajtach, liczy skrót SHA-256 i rozmiar. Ten sam plik → `{"id", "nazwa", "byl": true}` (nic nie dodaje). Zajęta nazwa → nazwa z „(2)”. `p_zastap` (id obrazu) → nowy obraz pod tą samą nazwą, elementy przepięte, stary w `zasoby_usuniete`. Plik czeka w tabeli `obrazy_ai`, a w projekcie ma ścieżkę `ai:<id>` – aplikacja właściciela przenosi go przy najbliższym zapisie do folderu plików konta. Wynik: `{"id", "nazwa", "typ", "szer", "wys", "rozmiar", "byl", "nazwa_zmieniona", "zastapiony"?, "wersja"}`.
+
+### `ai_wgraj_poczatek`, `ai_wgraj_czesc`, `ai_wgraj_koniec` – większy obraz w kawałkach (do 25 MB)
+
+1. `ai_wgraj_poczatek`: `{"p_klucz", "p_nazwa", "p_typ", "p_rozmiar": <bajty>, "p_skrot": "<SHA-256 treści, 64 znaki hex>", "p_szer", "p_wys", "p_zastap"}` → `{"wiersz": "<uuid>", "kawalek": 524288, "czesci": n}`. Ten sam plik (po skrócie) → od razu `{"id", "nazwa", "byl": true}` – kawałków nie trzeba wysyłać.
+2. `ai_wgraj_czesc`: `{"p_klucz", "p_wiersz", "p_nr": 0…n-1, "p_dane": "<base64 kawałka, najwyżej 512 KB>"}` → `{"ok": true}`. Kawałki w dowolnej kolejności, można je wysyłać równolegle (łącznik: po 3) i powtarzać (powtórzony zastępuje poprzedni).
+3. `ai_wgraj_koniec`: `{"p_klucz", "p_wiersz"}` → wynik jak z `ai_wgraj_obraz`. Bez kompletu: `{"blad", "brakujace": [nr…]}` – doślij brakujące i wywołaj koniec jeszcze raz.
+
+Kawałki i koniec nie liczą się do limitu 120 zapytań na minutę (liczy się początek). Baza nie skleja pliku – kawałki czekają osobno, a aplikacja właściciela pobiera je, skleja, sprawdza rozmiar i skrót, i przenosi plik do folderu konta. Niedokończone wgranie znika po dobie.
 
 ### `ai_zmien_obrazy` – nowe nazwy i usuwanie
 
@@ -161,4 +169,4 @@ Treść: `{"p_klucz": "sdk_…", "p_kopie": {"z_nowe": {"z": "z_ab12", "nazwa": 
 
 ### Funkcje właściciela (zalogowany użytkownik aplikacji)
 
-`utworz_dostep_ai(p_projekt, p_opis, p_rola, p_dni)` → `{id, klucz, wazny_do}`, `dostepy_ai(p_projekt)` → lista kluczy bez ich treści, `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64), `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`. Tabela `dostepy_projektu` ma pole `rodzaj` (`klucz` albo `uzytkownik`) – przygotowane pod późniejsze wspólne edytowanie projektu przez innych użytkowników.
+`utworz_dostep_ai(p_projekt, p_opis, p_rola, p_dni)` → `{id, klucz, wazny_do}`, `dostepy_ai(p_projekt)` → lista kluczy bez ich treści, `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64) albo – dla pliku w kawałkach – `{typ, nazwa, rozmiar, skrot, czesci}` i wtedy `pobierz_czesc_obrazu_ai(p_id, p_nr)` → base64 kawałka; `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`. Tabela `dostepy_projektu` ma pole `rodzaj` (`klucz` albo `uzytkownik`) – przygotowane pod późniejsze wspólne edytowanie projektu przez innych użytkowników.

@@ -178,4 +178,9 @@ export function grupujPowtorzenia(obrazy, kolejnosc, wskazuje) {
   const nazwy = grupy((z) => String(z.nazwa ?? '').trim().toLowerCase(), usuwane);
   return { kopie, nazwy };
 }
+// Skrót SHA-256 treści (szesnastkowo) – ten sam plik ma ten sam skrót (duplikaty, sprawdzenie sklejonych kawałków).
+export async function skrotSha256(bajty) {
+  const b = await crypto.subtle.digest('SHA-256', bajty);
+  return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
 // WSPOLNE-KONIEC

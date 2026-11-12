@@ -332,15 +332,37 @@ export async function wczytajZChmury(id) {
   return projekt;
 }
 
+function zBase64Bajty(b64) {
+  const tekst = atob(String(b64 || '').replace(/\s+/g, ''));
+  const bajty = new Uint8Array(tekst.length);
+  for (let i = 0; i < tekst.length; i += 1) bajty[i] = tekst.charCodeAt(i);
+  return bajty;
+}
+
 // Plik zasobu z konta (obraz albo czcionka) jako Blob.
 export async function pobierzZasob(sciezka) {
   const sb = await supabase();
   if (czyOdAi(sciezka)) {
-    const w = sprawdz(await sb.rpc('pobierz_obraz_ai', { p_id: sciezka.slice(3) }));
-    const tekst = atob(w.dane);
-    const bajty = new Uint8Array(tekst.length);
-    for (let i = 0; i < tekst.length; i += 1) bajty[i] = tekst.charCodeAt(i);
-    return new Blob([bajty], { type: w.typ });
+    const id = sciezka.slice(3);
+    const w = sprawdz(await sb.rpc('pobierz_obraz_ai', { p_id: id }));
+    if (!w.czesci) return new Blob([zBase64Bajty(w.dane)], { type: w.typ });
+    // Większy plik czeka w kawałkach po 512 KB (migracja 20261112150000_obrazy_ai_kawalki.sql): pobieramy je
+    // po trzy naraz i sklejamy tutaj; rozmiar i skrót muszą się zgadzać z opisem obrazu.
+    const kawalki = new Array(w.czesci);
+    const kolejka = Array.from({ length: w.czesci }, (_, i) => i);
+    const robotnik = async () => {
+      for (let nr = kolejka.shift(); nr !== undefined; nr = kolejka.shift()) {
+        kawalki[nr] = zBase64Bajty(sprawdz(await sb.rpc('pobierz_czesc_obrazu_ai', { p_id: id, p_nr: nr })));
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(3, w.czesci) }, robotnik));
+    const blob = new Blob(kawalki, { type: w.typ });
+    if (w.rozmiar && blob.size !== w.rozmiar) throw new Error(`Obraz „${w.nazwa}” przyszedł niepełny (${blob.size} z ${w.rozmiar} bajtów).`);
+    if (w.skrot) {
+      const { skrotSha256 } = await import('./obrazy-wspolne.js');
+      if (await skrotSha256(await blob.arrayBuffer()) !== w.skrot) throw new Error(`Obraz „${w.nazwa}” przyszedł uszkodzony (inny skrót treści).`);
+    }
+    return blob;
   }
   return sprawdz(await sb.storage.from(BUCKET).download(sciezka));
 }

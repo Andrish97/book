@@ -264,7 +264,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (funkcja === 'usun_udostepnienie_chronione') { stan.chronione.delete(klucz); return json(r, 200, null); }
     }
     // Dostęp dla AI (migracja dostep_ai): klucze właściciela i funkcje posiadacza klucza.
-    if (sc.startsWith('/rest/v1/rpc/') && /dostep_ai|dostepy_ai|obraz_ai|pliki_do_usuniecia|pliki_usuniete|^\/rest\/v1\/rpc\/ai_/.test(sc)) {
+    if (sc.startsWith('/rest/v1/rpc/') && /dostep_ai|dostepy_ai|obraz_ai|obrazu_ai|pliki_do_usuniecia|pliki_usuniete|^\/rest\/v1\/rpc\/ai_/.test(sc)) {
       stan.ai = stan.ai || atrapaAi(stan);
       try {
         return json(r, 200, stan.ai(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)));

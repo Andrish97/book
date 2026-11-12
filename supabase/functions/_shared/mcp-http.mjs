@@ -77,7 +77,7 @@ const MAKS_POST = 50 * 1024 * 1024;
 async function obsluzObraz(request, url, env, cors) {
   const klucz = kluczZZadania(request);
   if (!WZOR_KLUCZA.test(klucz)) return json(401, { blad: 'Adres nie zawiera prawidłowego klucza dostępu (…/functions/v1/mcp/<klucz sdk_…>/obraz).' }, cors);
-  if (Number(request.headers.get('content-length') || 0) > MAKS_POST) return json(413, { blad: 'Plik jest za duży (najwyżej 50 MB; jeden obraz – 15 MB).' }, cors);
+  if (Number(request.headers.get('content-length') || 0) > MAKS_POST) return json(413, { blad: 'Plik jest za duży (najwyżej 50 MB; jeden obraz – 25 MB).' }, cors);
   const bajty = new Uint8Array(await request.arrayBuffer());
   if (!bajty.length) return json(400, { blad: 'Pusta treść – wyślij plik obrazu albo ZIP jako treść żądania POST.' }, cors);
   const serwer = utworzSerwer({ adres: env.adres || DOMYSLNY_ADRES, kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY, klucz });

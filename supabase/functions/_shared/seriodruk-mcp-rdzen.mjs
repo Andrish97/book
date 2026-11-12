@@ -203,10 +203,16 @@ export function grupujPowtorzenia(obrazy, kolejnosc, wskazuje) {
   const nazwy = grupy((z) => String(z.nazwa ?? '').trim().toLowerCase(), usuwane);
   return { kopie, nazwy };
 }
+// Skrót SHA-256 treści (szesnastkowo) – ten sam plik ma ten sam skrót (duplikaty, sprawdzenie sklejonych kawałków).
+export async function skrotSha256(bajty) {
+  const b = await crypto.subtle.digest('SHA-256', bajty);
+  return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
 // WSPOLNE-KONIEC
 
 const ROZSZERZENIA = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
-const MAKS_OBRAZ = 15 * 1024 * 1024; // jeden obraz
+const MAKS_OBRAZ = 25 * 1024 * 1024; // jeden obraz
+const KAWALEK = 512 * 1024; // większy plik idzie do bazy w kawałkach (ai_wgraj_poczatek / _czesc / _koniec)
 const MAKS_POBRANIE = 50 * 1024 * 1024; // jeden plik pobierany z adresu albo wysyłany wprost (może być ZIP-em)
 const MAKS_BASE64 = 5 * 1024 * 1024;
 const LIMITY_ZIP = { maksPlikow: 100, maksPlik: MAKS_OBRAZ, maksRazem: 200 * 1024 * 1024 };
@@ -281,7 +287,7 @@ export async function pobierzZAdresu(adres) {
         continue;
       }
       if (!odp.ok) throw new BladBazy(`Serwer pod tym adresem odpowiedział błędem ${odp.status}${odp.status === 403 || odp.status === 401 ? ' – plik nie jest udostępniony publicznie (ustaw „każdy, kto ma link”)' : ''}.`);
-      const zaDuzy = 'Plik pod tym adresem jest za duży (najwyżej 50 MB; jeden obraz – 15 MB).';
+      const zaDuzy = 'Plik pod tym adresem jest za duży (najwyżej 50 MB; jeden obraz – 25 MB).';
       if (Number(odp.headers.get('content-length') || 0) > MAKS_POBRANIE) throw new BladBazy(zaDuzy);
       const czesci = [];
       let razem = 0;
@@ -691,15 +697,48 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       dane = przygotujSvg(new TextDecoder().decode(dane));
       w = wymiaryObrazu(dane);
     }
-    if (dane.length > MAKS_OBRAZ) throw new BladBazy(`„${nazwa || 'plik'}” jest za duży (najwyżej 15 MB).`);
+    if (dane.length > MAKS_OBRAZ) throw new BladBazy(`„${nazwa || 'plik'}” jest za duży (najwyżej 25 MB).`);
     let idZastapionego = null;
     if (zastap) idZastapionego = jakiObraz((await pobierz()).projekt, zastap);
-    const r = await rpc('ai_wgraj_obraz', {
-      p_klucz: KLUCZ, p_nazwa: nazwaPliku(nazwa, w.typ), p_typ: w.typ, p_dane: naBase64(dane),
-      p_szer: w.szer || null, p_wys: w.wys || null, p_zastap: idZastapionego,
-    });
+    const parametry = {
+      p_klucz: KLUCZ, p_nazwa: nazwaPliku(nazwa, w.typ), p_typ: w.typ, p_szer: w.szer || null, p_wys: w.wys || null, p_zastap: idZastapionego,
+    };
+    const r = dane.length <= KAWALEK
+      ? await rpc('ai_wgraj_obraz', { ...parametry, p_dane: naBase64(dane) })
+      : await wgrajWKawalkach(dane, parametry);
     if (r?.blad) throw new BladBazy(r.blad);
     return r;
+  }
+
+  // Większy plik: jedno zapytanie z całym plikiem nie zdąży się zapisać w limicie czasu bazy (rola anon),
+  // więc idzie w kawałkach po 512 KB – początek, kawałki (najwyżej 3 naraz, każdy z jednym ponowieniem), koniec.
+  // Migracja 20261112150000_obrazy_ai_kawalki.sql.
+  async function wgrajWKawalkach(dane, parametry) {
+    const skrot = await skrotSha256(dane);
+    const start = await rpc('ai_wgraj_poczatek', { ...parametry, p_rozmiar: dane.length, p_skrot: skrot });
+    if (start?.blad || start?.byl) return start;
+    const { wiersz, kawalek, czesci } = start;
+    const wyslij = async (nr) => {
+      const p = { p_klucz: KLUCZ, p_wiersz: wiersz, p_nr: nr, p_dane: naBase64(dane.subarray(nr * kawalek, (nr + 1) * kawalek)) };
+      for (let proba = 0; ; proba += 1) {
+        try {
+          const w = await rpc('ai_wgraj_czesc', p);
+          if (!w?.blad) return;
+          if (proba >= 1) throw new BladBazy(w.blad);
+        } catch (e) {
+          if (proba >= 1) throw e;
+        }
+      }
+    };
+    const kolejka = Array.from({ length: czesci }, (_, i) => i);
+    const robotnik = async () => { for (let nr = kolejka.shift(); nr !== undefined; nr = kolejka.shift()) await wyslij(nr); };
+    await Promise.all(Array.from({ length: Math.min(3, czesci) }, robotnik));
+    let koniec = await rpc('ai_wgraj_koniec', { p_klucz: KLUCZ, p_wiersz: wiersz });
+    if (Array.isArray(koniec?.brakujace) && koniec.brakujace.length) {
+      for (const nr of koniec.brakujace) await wyslij(nr);
+      koniec = await rpc('ai_wgraj_koniec', { p_klucz: KLUCZ, p_wiersz: wiersz });
+    }
+    return koniec;
   }
   const opisWgranego = (r) => (r.byl
     ? `Ten sam obraz już był w projekcie jako „${r.nazwa}” (id ${r.id}) – nie dodałem drugiej kopii.`
@@ -738,7 +777,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
 
   // Bajty wysłane wprost (POST na adres łącznika …/obraz) – obraz albo ZIP.
   async function wgrajBajty(bajty, nazwa, { zastap = null } = {}) {
-    if (bajty.length > MAKS_POBRANIE) throw new BladBazy('Plik jest za duży (najwyżej 50 MB; jeden obraz – 15 MB).');
+    if (bajty.length > MAKS_POBRANIE) throw new BladBazy('Plik jest za duży (najwyżej 50 MB; jeden obraz – 25 MB).');
     return wgrajPliki([{ bajty, nazwa }], { zastap });
   }
 
@@ -881,7 +920,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
 - svg – rysunek, który sam piszesz (ozdobniki, ikony, ramki); potrzebny viewBox albo width/height; bez skryptów.
 - dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
 Zdjęć z załączników rozmowy nie przepisuj na base64. Poproś o link (Dysk, Dropbox, strona) albo daj użytkownikowi link z narzędzia link_do_wgrywania – wrzuci zdjęcia lub ZIP sam, a Ty zobaczysz je w obrazy_projektu. Jeśli masz wykonywanie kodu z dostępem do sieci, możesz wysłać plik wprost: POST na adres łącznika z dopiskiem /obraz?nazwa=… (opis: https://andrish97.github.io/book/ai/api.md).
-Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 15 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – jak podmien_obraz. wstaw – od razu wstawia obraz jako pojedynczy element (pola jak w wstaw_obraz; tylko dla jednego obrazu).`,
+Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – jak podmien_obraz. wstaw – od razu wstawia obraz jako pojedynczy element (pola jak w wstaw_obraz; tylko dla jednego obrazu).`,
       inputSchema: S('', {
         nazwa: tekst('Nazwa pliku z rozszerzeniem, np. „choinka.svg” (domyślnie z adresu albo pliku).'),
         adres: tekst('Adres https pliku (obraz albo ZIP), także link z Dysku Google albo Dropboxa.'),

@@ -88,7 +88,7 @@
       "post": {
         "operationId": "ai_wgraj_obraz",
         "summary": "Wgraj obraz do projektu",
-        "description": "Dodaje obraz (PNG, JPEG, WebP, GIF, SVG; do 15 MB) do obrazów projektu. Przez akcję przekazuj tylko małe pliki i rysunki SVG (base64 jest drogi); zdjęcia użytkownik wgrywa sam w aplikacji. Ten sam plik drugi raz nie wchodzi ({byl: true}); zajęta nazwa dostaje „(2)”. p_zastap – id obrazu, który ten plik zastępuje (elementy przepięte, nazwa ta sama).",
+        "description": "Dodaje obraz (PNG, JPEG, WebP, GIF, SVG; w jednym zapytaniu najwyżej 1 MB – większy plik użytkownik wgrywa sam w aplikacji albo idzie przez łącznik MCP, który dzieli go na kawałki) do obrazów projektu. Przez akcję przekazuj tylko małe pliki i rysunki SVG (base64 jest drogi); zdjęcia użytkownik wgrywa sam w aplikacji. Ten sam plik drugi raz nie wchodzi ({byl: true}); zajęta nazwa dostaje „(2)”. p_zastap – id obrazu, który ten plik zastępuje (elementy przepięte, nazwa ta sama).",
         "requestBody": {
           "required": true,
           "content": { "application/json": { "schema": {
