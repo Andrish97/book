@@ -7,3 +7,4 @@ package-lock.json
 .claude/worktrees/
 tests/.pomiary-pdf.txt
 __pycache__/
+zrzuty-robocze/

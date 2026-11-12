@@ -390,14 +390,15 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
 // Otwiera aplikację. tryb: 'zalogowany' (domyślnie: atrapa bazy i zalogowane konto testowe, instrukcja zamknięta),
 // 'atrapa' (atrapa bazy, ekran logowania) albo 'bez-bazy' (pusta konfiguracja – sam komunikat).
 // Dawna nazwa 'lokalny' znaczy to samo co 'zalogowany' (aplikacja nie ma już pracy bez konta).
-async function otworz(test, { tryb = 'zalogowany', telefon = false, konta, widok = { width: 1280, height: 800 }, sciezka = '', bezKanalu = false } = {}) {
+async function otworz(test, { tryb = 'zalogowany', telefon = false, urzadzenie = null, konta, widok = { width: 1280, height: 800 }, sciezka = '', bezKanalu = false } = {}) {
   const serwer = await uruchomSerwer();
   // Bez „dociągania” liter do pikseli: tekst rysuje się tak samo na każdym komputerze, a testy porównujące
   // obrazy (PDF, podgląd) nie zależą od ustawień czcionek systemu, na którym biegną.
   const przegladarka = await chromium.launch({ args: ['--font-render-hinting=none'] });
   const kontekst = await przegladarka.newContext({
     // telefon: true – telefon trzymany pionowo (tak pracuje edytor); 'poziom' – poziomo.
-    ...(telefon ? devices[telefon === 'poziom' ? 'Pixel 7 landscape' : 'Pixel 7'] : { viewport: widok }),
+    // urzadzenie: nazwa z listy Playwright (np. 'iPad Mini') – tablet z dotykiem.
+    ...(urzadzenie ? devices[urzadzenie] : telefon ? devices[telefon === 'poziom' ? 'Pixel 7 landscape' : 'Pixel 7'] : { viewport: widok }),
     serviceWorkers: 'block',
     acceptDownloads: true,
   });
@@ -428,8 +429,17 @@ async function zaloguj(strona, baza) {
   await strona.fill('#form-logowania input[name=haslo]', k.haslo);
   await strona.click('#przycisk-logowania');
   await strona.waitForSelector('#dlg-instrukcja[open]');
-  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  await zamknijOkno(strona, '#dlg-instrukcja');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+}
+
+// Zamyka okno dialogowe tak jak człowiek: na komputerze krzyżykiem, na telefonie i tablecie (zasłonka,
+// js/zaslonki.js) – stuknięciem w uchwyt u góry. Czeka, aż okno się zamknie.
+async function zamknijOkno(strona, dialog) {
+  const x = strona.locator(`${dialog} .x-okna`);
+  if (await x.count() && await x.isVisible()) await x.click();
+  else await strona.locator(`${dialog} > .uchwyt-zaslonki`).click();
+  await strona.waitForFunction((d) => !document.querySelector(d)?.open, dialog, { timeout: 5000 }).catch(() => {});
 }
 
 // Drugie urządzenie: osobny kontekst tej samej przeglądarki (własne ciasteczka, własny magazyn projektów),
@@ -458,4 +468,4 @@ const wAplikacji = (strona, fn, arg) => strona.evaluate(fn, arg);
 
 const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 
-module.exports = { otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj };
+module.exports = { otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };

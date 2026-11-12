@@ -395,14 +395,19 @@ test('okno obrazów na telefonie: prawie cała szerokość, pasek zaznaczenia na
     await strona.evaluate(async () => (await import('./js/app/obrazy-okno.js')).otworzObrazy());
     await strona.setInputFiles('#pliki-zasoby', pliki);
     await strona.waitForFunction(() => document.querySelectorAll('#obrazy-lista li').length === 3);
+    // Na wąskim ekranie okno jest zasłonką (js/zaslonki.js) – mierzymy po wjeździe od dołu.
+    await strona.waitForFunction(() => !document.querySelector('#dlg-obrazy').classList.contains('zaslonka-wjazd'));
     const w = await strona.evaluate(() => {
       const d = document.querySelector('#dlg-obrazy').getBoundingClientRect();
+      // Przyciski w przewijanej siatce mogą być niżej – dojeżdża się do nich przewinięciem (liczy się sama siatka).
+      const lista = document.querySelector('#obrazy-lista');
+      const lr = lista.getBoundingClientRect();
       const wystaja = [...document.querySelectorAll('#dlg-obrazy button')].filter((b) => b.offsetParent)
-        .filter((b) => { const r = b.getBoundingClientRect(); return r.right > d.right + 1 || r.left < d.left - 1 || r.bottom > innerHeight + 1; })
+        .filter((b) => { const r = b.getBoundingClientRect(); return r.right > d.right + 1 || r.left < d.left - 1 || (lista.contains(b) ? r.right > lr.right + 1 : r.bottom > innerHeight + 1); })
         .map((b) => b.textContent.trim() || b.getAttribute('aria-label'));
       return {
         szerokosc: d.width / innerWidth,
-        wystaja,
+        wystaja: lr.bottom > innerHeight + 1 ? [...wystaja, 'siatka obrazów'] : wystaja,
         pasekNadSiatka: document.querySelector('#obrazy-pasek').getBoundingClientRect().bottom <= document.querySelector('#obrazy-lista').getBoundingClientRect().top + 1,
         kolumny: getComputedStyle(document.querySelector('#obrazy-lista')).gridTemplateColumns.split(' ').length,
       };

@@ -932,10 +932,7 @@ dialog h2 { font-size: 19px; }
     display: block; position: relative; width: 100%; height: 26px; padding: 0; border: 0; background: none;
     cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
   }
-  .uchwyt-arkusza::before {
-    content: ""; position: absolute; left: 50%; top: 10px; width: 40px; height: 5px; border-radius: 3px;
-    background: var(--linia-mocna); transform: translateX(-50%);
-  }
+  /* Paseczek uchwytu: wspólny z zasłonkami okien (niżej, „Zasłonki”). */
   .uchwyt-arkusza:focus-visible { outline: none; }
   .uchwyt-arkusza:focus-visible::before { background: var(--akcent); }
   .panel.ciagniety { transition: none !important; }
@@ -1453,19 +1450,18 @@ input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b4231
 .duplikat-porownanie img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--wypelnienie); border-radius: var(--r-s); }
 .duplikat-porownanie figcaption { font-size: 12px; color: var(--cichy); }
 .duplikat-przyciski { flex-wrap: wrap; }
+/* Okno obrazów jako zasłonka (telefon, tablet): nagłówek, pasek zaznaczenia i przyciski na dole stoją w miejscu,
+   a przewija się tylko siatka obrazów – nic nie ucieka poza ekran. */
+:root[data-zaslonka] .dialog-obrazy > .formularz { overflow: hidden !important; display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px !important; }
+:root[data-zaslonka] .dialog-obrazy .formularz > * { margin-top: 0; margin-bottom: 0; flex-shrink: 0; }
+:root[data-zaslonka] .dialog-obrazy .formularz > .siatka-obrazow { flex: 1 1 auto; flex-shrink: 1; min-height: 0; max-height: none; align-content: start; }
+:root[data-zaslonka] .dialog-obrazy .formularz > .przyciski-dialogu:last-child { position: static; margin: 0; padding: 10px 0 0; }
 @media (max-width: 600px) {
-  /* Telefon: okno prawie na cały ekran. Nagłówek, pasek zaznaczenia i przyciski na dole stoją w miejscu,
-     a przewija się tylko siatka obrazów – nic nie ucieka poza ekran. */
-  .dialog-obrazy { width: calc(100vw - 12px); max-width: none; height: calc(100dvh - 12px); max-height: calc(100dvh - 12px); border-radius: var(--r-m); }
-  .dialog-obrazy .formularz { box-sizing: border-box; height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 14px 12px 12px; }
-  .dialog-obrazy .formularz > * { margin-top: 0; margin-bottom: 0; flex-shrink: 0; } /* nic poza siatką się nie ściska (pasek nie wchodzi pod obrazy) */
   .dialog-obrazy #obrazy-opis { font-size: 13px; line-height: 1.4; }
-  .dialog-obrazy .formularz > .siatka-obrazow { flex: 1 1 auto; flex-shrink: 1; }
-  .siatka-obrazow { min-height: 0; max-height: none; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
+  .siatka-obrazow { grid-template-columns: 1fr 1fr; gap: 8px; }
   .siatka-obrazow li { padding: 6px; }
   .siatka-obrazow .obraz-zaznacz { top: 10px; left: 10px; }
   .siatka-obrazow .obraz-akcje { gap: 0; justify-content: space-between; }
-  .siatka-obrazow .obraz-akcje .przycisk-ikona { width: 36px; height: 36px; }
   .obrazy-pasek { padding: 4px 6px; }
   .obrazy-pasek .przycisk { flex: 1 1 auto; justify-content: center; }
   .dialog-obrazy .przyciski-dialogu { flex-wrap: wrap; }
@@ -1478,3 +1474,117 @@ input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b4231
 .obrazy-porzadek { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 12px; margin: 0 0 8px; border-radius: 8px; background: var(--uwaga-tlo); }
 .obrazy-porzadek[hidden] { display: none; }
 .obrazy-porzadek span { flex: 1 1 16rem; }
+
+/* ---------- Zasłonki: okna dialogowe na telefonie i tablecie (js/urzadzenie.js, js/zaslonki.js) ----------
+   Na komputerze okno stoi na środku, z krzyżykiem. Na urządzeniu dotykowym i w oknie do 600 px wyjeżdża od dołu:
+   zaokrąglone tylko u góry, bez odstępu od dołu ekranu, na telefonie na całą szerokość, na tablecie szerokie.
+   Zamiast krzyżyka jest uchwyt u góry. Przewija się treść; nagłówek, uchwyt i przyciski akcji stoją. */
+.uchwyt-zaslonki { display: none; }
+dialog:focus { outline: none; }
+/* Przewijana treść zasłonki bywa pierwszym miejscem fokusu po otwarciu – bez obwódki na całą szerokość. */
+:root[data-zaslonka] dialog > :focus-visible:not(button) { outline: none; }
+:root[data-zaslonka] dialog {
+  position: fixed; inset: auto 0 var(--klawiatura, 0px) 0; margin: 0 auto;
+  width: 100%; max-width: none; max-height: calc(var(--widok-h, 100dvh) - 10px);
+  border-radius: var(--r-l) var(--r-l) 0 0;
+  box-shadow: 0 -10px 36px rgba(0, 0, 0, .22);
+  padding: 0 0 env(safe-area-inset-bottom);
+  overflow: hidden; overflow: clip;
+  transform: translateY(var(--zaslonka-ciag, 0px));
+}
+:root[data-zaslonka] dialog[open] { display: flex; flex-direction: column; }
+:root[data-zaslonka] dialog > :not(.uchwyt-zaslonki):not(.menu) { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+:root[data-zaslonka] .uchwyt-zaslonki {
+  display: block; order: -1; flex: none; position: relative; width: 100%; height: 24px; padding: 0; border: 0; background: none;
+  cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+}
+.uchwyt-zaslonki::before, .uchwyt-arkusza::before {
+  content: ""; position: absolute; left: 50%; top: 10px; width: 44px; height: 5px; border-radius: 3px;
+  background: var(--linia-mocna); transform: translateX(-50%);
+}
+.uchwyt-zaslonki:focus-visible { outline: none; }
+.uchwyt-zaslonki:focus-visible::before { background: var(--akcent); }
+:root[data-zaslonka] dialog .x-okna { display: none !important; }
+:root[data-zaslonka] dialog .naglowek-dialogu { touch-action: none; margin-right: 0; }
+:root[data-zaslonka] dialog .formularz { padding: 4px 16px 14px; }
+/* Przyciski akcji na dole zasłonki stoją, gdy treść się przewija. */
+:root[data-zaslonka] dialog .formularz:has(> .przyciski-dialogu:last-child) { padding-bottom: 0; }
+:root[data-zaslonka] dialog .formularz > .przyciski-dialogu:last-child {
+  position: sticky; bottom: 0; z-index: 2; margin: 2px -16px 0; padding: 10px 16px 12px;
+  background: var(--powierzchnia); border-top: 1px solid var(--linia);
+}
+/* Duże okna (Dane, Instrukcja, Obrazy): stała wysokość prawie na cały ekran. */
+:root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja, .dialog-obrazy) { height: calc(var(--widok-h, 100dvh) - 10px); }
+:root[data-zaslonka] .dialog-dane .dane-lista, :root[data-zaslonka] .dialog-instrukcja .instrukcja-spis { padding-right: 14px; }
+:root[data-zaslonka] .dane-pasek { padding-right: 0; }
+/* Tablet: zasłonka szeroka, ale nie na całą szerokość, z bocznymi krawędziami. */
+@media (min-width: 601px) {
+  :root[data-zaslonka] dialog { width: min(760px, 94vw); border: 1px solid var(--linia); border-bottom: 0; }
+  :root[data-zaslonka] dialog .formularz { padding: 6px 24px 18px; }
+  :root[data-zaslonka] dialog .formularz > .przyciski-dialogu:last-child { margin: 4px -24px 0; padding: 12px 24px 14px; }
+  :root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja) { width: calc(100vw - 32px); max-width: 1180px; height: min(92dvh, 1000px); }
+  :root[data-zaslonka] .dialog-obrazy { height: min(88dvh, 920px); }
+}
+/* Strona pod otwartą zasłonką się nie przewija. */
+:root[data-zaslonka][data-okno-otwarte] body { overflow: hidden; }
+
+@keyframes zaslonka-wjazd { from { transform: translateY(100%); } }
+@keyframes zaslonka-zjazd { from { transform: translateY(var(--zaslonka-ciag, 0px)); } to { transform: translateY(105%); } }
+@keyframes zaslonka-tlo-wjazd { from { opacity: 0; } }
+@keyframes zaslonka-tlo-zjazd { to { opacity: 0; } }
+:root[data-zaslonka] dialog.zaslonka-wjazd { animation: zaslonka-wjazd .28s cubic-bezier(.2, .8, .2, 1); }
+:root[data-zaslonka] dialog.zaslonka-wjazd::backdrop { animation: zaslonka-tlo-wjazd .28s ease-out; }
+:root[data-zaslonka] dialog.zaslonka-zjazd { animation: zaslonka-zjazd .19s cubic-bezier(.4, 0, 1, 1) forwards; }
+:root[data-zaslonka] dialog.zaslonka-zjazd::backdrop { animation: zaslonka-tlo-zjazd .19s forwards; }
+:root[data-zaslonka] dialog.zaslonka-wraca { transition: transform .22s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-zaslonka] dialog, :root[data-zaslonka] dialog::backdrop { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Poprawki z przeglądu zrzutów (scripts/zrzuty-przeglad.cjs) ---------- */
+/* Menu karty projektu wychodziło poza kartę i ekran (karta obcina treść): przy otwartym menu karta go nie obcina,
+   a samo menu przesuwa się w obręb ekranu (js/ui.js: przelaczMenu). */
+.karta-projektu:has(> .menu:not([hidden])) { overflow: visible; z-index: 5; transform: none; } /* bez uniesienia: menu nie drga pod palcem */
+.karta-projektu .okladka { border-radius: calc(var(--r-l) - 1px) calc(var(--r-l) - 1px) 0 0; }
+/* Pasek podglądu na telefonie: tytuł w jednej linii, przyciski mieszczą się na ekranie. */
+@media (max-width: 600px) {
+  .pasek-podgladu { gap: 4px; }
+  .pasek-podgladu [data-akcja="podglad-zamknij"] span, .pasek-podgladu .separator { display: none; }
+  .pasek-podgladu .tytul-ekranu { flex: 1 1 auto; min-width: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pasek-podgladu .odstep { display: none; }
+  .pasek-podgladu .wartosc-zoom { min-width: 46px; padding: 0 2px; }
+  .pasek-podgladu .grupa-przyciskow { flex: none; }
+}
+/* Pola obok siebie w wąskim oknie: zawijają się do nowego rzędu zamiast nachodzić podpisami. */
+:root[data-kompakt] dialog .rzad { flex-wrap: wrap; }
+:root[data-kompakt] dialog .rzad > .pole:not(.waskie) { min-width: 7.5rem; }
+/* Okno „Obraz o tej nazwie już jest”: przyciski jeden pod drugim na całą szerokość. */
+:root[data-kompakt] .duplikat-przyciski { flex-direction: column; align-items: stretch; }
+:root[data-kompakt] .duplikat-przyciski .przycisk { justify-content: center; white-space: normal; }
+:root[data-kompakt] .duplikat-przyciski .odstep { display: none; }
+/* Dół panelu stron: przyciski „Strona” i „Sekcja” nie ucinają się w węższym panelu. */
+.panel-strony .stopka-panelu { flex-wrap: wrap; }
+.panel-strony .stopka-panelu .przycisk { flex: 1 1 auto; min-width: max-content; }
+
+/* Cele dotyku: na urządzeniu dotykowym co najmniej ok. 40 px (na komputerze bez zmian). */
+:root[data-dotyk] .przycisk-ikona.maly, :root[data-dotyk] .karta-projektu .menu-karty, :root[data-dotyk] .z-przyciskiem .przycisk-ikona { --dotyk: 40px; }
+:root[data-dotyk] .przycisk.maly, :root[data-dotyk] .przelacznik, :root[data-dotyk] .prezentacja-zamknij,
+:root[data-dotyk] .instrukcja-spis button, :root[data-dotyk] .link { min-height: 40px; }
+:root[data-dotyk] .menu button { min-height: 44px; }
+:root[data-dotyk] .awatar { width: 40px; height: 40px; }
+:root[data-dotyk] .wartosc-zoom { height: 40px; }
+:root[data-dotyk] .kolor-przycisk { width: 40px; height: 40px; }
+:root[data-dotyk] .strona .menu-miniatury, :root[data-dotyk] .strona.w-rozkladowce .menu-miniatury, :root[data-dotyk] .menu-miniatury { --dotyk: 36px; }
+:root[data-dotyk] .wlasciwosci .zwijak { min-height: 40px; }
+:root[data-dotyk] .wlasciwosci .segmenty button { min-height: 40px; }
+:root[data-dotyk] .warstwa { grid-template-columns: 40px 20px minmax(0, 1fr) auto 40px; min-height: 44px; }
+:root[data-dotyk] .warstwa.w-grupie { grid-template-columns: 40px 20px minmax(0, 1fr); }
+:root[data-dotyk] .warstwa button { min-height: 40px; min-width: 32px; }
+:root[data-dotyk] .siatka-obrazow .obraz-nazwa { padding: 11px 0; margin: -11px 0; }
+:root[data-dotyk] .wlasciwosci, :root[data-dotyk] .panel-strony { --dotyk: 40px; }
+:root[data-dotyk] .wlasciwosci :is(input, select, .przycisk, .wybor-przycisk), :root[data-dotyk] .panel-strony :is(input, .przycisk, .wybor-przycisk) { min-height: 40px; }
+:root[data-dotyk] #dlg-seria .grupa-pol .przelacznik { min-height: 40px; }
+/* Uchwyty zasłonek i arkuszy: pasek na całą szerokość, wysoki na palec. */
+:root[data-zaslonka] .uchwyt-zaslonki { height: 30px; }
+:root[data-dotyk] .uchwyt-arkusza { height: 30px; }
+:root[data-dotyk] .lista-ostrzezen .przycisk { min-height: 40px; }
