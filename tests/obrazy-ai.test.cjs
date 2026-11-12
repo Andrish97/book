@@ -92,7 +92,7 @@ function projekt() {
   };
 }
 
-async function srodowisko(t, { pobierzAdres } = {}) {
+async function srodowisko(t, { pobierzAdres, plikiZCzatu = false } = {}) {
   const stan = { projekty: [projekt()], strony: new Map() };
   const baza = atrapaAi(stan);
   const edycja = baza('utworz_dostep_ai', { p_projekt: 'p-1', p_opis: 'AI', p_rola: 'edycja', p_dni: 7 }, WLASCICIEL).klucz;
@@ -115,7 +115,7 @@ async function srodowisko(t, { pobierzAdres } = {}) {
   t.after(() => serwer.close());
   const env = { adres: `http://127.0.0.1:${serwer.address().port}`, kluczPubliczny: 'sb_publishable_test' };
   const { utworzSerwer } = await import(pathToFileURL(RDZEN).href);
-  const mcp = (klucz = edycja) => utworzSerwer({ ...env, klucz, pobierzAdres });
+  const mcp = (klucz = edycja) => utworzSerwer({ ...env, klucz, pobierzAdres, plikiZCzatu });
   const wywolaj = async (nazwa, argumenty = {}, klucz = edycja) => {
     const w = await mcp(klucz).obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: nazwa, arguments: argumenty } });
     return { tekst: w.result.content[0].text, blad: w.result.isError };
@@ -404,7 +404,13 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
 
 test('pliki_z_czatu (ChatGPT, openai/fileParams): łącznik sam pobiera załączniki rozmowy z ich adresu', async (t) => {
   const odpowiedzi = { 'https://files.oaiusercontent.com/f1': png(40, 20, 3), 'https://files.oaiusercontent.com/f2': png(10, 10, 4) };
-  const s = await srodowisko(t, { pobierzAdres: async (a) => ({ bajty: new Uint8Array(odpowiedzi[a]), nazwa: 'plik' }) });
+  const s = await srodowisko(t, { plikiZCzatu: true, pobierzAdres: async (a) => ({ bajty: new Uint8Array(odpowiedzi[a]), nazwa: 'plik' }) });
+  // Claude (bez dopisku dla ChatGPT) dostaje listę bez pola pliki_z_czatu i bez _meta.
+  const claude = await (await srodowisko(t)).mcp().obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, {});
+  const wgrajC = claude.result.tools.find((n) => n.name === 'wgraj_obraz');
+  assert.equal(wgrajC._meta, undefined);
+  assert.equal(wgrajC.inputSchema.properties.pliki_z_czatu, undefined);
+  assert.ok(claude.result.tools.every((n) => !('_meta' in n)), 'żadne narzędzie nie ma _meta dla Claude');
   const lista = await s.mcp().obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, {});
   const wgraj = lista.result.tools.find((n) => n.name === 'wgraj_obraz');
   assert.deepEqual(wgraj._meta['openai/fileParams'], ['pliki_z_czatu']);

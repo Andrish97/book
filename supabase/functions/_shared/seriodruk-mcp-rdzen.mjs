@@ -616,7 +616,7 @@ const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
 const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
-export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu }) {
+export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false }) {
   const ADRES = String(adres || '').replace(/\/+$/, '');
   const KLUCZ_PUBLICZNY = kluczPubliczny;
   const KLUCZ = String(klucz || '').trim();
@@ -821,7 +821,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
 
   // Pliki ze źródła podanego w wywołaniu narzędzia: adres | svg | dane_base64 | plik (tylko u siebie).
   async function plikiZeZrodla(a) {
-    const dozwolone = ['adres', 'svg', 'dane_base64', 'pliki_z_czatu', ...(czytajPliki ? ['plik'] : [])];
+    const dozwolone = ['adres', 'svg', 'dane_base64', ...(plikiZCzatu ? ['pliki_z_czatu'] : []), ...(czytajPliki ? ['plik'] : [])];
     const podane = dozwolone.filter((k) => a[k] !== undefined && a[k] !== null && a[k] !== '');
     if (podane.length !== 1) throw new BladBazy(`Podaj dokładnie jedno źródło: ${dozwolone.join(', ')}.`);
     if (a.adres) {
@@ -931,12 +931,11 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'wgraj_obraz',
       title: 'Wgraj obrazy do projektu',
-      meta: { 'openai/fileParams': ['pliki_z_czatu'] }, // ChatGPT podaje tu załączniki rozmowy (adres do pobrania)
+      meta: plikiZCzatu ? { 'openai/fileParams': ['pliki_z_czatu'] } : null, // tylko ChatGPT: załączniki rozmowy (adres do pobrania)
       description: `Wgrywa obraz albo archiwum ZIP z obrazami do projektu (trafiają do okna „Obrazy projektu” u właściciela, na żywo). Podaj dokładnie jedno źródło:
 - adres – plik w internecie (https). Działa też link udostępniania z Dysku Google („każdy, kto ma link”, pojedynczy plik albo ZIP) i z Dropboxa (plik albo folder – Dropbox odda folder jako ZIP). Obraz znaleziony w sieci: podaj użytkownikowi źródło i pilnuj praw autorskich.
 - svg – rysunek, który sam piszesz (ozdobniki, ikony, ramki); potrzebny viewBox albo width/height; bez skryptów.
-- dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.
-- pliki_z_czatu – załączniki rozmowy, jeśli Twoja aplikacja przekazuje je narzędziom (ChatGPT); dowolna wielkość.${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
+- dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.${plikiZCzatu ? '\n- pliki_z_czatu – załączniki rozmowy (ChatGPT podaje je sam); dowolna wielkość.' : ''}${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
 Pliki w Twoim środowisku (miejsce robocze, załącznik w piaskownicy): wgraj_czesciami – kawałkami przez łącznik, bez dostępu sieci. Zdjęcia, do których nie sięgasz, albo bardzo duże: NIE odmawiaj – wywołaj link_do_wgrywania i daj użytkownikowi link; wrzuci je sam (dowolna wielkość), a Ty zobaczysz je w obrazy_projektu. Ewentualnie poproś o link z Dysku Google albo Dropboxa. 
 Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – jak podmien_obraz. wstaw – od razu wstawia obraz jako pojedynczy element (pola jak w wstaw_obraz; tylko dla jednego obrazu).`,
       inputSchema: S('', {
@@ -944,11 +943,11 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
         adres: tekst('Adres https pliku (obraz albo ZIP), także link z Dysku Google albo Dropboxa.'),
         svg: tekst('Kod rysunku SVG.'),
         dane_base64: tekst('Treść małego pliku w base64 (z nagłówkiem data: albo bez).'),
-        pliki_z_czatu: {
+        ...(plikiZCzatu ? { pliki_z_czatu: {
           type: 'array',
           description: 'Zdjęcia albo ZIP-y, które użytkownik wrzucił do rozmowy – gdy aplikacja AI przekazuje załączniki narzędziom (ChatGPT). Każdy: { download_url, file_id, mime_type?, file_name? }.',
           items: { type: 'object', properties: { download_url: { type: 'string' }, file_id: { type: 'string' }, mime_type: { type: 'string' }, file_name: { type: 'string' } } },
-        },
+        } } : {}),
         ...(czytajPliki ? { plik: { anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }], description: 'Ścieżka pliku albo folderu na tym komputerze (może zaczynać się od ~/), albo lista ścieżek.' } } : {}),
         zastap: tekst('id albo nazwa obrazu, który ten plik zastępuje.'),
         wstaw: obiekt('Opcjonalnie: { gdzie, x?, y?, szerokosc?, wysokosc?, dopasowanie? } – jak w wstaw_obraz.'),

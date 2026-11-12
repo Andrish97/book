@@ -118,6 +118,9 @@ export async function obsluzHttp(request, env = {}) {
     adres: env.adres || DOMYSLNY_ADRES,
     kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY,
     klucz: WZOR_KLUCZA.test(klucz) ? klucz : '',
+    // Pliki z rozmowy (pole pliki_z_czatu z _meta „openai/fileParams”) tylko dla ChatGPT – Claude odrzucał listę
+    // narzędzi z tym dopiskiem („Couldn't reload tools from the server”).
+    plikiZCzatu: /openai|chatgpt/i.test(request.headers.get('user-agent') || ''),
     brakKlucza: klucz
       ? 'Adres łącznika zawiera nieprawidłowy klucz dostępu. Skopiuj adres jeszcze raz z okna „Dostęp dla AI” w aplikacji.'
       : 'Adres łącznika nie zawiera klucza dostępu. Skopiuj pełny adres z okna „Dostęp dla AI” w aplikacji (menu ⋯ edytora).',
