@@ -192,47 +192,55 @@ function atrapaAi(stan) {
     'image/webp': (b) => b.subarray(0, 4).toString('latin1') === 'RIFF' && b.subarray(8, 12).toString('latin1') === 'WEBP',
     'image/svg+xml': (b) => b.subarray(0, 8192).includes('<svg'),
   };
-  function aiWgrajObraz({ p_klucz, p_nazwa, p_typ, p_dane, p_szer = null, p_wys = null, p_zastap = null }) {
-    const d = sprawdzKlucz(p_klucz, true);
-    if (d.blad) return d;
-    if (!SYGNATURY[p_typ]) return { blad: 'Obsługiwane obrazy: PNG, JPEG, WebP, GIF i SVG.' };
-    const bajty = Buffer.from(String(p_dane || ''), 'base64');
-    if (!bajty.length) return { blad: 'Plik jest pusty.' };
-    if (bajty.length > 15 * 1024 * 1024) return { blad: 'Plik jest za duży (najwyżej 15 MB).' };
-    if (!SYGNATURY[p_typ](bajty)) return { blad: `Treść pliku nie pasuje do jego rodzaju (${p_typ}).` };
-    const skrot = crypto.createHash('sha256').update(bajty).digest('hex');
+  // Wspólne części (migracja 20261112150000_obrazy_ai_kawalki.sql: ai_obraz_nazwa, ai_obraz_istniejacy, ai_obraz_dopisz).
+  const KAWALEK = 512 * 1024;
+  const nazwaObrazu = (p_nazwa, p_typ) => {
     let nazwa = String(p_nazwa || '').replace(/^.*[\\/]/, '').replace(/[\u0000-\u001f]/g, '').trim() || 'obraz';
     nazwa = nazwa.slice(0, 150);
     if (!/\.[a-z0-9]{2,5}$/i.test(nazwa)) nazwa += { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif' }[p_typ] || '.svg';
-    const p = stan.projekty.find((x) => x.id === d.projekt_id);
-    if (!p) return { blad: 'Projektu już nie ma.' };
-    const zasoby = p.dane.zasoby || {};
+    return nazwa;
+  };
+  const istniejacy = (p, skrot, typ, szer, wys, rozmiar) => {
     const czcionki = (p.dane.czcionki || []).map((c) => c.id);
-    for (const [id, z] of Object.entries(zasoby)) {
+    for (const [id, z] of Object.entries(p.dane.zasoby || {})) {
       if (!czcionki.includes(id) && z.skrot === skrot) {
-        return { id, nazwa: z.nazwa, typ: z.typ || p_typ, szer: z.szer ?? p_szer, wys: z.wys ?? p_wys, rozmiar: bajty.length, byl: true, wersja: p.wersja };
+        return { id, nazwa: z.nazwa, typ: z.typ || typ, szer: z.szer ?? szer, wys: z.wys ?? wys, rozmiar, byl: true, wersja: p.wersja };
       }
     }
-    if (p_zastap) {
-      if (!zasoby[p_zastap] || czcionki.includes(p_zastap)) return { blad: `Nie ma obrazu „${p_zastap}” do zastąpienia (lista: obrazy_projektu).` };
-      nazwa = zasoby[p_zastap].nazwa;
+    return null;
+  };
+  const oczekujace = (p) => [...stan.obrazyAi.values()].filter((o) => o.projekt_id === p.id).reduce((n, o) => n + o.rozmiar, 0);
+  const ZA_DUZO = 'Na przeniesienie czeka już za dużo obrazów (150 MB). Właściciel musi otworzyć projekt w aplikacji – wtedy obrazy przejdą na jego konto i miejsce się zwolni.';
+
+  function dopisz(wiersz) {
+    const o = stan.obrazyAi.get(wiersz);
+    if (!o) return { blad: 'Nie ma takiego wgrania (mogło wygasnąć po dobie).' };
+    const p = stan.projekty.find((x) => x.id === o.projekt_id);
+    if (!p) return { blad: 'Projektu już nie ma.' };
+    const byl = istniejacy(p, o.skrot, o.typ, o.szer, o.wys, o.rozmiar);
+    if (byl) { stan.obrazyAi.delete(wiersz); return byl; }
+    const zasoby = p.dane.zasoby || {};
+    const czcionki = (p.dane.czcionki || []).map((c) => c.id);
+    let { nazwa } = o;
+    if (o.zastap) {
+      if (!zasoby[o.zastap] || czcionki.includes(o.zastap)) { stan.obrazyAi.delete(wiersz); return { blad: `Nie ma obrazu „${o.zastap}” do zastąpienia (lista: obrazy_projektu).` }; }
+      nazwa = zasoby[o.zastap].nazwa;
     } else {
       const rdzen = nazwa.replace(/(\.[A-Za-z0-9]{2,5})$/, '');
       const roz = /(\.[A-Za-z0-9]{2,5})$/.exec(nazwa)?.[1] || '';
       const zajeta = (n) => Object.entries(zasoby).some(([id, z]) => !czcionki.includes(id) && String(z.nazwa).trim().toLowerCase() === n.toLowerCase());
       for (let n = 2; zajeta(nazwa); n += 1) nazwa = `${rdzen} (${n})${roz}`;
     }
-    const wiersz = crypto.randomUUID();
-    stan.obrazyAi.set(wiersz, { projekt_id: p.id, owner_id: p.owner_id, nazwa, typ: p_typ, dane: bajty, skrot });
+    Object.assign(o, { nazwa, gotowy: true });
     const id = `z_ai${wiersz.replace(/-/g, '').slice(0, 12)}`;
-    const wpis = { nazwa, typ: p_typ, rozmiar: bajty.length, skrot, ...(p_szer ? { szer: p_szer } : {}), ...(p_wys ? { wys: p_wys } : {}), sciezka: `ai:${wiersz}` };
+    const wpis = { nazwa, typ: o.typ, rozmiar: o.rozmiar, skrot: o.skrot, ...(o.szer ? { szer: o.szer } : {}), ...(o.wys ? { wys: o.wys } : {}), sciezka: `ai:${wiersz}` };
     let dane = { ...p.dane, zasoby: { ...zasoby, [id]: wpis } };
-    if (p_zastap) {
-      const stary = zasoby[p_zastap];
-      delete dane.zasoby[p_zastap];
-      dane.zasoby_usuniete = [...new Set([...(dane.zasoby_usuniete || []), p_zastap])];
-      const przepnij = (t) => t.split(`"zasob":${JSON.stringify(p_zastap)}`).join(`"zasob":${JSON.stringify(id)}`)
-        .split(JSON.stringify(`zasob:${p_zastap}`)).join(JSON.stringify(`zasob:${id}`));
+    if (o.zastap) {
+      const stary = zasoby[o.zastap];
+      delete dane.zasoby[o.zastap];
+      dane.zasoby_usuniete = [...new Set([...(dane.zasoby_usuniete || []), o.zastap])];
+      const przepnij = (t) => t.split(`"zasob":${JSON.stringify(o.zastap)}`).join(`"zasob":${JSON.stringify(id)}`)
+        .split(JSON.stringify(`zasob:${o.zastap}`)).join(JSON.stringify(`zasob:${id}`));
       dane = JSON.parse(przepnij(JSON.stringify(dane)));
       for (const [k, s] of stan.strony) if (k.startsWith(`${p.id}/`)) stan.strony.set(k, JSON.parse(przepnij(JSON.stringify(s))));
       odlozPlik(p, stary.sciezka, dane.zasoby);
@@ -241,9 +249,86 @@ function atrapaAi(stan) {
     Object.assign(p, { dane: { ...dane, zmieniono: teraz }, zmieniono: teraz, wersja: p.wersja + 1 });
     stan.oglos?.(p);
     return {
-      id, nazwa, typ: p_typ, ...(p_szer ? { szer: p_szer } : {}), ...(p_wys ? { wys: p_wys } : {}), rozmiar: bajty.length, byl: false,
-      nazwa_zmieniona: !p_zastap && nazwa !== String(p_nazwa || '').trim(), ...(p_zastap ? { zastapiony: p_zastap } : {}), wersja: p.wersja,
+      id, nazwa, typ: o.typ, ...(o.szer ? { szer: o.szer } : {}), ...(o.wys ? { wys: o.wys } : {}), rozmiar: o.rozmiar, byl: false,
+      nazwa_zmieniona: !o.zastap && nazwa !== o.nazwa_prosba, ...(o.zastap ? { zastapiony: o.zastap } : {}), wersja: p.wersja,
     };
+  }
+
+  // Mały plik jednym zapytaniem (do 1 MB).
+  function aiWgrajObraz({ p_klucz, p_nazwa, p_typ, p_dane, p_szer = null, p_wys = null, p_zastap = null }) {
+    const d = sprawdzKlucz(p_klucz, true);
+    if (d.blad) return d;
+    if (!SYGNATURY[p_typ]) return { blad: 'Obsługiwane obrazy: PNG, JPEG, WebP, GIF i SVG.' };
+    const bajty = Buffer.from(String(p_dane || ''), 'base64');
+    if (!bajty.length) return { blad: 'Plik jest pusty.' };
+    if (bajty.length > 1024 * 1024) return { blad: 'Plik jest za duży na jedno zapytanie (najwyżej 1 MB). Większy wgraj w kawałkach: ai_wgraj_poczatek, ai_wgraj_czesc, ai_wgraj_koniec – albo wyślij go wprost: POST …/functions/v1/mcp/<klucz>/obraz (do 25 MB).' };
+    if (!SYGNATURY[p_typ](bajty)) return { blad: `Treść pliku nie pasuje do jego rodzaju (${p_typ}).` };
+    const skrot = crypto.createHash('sha256').update(bajty).digest('hex');
+    const p = stan.projekty.find((x) => x.id === d.projekt_id);
+    if (!p) return { blad: 'Projektu już nie ma.' };
+    const byl = istniejacy(p, skrot, p_typ, p_szer, p_wys, bajty.length);
+    if (byl) return byl;
+    if (p_zastap && !(p.dane.zasoby || {})[p_zastap]) return { blad: `Nie ma obrazu „${p_zastap}” do zastąpienia (lista: obrazy_projektu).` };
+    if (oczekujace(p) + bajty.length > 150 * 1024 * 1024) return { blad: ZA_DUZO };
+    const wiersz = crypto.randomUUID();
+    stan.obrazyAi.set(wiersz, {
+      projekt_id: p.id, owner_id: p.owner_id, nazwa: nazwaObrazu(p_nazwa, p_typ), nazwa_prosba: String(p_nazwa || '').trim(), typ: p_typ,
+      rozmiar: bajty.length, skrot, dane: bajty, szer: p_szer, wys: p_wys, zastap: p_zastap, gotowy: false, utworzono: Date.now(),
+    });
+    return dopisz(wiersz);
+  }
+
+  // Większy plik w kawałkach po 512 KB: początek → kawałki → koniec.
+  function aiWgrajPoczatek({ p_klucz, p_nazwa, p_typ, p_rozmiar, p_skrot, p_szer = null, p_wys = null, p_zastap = null }) {
+    const d = sprawdzKlucz(p_klucz, true);
+    if (d.blad) return d;
+    if (!SYGNATURY[p_typ]) return { blad: 'Obsługiwane obrazy: PNG, JPEG, WebP, GIF i SVG.' };
+    if (!(p_rozmiar >= 1)) return { blad: 'Podaj rozmiar pliku w bajtach (p_rozmiar).' };
+    if (p_rozmiar > 25 * 1024 * 1024) return { blad: 'Plik jest za duży (najwyżej 25 MB).' };
+    if (!/^[0-9a-f]{64}$/.test(String(p_skrot || ''))) return { blad: 'p_skrot to SHA-256 treści pliku: 64 znaki szesnastkowe (małe litery).' };
+    const p = stan.projekty.find((x) => x.id === d.projekt_id);
+    if (!p) return { blad: 'Projektu już nie ma.' };
+    const byl = istniejacy(p, p_skrot, p_typ, p_szer, p_wys, p_rozmiar);
+    if (byl) return byl;
+    if (p_zastap && !(p.dane.zasoby || {})[p_zastap]) return { blad: `Nie ma obrazu „${p_zastap}” do zastąpienia (lista: obrazy_projektu).` };
+    for (const [k, o] of stan.obrazyAi) if (o.projekt_id === p.id && !o.gotowy && Date.now() - o.utworzono > 86400000) stan.obrazyAi.delete(k);
+    if (oczekujace(p) + p_rozmiar > 150 * 1024 * 1024) return { blad: ZA_DUZO };
+    const czesci = Math.ceil(p_rozmiar / KAWALEK);
+    const wiersz = crypto.randomUUID();
+    stan.obrazyAi.set(wiersz, {
+      projekt_id: p.id, owner_id: p.owner_id, nazwa: nazwaObrazu(p_nazwa, p_typ), nazwa_prosba: String(p_nazwa || '').trim(), typ: p_typ,
+      rozmiar: p_rozmiar, skrot: p_skrot, dane: null, czesci, kawalki: new Map(), szer: p_szer, wys: p_wys, zastap: p_zastap, gotowy: false, utworzono: Date.now(),
+    });
+    return { wiersz, kawalek: KAWALEK, czesci };
+  }
+  const wgranieKlucza = (d, wiersz) => {
+    const o = stan.obrazyAi.get(wiersz);
+    return o && o.projekt_id === d.projekt_id && !o.gotowy ? o : null;
+  };
+  function aiWgrajCzesc({ p_klucz, p_wiersz, p_nr, p_dane }) {
+    const d = sprawdzKlucz(p_klucz, true);
+    if (d.blad) return d;
+    const o = wgranieKlucza(d, p_wiersz);
+    if (!o) return { blad: 'Nie ma takiego wgrania albo jest już zakończone.' };
+    if (!Number.isInteger(p_nr) || p_nr < 0 || p_nr >= o.czesci) return { blad: `Numer kawałka: od 0 do ${o.czesci - 1}.` };
+    const bajty = Buffer.from(String(p_dane || ''), 'base64');
+    if (!bajty.length || bajty.length > KAWALEK) return { blad: 'Kawałek jest pusty albo za duży (najwyżej 512 KB).' };
+    o.kawalki.set(p_nr, bajty);
+    stan.kawalkiWgrane = (stan.kawalkiWgrane || 0) + 1;
+    return { ok: true };
+  }
+  function aiWgrajKoniec({ p_klucz, p_wiersz }) {
+    const d = sprawdzKlucz(p_klucz, true);
+    if (d.blad) return d;
+    const o = wgranieKlucza(d, p_wiersz);
+    if (!o) return { blad: 'Nie ma takiego wgrania albo jest już zakończone.' };
+    const brakujace = [];
+    for (let n = 0; n < o.czesci; n += 1) if (!o.kawalki.has(n)) brakujace.push(n);
+    if (brakujace.length) return { blad: `Brakuje kawałków: jest ${o.czesci - brakujace.length} z ${o.czesci}.`, brakujace };
+    const suma = [...o.kawalki.values()].reduce((n, b) => n + b.length, 0);
+    if (suma !== o.rozmiar) return { blad: `Kawałki mają razem ${suma} bajtów, a plik – ${o.rozmiar}.` };
+    if (!SYGNATURY[o.typ](o.kawalki.get(0))) { stan.obrazyAi.delete(p_wiersz); return { blad: `Treść pliku nie pasuje do jego rodzaju (${o.typ}).` }; }
+    return dopisz(p_wiersz);
   }
 
   // Plik, który przestał być potrzebny (ai_odloz_plik): czekający w obrazyAi znika, plik z folderu
@@ -301,7 +386,12 @@ function atrapaAi(stan) {
   return function wywolaj(funkcja, tresc, konto) {
     if (funkcja === 'ai_projekt') return aiProjekt(tresc);
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
+    // Jedno zapytanie z całym dużym plikiem nie mieści się w limicie czasu bazy (rola anon) – tak jak na produkcji.
+    if (/^ai_/.test(funkcja) && JSON.stringify(tresc || {}).length > 1.5 * 1024 * 1024) blad(500, 'canceling statement due to statement timeout');
     if (funkcja === 'ai_wgraj_obraz') return aiWgrajObraz(tresc);
+    if (funkcja === 'ai_wgraj_poczatek') return aiWgrajPoczatek(tresc);
+    if (funkcja === 'ai_wgraj_czesc') return aiWgrajCzesc(tresc);
+    if (funkcja === 'ai_wgraj_koniec') return aiWgrajKoniec(tresc);
     if (funkcja === 'ai_zmien_obrazy') return aiZmienObrazy(tresc);
     if (funkcja === 'pliki_do_usuniecia' || funkcja === 'pliki_usuniete') {
       if (!konto) blad(401, 'Brak sesji');
@@ -315,8 +405,17 @@ function atrapaAi(stan) {
       if (!konto) blad(401, 'Brak sesji');
       const o = stan.obrazyAi.get(tresc.p_id);
       if (funkcja === 'usun_obraz_ai') { if (o && o.owner_id === konto.id) stan.obrazyAi.delete(tresc.p_id); return null; }
-      if (!o || o.owner_id !== konto.id) blad(400, 'Nie ma takiego obrazu (mógł już przejść na konto)');
+      if (!o || o.owner_id !== konto.id || !o.gotowy) blad(400, 'Nie ma takiego obrazu (mógł już przejść na konto)');
+      if (!o.dane) return { typ: o.typ, nazwa: o.nazwa, rozmiar: o.rozmiar, skrot: o.skrot, czesci: o.czesci };
       return { typ: o.typ, nazwa: o.nazwa, dane: o.dane.toString('base64') };
+    }
+    if (funkcja === 'pobierz_czesc_obrazu_ai') {
+      if (!konto) blad(401, 'Brak sesji');
+      const o = stan.obrazyAi.get(tresc.p_id);
+      const b = o && o.owner_id === konto.id && o.gotowy && o.kawalki?.get(tresc.p_nr);
+      if (!b) blad(400, 'Nie ma takiego kawałka obrazu');
+      stan.kawalkiPobrane = (stan.kawalkiPobrane || 0) + 1;
+      return b.toString('base64');
     }
     if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai'].includes(funkcja)) return undefined;
     if (!konto) blad(401, 'Brak sesji');

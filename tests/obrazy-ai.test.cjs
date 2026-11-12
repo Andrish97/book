@@ -11,6 +11,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 const zlib = require('node:zlib');
+const crypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
 const { atrapaAi } = require('./atrapa-ai.cjs');
 
@@ -101,7 +102,13 @@ async function srodowisko(t, { pobierzAdres } = {}) {
     req.on('data', (c) => { tresc += c; });
     req.on('end', () => {
       res.setHeader('content-type', 'application/json');
-      res.end(JSON.stringify(baza(req.url.replace('/rest/v1/rpc/', ''), JSON.parse(tresc || '{}')) ?? null));
+      stan.zapytania = (stan.zapytania || 0) + 1;
+      try {
+        res.end(JSON.stringify(baza(req.url.replace('/rest/v1/rpc/', ''), JSON.parse(tresc || '{}')) ?? null));
+      } catch (e) {
+        res.statusCode = e.status || 400;
+        res.end(JSON.stringify({ message: e.message }));
+      }
     });
   });
   await new Promise((r) => serwer.listen(0, '127.0.0.1', r));
@@ -384,4 +391,49 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
   for (const n of ['obrazy_projektu', 'wgraj_obraz', 'wstaw_obraz', 'zmien_nazwe_obrazu', 'usun_obrazy', 'podmien_obraz', 'uporzadkuj_obrazy', 'link_do_wgrywania']) {
     assert.ok(zdalny.result.tools.some((x) => x.name === n), n);
   }
+});
+
+test('duży plik w kawałkach po 512 KB: POST 3 MB → początek, kawałki, koniec; duplikat już przy początku; stare RPC do 1 MB; brakujący kawałek', async (t) => {
+  const s = await srodowisko(t);
+  const { obsluzHttp } = await import(pathToFileURL(path.join(KORZEN, 'supabase', 'functions', '_shared', 'mcp-http.mjs')).href);
+  const ADRES = 'https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp';
+  const wyslij = (sciezka, tresc) => obsluzHttp(new Request(`${ADRES}${sciezka}`, { method: 'POST', body: tresc, headers: { 'content-type': 'application/octet-stream' } }), s.env);
+  const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
+  // 3 MB: nagłówek PNG 4000×3000 i losowa reszta – jedno zapytanie z całym plikiem atrapa odrzuca (limit czasu bazy).
+  const duzy = Buffer.concat([png(4000, 3000, 7), crypto.randomBytes(3 * 1024 * 1024)]);
+  const przed = s.stan.zapytania || 0;
+  let odp = await wyslij(`/${s.edycja}/obraz?nazwa=zdjecie.png`, duzy);
+  let w = await odp.json();
+  assert.equal(odp.status, 200, JSON.stringify(w));
+  assert.deepEqual(w.wgrane.map((x) => [x.nazwa, x.szer, x.wys, x.byl]), [['zdjecie.png', 4000, 3000, false]]);
+  assert.equal(s.stan.kawalkiWgrane, Math.ceil(duzy.length / (512 * 1024)), 'każdy kawałek wysłany raz');
+  assert.ok((s.stan.zapytania - przed) >= s.stan.kawalkiWgrane + 2, 'początek, kawałki, koniec – osobne zapytania');
+  const wpis = Object.values(s.p().dane.zasoby).find((z) => z.nazwa === 'zdjecie.png');
+  assert.equal(wpis.rozmiar, duzy.length);
+  assert.equal(wpis.skrot, sha(duzy));
+  const o = s.stan.obrazyAi.get(wpis.sciezka.slice(3));
+  assert.ok(Buffer.concat([...o.kawalki.keys()].sort((a, b) => a - b).map((k) => o.kawalki.get(k))).equals(duzy), 'kawałki składają się w ten sam plik');
+
+  // Ten sam plik drugi raz: odpowiedź już przy początku, bez wysyłania kawałków.
+  const kawalkiPrzed = s.stan.kawalkiWgrane;
+  odp = await wyslij(`/${s.edycja}/obraz?nazwa=kopia.png`, duzy);
+  w = await odp.json();
+  assert.equal(w.wgrane[0].byl, true);
+  assert.equal(w.wgrane[0].nazwa, 'zdjecie.png');
+  assert.equal(s.stan.kawalkiWgrane, kawalkiPrzed);
+
+  // Stare RPC: najwyżej 1 MB, z radą, co zrobić z większym.
+  const mb = Buffer.concat([png(10, 10, 9), Buffer.alloc(1100 * 1024)]);
+  assert.match(s.baza('ai_wgraj_obraz', { p_klucz: s.edycja, p_nazwa: 'x.png', p_typ: 'image/png', p_dane: mb.toString('base64') }).blad, /najwyżej 1 MB.*ai_wgraj_poczatek.*POST/);
+
+  // Koniec bez kompletu kawałków: błąd z listą brakujących; niedokończone wgranie nie trafia do projektu.
+  const plik = Buffer.concat([png(5, 5, 11), Buffer.alloc(700 * 1024, 1)]);
+  const start = s.baza('ai_wgraj_poczatek', { p_klucz: s.edycja, p_nazwa: 'niepelny.png', p_typ: 'image/png', p_rozmiar: plik.length, p_skrot: sha(plik) });
+  assert.equal(start.czesci, 2);
+  assert.deepEqual(s.baza('ai_wgraj_czesc', { p_klucz: s.edycja, p_wiersz: start.wiersz, p_nr: 0, p_dane: plik.subarray(0, 512 * 1024).toString('base64') }), { ok: true });
+  const koniec = s.baza('ai_wgraj_koniec', { p_klucz: s.edycja, p_wiersz: start.wiersz });
+  assert.match(koniec.blad, /Brakuje kawałków: jest 1 z 2/);
+  assert.deepEqual(koniec.brakujace, [1]);
+  assert.match(s.baza('ai_wgraj_czesc', { p_klucz: s.odczyt, p_wiersz: start.wiersz, p_nr: 1, p_dane: 'AAAA' }).blad, /tylko czytać/);
+  assert.ok(!Object.values(s.p().dane.zasoby).some((z) => z.nazwa === 'niepelny.png'));
 });

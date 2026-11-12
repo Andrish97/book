@@ -304,8 +304,28 @@ const krok = async (nazwa, fn) => {
         return { status: x.status, dane: await x.json() };
       }, [adres, png]);
       if (wprost.status !== 200 || wprost.dane.wgrane?.[0]?.nazwa !== 'proba-wprost.png') throw new Error(`POST /obraz: ${wprost.status} ${JSON.stringify(wprost.dane).slice(0, 200)}`);
-      const usuniety = await wywolaj('tools/call', { name: 'usun_obrazy', arguments: { obrazy: ['proba-wprost.png', 'proba-ai.png'] } });
-      if (!/Usunięto 1: „proba-wprost\.png”/.test(usuniety.content[0].text) || !/proba-ai\.png” – strona \d/.test(usuniety.content[0].text)) throw new Error(`usun_obrazy: ${usuniety.content[0].text.slice(0, 300)}`);
+      // Duże zdjęcie (JPEG 4000×3000 z szumem, ok. 6–8 MB) wysłane wprost: łącznik wgrywa je w kawałkach po 512 KB
+      // (migracja 20261112150000_obrazy_ai_kawalki.sql), aplikacja skleja kawałki i przenosi plik na konto.
+      const duzy = await p.evaluate(async (u) => {
+        const c = document.createElement('canvas');
+        c.width = 4000; c.height = 3000;
+        const x = c.getContext('2d');
+        const d = x.createImageData(4000, 3000);
+        for (let i = 0; i < d.data.length; i += 1) d.data[i] = (i % 4 === 3) ? 255 : Math.floor(Math.random() * 256);
+        x.putImageData(d, 0, 0);
+        const blob = await new Promise((ok) => { c.toBlob(ok, 'image/jpeg', 0.95); });
+        const t0 = performance.now();
+        const odp = await fetch(`${u}/obraz?nazwa=proba-duza.jpg`, { method: 'POST', body: blob });
+        return { mb: blob.size / 1048576, status: odp.status, ms: Math.round(performance.now() - t0), dane: await odp.json() };
+      }, adres);
+      if (duzy.status !== 200 || duzy.dane.wgrane?.[0]?.nazwa !== 'proba-duza.jpg') throw new Error(`duży POST /obraz (${duzy.mb.toFixed(1)} MB): ${duzy.status} ${JSON.stringify(duzy.dane).slice(0, 200)}`);
+      await p.waitForFunction(() => Object.values(window.seriodruk.stan.projekt.zasoby).some((z) => z.nazwa === 'proba-duza.jpg' && z.sciezka && !z.sciezka.startsWith('ai:')), null, { timeout: 60000 });
+      await p.click('#przycisk-wiecej');
+      await p.click('[data-akcja="obrazy"]');
+      await p.waitForFunction(() => [...document.querySelectorAll('#obrazy-lista li')].some((li) => li.querySelector('.obraz-nazwa')?.textContent === 'proba-duza.jpg' && li.querySelector('img')?.naturalWidth > 0), null, { timeout: 30000 });
+      await p.click('#obrazy-zamknij');
+      const usuniety = await wywolaj('tools/call', { name: 'usun_obrazy', arguments: { obrazy: ['proba-wprost.png', 'proba-ai.png', 'proba-duza.jpg'] } });
+      if (!/Usunięto 2: „proba-wprost\.png”, „proba-duza\.jpg”|Usunięto 2: „proba-duza\.jpg”, „proba-wprost\.png”/.test(usuniety.content[0].text) || !/proba-ai\.png” – strona \d/.test(usuniety.content[0].text)) throw new Error(`usun_obrazy: ${usuniety.content[0].text.slice(0, 300)}`);
       const get = await mcp(null, {}, 'GET');
       if (get.status !== 405) throw new Error(`GET powinien dać 405, dał ${get.status}`);
       await p.click('#przycisk-wiecej');
@@ -316,7 +336,7 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="dostep-ai-zamknij"]');
       const po = await wywolaj('tools/call', { name: 'przeglad_projektu', arguments: {} });
       if (!po.isError || !/odebrany/.test(po.content[0].text)) throw new Error(`odebrany klucz dalej działa w łączniku: ${JSON.stringify(po).slice(0, 200)}`);
-      return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi; obraz od AI wgrany, wstawiony i przeniesiony na konto, wysyłka wprost działa`;
+      return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi; obraz od AI wgrany, wstawiony i przeniesiony na konto, wysyłka wprost działa; duże zdjęcie ${duzy.mb.toFixed(1)} MB w kawałkach w ${(duzy.ms / 1000).toFixed(1)} s`;
     });
   } catch (e) {
     wyniki.push(`przerwano: ${e.message.split('\n')[0]}`);

@@ -135,3 +135,59 @@ test('okno „Obrazy projektu” przyjmuje archiwum ZIP (bez plików systemowych
   assert.equal(await strona.evaluate(() => location.hash), `#/p/${id}`);
   assert.deepEqual(bledy, []);
 });
+
+test('duży obraz od AI (ok. 3 MB) w kawałkach: aplikacja pobiera kawałki, skleja, sprawdza skrót, pokazuje i przenosi na konto', async (t) => {
+  const { strona, baza, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Duży obraz od AI');
+  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.wersja_chmury, null, { timeout: 15000 });
+  await zapisano(strona);
+  const idProjektu = await strona.evaluate(() => window.seriodruk.stan.projekt.id);
+  const { klucz } = await strona.evaluate(async (id) => (await import('./js/chmura.js')).utworzDostepAi(id, { opis: 'AI', dni: 1 }), idProjektu);
+  // Prawdziwy PNG z szumem (słabo się kompresuje): ok. 3 MB.
+  const plik = Buffer.from(await strona.evaluate(() => {
+    const c = document.createElement('canvas');
+    c.width = 1000; c.height = 800;
+    const x = c.getContext('2d');
+    const d = x.createImageData(1000, 800);
+    for (let i = 0; i < d.data.length; i += 1) d.data[i] = (i % 4 === 3) ? 255 : Math.floor(Math.random() * 256);
+    x.putImageData(d, 0, 0);
+    return c.toDataURL('image/png').split(',')[1];
+  }), 'base64');
+  assert.ok(plik.length > 2.5 * 1024 * 1024, `plik ma ${plik.length} B`);
+  const skrot = require('node:crypto').createHash('sha256').update(plik).digest('hex');
+  // Całość jednym zapytaniem: odmowa (za duże na jedno zapytanie).
+  assert.throws(() => baza.ai('ai_wgraj_obraz', { p_klucz: klucz, p_nazwa: 'szum.png', p_typ: 'image/png', p_dane: plik.toString('base64') }), /statement timeout/);
+  // W kawałkach – tak jak robi to łącznik.
+  const start = baza.ai('ai_wgraj_poczatek', { p_klucz: klucz, p_nazwa: 'szum.png', p_typ: 'image/png', p_rozmiar: plik.length, p_skrot: skrot, p_szer: 1000, p_wys: 800 });
+  assert.equal(start.czesci, Math.ceil(plik.length / (512 * 1024)));
+  for (let nr = 0; nr < start.czesci; nr += 1) {
+    const w = baza.ai('ai_wgraj_czesc', { p_klucz: klucz, p_wiersz: start.wiersz, p_nr: nr, p_dane: plik.subarray(nr * 512 * 1024, (nr + 1) * 512 * 1024).toString('base64') });
+    assert.deepEqual(w, { ok: true });
+  }
+  const koniec = baza.ai('ai_wgraj_koniec', { p_klucz: klucz, p_wiersz: start.wiersz });
+  assert.equal(koniec.byl, false, JSON.stringify(koniec));
+
+  // Aplikacja dostaje zmianę na żywo, pobiera kawałki i po zapisie przenosi plik na konto.
+  await strona.waitForFunction((id) => {
+    const z = window.seriodruk.stan.projekt.zasoby[id];
+    return z && z.sciezka && !z.sciezka.startsWith('ai:');
+  }, koniec.id, { timeout: 20000 });
+  await zapisano(strona);
+  assert.ok(baza.kawalkiPobrane >= start.czesci, 'aplikacja pobrała kawałki');
+  const sciezka = await strona.evaluate((id) => window.seriodruk.stan.projekt.zasoby[id].sciezka, koniec.id);
+  const naKoncie = baza.pliki.get(`zasoby/${sciezka}`);
+  assert.ok(naKoncie, 'plik w folderze konta');
+  assert.equal(require('node:crypto').createHash('sha256').update(naKoncie.tresc).digest('hex'), skrot, 'na koncie ten sam plik');
+  for (let i = 0; i < 40 && baza.obrazyAi.size; i += 1) await strona.waitForTimeout(100);
+  assert.equal(baza.obrazyAi.size, 0, 'wiersz (z kawałkami) usunięty po przeniesieniu');
+
+  // W oknie „Obrazy projektu” – z miniaturą i wymiarami.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="obrazy"]');
+  await strona.waitForSelector('#dlg-obrazy[open]');
+  assert.deepEqual(await nazwyObrazow(strona), ['szum.png']);
+  await strona.waitForFunction(() => document.querySelector('#obrazy-lista li img')?.naturalWidth > 0, null, { timeout: 10000 });
+  assert.match(await strona.textContent('#obrazy-lista li .obraz-wymiary'), /1000 × 800/);
+  assert.deepEqual(bledy, []);
+});
