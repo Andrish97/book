@@ -26,7 +26,7 @@ import { pathToFileURL } from 'node:url';
 // ---------- Wspólny rdzeń (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs) ----------
 
 export const NAZWA = 'seriodruk';
-export const WERSJA = '1.3.0';
+export const WERSJA = '1.3.1';
 export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
@@ -1367,7 +1367,15 @@ Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname
     if (wersja && !obslugiwane.includes(wersja) && method !== 'initialize') {
       return blad(BLEDY.WERSJA, 'Unsupported protocol version', { supported: obslugiwane, requested: wersja });
     }
-    const zakonczony = (x) => (nowy && wersja ? { resultType: 'complete', ...x } : x);
+    // Tryb 2026-07-28: wersja w _meta żądania albo wcześniejsze server/discover w tej samej sesji (stdio).
+    const nowoczesny = nowy && (wersja || stanSesji.odkryty);
+    const zakonczony = (x) => (nowoczesny ? { resultType: 'complete', ...x } : x);
+    // Wersja 2026-07-28: listy i server/discover muszą mieć wskazówki pamięci podręcznej (CacheableResult) –
+    // bez nich Claude Desktop odrzuca listę narzędzi („Invalid result for tools/list: ttlMs…”). Krótki czas,
+    // żeby nowe narzędzia docierały szybko; „private”, bo lista zależy od klienta (pliki_z_czatu tylko dla ChatGPT).
+    const PAMIEC = { ttlMs: 60000, cacheScope: 'private' };
+    // Wskazówki pamięci zawsze (starsi klienci pomijają nieznane pola), resultType – tylko w trybie 2026-07-28.
+    const doPamieci = (x) => ({ ...zakonczony(x), ...PAMIEC });
     const info = {
       name: NAZWA, title: 'Seriodruk', version: WERSJA, websiteUrl: ADRES_APLIKACJI,
       icons: [
@@ -1384,14 +1392,15 @@ Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname
         return wynik({ protocolVersion: stanSesji.wersja, capabilities: { tools: { listChanged: false } }, serverInfo: info, instructions: INSTRUKCJE });
       }
       case 'server/discover':
+        stanSesji.odkryty = true;
         return wynik({
-          resultType: 'complete', supportedVersions: obslugiwane, capabilities: { tools: {} },
+          resultType: 'complete', ...PAMIEC, supportedVersions: obslugiwane, capabilities: { tools: {} },
           _meta: { 'io.modelcontextprotocol/serverInfo': info }, instructions: INSTRUKCJE,
         });
       case 'ping':
         return wynik(zakonczony({}));
       case 'tools/list':
-        return wynik(zakonczony({ tools: listaNarzedzi() }));
+        return wynik(doPamieci({ tools: listaNarzedzi() }));
       case 'tools/call': {
         const n = NARZEDZIA.find((x) => x.name === params.name);
         if (!n) return blad(BLEDY.PARAMETRY, `Nieznane narzędzie: ${params.name}`);

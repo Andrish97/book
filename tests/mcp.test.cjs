@@ -112,7 +112,17 @@ test('MCP: rozpoczęcie (stara i nowa wersja protokołu), lista narzędzi, odmow
   const odkrycie = await nowy.wyslij('server/discover', nowy.meta);
   assert.ok(odkrycie.result.supportedVersions.includes('2026-07-28'));
   assert.equal(odkrycie.result._meta['io.modelcontextprotocol/serverInfo'].name, 'seriodruk');
-  assert.equal((await nowy.wyslij('tools/list', nowy.meta)).result.resultType, 'complete');
+  assert.equal(odkrycie.result.ttlMs >= 0, true, 'server/discover: ttlMs (2026-07-28)');
+  assert.ok(['public', 'private'].includes(odkrycie.result.cacheScope));
+  const listaNowa = (await nowy.wyslij('tools/list', nowy.meta)).result;
+  assert.equal(listaNowa.resultType, 'complete');
+  // Claude Desktop odrzucał listę bez wskazówek pamięci: „Invalid result for tools/list: ttlMs… cacheScope…”.
+  assert.equal(typeof listaNowa.ttlMs, 'number');
+  assert.ok(['public', 'private'].includes(listaNowa.cacheScope));
+  // Po server/discover tools/list bez wersji w _meta też jest w trybie 2026-07-28 (tak pyta Claude Desktop).
+  const bezMeta = (await nowy.wyslij('tools/list', {})).result;
+  assert.equal(bezMeta.resultType, 'complete');
+  assert.equal(typeof bezMeta.ttlMs, 'number');
   const zla = await nowy.wyslij('tools/list', { _meta: { 'io.modelcontextprotocol/protocolVersion': '1999-01-01' } });
   assert.equal(zla.error.code, -32022);
   assert.ok(zla.error.data.supported.includes('2026-07-28'));
