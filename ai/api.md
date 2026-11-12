@@ -4,7 +4,7 @@ Asystent AI (Claude, ChatGPT i inne) może czytać i poprawiać **jeden konkretn
 
 Dokumenty obok: [instrukcja obsługi](https://andrish97.github.io/book/ai/instrukcja.md), [format projektu](https://andrish97.github.io/book/ai/format-seriodruk.md) (model danych, który AI zmienia).
 
-> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk. Projekt czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Seriodruku. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Jedyny wyjątek: wysyłka plików z Twojego środowiska na adres z narzędzia `adres_do_wysylki` – tylko dla niej możesz poprosić o dopisanie hosta `pganajmivwtstapnwsgv.supabase.co` do dozwolonych domen.
+> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk. Projekt czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Seriodruku. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Jedyny wyjątek to wysyłka plików na adres z narzędzia `adres_do_wysylki`: tylko dla niej możesz poprosić o dopisanie hosta `pganajmivwtstapnwsgv.supabase.co` do dozwolonych domen (patrz „Jak przekazać AI zdjęcia”).
 
 ## 1. Klucz i adres łącznika
 
@@ -14,7 +14,7 @@ Dokumenty obok: [instrukcja obsługi](https://andrish97.github.io/book/ai/instru
    `https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/sdk_…` – skopiuj go od razu, widać go **tylko raz**.
 4. Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz (i adres) od razu.
 
-Łącznik to serwer MCP działający po stronie Seriodruku. Claude i ChatGPT łączą się z nim **ze swoich serwerów**, więc niczego nie instalujesz i niczego nie odblokowujesz – ani na komputerze, ani w ustawieniach AI.
+Łącznik to serwer MCP działający po stronie Seriodruku. Claude i ChatGPT łączą się z nim **ze swoich serwerów**, więc niczego nie instalujesz i niczego nie odblokowujesz – ani na komputerze, ani w ustawieniach AI. (Jedyne opcjonalne ustawienie: w Claude jedna domena, żeby AI mogło wysyłać zdjęcia z rozmowy wprost – patrz „Jak przekazać AI zdjęcia”.)
 
 ### Bezpieczeństwo
 
@@ -91,13 +91,14 @@ Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](http
 | `zmien_projekt` | ogólny zapis kilku części naraz (dla zmian, których inne narzędzia nie obejmują) |
 | `nazwa_projektu` | nowa nazwa |
 | `obrazy_projektu` | lista obrazów projektu (id, nazwa z rozszerzeniem, wymiary, gdzie użyty: strony, wzorce, dane albo „nieużywany”) i powtórzenia (kopie tego samego pliku, powtórzone nazwy) – to samo co okno „Obrazy projektu” |
-| `wgraj_obraz` | wgrywa obraz albo archiwum ZIP z obrazami: z adresu https (także link udostępniania z Dysku Google albo Dropboxa), z kodu SVG, z małego pliku w base64, a w serwerze u siebie – z pliku albo folderu na dysku. Ten sam plik drugi raz nie wchodzi, zajęta nazwa dostaje „(2)”; `zastap` – podmiana; `wstaw` – od razu na stronę |
+| `wgraj_obraz` | wgrywa obraz albo archiwum ZIP z obrazami: z adresu https (także link udostępniania z Dysku Google albo Dropboxa), z kodu SVG, z małego pliku w base64, z załączników rozmowy w ChatGPT (`pliki_z_czatu`), a w serwerze u siebie – z pliku albo folderu na dysku. Ten sam plik drugi raz nie wchodzi, zajęta nazwa dostaje „(2)”; `zastap` – podmiana; `wstaw` – od razu na stronę |
 | `wstaw_obraz` | pojedynczy obraz z projektu na stronę albo do wzorca (mm; bez rozmiaru 60% strony; ramka „zmieść” albo „wypełnij” z przycięciem) – jak „Obraz → Wybierz z obrazów projektu” |
 | `zmien_nazwe_obrazu` | nowa nazwa (wolna, z rozszerzeniem); elementy dalej pokazują obraz, komórki tabel z tą nazwą dostają nową |
-| `podmien_obraz` | nowy plik pod tą samą nazwą – elementy i dane pokazują od razu nowy |
-| `usun_obrazy` | usuwa tylko nieużywane obrazy (albo wszystkie nieużywane); o użytych mówi, gdzie są |
+| `podmien_obraz` | nowy plik w miejsce obrazu (także użytego) – wszystkie elementy i dane pokazują od razu nowy, stary plik znika |
+| `usun_obrazy` | usuwa tylko nieużywane obrazy (albo wszystkie nieużywane); o użytych mówi, gdzie są – te wymienia się przez `podmien_obraz` |
 | `uporzadkuj_obrazy` | jak „Uporządkuj” w oknie obrazów: kopie tego samego pliku w jeden obraz, powtórzone nazwy z dopiskiem „(2)” |
 | `link_do_wgrywania` | link do aplikacji, który otwiera projekt od razu z oknem „Obrazy projektu” (`…/#/p/<projekt>/obrazy`) – dla zdjęć, które masz u siebie |
+| `adres_do_wysylki` | adres `POST …/obraz` z kluczem – AI wysyła pod niego pliki ze swojego środowiska (Claude po dopisaniu domeny) |
 | `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące albo niejednoznaczne pliki obrazów z danych (rozszerzenie się liczy: `a.jpg` ≠ `a.png`; nazwa bez rozszerzenia działa tylko przy jednym pasującym pliku), elementy poza stroną |
 | `opis_formatu` | ten sam opis modelu co [format-seriodruk.md](https://andrish97.github.io/book/ai/format-seriodruk.md) |
 
@@ -105,16 +106,53 @@ Każda zmiana działa tak: pobierz projekt → zmień → zapisz z numerem wersj
 
 ### Jak przekazać AI zdjęcia
 
-AI w czacie (claude.ai, ChatGPT, łącznik dodany jako adres) **nie sięga do plików na Twoim komputerze**, a zdjęć wrzuconych do rozmowy nie przekaże łącznikowi (musiałoby przepisać je znak po znaku jako base64 – przy zdjęciach to za dużo; jego piaskownica kodu nie ma połączenia z łącznikiem). To granica tych aplikacji, nie wielkości pliku. Dlatego:
+Łącznik przyjmuje od AI tylko tekst. Zdjęcie, które masz u siebie, musi więc dojść do Seriodruku inną drogą – którą, zależy od aplikacji AI:
 
-1. **Link do wgrania** (główna droga) – AI samo wywołuje `link_do_wgrywania` i daje Ci link; wrzucasz zdjęcia albo archiwum ZIP w oknie, które się otworzy (dowolna wielkość, jeden obraz do 25 MB). AI zobaczy je od razu w liście obrazów i działa dalej.
+| Gdzie pracujesz | Zdjęcia z rozmowy | Zdjęcia z folderu na komputerze | Co trzeba ustawić |
+|---|---|---|---|
+| **ChatGPT** | wchodzą wprost – ChatGPT sam podaje je łącznikowi | wrzuć je do rozmowy albo przez link do wgrania | nic poza łącznikiem |
+| **Claude** (claude.ai, aplikacja, Claude Desktop z łącznikiem jako adresem) | wchodzą wprost po dopisaniu domeny | z miejsca roboczego – też wprost po dopisaniu domeny | raz: domena `pganajmivwtstapnwsgv.supabase.co` w ustawieniach Claude |
+| **Claude Desktop z rozszerzeniem Seriodruk** albo **Claude Code** | – | AI czyta pliki i foldery z dysku samo | instalacja rozszerzenia |
+| **Każda aplikacja, bez ustawień** | przez **link do wgrania** | przez **link do wgrania** | nic |
 
-   > **Dla asystenta AI:** gdy użytkownik chce dodać zdjęcia, które ma u siebie (komputer, telefon, załącznik rozmowy, ZIP), a nie masz do nich adresu – nie odpowiadaj, że się nie da. Od razu wywołaj `link_do_wgrywania`, daj link, a po wgraniu sprawdź `obrazy_projektu`.
-   **ChatGPT** przekazuje łącznikowi załączniki rozmowy sam (`pliki_z_czatu` w `wgraj_obraz`, zgłoszone przez `_meta["openai/fileParams"]`): łącznik dostaje tymczasowy adres pliku i pobiera go, więc zdjęcia wrzucone do czatu wchodzą wprost, dowolnej wielkości. **Claude** (claude.ai, Claude Desktop z łącznikiem jako adresem) tego nie umie – nie przekazuje łącznikom plików, a jego piaskownica kodu nie łączy się z naszym serwerem bez dopisania domeny w ustawieniach; standard MCP też jeszcze nie ma przesyłania plików do narzędzi. Dlatego w Claude: link do wgrania, rozszerzenie w Claude Desktop (punkt 3) albo – po jednorazowym dopisaniu hosta `pganajmivwtstapnwsgv.supabase.co` w ustawieniach Claude (Ustawienia → Możliwości → Wykonywanie kodu → dozwolone domeny) – wysyłka wprost z piaskownicy albo miejsca roboczego (punkt 4, adres z narzędzia `adres_do_wysylki`).
+Wielkość nie gra roli: jeden obraz do 25 MB, plik albo ZIP do 50 MB, ZIP do 100 obrazów. Łącznik sam dzieli duże pliki na kawałki.
 
-2. **Link z Dysku Google albo Dropboxa** – udostępnij plik (albo ZIP) „każdemu, kto ma link” i podaj link AI. Dropbox oddaje też cały folder jako ZIP. Folderu z Dysku Google łącznik nie pobierze – spakuj go do ZIP-a.
-3. **Plik albo folder na Macu** – w Claude Desktop z rozszerzeniem Seriodruk (albo w Claude Code z serwerem u siebie) AI czyta pliki z dysku: „wgraj obrazy z folderu ~/Pulpit/Kalendarz”.
-4. **Wysyłka pliku wprost** – gdy AI ma wykonywanie kodu z dostępem do sieci (albo piszesz własny skrypt), AI bierze adres z narzędzia `adres_do_wysylki` i plik idzie jako treść żądania `POST` na adres łącznika z dopiskiem `/obraz`:
+#### 1. Link do wgrania – działa zawsze
+
+AI wywołuje `link_do_wgrywania` i daje Ci link. Otwiera on ten projekt od razu z oknem **Obrazy projektu** – wrzucasz tam zdjęcia albo ZIP, a AI widzi je w `obrazy_projektu` i działa dalej. AI ma to proponować samo, zamiast mówić, że do Twoich plików nie sięga.
+
+#### 2. ChatGPT – zdjęcia z rozmowy wprost
+
+Narzędzie `wgraj_obraz` ma pole `pliki_z_czatu`, zgłoszone ChatGPT przez `_meta["openai/fileParams"]`. ChatGPT wpisuje tam zdjęcia i ZIP-y wrzucone do rozmowy (`{ download_url, file_id, mime_type, file_name }`), a łącznik pobiera je sam z tymczasowego adresu.
+
+#### 3. Claude – wysyłka ze środowiska AI (jedno ustawienie)
+
+Claude nie przekazuje łącznikom plików, ale zdjęcia wrzucone do rozmowy i pliki z miejsca roboczego leżą w jego środowisku, z którego może wysłać je wprost. Jego środowisko łączy się jednak tylko z dozwolonymi domenami, więc raz:
+
+1. Claude → **Ustawienia → Możliwości → Wykonywanie kodu i tworzenie plików → Dodatkowe dozwolone domeny**.
+2. Dopisz `pganajmivwtstapnwsgv.supabase.co`.
+
+Potem wystarczy „wgraj te zdjęcia do projektu”: Claude bierze adres z narzędzia `adres_do_wysylki` i wysyła pliki, każdy dowolnej wielkości. Domena służy tylko do tej wysyłki – projekt AI dalej czyta i zmienia wyłącznie narzędziami łącznika.
+
+#### 4. Claude Desktop z rozszerzeniem – pliki i foldery z dysku
+
+W Claude Desktop z rozszerzeniem Seriodruk (albo w Claude Code z serwerem u siebie) AI czyta pliki z dysku: „wgraj obrazy z folderu ~/Pulpit/Kalendarz”.
+
+#### 5. Link z Dysku Google albo Dropboxa
+
+Udostępnij plik (albo ZIP) „każdemu, kto ma link” i podaj link AI. Dropbox oddaje też cały folder jako ZIP. Folderu z Dysku Google łącznik nie pobierze – spakuj go do ZIP-a.
+
+#### 6. Rysunki i małe pliki
+
+Rysunki SVG (ozdobniki, ikony, ramki) AI pisze samo (`svg`). Małe obrazy, do ok. 200 kB, może przekazać jako `dane_base64`. Większych nie przepisuje na base64: zdjęcie 5 MB to miliony tokenów – rozmowa skończyłaby się przed jednym zdjęciem.
+
+#### Wymiana zdjęć, które są już na stronach
+
+Obraz, który jest użyty na stronie, we wzorcu albo w danych, nie daje się usunąć – zostałyby puste ramki. Wymienia się go jednym krokiem: `podmien_obraz` (albo `zastap` w `wgraj_obraz` i w wysyłce wprost) wgrywa nowy plik w jego miejsce – wszystkie strony, wzorce i dane pokazują od razu nowy, a stary plik znika. Nie trzeba przepinać stron ani osobno usuwać.
+
+#### Wysyłka wprost – dla programistów
+
+Plik idzie jako treść żądania `POST` na adres łącznika z dopiskiem `/obraz` (pełny adres z kluczem podaje AI narzędzie `adres_do_wysylki`):
 
 ```
 curl -X POST --data-binary @zdjecia.zip \
@@ -129,8 +167,7 @@ with open("styczen.jpg", "rb") as f:
 print(r.json())  # {"wgrane": [{"nazwa": "styczen.jpg", "id": "z_ai…", "szer": 4000, "wys": 3000, "byl": false}], "opis": "…"}
 ```
 
-   Parametry: `nazwa` (z rozszerzeniem), opcjonalnie `zastap` (id albo nazwa obrazu do podmiany). Odpowiedź JSON: `wgrane` albo `blad`. Te same zasady i limity co w `wgraj_obraz` (obraz do 25 MB, plik do 50 MB, ZIP do 100 obrazów). Łącznik sam dzieli większy obraz na kawałki po 512 KB (patrz `ai_wgraj_poczatek` niżej) – tak przechodzą zdjęcia z telefonu i aparatu.
-5. **Małe obrazy** (do ok. 200 kB) AI może przekazać wprost jako `dane_base64`, a rysunki SVG – jako kod (`svg`).
+Parametry: `nazwa` (z rozszerzeniem), opcjonalnie `zastap` (id albo nazwa obrazu do podmiany). Odpowiedź JSON: `wgrane` albo `blad`. Zasady i limity jak w `wgraj_obraz`. Obraz ponad 512 KB łącznik wysyła do bazy w kawałkach (`ai_wgraj_poczatek` niżej).
 
 ## 4. Funkcje bazy (dla programistów)
 
