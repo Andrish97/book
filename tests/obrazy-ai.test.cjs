@@ -399,6 +399,29 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
   assert.match(start.result.instructions, /od razu wywołaj link_do_wgrywania/);
 });
 
+test('pliki_z_czatu (ChatGPT, openai/fileParams): łącznik sam pobiera załączniki rozmowy z ich adresu', async (t) => {
+  const odpowiedzi = { 'https://files.oaiusercontent.com/f1': png(40, 20, 3), 'https://files.oaiusercontent.com/f2': png(10, 10, 4) };
+  const s = await srodowisko(t, { pobierzAdres: async (a) => ({ bajty: new Uint8Array(odpowiedzi[a]), nazwa: 'plik' }) });
+  const lista = await s.mcp().obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, {});
+  const wgraj = lista.result.tools.find((n) => n.name === 'wgraj_obraz');
+  assert.deepEqual(wgraj._meta['openai/fileParams'], ['pliki_z_czatu']);
+  assert.equal(wgraj.inputSchema.properties.pliki_z_czatu.type, 'array');
+  let w = await s.wywolaj('wgraj_obraz', { pliki_z_czatu: [
+    { download_url: 'https://files.oaiusercontent.com/f1', file_id: 'file_1', mime_type: 'image/png', file_name: 'styczen.png' },
+    { download_url: 'https://files.oaiusercontent.com/f2', file_id: 'file_2', file_name: 'luty.png' },
+  ] });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /Wgrano „styczen\.png”.*40×20 px.*\n.*Wgrano „luty\.png”/s);
+  // Claude: adres POST do wysyłki z własnego środowiska (po dopisaniu domeny).
+  w = await s.wywolaj('adres_do_wysylki');
+  assert.match(w.tekst, /^POST https?:\/\/\S+\/functions\/v1\/mcp\/sdk_\S+\/obraz\?nazwa=/);
+  assert.match(w.tekst, /zastap=/);
+  assert.match(lista.result.tools.find((n) => n.name === 'usun_obrazy').description, /podmien_obraz/);
+  w = await s.wywolaj('wgraj_obraz', { pliki_z_czatu: [{ file_id: 'file_3' }] });
+  assert.equal(w.blad, true);
+  assert.match(w.tekst, /link_do_wgrywania/);
+});
+
 test('duży plik w kawałkach po 512 KB: POST 3 MB → początek, kawałki, koniec; duplikat już przy początku; stare RPC do 1 MB; brakujący kawałek', async (t) => {
   const s = await srodowisko(t);
   const { obsluzHttp } = await import(pathToFileURL(path.join(KORZEN, 'supabase', 'functions', '_shared', 'mcp-http.mjs')).href);

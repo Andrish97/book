@@ -614,7 +614,7 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Zdjęcia, które użytkownik ma u siebie (na komputerze, w telefonie, w załączniku rozmowy, w ZIP-ie), dowolnej wielkości: od razu wywołaj link_do_wgrywania i daj mu ten link – wrzuci je tam sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk (nie proś użytkownika o odblokowanie domen).';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Zdjęcia, które użytkownik ma u siebie (na komputerze, w telefonie, w załączniku rozmowy, w ZIP-ie), dowolnej wielkości: od razu wywołaj link_do_wgrywania i daj mu ten link – wrzuci je tam sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk. Jedyny wyjątek to wysyłka plików z Twojego środowiska na adres z adres_do_wysylki; tylko dla niej możesz poprosić o dopisanie hosta do dozwolonych domen.';
 
 export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu }) {
   const ADRES = String(adres || '').replace(/\/+$/, '');
@@ -821,7 +821,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
 
   // Pliki ze źródła podanego w wywołaniu narzędzia: adres | svg | dane_base64 | plik (tylko u siebie).
   async function plikiZeZrodla(a) {
-    const dozwolone = ['adres', 'svg', 'dane_base64', ...(czytajPliki ? ['plik'] : [])];
+    const dozwolone = ['adres', 'svg', 'dane_base64', 'pliki_z_czatu', ...(czytajPliki ? ['plik'] : [])];
     const podane = dozwolone.filter((k) => a[k] !== undefined && a[k] !== null && a[k] !== '');
     if (podane.length !== 1) throw new BladBazy(`Podaj dokładnie jedno źródło: ${dozwolone.join(', ')}.`);
     if (a.adres) {
@@ -829,6 +829,22 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       if (b.blad) throw new BladBazy(b.blad);
       const { bajty, nazwa } = await pobierzAdres(b.adres);
       return [{ bajty, nazwa: a.nazwa || nazwa }];
+    }
+    if (a.pliki_z_czatu) {
+      // Załączniki rozmowy przekazane przez aplikację AI (ChatGPT: _meta „openai/fileParams”) – obiekt pliku
+      // z tymczasowym adresem do pobrania; łącznik pobiera plik sam, więc wielkość nie gra roli (limity jak dla adresu).
+      const lista = (Array.isArray(a.pliki_z_czatu) ? a.pliki_z_czatu : [a.pliki_z_czatu]).filter(Boolean);
+      if (!lista.length) throw new BladBazy('pliki_z_czatu jest puste.');
+      if (lista.length > 50) throw new BladBazy('Najwyżej 50 plików z rozmowy naraz.');
+      const pliki = [];
+      for (const f of lista) {
+        const adres = typeof f === 'string' ? f : f.download_url;
+        if (!adres) throw new BladBazy('Plik z rozmowy bez adresu do pobrania (download_url) – aplikacja AI nie przekazała pliku; daj użytkownikowi link z link_do_wgrywania.');
+        const { bajty, nazwa } = await pobierzAdres(adres);
+        pliki.push({ bajty, nazwa: (typeof f === 'object' && f.file_name) || nazwa });
+      }
+      if (pliki.length === 1 && a.nazwa) pliki[0].nazwa = a.nazwa;
+      return pliki;
     }
     if (a.svg) return [{ bajty: przygotujSvg(a.svg), nazwa: a.nazwa || 'rysunek.svg' }];
     if (a.dane_base64) {
@@ -915,17 +931,24 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'wgraj_obraz',
       title: 'Wgraj obrazy do projektu',
+      meta: { 'openai/fileParams': ['pliki_z_czatu'] }, // ChatGPT podaje tu załączniki rozmowy (adres do pobrania)
       description: `Wgrywa obraz albo archiwum ZIP z obrazami do projektu (trafiają do okna „Obrazy projektu” u właściciela, na żywo). Podaj dokładnie jedno źródło:
 - adres – plik w internecie (https). Działa też link udostępniania z Dysku Google („każdy, kto ma link”, pojedynczy plik albo ZIP) i z Dropboxa (plik albo folder – Dropbox odda folder jako ZIP). Obraz znaleziony w sieci: podaj użytkownikowi źródło i pilnuj praw autorskich.
 - svg – rysunek, który sam piszesz (ozdobniki, ikony, ramki); potrzebny viewBox albo width/height; bez skryptów.
-- dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
-Zdjęcia, które użytkownik ma u siebie (komputer, telefon, załącznik rozmowy, ZIP) i do których nie sięgasz: NIE odmawiaj – od razu wywołaj link_do_wgrywania i daj mu link; wrzuci je sam (dowolna wielkość), a Ty zobaczysz je w obrazy_projektu. Ewentualnie poproś o link z Dysku Google albo Dropboxa. Załączników nie przepisuj na base64. Jeśli masz wykonywanie kodu z dostępem do sieci, możesz wysłać plik wprost: POST na adres łącznika z dopiskiem /obraz?nazwa=… (opis: https://andrish97.github.io/book/ai/api.md).
+- dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.
+- pliki_z_czatu – załączniki rozmowy, jeśli Twoja aplikacja przekazuje je narzędziom (ChatGPT); dowolna wielkość.${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
+Zdjęcia, które użytkownik ma u siebie (komputer, telefon, załącznik rozmowy, ZIP) i do których nie sięgasz: NIE odmawiaj – od razu wywołaj link_do_wgrywania i daj mu link; wrzuci je sam (dowolna wielkość), a Ty zobaczysz je w obrazy_projektu. Ewentualnie poproś o link z Dysku Google albo Dropboxa. Załączników nie przepisuj na base64. Pliki w Twoim środowisku (wykonywanie kodu, miejsce robocze, załącznik w piaskownicy): wyślij je wprost POST-em na adres z narzędzia adres_do_wysylki – dowolna wielkość, bez przepisywania na base64.
 Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – jak podmien_obraz. wstaw – od razu wstawia obraz jako pojedynczy element (pola jak w wstaw_obraz; tylko dla jednego obrazu).`,
       inputSchema: S('', {
         nazwa: tekst('Nazwa pliku z rozszerzeniem, np. „choinka.svg” (domyślnie z adresu albo pliku).'),
         adres: tekst('Adres https pliku (obraz albo ZIP), także link z Dysku Google albo Dropboxa.'),
         svg: tekst('Kod rysunku SVG.'),
         dane_base64: tekst('Treść małego pliku w base64 (z nagłówkiem data: albo bez).'),
+        pliki_z_czatu: {
+          type: 'array',
+          description: 'Zdjęcia albo ZIP-y, które użytkownik wrzucił do rozmowy – gdy aplikacja AI przekazuje załączniki narzędziom (ChatGPT). Każdy: { download_url, file_id, mime_type?, file_name? }.',
+          items: { type: 'object', properties: { download_url: { type: 'string' }, file_id: { type: 'string' }, mime_type: { type: 'string' }, file_name: { type: 'string' } } },
+        },
         ...(czytajPliki ? { plik: { anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }], description: 'Ścieżka pliku albo folderu na tym komputerze (może zaczynać się od ~/), albo lista ścieżek.' } } : {}),
         zastap: tekst('id albo nazwa obrazu, który ten plik zastępuje.'),
         wstaw: obiekt('Opcjonalnie: { gdzie, x?, y?, szerokosc?, wysokosc?, dopasowanie? } – jak w wstaw_obraz.'),
@@ -1003,9 +1026,20 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
       },
     },
     {
+      name: 'adres_do_wysylki',
+      title: 'Adres do wysyłki plików',
+      description: 'Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Wymaga, żeby Twoje środowisko łączyło się z hostem adresu: jeśli wysyłka kończy się błędem sieci, poproś użytkownika o dopisanie tego hosta do dozwolonych domen wykonywania kodu w ustawieniach AI (tylko do wysyłki plików), a do tego czasu daj mu link z link_do_wgrywania. Adres zawiera klucz – nie pokazuj go w odpowiedzi.',
+      inputSchema: S('', {}),
+      readOnly: true,
+      dzialaj: async () => `POST ${ADRES}/functions/v1/mcp/${KLUCZ}/obraz?nazwa=<nazwa z rozszerzeniem>[&zastap=<id albo nazwa obrazu do podmiany>]
+Treść żądania: bajty pliku (obraz albo ZIP). Odpowiedź JSON: {"wgrane":[{"nazwa","id","szer","wys","byl"}],"opis"} albo {"blad"}.
+Przykład: curl -X POST --data-binary @styczen.jpg "${ADRES}/functions/v1/mcp/${KLUCZ}/obraz?nazwa=styczen.jpg"
+Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname}`,
+    },
+    {
       name: 'usun_obrazy',
       title: 'Usuń obrazy z projektu',
-      description: 'Usuwa obrazy z projektu (id albo nazwy) – jak „Usuń” w oknie „Obrazy projektu”. Usuwa tylko obrazy nieużywane: obraz, który jest na stronie, we wzorcu albo w danych tabeli, zostaje, a wynik mówi, gdzie jest użyty. nieuzywane: true – usuwa wszystkie nieużywane obrazy. Plik znika też z konta właściciela.',
+      description: 'Usuwa obrazy z projektu (id albo nazwy) – jak „Usuń” w oknie „Obrazy projektu”. Usuwa tylko obrazy nieużywane: obraz, który jest na stronie, we wzorcu albo w danych tabeli, zostaje, a wynik mówi, gdzie jest użyty. Użyty obraz wymieniasz na nowy plik jednym krokiem przez podmien_obraz (albo wgraj_obraz / POST z zastap): wszystkie strony, wzorce i dane pokazują od razu nowy plik, a stary znika – bez przepinania stron i bez osobnego usuwania. nieuzywane: true – usuwa wszystkie nieużywane obrazy. Plik znika też z konta właściciela.',
       inputSchema: S('', { obrazy: { type: 'array', items: { type: 'string' }, description: 'id albo nazwy obrazów' }, nieuzywane: { type: 'boolean' } }),
       dzialaj: async ({ obrazy = [], nieuzywane = false }) => {
         const { projekt } = await pobierz();
@@ -1245,8 +1279,8 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
 
 
   function listaNarzedzi() {
-    return NARZEDZIA.map(({ name, title, description, inputSchema, readOnly }) => ({
-      name, title, description,
+    return NARZEDZIA.map(({ name, title, description, inputSchema, readOnly, meta }) => ({
+      name, title, description, ...(meta ? { _meta: meta } : {}),
       inputSchema: { type: 'object', properties: inputSchema.properties, required: inputSchema.required, additionalProperties: false },
       annotations: { readOnlyHint: Boolean(readOnly), destructiveHint: name.startsWith('usun'), openWorldHint: name === 'wgraj_obraz' },
     }));

@@ -4,7 +4,7 @@ Asystent AI (Claude, ChatGPT i inne) może czytać i poprawiać **jeden konkretn
 
 Dokumenty obok: [instrukcja obsługi](https://andrish97.github.io/book/ai/instrukcja.md), [format projektu](https://andrish97.github.io/book/ai/format-seriodruk.md) (model danych, który AI zmienia).
 
-> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk. Projekt czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Seriodruku. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci.
+> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk. Projekt czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Seriodruku. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Jedyny wyjątek: wysyłka plików z Twojego środowiska na adres z narzędzia `adres_do_wysylki` – tylko dla niej możesz poprosić o dopisanie hosta `pganajmivwtstapnwsgv.supabase.co` do dozwolonych domen.
 
 ## 1. Klucz i adres łącznika
 
@@ -110,9 +110,11 @@ AI w czacie (claude.ai, ChatGPT, łącznik dodany jako adres) **nie sięga do pl
 1. **Link do wgrania** (główna droga) – AI samo wywołuje `link_do_wgrywania` i daje Ci link; wrzucasz zdjęcia albo archiwum ZIP w oknie, które się otworzy (dowolna wielkość, jeden obraz do 25 MB). AI zobaczy je od razu w liście obrazów i działa dalej.
 
    > **Dla asystenta AI:** gdy użytkownik chce dodać zdjęcia, które ma u siebie (komputer, telefon, załącznik rozmowy, ZIP), a nie masz do nich adresu – nie odpowiadaj, że się nie da. Od razu wywołaj `link_do_wgrywania`, daj link, a po wgraniu sprawdź `obrazy_projektu`.
+   **ChatGPT** przekazuje łącznikowi załączniki rozmowy sam (`pliki_z_czatu` w `wgraj_obraz`, zgłoszone przez `_meta["openai/fileParams"]`): łącznik dostaje tymczasowy adres pliku i pobiera go, więc zdjęcia wrzucone do czatu wchodzą wprost, dowolnej wielkości. **Claude** (claude.ai, Claude Desktop z łącznikiem jako adresem) tego nie umie – nie przekazuje łącznikom plików, a jego piaskownica kodu nie łączy się z naszym serwerem bez dopisania domeny w ustawieniach; standard MCP też jeszcze nie ma przesyłania plików do narzędzi. Dlatego w Claude: link do wgrania, rozszerzenie w Claude Desktop (punkt 3) albo – po jednorazowym dopisaniu hosta `pganajmivwtstapnwsgv.supabase.co` w ustawieniach Claude (Ustawienia → Możliwości → Wykonywanie kodu → dozwolone domeny) – wysyłka wprost z piaskownicy albo miejsca roboczego (punkt 4, adres z narzędzia `adres_do_wysylki`).
+
 2. **Link z Dysku Google albo Dropboxa** – udostępnij plik (albo ZIP) „każdemu, kto ma link” i podaj link AI. Dropbox oddaje też cały folder jako ZIP. Folderu z Dysku Google łącznik nie pobierze – spakuj go do ZIP-a.
 3. **Plik albo folder na Macu** – w Claude Desktop z rozszerzeniem Seriodruk (albo w Claude Code z serwerem u siebie) AI czyta pliki z dysku: „wgraj obrazy z folderu ~/Pulpit/Kalendarz”.
-4. **Wysyłka pliku wprost** – gdy AI ma wykonywanie kodu z dostępem do sieci (albo piszesz własny skrypt), plik idzie jako treść żądania `POST` na adres łącznika z dopiskiem `/obraz`:
+4. **Wysyłka pliku wprost** – gdy AI ma wykonywanie kodu z dostępem do sieci (albo piszesz własny skrypt), AI bierze adres z narzędzia `adres_do_wysylki` i plik idzie jako treść żądania `POST` na adres łącznika z dopiskiem `/obraz`:
 
 ```
 curl -X POST --data-binary @zdjecia.zip \
