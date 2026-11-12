@@ -206,7 +206,8 @@ Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu pro
 - „Kopiuj nazwę”; zaznaczanie kilku (Ctrl, Shift, na telefonie przytrzymanie albo „Zaznacz”) i „Kopiuj nazwy” – jedna pod drugą, do wklejenia jako część kolumny tabeli albo w Excelu;
 - „Zmień nazwę” (kliknięciem nazwy, z kontrolą powtórzeń; komórki tabel z tą nazwą zmieniają się razem z nią);
 - „Podmień plik” (wszędzie, gdzie obraz jest użyty), „Pokaż” (strona z obrazem);
-- „Usuń” przy zaznaczonych i „Usuń nieużywane”.
+- „Usuń” przy zaznaczonych i „Usuń nieużywane”;
+- „Uporządkuj” w starszych projektach: kopie tego samego pliku scalone w jeden obraz (elementy i komórki tabel przepięte), obrazy o zajętej nazwie z dopiskiem „(2)” – dane pokazują to samo co przedtem (#72).
 
 Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z obrazów projektu (wtedy to samo okno służy do wyboru). Każdy obraz wstawiony na stronę – narzędziem, przeciągnięciem, ze schowka, podmianą – trafia do tego samego zbioru.
 **Jak to działa.**

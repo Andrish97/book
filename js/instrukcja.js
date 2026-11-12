@@ -371,6 +371,7 @@ export const ROZDZIALY = [
       '<b>Wybór z obrazów projektu</b> (narzędzie „Obraz” i „Podmień zdjęcie”): to samo okno, w którym stukasz obraz i <b>Wstaw</b> (albo <b>Podmień</b>), albo klikasz go dwa razy.',
       '<b>Ten sam plik drugi raz</b> nie tworzy kopii: wstawiony na stronę używa obrazu, który już jest, a przy wgrywaniu pojawia się informacja „Ten obraz już jest jako …”. Aplikacja rozpoznaje to po treści pliku, nie po nazwie.',
       '<b>Inny plik o tej samej nazwie</b> (ta sama nazwa z rozszerzeniem, bez względu na wielkość liter): przy wgrywaniu aplikacja pokazuje oba obrazy obok siebie i pyta – <b>Zastąp</b> (jak „Podmień plik”), <b>Zachowaj oba</b> (nowy dostaje dopisek „(2)”) albo <b>Pomiń</b>. Przy kilku plikach można zaznaczyć <b>Tak samo dla pozostałych</b>. Obraz wstawiany na stronę dostaje dopisek „(2)” sam. <code>las.jpg</code> i <code>las.png</code> to różne nazwy.',
+      '<b>Starsze projekty</b> (sprzed tego okna) mogą mieć ten sam plik kilka razy albo dwa różne obrazy o tej samej nazwie. Okno pokazuje wtedy u góry pasek z przyciskiem <b>Uporządkuj</b>: kopie tego samego pliku stają się jednym obrazem (elementy na stronach zostają na miejscu, komórki tabel wskazujące kopię dostają nazwę obrazu, który zostaje), a obrazy o zajętej nazwie i innej treści dostają dopisek „(2)” – dane w tabelach pokazują ten sam obraz co dotąd.',
       'Gdy okno jest otwarte, zmiany z innego urządzenia czekają, aż je zamkniesz – tak jak przy każdym innym oknie.',
     ],
   },

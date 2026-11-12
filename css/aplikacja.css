@@ -1458,3 +1458,8 @@ input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b4231
   .siatka-obrazow .obraz-akcje .przycisk-ikona { width: 36px; height: 36px; }
 }
 @media (max-width: 360px) { .siatka-obrazow { grid-template-columns: 1fr; } }
+
+/* Okno „Obrazy projektu”: pasek porządkowania starszych projektów (kopie i zajęte nazwy). */
+.obrazy-porzadek { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 12px; margin: 0 0 8px; border-radius: 8px; background: var(--uwaga-tlo); }
+.obrazy-porzadek[hidden] { display: none; }
+.obrazy-porzadek span { flex: 1 1 16rem; }

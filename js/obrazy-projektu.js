@@ -195,3 +195,48 @@ export async function nowaWersja(p, id, { blob = null, nazwa = null } = {}) {
   }
   return noweId;
 }
+
+// ---------- Porządkowanie starszych projektów ----------
+//
+// Zanim było okno „Obrazy projektu”, każde wstawienie obrazu dodawało nowy plik – nawet ten sam – a wgranie
+// pliku o zajętej nazwie dawało dwa obrazy o tej samej nazwie. Tu je znajdujemy i porządkujemy.
+
+// { kopie: [[zostaje, [kopia…]]], nazwy: [[zostaje, [inny…]]] }.
+// Kopie: ta sama treść (skrót liczony tylko dla plików o tym samym rozmiarze). Nazwy: ta sama pełna nazwa,
+// inna treść. Zostaje obraz, który dane wskazują tą nazwą dziś (żeby strony z danych się nie zmieniły).
+export async function powtorzenia(p) {
+  const pomin = czcionki(p);
+  const obrazy = obrazyProjektu(p);
+  const poRozmiarze = new Map();
+  for (const [id, z] of obrazy) {
+    const r = z.skrot ? `s:${z.skrot}` : `r:${rozmiarZasobu(z)}`;
+    poRozmiarze.set(r, [...(poRozmiarze.get(r) || []), id]);
+  }
+  // Skrót liczymy tylko tam, gdzie mogą być kopie: ten sam rozmiar, a skrótu jeszcze nie ma.
+  for (const [klucz, ids] of poRozmiarze) {
+    if (ids.length < 2 || klucz.startsWith('s:') || klucz === 'r:null') continue;
+    for (const id of ids) {
+      if (p.zasoby[id].skrot) continue;
+      const plik = await blobZasobu(p, id).catch(() => null);
+      if (plik) p.zasoby[id].skrot = await skrotPliku(plik);
+    }
+  }
+  const wybierz = (ids) => {
+    // Ten, którego dane dziś wskazują swoją nazwą; inaczej pierwszy (w kolejności zasobów – tak szukały dane).
+    const kolejnosc = Object.keys(p.zasoby).filter((id) => ids.includes(id));
+    return kolejnosc.find((id) => obrazZNazwy(p.zasoby, p.zasoby[id].nazwa, pomin)?.id === id) || kolejnosc[0];
+  };
+  const grupy = (klucz, bez = new Set()) => {
+    const m = new Map();
+    for (const [id, z] of obrazyProjektu(p)) {
+      if (bez.has(id)) continue;
+      const k = klucz(z);
+      if (k) m.set(k, [...(m.get(k) || []), id]);
+    }
+    return [...m.values()].filter((ids) => ids.length > 1).map((ids) => { const z = wybierz(ids); return [z, ids.filter((id) => id !== z)]; });
+  };
+  const kopie = grupy((z) => z.skrot || null);
+  const usuwane = new Set(kopie.flatMap(([, k]) => k));
+  const nazwy = grupy((z) => pelnaNazwa(z.nazwa), usuwane);
+  return { kopie, nazwy };
+}

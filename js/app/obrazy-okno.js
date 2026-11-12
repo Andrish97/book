@@ -14,7 +14,7 @@ import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from '../obrazy.js';
 import * as chmura from '../chmura.js';
 import {
   obrazyProjektu, skrotPliku, takiSam, poNazwie, wolnaNazwa, dodajPlik, uzycia, opisUzycia, wHistorii,
-  przepnij, komorkiObrazu, przepiszDane, usunObraz, nowaWersja, rozmiarZasobu,
+  przepnij, komorkiObrazu, przepiszDane, usunObraz, nowaWersja, rozmiarZasobu, powtorzenia,
 } from '../obrazy-projektu.js';
 import {
   stan, edytor, historia, ustawPanel,
@@ -99,6 +99,58 @@ function rysuj() {
   b.hidden = Boolean(wybor) || nieuzywane === 0;
   b.textContent = `Usuń nieużywane (${nieuzywane})`;
   odswiezZaznaczenie();
+  sprawdzPowtorzenia();
+}
+
+// Starsze projekty: kopie tego samego pliku i obrazy o tej samej nazwie (sprzed tego okna).
+let nrSprawdzenia = 0;
+async function sprawdzPowtorzenia() {
+  const nr = (nrSprawdzenia += 1);
+  const pasek = $('#obrazy-porzadek');
+  if (wybor) { pasek.hidden = true; return; }
+  let w;
+  try { w = await powtorzenia(stan.projekt); } catch { return; }
+  if (nr !== nrSprawdzenia) return;
+  const kopie = w.kopie.reduce((n, [, k]) => n + k.length, 0);
+  const nazwy = w.nazwy.reduce((n, [, k]) => n + k.length, 0);
+  pasek.hidden = !kopie && !nazwy;
+  const czesci = [];
+  if (kopie) czesci.push(`${kopie} ${odmiana(kopie, 'kopię pliku, który już jest', 'kopie plików, które już są', 'kopii plików, które już są')}`);
+  if (nazwy) czesci.push(`${nazwy} ${odmiana(nazwy, 'obraz o zajętej nazwie', 'obrazy o zajętych nazwach', 'obrazów o zajętych nazwach')}`);
+  $('#obrazy-porzadek-opis').textContent = `Ten projekt ma powtórzone obrazy sprzed tego okna: ${czesci.join(' i ')}.`;
+}
+
+async function uporzadkuj() {
+  const p = stan.projekt;
+  const { kopie, nazwy } = await powtorzenia(p);
+  if (!kopie.length && !nazwy.length) { rysuj(); return; }
+  const tresc = [];
+  if (kopie.length) tresc.push('Kopie tego samego pliku staną się jednym obrazem – elementy na stronach zostają na miejscu i pokazują ten jeden plik.');
+  if (nazwy.length) tresc.push('Obrazy o tej samej nazwie, a innej treści dostaną dopisek „(2)” – dane w tabelach pokażą ten sam obraz co dotąd.');
+  if (!await potwierdz('Uporządkować obrazy projektu?', tresc.join(' '), 'Uporządkuj')) return;
+  try {
+    // Nowe nazwy najpierw (nowy identyfikator na obraz – patrz nowaWersja), potem jedno przepięcie wszędzie.
+    const przemianowane = [];
+    for (const [, inne] of nazwy) {
+      for (const id of inne) przemianowane.push([id, await nowaWersja(p, id, { nazwa: wolnaNazwa(p, p.zasoby[id].nazwa) })]);
+    }
+    const zbedne = [...kopie.flatMap(([, k]) => k), ...przemianowane.map(([id]) => id)];
+    await zmienWszedzie((s) => {
+      for (const [zostaje, k] of kopie) {
+        for (const kopia of k) {
+          // Komórki tabel wskazujące kopię jej nazwą dostają nazwę obrazu, który zostaje.
+          if (p.zasoby[kopia] && p.zasoby[zostaje]) przepiszDane(s, komorkiObrazu(s, kopia), p.zasoby[zostaje].nazwa);
+          przepnij(s, kopia, zostaje);
+        }
+      }
+      for (const [stare, nowe] of przemianowane) przepnij(s, stare, nowe);
+    }, async (pp) => { for (const id of zbedne) await usunObraz(pp, id, usunZKonta); });
+    const ileKopii = kopie.reduce((n, [, k]) => n + k.length, 0);
+    powiadom(`Uporządkowano obrazy: ${[ileKopii ? `scalone kopie: ${ileKopii}` : '', przemianowane.length ? `nowe nazwy: ${przemianowane.length}` : ''].filter(Boolean).join(', ')}.`);
+  } catch (e) {
+    powiadom(`Nie udało się uporządkować obrazów: ${e.message}`, true);
+  }
+  rysuj();
 }
 
 // Miniatura z kopii roboczej (duże zdjęcia) albo z oryginału; wymiary zawsze oryginału.
@@ -359,6 +411,7 @@ $('#obrazy-anuluj').addEventListener('click', () => okno.close());
 $('#obrazy-wybierz').addEventListener('click', () => zatwierdzWybor());
 $('#obrazy-wgraj').addEventListener('click', () => plikWgraj.click());
 $('#obrazy-usun-nieuzywane').addEventListener('click', () => usunNieuzywane());
+$('#obrazy-uporzadkuj').addEventListener('click', () => uporzadkuj());
 $('#obrazy-kopiuj-nazwy').addEventListener('click', () => kopiujNazwy(kolejnosc().filter((id) => zaznaczone.has(id))));
 $('#obrazy-usun-zaznaczone').addEventListener('click', () => usun(kolejnosc().filter((id) => zaznaczone.has(id))));
 $('#obrazy-odznacz').addEventListener('click', () => { zaznaczone.clear(); trybZaznaczania = false; odswiezZaznaczenie(); });

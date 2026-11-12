@@ -330,3 +330,58 @@ test('usunięty obraz nie wraca po łączeniu z drugim urządzeniem', async (t) 
   assert.equal(await a.strona.evaluate((z) => Boolean(window.seriodruk.stan.projekt.zasoby[z]), id), false);
   assert.deepEqual([a.bledy, b.bledy], [[], []]);
 });
+
+test('starszy projekt z powtórzonymi obrazami: okno proponuje „Uporządkuj” – kopie scalone, zajęte nazwy z „(2)”, dane bez zmian w wyglądzie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Stary');
+  // Projekt sprzed okna obrazów: ten sam plik trzy razy (dwa razy jako „foto.jpg”, raz jako „inne.png”)
+  // i inny plik też jako „foto.jpg”. Na stronie elementy wskazują kopię i ten inny plik; tabela – „inne.png”.
+  await strona.evaluate(async () => {
+    const plik = (k) => { const c = document.createElement('canvas'); c.width = 6; c.height = 4; const x = c.getContext('2d'); x.fillStyle = k; x.fillRect(0, 0, 6, 4); return c.toDataURL('image/png'); };
+    const X = plik('#0a0');
+    const Y = plik('#00a');
+    const p = window.seriodruk.stan.projekt;
+    Object.assign(p.zasoby, {
+      z_a: { nazwa: 'foto.jpg', dataUrl: X }, z_b: { nazwa: 'foto.jpg', dataUrl: X }, z_c: { nazwa: 'foto.jpg', dataUrl: Y }, z_d: { nazwa: 'inne.png', dataUrl: X },
+    });
+    const obraz = (id, zasob, left) => ({ type: 'image', id, zasob, src: `zasob:${zasob}`, left, top: 20, width: 6, height: 4, scaleX: 5, scaleY: 5, originX: 'left', originY: 'top' });
+    p.strony[0].obiekty.push(obraz('e1', 'z_b', 20), obraz('e2', 'z_c', 60));
+    p.tabele.push({ id: 't1', nazwa: 'Dane', kolumny: ['obraz'], wiersze: [['inne.png'], ['foto.jpg']] });
+    await (await import('./js/app/zapis.js')).zaladujCel();
+  });
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="obrazy"]');
+  await strona.waitForSelector('#dlg-obrazy[open]');
+  await strona.waitForSelector('#obrazy-porzadek:not([hidden])');
+  assert.match(await strona.textContent('#obrazy-porzadek-opis'), /2 kopie plików, które już są i 1 obraz o zajętej nazwie/);
+  await strona.click('#obrazy-uporzadkuj');
+  await strona.click('#potwierdz-tak');
+  await strona.waitForSelector('#obrazy-porzadek[hidden]', { state: 'attached' });
+  const stan = await strona.evaluate(() => {
+    const p = window.seriodruk.stan.projekt;
+    const nazwa = (id) => p.zasoby[id]?.nazwa;
+    const el = Object.fromEntries(window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'image').map((o) => [o.id, o.zasob]));
+    return {
+      nazwy: Object.values(p.zasoby).map((z) => z.nazwa).sort(),
+      e1: nazwa(el.e1), e2: nazwa(el.e2), e1zostaje: el.e1 === 'z_a',
+      dane: p.tabele.find((x) => x.id === 't1').wiersze.map((w) => w[0]),
+      nagrobki: [...(p.zasoby_usuniete || [])].sort(),
+    };
+  });
+  // Został jeden „foto.jpg” (ten, który dane wskazywały), inny plik dostał „foto (2).jpg”, „inne.png” scalony.
+  assert.deepEqual(stan.nazwy, ['foto (2).jpg', 'foto.jpg']);
+  assert.equal(stan.e1, 'foto.jpg');
+  assert.ok(stan.e1zostaje, 'kopia przepięta na obraz, który zostaje');
+  assert.equal(stan.e2, 'foto (2).jpg', 'element z innym plikiem pokazuje dalej ten sam obraz');
+  assert.deepEqual(stan.dane, ['foto.jpg', 'foto.jpg'], 'komórka ze scaloną kopią wskazuje obraz, który zostaje');
+  assert.deepEqual(stan.nagrobki, ['z_b', 'z_c', 'z_d']);
+  // Cofnięcie nie przywraca elementów wskazujących usunięte obrazy.
+  await strona.click('#obrazy-zamknij');
+  await strona.keyboard.press('Control+z');
+  const poCofnieciu = await strona.evaluate(() => {
+    const p = window.seriodruk.stan.projekt;
+    return p.strony[0].obiekty.filter((o) => o.type === 'image').every((o) => p.zasoby[o.zasob]);
+  });
+  assert.ok(poCofnieciu);
+  assert.deepEqual(bledy, []);
+});

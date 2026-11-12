@@ -419,6 +419,7 @@ Wszystkie obrazy projektu są w jednym miejscu: wstawione na strony (narzędziem
 - **Wybór z obrazów projektu** (narzędzie „Obraz” i „Podmień zdjęcie”): to samo okno, w którym stukasz obraz i **Wstaw** (albo **Podmień**), albo klikasz go dwa razy.
 - **Ten sam plik drugi raz** nie tworzy kopii: wstawiony na stronę używa obrazu, który już jest, a przy wgrywaniu pojawia się informacja „Ten obraz już jest jako …”. Aplikacja rozpoznaje to po treści pliku, nie po nazwie.
 - **Inny plik o tej samej nazwie** (ta sama nazwa z rozszerzeniem, bez względu na wielkość liter): przy wgrywaniu aplikacja pokazuje oba obrazy obok siebie i pyta – **Zastąp** (jak „Podmień plik”), **Zachowaj oba** (nowy dostaje dopisek „(2)”) albo **Pomiń**. Przy kilku plikach można zaznaczyć **Tak samo dla pozostałych**. Obraz wstawiany na stronę dostaje dopisek „(2)” sam. `las.jpg` i `las.png` to różne nazwy.
+- **Starsze projekty** (sprzed tego okna) mogą mieć ten sam plik kilka razy albo dwa różne obrazy o tej samej nazwie. Okno pokazuje wtedy u góry pasek z przyciskiem **Uporządkuj**: kopie tego samego pliku stają się jednym obrazem (elementy na stronach zostają na miejscu, komórki tabel wskazujące kopię dostają nazwę obrazu, który zostaje), a obrazy o zajętej nazwie i innej treści dostają dopisek „(2)” – dane w tabelach pokazują ten sam obraz co dotąd.
 - Gdy okno jest otwarte, zmiany z innego urządzenia czekają, aż je zamkniesz – tak jak przy każdym innym oknie.
 
 ## 21. Kolumny i przelewanie tekstu
