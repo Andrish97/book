@@ -988,7 +988,7 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
       readOnly: true,
       dzialaj: async () => {
         const { projekt } = await pobierz();
-        return `Link do wgrania obrazów (otwiera projekt „${projekt.nazwa}” z oknem „Obrazy projektu”):\n${ADRES_APLIKACJI}#/p/${projekt.id}/obrazy\nUżytkownik wybiera tam „Wgraj obrazy…” (zdjęcia albo ZIP). Potem sprawdź obrazy_projektu.`;
+        return `Link do wgrania obrazów (otwiera projekt „${projekt.nazwa}” z oknem „Obrazy projektu”):\n${ADRES_APLIKACJI}#/p/${projekt.id}/obrazy\nUżytkownik wybiera tam „Wgraj obrazy…” (zdjęcia albo ZIP). Gdy nazwa pliku już jest w projekcie, okno pyta: „Zastąp” z zaznaczonym „Tak samo dla pozostałych plików o powtórzonych nazwach” podmienia wszystkie w miejscu – strony, wzorce i dane pokazują od razu nowe pliki, bez „(2)” i bez przepinania. Powiedz mu to, jeśli wymieniacie obrazy. Potem sprawdź obrazy_projektu.`;
       },
     },
     {
