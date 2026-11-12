@@ -105,9 +105,11 @@ Każda zmiana działa tak: pobierz projekt → zmień → zapisz z numerem wersj
 
 ### Jak przekazać AI zdjęcia
 
-AI w rozmowie **widzi** zdjęcia, które do niej wrzucisz, ale nie może przekazać łącznikowi samego pliku (musiałoby przepisać go znak po znaku jako base64 – przy zdjęciach to za dużo). Dlatego:
+AI w czacie (claude.ai, ChatGPT, łącznik dodany jako adres) **nie sięga do plików na Twoim komputerze**, a zdjęć wrzuconych do rozmowy nie przekaże łącznikowi (musiałoby przepisać je znak po znaku jako base64 – przy zdjęciach to za dużo; jego piaskownica kodu nie ma połączenia z łącznikiem). To granica tych aplikacji, nie wielkości pliku. Dlatego:
 
-1. **Link do wgrania** – poproś AI o link (narzędzie `link_do_wgrywania`) i wrzuć zdjęcia albo archiwum ZIP w oknie, które się otworzy. AI zobaczy je od razu w liście obrazów.
+1. **Link do wgrania** (główna droga) – AI samo wywołuje `link_do_wgrywania` i daje Ci link; wrzucasz zdjęcia albo archiwum ZIP w oknie, które się otworzy (dowolna wielkość, jeden obraz do 25 MB). AI zobaczy je od razu w liście obrazów i działa dalej.
+
+   > **Dla asystenta AI:** gdy użytkownik chce dodać zdjęcia, które ma u siebie (komputer, telefon, załącznik rozmowy, ZIP), a nie masz do nich adresu – nie odpowiadaj, że się nie da. Od razu wywołaj `link_do_wgrywania`, daj link, a po wgraniu sprawdź `obrazy_projektu`.
 2. **Link z Dysku Google albo Dropboxa** – udostępnij plik (albo ZIP) „każdemu, kto ma link” i podaj link AI. Dropbox oddaje też cały folder jako ZIP. Folderu z Dysku Google łącznik nie pobierze – spakuj go do ZIP-a.
 3. **Plik albo folder na Macu** – w Claude Desktop z rozszerzeniem Seriodruk (albo w Claude Code z serwerem u siebie) AI czyta pliki z dysku: „wgraj obrazy z folderu ~/Pulpit/Kalendarz”.
 4. **Wysyłka pliku wprost** – gdy AI ma wykonywanie kodu z dostępem do sieci (albo piszesz własny skrypt), plik idzie jako treść żądania `POST` na adres łącznika z dopiskiem `/obraz`:

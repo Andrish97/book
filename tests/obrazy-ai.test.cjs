@@ -391,6 +391,12 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
   for (const n of ['obrazy_projektu', 'wgraj_obraz', 'wstaw_obraz', 'zmien_nazwe_obrazu', 'usun_obrazy', 'podmien_obraz', 'uporzadkuj_obrazy', 'link_do_wgrywania']) {
     assert.ok(zdalny.result.tools.some((x) => x.name === n), n);
   }
+  // Zdjęcia z komputera / z rozmowy: łącznik każe AI od razu dać link do wgrania, zamiast odmawiać (decyzja #75).
+  const opisWgraj = zdalny.result.tools.find((n) => n.name === 'wgraj_obraz').description;
+  assert.match(opisWgraj, /NIE odmawiaj – od razu wywołaj link_do_wgrywania/);
+  assert.match(zdalny.result.tools.find((n) => n.name === 'link_do_wgrywania').description, /zamiast mówić, że nie masz dostępu do plików/);
+  const start = await s.mcp().obsluz({ jsonrpc: '2.0', id: 2, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } } }, {});
+  assert.match(start.result.instructions, /od razu wywołaj link_do_wgrywania/);
 });
 
 test('duży plik w kawałkach po 512 KB: POST 3 MB → początek, kawałki, koniec; duplikat już przy początku; stare RPC do 1 MB; brakujący kawałek', async (t) => {
