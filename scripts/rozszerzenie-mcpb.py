@@ -28,7 +28,7 @@ def manifest(wersja):
         'display_name': 'Seriodruk',
         'version': wersja,
         'description': 'Czytanie i zmiana jednego projektu Seriodruku (kalendarze, planery) razem z Tobą – zmiany widać w otwartym edytorze na żywo.',
-        'long_description': 'Łącznik daje Claude narzędzia do projektu w Seriodruku: przegląd, odczyt stron, wzorców i tabel, zmiana elementów, stron, stylów, tabel danych, serii i sekcji oraz kontrola przed drukiem. Dostęp obejmuje tylko projekt, dla którego utworzysz klucz w aplikacji (menu ⋯ → Dostęp dla AI…); klucz wygasa sam i możesz go odebrać w każdej chwili.',
+        'long_description': 'Łącznik daje Claude narzędzia do projektu w Seriodruku: przegląd, odczyt stron, wzorców i tabel, zmiana elementów, stron, stylów, tabel danych, serii i sekcji, obrazy projektu (wgrywanie z plików i folderów na tym komputerze, z ZIP-ów i z internetu, wstawianie, zmiana nazw, usuwanie, porządkowanie) oraz kontrola przed drukiem. Dostęp obejmuje tylko projekt, dla którego utworzysz klucz w aplikacji (menu ⋯ → Dostęp dla AI…); klucz wygasa sam i możesz go odebrać w każdej chwili.',
         'author': {'name': 'Seriodruk', 'url': 'https://andrish97.github.io/book/'},
         'homepage': 'https://andrish97.github.io/book/',
         'documentation': 'https://andrish97.github.io/book/ai/api.md',

@@ -12,6 +12,7 @@
 import { uid } from './projekt.js';
 import { blobZasobu, naDataUrl, dataUrlZasobu, usunPlikZasobu } from './zasoby.js';
 import { pelnaNazwa, obrazZNazwy } from './nazwy-obrazow.js';
+import { wymiaryObrazu, wolnaNazwaWsrod, grupujPowtorzenia } from './obrazy-wspolne.js';
 
 const czcionki = (p) => new Set((p?.czcionki || []).map((c) => c.id));
 
@@ -58,22 +59,35 @@ export function poNazwie(p, nazwa, bezId = null) {
 }
 
 // „zdjęcie.jpg” → „zdjęcie (2).jpg”, „zdjęcie (3).jpg”… – pierwsza nazwa, której w projekcie jeszcze nie ma.
-export function wolnaNazwa(p, nazwa) {
-  if (!poNazwie(p, nazwa)) return nazwa;
-  const m = String(nazwa).match(/^(.*?)(?: \((\d+)\))?(\.[a-z0-9]{2,5})?$/i);
-  const rdzen = m[1];
-  const roz = m[3] || '';
-  for (let n = Math.max(2, Number(m[2] || 1) + 1); ; n += 1) {
-    const kandydat = `${rdzen} (${n})${roz}`;
-    if (!poNazwie(p, kandydat)) return kandydat;
-  }
-}
+export const wolnaNazwa = (p, nazwa) => wolnaNazwaWsrod(nazwa, (n) => Boolean(poNazwie(p, n)));
 
 // Dodaje plik jako nowy obraz projektu. Zwraca id.
 export async function dodajPlik(p, blob, nazwa, skrot = null) {
   const id = uid('z');
-  p.zasoby[id] = { nazwa, dataUrl: await naDataUrl(blob), skrot: skrot || await skrotPliku(blob) };
+  p.zasoby[id] = { nazwa, dataUrl: await naDataUrl(blob), skrot: skrot || await skrotPliku(blob), ...await wymiaryPliku(blob) };
   return id;
+}
+
+// Wymiary obrazu w pikselach z nagłówka pliku ({ szer, wys } albo {}) – łącznik AI wstawia obrazy według nich.
+// Nagłówek JPEG bywa daleko (miniatura w EXIF), więc czytamy do 1 MB.
+export async function wymiaryPliku(blob) {
+  try {
+    const w = wymiaryObrazu(new Uint8Array(await blob.slice(0, 1024 * 1024).arrayBuffer()));
+    return w?.szer && w?.wys ? { szer: w.szer, wys: w.wys } : {};
+  } catch { return {}; }
+}
+
+// Starsze obrazy bez zapisanych wymiarów: uzupełnia je z plików na tym urządzeniu. Zwraca liczbę uzupełnionych.
+export async function uzupelnijWymiary(p) {
+  let ile = 0;
+  for (const [id, z] of obrazyProjektu(p)) {
+    if (z.szer && z.wys) continue;
+    const plik = await blobZasobu(p, id).catch(() => null);
+    if (!plik) continue;
+    const w = await wymiaryPliku(plik);
+    if (w.szer && p.zasoby[id] === z) { Object.assign(z, w); ile += 1; }
+  }
+  return ile;
 }
 
 // Wspólne wejście każdego obrazu wstawianego na stronę (narzędzie, przeciągnięcie, Ctrl+V, „Podmień zdjęcie”):
@@ -187,11 +201,11 @@ export async function nowaWersja(p, id, { blob = null, nazwa = null } = {}) {
   const z = p.zasoby[id];
   const noweId = uid('z');
   if (blob) {
-    p.zasoby[noweId] = { nazwa: nazwa || z.nazwa, dataUrl: await naDataUrl(blob), skrot: await skrotPliku(blob) };
+    p.zasoby[noweId] = { nazwa: nazwa || z.nazwa, dataUrl: await naDataUrl(blob), skrot: await skrotPliku(blob), ...await wymiaryPliku(blob) };
   } else {
     const dataUrl = await dataUrlZasobu(p, id);
     if (!dataUrl) throw new Error('Nie ma pliku tego obrazu na tym urządzeniu.');
-    p.zasoby[noweId] = { nazwa: nazwa || z.nazwa, dataUrl, ...(z.skrot ? { skrot: z.skrot } : {}) };
+    p.zasoby[noweId] = { nazwa: nazwa || z.nazwa, dataUrl, ...(z.skrot ? { skrot: z.skrot } : {}), ...(z.szer && z.wys ? { szer: z.szer, wys: z.wys } : {}) };
   }
   return noweId;
 }
@@ -221,22 +235,7 @@ export async function powtorzenia(p) {
       if (plik) p.zasoby[id].skrot = await skrotPliku(plik);
     }
   }
-  const wybierz = (ids) => {
-    // Ten, którego dane dziś wskazują swoją nazwą; inaczej pierwszy (w kolejności zasobów – tak szukały dane).
-    const kolejnosc = Object.keys(p.zasoby).filter((id) => ids.includes(id));
-    return kolejnosc.find((id) => obrazZNazwy(p.zasoby, p.zasoby[id].nazwa, pomin)?.id === id) || kolejnosc[0];
-  };
-  const grupy = (klucz, bez = new Set()) => {
-    const m = new Map();
-    for (const [id, z] of obrazyProjektu(p)) {
-      if (bez.has(id)) continue;
-      const k = klucz(z);
-      if (k) m.set(k, [...(m.get(k) || []), id]);
-    }
-    return [...m.values()].filter((ids) => ids.length > 1).map((ids) => { const z = wybierz(ids); return [z, ids.filter((id) => id !== z)]; });
-  };
-  const kopie = grupy((z) => z.skrot || null);
-  const usuwane = new Set(kopie.flatMap(([, k]) => k));
-  const nazwy = grupy((z) => pelnaNazwa(z.nazwa), usuwane);
-  return { kopie, nazwy };
+  // Grupowanie – wspólne z łącznikiem AI (js/obrazy-wspolne.js). Zostaje obraz, który dane dziś wskazują
+  // swoją nazwą; inaczej pierwszy w kolejności zasobów (tak szukały dane).
+  return grupujPowtorzenia(obrazyProjektu(p), Object.keys(p.zasoby), (id) => obrazZNazwy(p.zasoby, p.zasoby[id].nazwa, pomin)?.id === id);
 }

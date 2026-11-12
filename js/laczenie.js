@@ -386,7 +386,12 @@ export function zastosujPolaczenie(moj, konto, plan, wybory = new Map()) {
   for (const [id, z] of Object.entries(konto.zasoby || {})) {
     if (usuniete.has(id)) continue;
     if (!moj.zasoby[id]) moj.zasoby[id] = z;
-    else if (!moj.zasoby[id].sciezka && z.sciezka && !moj.zasoby[id].dataUrl) moj.zasoby[id].sciezka = z.sciezka;
+    else if (z.sciezka && !moj.zasoby[id].dataUrl) {
+      // Brakująca ścieżka – z konta. Obraz od AI („ai:…”) przeniesiony już na konto przez inne urządzenie:
+      // wygrywa prawdziwa ścieżka (plik ten sam, tylko w folderze konta), i odwrotnie – jej nie oddajemy.
+      const moja = moj.zasoby[id].sciezka;
+      if (!moja || (moja.startsWith('ai:') && !z.sciezka.startsWith('ai:'))) moj.zasoby[id].sciezka = z.sciezka;
+    }
   }
   if (usuniete.size) {
     for (const id of usuniete) delete moj.zasoby[id];

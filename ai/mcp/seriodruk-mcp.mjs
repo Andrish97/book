@@ -17,18 +17,21 @@
 // PLIK SKŁADANY: nie edytuj go ręcznie – zmieniaj supabase/functions/_shared/seriodruk-mcp-rdzen.mjs
 // i uruchom node scripts/mcp-buduj.cjs.
 
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { basename, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
 
 // ---------- Wspólny rdzeń (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs) ----------
 
 export const NAZWA = 'seriodruk';
-export const WERSJA = '1.1.0';
+export const WERSJA = '1.2.0';
 export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
 const ADRES_OPISU = 'https://andrish97.github.io/book/ai/format-seriodruk.md';
+const ADRES_APLIKACJI = 'https://andrish97.github.io/book/';
 
 // Te same listy co w aplikacji (js/pola.js, js/style-tekstu.js) – test pilnuje, żeby się zgadzały.
 export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony'];
@@ -37,7 +40,442 @@ export const POLA_FRAGMENTU = ['fontFamily', 'fontSize', 'fontWeight', 'fontStyl
 const CZESCI = { sekcje: 'sekcja', wzorce: 'wzorzec', style: 'styl', tabele: 'tabela', serie: 'seria' };
 
 class BladBazy extends Error {}
-const opisBledu = (w) => [w.blad, ...(w.szczegoly || []).map((s) => `- ${s}`)].join('\n');
+// Komunikat bazy sprzed wgrywania obrazów przez AI („z klucza nie da się wgrać…”) – dziś obrazy wgrywa wgraj_obraz.
+const opisBledu = (w) => [w.blad, ...(w.szczegoly || []).map((s) => `- ${s}`)].join('\n')
+  .replaceAll('(z klucza nie da się wgrać nowych obrazów)', '(nowy obraz wgraj najpierw narzędziem wgraj_obraz; listę obrazów daje obrazy_projektu)');
+
+// ---------- Obrazy: wymiary z nagłówka pliku, base64, adresy, SVG ----------
+
+// Kod do znacznika WSPOLNE-KONIEC jest dosłownie taki sam jak w aplikacji (js/obrazy-wspolne.js) – pilnuje tego test.
+// WSPOLNE-POCZATEK
+// Rodzaj i wymiary obrazu w pikselach (tak, jak pokaże go przeglądarka) z pierwszych bajtów pliku, bez dekodowania.
+// Zwraca { typ, szer, wys } (szer/wys = null, gdy nagłówek ich nie podaje) albo null (to nie jest obraz).
+export function wymiaryObrazu(bajty) {
+  const b = bajty instanceof Uint8Array ? bajty : new Uint8Array(bajty);
+  const u16 = (i) => (b[i] << 8) | b[i + 1];
+  const u16le = (i) => b[i] | (b[i + 1] << 8);
+  const u24le = (i) => b[i] | (b[i + 1] << 8) | (b[i + 2] << 16);
+  const u32 = (i) => (b[i] * 0x1000000) + ((b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]);
+  const ascii = (i, n) => String.fromCharCode(...b.subarray(i, i + n));
+  if (b.length >= 24 && b[0] === 0x89 && ascii(1, 3) === 'PNG') return { typ: 'image/png', szer: u32(16), wys: u32(20) };
+  if (b.length >= 10 && ascii(0, 4) === 'GIF8') return { typ: 'image/gif', szer: u16le(6), wys: u16le(8) };
+  if (b.length >= 16 && ascii(0, 4) === 'RIFF' && ascii(8, 4) === 'WEBP') {
+    const rodzaj = ascii(12, 4);
+    if (rodzaj === 'VP8 ' && b.length >= 30) return { typ: 'image/webp', szer: u16le(26) & 0x3fff, wys: u16le(28) & 0x3fff };
+    if (rodzaj === 'VP8L' && b.length >= 25) {
+      const x = (b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24)) >>> 0;
+      return { typ: 'image/webp', szer: (x & 0x3fff) + 1, wys: ((x >>> 14) & 0x3fff) + 1 };
+    }
+    if (rodzaj === 'VP8X' && b.length >= 30) return { typ: 'image/webp', szer: u24le(24) + 1, wys: u24le(27) + 1 };
+    return { typ: 'image/webp', szer: null, wys: null };
+  }
+  if (b.length >= 4 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) {
+    // Orientacja z EXIF 5–8: przeglądarka obraca zdjęcie, więc szerokość i wysokość się zamieniają.
+    let obrot = false;
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) { i += 1; continue; }
+      const m = b[i + 1];
+      if (m === 0xff) { i += 1; continue; }
+      if (m === 0xd8 || m === 0x01 || (m >= 0xd0 && m <= 0xd7)) { i += 2; continue; }
+      if (m === 0xe1 && ascii(i + 4, 4) === 'Exif') {
+        const t0 = i + 10;
+        const le = ascii(t0, 2) === 'II';
+        const r16 = (j) => (le ? u16le(j) : u16(j));
+        const r32 = (j) => (le ? (b[j] | (b[j + 1] << 8) | (b[j + 2] << 16)) + b[j + 3] * 0x1000000 : u32(j));
+        const ifd = t0 + r32(t0 + 4);
+        const ile = ifd + 2 <= b.length ? r16(ifd) : 0;
+        for (let k = 0; k < ile && ifd + 14 + k * 12 <= b.length; k += 1) {
+          const e = ifd + 2 + k * 12;
+          if (r16(e) === 0x0112) obrot = r16(e + 8) >= 5 && r16(e + 8) <= 8;
+        }
+      }
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) {
+        const szer = u16(i + 7);
+        const wys = u16(i + 5);
+        return { typ: 'image/jpeg', szer: obrot ? wys : szer, wys: obrot ? szer : wys };
+      }
+      i += 2 + u16(i + 2);
+    }
+    return { typ: 'image/jpeg', szer: null, wys: null };
+  }
+  const poczatek = new TextDecoder().decode(b.subarray(0, Math.min(b.length, 16384)));
+  if (!/^﻿?\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*|<!DOCTYPE[^>]*>\s*)*<svg\b/i.test(poczatek)) return null;
+  const svg = /<svg\b[^>]*>/i.exec(poczatek)[0];
+  const atr = (n) => new RegExp(`\\s${n}\\s*=\\s*["']([^"']*)["']`).exec(svg)?.[1];
+  const JEDNOSTKI = { '': 1, px: 1, pt: 96 / 72, pc: 16, mm: 96 / 25.4, cm: 96 / 2.54, in: 96 };
+  const dlugosc = (v) => {
+    const m = /^\s*([0-9]*\.?[0-9]+(?:e[-+]?\d+)?)\s*(px|pt|pc|mm|cm|in)?\s*$/i.exec(v || '');
+    return m ? Number(m[1]) * JEDNOSTKI[(m[2] || '').toLowerCase()] : null;
+  };
+  const vb = (atr('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+  const [vw, vh] = vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0 ? [vb[2], vb[3]] : [null, null];
+  let szer = dlugosc(atr('width'));
+  let wys = dlugosc(atr('height'));
+  if (szer && !wys && vw) wys = (szer * vh) / vw;
+  if (wys && !szer && vw) szer = (wys * vw) / vh;
+  if (!szer && !wys && vw) { szer = vw; wys = vh; }
+  return { typ: 'image/svg+xml', szer: szer ? Math.max(1, Math.round(szer)) : null, wys: wys ? Math.max(1, Math.round(wys)) : null };
+}
+
+export const czyZip = (b) => b.length >= 4 && b[0] === 0x50 && b[1] === 0x4b && b[2] === 0x03 && b[3] === 0x04;
+export const NAZWA_OBRAZU = /\.(png|jpe?g|webp|gif|svg)$/i;
+
+// Obrazy z archiwum ZIP: [{ nazwa, bajty }] i lista pominiętych nazw. Bez katalogów systemowych (__MACOSX,
+// pliki „._…”, .DS_Store), tylko PNG, JPEG, WebP, GIF i SVG. Ochrona przed „bombą ZIP”: limit liczby
+// obrazów, rozmiaru jednego obrazu i łącznego rozmiaru po wypakowaniu – liczony naprawdę, nie z nagłówka.
+export async function rozpakujZip(bajty, { maksPlikow = 100, maksPlik = 15 * 1024 * 1024, maksRazem = 200 * 1024 * 1024 } = {}) {
+  const b = bajty instanceof Uint8Array ? bajty : new Uint8Array(bajty);
+  const u16 = (i) => b[i] | (b[i + 1] << 8);
+  const u32 = (i) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16)) + b[i + 3] * 0x1000000;
+  let kon = -1;
+  for (let i = b.length - 22; i >= Math.max(0, b.length - 22 - 65535); i -= 1) {
+    if (u32(i) === 0x06054b50) { kon = i; break; }
+  }
+  if (kon < 0) throw new Error('To nie jest poprawne archiwum ZIP.');
+  const ile = u16(kon + 10);
+  let p = u32(kon + 16);
+  if (ile === 0xffff || p === 0xffffffff) throw new Error('Archiwum ZIP64 (bardzo duże) nie jest obsługiwane – spakuj obrazy w mniejsze archiwa.');
+  const pliki = [];
+  const pominiete = [];
+  let razem = 0;
+  const dekoder = new TextDecoder();
+  for (let n = 0; n < ile; n += 1) {
+    if (p + 46 > b.length || u32(p) !== 0x02014b50) throw new Error('Archiwum ZIP jest uszkodzone.');
+    const flagi = u16(p + 8);
+    const metoda = u16(p + 10);
+    const rozmiarSpakowany = u32(p + 20);
+    const dlNazwy = u16(p + 28);
+    const sciezka = dekoder.decode(b.subarray(p + 46, p + 46 + dlNazwy));
+    const lokalny = u32(p + 42);
+    p += 46 + dlNazwy + u16(p + 30) + u16(p + 32);
+    const nazwa = sciezka.split('/').pop();
+    if (sciezka.endsWith('/') || !nazwa) continue;
+    if (/(^|\/)__MACOSX\//.test(sciezka) || nazwa.startsWith('._') || nazwa.startsWith('.') || /^(thumbs\.db|desktop\.ini)$/i.test(nazwa)) continue;
+    if (!NAZWA_OBRAZU.test(nazwa)) { pominiete.push(nazwa); continue; }
+    if (flagi & 1) { pominiete.push(`${nazwa} (zaszyfrowany)`); continue; }
+    if (pliki.length >= maksPlikow) throw new Error(`W archiwum jest więcej niż ${maksPlikow} obrazów – podziel je na mniejsze archiwa.`);
+    if (u32(lokalny) !== 0x04034b50) throw new Error('Archiwum ZIP jest uszkodzone.');
+    const start = lokalny + 30 + u16(lokalny + 26) + u16(lokalny + 28);
+    const dane = b.subarray(start, start + rozmiarSpakowany);
+    let wynik;
+    if (metoda === 0) wynik = dane.slice();
+    else if (metoda === 8) {
+      const strumien = new Blob([dane]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      const czytnik = strumien.getReader();
+      const czesci = [];
+      let dlugosc = 0;
+      for (;;) {
+        const { done, value } = await czytnik.read();
+        if (done) break;
+        dlugosc += value.length;
+        if (dlugosc > maksPlik || razem + dlugosc > maksRazem) {
+          await czytnik.cancel().catch(() => {});
+          throw new Error(dlugosc > maksPlik ? `„${nazwa}” po wypakowaniu ma ponad ${Math.round(maksPlik / 1048576)} MB.` : `Obrazy w archiwum po wypakowaniu mają razem ponad ${Math.round(maksRazem / 1048576)} MB.`);
+        }
+        czesci.push(value);
+      }
+      wynik = new Uint8Array(dlugosc);
+      let o = 0;
+      for (const c of czesci) { wynik.set(c, o); o += c.length; }
+    } else { pominiete.push(`${nazwa} (nieznany sposób pakowania)`); continue; }
+    if (wynik.length > maksPlik) throw new Error(`„${nazwa}” ma ponad ${Math.round(maksPlik / 1048576)} MB.`);
+    razem += wynik.length;
+    if (razem > maksRazem) throw new Error(`Obrazy w archiwum po wypakowaniu mają razem ponad ${Math.round(maksRazem / 1048576)} MB.`);
+    pliki.push({ nazwa, bajty: wynik });
+  }
+  return { pliki, pominiete };
+}
+
+// „zdjęcie.jpg” → „zdjęcie (2).jpg”, „zdjęcie (3).jpg”… – pierwsza nazwa, dla której zajeta(nazwa) jest fałszem.
+export function wolnaNazwaWsrod(nazwa, zajeta) {
+  if (!zajeta(nazwa)) return nazwa;
+  const m = String(nazwa).match(/^(.*?)(?: \((\d+)\))?(\.[a-z0-9]{2,5})?$/i);
+  for (let n = Math.max(2, Number(m[2] || 1) + 1); ; n += 1) {
+    const kandydat = `${m[1]} (${n})${m[3] || ''}`;
+    if (!zajeta(kandydat)) return kandydat;
+  }
+}
+
+// Powtórzone obrazy (okno „Obrazy projektu” → „Uporządkuj”, narzędzie AI uporzadkuj_obrazy).
+// obrazy: [[id, opis]] (bez czcionek); kolejnosc: identyfikatory w kolejności zasobów projektu;
+// wskazuje(id): czy dane, szukając obrazu jego nazwą, trafiają właśnie w ten obraz.
+// Zwraca { kopie: [[zostaje, [kopie]]], nazwy: [[zostaje, [do zmiany nazwy]]] } – kopie to ten sam plik (skrót),
+// nazwy – inne pliki o tej samej nazwie (wielkość liter bez znaczenia).
+export function grupujPowtorzenia(obrazy, kolejnosc, wskazuje) {
+  const wybierz = (ids) => {
+    const k = kolejnosc.filter((id) => ids.includes(id));
+    return k.find((id) => wskazuje(id)) || k[0];
+  };
+  const grupy = (klucz, bez = new Set()) => {
+    const m = new Map();
+    for (const [id, z] of obrazy) {
+      if (bez.has(id)) continue;
+      const k = klucz(z);
+      if (k) m.set(k, [...(m.get(k) || []), id]);
+    }
+    return [...m.values()].filter((ids) => ids.length > 1).map((ids) => { const z = wybierz(ids); return [z, ids.filter((id) => id !== z)]; });
+  };
+  const kopie = grupy((z) => z.skrot || null);
+  const usuwane = new Set(kopie.flatMap(([, k]) => k));
+  const nazwy = grupy((z) => String(z.nazwa ?? '').trim().toLowerCase(), usuwane);
+  return { kopie, nazwy };
+}
+// WSPOLNE-KONIEC
+
+const ROZSZERZENIA = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
+const MAKS_OBRAZ = 15 * 1024 * 1024; // jeden obraz
+const MAKS_POBRANIE = 50 * 1024 * 1024; // jeden plik pobierany z adresu albo wysyłany wprost (może być ZIP-em)
+const MAKS_BASE64 = 5 * 1024 * 1024;
+const LIMITY_ZIP = { maksPlikow: 100, maksPlik: MAKS_OBRAZ, maksRazem: 200 * 1024 * 1024 };
+
+// Linki udostępniania z Dysku Google i Dropboxa („każdy z linkiem”) → adres samego pliku.
+// Zwraca { adres } albo { blad } (np. folder z Dysku).
+export function bezposredniAdres(adres) {
+  let u;
+  try { u = new URL(String(adres).trim()); } catch { return { adres }; }
+  const h = u.hostname.toLowerCase();
+  if (h === 'drive.google.com' || h === 'docs.google.com') {
+    if (/\/folders\//.test(u.pathname)) return { blad: 'To link do folderu na Dysku Google – nie pobiorę całego folderu. Podaj linki do pojedynczych plików albo spakuj obrazy do ZIP-a i podaj link do niego.' };
+    const id = /\/file\/d\/([A-Za-z0-9_-]+)/.exec(u.pathname)?.[1] || u.searchParams.get('id');
+    if (id) return { adres: `https://drive.google.com/uc?export=download&id=${id}` };
+  }
+  if (h === 'dropbox.com' || h === 'www.dropbox.com') {
+    // dl=1 – plik zamiast strony podglądu; folder (/scl/fo/) Dropbox oddaje wtedy jako ZIP.
+    u.searchParams.set('dl', '1');
+    return { adres: u.href };
+  }
+  return { adres: u.href };
+}
+
+export function naBase64(bajty) {
+  let s = '';
+  for (let i = 0; i < bajty.length; i += 0x8000) s += String.fromCharCode(...bajty.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function zBase64(tekst) {
+  const czysty = String(tekst || '').replace(/^data:[^,]*,/, '').replace(/\s+/g, '');
+  let s;
+  try { s = atob(czysty); } catch { throw new BladBazy('„dane_base64” nie jest poprawnym base64.'); }
+  const b = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i += 1) b[i] = s.charCodeAt(i);
+  return b;
+}
+
+// Adres obrazu z internetu: tylko https i tylko adresy publiczne (nie localhost ani sieci prywatne).
+// Zwraca komunikat błędu albo null.
+export function sprawdzAdres(adres) {
+  let u;
+  try { u = new URL(adres); } catch { return 'To nie jest poprawny adres internetowy.'; }
+  if (u.protocol !== 'https:') return 'Obrazy pobieram tylko z adresów https://.';
+  if (u.username || u.password) return 'Adres nie może zawierać loginu ani hasła.';
+  const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const lokalny = 'Ten adres prowadzi do sieci lokalnej albo prywatnej – podaj adres publiczny.';
+  if (!h || h === 'localhost' || /\.(localhost|local|internal|lan|home|intranet)$/.test(h) || (!h.includes('.') && !h.includes(':'))) return lokalny;
+  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(h);
+  if (v4) {
+    const a = Number(v4[1]);
+    const b = Number(v4[2]);
+    if (a === 0 || a === 10 || a === 127 || a >= 224 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254)
+      || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 192 && b === 0) || (a === 198 && (b === 18 || b === 19))) return lokalny;
+  }
+  if (h.includes(':') && (h === '::' || h === '::1' || /^f[cd]/.test(h) || /^fe[89ab]/.test(h) || h.startsWith('::ffff:') || h.startsWith('64:ff9b:'))) return lokalny;
+  return null;
+}
+
+// Pobranie obrazu z adresu: każde przekierowanie sprawdzane osobno, limit czasu i rozmiaru.
+// Zwraca { bajty, nazwa } – nazwa z ostatniego członu adresu.
+export async function pobierzZAdresu(adres) {
+  let biezacy = adres;
+  for (let skok = 0; skok < 4; skok += 1) {
+    const blad = sprawdzAdres(biezacy);
+    if (blad) throw new BladBazy(blad);
+    const przerwij = new AbortController();
+    const czas = setTimeout(() => przerwij.abort(), 20000);
+    try {
+      const odp = await fetch(biezacy, { redirect: 'manual', signal: przerwij.signal, headers: { accept: 'image/*' } });
+      if (odp.status >= 300 && odp.status < 400 && odp.headers.get('location')) {
+        biezacy = new URL(odp.headers.get('location'), biezacy).href;
+        continue;
+      }
+      if (!odp.ok) throw new BladBazy(`Serwer pod tym adresem odpowiedział błędem ${odp.status}${odp.status === 403 || odp.status === 401 ? ' – plik nie jest udostępniony publicznie (ustaw „każdy, kto ma link”)' : ''}.`);
+      const zaDuzy = 'Plik pod tym adresem jest za duży (najwyżej 50 MB; jeden obraz – 15 MB).';
+      if (Number(odp.headers.get('content-length') || 0) > MAKS_POBRANIE) throw new BladBazy(zaDuzy);
+      const czesci = [];
+      let razem = 0;
+      const czytnik = odp.body.getReader();
+      for (;;) {
+        const { done, value } = await czytnik.read();
+        if (done) break;
+        razem += value.length;
+        if (razem > MAKS_POBRANIE) { przerwij.abort(); throw new BladBazy(zaDuzy); }
+        czesci.push(value);
+      }
+      const bajty = new Uint8Array(razem);
+      let o = 0;
+      for (const c of czesci) { bajty.set(c, o); o += c.length; }
+      // Nazwa: z nagłówka Content-Disposition (Dysk Google, Dropbox), inaczej z ostatniego członu adresu.
+      const naglowek = odp.headers.get('content-disposition') || '';
+      let czlon = /filename\*=UTF-8''([^;]+)/i.exec(naglowek)?.[1] || /filename="?([^";]+)"?/i.exec(naglowek)?.[1]
+        || new URL(biezacy).pathname.split('/').filter(Boolean).pop() || '';
+      try { czlon = decodeURIComponent(czlon); } catch { /* zostaje zakodowany */ }
+      return { bajty, nazwa: czlon, typ: odp.headers.get('content-type') || '' };
+    } catch (e) {
+      if (e instanceof BladBazy) throw e;
+      throw new BladBazy(e.name === 'AbortError' ? 'Pobieranie obrazu trwało za długo (ponad 20 s).' : `Nie udało się pobrać obrazu: ${e.message}`);
+    } finally {
+      clearTimeout(czas);
+    }
+  }
+  throw new BladBazy('Za dużo przekierowań pod tym adresem.');
+}
+
+// SVG od AI: musi mieć wymiary (inaczej przeglądarka pokaże go jako obraz zerowej wielkości) i nie może
+// mieć skryptów. Brakujące width/height dopisujemy z viewBox.
+function przygotujSvg(kod) {
+  let tekst = String(kod || '').trim();
+  if (!/<svg\b/i.test(tekst)) throw new BladBazy('„svg” musi zawierać kod rysunku <svg …>…</svg>.');
+  if (/<script\b|\son[a-z]+\s*=|javascript:/i.test(tekst)) throw new BladBazy('Rysunek SVG nie może zawierać skryptów ani zdarzeń (onclick itp.).');
+  const otw = /<svg\b[^>]*>/i.exec(tekst)[0];
+  let nowy = otw;
+  if (!/\sxmlns\s*=/.test(otw)) nowy = nowy.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+  tekst = tekst.replace(otw, () => nowy);
+  const w = wymiaryObrazu(new TextEncoder().encode(tekst));
+  if (!w?.szer || !w?.wys) throw new BladBazy('Rysunek SVG potrzebuje viewBox albo width i height.');
+  let zWymiarami = nowy;
+  if (!/\swidth\s*=/.test(nowy)) zWymiarami = zWymiarami.replace(/<svg\b/i, `<svg width="${w.szer}"`);
+  if (!/\sheight\s*=/.test(nowy)) zWymiarami = zWymiarami.replace(/<svg\b/i, `<svg height="${w.wys}"`);
+  return new TextEncoder().encode(tekst.replace(nowy, () => zWymiarami));
+}
+
+// Nazwa pliku: bez ścieżki, z rozszerzeniem pasującym do rodzaju (dopisanym albo poprawionym).
+function nazwaPliku(nazwa, typ) {
+  let n = String(nazwa || '').split(/[\\/]/).pop().replace(/[\u0000-\u001f]/g, '').trim() || 'obraz';
+  const roz = /\.([a-z0-9]{2,5})$/i.exec(n)?.[1]?.toLowerCase();
+  const typRoz = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' }[roz];
+  if (typRoz !== typ) n = `${typRoz ? n.replace(/\.[a-z0-9]{2,5}$/i, '') : n}.${ROZSZERZENIA[typ]}`;
+  return n.slice(0, 150);
+}
+
+// Obrazy projektu (bez czcionek): [[id, opis]] w kolejności zasobów (tak szukają dane).
+const obrazyWKolejnosci = (p) => {
+  const czcionki = new Set((p.czcionki || []).map((c) => c.id));
+  return Object.entries(p.zasoby || {}).filter(([id, z]) => z && !czcionki.has(id));
+};
+// To samo, po nazwie – do list dla AI.
+const obrazyWProjekcie = (p) => obrazyWKolejnosci(p).sort(([, a], [, b]) => String(a.nazwa).localeCompare(String(b.nazwa), 'pl', { numeric: true }));
+const pelna = (n) => String(n ?? '').trim().toLowerCase();
+
+// Ta sama reguła co w aplikacji (js/nazwy-obrazow.js): pełna nazwa, a bez rozszerzenia – tylko jeden pasujący plik.
+function obrazZNazwy(p, wartosc) {
+  const szukana = pelna(wartosc);
+  if (!szukana) return null;
+  const wpisy = obrazyWKolejnosci(p);
+  const dokladny = wpisy.find(([, z]) => pelna(z.nazwa) === szukana);
+  if (dokladny) return dokladny[0];
+  const rdzen = wpisy.filter(([, z]) => pelna(z.nazwa).replace(/\.[a-z0-9]{2,5}$/, '') === szukana);
+  return rdzen.length === 1 ? rdzen[0][0] : null;
+}
+
+// Gdzie obraz jest użyty: { strony: [nr], wzorce: [nazwa], dane: [nazwa tabeli], uzyty, opis }.
+function uzycia(p, id) {
+  const ma = (obiekty) => { let jest = false; wszystkie(obiekty, (o) => { if (o.zasob === id) jest = true; }); return jest; };
+  const strony = p.strony.map((s, i) => (ma(s.obiekty) ? i + 1 : null)).filter(Boolean);
+  const wzorce = (p.wzorce || []).filter((w) => ma(w.obiekty)).map((w) => w.nazwa);
+  const dane = (p.tabele || []).filter((t) => (t.wiersze || []).some((w) => (w || []).some((k) => obrazZNazwy(p, k) === id))).map((t) => t.nazwa);
+  const czesci = [];
+  if (strony.length) czesci.push(`${strony.length === 1 ? 'strona' : 'strony'} ${strony.slice(0, 8).join(', ')}${strony.length > 8 ? '…' : ''}`);
+  if (wzorce.length) czesci.push(`${wzorce.length === 1 ? 'wzorzec' : 'wzorce'} ${wzorce.map((n) => `„${n}”`).join(', ')}`);
+  if (dane.length) czesci.push(`w danych (${dane.map((n) => `„${n}”`).join(', ')})`);
+  return { strony, wzorce, dane, uzyty: czesci.length > 0, opis: czesci.join(' · ') || 'nieużywany' };
+}
+const uzyciaObrazu = (p, id) => uzycia(p, id).opis;
+
+// Komórki tabel wskazujące obraz (według reguły obrazZNazwy) → [[tabela, wiersz, kolumna]].
+function komorkiObrazu(p, id) {
+  const wynik = [];
+  for (const t of p.tabele || []) {
+    (t.wiersze || []).forEach((w, r) => (w || []).forEach((k, c) => { if (String(k ?? '').trim() && obrazZNazwy(p, k) === id) wynik.push([t, r, c]); }));
+  }
+  return wynik;
+}
+
+// Przepina elementy stron i wzorców (w miejscu). Zwraca { strony: [zmienione strony], wzorce: bool }.
+function przepnijElementy(p, mapa, nazwy = new Map()) {
+  const strony = [];
+  let wzorce = false;
+  const zmien = (obiekty) => {
+    let z = false;
+    wszystkie(obiekty, (o) => {
+      const nowe = mapa.get(o.zasob);
+      if (!nowe) return;
+      o.zasob = nowe;
+      if (typeof o.src === 'string' && o.src.startsWith('zasob:')) o.src = `zasob:${nowe}`;
+      if (nazwy.has(nowe) && o.type === 'image' && !o.pole) o.nazwa = nazwy.get(nowe);
+      z = true;
+    });
+    return z;
+  };
+  for (const s of p.strony) if (zmien(s.obiekty)) strony.push(s);
+  for (const w of p.wzorce || []) if (zmien(w.obiekty)) wzorce = true;
+  return { strony, wzorce };
+}
+
+// Wymiary obrazu w pikselach: z opisu zasobu, a dla starszych obrazów – z elementu, który już go pokazuje
+// (element obrazu bez przycięcia ma width/height oryginału).
+function pikseleObrazu(p, id) {
+  const z = p.zasoby?.[id];
+  if (z?.szer > 0 && z?.wys > 0) return { szer: z.szer, wys: z.wys };
+  let wynik = null;
+  for (const c of [...p.strony, ...(p.wzorce || [])]) {
+    wszystkie(c.obiekty, (o) => {
+      if (!wynik && o.zasob === id && !o.pole && o.width > 0 && o.height > 0 && !o.cropX && !o.cropY) wynik = { szer: o.width, wys: o.height };
+    });
+  }
+  return wynik;
+}
+
+// Element obrazu – tak jak wstawia go aplikacja (js/edytor.js: dodajObraz; „Podmień zdjęcie” z wypełnieniem
+// ramki). Wymiary w mm; px – piksele obrazu; strona – { szer, wys } w mm.
+function elementObrazu(id, nazwa, px, strona, { x, y, szerokosc, wysokosc, dopasowanie }) {
+  const nw = px.szer;
+  const nh = px.wys;
+  const o = { id: noweId('o'), type: 'image', zasob: id, src: `zasob:${id}`, nazwa, cropX: 0, cropY: 0 };
+  const W = Number(szerokosc) || 0;
+  const H = Number(wysokosc) || 0;
+  const lewo = Number.isFinite(Number(x)) && x !== null && x !== undefined ? Number(x) : null;
+  const gora = Number.isFinite(Number(y)) && y !== null && y !== undefined ? Number(y) : null;
+  if (W > 0 && H > 0) {
+    if (dopasowanie === 'wypelnij') {
+      const s = Math.max(W / nw, H / nh);
+      Object.assign(o, { width: W / s, height: H / s, cropX: (nw - W / s) / 2, cropY: (nh - H / s) / 2, scaleX: s, scaleY: s });
+      o.left = lewo ?? (strona.szer - W) / 2;
+      o.top = gora ?? (strona.wys - H) / 2;
+    } else {
+      const s = Math.min(W / nw, H / nh);
+      Object.assign(o, { width: nw, height: nh, scaleX: s, scaleY: s });
+      o.left = (lewo ?? (strona.szer - W) / 2) + (W - nw * s) / 2;
+      o.top = (gora ?? (strona.wys - H) / 2) + (H - nh * s) / 2;
+    }
+  } else {
+    const s = W > 0 ? W / nw : H > 0 ? H / nh : Math.min((strona.szer * 0.6) / nw, (strona.wys * 0.6) / nh);
+    Object.assign(o, { width: nw, height: nh, scaleX: s, scaleY: s });
+    o.left = lewo ?? (strona.szer - nw * s) / 2;
+    o.top = gora ?? (strona.wys - nh * s) / 2;
+  }
+  for (const k of ['left', 'top', 'width', 'height', 'cropX', 'cropY']) o[k] = Math.round(o[k] * 1000) / 1000;
+  for (const k of ['scaleX', 'scaleY']) o[k] = Math.round(o[k] * 1e6) / 1e6;
+  return o;
+}
+
+// Wymiary strony (mm) dla miejsca „strona:<id>” albo „wzorzec:<id>”.
+function wymiaryMiejsca(p, gdzie) {
+  const [rodzaj, id] = String(gdzie).split(':');
+  let sekcja;
+  if (rodzaj === 'strona') sekcja = (p.sekcje || []).find((s) => s.id === p.strony.find((x) => x.id === id)?.sekcja);
+  else sekcja = (p.sekcje || []).find((s) => (s.wzorce || []).includes(id)) || p.sekcje?.[0];
+  return { szer: sekcja?.wydruk?.szerokosc_mm || 210, wys: sekcja?.wydruk?.wysokosc_mm || 297 };
+}
 
 // ---------- Pomocnicze operacje na projekcie ----------
 
@@ -126,7 +564,7 @@ function przeglad(w) {
     `Style: ${(p.style || []).map((x) => `${x.id} „${x.nazwa}”`).join('; ') || 'brak'}`,
     `Tabele: ${(p.tabele || []).map((t) => `${t.id} „${t.nazwa}” kolumny: ${(t.kolumny || []).join(', ')}; ${(t.wiersze || []).length} wierszy`).join(' | ') || 'brak'}`,
     `Serie: ${(p.serie || []).map((s) => `${s.id} „${s.nazwa}” tabela=${s.tabela || '–'} tryb=${s.tryb || 'tabela'}`).join('; ') || 'brak'}`,
-    `Obrazy i czcionki w projekcie: ${Object.entries(p.zasoby || {}).map(([id, z]) => `${id} ${z.nazwa}`).join(', ') || 'brak'}`,
+    `Obrazy i czcionki w projekcie (szczegóły obrazów: obrazy_projektu): ${Object.entries(p.zasoby || {}).map(([id, z]) => `${id} ${z.nazwa}`).join(', ') || 'brak'}`,
   ].join('\n');
 }
 
@@ -188,9 +626,9 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk (nie proś użytkownika o odblokowanie domen).';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk (nie proś użytkownika o odblokowanie domen).';
 
-export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).' }) {
+export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu }) {
   const ADRES = String(adres || '').replace(/\/+$/, '');
   const KLUCZ_PUBLICZNY = kluczPubliczny;
   const KLUCZ = String(klucz || '').trim();
@@ -232,6 +670,157 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     throw new BladBazy('Projekt zmienia się teraz bardzo często – spróbuj za chwilę.');
   }
 
+  // Obraz projektu wskazany identyfikatorem albo nazwą (pełną; bez rozszerzenia – gdy pasuje jeden plik).
+  function jakiObraz(p, ktory) {
+    const obrazy = obrazyWProjekcie(p);
+    if (obrazy.some(([id]) => id === ktory)) return ktory;
+    const id = obrazZNazwy(p, ktory);
+    if (id) return id;
+    throw new BladBazy(`W projekcie nie ma obrazu „${ktory}”. Obrazy projektu: ${obrazy.map(([i, z]) => `${i} „${z.nazwa}”`).join(', ') || 'brak'} (nowy wgrasz narzędziem wgraj_obraz).`);
+  }
+
+  const opisMm = (o) => `${Math.round(o.width * o.scaleX * 10) / 10}×${Math.round(o.height * o.scaleY * 10) / 10} mm w miejscu ${Math.round(o.left * 10) / 10}, ${Math.round(o.top * 10) / 10} mm`;
+
+  // Wstawia pojedynczy element obrazu – jak „Obraz → Wybierz z obrazów projektu” w aplikacji.
+  const wstawObraz = (a) => zmien((p) => {
+    const id = jakiObraz(p, a.obraz);
+    const px = pikseleObrazu(p, id);
+    if (!px) throw new BladBazy(`Nie znam wymiarów obrazu „${p.zasoby[id].nazwa}” (starszy obraz). Otwórz projekt raz w aplikacji – uzupełni je – albo wgraj plik jeszcze raz narzędziem wgraj_obraz.`);
+    const m = miejsce(p, a.gdzie);
+    const o = elementObrazu(id, p.zasoby[id].nazwa, px, wymiaryMiejsca(p, a.gdzie), a);
+    const i = a.przed ? m.obiekty.findIndex((x) => x.id === a.przed) : -1;
+    m.obiekty.splice(i >= 0 ? i : m.obiekty.length, 0, o);
+    return { zmiany: m.zmiany(), opis: `Wstawiono obraz „${p.zasoby[id].nazwa}” jako element ${o.id} (${m.nazwa}): ${opisMm(o)}${o.cropX || o.cropY ? ', wypełnia ramkę z przycięciem' : ''}.` };
+  });
+
+  // Jeden obraz do projektu (przez funkcję bazy ai_wgraj_obraz). Zwraca wynik bazy.
+  async function wgrajPlik(bajty, nazwa, { zastap = null } = {}) {
+    if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+    let dane = bajty;
+    let w = wymiaryObrazu(dane);
+    if (!w) {
+      const poczatek = new TextDecoder().decode(dane.subarray(0, 512)).trim().toLowerCase();
+      if (poczatek.startsWith('<!doctype html') || poczatek.startsWith('<html') || poczatek.includes('<head')) {
+        throw new BladBazy(`Pod tym adresem jest strona internetowa, a nie plik obrazu${nazwa ? ` („${nazwa}”)` : ''}. Podaj bezpośredni adres obrazu – na Dysku Google i w Dropboxie plik musi być udostępniony „każdemu, kto ma link”.`);
+      }
+      throw new BladBazy(`„${nazwa || 'plik'}” nie jest obrazem PNG, JPEG, WebP, GIF ani SVG (ani archiwum ZIP z takimi obrazami).`);
+    }
+    if (w.typ === 'image/svg+xml' && (!w.szer || !w.wys || !/<svg\b[^>]*\swidth\s*=[^>]*>/i.test(new TextDecoder().decode(dane.subarray(0, 16384))))) {
+      dane = przygotujSvg(new TextDecoder().decode(dane));
+      w = wymiaryObrazu(dane);
+    }
+    if (dane.length > MAKS_OBRAZ) throw new BladBazy(`„${nazwa || 'plik'}” jest za duży (najwyżej 15 MB).`);
+    let idZastapionego = null;
+    if (zastap) idZastapionego = jakiObraz((await pobierz()).projekt, zastap);
+    const r = await rpc('ai_wgraj_obraz', {
+      p_klucz: KLUCZ, p_nazwa: nazwaPliku(nazwa, w.typ), p_typ: w.typ, p_dane: naBase64(dane),
+      p_szer: w.szer || null, p_wys: w.wys || null, p_zastap: idZastapionego,
+    });
+    if (r?.blad) throw new BladBazy(r.blad);
+    return r;
+  }
+  const opisWgranego = (r) => (r.byl
+    ? `Ten sam obraz już był w projekcie jako „${r.nazwa}” (id ${r.id}) – nie dodałem drugiej kopii.`
+    : `Wgrano „${r.nazwa}” (id ${r.id}${r.szer ? `, ${r.szer}×${r.wys} px` : ''})${r.nazwa_zmieniona ? ' – nazwa była zajęta albo bez rozszerzenia, więc dostała inną' : ''}${r.zastapiony ? `; zastąpił obraz ${r.zastapiony} – elementy pokazują teraz nowy plik` : ''}.`);
+
+  // Pliki z dowolnego źródła → obrazy projektu. ZIP-y są rozpakowywane (tylko obrazy, z limitami).
+  // Zwraca { wyniki: [{ nazwa, id?, byl?, blad? }], opisy: [tekst], ostatni }.
+  async function wgrajPliki(pliki, { zastap = null } = {}) {
+    const doWgrania = [];
+    const opisy = [];
+    for (const plik of pliki) {
+      if (!czyZip(plik.bajty)) { doWgrania.push(plik); continue; }
+      let r;
+      try { r = await rozpakujZip(plik.bajty, LIMITY_ZIP); } catch (e) { throw new BladBazy(`Archiwum „${plik.nazwa || 'ZIP'}”: ${e.message}`); }
+      if (!r.pliki.length) opisy.push(`Archiwum „${plik.nazwa || 'ZIP'}” nie ma obrazów PNG, JPEG, WebP, GIF ani SVG.`);
+      if (r.pominiete.length) opisy.push(`Z archiwum „${plik.nazwa || 'ZIP'}” pominięto pliki, które nie są obrazami: ${r.pominiete.slice(0, 10).join(', ')}${r.pominiete.length > 10 ? '…' : ''}.`);
+      doWgrania.push(...r.pliki);
+    }
+    if (doWgrania.length > LIMITY_ZIP.maksPlikow) throw new BladBazy(`To ${doWgrania.length} obrazów – naraz wgrywam najwyżej ${LIMITY_ZIP.maksPlikow}.`);
+    if (doWgrania.length > 1 && zastap) throw new BladBazy('„zastap” działa tylko dla jednego obrazu.');
+    const wyniki = [];
+    let ostatni = null;
+    for (const plik of doWgrania) {
+      try {
+        ostatni = await wgrajPlik(plik.bajty, plik.nazwa, { zastap });
+        wyniki.push({ nazwa: ostatni.nazwa, id: ostatni.id, byl: Boolean(ostatni.byl), szer: ostatni.szer, wys: ostatni.wys });
+        opisy.push(opisWgranego(ostatni));
+      } catch (e) {
+        if (doWgrania.length === 1) throw e;
+        wyniki.push({ nazwa: plik.nazwa, blad: e.message });
+        opisy.push(`„${plik.nazwa}”: ${e.message}`);
+      }
+    }
+    return { wyniki, opisy, ostatni, ile: doWgrania.length };
+  }
+
+  // Bajty wysłane wprost (POST na adres łącznika …/obraz) – obraz albo ZIP.
+  async function wgrajBajty(bajty, nazwa, { zastap = null } = {}) {
+    if (bajty.length > MAKS_POBRANIE) throw new BladBazy('Plik jest za duży (najwyżej 50 MB; jeden obraz – 15 MB).');
+    return wgrajPliki([{ bajty, nazwa }], { zastap });
+  }
+
+  // Zmiany obrazów w trzech krokach (patrz ai_zmien_obrazy w migracji 20261112090000_obrazy_ai.sql):
+  // 1) nowe wpisy (kopie opisu pod nowym id i nazwą), 2) przepięcie elementów i komórek tabel (ai_zapisz),
+  // 3) usunięcie starych wpisów. komorki(p) → [[tabela, wiersz, kolumna, nowa wartość]].
+  async function zmienObrazy({ kopie = {}, przepiecia = new Map(), nazwy = new Map(), komorki = null, usun = [] }) {
+    const wywolaj = async (parametry) => {
+      const w = await rpc('ai_zmien_obrazy', { p_klucz: KLUCZ, ...parametry });
+      if (w?.blad) throw new BladBazy(opisBledu(w));
+    };
+    if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+    if (Object.keys(kopie).length) await wywolaj({ p_kopie: kopie, p_usun: [] });
+    if (przepiecia.size || komorki) {
+      await zmien((p) => {
+        const { strony, wzorce } = przepnijElementy(p, przepiecia, nazwy);
+        const zmiany = {};
+        if (strony.length) zmiany.strony = strony;
+        if (wzorce) zmiany.wzorce = p.wzorce;
+        const k = komorki ? komorki(p) : [];
+        for (const [t, r, c, v] of k) t.wiersze[r][c] = v;
+        if (k.length) zmiany.tabele = p.tabele;
+        return { zmiany, opis: '' };
+      });
+    }
+    if (usun.length) await wywolaj({ p_kopie: {}, p_usun: usun });
+  }
+
+  // Nazwa z rozszerzeniem: bez rozszerzenia – dostaje rozszerzenie dotychczasowej nazwy.
+  const zRozszerzeniem = (nowa, stara) => {
+    const n = String(nowa || '').split(/[\\/]/).pop().replace(/[\u0000-\u001f]/g, '').trim();
+    if (!n) throw new BladBazy('Podaj nową nazwę.');
+    return /\.[a-z0-9]{2,5}$/i.test(n) ? n : `${n}${/\.[a-z0-9]{2,5}$/i.exec(stara || '')?.[0] || ''}`;
+  };
+  const zajetaNazwa = (p, nazwa, bez = []) => obrazyWKolejnosci(p).some(([id, z]) => !bez.includes(id) && pelna(z.nazwa) === pelna(nazwa));
+
+  // Powtórzenia jak w oknie „Obrazy projektu” (ta sama funkcja grupujPowtorzenia).
+  const powtorzeniaWProjekcie = (p) => grupujPowtorzenia(
+    obrazyWKolejnosci(p), Object.keys(p.zasoby || {}), (id) => obrazZNazwy(p, p.zasoby[id].nazwa) === id,
+  );
+
+  // Pliki ze źródła podanego w wywołaniu narzędzia: adres | svg | dane_base64 | plik (tylko u siebie).
+  async function plikiZeZrodla(a) {
+    const dozwolone = ['adres', 'svg', 'dane_base64', ...(czytajPliki ? ['plik'] : [])];
+    const podane = dozwolone.filter((k) => a[k] !== undefined && a[k] !== null && a[k] !== '');
+    if (podane.length !== 1) throw new BladBazy(`Podaj dokładnie jedno źródło: ${dozwolone.join(', ')}.`);
+    if (a.adres) {
+      const b = bezposredniAdres(a.adres);
+      if (b.blad) throw new BladBazy(b.blad);
+      const { bajty, nazwa } = await pobierzAdres(b.adres);
+      return [{ bajty, nazwa: a.nazwa || nazwa }];
+    }
+    if (a.svg) return [{ bajty: przygotujSvg(a.svg), nazwa: a.nazwa || 'rysunek.svg' }];
+    if (a.dane_base64) {
+      const bajty = zBase64(a.dane_base64);
+      if (bajty.length > MAKS_BASE64) throw new BladBazy('Przez dane_base64 przyjmuję pliki do 5 MB – większy podaj jako adres albo przez link_do_wgrywania.');
+      return [{ bajty, nazwa: a.nazwa || 'obraz' }];
+    }
+    let pliki;
+    try { pliki = await czytajPliki(Array.isArray(a.plik) ? a.plik : [a.plik]); } catch (e) { throw new BladBazy(e.message); }
+    if (pliki.length === 1 && a.nazwa) pliki[0].nazwa = a.nazwa;
+    return pliki;
+  }
+
   const NARZEDZIA = [
     {
       name: 'przeglad_projektu',
@@ -268,7 +857,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem, group/tabela) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);
@@ -277,6 +866,179 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
         m.obiekty.splice(i >= 0 ? i : m.obiekty.length, 0, ...nowe);
         return { zmiany: m.zmiany(), opis: `Dodano ${nowe.length} el. (${m.nazwa}): ${nowe.map((o) => o.id).join(', ')}.` };
       }),
+    },
+    {
+      name: 'obrazy_projektu',
+      title: 'Obrazy projektu',
+      description: 'Lista obrazów projektu (to samo co okno „Obrazy projektu” w aplikacji): id, nazwa z rozszerzeniem, wymiary w pikselach i gdzie obraz jest użyty (strony, wzorce, dane w tabelach, albo „nieużywany”), do tego powtórzenia (kopie tego samego pliku, powtórzone nazwy). Nazwy wpisuje się w kolumny tabel danych; id albo nazwę podaje się narzędziom wstaw_obraz, zmien_nazwe_obrazu, podmien_obraz i usun_obrazy.',
+      inputSchema: S('', {}),
+      readOnly: true,
+      dzialaj: async () => {
+        const { projekt } = await pobierz();
+        const obrazy = obrazyWProjekcie(projekt);
+        if (!obrazy.length) return 'Projekt nie ma jeszcze obrazów. Wgrasz je narzędziem wgraj_obraz (adres https, link z Dysku Google albo Dropboxa, kod SVG, małe dane w base64) albo daj użytkownikowi link z narzędzia link_do_wgrywania.';
+        const linie = [`Obrazy projektu (${obrazy.length}):`, ...obrazy.map(([id, z]) => {
+          const px = pikseleObrazu(projekt, id);
+          return `- ${id} „${z.nazwa}”${px ? ` ${px.szer}×${px.wys} px` : ''}${z.rozmiar ? `, ${Math.max(1, Math.round(z.rozmiar / 1024))} kB` : ''} – ${uzyciaObrazu(projekt, id)}`;
+        })];
+        const { kopie, nazwy } = powtorzeniaWProjekcie(projekt);
+        const nazwa = (id) => `„${projekt.zasoby[id].nazwa}”`;
+        if (kopie.length) linie.push(`Kopie tego samego pliku: ${kopie.map(([z, k]) => `${nazwa(z)} = ${k.map(nazwa).join(', ')}`).join('; ')}.`);
+        if (nazwy.length) linie.push(`Ta sama nazwa, inna treść: ${nazwy.map(([z, k]) => `${nazwa(z)} (${k.length + 1}×)`).join('; ')}.`);
+        if (kopie.length || nazwy.length) linie.push('Narzędzie uporzadkuj_obrazy scali kopie i nada powtórzonym nazwom dopisek „(2)” – tak jak „Uporządkuj” w aplikacji.');
+        const bezSkrotu = obrazy.filter(([, z]) => !z.skrot).length;
+        if (bezSkrotu) linie.push(`(${bezSkrotu} starszych obrazów nie ma jeszcze skrótu treści – kopie wśród nich wykryje dopiero okno „Obrazy projektu” w aplikacji.)`);
+        return linie.join('\n');
+      },
+    },
+    {
+      name: 'wgraj_obraz',
+      title: 'Wgraj obrazy do projektu',
+      description: `Wgrywa obraz albo archiwum ZIP z obrazami do projektu (trafiają do okna „Obrazy projektu” u właściciela, na żywo). Podaj dokładnie jedno źródło:
+- adres – plik w internecie (https). Działa też link udostępniania z Dysku Google („każdy, kto ma link”, pojedynczy plik albo ZIP) i z Dropboxa (plik albo folder – Dropbox odda folder jako ZIP). Obraz znaleziony w sieci: podaj użytkownikowi źródło i pilnuj praw autorskich.
+- svg – rysunek, który sam piszesz (ozdobniki, ikony, ramki); potrzebny viewBox albo width/height; bez skryptów.
+- dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
+Zdjęć z załączników rozmowy nie przepisuj na base64. Poproś o link (Dysk, Dropbox, strona) albo daj użytkownikowi link z narzędzia link_do_wgrywania – wrzuci zdjęcia lub ZIP sam, a Ty zobaczysz je w obrazy_projektu. Jeśli masz wykonywanie kodu z dostępem do sieci, możesz wysłać plik wprost: POST na adres łącznika z dopiskiem /obraz?nazwa=… (opis: https://andrish97.github.io/book/ai/api.md).
+Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 15 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – jak podmien_obraz. wstaw – od razu wstawia obraz jako pojedynczy element (pola jak w wstaw_obraz; tylko dla jednego obrazu).`,
+      inputSchema: S('', {
+        nazwa: tekst('Nazwa pliku z rozszerzeniem, np. „choinka.svg” (domyślnie z adresu albo pliku).'),
+        adres: tekst('Adres https pliku (obraz albo ZIP), także link z Dysku Google albo Dropboxa.'),
+        svg: tekst('Kod rysunku SVG.'),
+        dane_base64: tekst('Treść małego pliku w base64 (z nagłówkiem data: albo bez).'),
+        ...(czytajPliki ? { plik: { anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }], description: 'Ścieżka pliku albo folderu na tym komputerze (może zaczynać się od ~/), albo lista ścieżek.' } } : {}),
+        zastap: tekst('id albo nazwa obrazu, który ten plik zastępuje.'),
+        wstaw: obiekt('Opcjonalnie: { gdzie, x?, y?, szerokosc?, wysokosc?, dopasowanie? } – jak w wstaw_obraz.'),
+      }),
+      dzialaj: async (a) => {
+        const { wyniki, opisy, ostatni } = await wgrajPliki(await plikiZeZrodla(a), { zastap: a.zastap || null });
+        if (a.wstaw) {
+          if (wyniki.length !== 1 || !ostatni) throw new BladBazy(`${opisy.join('\n')}\n„wstaw” działa tylko dla jednego obrazu – wstaw je narzędziem wstaw_obraz.`);
+          opisy.push(await wstawObraz({ ...a.wstaw, obraz: ostatni.id }));
+        }
+        return opisy.join('\n');
+      },
+    },
+    {
+      name: 'link_do_wgrywania',
+      title: 'Link do wgrania obrazów',
+      description: 'Link do aplikacji, który otwiera ten projekt od razu z oknem „Obrazy projektu”. Daj go użytkownikowi, gdy chce dodać zdjęcia, które ma u siebie (z telefonu, z rozmowy, archiwum ZIP): wgra je tam przyciskiem „Wgraj obrazy…”, a Ty zobaczysz je potem w obrazy_projektu. Link wymaga zalogowania na konto właściciela.',
+      inputSchema: S('', {}),
+      readOnly: true,
+      dzialaj: async () => {
+        const { projekt } = await pobierz();
+        return `Link do wgrania obrazów (otwiera projekt „${projekt.nazwa}” z oknem „Obrazy projektu”):\n${ADRES_APLIKACJI}#/p/${projekt.id}/obrazy\nUżytkownik wybiera tam „Wgraj obrazy…” (zdjęcia albo ZIP). Potem sprawdź obrazy_projektu.`;
+      },
+    },
+    {
+      name: 'wstaw_obraz',
+      title: 'Wstaw obraz na stronę',
+      description: 'Wstawia obraz z projektu (id albo nazwa z obrazy_projektu) jako pojedynczy element na stronę albo do wzorca – jak „Obraz → Wybierz z obrazów projektu” w aplikacji. Wymiary w mm. Bez rozmiaru: 60% strony, na środku. Sama szerokosc albo sama wysokosc: proporcje obrazu zachowane. szerokosc i wysokosc razem to ramka: dopasowanie „zmiesc” (cały obraz w ramce, domyślnie) albo „wypelnij” (wypełnia ramkę, brzegi przycięte wokół środka). x, y – lewy górny róg (ramki); bez nich – na środku strony.',
+      inputSchema: S('', {
+        obraz: tekst('id albo nazwa obrazu projektu'), gdzie: GDZIE,
+        x: { type: 'number', description: 'mm od lewej krawędzi strony' }, y: { type: 'number', description: 'mm od górnej krawędzi strony' },
+        szerokosc: { type: 'number', description: 'mm' }, wysokosc: { type: 'number', description: 'mm' },
+        dopasowanie: { type: 'string', enum: ['zmiesc', 'wypelnij'] }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)'),
+      }, ['obraz', 'gdzie']),
+      dzialaj: (a) => wstawObraz(a),
+    },
+    {
+      name: 'zmien_nazwe_obrazu',
+      title: 'Zmień nazwę obrazu',
+      description: 'Zmienia nazwę obrazu projektu – jak w oknie „Obrazy projektu”. Nazwa musi być wolna (wielkość liter bez znaczenia); bez rozszerzenia dostaje dotychczasowe. Elementy na stronach dalej pokazują ten obraz, a komórki tabel danych, które wskazywały go starą nazwą, dostają nową.',
+      inputSchema: S('', { obraz: tekst('id albo nazwa obrazu'), nazwa: tekst('Nowa nazwa, np. „styczen.jpg”') }, ['obraz', 'nazwa']),
+      dzialaj: async ({ obraz, nazwa }) => {
+        const { projekt } = await pobierz();
+        const id = jakiObraz(projekt, obraz);
+        const stara = projekt.zasoby[id].nazwa;
+        const nowa = zRozszerzeniem(nazwa, stara);
+        if (nowa === stara) return `Obraz już nazywa się „${stara}”.`;
+        if (zajetaNazwa(projekt, nowa, [id])) throw new BladBazy(`Nazwa „${nowa}” jest już zajęta przez inny obraz – wybierz inną.`);
+        const nid = noweId('z');
+        const ileKomorek = komorkiObrazu(projekt, id).length;
+        await zmienObrazy({
+          kopie: { [nid]: { z: id, nazwa: nowa } },
+          przepiecia: new Map([[id, nid]]),
+          nazwy: new Map([[nid, nowa]]),
+          komorki: (p) => komorkiObrazu(p, id).map(([t, r, c]) => [t, r, c, nowa]),
+          usun: [id],
+        });
+        return `Nowa nazwa: „${stara}” → „${nowa}” (id ${nid}).${ileKomorek ? ` Komórki tabel z tą nazwą: ${ileKomorek} – zmienione.` : ''}`;
+      },
+    },
+    {
+      name: 'podmien_obraz',
+      title: 'Podmień plik obrazu',
+      description: 'Podmienia plik obrazu projektu na nowy – jak „Podmień plik” w oknie „Obrazy projektu”: elementy na stronach i dane w tabelach pokazują od teraz nowy plik, nazwa zostaje, stary plik znika. Źródło jak w wgraj_obraz (adres, svg, dane_base64' + (czytajPliki ? ', plik' : '') + '), jeden obraz.',
+      inputSchema: S('', {
+        obraz: tekst('id albo nazwa obrazu, który podmieniasz'),
+        adres: tekst('Adres https nowego pliku (także Dysk Google, Dropbox).'),
+        svg: tekst('Kod rysunku SVG.'),
+        dane_base64: tekst('Treść małego pliku w base64.'),
+        ...(czytajPliki ? { plik: tekst('Ścieżka pliku na tym komputerze.') } : {}),
+      }, ['obraz']),
+      dzialaj: async (a) => {
+        const { opisy } = await wgrajPliki(await plikiZeZrodla({ ...a, nazwa: null }), { zastap: a.obraz });
+        return opisy.join('\n');
+      },
+    },
+    {
+      name: 'usun_obrazy',
+      title: 'Usuń obrazy z projektu',
+      description: 'Usuwa obrazy z projektu (id albo nazwy) – jak „Usuń” w oknie „Obrazy projektu”. Usuwa tylko obrazy nieużywane: obraz, który jest na stronie, we wzorcu albo w danych tabeli, zostaje, a wynik mówi, gdzie jest użyty. nieuzywane: true – usuwa wszystkie nieużywane obrazy. Plik znika też z konta właściciela.',
+      inputSchema: S('', { obrazy: { type: 'array', items: { type: 'string' }, description: 'id albo nazwy obrazów' }, nieuzywane: { type: 'boolean' } }),
+      dzialaj: async ({ obrazy = [], nieuzywane = false }) => {
+        const { projekt } = await pobierz();
+        const ids = nieuzywane ? obrazyWProjekcie(projekt).map(([id]) => id) : [...new Set(obrazy.map((o) => jakiObraz(projekt, o)))];
+        if (!ids.length) return nieuzywane ? 'Projekt nie ma obrazów.' : 'Podaj obrazy do usunięcia albo nieuzywane: true.';
+        const zostaja = [];
+        const usuwane = [];
+        for (const id of ids) {
+          const u = uzycia(projekt, id);
+          if (u.uzyty) zostaja.push(`„${projekt.zasoby[id].nazwa}” – ${u.opis}`); else usuwane.push(id);
+        }
+        if (usuwane.length) await zmienObrazy({ usun: usuwane });
+        const linie = [];
+        if (usuwane.length) linie.push(`Usunięto ${usuwane.length}: ${usuwane.map((id) => `„${projekt.zasoby[id].nazwa}”`).join(', ')}.`);
+        else linie.push(nieuzywane ? 'Nie ma nieużywanych obrazów.' : 'Nic nie usunięto.');
+        if (zostaja.length && !nieuzywane) linie.push(`Zostały, bo są użyte (najpierw usuń je ze stron i z danych): ${zostaja.join('; ')}.`);
+        return linie.join('\n');
+      },
+    },
+    {
+      name: 'uporzadkuj_obrazy',
+      title: 'Uporządkuj obrazy',
+      description: 'Porządkuje obrazy projektu jak „Uporządkuj” w oknie „Obrazy projektu”: kopie tego samego pliku stają się jednym obrazem (elementy zostają na miejscu, komórki tabel dostają nazwę obrazu, który zostaje), a obrazy o tej samej nazwie i innej treści dostają dopisek „(2)” (dane pokazują ten sam obraz co dotąd).',
+      inputSchema: S('', {}),
+      dzialaj: async () => {
+        const { projekt } = await pobierz();
+        const { kopie, nazwy } = powtorzeniaWProjekcie(projekt);
+        if (!kopie.length && !nazwy.length) return 'Obrazy są uporządkowane – nie ma kopii ani powtórzonych nazw.';
+        const zajete = new Set(obrazyWKolejnosci(projekt).map(([, z]) => pelna(z.nazwa)));
+        const nowe = {};
+        const przepiecia = new Map();
+        const nazwyNowe = new Map();
+        for (const [, inne] of nazwy) {
+          for (const id of inne) {
+            const wolna = wolnaNazwaWsrod(projekt.zasoby[id].nazwa, (n) => zajete.has(pelna(n)));
+            zajete.add(pelna(wolna));
+            const nid = noweId('z');
+            nowe[nid] = { z: id, nazwa: wolna };
+            przepiecia.set(id, nid);
+            nazwyNowe.set(nid, wolna);
+          }
+        }
+        for (const [zostaje, k] of kopie) for (const kopia of k) przepiecia.set(kopia, zostaje);
+        await zmienObrazy({
+          kopie: nowe,
+          przepiecia,
+          nazwy: nazwyNowe,
+          // Komórki wskazujące kopię jej nazwą dostają nazwę obrazu, który zostaje.
+          komorki: (p) => kopie.flatMap(([zostaje, k]) => k.flatMap((kopia) => komorkiObrazu(p, kopia).map(([t, r, c]) => [t, r, c, p.zasoby[zostaje].nazwa]))),
+          usun: [...kopie.flatMap(([, k]) => k), ...Object.values(nowe).map((x) => x.z)],
+        });
+        const ileKopii = kopie.reduce((n, [, k]) => n + k.length, 0);
+        return `Uporządkowano obrazy: ${[ileKopii ? `scalone kopie: ${ileKopii}` : '', Object.keys(nowe).length ? `nowe nazwy: ${Object.values(nowe).map((x) => `„${x.nazwa}”`).join(', ')}` : ''].filter(Boolean).join('; ')}.`;
+      },
     },
     {
       name: 'usun_elementy',
@@ -423,7 +1185,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'zmien_projekt',
       title: 'Zmień projekt (ogólnie)',
-      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron? }. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Zasobów (obrazów, czcionek) nie da się tu dodać.',
+      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron? }. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
       inputSchema: S('', { zmiany: obiekt('Części projektu do zapisu') }, ['zmiany']),
       dzialaj: ({ zmiany }) => zmien(() => ({ zmiany, opis: `Zapisano części: ${Object.keys(zmiany).join(', ')}.` })),
     },
@@ -465,7 +1227,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     return NARZEDZIA.map(({ name, title, description, inputSchema, readOnly }) => ({
       name, title, description,
       inputSchema: { type: 'object', properties: inputSchema.properties, required: inputSchema.required, additionalProperties: false },
-      annotations: { readOnlyHint: Boolean(readOnly), destructiveHint: name.startsWith('usun'), openWorldHint: false },
+      annotations: { readOnlyHint: Boolean(readOnly), destructiveHint: name.startsWith('usun'), openWorldHint: name === 'wgraj_obraz' },
     }));
   }
 
@@ -484,7 +1246,13 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       return blad(BLEDY.WERSJA, 'Unsupported protocol version', { supported: obslugiwane, requested: wersja });
     }
     const zakonczony = (x) => (nowy && wersja ? { resultType: 'complete', ...x } : x);
-    const info = { name: NAZWA, title: 'Seriodruk', version: WERSJA };
+    const info = {
+      name: NAZWA, title: 'Seriodruk', version: WERSJA, websiteUrl: ADRES_APLIKACJI,
+      icons: [
+        { src: `${ADRES_APLIKACJI}img/ikony/ikona-192.png`, mimeType: 'image/png', sizes: ['192x192'] },
+        { src: `${ADRES_APLIKACJI}img/ikony/ikona.svg`, mimeType: 'image/svg+xml', sizes: ['any'] },
+      ],
+    };
 
     switch (method) {
       case 'initialize': { // starsze wersje: wymiana initialize
@@ -519,12 +1287,34 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     }
   }
 
-  return { obsluz, narzedzia: NARZEDZIA };
+  return { obsluz, narzedzia: NARZEDZIA, wgrajBajty };
 }
 
 // ---------- Uruchomienie u siebie: konfiguracja ze zmiennych środowiskowych, transport stdio ----------
 
+// Obrazy z dysku tego komputera (tylko serwer u siebie – zdalny łącznik nie widzi plików użytkownika):
+// ścieżka pliku albo folderu (folder: obrazy w nim, bez podfolderów), ~ to folder domowy.
+const OBRAZY = /\.(png|jpe?g|webp|gif|svg|zip)$/i;
+export async function czytajPliki(sciezki) {
+  const lista = [];
+  for (const s of sciezki) {
+    const pelna = resolve(String(s).trim().replace(/^~(?=$|[\\/])/, homedir()));
+    const info = await stat(pelna).catch(() => null);
+    if (!info) throw new Error(`Nie ma pliku ani folderu „${s}”.`);
+    if (info.isDirectory()) {
+      const nazwy = (await readdir(pelna)).filter((n) => OBRAZY.test(n) && !n.startsWith('.')).sort((a, b) => a.localeCompare(b, 'pl', { numeric: true }));
+      if (!nazwy.length) throw new Error(`W folderze „${s}” nie ma obrazów (PNG, JPEG, WebP, GIF, SVG) ani archiwów ZIP.`);
+      lista.push(...nazwy.map((n) => join(pelna, n)));
+    } else lista.push(pelna);
+  }
+  if (lista.length > 50) throw new Error(`To ${lista.length} plików – naraz wgrywam najwyżej 50. Podziel je na mniejsze porcje.`);
+  const wynik = [];
+  for (const p of lista) wynik.push({ bajty: new Uint8Array(await readFile(p)), nazwa: basename(p) });
+  return wynik;
+}
+
 const serwer = utworzSerwer({
+  czytajPliki,
   adres: process.env.SERIODRUK_ADRES || 'https://pganajmivwtstapnwsgv.supabase.co',
   kluczPubliczny: process.env.SERIODRUK_KLUCZ_PUBLICZNY || 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq',
   klucz: process.env.SERIODRUK_KLUCZ || '',

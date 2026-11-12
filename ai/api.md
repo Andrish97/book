@@ -18,7 +18,7 @@ Dokumenty obok: [instrukcja obsługi](https://andrish97.github.io/book/ai/instru
 
 ### Bezpieczeństwo
 
-- Adres z kluczem trafia do firmy, która prowadzi AI (Anthropic, OpenAI…). Dlatego klucz jest **wąski**: otwiera jeden projekt, nie konto. Nie da się nim utworzyć ani usunąć projektu, wgrać obrazów ani czcionek, zmienić udostępniania ani zajrzeć do innych projektów.
+- Adres z kluczem trafia do firmy, która prowadzi AI (Anthropic, OpenAI…). Dlatego klucz jest **wąski**: otwiera jeden projekt, nie konto. Nie da się nim utworzyć ani usunąć projektu, wgrać czcionek, zmienić udostępniania ani zajrzeć do innych projektów. Obrazy klucz do zmian wgrywa, ale tylko do tego projektu i z limitami (obraz do 15 MB, pobierany plik do 50 MB, do 150 MB obrazów czekających na przeniesienie na konto).
 - Daj **najkrótszą ważność**, jaka wystarczy, i **odbierz** klucz, gdy praca się skończy. Do samego przeglądania wybierz **Tylko czyta**. Nie wklejaj adresu łącznika w miejsca, które widzą inni.
 - W bazie leży tylko skrót klucza (z solą) – klucza nie da się z niej odczytać ani pokazać ponownie. Zgubiony klucz odbierz i utwórz nowy.
 - Po 10 złych próbach klucz blokuje się na kwadrans; jeden klucz może wykonać do 120 zapytań na minutę; projekt może mieć do 20 aktywnych kluczy.
@@ -90,10 +90,43 @@ Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](http
 | `zmien_czesc` | ogólna zmiana jednej sekcji, wzorca, stylu, tabeli albo serii (nowa, zmiana, usunięcie). Zmiana stylu przepisuje go do tekstów, które go używają – jak w aplikacji; usunięty styl odpina się od tekstów |
 | `zmien_projekt` | ogólny zapis kilku części naraz (dla zmian, których inne narzędzia nie obejmują) |
 | `nazwa_projektu` | nowa nazwa |
+| `obrazy_projektu` | lista obrazów projektu (id, nazwa z rozszerzeniem, wymiary, gdzie użyty: strony, wzorce, dane albo „nieużywany”) i powtórzenia (kopie tego samego pliku, powtórzone nazwy) – to samo co okno „Obrazy projektu” |
+| `wgraj_obraz` | wgrywa obraz albo archiwum ZIP z obrazami: z adresu https (także link udostępniania z Dysku Google albo Dropboxa), z kodu SVG, z małego pliku w base64, a w serwerze u siebie – z pliku albo folderu na dysku. Ten sam plik drugi raz nie wchodzi, zajęta nazwa dostaje „(2)”; `zastap` – podmiana; `wstaw` – od razu na stronę |
+| `wstaw_obraz` | pojedynczy obraz z projektu na stronę albo do wzorca (mm; bez rozmiaru 60% strony; ramka „zmieść” albo „wypełnij” z przycięciem) – jak „Obraz → Wybierz z obrazów projektu” |
+| `zmien_nazwe_obrazu` | nowa nazwa (wolna, z rozszerzeniem); elementy dalej pokazują obraz, komórki tabel z tą nazwą dostają nową |
+| `podmien_obraz` | nowy plik pod tą samą nazwą – elementy i dane pokazują od razu nowy |
+| `usun_obrazy` | usuwa tylko nieużywane obrazy (albo wszystkie nieużywane); o użytych mówi, gdzie są |
+| `uporzadkuj_obrazy` | jak „Uporządkuj” w oknie obrazów: kopie tego samego pliku w jeden obraz, powtórzone nazwy z dopiskiem „(2)” |
+| `link_do_wgrywania` | link do aplikacji, który otwiera projekt od razu z oknem „Obrazy projektu” (`…/#/p/<projekt>/obrazy`) – dla zdjęć, które masz u siebie |
 | `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące albo niejednoznaczne pliki obrazów z danych (rozszerzenie się liczy: `a.jpg` ≠ `a.png`; nazwa bez rozszerzenia działa tylko przy jednym pasującym pliku), elementy poza stroną |
 | `opis_formatu` | ten sam opis modelu co [format-seriodruk.md](https://andrish97.github.io/book/ai/format-seriodruk.md) |
 
 Każda zmiana działa tak: pobierz projekt → zmień → zapisz z numerem wersji. Jeśli w międzyczasie zmieniłeś coś w edytorze, baza odmawia, a łącznik pobiera projekt na nowo i nanosi zmianę jeszcze raz.
+
+### Jak przekazać AI zdjęcia
+
+AI w rozmowie **widzi** zdjęcia, które do niej wrzucisz, ale nie może przekazać łącznikowi samego pliku (musiałoby przepisać go znak po znaku jako base64 – przy zdjęciach to za dużo). Dlatego:
+
+1. **Link do wgrania** – poproś AI o link (narzędzie `link_do_wgrywania`) i wrzuć zdjęcia albo archiwum ZIP w oknie, które się otworzy. AI zobaczy je od razu w liście obrazów.
+2. **Link z Dysku Google albo Dropboxa** – udostępnij plik (albo ZIP) „każdemu, kto ma link” i podaj link AI. Dropbox oddaje też cały folder jako ZIP. Folderu z Dysku Google łącznik nie pobierze – spakuj go do ZIP-a.
+3. **Plik albo folder na Macu** – w Claude Desktop z rozszerzeniem Seriodruk (albo w Claude Code z serwerem u siebie) AI czyta pliki z dysku: „wgraj obrazy z folderu ~/Pulpit/Kalendarz”.
+4. **Wysyłka pliku wprost** – gdy AI ma wykonywanie kodu z dostępem do sieci (albo piszesz własny skrypt), plik idzie jako treść żądania `POST` na adres łącznika z dopiskiem `/obraz`:
+
+```
+curl -X POST --data-binary @zdjecia.zip \
+  "https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/sdk_…/obraz?nazwa=zdjecia.zip"
+```
+
+```python
+import requests
+with open("styczen.jpg", "rb") as f:
+    r = requests.post("https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/sdk_…/obraz",
+                      params={"nazwa": "styczen.jpg"}, data=f.read())
+print(r.json())  # {"wgrane": [{"nazwa": "styczen.jpg", "id": "z_ai…", "szer": 4000, "wys": 3000, "byl": false}], "opis": "…"}
+```
+
+   Parametry: `nazwa` (z rozszerzeniem), opcjonalnie `zastap` (id albo nazwa obrazu do podmiany). Odpowiedź JSON: `wgrane` albo `blad`. Te same zasady i limity co w `wgraj_obraz` (obraz do 15 MB, plik do 50 MB, ZIP do 100 obrazów).
+5. **Małe obrazy** (do ok. 200 kB) AI może przekazać wprost jako `dane_base64`, a rysunki SVG – jako kod (`svg`).
 
 ## 4. Funkcje bazy (dla programistów)
 
@@ -101,7 +134,7 @@ Adres: `https://pganajmivwtstapnwsgv.supabase.co/rest/v1/rpc/<funkcja>`, `POST`,
 
 ### `ai_projekt` – odczyt
 
-Treść: `{"p_klucz": "sdk_…"}`. Wynik: `{"dostep": {"rola", "opis", "wazny_do"}, "wersja": 12, "projekt": {…}}`. Projekt ma strony w środku (`strony` – lista obiektów stron w kolejności), a `zasoby` tylko z nazwą i typem (bez treści plików): `{"z_ab12": {"nazwa": "las.jpg", "typ": "image/jpeg"}}`.
+Treść: `{"p_klucz": "sdk_…"}`. Wynik: `{"dostep": {"rola", "opis", "wazny_do"}, "wersja": 12, "projekt": {…}}`. Projekt ma strony w środku (`strony` – lista obiektów stron w kolejności), a `zasoby` tylko z opisem (bez treści plików): `{"z_ab12": {"nazwa": "las.jpg", "typ": "image/jpeg", "szer": 4000, "wys": 3000, "rozmiar": 2345678, "skrot": "…"}}` (wymiary w pikselach, rozmiar w bajtach, `skrot` – SHA-256 treści; starsze obrazy mogą nie mieć wymiarów ani skrótu).
 
 ### `ai_zapisz` – zapis
 
@@ -118,6 +151,14 @@ Treść: `{"p_klucz": "sdk_…", "p_znana_wersja": 12, "p_zmiany": {…}}`. Czę
 
 Wynik: `{"wersja": 13, "strony_zapisane": 1}`; przy nieaktualnej wersji `{"konflikt": true, "wersja": 13, "blad": "…"}` – pobierz projekt na nowo. Zmiana stylu w `style` nie przepisuje się sama do tekstów (robi to łącznik); przy zapisie bezpośrednio zmień też pola tekstów, które mają ten `styl`.
 
+### `ai_wgraj_obraz` – obraz do projektu
+
+Treść: `{"p_klucz": "sdk_…", "p_nazwa": "las.jpg", "p_typ": "image/jpeg", "p_dane": "<base64>", "p_szer": 4000, "p_wys": 3000, "p_zastap": null}`. Baza sprawdza rodzaj pliku po pierwszych bajtach, liczy skrót SHA-256 i rozmiar. Ten sam plik → `{"id", "nazwa", "byl": true}` (nic nie dodaje). Zajęta nazwa → nazwa z „(2)”. `p_zastap` (id obrazu) → nowy obraz pod tą samą nazwą, elementy przepięte, stary w `zasoby_usuniete`. Plik czeka w tabeli `obrazy_ai`, a w projekcie ma ścieżkę `ai:<id>` – aplikacja właściciela przenosi go przy najbliższym zapisie do folderu plików konta. Wynik: `{"id", "nazwa", "typ", "szer", "wys", "rozmiar", "byl", "nazwa_zmieniona", "zastapiony"?, "wersja"}`.
+
+### `ai_zmien_obrazy` – nowe nazwy i usuwanie
+
+Treść: `{"p_klucz": "sdk_…", "p_kopie": {"z_nowe": {"z": "z_ab12", "nazwa": "styczen.jpg"}}, "p_usun": ["z_ab12"]}`. `p_kopie` dodaje wpis pod nowym id z tym samym plikiem i nową (wolną) nazwą; `p_usun` usuwa wpisy, których nie pokazuje żaden element (najpierw przepnij elementy zwykłym `ai_zapisz`). Tak łącznik zmienia nazwę (kopia → przepięcie elementów i komórek → usunięcie starego) i porządkuje obrazy. Usunięte id trafiają do `zasoby_usuniete`; plik obrazu z folderu konta usuwa potem aplikacja właściciela (funkcja bazy nie może usunąć pliku z magazynu plików).
+
 ### Funkcje właściciela (zalogowany użytkownik aplikacji)
 
-`utworz_dostep_ai(p_projekt, p_opis, p_rola, p_dni)` → `{id, klucz, wazny_do}`, `dostepy_ai(p_projekt)` → lista kluczy bez ich treści, `odwolaj_dostep_ai(p_id)`. Tabela `dostepy_projektu` ma pole `rodzaj` (`klucz` albo `uzytkownik`) – przygotowane pod późniejsze wspólne edytowanie projektu przez innych użytkowników.
+`utworz_dostep_ai(p_projekt, p_opis, p_rola, p_dni)` → `{id, klucz, wazny_do}`, `dostepy_ai(p_projekt)` → lista kluczy bez ich treści, `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64), `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`. Tabela `dostepy_projektu` ma pole `rodzaj` (`klucz` albo `uzytkownik`) – przygotowane pod późniejsze wspólne edytowanie projektu przez innych użytkowników.

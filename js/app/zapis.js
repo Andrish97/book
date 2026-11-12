@@ -14,6 +14,7 @@ import { zaplanujAktualizacjeLinku, odswiezPodglad, OPOZNIENIE_LINKU_Z_KONTA_MS 
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { podlaczZasoby } from '../zasoby.js';
+import { uzupelnijWymiary } from '../obrazy-projektu.js';
 import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan, noweNagrobki } from '../laczenie.js';
 import { toTabela, miejsceKomorki } from '../tabela-obiekt.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
@@ -209,6 +210,9 @@ export async function otworzProjekt(p, cel = {}) {
   odswiezMojeCzcionki({ projekt: stan.projekt, zKontem: true });
   // Projekt mógł się zmienić na innym urządzeniu, gdy to miało niewysłane zmiany – dołączamy od razu.
   if (stan.uzytkownik) sprawdzKonto();
+  obrazyOdAi(stan.projekt);
+  // Starsze obrazy nie mają zapisanych wymiarów – łącznik AI potrzebuje ich do wstawiania (czytane z nagłówka pliku).
+  uzupelnijWymiary(stan.projekt).then((ile) => { if (ile && stan.uzytkownik) zaplanujChmure(2000); }).catch(() => {});
 }
 
 // Własne prowadnice strony albo wzorca; puste nie zajmują miejsca w pliku.
@@ -354,10 +358,13 @@ async function wyslijNaKonto({ wymus = false } = {}) {
 // Sprawdza, czy na koncie jest nowsza wersja otwartego projektu niż znana temu urządzeniu, i jeśli tak –
 // pobiera ją i dołącza. `wersja`: numer z powiadomienia na żywo; bez niego pytamy konto (jedna liczba).
 // Staje w kolejce za trwającą wysyłką: dopiero po niej wiadomo, czy nowa wersja nie jest naszą własną.
+let sprawdzPoLaczeniu = false;
 export function sprawdzKonto({ wersja = null } = {}) {
   kolejkaKonta = kolejkaKonta.then(async () => {
     const p = stan.projekt;
-    if (!stan.uzytkownik || !p || !navigator.onLine || stan.konflikt === p.id) return;
+    if (!stan.uzytkownik || !p || !navigator.onLine) return;
+    // W trakcie łączenia nowe powiadomienie nie przepada: sprawdzimy konto jeszcze raz, gdy łączenie się skończy.
+    if (stan.konflikt === p.id) { sprawdzPoLaczeniu = true; return; }
     if (!p.wersja_chmury) return; // projektu nie ma jeszcze na koncie – pierwsza wysyłka go tam zapisze
     try {
       const naKoncie = wersja ?? (await chmura.wersjaNaKoncie(p.id))?.wersja;
@@ -430,6 +437,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
   const koniec = () => {
     stan.konflikt = null;
     if (pominietaWysylka && stan.projekt === p) synchronizuj(); // zmiany zrobione w trakcie łączenia
+    if (sprawdzPoLaczeniu && stan.projekt === p) { sprawdzPoLaczeniu = false; sprawdzKonto(); } // zmiana z konta w trakcie łączenia
   };
   try {
     if (konflikt) stanZapisu('zapis', 'Łączę zmiany z innego urządzenia…');
@@ -528,11 +536,30 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       if (ileZKonta && stan.projekt === p) zaplanujAktualizacjeLinku(OPOZNIENIE_LINKU_Z_KONTA_MS);
       koniec();
     }
+    obrazyOdAi(p);
+    if (sprawdzPoLaczeniu && stan.projekt === p && stan.konflikt !== p.id) { sprawdzPoLaczeniu = false; sprawdzKonto(); }
   } catch (blad) {
     // Nic nie wysłano; następny zapis albo następne powiadomienie spróbuje połączyć jeszcze raz.
     stan.konflikt = null;
     if (konflikt) stanZapisu('blad', `Nie udało się połączyć zmian z konta: ${chmura.komunikatBledu(blad)}`);
   }
+}
+
+// Obrazy, które wgrało albo usunęło AI (migracja 20261112090000_obrazy_ai.sql): nowe czekają w tabeli bazy
+// („ai:…”) – najbliższy zapis przenosi je do folderu plików konta; pliki obrazów usuniętych albo
+// zastąpionych przez AI usuwa z folderu aplikacja (funkcja bazy tego nie potrafi). Okno „Obrazy projektu”
+// dostaje znać, że lista mogła się zmienić.
+let sprzatanie = null; // trwające sprzątanie; prośba w jego trakcie – jeszcze jedno po nim
+let sprzatnijJeszcze = false;
+export function obrazyOdAi(p) {
+  if (!stan.uzytkownik || stan.projekt !== p) return;
+  document.dispatchEvent(new CustomEvent('seriodruk:zasoby'));
+  if (Object.values(p.zasoby || {}).some((z) => chmura.czyOdAi(z?.sciezka))) zaplanujChmure(1500);
+  if (sprzatanie) { sprzatnijJeszcze = true; return; }
+  sprzatanie = chmura.sprzatnijPliki(p.id).catch(() => { /* bez sieci – przy następnej okazji */ }).finally(() => {
+    sprzatanie = null;
+    if (sprzatnijJeszcze) { sprzatnijJeszcze = false; obrazyOdAi(p); }
+  });
 }
 
 // Pytanie o części zmienione po obu stronach: przy każdej wybór „z tego urządzenia” albo „z konta”.

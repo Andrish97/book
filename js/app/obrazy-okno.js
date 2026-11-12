@@ -11,6 +11,7 @@ import {
 import { wstawIkony } from '../ikony.js';
 import { adresZasobu } from '../zasoby.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from '../obrazy.js';
+import { rozpakujZip } from '../obrazy-wspolne.js';
 import * as chmura from '../chmura.js';
 import {
   obrazyProjektu, skrotPliku, takiSam, poNazwie, wolnaNazwa, dodajPlik, uzycia, opisUzycia, wHistorii,
@@ -359,8 +360,27 @@ function zapytajODuplikat(istniejacy, plik, zostalo) {
   }, { once: true }));
 }
 
-export async function wgrajObrazy(pliki) {
+// Archiwa ZIP: obrazy ze środka jak zwykłe pliki (te same limity i pomijane pliki co w łączniku AI).
+const TYPY = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' };
+const czyArchiwum = (f) => /\.zip$/i.test(f.name) || /zip/.test(f.type);
+async function rozpakujArchiwa(pliki) {
+  const wynik = [];
+  for (const f of pliki) {
+    if (!czyArchiwum(f)) { wynik.push(f); continue; }
+    try {
+      const { pliki: zeSrodka } = await rozpakujZip(new Uint8Array(await f.arrayBuffer()));
+      if (!zeSrodka.length) powiadom(`W archiwum „${f.name}” nie ma obrazów PNG, JPEG, WebP, GIF ani SVG.`, true);
+      for (const x of zeSrodka) wynik.push(new File([x.bajty], x.nazwa, { type: TYPY[x.nazwa.split('.').pop().toLowerCase()] }));
+    } catch (e) {
+      powiadom(`Archiwum „${f.name}”: ${e.message}`, true);
+    }
+  }
+  return wynik;
+}
+
+export async function wgrajObrazy(wybrane) {
   const p = stan.projekt;
+  const pliki = await rozpakujArchiwa(wybrane);
   const obrazy = pliki.filter((f) => f.type.startsWith('image/'));
   const wynik = { dodane: [], zastapione: [], takieSame: [], pominiete: [] };
   let dlaWszystkich = null;
@@ -417,6 +437,8 @@ $('#obrazy-usun-zaznaczone').addEventListener('click', () => usun(kolejnosc().fi
 $('#obrazy-odznacz').addEventListener('click', () => { zaznaczone.clear(); trybZaznaczania = false; odswiezZaznaczenie(); });
 $('#obrazy-tryb-zaznaczania').addEventListener('click', () => { trybZaznaczania = !trybZaznaczania; odswiezZaznaczenie(); });
 okno.addEventListener('close', () => { wybor = null; okno.classList.remove('tryb-wyboru'); });
+// Obrazy wgrane albo usunięte przez AI (albo na innym urządzeniu) – otwarte okno pokazuje bieżącą listę.
+document.addEventListener('seriodruk:zasoby', () => { if (okno.open) rysuj(); });
 
 lista.addEventListener('click', (e) => {
   const li = e.target.closest('li[data-id]');

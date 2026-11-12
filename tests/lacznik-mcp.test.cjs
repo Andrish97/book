@@ -83,6 +83,8 @@ test('łącznik MCP przez HTTP: starsza wersja (initialize) i 2026-07-28, lista 
   assert.equal(init.naglowki.get('mcp-session-id'), null, 'łącznik nie tworzy sesji');
   assert.equal(init.tresc.result.protocolVersion, '2025-06-18');
   assert.equal(init.tresc.result.serverInfo.name, 'seriodruk');
+  assert.equal(init.tresc.result.serverInfo.websiteUrl, 'https://andrish97.github.io/book/');
+  assert.deepEqual(init.tresc.result.serverInfo.icons.map((i) => i.src), ['https://andrish97.github.io/book/img/ikony/ikona-192.png', 'https://andrish97.github.io/book/img/ikony/ikona.svg']);
   const pow = await s.wyslij({ cialo: { jsonrpc: '2.0', method: 'notifications/initialized' } });
   assert.equal(pow.status, 202);
   assert.equal(pow.tresc, null);

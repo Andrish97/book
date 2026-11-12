@@ -95,6 +95,8 @@ test('MCP: rozpoczęcie (stara i nowa wersja protokołu), lista narzędzi, odmow
   const init = await mcp.wyslij('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } });
   assert.equal(init.result.protocolVersion, '2025-06-18');
   assert.equal(init.result.serverInfo.name, 'seriodruk');
+  assert.equal(init.result.serverInfo.title, 'Seriodruk');
+  assert.equal(init.result.serverInfo.icons[0].mimeType, 'image/png');
   assert.ok(init.result.capabilities.tools);
   mcp.proc.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
   const lista = await mcp.wyslij('tools/list');
@@ -238,18 +240,23 @@ test('MCP: listy pól i stylów zgodne z aplikacją', async () => {
 test('openapi.json dla ChatGPT: poprawny opis funkcji z migracji dostępnych bez logowania', () => {
   const api = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'ai', 'openapi.json'), 'utf8'));
   assert.equal(api.openapi, '3.1.0');
-  const sql = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261111200000_dostep_ai.sql'), 'utf8');
-  // Funkcje dla anon w migracji = ścieżki w opisie, z tymi samymi parametrami.
-  const dlaAnon = [...sql.matchAll(/grant execute on function public\.(\w+)\([^)]*\) to anon/g)].map((m) => m[1]).sort();
+  const sql = ['20261111200000_dostep_ai.sql', '20261112090000_obrazy_ai.sql']
+    .map((m) => fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', m), 'utf8')).join('\n');
+  // Funkcje dla anon w migracjach = ścieżki w opisie, z tymi samymi parametrami. Zmiany obrazów (nowe nazwy,
+  // usuwanie) idą trzema krokami – robi je łącznik, akcje GPT ich nie mają.
+  const dlaAnon = [...new Set([...sql.matchAll(/grant execute on function public\.(\w+)\([^)]*\) to anon/g)].map((m) => m[1]))]
+    .filter((f) => f !== 'ai_zmien_obrazy').sort();
   const sciezki = Object.keys(api.paths).map((p) => p.replace('/rest/v1/rpc/', '')).sort();
   assert.deepEqual(sciezki, dlaAnon);
   for (const f of dlaAnon) {
-    const parametry = [...new RegExp(`function public\\.${f}\\(([^)]*)\\)`).exec(sql)[1].matchAll(/(p_\w+)/g)].map((m) => m[1]);
+    const deklaracja = new RegExp(`function public\\.${f}\\(([^)]*)\\)`).exec(sql)[1];
+    const parametry = [...deklaracja.matchAll(/(p_\w+)/g)].map((m) => m[1]);
+    const wymagane = [...deklaracja.matchAll(/(p_\w+) \w+(?=\s*(,|$))/g)].map((m) => m[1]); // bez „default”
     const op = api.paths[`/rest/v1/rpc/${f}`].post;
     assert.equal(op.operationId, f);
     const schemat = op.requestBody.content['application/json'].schema;
     assert.deepEqual(Object.keys(schemat.properties), parametry, f);
-    assert.deepEqual(schemat.required, parametry, f);
+    assert.deepEqual(schemat.required, wymagane, f);
   }
   // Części zmian = te, które przyjmuje migracja.
   const czesci = /v_klucz not in \(([^)]*)\)/.exec(sql)[1].match(/'(\w+)'/g).map((x) => x.slice(1, -1));
