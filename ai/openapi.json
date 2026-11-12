@@ -12,7 +12,7 @@
       "post": {
         "operationId": "ai_projekt",
         "summary": "Pobierz projekt",
-        "description": "Zwraca projekt (strony w środku, zasoby tylko z nazwą i typem), numer wersji i rodzaj dostępu. Pobierz przed każdą zmianą; wersję podaj potem w ai_zapisz.",
+        "description": "Zwraca projekt (strony w środku, zasoby tylko z opisem: nazwa, typ, wymiary w pikselach), numer wersji i rodzaj dostępu. Pobierz przed każdą zmianą; wersję podaj potem w ai_zapisz.",
         "requestBody": {
           "required": true,
           "content": { "application/json": { "schema": {
@@ -28,7 +28,7 @@
               "properties": {
                 "dostep": { "type": "object", "properties": { "rola": { "type": "string", "enum": ["odczyt", "edycja"] }, "opis": { "type": "string" }, "wazny_do": { "type": "string" } } },
                 "wersja": { "type": "integer" },
-                "projekt": { "type": "object", "description": "Model projektu (format-seriodruk.md): nazwa, sekcje, strony, wzorce, style, tabele, serie, widok, zasoby {id: {nazwa, typ}}.", "additionalProperties": true },
+                "projekt": { "type": "object", "description": "Model projektu (format-seriodruk.md): nazwa, sekcje, strony, wzorce, style, tabele, serie, widok, zasoby {id: {nazwa, typ, szer, wys, rozmiar, skrot}}.", "additionalProperties": true },
                 "blad": { "type": "string" }
               }
             } } }
@@ -80,6 +80,34 @@
                 "szczegoly": { "type": "array", "items": { "type": "string" } }
               }
             } } }
+          }
+        }
+      }
+    },
+    "/rest/v1/rpc/ai_wgraj_obraz": {
+      "post": {
+        "operationId": "ai_wgraj_obraz",
+        "summary": "Wgraj obraz do projektu",
+        "description": "Dodaje obraz (PNG, JPEG, WebP, GIF, SVG; do 15 MB) do obrazów projektu. Przez akcję przekazuj tylko małe pliki i rysunki SVG (base64 jest drogi); zdjęcia użytkownik wgrywa sam w aplikacji. Ten sam plik drugi raz nie wchodzi ({byl: true}); zajęta nazwa dostaje „(2)”. p_zastap – id obrazu, który ten plik zastępuje (elementy przepięte, nazwa ta sama).",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["p_klucz", "p_nazwa", "p_typ", "p_dane"],
+            "properties": {
+              "p_klucz": { "type": "string", "description": "Klucz dostępu sdk_…" },
+              "p_nazwa": { "type": "string", "description": "Nazwa pliku z rozszerzeniem, np. choinka.svg" },
+              "p_typ": { "type": "string", "enum": ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"] },
+              "p_dane": { "type": "string", "description": "Treść pliku w base64 (bez nagłówka data:)." },
+              "p_szer": { "type": "integer", "description": "Szerokość w pikselach (dla SVG – z width albo viewBox)." },
+              "p_wys": { "type": "integer", "description": "Wysokość w pikselach." },
+              "p_zastap": { "type": "string", "description": "id obrazu do podmiany (opcjonalnie)." }
+            }
+          } } }
+        },
+        "responses": {
+          "200": {
+            "description": "{id, nazwa, typ, szer, wys, rozmiar, byl, nazwa_zmieniona, zastapiony?, wersja} albo {blad}.",
+            "content": { "application/json": { "schema": { "type": "object", "additionalProperties": true } } }
           }
         }
       }

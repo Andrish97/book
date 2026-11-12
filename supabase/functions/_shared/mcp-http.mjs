@@ -72,6 +72,23 @@ function status(odpowiedz, nowa) {
   return 200;
 }
 
+const MAKS_POST = 50 * 1024 * 1024;
+
+async function obsluzObraz(request, url, env, cors) {
+  const klucz = kluczZZadania(request);
+  if (!WZOR_KLUCZA.test(klucz)) return json(401, { blad: 'Adres nie zawiera prawidłowego klucza dostępu (…/functions/v1/mcp/<klucz sdk_…>/obraz).' }, cors);
+  if (Number(request.headers.get('content-length') || 0) > MAKS_POST) return json(413, { blad: 'Plik jest za duży (najwyżej 50 MB; jeden obraz – 15 MB).' }, cors);
+  const bajty = new Uint8Array(await request.arrayBuffer());
+  if (!bajty.length) return json(400, { blad: 'Pusta treść – wyślij plik obrazu albo ZIP jako treść żądania POST.' }, cors);
+  const serwer = utworzSerwer({ adres: env.adres || DOMYSLNY_ADRES, kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY, klucz });
+  try {
+    const w = await serwer.wgrajBajty(bajty, url.searchParams.get('nazwa') || '', { zastap: url.searchParams.get('zastap') || null });
+    return json(200, { wgrane: w.wyniki, opis: w.opisy.join('\n') }, cors);
+  } catch (e) {
+    return json(400, { blad: e.message }, cors);
+  }
+}
+
 // env: { adres?, kluczPubliczny? } – adres bazy i publikowalny klucz (domyślnie baza Seriodruku).
 export async function obsluzHttp(request, env = {}) {
   const origin = request.headers.get('origin');
@@ -86,6 +103,10 @@ export async function obsluzHttp(request, env = {}) {
   if (request.method !== 'POST') {
     return json(405, { jsonrpc: '2.0', error: { code: BLEDY.ZADANIE, message: 'Łącznik MCP Seriodruku przyjmuje tylko POST (Streamable HTTP).' } }, { ...cors, allow: 'POST, OPTIONS' });
   }
+
+  // Plik wysłany wprost: POST …/mcp/<klucz>/obraz?nazwa=… z treścią pliku (obraz albo ZIP z obrazami).
+  // Dla piaskownic AI z dostępem do sieci i dla skryptów – bez przepisywania pliku na base64.
+  if (/\/obraz\/?$/.test(url.pathname)) return obsluzObraz(request, url, env, cors);
 
   let tresc;
   try { tresc = JSON.parse(await request.text()); } catch {

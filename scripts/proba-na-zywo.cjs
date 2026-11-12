@@ -282,6 +282,30 @@ const krok = async (nazwa, fn) => {
       const zmiana = await wywolaj('tools/call', { name: 'nazwa_projektu', arguments: { nazwa: 'Test łącznika (AI)' } });
       if (zmiana.isError) throw new Error(`nazwa_projektu: ${zmiana.content[0].text.slice(0, 200)}`);
       await p.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Test łącznika (AI)', null, { timeout: 30000 });
+      // Obrazy od AI (migracja 20261112090000_obrazy_ai.sql): wgranie małego PNG, wstawienie na stronę,
+      // przeniesienie pliku na konto przez otwartą aplikację, wysyłka pliku wprost (POST …/obraz), usunięcie.
+      const png = await p.evaluate(() => {
+        const c = document.createElement('canvas');
+        c.width = 12; c.height = 8;
+        const x = c.getContext('2d'); x.fillStyle = '#c33'; x.fillRect(0, 0, 12, 8);
+        return c.toDataURL('image/png').split(',')[1];
+      });
+      const wgrany = await wywolaj('tools/call', { name: 'wgraj_obraz', arguments: { dane_base64: png, nazwa: 'proba-ai.png' } });
+      if (wgrany.isError || !/Wgrano „proba-ai\.png”.*12×8 px/.test(wgrany.content[0].text)) throw new Error(`wgraj_obraz: ${wgrany.content[0].text.slice(0, 200)}`);
+      const idStrony = await p.evaluate(() => window.seriodruk.stan.projekt.strony[0].id);
+      const wstawiony = await wywolaj('tools/call', { name: 'wstaw_obraz', arguments: { obraz: 'proba-ai.png', gdzie: `strona:${idStrony}`, x: 10, y: 10, szerokosc: 30 } });
+      if (wstawiony.isError) throw new Error(`wstaw_obraz: ${wstawiony.content[0].text.slice(0, 200)}`);
+      await p.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'image' && o.nazwa === 'proba-ai.png' && o.getElement()?.naturalWidth === 12), null, { timeout: 30000 });
+      await p.waitForFunction(() => Object.values(window.seriodruk.stan.projekt.zasoby).some((z) => z.nazwa === 'proba-ai.png' && z.sciezka && !z.sciezka.startsWith('ai:')), null, { timeout: 30000 });
+      const wprost = await p.evaluate(async ([u, b64]) => {
+        const bajty = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        bajty[bajty.length - 20] ^= 1; // inna treść niż poprzedni plik (zepsuty bajt IEND nie przeszkadza w rozpoznaniu)
+        const x = await fetch(`${u}/obraz?nazwa=proba-wprost.png`, { method: 'POST', body: bajty });
+        return { status: x.status, dane: await x.json() };
+      }, [adres, png]);
+      if (wprost.status !== 200 || wprost.dane.wgrane?.[0]?.nazwa !== 'proba-wprost.png') throw new Error(`POST /obraz: ${wprost.status} ${JSON.stringify(wprost.dane).slice(0, 200)}`);
+      const usuniety = await wywolaj('tools/call', { name: 'usun_obrazy', arguments: { obrazy: ['proba-wprost.png', 'proba-ai.png'] } });
+      if (!/Usunięto 1: „proba-wprost\.png”/.test(usuniety.content[0].text) || !/proba-ai\.png” – strona 1/.test(usuniety.content[0].text)) throw new Error(`usun_obrazy: ${usuniety.content[0].text.slice(0, 300)}`);
       const get = await mcp(null, {}, 'GET');
       if (get.status !== 405) throw new Error(`GET powinien dać 405, dał ${get.status}`);
       await p.click('#przycisk-wiecej');
@@ -292,7 +316,7 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="dostep-ai-zamknij"]');
       const po = await wywolaj('tools/call', { name: 'przeglad_projektu', arguments: {} });
       if (!po.isError || !/odebrany/.test(po.content[0].text)) throw new Error(`odebrany klucz dalej działa w łączniku: ${JSON.stringify(po).slice(0, 200)}`);
-      return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi`;
+      return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi; obraz od AI wgrany, wstawiony i przeniesiony na konto, wysyłka wprost działa`;
     });
   } catch (e) {
     wyniki.push(`przerwano: ${e.message.split('\n')[0]}`);

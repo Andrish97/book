@@ -13,6 +13,13 @@ const otworzProjekt = async (...a) => (await czekajNaEdytor()).otworzProjekt(...
 const pokazPodglad = async (...a) => (await czekajNaEdytor()).pokazPodglad(...a);
 const przejdzDoStrony = async (i) => (await czekajNaEdytor()).przejdzDoStrony(i);
 const edytujWzorzec = async (id) => (await czekajNaEdytor()).edytujWzorzec(id);
+// #/p/<id>/obrazy – projekt z oknem „Obrazy projektu” (link, który AI daje, żeby wgrać zdjęcia albo ZIP).
+// Adres wraca potem do zwykłego adresu projektu, żeby odświeżenie strony nie otwierało okna drugi raz.
+const otworzOknoObrazow = async () => {
+  await czekajNaEdytor();
+  trasa.ustaw(`p/${stan.projekt.id}`, { zastap: true });
+  (await import('./obrazy-okno.js')).otworzObrazy();
+};
 
 let obslugaTrasy = Promise.resolve();
 export function przejdzDoTrasy() {
@@ -34,6 +41,7 @@ export function przejdzDoTrasy() {
     if (stan.projekt?.id === t.id) {
       if (t.podglad) { await pokazPodglad(); return; }
       if (document.body.dataset.ekran === 'podglad') { pokazEkran('edytor'); edytor.canvas.calcOffset(); }
+      if (t.obrazy) { await otworzOknoObrazow(); return; }
       if (t.wzorzec && (stan.tryb !== 'wzorzec' || stan.idWzorca !== t.wzorzec)) await edytujWzorzec(t.wzorzec);
       else if (t.strona) {
         const i = stan.projekt.strony.findIndex((x) => x.id === t.strona);
@@ -53,6 +61,7 @@ export function przejdzDoTrasy() {
     }
     await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec });
     if (t.podglad) await pokazPodglad();
+    if (t.obrazy) await otworzOknoObrazow();
   }).catch((e) => console.error(e));
   return obslugaTrasy;
 }

@@ -71,7 +71,9 @@ function atrapaAi(stan) {
     const dane = kopia(p.dane);
     for (const k of ['strony_osobno', 'podstawa_chmury', 'wersja_chmury', 'miniatura', 'udostepnienie']) delete dane[k];
     dane.strony = stronyProjektu(p);
-    dane.zasoby = Object.fromEntries(Object.entries(p.dane.zasoby || {}).map(([id, z]) => [id, { nazwa: z.nazwa, typ: z.typ }]));
+    dane.zasoby = Object.fromEntries(Object.entries(p.dane.zasoby || {}).map(([id, z]) => [id, Object.fromEntries(
+      Object.entries({ nazwa: z.nazwa, typ: z.typ, szer: z.szer, wys: z.wys, rozmiar: z.rozmiar, skrot: z.skrot }).filter(([, v]) => v !== undefined && v !== null),
+    )]));
     return { dostep: { rola: d.rola, opis: d.opis, wazny_do: d.wazny_do }, wersja: p.wersja, projekt: dane };
   }
 
@@ -179,10 +181,143 @@ function atrapaAi(stan) {
     return { wersja: p.wersja, strony_zapisane: zmienione.length };
   }
 
+  // Obrazy od AI (migracja 20261112090000_obrazy_ai.sql): plik czeka w stan.obrazyAi, w projekcie wpis
+  // zasobu ze ścieżką „ai:<id>”. Te same zasady: ten sam skrót → obraz, który już jest; zajęta nazwa → „(2)”;
+  // zastąp → nowe id, przepięte elementy, stary do nagrobków.
+  stan.obrazyAi = stan.obrazyAi || new Map();
+  const SYGNATURY = {
+    'image/png': (b) => b.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
+    'image/jpeg': (b) => b.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex')),
+    'image/gif': (b) => b.subarray(0, 4).toString('latin1') === 'GIF8',
+    'image/webp': (b) => b.subarray(0, 4).toString('latin1') === 'RIFF' && b.subarray(8, 12).toString('latin1') === 'WEBP',
+    'image/svg+xml': (b) => b.subarray(0, 8192).includes('<svg'),
+  };
+  function aiWgrajObraz({ p_klucz, p_nazwa, p_typ, p_dane, p_szer = null, p_wys = null, p_zastap = null }) {
+    const d = sprawdzKlucz(p_klucz, true);
+    if (d.blad) return d;
+    if (!SYGNATURY[p_typ]) return { blad: 'Obsługiwane obrazy: PNG, JPEG, WebP, GIF i SVG.' };
+    const bajty = Buffer.from(String(p_dane || ''), 'base64');
+    if (!bajty.length) return { blad: 'Plik jest pusty.' };
+    if (bajty.length > 15 * 1024 * 1024) return { blad: 'Plik jest za duży (najwyżej 15 MB).' };
+    if (!SYGNATURY[p_typ](bajty)) return { blad: `Treść pliku nie pasuje do jego rodzaju (${p_typ}).` };
+    const skrot = crypto.createHash('sha256').update(bajty).digest('hex');
+    let nazwa = String(p_nazwa || '').replace(/^.*[\\/]/, '').replace(/[\u0000-\u001f]/g, '').trim() || 'obraz';
+    nazwa = nazwa.slice(0, 150);
+    if (!/\.[a-z0-9]{2,5}$/i.test(nazwa)) nazwa += { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif' }[p_typ] || '.svg';
+    const p = stan.projekty.find((x) => x.id === d.projekt_id);
+    if (!p) return { blad: 'Projektu już nie ma.' };
+    const zasoby = p.dane.zasoby || {};
+    const czcionki = (p.dane.czcionki || []).map((c) => c.id);
+    for (const [id, z] of Object.entries(zasoby)) {
+      if (!czcionki.includes(id) && z.skrot === skrot) {
+        return { id, nazwa: z.nazwa, typ: z.typ || p_typ, szer: z.szer ?? p_szer, wys: z.wys ?? p_wys, rozmiar: bajty.length, byl: true, wersja: p.wersja };
+      }
+    }
+    if (p_zastap) {
+      if (!zasoby[p_zastap] || czcionki.includes(p_zastap)) return { blad: `Nie ma obrazu „${p_zastap}” do zastąpienia (lista: obrazy_projektu).` };
+      nazwa = zasoby[p_zastap].nazwa;
+    } else {
+      const rdzen = nazwa.replace(/(\.[A-Za-z0-9]{2,5})$/, '');
+      const roz = /(\.[A-Za-z0-9]{2,5})$/.exec(nazwa)?.[1] || '';
+      const zajeta = (n) => Object.entries(zasoby).some(([id, z]) => !czcionki.includes(id) && String(z.nazwa).trim().toLowerCase() === n.toLowerCase());
+      for (let n = 2; zajeta(nazwa); n += 1) nazwa = `${rdzen} (${n})${roz}`;
+    }
+    const wiersz = crypto.randomUUID();
+    stan.obrazyAi.set(wiersz, { projekt_id: p.id, owner_id: p.owner_id, nazwa, typ: p_typ, dane: bajty, skrot });
+    const id = `z_ai${wiersz.replace(/-/g, '').slice(0, 12)}`;
+    const wpis = { nazwa, typ: p_typ, rozmiar: bajty.length, skrot, ...(p_szer ? { szer: p_szer } : {}), ...(p_wys ? { wys: p_wys } : {}), sciezka: `ai:${wiersz}` };
+    let dane = { ...p.dane, zasoby: { ...zasoby, [id]: wpis } };
+    if (p_zastap) {
+      const stary = zasoby[p_zastap];
+      delete dane.zasoby[p_zastap];
+      dane.zasoby_usuniete = [...new Set([...(dane.zasoby_usuniete || []), p_zastap])];
+      const przepnij = (t) => t.split(`"zasob":${JSON.stringify(p_zastap)}`).join(`"zasob":${JSON.stringify(id)}`)
+        .split(JSON.stringify(`zasob:${p_zastap}`)).join(JSON.stringify(`zasob:${id}`));
+      dane = JSON.parse(przepnij(JSON.stringify(dane)));
+      for (const [k, s] of stan.strony) if (k.startsWith(`${p.id}/`)) stan.strony.set(k, JSON.parse(przepnij(JSON.stringify(s))));
+      odlozPlik(p, stary.sciezka, dane.zasoby);
+    }
+    const teraz = new Date().toISOString();
+    Object.assign(p, { dane: { ...dane, zmieniono: teraz }, zmieniono: teraz, wersja: p.wersja + 1 });
+    stan.oglos?.(p);
+    return {
+      id, nazwa, typ: p_typ, ...(p_szer ? { szer: p_szer } : {}), ...(p_wys ? { wys: p_wys } : {}), rozmiar: bajty.length, byl: false,
+      nazwa_zmieniona: !p_zastap && nazwa !== String(p_nazwa || '').trim(), ...(p_zastap ? { zastapiony: p_zastap } : {}), wersja: p.wersja,
+    };
+  }
+
+  // Plik, który przestał być potrzebny (ai_odloz_plik): czekający w obrazyAi znika, plik z folderu
+  // trafia do stan.doUsuniecia (Map: projekt → Set ścieżek) – sprząta go aplikacja.
+  stan.doUsuniecia = stan.doUsuniecia || new Map();
+  function odlozPlik(p, sciezka, zasoby) {
+    if (!sciezka || Object.values(zasoby || {}).some((z) => z.sciezka === sciezka)) return;
+    if (sciezka.startsWith('ai:')) { stan.obrazyAi.delete(sciezka.slice(3)); return; }
+    if (!sciezka.startsWith(`${p.owner_id}/${p.id}/`)) return;
+    if (!stan.doUsuniecia.has(p.id)) stan.doUsuniecia.set(p.id, new Set());
+    stan.doUsuniecia.get(p.id).add(sciezka);
+  }
+
+  function aiZmienObrazy({ p_klucz, p_kopie = {}, p_usun = [] }) {
+    const d = sprawdzKlucz(p_klucz, true);
+    if (d.blad) return d;
+    const p = stan.projekty.find((x) => x.id === d.projekt_id);
+    if (!p) return { blad: 'Projektu już nie ma.' };
+    const zasoby = { ...(p.dane.zasoby || {}) };
+    const czcionki = (p.dane.czcionki || []).map((c) => c.id);
+    let usuniete = [...(p.dane.zasoby_usuniete || [])];
+    const bledy = [];
+    for (const [k, v] of Object.entries(p_kopie || {})) {
+      const nazwa = String(v?.nazwa || '').trim();
+      if (!/^z_[A-Za-z0-9_]{4,40}$/.test(k) || zasoby[k] || usuniete.includes(k)) bledy.push(`Nowe id „${k}” jest nieprawidłowe albo zajęte.`);
+      else if (!zasoby[v.z] || czcionki.includes(v.z)) bledy.push(`Nie ma obrazu „${v.z}”.`);
+      else if (!nazwa || nazwa.length > 150 || /[/\\\u0000-\u001f]/.test(nazwa) || !/\.[a-z0-9]{2,5}$/i.test(nazwa)) bledy.push(`Nazwa „${nazwa}”: niepusta, do 150 znaków, z rozszerzeniem, bez ukośników.`);
+      else zasoby[k] = { ...zasoby[v.z], nazwa };
+    }
+    const uzyte = new Set(zasobyWDrzewie([stronyProjektu(p), p.dane.wzorce || []]));
+    for (const id of p_usun || []) {
+      if (!zasoby[id] || czcionki.includes(id)) bledy.push(`Nie ma obrazu „${id}”.`);
+      else if (uzyte.has(id)) bledy.push(`Obraz „${zasoby[id].nazwa}” jest jeszcze na stronie albo we wzorcu – nie usuwam go.`);
+    }
+    if (bledy.length) return { blad: 'Zmiany obrazów odrzucone.', szczegoly: bledy };
+    for (const id of p_usun || []) {
+      const { sciezka } = zasoby[id];
+      delete zasoby[id];
+      usuniete = [...new Set([...usuniete, id])];
+      odlozPlik(p, sciezka, zasoby);
+    }
+    for (const [k, v] of Object.entries(p_kopie || {})) {
+      const n = String(v.nazwa).trim().toLowerCase();
+      if (Object.entries(zasoby).some(([id, z]) => id !== k && id !== v.z && !czcionki.includes(id) && String(z.nazwa).trim().toLowerCase() === n)) {
+        return { blad: `Nazwa „${String(v.nazwa).trim()}” jest już zajęta przez inny obraz – wybierz inną.` };
+      }
+    }
+    const teraz = new Date().toISOString();
+    Object.assign(p, { dane: { ...p.dane, zasoby, zasoby_usuniete: usuniete, zmieniono: teraz }, zmieniono: teraz, wersja: p.wersja + 1 });
+    stan.oglos?.(p);
+    return { wersja: p.wersja };
+  }
+
   // Funkcje bazy według nazwy; konto – zalogowany właściciel (dla funkcji właściciela).
   return function wywolaj(funkcja, tresc, konto) {
     if (funkcja === 'ai_projekt') return aiProjekt(tresc);
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
+    if (funkcja === 'ai_wgraj_obraz') return aiWgrajObraz(tresc);
+    if (funkcja === 'ai_zmien_obrazy') return aiZmienObrazy(tresc);
+    if (funkcja === 'pliki_do_usuniecia' || funkcja === 'pliki_usuniete') {
+      if (!konto) blad(401, 'Brak sesji');
+      const p = stan.projekty.find((x) => x.id === tresc.p_projekt && x.owner_id === konto.id);
+      const lista = (p && stan.doUsuniecia.get(p.id)) || new Set();
+      if (funkcja === 'pliki_do_usuniecia') return [...lista];
+      for (const s of tresc.p_sciezki || []) lista.delete(s);
+      return null;
+    }
+    if (funkcja === 'pobierz_obraz_ai' || funkcja === 'usun_obraz_ai') {
+      if (!konto) blad(401, 'Brak sesji');
+      const o = stan.obrazyAi.get(tresc.p_id);
+      if (funkcja === 'usun_obraz_ai') { if (o && o.owner_id === konto.id) stan.obrazyAi.delete(tresc.p_id); return null; }
+      if (!o || o.owner_id !== konto.id) blad(400, 'Nie ma takiego obrazu (mógł już przejść na konto)');
+      return { typ: o.typ, nazwa: o.nazwa, dane: o.dane.toString('base64') };
+    }
     if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai'].includes(funkcja)) return undefined;
     if (!konto) blad(401, 'Brak sesji');
     if (funkcja === 'utworz_dostep_ai') {

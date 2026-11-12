@@ -226,14 +226,18 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
 
+  // Obrazy wgrane przez AI (ścieżka „ai:<id>”) czekają w tabeli bazy – przy zapisie przechodzą do folderu
+  // plików konta jak każdy nowy obraz, a po udanym zapisie projektu wiersz w tabeli jest usuwany.
+  const odAi = [];
   for (const [id, zasob] of Object.entries(projekt.zasoby || {})) {
-    if (zasob.sciezka) continue;
+    if (zasob.sciezka && !czyOdAi(zasob.sciezka)) continue;
     const blob = await blobZasobu(projekt, id); // świeży obraz ma treść w projekcie, zapisany – w magazynie przeglądarki
     if (!blob) continue;
     const sciezka = `${uzytkownik.id}/${projekt.id}/${id}`;
     sprawdz(await sb.storage.from(BUCKET).upload(sciezka, blob, {
-      upsert: true, contentType: blob.type || 'application/octet-stream',
+      upsert: true, contentType: blob.type || zasob.typ || 'application/octet-stream',
     }));
+    if (czyOdAi(zasob.sciezka)) odAi.push(zasob.sciezka);
     zasob.sciezka = sciezka;
   }
 
@@ -263,6 +267,11 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   projekt.wersja_chmury = wynik.wersja;
   projekt.podstawa_chmury = podstawa;
   wyslaneStrony.set(projekt.id, teksty);
+  // Obraz od AI jest już w folderze konta i projekt na koncie na niego wskazuje – wiersz w tabeli niepotrzebny.
+  for (const s of new Set(odAi)) {
+    if (Object.values(projekt.zasoby || {}).some((z) => z.sciezka === s)) continue; // inny wpis wciąż go używa
+    try { await usunZasobZKonta(s); } catch { /* zostanie; usunie go następny zapis albo usunięcie projektu */ }
+  }
   return { wyslaneStrony: zmienione.length, wszystkieStrony: strony.length };
 }
 
@@ -275,7 +284,23 @@ const wyslaneStrony = new Map();
 export async function usunZasobZKonta(sciezka) {
   if (!sciezka) return;
   const sb = await supabase();
+  if (czyOdAi(sciezka)) { sprawdz(await sb.rpc('usun_obraz_ai', { p_id: sciezka.slice(3) })); return; }
   sprawdz(await sb.storage.from(BUCKET).remove([sciezka]));
+}
+
+// Obraz wgrany przez AI: czeka w tabeli obrazy_ai (migracja 20261112090000_obrazy_ai.sql), w projekcie ma
+// ścieżkę „ai:<id wiersza>”.
+export const czyOdAi = (sciezka) => typeof sciezka === 'string' && sciezka.startsWith('ai:');
+
+// Pliki obrazów, które AI usunęło albo zastąpiło: funkcja bazy nie może usunąć pliku z folderu konta, więc
+// zostawia listę – aplikacja właściciela usuwa te pliki przy otwarciu projektu i po połączeniu zmian.
+export async function sprzatnijPliki(projektId) {
+  const sb = await supabase();
+  const sciezki = sprawdz(await sb.rpc('pliki_do_usuniecia', { p_projekt: projektId })) || [];
+  if (!sciezki.length) return 0;
+  sprawdz(await sb.storage.from(BUCKET).remove(sciezki));
+  sprawdz(await sb.rpc('pliki_usuniete', { p_projekt: projektId, p_sciezki: sciezki }));
+  return sciezki.length;
 }
 
 export async function wczytajZChmury(id) {
@@ -310,6 +335,13 @@ export async function wczytajZChmury(id) {
 // Plik zasobu z konta (obraz albo czcionka) jako Blob.
 export async function pobierzZasob(sciezka) {
   const sb = await supabase();
+  if (czyOdAi(sciezka)) {
+    const w = sprawdz(await sb.rpc('pobierz_obraz_ai', { p_id: sciezka.slice(3) }));
+    const tekst = atob(w.dane);
+    const bajty = new Uint8Array(tekst.length);
+    for (let i = 0; i < tekst.length; i += 1) bajty[i] = tekst.charCodeAt(i);
+    return new Blob([bajty], { type: w.typ });
+  }
   return sprawdz(await sb.storage.from(BUCKET).download(sciezka));
 }
 

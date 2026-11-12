@@ -32,7 +32,9 @@ const NAGLOWEK = `#!/usr/bin/env node
 // PLIK SKŁADANY: nie edytuj go ręcznie – zmieniaj supabase/functions/_shared/seriodruk-mcp-rdzen.mjs
 // i uruchom node scripts/mcp-buduj.cjs.
 
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { basename, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
 `;
@@ -40,7 +42,29 @@ import { pathToFileURL } from 'node:url';
 const STDIO = `
 // ---------- Uruchomienie u siebie: konfiguracja ze zmiennych środowiskowych, transport stdio ----------
 
+// Obrazy z dysku tego komputera (tylko serwer u siebie – zdalny łącznik nie widzi plików użytkownika):
+// ścieżka pliku albo folderu (folder: obrazy w nim, bez podfolderów), ~ to folder domowy.
+const OBRAZY = /\\.(png|jpe?g|webp|gif|svg|zip)$/i;
+export async function czytajPliki(sciezki) {
+  const lista = [];
+  for (const s of sciezki) {
+    const pelna = resolve(String(s).trim().replace(/^~(?=$|[\\\\/])/, homedir()));
+    const info = await stat(pelna).catch(() => null);
+    if (!info) throw new Error(\`Nie ma pliku ani folderu „\${s}”.\`);
+    if (info.isDirectory()) {
+      const nazwy = (await readdir(pelna)).filter((n) => OBRAZY.test(n) && !n.startsWith('.')).sort((a, b) => a.localeCompare(b, 'pl', { numeric: true }));
+      if (!nazwy.length) throw new Error(\`W folderze „\${s}” nie ma obrazów (PNG, JPEG, WebP, GIF, SVG) ani archiwów ZIP.\`);
+      lista.push(...nazwy.map((n) => join(pelna, n)));
+    } else lista.push(pelna);
+  }
+  if (lista.length > 50) throw new Error(\`To \${lista.length} plików – naraz wgrywam najwyżej 50. Podziel je na mniejsze porcje.\`);
+  const wynik = [];
+  for (const p of lista) wynik.push({ bajty: new Uint8Array(await readFile(p)), nazwa: basename(p) });
+  return wynik;
+}
+
 const serwer = utworzSerwer({
+  czytajPliki,
   adres: process.env.SERIODRUK_ADRES || 'https://pganajmivwtstapnwsgv.supabase.co',
   kluczPubliczny: process.env.SERIODRUK_KLUCZ_PUBLICZNY || 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq',
   klucz: process.env.SERIODRUK_KLUCZ || '',

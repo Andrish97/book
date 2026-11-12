@@ -137,6 +137,7 @@ test('starszy zapis z obrazami w środku projektu przechodzi do magazynu plików
   });
   await strona.reload();
   await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'image' && o.getElement().naturalWidth === 60));
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.zasoby.z_stary.szer === 60); // wymiary uzupełniane po otwarciu
   const w = await strona.evaluate(async () => {
     const { wczytajLokalnie } = await import('./js/lokalny.js');
     const { dataUrlZasobu } = await import('./js/zasoby.js');
@@ -144,7 +145,10 @@ test('starszy zapis z obrazami w środku projektu przechodzi do magazynu plików
     const rekord = await wczytajLokalnie(p.id);
     return { wProjekcie: Object.keys(p.zasoby.z_stary).sort(), wRekordzie: Object.keys(rekord.projekt.zasoby.z_stary).sort(), oryginal: (await dataUrlZasobu(p, 'z_stary')).slice(0, 22) };
   });
-  assert.deepEqual(w, { wProjekcie: ['nazwa', 'rozmiar', 'typ'], wRekordzie: ['nazwa', 'rozmiar', 'typ'], oryginal: 'data:image/png;base64,' });
+  // Bez treści pliku w projekcie; po otwarciu opis dostaje też wymiary z nagłówka pliku (dla łącznika AI).
+  assert.deepEqual(w.wProjekcie, ['nazwa', 'rozmiar', 'szer', 'typ', 'wys']);
+  assert.deepEqual(w.wRekordzie.filter((k) => !['szer', 'wys'].includes(k)), ['nazwa', 'rozmiar', 'typ']);
+  assert.equal(w.oryginal, 'data:image/png;base64,');
   assert.deepEqual(bledy, []);
 });
 

@@ -48,7 +48,7 @@ Wszystkie wymiary są w **milimetrach**. Rozmiar pisma też w mm: `mm = pt × 25
 | `style` | lista stylów tekstu | rozdział 6 |
 | `tabele` | lista tabel z danymi | rozdział 7 |
 | `serie` | lista serii | powielanie stron według tabel; rozdział 8 |
-| `zasoby` | `{ id: { nazwa, dataUrl } }` | obrazy i pliki czcionek; `nazwa` z rozszerzeniem, np. `styczen.jpg`; nazwy obrazów są różne (bez względu na wielkość liter) |
+| `zasoby` | `{ id: { nazwa, dataUrl } }` | obrazy i pliki czcionek; `nazwa` z rozszerzeniem, np. `styczen.jpg`; nazwy obrazów są różne (bez względu na wielkość liter). Projekt na koncie ma zamiast `dataUrl` opis pliku: `typ`, `rozmiar`, `szer`/`wys` (piksele), `skrot` (SHA-256 treści) i `sciezka` (plik na koncie albo `ai:…` – obraz wgrany przez AI, który aplikacja przeniesie na konto) |
 | `zasoby_usuniete` | `[id]` (opcjonalne) | identyfikatory obrazów usuniętych z projektu – żeby łączenie z innym urządzeniem ich nie przywróciło; nie używaj tych identyfikatorów |
 | `czcionki` | `[{ id, rodzina, waga, kursywa }]` | tylko własne czcionki spoza zestawu; `id` wskazuje plik w `zasoby`; `waga` 100–900 (400 zwykła, 700 pogrubiona) |
 | `widok` | `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }` | nieobowiązkowe ustawienia edytora |
@@ -109,7 +109,7 @@ Zasady, które łatwo przeoczyć:
 - `left` i `top` to **lewy górny róg** elementu w mm (aplikacja ustawia `originX`/`originY` na `left`/`top`).
 - Tekst musi mieć `"strokeWidth": 0` – domyślny obrys biblioteki (1) poszerza ramkę tekstu i daje ostrzeżenie o marginesie.
 - Wysokość ramki tekstu wynika z treści; `width` to szerokość ramki (tekst łamie się do niej).
-- Obraz: `width`/`height` to rozmiar obrazu w pikselach, a rozmiar na stronie daje skala: `scaleX = szerokość_mm / width`. Do tego `"zasob": "<id z zasoby>"` i `"src": "zasob:<id>"`.
+- Obraz: `width`/`height` to rozmiar obrazu w pikselach, a rozmiar na stronie daje skala: `scaleX = szerokość_mm / width`. Do tego `"zasob": "<id z zasoby>"` i `"src": "zasob:<id>"`. Przez łącznik prościej: `wgraj_obraz` dodaje plik do projektu (adres https, link z Dysku Google albo Dropboxa, ZIP, kod SVG, małe dane base64, a w serwerze u siebie – plik albo folder z dysku), a `wstaw_obraz` stawia go na stronie i sam liczy skalę i przycięcie. Nazwy, usuwanie i porządkowanie: `zmien_nazwe_obrazu`, `usun_obrazy`, `podmien_obraz`, `uporzadkuj_obrazy`.
 - Kolory: `#rrggbb`. Przejście kolorów: `fill: { "type": "linear", "gradientUnits": "percentage", "coords": { "x1": 0, "y1": 0, "x2": 1, "y2": 0 }, "colorStops": [{ "offset": 0, "color": "#06d6a0" }, { "offset": 1, "color": "#ef476f" }] }` (albo `"type": "radial"`).
 - Obrót: `angle` (stopnie). Przezroczystość: `opacity` (0–1).
 - Fragment tekstu z innym wyglądem: `styles: [{ "start": 5, "end": 12, "style": { "fontWeight": "bold", "fill": "#c8102e" } }]` (indeksy znaków całego tekstu).
@@ -266,7 +266,7 @@ Oba wczytują się w aplikacji bez uwag (sprawdza to test). Buduje je skrypt `sc
 > Zbuduj mi projekt Seriodruku jako jeden plik `.json` zgodnie z opisem https://andrish97.github.io/book/ai/format-seriodruk.md (wzoruj się na https://andrish97.github.io/book/ai/przyklady/kalendarz.json).
 > Publikacja: [opisz: format, liczba i rodzaj stron, sekcje, co ma być na stronach].
 > Dane: [wklej albo opisz tabelę, np. dni roku z imieninami].
-> Wymagania: wszystkie wymiary w mm (rozmiar pisma też: pt × 25,4 / 72); czcionki tylko z zestawu z opisu; każdy element ma `id`, tekst ma `strokeWidth: 0`; strony powtarzane zrób jako serię z tabeli, nie jako osobne strony; obrazy wpisz do `zasoby` jako `dataUrl` (jeśli ich nie masz, użyj obrazów-wzorów i podaj nazwy plików w tabeli – wgram je w aplikacji przyciskiem „Wgraj obrazy do projektu”).
+> Wymagania: wszystkie wymiary w mm (rozmiar pisma też: pt × 25,4 / 72); czcionki tylko z zestawu z opisu; każdy element ma `id`, tekst ma `strokeWidth: 0`; strony powtarzane zrób jako serię z tabeli, nie jako osobne strony; obrazy wpisz do `zasoby` jako `dataUrl` (jeśli ich nie masz, użyj obrazów-wzorów i podaj nazwy plików w tabeli – wgram je w aplikacji w oknie „Obrazy projektu”, także jako ZIP).
 > Na koniec wypisz, ile stron powstanie w wydruku i co mam sprawdzić po wczytaniu.
 
 Po wczytaniu pliku w aplikacji (Importuj na liście projektów) warto otworzyć **Sprawdź przed drukiem** w menu ⋯ edytora – pokaże brakujące zdjęcia, nieznane pola i tekst, który nie mieści się w ramce.

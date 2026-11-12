@@ -12,7 +12,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 - PDF wektorowy z prawdziwym tekstem, osadzonymi czcionkami i ligaturami; PDF/X-4 z profilem drukarni i CMYK – także w trybie „Obrazy stron”. Próbki sprawdzone czterema niezależnymi programami.
 - Tekst płynie przez ramki i strony, a kursor idzie za nim; tabela jest jednym elementem; rysunek SVG rozkłada się na edytowalne elementy; element grupy zmienia się bez rozgrupowywania.
 - „Sprawdź przed drukiem” przechodzi każdą powieloną stronę: brakujące dane i obrazy, powtórzenia, teksty, które się nie mieszczą.
-- Push na `main` wdraża aplikację i bazę, a 184 testy w przeglądarce pilnuje, żeby nic się nie psuło.
+- Push na `main` wdraża aplikację i bazę, a 197 testów pilnuje, żeby nic się nie psuło.
 
 **Słabe.**
 - Zmiany trafiają na konto po około 3 sekundach, a drugie urządzenie dowiaduje się o nich dopiero przy własnym zapisie albo otwarciu projektu – stąd pytania o połączenie zmian (B4).
@@ -219,7 +219,7 @@ Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z o
 **Dlaczego tak.** Wcześniej plik o tej samej nazwie po cichu nadpisywał poprzedni (a na innym urządzeniu zostawał stary), każde wstawienie tego samego zdjęcia robiło nową kopię, a obrazów nie dało się zobaczyć ani usunąć. Jedno miejsce z pełnymi nazwami i kopiowaniem nazw skraca drogę od zdjęć do tabeli danych.
 **Twoje decyzje.** Okno obrazów, duplikaty, jedno miejsce, wybór z obrazów projektu, kopiowanie nazw, zaznaczanie, rozróżnianie rozszerzeń (#69).
 **Sprawdzone.** Testy w `tests/obrazy-projektu.test.cjs`: duplikaty przy wstawianiu i wgrywaniu, wybór z obrazów projektu przy wstawianiu i podmianie, kopiowanie nazw, zaznaczanie i usuwanie (plik znika z magazynu i z konta), blokada usuwania użytego, podmiana z przepięciem (także w historii), zmiana nazwy z komórkami tabeli, `las.jpg`/`las.png` i nazwy bez rozszerzenia, nagrobek po łączeniu z drugim urządzeniem.
-**Słabe.** Przy otwartym oknie zmiany z innego urządzenia czekają (jak przy każdym oknie). Zmiana nazwy i podmiana pliku wysyłają obraz na konto drugi raz (nowy identyfikator). Po „Podmień zdjęcie” we właściwościach poprzednie zdjęcie zostaje w projekcie jako nieużywane – sprząta je „Usuń nieużywane”. Plik usunięty bez sieci zostaje na koncie jako zajęte miejsce (projekt go już nie wskazuje).
+**Słabe.** Przy otwartym oknie zmiany stron z innego urządzenia czekają (jak przy każdym oknie); nowe obrazy od AI i z innego urządzenia pojawiają się od razu. Zmiana nazwy i podmiana pliku wysyłają obraz na konto drugi raz (nowy identyfikator). Po „Podmień zdjęcie” we właściwościach poprzednie zdjęcie zostaje w projekcie jako nieużywane – sprząta je „Usuń nieużywane”. Plik usunięty bez sieci zostaje na koncie jako zajęte miejsce (projekt go już nie wskazuje).
 
 ### D6. Cofanie ✅
 **Co jest.** Jedna historia dla całego projektu, 80 kroków: zmiany na stronach i wzorcach, dodawanie, usuwanie i przesuwanie stron, sekcje, style, tabele, serie, prowadnice. Po cofnięciu edytor otwiera stronę albo wzorzec, którego dotyczyła zmiana. Krok powstaje chwilę (0,3 s) po zmianie, więc szybka seria drobnych zmian jest jednym krokiem.
@@ -349,6 +349,27 @@ Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z o
 **Co jest.** Instrukcja w aplikacji ma 33 rozdziały, większość ze zrzutem ekranu. Zrzuty robi skrypt (`npm run zrzuty`), ten sam scenariusz w jasnym i ciemnym motywie – po 36 obrazów. Lista skrótów w instrukcji powstaje z tej samej tabeli, z której działa klawiatura. Instrukcja otwiera się sama przy pierwszym uruchomieniu.
 **Dlaczego tak.** Chciałeś instrukcji jak manual ze zrzutami, a nie samouczka z podświetlaniem. Zrzuty ze skryptu można odświeżyć po każdej zmianie wyglądu jednym poleceniem, więc nie pokazują starej aplikacji. Uzasadnienia („dlaczego tak”) są w tym dokumencie, nie w instrukcji.
 **Twoje decyzje.** Instrukcja w rozdziałach ze zrzutami (#7). Każda funkcja opisana w instrukcji (#42).
+
+### F5. Obrazy przez AI ✅ / ⚠️
+**Co jest.** Łącznik AI (zdalny i rozszerzenie dla Claude Desktop) robi z obrazami to samo co właściciel w oknie „Obrazy projektu” (D16): `obrazy_projektu` (lista z użyciami i powtórzeniami), `wgraj_obraz`, `wstaw_obraz` (pojedynczy obraz na stronie albo we wzorcu, w mm; ramka „zmieść” albo „wypełnij” z przycięciem wokół środka), `zmien_nazwe_obrazu`, `podmien_obraz`, `usun_obrazy` (tylko nieużywane), `uporzadkuj_obrazy` i `link_do_wgrywania`. Źródła obrazów:
+- adres https – także link udostępniania z Dysku Google (pojedynczy plik albo ZIP) i z Dropboxa (plik, a folder jako ZIP); strona HTML zamiast pliku daje czytelny błąd;
+- rysunek SVG napisany przez AI (wymiary dopisane z viewBox, bez skryptów);
+- małe pliki w base64;
+- w rozszerzeniu (serwer u siebie) – pliki i foldery z dysku, z ZIP-ami;
+- wysyłka pliku wprost: `POST …/functions/v1/mcp/<klucz>/obraz?nazwa=…` (dla AI z wykonywaniem kodu i dla skryptów);
+- link do aplikacji `#/p/<projekt>/obrazy`, który otwiera projekt od razu z oknem obrazów – dla zdjęć z rozmowy.
+
+Archiwa ZIP przyjmuje też okno „Obrazy projektu” w aplikacji.
+**Jak to działa.**
+- Klucz nie otwiera folderu plików konta, a łącznik nie ma klucza serwisowego. Obraz od AI czeka więc w tabeli bazy `obrazy_ai`, a w projekcie ma ścieżkę `ai:<id>`. Otwarta aplikacja dostaje zmianę na żywo, pobiera plik (funkcja `pobierz_obraz_ai`, tylko właściciel), pokazuje go i przy najbliższym zapisie przenosi do folderu konta; wiersz w tabeli znika.
+- Te same zasady co w aplikacji – wspólny kod w `js/obrazy-wspolne.js`, dosłownie skopiowany do rdzenia łącznika, co pilnuje test: wymiary z nagłówka pliku (PNG, JPEG z obrotem EXIF, WebP, GIF, SVG), rozpakowywanie ZIP-ów (bez `__MACOSX` i plików systemowych; najwyżej 100 obrazów, każdy do 15 MB, razem do 200 MB – liczone przy wypakowywaniu, więc „bomba ZIP” się nie uda), szukanie powtórzeń i nazwy z „(2)”. Ten sam plik (SHA-256) drugi raz nie wchodzi.
+- Zmiana nazwy przez AI to nowy wpis z tym samym plikiem, przepięcie elementów i komórek tabel, usunięcie starego wpisu (`ai_zmien_obrazy` w trzech krokach). Usuwać można tylko obraz, którego nie pokazuje żaden element – baza tego pilnuje.
+- Funkcja bazy nie może usunąć pliku z folderu konta. Pliki obrazów usuniętych albo zastąpionych przez AI trafiają do tabeli `zasoby_do_usuniecia`, a aplikacja właściciela usuwa je przy otwarciu projektu i po połączeniu zmian.
+- Przy okazji poprawione: powiadomienie o zmianie z konta, które przyszło w trakcie łączenia, nie przepada – po łączeniu aplikacja sprawdza konto jeszcze raz (wcześniej czekało do zapasowego sprawdzenia, do 2 minut).
+**Dlaczego tak.** Bez klucza serwisowego w łączniku – ta sama zasada co dotąd: klucz AI otwiera tylko jeden projekt i tylko przez funkcje bazy, które sprawdzają wszystko po swojej stronie. Wspólny kod sprawia, że obraz wgrany przez AI i przez człowieka podlega tym samym regułom nazw i powtórzeń.
+**Twoje decyzje.** AI wgrywa i wstawia obrazy jak użytkownik, także pojedyncze, nie tylko przez tabelę; robi wszystko, co robi użytkownik w oknie obrazów; archiwa ZIP i foldery z komputera; obejścia dla zdjęć z rozmowy (#71).
+**Sprawdzone.** `tests/obrazy-ai.test.cjs` (rdzeń bez przeglądarki): wspólny kod, wymiary wszystkich rodzajów plików, ZIP z bombą i limitami, adresy (https, sieci prywatne, Dysk, Dropbox), wszystkie narzędzia obrazów, wysyłka pliku wprost, pliki i foldery z dysku. `tests/obrazy-od-ai.test.cjs` (aplikacja): obraz od AI na żywo w oknie i na stronie, przeniesienie na konto, sprzątnięcie pliku zastąpionego obrazu, ZIP w oknie (z bombą), adres `#/p/…/obrazy`. Migracja sprawdzona na lokalnym PostgreSQL 16 (wgrywanie, duplikat, zajęta nazwa, zastąpienie z przepięciem, zmiana nazwy, blokada usuwania użytego, sprzątanie).
+**Słabe.** AI w zwykłej rozmowie nie przekaże łącznikowi zdjęcia z załącznika – zostaje link do wgrania albo Dysk/Dropbox. Obraz od AI do czasu otwarcia projektu w aplikacji leży w bazie (limit 150 MB na projekt), a pliki do usunięcia z konta czekają na otwarcie projektu. Adres z internetu jest sprawdzany po nazwie hosta (bez sprawdzania, dokąd prowadzi DNS). Wysyłka pliku wprost ma limit 50 MB.
 
 ## I. Eksport
 
