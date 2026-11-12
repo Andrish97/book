@@ -6,12 +6,14 @@
 // Ten plik podpina przyciski wspólne dla wszystkich ekranów (data-akcja); przyciski edytora obsługuje
 // tablica `akcje` z części edytora.
 
+import './urzadzenie.js'; // najpierw: atrybuty urządzenia na <html> (zasłonki, cele dotyku)
 import * as chmura from './chmura.js';
 import { wstawIkony } from './ikony.js';
 import { $, powiadom, zamknijMenu, przelaczMenu } from './ui.js';
 import { przelaczMotyw } from './motyw.js';
 import { wlaczWlasneKontrolki } from './kontrolki.js';
 import { wlaczDymki } from './dymki.js';
+import { wlaczZaslonki } from './zaslonki.js';
 import { zaladujCzcionki } from './czcionki.js';
 import { stan, trasa, ustawPanel, pokazEkran, edytor } from './app/kontekst.js';
 import {
@@ -236,6 +238,8 @@ Object.defineProperty(window.seriodruk, 'edytor', { get: () => edytor, configura
 // (js/dymki.js) rysuje aplikacja, nie system.
 wlaczWlasneKontrolki();
 wlaczDymki();
+// Okna dialogowe na telefonie i tablecie wyjeżdżają od dołu jako zasłonki z uchwytem (js/zaslonki.js).
+wlaczZaslonki();
 
 start().catch((e) => {
   console.error(e);

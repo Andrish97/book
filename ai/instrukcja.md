@@ -636,6 +636,8 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 - **Jeden palec** – zaznaczanie i przesuwanie elementów. **Dwa palce** – przesuwanie widoku i powiększanie.
 - **Na telefonie edytor działa w pionie.** Panele **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** otwierasz przyciskami na dole ekranu; panel wysuwa się z dołu na niecałą połowę ekranu i ma stałą wysokość, więc nie skacze, gdy przeglądarka chowa pasek adresu. Widok sam przesuwa się tak, żeby zaznaczony element był widoczny nad panelem, a po zamknięciu panelu wraca na miejsce.
 - **Uchwyt** (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel prawie na cały ekran, w dół – żeby go zmniejszyć albo zamknąć; stuknięcie przełącza wysokość. Panel zamyka też ponowne stuknięcie jego przycisku na dole ekranu – krzyżyka nie ma.
+- **Okna jako zasłonki.** Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu, potwierdzenia i inne) nie stoją na środku, tylko wysuwają się od dołu ekranu – na telefonie na całą szerokość, na tablecie szeroko, ale nie od krawędzi do krawędzi. Zamiast krzyżyka u góry jest **uchwyt** (kreska): pociągnij go w dół albo stuknij, żeby zamknąć. Zamyka też stuknięcie w przyciemnione tło nad zasłonką. Zamknięcie działa tak samo jak dawny krzyżyk – np. okno Dane zapisuje zmiany, a potwierdzenie odpowiada „nie”. Przyciski na dole zasłonki (np. **Zapisz**, **Anuluj**) stoją w miejscu, gdy przewijasz jej treść. Na komputerze okna zostają zwykłymi oknami z krzyżykiem.
+- Na urządzeniu dotykowym przyciski, pola i przełączniki są trochę większe – łatwiej trafić w nie palcem.
 - Na wąskim ekranie górny pasek zostawia miejsce na nazwę projektu: **Wzorce**, **Dane** i **Instrukcja** są w menu **⋯**. Ucięta nazwa pokazuje się w całości po stuknięciu w nią.
 - We właściwościach obrazu na samej górze są przyciski **Podmień zdjęcie** (nowe zdjęcie z galerii albo z obrazów projektu, w tej samej ramce i miejscu) i **Obrazy projektu…**.
 - Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” – pasek adresu i panele nie zostawiają wtedy miejsca na stronę. To samo zobaczysz na komputerze w bardzo niskim oknie (poniżej 480 px). Lista projektów, logowanie i udostępniony podgląd działają w obu ułożeniach.
@@ -645,6 +647,9 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 - **Instalacja na Androidzie** (Chrome): menu ⋮ → **Zainstaluj aplikację** / **Dodaj do ekranu głównego**. Zainstalowana aplikacja nie ma paska adresu, więc na stronę zostaje więcej miejsca.
 - **Instalacja na Macu** (Chrome lub Edge): ikona instalacji w pasku adresu. W Safari: Plik → **Dodaj do Docka**.
 - Zainstalowana aplikacja na komputerze otwiera pliki `.seriodruk` dwuklikiem.
+
+![Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.](https://andrish97.github.io/book/img/instrukcja/telefon-zaslonka.png)
+*Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.*
 
 ## 33. Zapis, pliki i kilka urządzeń
 
