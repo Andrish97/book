@@ -292,7 +292,7 @@ const krok = async (nazwa, fn) => {
       });
       const wgrany = await wywolaj('tools/call', { name: 'wgraj_obraz', arguments: { dane_base64: png, nazwa: 'proba-ai.png' } });
       if (wgrany.isError || !/Wgrano „proba-ai\.png”.*12×8 px/.test(wgrany.content[0].text)) throw new Error(`wgraj_obraz: ${wgrany.content[0].text.slice(0, 200)}`);
-      const idStrony = await p.evaluate(() => window.seriodruk.stan.projekt.strony[0].id);
+      const idStrony = await p.evaluate(() => window.seriodruk.stan.projekt.strony[window.seriodruk.stan.indeks].id); // strona otwarta w edytorze – obraz ma się pojawić na płótnie
       const wstawiony = await wywolaj('tools/call', { name: 'wstaw_obraz', arguments: { obraz: 'proba-ai.png', gdzie: `strona:${idStrony}`, x: 10, y: 10, szerokosc: 30 } });
       if (wstawiony.isError) throw new Error(`wstaw_obraz: ${wstawiony.content[0].text.slice(0, 200)}`);
       await p.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'image' && o.nazwa === 'proba-ai.png' && o.getElement()?.naturalWidth === 12), null, { timeout: 30000 });
@@ -305,7 +305,7 @@ const krok = async (nazwa, fn) => {
       }, [adres, png]);
       if (wprost.status !== 200 || wprost.dane.wgrane?.[0]?.nazwa !== 'proba-wprost.png') throw new Error(`POST /obraz: ${wprost.status} ${JSON.stringify(wprost.dane).slice(0, 200)}`);
       const usuniety = await wywolaj('tools/call', { name: 'usun_obrazy', arguments: { obrazy: ['proba-wprost.png', 'proba-ai.png'] } });
-      if (!/Usunięto 1: „proba-wprost\.png”/.test(usuniety.content[0].text) || !/proba-ai\.png” – strona 1/.test(usuniety.content[0].text)) throw new Error(`usun_obrazy: ${usuniety.content[0].text.slice(0, 300)}`);
+      if (!/Usunięto 1: „proba-wprost\.png”/.test(usuniety.content[0].text) || !/proba-ai\.png” – strona \d/.test(usuniety.content[0].text)) throw new Error(`usun_obrazy: ${usuniety.content[0].text.slice(0, 300)}`);
       const get = await mcp(null, {}, 'GET');
       if (get.status !== 405) throw new Error(`GET powinien dać 405, dał ${get.status}`);
       await p.click('#przycisk-wiecej');
