@@ -8,7 +8,7 @@
 // pobierzAdres(adres) – pobieranie obrazu z internetu (domyślnie: tylko https, bez sieci prywatnych).
 
 export const NAZWA = 'seriodruk';
-export const WERSJA = '1.2.0';
+export const WERSJA = '1.3.0';
 export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
@@ -614,7 +614,7 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Zdjęcia, które użytkownik ma u siebie (na komputerze, w telefonie, w załączniku rozmowy, w ZIP-ie), dowolnej wielkości: od razu wywołaj link_do_wgrywania i daj mu ten link – wrzuci je tam sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk. Jedyny wyjątek to wysyłka plików z Twojego środowiska na adres z adres_do_wysylki; tylko dla niej możesz poprosić o dopisanie hosta do dozwolonych domen.';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
 export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu }) {
   const ADRES = String(adres || '').replace(/\/+$/, '');
@@ -937,7 +937,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
 - svg – rysunek, który sam piszesz (ozdobniki, ikony, ramki); potrzebny viewBox albo width/height; bez skryptów.
 - dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.
 - pliki_z_czatu – załączniki rozmowy, jeśli Twoja aplikacja przekazuje je narzędziom (ChatGPT); dowolna wielkość.${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
-Zdjęcia, które użytkownik ma u siebie (komputer, telefon, załącznik rozmowy, ZIP) i do których nie sięgasz: NIE odmawiaj – od razu wywołaj link_do_wgrywania i daj mu link; wrzuci je sam (dowolna wielkość), a Ty zobaczysz je w obrazy_projektu. Ewentualnie poproś o link z Dysku Google albo Dropboxa. Załączników nie przepisuj na base64. Pliki w Twoim środowisku (wykonywanie kodu, miejsce robocze, załącznik w piaskownicy): wyślij je wprost POST-em na adres z narzędzia adres_do_wysylki – dowolna wielkość, bez przepisywania na base64.
+Pliki w Twoim środowisku (miejsce robocze, załącznik w piaskownicy): wgraj_czesciami – kawałkami przez łącznik, bez dostępu sieci. Zdjęcia, do których nie sięgasz, albo bardzo duże: NIE odmawiaj – wywołaj link_do_wgrywania i daj użytkownikowi link; wrzuci je sam (dowolna wielkość), a Ty zobaczysz je w obrazy_projektu. Ewentualnie poproś o link z Dysku Google albo Dropboxa. 
 Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – jak podmien_obraz. wstaw – od razu wstawia obraz jako pojedynczy element (pola jak w wstaw_obraz; tylko dla jednego obrazu).`,
       inputSchema: S('', {
         nazwa: tekst('Nazwa pliku z rozszerzeniem, np. „choinka.svg” (domyślnie z adresu albo pliku).'),
@@ -1026,9 +1026,59 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
       },
     },
     {
+      name: 'wgraj_czesciami',
+      title: 'Wgraj plik kawałkami (base64)',
+      description: `Wgrywa obraz, który masz u siebie (plik w miejscu roboczym, załącznik w piaskownicy), gdy nie możesz go podać inaczej: nie ma adresu w internecie, a Twoje środowisko nie łączy się z bazą. Plik idzie w kawałkach base64 w kolejnych wywołaniach tego narzędzia, a łącznik składa je po swojej stronie. Każdy bajt przechodzi przez rozmowę, więc to droga dla grafik do kilkuset KB; przy dużych zdjęciach daj użytkownikowi link z link_do_wgrywania. Jakości plików nie obniżaj bez zgody użytkownika.
+Kroki:
+1. krok="start": nazwa (z rozszerzeniem), rozmiar (bajty), sha256 (skrót SHA-256 treści, 64 znaki hex), kawalek (bajty, od 16384 do 524288; zalecane 49152), opcjonalnie szer, wys (px), zastap (id albo nazwa obrazu do podmiany – strony pokazują od razu nowy plik). Wynik: id wgrania i liczba kawałków. Ten sam plik już w projekcie – wynik od razu to powie.
+2. krok="czesc": wgranie, nr (od 0), dane_base64 – bajty od nr×kawalek, długości kawalek (ostatni krótszy). Kolejność dowolna, powtórzenie zastępuje.
+3. krok="koniec": wgranie – sprawdzam komplet i rozmiar; obraz trafia do projektu (jak wgraj_obraz). Brakujące kawałki wymienię.
+ZIP rozpakuj u siebie i wgraj obrazy po kolei. Wgranie niedokończone przez dobę znika.`,
+      inputSchema: S('', {
+        krok: { type: 'string', enum: ['start', 'czesc', 'koniec'] },
+        nazwa: tekst('start: nazwa pliku z rozszerzeniem (png, jpg, webp, gif, svg).'),
+        rozmiar: { type: 'integer', description: 'start: rozmiar pliku w bajtach' },
+        sha256: tekst('start: SHA-256 treści pliku, 64 znaki szesnastkowe.'),
+        kawalek: { type: 'integer', description: 'start: wielkość kawałka w bajtach (16384–524288, domyślnie 49152)' },
+        szer: { type: 'integer', description: 'start: szerokość w px (opcjonalnie)' },
+        wys: { type: 'integer', description: 'start: wysokość w px (opcjonalnie)' },
+        zastap: tekst('start: id albo nazwa obrazu, który ten plik zastępuje (opcjonalnie).'),
+        wgranie: tekst('czesc, koniec: id wgrania z kroku start.'),
+        nr: { type: 'integer', description: 'czesc: numer kawałka od 0' },
+        dane_base64: tekst('czesc: kawałek pliku w base64.'),
+      }, ['krok']),
+      dzialaj: async (a) => {
+        if (a.krok === 'start') {
+          const roz = /\.([a-z0-9]+)$/i.exec(String(a.nazwa || ''))?.[1]?.toLowerCase();
+          const typ = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' }[roz];
+          if (!typ) throw new BladBazy('Podaj nazwę z rozszerzeniem obrazu: png, jpg, webp, gif albo svg.');
+          const zastap = a.zastap ? jakiObraz((await pobierz()).projekt, a.zastap) : null;
+          const r = await rpc('ai_wgraj_poczatek', {
+            p_klucz: KLUCZ, p_nazwa: String(a.nazwa).trim(), p_typ: typ, p_rozmiar: a.rozmiar, p_skrot: String(a.sha256 || '').toLowerCase(),
+            p_szer: a.szer || null, p_wys: a.wys || null, p_zastap: zastap, p_kawalek: a.kawalek || 49152,
+          });
+          if (r?.blad) throw new BladBazy(r.blad);
+          if (r?.byl) return opisWgranego(r);
+          return `Wgranie ${r.wiersz}: ${r.czesci} kawałków po ${r.kawalek} bajtów (ostatni krótszy). Wyślij je krokiem "czesc" (wgranie="${r.wiersz}", nr 0–${r.czesci - 1}), potem krok "koniec".`;
+        }
+        if (!a.wgranie) throw new BladBazy('Podaj wgranie (id z kroku start).');
+        if (a.krok === 'czesc') {
+          if (!Number.isInteger(a.nr)) throw new BladBazy('Podaj nr kawałka (od 0).');
+          const r = await rpc('ai_wgraj_czesc', { p_klucz: KLUCZ, p_wiersz: a.wgranie, p_nr: a.nr, p_dane: String(a.dane_base64 || '').replace(/^data:[^,]*,/, '').replace(/\s+/g, '') });
+          if (r?.blad) throw new BladBazy(r.blad);
+          return `Kawałek ${a.nr} przyjęty.`;
+        }
+        if (a.krok !== 'koniec') throw new BladBazy('krok: start, czesc albo koniec.');
+        const r = await rpc('ai_wgraj_koniec', { p_klucz: KLUCZ, p_wiersz: a.wgranie });
+        if (Array.isArray(r?.brakujace) && r.brakujace.length) throw new BladBazy(`Brakuje kawałków: ${r.brakujace.join(', ')} – wyślij je i zakończ jeszcze raz.`);
+        if (r?.blad) throw new BladBazy(r.blad);
+        return opisWgranego(r);
+      },
+    },
+    {
       name: 'adres_do_wysylki',
       title: 'Adres do wysyłki plików',
-      description: 'Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Wymaga, żeby Twoje środowisko łączyło się z hostem adresu: jeśli wysyłka kończy się błędem sieci, poproś użytkownika o dopisanie tego hosta do dozwolonych domen wykonywania kodu w ustawieniach AI (tylko do wysyłki plików), a do tego czasu daj mu link z link_do_wgrywania. Adres zawiera klucz – nie pokazuj go w odpowiedzi.',
+      description: 'Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Działa tylko, gdy Twoje środowisko już łączy się z hostem adresu (np. własny skrypt użytkownika). Gdy dostajesz błąd sieci (403, zablokowana domena) – nie proś o dopisywanie domen, tylko użyj wgraj_czesciami. Adres zawiera klucz – nie pokazuj go w odpowiedzi.',
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => `POST ${ADRES}/functions/v1/mcp/${KLUCZ}/obraz?nazwa=<nazwa z rozszerzeniem>[&zastap=<id albo nazwa obrazu do podmiany>]

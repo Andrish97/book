@@ -298,6 +298,29 @@ const krok = async (nazwa, fn) => {
       if (wstawiony.isError) throw new Error(`wstaw_obraz: ${wstawiony.content[0].text.slice(0, 200)}`);
       await p.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'image' && o.nazwa === 'proba-ai.png' && o.getElement()?.naturalWidth === 12), null, { timeout: 30000 });
       await p.waitForFunction(() => Object.values(window.seriodruk.stan.projekt.zasoby).some((z) => z.nazwa === 'proba-ai.png' && z.sciezka && !z.sciezka.startsWith('ai:')), null, { timeout: 30000 });
+      // Wgrywanie kawałkami przez łącznik (wgraj_czesciami, migracja 20261112180000): AI bez sieci do bazy.
+      const kawalkowy = Buffer.from(await p.evaluate(() => {
+        const c = document.createElement('canvas');
+        c.width = 160; c.height = 120;
+        const x = c.getContext('2d');
+        const d = x.createImageData(160, 120);
+        for (let i = 0; i < d.data.length; i += 1) d.data[i] = (i % 4 === 3) ? 255 : Math.floor(Math.random() * 256);
+        x.putImageData(d, 0, 0);
+        return c.toDataURL('image/png').split(',')[1];
+      }), 'base64');
+      const KAW = 16384;
+      const startK = await wywolaj('tools/call', { name: 'wgraj_czesciami', arguments: { krok: 'start', nazwa: 'proba-kawalki.png', rozmiar: kawalkowy.length, sha256: require('node:crypto').createHash('sha256').update(kawalkowy).digest('hex'), kawalek: KAW } });
+      const idWgrania = /Wgranie (\S+):/.exec(startK.content[0].text)?.[1];
+      if (startK.isError || !idWgrania) throw new Error(`wgraj_czesciami start: ${startK.content[0].text.slice(0, 200)}`);
+      for (let nr = 0; nr * KAW < kawalkowy.length; nr += 1) {
+        const c = await wywolaj('tools/call', { name: 'wgraj_czesciami', arguments: { krok: 'czesc', wgranie: idWgrania, nr, dane_base64: kawalkowy.subarray(nr * KAW, (nr + 1) * KAW).toString('base64') } });
+        if (c.isError) throw new Error(`wgraj_czesciami czesc ${nr}: ${c.content[0].text.slice(0, 200)}`);
+      }
+      const koniecK = await wywolaj('tools/call', { name: 'wgraj_czesciami', arguments: { krok: 'koniec', wgranie: idWgrania } });
+      if (koniecK.isError || !/Wgrano „proba-kawalki\.png”/.test(koniecK.content[0].text)) throw new Error(`wgraj_czesciami koniec: ${koniecK.content[0].text.slice(0, 200)}`);
+      await p.waitForFunction(() => Object.values(window.seriodruk.stan.projekt.zasoby).some((z) => z.nazwa === 'proba-kawalki.png' && z.sciezka && !z.sciezka.startsWith('ai:')), null, { timeout: 60000 });
+      const usunK = await wywolaj('tools/call', { name: 'usun_obrazy', arguments: { obrazy: ['proba-kawalki.png'] } });
+      if (!/Usunięto 1: „proba-kawalki\.png”/.test(usunK.content[0].text)) throw new Error(`usun_obrazy (kawałki): ${usunK.content[0].text.slice(0, 200)}`);
       const wprost = await p.evaluate(async ([u, b64]) => {
         const bajty = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
         bajty[bajty.length - 20] ^= 1; // inna treść niż poprzedni plik (zepsuty bajt IEND nie przeszkadza w rozpoznaniu)
@@ -337,7 +360,7 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="dostep-ai-zamknij"]');
       const po = await wywolaj('tools/call', { name: 'przeglad_projektu', arguments: {} });
       if (!po.isError || !/odebrany/.test(po.content[0].text)) throw new Error(`odebrany klucz dalej działa w łączniku: ${JSON.stringify(po).slice(0, 200)}`);
-      return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi; obraz od AI wgrany, wstawiony i przeniesiony na konto, wysyłka wprost działa; duże zdjęcie ${duzy.mb.toFixed(1)} MB w kawałkach w ${(duzy.ms / 1000).toFixed(1)} s`;
+      return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi; obraz od AI wgrany, wstawiony i przeniesiony na konto, wysyłka wprost i kawałkami przez łącznik działa; duże zdjęcie ${duzy.mb.toFixed(1)} MB w kawałkach w ${(duzy.ms / 1000).toFixed(1)} s`;
     });
   } catch (e) {
     wyniki.push(`przerwano: ${e.message.split('\n')[0]}`);

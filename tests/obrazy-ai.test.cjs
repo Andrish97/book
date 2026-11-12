@@ -391,12 +391,15 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
   for (const n of ['obrazy_projektu', 'wgraj_obraz', 'wstaw_obraz', 'zmien_nazwe_obrazu', 'usun_obrazy', 'podmien_obraz', 'uporzadkuj_obrazy', 'link_do_wgrywania']) {
     assert.ok(zdalny.result.tools.some((x) => x.name === n), n);
   }
-  // Zdjęcia z komputera / z rozmowy: łącznik każe AI od razu dać link do wgrania, zamiast odmawiać (decyzja #75).
+  // Pliki w środowisku AI: wgraj_czesciami (bez sieci); niedostępne – link do wgrania zamiast odmowy (#75, #77).
   const opisWgraj = zdalny.result.tools.find((n) => n.name === 'wgraj_obraz').description;
-  assert.match(opisWgraj, /NIE odmawiaj – od razu wywołaj link_do_wgrywania/);
+  assert.match(opisWgraj, /wgraj_czesciami/);
+  assert.match(opisWgraj, /NIE odmawiaj – wywołaj link_do_wgrywania/);
   assert.match(zdalny.result.tools.find((n) => n.name === 'link_do_wgrywania').description, /zamiast mówić, że nie masz dostępu do plików/);
   const start = await s.mcp().obsluz({ jsonrpc: '2.0', id: 2, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } } }, {});
-  assert.match(start.result.instructions, /od razu wywołaj link_do_wgrywania/);
+  assert.match(start.result.instructions, /wgraj_czesciami/);
+  assert.match(start.result.instructions, /wywołaj link_do_wgrywania/);
+  assert.match(start.result.instructions, /nie proś użytkownika o odblokowanie domen/);
 });
 
 test('pliki_z_czatu (ChatGPT, openai/fileParams): łącznik sam pobiera załączniki rozmowy z ich adresu', async (t) => {
@@ -420,6 +423,45 @@ test('pliki_z_czatu (ChatGPT, openai/fileParams): łącznik sam pobiera załącz
   w = await s.wywolaj('wgraj_obraz', { pliki_z_czatu: [{ file_id: 'file_3' }] });
   assert.equal(w.blad, true);
   assert.match(w.tekst, /link_do_wgrywania/);
+});
+
+test('wgraj_czesciami: AI bez sieci do bazy wysyła plik kawałkami base64 przez łącznik; duplikat, brakujący kawałek, podmiana użytego', async (t) => {
+  const s = await srodowisko(t);
+  const crypto = require('node:crypto');
+  const plik = Buffer.concat([png(300, 200, 5), crypto.randomBytes(70000)]); // PNG z doklejonym ogonem – ok. 70 KB
+  const sha = crypto.createHash('sha256').update(plik).digest('hex');
+  let w = await s.wywolaj('wgraj_czesciami', { krok: 'start', nazwa: 'ilustracja.png', rozmiar: plik.length, sha256: sha, kawalek: 16384 });
+  assert.equal(w.blad, false, w.tekst);
+  const wgranie = /Wgranie (\S+):/.exec(w.tekst)[1];
+  const czesci = Math.ceil(plik.length / 16384);
+  assert.match(w.tekst, new RegExp(`${czesci} kawałków po 16384`));
+  for (let nr = 0; nr < czesci - 1; nr += 1) {
+    w = await s.wywolaj('wgraj_czesciami', { krok: 'czesc', wgranie, nr, dane_base64: plik.subarray(nr * 16384, (nr + 1) * 16384).toString('base64') });
+    assert.equal(w.blad, false, w.tekst);
+  }
+  w = await s.wywolaj('wgraj_czesciami', { krok: 'koniec', wgranie });
+  assert.equal(w.blad, true);
+  assert.match(w.tekst, new RegExp(`Brakuje kawałków: ${czesci - 1}`));
+  const ostatni = czesci - 1;
+  await s.wywolaj('wgraj_czesciami', { krok: 'czesc', wgranie, nr: ostatni, dane_base64: plik.subarray(ostatni * 16384).toString('base64') });
+  w = await s.wywolaj('wgraj_czesciami', { krok: 'koniec', wgranie });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /Wgrano „ilustracja\.png”/);
+  w = await s.wywolaj('wgraj_czesciami', { krok: 'start', nazwa: 'kopia.png', rozmiar: plik.length, sha256: sha });
+  assert.match(w.tekst, /Ten sam obraz już był w projekcie jako „ilustracja\.png”/);
+  w = await s.wywolaj('wgraj_czesciami', { krok: 'start', nazwa: 'x.png', rozmiar: 10, sha256: sha, kawalek: 1000 });
+  assert.match(w.tekst, /od 16 KB do 512 KB/);
+  w = await s.wywolaj('wgraj_czesciami', { krok: 'start', nazwa: 'bez-rozszerzenia', rozmiar: 10, sha256: sha });
+  assert.match(w.tekst, /rozszerzeniem/);
+  // Podmiana użytego obrazu: nowy plik w miejsce starego, jednym wgraniem.
+  const nowy = png(300, 200, 6);
+  const shaN = crypto.createHash('sha256').update(nowy).digest('hex');
+  w = await s.wywolaj('wgraj_czesciami', { krok: 'start', nazwa: 'ilustracja.png', rozmiar: nowy.length, sha256: shaN, zastap: 'ilustracja.png' });
+  const wg2 = /Wgranie (\S+):/.exec(w.tekst)[1];
+  await s.wywolaj('wgraj_czesciami', { krok: 'czesc', wgranie: wg2, nr: 0, dane_base64: nowy.toString('base64') });
+  w = await s.wywolaj('wgraj_czesciami', { krok: 'koniec', wgranie: wg2 });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /zastąpił obraz/);
 });
 
 test('duży plik w kawałkach po 512 KB: POST 3 MB → początek, kawałki, koniec; duplikat już przy początku; stare RPC do 1 MB; brakujący kawałek', async (t) => {

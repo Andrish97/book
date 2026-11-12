@@ -45,12 +45,42 @@ const STDIO = `
 // Obrazy z dysku tego komputera (tylko serwer u siebie – zdalny łącznik nie widzi plików użytkownika):
 // ścieżka pliku albo folderu (folder: obrazy w nim, bez podfolderów), ~ to folder domowy.
 const OBRAZY = /\\.(png|jpe?g|webp|gif|svg|zip)$/i;
+const POMIJANE = new Set(['Library', 'node_modules', 'Applications', 'AppData', 'snap']);
+// Szuka w folderze domowym (do 7 poziomów, bez ukrytych i systemowych folderów) pliku albo folderu, którego ścieżka
+// kończy się podanymi częściami – najpierw najdłuższą końcówką (do 4 części), potem krótszymi.
+async function znajdzWDomu(sciezka) {
+  const czesci = sciezka.split(/[\\\\/]+/).filter((c) => c && c !== '.' && c !== '~');
+  if (!czesci.length) return null;
+  const katalogi = [];
+  const kolejka = [[homedir(), 0]];
+  while (kolejka.length && katalogi.length < 40000) {
+    const [k, g] = kolejka.shift();
+    katalogi.push(k);
+    if (g >= 7) continue;
+    const wpisy = await readdir(k, { withFileTypes: true }).catch(() => []);
+    for (const w of wpisy) if (w.isDirectory() && !w.name.startsWith('.') && !POMIJANE.has(w.name)) kolejka.push([join(k, w.name), g + 1]);
+  }
+  for (let n = Math.min(4, czesci.length); n >= 1; n -= 1) {
+    const koncowka = czesci.slice(-n);
+    for (const k of katalogi) {
+      const kandydat = join(k, ...koncowka);
+      if (await stat(kandydat).catch(() => null)) return kandydat;
+    }
+  }
+  return null;
+}
 export async function czytajPliki(sciezki) {
   const lista = [];
   for (const s of sciezki) {
-    const pelna = resolve(String(s).trim().replace(/^~(?=$|[\\\\/])/, homedir()));
-    const info = await stat(pelna).catch(() => null);
-    if (!info) throw new Error(\`Nie ma pliku ani folderu „\${s}”.\`);
+    let pelna = resolve(String(s).trim().replace(/^~(?=$|[\\\\/])/, homedir()));
+    let info = await stat(pelna).catch(() => null);
+    // Ścieżka z miejsca roboczego AI (np. „grafiki/zdjecia.zip” albo /sessions/…/mnt/Kalendarz/grafiki/zdjecia.zip):
+    // szukam pliku o takiej końcówce ścieżki w folderze domowym.
+    if (!info) {
+      const znaleziona = await znajdzWDomu(String(s));
+      if (znaleziona) { pelna = znaleziona; info = await stat(pelna); }
+    }
+    if (!info) throw new Error(\`Nie ma pliku ani folderu „\${s}” – podaj pełną ścieżkę na tym komputerze (np. ~/Dokumenty/Kalendarz/grafiki/zdjecia.zip).\`);
     if (info.isDirectory()) {
       const nazwy = (await readdir(pelna)).filter((n) => OBRAZY.test(n) && !n.startsWith('.')).sort((a, b) => a.localeCompare(b, 'pl', { numeric: true }));
       if (!nazwy.length) throw new Error(\`W folderze „\${s}” nie ma obrazów (PNG, JPEG, WebP, GIF, SVG) ani archiwów ZIP.\`);

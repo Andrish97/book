@@ -279,7 +279,9 @@ function atrapaAi(stan) {
   }
 
   // Większy plik w kawałkach po 512 KB: początek → kawałki → koniec.
-  function aiWgrajPoczatek({ p_klucz, p_nazwa, p_typ, p_rozmiar, p_skrot, p_szer = null, p_wys = null, p_zastap = null }) {
+  function aiWgrajPoczatek({ p_klucz, p_nazwa, p_typ, p_rozmiar, p_skrot, p_szer = null, p_wys = null, p_zastap = null, p_kawalek = null }) {
+    const kawalek = p_kawalek ?? KAWALEK;
+    if (kawalek < 16 * 1024 || kawalek > KAWALEK) return { blad: 'Wielkość kawałka (p_kawalek): od 16 KB do 512 KB.' };
     const d = sprawdzKlucz(p_klucz, true);
     if (d.blad) return d;
     if (!SYGNATURY[p_typ]) return { blad: 'Obsługiwane obrazy: PNG, JPEG, WebP, GIF i SVG.' };
@@ -293,13 +295,13 @@ function atrapaAi(stan) {
     if (p_zastap && !(p.dane.zasoby || {})[p_zastap]) return { blad: `Nie ma obrazu „${p_zastap}” do zastąpienia (lista: obrazy_projektu).` };
     for (const [k, o] of stan.obrazyAi) if (o.projekt_id === p.id && !o.gotowy && Date.now() - o.utworzono > 86400000) stan.obrazyAi.delete(k);
     if (oczekujace(p) + p_rozmiar > 150 * 1024 * 1024) return { blad: ZA_DUZO };
-    const czesci = Math.ceil(p_rozmiar / KAWALEK);
+    const czesci = Math.ceil(p_rozmiar / kawalek);
     const wiersz = crypto.randomUUID();
     stan.obrazyAi.set(wiersz, {
       projekt_id: p.id, owner_id: p.owner_id, nazwa: nazwaObrazu(p_nazwa, p_typ), nazwa_prosba: String(p_nazwa || '').trim(), typ: p_typ,
       rozmiar: p_rozmiar, skrot: p_skrot, dane: null, czesci, kawalki: new Map(), szer: p_szer, wys: p_wys, zastap: p_zastap, gotowy: false, utworzono: Date.now(),
     });
-    return { wiersz, kawalek: KAWALEK, czesci };
+    return { wiersz, kawalek, czesci };
   }
   const wgranieKlucza = (d, wiersz) => {
     const o = stan.obrazyAi.get(wiersz);
