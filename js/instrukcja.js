@@ -584,10 +584,15 @@ export const ROZDZIALY = [
     obraz: 'telefon.png',
     podpis: 'Telefon trzymany pionowo: zaznaczony element nad panelem właściwości, u góry panelu uchwyt.',
     obrazWaski: true,
+    obraz2: 'telefon-zaslonka.png',
+    podpis2: 'Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.',
+    obraz2Waski: true,
     punkty: [
       '<b>Jeden palec</b> – zaznaczanie i przesuwanie elementów. <b>Dwa palce</b> – przesuwanie widoku i powiększanie.',
       '<b>Na telefonie edytor działa w pionie.</b> Panele <b>Strony</b>, <b>Właściwości</b>, <b>Warstwy</b> i <b>Ostrzeżenia</b> otwierasz przyciskami na dole ekranu; panel wysuwa się z dołu na niecałą połowę ekranu i ma stałą wysokość, więc nie skacze, gdy przeglądarka chowa pasek adresu. Widok sam przesuwa się tak, żeby zaznaczony element był widoczny nad panelem, a po zamknięciu panelu wraca na miejsce.',
       '<b>Uchwyt</b> (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel prawie na cały ekran, w dół – żeby go zmniejszyć albo zamknąć; stuknięcie przełącza wysokość. Panel zamyka też ponowne stuknięcie jego przycisku na dole ekranu – krzyżyka nie ma.',
+      '<b>Okna jako zasłonki.</b> Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu, potwierdzenia i inne) nie stoją na środku, tylko wysuwają się od dołu ekranu – na telefonie na całą szerokość, na tablecie szeroko, ale nie od krawędzi do krawędzi. Zamiast krzyżyka u góry jest <b>uchwyt</b> (kreska): pociągnij go w dół albo stuknij, żeby zamknąć. Zamyka też stuknięcie w przyciemnione tło nad zasłonką. Zamknięcie działa tak samo jak dawny krzyżyk – np. okno Dane zapisuje zmiany, a potwierdzenie odpowiada „nie”. Przyciski na dole zasłonki (np. <b>Zapisz</b>, <b>Anuluj</b>) stoją w miejscu, gdy przewijasz jej treść. Na komputerze okna zostają zwykłymi oknami z krzyżykiem.',
+      'Na urządzeniu dotykowym przyciski, pola i przełączniki są trochę większe – łatwiej trafić w nie palcem.',
       'Na wąskim ekranie górny pasek zostawia miejsce na nazwę projektu: <b>Wzorce</b>, <b>Dane</b> i <b>Instrukcja</b> są w menu <b>⋯</b>. Ucięta nazwa pokazuje się w całości po stuknięciu w nią.',
       'We właściwościach obrazu na samej górze są przyciski <b>Podmień zdjęcie</b> (nowe zdjęcie z galerii albo z obrazów projektu, w tej samej ramce i miejscu) i <b>Obrazy projektu…</b>.',
       'Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” – pasek adresu i panele nie zostawiają wtedy miejsca na stronę. To samo zobaczysz na komputerze w bardzo niskim oknie (poniżej 480 px). Lista projektów, logowanie i udostępniony podgląd działają w obu ułożeniach.',
@@ -704,7 +709,7 @@ export class Instrukcja {
     }
     if (r.punkty?.length) html.push(`<ul class="punkty">${r.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
     // Drugi obrazek rozdziału – pod punktami.
-    if (r.obraz2) html.push(`<figure><img src="${katalog}${r.obraz2}" alt="${r.podpis2 || ''}" loading="lazy">${r.podpis2 ? `<figcaption>${r.podpis2}</figcaption>` : ''}</figure>`);
+    if (r.obraz2) html.push(`<figure><img src="${katalog}${r.obraz2}" alt="${r.podpis2 || ''}" loading="lazy"${r.obraz2Waski ? ' style="max-width:320px"' : ''}>${r.podpis2 ? `<figcaption>${r.podpis2}</figcaption>` : ''}</figure>`);
     if (r.html) html.push(r.html());
     if (r.rada) html.push(`<p class="rada">${r.rada}</p>`);
     this.tresc.innerHTML = html.join('');

@@ -17,7 +17,7 @@ const ADRES = process.argv[2] || 'http://localhost:8000/';
 const CIEMNY = process.argv[3] === 'ciemny';
 const KATALOG = path.join(__dirname, '..', 'img', 'instrukcja', ...(CIEMNY ? ['ciemny'] : []));
 const MOTYW = { colorScheme: CIEMNY ? 'dark' : 'light' };
-require('node:fs').mkdirSync(KATALOG, { recursive: true });
+if (require.main === module) require('node:fs').mkdirSync(KATALOG, { recursive: true });
 const WIDOK = { width: 1280, height: 800 };
 
 // Konfiguracja z fikcyjnym adresem – tylko po to, by ekran logowania
@@ -146,7 +146,8 @@ async function przykladoweProjekty(strona) {
   });
 }
 
-(async () => {
+module.exports = { przykladoweProjekty };
+if (require.main === module) (async () => {
   const przegladarka = await chromium.launch();
 
   // ---------- Logowanie, rejestracja, ustawienia konta (atrapa Supabase z testów) ----------
@@ -736,6 +737,14 @@ async function przykladoweProjekty(strona) {
   await t.tap('.zakladki-mobilne [data-panel="inspektor"]');
   await t.waitForTimeout(500);
   await zrzut(t, 'telefon.png');
+  // Okno na telefonie jako zasłonka od dołu (js/zaslonki.js).
+  await t.tap('.zakladki-mobilne [data-panel="inspektor"]');
+  await t.waitForTimeout(400);
+  await t.click('#przycisk-wiecej');
+  await t.click('#menu-wiecej [data-akcja="pdf"]');
+  await t.waitForSelector('#dlg-pdf[open]');
+  await t.waitForFunction(() => !document.querySelector('#dlg-pdf').classList.contains('zaslonka-wjazd'));
+  await zrzut(t, 'telefon-zaslonka.png');
   await tel.close();
 
   await przegladarka.close();

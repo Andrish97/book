@@ -62,6 +62,11 @@ export function przelaczMenu(przycisk, menu) {
   if (bylo) return;
   menu.hidden = false;
   przycisk.setAttribute('aria-expanded', 'true');
+  // Menu nie może wyjść poza ekran (np. przy karcie projektu z lewej strony wąskiego ekranu).
+  menu.style.translate = '';
+  const r = menu.getBoundingClientRect();
+  const dx = r.left < 8 ? 8 - r.left : Math.min(0, window.innerWidth - 8 - r.right);
+  if (dx) menu.style.translate = `${Math.round(dx)}px 0`;
 }
 
 document.addEventListener('pointerdown', (e) => {
