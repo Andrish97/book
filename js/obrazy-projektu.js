@@ -108,28 +108,47 @@ function* elementy(obiekty) {
   }
 }
 
-// Gdzie obraz jest użyty: { strony: [numer], wzorce: [nazwa], dane: [nazwa tabeli], pierwsze: { strona | wzorzec } }.
-export function uzycia(p, id) {
-  const wynik = { strony: [], wzorce: [], dane: [], pierwsze: null };
+// Gdzie są użyte wszystkie obrazy – jedno przejście po stronach, wzorcach i tabelach (dla okna z wieloma
+// obrazami i dużymi tabelami liczenie obraz po obrazie trwało zbyt długo). Map(id → { strony: [numer],
+// wzorce: [nazwa], dane: [nazwa tabeli], pierwsze: { strona | wzorzec }, uzyty }).
+export function uzyciaWszystkich(p) {
+  const mapa = new Map();
+  const daj = (id) => {
+    if (!mapa.has(id)) mapa.set(id, { strony: [], wzorce: [], dane: [], pierwsze: null, uzyty: true });
+    return mapa.get(id);
+  };
+  const zasobyW = (obiekty) => new Set([...elementy(obiekty)].map((o) => o.zasob).filter(Boolean));
   p.strony.forEach((s, i) => {
-    if ([...elementy(s.obiekty)].some((o) => o.zasob === id)) {
-      wynik.strony.push(i + 1);
-      wynik.pierwsze ||= { strona: s.id };
-    }
+    for (const id of zasobyW(s.obiekty)) { const w = daj(id); w.strony.push(i + 1); w.pierwsze ||= { strona: s.id }; }
   });
-  for (const w of p.wzorce || []) {
-    if ([...elementy(w.obiekty)].some((o) => o.zasob === id)) {
-      wynik.wzorce.push(w.nazwa);
-      wynik.pierwsze ||= { wzorzec: w.id };
-    }
+  for (const wz of p.wzorce || []) {
+    for (const id of zasobyW(wz.obiekty)) { const w = daj(id); w.wzorce.push(wz.nazwa); w.pierwsze ||= { wzorzec: wz.id }; }
   }
-  // W danych: komórka, która według reguły z js/nazwy-obrazow.js wskazuje właśnie ten obraz.
+  // W danych: komórka, która według reguły z js/nazwy-obrazow.js wskazuje obraz; ta sama treść komórki – raz.
   const pomin = czcionki(p);
+  const wskazuje = new Map();
   for (const t of p.tabele || []) {
-    if ((t.wiersze || []).some((w) => (w || []).some((k) => String(k ?? '').trim() && obrazZNazwy(p.zasoby, k, pomin)?.id === id))) wynik.dane.push(t.nazwa);
+    const ids = new Set();
+    for (const wiersz of t.wiersze || []) {
+      for (const k of wiersz || []) {
+        const tekst = String(k ?? '');
+        if (!tekst.trim()) continue;
+        if (!wskazuje.has(tekst)) wskazuje.set(tekst, obrazZNazwy(p.zasoby, k, pomin)?.id ?? null);
+        const id = wskazuje.get(tekst);
+        if (id) ids.add(id);
+      }
+    }
+    for (const id of ids) daj(id).dane.push(t.nazwa);
   }
-  wynik.uzyty = Boolean(wynik.strony.length || wynik.wzorce.length || wynik.dane.length);
-  return wynik;
+  return mapa;
+}
+
+const NIEUZYWANY = () => ({ strony: [], wzorce: [], dane: [], pierwsze: null, uzyty: false });
+
+// Gdzie obraz jest użyty: { strony: [numer], wzorce: [nazwa], dane: [nazwa tabeli], pierwsze: { strona | wzorzec } }.
+// `wszystkie` – gotowy wynik uzyciaWszystkich(p), gdy pytamy o wiele obrazów naraz.
+export function uzycia(p, id, wszystkie = null) {
+  return (wszystkie || uzyciaWszystkich(p)).get(id) || NIEUZYWANY();
 }
 
 // Opis użycia dla człowieka: „strony 1, 3 · wzorzec „Tło” · w danych („Kalendarz”)” albo „nieużywany”.

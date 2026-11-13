@@ -10,11 +10,11 @@ import {
 } from '../ui.js';
 import { wstawIkony } from '../ikony.js';
 import { adresZasobu } from '../zasoby.js';
-import { przygotujKopie, kopiaRobocza, rozmiarOryginalu } from '../obrazy.js';
+import { kopiaRobocza } from '../obrazy.js';
 import { rozpakujZip } from '../obrazy-wspolne.js';
 import * as chmura from '../chmura.js';
 import {
-  obrazyProjektu, skrotPliku, takiSam, poNazwie, wolnaNazwa, dodajPlik, uzycia, opisUzycia, wHistorii,
+  obrazyProjektu, skrotPliku, takiSam, poNazwie, wolnaNazwa, dodajPlik, uzycia, uzyciaWszystkich, opisUzycia, wHistorii,
   przepnij, komorkiObrazu, przepiszDane, usunObraz, nowaWersja, rozmiarZasobu, powtorzenia,
 } from '../obrazy-projektu.js';
 import {
@@ -62,9 +62,11 @@ function rysuj() {
   const obrazy = obrazyProjektu(p);
   for (const id of [...zaznaczone]) if (!p.zasoby[id]) zaznaczone.delete(id);
   lista.replaceChildren();
+  kolejkaMiniatur.length = 0;
   let nieuzywane = 0;
+  const wszystkie = uzyciaWszystkich(p);
   for (const [id, z] of obrazy) {
-    const u = uzycia(p, id);
+    const u = uzycia(p, id, wszystkie);
     if (!u.uzyty) nieuzywane += 1;
     const li = document.createElement('li');
     li.dataset.id = id;
@@ -154,18 +156,64 @@ async function uporzadkuj() {
   rysuj();
 }
 
-// Miniatura z kopii roboczej (duże zdjęcia) albo z oryginału; wymiary zawsze oryginału.
-async function pokazMiniature(li, id, z, rozmiar) {
+// Miniatury powstają po kolei (najwyżej dwie naraz, od góry listy): przy kilkudziesięciu dużych zdjęciach
+// przygotowanie wszystkich kopii roboczych naraz zatykało przeglądarkę i okno długo się otwierało.
+const kolejkaMiniatur = [];
+let miniaturWToku = 0;
+function pokazMiniature(li, id, z, rozmiar) {
+  kolejkaMiniatur.push(() => zrobMiniature(li, id, z, rozmiar));
+  nastepnaMiniatura();
+}
+function nastepnaMiniatura() {
+  while (miniaturWToku < 2 && kolejkaMiniatur.length) {
+    const zadanie = kolejkaMiniatur.shift();
+    miniaturWToku += 1;
+    zadanie().catch(() => {}).finally(() => { miniaturWToku -= 1; nastepnaMiniatura(); });
+  }
+}
+
+// Prawdziwa miniatura (najwyżej 320 px), robiona raz na sesję i trzymana w pamięci: przy kilkudziesięciu
+// dużych zdjęciach przeglądarka nie trzyma w oknie pełnych obrazów i nie pomniejsza ich przy każdym
+// przewinięciu (okno „laguje”). Wymiary – zawsze oryginału.
+const miniatury = new Map(); // klucz pliku → { url, szer, wys }
+const BOK_MINIATURY = 320;
+async function miniaturaZasobu(z) {
+  const src = kopiaRobocza(z) || adresZasobu(z);
+  if (!src) return null;
+  const klucz = z.skrot || z.sciezka || src;
+  if (miniatury.has(klucz)) return miniatury.get(klucz);
+  let wynik = { url: src, szer: z.szer || null, wys: z.wys || null };
+  try {
+    const bmp = await window.createImageBitmap(await (await fetch(src)).blob());
+    const zOryginalu = src === adresZasobu(z);
+    if (zOryginalu && !(wynik.szer && wynik.wys)) wynik = { ...wynik, szer: bmp.width, wys: bmp.height };
+    const skala = Math.min(1, BOK_MINIATURY / Math.max(bmp.width, bmp.height));
+    if (skala < 1) {
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(bmp.width * skala));
+      c.height = Math.max(1, Math.round(bmp.height * skala));
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      const blob = await new Promise((ok) => { c.toBlob(ok, 'image/webp', 0.85); });
+      if (blob) wynik.url = URL.createObjectURL(blob);
+    }
+    bmp.close?.();
+  } catch { /* np. SVG – pokazujemy plik wprost */ }
+  miniatury.set(klucz, wynik);
+  return wynik;
+}
+
+async function zrobMiniature(li, id, z, rozmiar) {
+  if (!li.isConnected) return;
   const img = li.querySelector('img');
   const wymiary = li.querySelector('.obraz-wymiary');
-  try { await przygotujKopie(stan.projekt.zasoby, [{ type: 'image', zasob: id }]); } catch { /* zostaje oryginał */ }
-  const src = kopiaRobocza(z) || adresZasobu(z);
-  if (!src) { wymiary.textContent = 'brak pliku na tym urządzeniu'; li.classList.add('brak'); return; }
-  img.addEventListener('load', () => {
-    const { nw, nh } = rozmiarOryginalu({ getElement: () => img });
-    if (nw && nh) wymiary.textContent = `${nw} × ${nh} px${rozmiar ? ` · ${mb(rozmiar)}` : ''}`;
-  }, { once: true });
-  img.src = src;
+  const m = await miniaturaZasobu(z);
+  if (!m) { wymiary.textContent = 'brak pliku na tym urządzeniu'; li.classList.add('brak'); return; }
+  const gotowa = new Promise((ok) => { img.addEventListener('load', ok, { once: true }); img.addEventListener('error', ok, { once: true }); });
+  img.src = m.url;
+  await gotowa;
+  const nw = m.szer || (m.url === adresZasobu(z) ? img.naturalWidth : null);
+  const nh = m.wys || (m.url === adresZasobu(z) ? img.naturalHeight : null);
+  if (nw && nh) wymiary.textContent = `${nw} × ${nh} px${rozmiar ? ` · ${mb(rozmiar)}` : ''}`;
 }
 
 // ---------- Zaznaczanie ----------
@@ -302,7 +350,8 @@ async function pokaz(id) {
 // Usuwa obrazy, których nigdzie nie ma. Użytych nie rusza – mówi, gdzie są.
 async function usun(ids, { tytulZbiorczy = null } = {}) {
   const p = stan.projekt;
-  const uzyte = ids.map((id) => [id, uzycia(p, id)]).filter(([, u]) => u.uzyty);
+  const wszystkie = uzyciaWszystkich(p);
+  const uzyte = ids.map((id) => [id, uzycia(p, id, wszystkie)]).filter(([, u]) => u.uzyty);
   const wolne = ids.filter((id) => !uzyte.some(([x]) => x === id));
   const opisUzytych = uzyte.map(([id, u]) => `„${p.zasoby[id].nazwa}” (${opisUzycia(u)})`).join(', ');
   if (!wolne.length) {
@@ -327,7 +376,8 @@ async function usun(ids, { tytulZbiorczy = null } = {}) {
 
 function usunNieuzywane() {
   const p = stan.projekt;
-  const ids = obrazyProjektu(p).filter(([id]) => !uzycia(p, id).uzyty).map(([id]) => id);
+  const wszystkie = uzyciaWszystkich(p);
+  const ids = obrazyProjektu(p).filter(([id]) => !uzycia(p, id, wszystkie).uzyty).map(([id]) => id);
   if (ids.length) usun(ids, { tytulZbiorczy: `Usunąć ${ids.length} ${odmiana(ids.length, 'nieużywany obraz', 'nieużywane obrazy', 'nieużywanych obrazów')}?` });
 }
 
