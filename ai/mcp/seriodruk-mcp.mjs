@@ -509,6 +509,13 @@ function przygotujElement(e) {
   if (!o.id) o.id = noweId('o');
   if (typeof o.type === 'string') o.type = o.type.toLowerCase();
   if (o.type === 'textbox' && o.strokeWidth === undefined) o.strokeWidth = 0;
+  // Tekst bez kroju, rozmiaru albo koloru dostawał na płótnie domyślne Fabric (Times New Roman, 40 mm) –
+  // uzupełniamy tym, co daje przycisk „Tekst” w aplikacji (Inter 14 pt, ciemnoszary, interlinia 1,2).
+  if (['textbox', 'i-text', 'text'].includes(o.type)) {
+    const domyslne = { fontFamily: 'Inter', fontSize: Math.round((14 * 25.4 / 72) * 1000) / 1000, fill: '#1a1a1a', lineHeight: 1.2, textAlign: 'left' };
+    for (const [k, v] of Object.entries(domyslne)) if (o[k] === undefined) o[k] = v;
+    if (o.type === 'textbox' && !(o.width > 0)) o.width = 80;
+  }
   return o;
 }
 

@@ -158,6 +158,10 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   const nowy = s.projekt().projekt.strony[0].obiekty.at(-1);
   assert.equal(nowy.type, 'textbox');
   assert.equal(nowy.strokeWidth, 0);
+  // Bez kroju i rozmiaru: jak przycisk „Tekst” (Inter 14 pt), nie domyślne Fabric (Times, 40 mm).
+  assert.equal(nowy.fontFamily, 'Inter');
+  assert.ok(Math.abs(nowy.fontSize - 4.939) < 0.01);
+  assert.equal(nowy.width, 50, 'podana szerokość zostaje');
   await narzedzie('usun_elementy', { gdzie: 'strona:s1', id: [nowy.id] });
   assert.equal(s.projekt().projekt.strony[0].obiekty.length, 2);
   const ns = await narzedzie('dodaj_strone', { strona: { nazwa: 'Wstęp' }, po: 's1' });
