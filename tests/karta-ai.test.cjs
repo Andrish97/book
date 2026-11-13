@@ -88,7 +88,7 @@ test('otwarta karta nie udaje zmian: element od AI (same podstawowe pola), tło 
   const ai1 = s.obiekty.find((o) => o.id === 'ai1');
   assert.equal(ai1.text, 'Poprawione od AI');
   assert.equal(ai1.fill, '#ff0000');
-  assert.equal(ai1.width, undefined, 'element od AI został w postaci od AI – bez pól dopisanych przez płótno');
+  assert.equal(ai1.charSpacing, undefined, 'element od AI został w postaci od AI – bez pól dopisanych przez płótno');
   assert.equal(s.obiekty.find((o) => o.id === tekst.id).left, 77);
   assert.deepEqual(bledy, []);
 });
@@ -107,7 +107,7 @@ test('zmiana w karcie i równoległe zmiany AI na tej samej stronie łączą si�
   let s = naKoncie(baza, klucz).strony[0];
   assert.equal(s.obiekty.find((o) => o.id === prostokat.id).top, 99, 'zmiana użytkownika na koncie');
   assert.equal(s.obiekty.find((o) => o.id === 'ai1').text, 'Poprawione od AI', 'zmiana AI na koncie');
-  assert.equal(s.obiekty.find((o) => o.id === 'ai1').width, undefined, 'zapis karty nie przepisał elementu AI w postaci z płótna');
+  assert.equal(s.obiekty.find((o) => o.id === 'ai1').charSpacing, undefined, 'zapis karty nie przepisał elementu AI w postaci z płótna');
   assert.equal(s.tlo, '#AABBCC');
   // „Cofnij” w karcie zdejmuje przesunięcie prostokąta, a zmiany AI zostają.
   await strona.click('[data-akcja="cofnij"]');
@@ -123,3 +123,45 @@ test('zmiana w karcie i równoległe zmiany AI na tej samej stronie łączą si�
   assert.match(await strona.textContent('#dlg-konflikt'), /tekst „Z karty|tekst/);
   assert.deepEqual(bledy, []);
 });
+
+// Scenariusz użytkownika: AI pracuje, gdy projekt nie jest otwarty (lista projektów albo zamknięta karta);
+// potem użytkownik otwiera projekt – kopia w przeglądarce jest starsza i nie może nadpisać zmian AI.
+for (const sposob of ['lista', 'przeładowanie']) {
+  test(`AI zmienia projekt, gdy nie jest otwarty; otwarcie (${sposob}) pokazuje zmiany AI i ich nie nadpisuje`, async (t) => {
+    const { strona, baza, bledy, klucz, ai, s1, tekst, prostokat } = await przygotuj(t);
+    const id = baza.projekty[0].id;
+    // Zamknięcie projektu: powrót do listy (i ewentualnie przeładowanie karty – zostaje tylko kopia w przeglądarce).
+    await strona.evaluate(() => { location.hash = '#/projekty'; });
+    await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty', null, { timeout: 15000 });
+    if (sposob === 'przeładowanie') await strona.reload();
+    await strona.waitForTimeout(1500);
+    const zapisyPrzed = baza.zapisy?.length ?? null;
+    await ai.wywolaj('zmien_elementy', { gdzie: `strona:${s1.id}`, zmiany: [{ id: tekst.id, pola: { text: 'Tytuł od AI' } }, { id: prostokat.id, pola: { left: 33 } }] });
+    await ai.wywolaj('dodaj_elementy', { gdzie: `strona:${s1.id}`, elementy: [{ id: 'ai-nowy', type: 'textbox', text: 'Dopisane przez AI', left: 10, top: 10 }] });
+    await ai.wywolaj('zmien_strone', { id: s1.id, pola: { tlo: '#ABCDEF' } });
+    const wersjaAi = baza.ai('ai_projekt', { p_klucz: klucz }).wersja;
+    // Otwarcie projektu.
+    await strona.evaluate((pid) => { location.hash = `#/p/${pid}`; }, id);
+    await doszlo(strona, () => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text === 'Tytuł od AI') && window.seriodruk.edytor.canvas.getObjects().some((o) => o.id === 'ai-nowy'));
+    await strona.waitForTimeout(3000);
+    assert.equal(await pytanie(strona), 0, 'bez pytania o konflikt');
+    const s = naKoncie(baza, klucz).strony[0];
+    assert.equal(s.obiekty.find((o) => o.id === tekst.id).text, 'Tytuł od AI', 'zmiana tekstu od AI na koncie');
+    assert.equal(s.obiekty.find((o) => o.id === prostokat.id).left, 33, 'przesunięcie od AI na koncie');
+    assert.ok(s.obiekty.some((o) => o.id === 'ai-nowy'), 'element od AI na koncie');
+    assert.equal(s.tlo, '#ABCDEF', 'tło od AI na koncie');
+    // Karta po samym otwarciu nie zapisuje nowej wersji (nic nie zmieniała).
+    assert.equal(baza.ai('ai_projekt', { p_klucz: klucz }).wersja, wersjaAi, 'otwarcie nie tworzy nowej wersji na koncie');
+    // Teraz zmiana użytkownika na innym elemencie – zmiany AI dalej są na koncie.
+    await strona.evaluate((pid) => { const e = window.seriodruk.edytor; const o = e.canvas.getObjects().find((x) => x.id === pid); e.canvas.setActiveObject(o); o.set({ top: 140 }); o.setCoords(); e.canvas.fire('object:modified', { target: o }); }, prostokat.id);
+    await zapisano(strona);
+    await strona.waitForTimeout(1500);
+    const po = naKoncie(baza, klucz).strony[0];
+    assert.equal(po.obiekty.find((o) => o.id === tekst.id).text, 'Tytuł od AI');
+    assert.ok(po.obiekty.some((o) => o.id === 'ai-nowy'));
+    assert.equal(po.tlo, '#ABCDEF');
+    assert.equal(po.obiekty.find((o) => o.id === prostokat.id).top, 140, 'zmiana użytkownika na koncie');
+    void zapisyPrzed;
+    assert.deepEqual(bledy, []);
+  });
+}
