@@ -15,7 +15,7 @@ import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { podlaczZasoby } from '../zasoby.js';
 import { uzupelnijWymiary } from '../obrazy-projektu.js';
-import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan, noweNagrobki } from '../laczenie.js';
+import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan, noweNagrobki, kanon } from '../laczenie.js';
 import { toTabela, miejsceKomorki } from '../tabela-obiekt.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
@@ -122,7 +122,8 @@ export async function zaladujCel({ dopasuj = false } = {}) {
     edytor.ustawWydruk(wydruk, marginesyWzorca(cel));
     await edytor.wczytajStrone({ id: cel.id, obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff', prowadnice: cel.prowadnice }, projekt.zasoby, null);
     await edytor.ustawRamkiPoza([]);
-    naPlotnie = { wzorzec: cel.id };
+    naPlotnie = { wzorzec: cel.id, wczytane: zdjeciePlotna([cel]) };
+    naPlotnie.pola = zdjeciePol([cel]);
   } else {
     const ciag = rozwin(projekt);
     const arkusz = arkuszStrony(cel, ciag);
@@ -140,7 +141,8 @@ export async function zaladujCel({ dopasuj = false } = {}) {
     await edytor.wczytajArkusz(dane, projekt.zasoby);
     // Tekst płynący przez strony: ramki tych samych wątków z pozostałych stron.
     await edytor.ustawRamkiPoza(ramkiZInnychStron(projekt, strony));
-    naPlotnie = { strony: strony.map((s) => s.id) };
+    naPlotnie = { strony: strony.map((s) => s.id), wczytane: zdjeciePlotna(strony) };
+    naPlotnie.pola = zdjeciePol(strony);
   }
   edytor.przeliczOstrzezenia(); // które pola są znane, wiadomo dopiero po wczytaniu
   edytor.ustawWidok(projekt.widok);
@@ -215,6 +217,61 @@ export async function otworzProjekt(p, cel = {}) {
   uzupelnijWymiary(stan.projekt).then((ile) => { if (ile && stan.uzytkownik) zaplanujChmure(2000); }).catch(() => {});
 }
 
+// Elementy tuż po wczytaniu na płótno: dla każdego id – jego postać z płótna i element z projektu.
+// Płótno dopisuje elementom swoje pola domyślne (Fabric: wymiary tekstu, krój, krycie…); element, którego
+// nikt na płótnie nie ruszył, wraca więc do projektu w postaci z projektu, a nie z płótna. Inaczej każdy
+// element dodany z zewnątrz (np. przez AI, z samymi podstawowymi polami) po wczytaniu wyglądałby na zmieniony
+// tutaj – a przy jego następnej zmianie na koncie padałoby pytanie o konflikt, którego nie ma, i wybór
+// „z tego urządzenia” cofałby zmianę AI.
+function zdjeciePlotna(cele) {
+  const zProjektu = new Map(cele.flatMap((c) => c.obiekty || []).map((o) => [o.id, o]));
+  const wczytane = new Map();
+  for (const o of edytor.obiektyStrony()) {
+    if (o?.id && zProjektu.has(o.id)) wczytane.set(o.id, { kanon: kanonBezZ(o), obiekt: JSON.parse(JSON.stringify(zProjektu.get(o.id))) });
+  }
+  return wczytane;
+}
+// Pole `z` (kolejność na wspólnym płótnie rozkładówki) przesuwa się, gdy obok przybędzie albo ubędzie
+// element – sama zmiana kolejności innych nie jest zmianą tego elementu.
+const kanonBezZ = (o) => kanon({ ...o, z: undefined });
+// Postać z płótna albo – dla elementu, którego od wczytania nie zmieniono – ta z projektu.
+function bezZmianZPlotna(obiekty) {
+  const wczytane = naPlotnie?.wczytane;
+  if (!wczytane?.size) return obiekty;
+  return obiekty.map((o) => {
+    const w = o?.id && wczytane.get(o.id);
+    if (!w || w.kanon !== kanonBezZ(o)) return o;
+    return w.obiekt.z === undefined || w.obiekt.z === o.z ? w.obiekt : { ...w.obiekt, z: o.z };
+  });
+}
+
+// Tło i prowadnice strony albo wzorca (i – miejsce na arkuszu) tak, jak wyjdą z płótna: kolor w jednej postaci,
+// pozycje prowadnic zaokrąglone. Po wczytaniu zapamiętujemy, jak wyglądały – gdy nikt ich na płótnie nie zmienił,
+// w projekcie zostają takie, jakie były (np. „#FFEEDD” od AI nie staje się „#ffeedd” i nie udaje zmiany tutaj).
+function tloZPlotna(projekt, cel, i) {
+  const tlo = kolor(edytor.tla[i] || '#ffffff');
+  // Białe tło wzorca znaczy „bez tła” – nie nadpisuje innych wzorców; strona ma własne tło tylko inne niż z wzorców.
+  if (naPlotnie?.wzorzec) return tlo === '#ffffff' ? null : tlo;
+  return tlo === kolor(tloStrony(projekt, { ...cel, tlo: null })) ? null : tlo;
+}
+function zdjeciePol(cele) {
+  const prowadnice = edytor.prowadniceStron();
+  const kopia = (x) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
+  return new Map(cele.map((c, i) => [c.id, {
+    tlo: tloZPlotna(stan.projekt, c, i), prowadnice: kanon(prowadnice[i] ?? null),
+    bylo: { tlo: kopia(c.tlo), prowadnice: kopia(c.prowadnice) }, // wartości z projektu w chwili wczytania
+  }]));
+}
+// Na płótnie tak jak po wczytaniu – wartość z projektu z chwili wczytania; inaczej – postać z płótna.
+function zapiszPolaZPlotna(projekt, cel, i, prowadnice) {
+  const z = naPlotnie?.pola?.get(cel.id);
+  const tlo = tloZPlotna(projekt, cel, i);
+  if (z && z.tlo === tlo) { if (z.bylo.tlo === undefined) delete cel.tlo; else cel.tlo = z.bylo.tlo; } else cel.tlo = tlo;
+  if (z && z.prowadnice === kanon(prowadnice ?? null)) {
+    if (z.bylo.prowadnice === undefined) delete cel.prowadnice; else cel.prowadnice = JSON.parse(JSON.stringify(z.bylo.prowadnice));
+  } else zapiszProwadnice(cel, prowadnice);
+}
+
 // Własne prowadnice strony albo wzorca; puste nie zajmują miejsca w pliku.
 function zapiszProwadnice(cel, p) {
   if (p && (p.x.length || p.y.length)) cel.prowadnice = p; else delete cel.prowadnice;
@@ -228,11 +285,8 @@ export function zapiszBiezacyCel() {
   if (naPlotnie.wzorzec) {
     const cel = projekt.wzorce.find((w) => w.id === naPlotnie.wzorzec);
     if (!cel) return;
-    cel.obiekty = edytor.obiektyStrony();
-    zapiszProwadnice(cel, edytor.prowadniceStron()[0]);
-    // Białe tło wzorca znaczy „bez tła” – nie nadpisuje innych wzorców.
-    const tlo = kolor(edytor.tla[0] || '#ffffff');
-    cel.tlo = tlo === '#ffffff' ? null : tlo;
+    cel.obiekty = bezZmianZPlotna(edytor.obiektyStrony());
+    zapiszPolaZPlotna(projekt, cel, 0, edytor.prowadniceStron()[0]);
     // Strony z tym wzorcem trzeba przerysować.
     for (const s of stronyZWzorcem(projekt, cel.id)) stan.miniatury.delete(s.id);
     stan.miniatury.set(cel.id, edytor.miniatura(200, 0));
@@ -242,12 +296,8 @@ export function zapiszBiezacyCel() {
     naPlotnie.strony.forEach((id, i) => {
       const cel = projekt.strony.find((s) => s.id === id);
       if (!cel) return;
-      cel.obiekty = obiekty[i];
-      zapiszProwadnice(cel, prowadnice[i]);
-      // Własne tło zapisujemy tylko wtedy, gdy różni się od tła z wzorców.
-      const tlo = kolor(edytor.tla[i] || '#ffffff');
-      const odziedziczone = kolor(tloStrony(projekt, { ...cel, tlo: null }));
-      cel.tlo = tlo === odziedziczone ? null : tlo;
+      cel.obiekty = bezZmianZPlotna(obiekty[i]);
+      zapiszPolaZPlotna(projekt, cel, i, prowadnice[i]);
       stan.miniatury.set(cel.id, edytor.miniatura(200, i));
     });
     // Tekst, który przepłynął do ramek na innych stronach, wraca do tych stron.
