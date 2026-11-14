@@ -10,8 +10,14 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
-| 117 | Pasek stron na telefonie: miniatury na całą wysokość pasa, mały nagłówek sekcji zamiast wielkiej karty | ⏳ 17:40 |
-| 118 | Zasłonki na telefonie: stuknięcie w uchwyt rozwija zamiast zamykać | ⏳ 17:40 |
+| 117 | Pasek stron na telefonie: miniatury na całą wysokość, mały nagłówek sekcji | 🔄 |
+| 118 | Uchwyt zasłonek na telefonie: stuknięcie zamyka zamiast rozwijać | 🔄 |
+| 119 | Okładka liczona sama: oprawa, papier (grubość albo gramatura), strony środka liczone albo wpisane, elementy przy grzbiecie przesuwają się same | 🔄 |
+| 120 | Składki (×4/8/16/32): pilnowanie liczby stron, dopełnianie pustymi | 🔄 |
+| 121 | Ikona „Obróć” myli się z „Cofnij” | 🔄 |
+| 122 | Ostrzeżenia na telefonie ucięte w połowie | 🔄 |
+| 123 | Z Canvy: kształt jako ramka obrazu, usuwanie tła bez AI, półprzezroczyste przejścia, filtry, zaokrąglone rogi, cień tekstu, tekst po łuku, kod QR | 🔄 |
+| 124 | Link dla drukarni z edycją grzbietu i kartą techniczną | ⏳ po #119 |
 
 ## Czeka (kolejne etapy)
 
