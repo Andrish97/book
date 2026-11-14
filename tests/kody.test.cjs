@@ -49,10 +49,15 @@ test('EAN-13 / ISBN: kreski jak w bibliotece wzorcowej (python-barcode), cyfra k
   assert.match(cyfryEAN('97883abc').blad, /tylko cyfry/);
 });
 
-test('kod na stronie: wstawianie z paska, panel (rodzaj, treść, rozmiar), skala uchwytem, zapis, seria z danych, PDF i ostrzeżenia', async (t) => {
+test('kod na stronie: wstawianie z palety poleceń, panel (rodzaj, treść, rozmiar), skala uchwytem, zapis, seria z danych, PDF i ostrzeżenia', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Zaproszenia');
-  await strona.click('[data-akcja="dodaj-kod"]');
+  // Wstawianie z palety poleceń (Ctrl+K) – bez osobnego przycisku na pasku (#134).
+  assert.equal(await strona.locator('[data-akcja="dodaj-kod"]').count(), 0);
+  await strona.keyboard.press('Control+k');
+  await strona.waitForSelector('#paleta-polecen[open]');
+  await strona.fill('#paleta-polecen .paleta-pole', 'kod qr');
+  await strona.keyboard.press('Enter');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.kod);
   let kod = await strona.evaluate(() => { const g = window.seriodruk.edytor.aktywny; return { ...g.kod, dzieci: g.getObjects().map((o) => o.type), w: g.width }; });
   assert.equal(kod.rodzaj, 'qr');

@@ -50,6 +50,7 @@ import {
   wzorzecZMenu, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
 } from './lista-stron.js';
 import { podlaczDokWarstw } from './dok-warstw.js';
+import { dodajPolecenie } from '../paleta-polecen.js';
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje, zamienNaOkladke } from './sekcje.js';
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
@@ -301,7 +302,6 @@ export const akcje = {
   rysuj: () => edytor.ustawRysowanie(!edytor.rysuje),
   pioro: () => edytor.ustawPioro(!edytor.pioro),
   'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
-  'dodaj-kod': () => edytor.dodajKod('qr'),
   cofnij: () => cofnijKrok(-1),
   ponow: () => cofnijKrok(1),
   duplikuj: () => edytor.duplikuj(),
@@ -561,6 +561,14 @@ Object.assign(window.seriodruk, {
 Object.defineProperty(window.seriodruk, 'oknoPdf', { get: () => oknoPdf, configurable: true });
 
 // Dla reszty aplikacji (js/app/doczytaj.js): to, co wywołuje się spoza edytora.
+// Kod QR albo kod kreskowy EAN-13 / ISBN (#128) – jedna funkcja wstawiająca (paleta poleceń, potem Biblioteka, #134).
+export function wstawKod(rodzaj = 'qr') {
+  return edytor.dodajKod(rodzaj === 'ean' ? 'ean' : 'qr');
+}
+const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan.projekt);
+dodajPolecenie({ nazwa: 'Wstaw kod QR', opis: 'Adres, tekst, e-mail, telefon albo sieć Wi-Fi – także z pola danych', wykonaj: () => wstawKod('qr'), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Wstaw kod kreskowy EAN / ISBN', opis: 'EAN-13 albo ISBN, np. na okładkę książki', wykonaj: () => wstawKod('ean'), dostepne: wEdytorze });
+
 export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, pokazEdytor } from './zapis.js';
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
