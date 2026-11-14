@@ -70,6 +70,23 @@ Wtedy przełączam aplikację na przekaźnik (`PRZEZ_WORKER = true` w `js/marka.
 „Dostęp dla AI” daje adres `https://api.makietka.app/mcp/<klucz>`. Przy przełączeniu każdy raz się
 wyloguje (sesja jest zapisana pod adresem bazy) – projekty są na koncie, nic nie ginie.
 
+## 3a. Pliki w R2 (Cloudflare)
+
+Obrazy, czcionki i obrazy stron linków leżą w Cloudflare R2 (10 GB za darmo, bez opłat za transfer).
+Przekaźnik `api.makietka.app` obsługuje je pod `/pliki/…` i `/podglady/…` (decyzja #92).
+
+1. Cloudflare → **R2 Object Storage** → włącz R2 (Cloudflare prosi o metodę płatności także dla darmowego progu;
+   bez przekroczenia 10 GB nic nie płacisz).
+2. **Create bucket** → nazwa **`makietka-files`**, lokalizacja automatyczna (albo Europa) → **Create**.
+3. Nic więcej: powiązanie bucketu z Workerem (`PLIKI`) jest w `cloudflare/wrangler.jsonc` i ustawia się samo przy
+   wdrożeniu Workera z repozytorium.
+4. Sprawdzenie: po wdrożeniu `https://api.makietka.app/pliki/_miejsce` bez logowania odpowiada `401`
+   („Zaloguj się ponownie”), a nie `503` („Magazyn plików nie jest podłączony”).
+
+Kolejność: bucket i wdrożony Worker **przed** scaleniem wersji aplikacji, która używa R2 – inaczej obrazy
+przestaną się wgrywać i pobierać. Pierwsze zalogowanie po zmianie przenosi Twoje pliki ze starego magazynu
+(karta „Przenoszenie plików do nowego magazynu”).
+
 ## 4. Maile (Brevo)
 
 Wszystkie maile – logowanie, reset hasła, zaproszenia do współpracy – wysyła funkcja Edge przez API Brevo,
