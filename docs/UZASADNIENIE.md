@@ -47,6 +47,12 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Twoje decyzje.** Rejestracja bez potwierdzania adresu (#33). Poczta i szablony odłożone do czasu domeny (#34). Nazwa i domena: Makietka, `makietka.app` (#88).
 **Słabe.** Dopóki maile przez Brevo nie są podpięte (docs/KONFIGURACJA-DOMENY.md, „Maile (Brevo)”), osoba inna niż Ty nie odzyska hasła sama. Adres aplikacji i adresy powrotu w `config.toml` wskazują już na `makietka.app`.
 
+### 0.4. Miejsce na koncie i transfer (darmowy plan) ✅ / ⚠️
+**Co jest.** Darmowy plan bazy daje całej aplikacji 1 GB na pliki, 500 MB bazy i ok. 5 GB transferu miesięcznie. W ustawieniach konta (Miejsce) widać, ile zajmują Twoje pliki i ile całej aplikacji; od 80% ostrzeżenie – tam i przy wgrywaniu obrazów. „Posprzątaj…” (i samo sprzątanie raz na dobę przy liście projektów) usuwa pliki, na które nie wskazuje żaden projekt: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Mniej transferu: łączenie zmian z konta pobiera tylko zmienione strony (baza liczy skrót każdej strony), obrazy stron linków są w WebP, obrazy na koncie mają długi czas przechowywania w pamięci przeglądarki, czcionki projektu nie pobierają się przy każdym łączeniu.
+**Dlaczego tak.** Pierwszy kończy się limit plików – zdjęcia mają po kilka–kilkanaście MB. Licznik i sprzątanie dają czas na reakcję, zanim wgrywanie zacznie odmawiać. Sprzątanie liczy baza (funkcje `miejsce_na_koncie`, `pliki_osierocone`, `posprzataj_konto`), bo tylko ona widzi wszystkie projekty – także cudze, współdzielone; pliki usuwa aplikacja właściciela, bo Supabase nie pozwala funkcji bazy usuwać plików.
+**Sprawdzone.** Testy `tests/miejsce.test.cjs` (licznik, ostrzeżenie, sprzątanie ręczne i w tle, plik z projektu w tej przeglądarce zostaje, pobieranie tylko zmienionych stron); krok w próbie na prawdziwej bazie. Pomiar: zmiana od AI w projekcie 12 stron – 27 kB pobrania przed, 1,2 kB po; strona linku 1200 px – 296 kB JPEG, 134 kB WebP.
+**Słabe.** Plik młodszy niż 2 dni zostaje (może czekać na zapis projektu). Pierwsze łączenie po własnym zapisie pobiera strony, które ta karta właśnie wysłała (baza nie oddaje ich skrótów przy zapisie). Czcionki na koncie nie są sprzątane. Limit jest wspólny dla wszystkich osób – po jego wyczerpaniu zostaje plan płatny albo przeniesienie plików (np. Cloudflare R2).
+
 ## A. Fundamenty techniczne
 
 ### A1. Aplikacja statyczna, moduły bez etapu budowania ✅ / ⚠️

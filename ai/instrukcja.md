@@ -80,6 +80,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz �
 - **Logowanie** – **Zmień adres** i **Zmień hasło** rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. **Wpisz inny adres** zastępuje oczekujący adres nowym.
 - **Wygląd** – jasny albo ciemny motyw (następny rozdział).
 - **Urządzenia** – **Wyloguj** wylogowuje tylko to urządzenie, **Wyloguj wszędzie** – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).
+- **Miejsce** – ile zajmują Twoje pliki na koncie (obrazy, czcionki, podglądy linków) i ile wspólnego miejsca na pliki zostało całej aplikacji. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. **Posprzątaj…** pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.
 - **Usuwanie konta** – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.
 
 ## 4. Jasny i ciemny motyw

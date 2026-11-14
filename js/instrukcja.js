@@ -65,6 +65,7 @@ export const ROZDZIALY = [
       '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. <b>Wpisz inny adres</b> zastępuje oczekujący adres nowym.',
       '<b>Wygląd</b> – jasny albo ciemny motyw (następny rozdział).',
       '<b>Urządzenia</b> – <b>Wyloguj</b> wylogowuje tylko to urządzenie, <b>Wyloguj wszędzie</b> – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).',
+      '<b>Miejsce</b> – ile zajmują Twoje pliki na koncie (obrazy, czcionki, podglądy linków) i ile wspólnego miejsca na pliki zostało całej aplikacji. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. <b>Posprzątaj…</b> pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.',
       '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
     ],
   },

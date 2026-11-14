@@ -235,6 +235,12 @@ export async function otworzUdostepnianie(projekt = null) {
   $('#dlg-udostepnij').showModal();
 }
 
+let webp = null;
+const umieWebp = () => {
+  if (webp === null) { const c = document.createElement('canvas'); c.width = 2; c.height = 2; webp = c.toDataURL('image/webp').startsWith('data:image/webp'); }
+  return webp;
+};
+
 const nowyKod = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
 // Rysuje zmienione strony do JPEG i wysyła je razem z opisem – do folderu publicznego albo,
@@ -248,14 +254,17 @@ async function opublikuj(p, postep = () => {}, { pelna = false } = {}) {
   const uklad = ukladProjektu(p, ciag);
   const strony = stronyUkladu(uklad);
   const odciski = Object.fromEntries(strony.map((s) => [s.id, odciskStrony(p, poKluczu.get(s.id), ciag)]));
+  // WebP: ten sam wygląd przy ok. 30–40% mniejszych plikach (mniej transferu dla oglądających, #90).
+  // Przeglądarka, która nie umie zapisać WebP (oddaje PNG), wysyła JPEG jak dawniej.
+  const rozszerzenie = umieWebp() ? 'webp' : 'jpg';
   const obraz = async (s) => {
-    const url = await renderujCel(p, poKluczu.get(s.id), { szerokoscPx: 1200, spad: false, ciag, format: 'jpeg' });
+    const url = await renderujCel(p, poKluczu.get(s.id), { szerokoscPx: 1200, spad: false, ciag, ...(rozszerzenie === 'webp' ? { format: 'webp', jakosc: 0.8 } : { format: 'jpeg' }) });
     return (await fetch(url)).blob();
   };
   const odcisk = odciskTresci(p);
   const wynik = ochrona
-    ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna })
-    : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski);
+    ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie })
+    : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie });
   p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}) };
   return wynik;
 }

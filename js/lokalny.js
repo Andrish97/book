@@ -96,6 +96,15 @@ export async function listaLokalnych(wlasciciel) {
     .sort((a, b) => (b.zmieniono || '').localeCompare(a.zmieniono || ''));
 }
 
+// Ścieżki plików na koncie, na które wskazują projekty zapisane w tej przeglądarce (także niewysłane) –
+// sprzątanie konta ich nie rusza (js/miejsce.js).
+export async function sciezkiLokalne() {
+  const wszystkie = await transakcja('readonly', (m) => m.getAll());
+  const wynik = new Set();
+  for (const r of wszystkie || []) for (const z of Object.values(r.projekt?.zasoby || {})) if (z?.sciezka) wynik.add(z.sciezka);
+  return wynik;
+}
+
 export async function usunLokalnie(id) {
   await transakcja('readwrite', (m) => m.delete(id));
   try { await usunPlikiProjektu(id); } catch { /* sprzątanie plików nie może zepsuć usuwania projektu */ }

@@ -103,6 +103,8 @@ export async function pokazProjekty({ cicho = false } = {}) {
   const filtry = $('#filtry-projektow');
   filtry.hidden = udostepnione === 0;
   for (const b of filtry.querySelectorAll('[data-filtr]')) b.setAttribute('aria-pressed', String(b.dataset.filtr === filtr));
+  // Osierocone pliki na koncie – ciche sprzątanie najwyżej raz na dobę (#90).
+  if (stan.uzytkownik) import('../miejsce.js').then((m) => m.sprzatnijWTle(stan.uzytkownik.id)).catch(() => {});
   siatka.replaceChildren();
   $('#pusto-projekty').hidden = wszystkie.length > 0;
   $('.projekty-naglowek .przyciski-naglowka').hidden = wszystkie.length === 0;

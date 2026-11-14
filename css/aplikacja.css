@@ -1655,7 +1655,7 @@ dialog:focus { outline: none; }
 :root[data-dotyk] .uchwyt-arkusza { height: 30px; }
 :root[data-dotyk] .lista-ostrzezen .przycisk { min-height: 40px; }
 
-/* ======================================================================
+/* ===============================================================
    Współpraca między kontami (js/app/wspolpraca.js, js/app/obecnosc.js) – decyzja #86
    ====================================================================== */
 /* Projekt kogoś innego: bez linku podglądu i dostępu dla AI; rola „może oglądać” – tylko podgląd. */
@@ -1721,3 +1721,20 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
   position: absolute; top: 6px; left: 32px; width: 18px; height: 18px; border-radius: 50%;
   display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; pointer-events: none;
 }
+=======
+/* ---------- Miejsce na koncie (#90) ---------- */
+.miejsce-aplikacji { display: flex; flex-direction: column; gap: 8px; }
+.miejsce-naglowek { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.miejsce-naglowek span { color: var(--cichy); font-size: 13.5px; }
+.miejsce-pasek { display: flex; height: 10px; border-radius: 999px; background: var(--linia); overflow: hidden; }
+.miejsce-pasek span { display: block; height: 100%; width: 0; transition: width .3s ease; }
+.miejsce-pasek .moje { background: var(--akcent); }
+.miejsce-pasek .inne { background: color-mix(in srgb, var(--cichy) 55%, transparent); }
+.miejsce-aplikacji.wysoko .miejsce-pasek .moje { background: var(--uwaga); }
+.miejsce-legenda { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 0; font-size: 12.5px; color: var(--cichy); }
+.miejsce-legenda .kropka { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.miejsce-legenda .kropka.moje { background: var(--akcent); }
+.miejsce-legenda .kropka.inne { margin-left: 10px; background: color-mix(in srgb, var(--cichy) 55%, transparent); }
+.miejsce-ostrzezenie { margin: 0; padding: 10px 12px; border-radius: var(--r-m, 8px); background: var(--uwaga-tlo); color: var(--uwaga); font-size: 13.5px; line-height: 1.45; }
+#miejsce-baza { margin: 0; font-size: 12.5px; }
+@media (prefers-reduced-motion: reduce) { .miejsce-pasek span { transition: none; } }
