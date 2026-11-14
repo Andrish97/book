@@ -45,7 +45,7 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   await strona.waitForFunction(() => /z 10 GB/.test(document.querySelector('#miejsce-razem').textContent));
   // Konto wobec własnego limitu (R2, #92) i limity w jednym zdaniu.
   assert.match(await strona.textContent('#miejsce-konto'), /z 500 MB/);
-  assert.match(await strona.textContent('#miejsce-limity'), /Projekty: 1 z 30/);
+  assert.match(await strona.textContent('#miejsce-limity'), /Projekty: \d+ z 30\. Jeden plik – najwyżej 25 MB/);
   assert.match(await strona.textContent('#miejsce-obrazy'), /kB|MB/);
   assert.match(await strona.textContent('#miejsce-czcionki'), /39 kB|40 kB/);
   assert.ok(await strona.isHidden('#miejsce-ostrzezenie'), 'mało zajęte – bez ostrzeżenia');
