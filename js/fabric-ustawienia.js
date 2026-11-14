@@ -21,6 +21,9 @@ export const WLASNE_POLA = [
   'tabela', // tabela jako jeden element: { kolumny, wiersze, naglowek, linia } (tabela-obiekt.js)
   'okladka', 'okladka_dopasuj', // okładka (#119): przypięcie do tyłu, grzbietu albo przodu; dopasowanie do grzbietu
   'obraz_kadr', // kształt jako ramka obrazu: { x, y, skala } (obraz-w-ksztalcie.js, #123)
+  // Skład (#131, sklad.js): dzielenie wyrazów, spójniki, wdowy, inicjał, tabulatory, siatka bazowa, oblewanie.
+  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor',
+  'tabulatory', 'do_siatki', 'bez_oblewania', 'oblewanie', 'oblewanie_odstep',
   'filtry', // filtry obrazu bez zmiany pliku: { jasnosc, kontrast, nasycenie, szarosc, sepia, rozmycie } (#123)
 ];
 

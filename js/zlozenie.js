@@ -15,6 +15,8 @@ import { podstawWObiektach, kadrZWartosci, punktKadru } from './pola.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu, zbierzZasoby } from './obrazy.js';
 import { adresZasobu, dataUrlZasobu } from './zasoby.js';
 import { rozlejWatki } from './watki.js';
+import { ulozStrone } from './sklad.js';
+import { dzielenieGotowe } from './dzielenie.js';
 import { zapewnijCzcionki } from './czcionki.js';
 import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
@@ -182,6 +184,7 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
     if (!oryginaly) await przygotujKopie(projekt.zasoby, surowe);
     const obiekty = await ozyw(podmienZasoby(surowe, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, surowe))));
     wpiszWRamki(obiekty);
+    ulozStrone(obiekty, { siatka: egz.sekcja.wydruk.siatka_bazowa }); // oblewanie i siatka bazowa (#131)
     rozlejWatki(obiekty); // po podstawieniu danych tekst ma inną długość
     for (const o of obiekty) {
       if (w.lustro && lewa) odbij(o, szerokosc);
@@ -297,9 +300,11 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
   const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, egz.strona).wydruk;
   const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
+  await dzielenieGotowe; // wzorce dzielenia wyrazów – zanim teksty się ułożą
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, tresc))));
   wpiszWRamki(wlasne);
+  ulozStrone(wlasne, { siatka: wydruk.siatka_bazowa }); // oblewanie tekstem i siatka linii bazowych (#131)
   // Po podstawieniu danych tekst ma inną długość – połączone ramki przelewają go od nowa.
   // Ramki tych samych wątków z innych stron biorą udział w przelewaniu, ale nie są tu rysowane.
   const idWatkow = new Set(tresc.filter((o) => o.watek).map((o) => o.watek));

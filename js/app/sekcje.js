@@ -39,6 +39,12 @@ export function otworzUstawieniaSekcji(id) {
   f.elements.spad_mm.value = w.spad_mm;
   for (const k of ['gora', 'dol', 'wewnetrzny', 'zewnetrzny']) f.elements[`margines_${k}`].value = w.marginesy[k];
   f.elements.znaki_ciecia.checked = Boolean(w.znaki_ciecia);
+  // Siatka linii bazowych (#131): domyślnie odstęp interlinii tekstu podstawowego (10,5 pt × 1,35) od górnego marginesu.
+  const sb = w.siatka_bazowa;
+  f.elements.siatka_bazowa.checked = Boolean(sb);
+  f.elements.siatka_odstep.value = sb?.odstep ?? 5;
+  f.elements.siatka_przesuniecie.value = sb?.przesuniecie ?? w.marginesy.gora;
+  $('#siatka-bazowa-liczby').hidden = !sb;
   const num = (istniejaca || { numeracja: { tryb: 'ciagla', od: 1 } }).numeracja;
   f.elements.numeracja.value = num.tryb;
   f.elements.numeracja_od.value = num.od;
@@ -256,6 +262,9 @@ async function zatwierdzSekcje() {
       zewnetrzny: Math.min(mm('margines_zewnetrzny'), sz / 2 - 1),
     },
     znaki_ciecia: f.elements.znaki_ciecia.checked,
+    siatka_bazowa: f.elements.siatka_bazowa.checked
+      ? { odstep: Math.min(50, Math.max(1, mm('siatka_odstep') || 5)), przesuniecie: Math.min(wy, mm('siatka_przesuniecie')) }
+      : null,
   };
   const ustawienia = {
     nazwa: f.elements.nazwa.value.trim() || 'Sekcja',
@@ -393,3 +402,5 @@ export async function dopelnijSkladke(id) {
   powiadom(`Dodano ${b.brakuje} ${ile} – sekcja „${sekcja.nazwa}” ma ${b.doPelnej} stron.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
   return b.brakuje;
 }
+
+$('#dlg-sekcja [name="siatka_bazowa"]').addEventListener('change', (e) => { $('#siatka-bazowa-liczby').hidden = !e.target.checked; });

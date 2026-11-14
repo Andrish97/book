@@ -14,7 +14,7 @@ import { toRysunekSvg, rozlozRysunek } from '../svg-elementy.js';
 import * as chmura from '../chmura.js';
 import { $, powiadom, odmiana } from '../ui.js';
 import { Podglad } from '../podglad.js';
-import { odepnijStyl, zastosujStylWProjekcie } from '../style-tekstu.js';
+import { odepnijStyl, zastosujStylWProjekcie, odepnijStylZnakowy, zastosujStylZnakowyWProjekcie } from '../style-tekstu.js';
 import { edytor, stan, biezacaStrona, wlasciciel } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno } from './zapis.js';
 import { doEdycji } from './podglad-ekran.js';
@@ -35,6 +35,8 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
     sekcja.append(p.przelacznik('Nad treścią strony (domyślnie pod)', () => obj.warstwa === 'nad', (v) => { obj.warstwa = v ? 'nad' : undefined; }));
   },
   style: () => stan.projekt?.style || [],
+  styleZnakowe: () => { if (!stan.projekt) return null; stan.projekt.style_znakowe ||= []; return stan.projekt.style_znakowe; },
+  poZmianieStyliZnakowych: (zmiana) => poZmianieStyliZnakowych(zmiana),
   czcionki: () => { const { wlasne, wbudowane } = rodzinyCzcionek(stan.projekt); return [...wlasne, ...wbudowane]; },
   wgrajCzcionke: () => oknoCzcionek.wybierzPliki(),
   odmianyCzcionki: (rodzina) => odmianyRodziny(stan.projekt, rodzina),
@@ -100,6 +102,23 @@ async function poZmianieStyli(zmiana) {
   else {
     const n = zastosujStylWProjekcie(projekt, zmiana);
     powiadom(`Styl „${zmiana.nazwa}” zaktualizowany${n > 1 ? ` – zmieniono ${n} teksty w projekcie` : ''}.`);
+  }
+  stan.miniatury.clear();
+  await zaladujCel();
+  if (zaznaczony) edytor.zaznacz(zaznaczony);
+  zaplanujZapis();
+}
+
+// Style znakowe (#131): jak style akapitu – zmiana przepisuje wygląd do wszystkich fragmentów projektu.
+async function poZmianieStyliZnakowych(zmiana) {
+  const { projekt } = stan;
+  if (!zmiana) { edytor.zatwierdz(); panel.odswiez(); return; }
+  const zaznaczony = edytor.aktywny?.id;
+  zapiszBiezacyCel();
+  if (zmiana.usuniety) odepnijStylZnakowy(projekt, zmiana.usuniety);
+  else {
+    const n = zastosujStylZnakowyWProjekcie(projekt, zmiana);
+    powiadom(`Styl znakowy „${zmiana.nazwa}” zaktualizowany${n > 1 ? ` – zmieniono ${n} teksty w projekcie` : ''}.`);
   }
   stan.miniatury.clear();
   await zaladujCel();

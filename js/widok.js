@@ -15,6 +15,7 @@ export class MenuWidoku {
       do_elementow: $('#widok-do-elementow'),
       linijki: $('#widok-linijki'),
       blokada_prowadnic: $('#widok-blokada-prowadnic'),
+      siatka_bazowa: $('#widok-siatka-bazowa'), // linie bazowe z ustawień sekcji (#131)
     };
     this.krok = $('#widok-krok');
     for (const [klucz, pole] of Object.entries(this.pola)) {

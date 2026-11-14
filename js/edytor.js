@@ -8,6 +8,7 @@
 // zaczyna się w x = szerokość strony. Na piksele przeliczamy tylko widok:
 // viewportTransform = skala (px/mm × zoom) + przesunięcie o spad.
 
+import { ulozStrone } from './sklad.js';
 import { WLASNE_POLA, toZaznaczenie } from './fabric-ustawienia.js';
 import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA, zapewnijCzcionki, zapewnijRodziny } from './czcionki.js';
@@ -219,6 +220,19 @@ export class Edytor extends EventTarget {
 
     // Klawisze na granicy połączonych ramek tekstu – przed obsługą klawiszy samego tekstu.
     document.addEventListener('keydown', (e) => this._klawiszNaGranicyRamek(e), true);
+    // Tab w pisanym tekście wstawia tabulator (#131), zamiast przechodzić do następnego elementu.
+    document.addEventListener('keydown', (e) => this._tabulatorWTekscie(e), true);
+
+    // Skład (#131): oblewanie tekstem i siatka linii bazowych zależą od innych elementów strony –
+    // po każdej zmianie położenia teksty układają się od nowa (tylko te, którym coś się zmieniło).
+    for (const zdarzenie of ['object:moving', 'object:scaling', 'object:rotating', 'object:modified', 'object:added', 'object:removed']) {
+      c.on(zdarzenie, () => this.ulozSkladStrony());
+    }
+    // Wzorce dzielenia wyrazów wczytują się w tle – po ich przyjściu teksty z dzieleniem układają się od nowa.
+    globalThis.addEventListener?.('makietka:dzielenie', () => {
+      for (const o of c.getObjects()) if (o.type === 'textbox' && o.dziel_wyrazy) { o.initDimensions(); o.dirty = true; }
+      c.requestRenderAll();
+    });
 
     this._obslugaGestow();
   }
@@ -411,6 +425,7 @@ export class Edytor extends EventTarget {
     this._zastosujBlokady();
     this._dopasujRozmiar();
     this._wczytywanie = false;
+    this.ulozSkladStrony({ teraz: true });
     this.przeliczOstrzezenia();
     this._emitujZaznaczenie();
   }
@@ -590,6 +605,9 @@ export class Edytor extends EventTarget {
       fill: '#1a1a1a',
       textAlign: 'left',
       strokeWidth: 0, // domyślne 1 (= 1 mm) poszerzałoby ramkę obiektu
+      // Skład (#131): spójniki nie zostają na końcu wiersza, wdowy i sieroty pilnowane przy przelewaniu.
+      spojniki: true,
+      wdowy: 2,
     });
     return this._wstaw(t);
   }
@@ -1428,6 +1446,39 @@ export class Edytor extends EventTarget {
   // Klawisze na granicy połączonych ramek. Backspace na samym początku ramki usuwa znak sprzed kursora –
   // czyli koniec poprzedniej części (albo odstęp między częściami); Delete na końcu – początek następnej.
   // Strzałki w lewo i w prawo przechodzą do sąsiedniej ramki – także na innej stronie.
+  // Teksty strony: przeszkody oblewania i siatka bazowa (sklad.js). Odkładane do następnej klatki,
+  // żeby przy przeciąganiu liczyć raz na klatkę.
+  ulozSkladStrony({ teraz = false } = {}) {
+    const uloz = () => {
+      this._skladZaplanowany = false;
+      const zmienione = ulozStrone(this.canvas.getObjects(), { siatka: this.wydruk?.siatka_bazowa });
+      if (!zmienione.length) return;
+      const watki = new Set(zmienione.filter((t) => t.watek).map((t) => t.watek));
+      for (const id of watki) {
+        const ramki = this.canvas.getObjects().filter((o) => o.type === 'textbox' && o.watek === id).sort((a, b) => (a.watek_nr || 0) - (b.watek_nr || 0));
+        if (ramki.length > 1) rozlej(ramki);
+      }
+      this.canvas.requestRenderAll();
+    };
+    if (teraz) { uloz(); return; }
+    if (this._skladZaplanowany) return;
+    this._skladZaplanowany = true;
+    (globalThis.requestAnimationFrame || setTimeout)(uloz);
+  }
+
+  _tabulatorWTekscie(e) {
+    const o = this.aktywny;
+    if (e.key !== 'Tab' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || !o?.isEditing || e.target !== o.hiddenTextarea || toTabela(o.group)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const ta = o.hiddenTextarea;
+    const a = ta.selectionStart;
+    ta.value = `${ta.value.slice(0, a)}\t${ta.value.slice(ta.selectionEnd)}`;
+    ta.selectionStart = a + 1;
+    ta.selectionEnd = a + 1;
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   _klawiszNaGranicyRamek(e) {
     const o = this.aktywny;
     if (!o?.isEditing || !o.watek || o.zWzorca || o.inCompositionMode || e.target !== o.hiddenTextarea) return;
@@ -3463,6 +3514,22 @@ export class Edytor extends EventTarget {
         ctx.closePath();
         ctx.fill();
       }
+    }
+
+    // Siatka linii bazowych sekcji (#131): poziome linie co `odstep` od `przesuniecie` (mm od góry strony).
+    const bazowa = this.wydruk.siatka_bazowa;
+    if (this.pokazProwadnice && this.widok.siatka_bazowa && bazowa?.odstep > 0) {
+      const krok = bazowa.odstep;
+      const co = Math.max(1, Math.ceil(4 / (krok * s)));
+      ctx.lineWidth = 1;
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(14, 165, 233, 0.35)';
+      ctx.beginPath();
+      for (let k = 0, y0 = (bazowa.przesuniecie || 0); y0 + k * krok < h + 0.01; k += co) {
+        const py = Math.round(Y(y0 + k * krok)) + 0.5;
+        ctx.moveTo(X(0), py); ctx.lineTo(X(w), py);
+      }
+      ctx.stroke();
     }
 
     if (this.pokazProwadnice && this.widok.siatka && this.widok.siatka_mm > 0) {

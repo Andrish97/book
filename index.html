@@ -710,6 +710,7 @@
               <label class="przelacznik"><input type="checkbox" id="widok-siatka"><span>Siatka</span><kbd>Ctrl '</kbd></label>
               <label class="przelacznik"><input type="checkbox" id="widok-do-siatki"><span>Przyciągaj do siatki</span><kbd>Ctrl Shift '</kbd></label>
               <label class="pole-widoku"><span>Krok siatki</span><span class="z-jednostka"><input type="text" inputmode="decimal" id="widok-krok" aria-label="Krok siatki w milimetrach"><i>mm</i></span></label>
+              <label class="przelacznik"><input type="checkbox" id="widok-siatka-bazowa"><span>Siatka linii bazowych</span></label>
               <hr>
               <label class="przelacznik"><input type="checkbox" id="widok-do-elementow"><span>Przyciągaj do elementów i pokazuj odległości</span></label>
               <label class="przelacznik"><input type="checkbox" id="widok-linijki"><span>Linijki</span><kbd>Shift R</kbd></label>
@@ -998,6 +999,16 @@
           <div class="lista-wyboru" id="sekcja-wzorce"></div>
         </div>
         <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"><span>Znaki cięcia w pliku PDF</span></label>
+      </fieldset>
+
+      <fieldset class="grupa-pol siatka-bazowa-pola">
+        <legend>Siatka linii bazowych</legend>
+        <label class="przelacznik"><input name="siatka_bazowa" type="checkbox"><span>Siatka linii bazowych w tej sekcji</span></label>
+        <div class="rzad" id="siatka-bazowa-liczby">
+          <label class="pole waskie"><span>Odstęp (mm)</span><input name="siatka_odstep" type="number" min="1" max="50" step="0.1" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Pierwsza linia (mm od góry)</span><input name="siatka_przesuniecie" type="number" min="0" max="200" step="0.5" inputmode="decimal"></label>
+        </div>
+        <p class="podpowiedz">Teksty z włączonym „Wyrównaj do siatki” (panel tekstu → Skład akapitu) stawiają każdy wiersz na tych liniach – wiersze sąsiednich kolumn i stron stoją na tej samej wysokości. Linie pokażesz w menu widoku.</p>
       </fieldset>
 
       <p class="podpowiedz">Ustawienia dotyczą wszystkich stron tej sekcji. Elementy zostają w tych samych miejscach (w mm) – po zmianie formatu sprawdź ostrzeżenia.</p>

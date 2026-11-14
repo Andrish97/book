@@ -14,6 +14,8 @@
 // strony. Edytor trzyma ramki z pozostałych stron w pamięci (poza płótnem),
 // a składanie strony dobiera je z projektu (zlozenie.js).
 
+import { poprawWdowy } from './sklad.js';
+
 // Liczba znaków bez znaków nowej linii – tak Fabric liczy położenia stylów.
 const bezLinii = (t) => t.length - (t.match(/\n/g) || []).length;
 
@@ -80,7 +82,8 @@ function ileWierszy(ramka) {
     h += wiersz;
     k = i + 1;
   }
-  return Math.max(1, k);
+  // Wdowy i sieroty (#131): akapit przecięty granicą ramek zostawia po obu stronach co najmniej `wdowy` wierszy.
+  return Math.max(1, poprawWdowy(ramka, k));
 }
 
 // Numer znaku w tekście, od którego zaczyna się wiersz k (po zawinięciu).
@@ -115,7 +118,12 @@ export function rozlej(ramki) {
       if (k < r._textLines.length) idx = poczatekWiersza(r, k);
     }
     const [a, b] = podzielTekst(text, styles, idx);
+    // Słowo podzielone między ramki (dzielenie wyrazów): łącznik na końcu tej ramki.
+    const lacznikNaKoncu = b.lacznik === '' && Boolean(b.text);
+    const bylLacznik = Boolean(r._lacznikNaKoncu);
+    r._lacznikNaKoncu = lacznikNaKoncu || undefined;
     if (a.text !== text) ustawTekst(r, a.text, a.styles);
+    else if (bylLacznik !== lacznikNaKoncu) r.initDimensions();
     if (i) r.lacznik = lacznik; else delete r.lacznik;
     // Numerowana lista liczy dalej w kolejnej ramce; akapit przeniesiony w połowie nie dostaje nowego numeru.
     const ciagDalszy = i > 0 && lacznik !== '\n' && a.text !== '';
@@ -150,7 +158,8 @@ export function odlaczRamke(r) {
 }
 
 // Właściwości tekstu wspólne dla całego wątku – tekst wygląda tak samo w każdej ramce.
-export const WSPOLNE_W_WATKU = ['fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl', 'wielkosc_liter'];
+export const WSPOLNE_W_WATKU = ['fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl', 'wielkosc_liter',
+  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'do_siatki', 'tabulatory'];
 
 // Kolejność czytania ramek: z góry na dół, a ramki leżące obok siebie – od lewej.
 export function kolejnoscCzytania(ramki) {
