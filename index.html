@@ -525,9 +525,11 @@
             </div>
           </div>
           <div class="separator"></div>
-          <button class="przycisk-ikona" data-akcja="zoom-minus" data-ikona="minus" aria-label="Pomniejsz"></button>
-          <button class="wartosc-zoom" data-akcja="zoom-dopasuj" id="wartosc-zoom" title="Dopasuj do okna">100%</button>
-          <button class="przycisk-ikona" data-akcja="zoom-plus" data-ikona="plus" aria-label="Powiększ"></button>
+          <div class="powiekszenie" role="group" aria-label="Powiększenie">
+            <button class="powiekszenie-krok" data-akcja="zoom-minus" data-ikona="minus" aria-label="Pomniejsz" title="Pomniejsz"></button>
+            <button class="wartosc-zoom" data-akcja="zoom-dopasuj" id="wartosc-zoom" title="Dopasuj do okna" aria-label="Dopasuj do okna">100%</button>
+            <button class="powiekszenie-krok" data-akcja="zoom-plus" data-ikona="plus" aria-label="Powiększ" title="Powiększ"></button>
+          </div>
         </div>
       </main>
 
@@ -588,10 +590,10 @@
       <button class="przycisk tylko-wlasciciel tylko-wlasciciel-projektu" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona tylko-gosc" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
-      <div class="grupa-przyciskow">
-        <button class="przycisk-ikona" data-akcja="podglad-minus" data-ikona="minus" aria-label="Pomniejsz"></button>
-        <button class="wartosc-zoom" data-akcja="podglad-dopasuj" id="podglad-zoom" title="Dopasuj do okna">100%</button>
-        <button class="przycisk-ikona" data-akcja="podglad-plus" data-ikona="plus" aria-label="Powiększ"></button>
+      <div class="powiekszenie" role="group" aria-label="Powiększenie">
+        <button class="powiekszenie-krok" data-akcja="podglad-minus" data-ikona="minus" aria-label="Pomniejsz" title="Pomniejsz"></button>
+        <button class="wartosc-zoom" data-akcja="podglad-dopasuj" id="podglad-zoom" title="Dopasuj do okna" aria-label="Dopasuj do okna">100%</button>
+        <button class="powiekszenie-krok" data-akcja="podglad-plus" data-ikona="plus" aria-label="Powiększ" title="Powiększ"></button>
       </div>
     </header>
     <main class="podglad-tresc" id="podglad-tresc" tabindex="-1"></main>
