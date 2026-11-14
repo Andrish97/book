@@ -121,33 +121,117 @@ test('hak Auth: link tylko do naszej strony (obcy redirect_to – adres ze stał
   assert.match((await zle.json()).error.message, /401: Key not found/);
 });
 
-test('zaproszenie do projektu: dane z bazy tokenem zapraszającego, link ze stałej, odpowiedź do zapraszającego; bez klucza – bez wysyłki', async () => {
+// Atrapa sieci dla kolejki: odpowiedzi bazy według nazwy funkcji (rpc), Brevo – jedna odpowiedź albo funkcja.
+function siecKolejki(rpc, brevo = () => ({ status: 201, tresc: { messageId: '<id-brevo@smtp-relay.mailin.fr>' } })) {
+  const wywolania = [];
+  const wyslij = async (url, o) => {
+    const tresc = o.body ? JSON.parse(o.body) : null;
+    wywolania.push({ url, o, tresc });
+    const nazwa = url.includes('/rest/v1/rpc/') ? url.split('/rest/v1/rpc/')[1] : null;
+    const w = nazwa ? (typeof rpc[nazwa] === 'function' ? rpc[nazwa](tresc) : rpc[nazwa]) || { status: 404, tresc: { message: `brak ${nazwa}` } } : brevo(tresc);
+    return new Response(JSON.stringify(w.tresc ?? null), { status: w.status || 200, headers: { 'content-type': 'application/json' } });
+  };
+  return {
+    wyslij, wywolania,
+    maile: () => wywolania.filter((w) => w.url === 'https://api.brevo.com/v3/smtp/email').map((w) => w.tresc),
+    rpc: (n) => wywolania.filter((w) => w.url.endsWith(`/rest/v1/rpc/${n}`)),
+  };
+}
+
+test('zaproszenie do projektu idzie przez kolejkę: plan tokenem zapraszającego, przebieg kluczem serwisowym, link ze stałej, odpowiedź do zapraszającego; limity i błędy', async () => {
   const { obsluzPoczte } = await poczta();
   const dane = { email: 'ola@przyklad.pl', kod: 'Kod_1', rola: 'edycja', wazne_do: '2026-11-28T10:00:00Z', projekt: 'Kalendarz <2027>', od: 'Anna', od_email: 'anna@test.pl' };
+  const partia = (id = 'k1') => ({ status: 200, tresc: {
+    wiadomosci: [{ id, rodzaj: 'zaproszenie', do_email: 'ola@przyklad.pl', szablon: 'zaproszenie', dane, odpowiedz_do: { email: 'anna@test.pl', name: 'Anna' }, naglowki: {}, od_skrzynki: false }],
+    odstep_ms: 0, nadawca: { email: 'no-reply@makietka.app', name: 'Makietka' }, skrzynka: { email: 'kontakt@makietka.app', name: 'Makietka' },
+  } });
   const zadanie = (naglowki = { authorization: 'Bearer token-anny' }) => new Request('https://x/functions/v1/poczta', { method: 'POST', headers: { 'content-type': 'application/json', ...naglowki }, body: JSON.stringify({ zaproszenie: 'z1' }) });
-  let s = siec({ status: 200, tresc: dane });
-  let odp = await obsluzPoczte(zadanie(), { ...ENV, SUPABASE_URL: 'https://baza.test' }, s.wyslij);
+  const ENVK = { ...ENV, SUPABASE_URL: 'https://baza.test', SUPABASE_SERVICE_ROLE_KEY: 'klucz-serwisowy' };
+
+  let s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k1', email: 'ola@przyklad.pl' } }, poczta_kolejka_pobierz: partia(), poczta_kolejka_wynik: { tresc: null } });
+  let odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
   assert.deepEqual(await odp.json(), { wyslano: true, email: 'ola@przyklad.pl' });
-  assert.equal(s.wywolania[0].url, 'https://baza.test/rest/v1/rpc/dane_maila_zaproszenia');
-  assert.equal(s.wywolania[0].o.headers.authorization, 'Bearer token-anny');
+  assert.equal(s.rpc('poczta_zaplanuj_zaproszenie')[0].o.headers.authorization, 'Bearer token-anny', 'plan – tokenem zapraszającego');
+  assert.equal(s.rpc('poczta_kolejka_pobierz')[0].o.headers.authorization, 'Bearer klucz-serwisowy', 'kolejka – kluczem serwisowym');
+  assert.deepEqual(s.rpc('poczta_kolejka_wynik')[0].tresc, { p_id: 'k1', p_ok: true, p_blad: null, p_message_id: '<id-brevo@smtp-relay.mailin.fr>' });
   const m = s.maile()[0];
   assert.deepEqual(m.to, [{ email: 'ola@przyklad.pl' }]);
+  assert.deepEqual(m.sender, { email: 'no-reply@makietka.app', name: 'Makietka' });
   assert.deepEqual(m.replyTo, { email: 'anna@test.pl', name: 'Anna' });
   assert.ok(m.textContent.includes('https://makietka.app/#/zaproszenie/Kod_1'));
   assert.ok(m.htmlContent.includes('Kalendarz &lt;2027&gt;'));
   assert.match(m.subject, /Anna zaprasza Cię do projektu „Kalendarz <2027>”/);
+  assert.deepEqual(m.tags, ['zaproszenie']);
 
-  s = siec({ status: 200, tresc: dane });
-  odp = await obsluzPoczte(zadanie(), { SITE_URL: 'https://makietka.app' }, s.wyslij);
+  // Za często (odstęp na adresata / konto liczy baza) – bez wysyłki, z czasem „spróbuj za…”.
+  s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { blad: 'za-czesto', za: '8 min', za_sekund: 470 } } });
+  odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
+  assert.deepEqual(await odp.json(), { wyslano: false, powod: 'za-czesto', za: '8 min', za_sekund: 470 });
+  assert.equal(s.maile().length, 0);
+  // Mail czeka w kolejce (np. dzienny limit dostawcy) – przebieg go nie wysłał.
+  s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k2', email: 'ola@przyklad.pl' } }, poczta_kolejka_pobierz: { tresc: { wiadomosci: [], powod: 'limit-dzienny' } } });
+  odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
+  assert.deepEqual(await odp.json(), { wyslano: false, powod: 'w-kolejce', email: 'ola@przyklad.pl' });
+  // Brevo odrzuca – wynik do bazy (ponowienie później), aplikacja dostaje błąd do pokazania.
+  s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k1', email: 'ola@przyklad.pl' } }, poczta_kolejka_pobierz: partia(), poczta_kolejka_wynik: { tresc: null } },
+    () => ({ status: 401, tresc: { message: 'Key not found' } }));
+  odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
+  const zly = await odp.json();
+  assert.equal(zly.powod, 'blad-wysylki');
+  assert.match(zly.blad, /401: Key not found/);
+  assert.equal(s.rpc('poczta_kolejka_wynik')[0].tresc.p_ok, false);
+  // Bez klucza Brevo – zaproszenie zostaje w kolejce, aplikacja podsuwa link do wysłania samemu.
+  s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k1', email: 'ola@przyklad.pl' } } });
+  odp = await obsluzPoczte(zadanie(), { SITE_URL: 'https://makietka.app', SUPABASE_SERVICE_ROLE_KEY: 'x' }, s.wyslij);
   assert.deepEqual(await odp.json(), { wyslano: false, powod: 'brak-konfiguracji' });
   odp = await obsluzPoczte(zadanie({}), ENV, s.wyslij);
   assert.equal(odp.status, 401);
-  s = siec({ status: 400, tresc: { message: 'E-mail z tym zaproszeniem poszedł przed chwilą' } });
-  odp = await obsluzPoczte(zadanie(), ENV, s.wyslij);
+  s = siecKolejki({ poczta_zaplanuj_zaproszenie: { status: 400, tresc: { message: 'E-mail z tym zaproszeniem poszedł przed chwilą' } } });
+  odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
   assert.match((await odp.json()).blad, /przed chwilą/);
   assert.equal(s.maile().length, 0);
   odp = await obsluzPoczte(new Request('https://x', { method: 'OPTIONS' }), ENV, s.wyslij);
   assert.equal(odp.status, 204);
+});
+
+test('kolejka: odpowiedź z panelu z adresu skrzynki z In-Reply-To/References, potwierdzenie z formularza, test; odstęp między mailami; bez klucza serwisowego – nic', async () => {
+  const { obsluzPoczte, przetworzKolejke } = await poczta();
+  const ENVK = { ...ENV, SUPABASE_URL: 'https://baza.test', SUPABASE_SECRET_KEYS: JSON.stringify({ default: 'sb_secret_xyz' }) };
+  const wiadomosci = [
+    { id: 'o1', rodzaj: 'odpowiedz', do_email: 'jan@przyklad.pl', do_nazwa: 'Jan', szablon: 'odpowiedz', temat: 'Re: Faktura',
+      dane: { tresc: 'Dzień dobry,\n\nfaktura w załączniku.', cytat: 'Proszę o fakturę.', kiedy: '2026-11-15T09:00:00Z' },
+      naglowki: { 'In-Reply-To': '<m1@przyklad.pl>', References: '<m1@przyklad.pl>', 'X-Obcy': 'nie' }, od_skrzynki: true },
+    { id: 'k1', rodzaj: 'kontakt', do_email: 'gosc@przyklad.pl', szablon: 'kontakt', dane: { temat: 'Druk', tresc: 'Czy da się <b>A4</b>?' },
+      odpowiedz_do: { email: 'kontakt@makietka.app' }, naglowki: {}, od_skrzynki: false },
+    { id: 't1', rodzaj: 'test', do_email: 'admin@przyklad.pl', szablon: 'test', dane: {}, naglowki: {}, od_skrzynki: false },
+  ];
+  const s = siecKolejki({
+    poczta_kolejka_pobierz: { tresc: { wiadomosci, odstep_ms: 250, nadawca: { email: 'no-reply@makietka.app', name: 'Makietka' }, skrzynka: { email: 'kontakt@makietka.app', name: 'Makietka' } } },
+    poczta_kolejka_wynik: { tresc: null },
+  });
+  const przerwy = [];
+  const w = await przetworzKolejke(ENVK, s.wyslij, { czekaj: async (ms) => { przerwy.push(ms); } });
+  assert.deepEqual(w.wyslane, ['o1', 'k1', 't1']);
+  assert.deepEqual(przerwy, [250, 250], 'odstęp z ustawień między mailami');
+  assert.deepEqual(s.rpc('poczta_kolejka_pobierz')[0].o.headers, { apikey: 'sb_secret_xyz', 'content-type': 'application/json' }, 'nowy klucz sb_secret – tylko nagłówek apikey');
+  const [odp, kontakt, test1] = s.maile();
+  assert.deepEqual(odp.sender, { email: 'kontakt@makietka.app', name: 'Makietka' });
+  assert.deepEqual(odp.to, [{ email: 'jan@przyklad.pl', name: 'Jan' }]);
+  assert.deepEqual(odp.headers, { 'In-Reply-To': '<m1@przyklad.pl>', References: '<m1@przyklad.pl>' }, 'tylko nagłówki wątku');
+  assert.equal(odp.subject, 'Re: Faktura');
+  assert.match(odp.textContent, /faktura w załączniku\.[\s\S]*— Makietka[\s\S]*> Proszę o fakturę\./);
+  assert.match(kontakt.subject, /dostaliśmy Twoją wiadomość: Druk/);
+  assert.ok(kontakt.htmlContent.includes('Czy da się &lt;b&gt;A4&lt;/b&gt;?'));
+  assert.deepEqual(kontakt.replyTo, { email: 'kontakt@makietka.app' });
+  assert.match(test1.subject, /test poczty/);
+  // Wynik zapisany z Message-ID dostawcy (wątki w skrzynce).
+  assert.equal(s.rpc('poczta_kolejka_wynik').length, 3);
+  // Przebieg zlecony z zewnątrz (Cron Workera) – bez tokenu.
+  const s2 = siecKolejki({ poczta_kolejka_pobierz: { tresc: { wiadomosci: [], powod: null } } });
+  const r = await obsluzPoczte(new Request('https://x', { method: 'POST', body: JSON.stringify({ kolejka: true }) }), ENVK, s2.wyslij);
+  assert.deepEqual(await r.json(), { wyslane: 0, bledy: 0, powod: null });
+  const bez = await przetworzKolejke({ BREVO_API_KEY: 'x' }, s2.wyslij);
+  assert.equal(bez.powod, 'brak-klucza-serwisowego');
 });
 
 test('aplikacja: link z poczty ?token_hash=… – reset hasła prowadzi do ustawienia nowego, wygasły link – komunikat, adres wraca do zwykłej postaci', async (t) => {

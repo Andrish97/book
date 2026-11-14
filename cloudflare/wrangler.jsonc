@@ -1,11 +1,13 @@
 // Przekaźnik api.makietka.app dla Cloudflare Workers Builds (integracja z GitHubem).
 // Ustawienia budowania: katalog główny „cloudflare”, polecenie wdrożenia „npx wrangler deploy”.
-// Bez sekretów – Worker tylko przekazuje zapytania do bazy (api-worker.js).
+// Sekrety (panel Workera): KLUCZ_SKRZYNKI, opcjonalnie TURNSTILE_SECRET i PRZEKAZ_DO – poczta (poczta.js, decyzja #95).
 {
   "name": "makietka-api",
   "main": "api-worker.js",
   "compatibility_date": "2025-10-01",
   "routes": [{ "pattern": "api.makietka.app", "custom_domain": true }],
   "workers_dev": false,
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Co minutę przebieg kolejki maili (cloudflare/poczta.js, decyzja #95).
+  "triggers": { "crons": ["* * * * *"] }
 }
