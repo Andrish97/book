@@ -30,6 +30,17 @@ export const zaproszenieZKodu = (kod) => rpc('zaproszenie_z_kodu', { p_kod: kod 
 export const przyjmijZaproszenie = (kod) => rpc('przyjmij_zaproszenie', { p_kod: kod });
 export const odrzucZaproszenie = (kod) => rpc('odrzuc_zaproszenie', { p_kod: kod });
 
+// E-mail z zaproszeniem (Funkcja Edge zaproszenie-mail, poczta Brevo). Zwraca { wyslano, powod?, blad? };
+// gdy poczty nie skonfigurowano – { wyslano: false, powod: 'brak-konfiguracji' }.
+export async function wyslijZaproszenieMailem(id) {
+  const sb = await supabase();
+  const { data, error } = await sb.functions.invoke('zaproszenie-mail', { body: { id } });
+  if (!error) return data || { wyslano: false };
+  let blad = error.message;
+  try { blad = (await error.context?.json())?.blad || blad; } catch { /* zostaje ogólny komunikat */ }
+  return { wyslano: false, powod: 'blad', blad };
+}
+
 // Projekty innych osób, do których mam dostęp: Map(id projektu → { rola, wlasciciel, wlasciciel_email }).
 // Bez wdrożonej migracji (stara baza) – pusta mapa, lista działa jak dawniej.
 export async function udostepnioneMi() {

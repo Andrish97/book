@@ -680,3 +680,46 @@ begin
   end if;
 end
 $$;
+
+-- ---------- E-mail z zaproszeniem (Funkcja Edge zaproszenie-mail, Brevo) ----------
+-- Funkcja Edge woła tę funkcję tokenem zapraszającego: dostaje dane do wiadomości tylko dla czekającego
+-- zaproszenia w jego projekcie i najwyżej raz na 10 minut na to samo zaproszenie (ochrona przed zasypaniem
+-- czyjejś skrzynki). Klucza serwisowego nie potrzeba.
+alter table public.zaproszenia add column if not exists mail_wyslany timestamptz;
+
+create or replace function public.dane_maila_zaproszenia(p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  z public.zaproszenia%rowtype;
+  p public.projekty%rowtype;
+begin
+  if auth.uid() is null then
+    raise exception 'Brak sesji';
+  end if;
+  select * into z from public.zaproszenia where id = p_id for update;
+  if not found then
+    raise exception 'Nie ma takiego zaproszenia';
+  end if;
+  select * into p from public.projekty where id = z.projekt_id;
+  if p.owner_id <> auth.uid() then
+    raise exception 'Zaproszenie wysyła tylko właściciel projektu' using errcode = '42501';
+  end if;
+  if z.stan <> 'czeka' or z.wazne_do <= now() then
+    raise exception 'To zaproszenie nie czeka już na przyjęcie';
+  end if;
+  if z.mail_wyslany is not null and z.mail_wyslany > now() - interval '10 minutes' then
+    raise exception 'E-mail z tym zaproszeniem poszedł przed chwilą – następny można wysłać za kilka minut';
+  end if;
+  update public.zaproszenia set mail_wyslany = now() where id = z.id;
+  return jsonb_build_object(
+    'email', z.email, 'kod', z.kod, 'rola', z.rola, 'wazne_do', z.wazne_do, 'projekt', p.nazwa,
+    'od', public.nazwa_konta(p.owner_id), 'od_email', (select u.email from auth.users u where u.id = p.owner_id),
+    'konto', exists (select 1 from auth.users u where lower(u.email) = lower(z.email)));
+end;
+$$;
+revoke all on function public.dane_maila_zaproszenia(uuid) from public, anon;
+grant execute on function public.dane_maila_zaproszenia(uuid) to authenticated;

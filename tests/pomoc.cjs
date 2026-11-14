@@ -342,6 +342,18 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return blad(r, e.status || 400, e.message, e.kod || 'P0001');
       }
     }
+    // E-mail z zaproszeniem (Funkcja Edge zaproszenie-mail): atrapa zapisuje „wysłany” e-mail; stan.brevo = false
+    // udaje brak skonfigurowanej poczty.
+    if (sc === '/functions/v1/zaproszenie-mail' && m === 'POST') {
+      const k = zTokenu(req);
+      if (!k) return json(r, 401, { blad: 'Zaloguj się.' });
+      const z = (stan.zaproszenia || []).find((x) => x.id === tresc.id);
+      const p = z && stan.projekty.find((x) => x.id === z.projekt_id);
+      if (!z || p.owner_id !== k.id || z.stan !== 'czeka') return json(r, 400, { blad: 'Nie można wysłać tego zaproszenia.' });
+      if (stan.brevo === false) return json(r, 200, { wyslano: false, powod: 'brak-konfiguracji' });
+      stan.wyslane.push({ typ: 'zaproszenie', email: z.email, kod: z.kod });
+      return json(r, 200, { wyslano: true, email: z.email });
+    }
     if (sc === '/rest/v1/rpc/usun_konto') {
       const k = zTokenu(req);
       stan.konta = stan.konta.filter((x) => x !== k);

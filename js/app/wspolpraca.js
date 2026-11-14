@@ -44,7 +44,7 @@ export async function otworzWspolprace(projekt) {
   $('#wspolpraca-stopka').hidden = otwarty.wlasciciel;
   $('#wspolpraca-opis').textContent = otwarty.wlasciciel
     ? 'Zaproś osoby do tego projektu. „Może edytować” – zmienia projekt razem z Tobą, na żywo; „Cofnij” każdy ma swoje. „Może oglądać” – tylko podgląd. Dostęp możesz w każdej chwili zmienić albo odebrać.'
-    : `Projekt udostępnił Ci(e) ${udzial.nazwa || 'właściciel'} – ${opisRoli(udzial.rola)}. Zapraszać i zmieniać dostęp może właściciel.`;
+    : `${udzial.nazwa || 'Właściciel'} udostępnia Ci ten projekt – ${udzial.rola === 'edycja' ? 'możesz go edytować razem z innymi, na żywo' : 'możesz go oglądać'}. Zapraszać i zmieniać dostęp może właściciel.`;
   $('#wspolpraca-email').value = '';
   $('#wspolpraca-rola').value = 'edycja';
   $('#wspolpraca-osoby').replaceChildren(Object.assign(document.createElement('li'), { className: 'szkielet-wiersza', textContent: 'Wczytuję…' }));
@@ -108,6 +108,11 @@ function wierszOsoby(o) {
   }
   if (otwarty.wlasciciel && o.typ === 'zaproszenie') {
     if (o.kod) akcje.append(przycisk('Kopiuj link', '', () => kopiuj(wsp.linkZaproszenia(o.kod), 'Link do zaproszenia skopiowany.')));
+    akcje.append(przycisk('Wyślij ponownie', '', async () => {
+      const m = await wsp.wyslijZaproszenieMailem(o.id);
+      if (m.wyslano) powiadom(`Wysłano e-mail z zaproszeniem na adres ${o.email}.`);
+      else powiadom(m.powod === 'brak-konfiguracji' ? 'Aplikacja nie wysyła jeszcze e-maili – skopiuj link i wyślij go sam.' : (m.blad || 'E-mail nie wyszedł.'), true);
+    }));
     akcje.append(przycisk('Cofnij', 'niebezpieczny', async () => {
       try { await wsp.cofnijZaproszenie(o.id); powiadom('Zaproszenie cofnięte – link przestał działać.'); } catch (e) { powiadom(komunikatBledu(e), true); }
       odswiezOsoby();
@@ -160,9 +165,16 @@ async function zapros(e) {
     const z = await wsp.zaprosDoProjektu(otwarty.id, email, rola);
     const link = wsp.linkZaproszenia(z.kod);
     $('#wspolpraca-link').value = link;
-    $('#wspolpraca-gotowe-opis').textContent = z.konto
-      ? `${z.email} ma już konto – zaproszenie czeka u tej osoby w aplikacji (Projekty → Zaproszenia). Możesz też wysłać jej link.`
-      : `${z.email} nie ma jeszcze konta. Wyślij link – po założeniu konta projekt pojawi się na liście tej osoby.`;
+    $('#wspolpraca-gotowe-opis').textContent = 'Wysyłam e-mail z zaproszeniem…';
+    const gdzie = z.konto
+      ? 'Zaproszenie czeka też u tej osoby w aplikacji (Projekty → Zaproszenia).'
+      : 'Po założeniu konta projekt pojawi się na liście tej osoby.';
+    // E-mail idzie z poczty aplikacji (Brevo); gdy poczta nie jest skonfigurowana – link do wysłania samemu.
+    wsp.wyslijZaproszenieMailem(z.id).then((m) => {
+      $('#wspolpraca-gotowe-opis').textContent = m.wyslano
+        ? `Wysłano e-mail z zaproszeniem na adres ${z.email}. ${gdzie}`
+        : `${m.powod === 'brak-konfiguracji' ? 'Aplikacja nie wysyła jeszcze e-maili' : `E-mail nie wyszedł${m.blad ? ` (${m.blad})` : ''}`} – wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`;
+    }).catch(() => { $('#wspolpraca-gotowe-opis').textContent = `Wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`; });
     const mail = trescMaila(otwarty.nazwa, rola, link);
     $('#wspolpraca-mail').href = `mailto:${encodeURIComponent(z.email)}?subject=${encodeURIComponent(mail.temat)}&body=${encodeURIComponent(mail.tresc)}`;
     const udostepnij = $('#wspolpraca-udostepnij');

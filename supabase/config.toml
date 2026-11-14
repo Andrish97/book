@@ -53,3 +53,11 @@ verify_jwt = false
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/mcp/index.ts"
+
+# E-mail z zaproszeniem do projektu (współpraca, supabase/functions/zaproszenie-mail): wysyłka przez API Brevo.
+# Sekret BREVO_API_KEY ustawia się w panelu Supabase (Edge Functions → Secrets); bez niego funkcja tylko
+# odpowiada, że poczta nie jest skonfigurowana. Token zalogowanej osoby sprawdza baza (dane_maila_zaproszenia).
+[functions.zaproszenie-mail]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/zaproszenie-mail/index.ts"

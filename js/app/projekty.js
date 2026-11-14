@@ -106,9 +106,11 @@ export async function pokazProjekty({ cicho = false } = {}) {
   $('#pusto-projekty').hidden = wszystkie.length > 0;
   $('.projekty-naglowek .przyciski-naglowka').hidden = wszystkie.length === 0;
   const wlasne = wszystkie.length - udostepnione;
-  $('#podsumowanie-projektow').textContent = wszystkie.length
-    ? `${wlasne} ${odmianaProjektow(wlasne)}${udostepnione ? ` · ${udostepnione} ${udostepnione === 1 ? 'udostępniony' : 'udostępnione'} Ci` : ''}`
-    : '';
+  const ileUdostepnionych = `${udostepnione} ${udostepnione === 1 ? 'udostępniony' : 'udostępnione'} Ci`;
+  $('#podsumowanie-projektow').textContent = !wszystkie.length ? ''
+    : !udostepnione ? `${wlasne} ${odmianaProjektow(wlasne)}`
+      : !wlasne ? `${udostepnione} ${odmianaProjektow(udostepnione)} – ${udostepnione === 1 ? 'udostępniony' : 'udostępnione'} Ci`
+        : `${wlasne} ${odmianaProjektow(wlasne)} · ${ileUdostepnionych}`;
 
   for (const w of wpisy) {
     const li = document.createElement('li');
@@ -134,12 +136,13 @@ export async function pokazProjekty({ cicho = false } = {}) {
       </div>`;
     if (w.wspolpraca) {
       li.classList.add('wspoldzielony');
-      $('.plakietka-wspolpracy span', li).textContent = `${w.wspolpraca.nazwa} · ${krotkoRola(w.wspolpraca.rola)}`;
+      $('.plakietka-wspolpracy span', li).textContent = w.wspolpraca.nazwa;
     }
     if (w.miniatura) $('img', li).src = w.miniatura;
     $('strong', li).textContent = w.nazwa || 'Bez nazwy';
     const niewyslany = stan.uzytkownik && w.lokalnie && w.doSynchronizacji;
-    $('small', li).textContent = `Zmieniono ${kiedy(najnowsza(w))}${niewyslany ? ' · czeka na wysłanie' : ''}`;
+    const rola = w.wspolpraca ? `${krotkoRola(w.wspolpraca.rola) === 'edytuje' ? 'Możesz edytować' : 'Możesz oglądać'} · ` : '';
+    $('small', li).textContent = `${rola}Zmieniono ${kiedy(najnowsza(w))}${niewyslany ? ' · czeka na wysłanie' : ''}`;
     $('.otworz-projekt', li).addEventListener('click', () => otworzZListy(w));
     $('.plakietka-linku:not(.plakietka-wspolpracy)', li)?.addEventListener('click', async () => {
       try { otworzUdostepnianie(await wczytajProjektZWpisu(w)); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }

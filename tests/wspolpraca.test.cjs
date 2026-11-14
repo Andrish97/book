@@ -66,7 +66,8 @@ test('zaproszenie e-mailem: plakietka „Zaproszenia” na żywo, przyjęcie, pr
   const link = await zapros(anna.strona, 'Bartek@Test.pl', 'edycja');
   assert.match(link, /#\/zaproszenie\/[\w-]+$/);
   assert.match(await anna.strona.getAttribute('#wspolpraca-mail', 'href'), /^mailto:bartek%40test\.pl\?subject=/);
-  assert.match(await anna.strona.textContent('#wspolpraca-gotowe-opis'), /ma już konto/);
+  await anna.strona.waitForFunction(() => /Wysłano e-mail z zaproszeniem na adres bartek@test\.pl\. Zaproszenie czeka też/.test(document.querySelector('#wspolpraca-gotowe-opis').textContent));
+  assert.deepEqual(baza.wyslane.filter((w) => w.typ === 'zaproszenie').map((w) => w.email), ['bartek@test.pl']);
   await zamknijOkno(anna.strona, '#dlg-wspolpraca');
 
   await bartek.strona.waitForSelector('#przycisk-zaproszenia:not([hidden])', { timeout: 15000 });
@@ -107,9 +108,10 @@ test('zaproszenie e-mailem: plakietka „Zaproszenia” na żywo, przyjęcie, pr
   // Lista projektów Bartka: projekt z plakietką „Anna · edytuje”, menu z „Opuść projekt” zamiast „Usuń”.
   await bartek.strona.click('#ekran-edytora [data-akcja="do-projektow"]');
   await bartek.strona.waitForSelector('#siatka-projektow .karta-projektu.wspoldzielony');
-  assert.match(await bartek.strona.textContent('.plakietka-wspolpracy'), /Anna · edytuje/);
+  assert.match(await bartek.strona.textContent('.plakietka-wspolpracy'), /Anna/);
+  assert.match(await bartek.strona.textContent('.karta-projektu.wspoldzielony small'), /^Możesz edytować · /);
   assert.equal(await bartek.strona.locator('#filtry-projektow').isVisible(), true);
-  assert.match(await bartek.strona.textContent('#podsumowanie-projektow'), /1 udostępniony Ci/);
+  assert.match(await bartek.strona.textContent('#podsumowanie-projektow'), /1 projekt – udostępniony Ci/);
   await bartek.strona.click('.karta-projektu .menu-karty');
   assert.equal(await bartek.strona.locator('.karta-projektu .menu [data-op="usun"]').count(), 0);
   assert.equal(await bartek.strona.locator('.karta-projektu .menu [data-op="opusc"]').count(), 1);
@@ -123,7 +125,10 @@ test('link z zaproszeniem przed zalogowaniem; rola „może oglądać” – tyl
   const anna = await projektAnny(t);
   const { baza } = anna;
   const id = baza.projekty[0].id;
+  baza.brevo = false; // poczta aplikacji nieskonfigurowana – link do wysłania samemu
   const link = await zapros(anna.strona, 'inny-adres@example.com', 'odczyt');
+  await anna.strona.waitForFunction(() => /nie wysyła jeszcze e-maili/.test(document.querySelector('#wspolpraca-gotowe-opis').textContent));
+  assert.equal(baza.wyslane.filter((w) => w.typ === 'zaproszenie').length, 0);
   const kod = link.split('#/zaproszenie/')[1];
   await zamknijOkno(anna.strona, '#dlg-wspolpraca');
 
