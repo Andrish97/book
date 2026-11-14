@@ -9,6 +9,7 @@ import { biblioteka } from './biblioteki.js';
 const SUPABASE_JS = 'js/zewnetrzne/supabase-js-2.57.4.umd.js';
 const BUCKET = 'zasoby';
 const BUCKET_PODGLADOW = 'podglady'; // publiczny: obrazy stron udostępnionych linkiem
+const ROK_S = 365 * 24 * 3600;
 
 let klient = null;
 
@@ -234,8 +235,10 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
     const blob = await blobZasobu(projekt, id); // świeży obraz ma treść w projekcie, zapisany – w magazynie przeglądarki
     if (!blob) continue;
     const sciezka = `${uzytkownik.id}/${projekt.id}/${id}`;
+    // Plik pod tą ścieżką nigdy się nie zmienia (podmiana i zmiana nazwy dają nowy identyfikator, #68), więc
+    // przeglądarka i sieć dostarczania mogą go trzymać długo – kolejne pobranie nie liczy się do transferu.
     sprawdz(await sb.storage.from(BUCKET).upload(sciezka, blob, {
-      upsert: true, contentType: blob.type || zasob.typ || 'application/octet-stream',
+      upsert: true, contentType: blob.type || zasob.typ || 'application/octet-stream', cacheControl: String(ROK_S),
     }));
     if (czyOdAi(zasob.sciezka)) odAi.push(zasob.sciezka);
     zasob.sciezka = sciezka;
@@ -267,6 +270,10 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   projekt.wersja_chmury = wynik.wersja;
   projekt.podstawa_chmury = podstawa;
   wyslaneStrony.set(projekt.id, teksty);
+  // Skróty stron, które właśnie wysłaliśmy, policzy baza – przy następnym łączeniu te strony przyjdą z konta
+  // (pozostałe na koncie się nie zmieniły i ich treść jest tu znana).
+  const skroty = skrotyKonta.get(projekt.id);
+  if (skroty) { for (const st of zmienione) skroty.delete(st.id); for (const k of [...skroty.keys()]) if (!teksty.has(k)) skroty.delete(k); }
   // Obraz od AI jest już w folderze konta i projekt na koncie na niego wskazuje – wiersz w tabeli niepotrzebny.
   for (const s of new Set(odAi)) {
     if (Object.values(projekt.zasoby || {}).some((z) => z.sciezka === s)) continue; // inny wpis wciąż go używa
@@ -278,6 +285,11 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
 // Treść stron ostatnio wysłanych na konto albo z niego wczytanych:
 // id projektu → (id strony → JSON). Tylko w pamięci tej karty.
 const wyslaneStrony = new Map();
+// Skróty treści stron na koncie (kolumna projekty_strony.skrot liczona przez bazę, migracja
+// 20261114150000_miejsce_na_koncie.sql) dla stron, których treść jest w wyslaneStrony: id projektu → (id strony → skrót).
+const skrotyKonta = new Map();
+// Pliki czcionek z konta już pobrane w tej karcie: ścieżka → data URL (plik pod ścieżką się nie zmienia).
+const czcionkiZKonta = new Map();
 
 // Usuwa z konta plik obrazu usuniętego z projektu (js/obrazy-projektu.js). Bez sieci plik zostaje –
 // nic nie wskazuje na niego w projekcie, więc jest tylko zajętym miejscem.
@@ -311,25 +323,69 @@ export async function wczytajZChmury(id) {
   // Nowszy zapis: strony w osobnych wierszach, w projekcie ich kolejność.
   // Starszy zapis miał strony w środku – wtedy nie ma czego doczytywać.
   if (projekt.strony_osobno) {
-    const strony = new Map();
-    for (let od = 0; ; od += 1000) {
-      const porcja = sprawdz(await sb.from('projekty_strony').select('strona_id, dane').eq('projekt_id', id).order('strona_id').range(od, od + 999));
-      for (const w of porcja) strony.set(w.strona_id, w.dane);
-      if (porcja.length < 1000) break;
-    }
+    const strony = await stronyZKonta(sb, id);
     projekt.strony = projekt.strony.map((idStrony) => strony.get(idStrony)).filter(Boolean);
     delete projekt.strony_osobno;
     wyslaneStrony.set(id, new Map(projekt.strony.map((st) => [st.id, kanon(st)])));
-  } else wyslaneStrony.delete(id);
+  } else { wyslaneStrony.delete(id); skrotyKonta.delete(id); }
   // Czcionki własne są potrzebne od razu i są małe – wracają w projekcie. Obrazy pobiera dopiero
   // otwarcie projektu, prosto do magazynu plików przeglądarki (js/zasoby.js: podlaczZasoby),
   // i tylko te, których na tym urządzeniu jeszcze nie ma.
   const czcionki = new Set((projekt.czcionki || []).map((c) => c.id));
   for (const [idZasobu, zasob] of Object.entries(projekt.zasoby || {})) {
     if (!zasob.sciezka || !czcionki.has(idZasobu)) continue;
-    zasob.dataUrl = await blobNaDataUrl(await pobierzZasob(zasob.sciezka));
+    if (!czcionkiZKonta.has(zasob.sciezka)) czcionkiZKonta.set(zasob.sciezka, await blobNaDataUrl(await pobierzZasob(zasob.sciezka)));
+    zasob.dataUrl = czcionkiZKonta.get(zasob.sciezka);
   }
   return projekt;
+}
+
+// Wiersze stron projektu porcjami po 1000 (limit odpowiedzi bazy).
+async function wszystkieWiersze(zapytanie) {
+  const wynik = [];
+  for (let od = 0; ; od += 1000) {
+    const porcja = sprawdz(await zapytanie().order('strona_id').range(od, od + 999));
+    wynik.push(...porcja);
+    if (porcja.length < 1000) return wynik;
+  }
+}
+
+// Strony projektu z konta: id strony → dane. Gdy ta karta zna już treść stron (wczytała je albo wysłała),
+// pobiera najpierw same skróty (kilkadziesiąt bajtów na stronę) i ściąga tylko strony o innym skrócie –
+// przy zmianie z innego urządzenia albo od AI nie cały projekt, tylko to, co się zmieniło.
+async function stronyZKonta(sb, id) {
+  const znane = skrotyKonta.get(id);
+  const teksty = wyslaneStrony.get(id);
+  const strony = new Map();
+  const skroty = new Map();
+  if (znane?.size && teksty) {
+    let lista = null;
+    try { lista = await wszystkieWiersze(() => sb.from('projekty_strony').select('strona_id, skrot').eq('projekt_id', id)); } catch { /* baza bez kolumny skrot */ }
+    if (lista && lista.every((w) => w.skrot)) {
+      const brak = [];
+      for (const w of lista) {
+        skroty.set(w.strona_id, w.skrot);
+        if (znane.get(w.strona_id) === w.skrot && teksty.has(w.strona_id)) strony.set(w.strona_id, JSON.parse(teksty.get(w.strona_id)));
+        else brak.push(w.strona_id);
+      }
+      for (let i = 0; i < brak.length; i += 100) {
+        for (const w of sprawdz(await sb.from('projekty_strony').select('strona_id, skrot, dane').eq('projekt_id', id).in('strona_id', brak.slice(i, i + 100)))) {
+          strony.set(w.strona_id, w.dane);
+          skroty.set(w.strona_id, w.skrot);
+        }
+      }
+      skrotyKonta.set(id, skroty);
+      return strony;
+    }
+  }
+  // Pierwsze wczytanie w tej karcie (albo baza bez kolumny skrot): wszystkie strony.
+  let wiersze;
+  try { wiersze = await wszystkieWiersze(() => sb.from('projekty_strony').select('strona_id, skrot, dane').eq('projekt_id', id)); } catch {
+    wiersze = await wszystkieWiersze(() => sb.from('projekty_strony').select('strona_id, dane').eq('projekt_id', id));
+  }
+  for (const w of wiersze) { strony.set(w.strona_id, w.dane); if (w.skrot) skroty.set(w.strona_id, w.skrot); }
+  if (skroty.size) skrotyKonta.set(id, skroty); else skrotyKonta.delete(id);
+  return strony;
 }
 
 function zBase64Bajty(b64) {
@@ -451,10 +507,17 @@ async function usunPodglady(sb, folderProjektu) {
   } catch { /* brak bucketu albo plików – nie blokuje usuwania projektu */ }
 }
 
-// uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob JPEG.
+// Obrazy stron linku: WebP (o ok. 30–40% lżejszy od JPEG przy tej samej jakości), a w przeglądarce, która
+// nie umie zapisać WebP – JPEG. Rozszerzenie pliku jest w opisie linku (manifest.rozszerzenie; dawne linki: jpg).
+const typZRozszerzenia = (r) => (r === 'webp' ? 'image/webp' : 'image/jpeg');
+// Adres obrazu strony zmienia się tylko wtedy, gdy zmienia się obraz (skrót z opisu linku) – niezmienione strony
+// po aktualizacji linku przeglądarka bierze ze swojej pamięci zamiast pobierać jeszcze raz.
+const wersjaObrazu = (manifest, id) => (manifest.skroty?.[id] || '').slice(0, 16) || manifest.v;
+
+// uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob WebP albo JPEG (rozszerzenie: 'webp' | 'jpg').
 // Zwraca { konto, zaktualizowano }.
 // odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
-export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null) {
+export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg' } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
@@ -466,7 +529,8 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
   let poprzednieTresci = {};
   try {
     const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
-    if (odp.ok) { const m = await odp.json(); poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; }
+    // Inny format obrazów niż poprzednio (np. dawny link w JPEG) – wszystkie strony od nowa.
+    if (odp.ok) { const m = await odp.json(); if ((m.rozszerzenie || 'jpg') === rozszerzenie) { poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; } }
   } catch { /* pierwsza publikacja albo brak sieci – wyślemy wszystko */ }
   const skroty = {};
   let gotowe = 0;
@@ -481,19 +545,19 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
     const plik = await obraz(s);
     skroty[s.id] = await skrotPliku(plik);
     if (poprzednie[s.id] !== skroty[s.id]) {
-      sprawdz(await magazyn.upload(`${folder}/${s.id}.jpg`, plik, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' }));
+      sprawdz(await magazyn.upload(`${folder}/${s.id}.${rozszerzenie}`, plik, { upsert: true, contentType: typZRozszerzenia(rozszerzenie), cacheControl: '3600' }));
       wyslane += 1;
     }
     gotowe += 1;
     postep(gotowe, strony.length);
   }
   // Obrazy stron usuniętych od poprzedniej aktualizacji.
-  const potrzebne = new Set([...strony.map((s) => `${s.id}.jpg`), 'manifest.json']);
+  const potrzebne = new Set([...strony.map((s) => `${s.id}.${rozszerzenie}`), 'manifest.json']);
   const zbedne = (await plikiFolderu(sb, folder)).filter((p) => !potrzebne.has(p.name)).map((p) => `${folder}/${p.name}`);
   if (zbedne.length) await usunPliki(sb, zbedne);
 
   const zaktualizowano = new Date().toISOString();
-  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, ...(odciski ? { tresci: odciski } : {}) };
+  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, rozszerzenie, ...(odciski ? { tresci: odciski } : {}) };
   sprawdz(await magazyn.upload(`${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), {
     upsert: true, contentType: 'application/json', cacheControl: '0',
   }));
@@ -527,7 +591,7 @@ export async function wczytajPodgladPubliczny(konto, projektId, kod) {
   if (!odp.ok) throw new Error('Ten link nie działa – podgląd został wyłączony albo adres jest niepełny.');
   const manifest = await odp.json();
   if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
-  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.jpg`)}?v=${manifest.v}` };
+  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
 }
 
 // ---------- Link chroniony: hasło albo data ważności ----------
@@ -587,7 +651,7 @@ export async function usunPodgladChroniony(projektId, kod) {
 
 // Właściciel: ta sama publikacja co opublikujPodglad, ale do tabeli chronionego linku.
 // pelna: true – wysyła wszystkie strony (np. przy przejściu z linku publicznego).
-export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false } = {}) {
+export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg' } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
@@ -597,7 +661,7 @@ export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, o
     try {
       const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null, ['manifest.json']);
       const plik = w.pliki?.['manifest.json'];
-      if (plik) { const m = JSON.parse(await zBase64(plik.dane, plik.typ).text()); poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; }
+      if (plik) { const m = JSON.parse(await zBase64(plik.dane, plik.typ).text()); if ((m.rozszerzenie || 'jpg') === rozszerzenie) { poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; } }
     } catch { /* pierwsza publikacja – wyślemy wszystko */ }
   }
   const zapisz = async (nazwa, typ, blob) => sprawdz(await sb.rpc('zapisz_plik_udostepnienia', {
@@ -612,14 +676,14 @@ export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, o
     } else {
       const plik = await obraz(s);
       skroty[s.id] = await skrotPliku(plik);
-      if (poprzednie[s.id] !== skroty[s.id]) { await zapisz(`${s.id}.jpg`, 'image/jpeg', plik); wyslane += 1; }
+      if (poprzednie[s.id] !== skroty[s.id]) { await zapisz(`${s.id}.${rozszerzenie}`, typZRozszerzenia(rozszerzenie), plik); wyslane += 1; }
     }
     gotowe += 1;
     postep(gotowe, strony.length);
   }
-  sprawdz(await sb.rpc('porzadkuj_pliki_udostepnienia', { p_projekt: projektId, p_kod: kod, p_zostaja: [...strony.map((s) => `${s.id}.jpg`), 'manifest.json'] }));
+  sprawdz(await sb.rpc('porzadkuj_pliki_udostepnienia', { p_projekt: projektId, p_kod: kod, p_zostaja: [...strony.map((s) => `${s.id}.${rozszerzenie}`), 'manifest.json'] }));
   const zaktualizowano = new Date().toISOString();
-  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, ...(odciski ? { tresci: odciski } : {}) };
+  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, rozszerzenie, ...(odciski ? { tresci: odciski } : {}) };
   await zapisz('manifest.json', 'application/json', new Blob([JSON.stringify(manifest)], { type: 'application/json' }));
   return { konto: uzytkownik.id, zaktualizowano, wyslane, wszystkie: strony.length };
 }
@@ -648,9 +712,10 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
     const paczka = kolejka.splice(0, 6);
     timer = kolejka.length ? setTimeout(wyslij, 0) : null;
     try {
-      const odp = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, paczka.map((x) => `${x.id}.jpg`));
+      const roz = manifest.rozszerzenie || 'jpg';
+      const odp = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, paczka.map((x) => `${x.id}.${roz}`));
       for (const x of paczka) {
-        const p = odp.pliki?.[`${x.id}.jpg`];
+        const p = odp.pliki?.[`${x.id}.${roz}`];
         if (p) x.ok(URL.createObjectURL(zBase64(p.dane, p.typ))); else { obietnice.delete(x.id); x.zle(new Error('Brak obrazu strony.')); }
       }
     } catch (e) {
