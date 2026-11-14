@@ -647,6 +647,22 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .pole-widoku .z-jednostka { display: inline-flex; align-items: center; gap: 6px; }
 .pole-widoku input { width: 64px; height: 32px; padding: 0 8px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); text-align: right; }
 .pole-widoku i { font-style: normal; color: var(--cichy); font-size: 12px; }
+/* Wygląd edytora w menu widoku (#109). */
+.naglowek-widoku { margin: 4px 0 2px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--cichy); }
+.pole-napisow { flex-direction: column; align-items: stretch; gap: 6px; padding: 4px 0 2px; }
+.pole-napisow .przelacznik-segmentowy { display: flex; }
+.pole-napisow .przelacznik-segmentowy label { flex: 1; }
+.pole-napisow .przelacznik-segmentowy span { flex: 1; min-height: 28px; padding: 0 8px; font-size: 12.5px; }
+/* Napisy „Wzorce”, „Dane”, „Podgląd” na górnym pasku: tylko gdy się mieszczą (js/app/wyglad-edytora.js). */
+.pasek-edytora .etyk-paska { display: none; }
+.pasek-edytora.z-napisami .etyk-paska { display: inline; }
+/* Podpisy narzędzi wyłączone (domyślnie): same ikony, mniejsze przyciski. */
+@media (min-width: 761px) {
+  #ekran-edytora:not([data-podpisy-narzedzi]) .pasek-narzedzi button { min-width: 44px; height: 44px; padding: 4px; }
+  #ekran-edytora:not([data-podpisy-narzedzi]) .pasek-narzedzi button > span { display: none; }
+}
+/* Na wąskim ekranie pasek narzędzi i górny pasek i tak mają same ikony – opcje wyglądu nic by nie zmieniły. */
+@media (max-width: 760px) { .wyglad-edytora { display: none; } }
 .podpowiedz-widoku { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--linia); font-size: 12px; line-height: 1.6; color: var(--cichy); }
 .kontrolki-widoku .separator { margin: 6px 2px; }
 

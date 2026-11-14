@@ -557,9 +557,9 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
-      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="ksiazka" title="Wzorce: wspólne elementy stron – tła, stopki, numery"><span class="etyk">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
-      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
-      <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)"><span class="etyk">Podgląd</span></button>
+      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="ksiazka" title="Wzorce: wspólne elementy stron – tła, stopki, numery" aria-label="Wzorce"><span class="etyk etyk-paska">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
+      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="dane" data-ikona="dane" title="Dane: tabele do pól i serii" aria-label="Dane"><span class="etyk etyk-paska">Dane</span></button>
+      <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)" aria-label="Podgląd"><span class="etyk etyk-paska">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
@@ -622,8 +622,8 @@
         <div class="kontrolki-widoku" id="kontrolki-widoku">
           <button class="przycisk-ikona" data-akcja="prowadnice" id="przycisk-prowadnice" data-ikona="prowadnice" title="Pokaż/ukryj linie pomocnicze (W)" aria-pressed="true"></button>
           <div class="menu-widoku-opak">
-            <button class="przycisk-ikona" id="przycisk-widok" data-ikona="siatka" title="Siatka, przyciąganie, linijki" aria-label="Siatka, przyciąganie, linijki" aria-haspopup="menu" aria-expanded="false"></button>
-            <div class="menu menu-widoku" id="menu-widoku" role="group" aria-label="Siatka i przyciąganie" hidden>
+            <button class="przycisk-ikona" id="przycisk-widok" data-ikona="siatka" title="Widok: siatka, przyciąganie, linijki, wygląd edytora" aria-label="Widok: siatka, przyciąganie, linijki, wygląd edytora" aria-haspopup="menu" aria-expanded="false"></button>
+            <div class="menu menu-widoku" id="menu-widoku" role="group" aria-label="Widok i wygląd edytora" hidden>
               <label class="przelacznik"><input type="checkbox" id="widok-siatka"><span>Siatka</span><kbd>Ctrl '</kbd></label>
               <label class="przelacznik"><input type="checkbox" id="widok-do-siatki"><span>Przyciągaj do siatki</span><kbd>Ctrl Shift '</kbd></label>
               <label class="pole-widoku"><span>Krok siatki</span><span class="z-jednostka"><input type="text" inputmode="decimal" id="widok-krok" aria-label="Krok siatki w milimetrach"><i>mm</i></span></label>
@@ -634,6 +634,18 @@
               <button class="przycisk" data-akcja="prowadnice-usun" id="przycisk-usun-prowadnice">Usuń prowadnice z tej strony</button>
               <hr>
               <label class="przelacznik"><input type="checkbox" id="widok-jedna"><span>W rozkładówkach pokazuj jedną stronę</span></label>
+              <div class="wyglad-edytora" role="group" aria-labelledby="wyglad-edytora-tytul">
+                <hr>
+                <p class="naglowek-widoku" id="wyglad-edytora-tytul">Wygląd edytora</p>
+                <label class="przelacznik"><input type="checkbox" id="widok-podpisy"><span>Podpisy narzędzi</span></label>
+                <div class="pole-widoku pole-napisow"><span id="widok-napisy-opis">Napisy na górnym pasku</span>
+                  <div class="przelacznik-segmentowy maly" id="widok-napisy" role="radiogroup" aria-labelledby="widok-napisy-opis">
+                    <label title="Tylko gdy się mieszczą"><input type="radio" name="widok-napisy" value="auto"><span>Auto</span></label>
+                    <label><input type="radio" name="widok-napisy" value="zawsze"><span>Zawsze</span></label>
+                    <label><input type="radio" name="widok-napisy" value="nigdy"><span>Nigdy</span></label>
+                  </div>
+                </div>
+              </div>
               <p class="podpowiedz-widoku">Prowadnicę wyciągasz z linijki; wyciągnięta poza stronę znika. Przytrzymaj <kbd>Ctrl</kbd> przy przeciąganiu, żeby na chwilę wyłączyć przyciąganie. <kbd>Alt</kbd> pokazuje odległości zaznaczonego elementu.</p>
             </div>
           </div>
