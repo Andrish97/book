@@ -210,6 +210,20 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="udostepnij-zamknij"]');
       return `plik pod starym adresem: ${r}`;
     });
+    await krok('miejsce na koncie: licznik, plan sprzątania, skróty stron (migracja 20261114150000)', async () => {
+      const w = await p.evaluate(async () => {
+        const m = await import('./js/miejsce.js');
+        const stan = await m.miejsce({ swieze: true });
+        const plan = await m.planSprzatania();
+        const sb = await (await import('./js/chmura.js')).supabase();
+        const { data, error } = await sb.from('projekty_strony').select('strona_id, skrot').eq('projekt_id', window.seriodruk.stan.projekt.id);
+        return { stan, plan, skroty: error ? error.message : data.map((x) => x.skrot) };
+      });
+      if (!(w.stan.obrazy > 0) || !(w.stan.pliki_razem >= w.stan.obrazy) || w.stan.limit_plikow !== 1073741824) throw new Error(`miejsce_na_koncie: ${JSON.stringify(w.stan)}`);
+      if (!Array.isArray(w.plan.pliki) || typeof w.plan.ile !== 'number') throw new Error(`plan sprzątania: ${JSON.stringify(w.plan).slice(0, 200)}`);
+      if (!Array.isArray(w.skroty) || !w.skroty.length || !w.skroty.every((x) => /^[0-9a-f]{32}$/.test(x))) throw new Error(`skróty stron: ${JSON.stringify(w.skroty).slice(0, 200)}`);
+      return `obrazy konta ${Math.round(w.stan.obrazy / 1024)} kB, pliki aplikacji ${(w.stan.pliki_razem / 1048576).toFixed(1)} MB z 1 GB, baza ${w.stan.baza_razem ? `${(w.stan.baza_razem / 1048576).toFixed(0)} MB` : '?'}; do posprzątania: ${w.plan.ile}`;
+    });
     await krok('dostęp dla AI: klucz z aplikacji zapisuje zmianę, edytor ją widzi, odebrany klucz przestaje działać', async () => {
       await p.keyboard.press('Escape');
       await p.waitForSelector('#przycisk-wiecej', { state: 'visible' });

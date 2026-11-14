@@ -2,6 +2,7 @@
 // Twoich plików i „Posprzątaj…” z podsumowaniem przed usunięciem.
 
 import { $, potwierdz } from './ui.js';
+import { postep } from './postep.js';
 import {
   miejsce, planSprzatania, posprzataj, rozmiar, udzialPlikow, udzialBazy, ostrzezenie,
 } from './miejsce.js';
@@ -62,7 +63,8 @@ async function sprzataj() {
     );
     if (!tak) { komunikat.textContent = ''; return; }
     komunikat.textContent = 'Sprzątam…';
-    await posprzataj(plan);
+    const karta = postep('Sprzątanie konta', { razem: plan.ile });
+    try { await posprzataj(plan, (gotowe) => karta.krok(gotowe)); } finally { karta.koniec(); }
     komunikat.textContent = `Posprzątane – zwolniono ${rozmiar(plan.bajty)}.`;
     await pokazMiejsce();
   } catch (e) {

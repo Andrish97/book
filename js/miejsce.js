@@ -81,9 +81,10 @@ export async function planSprzatania() {
   };
 }
 
-// Usuwa to, co pokazał plan (albo świeży plan). Zwraca wykonany plan.
-export async function posprzataj(plan = null) {
+// Usuwa to, co pokazał plan (albo świeży plan). naKrok(gotowe, razem) – postęp. Zwraca wykonany plan.
+export async function posprzataj(plan = null, naKrok = () => {}) {
   const p = plan || await planSprzatania();
+  let gotowe = 0;
   const sb = await chmura.supabase();
   const wgBucketu = new Map();
   for (const x of p.pliki) wgBucketu.set(x.bucket, [...(wgBucketu.get(x.bucket) || []), x.nazwa]);
@@ -91,9 +92,12 @@ export async function posprzataj(plan = null) {
     for (let i = 0; i < nazwy.length; i += 100) {
       const { error } = await sb.storage.from(bucket).remove(nazwy.slice(i, i + 100));
       if (error) throw new Error(error.message || String(error));
+      gotowe += Math.min(100, nazwy.length - i);
+      naKrok(gotowe, p.ile);
     }
   }
   if (liczba(p.baza.ai) || liczba(p.baza.linki)) await rpc('posprzataj_konto', { p_policz: false });
+  naKrok(p.ile, p.ile);
   ostatnie = null;
   return p;
 }
