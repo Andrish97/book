@@ -872,6 +872,37 @@ dialog h2 { font-size: 19px; }
 .powiadomienie:not([hidden]) { display: flex; align-items: center; gap: 14px; }
 .powiadomienie button { border: 0; border-radius: var(--r-s); padding: 5px 10px; background: var(--powierzchnia); color: var(--tusz); font-weight: 600; cursor: pointer; }
 
+/* ---------- Postęp dłuższych czynności (js/postep.js) ---------- */
+
+.postepy {
+  position: fixed; top: calc(var(--pasek) + 10px); left: 50%; transform: translateX(-50%); z-index: 110;
+  display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 16px)); pointer-events: none;
+}
+dialog > .postepy { position: fixed; }
+.postep {
+  pointer-events: auto; padding: 10px 14px 12px; border-radius: var(--r-m); border: 1px solid var(--linia);
+  background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-3); font-size: 13.5px;
+  animation: postepWejscie var(--czas) ease-out;
+}
+.postep-wiersz { display: flex; align-items: center; gap: 10px; min-height: 22px; }
+.postep-opis { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.postep-licznik { flex: none; color: var(--cichy); font-variant-numeric: tabular-nums; }
+.postep-anuluj {
+  flex: none; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia);
+  color: var(--tusz); padding: 3px 10px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.postep-anuluj:hover { background: var(--wypelnienie-hover); }
+.postep-pasek { height: 4px; margin-top: 8px; border-radius: 2px; background: var(--wypelnienie); overflow: hidden; position: relative; }
+.postep-wypelnienie { height: 100%; width: 0; border-radius: 2px; background: var(--akcent); transition: width .2s ease-out; }
+.postep.nieokreslony .postep-wypelnienie { position: absolute; width: 35%; transition: none; animation: postepRuch 1.1s ease-in-out infinite; }
+@keyframes postepRuch { from { left: -35%; } to { left: 100%; } }
+@keyframes postepWejscie { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .postep { animation: none; }
+  .postep.nieokreslony .postep-wypelnienie { animation: none; left: 0; width: 100%; opacity: .45; }
+}
+:root[data-dotyk] .postep-anuluj { min-height: var(--dotyk); padding: 0 14px; }
+
 /* ---------- Tablet ---------- */
 
 @media (max-width: 1180px) {
