@@ -1,0 +1,28 @@
+; Rekordy DNS domeny makietka.app – do importu w Cloudflare:
+; DNS → Records → Import and Export → Import DNS records → wybierz ten plik.
+; WAŻNE: odznacz „Proxy imported DNS records” (wszystko ma być „DNS only” – szara chmurka),
+; inaczej GitHub nie wystawi certyfikatu HTTPS dla makietka.app.
+;
+; api.makietka.app NIE jest tutaj – rekord dla niego tworzy sam Cloudflare przy wdrożeniu Workera
+; (własna domena z cloudflare/wrangler.jsonc).
+; Rekordy Brevo (kod weryfikacyjny i DKIM) są inne dla każdego konta – dodaj je z panelu Brevo
+; (Senders, Domains → makietka.app; Brevo potrafi dodać je w Cloudflare sam: „Authenticate automatically”).
+
+$ORIGIN makietka.app.
+$TTL 3600
+
+; Aplikacja na GitHub Pages (domena główna)
+@	3600	IN	A	185.199.108.153
+@	3600	IN	A	185.199.109.153
+@	3600	IN	A	185.199.110.153
+@	3600	IN	A	185.199.111.153
+@	3600	IN	AAAA	2606:50c0:8000::153
+@	3600	IN	AAAA	2606:50c0:8001::153
+@	3600	IN	AAAA	2606:50c0:8002::153
+@	3600	IN	AAAA	2606:50c0:8003::153
+
+; www → przekierowanie GitHub Pages na makietka.app
+www	3600	IN	CNAME	andrish97.github.io.
+
+; Maile (Brevo): polityka DMARC – na start tylko raporty, bez odrzucania
+_dmarc	3600	IN	TXT	"v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com"
