@@ -8,26 +8,20 @@ import { zachowajTekstStrony, uporzadkujWatkiPoStronach } from '../watki.js';
 import { uid } from '../projekt.js';
 import { rozwin, blokiSerii, bokStrony } from '../serie.js';
 import { ikona } from '../ikony.js';
-import { $$, $, potwierdz, powiadom, zapytajONazwe, zamknijMenu } from '../ui.js';
+import { $, potwierdz, powiadom, zapytajONazwe, zamknijMenu } from '../ui.js';
 import { stan, ustawPanel, biezacaSekcja, biezacaStrona, edytor } from './kontekst.js';
 import { naPlotnie, wybierzStroneArkusza, zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { nazwaFormatu, nazwyWzorcow } from './panel-strony.js';
-import { panelWarstw, panel } from './skladniki.js';
+import { panel } from './skladniki.js';
 import { edytujWzorzec } from './wzorce.js';
+import { pokazWarstwy } from './dok-warstw.js';
 
 // ---------- Lista: strony (pogrupowane w sekcje) i wzorce ----------
 
-// Prawy panel ma dwie zakładki: Właściwości i Warstwy. (Strony są zawsze z lewej, a wzorce
-// w osobnym oknie – inne nazwy zakładek zostają bez skutku.)
+// Dawne zakładki prawego panelu (Właściwości | Warstwy). Warstwy mają teraz własny panel (#115, dok-warstw.js);
+// „warstwy” pokazuje go, inne nazwy (strony, wzorce) zostają bez skutku.
 export function ustawZakladke(nazwa) {
-  if (nazwa !== 'warstwy' && nazwa !== 'wlasciwosci') return;
-  const warstwy = nazwa === 'warstwy';
-  stan.zakladka = nazwa;
-  $$('#zakladki-panelu input').forEach((r) => { r.checked = r.value === nazwa; });
-  $('#lista-warstw').hidden = !warstwy;
-  $('#wlasciwosci').hidden = warstwy;
-  $('#naglowek-wlasciwosci').hidden = warstwy;
-  panelWarstw.pokaz(warstwy);
+  if (nazwa === 'warstwy') pokazWarstwy();
 }
 
 export function renderujListe() {

@@ -185,6 +185,13 @@ export class Edytor extends EventTarget {
       else if (toTabela(cel)) this.edytujKomorke(cel, komorkaWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)), e.e);
       else if (this._doOtwarcia(cel)) this.otworzGrupe(cel, this._elementGrupyWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)));
     });
+    // Kliknięta komórka zaznaczonej tabeli: panel właściwości zmienia jej kolumnę i wiersz (#115).
+    c.on('mouse:down', (e) => {
+      const t = e.target;
+      if (!toTabela(t) || t.zWzorca || c.isDrawingMode || this._trybPunktow()) return;
+      const k = komorkaWPunkcie(t, e.scenePoint || c.getScenePoint(e.e));
+      if (k) this._wybierzKomorke(t, miejsceKomorki(t, k));
+    });
     // W trakcie pisania w tabeli kliknięcie innej komórki przenosi tam pisanie.
     c.on('mouse:down', (e) => {
       const a = c.getActiveObject();
@@ -624,7 +631,20 @@ export class Edytor extends EventTarget {
 
   get rysuje() { return Boolean(this.canvas.isDrawingMode); }
 
-  ustawRysowanie(wlacz, { kolor = '#1a1a1a', grubosc = 0.6 } = {}) {
+  // Ustawienia pędzla – narzędzia „Rysuj” (panel właściwości, #115): obowiązują dla następnych linii
+  // i zostają do końca pracy z edytorem.
+  get pedzel() {
+    if (!this._pedzel) this._pedzel = { kolor: '#1a1a1a', grubosc: 0.6 };
+    return this._pedzel;
+  }
+
+  ustawPedzel(zmiany) {
+    Object.assign(this.pedzel, zmiany);
+    const b = this.canvas.freeDrawingBrush;
+    if (b && this.rysuje) { b.color = this.pedzel.kolor; b.width = this.pedzel.grubosc; }
+  }
+
+  ustawRysowanie(wlacz, { kolor = this.pedzel.kolor, grubosc = this.pedzel.grubosc } = {}) {
     const c = this.canvas;
     if (wlacz === this.rysuje) return;
     if (wlacz) {
@@ -1681,6 +1701,7 @@ export class Edytor extends EventTarget {
     if (!toTabela(tabela) || tabela.zWzorca) return null;
     const c = Array.isArray(komorka) ? komorkiTabeli(tabela)[komorka[0] * tabela.tabela.kolumny.length + komorka[1]] : komorka;
     if (!c || c.group !== tabela) return null;
+    this._wybierzKomorke(tabela, miejsceKomorki(tabela, c));
     const poprzednia = this.aktywny;
     this._miedzyKomorkami = true;
     if (poprzednia?.isEditing && poprzednia !== c) poprzednia.exitEditing();
@@ -1766,6 +1787,22 @@ export class Edytor extends EventTarget {
     this.oznaczZmiane();
     this._emitujZaznaczenie();
     return Boolean(wynik);
+  }
+
+  // Komórka tabeli wybrana ostatnim kliknięciem albo pisaniem: { w, k } albo null (#115). Nie trafia do
+  // zapisu – to tylko stan panelu właściwości („Kolumna i wiersz”).
+  _wybierzKomorke(tabela, m) {
+    if (!m) return;
+    const stara = tabela._wybranaKomorka;
+    tabela._wybranaKomorka = { w: m.w, k: m.k };
+    if (!stara || stara.w !== m.w || stara.k !== m.k) this.dispatchEvent(new CustomEvent('komorka-tabeli', { detail: tabela }));
+  }
+
+  wybranaKomorka(tabela) {
+    const m = tabela?._wybranaKomorka;
+    if (!m || !toTabela(tabela)) return null;
+    const t = tabela.tabela;
+    return { w: Math.min(m.w, t.wiersze.length - 1), k: Math.min(m.k, t.kolumny.length - 1) };
   }
 
   // Miejsce komórki w tabeli: { w, k } albo null.

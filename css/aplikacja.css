@@ -1099,9 +1099,17 @@ dialog > .postepy { position: fixed; }
   .panel-inspektor { overflow: hidden; }
   .panel-inspektor > .wlasciwosci, .panel-inspektor > .sekcja-ostrzezen { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   body[data-panel="inspektor"] .panel-inspektor,
+  body[data-panel="warstwy"] .panel-inspektor,
   body[data-panel="ostrzezenia"] .panel-inspektor { height: 45vh; height: 45svh; max-height: none; }
   body[data-arkusz="pelny"] .panel-inspektor { height: calc(100vh - 124px); height: calc(100svh - 124px - var(--bezp-dol)); }
-  #naglowek-wlasciwosci { min-height: 44px; padding-top: 4px; padding-bottom: 4px; }
+  #naglowek-wlasciwosci { min-height: 44px; padding-top: 6px; padding-bottom: 6px; }
+  /* Warstwy na telefonie i tablecie w pionie: osobna zakładka dolnego menu – arkusz z samą listą (#115). */
+  body[data-panel="warstwy"] .panel-inspektor { transform: none; visibility: visible; transition: transform .2s ease-out, height .2s ease-out, visibility 0s; }
+  body[data-panel="warstwy"] .panel-inspektor > :is(.wlasciwosci, .naglowek-panelu, .sekcja-ostrzezen),
+  body[data-panel="warstwy"] .naglowek-dok,
+  body:not([data-panel="warstwy"]) .dok-warstw { display: none; }
+  body[data-panel="warstwy"] .dok-warstw { flex: 1 1 auto; max-height: none; border-top: 0; }
+  body[data-panel="warstwy"] .dok-warstw .lista-warstw { display: flex; padding-top: 4px; }
   body[data-panel="ostrzezenia"] .wlasciwosci,
   body[data-panel="ostrzezenia"] .lista-warstw,
   body[data-panel="ostrzezenia"] .panel-inspektor > .naglowek-panelu { display: none; }
@@ -1516,9 +1524,45 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 :root:not([data-urzadzenie="telefon"]) .dodaj-standardowy { width: 32px; padding: 0; justify-content: center; }
 @media (max-width: 640px) { .galeria-wzorcow.standardowe { grid-template-columns: minmax(0, 1fr); } .galeria-wzorcow > li.wzorzec { grid-template-columns: 64px minmax(0, 1fr) auto; } .galeria-wzorcow .miniatura { width: 64px; } }
 .panel-strony .naglowek-panelu h2 { padding-left: 6px; }
-.zakladki-panelu-opak { padding: 8px 10px 0; min-height: 0; display: flex; align-items: center; gap: 6px; }
-.zakladki-panelu-opak .akcje-obiektu { flex: none; }
-.panel-inspektor .lista-warstw { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px 10px 12px; list-style: none; }
+/* Prawy panel (#115): nagłówek z rodzajem ustawień, przewijane właściwości, pod nimi zwijane Warstwy
+   i Ostrzeżenia. Przewija się każda część osobno – warstwy są zawsze pod ręką. */
+.panel-inspektor { overflow: hidden; }
+.panel-inspektor > .wlasciwosci { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.naglowek-wlasciwosci {
+  display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 10px 10px 10px 14px;
+  border-bottom: 1px solid var(--linia); transition: background var(--czas);
+}
+.ikona-naglowka {
+  flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--r-s);
+  background: var(--wypelnienie); color: var(--tusz-2);
+}
+.tytul-naglowka { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.naglowek-wlasciwosci .nad-tytulem { font-size: 11px; font-weight: 500; color: var(--cichy); letter-spacing: .01em; }
+.naglowek-wlasciwosci h2 { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.naglowek-wlasciwosci .opis-naglowka { font-size: 12px; line-height: 1.35; color: var(--tusz-2); }
+.naglowek-wlasciwosci .akcje-obiektu { flex: none; align-self: center; }
+/* Narzędzie: delikatne tło akcentu – to ustawienia dla następnych elementów, nie dla zaznaczonego. */
+.naglowek-wlasciwosci[data-rodzaj="narzedzie"] { background: var(--akcent-tlo); }
+.naglowek-wlasciwosci[data-rodzaj="narzedzie"] .ikona-naglowka { background: var(--akcent); color: var(--akcent-tekst, #fff); }
+.naglowek-wlasciwosci[data-rodzaj="narzedzie"] .nad-tytulem { color: var(--akcent); }
+.naglowek-wlasciwosci[data-rodzaj="strona"] .ikona-naglowka { background: none; border: 1px solid var(--linia); }
+.dok-warstw { flex: 0 0 auto; display: flex; flex-direction: column; min-height: 0; max-height: 36%; border-top: 1px solid var(--linia); }
+.dok-warstw.zwiniety { flex: none; }
+.naglowek-dok {
+  flex: none; display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 16px;
+  border: 0; background: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--tusz-2); text-align: left;
+}
+.naglowek-dok .licznik { margin-left: auto; }
+.naglowek-dok::after { content: ""; width: 7px; height: 7px; margin-left: 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform var(--czas); }
+.naglowek-dok[aria-expanded="false"]::after { transform: rotate(-45deg); }
+.naglowek-dok:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--akcent); }
+.dok-warstw .lista-warstw { flex: 1 1 auto; min-height: 0; overflow: auto; margin: 0; padding: 0 10px 10px; list-style: none; }
+.dok-warstw.zwiniety .lista-warstw { display: none; }
+.panel-inspektor > .sekcja-ostrzezen { flex: none; max-height: 24%; overflow-y: auto; margin-top: 0; }
+/* Tabela: kolumna i wiersz klikniętej komórki (#115). */
+.wlasciwosci .wybrana-komorka { margin: 0; padding: 6px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: var(--na-akcencie-tle); font-size: 12.5px; font-weight: 600; }
+.wlasciwosci .kolumna-i-wiersz .rzad-przyciskow .przycisk { flex: 1 1 auto; min-width: 0; padding: 0 8px; font-size: 12px; }
+.wlasciwosci fieldset.kolumny-tabeli { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #przycisk-wiecej ~ .menu { z-index: 60; }
 [data-akcja="wzorce"] .licznik { margin-left: 2px; }
 

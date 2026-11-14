@@ -180,7 +180,7 @@ test('telefon: arkusz właściwości – od góry, bez krzyżyka, uchwyt, elemen
     const b = o.getBoundingRect(); const v = e.canvas.viewportTransform; const c = e.canvas.upperCanvasEl.getBoundingClientRect();
     const el = { gora: c.top + v[5] + b.top * v[3], dol: c.top + v[5] + (b.top + b.height) * v[3] };
     return {
-      zakladki: r('.zakladki-panelu-opak'), naglowek: r('#naglowek-wlasciwosci'), panel: r('.panel-inspektor'), pasek: r('#pasek-narzedzi'),
+      naglowek: r('#naglowek-wlasciwosci'), panel: r('.panel-inspektor'), pasek: r('#pasek-narzedzi'),
       el, krzyzyk: [...document.querySelectorAll('.panel-inspektor button')].some((x) => x.offsetParent && /zamknij/i.test(x.getAttribute('aria-label') || '')),
       przewiniecie: document.querySelector('.wlasciwosci').scrollTop, okno: window.innerHeight,
     };
@@ -190,9 +190,9 @@ test('telefon: arkusz właściwości – od góry, bez krzyżyka, uchwyt, elemen
   await otwarty();
   await strona.waitForTimeout(100);
   let s = await stanArkusza();
-  // Arkusz zaczyna się od góry: zakładki nad nagłówkiem elementu, nic na nic nie nachodzi; bez krzyżyka.
+  // Arkusz zaczyna się od góry: nagłówek elementu pod uchwytem, w całości widoczny; bez krzyżyka.
   assert.equal(s.przewiniecie, 0);
-  assert.ok(s.zakladki.height >= 36 && s.zakladki.bottom <= s.naglowek.top + 0.5, `zakładki ${JSON.stringify(s.zakladki)} nad nagłówkiem ${JSON.stringify(s.naglowek)}`);
+  assert.ok(s.naglowek.height >= 44 && s.naglowek.top >= s.panel.top, `nagłówek ${JSON.stringify(s.naglowek)} w arkuszu ${JSON.stringify(s.panel)}`);
   assert.equal(s.krzyzyk, false);
   assert.ok(Math.abs(s.panel.height - s.okno * 0.45) < 2, `arkusz na 45% ekranu: ${s.panel.height}`);
   // Zaznaczony obraz widać nad arkuszem (pod paskiem wstawiania).
