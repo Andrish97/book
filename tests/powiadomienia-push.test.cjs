@@ -1,6 +1,6 @@
 // Powiadomienia push (decyzja #113): szyfrowanie Web Push (RFC 8291) i podpis VAPID (RFC 8292) w module
 // Funkcji Edge powiadomienia (przeniesione z Familiady), treści powiadomień, przebieg kolejki z odszyfrowaniem
-// tak, jak robi to przeglądarka, oraz skrypt scripts/vapid.cjs.
+// tak, jak robi to przeglądarka, oraz klucze VAPID tworzone przez samą funkcję (#113a).
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -74,11 +74,11 @@ test('Web Push: wektor z RFC 8291, losowe klucze z polskimi znakami, złe klucze
   await assert.rejects(encryptPayload('x', b64url(u.pub), 'AAAA'), /invalid_auth/);
 });
 
-test('VAPID: para z scripts/vapid.cjs podpisuje JWT ES256 z aud = adres usługi', async () => {
+test('VAPID: para z nowaParaVapid podpisuje JWT ES256 z aud = adres usługi', async () => {
   const { vapidAuthorization } = await modul('supabase/functions/_shared/web-push.js');
-  const { generuj } = require('../scripts/vapid.cjs');
+  const { nowaParaVapid } = await modul('supabase/functions/_shared/powiadomienia.mjs');
   for (let i = 0; i < 5; i += 1) {
-    const { publiczny, prywatny } = generuj();
+    const { publiczny, prywatny } = await nowaParaVapid();
     assert.equal(zB64url(publiczny).length, 65);
     assert.equal(zB64url(prywatny).length, 32);
     const vapid = { publicKey: publiczny, privateKey: prywatny, subject: 'mailto:kontakt@makietka.app' };
@@ -101,19 +101,34 @@ test('treści powiadomień: zaproszenie (link z kodem), udostępnienie, odpowied
   assert.equal(trescPowiadomienia({ zdarzenie: 'cos', dane: {} }), null);
 });
 
-test('funkcja powiadomienia: klucz publiczny dla przeglądarki, przebieg kolejki – wysyłka, wynik urządzeń, brak kluczy', async () => {
-  const { obsluzPowiadomienia, przetworzKolejke } = await modul('supabase/functions/_shared/powiadomienia.mjs');
-  const { generuj } = require('../scripts/vapid.cjs');
-  const { publiczny, prywatny } = generuj();
-  const env = { VAPID_PUBLIC_KEY: publiczny, VAPID_PRIVATE_KEY: prywatny, VAPID_SUBJECT: 'mailto:kontakt@makietka.app', SUPABASE_URL: 'https://baza.test', SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test' };
+test('funkcja powiadomienia: klucze tworzą się same przy pierwszym użyciu, przebieg kolejki – wysyłka, wynik urządzeń', async () => {
+  const { obsluzPowiadomienia, przetworzKolejke, zapomnijKlucze } = await modul('supabase/functions/_shared/powiadomienia.mjs');
+  const env = { SUPABASE_URL: 'https://baza.test', SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test' };
   const zadanie = (tresc) => new Request('https://baza.test/functions/v1/powiadomienia', { method: 'POST', body: JSON.stringify(tresc) });
 
-  let odp = await obsluzPowiadomienia(zadanie({ klucz: true }), env);
-  assert.deepEqual(await odp.json(), { klucz: publiczny });
+  // Baza bez kluczy: pierwsze wywołanie tworzy parę i zapisuje ją (push_klucze_zapewnij), kolejne ją czytają.
+  let zapisane = null;
+  let zapisy = 0;
+  const kluczeWBazie = async (init) => {
+    const p = JSON.parse(init.body);
+    assert.equal(init.headers.apikey, 'sb_secret_test');
+    if (p.p_publiczny && !zapisane) { zapisane = { publiczny: p.p_publiczny, prywatny: p.p_prywatny }; zapisy += 1; }
+    return new Response(JSON.stringify(zapisane ? [zapisane] : []), { status: 200 });
+  };
+  zapomnijKlucze();
+  let odp = await obsluzPowiadomienia(zadanie({ klucz: true }), env, async (adres, init) => kluczeWBazie(init));
+  const { klucz: publiczny } = await odp.json();
+  assert.equal(publiczny, zapisane.publiczny);
+  assert.equal(zapisy, 1);
   assert.equal(odp.headers.get('access-control-allow-origin'), '*');
+  zapomnijKlucze();
+  odp = await obsluzPowiadomienia(zadanie({ klucz: true }), env, async (adres, init) => kluczeWBazie(init));
+  assert.deepEqual(await odp.json(), { klucz: publiczny }, 'druga funkcja dostaje tę samą parę');
+  assert.equal(zapisy, 1);
+  zapomnijKlucze();
   odp = await obsluzPowiadomienia(zadanie({ klucz: true }), {});
-  assert.deepEqual(await odp.json(), { klucz: null });
-  assert.deepEqual(await przetworzKolejke({ ...env, VAPID_PRIVATE_KEY: '' }, async () => { throw new Error('bez sieci'); }), { zdarzenia: 0, dostarczone: 0, nieudane: 0, powod: 'brak-kluczy-vapid' });
+  assert.deepEqual(await odp.json(), { klucz: null }, 'bez klucza serwisowego');
+  assert.deepEqual(await przetworzKolejke({}, async () => { throw new Error('bez sieci'); }), { zdarzenia: 0, dostarczone: 0, nieudane: 0, powod: 'brak-klucza-serwisowego' });
 
   const u1 = urzadzenie();
   const u2 = urzadzenie();
@@ -134,6 +149,7 @@ test('funkcja powiadomienia: klucz publiczny dla przeglądarki, przebieg kolejki
       pobrania += 1;
       return new Response(JSON.stringify(pobrania === 1 ? partia : []), { status: 200 });
     }
+    if (adres === 'https://baza.test/rest/v1/rpc/push_klucze_zapewnij') return kluczeWBazie(init);
     if (adres === 'https://baza.test/rest/v1/rpc/push_kolejka_wynik') return new Response('null', { status: 200 });
     if (adres.endsWith('/u1')) return new Response('', { status: 201 });
     if (adres.endsWith('/u2')) return new Response('', { status: 410 });

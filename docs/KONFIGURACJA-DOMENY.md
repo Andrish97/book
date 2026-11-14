@@ -210,19 +210,13 @@ Skrzynka działa jak zwykła poczta, jak w Familiadzie (bez marketingu):
 - Adresy łącznika `https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/<klucz>` – działają dalej
   (to ta sama funkcja), ale okno „Dostęp dla AI” po przełączeniu podaje już adres z `api.makietka.app`.
 
-## 6. Powiadomienia push (decyzja #113)
+## 6. Powiadomienia push (decyzje #113, #113a)
 
-Powiadomienia o zaproszeniach, udostępnieniach i zmianach dostępu wysyła Funkcja Edge `powiadomienia` (wdraża się
-sama po pushu na `main`, razem z migracją bazy). Potrzebuje jednej pary kluczy VAPID – tak jak w Familiadzie:
-
-1. U siebie, w katalogu repozytorium: `node scripts/vapid.cjs` – skrypt wypisze trzy wiersze.
-2. **Supabase → Edge Functions → Secrets → Add new secret** – wpisz je dokładnie tak:
-   - `VAPID_PUBLIC_KEY` = wartość z wiersza `VAPID_PUBLIC_KEY=…`,
-   - `VAPID_PRIVATE_KEY` = wartość z wiersza `VAPID_PRIVATE_KEY=…` (nigdzie indziej jej nie wklejaj),
-   - `VAPID_SUBJECT` = `mailto:kontakt@makietka.app`.
-3. Gotowe: w aplikacji **Ustawienia konta → Powiadomienia → Na tym urządzeniu**. Aplikacja pobiera klucz
-   publiczny z funkcji, więc w kodzie nic się nie zmienia. Na iPhonie i iPadzie powiadomienia działają
-   w zainstalowanej aplikacji (Udostępnij → Do ekranu początkowego).
+Nic nie trzeba ustawiać. Powiadomienia o zaproszeniach, udostępnieniach i zmianach dostępu wysyła Funkcja Edge
+`powiadomienia` (wdraża się sama po pushu na `main`, razem z migracją bazy). Parę kluczy VAPID funkcja tworzy
+sama przy pierwszym użyciu i trzyma w tabeli `push_klucze`, do której dostęp ma tylko klucz serwisowy – bez
+sekretów i bez skryptów. W aplikacji: **Ustawienia konta → Powiadomienia → Na tym urządzeniu**. Na iPhonie
+i iPadzie powiadomienia działają w zainstalowanej aplikacji (Udostępnij → Do ekranu początkowego).
 
 Wysyłkę zleca aplikacja zaraz po zmianie we współpracy, a Cron Workera `makietka-api` co minutę dosyła resztę
-(np. zmiany zrobione przez łącznik AI). Nowa para kluczy oznacza, że każde urządzenie trzeba włączyć ponownie.
+(np. zmiany zrobione przez łącznik AI).

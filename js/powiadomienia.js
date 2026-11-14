@@ -82,7 +82,7 @@ export async function wlacz(rodzaje = RODZAJE) {
       : 'Nie udzielono zgody na powiadomienia.');
   }
   const { klucz } = await funkcja({ klucz: true });
-  if (!klucz) throw new Error('Serwer nie ma jeszcze kluczy powiadomień.');
+  if (!klucz) throw new Error('Nie udało się przygotować powiadomień – spróbuj za chwilę.');
   const reg = await rejestracja();
   const kluczBajty = naBajty(klucz);
   let sub = await reg.pushManager.getSubscription();

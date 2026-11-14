@@ -1,12 +1,12 @@
 // Powiadomienia push (decyzja #113) – logika Funkcji Edge powiadomienia, wspólna z testami (Node).
 //
-//  • { klucz: true } – klucz publiczny VAPID dla przeglądarki (aplikacja nie trzyma go w kodzie, więc po
-//    ustawieniu sekretów nic nie trzeba zmieniać w repozytorium),
+//  • { klucz: true } – klucz publiczny VAPID dla przeglądarki (tworzony przy pierwszym użyciu),
 //  • { kolejka: true } – przebieg kolejki powiadomienia_kolejka: aplikacja od razu po zmianie we współpracy,
 //    Cron Workera co minutę. Zlecić może każdy – kolejka sama pilnuje prób, a tędy nie da się do niej nic dopisać.
 //
-// Sekrety (Edge Functions → Secrets): VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (jak w Familiadzie).
-// Klucz serwisowy daje funkcjom sam Supabase (SUPABASE_SERVICE_ROLE_KEY / SUPABASE_SECRET_KEYS).
+// Bez sekretów do ustawiania (decyzja #113a): para kluczy VAPID tworzy się sama przy pierwszym użyciu
+// i leży w tabeli push_klucze (tylko klucz serwisowy). Klucz serwisowy daje funkcjom sam Supabase
+// (SUPABASE_SERVICE_ROLE_KEY / SUPABASE_SECRET_KEYS).
 
 import { buildPushRequest } from './web-push.js';
 import { DOMYSLNY_ADRES } from './mcp-http.mjs';
@@ -68,18 +68,38 @@ async function rpcBazy(env, wyslij, nazwa, parametry, naglowki) {
   return tresc;
 }
 
-const vapidZ = (env) => ({
-  publicKey: String(env.VAPID_PUBLIC_KEY || '').trim(),
-  privateKey: String(env.VAPID_PRIVATE_KEY || '').trim(),
-  subject: String(env.VAPID_SUBJECT || '').trim(),
-});
+export const NADAWCA_VAPID = 'mailto:kontakt@makietka.app';
+const b64url = (bajty) => btoa(String.fromCharCode(...new Uint8Array(bajty))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+// Nowa para VAPID (P-256) w base64url: publiczny 65 B (04‖X‖Y), prywatny 32 B (d).
+export async function nowaParaVapid() {
+  const para = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const publiczny = b64url(await crypto.subtle.exportKey('raw', para.publicKey));
+  const { d } = await crypto.subtle.exportKey('jwk', para.privateKey);
+  return { publiczny, prywatny: d };
+}
+
+let kluczeWPamieci = null;
+// Para z bazy; przy pierwszym użyciu tworzy ją i zapisuje (push_klucze_zapewnij – pierwsza wygrywa).
+export async function kluczeVapid(env, wyslij) {
+  if (kluczeWPamieci) return kluczeWPamieci;
+  const klucz = kluczSerwisowy(env);
+  if (!klucz) return null;
+  const naglowki = naglowkiKlucza(klucz);
+  let [para] = await rpcBazy(env, wyslij, 'push_klucze_zapewnij', {}, naglowki) || [];
+  if (!para) [para] = await rpcBazy(env, wyslij, 'push_klucze_zapewnij', await nowaParaVapid().then((p) => ({ p_publiczny: p.publiczny, p_prywatny: p.prywatny })), naglowki) || [];
+  if (!para) return null;
+  kluczeWPamieci = { publicKey: para.publiczny, privateKey: para.prywatny, subject: NADAWCA_VAPID };
+  return kluczeWPamieci;
+}
+export function zapomnijKlucze() { kluczeWPamieci = null; }
 
 // Jeden przebieg kolejki → { zdarzenia, dostarczone, nieudane, powod }.
 export async function przetworzKolejke(env = {}, wyslij = fetch) {
   const klucz = kluczSerwisowy(env);
   if (!klucz) return { zdarzenia: 0, dostarczone: 0, nieudane: 0, powod: 'brak-klucza-serwisowego' };
-  const vapid = vapidZ(env);
-  if (!vapid.publicKey || !vapid.privateKey || !vapid.subject) return { zdarzenia: 0, dostarczone: 0, nieudane: 0, powod: 'brak-kluczy-vapid' };
+  const vapid = await kluczeVapid(env, wyslij);
+  if (!vapid) return { zdarzenia: 0, dostarczone: 0, nieudane: 0, powod: 'brak-kluczy-vapid' };
   const naglowki = naglowkiKlucza(klucz);
   const wynik = { zdarzenia: 0, dostarczone: 0, nieudane: 0, powod: null };
   for (let runda = 0; runda < 4; runda += 1) {
@@ -120,8 +140,12 @@ export async function obsluzPowiadomienia(request, env = {}, wyslij = fetch) {
   let tresc = {};
   try { tresc = await request.json(); } catch { /* pusta treść */ }
   if (tresc?.klucz) {
-    const { publicKey } = vapidZ(env);
-    return json(200, { klucz: publicKey || null });
+    try {
+      const vapid = await kluczeVapid(env, wyslij);
+      return json(200, { klucz: vapid?.publicKey || null });
+    } catch (e) {
+      return json(500, { blad: e.message });
+    }
   }
   if (tresc?.kolejka) {
     try {
