@@ -1,4 +1,4 @@
-// Atrapa panelu administratora i poczty (migracje 20261115090000_poczta_panel.sql, 20261115150000_skrzynka.sql) – te same
+// Atrapa panelu administratora i poczty (migracje 20261115090000_poczta_panel.sql, 20261115160000_skrzynka.sql) – te same
 // zasady w uproszczeniu: tylko administrator widzi panel; skrzynka z folderami, gwiazdką, zgłoszeniami (ZGL-RRRR-NNNN),
 // kopiami roboczymi i operacjami zbiorczymi; wysyłka (nowa, odpowiedź, wszystkim, przekazanie) idzie do kolejki z DW/UDW,
 // załącznikami i nagłówkami wątku; kolejka z akcjami, ustawienia (z podpisem), statystyki bez kont testowych (example.com).

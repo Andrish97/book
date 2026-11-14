@@ -10,7 +10,7 @@
 //    kopie robocze zapisywane w trakcie pisania; wysyłka przez kolejkę (Brevo → ZeptoMail) z adresu skrzynki,
 //  • zmiany na żywo (Realtime na poczta_watki – tylko administrator),
 //  • telefon: lista → rozmowa → pisanie jako osobne ekrany.
-// Dane: funkcje bazy admin_poczta_* (migracja 20261115150000_skrzynka.sql).
+// Dane: funkcje bazy admin_poczta_* (migracja 20261115160000_skrzynka.sql).
 
 import { supabase, komunikatBledu, r2 } from '../chmura.js';
 import { $, $$, powiadom, potwierdz, kiedy, odmiana } from '../ui.js';
