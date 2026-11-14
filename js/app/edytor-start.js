@@ -245,6 +245,7 @@ export const akcje = {
   'obroc-format': () => {
     const f = $('#dlg-sekcja form');
     [f.elements.szerokosc_mm.value, f.elements.wysokosc_mm.value] = [f.elements.wysokosc_mm.value, f.elements.szerokosc_mm.value];
+    f.elements.szerokosc_mm.dispatchEvent(new Event('input', { bubbles: true })); // schemat marginesów
   },
 
   'strona-dodaj': () => dodajStrone(),

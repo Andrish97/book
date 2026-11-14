@@ -795,7 +795,6 @@
           <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
           <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
           <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="ponow"></button>
-          <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
         </div>
       </fieldset>
 
@@ -811,12 +810,15 @@
       </details>
 
       <fieldset class="grupa-pol">
-        <legend>Marginesy (mm)</legend>
-        <div class="rzad cztery">
-          <label class="pole"><span>Górny</span><input name="margines_gora" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole"><span>Dolny</span><input name="margines_dol" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole"><span id="etykieta-wewnetrzny">Lewy</span><input name="margines_wewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole"><span id="etykieta-zewnetrzny">Prawy</span><input name="margines_zewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+        <legend>Marginesy i spad (mm)</legend>
+        <!-- Schemat strony (#109): pola stoją tam, gdzie margines leży na stronie; przerywana ramka to spad. -->
+        <div class="schemat-marginesow" id="schemat-marginesow">
+          <label class="pole schemat-gora"><span>Górny</span><input name="margines_gora" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-lewy"><span id="etykieta-wewnetrzny">Lewy</span><input name="margines_wewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <div class="schemat-strona" aria-hidden="true"><div class="schemat-spad"></div><div class="schemat-kartka"><div class="schemat-pole-tekstu"></div></div></div>
+          <label class="pole schemat-prawy"><span id="etykieta-zewnetrzny">Prawy</span><input name="margines_zewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-dol"><span>Dolny</span><input name="margines_dol" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-spad-pole"><span>Spad</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
         </div>
       </fieldset>
 
