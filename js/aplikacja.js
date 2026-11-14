@@ -71,6 +71,11 @@ const akcje = {
   'zamknij-instrukcje': () => instrukcja.zamknij(),
   wyloguj: () => wyloguj(false),
   'ustawienia-konta': () => { zamknijMenu(); trasa.ustaw('konto'); przejdzDoTrasy(); },
+  // Panel administratora i formularz kontaktowy (decyzja #95).
+  'panel-admina': () => { zamknijMenu(); trasa.ustaw('admin'); przejdzDoTrasy(); },
+  kontakt: () => { zamknijMenu(); import('./app/kontakt.js').then((m) => m.otworzKontakt()); },
+  'kontakt-zamknij': () => $('#dlg-kontakt').close(),
+  'admin-odswiez': () => import('./app/admin.js').then((m) => m.odswiez()),
   'importuj-projekt': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
   motyw: () => { zamknijMenu(); przelaczMotyw(); },

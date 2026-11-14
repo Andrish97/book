@@ -1840,3 +1840,131 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 /* Pasek podglądu na telefonie: przybliża się palcami (#84), więc − i + ustępują miejsca tytułowi
    (na 320 px zostawało z niego „K…”); stuknięcie w procent dopasowuje stronę jak dotąd. */
 :root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-minus"], :root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-plus"] { display: none; }
+
+/* ======================================================================
+   Panel administratora (#/admin) i formularz kontaktowy – decyzja #95
+   ====================================================================== */
+body[data-ekran="admin"] #ekran-admin { display: flex; }
+.ekran-admin { flex-direction: column; }
+.admin-tresc .konto-uklad { max-width: 1240px; grid-template-columns: 190px minmax(0, 1fr); }
+.admin-nawigacja a[aria-selected="true"] { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
+.admin-nawigacja a[aria-selected="true"] .ikona { color: inherit; }
+.licznik-admin {
+  margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  display: inline-grid; place-items: center; background: var(--akcent); color: var(--akcent-tekst); font-size: 11.5px; font-weight: 700;
+}
+.licznik-admin[hidden] { display: none; }
+.admin-panel > h2 .ciche { font-size: 14px; font-weight: 500; margin-left: 6px; }
+.admin-narzedzia { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 12px; }
+.admin-narzedzia .filtry-projektow { margin: 0; }
+.admin-narzedzia input[type="search"] { flex: 1 1 220px; min-width: 0; }
+
+/* Skrzynka: lista rozmów i otwarta rozmowa obok siebie; na wąskim ekranie – jedno albo drugie. */
+.admin-skrzynka { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.admin-lista { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.lista-watkow { list-style: none; margin: 0; padding: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); overflow: hidden; background: var(--powierzchnia); }
+.lista-watkow li + li { border-top: 1px solid var(--linia); }
+.lista-watkow button {
+  all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px;
+  padding: 10px 12px; cursor: pointer; color: var(--tusz);
+}
+.lista-watkow button:hover { background: var(--wypelnienie); }
+.lista-watkow button:focus-visible { outline: 2px solid var(--akcent); outline-offset: -2px; }
+.lista-watkow li.wybrany button { background: var(--akcent-tlo); }
+.lista-watkow .od { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-watkow .kiedy { color: var(--cichy); font-size: 12px; white-space: nowrap; }
+.lista-watkow .temat { grid-column: 1 / -1; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-watkow .zajawka { grid-column: 1 / -1; color: var(--cichy); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-watkow li.nowy .od, .lista-watkow li.nowy .temat { font-weight: 700; }
+.lista-watkow .plakietka-zrodla { font-size: 11px; color: var(--cichy); border: 1px solid var(--linia); border-radius: 999px; padding: 0 6px; margin-left: 6px; font-weight: 500; }
+
+.admin-watek { min-width: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); background: var(--powierzchnia); padding: 16px; min-height: 240px; }
+.admin-watek-pusty { margin: 60px 0; text-align: center; }
+.watek-naglowek { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.watek-naglowek h3 { font-size: 17px; margin: 0; overflow-wrap: anywhere; min-width: 0; flex: 1 1 240px; }
+.watek-akcje { display: flex; flex-wrap: wrap; gap: 6px; }
+.watek-wstecz { display: none; }
+.wiadomosci-watku { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.wiadomosc { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 10px 12px; }
+.wiadomosc.wychodzaca { background: var(--akcent-tlo); border-color: transparent; margin-left: clamp(0px, 6vw, 48px); }
+.wiadomosc-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; color: var(--cichy); margin-bottom: 6px; }
+.wiadomosc-meta strong { color: var(--tusz); font-weight: 600; }
+.wiadomosc-tresc { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; max-height: 420px; overflow: auto; }
+.wiadomosc-zalaczniki { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: 12.5px; }
+.wiadomosc-zalaczniki span { border: 1px solid var(--linia); border-radius: 999px; padding: 2px 8px; }
+.wiadomosc .stan-wysylki { font-size: 12px; }
+.wiadomosc .stan-wysylki.blad { color: var(--blad); }
+.form-odpowiedzi { display: flex; flex-direction: column; gap: 8px; }
+.form-odpowiedzi textarea { min-height: 110px; resize: vertical; }
+.form-odpowiedzi .przyciski-formularza { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Kolejka */
+.admin-dostawcy { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.admin-dostawca { display: flex; flex-direction: column; gap: 6px; min-width: 220px; flex: 1 1 220px; padding: 10px 12px; border: 1px solid var(--linia); border-radius: var(--r-m); }
+.admin-dostawca .pasek { height: 8px; border-radius: 999px; background: var(--linia); overflow: hidden; }
+.admin-dostawca .pasek span { display: block; height: 100%; background: var(--akcent); }
+.lista-kolejki { list-style: none; margin: 0; padding: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); background: var(--powierzchnia); }
+.lista-kolejki li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 10px 12px; }
+.lista-kolejki li + li { border-top: 1px solid var(--linia); }
+.lista-kolejki .opis { min-width: 0; }
+.lista-kolejki .opis strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-kolejki .opis span { display: block; color: var(--cichy); font-size: 12.5px; overflow-wrap: anywhere; }
+.lista-kolejki .akcje { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.stan-maila { font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; background: var(--wypelnienie); color: var(--tusz-2); margin-right: 6px; }
+.stan-maila.wyslany { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
+.stan-maila.blad { background: var(--blad-tlo); color: var(--blad); }
+
+/* Ustawienia */
+.admin-pola { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 16px; }
+.admin-pola .pole { margin: 0; }
+.admin-tabela-wrap { overflow-x: auto; margin-top: 8px; }
+.admin-tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.admin-tabela th { text-align: left; font-weight: 600; color: var(--cichy); font-size: 12.5px; padding: 6px 8px; border-bottom: 1px solid var(--linia); white-space: nowrap; }
+.admin-tabela td { padding: 6px 8px; border-bottom: 1px solid var(--linia); vertical-align: middle; }
+.admin-tabela td:first-child { min-width: 180px; }
+.admin-tabela input[type="number"] { width: 96px; }
+.admin-tabela .ciche { display: block; font-size: 12px; }
+.przyciski-formularza { display: flex; gap: 8px; padding-top: 14px; }
+.admin-klucz { margin-top: 12px; padding: 12px; border-radius: var(--r-m); background: var(--uwaga-tlo); }
+.admin-klucz p { margin: 0 0 8px; font-size: 13.5px; }
+.admin-klucz .wiersz-akcje { justify-content: flex-start; }
+.admin-klucz input { flex: 1 1 240px; min-width: 0; font-family: ui-monospace, monospace; }
+
+/* Statystyki: kafelki i słupki (SVG). */
+.admin-kafelki { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.admin-kafelek { padding: 12px 14px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); }
+.admin-kafelek span { display: block; color: var(--cichy); font-size: 12.5px; }
+.admin-kafelek strong { display: block; font-size: 22px; font-weight: 700; margin-top: 2px; }
+.admin-kafelek small { display: block; color: var(--cichy); font-size: 12px; margin-top: 2px; }
+.admin-wykresy { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.admin-wykres { padding: 12px 14px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); }
+.admin-wykres h3 { font-size: 14px; margin: 0 0 8px; display: flex; justify-content: space-between; gap: 8px; }
+.admin-wykres h3 span { color: var(--cichy); font-weight: 500; }
+.admin-wykres svg { width: 100%; height: 120px; display: block; }
+.admin-wykres rect.slupek { fill: var(--akcent); }
+.admin-wykres rect.slupek:hover { fill: var(--na-akcencie-tle); }
+.admin-wykres line { stroke: var(--linia); }
+.admin-wykres text { fill: var(--cichy); font-size: 10px; }
+
+/* Wąski ekran (telefon): rozmowa zamiast listy, tabele przewijane. */
+@media (max-width: 900px) {
+  .admin-skrzynka { grid-template-columns: 1fr; }
+  .admin-skrzynka.otwarta .admin-lista { display: none; }
+  .admin-skrzynka:not(.otwarta) .admin-watek { display: none; }
+  .watek-wstecz { display: inline-flex; }
+}
+@media (max-width: 760px) {
+  .admin-tresc .konto-uklad { grid-template-columns: 1fr; }
+  .lista-kolejki li { grid-template-columns: 1fr; }
+  .lista-kolejki .akcje { justify-content: flex-start; }
+  .admin-wykresy { grid-template-columns: 1fr; }
+}
+:root[data-dotyk] .lista-watkow button { min-height: 56px; }
+
+/* Formularz kontaktowy */
+.pulapka { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+#dlg-kontakt textarea { min-height: 120px; resize: vertical; }
+.kontakt-turnstile { min-height: 65px; }
+.link-przycisk { all: unset; cursor: pointer; color: var(--akcent); text-decoration: underline; text-underline-offset: 2px; }
+.link-przycisk:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; border-radius: 3px; }
+:root[data-dotyk] .stopka-logowania .link-przycisk { display: inline-block; padding: 10px 4px; }

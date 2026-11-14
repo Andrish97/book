@@ -120,9 +120,130 @@
         <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase. Aplikacja działa tylko z kontem, więc bez tej konfiguracji nie da się z niej korzystać.</p>
       </div>
       </div>
-      <footer class="stopka-logowania">Makietka · edytor kalendarzy, planerów i notesów</footer>
+      <footer class="stopka-logowania">Makietka · edytor kalendarzy, planerów i notesów · <button type="button" class="link-przycisk" data-akcja="kontakt">Kontakt</button></footer>
     </section>
   </main>
+
+  <!-- ===================== Panel administratora (#/admin, decyzja #95) ===================== -->
+  <div class="ekran ekran-admin" id="ekran-admin">
+    <header class="pasek-aplikacji">
+      <button class="przycisk przezroczysty" data-akcja="do-projektow" data-ikona="wstecz"><span>Projekty</span></button>
+      <div class="separator"></div>
+      <h1 class="tytul-ekranu">Panel administratora</h1>
+      <div class="odstep"></div>
+      <button class="przycisk-ikona" data-akcja="admin-odswiez" data-ikona="ponow" title="Odśwież" aria-label="Odśwież"></button>
+    </header>
+    <main class="konto-tresc admin-tresc">
+      <div class="konto-uklad">
+        <nav class="konto-nawigacja admin-nawigacja" aria-label="Części panelu" role="tablist">
+          <a href="#/admin/skrzynka" data-admin="skrzynka" data-ikona="koperta" role="tab">Skrzynka <span class="licznik-admin" id="admin-nieprzeczytane" hidden></span></a>
+          <a href="#/admin/kolejka" data-admin="kolejka" data-ikona="wyslij" role="tab">Kolejka maili</a>
+          <a href="#/admin/ustawienia" data-admin="ustawienia" data-ikona="suwaki" role="tab">Ustawienia poczty</a>
+          <a href="#/admin/statystyki" data-admin="statystyki" data-ikona="dane" role="tab">Statystyki</a>
+        </nav>
+
+        <div class="konto-sekcje admin-sekcje">
+          <!-- Skrzynka kontakt@makietka.app: poczta przychodząca i formularz kontaktowy -->
+          <section class="grupa-ustawien admin-panel" data-panel-admin="skrzynka">
+            <h2>Skrzynka <span class="ciche" id="admin-adres-skrzynki">kontakt@makietka.app</span></h2>
+            <div class="admin-skrzynka" id="admin-skrzynka">
+              <div class="admin-lista">
+                <div class="admin-narzedzia">
+                  <div class="filtry-projektow" id="admin-foldery" role="group" aria-label="Folder">
+                    <button type="button" class="filtr" data-folder="skrzynka" aria-pressed="true">Odebrane</button>
+                    <button type="button" class="filtr" data-folder="archiwum" aria-pressed="false">Archiwum</button>
+                    <button type="button" class="filtr" data-folder="spam" aria-pressed="false">Spam</button>
+                    <button type="button" class="filtr" data-folder="kosz" aria-pressed="false">Kosz</button>
+                  </div>
+                  <input type="search" id="admin-szukaj" placeholder="Szukaj w temacie, nadawcy, treści…" aria-label="Szukaj w skrzynce">
+                </div>
+                <ul class="lista-watkow" id="admin-watki" aria-label="Rozmowy"></ul>
+                <p class="podpowiedz" id="admin-watki-pusto" hidden>Pusto.</p>
+                <button type="button" class="przycisk maly niebezpieczny" id="admin-oproznij-kosz" hidden>Opróżnij kosz</button>
+              </div>
+              <div class="admin-watek" id="admin-watek" aria-live="polite">
+                <p class="admin-watek-pusty ciche">Wybierz rozmowę z listy.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Kolejka maili: zaproszenia, potwierdzenia z formularza, odpowiedzi z panelu -->
+          <section class="grupa-ustawien admin-panel" data-panel-admin="kolejka" hidden>
+            <h2>Kolejka maili</h2>
+            <p class="ciche">Maile z aplikacji (poza mailami logowania) czekają tu na wysyłkę: wychodzą po kolei, z odstępem i w granicach dziennego limitu dostawcy. Nieudane próby wracają do kolejki: po 1, 5, 15 i 60 minutach.</p>
+            <div class="admin-dostawcy" id="admin-dostawcy-stan"></div>
+            <div class="admin-narzedzia">
+              <div class="filtry-projektow" id="admin-stany" role="group" aria-label="Stan">
+                <button type="button" class="filtr" data-stan="" aria-pressed="true">Wszystkie</button>
+                <button type="button" class="filtr" data-stan="czeka" aria-pressed="false">Czekają</button>
+                <button type="button" class="filtr" data-stan="wyslany" aria-pressed="false">Wysłane</button>
+                <button type="button" class="filtr" data-stan="blad" aria-pressed="false">Błędy</button>
+                <button type="button" class="filtr" data-stan="anulowany" aria-pressed="false">Anulowane</button>
+              </div>
+              <button type="button" class="przycisk" id="admin-przebieg" data-ikona="wyslij">Wyślij teraz</button>
+            </div>
+            <ul class="lista-kolejki" id="admin-kolejka"></ul>
+            <p class="podpowiedz" id="admin-kolejka-pusto" hidden>Brak maili.</p>
+          </section>
+
+          <!-- Ustawienia poczty: nadawca, dostawcy z limitami, odstępy, klucz skrzynki, test -->
+          <section class="grupa-ustawien admin-panel" data-panel-admin="ustawienia" hidden>
+            <h2>Ustawienia poczty</h2>
+            <form id="admin-form-ustawien" class="wiersze-ustawien" novalidate>
+              <div class="wiersz-ustawien">
+                <div class="admin-pola">
+                  <label class="pole"><span>Nadawca maili</span><input name="nadawca_email" type="email" required></label>
+                  <label class="pole"><span>Nazwa nadawcy</span><input name="nadawca_nazwa" type="text" maxlength="80" required></label>
+                  <label class="pole"><span>Skrzynka (odpowiedzi)</span><input name="skrzynka_email" type="email" required></label>
+                  <label class="pole"><span>Maili na jeden przebieg</span><input name="limit_przebiegu" type="number" min="1" max="200" required></label>
+                  <label class="pole"><span>Odstęp między mailami (ms)</span><input name="odstep_ms" type="number" min="0" max="60000" step="100" required></label>
+                  <label class="pole"><span>Prób przed błędem</span><input name="maks_prob" type="number" min="1" max="20" required></label>
+                </div>
+              </div>
+              <div class="wiersz-ustawien">
+                <strong>Dostawcy</strong>
+                <p class="ciche">Na razie jeden – Brevo (darmowo 300 maili na dobę). Klucz API dostawcy jest sekretem funkcji poczty w Supabase, nie tutaj.</p>
+                <div class="admin-tabela-wrap"><table class="admin-tabela" id="admin-dostawcy"><thead><tr><th>Dostawca</th><th>Priorytet</th><th>Na dobę</th><th>Dziś</th><th>Włączony</th></tr></thead><tbody></tbody></table></div>
+              </div>
+              <div class="wiersz-ustawien">
+                <strong>Odstępy i limity</strong>
+                <p class="ciche">Jak w Familiadzie: najmniejszy odstęp między zdarzeniami dla tego samego celu (adresu, konta, IP) i najwięcej zdarzeń na dobę. Puste „na dobę” – bez limitu.</p>
+                <div class="admin-tabela-wrap"><table class="admin-tabela" id="admin-odstepy"><thead><tr><th>Co</th><th>Odstęp (s)</th><th>Na dobę</th><th>Włączony</th></tr></thead><tbody></tbody></table></div>
+              </div>
+              <div class="przyciski-formularza"><button type="submit" class="przycisk glowny">Zapisz ustawienia</button></div>
+              <p class="komunikat" role="status" id="admin-ustawienia-komunikat"></p>
+            </form>
+            <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="wiersz-glowny">
+                  <div class="wiersz-opis"><strong>Klucz skrzynki</strong><span id="admin-klucz-opis">Worker wpisuje nim pocztę przychodzącą i formularz kontaktowy do skrzynki.</span></div>
+                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="admin-nowy-klucz">Nowy klucz skrzynki</button></div>
+                </div>
+                <div class="admin-klucz" id="admin-klucz" hidden>
+                  <p>Skopiuj klucz i wpisz go w Cloudflare: <strong>Workers &amp; Pages → makietka-api → Settings → Variables and Secrets → Add → Secret</strong>, nazwa <code>KLUCZ_SKRZYNKI</code>. Widać go tylko teraz; stary klucz przestał działać.</p>
+                  <div class="wiersz-akcje"><input type="text" id="admin-klucz-wartosc" readonly aria-label="Klucz skrzynki"><button type="button" class="przycisk" id="admin-klucz-kopiuj" data-ikona="kopiuj">Kopiuj</button></div>
+                </div>
+              </div>
+              <div class="wiersz-ustawien">
+                <form id="admin-form-test" class="wiersz-glowny" novalidate>
+                  <label class="wiersz-opis" for="admin-test-adres"><strong>Test wysyłki</strong><span>Mail testowy przez kolejkę i dostawcę.</span></label>
+                  <div class="wiersz-akcje"><input id="admin-test-adres" type="email" required placeholder="adres@przyklad.pl"><button type="submit" class="przycisk">Wyślij test</button></div>
+                </form>
+                <p class="komunikat" role="status" id="admin-test-komunikat"></p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Statystyki -->
+          <section class="grupa-ustawien admin-panel" data-panel-admin="statystyki" hidden>
+            <h2>Statystyki</h2>
+            <div class="admin-kafelki" id="admin-kafelki"></div>
+            <div class="admin-wykresy" id="admin-wykresy"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
 
   <!-- ===================== Ustawienia konta ===================== -->
   <div class="ekran ekran-konta" id="ekran-konta">
@@ -334,6 +455,8 @@
         <div class="menu" id="menu-uzytkownika" role="menu" hidden>
           <div class="menu-naglowek"><strong id="nazwa-uzytkownika"></strong><span id="email-uzytkownika"></span></div>
           <button role="menuitem" data-akcja="ustawienia-konta" id="pozycja-konto" data-ikona="suwaki">Ustawienia konta</button>
+          <button role="menuitem" data-akcja="panel-admina" id="pozycja-admin" data-ikona="dane" hidden>Panel administratora</button>
+          <button role="menuitem" data-akcja="kontakt" data-ikona="koperta">Kontakt</button>
           <button role="menuitem" data-akcja="wyloguj" data-ikona="wyloguj">Wyloguj</button>
         </div>
       </div>
@@ -920,6 +1043,28 @@
         <button type="button" class="przycisk niebezpieczny" data-akcja="wspolpraca-opusc" data-ikona="wyloguj">Opuść projekt</button>
       </div>
     </div>
+  </dialog>
+
+  <!-- Formularz kontaktowy (decyzja #95): wiadomość trafia do skrzynki kontakt@makietka.app w panelu administratora. -->
+  <dialog id="dlg-kontakt" aria-labelledby="kontakt-tytul">
+    <form class="formularz" id="form-kontakt" novalidate>
+      <div class="naglowek-dialogu">
+        <h2 id="kontakt-tytul">Kontakt</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="kontakt-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Pytanie, pomysł, błąd? Napisz – odpowiemy na podany adres. Możesz też pisać wprost na <a href="mailto:kontakt@makietka.app">kontakt@makietka.app</a>.</p>
+      <label class="pole"><span>Twój e-mail</span><input id="kontakt-email" name="email" type="email" autocomplete="email" required maxlength="320"></label>
+      <label class="pole"><span>Temat</span><input id="kontakt-temat" name="temat" type="text" maxlength="200" placeholder="np. Pytanie o druk"></label>
+      <label class="pole"><span>Wiadomość</span><textarea id="kontakt-tresc" name="tresc" rows="6" required minlength="10" maxlength="5000"></textarea></label>
+      <!-- Pułapka na boty: pole niewidoczne dla ludzi. -->
+      <label class="pulapka" aria-hidden="true">Strona www<input name="www" type="text" tabindex="-1" autocomplete="off"></label>
+      <div class="kontakt-turnstile" id="kontakt-turnstile" hidden></div>
+      <p class="komunikat" role="status" id="kontakt-komunikat"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" data-akcja="kontakt-zamknij">Anuluj</button>
+        <button type="submit" class="przycisk glowny" id="kontakt-wyslij">Wyślij</button>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="dlg-zaproszenia" class="dialog-szeroki">
