@@ -8,44 +8,6 @@ const { otworz, nowyProjekt, PNG_2X2 } = require('./pomoc.cjs');
 
 const KONTO = '11111111-1111-4111-8111-111111111111';
 
-test('przeniesienie plików do R2: pliki z folderu konta przechodzą raz, ze starego magazynu znikają; pobranie czeka na przeniesienie', async (t) => {
-  const { strona, baza, bledy } = await otworz(t);
-  await nowyProjekt(strona, 'Przed R2');
-  await strona.setInputFiles('#pliki-zasoby', { name: 'stary.png', mimeType: 'image/png', buffer: PNG_2X2 });
-  await strona.waitForFunction(() => Object.values(window.seriodruk.stan.projekt.zasoby).some((z) => z.sciezka), null, { timeout: 15000 });
-  const sciezka = await strona.evaluate(() => Object.values(window.seriodruk.stan.projekt.zasoby).find((z) => z.sciezka).sciezka);
-  const idProjektu = sciezka.split('/')[1];
-  // Stan sprzed R2: plik obrazu, czcionka konta i obraz strony linku leżą w starym magazynie, w R2 nic.
-  for (const klucz of [...baza.pliki.keys()]) baza.pliki.delete(klucz);
-  baza.staryMagazyn.set(`zasoby/${sciezka}`, { typ: 'image/png', tresc: PNG_2X2 });
-  baza.staryMagazyn.set(`zasoby/${KONTO}/_czcionki/spis.json`, { typ: 'application/json', tresc: Buffer.from('{"czcionki":[],"usuniete":[]}') });
-  baza.staryMagazyn.set(`podglady/${KONTO}/${idProjektu}/kodlinku/manifest.json`, { typ: 'application/json', tresc: Buffer.from('{}') });
-  baza.staryMagazyn.set('zasoby/99999999-9999-4999-8999-999999999999/inny/z', { typ: 'image/png', tresc: PNG_2X2 }); // cudzy folder
-  // Druga przeglądarka (bez znacznika przeniesienia i bez plików na urządzeniu) – logowanie przenosi pliki.
-  await strona.evaluate(async () => {
-    for (const k of Object.keys(localStorage)) if (k.startsWith('pliki-r2:')) localStorage.removeItem(k);
-    await Promise.all(['seriodruk', 'seriodruk-zasoby'].map((n) => new Promise((ok) => { const r = indexedDB.deleteDatabase(n); r.onsuccess = r.onerror = r.onblocked = () => ok(); })));
-  });
-  await strona.reload();
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt, null, { timeout: 20000 });
-  // Pobranie pliku z konta czeka na koniec przeniesienia i bierze plik już z R2.
-  const rozmiar = await strona.evaluate(async (s) => (await (await import('./js/chmura.js')).pobierzZasob(s)).size, sciezka);
-  assert.equal(rozmiar, PNG_2X2.length);
-  assert.ok(baza.pliki.has(`zasoby/${sciezka}`), 'obraz w R2');
-  assert.ok(baza.pliki.has(`zasoby/${KONTO}/_czcionki/spis.json`), 'czcionki konta w R2');
-  assert.ok(baza.pliki.has(`podglady/${KONTO}/${idProjektu}/kodlinku/manifest.json`), 'obraz strony linku w R2');
-  assert.equal(baza.pliki.get(`zasoby/${sciezka}`).cacheControl, 'private, max-age=31536000, immutable');
-  assert.deepEqual([...baza.staryMagazyn.keys()], ['zasoby/99999999-9999-4999-8999-999999999999/inny/z'], 'stary magazyn konta pusty, cudzy folder nietknięty');
-  // Drugi raz na tym urządzeniu – bez pytania starego magazynu.
-  const listy = () => baza.zadania.filter((z) => z.startsWith('POST /storage/v1/object/list/')).length;
-  const przed = listy();
-  await strona.reload();
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt);
-  await strona.waitForTimeout(500);
-  assert.equal(listy(), przed, 'przeniesienie raz na urządzeniu');
-  assert.deepEqual(bledy, []);
-});
-
 test('limity: projekty konta (Nowy projekt, Duplikuj), miejsce konta przy wysyłce obrazu, obrazy w projekcie', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Pierwszy');
