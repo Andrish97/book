@@ -1910,10 +1910,6 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 .admin-tabela input[type="number"] { width: 96px; }
 .admin-tabela .ciche { display: block; font-size: 12px; }
 .przyciski-formularza { display: flex; gap: 8px; padding-top: 14px; }
-.admin-klucz { margin-top: 12px; padding: 12px; border-radius: var(--r-m); background: var(--uwaga-tlo); }
-.admin-klucz p { margin: 0 0 8px; font-size: 13.5px; }
-.admin-klucz .wiersz-akcje { justify-content: flex-start; }
-.admin-klucz input { flex: 1 1 240px; min-width: 0; font-family: ui-monospace, monospace; }
 
 /* Statystyki: kafelki i słupki (SVG). */
 .admin-kafelki { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px; }
@@ -2232,3 +2228,8 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .licznik-wiersz { display: inline-flex; align-items: center; gap: 4px; }
 .licznik-podpis { font-size: 13px; color: var(--tusz-2); margin-right: 4px; }
 .licznik-liczba { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ---------- Dostawcy poczty: sekret ustawiony / brak (#105) ---------- */
+.stan-sekretu { font-size: 12.5px; font-weight: 600; }
+.stan-sekretu.ok { color: var(--sukces); }
+.stan-sekretu.brak { color: var(--blad); }

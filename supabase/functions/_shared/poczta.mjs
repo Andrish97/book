@@ -1,4 +1,4 @@
-// Poczta aplikacji (decyzja #86): wszystkie e-maile idą przez API Brevo z Funkcji Edge `poczta`
+// Poczta aplikacji (decyzja #86, dostawcy #105): wszystkie e-maile idą przez API ZeptoMail (Zoho) albo Brevo z Funkcji Edge `poczta`
 // (supabase/functions/poczta/index.ts). Wspólne dla Deno i testów w Node (tests/poczta.test.cjs).
 //
 // Dwie drogi do funkcji:
@@ -12,7 +12,11 @@
 //     (public.dane_maila_zaproszenia – tylko właściciel, najwyżej raz na 10 minut na zaproszenie), a link
 //     buduje sama – przez naszą pocztę nie da się wysłać obcego linku.
 //
-// Sekrety funkcji (Deno.env, nigdy w repozytorium): BREVO_API_KEY, SEND_EMAIL_HOOK_SECRET; opcjonalnie
+// Dostawcy (#105): Brevo pierwszy, ZeptoMail (Zoho) zapasowy – tylko gdy włączony; kolejność, włączenie i dzienne limity w tabeli
+// poczta_dostawcy (panel administratora). Gdy dostawca odmówi (np. Brevo blokuje nieznane IP), wiadomość idzie
+// przez następnego. Dostawca bez sekretu jest pomijany.
+// Sekrety funkcji (Deno.env, nigdy w repozytorium): ZEPTOMAIL_API_KEY (+ ZEPTOMAIL_REGION eu|com|in, domyślnie eu;
+// opcjonalnie ZEPTOMAIL_BOUNCE_ADDRESS), BREVO_API_KEY, SEND_EMAIL_HOOK_SECRET; opcjonalnie
 // MAIL_FROM_EMAIL (domyślnie no-reply@makietka.app), MAIL_FROM_NAME (domyślnie Makietka), SITE_URL
 // (domyślnie adres aplikacji ze stałej ADRES_APLIKACJI).
 
@@ -20,6 +24,7 @@ import { ADRES_APLIKACJI } from './seriodruk-mcp-rdzen.mjs';
 import { DOMYSLNY_ADRES, DOMYSLNY_KLUCZ_PUBLICZNY } from './mcp-http.mjs';
 
 const BREVO = 'https://api.brevo.com/v3/smtp/email';
+const ZEPTO_HOST = { eu: 'api.zeptomail.eu', com: 'api.zeptomail.com', in: 'api.zeptomail.in' };
 const NADAWCA = 'no-reply@makietka.app';
 const MARKA = 'Makietka';
 const TOLERANCJA_S = 5 * 60; // podpis haka – dopuszczalna różnica zegarów
@@ -42,30 +47,97 @@ export const ustawienia = (env = {}) => ({
 
 // ---------- Wysyłka ----------
 
-// { do, doNazwa?, temat, html, tekst, odpowiedzDo?, nadawca?, naglowki? } → wysyła przez Brevo i zwraca Message-ID
-// wysłanej wiadomości (do wątków skrzynki); rzuca błąd, gdy się nie da.
+// ---------- Dostawcy ----------
+
 const NAGLOWKI_WATKU = ['In-Reply-To', 'References'];
-export async function wyslijMail({ do: adresat, doNazwa = null, temat, html: trescHtml, tekst, odpowiedzDo = null, tagi = [], nadawca = null, naglowki = null }, env = {}, wyslij = fetch) {
-  if (!env.BREVO_API_KEY) throw new Error('brak-klucza-brevo');
-  const u = ustawienia(env);
-  const dodatkowe = Object.fromEntries(Object.entries(naglowki || {}).filter(([k, v]) => NAGLOWKI_WATKU.includes(k) && v));
+const zeptoKlucz = (env) => String(env.ZEPTOMAIL_API_KEY || '').trim().replace(/^Zoho-enczapikey\s+/i, '');
+
+async function wyslijBrevo(m, env, wyslij) {
   const odp = await wyslij(BREVO, {
     method: 'POST',
     headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
-      sender: nadawca?.email ? { email: nadawca.email, name: nadawca.name || u.marka } : { email: u.nadawca, name: u.marka },
-      to: [doNazwa ? { email: adresat, name: doNazwa } : { email: adresat }],
-      ...(Object.keys(dodatkowe).length ? { headers: dodatkowe } : {}),
-      ...(odpowiedzDo?.email ? { replyTo: odpowiedzDo } : {}),
-      subject: temat,
-      htmlContent: trescHtml,
-      textContent: tekst,
-      ...(tagi.length ? { tags: tagi } : {}),
+      sender: m.nadawca,
+      to: [m.doNazwa ? { email: m.do, name: m.doNazwa } : { email: m.do }],
+      ...(Object.keys(m.naglowki).length ? { headers: m.naglowki } : {}),
+      ...(m.odpowiedzDo?.email ? { replyTo: m.odpowiedzDo } : {}),
+      subject: m.temat,
+      htmlContent: m.html,
+      textContent: m.tekst,
+      ...(m.tagi.length ? { tags: m.tagi } : {}),
     }),
   });
   const b = await odp.json().catch(() => ({}));
-  if (!odp.ok) throw new Error(`Poczta odrzuciła wiadomość (${odp.status}${b?.message ? `: ${b.message}` : ''}).`);
+  if (!odp.ok) throw new Error(`Brevo odrzuciło wiadomość (${odp.status}${b?.message ? `: ${b.message}` : ''}).`);
   return b?.messageId || null;
+}
+
+// ZeptoMail (Zoho) – https://www.zoho.com/zeptomail/help/api/email-sending.html; region konta: eu (zoho.eu), com, in.
+async function wyslijZepto(m, env, wyslij) {
+  const region = String(env.ZEPTOMAIL_REGION || 'eu').trim().toLowerCase();
+  const host = ZEPTO_HOST[region] || ZEPTO_HOST.eu;
+  const odp = await wyslij(`https://${host}/v1.1/email`, {
+    method: 'POST',
+    headers: { authorization: `Zoho-enczapikey ${zeptoKlucz(env)}`, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      from: { address: m.nadawca.email, name: m.nadawca.name },
+      to: [{ email_address: { address: m.do, name: m.doNazwa || '' } }],
+      ...(m.odpowiedzDo?.email ? { reply_to: [{ address: m.odpowiedzDo.email, name: m.odpowiedzDo.name || '' }] } : {}),
+      subject: m.temat,
+      htmlbody: m.html,
+      textbody: m.tekst,
+      ...(Object.keys(m.naglowki).length ? { mime_headers: m.naglowki } : {}),
+      ...(env.ZEPTOMAIL_BOUNCE_ADDRESS ? { bounce_address: env.ZEPTOMAIL_BOUNCE_ADDRESS } : {}),
+      ...(m.tagi.length ? { client_reference: m.tagi.join(',').slice(0, 100) } : {}),
+    }),
+  });
+  const b = await odp.json().catch(() => ({}));
+  if (!odp.ok) {
+    const opis = b?.error?.details?.[0]?.message || b?.error?.message || b?.message || '';
+    throw new Error(`ZeptoMail odrzucił wiadomość (${odp.status}${opis ? `: ${opis}` : ''}).`);
+  }
+  return b?.request_id || b?.data?.[0]?.additional_info?.[0]?.message_id || null;
+}
+
+export const DOSTAWCY = {
+  zeptomail: { nazwa: 'ZeptoMail', gotowy: (env) => Boolean(zeptoKlucz(env)), wyslij: wyslijZepto },
+  brevo: { nazwa: 'Brevo', gotowy: (env) => Boolean(env.BREVO_API_KEY), wyslij: wyslijBrevo },
+};
+// Bez listy z bazy (np. baza niedostępna przy haku Auth) – tylko Brevo: ZeptoMail wchodzi do kolejki wyłącznie
+// wtedy, gdy jest włączony w poczta_dostawcy.
+export const DOMYSLNA_KOLEJNOSC = ['brevo'];
+// Którzy dostawcy mają sekret (bez wartości) – dla panelu administratora.
+export const stanDostawcow = (env = {}) => Object.fromEntries(Object.entries(DOSTAWCY).map(([id, d]) => [id, d.gotowy(env)]));
+const gotowi = (lista, env) => (lista || DOMYSLNA_KOLEJNOSC).filter((id) => DOSTAWCY[id]?.gotowy(env));
+// Czy jakikolwiek dostawca ma sekret (kolejność i włączenie rozstrzyga potem baza).
+const ktokolwiek = (env) => gotowi(Object.keys(DOSTAWCY), env).length > 0;
+
+// { do, doNazwa?, temat, html, tekst, odpowiedzDo?, nadawca?, naglowki?, tagi? } → próbuje dostawców po kolei
+// (lista identyfikatorów z bazy; bez niej – DOMYSLNA_KOLEJNOSC) i zwraca { messageId, dostawca }; gdy wszyscy
+// odmówią – błąd z powodami każdego.
+export async function wyslijPrzez({ do: adresat, doNazwa = null, temat, html: trescHtml, tekst, odpowiedzDo = null, tagi = [], nadawca = null, naglowki = null }, env = {}, wyslij = fetch, dostawcy = null) {
+  const kolejka = gotowi(dostawcy, env);
+  if (!kolejka.length) throw new Error('brak-dostawcy');
+  const u = ustawienia(env);
+  const m = {
+    do: adresat, doNazwa, temat, html: trescHtml, tekst, odpowiedzDo, tagi,
+    nadawca: nadawca?.email ? { email: nadawca.email, name: nadawca.name || u.marka } : { email: u.nadawca, name: u.marka },
+    naglowki: Object.fromEntries(Object.entries(naglowki || {}).filter(([k, v]) => NAGLOWKI_WATKU.includes(k) && v)),
+  };
+  const bledy = [];
+  for (const id of kolejka) {
+    try {
+      return { messageId: await DOSTAWCY[id].wyslij(m, env, wyslij), dostawca: id };
+    } catch (e) {
+      bledy.push(e.message);
+    }
+  }
+  throw new Error(bledy.join(' '));
+}
+
+// Zgodność z wcześniejszym wywołaniem: zwraca sam Message-ID.
+export async function wyslijMail(mail, env = {}, wyslij = fetch, dostawcy = null) {
+  return (await wyslijPrzez(mail, env, wyslij, dostawcy)).messageId;
 }
 
 // ---------- Szablon ----------
@@ -241,9 +313,17 @@ async function obsluzHak(request, env, wyslij) {
   } catch (e) {
     return bladHaka(401, `Nieprawidłowy podpis haka (${e.message}).`);
   }
-  if (!env.BREVO_API_KEY) return bladHaka(500, 'Poczta nie jest skonfigurowana (brak BREVO_API_KEY).');
+  if (!ktokolwiek(env)) return bladHaka(500, 'Poczta nie jest skonfigurowana (brak ZEPTOMAIL_API_KEY i BREVO_API_KEY).');
+  // Kolejność i dzienne limity dostawców z bazy (kluczem serwisowym); bez bazy – tylko Brevo.
+  const klucz = kluczSerwisowy(env);
+  let kolejnosc = null;
+  if (klucz) kolejnosc = await rpcBazy(env, wyslij, 'poczta_dostawcy_kolejnosc', {}, naglowkiKlucza(klucz)).catch(() => null);
+  const lista = Array.isArray(kolejnosc) ? kolejnosc.filter((d) => d.zostalo > 0).map((d) => d.id) : null;
   try {
-    for (const m of maileAuth(payload, env)) await wyslijMail({ ...m, tagi: ['konto'] }, env, wyslij);
+    for (const m of maileAuth(payload, env)) {
+      const w = await wyslijPrzez({ ...m, tagi: ['konto'] }, env, wyslij, lista);
+      if (klucz) await rpcBazy(env, wyslij, 'poczta_dostawca_wyslano', { p_id: w.dostawca }, naglowkiKlucza(klucz)).catch(() => {});
+    }
   } catch (e) {
     return bladHaka(500, e.message);
   }
@@ -351,24 +431,31 @@ async function rpcBazy(env, wyslij, nazwa, parametry, naglowki) {
 export async function przetworzKolejke(env = {}, wyslij = fetch, { czekaj = (ms) => new Promise((ok) => { setTimeout(ok, ms); }) } = {}) {
   const klucz = kluczSerwisowy(env);
   if (!klucz) return { wyslane: [], bledy: [], powod: 'brak-klucza-serwisowego' };
-  if (!env.BREVO_API_KEY) return { wyslane: [], bledy: [], powod: 'brak-konfiguracji' };
+  if (!ktokolwiek(env)) return { wyslane: [], bledy: [], powod: 'brak-konfiguracji' };
   const naglowki = naglowkiKlucza(klucz);
   const partia = await rpcBazy(env, wyslij, 'poczta_kolejka_pobierz', {}, naglowki);
   const wynik = { wyslane: [], bledy: [], powod: partia?.powod || null };
   const lista = partia?.wiadomosci || [];
+  // Dostawcy z bazy w kolejności priorytetu, z tym, co zostało z dziennego limitu – ubywa przy każdej wysyłce.
+  const zostalo = new Map((partia?.dostawcy || []).map((d) => [d.id, d.zostalo]));
   for (let i = 0; i < lista.length; i += 1) {
     const w = lista[i];
     if (i > 0 && partia.odstep_ms) await czekaj(partia.odstep_ms);
     try {
       const m = trescZKolejki(w, env);
-      const id = await wyslijMail({
+      // Test z panelu dla jednego dostawcy – tylko on; inaczej wszyscy z limitem, po kolei.
+      const kolejnosc = w.dane?.dostawca ? [w.dane.dostawca] : [...zostalo].filter(([, n]) => n > 0).map(([id]) => id);
+      const wynikWysylki = await wyslijPrzez({
         do: w.do_email, doNazwa: w.do_nazwa, temat: m.temat, html: m.html, tekst: m.tekst, odpowiedzDo: w.odpowiedz_do,
         naglowki: w.naglowki, nadawca: w.od_skrzynki ? partia.skrzynka : partia.nadawca, tagi: [w.rodzaj],
-      }, env, wyslij);
-      await rpcBazy(env, wyslij, 'poczta_kolejka_wynik', { p_id: w.id, p_ok: true, p_blad: null, p_message_id: id }, naglowki);
+      }, env, wyslij, partia?.dostawcy ? kolejnosc : null);
+      if (zostalo.has(wynikWysylki.dostawca)) zostalo.set(wynikWysylki.dostawca, zostalo.get(wynikWysylki.dostawca) - 1);
+      await rpcBazy(env, wyslij, 'poczta_kolejka_wynik', {
+        p_id: w.id, p_ok: true, p_blad: null, p_message_id: wynikWysylki.messageId, p_dostawca: wynikWysylki.dostawca,
+      }, naglowki);
       wynik.wyslane.push(w.id);
     } catch (e) {
-      await rpcBazy(env, wyslij, 'poczta_kolejka_wynik', { p_id: w.id, p_ok: false, p_blad: e.message, p_message_id: null }, naglowki).catch(() => {});
+      await rpcBazy(env, wyslij, 'poczta_kolejka_wynik', { p_id: w.id, p_ok: false, p_blad: e.message, p_message_id: null, p_dostawca: null }, naglowki).catch(() => {});
       wynik.bledy.push({ id: w.id, blad: e.message });
     }
   }
@@ -383,13 +470,13 @@ async function obsluzZaproszenie(request, id, env, wyslij) {
   if (!id || typeof id !== 'string') return json(400, { blad: 'Brak identyfikatora zaproszenia.' }, true);
   let plan;
   try {
-    plan = await rpcBazy(env, wyslij, 'poczta_zaplanuj_zaproszenie', { p_id: id }, { apikey: env.KLUCZ_PUBLICZNY || DOMYSLNY_KLUCZ_PUBLICZNY, authorization: autoryzacja });
+    plan = await rpcBazy(env, wyslij, 'poczta_zaplanuj_zaproszenie', { p_id: id }, { apikey: DOMYSLNY_KLUCZ_PUBLICZNY, authorization: autoryzacja });
   } catch (e) {
     return json(e.status === 401 ? 401 : 400, { blad: e.message || 'Nie można wysłać tego zaproszenia.' }, true);
   }
   // Bez adresu w odpowiedzi: przy zaproszeniu po nazwie użytkownika zapraszający go nie zna (#100).
   if (plan?.blad === 'za-czesto') return json(200, { wyslano: false, powod: 'za-czesto', za: plan.za, za_sekund: plan.za_sekund }, true);
-  if (!env.BREVO_API_KEY) return json(200, { wyslano: false, powod: 'brak-konfiguracji' }, true);
+  if (!ktokolwiek(env)) return json(200, { wyslano: false, powod: 'brak-konfiguracji' }, true);
   const przebieg = await przetworzKolejke(env, wyslij).catch((e) => ({ wyslane: [], bledy: [{ id: plan.id, blad: e.message }] }));
   if (przebieg.wyslane.includes(plan.id)) return json(200, { wyslano: true }, true);
   const blad = przebieg.bledy.find((b) => b.id === plan.id)?.blad;
@@ -407,6 +494,13 @@ export async function obsluzPoczte(request, env = {}, wyslij = fetch) {
   try { tresc = await request.json(); } catch { /* pusta treść – niżej */ }
   // Przebieg kolejki może zlecić każdy (Cron Workera co minutę, aplikacja po dodaniu maila): kolejka sama pilnuje
   // limitów i odstępów, a tędy nie da się do niej niczego dopisać.
+  // Panel administratora: którzy dostawcy mają sekret (tak/nie, bez wartości) – tylko dla administratora.
+  if (tresc?.stan_dostawcow) {
+    const autoryzacja = request.headers.get('authorization') || '';
+    const admin = await rpcBazy(env, wyslij, 'czy_administrator', {}, { apikey: DOMYSLNY_KLUCZ_PUBLICZNY, authorization: autoryzacja }).catch(() => false);
+    if (admin !== true) return json(403, { blad: 'Tylko dla administratora.' }, true);
+    return json(200, { dostawcy: stanDostawcow(env), region_zeptomail: String(env.ZEPTOMAIL_REGION || 'eu').toLowerCase() }, true);
+  }
   if (tresc?.kolejka) {
     try {
       const w = await przetworzKolejke(env, wyslij);

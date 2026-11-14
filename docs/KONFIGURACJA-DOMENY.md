@@ -116,6 +116,31 @@ i adresy powrotu wdraża repozytorium (`supabase/config.toml`) – ręczna zmian
 <!-- Sekcję „Maile – sekrety i hak” (adres funkcji poczta, pełna lista sekretów: BREVO_API_KEY,
 SEND_EMAIL_HOOK_SECRET, MAIL_FROM_EMAIL, MAIL_FROM_NAME, SITE_URL) dopisuje praca o współpracy między kontami. -->
 
+## 4a. Maile przez ZeptoMail (Zoho) – drugi dostawca za Brevo (decyzja #105)
+
+**Kolejność:** 1. **Brevo**, 2. **ZeptoMail** (domyślnie wyłączony). Gdy Brevo odmówi, wiadomość idzie przez
+ZeptoMail, jeśli jest włączony. Kolejność, włączenie i dzienne limity (ZeptoMail 1000/dobę) ustawia się w
+**Panel administratora → Ustawienia poczty → Dostawcy**; tam też „Test” dla każdego dostawcy. Gdy baza jest chwilowo
+niedostępna (mail logowania z haka Auth), funkcja wysyła przez Brevo.
+
+1. **ZeptoMail → Mail Agents → Add Mail Agent** – nazwa „Makietka” (osobny agent, niezależny od Familiady).
+2. **Domains → Add domain** – `makietka.app`, agent „Makietka”. ZeptoMail pokaże dwa rekordy DNS:
+   - **DKIM** – rekord **TXT** z nazwą w rodzaju `…._domainkey` i długą wartością,
+   - **bounce** – rekord **CNAME**, np. `bounce` → adres w domenie ZeptoMail (przez niego idzie też SPF).
+3. **Cloudflare → makietka.app → DNS → Records** – dodaj oba rekordy dokładnie tak, jak podał ZeptoMail,
+   z szarą chmurką („DNS only”). Osobnego rekordu SPF dla ZeptoMail nie trzeba (obsługuje go rekord bounce).
+   Jeśli kiedyś dopisujesz SPF ręcznie: w domenie może być **tylko jeden** rekord `TXT` zaczynający się od
+   `v=spf1` – kilku dostawców łączy się w nim kolejnymi `include:` (np. `v=spf1 include:spf.brevo.com include:_spf.mx.cloudflare.net ~all`).
+4. W ZeptoMail kliknij **Verify** przy domenie (publikacja rekordów trwa od kilku minut do kilkunastu godzin).
+5. **Mail Agents → Makietka → SMTP/API → zakładka API** – skopiuj **Send Mail token** (ciąg zaczynający się
+   zwykle od `Zoho-enczapikey …` albo sam token – kod przyjmuje obie postacie).
+6. **Supabase → Edge Functions → Secrets → Add new secret** :
+   - `ZEPTOMAIL_API_KEY` = skopiowany token,
+   - `ZEPTOMAIL_REGION` = `eu` (centrum danych Zoho EU; bez tej zmiennej też przyjmowane jest `eu`),
+   - opcjonalnie `ZEPTOMAIL_BOUNCE_ADDRESS` – adres bounce z ustawień agenta (zwykle niepotrzebny).
+7. **Włączenie:** Panel administratora → Ustawienia poczty → **Włączony** przy ZeptoMail → zapisz. Kolumna
+   **Sekret** pokazuje, czy sekret jest ustawiony; **Test** przy ZeptoMail wysyła mail testowy tylko przez niego.
+
 ## 5. Skrzynka kontakt@makietka.app, formularz kontaktowy i kolejka maili (decyzja #95)
 
 Panel administratora (w aplikacji: kółko z inicjałem → **Panel administratora**, adres `#/admin`) ma skrzynkę
@@ -125,11 +150,10 @@ kontaktowy przechodzą przez Workera `makietka-api`, wysyłka – przez funkcję
 **Kolejność** (wszystko po wdrożeniu tej wersji: migracja bazy wdraża się sama po pushu na `main`, Worker –
 przez Workers Builds):
 
-1. **Aplikacja** → **Panel administratora** → **Ustawienia poczty** → **Nowy klucz skrzynki** → skopiuj klucz
-   (`msk_…`, widać go tylko raz).
-2. **Cloudflare** → **Workers & Pages** → **makietka-api** → **Settings** → **Variables and Secrets** →
-   **Add** → typ **Secret**, nazwa `KLUCZ_SKRZYNKI`, wartość: klucz z punktu 1 → **Deploy**.
-3. **Cloudflare** → **makietka.app** → **Email** → **Email Routing** → **Routing rules** (Email Routing jest już
+1. **Cloudflare → makietka-api → Settings → Variables and Secrets → Secret `SUPABASE_SERVICE_ROLE_KEY` = secret
+   key z Supabase** (Supabase → **Project Settings** → **API Keys** → **Secret keys**, `sb_secret_…`) → **Deploy**.
+   To jedyny sekret, którego Worker potrzebuje do skrzynki i formularza (decyzja #106).
+2. **Cloudflare** → **makietka.app** → **Email** → **Email Routing** → **Routing rules** (Email Routing jest już
    włączony). Worker `makietka-api` pojawi się na liście „Send to a Worker” dopiero **po wdrożeniu tej wersji
    Workera** (z obsługą poczty) – wcześniej widać tylko inne Workery. Wtedy przy każdym z adresów:
    - `kontakt@makietka.app` → **Edit** → Action **Send to a Worker** → destination `makietka-api` → **Save**;
@@ -142,9 +166,9 @@ przez Workers Builds):
    Poczta na `noreply@`/`no-reply@` trafia do tej samej **Skrzynki** w panelu z plakietką „na noreply@”
    (bez automatycznej odpowiedzi – decyzja #95f); odpowiadasz z panelu, czyli z `kontakt@`.
    (Wysyłka przez Brevo działa dalej – Email Routing dotyczy tylko poczty przychodzącej.)
-4. *(Opcjonalnie)* **Kopia na Twoją skrzynkę**: w Workerze dodaj sekret `PRZEKAZ_DO` z adresem z listy
+3. *(Opcjonalnie)* **Kopia na Twoją skrzynkę**: w Workerze dodaj sekret `FORWARD_TO` z adresem z listy
    **Destination addresses** w Email Routing (potwierdzonym) – każda wiadomość do Workera trafi też do Ciebie.
-5. *(Opcjonalnie)* **Turnstile** (ochrona formularza przed botami): Cloudflare → **Turnstile** → **Add widget**
+4. *(Opcjonalnie)* **Turnstile** (ochrona formularza przed botami): Cloudflare → **Turnstile** → **Add widget**
    → domena `makietka.app`, tryb **Managed** → skopiuj **Site Key** (publiczny – wpisuję go do aplikacji,
    `js/app/kontakt.js`, stała `KLUCZ_TURNSTILE`) i **Secret Key** → w Workerze sekret `TURNSTILE_SECRET`.
    Bez Turnstile formularz chronią pułapka na boty i limity (na IP, adres i dobę).
