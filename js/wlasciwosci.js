@@ -5,6 +5,7 @@ import { toZaznaczenie } from './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
 import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js';
+import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
@@ -1012,6 +1013,23 @@ export class PanelWlasciwosci {
     }
   }
 
+  // Filtry obrazu (#123): bez zmiany pliku – jasność, kontrast, nasycenie, szarość, sepia, rozmycie.
+  zbudujFiltry(obj) {
+    const s = this.sekcja('Filtry', { zwinieta: !maFiltry(obj.filtry) });
+    const f = () => ({ ...BEZ_FILTROW, ...(obj.filtry || {}) });
+    const ustaw = (zmiana) => {
+      const nowe = { ...f(), ...zmiana };
+      obj.set('filtry', maFiltry(nowe) ? Object.fromEntries(Object.entries(nowe).filter(([, v]) => v)) : undefined);
+      obj.dirty = true;
+    };
+    const suwak = (etyk, k, min, max) => this.liczba(etyk, () => f()[k], (v) => ustaw({ [k]: Math.max(min, Math.min(max, Math.round(v))) }), { krok: 5, min });
+    s.append(suwak('Jasność', 'jasnosc', -100, 100), suwak('Kontrast', 'kontrast', -100, 100), suwak('Nasycenie', 'nasycenie', -100, 100), suwak('Rozmycie', 'rozmycie', 0, 100));
+    s.append(this.przelacznik('Odcień szarości', () => f().szarosc, (v) => ustaw({ szarosc: v })));
+    s.append(this.przelacznik('Sepia', () => f().sepia, (v) => ustaw({ sepia: v })));
+    if (maFiltry(obj.filtry)) s.append(this.akcje([['gumka', 'Bez filtrów', () => { obj.set('filtry', undefined); obj.dirty = true; this.edytor.zatwierdz(); this.zbuduj(); }]]));
+    s.append(this.wskazowka('Plik obrazu się nie zmienia – filtry możesz zdjąć w każdej chwili. Wartości od −100 do 100.'));
+  }
+
   // Kształt jako ramka obrazu (#123): obraz przycięty do kształtu i wypełniający go.
   zbudujObrazWKsztalcie(obj) {
     const s = this.sekcja('Obraz w kształcie');
@@ -1057,6 +1075,7 @@ export class PanelWlasciwosci {
         s.append(czesc);
       }
     }
+    if (maObraz(obj)) this.zbudujFiltry(obj);
   }
 
   // Cień: przesunięcie i rozmycie w mm, kolor z przezroczystością.
@@ -1179,6 +1198,7 @@ export class PanelWlasciwosci {
       ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj w oknie „Obrazy projektu” (przycisk u góry panelu) – tam też skopiujesz ich nazwy do tabeli.'
       : 'Gdy strona należy do serii z tabelą, ten obraz może się zmieniać na każdej powielonej stronie – według nazwy pliku z wybranej kolumny.'));
 
+    this.zbudujFiltry(obj);
     const o = this.sekcja('Obrys i odbicie');
     o.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
     o.append(this.liczba('Grubość obrysu', () => zaokr(obj.strokeWidth || 0, 2), (v) => obj.set({ strokeWidth: Math.max(0, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0 }));

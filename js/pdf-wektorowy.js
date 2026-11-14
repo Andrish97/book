@@ -849,7 +849,7 @@ class KontekstPdf {
   // --- obrazy ---
   drawImage(el, ...a) {
     this._sprawdz();
-    if (el?.tagName !== 'IMG') throw new Niewektorowe('obraz przetworzony');
+    if (el?.tagName !== 'IMG') throw new Niewektorowe(el?.dataset?.powod || 'obraz przetworzony');
     const nw = el.naturalWidth || el.width; const nh = el.naturalHeight || el.height;
     if (!nw || !nh) return;
     let [sx, sy, sw, sh, dx, dy, dw, dh] = [0, 0, nw, nh, 0, 0, nw, nh];

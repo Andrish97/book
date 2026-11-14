@@ -10,6 +10,7 @@
 // w pikselach oryginału, więc projekt wygląda tak samo z kopią i bez niej.
 
 import './fabric-ustawienia.js';
+import { maFiltry, przefiltrowany } from './filtry-obrazu.js';
 import { adresZasobu, kluczZasobu, kopiaZMagazynu, zapamietajKopie } from './zasoby.js';
 
 const PROG_PX = 2000; // dłuższy bok, od którego powstaje kopia robocza
@@ -114,6 +115,9 @@ if (typeof fabric !== 'undefined' && !fabric.FabricImage.prototype._zKopiaRobocz
       this._filterScalingX = el.naturalWidth / o.szer;
       this._filterScalingY = el.naturalHeight / o.wys;
     }
-    return rysuj.call(this, ctx);
+    // Filtry obrazu (#123): na czas rysowania przefiltrowana kopia tej samej wielkości co element.
+    if (!maFiltry(this.filtry)) return rysuj.call(this, ctx);
+    this._element = przefiltrowany(el, this.filtry);
+    try { return rysuj.call(this, ctx); } finally { this._element = el; }
   };
 }

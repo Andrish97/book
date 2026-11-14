@@ -18,6 +18,7 @@
 // więc w PDF obraz jest przycięty wektorowo i osadzony w oryginalnej rozdzielczości.
 
 import { rozmiarOryginalu } from './obrazy.js';
+import { przefiltrowany } from './filtry-obrazu.js';
 
 const TYPY = new Set(['rect', 'ellipse', 'circle', 'polygon', 'triangle', 'path']);
 
@@ -139,7 +140,7 @@ if (!fabric.FabricObject.prototype._obrazWKsztalcie) {
     ctx.shadowColor = 'rgba(0,0,0,0)';
     ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
     if (this.fillRule === 'evenodd') ctx.clip('evenodd'); else ctx.clip();
-    ctx.drawImage(el, u.x, u.y, u.w, u.h);
+    ctx.drawImage(przefiltrowany(el, this.filtry), u.x, u.y, u.w, u.h);
     ctx.restore();
   };
 }

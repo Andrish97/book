@@ -24,7 +24,7 @@ function stanTekst(t) { $('#usun-tlo-stan').textContent = t; }
 function rysuj() {
   if (!st.dane) return;
   const krycie = wygladz(st.maska, st.szer, st.wys, Number($('#usun-tlo-wygladzenie').value));
-  ctx.putImageData(new ImageData(skladaj(st.dane, krycie), st.szer, st.wys), 0, 0);
+  ctx.putImageData(new window.ImageData(skladaj(st.dane, krycie), st.szer, st.wys), 0, 0);
 }
 let klatka = 0;
 const rysujPozniej = () => { cancelAnimationFrame(klatka); klatka = requestAnimationFrame(rysuj); };
@@ -46,9 +46,9 @@ function ustawTryb(t) {
 // Różdżka – w osobnym wątku przy dużych zdjęciach (okno nie zamarza); gdy wątku nie ma, na miejscu.
 function rozdzkaWTle(x, y) {
   const parametry = { dane: st.dane, szer: st.szer, wys: st.wys, maska: st.maska, x, y, tolerancja: Number($('#usun-tlo-tolerancja').value), ciagle: $('#usun-tlo-ciagle').checked };
-  if (st.szer * st.wys < 1.5e6 || typeof Worker === 'undefined') return Promise.resolve(rozdzka(...Object.values(parametry)));
+  if (st.szer * st.wys < 1.5e6 || typeof window.Worker === 'undefined') return Promise.resolve(rozdzka(...Object.values(parametry)));
   try {
-    watek = watek || new Worker(URL.createObjectURL(new Blob([KOD_WATKU], { type: 'text/javascript' })));
+    watek = watek || new window.Worker(URL.createObjectURL(new Blob([KOD_WATKU], { type: 'text/javascript' })));
   } catch { return Promise.resolve(rozdzka(...Object.values(parametry))); }
   return new Promise((ok) => {
     watek.onmessage = (e) => ok(e.data);
@@ -142,7 +142,7 @@ export async function otworzUsuwanieTla(obj) {
   try {
     const blob = await blobZasobu(stan.projekt, zasob);
     if (!blob) throw new Error('Nie ma oryginału tego obrazu na urządzeniu – otwórz projekt z internetem i spróbuj jeszcze raz.');
-    const bitmapa = await createImageBitmap(blob);
+    const bitmapa = await window.createImageBitmap(blob);
     const skala = Math.min(1, MAKS_BOK / Math.max(bitmapa.width, bitmapa.height));
     st.szer = Math.max(1, Math.round(bitmapa.width * skala));
     st.wys = Math.max(1, Math.round(bitmapa.height * skala));
