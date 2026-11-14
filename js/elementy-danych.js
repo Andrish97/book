@@ -6,6 +6,29 @@
 import { toKalendarz, ulozKalendarz, miesiacKalendarza, swietaZTabeli, miesiacZWartosci } from './kalendarz-miesiaca.js';
 import { toWykres, ulozWykres, daneWykresu, utrwalSkaleWykresu } from './wykres.js';
 import { toTabela, wysokosciWierszy } from './tabela-obiekt.js';
+import { polaKolazu } from './ksztalty-biblioteka.js';
+
+// Kolaż (#131A): pola na zdjęcia rozstawione według układu, odstępu i zaokrąglenia.
+export const toKolaz = (o) => Boolean(o && o.kolaz && typeof o.getObjects === 'function');
+export function ulozKolaz(g) {
+  const k = g.kolaz;
+  const pola = polaKolazu(k.uklad, k.szerokosc, k.wysokosc, k.odstep);
+  const prostokaty = g.getObjects().filter((o) => o.type === 'rect');
+  pola.forEach((p, i) => {
+    const r = prostokaty[i];
+    if (!r) return;
+    r.set({
+      left: -k.szerokosc / 2 + p.lewo, top: -k.wysokosc / 2 + p.gora, width: p.szerokosc, height: p.wysokosc,
+      rx: k.zaokraglenie || 0, ry: k.zaokraglenie || 0, scaleX: 1, scaleY: 1, angle: 0,
+    });
+    r.setCoords();
+    r.dirty = true;
+  });
+  g.set({ width: k.szerokosc, height: k.wysokosc });
+  g.setCoords();
+  g.dirty = true;
+  return g;
+}
 
 let licznik = 0;
 const uidLokalny = (p) => `${p}${Date.now().toString(36)}d${(licznik += 1).toString(36)}`;
@@ -26,7 +49,7 @@ function wartosciPodgladu(projekt) {
   };
 }
 
-export const maElementyDanych = (obiekty) => (obiekty || []).some((o) => toKalendarz(o) || toWykres(o) || (o.type === 'group' && !toTabela(o) && maElementyDanych(o.getObjects?.() || o.objects)));
+export const maElementyDanych = (obiekty) => (obiekty || []).some((o) => toKalendarz(o) || toWykres(o) || toKolaz(o) || (o.type === 'group' && !toTabela(o) && maElementyDanych(o.getObjects?.() || o.objects)));
 
 // Układa kalendarze i wykresy wśród żywych obiektów (także w grupach).
 // kontekst: { projekt, wartosc (pola strony) }; bez kontekstu – projekt edytora i podgląd z pierwszego wiersza.
@@ -41,6 +64,8 @@ export function ulozElementyDanych(obiekty, kontekst = null) {
       ulozKalendarz(o, uid, { rok, miesiac, swieta });
     } else if (toWykres(o)) {
       ulozWykres(o, daneWykresu(projekt, o.wykres, kontekst?.wartosc || null));
+    } else if (toKolaz(o)) {
+      ulozKolaz(o);
     } else if (o.type === 'group' && !toTabela(o)) {
       ulozElementyDanych(o.getObjects(), kontekst);
     }

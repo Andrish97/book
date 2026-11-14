@@ -207,3 +207,35 @@ test('biblioteka na telefonie: zasłonka, kategorie w jednym rzędzie, wstawieni
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny?.nazwa), 'Serce');
   assert.deepEqual(bledy, []);
 });
+
+test('elementy biblioteki dodane przez AI skrótem (grupa z opisem, bez treści): po wczytaniu strony aplikacja układa kalendarz, wykres i kolaż', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Od AI');
+  const wynik = await strona.evaluate(async () => {
+    const { stan } = window.seriodruk;
+    const grupa = { type: 'group', layoutManager: { type: 'layoutManager', strategy: 'fixed' }, subTargetCheck: false, interactive: false };
+    const komorka = { type: 'textbox', text: '', strokeWidth: 0, fontFamily: 'Inter', fontSize: 3.175, fill: '#1a1a1a', width: 10 };
+    stan.projekt.tabele.push({ id: 'tw', nazwa: 'Wyniki', kolumny: ['klasa', 'punkty'], wiersze: [['1a', '30'], ['1b', '45']] });
+    stan.projekt.strony[0].obiekty.push(
+      { ...grupa, id: 'o_kal', left: 10, top: 10, width: 120, height: 72, kalendarz: { rok: 2027, miesiac: 6 }, tabela: { kolumny: Array(7).fill(120 / 7), wiersze: Array(8).fill(9), naglowek: true, linia: { kolor: '#c9c6bf', grubosc: 0.2 } }, objects: Array.from({ length: 56 }, (_, i) => ({ ...komorka, id: `o_k${i}` })) },
+      { ...grupa, id: 'o_wyk', left: 10, top: 100, width: 100, height: 60, wykres: { rodzaj: 'slupki', tabela: 'tw', etykiety: 'klasa', wartosci: ['punkty'], szerokosc: 100, wysokosc: 60 }, objects: [] },
+      { ...grupa, id: 'o_kol', left: 10, top: 170, width: 120, height: 90, kolaz: { uklad: '4-siatka', odstep: 3, zaokraglenie: 0, szerokosc: 120, wysokosc: 90 }, objects: Array.from({ length: 4 }, (_, i) => ({ type: 'rect', id: `o_p${i}`, left: 0, top: 0, width: 10, height: 10, fill: '#e8e6e1', strokeWidth: 0 })) },
+    );
+    await window.seriodruk.przeladuj();
+    const c = window.seriodruk.edytor.canvas;
+    const kal = c.getObjects().find((o) => o.id === 'o_kal');
+    const wyk = c.getObjects().find((o) => o.id === 'o_wyk');
+    const kol = c.getObjects().find((o) => o.id === 'o_kol');
+    return {
+      tytul: kal.getObjects().find((o) => o.type === 'textbox').text,
+      wierszy: kal.tabela.wiersze.length,
+      napisy: wyk.getObjects().filter((o) => o.type === 'text').map((o) => o.text),
+      pole: kol.getObjects()[1].width,
+    };
+  });
+  assert.equal(wynik.tytul, 'Czerwiec 2027');
+  assert.equal(wynik.wierszy, 2 + 5);
+  assert.ok(wynik.napisy.includes('45') && wynik.napisy.includes('1b'), wynik.napisy.join('|'));
+  assert.equal(wynik.pole, 58.5);
+  assert.deepEqual(bledy, []);
+});

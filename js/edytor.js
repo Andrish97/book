@@ -26,35 +26,15 @@ import {
 } from './tabela-obiekt.js';
 import { nowyKalendarz, toKalendarz } from './kalendarz-miesiaca.js';
 import { nowyWykres, toWykres } from './wykres.js';
-import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych } from './elementy-danych.js';
-import { KSZTALTY, polaKolazu, ukladKolazu } from './ksztalty-biblioteka.js';
+import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych, toKolaz, ulozKolaz } from './elementy-danych.js';
+import { KSZTALTY, ukladKolazu } from './ksztalty-biblioteka.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
 // Element złożony, którego nie otwiera się jak zwykłej grupy: tabela (także kalendarz) i wykres (#131A).
 const jednolity = (o) => toTabela(o) || toWykres(o);
 
-// Kolaż (#131A): pola na zdjęcia rozstawione według układu, odstępu i zaokrąglenia.
-export const toKolaz = (o) => Boolean(o && o.kolaz && typeof o.getObjects === 'function');
-export function ulozKolaz(g) {
-  const k = g.kolaz;
-  const pola = polaKolazu(k.uklad, k.szerokosc, k.wysokosc, k.odstep);
-  const prostokaty = g.getObjects().filter((o) => o.type === 'rect');
-  pola.forEach((p, i) => {
-    const r = prostokaty[i];
-    if (!r) return;
-    r.set({
-      left: -k.szerokosc / 2 + p.lewo, top: -k.wysokosc / 2 + p.gora, width: p.szerokosc, height: p.wysokosc,
-      rx: k.zaokraglenie || 0, ry: k.zaokraglenie || 0, scaleX: 1, scaleY: 1, angle: 0,
-    });
-    r.setCoords();
-    r.dirty = true;
-  });
-  g.set({ width: k.szerokosc, height: k.wysokosc });
-  g.setCoords();
-  g.dirty = true;
-  return g;
-}
+export { toKolaz, ulozKolaz };
 
 export { WLASNE_POLA };
 

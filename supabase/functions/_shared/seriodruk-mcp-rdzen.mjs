@@ -533,10 +533,44 @@ function scal(obiekt, pola) {
 }
 
 // Element dodawany przez AI: id, typ małymi literami, tekst bez obrysu (inaczej ramka jest szersza).
+// Elementy z biblioteki (#131A) podawane skrótem: { type: 'kalendarz' | 'wykres' | 'kolaz', left, top, … }.
+// Zamieniamy je na grupę z opisem; treść (dni, słupki, pola) układa aplikacja przy wczytaniu strony.
+const GRUPA_STALA = { type: 'group', layoutManager: { type: 'layoutManager', strategy: 'fixed' }, subTargetCheck: false, interactive: false };
+const KOMORKA = { type: 'textbox', text: '', strokeWidth: 0, fontFamily: 'Inter', fontSize: Math.round((9 * 25.4 / 72) * 1000) / 1000, fill: '#1a1a1a', lineHeight: 1.15, textAlign: 'center', wyrownanie_pion: 'srodek', width: 10 };
+function elementZBiblioteki(o) {
+  if (o.type === 'kalendarz') {
+    const k = o.kalendarz || {};
+    const szer = Number(o.width) > 20 ? Number(o.width) : 120;
+    const kolumny = 7 + (k.tygodnie ? 1 : 0);
+    const wiersze = 8;
+    const wiersz = Number(k.wiersz_dnia) || 9;
+    return {
+      ...GRUPA_STALA, id: o.id, left: o.left ?? 10, top: o.top ?? 10, width: szer, height: wiersz * wiersze,
+      kalendarz: k,
+      tabela: { kolumny: Array.from({ length: kolumny }, () => Math.round((szer / kolumny) * 100) / 100), wiersze: Array.from({ length: wiersze }, () => wiersz), naglowek: true, linia: { kolor: '#c9c6bf', grubosc: 0.2 } },
+      objects: Array.from({ length: kolumny * wiersze }, () => ({ ...KOMORKA, id: noweId('o') })),
+    };
+  }
+  if (o.type === 'wykres') {
+    const w = o.wykres || {};
+    return { ...GRUPA_STALA, id: o.id, left: o.left ?? 10, top: o.top ?? 10, width: w.szerokosc || 100, height: w.wysokosc || 60, wykres: { szerokosc: 100, wysokosc: 60, ...w }, objects: [] };
+  }
+  if (o.type === 'kolaz') {
+    const k = { uklad: '2-pion', odstep: 2, zaokraglenie: 0, szerokosc: 120, wysokosc: 90, ...(o.kolaz || {}) };
+    const ile = Math.max(1, Math.min(9, Number(o.pola) || ({ '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '9': 9 }[String(k.uklad).split('-')[0]] || 2)));
+    return {
+      ...GRUPA_STALA, id: o.id, left: o.left ?? 10, top: o.top ?? 10, width: k.szerokosc, height: k.wysokosc, kolaz: k, nazwa: o.nazwa || 'Kolaż',
+      objects: Array.from({ length: ile }, (_, i) => ({ type: 'rect', id: noweId('o'), left: 0, top: 0, width: 10, height: 10, fill: '#e8e6e1', strokeWidth: 0, strokeUniform: true, nazwa: `Pole ${i + 1}` })),
+    };
+  }
+  return o;
+}
+
 function przygotujElement(e) {
-  const o = kopia(e);
+  let o = kopia(e);
   if (!o.id) o.id = noweId('o');
   if (typeof o.type === 'string') o.type = o.type.toLowerCase();
+  o = elementZBiblioteki(o);
   if (o.type === 'textbox' && o.strokeWidth === undefined) o.strokeWidth = 0;
   // Tekst bez kroju, rozmiaru albo koloru dostawał na płótnie domyślne Fabric (Times New Roman, 40 mm) –
   // uzupełniamy tym, co daje przycisk „Tekst” w aplikacji (Inter 14 pt, ciemnoszary, interlinia 1,2).
@@ -1035,7 +1069,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela; skrótem także kalendarz miesiąca { type: "kalendarz", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: "wykres", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } i kolaż { type: "kolaz", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } } – opis w opis_formatu) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);
