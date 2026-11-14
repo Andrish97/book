@@ -2195,3 +2195,8 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .paleta-lista li .ciche { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .paleta-lista li[aria-selected="true"], .paleta-lista li:hover { background: var(--wypelnienie); }
 .paleta-pusto { margin: 8px 10px; }
+/* Tabela we właściwościach: liczniki wierszy i kolumn. */
+.licznik-tabeli { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.licznik-wiersz { display: inline-flex; align-items: center; gap: 4px; }
+.licznik-podpis { font-size: 13px; color: var(--tusz-2); margin-right: 4px; }
+.licznik-liczba { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }

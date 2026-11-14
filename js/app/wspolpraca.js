@@ -113,19 +113,31 @@ function wierszOsoby(o) {
     akcje.append(rola, odbierz);
   }
   if (otwarty.wlasciciel && o.typ === 'zaproszenie') {
-    if (o.kod) akcje.append(przycisk('Kopiuj link', '', () => kopiuj(wsp.linkZaproszenia(o.kod), 'Link do zaproszenia skopiowany.')));
-    akcje.append(przycisk('Wyślij ponownie', '', async () => {
+    if (o.kod) akcje.append(przyciskIkona('kopiuj', 'Kopiuj link zaproszenia', '', () => kopiuj(wsp.linkZaproszenia(o.kod), 'Link do zaproszenia skopiowany.')));
+    akcje.append(przyciskIkona('wyslij', 'Wyślij e-mail z zaproszeniem ponownie', '', async () => {
       const m = await wsp.wyslijZaproszenieMailem(o.id);
       if (m.wyslano) powiadom(o.email ? `Wysłano e-mail z zaproszeniem na adres ${o.email}.` : `Wysłano e-mail z zaproszeniem do ${ktoZaproszony(o)}.`);
       else powiadom(m.powod === 'brak-konfiguracji' ? 'Aplikacja nie wysyła jeszcze e-maili – skopiuj link i wyślij go sam.' : (m.blad || 'E-mail nie wyszedł.'), true);
     }));
-    akcje.append(przycisk('Cofnij', 'niebezpieczny', async () => {
+    akcje.append(przyciskIkona('zamknij', 'Cofnij zaproszenie', 'niebezpieczny', async () => {
       try { await wsp.cofnijZaproszenie(o.id); powiadom('Zaproszenie cofnięte – link przestał działać.'); } catch (e) { powiadom(komunikatBledu(e), true); }
       odswiezOsoby();
     }));
   }
   li.append(znak, opis, akcje);
   return li;
+}
+
+// Przycisk-ikona z podpowiedzią (czekające zaproszenie: kopiuj link, wyślij ponownie, cofnij – #103).
+function przyciskIkona(ik, opis, klasa, fn) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = `przycisk-ikona ${klasa}`.trim();
+  b.title = opis;
+  b.setAttribute('aria-label', opis);
+  b.innerHTML = ikona(ik, { rozmiar: 18 });
+  b.addEventListener('click', fn);
+  return b;
 }
 
 function przycisk(tekst, klasa, fn) {

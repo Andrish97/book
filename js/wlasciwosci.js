@@ -308,11 +308,15 @@ export class PanelWlasciwosci {
     const zmien = (co, gdzie) => () => { e.zmienTabele(obj, co, gdzie); this.zbuduj(); };
     const s = this.sekcja('Tabela');
     s.append(this.wskazowka('Kliknij dwa razy komórkę, żeby w niej pisać. Tab przechodzi do następnej komórki, Esc kończy pisanie.'));
-    const ile = this.wskazowka(`Wierszy: ${t.wiersze.length}, kolumn: ${t.kolumny.length}.`);
-    ile.classList.add('licznik-tabeli');
-    s.append(ile);
-    s.append(this.akcje([['plus', 'Dodaj wiersz', zmien('wiersz+')], ['minus', 'Usuń ostatni wiersz', zmien('wiersz-')]]));
-    s.append(this.akcje([['plus', 'Dodaj kolumnę', zmien('kolumna+')], ['minus', 'Usuń ostatnią kolumnę', zmien('kolumna-')]]));
+    // Liczniki „Wiersze [−] 4 [+]” i „Kolumny [−] 3 [+]” zamiast czterech przycisków z napisami (#103).
+    const liczniki = document.createElement('div');
+    liczniki.className = 'licznik-tabeli';
+    liczniki.setAttribute('aria-label', `Wierszy: ${t.wiersze.length}, kolumn: ${t.kolumny.length}.`);
+    liczniki.append(
+      this.licznikTabeli('Wiersze', t.wiersze.length, ['Usuń ostatni wiersz', zmien('wiersz-')], ['Dodaj wiersz', zmien('wiersz+')]),
+      this.licznikTabeli('Kolumny', t.kolumny.length, ['Usuń ostatnią kolumnę', zmien('kolumna-')], ['Dodaj kolumnę', zmien('kolumna+')]),
+    );
+    s.append(liczniki);
     s.append(this.przelacznik('Pierwszy wiersz to nagłówek', () => Boolean(t.naglowek), (v) => ustawNaglowek(obj, v)));
     s.append(this.liczba('Najmniejsza wysokość wiersza', () => zaokr(Math.min(...t.wiersze), 1), (v) => { t.wiersze = t.wiersze.map(() => Math.max(3, v)); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
     s.append(this.wskazowka('Wiersz sam rośnie, gdy tekst komórki nie mieści się w jego wysokości – także na stronach powielanych z danych. Wysokość jednego wiersza ustawisz niżej albo w trakcie pisania w jego komórce.'));
@@ -1277,6 +1281,30 @@ export class PanelWlasciwosci {
     this.odswiezacze.push(odswiez);
     odswiez();
     return opak;
+  }
+
+  // „Wiersze [−] 4 [+]”: podpis, przycisk-ikona minus, liczba, przycisk-ikona plus (opis w podpowiedzi i aria-label).
+  licznikTabeli(podpis, ile, [opisMinus, minus], [opisPlus, plus]) {
+    const rzad = document.createElement('div');
+    rzad.className = 'licznik-wiersz';
+    const nazwa = document.createElement('span');
+    nazwa.className = 'licznik-podpis';
+    nazwa.textContent = podpis;
+    const b = (ik, opis, klik) => {
+      const p = document.createElement('button');
+      p.type = 'button';
+      p.className = 'przycisk-ikona';
+      p.title = opis;
+      p.setAttribute('aria-label', opis);
+      p.innerHTML = ikona(ik, { rozmiar: 16 });
+      p.addEventListener('click', klik);
+      return p;
+    };
+    const liczba = document.createElement('output');
+    liczba.className = 'licznik-liczba';
+    liczba.textContent = String(ile);
+    rzad.append(nazwa, b('minus', opisMinus, minus), liczba, b('plus', opisPlus, plus));
+    return rzad;
   }
 
   akcje(definicje) {

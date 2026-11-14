@@ -64,4 +64,7 @@ test('telefon: „Zaawansowane” w eksporcie PDF zwinięte z podsumowaniem; czc
   assert.match(cz.etykieta, /Pobierz pliki czcionki/);
   assert.equal(cz.tekst, '');
   assert.ok(cz.wys >= 40, `cel dotyku ${cz.wys}`);
+  // Długie opisy okien zwinięte do dwóch linii (stuknięcie rozwija).
+  const opisy = await strona.evaluate(() => [...document.querySelectorAll('dialog p.ciche.podpowiedz-zwijana')].length);
+  assert.ok(opisy >= 3, `zwinięte opisy okien: ${opisy}`);
 });
