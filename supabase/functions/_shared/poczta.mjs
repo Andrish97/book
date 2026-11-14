@@ -24,6 +24,8 @@ import { ADRES_APLIKACJI } from './seriodruk-mcp-rdzen.mjs';
 import { DOMYSLNY_ADRES, DOMYSLNY_KLUCZ_PUBLICZNY } from './mcp-http.mjs';
 
 const BREVO = 'https://api.brevo.com/v3/smtp/email';
+// Przekaźnik z plikami R2 (cloudflare/api-worker.js): załączniki skrzynki pobiera kolejka kluczem serwisowym.
+const API = 'https://api.makietka.app';
 const ZEPTO_HOST = { eu: 'api.zeptomail.eu', com: 'api.zeptomail.com', in: 'api.zeptomail.in' };
 const NADAWCA = 'no-reply@makietka.app';
 const MARKA = 'Makietka';
@@ -58,12 +60,15 @@ async function wyslijBrevo(m, env, wyslij) {
     headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
       sender: m.nadawca,
-      to: [m.doNazwa ? { email: m.do, name: m.doNazwa } : { email: m.do }],
+      to: m.doLista.map((a, i) => (i === 0 && m.doNazwa ? { email: a, name: m.doNazwa } : { email: a })),
+      ...(m.dw.length ? { cc: m.dw.map((email) => ({ email })) } : {}),
+      ...(m.udw.length ? { bcc: m.udw.map((email) => ({ email })) } : {}),
       ...(Object.keys(m.naglowki).length ? { headers: m.naglowki } : {}),
       ...(m.odpowiedzDo?.email ? { replyTo: m.odpowiedzDo } : {}),
       subject: m.temat,
       htmlContent: m.html,
       textContent: m.tekst,
+      ...(m.zalaczniki.length ? { attachment: m.zalaczniki.map((z) => ({ name: z.nazwa, content: z.tresc })) } : {}),
       ...(m.tagi.length ? { tags: m.tagi } : {}),
     }),
   });
@@ -81,11 +86,14 @@ async function wyslijZepto(m, env, wyslij) {
     headers: { authorization: `Zoho-enczapikey ${zeptoKlucz(env)}`, 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
       from: { address: m.nadawca.email, name: m.nadawca.name },
-      to: [{ email_address: { address: m.do, name: m.doNazwa || '' } }],
+      to: m.doLista.map((a, i) => ({ email_address: { address: a, name: i === 0 ? m.doNazwa || '' : '' } })),
+      ...(m.dw.length ? { cc: m.dw.map((address) => ({ email_address: { address } })) } : {}),
+      ...(m.udw.length ? { bcc: m.udw.map((address) => ({ email_address: { address } })) } : {}),
       ...(m.odpowiedzDo?.email ? { reply_to: [{ address: m.odpowiedzDo.email, name: m.odpowiedzDo.name || '' }] } : {}),
       subject: m.temat,
       htmlbody: m.html,
       textbody: m.tekst,
+      ...(m.zalaczniki.length ? { attachments: m.zalaczniki.map((z) => ({ name: z.nazwa, mime_type: z.typ, content: z.tresc })) } : {}),
       ...(Object.keys(m.naglowki).length ? { mime_headers: m.naglowki } : {}),
       ...(env.ZEPTOMAIL_BOUNCE_ADDRESS ? { bounce_address: env.ZEPTOMAIL_BOUNCE_ADDRESS } : {}),
       ...(m.tagi.length ? { client_reference: m.tagi.join(',').slice(0, 100) } : {}),
@@ -112,15 +120,20 @@ const gotowi = (lista, env) => (lista || DOMYSLNA_KOLEJNOSC).filter((id) => DOST
 // Czy jakikolwiek dostawca ma sekret (kolejność i włączenie rozstrzyga potem baza).
 const ktokolwiek = (env) => gotowi(Object.keys(DOSTAWCY), env).length > 0;
 
-// { do, doNazwa?, temat, html, tekst, odpowiedzDo?, nadawca?, naglowki?, tagi? } → próbuje dostawców po kolei
+// { do, doNazwa?, doLista?, dw?, udw?, temat, html, tekst, odpowiedzDo?, nadawca?, naglowki?, tagi?,
+//   zalaczniki?: [{ nazwa, typ, tresc (base64) }] } → próbuje dostawców po kolei
 // (lista identyfikatorów z bazy; bez niej – DOMYSLNA_KOLEJNOSC) i zwraca { messageId, dostawca }; gdy wszyscy
 // odmówią – błąd z powodami każdego.
-export async function wyslijPrzez({ do: adresat, doNazwa = null, temat, html: trescHtml, tekst, odpowiedzDo = null, tagi = [], nadawca = null, naglowki = null }, env = {}, wyslij = fetch, dostawcy = null) {
+export async function wyslijPrzez({
+  do: adresat, doNazwa = null, doLista = null, dw = [], udw = [], temat, html: trescHtml, tekst, odpowiedzDo = null, tagi = [], nadawca = null,
+  naglowki = null, zalaczniki = [],
+}, env = {}, wyslij = fetch, dostawcy = null) {
   const kolejka = gotowi(dostawcy, env);
   if (!kolejka.length) throw new Error('brak-dostawcy');
   const u = ustawienia(env);
   const m = {
-    do: adresat, doNazwa, temat, html: trescHtml, tekst, odpowiedzDo, tagi,
+    do: adresat, doNazwa, doLista: doLista?.length ? doLista : [adresat], dw: dw || [], udw: udw || [], temat, html: trescHtml, tekst,
+    odpowiedzDo, tagi, zalaczniki: zalaczniki || [],
     nadawca: nadawca?.email ? { email: nadawca.email, name: nadawca.name || u.marka } : { email: u.nadawca, name: u.marka },
     naglowki: Object.fromEntries(Object.entries(naglowki || {}).filter(([k, v]) => NAGLOWKI_WATKU.includes(k) && v)),
   };
@@ -349,24 +362,21 @@ export function mailZaproszenia({ projekt, od, rola, link, wazneDo }, env = {}) 
   };
 }
 
-// Odpowiedź z panelu (skrzynka kontakt@): zwykły list – akapity, podpis, cytat poprzedniej wiadomości.
-export function listOdpowiedzi({ tresc, cytat = '', kiedy = null }, env = {}) {
-  const u = ustawienia(env);
-  const akapity = String(tresc || '').split(/\n{2,}/).map((a) => a.trim()).filter(Boolean);
-  const data = kiedy ? new Date(kiedy).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Warsaw' }) : null;
-  const adresStrony = u.strona.replace(/^https?:\/\//, '').replace(/\/$/, '');
-  const htmlTresc = `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:18px 12px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.55">
-${akapity.map((a) => `<p style="margin:0 0 12px;white-space:pre-wrap">${html(a)}</p>`).join('\n')}
-<p style="margin:18px 0 0;color:#55524b">— ${html(u.marka)}<br><a href="${html(u.strona)}" style="color:#2b5bd7">${html(adresStrony)}</a></p>
-${cytat ? `<p style="margin:22px 0 6px;font-size:12.5px;color:#807d75">${data ? `${html(data)} napisałeś(-aś):` : 'Twoja wiadomość:'}</p>
-<blockquote style="margin:0;padding:8px 12px;border-left:3px solid #d9d6cd;color:#55524b;font-size:14px;white-space:pre-wrap">${html(cytat)}</blockquote>` : ''}
-</body></html>`;
-  const tekst = [
-    ...akapity.flatMap((a) => [a, '']), `— ${u.marka}`, u.strona,
-    ...(cytat ? ['', data ? `${data} napisałeś(-aś):` : 'Twoja wiadomość:', cytat.split('\n').map((l) => `> ${l}`).join('\n')] : []),
-  ].join('\n');
-  return { html: htmlTresc, tekst };
+// Wiadomość ze skrzynki (nowa, odpowiedź, przekazanie – TinyMCE w panelu): treść HTML jak napisana, w prostym dokumencie;
+// tekst – z panelu albo z HTML. Sam tekst (dawne odpowiedzi) – akapity.
+export const tekstZHtml = (h) => String(h || '').replace(/<(script|style|head)[\s\S]*?<\/\1>/gi, ' ').replace(/<br\s*\/?>/gi, '\n')
+  .replace(/<\/(p|div|li|h\d|tr|blockquote)>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+export function listSkrzynki({ html: trescHtml = '', tekst = '' }) {
+  const cialo = String(trescHtml || '').trim()
+    || String(tekst || '').split(/\n{2,}/).map((a) => `<p style="margin:0 0 12px;white-space:pre-wrap">${html(a.trim())}</p>`).join('\n');
+  return {
+    html: `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:16px 12px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.55">
+${cialo}
+</body></html>`,
+    tekst: String(tekst || '').trim() || tekstZHtml(cialo),
+  };
 }
 
 // Treść maila z kolejki: szablon + dane (wiersz z poczta_kolejka_pobierz). → { temat, html, tekst }.
@@ -389,7 +399,7 @@ export function trescZKolejki(w, env = {}) {
       }, u.marka),
     };
   }
-  if (w.szablon === 'odpowiedz') return { temat: w.temat || `${u.marka} – odpowiedź`, ...listOdpowiedzi(d, env) };
+  if (w.szablon === 'wiadomosc') return { temat: w.temat || '(bez tematu)', ...listSkrzynki(d) };
   if (w.szablon === 'test') {
     const kiedy = new Date(d.kiedy || Date.now()).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' });
     return {
@@ -426,6 +436,27 @@ async function rpcBazy(env, wyslij, nazwa, parametry, naglowki) {
   return tresc;
 }
 
+// Bajty → base64 (Deno i Node, kawałkami – bez przepełnienia stosu).
+function naBase64(bajty) {
+  let s = '';
+  for (let i = 0; i < bajty.length; i += 0x8000) s += String.fromCharCode(...bajty.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+// Załączniki wiadomości ze skrzynki z R2 – przez przekaźnik, kluczem serwisowym (sprawdza go baza).
+// [{ nazwa, typ, rozmiar, klucz: 'poczta/<uuid>/<plik>' }] → [{ nazwa, typ, tresc (base64) }]; brak pliku – błąd (ponowienie).
+export async function pobierzZalaczniki(lista, env, wyslij, klucz) {
+  const api = API;
+  const wynik = [];
+  for (const z of lista || []) {
+    const sciezka = String(z.klucz || '').replace(/^poczta\//, '').split('/').map(encodeURIComponent).join('/');
+    const odp = await wyslij(`${api}/pliki/_poczta/${sciezka}`, { headers: { 'x-service-key': klucz } });
+    if (!odp.ok) throw new Error(`Nie udało się pobrać załącznika „${z.nazwa}” (${odp.status}).`);
+    wynik.push({ nazwa: z.nazwa, typ: z.typ || 'application/octet-stream', tresc: naBase64(new Uint8Array(await odp.arrayBuffer())) });
+  }
+  return wynik;
+}
+
 // Jeden przebieg kolejki: pobiera maile, którym wolno już wyjść (limity dostawcy, odstępy na adresata – liczy baza),
 // wysyła je po kolei z odstępem z ustawień i zapisuje wynik. → { wyslane: [id], bledy: [{ id, blad }], powod }.
 export async function przetworzKolejke(env = {}, wyslij = fetch, { czekaj = (ms) => new Promise((ok) => { setTimeout(ok, ms); }) } = {}) {
@@ -446,8 +477,8 @@ export async function przetworzKolejke(env = {}, wyslij = fetch, { czekaj = (ms)
       // Test z panelu dla jednego dostawcy – tylko on; inaczej wszyscy z limitem, po kolei.
       const kolejnosc = w.dane?.dostawca ? [w.dane.dostawca] : [...zostalo].filter(([, n]) => n > 0).map(([id]) => id);
       const wynikWysylki = await wyslijPrzez({
-        do: w.do_email, doNazwa: w.do_nazwa, temat: m.temat, html: m.html, tekst: m.tekst, odpowiedzDo: w.odpowiedz_do,
-        naglowki: w.naglowki, nadawca: w.od_skrzynki ? partia.skrzynka : partia.nadawca, tagi: [w.rodzaj],
+        do: w.do_email, doNazwa: w.do_nazwa, doLista: w.do_lista, dw: w.dw, udw: w.udw, temat: m.temat, html: m.html, tekst: m.tekst,
+        odpowiedzDo: w.odpowiedz_do, naglowki: w.naglowki, zalaczniki: await pobierzZalaczniki(w.zalaczniki, env, wyslij, klucz), nadawca: w.od_skrzynki ? partia.skrzynka : partia.nadawca, tagi: [w.rodzaj],
       }, env, wyslij, partia?.dostawcy ? kolejnosc : null);
       if (zostalo.has(wynikWysylki.dostawca)) zostalo.set(wynikWysylki.dostawca, zostalo.get(wynikWysylki.dostawca) - 1);
       await rpcBazy(env, wyslij, 'poczta_kolejka_wynik', {

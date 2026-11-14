@@ -1,20 +1,17 @@
 // Panel administratora (#/admin, decyzja #95) – wzorem panelu Familiady, w wyglądzie Makietki:
-// skrzynka kontakt@makietka.app (poczta przychodząca i formularz kontaktowy, odpowiedzi), kolejka maili,
+// skrzynka kontakt@makietka.app jako klient poczty (js/app/skrzynka.js, #110), kolejka maili,
 // ustawienia poczty (nadawca, dostawcy z dziennymi limitami, odstępy, test) i statystyki.
 // Wszystko przez funkcje bazy admin_* (security definer, tylko konta z tabeli administratorzy). Miejsce całej
 // aplikacji (pliki R2, baza i jej największe tabele) – tylko tu: rozmiary_tabel() i GET /pliki/_miejsce Workera.
 
 import { supabase, komunikatBledu, r2 } from '../chmura.js';
-import { $, $$, powiadom, potwierdz, kiedy, odmiana } from '../ui.js';
-import { wstawIkony } from '../ikony.js';
+import { $, $$, powiadom, kiedy } from '../ui.js';
 import { stan, trasa } from './kontekst.js';
+import { rysujSkrzynke, sledzSkrzynke, przestanSledzic, przebiegKolejki } from './skrzynka.js';
 
 const ZAKLADKI = ['skrzynka', 'kolejka', 'ustawienia', 'statystyki'];
 let zakladka = 'skrzynka';
-let folder = 'skrzynka';
 let stanKolejki = '';
-let otwartyWatek = null;
-let szukaj = '';
 let czyAdmin = null; // { konto, tak }
 
 async function rpc(nazwa, parametry = {}) {
@@ -23,13 +20,12 @@ async function rpc(nazwa, parametry = {}) {
   if (error) throw error;
   return data;
 }
-// Przebieg kolejki od razu (zwykle mail wychodzi w tej samej chwili; co minutę i tak robi to Cron Workera).
-async function przebiegKolejki() {
-  try {
-    const sb = await supabase();
-    const { data } = await sb.functions.invoke('poczta', { body: { kolejka: true } });
-    return data;
-  } catch { return null; }
+
+// Wylogowanie: koniec śledzenia skrzynki, przy następnym koncie baza pyta od nowa.
+export function wylogowano() {
+  if (stan.uzytkownik) return; // już ktoś się zalogował (wylogowanie przy starcie przed odczytem sesji)
+  czyAdmin = null;
+  przestanSledzic().catch(() => {});
 }
 
 export async function czyAdministrator() {
@@ -38,6 +34,8 @@ export async function czyAdministrator() {
   let tak = false;
   try { tak = Boolean(await rpc('czy_administrator')); } catch { tak = false; }
   czyAdmin = { konto: stan.uzytkownik.id, tak };
+  // Administrator: licznik nieprzeczytanych i zmiany w skrzynce na żywo.
+  if (tak) sledzSkrzynke().catch(() => {});
   return tak;
 }
 
@@ -50,6 +48,7 @@ export async function pokazPanel(nazwa = 'skrzynka') {
   zakladka = ZAKLADKI.includes(nazwa) ? nazwa : 'skrzynka';
   for (const a of $$('[data-admin]')) a.setAttribute('aria-selected', String(a.dataset.admin === zakladka));
   for (const s of $$('[data-panel-admin]')) s.hidden = s.dataset.panelAdmin !== zakladka;
+  $('#ekran-admin').dataset.zakladka = zakladka;
   document.title = 'Panel administratora – Makietka';
   await odswiez();
 }
@@ -63,130 +62,9 @@ export async function odswiez() {
   } catch (e) { blad(e); }
 }
 
-// ---------- Skrzynka ----------
-
-const NAZWY_FOLDEROW = { skrzynka: 'Odebrane', archiwum: 'Archiwum', spam: 'Spam', kosz: 'Kosz' };
-
-async function rysujSkrzynke() {
-  const w = await rpc('admin_poczta_watki', { p_folder: folder, p_szukaj: szukaj || null, p_limit: 100, p_od: 0 });
-  const nowe = w.liczniki?.skrzynka || 0;
-  $('#admin-nieprzeczytane').textContent = nowe;
-  $('#admin-nieprzeczytane').hidden = !nowe;
-  for (const b of $$('#admin-foldery [data-folder]')) {
-    b.setAttribute('aria-pressed', String(b.dataset.folder === folder));
-    const n = w.liczniki?.[b.dataset.folder] || 0;
-    b.textContent = b.dataset.folder === 'skrzynka' && n ? `${NAZWY_FOLDEROW.skrzynka} (${n})` : NAZWY_FOLDEROW[b.dataset.folder];
-  }
-  const lista = $('#admin-watki');
-  lista.replaceChildren(...w.watki.map((t) => {
-    const li = document.createElement('li');
-    li.dataset.id = t.id;
-    li.classList.toggle('nowy', !t.przeczytany);
-    li.classList.toggle('wybrany', t.id === otwartyWatek);
-    li.innerHTML = `<button type="button"><span class="od">${esc(t.od_nazwa || t.od_email)}${t.zrodlo === 'formularz' ? '<span class="plakietka-zrodla">formularz</span>' : ''}${t.na_adres ? `<span class="plakietka-zrodla" title="Wiadomość na adres ${esc(t.na_adres)}, nie na skrzynkę">na ${esc(t.na_adres.split('@')[0])}@</span>` : ''}</span>
-      <span class="kiedy">${esc(kiedy(t.ostatnia))}</span><span class="temat">${esc(t.temat)}${t.liczba > 1 ? ` (${t.liczba})` : ''}</span>
-      <span class="zajawka">${esc(t.zajawka || '')}</span></button>`;
-    li.querySelector('button').addEventListener('click', () => otworzWatek(t.id));
-    return li;
-  }));
-  $('#admin-watki-pusto').hidden = w.watki.length > 0;
-  $('#admin-watki-pusto').textContent = szukaj ? 'Nic nie pasuje do wyszukiwania.' : `${NAZWY_FOLDEROW[folder]} – pusto.`;
-  $('#admin-oproznij-kosz').hidden = folder !== 'kosz' || !w.watki.length;
-  if (otwartyWatek && !w.watki.some((t) => t.id === otwartyWatek)) zamknijWatek();
-}
-
-function zamknijWatek() {
-  otwartyWatek = null;
-  $('#admin-skrzynka').classList.remove('otwarta');
-  $('#admin-watek').innerHTML = '<p class="admin-watek-pusty ciche">Wybierz rozmowę z listy.</p>';
-  for (const li of $$('#admin-watki li')) li.classList.remove('wybrany');
-}
-
-async function otworzWatek(id) {
-  let w;
-  try { w = await rpc('admin_poczta_watek', { p_id: id }); } catch (e) { blad(e); return; }
-  otwartyWatek = id;
-  const t = w.watek;
-  const box = $('#admin-watek');
-  const przenies = (cel, etykieta, ikona) => (t.folder === cel ? '' : `<button type="button" class="przycisk maly" data-przenies="${cel}" data-ikona="${ikona}">${etykieta}</button>`);
-  box.innerHTML = `
-    <div class="watek-naglowek">
-      <button type="button" class="przycisk przezroczysty maly watek-wstecz" data-ikona="wstecz">Lista</button>
-      <h3>${esc(t.temat)}</h3>
-      <div class="watek-akcje">
-        ${przenies('archiwum', 'Archiwizuj', 'pobierz')}${przenies('skrzynka', 'Do odebranych', 'koperta')}${przenies('spam', 'Spam', 'uwaga')}${przenies('kosz', 'Usuń', 'kosz')}
-        <button type="button" class="przycisk maly" data-nieprzeczytany>Nieprzeczytane</button>
-      </div>
-    </div>
-    <div class="wiadomosci-watku">${w.wiadomosci.map((m) => `
-      <article class="wiadomosc ${m.kierunek}">
-        <div class="wiadomosc-meta"><strong>${esc(m.kierunek === 'wychodzaca' ? 'Ty' : (m.od_nazwa || m.od_email))}</strong>
-          ${m.kierunek === 'przychodzaca' && m.od_nazwa ? `<span>${esc(m.od_email)}</span>` : ''}${m.kierunek === 'przychodzaca' && m.do_email && m.do_email.toLowerCase() !== String(w.skrzynka).toLowerCase() ? `<span class="na-adres">na ${esc(m.do_email)}</span>` : ''}${m.kierunek === 'wychodzaca' ? `<span>do ${esc(m.do_email)}</span>` : ''}
-          <span>${esc(data(m.utworzono))}</span>${m.spam ? '<span>możliwy spam</span>' : ''}
-          ${m.kierunek === 'wychodzaca' && m.stan ? `<span class="stan-wysylki ${m.stan === 'blad' ? 'blad' : ''}">${esc({ czeka: 'czeka w kolejce', wysylanie: 'wysyłanie…', wyslany: 'wysłano', blad: `błąd: ${m.blad || ''}`, anulowany: 'anulowano' }[m.stan] || m.stan)}</span>` : ''}
-        </div>
-        <div class="wiadomosc-tresc">${esc(m.tekst || '(bez treści tekstowej)')}</div>
-        ${(m.zalaczniki || []).length ? `<div class="wiadomosc-zalaczniki">${m.zalaczniki.map((z) => (z.klucz
-          ? `<button type="button" class="przycisk maly" data-zalacznik="${esc(z.klucz)}" data-nazwa="${esc(z.nazwa)}" data-ikona="pobierz" title="${esc(z.typ)}">${esc(z.nazwa)} · ${esc(mb(z.rozmiar || 0))}</button>`
-          : `<span title="${esc(z.typ)} – za duży, by go zachować (ponad 10 MB)">📎 ${esc(z.nazwa)} · ${esc(mb(z.rozmiar || 0))}</span>`)).join('')}</div>` : ''}
-      </article>`).join('')}
-    </div>
-    <form class="form-odpowiedzi" novalidate>
-      <label class="pole"><span>Odpowiedź do ${esc(t.od_email)}</span><textarea name="tresc" required placeholder="Napisz odpowiedź…"></textarea></label>
-      <div class="przyciski-formularza"><button type="submit" class="przycisk glowny" data-ikona="wyslij">Wyślij odpowiedź</button></div>
-    </form>`;
-  wstawIkony(box);
-  $('#admin-skrzynka').classList.add('otwarta');
-  for (const li of $$('#admin-watki li')) {
-    li.classList.toggle('wybrany', li.dataset.id === id);
-    if (li.dataset.id === id) li.classList.remove('nowy');
-  }
-  box.querySelector('.watek-wstecz').addEventListener('click', zamknijWatek);
-  for (const b of box.querySelectorAll('[data-przenies]')) {
-    b.addEventListener('click', async () => {
-      try {
-        await rpc('admin_poczta_zmien', { p_id: id, p_folder: b.dataset.przenies, p_przeczytany: null });
-        powiadom(`Przeniesiono do: ${NAZWY_FOLDEROW[b.dataset.przenies]}.`);
-        zamknijWatek();
-        await rysujSkrzynke();
-      } catch (e) { blad(e); }
-    });
-  }
-  for (const b of box.querySelectorAll('[data-zalacznik]')) {
-    b.addEventListener('click', async () => {
-      b.disabled = true;
-      try {
-        const adres = URL.createObjectURL(await r2.zalacznikPoczty(b.dataset.zalacznik));
-        const a = Object.assign(document.createElement('a'), { href: adres, download: b.dataset.nazwa });
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(adres), 60000);
-      } catch (e) { blad(e); } finally { b.disabled = false; }
-    });
-  }
-  box.querySelector('[data-nieprzeczytany]').addEventListener('click', async () => {
-    try { await rpc('admin_poczta_zmien', { p_id: id, p_folder: null, p_przeczytany: false }); zamknijWatek(); await rysujSkrzynke(); } catch (e) { blad(e); }
-  });
-  const form = box.querySelector('.form-odpowiedzi');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const tresc = form.tresc.value.trim();
-    if (!tresc) { form.tresc.focus(); return; }
-    const przycisk = form.querySelector('[type="submit"]');
-    przycisk.disabled = true;
-    try {
-      await rpc('admin_poczta_odpowiedz', { p_watek: id, p_tresc: tresc });
-      const p = await przebiegKolejki();
-      powiadom(p?.wyslane ? 'Odpowiedź wysłana.' : 'Odpowiedź czeka w kolejce i wyjdzie za chwilę.');
-      await otworzWatek(id);
-      await rysujSkrzynke();
-    } catch (err) { blad(err); } finally { przycisk.disabled = false; }
-  });
-  box.querySelector('.wiadomosci-watku').lastElementChild?.scrollIntoView({ block: 'nearest' });
-}
-
 // ---------- Kolejka ----------
 
-const RODZAJE = { zaproszenie: 'Zaproszenie', kontakt: 'Potwierdzenie z formularza', odpowiedz: 'Odpowiedź ze skrzynki', test: 'Test' };
+const RODZAJE = { zaproszenie: 'Zaproszenie', kontakt: 'Potwierdzenie z formularza', odpowiedz: 'Odpowiedź ze skrzynki', wiadomosc: 'Wiadomość ze skrzynki', test: 'Test' };
 const NAZWY_DOSTAWCOW = { zeptomail: 'ZeptoMail', brevo: 'Brevo' };
 // Którzy dostawcy mają sekret w funkcji poczta (tak/nie – wartości nigdy nie wychodzą z funkcji).
 async function stanSekretow() {
@@ -240,7 +118,7 @@ async function rysujKolejke() {
 async function rysujUstawienia() {
   const [u, sekrety] = await Promise.all([rpc('admin_poczta_ustawienia'), stanSekretow()]);
   const f = $('#admin-form-ustawien');
-  for (const pole of ['nadawca_email', 'nadawca_nazwa', 'skrzynka_email', 'limit_przebiegu', 'odstep_ms', 'maks_prob']) f.elements[pole].value = u.ustawienia[pole] ?? '';
+  for (const pole of ['nadawca_email', 'nadawca_nazwa', 'skrzynka_email', 'limit_przebiegu', 'odstep_ms', 'maks_prob', 'podpis']) f.elements[pole].value = u.ustawienia[pole] ?? '';
   $('#admin-adres-skrzynki').textContent = u.ustawienia.skrzynka_email;
   $('#admin-dostawcy tbody').innerHTML = u.dostawcy.map((d) => `<tr data-dostawca="${esc(d.id)}">
     <td><strong>${esc(d.nazwa)}</strong><span class="ciche">${esc(d.typ)}</span></td>
@@ -266,7 +144,7 @@ async function zapiszUstawienia(e) {
   if (!f.checkValidity()) { f.reportValidity(); return; }
   const liczba = (v) => (v === '' ? null : Number(v));
   const p = {
-    ustawienia: Object.fromEntries(['nadawca_email', 'nadawca_nazwa', 'skrzynka_email'].map((k) => [k, f.elements[k].value.trim()])
+    ustawienia: Object.fromEntries(['nadawca_email', 'nadawca_nazwa', 'skrzynka_email', 'podpis'].map((k) => [k, f.elements[k].value.trim()])
       .concat(['limit_przebiegu', 'odstep_ms', 'maks_prob'].map((k) => [k, Number(f.elements[k].value)]))),
     dostawcy: $$('#admin-dostawcy tbody tr').map((tr) => ({
       id: tr.dataset.dostawca, priorytet: Number(tr.querySelector('[name="priorytet"]').value),
@@ -358,25 +236,9 @@ for (const a of $$('[data-admin]')) {
     pokazPanel(a.dataset.admin);
   });
 }
-for (const b of $$('#admin-foldery [data-folder]')) {
-  b.addEventListener('click', () => { folder = b.dataset.folder; zamknijWatek(); rysujSkrzynke().catch(blad); });
-}
 for (const b of $$('#admin-stany [data-stan]')) {
   b.addEventListener('click', () => { stanKolejki = b.dataset.stan; rysujKolejke().catch(blad); });
 }
-let timerSzukania = null;
-$('#admin-szukaj').addEventListener('input', (e) => {
-  clearTimeout(timerSzukania);
-  timerSzukania = setTimeout(() => { szukaj = e.target.value.trim(); rysujSkrzynke().catch(blad); }, 300);
-});
-$('#admin-oproznij-kosz').addEventListener('click', async () => {
-  if (!await potwierdz('Opróżnić kosz?', 'Rozmowy z kosza znikną na zawsze.', 'Opróżnij', true)) return;
-  try {
-    const n = await rpc('admin_poczta_oproznij_kosz');
-    powiadom(`Usunięto ${n} ${odmiana(n, 'rozmowę', 'rozmowy', 'rozmów')}.`);
-    await rysujSkrzynke();
-  } catch (e) { blad(e); }
-});
 $('#admin-przebieg').addEventListener('click', async () => {
   const p = await przebiegKolejki();
   powiadom(p ? `Wysłano: ${p.wyslane || 0}${p.bledy ? `, błędy: ${p.bledy}` : ''}${p.powod ? ` (${p.powod})` : ''}.` : 'Nie udało się uruchomić wysyłki.', !p);
@@ -384,7 +246,3 @@ $('#admin-przebieg').addEventListener('click', async () => {
 });
 $('#admin-form-ustawien').addEventListener('submit', zapiszUstawienia);
 $('#admin-form-test').addEventListener('submit', wyslijTest);
-// Otwarty panel skrzynki odświeża się co pół minuty (nowa poczta).
-setInterval(() => {
-  if (document.body.dataset.ekran === 'admin' && zakladka === 'skrzynka' && !document.hidden && !$('#admin-watek textarea:focus')) rysujSkrzynke().catch(() => {});
-}, 30000);

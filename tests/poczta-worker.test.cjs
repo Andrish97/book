@@ -31,7 +31,8 @@ const CRLF = (s) => s.replace(/\r?\n/g, '\r\n');
 // Wiadomość jak z prawdziwej skrzynki: temat w ISO-8859-2 (Q), nadawca z nazwą, tekst quoted-printable w UTF-8,
 // HTML w base64, załącznik PDF, odpowiedź na naszą wiadomość (In-Reply-To, References).
 const SUROWA = CRLF(`From: =?utf-8?B?SmFuIEtvd2Fsc2tp?= <Jan.Kowalski@Przyklad.pl>
-To: kontakt@makietka.app
+To: kontakt@makietka.app, "Kowalski, Piotr" <Piotr@Przyklad.pl>
+Cc: =?utf-8?Q?Ania_W=C3=B3jcik?= <ania@przyklad.pl>; zly-adres
 Subject: =?iso-8859-2?Q?Pytanie_o_wydruk_=B1=EA=B6=E6?=
 Message-ID: <m-123@przyklad.pl>
 In-Reply-To: <odp-1@smtp-relay.mailin.fr>
@@ -115,6 +116,9 @@ test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowi
     assert.equal(p.temat, 'Pytanie o wydruk ąęść');
     assert.equal(p.tekst, 'Dzień dobry, czy da się wydrukować A5?');
     assert.equal(p.message_id, '<m-123@przyklad.pl>');
+    // Adresaci z nagłówków To i Cc (odpowiedź wszystkim w panelu): przecinek w cudzysłowie się nie liczy, zły adres odpada.
+    assert.deepEqual(p.do_lista, ['kontakt@makietka.app', 'piotr@przyklad.pl']);
+    assert.deepEqual(p.dw, ['ania@przyklad.pl']);
     assert.equal(p.in_reply_to, '<odp-1@smtp-relay.mailin.fr>');
     assert.deepEqual(p.referencje, ['<m-100@przyklad.pl>', '<odp-1@smtp-relay.mailin.fr>']);
     assert.equal(p.spam, false);

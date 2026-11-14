@@ -12,6 +12,7 @@ const { chromium, devices } = require('playwright');
 const { atrapaAi } = require('./atrapa-ai.cjs');
 const { atrapaWspolpracy, rolaW } = require('./atrapa-wspolpraca.cjs');
 const { atrapaPoczty } = require('./atrapa-poczta.cjs');
+const ATRAPA_TINYMCE = require('node:fs').readFileSync(require('node:path').join(__dirname, 'atrapa-tinymce.js'), 'utf8');
 
 const KORZEN = path.join(__dirname, '..');
 const TYPY = {
@@ -559,9 +560,16 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!publiczne && !k) return odp(401, { blad: 'Zaloguj się ponownie.' });
       if (!publiczne && reszta === '_miejsce') return odp(200, miejsceAtrapy(stan, 'pliki_miejsce', {}, k));
       if (!publiczne && reszta === '_osierocone') return odp(200, miejsceAtrapy(stan, 'pliki_osierocone', {}, k));
-      // Załącznik poczty (GET /pliki/_poczta/…) – tylko administrator, jak w Workerze.
+      // Załączniki skrzynki (/pliki/_poczta/…): odczyt, wysyłka do 10 MB i usunięcie – tylko administrator, jak w Workerze.
       if (!publiczne && reszta.startsWith('_poczta/')) {
         if (!stan.administratorzy.has(k.id)) return odp(403, { blad: 'Tylko dla administratora.' });
+        if (m === 'PUT') {
+          const dane = req.postDataBuffer() || Buffer.alloc(0);
+          if (dane.length > 10 * 1024 * 1024) return odp(413, { blad: 'Załącznik jest za duży (najwyżej 10 MB).', kod: 'limit_pliku' });
+          stan.pliki.set(reszta.slice(1), { typ: req.headers()['content-type'] || 'application/octet-stream', tresc: dane, czas: Date.now() });
+          return odp(200, { klucz: reszta.slice(1), rozmiar: dane.length });
+        }
+        if (m === 'DELETE') { stan.pliki.delete(reszta.slice(1)); return odp(200, { usuniete: 1 }); }
         const plik = stan.pliki.get(reszta.slice(1));
         if (!plik) return odp(404, { blad: 'Nie ma takiego pliku.' });
         return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*', 'cache-control': 'private, no-store' } });
@@ -633,6 +641,10 @@ async function otworz(test, { tryb = 'zalogowany', telefon = false, urzadzenie =
   if (tryb === 'lokalny') tryb = 'zalogowany';
   const zBaza = tryb !== 'bez-bazy';
   await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: zBaza ? Z_ATRAPA : BEZ_BAZY }));
+  // Edytor wiadomości w skrzynce (TinyMCE z jsDelivr) – w testach zaślepka, bez sieci.
+  await kontekst.route(/^https:\/\/cdn\.jsdelivr\.net\/npm\/tinymce/, (r) => r.fulfill({
+    contentType: 'text/javascript', body: /tinymce-i18n/.test(r.request().url()) ? '' : ATRAPA_TINYMCE,
+  }));
   const baza = zBaza ? atrapaSupabase(kontekst, { konta, bezKanalu }) : null;
   const strona = await kontekst.newPage();
   const bledy = [];

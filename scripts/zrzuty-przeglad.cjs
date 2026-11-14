@@ -651,20 +651,41 @@ const WIDOKI = [
     await s.fill('#kontakt-tresc', 'Dzień dobry, czy da się wydrukować kalendarz w formacie A5 z twardą okładką?');
     await czekaj(s, 400);
   }, {}],
+  // Skrzynka jako klient poczty (#110): lista, rozmowa (HTML w ramce, załącznik, zgłoszenie), pisanie w TinyMCE.
   ['41-admin-skrzynka', async (s, baza) => {
     if (!baza.administratorzy.has(baza.konta[0].id)) {
       baza.administratorzy.add(baza.konta[0].id);
-      baza.adminPoczta.przyjmij({ od_email: 'jan.kowalski@przyklad.pl', od_nazwa: 'Jan Kowalski', temat: 'Faktura za druk kalendarzy', tekst: 'Dzień dobry,\n\nproszę o fakturę za zamówienie z zeszłego tygodnia.\n\nPozdrawiam, Jan' });
       baza.adminPoczta.przyjmij({ od_email: 'ola@przyklad.pl', temat: 'Pomysł: szablon tygodniowy', tekst: 'Fajnie byłoby mieć gotowy szablon planera tygodniowego.', zrodlo: 'formularz' });
-      await s.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); });
+      baza.adminPoczta.przyjmij({ od_email: 'biuro@drukarnia.example', od_nazwa: 'Drukarnia Kowalski', temat: 'Próbny wydruk okładki', tekst: 'Przesyłamy zdjęcie próbnego wydruku.', do_lista: ['kontakt@makietka.app', 'anna@przyklad.pl'],
+        zalaczniki: [{ nazwa: 'proba-okladki.jpg', typ: 'image/jpeg', rozmiar: 284000, klucz: 'poczta/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/proba-okladki.jpg' }] });
+      const t = baza.adminPoczta.przyjmij({ od_email: 'jan.kowalski@przyklad.pl', od_nazwa: 'Jan Kowalski', temat: 'Faktura za druk kalendarzy', tekst: 'Dzień dobry,\n\nproszę o fakturę za zamówienie z zeszłego tygodnia.\n\nPozdrawiam, Jan',
+        html: '<p>Dzień dobry,</p><p>proszę o <b>fakturę</b> za zamówienie z zeszłego tygodnia (12 kalendarzy A4, oprawa spiralna).</p><p>Pozdrawiam,<br>Jan Kowalski</p>' });
+      t.gwiazdka = true;
+      await s.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); location.hash = '#/projekty'; });
       await s.reload();
-      await s.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+      await s.waitForFunction(() => document.body.dataset.ekran && document.body.dataset.ekran !== 'logowanie', null, { timeout: 30000 });
     }
     await s.evaluate(() => { location.hash = '#/admin/skrzynka'; });
     await s.waitForSelector('#admin-watki li');
-    await s.click('#admin-watki li:first-child button');
-    await s.waitForSelector('#admin-watek .wiadomosc');
     await czekaj(s, 400);
+  }, {}],
+  ['41b-admin-rozmowa', async (s) => {
+    // Na telefonie poprzednia scena zostawia otwartą rozmowę – najpierw powrót do listy.
+    await s.evaluate(() => { location.hash = '#/admin/skrzynka'; document.querySelector('#admin-watek .watek-wstecz')?.click(); });
+    await s.waitForSelector('#admin-watki li:has-text("Faktura") .otworz');
+    await s.click('#admin-watki li:has-text("Faktura") .otworz');
+    await s.waitForSelector('#admin-watek iframe.ramka-wiadomosci');
+    await czekaj(s, 600);
+  }, {}],
+  ['41c-admin-pisz', async (s) => {
+    // Na telefonie poprzednia scena zostawia otwartą rozmowę – najpierw powrót do listy.
+    await s.evaluate(() => { location.hash = '#/admin/skrzynka'; document.querySelector('#admin-watek .watek-wstecz')?.click(); });
+    await s.waitForSelector('#admin-watki li:has-text("Faktura") .otworz');
+    await s.click('#admin-watki li:has-text("Faktura") .otworz');
+    await s.waitForSelector('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
+    await s.click('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
+    await s.waitForSelector('#admin-pisz:not([hidden]) .tox-tinymce, #admin-pisz:not([hidden]) .atrapa-tinymce', { timeout: 30000 });
+    await czekaj(s, 1200);
   }, {}],
   ['42-admin-kolejka', async (s) => {
     await s.evaluate(() => { location.hash = '#/admin/kolejka'; });

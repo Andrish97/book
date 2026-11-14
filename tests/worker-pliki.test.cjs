@@ -237,3 +237,54 @@ test('link z ochroną w R2 (#97): folder <kod>.<sekret> – plik tylko przy żyw
   assert.equal(r.status, 200);
   assert.equal(zapytania.length, ile);
 });
+
+test('załączniki skrzynki w R2 (#110): wysyłka, odczyt i usunięcie tylko dla administratora, limit 10 MB; kolejka czyta kluczem serwisowym', async (t) => {
+  const { default: worker, LIMIT_ZALACZNIKA, wyczyscPamiec } = await import(pathToFileURL(WORKER).href);
+  wyczyscPamiec();
+  const env = { PLIKI: new AtrapaR2() };
+  const prawdziwyFetch = globalThis.fetch;
+  const sprawdzenia = [];
+  globalThis.fetch = async (adres, opcje = {}) => {
+    const u = new URL(typeof adres === 'string' ? adres : adres.url);
+    const token = /Bearer (\S+)/.exec(opcje.headers?.authorization || '')?.[1];
+    if (u.pathname === '/auth/v1/user') return TOKENY[token] ? Response.json({ id: TOKENY[token] }) : new Response('{}', { status: 401 });
+    if (u.pathname === '/rest/v1/rpc/czy_administrator') return Response.json(TOKENY[token] === A);
+    // Funkcja tylko dla service_role: wpuszcza wyłącznie prawdziwy klucz serwisowy.
+    if (u.pathname === '/rest/v1/rpc/poczta_serwis') {
+      sprawdzenia.push(opcje.headers);
+      return opcje.headers.apikey === 'sb_secret_dobry' ? Response.json(true) : Response.json({ message: 'permission denied' }, { status: 401 });
+    }
+    throw new Error(`nieoczekiwane zapytanie ${u}`);
+  };
+  t.after(() => { globalThis.fetch = prawdziwyFetch; });
+  const zapytaj = (sciezka, { metoda = 'GET', token, tresc, naglowki = {} } = {}) => worker.fetch(new Request(`https://api.makietka.app${sciezka}`, {
+    method: metoda, body: tresc, headers: { ...(token ? { authorization: `Bearer ${token}` } : {}), ...naglowki },
+  }), env);
+  const U = '0f0f0f0f-0000-4000-8000-000000000000';
+
+  let r = await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { metoda: 'PUT', token: 'tA', tresc: Buffer.from('%PDF oferta'), naglowki: { 'content-type': 'application/pdf' } });
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), { klucz: `poczta/${U}/oferta.pdf`, rozmiar: 11 });
+  assert.equal(env.PLIKI.m.get(`poczta/${U}/oferta.pdf`).httpMetadata.contentType, 'application/pdf');
+  assert.equal((await zapytaj(`/pliki/_poczta/${U}/x.pdf`, { metoda: 'PUT', token: 'tB', tresc: Buffer.from('x') })).status, 403, 'tylko administrator wysyła');
+  assert.equal((await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { token: 'tB' })).status, 403, 'tylko administrator czyta');
+  assert.equal((await zapytaj('/pliki/_poczta/zly/oferta.pdf', { metoda: 'PUT', token: 'tA', tresc: Buffer.from('x') })).status, 400, 'folder musi być uuid');
+  r = await zapytaj(`/pliki/_poczta/${U}/duzy.bin`, { metoda: 'PUT', token: 'tA', tresc: Buffer.alloc(LIMIT_ZALACZNIKA + 1) });
+  assert.equal(r.status, 413);
+  assert.equal((await r.json()).kod, 'limit_pliku');
+  r = await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { token: 'tA' });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('cache-control'), 'private, no-store');
+  assert.equal(Buffer.from(await r.arrayBuffer()).toString(), '%PDF oferta');
+
+  // Kolejka maili (Funkcja Edge poczta): klucz serwisowy w x-service-key, sprawdzany w bazie; zły – 403.
+  r = await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { naglowki: { 'x-service-key': 'sb_secret_dobry' } });
+  assert.equal(r.status, 200);
+  assert.deepEqual(sprawdzenia[0], { apikey: 'sb_secret_dobry', 'content-type': 'application/json' }, 'nowy klucz tylko w apikey');
+  assert.equal((await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { naglowki: { 'x-service-key': 'zgadywany' } })).status, 403);
+  assert.equal((await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { metoda: 'DELETE', naglowki: { 'x-service-key': 'sb_secret_dobry' } })).status, 401, 'klucz serwisowy tylko do odczytu');
+
+  assert.equal((await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { metoda: 'DELETE', token: 'tB' })).status, 403);
+  assert.equal((await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { metoda: 'DELETE', token: 'tA' })).status, 200);
+  assert.equal(env.PLIKI.m.has(`poczta/${U}/oferta.pdf`), false);
+});
