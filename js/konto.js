@@ -122,6 +122,14 @@ export class Konto {
   // Odczytuje powrót z linku w e-mailu (#access_token=…&type=… albo #error=…),
   // zanim zrobi to biblioteka Supabase.
   odczytajPowrot() {
+    // Link z poczty aplikacji (Funkcja Edge poczta, hak Auth „Send Email”): ?token_hash=…&type=… –
+    // aplikacja potwierdza go sama (chmura.potwierdzLink). Adres wraca do zwykłej postaci od razu.
+    const q = new URLSearchParams(location.search);
+    if (q.get('token_hash')) {
+      const wynik = { tokenHash: q.get('token_hash'), typ: q.get('type') || 'email' };
+      history.replaceState(null, '', location.pathname + location.hash);
+      return wynik;
+    }
     const h = location.hash.replace(/^#/, '');
     if (!/(^|&)(access_token|error|error_description)=/.test(h)) return {};
     const p = new URLSearchParams(h);

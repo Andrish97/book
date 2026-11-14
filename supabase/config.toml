@@ -54,10 +54,12 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/mcp/index.ts"
 
-# E-mail z zaproszeniem do projektu (współpraca, supabase/functions/zaproszenie-mail): wysyłka przez API Brevo.
-# Sekret BREVO_API_KEY ustawia się w panelu Supabase (Edge Functions → Secrets); bez niego funkcja tylko
-# odpowiada, że poczta nie jest skonfigurowana. Token zalogowanej osoby sprawdza baza (dane_maila_zaproszenia).
-[functions.zaproszenie-mail]
+# Poczta aplikacji (supabase/functions/poczta): wszystkie e-maile przez API Brevo – hak Auth „Send Email”
+# (rejestracja, reset hasła, zmiana adresu) i zaproszenia do projektów. Bez sprawdzania JWT: hak Auth
+# przychodzi z podpisem (sekret SEND_EMAIL_HOOK_SECRET), a token osoby zapraszającej sprawdza baza
+# (dane_maila_zaproszenia). Sekrety ustawia się w panelu Supabase (Edge Functions → Secrets), hak –
+# w Authentication → Hooks → Send Email (HTTPS, adres …/functions/v1/poczta). Kroki: docs/UZASADNIENIE.md 0.3.
+[functions.poczta]
 enabled = true
 verify_jwt = false
-entrypoint = "./functions/zaproszenie-mail/index.ts"
+entrypoint = "./functions/poczta/index.ts"

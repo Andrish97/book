@@ -118,6 +118,13 @@ export async function zarejestruj(email, haslo, nazwa) {
   return dane.session ? 'zalogowano' : 'potwierdz';
 }
 
+// Link z wiadomości e-mail (rejestracja, reset hasła, zmiana adresu, link logowania): token z linku
+// zamienia się na sesję. typ: signup | recovery | email_change | magiclink | invite | email.
+export async function potwierdzLink(tokenHash, typ) {
+  const sb = await supabase();
+  return sprawdz(await sb.auth.verifyOtp({ token_hash: tokenHash, type: typ }));
+}
+
 export async function wyslijPotwierdzeniePonownie(email) {
   const sb = await supabase();
   sprawdz(await sb.auth.resend({ type: 'signup', email, options: { emailRedirectTo: adresPowrotu() } }));

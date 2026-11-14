@@ -74,7 +74,7 @@ test('zaproszenie e-mailem: plakietka „Zaproszenia” na żywo, przyjęcie, pr
   assert.equal(await bartek.strona.textContent('#liczba-zaproszen'), '1');
   await bartek.strona.click('#przycisk-zaproszenia');
   await bartek.strona.waitForSelector('#dlg-zaproszenia[open] #zaproszenia-lista li');
-  assert.match(await bartek.strona.textContent('#zaproszenia-lista'), /Wspólny kalendarz[\s\S]*Anna zaprasza · może edytować/);
+  assert.match(await bartek.strona.textContent('#zaproszenia-lista'), /Wspólny kalendarz[\s\S]*Anna zaprasza · możesz edytować/);
   await bartek.strona.click('#zaproszenia-lista li button.glowny');
   await bartek.strona.waitForFunction((pid) => window.seriodruk.stan.projekt?.id === pid && document.body.dataset.ekran === 'edytor', id, { timeout: 15000 });
   await tekstNaPlotnie(bartek.strona, 'Tytuł Anny');
@@ -139,7 +139,7 @@ test('link z zaproszeniem przed zalogowaniem; rola „może oglądać” – tyl
   await celina.strona.waitForFunction(() => /zaproszenie do projektu/i.test(document.body.textContent));
   await zaloguj(celina.strona, CELINA);
   await celina.strona.waitForSelector('#dlg-zaproszenie[open]', { timeout: 15000 });
-  assert.match(await celina.strona.textContent('#zaproszenie-opis'), /Anna zaprasza Cię[\s\S]*może oglądać[\s\S]*inny-adres@example\.com[\s\S]*celina@test\.pl/);
+  assert.match(await celina.strona.textContent('#zaproszenie-opis'), /Anna zaprasza Cię[\s\S]*możesz oglądać[\s\S]*inny-adres@example\.com[\s\S]*celina@test\.pl/);
   await celina.strona.click('#zaproszenie-przyjmij');
   await celina.strona.waitForFunction(() => document.body.dataset.ekran === 'podglad' && document.body.classList.contains('tylko-ogladanie'), null, { timeout: 15000 });
   assert.equal(await celina.strona.locator('[data-akcja="podglad-zamknij"]').isHidden(), true, 'oglądająca nie przejdzie do edytora');

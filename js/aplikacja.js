@@ -160,6 +160,13 @@ async function start() {
   // odczytujemy, zanim biblioteka Supabase wyczyści adres.
   const powrot = konto.odczytajPowrot();
   try {
+    if (powrot.tokenHash) {
+      try { await chmura.potwierdzLink(powrot.tokenHash, powrot.typ); } catch (e) {
+        powrot.blad = /expired|invalid|otp/i.test(`${e.kod || ''} ${e.message || ''}`)
+          ? 'Ten link już wygasł albo został użyty. Poproś o nowy.'
+          : chmura.komunikatBledu(e);
+      }
+    }
     await chmura.naZmianeSesji((uzytkownik, zdarzenie) => {
       if (zdarzenie === 'SIGNED_OUT') {
         wylaczNaZywo();
@@ -180,7 +187,7 @@ async function start() {
     if (powrot.blad) {
       pokazEkran('logowanie');
       konto.komunikat(powrot.blad);
-    } else if (powrot.typ === 'recovery' && uzytkownik) {
+    } else if ((powrot.typ === 'recovery' || powrot.typ === 'invite') && uzytkownik) {
       stan.uzytkownik = uzytkownik;
       konto.ustawTryb('nowe-haslo');
       pokazEkran('logowanie');

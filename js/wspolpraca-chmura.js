@@ -30,11 +30,11 @@ export const zaproszenieZKodu = (kod) => rpc('zaproszenie_z_kodu', { p_kod: kod 
 export const przyjmijZaproszenie = (kod) => rpc('przyjmij_zaproszenie', { p_kod: kod });
 export const odrzucZaproszenie = (kod) => rpc('odrzuc_zaproszenie', { p_kod: kod });
 
-// E-mail z zaproszeniem (Funkcja Edge zaproszenie-mail, poczta Brevo). Zwraca { wyslano, powod?, blad? };
+// E-mail z zaproszeniem (Funkcja Edge poczta, poczta Brevo). Zwraca { wyslano, powod?, blad? };
 // gdy poczty nie skonfigurowano – { wyslano: false, powod: 'brak-konfiguracji' }.
 export async function wyslijZaproszenieMailem(id) {
   const sb = await supabase();
-  const { data, error } = await sb.functions.invoke('zaproszenie-mail', { body: { id } });
+  const { data, error } = await sb.functions.invoke('poczta', { body: { zaproszenie: id } });
   if (!error) return data || { wyslano: false };
   let blad = error.message;
   try { blad = (await error.context?.json())?.blad || blad; } catch { /* zostaje ogólny komunikat */ }

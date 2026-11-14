@@ -261,6 +261,17 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       stan.wyslane.push({ typ: 'potwierdzenie', email: k.email });
       return json(r, 200, sesja(k).user);
     }
+    // Link z poczty aplikacji (?token_hash=…): stan.linki – token → { email, typ }, jednorazowy.
+    if (sc === '/auth/v1/verify' && m === 'POST') {
+      const l = (stan.linki || new Map()).get(tresc.token_hash);
+      if (!l || l.typ !== tresc.type) return blad(r, 403, 'Email link is invalid or has expired', 'otp_expired');
+      stan.linki.delete(tresc.token_hash);
+      const k = stan.konta.find((x) => x.email === l.email);
+      if (!k) return blad(r, 403, 'Email link is invalid or has expired', 'otp_expired');
+      k.potwierdzone = true;
+      if (tresc.type === 'email_change' && k.nowyEmail) { k.email = k.nowyEmail; delete k.nowyEmail; }
+      return json(r, 200, sesja(k));
+    }
     if (sc === '/auth/v1/resend') { stan.wyslane.push({ typ: 'ponownie', email: tresc.email }); return json(r, 200, {}); }
     if (sc === '/auth/v1/recover') { stan.wyslane.push({ typ: 'reset', email: tresc.email }); return json(r, 200, {}); }
     if (sc === '/auth/v1/logout') return r.fulfill({ status: 204, body: '' });
@@ -342,12 +353,12 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return blad(r, e.status || 400, e.message, e.kod || 'P0001');
       }
     }
-    // E-mail z zaproszeniem (Funkcja Edge zaproszenie-mail): atrapa zapisuje „wysłany” e-mail; stan.brevo = false
+    // E-mail z zaproszeniem (Funkcja Edge poczta): atrapa zapisuje „wysłany” e-mail; stan.brevo = false
     // udaje brak skonfigurowanej poczty.
-    if (sc === '/functions/v1/zaproszenie-mail' && m === 'POST') {
+    if (sc === '/functions/v1/poczta' && m === 'POST') {
       const k = zTokenu(req);
       if (!k) return json(r, 401, { blad: 'Zaloguj się.' });
-      const z = (stan.zaproszenia || []).find((x) => x.id === tresc.id);
+      const z = (stan.zaproszenia || []).find((x) => x.id === tresc.zaproszenie);
       const p = z && stan.projekty.find((x) => x.id === z.projekt_id);
       if (!z || p.owner_id !== k.id || z.stan !== 'czeka') return json(r, 400, { blad: 'Nie można wysłać tego zaproszenia.' });
       if (stan.brevo === false) return json(r, 200, { wyslano: false, powod: 'brak-konfiguracji' });

@@ -14,6 +14,7 @@ import { stan, trasa } from './kontekst.js';
 const KROTKO = { edycja: 'edytuje', odczyt: 'ogląda', wlasciciel: 'właściciel' };
 export const opisRoli = (rola) => wsp.ROLE[rola] || rola;
 export const krotkoRola = (rola) => KROTKO[rola] || rola;
+const dlaMnie = (rola) => (rola === 'edycja' ? 'możesz edytować' : 'możesz oglądać');
 const inicjal = (tekst) => (String(tekst || '?').trim()[0] || '?').toUpperCase();
 
 // Zależności z ekranu projektów i tras – podawane z zewnątrz, żeby ten moduł nie wciągał ich przy starcie.
@@ -258,7 +259,7 @@ function rysujZaproszenia() {
     tytul.textContent = z.projekt || 'Projekt';
     const szczegoly = document.createElement('span');
     szczegoly.className = 'ciche';
-    szczegoly.textContent = `${z.od} zaprasza · ${opisRoli(z.rola)} · ${kiedy(z.utworzono)}`;
+    szczegoly.textContent = `${z.od} zaprasza · ${dlaMnie(z.rola)} · ${kiedy(z.utworzono)}`;
     opis.append(tytul, szczegoly);
     const akcje = document.createElement('div');
     akcje.className = 'osoba-akcje';
@@ -278,7 +279,7 @@ async function przyjmij(kod, nazwa) {
   try {
     const w = await wsp.przyjmijZaproszenie(kod);
     for (const id of ['#dlg-zaproszenia', '#dlg-zaproszenie']) if ($(id).open) $(id).close();
-    powiadom(`Dołączono do projektu „${nazwa || 'Projekt'}” (${opisRoli(w.rola)}).`);
+    powiadom(`Dołączono do projektu „${nazwa || 'Projekt'}” – ${dlaMnie(w.rola)}.`);
     await odswiezZaproszenia();
     await zalezne.otworzProjektPoId(w.projekt_id);
   } catch (e) {
@@ -315,7 +316,7 @@ export async function pokazZaproszenieZLinku(kod) {
   if (info.stan !== 'ok') { powiadom(komunikaty[info.stan] || 'Nie można przyjąć tego zaproszenia.', true); return; }
   $('#zaproszenie-tytul').textContent = `„${info.projekt}”`;
   const inny = info.email && stan.uzytkownik?.email && info.email.toLowerCase() !== stan.uzytkownik.email.toLowerCase();
-  $('#zaproszenie-opis').textContent = `${info.od} zaprasza Cię do wspólnej pracy nad projektem – ${opisRoli(info.rola)}.${inny ? ` Zaproszenie poszło na adres ${info.email}; przyjmiesz je kontem ${stan.uzytkownik.email}.` : ''}`;
+  $('#zaproszenie-opis').textContent = `${info.od} zaprasza Cię do wspólnej pracy nad projektem – ${dlaMnie(info.rola)}.${inny ? ` Zaproszenie poszło na adres ${info.email}; przyjmiesz je kontem ${stan.uzytkownik.email}.` : ''}`;
   const dlg = $('#dlg-zaproszenie');
   $('#zaproszenie-przyjmij').onclick = () => przyjmij(kod, info.projekt);
   $('#zaproszenie-odrzuc').onclick = async () => {

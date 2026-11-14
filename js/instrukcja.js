@@ -499,6 +499,23 @@ export const ROZDZIALY = [
     ],
   },
   {
+    tytul: 'Współpraca',
+    wstep: 'Projekt możesz robić razem z innymi osobami – każda na swoim koncie. Zapraszasz je adresem e-mail, a zmiany widać u wszystkich na żywo.',
+    obraz: 'wspolpraca.png',
+    podpis: 'Okno „Współpraca”: świeże zaproszenie z linkiem i osoby z dostępem.',
+    punkty: [
+      'W edytorze menu <b>⋯</b> → <b>Współpraca…</b> (albo <b>⋯</b> na karcie projektu). Wpisz adres e-mail i wybierz rolę: <b>Może edytować</b> – zmienia projekt razem z Tobą; <b>Może oglądać</b> – widzi tylko podgląd i prezentację.',
+      'Aplikacja wysyła e-mail z linkiem do zaproszenia. Osoba, która ma już konto, zobaczy zaproszenie także w aplikacji: na liście projektów pojawi się przycisk <b>Zaproszenia</b> z liczbą (od razu, bez odświeżania). Osoba bez konta otwiera link, zakłada konto i od razu przyjmuje zaproszenie.',
+      'Link możesz też skopiować albo wysłać ze swojej poczty (<b>Wyślij ze swojej poczty</b>). Działa jeden raz i jest ważny 14 dni. Jeśli e-mail nie wyszedł, okno to napisze – wtedy wyślij link sam.',
+      'Projekty udostępnione Ci przez innych są na Twojej liście z plakietką osoby, która je udostępniła, i z dopiskiem <b>Możesz edytować</b> albo <b>Możesz oglądać</b>. Gdy masz takie projekty, nad listą są przyciski <b>Wszystkie</b>, <b>Moje</b> i <b>Udostępnione mi</b>.',
+      '<b>Razem na żywo.</b> Zmiany łączą się element po elemencie, tak jak między Twoimi urządzeniami: gdy Ty poprawiasz tytuł, a ktoś przesuwa zdjęcie, zostają obie zmiany. O ten sam element zmieniony przez dwie osoby naraz aplikacja zapyta. <b>Cofnij</b> zdejmuje tylko Twoje zmiany.',
+      '<b>Kto jest w projekcie.</b> Kółka z inicjałami w pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty (wskaż kółko, żeby zobaczyć, na której jest stronie). Kolorowa ramka przy miniaturze strony mówi, na której stronie ktoś pracuje, a przerywana obwódka w jego kolorze – co ma zaznaczone.',
+      '<b>Właściciel</b> zmienia rolę osoby, odbiera dostęp (działa od razu), cofa zaproszenie, kopiuje jego link albo wysyła e-mail ponownie. Tylko właściciel może usunąć projekt, udostępnić go linkiem i dać dostęp dla AI. Obrazy wgrane przez współpracowników trafiają na konto właściciela.',
+      'Współpracownik może sam <b>opuścić projekt</b> (menu <b>⋯</b> na karcie albo przycisk w oknie Współpraca). <b>Zrób własną kopię</b> tworzy Twój własny projekt z tą samą treścią.',
+    ],
+    rada: 'Zaproszenie przyjmuje osoba, która ma link – także z innego adresu niż ten, na który poszło (np. konto firmowe zamiast prywatnego). W oknie Współpraca zawsze widać, kto naprawdę dołączył, i w każdej chwili można odebrać dostęp.',
+  },
+  {
     tytul: 'Praca z AI',
     wstep: 'Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Podłączasz go adresem łącznika Seriodruk – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.',
     obraz: 'dostep-ai.png',

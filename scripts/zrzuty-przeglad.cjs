@@ -179,6 +179,21 @@ async function uzupelnij(s) {
   });
 }
 
+// Projekt innej osoby (Oli) z zaproszeniem dla zalogowanego konta – w atrapie bazy, jak po zaproszeniu.
+function zaproszenieOdOli(baza, kod) {
+  const ola = { id: '44444444-4444-4444-8444-444444444444', email: 'ola.nowak@przyklad.pl', haslo: 'Dobre#Haslo9', potwierdzone: true, nazwa: 'Ola Nowak' };
+  if (!baza.konta.some((k) => k.id === ola.id)) baza.konta.push(ola);
+  const id = '55555555-5555-4555-8555-555555555555';
+  if (!baza.projekty.some((p) => p.id === id)) {
+    baza.projekty.push({ id, owner_id: ola.id, nazwa: 'Kalendarz szkolny 2027', wersja: 1, zmieniono: new Date().toISOString(), dane: { strony: [], strony_osobno: true, miniatura: null } });
+  }
+  if (baza.zaproszenia.some((z) => z.kod === kod)) return;
+  baza.zaproszenia.push({
+    id: `z-${kod}`, projekt_id: id, email: baza.konta[0].email.toLowerCase(), rola: 'edycja', kod, zaprosil: ola.id,
+    utworzono: new Date().toISOString(), wazne_do: new Date(Date.now() + 14 * 86400000).toISOString(), stan: 'czeka', przyjal: null,
+  });
+}
+
 // Widoki: [nazwa, przygotowanie] – po przygotowaniu robimy zrzut, potem wracamy do edytora.
 const WIDOKI = [
   ['03-edytor', async (s) => { await doEdytora(s); }],
@@ -250,6 +265,32 @@ const WIDOKI = [
     await s.click('[data-akcja="do-projektow"]:visible'); await s.waitForSelector('.karta-projektu:not(.szkielet)');
     await s.click('[data-akcja="nowy-projekt"]:visible'); await s.waitForSelector('#dlg-nowy[open]');
   }],
+  // Współpraca między kontami (decyzja #86): okno „Współpraca”, skrzynka zaproszeń, zaproszenie z linku,
+  // lista z projektem udostępnionym.
+  ['32-wspolpraca', async (s) => {
+    await doEdytora(s); await akcja(s, 'wspolpraca'); await s.waitForSelector('#dlg-wspolpraca[open] #form-zaproszenia:not([hidden])');
+    await s.fill('#wspolpraca-email', 'ola.nowak@przyklad.pl'); await s.click('#wspolpraca-zapros');
+    await s.waitForSelector('#wspolpraca-gotowe:not([hidden])'); await czekaj(s, 800);
+  }],
+  ['33-zaproszenia', async (s, baza) => {
+    await doEdytora(s);
+    zaproszenieOdOli(baza, 'kod-skrzynka');
+    await s.click('[data-akcja="do-projektow"]:visible'); await s.waitForSelector('#przycisk-zaproszenia:not([hidden])');
+    await s.click('#przycisk-zaproszenia'); await s.waitForSelector('#dlg-zaproszenia[open] #zaproszenia-lista li');
+  }],
+  ['34-zaproszenie-z-linku', async (s, baza) => {
+    await doEdytora(s);
+    zaproszenieOdOli(baza, 'kod-link');
+    await s.evaluate(() => { location.hash = '#/zaproszenie/kod-link'; });
+    await s.waitForSelector('#dlg-zaproszenie[open]');
+  }],
+  ['35-projekty-udostepnione', async (s, baza) => {
+    await doEdytora(s);
+    zaproszenieOdOli(baza, 'kod-lista');
+    baza.wspolpraca('przyjmij_zaproszenie', { p_kod: 'kod-lista' }, baza.konta[0]);
+    await s.click('[data-akcja="do-projektow"]:visible');
+    await s.waitForSelector('.karta-projektu.wspoldzielony'); await czekaj(s, 400);
+  }],
   ['31-konto', async (s) => {
     await doEdytora(s);
     await s.evaluate(() => { location.hash = '#/konto'; });
@@ -292,7 +333,7 @@ async function zrzutyUrzadzenia(przegladarka, u, motyw) {
   const nieudane = [];
   for (const [nazwa, przygotuj] of WIDOKI) {
     try {
-      await przygotuj(s);
+      await przygotuj(s, baza);
       await zrzut(nazwa);
     } catch (e) {
       nieudane.push(`${nazwa}: ${e.message.split('\n')[0]}`);
