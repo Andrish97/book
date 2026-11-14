@@ -52,6 +52,8 @@ Wszystkie wymiary są w **milimetrach**. Rozmiar pisma też w mm: `mm = pt × 25
 | `zasoby_usuniete` | `[id]` (opcjonalne) | identyfikatory obrazów usuniętych z projektu – żeby łączenie z innym urządzeniem ich nie przywróciło; nie używaj tych identyfikatorów |
 | `czcionki` | `[{ id, rodzina, waga, kursywa }]` | tylko własne czcionki spoza zestawu; `id` wskazuje plik w `zasoby`; `waga` 100–900 (400 zwykła, 700 pogrubiona) |
 | `widok` | `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }` | nieobowiązkowe ustawienia edytora |
+| `kolory_dodatkowe` | `[{ id, nazwa, cmyk: [c, m, y, k] }]` (opcjonalne) | kolory dodatkowe (spot, np. „PANTONE 186 C”) – osobne płyty w PDF; `cmyk` (0–100) to zapas do podglądu; rozdział 5, „Kolory do druku” |
+| `tryb_kolorow` | `"pelny"` \| `"szarosc"` \| `"czb1"` (opcjonalne) | pełny kolor (domyślnie), skala szarości (sama czerń), czerń + 1 kolor dodatkowy (`kolor_trybu` – jego `id`) |
 
 Identyfikatory (`id`) wymyślasz sam: dowolne niepowtarzalne napisy, np. `s_1`, `o_tytul`, `z_styczen`. Pole `id` projektu pomiń – aplikacja nada nowe.
 
@@ -130,6 +132,7 @@ Zasady, które łatwo przeoczyć:
 - Filtry obrazu (bez zmiany pliku): `"filtry": { "jasnosc": 0, "kontrast": 0, "nasycenie": 0, "szarosc": false, "sepia": false, "rozmycie": 0 }` – wartości −100…100 (rozmycie 0–100); pomijaj te, których nie zmieniasz.
 - Kolory: `#rrggbb`. Przejście kolorów: `fill: { "type": "linear", "gradientUnits": "percentage", "coords": { "x1": 0, "y1": 0, "x2": 1, "y2": 0 }, "colorStops": [{ "offset": 0, "color": "#06d6a0" }, { "offset": 1, "color": "#ef476f" }] }` (albo `"type": "radial"`). Kolor przejścia może być półprzezroczysty: `"color": "rgba(6,214,160,0.4)"`.
 - Obrót: `angle` (stopnie). Przezroczystość: `opacity` (0–1).
+- **Kolory do druku.** Kolor dodatkowy (spot) z `kolory_dodatkowe` wpisujesz w `fill`/`stroke` (także w `styles` fragmentu) jako jego kolor ekranu w danym odcieniu: dla `cmyk = [c, m, y, k]` i odcienia `t` (0–1) to `#rrggbb` z `r = 255·(1 − c·t/100)·(1 − k·t/100)`, `g = 255·(1 − m·t/100)·(1 − k·t/100)`, `b = 255·(1 − y·t/100)·(1 − k·t/100)` (zaokrąglone). Ten dokładny kod PDF zamienia na płytę o nazwie koloru. Uszlachetnienie elementu: `"uszlachetnienie": "uv" | "folia" | "tloczenie" | "wytloczenie" | "bialy"`, przy folii `"folia": "zloto" | "srebro" | "miedz"` – element drukuje się tylko na płycie uszlachetnienia (Spot_UV, Foil_Gold…, Emboss, Debossing, White), z nadrukiem; żeby mieć kolor i uszlachetnienie, zrób kopię elementu nad nim z polem `uszlachetnienie`.
 - Fragment tekstu z innym wyglądem: `styles: [{ "start": 5, "end": 12, "style": { "fontWeight": "bold", "fill": "#c8102e" } }]` (indeksy znaków całego tekstu).
 - Element, który świadomie wychodzi na spad albo poza margines (np. tło okładki), dostaje `"bez_ostrzezen": true` – inaczej „Sprawdź przed drukiem” go zgłosi.
 

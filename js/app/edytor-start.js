@@ -26,6 +26,8 @@ import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
 import { przyjmijPlik } from '../obrazy-projektu.js';
 import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
 import { OknoKontroli } from '../okno-kontroli.js';
+import { otworzKoloryDruku, zamienKoloryNaDozwolone } from './kolory-druku-okno.js';
+import { stanUszlachetnien, ustawPokazUszlachetnien } from '../kolory-druku.js';
 import { obsluzKlawisz } from '../skroty.js';
 import { $, powiadom, pobierz, bezpiecznaNazwa, zamknijMenu, przelaczMenu } from '../ui.js';
 import { NAZWA } from '../marka.js';
@@ -201,6 +203,8 @@ const oknoKontroli = new OknoKontroli({
     if (idObiektu) edytor.zaznacz(idObiektu);
   },
   pokazWPodgladzie: (nrStrony) => pokazPodglad({ nrStrony }),
+  // Naprawy prosto z listy uwag (#127): kolory spoza trybu kolorów → najbliższe dozwolone.
+  napraw: async (u) => { if (u.naprawa === 'kolory_trybu') await zamienKoloryNaDozwolone(); },
 });
 
 // Okno eksportu PDF razem z całym zapisem PDF (pdf-lib, czcionki, profile barwne) wczytuje się przy pierwszym
@@ -253,6 +257,8 @@ export const akcje = {
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
+  'kolory-druku': () => { zamknijMenu(); otworzKoloryDruku(); },
+  'kolory-druku-zamknij': () => $('#dlg-kolory-druku').close(),
   // Wiele zdjęć naraz – np. dla obrazów z danych (nazwy plików w tabeli); także na telefonie.
   obrazy: async () => { zamknijMenu(); (await oknoObrazow()).otworzObrazy(); },
   kontrola: () => { zamknijMenu(); oknoKontroli.otworz(); },
@@ -336,7 +342,7 @@ $('#wzorce-standardowe').addEventListener('click', (e) => {
 });
 
 $('#przycisk-wiecej').addEventListener('click', (e) => przelaczMenu(e.currentTarget, $('#menu-wiecej')));
-$('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); $('#widok-jedna').checked = jednaStrona(); przelaczMenu(e.currentTarget, $('#menu-widoku')); });
+$('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); $('#widok-jedna').checked = jednaStrona(); $('#widok-uszlachetnienia').checked = stanUszlachetnien.pokaz; przelaczMenu(e.currentTarget, $('#menu-widoku')); });
 $('#naglowek-ostrzezen').addEventListener('click', (e) => {
   const b = e.currentTarget;
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
@@ -472,6 +478,14 @@ $('#widok-jedna').addEventListener('change', async (e) => {
   try { localStorage.setItem(KLUCZ_JEDNA, e.target.checked ? '1' : '0'); } catch { /* tryb prywatny */ }
   zapiszBiezacyCel();
   await zaladujCel({ dopasuj: true });
+});
+
+// Uszlachetnienia (#127): efekt (połysk, metal, tłoczenie, biel) w edytorze i podglądzie – albo zwykły widok.
+$('#widok-uszlachetnienia').addEventListener('change', (e) => {
+  ustawPokazUszlachetnien(e.target.checked);
+  edytor.canvas.getObjects().forEach((o) => { o.dirty = true; });
+  edytor.canvas.requestRenderAll();
+  stan.miniatury.clear();
 });
 
 // ---------- Skróty klawiszowe ----------

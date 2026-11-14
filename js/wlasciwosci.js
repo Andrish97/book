@@ -7,6 +7,7 @@ import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
 import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js';
 import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
+import { USZLACHETNIENIA, FOLIE, plytaUszlachetnienia } from './kolory-druku.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
@@ -222,6 +223,7 @@ export class PanelWlasciwosci {
     this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
     this.zbudujCien(obj);
+    if (!wGrupie) this.zbudujUszlachetnienie(obj);
     if (!wGrupie) this.zbudujZDanych(obj);
     const inne = this.sekcja('Inne');
     if (!wGrupie) inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
@@ -1118,6 +1120,27 @@ export class PanelWlasciwosci {
     c.append(this.liczba('W prawo', () => zaokr(obj.shadow.offsetX, 1), (v) => ustaw({ x: v }), { jednostka: 'mm', krok: 0.5 }));
     c.append(this.liczba('W dół', () => zaokr(obj.shadow.offsetY, 1), (v) => ustaw({ y: v }), { jednostka: 'mm', krok: 0.5 }));
     c.append(this.liczba('Rozmycie', () => zaokr(obj.shadow.blur, 1), (v) => ustaw({ blur: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
+  }
+
+  // Uszlachetnienie (#127): element na płycie lakieru UV, folii, tłoczenia albo białego poddruku – z nadrukiem.
+  zbudujUszlachetnienie(obj) {
+    if (toZaznaczenie(obj) || obj.type === 'group' || toTabela(obj) || obj.group) return;
+    const s = this.sekcja('Uszlachetnienie', { zwinieta: !obj.uszlachetnienie });
+    s.append(this.wybor('Uszlachetnienie', [['', 'Brak – zwykły druk'], ...USZLACHETNIENIA.map((u) => [u.id, u.nazwa])], () => obj.uszlachetnienie || '', (v) => {
+      obj.set({ uszlachetnienie: v || undefined, folia: v === 'folia' ? (obj.folia || 'zloto') : undefined });
+      obj.dirty = true;
+      this.zbuduj();
+    }));
+    if (obj.uszlachetnienie === 'folia') {
+      s.append(this.wybor('Kolor folii', Object.entries(FOLIE).map(([k, f]) => [k, f.nazwa]), () => obj.folia || 'zloto', (v) => { obj.set('folia', v); obj.dirty = true; this.zbuduj(); }));
+    }
+    const u = plytaUszlachetnienia(obj);
+    if (u) {
+      s.append(this.wskazowka(`Ten element drukuje się tylko na płycie „${u.plyta}” (z nadrukiem) – jego kolory nie idą do druku. Kolor i uszlachetnienie naraz: ustaw „Brak” i dodaj kopię z uszlachetnieniem.`));
+    } else {
+      s.append(this.wybor('Dodaj kopię z uszlachetnieniem', [['', 'Wybierz…'], ...USZLACHETNIENIA.map((x) => [x.id, x.nazwa])], () => '', (v) => { if (v) this.edytor.uszlachetnienieKopia(v); }));
+      s.append(this.wskazowka('Kopia staje dokładnie nad elementem: element drukuje się w kolorze, a kopia – na płycie uszlachetnienia.'));
+    }
   }
 
   zbudujLinie(obj) {

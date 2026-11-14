@@ -95,6 +95,8 @@ const P = {
   odpowiedzWszystkim: '<path d="M8 15 3 10l5-5"/><path d="M12 15 7 10l5-5"/><path d="M7 10h7a6 6 0 0 1 6 6v3"/>',
   przekaz: '<path d="m15 15 5-5-5-5"/><path d="M20 10H10a6 6 0 0 0-6 6v3"/>',
   zgloszenie: '<path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14.5 7v10" stroke-dasharray="2 2.2"/>',
+  // Kolory do druku (#127): kropla farby z płytką.
+  'kolor-druku': '<path d="M12 3.5c3 3.6 5 6.4 5 9a5 5 0 0 1-10 0c0-2.6 2-5.4 5-9z"/><path d="M9.5 13.5a2.5 2.5 0 0 0 2.5 2.5"/>',
   przeczytane: '<path d="M3 9.5 12 4l9 5.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="m3.5 10 8.5 5.5 8.5-5.5"/>',
 };
 

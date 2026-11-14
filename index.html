@@ -658,6 +658,7 @@
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
+          <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory do druku…</button>
           <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik">Współpraca…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
           <button role="menuitem" class="tylko-waski-pasek" data-akcja="pelny-ekran" data-ikona="pelny-ekran" hidden>Pełny ekran</button>
@@ -717,6 +718,7 @@
               <button class="przycisk" data-akcja="prowadnice-usun" id="przycisk-usun-prowadnice">Usuń prowadnice z tej strony</button>
               <hr>
               <label class="przelacznik"><input type="checkbox" id="widok-jedna"><span>W rozkładówkach pokazuj jedną stronę</span></label>
+              <label class="przelacznik"><input type="checkbox" id="widok-uszlachetnienia"><span>Pokaż uszlachetnienia</span></label>
               <div class="wyglad-edytora" role="group" aria-labelledby="wyglad-edytora-tytul">
                 <hr>
                 <p class="naglowek-widoku" id="wyglad-edytora-tytul">Wygląd edytora</p>
@@ -1084,6 +1086,14 @@
         <div id="pdf-opcje-wektora">
           <label class="przelacznik"><input type="checkbox" name="krzywe"><span>Zamień tekst na krzywe (bez czcionek w pliku)</span></label>
           <label class="przelacznik"><input type="checkbox" name="cmyk"><span>Kolory tekstu i kształtów w CMYK (czarny jako sama czerń)</span></label>
+          <label class="pole" id="pdf-pole-uszl" hidden><span>Uszlachetnienia</span>
+            <select name="uszlachetnienia">
+              <option value="plyty">Osobne płyty w tym samym pliku PDF</option>
+              <option value="osobno">Osobny plik PDF na każde uszlachetnienie</option>
+              <option value="pomin">Pomiń uszlachetnienia</option>
+            </select>
+          </label>
+          <p class="podpowiedz" id="pdf-opis-kolorow" hidden></p>
         </div>
         <label class="pole"><span>Standard dla drukarni</span>
           <select name="pdfx">
@@ -1347,6 +1357,41 @@
         <button type="button" class="przycisk" data-akcja="zaproszenie-pozniej">Później</button>
         <button type="button" class="przycisk glowny" id="zaproszenie-przyjmij" data-ikona="ok" autofocus>Przyjmij</button>
       </div>
+    </div>
+  </dialog>
+
+  <!-- Kolory do druku (#127): tryb kolorów projektu i kolory dodatkowe (spot) -->
+  <dialog id="dlg-kolory-druku" class="dialog-szeroki" aria-labelledby="kolory-druku-tytul">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2 id="kolory-druku-tytul">Kolory do druku</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="kolory-druku-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <fieldset class="grupa-pol">
+        <legend>Tryb kolorów projektu</legend>
+        <div class="przelacznik-segmentowy" id="kolory-tryb" role="radiogroup" aria-label="Tryb kolorów projektu">
+          <label><input type="radio" name="tryb-kolorow" value="pelny"><span>Pełny kolor</span></label>
+          <label><input type="radio" name="tryb-kolorow" value="szarosc"><span>Skala szarości</span></label>
+          <label><input type="radio" name="tryb-kolorow" value="czb1"><span>Cz/b + 1 kolor</span></label>
+        </div>
+        <label class="pole" id="kolory-tryb-spot-pole" hidden><span>Kolor dodatkowy trybu</span><select id="kolory-tryb-spot"></select></label>
+        <p class="podpowiedz" id="kolory-tryb-opis"></p>
+        <div class="rzad-przyciskow" id="kolory-tryb-zle" hidden>
+          <span class="ciche" id="kolory-tryb-zle-opis"></span>
+          <button type="button" class="przycisk" id="kolory-tryb-zamien">Zamień na najbliższe dozwolone</button>
+        </div>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Kolory dodatkowe</legend>
+        <p class="podpowiedz">Kolor dodatkowy (np. Pantone) drukuje się osobną farbą – w pliku PDF to osobna płyta. Wpisz nazwę dokładnie tak, jak podaje drukarnia albo wzornik; CMYK służy tylko do podglądu na ekranie. Kolor wybierzesz potem w każdym polu koloru, w części „Kolory dodatkowe”, razem z odcieniem.</p>
+        <ul class="lista-spotow" id="kolory-lista"></ul>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="kolory-dodaj" data-ikona="plus">Dodaj kolor dodatkowy</button></div>
+      </fieldset>
+      <details class="opis-zwiniety">
+        <summary>Rozszerzony CMYK, biel i inne farby</summary>
+        <p class="podpowiedz">Rozszerzony CMYK (np. CMYK + pomarańczowy, zielony i fioletowy) robi drukarnia sama z Twojego pliku – nie trzeba osobnej palety. Biel, lakier, złocenie i tłoczenie ustawiasz przy elemencie, w części „Uszlachetnienie”. Każda z tych farb trafia do PDF jako osobna płyta z nadrukiem.</p>
+      </details>
+      <div class="przyciski-dialogu"><button type="button" class="przycisk glowny" data-akcja="kolory-druku-zamknij">Gotowe</button></div>
     </div>
   </dialog>
 

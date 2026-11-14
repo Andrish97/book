@@ -9,6 +9,8 @@
 // Okienko trafia do otwartego okna dialogowego albo do <body> – inaczej
 // w modalnym oknie byłoby nieklikalne.
 
+import { trybKolorow, koloryDodatkowe, spotyDruku, mapaSpotow, hexSpotu } from './kolory-druku.js';
+
 const wartoscSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
 const indeksSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'selectedIndex');
 const wartoscInput = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
@@ -258,6 +260,7 @@ function bezOgonkow(t) {
 // ---------- Wybór koloru ----------
 
 const PALETA = ['#1a1a1a', '#4a4843', '#807d75', '#cfccc3', '#ffffff', '#b42318', '#d1495b', '#e8590c', '#edae49', '#f2cc0c', '#66a182', '#2f9e44', '#00798c', '#2e86ab', '#2f5bd3', '#1d3f9e', '#8d6a9f', '#7c3aed', '#c2255c', '#6b4f3a'];
+const SZAROSCI = ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999', '#b3b3b3', '#cccccc', '#e6e6e6', '#ffffff'];
 const KLUCZ_OSTATNICH = 'seriodruk:ostatnie-kolory';
 
 const hexNaRgb = (hex) => { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
@@ -347,12 +350,20 @@ function ulepszKolor(input) {
       <label class="kolor-hex"><span>Kod koloru</span><input type="text" maxlength="7" spellcheck="false" autocomplete="off"></label>
       <div class="kolor-paleta" role="group" aria-label="Gotowe kolory"></div>
       <div class="kolor-paleta ostatnie" role="group" aria-label="Ostatnio używane" hidden></div>
-      <div class="kolor-paleta projektu" role="group" aria-label="Kolory w projekcie" hidden></div>`;
+      <div class="kolor-paleta projektu" role="group" aria-label="Kolory w projekcie" hidden></div>
+      <div class="kolor-dodatkowe" hidden>
+        <span class="kolor-podpis">Kolory dodatkowe</span>
+        <div class="kolor-paleta spoty" role="group" aria-label="Kolory dodatkowe"></div>
+        <label class="kolor-odcien"><span>Odcień</span><input type="number" min="1" max="100" step="5" value="100" inputmode="numeric"><i>%</i></label>
+        <button type="button" class="link-przycisk kolor-zarzadzaj">Kolory do druku…</button>
+      </div>
+      <p class="kolor-tryb" hidden></p>`;
     const pole = okienko.querySelector('.kolor-pole');
     const barwa = okienko.querySelector('.kolor-barwa');
     const hex = okienko.querySelector('.kolor-hex input');
-    const ustaw = (zHex = false) => {
-      const kolor = rgbNaHex(...hsvNaRgb(h, s, v));
+    // dokladny – kolor z palety albo wpisany kod: zostaje co do bitu (kolor dodatkowy rozpoznaje się po dokładnym kodzie).
+    const ustaw = (zHex = false, dokladny = null) => {
+      const kolor = dokladny || rgbNaHex(...hsvNaRgb(h, s, v));
       pole.style.background = `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${h} 100% 50%))`;
       pole.firstElementChild.style.cssText = `left:${s * 100}%;top:${(1 - v) * 100}%;background:${kolor}`;
       barwa.firstElementChild.style.left = `${(h / 360) * 100}%`;
@@ -364,7 +375,7 @@ function ulepszKolor(input) {
         input.dispatchEvent(new Event('input', { bubbles: true }));
       }
     };
-    const zKoloru = (kolor) => { [h, s, v] = rgbNaHsv(...hexNaRgb(kolor)); ustaw(); };
+    const zKoloru = (kolor) => { [h, s, v] = rgbNaHsv(...hexNaRgb(kolor)); ustaw(false, kolor); };
     const ciagnij = (el, naRuch) => {
       el.addEventListener('pointerdown', (e) => {
         el.setPointerCapture(e.pointerId);
@@ -387,7 +398,7 @@ function ulepszKolor(input) {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') h = Math.max(0, h - krok); else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') h = Math.min(359.9, h + krok); else return;
       e.preventDefault(); ustaw();
     });
-    hex.addEventListener('input', () => { const k = poprawnyHex(hex.value); if (k) { [h, s, v] = rgbNaHsv(...hexNaRgb(k)); ustaw(true); } });
+    hex.addEventListener('input', () => { const k = poprawnyHex(hex.value); if (k) { [h, s, v] = rgbNaHsv(...hexNaRgb(k)); ustaw(true, k); } });
     hex.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); zamknijOkienko(); przycisk.focus(); } });
     const paleta = (el, kolory) => {
       for (const k of kolory) {
@@ -400,7 +411,45 @@ function ulepszKolor(input) {
         el.append(b);
       }
     };
-    paleta(okienko.querySelector('.kolor-paleta'), PALETA);
+    // Tryb kolorów projektu (#127): w skali szarości i „cz/b + 1 kolor” gotowe kolory to odcienie czerni.
+    const projekt = globalThis.seriodruk?.stan?.projekt;
+    const tryb = trybKolorow(projekt);
+    paleta(okienko.querySelector('.kolor-paleta'), tryb === 'pelny' ? PALETA : SZAROSCI);
+    if (tryb !== 'pelny') {
+      const p = okienko.querySelector('.kolor-tryb');
+      p.hidden = false;
+      p.textContent = tryb === 'szarosc' ? 'Projekt w skali szarości: kolory pójdą do druku odcieniami czerni.' : 'Projekt czarno-biały + 1 kolor: wybierz odcień czerni albo kolor dodatkowy.';
+    }
+    // Kolory dodatkowe (spot) z odcieniem – dokładny kod koloru, który PDF zamienia na osobną płytę.
+    if (projekt) {
+      const sekcja = okienko.querySelector('.kolor-dodatkowe');
+      sekcja.hidden = false;
+      const spoty = tryb === 'szarosc' ? [] : (tryb === 'czb1' ? spotyDruku(projekt) : koloryDodatkowe(projekt));
+      const odcien = sekcja.querySelector('.kolor-odcien input');
+      const lista = sekcja.querySelector('.kolor-paleta.spoty');
+      const znany = mapaSpotow(spoty).get(poczatkowy.toLowerCase());
+      let wybrany = znany ? spoty.find((x) => x.id === znany.id) : null;
+      if (znany) odcien.value = String(Math.round(znany.t * 100));
+      sekcja.querySelector('.kolor-odcien').hidden = !spoty.length;
+      for (const sp of spoty) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.style.background = hexSpotu(sp, 1);
+        b.title = sp.nazwa;
+        b.setAttribute('aria-label', `Kolor dodatkowy ${sp.nazwa}`);
+        b.setAttribute('aria-pressed', String(sp === wybrany));
+        b.addEventListener('click', () => {
+          wybrany = sp;
+          lista.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+          zKoloru(hexSpotu(sp, Math.min(100, Math.max(1, Number(odcien.value) || 100)) / 100));
+        });
+        lista.append(b);
+      }
+      odcien.addEventListener('input', () => { if (wybrany) zKoloru(hexSpotu(wybrany, Math.min(100, Math.max(1, Number(odcien.value) || 100)) / 100)); });
+      const zarzadzaj = sekcja.querySelector('.kolor-zarzadzaj');
+      zarzadzaj.textContent = spoty.length ? 'Kolory do druku…' : 'Dodaj kolor dodatkowy (np. Pantone)…';
+      zarzadzaj.addEventListener('click', () => { zamknijOkienko(); document.dispatchEvent(new Event('makietka:kolory-druku')); });
+    }
     const ostatnie = ostatnieKolory();
     if (ostatnie.length) { const el = okienko.querySelector('.kolor-paleta.ostatnie'); el.hidden = false; paleta(el, ostatnie); }
     const wProjekcie = koloryProjektu();

@@ -7,6 +7,7 @@ import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, 
 import { odmiana } from './ui.js';
 import { bilansSkladki } from './okladka.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
+import { uwagiKolorowDruku } from './kolory-druku.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
 
@@ -217,6 +218,10 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Oprawa zeszytowa: środek ma ${okl.stron} stron, a potrzeba liczby podzielnej przez 4.` });
     }
   }
+  // Kolory do druku (#127): kolory dodatkowe, uszlachetnienia, kolory spoza trybu kolorów projektu.
+  const pierwszyNr = new Map();
+  for (const e of ciag.egzemplarze) if (!pierwszyNr.has(e.strona.id)) pierwszyNr.set(e.strona.id, e.indeks + 1);
+  uwagi.push(...uwagiKolorowDruku(projekt, { numerStrony: (id) => pierwszyNr.get(id) || null }));
   const pamiec = new Map();
   const nieznane = new Map(); // pole → strony
   const brakObrazu = new Map(); // "kolumna\nplik" → strony

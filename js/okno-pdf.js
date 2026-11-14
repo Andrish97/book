@@ -1,5 +1,6 @@
 // Okno „Eksport do PDF”: zakres stron, jakość, spady i podział na pliki.
 
+import { uzyteKoloryDruku, trybKolorow } from './kolory-druku.js';
 import { $, pobierz, powiadom, odmiana } from './ui.js';
 import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
@@ -95,6 +96,7 @@ export class OknoPdf {
       podzial: e.podzial.value,
       ileStron: Number(e.ile.value),
       dolaczCzcionki: e.czcionki.checked,
+      uszlachetnienia: e.uszlachetnienia.value,
     };
   }
 
@@ -110,6 +112,18 @@ export class OknoPdf {
         ? 'Tekst jest zamieniony na kształty liter: wygląda identycznie wszędzie i drukarnia nie potrzebuje czcionek, ale nie da się go zaznaczyć ani poprawić. Zdjęcia idą w oryginalnej rozdzielczości.'
         : 'Tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać), kształty są wektorami, zdjęcia idą w oryginalnej rozdzielczości. Elementy z cieniem trafiają do pliku jako obraz, a tekst czcionką, której nie da się osadzić (plik WOFF2, czcionka zmienna, kursywa bez własnego pliku) – jako krzywe; po eksporcie zobaczysz ich listę.')
       : 'Każda strona jest jednym obrazem w wybranej rozdzielczości – tekst wygląda tak samo na każdym komputerze, ale nie da się go zaznaczyć, a plik jest większy.';
+    // Kolory do druku (#127): uszlachetnienia i kolory dodatkowe – tylko w pliku wektorowym.
+    const druk = uzyteKoloryDruku(this.zrodlo.projekt());
+    const tryb = trybKolorow(this.zrodlo.projekt());
+    $('#pdf-pole-uszl').hidden = !druk.uszlachetnienia.length;
+    const opisKolorow = [
+      druk.spoty.length ? `Kolory dodatkowe na osobnych płytach: ${druk.spoty.map((x) => x.nazwa).join(', ')}.` : '',
+      druk.uszlachetnienia.length ? `Uszlachetnienia: ${druk.uszlachetnienia.map((x) => `${x.etykieta} (płyta ${x.plyta})`).join(', ')} – z nadrukiem, bez wybijania farby pod spodem.` : '',
+      tryb === 'szarosc' ? 'Projekt w skali szarości: wszystko jedną czarną farbą, zdjęcia w odcieniach szarości.' : '',
+      tryb === 'czb1' ? 'Projekt czarno-biały + 1 kolor: czerń i jedna płyta koloru dodatkowego, zdjęcia w odcieniach szarości.' : '',
+    ].filter(Boolean).join(' ');
+    $('#pdf-opis-kolorow').hidden = !opisKolorow;
+    $('#pdf-opis-kolorow').textContent = opisKolorow;
     // Standard dla drukarni: co plik będzie zawierał, prostymi słowami.
     $('#pdf-pole-zdjecia').hidden = !o.pdfx;
     $('#pdf-etykieta-zdjecia').textContent = wektor ? 'Zdjęcia też w CMYK (większy plik)' : 'Obrazy stron w CMYK (większy plik)';
