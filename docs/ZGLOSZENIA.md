@@ -12,14 +12,14 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 106 | Sekrety po angielsku; bez generowania klucza skrzynki – jeden sekret `SUPABASE_SERVICE_ROLE_KEY` w Cloudflare, ustawiany raz | 🔄 |
 | 107 | Bez przejściowego stanu „link aktualizowany” i bez starego magazynu Supabase Storage; polecenia i opisy AI także w oknie Dostęp dla AI w ustawieniach konta | 🔄 |
 | 105 | Drugi dostawca maili – Zoho ZeptoMail (EU) jako zapasowy po Brevo; bez dopisków, gotowy do włączenia przełącznikiem w panelu | 🔄 |
-| 103 | Wygląd: 48 bezpiecznych propozycji z analizy (ikony, zwarte okna, równe przyciski) + usprawnienia edytora (pasek szybkich akcji, wyrównywanie, kolory projektu, Ctrl+K, podgląd wiersza danych, szablony) | 🔄 |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
 | 15 propozycji wyglądu „do decyzji” (np. pasek narzędzi bez podpisów, pasek górny z samymi ikonami) – pokażę z makietami | ⏳ |
-| Instrukcja: dopisać funkcje z #103 (pasek szybkich akcji, Ctrl+K, podgląd wiersza danych, szablony) i zrzuty nowych rozdziałów | ⏳ |
+| Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
+| Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
 | Niestabilne testy pod obciążeniem: „obrazy poza pamięcią”, „grupa otwarta: obraz kadruje”, „tekst przez strony” – naprawić | ⏳ |
 | Sprawdzenie na prawdziwym telefonie: gesty iPhone (#101), klawiatura w zasłonkach, instalacja aplikacji | ⏳ |
@@ -61,5 +61,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 99 | Własne kontrolki (listy na telefonie), instalacja aplikacji, bezpieczne marginesy, plakietka na kafelku, pełny ekran na logowaniu, przycisk motywu |
 | 100 | Nazwy użytkownika (rejestracja, pierwsze logowanie, zapraszanie po nazwie); konto bez danych całej aplikacji |
 | 104 | Instrukcja w stylu Familiady: 42 rozdziały, spis z wyszukiwarką, edytor i panel właściwości szczegółowo, dane w praktyce (kalendarz ze świętami, dziennik, planer, obrót i kolor z danych), AI krok po kroku + komiks + polecenia „Kopiuj”, automatyczne zrzuty w CI |
+| 103 | Kompaktowość i ikony (13 propozycji: tabela −/+, PDF „Zaawansowane”, ikony w Danych, Czcionkach, Obrazach, zaproszeniach, imporcie) + paleta poleceń Ctrl+K i kolory projektu w wyborze koloru |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |

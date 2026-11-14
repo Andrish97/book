@@ -285,6 +285,23 @@ const poprawnyHex = (t) => { const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(t.t
 function ostatnieKolory() {
   try { return JSON.parse(localStorage.getItem(KLUCZ_OSTATNICH) || '[]').filter((k) => poprawnyHex(k)).slice(0, 10); } catch { return []; }
 }
+// Kolory używane w otwartym projekcie (wypełnienia, obrysy, tła; najczęstsze najpierw) – żeby trzymać się
+// kolorów dokumentu bez przepisywania kodów (#103). Bez projektu – pusto.
+export function koloryProjektu(projekt = globalThis.seriodruk?.stan?.projekt, ile = 12) {
+  if (!projekt) return [];
+  const licz = new Map();
+  const dodaj = (k) => { const h = typeof k === 'string' ? poprawnyHex(k) : null; if (h) licz.set(h, (licz.get(h) || 0) + 1); };
+  const przejdz = (obiekty) => {
+    for (const o of obiekty || []) {
+      dodaj(o.fill); dodaj(o.stroke);
+      if (Array.isArray(o.objects)) przejdz(o.objects);
+    }
+  };
+  for (const st of projekt.strony || []) { dodaj(st.tlo); przejdz(st.obiekty); }
+  for (const w of projekt.wzorce || []) { dodaj(w.tlo); przejdz(w.obiekty); }
+  return [...licz].sort((a, b) => b[1] - a[1]).map(([k]) => k).slice(0, ile);
+}
+
 function zapamietajKolor(hex) {
   try { localStorage.setItem(KLUCZ_OSTATNICH, JSON.stringify([hex, ...ostatnieKolory().filter((k) => k !== hex)].slice(0, 10))); } catch { /* tryb prywatny – trudno */ }
 }
@@ -329,7 +346,8 @@ function ulepszKolor(input) {
       <div class="kolor-barwa" tabindex="0" role="slider" aria-label="Barwa" aria-valuemin="0" aria-valuemax="360"><i></i></div>
       <label class="kolor-hex"><span>Kod koloru</span><input type="text" maxlength="7" spellcheck="false" autocomplete="off"></label>
       <div class="kolor-paleta" role="group" aria-label="Gotowe kolory"></div>
-      <div class="kolor-paleta ostatnie" role="group" aria-label="Ostatnio używane" hidden></div>`;
+      <div class="kolor-paleta ostatnie" role="group" aria-label="Ostatnio używane" hidden></div>
+      <div class="kolor-paleta projektu" role="group" aria-label="Kolory w projekcie" hidden></div>`;
     const pole = okienko.querySelector('.kolor-pole');
     const barwa = okienko.querySelector('.kolor-barwa');
     const hex = okienko.querySelector('.kolor-hex input');
@@ -385,6 +403,8 @@ function ulepszKolor(input) {
     paleta(okienko.querySelector('.kolor-paleta'), PALETA);
     const ostatnie = ostatnieKolory();
     if (ostatnie.length) { const el = okienko.querySelector('.kolor-paleta.ostatnie'); el.hidden = false; paleta(el, ostatnie); }
+    const wProjekcie = koloryProjektu();
+    if (wProjekcie.length) { const el = okienko.querySelector('.kolor-paleta.projektu'); el.hidden = false; paleta(el, wProjekcie); }
     okienko.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); zamknijOkienko(); przycisk.focus(); } });
     otworzOkienko(okienko, przycisk, { zaslonka: true,
       poZamknieciu: () => {

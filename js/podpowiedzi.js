@@ -12,6 +12,11 @@ function urzadz(el) {
   if (el.dataset.podpowiedz) return;
   el.dataset.podpowiedz = '1';
   if (el.classList.length !== 1) return;
+  // Opis okna (akapit .ciche w oknie): na telefonie tylko zwijany, nigdy chowany (#103).
+  if (el.classList.contains('ciche')) {
+    if (el.textContent.trim().length > DLUGA) { el.classList.add('podpowiedz-zwijana'); el.setAttribute('aria-expanded', 'false'); }
+    return;
+  }
   if (el.querySelector('kbd') || KLAWISZE.test(el.textContent)) { el.classList.add('podpowiedz-klawisze'); return; }
   if (el.textContent.trim().length > DLUGA) {
     el.classList.add('podpowiedz-zwijana');
@@ -21,8 +26,9 @@ function urzadz(el) {
 
 function przejrzyj(korzen) {
   if (korzen.nodeType !== 1) return;
-  if (korzen.matches?.('.podpowiedz')) urzadz(korzen);
-  for (const el of korzen.querySelectorAll?.('.podpowiedz') || []) urzadz(el);
+  const SELEKTOR = '.podpowiedz, dialog p.ciche';
+  if (korzen.matches?.(SELEKTOR)) urzadz(korzen);
+  for (const el of korzen.querySelectorAll?.(SELEKTOR) || []) urzadz(el);
 }
 
 export function wlaczPodpowiedzi() {

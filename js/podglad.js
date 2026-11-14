@@ -176,6 +176,8 @@ export class Podglad {
       blok.className = 'podglad-sekcja';
       const nag = document.createElement('h2');
       nag.textContent = sekcja.nazwa;
+      // Jedna sekcja w projekcie – jej nazwa niczego nie mówi i zabiera miejsce (#103).
+      nag.hidden = this.uklad.sekcje.length === 1;
       blok.append(nag);
       // Pojedyncze strony układają się obok siebie i zawijają do kolejnych rzędów
       // (przy seriach bywa ich dużo); rozkładówki idą parami, jedna pod drugą.
