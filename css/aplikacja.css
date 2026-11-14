@@ -1644,3 +1644,13 @@ dialog:focus { outline: none; }
 
 /* Najwęższy telefon (320 px): wszystkie przyciski wstawiania mieszczą się w pasku bez przewijania w bok. */
 @media (max-width: 340px) { .pasek-narzedzi button { min-width: 36px; } }
+
+/* Tablet w pionie i wąskie okno: nazwa projektu w górnym pasku zajmuje wolne miejsce, zamiast kończyć się
+   na „Kalendarz 2…” obok pustej przestrzeni. */
+@media (min-width: 521px) and (max-width: 860px) { .pasek-edytora .nazwa-projektu { flex: 1 1 140px; max-width: 340px; min-width: 90px; } }
+
+/* Lista projektów na telefonie: tytuł w jednej linii, pod nim przyciski na całą szerokość (wcześniej
+   „Twoje projekty” łamało się na dwie linie obok przycisków). */
+:root[data-kompakt] .projekty-naglowek { flex-direction: column; align-items: stretch; gap: 14px; }
+:root[data-kompakt] .projekty-naglowek .przyciski-naglowka { flex-wrap: nowrap; }
+:root[data-kompakt] .projekty-naglowek .przyciski-naglowka .przycisk { flex: 1 1 0; justify-content: center; }

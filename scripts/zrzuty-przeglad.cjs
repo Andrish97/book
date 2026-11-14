@@ -93,6 +93,8 @@ function audytUkladu({ dotyk: naDotyku, telefon: naTelefonie }) {
   };
   const widoczny = (el) => {
     if (!el.isConnected) return false;
+    // Zamknięte <details>, content-visibility i podobne – przeglądarka wie najlepiej.
+    if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
     const r = el.getBoundingClientRect();
     if (r.width < 1 || r.height < 1) return false;
     for (let e = el; e; e = e.parentElement) {
@@ -518,7 +520,7 @@ const WIDOKI = [
     await s.evaluate(() => { window.dispatchEvent(new Event('offline')); const e = window.seriodruk.edytor; const o = e.canvas.getObjects().find((x) => x.text === 'Styczeń'); if (o) { o.set({ left: o.left + 0.5 }); e.canvas.fire('object:modified', { target: o }); } });
     await czekaj(s, 1500);
   }, { edytor: true, poZrzucie: async (s) => { await s.context().setOffline(false); await s.evaluate(() => window.dispatchEvent(new Event('online'))); } }],
-  ['26-podglad', async (s) => { await doEdytora(s); await akcja(s, 'podglad'); await s.waitForFunction(() => document.body.dataset.ekran === 'podglad'); await czekaj(s, 1200); }, {}],
+  ['26-podglad', async (s) => { await doPodgladu(s); await czekaj(s, 400); }, {}],
   ['27-udostepnij', async (s) => {
     await doPodgladu(s);
     await akcja(s, 'udostepnij'); await s.waitForSelector('#dlg-udostepnij[open]');
