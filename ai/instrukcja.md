@@ -48,7 +48,7 @@ Makietka to edytor publikacji do druku. Składasz w niej książki, kalendarze, 
 
 Edytor ma to, czego potrzebuje publikacja wielostronicowa:
 
-- **sekcje** o różnych formatach — np. okładka z grzbietem i środek (rozdział „11.4 Ustawienia sekcji”),
+- **sekcje** o różnych formatach — np. okładka z grzbietem liczonym samym z liczby stron i papieru (rozdział „11.6 Okładka z grzbietem”) i środek (rozdział „11.4 Ustawienia sekcji”),
 - **rozkładówki** z lustrzanymi marginesami, jak w książce (rozdział „11.5 Rozkładówki”),
 - **wzorce** — tła, stopki i numery stron rysowane raz dla wielu stron (rozdział „12 Wzorce”),
 - **style tekstu** — jeden wygląd dla wszystkich tytułów czy podpisów (rozdział „6.4 Style”),
@@ -186,7 +186,9 @@ Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomi
 
 ### 2.8 Kontakt
 
-Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem logowania. Wpisz swój adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. Możesz też pisać na kontakt@makietka.app.
+Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem logowania. Wpisz swój adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. **Załącz pliki** dodaje zrzut ekranu, plik projektu albo PDF: do 5 plików, razem do 10 MB. Możesz też pisać na kontakt@makietka.app.
+
+![Formularz kontaktowy z załącznikiem](https://makietka.app/img/instrukcja/k-kontakt.png)
 
 ## 3. Projekty
 
@@ -592,6 +594,8 @@ Pasek przejścia pokazuje kolory. **Dodaj kolor** dokłada kolejny; kliknięcie 
 
 Każdy kolor przejścia ma pole **Krycie** — np. kolor przechodzący w przezroczystość nad zdjęciem.
 
+![Krycie koloru w przejściu](https://makietka.app/img/instrukcja/k-krycie-przejscia.png)
+
 ### 7.6 Obrys
 
 Kolor obrysu i **Grubość obrysu** w mm. Grubość nie zmienia się, gdy powiększasz kształt.
@@ -672,6 +676,10 @@ Każdy kształt może być ramką obrazu: prostokąt, elipsa, wielokąt, gwiazda
 2. Obraz wypełnia kształt i jest przycięty do jego brzegów.
 3. Kliknij kształt dwa razy, żeby przesunąć obraz i powiększyć go narożnikami; `Enter` zatwierdza, `Esc` anuluje. Na telefonie użyj pól **Powiększenie** i **Przesunięcie**.
 
+![Kształt z obrazem i część „Obraz w kształcie”](https://makietka.app/img/instrukcja/k-obraz-w-ksztalcie.png)
+
+![Kadrowanie obrazu w kształcie: cały obraz półprzezroczyście, kształt jako obrys](https://makietka.app/img/instrukcja/obraz-w-ksztalcie-kadr.png)
+
 Kształt zmieniasz jak zwykle — rozmiar, punkty, obrys, cień — a obraz idzie za nim. **Wyjmij obraz** zostawia zwykły obraz w miejscu kształtu. Na stronach z danymi wybierz **Obraz z kolumny**: na każdej stronie pojawi się inny obraz.
 
 Zdjęcie zamienisz w kształt jednym kliknięciem: w części **Kadrowanie** **Zaokrąglone rogi** albo **Koło**. Zaokrąglenie zmienisz potem w części **Wypełnienie i obrys**.
@@ -689,9 +697,13 @@ Zaznacz zdjęcie (albo kształt z obrazem) i wybierz **Usuń tło…**.
 
 **Zapisz jako nowy obraz** dodaje nowy plik do obrazów projektu i wstawia go w miejsce starego; oryginał zostaje.
 
+![Okno „Usuń tło”](https://makietka.app/img/instrukcja/usun-tlo.png)
+
 ### 8.9 Filtry
 
 W części **Filtry** zdjęcia albo obrazu w kształcie ustawisz **jasność**, **kontrast**, **nasycenie** i **rozmycie** oraz włączysz **odcień szarości** albo **sepię**. Plik się nie zmienia; **Bez filtrów** wraca do oryginału.
+
+![Filtry obrazu](https://makietka.app/img/instrukcja/k-filtry.png)
 
 ## 9. Tabela
 
@@ -796,6 +808,10 @@ Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w nie
 
 Panel z lewej pokazuje miniatury wszystkich stron w kolejności druku, pogrupowane w sekcje (szare nagłówki). Kliknięcie miniatury otwiera stronę. Strona powielana z danych ma znaczek **×N** — tyle razy wyjdzie w wydruku (rozdział „16 Serie”).
 
+Na telefonie strony stoją w poziomym pasku, który przewijasz palcem: nazwa sekcji to wąska etykieta z **⋯**, a miniatury mają całą wysokość paska — okładka w poziomie jest szeroka, strony w pionie wąskie.
+
+![Pasek stron na telefonie](https://makietka.app/img/instrukcja/k-strony-telefon.png)
+
 ![Panel stron z menu strony](https://makietka.app/img/instrukcja/strony.png)
 
 ### 11.2 Dodawanie i porządkowanie stron
@@ -832,10 +848,12 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (rozdział „11.5 Rozkładówki”). |
-| **Format** | Rozmiar strony; **Szerokość** i **Wysokość** w mm. |
+| **Rodzaj sekcji** | **Strony** albo **Okładka z grzbietem** — wtedy wymiary liczą się same (rozdział „11.6 Okładka z grzbietem”). |
+| **Format** | Rozmiar strony; **Szerokość (mm)** i **Wysokość (mm)**. Przycisk **Zamień orientację** (kartka ze strzałką) zamienia szerokość z wysokością. |
 | **Marginesy i spad** | Na schemacie strony: górny nad kartką, dolny pod nią, wewnętrzny i zewnętrzny po bokach, spad przy przerywanej ramce. Schemat od razu pokazuje proporcje. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (rozdział „11.8 Numeracja stron”). |
+| **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (rozdział „11.7 Składki”). |
 | **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (rozdział „12.2 Okno Wzorce”). |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
 
@@ -863,15 +881,21 @@ Okładkę robisz jako osobną sekcję z jedną szeroką stroną: tył, grzbiet i
 
 | Ustawienie | Co znaczy |
 |---|---|
-| **Oprawa** | **Miękka klejona**, **Zeszytowa** (zszywki, bez grzbietu) albo **Twarda** — tektura z zawinięciem; ustawisz **Zawinięcie**, **Big**, **Naddatek** i grubość tektury. |
-| **Papier środka** | **Gramatura** i rodzaj papieru (offset, kredowy mat, kredowy błysk, objętościowy) albo wprost **Grubość kartki** od drukarni. |
-| **Strony środka** | Liczone same — ze wszystkich stron środka, razem z powieleniami serii. Możesz też wpisać liczbę. Gdy środków jest kilka, wybierz, które sekcje się liczą. |
+| **Oprawa** | **Miękka klejona (z grzbietem)**, **Zeszytowa – szyta zszywkami (bez grzbietu)** albo **Twarda (tektura z zawinięciem)** — przy twardej ustawisz **Zawinięcie**, **Big**, **Naddatek tektury** i **Grubość tektury** (mm). |
+| **Papier środka** | **Gramatura** — **Gramatura (g/m²)** i **Rodzaj papieru** (offset, kredowy mat, kredowy błysk, objętościowy) — albo **Grubość kartki** w mm od drukarni. |
+| **Strony środka** | **Policz same** — ze wszystkich stron środka, razem z powieleniami serii — albo **Wpisz** liczbę. **Środek to sekcje** wybiera, które sekcje się liczą, gdy jest ich kilka. |
 
 Schemat w oknie pokazuje tył, grzbiet i przód, a pod nim wynik, np. „Grzbiet 6,6 mm · Okładka 352,6 × 246 mm”. Szerokość i wysokość okładki liczą się same.
 
+![Okno sekcji: okładka z grzbietem, schemat i wynik](https://makietka.app/img/instrukcja/k-okladka-okno.png)
+
 Na płótnie przerywane linie pokazują zgięcia (grzbiet, bigi, zawinięcia), a niebieskie ramki — bezpieczne pola tyłu, grzbietu i przodu.
 
-Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sama: tył zostaje, przód przesuwa się razem z grzbietem, napisy na grzbiecie zostają na jego środku, a tło na całą okładkę się rozciąga. W panelu elementu, w części **Inne**, wybierzesz, czego element ma się trzymać: **tyłu**, **grzbietu** albo **przodu**; pasek na grzbiecie może **dopasować szerokość do grzbietu**. Ostrzeżenie „Szerszy niż grzbiet” mówi, że element zachodzi na tył albo przód.
+![Okładka na płótnie: tył, grzbiet, przód](https://makietka.app/img/instrukcja/okladka.png)
+
+Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sama: tył zostaje, przód przesuwa się razem z grzbietem, napisy na grzbiecie zostają na jego środku, a tło na całą okładkę się rozciąga. W panelu elementu, w części **Inne**, lista **Na okładce trzyma się** (automatycznie, tyłu, grzbietu albo przodu) mówi, czego element się trzyma; przełącznik **Dopasuj szerokość do grzbietu** rozciąga pasek na grzbiecie na całą jego szerokość. Ostrzeżenie „Szerszy niż grzbiet” mówi, że element zachodzi na tył albo przód.
+
+![Element przypięty do części okładki](https://makietka.app/img/instrukcja/k-okladka-przypiecie.png)
 
 > **Uwaga:** wzorce przypisane do sekcji okładki nie przesuwają się same.
 
@@ -880,6 +904,8 @@ Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sa
 Środek szyty albo klejony ze składek musi mieć liczbę stron podzielną przez wielkość składki. W ustawieniach sekcji wybierz **Składki**: co 4, 8, 16 albo 32 strony.
 
 Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pełnej składki (×16)”. **Dopełnij pustymi** dodaje brakujące puste strony na końcu sekcji — cofniesz to jak każdą zmianę. **Sprawdź przed drukiem** też przypomni o niepełnej składce, a przy oprawie zeszytowej — o liczbie stron niepodzielnej przez 4.
+
+![Licznik składki i „Dopełnij pustymi”](https://makietka.app/img/instrukcja/k-skladki.png)
 
 ### 11.8 Numeracja stron
 
@@ -943,6 +969,7 @@ Linie pomocnicze nie są drukowane:
 | **Różowy pas** | Spad. Tła i zdjęcia, które mają sięgać krawędzi, rozciągnij aż do jego końca. |
 | **Niebieska przerywana** | Margines. Teksty trzymaj w środku. |
 | **Gruba ciemna** | Grzbiet rozkładówki. |
+| **Przerywane z podpisami** | Na okładce: zgięcia — grzbiet, bigi, zawinięcia (rozdział „11.6 Okładka z grzbietem”). |
 | **Turkusowa** | Prowadnica (rozdział „13.4 Linijki i prowadnice”). |
 
 **Linie pomocnicze** (`W`) w prawym dolnym rogu chowa je wszystkie.
@@ -1300,6 +1327,7 @@ Zanim wyślesz plik do drukarni, wybierz **⋯** → **Sprawdź przed drukiem**.
 | **Brak danych** | Tabeli dodatkowej zabrakło wierszy przed końcem serii. |
 | **Strony serii w rozkładówkach** | Gdzie stoją puste strony albo od której strony blok wychodzi po przeciwnej stronie. |
 | **Tabela wychodzi poza stronę** | Wiersze urosły razem z treścią i tabela wyszła poza kartkę. |
+| **Niepełna składka** | Sekcji brakuje stron do pełnej składki (rozdział „11.7 Składki”); przy oprawie zeszytowej — liczba stron niepodzielna przez 4. |
 | **Element w marginesie albo poza spadem** | Jak na liście ostrzeżeń w edytorze (rozdział „13.2 Ostrzeżenia”). |
 
 **Pokaż** przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy, z wyróżnioną kartką. **Otwórz wzór** otwiera w edytorze stronę-wzór. Uwagi nie blokują eksportu — ta sama lista jest na dole okna eksportu PDF.
@@ -1588,7 +1616,7 @@ W podglądzie szczypanie powiększa, a w prezentacji przesunięcie w bok przewra
 
 Na telefonie edytor działa w pionie. Panele **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** otwierasz przyciskami na dole ekranu. Panel wysuwa się z dołu, a widok sam przesuwa się tak, żeby zaznaczony element był widoczny nad panelem.
 
-**Uchwyt** (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel, w dół — żeby go zmniejszyć albo zamknąć. Panel zamyka też ponowne stuknięcie jego przycisku.
+**Uchwyt** (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel, w dół — żeby go zmniejszyć albo zamknąć. Stuknięcie w uchwyt zwija powiększony panel do zwykłej wysokości, a zwykły zamyka. Panel zamyka też ponowne stuknięcie jego przycisku.
 
 Na małym ekranie schowane są narzędzia, którymi trudno sterować palcem: wielokąt, kadrowanie ramką i linijki. Prowadnice wpiszesz liczbą, a obraz przytniesz liczbami we właściwościach.
 

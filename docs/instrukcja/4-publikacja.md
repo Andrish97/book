@@ -58,6 +58,7 @@ projekt — także każdą powieloną stronę — i wypisuje miejsca, na które 
 | **Brak danych** | Tabeli dodatkowej zabrakło wierszy przed końcem serii. |
 | **Strony serii w rozkładówkach** | Gdzie stoją puste strony albo od której strony blok wychodzi po przeciwnej stronie. |
 | **Tabela wychodzi poza stronę** | Wiersze urosły razem z treścią i tabela wyszła poza kartkę. |
+| **Niepełna składka** | Sekcji brakuje stron do pełnej składki (→ 11.7); przy oprawie zeszytowej — liczba stron niepodzielna przez 4. |
 | **Element w marginesie albo poza spadem** | Jak na liście ostrzeżeń w edytorze (→ 13.2). |
 
 [Pokaż] przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy, z wyróżnioną
