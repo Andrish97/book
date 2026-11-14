@@ -14,7 +14,7 @@ import { utworzSerwer, BLEDY, WERSJE_NOWE, WERSJE_STARE } from './seriodruk-mcp-
 
 // Strony, z których przeglądarka może wysyłać żądania do łącznika (np. MCP Inspector na localhost).
 // Wywołania od Claude i ChatGPT idą z ich serwerów, zwykle bez nagłówka Origin.
-const ZRODLA = [/^https:\/\/(www\.)?claude\.(ai|com)$/, /^https:\/\/(chatgpt\.com|chat\.openai\.com)$/, /^https:\/\/andrish97\.github\.io$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
+const ZRODLA = [/^https:\/\/(www\.)?claude\.(ai|com)$/, /^https:\/\/(chatgpt\.com|chat\.openai\.com)$/, /^https:\/\/(www\.)?makietka\.app$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
 export const DOMYSLNY_ADRES = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const DOMYSLNY_KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
 const WZOR_KLUCZA = /^sdk_[0-9a-f]{32}_[A-Za-z0-9_-]{20,100}$/;

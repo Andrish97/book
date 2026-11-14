@@ -273,7 +273,7 @@ const krok = async (nazwa, fn) => {
       await p.waitForSelector('#dostep-ai-gotowy:not([hidden])');
       const adres = await p.inputValue('#dostep-ai-adres');
       await p.click('[data-akcja="dostep-ai-zamknij"]');
-      if (!/\/functions\/v1\/mcp\/sdk_[0-9a-f]{32}_/.test(adres)) throw new Error('okno nie pokazało adresu łącznika');
+      if (!/^https:\/\/api\.makietka\.app\/mcp\/sdk_[0-9a-f]{32}_/.test(adres)) throw new Error(`okno nie pokazało adresu łącznika: ${adres}`);
       // Wywołanie z przeglądarki (Origin strony aplikacji – sprawdza też CORS i OPTIONS funkcji).
       let nr = 0;
       const mcp = (tresc, naglowki = {}, metoda = 'POST') => p.evaluate(async ([u, t, n, m]) => {
