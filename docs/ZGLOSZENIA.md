@@ -17,7 +17,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
-| 15 propozycji wyglądu „do decyzji” (np. pasek narzędzi bez podpisów, pasek górny z samymi ikonami) – pokażę z makietami | ⏳ |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
@@ -63,4 +62,5 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 104 | Instrukcja w stylu Familiady: 42 rozdziały, spis z wyszukiwarką, edytor i panel właściwości szczegółowo, dane w praktyce (kalendarz ze świętami, dziennik, planer, obrót i kolor z danych), AI krok po kroku + komiks + polecenia „Kopiuj”, automatyczne zrzuty w CI |
 | 103 | Kompaktowość i ikony (13 propozycji: tabela −/+, PDF „Zaawansowane”, ikony w Danych, Czcionkach, Obrazach, zaproszeniach, imporcie) + paleta poleceń Ctrl+K i kolory projektu w wyborze koloru |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |
+| 109 | 15 decyzji wyglądu: chmurka na karcie, ikony na górnym pasku z napisami „gdy się mieszczą”, „Wygląd edytora” w menu widoku, akcje przy zakładkach, kółko koloru przy rozmiarze, kafelek „+” na liście stron, warstwy z uchwytem ⋮⋮, „+” przy wzorcach, gumka i kosz w oknach, schemat marginesów, ustawienia konta jako lista, Wyloguj w menu awatara, jaśniejsze logowanie, zasłonki bez „Anuluj” |
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |

@@ -85,6 +85,7 @@ Makietka służy do składania publikacji z powtarzalnymi stronami: kalendarzy, 
 *Lista projektów po zalogowaniu.*
 
 - Projekt to jedna publikacja – np. „Kalendarz 2027”. Karta pokazuje pierwszą stronę i datę ostatniej zmiany.
+- **Chmurka** przy nazwie projektu mówi, czy zmiany są już na koncie: z ptaszkiem – zapisano na koncie, z zegarem – czeka na wysłanie, przekreślona – brak internetu, zmiany są na tym urządzeniu i pójdą na konto po powrocie sieci. Najedź na nią (albo przytrzymaj palec), żeby zobaczyć opis.
 - Każda zmiana zapisuje się sama – nie ma przycisku „Zapisz”.
 - Menu **⋯** na karcie projektu: podgląd, zmiana nazwy, duplikowanie, eksport do pliku, usunięcie. **Importuj** wczytuje projekt z pliku `.makietka`.
 - Plakietka **Udostępniony** na karcie oznacza, że projekt ma czynny link do podglądu. Kliknięcie plakietki otwiera okienko z linkiem – tam go skopiujesz albo unieważnisz.
@@ -131,15 +132,15 @@ Projekty są zapisane na koncie i dostępne na każdym urządzeniu. Konto zakła
 
 *Na początek*
 
-Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz „Ustawienia konta”. Ustawienia są pogrupowane; lista po lewej przenosi do wybranej grupy.
+Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz „Ustawienia konta”. Ustawienia to lista jak w telefonie: każdy wiersz pokazuje bieżącą wartość (np. „E-mail · adres”, „Motyw · Jasny”), a kliknięcie otwiera szczegóły. Na komputerze lista stoi z lewej, a wybrane ustawienie z prawej; na telefonie wiersz otwiera osobny widok, a **‹ Ustawienia** (albo „Wstecz”) wraca do listy.
 
 ![Ustawienia konta z rozwiniętą zmianą adresu e-mail.](https://makietka.app/img/instrukcja/konto.png)
 *Ustawienia konta z rozwiniętą zmianą adresu e-mail.*
 
-- **Profil** – nazwa użytkownika: po niej inni zapraszają Cię do projektu; widać ją też w prawym górnym rogu.
-- **Logowanie** – **Zmień adres** i **Zmień hasło** rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. **Wpisz inny adres** zastępuje oczekujący adres nowym.
-- **Wygląd** – jasny albo ciemny motyw (następny rozdział).
-- **Urządzenia** – **Wyloguj** wylogowuje tylko to urządzenie, **Wyloguj wszędzie** – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).
+- **Nazwa użytkownika** – nazwa użytkownika: po niej inni zapraszają Cię do projektu; widać ją też w prawym górnym rogu.
+- **E-mail** i **Hasło** (wspólny widok „Logowanie”) – **Zmień adres** i **Zmień hasło** rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. **Wpisz inny adres** zastępuje oczekujący adres nowym.
+- **Wyloguj wszędzie** (w widoku „Logowanie”) wylogowuje wszystkie urządzenia naraz – przydatne po logowaniu na cudzym albo zgubionym urządzeniu. Zwykłe **Wyloguj** (tylko to urządzenie) jest w menu pod kółkiem z inicjałem.
+- **Motyw** – jasny albo ciemny (następny rozdział).
 - **Miejsce** – ile zajmują Twoje pliki (obrazy, czcionki, podglądy linków) wobec limitu konta (2 GB), ile masz projektów (najwyżej 100) i ile obrazów w największym projekcie (najwyżej 1000 w jednym projekcie; jeden plik – do 50 MB). Niżej lista Twoich projektów: ile zajmuje każdy, ile ma obrazów i stron, kiedy go zmieniano – z przyciskami **Otwórz** i **Pokaż obrazy**; projekty innych osób, do których masz dostęp, są osobno i nie liczą się do Twojego limitu. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. **Posprzątaj…** pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.
 - **Usuwanie konta** – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.
 - **Kontakt** – w menu konta (i w stopce ekranu logowania) jest formularz kontaktowy: pytanie, pomysł albo błąd trafia do nas, a na podany adres przychodzi potwierdzenie. Możesz też pisać wprost na kontakt@makietka.app.
@@ -184,7 +185,7 @@ Po otwarciu projektu widzisz edytor. Każda rzecz ma swoje miejsce:
 - **Strony** (z lewej) – miniatury wszystkich stron, pogrupowane w sekcje. Kolejność miniatur to kolejność w publikacji.
 - **Strona** (pośrodku) – tu układasz elementy. Nad nią pasek **Wstaw**, w prawym dolnym rogu powiększenie oraz menu siatki i linii pomocniczych.
 - **Właściwości** i **Warstwy** (z prawej, dwie zakładki) – ustawienia zaznaczonego elementu albo strony oraz lista elementów otwartej strony. Są obok siebie, bo dotyczą tego samego: tego, co leży na otwartej stronie.
-- Górny pasek: powrót do projektów, nazwa projektu (kliknij, żeby ją zmienić), stan zapisu, cofanie, **Wzorce** (szablony wspólnych elementów stron), **Dane** (tabele do pól i serii), **Podgląd**, sekcja i jej format, **pełny ekran**, instrukcja i menu **⋯** (PDF, PNG, sprawdzenie przed drukiem, czcionki, motyw; na wąskim ekranie także pełny ekran).
+- Górny pasek: powrót do projektów, nazwa projektu (kliknij, żeby ją zmienić), stan zapisu, cofanie, ikony **Wzorce** (szablony wspólnych elementów stron), **Dane** (tabele do pól i serii) i **Podgląd** – napisy obok nich pojawiają się same, gdy okno jest na tyle szerokie, że się mieszczą (można to zmienić w menu widoku: **Napisy na górnym pasku** – auto, zawsze, nigdy), sekcja i jej format, **pełny ekran**, instrukcja i menu **⋯** (PDF, PNG, sprawdzenie przed drukiem, czcionki, motyw; na wąskim ekranie także pełny ekran).
 - Listy rozwijane, wybór koloru i pola wyboru wyglądają i działają tak samo na każdym urządzeniu – rysuje je aplikacja, nie system. W długiej liście (np. czcionek) wystarczy zacząć pisać: zostają tylko pozycje zawierające wpisany fragment, bez rozróżniania wielkości liter i polskich znaków; `Backspace` cofa, `Esc` czyści szukanie. Wybór koloru ma pole barw, kod koloru, paletę i ostatnio używane kolory.
 
 ## 8. Edytor – każde narzędzie i menu
@@ -296,7 +297,7 @@ Właściwości tekstu są w panelu z prawej. Rozmiar czcionki podajesz w punktac
 - **Styl tekstu** to zapisany wygląd, np. „Tytuł” albo „Podpis”. Nadaj go tekstom, które mają wyglądać tak samo.
 - Gdy zmienisz tekst ze stylem, pojawi się **Aktualizuj styl** – kliknięcie zmienia wszystkie teksty z tym stylem w całym projekcie. **Przywróć** wraca do wyglądu ze stylu.
 - **Nowy styl** zapisuje wygląd bieżącego tekstu pod własną nazwą.
-- Czcionka, rozmiar, kolor, interlinia, **odstęp liter** (w tysięcznych wysokości pisma), pogrubienie, kursywa, podkreślenie, przekreślenie, wyrównanie.
+- Czcionka, rozmiar (z **kółkiem koloru tekstu** na prawym brzegu tego samego wiersza), interlinia, **odstęp liter** (w tysięcznych wysokości pisma), pogrubienie, kursywa, podkreślenie, przekreślenie, wyrównanie.
 - **Wielkość liter**: **AA** (wielkie) i **aa** (małe) zmieniają tylko wygląd – treść zostaje taka, jak ją wpisano, więc wartości z tabeli też pokażą się wielkimi literami, a po wyłączeniu wszystko wraca. **Aa** („jak w zdaniu”) zmienia samą treść.
 - **Kapitaliki** (przycisk **Aᴀ** obok): małe litery wyglądają jak wielkie, tylko niższe, a wielkie zostają pełnej wysokości – tak składa się np. nazwiska i nagłówki. To też tylko wygląd: treść zostaje taka, jak ją wpisano, a w PDF-ie tekst da się zaznaczyć i wyszukać.
 - **Lista**: punkty, kreski albo numery przed każdym akapitem. Dalsze wiersze akapitu stoją równo pod pierwszym. Znak listy nie jest częścią treści, więc pola z danych działają bez zmian. Skróty: `Ctrl`+`Shift`+`8` (punkty) i `Ctrl`+`Shift`+`7` (numery).
@@ -340,7 +341,7 @@ Poniżej ustawień wyglądu każdy element ma dokładne położenie i narzędzia
 - **Grupa w grupie**: podwójne kliknięcie grupy leżącej w otwartej grupie otwiera ją jako kolejny poziom – podpis ramki mówi wtedy „Grupa w grupie”, a bledsze ramki pokazują grupy nad nią. `Esc` wraca o jeden poziom, kliknięcie poza grupą zamyka wszystkie. Na liście warstw rozwinięta grupa pokazuje też zawartość grup w niej, z wcięciem; kliknięcie elementu z głębi otwiera od razu potrzebne poziomy.
 - **Kolejność** przenosi element nad lub pod inne.
 - **Zablokuj położenie i rozmiar** chroni element przed przypadkowym przesunięciem.
-- Ikony nad panelem: **kopiuj do schowka**, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem **Wklej skopiowane elementy** we właściwościach strony (albo `Ctrl`+`V`) – trafi w to samo miejsce.
+- Ikony w wierszu zakładek **Właściwości** / **Warstwy**: **kopiuj do schowka**, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem **Wklej skopiowane elementy** we właściwościach strony (albo `Ctrl`+`V`) – trafi w to samo miejsce.
 - **Obraz**: kliknij go dwa razy (albo **Kadruj przeciąganiem**), żeby wybrać widoczny fragment ramką – `Enter` zatwierdza, `Esc` anuluje. Działa także na obrazie obróconym i odbitym (na czas kadrowania obraz jest prostowany). Do tego przycięcie liczbami, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi). **Podmień zdjęcie** (na górze właściwości obrazu) wstawia inny plik w tę samą ramkę: rozmiar, miejsce, obrót, obrys i cień zostają, a zdjęcie o innych proporcjach wypełnia ramkę z przyciętym nadmiarem.
 - **Rysunek SVG** wstawia się jako obraz: wygląda wiernie, ale nic się w nim nie zmieni, a napisy przeglądarka rysuje czcionką zastępczą. **Rozłóż rysunek na elementy** (we właściwościach obrazu) zamienia go w zwykłą **grupę kształtów i napisów** w tym samym miejscu: grupę można rozgrupować, kształtom zmienić kolor, obrys i punkty, a napisy poprawić jak każdy tekst. Napis zachowuje czcionkę, jeśli jest ona w zestawie aplikacji albo wśród czcionek projektu – inną zastępuje domyślna, o czym aplikacja mówi. Napis ułożony w rysunku w kilku wierszach zostaje jedną ramką z wierszami. Zdjęcie osadzone w rysunku staje się zwykłym obrazem projektu. Jeśli obraz był przycięty, grupa jest przycięta tak samo – przycięcie zdejmuje **Pokaż cały rysunek** we właściwościach grupy (po rozgrupowaniu elementy widać w całości). Rzeczy, których edytor nie ma (filtry, maski, wzory), znikają – wtedy lepiej zostawić obraz; `Ctrl`+`Z` go przywraca.
 - Tytuły części panelu (np. **Cień**, **Ramka tekstu**) zwijają je i rozwijają. Zwinięte zostają zwinięte przy kolejnych elementach.
@@ -499,7 +500,7 @@ Na stronie widać linie pomocnicze. Nie są drukowane.
 
 *Edytor*
 
-Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: **Siatka**, **Przyciągaj do siatki**, **Krok siatki**, **Przyciągaj do elementów i pokazuj odległości**, **Linijki**, **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** i **W rozkładówkach pokazuj jedną stronę**.
+Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: **Siatka**, **Przyciągaj do siatki**, **Krok siatki**, **Przyciągaj do elementów i pokazuj odległości**, **Linijki**, **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** i **W rozkładówkach pokazuj jedną stronę**. Na dole menu jest część **Wygląd edytora**: **Podpisy narzędzi** (napisy pod ikonami paska Wstaw, domyślnie wyłączone) i **Napisy na górnym pasku** (auto – tylko gdy się mieszczą, zawsze, nigdy). Te ustawienia zapamiętuje to urządzenie.
 
 ![Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).](https://makietka.app/img/instrukcja/siatka.png)
 *Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).*
@@ -535,11 +536,11 @@ Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – 
 
 Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.
 
-![Lista warstw: oko ukrywa element, kłódka go blokuje, strzałki zmieniają kolejność.](https://makietka.app/img/instrukcja/warstwy.png)
-*Lista warstw: oko ukrywa element, kłódka go blokuje, strzałki zmieniają kolejność.*
+![Lista warstw: uchwyt ⋮⋮ do przeciągania, oko ukrywa element, kłódka go blokuje, ⋯ zmienia kolejność.](https://makietka.app/img/instrukcja/warstwy.png)
+*Lista warstw: uchwyt ⋮⋮ do przeciągania, oko ukrywa element, kłódka go blokuje, ⋯ zmienia kolejność.*
 
 - Kliknięcie nazwy zaznacza element – przydatne, gdy leży pod innym i trudno w niego trafić.
-- Kolejność zmienisz, przeciągając wiersz wyżej albo niżej, albo przyciskami **▲** i **▼** (wygodne na ekranie dotykowym).
+- Kolejność zmienisz, przeciągając wiersz za **uchwyt ⋮⋮** z lewej – myszą albo palcem. Menu **⋯** na końcu wiersza ma **Na wierzch**, **Wyżej**, **Niżej**, **Na spód** i **Zmień nazwę**.
 - **Oko** ukrywa element. Ukryty element zostaje w projekcie, ale nie jest drukowany.
 - **Kłódka** blokuje położenie i rozmiar.
 - Podwójne kliknięcie nazwy pozwala ją zmienić.
@@ -556,7 +557,7 @@ Każdą stronę projektujesz osobno. Kolejność miniatur to kolejność stron w
 ![Menu strony.](https://makietka.app/img/instrukcja/strony.png)
 *Menu strony.*
 
-- **+ Strona** na dole panelu wstawia pustą stronę za bieżącą, w tej samej sekcji.
+- Kafelek **+** na końcu stron sekcji (wygląda jak miniatura) wstawia pustą stronę za bieżącą, w tej samej sekcji; w innej sekcji – na jej koniec. **+ Sekcja** na dole panelu tworzy nową sekcję.
 - Przycisk **⋯** na miniaturze: zmiana nazwy, duplikowanie, przesuwanie, usuwanie.
 - Kolejność zmienisz też **przeciągając miniaturę** myszą; upuszczona w innej sekcji strona przechodzi do niej.
 - Usunięcie albo przesunięcie strony cofniesz przyciskiem **Cofnij** w komunikacie na dole ekranu albo `Ctrl`+`Z` – dopóki nie zmienisz czegoś na stronie.
@@ -572,7 +573,7 @@ Projekt dzieli się na sekcje – części o różnych ustawieniach, np. „Okł
 ![Ustawienia sekcji.](https://makietka.app/img/instrukcja/sekcje.png)
 *Ustawienia sekcji.*
 
-- Każda sekcja ma własny **format**, **spad** i cztery **marginesy**.
+- Każda sekcja ma własny **format**, **spad** i cztery **marginesy**. Marginesy i spad wpisujesz na **schemacie strony**: pole górnego marginesu stoi nad kartką, dolnego pod nią, lewego (wewnętrznego) i prawego (zewnętrznego) po bokach, a spad – przy przerywanej ramce. Schemat od razu pokazuje proporcje strony i pole na tekst.
 - **Układ stron**: pojedyncze albo rozkładówki. **Numeracja**: dalszy ciąg poprzedniej sekcji, od wybranego numeru albo bez numerów (np. okładka).
 - Na liście stron sekcje są szarymi nagłówkami. Przycisk **⋯** przy nagłówku: ustawienia, dodanie strony, zmiana kolejności, usunięcie. **+ Sekcja** tworzy nową.
 - Okładkę z grzbietem ustaw jako jedną szeroką stronę: tył + grzbiet + przód (np. 148 + 6 + 148 mm). W ustawieniach sekcji jest kalkulator **Okładka z grzbietem: policz szerokość**: wpisz szerokość strony środka, liczbę stron w środku i grubość kartki (podaje ją drukarnia), a **Ustaw tę szerokość** wpisze szerokość okładki razem z grzbietem.
@@ -610,7 +611,7 @@ Wzorzec to szablon z elementami wspólnymi dla wielu stron – tło, ramka, logo
 - Okno otwiera przycisk **Wzorce** na górnym pasku edytora (liczba obok to liczba wzorców w projekcie).
 - **Wzorce w tym projekcie**: każdy ma miniaturę i dwa przyciski. **+ Dodaj do tej strony** włącza go na otwartej stronie, **+ Do całej sekcji** – na wszystkich stronach sekcji, które nie mają własnego wyboru. Ponowne kliknięcie (✓) go zdejmuje.
 - **Edytuj** (albo kliknięcie miniatury) otwiera wzorzec do edycji. **Nowy pusty wzorzec** tworzy czysty szablon. Menu **⋯**: nazwa, duplikowanie, kolejność, usunięcie.
-- **Wzorce standardowe** to gotowe szablony: numer strony na dole albo przy zewnętrznej krawędzi, stopka, nagłówek, linie do pisania, kratka, ramka, zakładka na brzegu. Dopasowują się do formatu i marginesów bieżącej sekcji. Po **Dodaj do projektu** zmieniasz je jak własne.
+- **Wzorce standardowe** to gotowe szablony: numer strony na dole albo przy zewnętrznej krawędzi, stopka, nagłówek, linie do pisania, kratka, ramka, zakładka na brzegu. Dopasowują się do formatu i marginesów bieżącej sekcji. Przycisk **+** przy wzorcu (na telefonie **Dodaj**) dodaje go do projektu – potem zmieniasz go jak własny.
 - Strona może mieć **kilka wzorców naraz**, np. „tło miesiąca” i „stopka”. Sekcja ma swoje wzorce domyślne, a pojedyncza strona może mieć własny wybór (właściwości strony → **Wzorce**).
 - Elementy wzorca leżą **pod** treścią strony. Zaznacz element we wzorcu i włącz **Nad treścią strony**, jeśli ma ją przykrywać (ramka, znak wodny).
 - **Odbijaj lustrzanie na lewych stronach**: element narysowany przy prawej krawędzi (np. numer strony) na lewych stronach rozkładówek przejdzie na lewą krawędź.
@@ -629,7 +630,7 @@ Dane do powielanych stron trzymasz w tabelach projektu. Tabela to arkusz: kolumn
 - Okno otwiera przycisk **Dane** na górnym pasku edytora.
 - **Importuj plik** wczytuje CSV albo Excel. Pierwszy wiersz pliku to nazwy kolumn. Z pliku Excela powstaje po jednej tabeli na każdy arkusz. Separator (średnik, przecinek, tabulator) i kodowanie polskich znaków aplikacja rozpoznaje sama.
 - Z pliku Excela (`.xlsx`) przechodzi też **wygląd komórek**: pogrubienie, kursywa i kolor liter. Komórka wygląda tak samo w oknie Dane, a na stronie jej wartość wstawiona w pole dostaje ten wygląd – np. święta pogrubione na czerwono wprost z arkusza. Przechodzi też wygląd **części tekstu** w komórce – np. jedno pogrubione słowo zostaje pogrubione na stronie. Przełącznik **Przenoś wygląd komórek na strony** nad tabelą to wyłącza (wygląd zostaje zapisany).
-- **Wygląd komórki w oknie Dane**: kliknij komórkę (`Shift`+kliknięcie zaznacza prostokąt kilku komórek) i użyj przycisków **B** (pogrubienie), **I** (kursywa), koloru liter albo **Bez wyglądu**. Pogrubienie i kursywa przełączają się: gdy wszystkie zaznaczone komórki je mają – znikają. Zmiana tekstu komórki zdejmuje wygląd części tekstu (przestaje pasować do liter), wygląd całej komórki zostaje.
+- **Wygląd komórki w oknie Dane**: kliknij komórkę (`Shift`+kliknięcie zaznacza prostokąt kilku komórek) i użyj przycisków **B** (pogrubienie), **I** (kursywa), koloru liter albo gumki **Wyczyść wygląd**. Pogrubienie i kursywa przełączają się: gdy wszystkie zaznaczone komórki je mają – znikają. Zmiana tekstu komórki zdejmuje wygląd części tekstu (przestaje pasować do liter), wygląd całej komórki zostaje.
 - Plik CSV, `.xls`, `.ods` i szablon danych nie niosą wyglądu. Gdy takim plikiem podmieniasz dane tabeli, wygląd **zostaje w komórkach, których wartość się nie zmieniła** (ten sam wiersz i ta sama kolumna); przy zmienionych wartościach znika. Po imporcie aplikacja mówi, w ilu komórkach wygląd został.
 - Wszystko jest tekstem: liczby i daty trafiają do tabeli tak, jak je widać w arkuszu. Datę najlepiej rozbić na osobne kolumny, np. `dzien`, `miesiac`, `rok`.
 - Tabelę możesz **poprawiać w aplikacji**: kliknij komórkę i pisz. `Enter` przechodzi wiersz niżej, `Shift`+`Enter` robi nową linię w komórce. **+ Wiersz** i **+ Kolumna** dodają miejsce, znak × przy wierszu albo kolumnie je usuwa.
@@ -1128,7 +1129,7 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 - W **Podglądzie** i w **prezentacji** też działają palce: szczypanie powiększa, podwójne stuknięcie powiększa albo dopasowuje, a w prezentacji przesunięcie w bok przewraca stronę, w dół – zamyka.
 - **Na telefonie edytor działa w pionie.** Panele **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** otwierasz przyciskami na dole ekranu; panel wysuwa się z dołu na niecałą połowę ekranu i ma stałą wysokość, więc nie skacze, gdy przeglądarka chowa pasek adresu. Widok sam przesuwa się tak, żeby zaznaczony element był widoczny nad panelem, a po zamknięciu panelu wraca na miejsce.
 - **Uchwyt** (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel prawie na cały ekran, w dół – żeby go zmniejszyć albo zamknąć; stuknięcie przełącza wysokość. Panel zamyka też ponowne stuknięcie jego przycisku na dole ekranu – krzyżyka nie ma.
-- **Okna jako zasłonki.** Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu, potwierdzenia i inne) nie stoją na środku, tylko wysuwają się od dołu ekranu – na telefonie na całą szerokość, na tablecie szeroko, ale nie od krawędzi do krawędzi. Zamiast krzyżyka u góry jest **uchwyt** (kreska): pociągnij go w dół albo stuknij, żeby zamknąć. Zamyka też stuknięcie w przyciemnione tło nad zasłonką. Zamknięcie działa tak samo jak dawny krzyżyk – np. okno Dane zapisuje zmiany, a potwierdzenie odpowiada „nie”. Przyciski na dole zasłonki (np. **Zapisz**, **Anuluj**) stoją w miejscu, gdy przewijasz jej treść. Na komputerze okna zostają zwykłymi oknami z krzyżykiem.
+- **Okna jako zasłonki.** Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu, potwierdzenia i inne) nie stoją na środku, tylko wysuwają się od dołu ekranu – na telefonie na całą szerokość, na tablecie szeroko, ale nie od krawędzi do krawędzi. Zamiast krzyżyka u góry jest **uchwyt** (kreska): pociągnij go w dół albo stuknij, żeby zamknąć. Zamyka też stuknięcie w przyciemnione tło nad zasłonką. Zamknięcie działa tak samo jak dawny krzyżyk – np. okno Dane zapisuje zmiany, a potwierdzenie odpowiada „nie”. Na telefonie zasłonka nie ma przycisku **Anuluj** – zamykasz ją uchwytem, stuknięciem w tło albo Esc, a główny przycisk (np. **Zapisz**) jest na całą szerokość; pytania („Usunąć…?”) dalej mają **Anuluj**. Przyciski na dole zasłonki stoją w miejscu, gdy przewijasz jej treść. Na komputerze okna zostają zwykłymi oknami z krzyżykiem.
 - Na urządzeniu dotykowym przyciski, pola i przełączniki są trochę większe – łatwiej trafić w nie palcem.
 - Na wąskim ekranie górny pasek zostawia miejsce na nazwę projektu: **Wzorce**, **Dane** i **Instrukcja** są w menu **⋯**. Ucięta nazwa pokazuje się w całości po stuknięciu w nią.
 - We właściwościach obrazu na samej górze są przyciski **Podmień zdjęcie** (nowe zdjęcie z galerii albo z obrazów projektu, w tej samej ramce i miejscu) i **Obrazy projektu…**.
