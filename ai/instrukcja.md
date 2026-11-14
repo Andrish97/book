@@ -129,9 +129,10 @@ Ustawienia to lista: każdy wiersz pokazuje bieżącą wartość, a kliknięcie 
 | **E-mail** | Adres konta. **Zmień adres** wysyła link potwierdzający na nowy adres; do jego kliknięcia logujesz się dotychczasowym. **Wpisz inny adres** zastępuje oczekujący adres nowym. |
 | **Hasło** | **Zmień hasło** — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
 | **Motyw** | Wygląd aplikacji (rozdział „2.4 Motyw”). |
+| **Powiadomienia** | Powiadomienia na tym urządzeniu (rozdział „2.6 Powiadomienia”). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (rozdział „24.2 Klucz dla AI”). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (rozdział „2.5 Miejsce i limity”). |
-| **Usuń konto** | Usunięcie konta (rozdział „2.6 Usuwanie konta”). |
+| **Usuń konto** | Usunięcie konta (rozdział „2.7 Usuwanie konta”). |
 
 W widoku **Logowanie** jest też **Wyloguj wszędzie** — wylogowuje wszystkie urządzenia naraz, np. po zalogowaniu na cudzym komputerze. Zwykłe **Wyloguj** (tylko to urządzenie) jest w menu konta.
 
@@ -164,13 +165,26 @@ Niżej jest lista Twoich projektów: ile zajmuje każdy, ile ma obrazów i stron
 
 Od 80% limitu aplikacja ostrzega — tutaj i przy wgrywaniu obrazów. **Posprzątaj…** pokazuje, ile miejsca zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych zdjęć, pliki usuniętych projektów i wyłączonych linków. Pliki z ostatnich dwóch dni zostają.
 
-### 2.6 Usuwanie konta
+### 2.6 Powiadomienia
+
+Makietka może od razu dać znać o sprawach projektów innych osób — także wtedy, gdy aplikacja jest zamknięta. Włączysz to w **Ustawienia konta** → **Powiadomienia**:
+
+| Ustawienie | Znaczenie |
+|---|---|
+| **Na tym urządzeniu** | Przełącznik — powiadomienia na tym urządzeniu. Przeglądarka zapyta o zgodę. |
+| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**. |
+
+Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (rozdział „26.4 Instalacja aplikacji”) — w ustawieniach jest wtedy przycisk **Zainstaluj aplikację**.
+
+![Powiadomienia w ustawieniach konta](https://makietka.app/img/instrukcja/k-powiadomienia.png)
+
+### 2.7 Usuwanie konta
 
 **Ustawienia konta** → **Usuń konto** usuwa konto i wszystkie Twoje projekty. Zanim to zrobisz, wyeksportuj projekty, które chcesz zachować (rozdział „3.6 Plik projektu”).
 
 > **Uwaga:** Usunięcia konta nie da się cofnąć.
 
-### 2.7 Kontakt
+### 2.8 Kontakt
 
 Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem logowania. Wpisz swój adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. Możesz też pisać na kontakt@makietka.app.
 
@@ -254,7 +268,7 @@ Projekt otwiera się w edytorze. Ekran ma pięć części:
 - **górny pasek** — nawigacja, cofanie, okna projektu i menu **⋯** (rozdział „4.2 Górny pasek”, „4.3 Menu ⋯”),
 - **panel stron** z lewej — miniatury stron pogrupowane w sekcje (rozdział „11.1 Panel stron”),
 - **strona** pośrodku, a nad nią pasek wstawiania (rozdział „4.4 Pasek wstawiania”),
-- **panel z prawej** — właściwości i warstwy (rozdział „4.5 Panel z prawej”),
+- **prawa kolumna** — właściwości, a pod nimi warstwy (rozdział „4.5 Właściwości i warstwy”, „10 Warstwy”),
 - **prawy dolny róg** — linie pomocnicze, siatka i powiększenie (rozdział „4.6 Prawy dolny róg i menu widoku”).
 
 Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
@@ -314,16 +328,23 @@ Pasek nad stroną wstawia nowe elementy (rozdział „5.1 Wstawianie”).
 
 Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (rozdział „4.6 Prawy dolny róg i menu widoku”).
 
-### 4.5 Panel z prawej
+### 4.5 Właściwości i warstwy
 
-Panel z prawej ma dwie zakładki: **Właściwości** i **Warstwy**.
+Prawa kolumna ma dwie części: u góry **właściwości**, pod nimi panel **Warstwy** (rozdział „10 Warstwy”).
 
-- **Właściwości** — ustawienia tego, co jest zaznaczone. Gdy nic nie jest zaznaczone — ustawienia otwartej strony (rozdział „11.3 Właściwości strony”). Części panelu zależą od rodzaju elementu; tytuł części (np. „Cień”) zwija ją i rozwija.
-- **Warstwy** — lista elementów strony (rozdział „10 Warstwy”).
+Nagłówek właściwości mówi, czego dotyczą ustawienia:
 
-Nad ustawieniami zaznaczonego elementu są przyciski **Kopiuj do schowka** (`Ctrl`+`C`), **Duplikuj** (`Ctrl`+`D`) i **Usuń** (`Delete`).
+| Nagłówek | Kiedy | Co ustawiasz |
+|---|---|---|
+| **Zaznaczony element** · rodzaj (np. „Tekst”) | Jest zaznaczony element. | Wygląd i położenie tego elementu. |
+| **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. **Rysuj**. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
+| **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (rozdział „11.3 Właściwości strony”). |
 
-Na dole panelu jest lista **Ostrzeżenia** (rozdział „13.2 Ostrzeżenia”).
+Przy zaznaczonym elemencie w nagłówku są przyciski **Kopiuj do schowka** (`Ctrl`+`C`), **Duplikuj** (`Ctrl`+`D`) i **Usuń** (`Delete`). Tytuł części (np. „Cień”) zwija ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (rozdział „13.2 Ostrzeżenia”).
+
+![Ustawienia narzędzia: rysowanie](https://makietka.app/img/instrukcja/k-rysowanie.png)
+
+Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu: **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** (rozdział „26.2 Edytor na telefonie”).
 
 ![Właściwości zaznaczonego tekstu](https://makietka.app/img/instrukcja/wlasciwosci.png)
 
@@ -536,7 +557,11 @@ Okno **⋯** → **Czcionki projektu…**:
 
 ### 7.3 Rysowanie odręczne
 
-**Rysuj** (`B`): przeciągaj po stronie jak ołówkiem — drżenie ręki jest wygładzane. Każde pociągnięcie to osobny element. Tryb zostaje włączony, więc narysujesz kilka kresek; `Esc` albo ponowne kliknięcie **Rysuj** go kończy. Kolor i grubość zmienisz potem we właściwościach.
+**Rysuj** (`B`): przeciągaj po stronie jak ołówkiem — drżenie ręki jest wygładzane. Każde pociągnięcie to osobny element. Tryb zostaje włączony, więc narysujesz kilka kresek.
+
+Gdy rysowanie jest włączone, właściwości pokazują **Ustawienia narzędzia · Rysowanie** (rozdział „4.5 Właściwości i warstwy”), część **Pędzel**: **Kolor linii** i **Grubość linii** w mm — tak będą wyglądać następne linie. **Zakończ rysowanie**, `Esc` albo ponowne kliknięcie **Rysuj** kończy rysowanie. Gotową linię zaznaczysz jak każdy element i zmienisz jej kolor i grubość.
+
+![Rysowanie: kolor i grubość pędzla](https://makietka.app/img/instrukcja/k-rysowanie.png)
 
 ### 7.4 Pióro i edycja punktów
 
@@ -649,7 +674,7 @@ Elementy, których edytor nie ma (filtry, maski, wzory), przy rozkładaniu znika
 | **Najmniejsza wysokość wiersza (mm)** | Wiersz nie będzie niższy; rośnie, gdy tekst się nie mieści. |
 | **Pierwszy wiersz to nagłówek** | Pierwszy wiersz pogrubiony, z grubszą linią pod spodem. |
 
-Tabelę przesuwasz, powiększasz i obracasz w całości, jak każdy element.
+Tabelę przesuwasz, powiększasz i obracasz w całości, jak każdy element. **Pojedyncze kliknięcie komórki** zaznaczonej tabeli wybiera tę komórkę (rozdział „9.3 Wiersze, kolumny i ich rozmiar”), **dwukrotne** — zaczyna w niej pisanie (rozdział „9.2 Pisanie w komórkach”).
 
 ![Tabela](https://makietka.app/img/instrukcja/tabela.png)
 
@@ -659,7 +684,37 @@ Kliknij komórkę dwa razy, żeby w niej pisać. `Tab` przechodzi do następnej 
 
 ### 9.3 Wiersze, kolumny i ich rozmiar
 
-Wiersze i kolumny dodajesz i usuwasz we właściwościach tabeli. Szerokość kolumny zmienisz, przeciągając niebieski znacznik nad granicą kolumn.
+Ustawienia tabeli są w trzech częściach właściwości.
+
+**Cała tabela** — dotyczy wszystkich wierszy i kolumn:
+
+| Ustawienie | Znaczenie |
+|---|---|
+| **Wiersze** **−** **+** | **Usuń ostatni wiersz**, **Dodaj wiersz na końcu**. |
+| **Kolumny** **−** **+** | **Usuń ostatnią kolumnę**, **Dodaj kolumnę na końcu**. |
+| **Pierwszy wiersz to nagłówek** | Pierwszy wiersz pogrubiony, z grubszą linią pod spodem. |
+| **Szerokość tabeli** | W mm; kolumny zmieniają się proporcjonalnie. |
+| **Wysokość wierszy** | Najmniejsza wysokość każdego wiersza; wiersz rośnie sam, gdy tekst się nie mieści. |
+| **Wyrównaj szerokości kolumn** | Wszystkie kolumny równej szerokości. |
+
+![Cała tabela](https://makietka.app/img/instrukcja/k-tabela-cala.png)
+
+**Kolumna i wiersz** — kliknij raz komórkę zaznaczonej tabeli. Część pokazuje „Komórka: kolumna 2, wiersz 3” i ustawienia tej kolumny i tego wiersza:
+
+| Ustawienie | Znaczenie |
+|---|---|
+| **Szerokość kolumny N** | Szerokość tej kolumny w mm. |
+| **Kolumna przed**, **Kolumna po**, **Usuń kolumnę** | Wstawia kolumnę przed tą albo po niej, usuwa tę kolumnę. |
+| **Wysokość wiersza N** | Najmniejsza wysokość tego wiersza w mm. |
+| **Wiersz nad**, **Wiersz pod**, **Usuń wiersz** | Wstawia wiersz nad tym albo pod nim, usuwa ten wiersz. |
+
+To samo masz w trakcie pisania w komórce.
+
+![Kolumna i wiersz wybranej komórki](https://makietka.app/img/instrukcja/k-tabela-komorka.png)
+
+**Szerokości wszystkich kolumn** (część zwinięta) — szerokość każdej kolumny w mm, jedna pod drugą.
+
+Granicę kolumn przesuniesz też myszą: przy zaznaczonej tabeli nad granicami kolumn są niebieskie znaczniki. Kolumna obok zwęża się o tyle samo, a ostatni znacznik zmienia szerokość całej tabeli.
 
 ### 9.4 Scalanie komórek
 
@@ -677,9 +732,16 @@ W trakcie pisania w komórce: **Scal z komórką po prawej** i **Scal z komórk�
 
 ## 10. Warstwy
 
-### 10.1 Lista warstw
+### 10.1 Panel Warstwy
 
-Zakładka **Warstwy** w panelu z prawej pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.
+Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie. Widać go zawsze — niezależnie od tego, czy coś jest zaznaczone i czy włączone jest narzędzie.
+
+- **Na komputerze** panel stoi w prawej kolumnie, pod właściwościami. Nagłówek „Warstwy” z liczbą elementów zwija go i rozwija; zwinięcie zostaje zapamiętane.
+- **Na telefonie i tablecie w pionie** panel otwiera przycisk **Warstwy** na dole ekranu.
+
+![Warstwy](https://makietka.app/img/instrukcja/warstwy.png)
+
+### 10.2 Wiersz warstwy
 
 | W wierszu | Co robi |
 |---|---|
@@ -689,11 +751,12 @@ Zakładka **Warstwy** w panelu z prawej pokazuje wszystkie elementy otwartej str
 | **Kłódka** | Blokuje położenie i rozmiar. |
 | **⋯** | **Na wierzch**, **Wyżej**, **Niżej**, **Na spód**, **Zmień nazwę**. |
 
-Trójkąt przy grupie albo tabeli rozwija jej zawartość. Kliknięcie elementu grupy otwiera grupę z tym elementem zaznaczonym; kliknięcie komórki tabeli zaczyna w niej pisanie.
+Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w niego trafić na stronie.
 
-Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Kliknięcie otwiera wzorzec do edycji.
+### 10.3 Grupy, tabele i wzorce na liście
 
-![Warstwy](https://makietka.app/img/instrukcja/warstwy.png)
+- Trójkąt przy grupie albo tabeli rozwija jej zawartość. Kliknięcie elementu grupy otwiera grupę z tym elementem zaznaczonym (rozdział „5.5 Grupy”); kliknięcie komórki tabeli zaczyna w niej pisanie.
+- Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Nie zmienisz ich tutaj — kliknięcie otwiera wzorzec do edycji (rozdział „12.3 Edycja wzorca”).
 
 ## 11. Strony, sekcje i rozkładówki
 
@@ -1307,6 +1370,8 @@ Aplikacja wysyła e-mail z linkiem do zaproszenia. Link możesz też skopiować 
 Kliknij link z wiadomości. Jeśli masz konto, zaproszenie zobaczysz też w aplikacji: na liście projektów pojawi się przycisk **Zaproszenia** z liczbą. Przyjęty projekt jest na Twojej liście z plakietką właściciela.
 
 Zaproszenie przyjmuje osoba, która ma link — także z innego adresu niż ten, na który poszło. W oknie Współpraca zawsze widać, kto naprawdę jest w projekcie.
+
+Gdy masz włączone powiadomienia, o zaproszeniu dowiesz się od razu — także przy zamkniętej aplikacji. Włączysz je w **Ustawienia konta** → **Powiadomienia** (rozdział „2.6 Powiadomienia”).
 
 ### 23.4 Praca na żywo
 

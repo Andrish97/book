@@ -677,6 +677,9 @@ async function zaloguj(strona, baza) {
   await strona.fill('#form-logowania input[name=haslo]', k.haslo);
   await strona.click('#przycisk-logowania');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  // Lista wczytana: karty projektów albo widoczny pusty stan (inaczej „Nowy projekt” przeskakuje
+  // z nagłówka do pustej listy w trakcie kliknięcia).
+  await strona.waitForFunction(() => document.querySelector('.karta-projektu') || document.querySelector('#pusto-projekty:not([hidden])'));
 }
 
 // Zamyka okno dialogowe tak jak człowiek: na komputerze krzyżykiem, na telefonie i tablecie (zasłonka,
