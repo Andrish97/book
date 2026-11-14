@@ -55,7 +55,7 @@ export const ROZDZIAL_NARZEDZIA = {
         `<b>Podgląd</b> (<kbd>Shift+W</kbd>) – cały projekt z podstawionymi danymi i powielonymi stronami, bez edycji. Więcej: ${L('Podgląd')}.`,
         `<b>Format</b> (przycisk z rozmiarem strony, np. „A5”) – ustawienia bieżącej sekcji: format, orientacja, spad, marginesy, rozkładówki. Więcej: ${L('Sekcje')}.`,
         '<b>Pełny ekran</b> (cztery narożniki) – chowa paski przeglądarki; <kbd>Esc</kbd> wraca.',
-        '<b>Instrukcja</b> (znak zapytania) – to okno.',
+        '<b>Instrukcja</b> (ikona książki) – to okno.',
         '<b>⋯ Więcej</b> – menu opisane niżej.',
       ],
     },
@@ -82,7 +82,7 @@ export const ROZDZIAL_NARZEDZIA = {
         '<b>Obraz</b> – pyta, skąd: <b>z urządzenia</b> (wybór pliku) albo <b>z obrazów projektu</b> (to, co już wgrane). Gdy projekt nie ma jeszcze obrazów, od razu otwiera wybór pliku. Obraz można też przeciągnąć z dysku albo wkleić <kbd>Ctrl+V</kbd>.',
         '<b>Rysowanie odręczne</b> (<kbd>B</kbd>) – przeciągaj po stronie jak ołówkiem (ciemna linia 0,6 mm, drżenie ręki jest wygładzane). Każde pociągnięcie to osobny element; kolor i grubość zmienisz potem w panelu. <kbd>Esc</kbd> albo ponowne kliknięcie przycisku kończy rysowanie.',
         '<b>Pióro</b> (<kbd>N</kbd>) – kształt z punktów: kliknięcie stawia punkt narożny, kliknięcie z przeciągnięciem – punkt gładki (łuk). Kliknięcie w pierwszy punkt zamyka kształt, <kbd>Enter</kbd> albo podwójne kliknięcie kończy kształt otwarty, <kbd>Backspace</kbd> cofa ostatni punkt, <kbd>Esc</kbd> porzuca zaczęty kształt.',
-        '<b>Tabela</b> – okno z liczbą <b>wierszy</b> i <b>kolumn</b>, <b>najmniejszą wysokością wiersza</b> i przełącznikiem <b>Pierwszy wiersz to nagłówek</b>. Tabela jest jednym elementem; podwójne kliknięcie komórki zaczyna pisanie.',
+        '<b>Tabela</b> – okno z liczbą <b>wierszy</b> i <b>kolumn</b>, <b>najmniejszą wysokością wiersza</b> i przełącznikiem <b>Pierwszy wiersz to nagłówek</b>. Tabelę przesuwasz i powiększasz w całości; żeby pisać w komórce, kliknij ją dwa razy.',
       ],
     },
     {

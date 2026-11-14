@@ -554,18 +554,18 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
-      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="ksiazka" title="Wzorce: wspólne elementy stron – tła, stopki, numery"><span class="etyk">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
+      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="wzorzec" title="Wzorce: wspólne elementy stron – tła, stopki, numery"><span class="etyk">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
       <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
       <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)"><span class="etyk">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
-      <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="instrukcja" data-ikona="pomoc" title="Instrukcja" aria-label="Instrukcja"></button>
+      <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="instrukcja" data-ikona="ksiazka" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
         <div class="menu" id="menu-wiecej" role="menu" hidden>
-          <button role="menuitem" class="tylko-waski-telefon" data-akcja="wzorce" data-ikona="ksiazka">Wzorce…</button>
+          <button role="menuitem" class="tylko-waski-telefon" data-akcja="wzorce" data-ikona="wzorzec">Wzorce…</button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
-          <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="pomoc">Instrukcja</button>
+          <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="ksiazka">Instrukcja</button>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
@@ -611,7 +611,7 @@
         </div>
 
         <div class="pasek-wzorca" id="pasek-wzorca" hidden>
-          <span data-ikona="ksiazka" data-rozmiar="18"></span>
+          <span data-ikona="wzorzec" data-rozmiar="18"></span>
           <span id="pasek-wzorca-tekst"></span>
           <button class="przycisk" data-akcja="wroc-do-stron">Gotowe</button>
         </div>
@@ -1307,7 +1307,7 @@
   <dialog id="dlg-tabela">
     <form method="dialog" class="formularz">
       <h2>Wstaw tabelę</h2>
-      <p class="ciche">Tabela jest jednym elementem strony. Kliknij dwa razy komórkę, żeby w niej pisać; w komórkach wstawiasz pola z danych jak w zwykłym tekście. Wiersze i kolumny dodasz później we właściwościach.</p>
+      <p class="ciche">Tabelę przesuwasz i powiększasz w całości, jak zdjęcie czy ramkę tekstu. Żeby pisać w komórce, kliknij ją dwa razy. W komórkach możesz wstawiać pola z danych, tak jak w zwykłym tekście. Wiersze i kolumny dodasz albo usuniesz później we właściwościach tabeli.</p>
       <div class="rzad">
         <label class="pole"><span>Wiersze</span><input name="wiersze" type="number" min="1" max="60" step="1" value="4" required inputmode="numeric"></label>
         <label class="pole"><span>Kolumny</span><input name="kolumny" type="number" min="1" max="12" step="1" value="3" required inputmode="numeric"></label>
@@ -1482,7 +1482,7 @@
     <div class="instrukcja">
       <nav class="instrukcja-spis" aria-label="Rozdziały">
         <h2 id="instrukcja-tytul">Instrukcja</h2>
-        <input type="search" class="pole instrukcja-szukaj" id="instrukcja-szukaj" placeholder="Szukaj w instrukcji…" aria-label="Szukaj w instrukcji">
+        <label class="instrukcja-szukaj"><span data-ikona="szukaj" data-rozmiar="16"></span><input type="search" id="instrukcja-szukaj" placeholder="Szukaj w instrukcji" aria-label="Szukaj w instrukcji" autocomplete="off" spellcheck="false"></label>
         <ol id="instrukcja-rozdzialy"></ol>
       </nav>
       <article class="instrukcja-tresc" id="instrukcja-tresc" tabindex="-1"></article>

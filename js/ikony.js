@@ -53,6 +53,7 @@ const P = {
   kursywa: '<path d="M10 5h8"/><path d="M6 19h8"/><path d="M14 5 10 19"/>',
   ksiazka: '<path d="M12 6.5C10.5 5 8 4.5 4 4.5v14c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2v-14c-4 0-6.5.5-8 2z"/><path d="M12 6.5v14"/>',
   olowek: '<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="m14.5 7.5 3 3"/>',
+  wzorzec: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M5 8h14"/><path d="M8.5 12h7M8.5 15.5h4.5" stroke-dasharray="2 2"/>',
   szukaj: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
   dane: '<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9.5h17"/><path d="M3.5 15h17"/><path d="M9.5 4v16"/>',
   pdf: '<path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="m9.5 14.5 2.5 2.5 2.5-2.5"/>',

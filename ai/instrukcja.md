@@ -203,7 +203,7 @@ Spis wszystkich przycisków ekranu edytora, od lewej do prawej i od góry do do�
 - **Podgląd** (`Shift+W`) – cały projekt z podstawionymi danymi i powielonymi stronami, bez edycji. Więcej: Podgląd (rozdział „Podgląd”).
 - **Format** (przycisk z rozmiarem strony, np. „A5”) – ustawienia bieżącej sekcji: format, orientacja, spad, marginesy, rozkładówki. Więcej: Sekcje (rozdział „Sekcje”).
 - **Pełny ekran** (cztery narożniki) – chowa paski przeglądarki; `Esc` wraca.
-- **Instrukcja** (znak zapytania) – to okno.
+- **Instrukcja** (ikona książki) – to okno.
 - **⋯ Więcej** – menu opisane niżej.
 
 ### Menu ⋯ (Więcej)
@@ -226,7 +226,7 @@ Spis wszystkich przycisków ekranu edytora, od lewej do prawej i od góry do do�
 - **Obraz** – pyta, skąd: **z urządzenia** (wybór pliku) albo **z obrazów projektu** (to, co już wgrane). Gdy projekt nie ma jeszcze obrazów, od razu otwiera wybór pliku. Obraz można też przeciągnąć z dysku albo wkleić `Ctrl+V`.
 - **Rysowanie odręczne** (`B`) – przeciągaj po stronie jak ołówkiem (ciemna linia 0,6 mm, drżenie ręki jest wygładzane). Każde pociągnięcie to osobny element; kolor i grubość zmienisz potem w panelu. `Esc` albo ponowne kliknięcie przycisku kończy rysowanie.
 - **Pióro** (`N`) – kształt z punktów: kliknięcie stawia punkt narożny, kliknięcie z przeciągnięciem – punkt gładki (łuk). Kliknięcie w pierwszy punkt zamyka kształt, `Enter` albo podwójne kliknięcie kończy kształt otwarty, `Backspace` cofa ostatni punkt, `Esc` porzuca zaczęty kształt.
-- **Tabela** – okno z liczbą **wierszy** i **kolumn**, **najmniejszą wysokością wiersza** i przełącznikiem **Pierwszy wiersz to nagłówek**. Tabela jest jednym elementem; podwójne kliknięcie komórki zaczyna pisanie.
+- **Tabela** – okno z liczbą **wierszy** i **kolumn**, **najmniejszą wysokością wiersza** i przełącznikiem **Pierwszy wiersz to nagłówek**. Tabelę przesuwasz i powiększasz w całości; żeby pisać w komórce, kliknij ją dwa razy.
 
 ### Prawy dolny róg: linie, siatka, powiększenie
 
@@ -277,7 +277,7 @@ Pasek nad stroną wstawia nowe elementy na stronę.
 - **Edycja punktów**: kliknij dwa razy kształt z pióra albo linię narysowaną odręcznie (albo wybierz **Edytuj punkty** we właściwościach). Pojawią się punkty – przeciągaj je myszą. Zaznaczony punkt łuku pokazuje uchwyty, którymi zmieniasz wygięcie. Podwójne kliknięcie w linię dodaje punkt, `Delete` usuwa zaznaczony. `Enter` zatwierdza zmiany, `Esc` przywraca kształt sprzed edycji.
 - **Wypełnienie** kształtu: jeden kolor, **gradient liniowy** albo **kołowy**, albo brak. Gradient może mieć dowolną liczbę kolorów – każdy ma swoje położenie w procentach; do tego kierunek (gotowy albo kąt), a w kołowym promień. Każdy element może mieć też **cień** z przesunięciem i rozmyciem w mm.
 - **Obraz** – zdjęcie lub grafika (PNG, JPEG, WebP, GIF, SVG). Przycisk pyta: **Wgraj z urządzenia** albo **Wybierz z obrazów projektu** (obraz, który już jest w projekcie – bez drugiej kopii); w projekcie bez obrazów od razu otwiera wybór pliku. Każdy wstawiony obraz trafia do okna **Obrazy projektu**. Możesz też przeciągnąć plik na stronę albo **wkleić obraz ze schowka** (`Ctrl`+`V`): zrzut ekranu, obraz skopiowany ze strony internetowej albo z programu graficznego, a także kod SVG skopiowany jako tekst. Rysunek SVG wstawia się jako jeden element – możesz go skalować, obracać i kadrować, a po powiększeniu zostaje ostry; żeby zmieniać jego części, rozłóż go na elementy (rozdział **Położenie, wyrównanie, schowek**). Duże zdjęcia aplikacja pokazuje w edytorze lżejszą kopią, żeby praca była płynna; do pliku PDF i PNG zawsze idzie oryginał.
-- **Tabela** – podajesz liczbę wierszy i kolumn. Tabela jest jednym elementem: przesuwasz ją i obracasz w całości, a po dwukrotnym kliknięciu komórki piszesz w niej (więcej w rozdziale **Tabela**).
+- **Tabela** – podajesz liczbę wierszy i kolumn. Tabelę przesuwasz, powiększasz i obracasz w całości, jak każdy inny element strony; żeby pisać w komórce, kliknij ją dwa razy (więcej w rozdziale **Tabela**).
 - Przeciągnij element, aby go przesunąć. Kółka w rogach zmieniają rozmiar, kółko nad elementem go obraca.
 - Przy przesuwaniu i przy zmianie rozmiaru element „przykleja się” do krawędzi, marginesów, środka strony, prowadnic i innych elementów – pokazuje to różowa linia (więcej w rozdziale **Odległości i równe odstępy**).
 
