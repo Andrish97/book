@@ -46,9 +46,18 @@ export function ukladProjektu(projekt, ciag = rozwin(projekt)) {
       }
       return {
         nazwa: sekcja.nazwa, w: sekcja.wydruk.szerokosc_mm, h: sekcja.wydruk.wysokosc_mm, rozkladowki, wiersze,
+        // Okładka (#119): linie zgięć (grzbiet, bigi, zawinięcia) jako delikatne tło pomocnicze podglądu.
+        ...(sekcja.okladka?.wynik ? { zgiecia: zgieciaOkladki(sekcja.okladka.wynik) } : {}),
       };
     }),
   };
+}
+
+// Linie zgięć okładki w procentach szerokości i wysokości: { x: [..], y: [..] }.
+function zgieciaOkladki(w) {
+  const x = w.strefy.slice(1).map((z) => (z.x1 / w.szerokosc) * 100);
+  const y = w.gora > 0 ? [(w.gora / w.wysokosc) * 100, (w.dol / w.wysokosc) * 100] : [];
+  return { x, y };
 }
 
 export const stronyUkladu = (uklad) => uklad.sekcje.flatMap((s) => s.wiersze.flat().filter(Boolean));
@@ -207,6 +216,14 @@ export class Podglad {
           img.decoding = 'async';
           img.draggable = false;
           ramka.append(img);
+          if (sekcja.zgiecia) {
+            const z = document.createElement('div');
+            z.className = 'zgiecia-okladki';
+            z.setAttribute('aria-hidden', 'true');
+            for (const x of sekcja.zgiecia.x) z.append(Object.assign(document.createElement('i'), { className: 'pion', style: `left: ${x}%` }));
+            for (const y of sekcja.zgiecia.y) z.append(Object.assign(document.createElement('i'), { className: 'poziom', style: `top: ${y}%` }));
+            ramka.append(z);
+          }
           const podpis = document.createElement('figcaption');
           podpis.textContent = `${s.nr ?? '–'} · ${s.nazwa}${s.egz ? ` · ${s.egz}` : ''}`;
           fig.append(ramka, podpis);

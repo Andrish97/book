@@ -10,6 +10,7 @@
 //   kilka wzorców naraz, a każdy element wzorca leży pod albo nad treścią strony.
 
 import { odlaczWatkiKopii } from './watki.js';
+import { normalizujOkladke, normalizujSkladke } from './okladka.js';
 
 export const WERSJA_MODELU = 3;
 
@@ -252,6 +253,10 @@ export function normalizuj(p) {
       tryb: ['ciagla', 'od', 'brak'].includes(n.tryb) ? n.tryb : 'ciagla',
       od: Number.isFinite(n.od) ? Math.max(0, Math.round(n.od)) : 1,
     };
+    // Okładka liczona sama (#119) i składki środka (#120).
+    if (s.okladka) { sekcja.okladka = normalizujOkladke(s.okladka); sekcja.uklad = 'pojedyncze'; } else delete sekcja.okladka;
+    const skladka = normalizujSkladke(s.skladka);
+    if (skladka && !sekcja.okladka) sekcja.skladka = skladka; else delete sekcja.skladka;
     return sekcja;
   });
   delete wynik.wydruk;

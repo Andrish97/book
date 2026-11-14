@@ -1,7 +1,12 @@
-// Sekcje: okno ustawień (format, spad, marginesy, układ, numeracja, kalkulator grzbietu), kolejność i usuwanie.
+// Sekcje: okno ustawień (format, spad, marginesy, układ, numeracja, okładka liczona sama #119, składki #120),
+// kolejność i usuwanie.
 
 import { FORMATY, nowaSekcja, nowaStrona, uporzadkujStrony } from '../projekt.js';
 import { rozwin } from '../serie.js';
+import {
+  PAPIERY, STREFY, normalizujOkladke, domyslnaOkladka, geometriaOkladki, jestOkladka, przeliczOkladki,
+  normalizujSkladke, bilansSkladki, opisSkladki,
+} from '../okladka.js';
 import { $, $$, powiadom, potwierdz } from '../ui.js';
 import { stan, biezacaSekcja, tenSamRozmiar, liczba, edytor, biezacaStrona } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
@@ -19,9 +24,6 @@ export function otworzUstawieniaSekcji(id) {
   const wzor = istniejaca || biezacaSekcja();
   const w = wzor.wydruk;
   dlg.dataset.id = id || '';
-  $('#kalkulator-grzbietu').open = false;
-  $('#grzbiet-strona').value = '';
-  $('#grzbiet-strony').value = '';
   $('#tytul-sekcji').textContent = istniejaca ? 'Ustawienia sekcji' : 'Nowa sekcja';
   $('#zapisz-sekcje').textContent = istniejaca ? 'Zapisz' : 'Dodaj sekcję';
   f.elements.nazwa.value = istniejaca ? istniejaca.nazwa : `Sekcja ${projekt.sekcje.length + 1}`;
@@ -40,6 +42,9 @@ export function otworzUstawieniaSekcji(id) {
   const num = (istniejaca || { numeracja: { tryb: 'ciagla', od: 1 } }).numeracja;
   f.elements.numeracja.value = num.tryb;
   f.elements.numeracja_od.value = num.od;
+  f.elements.skladka.value = String(normalizujSkladke(istniejaca?.skladka));
+  wypelnijOkladke(f, istniejaca, otworzUstawieniaSekcji.jakoOkladka);
+  otworzUstawieniaSekcji.jakoOkladka = false;
 
   const lista = $('#sekcja-wzorce');
   lista.replaceChildren();
@@ -69,10 +74,29 @@ function odswiezPolaSekcji() {
   $('#pole-pierwsza').hidden = !rozkladowki;
   $('#podpowiedz-rozkladowki').hidden = !rozkladowki;
   $('#pole-numeracja-od').hidden = f.elements.numeracja.value !== 'od';
+  const okladka = f.elements.rodzaj.value === 'okladka';
+  $('#sekcja-okladka').hidden = !okladka;
+  $('#sekcja-format').hidden = okladka;
+  $('#pole-uklad-sekcji').hidden = okladka;
+  $('#pole-skladka').hidden = okladka;
+  $('#opis-skladki').hidden = okladka;
+  if (okladka) {
+    $('#etykieta-wewnetrzny').textContent = 'Przy grzbiecie';
+    $('#etykieta-zewnetrzny').textContent = 'Zewnętrzny';
+    $('#pole-pierwsza').hidden = true;
+    $('#podpowiedz-rozkladowki').hidden = true;
+  }
+  const papier = f.elements.ok_papier.value;
+  $('#pole-ok-gramatura').hidden = papier !== 'gramatura';
+  $('#pole-ok-grubosc').hidden = papier !== 'grubosc';
+  $('#pole-ok-twarda').hidden = f.elements.ok_oprawa.value !== 'twarda';
+  f.elements.ok_liczba.disabled = f.elements.ok_strony.value !== 'reczne';
   rysujSchemat();
+  if (okladka) rysujOkladke(); else opiszSkladke();
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
-  if (['uklad', 'numeracja'].includes(e.target.name)) odswiezPolaSekcji();
+  if (['uklad', 'numeracja', 'rodzaj', 'ok_papier', 'ok_oprawa', 'ok_strony', 'skladka'].includes(e.target.name)) odswiezPolaSekcji();
+  else if (e.target.name === 'ok_srodek') rysujOkladke();
 });
 
 // Schemat strony przy marginesach (#109): kartka w proporcjach formatu, pole tekstu wewnątrz marginesów,
@@ -104,45 +128,114 @@ $('#dlg-sekcja form').addEventListener('input', (e) => {
   if (/^(margines_|spad_mm|szerokosc_mm|wysokosc_mm)/.test(e.target.name || '')) rysujSchemat();
 });
 
-// Kalkulator okładki: tył + grzbiet + przód. Grzbiet = liczba kartek × grubość kartki.
-function policzGrzbiet() {
-  const strona = Number($('#grzbiet-strona').value);
-  const strony = Number($('#grzbiet-strony').value);
-  const kartka = Number($('#grzbiet-kartka').value);
-  if (!(strona > 0 && strony > 0 && kartka > 0)) { $('#grzbiet-wynik').textContent = 'Podaj trzy liczby.'; return null; }
-  const grzbiet = Math.round((strony / 2) * kartka * 10) / 10;
-  const szerokosc = Math.round((2 * strona + grzbiet) * 10) / 10;
-  $('#grzbiet-wynik').textContent = `Grzbiet: ${liczba(grzbiet)} mm (${strony / 2} kartek × ${liczba(kartka)} mm). Okładka: ${liczba(strona)} + ${liczba(grzbiet)} + ${liczba(strona)} = ${liczba(szerokosc)} mm szerokości. Grubość kartki podaje drukarnia; papier 80 g ma zwykle ok. 0,1 mm.`;
-  return szerokosc;
-}
-$('#kalkulator-grzbietu').addEventListener('input', policzGrzbiet);
-$('#kalkulator-grzbietu').addEventListener('toggle', () => {
-  if (!$('#kalkulator-grzbietu').open || !stan.projekt) return;
-  // Podpowiedź: największa inna sekcja projektu jest najpewniej środkiem.
-  const idTej = $('#dlg-sekcja').dataset.id;
-  const ciag = rozwin(stan.projekt);
-  const inne = stan.projekt.sekcje.filter((s) => s.id !== idTej).map((s) => ({ s, n: ciag.sekcje.get(s.id).lista.length })).sort((a, b) => b.n - a.n)[0];
-  if (inne && !$('#grzbiet-strona').value) {
-    $('#grzbiet-strona').value = inne.s.wydruk.szerokosc_mm;
-    $('#grzbiet-strony').value = inne.n + (inne.n % 2);
-  }
-  policzGrzbiet();
-});
-$('#grzbiet-ustaw').addEventListener('click', () => {
-  const szerokosc = policzGrzbiet();
-  if (!szerokosc) return;
-  const f = $('#dlg-sekcja form');
-  f.elements.szerokosc_mm.value = szerokosc;
-  f.elements.format.value = 'wlasny';
-  f.elements.uklad.value = 'pojedyncze';
-  odswiezPolaSekcji();
-});
-
 function wykryjFormat(sz, wy) {
   for (const [nazwa, [a, b]] of Object.entries(FORMATY)) {
     if ((a === sz && b === wy) || (a === wy && b === sz)) return nazwa;
   }
   return 'wlasny';
+}
+
+// ---------- Okładka (#119) ----------
+
+// Pola okładki w oknie z parametrów sekcji (albo domyślnych dla nowej okładki).
+function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
+  const o = normalizujOkladke(sekcja?.okladka) || domyslnaOkladka();
+  f.elements.rodzaj.value = sekcja?.okladka || jakoOkladka ? 'okladka' : 'strony';
+  f.elements.ok_oprawa.value = o.oprawa;
+  f.elements.ok_strony.value = o.strony.tryb;
+  f.elements.ok_papier.value = o.papier.tryb;
+  f.elements.ok_gramatura.value = o.papier.gramatura;
+  f.elements.ok_grubosc.value = o.papier.grubosc_mm;
+  const rodzaj = f.elements.ok_rodzaj;
+  rodzaj.replaceChildren(...Object.entries(PAPIERY).map(([k, p]) => new Option(p.nazwa, k)));
+  rodzaj.value = o.papier.rodzaj;
+  f.elements.ok_zawiniecie.value = o.zawiniecie_mm;
+  f.elements.ok_big.value = o.big_mm;
+  f.elements.ok_naddatek.value = o.naddatek_mm;
+  f.elements.ok_tektura.value = o.tektura_mm;
+  // Sekcje środka: wybór tylko wtedy, gdy jest z czego wybierać.
+  const kandydaci = stan.projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s));
+  $('#ok-srodek').replaceChildren(...kandydaci.map((s) => {
+    const label = document.createElement('label');
+    label.className = 'przelacznik';
+    label.innerHTML = '<input type="checkbox" name="ok_srodek"><span></span>';
+    $('input', label).value = s.id;
+    $('input', label).checked = !o.srodek || o.srodek.includes(s.id);
+    $('span', label).textContent = s.nazwa;
+    return label;
+  }));
+  $('#pole-ok-srodek').hidden = kandydaci.length < 2;
+  f.elements.ok_liczba.value = o.strony.tryb === 'reczne' ? o.strony.liczba : (podgladOkladki(f)?.stron ?? 0);
+}
+
+// Parametry okładki z pól okna.
+function okladkaZPol(f) {
+  const n = (k) => Number(String(f.elements[k].value).replace(',', '.'));
+  const pola = $$('input[name="ok_srodek"]', f);
+  const wybrane = pola.filter((i) => i.checked).map((i) => i.value);
+  return normalizujOkladke({
+    oprawa: f.elements.ok_oprawa.value,
+    srodek: pola.length > 1 && wybrane.length < pola.length ? wybrane : null,
+    strony: { tryb: f.elements.ok_strony.value, liczba: n('ok_liczba') },
+    papier: { tryb: f.elements.ok_papier.value, gramatura: n('ok_gramatura'), grubosc_mm: n('ok_grubosc'), rodzaj: f.elements.ok_rodzaj.value },
+    zawiniecie_mm: n('ok_zawiniecie'), big_mm: n('ok_big'), naddatek_mm: n('ok_naddatek'), tektura_mm: n('ok_tektura'),
+  });
+}
+
+// Geometria okładki dla bieżących pól okna (bez zmiany projektu).
+function podgladOkladki(f) {
+  if (!stan.projekt) return null;
+  const id = $('#dlg-sekcja').dataset.id;
+  const istniejaca = stan.projekt.sekcje.find((s) => s.id === id);
+  const sekcja = { ...(istniejaca || { id: '__nowa__' }), okladka: okladkaZPol(f) };
+  const sekcje = istniejaca ? stan.projekt.sekcje.map((s) => (s === istniejaca ? sekcja : s)) : [sekcja, ...stan.projekt.sekcje];
+  return geometriaOkladki({ ...stan.projekt, sekcje }, sekcja, rozwin(stan.projekt));
+}
+
+// Schemat okładki: strefy w proporcjach, podpisane, i wynik („Grzbiet 6,6 mm · Okładka 346,6 × 240 mm”).
+function rysujOkladke() {
+  const f = $('#dlg-sekcja form');
+  const g = podgladOkladki(f);
+  if (!g) return;
+  if (f.elements.ok_strony.value !== 'reczne') f.elements.ok_liczba.value = g.stron;
+  const el = $('#schemat-okladki');
+  el.style.setProperty('--proporcja', `${g.szerokosc} / ${g.wysokosc}`);
+  el.replaceChildren(...g.strefy.map((z) => {
+    const d = document.createElement('div');
+    d.className = `strefa-okladki strefa-${z.rodzaj.replace(/_[lp]$/, '')}`;
+    d.style.left = `${(z.x1 / g.szerokosc) * 100}%`;
+    d.style.width = `${((z.x2 - z.x1) / g.szerokosc) * 100}%`;
+    if (!z.rodzaj.startsWith('zawiniecie')) {
+      d.style.top = `${(g.gora / g.wysokosc) * 100}%`;
+      d.style.bottom = `${((g.wysokosc - g.dol) / g.wysokosc) * 100}%`;
+    }
+    if (['tyl', 'przod', 'grzbiet'].includes(z.rodzaj)) {
+      const opis = document.createElement('span');
+      opis.textContent = STREFY[z.rodzaj];
+      d.append(opis);
+    }
+    d.title = `${STREFY[z.rodzaj]}: ${liczba(z.x2 - z.x1)} mm`;
+    return d;
+  }));
+  const zeszyt = g.oprawa === 'zeszytowa';
+  const b = document.createElement('strong');
+  b.textContent = `${zeszyt ? 'Bez grzbietu' : `Grzbiet ${liczba(g.grzbiet)} mm`} · Okładka ${liczba(g.szerokosc)} × ${liczba(g.wysokosc)} mm`;
+  const m = document.createElement('small');
+  m.textContent = `Środek: ${g.stron} stron (${g.kartek} kartek × ${String(g.kartka_mm).replace('.', ',')} mm), strona ${liczba(g.strona.sz)} × ${liczba(g.strona.wy)} mm.`
+    + (zeszyt && g.stron % 4 ? ' Oprawa zeszytowa potrzebuje liczby stron podzielnej przez 4.' : '');
+  $('#wynik-okladki').replaceChildren(b, m);
+}
+$('#sekcja-okladka').addEventListener('input', () => rysujOkladke());
+
+// Składki (#120): opis pod listą – ile stron jest, ile brakuje do pełnej składki.
+function opiszSkladke() {
+  const f = $('#dlg-sekcja form');
+  const sekcja = stan.projekt?.sekcje.find((s) => s.id === $('#dlg-sekcja').dataset.id);
+  const skladka = normalizujSkladke(f.elements.skladka.value);
+  let tekst = '';
+  if (skladka && sekcja) tekst = `${opisSkladki(bilansSkladki({ ...sekcja, skladka }, rozwin(stan.projekt)))}.`;
+  else if (skladka) tekst = `Sekcja będzie pilnować liczby stron: wielokrotność ${skladka}.`;
+  $('#opis-skladki').textContent = tekst;
 }
 
 async function zatwierdzSekcje() {
@@ -172,14 +265,26 @@ async function zatwierdzSekcje() {
     wzorce: $$('input[name="wzorce"]:checked', f).map((i) => i.value),
     numeracja: { tryb: f.elements.numeracja.value, od: Math.max(0, Math.round(mm('numeracja_od'))) },
   };
+  const okladka = f.elements.rodzaj.value === 'okladka';
+  const poprzednia = stan.projekt.sekcje.find((s) => s.id === dlg.dataset.id);
+  if (okladka) {
+    // Format okładki liczy się sam; wynik poprzedniego przeliczenia zostaje, żeby elementy przesunęły się o różnicę.
+    ustawienia.okladka = { ...okladkaZPol(f), wynik: poprzednia?.okladka?.wynik || null };
+    ustawienia.uklad = 'pojedyncze';
+    // Okładka zrobiona dotąd ręcznie: jej obecny format jest punktem wyjścia do przesunięcia elementów.
+    if (poprzednia && !poprzednia.okladka) Object.assign(wydruk, { szerokosc_mm: poprzednia.wydruk.szerokosc_mm, wysokosc_mm: poprzednia.wydruk.wysokosc_mm });
+  } else {
+    ustawienia.skladka = normalizujSkladke(f.elements.skladka.value);
+  }
   zapiszBiezacyCel();
   const { projekt } = stan;
-  let sekcja = projekt.sekcje.find((s) => s.id === dlg.dataset.id);
+  let sekcja = poprzednia;
   if (sekcja) {
+    if (!okladka) delete sekcja.okladka;
     Object.assign(sekcja, ustawienia);
   } else {
     sekcja = { ...nowaSekcja(ustawienia.nazwa, wydruk), ...ustawienia };
-    const i = projekt.sekcje.indexOf(biezacaSekcja());
+    const i = okladka ? -1 : projekt.sekcje.indexOf(biezacaSekcja()); // okładka staje na początku
     projekt.sekcje.splice(i + 1, 0, sekcja);
     const strona = nowaStrona(`Strona ${projekt.strony.length + 1}`, sekcja.id);
     projekt.strony.push(strona);
@@ -188,6 +293,10 @@ async function zatwierdzSekcje() {
     stan.indeks = projekt.strony.indexOf(strona);
     ustawZakladke('strony');
   }
+  if (okladka) delete sekcja.skladka;
+  else if (!sekcja.skladka) delete sekcja.skladka;
+  // Okładka przelicza swój format i przesuwa elementy (za pierwszym razem – ze starego formatu sekcji).
+  przeliczOkladki(projekt);
   stan.miniatury.clear(); // format, wzorce albo numeracja mogły zmienić każdą stronę
   await zaladujCel();
   if (!edytor.aktywny) panel.zbuduj();
@@ -255,4 +364,32 @@ export async function usunSekcje(id) {
   await zaladujCel();
   zaplanujZapis();
   powiadom(`Usunięto sekcję „${sekcja.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+}
+
+// „Zamień na okładkę” (#119): okno ustawień od razu z rodzajem „Okładka” – elementy zostają i przesuwają się
+// tak, żeby trzymały się tyłu, grzbietu i przodu nowego formatu.
+export function zamienNaOkladke(id) {
+  otworzUstawieniaSekcji.jakoOkladka = true;
+  otworzUstawieniaSekcji(id);
+}
+
+// Składki (#120): dopełnia sekcję pustymi stronami do pełnej składki (na końcu sekcji, z cofaniem).
+export async function dopelnijSkladke(id) {
+  const { projekt } = stan;
+  const sekcja = projekt.sekcje.find((s) => s.id === id);
+  const b = sekcja && bilansSkladki(sekcja, rozwin(projekt));
+  if (!b?.brakuje) return 0;
+  zapiszBiezacyCel();
+  const biezaca = biezacaStrona();
+  const ostatnia = projekt.strony.map((s) => s.sekcja).lastIndexOf(id);
+  const nowe = Array.from({ length: b.brakuje }, (_, k) => nowaStrona(`Strona ${projekt.strony.length + k + 1}`, id));
+  projekt.strony.splice(ostatnia + 1, 0, ...nowe);
+  uporzadkujStrony(projekt);
+  stan.indeks = Math.max(0, projekt.strony.indexOf(biezaca));
+  stan.miniatury.clear();
+  await zaladujCel();
+  zaplanujZapis();
+  const ile = b.brakuje === 1 ? 'pustą stronę' : (b.brakuje < 5 ? 'puste strony' : 'pustych stron');
+  powiadom(`Dodano ${b.brakuje} ${ile} – sekcja „${sekcja.nazwa}” ma ${b.doPelnej} stron.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+  return b.brakuje;
 }

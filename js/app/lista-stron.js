@@ -15,6 +15,8 @@ import { nazwaFormatu, nazwyWzorcow } from './panel-strony.js';
 import { panel } from './skladniki.js';
 import { edytujWzorzec } from './wzorce.js';
 import { pokazWarstwy } from './dok-warstw.js';
+import { bilansSkladki, opisSkladki } from '../okladka.js';
+import { dopelnijSkladke } from './sekcje.js';
 
 // ---------- Lista: strony (pogrupowane w sekcje) i wzorce ----------
 
@@ -62,8 +64,26 @@ function renderujListeStron() {
     const opis = [nazwaFormatu(sekcja.wydruk), `${strony.length} str.`];
     if (rozkladowki) opis.push('rozkładówki');
     if (sekcja.wzorce.length) opis.push(nazwyWzorcow(sekcja.wzorce));
+    // Okładka (#119): oprawa i grzbiet; składki (#120): ile stron brakuje do pełnej składki.
+    if (sekcja.okladka?.wynik) opis.splice(0, 2, sekcja.okladka.oprawa === 'zeszytowa' ? 'Okładka bez grzbietu' : `Okładka · grzbiet ${String(sekcja.okladka.wynik.grzbiet).replace('.', ',')} mm`, nazwaFormatu(sekcja.wydruk));
     $('small', nag).textContent = opis.join(' · ');
     $('small', nag).title = opis.join(' · ');
+    const skladka = bilansSkladki(sekcja, ciag);
+    if (skladka) {
+      const p = document.createElement('p');
+      p.className = `skladka-sekcji${skladka.brakuje ? ' brak' : ''}`;
+      p.textContent = opisSkladki(skladka);
+      if (skladka.brakuje) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'przycisk maly';
+        b.textContent = 'Dopełnij pustymi';
+        b.title = `Dodaje ${skladka.brakuje} pustych stron na końcu sekcji`;
+        b.addEventListener('click', (e) => { e.stopPropagation(); dopelnijSkladke(sekcja.id); });
+        p.append(b);
+      }
+      $('.opis-sekcji', nag).append(p);
+    }
     $('button', nag).addEventListener('click', (e) => { e.stopPropagation(); otworzMenuSekcji(e.currentTarget, sekcja.id); });
     lista.append(nag);
     strony.forEach((s, k) => {

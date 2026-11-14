@@ -38,6 +38,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 120 | Składki (×4/8/16/32) w ustawieniach sekcji: licznik „46 z 48 – brakuje 2” na liście stron, uwaga przed drukiem, „Dopełnij pustymi” z cofaniem |
+| 119 | Okładka liczona sama: rodzaj sekcji „Okładka z grzbietem” (oprawa miękka/zeszytowa/twarda, papier – gramatura albo grubość kartki, strony środka liczone albo wpisane), schemat i wynik w oknie, strefy na płótnie i w podglądzie, elementy przypięte do tyłu/grzbietu/przodu przesuwają się same, „Zamień na okładkę”, okładka w kreatorze; poprawione ostrzeżenia linii przy spadzie |
 | 116 | Załączniki w formularzu kontaktowym (do 5 plików, 10 MB) – trafiają do zgłoszenia w skrzynce |
 | 113a | Powiadomienia bez sekretów: klucze tworzą się same, nic nie trzeba ustawiać |
 | 113 | Powiadomienia push jak w Familiadzie: zaproszenie, udostępnienie, odpowiedź na zaproszenie, zmiana roli, odebranie dostępu; włączanie w Ustawieniach konta |

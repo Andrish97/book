@@ -18,6 +18,7 @@ import { podlaczZasoby } from '../zasoby.js';
 import { uzupelnijWymiary } from '../obrazy-projektu.js';
 import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan, noweNagrobki, kanon } from '../laczenie.js';
 import { toTabela, miejsceKomorki } from '../tabela-obiekt.js';
+import { przeliczOkladki } from '../okladka.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
@@ -218,6 +219,7 @@ export async function otworzProjekt(p, cel = {}) {
   edytor.wydruk = null;
   clearTimeout(stan.timerHistorii);
   stan.doHistorii = false;
+  przeliczOkladki(stan.projekt); // okładka mogła się zmienić, gdy projekt był zamknięty (np. strony od AI)
   await przywrocHistorie(stan.projekt);
   if (!plotnoOdlozone) await zaladujCel({ dopasuj: true });
   odswiezCofanie();
@@ -335,7 +337,30 @@ export function zapiszBiezacyCel() {
 }
 
 // Każda zmiana projektu przechodzi tędy: zapis za chwilę i (domyślnie) krok historii.
+// Okładka liczona sama (#119): po każdej zmianie (nowe strony, dane serii, papier) okładka sprawdza
+// swój format – gdy grzbiet się zmienił, przelicza się, przesuwa elementy i przerysowuje.
+let timerOkladek = null;
+function zaplanujOkladki() {
+  if (!stan.projekt?.sekcje.some((s) => s.okladka)) return;
+  clearTimeout(timerOkladek);
+  timerOkladek = setTimeout(() => { odswiezOkladki().catch((e) => console.error(e)); }, 350);
+}
+export async function odswiezOkladki() {
+  const p = stan.projekt;
+  if (!p) return [];
+  const naOkladce = stan.tryb === 'strona' && naPlotnie && p.sekcje.find((s) => s.id === biezacyCel()?.sekcja)?.okladka;
+  if (naOkladce) zapiszBiezacyCel();
+  const zmienione = przeliczOkladki(p);
+  if (!zmienione.length) return zmienione;
+  for (const s of p.strony) if (zmienione.includes(s.sekcja)) stan.miniatury.delete(s.id);
+  if (stan.tryb === 'strona' && zmienione.includes(biezacyCel()?.sekcja)) await zaladujCel({ dopasuj: true });
+  generujMiniatury();
+  zaplanujZapis();
+  return zmienione;
+}
+
 export function zaplanujZapis({ historia: doHistorii = true } = {}) {
+  zaplanujOkladki();
   stanZapisu('zapis', 'Zapisywanie…');
   clearTimeout(stan.timerZapisu);
   stan.timerZapisu = setTimeout(zapiszTeraz, 700);

@@ -5,6 +5,7 @@ import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU } from './pola.js';
 import { wzorceStrony } from './projekt.js';
 import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
 import { odmiana } from './ui.js';
+import { bilansSkladki } from './okladka.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
@@ -205,6 +206,17 @@ const lista = (numery, ile = 6) => {
 // Nie blokują eksportu – to lista rzeczy do sprawdzenia.
 export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   const uwagi = [];
+  // Składki (#120): liczba stron sekcji ma być wielokrotnością składki; okładka zeszytowa – stron po 4.
+  for (const sekcja of projekt.sekcje) {
+    const b = bilansSkladki(sekcja, ciag);
+    if (b?.brakuje) {
+      uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Sekcja „${sekcja.nazwa}” ma ${b.stron} ${odmiana(b.stron, 'stronę', 'strony', 'stron')} – do pełnej składki po ${b.skladka} brakuje ${b.brakuje}. Dodaj strony albo użyj „Dopełnij pustymi” na liście stron.` });
+    }
+    const okl = sekcja.okladka?.wynik;
+    if (okl && sekcja.okladka.oprawa === 'zeszytowa' && okl.stron % 4) {
+      uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Oprawa zeszytowa: środek ma ${okl.stron} stron, a potrzeba liczby podzielnej przez 4.` });
+    }
+  }
   const pamiec = new Map();
   const nieznane = new Map(); // pole → strony
   const brakObrazu = new Map(); // "kolumna\nplik" → strony

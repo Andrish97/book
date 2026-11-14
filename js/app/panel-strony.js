@@ -9,6 +9,7 @@ import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { panel, dane } from './skladniki.js';
 import { renderujListe, przeniesStroneDoSekcji } from './lista-stron.js';
 import { otworzUstawieniaSekcji } from './sekcje.js';
+import { OPRAWY } from '../okladka.js';
 
 function opisMarginesow(wydruk, rozkladowki) {
   const m = wydruk.marginesy;
@@ -165,7 +166,13 @@ export function panelStrony(p) {
   const f = p.sekcja(`Sekcja „${sekcja.nazwa}”`);
   f.append(p.wskazowka(`${sekcja.uklad === 'rozkladowki' ? `Rozkładówki – to strona ${bok}. ` : ''}${nazwaFormatu(sekcja.wydruk, true, sekcja.uklad === 'rozkladowki')}`));
   if (edytor.rozkladowka) f.append(p.wskazowka('Obie strony rozkładówki edytujesz razem. Element może leżeć przez grzbiet – na każdej stronie wydrukuje się jego część.'));
-  f.append(p.akcje([['format', 'Ustawienia sekcji', () => otworzUstawieniaSekcji(sekcja.id)]]));
+  const okl = sekcja.okladka?.wynik;
+  if (okl) {
+    // Okładka (#119): wynik przeliczenia – liczby, które drukarnia chce znać.
+    const grzbiet = okl.grzbiet ? `grzbiet ${liczba(okl.grzbiet)} mm` : 'bez grzbietu';
+    f.append(p.wskazowka(`Okładka ${OPRAWY[sekcja.okladka.oprawa].split(' (')[0].toLowerCase()}: ${grzbiet}, cała okładka ${liczba(okl.szerokosc)} × ${liczba(okl.wysokosc)} mm. Środek: ${okl.stron} stron. Format przelicza się sam, gdy zmieni się liczba stron albo papier.`));
+  }
+  f.append(p.akcje([['format', okl ? 'Ustawienia okładki' : 'Ustawienia sekcji', () => otworzUstawieniaSekcji(sekcja.id)]]));
 
   p.legendaProwadnic(Boolean(bok));
 }

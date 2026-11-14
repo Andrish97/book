@@ -13,6 +13,7 @@ import { uid, ptNaMm, scalRozkladowke } from './projekt.js';
 import { DOMYSLNA, zapewnijCzcionki, zapewnijRodziny } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu, wzorzecPrzezGrzbiet } from './zlozenie.js';
 import { przyciagnij, pomiary, przyciagnijKrawedz } from './przyciaganie.js';
+import { polaBezpieczne, STREFY } from './okladka.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
@@ -2669,6 +2670,47 @@ export class Edytor extends EventTarget {
     this.dispatchEvent(new CustomEvent('zaznaczenie', { detail: this.aktywny }));
   }
 
+  // Strefy okładki na płótnie (#119): linie zgięć (grzbiet, bigi, zawinięcia) przez całą wysokość, podpisy
+  // u góry i ramki obszaru bezpiecznego tyłu, grzbietu i przodu.
+  _rysujStrefyOkladki(ctx, X, Y, s, okl, h, b) {
+    ctx.save();
+    ctx.setLineDash([6, 3]);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(13, 148, 136, 0.9)';
+    ctx.beginPath();
+    for (const z of okl.strefy.slice(1)) {
+      const px = Math.round(X(z.x1)) + 0.5;
+      ctx.moveTo(px, Y(-b)); ctx.lineTo(px, Y(h + b));
+    }
+    if (okl.gora > 0) {
+      for (const y of [okl.gora, okl.dol]) {
+        const py = Math.round(Y(y)) + 0.5;
+        ctx.moveTo(X(-b), py); ctx.lineTo(X(okl.szerokosc + b), py);
+      }
+    }
+    ctx.stroke();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(37, 99, 235, 0.8)';
+    for (const p of polaBezpieczne(okl, this.wydruk.marginesy)) {
+      if (p.x2 - p.x1 <= 0 || p.y2 - p.y1 <= 0) continue;
+      ctx.strokeRect(Math.round(X(p.x1)) + 0.5, Math.round(Y(p.y1)) + 0.5, Math.round((p.x2 - p.x1) * s) - 1, Math.round((p.y2 - p.y1) * s) - 1);
+    }
+    ctx.setLineDash([]);
+    ctx.font = '600 10px Inter, system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(13, 118, 110, 0.95)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (const z of okl.strefy) {
+      if (!['tyl', 'grzbiet', 'przod'].includes(z.rodzaj)) continue;
+      const szer = (z.x2 - z.x1) * s;
+      const grzbiet = z.rodzaj === 'grzbiet';
+      const opis = grzbiet ? `${String(Math.round((z.x2 - z.x1) * 10) / 10).replace('.', ',')} mm` : STREFY[z.rodzaj];
+      if (ctx.measureText(opis).width > szer + (grzbiet ? 30 : 0)) continue;
+      ctx.fillText(opis, X((z.x1 + z.x2) / 2), Y(0) + 3);
+    }
+    ctx.restore();
+  }
+
   // ---------- Ostrzeżenia o układzie (4.5) ----------
 
   // Czy ramka x1..x2 leży świadomie na obu stronach rozkładówki: zaczyna się
@@ -2697,7 +2739,24 @@ export class Edytor extends EventTarget {
       const przez = this._przezGrzbiet(x1, x2);
       const a = przez ? this.strony[0] : this.strony[this.stronaW((x1 + x2) / 2)];
       const z = przez ? this.strony[1] : a;
-      const m = { lewy: a.x + a.marg.lewy, prawy: w - (z.x + wStrony - z.marg.prawy), gora: a.marg.gora, dol: a.marg.dol };
+      let m = { lewy: a.x + a.marg.lewy, prawy: w - (z.x + wStrony - z.marg.prawy), gora: a.marg.gora, dol: a.marg.dol };
+      const okl = this.wydruk.okladka;
+      if (okl) {
+        // Okładka (#119): obszar bezpieczny strefy, w której leży element; element przez tył i przód (np. tło
+        // przez grzbiet) – zewnętrzne granice tyłu i przodu.
+        const pola = polaBezpieczne(okl, this.wydruk.marginesy);
+        const tyl = pola.find((q) => q.rodzaj === 'tyl');
+        const przod = pola.find((q) => q.rodzaj === 'przod');
+        const cx = (x1 + x2) / 2;
+        const pole = (tyl && przod && x1 < tyl.x2 && x2 > przod.x1)
+          ? { x1: tyl.x1, x2: przod.x2, y1: tyl.y1, y2: tyl.y2 }
+          : (pola.find((q) => cx >= q.x1 - 1 && cx <= q.x2 + 1) || (cx < okl.szerokosc / 2 ? tyl : przod));
+        if (pole) m = { lewy: pole.x1, prawy: w - pole.x2, gora: pole.y1, dol: h - pole.y2 };
+        const grzbiet = okl.strefy.find((q) => q.rodzaj === 'grzbiet');
+        if (grzbiet && cx >= grzbiet.x1 && cx <= grzbiet.x2 && x2 - x1 > grzbiet.x2 - grzbiet.x1 + tol && x1 > grzbiet.x1 - 20 && x2 < grzbiet.x2 + 20) {
+          lista.push({ id: o.id, typ: 'szerszy_niz_grzbiet', obiekt: opisObiektu(o) });
+        }
+      }
       let typ = null;
       if (x2 < -b || y2 < -b || x1 > w + b || y1 > h + b) {
         typ = 'poza_strona';
@@ -2719,6 +2778,20 @@ export class Edytor extends EventTarget {
   // Prostokąt opisany na elemencie, w milimetrach strony. Element z zaznaczenia
   // kilku naraz ma położenie liczone względem tego zaznaczenia – trzeba je przeliczyć.
   _prostokatNaStronie(o) {
+    // Linia: liczą się jej końce – grubość linii wystaje tylko w poprzek, nie wzdłuż (inaczej linia od spadu
+    // do spadu dostawała fałszywe „wychodzi poza spad”).
+    if (o.type === 'line' && !o.group && o.strokeLineCap !== 'round' && o.strokeLineCap !== 'square') {
+      const pkt = o.calcLinePoints();
+      const m = o.calcTransformMatrix();
+      const k1 = fabric.util.transformPoint({ x: pkt.x1, y: pkt.y1 }, m);
+      const k2 = fabric.util.transformPoint({ x: pkt.x2, y: pkt.y2 }, m);
+      const dl = Math.hypot(k2.x - k1.x, k2.y - k1.y) || 1;
+      const pol = ((o.strokeWidth || 0) * (o.strokeUniform ? 1 : Math.max(Math.abs(o.scaleX || 1), Math.abs(o.scaleY || 1)))) / 2;
+      const px = pol * Math.abs(k2.y - k1.y) / dl; // grubość w poprzek: składowa pozioma
+      const py = pol * Math.abs(k2.x - k1.x) / dl;
+      const lx = Math.min(k1.x, k2.x) - px; const ly = Math.min(k1.y, k2.y) - py;
+      return { left: lx, top: ly, width: Math.abs(k2.x - k1.x) + 2 * px, height: Math.abs(k2.y - k1.y) + 2 * py };
+    }
     const r = o.getBoundingRect();
     // Element przycięty prostokątem (grupa z przyciętego rysunku SVG): liczy się część, którą widać.
     const k = o.clipPath;
@@ -3254,8 +3327,12 @@ export class Edytor extends EventTarget {
       ctx.lineWidth = 1;
       ctx.setLineDash([]);
       ctx.strokeRect(Math.round(X(0)) + 0.5, Math.round(Y(0)) + 0.5, Math.round(w * s) - 1, Math.round(h * s) - 1);
+      // Okładka (#119): strefy (zawinięcie, tył, big, grzbiet, big, przód) – linie zgięcia z podpisami,
+      // a obszar bezpieczny osobno dla tyłu, grzbietu i przodu.
+      const okl = this.wydruk.okladka;
+      if (okl) this._rysujStrefyOkladki(ctx, X, Y, s, okl, h, b);
       // Obszar bezpieczny (marginesy) każdej strony arkusza.
-      for (const { x, marg: m } of this.strony) {
+      for (const { x, marg: m } of okl ? [] : this.strony) {
         if (m.lewy + m.prawy + m.gora + m.dol <= 0) continue;
         ctx.strokeStyle = 'rgba(37, 99, 235, 0.8)';
         ctx.setLineDash([4, 4]);

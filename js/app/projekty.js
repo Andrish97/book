@@ -1,6 +1,7 @@
 // Ekran „Projekty”: lista, otwieranie, kopiowanie, zmiana nazwy, eksport do pliku, usuwanie i okno nowego projektu.
 
-import { normalizuj, kopiujProjekt, FORMATY, nowyProjekt, normalizujWydruk } from '../projekt.js';
+import { normalizuj, kopiujProjekt, FORMATY, nowyProjekt, normalizujWydruk, nowaSekcja, nowaStrona } from '../projekt.js';
+import { normalizujOkladke, przeliczOkladki } from '../okladka.js';
 import { listaLokalnych, wczytajLokalnie, zapiszLokalnie, oznaczZsynchronizowany, usunLokalnie } from '../lokalny.js';
 import { usunHistorie } from '../historia-zapis.js';
 import * as chmura from '../chmura.js';
@@ -363,6 +364,17 @@ $('#dlg-nowy').addEventListener('close', async () => {
     znaki_ciecia: true,
   }), f.elements.uklad.value === 'rozkladowki' ? 'rozkladowki' : 'pojedyncze');
   projekt.style = domyslneStyle();
+  // Okładka liczona sama (#119): osobna sekcja przed środkiem, format z formatu i liczby stron środka.
+  if (f.elements.okladka.value) {
+    const srodek = projekt.sekcje[0];
+    srodek.nazwa = 'Środek';
+    const okladka = nowaSekcja('Okładka', { ...srodek.wydruk, marginesy: { ...srodek.wydruk.marginesy } });
+    okladka.okladka = normalizujOkladke({ oprawa: f.elements.okladka.value });
+    okladka.numeracja = { tryb: 'brak', od: 1 };
+    projekt.sekcje.unshift(okladka);
+    projekt.strony.unshift(nowaStrona('Okładka', okladka.id));
+    przeliczOkladki(projekt);
+  }
   await otworzProjekt(projekt);
   await zapiszTeraz();
 });
