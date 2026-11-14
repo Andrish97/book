@@ -8,7 +8,10 @@ import { rozmiarOryginalu } from './obrazy.js';
 import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js';
 import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
-import { nazwaTypu } from './edytor.js';
+import { nazwaTypu, toKolaz } from './edytor.js';
+import { toKalendarz, MIESIACE, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
+import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
+import { KOLAZE } from './ksztalty-biblioteka.js';
 import { ikona } from './ikony.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
@@ -85,8 +88,9 @@ export class PanelWlasciwosci {
     else if (!obj) { rodzaj = 'strona'; ik = this.tytul.textContent === 'Wzorzec' ? 'wzorzec' : 'strony'; nad = 'Nic nie jest zaznaczone'; }
     else if (toZaznaczenie(obj)) { ik = 'grupuj'; nad = 'Zaznaczone elementy'; }
     else {
-      const typ = toTabela(obj) || toTabela(obj.group) ? 'tabela' : obj.type;
+      const typ = toKalendarz(obj) ? 'kalendarz' : (toWykres(obj) ? 'wykres' : (toKolaz(obj) ? 'kolaz' : (toTabela(obj) || toTabela(obj.group) ? 'tabela' : obj.type)));
       ik = {
+        kalendarz: 'kalendarz', wykres: 'wykres', kolaz: 'kolaz',
         textbox: 'tekst', 'i-text': 'tekst', text: 'tekst', rect: 'prostokat', ellipse: 'elipsa', circle: 'elipsa',
         polygon: 'wielokat', line: 'linia', image: 'obraz', path: 'pioro', group: 'grupuj', tabela: 'tabela',
       }[typ] || 'suwaki';
@@ -211,6 +215,9 @@ export class PanelWlasciwosci {
       g.append(this.akcje([['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]]));
     }
     if (obj.type === 'image') this.zbudujAkcjeObrazu(obj);
+    if (toKalendarz(obj)) this.zbudujKalendarz(obj);
+    if (toWykres(obj)) this.zbudujWykres(obj);
+    if (toKolaz(obj)) this.zbudujKolaz(obj);
     if (toTabela(obj)) this.zbudujTabele(obj);
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
     this.zbudujGeometrie(obj);
@@ -317,7 +324,7 @@ export class PanelWlasciwosci {
     ]);
     seg.classList.add('szeroki');
     s.append(seg);
-    if (obj.type === 'group' && !toTabela(obj)) {
+    if (obj.type === 'group' && !toTabela(obj) && !toWykres(obj)) {
       // Grupa na arkuszu albo grupa leżąca w otwartej grupie (ta otwiera się jako kolejny poziom).
       s.append(this.akcje([['rozgrupuj', 'Rozgrupuj', () => e.rozgrupuj()], ...(obj.zablokowany ? [] : [['dlon', 'Zmień element grupy', () => e.otworzGrupe(obj)]])]));
       // Grupa z rozłożonego rysunku SVG, który był przycięty jako obraz.
@@ -395,7 +402,21 @@ export class PanelWlasciwosci {
     const zmien = (co, gdzie) => () => { e.zmienTabele(obj, co, gdzie); this.zbuduj(); };
     // Dwie części (#115): „Cała tabela” – zmiany wszystkich wierszy i kolumn naraz; „Kolumna i wiersz” –
     // tylko kolumna i wiersz klikniętej komórki. Bez list wszystkich wierszy, które zagracały panel.
-    const s = this.sekcja('Cała tabela');
+    const kal = toKalendarz(obj);
+    const s = this.sekcja(kal ? 'Wymiary kalendarza' : 'Cała tabela');
+    if (kal) {
+      // Kalendarz: wiersze i kolumny wynikają z miesiąca – zmienia się tylko szerokość i wygląd siatki.
+      const szer = () => t.kolumny.reduce((a, b) => a + b, 0);
+      s.append(this.liczba('Szerokość kalendarza', () => zaokr(szer(), 1), (v) => {
+        const skala = Math.max(5 * t.kolumny.length, v) / szer();
+        t.kolumny = t.kolumny.map((x) => zaokr(Math.max(5, x * skala), 2));
+      }, { jednostka: 'mm', krok: 1, min: 20 }));
+      if (obj.kalendarz.tygodnie) {
+        s.append(this.liczba('Szerokość kolumny tygodni', () => zaokr(t.kolumny[0], 1), (v) => { ustawSzerokoscKolumny(obj, 0, v, { kosztemSasiedniej: false }); }, { jednostka: 'mm', krok: 0.5, min: 5 }));
+      }
+      this.zbudujTabeleWyglad(obj, { bezKoloru: true });
+      return;
+    }
     s.append(this.wskazowka('Kliknij komórkę, żeby zmienić jej kolumnę i wiersz. Dwa kliknięcia – piszesz w komórce.'));
     // Liczniki „Wiersze [−] 4 [+]” i „Kolumny [−] 3 [+]”: dodają i usuwają ostatni wiersz albo kolumnę.
     const liczniki = document.createElement('div');
@@ -454,7 +475,12 @@ export class PanelWlasciwosci {
       k.append(this.liczba(`${i + 1}`, () => zaokr(t.kolumny[i], 1), (v) => { ustawSzerokoscKolumny(obj, i, v, { kosztemSasiedniej: false }); }, { jednostka: 'mm', krok: 0.5, min: 5 }));
     });
     k.append(this.wskazowka('Granicę kolumn przesuniesz też niebieskim znacznikiem nad zaznaczoną tabelą.'));
+    this.zbudujTabeleWyglad(obj);
+  }
 
+  // Linie, tła wierszy i tekst komórek – wspólne dla tabeli i kalendarza.
+  zbudujTabeleWyglad(obj, { bezKoloru = false } = {}) {
+    const t = obj.tabela;
     const l = this.sekcja('Linie tabeli');
     l.append(this.kolor('Kolor linii', () => t.linia?.kolor || '#1a1a1a', (v) => { t.linia = { ...t.linia, kolor: v }; ulozTabele(obj); }));
     l.append(this.liczba('Grubość linii', () => zaokr(t.linia?.grubosc ?? 0.25, 2), (v) => { t.linia = { ...t.linia, grubosc: Math.max(0, v) }; }, { jednostka: 'mm', krok: 0.05, min: 0 }));
@@ -479,10 +505,9 @@ export class PanelWlasciwosci {
     this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
     x.append(czcionka);
-    x.append(this._zKolorem(
-      this.liczba('Rozmiar', () => zaokr(mmNaPt(wzor().fontSize), 1), (v) => ustawTekstTabeli(obj, { fontSize: ptNaMm(Math.max(1, v)) }), { jednostka: 'pt', krok: 0.5, min: 1 }),
-      this.kolor('Kolor tekstu', () => wzor().fill, (v) => ustawTekstTabeli(obj, { fill: v })),
-    ));
+    const rozmiar = this.liczba('Rozmiar', () => zaokr(mmNaPt(wzor().fontSize), 1), (v) => ustawTekstTabeli(obj, { fontSize: ptNaMm(Math.max(1, v)) }), { jednostka: 'pt', krok: 0.5, min: 1 });
+    // Kolory dni kalendarza ustawia się w części „Kolory kalendarza”.
+    x.append(bezKoloru ? rozmiar : this._zKolorem(rozmiar, this.kolor('Kolor tekstu', () => wzor().fill, (v) => ustawTekstTabeli(obj, { fill: v }))));
     const wyr = this.segmenty('Wyrównanie', [
       ['doLewej', 'Do lewej', () => wzor().textAlign === 'left', () => ustawTekstTabeli(obj, { textAlign: 'left' })],
       ['doSrodka', 'Do środka', () => wzor().textAlign === 'center', () => ustawTekstTabeli(obj, { textAlign: 'center' })],
@@ -497,6 +522,130 @@ export class PanelWlasciwosci {
     ]);
     pion.classList.add('szeroki');
     x.append(pion);
+  }
+
+  // ---------- Kalendarz miesiąca, wykres, kolaż (#131A) ----------
+
+  // Kolumny tabel danych projektu jako opcje listy: [['', bez], [kolumna, opis]…].
+  _kolumnyDanych(bez = 'Brak') {
+    const tabele = this.opcje.projekt?.()?.tabele || [];
+    const opcje = [['', bez]];
+    const byly = new Set();
+    for (const t of tabele) for (const k of t.kolumny) { if (byly.has(k)) continue; byly.add(k); opcje.push([k, tabele.length > 1 ? `${k} (${t.nazwa})` : k]); }
+    return opcje;
+  }
+
+  zbudujKalendarz(obj) {
+    const k = () => obj.kalendarz;
+    const zmien = (zmiana) => { obj.kalendarz = { ...obj.kalendarz, ...zmiana }; };
+    const s = this.sekcja('Kalendarz');
+    s.append(this.wybor('Miesiąc', MIESIACE.map((m, i) => [String(i + 1), m]), () => String(k().miesiac), (v) => zmien({ miesiac: Number(v) })));
+    s.append(this.liczba('Rok', () => k().rok, (v) => zmien({ rok: Math.round(v) }), { krok: 1, min: 1600 }));
+    s.append(this.wybor('Miesiąc z kolumny danych', this._kolumnyDanych('Nie – stały miesiąc'), () => k().pole_daty || '', (v) => { zmien({ pole_daty: v || undefined }); this.zbuduj(); }));
+    if (k().pole_daty) {
+      s.append(this.wybor('Rok z kolumny', this._kolumnyDanych('Z tej samej kolumny albo pola „Rok”'), () => k().pole_roku || '', (v) => zmien({ pole_roku: v || undefined })));
+      s.append(this.wskazowka('Na każdej stronie serii kalendarz pokazuje miesiąc z tej kolumny – np. „2027-03”, „marzec 2027” albo „3”. W edytorze widać miesiąc z pierwszego wiersza.'));
+    }
+    s.append(this.wybor('Tydzień zaczyna się od', [['1', 'Poniedziałku'], ['0', 'Niedzieli']], () => String(k().pierwszy), (v) => zmien({ pierwszy: Number(v) })));
+    s.append(this.wybor('Nazwy dni', [['pelne', 'Pełne (Poniedziałek)'], ['skrot', 'Skrócone (Pn)'], ['litery', 'Litery (P)']], () => k().nazwy, (v) => zmien({ nazwy: v })));
+    s.append(this.wybor('Dni innych miesięcy', [['wyszarz', 'Wyszarzone'], ['pokaz', 'Jak zwykłe dni'], ['ukryj', 'Ukryte']], () => k().inne, (v) => zmien({ inne: v })));
+    s.append(this.przelacznik('Nazwa miesiąca nad dniami', () => k().tytul, (v) => zmien({ tytul: v })));
+    s.append(this.przelacznik('Numery tygodni', () => k().tygodnie, (v) => { zmien({ tygodnie: v }); this.zbuduj(); }));
+    s.append(this.przelacznik('Miejsce na notatki (data w rogu)', () => k().notatki, (v) => zmien({ notatki: v, wiersz_dnia: v ? Math.max(k().wiersz_dnia, 16) : Math.min(k().wiersz_dnia, 9) })));
+    s.append(this.liczba('Wysokość wiersza dnia', () => k().wiersz_dnia, (v) => zmien({ wiersz_dnia: Math.max(4, v) }), { jednostka: 'mm', krok: 0.5, min: 4 }));
+    const sw = this.sekcja('Święta');
+    sw.append(this.przelacznik('Polskie święta (także Wielkanoc i Boże Ciało)', () => k().swieta, (v) => zmien({ swieta: v })));
+    sw.append(this.przelacznik('Nazwa święta pod datą', () => k().nazwy_swiat, (v) => zmien({ nazwy_swiat: v })));
+    const tabele = this.opcje.projekt?.()?.tabele || [];
+    sw.append(this.wybor('Święta z tabeli danych', [['', 'Brak'], ...tabele.map((t) => [t.id, t.nazwa])], () => k().swieta_z?.tabela || '', (v) => {
+      const t = tabele.find((x) => x.id === v);
+      zmien({ swieta_z: t ? { tabela: t.id, data: t.kolumny.find((n) => /dat/i.test(n)) || t.kolumny[0], nazwa: t.kolumny.find((n) => /naz|swi|świ|opis/i.test(n)) || t.kolumny[1] || '' } : undefined });
+      this.zbuduj();
+    }));
+    const t = tabele.find((x) => x.id === k().swieta_z?.tabela);
+    if (t) {
+      const opcje = t.kolumny.map((n) => [n, n]);
+      sw.append(this.wybor('Kolumna z datą', opcje, () => k().swieta_z.data, (v) => zmien({ swieta_z: { ...k().swieta_z, data: v } })));
+      sw.append(this.wybor('Kolumna z nazwą', [['', 'Bez nazwy'], ...opcje], () => k().swieta_z.nazwa || '', (v) => zmien({ swieta_z: { ...k().swieta_z, nazwa: v } })));
+      sw.append(this.wskazowka('Daty w postaci 2027-05-26, 26.05.2027 albo 26.05 (co roku). Dni z tabeli dostają kolor świąt.'));
+    }
+    const kol = this.sekcja('Kolory kalendarza');
+    const kolor = (klucz, etykieta, brak = false) => kol.append(this.kolor(etykieta, () => k().kolory?.[klucz] ?? (brak ? null : KOLORY_DOMYSLNE[klucz]), (v) => zmien({ kolory: { ...k().kolory, [klucz]: v || null } }), { brak }));
+    kolor('dni', 'Dni');
+    kolor('naglowek', 'Nazwa miesiąca i dni tygodnia');
+    kolor('niedziele', 'Niedziele', true);
+    kolor('soboty', 'Soboty', true);
+    kolor('swieta', 'Święta', true);
+    kolor('inne', 'Dni innych miesięcy i numery tygodni');
+  }
+
+  zbudujWykres(obj) {
+    const w = () => normalizujWykres(obj.wykres);
+    const zmien = (zmiana) => { obj.wykres = { ...w(), ...zmiana }; };
+    const tabele = this.opcje.projekt?.()?.tabele || [];
+    const s = this.sekcja('Wykres');
+    s.append(this.wybor('Rodzaj', RODZAJE, () => w().rodzaj, (v) => { zmien({ rodzaj: v }); this.zbuduj(); }));
+    s.append(this.wybor('Tabela danych', [['', tabele.length ? 'Wybierz tabelę' : 'Brak tabel – dodaj je w „Dane”'], ...tabele.map((t) => [t.id, t.nazwa])], () => w().tabela || '', (v) => {
+      const t = tabele.find((x) => x.id === v);
+      zmien({ tabela: v || undefined, etykiety: t?.kolumny[0] || '', wartosci: t ? t.kolumny.slice(1, 2) : [] });
+      this.zbuduj();
+    }));
+    const t = tabele.find((x) => x.id === w().tabela);
+    if (t) {
+      s.append(this.wybor(w().zakres === 'wiersz' ? 'Nazwa serii z kolumny' : 'Podpisy z kolumny', [['', 'Numery wierszy'], ...t.kolumny.map((n) => [n, n])], () => w().etykiety, (v) => zmien({ etykiety: v })));
+      const liczby = document.createElement('fieldset');
+      liczby.className = 'grupa-pol kolumny-wykresu';
+      const leg = document.createElement('legend');
+      leg.textContent = 'Liczby z kolumn';
+      liczby.append(leg);
+      for (const n of t.kolumny) {
+        liczby.append(this.przelacznik(n, () => w().wartosci.includes(n), (v) => zmien({ wartosci: v ? t.kolumny.filter((x) => x === n || w().wartosci.includes(x)) : w().wartosci.filter((x) => x !== n) })));
+      }
+      s.append(liczby);
+      s.append(this.wybor('Wiersze', [['wszystkie', 'Wszystkie wiersze tabeli'], ['zakres', 'Wybrane wiersze (od–do)'], ['wiersz', 'Wiersz strony serii']], () => w().zakres, (v) => { zmien({ zakres: v }); this.zbuduj(); }));
+      if (w().zakres === 'zakres') {
+        s.append(this.liczba('Od wiersza', () => w().od, (v) => zmien({ od: Math.max(1, Math.round(v)) }), { krok: 1, min: 1 }));
+        s.append(this.liczba('Do wiersza', () => w().do, (v) => zmien({ do: Math.max(1, Math.round(v)) }), { krok: 1, min: 1 }));
+      }
+      if (w().zakres === 'wiersz') s.append(this.wskazowka('Kategorie to wybrane kolumny, a liczby – z wiersza tabeli, którego dotyczy strona serii. Każda powielona strona ma swój wykres.'));
+    }
+    const o = this.sekcja('Opis wykresu');
+    o.append(this.tekst('Tytuł (opcjonalnie)', () => w().tytul, (v) => zmien({ tytul: v }), true));
+    o.append(this.przelacznik('Liczby przy słupkach i wycinkach', () => w().etykiety_wartosci, (v) => zmien({ etykiety_wartosci: v })));
+    if (!['kolo', 'pierscien'].includes(w().rodzaj)) {
+      o.append(this.przelacznik('Oś z wartościami', () => w().os, (v) => zmien({ os: v })));
+      o.append(this.przelacznik('Linie siatki', () => w().siatka, (v) => zmien({ siatka: v })));
+    }
+    o.append(this.przelacznik('Legenda', () => w().legenda, (v) => zmien({ legenda: v })));
+    const g = this.sekcja('Wygląd wykresu');
+    g.append(this.liczba('Szerokość', () => w().szerokosc, (v) => zmien({ szerokosc: Math.max(20, v) }), { jednostka: 'mm', krok: 1, min: 20 }));
+    g.append(this.liczba('Wysokość', () => w().wysokosc, (v) => zmien({ wysokosc: Math.max(15, v) }), { jednostka: 'mm', krok: 1, min: 15 }));
+    this._czcionkiWLiscie = true;
+    const rodziny = this.opcje.czcionki?.() || CZCIONKI.map((c) => c.nazwa);
+    const cz = this.wybor('Czcionka', rodziny.map((n) => [n, n]), () => w().czcionka, (v) => { zmien({ czcionka: v }); this.edytor.doczytajCzcionke(v); });
+    this._czcionkiWLiscie = false;
+    cz.classList.add('szeroki');
+    g.append(cz);
+    g.append(this._zKolorem(
+      this.liczba('Rozmiar pisma', () => zaokr(mmNaPt(w().rozmiar), 1), (v) => zmien({ rozmiar: ptNaMm(Math.max(3, v)) }), { jednostka: 'pt', krok: 0.5, min: 3 }),
+      this.kolor('Kolor pisma', () => w().kolor_tekstu, (v) => zmien({ kolor_tekstu: v })),
+    ));
+    const ile = ['kolo', 'pierscien'].includes(w().rodzaj) ? Math.min(8, Math.max(1, (t?.wiersze.length) || 1)) : Math.max(1, w().wartosci.length);
+    for (let i = 0; i < ile; i += 1) {
+      g.append(this.kolor(`Kolor ${i + 1}`, () => w().kolory[i] || PALETA[i % PALETA.length], (v) => { const kolory = [...w().kolory]; kolory[i] = v; zmien({ kolory }); }));
+    }
+  }
+
+  zbudujKolaz(obj) {
+    const k = () => obj.kolaz;
+    const zmien = (zmiana) => { obj.kolaz = { ...obj.kolaz, ...zmiana }; };
+    const s = this.sekcja('Kolaż');
+    s.append(this.wybor('Układ', KOLAZE.map((x) => [x.id, x.nazwa]), () => k().uklad, (v) => { this.edytor.zmienUkladKolazu(obj, v); }));
+    s.append(this.liczba('Odstęp między zdjęciami', () => k().odstep, (v) => zmien({ odstep: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
+    s.append(this.liczba('Zaokrąglenie rogów', () => k().zaokraglenie || 0, (v) => zmien({ zaokraglenie: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
+    s.append(this.liczba('Szerokość', () => k().szerokosc, (v) => zmien({ szerokosc: Math.max(10, v) }), { jednostka: 'mm', krok: 1, min: 10 }));
+    s.append(this.liczba('Wysokość', () => k().wysokosc, (v) => zmien({ wysokosc: Math.max(10, v) }), { jednostka: 'mm', krok: 1, min: 10 }));
+    s.append(this.wskazowka('Upuść zdjęcie z komputera na pole kolażu. Możesz też kliknąć kolaż dwa razy, wybrać pole i w części „Obraz w kształcie” wstawić obraz z projektu.'));
   }
 
   // Działania na wierszu i kolumnie komórki, w której trwa pisanie.

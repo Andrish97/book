@@ -24,8 +24,37 @@ import {
   toTabela, nowaTabela, ulozTabele, przygotujTabele, komorkiTabeli, komorkaWPunkcie, miejsceKomorki, utrwalSkaleTabeli,
   dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, scalKomorki, rozdzielKomorki, komorkaSchowana,
 } from './tabela-obiekt.js';
+import { nowyKalendarz, toKalendarz } from './kalendarz-miesiaca.js';
+import { nowyWykres, toWykres } from './wykres.js';
+import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych } from './elementy-danych.js';
+import { KSZTALTY, polaKolazu, ukladKolazu } from './ksztalty-biblioteka.js';
 
 export const PX_NA_MM = 96 / 25.4;
+
+// Element złożony, którego nie otwiera się jak zwykłej grupy: tabela (także kalendarz) i wykres (#131A).
+const jednolity = (o) => toTabela(o) || toWykres(o);
+
+// Kolaż (#131A): pola na zdjęcia rozstawione według układu, odstępu i zaokrąglenia.
+export const toKolaz = (o) => Boolean(o && o.kolaz && typeof o.getObjects === 'function');
+export function ulozKolaz(g) {
+  const k = g.kolaz;
+  const pola = polaKolazu(k.uklad, k.szerokosc, k.wysokosc, k.odstep);
+  const prostokaty = g.getObjects().filter((o) => o.type === 'rect');
+  pola.forEach((p, i) => {
+    const r = prostokaty[i];
+    if (!r) return;
+    r.set({
+      left: -k.szerokosc / 2 + p.lewo, top: -k.wysokosc / 2 + p.gora, width: p.szerokosc, height: p.wysokosc,
+      rx: k.zaokraglenie || 0, ry: k.zaokraglenie || 0, scaleX: 1, scaleY: 1, angle: 0,
+    });
+    r.setCoords();
+    r.dirty = true;
+  });
+  g.set({ width: k.szerokosc, height: k.wysokosc });
+  g.setCoords();
+  g.dirty = true;
+  return g;
+}
 
 export { WLASNE_POLA };
 
@@ -165,7 +194,10 @@ export class Edytor extends EventTarget {
     });
     c.on('object:modified', (e) => {
       utrwalSkaleTekstu(e.target);
-      utrwalSkaleTabeli(e.target);
+      if (toKalendarz(e.target)) { utrwalSkaleTabeli(e.target); if (String(e.action || '').startsWith('scale')) poSkalowaniuElementuDanych(e.target); }
+      else if (toWykres(e.target)) poSkalowaniuElementuDanych(e.target);
+      else if (toKolaz(e.target)) this._utrwalSkaleKolazu(e.target);
+      else utrwalSkaleTabeli(e.target);
       this.oznaczZmiane();
     });
     c.on('object:added', (e) => {
@@ -396,6 +428,7 @@ export class Edytor extends EventTarget {
     const obiekty = podmienZasoby(json, zrodloObrazu(zasoby));
     await this.canvas.loadFromJSON({ objects: obiekty });
     await przygotujObrazyKsztaltow(this.canvas.getObjects());
+    ulozElementyDanych(this.canvas.getObjects().filter((o) => !o.zWzorca)); // kalendarze i wykresy z bieżących danych
     if (sasiednia) {
       // Zostają tylko te elementy sąsiedniej strony, które naprawdę zachodzą na tę stronę (ze spadem).
       for (const o of this.canvas.getObjects().filter((x) => x.zSasiedniej && !x.zWzorca)) {
@@ -1681,6 +1714,121 @@ export class Edytor extends EventTarget {
     return tabela;
   }
 
+  // ---------- Kalendarz, wykres, kształty z biblioteki, kolaże (#131A) ----------
+
+  // Nowy element w miejscu upuszczenia (środek elementu w punkcie) albo na środku strony.
+  _wPunkcie(obj, punkt) {
+    if (punkt) obj.set({ left: punkt.x - obj.width * (obj.scaleX ?? 1) / 2, top: punkt.y - obj.height * (obj.scaleY ?? 1) / 2 });
+    obj.setCoords();
+  }
+
+  dodajKalendarz(opis = {}, punkt = null) {
+    const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+    const szer = Math.max(40, w - this.marg.lewy - this.marg.prawy);
+    const g = nowyKalendarz({ szerokosc: szer, lewo: this.strony[this.aktywna].x + this.marg.lewy, gora: 0, wyglad: { fontFamily: DOMYSLNA, fontSize: ptNaMm(9) }, opis }, uid);
+    ulozElementDanych(g);
+    g.set({ top: Math.max(this.marg.gora, (h - g.height) / 2) });
+    this._wPunkcie(g, punkt);
+    this.canvas.discardActiveObject();
+    this.canvas.add(g);
+    this.canvas.setActiveObject(g);
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    return g;
+  }
+
+  dodajWykres(opis = {}, punkt = null) {
+    const { szerokosc_mm: w } = this.wydruk;
+    const szer = Math.min(140, Math.max(40, w - this.marg.lewy - this.marg.prawy));
+    const g = nowyWykres({ opis: { szerokosc: szer, wysokosc: Math.round(szer * 0.62), czcionka: DOMYSLNA, ...opis } }, uid);
+    ulozElementDanych(g);
+    g.set(this._srodek(g.width, g.height));
+    this._wPunkcie(g, punkt);
+    this.canvas.discardActiveObject();
+    this._wstaw(g);
+    this.oznaczZmiane();
+    return g;
+  }
+
+  // Kształt z biblioteki: zwykła ścieżka, 50 mm na dłuższym boku.
+  dodajKsztaltZBiblioteki(id, punkt = null) {
+    const k = KSZTALTY.find((x) => x.id === id);
+    if (!k) return null;
+    const p = new fabric.Path(k.d, {
+      fill: k.otwarta ? '' : '#d9e6f2', stroke: '#1a1a1a', strokeWidth: k.otwarta ? 0.6 : 0.3, strokeUniform: true,
+      strokeLineJoin: 'round', strokeLineCap: 'round', fillRule: k.otwor ? 'evenodd' : 'nonzero', nazwa: k.nazwa,
+    });
+    const skala = 50 / Math.max(p.width, p.height);
+    p.set({ scaleX: skala, scaleY: skala });
+    p.set(this._srodek(p.width * skala, p.height * skala));
+    this._wPunkcie(p, punkt);
+    const wynik = this._wstaw(p);
+    this.oznaczZmiane();
+    return wynik;
+  }
+
+  // Kolaż: grupa prostokątów – pól na zdjęcia (kształty jako ramki obrazu, #123).
+  dodajKolaz(uklad, { odstep = 2, zaokraglenie = 0, punkt = null } = {}) {
+    const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+    const szer = Math.max(40, w - this.marg.lewy - this.marg.prawy);
+    const wys = Math.max(30, Math.min(h - this.marg.gora - this.marg.dol, szer * 0.75));
+    const ile = ukladKolazu(uklad).pola.length;
+    const pola = Array.from({ length: ile }, (_, i) => new fabric.Rect({
+      id: uid('o'), width: 10, height: 10, fill: '#e8e6e1', stroke: '#c9c6bf', strokeWidth: 0, strokeUniform: true, nazwa: `Pole ${i + 1}`,
+    }));
+    const g = new fabric.Group(pola, {
+      left: 0, top: 0, nazwa: 'Kolaż',
+      layoutManager: new fabric.LayoutManager(new fabric.FixedLayout()),
+      kolaz: { uklad: ukladKolazu(uklad).id, odstep, zaokraglenie, szerokosc: Math.round(szer * 10) / 10, wysokosc: Math.round(wys * 10) / 10 },
+    });
+    ulozKolaz(g);
+    g.set(this._srodek(g.width, g.height));
+    this._wPunkcie(g, punkt);
+    this.canvas.discardActiveObject();
+    this._wstaw(g);
+    this.oznaczZmiane();
+    return g;
+  }
+
+  // Nowy układ kolażu: pól przybywa albo ubywa; pierwsze pola zachowują swoje zdjęcia.
+  zmienUkladKolazu(g, uklad) {
+    if (!toKolaz(g)) return;
+    const ile = ukladKolazu(uklad).pola.length;
+    const pola = g.getObjects();
+    if (pola.length > ile) g.remove(...pola.slice(ile));
+    for (let i = pola.length; i < ile; i += 1) {
+      g.add(new fabric.Rect({ id: uid('o'), width: 10, height: 10, fill: '#e8e6e1', stroke: '#c9c6bf', strokeWidth: 0, strokeUniform: true, nazwa: `Pole ${i + 1}` }));
+    }
+    g.kolaz = { ...g.kolaz, uklad: ukladKolazu(uklad).id };
+    ulozKolaz(g);
+    przygotujObrazyKsztaltow(g.getObjects()).then(() => this.canvas.requestRenderAll());
+  }
+
+  // Skalowanie kolażu uchwytem: zmienia się rozmiar kolażu, a pola rozstawiają się od nowa (odstęp zostaje).
+  _utrwalSkaleKolazu(g) {
+    if (Math.abs(g.scaleX - 1) < 1e-6 && Math.abs(g.scaleY - 1) < 1e-6) return;
+    g.kolaz = { ...g.kolaz, szerokosc: Math.round(g.kolaz.szerokosc * Math.abs(g.scaleX) * 10) / 10, wysokosc: Math.round(g.kolaz.wysokosc * Math.abs(g.scaleY) * 10) / 10 };
+    g.set({ scaleX: 1, scaleY: 1, flipX: false, flipY: false });
+    ulozKolaz(g);
+  }
+
+  // Pole kolażu pod punktem sceny (upuszczenie zdjęcia na kolaż).
+  polaKolazuWPunkcie(g, punkt) {
+    if (!toKolaz(g)) return null;
+    for (const r of g.getObjects()) {
+      const p = new fabric.Point(punkt.x, punkt.y).transform(fabric.util.invertTransform(r.calcTransformMatrix()));
+      if (Math.abs(p.x) <= r.width / 2 && Math.abs(p.y) <= r.height / 2) return r;
+    }
+    return null;
+  }
+
+  // Kalendarze i wykresy na stronie od nowa – po zmianie tabel danych.
+  odswiezElementyDanych() {
+    const lista = this.canvas.getObjects().filter((o) => !o.zWzorca);
+    ulozElementyDanych(lista);
+    this.canvas.requestRenderAll();
+  }
+
   // Skalowanie tabeli uchwytem narożnym na bieżąco: skala zamienia się w wymiary kolumn i wierszy,
   // a narożnik naprzeciwko uchwytu zostaje na miejscu.
   _skalujTabele(tabela, przeksztalcenie) {
@@ -1704,6 +1852,7 @@ export class Edytor extends EventTarget {
   // (kursor staje w miejscu kliknięcia) – bez niego zaznaczony jest cały tekst komórki.
   edytujKomorke(tabela, komorka, zdarzenie) {
     if (!toTabela(tabela) || tabela.zWzorca) return null;
+    if (toKalendarz(tabela)) return null; // daty kalendarza układa aplikacja (#131A)
     const c = Array.isArray(komorka) ? komorkiTabeli(tabela)[komorka[0] * tabela.tabela.kolumny.length + komorka[1]] : komorka;
     if (!c || c.group !== tabela) return null;
     this._wybierzKomorke(tabela, miejsceKomorki(tabela, c));
@@ -2003,7 +2152,7 @@ export class Edytor extends EventTarget {
 
   rozgrupuj() {
     const akt = this.aktywny;
-    if (!akt || akt.type !== 'group' || toTabela(akt)) return; // tabela jest jednym elementem
+    if (!akt || akt.type !== 'group' || jednolity(akt)) return; // tabela i wykres są jednym elementem
     // Grupa leżąca w otwartej grupie rozkłada się na elementy tej grupy; inaczej – na elementy arkusza.
     if (akt.parent && akt.parent !== this._otwarta) return;
     const c = this.canvas;
@@ -2263,6 +2412,9 @@ export class Edytor extends EventTarget {
     const akt = this.aktywny;
     // Zmiana w tabeli albo w jej komórce: układ liczy się od nowa.
     const tabela = toTabela(akt) ? akt : (toTabela(akt?.group) ? akt.group : null);
+    if (toKalendarz(tabela)) { utrwalSkaleTabeli(tabela); ulozElementDanych(tabela); }
+    if (toWykres(akt)) ulozElementDanych(akt);
+    if (toKolaz(akt)) ulozKolaz(akt);
     if (tabela) { if (!utrwalSkaleTabeli(tabela)) ulozTabele(tabela); this._przygotujTabele(tabela); }
     if (akt) akt.setCoords();
     this.canvas.requestRenderAll();
@@ -2276,13 +2428,13 @@ export class Edytor extends EventTarget {
       const szukaj = (g) => {
         for (const o of g.getObjects()) {
           if (o.id === id) return o;
-          const d = o.type === 'group' && !toTabela(o) ? szukaj(o) : null;
+          const d = o.type === 'group' && !jednolity(o) ? szukaj(o) : null;
           if (d) return d;
         }
         return null;
       };
       for (const g of this.canvas.getObjects()) {
-        const d = g.type === 'group' && !toTabela(g) && !g.zWzorca && !g.zablokowany ? szukaj(g) : null;
+        const d = g.type === 'group' && !jednolity(g) && !g.zWzorca && !g.zablokowany ? szukaj(g) : null;
         if (d) { this.otworzGrupe(d.parent, d); return; }
       }
       return;
@@ -2303,7 +2455,7 @@ export class Edytor extends EventTarget {
   // Czy grupę da się otworzyć: zwykła grupa na arkuszu albo grupa leżąca w otwartej grupie (kolejny poziom)
   // – nie tabela, nie element wzorca, nie zablokowana.
   _doOtwarcia(g) {
-    return Boolean(g && g.type === 'group' && !toTabela(g) && !g.zWzorca && !g.zablokowany && g.canvas === this.canvas
+    return Boolean(g && g.type === 'group' && !jednolity(g) && !g.zWzorca && !g.zablokowany && g.canvas === this.canvas
       && (!g.parent || g.parent === this._otwarta || this._sciezkaOtwartych().includes(g)));
   }
 
@@ -2452,7 +2604,7 @@ export class Edytor extends EventTarget {
     if (typeof wybrany === 'string') {
       const kroki = wybrany.split('.').map(Number);
       wybrany = kroki.pop();
-      for (const nr of kroki) g = g?.type === 'group' && !toTabela(g) ? g.getObjects()[nr] : null;
+      for (const nr of kroki) g = g?.type === 'group' && !jednolity(g) ? g.getObjects()[nr] : null;
     } else if (wybrany && typeof wybrany === 'object' && wybrany.parent && wybrany.parent !== g) g = wybrany.parent;
     if (!g || g.type !== 'group' || toTabela(g)) return null;
     const dzieci = g.getObjects();
@@ -3144,7 +3296,9 @@ export class Edytor extends EventTarget {
     const c = this.canvas;
     const p = c.getScenePoint(e);
     const lista = c.getObjects().filter((o) => !o.zWzorca && !o.kadr && o.visible !== false && o.evented !== false);
-    return c.searchPossibleTargets(lista, p)?.target || null;
+    const cel = c.searchPossibleTargets(lista, p)?.target || null;
+    // Kolaż: pole pod kursorem (zdjęcie upuszczone na kolaż trafia do tego pola).
+    return toKolaz(cel) ? (this.polaKolazuWPunkcie(cel, p) || cel) : cel;
   }
 
   moznaWstawicObraz(obj) { return Boolean(obj && !obj.zWzorca && !obj.zablokowany && moznaWstawicObraz(obj)); }
@@ -3335,7 +3489,7 @@ export class Edytor extends EventTarget {
       otwarta: o === this._korzenOtwartej(), // grupa, w której zmieniane są pojedyncze elementy
       // Zawartość grupy (od wierzchu), razem z zawartością grup w niej; tabela jest jednym elementem
       // i nie pokazuje swoich części.
-      dzieci: o.type === 'group' && !toTabela(o) ? this._dzieciGrupy(o, zaznaczone) : null,
+      dzieci: o.type === 'group' && !jednolity(o) ? this._dzieciGrupy(o, zaznaczone) : null,
     }));
   }
 
@@ -3344,7 +3498,7 @@ export class Edytor extends EventTarget {
   _dzieciGrupy(g, zaznaczone, sciezka = '', poziom = 1) {
     const lista = [];
     g.getObjects().map((d, nr) => [d, `${sciezka}${nr}`]).reverse().forEach(([d, nr]) => {
-      const grupa = d.type === 'group' && !toTabela(d);
+      const grupa = d.type === 'group' && !jednolity(d);
       lista.push({ nr, typ: d.type, opis: opisObiektu(d), ukryty: d.visible === false, zaznaczony: zaznaczone.has(d), poziom, otwarta: grupa && this._sciezkaOtwartych().includes(d) });
       if (grupa) lista.push(...this._dzieciGrupy(d, zaznaczone, `${nr}.`, poziom + 1));
     });
@@ -3356,8 +3510,8 @@ export class Edytor extends EventTarget {
     let g = this._poId(id);
     const kroki = String(nr).split('.').map(Number);
     const ostatni = kroki.pop();
-    for (const k of kroki) g = g?.type === 'group' && !toTabela(g) ? g.getObjects()[k] : null;
-    return g?.type === 'group' && !toTabela(g) ? { g, d: g.getObjects()[ostatni] || null } : { g: null, d: null };
+    for (const k of kroki) g = g?.type === 'group' && !jednolity(g) ? g.getObjects()[k] : null;
+    return g?.type === 'group' && !jednolity(g) ? { g, d: g.getObjects()[ostatni] || null } : { g: null, d: null };
   }
 
   // Ukrywa albo pokazuje pojedynczy element grupy (nr = miejsce w grupie, od spodu).
@@ -3827,6 +3981,9 @@ export function opisObiektu(o) {
 }
 
 export function nazwaTypu(o) {
+  if (toKalendarz(o)) return 'Kalendarz miesiąca';
+  if (toWykres(o)) return 'Wykres';
+  if (toKolaz(o)) return 'Kolaż';
   if (toTabela(o)) return 'Tabela';
   if (toTabela(o.group)) return 'Komórka tabeli';
   return NAZWY_TYPOW[o.type] || o.type;

@@ -20,6 +20,7 @@ import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
 import { przygotujObrazyKsztaltow, moznaWstawicObraz } from './obraz-w-ksztalcie.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
+import { ulozElementyDanych } from './elementy-danych.js';
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150">'
@@ -181,6 +182,7 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
     const surowe = obrazyZPol(podstawWObiektach(w.obiekty, wartosc), wartosc, projekt.zasoby);
     if (!oryginaly) await przygotujKopie(projekt.zasoby, surowe);
     const obiekty = await ozyw(podmienZasoby(surowe, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, surowe))));
+    ulozElementyDanych(obiekty, { projekt, wartosc }); // kalendarze i wykresy z danych tej strony (#131A)
     wpiszWRamki(obiekty);
     rozlejWatki(obiekty); // po podstawieniu danych tekst ma inną długość
     for (const o of obiekty) {
@@ -282,6 +284,7 @@ export async function tabeleEgzemplarza(projekt, egz, ciag) {
     const tabele = podstawWObiektach((obiekty || []).filter((o) => o.tabela), wartosc).filter((o) => o.visible !== false);
     if (!tabele.length) continue;
     const zywe = await ozyw(tabele);
+    ulozElementyDanych(zywe, { projekt, wartosc });
     wpiszWRamki(zywe);
     for (const o of zywe) wynik.push({ obiekt: o, zrodlo, id: o.id });
   }
@@ -299,6 +302,8 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, tresc))));
+  // Kalendarze i wykresy: miesiąc i liczby z danych tej strony (#131A).
+  ulozElementyDanych(wlasne, { projekt, wartosc: egz ? wartosciPol(projekt, egz, rozwiniety) : undefined });
   wpiszWRamki(wlasne);
   // Po podstawieniu danych tekst ma inną długość – połączone ramki przelewają go od nowa.
   // Ramki tych samych wątków z innych stron biorą udział w przelewaniu, ale nie są tu rysowane.

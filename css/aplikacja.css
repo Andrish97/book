@@ -2815,3 +2815,65 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
   .usun-tlo-pole { max-height: 48vh; }
   .usun-tlo-pole canvas { max-height: 48vh; }
 }
+
+/* ---------- Biblioteka (#131A, #134): wyszukiwarka, kategorie, kafelki elementów ---------- */
+.dialog-biblioteki { width: min(600px, calc(100vw - 32px)); padding: 0; }
+/* Na komputerze: panel obok strony, bez zaciemnienia – można przeciągać elementy na stronę. */
+.dialog-biblioteki.obok-strony {
+  position: fixed; inset: 70px 16px auto auto; margin: 0; width: 380px; max-height: calc(100vh - 92px);
+  box-shadow: var(--cien-2); border: 1px solid var(--linia); z-index: 30;
+}
+.biblioteka { display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 12px; max-height: inherit; min-height: 0; box-sizing: border-box; }
+.dialog-biblioteki:not(.obok-strony) .biblioteka { max-height: min(80vh, 720px); }
+.biblioteka .naglowek-dialogu { margin: 0; }
+.szukaj-w-bibliotece {
+  display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; flex: none;
+  border: 1px solid transparent; border-radius: 999px; background: var(--wypelnienie); color: var(--cichy); cursor: text;
+}
+.szukaj-w-bibliotece:focus-within { background: var(--powierzchnia); border-color: var(--akcent); color: var(--akcent); }
+.szukaj-w-bibliotece input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0 !important; background: none !important; box-shadow: none !important; outline: none; font: inherit; font-size: 14px; color: var(--tusz); }
+:root[data-dotyk] .szukaj-w-bibliotece { height: 42px; }
+:root[data-dotyk] .szukaj-w-bibliotece input { font-size: 16px; }
+.kategorie-biblioteki { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
+.chip-biblioteki {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border: 1px solid var(--linia);
+  border-radius: 999px; background: var(--powierzchnia); color: var(--tusz-2); font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.chip-biblioteki[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); border-color: transparent; font-weight: 600; }
+.kategorie-biblioteki.przy-szukaniu .chip-biblioteki[aria-pressed="true"] { background: var(--powierzchnia); color: var(--tusz-2); border-color: var(--linia); font-weight: 400; }
+@media (hover: hover) { .chip-biblioteki:hover { border-color: var(--linia-mocna); } }
+:root[data-dotyk] .chip-biblioteki { height: 38px; }
+/* Telefon: kategorie w jednym przewijanym rzędzie. */
+@media (max-width: 860px) { .kategorie-biblioteki { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; } }
+.elementy-biblioteki {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; overflow-y: auto; min-height: 120px;
+  align-content: start; overscroll-behavior: contain; padding: 2px;
+}
+.kafel-biblioteki {
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0;
+  padding: 8px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); color: var(--tusz); cursor: pointer; font: inherit;
+}
+.kafel-biblioteki[draggable="true"] { cursor: grab; }
+.kafel-biblioteki:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
+@media (hover: hover) { .kafel-biblioteki:hover { border-color: var(--akcent); background: var(--akcent-tlo); } }
+.kafel-biblioteki.duzy { grid-column: span 2; aspect-ratio: auto; min-height: 120px; text-align: center; }
+.kafel-biblioteki strong { font-size: 12.5px; font-weight: 600; line-height: 1.25; }
+.kafel-biblioteki small { font-size: 11px; color: var(--cichy); line-height: 1.3; }
+.podglad-biblioteki { display: grid; place-items: center; width: 100%; flex: 1; min-height: 0; }
+.podglad-biblioteki svg { width: 100%; height: 100%; max-width: 54px; max-height: 54px; overflow: visible; }
+.kafel-biblioteki.duzy .podglad-biblioteki svg { max-width: 84px; max-height: 62px; }
+.podglad-biblioteki path { fill: color-mix(in srgb, var(--akcent) 22%, var(--powierzchnia)); stroke: var(--tusz-2); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.podglad-biblioteki path.otwarta { fill: none; stroke-width: 4; }
+.podglad-biblioteki rect { fill: color-mix(in srgb, var(--akcent) 18%, var(--powierzchnia)); stroke: var(--tusz-2); stroke-width: 0.8; }
+.podglad-biblioteki rect.tlo { fill: var(--powierzchnia); }
+.podglad-biblioteki rect.pasek { fill: color-mix(in srgb, var(--akcent) 30%, var(--powierzchnia)); stroke: none; }
+.podglad-biblioteki rect.dz { fill: var(--wypelnienie); stroke: none; }
+.podglad-biblioteki rect.nd { fill: color-mix(in srgb, #c62828 35%, var(--powierzchnia)); stroke: none; }
+.podglad-wykresu path, .podglad-wykresu rect { stroke: var(--tusz-2); stroke-width: 1.4; fill: color-mix(in srgb, var(--akcent) 45%, var(--powierzchnia)); }
+.podglad-wykresu path.linia { fill: none; stroke: var(--akcent); stroke-width: 2.4; }
+.podglad-wykresu path.drugi { fill: color-mix(in srgb, #e07b39 55%, var(--powierzchnia)); }
+.pusto-biblioteki { grid-column: 1 / -1; padding: 16px 4px; }
+.podpowiedz-biblioteki { font-size: 12px; margin: 0; flex: none; }
+:root[data-dotyk] .podpowiedz-biblioteki { display: none; }
+/* Panel wykresu: lista kolumn z liczbami. */
+.kolumny-wykresu { gap: 6px; }
