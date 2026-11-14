@@ -1,4 +1,5 @@
-// Zapis projektów w Supabase: tabela `projekty` (jsonb) + bucket `zasoby`.
+// Zapis projektów w Supabase: tabela `projekty` (jsonb); pliki (obrazy, czcionki, obrazy stron linków)
+// w Cloudflare R2 za przekaźnikiem api.makietka.app (cloudflare/api-worker.js, decyzja #92).
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './konfiguracja.js';
 import { blobZasobu } from './zasoby.js';
@@ -9,9 +10,69 @@ import { biblioteka } from './biblioteki.js';
 const SUPABASE_JS = 'js/zewnetrzne/supabase-js-2.57.4.umd.js';
 const BUCKET = 'zasoby';
 const BUCKET_PODGLADOW = 'podglady'; // publiczny: obrazy stron udostępnionych linkiem
-const ROK_S = 365 * 24 * 3600;
+// Pliki pod daną ścieżką nigdy się nie zmieniają (podmiana i zmiana nazwy dają nowy identyfikator, #68).
+const NA_ROK = 'private, max-age=31536000, immutable';
 
 let klient = null;
+
+// ---------- Pliki w R2 (przez przekaźnik) ----------
+//
+// /pliki/<ścieżka> – pliki konta i projektów („zasoby”), /podglady/<ścieżka> – obrazy stron linków (publiczne).
+// Uprawnienia sprawdza przekaźnik tokenem sesji (właściciel, współpracownik projektu), limity – też on.
+
+export class BladPliku extends Error {
+  constructor(komunikat, status, kod = '') { super(komunikat); this.status = status; this.kod = kod; }
+}
+
+async function tokenSesji() {
+  const sb = await supabase();
+  const { data } = await sb.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Nie jesteś zalogowany.');
+  return token;
+}
+
+const kodujSciezke = (s) => s.split('/').map(encodeURIComponent).join('/');
+const sciezkaPliku = (bucket, klucz) => `${SUPABASE_URL}/${bucket === BUCKET_PODGLADOW ? 'podglady' : 'pliki'}/${kodujSciezke(klucz)}`;
+
+async function zapytaniePliku(adres, { metoda = 'GET', tresc, typ, cache, bezLogowania = false } = {}) {
+  const naglowki = {};
+  if (!bezLogowania) naglowki.authorization = `Bearer ${await tokenSesji()}`;
+  if (typ) naglowki['content-type'] = typ;
+  if (cache) naglowki['x-cache-control'] = cache;
+  const odp = await fetch(adres, { method: metoda, headers: naglowki, body: tresc });
+  if (!odp.ok) {
+    let dane = null;
+    try { dane = await odp.json(); } catch { /* nie JSON */ }
+    throw new BladPliku(dane?.blad || `Plik niedostępny (błąd ${odp.status}).`, odp.status, dane?.kod || '');
+  }
+  return odp;
+}
+
+export const r2 = {
+  wyslij: async (bucket, klucz, blob, { cache } = {}) => (await zapytaniePliku(sciezkaPliku(bucket, klucz), {
+    metoda: 'PUT', tresc: blob, typ: blob.type || 'application/octet-stream', cache,
+  })).json(),
+  pobierz: async (bucket, klucz) => (await zapytaniePliku(sciezkaPliku(bucket, klucz))).blob(),
+  // Wszystkie pliki pod prefiksem (z podfolderami): [{ klucz, rozmiar, czas }]. Tylko z własnego folderu.
+  lista: async (bucket, prefiks) => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_lista?bucket=${bucket}&prefiks=${encodeURIComponent(prefiks)}`)).json(),
+  usun: async (bucket, klucze) => {
+    for (let i = 0; i < klucze.length; i += 500) {
+      // eslint-disable-next-line no-await-in-loop
+      await zapytaniePliku(`${SUPABASE_URL}/pliki/_usun`, { metoda: 'POST', tresc: JSON.stringify({ bucket, klucze: klucze.slice(i, i + 500) }), typ: 'application/json' });
+    }
+  },
+  // { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku, pliki_razem, limit_plikow }
+  miejsce: async () => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_miejsce`)).json(),
+  // [{ bucket, nazwa, rozmiar }] – pliki konta bez odwołań (starsze niż 2 dni).
+  osierocone: async () => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_osierocone`)).json(),
+};
+
+// Jednorazowe przeniesienie plików z Supabase Storage do R2 (js/przeniesienie-plikow.js): pobieranie
+// czeka na jego koniec, żeby otwierany projekt nie szukał w R2 plików, które jeszcze są w starym magazynie.
+let przeniesienie = null;
+export function czekajNaPrzeniesienie(obietnica) { przeniesienie = obietnica; }
+async function poPrzeniesieniu() { if (przeniesienie) { try { await przeniesienie; } catch { /* błąd przeniesienia – pliki zostały w starym magazynie */ } } }
 
 export const chmuraSkonfigurowana = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
@@ -72,6 +133,9 @@ const KOMUNIKATY = {
 export function komunikatBledu(e) {
   if (e?.kod && KOMUNIKATY[e.kod]) return KOMUNIKATY[e.kod];
   const m = String(e?.message || e || '');
+  // Limity z bazy (migracja 20261114180000_pliki_r2_limity.sql): „limit_projektow: Masz już …”.
+  const limit = /\blimit_(projektow|osob):\s*(.+)$/s.exec(m);
+  if (limit) return limit[2].trim();
   const mapa = [
     [/invalid login credentials/i, KOMUNIKATY.invalid_credentials],
     [/email not confirmed/i, KOMUNIKATY.email_not_confirmed],
@@ -161,7 +225,13 @@ export async function wyloguj(wszedzie = false) {
 export async function usunKonto() {
   const sb = await supabase();
   for (const p of await listaWChmurze()) await usunZChmury(p.id);
-  try { const k = await kontoCzcionek(); await k.usun((await k.pliki()).map((p) => p.name)); } catch { /* brak plików */ }
+  // Wszystkie pozostałe pliki konta w R2 (czcionki, pliki porzuconych projektów, obrazy stron linków).
+  const uzytkownik = await biezacyUzytkownik();
+  if (uzytkownik) {
+    for (const bucket of [BUCKET, BUCKET_PODGLADOW]) {
+      try { await r2.usun(bucket, (await r2.lista(bucket, `${uzytkownik.id}/`)).map((p) => p.klucz)); } catch { /* zostaną dla sprzątania */ }
+    }
+  }
   sprawdz(await sb.rpc('usun_konto'));
   await sb.auth.signOut({ scope: 'local' }).catch(() => {});
 }
@@ -250,10 +320,9 @@ export async function zapiszWChmurze(projekt, { wymus = false, postep = null } =
     // Pliki projektu leżą w folderze jego właściciela – także te wgrane przez współpracownika.
     const sciezka = `${projekt.wspolpraca_chmury?.wlasciciel || uzytkownik.id}/${projekt.id}/${id}`;
     // Plik pod tą ścieżką nigdy się nie zmienia (podmiana i zmiana nazwy dają nowy identyfikator, #68), więc
-    // przeglądarka i sieć dostarczania mogą go trzymać długo – kolejne pobranie nie liczy się do transferu.
-    sprawdz(await sb.storage.from(BUCKET).upload(sciezka, blob, {
-      upsert: true, contentType: blob.type || zasob.typ || 'application/octet-stream', cacheControl: String(ROK_S),
-    }));
+    // przeglądarka może go trzymać długo – kolejne pobranie nie liczy się do transferu.
+    const typ = blob.type || zasob.typ || 'application/octet-stream';
+    await r2.wyslij(BUCKET, sciezka, blob.type ? blob : new Blob([blob], { type: typ }), { cache: NA_ROK });
     if (czyOdAi(zasob.sciezka)) odAi.push(zasob.sciezka);
     zasob.sciezka = sciezka;
   }
@@ -310,9 +379,12 @@ const czcionkiZKonta = new Map();
 // nic nie wskazuje na niego w projekcie, więc jest tylko zajętym miejscem.
 export async function usunZasobZKonta(sciezka) {
   if (!sciezka) return;
-  const sb = await supabase();
-  if (czyOdAi(sciezka)) { sprawdz(await sb.rpc('usun_obraz_ai', { p_id: sciezka.slice(3) })); return; }
-  sprawdz(await sb.storage.from(BUCKET).remove([sciezka]));
+  if (czyOdAi(sciezka)) {
+    const sb = await supabase();
+    sprawdz(await sb.rpc('usun_obraz_ai', { p_id: sciezka.slice(3) }));
+    return;
+  }
+  await r2.usun(BUCKET, [sciezka]);
 }
 
 // Obraz wgrany przez AI: czeka w tabeli obrazy_ai (migracja 20261112090000_obrazy_ai.sql), w projekcie ma
@@ -325,7 +397,7 @@ export async function sprzatnijPliki(projektId) {
   const sb = await supabase();
   const sciezki = sprawdz(await sb.rpc('pliki_do_usuniecia', { p_projekt: projektId })) || [];
   if (!sciezki.length) return 0;
-  sprawdz(await sb.storage.from(BUCKET).remove(sciezki));
+  await r2.usun(BUCKET, sciezki);
   sprawdz(await sb.rpc('pliki_usuniete', { p_projekt: projektId, p_sciezki: sciezki }));
   return sciezki.length;
 }
@@ -435,20 +507,18 @@ export async function pobierzZasob(sciezka) {
     }
     return blob;
   }
-  return sprawdz(await sb.storage.from(BUCKET).download(sciezka));
+  await poPrzeniesieniu();
+  return r2.pobierz(BUCKET, sciezka);
 }
 
 export async function usunZChmury(id) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (uzytkownik) {
-    const folder = `${uzytkownik.id}/${id}`;
-    const pliki = sprawdz(await sb.storage.from(BUCKET).list(folder));
-    if (pliki?.length) {
-      sprawdz(await sb.storage.from(BUCKET).remove(pliki.map((p) => `${folder}/${p.name}`)));
-    }
+    const pliki = await r2.lista(BUCKET, `${uzytkownik.id}/${id}/`);
+    if (pliki.length) await r2.usun(BUCKET, pliki.map((p) => p.klucz));
+    await usunPodglady(`${uzytkownik.id}/${id}`);
   }
-  await usunPodglady(sb, `${uzytkownik?.id}/${id}`);
   sprawdz(await sb.from('projekty').delete().eq('id', id));
 }
 
@@ -460,23 +530,24 @@ const FOLDER_CZCIONEK = '_czcionki';
 const SPIS_CZCIONEK = 'spis.json';
 
 export async function kontoCzcionek() {
-  const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
   const folder = `${uzytkownik.id}/${FOLDER_CZCIONEK}`;
-  const magazyn = sb.storage.from(BUCKET);
-  const pliki = async () => sprawdz(await magazyn.list(folder, { limit: 1000 })) || [];
+  await poPrzeniesieniu();
+  // [{ name }] – pliki bezpośrednio w folderze czcionek.
+  const pliki = async () => (await r2.lista(BUCKET, `${folder}/`))
+    .map((p) => ({ name: p.klucz.slice(folder.length + 1) })).filter((p) => p.name && !p.name.includes('/'));
   return {
     pliki,
     // Najpierw lista plików: brak spisu to pusty zbiór, a brak połączenia to błąd (nie „pusto”).
     spis: async () => {
       if (!(await pliki()).some((p) => p.name === SPIS_CZCIONEK)) return { czcionki: [], usuniete: [] };
-      return JSON.parse(await sprawdz(await magazyn.download(`${folder}/${SPIS_CZCIONEK}`)).text());
+      return JSON.parse(await (await r2.pobierz(BUCKET, `${folder}/${SPIS_CZCIONEK}`)).text());
     },
-    zapiszSpis: async (spis) => sprawdz(await magazyn.upload(`${folder}/${SPIS_CZCIONEK}`, new Blob([JSON.stringify(spis)], { type: 'application/json' }), { upsert: true, contentType: 'application/json', cacheControl: '0' })),
-    wyslij: async (plik, blob) => sprawdz(await magazyn.upload(`${folder}/${plik}`, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' })),
-    pobierz: async (plik) => sprawdz(await magazyn.download(`${folder}/${plik}`)),
-    usun: async (lista) => (lista.length ? sprawdz(await magazyn.remove(lista.map((n) => `${folder}/${n}`))) : null),
+    zapiszSpis: (spis) => r2.wyslij(BUCKET, `${folder}/${SPIS_CZCIONEK}`, new Blob([JSON.stringify(spis)], { type: 'application/json' }), { cache: 'no-cache' }),
+    wyslij: (plik, blob) => r2.wyslij(BUCKET, `${folder}/${plik}`, blob, { cache: 'private, max-age=3600' }),
+    pobierz: (plik) => r2.pobierz(BUCKET, `${folder}/${plik}`),
+    usun: async (lista) => (lista.length ? r2.usun(BUCKET, lista.map((n) => `${folder}/${n}`)) : null),
   };
 }
 
@@ -495,31 +566,17 @@ export function blobNaDataUrl(blob) {
 // ścieżką <konto>/<projekt>/<losowy kod>/. Kto zna link, widzi obrazy; do
 // projektu i jego danych nie ma dostępu. Wyłączenie linku usuwa pliki.
 
-export const adresPodgladu = (sciezka) => `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_PODGLADOW}/${sciezka}`;
+export const adresPodgladu = (sciezka) => sciezkaPliku(BUCKET_PODGLADOW, sciezka);
 
-async function plikiFolderu(sb, folder) {
-  const wszystkie = [];
-  for (let od = 0; ; od += 1000) {
-    const czesc = sprawdz(await sb.storage.from(BUCKET_PODGLADOW).list(folder, { limit: 1000, offset: od }));
-    wszystkie.push(...czesc);
-    if (czesc.length < 1000) return wszystkie;
-  }
-}
-
-async function usunPliki(sb, sciezki) {
-  for (let i = 0; i < sciezki.length; i += 200) {
-    sprawdz(await sb.storage.from(BUCKET_PODGLADOW).remove(sciezki.slice(i, i + 200)));
-  }
-}
+// Pliki folderu linku (ścieżki pełne) – z podfolderami.
+const plikiFolderu = async (folder) => (await r2.lista(BUCKET_PODGLADOW, `${folder}/`)).map((p) => p.klucz);
+const usunPliki = (sciezki) => (sciezki.length ? r2.usun(BUCKET_PODGLADOW, sciezki) : null);
 
 // Usuwa wszystkie udostępnienia projektu (folder <konto>/<projekt>).
-async function usunPodglady(sb, folderProjektu) {
+async function usunPodglady(folderProjektu) {
   try {
-    for (const kod of await plikiFolderu(sb, folderProjektu)) {
-      const folder = `${folderProjektu}/${kod.name}`;
-      await usunPliki(sb, (await plikiFolderu(sb, folder)).map((p) => `${folder}/${p.name}`));
-    }
-  } catch { /* brak bucketu albo plików – nie blokuje usuwania projektu */ }
+    await usunPliki(await plikiFolderu(folderProjektu));
+  } catch { /* brak plików albo sieci – nie blokuje usuwania projektu; zostaną dla sprzątania */ }
 }
 
 // Obrazy stron linku: WebP (o ok. 30–40% lżejszy od JPEG przy tej samej jakości), a w przeglądarce, która
@@ -533,11 +590,9 @@ const wersjaObrazu = (manifest, id) => (manifest.skroty?.[id] || '').slice(0, 16
 // Zwraca { konto, zaktualizowano }.
 // odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
 export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg' } = {}) {
-  const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
   const folder = `${uzytkownik.id}/${projektId}/${kod}`;
-  const magazyn = sb.storage.from(BUCKET_PODGLADOW);
   // Skróty obrazów z poprzedniej publikacji: strona, której obraz się nie
   // zmienił, nie jest wysyłana drugi raz.
   let poprzednie = {};
@@ -560,7 +615,8 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
     const plik = await obraz(s);
     skroty[s.id] = await skrotPliku(plik);
     if (poprzednie[s.id] !== skroty[s.id]) {
-      sprawdz(await magazyn.upload(`${folder}/${s.id}.${rozszerzenie}`, plik, { upsert: true, contentType: typZRozszerzenia(rozszerzenie), cacheControl: '3600' }));
+      // Adres obrazu ma wersję (skrót) w zapytaniu – przeglądarka może go trzymać długo.
+      await r2.wyslij(BUCKET_PODGLADOW, `${folder}/${s.id}.${rozszerzenie}`, new Blob([plik], { type: typZRozszerzenia(rozszerzenie) }), { cache: 'public, max-age=31536000, immutable' });
       wyslane += 1;
     }
     gotowe += 1;
@@ -568,14 +624,12 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
   }
   // Obrazy stron usuniętych od poprzedniej aktualizacji.
   const potrzebne = new Set([...strony.map((s) => `${s.id}.${rozszerzenie}`), 'manifest.json']);
-  const zbedne = (await plikiFolderu(sb, folder)).filter((p) => !potrzebne.has(p.name)).map((p) => `${folder}/${p.name}`);
-  if (zbedne.length) await usunPliki(sb, zbedne);
+  const zbedne = (await plikiFolderu(folder)).filter((k) => !potrzebne.has(k.slice(folder.length + 1)));
+  if (zbedne.length) await usunPliki(zbedne);
 
   const zaktualizowano = new Date().toISOString();
   const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, rozszerzenie, ...(odciski ? { tresci: odciski } : {}) };
-  sprawdz(await magazyn.upload(`${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), {
-    upsert: true, contentType: 'application/json', cacheControl: '0',
-  }));
+  await r2.wyslij(BUCKET_PODGLADOW, `${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), { cache: 'no-cache' });
   return { konto: uzytkownik.id, zaktualizowano, wyslane, wszystkie: strony.length };
 }
 
@@ -591,11 +645,9 @@ export async function zapiszMotyw(motyw) {
 }
 
 export async function wylaczPodglad(projektId, kod) {
-  const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
-  const folder = `${uzytkownik.id}/${projektId}/${kod}`;
-  await usunPliki(sb, (await plikiFolderu(sb, folder)).map((p) => `${folder}/${p.name}`));
+  await usunPliki(await plikiFolderu(`${uzytkownik.id}/${projektId}/${kod}`));
 }
 
 // Odczyt bez logowania (zwykłe pobranie pliku z publicznego adresu).

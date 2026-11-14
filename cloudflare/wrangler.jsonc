@@ -1,7 +1,7 @@
 // Przekaźnik api.makietka.app dla Cloudflare Workers Builds (integracja z GitHubem).
 // Ustawienia budowania: katalog główny „cloudflare”, polecenie wdrożenia „npx wrangler deploy”.
 // Bez sekretów – Worker przekazuje zapytania do bazy i obsługuje pliki w R2 (api-worker.js).
-// Bucket R2 „makietka-pliki” trzeba raz utworzyć w panelu Cloudflare (docs/KONFIGURACJA-DOMENY.md, „Pliki w R2”).
+// Bucket R2 „makietka-files” trzeba raz utworzyć w panelu Cloudflare (docs/KONFIGURACJA-DOMENY.md, „Pliki w R2”).
 {
   "name": "makietka-api",
   "main": "api-worker.js",
@@ -9,7 +9,7 @@
   "routes": [{ "pattern": "api.makietka.app", "custom_domain": true }],
   "workers_dev": false,
   "observability": { "enabled": true },
-  "r2_buckets": [{ "binding": "PLIKI", "bucket_name": "makietka-pliki" }],
+  "r2_buckets": [{ "binding": "PLIKI", "bucket_name": "makietka-files" }],
   "vars": {
     "SUPABASE_URL": "https://pganajmivwtstapnwsgv.supabase.co",
     "SUPABASE_KLUCZ": "sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq"

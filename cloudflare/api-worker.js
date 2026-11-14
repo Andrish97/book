@@ -4,7 +4,7 @@
 // Baza: wszystkie ścieżki idą bez zmian (/rest, /auth, /functions, /realtime – także WebSocket), z jednym
 // skrótem: /mcp/… → /functions/v1/mcp/… – adres zdalnego łącznika dla AI to https://api.makietka.app/mcp/<klucz>.
 //
-// Pliki (R2, binding PLIKI – bucket „makietka-pliki”, cloudflare/wrangler.jsonc):
+// Pliki (R2, binding PLIKI – bucket „makietka-files”, cloudflare/wrangler.jsonc):
 //   /pliki/<właściciel>/<projekt>/<id>       obrazy projektów                 → klucz R2 „zasoby/…”
 //   /pliki/<konto>/_czcionki/<plik>           „Moje czcionki” konta            → „zasoby/…”
 //   /podglady/<konto>/<projekt>/<kod>/<plik>  obrazy stron linków (publiczne)  → „podglady/…”
