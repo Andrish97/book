@@ -1,6 +1,6 @@
 // Formularz kontaktowy (decyzja #95) – jak w Familiadzie: wiadomość idzie do Workera api.makietka.app/kontakt
 // (pułapka na boty, Cloudflare Turnstile, limity na IP i adres), trafia do skrzynki kontakt@makietka.app
-// w panelu administratora, a nadawca dostaje potwierdzenie mailem. Działa też bez logowania (ekran logowania).
+// w panelu administratora (bez maila do nadawcy, decyzja #95h). Działa też bez logowania (ekran logowania).
 
 import { SUPABASE_URL } from '../konfiguracja.js';
 import { supabase } from '../chmura.js';
@@ -69,7 +69,7 @@ form.addEventListener('submit', async (e) => {
     form.tresc.value = '';
     kom.textContent = '';
     dlg.close();
-    powiadom('Dziękujemy! Wiadomość dotarła – potwierdzenie przyjdzie mailem.');
+    powiadom('Dziękujemy! Zgłoszenie dotarło – odpowiemy na podany adres.');
   } catch (err) {
     kom.textContent = err.message === 'Failed to fetch' ? 'Brak połączenia – spróbuj za chwilę.' : err.message;
     kom.className = 'komunikat blad';
