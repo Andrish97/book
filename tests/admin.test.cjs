@@ -63,6 +63,7 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   await strona.click('#admin-foldery [data-folder="archiwum"]');
   await strona.waitForFunction(() => document.querySelector('#admin-watki li')?.textContent.includes('Faktura'));
   // Rozmowa z noreply@: adres przy wiadomości, załącznik do pobrania (tylko administrator – przez Workera).
+  await strona.click('#admin-foldery [data-folder="skrzynka"]');
   await strona.click('#admin-watki li:has-text("Pomysł") button');
   await strona.waitForSelector('#admin-watek .na-adres');
   assert.equal(await strona.textContent('#admin-watek .na-adres'), 'na noreply@makietka.app');
