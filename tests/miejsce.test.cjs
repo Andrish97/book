@@ -42,7 +42,10 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   baza.obrazyAi.set('porzucone', { projekt_id: p.id, owner_id: KONTO, rozmiar: 10, dane: Buffer.alloc(10000), gotowy: false, utworzono: DAWNO });
 
   await strona.evaluate(() => { location.hash = '#/konto'; });
-  await strona.waitForFunction(() => /z 50 GB/.test(document.querySelector('#miejsce-razem').textContent));
+  await strona.waitForFunction(() => /z 2 GB/.test(document.querySelector('#miejsce-konto').textContent));
+  // Konto nie pokazuje danych całej aplikacji ani wspólnej puli (#100).
+  assert.equal(await strona.locator('#miejsce-razem, #miejsce-baza, #miejsce-aplikacji').count(), 0);
+  assert.doesNotMatch(await strona.textContent('#ust-miejsce'), /Cała aplikacja|wspólny|innych osób|10 GB|50 GB|Baza danych/);
   // Konto wobec własnego limitu (R2, #92) i limity w jednym zdaniu.
   assert.match(await strona.textContent('#miejsce-konto'), /z 2 GB/);
   assert.match(await strona.textContent('#miejsce-limity'), /Projekty: \d+ z 100\. Jeden plik – najwyżej 50 MB/);
@@ -67,8 +70,8 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   }
 
   // 80% limitu: ostrzeżenie w ustawieniach i przy wgrywaniu obrazu.
-  baza.limitPlikow = 1024 * 1024;
-  baza.inneKontaBajty = 900 * 1024;
+  const zajete = await strona.evaluate(async () => (await (await import('./js/miejsce.js')).miejsce({ swieze: true })).konto);
+  baza.limitKonta = Math.ceil(zajete / 0.85) + 2048;
   await strona.evaluate(() => { location.hash = '#/projekty'; });
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
   await strona.evaluate(() => { location.hash = '#/konto'; });

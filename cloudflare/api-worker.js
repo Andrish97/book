@@ -190,7 +190,7 @@ async function zapiszObiekt(env, zapytanie, klucz, wlasciciel, cors, domyslnyCac
     }, cors);
   }
   if (await zajetoscRazem(env) + tresc.byteLength > LIMITY.razem) {
-    return json(507, { blad: 'Magazyn plików aplikacji jest pełny – napisz do autora aplikacji.', kod: 'limit_razem' }, cors);
+    return json(507, { blad: 'Nie można teraz zapisać pliku – spróbuj później albo napisz do nas (Kontakt).', kod: 'limit_razem' }, cors);
   }
   const obiekt = await env.PLIKI.put(klucz, tresc, {
     httpMetadata: {
