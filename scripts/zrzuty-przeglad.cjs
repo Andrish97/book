@@ -627,10 +627,13 @@ async function zrzutyUrzadzenia(przegladarka, u, motyw) {
       if (!await s.locator('#udostepnij-haslo-wl').isChecked()) await s.check('#udostepnij-haslo-wl');
       await s.fill('#udostepnij-haslo', 'tajne-haslo');
       await s.click('#udostepnij-utworz');
-      await s.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 30000 });
+      await s.waitForFunction(() => { const k = document.querySelector('#udostepnij-komunikat'); return k.classList.contains('sukces') || k.classList.contains('blad'); }, null, { timeout: 120000 });
+      const kom = await s.evaluate(() => { const k = document.querySelector('#udostepnij-komunikat'); return k.classList.contains('sukces') ? '' : k.textContent; });
+      if (kom) throw new Error(`udostępnianie: ${kom}`);
+      await s.waitForFunction(() => document.querySelector('#udostepnij-link').value.includes('#/u/'), null, { timeout: 120000 });
       const link = await s.inputValue('#udostepnij-link');
       await widokiGoscia(przegladarka, u, motyw, baza, link, zrzutStrony);
-    } catch (e) { nieudane.push(`link: ${e.message.split('\n')[0]}`); }
+    } catch (e) { nieudane.push(`link: ${e.message.split("\n").slice(0, 3).join(" | ")}`); }
   }
   await kontekst.close();
   fs.writeFileSync(path.join(katalog, 'audyt.json'), JSON.stringify(audyt, null, 1));
