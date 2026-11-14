@@ -112,6 +112,8 @@ const akcjePodgladuZLinku = {
 };
 
 document.addEventListener('click', (e) => {
+  const polecenie = e.target.closest('[data-kopiuj-polecenie-ai]');
+  if (polecenie) { dostepAi().then((m) => m.kopiujPolecenieAi(polecenie.dataset.kopiujPolecenieAi)); return; }
   const b = e.target.closest('[data-akcja]');
   if (b) {
     const nazwa = b.dataset.akcja;

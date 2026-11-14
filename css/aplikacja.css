@@ -2201,3 +2201,14 @@ dialog { max-height: calc(100dvh - var(--bezp-gora) - var(--bezp-dol) - 16px); }
 .instrukcja-tresc a[data-rozdzial] { color: var(--akcent); text-decoration: underline; text-underline-offset: 2px; }
 /* Wąskie okno: spis to poziomy pasek – bez nagłówków grup (grupę pokazuje nagłówek rozdziału). */
 @media (max-width: 860px) { #instrukcja-rozdzialy li.grupa-spisu { display: none; } }
+
+/* ---------- Dostęp dla AI: jak podłączyć i gotowe polecenia (js/polecenia-ai.js, #107) ---------- */
+.dostep-ai-pomoc .dostep-ai-jak > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
+:root[data-dotyk] .dostep-ai-pomoc .dostep-ai-jak > summary { min-height: 44px; display: flex; align-items: center; }
+.dostep-ai-pomoc ul.dostep-ai-kroki { list-style: disc; }
+.dostep-ai-pomoc code { font-size: 12px; overflow-wrap: anywhere; }
+#dostep-ai-lista-polecen { display: flex; flex-direction: column; gap: 10px; }
+#dostep-ai-lista-polecen .prompt-instrukcji { border: 1px solid var(--linia); border-radius: var(--r-m, 8px); padding: 8px 10px; }
+#dostep-ai-lista-polecen .prompt-naglowek { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#dostep-ai-lista-polecen .ciche { margin: 4px 0; font-size: 13px; }
+#dostep-ai-lista-polecen pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow-y: auto; }
