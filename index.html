@@ -830,8 +830,8 @@
         <div class="karty-formatu" id="karty-formatu"></div>
       </fieldset>
       <div class="rzad" id="wlasny-format" hidden>
-        <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" inputmode="decimal"></label>
-        <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" inputmode="decimal"></label>
+        <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="any" inputmode="decimal"></label>
+        <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="any" inputmode="decimal"></label>
       </div>
       <div class="rzad">
         <div class="pole pole-orientacja">
@@ -841,8 +841,8 @@
             <label><input type="radio" name="orientacja" value="poziom"><span>Poziomo</span></label>
           </div>
         </div>
-        <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" value="3" inputmode="decimal"></label>
-        <label class="pole waskie"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="0.5" value="10" inputmode="decimal"></label>
+        <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="any" value="3" inputmode="decimal"></label>
+        <label class="pole waskie"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="any" value="10" inputmode="decimal"></label>
       </div>
       <div class="pole">
         <span>Układ stron</span>
@@ -896,8 +896,8 @@
         <legend>Format</legend>
         <label class="pole"><span>Format</span><select name="format"></select></label>
         <div class="rzad">
-          <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
-          <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
+          <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="any" required inputmode="decimal"></label>
+          <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="any" required inputmode="decimal"></label>
           <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="obroc"></button>
         </div>
       </fieldset>
@@ -941,12 +941,12 @@
           <label class="pole waskie"><span>Gramatura (g/m²)</span><input name="ok_gramatura" type="number" min="30" max="400" step="1" inputmode="numeric"></label>
           <label class="pole"><span>Rodzaj papieru</span><select name="ok_rodzaj"></select></label>
         </div>
-        <label class="pole waskie" id="pole-ok-grubosc" hidden><span>Grubość kartki (mm)</span><input name="ok_grubosc" type="number" min="0.02" max="2" step="0.005" inputmode="decimal"></label>
+        <label class="pole waskie" id="pole-ok-grubosc" hidden><span>Grubość kartki (mm)</span><input name="ok_grubosc" type="number" min="0.02" max="2" step="any" inputmode="decimal"></label>
         <div class="rzad" id="pole-ok-twarda" hidden>
-          <label class="pole waskie"><span>Zawinięcie (mm)</span><input name="ok_zawiniecie" type="number" min="0" max="50" step="0.5" inputmode="decimal"></label>
-          <label class="pole waskie"><span>Big (mm)</span><input name="ok_big" type="number" min="0" max="30" step="0.5" inputmode="decimal"></label>
-          <label class="pole waskie"><span>Naddatek tektury (mm)</span><input name="ok_naddatek" type="number" min="0" max="20" step="0.5" inputmode="decimal"></label>
-          <label class="pole waskie"><span>Grubość tektury (mm)</span><input name="ok_tektura" type="number" min="0" max="10" step="0.1" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Zawinięcie (mm)</span><input name="ok_zawiniecie" type="number" min="0" max="50" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Big (mm)</span><input name="ok_big" type="number" min="0" max="30" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Naddatek tektury (mm)</span><input name="ok_naddatek" type="number" min="0" max="20" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Grubość tektury (mm)</span><input name="ok_tektura" type="number" min="0" max="10" step="any" inputmode="decimal"></label>
         </div>
         <p class="podpowiedz">Grubość kartki (albo gramaturę i rodzaj papieru) podaje drukarnia. Okładka przelicza się sama, gdy przybędzie stron w środku – elementy grzbietu zostają na jego środku, a przód przesuwa się razem z nim.</p>
       </fieldset>
@@ -955,12 +955,12 @@
         <legend>Marginesy i spad (mm)</legend>
         <!-- Schemat strony (#109): pola stoją tam, gdzie margines leży na stronie; przerywana ramka to spad. -->
         <div class="schemat-marginesow" id="schemat-marginesow">
-          <label class="pole schemat-gora"><span>Górny</span><input name="margines_gora" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole schemat-lewy"><span id="etykieta-wewnetrzny">Lewy</span><input name="margines_wewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-gora"><span>Górny</span><input name="margines_gora" type="number" min="0" max="200" step="any" required inputmode="decimal"></label>
+          <label class="pole schemat-lewy"><span id="etykieta-wewnetrzny">Lewy</span><input name="margines_wewnetrzny" type="number" min="0" max="200" step="any" required inputmode="decimal"></label>
           <div class="schemat-strona" aria-hidden="true"><div class="schemat-spad"></div><div class="schemat-kartka"><div class="schemat-pole-tekstu"></div></div></div>
-          <label class="pole schemat-prawy"><span id="etykieta-zewnetrzny">Prawy</span><input name="margines_zewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole schemat-dol"><span>Dolny</span><input name="margines_dol" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole schemat-spad-pole"><span>Spad</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-prawy"><span id="etykieta-zewnetrzny">Prawy</span><input name="margines_zewnetrzny" type="number" min="0" max="200" step="any" required inputmode="decimal"></label>
+          <label class="pole schemat-dol"><span>Dolny</span><input name="margines_dol" type="number" min="0" max="200" step="any" required inputmode="decimal"></label>
+          <label class="pole schemat-spad-pole"><span>Spad</span><input name="spad_mm" type="number" min="0" max="20" step="any" required inputmode="decimal"></label>
         </div>
       </fieldset>
 
@@ -1515,7 +1515,7 @@
       <div class="rzad">
         <label class="pole"><span>Wiersze</span><input name="wiersze" type="number" min="1" max="60" step="1" value="4" required inputmode="numeric"></label>
         <label class="pole"><span>Kolumny</span><input name="kolumny" type="number" min="1" max="12" step="1" value="3" required inputmode="numeric"></label>
-        <label class="pole"><span>Najmniejsza wysokość wiersza (mm)</span><input name="wysokosc" type="number" min="3" max="100" step="0.5" value="9" required inputmode="decimal"></label>
+        <label class="pole"><span>Najmniejsza wysokość wiersza (mm)</span><input name="wysokosc" type="number" min="3" max="100" step="any" value="9" required inputmode="decimal"></label>
       </div>
       <label class="przelacznik"><input name="naglowek" type="checkbox" checked><span>Pierwszy wiersz to nagłówek</span></label>
       <div class="przyciski-dialogu">
