@@ -25,7 +25,10 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   assert.match(link, /#\/u\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{24}$/);
   assert.match(await strona.textContent('#udostepnij-stan'), /aktualny stan/);
   const pliki = [...baza.pliki.keys()].filter((k) => k.startsWith('podglady/'));
-  assert.equal(pliki.filter((k) => k.endsWith('.jpg')).length, 2, 'po jednym obrazie na stronę');
+  assert.equal(pliki.filter((k) => /\.(webp|jpg)$/.test(k)).length, 2, 'po jednym obrazie na stronę');
+  // Obrazy stron w WebP (lżejsze od JPEG, #89) – Chromium umie je zapisać.
+  assert.equal(pliki.filter((k) => k.endsWith('.webp')).length, 2);
+  assert.equal(baza.pliki.get(pliki.find((k) => k.endsWith('.webp'))).typ, 'image/webp');
   assert.equal(pliki.filter((k) => k.endsWith('manifest.json')).length, 1);
   const manifest = JSON.parse(baza.pliki.get(pliki.find((k) => k.endsWith('manifest.json'))).tresc.toString());
   assert.equal(manifest.uklad.nazwa, 'Do pokazania');
@@ -63,7 +66,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.waitForFunction((z) => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano !== z, stanPrzed, { timeout: 25000 });
   // Zmieniła się jedna strona z dwóch: narysowany i wysłany jest tylko jej obraz, do tego opis.
   const ponownie = baza.wyslania.slice(przedAktualizacja).filter((k) => k.startsWith('podglady/'));
-  assert.equal(ponownie.filter((k) => k.endsWith('.jpg')).length, 1);
+  assert.equal(ponownie.filter((k) => /\.(webp|jpg)$/.test(k)).length, 1);
   assert.equal(ponownie.filter((k) => k.endsWith('manifest.json')).length, 1);
   // Otwarty u gościa link sprawdza się sam (co minutę i przy powrocie do karty): podmienia się tylko
   // obraz zmienionej strony, a druga zostaje.
@@ -223,7 +226,7 @@ test('link z hasłem i datą ważności: obrazy poza publicznym folderem, pole h
   await strona.click('#udostepnij-ochrona-zapisz');
   await strona.waitForSelector('#udostepnij-komunikat.sukces');
   assert.equal(baza.chronione.size, 0);
-  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && k.endsWith('.jpg')).length, 2);
+  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && /\.(webp|jpg)$/.test(k)).length, 2);
   assert.match(await strona.textContent('#udostepnij-ochrona-stan'), /bez ochrony/);
   const g4 = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
   await g4.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id] img').length === 2);

@@ -65,6 +65,10 @@ export const wolnaNazwa = (p, nazwa) => wolnaNazwaWsrod(nazwa, (n) => Boolean(po
 export async function dodajPlik(p, blob, nazwa, skrot = null) {
   const id = uid('z');
   p.zasoby[id] = { nazwa, dataUrl: await naDataUrl(blob), skrot: skrot || await skrotPliku(blob), ...await wymiaryPliku(blob) };
+  // Kończy się miejsce na pliki aplikacji (#89) – ostrzeżenie najwyżej raz na 10 minut, bez czekania na nie.
+  if (typeof window !== 'undefined') {
+    Promise.all([import('./miejsce.js'), import('./ui.js')]).then(([m, ui]) => m.ostrzezPrzyWgrywaniu(ui.powiadom)).catch(() => {});
+  }
   return id;
 }
 

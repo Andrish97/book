@@ -4,6 +4,7 @@
 // Testy nie łączą się z prawdziwą bazą: js/konfiguracja.js jest podmieniany,
 // a zapytania do Supabase obsługuje atrapa z tego pliku.
 
+const crypto = require('node:crypto');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -71,6 +72,60 @@ function jakJsonb(x) {
   if (!x || typeof x !== 'object') return x;
   const klucze = Object.keys(x).sort((a, b) => a.length - b.length || (a < b ? -1 : (a > b ? 1 : 0)));
   return Object.fromEntries(klucze.map((k) => [k, jakJsonb(x[k])]));
+}
+
+// Funkcje miejsca i sprzątania – ta sama logika co w migracji 20261114150000_miejsce_na_koncie.sql.
+// Wiek pliku: stan.pliki.get(klucz).czas (test może go cofnąć), wiersze AI: utworzono, linki chronione: zmieniono.
+function miejsceAtrapy(stan, funkcja, tresc, k) {
+  const DWA_DNI = 2 * 24 * 3600 * 1000;
+  const prefiks = `${k.id}/`;
+  const rozmiarPliku = (p) => p.tresc?.length || 0;
+  const moje = [...stan.pliki].map(([klucz, p]) => ({ bucket: klucz.split('/')[0], nazwa: klucz.slice(klucz.indexOf('/') + 1), p }))
+    .filter((x) => (x.bucket === 'zasoby' || x.bucket === 'podglady') && x.nazwa.startsWith(prefiks));
+  const zasobyProjektu = (pr) => Object.values(pr.dane?.zasoby || {});
+  const chronione = [...(stan.chronione || new Map())].filter(([klucz]) => klucz.startsWith(prefiks));
+  const ai = [...(stan.obrazyAi || new Map())].filter(([, o]) => o.owner_id === k.id);
+  const bajtyAi = (o) => (o.dane?.length || 0) + [...(o.kawalki?.values() || [])].reduce((n, b) => n + b.length, 0);
+  if (funkcja === 'miejsce_na_koncie') {
+    const suma = (f) => moje.filter(f).reduce((n, x) => n + rozmiarPliku(x.p), 0);
+    return {
+      obrazy: suma((x) => x.bucket === 'zasoby' && !x.nazwa.startsWith(`${prefiks}_czcionki/`)),
+      czcionki: suma((x) => x.bucket === 'zasoby' && x.nazwa.startsWith(`${prefiks}_czcionki/`)),
+      podglady: suma((x) => x.bucket === 'podglady'),
+      plikow: moje.length,
+      chronione: chronione.reduce((n, [, u]) => n + [...u.pliki.values()].reduce((m, f) => m + (f.dane?.length || f.tresc?.length || 0), 0), 0),
+      od_ai: ai.reduce((n, [, o]) => n + bajtyAi(o), 0),
+      pliki_razem: [...stan.pliki].filter(([klucz]) => /^(zasoby|podglady)\//.test(klucz)).reduce((n, [, p]) => n + rozmiarPliku(p), 0) + (stan.inneKontaBajty || 0),
+      baza_razem: stan.bazaBajty ?? 12 * 1024 * 1024,
+      limit_plikow: stan.limitPlikow || 1073741824,
+      limit_bazy: 524288000,
+    };
+  }
+  if (funkcja === 'pliki_osierocone') {
+    const odwolania = new Set(stan.projekty.flatMap((pr) => zasobyProjektu(pr).map((z) => z?.sciezka)).filter(Boolean));
+    const linki = stan.projekty.filter((pr) => pr.owner_id === k.id && pr.dane?.udostepnienie?.kod).map((pr) => `${k.id}/${pr.id}/${pr.dane.udostepnienie.kod}/`);
+    return moje.filter((x) => Date.now() - (x.p.czas || 0) > DWA_DNI)
+      .filter((x) => (x.bucket === 'zasoby'
+        ? !x.nazwa.startsWith(`${prefiks}_czcionki/`) && !odwolania.has(x.nazwa)
+        : !linki.some((l) => x.nazwa.startsWith(l))))
+      .map((x) => ({ bucket: x.bucket, nazwa: x.nazwa, rozmiar: rozmiarPliku(x.p) }));
+  }
+  // posprzataj_konto
+  const uzytyAi = (id, o) => stan.projekty.some((pr) => pr.id === o.projekt_id && zasobyProjektu(pr).some((z) => z?.sciezka === `ai:${id}`));
+  const aiDoUsuniecia = ai.filter(([id, o]) => (!o.gotowy && Date.now() - o.utworzono > 24 * 3600 * 1000) || (o.gotowy && Date.now() - o.utworzono > DWA_DNI && !uzytyAi(id, o)));
+  const linkiDoUsuniecia = chronione.filter(([klucz, u]) => {
+    const [, idProjektu, kod] = klucz.split('/');
+    return Date.now() - (u.zmieniono || 0) > DWA_DNI && !stan.projekty.some((pr) => pr.id === idProjektu && pr.dane?.udostepnienie?.kod === kod);
+  });
+  const wynik = {
+    ai: aiDoUsuniecia.length, ai_bajty: aiDoUsuniecia.reduce((n, [, o]) => n + bajtyAi(o), 0),
+    linki: linkiDoUsuniecia.length, linki_bajty: linkiDoUsuniecia.reduce((n, [, u]) => n + [...u.pliki.values()].reduce((m, f) => m + (f.dane?.length || 0), 0), 0),
+  };
+  if (!tresc?.p_policz) {
+    for (const [id] of aiDoUsuniecia) stan.obrazyAi.delete(id);
+    for (const [klucz] of linkiDoUsuniecia) stan.chronione.delete(klucz);
+  }
+  return wynik;
 }
 
 // Atrapa Supabase: konta w pamięci, tabela projekty, storage – tyle, ile używa aplikacja.
@@ -247,7 +302,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         if (tresc.p_zmien_haslo && tresc.p_haslo && tresc.p_haslo.length < 4) return blad(r, 400, 'Hasło do linku musi mieć co najmniej 4 znaki', 'P0001');
         const u = stan.chronione.get(klucz) || { haslo: null, wazny_do: null, nieudane: 0, blokada_do: null, pliki: new Map() };
         if (tresc.p_zmien_haslo) u.haslo = tresc.p_haslo || null;
-        Object.assign(u, { wazny_do: tresc.p_wazny_do || null, nieudane: 0, blokada_do: null });
+        Object.assign(u, { wazny_do: tresc.p_wazny_do || null, nieudane: 0, blokada_do: null, zmieniono: Date.now() });
         stan.chronione.set(klucz, u);
         return json(r, 200, { haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
       }
@@ -309,8 +364,26 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
       const idProjektu = (url.searchParams.get('projekt_id') || '').replace('eq.', '');
       const p = stan.projekty.find((x) => x.id === idProjektu && x.owner_id === k.id);
-      const wiersze = p ? [...stan.strony].filter(([klucz]) => klucz.startsWith(`${p.id}/`)).map(([klucz, dane]) => ({ strona_id: klucz.slice(p.id.length + 1), dane: jakJsonb(dane) })) : [];
-      return json(r, 200, wiersze);
+      // Jak w bazie: kolumna skrot (md5 treści jsonb, migracja miejsce_na_koncie), filtr strona_id=in.(…) i select.
+      const tylko = /^in\.\((.*)\)$/.exec(url.searchParams.get('strona_id') || '')?.[1]?.split(',').map((x) => x.replace(/^"|"$/g, ''));
+      const kolumny = (url.searchParams.get('select') || 'strona_id,dane').split(',').map((x) => x.trim());
+      const wiersze = p ? [...stan.strony].filter(([klucz]) => klucz.startsWith(`${p.id}/`))
+        .map(([klucz, dane]) => ({ strona_id: klucz.slice(p.id.length + 1), dane }))
+        .filter((w) => !tylko || tylko.includes(w.strona_id))
+        .map((w) => {
+          const tekst = JSON.stringify(jakJsonb(w.dane));
+          const pelny = { strona_id: w.strona_id, skrot: crypto.createHash('md5').update(tekst).digest('hex'), dane: jakJsonb(w.dane) };
+          return Object.fromEntries(kolumny.filter((c) => c in pelny).map((c) => [c, pelny[c]]));
+        }) : [];
+      const tresc = JSON.stringify(wiersze);
+      stan.pobraneStrony = (stan.pobraneStrony || 0) + Buffer.byteLength(tresc);
+      return r.fulfill({ status: 200, contentType: 'application/json', body: tresc });
+    }
+    // Miejsce na koncie i sprzątanie (migracja 20261114150000_miejsce_na_koncie.sql).
+    if (/^\/rest\/v1\/rpc\/(miejsce_na_koncie|pliki_osierocone|posprzataj_konto)$/.test(sc)) {
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'JWT', 'PGRST301');
+      return json(r, 200, miejsceAtrapy(stan, sc.slice('/rest/v1/rpc/'.length), tresc, k));
     }
     if (sc === '/rest/v1/projekty') {
       const k = zTokenu(req);
@@ -376,7 +449,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       if (m === 'POST' || m === 'PUT') {
         if (!zTokenu(req)) return blad(r, 401, 'JWT', 'unauthorized');
-        stan.pliki.set(klucz, plikZZadania(req));
+        stan.pliki.set(klucz, { ...plikZZadania(req), czas: Date.now(), cache: req.headers()['cache-control'] || null });
         stan.wyslania.push(klucz);
       }
       return json(r, 200, { Key: klucz });

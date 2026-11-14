@@ -127,6 +127,7 @@
           <a href="#" data-do="ust-logowanie" data-ikona="klodka">Logowanie</a>
           <a href="#" data-do="ust-wyglad" data-ikona="motyw">Wygląd</a>
           <a href="#" data-do="ust-urzadzenia" data-ikona="wyloguj">Urządzenia</a>
+          <a href="#" data-do="ust-miejsce" data-ikona="chmura">Miejsce</a>
           <a href="#" data-do="ust-usun" class="niebezpieczny" data-ikona="kosz">Usuwanie konta</a>
         </nav>
 
@@ -246,6 +247,37 @@
                   <div class="wiersz-opis"><strong>Wszystkie urządzenia</strong><span>Przydatne po logowaniu na cudzym albo zgubionym urządzeniu.</span></div>
                   <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-wszedzie">Wyloguj wszędzie</button></div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grupa-ustawien" id="ust-miejsce">
+            <h2>Miejsce</h2>
+            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Aplikacja ma wspólny limit miejsca na pliki wszystkich osób – tu widać, ile go zostało.</p>
+            <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="miejsce-aplikacji" id="miejsce-aplikacji" aria-live="polite">
+                  <div class="miejsce-naglowek"><strong>Cała aplikacja</strong><span id="miejsce-razem">Sprawdzam…</span></div>
+                  <div class="miejsce-pasek" role="progressbar" aria-label="Zajęte miejsce na pliki" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="miejsce-pasek-moje" class="moje"></span><span id="miejsce-pasek-inne" class="inne"></span></div>
+                  <p class="miejsce-legenda"><span class="kropka moje"></span><span id="miejsce-moje-opis">Twoje pliki</span> <span class="kropka inne"></span><span>pliki innych osób</span></p>
+                  <p class="ciche" id="miejsce-baza"></p>
+                  <p class="miejsce-ostrzezenie" id="miejsce-ostrzezenie" role="alert" hidden></p>
+                </div>
+              </div>
+              <div class="wiersz-ustawien">
+                <dl class="liczby-konta" id="miejsce-szczegoly">
+                  <div><dt>Obrazy</dt><dd id="miejsce-obrazy">—</dd></div>
+                  <div><dt>Czcionki</dt><dd id="miejsce-czcionki">—</dd></div>
+                  <div><dt>Podglądy linków</dt><dd id="miejsce-podglady">—</dd></div>
+                  <div><dt>Obrazy od AI w drodze</dt><dd id="miejsce-od-ai">—</dd></div>
+                </dl>
+              </div>
+              <div class="wiersz-ustawien">
+                <div class="wiersz-glowny">
+                  <div class="wiersz-opis"><strong>Sprzątanie</strong><span id="miejsce-sprzatanie-opis">Usuwa pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Aplikacja robi to też sama raz na dobę.</span></div>
+                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="miejsce-posprzataj">Posprzątaj…</button></div>
+                </div>
+                <p class="komunikat" id="miejsce-komunikat" role="status"></p>
               </div>
             </div>
           </section>

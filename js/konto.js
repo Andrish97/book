@@ -429,6 +429,7 @@ export class Konto {
     $('#form-nazwa .komunikat').textContent = '';
     $('.konto-tresc').scrollTop = 0;
     this.wypelnijUstawienia();
+    import('./miejsce-ustawienia.js').then((m) => m.pokazMiejsce()).catch(() => {}); // sekcja „Miejsce” (#89)
     document.title = `Ustawienia konta – ${NAZWA}`;
   }
 }

@@ -67,6 +67,8 @@ export async function pokazProjekty({ cicho = false } = {}) {
   const wpisy = await wpisyProjektow();
   if (cicho && document.body.dataset.ekran !== 'projekty') return; // w międzyczasie otwarto projekt
   doczytajWTle(); // edytor przyjdzie w tle, zanim ktoś kliknie projekt
+  // Osierocone pliki na koncie – ciche sprzątanie najwyżej raz na dobę (#89).
+  if (stan.uzytkownik) import('../miejsce.js').then((m) => m.sprzatnijWTle(stan.uzytkownik.id)).catch(() => {});
   siatka.replaceChildren();
   $('#pusto-projekty').hidden = wpisy.length > 0;
   $('.projekty-naglowek .przyciski-naglowka').hidden = wpisy.length === 0;
