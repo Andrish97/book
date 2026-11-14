@@ -221,7 +221,7 @@ export class KonfliktZapisu extends Error {
 // Kolumna `wersja` rośnie przy każdym zapisie; zapis przechodzi tylko wtedy,
 // gdy na koncie jest ta wersja, którą to urządzenie widziało ostatnio.
 // wymus: nadpisz wersję z konta (po decyzji użytkownika).
-export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
+export async function zapiszWChmurze(projekt, { wymus = false, postep = null } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
@@ -229,8 +229,12 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
   // Obrazy wgrane przez AI (ścieżka „ai:<id>”) czekają w tabeli bazy – przy zapisie przechodzą do folderu
   // plików konta jak każdy nowy obraz, a po udanym zapisie projektu wiersz w tabeli jest usuwany.
   const odAi = [];
-  for (const [id, zasob] of Object.entries(projekt.zasoby || {})) {
-    if (zasob.sciezka && !czyOdAi(zasob.sciezka)) continue;
+  // postep(gotowe, razem) – wysyłka nowych plików (duże zdjęcia trwają).
+  const nowe = Object.entries(projekt.zasoby || {}).filter(([, z]) => z && (!z.sciezka || czyOdAi(z.sciezka)));
+  let wyslane = 0;
+  for (const [id, zasob] of nowe) {
+    postep?.(wyslane, nowe.length);
+    wyslane += 1;
     const blob = await blobZasobu(projekt, id); // świeży obraz ma treść w projekcie, zapisany – w magazynie przeglądarki
     if (!blob) continue;
     const sciezka = `${uzytkownik.id}/${projekt.id}/${id}`;

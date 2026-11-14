@@ -11,6 +11,8 @@ import {
 import { wstawIkony } from '../ikony.js';
 import { adresZasobu } from '../zasoby.js';
 import { kopiaRobocza } from '../obrazy.js';
+import { wczytajMiniature, zapiszMiniature } from '../miniatury-obrazow.js';
+import { postep } from '../postep.js';
 import { rozpakujZip } from '../obrazy-wspolne.js';
 import * as chmura from '../chmura.js';
 import {
@@ -62,6 +64,7 @@ function rysuj() {
   const obrazy = obrazyProjektu(p);
   for (const id of [...zaznaczone]) if (!p.zasoby[id]) zaznaczone.delete(id);
   lista.replaceChildren();
+  miniaturRazem -= kolejkaMiniatur.length; // niezrobione z poprzedniego rysowania nie liczą się do postępu
   kolejkaMiniatur.length = 0;
   let nieuzywane = 0;
   const wszystkie = uzyciaWszystkich(p);
@@ -102,6 +105,7 @@ function rysuj() {
   b.hidden = Boolean(wybor) || nieuzywane === 0;
   b.textContent = `Usuń nieużywane (${nieuzywane})`;
   odswiezZaznaczenie();
+  nastepnaMiniatura(); // także pusta lista: postęp poprzednich miniatur się zamyka
   sprawdzPowtorzenia();
 }
 
@@ -131,6 +135,7 @@ async function uporzadkuj() {
   if (kopie.length) tresc.push('Kopie tego samego pliku staną się jednym obrazem – elementy na stronach zostają na miejscu i pokazują ten jeden plik.');
   if (nazwy.length) tresc.push('Obrazy o tej samej nazwie, a innej treści dostaną dopisek „(2)” – dane w tabelach pokażą ten sam obraz co dotąd.');
   if (!await potwierdz('Uporządkować obrazy projektu?', tresc.join(' '), 'Uporządkuj')) return;
+  const pasek = postep('Porządkowanie obrazów…');
   try {
     // Nowe nazwy najpierw (nowy identyfikator na obraz – patrz nowaWersja), potem jedno przepięcie wszędzie.
     const przemianowane = [];
@@ -152,6 +157,8 @@ async function uporzadkuj() {
     powiadom(`Uporządkowano obrazy: ${[ileKopii ? `scalone kopie: ${ileKopii}` : '', przemianowane.length ? `nowe nazwy: ${przemianowane.length}` : ''].filter(Boolean).join(', ')}.`);
   } catch (e) {
     powiadom(`Nie udało się uporządkować obrazów: ${e.message}`, true);
+  } finally {
+    pasek.koniec();
   }
   rysuj();
 }
@@ -160,41 +167,76 @@ async function uporzadkuj() {
 // przygotowanie wszystkich kopii roboczych naraz zatykało przeglądarkę i okno długo się otwierało.
 const kolejkaMiniatur = [];
 let miniaturWToku = 0;
+// Postęp miniatur: pojawia się tylko, gdy robienie trwa (pierwsze otwarcie okna z dużymi zdjęciami).
+let pasekMiniatur = null;
+let miniaturGotowych = 0;
+let miniaturRazem = 0;
 function pokazMiniature(li, id, z, rozmiar) {
   kolejkaMiniatur.push(() => zrobMiniature(li, id, z, rozmiar));
+  miniaturRazem += 1;
+  if (!pasekMiniatur) pasekMiniatur = postep('Miniatury obrazów', { razem: miniaturRazem, opoznienie: 700 });
   nastepnaMiniatura();
 }
 function nastepnaMiniatura() {
   while (miniaturWToku < 2 && kolejkaMiniatur.length) {
     const zadanie = kolejkaMiniatur.shift();
     miniaturWToku += 1;
-    zadanie().catch(() => {}).finally(() => { miniaturWToku -= 1; nastepnaMiniatura(); });
+    zadanie().catch(() => {}).finally(() => {
+      miniaturWToku -= 1;
+      miniaturGotowych += 1;
+      pasekMiniatur?.krok(miniaturGotowych, miniaturRazem);
+      nastepnaMiniatura();
+    });
+  }
+  if (!kolejkaMiniatur.length && !miniaturWToku && pasekMiniatur) {
+    pasekMiniatur.koniec();
+    pasekMiniatur = null;
+    miniaturGotowych = 0;
+    miniaturRazem = 0;
   }
 }
 
-// Prawdziwa miniatura (najwyżej 320 px), robiona raz na sesję i trzymana w pamięci: przy kilkudziesięciu
-// dużych zdjęciach przeglądarka nie trzyma w oknie pełnych obrazów i nie pomniejsza ich przy każdym
-// przewinięciu (okno „laguje”). Wymiary – zawsze oryginału.
+// Prawdziwa miniatura (najwyżej 320 px): przy kilkudziesięciu dużych zdjęciach przeglądarka nie trzyma w oknie
+// pełnych obrazów i nie pomniejsza ich przy każdym przewinięciu (okno „laguje”). Robiona raz i zapisywana na
+// urządzeniu (js/miniatury-obrazow.js) – kolejne otwarcia okna, także po odświeżeniu strony, są natychmiastowe.
+// Pomniejszanie idzie poza głównym wątkiem (createImageBitmap z docelowym rozmiarem), gdy znamy wymiary pliku.
+// Wymiary – zawsze oryginału.
 const miniatury = new Map(); // klucz pliku → { url, szer, wys }
 const BOK_MINIATURY = 320;
 async function miniaturaZasobu(z) {
   const src = kopiaRobocza(z) || adresZasobu(z);
-  if (!src) return null;
   const klucz = z.skrot || z.sciezka || src;
+  if (!klucz) return null;
   if (miniatury.has(klucz)) return miniatury.get(klucz);
+  const zapisana = (z.skrot || z.sciezka) ? await wczytajMiniature(klucz) : null;
+  if (zapisana?.blob) {
+    const w = { url: URL.createObjectURL(zapisana.blob), szer: z.szer || zapisana.szer || null, wys: z.wys || zapisana.wys || null };
+    miniatury.set(klucz, w);
+    return w;
+  }
+  if (!src) return null;
   let wynik = { url: src, szer: z.szer || null, wys: z.wys || null };
   try {
-    const bmp = await window.createImageBitmap(await (await fetch(src)).blob());
+    const plik = await (await fetch(src)).blob();
     const zOryginalu = src === adresZasobu(z);
+    // Znane wymiary: przeglądarka pomniejsza przy rozpakowaniu, w tle. Inaczej – rozpakowanie całego pliku.
+    const znane = zOryginalu && z.szer && z.wys ? { szer: z.szer, wys: z.wys } : null;
+    const skalaZnana = znane ? Math.min(1, BOK_MINIATURY / Math.max(znane.szer, znane.wys)) : 1;
+    const bmp = znane && skalaZnana < 1
+      ? await window.createImageBitmap(plik, { resizeWidth: Math.max(1, Math.round(znane.szer * skalaZnana)), resizeHeight: Math.max(1, Math.round(znane.wys * skalaZnana)), resizeQuality: 'medium' })
+      : await window.createImageBitmap(plik);
     if (zOryginalu && !(wynik.szer && wynik.wys)) wynik = { ...wynik, szer: bmp.width, wys: bmp.height };
     const skala = Math.min(1, BOK_MINIATURY / Math.max(bmp.width, bmp.height));
-    if (skala < 1) {
+    if (skala < 1 || (znane && skalaZnana < 1)) {
       const c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(bmp.width * skala));
       c.height = Math.max(1, Math.round(bmp.height * skala));
       c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
       const blob = await new Promise((ok) => { c.toBlob(ok, 'image/webp', 0.85); });
-      if (blob) wynik.url = URL.createObjectURL(blob);
+      if (blob) {
+        wynik.url = URL.createObjectURL(blob);
+        if (z.skrot || z.sciezka) zapiszMiniature(klucz, { blob, szer: wynik.szer, wys: wynik.wys });
+      }
     }
     bmp.close?.();
   } catch { /* np. SVG – pokazujemy plik wprost */ }
@@ -430,11 +472,23 @@ async function rozpakujArchiwa(pliki) {
 
 export async function wgrajObrazy(wybrane) {
   const p = stan.projekt;
+  const pasek = postep(wybrane.some((f) => /\.zip$/i.test(f.name)) ? 'Rozpakowywanie archiwum…' : 'Wgrywanie obrazów…');
+  try {
+    return await wgrajObrazyZPostepem(p, wybrane, pasek);
+  } finally {
+    pasek.koniec();
+  }
+}
+
+async function wgrajObrazyZPostepem(p, wybrane, pasek) {
   const pliki = await rozpakujArchiwa(wybrane);
   const obrazy = pliki.filter((f) => f.type.startsWith('image/'));
   const wynik = { dodane: [], zastapione: [], takieSame: [], pominiete: [] };
   let dlaWszystkich = null;
+  pasek.opis('Wgrywanie obrazów…');
+  pasek.razem(obrazy.length);
   for (const [n, plik] of obrazy.entries()) {
+    pasek.krok(n);
     const skrot = await skrotPliku(plik);
     const ten = await takiSam(p, plik, skrot);
     if (ten) { wynik.takieSame.push([plik.name, p.zasoby[ten].nazwa, ten]); continue; }
@@ -451,6 +505,7 @@ export async function wgrajObrazy(wybrane) {
       wynik.dodane.push([nazwa, await dodajPlik(p, plik, nazwa, skrot)]);
     } else wynik.pominiete.push(plik.name);
   }
+  pasek.krok(obrazy.length);
   if (wynik.dodane.length) {
     stan.miniatury.clear();
     generujMiniatury();
