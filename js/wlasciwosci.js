@@ -363,8 +363,10 @@ export class PanelWlasciwosci {
     this._czcionkiWLiscie = false;
     czcionka.classList.add('szeroki');
     x.append(czcionka);
-    x.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(wzor().fontSize), 1), (v) => ustawTekstTabeli(obj, { fontSize: ptNaMm(Math.max(1, v)) }), { jednostka: 'pt', krok: 0.5, min: 1 }));
-    x.append(this.kolor('Kolor', () => wzor().fill, (v) => ustawTekstTabeli(obj, { fill: v })));
+    x.append(this._zKolorem(
+      this.liczba('Rozmiar', () => zaokr(mmNaPt(wzor().fontSize), 1), (v) => ustawTekstTabeli(obj, { fontSize: ptNaMm(Math.max(1, v)) }), { jednostka: 'pt', krok: 0.5, min: 1 }),
+      this.kolor('Kolor tekstu', () => wzor().fill, (v) => ustawTekstTabeli(obj, { fill: v })),
+    ));
     const wyr = this.segmenty('Wyrównanie', [
       ['doLewej', 'Do lewej', () => wzor().textAlign === 'left', () => ustawTekstTabeli(obj, { textAlign: 'left' })],
       ['doSrodka', 'Do środka', () => wzor().textAlign === 'center', () => ustawTekstTabeli(obj, { textAlign: 'center' })],
@@ -510,12 +512,11 @@ export class PanelWlasciwosci {
     s.append(czcionka);
     // Przy autodopasowaniu pole pokazuje rozmiar zadany; tekst może być mniejszy, gdy się nie mieści.
     const zadany = () => (obj.autodopasowanie && obj.rozmiar_bazowy && !this._fragment(obj) ? obj.rozmiar_bazowy : czytaj('fontSize'));
-    s.append(this.liczba('Rozmiar', () => zaokr(mmNaPt(zadany() * obj.scaleY), 1), (v) => {
+    s.append(this._zKolorem(this.liczba('Rozmiar', () => zaokr(mmNaPt(zadany() * obj.scaleY), 1), (v) => {
       const rozmiar = ptNaMm(Math.max(1, v)) / obj.scaleY;
       if (!this._fragment(obj) && obj.rozmiar_bazowy) obj.rozmiar_bazowy = rozmiar;
       ustaw({ fontSize: rozmiar });
-    }, { jednostka: 'pt', krok: 0.5, min: 1 }));
-    s.append(this.kolor('Kolor', () => czytaj('fill'), (v) => ustaw({ fill: v })));
+    }, { jednostka: 'pt', krok: 0.5, min: 1 }), this.kolor('Kolor tekstu', () => czytaj('fill'), (v) => ustaw({ fill: v }))));
     s.append(this.liczba('Interlinia', () => zaokr(obj.lineHeight, 2), (v) => obj.set('lineHeight', Math.max(0.5, v)), { krok: 0.05, min: 0.5 }));
     // Odstęp między literami w tysięcznych wysokości pisma (jak w programach DTP).
     s.append(this.liczba('Odstęp liter', () => Math.round(obj.charSpacing || 0), (v) => obj.set('charSpacing', Math.max(-200, Math.min(2000, v))), { jednostka: '‰', krok: 10 }));
@@ -1197,6 +1198,19 @@ export class PanelWlasciwosci {
     this.odswiezacze.push(odswiez);
     odswiez();
     return label;
+  }
+
+  // Kolor tekstu jako kółko na prawym brzegu wiersza „Rozmiar” (#109) zamiast osobnego pola.
+  _zKolorem(rozmiar, kolor) {
+    const wiersz = document.createElement('div');
+    wiersz.className = 'rozmiar-z-kolorem';
+    const kolko = kolor.querySelector('.kolor');
+    kolko.classList.add('kolko');
+    kolko.title = 'Kolor tekstu';
+    const pole = rozmiar.querySelector('.jednostka');
+    pole.before(wiersz);
+    wiersz.append(pole, kolko);
+    return rozmiar;
   }
 
   kolor(etykieta, get, set, { brak = false, bezZatwierdzania = false } = {}) {

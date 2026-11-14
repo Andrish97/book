@@ -692,6 +692,11 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .wlasciwosci > .akcje-obrazu { padding: 2px 0 12px; }
 .wlasciwosci > .akcje-obrazu .przycisk { flex: 1 1 auto; justify-content: center; }
 .wlasciwosci .kolor { display: flex; align-items: center; gap: 8px; }
+.wlasciwosci .rozmiar-z-kolorem { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.wlasciwosci .rozmiar-z-kolorem > .jednostka { flex: 1; min-width: 0; }
+.wlasciwosci .kolor.kolko { flex: none; }
+.wlasciwosci .kolor.kolko .kolor-przycisk { border-radius: 50%; }
+.wlasciwosci .kolor.kolko .kolor-przycisk i { border-radius: 50%; }
 .wlasciwosci input[type="color"] {
   width: 36px; height: 36px; min-height: 0; padding: 3px;
   border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); cursor: pointer;
@@ -1434,7 +1439,8 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .galeria-wzorcow.standardowe .opis-wzorca strong { white-space: normal; }
 @media (max-width: 640px) { .galeria-wzorcow.standardowe { grid-template-columns: minmax(0, 1fr); } .galeria-wzorcow > li.wzorzec { grid-template-columns: 64px minmax(0, 1fr) auto; } .galeria-wzorcow .miniatura { width: 64px; } }
 .panel-strony .naglowek-panelu h2 { padding-left: 6px; }
-.zakladki-panelu-opak { padding: 8px 10px 0; min-height: 0; }
+.zakladki-panelu-opak { padding: 8px 10px 0; min-height: 0; display: flex; align-items: center; gap: 6px; }
+.zakladki-panelu-opak .akcje-obiektu { flex: none; }
 .panel-inspektor .lista-warstw { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px 10px 12px; list-style: none; }
 #przycisk-wiecej ~ .menu { z-index: 60; }
 [data-akcja="wzorce"] .licznik { margin-left: 2px; }
