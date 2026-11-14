@@ -216,16 +216,19 @@ test('formularz kontaktowy: CORS tylko makietka.app, pułapka na boty, Turnstile
   } finally { s.przywroc(); }
 });
 
-test('cron Workera co minutę prosi funkcję poczta o przebieg kolejki', async () => {
+test('cron Workera co minutę prosi funkcje poczta i powiadomienia o przebieg kolejek', async () => {
   const { default: w } = await worker();
-  const s = siec({ '/functions/v1/poczta': { tresc: { wyslane: 0 } } });
+  const s = siec({ '/functions/v1/poczta': { tresc: { wyslane: 0 } }, '/functions/v1/powiadomienia': { tresc: { zdarzenia: 0 } } });
   try {
     const czekaj = [];
     await w.scheduled({}, {}, { waitUntil: (p) => czekaj.push(p) });
     await Promise.all(czekaj);
-    assert.equal(s.wywolania.length, 1);
-    assert.equal(s.wywolania[0].url, 'https://pganajmivwtstapnwsgv.supabase.co/functions/v1/poczta');
-    assert.deepEqual(s.wywolania[0].tresc, { kolejka: true });
+    assert.equal(s.wywolania.length, 2);
+    assert.deepEqual(s.wywolania.map((x) => x.url).sort(), [
+      'https://pganajmivwtstapnwsgv.supabase.co/functions/v1/poczta',
+      'https://pganajmivwtstapnwsgv.supabase.co/functions/v1/powiadomienia',
+    ]);
+    assert.deepEqual(s.wywolania.map((x) => x.tresc), [{ kolejka: true }, { kolejka: true }]);
   } finally { s.przywroc(); }
 });
 

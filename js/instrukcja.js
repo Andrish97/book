@@ -521,6 +521,7 @@ const PODSTAWOWE = [
       '<b>Kto jest w projekcie.</b> Kółka z inicjałami w pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty (wskaż kółko, żeby zobaczyć, na której jest stronie). Kolorowa ramka przy miniaturze strony mówi, na której stronie ktoś pracuje, a przerywana obwódka w jego kolorze – co ma zaznaczone.',
       '<b>Właściciel</b> zmienia rolę osoby, odbiera dostęp (działa od razu), cofa zaproszenie, kopiuje jego link albo wysyła e-mail ponownie. Tylko właściciel może usunąć projekt, udostępnić go linkiem i dać dostęp dla AI. Obrazy wgrane przez współpracowników trafiają na konto właściciela.',
       'Współpracownik może sam <b>opuścić projekt</b> (menu <b>⋯</b> na karcie albo przycisk w oknie Współpraca). <b>Zrób własną kopię</b> tworzy Twój własny projekt z tą samą treścią.',
+      '<b>Powiadomienia.</b> Włącz je w <b>Ustawieniach konta → Powiadomienia</b>, a dowiesz się od razu, gdy ktoś Cię zaprosi albo udostępni Ci projekt, przyjmie Twoje zaproszenie albo zmieni Twój dostęp. Kliknięcie powiadomienia otwiera właściwy projekt. Na iPhonie i iPadzie powiadomienia działają w zainstalowanej aplikacji.',
     ],
     rada: 'Zaproszenie przyjmuje osoba, która ma link – także z innego adresu niż ten, na który poszło (np. konto firmowe zamiast prywatnego). W oknie Współpraca zawsze widać, kto naprawdę dołączył, i w każdej chwili można odebrać dostęp.',
   },

@@ -53,6 +53,7 @@ export function odswiezNaglowek() {
 export async function poZalogowaniu(uzytkownik) {
   stan.uzytkownik = uzytkownik;
   wlaczNaZywo(uzytkownik); // powiadomienia o zmianach z innych urządzeń; nie wstrzymuje wejścia
+  import('../powiadomienia.js').then((m) => m.synchronizuj(uzytkownik)).catch(() => {}); // push (#113): ciche odświeżenie urządzenia
   const motywKonta = uzytkownik?.user_metadata?.motyw;
   if (motywKonta && motywKonta !== wybranyMotyw()) ustawMotyw(motywKonta);
   odswiezNaglowek();

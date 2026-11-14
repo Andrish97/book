@@ -162,6 +162,15 @@ async function uzytkownikZTokenu(env, autoryzacja) {
 }
 
 // Prośba o przebieg kolejki (Cron i po formularzu).
+// Co minutę (Cron Workera): kolejka powiadomień push (decyzja #113) – zdarzenia, których aplikacja nie
+// zleciła sama (np. zmiana przez łącznik AI albo przerwane połączenie).
+export async function przebiegPowiadomien(env) {
+  const odp = await fetch(`${adresBazy(env)}/functions/v1/powiadomienia`, {
+    method: 'POST', headers: { apikey: KLUCZ_PUBLICZNY, 'content-type': 'application/json' }, body: JSON.stringify({ kolejka: true }),
+  });
+  return odp.json().catch(() => null);
+}
+
 export async function przebiegKolejki(env) {
   const odp = await fetch(`${adresBazy(env)}/functions/v1/poczta`, {
     method: 'POST', headers: { apikey: KLUCZ_PUBLICZNY, 'content-type': 'application/json' }, body: JSON.stringify({ kolejka: true }),

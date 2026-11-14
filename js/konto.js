@@ -311,6 +311,9 @@ export class Konto {
     const sledz = (zrodlo, cel) => new MutationObserver(() => this.podsumuj(cel)).observe($(zrodlo), { childList: true, characterData: true, subtree: true });
     sledz('#ust-ai-opis', 'ai');
     sledz('#miejsce-konto', 'miejsce');
+    // Powiadomienia push (#113): przełącznik urządzenia i rodzaje; podsumowanie „Włączone / Wyłączone” w wierszu listy.
+    document.addEventListener('powiadomienia-stan', () => this.podsumuj('powiadomienia'));
+    import('./powiadomienia.js').then((m) => { this.powiadomienia = m; m.inicjujPowiadomienia(); }).catch(() => {});
     const zaznaczMotyw = () => $$('#wybor-motywu input').forEach((r) => { r.checked = r.value === wybranyMotyw(); });
     $('#wybor-motywu').addEventListener('change', (e) => ustawMotyw(e.target.value));
     document.addEventListener('motyw', () => { zaznaczMotyw(); this.podsumuj('motyw'); });
@@ -474,6 +477,7 @@ export class Konto {
         return /Nie masz/.test(t) ? 'Brak kluczy' : '';
       },
       miejsce: () => { const t = $('#miejsce-konto').textContent.trim(); return /Sprawdzam/.test(t) ? '' : t; },
+      powiadomienia: () => this.powiadomienia?.podsumowaniePowiadomien() || '',
     }[klucz]();
     el.textContent = tekst;
     el.hidden = !tekst;
@@ -506,6 +510,7 @@ export class Konto {
     this.wypelnijUstawienia();
     import('./miejsce-ustawienia.js').then((m) => m.pokazMiejsce()).catch(() => {}); // sekcja „Miejsce” (#90)
     import('./app/dostep-ai.js').then((m) => m.podsumowanieKluczy()).catch(() => {}); // sekcja „Dostęp dla AI” (#94)
+    import('./powiadomienia.js').then((m) => m.pokazPowiadomienia()).catch(() => {}); // sekcja „Powiadomienia” (#113)
     this.pokazSekcje(sekcja);
     document.title = `Ustawienia konta – ${NAZWA}`;
   }

@@ -20,7 +20,7 @@
 // w nagłówku x-service-key (sprawdza go baza – poczta_serwis, tylko rola service_role).
 // Limity plików – LIMITY niżej (jedno miejsce). Bez sekretów – klucz publikowalny bazy jest jawny.
 
-import { obsluzEmail, obsluzKontakt, przebiegKolejki } from './poczta.js';
+import { obsluzEmail, obsluzKontakt, przebiegKolejki, przebiegPowiadomien } from './poczta.js';
 
 export const CEL = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
@@ -441,9 +441,10 @@ export default {
   async email(wiadomosc, env, ctx) {
     await obsluzEmail(wiadomosc, env, ctx);
   },
-  // Co minutę: przebieg kolejki maili (wrangler.jsonc → triggers.crons).
+  // Co minutę: przebieg kolejki maili i kolejki powiadomień push (wrangler.jsonc → triggers.crons).
   async scheduled(_zdarzenie, env, ctx) {
     ctx.waitUntil(przebiegKolejki(env).catch(() => {}));
+    ctx.waitUntil(przebiegPowiadomien(env).catch(() => {}));
   },
 };
 

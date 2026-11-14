@@ -9,7 +9,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
-| 113 | Powiadomienia push jak w Familiadzie (udostępnienie, zaproszenie, zmiana roli) | 🔄 |
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
 | 115 | Warstwy osobno od właściwości, właściwości zaznaczenia vs ustawienia narzędzia, przejrzyste kolumny i wiersze tabeli | 🔄 |
 
@@ -27,6 +26,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Krok | Stan |
 |---|---|
+| Powiadomienia push (#113): u siebie `node scripts/vapid.cjs`, trzy wypisane wartości wpisz w Supabase → Edge Functions → Secrets: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (szczegóły: docs/KONFIGURACJA-DOMENY.md, punkt 6) | 👤 |
 | Cloudflare → makietka-api → Settings → Variables and Secrets → sekret `SUPABASE_SERVICE_ROLE_KEY` (secret key z Supabase → Project Settings → API Keys) – po wdrożeniu #106 | 👤 |
 | Email Routing: kontakt@, noreply@, no-reply@ → Send to a Worker → makietka-api (catch-all zostaje) | 👤 |
 | Zoho: weryfikacja domeny makietka.app (support), potem włączenie ZeptoMail w panelu | 👤 |
@@ -38,6 +38,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 113 | Powiadomienia push jak w Familiadzie: zaproszenie, udostępnienie, odpowiedź na zaproszenie, zmiana roli, odebranie dostępu; włączanie w Ustawieniach konta |
 | 73 | Okna jako zasłonki na telefonie i tablecie, przegląd zrzutów |
 | 74 | Familiada – korzystać do woli |
 | 71 | Duże zdjęcia od AI w kawałkach (do 25 MB) |
