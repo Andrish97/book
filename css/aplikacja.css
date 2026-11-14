@@ -2143,9 +2143,9 @@ dialog { max-height: calc(100dvh - var(--bezp-gora) - var(--bezp-dol) - 16px); }
 /* ---------- Przyciski-ikony w paskach na dotyku (#99) ----------
    Stały cel dotyku 44×44, bez ściskania i z odstępem; na wąskim ekranie motyw i pełny ekran przechodzą do menu
    konta (pasek listy projektów) – obok siebie były ciasne i ściśnięte. */
-:root[data-dotyk] .pasek-aplikacji { gap: 6px; }
-:root[data-dotyk] .pasek-aplikacji > .przycisk-ikona, :root[data-dotyk] .pasek-aplikacji > .menu-uzytkownika > .awatar,
-:root[data-dotyk] .pasek-aplikacji > .menu-wiecej > .przycisk-ikona, :root[data-dotyk] .logowanie-akcje > .przycisk-ikona {
+:root[data-dotyk] .pasek-aplikacji:not(.pasek-edytora) { gap: 6px; }
+:root[data-dotyk] .pasek-aplikacji:not(.pasek-edytora) > .przycisk-ikona, :root[data-dotyk] .pasek-aplikacji > .menu-uzytkownika > .awatar,
+:root[data-dotyk] .pasek-aplikacji:not(.pasek-edytora) > .menu-wiecej > .przycisk-ikona, :root[data-dotyk] .logowanie-akcje > .przycisk-ikona {
   flex: none; width: 44px; min-width: 44px; height: 44px;
 }
 :root[data-dotyk] .pasek-aplikacji > .menu-uzytkownika, :root[data-dotyk] .pasek-aplikacji > .menu-wiecej { flex: none; }
