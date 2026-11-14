@@ -31,7 +31,7 @@ export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
 const ADRES_OPISU = 'https://makietka.app/ai/format-makietka.md';
-const ADRES_APLIKACJI = 'https://makietka.app/';
+export const ADRES_APLIKACJI = 'https://makietka.app/';
 // Publiczny adres łącznika (przekaźnik Cloudflare api.makietka.app → Funkcja Edge mcp, cloudflare/api-worker.js).
 const ADRES_LACZNIKA = 'https://api.makietka.app/mcp';
 

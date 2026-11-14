@@ -19,6 +19,7 @@
 //   doczytaj.js         doczytywanie tej części
 
 import './edytor-instancja.js';
+import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { toZaznaczenie } from '../fabric-ustawienia.js';
 import { opisObiektu } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
@@ -538,7 +539,7 @@ Object.assign(window.seriodruk, {
 Object.defineProperty(window.seriodruk, 'oknoPdf', { get: () => oknoPdf, configurable: true });
 
 // Dla reszty aplikacji (js/app/doczytaj.js): to, co wywołuje się spoza edytora.
-export { otworzProjekt, zapiszTeraz, sprawdzKonto } from './zapis.js';
+export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
 export { edytujWzorzec } from './wzorce.js';

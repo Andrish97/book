@@ -25,6 +25,9 @@ import { wylaczNaZywo } from './app/na-zywo.js';
 import { instrukcja } from './app/instrukcja-leniwa.js';
 import { pokazUdostepniony, podgladZLinku } from './app/udostepnione.js';
 import { doczytajEdytor, czekajNaEdytor, edytorGotowy } from './app/doczytaj.js';
+import {
+  otworzWspolprace, zamknijWspolprace, kopiujLinkZaproszenia, opuscProjekt, otworzZaproszenia,
+} from './app/wspolpraca.js';
 
 window.addEventListener('popstate', () => przejdzDoTrasy());
 
@@ -72,6 +75,14 @@ const akcje = {
   'do-projektow': doProjektow,
   motyw: () => { zamknijMenu(); przelaczMotyw(); },
   'pelny-ekran': () => przelaczPelnyEkran(),
+  // Współpraca między kontami (js/app/wspolpraca.js).
+  wspolpraca: () => { zamknijMenu(); otworzWspolprace(stan.projekt); },
+  'wspolpraca-zamknij': () => zamknijWspolprace(),
+  'wspolpraca-kopiuj': () => kopiujLinkZaproszenia(),
+  'wspolpraca-opusc': () => opuscProjekt(),
+  zaproszenia: () => otworzZaproszenia(),
+  'zaproszenia-zamknij': () => $('#dlg-zaproszenia').close(),
+  'zaproszenie-pozniej': () => $('#dlg-zaproszenie').close(),
 };
 
 // Podgląd otwarty z linku ma własny, lekki podgląd (bez edytora).
@@ -149,6 +160,13 @@ async function start() {
   // odczytujemy, zanim biblioteka Supabase wyczyści adres.
   const powrot = konto.odczytajPowrot();
   try {
+    if (powrot.tokenHash) {
+      try { await chmura.potwierdzLink(powrot.tokenHash, powrot.typ); } catch (e) {
+        powrot.blad = /expired|invalid|otp/i.test(`${e.kod || ''} ${e.message || ''}`)
+          ? 'Ten link już wygasł albo został użyty. Poproś o nowy.'
+          : chmura.komunikatBledu(e);
+      }
+    }
     await chmura.naZmianeSesji((uzytkownik, zdarzenie) => {
       if (zdarzenie === 'SIGNED_OUT') {
         wylaczNaZywo();
@@ -169,7 +187,7 @@ async function start() {
     if (powrot.blad) {
       pokazEkran('logowanie');
       konto.komunikat(powrot.blad);
-    } else if (powrot.typ === 'recovery' && uzytkownik) {
+    } else if ((powrot.typ === 'recovery' || powrot.typ === 'invite') && uzytkownik) {
       stan.uzytkownik = uzytkownik;
       konto.ustawTryb('nowe-haslo');
       pokazEkran('logowanie');
@@ -179,6 +197,8 @@ async function start() {
       if (powrot.typ === 'email_change') powiadom('Adres e-mail został zmieniony.');
     } else {
       pokazEkran('logowanie');
+      // Link z zaproszeniem do projektu: po zalogowaniu albo założeniu konta adres zostaje i pytanie wraca.
+      if (trasa.odczytaj().ekran === 'zaproszenie') konto.komunikat('Masz zaproszenie do projektu. Zaloguj się albo załóż konto – zaraz potem je przyjmiesz.', true);
     }
   } catch (e) {
     pokazEkran('logowanie');

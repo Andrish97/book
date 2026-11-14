@@ -49,6 +49,7 @@ export function odswiezPodglad() {
 
 export function zamknijPodglad() {
   if (document.body.classList.contains('podglad-publiczny')) return;
+  if (document.body.classList.contains('tylko-ogladanie')) return; // rola „może oglądać”: tylko podgląd
   doEdycji(stan.tryb === 'strona' ? biezacaStrona().id : stan.projekt.strony[0].id);
 }
 

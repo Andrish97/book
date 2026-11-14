@@ -216,6 +216,8 @@ export async function otworzProjekt(p, cel = {}) {
   obrazyOdAi(stan.projekt);
   // Starsze obrazy nie mają zapisanych wymiarów – łącznik AI potrzebuje ich do wstawiania (czytane z nagłówka pliku).
   uzupelnijWymiary(stan.projekt).then((ile) => { if (ile && stan.uzytkownik) zaplanujChmure(2000); }).catch(() => {});
+  // Współpraca (js/app/wspolpraca.js, js/app/obecnosc.js): tryb projektu i obecność innych osób.
+  document.dispatchEvent(new CustomEvent('seriodruk:projekt', { detail: stan.projekt }));
 }
 
 // Elementy tuż po wczytaniu na płótno: dla każdego id – jego postać z płótna i element z projektu.
@@ -389,6 +391,8 @@ async function wyslijNaKonto({ wymus = false } = {}) {
     return;
   }
   if (stan.konflikt === p.id && !wymus) { pominietaWysylka = true; return; } // trwa łączenie albo czekamy na decyzję użytkownika
+  // Rola „może oglądać” (współpraca): projekt jest tylko do podglądu, nic stąd nie idzie na konto.
+  if (p.wspolpraca_chmury?.rola === 'odczyt') return;
   const wersja = p.zmieniono;
   // Nowe obrazy (wgrane tutaj albo przez AI) idą na konto przed projektem – przy dużych zdjęciach widać postęp.
   const doWyslania = Object.values(p.zasoby || {}).filter((z) => z && (!z.sciezka || chmura.czyOdAi(z.sciezka))).length;
@@ -401,8 +405,15 @@ async function wyslijNaKonto({ wymus = false } = {}) {
     await oznaczZsynchronizowany(p.id, wersja);
     if (stan.projekt === p && !stan.timerZapisu) stanZapisu('ok', 'Zapisano');
     if (stan.projekt === p) zaplanujAktualizacjeLinku(); // udostępniony link idzie za zapisanymi zmianami
+    document.dispatchEvent(new CustomEvent('seriodruk:zapisano-na-koncie')); // obecność rusza po pierwszym zapisie
   } catch (e) {
     if (e.konflikt) { polaczZKontem(p, { konflikt: e }); return; }
+    // Właściciel odebrał dostęp albo zmienił rolę na „może oglądać” (współpraca).
+    if (e.code === '42501' && p.wspolpraca_chmury) {
+      stanZapisu('blad', 'Nie wysłano: nie masz już prawa zmieniać tego projektu');
+      powiadom('Właściciel odebrał Ci prawo zmieniania tego projektu. Twoje ostatnie zmiany zostały tylko na tym urządzeniu.', true);
+      return;
+    }
     stanZapisu('blad', `Nie wysłano: ${chmura.komunikatBledu(e)}`);
   } finally {
     pasek?.koniec();

@@ -32,15 +32,16 @@ Makietka (https://makietka.app/) to edytor publikacji z powtarzanymi stronami �
 24. Sprawdź przed drukiem
 25. Podgląd
 26. Udostępnianie linkiem
-27. Praca z AI
-28. Linie i ostrzeżenia
-29. Siatka, linijki i prowadnice
-30. Odległości i równe odstępy
-31. Warstwy
-32. Tablet, telefon i instalacja
-33. Zapis, pliki i kilka urządzeń
-34. Skróty klawiszowe
-35. Co będzie dalej
+27. Współpraca
+28. Praca z AI
+29. Linie i ostrzeżenia
+30. Siatka, linijki i prowadnice
+31. Odległości i równe odstępy
+32. Warstwy
+33. Tablet, telefon i instalacja
+34. Zapis, pliki i kilka urządzeń
+35. Skróty klawiszowe
+36. Co będzie dalej
 
 ## 1. Na początek
 
@@ -547,7 +548,25 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 - Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.
 - Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.
 
-## 27. Praca z AI
+## 27. Współpraca
+
+Projekt możesz robić razem z innymi osobami – każda na swoim koncie. Zapraszasz je adresem e-mail, a zmiany widać u wszystkich na żywo.
+
+![Okno „Współpraca”: świeże zaproszenie z linkiem i osoby z dostępem.](https://makietka.app/img/instrukcja/wspolpraca.png)
+*Okno „Współpraca”: świeże zaproszenie z linkiem i osoby z dostępem.*
+
+- W edytorze menu **⋯** → **Współpraca…** (albo **⋯** na karcie projektu). Wpisz adres e-mail i wybierz rolę: **Może edytować** – zmienia projekt razem z Tobą; **Może oglądać** – widzi tylko podgląd i prezentację.
+- Aplikacja wysyła e-mail z linkiem do zaproszenia. Osoba, która ma już konto, zobaczy zaproszenie także w aplikacji: na liście projektów pojawi się przycisk **Zaproszenia** z liczbą (od razu, bez odświeżania). Osoba bez konta otwiera link, zakłada konto i od razu przyjmuje zaproszenie.
+- Link możesz też skopiować albo wysłać ze swojej poczty (**Wyślij ze swojej poczty**). Działa jeden raz i jest ważny 14 dni. Jeśli e-mail nie wyszedł, okno to napisze – wtedy wyślij link sam.
+- Projekty udostępnione Ci przez innych są na Twojej liście z plakietką osoby, która je udostępniła, i z dopiskiem **Możesz edytować** albo **Możesz oglądać**. Gdy masz takie projekty, nad listą są przyciski **Wszystkie**, **Moje** i **Udostępnione mi**.
+- **Razem na żywo.** Zmiany łączą się element po elemencie, tak jak między Twoimi urządzeniami: gdy Ty poprawiasz tytuł, a ktoś przesuwa zdjęcie, zostają obie zmiany. O ten sam element zmieniony przez dwie osoby naraz aplikacja zapyta. **Cofnij** zdejmuje tylko Twoje zmiany.
+- **Kto jest w projekcie.** Kółka z inicjałami w pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty (wskaż kółko, żeby zobaczyć, na której jest stronie). Kolorowa ramka przy miniaturze strony mówi, na której stronie ktoś pracuje, a przerywana obwódka w jego kolorze – co ma zaznaczone.
+- **Właściciel** zmienia rolę osoby, odbiera dostęp (działa od razu), cofa zaproszenie, kopiuje jego link albo wysyła e-mail ponownie. Tylko właściciel może usunąć projekt, udostępnić go linkiem i dać dostęp dla AI. Obrazy wgrane przez współpracowników trafiają na konto właściciela.
+- Współpracownik może sam **opuścić projekt** (menu **⋯** na karcie albo przycisk w oknie Współpraca). **Zrób własną kopię** tworzy Twój własny projekt z tą samą treścią.
+
+> Zaproszenie przyjmuje osoba, która ma link – także z innego adresu niż ten, na który poszło (np. konto firmowe zamiast prywatnego). W oknie Współpraca zawsze widać, kto naprawdę dołączył, i w każdej chwili można odebrać dostęp.
+
+## 28. Praca z AI
 
 Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Podłączasz go adresem łącznika Makietka – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.
 
@@ -573,7 +592,7 @@ Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z T
 
 > Adres łącznika (z kluczem) trafia do firmy, która prowadzi AI. Dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Przed dużymi zmianami zrób **Eksport** projektu.
 
-## 28. Linie i ostrzeżenia
+## 29. Linie i ostrzeżenia
 
 Na stronie widać linie pomocnicze. Nie są drukowane.
 
@@ -586,7 +605,7 @@ Na stronie widać linie pomocnicze. Nie są drukowane.
 - Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę **Ostrzeżenia**. Jeśli to celowe (np. tło na spad), kliknij **Wycisz**.
 - Linie ukryjesz przyciskiem w prawym dolnym rogu, obok powiększenia.
 
-## 29. Siatka, linijki i prowadnice
+## 30. Siatka, linijki i prowadnice
 
 Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: **Siatka**, **Przyciągaj do siatki**, **Krok siatki**, **Przyciągaj do elementów i pokazuj odległości**, **Linijki**, **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** i **W rozkładówkach pokazuj jedną stronę**.
 
@@ -603,7 +622,7 @@ Narzędzia do równego układania elementów. Włączasz je w menu pod przyciski
 - Dodanie, przesunięcie i usunięcie prowadnicy cofniesz `Ctrl`+`Z`, jak każdą inną zmianę.
 - Siatka i prowadnice nie są drukowane. Klawisz `W` chowa wszystkie linie pomocnicze.
 
-## 30. Odległości i równe odstępy
+## 31. Odległości i równe odstępy
 
 Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – tak jak inteligentne linie pomocnicze w programach Adobe.
 
@@ -616,7 +635,7 @@ Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – 
 - Przytrzymaj `Alt` przy zaznaczonym elemencie, żeby zobaczyć jego odległości także do krawędzi strony.
 - Przyciąganie do elementów wyłączysz w menu z kratką.
 
-## 31. Warstwy
+## 32. Warstwy
 
 Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.
 
@@ -632,7 +651,7 @@ Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wsz
 - Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie **rozwija jej zawartość**: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. **Kliknięcie elementu grupy otwiera grupę i zaznacza ten element** – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka.
 - **Tabelę też rozwiniesz** trójkątem: pod nią stoją jej komórki wierszami – numer „wiersz.kolumna” i początek treści. Kliknięcie komórki na liście **zaczyna w niej pisanie**, tak jak podwójne kliknięcie na stronie; przydaje się w gęstej tabeli i przy małych komórkach. Komórki nie mają własnego oka ani kłódki – ukrywa się i blokuje całą tabelę.
 
-## 32. Tablet, telefon i instalacja
+## 33. Tablet, telefon i instalacja
 
 Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można ją też zainstalować jak zwykły program.
 
@@ -658,7 +677,7 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 ![Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.](https://makietka.app/img/instrukcja/telefon-zaslonka.png)
 *Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.*
 
-## 33. Zapis, pliki i kilka urządzeń
+## 34. Zapis, pliki i kilka urządzeń
 
 Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na koncie.
 
@@ -683,7 +702,7 @@ Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na ko
 - Po wdrożeniu nowej wersji aplikacji, gdy masz otwarty projekt, na dole ekranu pojawi się **Jest nowa wersja aplikacji** z przyciskiem **Odśwież** – zmiany zapiszą się przed odświeżeniem. Bez otwartego projektu nowa wersja włącza się sama.
 - Każdy ekran ma własny adres – odświeżenie zostawia Cię w tym samym miejscu, a „Wstecz” w przeglądarce wraca do poprzedniego ekranu.
 
-## 34. Skróty klawiszowe
+## 35. Skróty klawiszowe
 
 Skróty są takie jak w programach do składu i grafiki. `Ctrl` na Macu to `⌘`. Tę listę otwiera klawisz `?`.
 
@@ -790,7 +809,7 @@ Skróty są takie jak w programach do składu i grafiki. `Ctrl` na Macu to `⌘`
 
 > Skróty z literami działają, gdy kursor nie stoi w polu formularza. W trakcie pisania tekstu na stronie działają skróty z grupy „Tekst”.
 
-## 35. Co będzie dalej
+## 36. Co będzie dalej
 
 Edytor, dane, powielanie stron i eksport do PDF działają. Co jeszcze przed nami:
 

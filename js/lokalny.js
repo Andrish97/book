@@ -92,7 +92,7 @@ export async function listaLokalnych(wlasciciel) {
   const wszystkie = await transakcja('readonly', (m) => m.getAll());
   return (wszystkie || [])
     .filter((r) => r.wlasciciel === wlasciciel)
-    .map(({ id, nazwa, zmieniono, miniatura, doSynchronizacji, projekt }) => ({ id, nazwa, zmieniono, miniatura, doSynchronizacji, udostepniony: Boolean(projekt?.udostepnienie) }))
+    .map(({ id, nazwa, zmieniono, miniatura, doSynchronizacji, projekt }) => ({ id, nazwa, zmieniono, miniatura, doSynchronizacji, udostepniony: Boolean(projekt?.udostepnienie), wspolpraca: projekt?.wspolpraca_chmury || null }))
     .sort((a, b) => (b.zmieniono || '').localeCompare(a.zmieniono || ''));
 }
 
