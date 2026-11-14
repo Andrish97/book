@@ -1,5 +1,6 @@
 // Adresy podstron (część adresu po znaku #): który ekran i który projekt pokazać dla bieżącego adresu.
 
+import { postep } from '../postep.js';
 import { powiadom } from '../ui.js';
 import { trasa, stan, pokazEkran, edytor } from './kontekst.js';
 import { doProjektow, pokazProjekty, wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
@@ -60,15 +61,22 @@ export function przejdzDoTrasy() {
     }
     if (stan.projekt) await zapiszTeraz();
     const wpis = (await wpisyProjektow()).find((w) => w.id === t.id);
-    const projekt = wpis && await wczytajProjektZWpisu(wpis).catch(() => null);
-    if (!projekt) {
-      powiadom('Nie znaleziono projektu z tego adresu – może został usunięty.', true);
-      trasa.ustaw('projekty', { zastap: true });
-      stan.projekt = null;
-      await pokazProjekty();
-      return;
+    const pasek = postep(`Otwieranie „${wpis?.nazwa || 'projektu'}”…`);
+    try {
+      const projekt = wpis && await wczytajProjektZWpisu(wpis, pasek).catch(() => null);
+      if (!projekt) {
+        powiadom('Nie znaleziono projektu z tego adresu – może został usunięty.', true);
+        trasa.ustaw('projekty', { zastap: true });
+        stan.projekt = null;
+        await pokazProjekty();
+        return;
+      }
+      pasek.opis(`Otwieranie „${projekt.nazwa}”…`);
+      pasek.razem(null);
+      await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec });
+    } finally {
+      pasek.koniec();
     }
-    await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec });
     if (t.podglad || tylkoPodglad()) await pokazPodglad();
     if (t.obrazy) await otworzOknoObrazow();
   }).catch((e) => console.error(e));

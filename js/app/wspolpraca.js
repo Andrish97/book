@@ -9,6 +9,7 @@ import * as wsp from '../wspolpraca-chmura.js';
 import { komunikatBledu } from '../chmura.js';
 import { $, powiadom, potwierdz, kiedy } from '../ui.js';
 import { ikona } from '../ikony.js';
+import { zPostepem } from '../postep.js';
 import { stan, trasa } from './kontekst.js';
 
 const KROTKO = { edycja: 'edytuje', odczyt: 'ogląda', wlasciciel: 'właściciel' };
@@ -65,7 +66,7 @@ async function odswiezOsoby() {
   const ul = $('#wspolpraca-osoby');
   let osoby = [];
   try {
-    osoby = await wsp.osobyProjektu(otwarty.id);
+    osoby = await zPostepem('Wczytywanie osób z dostępem…', () => wsp.osobyProjektu(otwarty.id));
   } catch (e) {
     ul.replaceChildren(Object.assign(document.createElement('li'), { className: 'podpowiedz', textContent: komunikatBledu(e) }));
     return;
@@ -277,7 +278,7 @@ function rysujZaproszenia() {
 
 async function przyjmij(kod, nazwa) {
   try {
-    const w = await wsp.przyjmijZaproszenie(kod);
+    const w = await zPostepem(`Dołączanie do „${nazwa || 'projektu'}”…`, () => wsp.przyjmijZaproszenie(kod));
     for (const id of ['#dlg-zaproszenia', '#dlg-zaproszenie']) if ($(id).open) $(id).close();
     powiadom(`Dołączono do projektu „${nazwa || 'Projekt'}” – ${dlaMnie(w.rola)}.`);
     await odswiezZaproszenia();
