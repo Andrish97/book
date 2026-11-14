@@ -244,6 +244,7 @@ Właściwości zaznaczonego tekstu:
 | **Odstęp liter** | Rozstrzelenie liter; wartość ujemna ściska tekst. |
 | **Wielkość liter** | [AA] — wszystkie wielkie, [aa] — wszystkie małe, [Aᴀ] — kapitaliki: to tylko wygląd, treść zostaje taka, jak ją wpisano. [Aa] — „jak w zdaniu”: zmienia samą treść. |
 | **Lista** | Punkty, kreski albo numery przed każdym akapitem (→ 6.5). |
+| **Obrys liter** | Kolor i **Grubość obrysu liter** — kontur wokół każdej litery. |
 
 ![Właściwości tekstu](wlasciwosci.png)
 
@@ -382,6 +383,8 @@ Część **Wypełnienie i obrys**, lista **Wypełnienie**:
 Pasek przejścia pokazuje kolory. [Dodaj kolor] dokłada kolejny; kliknięcie koloru na pasku pozwala
 zmienić go i jego położenie w %, [Usuń ten kolor z przejścia] go usuwa.
 
+Każdy kolor przejścia ma pole **Krycie** — np. kolor przechodzący w przezroczystość nad zdjęciem.
+
 ## 7.6 Obrys
 
 Kolor obrysu i **Grubość obrysu** w mm. Grubość nie zmienia się, gdy powiększasz kształt.
@@ -466,6 +469,35 @@ Elementy, których edytor nie ma (filtry, maski, wzory), przy rozkładaniu znika
 rysunek jako obraz. <kbd>Ctrl</kbd>+<kbd>Z</kbd> przywraca obraz.
 
 ![Rysunek SVG przed i po rozłożeniu](rysunek-svg.png)
+
+## 8.7 Obraz w kształcie
+
+Każdy kształt może być ramką obrazu: prostokąt, elipsa, wielokąt, gwiazda i zamknięty kształt z pióra.
+
+1. Zaznacz kształt i w części **Obraz w kształcie** wybierz [Wstaw obraz do kształtu] — albo upuść plik obrazu prosto na kształt.
+2. Obraz wypełnia kształt i jest przycięty do jego brzegów.
+3. Kliknij kształt dwa razy, żeby przesunąć obraz i powiększyć go narożnikami; <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. Na telefonie użyj pól **Powiększenie** i **Przesunięcie**.
+
+Kształt zmieniasz jak zwykle — rozmiar, punkty, obrys, cień — a obraz idzie za nim. [Wyjmij obraz] zostawia zwykły obraz w miejscu kształtu. Na stronach z danymi wybierz **Obraz z kolumny**: na każdej stronie pojawi się inny obraz.
+
+Zdjęcie zamienisz w kształt jednym kliknięciem: w części **Kadrowanie** [Zaokrąglone rogi] albo [Koło]. Zaokrąglenie zmienisz potem w części **Wypełnienie i obrys**.
+
+## 8.8 Usuwanie tła
+
+Zaznacz zdjęcie (albo kształt z obrazem) i wybierz [Usuń tło…].
+
+| Narzędzie | Co robi |
+|---|---|
+| **Różdżka** | Kliknij tło — znika kolor podobny do klikniętego. **Tolerancja** mówi, jak podobny. |
+| **Tylko połączone z klikniętym miejscem** | Nie rusza takich samych kolorów w środku zdjęcia. |
+| **Usuń** / **Przywróć** | Pędzle do poprawek brzegów, myszą albo palcem. |
+| **Wygładzenie krawędzi** | Zmiękcza brzeg. |
+
+[Zapisz jako nowy obraz] dodaje nowy plik do obrazów projektu i wstawia go w miejsce starego; oryginał zostaje.
+
+## 8.9 Filtry
+
+W części **Filtry** zdjęcia albo obrazu w kształcie ustawisz **jasność**, **kontrast**, **nasycenie** i **rozmycie** oraz włączysz **odcień szarości** albo **sepię**. Plik się nie zmienia; [Bez filtrów] wraca do oryginału.
 
 # 9. Tabela
 
@@ -625,7 +657,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 | **Format** | Rozmiar strony; **Szerokość** i **Wysokość** w mm. |
 | **Marginesy i spad** | Na schemacie strony: górny nad kartką, dolny pod nią, wewnętrzny i zewnętrzny po bokach, spad przy przerywanej ramce. Schemat od razu pokazuje proporcje. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
-| **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 11.7). |
+| **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 11.8). |
 | **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 12.2). |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
 
@@ -648,12 +680,33 @@ W sekcji z rozkładówkami strony tworzą pary: lewa i prawa, jak w otwartej ksi
 
 ## 11.6 Okładka z grzbietem
 
-Okładkę z grzbietem zrób jako osobną sekcję z jedną szeroką stroną: tył + grzbiet + przód.
-W ustawieniach sekcji kalkulator **Okładka z grzbietem: policz szerokość**: wpisz **Szerokość
-strony środka**, **Stron w środku** i **Grubość kartki** (podaje ją drukarnia), a
-[Ustaw tę szerokość] wpisze szerokość okładki.
+Okładkę robisz jako osobną sekcję z jedną szeroką stroną: tył, grzbiet i przód. Włączysz ją na trzy sposoby:
 
-## 11.7 Numeracja stron
+- w oknie sekcji: **Rodzaj sekcji** → **Okładka z grzbietem**,
+- w menu sekcji (⋯ przy nazwie sekcji): [Zamień na okładkę z grzbietem] — elementy zostają,
+- w oknie nowego projektu: pole **Okładka** — przed środkiem powstaje sekcja „Okładka”.
+
+| Ustawienie | Co znaczy |
+|---|---|
+| **Oprawa** | **Miękka klejona**, **Zeszytowa** (zszywki, bez grzbietu) albo **Twarda** — tektura z zawinięciem; ustawisz **Zawinięcie**, **Big**, **Naddatek** i grubość tektury. |
+| **Papier środka** | **Gramatura** i rodzaj papieru (offset, kredowy mat, kredowy błysk, objętościowy) albo wprost **Grubość kartki** od drukarni. |
+| **Strony środka** | Liczone same — ze wszystkich stron środka, razem z powieleniami serii. Możesz też wpisać liczbę. Gdy środków jest kilka, wybierz, które sekcje się liczą. |
+
+Schemat w oknie pokazuje tył, grzbiet i przód, a pod nim wynik, np. „Grzbiet 6,6 mm · Okładka 352,6 × 246 mm”. Szerokość i wysokość okładki liczą się same.
+
+Na płótnie przerywane linie pokazują zgięcia (grzbiet, bigi, zawinięcia), a niebieskie ramki — bezpieczne pola tyłu, grzbietu i przodu.
+
+Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sama: tył zostaje, przód przesuwa się razem z grzbietem, napisy na grzbiecie zostają na jego środku, a tło na całą okładkę się rozciąga. W panelu elementu, w części **Inne**, wybierzesz, czego element ma się trzymać: **tyłu**, **grzbietu** albo **przodu**; pasek na grzbiecie może **dopasować szerokość do grzbietu**. Ostrzeżenie „Szerszy niż grzbiet” mówi, że element zachodzi na tył albo przód.
+
+> Uwaga: wzorce przypisane do sekcji okładki nie przesuwają się same.
+
+## 11.7 Składki
+
+Środek szyty albo klejony ze składek musi mieć liczbę stron podzielną przez wielkość składki. W ustawieniach sekcji wybierz **Składki**: co 4, 8, 16 albo 32 strony.
+
+Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pełnej składki (×16)”. [Dopełnij pustymi] dodaje brakujące puste strony na końcu sekcji — cofniesz to jak każdą zmianę. **Sprawdź przed drukiem** też przypomni o niepełnej składce, a przy oprawie zeszytowej — o liczbie stron niepodzielnej przez 4.
+
+## 11.8 Numeracja stron
 
 Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (→ 12.6).
 Numeracja zależy od ustawień sekcji (→ 11.4) i liczy strony po powieleniu serii. Inne zapisy
