@@ -10,12 +10,15 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
-| 124 | Link dla drukarni z edycją grzbietu i kartą techniczną | ⏳ po #119 |
+| 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
+| 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
+| 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
+| Propozycje z Canvy (#129): tekst po łuku, kalendarz miesiąca, zmiana formatu ze skalowaniem, zestaw marki, wykresy z danych, biblioteka kształtów, kolaż, komentarze, historia wersji, makieta 3D | ⏳ czeka na wybór |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
