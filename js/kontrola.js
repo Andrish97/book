@@ -1,7 +1,8 @@
 // Kontrola danych przed drukiem i szablon danych serii (plan 5.1 i 5.2).
 // Czyste funkcje: dostają projekt, niczego w nim nie zmieniają.
 
-import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU } from './pola.js';
+import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie } from './pola.js';
+import { normalizujKod, uwagiKodu } from './kody.js';
 import { wzorceStrony } from './projekt.js';
 import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
 import { odmiana } from './ui.js';
@@ -217,6 +218,26 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Oprawa zeszytowa: środek ma ${okl.stron} stron, a potrzeba liczby podzielnej przez 4.` });
     }
   }
+  // Kody QR i EAN (#128): za mały moduł, za wąski EAN, za jasny kod, zła treść – także po podstawieniu danych.
+  const kodyUwagi = new Map(); // opis → strony
+  const kody = (obiekty, wynik = []) => {
+    for (const o of obiekty || []) {
+      if (o?.kod) wynik.push(o);
+      else if (Array.isArray(o?.objects)) kody(o.objects, wynik);
+    }
+    return wynik;
+  };
+  for (const egz of ciag.egzemplarze) {
+    const lista = kody(egz.strona.obiekty).filter((o) => o.visible !== false);
+    if (!lista.length) continue;
+    const wartosc = lista.some((o) => String(o.kod.tresc || '').includes('{')) ? wartosciPol(projekt, egz, ciag) : null;
+    for (const o of lista) {
+      const k = normalizujKod(o.kod);
+      if (wartosc && k.tresc.includes('{')) k.tresc = podstawWTekscie(k.tresc, null, wartosc).text;
+      for (const u of uwagiKodu(k)) kodyUwagi.set(u, [...(kodyUwagi.get(u) || []), egz.indeks + 1]);
+    }
+  }
+  for (const [opis, strony] of kodyUwagi) uwagi.push({ rodzaj: 'kod', strony, opis: `${opis} ${odmiana(new Set(strony).size, 'Strona', 'Strony', 'Strony')} ${[...new Set(strony)].join(', ')}.` });
   const pamiec = new Map();
   const nieznane = new Map(); // pole → strony
   const brakObrazu = new Map(); // "kolumna\nplik" → strony

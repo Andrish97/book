@@ -445,7 +445,12 @@ export function podstawWObiektach(obiekty, wartosc) {
       const { text, styles } = podstawWTekscie(o.text, o.styles, wartosc);
       if (text !== o.text) k = { ...o, text, styles };
     }
-    if (Array.isArray(o.objects)) k = { ...k, objects: podstawWObiektach(o.objects, wartosc) };
+    // Kod QR / EAN z polem w treści (#128): każda strona serii ma swój kod; rysunek przebuduje się po wczytaniu.
+    if (o.kod && typeof o.kod.tresc === 'string' && o.kod.tresc.includes('{') && !o.bez_pol) {
+      const { text } = podstawWTekscie(o.kod.tresc, null, wartosc);
+      if (text !== o.kod.tresc) k = { ...k, kod: { ...o.kod, tresc: text } };
+    }
+    if (Array.isArray(o.objects) && !o.kod) k = { ...k, objects: podstawWObiektach(o.objects, wartosc) };
     if (o.z_danych) k = zDanych(k, wartosc);
     return k;
   });
@@ -455,6 +460,7 @@ export function podstawWObiektach(obiekty, wartosc) {
 export function polaWObiektach(obiekty, zbior = new Set()) {
   for (const o of obiekty || []) {
     if (!o.bez_pol) for (const p of znajdzPola(o.text)) zbior.add(p.nazwa);
+    if (!o.bez_pol && o.kod) for (const p of znajdzPola(o.kod.tresc)) zbior.add(p.nazwa);
     if (o.pole?.kolumna) zbior.add(o.pole.kolumna);
     for (const n of polaZDanych(o)) zbior.add(n);
     if (Array.isArray(o.objects)) polaWObiektach(o.objects, zbior);

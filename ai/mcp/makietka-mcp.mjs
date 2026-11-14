@@ -556,6 +556,17 @@ function przygotujElement(e) {
   if (!o.id) o.id = noweId('o');
   if (typeof o.type === 'string') o.type = o.type.toLowerCase();
   if (o.type === 'textbox' && o.strokeWidth === undefined) o.strokeWidth = 0;
+  // Kod QR / EAN-13 / ISBN (#128): { type: 'kod', rodzaj, tresc, … } – grupa z opisem; rysunek doda aplikacja.
+  if (o.type === 'kod' || (o.type === 'group' && o.kod)) {
+    const k = { ...(o.kod || {}), ...Object.fromEntries(['rodzaj', 'tresc', 'korekcja', 'kolor', 'tlo', 'cisza', 'napis', 'szerokosc', 'wysokosc'].filter((x) => o[x] !== undefined).map((x) => [x, o[x]])) };
+    k.rodzaj = k.rodzaj === 'ean' ? 'ean' : 'qr';
+    if (!k.typ) { k.typ = 'tekst'; k.dane = { tekst: String(k.tresc ?? '') }; }
+    const szer = Number(k.szerokosc) > 0 ? Number(k.szerokosc) : (k.rodzaj === 'ean' ? 37.29 : 25);
+    k.szerokosc = szer;
+    k.wysokosc = k.rodzaj === 'qr' ? szer : (Number(k.wysokosc) > 0 ? Number(k.wysokosc) : 25.93);
+    delete k.narysowano;
+    return { type: 'group', id: o.id, left: Number(o.left) || 0, top: Number(o.top) || 0, width: k.szerokosc, height: k.wysokosc, angle: o.angle || 0, nazwa: o.nazwa, kod: k, objects: [] };
+  }
   // Tekst bez kroju, rozmiaru albo koloru dostawał na płótnie domyślne Fabric (Times New Roman, 40 mm) –
   // uzupełniamy tym, co daje przycisk „Tekst” w aplikacji (Inter 14 pt, ciemnoszary, interlinia 1,2).
   if (['textbox', 'i-text', 'text'].includes(o.type)) {
@@ -619,7 +630,7 @@ function przeglad(w) {
   const wiersz = (o) => `${o.id} (${o.type}${o.text != null ? `: „${krotko(o.text, 40)}”` : ''}${o.zasob ? `: obraz ${p.zasoby?.[o.zasob]?.nazwa || o.zasob}` : ''}${o.tabela ? ': tabela' : ''})`;
   return [
     `Projekt „${p.nazwa}” (id ${p.id}) – wersja ${w.wersja}. Dostęp: ${w.dostep.rola === 'edycja' ? 'czytanie i zmiany' : 'tylko czytanie'}, ${opisWaznosci(w.dostep.wazny_do)}.`,
-    `Sekcje: ${(p.sekcje || []).map((s) => `${s.id} „${s.nazwa}” ${s.wydruk?.szerokosc_mm}×${s.wydruk?.wysokosc_mm} mm, ${s.uklad || 'pojedyncze'}${s.okladka ? `, okładka ${s.okladka.oprawa}${s.okladka.wynik ? ` (grzbiet ${s.okladka.wynik.grzbiet} mm, liczona sama)` : ''}` : ''}${s.skladka ? `, składki ×${s.skladka}` : ''}`).join('; ')}`,
+    `Sekcje: ${(p.sekcje || []).map((s) => `${s.id} „${s.nazwa}” ${s.wydruk?.szerokosc_mm}×${s.wydruk?.wysokosc_mm} mm, ${s.uklad || 'pojedyncze'}${s.okladka ? `, okładka ${s.okladka.oprawa}${s.okladka.wynik ? ` (grzbiet ${s.okladka.wynik.grzbiet} mm, ${s.okladka.wymiary?.tryb === 'rozmiar' ? 'rozmiar wpisany' : s.okladka.wymiary?.tryb === 'grzbiet' ? 'grzbiet wpisany' : 'liczona sama'})` : ''}` : ''}${s.skladka ? `, składki ×${s.skladka}` : ''}`).join('; ')}`,
     `Strony (${p.strony.length}, w tej kolejności):`,
     ...p.strony.map((s, i) => `  ${i + 1}. ${s.id} „${s.nazwa || ''}” sekcja=${s.sekcja}${s.seria ? ` seria=${s.seria}` : ''} – ${(s.obiekty || []).map(wiersz).join(', ') || 'pusta'}`),
     `Wzorce: ${(p.wzorce || []).map((x) => `${x.id} „${x.nazwa}” (${(x.obiekty || []).length} el.)`).join('; ') || 'brak'}`,
@@ -1053,7 +1064,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);

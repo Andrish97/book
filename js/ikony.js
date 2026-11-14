@@ -5,6 +5,7 @@ const P = {
   prostokat: '<rect x="4" y="6" width="16" height="12" rx="1.5"/>',
   pioro: '<path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.500-7.500L2 2l3.500 14.500L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
   rysuj: '<path d="M4 20c2.5-.4 3.8-1.8 4.2-3.6L18.5 6.1a2.1 2.1 0 0 0-3-3L5.2 13.4C3.6 14 3.2 16.500 4 20Z"/><path d="m14 5 3.500 3.500"/>',
+  kod: '<rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h3v3M20.5 14v.01M14 20.5h.01M17 20.5h3.5V17"/>',
   tabela: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 10h18"/><path d="M3 14.5h18"/><path d="M9 5v14"/><path d="M15 5v14"/>',
   elipsa: '<ellipse cx="12" cy="12" rx="8" ry="6.5"/>',
   linia: '<path d="M5 19 19 5"/>',

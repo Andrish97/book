@@ -538,6 +538,17 @@ function przygotujElement(e) {
   if (!o.id) o.id = noweId('o');
   if (typeof o.type === 'string') o.type = o.type.toLowerCase();
   if (o.type === 'textbox' && o.strokeWidth === undefined) o.strokeWidth = 0;
+  // Kod QR / EAN-13 / ISBN (#128): { type: 'kod', rodzaj, tresc, … } – grupa z opisem; rysunek doda aplikacja.
+  if (o.type === 'kod' || (o.type === 'group' && o.kod)) {
+    const k = { ...(o.kod || {}), ...Object.fromEntries(['rodzaj', 'tresc', 'korekcja', 'kolor', 'tlo', 'cisza', 'napis', 'szerokosc', 'wysokosc'].filter((x) => o[x] !== undefined).map((x) => [x, o[x]])) };
+    k.rodzaj = k.rodzaj === 'ean' ? 'ean' : 'qr';
+    if (!k.typ) { k.typ = 'tekst'; k.dane = { tekst: String(k.tresc ?? '') }; }
+    const szer = Number(k.szerokosc) > 0 ? Number(k.szerokosc) : (k.rodzaj === 'ean' ? 37.29 : 25);
+    k.szerokosc = szer;
+    k.wysokosc = k.rodzaj === 'qr' ? szer : (Number(k.wysokosc) > 0 ? Number(k.wysokosc) : 25.93);
+    delete k.narysowano;
+    return { type: 'group', id: o.id, left: Number(o.left) || 0, top: Number(o.top) || 0, width: k.szerokosc, height: k.wysokosc, angle: o.angle || 0, nazwa: o.nazwa, kod: k, objects: [] };
+  }
   // Tekst bez kroju, rozmiaru albo koloru dostawał na płótnie domyślne Fabric (Times New Roman, 40 mm) –
   // uzupełniamy tym, co daje przycisk „Tekst” w aplikacji (Inter 14 pt, ciemnoszary, interlinia 1,2).
   if (['textbox', 'i-text', 'text'].includes(o.type)) {
@@ -1035,7 +1046,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);

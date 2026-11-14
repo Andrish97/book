@@ -163,6 +163,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `pole` | obraz z danych (rozdział 8) |
 | `z_danych` | kolor, położenie, obrót, rozmiar i widoczność z danych (rozdział 8) |
 | `tabela` | tabela jako jeden element (rozdział 9) |
+| `kod` | kod QR albo kod kreskowy EAN-13 / ISBN (niżej, „Kody”) |
 | `bez_pol` | `true` – klamry w tym tekście to zwykły tekst |
 
 ## 6. Style tekstu
@@ -290,3 +291,19 @@ Oba wczytują się w aplikacji bez uwag (sprawdza to test). Buduje je skrypt `sc
 > Na koniec wypisz, ile stron powstanie w wydruku i co mam sprawdzić po wczytaniu.
 
 Po wczytaniu pliku w aplikacji (Importuj na liście projektów) warto otworzyć **Sprawdź przed drukiem** w menu ⋯ edytora – pokaże brakujące zdjęcia, nieznane pola i tekst, który nie mieści się w ramce.
+
+
+## Kody QR i kreskowe (EAN-13, ISBN)
+
+Kod to element (w zapisie grupa z polem `kod`), którego rysunek liczy aplikacja. Dodaj go narzędziem `dodaj_elementy` w skróconej postaci:
+
+```json
+{ "type": "kod", "rodzaj": "qr", "tresc": "https://makietka.app", "szerokosc": 25, "left": 110, "top": 170 }
+{ "type": "kod", "rodzaj": "ean", "tresc": "978-83-01-00000", "left": 20, "top": 200 }
+```
+
+- `rodzaj`: `qr` albo `ean` (EAN-13; ISBN-13 to EAN-13 zaczynający się od 978/979; ISBN-10 zamienia się sam).
+- `tresc`: treść kodu – adres, tekst, `mailto:…`, `tel:…`, `WIFI:T:WPA;S:sieć;P:hasło;;` albo cyfry EAN (12 cyfr – kontrolna dopisze się sama; myślniki można zostawić). Może zawierać pola z danych, np. `{adres}` – na każdej stronie serii powstaje inny kod.
+- `szerokosc` (mm; QR jest kwadratem), dla EAN też `wysokosc` (nominalnie 37,29 × 25,93 mm, najmniej 80%).
+- Opcjonalnie: `korekcja` (`L`/`M`/`Q`/`H`), `kolor` (domyślnie `#000000`), `tlo` (`#ffffff` albo `null` – przezroczyste), `cisza` (margines ciszy, domyślnie `true`), `napis` (EAN: cyfry pod kodem).
+- Moduł QR powinien mieć najmniej 0,33 mm – przy długiej treści kod musi być większy. Kontrola przed drukiem ostrzega o za małym, za jasnym albo złym kodzie.

@@ -163,6 +163,13 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   assert.ok(Math.abs(nowy.fontSize - 4.939) < 0.01);
   assert.equal(nowy.width, 50, 'podana szerokość zostaje');
   await narzedzie('usun_elementy', { gdzie: 'strona:s1', id: [nowy.id] });
+  // Kod QR / EAN (#128): skrócona postać { type: 'kod' } zapisuje się jako grupa z opisem (rysunek doda aplikacja).
+  const dk = await narzedzie('dodaj_elementy', { gdzie: 'strona:s1', elementy: [{ type: 'kod', rodzaj: 'ean', tresc: '978-83-01-00000', left: 20, top: 200 }] });
+  assert.equal(dk.blad, false, dk.tekst);
+  const kod = s.projekt().projekt.strony[0].obiekty.at(-1);
+  assert.equal(kod.type, 'group');
+  assert.deepEqual([kod.kod.rodzaj, kod.kod.tresc, kod.kod.szerokosc, kod.kod.wysokosc, kod.objects.length], ['ean', '978-83-01-00000', 37.29, 25.93, 0]);
+  await narzedzie('usun_elementy', { gdzie: 'strona:s1', id: [kod.id] });
   assert.equal(s.projekt().projekt.strony[0].obiekty.length, 2);
   const ns = await narzedzie('dodaj_strone', { strona: { nazwa: 'Wstęp' }, po: 's1' });
   assert.equal(ns.blad, false, ns.tekst);

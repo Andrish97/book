@@ -301,6 +301,7 @@ export const akcje = {
   rysuj: () => edytor.ustawRysowanie(!edytor.rysuje),
   pioro: () => edytor.ustawPioro(!edytor.pioro),
   'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
+  'dodaj-kod': () => edytor.dodajKod('qr'),
   cofnij: () => cofnijKrok(-1),
   ponow: () => cofnijKrok(1),
   duplikuj: () => edytor.duplikuj(),
