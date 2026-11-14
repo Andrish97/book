@@ -93,7 +93,7 @@ test('rozbiór MIME: zestawy znaków, quoted-printable, base64, zagnieżdżone c
   assert.equal(prosta.tekst, 'Zażółć gęślą jaźń');
 });
 
-test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowiedź, załącznik w R2), spam, brak klucza, za duża, limit', async () => {
+test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowiedź, załącznik w R2), spam, brak sekretu, za duża, limit', async () => {
   const { obsluzEmail } = await modul();
   const r2 = new Map();
   const PLIKI = { put: async (k, b, o) => { r2.set(k, { b, o }); } };
@@ -101,13 +101,14 @@ test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowi
   try {
     const m = wiadomosc(SUROWA);
     const czekaj = [];
-    const w = await obsluzEmail(m, { KLUCZ_SKRZYNKI: 'msk_klucz', PLIKI, PRZEKAZ_DO: 'ja@przyklad.pl' }, { waitUntil: (p) => czekaj.push(p) });
+    const w = await obsluzEmail(m, { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', PLIKI, FORWARD_TO: 'ja@przyklad.pl' }, { waitUntil: (p) => czekaj.push(p) });
     await Promise.all(czekaj);
     assert.deepEqual(w, { ok: true, watek: 'w1' });
-    assert.deepEqual(m.przekazane, ['ja@przyklad.pl'], 'kopia na adres z PRZEKAZ_DO');
+    assert.deepEqual(m.przekazane, ['ja@przyklad.pl'], 'kopia na adres z FORWARD_TO');
     const { tresc, o } = s.wywolania[0];
-    assert.equal(o.headers.apikey, 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq');
-    assert.equal(tresc.p_klucz, 'msk_klucz');
+    assert.equal(o.headers.apikey, 'sb_secret_test', 'klucz serwisowy (sb_secret_…) tylko w apikey');
+    assert.equal(o.headers.authorization, undefined);
+    assert.deepEqual(Object.keys(tresc), ['p'], 'bez żadnego klucza w parametrach');
     const p = tresc.p;
     assert.equal(p.od_email, 'jan.kowalski@przyklad.pl');
     assert.equal(p.od_nazwa, 'Jan Kowalski');
@@ -123,7 +124,7 @@ test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowi
 
     // DMARC nieudany – spam; poczta na noreply@ – ten sam zapis, adres w do_email (plakietka w panelu).
     const spam = SUROWA.replace('dmarc=pass', 'dmarc=fail');
-    await obsluzEmail(wiadomosc(spam, { to: 'noreply@makietka.app' }), { KLUCZ_SKRZYNKI: 'msk_klucz', PLIKI });
+    await obsluzEmail(wiadomosc(spam, { to: 'noreply@makietka.app' }), { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', PLIKI });
     const p2 = s.wywolania[1].tresc.p;
     assert.equal(p2.spam, true);
     assert.equal(p2.do_email, 'noreply@makietka.app');
@@ -133,15 +134,15 @@ test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowi
     await obsluzEmail(bezKlucza, {});
     assert.equal(bezKlucza.odrzucone.length, 1);
     const duza = wiadomosc(SUROWA, { rawSize: 16 * 1024 * 1024 });
-    await obsluzEmail(duza, { KLUCZ_SKRZYNKI: 'msk_klucz' });
+    await obsluzEmail(duza, { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test' });
     assert.match(duza.odrzucone[0], /za duża/);
-    assert.equal(s.wywolania.length, 2, 'bez klucza i za duża – nic nie trafia do bazy');
+    assert.equal(s.wywolania.length, 2, 'bez sekretu i za duża – nic nie trafia do bazy');
   } finally { s.przywroc(); }
   // Limit nadawcy (liczy baza) – wiadomość wraca do nadawcy.
   const s2 = siec({ '/rest/v1/rpc/poczta_przyjmij': { tresc: { blad: 'za-czesto', za_sekund: 3600 } } });
   try {
     const m = wiadomosc(SUROWA);
-    await obsluzEmail(m, { KLUCZ_SKRZYNKI: 'msk_klucz', PLIKI });
+    await obsluzEmail(m, { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', PLIKI });
     assert.match(m.odrzucone[0], /Za dużo/);
   } finally { s2.przywroc(); }
 });
@@ -153,11 +154,12 @@ test('formularz kontaktowy: CORS tylko makietka.app, pułapka na boty, Turnstile
     headers: { 'content-type': 'application/json', origin, 'cf-connecting-ip': ip, ...(autoryzacja ? { authorization: autoryzacja } : {}) },
     body: JSON.stringify(tresc),
   });
-  const ENV = { KLUCZ_SKRZYNKI: 'msk_klucz' };
+  const ENV = { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test' };
   const dane = { email: 'gosc@przyklad.pl', temat: 'Druk', tresc: 'Czy obsługujecie format A5?' };
   let wynik = { tresc: { ok: true } };
   const s = siec({
     '/rest/v1/rpc/kontakt_przyjmij': () => wynik,
+    '/auth/v1/user': (_t) => ({ tresc: { id: 'u-anny' } }),
     '/functions/v1/poczta': { tresc: { wyslane: 1 } },
     'challenges.cloudflare.com': (t) => ({ tresc: { success: t.response === 'dobry-token' } }),
   });
@@ -169,7 +171,10 @@ test('formularz kontaktowy: CORS tylko makietka.app, pułapka na boty, Turnstile
     assert.equal(odp.status, 200);
     assert.equal(odp.headers.get('access-control-allow-origin'), 'https://makietka.app');
     const rpc = s.wywolania.find((x) => x.url.endsWith('/kontakt_przyjmij'));
-    assert.equal(rpc.o.headers.authorization, 'Bearer token-anny', 'zalogowany – token idzie do bazy');
+    assert.equal(rpc.o.headers.apikey, 'sb_secret_test');
+    assert.equal(rpc.tresc.p_uzytkownik, 'u-anny', 'zalogowany – konto z tokenu sprawdzonego w Supabase Auth');
+    assert.equal(s.wywolania.find((x) => x.url.endsWith('/auth/v1/user')).o.headers.authorization, 'Bearer token-anny');
+    assert.equal(rpc.tresc.p_klucz, undefined);
     assert.match(rpc.tresc.p_ip, /^[0-9a-f]{32}$/, 'do bazy idzie skrót IP, nie sam adres');
     assert.notEqual(rpc.tresc.p_ip, '203.0.113.7');
     assert.equal(rpc.tresc.p_tresc, 'Czy obsługujecie format A5?');
@@ -197,7 +202,7 @@ test('formularz kontaktowy: CORS tylko makietka.app, pułapka na boty, Turnstile
     wynik = { tresc: { blad: 'za-krotka' } };
     odp = await w.fetch(zadanie({ ...dane, tresc: 'hej' }), ENV, ctx);
     assert.equal(odp.status, 422);
-    // Bez klucza skrzynki – formularz nie działa (z adresem do napisania wprost).
+    // Bez sekretu SUPABASE_SERVICE_ROLE_KEY – formularz nie działa (z adresem do napisania wprost).
     odp = await w.fetch(zadanie(dane), {}, ctx);
     assert.equal(odp.status, 503);
     assert.match((await odp.json()).blad, /kontakt@makietka\.app/);

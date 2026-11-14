@@ -13,6 +13,7 @@ import { udostepnioneMi } from '../wspolpraca-chmura.js';
 import { $, powiadom, kiedy, potwierdz } from '../ui.js';
 import { SUPABASE_URL } from '../konfiguracja.js';
 import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
+import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
 
@@ -74,6 +75,24 @@ function instrukcje(klucz) {
   };
   $('#dostep-ai-claude-desktop').textContent = JSON.stringify(konfiguracja, null, 2);
   $('#dostep-ai-claude-code').textContent = `claude mcp add --transport http makietka ${adresLacznika(klucz)}`;
+}
+
+// Polecenie „Podłącz Makietkę” (#107, ten sam tekst co w instrukcji – js/polecenia-ai.js). adres – adres łącznika
+// z kluczem, widoczny tylko zaraz po utworzeniu klucza; wtedy polecenie i komenda Claude Code mają go już wpisanego.
+let adresWOknie = '';
+function pokazPolecenia(adres = '') {
+  adresWOknie = adres;
+  $('#dostep-ai-polecenie').textContent = polecenieZAdresem(adres);
+  $('#dostep-ai-polecenie-code').textContent = `claude mcp add --transport http makietka ${adres || ADRES_ZASTEPCZY}`;
+}
+
+export async function kopiujPolecenieAi() {
+  try {
+    await navigator.clipboard.writeText(polecenieZAdresem(adresWOknie));
+    powiadom('Skopiowano polecenie – wklej je w rozmowie ze swoim AI.');
+  } catch {
+    powiadom('Nie udało się skopiować – zaznacz tekst polecenia i skopiuj go ręcznie.', true);
+  }
 }
 
 const opisZakresu = (d) => (d.zakres === 'pelny'
@@ -193,6 +212,7 @@ export async function otworzDostepAi({ projektId = null } = {}) {
   $('#dostep-ai-klucz').value = '';
   $('#dostep-ai-adres').value = '';
   $('#dostep-ai-opis').value = '';
+  pokazPolecenia();
   const zakres = $(`#dostep-ai-nowy input[name="dostep-ai-zakres"][value="wybrane"]`);
   if (zakres) zakres.checked = true;
   $('#dlg-dostep-ai').showModal();
@@ -225,6 +245,8 @@ export async function utworzKluczAi() {
     $('#dostep-ai-klucz').value = wynik.klucz;
     $('#dostep-ai-adres').value = adresLacznika(wynik.klucz);
     instrukcje(wynik.klucz);
+    pokazPolecenia(adresLacznika(wynik.klucz));
+    $('#dostep-ai-aplikacje').open = true;
     $('#dostep-ai-gotowy').hidden = false;
     $('#dostep-ai-adres').select();
     odswiezListe();
@@ -249,6 +271,7 @@ export const kopiujKluczAi = () => kopiuj($('#dostep-ai-klucz'), 'klucz');
 export const kopiujAdresAi = () => kopiuj($('#dostep-ai-adres'), 'adres');
 
 export function zamknijDostepAi() {
+  pokazPolecenia();
   // Klucz (także w adresie i poleceniach) nie zostaje w oknie po zamknięciu.
   for (const id of ['#dostep-ai-klucz', '#dostep-ai-adres']) $(id).value = '';
   for (const id of ['#dostep-ai-claude-code', '#dostep-ai-claude-desktop']) $(id).textContent = '';

@@ -136,7 +136,7 @@ async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
         if (!t.p_haslo) return odp({ stan: 'haslo' });
         if (t.p_haslo !== u.haslo) return odp({ stan: 'zle_haslo' });
       }
-      if (!u.sekret) return odp({ stan: 'aktualizacja' });
+      if (!u.sekret) return odp({ stan: 'brak' });
       baza.pobraniaGoscia = (baza.pobraniaGoscia || 0) + 1;
       return odp({ stan: 'ok', folder: `${t.p_kod}.${u.sekret}`, haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
     }
@@ -244,22 +244,6 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   const g2 = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
   await g2.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id] img').length === 2);
   assert.equal(await g2.s.locator('#podglad-haslo').count(), 0);
-
-  // Link po przeniesieniu do R2 (migracja: sekret = null, pliki z bazy usunięte): gość widzi „aktualizowany”,
-  // a aplikacja właściciela przy otwarciu projektu sama publikuje strony w nowym folderze.
-  for (const k of plikiChronione(baza, klucz)) baza.pliki.delete(k);
-  baza.chronione.get(klucz).sekret = null;
-  const gA = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
-  await gA.s.waitForSelector('.podglad-pusto');
-  assert.match(await gA.s.textContent('.podglad-pusto'), /aktualizowany/);
-  await strona.keyboard.press('Escape');
-  await strona.reload();
-  await strona.waitForFunction(() => window.seriodruk?.stan?.projekt?.udostepnienie?.ochrona);
-  for (let i = 0; i < 100 && plikiChronione(baza, klucz).length < 3; i += 1) await strona.waitForTimeout(200);
-  assert.equal(plikiChronione(baza, klucz).length, 3, 'właściciel opublikował strony w nowym folderze');
-  const gB = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
-  await gB.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id] img').length === 2);
-  await strona.click('[data-akcja="udostepnij"]');
 
   // Po dacie ważności: „Link wygasł”.
   baza.chronione.get(klucz).wazny_do = new Date(Date.now() - 60000).toISOString();

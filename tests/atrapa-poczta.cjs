@@ -1,6 +1,6 @@
 // Atrapa panelu administratora i poczty (migracja 20261115090000_poczta_panel.sql) – te same zasady w uproszczeniu:
 // tylko administrator widzi panel, skrzynka z wątkami, odpowiedź idzie do kolejki, kolejka z akcjami, ustawienia,
-// klucz skrzynki, statystyki. Do tego formularz kontaktowy (Worker /kontakt) z limitem na adres.
+// statystyki. Do tego formularz kontaktowy (Worker /kontakt) z limitem na adres.
 // stan: wspólny stan atrapy (tests/pomoc.cjs); konto: zalogowane konto z tokenu albo null.
 
 const crypto = require('node:crypto');
@@ -16,7 +16,7 @@ function atrapaPoczty(stan) {
   stan.administratorzy = stan.administratorzy || new Set();
   stan.poczta = stan.poczta || {
     watki: [], wiadomosci: [], kolejka: [],
-    ustawienia: { nadawca_email: 'no-reply@makietka.app', nadawca_nazwa: 'Makietka', skrzynka_email: 'kontakt@makietka.app', limit_przebiegu: 25, odstep_ms: 1000, maks_prob: 5, klucz_skrzynki_od: null, klucz_ustawiony: false },
+    ustawienia: { nadawca_email: 'no-reply@makietka.app', nadawca_nazwa: 'Makietka', skrzynka_email: 'kontakt@makietka.app', limit_przebiegu: 25, odstep_ms: 1000, maks_prob: 5 },
     dostawcy: [{ id: 'brevo', nazwa: 'Brevo', typ: 'brevo', priorytet: 1, dzienny_limit: 300, aktywny: true, dzien: new Date().toISOString().slice(0, 10), wyslane_dzis: 0 }],
     odstepy: [
       { akcja: 'baza:adresat', opis: 'Każdy mail do tego samego adresu (wysyłka z kolejki)', sekundy: 60, na_dobe: 20, wlaczone: true },
@@ -120,13 +120,6 @@ function atrapaPoczty(stan) {
       for (const o of p.odstepy || []) Object.assign(P.odstepy.find((x) => x.akcja === o.akcja) || {}, o);
       return null;
     },
-    admin_klucz_skrzynki: (_p, k) => {
-      admin(k);
-      P.klucz = `msk_${crypto.randomBytes(18).toString('base64url')}`;
-      P.ustawienia.klucz_ustawiony = true;
-      P.ustawienia.klucz_skrzynki_od = teraz();
-      return P.klucz;
-    },
     admin_poczta_test: ({ p_do }, k) => {
       admin(k);
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p_do || '')) throw blad('Nieprawidłowy adres');
@@ -167,10 +160,10 @@ function atrapaPoczty(stan) {
     return { wyslane: n, bledy: 0, powod: null };
   }
 
-  // Formularz kontaktowy (Worker /kontakt): bez klucza skrzynki – nie działa; najwyżej 2 wiadomości z jednego adresu.
+  // Formularz kontaktowy (Worker /kontakt): bez sekretu SUPABASE_SERVICE_ROLE_KEY w Workerze (P.sekretWorkera) – nie działa; najwyżej 2 wiadomości z jednego adresu.
   function kontakt(tresc, konto) {
     if (tresc.www) return { status: 200, tresc: { ok: true } };
-    if (!P.klucz) return { status: 503, tresc: { blad: 'Formularz jeszcze nie działa – napisz na kontakt@makietka.app.', powod: 'niegotowy' } };
+    if (!P.sekretWorkera) return { status: 503, tresc: { blad: 'Formularz jeszcze nie działa – napisz na kontakt@makietka.app.', powod: 'niegotowy' } };
     const email = String(tresc.email || '').toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { status: 422, tresc: { blad: 'Podaj poprawny adres e-mail, żebyśmy mogli odpowiedzieć.' } };
     if (String(tresc.tresc || '').trim().length < 10) return { status: 422, tresc: { blad: 'Napisz trochę więcej (co najmniej 10 znaków).' } };

@@ -1,7 +1,7 @@
 // Panel administratora (#/admin, decyzja #95) i formularz kontaktowy – w przeglądarce na atrapie bazy
 // (tests/atrapa-poczta.cjs): tylko administrator widzi panel; skrzynka (wątki, odpowiedź przez kolejkę,
-// foldery), kolejka, ustawienia poczty (zapis, zła domena, klucz skrzynki, test), statystyki; formularz
-// kontaktowy z ekranu logowania i z menu (bez klucza skrzynki – komunikat, limit – „spróbuj za…”); telefon.
+// foldery), kolejka, ustawienia poczty (zapis, zła domena, bez kluczy do kopiowania, test), statystyki; formularz
+// kontaktowy z ekranu logowania i z menu (Worker bez sekretu – komunikat, limit – „spróbuj za…”); telefon.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -82,7 +82,7 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   assert.match(await strona.textContent('#admin-kolejka'), /wysłany.*Odpowiedź ze skrzynki → jan@przyklad\.pl/s);
   assert.match(await strona.textContent('#admin-dostawcy-stan'), /Brevo.*Dziś 1 z 300/s);
 
-  // Ustawienia: zapis limitu dostawcy i odstępu; obca domena nadawcy – błąd; klucz skrzynki; test wysyłki.
+  // Ustawienia: zapis limitu dostawcy i odstępu; obca domena nadawcy – błąd; żadnego klucza do kopiowania; test wysyłki.
   await strona.click('[data-admin="ustawienia"]');
   await strona.waitForSelector('#admin-dostawcy tbody tr');
   await strona.fill('#admin-dostawcy [name="dzienny_limit"]', '250');
@@ -94,10 +94,7 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   await strona.fill('#admin-form-ustawien [name="nadawca_email"]', 'ja@gmail.com');
   await strona.click('#admin-form-ustawien [type="submit"]');
   await strona.waitForFunction(() => /domenie makietka\.app/.test(document.querySelector('#admin-ustawienia-komunikat').textContent));
-  await strona.click('#admin-nowy-klucz');
-  await strona.click('#dlg-potwierdz [value="tak"], #dlg-potwierdz .glowny');
-  await strona.waitForSelector('#admin-klucz:not([hidden])');
-  assert.match(await strona.inputValue('#admin-klucz-wartosc'), /^msk_/);
+  assert.equal(await strona.locator('#ekran-admin [id*="klucz"], #ekran-admin input[readonly]').count(), 0, 'w panelu nie ma kluczy do kopiowania');
   assert.equal(await strona.inputValue('#admin-test-adres'), baza.konta[0].email);
   await strona.click('#admin-form-test [type="submit"]');
   await strona.waitForFunction(() => /Wysłano mail testowy/.test(document.querySelector('#admin-test-komunikat').textContent));
@@ -115,7 +112,7 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   assert.deepEqual(bledy, []);
 });
 
-test('formularz kontaktowy: z ekranu logowania i z menu; bez klucza skrzynki – komunikat; limit – „spróbuj za…”; wiadomość w skrzynce administratora', async (t) => {
+test('formularz kontaktowy: z ekranu logowania i z menu; Worker bez sekretu – komunikat; limit – „spróbuj za…”; wiadomość w skrzynce administratora', async (t) => {
   const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
   await naEkranie(strona, 'logowanie');
   await strona.click('.stopka-logowania [data-akcja="kontakt"]');
@@ -127,7 +124,7 @@ test('formularz kontaktowy: z ekranu logowania i z menu; bez klucza skrzynki –
   await strona.waitForFunction(() => /nie działa.*kontakt@makietka\.app/.test(document.querySelector('#kontakt-komunikat').textContent));
   assert.equal(await strona.isVisible('#dlg-kontakt'), true, 'okno zostaje otwarte z komunikatem');
 
-  baza.adminPoczta('admin_klucz_skrzynki', {}, (baza.administratorzy.add(baza.konta[0].id), baza.konta[0]));
+  baza.poczta.sekretWorkera = true;
   await strona.click('#kontakt-wyslij');
   await zamkniete(strona);
   assert.ok(baza.wyslane.some((w) => w.typ === 'kontakt' && w.email === 'gosc@przyklad.pl'), 'potwierdzenie do nadawcy');

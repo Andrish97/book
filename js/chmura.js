@@ -674,7 +674,7 @@ export async function wczytajPodgladPubliczny(konto, projektId, kod) {
 // żyje (sekret aktualny, data ważności nie minęła). Zmiana hasła daje nowy sekret – stare adresy przestają działać.
 // Hasło jest w bazie tylko jako skrót bcrypt.
 
-// Błąd z czytelnym stanem linku (pole stanLinku): 'brak', 'wygasl', 'haslo', 'zle_haslo', 'blokada', 'aktualizacja'.
+// Błąd z czytelnym stanem linku (pole stanLinku): 'brak', 'wygasl', 'haslo', 'zle_haslo', 'blokada'.
 function bladLinku(stan, doKiedy = null) {
   const teksty = {
     brak: 'Ten link nie działa – podgląd został wyłączony albo adres jest niepełny.',
@@ -682,7 +682,6 @@ function bladLinku(stan, doKiedy = null) {
     haslo: 'Ten podgląd jest chroniony hasłem.',
     zle_haslo: 'Hasło się nie zgadza.',
     blokada: `Za dużo prób z błędnym hasłem. Spróbuj ponownie${doKiedy ? ` po ${new Date(doKiedy).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}` : ' za kwadrans'}.`,
-    aktualizacja: 'Link jest właśnie aktualizowany – spróbuj za chwilę.',
   };
   const e = new Error(teksty[stan] || teksty.brak);
   e.stanLinku = teksty[stan] ? stan : 'brak';
@@ -724,15 +723,6 @@ export async function usunPodgladChroniony(projektId, kod) {
   sprawdz(await sb.rpc('usun_udostepnienie_chronione', { p_projekt: projektId, p_kod: kod }));
 }
 
-// Właściciel: czy link z ochroną czeka na pierwszą publikację w nowym folderze (po przeniesieniu do R2, #97).
-export async function linkChronionyDoPublikacji(projektId, kod) {
-  const sb = await supabase();
-  const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) return false;
-  const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null);
-  return Boolean(w.nowy);
-}
-
 // Właściciel: ta sama publikacja co opublikujPodglad, ale do folderu linku z ochroną.
 // pelna: true – wysyła wszystkie strony (np. przy przejściu z linku publicznego albo po zmianie hasła).
 export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg' } = {}) {
@@ -746,7 +736,7 @@ export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, o
 }
 
 // Oglądający: stan chronionego linku bez hasła. Rzuca błąd z polem stanLinku ('brak', 'wygasl',
-// 'haslo', 'blokada', 'aktualizacja'); dla linku z samą datą ważności zwraca { stan: 'ok', folder }.
+// 'haslo', 'blokada'); dla linku z samą datą ważności zwraca { stan: 'ok', folder }.
 export async function sprawdzLinkChroniony(konto, projektId, kod) {
   if (!chmuraSkonfigurowana()) throw new Error('Podgląd jest niedostępny.');
   const sb = await supabase();
@@ -759,7 +749,7 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
   const w = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo);
   const folder = `${konto}/${projektId}/${w.folder}`;
   const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
-  if (!odp.ok) throw bladLinku(odp.status === 404 ? 'aktualizacja' : 'brak');
+  if (!odp.ok) throw bladLinku('brak');
   const manifest = await odp.json();
   if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
   return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };

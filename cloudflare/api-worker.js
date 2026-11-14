@@ -82,7 +82,7 @@ const doPamieci = (mapa, klucz, w) => {
 
 const tokenZZapytania = (zapytanie) => /^Bearer\s+(\S+)$/i.exec(zapytanie.headers.get('authorization') || '')?.[1] || null;
 const baza = (env) => env.SUPABASE_URL || CEL;
-const kluczBazy = (env) => env.SUPABASE_KLUCZ || KLUCZ_PUBLICZNY;
+const kluczBazy = (env) => env.SUPABASE_PUBLISHABLE_KEY || KLUCZ_PUBLICZNY;
 
 async function uzytkownik(env, token) {
   if (!token) return null;

@@ -1,6 +1,6 @@
 // Panel administratora (#/admin, decyzja #95) – wzorem panelu Familiady, w wyglądzie Makietki:
 // skrzynka kontakt@makietka.app (poczta przychodząca i formularz kontaktowy, odpowiedzi), kolejka maili,
-// ustawienia poczty (nadawca, dostawcy z dziennymi limitami, odstępy, klucz skrzynki, test) i statystyki.
+// ustawienia poczty (nadawca, dostawcy z dziennymi limitami, odstępy, test) i statystyki.
 // Wszystko przez funkcje bazy admin_* (security definer, tylko konta z tabeli administratorzy). Miejsce całej
 // aplikacji (pliki R2, baza i jej największe tabele) – tylko tu: rozmiary_tabel() i GET /pliki/_miejsce Workera.
 
@@ -187,6 +187,15 @@ async function otworzWatek(id) {
 // ---------- Kolejka ----------
 
 const RODZAJE = { zaproszenie: 'Zaproszenie', kontakt: 'Potwierdzenie z formularza', odpowiedz: 'Odpowiedź ze skrzynki', test: 'Test' };
+const NAZWY_DOSTAWCOW = { zeptomail: 'ZeptoMail', brevo: 'Brevo' };
+// Którzy dostawcy mają sekret w funkcji poczta (tak/nie – wartości nigdy nie wychodzą z funkcji).
+async function stanSekretow() {
+  try {
+    const sb = await supabase();
+    const { data } = await sb.functions.invoke('poczta', { body: { stan_dostawcow: true } });
+    return data?.dostawcy || null;
+  } catch { return null; }
+}
 const STANY = { czeka: 'czeka', wysylanie: 'wysyłanie', wyslany: 'wysłany', blad: 'błąd', anulowany: 'anulowany' };
 
 async function rysujKolejke() {
@@ -199,7 +208,7 @@ async function rysujKolejke() {
   $('#admin-dostawcy-stan').innerHTML = (k.dostawcy || []).map((d) => {
     const proc = d.dzienny_limit ? Math.min(100, Math.round((d.wyslane_dzis / d.dzienny_limit) * 100)) : 0;
     return `<div class="admin-dostawca"><strong>${esc(d.nazwa)}${d.aktywny ? '' : ' (wyłączony)'}</strong>
-      <span class="ciche">Dziś ${d.wyslane_dzis} z ${d.dzienny_limit}</span><div class="pasek" role="img" aria-label="${proc}% dziennego limitu"><span style="width:${proc}%"></span></div></div>`;
+      <span class="ciche">Dziś ${d.wyslane_dzis} z ${d.dzienny_limit}${d.wyslane_30 ? ` · 30 dni: ${d.wyslane_30}` : ''}</span><div class="pasek" role="img" aria-label="${proc}% dziennego limitu"><span style="width:${proc}%"></span></div></div>`;
   }).join('');
   const lista = $('#admin-kolejka');
   lista.replaceChildren(...k.maile.map((m) => {
@@ -210,7 +219,7 @@ async function rysujKolejke() {
       ['czeka', 'blad'].includes(m.stan) ? '<button type="button" class="przycisk maly niebezpieczny" data-akcja-kolejki="anuluj">Anuluj</button>' : '',
     ].join('');
     li.innerHTML = `<div class="opis"><strong><span class="stan-maila ${m.stan}">${esc(STANY[m.stan] || m.stan)}</span>${esc(RODZAJE[m.rodzaj] || m.rodzaj)} → ${esc(m.do_email)}</strong>
-      <span>${esc(m.temat || '')}${m.temat ? ' · ' : ''}dodano ${esc(kiedy(m.utworzono))}${m.wyslano ? ` · wysłano ${esc(kiedy(m.wyslano))}` : ''}${m.stan === 'czeka' && new Date(m.nastepna_proba) > new Date() ? ` · następna próba ${esc(data(m.nastepna_proba))}` : ''}${m.proby ? ` · prób: ${m.proby}` : ''}</span>
+      <span>${esc(m.temat || '')}${m.temat ? ' · ' : ''}dodano ${esc(kiedy(m.utworzono))}${m.wyslano ? ` · wysłano ${esc(kiedy(m.wyslano))}` : ''}${m.stan === 'czeka' && new Date(m.nastepna_proba) > new Date() ? ` · następna próba ${esc(data(m.nastepna_proba))}` : ''}${m.proby ? ` · prób: ${m.proby}` : ''}${m.dostawca ? ` · przez ${esc(NAZWY_DOSTAWCOW[m.dostawca] || m.dostawca)}` : ''}</span>
       ${m.blad ? `<span class="stan-wysylki blad">${esc(m.blad)}</span>` : ''}</div><div class="akcje">${akcje}</div>`;
     for (const b of li.querySelectorAll('[data-akcja-kolejki]')) {
       b.addEventListener('click', async () => {
@@ -229,7 +238,7 @@ async function rysujKolejke() {
 // ---------- Ustawienia poczty ----------
 
 async function rysujUstawienia() {
-  const u = await rpc('admin_poczta_ustawienia');
+  const [u, sekrety] = await Promise.all([rpc('admin_poczta_ustawienia'), stanSekretow()]);
   const f = $('#admin-form-ustawien');
   for (const pole of ['nadawca_email', 'nadawca_nazwa', 'skrzynka_email', 'limit_przebiegu', 'odstep_ms', 'maks_prob']) f.elements[pole].value = u.ustawienia[pole] ?? '';
   $('#admin-adres-skrzynki').textContent = u.ustawienia.skrzynka_email;
@@ -238,15 +247,15 @@ async function rysujUstawienia() {
     <td><input type="number" min="1" max="99" name="priorytet" value="${d.priorytet}" aria-label="Priorytet"></td>
     <td><input type="number" min="0" max="100000" name="dzienny_limit" value="${d.dzienny_limit}" aria-label="Dzienny limit"></td>
     <td>${d.dzien === new Date().toISOString().slice(0, 10) ? d.wyslane_dzis : 0}</td>
-    <td><input type="checkbox" name="aktywny" ${d.aktywny ? 'checked' : ''} aria-label="Włączony"></td></tr>`).join('');
+    <td><input type="checkbox" name="aktywny" ${d.aktywny ? 'checked' : ''} aria-label="Włączony"></td>
+    <td><span class="stan-sekretu ${sekrety?.[d.id] ? 'ok' : 'brak'}">${sekrety ? (sekrety[d.id] ? 'ustawiony' : 'brak') : '?'}</span></td>
+    <td><button type="button" class="przycisk maly" data-test-dostawcy="${esc(d.id)}">Test</button></td></tr>`).join('');
+  for (const b of $$('#admin-dostawcy [data-test-dostawcy]')) b.addEventListener('click', () => wyslijTest(null, b.dataset.testDostawcy));
   $('#admin-odstepy tbody').innerHTML = u.odstepy.map((o) => `<tr data-akcja-odstepu="${esc(o.akcja)}">
     <td>${esc(o.opis)}<span class="ciche">${esc(o.akcja)}</span></td>
     <td><input type="number" min="0" max="86400" name="sekundy" value="${o.sekundy}" aria-label="Odstęp w sekundach"></td>
     <td><input type="number" min="0" max="100000" name="na_dobe" value="${o.na_dobe ?? ''}" aria-label="Na dobę"></td>
     <td><input type="checkbox" name="wlaczone" ${o.wlaczone ? 'checked' : ''} aria-label="Włączony"></td></tr>`).join('');
-  $('#admin-klucz-opis').textContent = u.ustawienia.klucz_ustawiony
-    ? `Ustawiony ${kiedy(u.ustawienia.klucz_skrzynki_od)}. Worker wpisuje nim pocztę przychodzącą i formularz kontaktowy do skrzynki.`
-    : 'Nie ustawiony – skrzynka i formularz kontaktowy jeszcze nie działają. Wygeneruj klucz i wpisz go w Cloudflare.';
   if (!$('#admin-test-adres').value) $('#admin-test-adres').value = stan.uzytkownik?.email || '';
 }
 
@@ -279,26 +288,16 @@ async function zapiszUstawienia(e) {
   }
 }
 
-async function nowyKlucz() {
-  if (!await potwierdz('Nowy klucz skrzynki?', 'Stary klucz przestanie działać od razu – do czasu wpisania nowego w Cloudflare poczta przychodząca i formularz kontaktowy nie będą trafiać do skrzynki.', 'Utwórz nowy klucz')) return;
-  try {
-    const k = await rpc('admin_klucz_skrzynki');
-    $('#admin-klucz-wartosc').value = k;
-    $('#admin-klucz').hidden = false;
-    $('#admin-klucz-wartosc').select();
-    await rysujUstawienia();
-  } catch (e) { blad(e); }
-}
-
-async function wyslijTest(e) {
-  e.preventDefault();
+async function wyslijTest(e, dostawca = null) {
+  e?.preventDefault();
   const pole = $('#admin-test-adres');
   const kom = $('#admin-test-komunikat');
   if (!pole.checkValidity()) { pole.reportValidity(); return; }
   try {
-    await rpc('admin_poczta_test', { p_do: pole.value.trim() });
+    await rpc('admin_poczta_test', { p_do: pole.value.trim(), p_dostawca: dostawca });
     const p = await przebiegKolejki();
-    kom.textContent = p?.wyslane ? `Wysłano mail testowy na ${pole.value.trim()}.` : `Mail testowy czeka w kolejce${p?.powod ? ` (${p.powod})` : ''} – zobacz „Kolejka maili”.`;
+    const przez = dostawca ? ` przez ${NAZWY_DOSTAWCOW[dostawca] || dostawca}` : '';
+    kom.textContent = p?.wyslane ? `Wysłano mail testowy${przez} na ${pole.value.trim()}.` : `Mail testowy czeka w kolejce${p?.powod ? ` (${p.powod})` : ''} – zobacz „Kolejka maili”.`;
     kom.className = 'komunikat ok';
   } catch (err) {
     kom.textContent = komunikatBledu(err);
@@ -384,10 +383,6 @@ $('#admin-przebieg').addEventListener('click', async () => {
   await rysujKolejke().catch(blad);
 });
 $('#admin-form-ustawien').addEventListener('submit', zapiszUstawienia);
-$('#admin-nowy-klucz').addEventListener('click', nowyKlucz);
-$('#admin-klucz-kopiuj').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText($('#admin-klucz-wartosc').value); powiadom('Klucz skopiowany.'); } catch { $('#admin-klucz-wartosc').select(); powiadom('Zaznaczyłem klucz – skopiuj go skrótem Ctrl+C.'); }
-});
 $('#admin-form-test').addEventListener('submit', wyslijTest);
 // Otwarty panel skrzynki odświeża się co pół minuty (nowa poczta).
 setInterval(() => {
