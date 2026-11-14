@@ -543,7 +543,8 @@ $$;
 
 -- ---------- Panel: kopie robocze ----------
 
--- p jsonb: { id?, watek?, odpowiedz_na?, tryb, do: [], dw: [], udw: [], temat, html, zalaczniki: [] } → { id, zmieniono }.
+-- p jsonb: { id?, watek?, odpowiedz_na?, tryb, do: [], dw: [], udw: [], temat, html, zalaczniki: [] }
+-- → { id, zmieniono, klucze: [klucze R2 załączników usuniętych z kopii, bez innych odwołań] }.
 create or replace function public.admin_poczta_robocza_zapisz(p jsonb)
 returns jsonb
 language plpgsql
@@ -553,6 +554,7 @@ as $$
 declare
   v_id uuid := nullif(p->>'id', '')::uuid;
   v_tryb text := coalesce(nullif(p->>'tryb', ''), 'nowa');
+  v_byly text[];
   r public.poczta_robocze%rowtype;
 begin
   perform public.wymagaj_administratora();
@@ -562,6 +564,8 @@ begin
   if length(coalesce(p->>'html', '')) > 400000 then
     raise exception 'Wiadomość jest za długa';
   end if;
+  select coalesce((select array_agg(z->>'klucz') from jsonb_array_elements(x.zalaczniki) z), '{}') into v_byly
+    from public.poczta_robocze x where x.id = v_id;
   insert into public.poczta_robocze as d (id, watek, odpowiedz_na, tryb, do_lista, dw, udw, temat, html, zalaczniki)
     values (coalesce(v_id, gen_random_uuid()),
             (select t.id from public.poczta_watki t where t.id = nullif(p->>'watek', '')::uuid),
@@ -571,7 +575,7 @@ begin
     on conflict (id) do update set do_lista = excluded.do_lista, dw = excluded.dw, udw = excluded.udw, temat = excluded.temat,
       html = excluded.html, zalaczniki = excluded.zalaczniki, zmieniono = now()
     returning * into r;
-  return jsonb_build_object('id', r.id, 'zmieniono', r.zmieniono);
+  return jsonb_build_object('id', r.id, 'zmieniono', r.zmieniono, 'klucze', to_jsonb(public.poczta_klucze_wolne(v_byly)));
 end;
 $$;
 
@@ -894,3 +898,15 @@ $$;
 -- Odpowiedzi z dawnego panelu, które jeszcze czekają w kolejce – szablon „wiadomosc” (sam tekst).
 update public.poczta_kolejka set szablon = 'wiadomosc', dane = dane || jsonb_build_object('tekst', dane->>'tresc')
   where szablon = 'odpowiedz' and stan in ('czeka', 'wysylanie', 'blad');
+
+-- Sprawdzenie klucza serwisowego w przekaźniku (kolejka maili pobiera załączniki z R2): wywołać może tylko service_role.
+create or replace function public.poczta_serwis()
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select true;
+$$;
+revoke all on function public.poczta_serwis() from public, anon, authenticated;
+grant execute on function public.poczta_serwis() to service_role;

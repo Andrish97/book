@@ -65,6 +65,13 @@ export const r2 = {
   miejsce: async () => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_miejsce`)).json(),
   // Załącznik poczty przychodzącej (klucz „poczta/<uuid>/<nazwa>”) – tylko administrator (panel, decyzja #95).
   zalacznikPoczty: async (klucz) => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_${kodujSciezke(klucz)}`)).blob(),
+  // Załącznik do wiadomości z panelu (#110): plik do R2 pod „poczta/<uuid>/<nazwa>” (do 10 MB) → { klucz, rozmiar }.
+  wyslijZalacznikPoczty: async (plik) => {
+    const nazwa = (plik.name || 'zalacznik').replace(/[^\p{L}\p{N}._-]+/gu, '_').slice(0, 150) || 'zalacznik';
+    const klucz = `poczta/${crypto.randomUUID()}/${nazwa}`;
+    return (await zapytaniePliku(`${SUPABASE_URL}/pliki/_${kodujSciezke(klucz)}`, { metoda: 'PUT', tresc: plik, typ: plik.type || 'application/octet-stream' })).json();
+  },
+  usunZalacznikPoczty: async (klucz) => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_${kodujSciezke(klucz)}`, { metoda: 'DELETE' })).json(),
   // [{ bucket, nazwa, rozmiar }] – pliki konta bez odwołań (starsze niż 2 dni).
   osierocone: async () => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_osierocone`)).json(),
 };
