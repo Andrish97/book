@@ -629,6 +629,14 @@ export class PanelWlasciwosci {
     s.append(this.liczba('Interlinia', () => zaokr(obj.lineHeight, 2), (v) => obj.set('lineHeight', Math.max(0.5, v)), { krok: 0.05, min: 0.5 }));
     // Odstęp między literami w tysięcznych wysokości pisma (jak w programach DTP).
     s.append(this.liczba('Odstęp liter', () => Math.round(obj.charSpacing || 0), (v) => obj.set('charSpacing', Math.max(-200, Math.min(2000, v))), { jednostka: '‰', krok: 10 }));
+    // Obrys liter (#123): kontur wokół liter, rysowany pod wypełnieniem – litery nie chudną.
+    if (!komorka) {
+      s.append(this.kolor('Obrys liter', () => (obj.strokeWidth > 0 ? obj.stroke : ''), (v) => {
+        obj.set(v ? { stroke: v, strokeWidth: obj.strokeWidth > 0 ? obj.strokeWidth : 0.3, paintFirst: 'stroke', strokeUniform: true } : { stroke: null, strokeWidth: 0, paintFirst: 'fill' });
+        setTimeout(() => this.zbuduj());
+      }, { brak: true }));
+      if (obj.strokeWidth > 0) s.append(this.liczba('Grubość obrysu liter', () => zaokr(obj.strokeWidth, 2), (v) => obj.set({ strokeWidth: Math.max(0.05, Math.min(5, v)) }), { jednostka: 'mm', krok: 0.1, min: 0.05 }));
+    }
 
     const przelacz = (k, wl, wyl) => () => ustaw({ [k]: czytaj(k) === wl ? wyl : wl });
     const styl = this.segmenty('Wygląd liter', [
@@ -1115,7 +1123,6 @@ export class PanelWlasciwosci {
     const definicje = [];
     if (this.opcje.podmienObraz) definicje.push(['obraz', 'Podmień zdjęcie', () => this.opcje.podmienObraz(obj)]);
     if (this.opcje.obrazyProjektu) definicje.push(['warstwy', 'Obrazy projektu…', () => this.opcje.obrazyProjektu()]);
-    if (this.opcje.usunTlo) definicje.push(['gumka', 'Usuń tło…', () => this.opcje.usunTlo(obj)]);
     if (!definicje.length) return;
     const rzad = this.akcje(definicje);
     rzad.classList.add('akcje-obrazu');
@@ -1125,6 +1132,15 @@ export class PanelWlasciwosci {
   zbudujObraz(obj) {
     const { nw, nh } = rozmiarOryginalu(obj);
     const kadr = this.sekcja('Kadrowanie');
+    // Zdjęcie w kształcie (#123): zaokrąglone rogi albo koło – obraz staje się kształtem z obrazem.
+    if (!obj.group) {
+      const ksztalty = this.akcje([
+        ['prostokat', 'Zaokrąglone rogi', () => this.edytor.obrazWKsztalt(obj, 'prostokat')],
+        ['elipsa', 'Koło', () => this.edytor.obrazWKsztalt(obj, 'kolo')],
+      ]);
+      kadr.append(ksztalty);
+    }
+    if (this.opcje.usunTlo) kadr.append(this.akcje([['gumka', 'Usuń tło…', () => this.opcje.usunTlo(obj)]]));
     const kadrRamka = this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz przytnij liczbami poniżej.'); }]]);
     kadrRamka.classList.add('tylko-duzy-ekran');
     kadr.append(kadrRamka);

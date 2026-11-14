@@ -23,7 +23,7 @@ function stanTekst(t) { $('#usun-tlo-stan').textContent = t; }
 
 function rysuj() {
   if (!st.dane) return;
-  const krycie = wygladz(st.maska, st.szer, st.wys, Number($('#usun-tlo-wygladzenie').value));
+  const krycie = wygladz(st.maska, st.szer, st.wys, wartosc('#usun-tlo-wygladzenie'));
   ctx.putImageData(new window.ImageData(skladaj(st.dane, krycie), st.szer, st.wys), 0, 0);
 }
 let klatka = 0;
@@ -45,7 +45,7 @@ function ustawTryb(t) {
 
 // Różdżka – w osobnym wątku przy dużych zdjęciach (okno nie zamarza); gdy wątku nie ma, na miejscu.
 function rozdzkaWTle(x, y) {
-  const parametry = { dane: st.dane, szer: st.szer, wys: st.wys, maska: st.maska, x, y, tolerancja: Number($('#usun-tlo-tolerancja').value), ciagle: $('#usun-tlo-ciagle').checked };
+  const parametry = { dane: st.dane, szer: st.szer, wys: st.wys, maska: st.maska, x, y, tolerancja: wartosc('#usun-tlo-tolerancja'), ciagle: $('#usun-tlo-ciagle').checked };
   if (st.szer * st.wys < 1.5e6 || typeof window.Worker === 'undefined') return Promise.resolve(rozdzka(...Object.values(parametry)));
   try {
     watek = watek || new window.Worker(URL.createObjectURL(new Blob([KOD_WATKU], { type: 'text/javascript' })));
@@ -77,14 +77,14 @@ plotno.addEventListener('pointerdown', async (e) => {
   }
   plotno.setPointerCapture(e.pointerId);
   st.ostatni = p;
-  const r = (Number($('#usun-tlo-pedzel').value) / 2) * p.skala;
+  const r = (wartosc('#usun-tlo-pedzel') / 2) * p.skala;
   pociagniecie(st.maska, st.szer, st.wys, p, p, r, st.tryb === 'usun' ? 0 : 255);
   rysujPozniej();
 });
 plotno.addEventListener('pointermove', (e) => {
   if (!st.ostatni) return;
   const p = wObrazie(e);
-  const r = (Number($('#usun-tlo-pedzel').value) / 2) * p.skala;
+  const r = (wartosc('#usun-tlo-pedzel') / 2) * p.skala;
   pociagniecie(st.maska, st.szer, st.wys, st.ostatni, p, r, st.tryb === 'usun' ? 0 : 255);
   st.ostatni = p;
   rysujPozniej();
@@ -92,9 +92,9 @@ plotno.addEventListener('pointermove', (e) => {
 for (const z of ['pointerup', 'pointercancel']) plotno.addEventListener(z, () => { st.ostatni = null; });
 
 $('#usun-tlo-tryb').addEventListener('click', (e) => { const b = e.target.closest('[data-tryb]'); if (b) ustawTryb(b.dataset.tryb); });
-for (const [id, wyj] of [['#usun-tlo-tolerancja', '#usun-tlo-tolerancja-w'], ['#usun-tlo-pedzel', '#usun-tlo-pedzel-w'], ['#usun-tlo-wygladzenie', '#usun-tlo-wygladzenie-w']]) {
-  $(id).addEventListener('input', () => { $(wyj).textContent = $(id).value; if (id === '#usun-tlo-wygladzenie') rysujPozniej(); });
-}
+// Liczby w polach: poza zakresem – przycięte do najbliższej dozwolonej.
+const wartosc = (id) => { const el = $(id); const v = Number(el.value); return Math.min(Number(el.max), Math.max(Number(el.min), Number.isFinite(v) ? v : Number(el.defaultValue))); };
+$('#usun-tlo-wygladzenie').addEventListener('input', rysujPozniej);
 $('#usun-tlo-cofnij').addEventListener('click', () => {
   const m = st.cofnij.pop();
   if (m) { st.maska = m; rysujPozniej(); }

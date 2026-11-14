@@ -1363,10 +1363,10 @@
           <button type="button" data-tryb="usun" aria-pressed="false" data-ikona="rysuj" title="Pędzel: usuwa tam, gdzie przeciągniesz">Usuń</button>
           <button type="button" data-tryb="przywroc" aria-pressed="false" data-ikona="cofnij" title="Pędzel: przywraca to, co zniknęło za dużo">Przywróć</button>
         </div>
-        <label class="suwak-tla"><span>Tolerancja</span><input type="range" id="usun-tlo-tolerancja" min="0" max="100" value="30"><output id="usun-tlo-tolerancja-w">30</output></label>
-        <label class="suwak-tla" id="usun-tlo-pedzel-pole" hidden><span>Pędzel</span><input type="range" id="usun-tlo-pedzel" min="2" max="200" value="30"><output id="usun-tlo-pedzel-w">30</output></label>
+        <label class="suwak-tla"><span>Tolerancja</span><span class="jednostka"><input type="number" id="usun-tlo-tolerancja" min="0" max="100" step="5" value="30" inputmode="numeric"><span>%</span></span></label>
+        <label class="suwak-tla" id="usun-tlo-pedzel-pole" hidden><span>Pędzel</span><span class="jednostka"><input type="number" id="usun-tlo-pedzel" min="2" max="200" step="5" value="30" inputmode="numeric"><span>px</span></span></label>
         <label class="przelacznik"><input type="checkbox" id="usun-tlo-ciagle" checked><span>Tylko połączone z klikniętym miejscem</span></label>
-        <label class="suwak-tla"><span>Wygładzenie krawędzi</span><input type="range" id="usun-tlo-wygladzenie" min="0" max="8" value="1"><output id="usun-tlo-wygladzenie-w">1</output></label>
+        <label class="suwak-tla"><span>Wygładzenie krawędzi</span><span class="jednostka"><input type="number" id="usun-tlo-wygladzenie" min="0" max="8" step="1" value="1" inputmode="numeric"><span>px</span></span></label>
       </div>
       <div class="usun-tlo-pole" id="usun-tlo-pole"><canvas id="usun-tlo-plotno" aria-label="Obraz – kliknij w tło"></canvas></div>
       <p class="ciche" id="usun-tlo-stan" role="status"></p>

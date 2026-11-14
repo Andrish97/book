@@ -3144,6 +3144,30 @@ export class Edytor extends EventTarget {
     this.oznaczZmiane();
   }
 
+  // Zdjęcie w kształcie (#123): „Zaokrąglone rogi” albo „Koło” – obraz staje się prostokątem z zaokrągleniem
+  // albo elipsą z tym samym obrazem, w tym samym miejscu i z tym samym kadrem.
+  async obrazWKsztalt(img, rodzaj = 'prostokat', zaokraglenie = 4) {
+    if (img?.type !== 'image' || img.group || img.zablokowany) return false;
+    const { nw, nh } = rozmiarOryginalu(img);
+    const W = img.width * img.scaleX; const H = img.height * img.scaleY;
+    const k0 = Math.max(W / nw, H / nh);
+    const cx = (nw / 2 - (img.cropX + img.width / 2)) * img.scaleX;
+    const cy = (nh / 2 - (img.cropY + img.height / 2)) * img.scaleY;
+    const wspolne = {
+      left: 0, top: 0, angle: img.angle || 0, flipX: img.flipX, flipY: img.flipY, id: img.id, nazwa: img.nazwa, zasob: img.zasob,
+      obraz_kadr: { x: Math.round((cx / W) * 1e4) / 1e4, y: Math.round((cy / H) * 1e4) / 1e4, skala: Math.round(Math.max(1, img.scaleX / k0) * 1e4) / 1e4 },
+      fill: '', stroke: img.stroke || null, strokeWidth: img.strokeWidth || 0, strokeUniform: true, shadow: img.shadow || null, opacity: img.opacity ?? 1,
+      filtry: img.filtry, pole: img.pole?.kolumna ? { kolumna: img.pole.kolumna, kadr: img.pole.kadr } : undefined, bez_ostrzezen: img.bez_ostrzezen,
+    };
+    const ksztalt = rodzaj === 'kolo'
+      ? new fabric.Ellipse({ ...wspolne, rx: W / 2, ry: H / 2 })
+      : new fabric.Rect({ ...wspolne, width: W, height: H, rx: zaokraglenie, ry: zaokraglenie });
+    ksztalt.setPositionByOrigin(img.getCenterPoint(), 'center', 'center');
+    ksztalt.setCoords();
+    await przygotujObrazyKsztaltow([ksztalt]);
+    return this.zastapObiekt(img, ksztalt);
+  }
+
   kadrujWKsztalcie(obj) {
     if (this._kadr || !maObraz(obj) || obj.zablokowany || !obj._obrazEl) return false;
     if (obj.group && !this._wyjmijZGrupy(obj)) return false;

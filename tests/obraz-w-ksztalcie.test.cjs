@@ -169,3 +169,25 @@ test('kształt jako ramka obrazu z danych: na każdej powielonej stronie obraz z
   assert.ok(kolory[1][2] > 200 && kolory[1][0] < 60, `druga strona – niebieski: ${kolory[1]}`);
   assert.deepEqual(bledy, []);
 });
+
+test('zdjęcie: „Zaokrąglone rogi” i „Koło” – kształt z tym samym obrazem i kadrem; obrys liter tekstu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Koło');
+  await strona.setInputFiles('#plik-obraz', { name: 'flaga.png', mimeType: 'image/png', buffer: await dwukolorowy(strona) });
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'image');
+  const przed = await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return { w: o.getScaledWidth(), h: o.getScaledHeight(), c: o.getCenterPoint() }; });
+  await strona.click('#wlasciwosci button:has-text("Koło")');
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'ellipse');
+  const po = await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; return { w: o.getScaledWidth(), h: o.getScaledHeight(), c: o.getCenterPoint(), zasob: o.zasob, kadr: o.obraz_kadr, obrazy: window.seriodruk.edytor.canvas.getObjects().filter((x) => x.type === 'image').length }; });
+  assert.ok(Math.abs(po.w - przed.w) < 0.6 && Math.abs(po.h - przed.h) < 0.6, 'ten sam rozmiar');
+  assert.ok(Math.abs(po.c.x - przed.c.x) < 0.01 && Math.abs(po.c.y - przed.c.y) < 0.01, 'to samo miejsce');
+  assert.ok(po.zasob);
+  assert.deepEqual(po.kadr, { x: 0, y: 0, skala: 1 });
+  assert.equal(po.obrazy, 0, 'zdjęcie zastąpione kształtem');
+  await strona.waitForFunction(() => /Obraz w kształcie/.test(document.querySelector('#wlasciwosci').textContent));
+  // Obrys liter.
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'textbox');
+  assert.match(await strona.textContent('#wlasciwosci'), /Obrys liter/);
+  assert.deepEqual(bledy, []);
+});

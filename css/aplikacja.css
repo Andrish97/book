@@ -2651,8 +2651,9 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .usun-tlo-narzedzia .segmenty button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: calc(var(--r-s) - 2px); background: none; color: var(--tusz-2); font: inherit; font-size: 13px; cursor: pointer; }
 .usun-tlo-narzedzia .segmenty button[aria-pressed="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); font-weight: 600; }
 .suwak-tla { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--tusz-2); }
-.suwak-tla input { width: 120px; accent-color: var(--akcent); }
-.suwak-tla output { min-width: 2.2em; font-variant-numeric: tabular-nums; color: var(--cichy); }
+.suwak-tla .jednostka { position: relative; display: inline-flex; align-items: center; }
+.suwak-tla input { width: 84px; height: 34px; padding: 0 30px 0 10px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz); font: inherit; text-align: right; }
+.suwak-tla .jednostka > span { position: absolute; right: 9px; font-size: 12px; color: var(--cichy); pointer-events: none; }
 .usun-tlo-pole {
   position: relative; display: grid; place-items: center; min-height: 240px; max-height: 60vh; overflow: hidden;
   border: 1px solid var(--linia); border-radius: var(--r-m);
@@ -2662,8 +2663,7 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .usun-tlo-pole canvas { display: block; max-width: 100%; max-height: 60vh; touch-action: none; cursor: crosshair; }
 :root[data-dotyk] .usun-tlo-narzedzia .segmenty button { min-height: 42px; }
 @media (max-width: 640px) {
-  .suwak-tla { width: 100%; }
-  .suwak-tla input { flex: 1; width: auto; }
+  .suwak-tla { width: 100%; justify-content: space-between; }
   .usun-tlo-pole { max-height: 48vh; }
   .usun-tlo-pole canvas { max-height: 48vh; }
 }
