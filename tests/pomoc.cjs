@@ -65,7 +65,6 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   if (funkcja === 'miejsce_na_koncie') {
     // Część z bazy (migracja 20261114180000_pliki_r2_limity.sql); pliki liczy przekaźnik (/pliki/_miejsce).
     return {
-      chronione: chronione.reduce((n, [, u]) => n + [...u.pliki.values()].reduce((m, f) => m + (f.dane?.length || f.tresc?.length || 0), 0), 0),
       od_ai: ai.reduce((n, [, o]) => n + bajtyAi(o), 0),
       baza_razem: stan.bazaBajty ?? 12 * 1024 * 1024,
       limit_bazy: 524288000,
@@ -98,7 +97,10 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   }
   if (funkcja === 'pliki_osierocone') {
     const odwolania = new Set(stan.projekty.flatMap((pr) => zasobyProjektu(pr).map((z) => z?.sciezka)).filter(Boolean));
-    const linki = stan.projekty.filter((pr) => pr.owner_id === k.id && pr.dane?.udostepnienie?.kod).map((pr) => `${k.id}/${pr.id}/${pr.dane.udostepnienie.kod}/`);
+    const linki = [
+      ...stan.projekty.filter((pr) => pr.owner_id === k.id && pr.dane?.udostepnienie?.kod).map((pr) => `${k.id}/${pr.id}/${pr.dane.udostepnienie.kod}/`),
+      ...chronione.filter(([, u]) => u.sekret).map(([klucz, u]) => `${klucz}.${u.sekret}/`),
+    ];
     return moje.filter((x) => Date.now() - (x.p.czas || 0) > DWA_DNI)
       .filter((x) => (x.bucket === 'zasoby'
         ? !x.nazwa.startsWith(`${prefiks}_czcionki/`) && !odwolania.has(x.nazwa)
@@ -114,7 +116,7 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   });
   const wynik = {
     ai: aiDoUsuniecia.length, ai_bajty: aiDoUsuniecia.reduce((n, [, o]) => n + bajtyAi(o), 0),
-    linki: linkiDoUsuniecia.length, linki_bajty: linkiDoUsuniecia.reduce((n, [, u]) => n + [...u.pliki.values()].reduce((m, f) => m + (f.dane?.length || 0), 0), 0),
+    linki: linkiDoUsuniecia.length, linki_bajty: 0,
   };
   if (!tresc?.p_policz) {
     for (const [id] of aiDoUsuniecia) stan.obrazyAi.delete(id);
@@ -338,15 +340,24 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       return json(r, 200, sesja(k).user);
     }
-    // Link chroniony (migracja udostepnienia_chronione): te same zasady co funkcje w bazie.
-    if (sc.startsWith('/rest/v1/rpc/') && /udostepnieni|podglad_chroniony/.test(sc)) {
+    // Link chroniony (migracje udostepnienia_chronione i linki_chronione_r2_porzadki, #97): te same zasady co funkcje
+    // w bazie. Pliki linku leżą w R2 (stan.pliki) w folderze „<kod>.<sekret>”; baza zwraca tylko nazwę folderu.
+    if (sc.startsWith('/rest/v1/rpc/') && /udostepnieni|podglad_chroniony|link_chroniony_wazny/.test(sc)) {
       const k = zTokenu(req);
       const funkcja = sc.slice('/rest/v1/rpc/'.length);
-      stan.chronione = stan.chronione || new Map(); // "konto/projekt/kod" -> { haslo, wazny_do, nieudane, blokada_do, pliki: Map }
+      stan.chronione = stan.chronione || new Map(); // "konto/projekt/kod" -> { haslo, wazny_do, nieudane, blokada_do, sekret, zmieniono }
+      const nowySekret = () => crypto.randomBytes(24).toString('base64url');
+      if (funkcja === 'link_chroniony_wazny') {
+        const u = stan.chronione.get(`${tresc.p_konto}/${tresc.p_projekt}/${tresc.p_kod}`);
+        return json(r, 200, Boolean(u && u.sekret && u.sekret === tresc.p_sekret && (!u.wazny_do || new Date(u.wazny_do) >= new Date())));
+      }
       if (funkcja === 'podglad_chroniony') {
         const u = stan.chronione.get(`${tresc.p_konto}/${tresc.p_projekt}/${tresc.p_kod}`);
         if (!u) return json(r, 200, { stan: 'brak' });
-        if (!(k && k.id === tresc.p_konto)) {
+        let nowy = false;
+        if (k && k.id === tresc.p_konto) {
+          if (!u.sekret) { u.sekret = nowySekret(); nowy = true; }
+        } else {
           if (u.wazny_do && new Date(u.wazny_do) < new Date()) return json(r, 200, { stan: 'wygasl' });
           if (u.haslo) {
             if (u.blokada_do && new Date(u.blokada_do) > new Date()) return json(r, 200, { stan: 'blokada', do: u.blokada_do });
@@ -358,32 +369,23 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
             }
             u.nieudane = 0;
           }
+          if (!u.sekret) return json(r, 200, { stan: 'aktualizacja' });
         }
-        if (!tresc.p_nazwy) return json(r, 200, { stan: 'ok', haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
-        stan.pobraniaChronione = (stan.pobraniaChronione || 0) + 1;
-        const pliki = {};
-        for (const n of tresc.p_nazwy.slice(0, 12)) if (u.pliki.has(n)) pliki[n] = u.pliki.get(n);
-        return json(r, 200, { stan: 'ok', pliki });
+        stan.zapytaniaChronione = (stan.zapytaniaChronione || 0) + 1;
+        return json(r, 200, { stan: 'ok', folder: `${tresc.p_kod}.${u.sekret}`, haslo: Boolean(u.haslo), wazny_do: u.wazny_do, nowy });
       }
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
       const klucz = `${k.id}/${tresc.p_projekt}/${tresc.p_kod}`;
       if (funkcja === 'ustaw_ochrone_udostepnienia') {
         if (tresc.p_zmien_haslo && tresc.p_haslo && tresc.p_haslo.length < 4) return blad(r, 400, 'Hasło do linku musi mieć co najmniej 4 znaki', 'P0001');
-        const u = stan.chronione.get(klucz) || { haslo: null, wazny_do: null, nieudane: 0, blokada_do: null, pliki: new Map() };
+        const byl = stan.chronione.get(klucz);
+        const u = byl || { haslo: null, wazny_do: null, nieudane: 0, blokada_do: null, sekret: nowySekret() };
+        const stary = byl?.sekret || null;
         if (tresc.p_zmien_haslo) u.haslo = tresc.p_haslo || null;
+        if ((tresc.p_zmien_haslo && stary) || !u.sekret) u.sekret = nowySekret();
         Object.assign(u, { wazny_do: tresc.p_wazny_do || null, nieudane: 0, blokada_do: null, zmieniono: Date.now() });
         stan.chronione.set(klucz, u);
-        return json(r, 200, { haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
-      }
-      const u = stan.chronione.get(klucz);
-      if (funkcja === 'zapisz_plik_udostepnienia') {
-        if (!u) return blad(r, 409, 'insert or update violates foreign key constraint', '23503');
-        u.pliki.set(tresc.p_nazwa, { typ: tresc.p_typ, dane: tresc.p_dane });
-        return json(r, 200, null);
-      }
-      if (funkcja === 'porzadkuj_pliki_udostepnienia') {
-        if (u) for (const n of [...u.pliki.keys()]) if (!tresc.p_zostaja.includes(n)) u.pliki.delete(n);
-        return json(r, 200, null);
+        return json(r, 200, { haslo: Boolean(u.haslo), wazny_do: u.wazny_do, folder: `${tresc.p_kod}.${u.sekret}`, stary_folder: stary && stary !== u.sekret ? `${tresc.p_kod}.${stary}` : null });
       }
       if (funkcja === 'usun_udostepnienie_chronione') { stan.chronione.delete(klucz); return json(r, 200, null); }
     }
@@ -556,6 +558,13 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       const klucz = `${publiczne ? 'podglady' : 'zasoby'}/${reszta}`;
       if (m === 'GET' || m === 'HEAD') {
+        // Link z ochroną: folder „<kod>.<sekret>” – plik tylko, gdy link żyje (jak link_chroniony_wazny w przekaźniku).
+        const czesci = reszta.split('/');
+        if (publiczne && czesci.length >= 4 && czesci[2].includes('.')) {
+          const [kod, sekret] = [czesci[2].slice(0, czesci[2].indexOf('.')), czesci[2].slice(czesci[2].indexOf('.') + 1)];
+          const u = (stan.chronione || new Map()).get(`${czesci[0]}/${czesci[1]}/${kod}`);
+          if (!u || u.sekret !== sekret || (u.wazny_do && new Date(u.wazny_do) < new Date())) return odp(404, { blad: 'Nie ma takiego pliku.' });
+        }
         const plik = stan.pliki.get(klucz);
         if (!plik) return odp(404, { blad: 'Nie ma takiego pliku.' });
         return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*', 'cache-control': plik.cacheControl || 'private, max-age=31536000, immutable' } });

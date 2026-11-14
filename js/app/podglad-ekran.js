@@ -189,6 +189,9 @@ async function zastosujOchrone(p, w, postep = () => {}) {
     if (!byla) {
       await opublikuj(p, postep, { pelna: true });
       await chmura.wylaczPodglad(p.id, u.kod); // obrazy znikają z publicznego folderu
+    } else if (ochrona.nowyFolder) {
+      // Nowe hasło – nowy folder z sekretem (#97): stare adresy już nie działają, strony idą od nowa.
+      await opublikuj(p, postep, { pelna: true });
     }
   } else if (byla) {
     delete u.ochrona;
@@ -330,6 +333,19 @@ export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
       if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     }
   }, opoznienie);
+}
+
+// Po otwarciu projektu: link z ochroną, którego strony trzeba opublikować w nowym folderze (po przeniesieniu
+// plików linków z bazy do R2, #97) – właściciel publikuje je sam, bez czekania na zmianę w projekcie.
+export async function sprawdzLinkPoOtwarciu(p) {
+  const u = p?.udostepnienie;
+  if (!u?.ochrona || !stan.uzytkownik || (u.konto && u.konto !== stan.uzytkownik.id)) return;
+  try {
+    if (await chmura.linkChronionyDoPublikacji(p.id, u.kod) && stan.projekt === p) {
+      u.odcisk = null;
+      zaplanujAktualizacjeLinku(500);
+    }
+  } catch { /* bez sieci – sprawdzimy przy następnym otwarciu */ }
 }
 
 function odswiezOknoUdostepnianiaZachowujacKomunikat() {
