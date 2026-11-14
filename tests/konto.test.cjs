@@ -13,7 +13,7 @@ async function zaloguj(strona, email = 'anna@test.pl', haslo = HASLO) {
 
 async function zalogujIZamknijInstrukcje(strona) {
   await zaloguj(strona);
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
 }
 
 test('logowanie: błędne hasło, poprawne hasło, sesja po odświeżeniu, wylogowanie', async (t) => {
@@ -27,7 +27,7 @@ test('logowanie: błędne hasło, poprawne hasło, sesja po odświeżeniu, wylog
   assert.equal(await strona.textContent('#awatar'), 'A');
 
   await strona.reload();
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
 
   await strona.click('#awatar');
   await strona.click('[data-akcja="wyloguj"]');
@@ -102,7 +102,7 @@ test('reset hasła: prośba o link, powrót z linku i ustawienie nowego hasła',
   await strona.fill('#form-logowania input[name=haslo]', 'Nowe#Haslo22');
   await strona.fill('#form-logowania input[name=haslo2]', 'Nowe#Haslo22');
   await strona.click('#przycisk-logowania');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   assert.equal(k.haslo, 'Nowe#Haslo22');
   assert.deepEqual(bledy, []);
 });
@@ -317,7 +317,7 @@ test('zapis na koncie: wysyłane są tylko zmienione strony; drugie urządzenie 
 
   // „Drugie urządzenie”: bez lokalnej kopii projekt jest składany z wiersza projektu i wierszy stron.
   await strona.click('[data-akcja="do-projektow"]:visible');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(() => new Promise((ok) => { const z = indexedDB.deleteDatabase('seriodruk'); z.onsuccess = ok; z.onerror = ok; z.onblocked = ok; }));
   await strona.reload();
   await strona.waitForSelector('#ekran-projektow :text("Strony osobno")');

@@ -65,7 +65,7 @@ test('„Cofnij” działa po przeładowaniu strony: kolejne cofnięcia wracają
 
   // Usunięcie projektu usuwa jego historię z urządzenia.
   await strona.click('.pasek-edytora [data-akcja="do-projektow"]');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(async (pid) => {
     const { usunHistorie } = await import('./js/historia-zapis.js');
     // Ten sam krok co w menu karty projektu (js/app/projekty.js) – bez okna potwierdzenia.
@@ -157,7 +157,7 @@ test('historia, która nie pasuje do projektu zmienionego gdzie indziej, zaczyna
   await ustawLewo(strona, 10);
   // Projekt zamknięty – zapisana historia już się nie zmienia.
   await strona.click('.pasek-edytora [data-akcja="do-projektow"]');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   // Zapisana historia udaje stan sprzed zmiany z innego urządzenia: inny ostatni krok i inny numer wersji.
   await strona.evaluate(() => new Promise((ok) => {
     const req = indexedDB.open('seriodruk-historia');

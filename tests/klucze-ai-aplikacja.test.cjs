@@ -41,7 +41,7 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   for (let i = 0; i < 60 && !baza.projekty.some((p) => p.id === idPierwszego); i += 1) await strona.waitForTimeout(250);
   // Lista projektów, potem ustawienia konta – okno kluczy działa bez edytora.
   await strona.evaluate(() => { location.hash = '#/projekty'; });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(() => { location.hash = '#/konto/ai'; });
   await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
   await strona.waitForFunction(() => /Nie masz jeszcze żadnego klucza/.test(document.querySelector('#ust-ai-opis').textContent));
@@ -63,7 +63,7 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   // AI tworzy projekt – lista projektów pokazuje go sama.
   const ai = await lacznik(t, baza, klucz);
   await strona.evaluate(() => { location.hash = '#/projekty'; });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   const wynik = await ai('nowy_projekt', { nazwa: 'Od AI', format: 'A4' });
   const idNowego = /\(id ([0-9a-f-]{36})\)/.exec(wynik)[1];
   await strona.waitForFunction(() => [...document.querySelectorAll('#siatka-projektow .karta-projektu')].some((k) => /Od AI/.test(k.textContent)), null, { timeout: 15000 });
@@ -79,7 +79,7 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForFunction(() => ![...document.querySelectorAll('#siatka-projektow .karta-projektu')].some((k) => /Pierwszy/.test(k.textContent)));
   // Po odświeżeniu listy usunięty projekt nie wraca z kopii na urządzeniu.
   await strona.reload();
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.waitForFunction(() => [...document.querySelectorAll('#siatka-projektow .karta-projektu')].some((k) => /Od AI/.test(k.textContent)));
   assert.ok(!(await strona.textContent('#siatka-projektow')).includes('Pierwszy'));
   assert.ok(baza.projekty.some((p) => p.id === idNowego));

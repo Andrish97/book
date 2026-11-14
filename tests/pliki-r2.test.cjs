@@ -15,7 +15,7 @@ test('limity: projekty konta (Nowy projekt, Duplikuj), miejsce konta przy wysył
   assert.equal(baza.projekty.length, 1, 'projekt na koncie');
   baza.limitProjektow = 1;
   await strona.evaluate(() => { location.hash = '#/projekty'; });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.click('[data-akcja="nowy-projekt"]');
   await strona.waitForFunction(() => /limit jednego konta/.test(document.querySelector('#powiadomienie')?.textContent || ''));
   assert.equal(await strona.locator('#dlg-nowy[open]').count(), 0, 'okno nowego projektu się nie otwiera');

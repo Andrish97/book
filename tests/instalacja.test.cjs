@@ -10,7 +10,7 @@ test('iPhone: bez przycisku pełnego ekranu; „Zainstaluj aplikację” pokazuj
   // Pierwsza wizyta za nami – teraz druga.
   await strona.evaluate(() => { localStorage.setItem('makietka:wizyty', '1'); localStorage.removeItem('makietka:instalacja-odlozona'); });
   await strona.reload();
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   void kontekst;
   assert.equal(await widoczne(strona, '[data-akcja="pelny-ekran"]'), false, 'pełny ekran ukryty na iPhonie');
   assert.equal(await widoczne(strona, '#zacheta-instalacji'), true, 'zachęta widoczna');
@@ -21,7 +21,7 @@ test('iPhone: bez przycisku pełnego ekranu; „Zainstaluj aplikację” pokazuj
   await strona.locator('#zacheta-instalacji [data-akcja="zainstaluj-pozniej"]').tap();
   assert.equal(await widoczne(strona, '#zacheta-instalacji'), false, 'po „Nie teraz” schowana');
   await strona.reload();
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   assert.equal(await widoczne(strona, '#zacheta-instalacji'), false, 'i nie wraca po odświeżeniu');
   // W menu konta pozycja zostaje (żeby można było zainstalować później).
   await strona.locator('#awatar').tap();
@@ -30,7 +30,7 @@ test('iPhone: bez przycisku pełnego ekranu; „Zainstaluj aplikację” pokazuj
 
 test('Android/Chrome: przycisk instalacji pojawia się po beforeinstallprompt i woła okno przeglądarki; zainstalowana – bez przycisków', async (t) => {
   const { strona, kontekst } = await otworz(t, { telefon: true });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   assert.equal(await widoczne(strona, '[data-akcja="zainstaluj"]'), false, 'bez zdarzenia przeglądarki nie ma czego instalować');
   await strona.evaluate(() => {
     window.__monit = 0;
@@ -49,7 +49,7 @@ test('Android/Chrome: przycisk instalacji pojawia się po beforeinstallprompt i 
     window.matchMedia = (q) => (/display-mode:\s*standalone/.test(q) ? { matches: true, media: q, addEventListener() {}, removeEventListener() {} } : zwykle(q));
   });
   await strona.reload();
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(() => { const e = new Event('beforeinstallprompt'); e.prompt = () => {}; e.userChoice = Promise.resolve({ outcome: 'dismissed' }); window.dispatchEvent(e); });
   assert.equal(await widoczne(strona, '[data-akcja="zainstaluj"]'), false, 'zainstalowana – bez instalacji');
   assert.equal(await widoczne(strona, '#zacheta-instalacji'), false);
@@ -71,7 +71,7 @@ test('logowanie: przycisk pełnego ekranu jest i wyłącza pełny ekran (Android
 
 test('bezpieczne marginesy: paski, ekran logowania, zasłonki i powiadomienie omijają wycięcia', async (t) => {
   const { strona } = await otworz(t, { telefon: 'poziom' });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   // Chromium nie ma wycięć – podstawiamy wartości env() przez zmienne aplikacji.
   await strona.addStyleTag({ content: ':root { --bezp-gora: 30px !important; --bezp-dol: 21px !important; --bezp-lewo: 47px !important; --bezp-prawo: 47px !important; }' });
   const m = await strona.evaluate(() => {

@@ -48,7 +48,7 @@ async function przygotuj(t, opcje = {}, atrapa = {}) {
     await r.fulfill({ contentType: 'application/json', body: JSON.stringify(wynik) });
   });
   await strona.reload();
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(() => { location.hash = '#/konto/powiadomienia'; });
   await strona.waitForSelector('#ust-powiadomienia.wybrana');
   return { ...o, push: baza };
@@ -85,7 +85,7 @@ test('powiadomienia: zgoda po kliknięciu, urządzenie z rodzajami, wysyłka po 
 
   // Ponowne wejście: stan z bazy dla tego urządzenia.
   await strona.evaluate(() => { location.hash = '#/projekty'; });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(() => { location.hash = '#/konto/powiadomienia'; });
   await strona.waitForFunction(() => document.querySelector('#powiadomienia-stan').textContent === 'Włączone na tym urządzeniu');
   assert.ok(!(await strona.isChecked('#powiadomienia-rodzaje input[value="dostep"]')));

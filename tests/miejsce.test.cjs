@@ -73,7 +73,7 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   const zajete = await strona.evaluate(async () => (await (await import('./js/miejsce.js')).miejsce({ swieze: true })).konto);
   baza.limitKonta = Math.ceil(zajete / 0.85) + 2048;
   await strona.evaluate(() => { location.hash = '#/projekty'; });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(() => { location.hash = '#/konto/miejsce'; });
   await strona.waitForSelector('#miejsce-ostrzezenie:not([hidden])');
   assert.match(await strona.textContent('#miejsce-ostrzezenie'), /zajmują \d+% miejsca/);
@@ -100,7 +100,7 @@ test('sprzątanie w tle przy liście projektów: raz na dobę, bez pliku używan
   }, { pid: p.id, sciezka: `${KONTO}/${p.id}/z_lokalny` });
   baza.pliki.get(`zasoby/${uzyty}`).czas = DAWNO;
   await strona.evaluate(() => { location.hash = '#/projekty'; });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   const start = Date.now();
   while (baza.pliki.has(`zasoby/${KONTO}/${p.id}/z_sierota`) && Date.now() - start < 10000) await new Promise((ok) => { setTimeout(ok, 100); });
   assert.ok(!baza.pliki.has(`zasoby/${KONTO}/${p.id}/z_sierota`), 'osierocony plik usunięty w tle');

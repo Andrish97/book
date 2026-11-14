@@ -151,7 +151,7 @@ const opcjeCzcionek = (strona) => strona.evaluate(() => [...[...document.querySe
 const doProjektow = async (strona) => {
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   await strona.click('#ekran-edytora [data-akcja="do-projektow"]');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
 };
 
 test('moje czcionki: czcionka wgrana w jednym projekcie jest pod ręką w następnym; usunięta nie wraca', async (t) => {
@@ -216,7 +216,7 @@ test('moje czcionki na koncie: plik i spis w prywatnym folderze, drugie urządze
   await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
   await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
   await strona.click('#przycisk-logowania');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   const folder = 'zasoby/11111111-1111-4111-8111-111111111111/_czcionki/';
   const naKoncie = () => [...baza.pliki.keys()].filter((k) => k.startsWith(folder)).map((k) => k.slice(folder.length));
   const spis = () => JSON.parse(baza.pliki.get(`${folder}spis.json`).tresc.toString());

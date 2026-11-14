@@ -44,7 +44,8 @@ test('rejestracja: nazwa użytkownika – zasady, zajęta z propozycją, zapis p
   celina.potwierdzone = true;
   await strona.click('#widok-wyslano [data-tryb="logowanie"]');
   await zaloguj(strona, 'celina@test.pl');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
+  for (let i = 0; i < 50 && baza.profile.get(celina.id) !== 'bartek2'; i += 1) await strona.waitForTimeout(100);
   assert.equal(baza.profile.get(celina.id), 'bartek2');
   assert.equal(await strona.locator('#dlg-nazwa-uzytkownika[open]').count(), 0);
   assert.deepEqual(bledy, []);
@@ -70,7 +71,7 @@ test('pierwsze logowanie konta bez nazwy: okno „Wybierz nazwę użytkownika”
   await strona.waitForFunction(() => !document.querySelector('#dlg-nazwa-uzytkownika').open);
   assert.equal(baza.profile.get(jan.id), 'jan_k');
   assert.equal(jan.nazwa, 'jan_k', 'nazwa także w metadanych konta (do wyświetlania)');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   assert.equal(await strona.textContent('#nazwa-uzytkownika'), 'jan_k');
   assert.deepEqual(bledy, []);
 });

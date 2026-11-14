@@ -129,7 +129,7 @@ test('okno „Obrazy projektu” przyjmuje archiwum ZIP (bez plików systemowych
   // Link od AI: #/p/<id>/obrazy – projekt z oknem obrazów; adres wraca do zwykłego adresu projektu.
   const id = await strona.evaluate(() => window.seriodruk.stan.projekt.id);
   await strona.goto(`${adres}#/projekty`);
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.goto(`${adres}#/p/${id}/obrazy`);
   await strona.waitForSelector('#dlg-obrazy[open]', { timeout: 15000 });
   assert.deepEqual(await nazwyObrazow(strona), ['luty.png', 'styczen.png']);

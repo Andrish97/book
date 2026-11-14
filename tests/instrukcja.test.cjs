@@ -47,13 +47,13 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
 
   // Podrozdział ze spisu: strona rozdziału przewinięta do niego.
   await strona.click('li.otwarty .podrozdzialy-spisu button:has-text("Style")');
-  await strona.waitForTimeout(300);
-  const widoczny = await strona.evaluate(() => {
+  // Treść przewija się płynnie – czekamy, aż podrozdział stanie u góry.
+  const widoczny = await strona.waitForFunction(() => {
     const t = document.querySelector('#instrukcja-tresc');
     const h = [...t.querySelectorAll('.podrozdzial h2')].find((x) => /Style/.test(x.textContent));
     const a = h.getBoundingClientRect().top - t.getBoundingClientRect().top;
     return a >= -2 && a < t.clientHeight / 2;
-  });
+  }, null, { timeout: 4000 }).then(() => true, () => false);
   assert.ok(widoczny, 'podrozdział „Style” u góry treści');
 
   // Zwijanie części w spisie.
@@ -61,7 +61,7 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
   assert.ok(await strona.locator('.czesc-spisu:has-text("Dane i serie") .rozdzialy-spisu').isVisible());
 
   // Odnośnik w treści (→ 15.1) prowadzi do innego rozdziału; okruszek „Instrukcja” wraca na stronę główną.
-  await pokaz(strona, 'Serie');
+  await pokaz(strona, 'Przykłady');
   await strona.click('#instrukcja-tresc a[data-cel="15.1"]');
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Pola w tekście/);
   await strona.click('#instrukcja-tresc .okruszki [data-instrukcja-start]');
@@ -93,7 +93,7 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
   const widoczne = await strona.$$eval('#instrukcja-rozdzialy li[data-i]:not([hidden]) .rozdzial-przycisk span', (s) => s.map((x) => x.textContent));
   assert.ok(widoczne.includes('Przykład: komiks z AI'), widoczne.join(', '));
   assert.ok(!widoczne.includes('Warstwy'));
-  await strona.fill('#instrukcja-szukaj', 'kalkulator grzbietu');
+  await strona.fill('#instrukcja-szukaj', 'okładka z grzbietem');
   assert.ok(await strona.locator('li[data-sekcja="11.6"]:not([hidden])').isVisible(), 'trafiony podrozdział widać w spisie');
   await strona.fill('#instrukcja-szukaj', '');
   assert.equal(await strona.locator('#instrukcja-rozdzialy li[data-i]:not([hidden])').count(), dane.rozdzialy.length);
@@ -158,6 +158,7 @@ test('instrukcja bez konta: „Zobacz, jak to działa” na ekranie logowania i 
   assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'logowanie');
   await strona.click('[data-akcja="zamknij-instrukcje"]');
   await strona.waitForFunction(() => !document.querySelector('#dlg-instrukcja').open);
+  await strona.waitForFunction(() => !/instrukcja/.test(location.hash), null, { timeout: 3000 }).catch(() => {});
   assert.doesNotMatch(await strona.evaluate(() => location.hash), /instrukcja/);
   assert.deepEqual(bledy, []);
 });

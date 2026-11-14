@@ -61,7 +61,7 @@ test('adresy: Wstecz wraca do listy, lista → projekt', async (t) => {
   assert.match(new URL(strona.url()).hash, /^#\/p\/[0-9a-f-]{36}\/s\/s_/);
   await strona.waitForTimeout(900);
   await strona.goBack();
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   assert.equal(new URL(strona.url()).hash, '#/projekty');
   await strona.click('.karta-projektu .otworz-projekt');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
@@ -133,7 +133,7 @@ test('telefon: praca w pionie – panele z dołu, schowany wielokąt; trzymany p
   assert.equal(await plansza(), 'none');
   await strona.setViewportSize({ width: 915, height: 412 });
   await strona.tap('#blokada-ekranu [data-akcja="do-projektow"]');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   assert.equal(await plansza(), 'none');
   assert.ok(await strona.isVisible('.karta-projektu'));
   assert.deepEqual(bledy, []);

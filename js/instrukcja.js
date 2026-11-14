@@ -264,7 +264,7 @@ export class Instrukcja {
     this.dalej.textContent = r ? (i === ROZDZIALY.length - 1 ? 'Spis treści' : 'Następny') : 'Zacznij czytać';
     if (sekcja) {
       const el = this.tresc.querySelector(`#${idSekcji(sekcja)}`);
-      if (el) { this.tresc.scrollTop = el.offsetTop - 8; el.classList.add('wskazany'); setTimeout(() => el.classList.remove('wskazany'), 1600); }
+      if (el) { this.tresc.scrollTop += el.getBoundingClientRect().top - this.tresc.getBoundingClientRect().top - 8; el.classList.add('wskazany'); setTimeout(() => el.classList.remove('wskazany'), 1600); }
     } else this.tresc.scrollTop = przewin ? 0 : gora;
     this.przewinSpis(this.spis.querySelector(`li[data-i="${i}"]`));
   }

@@ -94,6 +94,9 @@ export async function pokazProjekty({ cicho = false } = {}) {
     trasa.ustaw('projekty');
     siatka.innerHTML = '<li class="karta-projektu szkielet"><div class="okladka"></div><div class="opis"><strong>&nbsp;</strong><small>&nbsp;</small></div></li>'.repeat(3);
     $('#pusto-projekty').hidden = true;
+    // Przyciski nagłówka pokazują się dopiero po wczytaniu listy – przy pustej liście „Nowy projekt”
+    // stoi w pustym stanie, więc nie przeskakuje z nagłówka w trakcie kliknięcia.
+    $('.projekty-naglowek .przyciski-naglowka').hidden = true;
   }
   const wszystkie = await wpisyProjektow();
   if (cicho && document.body.dataset.ekran !== 'projekty') return; // w międzyczasie otwarto projekt

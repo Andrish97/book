@@ -11,7 +11,7 @@ test('kafelek: „Podgląd” otwiera podgląd bez mignięcia edytora, „Edytuj
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty.length === 1);
   await strona.evaluate(() => { location.hash = '#/projekty'; });
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   // Odświeżenie strony: edytor nie ma nic na płótnie i musi wczytać projekt od zera.
   await strona.reload();
   await strona.waitForSelector('.karta-projektu .menu-karty');

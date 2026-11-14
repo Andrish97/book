@@ -10,7 +10,7 @@ async function zaloguj(strona) {
   await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
   await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
   await strona.click('#przycisk-logowania');
-  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
 }
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
