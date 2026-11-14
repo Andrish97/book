@@ -19,6 +19,8 @@ export const WLASNE_POLA = [
   'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
   'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana
   'tabela', // tabela jako jeden element: { kolumny, wiersze, naglowek, linia } (tabela-obiekt.js)
+  'obraz_kadr', // kształt jako ramka obrazu: { x, y, skala } (obraz-w-ksztalcie.js, #123)
+  'filtry', // filtry obrazu bez zmiany pliku: { jasnosc, kontrast, nasycenie, szarosc, sepia, rozmycie } (#123)
 ];
 
 if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {

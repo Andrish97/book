@@ -4,6 +4,7 @@
 import { toZaznaczenie } from './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
+import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
@@ -39,6 +40,8 @@ export class PanelWlasciwosci {
     edytor.addEventListener?.('komorka-tabeli', (e) => { if (this.obj && this.obj === e.detail) this.zbuduj(); });
     // Włączenie i wyłączenie narzędzia rysowania albo pióra zmienia panel na ustawienia narzędzia i z powrotem.
     for (const z of ['rysowanie', 'pioro']) edytor.addEventListener?.(z, () => this.zbuduj());
+    // Obraz wstawiony do kształtu albo z niego usunięty zmienia części panelu tego samego elementu (#123).
+    edytor.addEventListener?.('obraz-ksztaltu', () => this.zbuduj());
   }
 
   pokaz(obj) {
@@ -209,6 +212,7 @@ export class PanelWlasciwosci {
     this.zbudujGeometrie(obj);
     if (KSZTALTY.has(obj.type)) this.zbudujWypelnienie(obj);
     if (obj.type === 'line' || obj.type === 'path') this.zbudujLinie(obj);
+    if (moznaWstawicObraz(obj)) this.zbudujObrazWKsztalcie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
     this.zbudujWyrownanie(1);
@@ -1004,6 +1008,53 @@ export class PanelWlasciwosci {
     }
   }
 
+  // Kształt jako ramka obrazu (#123): obraz przycięty do kształtu i wypełniający go.
+  zbudujObrazWKsztalcie(obj) {
+    const s = this.sekcja('Obraz w kształcie');
+    const e = this.edytor;
+    if (!maObraz(obj)) {
+      if (this.opcje.wstawObrazDoKsztaltu) s.append(this.akcje([['obraz', 'Wstaw obraz do kształtu', () => this.opcje.wstawObrazDoKsztaltu(obj)]]));
+      s.append(this.wskazowka('Kształt stanie się ramką: obraz wypełni go i zostanie przycięty do jego brzegów. Możesz też upuścić plik obrazu na kształt.'));
+    } else {
+      const akcje = [];
+      if (this.opcje.wstawObrazDoKsztaltu) akcje.push(['obraz', 'Zmień obraz', () => this.opcje.wstawObrazDoKsztaltu(obj)]);
+      akcje.push(['dopasuj', 'Kadruj', () => { if (!e.kadrujWKsztalcie(obj)) powiadom('Zablokowany kształt kadrujesz liczbami poniżej.'); }]);
+      s.append(this.akcje(akcje));
+      const akcje2 = [];
+      if (this.opcje.wyjmijObrazZKsztaltu) akcje2.push(['rozgrupuj', 'Wyjmij obraz', () => this.opcje.wyjmijObrazZKsztaltu(obj)]);
+      akcje2.push(['kosz', 'Usuń obraz', () => e.usunObrazZKsztaltu(obj)]);
+      s.append(this.akcje(akcje2));
+      s.append(this.wskazowka('Kliknij kształt dwa razy, żeby przesunąć i powiększyć obraz w środku. Kształt zmieniasz jak zwykle – obraz idzie za nim.'));
+      const kadr = () => obj.obraz_kadr || {};
+      s.append(this.liczba('Powiększenie', () => Math.round((kadr().skala || 1) * 100), (v) => e.ustawKadrWKsztalcie(obj, { skala: Math.max(100, v) / 100 }), { jednostka: '%', krok: 10, min: 100 }));
+      s.append(this.liczba('Przesunięcie w poziomie', () => Math.round((kadr().x || 0) * 100), (v) => e.ustawKadrWKsztalcie(obj, { x: v / 100 }), { jednostka: '%', krok: 5 }));
+      s.append(this.liczba('Przesunięcie w pionie', () => Math.round((kadr().y || 0) * 100), (v) => e.ustawKadrWKsztalcie(obj, { y: v / 100 }), { jednostka: '%', krok: 5 }));
+      if (this.opcje.usunTlo) s.append(this.akcje([['gumka', 'Usuń tło…', () => this.opcje.usunTlo(obj)]]));
+      const info = this.wskazowka('');
+      this.odswiezacze.push(() => {
+        if (!obj._obrazEl) { info.textContent = ''; return; }
+        const u = ukladObrazu(obj, obj._obrazEl);
+        const dpi = Math.round(25.4 / u.k);
+        info.textContent = `Oryginał ${u.nw} × ${u.nh} px · ${dpi} dpi w tym rozmiarze.${dpi < 300 ? ' Do druku zalecane jest 300 dpi.' : ''}`;
+        info.classList.toggle('uwaga', dpi < 300);
+      });
+      s.append(info);
+      this.odswiezacze.at(-1)();
+    }
+    // Obraz z danych: kolumna z nazwą pliku – na każdej powielonej stronie inny obraz w tym kształcie.
+    const kolumny = this.opcje.kolumnyObrazu?.() || [];
+    if (kolumny.length) {
+      const wybor = this.wybor('Obraz z kolumny', [['', 'stały obraz'], ...kolumny.map((k) => [k, k])], () => obj.pole?.kolumna || '', (v) => { obj.pole = v ? { ...obj.pole, kolumna: v } : undefined; this.zbuduj(); });
+      wybor.classList.add('szeroki');
+      s.append(wybor);
+      if (obj.pole?.kolumna) {
+        const czesc = this.wybor('Zostaje część zdjęcia', [['', 'środek'], ['gora', 'góra'], ['dol', 'dół'], ['lewa', 'lewa strona'], ['prawa', 'prawa strona']], () => obj.pole?.kadr || '', (v) => { obj.pole = { ...obj.pole, kadr: v || undefined }; });
+        czesc.classList.add('szeroki');
+        s.append(czesc);
+      }
+    }
+  }
+
   // Cień: przesunięcie i rozmycie w mm, kolor z przezroczystością.
   zbudujCien(obj) {
     if (toZaznaczenie(obj) || obj.type === 'group') return;
@@ -1041,6 +1092,7 @@ export class PanelWlasciwosci {
     const definicje = [];
     if (this.opcje.podmienObraz) definicje.push(['obraz', 'Podmień zdjęcie', () => this.opcje.podmienObraz(obj)]);
     if (this.opcje.obrazyProjektu) definicje.push(['warstwy', 'Obrazy projektu…', () => this.opcje.obrazyProjektu()]);
+    if (this.opcje.usunTlo) definicje.push(['gumka', 'Usuń tło…', () => this.opcje.usunTlo(obj)]);
     if (!definicje.length) return;
     const rzad = this.akcje(definicje);
     rzad.classList.add('akcje-obrazu');

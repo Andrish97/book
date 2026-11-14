@@ -77,7 +77,7 @@ function przygotuj(zasob) {
 
 export function zbierzZasoby(obiekty, zbior = new Set()) {
   for (const o of obiekty || []) {
-    if (o.type === 'image' && o.zasob) zbior.add(o.zasob);
+    if (o.zasob) zbior.add(o.zasob); // obraz albo kształt z obrazem (#123)
     if (Array.isArray(o.objects)) zbierzZasoby(o.objects, zbior);
   }
   return zbior;

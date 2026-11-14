@@ -16,6 +16,7 @@ import { przyciagnij, pomiary, przyciagnijKrawedz } from './przyciaganie.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
+import { maObraz, moznaWstawicObraz, przygotujObrazyKsztaltow, ukladObrazu, ustawKadr, ustawZrodloObrazow } from './obraz-w-ksztalcie.js';
 import { wlaczPamiecWarstw } from './warstwy-plotna.js';
 import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
 import {
@@ -181,6 +182,7 @@ export class Edytor extends EventTarget {
       const cel = e.target;
       if (!cel || cel.zWzorca) return;
       if (cel.type === 'image') this.kadruj(cel);
+      else if (maObraz(cel)) this.kadrujWKsztalcie(cel);
       else if (cel.type === 'path') this.edytujPunkty(cel);
       else if (toTabela(cel)) this.edytujKomorke(cel, komorkaWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)), e.e);
       else if (this._doOtwarcia(cel)) this.otworzGrupe(cel, this._elementGrupyWPunkcie(cel, e.scenePoint || c.getScenePoint(e.e)));
@@ -339,6 +341,7 @@ export class Edytor extends EventTarget {
     const b = this.wydruk.spad_mm;
     const h = this.wydruk.wysokosc_mm;
     this.zasoby = zasoby;
+    ustawZrodloObrazow((id) => zrodloObrazu(this.zasoby)(id)); // kształty z obrazem dodane później (#123)
     this._znacznikStrony = strony.map((s) => s.id).join('+') || Symbol('strona');
     this.tla = strony.map((s) => s.tlo || '#ffffff');
     this.prowadnice = strony.flatMap((s, i) => [
@@ -391,6 +394,7 @@ export class Edytor extends EventTarget {
     }
     const obiekty = podmienZasoby(json, zrodloObrazu(zasoby));
     await this.canvas.loadFromJSON({ objects: obiekty });
+    await przygotujObrazyKsztaltow(this.canvas.getObjects());
     if (sasiednia) {
       // Zostają tylko te elementy sąsiedniej strony, które naprawdę zachodzą na tę stronę (ze spadem).
       for (const o of this.canvas.getObjects().filter((x) => x.zSasiedniej && !x.zWzorca)) {
@@ -3024,6 +3028,7 @@ export class Edytor extends EventTarget {
   zakonczKadrowanie(zatwierdz = true) {
     const k = this._kadr;
     if (!k) return;
+    if (k.ksztalt) { this._zakonczKadrWKsztalcie(zatwierdz); return; }
     const { obj, ramka, start, nw, nh, obrot } = k;
     const r = { x1: ramka.left, y1: ramka.top, x2: ramka.left + ramka.getScaledWidth(), y2: ramka.top + ramka.getScaledHeight() };
     this._kadr = null;
@@ -3048,6 +3053,151 @@ export class Edytor extends EventTarget {
         obj.setPositionByOrigin(nowy, 'center', 'center');
       }
     } else obj.set(start);
+    obj.set({ selectable: true, evented: true });
+    obj.setCoords();
+    this._wlozDoGrupy(obj);
+    this.canvas.setActiveObject(obj);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // ---------- Kształt jako ramka obrazu (#123) ----------
+  // Obraz w kształcie: przycięty do kształtu, zawsze go wypełnia. Podwójne kliknięcie kształtu z obrazem
+  // pokazuje cały obraz (półprzezroczysty) do przesunięcia i powiększenia; kształt zostaje edytowalny.
+
+  // Element strony pod punktem zdarzenia (np. upuszczenia pliku) – bez elementów wzorca i ramek kadru.
+  elementWPunkcie(e) {
+    const c = this.canvas;
+    const p = c.getScenePoint(e);
+    const lista = c.getObjects().filter((o) => !o.zWzorca && !o.kadr && o.visible !== false && o.evented !== false);
+    return c.searchPossibleTargets(lista, p)?.target || null;
+  }
+
+  moznaWstawicObraz(obj) { return Boolean(obj && !obj.zWzorca && !obj.zablokowany && moznaWstawicObraz(obj)); }
+
+  async wstawObrazDoKsztaltu(obj, id) {
+    if (!moznaWstawicObraz(obj) || !this.zasoby?.[id]) return false;
+    if (this._kadr) this.zakonczKadrowanie(true);
+    await przygotujKopie(this.zasoby, [{ type: 'image', zasob: id }]);
+    obj.set({ zasob: id, obraz_kadr: { x: 0, y: 0, skala: 1 } });
+    if (!obj.nazwa) obj.nazwa = this.zasoby[id]?.nazwa || undefined;
+    await przygotujObrazyKsztaltow([obj]);
+    obj.dirty = true;
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.dispatchEvent(new Event('zasoby'));
+    this.dispatchEvent(new Event('obraz-ksztaltu'));
+    this.oznaczZmiane();
+    return true;
+  }
+
+  // Obraz wychodzi z kształtu jako zwykły obraz w miejscu kształtu (z tym samym widocznym fragmentem);
+  // kształt zostaje pusty pod nim.
+  async wyjmijObrazZKsztaltu(obj) {
+    if (!maObraz(obj) || !obj._obrazEl) return false;
+    if (this._kadr) this.zakonczKadrowanie(true);
+    const u = ukladObrazu(obj, obj._obrazEl);
+    let img;
+    try { img = await fabric.FabricImage.fromURL(zrodloObrazu(this.zasoby)(obj.zasob)); } catch { return false; }
+    const k = u.k; // mm na piksel oryginału
+    img.set({
+      zasob: obj.zasob, nazwa: this.zasoby[obj.zasob]?.nazwa, id: uid('o'),
+      cropX: Math.max(0, ((u.Wi - u.W) / 2 - u.cx) / k), cropY: Math.max(0, ((u.Hi - u.H) / 2 - u.cy) / k),
+      width: u.W / k, height: u.H / k, scaleX: k, scaleY: k, angle: obj.angle || 0, flipX: obj.flipX, flipY: obj.flipY,
+      originX: 'left', originY: 'top',
+    });
+    img.setPositionByOrigin(obj.getCenterPoint(), 'center', 'center');
+    obj.set({ zasob: undefined, obraz_kadr: undefined, pole: obj.pole?.kolumna ? { ...obj.pole, kolumna: undefined } : obj.pole });
+    obj._obrazEl = null; obj._obrazSrc = null; obj.dirty = true;
+    const i = this.canvas.getObjects().indexOf(obj);
+    if (i >= 0 && !obj.group) this.canvas.insertAt(i + 1, img); else this.canvas.add(img);
+    this.canvas.setActiveObject(img);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+    return true;
+  }
+
+  usunObrazZKsztaltu(obj) {
+    if (!maObraz(obj)) return;
+    if (this._kadr) this.zakonczKadrowanie(true);
+    obj.set({ zasob: undefined, obraz_kadr: undefined });
+    if (obj.pole?.kolumna) obj.pole = undefined;
+    obj._obrazEl = null; obj._obrazSrc = null; obj.dirty = true;
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.dispatchEvent(new Event('zasoby'));
+    this.dispatchEvent(new Event('obraz-ksztaltu'));
+    this.oznaczZmiane();
+  }
+
+  // Liczby z panelu: powiększenie (≥ 100%) i przesunięcie (% szerokości / wysokości kształtu).
+  ustawKadrWKsztalcie(obj, { skala, x, y }) {
+    if (!maObraz(obj)) return;
+    const k = obj.obraz_kadr || {};
+    const el = obj._obrazEl;
+    const W = (obj.width || 0) * Math.abs(obj.scaleX || 1); const H = (obj.height || 0) * Math.abs(obj.scaleY || 1);
+    const u = el ? ukladObrazu(obj, el) : { cx: 0, cy: 0 };
+    ustawKadr(obj, { cx: x !== undefined ? x * W : u.cx, cy: y !== undefined ? y * H : u.cy, skala: skala ?? k.skala ?? 1 });
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+  }
+
+  kadrujWKsztalcie(obj) {
+    if (this._kadr || !maObraz(obj) || obj.zablokowany || !obj._obrazEl) return false;
+    if (obj.group && !this._wyjmijZGrupy(obj)) return false;
+    const el = obj._obrazEl;
+    const u = ukladObrazu(obj, el);
+    const start = { ...(obj.obraz_kadr || {}) };
+    const ramka = new fabric.FabricImage(el, {
+      originX: 'center', originY: 'center', opacity: 0.45, excludeFromExport: true, kadr: true, lockRotation: true,
+      lockSkewingX: true, lockSkewingY: true, angle: obj.angle || 0, flipX: obj.flipX, flipY: obj.flipY,
+      width: u.nw, height: u.nh, scaleX: u.k, scaleY: u.k, objectCaching: false,
+    });
+    ramka.setControlsVisibility({ mtr: false, ml: false, mr: false, mt: false, mb: false });
+    this._kadr = { ksztalt: true, obj, ramka, start };
+    this._ustawRamkeKadru();
+    const zRamki = () => {
+      const s = obj.getCenterPoint(); const t = ramka.getCenterPoint();
+      const kat = -((obj.angle || 0) * Math.PI) / 180;
+      let dx = (t.x - s.x) * Math.cos(kat) - (t.y - s.y) * Math.sin(kat);
+      let dy = (t.x - s.x) * Math.sin(kat) + (t.y - s.y) * Math.cos(kat);
+      if (obj.flipX) dx = -dx;
+      if (obj.flipY) dy = -dy;
+      const uu = ukladObrazu(obj, el);
+      ustawKadr(obj, { cx: dx, cy: dy, skala: (ramka.scaleX / uu.k) * (obj.obraz_kadr?.skala || 1) });
+    };
+    ramka.on('moving', zRamki);
+    ramka.on('scaling', zRamki);
+    ramka.on('modified', () => { zRamki(); this._ustawRamkeKadru(); this.canvas.requestRenderAll(); });
+    obj.set({ selectable: false, evented: false });
+    this.canvas.add(ramka);
+    this.canvas.setActiveObject(ramka);
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    return true;
+  }
+
+  // Ramka kadru staje dokładnie tam, gdzie leży obraz w kształcie (po przycięciu przesunięcia).
+  _ustawRamkeKadru() {
+    const k = this._kadr;
+    if (!k?.ksztalt) return;
+    const { obj, ramka } = k;
+    const u = ukladObrazu(obj, obj._obrazEl);
+    const kat = ((obj.angle || 0) * Math.PI) / 180;
+    const cx = obj.flipX ? -u.cx : u.cx; const cy = obj.flipY ? -u.cy : u.cy;
+    const s = obj.getCenterPoint();
+    ramka.set({ scaleX: u.k, scaleY: u.k, angle: obj.angle || 0 });
+    ramka.setPositionByOrigin(new fabric.Point(s.x + cx * Math.cos(kat) - cy * Math.sin(kat), s.y + cx * Math.sin(kat) + cy * Math.cos(kat)), 'center', 'center');
+    ramka.setCoords();
+  }
+
+  _zakonczKadrWKsztalcie(zatwierdz) {
+    const { obj, ramka, start } = this._kadr;
+    this._kadr = null;
+    this.canvas.remove(ramka);
+    if (!zatwierdz) { obj.obraz_kadr = start; obj.dirty = true; }
     obj.set({ selectable: true, evented: true });
     obj.setCoords();
     this._wlozDoGrupy(obj);
