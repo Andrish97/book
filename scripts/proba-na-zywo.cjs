@@ -291,7 +291,7 @@ const krok = async (nazwa, fn) => {
       if (init.serverInfo?.name !== 'makietka') throw new Error(`initialize: ${JSON.stringify(init).slice(0, 200)}`);
       const lista = await wywolaj('tools/list', {});
       if (!lista.tools.some((x) => x.name === 'zmien_elementy')) throw new Error('brak narzędzi na liście');
-      if (!lista.tools.some((x) => x.name === 'adres_do_wysylki') || !lista.tools.find((x) => x.name === 'wgraj_obraz')?._meta?.['openai/fileParams']) throw new Error('łącznik bez adres_do_wysylki albo pliki_z_czatu – stara wersja funkcji');
+      if (!['adres_do_wysylki', 'wgraj_czesciami'].every((n) => lista.tools.some((x) => x.name === n)) || lista.tools.some((x) => x._meta)) throw new Error('łącznik bez adres_do_wysylki / wgraj_czesciami albo z _meta dla ChatGPT u innego klienta – stara wersja funkcji');
       const przeglad = await wywolaj('tools/call', { name: 'przeglad_projektu', arguments: {} });
       if (przeglad.isError || !/Projekt „/.test(przeglad.content[0].text)) throw new Error(`przeglad_projektu: ${przeglad.content?.[0]?.text?.slice(0, 200)}`);
       const zmiana = await wywolaj('tools/call', { name: 'nazwa_projektu', arguments: { nazwa: 'Test łącznika (AI)' } });
