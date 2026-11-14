@@ -429,7 +429,8 @@ begin
                from wybrane t order by t.ostatnia desc limit v_limit offset v_od) x), '[]')
       into v_razem, v_lista;
   end if;
-  return jsonb_build_object('watki', v_lista, 'razem', v_razem, 'od', v_od, 'limit', v_limit,
+  return jsonb_build_object('watki', v_lista, 'razem', v_razem, 'skrzynka', (select u.skrzynka_email from public.poczta_ustawienia u where u.id = 1),
+    'podpis', (select u.podpis from public.poczta_ustawienia u where u.id = 1), 'od', v_od, 'limit', v_limit,
     'liczniki', jsonb_build_object(
       'skrzynka', (select count(*) from public.poczta_watki t where t.folder = 'skrzynka' and not t.przeczytany),
       'zgloszenia', (select count(*) from public.poczta_watki t where t.zgloszenie_stan = 'otwarte' and t.folder not in ('spam', 'kosz')),
@@ -742,7 +743,7 @@ begin
     select distinct on (a.email) a.email, a.nazwa, a.waga, a.ostatnio from (
       select lower(w.od_email) email, w.od_nazwa nazwa, 0 waga, w.utworzono ostatnio from public.poczta_wiadomosci w where w.kierunek = 'przychodzaca'
       union all
-      select lower(x1), null, 0, w.utworzono from public.poczta_wiadomosci w, unnest(w.do_lista || w.dw || w.udw) x1 where w.kierunek = 'wychodzaca'
+      select lower(x1), null, 0, w.utworzono from public.poczta_wiadomosci w, unnest(w.do_lista || w.dw || w.udw) x1
       union all
       select lower(au.email), p.nazwa, 1, au.last_sign_in_at from auth.users au left join public.profile p on p.id = au.id
         where au.email is not null and au.email not ilike '%@example.com'

@@ -1844,44 +1844,240 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 .admin-narzedzia .filtry-projektow { margin: 0; }
 .admin-narzedzia input[type="search"] { flex: 1 1 220px; min-width: 0; }
 
-/* Skrzynka: lista rozmów i otwarta rozmowa obok siebie; na wąskim ekranie – jedno albo drugie. */
-.admin-skrzynka { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }
-.admin-lista { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-.lista-watkow { list-style: none; margin: 0; padding: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); overflow: hidden; background: var(--powierzchnia); }
-.lista-watkow li + li { border-top: 1px solid var(--linia); }
-.lista-watkow button {
-  all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px;
-  padding: 10px 12px; cursor: pointer; color: var(--tusz);
+/* Skrzynka jako klient poczty (#110): foldery | lista | rozmowa albo pisanie – na całą wysokość okna; na
+   wąskim ekranie osobne ekrany (lista → rozmowa → pisanie). Zakładka skrzynki zwija nawigację panelu do ikon. */
+#ekran-admin[data-zakladka="skrzynka"] .admin-tresc { overflow: hidden; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-tresc .konto-uklad {
+  max-width: none; height: 100%; padding: 12px 16px 12px 12px; gap: 12px; grid-template-columns: 52px minmax(0, 1fr); align-items: stretch;
 }
-.lista-watkow button:hover { background: var(--wypelnienie); }
-.lista-watkow button:focus-visible { outline: 2px solid var(--akcent); outline-offset: -2px; }
-.lista-watkow li.wybrany button { background: var(--akcent-tlo); }
-.lista-watkow .od { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lista-watkow .kiedy { color: var(--cichy); font-size: 12px; white-space: nowrap; }
-.lista-watkow .temat { grid-column: 1 / -1; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lista-watkow .zajawka { grid-column: 1 / -1; color: var(--cichy); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lista-watkow li.nowy .od, .lista-watkow li.nowy .temat { font-weight: 700; }
-.lista-watkow .plakietka-zrodla { font-size: 11px; color: var(--cichy); border: 1px solid var(--linia); border-radius: 999px; padding: 0 6px; margin-left: 6px; font-weight: 500; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja { top: 0; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja a { justify-content: center; padding: 9px 0; position: relative; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja .etykieta-admin { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja .licznik-admin { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; font-size: 10.5px; padding: 0 4px; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-sekcje { min-height: 0; height: 100%; }
+.admin-panel-skrzynka { height: 100%; min-height: 0; }
+#pozycja-admin .licznik-admin { margin-left: auto; }
 
-.admin-watek { min-width: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); background: var(--powierzchnia); padding: 16px; min-height: 240px; }
-.admin-watek-pusty { margin: 60px 0; text-align: center; }
-.watek-naglowek { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
-.watek-naglowek h3 { font-size: 17px; margin: 0; overflow-wrap: anywhere; min-width: 0; flex: 1 1 240px; }
-.watek-akcje { display: flex; flex-wrap: wrap; gap: 6px; }
+.skrzynka {
+  --szer-folderow: 196px; --szer-listy: minmax(300px, 400px);
+  display: grid; grid-template-columns: var(--szer-folderow) var(--szer-listy) minmax(0, 1fr); height: 100%; min-height: 480px;
+  border: 1px solid var(--linia); border-radius: var(--r-l); background: var(--powierzchnia); overflow: hidden;
+}
+.skrzynka [hidden] { display: none !important; }
+.skrzynka .plakietka {
+  display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; line-height: 1; color: var(--tusz-2);
+  border: 1px solid var(--linia-mocna); border-radius: 999px; padding: 3px 7px; margin-right: 6px; white-space: nowrap; vertical-align: 1px;
+}
+.skrzynka .plakietka.zgloszenie { background: var(--uwaga-tlo); color: var(--uwaga); border-color: transparent; font-variant-numeric: tabular-nums; }
+.skrzynka .plakietka.zgloszenie.zamkniete { background: var(--wypelnienie); color: var(--cichy); }
+.skrzynka .plakietka.robocza { color: var(--blad); border-color: var(--blad-linia); }
+
+/* Foldery */
+.skrzynka-foldery { display: flex; flex-direction: column; gap: 10px; padding: 12px 8px; border-right: 1px solid var(--linia); background: var(--powierzchnia-2); min-height: 0; overflow: auto; }
+.skrzynka-napisz { justify-content: flex-start; padding: 0 16px; min-height: 44px; border-radius: 14px; box-shadow: var(--cien-1); }
+.lista-folderow { display: flex; flex-direction: column; gap: 1px; }
+.lista-folderow button {
+  all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 10px 0 12px;
+  border-radius: 999px; color: var(--tusz-2); font-size: 14px; cursor: pointer;
+}
+.lista-folderow button:hover { background: var(--wypelnienie); }
+.lista-folderow button:focus-visible { outline: 2px solid var(--akcent); outline-offset: -2px; }
+.lista-folderow button[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--na-akcencie-tle); font-weight: 600; }
+.lista-folderow .ikona { flex: none; width: 18px; height: 18px; }
+.lista-folderow .nazwa-folderu { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.licznik-folderu { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--cichy); }
+.lista-folderow .ma-nowe .licznik-folderu { color: inherit; font-weight: 700; }
+.lista-folderow .ma-nowe .nazwa-folderu { font-weight: 600; }
+.skrzynka-adres { margin: auto 0 0; padding: 0 12px; font-size: 12px; overflow-wrap: anywhere; }
+
+/* Lista */
+.skrzynka-lista { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--linia); }
+.skrzynka-pasek { display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 4px 6px 4px 4px; border-bottom: 1px solid var(--linia); }
+.skrzynka-zaznacz { display: grid; place-items: center; width: 36px; height: 36px; flex: none; cursor: pointer; }
+.skrzynka-zaznacz input, .lista-watkow .wybor input { width: 16px; height: 16px; margin: 0; accent-color: var(--akcent); cursor: pointer; }
+.skrzynka-tytul { flex: 1; min-width: 0; margin: 0; font-size: 16px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skrzynka-zbiorcze { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0; overflow-x: auto; scrollbar-width: none; }
+.skrzynka-zbiorcze > .ciche { font-size: 12.5px; margin-right: 6px; white-space: nowrap; }
+.skrzynka-zbiorcze .przycisk-ikona { --dotyk: 34px; flex: none; }
+.skrzynka-zbiorcze .niebezpieczny { color: var(--blad); }
+.skrzynka-szukaj { position: relative; margin: 8px 10px 6px; }
+.skrzynka-szukaj > span { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--cichy); display: flex; pointer-events: none; }
+.skrzynka-szukaj input[type="search"] { width: 100%; padding-left: 36px; border-radius: 999px; background: var(--powierzchnia-2); }
+.lista-watkow { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.lista-watkow li { position: relative; display: grid; grid-template-columns: 34px 28px minmax(0, 1fr); align-items: start; border-bottom: 1px solid var(--linia); }
+.lista-watkow li:hover { background: var(--powierzchnia-2); }
+.lista-watkow li.nowy { background: var(--powierzchnia); }
+.lista-watkow li.nowy::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--akcent); }
+.lista-watkow li.wybrany { background: var(--akcent-tlo); }
+.lista-watkow li.zaznaczony { background: color-mix(in srgb, var(--akcent-tlo) 70%, var(--powierzchnia)); }
+.lista-watkow .wybor { display: grid; place-items: center; height: 44px; cursor: pointer; }
+.lista-watkow .gwiazdka, .watek-akcje .gwiazdka {
+  all: unset; box-sizing: border-box; display: grid; place-items: center; width: 28px; height: 44px; color: var(--linia-mocna); cursor: pointer;
+}
+.watek-akcje .gwiazdka { width: var(--dotyk); height: var(--dotyk); border-radius: var(--r-m); }
+.lista-watkow .gwiazdka:hover, .watek-akcje .gwiazdka:hover { color: var(--cichy); }
+.lista-watkow .gwiazdka:focus-visible, .watek-akcje .gwiazdka:focus-visible { outline: 2px solid var(--akcent); outline-offset: -4px; border-radius: 6px; }
+.skrzynka .gwiazdka[aria-pressed="true"] { color: #e3a008; }
+.skrzynka .gwiazdka[aria-pressed="true"] .ikona { fill: currentColor; }
+.lista-watkow .otworz {
+  all: unset; box-sizing: border-box; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px;
+  padding: 9px 12px 10px 2px; cursor: pointer; color: var(--tusz);
+}
+.lista-watkow .otworz:focus-visible { outline: 2px solid var(--akcent); outline-offset: -2px; }
+.lista-watkow .od { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-watkow .liczba { color: var(--cichy); font-weight: 500; font-size: 12px; margin-left: 6px; }
+.lista-watkow .kiedy { display: flex; align-items: center; gap: 4px; color: var(--cichy); font-size: 12px; white-space: nowrap; }
+.lista-watkow .temat { grid-column: 1 / -1; display: flex; align-items: center; min-width: 0; font-size: 13.5px; }
+.lista-watkow .tekst-tematu { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-watkow .zajawka { grid-column: 1 / -1; color: var(--cichy); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-watkow li.nowy .od, .lista-watkow li.nowy .tekst-tematu, .lista-watkow li.nowy .kiedy { font-weight: 700; color: var(--tusz); }
+.skrzynka-pusto { margin: 0; padding: 40px 16px; text-align: center; color: var(--cichy); }
+.skrzynka-stopka { display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 2px 6px 2px 10px; border-top: 1px solid var(--linia); font-size: 12.5px; }
+.skrzynka-stopka .przycisk-ikona { --dotyk: 34px; }
+
+/* Rozmowa */
+.skrzynka-podglad, .skrzynka-pisz { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--powierzchnia); }
+.skrzynka-nic { margin: auto; display: grid; justify-items: center; gap: 8px; color: var(--cichy); text-align: center; padding: 24px; }
+.skrzynka-nic p { margin: 0; }
+.watek-pasek { display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 4px 8px; border-bottom: 1px solid var(--linia); }
+.watek-akcje { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.watek-akcje .niebezpieczny { color: var(--blad); }
 .watek-wstecz { display: none; }
-.wiadomosci-watku { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-.wiadomosc { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 10px 12px; }
-.wiadomosc.wychodzaca { background: var(--akcent-tlo); border-color: transparent; margin-left: clamp(0px, 6vw, 48px); }
-.wiadomosc-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; color: var(--cichy); margin-bottom: 6px; }
-.wiadomosc-meta strong { color: var(--tusz); font-weight: 600; }
-.wiadomosc-tresc { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; max-height: 420px; overflow: auto; }
-.wiadomosc-zalaczniki { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: 12.5px; }
-.wiadomosc-zalaczniki span { border: 1px solid var(--linia); border-radius: 999px; padding: 2px 8px; }
-.wiadomosc .stan-wysylki { font-size: 12px; }
-.wiadomosc .stan-wysylki.blad { color: var(--blad); }
-.form-odpowiedzi { display: flex; flex-direction: column; gap: 8px; }
-.form-odpowiedzi textarea { min-height: 110px; resize: vertical; }
-.form-odpowiedzi .przyciski-formularza { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.watek-przewijany { flex: 1; min-height: 0; overflow: auto; padding: 16px 20px 24px; overscroll-behavior: contain; }
+.watek-temat { margin: 0 0 12px; font-size: 20px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.watek-temat .plakietka { margin: 0 0 0 10px; vertical-align: 3px; }
+.watek-zgloszenie {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 10px 8px 12px; margin-bottom: 14px;
+  border-radius: var(--r-m); background: var(--uwaga-tlo); color: var(--uwaga); font-size: 13px;
+}
+.watek-zgloszenie > span:nth-child(2) { flex: 1 1 220px; color: var(--tusz-2); }
+.watek-zgloszenie strong { color: var(--uwaga); }
+.watek-zgloszenie.zamkniete { background: var(--wypelnienie); color: var(--cichy); }
+.watek-zgloszenie.zamkniete strong { color: var(--tusz-2); }
+.wiadomosci-watku { display: flex; flex-direction: column; border-top: 1px solid var(--linia); }
+.wiadomosc { border-bottom: 1px solid var(--linia); padding: 12px 0 14px; }
+.wiadomosc-naglowek { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto auto; gap: 2px 10px; align-items: start; }
+.awatar-poczty { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--wypelnienie); color: var(--tusz-2); font-weight: 650; }
+.wiadomosc.wychodzaca .awatar-poczty { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
+.wiadomosc-kto { min-width: 0; font-size: 14px; }
+.wiadomosc-kto .ciche { font-size: 12.5px; overflow-wrap: anywhere; }
+.wiadomosc-adresaci { color: var(--cichy); font-size: 12.5px; overflow-wrap: anywhere; }
+.wiadomosc-adresaci .na-adres { color: var(--tusz); border: 1px solid var(--linia); border-radius: 999px; padding: 0 6px; }
+.wiadomosc-zajawka { display: none; color: var(--cichy); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wiadomosc-kiedy { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; color: var(--cichy); font-size: 12px; white-space: nowrap; padding-top: 2px; }
+.stan-wysylki { font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 1px 7px; background: var(--wypelnienie); color: var(--tusz-2); }
+.stan-wysylki.wyslany { background: var(--sukces-tlo); color: var(--sukces); }
+.stan-wysylki.blad { background: var(--blad-tlo); color: var(--blad); white-space: normal; max-width: 220px; text-align: right; }
+.wiadomosc-akcje { display: flex; }
+.wiadomosc-akcje .przycisk-ikona { --dotyk: 32px; }
+.wiadomosc.zwinieta { padding: 10px 0; cursor: pointer; }
+.wiadomosc.zwinieta:hover { background: var(--powierzchnia-2); }
+.wiadomosc.zwinieta .wiadomosc-adresaci, .wiadomosc.zwinieta .wiadomosc-tresc, .wiadomosc.zwinieta .wiadomosc-zalaczniki, .wiadomosc.zwinieta .wiadomosc-akcje { display: none; }
+.wiadomosc.zwinieta .wiadomosc-zajawka { display: block; }
+.wiadomosc-tresc { margin: 10px 0 0 46px; min-width: 0; }
+.tekst-wiadomosci { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.55; }
+.ramka-wiadomosci { display: block; width: 100%; height: 60px; border: 0; border-radius: var(--r-s); background: #fff; color-scheme: light; }
+:root[data-motyw="ciemny"] .ramka-wiadomosci { padding: 10px 12px; box-sizing: content-box; width: calc(100% - 24px); }
+.pasek-obrazow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 8px; padding: 6px 10px; border-radius: var(--r-s); background: var(--powierzchnia-2); color: var(--cichy); font-size: 12.5px; }
+.wiadomosc-zalaczniki { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0 46px; }
+.zalacznik {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 34px; padding: 0 10px; border: 1px solid var(--linia-mocna);
+  border-radius: var(--r-m); background: var(--powierzchnia); color: var(--tusz); font: inherit; font-size: 13px; cursor: pointer;
+}
+button.zalacznik:hover { border-color: var(--akcent); color: var(--akcent); }
+.zalacznik .nazwa { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.zalacznik .ciche { font-size: 12px; }
+.zalacznik.brak { cursor: default; opacity: .7; }
+.watek-robocza { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--linia); font-size: 13px; }
+.watek-robocza .zajawka { flex: 1; min-width: 0; color: var(--cichy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.watek-odpowiedz { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.watek-odpowiedz .przycisk { border-radius: 999px; }
+
+/* Pisanie */
+.skrzynka-pisz { position: relative; }
+#admin-form-pisz { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.pisz-naglowek { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 4px 8px 4px 16px; border-bottom: 1px solid var(--linia); }
+.pisz-naglowek h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.pisz-stan { flex: 1; font-size: 12px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pisz-wstecz { display: none; }
+.pisz-pola { padding: 0 16px; }
+.pole-adresow { display: flex; align-items: center; gap: 8px; min-height: 42px; border-bottom: 1px solid var(--linia); }
+.pole-adresow > label { flex: none; width: 48px; color: var(--cichy); font-size: 13.5px; }
+.pole-adresow > input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 0; box-shadow: none; font-size: 14px; }
+.pole-adresow > input:focus { outline: none; box-shadow: none; }
+.adresy { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 5px 0; cursor: text; }
+.adresy input { flex: 1 1 140px; min-width: 120px; border: 0; background: transparent; padding: 4px 0; box-shadow: none; font-size: 14px; }
+.adresy input:focus { outline: none; box-shadow: none; }
+.adres { display: inline-flex; align-items: center; gap: 2px; max-width: 100%; padding: 2px 2px 2px 10px; border-radius: 999px; background: var(--wypelnienie); font-size: 13px; }
+.adres > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adres button { all: unset; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: var(--cichy); cursor: pointer; }
+.adres button:hover { background: var(--wypelnienie-hover); color: var(--tusz); }
+.adres.zly { background: var(--blad-tlo); color: var(--blad); }
+.podpowiedzi-adresow {
+  position: absolute; z-index: 30; min-width: 260px; max-width: calc(100% - 16px); margin: 2px 0 0; padding: 4px; list-style: none;
+  background: var(--powierzchnia); border: 1px solid var(--linia-mocna); border-radius: var(--r-m); box-shadow: var(--cien-3);
+}
+.podpowiedzi-adresow li { display: flex; flex-direction: column; padding: 6px 10px; border-radius: var(--r-s); cursor: pointer; font-size: 13.5px; }
+.podpowiedzi-adresow li .ciche { font-size: 12px; }
+.podpowiedzi-adresow li[aria-selected="true"], .podpowiedzi-adresow li:hover { background: var(--akcent-tlo); }
+.pisz-edytor { flex: 1; min-height: 240px; display: flex; flex-direction: column; padding: 0; }
+.pisz-edytor > textarea { flex: 1; border: 0; }
+.pisz-edytor .tox-tinymce { flex: 1; border: 0 !important; border-radius: 0 !important; }
+.pisz-edytor .atrapa-tinymce { flex: 1; font-size: 15px; line-height: 1.55; color: var(--tusz); }
+.pisz-zalaczniki { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 8px 16px 0; list-style: none; }
+.pisz-zalaczniki .zalacznik { cursor: default; padding-right: 2px; }
+.pisz-zalaczniki .zalacznik.wysylanie { opacity: .65; }
+.pisz-zalaczniki .przycisk-ikona { --dotyk: 28px; }
+.pisz-stopka { display: flex; align-items: center; gap: 8px; padding: 10px 16px 12px; }
+.pisz-stopka .przycisk.glowny { border-radius: 999px; padding: 0 22px; }
+.pisz-stopka label.przycisk { cursor: pointer; }
+
+/* Średni ekran: foldery jako same ikony. */
+@media (max-width: 1240px) and (min-width: 901px) {
+  .skrzynka { --szer-folderow: 60px; --szer-listy: minmax(280px, 340px); }
+  .skrzynka-foldery { padding: 10px 6px; align-items: center; }
+  .skrzynka-napisz { width: 44px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+  .lista-folderow button { width: 44px; justify-content: center; padding: 0; position: relative; }
+  .lista-folderow .nazwa-folderu, .skrzynka-adres { display: none; }
+  .lista-folderow .licznik-folderu { position: absolute; top: 0; right: 0; font-size: 10px; }
+  .lista-folderow .licznik-folderu:empty { display: none; }
+}
+
+/* Telefon i wąskie okno: osobne ekrany – foldery (pasek) i lista → rozmowa → pisanie; „Napisz” w rogu. */
+@media (max-width: 900px) {
+  #ekran-admin[data-zakladka="skrzynka"] .admin-tresc .konto-uklad { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); padding: 0; gap: 0; }
+  #ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja { position: static; flex-direction: row; justify-content: center; gap: 4px; padding: 4px 8px; border-bottom: 1px solid var(--linia); }
+  #ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja a { width: 52px; flex: none; }
+  .skrzynka { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); border: 0; border-radius: 0; min-height: 0; }
+  .skrzynka-foldery { flex-direction: row; align-items: center; padding: 8px 10px; border-right: 0; border-bottom: 1px solid var(--linia); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .lista-folderow { flex-direction: row; gap: 6px; }
+  .lista-folderow button { flex: none; min-height: 34px; padding: 0 12px; gap: 6px; border: 1px solid var(--linia); font-size: 13px; }
+  .lista-folderow button[aria-pressed="true"] { border-color: transparent; }
+  .lista-folderow .ikona { width: 16px; height: 16px; }
+  .skrzynka-adres { display: none; }
+  .skrzynka-napisz {
+    position: fixed; right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 20;
+    min-height: 52px; padding: 0 20px; border-radius: 18px; box-shadow: var(--cien-3);
+  }
+  .skrzynka-lista, .skrzynka-podglad, .skrzynka-pisz { grid-row: 2; grid-column: 1; border-right: 0; }
+  .skrzynka:not([data-widok="lista"]) .skrzynka-foldery, .skrzynka:not([data-widok="lista"]) .skrzynka-lista { display: none; }
+  .skrzynka[data-widok="lista"] .skrzynka-podglad { display: none; }
+  .skrzynka:not([data-widok="lista"]) .skrzynka-podglad, .skrzynka:not([data-widok="lista"]) .skrzynka-pisz { grid-row: 1 / -1; }
+  .lista-watkow { padding-bottom: 84px; }
+  .watek-wstecz, .pisz-wstecz { display: inline-flex; }
+  .pisz-zamknij { display: none; }
+  .watek-pasek { justify-content: space-between; }
+  .watek-przewijany { padding: 14px 14px 32px; }
+  .watek-temat { font-size: 18px; }
+  .wiadomosc-naglowek { grid-template-columns: 36px minmax(0, 1fr) auto; }
+  .wiadomosc-akcje { display: none; }
+  .wiadomosc-tresc, .wiadomosc-zalaczniki { margin-left: 0; }
+  .pisz-naglowek { padding-left: 4px; }
+  .pisz-pola { padding: 0 12px; }
+  .pisz-zalaczniki { padding: 8px 12px 0; }
+  .pisz-stopka { padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); }
+  .watek-odpowiedz .przycisk { flex: 1 1 auto; }
+}
 
 /* Kolejka */
 .admin-dostawcy { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -1931,23 +2127,14 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 .admin-tabela th, .admin-tabela td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--linia); white-space: nowrap; }
 .admin-tabela th { color: var(--cichy); font-weight: 500; }
 .admin-tabela td:not(:first-child), .admin-tabela th:not(:first-child) { text-align: right; }
-.wiadomosc-meta .na-adres { color: var(--tusz); border: 1px solid var(--linia); border-radius: 999px; padding: 0 6px; }
 .admin-wykres text { fill: var(--cichy); font-size: 10px; }
 
-/* Wąski ekran (telefon): rozmowa zamiast listy, tabele przewijane. */
-@media (max-width: 900px) {
-  .admin-skrzynka { grid-template-columns: 1fr; }
-  .admin-skrzynka.otwarta .admin-lista { display: none; }
-  .admin-skrzynka:not(.otwarta) .admin-watek { display: none; }
-  .watek-wstecz { display: inline-flex; }
-}
 @media (max-width: 760px) {
   .admin-tresc .konto-uklad { grid-template-columns: 1fr; }
   .lista-kolejki li { grid-template-columns: 1fr; }
   .lista-kolejki .akcje { justify-content: flex-start; }
   .admin-wykresy { grid-template-columns: 1fr; }
 }
-:root[data-dotyk] .lista-watkow button { min-height: 56px; }
 
 /* Formularz kontaktowy */
 .pulapka { display: none; } /* boty wypełniają pole z kodu strony; człowiek go nie widzi */

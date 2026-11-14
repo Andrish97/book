@@ -446,7 +446,7 @@ function naBase64(bajty) {
 // Załączniki wiadomości ze skrzynki z R2 – przez przekaźnik, kluczem serwisowym (sprawdza go baza).
 // [{ nazwa, typ, rozmiar, klucz: 'poczta/<uuid>/<plik>' }] → [{ nazwa, typ, tresc (base64) }]; brak pliku – błąd (ponowienie).
 export async function pobierzZalaczniki(lista, env, wyslij, klucz) {
-  const api = String(env.API_URL || API).replace(/\/+$/, '');
+  const api = API;
   const wynik = [];
   for (const z of lista || []) {
     const sciezka = String(z.klucz || '').replace(/^poczta\//, '').split('/').map(encodeURIComponent).join('/');

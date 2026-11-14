@@ -85,6 +85,9 @@ export async function rysujSkrzynke() {
   s.watki = w.watki;
   s.razem = w.razem;
   s.liczniki = w.liczniki || {};
+  s.skrzynka = w.skrzynka || s.skrzynka;
+  s.podpis = w.podpis ?? s.podpis;
+  $('#admin-adres-skrzynki').textContent = s.skrzynka;
   const widoczne = new Set(s.watki.map((t) => t.id));
   for (const id of [...s.zaznaczone]) if (!widoczne.has(id)) s.zaznaczone.delete(id);
   ustawLicznik(s.liczniki.skrzynka || 0);
@@ -498,7 +501,7 @@ export async function otworzPisanie({ tryb = 'nowa', wiadomosc = null, robocza =
         pisz.adresy.dw = (wiadomosc.dw || []).filter((a) => !naszAdres(a) && !pisz.adresy.do.includes(a));
       }
     }
-    html = `<p><br></p>${podpisHtml()}${cytat(wiadomosc, tryb)}`;
+    html = `<p><br></p>${podpisHtml()}<p><br></p>${cytat(wiadomosc, tryb)}`;
   }
   $('#admin-pisz-tytul').textContent = { nowa: 'Nowa wiadomość', odpowiedz: 'Odpowiedź', wszystkim: 'Odpowiedź do wszystkich', przekaz: 'Przekazanie' }[pisz.tryb];
   $('#admin-pisz-temat').value = tematWiadomosci;

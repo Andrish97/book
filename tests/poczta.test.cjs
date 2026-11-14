@@ -127,6 +127,7 @@ function siecKolejki(rpc, brevo = () => ({ status: 201, tresc: { messageId: '<id
   const wyslij = async (url, o) => {
     const tresc = o.body ? JSON.parse(o.body) : null;
     wywolania.push({ url, o, tresc });
+    if (url.startsWith('https://api.makietka.app/pliki/_poczta/')) return new Response('%PDF-test', { status: 200 });
     const nazwa = url.includes('/rest/v1/rpc/') ? url.split('/rest/v1/rpc/')[1] : null;
     const w = nazwa ? (typeof rpc[nazwa] === 'function' ? rpc[nazwa](tresc) : rpc[nazwa]) || { status: 404, tresc: { message: `brak ${nazwa}` } } : brevo(tresc);
     return new Response(JSON.stringify(w.tresc ?? null), { status: w.status || 200, headers: { 'content-type': 'application/json' } });
@@ -194,12 +195,14 @@ test('zaproszenie do projektu idzie przez kolejkę: plan tokenem zapraszającego
   assert.equal(odp.status, 204);
 });
 
-test('kolejka: odpowiedź z panelu z adresu skrzynki z In-Reply-To/References, potwierdzenie z formularza, test; odstęp między mailami; bez klucza serwisowego – nic', async () => {
+test('kolejka: odpowiedź ze skrzynki z adresu skrzynki z In-Reply-To/References, DW/UDW i załącznikiem z R2 (kluczem serwisowym), potwierdzenie z formularza, test; odstęp między mailami; bez klucza serwisowego – nic', async () => {
   const { obsluzPoczte, przetworzKolejke } = await poczta();
   const ENVK = { ...ENV, SUPABASE_URL: 'https://baza.test', SUPABASE_SECRET_KEYS: JSON.stringify({ default: 'sb_secret_xyz' }) };
   const wiadomosci = [
-    { id: 'o1', rodzaj: 'odpowiedz', do_email: 'jan@przyklad.pl', do_nazwa: 'Jan', szablon: 'odpowiedz', temat: 'Re: Faktura',
-      dane: { tresc: 'Dzień dobry,\n\nfaktura w załączniku.', cytat: 'Proszę o fakturę.', kiedy: '2026-11-15T09:00:00Z' },
+    { id: 'o1', rodzaj: 'odpowiedz', do_email: 'jan@przyklad.pl', do_nazwa: 'Jan', szablon: 'wiadomosc', temat: 'Re: Faktura',
+      dane: { html: '<p>Dzień dobry,</p><p>faktura w załączniku.</p><blockquote><p>Proszę o fakturę.</p></blockquote>', tekst: '' },
+      do_lista: ['jan@przyklad.pl', 'ola@przyklad.pl'], dw: ['ania@przyklad.pl'], udw: ['szef@przyklad.pl'],
+      zalaczniki: [{ nazwa: 'faktura.pdf', typ: 'application/pdf', rozmiar: 9, klucz: 'poczta/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/faktura.pdf' }],
       naglowki: { 'In-Reply-To': '<m1@przyklad.pl>', References: '<m1@przyklad.pl>', 'X-Obcy': 'nie' }, od_skrzynki: true },
     { id: 'k1', rodzaj: 'kontakt', do_email: 'gosc@przyklad.pl', szablon: 'kontakt', dane: { temat: 'Druk', tresc: 'Czy da się <b>A4</b>?' },
       odpowiedz_do: { email: 'kontakt@makietka.app' }, naglowki: {}, od_skrzynki: false },
@@ -216,10 +219,18 @@ test('kolejka: odpowiedź z panelu z adresu skrzynki z In-Reply-To/References, p
   assert.deepEqual(s.rpc('poczta_kolejka_pobierz')[0].o.headers, { apikey: 'sb_secret_xyz', 'content-type': 'application/json' }, 'nowy klucz sb_secret – tylko nagłówek apikey');
   const [odp, kontakt, test1] = s.maile();
   assert.deepEqual(odp.sender, { email: 'kontakt@makietka.app', name: 'Makietka' });
-  assert.deepEqual(odp.to, [{ email: 'jan@przyklad.pl', name: 'Jan' }]);
+  assert.deepEqual(odp.to, [{ email: 'jan@przyklad.pl', name: 'Jan' }, { email: 'ola@przyklad.pl' }]);
+  assert.deepEqual(odp.cc, [{ email: 'ania@przyklad.pl' }]);
+  assert.deepEqual(odp.bcc, [{ email: 'szef@przyklad.pl' }]);
   assert.deepEqual(odp.headers, { 'In-Reply-To': '<m1@przyklad.pl>', References: '<m1@przyklad.pl>' }, 'tylko nagłówki wątku');
   assert.equal(odp.subject, 'Re: Faktura');
-  assert.match(odp.textContent, /faktura w załączniku\.[\s\S]*— Makietka[\s\S]*> Proszę o fakturę\./);
+  assert.match(odp.htmlContent, /<p>Dzień dobry,<\/p><p>faktura w załączniku\.<\/p><blockquote>/, 'treść HTML jak napisana');
+  assert.match(odp.textContent, /Dzień dobry,\n+faktura w załączniku\.\n+Proszę o fakturę\./, 'tekst z HTML');
+  assert.deepEqual(odp.attachment, [{ name: 'faktura.pdf', content: Buffer.from('%PDF-test').toString('base64') }]);
+  // Załącznik z R2 przez przekaźnik, kluczem serwisowym w nagłówku x-service-key.
+  const pobranie = s.wywolania.find((w) => w.url.startsWith('https://api.makietka.app/pliki/_poczta/'));
+  assert.equal(pobranie.url, 'https://api.makietka.app/pliki/_poczta/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/faktura.pdf');
+  assert.equal(pobranie.o.headers['x-service-key'], 'sb_secret_xyz');
   assert.match(kontakt.subject, /dostaliśmy Twoją wiadomość: Druk/);
   assert.ok(kontakt.htmlContent.includes('Czy da się &lt;b&gt;A4&lt;/b&gt;?'));
   assert.deepEqual(kontakt.replyTo, { email: 'kontakt@makietka.app' });

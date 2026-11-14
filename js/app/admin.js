@@ -23,6 +23,7 @@ async function rpc(nazwa, parametry = {}) {
 
 // Wylogowanie: koniec śledzenia skrzynki, przy następnym koncie baza pyta od nowa.
 export function wylogowano() {
+  if (stan.uzytkownik) return; // już ktoś się zalogował (wylogowanie przy starcie przed odczytem sesji)
   czyAdmin = null;
   przestanSledzic().catch(() => {});
 }
