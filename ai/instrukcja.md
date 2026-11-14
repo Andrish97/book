@@ -64,7 +64,8 @@ Projekty są zapisane na koncie i dostępne na każdym urządzeniu. Konto zakła
 ![Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.](https://makietka.app/img/instrukcja/rejestracja.png)
 *Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.*
 
-- **Nowe konto**: wpisz swoją nazwę (tak aplikacja będzie się do Ciebie zwracać), e-mail i dwa razy hasło. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.
+- **Nowe konto**: wpisz **nazwę użytkownika**, e-mail i dwa razy hasło. Nazwa użytkownika (3–30 znaków: litery, cyfry, _ . -) jest unikalna – po niej inni mogą Cię zaprosić do projektu; pod polem widać od razu, czy jest wolna, a zajęta dostaje propozycję wolnej. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.
+- Konto bez nazwy użytkownika (założone wcześniej) przy logowaniu dostaje okno **Wybierz nazwę użytkownika** z gotową propozycją – nazwę trzeba wybrać, zmienisz ją potem w ustawieniach konta.
 - Konto działa od razu po założeniu. Jeśli administrator włączy potwierdzanie adresu, na podany e-mail przyjdzie wiadomość „Potwierdź swoje konto” z przyciskiem i dopiero po kliknięciu można się zalogować (wiadomość można wysłać ponownie po minucie).
 - **Nie pamiętasz hasła?** – podaj e-mail, a dostaniesz link do ustawienia nowego hasła.
 - Link z wiadomości działa jeden raz. Jeśli wygasł, aplikacja o tym powie – poproś wtedy o nowy.
@@ -76,7 +77,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz �
 ![Ustawienia konta z rozwiniętą zmianą adresu e-mail.](https://makietka.app/img/instrukcja/konto.png)
 *Ustawienia konta z rozwiniętą zmianą adresu e-mail.*
 
-- **Profil** – nazwa widoczna w prawym górnym rogu.
+- **Profil** – nazwa użytkownika: po niej inni zapraszają Cię do projektu; widać ją też w prawym górnym rogu.
 - **Logowanie** – **Zmień adres** i **Zmień hasło** rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. **Wpisz inny adres** zastępuje oczekujący adres nowym.
 - **Wygląd** – jasny albo ciemny motyw (następny rozdział).
 - **Urządzenia** – **Wyloguj** wylogowuje tylko to urządzenie, **Wyloguj wszędzie** – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).
@@ -556,9 +557,9 @@ Projekt możesz robić razem z innymi osobami – każda na swoim koncie. Zapras
 ![Okno „Współpraca”: świeże zaproszenie z linkiem i osoby z dostępem.](https://makietka.app/img/instrukcja/wspolpraca.png)
 *Okno „Współpraca”: świeże zaproszenie z linkiem i osoby z dostępem.*
 
-- W edytorze menu **⋯** → **Współpraca…** (albo **⋯** na karcie projektu). Wpisz adres e-mail i wybierz rolę: **Może edytować** – zmienia projekt razem z Tobą; **Może oglądać** – widzi tylko podgląd i prezentację.
+- W edytorze menu **⋯** → **Współpraca…** (albo **⋯** na karcie projektu). Wpisz adres e-mail albo **nazwę użytkownika** (po dwóch pierwszych literach pojawią się pasujące nazwy) i wybierz rolę: **Może edytować** – zmienia projekt razem z Tobą; **Może oglądać** – widzi tylko podgląd i prezentację.
 - Aplikacja wysyła e-mail z linkiem do zaproszenia. Osoba, która ma już konto, zobaczy zaproszenie także w aplikacji: na liście projektów pojawi się przycisk **Zaproszenia** z liczbą (od razu, bez odświeżania). Osoba bez konta otwiera link, zakłada konto i od razu przyjmuje zaproszenie.
-- Link możesz też skopiować albo wysłać ze swojej poczty (**Wyślij ze swojej poczty**). Działa jeden raz i jest ważny 14 dni. Jeśli e-mail nie wyszedł, okno to napisze – wtedy wyślij link sam.
+- Przy zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby – na liście jest jej nazwa, a e-mail z zaproszeniem wysyła aplikacja. Link możesz też skopiować albo (przy zaproszeniu na adres) wysłać ze swojej poczty (**Wyślij ze swojej poczty**). Działa jeden raz i jest ważny 14 dni. Jeśli e-mail nie wyszedł, okno to napisze – wtedy wyślij link sam.
 - Projekty udostępnione Ci przez innych są na Twojej liście z plakietką osoby, która je udostępniła, i z dopiskiem **Możesz edytować** albo **Możesz oglądać**. Gdy masz takie projekty, nad listą są przyciski **Wszystkie**, **Moje** i **Udostępnione mi**.
 - **Razem na żywo.** Zmiany łączą się element po elemencie, tak jak między Twoimi urządzeniami: gdy Ty poprawiasz tytuł, a ktoś przesuwa zdjęcie, zostają obie zmiany. O ten sam element zmieniony przez dwie osoby naraz aplikacja zapyta. **Cofnij** zdejmuje tylko Twoje zmiany.
 - **Kto jest w projekcie.** Kółka z inicjałami w pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty (wskaż kółko, żeby zobaczyć, na której jest stronie). Kolorowa ramka przy miniaturze strony mówi, na której stronie ktoś pracuje, a przerywana obwódka w jego kolorze – co ma zaznaczone.

@@ -54,6 +54,11 @@ export async function poZalogowaniu(uzytkownik) {
   odswiezNaglowek();
   await przejdzDoTrasy();
   if (document.body.dataset.ekran === 'start' || document.body.dataset.ekran === 'logowanie') await pokazProjekty();
+  // Konto bez nazwy użytkownika (#100): nazwa z rejestracji albo okno „Wybierz nazwę użytkownika” – przed instrukcją.
+  try {
+    const m = await import('../nazwa-uzytkownika.js');
+    await m.upewnijSieONazwie(uzytkownik, { naZmiane: (u) => { if (u && stan.uzytkownik?.id === u.id) { stan.uzytkownik = u; odswiezNaglowek(); } } });
+  } catch { /* bez sieci – zapytamy przy następnym logowaniu */ }
   if (plikiDoOtwarcia.length) await otworzOczekujacePliki();
   else instrukcja.otworzJesliNowa(uzytkownik?.id || 'lokalny');
 }

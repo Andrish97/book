@@ -11,12 +11,16 @@ import { $, powiadom, potwierdz, kiedy } from '../ui.js';
 import { ikona } from '../ikony.js';
 import { zPostepem } from '../postep.js';
 import { stan, trasa } from './kontekst.js';
+import { poprawnaNazwa, szukajNazw } from '../nazwa-uzytkownika.js';
 
 const KROTKO = { edycja: 'edytuje', odczyt: 'ogląda', wlasciciel: 'właściciel' };
 export const opisRoli = (rola) => wsp.ROLE[rola] || rola;
 export const krotkoRola = (rola) => KROTKO[rola] || rola;
 const dlaMnie = (rola) => (rola === 'edycja' ? 'możesz edytować' : 'możesz oglądać');
 const inicjal = (tekst) => (String(tekst || '?').trim()[0] || '?').toUpperCase();
+// Zaproszony: adres e-mail, jeśli zapraszający sam go wpisał, inaczej nazwa użytkownika z „@” (#100).
+const ktoZaproszony = (o) => o.email || (o.nazwa ? `@${o.nazwa}` : '');
+const kto = (o) => o.nazwa || o.email || '';
 
 // Zależności z ekranu projektów i tras – podawane z zewnątrz, żeby ten moduł nie wciągał ich przy starcie.
 let zalezne = {
@@ -79,30 +83,30 @@ function wierszOsoby(o) {
   li.className = `osoba osoba-${o.typ}`;
   const znak = document.createElement('span');
   znak.className = 'awatar-maly';
-  znak.textContent = o.typ === 'zaproszenie' ? '@' : inicjal(o.nazwa || o.email);
+  znak.textContent = o.typ === 'zaproszenie' ? '@' : inicjal(kto(o));
   if (o.typ !== 'zaproszenie') znak.style.background = wsp.kolorOsoby(o.id);
   const opis = document.createElement('div');
   const tytul = document.createElement('strong');
-  tytul.textContent = o.typ === 'zaproszenie' ? o.email : `${o.nazwa || o.email}${o.ja ? ' (Ty)' : ''}`;
+  tytul.textContent = o.typ === 'zaproszenie' ? ktoZaproszony(o) : `${kto(o)}${o.ja ? ' (Ty)' : ''}`;
   const szczegoly = document.createElement('span');
   szczegoly.className = 'ciche';
   if (o.typ === 'zaproszenie') szczegoly.textContent = `zaproszenie wysłane ${kiedy(o.od)} · ${opisRoli(o.rola)} · ważne do ${new Date(o.wazne_do).toLocaleDateString('pl-PL')}`;
-  else if (o.typ === 'wlasciciel') szczegoly.textContent = `${o.email} · właściciel`;
-  else szczegoly.textContent = `${o.email} · ${opisRoli(o.rola)}`;
+  else if (o.typ === 'wlasciciel') szczegoly.textContent = `${o.email ? `${o.email} · ` : ''}właściciel`;
+  else szczegoly.textContent = `${o.email ? `${o.email} · ` : ''}${opisRoli(o.rola)}`;
   opis.append(tytul, szczegoly);
   const akcje = document.createElement('div');
   akcje.className = 'osoba-akcje';
   if (otwarty.wlasciciel && o.typ === 'wspolpracownik') {
     const rola = document.createElement('select');
-    rola.setAttribute('aria-label', `Rola: ${o.nazwa || o.email}`);
+    rola.setAttribute('aria-label', `Rola: ${kto(o)}`);
     rola.innerHTML = '<option value="edycja">może edytować</option><option value="odczyt">może oglądać</option>';
     rola.value = o.rola;
     rola.addEventListener('change', async () => {
-      try { await wsp.zmienRole(otwarty.id, o.id, rola.value); powiadom(`${o.nazwa || o.email}: ${opisRoli(rola.value)}.`); } catch (e) { powiadom(komunikatBledu(e), true); }
+      try { await wsp.zmienRole(otwarty.id, o.id, rola.value); powiadom(`${kto(o)}: ${opisRoli(rola.value)}.`); } catch (e) { powiadom(komunikatBledu(e), true); }
       odswiezOsoby();
     });
     const odbierz = przycisk('Odbierz', 'niebezpieczny', async () => {
-      if (!await potwierdz('Odebrać dostęp?', `${o.nazwa || o.email} straci dostęp do projektu „${otwarty.nazwa}” od razu. Zmiany, które już zapisał(a), zostają.`, 'Odbierz', true)) return;
+      if (!await potwierdz('Odebrać dostęp?', `${kto(o)} straci dostęp do projektu „${otwarty.nazwa}” od razu. Zmiany, które już zapisał(a), zostają.`, 'Odbierz', true)) return;
       try { await wsp.usunZProjektu(otwarty.id, o.id); powiadom('Dostęp odebrany.'); } catch (e) { powiadom(komunikatBledu(e), true); }
       odswiezOsoby();
     });
@@ -112,7 +116,7 @@ function wierszOsoby(o) {
     if (o.kod) akcje.append(przycisk('Kopiuj link', '', () => kopiuj(wsp.linkZaproszenia(o.kod), 'Link do zaproszenia skopiowany.')));
     akcje.append(przycisk('Wyślij ponownie', '', async () => {
       const m = await wsp.wyslijZaproszenieMailem(o.id);
-      if (m.wyslano) powiadom(`Wysłano e-mail z zaproszeniem na adres ${o.email}.`);
+      if (m.wyslano) powiadom(o.email ? `Wysłano e-mail z zaproszeniem na adres ${o.email}.` : `Wysłano e-mail z zaproszeniem do ${ktoZaproszony(o)}.`);
       else powiadom(m.powod === 'brak-konfiguracji' ? 'Aplikacja nie wysyła jeszcze e-maili – skopiuj link i wyślij go sam.' : (m.blad || 'E-mail nie wyszedł.'), true);
     }));
     akcje.append(przycisk('Cofnij', 'niebezpieczny', async () => {
@@ -159,7 +163,10 @@ async function zapros(e) {
   if (!otwarty?.wlasciciel) return;
   const pole = $('#wspolpraca-email');
   const email = pole.value.trim();
-  if (!email || !pole.checkValidity()) { powiadom('Wpisz adres e-mail osoby, którą zapraszasz.', true); pole.focus(); return; }
+  const bezMalpy = email.replace(/^@/, '');
+  const poprawne = bezMalpy.includes('@') ? /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(bezMalpy) : poprawnaNazwa(bezMalpy);
+  if (!email || !poprawne) { powiadom('Wpisz adres e-mail albo nazwę użytkownika osoby, którą zapraszasz.', true); pole.focus(); return; }
+  zamknijPodpowiedzi();
   const b = $('#wspolpraca-zapros');
   b.disabled = true;
   try {
@@ -174,17 +181,19 @@ async function zapros(e) {
     // E-mail idzie z poczty aplikacji (Brevo); gdy poczta nie jest skonfigurowana – link do wysłania samemu.
     wsp.wyslijZaproszenieMailem(z.id).then((m) => {
       $('#wspolpraca-gotowe-opis').textContent = m.wyslano
-        ? `Wysłano e-mail z zaproszeniem na adres ${z.email}. ${gdzie}`
+        ? `Wysłano e-mail z zaproszeniem ${z.email ? `na adres ${z.email}` : `do ${ktoZaproszony(z)}`}. ${gdzie}`
         : `${m.powod === 'brak-konfiguracji' ? 'Aplikacja nie wysyła jeszcze e-maili' : `E-mail nie wyszedł${m.blad ? ` (${m.blad})` : ''}`} – wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`;
     }).catch(() => { $('#wspolpraca-gotowe-opis').textContent = `Wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`; });
     const mail = trescMaila(otwarty.nazwa, rola, link);
-    $('#wspolpraca-mail').href = `mailto:${encodeURIComponent(z.email)}?subject=${encodeURIComponent(mail.temat)}&body=${encodeURIComponent(mail.tresc)}`;
+    // Zaproszenie po nazwie: adresu tej osoby nie znamy (i nie pokazujemy) – bez „Wyślij ze swojej poczty”.
+    $('#wspolpraca-mail').hidden = !z.email;
+    if (z.email) $('#wspolpraca-mail').href = `mailto:${encodeURIComponent(z.email)}?subject=${encodeURIComponent(mail.temat)}&body=${encodeURIComponent(mail.tresc)}`;
     const udostepnij = $('#wspolpraca-udostepnij');
     udostepnij.hidden = !navigator.share;
     udostepnij.onclick = () => navigator.share({ title: mail.temat, text: mail.tresc }).catch(() => {});
     $('#wspolpraca-gotowe').hidden = false;
     pole.value = '';
-    powiadom(`Zaproszono ${z.email}.`);
+    powiadom(`Zaproszono ${z.email || ktoZaproszony(z)}.`);
   } catch (err) {
     powiadom(komunikatBledu(err), true);
   } finally {
@@ -194,6 +203,63 @@ async function zapros(e) {
 }
 
 $('#form-zaproszenia').addEventListener('submit', zapros);
+
+// ---------- Podpowiedzi nazw użytkownika przy zapraszaniu (#100) ----------
+// Tylko nazwy zaczynające się od wpisanego tekstu (co najmniej 2 znaki, bez „@” w środku) – najwyżej 5.
+const listaPodp = $('#wspolpraca-podpowiedzi');
+const polePodp = $('#wspolpraca-email');
+let nrPodp = 0;
+let czasPodp = null;
+function zamknijPodpowiedzi() {
+  listaPodp.hidden = true;
+  listaPodp.replaceChildren();
+  polePodp.setAttribute('aria-expanded', 'false');
+}
+function wybierzPodpowiedz(nazwa) {
+  polePodp.value = nazwa;
+  zamknijPodpowiedzi();
+  polePodp.focus();
+}
+async function pokazPodpowiedzi() {
+  const nr = (nrPodp += 1);
+  const t = polePodp.value.trim().replace(/^@/, '');
+  if (t.length < 2 || t.includes('@')) { zamknijPodpowiedzi(); return; }
+  let nazwy = [];
+  try { nazwy = await szukajNazw(t); } catch { nazwy = []; }
+  if (nr !== nrPodp) return;
+  if (!nazwy.length || (nazwy.length === 1 && nazwy[0].toLowerCase() === t.toLowerCase())) { zamknijPodpowiedzi(); return; }
+  listaPodp.replaceChildren(...nazwy.map((n, i) => {
+    const li = document.createElement('li');
+    li.setAttribute('role', 'option');
+    li.id = `wspolpraca-podp-${i}`;
+    li.textContent = `@${n}`;
+    li.dataset.nazwa = n;
+    li.addEventListener('pointerdown', (e) => { e.preventDefault(); wybierzPodpowiedz(n); });
+    return li;
+  }));
+  listaPodp.hidden = false;
+  polePodp.setAttribute('aria-expanded', 'true');
+}
+polePodp.addEventListener('input', () => { clearTimeout(czasPodp); czasPodp = setTimeout(pokazPodpowiedzi, 250); });
+polePodp.addEventListener('blur', () => setTimeout(zamknijPodpowiedzi, 150));
+polePodp.addEventListener('keydown', (e) => {
+  if (listaPodp.hidden) return;
+  const opcje = [...listaPodp.children];
+  const i = opcje.findIndex((li) => li.getAttribute('aria-selected') === 'true');
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const n = e.key === 'ArrowDown' ? (i + 1) % opcje.length : (i <= 0 ? opcje.length - 1 : i - 1);
+    opcje.forEach((li, k) => li.setAttribute('aria-selected', String(k === n)));
+    polePodp.setAttribute('aria-activedescendant', opcje[n].id);
+  } else if (e.key === 'Enter' && i >= 0) {
+    e.preventDefault();
+    wybierzPodpowiedz(opcje[i].dataset.nazwa);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    e.stopPropagation();
+    zamknijPodpowiedzi();
+  }
+});
 
 export const kopiujLinkZaproszenia = () => kopiuj($('#wspolpraca-link').value, 'Link do zaproszenia skopiowany.');
 

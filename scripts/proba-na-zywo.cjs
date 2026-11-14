@@ -17,6 +17,7 @@ const ADRES = process.argv[2] || 'https://makietka.app/';
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 const email = `seriodruk-test-${crypto.randomBytes(5).toString('hex')}@example.com`;
 const haslo = `Tt#9${crypto.randomBytes(8).toString('hex')}`;
+const nazwaUz = `test_${crypto.randomBytes(4).toString('hex')}`; // nazwa użytkownika konta testowego (#100)
 const wyniki = [`konto testowe: ${email}`];
 const krok = async (nazwa, fn) => {
   const t = Date.now();
@@ -36,7 +37,7 @@ const krok = async (nazwa, fn) => {
     await krok('aplikacja się otwiera', async () => { await p.goto(ADRES); await p.waitForSelector('#form-logowania'); });
     await krok('rejestracja bez potwierdzania e-mailem', async () => {
       await p.click('#tryb-logowania label:has-text("Nowe konto")');
-      await p.fill('#form-logowania input[name=nazwa]', 'Test automatyczny');
+      await p.fill('#form-logowania input[name=nazwa]', nazwaUz);
       await p.fill('#form-logowania input[name=email]', email);
       await p.fill('#form-logowania input[name=haslo]', haslo);
       await p.fill('#form-logowania input[name=haslo2]', haslo);
@@ -48,6 +49,23 @@ const krok = async (nazwa, fn) => {
       ]);
       zalogowany = true;
       await p.click('[data-akcja="zamknij-instrukcje"]');
+    });
+    await krok('nazwa użytkownika: zapisana przy rejestracji, zajęta dla innych, zaproszenie po nazwie (#100)', async () => {
+      const w = await p.evaluate(async ({ nazwa, adres }) => {
+        const chmura = await import('./js/chmura.js');
+        const sb = await chmura.supabase();
+        const moja = (await sb.rpc('moja_nazwa_uzytkownika')).data;
+        const { SUPABASE_URL, SUPABASE_ANON_KEY } = await import('./js/konfiguracja.js');
+        const anon = await (await fetch(`${SUPABASE_URL}/rest/v1/rpc/nazwa_wolna`, { method: 'POST', headers: { apikey: SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ p_nazwa: nazwa.toUpperCase() }) })).json();
+        const szukaj = (await sb.rpc('szukaj_nazw_uzytkownikow', { p_tekst: nazwa })).data;
+        const projekt = window.seriodruk?.stan?.projekt?.id || null;
+        void adres;
+        return { moja, anon, szukaj, projekt };
+      }, { nazwa: nazwaUz, adres: ADRES });
+      if (w.moja !== nazwaUz) throw new Error(`moja nazwa: ${w.moja}`);
+      if (w.anon?.wolna !== false || !w.anon?.propozycja) throw new Error(`nazwa_wolna bez sesji: ${JSON.stringify(w.anon)}`);
+      if (!Array.isArray(w.szukaj) || w.szukaj.includes(nazwaUz)) throw new Error(`szukaj_nazw: ${JSON.stringify(w.szukaj)}`);
+      return `nazwa ${nazwaUz}, dla innych zajęta (propozycja ${w.anon.propozycja})`;
     });
     let idProjektu;
     await krok('nowy projekt zapisuje się na koncie', async () => {

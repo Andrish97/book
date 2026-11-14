@@ -1889,3 +1889,20 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 :root[data-urzadzenie="telefon"] .podpowiedz-zwijana:not(.rozwinieta) {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden; cursor: pointer;
 }
+
+/* ---------- Nazwa użytkownika (js/nazwa-uzytkownika.js, #100) ---------- */
+.podpowiedz-nazwy { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--cichy); }
+.podpowiedz-nazwy:empty { display: none; }
+.podpowiedz-nazwy.ok { color: var(--sukces); }
+.podpowiedz-nazwy.blad { color: var(--blad); }
+.podpowiedz-nazwy .link { padding: 0; border: 0; background: none; color: var(--akcent); font: inherit; text-decoration: underline; cursor: pointer; }
+.pole-z-podpowiedziami { position: relative; }
+.pole-z-podpowiedziami > label { display: block; }
+.lista-podpowiedzi {
+  position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px; list-style: none;
+  background: var(--powierzchnia); border: 1px solid var(--linia-mocna); border-radius: var(--r-m, 8px); box-shadow: 0 6px 20px rgba(0, 0, 0, .14);
+}
+.lista-podpowiedzi[hidden] { display: none; }
+.lista-podpowiedzi li { padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.lista-podpowiedzi li[aria-selected="true"], .lista-podpowiedzi li:hover { background: var(--wypelnienie); }
+:root[data-dotyk] .lista-podpowiedzi li { min-height: 40px; display: flex; align-items: center; }

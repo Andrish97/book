@@ -133,10 +133,16 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   await strona.waitForFunction(() => document.querySelector('#konto-projekty').textContent === '1');
 
   // Nazwa
+  // Nazwa użytkownika (#100): ze spacją – błąd zasad, potem poprawna; zapisana w profilu i w metadanych konta.
   await strona.fill('#form-nazwa input[name=nazwa]', 'Anna Nowak');
   await strona.click('#form-nazwa button[type=submit]');
-  await strona.waitForFunction(() => document.querySelector('#powiadomienie').textContent === 'Nazwa zapisana.');
-  assert.equal(baza.konta[0].nazwa, 'Anna Nowak');
+  await strona.waitForFunction(() => /Nazwa użytkownika: 3–30 znaków/.test(document.querySelector('#form-nazwa .komunikat').textContent));
+  await strona.fill('#form-nazwa input[name=nazwa]', 'Anna.Nowak');
+  await strona.waitForFunction(() => /„Anna\.Nowak” jest wolna/.test(document.querySelector('#konto-nazwa-podpowiedz').textContent));
+  await strona.click('#form-nazwa button[type=submit]');
+  await strona.waitForFunction(() => document.querySelector('#powiadomienie').textContent === 'Nazwa użytkownika zapisana.');
+  assert.equal(baza.konta[0].nazwa, 'Anna.Nowak');
+  assert.equal(baza.profile.get(baza.konta[0].id), 'Anna.Nowak');
 
   // E-mail: różne adresy → błąd; zgodne → oczekiwanie na potwierdzenie
   assert.ok(await strona.isHidden('#form-email'), 'formularze są zwinięte, dopóki nie są potrzebne');

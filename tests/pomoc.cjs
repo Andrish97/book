@@ -149,7 +149,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     const user = {
       id: k.id, email: k.email, aud: 'authenticated', role: 'authenticated',
       email_confirmed_at: k.potwierdzone ? new Date().toISOString() : null,
-      user_metadata: { nazwa: k.nazwa || '', ...(k.motyw ? { motyw: k.motyw } : {}) }, new_email: k.nowyEmail || undefined,
+      user_metadata: { nazwa: k.nazwa || '', ...(k.nazwaRejestracji ? { nazwa_uzytkownika: k.nazwaRejestracji } : {}), ...(k.motyw ? { motyw: k.motyw } : {}) }, new_email: k.nowyEmail || undefined,
     };
     const token = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: k.id, email: k.email, exp, role: 'authenticated', aud: 'authenticated' })}.podpis`;
     return { access_token: token, token_type: 'bearer', expires_in: 3600, expires_at: exp, refresh_token: `r-${k.id}`, user };
@@ -306,7 +306,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       const istnieje = stan.konta.find((x) => x.email === tresc.email);
       if (istnieje && istnieje.potwierdzone) return blad(r, 422, 'User already registered', 'user_already_exists');
       const k = istnieje || { id: `22222222-2222-4222-8222-${String(stan.konta.length).padStart(12, '0')}`, email: tresc.email, potwierdzone: false };
-      Object.assign(k, { haslo: tresc.password, nazwa: tresc.data?.nazwa || '' });
+      Object.assign(k, { haslo: tresc.password, nazwa: tresc.data?.nazwa || '', nazwaRejestracji: tresc.data?.nazwa_uzytkownika || '', zRejestracji: true });
       if (!istnieje) stan.konta.push(k);
       stan.wyslane.push({ typ: 'potwierdzenie', email: k.email });
       return json(r, 200, sesja(k).user);
@@ -413,7 +413,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!z || p.owner_id !== k.id || z.stan !== 'czeka') return json(r, 400, { blad: 'Nie można wysłać tego zaproszenia.' });
       if (stan.brevo === false) return json(r, 200, { wyslano: false, powod: 'brak-konfiguracji' });
       stan.wyslane.push({ typ: 'zaproszenie', email: z.email, kod: z.kod });
-      return json(r, 200, { wyslano: true, email: z.email });
+      return json(r, 200, { wyslano: true });
     }
     if (sc === '/rest/v1/rpc/usun_konto') {
       const k = zTokenu(req);

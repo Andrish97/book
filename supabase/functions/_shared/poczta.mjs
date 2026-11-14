@@ -286,7 +286,8 @@ async function obsluzZaproszenie(request, env, wyslij) {
   } catch (e) {
     return json(502, { wyslano: false, powod: 'blad-wysylki', blad: e.message }, true);
   }
-  return json(200, { wyslano: true, email: dane.email }, true);
+  // Bez adresu w odpowiedzi: przy zaproszeniu po nazwie użytkownika zapraszający go nie zna (#100).
+  return json(200, { wyslano: true }, true);
 }
 
 // ---------- Wejście funkcji ----------

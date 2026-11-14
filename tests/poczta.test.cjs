@@ -127,7 +127,7 @@ test('zaproszenie do projektu: dane z bazy tokenem zapraszajÄ…cego, link ze staÅ
   const zadanie = (naglowki = { authorization: 'Bearer token-anny' }) => new Request('https://x/functions/v1/poczta', { method: 'POST', headers: { 'content-type': 'application/json', ...naglowki }, body: JSON.stringify({ zaproszenie: 'z1' }) });
   let s = siec({ status: 200, tresc: dane });
   let odp = await obsluzPoczte(zadanie(), { ...ENV, SUPABASE_URL: 'https://baza.test' }, s.wyslij);
-  assert.deepEqual(await odp.json(), { wyslano: true, email: 'ola@przyklad.pl' });
+  assert.deepEqual(await odp.json(), { wyslano: true }, 'bez adresu w odpowiedzi (#100)');
   assert.equal(s.wywolania[0].url, 'https://baza.test/rest/v1/rpc/dane_maila_zaproszenia');
   assert.equal(s.wywolania[0].o.headers.authorization, 'Bearer token-anny');
   const m = s.maile()[0];

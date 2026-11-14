@@ -6,6 +6,7 @@ import { $, $$, powiadom, potwierdz } from './ui.js';
 import { ikona } from './ikony.js';
 import { NAZWA } from './marka.js';
 import { ustawMotyw, wybranyMotyw } from './motyw.js';
+import { podpowiedzNazwy, poprawnaNazwa, ustawNazwe, ZASADY_NAZWY } from './nazwa-uzytkownika.js';
 
 // Te same wymagania co w ustawieniach Supabase
 // (password_requirements = lower_upper_letters_digits_symbols, min. 8 znaków).
@@ -107,6 +108,7 @@ export class Konto {
     $('#tryb-logowania').addEventListener('change', (e) => this.ustawTryb(e.target.value));
     $$('#ekran-logowania .pokaz-haslo, #ekran-konta .pokaz-haslo').forEach(przelacznikWidocznosci);
     this.odswiezZasady = listaZasad($('#zasady-hasla'), f.elements.haslo);
+    this.sprawdzNazweRejestracji = podpowiedzNazwy(f.elements.nazwa, $('#rejestracja-nazwa-podpowiedz'));
     $('#wyslij-ponownie').addEventListener('click', () => this.wyslijPonownie());
 
     if (!chmura.chmuraSkonfigurowana()) {
@@ -216,10 +218,21 @@ export class Konto {
     const { tryb } = this;
     if (tryb !== 'nowe-haslo' && !poprawnyEmail(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
     if (tryb === 'logowanie' && !haslo) { this.komunikat('Podaj hasło.'); return; }
+    if (tryb === 'rejestracja' && !poprawnaNazwa(f.elements.nazwa.value.trim())) {
+      this.komunikat(`Nazwa użytkownika: ${ZASADY_NAZWY}`);
+      f.elements.nazwa.focus();
+      return;
+    }
     if (tryb === 'rejestracja' || tryb === 'nowe-haslo') {
       const braki = brakiHasla(haslo);
       if (braki.length) { this.komunikat(`W haśle brakuje: ${braki.join(', ')}.`); return; }
       if (haslo !== f.elements.haslo2.value) { this.komunikat('Hasła nie są takie same.'); return; }
+    }
+    // Wolna nazwa – sprawdzana na końcu (zapytanie do bazy), żeby błędy formularza były od razu.
+    if (tryb === 'rejestracja' && !await this.sprawdzNazweRejestracji()) {
+      this.komunikat('Ta nazwa użytkownika jest już zajęta – wybierz inną.');
+      f.elements.nazwa.focus();
+      return;
     }
     const przycisk = $('#przycisk-logowania');
     przycisk.disabled = true;
@@ -309,11 +322,12 @@ export class Konto {
       }
     });
 
+    podpowiedzNazwy($('#konto-nazwa'), $('#konto-nazwa-podpowiedz'));
     formularz('#form-nazwa', async (f, blad) => {
       const nazwa = f.elements.nazwa.value.trim();
-      if (nazwa.length < 2 || nazwa.length > 40) { blad('Nazwa powinna mieć od 2 do 40 znaków.'); return null; }
-      this.zaktualizuj(await chmura.zmienNazwe(nazwa));
-      powiadom('Nazwa zapisana.');
+      if (!poprawnaNazwa(nazwa)) { blad(`Nazwa użytkownika: ${ZASADY_NAZWY}`); return null; }
+      this.zaktualizuj(await ustawNazwe(nazwa));
+      powiadom('Nazwa użytkownika zapisana.');
       return null;
     });
 
