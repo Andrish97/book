@@ -132,7 +132,6 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     konta: poczatkowe.konta || [{ id: '11111111-1111-4111-8111-111111111111', email: 'anna@test.pl', haslo: 'Dobre#Haslo1', potwierdzone: true, nazwa: 'Anna' }],
     projekty: [],
     pliki: new Map(), // Pliki w R2 (przekaźnik): "zasoby|podglady/ścieżka" -> { typ, tresc, czas, cacheControl }
-    staryMagazyn: new Map(), // Supabase Storage przed przeniesieniem do R2: "bucket/ścieżka" -> { typ, tresc }
     wyslania: [], // kolejne wysłane pliki (klucze), także powtórnie
     strony: new Map(), // wiersze projekty_strony: "projekt/strona" -> dane
     zapisy: [], // kolejne zapisy projektu: które strony wysłano, ile ich jest
@@ -586,33 +585,6 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return odp(200, { klucz: reszta, rozmiar: dane.length });
       }
       return odp(405, { blad: 'Niedozwolona metoda.' });
-    }
-    // Stary magazyn (Supabase Storage) – tylko jednorazowe przeniesienie plików do R2 (js/przeniesienie-plikow.js).
-    // Osobna mapa stan.staryMagazyn, żeby przeniesienie nie ruszało plików „w R2” z mapy stan.pliki.
-    if (sc.startsWith('/storage/v1/object/list/')) {
-      // Jak w Supabase: pliki folderu (z id i opisem) oraz podfoldery (bez id).
-      const prefiks = `${sc.slice('/storage/v1/object/list/'.length)}/${tresc.prefix ? `${tresc.prefix}/` : ''}`;
-      const wpisy = new Map();
-      for (const klucz of stan.staryMagazyn.keys()) {
-        if (!klucz.startsWith(prefiks)) continue;
-        const [nazwa, ...dalej] = klucz.slice(prefiks.length).split('/');
-        wpisy.set(nazwa, dalej.length ? { name: nazwa, id: null, metadata: null } : { name: nazwa, id: nazwa, metadata: { size: stan.staryMagazyn.get(klucz).tresc.length } });
-      }
-      return json(r, 200, [...wpisy.values()]);
-    }
-    if (sc.startsWith('/storage/v1/object/')) {
-      const klucz = sc.slice('/storage/v1/object/'.length).replace(/^(authenticated|public)\//, '');
-      if (m === 'DELETE') {
-        const bucket = klucz.split('/')[0];
-        for (const p of tresc.prefixes || []) stan.staryMagazyn.delete(`${bucket}/${p}`);
-        return json(r, 200, []);
-      }
-      if (m === 'GET') {
-        const plik = stan.staryMagazyn.get(klucz);
-        if (!plik) return blad(r, 404, 'Object not found', 'not_found');
-        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
-      }
-      return blad(r, 405, 'Stary magazyn tylko do odczytu', 'blad');
     }
     return json(r, 200, {});
   });

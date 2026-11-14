@@ -67,12 +67,6 @@ export const r2 = {
   osierocone: async () => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_osierocone`)).json(),
 };
 
-// Jednorazowe przeniesienie plików z Supabase Storage do R2 (js/przeniesienie-plikow.js): pobieranie
-// czeka na jego koniec, żeby otwierany projekt nie szukał w R2 plików, które jeszcze są w starym magazynie.
-let przeniesienie = null;
-export function czekajNaPrzeniesienie(obietnica) { przeniesienie = obietnica; }
-async function poPrzeniesieniu() { if (przeniesienie) { try { await przeniesienie; } catch { /* błąd przeniesienia – pliki zostały w starym magazynie */ } } }
-
 export const chmuraSkonfigurowana = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 export async function supabase() {
@@ -509,7 +503,6 @@ export async function pobierzZasob(sciezka) {
     }
     return blob;
   }
-  await poPrzeniesieniu();
   return r2.pobierz(BUCKET, sciezka);
 }
 
@@ -535,7 +528,6 @@ export async function kontoCzcionek() {
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
   const folder = `${uzytkownik.id}/${FOLDER_CZCIONEK}`;
-  await poPrzeniesieniu();
   // [{ name }] – pliki bezpośrednio w folderze czcionek.
   const pliki = async () => (await r2.lista(BUCKET, `${folder}/`))
     .map((p) => ({ name: p.klucz.slice(folder.length + 1) })).filter((p) => p.name && !p.name.includes('/'));

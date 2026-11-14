@@ -240,3 +240,17 @@ test('telefon: szczypanie i podwójne stuknięcie w podglądzie, palcem przewrac
   assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'podglad');
   assert.deepEqual(bledy, []);
 });
+
+test('Safari (iPhone, iPad): gesty powiększania całej strony zatrzymane w podglądzie i prezentacji, poza nimi nie', async (t) => {
+  const { otworz: o, nowyProjekt: n } = require('./pomoc.cjs');
+  const { strona } = await o(t, { telefon: true });
+  await n(strona, 'Gesty Safari');
+  await strona.evaluate(async () => { const { pokazPodglad } = await import('./js/app/podglad-ekran.js'); await pokazPodglad(); });
+  await strona.waitForSelector('.podglad-tresc .podglad-strona');
+  const wynik = await strona.evaluate(() => {
+    const gest = (el, nazwa) => { const e = new Event(nazwa, { bubbles: true, cancelable: true }); el.dispatchEvent(e); return e.defaultPrevented; };
+    const w = document.querySelector('.podglad-tresc .podglad-strona') || document.querySelector('.podglad-tresc');
+    return { start: gest(w, 'gesturestart'), zmiana: gest(w, 'gesturechange'), poza: gest(document.querySelector('header') || document.body, 'gesturestart') };
+  });
+  assert.deepEqual(wynik, { start: true, zmiana: true, poza: false });
+});
