@@ -95,8 +95,8 @@ function projekt() {
 async function srodowisko(t, { pobierzAdres, plikiZCzatu = false } = {}) {
   const stan = { projekty: [projekt()], strony: new Map() };
   const baza = atrapaAi(stan);
-  const edycja = baza('utworz_dostep_ai', { p_projekt: 'p-1', p_opis: 'AI', p_rola: 'edycja', p_dni: 7 }, WLASCICIEL).klucz;
-  const odczyt = baza('utworz_dostep_ai', { p_projekt: 'p-1', p_opis: 'czyta', p_rola: 'odczyt', p_dni: 7 }, WLASCICIEL).klucz;
+  const edycja = baza('utworz_dostep_ai', { p_projekty: ['p-1'], p_opis: 'AI', p_rola: 'edycja', p_dni: 7 }, WLASCICIEL).klucz;
+  const odczyt = baza('utworz_dostep_ai', { p_projekty: ['p-1'], p_opis: 'czyta', p_rola: 'odczyt', p_dni: 7 }, WLASCICIEL).klucz;
   const serwer = http.createServer((req, res) => {
     let tresc = '';
     req.on('data', (c) => { tresc += c; });
@@ -423,7 +423,7 @@ test('pliki_z_czatu (ChatGPT, openai/fileParams): łącznik sam pobiera załącz
   assert.match(w.tekst, /Wgrano „styczen\.png”.*40×20 px.*\n.*Wgrano „luty\.png”/s);
   // Claude: adres POST do wysyłki z własnego środowiska (po dopisaniu domeny).
   w = await s.wywolaj('adres_do_wysylki');
-  assert.match(w.tekst, /^POST https:\/\/api\.makietka\.app\/mcp\/sdk_\S+\/obraz\?nazwa=/);
+  assert.match(w.tekst, /^POST https:\/\/api\.makietka\.app\/mcp\/sdk_[^/\s]+\/obraz\?projekt=p-1&nazwa=/);
   assert.match(w.tekst, /zastap=/);
   assert.match(lista.result.tools.find((n) => n.name === 'usun_obrazy').description, /podmien_obraz/);
   w = await s.wywolaj('wgraj_obraz', { pliki_z_czatu: [{ file_id: 'file_3' }] });

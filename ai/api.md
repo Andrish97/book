@@ -1,27 +1,33 @@
 # Makietka – dostęp dla AI
 
-Asystent AI (Claude, ChatGPT i inne) może czytać i poprawiać **jeden konkretny projekt** Makietki – równolegle z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia: zmiany różnych elementów łączą się bez pytania, a o ten sam element aplikacja zapyta.
+Asystent AI (Claude, ChatGPT i inne) może czytać i poprawiać **wybrane projekty** Makietki albo **wszystkie projekty konta** (wtedy także tworzyć i usuwać projekty) – równolegle z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia: zmiany różnych elementów łączą się bez pytania, a o ten sam element aplikacja zapyta.
 
 Dokumenty obok: [instrukcja obsługi](https://makietka.app/ai/instrukcja.md), [format projektu](https://makietka.app/ai/format-makietka.md) (model danych, który AI zmienia).
 
-> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka. Projekt czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Makietki. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Pliki z własnego środowiska wgrywasz narzędziem `wgraj_czesciami`.
+> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka. Zacznij od narzędzia `projekty` (projekty w zasięgu klucza), a w narzędziach projektu podawaj `projekt` (id albo nazwa). Projekty czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Makietki. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Pliki z własnego środowiska wgrywasz narzędziem `wgraj_czesciami`.
 
 ## 1. Klucz i adres łącznika
 
-1. Otwórz projekt, menu **⋯** → **Dostęp dla AI…**.
-2. Wpisz, dla kogo jest klucz (np. „Claude – kalendarz”), wybierz **Czyta i zmienia** albo **Tylko czyta** i ważność: 1 dzień, 7 albo 30 dni.
+Klucz należy do **konta**, nie do jednego projektu.
+
+1. **Ustawienia konta → Dostęp dla AI → Zarządzaj…** (albo w otwartym projekcie menu **⋯** → **Dostęp dla AI…** – wtedy ten projekt jest od razu zaznaczony).
+2. Wpisz, dla kogo jest klucz (np. „Claude – kalendarze”), wybierz **Czyta i zmienia** albo **Tylko czyta**, ważność (1, 7, 30, 90 dni, rok albo bez terminu) i zakres:
+   - **Wybrane projekty** – zaznaczasz projekty (własne i udostępnione Ci przez innych); listę zmienisz potem bez zmiany adresu,
+   - **Pełny dostęp** – wszystkie projekty konta, także te, które dojdą później; klucz, który czyta i zmienia, może wtedy **tworzyć i usuwać** projekty.
 3. **Utwórz klucz**. Okno pokazuje **adres łącznika** z kluczem w środku:
    `https://api.makietka.app/mcp/sdk_…` – skopiuj go od razu, widać go **tylko raz**.
-4. Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz (i adres) od razu.
+4. Lista **Klucze konta** pokazuje zakres, ważność i ostatnie użycie. **Zmień zakres** dodaje i usuwa projekty (albo przełącza na pełny dostęp) – adres łącznika się nie zmienia. **Odbierz** wyłącza klucz (i adres) od razu.
+
+AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który ktoś Ci udostępnił do oglądania, klucz tylko czyta; gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 
 Łącznik to serwer MCP działający po stronie Makietki. Claude i ChatGPT łączą się z nim **ze swoich serwerów**, więc niczego nie instalujesz i niczego nie odblokowujesz – ani na komputerze, ani w ustawieniach AI.
 
 ### Bezpieczeństwo
 
-- Adres z kluczem trafia do firmy, która prowadzi AI (Anthropic, OpenAI…). Dlatego klucz jest **wąski**: otwiera jeden projekt, nie konto. Nie da się nim utworzyć ani usunąć projektu, wgrać czcionek, zmienić udostępniania ani zajrzeć do innych projektów. Obrazy klucz do zmian wgrywa, ale tylko do tego projektu i z limitami (obraz do 15 MB, pobierany plik do 50 MB, do 150 MB obrazów czekających na przeniesienie na konto).
+- Adres z kluczem trafia do firmy, która prowadzi AI (Anthropic, OpenAI…). Dlatego daj kluczowi **najwęższy zakres**, jaki wystarczy: wybrane projekty zamiast pełnego dostępu. Klucz nigdy nie otwiera ustawień konta, hasła, czcionek konta, udostępniania linkiem ani współpracy. Tworzyć i usuwać projekty może tylko klucz z pełnym dostępem, który czyta i zmienia; usunięcie wymaga podania dokładnej nazwy projektu, a usunąć można tylko własny projekt (nie udostępniony). Obrazy klucz do zmian wgrywa z limitami (obraz do 25 MB, pobierany plik do 50 MB, do 150 MB obrazów na projekt czekających na przeniesienie na konto).
 - Daj **najkrótszą ważność**, jaka wystarczy, i **odbierz** klucz, gdy praca się skończy. Do samego przeglądania wybierz **Tylko czyta**. Nie wklejaj adresu łącznika w miejsca, które widzą inni.
 - W bazie leży tylko skrót klucza (z solą) – klucza nie da się z niej odczytać ani pokazać ponownie. Zgubiony klucz odbierz i utwórz nowy.
-- Po 10 złych próbach klucz blokuje się na kwadrans; jeden klucz może wykonać do 120 zapytań na minutę; projekt może mieć do 20 aktywnych kluczy.
+- Po 10 złych próbach klucz blokuje się na kwadrans; jeden klucz może wykonać do 120 zapytań na minutę; konto może mieć do 20 aktywnych kluczy.
 - Każdy zapis przechodzi kontrolę spójności (sekcje, wzorce, serie, tabele, obrazy). Niespójna zmiana jest odrzucana z opisem, co poprawić – nie psuje projektu.
 - Zmiany AI to zwykłe zmiany projektu: **Cofnij** w edytorze ich nie zdejmuje (jak zmian z innego urządzenia), ale możesz je poprawić ręcznie; przed dużymi zmianami zrób **Eksport** (kopia zapasowa).
 
@@ -79,8 +85,13 @@ Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](http
 
 ## 3. Narzędzia łącznika
 
+Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekty`); gdy klucz obejmuje jeden projekt, można go pominąć.
+
 | Narzędzie | Co robi |
 |---|---|
+| `projekty` | lista projektów w zasięgu klucza: id, nazwa, Twój czy udostępniony (przez kogo), czy AI może go zmieniać, ostatnia zmiana; zakres klucza |
+| `nowy_projekt` | nowy, pusty projekt jak „Nowy projekt” w aplikacji: nazwa, format (A4, A5, A6, B5, Kwadrat albo własny w mm), orientacja, pojedyncze strony albo rozkładówki, spad, marginesy – tylko klucz z pełnym dostępem |
+| `usun_projekt` | usuwa własny projekt konta; `potwierdz` – dokładna nazwa projektu – tylko klucz z pełnym dostępem |
 | `przeglad_projektu` | krótki opis: sekcje, strony z elementami (id, rodzaj, początek tekstu), wzorce, style, tabele, serie, obrazy |
 | `czytaj` | pełny JSON strony, wzorca, sekcji, stylu, tabeli, serii, widoku albo całego projektu |
 | `zmien_elementy` | zmienia pola elementów (po id) na stronie albo we wzorcu; `null` usuwa pole |
@@ -152,14 +163,14 @@ Własny skrypt (albo AI w środowisku, które łączy się z bazą) wysyła plik
 
 ```
 curl -X POST --data-binary @zdjecia.zip \
-  "https://api.makietka.app/mcp/sdk_…/obraz?nazwa=zdjecia.zip"
+  "https://api.makietka.app/mcp/sdk_…/obraz?projekt=<id projektu>&nazwa=zdjecia.zip"
 ```
 
 ```python
 import requests
 with open("styczen.jpg", "rb") as f:
     r = requests.post("https://api.makietka.app/mcp/sdk_…/obraz",
-                      params={"nazwa": "styczen.jpg"}, data=f.read())
+                      params={"projekt": "<id projektu>", "nazwa": "styczen.jpg"}, data=f.read())
 print(r.json())  # {"wgrane": [{"nazwa": "styczen.jpg", "id": "z_ai…", "szer": 4000, "wys": 3000, "byl": false}], "opis": "…"}
 ```
 
@@ -169,9 +180,15 @@ Parametry: `nazwa` (z rozszerzeniem), opcjonalnie `zastap` (id albo nazwa obrazu
 
 Adres: `https://api.makietka.app/rest/v1/rpc/<funkcja>`, `POST`, nagłówek `apikey` z publicznym kluczem bazy, treść JSON. Błędy klucza i spójności wracają jako `{"blad": "…", "szczegoly": [...]}` z kodem 200.
 
+**Projekt w kluczu.** Funkcje projektu (`ai_projekt`, `ai_zapisz`, `ai_wgraj_*`, `ai_zmien_obrazy`) dostają projekt w samym parametrze `p_klucz`: klucz, ukośnik i id projektu – `"sdk_…/<uuid projektu>"`. Sam klucz (bez ukośnika) działa, gdy obejmuje dokładnie jeden projekt.
+
+### `ai_projekty`, `ai_nowy_projekt`, `ai_usun_projekt` – projekty konta
+
+`ai_projekty(p_klucz)` → `{"dostep": {"rola", "zakres", "opis", "wazny_do", "tworzenie"}, "projekty": [{"id", "nazwa", "zmieniono", "wersja", "wlasciciel", "moja_rola", "rola"}]}` (`wazny_do` null – bez terminu; `rola` – co może AI w tym projekcie). `ai_nowy_projekt(p_klucz, p_id, p_nazwa, p_dane, p_strony)` – nowy projekt (uuid `p_id`, `p_dane` bez stron, `p_strony` – pełne strony) → `{"id", "nazwa", "wersja"}`. `ai_usun_projekt(p_klucz, p_projekt, p_potwierdz)` – `p_potwierdz` to dokładna nazwa projektu → `{"usunieto", "nazwa"}`. Obie tylko dla klucza z pełnym dostępem, który czyta i zmienia.
+
 ### `ai_projekt` – odczyt
 
-Treść: `{"p_klucz": "sdk_…"}`. Wynik: `{"dostep": {"rola", "opis", "wazny_do"}, "wersja": 12, "projekt": {…}}`. Projekt ma strony w środku (`strony` – lista obiektów stron w kolejności), a `zasoby` tylko z opisem (bez treści plików): `{"z_ab12": {"nazwa": "las.jpg", "typ": "image/jpeg", "szer": 4000, "wys": 3000, "rozmiar": 2345678, "skrot": "…"}}` (wymiary w pikselach, rozmiar w bajtach, `skrot` – SHA-256 treści; starsze obrazy mogą nie mieć wymiarów ani skrótu).
+Treść: `{"p_klucz": "sdk_…/<id projektu>"}`. Wynik: `{"dostep": {"rola", "opis", "wazny_do"}, "wersja": 12, "projekt": {…}}`. Projekt ma strony w środku (`strony` – lista obiektów stron w kolejności), a `zasoby` tylko z opisem (bez treści plików): `{"z_ab12": {"nazwa": "las.jpg", "typ": "image/jpeg", "szer": 4000, "wys": 3000, "rozmiar": 2345678, "skrot": "…"}}` (wymiary w pikselach, rozmiar w bajtach, `skrot` – SHA-256 treści; starsze obrazy mogą nie mieć wymiarów ani skrótu).
 
 ### `ai_zapisz` – zapis
 
@@ -206,4 +223,4 @@ Treść: `{"p_klucz": "sdk_…", "p_kopie": {"z_nowe": {"z": "z_ab12", "nazwa": 
 
 ### Funkcje właściciela (zalogowany użytkownik aplikacji)
 
-`utworz_dostep_ai(p_projekt, p_opis, p_rola, p_dni)` → `{id, klucz, wazny_do}`, `dostepy_ai(p_projekt)` → lista kluczy bez ich treści, `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64) albo – dla pliku w kawałkach – `{typ, nazwa, rozmiar, skrot, czesci}` i wtedy `pobierz_czesc_obrazu_ai(p_id, p_nr)` → base64 kawałka; `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`. Tabela `dostepy_projektu` ma pole `rodzaj` (`klucz` albo `uzytkownik`) – przygotowane pod późniejsze wspólne edytowanie projektu przez innych użytkowników.
+`utworz_dostep_ai(p_opis, p_rola, p_dni, p_zakres, p_projekty)` → `{id, klucz, wazny_do}` (`p_dni` null – bez terminu; `p_zakres` `wybrane` z listą `p_projekty` albo `pelny`), `dostepy_ai()` → klucze konta bez ich treści (z zakresem i nazwami projektów), `zmien_dostep_ai(p_id, p_zakres, p_projekty)` – nowy zakres bez zmiany klucza, `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64) albo – dla pliku w kawałkach – `{typ, nazwa, rozmiar, skrot, czesci}` i wtedy `pobierz_czesc_obrazu_ai(p_id, p_nr)` → base64 kawałka; `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`.

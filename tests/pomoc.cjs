@@ -265,7 +265,8 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
   stan.oglos = (projekt, typ = 'UPDATE') => {
     for (const g of gniazda) {
       for (const [temat, t] of g.tematy) {
-        if (!t.konto || !widzi(t.konto, projekt)) continue; // RLS: właściciel i osoby, którym projekt udostępniono
+        // RLS: właściciel i osoby, którym projekt udostępniono; usunięcia (DELETE) Realtime rozsyła bez RLS – sam klucz wiersza.
+        if (!t.konto || (typ !== 'DELETE' && !widzi(t.konto, projekt))) continue;
         const ids = t.wiazania.filter((b) => (b.event === '*' || b.event === typ) && b.table === 'projekty' && (!b.filter || b.filter === `owner_id=eq.${projekt.owner_id}`)).map((b) => b.id);
         if (!ids.length) continue;
         stan.kanaly.wyslane += 1;
@@ -274,7 +275,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
           data: {
             schema: 'public', table: 'projekty', type: typ, commit_timestamp: new Date().toISOString(), errors: null,
             columns: [{ name: 'id', type: 'uuid' }, { name: 'owner_id', type: 'uuid' }, { name: 'nazwa', type: 'text' }, { name: 'wersja', type: 'int8' }, { name: 'zmieniono', type: 'timestamptz' }],
-            record: { id: projekt.id, owner_id: projekt.owner_id, nazwa: projekt.nazwa, wersja: projekt.wersja, zmieniono: projekt.zmieniono },
+            record: typ === 'DELETE' ? {} : { id: projekt.id, owner_id: projekt.owner_id, nazwa: projekt.nazwa, wersja: projekt.wersja, zmieniono: projekt.zmieniono },
             old_record: { id: projekt.id },
           },
         });
@@ -525,8 +526,10 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return json(r, 200, [{ wersja: p.wersja }]);
       }
       if (m === 'DELETE') {
+        const usuwany = stan.projekty.find((p) => p.id === id && p.owner_id === k.id);
         stan.projekty = stan.projekty.filter((p) => !(p.id === id && p.owner_id === k.id));
         for (const klucz of [...stan.strony.keys()]) if (klucz.startsWith(`${id}/`)) stan.strony.delete(klucz);
+        if (usuwany) stan.oglos(usuwany, 'DELETE');
         return json(r, 200, []);
       }
     }

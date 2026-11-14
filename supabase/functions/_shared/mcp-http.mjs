@@ -80,8 +80,10 @@ async function obsluzObraz(request, url, env, cors) {
   if (Number(request.headers.get('content-length') || 0) > MAKS_POST) return json(413, { blad: 'Plik jest za duży (najwyżej 50 MB; jeden obraz – 25 MB).' }, cors);
   const bajty = new Uint8Array(await request.arrayBuffer());
   if (!bajty.length) return json(400, { blad: 'Pusta treść – wyślij plik obrazu albo ZIP jako treść żądania POST.' }, cors);
-  const serwer = utworzSerwer({ adres: env.adres || DOMYSLNY_ADRES, kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY, klucz });
+  const ogolny = utworzSerwer({ adres: env.adres || DOMYSLNY_ADRES, kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY, klucz });
   try {
+    // ?projekt=<id albo nazwa> – klucz konta może prowadzić do kilku projektów (decyzja #94).
+    const serwer = (await ogolny.dlaProjektu(url.searchParams.get('projekt'))) || ogolny;
     const w = await serwer.wgrajBajty(bajty, url.searchParams.get('nazwa') || '', { zastap: url.searchParams.get('zastap') || null });
     return json(200, { wgrane: w.wyniki, opis: w.opisy.join('\n') }, cors);
   } catch (e) {

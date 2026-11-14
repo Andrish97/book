@@ -138,6 +138,7 @@
           <a href="#" data-do="ust-logowanie" data-ikona="klodka">Logowanie</a>
           <a href="#" data-do="ust-wyglad" data-ikona="motyw">Wygląd</a>
           <a href="#" data-do="ust-urzadzenia" data-ikona="wyloguj">Urządzenia</a>
+          <a href="#" data-do="ust-ai" data-ikona="klucz">Dostęp dla AI</a>
           <a href="#" data-do="ust-miejsce" data-ikona="chmura">Miejsce</a>
           <a href="#" data-do="ust-usun" class="niebezpieczny" data-ikona="kosz">Usuwanie konta</a>
         </nav>
@@ -257,6 +258,19 @@
                 <div class="wiersz-glowny">
                   <div class="wiersz-opis"><strong>Wszystkie urządzenia</strong><span>Przydatne po logowaniu na cudzym albo zgubionym urządzeniu.</span></div>
                   <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-wszedzie">Wyloguj wszędzie</button></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grupa-ustawien" id="ust-ai">
+            <h2>Dostęp dla AI</h2>
+            <p class="ciche">Klucze, którymi asystent AI (Claude, ChatGPT) czyta i zmienia Twoje projekty: wybrane albo wszystkie – wtedy może też tworzyć i usuwać projekty.</p>
+            <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="wiersz-glowny">
+                  <div class="wiersz-opis"><strong>Klucze AI</strong><span id="ust-ai-opis">Sprawdzam…</span></div>
+                  <div class="wiersz-akcje"><button type="button" class="przycisk" data-akcja="konto-dostep-ai">Zarządzaj…</button></div>
                 </div>
               </div>
             </div>
@@ -857,14 +871,19 @@
         <h2>Dostęp dla AI</h2>
         <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Klucz pozwala asystentowi AI (np. Claude albo ChatGPT) czytać i – jeśli zechcesz – zmieniać <b>ten jeden projekt</b>, równolegle z Tobą. Dostajesz adres łącznika, który dodajesz w ustawieniach AI. Jego zmiany pojawiają się w edytorze na żywo. Klucz nie daje dostępu do konta ani do innych projektów; możesz go odebrać w każdej chwili.</p>
+      <p class="ciche">Klucz pozwala asystentowi AI (np. Claude albo ChatGPT) czytać i – jeśli zechcesz – zmieniać <b>wybrane projekty</b> albo <b>wszystkie projekty konta</b>, równolegle z Tobą. Dostajesz adres łącznika, który dodajesz w ustawieniach AI. Zmiany AI pojawiają się w edytorze na żywo. AI dostaje co najwyżej Twoje uprawnienia, nie widzi hasła ani ustawień konta; klucz możesz odebrać albo zmienić jego zakres w każdej chwili.</p>
       <fieldset class="grupa-pol" id="dostep-ai-nowy">
         <legend>Nowy klucz</legend>
         <label class="pole"><span>Opis (dla Ciebie)</span><input id="dostep-ai-opis" maxlength="120" placeholder="np. Claude – poprawki kalendarza"></label>
         <div class="rzad">
-          <label class="pole"><span>AI może</span><select id="dostep-ai-rola"><option value="edycja">czytać i zmieniać projekt</option><option value="odczyt">tylko czytać projekt</option></select></label>
-          <label class="pole"><span>Ważny przez</span><select id="dostep-ai-dni"><option value="1">1 dzień</option><option value="7" selected>7 dni</option><option value="30">30 dni</option></select></label>
+          <label class="pole"><span>AI może</span><select id="dostep-ai-rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
+          <label class="pole"><span>Ważny przez</span><select id="dostep-ai-dni"><option value="1">1 dzień</option><option value="7">7 dni</option><option value="30" selected>30 dni</option><option value="90">90 dni</option><option value="365">rok</option><option value="bez">bez terminu</option></select></label>
         </div>
+        <div class="zakres-klucza" role="radiogroup" aria-label="Zakres klucza">
+          <label class="przelacznik"><input type="radio" name="dostep-ai-zakres" value="wybrane" checked><span>Wybrane projekty</span></label>
+          <label class="przelacznik"><input type="radio" name="dostep-ai-zakres" value="pelny"><span>Pełny dostęp – wszystkie projekty, także tworzenie i usuwanie</span></label>
+        </div>
+        <div class="lista-projektow-klucza" id="dostep-ai-projekty"></div>
         <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="dostep-ai-utworz" data-ikona="plus">Utwórz klucz</button></div>
       </fieldset>
       <fieldset class="grupa-pol" id="dostep-ai-gotowy" hidden>
@@ -898,9 +917,9 @@
         </details>
       </fieldset>
       <fieldset class="grupa-pol">
-        <legend>Klucze tego projektu</legend>
+        <legend>Klucze konta</legend>
         <ul class="lista-dostepow" id="dostep-ai-lista"></ul>
-        <p class="podpowiedz" id="dostep-ai-pusto">Ten projekt nie ma jeszcze żadnego klucza.</p>
+        <p class="podpowiedz" id="dostep-ai-pusto">Nie masz jeszcze żadnego klucza.</p>
       </fieldset>
     </div>
   </dialog>
