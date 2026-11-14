@@ -9,7 +9,7 @@ import * as chmura from '../chmura.js';
 import { $ } from '../ui.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
-import { pokazProjekty } from './projekty.js';
+import { pokazProjekty, projektUsunietyNaKoncie } from './projekty.js';
 import { wlaczWspolprace, wylaczWspolprace } from './wspolpraca.js';
 
 // Otwarty projekt oznacza wczytany edytor – sprawdzenie konta robi zapis (js/app/zapis.js).
@@ -36,6 +36,7 @@ function odswiezListe() {
 }
 
 function naZmiane(z) {
+  if (z.usuniety) { projektUsunietyNaKoncie(z.id); return; }
   if (stan.projekt) {
     if (z.id === stan.projekt.id) sprawdzKonto({ wersja: z.wersja });
   } else odswiezListe();

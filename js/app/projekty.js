@@ -60,9 +60,10 @@ export async function wpisyProjektow() {
         wpisy.set(c.id, w);
       }
       // Kopia projektu współdzielonego, którego już nie ma na liście z konta: właściciel odebrał dostęp
-      // albo usunął projekt – kopia na tym urządzeniu znika razem z nim.
+      // albo usunął projekt – kopia na tym urządzeniu znika razem z nim. Tak samo własny projekt, który był już
+      // na koncie i nie ma w nim niewysłanych zmian, a zniknął z konta (usunięty na innym urządzeniu albo przez AI, #94).
       for (const [id, w] of wpisy) {
-        if (!w.wspolpraca || naKoncie.has(id)) continue;
+        if (naKoncie.has(id) || !(w.wspolpraca || (w.bylNaKoncie && !w.doSynchronizacji))) continue;
         wpisy.delete(id);
         usunKopieLokalna(id).catch(() => {});
       }
@@ -342,6 +343,28 @@ $('#dlg-nowy').addEventListener('close', async () => {
   await otworzProjekt(projekt);
   await zapiszTeraz();
 });
+
+// Projekt zniknął z konta (Realtime DELETE): otwarty – zamykamy bez zapisu (inaczej zapis założyłby go od nowa)
+// i mówimy dlaczego; na liście – kopia na urządzeniu znika (o ile nie ma niewysłanych zmian).
+export async function projektUsunietyNaKoncie(id) {
+  if (!stan.uzytkownik) return;
+  const lokalny = await wczytajLokalnie(id).catch(() => null);
+  if (stan.projekt?.id === id) {
+    const nazwa = stan.projekt.nazwa;
+    for (const t of ['timerZapisu', 'timerChmury', 'timerHistorii']) { clearTimeout(stan[t]); stan[t] = null; }
+    stan.projekt = null;
+    document.dispatchEvent(new CustomEvent('seriodruk:projekt', { detail: null }));
+    document.title = NAZWA;
+    await usunKopieLokalna(id).catch(() => {});
+    trasa.ustaw('projekty');
+    await pokazProjekty();
+    powiadom(`Projekt „${nazwa}” został usunięty z konta (z innego urządzenia albo przez AI).`, true);
+    return;
+  }
+  if (!lokalny) { if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); return; }
+  if (!lokalny.doSynchronizacji && lokalny.projekt?.wersja_chmury) await usunKopieLokalna(id).catch(() => {});
+  if (document.body.dataset.ekran === 'projekty' && !stan.projekt) pokazProjekty({ cicho: true });
+}
 
 export async function doProjektow() {
   if (stan.projekt) await zapiszTeraz();

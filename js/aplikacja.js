@@ -65,7 +65,15 @@ document.addEventListener('fullscreenchange', odswiezPelnyEkran);
 
 // ---------- Przyciski (data-akcja) ----------
 
+// Okno kluczy AI (js/app/dostep-ai.js) – działa w edytorze i w ustawieniach konta, bez wczytywania edytora.
+const dostepAi = () => import('./app/dostep-ai.js');
 const akcje = {
+  'dostep-ai': async () => { zamknijMenu(); (await dostepAi()).otworzDostepAi(); },
+  'konto-dostep-ai': async () => (await dostepAi()).otworzDostepAi({ projektId: null }),
+  'dostep-ai-utworz': async () => (await dostepAi()).utworzKluczAi(),
+  'dostep-ai-kopiuj': async () => (await dostepAi()).kopiujKluczAi(),
+  'dostep-ai-kopiuj-adres': async () => (await dostepAi()).kopiujAdresAi(),
+  'dostep-ai-zamknij': async () => (await dostepAi()).zamknijDostepAi(),
   'nowy-projekt': otworzNowyProjekt,
   instrukcja: () => instrukcja.otworz(0),
   'zamknij-instrukcje': () => instrukcja.zamknij(),

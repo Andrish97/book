@@ -204,9 +204,12 @@ export async function sluchajZmian(uzytkownik, naZmiane, naStan = () => {}) {
     const w = z?.new;
     if (w?.id) naZmiane({ id: w.id, wersja: Number(w.wersja), zmieniono: w.zmieniono });
   };
+  // Usunięcie (np. przez AI z kluczem konta, decyzja #94, albo z innego urządzenia): Realtime podaje sam identyfikator.
+  const usuniety = (z) => { const id = z?.old?.id; if (id) naZmiane({ id, usuniety: true }); };
   kanal = sb.channel(`projekty-${uzytkownik.id}`)
     .on('postgres_changes', { event: 'INSERT', ...filtr }, przekaz)
     .on('postgres_changes', { event: 'UPDATE', ...filtr }, przekaz)
+    .on('postgres_changes', { event: 'DELETE', ...filtr }, usuniety)
     .subscribe((status) => naStan(status === 'SUBSCRIBED'));
 }
 
@@ -747,20 +750,31 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
   return { manifest, adresObrazu };
 }
 
-// ---------- Dostęp dla AI (klucz do jednego projektu) ----------
+// ---------- Dostęp dla AI (klucze konta, decyzja #94) ----------
 //
-// Klucz tworzy i odbiera właściciel projektu; w bazie zostaje tylko jego skrót. Asystent AI używa
+// Klucz tworzy i odbiera właściciel konta; w bazie zostaje tylko jego skrót. Asystent AI używa
 // klucza w funkcjach ai_projekt i ai_zapisz (supabase/migrations/20261111200000_dostep_ai.sql).
 
-// Zwraca { id, klucz, wazny_do } – klucz jest w odpowiedzi jedyny raz.
-export async function utworzDostepAi(projektId, { opis = '', rola = 'edycja', dni = 7 } = {}) {
+// Klucz konta (decyzja #94, migracja 20261114200000_klucze_ai_konta.sql): zakres 'wybrane' (projekty – własne
+// albo udostępnione mi) albo 'pelny' (wszystkie projekty, także tworzenie i usuwanie). dni: liczba albo null
+// (bez terminu). Zwraca { id, klucz, wazny_do } – klucz jest w odpowiedzi jedyny raz.
+export async function utworzKluczAi({ opis = '', rola = 'edycja', dni = 30, zakres = 'wybrane', projekty = [] } = {}) {
   const sb = await supabase();
-  return sprawdz(await sb.rpc('utworz_dostep_ai', { p_projekt: projektId, p_opis: opis, p_rola: rola, p_dni: dni }));
+  return sprawdz(await sb.rpc('utworz_dostep_ai', { p_opis: opis, p_rola: rola, p_dni: dni, p_zakres: zakres, p_projekty: projekty }));
 }
 
-export async function dostepyAi(projektId) {
+// Skrót: klucz do jednego projektu.
+export const utworzDostepAi = (projektId, { opis = '', rola = 'edycja', dni = 7 } = {}) => utworzKluczAi({ opis, rola, dni, zakres: 'wybrane', projekty: [projektId] });
+
+// Klucze konta: [{ id, opis, rola, zakres, projekty: [{ id, nazwa }], wazny_do (null – bez terminu), ostatnie_uzycie, aktywny }].
+export async function dostepyAi() {
   const sb = await supabase();
-  return sprawdz(await sb.rpc('dostepy_ai', { p_projekt: projektId })) || [];
+  return sprawdz(await sb.rpc('dostepy_ai')) || [];
+}
+
+export async function zmienDostepAi(id, { zakres, projekty = [] }) {
+  const sb = await supabase();
+  sprawdz(await sb.rpc('zmien_dostep_ai', { p_id: id, p_zakres: zakres, p_projekty: projekty }));
 }
 
 export async function odwolajDostepAi(id) {
