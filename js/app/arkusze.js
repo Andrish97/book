@@ -1,7 +1,8 @@
 // Panele jako arkusze z dołu ekranu (telefon i wąskie okno, do 860 px szerokości).
 //
 // - Uchwyt u góry arkusza: przeciągnięcie w dół zamyka arkusz (z powiększonego – wraca do zwykłej wysokości),
-//   w górę powiększa arkusz właściwości prawie na cały ekran, stuknięcie przełącza tę wysokość.
+//   w górę powiększa arkusz właściwości prawie na cały ekran; stuknięcie zwija powiększony do zwykłej
+//   wysokości, a zwykły zamyka (#118).
 //   Arkusz zamyka też ponowne stuknięcie jego zakładki w dolnym menu (kontekst.js: ustawPanel).
 // - Pasek wstawiania przewijany w bok pokazuje to wygaszonym brzegiem.
 // - Otwarty arkusz zasłania dół płótna, więc widok przesuwa się tak, żeby zaznaczony element był widoczny
@@ -25,9 +26,11 @@ function podlaczUchwyt(panel) {
   const uchwyt = $('.uchwyt-arkusza', panel);
   const powiekszany = panel.id === 'panel-inspektor';
   let ruch = null;
+  // Stuknięcie (#118): powiększony arkusz wraca do zwykłej wysokości, zwykły się zamyka – tak samo
+  // we wszystkich arkuszach i zasłonkach okien. Powiększa tylko przeciągnięcie w górę.
   const przelacz = () => {
-    if (!powiekszany) { ustawPanel(''); return; }
-    ustawWysokosc(document.body.dataset.arkusz === 'pelny' ? '' : 'pelny');
+    if (powiekszany && document.body.dataset.arkusz === 'pelny') { ustawWysokosc(''); return; }
+    ustawPanel('');
   };
 
   const koniec = () => {
