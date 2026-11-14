@@ -934,7 +934,22 @@ if (require.main === module) (async () => {
   await d.mouse.move(2, 2);
   await d.waitForTimeout(600);
   await kadr(d, 'k-okladka-okno.png', { obszar: ['#pole-rodzaj-sekcji', '#sekcja-okladka'], zaznacz: '#pole-rodzaj-sekcji label:has-text("Okładka z grzbietem")', margines: 10 });
+  // Wymiary okładki wpisane ręcznie (#125): grzbiet od drukarni.
+  await d.click('#sekcja-okladka label:has-text("Wpisz grzbiet")');
+  await d.fill('#dlg-sekcja input[name=ok_grzbiet]', '8');
+  await d.waitForTimeout(400);
+  await kadr(d, 'k-okladka-wymiary.png', { obszar: ['#wynik-okladki', '#ok-liczone'], zaznacz: ['#sekcja-okladka label:has-text("Wpisz grzbiet")', '#pole-ok-grzbiet'], margines: 10 });
   await d.keyboard.press('Escape');
+  // Kod QR (#128): element i jego część „Kod” w panelu.
+  await d.waitForTimeout(400);
+  await d.evaluate(async () => {
+    const { stan, przejdzDoStrony, edytor } = window.seriodruk;
+    const i = stan.projekt.strony.findIndex((x) => !stan.projekt.sekcje.find((s) => s.id === x.sekcja)?.okladka);
+    await przejdzDoStrony(Math.max(0, i));
+    edytor.dodajKod('qr', { typ: 'adres', dane: { adres: 'https://makietka.app' }, tresc: 'https://makietka.app', szerokosc: 30 });
+  });
+  await d.waitForTimeout(600);
+  await kadr(d, 'k-kod.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Kod"))', zaznacz: '#panel-inspektor label:has-text("Co zawiera") .wybor-przycisk', margines: 8 });
   await kp.close();
 
   // ---------- Telefon ----------
