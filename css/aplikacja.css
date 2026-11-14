@@ -1173,6 +1173,41 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .prezentacja-zamknij { border: 1px solid rgba(241, 239, 233, .3); border-radius: var(--r-s); background: none; color: inherit; padding: 6px 12px; cursor: pointer; }
 .prezentacja-zamknij:hover { background: rgba(255, 255, 255, .08); color: #fff; }
 
+/* ---------- Podgląd: powiększanie i gesty (#84) ---------- */
+/* Szczypanie i podwójne stuknięcie w podglądzie obsługuje aplikacja – natywne powiększanie całej strony
+   przeglądarki jest wyłączone tylko tu; jednym palcem przewija przeglądarka. */
+.podglad-tresc { touch-action: pan-x pan-y; }
+.podglad-tresc.powiekszony { cursor: grab; }
+.podglad-tresc.powiekszony button.podglad-kartka { cursor: grab; }
+.podglad-tresc.przeciaga, .podglad-tresc.przeciaga button.podglad-kartka { cursor: grabbing; user-select: none; }
+.podglad-strona img { -webkit-user-drag: none; user-select: none; }
+/* Prezentacja: wszystkie gesty (przewracanie stron, szczypanie, przesuwanie) obsługuje aplikacja. */
+.prezentacja, .prezentacja-scena { touch-action: none; user-select: none; -webkit-user-select: none; }
+.prezentacja-scena { position: relative; overflow: hidden; }
+.prezentacja-uklad { display: flex; align-items: center; justify-content: center; transform-origin: center center; will-change: transform; }
+.prezentacja-uklad.animuje { transition: transform .22s ease-out, opacity .22s ease-out; }
+.prezentacja-kartka img { -webkit-user-drag: none; }
+.prezentacja.powiekszona .prezentacja-scena { cursor: grab; }
+.prezentacja.przeciaga .prezentacja-scena { cursor: grabbing; }
+/* Powiększona strona: strzałki nie zasłaniają brzegów, żeby dało się ją przesuwać aż do krawędzi. */
+.prezentacja.powiekszona .prezentacja-strzalka { opacity: 0; pointer-events: none; }
+.prezentacja-zoom { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.prezentacja-zoom button {
+  min-width: 36px; height: 32px; padding: 0 8px; border: 1px solid rgba(241, 239, 233, .3); border-radius: var(--r-s);
+  background: none; color: inherit; font: inherit; cursor: pointer;
+}
+.prezentacja-zoom button:hover:not(:disabled) { background: rgba(255, 255, 255, .08); color: #fff; }
+.prezentacja-zoom button:disabled { opacity: .35; cursor: default; }
+.prezentacja-zoom .prezentacja-wartosc { min-width: 58px; font-variant-numeric: tabular-nums; }
+/* Na dotyku strony przewraca się palcem (i stuknięciem przy krawędzi) – strzałki nie zasłaniają sceny. */
+:root[data-dotyk] .prezentacja-strzalka { display: none; }
+:root[data-dotyk] .prezentacja-zoom button { min-width: 44px; height: 44px; }
+@media (max-width: 600px) {
+  .prezentacja-pasek { gap: 8px; padding: 0 8px; }
+  .prezentacja-licznik { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (prefers-reduced-motion: reduce) { .prezentacja-uklad.animuje { transition: none; } }
+
 .kalkulator-grzbietu { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 10px 14px; }
 .kalkulator-grzbietu summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--tusz-2); }
 .kalkulator-grzbietu[open] { display: flex; flex-direction: column; gap: 10px; }
