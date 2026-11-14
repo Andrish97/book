@@ -330,7 +330,8 @@ function atrapaPoczty(stan) {
     const n = P.kontakty.get(email) || 0;
     if (n >= 2) return { status: 429, tresc: { blad: 'Za dużo wiadomości – spróbuj ponownie za 5 min.', powod: 'za-czesto', za: '5 min' } };
     P.kontakty.set(email, n + 1);
-    const t = przyjmij({ od_email: email, temat: tresc.temat || 'Wiadomość z formularza', tekst: tresc.tresc, zrodlo: 'formularz' });
+    const zalaczniki = (tresc.pliki || []).map((f) => ({ ...f, klucz: `poczta/${crypto.randomUUID()}/${f.nazwa}` }));
+    const t = przyjmij({ od_email: email, temat: tresc.temat || 'Wiadomość z formularza', tekst: tresc.tresc, zrodlo: 'formularz', zalaczniki });
     t.uzytkownik = konto?.id || null;
     P.kolejka.push({ id: crypto.randomUUID(), rodzaj: 'kontakt', do_email: email, stan: 'czeka', proby: 0, nastepna_proba: teraz(), utworzono: teraz() });
     przebieg();

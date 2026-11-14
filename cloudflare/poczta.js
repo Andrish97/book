@@ -251,34 +251,69 @@ export async function sprawdzTurnstile(env, token, ip, siec = fetch) {
   return Boolean((await odp?.json().catch(() => null))?.success);
 }
 
+const KONTAKT_MAKS_PLIKOW = 5;
+async function usunZalaczniki(env, zalaczniki) {
+  for (const z of zalaczniki) {
+    try { await env.PLIKI.delete(z.klucz); } catch { /* sierota zniknie przy sprzątaniu poczty */ }
+  }
+}
+
 export async function obsluzKontakt(request, env, ctx) {
   const origin = request.headers.get('origin');
   const c = cors(origin);
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: c });
   if (request.method !== 'POST') return json(405, { blad: 'Tylko POST.' }, c);
   if (origin && !ZRODLA.test(origin)) return json(403, { blad: 'Niedozwolone źródło.' });
-  const b = await request.json().catch(() => null);
+  // Bez plików – JSON (text/plain); z plikami – multipart/form-data: pole „dane” (JSON) i pola „pliki” (#116).
+  let b = null;
+  let pliki = [];
+  if (/^multipart\/form-data/i.test(request.headers.get('content-type') || '')) {
+    const fd = await request.formData().catch(() => null);
+    try { b = JSON.parse(String(fd?.get('dane') || '')); } catch { b = null; }
+    pliki = (fd?.getAll('pliki') || []).filter((f) => f && typeof f === 'object' && typeof f.arrayBuffer === 'function');
+  } else {
+    b = await request.json().catch(() => null);
+  }
   if (!b || typeof b !== 'object') return json(400, { blad: 'Pusta wiadomość.' }, c);
+  if (pliki.length > KONTAKT_MAKS_PLIKOW) return json(413, { blad: `Najwyżej ${KONTAKT_MAKS_PLIKOW} załączników.`, powod: 'za-duzo-plikow' }, c);
+  if (pliki.reduce((n, f) => n + (f.size || 0), 0) > MAKS_ZALACZNIK) return json(413, { blad: 'Załączniki razem mogą mieć najwyżej 10 MB.', powod: 'za-duze-pliki' }, c);
   // Pułapka: ukryte pole wypełniają tylko boty – udajemy, że poszło.
   if (b.www) return json(200, { ok: true }, c);
   const ip = request.headers.get('cf-connecting-ip') || '';
   if (!(await sprawdzTurnstile(env, b.turnstile, ip))) return json(400, { blad: 'Potwierdź, że nie jesteś botem.', powod: 'captcha' }, c);
   if (!env.SUPABASE_SERVICE_ROLE_KEY) return json(503, { blad: 'Formularz jeszcze nie działa – napisz na kontakt@makietka.app.', powod: 'niegotowy' }, c);
   const autoryzacja = /^Bearer\s+\S+$/i.test(request.headers.get('authorization') || '') ? request.headers.get('authorization') : null;
+  // Załączniki do R2 (jak poczta przychodząca: poczta/<uuid>/<nazwa>); przy odmowie bazy – usuwane.
+  const zalaczniki = [];
+  try {
+    for (const f of pliki) {
+      const nazwa = String(f.name || 'zalacznik').slice(0, 200);
+      const typ = String(f.type || 'application/octet-stream').slice(0, 120);
+      const klucz = `poczta/${crypto.randomUUID()}/${nazwa.replace(/[^\p{L}\p{N}._-]+/gu, '_')}`;
+      await env.PLIKI.put(klucz, await f.arrayBuffer(), { httpMetadata: { contentType: typ } });
+      zalaczniki.push({ nazwa, typ, rozmiar: f.size || 0, klucz });
+    }
+  } catch (e) {
+    await usunZalaczniki(env, zalaczniki);
+    return json(502, { blad: `Nie udało się zapisać załączników (${e.message}).` }, c);
+  }
   let w;
   try {
     w = await rpc(env, 'kontakt_przyjmij', {
       p_ip: (await sha256(`${ip}|${env.SUPABASE_SERVICE_ROLE_KEY}`)).slice(0, 32),
       p_email: String(b.email || '').slice(0, 320), p_temat: String(b.temat || '').slice(0, 200), p_tresc: String(b.tresc || '').slice(0, 5000),
       p_uzytkownik: autoryzacja ? await uzytkownikZTokenu(env, autoryzacja) : null,
+      p_zalaczniki: zalaczniki,
     });
   } catch (e) {
+    await usunZalaczniki(env, zalaczniki);
     return json(502, { blad: `Nie udało się zapisać wiadomości (${e.message}).` }, c);
   }
   if (w?.ok) {
     ctx?.waitUntil?.(przebiegKolejki(env).catch(() => {}));
     return json(200, { ok: true }, c);
   }
+  await usunZalaczniki(env, zalaczniki);
   const komunikaty = {
     'za-czesto': `Za dużo wiadomości – spróbuj ponownie za ${w?.za || 'chwilę'}.`,
     'zly-email': 'Podaj poprawny adres e-mail, żebyśmy mogli odpowiedzieć.',

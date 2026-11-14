@@ -421,7 +421,15 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     if (sc === '/functions/v1/poczta' && m === 'POST' && tresc.kolejka) return json(r, 200, stan.adminPoczta.przebieg());
     if (sc === '/kontakt') {
       if (m === 'OPTIONS') return r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type, authorization' } });
-      const w = stan.adminPoczta.kontakt(tresc, zTokenu(req));
+      // Z plikami (#116): multipart – pole „dane” (JSON) i pola „pliki”.
+      let dane = tresc;
+      const typ = req.headers()['content-type'] || '';
+      if (/^multipart\/form-data/i.test(typ)) {
+        const fd = await new Request('http://x/', { method: 'POST', headers: { 'content-type': typ }, body: req.postDataBuffer() }).formData();
+        dane = JSON.parse(fd.get('dane'));
+        dane.pliki = fd.getAll('pliki').map((f) => ({ nazwa: f.name, typ: f.type, rozmiar: f.size }));
+      }
+      const w = stan.adminPoczta.kontakt(dane, zTokenu(req));
       return r.fulfill({ status: w.status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(w.tresc) });
     }
     if (sc === '/functions/v1/poczta' && m === 'POST') {

@@ -9,6 +9,9 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
+| 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
+| 117 | Pasek stron na telefonie: miniatury na całą wysokość pasa, mały nagłówek sekcji zamiast wielkiej karty | ⏳ 17:40 |
+| 118 | Zasłonki na telefonie: stuknięcie w uchwyt rozwija zamiast zamykać | ⏳ 17:40 |
 
 ## Czeka (kolejne etapy)
 
@@ -36,6 +39,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 116 | Załączniki w formularzu kontaktowym (do 5 plików, 10 MB) – trafiają do zgłoszenia w skrzynce |
 | 113a | Powiadomienia bez sekretów: klucze tworzą się same, nic nie trzeba ustawiać |
 | 113 | Powiadomienia push jak w Familiadzie: zaproszenie, udostępnienie, odpowiedź na zaproszenie, zmiana roli, odebranie dostępu; włączanie w Ustawieniach konta |
 | 73 | Okna jako zasłonki na telefonie i tablecie, przegląd zrzutów |

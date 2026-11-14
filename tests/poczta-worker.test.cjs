@@ -216,6 +216,43 @@ test('formularz kontaktowy: CORS tylko makietka.app, pułapka na boty, Turnstile
   } finally { s.przywroc(); }
 });
 
+test('formularz kontaktowy z załącznikami (#116): pliki do R2, opisy do bazy, limity, sprzątanie po odmowie', async () => {
+  const { default: w } = await worker();
+  const r2 = new Map();
+  const PLIKI = { put: async (k, b, o) => { r2.set(k, { b, o }); }, delete: async (k) => { r2.delete(k); } };
+  const ENV = { SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', PLIKI };
+  const dane = { email: 'gosc@przyklad.pl', temat: 'Błąd', tresc: 'Zrzut ekranu w załączniku.' };
+  const zadanie = (pliki) => {
+    const fd = new FormData();
+    fd.append('dane', JSON.stringify(dane));
+    for (const [nazwa, tresc, typ] of pliki) fd.append('pliki', new Blob([tresc], { type: typ }), nazwa);
+    return new Request('https://api.makietka.app/kontakt', { method: 'POST', headers: { origin: 'https://makietka.app', 'cf-connecting-ip': '203.0.113.9' }, body: fd });
+  };
+  let wynik = { tresc: { ok: true } };
+  const s = siec({ '/rest/v1/rpc/kontakt_przyjmij': () => wynik, '/functions/v1/poczta': { tresc: { wyslane: 1 } } });
+  try {
+    let odp = await w.fetch(zadanie([['zrzut ekranu.png', 'obraz', 'image/png'], ['opis.txt', 'tekst', 'text/plain']]), ENV, { waitUntil: () => {} });
+    assert.equal(odp.status, 200);
+    const p = s.wywolania.find((x) => x.url.endsWith('/kontakt_przyjmij')).tresc;
+    assert.equal(p.p_tresc, dane.tresc);
+    assert.deepEqual(p.p_zalaczniki.map((z) => [z.nazwa, z.typ, z.rozmiar]), [['zrzut ekranu.png', 'image/png', 5], ['opis.txt', 'text/plain', 5]]);
+    assert.match(p.p_zalaczniki[0].klucz, /^poczta\/[0-9a-f-]{36}\/zrzut_ekranu\.png$/);
+    assert.equal(r2.size, 2);
+    assert.equal(r2.get(p.p_zalaczniki[0].klucz).o.httpMetadata.contentType, 'image/png');
+    // Odmowa bazy (limit) – pliki znikają z R2.
+    wynik = { tresc: { blad: 'za-czesto', za: '5 min' } };
+    odp = await w.fetch(zadanie([['drugi.png', 'x', 'image/png']]), ENV, { waitUntil: () => {} });
+    assert.equal(odp.status, 429);
+    assert.equal(r2.size, 2, 'plik odrzuconej wiadomości usunięty');
+    // Za dużo plików / za duże – odmowa przed zapisem.
+    odp = await w.fetch(zadanie(Array.from({ length: 6 }, (_, i) => [`p${i}.txt`, 'x', 'text/plain'])), ENV, { waitUntil: () => {} });
+    assert.equal(odp.status, 413);
+    odp = await w.fetch(zadanie([['duzy.bin', new Uint8Array(10 * 1024 * 1024 + 1), 'application/octet-stream']]), ENV, { waitUntil: () => {} });
+    assert.equal(odp.status, 413);
+    assert.equal(r2.size, 2);
+  } finally { s.przywroc(); }
+});
+
 test('cron Workera co minutę prosi funkcje poczta i powiadomienia o przebieg kolejek', async () => {
   const { default: w } = await worker();
   const s = siec({ '/functions/v1/poczta': { tresc: { wyslane: 0 } }, '/functions/v1/powiadomienia': { tresc: { zdarzenia: 0 } } });
