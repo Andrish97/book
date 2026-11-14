@@ -12,6 +12,7 @@ import { wstawIkony } from '../ikony.js';
 import { adresZasobu } from '../zasoby.js';
 import { kopiaRobocza } from '../obrazy.js';
 import { wczytajMiniature, zapiszMiniature } from '../miniatury-obrazow.js';
+import { postep } from '../postep.js';
 import { rozpakujZip } from '../obrazy-wspolne.js';
 import * as chmura from '../chmura.js';
 import {
@@ -63,6 +64,7 @@ function rysuj() {
   const obrazy = obrazyProjektu(p);
   for (const id of [...zaznaczone]) if (!p.zasoby[id]) zaznaczone.delete(id);
   lista.replaceChildren();
+  miniaturRazem -= kolejkaMiniatur.length; // niezrobione z poprzedniego rysowania nie liczą się do postępu
   kolejkaMiniatur.length = 0;
   let nieuzywane = 0;
   const wszystkie = uzyciaWszystkich(p);
@@ -103,6 +105,7 @@ function rysuj() {
   b.hidden = Boolean(wybor) || nieuzywane === 0;
   b.textContent = `Usuń nieużywane (${nieuzywane})`;
   odswiezZaznaczenie();
+  nastepnaMiniatura(); // także pusta lista: postęp poprzednich miniatur się zamyka
   sprawdzPowtorzenia();
 }
 
@@ -132,6 +135,7 @@ async function uporzadkuj() {
   if (kopie.length) tresc.push('Kopie tego samego pliku staną się jednym obrazem – elementy na stronach zostają na miejscu i pokazują ten jeden plik.');
   if (nazwy.length) tresc.push('Obrazy o tej samej nazwie, a innej treści dostaną dopisek „(2)” – dane w tabelach pokażą ten sam obraz co dotąd.');
   if (!await potwierdz('Uporządkować obrazy projektu?', tresc.join(' '), 'Uporządkuj')) return;
+  const pasek = postep('Porządkowanie obrazów…');
   try {
     // Nowe nazwy najpierw (nowy identyfikator na obraz – patrz nowaWersja), potem jedno przepięcie wszędzie.
     const przemianowane = [];
@@ -153,6 +157,8 @@ async function uporzadkuj() {
     powiadom(`Uporządkowano obrazy: ${[ileKopii ? `scalone kopie: ${ileKopii}` : '', przemianowane.length ? `nowe nazwy: ${przemianowane.length}` : ''].filter(Boolean).join(', ')}.`);
   } catch (e) {
     powiadom(`Nie udało się uporządkować obrazów: ${e.message}`, true);
+  } finally {
+    pasek.koniec();
   }
   rysuj();
 }
@@ -161,15 +167,32 @@ async function uporzadkuj() {
 // przygotowanie wszystkich kopii roboczych naraz zatykało przeglądarkę i okno długo się otwierało.
 const kolejkaMiniatur = [];
 let miniaturWToku = 0;
+// Postęp miniatur: pojawia się tylko, gdy robienie trwa (pierwsze otwarcie okna z dużymi zdjęciami).
+let pasekMiniatur = null;
+let miniaturGotowych = 0;
+let miniaturRazem = 0;
 function pokazMiniature(li, id, z, rozmiar) {
   kolejkaMiniatur.push(() => zrobMiniature(li, id, z, rozmiar));
+  miniaturRazem += 1;
+  if (!pasekMiniatur) pasekMiniatur = postep('Miniatury obrazów', { razem: miniaturRazem, opoznienie: 700 });
   nastepnaMiniatura();
 }
 function nastepnaMiniatura() {
   while (miniaturWToku < 2 && kolejkaMiniatur.length) {
     const zadanie = kolejkaMiniatur.shift();
     miniaturWToku += 1;
-    zadanie().catch(() => {}).finally(() => { miniaturWToku -= 1; nastepnaMiniatura(); });
+    zadanie().catch(() => {}).finally(() => {
+      miniaturWToku -= 1;
+      miniaturGotowych += 1;
+      pasekMiniatur?.krok(miniaturGotowych, miniaturRazem);
+      nastepnaMiniatura();
+    });
+  }
+  if (!kolejkaMiniatur.length && !miniaturWToku && pasekMiniatur) {
+    pasekMiniatur.koniec();
+    pasekMiniatur = null;
+    miniaturGotowych = 0;
+    miniaturRazem = 0;
   }
 }
 
@@ -449,11 +472,23 @@ async function rozpakujArchiwa(pliki) {
 
 export async function wgrajObrazy(wybrane) {
   const p = stan.projekt;
+  const pasek = postep(wybrane.some((f) => /\.zip$/i.test(f.name)) ? 'Rozpakowywanie archiwum…' : 'Wgrywanie obrazów…');
+  try {
+    return await wgrajObrazyZPostepem(p, wybrane, pasek);
+  } finally {
+    pasek.koniec();
+  }
+}
+
+async function wgrajObrazyZPostepem(p, wybrane, pasek) {
   const pliki = await rozpakujArchiwa(wybrane);
   const obrazy = pliki.filter((f) => f.type.startsWith('image/'));
   const wynik = { dodane: [], zastapione: [], takieSame: [], pominiete: [] };
   let dlaWszystkich = null;
+  pasek.opis('Wgrywanie obrazów…');
+  pasek.razem(obrazy.length);
   for (const [n, plik] of obrazy.entries()) {
+    pasek.krok(n);
     const skrot = await skrotPliku(plik);
     const ten = await takiSam(p, plik, skrot);
     if (ten) { wynik.takieSame.push([plik.name, p.zasoby[ten].nazwa, ten]); continue; }
@@ -470,6 +505,7 @@ export async function wgrajObrazy(wybrane) {
       wynik.dodane.push([nazwa, await dodajPlik(p, plik, nazwa, skrot)]);
     } else wynik.pominiete.push(plik.name);
   }
+  pasek.krok(obrazy.length);
   if (wynik.dodane.length) {
     stan.miniatury.clear();
     generujMiniatury();
