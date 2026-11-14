@@ -255,13 +255,44 @@ const krok = async (nazwa, fn) => {
       }, null, { timeout: 30000 });
       await p.click('#przycisk-wiecej');
       await p.click('[data-akcja="dostep-ai"]');
-      await p.click('#dostep-ai-lista li:has-text("Próba na żywo") button');
+      await p.click('#dostep-ai-lista li:has-text("Próba na żywo") button:has-text("Odbierz")');
       await p.click('#potwierdz-tak');
-      await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li button'));
+      await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li'));
       await p.click('[data-akcja="dostep-ai-zamknij"]');
       const poOdebraniu = await rpc('ai_projekt', { p_klucz: klucz });
       if (!/odebrany/.test(poOdebraniu.dane?.blad || '')) throw new Error(`odebrany klucz dalej działa: ${JSON.stringify(poOdebraniu.dane).slice(0, 200)}`);
       return `wersja po zapisie AI: ${zapis.dane.wersja}`;
+    });
+    // Klucz konta z pełnym dostępem (migracja 20261114200000_klucze_ai_konta.sql, decyzja #94): lista projektów,
+    // projekt wskazany po ukośniku, nowy projekt od AI na liście, usunięcie z potwierdzeniem nazwą, odebranie.
+    await krok('klucz AI konta: pełny dostęp – lista projektów, nowy projekt od AI, usunięcie z potwierdzeniem, odebranie', async () => {
+      const { klucz, id: idKlucza } = await p.evaluate(async () => (await import('./js/chmura.js')).utworzKluczAi({ opis: 'Próba konta', rola: 'edycja', dni: 1, zakres: 'pelny' }));
+      const rpc = (funkcja, tresc) => p.evaluate(async ([f, t]) => {
+        const m = await import('./js/konfiguracja.js');
+        const x = await fetch(`${m.SUPABASE_URL}/rest/v1/rpc/${f}`, { method: 'POST', headers: { apikey: m.SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify(t) });
+        return { status: x.status, dane: await x.json() };
+      }, [funkcja, tresc]);
+      const lista = await rpc('ai_projekty', { p_klucz: klucz });
+      if (lista.status !== 200 || !Array.isArray(lista.dane?.projekty) || !lista.dane.dostep?.tworzenie) throw new Error(`ai_projekty: ${lista.status} ${JSON.stringify(lista.dane).slice(0, 300)}`);
+      const idProjektu = await p.evaluate(() => window.seriodruk.stan.projekt.id);
+      if (!lista.dane.projekty.some((x) => x.id === idProjektu)) throw new Error('otwarty projekt nie jest na liście klucza');
+      const zProjektem = await rpc('ai_projekt', { p_klucz: `${klucz}/${idProjektu}` });
+      if (!zProjektem.dane?.projekt) throw new Error(`ai_projekt z projektem: ${JSON.stringify(zProjektem.dane).slice(0, 200)}`);
+      const nowyId = await p.evaluate(() => crypto.randomUUID());
+      const nowy = await rpc('ai_nowy_projekt', {
+        p_klucz: klucz, p_id: nowyId, p_nazwa: 'Próba od AI',
+        p_dane: { sekcje: [{ id: 'sek1', nazwa: 'Główna', wydruk: { format: 'A5', szerokosc_mm: 148, wysokosc_mm: 210, spad_mm: 3, marginesy: { gora: 10, dol: 10, wewnetrzny: 10, zewnetrzny: 10 } } }], wzorce: [], style: [], tabele: [], serie: [] },
+        p_strony: [{ id: 's1', nazwa: 'Strona 1', sekcja: 'sek1', wzorce: 'z_sekcji', obiekty: [] }],
+      });
+      if (nowy.dane?.id !== nowyId) throw new Error(`ai_nowy_projekt: ${JSON.stringify(nowy.dane).slice(0, 300)}`);
+      const zla = await rpc('ai_usun_projekt', { p_klucz: klucz, p_projekt: nowyId, p_potwierdz: 'inna nazwa' });
+      if (!/dokładną nazwę/.test(zla.dane?.blad || '')) throw new Error(`usunięcie bez nazwy przeszło: ${JSON.stringify(zla.dane)}`);
+      const usun = await rpc('ai_usun_projekt', { p_klucz: klucz, p_projekt: nowyId, p_potwierdz: 'Próba od AI' });
+      if (usun.dane?.usunieto !== nowyId) throw new Error(`ai_usun_projekt: ${JSON.stringify(usun.dane).slice(0, 300)}`);
+      await p.evaluate(async (id) => (await import('./js/chmura.js')).odwolajDostepAi(id), idKlucza);
+      const po = await rpc('ai_projekty', { p_klucz: klucz });
+      if (!/odebrany/.test(po.dane?.blad || '')) throw new Error(`odebrany klucz konta dalej działa: ${JSON.stringify(po.dane).slice(0, 200)}`);
+      return `projektów w zasięgu: ${lista.dane.projekty.length}; nowy i usunięty: ${nowyId.slice(0, 8)}`;
     });
     // Zdalny łącznik MCP (Funkcja Edge supabase/functions/mcp): tak łączą się Claude i ChatGPT.
     // Wymaga wdrożonej funkcji (integracja Supabase z GitHubem, [functions.mcp] w supabase/config.toml).
