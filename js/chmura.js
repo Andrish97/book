@@ -583,35 +583,34 @@ const wersjaObrazu = (manifest, id) => (manifest.skroty?.[id] || '').slice(0, 16
 // uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob WebP albo JPEG (rozszerzenie: 'webp' | 'jpg').
 // Zwraca { konto, zaktualizowano }.
 // odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
-export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg' } = {}) {
-  const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
-  const folder = `${uzytkownik.id}/${projektId}/${kod}`;
-  // Skróty obrazów z poprzedniej publikacji: strona, której obraz się nie
-  // zmienił, nie jest wysyłana drugi raz.
+// Publikacja obrazów stron do folderu linku w R2 (zwykły link: <konto>/<projekt>/<kod>; link z ochroną:
+// <konto>/<projekt>/<kod>.<sekret>, #97). pelna: wszystkie strony od nowa. chroniony: pliki tylko w pamięci prywatnej.
+async function publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie = 'jpg', pelna = false, chroniony = false } = {}) {
+  // Skróty obrazów z poprzedniej publikacji: strona, której obraz się nie zmienił, nie jest wysyłana drugi raz.
   let poprzednie = {};
   let poprzednieTresci = {};
-  try {
-    const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
-    // Inny format obrazów niż poprzednio (np. dawny link w JPEG) – wszystkie strony od nowa.
-    if (odp.ok) { const m = await odp.json(); if ((m.rozszerzenie || 'jpg') === rozszerzenie) { poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; } }
-  } catch { /* pierwsza publikacja albo brak sieci – wyślemy wszystko */ }
+  if (!pelna) {
+    try {
+      const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
+      // Inny format obrazów niż poprzednio (np. dawny link w JPEG) – wszystkie strony od nowa.
+      if (odp.ok) { const m = await odp.json(); if ((m.rozszerzenie || 'jpg') === rozszerzenie) { poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; } }
+    } catch { /* pierwsza publikacja albo brak sieci – wyślemy wszystko */ }
+  }
+  const pamiec = `${chroniony ? 'private' : 'public'}, max-age=31536000, immutable`;
   const skroty = {};
   let gotowe = 0;
   let wyslane = 0;
   for (const s of strony) {
     if (odciski && poprzednie[s.id] && poprzednieTresci[s.id] === odciski[s.id]) {
       skroty[s.id] = poprzednie[s.id];
-      gotowe += 1;
-      postep(gotowe, strony.length);
-      continue;
-    }
-    const plik = await obraz(s);
-    skroty[s.id] = await skrotPliku(plik);
-    if (poprzednie[s.id] !== skroty[s.id]) {
-      // Adres obrazu ma wersję (skrót) w zapytaniu – przeglądarka może go trzymać długo.
-      await r2.wyslij(BUCKET_PODGLADOW, `${folder}/${s.id}.${rozszerzenie}`, new Blob([plik], { type: typZRozszerzenia(rozszerzenie) }), { cache: 'public, max-age=31536000, immutable' });
-      wyslane += 1;
+    } else {
+      const plik = await obraz(s);
+      skroty[s.id] = await skrotPliku(plik);
+      if (poprzednie[s.id] !== skroty[s.id]) {
+        // Adres obrazu ma wersję (skrót) w zapytaniu – przeglądarka może go trzymać długo.
+        await r2.wyslij(BUCKET_PODGLADOW, `${folder}/${s.id}.${rozszerzenie}`, new Blob([plik], { type: typZRozszerzenia(rozszerzenie) }), { cache: pamiec });
+        wyslane += 1;
+      }
     }
     gotowe += 1;
     postep(gotowe, strony.length);
@@ -624,7 +623,17 @@ export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, pos
   const zaktualizowano = new Date().toISOString();
   const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, rozszerzenie, ...(odciski ? { tresci: odciski } : {}) };
   await r2.wyslij(BUCKET_PODGLADOW, `${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), { cache: 'no-cache' });
-  return { konto: uzytkownik.id, zaktualizowano, wyslane, wszystkie: strony.length };
+  return { zaktualizowano, wyslane, wszystkie: strony.length };
+}
+
+// uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob WebP albo JPEG (rozszerzenie: 'webp' | 'jpg').
+// Zwraca { konto, zaktualizowano, wyslane, wszystkie }.
+// odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
+export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg' } = {}) {
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  const w = await publikujDoFolderu(`${uzytkownik.id}/${projektId}/${kod}`, uklad, strony, obraz, postep, odciski, { rozszerzenie });
+  return { konto: uzytkownik.id, ...w };
 }
 
 async function skrotPliku(plik) {
@@ -657,25 +666,13 @@ export async function wczytajPodgladPubliczny(konto, projektId, kod) {
 
 // ---------- Link chroniony: hasło albo data ważności ----------
 //
-// Link z hasłem albo z datą ważności nie trzyma plików w publicznym folderze, tylko w tabeli
-// public.udostepnienia_pliki (migracja udostepnienia_chronione). Oglądający dostaje je wyłącznie
-// przez funkcję bazy podglad_chroniony – po sprawdzeniu daty ważności i hasła. Hasło jest
-// w bazie tylko jako skrót bcrypt.
+// Obrazy stron linku z hasłem albo z datą ważności leżą w R2 (#97) w folderze <konto>/<projekt>/<kod>.<sekret>.
+// Sekret zna właściciel i ten, kto podał dobre hasło: funkcja bazy podglad_chroniony sprawdza datę ważności
+// i hasło i dopiero wtedy zwraca nazwę folderu. Przekaźnik wydaje pliki z takiego folderu tylko wtedy, gdy link
+// żyje (sekret aktualny, data ważności nie minęła). Zmiana hasła daje nowy sekret – stare adresy przestają działać.
+// Hasło jest w bazie tylko jako skrót bcrypt.
 
-const naBase64 = async (blob) => {
-  const bajty = new Uint8Array(await blob.arrayBuffer());
-  let s = '';
-  for (let i = 0; i < bajty.length; i += 0x8000) s += String.fromCharCode(...bajty.subarray(i, i + 0x8000));
-  return btoa(s);
-};
-const zBase64 = (b64, typ) => {
-  const s = atob(b64);
-  const bajty = new Uint8Array(s.length);
-  for (let i = 0; i < s.length; i += 1) bajty[i] = s.charCodeAt(i);
-  return new Blob([bajty], { type: typ });
-};
-
-// Błąd z czytelnym stanem linku (pole stanLinku): 'brak', 'wygasl', 'haslo', 'zle_haslo', 'blokada'.
+// Błąd z czytelnym stanem linku (pole stanLinku): 'brak', 'wygasl', 'haslo', 'zle_haslo', 'blokada', 'aktualizacja'.
 function bladLinku(stan, doKiedy = null) {
   const teksty = {
     brak: 'Ten link nie działa – podgląd został wyłączony albo adres jest niepełny.',
@@ -683,114 +680,87 @@ function bladLinku(stan, doKiedy = null) {
     haslo: 'Ten podgląd jest chroniony hasłem.',
     zle_haslo: 'Hasło się nie zgadza.',
     blokada: `Za dużo prób z błędnym hasłem. Spróbuj ponownie${doKiedy ? ` po ${new Date(doKiedy).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}` : ' za kwadrans'}.`,
+    aktualizacja: 'Link jest właśnie aktualizowany – spróbuj za chwilę.',
   };
   const e = new Error(teksty[stan] || teksty.brak);
   e.stanLinku = teksty[stan] ? stan : 'brak';
   return e;
 }
 
-async function wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, nazwy) {
-  const w = sprawdz(await sb.rpc('podglad_chroniony', { p_konto: konto, p_projekt: projektId, p_kod: kod, p_haslo: haslo || null, p_nazwy: nazwy || null }));
+async function wywolajPodgladChroniony(sb, konto, projektId, kod, haslo) {
+  const w = sprawdz(await sb.rpc('podglad_chroniony', { p_konto: konto, p_projekt: projektId, p_kod: kod, p_haslo: haslo || null }));
   if (w?.stan !== 'ok') throw bladLinku(w?.stan, w?.do);
   return w;
 }
 
-// Właściciel: hasło (zmienHaslo: false – bez zmian; puste hasło – bez hasła) i data ważności (ISO albo null).
-// Zwraca { haslo: bool, wazny_do }.
-export async function ustawOchroneLinku(projektId, kod, { zmienHaslo = false, haslo = '', waznyDo = null } = {}) {
-  const sb = await supabase();
-  return sprawdz(await sb.rpc('ustaw_ochrone_udostepnienia', {
-    p_projekt: projektId, p_kod: kod, p_zmien_haslo: Boolean(zmienHaslo), p_haslo: haslo || null, p_wazny_do: waznyDo || null,
-  }));
+// Pliki wszystkich folderów linku z ochroną (<kod>.<sekret>) w projekcie – przy zmianie hasła i unieważnieniu.
+async function usunFolderyChronione(konto, projektId, kod, tylko = null) {
+  const lista = await r2.lista(BUCKET_PODGLADOW, `${konto}/${projektId}/${tylko || `${kod}.`}`);
+  await usunPliki(lista.map((p) => p.klucz).filter((k) => !tylko || k.startsWith(`${konto}/${projektId}/${tylko}/`)));
 }
 
-// Właściciel: koniec ochrony albo unieważnienie chronionego linku (ustawienia i pliki znikają).
+// Właściciel: hasło (zmienHaslo: false – bez zmian; puste hasło – bez hasła) i data ważności (ISO albo null).
+// Zwraca { haslo: bool, wazny_do, nowyFolder: bool } – nowyFolder: zmienił się sekret (strony trzeba wysłać od nowa;
+// stary folder jest już usunięty).
+export async function ustawOchroneLinku(projektId, kod, { zmienHaslo = false, haslo = '', waznyDo = null } = {}) {
+  const sb = await supabase();
+  const w = sprawdz(await sb.rpc('ustaw_ochrone_udostepnienia', {
+    p_projekt: projektId, p_kod: kod, p_zmien_haslo: Boolean(zmienHaslo), p_haslo: haslo || null, p_wazny_do: waznyDo || null,
+  }));
+  if (w?.stary_folder) {
+    const uzytkownik = await biezacyUzytkownik();
+    try { await usunFolderyChronione(uzytkownik.id, projektId, kod, w.stary_folder); } catch { /* zostanie dla sprzątania */ }
+  }
+  return { haslo: Boolean(w?.haslo), wazny_do: w?.wazny_do || null, nowyFolder: Boolean(w?.stary_folder) };
+}
+
+// Właściciel: koniec ochrony albo unieważnienie chronionego linku (pliki w R2 i ustawienia znikają).
 export async function usunPodgladChroniony(projektId, kod) {
   const sb = await supabase();
+  const uzytkownik = await biezacyUzytkownik();
+  if (uzytkownik) await usunFolderyChronione(uzytkownik.id, projektId, kod);
   sprawdz(await sb.rpc('usun_udostepnienie_chronione', { p_projekt: projektId, p_kod: kod }));
 }
 
-// Właściciel: ta sama publikacja co opublikujPodglad, ale do tabeli chronionego linku.
-// pelna: true – wysyła wszystkie strony (np. przy przejściu z linku publicznego).
+// Właściciel: czy link z ochroną czeka na pierwszą publikację w nowym folderze (po przeniesieniu do R2, #97).
+export async function linkChronionyDoPublikacji(projektId, kod) {
+  const sb = await supabase();
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) return false;
+  const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null);
+  return Boolean(w.nowy);
+}
+
+// Właściciel: ta sama publikacja co opublikujPodglad, ale do folderu linku z ochroną.
+// pelna: true – wysyła wszystkie strony (np. przy przejściu z linku publicznego albo po zmianie hasła).
 export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg' } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
-  let poprzednie = {};
-  let poprzednieTresci = {};
-  if (!pelna) {
-    try {
-      const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null, ['manifest.json']);
-      const plik = w.pliki?.['manifest.json'];
-      if (plik) { const m = JSON.parse(await zBase64(plik.dane, plik.typ).text()); if ((m.rozszerzenie || 'jpg') === rozszerzenie) { poprzednie = m.skroty || {}; poprzednieTresci = m.tresci || {}; } }
-    } catch { /* pierwsza publikacja – wyślemy wszystko */ }
-  }
-  const zapisz = async (nazwa, typ, blob) => sprawdz(await sb.rpc('zapisz_plik_udostepnienia', {
-    p_projekt: projektId, p_kod: kod, p_nazwa: nazwa, p_typ: typ, p_dane: await naBase64(blob),
-  }));
-  const skroty = {};
-  let gotowe = 0;
-  let wyslane = 0;
-  for (const s of strony) {
-    if (odciski && poprzednie[s.id] && poprzednieTresci[s.id] === odciski[s.id]) {
-      skroty[s.id] = poprzednie[s.id];
-    } else {
-      const plik = await obraz(s);
-      skroty[s.id] = await skrotPliku(plik);
-      if (poprzednie[s.id] !== skroty[s.id]) { await zapisz(`${s.id}.${rozszerzenie}`, typZRozszerzenia(rozszerzenie), plik); wyslane += 1; }
-    }
-    gotowe += 1;
-    postep(gotowe, strony.length);
-  }
-  sprawdz(await sb.rpc('porzadkuj_pliki_udostepnienia', { p_projekt: projektId, p_kod: kod, p_zostaja: [...strony.map((s) => `${s.id}.${rozszerzenie}`), 'manifest.json'] }));
-  const zaktualizowano = new Date().toISOString();
-  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, rozszerzenie, ...(odciski ? { tresci: odciski } : {}) };
-  await zapisz('manifest.json', 'application/json', new Blob([JSON.stringify(manifest)], { type: 'application/json' }));
-  return { konto: uzytkownik.id, zaktualizowano, wyslane, wszystkie: strony.length };
+  const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null);
+  const folder = `${uzytkownik.id}/${projektId}/${w.folder}`;
+  const wynik = await publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie, pelna: pelna || w.nowy, chroniony: true });
+  return { konto: uzytkownik.id, ...wynik };
 }
 
 // Oglądający: stan chronionego linku bez hasła. Rzuca błąd z polem stanLinku ('brak', 'wygasl',
-// 'haslo', 'blokada'); dla linku z samą datą ważności zwraca { stan: 'ok' }.
+// 'haslo', 'blokada', 'aktualizacja'); dla linku z samą datą ważności zwraca { stan: 'ok', folder }.
 export async function sprawdzLinkChroniony(konto, projektId, kod) {
   if (!chmuraSkonfigurowana()) throw new Error('Podgląd jest niedostępny.');
   const sb = await supabase();
-  return wywolajPodgladChroniony(sb, konto, projektId, kod, null, null);
+  return wywolajPodgladChroniony(sb, konto, projektId, kod, null);
 }
 
-// Oglądający: opis podglądu i obrazy stron chronionego linku. Obrazy pobierane są paczkami
-// (do 6 stron w jednym zapytaniu); adresObrazu(id) zwraca obietnicę adresu obrazu w pamięci.
+// Oglądający: opis podglądu i adresy obrazów stron chronionego linku (pliki z R2, folder z sekretem).
 export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '') {
   const sb = await supabase();
-  const w = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, ['manifest.json']);
-  const plik = w.pliki?.['manifest.json'];
-  if (!plik) throw bladLinku('brak');
-  const manifest = JSON.parse(await zBase64(plik.dane, plik.typ).text());
+  const w = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo);
+  const folder = `${konto}/${projektId}/${w.folder}`;
+  const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!odp.ok) throw bladLinku(odp.status === 404 ? 'aktualizacja' : 'brak');
+  const manifest = await odp.json();
   if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
-  const obietnice = new Map(); // id strony → obietnica adresu obrazu
-  const kolejka = [];
-  let timer = null;
-  const wyslij = async () => {
-    const paczka = kolejka.splice(0, 6);
-    timer = kolejka.length ? setTimeout(wyslij, 0) : null;
-    try {
-      const roz = manifest.rozszerzenie || 'jpg';
-      const odp = await wywolajPodgladChroniony(sb, konto, projektId, kod, haslo, paczka.map((x) => `${x.id}.${roz}`));
-      for (const x of paczka) {
-        const p = odp.pliki?.[`${x.id}.${roz}`];
-        if (p) x.ok(URL.createObjectURL(zBase64(p.dane, p.typ))); else { obietnice.delete(x.id); x.zle(new Error('Brak obrazu strony.')); }
-      }
-    } catch (e) {
-      for (const x of paczka) { obietnice.delete(x.id); x.zle(e); }
-    }
-  };
-  const adresObrazu = (id) => {
-    if (!obietnice.has(id)) {
-      obietnice.set(id, new Promise((ok, zle) => { kolejka.push({ id, ok, zle }); }));
-      if (!timer) timer = setTimeout(wyslij, 20);
-    }
-    return obietnice.get(id);
-  };
-  return { manifest, adresObrazu };
+  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
 }
 
 // ---------- Dostęp dla AI (klucze konta, decyzja #94) ----------

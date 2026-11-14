@@ -28,9 +28,9 @@ async function rpc(nazwa, parametry) {
 let ostatnie = null;
 let kiedy = 0;
 
-// { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku (R2), chronione, od_ai, projekty,
-//   limit_projektow, osoby_w_projekcie, obrazy_w_projekcie (baza) } – sumy całej aplikacji (pliki_razem, baza_razem)
-//   przychodzą, ale konto ich nie pokazuje (#100).
+// { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku (R2), od_ai, projekty, limit_projektow,
+//   osoby_w_projekcie, obrazy_w_projekcie (baza) } – sumy całej aplikacji (pliki_razem, baza_razem) przychodzą,
+//   ale konto ich nie pokazuje (#100).
 export async function miejsce({ swieze = false } = {}) {
   if (!swieze && ostatnie && Date.now() - kiedy < WAZNOSC_MS) return ostatnie;
   const [baza, pliki] = await Promise.all([rpc('miejsce_na_koncie'), chmura.r2.miejsce()]);
@@ -40,7 +40,7 @@ export async function miejsce({ swieze = false } = {}) {
 }
 
 const liczba = (x) => Number(x) || 0;
-export const mojeRazem = (m) => liczba(m.obrazy) + liczba(m.czcionki) + liczba(m.podglady) + liczba(m.chronione) + liczba(m.od_ai);
+export const mojeRazem = (m) => liczba(m.obrazy) + liczba(m.czcionki) + liczba(m.podglady) + liczba(m.od_ai);
 export const udzialKonta = (m) => (m.limit_konta ? liczba(m.konto) / m.limit_konta : 0);
 
 // Tekst ostrzeżenia albo null, gdy miejsca jest dość. Tylko konto – użytkownik nie widzi danych całej aplikacji

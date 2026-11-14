@@ -187,7 +187,7 @@ const krok = async (nazwa, fn) => {
       await g.close();
       return s;
     });
-    await krok('link z hasłem: bez hasła nie ma obrazów, z hasłem są', async () => {
+    await krok('link z hasłem: bez hasła nie ma obrazów, z hasłem są (pliki w R2 w folderze z sekretem, #97); zmiana hasła unieważnia stare adresy', async () => {
       await p.check('#udostepnij-haslo-wl');
       await p.fill('#udostepnij-haslo', 'proba-hasla');
       await p.click('#udostepnij-ochrona-zapisz');
@@ -206,7 +206,7 @@ const krok = async (nazwa, fn) => {
       const bezHasla = await o.evaluate(async (l) => {
         const [, konto, proj, kod] = l.match(/#\/u\/([^/]+)\/([^/]+)\/([^/]+)$/);
         const m = await import('./js/konfiguracja.js');
-        const x = await fetch(`${m.SUPABASE_URL}/rest/v1/rpc/podglad_chroniony`, { method: 'POST', headers: { apikey: m.SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ p_konto: konto, p_projekt: proj, p_kod: kod, p_nazwy: ['manifest.json'] }) });
+        const x = await fetch(`${m.SUPABASE_URL}/rest/v1/rpc/podglad_chroniony`, { method: 'POST', headers: { apikey: m.SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ p_konto: konto, p_projekt: proj, p_kod: kod }) });
         return (await x.json()).stan;
       }, link);
       if (bezHasla !== 'haslo') throw new Error(`bez hasła baza odpowiada: ${bezHasla}`);
@@ -217,8 +217,16 @@ const krok = async (nazwa, fn) => {
       await o.click('#podglad-haslo button');
       await o.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id]').length === 2);
       await o.waitForFunction(() => document.querySelector('.podglad-strona[data-id] img')?.naturalWidth > 0);
+      // Obraz strony idzie prosto z R2 (folder <kod>.<sekret>); po zmianie hasła ten adres daje 404.
+      const staryAdres = await o.evaluate(() => document.querySelector('.podglad-strona[data-id] img').src);
+      if (!/\/podglady\/[^/]+\/[^/]+\/[0-9a-f]+\.[A-Za-z0-9_-]{32}\//.test(staryAdres)) throw new Error(`obraz nie z folderu z sekretem: ${staryAdres}`);
+      await p.fill('#udostepnij-haslo', 'proba-hasla-2');
+      await p.click('#udostepnij-ochrona-zapisz');
+      await p.waitForFunction(() => /^Zapisano/.test(document.querySelector('#udostepnij-komunikat')?.textContent || ''), null, { timeout: 60000 });
+      const poZmianie = await o.evaluate(async (a) => (await fetch(a, { cache: 'no-store' })).status, staryAdres);
+      if (poZmianie !== 404) throw new Error(`stary adres obrazu po zmianie hasła: ${poZmianie}`);
       await g.close();
-      return `publiczny plik: ${publiczny}, bez hasła: ${bezHasla}, z hasłem: 2 strony z obrazami`;
+      return `publiczny plik: ${publiczny}, bez hasła: ${bezHasla}, z hasłem: 2 strony z obrazami z R2; stary adres po zmianie hasła: ${poZmianie}`;
     });
     await krok('unieważnienie linku', async () => {
       await p.click('[data-akcja="udostepnij-wylacz"]');

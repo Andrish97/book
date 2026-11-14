@@ -105,8 +105,9 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   void kontekst;
 });
 
-// Gość (osobna przeglądarka bez sesji) widzi tę samą atrapę bazy co właściciel: publiczne pliki
-// i funkcję podglad_chroniony (te same zasady co w bazie). Zwraca stronę gościa i jego błędy.
+// Gość (osobna przeglądarka bez sesji) widzi tę samą atrapę bazy co właściciel: pliki w R2 (także folder linku
+// z ochroną, wydawany tylko przy żywym linku) i funkcję podglad_chroniony (te same zasady co w bazie).
+// Zwraca stronę gościa i jego błędy.
 async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
   const k = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
   await k.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
@@ -114,7 +115,15 @@ async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
     const url = new URL(r.request().url());
     const odp = (o, status = 200) => r.fulfill({ status, contentType: 'application/json', body: JSON.stringify(o), headers: { 'access-control-allow-origin': '*' } });
     if (url.pathname.startsWith('/podglady/')) {
-      const plik = baza.pliki.get(`podglady/${decodeURIComponent(url.pathname.slice('/podglady/'.length))}`);
+      const reszta = decodeURIComponent(url.pathname.slice('/podglady/'.length));
+      // Folder linku z ochroną „<kod>.<sekret>” – jak przekaźnik: plik tylko, gdy link żyje (#97).
+      const cz = reszta.split('/');
+      if (cz.length >= 4 && cz[2].includes('.')) {
+        const u = baza.chronione?.get(`${cz[0]}/${cz[1]}/${cz[2].split('.')[0]}`);
+        if (!u || u.sekret !== cz[2].slice(cz[2].indexOf('.') + 1) || (u.wazny_do && new Date(u.wazny_do) < new Date())) return odp({}, 404);
+        baza.plikiGoscia = (baza.plikiGoscia || 0) + 1;
+      }
+      const plik = baza.pliki.get(`podglady/${reszta}`);
       if (!plik) return odp({}, 404);
       return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
     }
@@ -127,11 +136,9 @@ async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
         if (!t.p_haslo) return odp({ stan: 'haslo' });
         if (t.p_haslo !== u.haslo) return odp({ stan: 'zle_haslo' });
       }
-      if (!t.p_nazwy) return odp({ stan: 'ok' });
-      const pliki = {};
-      for (const n of t.p_nazwy.slice(0, 12)) if (u.pliki.has(n)) pliki[n] = u.pliki.get(n);
+      if (!u.sekret) return odp({ stan: 'aktualizacja' });
       baza.pobraniaGoscia = (baza.pobraniaGoscia || 0) + 1;
-      return odp({ stan: 'ok', pliki });
+      return odp({ stan: 'ok', folder: `${t.p_kod}.${u.sekret}`, haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
     }
     return odp({}, 404);
   });
@@ -142,7 +149,11 @@ async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
   return { s, bledy: bledyGoscia };
 }
 
-test('link z hasłem i datą ważności: obrazy poza publicznym folderem, pole hasła u gościa, zmiana ochrony, wygaśnięcie', async (t) => {
+// Pliki linku z ochroną w R2: folder „<konto>/<projekt>/<kod>.<sekret>/” (#97).
+const plikiChronione = (baza, klucz) => [...baza.pliki.keys()].filter((k) => k.startsWith(`podglady/${klucz}.${baza.chronione.get(klucz)?.sekret}/`));
+const plikiZwykle = (baza) => [...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && !k.split('/')[3].includes('.'));
+
+test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole hasła u gościa, zmiana hasła, ponowna publikacja, wygaśnięcie', async (t) => {
   const { strona, baza, bledy, przegladarka, Z_ATRAPA } = await otworz(t, { tryb: 'atrapa' });
   await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
   await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
@@ -170,10 +181,12 @@ test('link z hasłem i datą ważności: obrazy poza publicznym folderem, pole h
   await strona.click('#udostepnij-utworz');
   await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
   const link = await strona.inputValue('#udostepnij-link');
-  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/')).length, 0, 'nic w publicznym folderze');
+  assert.equal(plikiZwykle(baza).length, 0, 'nic w zwykłym folderze linku');
   const [klucz, u] = [...baza.chronione.entries()][0];
   assert.equal(u.haslo, 'tajne-haslo');
-  assert.deepEqual([...u.pliki.keys()].map((n) => (n === 'manifest.json' ? n : 'strona.jpg')).sort(), ['manifest.json', 'strona.jpg', 'strona.jpg']);
+  assert.match(u.sekret, /^[A-Za-z0-9_-]{32}$/, 'sekret – 24 losowe bajty');
+  assert.deepEqual(plikiChronione(baza, klucz).map((k) => (k.endsWith('manifest.json') ? 'manifest.json' : 'strona')).sort(), ['manifest.json', 'strona', 'strona']);
+  assert.ok(plikiChronione(baza, klucz).filter((k) => !k.endsWith('manifest.json')).every((k) => /^private/.test(baza.pliki.get(k).cacheControl)), 'obrazy linku z ochroną – bez pamięci współdzielonej');
   assert.ok(link.endsWith(klucz.split('/').pop()), 'ten sam kod w linku i w bazie');
   assert.equal(await strona.textContent('#udostepnij-ochrona-stan'), 'Link chroniony hasłem.');
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.ochrona), { haslo: true, wazny_do: null });
@@ -188,10 +201,28 @@ test('link z hasłem i datą ważności: obrazy poza publicznym folderem, pole h
   await g.s.fill('#podglad-haslo input[name=haslo]', 'tajne-haslo');
   await g.s.click('#podglad-haslo button');
   await g.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id]').length === 2);
-  await g.s.waitForFunction(() => [...document.querySelectorAll('.podglad-strona[data-id] img')].every((i) => i.naturalWidth > 0 && i.src.startsWith('blob:')));
+  await g.s.waitForFunction(() => [...document.querySelectorAll('.podglad-strona[data-id] img')].every((i) => i.naturalWidth > 0));
   assert.equal(await g.s.textContent('#podglad-tytul'), 'Tylko dla klienta');
-  assert.equal(baza.pobraniaGoscia, 2, 'opis i obie strony w dwóch zapytaniach (strony paczką)');
+  assert.equal(baza.pobraniaGoscia, 1, 'baza podaje tylko folder – obrazy idą prosto z R2');
+  assert.ok(await g.s.evaluate((s) => [...document.querySelectorAll('.podglad-strona[data-id] img')].every((i) => i.src.includes(`.${s}/`)), u.sekret), 'obrazy z folderu z sekretem');
   assert.deepEqual(g.bledy, []);
+
+  // Zmiana hasła: nowy sekret – strony idą do nowego folderu, stary znika (stare adresy już nie działają).
+  const staryFolder = `podglady/${klucz}.${u.sekret}/`;
+  await strona.fill('#udostepnij-haslo', 'nowe-haslo');
+  await strona.click('#udostepnij-ochrona-zapisz');
+  await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
+  assert.notEqual(`podglady/${klucz}.${baza.chronione.get(klucz).sekret}/`, staryFolder);
+  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith(staryFolder)).length, 0, 'stary folder usunięty');
+  assert.equal(plikiChronione(baza, klucz).length, 3, 'opis i dwie strony w nowym folderze');
+  const gN = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
+  await gN.s.waitForSelector('#podglad-haslo input[name=haslo]');
+  await gN.s.fill('#podglad-haslo input[name=haslo]', 'tajne-haslo');
+  await gN.s.click('#podglad-haslo button');
+  await gN.s.waitForFunction(() => /Hasło się nie zgadza/.test(document.querySelector('#podglad-haslo .komunikat').textContent));
+  await gN.s.fill('#podglad-haslo input[name=haslo]', 'nowe-haslo');
+  await gN.s.click('#podglad-haslo button');
+  await gN.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id] img').length === 2);
 
   // Zmiana: bez hasła, z datą ważności – link dalej chroniony, gość wchodzi bez hasła.
   await strona.uncheck('#udostepnij-haslo-wl');
@@ -213,6 +244,22 @@ test('link z hasłem i datą ważności: obrazy poza publicznym folderem, pole h
   const g2 = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
   await g2.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id] img').length === 2);
   assert.equal(await g2.s.locator('#podglad-haslo').count(), 0);
+
+  // Link po przeniesieniu do R2 (migracja: sekret = null, pliki z bazy usunięte): gość widzi „aktualizowany”,
+  // a aplikacja właściciela przy otwarciu projektu sama publikuje strony w nowym folderze.
+  for (const k of plikiChronione(baza, klucz)) baza.pliki.delete(k);
+  baza.chronione.get(klucz).sekret = null;
+  const gA = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
+  await gA.s.waitForSelector('.podglad-pusto');
+  assert.match(await gA.s.textContent('.podglad-pusto'), /aktualizowany/);
+  await strona.keyboard.press('Escape');
+  await strona.reload();
+  await strona.waitForFunction(() => window.seriodruk?.stan?.projekt?.udostepnienie?.ochrona);
+  for (let i = 0; i < 100 && plikiChronione(baza, klucz).length < 3; i += 1) await strona.waitForTimeout(200);
+  assert.equal(plikiChronione(baza, klucz).length, 3, 'właściciel opublikował strony w nowym folderze');
+  const gB = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
+  await gB.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id] img').length === 2);
+  await strona.click('[data-akcja="udostepnij"]');
 
   // Po dacie ważności: „Link wygasł”.
   baza.chronione.get(klucz).wazny_do = new Date(Date.now() - 60000).toISOString();
@@ -236,12 +283,13 @@ test('link z hasłem i datą ważności: obrazy poza publicznym folderem, pole h
   await strona.fill('#udostepnij-haslo', 'drugie');
   await strona.click('#udostepnij-ochrona-zapisz');
   await strona.waitForSelector('#udostepnij-komunikat.sukces');
-  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/')).length, 0, 'publiczne pliki usunięte');
-  assert.equal(baza.chronione.get(klucz).pliki.size, 3);
+  assert.equal(plikiZwykle(baza).length, 0, 'publiczne pliki usunięte');
+  assert.equal(plikiChronione(baza, klucz).length, 3);
   await strona.click('#udostepnij-wylacz');
   await strona.click('#potwierdz-tak');
   await strona.waitForFunction(() => /unieważniony/.test(document.querySelector('#udostepnij-komunikat').textContent));
   assert.equal(baza.chronione.size, 0);
+  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/')).length, 0, 'unieważnienie usuwa też folder z sekretem');
   const g5 = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
   await g5.s.waitForSelector('.podglad-pusto h2');
   assert.equal(await g5.s.textContent('.podglad-pusto h2'), 'Ten link nie działa');
