@@ -583,6 +583,8 @@ const WIDOKI = [
   ['28-prezentacja', async (s) => {
     await doPodgladu(s);
     await akcja(s, 'podglad-prezentacja'); await s.waitForSelector('.prezentacja'); await czekaj(s, 1200);
+    // Sterowanie chowa się po chwili bez ruchu (#102) – ruch myszy je pokazuje (na dotyku jest po wejściu).
+    await s.evaluate(() => document.querySelector('.prezentacja')?.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse' })));
   }, {}],
   ['29-instrukcja', async (s) => { await doEdytora(s); await akcja(s, 'instrukcja'); await s.waitForSelector('#dlg-instrukcja[open]'); await czekaj(s, 600); }, E],
   ['30-nowy-projekt', async (s) => {
