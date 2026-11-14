@@ -27,7 +27,7 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   const { strona, baza, bledy } = await otworz(t);
   const { p, uzyty } = await projektZObrazem(strona, baza);
   // Plik obrazu z projektu ma długi czas przechowywania (plik pod ścieżką się nie zmienia).
-  assert.equal(baza.pliki.get(`zasoby/${uzyty}`).cacheControl, '31536000');
+  assert.equal(baza.pliki.get(`zasoby/${uzyty}`).cacheControl, 'private, max-age=31536000, immutable');
   const plik = (tresc, czas = DAWNO) => ({ typ: 'image/png', tresc: Buffer.alloc(tresc), czas });
   // Osierocone: stara wersja zdjęcia, plik usuniętego projektu, podgląd wyłączonego linku.
   baza.pliki.set(`zasoby/${KONTO}/${p.id}/z_stara_wersja`, plik(300000));
@@ -42,7 +42,10 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   baza.obrazyAi.set('porzucone', { projekt_id: p.id, owner_id: KONTO, rozmiar: 10, dane: Buffer.alloc(10000), gotowy: false, utworzono: DAWNO });
 
   await strona.evaluate(() => { location.hash = '#/konto'; });
-  await strona.waitForFunction(() => /z 1 GB/.test(document.querySelector('#miejsce-razem').textContent));
+  await strona.waitForFunction(() => /z 50 GB/.test(document.querySelector('#miejsce-razem').textContent));
+  // Konto wobec własnego limitu (R2, #92) i limity w jednym zdaniu.
+  assert.match(await strona.textContent('#miejsce-konto'), /z 2 GB/);
+  assert.match(await strona.textContent('#miejsce-limity'), /Projekty: \d+ z 100\. Jeden plik – najwyżej 50 MB/);
   assert.match(await strona.textContent('#miejsce-obrazy'), /kB|MB/);
   assert.match(await strona.textContent('#miejsce-czcionki'), /39 kB|40 kB/);
   assert.ok(await strona.isHidden('#miejsce-ostrzezenie'), 'mało zajęte – bez ostrzeżenia');

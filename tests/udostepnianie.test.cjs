@@ -37,8 +37,8 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   // Osoba bez konta: osobna przeglądarka, bez sesji.
   const gosc = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
   await gosc.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
-  await gosc.route('https://atrapa.supabase.co/storage/v1/object/public/**', async (r) => {
-    const klucz = new URL(r.request().url()).pathname.slice('/storage/v1/object/public/'.length);
+  await gosc.route('https://atrapa.supabase.co/podglady/**', async (r) => {
+    const klucz = `podglady/${decodeURIComponent(new URL(r.request().url()).pathname.slice('/podglady/'.length))}`;
     const plik = baza.pliki.get(klucz);
     if (!plik) return r.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
     return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
@@ -113,8 +113,8 @@ async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
   await k.route('https://atrapa.supabase.co/**', async (r) => {
     const url = new URL(r.request().url());
     const odp = (o, status = 200) => r.fulfill({ status, contentType: 'application/json', body: JSON.stringify(o), headers: { 'access-control-allow-origin': '*' } });
-    if (url.pathname.startsWith('/storage/v1/object/public/')) {
-      const plik = baza.pliki.get(url.pathname.slice('/storage/v1/object/public/'.length));
+    if (url.pathname.startsWith('/podglady/')) {
+      const plik = baza.pliki.get(`podglady/${decodeURIComponent(url.pathname.slice('/podglady/'.length))}`);
       if (!plik) return odp({}, 404);
       return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
     }

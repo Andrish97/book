@@ -11,6 +11,7 @@ import { zapiszPlikProjektu, ROZSZERZENIE, wczytajPlikProjektu as odczytajPlik }
 import { powiadom, $, kiedy, przelaczMenu, zamknijMenu, zapytajONazwe, pobierz, bezpiecznaNazwa, potwierdz } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { postep } from '../postep.js';
+import { limitProjektow } from '../miejsce.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { wlasciciel, stan, pokazEkran, trasa } from './kontekst.js';
 import { czekajNaEdytor, edytorGotowy, doczytajWTle } from './doczytaj.js';
@@ -60,9 +61,10 @@ export async function wpisyProjektow() {
         wpisy.set(c.id, w);
       }
       // Kopia projektu współdzielonego, którego już nie ma na liście z konta: właściciel odebrał dostęp
-      // albo usunął projekt – kopia na tym urządzeniu znika razem z nim.
+      // albo usunął projekt – kopia na tym urządzeniu znika razem z nim. Tak samo własny projekt, który był już
+      // na koncie i nie ma w nim niewysłanych zmian, a zniknął z konta (usunięty na innym urządzeniu albo przez AI, #94).
       for (const [id, w] of wpisy) {
-        if (!w.wspolpraca || naKoncie.has(id)) continue;
+        if (naKoncie.has(id) || !(w.wspolpraca || (w.bylNaKoncie && !w.doSynchronizacji))) continue;
         wpisy.delete(id);
         usunKopieLokalna(id).catch(() => {});
       }
@@ -233,6 +235,7 @@ export async function zapiszGdziekolwiek(projekt) {
 }
 
 async function duplikujProjekt(w) {
+  if (await ponadLimit()) return;
   try {
     const zrodlo = await wczytajProjektZWpisu(w);
     const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
@@ -295,7 +298,16 @@ async function usunProjekt(w) {
 
 const FORMATY_KART = [...Object.entries(FORMATY), ['Własny', null]];
 
-export function otworzNowyProjekt() {
+// Limit projektów konta (#92): komunikat zamiast nowego projektu, którego baza i tak nie przyjmie.
+async function ponadLimit() {
+  if (!stan.uzytkownik) return false;
+  const tekst = await limitProjektow();
+  if (tekst) powiadom(tekst, true);
+  return Boolean(tekst);
+}
+
+export async function otworzNowyProjekt() {
+  if (await ponadLimit()) return;
   const dlg = $('#dlg-nowy');
   const f = $('#form-nowy');
   f.reset();
@@ -342,6 +354,28 @@ $('#dlg-nowy').addEventListener('close', async () => {
   await otworzProjekt(projekt);
   await zapiszTeraz();
 });
+
+// Projekt zniknął z konta (Realtime DELETE): otwarty – zamykamy bez zapisu (inaczej zapis założyłby go od nowa)
+// i mówimy dlaczego; na liście – kopia na urządzeniu znika (o ile nie ma niewysłanych zmian).
+export async function projektUsunietyNaKoncie(id) {
+  if (!stan.uzytkownik) return;
+  const lokalny = await wczytajLokalnie(id).catch(() => null);
+  if (stan.projekt?.id === id) {
+    const nazwa = stan.projekt.nazwa;
+    for (const t of ['timerZapisu', 'timerChmury', 'timerHistorii']) { clearTimeout(stan[t]); stan[t] = null; }
+    stan.projekt = null;
+    document.dispatchEvent(new CustomEvent('seriodruk:projekt', { detail: null }));
+    document.title = NAZWA;
+    await usunKopieLokalna(id).catch(() => {});
+    trasa.ustaw('projekty');
+    await pokazProjekty();
+    powiadom(`Projekt „${nazwa}” został usunięty z konta (z innego urządzenia albo przez AI).`, true);
+    return;
+  }
+  if (!lokalny) { if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); return; }
+  if (!lokalny.doSynchronizacji && lokalny.projekt?.wersja_chmury) await usunKopieLokalna(id).catch(() => {});
+  if (document.body.dataset.ekran === 'projekty' && !stan.projekt) pokazProjekty({ cicho: true });
+}
 
 export async function doProjektow() {
   if (stan.projekt) await zapiszTeraz();
@@ -397,6 +431,7 @@ export async function wczytajPlikProjektu(plik) {
       );
       if (!zastap) projekt.id = crypto.randomUUID();
     }
+    if ((!istniejacy || projekt.id !== istniejacy.id) && await ponadLimit()) return;
     pasek = postep(`Otwieranie „${projekt.nazwa}”…`);
     if (stan.projekt) await zapiszTeraz();
     // Plik w miejsce projektu: dawna historia cofania do niego nie pasuje.

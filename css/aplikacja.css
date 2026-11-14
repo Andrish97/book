@@ -1830,6 +1830,22 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 #miejsce-baza { margin: 0; font-size: 12.5px; }
 @media (prefers-reduced-motion: reduce) { .miejsce-pasek span { transition: none; } }
 
+/* ===============================================================
+   Klucze AI konta (js/app/dostep-ai.js) – decyzja #94
+   ====================================================================== */
+.zakres-klucza { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.lista-projektow-klucza { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; padding: 6px 8px; border: 1px solid var(--linia); border-radius: var(--r-s); }
+.lista-projektow-klucza[hidden] { display: none; }
+.lista-projektow-klucza .projekt-klucza span { overflow-wrap: anywhere; }
+.lista-dostepow li { flex-wrap: wrap; }
+.lista-dostepow .zakres-opis { font-size: 13px; overflow-wrap: anywhere; }
+.lista-dostepow .klucz-akcje { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
+.lista-dostepow .zmiana-zakresu { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
+:root[data-dotyk] .lista-projektow-klucza .przelacznik { min-height: 40px; }
+@media (max-width: 600px) {
+  .lista-dostepow .klucz-akcje { flex: 1 1 100%; }
+  .lista-dostepow .klucz-akcje .przycisk { flex: 1 1 auto; }
+=======
 /* Menu w niskim oknie (telefon 320×568: menu ⋯ urosło o „Współpraca…”) – nie dłuższe niż ekran, reszta się przewija. */
 #menu-wiecej, #menu-uzytkownika { max-height: calc(100svh - 64px); overflow-y: auto; overscroll-behavior: contain; }
 
@@ -1841,8 +1857,7 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
    (na 320 px zostawało z niego „K…”); stuknięcie w procent dopasowuje stronę jak dotąd. */
 :root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-minus"], :root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-plus"] { display: none; }
 
-/* ======================================================================
-   Panel administratora (#/admin) i formularz kontaktowy – decyzja #95
+/* ===============================================================   Panel administratora (#/admin) i formularz kontaktowy – decyzja #95
    ====================================================================== */
 body[data-ekran="admin"] #ekran-admin { display: flex; }
 .ekran-admin { flex-direction: column; }
@@ -1977,3 +1992,36 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 #admin-szukaj:focus { outline: 2px solid var(--akcent); outline-offset: -1px; border-color: var(--akcent); }
 #admin-foldery .filtr, #admin-stany .filtr { padding: 0 11px; }
 .lista-kolejki:empty, .lista-watkow:empty { display: none; }
+=======
+/* ---------- Panel użycia konta (#93): projekty, paski limitów, u innych ---------- */
+.uzycie-projektow { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.uzycie-sortowanie { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--cichy); }
+.uzycie-sortowanie select { width: auto; min-width: 0; }
+.uzycie-paski { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.uzycie-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.uzycie-projekt {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "opis akcje" "slupek slupek";
+  gap: 6px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--linia); border-radius: var(--r-m, 8px); background: var(--powierzchnia);
+}
+.uzycie-opis { grid-area: opis; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.uzycie-opis strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uzycie-meta { font-size: 12.5px; overflow-wrap: anywhere; }
+.uzycie-akcje { grid-area: akcje; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.uzycie-slupek { grid-area: slupek; height: 6px; border-radius: 999px; background: var(--linia); overflow: hidden; }
+.uzycie-slupek span { display: block; height: 100%; background: var(--akcent); border-radius: 999px; }
+.uzycie-u-innych summary { cursor: pointer; font-size: 13.5px; color: var(--cichy); padding: 4px 0; }
+.uzycie-u-innych .uzycie-lista { margin-top: 8px; }
+#uzycie-dodatki, #uzycie-pusto { margin: 0; font-size: 13px; }
+:root[data-dotyk] .uzycie-projekt .przycisk.maly { min-height: 40px; }
+@media (max-width: 600px) {
+  .uzycie-projekt { grid-template-columns: minmax(0, 1fr); grid-template-areas: "opis" "slupek" "akcje"; }
+  .uzycie-akcje { justify-content: stretch; }
+  .uzycie-akcje .przycisk { flex: 1 1 0; }
+}
+
+/* ---------- Podpowiedzi na telefonie (js/podpowiedzi.js, #96) ----------
+   Podpowiedzi o klawiaturze nie mają sensu na dotyku; długie zwijają się na telefonie do dwóch linii. */
+:root[data-dotyk] .podpowiedz-klawisze { display: none; }
+:root[data-urzadzenie="telefon"] .podpowiedz-zwijana:not(.rozwinieta) {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden; cursor: pointer;
+}

@@ -1,6 +1,7 @@
-// Miejsce na koncie (decyzja #90): ile zajmują pliki zalogowanego i cała aplikacja wobec limitów darmowego
-// planu bazy (pliki 1 GB, baza 500 MB), sprzątanie osieroconych plików i ostrzeżenie przy 80%.
-// Funkcje bazy: miejsce_na_koncie, pliki_osierocone, posprzataj_konto (migracja 20261114150000_miejsce_na_koncie.sql).
+// Miejsce na koncie (decyzje #90, #92): pliki konta w R2 wobec limitu konta, cały magazyn plików aplikacji,
+// baza danych, projekty wobec limitu, sprzątanie osieroconych plików i ostrzeżenie przy 80%.
+// Pliki: przekaźnik (GET /pliki/_miejsce, /pliki/_osierocone, POST /pliki/_usun – cloudflare/api-worker.js).
+// Baza: miejsce_na_koncie, posprzataj_konto (migracje 20261114150000_miejsce_na_koncie.sql, 20261114180000_pliki_r2_limity.sql).
 
 import * as chmura from './chmura.js';
 import { sciezkiLokalne } from './lokalny.js';
@@ -27,10 +28,12 @@ async function rpc(nazwa, parametry) {
 let ostatnie = null;
 let kiedy = 0;
 
-// { obrazy, czcionki, podglady, chronione, od_ai, plikow, pliki_razem, baza_razem, limit_plikow, limit_bazy }
+// { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku, pliki_razem, limit_plikow (R2),
+//   chronione, od_ai, baza_razem, limit_bazy, projekty, limit_projektow, osoby_w_projekcie, obrazy_w_projekcie (baza) }
 export async function miejsce({ swieze = false } = {}) {
   if (!swieze && ostatnie && Date.now() - kiedy < WAZNOSC_MS) return ostatnie;
-  ostatnie = await rpc('miejsce_na_koncie');
+  const [baza, pliki] = await Promise.all([rpc('miejsce_na_koncie'), chmura.r2.miejsce()]);
+  ostatnie = { ...baza, ...pliki };
   kiedy = Date.now();
   return ostatnie;
 }
@@ -38,19 +41,34 @@ export async function miejsce({ swieze = false } = {}) {
 const liczba = (x) => Number(x) || 0;
 export const mojeRazem = (m) => liczba(m.obrazy) + liczba(m.czcionki) + liczba(m.podglady) + liczba(m.chronione) + liczba(m.od_ai);
 export const udzialPlikow = (m) => (m.limit_plikow ? liczba(m.pliki_razem) / m.limit_plikow : 0);
+export const udzialKonta = (m) => (m.limit_konta ? liczba(m.konto) / m.limit_konta : 0);
 export const udzialBazy = (m) => (m.limit_bazy && m.baza_razem != null ? liczba(m.baza_razem) / m.limit_bazy : 0);
 
 // Tekst ostrzeżenia albo null, gdy miejsca jest dość.
 export function ostrzezenie(m) {
+  const konto = udzialKonta(m);
   const pliki = udzialPlikow(m);
   const baza = udzialBazy(m);
-  const najwiecej = Math.max(pliki, baza);
+  const najwiecej = Math.max(konto, pliki, baza);
   if (najwiecej < PROG_OSTRZEZENIA) return null;
-  const co = pliki >= baza
-    ? `Pliki całej aplikacji zajmują ${Math.round(pliki * 100)}% miejsca (${rozmiar(m.pliki_razem)} z ${rozmiar(m.limit_plikow)}).`
-    : `Baza danych aplikacji zajmuje ${Math.round(baza * 100)}% miejsca (${rozmiar(m.baza_razem)} z ${rozmiar(m.limit_bazy)}).`;
-  const skutek = najwiecej >= 1 ? 'Nowe obrazy mogą się nie zapisać na koncie.' : 'Gdy miejsce się skończy, nowe obrazy nie zapiszą się na koncie.';
+  let co;
+  if (konto === najwiecej) co = `Twoje pliki zajmują ${Math.round(konto * 100)}% miejsca konta (${rozmiar(m.konto)} z ${rozmiar(m.limit_konta)}).`;
+  else if (pliki === najwiecej) co = `Pliki całej aplikacji zajmują ${Math.round(pliki * 100)}% miejsca (${rozmiar(m.pliki_razem)} z ${rozmiar(m.limit_plikow)}).`;
+  else co = `Baza danych aplikacji zajmuje ${Math.round(baza * 100)}% miejsca (${rozmiar(m.baza_razem)} z ${rozmiar(m.limit_bazy)}).`;
+  const skutek = najwiecej >= 1 ? 'Nowe obrazy nie zapiszą się na koncie.' : 'Gdy miejsce się skończy, nowe obrazy nie zapiszą się na koncie.';
   return `${co} ${skutek} Posprzątaj stare pliki w ustawieniach konta (Miejsce) albo usuń nieużywane obrazy i projekty.`;
+}
+
+// Komunikat, gdy konto ma już tyle projektów, ile wolno (sprawdzane przed „Nowy projekt”, „Duplikuj”, „Importuj”);
+// null – można zakładać. Bez sieci nie blokujemy: baza i tak odmówi zapisu ponad limit.
+export async function limitProjektow() {
+  try {
+    const m = await rpc('miejsce_na_koncie');
+    if (liczba(m?.limit_projektow) && liczba(m.projekty) >= liczba(m.limit_projektow)) {
+      return `Masz już ${m.projekty} projektów – to limit jednego konta. Usuń albo wyeksportuj do pliku projekt, którego nie potrzebujesz, żeby założyć nowy.`;
+    }
+  } catch { /* bez sieci albo bez konta */ }
+  return null;
 }
 
 // Ostrzeżenie przy wgrywaniu obrazów – najwyżej raz na 10 minut.
@@ -68,7 +86,7 @@ export async function ostrzezPrzyWgrywaniu(powiadom) {
 // Co sprzątanie usunie: { pliki: [{ bucket, nazwa, rozmiar }], baza: { ai, ai_bajty, linki, linki_bajty }, ile, bajty }.
 // Pliki obrazów, na które wskazuje projekt zapisany w tej przeglądarce (np. jeszcze niewysłany), zostają.
 export async function planSprzatania() {
-  const [pliki, baza] = await Promise.all([rpc('pliki_osierocone'), rpc('posprzataj_konto', { p_policz: true })]);
+  const [pliki, baza] = await Promise.all([chmura.r2.osierocone(), rpc('posprzataj_konto', { p_policz: true })]);
   let lokalne = null;
   try { lokalne = await sciezkiLokalne(); } catch { /* bez magazynu przeglądarki: plików obrazów nie ruszamy */ }
   const doUsuniecia = (pliki || []).filter((p) => p.bucket !== 'zasoby' || (lokalne && !lokalne.has(p.nazwa)));
@@ -85,13 +103,11 @@ export async function planSprzatania() {
 export async function posprzataj(plan = null, naKrok = () => {}) {
   const p = plan || await planSprzatania();
   let gotowe = 0;
-  const sb = await chmura.supabase();
   const wgBucketu = new Map();
   for (const x of p.pliki) wgBucketu.set(x.bucket, [...(wgBucketu.get(x.bucket) || []), x.nazwa]);
   for (const [bucket, nazwy] of wgBucketu) {
     for (let i = 0; i < nazwy.length; i += 100) {
-      const { error } = await sb.storage.from(bucket).remove(nazwy.slice(i, i + 100));
-      if (error) throw new Error(error.message || String(error));
+      await chmura.r2.usun(bucket, nazwy.slice(i, i + 100));
       gotowe += Math.min(100, nazwy.length - i);
       naKrok(gotowe, p.ile);
     }

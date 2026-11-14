@@ -41,8 +41,8 @@ function projektProby() {
 async function srodowisko(t) {
   const stan = { projekty: [projektProby()], strony: new Map(), wywolania: [] };
   const baza = atrapaAi(stan);
-  const edycja = baza('utworz_dostep_ai', { p_projekt: 'p-1', p_opis: 'Claude', p_rola: 'edycja', p_dni: 7 }, WLASCICIEL).klucz;
-  const odczyt = baza('utworz_dostep_ai', { p_projekt: 'p-1', p_opis: 'Czyta', p_rola: 'odczyt', p_dni: 1 }, WLASCICIEL).klucz;
+  const edycja = baza('utworz_dostep_ai', { p_projekty: ['p-1'], p_opis: 'Claude', p_rola: 'edycja', p_dni: 7 }, WLASCICIEL).klucz;
+  const odczyt = baza('utworz_dostep_ai', { p_projekty: ['p-1'], p_opis: 'Czyta', p_rola: 'odczyt', p_dni: 1 }, WLASCICIEL).klucz;
   const http1 = http.createServer((req, res) => {
     let tresc = '';
     req.on('data', (c) => { tresc += c; });
@@ -139,7 +139,7 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   const { narzedzie } = mcp;
 
   const przeglad = await narzedzie('przeglad_projektu');
-  assert.match(przeglad.tekst, /Projekt „Kalendarz” – wersja 1/);
+  assert.match(przeglad.tekst, /Projekt „Kalendarz” \(id p-1\) – wersja 1/);
   assert.match(przeglad.tekst, /s2 „Miesiąc” sekcja=sek1 seria=ser1/);
   assert.match(przeglad.tekst, /mies \(textbox: „\{miesiac\} \{kolor\}”\)/);
   assert.doesNotMatch(przeglad.tekst, /data:/, 'treści obrazów nie wychodzą z bazy');

@@ -1,4 +1,5 @@
-// Dostęp dla AI: klucz do jednego projektu, zmiany z klucza dochodzą do otwartego edytora na żywo.
+// Dostęp dla AI: klucze konta (decyzja #94) – z menu projektu ten projekt jest zaznaczony; zmiany z klucza dochodzą
+// do otwartego edytora na żywo; zakres klucza da się zmienić bez zmiany adresu.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -19,6 +20,10 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   await strona.click('[data-akcja="dostep-ai"]');
   await strona.waitForSelector('#dlg-dostep-ai[open]');
   assert.equal(await strona.isVisible('#dostep-ai-gotowy'), false);
+  // Skrót z menu projektu: na liście nowego klucza zaznaczony jest ten projekt, zakres „Wybrane projekty”.
+  await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-projekty input:checked').length === 1);
+  assert.equal(await strona.isChecked('#dostep-ai-nowy input[value="wybrane"]'), true);
+  assert.match(await strona.textContent('#dostep-ai-projekty'), /Projekt dla AI/);
   await strona.fill('#dostep-ai-opis', 'Claude – test');
   await strona.click('[data-akcja="dostep-ai-utworz"]');
   await strona.waitForSelector('#dostep-ai-gotowy:not([hidden])');
@@ -33,7 +38,7 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   assert.ok((await strona.textContent('#dostep-ai-claude-code')).includes(`/functions/v1/mcp/${klucz}`), 'polecenie dla Claude Code używa zdalnego łącznika');
   assert.ok((await strona.textContent('#dostep-ai-claude-desktop')).includes(klucz), 'gotowa konfiguracja serwera u siebie zawiera klucz');
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 1);
-  assert.match(await strona.textContent('#dostep-ai-lista li'), /Claude – test.*czyta i zmienia.*jeszcze nieużyty/s);
+  assert.match(await strona.textContent('#dostep-ai-lista li'), /Claude – test.*„Projekt dla AI”.*czyta i zmienia.*ważny do.*jeszcze nieużyty/s);
   // Po zamknięciu i ponownym otwarciu klucza już nie widać.
   await strona.click('[data-akcja="dostep-ai-zamknij"]');
   await strona.click('#przycisk-wiecej');
@@ -78,7 +83,13 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   await strona.click('[data-akcja="dostep-ai"]');
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 2);
   assert.match(await strona.textContent('#dostep-ai-lista'), /ostatnio użyty/);
-  await strona.click('#dostep-ai-lista li:has-text("Claude – test") button');
+  // Zmiana zakresu w miejscu: pełny dostęp – ten sam klucz widzi teraz wszystkie projekty konta.
+  await strona.click('#dostep-ai-lista li:has-text("Claude – test") button:has-text("Zmień zakres")');
+  await strona.click('#dostep-ai-lista li:has-text("Claude – test") .zmiana-zakresu input[value="pelny"]');
+  await strona.click('#dostep-ai-lista li:has-text("Claude – test") button:has-text("Zapisz zakres")');
+  await strona.waitForFunction(() => /pełny dostęp/.test(document.querySelector('#dostep-ai-lista').textContent));
+  assert.equal(baza.ai('ai_projekty', { p_klucz: klucz }).dostep.zakres, 'pelny');
+  await strona.click('#dostep-ai-lista li:has-text("Claude – test") button:has-text("Odbierz")');
   await strona.click('#potwierdz-tak');
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 1);
   assert.match(baza.ai('ai_projekt', { p_klucz: klucz }).blad, /odebrany/);

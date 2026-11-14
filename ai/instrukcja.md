@@ -80,7 +80,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz �
 - **Logowanie** – **Zmień adres** i **Zmień hasło** rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. **Wpisz inny adres** zastępuje oczekujący adres nowym.
 - **Wygląd** – jasny albo ciemny motyw (następny rozdział).
 - **Urządzenia** – **Wyloguj** wylogowuje tylko to urządzenie, **Wyloguj wszędzie** – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).
-- **Miejsce** – ile zajmują Twoje pliki na koncie (obrazy, czcionki, podglądy linków) i ile wspólnego miejsca na pliki zostało całej aplikacji. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. **Posprzątaj…** pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.
+- **Miejsce** – ile zajmują Twoje pliki (obrazy, czcionki, podglądy linków) wobec limitu konta (2 GB), ile masz projektów (najwyżej 100) i ile obrazów w największym projekcie (najwyżej 1000 w jednym projekcie; jeden plik – do 50 MB). Niżej lista Twoich projektów: ile zajmuje każdy, ile ma obrazów i stron, kiedy go zmieniano – z przyciskami **Otwórz** i **Pokaż obrazy**; projekty innych osób, do których masz dostęp, są osobno i nie liczą się do Twojego limitu. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. **Posprzątaj…** pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.
 - **Usuwanie konta** – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.
 - **Kontakt** – w menu konta (i w stopce ekranu logowania) jest formularz kontaktowy: pytanie, pomysł albo błąd trafia do nas, a na podany adres przychodzi potwierdzenie. Możesz też pisać wprost na kontakt@makietka.app.
 
@@ -570,18 +570,19 @@ Projekt możesz robić razem z innymi osobami – każda na swoim koncie. Zapras
 
 ## 28. Praca z AI
 
-Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Podłączasz go adresem łącznika Makietka – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.
+Asystent AI (Claude, ChatGPT) może czytać i poprawiać wybrane projekty albo wszystkie projekty konta razem z Tobą – a z pełnym dostępem także tworzyć i usuwać projekty. Podłączasz go adresem łącznika Makietka – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.
 
-![Nowy klucz dla AI: adres łącznika do skopiowania i kroki dla Claude i ChatGPT.](https://makietka.app/img/instrukcja/dostep-ai.png)
-*Nowy klucz dla AI: adres łącznika do skopiowania i kroki dla Claude i ChatGPT.*
+![Klucze AI konta: zakres (wybrane projekty albo pełny dostęp), adres łącznika do skopiowania i kroki dla Claude i ChatGPT.](https://makietka.app/img/instrukcja/dostep-ai.png)
+*Klucze AI konta: zakres (wybrane projekty albo pełny dostęp), adres łącznika do skopiowania i kroki dla Claude i ChatGPT.*
 
-- W edytorze menu **⋯** → **Dostęp dla AI…**. Wpisz, dla kogo jest klucz, wybierz **Czyta i zmienia** albo **Tylko czyta** i ważność (1, 7 albo 30 dni), potem **Utwórz klucz**.
+- Klucz należy do konta: **Ustawienia konta → Dostęp dla AI → Zarządzaj…** (albo w edytorze menu **⋯** → **Dostęp dla AI…** – wtedy otwarty projekt jest od razu zaznaczony). Wpisz, dla kogo jest klucz, wybierz **Czyta i zmienia** albo **Tylko czyta**, ważność (od 1 dnia do roku albo bez terminu) i zakres, potem **Utwórz klucz**.
+- **Zakres.** **Wybrane projekty** – zaznaczasz projekty (własne i udostępnione Ci przez innych). **Pełny dostęp** – wszystkie projekty konta, także te, które dojdą później; AI może wtedy też **tworzyć nowe projekty** i **usuwać** Twoje (zawsze z podaniem dokładnej nazwy projektu). W rozmowie AI zaczyna od listy projektów i pyta, na którym pracować – albo napisz od razu, np. „w projekcie Kalendarz 2027 popraw literówki”.
 - Okno pokaże **adres łącznika** (z kluczem w środku). Widać go **tylko raz** – skopiuj go od razu przyciskiem obok.
 - **Claude** (claude.ai, aplikacja na komputer i telefon): **Dostosuj → Łączniki** (Customize → Connectors) → **+** → **Dodaj własny łącznik**. Nazwa: Makietka, adres: wklej skopiowany, logowanie: **bez logowania** (No sign-in). W rozmowie włącz łącznik i napisz np. „Przejrzyj mój projekt w Makietce i popraw literówki w tytułach”.
 - **ChatGPT**: **chatgpt.com/plugins** → **+** → **Add custom MCP server**, wklej adres, uwierzytelnianie **No Authentication**, potwierdź. Gdy tej opcji nie ma, włącz tryb dewelopera (Ustawienia → Aplikacje → Zaawansowane).
 - Łącznik działa po stronie Makietki: Claude i ChatGPT łączą się z nim ze swoich serwerów. Jeśli AI prosi o odblokowanie domeny albo zmianę ustawień sieci, żeby łączyć się z bazą, nie rób tego – poproś, żeby użyło narzędzi łącznika Makietka (a jeśli ich nie ma, dodaj łącznik jak wyżej).
 - W części **Dla zaawansowanych** okno ma sam klucz, polecenie dla **Claude Code** i serwer do uruchomienia u siebie. Szczegóły: [Dostęp dla AI](https://makietka.app/ai/api.md).
-- Klucz otwiera **tylko ten projekt**: AI może zmieniać strony, elementy, wzorce, style, tabele danych, serie i sekcje oraz obrazy projektu, ale nie utworzy ani nie usunie projektu, nie wgra czcionek i nie zobaczy innych projektów.
+- AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który ktoś Ci udostępnił tylko do oglądania, klucz tylko czyta, a gdy właściciel odbierze Ci dostęp, klucz traci go od razu. Klucz nie otwiera ustawień konta, hasła, czcionek konta, linków udostępniania ani współpracy.
 - **Obrazy przez AI.** AI robi z obrazami to samo co Ty w oknie **Obrazy projektu**: wgrywa je, wstawia na stronę jako pojedyncze zdjęcie (z ramką „zmieść” albo „wypełnij”), zmienia nazwy, podmienia pliki, usuwa nieużywane i porządkuje powtórzenia. Wgrany obraz pojawia się u Ciebie po chwili, a przy najbliższym zapisie trafia na Twoje konto jak każdy inny.
 - **Skąd AI bierze zdjęcia.** Łącznik przyjmuje od AI tylko tekst, więc zdjęcia, które masz u siebie, dochodzą inną drogą – zależnie od aplikacji. Wielkość nie gra roli: jeden obraz do 25 MB, ZIP do 50 MB.
 - **ChatGPT:** zdjęcia i ZIP-y wrzucone do rozmowy wchodzą wprost – ChatGPT sam podaje je łącznikowi.
@@ -590,9 +591,10 @@ Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z T
 - **Poza tym:** link do pliku albo ZIP-a na **Dysku Google** lub w **Dropboxie** udostępnionego „każdemu, kto ma link” (Dropbox odda też cały folder) i rysunki SVG, które AI samo narysuje (ozdobniki, ikony, ramki).
 - **Wymiana użytych zdjęć.** Obrazu, który stoi na stronie, AI nie usuwa – zostałaby pusta ramka. Wymienia go jednym krokiem na nowy plik (podmiana): wszystkie strony, wzorce i dane pokazują od razu nowy, a stary znika. Gdy wgrywasz sam, to samo daje w oknie **Obrazy projektu** „Zastąp” z zaznaczonym „Tak samo dla pozostałych plików o powtórzonych nazwach”. Szczegóły: [Dostęp dla AI](https://makietka.app/ai/api.md).
 - Zmiany AI łączą się z Twoimi element po elemencie: gdy Ty przesuwasz zdjęcie, a AI poprawia tytuł, zostają obie zmiany. **Cofnij** zdejmuje tylko Twoje zmiany.
-- Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz – i adres łącznika – od razu.
+- Lista **Klucze konta** pokazuje zakres, ważność i to, kiedy klucza ostatnio użyto. **Zmień zakres** dodaje i usuwa projekty albo przełącza na pełny dostęp – adres łącznika się nie zmienia. **Odbierz** wyłącza klucz – i adres łącznika – od razu.
+- Projekt utworzony przez AI pojawia się na liście projektów od razu. Projekt usunięty przez AI znika z listy (także z tego urządzenia); jeśli akurat był otwarty, edytor zamyka się z wyjaśnieniem.
 
-> Adres łącznika (z kluczem) trafia do firmy, która prowadzi AI. Dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Przed dużymi zmianami zrób **Eksport** projektu.
+> Adres łącznika (z kluczem) trafia do firmy, która prowadzi AI. Dawaj najwęższy zakres i najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Pełny dostęp daj tylko AI, któremu ufasz przy usuwaniu projektów. Przed dużymi zmianami zrób **Eksport** projektu.
 
 ## 29. Linie i ostrzeżenia
 

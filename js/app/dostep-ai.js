@@ -1,21 +1,66 @@
-// Okno „Dostęp dla AI”: klucz, którym asystent AI czyta i zmienia ten jeden projekt (ai/api.md).
-// Główna droga to adres zdalnego łącznika MCP (Funkcja Edge supabase/functions/mcp) z kluczem w adresie –
-// Claude i ChatGPT łączą się z nim ze swoich serwerów, więc AI nie potrzebuje dostępu do bazy z własnej
-// piaskownicy. Klucz pokazuje się raz – w bazie zostaje tylko jego skrót. Zmiany AI przychodzą do edytora tak jak
-// zmiany z drugiego urządzenia (zapis na żywo i łączenie element po elemencie).
+// Okno „Dostęp dla AI”: klucze konta, którymi asystent AI czyta i zmienia projekty (decyzja #94, ai/api.md).
+// Klucz należy do konta (Ustawienia konta → Dostęp dla AI; skrót w menu ⋯ projektu z tym projektem zaznaczonym)
+// i ma zakres: wybrane projekty (własne albo udostępnione mi – listę można zmieniać bez zmiany adresu) albo
+// pełny dostęp (wszystkie projekty, także tworzenie i usuwanie projektów). AI dostaje co najwyżej moje
+// uprawnienia. Główna droga to adres zdalnego łącznika MCP z kluczem w adresie – Claude i ChatGPT łączą się z nim
+// ze swoich serwerów. Klucz pokazuje się raz – w bazie zostaje tylko jego skrót. Zmiany AI przychodzą do edytora
+// tak jak zmiany z drugiego urządzenia (zapis na żywo i łączenie element po elemencie).
+//
+// Moduł nie zależy od edytora – okno działa także z ustawień konta (akcje w js/aplikacja.js).
 
 import * as chmura from '../chmura.js';
+import { udostepnioneMi } from '../wspolpraca-chmura.js';
 import { $, powiadom, kiedy, potwierdz } from '../ui.js';
 import { SUPABASE_URL } from '../konfiguracja.js';
 import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
 import { stan } from './kontekst.js';
-import { zapiszTeraz, synchronizuj } from './zapis.js';
+import { edytorGotowy } from './doczytaj.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 
 // Adres zdalnego łącznika MCP z kluczem (do dodania jako własny łącznik w Claude / serwer MCP w ChatGPT).
 // Przez przekaźnik (api.makietka.app) adres jest krótszy: …/mcp/<klucz>; wprost do bazy (np. atrapa w testach) – …/functions/v1/mcp/<klucz>.
 export const adresLacznika = (klucz) => (SUPABASE_URL === ADRES_API ? `${ADRES_LACZNIKA}/${klucz}` : `${SUPABASE_URL}/functions/v1/mcp/${klucz}`);
+
+// Projekty konta do wyboru: własne i udostępnione mi (z rolą). [{ id, nazwa, wlasciciel?, rola }]
+let projekty = [];
+async function wczytajProjekty() {
+  const [lista, udzialy] = await Promise.all([chmura.listaWChmurze(), udostepnioneMi().catch(() => new Map())]);
+  projekty = lista.map((p) => {
+    const cudzy = p.owner_id && p.owner_id !== stan.uzytkownik?.id;
+    const u = udzialy.get(p.id);
+    return { id: p.id, nazwa: p.nazwa, wlasciciel: cudzy ? (u?.wlasciciel || 'ktoś inny') : null, rola: cudzy ? (u?.rola || 'odczyt') : 'wlasciciel' };
+  });
+}
+
+// Lista projektów z polami wyboru – w nowym kluczu i przy zmianie zakresu klucza.
+function listaWyboru(kontener, zaznaczone) {
+  kontener.replaceChildren(...projekty.map((p) => {
+    const l = document.createElement('label');
+    l.className = 'przelacznik projekt-klucza';
+    const pole = document.createElement('input');
+    pole.type = 'checkbox';
+    pole.value = p.id;
+    pole.checked = zaznaczone.has(p.id);
+    const tekst = document.createElement('span');
+    tekst.textContent = p.nazwa;
+    if (p.wlasciciel) {
+      const ciche = document.createElement('span');
+      ciche.className = 'ciche';
+      ciche.textContent = ` – udostępnił(a): ${p.wlasciciel}${p.rola === 'odczyt' ? ' (tylko oglądasz, więc AI tylko czyta)' : ''}`;
+      tekst.append(ciche);
+    }
+    l.append(pole, tekst);
+    return l;
+  }));
+  if (!projekty.length) {
+    const p = document.createElement('p');
+    p.className = 'podpowiedz';
+    p.textContent = 'Na koncie nie ma jeszcze projektów – wybierz „Pełny dostęp”, żeby AI mogło je tworzyć.';
+    kontener.append(p);
+  }
+}
+const wybrane = (kontener) => [...kontener.querySelectorAll('input[type=checkbox]:checked')].map((x) => x.value);
 
 function instrukcje(klucz) {
   const konfiguracja = {
@@ -31,50 +76,136 @@ function instrukcje(klucz) {
   $('#dostep-ai-claude-code').textContent = `claude mcp add --transport http makietka ${adresLacznika(klucz)}`;
 }
 
+const opisZakresu = (d) => (d.zakres === 'pelny'
+  ? 'pełny dostęp – wszystkie projekty, tworzenie i usuwanie'
+  : (d.projekty?.length ? d.projekty.map((p) => `„${p.nazwa}”`).join(', ') : 'żadnego projektu (dodaj w „Zmień zakres”)'));
+const opisWaznosci = (d) => (d.wazny_do ? `ważny do ${new Date(d.wazny_do).toLocaleDateString('pl-PL')}` : 'bez terminu');
+
+function przyciskiZakresu(nazwa, zakres) {
+  const w = document.createElement('div');
+  w.className = 'zakres-klucza';
+  w.setAttribute('role', 'radiogroup');
+  for (const [wartosc, etykieta] of [['wybrane', 'Wybrane projekty'], ['pelny', 'Pełny dostęp']]) {
+    const l = document.createElement('label');
+    l.className = 'przelacznik';
+    const r = document.createElement('input');
+    r.type = 'radio';
+    r.name = nazwa;
+    r.value = wartosc;
+    r.checked = zakres === wartosc;
+    const s = document.createElement('span');
+    s.textContent = etykieta;
+    l.append(r, s);
+    w.append(l);
+  }
+  return w;
+}
+
+// Zmiana zakresu istniejącego klucza – w miejscu, pod kluczem na liście.
+function edytorZakresu(li, d) {
+  if (li.querySelector('.zmiana-zakresu')) { li.querySelector('.zmiana-zakresu').remove(); return; }
+  const box = document.createElement('div');
+  box.className = 'zmiana-zakresu';
+  const radia = przyciskiZakresu(`zakres-${d.id}`, d.zakres);
+  const lista = document.createElement('div');
+  lista.className = 'lista-projektow-klucza';
+  listaWyboru(lista, new Set((d.projekty || []).map((p) => p.id)));
+  const pokaz = () => { lista.hidden = radia.querySelector('input:checked')?.value === 'pelny'; };
+  radia.addEventListener('change', pokaz);
+  pokaz();
+  const zapisz = document.createElement('button');
+  zapisz.type = 'button';
+  zapisz.className = 'przycisk glowny';
+  zapisz.textContent = 'Zapisz zakres';
+  zapisz.addEventListener('click', async () => {
+    const zakres = radia.querySelector('input:checked')?.value || 'wybrane';
+    try {
+      await chmura.zmienDostepAi(d.id, { zakres, projekty: zakres === 'pelny' ? [] : wybrane(lista) });
+      powiadom('Zakres klucza zmieniony – adres łącznika zostaje ten sam.');
+      odswiezListe();
+    } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
+  });
+  const rzad = document.createElement('div');
+  rzad.className = 'rzad-przyciskow';
+  rzad.append(zapisz);
+  box.append(radia, lista, rzad);
+  li.append(box);
+}
+
 async function odswiezListe() {
   const ul = $('#dostep-ai-lista');
   let lista = [];
   try {
-    lista = await chmura.dostepyAi(stan.projekt.id);
+    lista = await chmura.dostepyAi();
   } catch (e) {
     powiadom(chmura.komunikatBledu(e), true);
   }
   const aktywne = lista.filter((d) => d.aktywny);
   ul.replaceChildren(...aktywne.map((d) => {
     const li = document.createElement('li');
+    li.dataset.id = d.id;
     const opis = document.createElement('div');
     const tytul = document.createElement('strong');
     tytul.textContent = d.opis || 'Klucz bez opisu';
+    const zakres = document.createElement('span');
+    zakres.className = 'zakres-opis';
+    zakres.textContent = opisZakresu(d);
     const szczegoly = document.createElement('span');
     szczegoly.className = 'ciche';
-    szczegoly.textContent = `${ROLE[d.rola] || d.rola} · ważny do ${new Date(d.wazny_do).toLocaleDateString('pl-PL')} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}`;
-    opis.append(tytul, szczegoly);
+    szczegoly.textContent = `${ROLE[d.rola] || d.rola} · ${opisWaznosci(d)} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}`;
+    opis.append(tytul, zakres, szczegoly);
+    const akcje = document.createElement('div');
+    akcje.className = 'klucz-akcje';
+    const zmien = document.createElement('button');
+    zmien.type = 'button';
+    zmien.className = 'przycisk';
+    zmien.textContent = 'Zmień zakres';
+    zmien.addEventListener('click', () => edytorZakresu(li, d));
     const odbierz = document.createElement('button');
     odbierz.type = 'button';
     odbierz.className = 'przycisk niebezpieczny';
     odbierz.textContent = 'Odbierz';
     odbierz.addEventListener('click', async () => {
-      if (!await potwierdz('Odebrać dostęp?', `Klucz „${d.opis || 'bez opisu'}” przestanie działać od razu.`, 'Odbierz', true)) return;
+      if (!await potwierdz('Odebrać klucz?', `Klucz „${d.opis || 'bez opisu'}” przestanie działać od razu – AI straci dostęp do wszystkich projektów tego klucza.`, 'Odbierz', true)) return;
       try {
         await chmura.odwolajDostepAi(d.id);
-        powiadom('Dostęp odebrany.');
+        powiadom('Klucz odebrany.');
       } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
       odswiezListe();
     });
-    li.append(opis, odbierz);
+    akcje.append(zmien, odbierz);
+    li.append(opis, akcje);
     return li;
   }));
   $('#dostep-ai-pusto').hidden = aktywne.length > 0;
+  return aktywne;
 }
 
-export async function otworzDostepAi() {
-  if (!stan.projekt) return;
+function pokazZakresNowego() {
+  const pelny = $('#dostep-ai-nowy input[name="dostep-ai-zakres"]:checked')?.value === 'pelny';
+  $('#dostep-ai-projekty').hidden = pelny;
+}
+
+// Otwiera okno. projektId – projekt zaznaczony na liście nowego klucza (skrót z menu ⋯ projektu).
+export async function otworzDostepAi({ projektId = stan.projekt?.id || null } = {}) {
   if (!stan.uzytkownik) { powiadom('Dostęp dla AI wymaga zalogowania.', true); return; }
   $('#dostep-ai-gotowy').hidden = true;
   $('#dostep-ai-klucz').value = '';
   $('#dostep-ai-adres').value = '';
   $('#dostep-ai-opis').value = '';
+  const zakres = $(`#dostep-ai-nowy input[name="dostep-ai-zakres"][value="wybrane"]`);
+  if (zakres) zakres.checked = true;
   $('#dlg-dostep-ai').showModal();
+  try {
+    // Otwarty projekt musi być na koncie, żeby dało się go wybrać.
+    const modul = edytorGotowy();
+    if (stan.projekt && modul) { await modul.zapiszTeraz(); await modul.synchronizuj(); }
+    await wczytajProjekty();
+  } catch (e) {
+    powiadom(chmura.komunikatBledu(e), true);
+  }
+  listaWyboru($('#dostep-ai-projekty'), new Set(projektId ? [projektId] : []));
+  pokazZakresNowego();
   odswiezListe();
 }
 
@@ -82,13 +213,14 @@ export async function utworzKluczAi() {
   const przycisk = $('[data-akcja="dostep-ai-utworz"]');
   przycisk.disabled = true;
   try {
-    // Klucz prowadzi do projektu na koncie – najpierw zapis, żeby projekt tam był i był aktualny.
-    await zapiszTeraz();
-    await synchronizuj();
-    const wynik = await chmura.utworzDostepAi(stan.projekt.id, {
+    const zakres = $('#dostep-ai-nowy input[name="dostep-ai-zakres"]:checked')?.value || 'wybrane';
+    const dni = $('#dostep-ai-dni').value;
+    const wynik = await chmura.utworzKluczAi({
       opis: $('#dostep-ai-opis').value.trim(),
       rola: $('#dostep-ai-rola').value,
-      dni: Number($('#dostep-ai-dni').value) || 7,
+      dni: dni === 'bez' ? null : Number(dni) || 30,
+      zakres,
+      projekty: zakres === 'pelny' ? [] : wybrane($('#dostep-ai-projekty')),
     });
     $('#dostep-ai-klucz').value = wynik.klucz;
     $('#dostep-ai-adres').value = adresLacznika(wynik.klucz);
@@ -121,4 +253,21 @@ export function zamknijDostepAi() {
   for (const id of ['#dostep-ai-klucz', '#dostep-ai-adres']) $(id).value = '';
   for (const id of ['#dostep-ai-claude-code', '#dostep-ai-claude-desktop']) $(id).textContent = '';
   $('#dlg-dostep-ai').close();
+  document.dispatchEvent(new CustomEvent('makietka:klucze-ai'));
 }
+
+$('#dostep-ai-nowy').addEventListener('change', (e) => { if (e.target.name === 'dostep-ai-zakres') pokazZakresNowego(); });
+
+// Krótkie podsumowanie w ustawieniach konta: ile kluczy działa.
+export async function podsumowanieKluczy() {
+  const el = $('#ust-ai-opis');
+  if (!el) return;
+  try {
+    const aktywne = (await chmura.dostepyAi()).filter((d) => d.aktywny);
+    el.textContent = aktywne.length
+      ? `Aktywne klucze: ${aktywne.length} – ${aktywne.slice(0, 3).map((d) => `„${d.opis || 'bez opisu'}” (${d.zakres === 'pelny' ? 'pełny dostęp' : `projekty: ${d.projekty.length}`})`).join(', ')}${aktywne.length > 3 ? '…' : ''}.`
+      : 'Nie masz jeszcze żadnego klucza.';
+  } catch { el.textContent = ''; }
+}
+
+document.addEventListener('makietka:klucze-ai', () => { podsumowanieKluczy(); });

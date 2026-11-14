@@ -30,8 +30,8 @@ function projekt() {
 async function srodowisko(t) {
   const stan = { projekty: [projekt()], strony: new Map(), wywolania: [] };
   const baza = atrapaAi(stan);
-  const edycja = baza('utworz_dostep_ai', { p_projekt: 'p-1', p_opis: 'Claude', p_rola: 'edycja', p_dni: 7 }, WLASCICIEL).klucz;
-  const odczyt = baza('utworz_dostep_ai', { p_projekt: 'p-1', p_opis: 'Czyta', p_rola: 'odczyt', p_dni: 1 }, WLASCICIEL).klucz;
+  const edycja = baza('utworz_dostep_ai', { p_projekty: ['p-1'], p_opis: 'Claude', p_rola: 'edycja', p_dni: 7 }, WLASCICIEL).klucz;
+  const odczyt = baza('utworz_dostep_ai', { p_projekty: ['p-1'], p_opis: 'Czyta', p_rola: 'odczyt', p_dni: 1 }, WLASCICIEL).klucz;
   const serwer = http.createServer((req, res) => {
     let tresc = '';
     req.on('data', (c) => { tresc += c; });
@@ -92,7 +92,7 @@ test('łącznik MCP przez HTTP: starsza wersja (initialize) i 2026-07-28, lista 
   const nazwy = lista.tresc.result.tools.map((x) => x.name);
   for (const n of ['przeglad_projektu', 'czytaj', 'zmien_elementy', 'zmien_czesc', 'zmien_projekt', 'kontrola', 'opis_formatu']) assert.ok(nazwy.includes(n), n);
   const stara = await s.wyslij({ cialo: { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'przeglad_projektu', arguments: {} } } });
-  assert.match(stara.tresc.result.content[0].text, /Projekt „Kalendarz” – wersja 1/);
+  assert.match(stara.tresc.result.content[0].text, /Projekt „Kalendarz” \(id p-1\) – wersja 1/);
 
   // Wersja 2026-07-28: server/discover, tools/call z nagłówkami; równoległa zmiana → ponowienie.
   const odkrycie = await s.nowe('server/discover');
