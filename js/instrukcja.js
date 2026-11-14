@@ -67,6 +67,7 @@ export const ROZDZIALY = [
       '<b>Urządzenia</b> – <b>Wyloguj</b> wylogowuje tylko to urządzenie, <b>Wyloguj wszędzie</b> – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).',
       '<b>Miejsce</b> – ile zajmują Twoje pliki na koncie (obrazy, czcionki, podglądy linków) i ile wspólnego miejsca na pliki zostało całej aplikacji. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. <b>Posprzątaj…</b> pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.',
       '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
+      '<b>Kontakt</b> – w menu konta (i w stopce ekranu logowania) jest formularz kontaktowy: pytanie, pomysł albo błąd trafia do nas, a na podany adres przychodzi potwierdzenie. Możesz też pisać wprost na kontakt@makietka.app.',
     ],
   },
   {

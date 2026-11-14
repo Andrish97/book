@@ -82,6 +82,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz �
 - **Urządzenia** – **Wyloguj** wylogowuje tylko to urządzenie, **Wyloguj wszędzie** – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).
 - **Miejsce** – ile zajmują Twoje pliki na koncie (obrazy, czcionki, podglądy linków) i ile wspólnego miejsca na pliki zostało całej aplikacji. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. **Posprzątaj…** pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.
 - **Usuwanie konta** – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.
+- **Kontakt** – w menu konta (i w stopce ekranu logowania) jest formularz kontaktowy: pytanie, pomysł albo błąd trafia do nas, a na podany adres przychodzi potwierdzenie. Możesz też pisać wprost na kontakt@makietka.app.
 
 ## 4. Jasny i ciemny motyw
 
