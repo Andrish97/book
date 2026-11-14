@@ -62,12 +62,16 @@ export function wlaczPamiecWarstw(c, dynamiczne) {
     const nad = objects.slice(doo + 1);
     const stale = [...pod, ...nad];
     const podpisy = stale.map(podpis);
+    // „dirty” nie liczy się tylko u elementu poza widokiem, który był taki już przy zapamiętaniu: Fabric go nie
+    // rysuje i nie zdejmuje mu znacznika – a na obrazie i tak go nie ma.
     const wazna = pamiec && pamiec.klucz === klucz
       && pamiec.stale.length === stale.length
-      && stale.every((o, i) => o === pamiec.stale[i] && !o.dirty && podpisy[i] === pamiec.podpisy[i]);
+      && stale.every((o, i) => o === pamiec.stale[i] && (!o.dirty || (pamiec.brudne[i] && !o.isOnScreen())) && podpisy[i] === pamiec.podpisy[i]);
     if (!wazna) {
       zwolnij();
-      pamiec = { klucz, stale, podpisy, pod: narysuj(pod, szer, wys, r, v), nad: narysuj(nad, szer, wys, r, v) };
+      const obrazPod = narysuj(pod, szer, wys, r, v);
+      const obrazNad = narysuj(nad, szer, wys, r, v);
+      pamiec = { klucz, stale, podpisy, brudne: stale.map((o) => Boolean(o.dirty)), pod: obrazPod, nad: obrazNad };
     }
     const rysujObraz = (obraz) => {
       if (!obraz) return;
