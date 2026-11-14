@@ -266,6 +266,15 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .kartka.k2 span:first-child { background: #c2410c; }
 .kartka.k3 { left: 232px; transform: rotate(7deg); }
 .kartka.k3 span:first-child { background: #18794e; }
+/* Jasny motyw (#109): lewa połowa jasna, ciepły papier, i miękkie przejście w tło formularza zamiast ostrej krawędzi. */
+:root:not([data-motyw="ciemny"]) .logowanie-bok {
+  background:
+    radial-gradient(120% 90% at 0% 0%, #fffdf8 0%, transparent 60%),
+    linear-gradient(90deg, #e9e5da 0%, #efebe2 62%, var(--papier) 100%);
+  color: var(--tusz);
+}
+:root:not([data-motyw="ciemny"]) .logowanie-bok p { color: var(--tusz-2); }
+:root:not([data-motyw="ciemny"]) .logowanie-bok .kartka { box-shadow: 0 14px 34px rgba(60, 50, 30, .18), 0 1px 3px rgba(60, 50, 30, .12); }
 
 .logowanie-forma {
   position: relative; overflow: auto;

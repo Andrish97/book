@@ -371,12 +371,14 @@ export function zaplanujChmure(opoznienie = OPOZNIENIE_KONTA) {
 let kolejkaKonta = Promise.resolve();
 let czekaWysylka = false;
 
-export function synchronizuj({ wymus = false } = {}) {
-  if (czekaWysylka && !wymus) return kolejkaKonta;
-  if (!wymus) czekaWysylka = true;
+// `projekt`: wysyłka konkretnego projektu także po zamknięciu edytora (wyjście do listy projektów, #109) –
+// zwykła wysyłka bierze projekt otwarty w chwili, gdy przyjdzie jej kolej.
+export function synchronizuj({ wymus = false, projekt = null } = {}) {
+  if (czekaWysylka && !wymus && !projekt) return kolejkaKonta;
+  if (!wymus && !projekt) czekaWysylka = true;
   kolejkaKonta = kolejkaKonta.then(() => {
-    if (!wymus) czekaWysylka = false;
-    return wyslijNaKonto({ wymus });
+    if (!wymus && !projekt) czekaWysylka = false;
+    return wyslijNaKonto({ wymus, projekt });
   });
   return kolejkaKonta;
 }
@@ -384,11 +386,12 @@ export function synchronizuj({ wymus = false } = {}) {
 // Wysyłka pominięta, bo akurat trwało dołączanie zmian z konta – po nim trzeba ją nadrobić.
 let pominietaWysylka = false;
 
-async function wyslijNaKonto({ wymus = false } = {}) {
-  const p = stan.projekt;
+async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
+  const p = projekt || stan.projekt;
   if (!stan.uzytkownik || !p) return;
+  const otwarty = stan.projekt === p;
   if (!navigator.onLine) {
-    stanZapisu('offline', 'Offline – zapisano na urządzeniu');
+    if (otwarty) stanZapisu('offline', 'Offline – zapisano na urządzeniu');
     return;
   }
   if (stan.konflikt === p.id && !wymus) { pominietaWysylka = true; return; } // trwa łączenie albo czekamy na decyzję użytkownika
@@ -408,6 +411,8 @@ async function wyslijNaKonto({ wymus = false } = {}) {
     if (stan.projekt === p) zaplanujAktualizacjeLinku(); // udostępniony link idzie za zapisanymi zmianami
     document.dispatchEvent(new CustomEvent('seriodruk:zapisano-na-koncie')); // obecność rusza po pierwszym zapisie
   } catch (e) {
+    // Zamknięty już projekt z konfliktem zostaje z niewysłanymi zmianami – połączy się przy otwarciu.
+    if (!otwarty && stan.projekt !== p) return;
     if (e.konflikt) { polaczZKontem(p, { konflikt: e }); return; }
     // Właściciel odebrał dostęp albo zmienił rolę na „może oglądać” (współpraca).
     if (e.code === '42501' && p.wspolpraca_chmury) {

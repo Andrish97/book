@@ -73,7 +73,7 @@ export class PanelWarstw {
       if (!uchwyt || (e.pointerType === 'mouse' && e.button !== 0)) return;
       const li = uchwyt.closest('li[data-id]');
       e.preventDefault();
-      uchwyt.setPointerCapture?.(e.pointerId);
+      try { uchwyt.setPointerCapture?.(e.pointerId); } catch { /* wskaźnik już puszczony */ }
       this.ciagniety = li.dataset.id;
       li.classList.add('ciagnieta');
       this.lista.classList.add('przeciaganie');

@@ -150,6 +150,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
       const [nazwaIkony, opis] = !niewyslany ? ['chmura_ok', 'Zapisano na koncie']
         : (navigator.onLine ? ['chmura_czeka', 'Czeka na wysłanie na konto'] : ['chmura_brak', 'Offline – zapisano na tym urządzeniu, wyślę po powrocie internetu']);
       const stanWysylki = document.createElement('span');
+      stanWysylki.dataset.projekt = w.id;
       stanWysylki.className = `stan-wysylki ${nazwaIkony}`;
       stanWysylki.title = opis;
       stanWysylki.setAttribute('aria-label', opis);
@@ -389,7 +390,13 @@ export async function projektUsunietyNaKoncie(id) {
 }
 
 export async function doProjektow() {
-  if (stan.projekt) await zapiszTeraz();
+  if (stan.projekt) {
+    await zapiszTeraz();
+    // Ostatnie zmiany idą na konto w tle także po wyjściu z edytora – inaczej czekałyby do ponownego otwarcia
+    // projektu, a karta pokazywałaby „czeka na wysłanie”.
+    const modul = edytorGotowy();
+    if (stan.uzytkownik && modul) { clearTimeout(stan.timerChmury); modul.synchronizuj({ projekt: stan.projekt }); }
+  }
   stan.projekt = null;
   document.dispatchEvent(new CustomEvent('seriodruk:projekt', { detail: null })); // obecność, tryb współpracy
   document.title = NAZWA;
@@ -464,3 +471,26 @@ export const plikiDoOtwarcia = [];
 export async function otworzOczekujacePliki() {
   while (plikiDoOtwarcia.length) await wczytajPlikProjektu(plikiDoOtwarcia.shift());
 }
+
+// Chmurki na kartach idą za stanem wysyłki (#109): po zapisie na koncie (np. tuż po wyjściu z edytora,
+// gdy lista pokazała się, zanim wysyłka skończyła) i po zmianie połączenia.
+const STANY_WYSYLKI = {
+  chmura_ok: 'Zapisano na koncie',
+  chmura_czeka: 'Czeka na wysłanie na konto',
+  chmura_brak: 'Offline – zapisano na tym urządzeniu, wyślę po powrocie internetu',
+};
+async function odswiezStanyWysylki() {
+  for (const el of document.querySelectorAll('#siatka-projektow .stan-wysylki[data-projekt]')) {
+    if (el.classList.contains('chmura_ok')) continue;
+    const rekord = await wczytajLokalnie(el.dataset.projekt).catch(() => null);
+    const nazwa = !rekord?.doSynchronizacji ? 'chmura_ok' : (navigator.onLine ? 'chmura_czeka' : 'chmura_brak');
+    if (el.classList.contains(nazwa)) continue;
+    el.className = `stan-wysylki ${nazwa}`;
+    el.title = STANY_WYSYLKI[nazwa];
+    el.setAttribute('aria-label', STANY_WYSYLKI[nazwa]);
+    el.innerHTML = ikona(nazwa, { rozmiar: 15 });
+  }
+}
+document.addEventListener('seriodruk:zapisano-na-koncie', () => { odswiezStanyWysylki(); });
+window.addEventListener('online', () => { odswiezStanyWysylki(); });
+window.addEventListener('offline', () => { odswiezStanyWysylki(); });
