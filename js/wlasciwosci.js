@@ -5,6 +5,8 @@ import { STREFY, strefaW } from './okladka.js';
 import { toZaznaczenie } from './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
+import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js';
+import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
 import { ikona } from './ikony.js';
@@ -40,6 +42,8 @@ export class PanelWlasciwosci {
     edytor.addEventListener?.('komorka-tabeli', (e) => { if (this.obj && this.obj === e.detail) this.zbuduj(); });
     // Włączenie i wyłączenie narzędzia rysowania albo pióra zmienia panel na ustawienia narzędzia i z powrotem.
     for (const z of ['rysowanie', 'pioro']) edytor.addEventListener?.(z, () => this.zbuduj());
+    // Obraz wstawiony do kształtu albo z niego usunięty zmienia części panelu tego samego elementu (#123).
+    edytor.addEventListener?.('obraz-ksztaltu', () => this.zbuduj());
   }
 
   pokaz(obj) {
@@ -155,7 +159,9 @@ export class PanelWlasciwosci {
     if (obj.kadr) {
       this.tytul.textContent = 'Kadrowanie';
       const s = this.sekcja('Kadr');
-      s.append(this.wskazowka('Przesuń i rozciągnij ramkę – zostanie tylko jasna część obrazu. Enter zatwierdza, Esc anuluje.'));
+      s.append(this.wskazowka(this.edytor._kadr?.ksztalt
+        ? 'Przesuń obraz i powiększ go narożnikami – w kształcie zostaje to, co leży pod nim. Enter zatwierdza, Esc anuluje.'
+        : 'Przesuń i rozciągnij ramkę – zostanie tylko jasna część obrazu. Enter zatwierdza, Esc anuluje.'));
       s.append(this.akcje([['ok', 'Zastosuj', () => this.edytor.zakonczKadrowanie(true)], ['zamknij', 'Anuluj', () => this.edytor.zakonczKadrowanie(false)]]));
       return;
     }
@@ -210,6 +216,7 @@ export class PanelWlasciwosci {
     this.zbudujGeometrie(obj);
     if (KSZTALTY.has(obj.type)) this.zbudujWypelnienie(obj);
     if (obj.type === 'line' || obj.type === 'path') this.zbudujLinie(obj);
+    if (moznaWstawicObraz(obj)) this.zbudujObrazWKsztalcie(obj);
     if (obj.type === 'image') this.zbudujObraz(obj);
 
     this.zbudujWyrownanie(1);
@@ -636,6 +643,14 @@ export class PanelWlasciwosci {
     s.append(this.liczba('Interlinia', () => zaokr(obj.lineHeight, 2), (v) => obj.set('lineHeight', Math.max(0.5, v)), { krok: 0.05, min: 0.5 }));
     // Odstęp między literami w tysięcznych wysokości pisma (jak w programach DTP).
     s.append(this.liczba('Odstęp liter', () => Math.round(obj.charSpacing || 0), (v) => obj.set('charSpacing', Math.max(-200, Math.min(2000, v))), { jednostka: '‰', krok: 10 }));
+    // Obrys liter (#123): kontur wokół liter, rysowany pod wypełnieniem – litery nie chudną.
+    if (!komorka) {
+      s.append(this.kolor('Obrys liter', () => (obj.strokeWidth > 0 ? obj.stroke : ''), (v) => {
+        obj.set(v ? { stroke: v, strokeWidth: obj.strokeWidth > 0 ? obj.strokeWidth : 0.3, paintFirst: 'stroke', strokeUniform: true } : { stroke: null, strokeWidth: 0, paintFirst: 'fill' });
+        setTimeout(() => this.zbuduj());
+      }, { brak: true }));
+      if (obj.strokeWidth > 0) s.append(this.liczba('Grubość obrysu liter', () => zaokr(obj.strokeWidth, 2), (v) => obj.set({ strokeWidth: Math.max(0.05, Math.min(5, v)) }), { jednostka: 'mm', krok: 0.1, min: 0.05 }));
+    }
 
     const przelacz = (k, wl, wyl) => () => ustaw({ [k]: czytaj(k) === wl ? wyl : wl });
     const styl = this.segmenty('Wygląd liter', [
@@ -969,7 +984,11 @@ export class PanelWlasciwosci {
     if (gradient()) {
       // Kolory przejścia: każdy ma położenie w procentach; dwa skrajne zostają zawsze.
       przystanki().forEach((p, i, wszystkie) => {
-        s.append(this.kolor(`Kolor ${i + 1}`, () => przystanki()[i]?.color, (v) => { const k = przystanki(); k[i].color = v; ustawGradient({ kolory: k }); }));
+        // Kolor punktu z kryciem (#123): kolor wybiera się bez przezroczystości, krycie osobną liczbą.
+        const zKryciem = (kolor, krycie) => { const [r, g, b] = new fabric.Color(kolor).getSource(); return krycie >= 1 ? `#${new fabric.Color(kolor).toHex()}` : `rgba(${r},${g},${b},${Math.round(krycie * 100) / 100})`; };
+        const krycieP = () => new fabric.Color(przystanki()[i]?.color || '#000').getAlpha();
+        s.append(this.kolor(`Kolor ${i + 1}`, () => `#${new fabric.Color(przystanki()[i]?.color || '#000').toHex()}`, (v) => { const k = przystanki(); k[i].color = zKryciem(v, krycieP()); ustawGradient({ kolory: k }); }));
+        s.append(this.liczba('Krycie', () => Math.round(krycieP() * 100), (v) => { const k = przystanki(); k[i].color = zKryciem(k[i].color, Math.min(100, Math.max(0, v)) / 100); ustawGradient({ kolory: k }); }, { jednostka: '%', krok: 10, min: 0 }));
         const polozenie = this.liczba('Położenie', () => Math.round((przystanki()[i]?.offset ?? 0) * 100), (v) => { const k = przystanki(); k[i].offset = Math.min(100, Math.max(0, v)) / 100; ustawGradient({ kolory: k }); this.zbuduj(); }, { jednostka: '%', krok: 5, min: 0 });
         if (wszystkie.length > 2) {
           const usun = document.createElement('button');
@@ -1014,6 +1033,71 @@ export class PanelWlasciwosci {
     if (obj.type === 'rect') {
       s.append(this.liczba('Zaokrąglenie', () => zaokr(obj.rx || 0, 1), (v) => obj.set({ rx: Math.max(0, v), ry: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
     }
+  }
+
+  // Filtry obrazu (#123): bez zmiany pliku – jasność, kontrast, nasycenie, szarość, sepia, rozmycie.
+  zbudujFiltry(obj) {
+    const s = this.sekcja('Filtry', { zwinieta: !maFiltry(obj.filtry) });
+    const f = () => ({ ...BEZ_FILTROW, ...(obj.filtry || {}) });
+    const ustaw = (zmiana) => {
+      const nowe = { ...f(), ...zmiana };
+      obj.set('filtry', maFiltry(nowe) ? Object.fromEntries(Object.entries(nowe).filter(([, v]) => v)) : undefined);
+      obj.dirty = true;
+    };
+    const suwak = (etyk, k, min, max) => this.liczba(etyk, () => f()[k], (v) => ustaw({ [k]: Math.max(min, Math.min(max, Math.round(v))) }), { krok: 5, min });
+    s.append(suwak('Jasność', 'jasnosc', -100, 100), suwak('Kontrast', 'kontrast', -100, 100), suwak('Nasycenie', 'nasycenie', -100, 100), suwak('Rozmycie', 'rozmycie', 0, 100));
+    s.append(this.przelacznik('Odcień szarości', () => f().szarosc, (v) => ustaw({ szarosc: v })));
+    s.append(this.przelacznik('Sepia', () => f().sepia, (v) => ustaw({ sepia: v })));
+    if (maFiltry(obj.filtry)) s.append(this.akcje([['gumka', 'Bez filtrów', () => { obj.set('filtry', undefined); obj.dirty = true; this.edytor.zatwierdz(); this.zbuduj(); }]]));
+    s.append(this.wskazowka('Plik obrazu się nie zmienia – filtry możesz zdjąć w każdej chwili. Wartości od −100 do 100.'));
+  }
+
+  // Kształt jako ramka obrazu (#123): obraz przycięty do kształtu i wypełniający go.
+  zbudujObrazWKsztalcie(obj) {
+    const s = this.sekcja('Obraz w kształcie');
+    const e = this.edytor;
+    if (!maObraz(obj)) {
+      if (this.opcje.wstawObrazDoKsztaltu) s.append(this.akcje([['obraz', 'Wstaw obraz do kształtu', () => this.opcje.wstawObrazDoKsztaltu(obj)]]));
+      s.append(this.wskazowka('Kształt stanie się ramką: obraz wypełni go i zostanie przycięty do jego brzegów. Możesz też upuścić plik obrazu na kształt.'));
+    } else {
+      const akcje = [];
+      if (this.opcje.wstawObrazDoKsztaltu) akcje.push(['obraz', 'Zmień obraz', () => this.opcje.wstawObrazDoKsztaltu(obj)]);
+      akcje.push(['dopasuj', 'Kadruj', () => { if (!e.kadrujWKsztalcie(obj)) powiadom('Zablokowany kształt kadrujesz liczbami poniżej.'); }]);
+      s.append(this.akcje(akcje));
+      const akcje2 = [];
+      if (this.opcje.wyjmijObrazZKsztaltu) akcje2.push(['rozgrupuj', 'Wyjmij obraz', () => this.opcje.wyjmijObrazZKsztaltu(obj)]);
+      akcje2.push(['kosz', 'Usuń obraz', () => e.usunObrazZKsztaltu(obj)]);
+      s.append(this.akcje(akcje2));
+      s.append(this.wskazowka('Kliknij kształt dwa razy, żeby przesunąć i powiększyć obraz w środku. Kształt zmieniasz jak zwykle – obraz idzie za nim.'));
+      const kadr = () => obj.obraz_kadr || {};
+      s.append(this.liczba('Powiększenie', () => Math.round((kadr().skala || 1) * 100), (v) => e.ustawKadrWKsztalcie(obj, { skala: Math.max(100, v) / 100 }), { jednostka: '%', krok: 10, min: 100 }));
+      s.append(this.liczba('Przesunięcie w poziomie', () => Math.round((kadr().x || 0) * 100), (v) => e.ustawKadrWKsztalcie(obj, { x: v / 100 }), { jednostka: '%', krok: 5 }));
+      s.append(this.liczba('Przesunięcie w pionie', () => Math.round((kadr().y || 0) * 100), (v) => e.ustawKadrWKsztalcie(obj, { y: v / 100 }), { jednostka: '%', krok: 5 }));
+      if (this.opcje.usunTlo) s.append(this.akcje([['gumka', 'Usuń tło…', () => this.opcje.usunTlo(obj)]]));
+      const info = this.wskazowka('');
+      this.odswiezacze.push(() => {
+        if (!obj._obrazEl) { info.textContent = ''; return; }
+        const u = ukladObrazu(obj, obj._obrazEl);
+        const dpi = Math.round(25.4 / u.k);
+        info.textContent = `Oryginał ${u.nw} × ${u.nh} px · ${dpi} dpi w tym rozmiarze.${dpi < 300 ? ' Do druku zalecane jest 300 dpi.' : ''}`;
+        info.classList.toggle('uwaga', dpi < 300);
+      });
+      s.append(info);
+      this.odswiezacze.at(-1)();
+    }
+    // Obraz z danych: kolumna z nazwą pliku – na każdej powielonej stronie inny obraz w tym kształcie.
+    const kolumny = this.opcje.kolumnyObrazu?.() || [];
+    if (kolumny.length) {
+      const wybor = this.wybor('Obraz z kolumny', [['', 'stały obraz'], ...kolumny.map((k) => [k, k])], () => obj.pole?.kolumna || '', (v) => { obj.pole = v ? { ...obj.pole, kolumna: v } : undefined; this.zbuduj(); });
+      wybor.classList.add('szeroki');
+      s.append(wybor);
+      if (obj.pole?.kolumna) {
+        const czesc = this.wybor('Zostaje część zdjęcia', [['', 'środek'], ['gora', 'góra'], ['dol', 'dół'], ['lewa', 'lewa strona'], ['prawa', 'prawa strona']], () => obj.pole?.kadr || '', (v) => { obj.pole = { ...obj.pole, kadr: v || undefined }; });
+        czesc.classList.add('szeroki');
+        s.append(czesc);
+      }
+    }
+    if (maObraz(obj)) this.zbudujFiltry(obj);
   }
 
   // Cień: przesunięcie i rozmycie w mm, kolor z przezroczystością.
@@ -1062,6 +1146,15 @@ export class PanelWlasciwosci {
   zbudujObraz(obj) {
     const { nw, nh } = rozmiarOryginalu(obj);
     const kadr = this.sekcja('Kadrowanie');
+    // Zdjęcie w kształcie (#123): zaokrąglone rogi albo koło – obraz staje się kształtem z obrazem.
+    if (!obj.group) {
+      const ksztalty = this.akcje([
+        ['prostokat', 'Zaokrąglone rogi', () => this.edytor.obrazWKsztalt(obj, 'prostokat')],
+        ['elipsa', 'Koło', () => this.edytor.obrazWKsztalt(obj, 'kolo')],
+      ]);
+      kadr.append(ksztalty);
+    }
+    if (this.opcje.usunTlo) kadr.append(this.akcje([['gumka', 'Usuń tło…', () => this.opcje.usunTlo(obj)]]));
     const kadrRamka = this.akcje([['dopasuj', 'Kadruj przeciąganiem', () => { if (!this.edytor.kadruj(obj)) powiadom('Zablokowany obraz przytnij liczbami poniżej.'); }]]);
     kadrRamka.classList.add('tylko-duzy-ekran');
     kadr.append(kadrRamka);
@@ -1135,6 +1228,7 @@ export class PanelWlasciwosci {
       ? 'Na każdej powielonej stronie pojawi się obraz o nazwie wpisanej w tej kolumnie (np. zdjecie-01.jpg), wpisany w ramkę tego obrazu. Pliki wgraj w oknie „Obrazy projektu” (przycisk u góry panelu) – tam też skopiujesz ich nazwy do tabeli.'
       : 'Gdy strona należy do serii z tabelą, ten obraz może się zmieniać na każdej powielonej stronie – według nazwy pliku z wybranej kolumny.'));
 
+    this.zbudujFiltry(obj);
     const o = this.sekcja('Obrys i odbicie');
     o.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
     o.append(this.liczba('Grubość obrysu', () => zaokr(obj.strokeWidth || 0, 2), (v) => obj.set({ strokeWidth: Math.max(0, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0 }));

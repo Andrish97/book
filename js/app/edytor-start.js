@@ -144,6 +144,19 @@ async function podmienObraz(obj, plik) {
   }
 }
 
+// Kształt jako ramka obrazu (#123): plik z urządzenia trafia do obrazów projektu i do kształtu.
+async function obrazDoKsztaltu(obj, plik) {
+  if (!plik.type.startsWith('image/')) { powiadom('To nie jest plik obrazu.', true); return; }
+  try {
+    const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
+    const { id } = await przyjmijPlik(stan.projekt, gotowy, plik.name);
+    await edytor.wstawObrazDoKsztaltu(obj, id);
+    panel.zbuduj();
+  } catch (blad) {
+    powiadom(blad.message || 'Nie udało się wstawić obrazu.', true);
+  }
+}
+
 // Wstawienie albo podmiana obrazem, który już jest w projekcie (wybór w oknie „Obrazy projektu”).
 async function wstawZProjektu(id) {
   const z = stan.projekt.zasoby[id];
@@ -349,8 +362,11 @@ $('#plik-obraz').addEventListener('change', async (e) => {
 $('#plik-podmiana').addEventListener('change', async (e) => {
   const plik = e.target.files[0];
   const obj = podmiana.obj;
+  const doKsztaltu = podmiana.doKsztaltu;
   podmiana.obj = null;
-  if (plik && obj) await podmienObraz(obj, plik);
+  podmiana.doKsztaltu = false;
+  if (plik && obj && doKsztaltu) await obrazDoKsztaltu(obj, plik);
+  else if (plik && obj) await podmienObraz(obj, plik);
   e.target.value = '';
 });
 
@@ -358,7 +374,11 @@ const kontener = $('#kontener-plotna');
 kontener.addEventListener('dragover', (e) => e.preventDefault());
 kontener.addEventListener('drop', (e) => {
   e.preventDefault();
-  for (const plik of e.dataTransfer.files) {
+  // Plik upuszczony na kształt trafia do kształtu (kształt jako ramka obrazu, #123).
+  const cel = edytor.elementWPunkcie(e);
+  const pliki = [...e.dataTransfer.files];
+  if (cel && edytor.moznaWstawicObraz(cel) && pliki.length === 1 && pliki[0].type.startsWith('image/')) { obrazDoKsztaltu(cel, pliki[0]); return; }
+  for (const plik of pliki) {
     if (plik.type.startsWith('image/')) wstawObraz(plik);
     else if (/\.(seriodruk|json)$/i.test(plik.name)) wczytajPlikProjektu(plik);
   }

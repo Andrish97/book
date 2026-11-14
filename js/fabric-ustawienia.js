@@ -20,6 +20,8 @@ export const WLASNE_POLA = [
   'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana
   'tabela', // tabela jako jeden element: { kolumny, wiersze, naglowek, linia } (tabela-obiekt.js)
   'okladka', 'okladka_dopasuj', // okładka (#119): przypięcie do tyłu, grzbietu albo przodu; dopasowanie do grzbietu
+  'obraz_kadr', // kształt jako ramka obrazu: { x, y, skala } (obraz-w-ksztalcie.js, #123)
+  'filtry', // filtry obrazu bez zmiany pliku: { jasnosc, kontrast, nasycenie, szarosc, sepia, rozmycie } (#123)
 ];
 
 if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
@@ -43,6 +45,12 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
 
   // Własne pola trafiają do każdego zapisu obiektu (toObject, clone, zapis płótna).
   fabric.FabricObject.customProperties = WLASNE_POLA;
+  // Zmiana tych pól zmienia wygląd – element musi się przerysować (pamięć podręczna Fabric).
+  // Każda klasa Fabric ma własną listę – dopisujemy do każdej, która może mieć obraz.
+  for (const klasa of ['FabricObject', 'Rect', 'Ellipse', 'Circle', 'Polygon', 'Polyline', 'Triangle', 'Path', 'FabricImage']) {
+    const lista = fabric[klasa]?.cacheProperties;
+    if (Array.isArray(lista)) for (const k of ['filtry', 'obraz_kadr', 'zasob']) if (!lista.includes(k)) lista.push(k);
+  }
 
   // W zapisie typ obiektu zostaje taki jak dotąd (małe litery: 'textbox', 'image', 'rect'…).
   // Fabric 7 wczytuje obie pisownie, a reszta aplikacji i zapisane projekty znają tę jedną.

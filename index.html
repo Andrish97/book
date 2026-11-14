@@ -1410,6 +1410,36 @@
   </dialog>
   <input type="file" id="plik-podmiana-okno" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
 
+  <!-- Usuwanie tła bez AI (#123): różdżka po kolorze, pędzel, wygładzenie krawędzi; wynik jako nowy obraz -->
+  <dialog id="dlg-usun-tlo" class="dialog-szeroki dialog-usun-tlo" aria-labelledby="usun-tlo-tytul">
+    <form method="dialog" class="formularz">
+      <div class="naglowek-dialogu">
+        <h2 id="usun-tlo-tytul">Usuń tło</h2>
+        <button class="przycisk-ikona x-okna" value="anuluj" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <div class="usun-tlo-narzedzia" role="group" aria-label="Narzędzie">
+        <div class="segmenty" id="usun-tlo-tryb">
+          <button type="button" data-tryb="rozdzka" aria-pressed="true" data-ikona="gumka" title="Kliknij w tło – zniknie kolor podobny do klikniętego">Różdżka</button>
+          <button type="button" data-tryb="usun" aria-pressed="false" data-ikona="rysuj" title="Pędzel: usuwa tam, gdzie przeciągniesz">Usuń</button>
+          <button type="button" data-tryb="przywroc" aria-pressed="false" data-ikona="cofnij" title="Pędzel: przywraca to, co zniknęło za dużo">Przywróć</button>
+        </div>
+        <label class="suwak-tla"><span>Tolerancja</span><span class="jednostka"><input type="number" id="usun-tlo-tolerancja" min="0" max="100" step="5" value="30" inputmode="numeric"><span>%</span></span></label>
+        <label class="suwak-tla" id="usun-tlo-pedzel-pole" hidden><span>Pędzel</span><span class="jednostka"><input type="number" id="usun-tlo-pedzel" min="2" max="200" step="5" value="30" inputmode="numeric"><span>px</span></span></label>
+        <label class="przelacznik"><input type="checkbox" id="usun-tlo-ciagle" checked><span>Tylko połączone z klikniętym miejscem</span></label>
+        <label class="suwak-tla"><span>Wygładzenie krawędzi</span><span class="jednostka"><input type="number" id="usun-tlo-wygladzenie" min="0" max="8" step="1" value="1" inputmode="numeric"><span>px</span></span></label>
+      </div>
+      <div class="usun-tlo-pole" id="usun-tlo-pole"><canvas id="usun-tlo-plotno" aria-label="Obraz – kliknij w tło"></canvas></div>
+      <p class="ciche" id="usun-tlo-stan" role="status"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" id="usun-tlo-cofnij" data-ikona="cofnij">Cofnij</button>
+        <button type="button" class="przycisk" id="usun-tlo-odnowa">Od nowa</button>
+        <span class="odstep"></span>
+        <button class="przycisk" value="anuluj">Anuluj</button>
+        <button type="button" class="przycisk glowny" id="usun-tlo-zapisz">Zapisz jako nowy obraz</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="dlg-zrodlo-obrazu">
     <form method="dialog" class="formularz">
       <h2 id="zrodlo-obrazu-tytul">Wstaw obraz</h2>

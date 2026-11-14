@@ -2792,3 +2792,26 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .zgiecia-okladki i.poziom { left: 0; right: 0; border-top-width: 1px; }
 #pole-ok-twarda, #pole-ok-gramatura { align-items: flex-end; flex-wrap: wrap; }
 #pole-ok-twarda .pole { flex: 1 1 110px; }
+/* ---------- Usuwanie tła (#123) ---------- */
+.dialog-usun-tlo { width: min(980px, calc(100vw - 32px)); }
+.usun-tlo-narzedzia { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.usun-tlo-narzedzia .segmenty { display: flex; padding: 3px; gap: 2px; background: var(--wypelnienie); border-radius: var(--r-s); }
+.usun-tlo-narzedzia .segmenty button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: calc(var(--r-s) - 2px); background: none; color: var(--tusz-2); font: inherit; font-size: 13px; cursor: pointer; }
+.usun-tlo-narzedzia .segmenty button[aria-pressed="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); font-weight: 600; }
+.suwak-tla { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--tusz-2); }
+.suwak-tla .jednostka { position: relative; display: inline-flex; align-items: center; }
+.suwak-tla input { width: 84px; height: 34px; padding: 0 30px 0 10px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz); font: inherit; text-align: right; }
+.suwak-tla .jednostka > span { position: absolute; right: 9px; font-size: 12px; color: var(--cichy); pointer-events: none; }
+.usun-tlo-pole {
+  position: relative; display: grid; place-items: center; min-height: 240px; max-height: 60vh; overflow: hidden;
+  border: 1px solid var(--linia); border-radius: var(--r-m);
+  background-color: #ffffff; background-image: linear-gradient(45deg, #d9d9d9 25%, transparent 25%), linear-gradient(-45deg, #d9d9d9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d9d9d9 75%), linear-gradient(-45deg, transparent 75%, #d9d9d9 75%);
+  background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+.usun-tlo-pole canvas { display: block; max-width: 100%; max-height: 60vh; touch-action: none; cursor: crosshair; }
+:root[data-dotyk] .usun-tlo-narzedzia .segmenty button { min-height: 42px; }
+@media (max-width: 640px) {
+  .suwak-tla { width: 100%; justify-content: space-between; }
+  .usun-tlo-pole { max-height: 48vh; }
+  .usun-tlo-pole canvas { max-height: 48vh; }
+}

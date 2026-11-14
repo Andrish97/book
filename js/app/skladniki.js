@@ -25,7 +25,7 @@ import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
 
 export { instrukcja } from './instrukcja-leniwa.js';
 // Obraz, który dostanie plik wybrany przyciskiem „Podmień zdjęcie”.
-export const podmiana = { obj: null };
+export const podmiana = { obj: null, doKsztaltu: false };
 export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
   tytulPusty: () => (stan.tryb === 'wzorzec' ? 'Wzorzec' : 'Strona'),
   budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),
@@ -53,6 +53,17 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
       wybierz: { etykieta: 'Podmień', fn: async (id) => (await import('./edytor-start.js')).podmienZProjektu(obj, id) },
     }),
   }),
+  // Kształt jako ramka obrazu (#123): obraz z urządzenia albo z obrazów projektu trafia do kształtu.
+  wstawObrazDoKsztaltu: (obj) => wybierzZrodloObrazu({
+    tytul: 'Obraz w kształcie',
+    pomin: obj.zasob,
+    zUrzadzenia: () => { podmiana.obj = obj; podmiana.doKsztaltu = true; $('#plik-podmiana').click(); },
+    zProjektu: async () => (await import('./obrazy-okno.js')).otworzObrazy({
+      wybierz: { etykieta: 'Wstaw', fn: (id) => edytor.wstawObrazDoKsztaltu(obj, id) },
+    }),
+  }),
+  wyjmijObrazZKsztaltu: (obj) => edytor.wyjmijObrazZKsztaltu(obj),
+  usunTlo: async (obj) => (await import('./usun-tlo.js')).otworzUsuwanieTla(obj),
   // Rysunek SVG zamieniany w grupę zwykłych kształtów i napisów.
   toRysunekSvg: (obj) => toRysunekSvg(stan.projekt, obj),
   rozlozRysunek: (obj) => rozlozRysunekNaStronie(obj),

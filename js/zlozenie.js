@@ -18,6 +18,7 @@ import { rozlejWatki } from './watki.js';
 import { zapewnijCzcionki } from './czcionki.js';
 import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
+import { przygotujObrazyKsztaltow, moznaWstawicObraz } from './obraz-w-ksztalcie.js';
 import './tekst-ramka.js'; // ramka o stałej wysokości i autodopasowanie – także przy składaniu
 
 const ZASTEPCZY_OBRAZ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -33,6 +34,9 @@ export function podmienZasoby(obiekty, mapa) {
     const kopia = { ...o };
     if (kopia.type === 'image' && kopia.zasob) {
       kopia.src = mapa ? mapa(kopia.zasob) : `zasob:${kopia.zasob}`;
+    } else if (kopia.zasob) {
+      // Kształt z obrazem (#123): adres obrazu tylko na czas wczytania – nie trafia do zapisu.
+      if (mapa) kopia._src_obrazu = mapa(kopia.zasob); else delete kopia._src_obrazu;
     }
     if (Array.isArray(kopia.objects)) kopia.objects = podmienZasoby(kopia.objects, mapa);
     return kopia;
@@ -55,7 +59,12 @@ async function oryginalyObrazow(projekt, obiekty) {
 }
 
 // Czcionki użyte w obiektach muszą być wczytane, zanim Fabric zmierzy tekst.
-const ozyw = async (json) => { await zapewnijCzcionki(json); return fabric.util.enlivenObjects(json); };
+const ozyw = async (json) => {
+  await zapewnijCzcionki(json);
+  const zywe = await fabric.util.enlivenObjects(json);
+  await przygotujObrazyKsztaltow(zywe); // obrazy w kształtach – zanim strona się narysuje (#123)
+  return zywe;
+};
 
 // Obraz z pola: kolumna tabeli podaje nazwę pliku wgranego do projektu.
 // Podmieniony obraz wpisuje się w ramkę obrazu-wzoru (ramka_pola), bez zmiany proporcji.
@@ -64,6 +73,16 @@ const ozyw = async (json) => { await zapewnijCzcionki(json); return fabric.util.
 function obrazyZPol(obiekty, wartosc, zasoby) {
   return obiekty.map((o) => {
     if (Array.isArray(o.objects)) return { ...o, objects: obrazyZPol(o.objects, wartosc, zasoby) };
+    if (o.type !== 'image' && o.pole?.kolumna && moznaWstawicObraz(o)) {
+      // Kształt jako ramka obrazu z danych (#123): obraz z kolumny wypełnia kształt; kadr z „Zostaje część zdjęcia”.
+      const nazwa = wartosc(o.pole.kolumna, null);
+      if (nazwa === undefined) return o;
+      const id = obrazZNazwy(zasoby, nazwa)?.id;
+      const k = o.pole.kadr_z ? kadrZWartosci(wartosc(o.pole.kadr_z, null)) : null;
+      const punkt = k || (o.pole.kadr ? punktKadru(o.pole.kadr) : null);
+      const kadr = punkt ? { skala: o.obraz_kadr?.skala || 1, punkt } : o.obraz_kadr;
+      return id ? { ...o, zasob: id, obraz_kadr: kadr } : { ...o, zasob: undefined };
+    }
     if (o.type !== 'image' || !o.pole?.kolumna) return o;
     const nazwa = wartosc(o.pole.kolumna, null);
     if (nazwa === undefined) return o;

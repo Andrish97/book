@@ -618,7 +618,10 @@ class KontekstPdf {
     const gradient = this._styl(this.fillStyle, false);
     if (gradient) {
       this._krycie(this.globalAlpha);
-      this.op.push(...czesci, parzyste ? 'W* n' : 'W n', `/${this.strona.cieniowanie(gradient, this.opcje.cmyk ? this.opcje.naCmyk : null)} sh`);
+      const cien = this.strona.cieniowanie(gradient, this.opcje.cmyk ? this.opcje.naCmyk : null);
+      this.op.push(...czesci, parzyste ? 'W* n' : 'W n');
+      if (gradient.kolory.some(([, k]) => k[3] < 1)) this.op.push(`/${this.strona.maskaPrzejscia(gradient)} gs`);
+      this.op.push(`/${cien} sh`);
     } else this.op.push(...czesci, parzyste ? 'f*' : 'f');
     this.op.push('Q');
   }
@@ -846,7 +849,7 @@ class KontekstPdf {
   // --- obrazy ---
   drawImage(el, ...a) {
     this._sprawdz();
-    if (el?.tagName !== 'IMG') throw new Niewektorowe('obraz przetworzony');
+    if (el?.tagName !== 'IMG') throw new Niewektorowe(el?.dataset?.powod || 'obraz przetworzony');
     const nw = el.naturalWidth || el.width; const nh = el.naturalHeight || el.height;
     if (!nw || !nh) return;
     let [sx, sy, sw, sh, dx, dy, dw, dh] = [0, 0, nw, nh, 0, 0, nw, nh];
@@ -943,22 +946,40 @@ class StronaPdf {
     return this._nazwa(g, (n) => {
       const kolory = [...g.kolory].sort((a, b) => a[0] - b[0]);
       if (!kolory.length) throw new Niewektorowe('gradient bez kolorów');
-      if (kolory.some(([, k]) => k[3] < 1)) throw new Niewektorowe('gradient z przezroczystością');
-      if (kolory.length === 1) kolory.push([1, kolory[0][1]]);
       const barwa = (k) => (cmyk ? cmyk(k) : k.slice(0, 3));
-      // Punkty od 0 do 1: kolor przed pierwszym i za ostatnim przystankiem jest stały.
-      const pkt = kolory.map(([miejsce, k]) => [miejsce, barwa(k)]);
-      if (pkt[0][0] > 0) pkt.unshift([0, pkt[0][1]]);
-      if (pkt.at(-1)[0] < 1) pkt.push([1, pkt.at(-1)[1]]);
-      for (let i = 1; i < pkt.length; i += 1) if (pkt[i][0] <= pkt[i - 1][0]) pkt[i][0] = pkt[i - 1][0] + 1e-4;
-      const odcinki = pkt.slice(0, -1).map((p, i) => ({ FunctionType: 2, Domain: [0, 1], C0: p[1], C1: pkt[i + 1][1], N: 1 }));
-      const funkcja = odcinki.length === 1 ? odcinki[0] : {
-        FunctionType: 3, Domain: [0, 1], Functions: odcinki, Bounds: pkt.slice(1, -1).map((p) => p[0]), Encode: odcinki.flatMap(() => [0, 1]),
-      };
-      const opis = { ShadingType: g.rodzaj === 'kolowy' ? 3 : 2, ColorSpace: cmyk ? 'DeviceCMYK' : 'DeviceRGB', Coords: g.wsp, Function: funkcja, Extend: [true, true] };
+      const opis = { ShadingType: g.rodzaj === 'kolowy' ? 3 : 2, ColorSpace: cmyk ? 'DeviceCMYK' : 'DeviceRGB', Coords: g.wsp, Function: funkcjaPrzejscia(kolory, barwa), Extend: [true, true] };
       this._slownik('Shading').set(n, this.pdf.context.register(this.pdf.context.obj(opis)));
     });
   }
+
+  // Przejście z przezroczystością (#123): krycie punktów przejścia jako maska miękka (SMask) – ten sam
+  // kształt przejścia w odcieniach szarości. Zwraca nazwę stanu grafiki do ustawienia przed „sh”.
+  maskaPrzejscia(g) {
+    return this._nazwa(`maska ${this._nazwa(g, () => {})}`, (n) => {
+      const kolory = [...g.kolory].sort((a, b) => a[0] - b[0]);
+      const { context } = this.pdf;
+      const cien = context.register(context.obj({ ShadingType: g.rodzaj === 'kolowy' ? 3 : 2, ColorSpace: 'DeviceGray', Coords: g.wsp, Function: funkcjaPrzejscia(kolory, (k) => [k[3]]), Extend: [true, true] }));
+      const forma = context.register(context.stream('/A sh', {
+        Type: 'XObject', Subtype: 'Form', BBox: [-1e5, -1e5, 1e5, 1e5],
+        Group: { S: 'Transparency', CS: 'DeviceGray' }, Resources: { Shading: { A: cien } },
+      }));
+      this._slownik('ExtGState').set(n, context.register(context.obj({ Type: 'ExtGState', SMask: { Type: 'Mask', S: 'Luminosity', G: forma } })));
+    });
+  }
+}
+
+// Funkcja PDF przejścia przez punkty [miejsce 0–1, kolor rgba]; barwa(k) → składowe koloru w przestrzeni cieniowania.
+function funkcjaPrzejscia(kolory, barwa) {
+  const k = kolory.length === 1 ? [...kolory, [1, kolory[0][1]]] : kolory;
+  // Punkty od 0 do 1: kolor przed pierwszym i za ostatnim przystankiem jest stały.
+  const pkt = k.map(([miejsce, kol]) => [miejsce, barwa(kol)]);
+  if (pkt[0][0] > 0) pkt.unshift([0, pkt[0][1]]);
+  if (pkt.at(-1)[0] < 1) pkt.push([1, pkt.at(-1)[1]]);
+  for (let i = 1; i < pkt.length; i += 1) if (pkt[i][0] <= pkt[i - 1][0]) pkt[i][0] = pkt[i - 1][0] + 1e-4;
+  const odcinki = pkt.slice(0, -1).map((p, i) => ({ FunctionType: 2, Domain: [0, 1], C0: p[1], C1: pkt[i + 1][1], N: 1 }));
+  return odcinki.length === 1 ? odcinki[0] : {
+    FunctionType: 3, Domain: [0, 1], Functions: odcinki, Bounds: pkt.slice(1, -1).map((p) => p[0]), Encode: odcinki.flatMap(() => [0, 1]),
+  };
 }
 
 const bezPamieci = (o) => { o.objectCaching = false; o.dirty = true; for (const d of o._objects || []) bezPamieci(d); };
