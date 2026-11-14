@@ -182,7 +182,7 @@ async function przykladoweProjekty(strona) {
   });
 }
 
-module.exports = { przykladoweProjekty };
+module.exports = { przykladoweProjekty, kadr, zrzut };
 if (require.main === module) (async () => {
   const przegladarka = await chromium.launch();
 
