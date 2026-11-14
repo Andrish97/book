@@ -362,6 +362,31 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .oczekuje > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .oczekuje small { color: inherit; opacity: .8; }
 .grupa-ustawien.niebezpieczna > h2 { color: var(--blad); }
+
+/* Ustawienia konta jako lista jak w telefonie (#109): wiersz „Tytuł · wartość ›” otwiera jedną sekcję.
+   Szeroki ekran: lista po lewej, wybrana sekcja po prawej. Wąski: sama lista albo sama sekcja z „‹ Ustawienia”. */
+#ekran-konta .konto-uklad { grid-template-columns: 280px minmax(0, 1fr); }
+#ekran-konta .konto-lista {
+  gap: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); background: var(--powierzchnia, var(--tlo));
+  overflow: hidden;
+}
+#ekran-konta .konto-lista a {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  min-height: 46px; padding: 8px 12px; border-radius: 0; border-bottom: 1px solid var(--linia);
+}
+#ekran-konta .konto-lista a:last-child { border-bottom: 0; }
+#ekran-konta .konto-lista a .ikona-wiersza { display: inline-flex; color: var(--cichy); }
+#ekran-konta .konto-lista a .tytul { white-space: nowrap; }
+#ekran-konta .konto-lista a .wartosc {
+  justify-self: end; max-width: 100%; color: var(--cichy); font-weight: 400; font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#ekran-konta .konto-lista a .strzalka { display: inline-flex; color: var(--cichy); grid-column: 4; }
+#ekran-konta .konto-lista a.aktywna { background: var(--akcent-tlo); color: var(--na-akcencie-tle, var(--tusz)); }
+#ekran-konta .konto-lista a.aktywna .ikona-wiersza { color: inherit; }
+#ekran-konta .konto-lista a.niebezpieczny .tytul { color: var(--blad); }
+#ekran-konta .grupa-ustawien:not(.wybrana) { display: none; }
+#ekran-konta .do-listy-ustawien { display: none; margin: 0 0 8px -8px; }
 .przycisk.niebezpieczny { border-color: var(--blad-linia); }
 .przycisk.niebezpieczny:hover { background: var(--blad-tlo); border-color: var(--blad); }
 .menu-naglowek strong { display: block; color: var(--tusz); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
@@ -928,6 +953,12 @@ dialog > .postepy { position: fixed; }
   .konto-uklad { grid-template-columns: 1fr; gap: 20px; padding-top: 20px; }
   .konto-nawigacja { position: static; flex-direction: row; overflow-x: auto; }
   .konto-nawigacja a { white-space: nowrap; }
+  #ekran-konta .konto-uklad { grid-template-columns: 1fr; }
+  #ekran-konta .konto-lista { flex-direction: column; overflow: hidden; }
+  #ekran-konta .konto-lista a { min-height: 52px; }
+  #ekran-konta[data-sekcja=""] .konto-sekcje,
+  #ekran-konta:not([data-sekcja=""]) .konto-lista { display: none; }
+  #ekran-konta .do-listy-ustawien { display: inline-flex; }
   .wiersz-glowny { grid-template-columns: 1fr; }
   .wiersz-akcje { justify-content: flex-start; }
 }

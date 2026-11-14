@@ -143,6 +143,14 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   await strona.waitForFunction(() => document.querySelector('#powiadomienie').textContent === 'Nazwa użytkownika zapisana.');
   assert.equal(baza.konta[0].nazwa, 'Anna.Nowak');
   assert.equal(baza.profile.get(baza.konta[0].id), 'Anna.Nowak');
+  // Lista jak w telefonie (#109): wiersz z podsumowaniem, sekcja otwiera się po kliknięciu.
+  assert.equal(await strona.textContent('.konto-lista [data-podsumowanie="nazwa"]'), 'Anna.Nowak');
+  assert.ok(await strona.isHidden('#ust-logowanie'), 'na szerokim ekranie widać tylko wybraną sekcję (Profil)');
+  await strona.click('.konto-lista a:has-text("E-mail")');
+  assert.equal(new URL(strona.url()).hash, '#/konto/logowanie');
+  assert.ok(await strona.isHidden('#ust-profil'));
+  assert.ok(await strona.isVisible('#wyloguj-wszedzie'), '„Wyloguj wszędzie” w sekcji Logowanie');
+  assert.equal(await strona.locator('#ekran-konta #wyloguj-tutaj, #ekran-konta [data-do="ust-urzadzenia"]').count(), 0, 'bez „Wyloguj” w ustawieniach');
 
   // E-mail: różne adresy → błąd; zgodne → oczekiwanie na potwierdzenie
   assert.ok(await strona.isHidden('#form-email'), 'formularze są zwinięte, dopóki nie są potrzebne');
@@ -188,6 +196,8 @@ test('ustawienia konta: nazwa, e-mail, hasło, usunięcie konta', async (t) => {
   await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
 
   // Usunięcie konta
+  assert.ok(await strona.isVisible('#ust-logowanie'), 'po odświeżeniu ta sama sekcja');
+  await strona.click('.konto-lista [data-sekcja="usun"]');
   await strona.click('[data-rozwin="form-usun"]');
   await strona.fill('#form-usun input[name=haslo]', 'Nowe#Haslo22');
   await strona.click('#form-usun button[type=submit]');
@@ -254,9 +264,12 @@ test('motyw: ciemny i jasny, zapamiętany po odświeżeniu i na koncie', async (
   await strona.click('#awatar');
   await strona.click('[data-akcja="ustawienia-konta"]');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
+  assert.equal(await strona.textContent('.konto-lista [data-podsumowanie="motyw"]'), 'Ciemny');
+  await strona.click('.konto-lista [data-sekcja="wyglad"]');
   assert.equal(await strona.isChecked('#wybor-motywu input[value=ciemny]'), true);
   await strona.click('#wybor-motywu label:has-text("Jasny")');
   assert.equal((await motyw())[0], 'jasny');
+  assert.equal(await strona.textContent('.konto-lista [data-podsumowanie="motyw"]'), 'Jasny');
 
   // Wybór zapisuje się na koncie i obowiązuje na innym urządzeniu (tu: po zmianie ustawienia w przeglądarce).
   await strona.waitForFunction(() => true);
@@ -313,5 +326,28 @@ test('zapis na koncie: wysyłane są tylko zmienione strony; drugie urządzenie 
   await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((x) => x.obiekty.length)), [1, 1]);
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony_osobno), undefined);
+  assert.deepEqual(bledy, []);
+});
+
+test('ustawienia konta na telefonie: lista, sekcja z powrotem, Wstecz wraca do listy (#109)', async (t) => {
+  const { strona, bledy } = await otworz(t, { telefon: true });
+  await strona.evaluate(() => { location.hash = '#/konto'; });
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
+  assert.ok(await strona.isVisible('.konto-lista'), 'najpierw sama lista');
+  assert.ok(await strona.isHidden('#ust-profil'));
+  const wiersze = await strona.locator('.konto-lista a .tytul').allTextContents();
+  assert.deepEqual(wiersze, ['Nazwa użytkownika', 'E-mail', 'Hasło', 'Motyw', 'Dostęp dla AI', 'Miejsce', 'Usuwanie konta']);
+  await strona.waitForFunction(() => /@/.test(document.querySelector('.konto-lista [data-podsumowanie="email"]').textContent));
+  await strona.waitForFunction(() => /GB/.test(document.querySelector('.konto-lista [data-podsumowanie="miejsce"]').textContent));
+  await strona.waitForFunction(() => /kluczy|klucz/.test(document.querySelector('.konto-lista [data-podsumowanie="ai"]').textContent));
+  await strona.click('.konto-lista a:has-text("Hasło")');
+  assert.ok(await strona.isHidden('.konto-lista'), 'sekcja zamiast listy');
+  assert.ok(await strona.isVisible('#ust-logowanie [data-rozwin="form-haslo"]'));
+  await strona.goBack();
+  await strona.waitForFunction(() => getComputedStyle(document.querySelector('.konto-lista')).display !== 'none');
+  await strona.click('.konto-lista [data-sekcja="miejsce"]');
+  await strona.click('#ust-miejsce .do-listy-ustawien');
+  await strona.waitForFunction(() => location.hash === '#/konto');
+  assert.ok(await strona.isVisible('.konto-lista'));
   assert.deepEqual(bledy, []);
 });

@@ -42,7 +42,7 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   // Lista projektów, potem ustawienia konta – okno kluczy działa bez edytora.
   await strona.evaluate(() => { location.hash = '#/projekty'; });
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
-  await strona.evaluate(() => { location.hash = '#/konto'; });
+  await strona.evaluate(() => { location.hash = '#/konto/ai'; });
   await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
   await strona.waitForFunction(() => /Nie masz jeszcze żadnego klucza/.test(document.querySelector('#ust-ai-opis').textContent));
   await strona.click('[data-akcja="konto-dostep-ai"]');

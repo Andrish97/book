@@ -41,7 +41,7 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   baza.obrazyAi = baza.obrazyAi || new Map();
   baza.obrazyAi.set('porzucone', { projekt_id: p.id, owner_id: KONTO, rozmiar: 10, dane: Buffer.alloc(10000), gotowy: false, utworzono: DAWNO });
 
-  await strona.evaluate(() => { location.hash = '#/konto'; });
+  await strona.evaluate(() => { location.hash = '#/konto/miejsce'; });
   await strona.waitForFunction(() => /z 2 GB/.test(document.querySelector('#miejsce-konto').textContent));
   // Konto nie pokazuje danych całej aplikacji ani wspólnej puli (#100).
   assert.equal(await strona.locator('#miejsce-razem, #miejsce-baza, #miejsce-aplikacji').count(), 0);
@@ -74,7 +74,7 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   baza.limitKonta = Math.ceil(zajete / 0.85) + 2048;
   await strona.evaluate(() => { location.hash = '#/projekty'; });
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
-  await strona.evaluate(() => { location.hash = '#/konto'; });
+  await strona.evaluate(() => { location.hash = '#/konto/miejsce'; });
   await strona.waitForSelector('#miejsce-ostrzezenie:not([hidden])');
   assert.match(await strona.textContent('#miejsce-ostrzezenie'), /zajmują \d+% miejsca/);
   await strona.evaluate((id) => { location.hash = `#/p/${id}`; }, p.id);
@@ -108,7 +108,7 @@ test('sprzątanie w tle przy liście projektów: raz na dobę, bez pliku używan
   assert.ok(baza.pliki.has(`zasoby/${uzyty}`), 'używany plik zostaje');
   // Drugi raz tego samego dnia – bez sprzątania.
   baza.pliki.set(`zasoby/${KONTO}/${p.id}/z_druga_sierota`, { typ: 'image/png', tresc: Buffer.alloc(1000), czas: DAWNO });
-  await strona.evaluate(() => { location.hash = `#/konto`; });
+  await strona.evaluate(() => { location.hash = `#/konto/miejsce`; });
   await strona.evaluate(() => { location.hash = '#/projekty'; });
   await strona.waitForTimeout(1500);
   assert.ok(baza.pliki.has(`zasoby/${KONTO}/${p.id}/z_druga_sierota`), 'najwyżej raz na dobę');

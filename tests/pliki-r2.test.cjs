@@ -59,7 +59,7 @@ test('panel użycia konta: paski limitów, projekty z plikami i obrazami, „Pok
   baza.projekty.push({ id: '44444444-4444-4444-8444-444444444444', owner_id: inny.id, nazwa: 'Cudzy planer', dane: { zasoby: {}, strony: ['s1'] }, zmieniono: new Date().toISOString(), wersja: 1 });
   baza.wspolpracownicy = baza.wspolpracownicy || [];
   baza.wspolpracownicy.push({ projekt_id: '44444444-4444-4444-8444-444444444444', uzytkownik: KONTO, rola: 'odczyt' });
-  await strona.evaluate(() => { location.hash = '#/konto'; });
+  await strona.evaluate(() => { location.hash = '#/konto/miejsce'; });
   await strona.waitForSelector('#uzycie-lista .uzycie-projekt');
   const tekst = await strona.textContent('#uzycie-lista');
   assert.match(tekst, /Kalendarz z obrazami/);

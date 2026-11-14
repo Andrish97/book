@@ -260,18 +260,19 @@
     </header>
     <main class="konto-tresc">
       <div class="konto-uklad">
-        <nav class="konto-nawigacja" aria-label="Sekcje ustawień">
-          <a href="#" data-do="ust-profil" data-ikona="uzytkownik">Profil</a>
-          <a href="#" data-do="ust-logowanie" data-ikona="klodka">Logowanie</a>
-          <a href="#" data-do="ust-wyglad" data-ikona="motyw">Wygląd</a>
-          <a href="#" data-do="ust-urzadzenia" data-ikona="wyloguj">Urządzenia</a>
-          <a href="#" data-do="ust-ai" data-ikona="klucz">Dostęp dla AI</a>
-          <a href="#" data-do="ust-miejsce" data-ikona="chmura">Miejsce</a>
-          <a href="#" data-do="ust-usun" class="niebezpieczny" data-ikona="kosz">Usuwanie konta</a>
+        <nav class="konto-nawigacja konto-lista" aria-label="Ustawienia konta">
+          <a href="#/konto/profil" data-do="ust-profil" data-sekcja="profil"><span class="ikona-wiersza" data-ikona="uzytkownik"></span><span class="tytul">Nazwa użytkownika</span><span class="wartosc" data-podsumowanie="nazwa"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie"><span class="ikona-wiersza" data-ikona="koperta"></span><span class="tytul">E-mail</span><span class="wartosc" data-podsumowanie="email"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie" data-cel="haslo"><span class="ikona-wiersza" data-ikona="klodka"></span><span class="tytul">Hasło</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/wyglad" data-do="ust-wyglad" data-sekcja="wyglad"><span class="ikona-wiersza" data-ikona="motyw"></span><span class="tytul">Motyw</span><span class="wartosc" data-podsumowanie="motyw"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Dostęp dla AI</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/miejsce" data-do="ust-miejsce" data-sekcja="miejsce"><span class="ikona-wiersza" data-ikona="chmura"></span><span class="tytul">Miejsce</span><span class="wartosc" data-podsumowanie="miejsce"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/usun" data-do="ust-usun" data-sekcja="usun" class="niebezpieczny"><span class="ikona-wiersza" data-ikona="kosz"></span><span class="tytul">Usuwanie konta</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
         </nav>
 
         <div class="konto-sekcje">
           <section class="grupa-ustawien" id="ust-profil">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Profil</h2>
             <p class="ciche">Jak aplikacja się do Ciebie zwraca.</p>
             <div class="wiersze-ustawien">
@@ -298,8 +299,9 @@
           </section>
 
           <section class="grupa-ustawien" id="ust-logowanie">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Logowanie</h2>
-            <p class="ciche">Adres e-mail i hasło, którymi wchodzisz do aplikacji.</p>
+            <p class="ciche">Adres e-mail i hasło, którymi wchodzisz do aplikacji, oraz wylogowanie ze wszystkich urządzeń.</p>
             <div class="wiersze-ustawien">
               <div class="wiersz-ustawien">
                 <div class="wiersz-glowny">
@@ -350,10 +352,17 @@
                   </div>
                 </form>
               </div>
+              <div class="wiersz-ustawien" id="wiersz-wyloguj-wszedzie">
+                <div class="wiersz-glowny">
+                  <div class="wiersz-opis"><strong>Wszystkie urządzenia</strong><span>Jesteś zalogowany, dopóki sam się nie wylogujesz. Wylogowanie ze wszystkich urządzeń przydaje się po logowaniu na cudzym albo zgubionym urządzeniu.</span></div>
+                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-wszedzie" data-ikona="wyloguj">Wyloguj wszędzie</button></div>
+                </div>
+              </div>
             </div>
           </section>
 
           <section class="grupa-ustawien" id="ust-wyglad">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Wygląd</h2>
             <p class="ciche">Dotyczy tego urządzenia. Strony publikacji zawsze są pokazywane na białym papierze.</p>
             <div class="wiersze-ustawien">
@@ -372,26 +381,8 @@
             </div>
           </section>
 
-          <section class="grupa-ustawien" id="ust-urzadzenia">
-            <h2>Urządzenia</h2>
-            <p class="ciche">Jesteś zalogowany, dopóki sam się nie wylogujesz.</p>
-            <div class="wiersze-ustawien">
-              <div class="wiersz-ustawien">
-                <div class="wiersz-glowny">
-                  <div class="wiersz-opis"><strong>To urządzenie</strong><span>Wylogowuje tylko tę przeglądarkę.</span></div>
-                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-tutaj">Wyloguj</button></div>
-                </div>
-              </div>
-              <div class="wiersz-ustawien">
-                <div class="wiersz-glowny">
-                  <div class="wiersz-opis"><strong>Wszystkie urządzenia</strong><span>Przydatne po logowaniu na cudzym albo zgubionym urządzeniu.</span></div>
-                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-wszedzie">Wyloguj wszędzie</button></div>
-                </div>
-              </div>
-            </div>
-          </section>
-
           <section class="grupa-ustawien" id="ust-ai">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Dostęp dla AI</h2>
             <p class="ciche">Klucze, którymi asystent AI (Claude, ChatGPT) czyta i zmienia Twoje projekty: wybrane albo wszystkie – wtedy może też tworzyć i usuwać projekty.</p>
             <div class="wiersze-ustawien">
@@ -405,6 +396,7 @@
           </section>
 
           <section class="grupa-ustawien" id="ust-miejsce">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Miejsce</h2>
             <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Konto ma limit miejsca na pliki.</p>
             <div class="wiersze-ustawien">
@@ -452,6 +444,7 @@
           </section>
 
           <section class="grupa-ustawien niebezpieczna" id="ust-usun">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Usuwanie konta</h2>
             <p class="ciche">Usuwa konto razem ze wszystkimi projektami i obrazami. Tego nie da się cofnąć – jeśli chcesz zachować projekty, najpierw wyeksportuj je do plików.</p>
             <div class="wiersze-ustawien">
