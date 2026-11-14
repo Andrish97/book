@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
 const { atrapaAi } = require('./atrapa-ai.cjs');
+const { atrapaWspolpracy, rolaW } = require('./atrapa-wspolpraca.cjs');
 
 const KORZEN = path.join(__dirname, '..');
 const TYPY = {
@@ -92,6 +93,8 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     kanaly: { dolaczenia: 0, wyslane: 0, wylaczone: Boolean(poczatkowe.bezKanalu) }, // Realtime: ile dołączeń, ile wiadomości o zmianach
   };
   stan.ai = atrapaAi(stan); // funkcje dostępu dla AI: stan.ai(nazwa funkcji, parametry, konto)
+  stan.wspolpraca = atrapaWspolpracy(stan); // współpraca między kontami: stan.wspolpraca(nazwa, parametry, konto)
+  const widzi = (k, p) => Boolean(rolaW(stan, k, p.id)); // RLS: własne projekty i udostępnione temu kontu
   const sesja = (k) => {
     const exp = Math.floor(Date.now() / 1000) + 3600;
     const user = {
@@ -126,7 +129,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     if (stan.kanaly.wylaczone) { ws.close(); return; }
     const g = { ws, tematy: new Map(), tablica: false };
     gniazda.add(g);
-    ws.onClose(() => gniazda.delete(g));
+    ws.onClose(() => { for (const temat of g.tematy.keys()) odejdz(g, temat); gniazda.delete(g); });
     ws.onMessage((surowa) => {
       let w;
       try { w = JSON.parse(surowa); } catch { return; }
@@ -137,22 +140,82 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (zdarzenie === 'heartbeat') { ok(); return; }
       if (zdarzenie === 'phx_join') {
         const wiazania = (tresc?.config?.postgres_changes || []).map((b) => ({ id: (nrWiazania += 1), event: b.event, schema: b.schema, table: b.table, filter: b.filter }));
-        g.tematy.set(temat, { konto: kontoZTokenu(tresc?.access_token), wiazania });
+        const konto = kontoZTokenu(tresc?.access_token);
+        // Kanał obecności w projekcie jest prywatny: dołączyć może tylko osoba z dostępem (jak reguła na realtime.messages).
+        const projektObecnosci = /^realtime:obecnosc-(.+)$/.exec(temat)?.[1];
+        if (projektObecnosci && !rolaW(stan, konto, projektObecnosci)) {
+          doGniazda(g, temat, 'phx_reply', { status: 'error', response: { reason: 'Unauthorized' } }, ref, refDolaczenia);
+          return;
+        }
+        g.tematy.set(temat, { konto, wiazania, obecnosc: tresc?.config?.presence ? { klucz: tresc.config.presence.key || `anon-${nrWiazania += 1}`, meta: null } : null });
         stan.kanaly.dolaczenia += 1;
         if (process.env.KANALY_LOG) console.log('dołączenie', temat, JSON.stringify(tresc).slice(0, 600));
         ok({ postgres_changes: wiazania });
-        doGniazda(g, temat, 'system', { status: 'ok', message: 'Subscribed to PostgreSQL', channel: temat.replace(/^realtime:/, ''), extension: 'postgres_changes' });
+        if (wiazania.length) doGniazda(g, temat, 'system', { status: 'ok', message: 'Subscribed to PostgreSQL', channel: temat.replace(/^realtime:/, ''), extension: 'postgres_changes' });
+        if (g.tematy.get(temat).obecnosc) doGniazda(g, temat, 'presence_state', stanObecnosci(temat));
+        return;
+      }
+      if (zdarzenie === 'presence') {
+        const t = g.tematy.get(temat);
+        if (t?.obecnosc) {
+          const bylo = t.obecnosc.meta;
+          if (tresc?.event === 'track') {
+            t.obecnosc.meta = { ...(tresc.payload || {}), phx_ref: `r${nrWiazania += 1}` };
+            rozeslijObecnosc(temat, { [t.obecnosc.klucz]: { metas: [t.obecnosc.meta] } }, bylo ? { [t.obecnosc.klucz]: { metas: [bylo] } } : {});
+          } else if (tresc?.event === 'untrack' && bylo) {
+            t.obecnosc.meta = null;
+            rozeslijObecnosc(temat, {}, { [t.obecnosc.klucz]: { metas: [bylo] } });
+          }
+        }
+        ok();
         return;
       }
       if (zdarzenie === 'access_token') { const t = g.tematy.get(temat); if (t) t.konto = kontoZTokenu(tresc?.access_token) || t.konto; return; }
-      if (zdarzenie === 'phx_leave') { g.tematy.delete(temat); ok(); }
+      if (zdarzenie === 'phx_leave') { odejdz(g, temat); g.tematy.delete(temat); ok(); }
     });
   });
+  // Obecność: stan kanału (wszyscy obecni) i zmiany rozsyłane do wszystkich w kanale, także do zgłaszającego.
+  const stanObecnosci = (temat) => {
+    const wynik = {};
+    for (const g of gniazda) {
+      const t = g.tematy.get(temat);
+      if (t?.obecnosc?.meta) (wynik[t.obecnosc.klucz] ||= { metas: [] }).metas.push(t.obecnosc.meta);
+    }
+    return wynik;
+  };
+  const rozeslijObecnosc = (temat, joins, leaves) => {
+    for (const g of gniazda) if (g.tematy.get(temat)?.obecnosc) doGniazda(g, temat, 'presence_diff', { joins, leaves });
+  };
+  const odejdz = (g, temat) => {
+    const t = g.tematy.get(temat);
+    if (!t?.obecnosc?.meta) return;
+    const meta = t.obecnosc.meta;
+    t.obecnosc.meta = null;
+    rozeslijObecnosc(temat, {}, { [t.obecnosc.klucz]: { metas: [meta] } });
+  };
+  // Zmiana wiersza tabeli współpracy (zaproszenia, wspolpracownicy) – do kont, które RLS przepuszcza.
+  stan.oglosWiersz = (tabela, typ, rekord, odbiorcy) => {
+    for (const g of gniazda) {
+      for (const [temat, t] of g.tematy) {
+        if (!t.konto || !odbiorcy.includes(t.konto.id)) continue;
+        const ids = t.wiazania.filter((b) => (b.event === '*' || b.event === typ) && b.table === tabela).map((b) => b.id);
+        if (!ids.length) continue;
+        doGniazda(g, temat, 'postgres_changes', {
+          ids,
+          data: {
+            schema: 'public', table: tabela, type: typ, commit_timestamp: new Date().toISOString(), errors: null,
+            columns: Object.keys(rekord).map((name) => ({ name, type: 'text' })),
+            record: typ === 'DELETE' ? {} : rekord, old_record: typ === 'DELETE' ? rekord : {},
+          },
+        });
+      }
+    }
+  };
   // Rozgłasza zmianę wiersza projektu (zapis z dowolnego urządzenia) do wszystkich podłączonych urządzeń konta.
   stan.oglos = (projekt, typ = 'UPDATE') => {
     for (const g of gniazda) {
       for (const [temat, t] of g.tematy) {
-        if (!t.konto || t.konto.id !== projekt.owner_id) continue; // RLS: cudzych wierszy nikt nie dostaje
+        if (!t.konto || !widzi(t.konto, projekt)) continue; // RLS: właściciel i osoby, którym projekt udostępniono
         const ids = t.wiazania.filter((b) => (b.event === '*' || b.event === typ) && b.table === 'projekty' && (!b.filter || b.filter === `owner_id=eq.${projekt.owner_id}`)).map((b) => b.id);
         if (!ids.length) continue;
         stan.kanaly.wyslane += 1;
@@ -272,6 +335,13 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return blad(r, e.status || 400, e.message, 'P0001');
       }
     }
+    if (sc.startsWith('/rest/v1/rpc/') && stan.wspolpraca.ma(sc.slice('/rest/v1/rpc/'.length))) {
+      try {
+        return json(r, 200, stan.wspolpraca(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)) ?? null);
+      } catch (e) {
+        return blad(r, e.status || 400, e.message, e.kod || 'P0001');
+      }
+    }
     if (sc === '/rest/v1/rpc/usun_konto') {
       const k = zTokenu(req);
       stan.konta = stan.konta.filter((x) => x !== k);
@@ -289,7 +359,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (stan.opoznienieZapisu) await new Promise((ok) => { setTimeout(ok, stan.opoznienieZapisu); });
       stan.wTrakcieZapisu -= 1;
       let p = stan.projekty.find((x) => x.id === tresc.p_id);
-      if (p && p.owner_id !== k.id) return blad(r, 409, 'duplicate key value violates unique constraint', '23505');
+      if (p && !['wlasciciel', 'edycja'].includes(rolaW(stan, k, p.id))) return blad(r, 403, 'Nie masz prawa zmieniać tego projektu', '42501');
       if (!p) {
         p = { id: tresc.p_id, owner_id: k.id, wersja: 0 };
         stan.projekty.push(p);
@@ -308,7 +378,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       const k = zTokenu(req);
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
       const idProjektu = (url.searchParams.get('projekt_id') || '').replace('eq.', '');
-      const p = stan.projekty.find((x) => x.id === idProjektu && x.owner_id === k.id);
+      const p = stan.projekty.find((x) => x.id === idProjektu && widzi(k, x));
       const wiersze = p ? [...stan.strony].filter(([klucz]) => klucz.startsWith(`${p.id}/`)).map(([klucz, dane]) => ({ strona_id: klucz.slice(p.id.length + 1), dane: jakJsonb(dane) })) : [];
       return json(r, 200, wiersze);
     }
@@ -316,16 +386,17 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       const k = zTokenu(req);
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
       const moje = stan.projekty.filter((p) => p.owner_id === k.id);
+      const widoczne = stan.projekty.filter((p) => widzi(k, p));
       const id = (url.searchParams.get('id') || '').replace('eq.', '');
       if (m === 'GET') {
         if (id) {
-          const p = moje.find((x) => x.id === id);
+          const p = widoczne.find((x) => x.id === id);
           const jeden = (req.headers().accept || '').includes('vnd.pgrst.object');
           if (!p) return jeden ? blad(r, 406, 'brak wiersza', 'PGRST116') : json(r, 200, []);
           const wiersz = { dane: jakJsonb(p.dane), wersja: p.wersja, zmieniono: p.zmieniono };
           return json(r, 200, jeden ? wiersz : [wiersz]);
         }
-        return json(r, 200, moje.map((p) => ({ id: p.id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null, udostepnienie: p.dane.udostepnienie || null })));
+        return json(r, 200, widoczne.map((p) => ({ id: p.id, owner_id: p.owner_id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null, udostepnienie: p.dane.udostepnienie || null })));
       }
       if (m === 'POST') {
         const w = Array.isArray(tresc) ? tresc[0] : tresc;
