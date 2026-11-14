@@ -388,6 +388,8 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 #ekran-konta .grupa-ustawien:not(.wybrana) { display: none; }
 #ekran-konta .do-listy-ustawien { display: none; margin: 0 0 8px -8px; }
 .przycisk.niebezpieczny { border-color: var(--blad-linia); }
+.przycisk-ikona.niebezpieczny-ikona { color: var(--blad); }
+.przycisk-ikona.niebezpieczny-ikona:hover { background: var(--blad-tlo); color: var(--blad); }
 .przycisk.niebezpieczny:hover { background: var(--blad-tlo); border-color: var(--blad); }
 .menu-naglowek strong { display: block; color: var(--tusz); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
 .wybor-motywu span { gap: 6px; }
@@ -1452,6 +1454,10 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .galeria-wzorcow.standardowe { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .galeria-wzorcow.standardowe > li.wzorzec { grid-template-columns: minmax(0, 1fr) auto; }
 .galeria-wzorcow.standardowe .opis-wzorca strong { white-space: normal; }
+.dodaj-standardowy { gap: 4px; }
+.dodaj-standardowy > span { display: none; }
+:root[data-urzadzenie="telefon"] .dodaj-standardowy > span { display: inline; }
+:root:not([data-urzadzenie="telefon"]) .dodaj-standardowy { width: 32px; padding: 0; justify-content: center; }
 @media (max-width: 640px) { .galeria-wzorcow.standardowe { grid-template-columns: minmax(0, 1fr); } .galeria-wzorcow > li.wzorzec { grid-template-columns: 64px minmax(0, 1fr) auto; } .galeria-wzorcow .miniatura { width: 64px; } }
 .panel-strony .naglowek-panelu h2 { padding-left: 6px; }
 .zakladki-panelu-opak { padding: 8px 10px 0; min-height: 0; display: flex; align-items: center; gap: 6px; }
@@ -1635,6 +1641,13 @@ dialog:focus { outline: none; }
   position: sticky; bottom: 0; z-index: 2; margin: 2px -16px 0; padding: 10px 16px 12px;
   background: var(--powierzchnia); border-top: 1px solid var(--linia);
 }
+/* Telefon (#109): zasłonkę zamyka uchwyt, tło albo Esc – bez „Anuluj”; główny przycisk na całą szerokość.
+   Pytania (potwierdz) zostają z „Anuluj”, bo tam to odpowiedź „nie”. Anulowanie trwającego eksportu PDF
+   i wyboru obrazów zostaje (to nie zamykanie okna). */
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu > button:is([value="anuluj"], [value="nie"], [data-akcja="kontakt-zamknij"]) { display: none; }
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu > .przycisk.glowny { flex: 1 1 auto; justify-content: center; min-height: 44px; }
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu:has(> .przycisk.glowny) > .odstep { display: none; }
+:root[data-zaslonka][data-urzadzenie="telefon"] #dlg-zrodlo-obrazu .przyciski-dialogu { display: none; }
 /* Duże okna (Dane, Instrukcja, Obrazy): stała wysokość prawie na cały ekran. */
 :root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja, .dialog-obrazy) { height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora)); }
 :root[data-zaslonka] .dialog-dane .dane-lista, :root[data-zaslonka] .dialog-instrukcja .instrukcja-spis { padding-right: 14px; }

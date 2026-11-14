@@ -1,5 +1,6 @@
 // Wzorce: wejście do edycji wzorca i powrót do stron, dodawanie, kopiowanie, zmiana nazwy, kolejność, usuwanie.
 
+import { ikona } from '../ikony.js';
 import { nowyWzorzec, kopiujWzorzec, stronyZWzorcem, WZORCE_Z_SEKCJI } from '../projekt.js';
 import { WZORCE_STANDARDOWE } from '../wzorce-standardowe.js';
 import { $, powiadom, zapytajONazwe, potwierdz } from '../ui.js';
@@ -111,10 +112,14 @@ export function otworzWzorce() {
   lista.replaceChildren(...WZORCE_STANDARDOWE.map((w) => {
     const li = document.createElement('li');
     li.className = 'strona wzorzec standardowy';
-    li.innerHTML = '<div class="opis-wzorca"><strong class="nazwa"></strong><small></small></div><button type="button" class="przycisk maly">Dodaj do projektu</button>';
+    // „+” z podpowiedzią zamiast „Dodaj do projektu” (#109); na telefonie krótkie „Dodaj” (css).
+    li.innerHTML = `<div class="opis-wzorca"><strong class="nazwa"></strong><small></small></div><button type="button" class="przycisk maly dodaj-standardowy">${ikona('plus', { rozmiar: 18 })}<span>Dodaj</span></button>`;
     li.querySelector('.nazwa').textContent = w.nazwa;
     li.querySelector('small').textContent = w.opis;
-    li.querySelector('button').dataset.standard = w.klucz;
+    const b = li.querySelector('button');
+    b.dataset.standard = w.klucz;
+    b.title = `Dodaj wzorzec „${w.nazwa}” do projektu`;
+    b.setAttribute('aria-label', b.title);
     return li;
   }));
   if (!$('#dlg-wzorce').open) $('#dlg-wzorce').showModal();

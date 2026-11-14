@@ -1399,11 +1399,10 @@
           <p class="podpowiedz" id="dane-opis"></p>
           <p class="podpowiedz dane-pomijane" id="dane-pomijane" role="status" hidden></p>
           <div class="dane-wyglad-pasek" role="toolbar" aria-label="Wygląd zaznaczonych komórek">
-            <span class="podpowiedz">Wygląd komórki:</span>
             <button type="button" class="przycisk-ikona maly" id="dane-pogrubienie" title="Pogrubienie zaznaczonych komórek (Shift+kliknięcie zaznacza kilka)" aria-label="Pogrubienie" data-ikona="pogrubienie"></button>
             <button type="button" class="przycisk-ikona maly" id="dane-kursywa" title="Kursywa zaznaczonych komórek" aria-label="Kursywa" data-ikona="kursywa"></button>
             <label class="dane-kolor" title="Kolor liter zaznaczonych komórek"><span class="ukryte">Kolor liter</span><input type="color" id="dane-kolor" value="#c1121f"></label>
-            <button type="button" class="przycisk maly" id="dane-bez-wygladu" title="Usuwa pogrubienie, kursywę i kolor z zaznaczonych komórek">Bez wyglądu</button>
+            <button type="button" class="przycisk-ikona maly" id="dane-bez-wygladu" title="Wyczyść wygląd: usuwa pogrubienie, kursywę i kolor z zaznaczonych komórek" aria-label="Wyczyść wygląd" data-ikona="gumka"></button>
           </div>
           <label class="przelacznik" id="dane-wyglad-pole" hidden><input type="checkbox" id="dane-wyglad"><span>Przenoś wygląd komórek na strony (pogrubienia, kursywa, kolory liter)</span></label>
           <p class="podpowiedz dane-powtorzenia" id="dane-powtorzenia" role="status" hidden></p>
@@ -1466,7 +1465,7 @@
         </div>
       </fieldset>
       <div class="przyciski-dialogu">
-        <button type="button" class="przycisk" id="seria-usun">Usuń serię</button>
+        <button type="button" class="przycisk-ikona niebezpieczny-ikona" id="seria-usun" data-ikona="kosz" title="Usuń serię (strony zostają, przestają się powielać)" aria-label="Usuń serię"></button>
         <span class="odstep"></span>
         <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
         <button class="przycisk glowny" value="ok" id="zapisz-serie">Zapisz</button>
