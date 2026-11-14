@@ -59,9 +59,8 @@ test('tabela jest jednym elementem: wstawienie, pisanie w komórce po dwukliku, 
   assert.equal(s.tytul, 'Tabela');
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.map((o) => o.typ)), [], 'bez ostrzeżeń (także o marginesie)');
   // Na liście warstw tabela to jeden wiersz.
-  await strona.click('#zakladki-panelu label:has-text("Warstwy")');
+  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
   assert.deepEqual(await strona.locator('#lista-warstw .warstwa-nazwa').allTextContents(), ['Tabela 3×4']);
-  await strona.click('#zakladki-panelu label:has-text("Właściwości")');
 
   // Pojedyncze kliknięcie i przeciągnięcie przesuwa całą tabelę.
   const srodek = await naEkranie(strona, s.lewo + 60, s.gora + 13);
@@ -159,21 +158,22 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
   assert.equal(s.lewo, 10, 'lewy róg na miejscu');
   await krok(strona);
 
-  // Liczbą w panelu: zmienia się tylko ta kolumna (i szerokość tabeli).
-  await strona.fill('.wlasciwosci label:has-text("Kolumna 3") input', '20');
-  await strona.press('.wlasciwosci label:has-text("Kolumna 3") input', 'Tab');
+  // Liczbą w panelu („Kolumna i wiersz” klikniętej komórki, #115): zmienia się tylko ta kolumna (i szerokość tabeli).
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e._wybierzKomorke(e.aktywny, { w: 0, k: 2 }); });
+  await strona.fill('.wlasciwosci label:has-text("Szerokość kolumny 3") input', '20');
+  await strona.press('.wlasciwosci label:has-text("Szerokość kolumny 3") input', 'Tab');
   s = await stanTabeli(strona);
   assert.equal(s.kolumny[2], 20);
   assert.equal(s.szer, Math.round((s.kolumny[0] + s.kolumny[1] + 20) * 100) / 100);
   assert.equal(s.lewo, 10);
-  await strona.click('.wlasciwosci button:has-text("Równe szerokości")');
+  await strona.click('.wlasciwosci button:has-text("Wyrównaj szerokości kolumn")');
   s = await stanTabeli(strona);
   assert.ok(s.kolumny.every((k) => Math.abs(k - s.szer / 3) < 0.02), `równe kolumny: ${s.kolumny}`);
   await krok(strona);
 
   // Wiersze i kolumny przyciskami.
-  await strona.click('.wlasciwosci button[aria-label="Dodaj wiersz"]');
-  await strona.click('.wlasciwosci button[aria-label="Dodaj kolumnę"]');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj wiersz na końcu"]');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj kolumnę na końcu"]');
   s = await stanTabeli(strona);
   assert.deepEqual([s.wiersze.length, s.kolumny.length, s.teksty.flat().length, s.linii], [4, 4, 16, 10]);
   assert.equal(s.teksty[0][3], 'Kolumna 4', 'nowa kolumna dostaje nagłówek');
@@ -196,12 +196,12 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
   // W trakcie pisania: wstawienie wiersza pod bieżącym i usunięcie kolumny z bieżącą komórką.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; const g = e.canvas.getObjects().find((o) => o.tabela); e.canvas.setActiveObject(g); e.edytujKomorke(g, [1, 1]); });
   await strona.keyboard.type('środek');
-  await strona.click('.wlasciwosci button:has-text("Wstaw wiersz poniżej")');
+  await strona.click('.wlasciwosci button:has-text("Wiersz pod")');
   s = await stanTabeli(strona);
   assert.equal(s.wiersze.length, 5);
   assert.equal(s.zaznaczone, 'komórka [1,1] – pisanie', 'pisanie trwa w tej samej komórce');
   assert.deepEqual(s.teksty[2], ['', '', '', ''], 'nowy wiersz jest pod bieżącym');
-  await strona.click('.wlasciwosci button:has-text("Usuń tę kolumnę")');
+  await strona.click('.wlasciwosci button:has-text("Usuń kolumnę")');
   await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.tabela);
   s = await stanTabeli(strona);
   assert.equal(s.kolumny.length, 3);
@@ -209,8 +209,8 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
   assert.equal(s.zaznaczone, 'tabela');
 
   // Nagłówek, najmniejsza wysokość wiersza, linie i tekst wszystkich komórek naraz.
-  await strona.fill('.wlasciwosci label:has-text("Najmniejsza wysokość wiersza") input', '12');
-  await strona.press('.wlasciwosci label:has-text("Najmniejsza wysokość wiersza") input', 'Tab');
+  await strona.fill('.wlasciwosci label:has-text("Wysokość wierszy") input', '12');
+  await strona.press('.wlasciwosci label:has-text("Wysokość wierszy") input', 'Tab');
   await strona.fill('.wlasciwosci label:has-text("Grubość linii") input', '0.5');
   await strona.press('.wlasciwosci label:has-text("Grubość linii") input', 'Tab');
   await strona.selectOption('.wlasciwosci fieldset:has-text("Tekst w komórkach") label:has-text("Czcionka") select', 'Lora');
@@ -241,8 +241,11 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
   // Kopia (Ctrl+D) jest osobną tabelą: zmiana kolumny w kopii nie rusza oryginału. Rozgrupować tabeli się nie da.
   await strona.keyboard.press('Control+d');
   await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.tabela).length === 2);
-  await strona.fill('.wlasciwosci label:has-text("Kolumna 1") input', '15');
-  await strona.press('.wlasciwosci label:has-text("Kolumna 1") input', 'Tab');
+  // Kopia nie ma klikniętej komórki – kolumnę zmieniamy w zwiniętej części „Szerokości wszystkich kolumn”.
+  assert.equal(await strona.locator('.wlasciwosci fieldset.kolumny-tabeli.zwinieta').count(), 1, 'lista kolumn domyślnie zwinięta');
+  await strona.click('.wlasciwosci fieldset.kolumny-tabeli .zwijak');
+  await strona.fill('.wlasciwosci fieldset.kolumny-tabeli label >> nth=0 >> input', '15');
+  await strona.press('.wlasciwosci fieldset.kolumny-tabeli label >> nth=0 >> input', 'Tab');
   const [oryginal, kopia] = [await stanTabeli(strona, 0), await stanTabeli(strona, 1)];
   assert.equal(kopia.kolumny[0], 15);
   assert.deepEqual(oryginal.kolumny, poSkali.kolumny);
@@ -336,8 +339,8 @@ test('tabela: tło nagłówka i co drugiego wiersza, własna wysokość jednego 
   assert.match(kolejnosc, /^r+t+l+$/, `tło pod tekstem, linie na wierzchu: ${kolejnosc}`);
   // Dodanie wiersza i kolumny przy włączonym tle nie miesza komórek.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; const g = e.aktywny; e.komorkiTabeli(g)[4].set('text', 'B2'); e.zatwierdz(); });
-  await strona.click('.wlasciwosci button[aria-label="Dodaj wiersz"]');
-  await strona.click('.wlasciwosci button[aria-label="Dodaj kolumnę"]');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj wiersz na końcu"]');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj kolumnę na końcu"]');
   s = await stanTabeli(strona);
   assert.equal(s.teksty[1][1], 'B2');
   assert.deepEqual([s.teksty.length, s.teksty[0].length], [5, 4]);
@@ -349,13 +352,14 @@ test('tabela: tło nagłówka i co drugiego wiersza, własna wysokość jednego 
 
   // Własna najmniejsza wysokość jednego wiersza: z panelu tabeli i z panelu komórki w trakcie pisania.
   await strona.evaluate(() => window.seriodruk.edytor.zaznacz(window.seriodruk.edytor.canvas.getObjects().find((o) => o.tabela).id));
-  await strona.fill('.wlasciwosci fieldset:has-text("Wysokości wierszy") label:has-text("Wiersz 3") input', '20');
-  await strona.press('.wlasciwosci fieldset:has-text("Wysokości wierszy") label:has-text("Wiersz 3") input', 'Tab');
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e._wybierzKomorke(e.aktywny, { w: 2, k: 0 }); });
+  await strona.fill('.wlasciwosci label:has-text("Wysokość wiersza 3") input', '20');
+  await strona.press('.wlasciwosci label:has-text("Wysokość wiersza 3") input', 'Tab');
   s = await stanTabeli(strona);
   assert.deepEqual(s.wysokosci, [9, 9, 20, 9, 9]);
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.edytujKomorke(e.aktywny, [1, 0]); });
-  await strona.fill('.wlasciwosci label:has-text("Najmniejsza wysokość tego wiersza") input', '14');
-  await strona.press('.wlasciwosci label:has-text("Najmniejsza wysokość tego wiersza") input', 'Tab');
+  await strona.fill('.wlasciwosci label:has-text("Wysokość wiersza 2") input', '14');
+  await strona.press('.wlasciwosci label:has-text("Wysokość wiersza 2") input', 'Tab');
   s = await stanTabeli(strona);
   assert.deepEqual(s.wysokosci, [9, 14, 20, 9, 9]);
 
@@ -746,7 +750,7 @@ test('tabela na liście warstw: rozwinięcie pokazuje komórki z początkiem tre
     e.canvas.discardActiveObject();
     e.zatwierdz();
   });
-  await strona.click('#zakladki-panelu label:has-text("Warstwy")');
+  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
   const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => (li.classList.contains('w-tabeli')
     ? `  ${li.querySelector('.warstwa-adres').textContent} ${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('zaznaczona') ? ' *' : ''}`
     : `${li.querySelector('.warstwa-nazwa').textContent}${li.querySelector('.warstwa-rozwin') ? ` [${li.querySelector('.warstwa-rozwin').getAttribute('aria-expanded')}]` : ''}${li.classList.contains('zaznaczona') ? ' *' : ''}`)));

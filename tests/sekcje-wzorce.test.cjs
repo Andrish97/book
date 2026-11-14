@@ -318,12 +318,9 @@ test('okno „Wzorce”: wzorce standardowe, dodanie do strony i do sekcji, wars
   await strona.click('[data-akcja="wroc-do-stron"]');
   await strona.waitForFunction(() => window.seriodruk.stan.tryb === 'strona');
 
-  // Warstwy: zakładka w prawym panelu; element wzorca jest na liście.
-  await strona.click('#zakladki-panelu label:has-text("Warstwy")');
-  assert.ok(await strona.isVisible('#panel-inspektor #lista-warstw'));
-  assert.ok(await strona.isHidden('#wlasciwosci'));
+  // Warstwy: własny panel pod właściwościami – widać je razem z właściwościami (#115); element wzorca jest na liście.
+  assert.ok(await strona.isVisible('#panel-inspektor #dok-warstw #lista-warstw'));
   assert.equal(await strona.locator('#lista-warstw li.ze-wzorca').count(), 3);
-  await strona.click('#zakladki-panelu label:has-text("Właściwości")');
   assert.ok(await strona.isVisible('#wlasciwosci'));
   assert.deepEqual(bledy, []);
 });

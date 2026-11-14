@@ -474,7 +474,7 @@ const WIDOKI = [
     const m = s.locator('#lista-stron .menu-miniatury:visible').first();
     await m.scrollIntoViewIfNeeded(); await m.click(); await czekaj(s, 200);
   }, E],
-  ['09-warstwy', async (s) => { await doEdytora(s); await panel(s, 'inspektor'); await s.click('#zakladki-panelu label:has-text("Warstwy")'); }, E],
+  ['09-warstwy', async (s) => { await doEdytora(s); await panel(s, 'warstwy'); }, E],
   ['09b-ostrzezenia', async (s) => { await doEdytora(s); await panel(s, 'ostrzezenia'); }, E],
   ['10-menu-wiecej', async (s) => { await doEdytora(s); await s.click('#przycisk-wiecej'); }, E],
   ['11-wzorce', async (s) => { await doEdytora(s); await akcja(s, 'wzorce'); await s.waitForSelector('#dlg-wzorce[open]'); }, E],

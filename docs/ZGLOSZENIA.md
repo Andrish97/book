@@ -10,7 +10,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
-| 115 | Warstwy osobno od właściwości, właściwości zaznaczenia vs ustawienia narzędzia, przejrzyste kolumny i wiersze tabeli | 🔄 |
 
 ## Czeka (kolejne etapy)
 
@@ -66,6 +65,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 108 | Konta testowe usunięte |
 | 107 | Bez starego magazynu i trybu przejściowego linków; okno Dostęp dla AI: polecenie „Podłącz Makietkę” do skopiowania na wierzchu (adres wpisany po utworzeniu klucza), przycisk pobrania rozszerzenia dla Claude Desktop, krótkie zwinięte opisy aplikacji |
 | 103 | Kompaktowość i ikony (13 propozycji: tabela −/+, PDF „Zaawansowane”, ikony w Danych, Czcionkach, Obrazach, zaproszeniach, imporcie) + paleta poleceń Ctrl+K i kolory projektu w wyborze koloru |
+| 115 | Warstwy w osobnym panelu (zawsze widoczne; na telefonie zakładka „Warstwy”), nagłówek panelu: zaznaczony element / ustawienia narzędzia / strona, pędzel rysowania, tabela: „Cała tabela” i „Kolumna i wiersz” klikniętej komórki |
 | 112 | Szary procent po stuknięciu, opis tabeli prostymi słowami, ikona książki dla instrukcji wszędzie, pole szukania z lupą, kroki instrukcji rozbite na kolumny |
 | 111 | „Podgląd” na kafelku otwiera od razu podgląd, bez mignięcia edytora |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |

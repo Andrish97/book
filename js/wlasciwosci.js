@@ -35,6 +35,10 @@ export class PanelWlasciwosci {
     this.opcje = opcje;
     this.obj = undefined;
     this.odswiezacze = [];
+    // Kliknięcie innej komórki zaznaczonej tabeli zmienia część „Kolumna i wiersz” (#115).
+    edytor.addEventListener?.('komorka-tabeli', (e) => { if (this.obj && this.obj === e.detail) this.zbuduj(); });
+    // Włączenie i wyłączenie narzędzia rysowania albo pióra zmienia panel na ustawienia narzędzia i z powrotem.
+    for (const z of ['rysowanie', 'pioro']) edytor.addEventListener?.(z, () => this.zbuduj());
   }
 
   pokaz(obj) {
@@ -56,9 +60,73 @@ export class PanelWlasciwosci {
   // ---------- Budowanie ----------
 
   zbuduj() {
+    this._zbuduj();
+    this._naglowek();
+  }
+
+  // Nagłówek panelu mówi, czego dotyczą ustawienia (#115): zaznaczonego elementu, narzędzia (następnych
+  // elementów) albo strony, gdy nic nie jest zaznaczone. Rodzaj zmienia też kolor tła nagłówka (CSS).
+  _naglowek() {
+    const opak = this.tytul?.closest?.('.naglowek-panelu');
+    if (!opak) return;
+    const e = this.edytor;
+    const obj = this.obj;
+    let rodzaj = 'element';
+    let ik = 'suwaki';
+    let nad = 'Zaznaczony element';
+    let opis = '';
+    if (e.rysuje) { rodzaj = 'narzedzie'; ik = 'rysuj'; nad = 'Ustawienia narzędzia'; opis = 'Tak będą wyglądać następne linie.'; }
+    else if (e.pioro) { rodzaj = 'narzedzie'; ik = 'pioro'; nad = 'Ustawienia narzędzia'; opis = 'Klikaj na stronie, żeby stawiać punkty nowego kształtu.'; }
+    else if (!obj) { rodzaj = 'strona'; ik = this.tytul.textContent === 'Wzorzec' ? 'wzorzec' : 'strony'; nad = 'Nic nie jest zaznaczone'; }
+    else if (toZaznaczenie(obj)) { ik = 'grupuj'; nad = 'Zaznaczone elementy'; }
+    else {
+      const typ = toTabela(obj) || toTabela(obj.group) ? 'tabela' : obj.type;
+      ik = {
+        textbox: 'tekst', 'i-text': 'tekst', text: 'tekst', rect: 'prostokat', ellipse: 'elipsa', circle: 'elipsa',
+        polygon: 'wielokat', line: 'linia', image: 'obraz', path: 'pioro', group: 'grupuj', tabela: 'tabela',
+      }[typ] || 'suwaki';
+    }
+    opak.dataset.rodzaj = rodzaj;
+    let znak = opak.querySelector('.ikona-naglowka');
+    if (!znak) {
+      znak = document.createElement('span');
+      znak.className = 'ikona-naglowka';
+      znak.setAttribute('aria-hidden', 'true');
+      opak.prepend(znak);
+    }
+    if (znak.dataset.ik !== ik) { znak.dataset.ik = ik; znak.innerHTML = ikona(ik, { rozmiar: 18 }); }
+    let nadEl = opak.querySelector('.nad-tytulem');
+    if (!nadEl) {
+      nadEl = document.createElement('span');
+      nadEl.className = 'nad-tytulem';
+      this.tytul.before(nadEl);
+    }
+    nadEl.textContent = nad;
+    let opisEl = opak.querySelector('.opis-naglowka');
+    if (!opisEl) {
+      opisEl = document.createElement('span');
+      opisEl.className = 'opis-naglowka';
+      this.tytul.after(opisEl);
+    }
+    opisEl.textContent = opis;
+    opisEl.hidden = !opis;
+  }
+
+  _zbuduj() {
     this.el.replaceChildren();
     this.odswiezacze = [];
     const obj = this.obj;
+    // Rysowanie odręczne: ustawienia pędzla dla następnych linii (narzędzie, nie zaznaczony element).
+    if (this.edytor.rysuje) {
+      this.tytul.textContent = 'Rysowanie';
+      const e = this.edytor;
+      const s = this.sekcja('Pędzel');
+      s.append(this.kolor('Kolor linii', () => e.pedzel.kolor, (v) => e.ustawPedzel({ kolor: v }), { bezZatwierdzania: true }));
+      s.append(this.liczba('Grubość linii', () => zaokr(e.pedzel.grubosc, 2), (v) => e.ustawPedzel({ grubosc: Math.max(0.1, v) }), { jednostka: 'mm', krok: 0.1, min: 0.1, bezZatwierdzania: true }));
+      s.append(this.wskazowka('Przeciągaj po stronie, żeby rysować. Gotową linię zaznaczysz jak każdy element i zmienisz jej kolor i grubość. Esc albo ponowne kliknięcie „Rysuj” kończy rysowanie.'));
+      s.append(this.akcje([['zamknij', 'Zakończ rysowanie', () => e.ustawRysowanie(false)]]));
+      return;
+    }
     // Pióro i edycja punktów kształtu: krótka ściąga zamiast właściwości strony.
     if (this.edytor.pioro) {
       this.tytul.textContent = 'Pióro';
@@ -306,37 +374,66 @@ export class PanelWlasciwosci {
     const e = this.edytor;
     const t = obj.tabela;
     const zmien = (co, gdzie) => () => { e.zmienTabele(obj, co, gdzie); this.zbuduj(); };
-    const s = this.sekcja('Tabela');
-    s.append(this.wskazowka('Kliknij dwa razy komórkę, żeby w niej pisać. Tab przechodzi do następnej komórki, Esc kończy pisanie.'));
-    // Liczniki „Wiersze [−] 4 [+]” i „Kolumny [−] 3 [+]” zamiast czterech przycisków z napisami (#103).
+    // Dwie części (#115): „Cała tabela” – zmiany wszystkich wierszy i kolumn naraz; „Kolumna i wiersz” –
+    // tylko kolumna i wiersz klikniętej komórki. Bez list wszystkich wierszy, które zagracały panel.
+    const s = this.sekcja('Cała tabela');
+    s.append(this.wskazowka('Kliknij komórkę, żeby zmienić jej kolumnę i wiersz. Dwa kliknięcia – piszesz w komórce.'));
+    // Liczniki „Wiersze [−] 4 [+]” i „Kolumny [−] 3 [+]”: dodają i usuwają ostatni wiersz albo kolumnę.
     const liczniki = document.createElement('div');
     liczniki.className = 'licznik-tabeli';
     liczniki.setAttribute('aria-label', `Wierszy: ${t.wiersze.length}, kolumn: ${t.kolumny.length}.`);
     liczniki.append(
-      this.licznikTabeli('Wiersze', t.wiersze.length, ['Usuń ostatni wiersz', zmien('wiersz-')], ['Dodaj wiersz', zmien('wiersz+')]),
-      this.licznikTabeli('Kolumny', t.kolumny.length, ['Usuń ostatnią kolumnę', zmien('kolumna-')], ['Dodaj kolumnę', zmien('kolumna+')]),
+      this.licznikTabeli('Wiersze', t.wiersze.length, ['Usuń ostatni wiersz', zmien('wiersz-')], ['Dodaj wiersz na końcu', zmien('wiersz+')]),
+      this.licznikTabeli('Kolumny', t.kolumny.length, ['Usuń ostatnią kolumnę', zmien('kolumna-')], ['Dodaj kolumnę na końcu', zmien('kolumna+')]),
     );
     s.append(liczniki);
     s.append(this.przelacznik('Pierwszy wiersz to nagłówek', () => Boolean(t.naglowek), (v) => ustawNaglowek(obj, v)));
-    s.append(this.liczba('Najmniejsza wysokość wiersza', () => zaokr(Math.min(...t.wiersze), 1), (v) => { t.wiersze = t.wiersze.map(() => Math.max(3, v)); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
-    s.append(this.wskazowka('Wiersz sam rośnie, gdy tekst komórki nie mieści się w jego wysokości – także na stronach powielanych z danych. Wysokość jednego wiersza ustawisz niżej albo w trakcie pisania w jego komórce.'));
-
-    // Każdy wiersz może mieć własną najmniejszą wysokość.
-    const wr = this.sekcja('Wysokości wierszy (mm)');
-    t.wiersze.forEach((_, i) => {
-      wr.append(this.liczba(`Wiersz ${i + 1}${t.naglowek && i === 0 ? ' (nagłówek)' : ''}`, () => zaokr(t.wiersze[i], 1), (v) => { ustawWysokoscWiersza(obj, i, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
-    });
-
-    const k = this.sekcja('Szerokości kolumn (mm)');
-    t.kolumny.forEach((_, i) => {
-      k.append(this.liczba(`Kolumna ${i + 1}`, () => zaokr(t.kolumny[i], 1), (v) => { ustawSzerokoscKolumny(obj, i, v, { kosztemSasiedniej: false }); }, { jednostka: 'mm', krok: 0.5, min: 5 }));
-    });
-    k.append(this.akcje([['rozlozX', 'Równe szerokości', () => {
-      const szer = t.kolumny.reduce((a, b) => a + b, 0) / t.kolumny.length;
+    const szerTabeli = () => t.kolumny.reduce((a, b) => a + b, 0);
+    s.append(this.liczba('Szerokość tabeli', () => zaokr(szerTabeli(), 1), (v) => {
+      // Wszystkie kolumny rosną albo maleją w tej samej proporcji.
+      const skala = Math.max(5 * t.kolumny.length, v) / szerTabeli();
+      t.kolumny = t.kolumny.map((x) => zaokr(Math.max(5, x * skala), 2));
+    }, { jednostka: 'mm', krok: 1, min: 5 }));
+    s.append(this.liczba('Wysokość wierszy', () => zaokr(Math.min(...t.wiersze), 1), (v) => { t.wiersze = t.wiersze.map(() => Math.max(3, v)); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
+    s.append(this.wskazowka('Obie liczby dotyczą całej tabeli. Wysokość wierszy to najmniejsza wysokość każdego wiersza – wiersz rośnie sam, gdy tekst się nie mieści.'));
+    s.append(this.akcje([['rozlozX', 'Wyrównaj szerokości kolumn', () => {
+      const szer = szerTabeli() / t.kolumny.length;
       t.kolumny = t.kolumny.map(() => szer);
       e.zatwierdz();
       this.odswiez();
     }]]));
+
+    // Kolumna i wiersz klikniętej komórki.
+    const m = e.wybranaKomorka(obj);
+    const kw = this.sekcja('Kolumna i wiersz');
+    kw.classList.add('kolumna-i-wiersz');
+    if (!m) {
+      kw.append(this.wskazowka('Kliknij komórkę tabeli – tu zmienisz szerokość jej kolumny i wysokość jej wiersza, wstawisz albo usuniesz kolumnę i wiersz.'));
+    } else {
+      const nr = document.createElement('p');
+      nr.className = 'wybrana-komorka';
+      nr.textContent = `Komórka: kolumna ${m.k + 1}, wiersz ${m.w + 1}${t.naglowek && m.w === 0 ? ' (nagłówek)' : ''}`;
+      kw.append(nr);
+      kw.append(this.liczba(`Szerokość kolumny ${m.k + 1}`, () => zaokr(t.kolumny[m.k], 1), (v) => { ustawSzerokoscKolumny(obj, m.k, v, { kosztemSasiedniej: false }); }, { jednostka: 'mm', krok: 0.5, min: 5 }));
+      kw.append(this.akcje([
+        ['plus', 'Kolumna przed', zmien('kolumna+', m.k - 1)],
+        ['plus', 'Kolumna po', zmien('kolumna+', m.k)],
+        ['kosz', 'Usuń kolumnę', zmien('kolumna-', m.k)],
+      ]));
+      kw.append(this.liczba(`Wysokość wiersza ${m.w + 1}`, () => zaokr(t.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(obj, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
+      kw.append(this.akcje([
+        ['plus', 'Wiersz nad', zmien('wiersz+', m.w - 1)],
+        ['plus', 'Wiersz pod', zmien('wiersz+', m.w)],
+        ['kosz', 'Usuń wiersz', zmien('wiersz-', m.w)],
+      ]));
+    }
+
+    // Wszystkie kolumny naraz – zwykle kilka, więc krótka lista; domyślnie zwinięta.
+    const k = this.sekcja('Szerokości wszystkich kolumn', { zwinieta: true });
+    k.classList.add('kolumny-tabeli');
+    t.kolumny.forEach((_, i) => {
+      k.append(this.liczba(`${i + 1}`, () => zaokr(t.kolumny[i], 1), (v) => { ustawSzerokoscKolumny(obj, i, v, { kosztemSasiedniej: false }); }, { jednostka: 'mm', krok: 0.5, min: 5 }));
+    });
     k.append(this.wskazowka('Granicę kolumn przesuniesz też niebieskim znacznikiem nad zaznaczoną tabelą.'));
 
     const l = this.sekcja('Linie tabeli');
@@ -390,10 +487,16 @@ export class PanelWlasciwosci {
     const m = e.miejsceKomorki(obj);
     if (!m) return;
     const zmien = (co, gdzie) => () => { e.zmienTabele(tabela, co, gdzie); if (this.obj === e.aktywny) this.zbuduj(); };
-    const s = this.sekcja('Tabela');
-    s.append(this.wskazowka(`Komórka w wierszu ${m.w + 1}, kolumnie ${m.k + 1}. Tab przechodzi do następnej komórki, Esc wraca do całej tabeli.`));
-    s.append(this.akcje([['plus', 'Wstaw wiersz poniżej', zmien('wiersz+', m.w)], ['minus', 'Usuń ten wiersz', zmien('wiersz-', m.w)]]));
-    s.append(this.akcje([['plus', 'Wstaw kolumnę z prawej', zmien('kolumna+', m.k)], ['minus', 'Usuń tę kolumnę', zmien('kolumna-', m.k)]]));
+    // Te same nazwy co przy zaznaczonej tabeli (#115): kolumna i wiersz tej komórki.
+    const s = this.sekcja('Kolumna i wiersz');
+    s.classList.add('kolumna-i-wiersz');
+    const nr = document.createElement('p');
+    nr.className = 'wybrana-komorka';
+    nr.textContent = `Komórka: kolumna ${m.k + 1}, wiersz ${m.w + 1}`;
+    s.append(nr);
+    s.append(this.wskazowka('Tab przechodzi do następnej komórki, Esc wraca do całej tabeli.'));
+    s.append(this.liczba(`Szerokość kolumny ${m.k + 1}`, () => zaokr(tabela.tabela.kolumny[m.k], 1), (v) => { ustawSzerokoscKolumny(tabela, m.k, v, { kosztemSasiedniej: false }); }, { jednostka: 'mm', krok: 0.5, min: 5 }));
+    s.append(this.akcje([['plus', 'Kolumna przed', zmien('kolumna+', m.k - 1)], ['plus', 'Kolumna po', zmien('kolumna+', m.k)], ['kosz', 'Usuń kolumnę', zmien('kolumna-', m.k)]]));
     // Scalanie: komórka rośnie o sąsiednią po prawej albo poniżej; „Rozdziel” przywraca osobne komórki.
     const sc = e.scalenieKomorki(obj);
     const zajete = sc || { w: m.w, k: m.k, ileW: 1, ileK: 1 };
@@ -403,8 +506,9 @@ export class PanelWlasciwosci {
     if (sc) scalanie.push(['rozgrupuj', 'Rozdziel komórki', zmien('rozdziel', m)]);
     if (scalanie.length) s.append(this.akcje(scalanie));
     if (sc) s.append(this.wskazowka(`Ta komórka zajmuje ${sc.ileK} ${sc.ileK === 1 ? 'kolumnę' : 'kolumny'} i ${sc.ileW} ${sc.ileW === 1 ? 'wiersz' : 'wiersze'}. Tekst komórek, które przykryła, jest w niej dopisany; po rozdzieleniu cały zostaje w pierwszej komórce.`));
-    s.append(this.liczba('Najmniejsza wysokość tego wiersza', () => zaokr(tabela.tabela.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(tabela, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
-    s.append(this.wskazowka(`Teraz ten wiersz ma ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm (rośnie razem z tekstem).`));
+    s.append(this.liczba(`Wysokość wiersza ${m.w + 1}`, () => zaokr(tabela.tabela.wiersze[m.w], 1), (v) => { ustawWysokoscWiersza(tabela, m.w, v); }, { jednostka: 'mm', krok: 0.5, min: 3 }));
+    s.append(this.wskazowka(`Teraz ten wiersz ma ${zaokr(wysokosciWierszy(tabela)[m.w], 1)} mm – rośnie razem z tekstem.`));
+    s.append(this.akcje([['plus', 'Wiersz nad', zmien('wiersz+', m.w - 1)], ['plus', 'Wiersz pod', zmien('wiersz+', m.w)], ['kosz', 'Usuń wiersz', zmien('wiersz-', m.w)]]));
 
     // Linie tej jednej komórki: każda krawędź osobno – jak w całej tabeli, bez linii albo własna.
     const lin = this.sekcja('Linie tej komórki');
@@ -1037,7 +1141,8 @@ export class PanelWlasciwosci {
 
   // Sekcję panelu można zwinąć kliknięciem w jej tytuł; wybór jest pamiętany
   // na urządzeniu (osobno dla każdego tytułu), bo panel bywa długi.
-  sekcja(tytul) {
+  // opcje.zwinieta: sekcja zaczyna zwinięta (dopóki ktoś jej nie rozwinie – zapamiętane jak zwinięcie).
+  sekcja(tytul, { zwinieta: domyslnieZwinieta = false } = {}) {
     const f = document.createElement('fieldset');
     // Pierwsza sekcja o tej samej nazwie co nagłówek panelu – bez powtórzenia.
     if (!(this.el.children.length === 0 && tytul === this.tytul.textContent)) {
@@ -1048,12 +1153,15 @@ export class PanelWlasciwosci {
       b.className = 'zwijak';
       b.textContent = tytul;
       const ustaw = (zwinieta) => { f.classList.toggle('zwinieta', zwinieta); b.setAttribute('aria-expanded', String(!zwinieta)); };
-      ustaw(zwiniete().has(klucz));
+      // Sekcja domyślnie zwinięta zapamiętuje rozwinięcie (klucz z „+”), zwykła – zwinięcie.
+      const zapisany = domyslnieZwinieta ? `+${klucz}` : klucz;
+      const czyZwinieta = (z) => (domyslnieZwinieta ? !z.has(zapisany) : z.has(zapisany));
+      ustaw(czyZwinieta(zwiniete()));
       b.addEventListener('click', () => {
         const z = zwiniete();
-        if (z.has(klucz)) z.delete(klucz); else z.add(klucz);
+        if (z.has(zapisany)) z.delete(zapisany); else z.add(zapisany);
         try { localStorage.setItem(KLUCZ_ZWINIETE, JSON.stringify([...z])); } catch { /* tryb prywatny */ }
-        ustaw(z.has(klucz));
+        ustaw(czyZwinieta(z));
       });
       l.append(b);
       f.append(l);
@@ -1071,7 +1179,7 @@ export class PanelWlasciwosci {
   }
 
   // krotko – skrót nazwy pokazywany na telefonie w samym polu (zamiast nazwy nad nim), np. „Szer.”.
-  liczba(etykieta, get, set, { jednostka = '', krok = 0.5, min, wylaczone = false, krotko = '' } = {}) {
+  liczba(etykieta, get, set, { jednostka = '', krok = 0.5, min, wylaczone = false, krotko = '', bezZatwierdzania = false } = {}) {
     const label = document.createElement('label');
     const opak = document.createElement('div');
     opak.className = 'jednostka';
@@ -1096,7 +1204,7 @@ export class PanelWlasciwosci {
     input.inputMode = 'decimal';
     if (min !== undefined) input.min = String(min);
     input.disabled = wylaczone;
-    const zapisz = this._zapisz(set);
+    const zapisz = this._zapisz(set, !bezZatwierdzania);
     input.addEventListener('change', () => {
       const v = parseFloat(input.value.replace(',', '.'));
       if (Number.isFinite(v)) zapisz(v);

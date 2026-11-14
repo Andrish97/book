@@ -108,7 +108,7 @@ export const ROZDZIAL_NARZEDZIA = {
     {
       tytul: 'Prawy panel: Właściwości, Warstwy, Ostrzeżenia',
       punkty: [
-        `Przełącznik <b>Właściwości / Warstwy</b> u góry panelu. <b>Właściwości</b> – ustawienia zaznaczenia (bez zaznaczenia – ustawienia strony); każda część opisana jest w rozdziale ${L('Panel właściwości – przewodnik')}. <b>Warstwy</b> – lista elementów strony od wierzchu do spodu: ${L('Warstwy')}.`,
+        `Nagłówek panelu mówi, czego dotyczą ustawienia: <b>Zaznaczony element</b>, <b>Ustawienia narzędzia</b> (np. rysowania – tak będą wyglądać następne linie; nagłówek ma wtedy kolorowe tło) albo <b>Strona</b>, gdy nic nie jest zaznaczone. Każda część opisana jest w rozdziale ${L('Panel właściwości – przewodnik')}. Pod właściwościami – <b>Warstwy</b>, lista elementów strony od wierzchu do spodu, widoczna zawsze: ${L('Warstwy')}.`,
         'Przy nazwie zaznaczonego elementu trzy przyciski: <b>Kopiuj do schowka</b> (<kbd>Ctrl+C</kbd> – wkleisz na tej lub innej stronie), <b>Duplikuj</b> (<kbd>Ctrl+D</kbd>) i <b>Usuń</b> (<kbd>Delete</kbd>).',
         '<b>Ostrzeżenia</b> na dole panelu: licznik i lista elementów, które wychodzą w margines albo poza spad, nie mieszczą tekstu itp. Kliknięcie pozycji zaznacza element. <b>Wycisz</b> – „to celowe”, ostrzeżenie dla tego elementu znika (cofniesz to w części <b>Inne</b> elementu). Nagłówek zwija listę.',
       ],
@@ -208,7 +208,7 @@ export const ROZDZIAL_PANEL = {
       tytul: 'Tabela (element na stronie)',
       punkty: [
         '<b>Tabela</b>: liczba wierszy i kolumn, <b>Pierwszy wiersz to nagłówek</b> (inny wygląd i powtarzanie przy przelewaniu).',
-        '<b>Wysokości wierszy (mm)</b> i <b>Szerokości kolumn (mm)</b> – liczby albo przeciąganie linii między komórkami.',
+        '<b>Cała tabela</b>: szerokość tabeli i wysokość wszystkich wierszy, <b>Wyrównaj szerokości kolumn</b>. <b>Kolumna i wiersz</b>: po kliknięciu komórki – szerokość jej kolumny, wysokość jej wiersza, wstawianie i usuwanie. Granice kolumn przesuwasz też znacznikami nad tabelą.',
         '<b>Linie tabeli</b>: <b>Które linie</b> (wszystkie, tylko poziome, ramka…), kolor i grubość. <b>Tło wierszy</b>: kolor i co drugi wiersz (pasy).',
         '<b>Tekst w komórkach</b>: czcionka, rozmiar, wyrównanie, odstęp od brzegu komórki. Zaznaczona komórka ma własne <b>Linie tej komórki</b> i może się łączyć z sąsiednimi.',
         `Dwuklik komórki zaczyna pisanie; <kbd>Tab</kbd> przechodzi dalej. W komórce działają pola z danych. ${L('Tabela')}.`,

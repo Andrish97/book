@@ -406,17 +406,15 @@ if (require.main === module) (async () => {
   await zrzut(d, 'odleglosci.png', { clip: { x: 236, y: 56, width: 744, height: 520 } });
   await d.mouse.up();
 
-  // Warstwy
-  await d.click('#zakladki-panelu label:has-text("Warstwy")');
+  // Warstwy: panel pod właściwościami (#115) – zawsze widoczny, zrzut prawej części okna z płótnem obok.
   await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
   await d.click('#lista-warstw li:has-text("Pas na notatki") .warstwa-oko');
   await d.hover('#lista-warstw li:has-text("Poniedziałek")');
   await d.click('#lista-warstw li:has-text("Poniedziałek") .warstwa-klodka');
   await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
-  await zrzut(d, 'warstwy.png', { clip: { x: 0, y: 56, width: 820, height: 480 } });
+  await zrzut(d, 'warstwy.png', { clip: { x: WIDOK.width - 820, y: 56, width: 820, height: WIDOK.height - 56 } });
 
   // Dane, pola i serie: strona dnia powielana według tabeli
-  await d.click('#zakladki-panelu label:has-text("Właściwości")');
   await d.evaluate(async () => {
     const { edytor: e, stan } = window.seriodruk;
     const p = stan.projekt;

@@ -747,23 +747,27 @@
 
       <aside class="panel panel-inspektor" id="panel-inspektor" aria-label="Właściwości i warstwy">
         <button type="button" class="uchwyt-arkusza" aria-label="Uchwyt panelu: stuknij, żeby powiększyć albo zmniejszyć; przeciągnij w dół, żeby zamknąć"></button>
-        <div class="naglowek-panelu zakladki-panelu-opak">
-          <div class="przelacznik-segmentowy zakladki-listy" id="zakladki-panelu" role="radiogroup" aria-label="Panel">
-            <label><input type="radio" name="zakladka-panelu" value="wlasciwosci" checked><span>Właściwości</span></label>
-            <label><input type="radio" name="zakladka-panelu" value="warstwy"><span>Warstwy</span></label>
+        <!-- Nagłówek mówi, czego dotyczą ustawienia: zaznaczonego elementu, narzędzia albo strony (#115).
+             Kopiuj, duplikuj, usuń – przy zaznaczonym elemencie. -->
+        <div class="naglowek-panelu naglowek-wlasciwosci" id="naglowek-wlasciwosci" data-rodzaj="strona">
+          <div class="tytul-naglowka">
+            <h2 id="tytul-wlasciwosci">Strona</h2>
           </div>
-          <!-- Kopiuj, duplikuj, usuń: w jednym wierszu z zakładkami (#109). -->
           <div class="akcje-obiektu" id="akcje-obiektu" hidden>
             <button class="przycisk-ikona maly" data-akcja="kopiuj" data-ikona="wklej" title="Kopiuj do schowka – wkleisz na tej lub innej stronie (Ctrl+C)" aria-label="Kopiuj do schowka"></button>
             <button class="przycisk-ikona maly" data-akcja="duplikuj" data-ikona="kopiuj" title="Duplikuj (Ctrl+D)" aria-label="Duplikuj"></button>
             <button class="przycisk-ikona maly" data-akcja="usun" data-ikona="kosz" title="Usuń (Delete)" aria-label="Usuń"></button>
           </div>
         </div>
-        <div class="naglowek-panelu" id="naglowek-wlasciwosci">
-          <h2 id="tytul-wlasciwosci">Strona</h2>
-        </div>
         <div id="wlasciwosci" class="wlasciwosci"></div>
-        <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu" hidden></ol>
+        <!-- Warstwy: zawsze pod ręką, niezależnie od narzędzia i zaznaczenia (#115). Na komputerze – zwijany
+             panel pod właściwościami, na telefonie i tablecie – osobna zakładka w dolnym menu. -->
+        <section class="dok-warstw" id="dok-warstw" aria-label="Warstwy">
+          <button type="button" class="naglowek-dok" id="naglowek-warstw" aria-expanded="true" aria-controls="lista-warstw">
+            <span data-ikona="warstwy" data-rozmiar="16"></span> Warstwy <span class="licznik" id="licznik-warstw">0</span>
+          </button>
+          <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu"></ol>
+        </section>
         <section class="sekcja-ostrzezen" id="sekcja-ostrzezen">
           <button class="naglowek-ostrzezen" id="naglowek-ostrzezen" aria-expanded="true">
             <span data-ikona="uwaga" data-rozmiar="16"></span> Ostrzeżenia <span class="licznik" id="licznik-ostrzezen">0</span>
@@ -776,6 +780,7 @@
     <nav class="zakladki-mobilne" aria-label="Panele">
       <button data-panel="strony" data-ikona="strony"><span>Strony</span></button>
       <button data-panel="inspektor" data-ikona="suwaki"><span>Właściwości</span></button>
+      <button data-panel="warstwy" data-ikona="warstwy"><span>Warstwy</span></button>
       <button data-panel="ostrzezenia" data-ikona="uwaga"><span>Ostrzeżenia</span><span class="kropka" id="kropka-ostrzezen" hidden></span></button>
     </nav>
   </div>
