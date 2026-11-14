@@ -1,6 +1,7 @@
 /* global fabric */
 // Panel właściwości: pola liczbowe w mm (4.7 – precyzja na tablecie).
 
+import { STREFY, strefaW } from './okladka.js';
 import { toZaznaczenie } from './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
@@ -221,6 +222,17 @@ export class PanelWlasciwosci {
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
     if (wGrupie) return;
     this.opcje.dodatkiElementu?.(this, obj, inne);
+    const okl = this.edytor.wydruk?.okladka;
+    if (okl) {
+      // Okładka (#119): do której części element jest przypięty – przy zmianie grzbietu element grzbietu zostaje
+      // na jego środku, a element przodu przesuwa się razem z przodem.
+      const auto = STREFY[strefaW(okl, obj.getCenterPoint().x)] || 'Tył';
+      inne.append(this.wybor('Na okładce trzyma się', [['auto', `Automatycznie (${auto.toLowerCase()})`], ['tyl', 'Tyłu'], ['grzbiet', 'Grzbietu'], ['przod', 'Przodu']],
+        () => obj.okladka || 'auto', (v) => { obj.okladka = v === 'auto' ? undefined : v; }));
+      if (obj.type !== 'textbox' && (obj.okladka === 'grzbiet' || (!obj.okladka && strefaW(okl, obj.getCenterPoint().x) === 'grzbiet'))) {
+        inne.append(this.przelacznik('Dopasuj szerokość do grzbietu', () => Boolean(obj.okladka_dopasuj), (v) => { obj.okladka_dopasuj = v || undefined; }));
+      }
+    }
     inne.append(this.przelacznik('Wycisz ostrzeżenia dla tego obiektu', () => Boolean(obj.bez_ostrzezen), (v) => { obj.bez_ostrzezen = v || undefined; }));
   }
 

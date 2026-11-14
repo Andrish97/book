@@ -90,7 +90,10 @@ export const biezacyCel = () => (stan.tryb === 'wzorzec' ? biezacyWzorzec() : bi
 export const biezacaSekcja = () => sekcjaStrony(stan.projekt, biezacaStrona());
 
 export function wydrukCelu() {
-  return stan.tryb === 'wzorzec' ? biezacyWzorzec().wydruk : biezacaSekcja().wydruk;
+  if (stan.tryb === 'wzorzec') return biezacyWzorzec().wydruk;
+  const sekcja = biezacaSekcja();
+  // Okładka (#119): edytor dostaje też strefy (tył, grzbiet, przód…) – do prowadnic i ostrzeżeń.
+  return sekcja.okladka?.wynik ? { ...sekcja.wydruk, okladka: sekcja.okladka.wynik } : sekcja.wydruk;
 }
 
 export const liczba = (v) => String(Math.round(v * 100) / 100).replace('.', ',');

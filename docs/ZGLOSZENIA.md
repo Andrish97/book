@@ -10,8 +10,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
-| 119 | Okładka liczona sama: oprawa, papier (grubość albo gramatura), strony środka liczone albo wpisane, elementy przy grzbiecie przesuwają się same | 🔄 |
-| 120 | Składki (×4/8/16/32): pilnowanie liczby stron, dopełnianie pustymi | 🔄 |
 | 123 | Z Canvy: kształt jako ramka obrazu, usuwanie tła bez AI, półprzezroczyste przejścia, filtry, zaokrąglone rogi, cień tekstu, tekst po łuku, kod QR | 🔄 |
 | 124 | Link dla drukarni z edycją grzbietu i kartą techniczną | ⏳ po #119 |
 
@@ -45,6 +43,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 118 | Uchwyt arkuszy na telefonie: stuknięcie zwija powiększony, zwykły zamyka (już nie rozwija) |
 | 121 | Własna ikona „Zamień orientację” (kartka ze strzałką), inna niż Cofnij/Ponów |
 | 122 | Ostrzeżenia na telefonie na całą wysokość arkusza, z przewijaniem |
+| 120 | Składki (×4/8/16/32) w ustawieniach sekcji: licznik „46 z 48 – brakuje 2” na liście stron, uwaga przed drukiem, „Dopełnij pustymi” z cofaniem |
+| 119 | Okładka liczona sama: rodzaj sekcji „Okładka z grzbietem” (oprawa miękka/zeszytowa/twarda, papier – gramatura albo grubość kartki, strony środka liczone albo wpisane), schemat i wynik w oknie, strefy na płótnie i w podglądzie, elementy przypięte do tyłu/grzbietu/przodu przesuwają się same, „Zamień na okładkę”, okładka w kreatorze; poprawione ostrzeżenia linii przy spadzie |
 | 116 | Załączniki w formularzu kontaktowym (do 5 plików, 10 MB) – trafiają do zgłoszenia w skrzynce |
 | 113a | Powiadomienia bez sekretów: klucze tworzą się same, nic nie trzeba ustawiać |
 | 113 | Powiadomienia push jak w Familiadzie: zaproszenie, udostępnienie, odpowiedź na zaproszenie, zmiana roli, odebranie dostępu; włączanie w Ustawieniach konta |

@@ -851,6 +851,14 @@
           <label><input type="radio" name="uklad" value="rozkladowki"><span>Rozkładówki (lewa + prawa)</span></label>
         </div>
       </div>
+      <label class="pole"><span>Okładka</span>
+        <select name="okladka">
+          <option value="">Bez osobnej okładki</option>
+          <option value="miekka">Miękka klejona – z grzbietem liczonym z liczby stron</option>
+          <option value="zeszytowa">Zeszytowa – szyta zszywkami, bez grzbietu</option>
+          <option value="twarda">Twarda – tektura z zawinięciem</option>
+        </select>
+      </label>
       <p class="podpowiedz">Spad to pas za krawędzią strony, który drukarnia odcina – tła i zdjęcia „na spad” sięgają do niego. Rozkładówki wybierz dla publikacji zszywanej lub klejonej jak książka – marginesy będą lustrzane. Wszystko możesz zmienić później.</p>
       <div class="przyciski-dialogu">
         <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
@@ -867,7 +875,7 @@
       </div>
       <div class="rzad">
         <label class="pole"><span>Nazwa sekcji</span><input name="nazwa" required maxlength="60" placeholder="np. Okładka, Środek, Wkładka"></label>
-        <div class="pole pole-orientacja">
+        <div class="pole pole-orientacja" id="pole-uklad-sekcji">
           <span>Układ stron</span>
           <div class="przelacznik-segmentowy" role="radiogroup">
             <label><input type="radio" name="uklad" value="pojedyncze" checked><span>Pojedyncze</span></label>
@@ -875,9 +883,16 @@
           </div>
         </div>
       </div>
+      <div class="pole pole-orientacja" id="pole-rodzaj-sekcji">
+        <span>Rodzaj sekcji</span>
+        <div class="przelacznik-segmentowy" role="radiogroup">
+          <label><input type="radio" name="rodzaj" value="strony" checked><span>Strony</span></label>
+          <label><input type="radio" name="rodzaj" value="okladka"><span>Okładka z grzbietem</span></label>
+        </div>
+      </div>
       <p class="podpowiedz" id="podpowiedz-rozkladowki" hidden>Strony tworzą pary lewa + prawa. Margines wewnętrzny jest przy grzbiecie – na lewych stronach z prawej, na prawych z lewej.</p>
 
-      <fieldset class="grupa-pol">
+      <fieldset class="grupa-pol" id="sekcja-format">
         <legend>Format</legend>
         <label class="pole"><span>Format</span><select name="format"></select></label>
         <div class="rzad">
@@ -887,16 +902,54 @@
         </div>
       </fieldset>
 
-      <details class="kalkulator-grzbietu" id="kalkulator-grzbietu">
-        <summary>Okładka z grzbietem: policz szerokość</summary>
+      <!-- Okładka liczona sama (#119): format, grzbiet i zawinięcia z formatu i liczby stron środka oraz papieru. -->
+      <fieldset class="grupa-pol" id="sekcja-okladka" hidden>
+        <legend>Okładka</legend>
+        <div class="schemat-okladki" id="schemat-okladki" aria-hidden="true"></div>
+        <p class="wynik-okladki" id="wynik-okladki" role="status"></p>
+        <label class="pole"><span>Oprawa</span>
+          <select name="ok_oprawa">
+            <option value="miekka">Miękka klejona (z grzbietem)</option>
+            <option value="zeszytowa">Zeszytowa – szyta zszywkami (bez grzbietu)</option>
+            <option value="twarda">Twarda (tektura z zawinięciem)</option>
+          </select>
+        </label>
         <div class="rzad">
-          <label class="pole"><span>Szerokość strony środka (mm)</span><input id="grzbiet-strona" type="number" min="20" max="1000" step="0.1" inputmode="decimal"></label>
-          <label class="pole"><span>Stron w środku</span><input id="grzbiet-strony" type="number" min="2" max="5000" step="2" inputmode="numeric"></label>
-          <label class="pole"><span>Grubość kartki (mm)</span><input id="grzbiet-kartka" type="number" min="0.03" max="1" step="0.01" value="0.1" inputmode="decimal"></label>
+          <div class="pole pole-orientacja">
+            <span>Strony środka</span>
+            <div class="przelacznik-segmentowy" role="radiogroup">
+              <label><input type="radio" name="ok_strony" value="auto" checked><span>Policz same</span></label>
+              <label><input type="radio" name="ok_strony" value="reczne"><span>Wpisz</span></label>
+            </div>
+          </div>
+          <label class="pole waskie" id="pole-ok-liczba"><span>Liczba stron</span><input name="ok_liczba" type="number" min="0" max="20000" step="2" inputmode="numeric"></label>
         </div>
-        <p class="podpowiedz" id="grzbiet-wynik"></p>
-        <button type="button" class="przycisk" id="grzbiet-ustaw">Ustaw tę szerokość</button>
-      </details>
+        <div class="pole" id="pole-ok-srodek" hidden>
+          <span>Środek to sekcje</span>
+          <div class="lista-wyboru" id="ok-srodek"></div>
+        </div>
+        <div class="rzad">
+          <div class="pole pole-orientacja">
+            <span>Papier środka</span>
+            <div class="przelacznik-segmentowy" role="radiogroup">
+              <label><input type="radio" name="ok_papier" value="gramatura" checked><span>Gramatura</span></label>
+              <label><input type="radio" name="ok_papier" value="grubosc"><span>Grubość kartki</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="rzad" id="pole-ok-gramatura">
+          <label class="pole waskie"><span>Gramatura (g/m²)</span><input name="ok_gramatura" type="number" min="30" max="400" step="1" inputmode="numeric"></label>
+          <label class="pole"><span>Rodzaj papieru</span><select name="ok_rodzaj"></select></label>
+        </div>
+        <label class="pole waskie" id="pole-ok-grubosc" hidden><span>Grubość kartki (mm)</span><input name="ok_grubosc" type="number" min="0.02" max="2" step="0.005" inputmode="decimal"></label>
+        <div class="rzad" id="pole-ok-twarda" hidden>
+          <label class="pole waskie"><span>Zawinięcie (mm)</span><input name="ok_zawiniecie" type="number" min="0" max="50" step="0.5" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Big (mm)</span><input name="ok_big" type="number" min="0" max="30" step="0.5" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Naddatek tektury (mm)</span><input name="ok_naddatek" type="number" min="0" max="20" step="0.5" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Grubość tektury (mm)</span><input name="ok_tektura" type="number" min="0" max="10" step="0.1" inputmode="decimal"></label>
+        </div>
+        <p class="podpowiedz">Grubość kartki (albo gramaturę i rodzaj papieru) podaje drukarnia. Okładka przelicza się sama, gdy przybędzie stron w środku – elementy grzbietu zostają na jego środku, a przód przesuwa się razem z nim.</p>
+      </fieldset>
 
       <fieldset class="grupa-pol">
         <legend>Marginesy i spad (mm)</legend>
@@ -929,6 +982,17 @@
           </label>
           <label class="pole waskie" id="pole-numeracja-od" hidden><span>Pierwszy numer</span><input name="numeracja_od" type="number" min="0" max="9999" step="1" inputmode="numeric"></label>
         </div>
+        <!-- Składki (#120): środek szyty albo klejony ze składek – liczba stron pilnowana do pełnej składki. -->
+        <label class="pole" id="pole-skladka"><span>Składki (pilnuj liczby stron)</span>
+          <select name="skladka">
+            <option value="0">Bez pilnowania</option>
+            <option value="4">Co 4 strony (zeszyt)</option>
+            <option value="8">Co 8 stron</option>
+            <option value="16">Co 16 stron (najczęściej)</option>
+            <option value="32">Co 32 strony</option>
+          </select>
+        </label>
+        <p class="podpowiedz" id="opis-skladki"></p>
         <div class="pole" id="sekcja-wzorce-pole">
           <span>Wzorce na stronach tej sekcji</span>
           <div class="lista-wyboru" id="sekcja-wzorce"></div>
@@ -1471,6 +1535,7 @@
   <div class="menu menu-strony" id="menu-sekcji" role="menu" hidden>
     <button role="menuitem" data-akcja="sekcja-ustawienia">Ustawienia sekcji</button>
     <button role="menuitem" data-akcja="sekcja-strona">Dodaj stronę do sekcji</button>
+    <button role="menuitem" data-akcja="sekcja-okladka">Zamień na okładkę z grzbietem</button>
     <button role="menuitem" data-akcja="sekcja-gora">Przesuń sekcję wyżej</button>
     <button role="menuitem" data-akcja="sekcja-dol">Przesuń sekcję niżej</button>
     <hr>

@@ -50,7 +50,7 @@ import {
   wzorzecZMenu, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
 } from './lista-stron.js';
 import { podlaczDokWarstw } from './dok-warstw.js';
-import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje } from './sekcje.js';
+import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje, zamienNaOkladke } from './sekcje.js';
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
 } from './wzorce.js';
@@ -58,6 +58,7 @@ import {
 const OPIS_OSTRZEZEN = {
   poza_strona: 'Poza stroną – nie będzie widoczny w druku.',
   poza_spadem: 'Wychodzi poza spad – część zostanie ucięta.',
+  szerszy_niz_grzbiet: 'Szerszy niż grzbiet – zachodzi na tył albo przód okładki.',
   w_marginesie: 'Wchodzi w margines – może zostać przycięty.',
   nieznane_pole: 'Pole w klamrach nie pasuje do kolumny tabeli tej strony ani do pola dokumentu.',
   nie_miesci_sie: 'Tekst nie mieści się w ramce – dół zostanie ucięty.',
@@ -259,6 +260,7 @@ export const akcje = {
   'sekcja-dodaj': () => otworzUstawieniaSekcji(null),
   'sekcja-ustawienia': przezMenu(sekcjaZMenu, otworzUstawieniaSekcji),
   'sekcja-strona': przezMenu(sekcjaZMenu, dodajStrone),
+  'sekcja-okladka': przezMenu(sekcjaZMenu, zamienNaOkladke),
   'sekcja-gora': przezMenu(sekcjaZMenu, (id) => przesunSekcje(id, -1)),
   'sekcja-dol': przezMenu(sekcjaZMenu, (id) => przesunSekcje(id, 1)),
   'sekcja-usun': przezMenu(sekcjaZMenu, usunSekcje),

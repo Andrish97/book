@@ -1301,11 +1301,6 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 :root[data-dotyk] .prezentacja-strzalka { display: none; }
 @media (prefers-reduced-motion: reduce) { .prezentacja-uklad.animuje { transition: none; } }
 
-.kalkulator-grzbietu { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 10px 14px; }
-.kalkulator-grzbietu summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--tusz-2); }
-.kalkulator-grzbietu[open] { display: flex; flex-direction: column; gap: 10px; }
-.kalkulator-grzbietu[open] summary { margin-bottom: 4px; }
-.kalkulator-grzbietu .przycisk { align-self: flex-start; }
 
 body.podglad-publiczny .tylko-gosc { display: inline-flex !important; }
 body.podglad-publiczny .tylko-wlasciciel { display: none !important; }
@@ -2769,3 +2764,31 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
   #lista-stron .kafelek-dodaj-strone.w-pustej { flex-basis: 104px; }
   #lista-stron .kafelek-dodaj-strone.w-pustej .kafelek-dodaj { width: 104px; }
 }
+/* ---------- Okładka liczona sama (#119): schemat stref i wynik w oknie sekcji ---------- */
+.schemat-okladki {
+  position: relative; width: 100%; max-width: 520px; margin: 0 auto; aspect-ratio: var(--proporcja, 300 / 210);
+  background: color-mix(in srgb, var(--akcent) 6%, var(--powierzchnia)); border: 1px solid var(--linia-mocna); border-radius: 3px; overflow: hidden;
+}
+.strefa-okladki { position: absolute; top: 0; bottom: 0; display: grid; place-items: center; min-width: 1px; }
+.strefa-okladki span { font-size: 11px; font-weight: 600; color: var(--tusz-2); white-space: nowrap; }
+.strefa-tyl, .strefa-przod { background: var(--powierzchnia); box-shadow: inset 0 0 0 1px var(--linia); }
+.strefa-grzbiet { background: color-mix(in srgb, var(--akcent) 22%, var(--powierzchnia)); }
+.strefa-grzbiet span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 10px; }
+.strefa-big { background: repeating-linear-gradient(90deg, transparent 0 2px, color-mix(in srgb, var(--tusz) 14%, transparent) 2px 3px); }
+.strefa-zawiniecie { background: color-mix(in srgb, var(--tusz) 6%, transparent); }
+.wynik-okladki { display: flex; flex-direction: column; gap: 2px; margin: 0; text-align: center; }
+.wynik-okladki strong { font-size: 14px; }
+.wynik-okladki small { font-size: 12px; color: var(--cichy); }
+#pole-ok-liczba input:disabled { opacity: .7; }
+/* Licznik składek w panelu stron (#120). */
+.skladka-sekcji { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 2px 0 0; font-size: 11px; color: var(--cichy); }
+.skladka-sekcji.brak { color: var(--uwaga); font-weight: 600; }
+.skladka-sekcji .przycisk { min-height: 26px; padding: 0 8px; font-size: 11.5px; }
+/* Okładka w podglądzie (#119): linie zgięć jako delikatne tło pomocnicze. */
+.podglad-kartka { position: relative; }
+.zgiecia-okladki { position: absolute; inset: 0; pointer-events: none; }
+.zgiecia-okladki i { position: absolute; display: block; border-color: rgba(13, 148, 136, .55); border-style: dashed; border-width: 0; }
+.zgiecia-okladki i.pion { top: 0; bottom: 0; border-left-width: 1px; }
+.zgiecia-okladki i.poziom { left: 0; right: 0; border-top-width: 1px; }
+#pole-ok-twarda, #pole-ok-gramatura { align-items: flex-end; flex-wrap: wrap; }
+#pole-ok-twarda .pole { flex: 1 1 110px; }

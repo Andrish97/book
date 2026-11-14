@@ -19,6 +19,7 @@ export const WLASNE_POLA = [
   'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
   'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana
   'tabela', // tabela jako jeden element: { kolumny, wiersze, naglowek, linia } (tabela-obiekt.js)
+  'okladka', 'okladka_dopasuj', // okładka (#119): przypięcie do tyłu, grzbietu albo przodu; dopasowanie do grzbietu
 ];
 
 if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
