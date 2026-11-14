@@ -195,3 +195,45 @@ test('pliki w R2: uprawnienia, limity, ETag, Range, CORS, lista, usuwanie, miejs
   r = await worker.fetch(new Request(`https://api.makietka.app/pliki/${A}/${P1}/z1`, { headers: { authorization: 'Bearer tA' } }), {});
   assert.equal(r.status, 503);
 });
+
+test('link z ochroną w R2 (#97): folder <kod>.<sekret> – plik tylko przy żywym linku, prywatna pamięć', async (t) => {
+  const { default: worker, wyczyscPamiec } = await import(pathToFileURL(WORKER).href);
+  wyczyscPamiec();
+  const env = { PLIKI: new AtrapaR2() };
+  let wazny = true;
+  const zapytania = [];
+  const prawdziwyFetch = globalThis.fetch;
+  globalThis.fetch = async (adres, opcje = {}) => {
+    const u = new URL(typeof adres === 'string' ? adres : adres.url);
+    const token = /Bearer (\S+)/.exec(opcje.headers?.authorization || '')?.[1];
+    if (u.pathname === '/auth/v1/user') return TOKENY[token] ? Response.json({ id: TOKENY[token] }) : new Response('{}', { status: 401 });
+    if (u.pathname === '/rest/v1/rpc/link_chroniony_wazny') {
+      const p = JSON.parse(opcje.body);
+      zapytania.push(p);
+      return Response.json(wazny && p.p_kod === 'kod0123456789abc' && p.p_sekret === 'Sekret_1');
+    }
+    throw new Error(`nieoczekiwane zapytanie ${u}`);
+  };
+  t.after(() => { globalThis.fetch = prawdziwyFetch; });
+  const zapytaj = (sciezka, { metoda = 'GET', token, tresc } = {}) => worker.fetch(new Request(`https://api.makietka.app${sciezka}`, {
+    method: metoda, body: tresc, headers: token ? { authorization: `Bearer ${token}` } : {},
+  }), env);
+  const folder = `/podglady/${A}/${P1}/kod0123456789abc.Sekret_1`;
+  assert.equal((await zapytaj(`${folder}/s1.webp`, { metoda: 'PUT', token: 'tA', tresc: Buffer.alloc(30, 3) })).status, 200, 'właściciel wysyła');
+  assert.equal((await zapytaj(`${folder}/s1.webp`, { metoda: 'PUT', token: 'tD', tresc: Buffer.alloc(30, 3) })).status, 403, 'obcy nie wysyła');
+  let r = await zapytaj(`${folder}/s1.webp`);
+  assert.equal(r.status, 200, 'gość z sekretem czyta');
+  assert.match(r.headers.get('cache-control'), /^private/, 'bez pamięci współdzielonej');
+  assert.equal((await zapytaj(`/podglady/${A}/${P1}/kod0123456789abc.Zgadywany/s1.webp`)).status, 404, 'zły sekret');
+  // Wygasły albo unieważniony link – po upływie pamięci Workera (tu: wyczyszczona) plik przestaje być wydawany.
+  wazny = false;
+  wyczyscPamiec();
+  assert.equal((await zapytaj(`${folder}/s1.webp`)).status, 404, 'link nieważny');
+  assert.ok(zapytania.every((p) => p.p_konto === A && p.p_projekt === P1));
+  // Zwykły link (folder bez kropki) nie pyta bazy.
+  const ile = zapytania.length;
+  await zapytaj(`/podglady/${A}/${P1}/kodpubliczny/s1.webp`, { metoda: 'PUT', token: 'tA', tresc: Buffer.alloc(10) });
+  r = await zapytaj(`/podglady/${A}/${P1}/kodpubliczny/s1.webp`);
+  assert.equal(r.status, 200);
+  assert.equal(zapytania.length, ile);
+});
