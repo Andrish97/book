@@ -1613,7 +1613,7 @@ dialog:focus { outline: none; }
 
 /* Pola z listą wyboru obok siebie w wąskim oknie: każde dostaje miejsce na czytelną treść (inaczej
    „czytać i zmieniać projekt” kończy się na „czytać i zmieni…”); gdy się nie mieszczą – jedno pod drugim. */
-:root[data-kompakt] dialog .rzad > .pole:has(.wybor) { min-width: 10.5rem; }
+:root[data-kompakt] dialog .rzad > .pole:has(.wybor) { min-width: 200px; }
 
 /* Okno „Dane” na telefonie i tablecie w pionie: siatka danych ma stałą, wygodną wysokość, a cała prawa część
    przewija się w pionie – wcześniej przyciski i podpowiedzi zgniatały siatkę do samego nagłówka. */
@@ -1654,3 +1654,12 @@ dialog:focus { outline: none; }
 :root[data-kompakt] .projekty-naglowek { flex-direction: column; align-items: stretch; gap: 14px; }
 :root[data-kompakt] .projekty-naglowek .przyciski-naglowka { flex-wrap: nowrap; }
 :root[data-kompakt] .projekty-naglowek .przyciski-naglowka .przycisk { flex: 1 1 0; justify-content: center; }
+
+/* Cele dotyku z przeglądu: okienko koloru na dotyku jest szersze, a kolory palety mają ok. 28 px (było 17);
+   „Gotowe” na pasku edycji wzorca i przełącznik motywu w udostępnionym podglądzie – pełne 40 px. */
+:root[data-dotyk] .kolor-okienko { width: min(320px, calc(100vw - 24px)); }
+:root[data-dotyk] .kolor-paleta { gap: 6px; }
+:root[data-dotyk] .kolor-okienko input { min-height: 40px; }
+:root[data-dotyk] .pasek-wzorca .przycisk { min-height: 40px; }
+:root[data-dotyk] .pasek-podgladu .przycisk-ikona { flex: none; }
+:root[data-kompakt] .warstwy-naglowek { font-size: 12px; }

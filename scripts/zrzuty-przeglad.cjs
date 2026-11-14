@@ -142,7 +142,10 @@ function audytUkladu({ dotyk: naDotyku, telefon: naTelefonie }) {
     for (let e = el.parentElement; e && e !== document.documentElement; e = e.parentElement) if (przewijany(e)) return true;
     return false;
   };
-  const malyCel = (el, r) => naDotyku && (r.height < 39.5 || r.width < 32) && !el.matches('input[type=checkbox], input[type=radio], a, .link-w-tekscie');
+  // Świadome wyjątki (decyzja #73): uchwyty zasłonek i paneli – 30 px wysokości, ale na całą szerokość;
+  // przycisk ⋯ na miniaturze strony – 36 px, bo leży na samej miniaturze.
+  const malyCel = (el, r) => naDotyku && (r.height < 39.5 || r.width < 32) && !el.matches('input[type=checkbox], input[type=radio], a, .link-w-tekscie, .menu-miniatury')
+    && !(el.matches('.uchwyt-zaslonki, .uchwyt-arkusza') && r.width >= 200);
   for (const el of sterowanie) {
     const r = el.getBoundingClientRect();
     if (malyCel(el, r)) male.push(`${opis(el)} ${Math.round(r.width)}×${Math.round(r.height)}`);
