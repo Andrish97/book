@@ -6,6 +6,7 @@ import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
 import { eksportujPdf, wybierzEgzemplarze, planPlikow, JAKOSCI_PDF, Przerwano } from './eksport.js';
 import { WARUNKI_DRUKU } from './profil-icc.js';
+import { postep } from './postep.js';
 
 export class OknoPdf {
   // projekt() → bieżący projekt, sekcja() → bieżąca sekcja, przedEksportem() –
@@ -141,10 +142,12 @@ export class OknoPdf {
     $('#pdf-eksportuj').disabled = true;
     $('#pdf-anuluj').textContent = 'Przerwij';
     komunikat.textContent = 'Przygotowuję strony…';
+    // Wspólny wskaźnik postępu (js/postep.js): pasek „strona i z n” i „Anuluj”, jak przy innych dłuższych czynnościach.
+    const pasek = postep('Eksport do PDF', { anuluj: () => { this.przerwane = true; } });
     try {
       const wynik = await eksportujPdf(this.zrodlo.projekt(), {
         ...this.opcje(),
-        postep: (i, n) => { komunikat.textContent = `Strona ${i} z ${n}…`; },
+        postep: (i, n) => { komunikat.textContent = `Strona ${i} z ${n}…`; pasek.krok(i, n); },
         przerwij: () => this.przerwane,
       });
       this.ostatni = wynik; // do testów i ponownego pobrania
@@ -165,6 +168,7 @@ export class OknoPdf {
     } catch (blad) {
       komunikat.textContent = blad instanceof Przerwano ? 'Eksport przerwany.' : (blad.message || 'Nie udało się przygotować pliku PDF.');
     } finally {
+      pasek.koniec();
       this.trwa = false;
       $('#pdf-anuluj').textContent = 'Anuluj';
       this.odswiez();
