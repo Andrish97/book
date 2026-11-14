@@ -16,6 +16,7 @@ import { przyciagnij, pomiary, przyciagnijKrawedz } from './przyciaganie.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
+import { wlaczPamiecWarstw } from './warstwy-plotna.js';
 import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
 import {
   toTabela, nowaTabela, ulozTabele, przygotujTabele, komorkiTabeli, komorkaWPunkcie, miejsceKomorki, utrwalSkaleTabeli,
@@ -83,6 +84,8 @@ export class Edytor extends EventTarget {
     });
 
     const c = this.canvas;
+    // Pisanie w ramce i przeciąganie: reszta strony rysowana raz do gotowych obrazów (js/warstwy-plotna.js).
+    this._warstwy = wlaczPamiecWarstw(c, () => this._zmieniane());
     c.on('before:render', (e) => this._rysujTla(e.ctx));
     c.on('after:render', (e) => this._poRenderowaniu(e.ctx));
     // Kliknięcie w drugą stronę rozkładówki robi z niej stronę bieżącą.
@@ -2607,6 +2610,22 @@ export class Edytor extends EventTarget {
     ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     ctx.fillText(tekst, lewy + 5, gora - 11.5);
     ctx.restore();
+  }
+
+  // Elementy, które zmieniają się klatka po klatce: przeciągany (albo zmieniany uchwytem) element czy zaznaczenie,
+  // pisany tekst razem z ramkami tego samego wątku. null – nic takiego się nie dzieje (zwykłe rysowanie).
+  _zmieniane() {
+    const c = this.canvas;
+    const wierzch = (o) => {
+      let x = o;
+      while (x && x.group && !c._objects.includes(x)) x = x.group;
+      return x;
+    };
+    const t = c._currentTransform?.target;
+    if (t) return toZaznaczenie(t) ? t.getObjects().map(wierzch) : [wierzch(t)];
+    const a = c.getActiveObject();
+    if (a?.isEditing) return [...new Set([a, ...this._ramkiWatku(a)].map(wierzch))];
+    return null;
   }
 
   _emitujZaznaczenie() {
