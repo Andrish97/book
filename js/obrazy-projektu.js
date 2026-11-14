@@ -12,7 +12,7 @@
 import { uid } from './projekt.js';
 import { blobZasobu, naDataUrl, dataUrlZasobu, usunPlikZasobu } from './zasoby.js';
 import { pelnaNazwa, obrazZNazwy } from './nazwy-obrazow.js';
-import { wymiaryObrazu, wolnaNazwaWsrod, grupujPowtorzenia } from './obrazy-wspolne.js';
+import { wymiaryObrazu, wolnaNazwaWsrod, grupujPowtorzenia, LIMIT_OBRAZOW_W_PROJEKCIE } from './obrazy-wspolne.js';
 
 const czcionki = (p) => new Set((p?.czcionki || []).map((c) => c.id));
 
@@ -63,6 +63,9 @@ export const wolnaNazwa = (p, nazwa) => wolnaNazwaWsrod(nazwa, (n) => Boolean(po
 
 // Dodaje plik jako nowy obraz projektu. Zwraca id.
 export async function dodajPlik(p, blob, nazwa, skrot = null) {
+  if (obrazyProjektu(p).length >= LIMIT_OBRAZOW_W_PROJEKCIE) {
+    throw new Error(`Projekt ma już ${LIMIT_OBRAZOW_W_PROJEKCIE} obrazów – to limit jednego projektu. Usuń nieużywane obrazy (Obrazy projektu → Usuń nieużywane), żeby dodać nowe.`);
+  }
   const id = uid('z');
   p.zasoby[id] = { nazwa, dataUrl: await naDataUrl(blob), skrot: skrot || await skrotPliku(blob), ...await wymiaryPliku(blob) };
   // Kończy się miejsce na pliki aplikacji (#90) – ostrzeżenie najwyżej raz na 10 minut, bez czekania na nie.

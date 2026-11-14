@@ -118,7 +118,6 @@ async function wszystkie(bucket, prefiks) {
   const wynik = [];
   let cursor;
   do {
-    // eslint-disable-next-line no-await-in-loop
     const lista = await bucket.list({ prefix: prefiks, cursor, limit: 1000 });
     wynik.push(...lista.objects);
     cursor = lista.truncated ? lista.cursor : undefined;
@@ -234,7 +233,6 @@ async function usunWiele(zapytanie, env, token, uid, cors) {
   for (const k of klucze) {
     const czesci = czesciSciezki(String(k));
     if (!czesci || czesci.length < 2) continue;
-    // eslint-disable-next-line no-await-in-loop
     const tak = czesci[0] === uid || (bucket === 'zasoby' && await dostep(env, token, uid, czesci[0], czesci[1], true));
     if (tak) {
       wolno.push(`${bucket}/${czesci.join('/')}`);

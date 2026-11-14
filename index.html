@@ -253,8 +253,15 @@
 
           <section class="grupa-ustawien" id="ust-miejsce">
             <h2>Miejsce</h2>
-            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Aplikacja ma wspólny limit miejsca na pliki wszystkich osób – tu widać, ile go zostało.</p>
+            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Każde konto ma swój limit miejsca na pliki, a aplikacja – wspólny magazyn dla wszystkich osób.</p>
             <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="miejsce-aplikacji" id="miejsce-konta" aria-live="polite">
+                  <div class="miejsce-naglowek"><strong>Twoje konto</strong><span id="miejsce-konto">Sprawdzam…</span></div>
+                  <div class="miejsce-pasek" role="progressbar" aria-label="Zajęte miejsce na pliki konta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="miejsce-pasek-konta" class="moje"></span></div>
+                  <p class="ciche" id="miejsce-limity"></p>
+                </div>
+              </div>
               <div class="wiersz-ustawien">
                 <div class="miejsce-aplikacji" id="miejsce-aplikacji" aria-live="polite">
                   <div class="miejsce-naglowek"><strong>Cała aplikacja</strong><span id="miejsce-razem">Sprawdzam…</span></div>

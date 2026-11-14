@@ -1,10 +1,10 @@
-// Sekcja „Miejsce” w ustawieniach konta (#90): zajętość plików całej aplikacji z Twoim udziałem, rozbicie
-// Twoich plików i „Posprzątaj…” z podsumowaniem przed usunięciem.
+// Sekcja „Miejsce” w ustawieniach konta (#90, #92): Twoje pliki wobec limitu konta, cały magazyn plików
+// aplikacji z Twoim udziałem, baza danych, projekty wobec limitu, rozbicie Twoich plików i „Posprzątaj…”.
 
 import { $, potwierdz } from './ui.js';
 import { postep } from './postep.js';
 import {
-  miejsce, planSprzatania, posprzataj, rozmiar, udzialPlikow, udzialBazy, ostrzezenie,
+  miejsce, planSprzatania, posprzataj, rozmiar, udzialPlikow, udzialBazy, udzialKonta, ostrzezenie,
 } from './miejsce.js';
 
 const procent = (x) => `${(Math.min(100, Math.round(x * 1000) / 10)).toLocaleString('pl-PL')}%`;
@@ -35,6 +35,14 @@ export async function pokazMiejsce({ swieze = true } = {}) {
   $('#miejsce-baza').textContent = m.baza_razem != null
     ? `Baza danych aplikacji: ${rozmiar(m.baza_razem)} z ${rozmiar(m.limit_bazy)} (${procent(udzialBazy(m))}).`
     : '';
+  const konto = $('#miejsce-konto');
+  if (konto) {
+    konto.textContent = `${rozmiar(m.konto)} z ${rozmiar(m.limit_konta)} (${procent(udzialKonta(m))})`;
+    $('#miejsce-pasek-konta').style.width = `${Math.min(100, udzialKonta(m) * 100)}%`;
+    $('#miejsce-konta .miejsce-pasek').setAttribute('aria-valuenow', String(Math.round(udzialKonta(m) * 100)));
+    $('#miejsce-konta').classList.toggle('wysoko', udzialKonta(m) >= 0.8);
+    $('#miejsce-limity').textContent = `Projekty: ${liczba(m.projekty)} z ${liczba(m.limit_projektow)}. Jeden plik – najwyżej ${rozmiar(m.limit_pliku)}, w jednym projekcie najwyżej ${liczba(m.obrazy_w_projekcie)} obrazów i ${liczba(m.osoby_w_projekcie)} osób do współpracy.`;
+  }
   const tekst = ostrzezenie(m);
   $('#miejsce-ostrzezenie').hidden = !tekst;
   $('#miejsce-ostrzezenie').textContent = tekst || '';

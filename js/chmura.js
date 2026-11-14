@@ -58,7 +58,6 @@ export const r2 = {
   lista: async (bucket, prefiks) => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_lista?bucket=${bucket}&prefiks=${encodeURIComponent(prefiks)}`)).json(),
   usun: async (bucket, klucze) => {
     for (let i = 0; i < klucze.length; i += 500) {
-      // eslint-disable-next-line no-await-in-loop
       await zapytaniePliku(`${SUPABASE_URL}/pliki/_usun`, { metoda: 'POST', tresc: JSON.stringify({ bucket, klucze: klucze.slice(i, i + 500) }), typ: 'application/json' });
     }
   },
