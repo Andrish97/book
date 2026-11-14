@@ -211,7 +211,19 @@ async function miejsceKonta(env, uid, cors) {
   const czcionki = obiekty.filter((o) => o.key.startsWith(`zasoby/${uid}/_czcionki/`));
   const konto = suma(obiekty) + suma(podglady);
   doPamieci(pamiecZajetosci, uid, { bajty: konto });
+  // Rozbicie na projekty (panel użycia konta, #93): { <projekt>: { bajty, plikow, podglady } }.
+  const projekty = {};
+  const dodaj = (o, pole) => {
+    const projekt = o.key.split('/')[2];
+    if (!projekt || projekt.startsWith('_')) return;
+    const w = projekty[projekt] || (projekty[projekt] = { bajty: 0, plikow: 0, podglady: 0 });
+    if (pole === 'podglady') w.podglady += o.size || 0;
+    else { w.bajty += o.size || 0; w.plikow += 1; }
+  };
+  for (const o of obiekty) dodaj(o, 'pliki');
+  for (const o of podglady) dodaj(o, 'podglady');
   return json(200, {
+    projekty,
     obrazy: suma(obiekty) - suma(czcionki),
     czcionki: suma(czcionki),
     podglady: suma(podglady),

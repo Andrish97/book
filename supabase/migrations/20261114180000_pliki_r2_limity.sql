@@ -175,3 +175,65 @@ $$;
 
 revoke all on function public.miejsce_na_koncie() from public;
 grant execute on function public.miejsce_na_koncie() to authenticated;
+
+-- ---------- Panel użycia konta (decyzja #93) ----------
+
+-- Projekty zalogowanego z tym, co zajmują w bazie, i projekty innych osób, do których ma dostęp (te nie liczą się
+-- do jego limitów). Bez danych innych kont poza nazwą właściciela projektu, który i tak widać na liście projektów.
+-- { wlasne: [{ id, nazwa, zmieniono, obrazy, strony, dane_bajty, klucze_ai, link, link_chroniony }],
+--   u_innych: [{ id, nazwa, zmieniono, obrazy, strony, rola, wlasciciel }] }
+create or replace function public.uzycie_projektow()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then
+    raise exception 'Brak sesji';
+  end if;
+  return jsonb_build_object(
+    'wlasne', coalesce((
+      select jsonb_agg(jsonb_build_object(
+          'id', p.id, 'nazwa', p.nazwa, 'zmieniono', p.zmieniono,
+          'obrazy', public.obrazy_w_danych(p.dane),
+          'strony', case when jsonb_typeof(p.dane->'strony') = 'array' then jsonb_array_length(p.dane->'strony') else 0 end,
+          'dane_bajty', pg_column_size(p.dane) + coalesce((select sum(pg_column_size(s.dane)) from public.projekty_strony s where s.projekt_id = p.id), 0),
+          'klucze_ai', (select count(*) from public.dostepy_projektu d
+                          where d.projekt_id = p.id and d.odwolany is null and d.wazny_do > now()),
+          'link', coalesce(p.dane->'udostepnienie'->>'kod', '') <> '',
+          'link_chroniony', exists (select 1 from public.udostepnienia u where u.projekt_id = p.id and u.owner_id = v_uid))
+        order by p.zmieniono desc)
+        from public.projekty p where p.owner_id = v_uid), '[]'::jsonb),
+    'u_innych', coalesce((
+      select jsonb_agg(jsonb_build_object(
+          'id', p.id, 'nazwa', p.nazwa, 'zmieniono', p.zmieniono, 'rola', w.rola,
+          'obrazy', public.obrazy_w_danych(p.dane),
+          'strony', case when jsonb_typeof(p.dane->'strony') = 'array' then jsonb_array_length(p.dane->'strony') else 0 end,
+          'wlasciciel', coalesce(nullif(btrim(u.raw_user_meta_data->>'nazwa'), ''), split_part(u.email, '@', 1)))
+        order by p.zmieniono desc)
+        from public.wspolpracownicy w
+        join public.projekty p on p.id = w.projekt_id
+        left join auth.users u on u.id = p.owner_id
+        where w.uzytkownik = v_uid), '[]'::jsonb));
+end;
+$$;
+
+-- Obrazy w danych projektu: wpisy „zasoby” bez plików czcionek projektu (dane->czcionki[].id).
+create or replace function public.obrazy_w_danych(p_dane jsonb)
+returns integer
+language sql
+immutable
+set search_path = ''
+as $$
+  select count(*)::integer
+    from jsonb_object_keys(case when jsonb_typeof(p_dane->'zasoby') = 'object' then p_dane->'zasoby' else '{}'::jsonb end) k
+    where k not in (select c->>'id' from jsonb_array_elements(case when jsonb_typeof(p_dane->'czcionki') = 'array' then p_dane->'czcionki' else '[]'::jsonb end) c
+                    where c->>'id' is not null);
+$$;
+
+revoke all on function public.uzycie_projektow() from public, anon;
+grant execute on function public.uzycie_projektow() to authenticated;

@@ -280,6 +280,23 @@
                 </dl>
               </div>
               <div class="wiersz-ustawien">
+                <div class="uzycie-projektow" id="uzycie-projektow">
+                  <div class="miejsce-naglowek"><strong>Twoje projekty</strong>
+                    <label class="uzycie-sortowanie">Sortuj <select id="uzycie-sortuj" aria-label="Sortowanie projektów">
+                      <option value="rozmiar">po rozmiarze</option><option value="zmiana">po ostatniej zmianie</option><option value="nazwa">po nazwie</option>
+                    </select></label>
+                  </div>
+                  <div class="uzycie-paski" id="uzycie-paski"></div>
+                  <ul class="uzycie-lista" id="uzycie-lista"></ul>
+                  <p class="ciche" id="uzycie-pusto" hidden>Nie masz jeszcze projektów na koncie.</p>
+                  <p class="ciche" id="uzycie-dodatki"></p>
+                  <details class="uzycie-u-innych" id="uzycie-u-innych" hidden>
+                    <summary>U innych – nie liczy się do Twojego limitu (<span id="uzycie-u-innych-licznik">0</span>)</summary>
+                    <ul class="uzycie-lista" id="uzycie-lista-innych"></ul>
+                  </details>
+                </div>
+              </div>
+              <div class="wiersz-ustawien">
                 <div class="wiersz-glowny">
                   <div class="wiersz-opis"><strong>Sprzątanie</strong><span id="miejsce-sprzatanie-opis">Usuwa pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Aplikacja robi to też sama raz na dobę.</span></div>
                   <div class="wiersz-akcje"><button type="button" class="przycisk" id="miejsce-posprzataj">Posprzątaj…</button></div>

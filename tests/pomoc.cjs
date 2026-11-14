@@ -81,7 +81,15 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
     const czcionki = suma((x) => x.bucket === 'zasoby' && x.nazwa.startsWith(`${prefiks}_czcionki/`));
     const obrazy = suma((x) => x.bucket === 'zasoby') - czcionki;
     const podglady = suma((x) => x.bucket === 'podglady');
+    const projekty = {};
+    for (const x of moje) {
+      const pr = x.nazwa.split('/')[1];
+      if (!pr || pr.startsWith('_')) continue;
+      const w = projekty[pr] || (projekty[pr] = { bajty: 0, plikow: 0, podglady: 0 });
+      if (x.bucket === 'podglady') w.podglady += rozmiarPliku(x.p); else { w.bajty += rozmiarPliku(x.p); w.plikow += 1; }
+    }
     return {
+      projekty,
       obrazy, czcionki, podglady, plikow: moje.length, konto: obrazy + czcionki + podglady,
       limit_konta: stan.limitKonta || 500 * 1024 * 1024, limit_pliku: stan.limitPliku || 25 * 1024 * 1024,
       pliki_razem: [...stan.pliki].filter(([klucz]) => /^(zasoby|podglady)\//.test(klucz)).reduce((n, [, p]) => n + rozmiarPliku(p), 0) + (stan.inneKontaBajty || 0),
@@ -460,6 +468,24 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       return r.fulfill({ status: 200, contentType: 'application/json', body: tresc });
     }
     // Miejsce na koncie i sprzątanie (migracja 20261114150000_miejsce_na_koncie.sql).
+    if (sc === '/rest/v1/rpc/uzycie_projektow') {
+      // Jak w bazie (migracja 20261114180000_pliki_r2_limity.sql): własne projekty i projekty innych z dostępem.
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'JWT', 'PGRST301');
+      const fonty = (d) => new Set((d?.czcionki || []).map((c) => c.id));
+      const obrazy = (d) => Object.keys(d?.zasoby || {}).filter((id) => !fonty(d).has(id)).length;
+      const strony = (pr) => (Array.isArray(pr.dane?.strony) ? pr.dane.strony.length : [...stan.strony.keys()].filter((x) => x.startsWith(`${pr.id}/`)).length);
+      const wlasne = stan.projekty.filter((pr) => pr.owner_id === k.id).map((pr) => ({
+        id: pr.id, nazwa: pr.nazwa, zmieniono: pr.zmieniono, obrazy: obrazy(pr.dane), strony: strony(pr),
+        dane_bajty: JSON.stringify(pr.dane || {}).length, klucze_ai: (stan.dostepy || []).filter((d) => d.projekt_id === pr.id && !d.odwolany).length,
+        link: Boolean(pr.dane?.udostepnienie?.kod), link_chroniony: [...(stan.chronione || new Map()).keys()].some((x) => x.startsWith(`${k.id}/${pr.id}/`)),
+      }));
+      const uInnych = stan.projekty.filter((pr) => pr.owner_id !== k.id && rolaW(stan, k, pr.id)).map((pr) => ({
+        id: pr.id, nazwa: pr.nazwa, zmieniono: pr.zmieniono, obrazy: obrazy(pr.dane), strony: strony(pr), rola: rolaW(stan, k, pr.id),
+        wlasciciel: stan.konta.find((x) => x.id === pr.owner_id)?.nazwa || 'ktoś',
+      }));
+      return json(r, 200, { wlasne, u_innych: uInnych });
+    }
     if (/^\/rest\/v1\/rpc\/(miejsce_na_koncie|pliki_osierocone|posprzataj_konto)$/.test(sc)) {
       const k = zTokenu(req);
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');

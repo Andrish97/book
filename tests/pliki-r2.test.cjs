@@ -82,3 +82,35 @@ test('limity: projekty konta (Nowy projekt, Duplikuj), miejsce konta przy wysył
   assert.match(komunikat, /300 obrazów – to limit jednego projektu/);
   assert.deepEqual(bledy.filter((b) => !/nie ma już miejsca|413/.test(b)), []);
 });
+
+test('panel użycia konta: paski limitów, projekty z plikami i obrazami, „Pokaż obrazy”, projekty innych osobno', async (t) => {
+  const { strona, baza, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kalendarz z obrazami');
+  await strona.setInputFiles('#pliki-zasoby', [
+    { name: 'a.png', mimeType: 'image/png', buffer: PNG_2X2 },
+    { name: 'b.png', mimeType: 'image/png', buffer: Buffer.concat([PNG_2X2, Buffer.alloc(5000)]) },
+  ]);
+  for (let i = 0; i < 100 && [...baza.pliki.keys()].filter((k) => k.startsWith('zasoby/')).length < 2; i += 1) await strona.waitForTimeout(100);
+  // Projekt innej osoby, do którego mam dostęp – osobno, bez liczenia do limitów.
+  const inny = { id: '33333333-3333-4333-8333-333333333333', email: 'inny@example.com', haslo: 'x', potwierdzone: true, nazwa: 'Ola' };
+  baza.konta.push(inny);
+  baza.projekty.push({ id: '44444444-4444-4444-8444-444444444444', owner_id: inny.id, nazwa: 'Cudzy planer', dane: { zasoby: {}, strony: ['s1'] }, zmieniono: new Date().toISOString(), wersja: 1 });
+  baza.wspolpracownicy = baza.wspolpracownicy || [];
+  baza.wspolpracownicy.push({ projekt_id: '44444444-4444-4444-8444-444444444444', uzytkownik: KONTO, rola: 'odczyt' });
+  await strona.evaluate(() => { location.hash = '#/konto'; });
+  await strona.waitForSelector('#uzycie-lista .uzycie-projekt');
+  const tekst = await strona.textContent('#uzycie-lista');
+  assert.match(tekst, /Kalendarz z obrazami/);
+  assert.match(tekst, /2 obrazy/);
+  assert.match(tekst, /kB/);
+  assert.match(await strona.textContent('#uzycie-paski'), /Projekty1 z 30/);
+  assert.match(await strona.textContent('#uzycie-paski'), /2 z 300/);
+  assert.match(await strona.textContent('#uzycie-dodatki'), /klucze AI: 0/);
+  assert.ok(await strona.locator('#uzycie-u-innych').isVisible(), 'projekty innych osobno');
+  await strona.click('#uzycie-u-innych summary');
+  assert.match(await strona.textContent('#uzycie-lista-innych'), /Cudzy planer.*właściciel: Ola · oglądasz/s);
+  await strona.click('#uzycie-lista .uzycie-projekt [data-rola="obrazy"]');
+  await strona.waitForSelector('#dlg-obrazy[open]');
+  assert.equal(await strona.locator('#obrazy-lista li').count(), 2);
+  assert.deepEqual(bledy, []);
+});

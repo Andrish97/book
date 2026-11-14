@@ -51,6 +51,7 @@ export async function pokazMiejsce({ swieze = true } = {}) {
   $('#miejsce-czcionki').textContent = rozmiar(m.czcionki);
   $('#miejsce-podglady').textContent = rozmiar(liczba(m.podglady) + liczba(m.chronione));
   $('#miejsce-od-ai').textContent = rozmiar(m.od_ai);
+  import('./uzycie-konta.js').then((u) => u.pokazUzycie(m)).catch(() => {});
 }
 
 let trwa = false;
