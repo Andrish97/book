@@ -961,7 +961,11 @@ export class PanelWlasciwosci {
     if (gradient()) {
       // Kolory przejścia: każdy ma położenie w procentach; dwa skrajne zostają zawsze.
       przystanki().forEach((p, i, wszystkie) => {
-        s.append(this.kolor(`Kolor ${i + 1}`, () => przystanki()[i]?.color, (v) => { const k = przystanki(); k[i].color = v; ustawGradient({ kolory: k }); }));
+        // Kolor punktu z kryciem (#123): kolor wybiera się bez przezroczystości, krycie osobną liczbą.
+        const zKryciem = (kolor, krycie) => { const [r, g, b] = new fabric.Color(kolor).getSource(); return krycie >= 1 ? `#${new fabric.Color(kolor).toHex()}` : `rgba(${r},${g},${b},${Math.round(krycie * 100) / 100})`; };
+        const krycieP = () => new fabric.Color(przystanki()[i]?.color || '#000').getAlpha();
+        s.append(this.kolor(`Kolor ${i + 1}`, () => `#${new fabric.Color(przystanki()[i]?.color || '#000').toHex()}`, (v) => { const k = przystanki(); k[i].color = zKryciem(v, krycieP()); ustawGradient({ kolory: k }); }));
+        s.append(this.liczba('Krycie', () => Math.round(krycieP() * 100), (v) => { const k = przystanki(); k[i].color = zKryciem(k[i].color, Math.min(100, Math.max(0, v)) / 100); ustawGradient({ kolory: k }); }, { jednostka: '%', krok: 10, min: 0 }));
         const polozenie = this.liczba('Położenie', () => Math.round((przystanki()[i]?.offset ?? 0) * 100), (v) => { const k = przystanki(); k[i].offset = Math.min(100, Math.max(0, v)) / 100; ustawGradient({ kolory: k }); this.zbuduj(); }, { jednostka: '%', krok: 5, min: 0 });
         if (wszystkie.length > 2) {
           const usun = document.createElement('button');
