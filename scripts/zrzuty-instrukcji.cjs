@@ -174,7 +174,9 @@ if (require.main === module) (async () => {
     await k.fill('#form-logowania input[name=haslo2]', 'Kalendarz#27');
     await k.click('#przycisk-logowania');
     await k.waitForSelector('#widok-wyslano', { state: 'visible' });
-    await zrzut(k, 'rejestracja-wyslano.png', { clip: { x: 584, y: 0, width: 696, height: 520 } });
+    // Kadr: prawa kolumna z formularzem (jej położenie wynika z siatki ekranu logowania).
+    const kolumna = await k.evaluate(() => { const r = document.querySelector('.logowanie-forma').getBoundingClientRect(); return { x: Math.round(r.x), width: Math.round(r.width) }; });
+    await zrzut(k, 'rejestracja-wyslano.png', { clip: { ...kolumna, y: 0, height: 520 } });
 
     await k.click('#widok-wyslano [data-tryb="logowanie"]');
     await k.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');

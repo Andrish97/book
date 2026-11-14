@@ -237,7 +237,9 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
 
 /* ---------- Logowanie i rejestracja ---------- */
 
-body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(400px, 1fr); }
+/* Siatka: okładka po lewej, formularz po prawej. Selektor z id – inaczej wygrywało ogólne „display: flex” ekranów
+   i formularz na telefonie poziomo i na tablecie stał wąski przy lewej krawędzi. */
+body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(400px, 1fr); grid-template-rows: minmax(0, 1fr); }
 
 /* Lewa połowa: stała, ciemna „okładka” – taka sama w obu motywach. */
 .logowanie-bok {
@@ -267,9 +269,12 @@ body[data-ekran="logowanie"] .ekran-logowania { display: grid; grid-template-col
 
 .logowanie-forma {
   position: relative; overflow: auto;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 24px;
   padding: 64px 24px 24px;
 }
+/* Karta na środku, ale „bezpiecznie”: gdy formularz jest wyższy niż okno (niski telefon, telefon poziomo,
+   rejestracja z wymaganiami hasła), góra – logo i zakładki – zostaje do przewinięcia, a nie ucięta. */
+.logowanie-forma > .karta-logowania { margin-block: auto; }
 .logowanie-forma .przelacz-motyw { position: absolute; top: 16px; right: 16px; }
 .karta-logowania { width: min(400px, 100%); display: flex; flex-direction: column; gap: 14px; }
 .marka-mobilna { display: none; margin-bottom: 6px; }
@@ -912,7 +917,7 @@ dialog > .postepy { position: fixed; }
 }
 
 @media (max-width: 980px) {
-  body[data-ekran="logowanie"] .ekran-logowania { grid-template-columns: 1fr; }
+  body[data-ekran="logowanie"] #ekran-logowania { grid-template-columns: minmax(0, 1fr); }
   .logowanie-bok { display: none; }
   .marka-mobilna { display: inline-flex; }
 }
@@ -1349,7 +1354,7 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
    Telefon trzymany poziomo i każde zbyt niskie okno (pasek adresu i klawiatura zabierają resztę
    wysokości) pokazują planszę z prośbą o obrót albo powiększenie okna.
    Lista projektów, logowanie i udostępniony podgląd działają w obu ułożeniach. */
-.blokada-ekranu { display: none; position: fixed; inset: 0; z-index: 900; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; background: var(--tlo, var(--powierzchnia)); color: var(--tusz); }
+.blokada-ekranu { display: none; position: fixed; inset: 0; z-index: 900; place-content: safe center; overflow-y: auto; justify-items: center; gap: 14px; padding: 24px; text-align: center; background: var(--tlo, var(--powierzchnia)); color: var(--tusz); }
 .blokada-ekranu svg { width: 56px; height: 56px; color: var(--akcent); }
 .blokada-ekranu h2 { font-size: 20px; }
 .blokada-ekranu p { max-width: 30ch; color: var(--tusz-2); line-height: 1.5; }
@@ -1655,6 +1660,93 @@ dialog:focus { outline: none; }
 :root[data-dotyk] .uchwyt-arkusza { height: 30px; }
 :root[data-dotyk] .lista-ostrzezen .przycisk { min-height: 40px; }
 
+/* =====================================================================================================
+   Tryby urządzeń i poprawki z przeglądu zrzutów (#91)
+   Tryb ustawia js/urzadzenie.js (i skrypt w <head>): data-urzadzenie (telefon | tablet | komputer),
+   data-orientacja (pion | poziom), data-uklad (telefon-pion | telefon-poziom | tablet-pion | tablet-poziom |
+   komputer | komputer-waski | komputer-duzy), data-dotyk, data-zaslonka, data-kompakt, data-klawiatura.
+   Przegląd: scripts/zrzuty-przeglad.cjs (15 urządzeń, oba motywy, audyt układu).
+   ===================================================================================================== */
+
+/* Przyciski okna w wąskim oknie: zawijają się do kolejnego rzędu i dzielą szerokość, zamiast wychodzić
+   poza okno (np. „Wczytaj wersję z konta” / „Zachowaj wersję z tego urządzenia” na 320 px). */
+:root[data-kompakt] .przyciski-dialogu { flex-wrap: wrap; }
+:root[data-kompakt] .przyciski-dialogu > .przycisk { flex: 1 1 auto; justify-content: center; }
+:root[data-kompakt] .przyciski-dialogu > .odstep { display: none; }
+
+/* Skróty klawiszowe i podpowiedzi o myszy nie dotyczą ekranu dotykowego. */
+:root[data-dotyk] .menu kbd, :root[data-dotyk] .podpowiedz-widoku { display: none; }
+
+/* Pola z listą wyboru obok siebie w wąskim oknie: każde dostaje miejsce na czytelną treść (inaczej
+   „czytać i zmieniać projekt” kończy się na „czytać i zmieni…”); gdy się nie mieszczą – jedno pod drugim. */
+:root[data-kompakt] dialog .rzad > .pole:has(.wybor) { min-width: 200px; }
+
+/* Okno „Dane” na telefonie i tablecie w pionie: siatka danych ma stałą, wygodną wysokość, a cała prawa część
+   przewija się w pionie – wcześniej przyciski i podpowiedzi zgniatały siatkę do samego nagłówka. */
+@media (max-width: 860px) {
+  .dane-edytor { overflow-y: auto; overscroll-behavior: contain; }
+  .dane-siatka-opak { flex: none; height: max(240px, 52svh); }
+}
+
+/* Okno „Wzorce”: przycisk ⋯ leży w rogu karty – tekst nie wchodzi pod niego, a przyciski karty w wąskim
+   oknie stoją równo, jeden pod drugim, na całą szerokość opisu. */
+.galeria-wzorcow > li.wzorzec .opis-wzorca { padding-right: 34px; }
+:root[data-kompakt] .galeria-wzorcow > li.wzorzec .rzad-przyciskow { flex-direction: column; align-items: stretch; }
+:root[data-kompakt] .galeria-wzorcow > li.wzorzec .rzad-przyciskow .przycisk { justify-content: flex-start; }
+
+/* Komunikat na dole ekranu w edytorze na telefonie stoi nad dolnym menu paneli, a nie na nim. */
+@media (max-width: 860px) {
+  body[data-ekran="edytor"] .powiadomienie { bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
+
+/* Menu „Siatka, przyciąganie, linijki” otwiera się w górę od przycisku na dole ekranu: w niskim oknie
+   (telefon 320×568) jego góra wychodziła ponad ekran. Teraz ma najwyżej tyle wysokości, ile jest nad
+   przyciskiem, a resztę przewija. */
+.menu-widoku { max-height: calc(var(--widok-h, 100svh) - 150px); overflow-y: auto; overscroll-behavior: contain; }
+
+/* Drobny tekst na telefonie: najmniej 12 px (dopiski przy polach, opisy sekcji w panelu stron). */
+:root[data-kompakt] .pole small, :root[data-kompakt] .opis-sekcji small,
+:root[data-kompakt] .warstwa-adres, :root[data-kompakt] .warstwa.ze-wzorca small { font-size: 12px; }
+
+/* Najwęższy telefon (320 px): wszystkie przyciski wstawiania mieszczą się w pasku bez przewijania w bok. */
+@media (max-width: 340px) { .pasek-narzedzi button { min-width: 36px; } }
+
+/* Tablet w pionie i wąskie okno: nazwa projektu w górnym pasku zajmuje wolne miejsce, zamiast kończyć się
+   na „Kalendarz 2…” obok pustej przestrzeni. */
+@media (min-width: 521px) and (max-width: 860px) { .pasek-edytora .nazwa-projektu { flex: 1 1 140px; max-width: 340px; min-width: 90px; } }
+
+/* Lista projektów na telefonie: tytuł w jednej linii, pod nim przyciski na całą szerokość (wcześniej
+   „Twoje projekty” łamało się na dwie linie obok przycisków). */
+:root[data-kompakt] .projekty-naglowek { flex-direction: column; align-items: stretch; gap: 14px; }
+:root[data-kompakt] .projekty-naglowek .przyciski-naglowka { flex-wrap: nowrap; }
+:root[data-kompakt] .projekty-naglowek .przyciski-naglowka .przycisk { flex: 1 1 0; justify-content: center; }
+
+/* Cele dotyku z przeglądu: okienko koloru na dotyku jest szersze, a kolory palety mają ok. 28 px (było 17);
+   „Gotowe” na pasku edycji wzorca i przełącznik motywu w udostępnionym podglądzie – pełne 40 px. */
+:root[data-dotyk] .kolor-okienko { width: min(320px, calc(100vw - 24px)); }
+:root[data-dotyk] .kolor-paleta { gap: 6px; }
+:root[data-dotyk] .kolor-okienko input { min-height: 40px; }
+:root[data-dotyk] .pasek-wzorca .przycisk { min-height: 40px; }
+:root[data-dotyk] .pasek-podgladu .przycisk-ikona { flex: none; }
+:root[data-kompakt] .warstwy-naglowek { font-size: 12px; }
+
+/* Podpowiedzi klawiszowe w tekście przycisków (np. „Zamknij (Esc)”) – tylko tam, gdzie jest klawiatura. */
+:root[data-dotyk] .tylko-klawiatura { display: none; }
+/* Pasek prezentacji na telefonie: „Zamknij” w jednej linii i w obrębie ekranu (po dodaniu powiększania
+   wychodziło poza dół ekranu, łamane na dwie linie); pasek omija dolny pasek systemu. */
+.prezentacja-zamknij { flex: none; white-space: nowrap; }
+@media (max-width: 600px) {
+  .prezentacja-pasek { height: auto; min-height: 56px; padding-bottom: env(safe-area-inset-bottom); }
+  .prezentacja-zoom { gap: 2px; }
+  .prezentacja-zoom .prezentacja-wartosc { min-width: 48px; }
+  :root[data-dotyk] .prezentacja-zamknij { min-height: 44px; }
+}
+
+/* Przyciski okna, które nie mieszczą się w jednym rzędzie (długie napisy, np. „Wczytaj wersję z konta” obok
+   „Zachowaj wersję z tego urządzenia”), przechodzą do kolejnego rzędu także na komputerze – wcześniej lewy
+   wystawał poza okno. */
+.przyciski-dialogu { flex-wrap: wrap; }
+:root[data-kompakt] .galeria-wzorcow > li.wzorzec .rzad-przyciskow .przycisk { width: 100%; }
 /* ===============================================================
    Współpraca między kontami (js/app/wspolpraca.js, js/app/obecnosc.js) – decyzja #86
    ====================================================================== */
@@ -1721,7 +1813,6 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
   position: absolute; top: 6px; left: 32px; width: 18px; height: 18px; border-radius: 50%;
   display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; pointer-events: none;
 }
-=======
 /* ---------- Miejsce na koncie (#90) ---------- */
 .miejsce-aplikacji { display: flex; flex-direction: column; gap: 8px; }
 .miejsce-naglowek { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -1738,3 +1829,14 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 .miejsce-ostrzezenie { margin: 0; padding: 10px 12px; border-radius: var(--r-m, 8px); background: var(--uwaga-tlo); color: var(--uwaga); font-size: 13.5px; line-height: 1.45; }
 #miejsce-baza { margin: 0; font-size: 12.5px; }
 @media (prefers-reduced-motion: reduce) { .miejsce-pasek span { transition: none; } }
+
+/* Menu w niskim oknie (telefon 320×568: menu ⋯ urosło o „Współpraca…”) – nie dłuższe niż ekran, reszta się przewija. */
+#menu-wiecej, #menu-uzytkownika { max-height: calc(100svh - 64px); overflow-y: auto; overscroll-behavior: contain; }
+
+/* Kropki legendy „Miejsce” w ustawieniach konta: ogólna klasa .kropka (znacznik ostrzeżeń) ustawiała je
+   absolutnie – na telefonie lądowały u góry ekranu, nad tytułem paska. */
+.miejsce-legenda .kropka { position: static; inset: auto; transform: none; margin: 0; flex: none; }
+
+/* Pasek podglądu na telefonie: przybliża się palcami (#84), więc − i + ustępują miejsca tytułowi
+   (na 320 px zostawało z niego „K…”); stuknięcie w procent dopasowuje stronę jak dotąd. */
+:root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-minus"], :root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-plus"] { display: none; }

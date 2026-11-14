@@ -335,7 +335,7 @@ export class Podglad {
       + '<div class="prezentacja-zoom"><button type="button" class="prezentacja-minus" aria-label="Pomniejsz" title="Pomniejsz (−)">−</button>'
       + '<button type="button" class="prezentacja-wartosc" aria-label="Dopasuj do ekranu" title="Dopasuj do ekranu (0)">100%</button>'
       + '<button type="button" class="prezentacja-plus" aria-label="Powiększ" title="Powiększ (+)">+</button></div>'
-      + '<button type="button" class="prezentacja-zamknij">Zamknij (Esc)</button></div>';
+      + '<button type="button" class="prezentacja-zamknij">Zamknij<span class="tylko-klawiatura"> (Esc)</span></button></div>';
     this.el.parentElement.append(el);
     const p = {
       el, kroki, i: start, zoom: 1, x: 0, y: 0,
