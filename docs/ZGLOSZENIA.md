@@ -9,15 +9,14 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
-| 106 | Sekrety po angielsku; bez generowania klucza skrzynki – jeden sekret `SUPABASE_SERVICE_ROLE_KEY` w Cloudflare, ustawiany raz | 🔄 |
 | 107 | Bez przejściowego stanu „link aktualizowany” i bez starego magazynu Supabase Storage; polecenia i opisy AI także w oknie Dostęp dla AI w ustawieniach konta | 🔄 |
-| 105 | Drugi dostawca maili – Zoho ZeptoMail (EU) jako zapasowy po Brevo; bez dopisków, gotowy do włączenia przełącznikiem w panelu | 🔄 |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
-| 15 propozycji wyglądu „do decyzji” (np. pasek narzędzi bez podpisów, pasek górny z samymi ikonami) – pokażę z makietami | ⏳ |
+| Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
+| 15 decyzji wyglądu (#109) – wdrożenie | 🔄 |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
@@ -61,6 +60,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 99 | Własne kontrolki (listy na telefonie), instalacja aplikacji, bezpieczne marginesy, plakietka na kafelku, pełny ekran na logowaniu, przycisk motywu |
 | 100 | Nazwy użytkownika (rejestracja, pierwsze logowanie, zapraszanie po nazwie); konto bez danych całej aplikacji |
 | 104 | Instrukcja w stylu Familiady: 42 rozdziały, spis z wyszukiwarką, edytor i panel właściwości szczegółowo, dane w praktyce (kalendarz ze świętami, dziennik, planer, obrót i kolor z danych), AI krok po kroku + komiks + polecenia „Kopiuj”, automatyczne zrzuty w CI |
+| 105–106 | ZeptoMail (Zoho, EU) jako drugi dostawca po Brevo, włączany przełącznikiem; sekrety po angielsku, bez klucza skrzynki – jeden sekret `SUPABASE_SERVICE_ROLE_KEY` |
+| 108 | Konta testowe usunięte |
 | 103 | Kompaktowość i ikony (13 propozycji: tabela −/+, PDF „Zaawansowane”, ikony w Danych, Czcionkach, Obrazach, zaproszeniach, imporcie) + paleta poleceń Ctrl+K i kolory projektu w wyborze koloru |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |

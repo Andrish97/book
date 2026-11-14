@@ -4,10 +4,11 @@
 //  • /kontakt – formularz kontaktowy z aplikacji: pułapka na boty, Cloudflare Turnstile (gdy jest sekret),
 //               limity na IP i adres (liczy baza – kontakt_przyjmij), potwierdzenie mailem przez kolejkę,
 //  • scheduled() – co minutę prosi funkcję `poczta` o przebieg kolejki maili.
-// Sekrety Workera (Workers & Pages → makietka-api → Settings → Variables and Secrets), nic w repozytorium:
-//   KLUCZ_SKRZYNKI   – klucz z panelu administratora (Ustawienia poczty → „Nowy klucz skrzynki”); w bazie jest tylko skrót,
-//   TURNSTILE_SECRET – (opcjonalnie) sekret Turnstile; bez niego formularz chroni pułapka i limity,
-//   PRZEKAZ_DO       – (opcjonalnie) adres, na który Worker przekazuje też kopię poczty przychodzącej.
+// Sekrety Workera (Workers & Pages → makietka-api → Settings → Variables and Secrets), nic w repozytorium (#106):
+//   SUPABASE_SERVICE_ROLE_KEY – secret key z Supabase (Project Settings → API Keys); nim Worker woła poczta_przyjmij
+//                               i kontakt_przyjmij (tylko rola service_role),
+//   TURNSTILE_SECRET          – (opcjonalnie) sekret Turnstile; bez niego formularz chroni pułapka i limity,
+//   FORWARD_TO                – (opcjonalnie) adres, na który Worker przekazuje też kopię poczty przychodzącej.
 
 export const SUPABASE = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
@@ -125,15 +126,25 @@ export function wygladaNaSpam(naglowki) {
   return /dmarc=fail/.test(a) || (/spf=fail/.test(a) && /dkim=(fail|none)/.test(a));
 }
 
-async function rpc(env, nazwa, parametry, autoryzacja = null) {
+// Klucz serwisowy: nowy (sb_secret_…) idzie tylko w apikey, dawny (JWT) także jako Bearer.
+const naglowkiSerwisowe = (k) => (String(k).startsWith('sb_') ? { apikey: k } : { apikey: k, authorization: `Bearer ${k}` });
+
+async function rpc(env, nazwa, parametry) {
   const odp = await fetch(`${adresBazy(env)}/rest/v1/rpc/${nazwa}`, {
     method: 'POST',
-    headers: { apikey: KLUCZ_PUBLICZNY, authorization: autoryzacja || `Bearer ${KLUCZ_PUBLICZNY}`, 'content-type': 'application/json' },
+    headers: { ...naglowkiSerwisowe(env.SUPABASE_SERVICE_ROLE_KEY), 'content-type': 'application/json' },
     body: JSON.stringify(parametry),
   });
   const tresc = await odp.json().catch(() => null);
   if (!odp.ok) throw new Error(tresc?.message || `baza: ${odp.status}`);
   return tresc;
+}
+
+// Zalogowany nadawca formularza: id konta z tokenu sesji (sprawdza Supabase Auth); zły token – jak gość.
+async function uzytkownikZTokenu(env, autoryzacja) {
+  const odp = await fetch(`${adresBazy(env)}/auth/v1/user`, { headers: { apikey: KLUCZ_PUBLICZNY, authorization: autoryzacja } }).catch(() => null);
+  if (!odp?.ok) return null;
+  return (await odp.json().catch(() => null))?.id || null;
 }
 
 // Prośba o przebieg kolejki (Cron i po formularzu).
@@ -147,8 +158,8 @@ export async function przebiegKolejki(env) {
 // ---------- Poczta przychodząca ----------
 
 export async function obsluzEmail(message, env, ctx) {
-  if (!env.KLUCZ_SKRZYNKI) {
-    console.log('[poczta] brak sekretu KLUCZ_SKRZYNKI – wiadomość odrzucona');
+  if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.log('[poczta] brak sekretu SUPABASE_SERVICE_ROLE_KEY – wiadomość odrzucona');
     message.setReject?.('Skrzynka nie jest jeszcze gotowa – spróbuj później.');
     return { blad: 'niegotowy' };
   }
@@ -156,7 +167,7 @@ export async function obsluzEmail(message, env, ctx) {
     message.setReject?.('Wiadomość jest za duża (najwyżej 15 MB).');
     return { blad: 'za-duza' };
   }
-  if (env.PRZEKAZ_DO) ctx?.waitUntil?.(message.forward(env.PRZEKAZ_DO).catch(() => {}));
+  if (env.FORWARD_TO) ctx?.waitUntil?.(message.forward(env.FORWARD_TO).catch(() => {}));
   const surowa = naBinarny(new Uint8Array(await new Response(message.raw).arrayBuffer()));
   const w = rozbierz(surowa);
   const od = adresZNaglowka(naglowek(w.naglowki, 'From') || message.from);
@@ -186,7 +197,7 @@ export async function obsluzEmail(message, env, ctx) {
     zalaczniki,
     spam: wygladaNaSpam(w.naglowki),
   };
-  const wynik = await rpc(env, 'poczta_przyjmij', { p_klucz: env.KLUCZ_SKRZYNKI, p: dane });
+  const wynik = await rpc(env, 'poczta_przyjmij', { p: dane });
   if (wynik?.blad === 'za-czesto') message.setReject?.('Za dużo wiadomości – spróbuj później.');
   else if (wynik?.blad) console.log(`[poczta] odrzucona: ${wynik.blad}`);
   return wynik;
@@ -227,14 +238,15 @@ export async function obsluzKontakt(request, env, ctx) {
   if (b.www) return json(200, { ok: true }, c);
   const ip = request.headers.get('cf-connecting-ip') || '';
   if (!(await sprawdzTurnstile(env, b.turnstile, ip))) return json(400, { blad: 'Potwierdź, że nie jesteś botem.', powod: 'captcha' }, c);
-  if (!env.KLUCZ_SKRZYNKI) return json(503, { blad: 'Formularz jeszcze nie działa – napisz na kontakt@makietka.app.', powod: 'niegotowy' }, c);
+  if (!env.SUPABASE_SERVICE_ROLE_KEY) return json(503, { blad: 'Formularz jeszcze nie działa – napisz na kontakt@makietka.app.', powod: 'niegotowy' }, c);
   const autoryzacja = /^Bearer\s+\S+$/i.test(request.headers.get('authorization') || '') ? request.headers.get('authorization') : null;
   let w;
   try {
     w = await rpc(env, 'kontakt_przyjmij', {
-      p_klucz: env.KLUCZ_SKRZYNKI, p_ip: (await sha256(`${ip}|${env.KLUCZ_SKRZYNKI}`)).slice(0, 32),
+      p_ip: (await sha256(`${ip}|${env.SUPABASE_SERVICE_ROLE_KEY}`)).slice(0, 32),
       p_email: String(b.email || '').slice(0, 320), p_temat: String(b.temat || '').slice(0, 200), p_tresc: String(b.tresc || '').slice(0, 5000),
-    }, autoryzacja);
+      p_uzytkownik: autoryzacja ? await uzytkownikZTokenu(env, autoryzacja) : null,
+    });
   } catch (e) {
     return json(502, { blad: `Nie udało się zapisać wiadomości (${e.message}).` }, c);
   }

@@ -1,17 +1,20 @@
-// Poczta aplikacji – Funkcja Edge Supabase (decyzja #86). Wszystkie e-maile przez API Brevo:
+// Poczta aplikacji – Funkcja Edge Supabase (decyzja #86). Wszystkie e-maile przez API Brevo albo ZeptoMail (#105):
 //  • hak Auth „Send Email” (Authentication → Hooks): rejestracja, reset hasła, zmiana adresu, link logowania;
 //    żądanie podpisane sekretem haka (standardwebhooks),
 //  • zaproszenie do projektu (współpraca): aplikacja woła funkcję tokenem zalogowanego właściciela – mail idzie
 //    przez kolejkę (poczta_kolejka, decyzja #95),
 //  • { kolejka: true } – przebieg kolejki (Cron Workera co minutę, aplikacja po dodaniu maila).
-// Logika: ../_shared/poczta.mjs. Sekrety (Edge Functions → Secrets): BREVO_API_KEY, SEND_EMAIL_HOOK_SECRET;
-// opcjonalnie MAIL_FROM_EMAIL, MAIL_FROM_NAME, SITE_URL. Nic z tego nie leży w repozytorium.
+// Logika: ../_shared/poczta.mjs. Sekrety (Edge Functions → Secrets): BREVO_API_KEY, ZEPTOMAIL_API_KEY, ZEPTOMAIL_REGION,
+// SEND_EMAIL_HOOK_SECRET; opcjonalnie ZEPTOMAIL_BOUNCE_ADDRESS, MAIL_FROM_EMAIL, MAIL_FROM_NAME, SITE_URL. Nic z tego nie leży w repozytorium.
 // Wdrażana przez integrację Supabase z GitHubem (blok [functions.poczta] w supabase/config.toml).
 
 import { obsluzPoczte } from '../_shared/poczta.mjs';
 
 Deno.serve((request: Request) => obsluzPoczte(request, {
   BREVO_API_KEY: Deno.env.get('BREVO_API_KEY') ?? undefined,
+  ZEPTOMAIL_API_KEY: Deno.env.get('ZEPTOMAIL_API_KEY') ?? undefined,
+  ZEPTOMAIL_REGION: Deno.env.get('ZEPTOMAIL_REGION') ?? undefined,
+  ZEPTOMAIL_BOUNCE_ADDRESS: Deno.env.get('ZEPTOMAIL_BOUNCE_ADDRESS') ?? undefined,
   SEND_EMAIL_HOOK_SECRET: Deno.env.get('SEND_EMAIL_HOOK_SECRET') ?? undefined,
   MAIL_FROM_EMAIL: Deno.env.get('MAIL_FROM_EMAIL') ?? undefined,
   MAIL_FROM_NAME: Deno.env.get('MAIL_FROM_NAME') ?? undefined,

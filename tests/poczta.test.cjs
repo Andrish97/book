@@ -153,7 +153,7 @@ test('zaproszenie do projektu idzie przez kolejkę: plan tokenem zapraszającego
   assert.deepEqual(await odp.json(), { wyslano: true }, 'bez adresu w odpowiedzi (#100)');
   assert.equal(s.rpc('poczta_zaplanuj_zaproszenie')[0].o.headers.authorization, 'Bearer token-anny', 'plan – tokenem zapraszającego');
   assert.equal(s.rpc('poczta_kolejka_pobierz')[0].o.headers.authorization, 'Bearer klucz-serwisowy', 'kolejka – kluczem serwisowym');
-  assert.deepEqual(s.rpc('poczta_kolejka_wynik')[0].tresc, { p_id: 'k1', p_ok: true, p_blad: null, p_message_id: '<id-brevo@smtp-relay.mailin.fr>' });
+  assert.deepEqual(s.rpc('poczta_kolejka_wynik')[0].tresc, { p_id: 'k1', p_ok: true, p_blad: null, p_message_id: '<id-brevo@smtp-relay.mailin.fr>', p_dostawca: 'brevo' });
   const m = s.maile()[0];
   assert.deepEqual(m.to, [{ email: 'ola@przyklad.pl' }]);
   assert.deepEqual(m.sender, { email: 'no-reply@makietka.app', name: 'Makietka' });

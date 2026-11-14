@@ -190,7 +190,7 @@
             <p class="podpowiedz" id="admin-kolejka-pusto" hidden>Brak maili.</p>
           </section>
 
-          <!-- Ustawienia poczty: nadawca, dostawcy z limitami, odstępy, klucz skrzynki, test -->
+          <!-- Ustawienia poczty: nadawca, dostawcy z limitami, odstępy, test -->
           <section class="grupa-ustawien admin-panel" data-panel-admin="ustawienia" hidden>
             <h2>Ustawienia poczty</h2>
             <form id="admin-form-ustawien" class="wiersze-ustawien" novalidate>
@@ -207,7 +207,7 @@
               <div class="wiersz-ustawien">
                 <strong>Dostawcy</strong>
                 <p class="ciche">Na razie jeden – Brevo (darmowo 300 maili na dobę). Klucz API dostawcy jest sekretem funkcji poczty w Supabase, nie tutaj.</p>
-                <div class="admin-tabela-wrap"><table class="admin-tabela" id="admin-dostawcy"><thead><tr><th>Dostawca</th><th>Priorytet</th><th>Na dobę</th><th>Dziś</th><th>Włączony</th></tr></thead><tbody></tbody></table></div>
+                <div class="admin-tabela-wrap"><table class="admin-tabela" id="admin-dostawcy"><thead><tr><th>Dostawca</th><th>Priorytet</th><th>Na dobę</th><th>Dziś</th><th>Włączony</th><th>Sekret</th><th></th></tr></thead><tbody></tbody></table></div>
               </div>
               <div class="wiersz-ustawien">
                 <strong>Odstępy i limity</strong>
@@ -219,18 +219,8 @@
             </form>
             <div class="wiersze-ustawien">
               <div class="wiersz-ustawien">
-                <div class="wiersz-glowny">
-                  <div class="wiersz-opis"><strong>Klucz skrzynki</strong><span id="admin-klucz-opis">Worker wpisuje nim pocztę przychodzącą i formularz kontaktowy do skrzynki.</span></div>
-                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="admin-nowy-klucz">Nowy klucz skrzynki</button></div>
-                </div>
-                <div class="admin-klucz" id="admin-klucz" hidden>
-                  <p>Skopiuj klucz i wpisz go w Cloudflare: <strong>Workers &amp; Pages → makietka-api → Settings → Variables and Secrets → Add → Secret</strong>, nazwa <code>KLUCZ_SKRZYNKI</code>. Widać go tylko teraz; stary klucz przestał działać.</p>
-                  <div class="wiersz-akcje"><input type="text" id="admin-klucz-wartosc" readonly aria-label="Klucz skrzynki"><button type="button" class="przycisk" id="admin-klucz-kopiuj" data-ikona="kopiuj">Kopiuj</button></div>
-                </div>
-              </div>
-              <div class="wiersz-ustawien">
                 <form id="admin-form-test" class="wiersz-glowny" novalidate>
-                  <label class="wiersz-opis" for="admin-test-adres"><strong>Test wysyłki</strong><span>Mail testowy przez kolejkę i dostawcę.</span></label>
+                  <label class="wiersz-opis" for="admin-test-adres"><strong>Test wysyłki</strong><span>Mail testowy przez kolejkę – pierwszy dostawca, który przyjmie wiadomość; „Test” przy dostawcy – tylko przez niego.</span></label>
                   <div class="wiersz-akcje"><input id="admin-test-adres" type="email" required placeholder="adres@przyklad.pl"><button type="submit" class="przycisk">Wyślij test</button></div>
                 </form>
                 <p class="komunikat" role="status" id="admin-test-komunikat"></p>
