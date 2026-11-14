@@ -221,7 +221,8 @@ const krok = async (nazwa, fn) => {
         const pobrany = await chmura.r2.pobierz('zasoby', klucz);
         await chmura.r2.usun('zasoby', [klucz]);
         let poUsunieciu = null;
-        try { await chmura.r2.pobierz('zasoby', klucz); } catch (e) { poUsunieciu = e.status; }
+        // Pobranie mogłaby obsłużyć pamięć przeglądarki (plik niezmienny – cache na rok), więc pytamy listę R2.
+        poUsunieciu = (await chmura.r2.lista('zasoby', klucz.split('/').slice(0, 2).join('/'))).some((x) => x.klucz === klucz) ? 200 : 404;
         let zaDuzy = null;
         try { await chmura.r2.wyslij('zasoby', `${klucz}_duzy`, new Blob([new Uint8Array(26 * 1024 * 1024)], { type: 'image/png' })); } catch (e) { zaDuzy = e.kod || e.status; }
         let obcy = null;
@@ -240,7 +241,7 @@ const krok = async (nazwa, fn) => {
       if (!Array.isArray(w.plan.pliki) || typeof w.plan.ile !== 'number') throw new Error(`plan sprzątania: ${JSON.stringify(w.plan).slice(0, 200)}`);
       if (!w.uzycie?.wlasne?.length) throw new Error(`uzycie_projektow: ${JSON.stringify(w.uzycie).slice(0, 200)}`);
       if (!Array.isArray(w.skroty) || !w.skroty.length || !w.skroty.every((x) => /^[0-9a-f]{32}$/.test(x))) throw new Error(`skróty stron: ${JSON.stringify(w.skroty).slice(0, 200)}`);
-      return `konto ${Math.round(w.stan.konto / 1024)} kB z 500 MB, R2 razem ${(w.stan.pliki_razem / 1048576).toFixed(1)} MB z 10 GB, baza ${w.stan.baza_razem ? `${(w.stan.baza_razem / 1048576).toFixed(0)} MB` : '?'}; projekty ${w.stan.projekty} z 30; do posprzątania: ${w.plan.ile}`;
+      return `konto ${Math.round(w.stan.konto / 1024)} kB z 500 MB, R2 razem ${(w.stan.pliki_razem / 1048576).toFixed(1)} MB z 10 GB, baza ${w.stan.baza_razem ? `${(w.stan.baza_razem / 1048576).toFixed(0)} MB` : '?'}; projekty ${w.stan.projekty?.ile ?? w.stan.projekty?.wlasne ?? JSON.stringify(w.stan.projekty)} z 30; do posprzątania: ${w.plan.ile}`;
     });
     await krok('dostęp dla AI: klucz z aplikacji zapisuje zmianę, edytor ją widzi, odebrany klucz przestaje działać', async () => {
       await p.keyboard.press('Escape');
