@@ -18,6 +18,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
+| Propozycje z InDesigna i Publishera (#130): dzielenie wyrazów, wdowy i sieroty, spójniki, inicjały, tabulatory, oblewanie tekstem, spis treści, żywa pagina, przypisy, odsyłacze, znajdź i zamień, malarz formatów, biblioteka elementów, druk broszury, podgląd separacji, PDF z zakładkami | ⏳ czeka na wybór |
 | Propozycje z Canvy (#129): tekst po łuku, kalendarz miesiąca, zmiana formatu ze skalowaniem, zestaw marki, wykresy z danych, biblioteka kształtów, kolaż, komentarze, historia wersji, makieta 3D | ⏳ czeka na wybór |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
