@@ -47,8 +47,9 @@ import { polePoTabelach } from '../serie.js';
 import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek, podmiana } from './skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
-  wzorzecZMenu, ustawZakladke, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
+  wzorzecZMenu, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
 } from './lista-stron.js';
+import { podlaczDokWarstw } from './dok-warstw.js';
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje } from './sekcje.js';
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
@@ -302,7 +303,7 @@ export const akcje = {
   'zoom-dopasuj': () => edytor.dopasujDoOkna(),
 };
 
-$('#zakladki-panelu').addEventListener('change', (e) => ustawZakladke(e.target.value));
+podlaczDokWarstw();
 
 // Okno „Wzorce”: dodawanie do strony i sekcji, edycja, wzorce standardowe.
 $('#wzorce-zamknij').addEventListener('click', () => $('#dlg-wzorce').close());

@@ -198,7 +198,7 @@ test('grupa w warstwach: kliknięcie elementu rozwiniętej grupy otwiera grupę 
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Grupa w warstwach 2');
   const id = await przygotuj(strona);
-  await strona.click('#zakladki-panelu label:has-text("Warstwy")');
+  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
   await strona.click('#lista-warstw .warstwa-rozwin');
   const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => `${li.classList.contains('w-grupie') ? '  ' : ''}${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('zaznaczona') ? ' *' : ''}${li.classList.contains('otwarta') ? ' (otwarta)' : ''}`));
   assert.deepEqual(await wiersze(), ['Kółko', 'Grupa', '  Napis', '  Czerwony', 'Tło']);
@@ -488,7 +488,7 @@ test('grupa w grupie: podwójne kliknięcie schodzi poziom niżej, Esc wraca poz
   assert.deepEqual([o.zewn[0], o.zewn[1], o.czerwony], [8, 12, [8, 12, 30, 20]]);
 
   // Lista warstw: zawartość grupy z wcięciem dla grupy w grupie; kliknięcie elementu z głębi otwiera obie grupy.
-  await strona.click('#zakladki-panelu label:has-text("Warstwy")');
+  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
   await strona.click('#lista-warstw .warstwa-rozwin');
   const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => `${li.classList.contains('w-grupie') ? (li.style.paddingLeft ? '    ' : '  ') : ''}${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('zaznaczona') ? ' *' : ''}${li.classList.contains('otwarta') ? ' (otwarta)' : ''}`));
   assert.deepEqual(await wiersze(), ['Zewnętrzna *', '  Kółko', '  Środek', '    Napis', '    Czerwony', 'Tło']);
@@ -500,7 +500,6 @@ test('grupa w grupie: podwójne kliknięcie schodzi poziom niżej, Esc wraca poz
   await strona.click('#lista-warstw li.w-grupie:has-text("Kółko") .warstwa-nazwa');
   o = await opis();
   assert.deepEqual([o.otwarta, o.aktywny, o.interaktywne], ['Zewnętrzna', 'Kółko', ['Zewnętrzna']]);
-  await strona.click('#zakladki-panelu label:has-text("Właściwości")');
   await strona.evaluate(() => document.activeElement?.blur()); // skróty klawiszowe nie działają z kursorem w polu panelu
 
   // Zapis i wczytanie: zagnieżdżenie i położenia zostają; cofnięcie przywraca położenie sprzed przesunięcia.

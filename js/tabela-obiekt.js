@@ -576,7 +576,7 @@ export function dodajKolumne(g, uid, po = g.tabela.kolumny.length - 1) {
   const komorki = komorkiTabeli(g);
   for (let w = W - 1; w >= 0; w -= 1) {
     const pierwszy = t.naglowek && w === 0;
-    g.insertAt(przedKomorkami(g) + w * K + po + 1, nowaKomorka(uid, pierwszy ? `Kolumna ${K + 1}` : '', wygladKomorki(komorki[w * K + po])));
+    g.insertAt(przedKomorkami(g) + w * K + po + 1, nowaKomorka(uid, pierwszy ? `Kolumna ${K + 1}` : '', wygladKomorki(komorki[w * K + Math.max(po, 0)])));
   }
   const szer = suma(t.kolumny);
   t.kolumny = t.kolumny.map((s) => zaokr((s * K) / (K + 1)));

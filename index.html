@@ -141,34 +141,103 @@
     <main class="konto-tresc admin-tresc">
       <div class="konto-uklad">
         <nav class="konto-nawigacja admin-nawigacja" aria-label="Części panelu" role="tablist">
-          <a href="#/admin/skrzynka" data-admin="skrzynka" data-ikona="koperta" role="tab">Skrzynka <span class="licznik-admin" id="admin-nieprzeczytane" hidden></span></a>
-          <a href="#/admin/kolejka" data-admin="kolejka" data-ikona="wyslij" role="tab">Kolejka maili</a>
-          <a href="#/admin/ustawienia" data-admin="ustawienia" data-ikona="suwaki" role="tab">Ustawienia poczty</a>
-          <a href="#/admin/statystyki" data-admin="statystyki" data-ikona="dane" role="tab">Statystyki</a>
+          <a href="#/admin/skrzynka" data-admin="skrzynka" data-ikona="koperta" role="tab" title="Skrzynka"><span class="etykieta-admin">Skrzynka</span> <span class="licznik-admin" id="admin-nieprzeczytane" hidden></span></a>
+          <a href="#/admin/kolejka" data-admin="kolejka" data-ikona="wyslij" role="tab" title="Kolejka maili"><span class="etykieta-admin">Kolejka maili</span></a>
+          <a href="#/admin/ustawienia" data-admin="ustawienia" data-ikona="suwaki" role="tab" title="Ustawienia poczty"><span class="etykieta-admin">Ustawienia poczty</span></a>
+          <a href="#/admin/statystyki" data-admin="statystyki" data-ikona="dane" role="tab" title="Statystyki"><span class="etykieta-admin">Statystyki</span></a>
         </nav>
 
         <div class="konto-sekcje admin-sekcje">
-          <!-- Skrzynka kontakt@makietka.app: poczta przychodząca i formularz kontaktowy -->
-          <section class="grupa-ustawien admin-panel" data-panel-admin="skrzynka">
-            <h2>Skrzynka <span class="ciche" id="admin-adres-skrzynki">kontakt@makietka.app</span></h2>
-            <div class="admin-skrzynka" id="admin-skrzynka">
-              <div class="admin-lista">
-                <div class="admin-narzedzia">
-                  <div class="filtry-projektow" id="admin-foldery" role="group" aria-label="Folder">
-                    <button type="button" class="filtr" data-folder="skrzynka" aria-pressed="true">Odebrane</button>
-                    <button type="button" class="filtr" data-folder="archiwum" aria-pressed="false">Archiwum</button>
-                    <button type="button" class="filtr" data-folder="spam" aria-pressed="false">Spam</button>
-                    <button type="button" class="filtr" data-folder="kosz" aria-pressed="false">Kosz</button>
+          <!-- Skrzynka kontakt@makietka.app jako klient poczty (#110): foldery, lista z zaznaczaniem, rozmowa, pisanie -->
+          <section class="admin-panel admin-panel-skrzynka" data-panel-admin="skrzynka" aria-label="Skrzynka">
+            <div class="skrzynka" id="admin-skrzynka" data-widok="lista">
+              <aside class="skrzynka-foldery" aria-label="Foldery">
+                <button type="button" class="przycisk glowny skrzynka-napisz" id="admin-napisz" data-ikona="olowek" title="Napisz wiadomość">Napisz</button>
+                <nav class="lista-folderow" id="admin-foldery">
+                  <button type="button" data-folder="skrzynka" data-ikona="odebrane" aria-pressed="true"><span class="nazwa-folderu">Odebrane</span><span class="licznik-folderu"></span></button>
+                  <button type="button" data-folder="zgloszenia" data-ikona="zgloszenie" aria-pressed="false"><span class="nazwa-folderu">Zgłoszenia</span><span class="licznik-folderu"></span></button>
+                  <button type="button" data-folder="gwiazdka" data-ikona="gwiazdka" aria-pressed="false"><span class="nazwa-folderu">Z gwiazdką</span><span class="licznik-folderu"></span></button>
+                  <button type="button" data-folder="wyslane" data-ikona="wyslij" aria-pressed="false"><span class="nazwa-folderu">Wysłane</span><span class="licznik-folderu"></span></button>
+                  <button type="button" data-folder="robocze" data-ikona="olowek" aria-pressed="false"><span class="nazwa-folderu">Robocze</span><span class="licznik-folderu"></span></button>
+                  <button type="button" data-folder="archiwum" data-ikona="archiwum" aria-pressed="false"><span class="nazwa-folderu">Archiwum</span><span class="licznik-folderu"></span></button>
+                  <button type="button" data-folder="spam" data-ikona="uwaga" aria-pressed="false"><span class="nazwa-folderu">Spam</span><span class="licznik-folderu"></span></button>
+                  <button type="button" data-folder="kosz" data-ikona="kosz" aria-pressed="false"><span class="nazwa-folderu">Kosz</span><span class="licznik-folderu"></span></button>
+                </nav>
+                <p class="skrzynka-adres ciche" id="admin-adres-skrzynki">kontakt@makietka.app</p>
+              </aside>
+
+              <section class="skrzynka-lista" aria-labelledby="admin-tytul-folderu">
+                <div class="skrzynka-pasek">
+                  <label class="skrzynka-zaznacz" title="Zaznacz wszystkie"><input type="checkbox" id="admin-zaznacz-wszystkie" aria-label="Zaznacz wszystkie"></label>
+                  <h2 class="skrzynka-tytul" id="admin-tytul-folderu">Odebrane</h2>
+                  <div class="skrzynka-zbiorcze" id="admin-zbiorcze" role="toolbar" aria-label="Zaznaczone" hidden>
+                    <span class="ciche" id="admin-zaznaczone"></span>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="przeczytane" data-ikona="przeczytane" title="Oznacz jako przeczytane" aria-label="Oznacz jako przeczytane"></button>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="nieprzeczytane" data-ikona="koperta" title="Oznacz jako nieprzeczytane" aria-label="Oznacz jako nieprzeczytane"></button>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="gwiazdka" data-ikona="gwiazdka" title="Dodaj gwiazdkę" aria-label="Dodaj gwiazdkę"></button>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="archiwum" data-ikona="archiwum" title="Archiwizuj" aria-label="Archiwizuj"></button>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="spam" data-ikona="uwaga" title="Zgłoś spam" aria-label="Zgłoś spam"></button>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="przywroc" data-ikona="odebrane" title="Przywróć do Odebranych" aria-label="Przywróć do Odebranych"></button>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="kosz" data-ikona="kosz" title="Do kosza" aria-label="Do kosza"></button>
+                    <button type="button" class="przycisk-ikona niebezpieczny" data-zbiorczo="usun" data-ikona="kosz" title="Usuń na zawsze" aria-label="Usuń na zawsze"></button>
+                    <button type="button" class="przycisk-ikona" data-zbiorczo="zamknij" data-ikona="ok" title="Zamknij zgłoszenia" aria-label="Zamknij zgłoszenia"></button>
                   </div>
-                  <input type="search" id="admin-szukaj" placeholder="Szukaj w temacie, nadawcy, treści…" aria-label="Szukaj w skrzynce">
+                  <button type="button" class="przycisk-ikona skrzynka-odswiez" data-akcja="admin-odswiez" data-ikona="ponow" title="Odśwież" aria-label="Odśwież"></button>
                 </div>
-                <ul class="lista-watkow" id="admin-watki" aria-label="Rozmowy"></ul>
-                <p class="podpowiedz" id="admin-watki-pusto" hidden>Pusto.</p>
-                <button type="button" class="przycisk maly niebezpieczny" id="admin-oproznij-kosz" hidden>Opróżnij kosz</button>
-              </div>
-              <div class="admin-watek" id="admin-watek" aria-live="polite">
-                <p class="admin-watek-pusty ciche">Wybierz rozmowę z listy.</p>
-              </div>
+                <div class="skrzynka-szukaj"><span data-ikona="szukaj" data-rozmiar="18"></span><input type="search" id="admin-szukaj" placeholder="Szukaj w poczcie" aria-label="Szukaj w poczcie"></div>
+                <ul class="lista-watkow" id="admin-watki" aria-label="Wiadomości"></ul>
+                <p class="skrzynka-pusto" id="admin-watki-pusto" hidden>Pusto.</p>
+                <div class="skrzynka-stopka">
+                  <button type="button" class="przycisk maly niebezpieczny" id="admin-oproznij" hidden>Opróżnij</button>
+                  <span class="odstep"></span>
+                  <span class="ciche" id="admin-zakres"></span>
+                  <button type="button" class="przycisk-ikona" id="admin-poprzednie" data-ikona="wstecz" title="Nowsze" aria-label="Nowsze"></button>
+                  <button type="button" class="przycisk-ikona" id="admin-nastepne" data-ikona="dalej" title="Starsze" aria-label="Starsze"></button>
+                </div>
+              </section>
+
+              <section class="skrzynka-podglad" id="admin-watek" aria-live="polite">
+                <div class="skrzynka-nic"><span data-ikona="koperta" data-rozmiar="40"></span><p>Wybierz wiadomość z listy.</p></div>
+              </section>
+
+              <section class="skrzynka-pisz" id="admin-pisz" aria-labelledby="admin-pisz-tytul" hidden>
+                <form id="admin-form-pisz" novalidate autocomplete="off">
+                  <div class="pisz-naglowek">
+                    <button type="button" class="przycisk-ikona pisz-wstecz" data-pisz="zamknij" data-ikona="wstecz" title="Wróć (zostaje w Robocze)" aria-label="Wróć"></button>
+                    <h3 id="admin-pisz-tytul">Nowa wiadomość</h3>
+                    <span class="ciche pisz-stan" id="admin-pisz-stan" role="status"></span>
+                    <button type="button" class="przycisk-ikona pisz-zamknij" data-pisz="zamknij" data-ikona="zamknij" title="Zamknij (zostaje w Robocze)" aria-label="Zamknij"></button>
+                  </div>
+                  <div class="pisz-pola">
+                    <div class="pole-adresow" data-pole="do">
+                      <label for="admin-pisz-do">Do</label>
+                      <div class="adresy" data-adresy="do"><input id="admin-pisz-do" type="text" inputmode="email" aria-label="Do" placeholder="adres@przyklad.pl"></div>
+                      <button type="button" class="link-przycisk" id="admin-pisz-kopie">DW/UDW</button>
+                    </div>
+                    <div class="pole-adresow" data-pole="dw" hidden>
+                      <label for="admin-pisz-dw">DW</label>
+                      <div class="adresy" data-adresy="dw"><input id="admin-pisz-dw" type="text" inputmode="email" aria-label="DW (do wiadomości)"></div>
+                    </div>
+                    <div class="pole-adresow" data-pole="udw" hidden>
+                      <label for="admin-pisz-udw">UDW</label>
+                      <div class="adresy" data-adresy="udw"><input id="admin-pisz-udw" type="text" inputmode="email" aria-label="UDW (ukryte do wiadomości)"></div>
+                    </div>
+                    <div class="pole-adresow">
+                      <label for="admin-pisz-temat">Temat</label>
+                      <input id="admin-pisz-temat" name="temat" type="text" maxlength="300">
+                    </div>
+                  </div>
+                  <ul class="podpowiedzi-adresow" id="admin-podpowiedzi" role="listbox" hidden></ul>
+                  <div class="pisz-edytor"><textarea id="admin-pisz-tresc" aria-label="Treść wiadomości"></textarea></div>
+                  <ul class="pisz-zalaczniki" id="admin-pisz-zalaczniki" aria-label="Załączniki"></ul>
+                  <div class="pisz-stopka">
+                    <button type="submit" class="przycisk glowny" data-ikona="wyslij">Wyślij</button>
+                    <label class="przycisk" data-ikona="spinacz" title="Załącz pliki (razem do 10 MB)">Załącz<input type="file" id="admin-pisz-pliki" multiple hidden></label>
+                    <span class="odstep"></span>
+                    <button type="button" class="przycisk-ikona" data-pisz="odrzuc" data-ikona="kosz" title="Odrzuć wersję roboczą" aria-label="Odrzuć wersję roboczą"></button>
+                  </div>
+                </form>
+              </section>
             </div>
           </section>
 
@@ -204,6 +273,10 @@
                   <label class="pole"><span>Odstęp między mailami (ms)</span><input name="odstep_ms" type="number" min="0" max="60000" step="100" required></label>
                   <label class="pole"><span>Prób przed błędem</span><input name="maks_prob" type="number" min="1" max="20" required></label>
                 </div>
+              </div>
+              <div class="wiersz-ustawien">
+                <label class="pole"><span>Podpis wiadomości ze skrzynki</span><textarea name="podpis" rows="4" maxlength="2000" placeholder="Pozdrawiamy&#10;Zespół Makietki"></textarea></label>
+                <p class="ciche">Dopisywany pod nową wiadomością, odpowiedzią i przekazaniem (można go zmienić przed wysłaniem).</p>
               </div>
               <div class="wiersz-ustawien">
                 <strong>Dostawcy</strong>
@@ -256,6 +329,7 @@
           <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie"><span class="ikona-wiersza" data-ikona="koperta"></span><span class="tytul">E-mail</span><span class="wartosc" data-podsumowanie="email"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie" data-cel="haslo"><span class="ikona-wiersza" data-ikona="klodka"></span><span class="tytul">Hasło</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/wyglad" data-do="ust-wyglad" data-sekcja="wyglad"><span class="ikona-wiersza" data-ikona="motyw"></span><span class="tytul">Motyw</span><span class="wartosc" data-podsumowanie="motyw"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/powiadomienia" data-do="ust-powiadomienia" data-sekcja="powiadomienia"><span class="ikona-wiersza" data-ikona="dzwonek"></span><span class="tytul">Powiadomienia</span><span class="wartosc" data-podsumowanie="powiadomienia"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Dostęp dla AI</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/miejsce" data-do="ust-miejsce" data-sekcja="miejsce"><span class="ikona-wiersza" data-ikona="chmura"></span><span class="tytul">Miejsce</span><span class="wartosc" data-podsumowanie="miejsce"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/usun" data-do="ust-usun" data-sekcja="usun" class="niebezpieczny"><span class="ikona-wiersza" data-ikona="kosz"></span><span class="tytul">Usuwanie konta</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
@@ -372,6 +446,30 @@
             </div>
           </section>
 
+          <section class="grupa-ustawien" id="ust-powiadomienia">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
+            <h2>Powiadomienia</h2>
+            <p class="ciche">Powiadomienia przychodzą na to urządzenie od razu – także wtedy, gdy Makietka jest zamknięta.</p>
+            <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="wiersz-glowny z-przelacznikiem">
+                  <div class="wiersz-opis"><strong>Na tym urządzeniu</strong><span id="powiadomienia-stan">Sprawdzam…</span></div>
+                  <div class="wiersz-akcje"><label class="przelacznik"><input type="checkbox" id="powiadomienia-wlacz" aria-label="Powiadomienia na tym urządzeniu"><span></span></label></div>
+                </div>
+                <div class="powiadomienia-uwaga" id="powiadomienia-uwaga" hidden>
+                  <p class="ciche" id="powiadomienia-uwaga-tekst"></p>
+                  <button type="button" class="przycisk" data-akcja="zainstaluj" data-ikona="pobierz" id="powiadomienia-instaluj" hidden>Zainstaluj aplikację</button>
+                </div>
+              </div>
+              <fieldset class="wiersz-ustawien powiadomienia-rodzaje" id="powiadomienia-rodzaje" hidden>
+                <legend>Powiadamiaj, gdy</legend>
+                <label class="przelacznik"><input type="checkbox" name="rodzaj" value="zaproszenia"><span>ktoś mnie zaprosi albo udostępni mi projekt</span></label>
+                <label class="przelacznik"><input type="checkbox" name="rodzaj" value="odpowiedzi"><span>ktoś przyjmie albo odrzuci moje zaproszenie</span></label>
+                <label class="przelacznik"><input type="checkbox" name="rodzaj" value="dostep"><span>zmieni się moja rola albo stracę dostęp do projektu</span></label>
+              </fieldset>
+            </div>
+          </section>
+
           <section class="grupa-ustawien" id="ust-ai">
             <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Dostęp dla AI</h2>
@@ -477,7 +575,7 @@
         <div class="menu" id="menu-uzytkownika" role="menu" hidden>
           <div class="menu-naglowek"><strong id="nazwa-uzytkownika"></strong><span id="email-uzytkownika"></span></div>
           <button role="menuitem" data-akcja="ustawienia-konta" id="pozycja-konto" data-ikona="suwaki">Ustawienia konta</button>
-          <button role="menuitem" data-akcja="panel-admina" id="pozycja-admin" data-ikona="dane" hidden>Panel administratora</button>
+          <button role="menuitem" data-akcja="panel-admina" id="pozycja-admin" data-ikona="dane" hidden>Panel administratora <span class="licznik-admin" id="admin-licznik-menu" title="Nieprzeczytane w skrzynce" hidden></span></button>
           <button role="menuitem" data-akcja="kontakt" data-ikona="koperta">Kontakt</button>
           <button role="menuitem" data-akcja="zainstaluj" data-ikona="pobierz" hidden>Zainstaluj aplikację</button>
           <button role="menuitem" class="tylko-waski-pasek" data-akcja="pelny-ekran" data-ikona="pelny-ekran" hidden>Pełny ekran</button>
@@ -645,23 +743,27 @@
 
       <aside class="panel panel-inspektor" id="panel-inspektor" aria-label="Właściwości i warstwy">
         <button type="button" class="uchwyt-arkusza" aria-label="Uchwyt panelu: stuknij, żeby powiększyć albo zmniejszyć; przeciągnij w dół, żeby zamknąć"></button>
-        <div class="naglowek-panelu zakladki-panelu-opak">
-          <div class="przelacznik-segmentowy zakladki-listy" id="zakladki-panelu" role="radiogroup" aria-label="Panel">
-            <label><input type="radio" name="zakladka-panelu" value="wlasciwosci" checked><span>Właściwości</span></label>
-            <label><input type="radio" name="zakladka-panelu" value="warstwy"><span>Warstwy</span></label>
+        <!-- Nagłówek mówi, czego dotyczą ustawienia: zaznaczonego elementu, narzędzia albo strony (#115).
+             Kopiuj, duplikuj, usuń – przy zaznaczonym elemencie. -->
+        <div class="naglowek-panelu naglowek-wlasciwosci" id="naglowek-wlasciwosci" data-rodzaj="strona">
+          <div class="tytul-naglowka">
+            <h2 id="tytul-wlasciwosci">Strona</h2>
           </div>
-          <!-- Kopiuj, duplikuj, usuń: w jednym wierszu z zakładkami (#109). -->
           <div class="akcje-obiektu" id="akcje-obiektu" hidden>
             <button class="przycisk-ikona maly" data-akcja="kopiuj" data-ikona="wklej" title="Kopiuj do schowka – wkleisz na tej lub innej stronie (Ctrl+C)" aria-label="Kopiuj do schowka"></button>
             <button class="przycisk-ikona maly" data-akcja="duplikuj" data-ikona="kopiuj" title="Duplikuj (Ctrl+D)" aria-label="Duplikuj"></button>
             <button class="przycisk-ikona maly" data-akcja="usun" data-ikona="kosz" title="Usuń (Delete)" aria-label="Usuń"></button>
           </div>
         </div>
-        <div class="naglowek-panelu" id="naglowek-wlasciwosci">
-          <h2 id="tytul-wlasciwosci">Strona</h2>
-        </div>
         <div id="wlasciwosci" class="wlasciwosci"></div>
-        <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu" hidden></ol>
+        <!-- Warstwy: zawsze pod ręką, niezależnie od narzędzia i zaznaczenia (#115). Na komputerze – zwijany
+             panel pod właściwościami, na telefonie i tablecie – osobna zakładka w dolnym menu. -->
+        <section class="dok-warstw" id="dok-warstw" aria-label="Warstwy">
+          <button type="button" class="naglowek-dok" id="naglowek-warstw" aria-expanded="true" aria-controls="lista-warstw">
+            <span data-ikona="warstwy" data-rozmiar="16"></span> Warstwy <span class="licznik" id="licznik-warstw">0</span>
+          </button>
+          <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu"></ol>
+        </section>
         <section class="sekcja-ostrzezen" id="sekcja-ostrzezen">
           <button class="naglowek-ostrzezen" id="naglowek-ostrzezen" aria-expanded="true">
             <span data-ikona="uwaga" data-rozmiar="16"></span> Ostrzeżenia <span class="licznik" id="licznik-ostrzezen">0</span>
@@ -674,6 +776,7 @@
     <nav class="zakladki-mobilne" aria-label="Panele">
       <button data-panel="strony" data-ikona="strony"><span>Strony</span></button>
       <button data-panel="inspektor" data-ikona="suwaki"><span>Właściwości</span></button>
+      <button data-panel="warstwy" data-ikona="warstwy"><span>Warstwy</span></button>
       <button data-panel="ostrzezenia" data-ikona="uwaga"><span>Ostrzeżenia</span><span class="kropka" id="kropka-ostrzezen" hidden></span></button>
     </nav>
   </div>

@@ -11,7 +11,7 @@ Projekt otwiera się w edytorze. Ekran ma pięć części:
 - **górny pasek** — nawigacja, cofanie, okna projektu i menu [⋯] (→ 4.2, 4.3),
 - **panel stron** z lewej — miniatury stron pogrupowane w sekcje (→ 11.1),
 - **strona** pośrodku, a nad nią pasek wstawiania (→ 4.4),
-- **panel z prawej** — właściwości i warstwy (→ 4.5),
+- **prawa kolumna** — właściwości, a pod nimi warstwy (→ 4.5, 10),
 - **prawy dolny róg** — linie pomocnicze, siatka i powiększenie (→ 4.6).
 
 Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
@@ -73,21 +73,26 @@ Pasek nad stroną wstawia nowe elementy (→ 5.1).
 
 Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (→ 4.6).
 
-## 4.5 Panel z prawej
+## 4.5 Właściwości i warstwy
 
-Panel z prawej ma dwie zakładki: **Właściwości** i **Warstwy**.
+Prawa kolumna ma dwie części: u góry **właściwości**, pod nimi panel **Warstwy** (→ 10).
 
-- **Właściwości** — ustawienia tego, co jest zaznaczone. Gdy nic nie jest zaznaczone —
-  ustawienia otwartej strony (→ 11.3). Części panelu zależą od rodzaju elementu; tytuł części
-  (np. „Cień”) zwija ją i rozwija.
-- **Warstwy** — lista elementów strony (→ 10).
+Nagłówek właściwości mówi, czego dotyczą ustawienia:
 
-Nad ustawieniami zaznaczonego elementu są przyciski [Kopiuj do schowka] (<kbd>Ctrl</kbd>+<kbd>C</kbd>),
-[Duplikuj] (<kbd>Ctrl</kbd>+<kbd>D</kbd>) i [Usuń] (<kbd>Delete</kbd>).
+| Nagłówek | Kiedy | Co ustawiasz |
+|---|---|---|
+| **Zaznaczony element** · rodzaj (np. „Tekst”) | Jest zaznaczony element. | Wygląd i położenie tego elementu. |
+| **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. [Rysuj]. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
+| **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (→ 11.3). |
 
-Na dole panelu jest lista **Ostrzeżenia** (→ 13.2).
+Przy zaznaczonym elemencie w nagłówku są przyciski [Kopiuj do schowka] (<kbd>Ctrl</kbd>+<kbd>C</kbd>),
+[Duplikuj] (<kbd>Ctrl</kbd>+<kbd>D</kbd>) i [Usuń] (<kbd>Delete</kbd>). Tytuł części (np. „Cień”) zwija
+ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (→ 13.2).
 
-<!-- #115: układ panelu właściwości i warstw się zmienia – opis do uzupełnienia po scaleniu. -->
+![Ustawienia narzędzia: rysowanie](k-rysowanie.png)
+
+Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu:
+[Strony], [Właściwości], [Warstwy] i [Ostrzeżenia] (→ 26.2).
 
 ![Właściwości zaznaczonego tekstu](wlasciwosci.png)
 
@@ -211,8 +216,6 @@ Część **Cień** działa dla każdego elementu:
 | **Siła** | Jak mocny jest cień (krycie). |
 | **W prawo**, **W dół** | Przesunięcie cienia w mm; wartość ujemna przesuwa w lewo albo w górę. |
 | **Rozmycie** | Jak miękka jest krawędź cienia, w mm. |
-
-<!-- #115: rozróżnienie właściwości zaznaczonego elementu i ustawień narzędzia – opis do uzupełnienia po scaleniu. -->
 
 # 6. Tekst
 
@@ -340,8 +343,14 @@ a zamknięty kształt z pióra — także **Wypełnienie**.
 ## 7.3 Rysowanie odręczne
 
 [Rysuj] (<kbd>B</kbd>): przeciągaj po stronie jak ołówkiem — drżenie ręki jest wygładzane. Każde
-pociągnięcie to osobny element. Tryb zostaje włączony, więc narysujesz kilka kresek; <kbd>Esc</kbd>
-albo ponowne kliknięcie [Rysuj] go kończy. Kolor i grubość zmienisz potem we właściwościach.
+pociągnięcie to osobny element. Tryb zostaje włączony, więc narysujesz kilka kresek.
+
+Gdy rysowanie jest włączone, właściwości pokazują **Ustawienia narzędzia · Rysowanie** (→ 4.5),
+część **Pędzel**: **Kolor linii** i **Grubość linii** w mm — tak będą wyglądać następne linie.
+[Zakończ rysowanie], <kbd>Esc</kbd> albo ponowne kliknięcie [Rysuj] kończy rysowanie. Gotową linię
+zaznaczysz jak każdy element i zmienisz jej kolor i grubość.
+
+![Rysowanie: kolor i grubość pędzla](k-rysowanie.png)
 
 ## 7.4 Pióro i edycja punktów
 
@@ -471,7 +480,8 @@ rysunek jako obraz. <kbd>Ctrl</kbd>+<kbd>Z</kbd> przywraca obraz.
 | **Najmniejsza wysokość wiersza (mm)** | Wiersz nie będzie niższy; rośnie, gdy tekst się nie mieści. |
 | **Pierwszy wiersz to nagłówek** | Pierwszy wiersz pogrubiony, z grubszą linią pod spodem. |
 
-Tabelę przesuwasz, powiększasz i obracasz w całości, jak każdy element.
+Tabelę przesuwasz, powiększasz i obracasz w całości, jak każdy element. **Pojedyncze kliknięcie
+komórki** zaznaczonej tabeli wybiera tę komórkę (→ 9.3), **dwukrotne** — zaczyna w niej pisanie (→ 9.2).
 
 ![Tabela](tabela.png)
 
@@ -484,10 +494,39 @@ Komórka to zwykły tekst: pogrubisz w niej fragment, zmienisz czcionkę, wstawi
 
 ## 9.3 Wiersze, kolumny i ich rozmiar
 
-Wiersze i kolumny dodajesz i usuwasz we właściwościach tabeli. Szerokość kolumny zmienisz,
-przeciągając niebieski znacznik nad granicą kolumn.
+Ustawienia tabeli są w trzech częściach właściwości.
 
-<!-- #115: ustawienia wierszy, kolumn i ich rozmiarów się zmieniają – opis do uzupełnienia po scaleniu. -->
+**Cała tabela** — dotyczy wszystkich wierszy i kolumn:
+
+| Ustawienie | Znaczenie |
+|---|---|
+| **Wiersze** [−] [+] | [Usuń ostatni wiersz], [Dodaj wiersz na końcu]. |
+| **Kolumny** [−] [+] | [Usuń ostatnią kolumnę], [Dodaj kolumnę na końcu]. |
+| **Pierwszy wiersz to nagłówek** | Pierwszy wiersz pogrubiony, z grubszą linią pod spodem. |
+| **Szerokość tabeli** | W mm; kolumny zmieniają się proporcjonalnie. |
+| **Wysokość wierszy** | Najmniejsza wysokość każdego wiersza; wiersz rośnie sam, gdy tekst się nie mieści. |
+| [Wyrównaj szerokości kolumn] | Wszystkie kolumny równej szerokości. |
+
+![Cała tabela](k-tabela-cala.png)
+
+**Kolumna i wiersz** — kliknij raz komórkę zaznaczonej tabeli. Część pokazuje „Komórka: kolumna 2,
+wiersz 3” i ustawienia tej kolumny i tego wiersza:
+
+| Ustawienie | Znaczenie |
+|---|---|
+| **Szerokość kolumny N** | Szerokość tej kolumny w mm. |
+| [Kolumna przed], [Kolumna po], [Usuń kolumnę] | Wstawia kolumnę przed tą albo po niej, usuwa tę kolumnę. |
+| **Wysokość wiersza N** | Najmniejsza wysokość tego wiersza w mm. |
+| [Wiersz nad], [Wiersz pod], [Usuń wiersz] | Wstawia wiersz nad tym albo pod nim, usuwa ten wiersz. |
+
+To samo masz w trakcie pisania w komórce.
+
+![Kolumna i wiersz wybranej komórki](k-tabela-komorka.png)
+
+**Szerokości wszystkich kolumn** (część zwinięta) — szerokość każdej kolumny w mm, jedna pod drugą.
+
+Granicę kolumn przesuniesz też myszą: przy zaznaczonej tabeli nad granicami kolumn są niebieskie
+znaczniki. Kolumna obok zwęża się o tyle samo, a ostatni znacznik zmienia szerokość całej tabeli.
 
 ## 9.4 Scalanie komórek
 
@@ -506,10 +545,18 @@ razy, zrobisz komórkę na kilka kolumn albo wierszy. [Rozdziel komórkę] wraca
 
 # 10. Warstwy
 
-## 10.1 Lista warstw
+## 10.1 Panel Warstwy
 
-Zakładka **Warstwy** w panelu z prawej pokazuje wszystkie elementy otwartej strony, od leżącego na
-wierzchu do leżącego na spodzie.
+Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego
+na spodzie. Widać go zawsze — niezależnie od tego, czy coś jest zaznaczone i czy włączone jest narzędzie.
+
+- **Na komputerze** panel stoi w prawej kolumnie, pod właściwościami. Nagłówek „Warstwy” z liczbą
+  elementów zwija go i rozwija; zwinięcie zostaje zapamiętane.
+- **Na telefonie i tablecie w pionie** panel otwiera przycisk [Warstwy] na dole ekranu.
+
+![Warstwy](warstwy.png)
+
+## 10.2 Wiersz warstwy
 
 | W wierszu | Co robi |
 |---|---|
@@ -519,15 +566,14 @@ wierzchu do leżącego na spodzie.
 | **Kłódka** | Blokuje położenie i rozmiar. |
 | [⋯] | [Na wierzch], [Wyżej], [Niżej], [Na spód], [Zmień nazwę]. |
 
-Trójkąt przy grupie albo tabeli rozwija jej zawartość. Kliknięcie elementu grupy otwiera grupę
-z tym elementem zaznaczonym; kliknięcie komórki tabeli zaczyna w niej pisanie.
+Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w niego trafić na stronie.
 
-Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Kliknięcie
-otwiera wzorzec do edycji.
+## 10.3 Grupy, tabele i wzorce na liście
 
-<!-- #115: warstwy przechodzą do osobnego panelu – opis miejsca do uzupełnienia po scaleniu. -->
-
-![Warstwy](warstwy.png)
+- Trójkąt przy grupie albo tabeli rozwija jej zawartość. Kliknięcie elementu grupy otwiera grupę z tym
+  elementem zaznaczonym (→ 5.5); kliknięcie komórki tabeli zaczyna w niej pisanie.
+- Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Nie zmienisz ich
+  tutaj — kliknięcie otwiera wzorzec do edycji (→ 12.3).
 
 # 11. Strony, sekcje i rozkładówki
 

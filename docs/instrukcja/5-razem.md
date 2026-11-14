@@ -40,7 +40,8 @@ plakietką właściciela.
 Zaproszenie przyjmuje osoba, która ma link — także z innego adresu niż ten, na który poszło.
 W oknie Współpraca zawsze widać, kto naprawdę jest w projekcie.
 
-<!-- #113: powiadomienia push o zaproszeniach – opis do uzupełnienia po scaleniu. -->
+Gdy masz włączone powiadomienia, o zaproszeniu dowiesz się od razu — także przy zamkniętej aplikacji.
+Włączysz je w [Ustawienia konta] → **Powiadomienia** (→ 2.6).
 
 ## 23.4 Praca na żywo
 

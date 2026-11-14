@@ -63,3 +63,12 @@ entrypoint = "./functions/mcp/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/poczta/index.ts"
+
+# Powiadomienia push (supabase/functions/powiadomienia, decyzja #113): klucz publiczny VAPID dla przeglądarki
+# i wysyłka kolejki powiadomienia_kolejka (zleca aplikacja po zmianie we współpracy i Cron Workera co minutę).
+# Bez sprawdzania JWT: tędy nie da się niczego dopisać do kolejki. Sekrety: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY,
+# VAPID_SUBJECT (Edge Functions → Secrets).
+[functions.powiadomienia]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/powiadomienia/index.ts"

@@ -36,6 +36,7 @@ async function zrzut(strona, nazwa, opcje = {}) {
 // które się klika. obszar, zaznacz – selektory Playwright (pierwszy pasujący widoczny element).
 async function kadr(strona, nazwa, { obszar, zaznacz = [], margines = 16 }) {
   const ramki = [];
+  await strona.locator([].concat(obszar)[0]).locator('visible=true').first().scrollIntoViewIfNeeded();
   for (const sel of [].concat(obszar)) {
     const r = await strona.locator(sel).locator('visible=true').first().boundingBox();
     if (!r) throw new Error(`kadr ${nazwa}: brak ${sel}`);
@@ -233,6 +234,9 @@ if (require.main === module) (async () => {
     await zrzut(k, 'motyw.png');
     await kadr(k, 'k-konto-ai.png', { obszar: '.konto-lista', zaznacz: '.konto-lista [data-sekcja="ai"]' });
     await k.click('#wybor-motywu label:has-text("Jak w systemie")');
+    await k.click('.konto-lista [data-sekcja="powiadomienia"]');
+    await k.waitForTimeout(500);
+    await kadr(k, 'k-powiadomienia.png', { obszar: '#ust-powiadomienia', margines: 8 });
 
     // Udostępnianie podglądu linkiem
     await k.click('[data-akcja="do-projektow"]:visible');
@@ -464,17 +468,15 @@ if (require.main === module) (async () => {
   await zrzut(d, 'odleglosci.png', { clip: { x: 236, y: 56, width: 744, height: 520 } });
   await d.mouse.up();
 
-  // Warstwy
-  await d.click('#zakladki-panelu label:has-text("Warstwy")');
+  // Warstwy: panel pod właściwościami (#115) – zawsze widoczny, zrzut prawej części okna z płótnem obok.
   await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
   await d.click('#lista-warstw li:has-text("Pas na notatki") .warstwa-oko');
   await d.hover('#lista-warstw li:has-text("Poniedziałek")');
   await d.click('#lista-warstw li:has-text("Poniedziałek") .warstwa-klodka');
   await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
-  await zrzut(d, 'warstwy.png', { clip: { x: 0, y: 56, width: 820, height: 480 } });
+  await zrzut(d, 'warstwy.png', { clip: { x: WIDOK.width - 820, y: 56, width: 820, height: WIDOK.height - 56 } });
 
   // Dane, pola i serie: strona dnia powielana według tabeli
-  await d.click('#zakladki-panelu label:has-text("Właściwości")');
   await d.evaluate(async () => {
     const { edytor: e, stan } = window.seriodruk;
     const p = stan.projekt;
@@ -748,6 +750,17 @@ if (require.main === module) (async () => {
   });
   await d.waitForTimeout(700);
   await zrzut(d, 'tabela.png');
+  // Tabela (#115): „Cała tabela” i „Kolumna i wiersz” po wybraniu komórki pojedynczym kliknięciem.
+  await kadr(d, 'k-tabela-cala.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Cała tabela"))', margines: 8 });
+  await d.evaluate(() => { const e = window.seriodruk.edytor; const g = e.canvas.getActiveObject(); e._wybierzKomorke(g, { k: 1, w: 2 }); });
+  await d.waitForTimeout(500);
+  await kadr(d, 'k-tabela-komorka.png', { obszar: '#panel-inspektor fieldset.kolumna-i-wiersz', margines: 8 });
+  // Ustawienia narzędzia: rysowanie odręczne (#115).
+  await d.evaluate(() => window.seriodruk.edytor.odznacz());
+  await d.click('[data-akcja="rysuj"]');
+  await d.waitForTimeout(400);
+  await kadr(d, 'k-rysowanie.png', { obszar: ['#panel-inspektor .naglowek-panelu', '#panel-inspektor fieldset:has(> legend:has-text("Pędzel"))'], margines: 8 });
+  await d.keyboard.press('Escape');
 
   // Pióro: kształt z łukami w trakcie edycji punktów
   await pustaStrona();

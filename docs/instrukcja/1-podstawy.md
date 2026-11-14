@@ -107,9 +107,10 @@ osobny widok, a [‹ Ustawienia] wraca do listy.
 | **E-mail** | Adres konta. [Zmień adres] wysyła link potwierdzający na nowy adres; do jego kliknięcia logujesz się dotychczasowym. [Wpisz inny adres] zastępuje oczekujący adres nowym. |
 | **Hasło** | [Zmień hasło] — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
 | **Motyw** | Wygląd aplikacji (→ 2.4). |
+| **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 2.6). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (→ 24.2). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 2.5). |
-| **Usuń konto** | Usunięcie konta (→ 2.6). |
+| **Usuń konto** | Usunięcie konta (→ 2.7). |
 
 W widoku **Logowanie** jest też [Wyloguj wszędzie] — wylogowuje wszystkie urządzenia naraz, np. po
 zalogowaniu na cudzym komputerze. Zwykłe [Wyloguj] (tylko to urządzenie) jest w menu konta.
@@ -148,14 +149,30 @@ Od 80% limitu aplikacja ostrzega — tutaj i przy wgrywaniu obrazów. [Posprząt
 miejsca zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych
 zdjęć, pliki usuniętych projektów i wyłączonych linków. Pliki z ostatnich dwóch dni zostają.
 
-## 2.6 Usuwanie konta
+## 2.6 Powiadomienia
+
+Makietka może od razu dać znać o sprawach projektów innych osób — także wtedy, gdy aplikacja jest
+zamknięta. Włączysz to w [Ustawienia konta] → **Powiadomienia**:
+
+| Ustawienie | Znaczenie |
+|---|---|
+| **Na tym urządzeniu** | Przełącznik — powiadomienia na tym urządzeniu. Przeglądarka zapyta o zgodę. |
+| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**. |
+
+Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomienia włącza się osobno
+na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (→ 26.4) — w ustawieniach
+jest wtedy przycisk [Zainstaluj aplikację].
+
+![Powiadomienia w ustawieniach konta](k-powiadomienia.png)
+
+## 2.7 Usuwanie konta
 
 [Ustawienia konta] → **Usuń konto** usuwa konto i wszystkie Twoje projekty. Zanim to zrobisz,
 wyeksportuj projekty, które chcesz zachować (→ 3.6).
 
 > Uwaga: Usunięcia konta nie da się cofnąć.
 
-## 2.7 Kontakt
+## 2.8 Kontakt
 
 Pytanie, pomysł albo błąd? [Kontakt] jest w menu konta i pod formularzem logowania. Wpisz swój
 adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. Możesz też pisać

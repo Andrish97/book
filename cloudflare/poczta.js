@@ -115,6 +115,20 @@ export function adresZNaglowka(s) {
   return { email: t.trim().toLowerCase(), nazwa: null };
 }
 
+// Lista adresów z nagłówka To/Cc („Jan” <jan@x.pl>, ola@y.pl) → ['jan@x.pl', 'ola@y.pl'] (przecinki w cudzysłowie się nie liczą).
+export function adresyZNaglowka(s) {
+  const t = dekodujSlowa(s || '');
+  const czesci = [];
+  let biezaca = '';
+  let cudzyslow = false;
+  for (const z of t) {
+    if (z === '"') cudzyslow = !cudzyslow;
+    if ((z === ',' || z === ';') && !cudzyslow) { czesci.push(biezaca); biezaca = ''; } else biezaca += z;
+  }
+  czesci.push(biezaca);
+  return [...new Set(czesci.map((c) => adresZNaglowka(c).email).filter((e) => /^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/.test(e)))].slice(0, 50);
+}
+
 // Prosty tekst z HTML (zajawka w panelu, gdy nadawca przysłał sam HTML).
 export const tekstZHtml = (h) => String(h || '').replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<br\s*\/?>/gi, '\n')
   .replace(/<\/(p|div|li|h\d)>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
@@ -148,6 +162,15 @@ async function uzytkownikZTokenu(env, autoryzacja) {
 }
 
 // Prośba o przebieg kolejki (Cron i po formularzu).
+// Co minutę (Cron Workera): kolejka powiadomień push (decyzja #113) – zdarzenia, których aplikacja nie
+// zleciła sama (np. zmiana przez łącznik AI albo przerwane połączenie).
+export async function przebiegPowiadomien(env) {
+  const odp = await fetch(`${adresBazy(env)}/functions/v1/powiadomienia`, {
+    method: 'POST', headers: { apikey: KLUCZ_PUBLICZNY, 'content-type': 'application/json' }, body: JSON.stringify({ kolejka: true }),
+  });
+  return odp.json().catch(() => null);
+}
+
 export async function przebiegKolejki(env) {
   const odp = await fetch(`${adresBazy(env)}/functions/v1/poczta`, {
     method: 'POST', headers: { apikey: KLUCZ_PUBLICZNY, 'content-type': 'application/json' }, body: JSON.stringify({ kolejka: true }),
@@ -188,6 +211,8 @@ export async function obsluzEmail(message, env, ctx) {
     od_email: od.email || String(message.from || '').toLowerCase(),
     od_nazwa: od.nazwa,
     do_email: String(message.to || ''),
+    do_lista: adresyZNaglowka(naglowek(w.naglowki, 'To')),
+    dw: adresyZNaglowka(naglowek(w.naglowki, 'Cc')),
     temat: dekodujSlowa(naglowek(w.naglowki, 'Subject')).slice(0, 300),
     tekst: (w.tekst || tekstZHtml(w.html)).slice(0, 200000),
     html: w.html.slice(0, 400000),

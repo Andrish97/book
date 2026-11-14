@@ -44,6 +44,7 @@ export function odswiezNaglowek() {
   $('#pozycja-konto').hidden = !u;
   // Panel administratora – tylko dla kont z tabeli administratorzy (pyta baza, decyzja #95).
   $('#pozycja-admin').hidden = true;
+  if (!u) import('./admin.js').then((m) => m.wylogowano()).catch(() => {});
   if (u) import('./admin.js').then((m) => m.czyAdministrator()).then((tak) => { if (stan.uzytkownik === u) $('#pozycja-admin').hidden = !tak; }).catch(() => {});
   $('[data-akcja="wyloguj"]').lastChild.textContent = u ? 'Wyloguj' : 'Przejdź do logowania';
 }
@@ -51,6 +52,7 @@ export function odswiezNaglowek() {
 export async function poZalogowaniu(uzytkownik) {
   stan.uzytkownik = uzytkownik;
   wlaczNaZywo(uzytkownik); // powiadomienia o zmianach z innych urządzeń; nie wstrzymuje wejścia
+  import('../powiadomienia.js').then((m) => m.synchronizuj(uzytkownik)).catch(() => {}); // push (#113): ciche odświeżenie urządzenia
   const motywKonta = uzytkownik?.user_metadata?.motyw;
   if (motywKonta && motywKonta !== wybranyMotyw()) ustawMotyw(motywKonta);
   odswiezNaglowek();

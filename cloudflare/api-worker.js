@@ -15,9 +15,12 @@
 //                                             właściciel i ten, kto podał hasło; plik wydajemy, gdy link żyje
 //                                             (link_chroniony_wazny – sekret aktualny, data ważności nie minęła).
 // Meta: GET /pliki/_miejsce, GET /pliki/_lista, POST /pliki/_usun, GET /pliki/_osierocone.
+// Załączniki skrzynki (#95, #110): /pliki/_poczta/<uuid>/<plik> → klucz R2 „poczta/…”. Odczyt, wysyłka (PUT, do 10 MB)
+// i usunięcie – tylko administrator (czy_administrator); odczyt także dla kolejki maili z kluczem serwisowym
+// w nagłówku x-service-key (sprawdza go baza – poczta_serwis, tylko rola service_role).
 // Limity plików – LIMITY niżej (jedno miejsce). Bez sekretów – klucz publikowalny bazy jest jawny.
 
-import { obsluzEmail, obsluzKontakt, przebiegKolejki } from './poczta.js';
+import { obsluzEmail, obsluzKontakt, przebiegKolejki, przebiegPowiadomien } from './poczta.js';
 
 export const CEL = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
@@ -178,6 +181,44 @@ async function wyslijObiekt(env, zapytanie, klucz, cors, domyslnyCache) {
   return new Response(obiekt.body, { status: 200, headers: h });
 }
 
+// Załączniki skrzynki: limit jednego pliku (razem w wiadomości – 10 MB, pilnuje baza).
+export const LIMIT_ZALACZNIKA = 10 * MB;
+const pamiecSerwisu = new Map(); // klucz serwisowy → { tak }
+
+// Klucz serwisowy z nagłówka x-service-key: ważny, gdy baza wpuszcza nim do funkcji tylko dla service_role.
+async function kluczSerwisowyOk(env, klucz) {
+  if (!klucz) return false;
+  const w = zPamieci(pamiecSerwisu, klucz);
+  if (w) return w.tak;
+  const naglowki = String(klucz).startsWith('sb_') ? { apikey: klucz } : { apikey: klucz, authorization: `Bearer ${klucz}` };
+  const odp = await fetch(`${baza(env)}/rest/v1/rpc/poczta_serwis`, { method: 'POST', headers: { ...naglowki, 'content-type': 'application/json' }, body: '{}' })
+    .catch(() => null);
+  const tak = Boolean(odp?.ok) && (await odp.json().catch(() => null)) === true;
+  doPamieci(pamiecSerwisu, klucz, { tak });
+  return tak;
+}
+
+async function obsluzZalacznikPoczty(zapytanie, env, token, reszta, cors) {
+  const czesci = czesciSciezki(reszta.slice('_poczta/'.length));
+  if (!czesci || czesci.length !== 2 || !/^[0-9a-f-]{36}$/.test(czesci[0])) return json(400, { blad: 'Nieprawidłowa ścieżka.' }, cors);
+  const klucz = `poczta/${czesci.join('/')}`;
+  if (zapytanie.method === 'PUT') {
+    if (Number(zapytanie.headers.get('content-length') || 0) > LIMIT_ZALACZNIKA) return json(413, { blad: 'Załącznik jest za duży (najwyżej 10 MB).', kod: 'limit_pliku' }, cors);
+    const tresc = await zapytanie.arrayBuffer();
+    if (tresc.byteLength > LIMIT_ZALACZNIKA) return json(413, { blad: 'Załącznik jest za duży (najwyżej 10 MB).', kod: 'limit_pliku' }, cors);
+    await env.PLIKI.put(klucz, tresc, { httpMetadata: { contentType: zapytanie.headers.get('content-type') || 'application/octet-stream' } });
+    pamiecRazem = null;
+    return json(200, { klucz, rozmiar: tresc.byteLength }, cors);
+  }
+  if (zapytanie.method === 'DELETE') {
+    await env.PLIKI.delete(klucz);
+    pamiecRazem = null;
+    return json(200, { usuniete: 1 }, cors);
+  }
+  if (zapytanie.method === 'GET' || zapytanie.method === 'HEAD') return wyslijObiekt(env, zapytanie, klucz, cors, 'private, no-store');
+  return json(405, { blad: 'Niedozwolona metoda.' }, cors);
+}
+
 const zaDuzy = (cors) => json(413, { blad: `Plik jest za duży (najwyżej ${LIMITY.plik / MB} MB).`, kod: 'limit_pliku' }, cors);
 
 async function zapiszObiekt(env, zapytanie, klucz, wlasciciel, cors, domyslnyCache) {
@@ -332,18 +373,21 @@ async function obsluzPliki(zapytanie, env, u) {
   if (zapytanie.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   if (!env.PLIKI) return json(503, { blad: 'Magazyn plików nie jest podłączony (binding PLIKI).' }, cors);
   if (publiczne) return obsluzPodglady(zapytanie, env, u, cors);
+  const reszta = u.pathname.slice('/pliki/'.length);
+  // Kolejka maili (Funkcja Edge poczta) czyta załączniki skrzynki kluczem serwisowym.
+  if (reszta.startsWith('_poczta/') && zapytanie.method === 'GET' && zapytanie.headers.get('x-service-key')) {
+    if (!await kluczSerwisowyOk(env, zapytanie.headers.get('x-service-key'))) return json(403, { blad: 'Nieprawidłowy klucz.' }, cors);
+    return obsluzZalacznikPoczty(zapytanie, env, null, reszta, cors);
+  }
 
   const token = tokenZZapytania(zapytanie);
   const uid = await uzytkownik(env, token);
   if (!uid) return json(401, { blad: 'Zaloguj się ponownie.' }, cors);
-  const reszta = u.pathname.slice('/pliki/'.length);
   if (reszta === '_miejsce' && zapytanie.method === 'GET') return miejsceKonta(env, uid, cors);
-  // Załącznik poczty przychodzącej (cloudflare/poczta.js, decyzja #95) – tylko administrator (czy_administrator w bazie).
-  if (reszta.startsWith('_poczta/') && zapytanie.method === 'GET') {
-    const czesci = czesciSciezki(reszta.slice('_poczta/'.length));
-    if (!czesci || czesci.length !== 2) return json(400, { blad: 'Nieprawidłowa ścieżka.' }, cors);
+  // Załączniki skrzynki (cloudflare/poczta.js, panel administratora) – tylko administrator (czy_administrator w bazie).
+  if (reszta.startsWith('_poczta/')) {
     if (await rpc(env, token, 'czy_administrator', {}) !== true) return json(403, { blad: 'Tylko dla administratora.' }, cors);
-    return wyslijObiekt(env, zapytanie, `poczta/${czesci.join('/')}`, cors, 'private, no-store');
+    return obsluzZalacznikPoczty(zapytanie, env, token, reszta, cors);
   }
   if (reszta === '_usun' && zapytanie.method === 'POST') return usunWiele(zapytanie, env, token, uid, cors);
   if (reszta === '_osierocone' && zapytanie.method === 'GET') return osierocone(env, token, uid, cors);
@@ -397,9 +441,10 @@ export default {
   async email(wiadomosc, env, ctx) {
     await obsluzEmail(wiadomosc, env, ctx);
   },
-  // Co minutę: przebieg kolejki maili (wrangler.jsonc → triggers.crons).
+  // Co minutę: przebieg kolejki maili i kolejki powiadomień push (wrangler.jsonc → triggers.crons).
   async scheduled(_zdarzenie, env, ctx) {
     ctx.waitUntil(przebiegKolejki(env).catch(() => {}));
+    ctx.waitUntil(przebiegPowiadomien(env).catch(() => {}));
   },
 };
 
@@ -409,5 +454,6 @@ export function wyczyscPamiec() {
   pamiecDostepu.clear();
   pamiecZajetosci.clear();
   pamiecLinkow.clear();
+  pamiecSerwisu.clear();
   pamiecRazem = null;
 }

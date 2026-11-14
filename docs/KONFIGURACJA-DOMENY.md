@@ -180,11 +180,43 @@ Sprawdzenie:
 - **Panel → Ustawienia poczty → Test wysyłki** – mail testowy przez kolejkę (w **Kolejce maili** stan „wysłany”).
 - Wyślij maila na `kontakt@makietka.app` ze swojej skrzynki – po chwili jest w **Skrzynce**; odpowiedz
   z panelu – odpowiedź przychodzi z `kontakt@makietka.app`, a Twoja odpowiedź na nią wraca do tej samej rozmowy.
-- **Kontakt** (stopka ekranu logowania albo menu konta) – wiadomość w Skrzynce z plakietką „formularz”,
-  potwierdzenie na podany adres.
+- **Kontakt** (stopka ekranu logowania albo menu konta) – wiadomość w Skrzynce jako **zgłoszenie** z numerem
+  `ZGL-RRRR-NNNN` (folder **Zgłoszenia**).
+
+### 5a. Jak korzystać ze skrzynki (decyzja #110)
+
+Skrzynka działa jak zwykła poczta, jak w Familiadzie (bez marketingu):
+
+- **Foldery:** Odebrane, Zgłoszenia (formularz kontaktowy – otwarte/zamknięte), Z gwiazdką, Wysłane, Robocze,
+  Archiwum, Spam, Kosz. Liczba nieprzeczytanych jest przy folderze, przy zakładce panelu i w menu konta – zmienia
+  się na żywo, gdy przychodzi poczta.
+- **Lista:** pole wyboru przy każdej wiadomości i „zaznacz wszystkie” u góry – nad listą pojawiają się operacje
+  dla zaznaczonych: przeczytane / nieprzeczytane, gwiazdka, archiwum, spam, kosz, przywrócenie, a w Koszu i Spamie
+  **usunięcie na zawsze** (z załącznikami). „Opróżnij” na dole Kosza i Spamu. Szukanie obejmuje temat, nadawcę,
+  adresatów, numer zgłoszenia i treść.
+- **Rozmowa:** treść HTML wyświetla się w zamkniętej ramce bez skryptów; obrazy z internetu dopiero po
+  **Pokaż obrazy** (inaczej nadawca widziałby, że wiadomość otwarto). Załączniki pobiera się kliknięciem.
+- **Pisanie:** **Napisz**, a w rozmowie **Odpowiedz**, **Odpowiedz wszystkim**, **Przekaż** (z załącznikami
+  oryginału). Pola Do, DW, UDW podpowiadają znane adresy (z poczty i konta aplikacji); treść w edytorze TinyMCE;
+  **Załącz** – pliki razem do 10 MB. Wiadomość zapisuje się sama w **Robocze** (zamknięcie też ją tam zostawia;
+  kosz w stopce ją odrzuca). Podpis ustawia się w **Ustawieniach poczty**. Ctrl+Enter – wyślij.
+- Wysyłka idzie przez **kolejkę** (Brevo, potem ZeptoMail) z adresu `kontakt@`; odpowiedź ma nagłówki
+  In-Reply-To/References, a w zgłoszeniu – numer w temacie, więc odpowiedź klienta wraca do tej samej rozmowy.
+- Na telefonie lista, rozmowa i pisanie to osobne ekrany (strzałka wraca).
 
 ## Stare adresy
 
 - `https://andrish97.github.io/book/…` – GitHub przekierowuje na `https://makietka.app/…` (po kroku 2).
 - Adresy łącznika `https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/<klucz>` – działają dalej
   (to ta sama funkcja), ale okno „Dostęp dla AI” po przełączeniu podaje już adres z `api.makietka.app`.
+
+## 6. Powiadomienia push (decyzje #113, #113a)
+
+Nic nie trzeba ustawiać. Powiadomienia o zaproszeniach, udostępnieniach i zmianach dostępu wysyła Funkcja Edge
+`powiadomienia` (wdraża się sama po pushu na `main`, razem z migracją bazy). Parę kluczy VAPID funkcja tworzy
+sama przy pierwszym użyciu i trzyma w tabeli `push_klucze`, do której dostęp ma tylko klucz serwisowy – bez
+sekretów i bez skryptów. W aplikacji: **Ustawienia konta → Powiadomienia → Na tym urządzeniu**. Na iPhonie
+i iPadzie powiadomienia działają w zainstalowanej aplikacji (Udostępnij → Do ekranu początkowego).
+
+Wysyłkę zleca aplikacja zaraz po zmianie we współpracy, a Cron Workera `makietka-api` co minutę dosyła resztę
+(np. zmiany zrobione przez łącznik AI).

@@ -91,8 +91,7 @@ test('warstwy: przeciąganie palcem za uchwyt ⋮⋮, wiersze 40+ px na dotyku',
     e.canvas.discardActiveObject();
     e.zatwierdz();
   });
-  await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
-  await strona.tap('#zakladki-panelu label:has-text("Warstwy")');
+  await strona.tap('.zakladki-mobilne [data-panel="warstwy"]');
   const lista = () => strona.locator('#lista-warstw li.warstwa .warstwa-nazwa').allTextContents();
   await strona.waitForFunction(() => document.querySelectorAll('#lista-warstw li.warstwa').length === 3);
   assert.deepEqual(await lista(), ['c', 'b', 'a']);
