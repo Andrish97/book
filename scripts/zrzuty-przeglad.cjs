@@ -517,6 +517,24 @@ const WIDOKI = [
     await s.evaluate(async () => { (await import('./js/ui.js')).powiadom('Połączono zmiany z innego urządzenia (z konta: 2 części projektu). Twoje zmiany zostały.'); });
     await czekaj(s, 200);
   }, E],
+  ['25d-postep', async (s) => {
+    await doEdytora(s);
+    await s.evaluate(async () => {
+      const { postep } = await import('./js/postep.js');
+      window.__postepy = [postep('Wgrywanie obrazów z bardzo długą nazwą archiwum „zdjęcia z wakacji 2026.zip”', { razem: 48, anuluj: () => {}, opoznienie: 0 }), postep('Otwieranie projektu…', { opoznienie: 0 })];
+      window.__postepy[0].krok(12);
+    });
+    await czekaj(s, 300);
+  }, { edytor: true, poZrzucie: async (s) => { await s.evaluate(() => { for (const p of window.__postepy || []) p.koniec(); }); } }],
+  ['25e-postep-w-oknie', async (s) => {
+    await doEdytora(s); await akcja(s, 'obrazy'); await s.waitForSelector('#dlg-obrazy[open]');
+    await s.evaluate(async () => {
+      const { postep } = await import('./js/postep.js');
+      window.__postepy = [postep('Wgrywanie obrazów', { razem: 27, anuluj: () => {}, opoznienie: 0 })];
+      window.__postepy[0].krok(5);
+    });
+    await czekaj(s, 300);
+  }, { edytor: true, poZrzucie: async (s) => { await s.evaluate(() => { for (const p of window.__postepy || []) p.koniec(); }); } }],
   ['25c-offline', async (s) => {
     await doEdytora(s);
     await s.context().setOffline(true);

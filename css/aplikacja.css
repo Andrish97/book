@@ -1729,3 +1729,15 @@ dialog:focus { outline: none; }
 :root[data-dotyk] .pasek-wzorca .przycisk { min-height: 40px; }
 :root[data-dotyk] .pasek-podgladu .przycisk-ikona { flex: none; }
 :root[data-kompakt] .warstwy-naglowek { font-size: 12px; }
+
+/* Podpowiedzi klawiszowe w tekście przycisków (np. „Zamknij (Esc)”) – tylko tam, gdzie jest klawiatura. */
+:root[data-dotyk] .tylko-klawiatura { display: none; }
+/* Pasek prezentacji na telefonie: „Zamknij” w jednej linii i w obrębie ekranu (po dodaniu powiększania
+   wychodziło poza dół ekranu, łamane na dwie linie); pasek omija dolny pasek systemu. */
+.prezentacja-zamknij { flex: none; white-space: nowrap; }
+@media (max-width: 600px) {
+  .prezentacja-pasek { height: auto; min-height: 56px; padding-bottom: env(safe-area-inset-bottom); }
+  .prezentacja-zoom { gap: 2px; }
+  .prezentacja-zoom .prezentacja-wartosc { min-width: 48px; }
+  :root[data-dotyk] .prezentacja-zamknij { min-height: 44px; }
+}
