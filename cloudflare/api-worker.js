@@ -17,6 +17,8 @@
 // Meta: GET /pliki/_miejsce, GET /pliki/_lista, POST /pliki/_usun, GET /pliki/_osierocone.
 // Limity plików – LIMITY niżej (jedno miejsce). Bez sekretów – klucz publikowalny bazy jest jawny.
 
+import { obsluzEmail, obsluzKontakt, przebiegKolejki } from './poczta.js';
+
 export const CEL = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
 const MB = 1024 * 1024;
@@ -336,6 +338,13 @@ async function obsluzPliki(zapytanie, env, u) {
   if (!uid) return json(401, { blad: 'Zaloguj się ponownie.' }, cors);
   const reszta = u.pathname.slice('/pliki/'.length);
   if (reszta === '_miejsce' && zapytanie.method === 'GET') return miejsceKonta(env, uid, cors);
+  // Załącznik poczty przychodzącej (cloudflare/poczta.js, decyzja #95) – tylko administrator (czy_administrator w bazie).
+  if (reszta.startsWith('_poczta/') && zapytanie.method === 'GET') {
+    const czesci = czesciSciezki(reszta.slice('_poczta/'.length));
+    if (!czesci || czesci.length !== 2) return json(400, { blad: 'Nieprawidłowa ścieżka.' }, cors);
+    if (await rpc(env, token, 'czy_administrator', {}) !== true) return json(403, { blad: 'Tylko dla administratora.' }, cors);
+    return wyslijObiekt(env, zapytanie, `poczta/${czesci.join('/')}`, cors, 'private, no-store');
+  }
   if (reszta === '_usun' && zapytanie.method === 'POST') return usunWiele(zapytanie, env, token, uid, cors);
   if (reszta === '_osierocone' && zapytanie.method === 'GET') return osierocone(env, token, uid, cors);
   if (reszta === '_lista' && zapytanie.method === 'GET') {
@@ -364,8 +373,10 @@ async function obsluzPliki(zapytanie, env, u) {
 }
 
 export default {
-  async fetch(zapytanie, env = {}) {
+  async fetch(zapytanie, env = {}, ctx) {
     const u = new URL(zapytanie.url);
+    // Formularz kontaktowy (decyzja #95, cloudflare/poczta.js).
+    if (u.pathname === '/kontakt') return obsluzKontakt(zapytanie, env || {}, ctx);
     if (u.pathname === '/' && zapytanie.method === 'GET') {
       return new Response('Makietka – API (przekaźnik do bazy i pliki). Aplikacja: https://makietka.app/\n', {
         headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
@@ -381,6 +392,14 @@ export default {
     // new Request(adres, zapytanie) przenosi metodę, nagłówki, treść (strumieniem) i prośbę o WebSocket
     // (Upgrade) – odpowiedź 101 z bazy wraca do przeglądarki bez zmian. Przekierowania podaje dalej.
     return fetch(new Request(adresCelu(zapytanie.url, baza(env)), zapytanie), { redirect: 'manual' });
+  },
+  // Poczta przychodząca na kontakt@, noreply@ i no-reply@makietka.app (Email Routing → „Send to a Worker”).
+  async email(wiadomosc, env, ctx) {
+    await obsluzEmail(wiadomosc, env, ctx);
+  },
+  // Co minutę: przebieg kolejki maili (wrangler.jsonc → triggers.crons).
+  async scheduled(_zdarzenie, env, ctx) {
+    ctx.waitUntil(przebiegKolejki(env).catch(() => {}));
   },
 };
 

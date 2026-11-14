@@ -63,6 +63,8 @@ export const r2 = {
   },
   // { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku, pliki_razem, limit_plikow }
   miejsce: async () => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_miejsce`)).json(),
+  // Załącznik poczty przychodzącej (klucz „poczta/<uuid>/<nazwa>”) – tylko administrator (panel, decyzja #95).
+  zalacznikPoczty: async (klucz) => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_${kodujSciezke(klucz)}`)).blob(),
   // [{ bucket, nazwa, rozmiar }] – pliki konta bez odwołań (starsze niż 2 dni).
   osierocone: async () => (await zapytaniePliku(`${SUPABASE_URL}/pliki/_osierocone`)).json(),
 };

@@ -42,16 +42,20 @@ export const ustawienia = (env = {}) => ({
 
 // ---------- Wysyłka ----------
 
-// { do, temat, html, tekst, odpowiedzDo? } → wysyła przez Brevo; rzuca błąd, gdy się nie da.
-export async function wyslijMail({ do: adresat, temat, html: trescHtml, tekst, odpowiedzDo = null, tagi = [] }, env = {}, wyslij = fetch) {
+// { do, doNazwa?, temat, html, tekst, odpowiedzDo?, nadawca?, naglowki? } → wysyła przez Brevo i zwraca Message-ID
+// wysłanej wiadomości (do wątków skrzynki); rzuca błąd, gdy się nie da.
+const NAGLOWKI_WATKU = ['In-Reply-To', 'References'];
+export async function wyslijMail({ do: adresat, doNazwa = null, temat, html: trescHtml, tekst, odpowiedzDo = null, tagi = [], nadawca = null, naglowki = null }, env = {}, wyslij = fetch) {
   if (!env.BREVO_API_KEY) throw new Error('brak-klucza-brevo');
   const u = ustawienia(env);
+  const dodatkowe = Object.fromEntries(Object.entries(naglowki || {}).filter(([k, v]) => NAGLOWKI_WATKU.includes(k) && v));
   const odp = await wyslij(BREVO, {
     method: 'POST',
     headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
-      sender: { email: u.nadawca, name: u.marka },
-      to: [{ email: adresat }],
+      sender: nadawca?.email ? { email: nadawca.email, name: nadawca.name || u.marka } : { email: u.nadawca, name: u.marka },
+      to: [doNazwa ? { email: adresat, name: doNazwa } : { email: adresat }],
+      ...(Object.keys(dodatkowe).length ? { headers: dodatkowe } : {}),
       ...(odpowiedzDo?.email ? { replyTo: odpowiedzDo } : {}),
       subject: temat,
       htmlContent: trescHtml,
@@ -59,17 +63,17 @@ export async function wyslijMail({ do: adresat, temat, html: trescHtml, tekst, o
       ...(tagi.length ? { tags: tagi } : {}),
     }),
   });
-  if (!odp.ok) {
-    const b = await odp.json().catch(() => ({}));
-    throw new Error(`Poczta odrzuciła wiadomość (${odp.status}${b?.message ? `: ${b.message}` : ''}).`);
-  }
+  const b = await odp.json().catch(() => ({}));
+  if (!odp.ok) throw new Error(`Poczta odrzuciła wiadomość (${odp.status}${b?.message ? `: ${b.message}` : ''}).`);
+  return b?.messageId || null;
 }
 
 // ---------- Szablon ----------
 
 // Jeden prosty wygląd wszystkich wiadomości: nagłówek, akapit, przycisk, uwaga drobnym drukiem.
 // { tytul, tresc, przycisk?, link?, kod?, uwaga } → { html, tekst }.
-export function szablon({ tytul, tresc, przycisk = null, link = null, kod = null, uwaga = '' }, marka = MARKA) {
+const STOPKA_AUTOMATYCZNA = 'Wiadomość wysłana automatycznie – nie odpowiadaj na nią.';
+export function szablon({ tytul, tresc, przycisk = null, link = null, kod = null, uwaga = '', cytat = '', stopka = STOPKA_AUTOMATYCZNA }, marka = MARKA) {
   const akapity = (Array.isArray(tresc) ? tresc : [tresc]).filter(Boolean);
   const htmlTresc = `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${html(tytul)}</title></head>
 <body style="margin:0;padding:24px 12px;background:#f4f3ef;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1a1a1a">
@@ -80,15 +84,18 @@ ${akapity.map((a) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.55"
 ${kod ? `<p style="margin:6px 0 20px;font-size:28px;font-weight:700;letter-spacing:.18em">${html(kod)}</p>` : ''}
 ${link && przycisk ? `<p style="margin:8px 0 24px"><a href="${html(link)}" style="display:inline-block;padding:12px 22px;border-radius:9px;background:#2b5bd7;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px">${html(przycisk)}</a></p>
 <p style="margin:0 0 14px;font-size:12.5px;line-height:1.5;color:#807d75">Jeśli przycisk nie działa, skopiuj adres do przeglądarki:<br><span style="word-break:break-all">${html(link)}</span></p>` : ''}
+${cytat ? `<blockquote style="margin:0 0 16px;padding:10px 14px;border-left:3px solid #d9d6cd;background:#f7f6f2;border-radius:6px;font-size:14px;line-height:1.5;color:#55524b;white-space:pre-wrap">${html(cytat)}</blockquote>` : ''}
 ${uwaga ? `<p style="margin:0;font-size:12.5px;line-height:1.5;color:#807d75">${html(uwaga)}</p>` : ''}
 </div>
-<p style="max-width:520px;margin:14px auto 0;font-size:11.5px;color:#9a978f;text-align:center">Wiadomość wysłana automatycznie – nie odpowiadaj na nią.</p>
+${stopka ? `<p style="max-width:520px;margin:14px auto 0;font-size:11.5px;color:#9a978f;text-align:center">${html(stopka)}</p>` : ''}
 </body></html>`;
   const tekst = [
     tytul, '', ...akapity.flatMap((a) => [a, '']),
     ...(kod ? [kod, ''] : []),
     ...(link ? [`${przycisk || 'Link'}: ${link}`, ''] : []),
-    ...(uwaga ? [uwaga] : []),
+    ...(cytat ? [cytat.split('\n').map((l) => `> ${l}`).join('\n'), ''] : []),
+    ...(uwaga ? [uwaga, ''] : []),
+    ...(stopka ? [stopka] : []),
   ].join('\n').trim();
   return { html: htmlTresc, tekst };
 }
@@ -262,31 +269,130 @@ export function mailZaproszenia({ projekt, od, rola, link, wazneDo }, env = {}) 
   };
 }
 
-async function obsluzZaproszenie(request, env, wyslij) {
+// Odpowiedź z panelu (skrzynka kontakt@): zwykły list – akapity, podpis, cytat poprzedniej wiadomości.
+export function listOdpowiedzi({ tresc, cytat = '', kiedy = null }, env = {}) {
+  const u = ustawienia(env);
+  const akapity = String(tresc || '').split(/\n{2,}/).map((a) => a.trim()).filter(Boolean);
+  const data = kiedy ? new Date(kiedy).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Warsaw' }) : null;
+  const adresStrony = u.strona.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const htmlTresc = `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:18px 12px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.55">
+${akapity.map((a) => `<p style="margin:0 0 12px;white-space:pre-wrap">${html(a)}</p>`).join('\n')}
+<p style="margin:18px 0 0;color:#55524b">— ${html(u.marka)}<br><a href="${html(u.strona)}" style="color:#2b5bd7">${html(adresStrony)}</a></p>
+${cytat ? `<p style="margin:22px 0 6px;font-size:12.5px;color:#807d75">${data ? `${html(data)} napisałeś(-aś):` : 'Twoja wiadomość:'}</p>
+<blockquote style="margin:0;padding:8px 12px;border-left:3px solid #d9d6cd;color:#55524b;font-size:14px;white-space:pre-wrap">${html(cytat)}</blockquote>` : ''}
+</body></html>`;
+  const tekst = [
+    ...akapity.flatMap((a) => [a, '']), `— ${u.marka}`, u.strona,
+    ...(cytat ? ['', data ? `${data} napisałeś(-aś):` : 'Twoja wiadomość:', cytat.split('\n').map((l) => `> ${l}`).join('\n')] : []),
+  ].join('\n');
+  return { html: htmlTresc, tekst };
+}
+
+// Treść maila z kolejki: szablon + dane (wiersz z poczta_kolejka_pobierz). → { temat, html, tekst }.
+export function trescZKolejki(w, env = {}) {
+  const u = ustawienia(env);
+  const d = w.dane || {};
+  if (w.szablon === 'zaproszenie') {
+    const link = `${u.strona}#/zaproszenie/${encodeURIComponent(d.kod)}`;
+    return mailZaproszenia({ projekt: d.projekt, od: d.od, rola: d.rola, link, wazneDo: d.wazne_do }, env);
+  }
+  if (w.szablon === 'kontakt') {
+    return {
+      temat: `${u.marka} – dostaliśmy Twoją wiadomość${d.temat ? `: ${d.temat}` : ''}`,
+      ...szablon({
+        tytul: 'Dostaliśmy Twoją wiadomość',
+        tresc: ['Dziękujemy za wiadomość. Odpowiemy najszybciej, jak się da – zwykle w ciągu kilku dni.', ...(d.temat ? [`Temat: ${d.temat}`] : [])],
+        cytat: d.tresc || '',
+        uwaga: 'Jeśli chcesz coś dopisać, po prostu odpowiedz na tę wiadomość – trafi do nas.',
+        stopka: '',
+      }, u.marka),
+    };
+  }
+  if (w.szablon === 'odpowiedz') return { temat: w.temat || `${u.marka} – odpowiedź`, ...listOdpowiedzi(d, env) };
+  if (w.szablon === 'test') {
+    const kiedy = new Date(d.kiedy || Date.now()).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' });
+    return {
+      temat: `${u.marka} – test poczty`,
+      ...szablon({ tytul: 'Poczta działa', tresc: `To wiadomość testowa z panelu administratora (${kiedy}). Skoro ją czytasz, wysyłka przez kolejkę działa.` }, u.marka),
+    };
+  }
+  throw new Error(`nieznany szablon: ${w.szablon}`);
+}
+
+// ---------- Kolejka (decyzja #95) ----------
+
+// Klucz serwisowy środowiska funkcji (Supabase daje go funkcjom sam – nie ma go w repozytorium).
+function kluczSerwisowy(env) {
+  if (env.SUPABASE_SERVICE_ROLE_KEY) return env.SUPABASE_SERVICE_ROLE_KEY;
+  try {
+    const k = JSON.parse(env.SUPABASE_SECRET_KEYS || '{}');
+    return k.default || Object.values(k)[0] || null;
+  } catch { return null; }
+}
+const naglowkiKlucza = (klucz) => (String(klucz).startsWith('sb_') ? { apikey: klucz } : { apikey: klucz, authorization: `Bearer ${klucz}` });
+
+async function rpcBazy(env, wyslij, nazwa, parametry, naglowki) {
+  const adresBazy = (env.SUPABASE_URL || DOMYSLNY_ADRES).replace(/\/+$/, '');
+  const odp = await wyslij(`${adresBazy}/rest/v1/rpc/${nazwa}`, {
+    method: 'POST', headers: { ...naglowki, 'content-type': 'application/json' }, body: JSON.stringify(parametry),
+  });
+  const tresc = await odp.json().catch(() => null);
+  if (!odp.ok) {
+    const e = new Error(tresc?.message || `Baza odpowiedziała błędem ${odp.status}.`);
+    e.status = odp.status;
+    throw e;
+  }
+  return tresc;
+}
+
+// Jeden przebieg kolejki: pobiera maile, którym wolno już wyjść (limity dostawcy, odstępy na adresata – liczy baza),
+// wysyła je po kolei z odstępem z ustawień i zapisuje wynik. → { wyslane: [id], bledy: [{ id, blad }], powod }.
+export async function przetworzKolejke(env = {}, wyslij = fetch, { czekaj = (ms) => new Promise((ok) => { setTimeout(ok, ms); }) } = {}) {
+  const klucz = kluczSerwisowy(env);
+  if (!klucz) return { wyslane: [], bledy: [], powod: 'brak-klucza-serwisowego' };
+  if (!env.BREVO_API_KEY) return { wyslane: [], bledy: [], powod: 'brak-konfiguracji' };
+  const naglowki = naglowkiKlucza(klucz);
+  const partia = await rpcBazy(env, wyslij, 'poczta_kolejka_pobierz', {}, naglowki);
+  const wynik = { wyslane: [], bledy: [], powod: partia?.powod || null };
+  const lista = partia?.wiadomosci || [];
+  for (let i = 0; i < lista.length; i += 1) {
+    const w = lista[i];
+    if (i > 0 && partia.odstep_ms) await czekaj(partia.odstep_ms);
+    try {
+      const m = trescZKolejki(w, env);
+      const id = await wyslijMail({
+        do: w.do_email, doNazwa: w.do_nazwa, temat: m.temat, html: m.html, tekst: m.tekst, odpowiedzDo: w.odpowiedz_do,
+        naglowki: w.naglowki, nadawca: w.od_skrzynki ? partia.skrzynka : partia.nadawca, tagi: [w.rodzaj],
+      }, env, wyslij);
+      await rpcBazy(env, wyslij, 'poczta_kolejka_wynik', { p_id: w.id, p_ok: true, p_blad: null, p_message_id: id }, naglowki);
+      wynik.wyslane.push(w.id);
+    } catch (e) {
+      await rpcBazy(env, wyslij, 'poczta_kolejka_wynik', { p_id: w.id, p_ok: false, p_blad: e.message, p_message_id: null }, naglowki).catch(() => {});
+      wynik.bledy.push({ id: w.id, blad: e.message });
+    }
+  }
+  return wynik;
+}
+
+// Zaproszenie do projektu: do kolejki (limity i odstępy liczy baza – poczta_zaplanuj_zaproszenie, tokenem
+// zapraszającego), potem od razu przebieg kolejki – zwykle mail wychodzi w tej samej chwili.
+async function obsluzZaproszenie(request, id, env, wyslij) {
   const autoryzacja = request.headers.get('authorization') || '';
   if (!/^Bearer\s+\S+/i.test(autoryzacja)) return json(401, { blad: 'Zaloguj się.' }, true);
-  let id;
-  try { ({ zaproszenie: id } = await request.json()); } catch { /* niżej */ }
   if (!id || typeof id !== 'string') return json(400, { blad: 'Brak identyfikatora zaproszenia.' }, true);
-
-  const adresBazy = (env.SUPABASE_URL || DOMYSLNY_ADRES).replace(/\/+$/, '');
-  const odp = await wyslij(`${adresBazy}/rest/v1/rpc/dane_maila_zaproszenia`, {
-    method: 'POST',
-    headers: { apikey: env.KLUCZ_PUBLICZNY || DOMYSLNY_KLUCZ_PUBLICZNY, authorization: autoryzacja, 'content-type': 'application/json' },
-    body: JSON.stringify({ p_id: id }),
-  });
-  const dane = await odp.json().catch(() => ({}));
-  if (!odp.ok) return json(odp.status === 401 ? 401 : 400, { blad: dane?.message || 'Nie można wysłać tego zaproszenia.' }, true);
-  if (!env.BREVO_API_KEY) return json(200, { wyslano: false, powod: 'brak-konfiguracji' }, true);
-
-  const link = `${ustawienia(env).strona}#/zaproszenie/${encodeURIComponent(dane.kod)}`;
-  const m = mailZaproszenia({ projekt: dane.projekt, od: dane.od, rola: dane.rola, link, wazneDo: dane.wazne_do }, env);
+  let plan;
   try {
-    await wyslijMail({ do: dane.email, ...m, odpowiedzDo: dane.od_email ? { email: dane.od_email, name: dane.od } : null, tagi: ['zaproszenie'] }, env, wyslij);
+    plan = await rpcBazy(env, wyslij, 'poczta_zaplanuj_zaproszenie', { p_id: id }, { apikey: env.KLUCZ_PUBLICZNY || DOMYSLNY_KLUCZ_PUBLICZNY, authorization: autoryzacja });
   } catch (e) {
-    return json(502, { wyslano: false, powod: 'blad-wysylki', blad: e.message }, true);
+    return json(e.status === 401 ? 401 : 400, { blad: e.message || 'Nie można wysłać tego zaproszenia.' }, true);
   }
-  return json(200, { wyslano: true, email: dane.email }, true);
+  if (plan?.blad === 'za-czesto') return json(200, { wyslano: false, powod: 'za-czesto', za: plan.za, za_sekund: plan.za_sekund }, true);
+  if (!env.BREVO_API_KEY) return json(200, { wyslano: false, powod: 'brak-konfiguracji' }, true);
+  const przebieg = await przetworzKolejke(env, wyslij).catch((e) => ({ wyslane: [], bledy: [{ id: plan.id, blad: e.message }] }));
+  if (przebieg.wyslane.includes(plan.id)) return json(200, { wyslano: true, email: plan.email }, true);
+  const blad = przebieg.bledy.find((b) => b.id === plan.id)?.blad;
+  return json(200, { wyslano: false, powod: blad ? 'blad-wysylki' : 'w-kolejce', ...(blad ? { blad } : {}), email: plan.email }, true);
 }
 
 // ---------- Wejście funkcji ----------
@@ -294,7 +400,19 @@ async function obsluzZaproszenie(request, env, wyslij) {
 export async function obsluzPoczte(request, env = {}, wyslij = fetch) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (request.method !== 'POST') return json(405, { blad: 'Tylko POST.' }, true);
-  // Hak Auth ma podpis standardwebhooks; aplikacja – token zalogowanej osoby.
+  // Hak Auth ma podpis standardwebhooks; aplikacja – token zalogowanej osoby; Cron Workera – { kolejka: true }.
   if (request.headers.get('webhook-signature')) return obsluzHak(request, env, wyslij);
-  return obsluzZaproszenie(request, env, wyslij);
+  let tresc = {};
+  try { tresc = await request.json(); } catch { /* pusta treść – niżej */ }
+  // Przebieg kolejki może zlecić każdy (Cron Workera co minutę, aplikacja po dodaniu maila): kolejka sama pilnuje
+  // limitów i odstępów, a tędy nie da się do niej niczego dopisać.
+  if (tresc?.kolejka) {
+    try {
+      const w = await przetworzKolejke(env, wyslij);
+      return json(200, { wyslane: w.wyslane.length, bledy: w.bledy.length, powod: w.powod }, true);
+    } catch (e) {
+      return json(500, { blad: e.message }, true);
+    }
+  }
+  return obsluzZaproszenie(request, tresc?.zaproszenie, env, wyslij);
 }

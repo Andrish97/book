@@ -11,6 +11,7 @@ const path = require('path');
 const { chromium, devices } = require('playwright');
 const { atrapaAi } = require('./atrapa-ai.cjs');
 const { atrapaWspolpracy, rolaW } = require('./atrapa-wspolpraca.cjs');
+const { atrapaPoczty } = require('./atrapa-poczta.cjs');
 
 const KORZEN = path.join(__dirname, '..');
 const TYPY = {
@@ -145,6 +146,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
   };
   stan.ai = atrapaAi(stan); // funkcje dostępu dla AI: stan.ai(nazwa funkcji, parametry, konto)
   stan.wspolpraca = atrapaWspolpracy(stan); // współpraca między kontami: stan.wspolpraca(nazwa, parametry, konto)
+  stan.adminPoczta = atrapaPoczty(stan); // panel administratora i poczta (#95): stan.adminPoczta(nazwa, parametry, konto)
   const widzi = (k, p) => Boolean(rolaW(stan, k, p.id)); // RLS: własne projekty i udostępnione temu kontu
   const sesja = (k) => {
     const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -407,6 +409,20 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     }
     // E-mail z zaproszeniem (Funkcja Edge poczta): atrapa zapisuje „wysłany” e-mail; stan.brevo = false
     // udaje brak skonfigurowanej poczty.
+    // Panel administratora i poczta (#95): funkcje admin_*, przebieg kolejki, formularz kontaktowy (Worker /kontakt).
+    if (sc.startsWith('/rest/v1/rpc/') && stan.adminPoczta.ma(sc.slice('/rest/v1/rpc/'.length))) {
+      try {
+        return json(r, 200, stan.adminPoczta(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)) ?? null);
+      } catch (e) {
+        return blad(r, e.status || 400, e.message, e.kod || 'P0001');
+      }
+    }
+    if (sc === '/functions/v1/poczta' && m === 'POST' && tresc.kolejka) return json(r, 200, stan.adminPoczta.przebieg());
+    if (sc === '/kontakt') {
+      if (m === 'OPTIONS') return r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type, authorization' } });
+      const w = stan.adminPoczta.kontakt(tresc, zTokenu(req));
+      return r.fulfill({ status: w.status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(w.tresc) });
+    }
     if (sc === '/functions/v1/poczta' && m === 'POST') {
       const k = zTokenu(req);
       if (!k) return json(r, 401, { blad: 'Zaloguj się.' });
@@ -543,6 +559,13 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!publiczne && !k) return odp(401, { blad: 'Zaloguj się ponownie.' });
       if (!publiczne && reszta === '_miejsce') return odp(200, miejsceAtrapy(stan, 'pliki_miejsce', {}, k));
       if (!publiczne && reszta === '_osierocone') return odp(200, miejsceAtrapy(stan, 'pliki_osierocone', {}, k));
+      // Załącznik poczty (GET /pliki/_poczta/…) – tylko administrator, jak w Workerze.
+      if (!publiczne && reszta.startsWith('_poczta/')) {
+        if (!stan.administratorzy.has(k.id)) return odp(403, { blad: 'Tylko dla administratora.' });
+        const plik = stan.pliki.get(reszta.slice(1));
+        if (!plik) return odp(404, { blad: 'Nie ma takiego pliku.' });
+        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*', 'cache-control': 'private, no-store' } });
+      }
       if (!publiczne && reszta === '_lista') {
         const bucket = url.searchParams.get('bucket') === 'podglady' ? 'podglady' : 'zasoby';
         const prefiks = url.searchParams.get('prefiks') || '';

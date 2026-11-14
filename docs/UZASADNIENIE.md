@@ -436,3 +436,15 @@ Stan na 2026-11-11, po decyzji #66.
 6. **Poczta**, gdy będzie domena (decyzja #34).
 
 Do rozstrzygnięcia przez Ciebie: czy usunąć tryb bez konta całkiem (dziś jest niedostępny w działającej aplikacji i służy tylko testom) i czy edytor ma być doczytywany dopiero przy otwarciu projektu (A1).
+
+### Panel administratora, skrzynka i kolejka maili (#95)
+
+Panel (`#/admin`, tylko administrator) zbiera w jednym miejscu korespondencję i pocztę aplikacji: skrzynkę
+`kontakt@makietka.app` (poczta przychodząca przez Cloudflare Email Routing i Workera oraz formularz kontaktowy),
+kolejkę maili z limitami dostawcy i odstępami na adres, konto i IP (wzorem Familiady), ustawienia poczty i
+statystyki. Kolejka chroni przed spamowaniem (zaproszenia nie wychodzą seriami) i przed wyczerpaniem darmowego
+limitu Brevo (300/dobę) – mail ponad limit czeka do następnego dnia zamiast przepadać, a nieudana wysyłka wraca
+po 1, 5, 15 i 60 minutach. Bez nowych sekretów w repozytorium: Worker zapisuje pocztę kluczem skrzynki
+(w bazie tylko skrót), funkcja poczty czyta kolejkę kluczem serwisowym środowiska Supabase.
+Ograniczenia: załączniki ponad 10 MB mają w panelu tylko opis (mniejsze leżą w R2 i pobiera się je z panelu); panel nie pokazuje
+treści HTML wiadomości (tylko tekst) – świadomie, bez ryzyka skryptów z obcej poczty.

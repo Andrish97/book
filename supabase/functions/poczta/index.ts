@@ -1,7 +1,9 @@
 // Poczta aplikacji – Funkcja Edge Supabase (decyzja #86). Wszystkie e-maile przez API Brevo:
 //  • hak Auth „Send Email” (Authentication → Hooks): rejestracja, reset hasła, zmiana adresu, link logowania;
 //    żądanie podpisane sekretem haka (standardwebhooks),
-//  • zaproszenie do projektu (współpraca): aplikacja woła funkcję tokenem zalogowanego właściciela.
+//  • zaproszenie do projektu (współpraca): aplikacja woła funkcję tokenem zalogowanego właściciela – mail idzie
+//    przez kolejkę (poczta_kolejka, decyzja #95),
+//  • { kolejka: true } – przebieg kolejki (Cron Workera co minutę, aplikacja po dodaniu maila).
 // Logika: ../_shared/poczta.mjs. Sekrety (Edge Functions → Secrets): BREVO_API_KEY, SEND_EMAIL_HOOK_SECRET;
 // opcjonalnie MAIL_FROM_EMAIL, MAIL_FROM_NAME, SITE_URL. Nic z tego nie leży w repozytorium.
 // Wdrażana przez integrację Supabase z GitHubem (blok [functions.poczta] w supabase/config.toml).
@@ -15,4 +17,7 @@ Deno.serve((request: Request) => obsluzPoczte(request, {
   MAIL_FROM_NAME: Deno.env.get('MAIL_FROM_NAME') ?? undefined,
   SITE_URL: Deno.env.get('SITE_URL') ?? undefined,
   SUPABASE_URL: Deno.env.get('SUPABASE_URL') ?? undefined,
+  // Kolejka maili (decyzja #95): klucz serwisowy, który Supabase daje funkcjom sam (nie ma go w repozytorium).
+  SUPABASE_SERVICE_ROLE_KEY: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? undefined,
+  SUPABASE_SECRET_KEYS: Deno.env.get('SUPABASE_SECRET_KEYS') ?? undefined,
 }));

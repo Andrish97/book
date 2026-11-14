@@ -42,6 +42,15 @@ export function przejdzDoTrasy() {
       konto.pokazUstawienia();
       return;
     }
+    // #/admin – panel administratora (decyzja #95); dla innych kont – lista projektów.
+    if (t.ekran === 'admin') {
+      if (stan.projekt) { await zapiszTeraz(); stan.projekt = null; }
+      const admin = await import('./admin.js');
+      if (await admin.czyAdministrator()) { pokazEkran('admin'); await admin.pokazPanel(t.zakladka); return; }
+      trasa.ustaw('projekty', { zastap: true });
+      await pokazProjekty();
+      return;
+    }
     if (t.ekran === 'projekty' || t.ekran === 'konto') {
       if (stan.projekt) await doProjektow(); else if (document.body.dataset.ekran !== 'projekty') await pokazProjekty();
       return;

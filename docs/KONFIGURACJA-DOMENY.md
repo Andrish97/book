@@ -116,6 +116,49 @@ i adresy powrotu wdraża repozytorium (`supabase/config.toml`) – ręczna zmian
 <!-- Sekcję „Maile – sekrety i hak” (adres funkcji poczta, pełna lista sekretów: BREVO_API_KEY,
 SEND_EMAIL_HOOK_SECRET, MAIL_FROM_EMAIL, MAIL_FROM_NAME, SITE_URL) dopisuje praca o współpracy między kontami. -->
 
+## 5. Skrzynka kontakt@makietka.app, formularz kontaktowy i kolejka maili (decyzja #95)
+
+Panel administratora (w aplikacji: kółko z inicjałem → **Panel administratora**, adres `#/admin`) ma skrzynkę
+`kontakt@makietka.app`, kolejkę maili, ustawienia poczty i statystyki. Poczta przychodząca i formularz
+kontaktowy przechodzą przez Workera `makietka-api`, wysyłka – przez funkcję „poczta” i kolejkę w bazie.
+
+**Kolejność** (wszystko po wdrożeniu tej wersji: migracja bazy wdraża się sama po pushu na `main`, Worker –
+przez Workers Builds):
+
+1. **Aplikacja** → **Panel administratora** → **Ustawienia poczty** → **Nowy klucz skrzynki** → skopiuj klucz
+   (`msk_…`, widać go tylko raz).
+2. **Cloudflare** → **Workers & Pages** → **makietka-api** → **Settings** → **Variables and Secrets** →
+   **Add** → typ **Secret**, nazwa `KLUCZ_SKRZYNKI`, wartość: klucz z punktu 1 → **Deploy**.
+3. **Cloudflare** → **makietka.app** → **Email** → **Email Routing** → **Routing rules** (Email Routing jest już
+   włączony). Worker `makietka-api` pojawi się na liście „Send to a Worker” dopiero **po wdrożeniu tej wersji
+   Workera** (z obsługą poczty) – wcześniej widać tylko inne Workery. Wtedy przy każdym z adresów:
+   - `kontakt@makietka.app` → **Edit** → Action **Send to a Worker** → destination `makietka-api` → **Save**;
+   - `noreply@makietka.app` (dziś „Drop”) → **Edit** → Action **Send to a Worker** → `makietka-api` → **Save**;
+   - `no-reply@makietka.app` – **Create address** (z myślnikiem: z tego adresu aplikacja wysyła maile, więc
+     tu trafiają odpowiedzi ludzi, których program pocztowy pominie „odpowiedz do”) → Action **Send to a Worker**
+     → `makietka-api` → **Save**.
+
+   **Catch-all zostaje bez zmian** (na Twoją prywatną skrzynkę) – dotyczy tylko adresów bez własnej reguły.
+   Poczta na `noreply@`/`no-reply@` trafia do tej samej **Skrzynki** w panelu z plakietką „na noreply@”
+   (bez automatycznej odpowiedzi – decyzja #95f); odpowiadasz z panelu, czyli z `kontakt@`.
+   (Wysyłka przez Brevo działa dalej – Email Routing dotyczy tylko poczty przychodzącej.)
+4. *(Opcjonalnie)* **Kopia na Twoją skrzynkę**: w Workerze dodaj sekret `PRZEKAZ_DO` z adresem z listy
+   **Destination addresses** w Email Routing (potwierdzonym) – każda wiadomość do Workera trafi też do Ciebie.
+5. *(Opcjonalnie)* **Turnstile** (ochrona formularza przed botami): Cloudflare → **Turnstile** → **Add widget**
+   → domena `makietka.app`, tryb **Managed** → skopiuj **Site Key** (publiczny – wpisuję go do aplikacji,
+   `js/app/kontakt.js`, stała `KLUCZ_TURNSTILE`) i **Secret Key** → w Workerze sekret `TURNSTILE_SECRET`.
+   Bez Turnstile formularz chronią pułapka na boty i limity (na IP, adres i dobę).
+
+Nic nie trzeba ustawiać w Supabase: funkcja „poczta” przetwarza kolejkę kluczem serwisowym, który Supabase daje
+funkcjom sam, a co minutę prosi ją o to Cron Trigger Workera (`wrangler.jsonc` → `triggers.crons`).
+
+Sprawdzenie:
+- **Panel → Ustawienia poczty → Test wysyłki** – mail testowy przez kolejkę (w **Kolejce maili** stan „wysłany”).
+- Wyślij maila na `kontakt@makietka.app` ze swojej skrzynki – po chwili jest w **Skrzynce**; odpowiedz
+  z panelu – odpowiedź przychodzi z `kontakt@makietka.app`, a Twoja odpowiedź na nią wraca do tej samej rozmowy.
+- **Kontakt** (stopka ekranu logowania albo menu konta) – wiadomość w Skrzynce z plakietką „formularz”,
+  potwierdzenie na podany adres.
+
 ## Stare adresy
 
 - `https://andrish97.github.io/book/…` – GitHub przekierowuje na `https://makietka.app/…` (po kroku 2).

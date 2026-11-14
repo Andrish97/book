@@ -173,9 +173,17 @@ async function zapros(e) {
       : 'Po założeniu konta projekt pojawi się na liście tej osoby.';
     // E-mail idzie z poczty aplikacji (Brevo); gdy poczta nie jest skonfigurowana – link do wysłania samemu.
     wsp.wyslijZaproszenieMailem(z.id).then((m) => {
+      // Maile idą przez kolejkę z limitami (decyzja #95): zwykle od razu, czasem po chwili albo – przy zbyt
+      // częstym wysyłaniu – dopiero po odstępie.
+      const powody = {
+        'brak-konfiguracji': 'Aplikacja nie wysyła jeszcze e-maili',
+        'za-czesto': `Kolejny e-mail na ten adres można wysłać za ${m.za || 'chwilę'}`,
+      };
       $('#wspolpraca-gotowe-opis').textContent = m.wyslano
         ? `Wysłano e-mail z zaproszeniem na adres ${z.email}. ${gdzie}`
-        : `${m.powod === 'brak-konfiguracji' ? 'Aplikacja nie wysyła jeszcze e-maili' : `E-mail nie wyszedł${m.blad ? ` (${m.blad})` : ''}`} – wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`;
+        : m.powod === 'w-kolejce'
+          ? `E-mail z zaproszeniem czeka w kolejce i wyjdzie za chwilę na adres ${z.email}. ${gdzie}`
+          : `${powody[m.powod] || `E-mail nie wyszedł${m.blad ? ` (${m.blad})` : ''}`} – wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`;
     }).catch(() => { $('#wspolpraca-gotowe-opis').textContent = `Wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`; });
     const mail = trescMaila(otwarty.nazwa, rola, link);
     $('#wspolpraca-mail').href = `mailto:${encodeURIComponent(z.email)}?subject=${encodeURIComponent(mail.temat)}&body=${encodeURIComponent(mail.tresc)}`;
