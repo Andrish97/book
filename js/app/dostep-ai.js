@@ -7,26 +7,28 @@
 import * as chmura from '../chmura.js';
 import { $, powiadom, kiedy, potwierdz } from '../ui.js';
 import { SUPABASE_URL } from '../konfiguracja.js';
+import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, synchronizuj } from './zapis.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 
 // Adres zdalnego łącznika MCP z kluczem (do dodania jako własny łącznik w Claude / serwer MCP w ChatGPT).
-export const adresLacznika = (klucz) => `${SUPABASE_URL}/functions/v1/mcp/${klucz}`;
+// Przez przekaźnik (api.makietka.app) adres jest krótszy: …/mcp/<klucz>; wprost do bazy (np. atrapa w testach) – …/functions/v1/mcp/<klucz>.
+export const adresLacznika = (klucz) => (SUPABASE_URL === ADRES_API ? `${ADRES_LACZNIKA}/${klucz}` : `${SUPABASE_URL}/functions/v1/mcp/${klucz}`);
 
 function instrukcje(klucz) {
   const konfiguracja = {
     mcpServers: {
-      seriodruk: {
+      makietka: {
         command: 'node',
-        args: ['/ścieżka/do/seriodruk-mcp.mjs'],
-        env: { SERIODRUK_KLUCZ: klucz },
+        args: ['/ścieżka/do/makietka-mcp.mjs'],
+        env: { MAKIETKA_KLUCZ: klucz },
       },
     },
   };
   $('#dostep-ai-claude-desktop').textContent = JSON.stringify(konfiguracja, null, 2);
-  $('#dostep-ai-claude-code').textContent = `claude mcp add --transport http seriodruk ${adresLacznika(klucz)}`;
+  $('#dostep-ai-claude-code').textContent = `claude mcp add --transport http makietka ${adresLacznika(klucz)}`;
 }
 
 async function odswiezListe() {

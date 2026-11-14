@@ -1,4 +1,4 @@
-// Rdzeń serwera MCP Seriodruku – wspólny dla serwera stdio (ai/mcp/seriodruk-mcp.mjs, składany z tego pliku
+// Rdzeń serwera MCP Makietki – wspólny dla serwera stdio (ai/mcp/makietka-mcp.mjs, składany z tego pliku
 // przez scripts/mcp-buduj.cjs) i zdalnego łącznika (supabase/functions/mcp/index.ts, Funkcja Edge Supabase).
 // Bez modułów Node ani Deno: tylko fetch, crypto.randomUUID i zwykły JavaScript – działa w obu środowiskach.
 //
@@ -7,13 +7,13 @@
 // czytajPliki(sciezki) – tylko serwer u siebie (stdio): obrazy z dysku (pliki albo folder) → [{ bajty, nazwa }];
 // pobierzAdres(adres) – pobieranie obrazu z internetu (domyślnie: tylko https, bez sieci prywatnych).
 
-export const NAZWA = 'seriodruk';
+export const NAZWA = 'makietka';
 export const WERSJA = '1.3.1';
 export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
-const ADRES_OPISU = 'https://andrish97.github.io/book/ai/format-seriodruk.md';
-const ADRES_APLIKACJI = 'https://andrish97.github.io/book/';
+const ADRES_OPISU = 'https://makietka.app/ai/format-makietka.md';
+const ADRES_APLIKACJI = 'https://makietka.app/';
 
 // Te same listy co w aplikacji (js/pola.js, js/style-tekstu.js) – test pilnuje, żeby się zgadzały.
 export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony'];
@@ -621,7 +621,7 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Makietki (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
 export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false }) {
   const ADRES = String(adres || '').replace(/\/+$/, '');
@@ -1318,7 +1318,7 @@ Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname
     {
       name: 'opis_formatu',
       title: 'Opis formatu projektu',
-      description: 'Pełny opis modelu projektu Seriodruku: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm). Przeczytaj przed większymi zmianami.',
+      description: 'Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm). Przeczytaj przed większymi zmianami.',
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => {
@@ -1366,7 +1366,7 @@ Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname
     // Wskazówki pamięci zawsze (starsi klienci pomijają nieznane pola), resultType – tylko w trybie 2026-07-28.
     const doPamieci = (x) => ({ ...zakonczony(x), ...PAMIEC });
     const info = {
-      name: NAZWA, title: 'Seriodruk', version: WERSJA, websiteUrl: ADRES_APLIKACJI,
+      name: NAZWA, title: 'Makietka', version: WERSJA, websiteUrl: ADRES_APLIKACJI,
       icons: [
         { src: `${ADRES_APLIKACJI}img/ikony/ikona-192.png`, mimeType: 'image/png', sizes: ['192x192'] },
         { src: `${ADRES_APLIKACJI}img/ikony/ikona.svg`, mimeType: 'image/svg+xml', sizes: ['any'] },

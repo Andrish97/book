@@ -14,13 +14,13 @@ test('instrukcja dla AI (ai/instrukcja.md) jest aktualna i ma wszystkie rozdzia�
   // Bez znaczników HTML poza komentarzem o pochodzeniu pliku.
   assert.deepEqual(md.replace(/<!--[\s\S]*?-->/g, '').match(/<\/?[a-z][^>]*>/gi) || [], []);
   // Zrzuty wskazują istniejące pliki.
-  for (const [, plik] of md.matchAll(/\(https:\/\/andrish97\.github\.io\/book\/(img\/instrukcja\/[^)]+)\)/g)) {
+  for (const [, plik] of md.matchAll(/\(https:\/\/makietka\.app\/(img\/instrukcja\/[^)]+)\)/g)) {
     assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), `brak pliku ${plik}`);
   }
   // llms.txt prowadzi do obu dokumentów dla AI, a pliki istnieją.
   const llms = fs.readFileSync(path.join(__dirname, '..', 'llms.txt'), 'utf8');
-  for (const plik of ['ai/instrukcja.md', 'ai/format-seriodruk.md', 'ai/przyklady/kalendarz.json']) {
-    assert.ok(llms.includes(`https://andrish97.github.io/book/${plik}`), `llms.txt bez ${plik}`);
+  for (const plik of ['ai/instrukcja.md', 'ai/format-makietka.md', 'ai/przyklady/kalendarz.json']) {
+    assert.ok(llms.includes(`https://makietka.app/${plik}`), `llms.txt bez ${plik}`);
     assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), `brak ${plik}`);
   }
 });

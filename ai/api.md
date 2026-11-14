@@ -1,20 +1,20 @@
-# Seriodruk – dostęp dla AI
+# Makietka – dostęp dla AI
 
-Asystent AI (Claude, ChatGPT i inne) może czytać i poprawiać **jeden konkretny projekt** Seriodruku – równolegle z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia: zmiany różnych elementów łączą się bez pytania, a o ten sam element aplikacja zapyta.
+Asystent AI (Claude, ChatGPT i inne) może czytać i poprawiać **jeden konkretny projekt** Makietki – równolegle z Tobą. Jego zmiany pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia: zmiany różnych elementów łączą się bez pytania, a o ten sam element aplikacja zapyta.
 
-Dokumenty obok: [instrukcja obsługi](https://andrish97.github.io/book/ai/instrukcja.md), [format projektu](https://andrish97.github.io/book/ai/format-seriodruk.md) (model danych, który AI zmienia).
+Dokumenty obok: [instrukcja obsługi](https://makietka.app/ai/instrukcja.md), [format projektu](https://makietka.app/ai/format-makietka.md) (model danych, który AI zmienia).
 
-> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk. Projekt czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Seriodruku. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Pliki z własnego środowiska wgrywasz narzędziem `wgraj_czesciami`.
+> **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka. Projekt czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Makietki. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Pliki z własnego środowiska wgrywasz narzędziem `wgraj_czesciami`.
 
 ## 1. Klucz i adres łącznika
 
 1. Otwórz projekt, menu **⋯** → **Dostęp dla AI…**.
 2. Wpisz, dla kogo jest klucz (np. „Claude – kalendarz”), wybierz **Czyta i zmienia** albo **Tylko czyta** i ważność: 1 dzień, 7 albo 30 dni.
 3. **Utwórz klucz**. Okno pokazuje **adres łącznika** z kluczem w środku:
-   `https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/sdk_…` – skopiuj go od razu, widać go **tylko raz**.
+   `https://api.makietka.app/mcp/sdk_…` – skopiuj go od razu, widać go **tylko raz**.
 4. Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz (i adres) od razu.
 
-Łącznik to serwer MCP działający po stronie Seriodruku. Claude i ChatGPT łączą się z nim **ze swoich serwerów**, więc niczego nie instalujesz i niczego nie odblokowujesz – ani na komputerze, ani w ustawieniach AI.
+Łącznik to serwer MCP działający po stronie Makietki. Claude i ChatGPT łączą się z nim **ze swoich serwerów**, więc niczego nie instalujesz i niczego nie odblokowujesz – ani na komputerze, ani w ustawieniach AI.
 
 ### Bezpieczeństwo
 
@@ -30,26 +30,26 @@ Dokumenty obok: [instrukcja obsługi](https://andrish97.github.io/book/ai/instru
 ### Claude (claude.ai, aplikacja na komputer i telefon)
 
 1. **Dostosuj → Łączniki** (Customize → Connectors) → **+** → **Dodaj własny łącznik** (Add custom connector).
-2. Nazwa: `Seriodruk`, adres: wklej adres łącznika. Logowanie: **bez logowania** (No sign-in). **Dodaj**.
-3. W rozmowie włącz łącznik Seriodruk (menu **+** → Łączniki) i napisz np. „Przejrzyj mój projekt w Seriodruku i popraw literówki w tytułach”.
+2. Nazwa: `Makietka`, adres: wklej adres łącznika. Logowanie: **bez logowania** (No sign-in). **Dodaj**.
+3. W rozmowie włącz łącznik Makietka (menu **+** → Łączniki) i napisz np. „Przejrzyj mój projekt w Makietce i popraw literówki w tytułach”.
 
-Własne łączniki są dostępne w planie darmowym (jeden) i płatnych. W planach Team i Enterprise łącznik może najpierw dodać właściciel organizacji. Usunięcie: Dostosuj → Łączniki → Seriodruk → Usuń (i odebranie klucza w aplikacji).
+Własne łączniki są dostępne w planie darmowym (jeden) i płatnych. W planach Team i Enterprise łącznik może najpierw dodać właściciel organizacji. Usunięcie: Dostosuj → Łączniki → Makietka → Usuń (i odebranie klucza w aplikacji).
 
 ### ChatGPT
 
 1. Wejdź na **chatgpt.com/plugins** → **+** → **Add custom MCP server**.
 2. Wklej adres łącznika, uwierzytelnianie: **No Authentication**, potwierdź („I understand and want to continue”) i utwórz.
-3. W rozmowie wybierz Seriodruk i napisz, co zmienić.
+3. W rozmowie wybierz Makietkę i napisz, co zmienić.
 
 Jeśli tej opcji nie widać, włącz tryb dewelopera: **Ustawienia → Aplikacje → Zaawansowane** (Settings → Apps → Advanced settings → Developer mode). Dostępność zależy od planu ChatGPT.
 
 ### Claude Code
 
 ```sh
-claude mcp add --transport http seriodruk https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/sdk_…
+claude mcp add --transport http makietka https://api.makietka.app/mcp/sdk_…
 ```
 
-Sprawdzenie: `claude mcp list`. Usunięcie: `claude mcp remove seriodruk`.
+Sprawdzenie: `claude mcp list`. Usunięcie: `claude mcp remove makietka`.
 
 ### Inne programy z MCP
 
@@ -57,15 +57,15 @@ Każdy klient MCP obsługujący transport **Streamable HTTP** podłącza się ty
 
 ### Dla zaawansowanych: serwer u siebie (stdio)
 
-Gdy wolisz uruchamiać serwer na własnym komputerze (np. Claude Desktop przez plik konfiguracji): pobierz [seriodruk-mcp.mjs](https://andrish97.github.io/book/ai/mcp/seriodruk-mcp.mjs) (jeden plik, Node.js 18+, nic do instalowania) i dopisz w **Ustawienia → Programista → Edytuj konfigurację**:
+Gdy wolisz uruchamiać serwer na własnym komputerze (np. Claude Desktop przez plik konfiguracji): pobierz [makietka-mcp.mjs](https://makietka.app/ai/mcp/makietka-mcp.mjs) (jeden plik, Node.js 18+, nic do instalowania) i dopisz w **Ustawienia → Programista → Edytuj konfigurację**:
 
 ```json
 {
   "mcpServers": {
-    "seriodruk": {
+    "makietka": {
       "command": "node",
-      "args": ["/Users/ty/Documents/seriodruk-mcp.mjs"],
-      "env": { "SERIODRUK_KLUCZ": "sdk_…" }
+      "args": ["/Users/ty/Documents/makietka-mcp.mjs"],
+      "env": { "MAKIETKA_KLUCZ": "sdk_…" }
     }
   }
 }
@@ -75,7 +75,7 @@ Ma te same narzędzia co łącznik (wspólny kod). Działa tylko tam, gdzie prog
 
 ### Własny GPT z akcjami (starszy sposób)
 
-Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](https://andrish97.github.io/book/ai/openapi.json): **Utwórz GPT → Konfiguruj → Utwórz nową akcję → Importuj z adresu URL**, uwierzytelnianie *Klucz API* / *Niestandardowy* / nagłówek `apikey` z publicznym kluczem bazy `sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq`, a w instrukcjach GPT klucz `sdk_…` jako `p_klucz` (punkt 4). Zapisz GPT jako **Tylko ja**.
+Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](https://makietka.app/ai/openapi.json): **Utwórz GPT → Konfiguruj → Utwórz nową akcję → Importuj z adresu URL**, uwierzytelnianie *Klucz API* / *Niestandardowy* / nagłówek `apikey` z publicznym kluczem bazy `sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq`, a w instrukcjach GPT klucz `sdk_…` jako `p_klucz` (punkt 4). Zapisz GPT jako **Tylko ja**.
 
 ## 3. Narzędzia łącznika
 
@@ -101,19 +101,19 @@ Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](http
 | `wgraj_czesciami` | wgrywa plik ze środowiska AI kawałkami base64 (start → czesc → koniec), składany po stronie łącznika – bez dostępu sieci; `zastap` podmienia użyty obraz |
 | `adres_do_wysylki` | adres `POST …/obraz` z kluczem – dla własnych skryptów i środowisk, które łączą się z bazą |
 | `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące albo niejednoznaczne pliki obrazów z danych (rozszerzenie się liczy: `a.jpg` ≠ `a.png`; nazwa bez rozszerzenia działa tylko przy jednym pasującym pliku), elementy poza stroną |
-| `opis_formatu` | ten sam opis modelu co [format-seriodruk.md](https://andrish97.github.io/book/ai/format-seriodruk.md) |
+| `opis_formatu` | ten sam opis modelu co [format-makietka.md](https://makietka.app/ai/format-makietka.md) |
 
 Każda zmiana działa tak: pobierz projekt → zmień → zapisz z numerem wersji. Jeśli w międzyczasie zmieniłeś coś w edytorze, baza odmawia, a łącznik pobiera projekt na nowo i nanosi zmianę jeszcze raz.
 
 ### Jak przekazać AI zdjęcia
 
-Łącznik przyjmuje od AI tylko tekst. Zdjęcie, które masz u siebie, musi więc dojść do Seriodruku inną drogą – którą, zależy od aplikacji AI:
+Łącznik przyjmuje od AI tylko tekst. Zdjęcie, które masz u siebie, musi więc dojść do Makietki inną drogą – którą, zależy od aplikacji AI:
 
 | Gdzie pracujesz | Zdjęcia z rozmowy | Zdjęcia z folderu na komputerze | Co trzeba ustawić |
 |---|---|---|---|
 | **ChatGPT** | wchodzą wprost – ChatGPT sam podaje je łącznikowi | wrzuć je do rozmowy albo przez link do wgrania | nic poza łącznikiem |
 | **Claude** (claude.ai, aplikacja, Cowork) | AI wgrywa je samo przez łącznik, kawałkami (`wgraj_czesciami`) – grafiki do kilkuset KB | z miejsca roboczego – tak samo | nic poza łącznikiem |
-| **Claude Desktop z rozszerzeniem Seriodruk** albo **Claude Code** | – | AI czyta pliki, foldery i ZIP-y z dysku samo, dowolnej wielkości (wystarczy ścieżka z miejsca roboczego, np. `grafiki/zdjecia.zip`) | instalacja rozszerzenia |
+| **Claude Desktop z rozszerzeniem Makietka** albo **Claude Code** | – | AI czyta pliki, foldery i ZIP-y z dysku samo, dowolnej wielkości (wystarczy ścieżka z miejsca roboczego, np. `grafiki/zdjecia.zip`) | instalacja rozszerzenia |
 | **Każda aplikacja, bez ustawień** | przez **link do wgrania** | przez **link do wgrania** | nic |
 
 Wielkość nie gra roli: jeden obraz do 25 MB, plik albo ZIP do 50 MB, ZIP do 100 obrazów. Łącznik sam dzieli duże pliki na kawałki.
@@ -132,7 +132,7 @@ Claude nie przekazuje łącznikom plików, a jego środowisko nie łączy się z
 
 #### 4. Claude Desktop z rozszerzeniem – pliki i foldery z dysku
 
-W Claude Desktop z rozszerzeniem Seriodruk ([pobierz seriodruk.mcpb](https://andrish97.github.io/book/ai/mcp/seriodruk.mcpb) i otwórz w Claude Desktop) albo w Claude Code z serwerem u siebie AI czyta pliki z dysku, dowolnej wielkości: „wgraj obrazy z folderu ~/Pulpit/Kalendarz”. Wystarczy też ścieżka z miejsca roboczego AI (`grafiki/zdjecia.zip`) – rozszerzenie samo znajdzie taki plik w Twoim folderze domowym.
+W Claude Desktop z rozszerzeniem Makietka ([pobierz makietka.mcpb](https://makietka.app/ai/mcp/makietka.mcpb) i otwórz w Claude Desktop) albo w Claude Code z serwerem u siebie AI czyta pliki z dysku, dowolnej wielkości: „wgraj obrazy z folderu ~/Pulpit/Kalendarz”. Wystarczy też ścieżka z miejsca roboczego AI (`grafiki/zdjecia.zip`) – rozszerzenie samo znajdzie taki plik w Twoim folderze domowym.
 
 #### 5. Link z Dysku Google albo Dropboxa
 
@@ -152,13 +152,13 @@ Własny skrypt (albo AI w środowisku, które łączy się z bazą) wysyła plik
 
 ```
 curl -X POST --data-binary @zdjecia.zip \
-  "https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/sdk_…/obraz?nazwa=zdjecia.zip"
+  "https://api.makietka.app/mcp/sdk_…/obraz?nazwa=zdjecia.zip"
 ```
 
 ```python
 import requests
 with open("styczen.jpg", "rb") as f:
-    r = requests.post("https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/sdk_…/obraz",
+    r = requests.post("https://api.makietka.app/mcp/sdk_…/obraz",
                       params={"nazwa": "styczen.jpg"}, data=f.read())
 print(r.json())  # {"wgrane": [{"nazwa": "styczen.jpg", "id": "z_ai…", "szer": 4000, "wys": 3000, "byl": false}], "opis": "…"}
 ```

@@ -12,7 +12,7 @@ const KORZEN = path.join(__dirname, '..');
 
 test('rozszerzenie .mcpb: manifest zgodny ze specyfikacją 0.3, serwer startuje z kluczem z okna instalacji i odpowiada na MCP bez sieci', async () => {
   const katalog = fs.mkdtempSync(path.join(os.tmpdir(), 'mcpb-'));
-  const plik = path.join(katalog, 'seriodruk.mcpb');
+  const plik = path.join(katalog, 'makietka.mcpb');
   execFileSync('python3', [path.join(KORZEN, 'scripts', 'rozszerzenie-mcpb.py'), plik]);
   const rozpakowany = path.join(katalog, 'x');
   execFileSync('python3', ['-I', '-c', 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', plik, rozpakowany]);
@@ -29,7 +29,7 @@ test('rozszerzenie .mcpb: manifest zgodny ze specyfikacją 0.3, serwer startuje 
   const podstaw = (s) => s.replaceAll('${__dirname}', rozpakowany).replaceAll('${user_config.klucz}', 'sdk_00000000000000000000000000000000_proba-klucza-testowego');
   const { command, args, env } = m.server.mcp_config;
   const proces = spawn(command === 'node' ? process.execPath : command, args.map(podstaw), {
-    env: { ...process.env, ...Object.fromEntries(Object.entries(env).map(([k, v]) => [k, podstaw(v)])), SERIODRUK_ADRES: 'http://127.0.0.1:9' },
+    env: { ...process.env, ...Object.fromEntries(Object.entries(env).map(([k, v]) => [k, podstaw(v)])), MAKIETKA_ADRES: 'http://127.0.0.1:9' },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   const odpowiedzi = new Map();
@@ -55,7 +55,7 @@ test('rozszerzenie .mcpb: manifest zgodny ze specyfikacją 0.3, serwer startuje 
     // Opis formatu jest w paczce – działa bez sieci (adres bazy w teście prowadzi donikąd).
     wyslij({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'opis_formatu', arguments: {} } });
     const opis = await czekaj(3);
-    assert.match(opis.result.content[0].text, /Format pliku projektu|Seriodruk/);
+    assert.match(opis.result.content[0].text, /Format pliku projektu|Makietka/);
   } finally {
     proces.kill();
     fs.rmSync(katalog, { recursive: true, force: true });

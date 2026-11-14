@@ -5,8 +5,8 @@ const os = require('node:os');
 const path = require('node:path');
 const { otworz } = require('./pomoc.cjs');
 
-// Opis formatu dla AI (ai/format-seriodruk.md) musi być prawdziwy: przykłady z ai/przyklady/ wczytują się
-// w aplikacji dokładnie tak, jak wczytuje je użytkownik (Importuj na liście projektów), a archiwum .seriodruk
+// Opis formatu dla AI (ai/format-makietka.md) musi być prawdziwy: przykłady z ai/przyklady/ wczytują się
+// w aplikacji dokładnie tak, jak wczytuje je użytkownik (Importuj na liście projektów), a archiwum .makietka
 // zbudowane według opisu w dokumencie też się wczytuje.
 
 const PRZYKLADY = path.join(__dirname, '..', 'ai', 'przyklady');
@@ -49,7 +49,7 @@ test('format dla AI: przykład minimalny wczytuje się jak plik użytkownika –
   assert.deepEqual(w.uwagi, []);
   assert.deepEqual(w.ostrzezenia, []);
   assert.deepEqual(w.strony[1].map((o) => [o.typ, o.tekst, o.lewo, o.gora]), [
-    ['rect', undefined, 12, 12], ['textbox', 'Witaj w Seriodruku', 18, 22], ['textbox', 'Ten projekt powstał z pliku JSON napisanego ręcznie.', 12, 62],
+    ['rect', undefined, 12, 12], ['textbox', 'Witaj w Makietce', 18, 22], ['textbox', 'Ten projekt powstał z pliku JSON napisanego ręcznie.', 12, 62],
   ]);
   assert.deepEqual(bledy, []);
 });
@@ -90,10 +90,10 @@ test('format dla AI: przykład kalendarza – seria 365 dni z wierszami [pomiń]
   assert.deepEqual(bledy, []);
 });
 
-test('format dla AI: archiwum .seriodruk zbudowane według opisu (mimetype, manifest.json, projekt.json, zasoby/) wczytuje się', async (t) => {
+test('format dla AI: archiwum .makietka zbudowane według opisu (mimetype, manifest.json, projekt.json, zasoby/) wczytuje się', async (t) => {
   const { strona, bledy } = await otworz(t);
   const json = fs.readFileSync(path.join(PRZYKLADY, 'kalendarz.json'), 'utf8');
-  // Budowa archiwum dokładnie tak, jak mówi ai/format-seriodruk.md (JSZip w przeglądarce testowej).
+  // Budowa archiwum dokładnie tak, jak mówi ai/format-makietka.md (JSZip w przeglądarce testowej).
   const base64 = await strona.evaluate(async (tekst) => {
     const { biblioteka } = await import('./js/biblioteki.js');
     const JSZip = await biblioteka('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'JSZip', 'ZIP');
@@ -109,7 +109,7 @@ test('format dla AI: archiwum .seriodruk zbudowane według opisu (mimetype, mani
       zasoby[id] = { nazwa: z.nazwa, plik };
       lista.push({ id, plik, typ, nazwa: z.nazwa });
     }
-    zip.file('manifest.json', JSON.stringify({ format: 'seriodruk', wersja_formatu: 1, aplikacja: 'Seriodruk', pliki: { projekt: 'projekt.json', miniatura: null }, zasoby: lista }));
+    zip.file('manifest.json', JSON.stringify({ format: 'seriodruk', wersja_formatu: 1, aplikacja: 'Makietka', pliki: { projekt: 'projekt.json', miniatura: null }, zasoby: lista }));
     zip.file('projekt.json', JSON.stringify({ ...projekt, zasoby }));
     return zip.generateAsync({ type: 'base64', compression: 'DEFLATE' });
   }, json);

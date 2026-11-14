@@ -76,7 +76,7 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
   assert.equal(plik.suggestedFilename(), 'Wlasne czcionki - PDF.zip');
   const pliki = await strona.evaluate(async () => Object.keys((await window.JSZip.loadAsync(window.seriodruk.oknoPdf.ostatni.blob)).files).filter((n) => !n.endsWith('/')).sort());
-  assert.deepEqual(pliki, ['Wlasne czcionki.pdf', 'czcionki/LICENCJA czcionek Seriodruku.txt', 'czcionki/Lora-Bold.ttf', 'czcionki/Lora-BoldItalic.ttf', 'czcionki/Lora-Italic.ttf', 'czcionki/Lora-Regular.ttf', 'czcionki/Odreczna-Bold.woff2']);
+  assert.deepEqual(pliki, ['Wlasne czcionki.pdf', 'czcionki/LICENCJA czcionek Makietki.txt', 'czcionki/Lora-Bold.ttf', 'czcionki/Lora-BoldItalic.ttf', 'czcionki/Lora-Italic.ttf', 'czcionki/Lora-Regular.ttf', 'czcionki/Odreczna-Bold.woff2']);
 
   // Okno „Czcionki”: lista, poprawka nazwy rodziny (teksty idą za nią), usunięcie.
   await strona.click('#przycisk-wiecej');
@@ -90,11 +90,11 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
   assert.match(await strona.textContent('#czcionki-zestaw li[data-rodzina="Pacifico"] .opis'), /odręczna · jedna grubość, bez kursywy/);
   assert.match(await strona.textContent('#czcionki-zestaw li[data-rodzina="Lora"] .opis'), /szeryfowa · zwykła i pogrubiona, prosta i kursywa · używana w tym projekcie/);
   const [zestaw] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-pobierz-zestaw')]);
-  assert.equal(zestaw.suggestedFilename(), 'Czcionki Seriodruku.zip');
+  assert.equal(zestaw.suggestedFilename(), 'Czcionki Makietki.zip');
   const wZestawie = await strona.evaluate(async () => Object.keys((await window.JSZip.loadAsync(window.seriodruk.oknoCzcionek.ostatniZestaw.blob)).files).filter((n) => !n.endsWith('/')));
   assert.equal(wZestawie.filter((n) => n.endsWith('.ttf')).length, 165, 'po jednym pliku TTF na każdą odmianę każdej z 52 rodzin');
   assert.ok(wZestawie.includes('Pacifico/Pacifico-Regular.ttf') && !wZestawie.includes('Pacifico/Pacifico-Bold.ttf'), 'rodzina bez pogrubienia ma jeden plik');
-  assert.ok(wZestawie.includes('Open Sans/OpenSans-BoldItalic.ttf') && wZestawie.includes('Caveat/Caveat-Bold.ttf') && wZestawie.includes('LICENCJA czcionek Seriodruku.txt'));
+  assert.ok(wZestawie.includes('Open Sans/OpenSans-BoldItalic.ttf') && wZestawie.includes('Caveat/Caveat-Bold.ttf') && wZestawie.includes('LICENCJA czcionek Makietki.txt'));
   const [jedna] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-zestaw li[data-rodzina="Inter"] button')]);
   assert.equal(jedna.suggestedFilename(), 'Czcionka Inter.zip');
   await strona.fill('#czcionki-wlasne input[data-rodzina]', 'Pismo odręczne');

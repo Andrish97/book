@@ -175,7 +175,7 @@ async function start() {
       pokazEkran('logowanie');
     } else if (uzytkownik) {
       await poZalogowaniu(uzytkownik); // otwiera adres z paska (np. odświeżony projekt)
-      if (powrot.typ === 'signup') powiadom('Konto potwierdzone. Witaj w Seriodruku!');
+      if (powrot.typ === 'signup') powiadom('Konto potwierdzone. Witaj w Makietce!');
       if (powrot.typ === 'email_change') powiadom('Adres e-mail został zmieniony.');
     } else {
       pokazEkran('logowanie');

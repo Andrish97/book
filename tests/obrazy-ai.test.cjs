@@ -318,7 +318,7 @@ test('obrazy_projektu, zmien_nazwe_obrazu (komórki tabel też), usun_obrazy (ty
   assert.deepEqual([...s.stan.doUsuniecia.get('p-1')], [sciezka], 'stary plik z konta czeka na sprzątnięcie przez aplikację');
 
   w = await s.wywolaj('link_do_wgrywania');
-  assert.match(w.tekst, /https:\/\/andrish97\.github\.io\/book\/#\/p\/p-1\/obrazy/);
+  assert.match(w.tekst, /https:\/\/makietka\.app\/#\/p\/p-1\/obrazy/);
   w = await s.wywolaj('usun_obrazy', { obrazy: ['kot.png'] }, s.odczyt);
   assert.match(w.tekst, /Zostały|tylko czytać/);
 });
@@ -378,7 +378,7 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
   fs.writeFileSync(path.join(katalog, 'notatki.txt'), 'x');
   fs.mkdirSync(path.join(katalog, 'pod'));
   fs.writeFileSync(path.join(katalog, 'pod', 'c.png'), png(4, 4, 2));
-  const { czytajPliki, obsluz } = await import(pathToFileURL(path.join(KORZEN, 'ai', 'mcp', 'seriodruk-mcp.mjs')).href);
+  const { czytajPliki, obsluz } = await import(pathToFileURL(path.join(KORZEN, 'ai', 'mcp', 'makietka-mcp.mjs')).href);
   const pliki = await czytajPliki([katalog]);
   assert.deepEqual(pliki.map((p) => p.nazwa), ['a.png', 'paczka.zip']);
   await assert.rejects(czytajPliki([path.join(katalog, 'nie-ma.png')]), /Nie ma pliku ani folderu/);

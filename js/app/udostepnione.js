@@ -98,7 +98,7 @@ function pokazBladLinku(e) {
   $('#podglad-tytul').textContent = 'Podgląd niedostępny';
   $('#podglad-opis').textContent = '';
   const el = $('#podglad-tresc');
-  el.innerHTML = `<div class="podglad-pusto"><h2>${e.stanLinku === 'wygasl' ? 'Link wygasł' : 'Ten link nie działa'}</h2><p class="ciche"></p><a class="przycisk" href="./">Przejdź do Seriodruku</a></div>`;
+  el.innerHTML = `<div class="podglad-pusto"><h2>${e.stanLinku === 'wygasl' ? 'Link wygasł' : 'Ten link nie działa'}</h2><p class="ciche"></p><a class="przycisk" href="./">Przejdź do Makietki</a></div>`;
   $('p', el).textContent = e.message;
 }
 

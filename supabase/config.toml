@@ -11,8 +11,8 @@ project_id = "pganajmivwtstapnwsgv"
 
 [auth]
 # Adres aplikacji i adresy, na które może wrócić link z e-maila.
-site_url = "https://andrish97.github.io/book/"
-additional_redirect_urls = ["https://andrish97.github.io/book/**", "http://localhost:8000/**"]
+site_url = "https://makietka.app/"
+additional_redirect_urls = ["https://makietka.app/**", "http://localhost:8000/**"]
 enable_signup = true
 minimum_password_length = 8
 password_requirements = "lower_upper_letters_digits_symbols"
@@ -27,19 +27,22 @@ double_confirm_changes = false
 secure_password_change = false
 max_frequency = "1m0s"
 
-# Własne szablony wiadomości są wyłączone: Supabase na darmowym planie z wbudowaną
-# pocztą odrzuca ich zmianę i całe wdrożenie (razem z migracjami) kończy się błędem.
-# Po podpięciu własnego serwera poczty (SMTP) odkomentuj poniższe bloki.
+# Własne szablony wiadomości są wyłączone: Supabase z wbudowaną pocztą odrzuca ich zmianę
+# i całe wdrożenie (razem z migracjami) kończy się błędem. Poczta: Brevo (docs/KONFIGURACJA-DOMENY.md).
+# Serwer poczty (SMTP) ustawia się w panelu Supabase (Authentication → Emails → SMTP Settings) – hasła
+# nie trzymamy w repozytorium. Ten plik nie ma bloku [auth.email.smtp] – wdrożenie nie powinno ruszać
+# ustawień z panelu (sprawdzić po pierwszym wdrożeniu: docs/KONFIGURACJA-DOMENY.md, krok 6).
+# Dopiero gdy SMTP w panelu działa, odkomentuj poniższe bloki (i ewentualnie enable_confirmations = true).
 # [auth.email.template.confirmation]
-# subject = "Seriodruk – potwierdź konto"
+# subject = "Makietka – potwierdź konto"
 # content_path = "./supabase/templates/potwierdzenie.html"
 #
 # [auth.email.template.recovery]
-# subject = "Seriodruk – ustaw nowe hasło"
+# subject = "Makietka – ustaw nowe hasło"
 # content_path = "./supabase/templates/reset-hasla.html"
 #
 # [auth.email.template.email_change]
-# subject = "Seriodruk – potwierdź nowy adres e-mail"
+# subject = "Makietka – potwierdź nowy adres e-mail"
 # content_path = "./supabase/templates/zmiana-email.html"
 
 # Funkcje Edge wdrażane przez integrację z GitHubem – tylko te zadeklarowane tutaj.

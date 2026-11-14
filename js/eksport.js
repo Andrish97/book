@@ -125,8 +125,8 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   const silnikStron = warunki && !wektor && zdjeciaCmyk ? warunki.silnik() : null;
   const pdf = await PDFLib.PDFDocument.create();
   pdf.setTitle(projekt.nazwa);
-  pdf.setCreator('Seriodruk');
-  pdf.setProducer('Seriodruk (pdf-lib)');
+  pdf.setCreator('Makietka');
+  pdf.setProducer('Makietka (pdf-lib)');
   let srodowisko = null;
   if (tryb === 'wektor') {
     const fontkit = await biblioteka(FONTKIT_URL, 'fontkit', 'modułu czcionek PDF');
@@ -201,7 +201,7 @@ async function plikiRodzinyZestawu(rodzina) {
 
 async function licencjaZestawu() {
   const licencja = await fetch('css/czcionki/LICENCJA.txt');
-  return licencja.ok ? [{ nazwa: 'LICENCJA czcionek Seriodruku.txt', blob: await licencja.blob() }] : [];
+  return licencja.ok ? [{ nazwa: 'LICENCJA czcionek Makietki.txt', blob: await licencja.blob() }] : [];
 }
 
 // Oficjalny zestaw czcionek aplikacji (albo wybrane rodziny) jako archiwum ZIP: { nazwa, blob }.
@@ -210,7 +210,7 @@ export async function zestawCzcionek(rodziny = CZCIONKI.map((c) => c.nazwa)) {
   const zip = new JSZip();
   for (const r of rodziny) for (const p of await plikiRodzinyZestawu(r)) zip.file(`${r}/${p.nazwa}`, p.blob, { compression: 'STORE' });
   for (const p of await licencjaZestawu()) zip.file(p.nazwa, p.blob);
-  return { nazwa: rodziny.length === 1 ? `Czcionka ${rodziny[0]}.zip` : 'Czcionki Seriodruku.zip', blob: await zip.generateAsync({ type: 'blob' }) };
+  return { nazwa: rodziny.length === 1 ? `Czcionka ${rodziny[0]}.zip` : 'Czcionki Makietki.zip', blob: await zip.generateAsync({ type: 'blob' }) };
 }
 
 // Pliki czcionek użytych w tekstach projektu: [{ nazwa, blob }]. Czcionki z oficjalnego zestawu

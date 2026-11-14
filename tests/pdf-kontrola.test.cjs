@@ -299,8 +299,8 @@ test('PDF sprawdzony niezależnymi programami (qpdf, poppler, Ghostscript): PDF/
   for (const dl of czcionkiWPliku) assert.ok(dl < 12000, `plik czcionki w PDF ma ${dl} B`);
   t.diagnostic(`pliki czcionek w PDF (po spakowaniu): ${czcionkiWPliku.join(' + ')} B`);
 
-  // Próbki można zostawić do obejrzenia albo wysłania drukarni: SERIODRUK_PROBKI=<katalog> przy uruchomieniu testu.
-  if (process.env.SERIODRUK_PROBKI) for (const f of [wektor, obrazy, zwykly]) fs.copyFileSync(f, path.join(process.env.SERIODRUK_PROBKI, path.basename(f)));
+  // Próbki można zostawić do obejrzenia albo wysłania drukarni: MAKIETKA_PROBKI=<katalog> przy uruchomieniu testu.
+  if (process.env.MAKIETKA_PROBKI) for (const f of [wektor, obrazy, zwykly]) fs.copyFileSync(f, path.join(process.env.MAKIETKA_PROBKI, path.basename(f)));
   t.diagnostic(`same obrazy w pliku: wektor ${(wielkoscObrazow(w.b) / 1024).toFixed(0)} kB, obrazy stron ${(wielkoscObrazow(o.b) / 1024).toFixed(0)} kB`);
   t.diagnostic(`wektor PDF/X-4: ${(rozmiarWektora / 1024).toFixed(0)} kB, pokrycie do ${pokrycieWektora}%; obrazy stron CMYK: ${(rozmiarObrazow / 1024).toFixed(0)} kB, pokrycie do ${pokrycieObrazow}%; zwykły wektor: ${(rozmiarZwyklego / 1024).toFixed(0)} kB`);
   assert.deepEqual(bledy, []);

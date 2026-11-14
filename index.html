@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#f4f3ef">
   <meta name="description" content="Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Seriodruk">
+  <meta name="apple-mobile-web-app-title" content="Makietka">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>Seriodruk</title>
+  <title>Makietka</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="img/ikony/ikona.svg" type="image/svg+xml">
   <link rel="icon" href="img/ikony/favicon-32.png" sizes="32x32" type="image/png">
@@ -31,14 +31,14 @@
 
   <!-- ===================== Start (ładowanie) ===================== -->
   <div class="ekran ekran-start" id="ekran-start">
-    <div class="logo-duze"><span class="znak-logo">S</span></div>
+    <div class="logo-duze"><span class="znak-logo">M</span></div>
     <p class="ciche">Wczytywanie…</p>
   </div>
 
   <!-- ===================== Logowanie ===================== -->
   <main class="ekran ekran-logowania" id="ekran-logowania">
     <section class="logowanie-bok" aria-hidden="true">
-      <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
+      <div class="marka"><span class="znak-logo">M</span> Makietka</div>
       <h1>Strony z danych,<br>gotowe do druku.</h1>
       <p>Edytor kalendarzy, planerów i notesów: sekcje, rozkładówki, wzorce stron i style tekstu w jednym miejscu.</p>
       <div class="podglad-stron">
@@ -51,7 +51,7 @@
     <section class="logowanie-forma">
       <button class="przycisk-ikona przelacz-motyw" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="karta-logowania" id="karta-logowania">
-        <div class="marka marka-mobilna"><span class="znak-logo">S</span> Seriodruk</div>
+        <div class="marka marka-mobilna"><span class="znak-logo">M</span> Makietka</div>
 
       <div id="widok-formularz">
         <div class="przelacznik-segmentowy zakladki-logowania" id="tryb-logowania" role="radiogroup" aria-label="Logowanie albo rejestracja">
@@ -109,7 +109,7 @@
         <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase. Aplikacja działa tylko z kontem, więc bez tej konfiguracji nie da się z niej korzystać.</p>
       </div>
       </div>
-      <footer class="stopka-logowania">Seriodruk · edytor kalendarzy, planerów i notesów</footer>
+      <footer class="stopka-logowania">Makietka · edytor kalendarzy, planerów i notesów</footer>
     </section>
   </main>
 
@@ -280,7 +280,7 @@
   <!-- ===================== Projekty ===================== -->
   <div class="ekran ekran-projektow" id="ekran-projektow">
     <header class="pasek-aplikacji">
-      <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
+      <div class="marka"><span class="znak-logo">M</span> Makietka</div>
       <div class="odstep"></div>
       <button class="przycisk przezroczysty" data-akcja="instrukcja" data-ikona="ksiazka"><span class="etyk">Instrukcja</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
@@ -302,14 +302,14 @@
           <p class="ciche" id="podsumowanie-projektow"></p>
         </div>
         <div class="przyciski-naglowka">
-          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .seriodruk">Importuj</button>
+          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .makietka">Importuj</button>
           <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Nowy projekt</button>
         </div>
       </div>
 
       <section class="pusto-projekty" id="pusto-projekty" hidden>
         <h2>Zacznij od pierwszego projektu</h2>
-        <p class="ciche">Tak będzie wyglądać praca z Seriodruk:</p>
+        <p class="ciche">Tak będzie wyglądać praca z Makietką:</p>
         <ol class="kroki">
           <li><span class="numer-kroku">1</span><div><strong>Format</strong><p>Wybierz rozmiar strony, spad i marginesy – np. A5 do kalendarza książkowego.</p></div></li>
           <li><span class="numer-kroku">2</span><div><strong>Wzory stron</strong><p>Zaprojektuj każdą stronę osobno: teksty, kształty, zdjęcia.</p></div></li>
@@ -471,7 +471,7 @@
   <div class="ekran ekran-podgladu" id="ekran-podgladu">
     <header class="pasek-aplikacji pasek-podgladu">
       <button class="przycisk przezroczysty tylko-wlasciciel" data-akcja="podglad-zamknij" data-ikona="wstecz" title="Wróć do edycji"><span>Edytor</span></button>
-      <a class="marka tylko-gosc" href="./" title="Seriodruk"><span class="znak-logo">S</span><span class="etyk">Seriodruk</span></a>
+      <a class="marka tylko-gosc" href="./" title="Makietka"><span class="znak-logo">M</span><span class="etyk">Makietka</span></a>
       <div class="separator"></div>
       <h1 class="tytul-ekranu" id="podglad-tytul"></h1>
       <span class="ciche podglad-opis" id="podglad-opis"></span>
@@ -800,11 +800,11 @@
           </span>
         </label>
         <ol class="dostep-ai-kroki">
-          <li><b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <i>Dostosuj</i> (Customize) → <i>Łączniki</i> (Connectors) → <b>+</b> → <i>Dodaj własny łącznik</i> (Add custom connector). Nazwa: Seriodruk, adres: wklej powyższy, logowanie: <i>bez logowania</i> (No sign-in).</li>
+          <li><b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <i>Dostosuj</i> (Customize) → <i>Łączniki</i> (Connectors) → <b>+</b> → <i>Dodaj własny łącznik</i> (Add custom connector). Nazwa: Makietka, adres: wklej powyższy, logowanie: <i>bez logowania</i> (No sign-in).</li>
           <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>. Wklej adres, uwierzytelnianie: <i>No Authentication</i>, potwierdź. Jeśli tej opcji nie ma, włącz tryb dewelopera: Ustawienia → Aplikacje → Zaawansowane.</li>
-          <li>W rozmowie włącz łącznik Seriodruk i napisz, co zmienić – np. „popraw literówki na okładce”. Zmiany AI zobaczysz w edytorze na żywo.</li>
+          <li>W rozmowie włącz łącznik Makietka i napisz, co zmienić – np. „popraw literówki na okładce”. Zmiany AI zobaczysz w edytorze na żywo.</li>
         </ol>
-        <p class="podpowiedz">AI nie łączy się z bazą samo i nie trzeba niczego odblokowywać ani instalować – łącznik działa po stronie Seriodruku.</p>
+        <p class="podpowiedz">AI nie łączy się z bazą samo i nie trzeba niczego odblokowywać ani instalować – łącznik działa po stronie Makietki.</p>
         <details class="dostep-ai-jak">
           <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
           <label class="pole"><span>Klucz dostępu</span>
@@ -815,7 +815,7 @@
           </label>
           <p class="podpowiedz">Claude Code (zdalny łącznik, nic do pobrania):</p>
           <pre id="dostep-ai-claude-code"></pre>
-          <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/seriodruk-mcp.mjs" download>seriodruk-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
+          <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/makietka-mcp.mjs" download="makietka-mcp.mjs">makietka-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
           <pre id="dostep-ai-claude-desktop"></pre>
           <p class="podpowiedz">Opis narzędzi i formatu projektu: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
         </details>
@@ -834,7 +834,7 @@
         <h2>Czcionki</h2>
         <button type="button" class="przycisk-ikona" id="czcionki-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Na co dzień korzystasz z oficjalnego zestawu czcionek aplikacji (na dole okna). Jeśli potrzebujesz innej, własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.seriodruk</code>. Raz wgrana czcionka zostaje też w „Moich czcionkach” i jest pod ręką w każdym następnym projekcie. Wgrywaj czcionki, których licencja pozwala na druk.</p>
+      <p class="ciche">Na co dzień korzystasz z oficjalnego zestawu czcionek aplikacji (na dole okna). Jeśli potrzebujesz innej, własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.makietka</code>. Raz wgrana czcionka zostaje też w „Moich czcionkach” i jest pod ręką w każdym następnym projekcie. Wgrywaj czcionki, których licencja pozwala na druk.</p>
       <fieldset class="grupa-pol">
         <legend>Własne czcionki projektu</legend>
         <ul class="lista-czcionek" id="czcionki-wlasne"></ul>
@@ -847,7 +847,7 @@
         <p class="podpowiedz" id="czcionki-moje-pusto">Tu pojawią się czcionki wgrane w innych projektach – dodasz je do tego projektu jednym kliknięciem, bez szukania pliku. Są też na liście czcionek w panelu tekstu.</p>
       </fieldset>
       <fieldset class="grupa-pol">
-        <legend>Zestaw czcionek Seriodruku</legend>
+        <legend>Zestaw czcionek Makietki</legend>
         <p class="podpowiedz">Oficjalny zestaw aplikacji – ten sam dla wszystkich projektów i wszystkich użytkowników. Te czcionki są na liście w każdym projekcie, trafiają do pliku PDF, a ich pliki można pobrać (np. dla drukarni albo grafika). Wszystkie na licencji SIL Open Font License – wolno ich używać w druku komercyjnym.</p>
         <ul class="lista-czcionek zestaw" id="czcionki-zestaw"></ul>
         <div class="rzad-przyciskow"><button type="button" class="przycisk" id="czcionki-pobierz-zestaw" data-ikona="pobierz">Pobierz cały zestaw (ZIP)</button></div>
@@ -1135,6 +1135,6 @@
   <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
   <input type="file" id="pliki-zasoby" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.zip,application/zip" multiple hidden>
   <input type="file" id="plik-podmiana" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
-  <input type="file" id="plik-projekt" accept=".seriodruk,.json,application/vnd.seriodruk+zip,application/zip,application/json" hidden>
+  <input type="file" id="plik-projekt" accept=".makietka,.json,application/vnd.seriodruk+zip,application/zip,application/json" hidden>
 </body>
 </html>
