@@ -172,17 +172,17 @@ test('tabela: szerokość kolumny uchwytem i liczbą, wiersze i kolumny z panelu
   await krok(strona);
 
   // Wiersze i kolumny przyciskami.
-  await strona.click('.wlasciwosci button:has-text("Dodaj wiersz")');
-  await strona.click('.wlasciwosci button:has-text("Dodaj kolumnę")');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj wiersz"]');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj kolumnę"]');
   s = await stanTabeli(strona);
   assert.deepEqual([s.wiersze.length, s.kolumny.length, s.teksty.flat().length, s.linii], [4, 4, 16, 10]);
   assert.equal(s.teksty[0][3], 'Kolumna 4', 'nowa kolumna dostaje nagłówek');
-  assert.match(await strona.textContent('.wlasciwosci .licznik-tabeli'), /Wierszy: 4, kolumn: 4/);
+  assert.match(await strona.getAttribute('.wlasciwosci .licznik-tabeli', 'aria-label'), /Wierszy: 4, kolumn: 4/);
   const szerPo = s.szer;
   assert.ok(Math.abs(s.kolumny.reduce((a, b) => a + b, 0) - szerPo) < 0.05);
   await krok(strona);
-  await strona.click('.wlasciwosci button:has-text("Usuń ostatnią kolumnę")');
-  await strona.click('.wlasciwosci button:has-text("Usuń ostatni wiersz")');
+  await strona.click('.wlasciwosci button[aria-label="Usuń ostatnią kolumnę"]');
+  await strona.click('.wlasciwosci button[aria-label="Usuń ostatni wiersz"]');
   s = await stanTabeli(strona);
   assert.deepEqual([s.wiersze.length, s.kolumny.length], [3, 3]);
   assert.ok(Math.abs(s.szer - szerPo) < 0.05, 'usunięcie kolumny nie zmienia szerokości tabeli');
@@ -336,8 +336,8 @@ test('tabela: tło nagłówka i co drugiego wiersza, własna wysokość jednego 
   assert.match(kolejnosc, /^r+t+l+$/, `tło pod tekstem, linie na wierzchu: ${kolejnosc}`);
   // Dodanie wiersza i kolumny przy włączonym tle nie miesza komórek.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; const g = e.aktywny; e.komorkiTabeli(g)[4].set('text', 'B2'); e.zatwierdz(); });
-  await strona.click('.wlasciwosci button:has-text("Dodaj wiersz")');
-  await strona.click('.wlasciwosci button:has-text("Dodaj kolumnę")');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj wiersz"]');
+  await strona.click('.wlasciwosci button[aria-label="Dodaj kolumnę"]');
   s = await stanTabeli(strona);
   assert.equal(s.teksty[1][1], 'B2');
   assert.deepEqual([s.teksty.length, s.teksty[0].length], [5, 4]);

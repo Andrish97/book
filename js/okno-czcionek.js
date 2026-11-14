@@ -69,9 +69,13 @@ export class OknoCzcionek {
     for (const c of CZCIONKI) {
       const li = document.createElement('li');
       li.dataset.rodzina = c.nazwa;
-      li.innerHTML = '<span class="probka"></span><span class="opis"></span><button type="button" class="przycisk maly">Pobierz pliki</button>';
+      li.innerHTML = '<span class="nazwa-rodziny"></span><span class="probka"></span><span class="opis"></span><button type="button" class="przycisk-ikona" data-ikona="pobierz"></button>';
+      li.querySelector('.nazwa-rodziny').textContent = c.nazwa;
+      const pobierz = li.querySelector('button');
+      pobierz.title = `Pobierz pliki czcionki ${c.nazwa}`;
+      pobierz.setAttribute('aria-label', pobierz.title);
       const probka = li.querySelector('.probka');
-      probka.textContent = `${c.nazwa} – Zażółć gęślą jaźń`;
+      probka.textContent = 'Zażółć gęślą jaźń';
       probka.style.fontFamily = `"${c.nazwa}"`;
       li.querySelector('.opis').textContent = this._opisZestawu(c.nazwa, uzyte);
       li.querySelector('button').addEventListener('click', () => this.pobierzZestaw([c.nazwa]));

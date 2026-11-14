@@ -15,6 +15,7 @@ import { wlaczWlasneKontrolki } from './kontrolki.js';
 import { wlaczDymki } from './dymki.js';
 import { wlaczZaslonki } from './zaslonki.js';
 import { wlaczPodpowiedzi } from './podpowiedzi.js';
+import { wlaczPalete } from './paleta-polecen.js';
 import { wlaczInstalacje, zainstaluj, odlozInstalacje, iOS, zainstalowana } from './instalacja.js';
 import { zaladujCzcionki } from './czcionki.js';
 import { stan, trasa, ustawPanel, pokazEkran, edytor } from './app/kontekst.js';
@@ -280,6 +281,7 @@ wlaczDymki();
 // Okna dialogowe na telefonie i tablecie wyjeżdżają od dołu jako zasłonki z uchwytem (js/zaslonki.js).
 wlaczZaslonki();
 wlaczPodpowiedzi();
+wlaczPalete();
 wlaczInstalacje();
 
 start().catch((e) => {

@@ -510,7 +510,7 @@
           <p class="ciche" id="podsumowanie-projektow"></p>
         </div>
         <div class="przyciski-naglowka">
-          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .makietka">Importuj</button>
+          <button class="przycisk-ikona" data-akcja="importuj-projekt" data-ikona="wyslij" title="Importuj projekt z pliku (.makietka)" aria-label="Importuj projekt z pliku"></button>
           <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Nowy projekt</button>
         </div>
       </div>
@@ -918,36 +918,39 @@
           <option value="podglad">Do oglądania – równo do formatu</option>
         </select>
       </label>
-      <label class="pole"><span id="pdf-etykieta-dpi">Jakość</span><select name="dpi"></select></label>
-      <div id="pdf-opcje-wektora">
-        <label class="przelacznik"><input type="checkbox" name="krzywe"><span>Zamień tekst na krzywe (bez czcionek w pliku)</span></label>
-        <label class="przelacznik"><input type="checkbox" name="cmyk"><span>Kolory tekstu i kształtów w CMYK (czarny jako sama czerń)</span></label>
-      </div>
-      <label class="pole"><span>Standard dla drukarni</span>
-        <select name="pdfx">
-          <option value="" selected>Bez standardu – zwykły PDF</option>
-          <option value="fogra39">PDF/X-4 – papier powlekany (FOGRA39)</option>
-          <option value="fogra47">PDF/X-4 – papier niepowlekany (FOGRA47)</option>
-          <option value="wlasny">PDF/X-4 – profil od drukarni (plik .icc)</option>
-        </select>
-      </label>
-      <label class="przelacznik" id="pdf-pole-zdjecia"><input type="checkbox" name="zdjeciaCmyk"><span id="pdf-etykieta-zdjecia">Zdjęcia też w CMYK (większy plik)</span></label>
-      <div id="pdf-pole-profil" hidden>
-        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="pdf-wybierz-profil" data-ikona="wyslij">Wybierz plik profilu…</button><span class="podpowiedz" id="pdf-nazwa-profilu">Nie wybrano pliku.</span></div>
-        <input type="file" id="pdf-plik-profilu" accept=".icc,.icm" hidden>
-      </div>
-      <p class="podpowiedz" id="pdf-opis-pdfx" hidden></p>
-      <div class="rzad">
-        <label class="pole"><span>Podział na pliki</span>
-          <select name="podzial">
-            <option value="jeden">Jeden plik</option>
-            <option value="sekcje">Osobny plik dla każdej sekcji</option>
-            <option value="czesci">Części po tyle stron</option>
+      <details class="zaawansowane" id="pdf-zaawansowane" open>
+        <summary>Zaawansowane <span class="ciche" id="pdf-zaawansowane-opis"></span></summary>
+        <label class="pole"><span id="pdf-etykieta-dpi">Jakość</span><select name="dpi"></select></label>
+        <div id="pdf-opcje-wektora">
+          <label class="przelacznik"><input type="checkbox" name="krzywe"><span>Zamień tekst na krzywe (bez czcionek w pliku)</span></label>
+          <label class="przelacznik"><input type="checkbox" name="cmyk"><span>Kolory tekstu i kształtów w CMYK (czarny jako sama czerń)</span></label>
+        </div>
+        <label class="pole"><span>Standard dla drukarni</span>
+          <select name="pdfx">
+            <option value="" selected>Bez standardu – zwykły PDF</option>
+            <option value="fogra39">PDF/X-4 – papier powlekany (FOGRA39)</option>
+            <option value="fogra47">PDF/X-4 – papier niepowlekany (FOGRA47)</option>
+            <option value="wlasny">PDF/X-4 – profil od drukarni (plik .icc)</option>
           </select>
         </label>
-        <label class="pole waskie" id="pdf-pole-ile" hidden><span>Stron w części</span><input name="ile" type="number" min="1" step="1" value="50" inputmode="numeric"></label>
-      </div>
-      <label class="przelacznik"><input type="checkbox" name="czcionki"><span>Dołącz pliki czcionek użytych w projekcie</span></label>
+        <label class="przelacznik" id="pdf-pole-zdjecia"><input type="checkbox" name="zdjeciaCmyk"><span id="pdf-etykieta-zdjecia">Zdjęcia też w CMYK (większy plik)</span></label>
+        <div id="pdf-pole-profil" hidden>
+          <div class="rzad-przyciskow"><button type="button" class="przycisk" id="pdf-wybierz-profil" data-ikona="wyslij">Wybierz plik profilu…</button><span class="podpowiedz" id="pdf-nazwa-profilu">Nie wybrano pliku.</span></div>
+          <input type="file" id="pdf-plik-profilu" accept=".icc,.icm" hidden>
+        </div>
+        <p class="podpowiedz" id="pdf-opis-pdfx" hidden></p>
+        <div class="rzad">
+          <label class="pole"><span>Podział na pliki</span>
+            <select name="podzial">
+              <option value="jeden">Jeden plik</option>
+              <option value="sekcje">Osobny plik dla każdej sekcji</option>
+              <option value="czesci">Części po tyle stron</option>
+            </select>
+          </label>
+          <label class="pole waskie" id="pdf-pole-ile" hidden><span>Stron w części</span><input name="ile" type="number" min="1" step="1" value="50" inputmode="numeric"></label>
+        </div>
+        <label class="przelacznik"><input type="checkbox" name="czcionki"><span>Dołącz pliki czcionek użytych w projekcie</span></label>
+      </details>
       <p class="podpowiedz" id="pdf-opis-trybu"></p>
       <p class="podpowiedz" id="pdf-podsumowanie"></p>
       <details class="uwagi-druku" id="pdf-uwagi" hidden>
@@ -1380,13 +1383,14 @@
   <dialog id="dlg-dane" class="dialog-dane" aria-labelledby="dane-tytul">
     <div class="dane">
       <aside class="dane-lista">
-        <h2 id="dane-tytul">Dane</h2>
-        <ol id="dane-tabele"></ol>
-        <div class="dane-akcje">
-          <button type="button" class="przycisk" id="dane-importuj" data-ikona="wyslij">Importuj plik</button>
-          <button type="button" class="przycisk" id="dane-nowa" data-ikona="plus">Nowa tabela</button>
+        <div class="dane-naglowek">
+          <h2 id="dane-tytul">Dane</h2>
+          <div class="dane-akcje">
+            <button type="button" class="przycisk-ikona" id="dane-importuj" data-ikona="wyslij" title="Importuj tabelę z pliku CSV albo Excel (pierwszy wiersz – nazwy kolumn; plik o nazwie istniejącej tabeli podmienia jej dane)" aria-label="Importuj tabelę z pliku"></button>
+            <button type="button" class="przycisk-ikona" id="dane-nowa" data-ikona="plus" title="Nowa tabela" aria-label="Nowa tabela"></button>
+          </div>
         </div>
-        <p class="podpowiedz">CSV albo Excel. Pierwszy wiersz pliku to nazwy kolumn. Import pliku o nazwie istniejącej tabeli pozwala podmienić jej dane.</p>
+        <ol id="dane-tabele"></ol>
         <input type="file" id="plik-dane" accept=".csv,.txt,.tsv,.xlsx,.xls,.xlsm,.ods" hidden>
       </aside>
       <section class="dane-tresc">
@@ -1402,7 +1406,7 @@
             <button type="button" class="przycisk" id="dane-wiersz" data-ikona="plus">Wiersz</button>
             <button type="button" class="przycisk" id="dane-pomijany" data-ikona="plus" title="Wstawia wiersz ze znacznikiem [pomiń] nad wierszem, w którym stoi kursor (bez kursora – na początku tabeli). Taki wiersz zajmuje miejsce w bloku serii, ale strona dla niego nie powstaje.">Wiersz pomijany</button>
             <button type="button" class="przycisk" id="dane-kolumna" data-ikona="plus">Kolumna</button>
-            <button type="button" class="przycisk" id="dane-csv" data-ikona="pobierz" title="Pobierz tabelę jako plik CSV">CSV</button>
+            <button type="button" class="przycisk-ikona" id="dane-csv" data-ikona="pobierz" title="Pobierz tabelę jako plik CSV" aria-label="Pobierz tabelę jako plik CSV"></button>
             <button type="button" class="przycisk" id="dane-usun" data-ikona="kosz" title="Usuń tabelę" aria-label="Usuń tabelę"></button>
           </div>
           <p class="podpowiedz" id="dane-opis"></p>

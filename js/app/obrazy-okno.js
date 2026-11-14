@@ -86,7 +86,7 @@ function rysuj() {
       </div>
       <div class="obraz-akcje">
         <button type="button" class="przycisk-ikona" data-rola="kopiuj" data-ikona="kopiuj" title="Kopiuj nazwę" aria-label="Kopiuj nazwę"></button>
-        <button type="button" class="przycisk-ikona" data-rola="nazwa" data-ikona="tekst" title="Zmień nazwę" aria-label="Zmień nazwę"></button>
+        <button type="button" class="przycisk-ikona" data-rola="nazwa" data-ikona="olowek" title="Zmień nazwę" aria-label="Zmień nazwę"></button>
         <button type="button" class="przycisk-ikona" data-rola="podmien" data-ikona="wyslij" title="Podmień plik (wszędzie, gdzie obraz jest użyty)" aria-label="Podmień plik"></button>
         ${u.pierwsze ? '<button type="button" class="przycisk-ikona" data-rola="pokaz" data-ikona="oko" title="Pokaż na stronie" aria-label="Pokaż na stronie"></button>' : ''}
       </div>`;

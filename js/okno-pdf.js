@@ -59,6 +59,8 @@ export class OknoPdf {
     };
     const uwagi = sprawdzProjekt(this.zrodlo.projekt(), this.ciag);
     pokazUwagi(uwagi);
+    // Na telefonie ustawienia zaawansowane zwinięte (podsumowanie w nagłówku); na większym ekranie rozwinięte (#103).
+    $('#pdf-zaawansowane').open = document.documentElement.dataset.urzadzenie !== 'telefon';
     this.odswiez();
     this.okno.showModal();
     // Teksty w ramkach na wszystkich powielonych stronach – to trwa chwilę, więc lista uzupełnia się po otwarciu okna.
@@ -132,6 +134,10 @@ export class OknoPdf {
     $('#pdf-podsumowanie').textContent = egz.length
       ? `Do eksportu: ${stron}${powielone ? ` (w tym ${powielone} z powieleń serii)` : ''}${pliki.length > 1 ? `, ${pliki.length} ${odmiana(pliki.length, 'plik', 'pliki', 'plików')} PDF w jednym archiwum ZIP` : ''}.`
       : 'W wybranym zakresie nie ma stron.';
+    // Podsumowanie zwiniętej sekcji „Zaawansowane”: jakość, kolory, standard, podział.
+    const f = this.f.elements;
+    const wybrana = (pole) => pole?.selectedOptions?.[0]?.textContent?.split(/ [–-] /)[0] || '';
+    $('#pdf-zaawansowane-opis').textContent = [wybrana(f.dpi), o.cmyk && wektor ? 'CMYK' : 'RGB', o.pdfx ? 'PDF/X-4' : '', wybrana(f.podzial)].filter(Boolean).join(' · ');
     $('#pdf-eksportuj').disabled = this.trwa || !egz.length || (o.pdfx === 'wlasny' && !this.profilWlasny);
   }
 
