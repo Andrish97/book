@@ -43,7 +43,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Co jest.** Wbudowana poczta Supabase dostarcza wiadomości tylko właścicielom projektu i ma limit kilku na godzinę. Dlatego rejestracja działa bez linku potwierdzającego, a reset hasła i zmiana adresu e-mail u innych osób nie zadziałają, dopóki nie podepniesz własnego serwera poczty (Authentication → Emails → SMTP Settings). Dopiero wtedy da się też włączyć własne szablony wiadomości – w `config.toml` są przygotowane, ale zakomentowane, bo bez własnej poczty Supabase odrzuca ich zmianę.
 **Dlaczego tak.** Nie da się tego obejść kodem aplikacji: ograniczenie jest po stronie Supabase. Rejestracja bez potwierdzenia pozwala korzystać z aplikacji już teraz.
 **Twoje decyzje.** Rejestracja bez potwierdzania adresu (#33). Poczta i szablony odłożone do czasu domeny (#34). Nazwa i domena: Makietka, `makietka.app` (#88).
-**Słabe.** Dopóki w panelu Supabase nie działa serwer poczty Brevo (docs/KONFIGURACJA-DOMENY.md), osoba inna niż Ty nie odzyska hasła sama. Adres aplikacji i adresy powrotu w `config.toml` wskazują już na `makietka.app`.
+**Słabe.** Dopóki maile przez Brevo nie są podpięte (docs/KONFIGURACJA-DOMENY.md, „Maile (Brevo)”), osoba inna niż Ty nie odzyska hasła sama. Adres aplikacji i adresy powrotu w `config.toml` wskazują już na `makietka.app`.
 
 ## A. Fundamenty techniczne
 

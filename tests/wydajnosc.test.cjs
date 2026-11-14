@@ -91,7 +91,7 @@ test('okno „Obrazy projektu”: miniatura zrobiona raz zostaje na urządzeniu 
   assert.ok(pierwsza.w <= 320, `miniatura ma ${pierwsza.w} px`);
   assert.match(pierwsza.wymiary, /1600 × 1000 px/, 'wymiary oryginału');
   const wpisy = () => strona.evaluate(() => new Promise((ok) => {
-    const r = indexedDB.open('seriodruk-miniatury');
+    const r = indexedDB.open('makietka-miniatury');
     r.onsuccess = () => { const c = r.result.transaction('miniatury').objectStore('miniatury').count(); c.onsuccess = () => { ok(c.result); r.result.close(); }; };
   }));
   await new Promise((ok) => { setTimeout(ok, 500); });

@@ -28,11 +28,8 @@ secure_password_change = false
 max_frequency = "1m0s"
 
 # Własne szablony wiadomości są wyłączone: Supabase z wbudowaną pocztą odrzuca ich zmianę
-# i całe wdrożenie (razem z migracjami) kończy się błędem. Poczta: Brevo (docs/KONFIGURACJA-DOMENY.md).
-# Serwer poczty (SMTP) ustawia się w panelu Supabase (Authentication → Emails → SMTP Settings) – hasła
-# nie trzymamy w repozytorium. Ten plik nie ma bloku [auth.email.smtp] – wdrożenie nie powinno ruszać
-# ustawień z panelu (sprawdzić po pierwszym wdrożeniu: docs/KONFIGURACJA-DOMENY.md, krok 6).
-# Dopiero gdy SMTP w panelu działa, odkomentuj poniższe bloki (i ewentualnie enable_confirmations = true).
+# i całe wdrożenie (razem z migracjami) kończy się błędem. Maile (Brevo) wysyła hak „Send Email Hook”
+# z funkcją Edge – opis w docs/KONFIGURACJA-DOMENY.md („Maile (Brevo)”); SMTP nie używamy.
 # [auth.email.template.confirmation]
 # subject = "Makietka – potwierdź konto"
 # content_path = "./supabase/templates/potwierdzenie.html"

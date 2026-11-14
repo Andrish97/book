@@ -2,7 +2,7 @@
 
 Krok po kroku, co kliknąć. Nic z tego nie wymaga podawania mi kluczy – wszystkie hasła i klucze wpisujesz
 tylko w panelach Cloudflare, Brevo i Supabase. Kolejność ma znaczenie: najpierw domena aplikacji (1–2),
-potem przekaźnik (3), na końcu poczta (4–6).
+potem przekaźnik (3), na końcu maile (4).
 
 Co gdzie będzie:
 
@@ -70,55 +70,34 @@ Wtedy przełączam aplikację na przekaźnik (`PRZEZ_WORKER = true` w `js/marka.
 „Dostęp dla AI” daje adres `https://api.makietka.app/mcp/<klucz>`. Przy przełączeniu każdy raz się
 wyloguje (sesja jest zapisana pod adresem bazy) – projekty są na koncie, nic nie ginie.
 
-## 4. Brevo: domena i nadawca
+## 4. Maile (Brevo)
 
-1. Załóż konto na brevo.com (plan darmowy: 300 maili dziennie).
-2. **Senders, Domains & Dedicated IPs** (ikona trybika/menu konta) → **Domains** → **Add a domain** →
-   `makietka.app`.
-3. Uwierzytelnienie domeny: jeśli Brevo zaproponuje automatyczne dodanie rekordów w Cloudflare – zgódź
-   się. Jeśli nie, wybierz ręczne (**Authenticate the domain yourself**) i dodaj w Cloudflare → DNS
-   rekordy, które Brevo pokaże (wartości są indywidualne – kopiuj z Brevo):
-   - **TXT** `@` – `brevo-code:…`,
-   - **DKIM** – dwa rekordy **CNAME** (`brevo1._domainkey`, `brevo2._domainkey`) albo jeden TXT, zależnie
-     od tego, co pokaże Brevo,
-   - **TXT** `_dmarc` – np. `v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com`.
+Wszystkie maile – logowanie, reset hasła, zaproszenia do współpracy – wysyła funkcja Edge przez API Brevo,
+podpięta w Supabase jako hak „Send Email Hook”. SMTP nie używamy.
 
-   Wszystkie jako **DNS only** (szara chmurka). Potem w Brevo **Authenticate this email domain**.
-4. **Senders** → **Add a sender**: nazwa `Makietka`, adres `no-reply@makietka.app`.
-5. **SMTP & API** → zakładka **SMTP**: zanotuj **Login** (np. `…@smtp-brevo.com`) i wygeneruj
-   **SMTP key** (to hasło SMTP – nie klucz API).
-6. **SMTP & API** → zakładka **API keys** → **Generate a new API key** (nazwa np. „Makietka –
-   zaproszenia”) – do maili z zaproszeniami do współpracy.
+1. **Brevo** (konto na brevo.com, plan darmowy: 300 maili dziennie) → **Senders, Domains & Dedicated IPs**
+   → **Domains** → **Add a domain** → `makietka.app`. Rekordy DNS, które pokaże Brevo (TXT `brevo-code:…`,
+   DKIM – dwa CNAME `brevo1._domainkey` i `brevo2._domainkey` albo jeden TXT, TXT `_dmarc`, np.
+   `v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com`), dodaj w Cloudflare → **DNS** jako **DNS only**
+   (szara chmurka; wartości kopiuj z Brevo) – albo zgódź się na automatyczne dodanie, jeśli Brevo je
+   zaproponuje. Potem w Brevo **Verify** / **Authenticate this email domain**.
+2. **Brevo** → **Senders** → **Add a sender**: nazwa `Makietka`, adres `no-reply@makietka.app`.
+3. **Brevo** → **SMTP & API** → **API Keys** → **Generate a new API key** (np. „Makietka”). To klucz API,
+   nie klucz SMTP.
+4. **Supabase** → **Edge Functions** → **Secrets** → dodaj `BREVO_API_KEY` (klucz z punktu 3) i resztę
+   sekretów funkcji „poczta” – lista w sekcji „Maile – sekrety i hak” niżej.
+5. **Supabase** → **Authentication** → **Hooks** → **Send Email** → typ **HTTPS** → adres funkcji „poczta”
+   (sekcja niżej) → **Generate secret** → skopiuj i wklej jako sekret `SEND_EMAIL_HOOK_SECRET` (punkt 4)
+   → **Create**/**Save**.
 
-## 5. Supabase: poczta przez Brevo
+Sprawdzenie: na ekranie logowania **Nie pamiętasz hasła?** na swój adres – mail od „Makietka
+<no-reply@makietka.app>”, link prowadzi do `https://makietka.app/`.
 
-Panel Supabase → projekt **pganajmivwtstapnwsgv**:
+**Authentication → URL Configuration** nie zmieniaj ręcznie: adres aplikacji (`https://makietka.app/`)
+i adresy powrotu wdraża repozytorium (`supabase/config.toml`) – ręczna zmiana zostałaby nadpisana.
 
-1. **Authentication** → **Emails** → **SMTP Settings** → **Enable custom SMTP**:
-   - Sender email: `no-reply@makietka.app`, Sender name: `Makietka`,
-   - Host: `smtp-relay.brevo.com`, Port: `587`,
-   - Username: login SMTP z Brevo, Password: klucz SMTP z Brevo → **Save**.
-2. **Authentication** → **Rate Limits** → limit maili na godzinę podnieś np. do `100` (z własnym SMTP
-   domyślnie 30).
-3. **Edge Functions** → **Secrets** (albo Project Settings → Edge Functions) → **Add new secret**:
-   nazwa `BREVO_API_KEY`, wartość – klucz API z Brevo (punkt 4.6). Z niego korzystają maile z
-   zaproszeniami.
-4. **Authentication** → **URL Configuration** – nic nie zmieniaj ręcznie: adres aplikacji
-   (`https://makietka.app/`) i adresy powrotu wdraża repozytorium (`supabase/config.toml`). Ręczna
-   zmiana zostałaby nadpisana przy następnym wdrożeniu.
-
-Hasła SMTP nie ma w repozytorium. `config.toml` nie zawiera bloku `[auth.email.smtp]`, więc wdrożenia
-nie powinny ruszać ustawień z punktu 1 – po pierwszym wdrożeniu po tej zmianie zajrzyj jeszcze raz do
-SMTP Settings (krok 6).
-
-## 6. Sprawdzenie i ostatnie przełączenia
-
-1. Na ekranie logowania aplikacji **Nie pamiętasz hasła?** na swój adres → mail od „Makietka
-   <no-reply@makietka.app>”, link prowadzi do `https://makietka.app/`.
-2. Po kolejnym wdrożeniu (dowolny push) – czy **SMTP Settings** w Supabase dalej są włączone.
-3. Gdy poczta działa, włączam w `supabase/config.toml` własne szablony maili z marką Makietka i
-   potwierdzanie adresu przy rejestracji (`enable_confirmations = true`). Wcześniej nie można: Supabase
-   z wbudowaną pocztą odrzuca szablony i całe wdrożenie (razem z migracjami) kończy się błędem.
+<!-- Sekcję „Maile – sekrety i hak” (adres funkcji poczta, pełna lista sekretów: BREVO_API_KEY,
+SEND_EMAIL_HOOK_SECRET, MAIL_FROM_EMAIL, MAIL_FROM_NAME, SITE_URL) dopisuje praca o współpracy między kontami. -->
 
 ## Stare adresy
 
