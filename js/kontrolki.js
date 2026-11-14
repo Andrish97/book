@@ -23,22 +23,68 @@ function zamknijOkienko() {
   o.poZamknieciu?.();
 }
 
+// Stawia okienko (position: fixed) w punkcie ekranu. W zasłonce (okno z przesunięciem/transformacją)
+// „fixed” liczy się od okna, nie od ekranu – wtedy lista lądowała poza ekranem telefonu (#99).
+// Mierzymy, gdzie okienko naprawdę stanęło, i poprawiamy o różnicę.
+function postaw(okienko, gora, lewo) {
+  okienko.style.top = `${Math.round(gora)}px`;
+  okienko.style.left = `${Math.round(lewo)}px`;
+  okienko.style.animation = 'none'; // pomiar bez przesunięcia z animacji wjazdu
+  const r = okienko.getBoundingClientRect();
+  okienko.style.animation = '';
+  const dy = r.top - gora;
+  const dx = r.left - lewo;
+  if (Math.abs(dy) > 0.5) okienko.style.top = `${Math.round(gora - dy)}px`;
+  if (Math.abs(dx) > 0.5) okienko.style.left = `${Math.round(lewo - dx)}px`;
+}
+
+// Bezpieczne marginesy ekranu (wycięcia, pasek systemowy) – z własności CSS ustawianych w js/urzadzenie.js.
+// Wartość zmiennej z env() da się odczytać dopiero z gotowej długości – stąd niewidoczny element-miarka.
+let miarka = null;
+function marginesEkranu(bok) {
+  if (!miarka) {
+    miarka = document.createElement('div');
+    miarka.setAttribute('aria-hidden', 'true');
+    miarka.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;width:0;height:0;padding:var(--bezp-gora) var(--bezp-prawo) var(--bezp-dol) var(--bezp-lewo)';
+  }
+  if (!miarka.isConnected) document.body.append(miarka);
+  const s = getComputedStyle(miarka);
+  const v = parseFloat({ gora: s.paddingTop, dol: s.paddingBottom, lewo: s.paddingLeft, prawo: s.paddingRight }[bok]);
+  return Number.isFinite(v) ? v : 0;
+}
+
+// Na telefonie lista wyboru (i inne okienka kontrolek) wysuwa się od dołu jak zasłonka – na całą
+// szerokość, nad paskiem systemowym. Zwykłe okienko pod małym przyciskiem bywało za wąskie i zasłaniane.
+const naTelefonie = () => document.documentElement.dataset.urzadzenie === 'telefon';
+
+function ustawJakZaslonke(okienko) {
+  const okno = { w: window.innerWidth, h: window.visualViewport?.height || window.innerHeight };
+  okienko.classList.add('okienko-zaslonka');
+  okienko.style.minWidth = '';
+  okienko.style.width = `${okno.w}px`;
+  okienko.style.maxHeight = `${Math.round(Math.min(okno.h * 0.7, okno.h - 48 - marginesEkranu('gora')))}px`;
+  postaw(okienko, okno.h - okienko.offsetHeight, 0);
+}
+
 // Ustawia okienko pod przyciskiem (albo nad nim, gdy na dole brakuje miejsca).
-function ustawPod(okienko, przycisk, { szerokoscJakPrzycisk = false } = {}) {
+function ustawPod(okienko, przycisk, { szerokoscJakPrzycisk = false, zaslonka = false } = {}) {
+  if (zaslonka && naTelefonie()) { ustawJakZaslonke(okienko); return; }
   const r = przycisk.getBoundingClientRect();
-  const okno = { w: window.innerWidth, h: window.innerHeight };
-  if (szerokoscJakPrzycisk) okienko.style.minWidth = `${Math.round(r.width)}px`;
+  const okno = { w: window.innerWidth, h: window.visualViewport?.height || window.innerHeight };
+  const lewyBrzeg = 8 + marginesEkranu('lewo');
+  const prawyBrzeg = 8 + marginesEkranu('prawo');
+  if (szerokoscJakPrzycisk) okienko.style.minWidth = `${Math.round(Math.min(r.width, okno.w - lewyBrzeg - prawyBrzeg))}px`;
+  okienko.style.maxWidth = `${Math.round(okno.w - lewyBrzeg - prawyBrzeg)}px`;
   okienko.style.maxHeight = '';
   const wys = okienko.offsetHeight;
   const szer = okienko.offsetWidth;
-  const miejsceNizej = okno.h - r.bottom - 8;
-  const miejsceWyzej = r.top - 8;
+  const miejsceNizej = okno.h - r.bottom - 8 - marginesEkranu('dol');
+  const miejsceWyzej = r.top - 8 - marginesEkranu('gora');
   const nizej = wys <= miejsceNizej || miejsceNizej >= miejsceWyzej;
   const dostepne = Math.max(120, nizej ? miejsceNizej : miejsceWyzej);
   okienko.style.maxHeight = `${Math.round(dostepne)}px`;
   const h = Math.min(wys, dostepne);
-  okienko.style.top = `${Math.round(nizej ? r.bottom + 4 : r.top - h - 4)}px`;
-  okienko.style.left = `${Math.round(Math.max(8, Math.min(r.left, okno.w - szer - 8)))}px`;
+  postaw(okienko, nizej ? r.bottom + 4 : r.top - h - 4, Math.max(lewyBrzeg, Math.min(r.left, okno.w - szer - prawyBrzeg)));
 }
 
 function otworzOkienko(okienko, przycisk, opcje = {}) {
@@ -51,7 +97,11 @@ function otworzOkienko(okienko, przycisk, opcje = {}) {
 document.addEventListener('pointerdown', (e) => {
   if (otwarte && !otwarte.okienko.contains(e.target) && !otwarte.przycisk.contains(e.target)) zamknijOkienko();
 }, true);
-window.addEventListener('resize', zamknijOkienko);
+// Na telefonie „resize” przychodzi też przy chowaniu paska adresu – zamykamy tylko przy zmianie szerokości.
+let szerokoscOkna = window.innerWidth;
+window.addEventListener('resize', () => {
+  if (window.innerWidth !== szerokoscOkna) { szerokoscOkna = window.innerWidth; zamknijOkienko(); }
+});
 document.addEventListener('scroll', (e) => { if (otwarte && !otwarte.okienko.contains(e.target)) zamknijOkienko(); }, true);
 document.addEventListener('close', zamknijOkienko, true); // zamknięcie okna dialogowego
 
@@ -186,7 +236,7 @@ function ulepszSelect(sel) {
       }
     });
     przycisk.setAttribute('aria-expanded', 'true');
-    otworzOkienko(lista, przycisk, { szerokoscJakPrzycisk: true, poZamknieciu: () => przycisk.setAttribute('aria-expanded', 'false') });
+    otworzOkienko(lista, przycisk, { szerokoscJakPrzycisk: true, zaslonka: true, poZamknieciu: () => przycisk.setAttribute('aria-expanded', 'false') });
     zaznacz(aktywna);
     lista.focus({ preventScroll: true });
   };
@@ -336,7 +386,7 @@ function ulepszKolor(input) {
     const ostatnie = ostatnieKolory();
     if (ostatnie.length) { const el = okienko.querySelector('.kolor-paleta.ostatnie'); el.hidden = false; paleta(el, ostatnie); }
     okienko.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); zamknijOkienko(); przycisk.focus(); } });
-    otworzOkienko(okienko, przycisk, {
+    otworzOkienko(okienko, przycisk, { zaslonka: true,
       poZamknieciu: () => {
         if (!zmieniono) return;
         zapamietajKolor(wartoscInput.get.call(input));
@@ -459,7 +509,7 @@ function ulepszDate(input) {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); zamknijOkienko(); przycisk.focus(); }
     });
     rysuj();
-    otworzOkienko(okienko, przycisk, { poZamknieciu: () => przycisk.setAttribute('aria-expanded', 'false') });
+    otworzOkienko(okienko, przycisk, { zaslonka: true, poZamknieciu: () => przycisk.setAttribute('aria-expanded', 'false') });
     przycisk.setAttribute('aria-expanded', 'true');
     siatka.focus();
   };

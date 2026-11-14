@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f4f3ef">
   <meta name="description" content="Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -60,7 +60,10 @@
     </section>
 
     <section class="logowanie-forma">
-      <button class="przycisk-ikona przelacz-motyw" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
+      <div class="logowanie-akcje">
+        <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
+        <button class="przycisk-ikona przelacz-motyw" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
+      </div>
       <div class="karta-logowania" id="karta-logowania">
         <div class="marka marka-mobilna"><span class="znak-logo">M</span> Makietka</div>
 
@@ -365,6 +368,7 @@
       <div class="odstep"></div>
       <button class="przycisk przezroczysty przycisk-zaproszen" id="przycisk-zaproszenia" data-akcja="zaproszenia" data-ikona="koperta" hidden><span class="etyk">Zaproszenia</span><span class="licznik" id="liczba-zaproszen">0</span></button>
       <button class="przycisk przezroczysty" data-akcja="instrukcja" data-ikona="ksiazka"><span class="etyk">Instrukcja</span></button>
+      <button class="przycisk przezroczysty" data-akcja="zainstaluj" data-ikona="pobierz" title="Zainstaluj aplikację na tym urządzeniu" hidden><span class="etyk">Zainstaluj</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="menu-uzytkownika">
@@ -372,6 +376,7 @@
         <div class="menu" id="menu-uzytkownika" role="menu" hidden>
           <div class="menu-naglowek"><strong id="nazwa-uzytkownika"></strong><span id="email-uzytkownika"></span></div>
           <button role="menuitem" data-akcja="ustawienia-konta" id="pozycja-konto" data-ikona="suwaki">Ustawienia konta</button>
+          <button role="menuitem" data-akcja="zainstaluj" data-ikona="pobierz" hidden>Zainstaluj aplikację</button>
           <button role="menuitem" data-akcja="wyloguj" data-ikona="wyloguj">Wyloguj</button>
         </div>
       </div>
@@ -403,6 +408,18 @@
           <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij">Importuj z pliku</button>
         </div>
       </section>
+
+      <aside class="zacheta-instalacji" id="zacheta-instalacji" hidden>
+        <span class="zacheta-ikona" aria-hidden="true"><span class="znak-logo">M</span></span>
+        <div class="zacheta-tresc">
+          <strong>Zainstaluj Makietkę</strong>
+          <span class="ciche">Otwieraj ją z ekranu początkowego jak zwykłą aplikację – na całym ekranie, bez paska przeglądarki.</span>
+        </div>
+        <div class="zacheta-przyciski">
+          <button type="button" class="przycisk" data-akcja="zainstaluj-pozniej">Nie teraz</button>
+          <button type="button" class="przycisk glowny" data-akcja="zainstaluj" data-ikona="pobierz">Zainstaluj</button>
+        </div>
+      </aside>
 
       <div class="filtry-projektow" id="filtry-projektow" role="group" aria-label="Pokaż projekty" hidden>
         <button type="button" class="filtr" data-filtr="wszystkie" aria-pressed="true">Wszystkie</button>
@@ -1091,6 +1108,21 @@
         <button type="button" class="przycisk" id="konflikt-wszystko-konto">Wszędzie wersja z konta</button>
         <span class="odstep"></span>
         <button class="przycisk glowny" value="ok" id="konflikt-zastosuj">Zastosuj</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-instalacja-ios" aria-labelledby="instalacja-ios-tytul">
+    <form method="dialog" class="formularz">
+      <h2 id="instalacja-ios-tytul">Zainstaluj Makietkę</h2>
+      <p class="ciche">Na iPhonie i iPadzie aplikację dodaje się z menu Safari – potem otwiera się ją z ekranu początkowego, na całym ekranie.</p>
+      <ol class="kroki-instalacji">
+        <li><span class="krok-ikona" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></span><span>Stuknij <b>Udostępnij</b> na pasku Safari (na dole na iPhonie, u góry na iPadzie).</span></li>
+        <li><span class="krok-ikona" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span><span>Wybierz <b>Do ekranu początkowego</b> (przewiń listę w dół, jeśli go nie widać).</span></li>
+        <li><span class="krok-ikona" aria-hidden="true"><span class="znak-logo">M</span></span><span>Stuknij <b>Dodaj</b> – ikona Makietki pojawi się na ekranie początkowym.</span></li>
+      </ol>
+      <div class="przyciski-dialogu">
+        <button class="przycisk glowny" value="ok">Rozumiem</button>
       </div>
     </form>
   </dialog>

@@ -15,6 +15,7 @@ import { wlaczWlasneKontrolki } from './kontrolki.js';
 import { wlaczDymki } from './dymki.js';
 import { wlaczZaslonki } from './zaslonki.js';
 import { wlaczPodpowiedzi } from './podpowiedzi.js';
+import { wlaczInstalacje, zainstaluj, odlozInstalacje, iOS, zainstalowana } from './instalacja.js';
 import { zaladujCzcionki } from './czcionki.js';
 import { stan, trasa, ustawPanel, pokazEkran, edytor } from './app/kontekst.js';
 import {
@@ -43,7 +44,9 @@ document.addEventListener('motyw', async (e) => {
 
 // ---------- Pełny ekran ----------
 // Cała aplikacja bez pasków przeglądarki. Przycisk pokazuje się tylko tam, gdzie przeglądarka
-// na to pozwala (iPhone nie pozwala stronie – pełny ekran daje tam zainstalowanie aplikacji).
+// na to pozwala: nie na iPhonie i iPadzie (tam pełny ekran daje zainstalowanie aplikacji – #99) i nie
+// w aplikacji zainstalowanej (ona już nie ma pasków). Także na ekranie logowania – inaczej po wylogowaniu
+// w trybie pełnoekranowym na Androidzie nie było jak z niego wyjść.
 function przelaczPelnyEkran() {
   zamknijMenu();
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -52,7 +55,7 @@ function przelaczPelnyEkran() {
 function odswiezPelnyEkran() {
   const wlaczony = Boolean(document.fullscreenElement);
   document.querySelectorAll('[data-akcja="pelny-ekran"]').forEach((b) => {
-    b.hidden = !document.fullscreenEnabled;
+    b.hidden = !document.fullscreenEnabled || iOS() || (zainstalowana() && !document.fullscreenElement);
     b.setAttribute('aria-pressed', String(wlaczony));
     b.title = wlaczony ? 'Zamknij pełny ekran (Esc)' : 'Pełny ekran';
     if (b.getAttribute('role') === 'menuitem') b.lastChild.textContent = wlaczony ? 'Zamknij pełny ekran' : 'Pełny ekran';
@@ -84,6 +87,8 @@ const akcje = {
   'do-projektow': doProjektow,
   motyw: () => { zamknijMenu(); przelaczMotyw(); },
   'pelny-ekran': () => przelaczPelnyEkran(),
+  zainstaluj: () => { zamknijMenu(); zainstaluj(); },
+  'zainstaluj-pozniej': () => odlozInstalacje(),
   // Współpraca między kontami (js/app/wspolpraca.js).
   wspolpraca: () => { zamknijMenu(); otworzWspolprace(stan.projekt); },
   'wspolpraca-zamknij': () => zamknijWspolprace(),
@@ -270,6 +275,7 @@ wlaczDymki();
 // Okna dialogowe na telefonie i tablecie wyjeżdżają od dołu jako zasłonki z uchwytem (js/zaslonki.js).
 wlaczZaslonki();
 wlaczPodpowiedzi();
+wlaczInstalacje();
 
 start().catch((e) => {
   console.error(e);

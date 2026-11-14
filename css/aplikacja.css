@@ -444,7 +444,7 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .karta-projektu .opis strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .karta-projektu .opis small { color: var(--cichy); font-size: 12.5px; }
 .karta-projektu { position: relative; }
-.plakietka-linku { position: absolute; left: 10px; top: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--linia-mocna); border-radius: 999px; background: var(--powierzchnia); color: var(--tekst); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.plakietka-linku { display: inline-flex; max-width: 100%; min-width: 0; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--linia-mocna); border-radius: 999px; background: var(--powierzchnia); color: var(--tekst); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .plakietka-linku:hover { border-color: var(--akcent); color: var(--akcent); }
 .karta-projektu .menu-karty { position: absolute; top: 8px; right: 8px; background: var(--szklo); --dotyk: 34px; }
 .karta-projektu .menu { top: 46px; right: 8px; min-width: 200px; }
@@ -869,8 +869,8 @@ dialog h2 { font-size: 19px; }
 /* ---------- Powiadomienie ---------- */
 
 .powiadomienie {
-  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100;
-  max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: var(--r-m);
+  position: fixed; left: 50%; bottom: calc(24px + var(--bezp-dol)); transform: translateX(-50%); z-index: 100;
+  max-width: calc(100vw - 32px - var(--bezp-lewo) - var(--bezp-prawo)); padding: 10px 16px; border-radius: var(--r-m);
   background: var(--tusz); color: var(--powierzchnia); box-shadow: var(--cien-3); font-size: 13.5px;
 }
 .powiadomienie.blad { background: var(--blad); color: var(--akcent-tekst); }
@@ -880,7 +880,7 @@ dialog h2 { font-size: 19px; }
 /* ---------- Postęp dłuższych czynności (js/postep.js) ---------- */
 
 .postepy {
-  position: fixed; top: calc(var(--pasek) + 10px); left: 50%; transform: translateX(-50%); z-index: 110;
+  position: fixed; top: calc(var(--pasek) + 10px + var(--bezp-gora)); left: 50%; transform: translateX(-50%); z-index: 110;
   display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 16px)); pointer-events: none;
 }
 dialog > .postepy { position: fixed; }
@@ -953,11 +953,11 @@ dialog > .postepy { position: fixed; }
      i staje się niewidoczny – nic nie wystaje spod dolnego menu. */
   .panel {
     position: fixed; left: 0; right: 0; z-index: 20;
-    bottom: calc(60px + env(safe-area-inset-bottom));
+    bottom: calc(60px + var(--bezp-dol));
     max-height: 62vh; max-height: 62svh;
     border: 0 !important; border-radius: 18px 18px 0 0;
     box-shadow: 0 -6px 24px rgba(28, 27, 25, .18);
-    transform: translateY(calc(100% + 100px + env(safe-area-inset-bottom)));
+    transform: translateY(calc(100% + 100px + var(--bezp-dol)));
     visibility: hidden;
     transition: transform .2s ease-out, height .2s ease-out, visibility 0s linear .2s;
     will-change: transform; contain: layout paint;
@@ -983,7 +983,7 @@ dialog > .postepy { position: fixed; }
   .panel-inspektor > .wlasciwosci, .panel-inspektor > .sekcja-ostrzezen { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   body[data-panel="inspektor"] .panel-inspektor,
   body[data-panel="ostrzezenia"] .panel-inspektor { height: 45vh; height: 45svh; max-height: none; }
-  body[data-arkusz="pelny"] .panel-inspektor { height: calc(100vh - 124px); height: calc(100svh - 124px - env(safe-area-inset-bottom)); }
+  body[data-arkusz="pelny"] .panel-inspektor { height: calc(100vh - 124px); height: calc(100svh - 124px - var(--bezp-dol)); }
   #naglowek-wlasciwosci { min-height: 44px; padding-top: 4px; padding-bottom: 4px; }
   body[data-panel="ostrzezenia"] .wlasciwosci,
   body[data-panel="ostrzezenia"] .lista-warstw,
@@ -1041,7 +1041,7 @@ dialog > .postepy { position: fixed; }
   .arkusz { padding: 72px 20px 72px; }
   .zakladki-mobilne {
     display: flex; gap: 4px; flex: none;
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    padding: 6px 8px calc(6px + var(--bezp-dol));
     background: var(--powierzchnia); border-top: 1px solid var(--linia); z-index: 21;
   }
   .zakladki-mobilne button {
@@ -1058,7 +1058,7 @@ dialog > .postepy { position: fixed; }
   .instrukcja-spis ol { flex-direction: row; overflow-x: auto; }
   .instrukcja-spis button { white-space: nowrap; }
   .instrukcja-tresc { padding: 20px 18px; }
-  .instrukcja-stopka { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
+  .instrukcja-stopka { padding: 10px 14px calc(10px + var(--bezp-dol)); }
   .projekty-naglowek { align-items: center; }
   .projekty-naglowek h1 { font-size: 22px; }
   .siatka-projektow { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
@@ -1354,7 +1354,7 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
    Telefon trzymany poziomo i każde zbyt niskie okno (pasek adresu i klawiatura zabierają resztę
    wysokości) pokazują planszę z prośbą o obrót albo powiększenie okna.
    Lista projektów, logowanie i udostępniony podgląd działają w obu ułożeniach. */
-.blokada-ekranu { display: none; position: fixed; inset: 0; z-index: 900; place-content: safe center; overflow-y: auto; justify-items: center; gap: 14px; padding: 24px; text-align: center; background: var(--tlo, var(--powierzchnia)); color: var(--tusz); }
+.blokada-ekranu { display: none; position: fixed; inset: 0; z-index: 900; place-content: safe center; overflow-y: auto; justify-items: center; gap: 14px; padding: calc(24px + var(--bezp-gora)) calc(24px + var(--bezp-prawo)) calc(24px + var(--bezp-dol)) calc(24px + var(--bezp-lewo)); text-align: center; background: var(--tlo, var(--powierzchnia)); color: var(--tusz); }
 .blokada-ekranu svg { width: 56px; height: 56px; color: var(--akcent); }
 .blokada-ekranu h2 { font-size: 20px; }
 .blokada-ekranu p { max-width: 30ch; color: var(--tusz-2); line-height: 1.5; }
@@ -1556,10 +1556,10 @@ dialog:focus { outline: none; }
 :root[data-zaslonka] dialog > :focus-visible:not(button) { outline: none; }
 :root[data-zaslonka] dialog {
   position: fixed; inset: auto 0 var(--klawiatura, 0px) 0; margin: 0 auto;
-  width: 100%; max-width: none; max-height: calc(var(--widok-h, 100dvh) - 10px);
+  width: 100%; max-width: none; max-height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora));
   border-radius: var(--r-l) var(--r-l) 0 0;
   box-shadow: 0 -10px 36px rgba(0, 0, 0, .22);
-  padding: 0 0 env(safe-area-inset-bottom);
+  padding: 0 var(--bezp-prawo) var(--bezp-dol) var(--bezp-lewo);
   overflow: hidden; overflow: clip;
   transform: translateY(var(--zaslonka-ciag, 0px));
 }
@@ -1585,7 +1585,7 @@ dialog:focus { outline: none; }
   background: var(--powierzchnia); border-top: 1px solid var(--linia);
 }
 /* Duże okna (Dane, Instrukcja, Obrazy): stała wysokość prawie na cały ekran. */
-:root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja, .dialog-obrazy) { height: calc(var(--widok-h, 100dvh) - 10px); }
+:root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja, .dialog-obrazy) { height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora)); }
 :root[data-zaslonka] .dialog-dane .dane-lista, :root[data-zaslonka] .dialog-instrukcja .instrukcja-spis { padding-right: 14px; }
 :root[data-zaslonka] .dane-pasek { padding-right: 0; }
 /* Tablet: zasłonka szeroka, ale nie na całą szerokość, z bocznymi krawędziami. */
@@ -1696,7 +1696,7 @@ dialog:focus { outline: none; }
 
 /* Komunikat na dole ekranu w edytorze na telefonie stoi nad dolnym menu paneli, a nie na nim. */
 @media (max-width: 860px) {
-  body[data-ekran="edytor"] .powiadomienie { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  body[data-ekran="edytor"] .powiadomienie { bottom: calc(76px + var(--bezp-dol)); }
 }
 
 /* Menu „Siatka, przyciąganie, linijki” otwiera się w górę od przycisku na dole ekranu: w niskim oknie
@@ -1736,7 +1736,7 @@ dialog:focus { outline: none; }
    wychodziło poza dół ekranu, łamane na dwie linie); pasek omija dolny pasek systemu. */
 .prezentacja-zamknij { flex: none; white-space: nowrap; }
 @media (max-width: 600px) {
-  .prezentacja-pasek { height: auto; min-height: 56px; padding-bottom: env(safe-area-inset-bottom); }
+  .prezentacja-pasek { height: auto; min-height: 56px; padding-bottom: var(--bezp-dol); }
   .prezentacja-zoom { gap: 2px; }
   .prezentacja-zoom .prezentacja-wartosc { min-width: 48px; }
   :root[data-dotyk] .prezentacja-zamknij { min-height: 44px; }
@@ -1768,8 +1768,7 @@ body.tylko-ogladanie .tylko-ogladajacy { display: inline-flex !important; }
 :root[data-dotyk] .filtry-projektow .filtr { min-height: 40px; }
 .przycisk-zaproszen .licznik { background: var(--akcent); color: var(--akcent-tekst); margin-left: 2px; }
 
-.plakietka-wspolpracy { max-width: calc(100% - 64px); }
-.plakietka-wspolpracy span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 
 fieldset.bez-ramki { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 fieldset.bez-ramki > legend { padding: 0; margin-bottom: 2px; }
@@ -1889,3 +1888,76 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 :root[data-urzadzenie="telefon"] .podpowiedz-zwijana:not(.rozwinieta) {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden; cursor: pointer;
 }
+
+/* ---------- Plakietki na karcie projektu (#99) ----------
+   „Udostępniony” i „od …” stoją razem w lewym górnym rogu, w kolumnie, i nigdy nie wchodzą pod ⋯ (prawy róg). */
+.plakietki-karty {
+  position: absolute; z-index: 1; top: 8px; left: 8px; right: 52px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none;
+}
+.plakietki-karty .plakietka-linku { pointer-events: auto; }
+.plakietka-linku span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plakietka-linku svg { flex: none; }
+:root[data-dotyk] .plakietki-karty { right: 56px; }
+:root[data-dotyk] .plakietka-linku { min-height: 32px; }
+
+/* ---------- Bezpieczne marginesy ekranu: wycięcia, zaokrąglone rogi, pasek systemowy (#99) ----------
+   Wzorem silnika stylów Familiady: viewport-fit=cover i jedne zmienne dla całej aplikacji. Testy podstawiają
+   tu liczby (Chromium bez wycięć ma env() = 0). */
+:root {
+  --bezp-gora: env(safe-area-inset-top, 0px);
+  --bezp-dol: env(safe-area-inset-bottom, 0px);
+  --bezp-lewo: env(safe-area-inset-left, 0px);
+  --bezp-prawo: env(safe-area-inset-right, 0px);
+}
+/* Boki (telefon poziomo): treść ekranów nie wchodzi pod wycięcie; tło paska sięga krawędzi. */
+.ekran { padding-left: var(--bezp-lewo); padding-right: var(--bezp-prawo); }
+.ekran > .pasek-aplikacji {
+  margin-left: calc(-1 * var(--bezp-lewo)); margin-right: calc(-1 * var(--bezp-prawo));
+  padding-left: calc(16px + var(--bezp-lewo)); padding-right: calc(12px + var(--bezp-prawo));
+}
+/* Góra: pasek aplikacji wyższy o wycięcie, przyciski pod nim. */
+.pasek-aplikacji { height: calc(var(--pasek) + var(--bezp-gora)); padding-top: var(--bezp-gora); }
+/* Ekrany bez paska u góry. */
+#ekran-logowania, #ekran-start { padding-top: var(--bezp-gora); padding-bottom: var(--bezp-dol); }
+.logowanie-akcje {
+  position: absolute; z-index: 2; top: calc(12px + var(--bezp-gora)); right: calc(12px + var(--bezp-prawo));
+  display: flex; gap: 4px;
+}
+.logowanie-forma .logowanie-akcje .przelacz-motyw { position: static; }
+/* Okna i zasłonki: przyciski nad paskiem systemowym, boki z dala od wycięcia. */
+dialog { max-height: calc(100dvh - var(--bezp-gora) - var(--bezp-dol) - 16px); }
+
+/* ---------- Lista wyboru, kolor i data na telefonie: zasłonka od dołu (js/kontrolki.js, #99) ---------- */
+.okienko-zaslonka {
+  max-width: none !important; border-radius: 16px 16px 0 0 !important; border-bottom: 0 !important;
+  padding-bottom: calc(8px + var(--bezp-dol)) !important;
+  padding-left: calc(8px + var(--bezp-lewo)); padding-right: calc(8px + var(--bezp-prawo));
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, .22) !important;
+  animation: okienkoZaslonka .18s ease-out;
+}
+.okienko-zaslonka.wybor-lista .wybor-opcja { padding: 12px 14px; font-size: 15px; white-space: normal; }
+@keyframes okienkoZaslonka { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .okienko-zaslonka { animation: none; } }
+
+/* ---------- Instalacja aplikacji (js/instalacja.js, #99) ---------- */
+.zacheta-instalacji {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 0 0 16px; padding: 14px 16px;
+  border: 1px solid var(--akcent-tlo); border-radius: var(--r-l, 12px);
+  background: linear-gradient(135deg, var(--akcent-tlo), var(--powierzchnia)); color: var(--tusz);
+}
+.zacheta-instalacji[hidden] { display: none; }
+.zacheta-ikona .znak-logo { width: 40px; height: 40px; font-size: 20px; border-radius: 10px; }
+.zacheta-tresc { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.zacheta-tresc .ciche { font-size: 13px; line-height: 1.4; }
+.zacheta-przyciski { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+@media (max-width: 600px) { .zacheta-przyciski { width: 100%; } .zacheta-przyciski .przycisk { flex: 1 1 0; justify-content: center; } }
+.kroki-instalacji { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; counter-reset: krok; }
+.kroki-instalacji li { display: flex; align-items: center; gap: 12px; line-height: 1.45; }
+.krok-ikona {
+  flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--wypelnienie); color: var(--akcent);
+}
+.krok-ikona .znak-logo { width: 30px; height: 30px; font-size: 16px; border-radius: 8px; }
+/* Prezentacja na całym ekranie: przyciski i strona z dala od wycięć (dół – pasek prezentacji). */
+.prezentacja { padding: var(--bezp-gora) var(--bezp-prawo) 0 var(--bezp-lewo); }
