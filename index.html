@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#f4f3ef">
   <meta name="description" content="Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Seriodruk">
+  <meta name="apple-mobile-web-app-title" content="Makietka">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>Seriodruk</title>
+  <title>Makietka</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="img/ikony/ikona.svg" type="image/svg+xml">
   <link rel="icon" href="img/ikony/favicon-32.png" sizes="32x32" type="image/png">
@@ -42,14 +42,14 @@
 
   <!-- ===================== Start (ładowanie) ===================== -->
   <div class="ekran ekran-start" id="ekran-start">
-    <div class="logo-duze"><span class="znak-logo">S</span></div>
+    <div class="logo-duze"><span class="znak-logo">M</span></div>
     <p class="ciche">Wczytywanie…</p>
   </div>
 
   <!-- ===================== Logowanie ===================== -->
   <main class="ekran ekran-logowania" id="ekran-logowania">
     <section class="logowanie-bok" aria-hidden="true">
-      <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
+      <div class="marka"><span class="znak-logo">M</span> Makietka</div>
       <h1>Strony z danych,<br>gotowe do druku.</h1>
       <p>Edytor kalendarzy, planerów i notesów: sekcje, rozkładówki, wzorce stron i style tekstu w jednym miejscu.</p>
       <div class="podglad-stron">
@@ -62,7 +62,7 @@
     <section class="logowanie-forma">
       <button class="przycisk-ikona przelacz-motyw" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="karta-logowania" id="karta-logowania">
-        <div class="marka marka-mobilna"><span class="znak-logo">S</span> Seriodruk</div>
+        <div class="marka marka-mobilna"><span class="znak-logo">M</span> Makietka</div>
 
       <div id="widok-formularz">
         <div class="przelacznik-segmentowy zakladki-logowania" id="tryb-logowania" role="radiogroup" aria-label="Logowanie albo rejestracja">
@@ -120,7 +120,7 @@
         <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase. Aplikacja działa tylko z kontem, więc bez tej konfiguracji nie da się z niej korzystać.</p>
       </div>
       </div>
-      <footer class="stopka-logowania">Seriodruk · edytor kalendarzy, planerów i notesów</footer>
+      <footer class="stopka-logowania">Makietka · edytor kalendarzy, planerów i notesów</footer>
     </section>
   </main>
 
@@ -138,6 +138,7 @@
           <a href="#" data-do="ust-logowanie" data-ikona="klodka">Logowanie</a>
           <a href="#" data-do="ust-wyglad" data-ikona="motyw">Wygląd</a>
           <a href="#" data-do="ust-urzadzenia" data-ikona="wyloguj">Urządzenia</a>
+          <a href="#" data-do="ust-miejsce" data-ikona="chmura">Miejsce</a>
           <a href="#" data-do="ust-usun" class="niebezpieczny" data-ikona="kosz">Usuwanie konta</a>
         </nav>
 
@@ -261,6 +262,37 @@
             </div>
           </section>
 
+          <section class="grupa-ustawien" id="ust-miejsce">
+            <h2>Miejsce</h2>
+            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Aplikacja ma wspólny limit miejsca na pliki wszystkich osób – tu widać, ile go zostało.</p>
+            <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="miejsce-aplikacji" id="miejsce-aplikacji" aria-live="polite">
+                  <div class="miejsce-naglowek"><strong>Cała aplikacja</strong><span id="miejsce-razem">Sprawdzam…</span></div>
+                  <div class="miejsce-pasek" role="progressbar" aria-label="Zajęte miejsce na pliki" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="miejsce-pasek-moje" class="moje"></span><span id="miejsce-pasek-inne" class="inne"></span></div>
+                  <p class="miejsce-legenda"><span class="kropka moje"></span><span id="miejsce-moje-opis">Twoje pliki</span> <span class="kropka inne"></span><span>pliki innych osób</span></p>
+                  <p class="ciche" id="miejsce-baza"></p>
+                  <p class="miejsce-ostrzezenie" id="miejsce-ostrzezenie" role="alert" hidden></p>
+                </div>
+              </div>
+              <div class="wiersz-ustawien">
+                <dl class="liczby-konta" id="miejsce-szczegoly">
+                  <div><dt>Obrazy</dt><dd id="miejsce-obrazy">—</dd></div>
+                  <div><dt>Czcionki</dt><dd id="miejsce-czcionki">—</dd></div>
+                  <div><dt>Podglądy linków</dt><dd id="miejsce-podglady">—</dd></div>
+                  <div><dt>Obrazy od AI w drodze</dt><dd id="miejsce-od-ai">—</dd></div>
+                </dl>
+              </div>
+              <div class="wiersz-ustawien">
+                <div class="wiersz-glowny">
+                  <div class="wiersz-opis"><strong>Sprzątanie</strong><span id="miejsce-sprzatanie-opis">Usuwa pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Aplikacja robi to też sama raz na dobę.</span></div>
+                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="miejsce-posprzataj">Posprzątaj…</button></div>
+                </div>
+                <p class="komunikat" id="miejsce-komunikat" role="status"></p>
+              </div>
+            </div>
+          </section>
+
           <section class="grupa-ustawien niebezpieczna" id="ust-usun">
             <h2>Usuwanie konta</h2>
             <p class="ciche">Usuwa konto razem ze wszystkimi projektami i obrazami. Tego nie da się cofnąć – jeśli chcesz zachować projekty, najpierw wyeksportuj je do plików.</p>
@@ -291,8 +323,9 @@
   <!-- ===================== Projekty ===================== -->
   <div class="ekran ekran-projektow" id="ekran-projektow">
     <header class="pasek-aplikacji">
-      <div class="marka"><span class="znak-logo">S</span> Seriodruk</div>
+      <div class="marka"><span class="znak-logo">M</span> Makietka</div>
       <div class="odstep"></div>
+      <button class="przycisk przezroczysty przycisk-zaproszen" id="przycisk-zaproszenia" data-akcja="zaproszenia" data-ikona="koperta" hidden><span class="etyk">Zaproszenia</span><span class="licznik" id="liczba-zaproszen">0</span></button>
       <button class="przycisk przezroczysty" data-akcja="instrukcja" data-ikona="ksiazka"><span class="etyk">Instrukcja</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
@@ -313,14 +346,14 @@
           <p class="ciche" id="podsumowanie-projektow"></p>
         </div>
         <div class="przyciski-naglowka">
-          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .seriodruk">Importuj</button>
+          <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij" title="Wczytaj projekt z pliku .makietka">Importuj</button>
           <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Nowy projekt</button>
         </div>
       </div>
 
       <section class="pusto-projekty" id="pusto-projekty" hidden>
         <h2>Zacznij od pierwszego projektu</h2>
-        <p class="ciche">Tak będzie wyglądać praca z Seriodruk:</p>
+        <p class="ciche">Tak będzie wyglądać praca z Makietką:</p>
         <ol class="kroki">
           <li><span class="numer-kroku">1</span><div><strong>Format</strong><p>Wybierz rozmiar strony, spad i marginesy – np. A5 do kalendarza książkowego.</p></div></li>
           <li><span class="numer-kroku">2</span><div><strong>Wzory stron</strong><p>Zaprojektuj każdą stronę osobno: teksty, kształty, zdjęcia.</p></div></li>
@@ -333,6 +366,11 @@
         </div>
       </section>
 
+      <div class="filtry-projektow" id="filtry-projektow" role="group" aria-label="Pokaż projekty" hidden>
+        <button type="button" class="filtr" data-filtr="wszystkie" aria-pressed="true">Wszystkie</button>
+        <button type="button" class="filtr" data-filtr="moje" aria-pressed="false">Moje</button>
+        <button type="button" class="filtr" data-filtr="udostepnione" aria-pressed="false">Udostępnione mi</button>
+      </div>
       <ul class="siatka-projektow" id="siatka-projektow"></ul>
     </main>
   </div>
@@ -345,6 +383,7 @@
       <input id="nazwa-projektu" class="nazwa-projektu" aria-label="Nazwa projektu" spellcheck="false">
       <span class="stan-zapisu" id="stan-zapisu" role="status" aria-live="polite"></span>
       <div class="odstep"></div>
+      <div class="obecnosc" id="obecnosc" role="group" aria-label="Kto jeszcze jest w projekcie" hidden></div>
       <div class="grupa-przyciskow" id="grupa-historia">
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
@@ -366,7 +405,8 @@
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
-          <button role="menuitem" data-akcja="dostep-ai" data-ikona="link">Dostęp dla AI…</button>
+          <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik">Współpraca…</button>
+          <button role="menuitem" class="tylko-wlasciciel-projektu" data-akcja="dostep-ai" data-ikona="link">Dostęp dla AI…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
           <button role="menuitem" class="tylko-waski-pasek" data-akcja="pelny-ekran" data-ikona="pelny-ekran" hidden>Pełny ekran</button>
         </div>
@@ -482,13 +522,15 @@
   <div class="ekran ekran-podgladu" id="ekran-podgladu">
     <header class="pasek-aplikacji pasek-podgladu">
       <button class="przycisk przezroczysty tylko-wlasciciel" data-akcja="podglad-zamknij" data-ikona="wstecz" title="Wróć do edycji"><span>Edytor</span></button>
-      <a class="marka tylko-gosc" href="./" title="Seriodruk"><span class="znak-logo">S</span><span class="etyk">Seriodruk</span></a>
+      <button class="przycisk przezroczysty tylko-ogladajacy" data-akcja="do-projektow" data-ikona="wstecz" title="Wróć do listy projektów"><span>Projekty</span></button>
+      <a class="marka tylko-gosc" href="./" title="Makietka"><span class="znak-logo">M</span><span class="etyk">Makietka</span></a>
       <div class="separator"></div>
       <h1 class="tytul-ekranu" id="podglad-tytul"></h1>
       <span class="ciche podglad-opis" id="podglad-opis"></span>
       <div class="odstep"></div>
+      <div class="obecnosc" role="group" aria-label="Kto jeszcze jest w projekcie" hidden></div>
       <button class="przycisk" data-akcja="podglad-prezentacja" data-ikona="dopasuj" title="Jedna strona albo rozkładówka naraz, na całym ekranie"><span class="etyk">Prezentacja</span></button>
-      <button class="przycisk tylko-wlasciciel" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
+      <button class="przycisk tylko-wlasciciel tylko-wlasciciel-projektu" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona tylko-gosc" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
       <div class="grupa-przyciskow">
@@ -811,11 +853,11 @@
           </span>
         </label>
         <ol class="dostep-ai-kroki">
-          <li><b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <i>Dostosuj</i> (Customize) → <i>Łączniki</i> (Connectors) → <b>+</b> → <i>Dodaj własny łącznik</i> (Add custom connector). Nazwa: Seriodruk, adres: wklej powyższy, logowanie: <i>bez logowania</i> (No sign-in).</li>
+          <li><b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <i>Dostosuj</i> (Customize) → <i>Łączniki</i> (Connectors) → <b>+</b> → <i>Dodaj własny łącznik</i> (Add custom connector). Nazwa: Makietka, adres: wklej powyższy, logowanie: <i>bez logowania</i> (No sign-in).</li>
           <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>. Wklej adres, uwierzytelnianie: <i>No Authentication</i>, potwierdź. Jeśli tej opcji nie ma, włącz tryb dewelopera: Ustawienia → Aplikacje → Zaawansowane.</li>
-          <li>W rozmowie włącz łącznik Seriodruk i napisz, co zmienić – np. „popraw literówki na okładce”. Zmiany AI zobaczysz w edytorze na żywo.</li>
+          <li>W rozmowie włącz łącznik Makietka i napisz, co zmienić – np. „popraw literówki na okładce”. Zmiany AI zobaczysz w edytorze na żywo.</li>
         </ol>
-        <p class="podpowiedz">AI nie łączy się z bazą samo i nie trzeba niczego odblokowywać ani instalować – łącznik działa po stronie Seriodruku.</p>
+        <p class="podpowiedz">AI nie łączy się z bazą samo i nie trzeba niczego odblokowywać ani instalować – łącznik działa po stronie Makietki.</p>
         <details class="dostep-ai-jak">
           <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
           <label class="pole"><span>Klucz dostępu</span>
@@ -826,7 +868,7 @@
           </label>
           <p class="podpowiedz">Claude Code (zdalny łącznik, nic do pobrania):</p>
           <pre id="dostep-ai-claude-code"></pre>
-          <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/seriodruk-mcp.mjs" download>seriodruk-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
+          <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/makietka-mcp.mjs" download="makietka-mcp.mjs">makietka-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
           <pre id="dostep-ai-claude-desktop"></pre>
           <p class="podpowiedz">Opis narzędzi i formatu projektu: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
         </details>
@@ -839,13 +881,82 @@
     </div>
   </dialog>
 
+  <dialog id="dlg-wspolpraca" class="dialog-szeroki">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Współpraca <span class="ciche" id="wspolpraca-projekt"></span></h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="wspolpraca-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche" id="wspolpraca-opis"></p>
+      <form class="grupa-pol" id="form-zaproszenia" novalidate>
+        <fieldset class="bez-ramki">
+          <legend>Zaproś osobę</legend>
+          <div class="rzad rzad-zaproszenia">
+            <label class="pole"><span>Adres e-mail</span><input type="email" id="wspolpraca-email" autocomplete="email" inputmode="email" maxlength="254" placeholder="np. ola@przyklad.pl" required></label>
+            <label class="pole"><span>Rola</span><select id="wspolpraca-rola"><option value="edycja">może edytować</option><option value="odczyt">może oglądać</option></select></label>
+          </div>
+          <div class="rzad-przyciskow"><button type="submit" class="przycisk glowny" id="wspolpraca-zapros" data-ikona="koperta">Zaproś</button></div>
+        </fieldset>
+      </form>
+      <fieldset class="grupa-pol" id="wspolpraca-gotowe" hidden>
+        <legend>Zaproszenie gotowe</legend>
+        <p class="podpowiedz" id="wspolpraca-gotowe-opis"></p>
+        <label class="pole"><span>Link do zaproszenia (ważny 14 dni, działa raz)</span>
+          <span class="z-przyciskiem">
+            <input id="wspolpraca-link" type="text" readonly>
+            <button type="button" class="przycisk-ikona" data-akcja="wspolpraca-kopiuj" data-ikona="kopiuj" title="Kopiuj link" aria-label="Kopiuj link do zaproszenia"></button>
+          </span>
+        </label>
+        <div class="rzad-przyciskow">
+          <a class="przycisk" id="wspolpraca-mail" data-ikona="koperta" href="#">Wyślij ze swojej poczty</a>
+          <button type="button" class="przycisk" id="wspolpraca-udostepnij" data-ikona="wyslij" hidden>Udostępnij…</button>
+        </div>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Osoby z dostępem</legend>
+        <ul class="lista-dostepow lista-osob" id="wspolpraca-osoby"></ul>
+      </fieldset>
+      <div class="przyciski-dialogu" id="wspolpraca-stopka" hidden>
+        <button type="button" class="przycisk niebezpieczny" data-akcja="wspolpraca-opusc" data-ikona="wyloguj">Opuść projekt</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-zaproszenia" class="dialog-szeroki">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Zaproszenia do projektów</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="zaproszenia-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Ktoś zaprosił Cię do swojego projektu. Po przyjęciu projekt pojawi się na Twojej liście – zmieniasz go razem z właścicielem albo tylko oglądasz, zależnie od roli.</p>
+      <ul class="lista-dostepow lista-osob" id="zaproszenia-lista"></ul>
+      <p class="podpowiedz" id="zaproszenia-pusto" hidden>Nie masz czekających zaproszeń.</p>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-zaproszenie">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2>Zaproszenie do projektu <span id="zaproszenie-tytul"></span></h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="zaproszenie-pozniej" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p id="zaproszenie-opis"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" id="zaproszenie-odrzuc">Odrzuć</button>
+        <span class="odstep"></span>
+        <button type="button" class="przycisk" data-akcja="zaproszenie-pozniej">Później</button>
+        <button type="button" class="przycisk glowny" id="zaproszenie-przyjmij" data-ikona="ok" autofocus>Przyjmij</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="dlg-czcionki" class="dialog-szeroki">
     <div class="formularz">
       <div class="naglowek-dialogu">
         <h2>Czcionki</h2>
         <button type="button" class="przycisk-ikona" id="czcionki-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Na co dzień korzystasz z oficjalnego zestawu czcionek aplikacji (na dole okna). Jeśli potrzebujesz innej, własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.seriodruk</code>. Raz wgrana czcionka zostaje też w „Moich czcionkach” i jest pod ręką w każdym następnym projekcie. Wgrywaj czcionki, których licencja pozwala na druk.</p>
+      <p class="ciche">Na co dzień korzystasz z oficjalnego zestawu czcionek aplikacji (na dole okna). Jeśli potrzebujesz innej, własne czcionki wgrywasz jako pliki TTF, OTF, WOFF albo WOFF2 – każda odmiana (zwykła, pogrubiona, kursywa) to osobny plik. Pliki są częścią projektu: jadą z nim na konto i do pliku <code>.makietka</code>. Raz wgrana czcionka zostaje też w „Moich czcionkach” i jest pod ręką w każdym następnym projekcie. Wgrywaj czcionki, których licencja pozwala na druk.</p>
       <fieldset class="grupa-pol">
         <legend>Własne czcionki projektu</legend>
         <ul class="lista-czcionek" id="czcionki-wlasne"></ul>
@@ -858,7 +969,7 @@
         <p class="podpowiedz" id="czcionki-moje-pusto">Tu pojawią się czcionki wgrane w innych projektach – dodasz je do tego projektu jednym kliknięciem, bez szukania pliku. Są też na liście czcionek w panelu tekstu.</p>
       </fieldset>
       <fieldset class="grupa-pol">
-        <legend>Zestaw czcionek Seriodruku</legend>
+        <legend>Zestaw czcionek Makietki</legend>
         <p class="podpowiedz">Oficjalny zestaw aplikacji – ten sam dla wszystkich projektów i wszystkich użytkowników. Te czcionki są na liście w każdym projekcie, trafiają do pliku PDF, a ich pliki można pobrać (np. dla drukarni albo grafika). Wszystkie na licencji SIL Open Font License – wolno ich używać w druku komercyjnym.</p>
         <ul class="lista-czcionek zestaw" id="czcionki-zestaw"></ul>
         <div class="rzad-przyciskow"><button type="button" class="przycisk" id="czcionki-pobierz-zestaw" data-ikona="pobierz">Pobierz cały zestaw (ZIP)</button></div>
@@ -1146,6 +1257,6 @@
   <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
   <input type="file" id="pliki-zasoby" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.zip,application/zip" multiple hidden>
   <input type="file" id="plik-podmiana" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
-  <input type="file" id="plik-projekt" accept=".seriodruk,.json,application/vnd.seriodruk+zip,application/zip,application/json" hidden>
+  <input type="file" id="plik-projekt" accept=".makietka,.json,application/vnd.seriodruk+zip,application/zip,application/json" hidden>
 </body>
 </html>

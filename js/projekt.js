@@ -385,6 +385,7 @@ export function kopiujProjekt(projekt, nazwa) {
   kopia.zmieniono = new Date().toISOString();
   delete kopia.wersja_chmury;
   delete kopia.podstawa_chmury;
+  delete kopia.wspolpraca_chmury; // kopia projektu współdzielonego jest już własna
   // Obrazy trzeba wysłać na konto jeszcze raz, pod nowym projektem.
   for (const z of Object.values(kopia.zasoby || {})) delete z.sciezka;
   return kopia;

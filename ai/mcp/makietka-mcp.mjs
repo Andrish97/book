@@ -1,18 +1,18 @@
 #!/usr/bin/env node
-// Serwer MCP Seriodruku uruchamiany u siebie (stdio) – dla Claude Code, Claude Desktop i innych klientów MCP.
+// Serwer MCP Makietki uruchamiany u siebie (stdio) – dla Claude Code, Claude Desktop i innych klientów MCP.
 // Zwykle wystarcza zdalny łącznik (adres z okna „Dostęp dla AI” – bez instalowania czegokolwiek); ten plik
-// jest dla zaawansowanych. Pozwala asystentowi AI czytać i zmieniać jeden projekt Seriodruku – ten,
+// jest dla zaawansowanych. Pozwala asystentowi AI czytać i zmieniać jeden projekt Makietki – ten,
 // do którego prowadzi klucz dostępu z aplikacji (menu ⋯ edytora → Dostęp dla AI).
 //
-// Uruchomienie: node seriodruk-mcp.mjs   (Node.js 18 lub nowszy, bez instalowania czegokolwiek)
+// Uruchomienie: node makietka-mcp.mjs   (Node.js 18 lub nowszy, bez instalowania czegokolwiek)
 // Zmienne środowiskowe:
-//   SERIODRUK_KLUCZ             klucz dostępu z aplikacji (sdk_…) – wymagany
-//   SERIODRUK_ADRES             adres bazy (domyślnie baza Seriodruku)
-//   SERIODRUK_KLUCZ_PUBLICZNY   publikowalny klucz bazy (domyślnie ten z aplikacji – to nie jest sekret)
+//   MAKIETKA_KLUCZ             klucz dostępu z aplikacji (sdk_…) – wymagany
+//   MAKIETKA_ADRES             adres bazy (domyślnie baza Makietki)
+//   MAKIETKA_KLUCZ_PUBLICZNY   publikowalny klucz bazy (domyślnie ten z aplikacji – to nie jest sekret)
 //
 // Transport: stdio, wiadomości JSON-RPC rozdzielone znakiem nowej linii. Protokół MCP w wersji
 // 2026-07-28 (wersja w _meta każdego żądania, server/discover) oraz starsze wersje z wymianą
-// initialize (2025-11-25, 2025-06-18, 2025-03-26). Opis: https://andrish97.github.io/book/ai/api.md
+// initialize (2025-11-25, 2025-06-18, 2025-03-26). Opis: https://makietka.app/ai/api.md
 //
 // PLIK SKŁADANY: nie edytuj go ręcznie – zmieniaj supabase/functions/_shared/seriodruk-mcp-rdzen.mjs
 // i uruchom node scripts/mcp-buduj.cjs.
@@ -25,13 +25,15 @@ import { pathToFileURL } from 'node:url';
 
 // ---------- Wspólny rdzeń (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs) ----------
 
-export const NAZWA = 'seriodruk';
+export const NAZWA = 'makietka';
 export const WERSJA = '1.3.1';
 export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
-const ADRES_OPISU = 'https://andrish97.github.io/book/ai/format-seriodruk.md';
-const ADRES_APLIKACJI = 'https://andrish97.github.io/book/';
+const ADRES_OPISU = 'https://makietka.app/ai/format-makietka.md';
+export const ADRES_APLIKACJI = 'https://makietka.app/';
+// Publiczny adres łącznika (przekaźnik Cloudflare api.makietka.app → Funkcja Edge mcp, cloudflare/api-worker.js).
+const ADRES_LACZNIKA = 'https://api.makietka.app/mcp';
 
 // Te same listy co w aplikacji (js/pola.js, js/style-tekstu.js) – test pilnuje, żeby się zgadzały.
 export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony'];
@@ -639,7 +641,7 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Seriodruku (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Makietki (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
 export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false }) {
   const ADRES = String(adres || '').replace(/\/+$/, '');
@@ -1105,10 +1107,10 @@ ZIP rozpakuj u siebie i wgraj obrazy po kolei. Wgranie niedokończone przez dob�
       description: 'Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Działa tylko, gdy Twoje środowisko już łączy się z hostem adresu (np. własny skrypt użytkownika). Gdy dostajesz błąd sieci (403, zablokowana domena) – nie proś o dopisywanie domen, tylko użyj wgraj_czesciami. Adres zawiera klucz – nie pokazuj go w odpowiedzi.',
       inputSchema: S('', {}),
       readOnly: true,
-      dzialaj: async () => `POST ${ADRES}/functions/v1/mcp/${KLUCZ}/obraz?nazwa=<nazwa z rozszerzeniem>[&zastap=<id albo nazwa obrazu do podmiany>]
+      dzialaj: async () => `POST ${ADRES_LACZNIKA}/${KLUCZ}/obraz?nazwa=<nazwa z rozszerzeniem>[&zastap=<id albo nazwa obrazu do podmiany>]
 Treść żądania: bajty pliku (obraz albo ZIP). Odpowiedź JSON: {"wgrane":[{"nazwa","id","szer","wys","byl"}],"opis"} albo {"blad"}.
-Przykład: curl -X POST --data-binary @styczen.jpg "${ADRES}/functions/v1/mcp/${KLUCZ}/obraz?nazwa=styczen.jpg"
-Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname}`,
+Przykład: curl -X POST --data-binary @styczen.jpg "${ADRES_LACZNIKA}/${KLUCZ}/obraz?nazwa=styczen.jpg"
+Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     },
     {
       name: 'usun_obrazy',
@@ -1336,7 +1338,7 @@ Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname
     {
       name: 'opis_formatu',
       title: 'Opis formatu projektu',
-      description: 'Pełny opis modelu projektu Seriodruku: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm). Przeczytaj przed większymi zmianami.',
+      description: 'Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm). Przeczytaj przed większymi zmianami.',
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => {
@@ -1384,7 +1386,7 @@ Host do ewentualnego dopisania w dozwolonych domenach: ${new URL(ADRES).hostname
     // Wskazówki pamięci zawsze (starsi klienci pomijają nieznane pola), resultType – tylko w trybie 2026-07-28.
     const doPamieci = (x) => ({ ...zakonczony(x), ...PAMIEC });
     const info = {
-      name: NAZWA, title: 'Seriodruk', version: WERSJA, websiteUrl: ADRES_APLIKACJI,
+      name: NAZWA, title: 'Makietka', version: WERSJA, websiteUrl: ADRES_APLIKACJI,
       icons: [
         { src: `${ADRES_APLIKACJI}img/ikony/ikona-192.png`, mimeType: 'image/png', sizes: ['192x192'] },
         { src: `${ADRES_APLIKACJI}img/ikony/ikona.svg`, mimeType: 'image/svg+xml', sizes: ['any'] },
@@ -1483,11 +1485,11 @@ export async function czytajPliki(sciezki) {
 
 const serwer = utworzSerwer({
   czytajPliki,
-  adres: process.env.SERIODRUK_ADRES || 'https://pganajmivwtstapnwsgv.supabase.co',
-  kluczPubliczny: process.env.SERIODRUK_KLUCZ_PUBLICZNY || 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq',
-  klucz: process.env.SERIODRUK_KLUCZ || '',
-  brakKlucza: 'Brak klucza dostępu: ustaw zmienną SERIODRUK_KLUCZ (klucz z aplikacji: menu ⋯ → Dostęp dla AI).',
-  czytajOpis: () => readFile(new URL('../format-seriodruk.md', import.meta.url), 'utf8'),
+  adres: process.env.MAKIETKA_ADRES || 'https://pganajmivwtstapnwsgv.supabase.co',
+  kluczPubliczny: process.env.MAKIETKA_KLUCZ_PUBLICZNY || 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq',
+  klucz: process.env.MAKIETKA_KLUCZ || '',
+  brakKlucza: 'Brak klucza dostępu: ustaw zmienną MAKIETKA_KLUCZ (klucz z aplikacji: menu ⋯ → Dostęp dla AI).',
+  czytajOpis: () => readFile(new URL('../format-makietka.md', import.meta.url), 'utf8'),
 });
 export const obsluz = serwer.obsluz;
 
@@ -1496,7 +1498,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const stanSesji = {};
   const linie = createInterface({ input: process.stdin, crlfDelay: Infinity });
   const wyslij = (o) => { if (o) process.stdout.write(`${JSON.stringify(o)}\n`); };
-  if (!process.env.SERIODRUK_KLUCZ) process.stderr.write('Seriodruk MCP: brak SERIODRUK_KLUCZ – narzędzia zgłoszą błąd, dopóki nie podasz klucza.\n');
+  if (!process.env.MAKIETKA_KLUCZ) process.stderr.write('Makietka MCP: brak MAKIETKA_KLUCZ – narzędzia zgłoszą błąd, dopóki nie podasz klucza.\n');
   linie.on('line', async (linia) => {
     if (!linia.trim()) return;
     let w;

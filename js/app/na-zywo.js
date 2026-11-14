@@ -10,6 +10,7 @@ import { $ } from '../ui.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
 import { pokazProjekty } from './projekty.js';
+import { wlaczWspolprace, wylaczWspolprace } from './wspolpraca.js';
 
 // Otwarty projekt oznacza wczytany edytor – sprawdzenie konta robi zapis (js/app/zapis.js).
 const sprawdzKonto = (opcje) => edytorGotowy()?.sprawdzKonto(opcje);
@@ -67,10 +68,12 @@ export async function wlaczNaZywo(uzytkownik) {
       if (wrocil) sprawdzTeraz(); // po przerwie w kanale mogło nas coś ominąć
     });
   } catch { /* bez kanału zostaje sprawdzanie co pół minuty */ }
+  if (dla === uzytkownik.id) wlaczWspolprace(uzytkownik); // zaproszenia do projektów na żywo
 }
 
 export async function wylaczNaZywo() {
   dla = null;
+  wylaczWspolprace();
   polaczony = false;
   clearTimeout(timer);
   clearTimeout(timerListy);

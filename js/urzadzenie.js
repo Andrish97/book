@@ -1,5 +1,5 @@
 // Tryb urządzenia na <html> – jedno źródło dla CSS i JS (zamiast powtarzania zapytań o ekran w wielu miejscach).
-// Wzorem Familiady (web/shared/js/core/page-boot.js, device-attrs.js), dostosowane do Seriodruku.
+// Wzorem Familiady (web/shared/js/core/page-boot.js, device-attrs.js), dostosowane do Makietki.
 //
 //   data-urzadzenie  telefon | tablet | komputer    rodzaj urządzenia: dotyk + krótszy bok ekranu < 700 px
 //                                                   to telefon, dotyk przy większym ekranie – tablet

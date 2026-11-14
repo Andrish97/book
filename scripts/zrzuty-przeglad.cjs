@@ -399,6 +399,21 @@ async function uzupelnij(s) {
   });
 }
 
+// Projekt innej osoby (Oli) z zaproszeniem dla zalogowanego konta – w atrapie bazy, jak po zaproszeniu.
+function zaproszenieOdOli(baza, kod) {
+  const ola = { id: '44444444-4444-4444-8444-444444444444', email: 'ola.nowak@przyklad.pl', haslo: 'Dobre#Haslo9', potwierdzone: true, nazwa: 'Ola Nowak' };
+  if (!baza.konta.some((k) => k.id === ola.id)) baza.konta.push(ola);
+  const id = '55555555-5555-4555-8555-555555555555';
+  if (!baza.projekty.some((p) => p.id === id)) {
+    baza.projekty.push({ id, owner_id: ola.id, nazwa: 'Kalendarz szkolny 2027', wersja: 1, zmieniono: new Date().toISOString(), dane: { strony: [], strony_osobno: true, miniatura: null } });
+  }
+  if (baza.zaproszenia.some((z) => z.kod === kod)) return;
+  baza.zaproszenia.push({
+    id: `z-${kod}`, projekt_id: id, email: baza.konta[0].email.toLowerCase(), rola: 'edycja', kod, zaprosil: ola.id,
+    utworzono: new Date().toISOString(), wazne_do: new Date(Date.now() + 14 * 86400000).toISOString(), stan: 'czeka', przyjal: null,
+  });
+}
+
 // ---------- Widoki ----------
 // [nazwa, przygotowanie, { edytor: true }] – edytor: widok wymaga edytora (na telefonie poziomo pomijany).
 const E = { edytor: true };
@@ -563,6 +578,32 @@ const WIDOKI = [
     await s.waitForSelector('.karta-projektu:not(.szkielet)');
     await s.click('[data-akcja="nowy-projekt"]:visible'); await s.waitForSelector('#dlg-nowy[open]');
   }, {}],
+  // Współpraca między kontami (decyzja #86): okno „Współpraca”, skrzynka zaproszeń, zaproszenie z linku,
+  // lista z projektem udostępnionym.
+  ['36-wspolpraca', async (s) => {
+    await doEdytora(s); await akcja(s, 'wspolpraca'); await s.waitForSelector('#dlg-wspolpraca[open] #form-zaproszenia:not([hidden])');
+    await s.fill('#wspolpraca-email', 'ola.nowak@przyklad.pl'); await s.click('#wspolpraca-zapros');
+    await s.waitForSelector('#wspolpraca-gotowe:not([hidden])'); await czekaj(s, 800);
+  }, E],
+  ['37-zaproszenia', async (s, baza) => {
+    await doEdytora(s);
+    zaproszenieOdOli(baza, 'kod-skrzynka');
+    await s.click('[data-akcja="do-projektow"]:visible'); await s.waitForSelector('#przycisk-zaproszenia:not([hidden])');
+    await s.click('#przycisk-zaproszenia'); await s.waitForSelector('#dlg-zaproszenia[open] #zaproszenia-lista li');
+  }, E],
+  ['38-zaproszenie-z-linku', async (s, baza) => {
+    await doEdytora(s);
+    zaproszenieOdOli(baza, 'kod-link');
+    await s.evaluate(() => { location.hash = '#/zaproszenie/kod-link'; });
+    await s.waitForSelector('#dlg-zaproszenie[open]');
+  }, E],
+  ['39-projekty-udostepnione', async (s, baza) => {
+    await doEdytora(s);
+    zaproszenieOdOli(baza, 'kod-lista');
+    baza.wspolpraca('przyjmij_zaproszenie', { p_kod: 'kod-lista' }, baza.konta[0]);
+    await s.click('[data-akcja="do-projektow"]:visible');
+    await s.waitForSelector('.karta-projektu.wspoldzielony'); await czekaj(s, 400);
+  }, E],
   ['31-konto', async (s) => {
     await s.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); document.querySelectorAll('.prezentacja').forEach((p) => p.remove()); location.hash = '#/konto'; });
     await s.waitForFunction(() => document.body.dataset.ekran === 'konto'); await czekaj(s, 400);
@@ -572,6 +613,12 @@ const WIDOKI = [
     await s.waitForFunction(() => document.body.dataset.ekran === 'konto');
     await s.locator('[data-do="ust-wyglad"]:visible').first().click().catch(() => {});
     await czekaj(s, 500);
+  }, {}],
+  ['31d-konto-miejsce', async (s) => {
+    await s.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); location.hash = '#/konto'; });
+    await s.waitForFunction(() => document.body.dataset.ekran === 'konto');
+    await s.locator('[data-do="ust-miejsce"]:visible').first().click();
+    await czekaj(s, 1200);
   }, {}],
   ['31c-konto-dol', async (s) => {
     await s.evaluate(() => { location.hash = '#/konto'; });
@@ -682,7 +729,7 @@ async function zrzutyUrzadzenia(przegladarka, u, motyw) {
     if (u.poziomTel && opcje.edytor && !opcje.teżPoziomo) continue;
     try {
       await niespodzianki(s);
-      await przygotuj(s);
+      await przygotuj(s, baza);
       await zrzut(u.poziomTel && nazwa === '03-edytor' ? '32-za-malo-miejsca' : nazwa);
     } catch (e) {
       nieudane.push(`${nazwa}: ${e.message.split('\n')[0]}`);

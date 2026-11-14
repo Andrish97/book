@@ -3,7 +3,7 @@
 // Treść instrukcji żyje w js/instrukcja.js (tablica ROZDZIALY) i pokazuje się dopiero w uruchomionej
 // aplikacji, więc AI czytające stronę jej nie widzi. Ten skrypt wczytuje moduł w przeglądarce (moduł
 // korzysta z DOM), zamienia HTML rozdziałów na Markdown i zapisuje plik, który GitHub Pages publikuje
-// pod https://andrish97.github.io/book/ai/instrukcja.md.
+// pod https://makietka.app/ai/instrukcja.md.
 //
 // Uruchomienie po każdej zmianie instrukcji:   node scripts/instrukcja-md.cjs
 // Sprawdzenie, czy plik jest aktualny:          node scripts/instrukcja-md.cjs --sprawdz   (robi to też test)
@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
 
 const KORZEN = path.join(__dirname, '..');
 const PLIK = path.join(KORZEN, 'ai', 'instrukcja.md');
-const ADRES_STRONY = 'https://andrish97.github.io/book/';
+const ADRES_STRONY = 'https://makietka.app/';
 const TYPY = { '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.svg': 'image/svg+xml' };
 
 // Mały serwer plików repozytorium – moduły ES wczytują się tylko przez http.
@@ -85,8 +85,8 @@ async function zbuduj() {
     await strona.goto(`http://127.0.0.1:${s.address().port}/__pusta.html`);
     const { czesci, spis } = await strona.evaluate(wPrzegladarce, ADRES_STRONY);
     return [
-      '# Instrukcja Seriodruku',
-      `Seriodruk (${ADRES_STRONY}) to edytor publikacji z powtarzanymi stronami – kalendarzy, planerów, notesów – działający w przeglądarce. To jest instrukcja obsługi z aplikacji (przycisk ze znakiem zapytania), w postaci do czytania przez ludzi i AI. Opis formatu pliku projektu: ${ADRES_STRONY}ai/format-seriodruk.md.`,
+      '# Instrukcja Makietki',
+      `Makietka (${ADRES_STRONY}) to edytor publikacji z powtarzanymi stronami – kalendarzy, planerów, notesów – działający w przeglądarce. To jest instrukcja obsługi z aplikacji (przycisk ze znakiem zapytania), w postaci do czytania przez ludzi i AI. Opis formatu pliku projektu: ${ADRES_STRONY}ai/format-makietka.md.`,
       '<!-- Plik generowany z js/instrukcja.js przez scripts/instrukcja-md.cjs – nie edytuj go ręcznie. -->',
       `## Spis rozdziałów\n\n${spis}`,
       ...czesci,

@@ -20,6 +20,10 @@ const otworzProjekt = async (...a) => (await czekajNaEdytor()).otworzProjekt(...
 const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
 const otworzUdostepnianie = async (projekt) => (await czekajNaEdytor()).otworzUdostepnianie(projekt);
 import { przejdzDoTrasy } from './trasy.js';
+import * as wsp from '../wspolpraca-chmura.js';
+import {
+  otworzWspolprace, opuscProjekt, odswiezZaproszenia, ustawZaleznosci, krotkoRola, ikonaWspolpracy,
+} from './wspolpraca.js';
 
 function odmianaProjektow(n) {
   if (n === 1) return 'projekt';
@@ -38,15 +42,29 @@ export async function wpisyProjektow() {
   for (const l of await listaLokalnych(wlasciciel())) wpisy.set(l.id, { ...l, lokalnie: true });
   if (stan.uzytkownik) {
     try {
-      for (const c of await chmura.listaWChmurze()) {
+      const [lista, udzialy] = await Promise.all([chmura.listaWChmurze(), wsp.udostepnioneMi()]);
+      const naKoncie = new Set();
+      for (const c of lista) {
+        naKoncie.add(c.id);
         const w = wpisy.get(c.id) || { id: c.id, nazwa: c.nazwa, miniatura: c.miniatura };
         w.wChmurze = c.zmieniono;
-        if (!w.lokalnie || !w.doSynchronizacji) w.udostepniony = Boolean(c.udostepnienie);
+        // Projekt kogoś innego, do którego mnie zaproszono (współpraca, decyzja #86).
+        const cudzy = Boolean(c.owner_id) && c.owner_id !== stan.uzytkownik.id;
+        const u = udzialy.get(c.id);
+        w.wspolpraca = cudzy ? { wlasciciel: c.owner_id, nazwa: u?.wlasciciel || 'Właściciel', rola: u?.rola || 'odczyt' } : null;
+        if (!w.lokalnie || !w.doSynchronizacji) w.udostepniony = !cudzy && Boolean(c.udostepnienie);
         if (!w.lokalnie || (!w.doSynchronizacji && c.zmieniono > (w.zmieniono || ''))) {
           w.nazwa = c.nazwa;
           w.miniatura = c.miniatura || w.miniatura;
         }
         wpisy.set(c.id, w);
+      }
+      // Kopia projektu współdzielonego, którego już nie ma na liście z konta: właściciel odebrał dostęp
+      // albo usunął projekt – kopia na tym urządzeniu znika razem z nim.
+      for (const [id, w] of wpisy) {
+        if (!w.wspolpraca || naKoncie.has(id)) continue;
+        wpisy.delete(id);
+        usunKopieLokalna(id).catch(() => {});
       }
     } catch (e) {
       powiadom(`Nie udało się pobrać listy z konta: ${chmura.komunikatBledu(e)}`, true);
@@ -54,6 +72,16 @@ export async function wpisyProjektow() {
   }
   return [...wpisy.values()].sort((a, b) => najnowsza(b).localeCompare(najnowsza(a)));
 }
+
+// Filtr listy, gdy są projekty udostępnione przez innych: wszystkie / moje / udostępnione mi.
+let filtr = 'wszystkie';
+const PASUJE = { wszystkie: () => true, moje: (w) => !w.wspolpraca, udostepnione: (w) => Boolean(w.wspolpraca) };
+$('#filtry-projektow').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-filtr]');
+  if (!b) return;
+  filtr = b.dataset.filtr;
+  pokazProjekty({ cicho: true });
+});
 
 // cicho: odświeżenie listy, która już jest na ekranie (zmiana na koncie z innego urządzenia) – bez
 // szkieletu ładowania i bez ruszania adresu.
@@ -65,13 +93,27 @@ export async function pokazProjekty({ cicho = false } = {}) {
     siatka.innerHTML = '<li class="karta-projektu szkielet"><div class="okladka"></div><div class="opis"><strong>&nbsp;</strong><small>&nbsp;</small></div></li>'.repeat(3);
     $('#pusto-projekty').hidden = true;
   }
-  const wpisy = await wpisyProjektow();
+  const wszystkie = await wpisyProjektow();
   if (cicho && document.body.dataset.ekran !== 'projekty') return; // w międzyczasie otwarto projekt
   doczytajWTle(); // edytor przyjdzie w tle, zanim ktoś kliknie projekt
+  odswiezZaproszenia();
+  const udostepnione = wszystkie.filter((w) => w.wspolpraca).length;
+  if (!udostepnione) filtr = 'wszystkie';
+  const wpisy = wszystkie.filter(PASUJE[filtr] || PASUJE.wszystkie);
+  const filtry = $('#filtry-projektow');
+  filtry.hidden = udostepnione === 0;
+  for (const b of filtry.querySelectorAll('[data-filtr]')) b.setAttribute('aria-pressed', String(b.dataset.filtr === filtr));
+  // Osierocone pliki na koncie – ciche sprzątanie najwyżej raz na dobę (#90).
+  if (stan.uzytkownik) import('../miejsce.js').then((m) => m.sprzatnijWTle(stan.uzytkownik.id)).catch(() => {});
   siatka.replaceChildren();
-  $('#pusto-projekty').hidden = wpisy.length > 0;
-  $('.projekty-naglowek .przyciski-naglowka').hidden = wpisy.length === 0;
-  $('#podsumowanie-projektow').textContent = wpisy.length ? `${wpisy.length} ${odmianaProjektow(wpisy.length)}` : '';
+  $('#pusto-projekty').hidden = wszystkie.length > 0;
+  $('.projekty-naglowek .przyciski-naglowka').hidden = wszystkie.length === 0;
+  const wlasne = wszystkie.length - udostepnione;
+  const ileUdostepnionych = `${udostepnione} ${udostepnione === 1 ? 'udostępniony' : 'udostępnione'} Ci`;
+  $('#podsumowanie-projektow').textContent = !wszystkie.length ? ''
+    : !udostepnione ? `${wlasne} ${odmianaProjektow(wlasne)}`
+      : !wlasne ? `${udostepnione} ${odmianaProjektow(udostepnione)} – ${udostepnione === 1 ? 'udostępniony' : 'udostępnione'} Ci`
+        : `${wlasne} ${odmianaProjektow(wlasne)} · ${ileUdostepnionych}`;
 
   for (const w of wpisy) {
     const li = document.createElement('li');
@@ -82,23 +124,33 @@ export async function pokazProjekty({ cicho = false } = {}) {
         <div class="opis"><strong></strong><small></small></div>
       </button>
       ${w.udostepniony ? `<button class="plakietka-linku" title="Projekt ma link do podglądu – kliknij, żeby go skopiować albo unieważnić">${ikona('link', { rozmiar: 14 })}Udostępniony</button>` : ''}
+      ${w.wspolpraca ? `<button class="plakietka-linku plakietka-wspolpracy" title="Projekt udostępniony Ci przez inną osobę – kliknij, żeby zobaczyć, kto ma dostęp">${ikonaWspolpracy()}<span></span></button>` : ''}
       <button class="przycisk-ikona menu-karty" aria-label="Opcje projektu" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
         <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>
-        <button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>
-        <button role="menuitem" data-op="duplikuj">${ikona('kopiuj')}Duplikuj</button>
-        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.seriodruk)</button>
+        ${w.wspolpraca?.rola === 'odczyt' ? '' : `<button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>`}
+        <button role="menuitem" data-op="duplikuj">${ikona('kopiuj')}${w.wspolpraca ? 'Zrób własną kopię' : 'Duplikuj'}</button>
+        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.makietka)</button>
+        <button role="menuitem" data-op="wspolpraca">${ikona('uzytkownik')}Współpraca…</button>
         <hr>
-        <button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}Usuń projekt</button>
+        ${w.wspolpraca
+    ? `<button role="menuitem" data-op="opusc" class="niebezpieczny">${ikona('wyloguj')}Opuść projekt</button>`
+    : `<button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}Usuń projekt</button>`}
       </div>`;
+    if (w.wspolpraca) {
+      li.classList.add('wspoldzielony');
+      $('.plakietka-wspolpracy span', li).textContent = w.wspolpraca.nazwa;
+    }
     if (w.miniatura) $('img', li).src = w.miniatura;
     $('strong', li).textContent = w.nazwa || 'Bez nazwy';
     const niewyslany = stan.uzytkownik && w.lokalnie && w.doSynchronizacji;
-    $('small', li).textContent = `Zmieniono ${kiedy(najnowsza(w))}${niewyslany ? ' · czeka na wysłanie' : ''}`;
+    const rola = w.wspolpraca ? `${krotkoRola(w.wspolpraca.rola) === 'edytuje' ? 'Możesz edytować' : 'Możesz oglądać'} · ` : '';
+    $('small', li).textContent = `${rola}Zmieniono ${kiedy(najnowsza(w))}${niewyslany ? ' · czeka na wysłanie' : ''}`;
     $('.otworz-projekt', li).addEventListener('click', () => otworzZListy(w));
-    $('.plakietka-linku', li)?.addEventListener('click', async () => {
+    $('.plakietka-linku:not(.plakietka-wspolpracy)', li)?.addEventListener('click', async () => {
       try { otworzUdostepnianie(await wczytajProjektZWpisu(w)); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
     });
+    $('.plakietka-wspolpracy', li)?.addEventListener('click', () => otworzWspolprace(w));
     const menu = $('.menu', li);
     $('.menu-karty', li).addEventListener('click', (e) => przelaczMenu(e.currentTarget, menu));
     menu.addEventListener('click', async (e) => {
@@ -110,6 +162,8 @@ export async function pokazProjekty({ cicho = false } = {}) {
       if (op === 'duplikuj') await duplikujProjekt(w);
       if (op === 'eksport') await eksportujProjekt(w);
       if (op === 'usun') await usunProjekt(w);
+      if (op === 'wspolpraca') await otworzWspolprace(w);
+      if (op === 'opusc') await opuscProjekt(w);
     });
     siatka.append(li);
   }
@@ -117,6 +171,16 @@ export async function pokazProjekty({ cicho = false } = {}) {
 
 // pasek – opcjonalny wskaźnik postępu (js/postep.js): opis i licznik pobieranych obrazów.
 export async function wczytajProjektZWpisu(w, pasek = null) {
+  const projekt = await wczytajProjektZWpisuBez(w, pasek);
+  // Czyj to projekt i jaka moja rola – z listy konta (współpraca); bez sieci zostaje to, co zapamiętane.
+  if (projekt && stan.uzytkownik && w.wspolpraca !== undefined) {
+    if (w.wspolpraca) projekt.wspolpraca_chmury = w.wspolpraca;
+    else delete projekt.wspolpraca_chmury;
+  }
+  return projekt;
+}
+
+async function wczytajProjektZWpisuBez(w, pasek = null) {
   const lokalny = w.lokalnie ? (await wczytajLokalnie(w.id))?.projekt : null;
   // Nowsza wersja wygrywa; niewysłane zmiany lokalne mają pierwszeństwo.
   const chmuraNowsza = w.wChmurze && (!lokalny || (!w.doSynchronizacji && w.wChmurze > (lokalny.zmieniono || '')));
@@ -148,6 +212,8 @@ async function otworzZListy(w) {
     pasek.opis(`Otwieranie „${projekt.nazwa}”…`);
     pasek.razem(null);
     await otworzProjekt(projekt);
+    // Rola „może oglądać” (współpraca): od razu podgląd.
+    if (projekt.wspolpraca_chmury?.rola === 'odczyt') await (await czekajNaEdytor()).pokazPodglad();
   } catch (e) {
     powiadom(`Nie udało się otworzyć projektu: ${chmura.komunikatBledu(e)}`, true);
   } finally {
@@ -189,7 +255,7 @@ async function zmienNazweProjektu(w) {
   pokazProjekty();
 }
 
-// Eksport całego projektu do pliku .seriodruk (z obrazami) – kopia zapasowa
+// Eksport całego projektu do pliku .makietka (z obrazami) – kopia zapasowa
 // albo przeniesienie na inne konto.
 async function eksportujProjekt(w) {
   try {
@@ -280,9 +346,37 @@ $('#dlg-nowy').addEventListener('close', async () => {
 export async function doProjektow() {
   if (stan.projekt) await zapiszTeraz();
   stan.projekt = null;
+  document.dispatchEvent(new CustomEvent('seriodruk:projekt', { detail: null })); // obecność, tryb współpracy
   document.title = NAZWA;
   pokazProjekty();
 }
+
+// ---------- Współpraca (js/app/wspolpraca.js) ----------
+
+async function usunKopieLokalna(id) {
+  await usunLokalnie(id);
+  await usunHistorie(id);
+}
+
+async function otworzProjektPoId(id) {
+  trasa.ustaw(`p/${id}`);
+  await przejdzDoTrasy();
+}
+
+// Zapraszać można do projektu, który jest na koncie – otwarty projekt idzie tam od razu, z listy – jeśli
+// jeszcze go tam nie ma.
+async function zapewnijNaKoncie(projekt) {
+  const modul = edytorGotowy();
+  if (stan.projekt?.id === projekt.id && modul) {
+    await modul.zapiszTeraz();
+    await modul.synchronizuj();
+    return;
+  }
+  const w = (await wpisyProjektow()).find((x) => x.id === projekt.id);
+  if (w && !w.wChmurze) await zapiszGdziekolwiek(await wczytajProjektZWpisu(w));
+}
+
+ustawZaleznosci({ pokazProjekty, otworzProjektPoId, zapewnijNaKoncie, usunKopieLokalna });
 
 // ---------- Pliki ----------
 
@@ -318,7 +412,7 @@ export async function wczytajPlikProjektu(plik) {
   }
 }
 
-// Pliki .seriodruk otwierane z systemu (zainstalowana aplikacja na komputerze).
+// Pliki .makietka otwierane z systemu (zainstalowana aplikacja na komputerze).
 // Wczytujemy je dopiero po zalogowaniu.
 export const plikiDoOtwarcia = [];
 export async function otworzOczekujacePliki() {

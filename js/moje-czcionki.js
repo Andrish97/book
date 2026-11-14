@@ -1,7 +1,7 @@
 // „Moje czcionki”: pliki czcionek wgrane w którymkolwiek projekcie, dostępne we wszystkich.
 //
 // Projekt nadal nosi własne kopie plików (jest samodzielny: działa na innym
-// urządzeniu, w pliku .seriodruk i u drukarni). Tutaj leży tylko podręczny
+// urządzeniu, w pliku .makietka i u drukarni). Tutaj leży tylko podręczny
 // zbiór, z którego czcionkę dodaje się do następnego projektu jednym kliknięciem.
 //
 // Zbiór jest w tej przeglądarce (IndexedDB), a przy pracy z kontem także na

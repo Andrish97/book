@@ -93,7 +93,8 @@ test('obraz od AI: na żywo w oknie i na stronie, przy zapisie przechodzi na kon
   // AI zastępuje obraz wgrany w aplikacji: stary plik z folderu konta sprząta aplikacja.
   const z = baza.ai('ai_wgraj_obraz', { p_klucz: klucz, p_nazwa: 'x.png', p_typ: 'image/png', p_dane: (await png(strona, '#a31')).toString('base64'), p_szer: 6, p_wys: 4, p_zastap: las[0] });
   assert.equal(z.nazwa, 'las.png');
-  for (let i = 0; i < 80 && baza.pliki.has(`zasoby/${las[1].sciezka}`); i += 1) await strona.waitForTimeout(100);
+  // Aplikacja najpierw usuwa plik, potem zgłasza to bazie (pliki_usuniete) – czekamy na oba kroki.
+  for (let i = 0; i < 80 && (baza.pliki.has(`zasoby/${las[1].sciezka}`) || baza.ai('pliki_do_usuniecia', { p_projekt: idProjektu }, baza.konta[0]).length); i += 1) await strona.waitForTimeout(100);
   assert.equal(baza.pliki.has(`zasoby/${las[1].sciezka}`), false, 'plik zastąpionego obrazu usunięty z konta');
   assert.equal(baza.ai('pliki_do_usuniecia', { p_projekt: idProjektu }, baza.konta[0]).length, 0);
   await strona.waitForFunction((id) => window.seriodruk.stan.projekt.zasoby[id]?.nazwa === 'las.png', z.id, { timeout: 10000 });

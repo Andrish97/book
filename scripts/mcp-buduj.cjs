@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Składa serwer MCP do uruchomienia u siebie (ai/mcp/seriodruk-mcp.mjs – jeden plik do pobrania) ze wspólnego
+// Składa serwer MCP do uruchomienia u siebie (ai/mcp/makietka-mcp.mjs – jeden plik do pobrania) ze wspólnego
 // rdzenia (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs), z którego korzysta też zdalny łącznik
 // (Funkcja Edge supabase/functions/mcp). Dzięki temu oba serwery mają te same narzędzia.
 //
-// Użycie:  node scripts/mcp-buduj.cjs            – zapisuje ai/mcp/seriodruk-mcp.mjs
+// Użycie:  node scripts/mcp-buduj.cjs            – zapisuje ai/mcp/makietka-mcp.mjs
 //          node scripts/mcp-buduj.cjs --sprawdz  – tylko sprawdza, czy plik jest aktualny (dla testów)
 
 const fs = require('node:fs');
@@ -11,23 +11,23 @@ const path = require('node:path');
 
 const KORZEN = path.join(__dirname, '..');
 const RDZEN = path.join(KORZEN, 'supabase', 'functions', '_shared', 'seriodruk-mcp-rdzen.mjs');
-const WYNIK = path.join(KORZEN, 'ai', 'mcp', 'seriodruk-mcp.mjs');
+const WYNIK = path.join(KORZEN, 'ai', 'mcp', 'makietka-mcp.mjs');
 
 const NAGLOWEK = `#!/usr/bin/env node
-// Serwer MCP Seriodruku uruchamiany u siebie (stdio) – dla Claude Code, Claude Desktop i innych klientów MCP.
+// Serwer MCP Makietki uruchamiany u siebie (stdio) – dla Claude Code, Claude Desktop i innych klientów MCP.
 // Zwykle wystarcza zdalny łącznik (adres z okna „Dostęp dla AI” – bez instalowania czegokolwiek); ten plik
-// jest dla zaawansowanych. Pozwala asystentowi AI czytać i zmieniać jeden projekt Seriodruku – ten,
+// jest dla zaawansowanych. Pozwala asystentowi AI czytać i zmieniać jeden projekt Makietki – ten,
 // do którego prowadzi klucz dostępu z aplikacji (menu ⋯ edytora → Dostęp dla AI).
 //
-// Uruchomienie: node seriodruk-mcp.mjs   (Node.js 18 lub nowszy, bez instalowania czegokolwiek)
+// Uruchomienie: node makietka-mcp.mjs   (Node.js 18 lub nowszy, bez instalowania czegokolwiek)
 // Zmienne środowiskowe:
-//   SERIODRUK_KLUCZ             klucz dostępu z aplikacji (sdk_…) – wymagany
-//   SERIODRUK_ADRES             adres bazy (domyślnie baza Seriodruku)
-//   SERIODRUK_KLUCZ_PUBLICZNY   publikowalny klucz bazy (domyślnie ten z aplikacji – to nie jest sekret)
+//   MAKIETKA_KLUCZ             klucz dostępu z aplikacji (sdk_…) – wymagany
+//   MAKIETKA_ADRES             adres bazy (domyślnie baza Makietki)
+//   MAKIETKA_KLUCZ_PUBLICZNY   publikowalny klucz bazy (domyślnie ten z aplikacji – to nie jest sekret)
 //
 // Transport: stdio, wiadomości JSON-RPC rozdzielone znakiem nowej linii. Protokół MCP w wersji
 // 2026-07-28 (wersja w _meta każdego żądania, server/discover) oraz starsze wersje z wymianą
-// initialize (2025-11-25, 2025-06-18, 2025-03-26). Opis: https://andrish97.github.io/book/ai/api.md
+// initialize (2025-11-25, 2025-06-18, 2025-03-26). Opis: https://makietka.app/ai/api.md
 //
 // PLIK SKŁADANY: nie edytuj go ręcznie – zmieniaj supabase/functions/_shared/seriodruk-mcp-rdzen.mjs
 // i uruchom node scripts/mcp-buduj.cjs.
@@ -95,11 +95,11 @@ export async function czytajPliki(sciezki) {
 
 const serwer = utworzSerwer({
   czytajPliki,
-  adres: process.env.SERIODRUK_ADRES || 'https://pganajmivwtstapnwsgv.supabase.co',
-  kluczPubliczny: process.env.SERIODRUK_KLUCZ_PUBLICZNY || 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq',
-  klucz: process.env.SERIODRUK_KLUCZ || '',
-  brakKlucza: 'Brak klucza dostępu: ustaw zmienną SERIODRUK_KLUCZ (klucz z aplikacji: menu ⋯ → Dostęp dla AI).',
-  czytajOpis: () => readFile(new URL('../format-seriodruk.md', import.meta.url), 'utf8'),
+  adres: process.env.MAKIETKA_ADRES || 'https://pganajmivwtstapnwsgv.supabase.co',
+  kluczPubliczny: process.env.MAKIETKA_KLUCZ_PUBLICZNY || 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq',
+  klucz: process.env.MAKIETKA_KLUCZ || '',
+  brakKlucza: 'Brak klucza dostępu: ustaw zmienną MAKIETKA_KLUCZ (klucz z aplikacji: menu ⋯ → Dostęp dla AI).',
+  czytajOpis: () => readFile(new URL('../format-makietka.md', import.meta.url), 'utf8'),
 });
 export const obsluz = serwer.obsluz;
 
@@ -108,7 +108,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const stanSesji = {};
   const linie = createInterface({ input: process.stdin, crlfDelay: Infinity });
   const wyslij = (o) => { if (o) process.stdout.write(\`\${JSON.stringify(o)}\\n\`); };
-  if (!process.env.SERIODRUK_KLUCZ) process.stderr.write('Seriodruk MCP: brak SERIODRUK_KLUCZ – narzędzia zgłoszą błąd, dopóki nie podasz klucza.\\n');
+  if (!process.env.MAKIETKA_KLUCZ) process.stderr.write('Makietka MCP: brak MAKIETKA_KLUCZ – narzędzia zgłoszą błąd, dopóki nie podasz klucza.\\n');
   linie.on('line', async (linia) => {
     if (!linia.trim()) return;
     let w;
@@ -135,11 +135,11 @@ const tresc = zbuduj();
 if (process.argv.includes('--sprawdz')) {
   const obecny = fs.existsSync(WYNIK) ? fs.readFileSync(WYNIK, 'utf8') : '';
   if (obecny !== tresc) {
-    console.error('ai/mcp/seriodruk-mcp.mjs jest nieaktualny względem rdzenia – uruchom: node scripts/mcp-buduj.cjs');
+    console.error('ai/mcp/makietka-mcp.mjs jest nieaktualny względem rdzenia – uruchom: node scripts/mcp-buduj.cjs');
     process.exit(1);
   }
-  console.log('ai/mcp/seriodruk-mcp.mjs jest aktualny');
+  console.log('ai/mcp/makietka-mcp.mjs jest aktualny');
 } else {
   fs.writeFileSync(WYNIK, tresc);
-  console.log(`ai/mcp/seriodruk-mcp.mjs: ${tresc.split('\n').length} linii`);
+  console.log(`ai/mcp/makietka-mcp.mjs: ${tresc.split('\n').length} linii`);
 }

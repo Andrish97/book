@@ -1,14 +1,15 @@
-# Seriodruk
+# Makietka
 
 Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy): projektujesz wzory stron, aplikacja podstawia do nich dane z arkusza i składa PDF do druku.
 
-- Aplikacja: https://andrish97.github.io/book/
+- Aplikacja: https://makietka.app/
+- Domena, przekaźnik API i poczta: [docs/KONFIGURACJA-DOMENY.md](docs/KONFIGURACJA-DOMENY.md) · marka i adresy w jednym miejscu: `js/marka.js` (teksty: `node scripts/marka.cjs`)
 - Plan: [docs/PLAN.md](docs/PLAN.md) · Decyzje: [docs/DECYZJE.md](docs/DECYZJE.md) · Uzasadnienie i lista braków: [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md)
 
 ## Co działa
 
 - **Konto** (Supabase Auth): rejestracja (potwierdzanie e-mailem do włączenia w `supabase/config.toml`), logowanie, reset hasła, ustawienia konta (nazwa, e-mail, hasło, wylogowanie wszędzie, usunięcie konta). Szablony wiadomości w `supabase/templates/` czekają na własny serwer poczty.
-- **Projekty**: lista z miniaturami, kreator (format, spad, marginesy, układ), duplikowanie, eksport i import pliku `.seriodruk`.
+- **Projekty**: lista z miniaturami, kreator (format, spad, marginesy, układ), duplikowanie, eksport i import pliku `.makietka`.
 - **Sekcje**: części projektu z własnym formatem, spadem, czterema marginesami, układem (pojedyncze strony / rozkładówki) i numeracją.
 - **Rozkładówki**: obie strony na jednym płótnie, marginesy lustrzane (wewnętrzny przy grzbiecie), elementy mogą leżeć przez grzbiet.
 - **Wzorce**: szablony wspólnych elementów stron w osobnym oknie, z gotowymi wzorcami standardowymi (numer strony, stopka, nagłówek, linie, kratka, ramka, zakładka); kilka wzorców na stronę, elementy pod albo nad treścią, odbicie lustrzane na lewych stronach, zmienne `{nr}`, `{nr_w_sekcji}`, `{liczba_stron}`, `{sekcja}`, `{strona}`.
@@ -56,12 +57,13 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 
 Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla AI (i wyszukiwarek) strona publikuje jej wersję tekstową oraz opis formatu pliku projektu:
 
-- `llms.txt` – spis dokumentów dla AI (https://andrish97.github.io/book/llms.txt).
+- `llms.txt` – spis dokumentów dla AI (https://makietka.app/llms.txt).
 - `ai/instrukcja.md` – instrukcja w Markdownie, generowana z `js/instrukcja.js`. Po każdej zmianie instrukcji: `node scripts/instrukcja-md.cjs` (test `tests/instrukcja-md.test.cjs` pada, gdy plik jest nieaktualny).
-- `ai/format-seriodruk.md` – jak zbudować plik `.json` albo `.seriodruk`, który użytkownik wczyta przyciskiem Importuj, z gotowym poleceniem dla innego AI.
+- `ai/format-makietka.md` – jak zbudować plik `.json` albo `.makietka`, który użytkownik wczyta przyciskiem Importuj, z gotowym poleceniem dla innego AI.
 - `ai/api.md` – dostęp dla AI do jednego projektu kluczem (okno „Dostęp dla AI” w edytorze): adres łącznika, dodanie go w Claude i ChatGPT, funkcje bazy `ai_projekt` i `ai_zapisz` (migracja `20261111200000_dostep_ai.sql`).
-- `supabase/functions/mcp` – zdalny łącznik MCP (Funkcja Edge, Streamable HTTP, bez stanu): `https://pganajmivwtstapnwsgv.supabase.co/functions/v1/mcp/<klucz>`. Claude i ChatGPT łączą się z nim ze swoich serwerów, więc AI nie potrzebuje dostępu do bazy z własnej piaskownicy. Wdraża go integracja Supabase z GitHubem (blok `[functions.mcp]` w `supabase/config.toml`, `verify_jwt = false` – klucz sprawdza baza). Logika w `supabase/functions/_shared/mcp-http.mjs`, narzędzia we wspólnym rdzeniu `_shared/seriodruk-mcp-rdzen.mjs`; test `tests/lacznik-mcp.test.cjs` uruchamia ją w Node przeciw atrapie bazy.
-- `ai/mcp/seriodruk-mcp.mjs` – ten sam serwer do uruchomienia u siebie (stdio, jeden plik, bez zależności), składany z rdzenia poleceniem `node scripts/mcp-buduj.cjs`; test `tests/mcp.test.cjs` uruchamia go przeciw atrapie bazy (`tests/atrapa-ai.cjs`).
+- `cloudflare/` – przekaźnik `api.makietka.app` → baza (Cloudflare Worker, wdrażany integracją Git Cloudflare z `wrangler.jsonc`); skraca adres łącznika do `/mcp/<klucz>`; test `tests/worker.test.cjs`.
+- `supabase/functions/mcp` – zdalny łącznik MCP (Funkcja Edge, Streamable HTTP, bez stanu): `https://api.makietka.app/mcp/<klucz>`. Claude i ChatGPT łączą się z nim ze swoich serwerów, więc AI nie potrzebuje dostępu do bazy z własnej piaskownicy. Wdraża go integracja Supabase z GitHubem (blok `[functions.mcp]` w `supabase/config.toml`, `verify_jwt = false` – klucz sprawdza baza). Logika w `supabase/functions/_shared/mcp-http.mjs`, narzędzia we wspólnym rdzeniu `_shared/seriodruk-mcp-rdzen.mjs`; test `tests/lacznik-mcp.test.cjs` uruchamia ją w Node przeciw atrapie bazy.
+- `ai/mcp/makietka-mcp.mjs` – ten sam serwer do uruchomienia u siebie (stdio, jeden plik, bez zależności), składany z rdzenia poleceniem `node scripts/mcp-buduj.cjs`; test `tests/mcp.test.cjs` uruchamia go przeciw atrapie bazy (`tests/atrapa-ai.cjs`).
 - `ai/openapi.json` – opis funkcji AI dla akcji własnego GPT w ChatGPT.
 - `ai/przyklady/*.json` – przykłady (minimalny i kalendarz 2027) budowane przez `node scripts/przyklady-ai.cjs`; test `tests/format-ai.test.cjs` wczytuje je w aplikacji jak plik użytkownika.
 
@@ -100,7 +102,7 @@ Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla
 | `js/przyciaganie.js`, `js/linijki.js`, `js/widok.js`, `js/warstwy.js`, `js/skroty.js` | Przyciąganie i pomiary, linijki, menu siatki, panel warstw, skróty |
 | `js/pola.js`, `js/serie.js`, `js/tabele.js`, `js/arkusz-wyglad.js`, `js/dane.js` | Pola w tekście, rozwijanie serii, odczyt CSV/Excel (z wyglądem komórek), okno danych |
 | `js/podglad.js` | Podgląd bez edycji – własnego projektu i udostępnionego linkiem |
-| `js/plik-projektu.js` | Format `.seriodruk` (ZIP z manifestem) |
+| `js/plik-projektu.js` | Format `.makietka` (ZIP z manifestem) |
 | `js/instrukcja.js`, `scripts/zrzuty-instrukcji.cjs` | Instrukcja i generator zrzutów |
 | `js/ui.js`, `js/ikony.js`, `js/marka.js`, `js/motyw.js` | Elementy wspólne, ikony, nazwa aplikacji, motyw |
 | `js/czcionki.js`, `js/moje-czcionki.js`, `js/okno-czcionek.js` | Czcionki wbudowane i własne (odczyt plików czcionek, rejestracja w przeglądarce), zbiór „Moje czcionki” (przeglądarka + konto), okno „Czcionki” |
@@ -121,7 +123,7 @@ Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla
 - `style[]`: style tekstu; obiekt tekstowy wskazuje styl polem `styl`.
 - `zasoby`: `{ id: { nazwa, typ, rozmiar, sciezka? } }` – opis pliku; obrazy na stronach mają `src: "zasob:<id>"`. Treść obrazu leży w magazynie plików przeglądarki (`js/zasoby.js`) i na koncie (`sciezka`). Pole `dataUrl` mają tylko: obraz świeżo dodany (do najbliższego zapisu), czcionki własne oraz starsze zapisy – te przechodzą do magazynu przy pierwszym otwarciu.
 - `czcionki[]`: `{ id, rodzina, waga, kursywa }` – własne czcionki; `id` wskazuje plik czcionki w `zasoby`.
-- `wersja_chmury`, `podstawa_chmury`: tylko w kopii na urządzeniu. Pierwsze to numer wersji projektu na koncie, którą to urządzenie widziało ostatnio (baza przyjmuje zapis tylko z aktualnym numerem). Drugie to odciski części projektu z tej chwili: `{ listy: { strony: { kolejnosc: [id], elementy: { id: odcisk } }, … }, reszta: { pole: odcisk } }`. Gdy baza odmówi zapisu, `js/laczenie.js` porównuje z nimi stan z urządzenia i stan z konta: część zmieniona po jednej stronie przechodzi sama, o zmienioną po obu aplikacja pyta. Na konto i do pliku `.seriodruk` `podstawa_chmury` nie trafia.
+- `wersja_chmury`, `podstawa_chmury`: tylko w kopii na urządzeniu. Pierwsze to numer wersji projektu na koncie, którą to urządzenie widziało ostatnio (baza przyjmuje zapis tylko z aktualnym numerem). Drugie to odciski części projektu z tej chwili: `{ listy: { strony: { kolejnosc: [id], elementy: { id: odcisk } }, … }, reszta: { pole: odcisk } }`. Gdy baza odmówi zapisu, `js/laczenie.js` porównuje z nimi stan z urządzenia i stan z konta: część zmieniona po jednej stronie przechodzi sama, o zmienioną po obu aplikacja pyta. Na konto i do pliku `.makietka` `podstawa_chmury` nie trafia.
 - Element: `z_danych: { kolor?: pole, kolor_w?: 'pierwszy' | 'ostatni' | 'odcienie', x?: { pole, tryb: 'pozycja' | 'mm', krok, co }, y?: …, obrot?: pole, widok?: { pole, gdy: 'niepuste' | 'puste' | 'rowne', wartosc? }, szer?: { pole, tryb: 'procent' | 'mm' }, wys?: …, kotwica?: 'srodek' | 'dol' }` – kolor, przesunięcie, obrót (stopnie, wokół środka), widoczność i rozmiar zależne od pola. `kolor_w` dotyczy wypełnienia przejściem kolorów: kolor z pola zastępuje pierwszy albo ostatni kolor przejścia albo całe przejście przechodzi w jego odcienie; bez `kolor_w` (także w starszych projektach) kolor zastępuje całe wypełnienie. Rozmiar: `szer` i `wys` osobno, wartość pola to procent rozmiaru wzoru (100 = bez zmian) albo milimetry; `kotwica` mówi, który punkt zostaje na miejscu (brak = lewy górny róg, `srodek`, `dol` = środek dolnej krawędzi). Tekst zmienia szerokość ramki (i wysokość ramki o stałej wysokości), obraz – ramkę (obraz z kolumny wpisuje się w nią według `pole.tryb`, zwykły ją wypełnia), tabela – kolumny i wiersze, reszta i grupy – skalę; wymiar 0 chowa element. Obraz z kolumny: `pole: { kolumna, tryb?: 'wypelnij', kadr?: 'gora' | 'dol' | 'lewa' | 'prawa' }`. W tekście `{{` i `}}` to zwykłe klamry (w wydruku pojedyncze).
 - Obraz z danych: `pole: { kolumna, tryb?: 'wypelnij', kadr?: 'gora' | 'dol' | 'lewa' | 'prawa', kadr_z?: kolumna }` – `kolumna` podaje nazwę pliku; przy `wypelnij` obraz wypełnia ramkę wzoru z przycięciem. `kadr` mówi, która część zdjęcia zostaje (brak = środek), a `kadr_z` wskazuje kolumnę z kadrem osobnym dla każdego wiersza: słowo (góra, dół, lewa, prawa, środek) albo punkt zdjęcia „x% y%”; pusta albo niezrozumiała wartość zostawia `kadr`.
 - Tekst: `lista` (`'punkty' | 'kreski' | 'numery'`), `ramka_h` (stała wysokość ramki, mm); połączone ramki mają wspólny `watek`, kolejność `watek_nr` i `lacznik` (co stało między częścią poprzedniej ramki a tą).

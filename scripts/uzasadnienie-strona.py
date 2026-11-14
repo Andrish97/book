@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Buduje stronę „Uzasadnienie Seriodruku” z pliku docs/UZASADNIENIE.md.
+"""Buduje stronę „Uzasadnienie Makietki” z pliku docs/UZASADNIENIE.md.
 
 Plik Markdown jest jedynym źródłem treści: strona powstaje z niego w całości, więc nie da się,
 żeby mówiły co innego. Wygląd strony leży w docs/uzasadnienie-szablon.html, a przypisanie zrzutów

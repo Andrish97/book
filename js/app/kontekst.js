@@ -55,6 +55,7 @@ export const trasa = {
       };
     }
     if (rodzaj === 'konto') return { ekran: 'konto' };
+    if (rodzaj === 'zaproszenie' && id) return { ekran: 'zaproszenie', kod: id };
     if (rodzaj === 'u' && id && typ && cel) return { ekran: 'udostepnione', konto: id, projekt: typ, kod: cel };
     return { ekran: 'projekty' };
   },

@@ -9,7 +9,7 @@
 //   zapis.js            płótno ↔ projekt, zapis w przeglądarce i na koncie, cofanie
 //   trasy.js            adresy podstron (#/projekty, #/p/<id>/s/<id strony>…)
 //   logowanie.js        ekran logowania i wylogowanie
-//   projekty.js         ekran „Projekty”, nowy projekt, pliki .seriodruk
+//   projekty.js         ekran „Projekty”, nowy projekt, pliki .makietka
 //   lista-stron.js      lista stron i wzorców, miniatury, operacje na stronach
 //   sekcje.js           okno ustawień sekcji
 //   wzorce.js           operacje na wzorcach
@@ -19,6 +19,7 @@
 //   doczytaj.js         doczytywanie tej części
 
 import './edytor-instancja.js';
+import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { toZaznaczenie } from '../fabric-ustawienia.js';
 import { opisObiektu } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
@@ -538,7 +539,7 @@ Object.assign(window.seriodruk, {
 Object.defineProperty(window.seriodruk, 'oknoPdf', { get: () => oknoPdf, configurable: true });
 
 // Dla reszty aplikacji (js/app/doczytaj.js): to, co wywołuje się spoza edytora.
-export { otworzProjekt, zapiszTeraz, sprawdzKonto } from './zapis.js';
+export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
 export { edytujWzorzec } from './wzorce.js';

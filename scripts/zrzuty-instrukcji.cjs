@@ -607,6 +607,24 @@ if (require.main === module) (async () => {
   await zrzut(d, 'dostep-ai.png');
   await d.click('[data-akcja="dostep-ai-zamknij"]');
 
+  // Współpraca: osoba z dostępem (Bartek edytuje) i świeże zaproszenie dla Oli z linkiem.
+  const bartek = { id: '66666666-6666-4666-8666-666666666666', email: 'bartek.lis@przyklad.pl', haslo: 'Dobre#Haslo6', potwierdzone: true, nazwa: 'Bartek Lis' };
+  bazakp.konta.push(bartek);
+  const idPlanera = await d.evaluate(() => window.seriodruk.stan.projekt.id);
+  bazakp.wspolpracownicy.push({ projekt_id: idPlanera, uzytkownik: bartek.id, rola: 'edycja', zaprosil: bazakp.konta[0].id, dodano: new Date().toISOString() });
+  await d.click('#przycisk-wiecej');
+  await d.click('[data-akcja="wspolpraca"]');
+  await d.waitForSelector('#dlg-wspolpraca[open] #form-zaproszenia:not([hidden])');
+  await d.fill('#wspolpraca-email', 'ola.nowak@przyklad.pl');
+  await d.click('#wspolpraca-zapros');
+  await d.waitForSelector('#wspolpraca-gotowe:not([hidden])');
+  await d.waitForFunction(() => document.querySelectorAll('#wspolpraca-osoby li.osoba').length === 3);
+  await d.waitForTimeout(600);
+  // Zrzut pokazuje adres aplikacji, nie serwera, z którego korzysta skrypt.
+  await d.evaluate(() => { const p = document.querySelector('#wspolpraca-link'); p.value = p.value.replace(`${location.origin}${location.pathname}`, 'https://makietka.app/'); p.scrollLeft = 0; });
+  await zrzut(d, 'wspolpraca.png');
+  await d.click('[data-akcja="wspolpraca-zamknij"]');
+
   // Pusta strona pod kolejne zrzuty: bez serii, bez elementów.
   const pustaStrona = () => d.evaluate(() => {
     const { edytor: e, stan } = window.seriodruk;

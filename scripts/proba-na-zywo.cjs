@@ -13,7 +13,7 @@
 
 const { chromium } = require('playwright');
 const crypto = require('crypto');
-const ADRES = process.argv[2] || 'https://andrish97.github.io/book/';
+const ADRES = process.argv[2] || 'https://makietka.app/';
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 const email = `seriodruk-test-${crypto.randomBytes(5).toString('hex')}@example.com`;
 const haslo = `Tt#9${crypto.randomBytes(8).toString('hex')}`;
@@ -210,6 +210,20 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="udostepnij-zamknij"]');
       return `plik pod starym adresem: ${r}`;
     });
+    await krok('miejsce na koncie: licznik, plan sprzątania, skróty stron (migracja 20261114150000)', async () => {
+      const w = await p.evaluate(async () => {
+        const m = await import('./js/miejsce.js');
+        const stan = await m.miejsce({ swieze: true });
+        const plan = await m.planSprzatania();
+        const sb = await (await import('./js/chmura.js')).supabase();
+        const { data, error } = await sb.from('projekty_strony').select('strona_id, skrot').eq('projekt_id', window.seriodruk.stan.projekt.id);
+        return { stan, plan, skroty: error ? error.message : data.map((x) => x.skrot) };
+      });
+      if (!(w.stan.obrazy > 0) || !(w.stan.pliki_razem >= w.stan.obrazy) || w.stan.limit_plikow !== 1073741824) throw new Error(`miejsce_na_koncie: ${JSON.stringify(w.stan)}`);
+      if (!Array.isArray(w.plan.pliki) || typeof w.plan.ile !== 'number') throw new Error(`plan sprzątania: ${JSON.stringify(w.plan).slice(0, 200)}`);
+      if (!Array.isArray(w.skroty) || !w.skroty.length || !w.skroty.every((x) => /^[0-9a-f]{32}$/.test(x))) throw new Error(`skróty stron: ${JSON.stringify(w.skroty).slice(0, 200)}`);
+      return `obrazy konta ${Math.round(w.stan.obrazy / 1024)} kB, pliki aplikacji ${(w.stan.pliki_razem / 1048576).toFixed(1)} MB z 1 GB, baza ${w.stan.baza_razem ? `${(w.stan.baza_razem / 1048576).toFixed(0)} MB` : '?'}; do posprzątania: ${w.plan.ile}`;
+    });
     await krok('dostęp dla AI: klucz z aplikacji zapisuje zmianę, edytor ją widzi, odebrany klucz przestaje działać', async () => {
       await p.keyboard.press('Escape');
       await p.waitForSelector('#przycisk-wiecej', { state: 'visible' });
@@ -274,7 +288,7 @@ const krok = async (nazwa, fn) => {
         return w.dane.result;
       };
       const init = await wywolaj('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'proba-na-zywo', version: '1' } });
-      if (init.serverInfo?.name !== 'seriodruk') throw new Error(`initialize: ${JSON.stringify(init).slice(0, 200)}`);
+      if (init.serverInfo?.name !== 'makietka') throw new Error(`initialize: ${JSON.stringify(init).slice(0, 200)}`);
       const lista = await wywolaj('tools/list', {});
       if (!lista.tools.some((x) => x.name === 'zmien_elementy')) throw new Error('brak narzędzi na liście');
       if (!lista.tools.some((x) => x.name === 'adres_do_wysylki') || !lista.tools.find((x) => x.name === 'wgraj_obraz')?._meta?.['openai/fileParams']) throw new Error('łącznik bez adres_do_wysylki albo pliki_z_czatu – stara wersja funkcji');

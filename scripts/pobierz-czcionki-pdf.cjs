@@ -76,7 +76,7 @@ const tekstOfl = stary.slice(stary.indexOf('------------------------------------
 if (!tekstOfl.includes('SIL OPEN FONT LICENSE')) throw new Error('W css/czcionki/LICENCJA.txt brakuje tekstu licencji OFL – przywróć plik z repozytorium.');
 const lista = (rodzaj) => prawa.filter((p) => p.rodzaj === rodzaj).map((p) => `  ${p.nazwa}: ${p.prawa}`).join('\n');
 const apache = lista('Apache');
-fs.writeFileSync(plikLicencji, `Zestaw czcionek Seriodruku (pliki .woff2 i .ttf w tym katalogu) pochodzi z Google Fonts.
+fs.writeFileSync(plikLicencji, `Zestaw czcionek Makietki (pliki .woff2 i .ttf w tym katalogu) pochodzi z Google Fonts.
 Wszystkie czcionki wolno używać także w druku komercyjnym. Prawa autorskie i licencje:
 
 Na licencji SIL Open Font License 1.1 (pełny tekst niżej):

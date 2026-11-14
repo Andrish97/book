@@ -6,7 +6,7 @@
 // nie zmienia), więc kolejne otwarcia, także po odświeżeniu strony, są natychmiastowe. Baza nie należy do
 // projektu: nie jest wysyłana na konto ani zapisywana w pliku, można ją w każdej chwili wyczyścić.
 
-const BAZA = 'seriodruk-miniatury';
+const BAZA = 'makietka-miniatury';
 const MAGAZYN = 'miniatury';
 const MAKS_WPISOW = 600; // ok. 10–15 MB; najdawniej używane odpadają
 

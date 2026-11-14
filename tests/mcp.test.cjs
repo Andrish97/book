@@ -1,4 +1,4 @@
-// Serwer MCP (ai/mcp/seriodruk-mcp.mjs) jako osobny proces, połączony z lokalnym serwerem HTTP, który
+// Serwer MCP (ai/mcp/makietka-mcp.mjs) jako osobny proces, połączony z lokalnym serwerem HTTP, który
 // udaje funkcje bazy (tests/atrapa-ai.cjs – te same zasady co migracja). Bez przeglądarki.
 
 const test = require('node:test');
@@ -10,7 +10,7 @@ const { spawn } = require('node:child_process');
 const { createInterface } = require('node:readline');
 const { atrapaAi } = require('./atrapa-ai.cjs');
 
-const SERWER = path.join(__dirname, '..', 'ai', 'mcp', 'seriodruk-mcp.mjs');
+const SERWER = path.join(__dirname, '..', 'ai', 'mcp', 'makietka-mcp.mjs');
 const WLASCICIEL = { id: 'u-1' };
 
 function projektProby() {
@@ -61,7 +61,7 @@ async function srodowisko(t) {
 
   const uruchom = (klucz) => {
     const proc = spawn(process.execPath, [SERWER], {
-      env: { ...process.env, SERIODRUK_KLUCZ: klucz, SERIODRUK_ADRES: `http://127.0.0.1:${http1.address().port}`, SERIODRUK_KLUCZ_PUBLICZNY: 'sb_publishable_test' },
+      env: { ...process.env, MAKIETKA_KLUCZ: klucz, MAKIETKA_ADRES: `http://127.0.0.1:${http1.address().port}`, MAKIETKA_KLUCZ_PUBLICZNY: 'sb_publishable_test' },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     t.after(() => proc.kill());
@@ -94,8 +94,8 @@ test('MCP: rozpoczęcie (stara i nowa wersja protokołu), lista narzędzi, odmow
   const mcp = s.uruchom(s.edycja);
   const init = await mcp.wyslij('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } });
   assert.equal(init.result.protocolVersion, '2025-06-18');
-  assert.equal(init.result.serverInfo.name, 'seriodruk');
-  assert.equal(init.result.serverInfo.title, 'Seriodruk');
+  assert.equal(init.result.serverInfo.name, 'makietka');
+  assert.equal(init.result.serverInfo.title, 'Makietka');
   assert.equal(init.result.serverInfo.icons[0].mimeType, 'image/png');
   assert.ok(init.result.capabilities.tools);
   mcp.proc.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
@@ -111,7 +111,7 @@ test('MCP: rozpoczęcie (stara i nowa wersja protokołu), lista narzędzi, odmow
   const nowy = s.uruchom(s.edycja);
   const odkrycie = await nowy.wyslij('server/discover', nowy.meta);
   assert.ok(odkrycie.result.supportedVersions.includes('2026-07-28'));
-  assert.equal(odkrycie.result._meta['io.modelcontextprotocol/serverInfo'].name, 'seriodruk');
+  assert.equal(odkrycie.result._meta['io.modelcontextprotocol/serverInfo'].name, 'makietka');
   assert.equal(odkrycie.result.ttlMs >= 0, true, 'server/discover: ttlMs (2026-07-28)');
   assert.ok(['public', 'private'].includes(odkrycie.result.cacheScope));
   const listaNowa = (await nowy.wyslij('tools/list', nowy.meta)).result;
@@ -224,7 +224,7 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   const k = await narzedzie('kontrola');
   assert.match(k.tekst, /morze\.jpg/);
   assert.doesNotMatch(k.tekst, /\{kolor\}/);
-  assert.match((await narzedzie('opis_formatu')).tekst, /Seriodruk/);
+  assert.match((await narzedzie('opis_formatu')).tekst, /Makietka/);
   // Ogólne narzędzie: nazwa i widok w jednym zapisie.
   await narzedzie('zmien_projekt', { zmiany: { nazwa: 'Kalendarz 2027', widok: { siatka: true } } });
   assert.equal(s.projekt().projekt.nazwa, 'Kalendarz 2027');
@@ -238,7 +238,7 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   assert.match(odm.tekst, /tylko czytać/);
   // Bez klucza – czytelny błąd zamiast awarii.
   const bez = s.uruchom('');
-  assert.match((await bez.narzedzie('przeglad_projektu')).tekst, /SERIODRUK_KLUCZ/);
+  assert.match((await bez.narzedzie('przeglad_projektu')).tekst, /MAKIETKA_KLUCZ/);
 });
 
 test('MCP: listy pól i stylów zgodne z aplikacją', async () => {
@@ -277,5 +277,5 @@ test('openapi.json dla ChatGPT: poprawny opis funkcji z migracji dostępnych bez
   assert.deepEqual(Object.keys(api.paths['/rest/v1/rpc/ai_zapisz'].post.requestBody.content['application/json'].schema.properties.p_zmiany.properties), czesci);
   assert.equal(api.components.securitySchemes.kluczBazy.name, 'apikey');
   // Odnośniki w opisie wskazują istniejące pliki ai/.
-  for (const [, plik] of JSON.stringify(api).matchAll(/andrish97\.github\.io\/book\/(ai\/[\w./-]+?\.md)/g)) assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), plik);
+  for (const [, plik] of JSON.stringify(api).matchAll(/makietka\.app\/(ai\/[\w./-]+?\.md)/g)) assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), plik);
 });

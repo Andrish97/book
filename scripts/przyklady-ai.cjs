@@ -1,4 +1,4 @@
-// Buduje przykładowe projekty do opisu formatu dla AI (ai/format-seriodruk.md):
+// Buduje przykładowe projekty do opisu formatu dla AI (ai/format-makietka.md):
 //   ai/przyklady/minimalny.json  – jedna strona, tekst i prostokąt;
 //   ai/przyklady/kalendarz.json  – okładka, strona dnia jako seria z tabeli 365 dni z wierszami [pomiń],
 //                                  tabela dodatkowa miesięcy, zdjęcie z danych, wzorzec ze stopką {nr}, tabela.
@@ -35,7 +35,7 @@ const minimalny = {
     id: 's_1', nazwa: 'Strona 1', sekcja: 'sek_a5',
     obiekty: [
       { type: 'rect', id: 'o_tlo', left: 12, top: 12, width: 124, height: 40, fill: '#2f5bd3', strokeWidth: 0 },
-      tekst('o_tytul', 'Witaj w Seriodruku', 18, 22, 112, 22, { fontFamily: 'Playfair Display', fontWeight: 'bold', fill: '#ffffff' }),
+      tekst('o_tytul', 'Witaj w Makietce', 18, 22, 112, 22, { fontFamily: 'Playfair Display', fontWeight: 'bold', fill: '#ffffff' }),
       tekst('o_opis', 'Ten projekt powstał z pliku JSON napisanego ręcznie.', 12, 62, 124, 11),
     ],
   }],

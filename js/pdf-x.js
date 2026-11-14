@@ -93,11 +93,11 @@ export async function dodajPdfX(PDFLib, pdf, druk, { tytul }) {
   <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:pdfxid="http://www.npes.org/pdfx/ns/id/">
    <dc:format>application/pdf</dc:format>
    <dc:title><rdf:Alt><rdf:li xml:lang="x-default">${xml(tytul)}</rdf:li></rdf:Alt></dc:title>
-   <xmp:CreatorTool>${xml(pdf.getCreator() || 'Seriodruk')}</xmp:CreatorTool>
+   <xmp:CreatorTool>${xml(pdf.getCreator() || 'Makietka')}</xmp:CreatorTool>
    <xmp:CreateDate>${data}</xmp:CreateDate>
    <xmp:ModifyDate>${data}</xmp:ModifyDate>
    <xmp:MetadataDate>${data}</xmp:MetadataDate>
-   <pdf:Producer>${xml(pdf.getProducer() || 'Seriodruk')}</pdf:Producer>
+   <pdf:Producer>${xml(pdf.getProducer() || 'Makietka')}</pdf:Producer>
    <pdf:Trapped>False</pdf:Trapped>
    <xmpMM:DocumentID>uuid:${dokument}</xmpMM:DocumentID>
    <xmpMM:InstanceID>uuid:${uuid()}</xmpMM:InstanceID>

@@ -24,7 +24,7 @@ import { normalizuj } from './projekt.js';
 // Części projektu będące listami elementów z identyfikatorem.
 export const LISTY = ['strony', 'wzorce', 'tabele', 'sekcje', 'serie', 'style', 'czcionki'];
 // Pola, które nie biorą udziału w łączeniu (identyfikator, znaczniki zapisu, pliki – te łączą się osobno).
-const POMIJANE = new Set(['id', 'wersja_chmury', 'podstawa_chmury', 'zmieniono', 'miniatura', 'zasoby', 'zasoby_usuniete', 'strony_osobno', ...LISTY]);
+const POMIJANE = new Set(['id', 'wersja_chmury', 'podstawa_chmury', 'wspolpraca_chmury', 'zmieniono', 'miniatura', 'zasoby', 'zasoby_usuniete', 'strony_osobno', ...LISTY]);
 // Ustawienia widoku (siatka, linijki) nie są warte pytania – zostają z tego urządzenia.
 const MOJE_BEZ_PYTANIA = new Set(['widok']);
 

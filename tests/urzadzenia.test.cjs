@@ -1,4 +1,4 @@
-// Tryby urządzeń (js/urzadzenie.js, decyzja #85): atrybuty na <html> dla telefonu, tabletu i komputera,
+// Tryby urządzeń (js/urzadzenie.js, decyzja #91): atrybuty na <html> dla telefonu, tabletu i komputera,
 // zmiana przy obróceniu, oraz kluczowe układy: logowanie bez uciętej góry i bez przewijania w poziomie,
 // edytor na telefonie bez przycisków poza ekranem.
 
