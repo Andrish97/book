@@ -6,6 +6,9 @@ import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
 import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
 import { czyCiemny } from './motyw.js';
+import {
+  ROZDZIALY_START, ROZDZIAL_NARZEDZIA, ROZDZIAL_PANEL, ROZDZIAL_DANE_PRZYKLADY, ROZDZIAL_AI_START, ROZDZIAL_KOMIKS, ROZDZIAL_SLOWNICZEK,
+} from './instrukcja-przewodnik.js';
 
 // Lista pól dokumentu i zapisów liczb – z tych samych tabel, z których korzysta aplikacja.
 function tabelaPol() {
@@ -28,7 +31,7 @@ function tabelaSkrotow() {
 
 const KLUCZ_PRZECZYTANA = 'seriodruk:instrukcja-przeczytana';
 
-export const ROZDZIALY = [
+const PODSTAWOWE = [
   {
     tytul: 'Na początek',
     wstep: 'Makietka służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a aplikacja wstawia do nich dane z arkusza, powiela strony – po jednej na każdy wiersz – i zapisuje gotowy plik PDF do druku.',
@@ -665,14 +668,79 @@ export const ROZDZIALY = [
     html: tabelaSkrotow,
     rada: 'Skróty z literami działają, gdy kursor nie stoi w polu formularza. W trakcie pisania tekstu na stronie działają skróty z grupy „Tekst”.',
   },
-  {
-    tytul: 'Co będzie dalej',
-    wstep: 'Edytor, dane, powielanie stron i eksport do PDF działają. Co jeszcze przed nami:',
-    punkty: [
-      '<b>Własna poczta</b>: wiadomości z potwierdzeniem konta i resetem hasła z własnej domeny.',
-    ],
-  },
 ];
+
+// Grupy spisu treści (decyzja #104) i miejsca rozdziałów „krok po kroku” z js/instrukcja-przewodnik.js.
+const KOLEJNOSC_GRUP = ['Na początek', 'Edytor', 'Strony i układ', 'Dane i serie', 'Obrazy', 'Druk i podgląd', 'AI i współpraca', 'Urządzenia i zapis', 'Na koniec'];
+const GRUPY = {
+  'Na początek': 'Na początek', 'Konto: logowanie i rejestracja': 'Na początek', 'Ustawienia konta': 'Na początek', 'Jasny i ciemny motyw': 'Na początek', 'Nowy projekt': 'Na początek',
+  'Edytor – przegląd': 'Edytor', 'Wstawianie elementów': 'Edytor', 'Tekst i style': 'Edytor', Czcionki: 'Edytor', 'Położenie, wyrównanie, schowek': 'Edytor',
+  'Linie i ostrzeżenia': 'Edytor', 'Siatka, linijki i prowadnice': 'Edytor', 'Odległości i równe odstępy': 'Edytor', Warstwy: 'Edytor', 'Kolumny i przelewanie tekstu': 'Edytor', Tabela: 'Edytor',
+  Strony: 'Strony i układ', Sekcje: 'Strony i układ', Rozkładówki: 'Strony i układ', Wzorce: 'Strony i układ',
+  'Dane: tabele': 'Dane i serie', 'Pola w tekście': 'Dane i serie', 'Serie: powielanie stron': 'Dane i serie', 'Kolor i położenie z danych': 'Dane i serie', 'Ramka tekstu i obrazy z danych': 'Dane i serie',
+  'Obrazy projektu': 'Obrazy',
+  'Eksport do PDF': 'Druk i podgląd', 'Sprawdź przed drukiem': 'Druk i podgląd', Podgląd: 'Druk i podgląd', 'Udostępnianie linkiem': 'Druk i podgląd',
+  Współpraca: 'AI i współpraca', 'Praca z AI': 'AI i współpraca',
+  'Tablet, telefon i instalacja': 'Urządzenia i zapis', 'Zapis, pliki i kilka urządzeń': 'Urządzenia i zapis', 'Skróty klawiszowe': 'Urządzenia i zapis',
+};
+const PO = {
+  'Na początek': ROZDZIALY_START,
+  'Edytor – przegląd': [ROZDZIAL_NARZEDZIA],
+  'Położenie, wyrównanie, schowek': [ROZDZIAL_PANEL],
+  'Ramka tekstu i obrazy z danych': [ROZDZIAL_DANE_PRZYKLADY],
+  'Praca z AI': [ROZDZIAL_AI_START, ROZDZIAL_KOMIKS],
+};
+function zlozRozdzialy() {
+  const lista = [];
+  for (const r of PODSTAWOWE) {
+    lista.push({ grupa: GRUPY[r.tytul] || 'Na koniec', ...r });
+    for (const d of PO[r.tytul] || []) lista.push(d);
+  }
+  lista.push(ROZDZIAL_SLOWNICZEK);
+  const g = (r) => Math.max(0, KOLEJNOSC_GRUP.indexOf(r.grupa));
+  return lista.map((r, i) => [r, i]).sort((a, b) => g(a[0]) - g(b[0]) || a[1] - b[1]).map(([r]) => r);
+}
+export const ROZDZIALY = zlozRozdzialy();
+
+// Tekst rozdziału bez znaczników – do wyszukiwania w spisie.
+const naTekst = (h) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ');
+export function tekstRozdzialu(r) {
+  const czesci = [r.tytul, r.wstep, r.podpis, ...(r.punkty || []), ...(r.kroki || []), r.rada,
+    ...(r.sekcje || []).flatMap((x) => [x.tytul, x.tekst, ...(x.punkty || []), ...(x.kroki || [])]),
+    ...(r.ramki || []).map((x) => x.tekst), ...(r.prompty || []).flatMap((x) => [x.tytul, x.opis])];
+  return naTekst(czesci.filter(Boolean).join(' ')).toLowerCase();
+}
+
+// Treść rozdziału (bez obrazów i nagłówka) – wspólna dla okna; scripts/instrukcja-md.cjs ma swoją wersję w Markdown.
+const escHtml = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function htmlDodatkow(r) {
+  const h = [];
+  if (r.kroki?.length) h.push(`<ol class="punkty kroki">${r.kroki.map((p) => `<li>${p}</li>`).join('')}</ol>`);
+  for (const x of r.sekcje || []) {
+    h.push(`<h4 class="sekcja-instrukcji">${x.tytul}</h4>`);
+    if (x.tekst) h.push(`<p class="akapit">${x.tekst}</p>`);
+    if (x.kroki?.length) h.push(`<ol class="punkty kroki">${x.kroki.map((p) => `<li>${p}</li>`).join('')}</ol>`);
+    if (x.punkty?.length) h.push(`<ul class="punkty">${x.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
+  }
+  for (const x of r.ramki || []) h.push(`<p class="ramka-instrukcji ${x.rodzaj}"><b>${x.rodzaj === 'uwaga' ? 'Uwaga' : 'Wskazówka'}.</b> ${x.tekst}</p>`);
+  (r.prompty || []).forEach((x, i) => {
+    h.push(`<div class="prompt-instrukcji"><div class="prompt-naglowek"><b>${x.tytul}</b><button type="button" class="przycisk" data-kopiuj-prompt="${i}" data-ikona="kopiuj">Kopiuj</button></div>`
+      + `${x.opis ? `<p class="ciche">${x.opis}</p>` : ''}<pre>${escHtml(x.tekst)}</pre></div>`);
+  });
+  if (r.zobacz?.length) h.push(`<p class="zobacz-instrukcji">Zobacz też: ${r.zobacz.map((t) => `<a href="#" data-rozdzial="${t}">${t}</a>`).join(' · ')}</p>`);
+  return h.join('');
+}
+
+async function kopiujTekst(tekst) {
+  try { await navigator.clipboard.writeText(tekst); return true; } catch { /* niżej */ }
+  const t = document.createElement('textarea');
+  t.value = tekst; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+  document.body.append(t); t.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch { ok = false; }
+  t.remove();
+  return ok;
+}
 
 export class Instrukcja {
   constructor() {
@@ -686,15 +754,46 @@ export class Instrukcja {
     this.dalej = document.getElementById('instrukcja-dalej');
     this.indeks = 0;
 
+    this.teksty = ROZDZIALY.map(tekstRozdzialu);
+    let grupa = null;
     ROZDZIALY.forEach((r, i) => {
+      if (r.grupa !== grupa) {
+        grupa = r.grupa;
+        const g = document.createElement('li');
+        g.className = 'grupa-spisu';
+        g.dataset.grupa = grupa;
+        g.textContent = grupa;
+        this.spis.append(g);
+      }
       const li = document.createElement('li');
+      li.dataset.i = i;
+      li.dataset.grupa = grupa;
       const b = document.createElement('button');
       b.type = 'button';
+      b.dataset.i = i;
       b.innerHTML = `<small>${i + 1}</small><span></span>`;
       b.querySelector('span').textContent = r.tytul;
       b.addEventListener('click', () => this.pokaz(i));
       li.append(b);
       this.spis.append(li);
+    });
+    // Wyszukiwarka nad spisem: zostają rozdziały, w których są wszystkie wpisane słowa.
+    this.szukaj = document.getElementById('instrukcja-szukaj');
+    this.szukaj?.addEventListener('input', () => this.filtruj(this.szukaj.value));
+    // Linki do innych rozdziałów i kopiowanie poleceń dla AI.
+    this.tresc.addEventListener('click', async (e) => {
+      const link = e.target.closest('[data-rozdzial]');
+      if (link) { e.preventDefault(); this.otworzRozdzial(link.dataset.rozdzial); return; }
+      const kop = e.target.closest('[data-kopiuj-prompt]');
+      if (kop) {
+        const p = ROZDZIALY[this.indeks]?.prompty?.[Number(kop.dataset.kopiujPrompt)];
+        if (!p) return;
+        const ok = await kopiujTekst(p.tekst);
+        const tekst = kop.lastChild;
+        const przed = tekst.textContent;
+        tekst.textContent = ok ? 'Skopiowano' : 'Zaznacz i skopiuj ręcznie';
+        setTimeout(() => { tekst.textContent = przed; }, 1800);
+      }
     });
     this.wstecz.addEventListener('click', () => this.pokaz(this.indeks - 1));
     this.dalej.addEventListener('click', () => {
@@ -719,6 +818,17 @@ export class Instrukcja {
     this.otworz(Math.max(0, ROZDZIALY.findIndex((r) => r.tytul === tytul)));
   }
 
+  filtruj(zapytanie) {
+    const slowa = String(zapytanie || '').toLowerCase().split(/\s+/).filter(Boolean);
+    const widoczne = new Set();
+    this.spis.querySelectorAll('li[data-i]').forEach((li) => {
+      const tak = slowa.every((s) => this.teksty[Number(li.dataset.i)].includes(s));
+      li.hidden = !tak;
+      if (tak) widoczne.add(li.dataset.grupa);
+    });
+    this.spis.querySelectorAll('li.grupa-spisu').forEach((g) => { g.hidden = !widoczne.has(g.dataset.grupa); });
+  }
+
   zamknij() {
     this.oznaczPrzeczytana(); // od razu – zdarzenie „close” przychodzi z opóźnieniem
     this.dlg.close();
@@ -728,10 +838,10 @@ export class Instrukcja {
     if (i < 0 || i >= ROZDZIALY.length) return;
     this.indeks = i;
     const r = ROZDZIALY[i];
-    this.spis.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-current', String(j === i)));
-    this.spis.children[i].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    this.spis.querySelectorAll('button[data-i]').forEach((b) => b.setAttribute('aria-current', String(Number(b.dataset.i) === i)));
+    this.spis.querySelector(`li[data-i="${i}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
-    const html = [`<h3>${r.tytul}</h3>`, `<p class="wstep">${r.wstep}</p>`];
+    const html = [`<p class="grupa-rozdzialu">${r.grupa}</p>`, `<h3>${r.tytul}</h3>`, `<p class="wstep">${r.wstep}</p>`];
     // Zrzuty są w dwóch kompletach: jasnym i ciemnym – instrukcja pokazuje ten, który pasuje do motywu.
     const katalog = czyCiemny() ? 'img/instrukcja/ciemny/' : 'img/instrukcja/';
     if (r.obraz) {
@@ -742,6 +852,7 @@ export class Instrukcja {
     // Drugi obrazek rozdziału – pod punktami.
     if (r.obraz2) html.push(`<figure><img src="${katalog}${r.obraz2}" alt="${r.podpis2 || ''}" loading="lazy"${r.obraz2Waski ? ' style="max-width:320px"' : ''}>${r.podpis2 ? `<figcaption>${r.podpis2}</figcaption>` : ''}</figure>`);
     if (r.html) html.push(r.html());
+    html.push(htmlDodatkow(r));
     if (r.rada) html.push(`<p class="rada">${r.rada}</p>`);
     this.tresc.innerHTML = html.join('');
     this.tresc.scrollTop = 0;

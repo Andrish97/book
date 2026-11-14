@@ -45,7 +45,7 @@ async function wPrzegladarce(adresStrony) {
       case 'I': case 'EM': return `*${srodek().trim()}*`;
       case 'KBD': case 'CODE': return `\`${wezel.textContent}\``;
       case 'BR': return '  \n';
-      case 'A': return `[${srodek()}](${new URL(wezel.getAttribute('href'), adresStrony).href})`;
+      case 'A': return wezel.dataset.rozdzial ? `${srodek()} (rozdział „${wezel.dataset.rozdzial}”)` : `[${srodek()}](${new URL(wezel.getAttribute('href'), adresStrony).href})`;
       case 'SVG': return '';
       default: return srodek();
     }
@@ -65,15 +65,31 @@ async function wPrzegladarce(adresStrony) {
   };
   const obraz = (plik, podpis) => `![${wiersz(podpis || '')}](${adresStrony}img/instrukcja/${plik})${podpis ? `\n*${wiersz(podpis)}*` : ''}`;
   const czesci = ROZDZIALY.map((r, i) => {
-    const kawalki = [`## ${i + 1}. ${r.tytul}`, wiersz(r.wstep)];
+    const kawalki = [`## ${i + 1}. ${r.tytul}`, r.grupa ? `*${r.grupa}*` : '', wiersz(r.wstep)];
     if (r.obraz) kawalki.push(obraz(r.obraz, r.podpis));
     if (r.punkty?.length) kawalki.push(r.punkty.map((p) => `- ${wiersz(p)}`).join('\n'));
     if (r.obraz2) kawalki.push(obraz(r.obraz2, r.podpis2));
     if (r.html) kawalki.push(blok(r.html()));
+    const numerowane = (lista) => lista.map((p, j) => `${j + 1}. ${wiersz(p)}`).join('\n');
+    if (r.kroki?.length) kawalki.push(numerowane(r.kroki));
+    for (const x of r.sekcje || []) {
+      kawalki.push(`### ${wiersz(x.tytul)}`);
+      if (x.tekst) kawalki.push(wiersz(x.tekst));
+      if (x.kroki?.length) kawalki.push(numerowane(x.kroki));
+      if (x.punkty?.length) kawalki.push(x.punkty.map((p) => `- ${wiersz(p)}`).join('\n'));
+    }
+    for (const x of r.ramki || []) kawalki.push(`> **${x.rodzaj === 'uwaga' ? 'Uwaga' : 'Wskazówka'}.** ${wiersz(x.tekst)}`);
+    for (const x of r.prompty || []) kawalki.push(`### ${x.tytul}${x.opis ? `\n\n${wiersz(x.opis)}` : ''}\n\n\`\`\`text\n${x.tekst}\n\`\`\``);
+    if (r.zobacz?.length) kawalki.push(`Zobacz też: ${r.zobacz.join(' · ')}.`);
     if (r.rada) kawalki.push(`> ${wiersz(r.rada)}`);
     return kawalki.filter(Boolean).join('\n\n');
   });
-  const spis = ROZDZIALY.map((r, i) => `${i + 1}. ${r.tytul}`).join('\n');
+  let grupa = null;
+  const spis = ROZDZIALY.map((r, i) => {
+    const naglowek = r.grupa !== grupa ? `${grupa === null ? '' : '\n'}**${r.grupa}**\n\n` : '';
+    grupa = r.grupa;
+    return `${naglowek}${i + 1}. ${r.tytul}`;
+  }).join('\n');
   return { czesci, spis };
 }
 

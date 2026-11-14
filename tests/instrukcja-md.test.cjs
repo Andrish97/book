@@ -11,8 +11,8 @@ test('instrukcja dla AI (ai/instrukcja.md) jest aktualna i ma wszystkie rozdzia�
   assert.ok(zapisany === md, 'ai/instrukcja.md jest nieaktualny – uruchom: node scripts/instrukcja-md.cjs');
   const rozdzialy = md.match(/^## \d+\. .+$/gm) || [];
   assert.ok(rozdzialy.length >= 30, `rozdziałów: ${rozdzialy.length}`);
-  // Bez znaczników HTML poza komentarzem o pochodzeniu pliku.
-  assert.deepEqual(md.replace(/<!--[\s\S]*?-->/g, '').match(/<\/?[a-z][^>]*>/gi) || [], []);
+  // Bez znaczników HTML poza komentarzem o pochodzeniu pliku i blokami poleceń dla AI (tam <klucz> to miejsce do wpisania).
+  assert.deepEqual(md.replace(/<!--[\s\S]*?-->/g, '').replace(/```text\n[\s\S]*?\n```/g, '').match(/<\/?[a-z][^>]*>/gi) || [], []);
   // Zrzuty wskazują istniejące pliki.
   for (const [, plik] of md.matchAll(/\(https:\/\/makietka\.app\/(img\/instrukcja\/[^)]+)\)/g)) {
     assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), `brak pliku ${plik}`);

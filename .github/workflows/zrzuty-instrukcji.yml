@@ -1,0 +1,74 @@
+name: Zrzuty instrukcji
+
+# Po każdej zmianie wyglądu aplikacji na main robi od nowa zrzuty do instrukcji (img/instrukcja,
+# jasne i ciemne) na atrapie bazy z testów i zapisuje je na main, jeśli się zmieniły. Własny zapis
+# robota nie uruchamia tego workflow drugi raz: pomija go warunek na autora i „[skip ci]”.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "css/**"
+      - "js/**"
+      - "img/ikony/**"
+      - "scripts/zrzuty-instrukcji.cjs"
+      - "tests/pomoc.cjs"
+      - ".github/workflows/zrzuty-instrukcji.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zrzuty-instrukcji
+  cancel-in-progress: true
+
+jobs:
+  zrzuty:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Serwer plików
+        run: |
+          python3 -m http.server 8000 >/dev/null 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:8000/ >/dev/null && break; sleep 1; done
+
+      - name: Zrzuty jasne
+        run: node scripts/zrzuty-instrukcji.cjs http://localhost:8000/
+
+      - name: Zrzuty ciemne
+        run: node scripts/zrzuty-instrukcji.cjs http://localhost:8000/ ciemny
+
+      - name: Zapis zmienionych zrzutów
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/instrukcja
+          if git diff --cached --quiet; then
+            echo "Zrzuty bez zmian."
+            exit 0
+          fi
+          git diff --cached --stat
+          git commit -m "Zrzuty instrukcji: odświeżone po ${GITHUB_SHA::7} [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 10))
+          done
+          exit 1
