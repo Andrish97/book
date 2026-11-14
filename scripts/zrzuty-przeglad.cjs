@@ -626,6 +626,47 @@ const WIDOKI = [
     await s.evaluate(() => { const t = document.querySelector('.konto-tresc'); (t && t.scrollHeight > t.clientHeight ? t : document.scrollingElement).scrollTo(0, 1e6); });
     await czekaj(s, 300);
   }, {}],
+  // Formularz kontaktowy i panel administratora (#95).
+  ['40-kontakt', async (s) => {
+    await s.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); location.hash = '#/projekty'; });
+    await s.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+    await s.click('#awatar');
+    await s.click('#menu-uzytkownika [data-akcja="kontakt"]');
+    await s.waitForSelector('#dlg-kontakt[open]');
+    await s.fill('#kontakt-temat', 'Pytanie o druk');
+    await s.fill('#kontakt-tresc', 'Dzień dobry, czy da się wydrukować kalendarz w formacie A5 z twardą okładką?');
+    await czekaj(s, 400);
+  }, {}],
+  ['41-admin-skrzynka', async (s, baza) => {
+    if (!baza.administratorzy.has(baza.konta[0].id)) {
+      baza.administratorzy.add(baza.konta[0].id);
+      baza.adminPoczta.przyjmij({ od_email: 'jan.kowalski@przyklad.pl', od_nazwa: 'Jan Kowalski', temat: 'Faktura za druk kalendarzy', tekst: 'Dzień dobry,\n\nproszę o fakturę za zamówienie z zeszłego tygodnia.\n\nPozdrawiam, Jan' });
+      baza.adminPoczta.przyjmij({ od_email: 'ola@przyklad.pl', temat: 'Pomysł: szablon tygodniowy', tekst: 'Fajnie byłoby mieć gotowy szablon planera tygodniowego.', zrodlo: 'formularz' });
+      await s.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); });
+      await s.reload();
+      await s.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+    }
+    await s.evaluate(() => { location.hash = '#/admin/skrzynka'; });
+    await s.waitForSelector('#admin-watki li');
+    await s.click('#admin-watki li:first-child button');
+    await s.waitForSelector('#admin-watek .wiadomosc');
+    await czekaj(s, 400);
+  }, {}],
+  ['42-admin-kolejka', async (s) => {
+    await s.evaluate(() => { location.hash = '#/admin/kolejka'; });
+    await s.waitForSelector('#admin-kolejka-pusto, #admin-kolejka li', { state: 'attached' });
+    await czekaj(s, 400);
+  }, {}],
+  ['43-admin-ustawienia', async (s) => {
+    await s.evaluate(() => { location.hash = '#/admin/ustawienia'; });
+    await s.waitForSelector('#admin-odstepy tbody tr');
+    await czekaj(s, 400);
+  }, {}],
+  ['44-admin-statystyki', async (s) => {
+    await s.evaluate(() => { location.hash = '#/admin/statystyki'; });
+    await s.waitForSelector('#admin-wykresy svg');
+    await czekaj(s, 400);
+  }, {}],
 ];
 
 // Widoki przed zalogowaniem (wszystkie stany logowania).

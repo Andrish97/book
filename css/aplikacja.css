@@ -1962,9 +1962,18 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 :root[data-dotyk] .lista-watkow button { min-height: 56px; }
 
 /* Formularz kontaktowy */
-.pulapka { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.pulapka { display: none; } /* boty wypełniają pole z kodu strony; człowiek go nie widzi */
 #dlg-kontakt textarea { min-height: 120px; resize: vertical; }
 .kontakt-turnstile { min-height: 65px; }
 .link-przycisk { all: unset; cursor: pointer; color: var(--akcent); text-decoration: underline; text-underline-offset: 2px; }
 .link-przycisk:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; border-radius: 3px; }
-:root[data-dotyk] .stopka-logowania .link-przycisk { display: inline-block; padding: 10px 4px; }
+:root[data-dotyk] .stopka-logowania .link-przycisk { display: inline-block; padding: 12px 6px; }
+:root[data-dotyk] #ekran-admin .pasek-aplikacji .przycisk-ikona { min-width: 40px; }
+:root[data-dotyk] #admin-szukaj { min-height: 40px; }
+#admin-szukaj {
+  height: 36px; padding: 0 12px; border: 1px solid var(--linia); border-radius: var(--r-m);
+  background: var(--powierzchnia); color: var(--tusz); font: inherit; font-size: 14px;
+}
+#admin-szukaj:focus { outline: 2px solid var(--akcent); outline-offset: -1px; border-color: var(--akcent); }
+#admin-foldery .filtr, #admin-stany .filtr { padding: 0 11px; }
+.lista-kolejki:empty, .lista-watkow:empty { display: none; }
