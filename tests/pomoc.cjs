@@ -48,6 +48,7 @@ function plikZZadania(req) {
   const znacznik = Buffer.from(`--${granica}`);
   let od = 0;
   let plik = null;
+  let cacheControl = null;
   for (;;) {
     const start = cialo.indexOf(znacznik, od);
     if (start < 0) break;
@@ -55,13 +56,14 @@ function plikZZadania(req) {
     const nastepny = cialo.indexOf(znacznik, start + znacznik.length);
     if (koniecNaglowkow < 0 || nastepny < 0) break;
     const naglowki = cialo.subarray(start, koniecNaglowkow).toString();
+    if (/name="cacheControl"/.test(naglowki)) cacheControl = cialo.subarray(koniecNaglowkow + 4, nastepny - 2).toString();
     if (/filename=/.test(naglowki) || /name="?"?;?\s*$/m.test(naglowki) || !plik) {
       const typPliku = /content-type:\s*([^\r\n]+)/i.exec(naglowki)?.[1];
       if (typPliku) plik = { typ: typPliku.trim(), tresc: cialo.subarray(koniecNaglowkow + 4, nastepny - 2) };
     }
     od = nastepny;
   }
-  return plik || { typ, tresc: cialo };
+  return { ...(plik || { typ, tresc: cialo }), ...(cacheControl ? { cacheControl } : {}) };
 }
 
 // Baza trzyma projekt i strony w kolumnach jsonb, a te nie pamiętają kolejności pól: oddają je
@@ -449,7 +451,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       if (m === 'POST' || m === 'PUT') {
         if (!zTokenu(req)) return blad(r, 401, 'JWT', 'unauthorized');
-        stan.pliki.set(klucz, { ...plikZZadania(req), czas: Date.now(), cache: req.headers()['cache-control'] || null });
+        stan.pliki.set(klucz, { ...plikZZadania(req), czas: Date.now() });
         stan.wyslania.push(klucz);
       }
       return json(r, 200, { Key: klucz });
