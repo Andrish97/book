@@ -26,7 +26,7 @@ import { pathToFileURL } from 'node:url';
 // ---------- Wspólny rdzeń (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs) ----------
 
 export const NAZWA = 'makietka';
-export const WERSJA = '1.3.1';
+export const WERSJA = '1.4.0';
 export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
@@ -488,6 +488,49 @@ function wymiaryMiejsca(p, gdzie) {
 // ---------- Pomocnicze operacje na projekcie ----------
 
 const noweId = (prefiks) => `${prefiks}_${globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`;
+
+// Pusty projekt – ten sam, który tworzy w aplikacji okno „Nowy projekt” (js/projekt.js: nowyProjekt, normalizujWydruk;
+// js/style-tekstu.js: domyslneStyle). Test pilnuje zgodności pól.
+export const FORMATY_PROJEKTU = { A4: [210, 297], A5: [148, 210], A6: [105, 148], B5: [176, 250], Kwadrat: [210, 210] };
+const ptMm = (pt) => (pt * 25.4) / 72;
+export function pustyProjekt({ nazwa = 'Nowy projekt', format = 'A5', szerokosc = null, wysokosc = null, orientacja = 'pion', uklad = 'pojedyncze', spad = 3, marginesy = 10 } = {}) {
+  let [w, h] = FORMATY_PROJEKTU[format] || [Number(szerokosc) || 148, Number(wysokosc) || 210];
+  if (orientacja === 'poziom' && h > w) [w, h] = [h, w];
+  if (orientacja === 'pion' && w > h) [w, h] = [h, w];
+  const m = Math.max(0, Number.isFinite(Number(marginesy)) ? Number(marginesy) : 10);
+  const sekcja = {
+    id: noweId('sek'),
+    nazwa: 'Główna',
+    wydruk: {
+      format: FORMATY_PROJEKTU[format] ? format : 'wlasny', szerokosc_mm: Math.max(20, w), wysokosc_mm: Math.max(20, h),
+      spad_mm: Math.max(0, Number.isFinite(Number(spad)) ? Number(spad) : 3), marginesy: { gora: m, dol: m, wewnetrzny: m, zewnetrzny: m }, znaki_ciecia: true,
+    },
+    uklad: uklad === 'rozkladowki' ? 'rozkladowki' : 'pojedyncze',
+    pierwsza: 'prawa',
+    wzorce: [],
+    numeracja: { tryb: 'ciagla', od: 1 },
+  };
+  const podstawa = { fontFamily: 'Inter', fontWeight: 'normal', fontStyle: 'normal', underline: false, linethrough: false, lineHeight: 1.25, charSpacing: 0, fill: '#1a1a1a', textAlign: 'left' };
+  return {
+    wersja: 3,
+    id: globalThis.crypto.randomUUID(),
+    nazwa,
+    sekcje: [sekcja],
+    wzorce: [],
+    style: [
+      { id: noweId('st'), nazwa: 'Tytuł', ...podstawa, fontFamily: 'Playfair Display', fontSize: ptMm(28), fontWeight: 'bold', lineHeight: 1.1 },
+      { id: noweId('st'), nazwa: 'Nagłówek', ...podstawa, fontSize: ptMm(16), fontWeight: 'bold', lineHeight: 1.2 },
+      { id: noweId('st'), nazwa: 'Tekst', ...podstawa, fontSize: ptMm(10.5), lineHeight: 1.35 },
+      { id: noweId('st'), nazwa: 'Podpis', ...podstawa, fontSize: ptMm(8), fill: '#6b6861', charSpacing: 20 },
+    ],
+    tabele: [],
+    serie: [],
+    strony: [{ id: noweId('s'), nazwa: 'Strona 1', sekcja: sekcja.id, wzorce: 'z_sekcji', obiekty: [], tlo: null }],
+    widok: null,
+    zasoby: {},
+    zmieniono: new Date().toISOString(),
+  };
+}
 const kopia = (x) => JSON.parse(JSON.stringify(x));
 
 function znajdz(lista, id, co) {
@@ -567,11 +610,13 @@ function przepiszStyl(projekt, styl, { odepnij = false } = {}) {
 
 const krotko = (t, n = 60) => { const s = String(t ?? '').replace(/\s+/g, ' ').trim(); return s.length > n ? `${s.slice(0, n)}…` : s; };
 
+const opisWaznosci = (d) => (!d || /infinity/i.test(String(d)) ? 'klucz bez terminu' : `klucz ważny do ${d}`);
+
 function przeglad(w) {
   const p = w.projekt;
   const wiersz = (o) => `${o.id} (${o.type}${o.text != null ? `: „${krotko(o.text, 40)}”` : ''}${o.zasob ? `: obraz ${p.zasoby?.[o.zasob]?.nazwa || o.zasob}` : ''}${o.tabela ? ': tabela' : ''})`;
   return [
-    `Projekt „${p.nazwa}” – wersja ${w.wersja}. Dostęp: ${w.dostep.rola === 'edycja' ? 'czytanie i zmiany' : 'tylko czytanie'}, ważny do ${w.dostep.wazny_do}.`,
+    `Projekt „${p.nazwa}” (id ${p.id}) – wersja ${w.wersja}. Dostęp: ${w.dostep.rola === 'edycja' ? 'czytanie i zmiany' : 'tylko czytanie'}, ${opisWaznosci(w.dostep.wazny_do)}.`,
     `Sekcje: ${(p.sekcje || []).map((s) => `${s.id} „${s.nazwa}” ${s.wydruk?.szerokosc_mm}×${s.wydruk?.wysokosc_mm} mm, ${s.uklad || 'pojedyncze'}`).join('; ')}`,
     `Strony (${p.strony.length}, w tej kolejności):`,
     ...p.strony.map((s, i) => `  ${i + 1}. ${s.id} „${s.nazwa || ''}” sekcja=${s.sekcja}${s.seria ? ` seria=${s.seria}` : ''} – ${(s.obiekty || []).map(wiersz).join(', ') || 'pusta'}`),
@@ -641,12 +686,17 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają jeden projekt Makietki (edytor kalendarzy i publikacji z danymi), równolegle z właścicielem, który może mieć go otwartego w edytorze. Zacznij od przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
-export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false }) {
+export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, projekt: wybranyProjekt = null }) {
+  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu };
   const ADRES = String(adres || '').replace(/\/+$/, '');
   const KLUCZ_PUBLICZNY = kluczPubliczny;
-  const KLUCZ = String(klucz || '').trim();
+  // Klucz konta (ustawienia konta → Dostęp dla AI) i – dla narzędzi projektu – wybrany projekt: funkcje bazy ai_*
+  // dostają „klucz/<id projektu>” (migracja 20261114200000_klucze_ai_konta.sql). Bez projektu baza bierze jedyny
+  // projekt klucza albo prosi o wskazanie.
+  const KLUCZ_KONTA = String(klucz || '').trim();
+  const KLUCZ = KLUCZ_KONTA && wybranyProjekt ? `${KLUCZ_KONTA}/${wybranyProjekt}` : KLUCZ_KONTA;
   const BRAK_KLUCZA = brakKlucza;
 
   async function rpc(funkcja, parametry) {
@@ -660,6 +710,32 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     try { dane = tekst ? JSON.parse(tekst) : null; } catch { /* odpowiedź nie-JSON */ }
     if (!odp.ok) throw new BladBazy(`Baza odpowiedziała błędem ${odp.status}: ${dane?.message || tekst.slice(0, 200)}`);
     return dane;
+  }
+
+  async function projektyKlucza() {
+    if (!KLUCZ_KONTA) throw new BladBazy(BRAK_KLUCZA);
+    const w = await rpc('ai_projekty', { p_klucz: KLUCZ_KONTA });
+    if (w?.blad) throw new BladBazy(w.blad);
+    return w; // { dostep, projekty }
+  }
+
+  // Projekt wskazany przez AI: id albo nazwa (bez względu na wielkość liter) z listy projektów klucza.
+  async function jakiProjekt(ktory) {
+    const szukany = String(ktory ?? '').trim();
+    const { projekty } = await projektyKlucza();
+    const poId = projekty.find((x) => x.id === szukany);
+    if (poId) return poId.id;
+    const poNazwie = projekty.filter((x) => String(x.nazwa || '').trim().toLowerCase() === szukany.toLowerCase());
+    if (poNazwie.length === 1) return poNazwie[0].id;
+    const lista = projekty.map((x) => `${x.id} „${x.nazwa}”`).join(', ') || 'brak';
+    if (poNazwie.length > 1) throw new BladBazy(`Kilka projektów nazywa się „${szukany}” – podaj id: ${poNazwie.map((x) => x.id).join(', ')}.`);
+    throw new BladBazy(`Klucz nie prowadzi do projektu „${szukany}”. Projekty: ${lista}.`);
+  }
+
+  // Ten sam serwer dla wskazanego projektu (id albo nazwa) – osobny obiekt, więc równoległe wywołania się nie mieszają.
+  async function dlaProjektu(ktory) {
+    if (ktory === undefined || ktory === null || String(ktory).trim() === '') return null;
+    return utworzSerwer({ ...OPCJE, projekt: await jakiProjekt(ktory) });
   }
 
   async function pobierz() {
@@ -885,7 +961,55 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     return pliki;
   }
 
+  const opisZakresu = (d) => `${d.zakres === 'pelny' ? 'pełny dostęp – wszystkie projekty konta' : 'wybrane projekty'}, ${d.rola === 'edycja' ? 'czyta i zmienia' : 'tylko czyta'}${d.tworzenie ? '; możesz tworzyć i usuwać projekty (nowy_projekt, usun_projekt)' : ''}`;
   const NARZEDZIA = [
+    {
+      name: 'projekty',
+      title: 'Projekty',
+      description: 'Lista projektów, do których prowadzi klucz: id, nazwa, właściciel (Twoje albo udostępnione przez kogoś), czy możesz je zmieniać, ostatnia zmiana. Zacznij od tego – id albo nazwę podajesz potem jako „projekt” w innych narzędziach.',
+      inputSchema: S('', {}),
+      readOnly: true,
+      dzialaj: async () => {
+        const { dostep, projekty } = await projektyKlucza();
+        const linie = projekty.map((x) => `- ${x.id} „${x.nazwa}” – ${x.wlasciciel === 'ja' ? 'Twój' : `udostępnił(a): ${x.wlasciciel}`}, ${x.rola === 'edycja' ? 'możesz zmieniać' : 'tylko czytasz'}, zmieniono ${String(x.zmieniono || '').slice(0, 16).replace('T', ' ')}`);
+        return [`Klucz: ${opisZakresu(dostep)}${dostep.opis ? ` („${dostep.opis}”)` : ''}.`, projekty.length ? `Projekty (${projekty.length}):` : 'Klucz nie prowadzi jeszcze do żadnego projektu.', ...linie].join('\n');
+      },
+    },
+    {
+      name: 'nowy_projekt',
+      title: 'Nowy projekt',
+      description: 'Tworzy nowy, pusty projekt na koncie – jak „Nowy projekt” w aplikacji: jedna sekcja z formatem, marginesami i spadem, jedna pusta strona, standardowe style tekstu. Tylko klucz z pełnym dostępem, który czyta i zmienia. Projekt pojawia się od razu na liście projektów właściciela. Dalej pracuj na nim, podając projekt (id z wyniku).',
+      inputSchema: S('', {
+        nazwa: tekst('Nazwa projektu'),
+        format: { type: 'string', enum: ['A4', 'A5', 'A6', 'B5', 'Kwadrat', 'wlasny'], description: 'Format strony (domyślnie A5); „wlasny” – podaj szerokosc i wysokosc w mm.' },
+        szerokosc: { type: 'number', description: 'mm – tylko dla formatu „wlasny”' },
+        wysokosc: { type: 'number', description: 'mm – tylko dla formatu „wlasny”' },
+        orientacja: { type: 'string', enum: ['pion', 'poziom'] },
+        uklad: { type: 'string', enum: ['pojedyncze', 'rozkladowki'], description: 'Pojedyncze strony albo rozkładówki (marginesy lustrzane).' },
+        spad: { type: 'number', description: 'Spad w mm (domyślnie 3)' },
+        marginesy: { type: 'number', description: 'Marginesy w mm (domyślnie 10)' },
+      }, ['nazwa']),
+      dzialaj: async (a) => {
+        const p = pustyProjekt(a);
+        const { strony, ...dane } = p;
+        const w = await rpc('ai_nowy_projekt', { p_klucz: KLUCZ_KONTA, p_id: p.id, p_nazwa: String(a.nazwa || '').trim(), p_dane: dane, p_strony: strony });
+        if (w?.blad) throw new BladBazy(w.blad);
+        const s = p.sekcje[0];
+        return `Utworzono projekt „${w.nazwa}” (id ${w.id}): ${s.wydruk.szerokosc_mm}×${s.wydruk.wysokosc_mm} mm, ${s.uklad}, spad ${s.wydruk.spad_mm} mm, marginesy ${s.wydruk.marginesy.gora} mm; jedna pusta strona ${strony[0].id}, sekcja ${s.id}. Pracuj na nim z projekt="${w.id}" (zacznij od przeglad_projektu).`;
+      },
+    },
+    {
+      name: 'usun_projekt',
+      title: 'Usuń projekt',
+      description: 'Usuwa cały projekt z konta – nieodwracalnie. Tylko klucz z pełnym dostępem i tylko projekt właściciela klucza (nie udostępniony przez kogoś). ZAWSZE najpierw zapytaj użytkownika wprost, czy usunąć ten projekt; w „potwierdz” podaj dokładną nazwę projektu.',
+      inputSchema: S('', { projekt: tekst('id albo nazwa projektu'), potwierdz: tekst('Dokładna nazwa projektu – potwierdzenie') }, ['projekt', 'potwierdz']),
+      dzialaj: async ({ projekt, potwierdz }) => {
+        const id = await jakiProjekt(projekt);
+        const w = await rpc('ai_usun_projekt', { p_klucz: KLUCZ_KONTA, p_projekt: id, p_potwierdz: potwierdz });
+        if (w?.blad) throw new BladBazy(w.blad);
+        return `Usunięto projekt „${w.nazwa}” (id ${w.usunieto}). Zniknął z listy projektów właściciela; pliki projektu aplikacja posprząta sama.`;
+      },
+    },
     {
       name: 'przeglad_projektu',
       title: 'Przegląd projektu',
@@ -1107,9 +1231,9 @@ ZIP rozpakuj u siebie i wgraj obrazy po kolei. Wgranie niedokończone przez dob�
       description: 'Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Działa tylko, gdy Twoje środowisko już łączy się z hostem adresu (np. własny skrypt użytkownika). Gdy dostajesz błąd sieci (403, zablokowana domena) – nie proś o dopisywanie domen, tylko użyj wgraj_czesciami. Adres zawiera klucz – nie pokazuj go w odpowiedzi.',
       inputSchema: S('', {}),
       readOnly: true,
-      dzialaj: async () => `POST ${ADRES_LACZNIKA}/${KLUCZ}/obraz?nazwa=<nazwa z rozszerzeniem>[&zastap=<id albo nazwa obrazu do podmiany>]
+      dzialaj: async () => `POST ${ADRES_LACZNIKA}/${KLUCZ_KONTA}/obraz?projekt=${(await pobierz()).projekt.id}&nazwa=<nazwa z rozszerzeniem>[&zastap=<id albo nazwa obrazu do podmiany>]
 Treść żądania: bajty pliku (obraz albo ZIP). Odpowiedź JSON: {"wgrane":[{"nazwa","id","szer","wys","byl"}],"opis"} albo {"blad"}.
-Przykład: curl -X POST --data-binary @styczen.jpg "${ADRES_LACZNIKA}/${KLUCZ}/obraz?nazwa=styczen.jpg"
+Przykład: curl -X POST --data-binary @styczen.jpg "${ADRES_LACZNIKA}/${KLUCZ_KONTA}/obraz?projekt=${(await pobierz()).projekt.id}&nazwa=styczen.jpg"
 Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     },
     {
@@ -1357,10 +1481,19 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
   function listaNarzedzi() {
     return NARZEDZIA.map(({ name, title, description, inputSchema, readOnly, meta }) => ({
       name, title, description, ...(meta ? { _meta: meta } : {}),
-      inputSchema: { type: 'object', properties: inputSchema.properties, required: inputSchema.required, additionalProperties: false },
+      inputSchema: {
+        type: 'object',
+        properties: BEZ_PROJEKTU.has(name) ? inputSchema.properties : { projekt: PARAMETR_PROJEKTU, ...inputSchema.properties },
+        required: inputSchema.required,
+        additionalProperties: false,
+      },
       annotations: { readOnlyHint: Boolean(readOnly), destructiveHint: name.startsWith('usun'), openWorldHint: name === 'wgraj_obraz' },
     }));
   }
+
+  // Narzędzia konta (bez parametru „projekt” albo z własnym, jak usun_projekt) – reszta działa na wskazanym projekcie.
+  const BEZ_PROJEKTU = new Set(['projekty', 'nowy_projekt', 'usun_projekt', 'opis_formatu']);
+  const PARAMETR_PROJEKTU = tekst('id albo nazwa projektu (lista: narzędzie projekty); można pominąć, gdy klucz obejmuje jeden projekt.');
 
   async function obsluz(w, stanSesji = {}) {
     if (!w || w.jsonrpc !== '2.0' || typeof w.method !== 'string') {
@@ -1414,7 +1547,14 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         const n = NARZEDZIA.find((x) => x.name === params.name);
         if (!n) return blad(BLEDY.PARAMETRY, `Nieznane narzędzie: ${params.name}`);
         try {
-          const tekstWyniku = await n.dzialaj(params.arguments || {});
+          const argumenty = { ...(params.arguments || {}) };
+          let wykonawca = n;
+          if (!BEZ_PROJEKTU.has(n.name)) {
+            const pod = await dlaProjektu(argumenty.projekt);
+            delete argumenty.projekt;
+            if (pod) wykonawca = pod.narzedzia.find((x) => x.name === n.name);
+          }
+          const tekstWyniku = await wykonawca.dzialaj(argumenty);
           return wynik(zakonczony({ content: [{ type: 'text', text: tekstWyniku }], isError: false }));
         } catch (e) {
           // Błędy wykonania wracają do AI jako wynik z isError – może poprawić wywołanie.
@@ -1427,7 +1567,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     }
   }
 
-  return { obsluz, narzedzia: NARZEDZIA, wgrajBajty };
+  return { obsluz, narzedzia: NARZEDZIA, wgrajBajty, dlaProjektu };
 }
 
 // ---------- Uruchomienie u siebie: konfiguracja ze zmiennych środowiskowych, transport stdio ----------

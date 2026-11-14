@@ -44,8 +44,21 @@ function atrapaAi(stan) {
     return (p.dane.strony || []).map((id) => stan.strony.get(`${p.id}/${id}`)).filter(Boolean).map(kopia);
   };
 
-  function sprawdzKlucz(klucz, edycja) {
-    const m = /^sdk_([0-9a-f]{32})_([A-Za-z0-9_-]{20,100})$/.exec(String(klucz || ''));
+  // Klucz konta (migracja 20261114200000_klucze_ai_konta.sql): zakres 'wybrane' (lista projektów) albo 'pelny';
+  // projekt, na którym działa funkcja, podaje się po ukośniku („sdk_…/<projekt>”).
+  const rolaKonta = (owner, pid) => {
+    const p = stan.projekty.find((x) => x.id === pid);
+    if (!p) return null;
+    if (p.owner_id === owner) return 'wlasciciel';
+    return (stan.wspolpracownicy || []).find((w) => w.projekt_id === pid && w.uzytkownik === owner)?.rola || null;
+  };
+  const projektyKlucza = (d) => [
+    ...stan.projekty.filter((p) => p.owner_id === d.owner_id).map((p) => ({ id: p.id, rola: 'wlasciciel' })),
+    ...(stan.wspolpracownicy || []).filter((w) => w.uzytkownik === d.owner_id && stan.projekty.some((p) => p.id === w.projekt_id)).map((w) => ({ id: w.projekt_id, rola: w.rola })),
+  ].filter((x) => d.zakres === 'pelny' || d.projekty.includes(x.id));
+
+  function kluczKonta(klucz) {
+    const m = /^sdk_([0-9a-f]{32})_([A-Za-z0-9_-]{20,100})(?:\/([A-Za-z0-9-]+))?$/.exec(String(klucz || ''));
     if (!m) return { blad: 'Nieprawidłowy klucz dostępu.' };
     const d = stan.dostepy.find((x) => x.id.replace(/-/g, '') === m[1]);
     if (!d) return { blad: 'Nieprawidłowy klucz dostępu.' };
@@ -55,12 +68,91 @@ function atrapaAi(stan) {
       if (d.nieudane >= 10) d.blokada_do = Date.now() + 15 * 60000;
       return { blad: 'Nieprawidłowy klucz dostępu.' };
     }
-    if (d.odwolany) return { blad: 'Dostęp został odebrany przez właściciela projektu.' };
-    if (new Date(d.wazny_do) <= new Date()) return { blad: 'Klucz dostępu wygasł. Poproś właściciela projektu o nowy.' };
+    if (d.odwolany) return { blad: 'Klucz został odebrany w ustawieniach konta.' };
+    if (d.wazny_do && new Date(d.wazny_do) <= new Date()) return { blad: 'Klucz dostępu wygasł. Utwórz nowy w ustawieniach konta (Dostęp dla AI).' };
     d.nieudane = 0;
     d.ostatnie_uzycie = new Date().toISOString();
-    if (edycja && d.rola !== 'edycja') return { blad: 'Ten klucz pozwala tylko czytać projekt.' };
-    return d;
+    return { d, projekt: m[3] || null };
+  }
+
+  function sprawdzKlucz(klucz, edycja) {
+    const w = kluczKonta(klucz);
+    if (w.blad) return w;
+    const { d } = w;
+    let pid = w.projekt;
+    if (!pid) {
+      const ids = projektyKlucza(d);
+      if (ids.length === 1) pid = ids[0].id;
+      else if (!ids.length) return { blad: 'Ten klucz nie obejmuje żadnego projektu (dodaj projekty w ustawieniach konta albo utwórz projekt narzędziem nowy_projekt).' };
+      else return { blad: 'Ten klucz obejmuje kilka projektów – podaj projekt (lista: narzędzie projekty).' };
+    } else if (d.zakres === 'wybrane' && !d.projekty.includes(pid)) {
+      return { blad: 'Ten klucz nie obejmuje tego projektu – dodasz go w ustawieniach konta (Dostęp dla AI).' };
+    }
+    const r = rolaKonta(d.owner_id, pid);
+    if (!r) return { blad: 'Nie ma takiego projektu albo konto klucza nie ma już do niego dostępu.' };
+    if (edycja && d.rola !== 'edycja') return { blad: 'Ten klucz pozwala tylko czytać projekty.' };
+    if (edycja && r === 'odczyt') return { blad: 'W tym projekcie konto klucza może tylko oglądać (rola nadana przez właściciela projektu).' };
+    return { ...d, projekt_id: pid, rola: d.rola === 'edycja' && r !== 'odczyt' ? 'edycja' : 'odczyt' };
+  }
+
+  function aiProjekty({ p_klucz }) {
+    const w = kluczKonta(p_klucz);
+    if (w.blad) return w;
+    const { d } = w;
+    return {
+      dostep: { rola: d.rola, zakres: d.zakres, opis: d.opis, wazny_do: d.wazny_do, tworzenie: d.zakres === 'pelny' && d.rola === 'edycja' },
+      projekty: projektyKlucza(d).map(({ id, rola }) => {
+        const p = stan.projekty.find((x) => x.id === id);
+        const wl = (stan.konta || []).find((k) => k.id === p.owner_id);
+        return {
+          id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, moja_rola: rola,
+          wlasciciel: rola === 'wlasciciel' ? 'ja' : ((wl?.nazwa || '').trim() || String(wl?.email || 'właściciel').split('@')[0]),
+          rola: d.rola === 'edycja' && rola !== 'odczyt' ? 'edycja' : 'odczyt',
+        };
+      }).sort((a, b) => String(b.zmieniono || '').localeCompare(String(a.zmieniono || ''))),
+    };
+  }
+
+  function aiNowyProjekt({ p_klucz, p_id, p_nazwa, p_dane, p_strony }) {
+    const w = kluczKonta(p_klucz);
+    if (w.blad) return w;
+    const { d } = w;
+    if (d.zakres !== 'pelny' || d.rola !== 'edycja') return { blad: 'Tworzyć projekty może tylko klucz z pełnym dostępem, który czyta i zmienia (ustawienia konta → Dostęp dla AI).' };
+    if (!p_id || stan.projekty.some((p) => p.id === p_id)) return { blad: 'Nieprawidłowy albo zajęty identyfikator projektu.' };
+    if (typeof p_nazwa !== 'string' || !p_nazwa.trim() || p_nazwa.length > 120) return { blad: 'Nazwa projektu: niepusty tekst do 120 znaków.' };
+    if (!p_dane || typeof p_dane !== 'object' || Array.isArray(p_dane)) return { blad: 'Dane projektu muszą być obiektem JSON.' };
+    const ids = identyfikatory(p_strony);
+    const sekcje = identyfikatory(p_dane.sekcje || []);
+    if (!ids || !ids.length) return { blad: 'Projekt musi mieć co najmniej jedną stronę (lista obiektów z niepowtarzalnym „id”).' };
+    if (!sekcje || !sekcje.length) return { blad: 'Projekt musi mieć co najmniej jedną sekcję.' };
+    const zla = p_strony.find((s) => !sekcje.includes(s.sekcja));
+    if (zla) return { blad: `Strona „${zla.id}”: „sekcja” musi wskazywać istniejącą sekcję.` };
+    const teraz = new Date().toISOString();
+    const dane = kopia(p_dane);
+    for (const k of ['strony', 'strony_osobno', 'udostepnienie', 'podstawa_chmury', 'wersja_chmury']) delete dane[k];
+    const p = {
+      id: p_id, owner_id: d.owner_id, nazwa: p_nazwa.trim(), wersja: 1, zmieniono: teraz,
+      dane: { ...dane, id: p_id, nazwa: p_nazwa.trim(), strony: ids, strony_osobno: true, zasoby: {}, zmieniono: teraz },
+    };
+    stan.projekty.push(p);
+    for (const s of p_strony) stan.strony.set(`${p_id}/${s.id}`, kopia(s));
+    stan.oglos?.(p, 'INSERT');
+    return { id: p_id, nazwa: p.nazwa, wersja: 1 };
+  }
+
+  function aiUsunProjekt({ p_klucz, p_projekt, p_potwierdz }) {
+    const w = kluczKonta(p_klucz);
+    if (w.blad) return w;
+    const { d } = w;
+    if (d.zakres !== 'pelny' || d.rola !== 'edycja') return { blad: 'Usuwać projekty może tylko klucz z pełnym dostępem, który czyta i zmienia.' };
+    const p = stan.projekty.find((x) => x.id === p_projekt);
+    if (!p || p.owner_id !== d.owner_id) return { blad: 'Usunąć można tylko własny projekt konta (udostępnionego przez kogoś innego – nie).' };
+    if (String(p_potwierdz || '').trim() !== p.nazwa.trim()) return { blad: `Na potwierdzenie podaj dokładną nazwę projektu: „${p.nazwa}”.` };
+    stan.projekty = stan.projekty.filter((x) => x.id !== p.id);
+    for (const k of [...stan.strony.keys()]) if (k.startsWith(`${p.id}/`)) stan.strony.delete(k);
+    if (stan.wspolpracownicy) stan.wspolpracownicy = stan.wspolpracownicy.filter((x) => x.projekt_id !== p.id);
+    stan.oglos?.(p, 'DELETE');
+    return { usunieto: p.id, nazwa: p.nazwa };
   }
 
   function aiProjekt({ p_klucz }) {
@@ -387,6 +479,9 @@ function atrapaAi(stan) {
   // Funkcje bazy według nazwy; konto – zalogowany właściciel (dla funkcji właściciela).
   return function wywolaj(funkcja, tresc, konto) {
     if (funkcja === 'ai_projekt') return aiProjekt(tresc);
+    if (funkcja === 'ai_projekty') return aiProjekty(tresc);
+    if (funkcja === 'ai_nowy_projekt') return aiNowyProjekt(tresc);
+    if (funkcja === 'ai_usun_projekt') return aiUsunProjekt(tresc);
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
     // Jedno zapytanie z całym dużym plikiem nie mieści się w limicie czasu bazy (rola anon) – tak jak na produkcji.
     if (/^ai_/.test(funkcja) && JSON.stringify(tresc || {}).length > 1.5 * 1024 * 1024) blad(500, 'canceling statement due to statement timeout');
@@ -419,26 +514,46 @@ function atrapaAi(stan) {
       stan.kawalkiPobrane = (stan.kawalkiPobrane || 0) + 1;
       return b.toString('base64');
     }
-    if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai'].includes(funkcja)) return undefined;
+    if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai', 'zmien_dostep_ai'].includes(funkcja)) return undefined;
     if (!konto) blad(401, 'Brak sesji');
+    const projektyZakresu = (zakres, lista) => {
+      if (!['wybrane', 'pelny'].includes(zakres)) blad(400, 'Zakres klucza: wybrane projekty albo pełny dostęp');
+      const ids = [...new Set(lista || [])];
+      if (zakres === 'pelny') return [];
+      if (!ids.length) blad(400, 'Wybierz co najmniej jeden projekt');
+      if (ids.some((x) => !rolaKonta(konto.id, x))) blad(400, 'Nie masz dostępu do któregoś z wybranych projektów');
+      return ids;
+    };
     if (funkcja === 'utworz_dostep_ai') {
-      if (!stan.projekty.some((p) => p.id === tresc.p_projekt && p.owner_id === konto.id)) blad(400, 'Nie ma takiego projektu na tym koncie');
       if (!['odczyt', 'edycja'].includes(tresc.p_rola)) blad(400, 'Nieznana rola dostępu');
-      if (!(tresc.p_dni >= 1 && tresc.p_dni <= 90)) blad(400, 'Ważność dostępu: od 1 do 90 dni');
+      if (tresc.p_dni != null && !(tresc.p_dni >= 1 && tresc.p_dni <= 365)) blad(400, 'Ważność klucza: od 1 do 365 dni albo bez terminu');
+      const zakres = tresc.p_zakres || 'wybrane';
+      const projekty = projektyZakresu(zakres, tresc.p_projekty);
+      if (stan.dostepy.filter((x) => x.owner_id === konto.id && !x.odwolany && (!x.wazny_do || new Date(x.wazny_do) > new Date())).length >= 20) blad(400, 'Masz już 20 aktywnych kluczy – odbierz któryś');
       const id = crypto.randomUUID();
       const sekret = crypto.randomBytes(32).toString('base64url');
-      const wazny_do = new Date(Date.now() + tresc.p_dni * 86400000).toISOString();
+      const wazny_do = tresc.p_dni == null ? null : new Date(Date.now() + tresc.p_dni * 86400000).toISOString();
       stan.dostepy.push({
-        id, projekt_id: tresc.p_projekt, owner_id: konto.id, rola: tresc.p_rola, opis: String(tresc.p_opis || '').trim().slice(0, 120),
+        id, owner_id: konto.id, rola: tresc.p_rola, opis: String(tresc.p_opis || '').trim().slice(0, 120), zakres, projekty,
         wazny_do, utworzono: new Date().toISOString(), ostatnie_uzycie: null, odwolany: null, sekret, nieudane: 0, blokada_do: null,
       });
       return { id, klucz: `sdk_${id.replace(/-/g, '')}_${sekret}`, wazny_do };
     }
     if (funkcja === 'dostepy_ai') {
-      return stan.dostepy.filter((x) => x.projekt_id === tresc.p_projekt && x.owner_id === konto.id).reverse()
-        .map(({ id, opis, rola, wazny_do, utworzono, ostatnie_uzycie, odwolany }) => ({
-          id, opis, rola, wazny_do, utworzono, ostatnie_uzycie, odwolany, aktywny: !odwolany && new Date(wazny_do) > new Date(),
+      return stan.dostepy.filter((x) => x.owner_id === konto.id).reverse()
+        .map(({ id, opis, rola, zakres, projekty, wazny_do, utworzono, ostatnie_uzycie, odwolany }) => ({
+          id, opis, rola, zakres, wazny_do, utworzono, ostatnie_uzycie, odwolany,
+          aktywny: !odwolany && (!wazny_do || new Date(wazny_do) > new Date()),
+          projekty: projekty.map((pid) => stan.projekty.find((p) => p.id === pid)).filter((p) => p && rolaKonta(konto.id, p.id))
+            .map((p) => ({ id: p.id, nazwa: p.nazwa })).sort((a, b) => a.nazwa.localeCompare(b.nazwa)),
         }));
+    }
+    if (funkcja === 'zmien_dostep_ai') {
+      const d = stan.dostepy.find((x) => x.id === tresc.p_id && x.owner_id === konto.id);
+      if (!d) blad(400, 'Nie ma takiego klucza na tym koncie');
+      d.projekty = projektyZakresu(tresc.p_zakres, tresc.p_projekty);
+      d.zakres = tresc.p_zakres;
+      return null;
     }
     const d = stan.dostepy.find((x) => x.id === tresc.p_id && x.owner_id === konto.id);
     if (d && !d.odwolany) d.odwolany = new Date().toISOString();
