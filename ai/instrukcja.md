@@ -18,61 +18,62 @@ Makietka (https://makietka.app/) to edytor publikacji z powtarzanymi stronami �
 **Edytor**
 
 7. Edytor – przegląd
-8. Wstawianie elementów
-9. Tekst i style
-10. Czcionki
-11. Położenie, wyrównanie, schowek
-12. Panel właściwości – przewodnik
-13. Kolumny i przelewanie tekstu
-14. Tabela
-15. Linie i ostrzeżenia
-16. Siatka, linijki i prowadnice
-17. Odległości i równe odstępy
-18. Warstwy
+8. Edytor – każde narzędzie i menu
+9. Wstawianie elementów
+10. Tekst i style
+11. Czcionki
+12. Położenie, wyrównanie, schowek
+13. Panel właściwości – przewodnik
+14. Kolumny i przelewanie tekstu
+15. Tabela
+16. Linie i ostrzeżenia
+17. Siatka, linijki i prowadnice
+18. Odległości i równe odstępy
+19. Warstwy
 
 **Strony i układ**
 
-19. Strony
-20. Sekcje
-21. Rozkładówki
-22. Wzorce
+20. Strony
+21. Sekcje
+22. Rozkładówki
+23. Wzorce
 
 **Dane i serie**
 
-23. Dane: tabele
-24. Pola w tekście
-25. Serie: powielanie stron
-26. Kolor i położenie z danych
-27. Ramka tekstu i obrazy z danych
-28. Dane w praktyce – przykłady krok po kroku
+24. Dane: tabele
+25. Pola w tekście
+26. Serie: powielanie stron
+27. Kolor i położenie z danych
+28. Ramka tekstu i obrazy z danych
+29. Dane w praktyce – przykłady krok po kroku
 
 **Obrazy**
 
-29. Obrazy projektu
+30. Obrazy projektu
 
 **Druk i podgląd**
 
-30. Eksport do PDF
-31. Sprawdź przed drukiem
-32. Podgląd
-33. Udostępnianie linkiem
+31. Eksport do PDF
+32. Sprawdź przed drukiem
+33. Podgląd
+34. Udostępnianie linkiem
 
 **AI i współpraca**
 
-34. Współpraca
-35. Praca z AI
-36. Praca z AI – krok po kroku
-37. Przykład: komiks do druku z AI
+35. Współpraca
+36. Praca z AI
+37. Praca z AI – krok po kroku
+38. Przykład: komiks do druku z AI
 
 **Urządzenia i zapis**
 
-38. Tablet, telefon i instalacja
-39. Zapis, pliki i kilka urządzeń
-40. Skróty klawiszowe
+39. Tablet, telefon i instalacja
+40. Zapis, pliki i kilka urządzeń
+41. Skróty klawiszowe
 
 **Na koniec**
 
-41. Słowniczek
+42. Słowniczek
 
 ## 1. Na początek
 
@@ -186,7 +187,81 @@ Po otwarciu projektu widzisz edytor. Każda rzecz ma swoje miejsce:
 - Górny pasek: powrót do projektów, nazwa projektu (kliknij, żeby ją zmienić), stan zapisu, cofanie, **Wzorce** (szablony wspólnych elementów stron), **Dane** (tabele do pól i serii), **Podgląd**, sekcja i jej format, **pełny ekran**, instrukcja i menu **⋯** (PDF, PNG, sprawdzenie przed drukiem, czcionki, motyw; na wąskim ekranie także pełny ekran).
 - Listy rozwijane, wybór koloru i pola wyboru wyglądają i działają tak samo na każdym urządzeniu – rysuje je aplikacja, nie system. W długiej liście (np. czcionek) wystarczy zacząć pisać: zostają tylko pozycje zawierające wpisany fragment, bez rozróżniania wielkości liter i polskich znaków; `Backspace` cofa, `Esc` czyści szukanie. Wybór koloru ma pole barw, kod koloru, paletę i ostatnio używane kolory.
 
-## 8. Wstawianie elementów
+## 8. Edytor – każde narzędzie i menu
+
+*Edytor*
+
+Spis wszystkich przycisków ekranu edytora, od lewej do prawej i od góry do dołu. Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy – te same nazwy są tutaj.
+
+### Górny pasek
+
+- **← Projekty** – wraca do listy projektów. Niczego nie trzeba zapisywać: każda zmiana zapisuje się sama.
+- **Nazwa projektu** – kliknij, żeby ją zmienić. Obok **stan zapisu**: „Zapisano”, „Zapisywanie…”, „Offline – zapisano na urządzeniu” (zmiany wyślą się same po powrocie internetu) albo błąd zapisu z przyczyną.
+- **Cofnij** (`Ctrl+Z`) i **Ponów** (`Ctrl+Shift+Z`) – jedna historia dla całego projektu: cofa też zmiany stron, sekcji, wzorców i danych, nie tylko elementów na bieżącej stronie.
+- **Wzorce** – okno wspólnych elementów stron (tła, stopki, numery). Otwarty do edycji wzorzec pokazuje u dołu pasek z przyciskiem **Gotowe**, który wraca do stron. Więcej: Wzorce (rozdział „Wzorce”).
+- **Dane** – tabele z danymi do pól i serii. Więcej: Dane: tabele (rozdział „Dane: tabele”).
+- **Podgląd** (`Shift+W`) – cały projekt z podstawionymi danymi i powielonymi stronami, bez edycji. Więcej: Podgląd (rozdział „Podgląd”).
+- **Format** (przycisk z rozmiarem strony, np. „A5”) – ustawienia bieżącej sekcji: format, orientacja, spad, marginesy, rozkładówki. Więcej: Sekcje (rozdział „Sekcje”).
+- **Pełny ekran** (cztery narożniki) – chowa paski przeglądarki; `Esc` wraca.
+- **Instrukcja** (znak zapytania) – to okno.
+- **⋯ Więcej** – menu opisane niżej.
+
+### Menu ⋯ (Więcej)
+
+- **Eksportuj do PDF…** – okno eksportu: zakres stron, spad, znaczniki cięcia, kolory do druku (CMYK). Więcej: Eksport do PDF (rozdział „Eksport do PDF”).
+- **Pobierz bieżącą stronę jako PNG** – obrazek jednej strony, np. do pokazania komuś w wiadomości.
+- **Sprawdź przed drukiem** – lista problemów w całym projekcie (tekst się nie mieści, obraz za słaby, brak danych). Więcej: Sprawdź przed drukiem (rozdział „Sprawdź przed drukiem”).
+- **Obrazy projektu…** – wszystkie wgrane pliki obrazów: wgrywanie, nazwy, podmiana, usuwanie nieużywanych. Więcej: Obrazy projektu (rozdział „Obrazy projektu”).
+- **Czcionki projektu…** – zestaw czcionek i własne pliki czcionek. Więcej: Czcionki (rozdział „Czcionki”).
+- **Współpraca…** – zaproszenia do wspólnej edycji. Więcej: Współpraca (rozdział „Współpraca”).
+- **Jasny / ciemny motyw** – wygląd aplikacji (strona projektu zawsze jest biała jak papier).
+- Na wąskim telefonie w tym menu są też **Wzorce…**, **Dane…**, **Instrukcja** i **Pełny ekran** – na górnym pasku brakuje dla nich miejsca.
+
+### Pasek „Wstaw” nad stroną
+
+- **Tekst** (`T`) – ramka tekstu na środku widoku; od razu można pisać.
+- **Prostokąt** (`R`), **Elipsa** (`E`) – kształty z wypełnieniem i obrysem. Zaokrąglone rogi ustawiasz w części **Kształt** panelu.
+- **Wielokąt albo gwiazda** (`P`) – liczbę boków i gwiazdę ustawiasz w części **Kształt**. Na telefonie ten przycisk jest schowany.
+- **Linia** (`L`) – odcinek; grubość, kreskowanie i zakończenia w części **Linia**.
+- **Obraz** – pyta, skąd: **z urządzenia** (wybór pliku) albo **z obrazów projektu** (to, co już wgrane). Gdy projekt nie ma jeszcze obrazów, od razu otwiera wybór pliku. Obraz można też przeciągnąć z dysku albo wkleić `Ctrl+V`.
+- **Rysowanie odręczne** (`B`) – przeciągaj po stronie jak ołówkiem (ciemna linia 0,6 mm, drżenie ręki jest wygładzane). Każde pociągnięcie to osobny element; kolor i grubość zmienisz potem w panelu. `Esc` albo ponowne kliknięcie przycisku kończy rysowanie.
+- **Pióro** (`N`) – kształt z punktów: kliknięcie stawia punkt narożny, kliknięcie z przeciągnięciem – punkt gładki (łuk). Kliknięcie w pierwszy punkt zamyka kształt, `Enter` albo podwójne kliknięcie kończy kształt otwarty, `Backspace` cofa ostatni punkt, `Esc` porzuca zaczęty kształt.
+- **Tabela** – okno z liczbą **wierszy** i **kolumn**, **najmniejszą wysokością wiersza** i przełącznikiem **Pierwszy wiersz to nagłówek**. Tabela jest jednym elementem; podwójne kliknięcie komórki zaczyna pisanie.
+
+### Prawy dolny róg: linie, siatka, powiększenie
+
+- **Linie pomocnicze** (`W`) – pokazuje albo chowa marginesy, spad, grzbiet i prowadnice. Nie wpływa na wydruk – tych linii nigdy nie ma w PDF.
+- **Siatka, przyciąganie, linijki** – menu z przełącznikami: **Siatka** (`Ctrl+'`), **Przyciągaj do siatki** (`Ctrl+Shift+'`), **Krok siatki** w mm, **Przyciągaj do elementów i pokazuj odległości**, **Linijki** (`Shift+R`), **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** oraz **W rozkładówkach pokazuj jedną stronę**.
+- Prowadnicę wyciągasz z linijki; przeciągnięta poza stronę znika. Przytrzymany `Ctrl` na chwilę wyłącza przyciąganie, przytrzymany `Alt` pokazuje odległości zaznaczonego elementu. Więcej: Siatka, linijki i prowadnice (rozdział „Siatka, linijki i prowadnice”), Odległości i równe odstępy (rozdział „Odległości i równe odstępy”).
+- **− / + i procent** – pomniejsz, powiększ; kliknięcie w procent dopasowuje stronę do okna (`Ctrl+0`). `Ctrl` + kółko myszy powiększa w miejscu kursora, spacja + przeciąganie przesuwa widok.
+
+### Lewy panel: strony, sekcje, wzorce
+
+- **+ Strona** dodaje stronę zaraz za bieżącą (w tej samej sekcji), **+ Sekcja** – nową sekcję z własnym formatem i marginesami.
+- Kliknięcie miniatury przechodzi na stronę. Miniatury przeciąga się, żeby zmienić kolejność.
+- **⋯ na miniaturze strony**: **Zmień nazwę**, **Duplikuj**, **Przesuń wyżej**, **Przesuń niżej**, **Usuń stronę**.
+- **⋯ przy nagłówku sekcji**: **Ustawienia sekcji**, **Dodaj stronę do sekcji**, **Przesuń sekcję wyżej / niżej**, **Usuń sekcję**.
+- **⋯ przy wzorcu** (w oknie Wzorce): **Zmień nazwę**, **Duplikuj**, **Przesuń wyżej** (wzorzec wyżej na liście leży niżej na stronie), **Przesuń niżej**, **Usuń wzorzec**.
+- Strona powielana serią ma na miniaturze znaczek **×N** – tyle razy wyjdzie w wydruku (najechanie pokazuje nazwę serii). **×0** znaczy, że wszystkie jej wiersze są pomijane.
+
+### Prawy panel: Właściwości, Warstwy, Ostrzeżenia
+
+- Przełącznik **Właściwości / Warstwy** u góry panelu. **Właściwości** – ustawienia zaznaczenia (bez zaznaczenia – ustawienia strony); każda część opisana jest w rozdziale Panel właściwości – przewodnik (rozdział „Panel właściwości – przewodnik”). **Warstwy** – lista elementów strony od wierzchu do spodu: Warstwy (rozdział „Warstwy”).
+- Przy nazwie zaznaczonego elementu trzy przyciski: **Kopiuj do schowka** (`Ctrl+C` – wkleisz na tej lub innej stronie), **Duplikuj** (`Ctrl+D`) i **Usuń** (`Delete`).
+- **Ostrzeżenia** na dole panelu: licznik i lista elementów, które wychodzą w margines albo poza spad, nie mieszczą tekstu itp. Kliknięcie pozycji zaznacza element. **Wycisz** – „to celowe”, ostrzeżenie dla tego elementu znika (cofniesz to w części **Inne** elementu). Nagłówek zwija listę.
+
+### Na stronie – myszą i palcem
+
+- Kliknięcie zaznacza element, `Shift`+kliknięcie dokłada kolejny, przeciągnięcie po pustym miejscu zaznacza ramką.
+- Podwójne kliknięcie: w tekście – pisanie, w grupie – wejście do grupy, w komórce tabeli – pisanie w komórce, w kształcie z pióra – edycja punktów, w obrazie – kadrowanie.
+- `Shift` przy przeciąganiu – tylko w poziomie albo pionie (przy obracaniu co 15°). `Alt` przy przeciąganiu – przeciągasz kopię.
+- Element ze wzorca nie da się zaznaczyć na zwykłej stronie – edytujesz go we wzorcu. Telefon i tablet: Tablet, telefon i instalacja (rozdział „Tablet, telefon i instalacja”).
+
+> **Wskazówka.** Nie pamiętasz skrótu? `?` albo `F1` pokazuje listę wszystkich – ta sama lista jest w rozdziale Skróty klawiszowe (rozdział „Skróty klawiszowe”).
+
+Zobacz też: Edytor – przegląd · Panel właściwości – przewodnik · Skróty klawiszowe.
+
+## 9. Wstawianie elementów
 
 *Edytor*
 
@@ -209,7 +284,7 @@ Pasek nad stroną wstawia nowe elementy na stronę.
 ![Kształt narysowany piórem w trakcie edycji punktów: punkty kształtu i uchwyty łuków.](https://makietka.app/img/instrukcja/pioro.png)
 *Kształt narysowany piórem w trakcie edycji punktów: punkty kształtu i uchwyty łuków.*
 
-## 9. Tekst i style
+## 10. Tekst i style
 
 *Edytor*
 
@@ -228,7 +303,7 @@ Właściwości tekstu są w panelu z prawej. Rozmiar czcionki podajesz w punktac
 - Aby zmienić tylko część tekstu, kliknij go dwa razy, zaznacz fragment i użyj tych samych ustawień – panel pokaże „Zmieniasz tylko zaznaczony fragment”.
 - Tekst, który ma się zmieścić w stałym miejscu (np. dane o różnej długości), ustawisz w części **Ramka tekstu**: stała wysokość i zmniejszanie czcionki do zadanego minimum – patrz rozdział **Ramka tekstu i obrazy z danych**.
 
-## 10. Czcionki
+## 11. Czcionki
 
 *Edytor*
 
@@ -246,7 +321,7 @@ Aplikacja ma jeden oficjalny zestaw czcionek – ten sam dla wszystkich projekt�
 - **Własne czcionki** (dodatek, nie musisz z nich korzystać): na końcu listy czcionek w panelu tekstu jest **+ Wgraj własną czcionkę…**. Pliki TTF, OTF, WOFF albo WOFF2, każda odmiana osobno. Wgrana czcionka jest częścią projektu i zostaje też w „Moich czcionkach” – pod ręką w następnych projektach.
 - Do PDF własne czcionki najlepiej wgrywać jako TTF albo OTF, z osobnym plikiem dla każdej odmiany – wtedy tekst jest w pliku prawdziwym tekstem. Czcionki z pliku WOFF2, czcionki zmiennej i kursywy, której czcionka nie ma (przeglądarka pochyla wtedy pismo proste), nie da się osadzić: taki tekst trafia do PDF jako **krzywe** – jest ostry w każdym powiększeniu, ale nie da się go zaznaczyć. Tylko pogrubienie bez własnego pliku i czcionka zmienna w pliku WOFF2 użyta w innej grubości niż podstawowa idą jako obraz. Aplikacja mówi o tym po eksporcie.
 
-## 11. Położenie, wyrównanie, schowek
+## 12. Położenie, wyrównanie, schowek
 
 *Edytor*
 
@@ -273,7 +348,7 @@ Poniżej ustawień wyglądu każdy element ma dokładne położenie i narzędzia
 ![U góry rysunek SVG wstawiony jako obraz, na dole ten sam po rozłożeniu na elementy: napis jest zwykłym tekstem w czcionce z zestawu, a kształt ma inny kolor.](https://makietka.app/img/instrukcja/rysunek-svg.png)
 *U góry rysunek SVG wstawiony jako obraz, na dole ten sam po rozłożeniu na elementy: napis jest zwykłym tekstem w czcionce z zestawu, a kształt ma inny kolor.*
 
-## 12. Panel właściwości – przewodnik
+## 13. Panel właściwości – przewodnik
 
 *Edytor*
 
@@ -355,7 +430,7 @@ Panel po prawej (na telefonie: przycisk **Właściwości** u dołu) pokazuje ust
 
 Zobacz też: Wstawianie elementów · Tekst i style · Położenie, wyrównanie, schowek · Warstwy.
 
-## 13. Kolumny i przelewanie tekstu
+## 14. Kolumny i przelewanie tekstu
 
 *Edytor*
 
@@ -380,7 +455,7 @@ Dłuższy tekst może płynąć przez kilka ramek: to, co nie mieści się w pie
 - Zaznaczaniem łączysz ramki widoczne razem (jedna strona albo rozkładówka); między stronami łączy przycisk „Ciąg dalszy na następnej stronie”. Kopia połączonej ramki i kopia całej strony są zwykłymi, niepołączonymi ramkami. Usunięcie strony nie usuwa płynącego przez nią tekstu – wraca on do ramek na pozostałych stronach.
 - W serii tekst płynie między stronami tego samego powielenia bloku: każde powielenie przelewa swoje dane osobno.
 
-## 14. Tabela
+## 15. Tabela
 
 *Edytor*
 
@@ -405,7 +480,7 @@ Tabela to jeden element strony z wierszami i kolumnami. Wstawiasz ją przyciskie
 - Na telefonie tabelę wstawiasz tym samym przyciskiem, a pisanie w komórce zaczynasz, **stukając w nią dwa razy**. Szerokości kolumn, wiersze i wygląd zmienisz w panelu właściwości.
 - Tabele wstawione w starszej wersji (siatka i osobne ramki tekstu) zostają takie, jak były.
 
-## 15. Linie i ostrzeżenia
+## 16. Linie i ostrzeżenia
 
 *Edytor*
 
@@ -420,7 +495,7 @@ Na stronie widać linie pomocnicze. Nie są drukowane.
 - Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę **Ostrzeżenia**. Jeśli to celowe (np. tło na spad), kliknij **Wycisz**.
 - Linie ukryjesz przyciskiem w prawym dolnym rogu, obok powiększenia.
 
-## 16. Siatka, linijki i prowadnice
+## 17. Siatka, linijki i prowadnice
 
 *Edytor*
 
@@ -439,7 +514,7 @@ Narzędzia do równego układania elementów. Włączasz je w menu pod przyciski
 - Dodanie, przesunięcie i usunięcie prowadnicy cofniesz `Ctrl`+`Z`, jak każdą inną zmianę.
 - Siatka i prowadnice nie są drukowane. Klawisz `W` chowa wszystkie linie pomocnicze.
 
-## 17. Odległości i równe odstępy
+## 18. Odległości i równe odstępy
 
 *Edytor*
 
@@ -454,7 +529,7 @@ Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – 
 - Przytrzymaj `Alt` przy zaznaczonym elemencie, żeby zobaczyć jego odległości także do krawędzi strony.
 - Przyciąganie do elementów wyłączysz w menu z kratką.
 
-## 18. Warstwy
+## 19. Warstwy
 
 *Edytor*
 
@@ -472,7 +547,7 @@ Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wsz
 - Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie **rozwija jej zawartość**: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. **Kliknięcie elementu grupy otwiera grupę i zaznacza ten element** – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka.
 - **Tabelę też rozwiniesz** trójkątem: pod nią stoją jej komórki wierszami – numer „wiersz.kolumna” i początek treści. Kliknięcie komórki na liście **zaczyna w niej pisanie**, tak jak podwójne kliknięcie na stronie; przydaje się w gęstej tabeli i przy małych komórkach. Komórki nie mają własnego oka ani kłódki – ukrywa się i blokuje całą tabelę.
 
-## 19. Strony
+## 20. Strony
 
 *Strony i układ*
 
@@ -488,7 +563,7 @@ Każdą stronę projektujesz osobno. Kolejność miniatur to kolejność stron w
 - Gdy nic nie jest zaznaczone, panel z prawej pokazuje ustawienia strony: nazwę, sekcję, tło, wzorce, serię i prowadnice.
 - Po zmianie kolejności stron w rozkładówkach aplikacja ostrzega, jeśli element leżący przez grzbiet trafił obok innej strony niż przedtem.
 
-## 20. Sekcje
+## 21. Sekcje
 
 *Strony i układ*
 
@@ -504,7 +579,7 @@ Projekt dzieli się na sekcje – części o różnych ustawieniach, np. „Okł
 - **Pierwsza strona sekcji** w rozkładówkach: prawa (jak w książce) albo lewa (od razu pełna rozkładówka). **Wzorce na stronach tej sekcji** wybierają wzorce domyślne sekcji (rozdział **Wzorce**). **Znaki cięcia w pliku PDF** dodaje znaki cięcia na stronach tej sekcji przy eksporcie do drukarni.
 - Stronę przeniesiesz do innej sekcji w jej właściwościach (pole **Sekcja**).
 
-## 21. Rozkładówki
+## 22. Rozkładówki
 
 *Strony i układ*
 
@@ -523,7 +598,7 @@ W sekcji z układem „Rozkładówki” strony tworzą pary: lewa i prawa, jak w
 - **Strony powielane z danych** (serie) też trzymają swoją stronę rozkładówki: przy serii z włączonym **Pilnuj lewej i prawej strony** aplikacja wstawia pustą, białą stronę tam, gdzie strona wypadłaby po przeciwnej stronie – np. gdy dane kończą się na lewej stronie, a prawej już nie ma. Szczegóły są w rozdziale „Serie: powielanie stron”.
 - Na małym ekranie możesz w menu widoku włączyć **W rozkładówkach pokazuj jedną stronę**. Widać wtedy także to, co z **sąsiedniej strony** przechodzi przez grzbiet na tę (np. pas na całą rozkładówkę, także z wzorca) – przycięte do tej strony ze spadem. Takich elementów nie da się tu zaznaczyć ani zmienić; kliknięcie podpowiada przejście do widoku rozkładówki.
 
-## 22. Wzorce
+## 23. Wzorce
 
 *Strony i układ*
 
@@ -542,7 +617,7 @@ Wzorzec to szablon z elementami wspólnymi dla wielu stron – tło, ramka, logo
 - Numer strony: wpisz w tekście wzorca `{nr}`. Pełna lista pól, także liczby rzymskie i odwołania do innych sekcji, jest w rozdziale **Pola w tekście**.
 - Edycję wzorca poznasz po fioletowym pasku nad stroną; **Gotowe** wraca do stron. Na zwykłych stronach elementów wzorca nie da się zaznaczyć ani przesunąć – widać je na liście warstw, a kliknięcie tam otwiera wzorzec.
 
-## 23. Dane: tabele
+## 24. Dane: tabele
 
 *Dane i serie*
 
@@ -567,7 +642,7 @@ Dane do powielanych stron trzymasz w tabelach projektu. Tabela to arkusz: kolumn
 - **Pilnowanie powtórzeń**: znak **≠** przy nazwie kolumny oznacza, że wartości w niej nie powinny się powtarzać (np. tagi, hasła dnia). Powtórzone komórki są podświetlone na czerwono, a przed drukiem aplikacja pokaże, na których stronach ta sama wartość wypada dwa razy. Wielkość liter i zbędne spacje nie mają znaczenia: „Praca”, „praca ” i „PRACA” to ta sama wartość.
 - **Lista dozwolonych wartości**: znak **☰** przy nazwie kolumny otwiera okno, w którym wpisujesz wartości – każdą w osobnym wierszu albo po średniku, np. `praca; dom; wolne`. Przycisk **Usuń listę** ją usuwa. Komórki z inną wartością są podświetlone, przed drukiem aplikacja je wymieni, a w szablonie danych komórki tej kolumny dostają listę rozwijaną.
 
-## 24. Pola w tekście
+## 25. Pola w tekście
 
 *Dane i serie*
 
@@ -618,7 +693,7 @@ Pole to nazwa w nawiasach klamrowych wpisana w zwykły tekst, np. `{dzien}. {mie
 | `{nr:A}` | A, B, C |
 | `{nr:a}` | a, b, c |
 
-## 25. Serie: powielanie stron
+## 26. Serie: powielanie stron
 
 *Dane i serie*
 
@@ -654,7 +729,7 @@ Seria to strona albo kilka sąsiednich stron (blok), które w wydruku powtarzaj�
 - W edytorze blok wygląda zawsze tak samo: strony stoją parami jak na liście stron, niezależnie od tego, od którego miejsca zaczynają się dane. **Sprawdź przed drukiem** wypisuje, na których stronach stoją puste strony. Gdy ustawienie jest wyłączone, a strony bloku wypadają po przeciwnej stronie rozkładówki, ta sama lista ostrzega o tym i mówi, od której strony.
 - Blok o **nieparzystej** liczbie stron (np. jedna strona na dzień) z natury wychodzi na przemian po lewej i po prawej – wzorce z odbiciem lustrzanym ustawiają się wtedy same. W takim bloku ustawienie pilnuje tylko strony **za serią**. Starsze serie mają ustawienie wyłączone, żeby ich wydruk się nie zmienił; włączysz je jednym kliknięciem w oknie serii.
 
-## 26. Kolor i położenie z danych
+## 27. Kolor i położenie z danych
 
 *Dane i serie*
 
@@ -677,7 +752,7 @@ Element może zmieniać kolor, miejsce albo rozmiar na kolejnych powielonych str
 - Na lewych stronach rozkładówki element wzorca z odbiciem lustrzanym przesuwa się lustrzanie – zakładka trafia na zewnętrzny brzeg.
 - Pole, którego aplikacja nie zna, trafia na listę **Ostrzeżenia**, tak jak nieznane pole w tekście.
 
-## 27. Ramka tekstu i obrazy z danych
+## 28. Ramka tekstu i obrazy z danych
 
 *Dane i serie*
 
@@ -695,7 +770,7 @@ Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. 
 - Gdy każde zdjęcie wymaga innego przycięcia, wybierz **Kadr z kolumny**: w tej kolumnie tabeli wpisujesz dla każdego wiersza `góra`, `dół`, `lewa`, `prawa` albo `środek` (można po dwa: `góra lewa`; także bez polskich znaków i po angielsku), albo **punkt zdjęcia w procentach** od lewej i od góry, np. `30% 20%` – kadr ustawi się tak, żeby ten punkt był w środku ramki. Pusta komórka zostawia ustawienie obrazu-wzoru.
 - Pliki obrazów do danych wgrywasz naraz w oknie **⋯ → Obrazy projektu** (przycisk **Wgraj obrazy…**; we właściwościach obrazu jest przycisk **Obrazy projektu…**; na telefonie telefon pokaże galerię). Obrazy wstawione na strony też tam są i też można ich użyć w danych. W tabeli wpisz **nazwę pliku z rozszerzeniem**, np. `las.jpg` – najprościej skopiować ją w oknie (**Kopiuj nazwę** albo zaznacz kilka obrazów i **Kopiuj nazwy**). Rozszerzenie się liczy: `las.jpg` i `las.png` to dwa różne obrazy (wielkość liter nie ma znaczenia). Nazwa bez rozszerzenia działa tylko wtedy, gdy pasuje dokładnie jeden plik – przy kilku strona pokaże brak obrazu, a **Sprawdź przed drukiem** poprosi o dopisanie rozszerzenia.
 
-## 28. Dane w praktyce – przykłady krok po kroku
+## 29. Dane w praktyce – przykłady krok po kroku
 
 *Dane i serie*
 
@@ -770,7 +845,7 @@ Korzystając z łącznika Makietka, w projekcie „<nazwa projektu>”:
 
 Zobacz też: Dane: tabele · Pola w tekście · Serie: powielanie stron · Kolor i położenie z danych · Ramka tekstu i obrazy z danych.
 
-## 29. Obrazy projektu
+## 30. Obrazy projektu
 
 *Obrazy*
 
@@ -793,7 +868,7 @@ Wszystkie obrazy projektu są w jednym miejscu: wstawione na strony (narzędziem
 - Obrazy wgrane w tym czasie przez AI albo na innym urządzeniu pojawiają się w otwartym oknie od razu. Zmiany stron z innego urządzenia czekają, aż zamkniesz okno – tak jak przy każdym innym oknie.
 - AI z łącznikiem Makietka może robić z obrazami to samo co Ty w tym oknie (rozdział „Praca z AI”). Link, który daje AI, żeby wgrać zdjęcia (`…#/p/…/obrazy`), otwiera projekt od razu z tym oknem.
 
-## 30. Eksport do PDF
+## 31. Eksport do PDF
 
 *Druk i podgląd*
 
@@ -821,7 +896,7 @@ Plik PDF do drukarni albo do obejrzenia: wszystkie strony w kolejności wydruku,
 - **Dołącz pliki czcionek użytych w projekcie**: dostaniesz archiwum ZIP z plikiem PDF i folderem `czcionki` ze zwykłymi plikami TTF z oficjalnego zestawu (i z własnymi czcionkami projektu). Opcja zaznacza się sama, gdy plik nie ma czcionek w środku: przy obrazach stron i przy tekście zamienionym na krzywe.
 - **Do sprawdzenia przed drukiem**: na dole okna jest lista uwag do całego projektu (następny rozdział). Uwagi nie blokują eksportu. Długi eksport możesz przerwać przyciskiem **Przerwij**.
 
-## 31. Sprawdź przed drukiem
+## 32. Sprawdź przed drukiem
 
 *Druk i podgląd*
 
@@ -840,7 +915,7 @@ Zanim wyślesz plik do drukarni, aplikacja przegląda cały projekt – już po 
 - **Tabela wychodzi poza stronę**: wiersze tabeli rosną razem z treścią, więc na stronie z dłuższymi danymi tabela może wyjść poza kartkę. Uwaga podaje, na których stronach i o ile milimetrów.
 - Przycisk **Pokaż** przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy – już z danymi tego powielenia, z wyróżnioną kartką. **Otwórz wzór** otwiera w edytorze stronę-wzór z zaznaczonym elementem, żeby od razu go poprawić. Sprawdzanie tekstów w dużym projekcie trwa chwilę – lista uzupełnia się na bieżąco.
 
-## 32. Podgląd
+## 33. Podgląd
 
 *Druk i podgląd*
 
@@ -858,7 +933,7 @@ Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – b
 - Kliknięcie strony otwiera ją w edytorze. **Edytor** albo `Esc` wraca do edycji.
 - **Otwarty podgląd odświeża się sam**, gdy projekt zmieni się gdzie indziej – na innym urządzeniu albo przez asystenta AI. Podgląd zostaje w tym samym miejscu i w tym samym powiększeniu, a od nowa rysują się tylko strony, które wyglądają inaczej. Dzięki temu możesz np. trzymać podgląd na telefonie i patrzeć, jak zmienia się projekt, nad którym pracuje AI.
 
-## 33. Udostępnianie linkiem
+## 34. Udostępnianie linkiem
 
 *Druk i podgląd*
 
@@ -879,7 +954,7 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 - Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.
 - Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.
 
-## 34. Współpraca
+## 35. Współpraca
 
 *AI i współpraca*
 
@@ -899,7 +974,7 @@ Projekt możesz robić razem z innymi osobami – każda na swoim koncie. Zapras
 
 > Zaproszenie przyjmuje osoba, która ma link – także z innego adresu niż ten, na który poszło (np. konto firmowe zamiast prywatnego). W oknie Współpraca zawsze widać, kto naprawdę dołączył, i w każdej chwili można odebrać dostęp.
 
-## 35. Praca z AI
+## 36. Praca z AI
 
 *AI i współpraca*
 
@@ -929,7 +1004,7 @@ Asystent AI (Claude, ChatGPT) może czytać i poprawiać wybrane projekty albo w
 
 > Adres łącznika (z kluczem) trafia do firmy, która prowadzi AI. Dawaj najwęższy zakres i najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Pełny dostęp daj tylko AI, któremu ufasz przy usuwaniu projektów. Przed dużymi zmianami zrób **Eksport** projektu.
 
-## 36. Praca z AI – krok po kroku
+## 37. Praca z AI – krok po kroku
 
 *AI i współpraca*
 
@@ -1004,7 +1079,7 @@ Pisz prosto, po polsku, jeden krok na raz i czekaj, aż powiem, że zrobione.
 
 Zobacz też: Praca z AI · Przykład: komiks do druku z AI · Dane w praktyce – przykłady krok po kroku.
 
-## 37. Przykład: komiks do druku z AI
+## 38. Przykład: komiks do druku z AI
 
 *AI i współpraca*
 
@@ -1040,7 +1115,7 @@ Korzystając z łącznika Makietka, przygotuj ze mną komiks do druku.
 Mój pomysł na komiks: <opisz tutaj bohaterów, historię i nastrój>
 ```
 
-## 38. Tablet, telefon i instalacja
+## 39. Tablet, telefon i instalacja
 
 *Urządzenia i zapis*
 
@@ -1069,7 +1144,7 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 ![Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.](https://makietka.app/img/instrukcja/telefon-zaslonka.png)
 *Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.*
 
-## 39. Zapis, pliki i kilka urządzeń
+## 40. Zapis, pliki i kilka urządzeń
 
 *Urządzenia i zapis*
 
@@ -1096,7 +1171,7 @@ Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na ko
 - Po wdrożeniu nowej wersji aplikacji, gdy masz otwarty projekt, na dole ekranu pojawi się **Jest nowa wersja aplikacji** z przyciskiem **Odśwież** – zmiany zapiszą się przed odświeżeniem. Bez otwartego projektu nowa wersja włącza się sama.
 - Każdy ekran ma własny adres – odświeżenie zostawia Cię w tym samym miejscu, a „Wstecz” w przeglądarce wraca do poprzedniego ekranu.
 
-## 40. Skróty klawiszowe
+## 41. Skróty klawiszowe
 
 *Urządzenia i zapis*
 
@@ -1205,7 +1280,7 @@ Skróty są takie jak w programach do składu i grafiki. `Ctrl` na Macu to `⌘`
 
 > Skróty z literami działają, gdy kursor nie stoi w polu formularza. W trakcie pisania tekstu na stronie działają skróty z grupy „Tekst”.
 
-## 41. Słowniczek
+## 42. Słowniczek
 
 *Na koniec*
 

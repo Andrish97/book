@@ -7,7 +7,7 @@ import { SKROTY, opisKlawiszy } from './skroty.js';
 import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
 import { czyCiemny } from './motyw.js';
 import {
-  ROZDZIALY_START, ROZDZIAL_PANEL, ROZDZIAL_DANE_PRZYKLADY, ROZDZIAL_AI_START, ROZDZIAL_KOMIKS, ROZDZIAL_SLOWNICZEK,
+  ROZDZIALY_START, ROZDZIAL_NARZEDZIA, ROZDZIAL_PANEL, ROZDZIAL_DANE_PRZYKLADY, ROZDZIAL_AI_START, ROZDZIAL_KOMIKS, ROZDZIAL_SLOWNICZEK,
 } from './instrukcja-przewodnik.js';
 
 // Lista pól dokumentu i zapisów liczb – z tych samych tabel, z których korzysta aplikacja.
@@ -685,6 +685,7 @@ const GRUPY = {
 };
 const PO = {
   'Na początek': ROZDZIALY_START,
+  'Edytor – przegląd': [ROZDZIAL_NARZEDZIA],
   'Położenie, wyrównanie, schowek': [ROZDZIAL_PANEL],
   'Ramka tekstu i obrazy z danych': [ROZDZIAL_DANE_PRZYKLADY],
   'Praca z AI': [ROZDZIAL_AI_START, ROZDZIAL_KOMIKS],

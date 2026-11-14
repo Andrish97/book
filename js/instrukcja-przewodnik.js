@@ -74,6 +74,97 @@ export const ROZDZIALY_START = [
   },
 ];
 
+// Każdy przycisk i menu ekranu edytora – nazwy jak w index.html (title, etykiety menu).
+export const ROZDZIAL_NARZEDZIA = {
+  grupa: 'Edytor',
+  tytul: 'Edytor – każde narzędzie i menu',
+  wstep: 'Spis wszystkich przycisków ekranu edytora, od lewej do prawej i od góry do dołu. Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy – te same nazwy są tutaj.',
+  sekcje: [
+    {
+      tytul: 'Górny pasek',
+      punkty: [
+        '<b>← Projekty</b> – wraca do listy projektów. Niczego nie trzeba zapisywać: każda zmiana zapisuje się sama.',
+        '<b>Nazwa projektu</b> – kliknij, żeby ją zmienić. Obok <b>stan zapisu</b>: „Zapisano”, „Zapisywanie…”, „Offline – zapisano na urządzeniu” (zmiany wyślą się same po powrocie internetu) albo błąd zapisu z przyczyną.',
+        '<b>Cofnij</b> (<kbd>Ctrl+Z</kbd>) i <b>Ponów</b> (<kbd>Ctrl+Shift+Z</kbd>) – jedna historia dla całego projektu: cofa też zmiany stron, sekcji, wzorców i danych, nie tylko elementów na bieżącej stronie.',
+        `<b>Wzorce</b> – okno wspólnych elementów stron (tła, stopki, numery). Otwarty do edycji wzorzec pokazuje u dołu pasek z przyciskiem <b>Gotowe</b>, który wraca do stron. Więcej: ${L('Wzorce')}.`,
+        `<b>Dane</b> – tabele z danymi do pól i serii. Więcej: ${L('Dane: tabele')}.`,
+        `<b>Podgląd</b> (<kbd>Shift+W</kbd>) – cały projekt z podstawionymi danymi i powielonymi stronami, bez edycji. Więcej: ${L('Podgląd')}.`,
+        `<b>Format</b> (przycisk z rozmiarem strony, np. „A5”) – ustawienia bieżącej sekcji: format, orientacja, spad, marginesy, rozkładówki. Więcej: ${L('Sekcje')}.`,
+        '<b>Pełny ekran</b> (cztery narożniki) – chowa paski przeglądarki; <kbd>Esc</kbd> wraca.',
+        '<b>Instrukcja</b> (znak zapytania) – to okno.',
+        '<b>⋯ Więcej</b> – menu opisane niżej.',
+      ],
+    },
+    {
+      tytul: 'Menu ⋯ (Więcej)',
+      punkty: [
+        `<b>Eksportuj do PDF…</b> – okno eksportu: zakres stron, spad, znaczniki cięcia, kolory do druku (CMYK). Więcej: ${L('Eksport do PDF')}.`,
+        '<b>Pobierz bieżącą stronę jako PNG</b> – obrazek jednej strony, np. do pokazania komuś w wiadomości.',
+        `<b>Sprawdź przed drukiem</b> – lista problemów w całym projekcie (tekst się nie mieści, obraz za słaby, brak danych). Więcej: ${L('Sprawdź przed drukiem')}.`,
+        `<b>Obrazy projektu…</b> – wszystkie wgrane pliki obrazów: wgrywanie, nazwy, podmiana, usuwanie nieużywanych. Więcej: ${L('Obrazy projektu')}.`,
+        `<b>Czcionki projektu…</b> – zestaw czcionek i własne pliki czcionek. Więcej: ${L('Czcionki')}.`,
+        `<b>Współpraca…</b> – zaproszenia do wspólnej edycji. Więcej: ${L('Współpraca')}.`,
+        '<b>Jasny / ciemny motyw</b> – wygląd aplikacji (strona projektu zawsze jest biała jak papier).',
+        'Na wąskim telefonie w tym menu są też <b>Wzorce…</b>, <b>Dane…</b>, <b>Instrukcja</b> i <b>Pełny ekran</b> – na górnym pasku brakuje dla nich miejsca.',
+      ],
+    },
+    {
+      tytul: 'Pasek „Wstaw” nad stroną',
+      punkty: [
+        '<b>Tekst</b> (<kbd>T</kbd>) – ramka tekstu na środku widoku; od razu można pisać.',
+        '<b>Prostokąt</b> (<kbd>R</kbd>), <b>Elipsa</b> (<kbd>E</kbd>) – kształty z wypełnieniem i obrysem. Zaokrąglone rogi ustawiasz w części <b>Kształt</b> panelu.',
+        '<b>Wielokąt albo gwiazda</b> (<kbd>P</kbd>) – liczbę boków i gwiazdę ustawiasz w części <b>Kształt</b>. Na telefonie ten przycisk jest schowany.',
+        '<b>Linia</b> (<kbd>L</kbd>) – odcinek; grubość, kreskowanie i zakończenia w części <b>Linia</b>.',
+        '<b>Obraz</b> – pyta, skąd: <b>z urządzenia</b> (wybór pliku) albo <b>z obrazów projektu</b> (to, co już wgrane). Gdy projekt nie ma jeszcze obrazów, od razu otwiera wybór pliku. Obraz można też przeciągnąć z dysku albo wkleić <kbd>Ctrl+V</kbd>.',
+        '<b>Rysowanie odręczne</b> (<kbd>B</kbd>) – przeciągaj po stronie jak ołówkiem (ciemna linia 0,6 mm, drżenie ręki jest wygładzane). Każde pociągnięcie to osobny element; kolor i grubość zmienisz potem w panelu. <kbd>Esc</kbd> albo ponowne kliknięcie przycisku kończy rysowanie.',
+        '<b>Pióro</b> (<kbd>N</kbd>) – kształt z punktów: kliknięcie stawia punkt narożny, kliknięcie z przeciągnięciem – punkt gładki (łuk). Kliknięcie w pierwszy punkt zamyka kształt, <kbd>Enter</kbd> albo podwójne kliknięcie kończy kształt otwarty, <kbd>Backspace</kbd> cofa ostatni punkt, <kbd>Esc</kbd> porzuca zaczęty kształt.',
+        '<b>Tabela</b> – okno z liczbą <b>wierszy</b> i <b>kolumn</b>, <b>najmniejszą wysokością wiersza</b> i przełącznikiem <b>Pierwszy wiersz to nagłówek</b>. Tabela jest jednym elementem; podwójne kliknięcie komórki zaczyna pisanie.',
+      ],
+    },
+    {
+      tytul: 'Prawy dolny róg: linie, siatka, powiększenie',
+      punkty: [
+        '<b>Linie pomocnicze</b> (<kbd>W</kbd>) – pokazuje albo chowa marginesy, spad, grzbiet i prowadnice. Nie wpływa na wydruk – tych linii nigdy nie ma w PDF.',
+        '<b>Siatka, przyciąganie, linijki</b> – menu z przełącznikami: <b>Siatka</b> (<kbd>Ctrl+\'</kbd>), <b>Przyciągaj do siatki</b> (<kbd>Ctrl+Shift+\'</kbd>), <b>Krok siatki</b> w mm, <b>Przyciągaj do elementów i pokazuj odległości</b>, <b>Linijki</b> (<kbd>Shift+R</kbd>), <b>Zablokuj prowadnice</b>, <b>Usuń prowadnice z tej strony</b> oraz <b>W rozkładówkach pokazuj jedną stronę</b>.',
+        `Prowadnicę wyciągasz z linijki; przeciągnięta poza stronę znika. Przytrzymany <kbd>Ctrl</kbd> na chwilę wyłącza przyciąganie, przytrzymany <kbd>Alt</kbd> pokazuje odległości zaznaczonego elementu. Więcej: ${L('Siatka, linijki i prowadnice')}, ${L('Odległości i równe odstępy')}.`,
+        '<b>− / + i procent</b> – pomniejsz, powiększ; kliknięcie w procent dopasowuje stronę do okna (<kbd>Ctrl+0</kbd>). <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora, spacja + przeciąganie przesuwa widok.',
+      ],
+    },
+    {
+      tytul: 'Lewy panel: strony, sekcje, wzorce',
+      punkty: [
+        '<b>+ Strona</b> dodaje stronę zaraz za bieżącą (w tej samej sekcji), <b>+ Sekcja</b> – nową sekcję z własnym formatem i marginesami.',
+        'Kliknięcie miniatury przechodzi na stronę. Miniatury przeciąga się, żeby zmienić kolejność.',
+        '<b>⋯ na miniaturze strony</b>: <b>Zmień nazwę</b>, <b>Duplikuj</b>, <b>Przesuń wyżej</b>, <b>Przesuń niżej</b>, <b>Usuń stronę</b>.',
+        '<b>⋯ przy nagłówku sekcji</b>: <b>Ustawienia sekcji</b>, <b>Dodaj stronę do sekcji</b>, <b>Przesuń sekcję wyżej / niżej</b>, <b>Usuń sekcję</b>.',
+        '<b>⋯ przy wzorcu</b> (w oknie Wzorce): <b>Zmień nazwę</b>, <b>Duplikuj</b>, <b>Przesuń wyżej</b> (wzorzec wyżej na liście leży niżej na stronie), <b>Przesuń niżej</b>, <b>Usuń wzorzec</b>.',
+        'Strona powielana serią ma na miniaturze znaczek <b>×N</b> – tyle razy wyjdzie w wydruku (najechanie pokazuje nazwę serii). <b>×0</b> znaczy, że wszystkie jej wiersze są pomijane.',
+      ],
+    },
+    {
+      tytul: 'Prawy panel: Właściwości, Warstwy, Ostrzeżenia',
+      punkty: [
+        `Przełącznik <b>Właściwości / Warstwy</b> u góry panelu. <b>Właściwości</b> – ustawienia zaznaczenia (bez zaznaczenia – ustawienia strony); każda część opisana jest w rozdziale ${L('Panel właściwości – przewodnik')}. <b>Warstwy</b> – lista elementów strony od wierzchu do spodu: ${L('Warstwy')}.`,
+        'Przy nazwie zaznaczonego elementu trzy przyciski: <b>Kopiuj do schowka</b> (<kbd>Ctrl+C</kbd> – wkleisz na tej lub innej stronie), <b>Duplikuj</b> (<kbd>Ctrl+D</kbd>) i <b>Usuń</b> (<kbd>Delete</kbd>).',
+        '<b>Ostrzeżenia</b> na dole panelu: licznik i lista elementów, które wychodzą w margines albo poza spad, nie mieszczą tekstu itp. Kliknięcie pozycji zaznacza element. <b>Wycisz</b> – „to celowe”, ostrzeżenie dla tego elementu znika (cofniesz to w części <b>Inne</b> elementu). Nagłówek zwija listę.',
+      ],
+    },
+    {
+      tytul: 'Na stronie – myszą i palcem',
+      punkty: [
+        'Kliknięcie zaznacza element, <kbd>Shift</kbd>+kliknięcie dokłada kolejny, przeciągnięcie po pustym miejscu zaznacza ramką.',
+        'Podwójne kliknięcie: w tekście – pisanie, w grupie – wejście do grupy, w komórce tabeli – pisanie w komórce, w kształcie z pióra – edycja punktów, w obrazie – kadrowanie.',
+        '<kbd>Shift</kbd> przy przeciąganiu – tylko w poziomie albo pionie (przy obracaniu co 15°). <kbd>Alt</kbd> przy przeciąganiu – przeciągasz kopię.',
+        `Element ze wzorca nie da się zaznaczyć na zwykłej stronie – edytujesz go we wzorcu. Telefon i tablet: ${L('Tablet, telefon i instalacja')}.`,
+      ],
+    },
+  ],
+  ramki: [
+    { rodzaj: 'wskazowka', tekst: `Nie pamiętasz skrótu? <kbd>?</kbd> albo <kbd>F1</kbd> pokazuje listę wszystkich – ta sama lista jest w rozdziale ${L('Skróty klawiszowe')}.` },
+  ],
+  zobacz: ['Edytor – przegląd', 'Panel właściwości – przewodnik', 'Skróty klawiszowe'],
+};
+
 export const ROZDZIAL_PANEL = {
   grupa: 'Edytor',
   tytul: 'Panel właściwości – przewodnik',
