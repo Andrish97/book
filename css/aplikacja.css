@@ -1829,3 +1829,14 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 .miejsce-ostrzezenie { margin: 0; padding: 10px 12px; border-radius: var(--r-m, 8px); background: var(--uwaga-tlo); color: var(--uwaga); font-size: 13.5px; line-height: 1.45; }
 #miejsce-baza { margin: 0; font-size: 12.5px; }
 @media (prefers-reduced-motion: reduce) { .miejsce-pasek span { transition: none; } }
+
+/* Menu w niskim oknie (telefon 320×568: menu ⋯ urosło o „Współpraca…”) – nie dłuższe niż ekran, reszta się przewija. */
+#menu-wiecej, #menu-uzytkownika { max-height: calc(100svh - 64px); overflow-y: auto; overscroll-behavior: contain; }
+
+/* Kropki legendy „Miejsce” w ustawieniach konta: ogólna klasa .kropka (znacznik ostrzeżeń) ustawiała je
+   absolutnie – na telefonie lądowały u góry ekranu, nad tytułem paska. */
+.miejsce-legenda .kropka { position: static; inset: auto; transform: none; margin: 0; flex: none; }
+
+/* Pasek podglądu na telefonie: przybliża się palcami (#84), więc − i + ustępują miejsca tytułowi
+   (na 320 px zostawało z niego „K…”); stuknięcie w procent dopasowuje stronę jak dotąd. */
+:root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-minus"], :root[data-dotyk][data-kompakt] .pasek-podgladu [data-akcja="podglad-plus"] { display: none; }
