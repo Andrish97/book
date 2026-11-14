@@ -71,15 +71,15 @@ test('limity: projekty konta (Nowy projekt, Duplikuj), miejsce konta przy wysył
   await strona.waitForFunction(() => /nie ma już miejsca/.test(document.querySelector('#stan-zapisu')?.title + document.querySelector('#stan-zapisu')?.textContent + (document.querySelector('#powiadomienie')?.textContent || '')), null, { timeout: 15000 });
   baza.limitKonta = null;
 
-  // Obrazy w projekcie: limit z obrazy-wspolne.js (300) – sprawdzane przy dodawaniu.
+  // Obrazy w projekcie: limit z obrazy-wspolne.js (1000) – sprawdzane przy dodawaniu.
   const komunikat = await strona.evaluate(async () => {
     const { dodajPlik, obrazyProjektu } = await import('./js/obrazy-projektu.js');
     const p = window.seriodruk.stan.projekt;
     const zasoby = { ...p.zasoby };
-    for (let i = obrazyProjektu(p).length; i < 300; i += 1) p.zasoby[`z_test${i}`] = { nazwa: `t${i}.png`, typ: 'image/png' };
+    for (let i = obrazyProjektu(p).length; i < 1000; i += 1) p.zasoby[`z_test${i}`] = { nazwa: `t${i}.png`, typ: 'image/png' };
     try { await dodajPlik(p, new Blob(['x'], { type: 'image/png' }), 'ponad.png'); return null; } catch (e) { return e.message; } finally { p.zasoby = zasoby; }
   });
-  assert.match(komunikat, /300 obrazów – to limit jednego projektu/);
+  assert.match(komunikat, /1000 obrazów – to limit jednego projektu/);
   assert.deepEqual(bledy.filter((b) => !/nie ma już miejsca|413/.test(b)), []);
 });
 
@@ -103,8 +103,8 @@ test('panel użycia konta: paski limitów, projekty z plikami i obrazami, „Pok
   assert.match(tekst, /Kalendarz z obrazami/);
   assert.match(tekst, /2 obrazy/);
   assert.match(tekst, /kB/);
-  assert.match(await strona.textContent('#uzycie-paski'), /Projekty1 z 30/);
-  assert.match(await strona.textContent('#uzycie-paski'), /2 z 300/);
+  assert.match(await strona.textContent('#uzycie-paski'), /Projekty1 z 100/);
+  assert.match(await strona.textContent('#uzycie-paski'), /2 z 1000/);
   assert.match(await strona.textContent('#uzycie-dodatki'), /klucze AI: 0/);
   assert.ok(await strona.locator('#uzycie-u-innych').isVisible(), 'projekty innych osobno');
   await strona.click('#uzycie-u-innych summary');

@@ -184,5 +184,5 @@ export async function skrotSha256(bajty) {
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
 // Najwięcej obrazów w jednym projekcie (limit konta, decyzja #92; ta sama wartość w bazie: limity_aplikacji()).
-export const LIMIT_OBRAZOW_W_PROJEKCIE = 300;
+export const LIMIT_OBRAZOW_W_PROJEKCIE = 1000;
 // WSPOLNE-KONIEC

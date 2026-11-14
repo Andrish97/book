@@ -1866,3 +1866,10 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
   .uzycie-akcje { justify-content: stretch; }
   .uzycie-akcje .przycisk { flex: 1 1 0; }
 }
+
+/* ---------- Podpowiedzi na telefonie (js/podpowiedzi.js, #96) ----------
+   Podpowiedzi o klawiaturze nie mają sensu na dotyku; długie zwijają się na telefonie do dwóch linii. */
+:root[data-dotyk] .podpowiedz-klawisze { display: none; }
+:root[data-urzadzenie="telefon"] .podpowiedz-zwijana:not(.rozwinieta) {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden; cursor: pointer;
+}

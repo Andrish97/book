@@ -42,10 +42,10 @@ test('ustawienia konta: licznik miejsca, ostrzeżenie przy 80%, „Posprzątaj�
   baza.obrazyAi.set('porzucone', { projekt_id: p.id, owner_id: KONTO, rozmiar: 10, dane: Buffer.alloc(10000), gotowy: false, utworzono: DAWNO });
 
   await strona.evaluate(() => { location.hash = '#/konto'; });
-  await strona.waitForFunction(() => /z 10 GB/.test(document.querySelector('#miejsce-razem').textContent));
+  await strona.waitForFunction(() => /z 50 GB/.test(document.querySelector('#miejsce-razem').textContent));
   // Konto wobec własnego limitu (R2, #92) i limity w jednym zdaniu.
-  assert.match(await strona.textContent('#miejsce-konto'), /z 500 MB/);
-  assert.match(await strona.textContent('#miejsce-limity'), /Projekty: \d+ z 30\. Jeden plik – najwyżej 25 MB/);
+  assert.match(await strona.textContent('#miejsce-konto'), /z 2 GB/);
+  assert.match(await strona.textContent('#miejsce-limity'), /Projekty: \d+ z 100\. Jeden plik – najwyżej 50 MB/);
   assert.match(await strona.textContent('#miejsce-obrazy'), /kB|MB/);
   assert.match(await strona.textContent('#miejsce-czcionki'), /39 kB|40 kB/);
   assert.ok(await strona.isHidden('#miejsce-ostrzezenie'), 'mało zajęte – bez ostrzeżenia');

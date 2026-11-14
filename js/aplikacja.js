@@ -14,6 +14,7 @@ import { przelaczMotyw } from './motyw.js';
 import { wlaczWlasneKontrolki } from './kontrolki.js';
 import { wlaczDymki } from './dymki.js';
 import { wlaczZaslonki } from './zaslonki.js';
+import { wlaczPodpowiedzi } from './podpowiedzi.js';
 import { zaladujCzcionki } from './czcionki.js';
 import { stan, trasa, ustawPanel, pokazEkran, edytor } from './app/kontekst.js';
 import {
@@ -260,6 +261,7 @@ wlaczWlasneKontrolki();
 wlaczDymki();
 // Okna dialogowe na telefonie i tablecie wyjeżdżają od dołu jako zasłonki z uchwytem (js/zaslonki.js).
 wlaczZaslonki();
+wlaczPodpowiedzi();
 
 start().catch((e) => {
   console.error(e);

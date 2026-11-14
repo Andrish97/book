@@ -19,7 +19,7 @@ export const CEL = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
 const MB = 1024 * 1024;
 // Pliki jednego konta (obrazy, czcionki, obrazy stron linków), jeden plik, cały darmowy próg R2.
-export const LIMITY = { konto: 500 * MB, plik: 25 * MB, razem: 10 * 1024 * MB };
+export const LIMITY = { konto: 2 * 1024 * MB, plik: 50 * MB, razem: 50 * 1024 * MB };
 const ZRODLA = [/^https:\/\/(www\.)?makietka\.app$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
 const ROK = 'private, max-age=31536000, immutable';
 const DWA_DNI_MS = 2 * 24 * 3600 * 1000;

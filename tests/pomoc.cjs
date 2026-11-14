@@ -70,9 +70,9 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
       baza_razem: stan.bazaBajty ?? 12 * 1024 * 1024,
       limit_bazy: 524288000,
       projekty: stan.projekty.filter((pr) => pr.owner_id === k.id).length,
-      limit_projektow: stan.limitProjektow ?? 30,
-      osoby_w_projekcie: 10,
-      obrazy_w_projekcie: 300,
+      limit_projektow: stan.limitProjektow ?? 100,
+      osoby_w_projekcie: 20,
+      obrazy_w_projekcie: 1000,
     };
   }
   if (funkcja === 'pliki_miejsce') {
@@ -91,9 +91,9 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
     return {
       projekty,
       obrazy, czcionki, podglady, plikow: moje.length, konto: obrazy + czcionki + podglady,
-      limit_konta: stan.limitKonta || 500 * 1024 * 1024, limit_pliku: stan.limitPliku || 25 * 1024 * 1024,
+      limit_konta: stan.limitKonta || 2 * 1024 * 1024 * 1024, limit_pliku: stan.limitPliku || 50 * 1024 * 1024,
       pliki_razem: [...stan.pliki].filter(([klucz]) => /^(zasoby|podglady)\//.test(klucz)).reduce((n, [, p]) => n + rozmiarPliku(p), 0) + (stan.inneKontaBajty || 0),
-      limit_plikow: stan.limitPlikow || 10 * 1024 * 1024 * 1024,
+      limit_plikow: stan.limitPlikow || 50 * 1024 * 1024 * 1024,
     };
   }
   if (funkcja === 'pliki_osierocone') {
@@ -562,11 +562,11 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (m === 'DELETE') { stan.pliki.delete(klucz); return odp(200, { usuniete: 1 }); }
       if (m === 'PUT') {
         const dane = req.postDataBuffer() || Buffer.alloc(0);
-        if (dane.length > (stan.limitPliku || 25 * 1024 * 1024)) return odp(413, { blad: 'Plik jest za duży (najwyżej 25 MB).', kod: 'limit_pliku' });
+        if (dane.length > (stan.limitPliku || 50 * 1024 * 1024)) return odp(413, { blad: 'Plik jest za duży (najwyżej 50 MB).', kod: 'limit_pliku' });
         const wlasciciel = reszta.split('/')[0];
         const zajete = [...stan.pliki].filter(([x]) => x.startsWith(`zasoby/${wlasciciel}/`) || x.startsWith(`podglady/${wlasciciel}/`))
           .reduce((n, [x, p]) => n + (x === klucz ? 0 : (p.tresc?.length || 0)), 0);
-        if (zajete + dane.length > (stan.limitKonta || 500 * 1024 * 1024)) {
+        if (zajete + dane.length > (stan.limitKonta || 2 * 1024 * 1024 * 1024)) {
           return odp(413, { blad: 'Na koncie nie ma już miejsca na pliki. Usuń nieużywane obrazy albo posprzątaj w ustawieniach konta (Miejsce).', kod: 'limit_konta' });
         }
         stan.pliki.set(klucz, { typ: req.headers()['content-type'] || 'application/octet-stream', tresc: dane, czas: Date.now(), cacheControl: req.headers()['x-cache-control'] || null });

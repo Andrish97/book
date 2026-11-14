@@ -170,7 +170,7 @@ test('pliki w R2: uprawnienia, limity, ETag, Range, CORS, lista, usuwanie, miejs
   assert.equal(m.podglady, 80);
   assert.equal(m.konto, 270);
   assert.equal(m.limit_konta, LIMITY.konto);
-  assert.equal(m.limit_plikow, 10 * 1024 * 1024 * 1024);
+  assert.equal(m.limit_plikow, LIMITY.razem);
   assert.deepEqual(m.projekty[P1], { bajty: 160, plikow: 2, podglady: 80 }, 'rozbicie na projekty (czcionki konta poza projektami)');
 
   // Osierocone: stare pliki bez odwołań i obrazy dawnych linków; czcionki i świeże zostają.
