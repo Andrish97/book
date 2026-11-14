@@ -29,7 +29,7 @@ let ostatnie = null;
 let kiedy = 0;
 
 // { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku, pliki_razem, limit_plikow (R2),
-//   chronione, od_ai, baza_razem, limit_bazy, projekty, limit_projektow, osoby_w_projekcie, obrazy_w_projekcie (baza) }
+//   od_ai, baza_razem, limit_bazy, projekty, limit_projektow, osoby_w_projekcie, obrazy_w_projekcie (baza) }
 export async function miejsce({ swieze = false } = {}) {
   if (!swieze && ostatnie && Date.now() - kiedy < WAZNOSC_MS) return ostatnie;
   const [baza, pliki] = await Promise.all([rpc('miejsce_na_koncie'), chmura.r2.miejsce()]);
@@ -39,7 +39,7 @@ export async function miejsce({ swieze = false } = {}) {
 }
 
 const liczba = (x) => Number(x) || 0;
-export const mojeRazem = (m) => liczba(m.obrazy) + liczba(m.czcionki) + liczba(m.podglady) + liczba(m.chronione) + liczba(m.od_ai);
+export const mojeRazem = (m) => liczba(m.obrazy) + liczba(m.czcionki) + liczba(m.podglady) + liczba(m.od_ai);
 export const udzialPlikow = (m) => (m.limit_plikow ? liczba(m.pliki_razem) / m.limit_plikow : 0);
 export const udzialKonta = (m) => (m.limit_konta ? liczba(m.konto) / m.limit_konta : 0);
 export const udzialBazy = (m) => (m.limit_bazy && m.baza_razem != null ? liczba(m.baza_razem) / m.limit_bazy : 0);

@@ -82,6 +82,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz �
 - **Urządzenia** – **Wyloguj** wylogowuje tylko to urządzenie, **Wyloguj wszędzie** – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).
 - **Miejsce** – ile zajmują Twoje pliki (obrazy, czcionki, podglądy linków) wobec limitu konta (2 GB), ile masz projektów (najwyżej 100) i ile obrazów w największym projekcie (najwyżej 1000 w jednym projekcie; jeden plik – do 50 MB). Niżej lista Twoich projektów: ile zajmuje każdy, ile ma obrazów i stron, kiedy go zmieniano – z przyciskami **Otwórz** i **Pokaż obrazy**; projekty innych osób, do których masz dostęp, są osobno i nie liczą się do Twojego limitu. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. **Posprzątaj…** pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.
 - **Usuwanie konta** – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.
+- **Kontakt** – w menu konta (i w stopce ekranu logowania) jest formularz kontaktowy: pytanie, pomysł albo błąd trafia do nas, a na podany adres przychodzi potwierdzenie. Możesz też pisać wprost na kontakt@makietka.app.
 
 ## 4. Jasny i ciemny motyw
 

@@ -11,6 +11,7 @@ const path = require('path');
 const { chromium, devices } = require('playwright');
 const { atrapaAi } = require('./atrapa-ai.cjs');
 const { atrapaWspolpracy, rolaW } = require('./atrapa-wspolpraca.cjs');
+const { atrapaPoczty } = require('./atrapa-poczta.cjs');
 
 const KORZEN = path.join(__dirname, '..');
 const TYPY = {
@@ -65,7 +66,6 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   if (funkcja === 'miejsce_na_koncie') {
     // Część z bazy (migracja 20261114180000_pliki_r2_limity.sql); pliki liczy przekaźnik (/pliki/_miejsce).
     return {
-      chronione: chronione.reduce((n, [, u]) => n + [...u.pliki.values()].reduce((m, f) => m + (f.dane?.length || f.tresc?.length || 0), 0), 0),
       od_ai: ai.reduce((n, [, o]) => n + bajtyAi(o), 0),
       baza_razem: stan.bazaBajty ?? 12 * 1024 * 1024,
       limit_bazy: 524288000,
@@ -98,7 +98,10 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   }
   if (funkcja === 'pliki_osierocone') {
     const odwolania = new Set(stan.projekty.flatMap((pr) => zasobyProjektu(pr).map((z) => z?.sciezka)).filter(Boolean));
-    const linki = stan.projekty.filter((pr) => pr.owner_id === k.id && pr.dane?.udostepnienie?.kod).map((pr) => `${k.id}/${pr.id}/${pr.dane.udostepnienie.kod}/`);
+    const linki = [
+      ...stan.projekty.filter((pr) => pr.owner_id === k.id && pr.dane?.udostepnienie?.kod).map((pr) => `${k.id}/${pr.id}/${pr.dane.udostepnienie.kod}/`),
+      ...chronione.filter(([, u]) => u.sekret).map(([klucz, u]) => `${klucz}.${u.sekret}/`),
+    ];
     return moje.filter((x) => Date.now() - (x.p.czas || 0) > DWA_DNI)
       .filter((x) => (x.bucket === 'zasoby'
         ? !x.nazwa.startsWith(`${prefiks}_czcionki/`) && !odwolania.has(x.nazwa)
@@ -114,7 +117,7 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   });
   const wynik = {
     ai: aiDoUsuniecia.length, ai_bajty: aiDoUsuniecia.reduce((n, [, o]) => n + bajtyAi(o), 0),
-    linki: linkiDoUsuniecia.length, linki_bajty: linkiDoUsuniecia.reduce((n, [, u]) => n + [...u.pliki.values()].reduce((m, f) => m + (f.dane?.length || 0), 0), 0),
+    linki: linkiDoUsuniecia.length, linki_bajty: 0,
   };
   if (!tresc?.p_policz) {
     for (const [id] of aiDoUsuniecia) stan.obrazyAi.delete(id);
@@ -143,6 +146,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
   };
   stan.ai = atrapaAi(stan); // funkcje dostępu dla AI: stan.ai(nazwa funkcji, parametry, konto)
   stan.wspolpraca = atrapaWspolpracy(stan); // współpraca między kontami: stan.wspolpraca(nazwa, parametry, konto)
+  stan.adminPoczta = atrapaPoczty(stan); // panel administratora i poczta (#95): stan.adminPoczta(nazwa, parametry, konto)
   const widzi = (k, p) => Boolean(rolaW(stan, k, p.id)); // RLS: własne projekty i udostępnione temu kontu
   const sesja = (k) => {
     const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -338,15 +342,24 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       return json(r, 200, sesja(k).user);
     }
-    // Link chroniony (migracja udostepnienia_chronione): te same zasady co funkcje w bazie.
-    if (sc.startsWith('/rest/v1/rpc/') && /udostepnieni|podglad_chroniony/.test(sc)) {
+    // Link chroniony (migracje udostepnienia_chronione i linki_chronione_r2_porzadki, #97): te same zasady co funkcje
+    // w bazie. Pliki linku leżą w R2 (stan.pliki) w folderze „<kod>.<sekret>”; baza zwraca tylko nazwę folderu.
+    if (sc.startsWith('/rest/v1/rpc/') && /udostepnieni|podglad_chroniony|link_chroniony_wazny/.test(sc)) {
       const k = zTokenu(req);
       const funkcja = sc.slice('/rest/v1/rpc/'.length);
-      stan.chronione = stan.chronione || new Map(); // "konto/projekt/kod" -> { haslo, wazny_do, nieudane, blokada_do, pliki: Map }
+      stan.chronione = stan.chronione || new Map(); // "konto/projekt/kod" -> { haslo, wazny_do, nieudane, blokada_do, sekret, zmieniono }
+      const nowySekret = () => crypto.randomBytes(24).toString('base64url');
+      if (funkcja === 'link_chroniony_wazny') {
+        const u = stan.chronione.get(`${tresc.p_konto}/${tresc.p_projekt}/${tresc.p_kod}`);
+        return json(r, 200, Boolean(u && u.sekret && u.sekret === tresc.p_sekret && (!u.wazny_do || new Date(u.wazny_do) >= new Date())));
+      }
       if (funkcja === 'podglad_chroniony') {
         const u = stan.chronione.get(`${tresc.p_konto}/${tresc.p_projekt}/${tresc.p_kod}`);
         if (!u) return json(r, 200, { stan: 'brak' });
-        if (!(k && k.id === tresc.p_konto)) {
+        let nowy = false;
+        if (k && k.id === tresc.p_konto) {
+          if (!u.sekret) { u.sekret = nowySekret(); nowy = true; }
+        } else {
           if (u.wazny_do && new Date(u.wazny_do) < new Date()) return json(r, 200, { stan: 'wygasl' });
           if (u.haslo) {
             if (u.blokada_do && new Date(u.blokada_do) > new Date()) return json(r, 200, { stan: 'blokada', do: u.blokada_do });
@@ -358,32 +371,23 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
             }
             u.nieudane = 0;
           }
+          if (!u.sekret) return json(r, 200, { stan: 'aktualizacja' });
         }
-        if (!tresc.p_nazwy) return json(r, 200, { stan: 'ok', haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
-        stan.pobraniaChronione = (stan.pobraniaChronione || 0) + 1;
-        const pliki = {};
-        for (const n of tresc.p_nazwy.slice(0, 12)) if (u.pliki.has(n)) pliki[n] = u.pliki.get(n);
-        return json(r, 200, { stan: 'ok', pliki });
+        stan.zapytaniaChronione = (stan.zapytaniaChronione || 0) + 1;
+        return json(r, 200, { stan: 'ok', folder: `${tresc.p_kod}.${u.sekret}`, haslo: Boolean(u.haslo), wazny_do: u.wazny_do, nowy });
       }
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
       const klucz = `${k.id}/${tresc.p_projekt}/${tresc.p_kod}`;
       if (funkcja === 'ustaw_ochrone_udostepnienia') {
         if (tresc.p_zmien_haslo && tresc.p_haslo && tresc.p_haslo.length < 4) return blad(r, 400, 'Hasło do linku musi mieć co najmniej 4 znaki', 'P0001');
-        const u = stan.chronione.get(klucz) || { haslo: null, wazny_do: null, nieudane: 0, blokada_do: null, pliki: new Map() };
+        const byl = stan.chronione.get(klucz);
+        const u = byl || { haslo: null, wazny_do: null, nieudane: 0, blokada_do: null, sekret: nowySekret() };
+        const stary = byl?.sekret || null;
         if (tresc.p_zmien_haslo) u.haslo = tresc.p_haslo || null;
+        if ((tresc.p_zmien_haslo && stary) || !u.sekret) u.sekret = nowySekret();
         Object.assign(u, { wazny_do: tresc.p_wazny_do || null, nieudane: 0, blokada_do: null, zmieniono: Date.now() });
         stan.chronione.set(klucz, u);
-        return json(r, 200, { haslo: Boolean(u.haslo), wazny_do: u.wazny_do });
-      }
-      const u = stan.chronione.get(klucz);
-      if (funkcja === 'zapisz_plik_udostepnienia') {
-        if (!u) return blad(r, 409, 'insert or update violates foreign key constraint', '23503');
-        u.pliki.set(tresc.p_nazwa, { typ: tresc.p_typ, dane: tresc.p_dane });
-        return json(r, 200, null);
-      }
-      if (funkcja === 'porzadkuj_pliki_udostepnienia') {
-        if (u) for (const n of [...u.pliki.keys()]) if (!tresc.p_zostaja.includes(n)) u.pliki.delete(n);
-        return json(r, 200, null);
+        return json(r, 200, { haslo: Boolean(u.haslo), wazny_do: u.wazny_do, folder: `${tresc.p_kod}.${u.sekret}`, stary_folder: stary && stary !== u.sekret ? `${tresc.p_kod}.${stary}` : null });
       }
       if (funkcja === 'usun_udostepnienie_chronione') { stan.chronione.delete(klucz); return json(r, 200, null); }
     }
@@ -405,6 +409,20 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     }
     // E-mail z zaproszeniem (Funkcja Edge poczta): atrapa zapisuje „wysłany” e-mail; stan.brevo = false
     // udaje brak skonfigurowanej poczty.
+    // Panel administratora i poczta (#95): funkcje admin_*, przebieg kolejki, formularz kontaktowy (Worker /kontakt).
+    if (sc.startsWith('/rest/v1/rpc/') && stan.adminPoczta.ma(sc.slice('/rest/v1/rpc/'.length))) {
+      try {
+        return json(r, 200, stan.adminPoczta(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)) ?? null);
+      } catch (e) {
+        return blad(r, e.status || 400, e.message, e.kod || 'P0001');
+      }
+    }
+    if (sc === '/functions/v1/poczta' && m === 'POST' && tresc.kolejka) return json(r, 200, stan.adminPoczta.przebieg());
+    if (sc === '/kontakt') {
+      if (m === 'OPTIONS') return r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type, authorization' } });
+      const w = stan.adminPoczta.kontakt(tresc, zTokenu(req));
+      return r.fulfill({ status: w.status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(w.tresc) });
+    }
     if (sc === '/functions/v1/poczta' && m === 'POST') {
       const k = zTokenu(req);
       if (!k) return json(r, 401, { blad: 'Zaloguj się.' });
@@ -541,6 +559,13 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!publiczne && !k) return odp(401, { blad: 'Zaloguj się ponownie.' });
       if (!publiczne && reszta === '_miejsce') return odp(200, miejsceAtrapy(stan, 'pliki_miejsce', {}, k));
       if (!publiczne && reszta === '_osierocone') return odp(200, miejsceAtrapy(stan, 'pliki_osierocone', {}, k));
+      // Załącznik poczty (GET /pliki/_poczta/…) – tylko administrator, jak w Workerze.
+      if (!publiczne && reszta.startsWith('_poczta/')) {
+        if (!stan.administratorzy.has(k.id)) return odp(403, { blad: 'Tylko dla administratora.' });
+        const plik = stan.pliki.get(reszta.slice(1));
+        if (!plik) return odp(404, { blad: 'Nie ma takiego pliku.' });
+        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*', 'cache-control': 'private, no-store' } });
+      }
       if (!publiczne && reszta === '_lista') {
         const bucket = url.searchParams.get('bucket') === 'podglady' ? 'podglady' : 'zasoby';
         const prefiks = url.searchParams.get('prefiks') || '';
@@ -556,6 +581,13 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       const klucz = `${publiczne ? 'podglady' : 'zasoby'}/${reszta}`;
       if (m === 'GET' || m === 'HEAD') {
+        // Link z ochroną: folder „<kod>.<sekret>” – plik tylko, gdy link żyje (jak link_chroniony_wazny w przekaźniku).
+        const czesci = reszta.split('/');
+        if (publiczne && czesci.length >= 4 && czesci[2].includes('.')) {
+          const [kod, sekret] = [czesci[2].slice(0, czesci[2].indexOf('.')), czesci[2].slice(czesci[2].indexOf('.') + 1)];
+          const u = (stan.chronione || new Map()).get(`${czesci[0]}/${czesci[1]}/${kod}`);
+          if (!u || u.sekret !== sekret || (u.wazny_do && new Date(u.wazny_do) < new Date())) return odp(404, { blad: 'Nie ma takiego pliku.' });
+        }
         const plik = stan.pliki.get(klucz);
         if (!plik) return odp(404, { blad: 'Nie ma takiego pliku.' });
         return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*', 'cache-control': plik.cacheControl || 'private, max-age=31536000, immutable' } });

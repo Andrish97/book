@@ -43,6 +43,9 @@ export function odswiezNaglowek() {
   $('#nazwa-uzytkownika').textContent = u ? nazwa : 'Nie zalogowano';
   $('#email-uzytkownika').textContent = u ? u.email : '';
   $('#pozycja-konto').hidden = !u;
+  // Panel administratora – tylko dla kont z tabeli administratorzy (pyta baza, decyzja #95).
+  $('#pozycja-admin').hidden = true;
+  if (u) import('./admin.js').then((m) => m.czyAdministrator()).then((tak) => { if (stan.uzytkownik === u) $('#pozycja-admin').hidden = !tak; }).catch(() => {});
   $('[data-akcja="wyloguj"]').lastChild.textContent = u ? 'Wyloguj' : 'Przejdź do logowania';
 }
 

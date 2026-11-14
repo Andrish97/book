@@ -59,6 +59,12 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Sprawdzone.** `tests/worker-pliki.test.cjs` (uprawnienia, limity, ETag/304, Range, CORS, lista, usuwanie, miejsce, osierocone), `tests/pliki-r2.test.cjs` (przeniesienie plików, limity w aplikacji, panel użycia), migracja przepuszczona przez lokalny Postgres 16 (limity projektów i osób, odwołania, panel).
 **Słabe.** Liczenie miejsca w przekaźniku przegląda listę plików konta (z pamięcią na minutę) – przy tysiącach plików wolniej. Odebrany dostęp współpracownika do plików działa najpóźniej po minucie (pamięć przekaźnika). Stary magazyn i kod przeniesienia do usunięcia, gdy będzie pusty (#92b).
 
+
+### 0.6. Linki z hasłem w R2 i porządki w bazie ✅ (#97)
+**Co jest.** Obrazy stron linku z hasłem albo z datą ważności leżą w R2, w folderze `<kod>.<sekret>` (24 losowe bajty). Baza (`podglad_chroniony`) po sprawdzeniu hasła i daty zwraca tylko nazwę folderu, a przekaźnik wydaje plik z takiego folderu, gdy link żyje (`link_chroniony_wazny`, pamięć 60 s). Zmiana hasła daje nowy sekret – stary folder znika, stare adresy dają 404. Tabela `udostepnienia_pliki` (129 MB ze 143 MB całej bazy) usunięta; linki z ochroną publikuje od nowa aplikacja właściciela przy najbliższym otwarciu projektu (gość do tego czasu widzi „Link jest aktualizowany”). Jednorazowe porządki: stare zaproszenia, porzucone obrazy od AI, stare wpisy plików do usunięcia.
+**Dlaczego tak.** Obrazy w bazie zjadały ponad 90% darmowych 500 MB; w R2 są tańsze, szybsze (bez base64 i bez paczek przez bazę) i liczą się do limitu plików konta jak każde inne.
+**Sprawdzone.** `tests/worker-pliki.test.cjs` (folder z sekretem: zły sekret, wygasły link, prywatna pamięć), `tests/udostepnianie.test.cjs` (hasło, zmiana hasła i stare adresy, ponowna publikacja po przeniesieniu, wygaśnięcie, unieważnienie), migracja przepuszczona przez lokalny Postgres 16 (sekrety, stany, porządki), krok w `scripts/proba-na-zywo.cjs`.
+**Słabe.** Kto raz podał hasło i zapisał adres obrazu, widzi go do zmiany hasła albo daty ważności (jak przy każdym linku do pliku); po dacie ważności przekaźnik przestaje wydawać pliki najpóźniej po minucie. Miejsce w bazie po usuniętych wierszach (zaproszenia, obrazy od AI) odzyskuje autovacuum – `pg_database_size` może spaść dopiero po nim.
 ## A. Fundamenty techniczne
 
 ### A1. Aplikacja statyczna, moduły bez etapu budowania ✅ / ⚠️
@@ -432,3 +438,15 @@ Stan na 2026-11-11, po decyzji #66.
 6. **Poczta**, gdy będzie domena (decyzja #34).
 
 Do rozstrzygnięcia przez Ciebie: czy usunąć tryb bez konta całkiem (dziś jest niedostępny w działającej aplikacji i służy tylko testom) i czy edytor ma być doczytywany dopiero przy otwarciu projektu (A1).
+
+### Panel administratora, skrzynka i kolejka maili (#95)
+
+Panel (`#/admin`, tylko administrator) zbiera w jednym miejscu korespondencję i pocztę aplikacji: skrzynkę
+`kontakt@makietka.app` (poczta przychodząca przez Cloudflare Email Routing i Workera oraz formularz kontaktowy),
+kolejkę maili z limitami dostawcy i odstępami na adres, konto i IP (wzorem Familiady), ustawienia poczty i
+statystyki. Kolejka chroni przed spamowaniem (zaproszenia nie wychodzą seriami) i przed wyczerpaniem darmowego
+limitu Brevo (300/dobę) – mail ponad limit czeka do następnego dnia zamiast przepadać, a nieudana wysyłka wraca
+po 1, 5, 15 i 60 minutach. Bez nowych sekretów w repozytorium: Worker zapisuje pocztę kluczem skrzynki
+(w bazie tylko skrót), funkcja poczty czyta kolejkę kluczem serwisowym środowiska Supabase.
+Ograniczenia: załączniki ponad 10 MB mają w panelu tylko opis (mniejsze leżą w R2 i pobiera się je z panelu); panel nie pokazuje
+treści HTML wiadomości (tylko tekst) – świadomie, bez ryzyka skryptów z obcej poczty.

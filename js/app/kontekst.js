@@ -39,6 +39,7 @@ export function pokazEkran(nazwa) {
 //
 //   #/projekty                       lista projektów
 //   #/konto                          ustawienia konta
+//   #/admin[/<zakładka>]             panel administratora (skrzynka, kolejka, ustawienia, statystyki)
 //   #/p/<id projektu>                projekt (pierwsza strona)
 //   #/p/<id projektu>/s/<id strony>  konkretna strona
 //   #/p/<id projektu>/w/<id wzorca>  edycja wzorca
@@ -55,6 +56,7 @@ export const trasa = {
       };
     }
     if (rodzaj === 'konto') return { ekran: 'konto' };
+    if (rodzaj === 'admin') return { ekran: 'admin', zakladka: id || 'skrzynka' };
     if (rodzaj === 'zaproszenie' && id) return { ekran: 'zaproszenie', kod: id };
     if (rodzaj === 'u' && id && typ && cel) return { ekran: 'udostepnione', konto: id, projekt: typ, kod: cel };
     return { ekran: 'projekty' };

@@ -282,7 +282,7 @@ export class Konto {
   inicjujUstawienia() {
     $$('#ekran-konta [data-rozwin]').forEach((b) => b.addEventListener('click', () => this.rozwin(b.dataset.rozwin)));
     $$('#ekran-konta [data-zwin]').forEach((b) => b.addEventListener('click', () => this.zwin(b.dataset.zwin)));
-    $$('.konto-nawigacja a').forEach((a) => a.addEventListener('click', (e) => {
+    $$('.konto-nawigacja a[data-do]').forEach((a) => a.addEventListener('click', (e) => {
       e.preventDefault();
       document.getElementById(a.dataset.do).scrollIntoView({ block: 'start' });
     }));
