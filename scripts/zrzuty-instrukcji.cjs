@@ -237,6 +237,15 @@ if (require.main === module) (async () => {
     await k.click('.konto-lista [data-sekcja="powiadomienia"]');
     await k.waitForTimeout(500);
     await kadr(k, 'k-powiadomienia.png', { obszar: '#ust-powiadomienia', margines: 8 });
+    // Formularz kontaktowy z załącznikiem (#116).
+    await k.evaluate(async () => (await import('./js/app/kontakt.js')).otworzKontakt());
+    await k.waitForSelector('#dlg-kontakt[open]');
+    await k.fill('#kontakt-temat', 'Pytanie o grzbiet okładki');
+    await k.fill('#kontakt-tresc', 'Dzień dobry, w załączniku zrzut ekranu z okładką – czy grzbiet jest dobrze policzony?');
+    await k.setInputFiles('#kontakt-pliki', { name: 'okladka-zrzut.png', mimeType: 'image/png', buffer: Buffer.alloc(48000, 1) });
+    await k.waitForTimeout(300);
+    await kadr(k, 'k-kontakt.png', { obszar: '#form-kontakt', zaznacz: '.kontakt-zalaczniki label', margines: 8 });
+    await k.evaluate(() => document.querySelector('#dlg-kontakt').close());
 
     // Udostępnianie podglądu linkiem
     await k.click('[data-akcja="do-projektow"]:visible');
@@ -815,6 +824,117 @@ if (require.main === module) (async () => {
   });
   await d.waitForTimeout(700);
   await zrzut(d, 'rysunek-svg.png');
+
+  // ---------- Obraz w kształcie, filtry, usuwanie tła, krycie w przejściu (#123) ----------
+  await pustaStrona();
+  await d.evaluate(async () => {
+    const { edytor: e, stan } = window.seriodruk;
+    const id = Object.keys(stan.projekt.zasoby).find((k) => stan.projekt.zasoby[k].nazwa === 'gory-zima.jpg');
+    const k = e.dodajProstokat();
+    k.set({ left: 24, top: 40, width: 100, height: 70, rx: 12, ry: 12, fill: '#ffffff', stroke: '#2f5bd3', strokeWidth: 1.2 });
+    k.setCoords();
+    e.zatwierdz();
+    await e.wstawObrazDoKsztaltu(k, id);
+    k.set('filtry', { jasnosc: 10, kontrast: 15, nasycenie: 20, szarosc: false, sepia: false, rozmycie: 0 });
+    e.zatwierdz();
+    e.odznacz();
+    e.zaznacz(k.id);
+  });
+  await d.waitForTimeout(1500);
+  await doSekcjiPanelu('Obraz w kształcie');
+  await kadr(d, 'k-obraz-w-ksztalcie.png', { obszar: ['#plotno', '#panel-inspektor fieldset:has(> legend:has-text("Obraz w kształcie"))'], margines: 8 });
+  await doSekcjiPanelu('Filtry');
+  await kadr(d, 'k-filtry.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Filtry"))', margines: 8 });
+  await d.evaluate(() => { const e = window.seriodruk.edytor; e.kadrujWKsztalcie(e.canvas.getActiveObject()); });
+  await d.waitForTimeout(600);
+  await zrzut(d, 'obraz-w-ksztalcie-kadr.png', { clip: { x: 236, y: 56, width: 744, height: 620 } });
+  await d.keyboard.press('Enter');
+  await d.waitForTimeout(300);
+  // Usuń tło – okno z różdżką na zdjęciu.
+  await d.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    const { otworzUsuwanieTla } = await import('./js/app/usun-tlo.js');
+    otworzUsuwanieTla(e.canvas.getActiveObject());
+  });
+  await d.waitForSelector('#dlg-usun-tlo[open]');
+  await d.waitForTimeout(1200);
+  await zrzut(d, 'usun-tlo.png');
+  await d.keyboard.press('Escape');
+  await d.waitForFunction(() => !document.querySelector('#dlg-usun-tlo').open);
+  // Przejście kolorów z kryciem: prostokąt z błękitu w przezroczystość.
+  await pustaStrona();
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const r = e.dodajProstokat();
+    r.set({ left: 14, top: 30, width: 120, height: 80, strokeWidth: 0,
+      fill: new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage', coords: { x1: 0, y1: 0, x2: 0, y2: 1 },
+        colorStops: [{ offset: 0, color: '#2f5bd3' }, { offset: 1, color: 'rgba(47,91,211,0)' }] }) });
+    r.setCoords();
+    e.zatwierdz();
+    e.odznacz();
+    e.zaznacz(r.id);
+  });
+  await d.waitForTimeout(400);
+  await d.evaluate(() => {
+    const l = [...document.querySelectorAll('#wlasciwosci label')].find((x) => /^Wypełnienie/.test(x.textContent));
+    l?.scrollIntoView({ block: 'start' });
+  });
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-krycie-przejscia.png', { obszar: ['#panel-inspektor label:has-text("Kolor 1")', '#panel-inspektor label:has-text("Kolor 2")', '#panel-inspektor label:has-text("Krycie") >> nth=1'], zaznacz: '#panel-inspektor label:has-text("Krycie") >> nth=1', margines: 12 }).catch((err) => console.error('pominięto k-krycie-przejscia:', err.message));
+
+  // ---------- Okładka z grzbietem i składki (#119, #120) ----------
+  await d.evaluate(async () => {
+    const { stan } = window.seriodruk;
+    const P = await import('./js/projekt.js');
+    const O = await import('./js/okladka.js');
+    const p = stan.projekt;
+    const srodek = p.sekcje.find((x) => !x.okladka);
+    srodek.skladka = 16;
+    const ok = P.nowaSekcja('Okładka', { ...srodek.wydruk });
+    ok.okladka = { ...O.domyslnaOkladka(), oprawa: 'twarda', strony: { tryb: 'reczne', liczba: 240 } };
+    p.sekcje.unshift(ok);
+    const strona = P.nowaStrona('Okładka', ok.id);
+    strona.tlo = '#1c2541';
+    p.strony.unshift(strona);
+    O.przeliczOkladki(p);
+    const w = ok.okladka.wynik;
+    const fabricTekst = (text, extra) => ({ type: 'textbox', id: `t${Math.random().toString(36).slice(2, 8)}`, text, fontFamily: 'Inter', fill: '#e9c46a', ...extra });
+    const gz = (w.strefy || []).find((z) => z.rodzaj === 'grzbiet');
+    const srodekGrzbietu = gz ? (gz.x1 + gz.x2) / 2 : w.szerokosc / 2;
+    strona.obiekty = [
+      fabricTekst('DZIENNIK 2027', { left: w.szerokosc * 0.62, top: w.wysokosc * 0.3, width: 90, fontSize: 9, textAlign: 'center', fontWeight: 'bold' }),
+      fabricTekst('DZIENNIK · 2027', { left: srodekGrzbietu, top: w.wysokosc / 2, width: 120, fontSize: 6, textAlign: 'center', angle: 90, originX: 'center', originY: 'center', okladka: 'grzbiet' }),
+    ];
+    const { otworzProjekt } = await import('./js/app/zapis.js');
+    await otworzProjekt(p, { strona: strona.id });
+  });
+  await d.waitForTimeout(1200);
+  await zrzut(d, 'okladka.png', { clip: { x: 236, y: 56, width: 744, height: 620 } });
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const t = e.canvas.getObjects().find((o) => o.text === 'DZIENNIK 2027');
+    e.zaznacz(t.id);
+  });
+  await d.waitForTimeout(500);
+  await d.evaluate(() => {
+    const l = [...document.querySelectorAll('#wlasciwosci label')].find((x) => /Na okładce trzyma się/.test(x.textContent));
+    const f = l?.closest('fieldset.zwinieta');
+    if (f) f.querySelector('legend .zwijak')?.click();
+    l?.scrollIntoView({ block: 'center' });
+  });
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-okladka-przypiecie.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Inne"))', zaznacz: '#panel-inspektor label:has-text("Na okładce trzyma się") .wybor-przycisk', margines: 8 });
+  await d.evaluate(() => window.seriodruk.edytor.odznacz());
+  await kadr(d, 'k-skladki.png', { obszar: '#lista-stron .sekcja-listy:has(.skladka-sekcji)', zaznacz: '#lista-stron .skladka-sekcji button', margines: 8 });
+  await d.evaluate(async () => {
+    const { otworzUstawieniaSekcji } = await import('./js/app/sekcje.js');
+    otworzUstawieniaSekcji(window.seriodruk.stan.projekt.sekcje[0].id);
+  });
+  await d.waitForSelector('#dlg-sekcja[open]');
+  await d.mouse.move(2, 2);
+  await d.waitForTimeout(600);
+  await kadr(d, 'k-okladka-okno.png', { obszar: ['#pole-rodzaj-sekcji', '#sekcja-okladka'], zaznacz: '#pole-rodzaj-sekcji label:has-text("Okładka z grzbietem")', margines: 10 });
+  await d.keyboard.press('Escape');
   await kp.close();
 
   // ---------- Telefon ----------
@@ -843,6 +963,14 @@ if (require.main === module) (async () => {
   await t.waitForSelector('#dlg-pdf[open]');
   await t.waitForFunction(() => !document.querySelector('#dlg-pdf').classList.contains('zaslonka-wjazd'));
   await zrzut(t, 'telefon-zaslonka.png');
+  await t.keyboard.press('Escape');
+  await t.waitForTimeout(400);
+  // Pasek stron na telefonie (#117).
+  await t.tap('.zakladki-mobilne [data-panel="strony"]');
+  await t.waitForTimeout(600);
+  await t.evaluate(() => { document.querySelector('#lista-stron').scrollLeft = 0; });
+  await t.waitForTimeout(300);
+  await kadr(t, 'k-strony-telefon.png', { obszar: '#panel-strony', margines: 0 });
   await tel.close();
 
   await przegladarka.close();

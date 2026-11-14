@@ -12,7 +12,7 @@ zapisujesz plik PDF, który możesz od razu wysłać do drukarni.
 
 Edytor ma to, czego potrzebuje publikacja wielostronicowa:
 
-- **sekcje** o różnych formatach — np. okładka z grzbietem i środek (→ 11.4),
+- **sekcje** o różnych formatach — np. okładka z grzbietem liczonym samym z liczby stron i papieru (→ 11.6) i środek (→ 11.4),
 - **rozkładówki** z lustrzanymi marginesami, jak w książce (→ 11.5),
 - **wzorce** — tła, stopki i numery stron rysowane raz dla wielu stron (→ 12),
 - **style tekstu** — jeden wygląd dla wszystkich tytułów czy podpisów (→ 6.4),
@@ -175,8 +175,11 @@ wyeksportuj projekty, które chcesz zachować (→ 3.6).
 ## 2.8 Kontakt
 
 Pytanie, pomysł albo błąd? [Kontakt] jest w menu konta i pod formularzem logowania. Wpisz swój
-adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. Możesz też pisać
+adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. [Załącz pliki]
+dodaje zrzut ekranu, plik projektu albo PDF: do 5 plików, razem do 10 MB. Możesz też pisać
 na kontakt@makietka.app.
+
+![Formularz kontaktowy z załącznikiem](k-kontakt.png)
 
 # 3. Projekty
 

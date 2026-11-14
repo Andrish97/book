@@ -24,7 +24,8 @@ Na telefonie edytor działa w pionie. Panele **Strony**, **Właściwości**, **W
 przesuwa się tak, żeby zaznaczony element był widoczny nad panelem.
 
 **Uchwyt** (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel, w dół — żeby go
-zmniejszyć albo zamknąć. Panel zamyka też ponowne stuknięcie jego przycisku.
+zmniejszyć albo zamknąć. Stuknięcie w uchwyt zwija powiększony panel do zwykłej wysokości, a zwykły
+zamyka. Panel zamyka też ponowne stuknięcie jego przycisku.
 
 Na małym ekranie schowane są narzędzia, którymi trudno sterować palcem: wielokąt, kadrowanie ramką
 i linijki. Prowadnice wpiszesz liczbą, a obraz przytniesz liczbami we właściwościach.

@@ -385,6 +385,8 @@ zmienić go i jego położenie w %, [Usuń ten kolor z przejścia] go usuwa.
 
 Każdy kolor przejścia ma pole **Krycie** — np. kolor przechodzący w przezroczystość nad zdjęciem.
 
+![Krycie koloru w przejściu](k-krycie-przejscia.png)
+
 ## 7.6 Obrys
 
 Kolor obrysu i **Grubość obrysu** w mm. Grubość nie zmienia się, gdy powiększasz kształt.
@@ -478,6 +480,10 @@ Każdy kształt może być ramką obrazu: prostokąt, elipsa, wielokąt, gwiazda
 2. Obraz wypełnia kształt i jest przycięty do jego brzegów.
 3. Kliknij kształt dwa razy, żeby przesunąć obraz i powiększyć go narożnikami; <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. Na telefonie użyj pól **Powiększenie** i **Przesunięcie**.
 
+![Kształt z obrazem i część „Obraz w kształcie”](k-obraz-w-ksztalcie.png)
+
+![Kadrowanie obrazu w kształcie: cały obraz półprzezroczyście, kształt jako obrys](obraz-w-ksztalcie-kadr.png)
+
 Kształt zmieniasz jak zwykle — rozmiar, punkty, obrys, cień — a obraz idzie za nim. [Wyjmij obraz] zostawia zwykły obraz w miejscu kształtu. Na stronach z danymi wybierz **Obraz z kolumny**: na każdej stronie pojawi się inny obraz.
 
 Zdjęcie zamienisz w kształt jednym kliknięciem: w części **Kadrowanie** [Zaokrąglone rogi] albo [Koło]. Zaokrąglenie zmienisz potem w części **Wypełnienie i obrys**.
@@ -495,9 +501,13 @@ Zaznacz zdjęcie (albo kształt z obrazem) i wybierz [Usuń tło…].
 
 [Zapisz jako nowy obraz] dodaje nowy plik do obrazów projektu i wstawia go w miejsce starego; oryginał zostaje.
 
+![Okno „Usuń tło”](usun-tlo.png)
+
 ## 8.9 Filtry
 
 W części **Filtry** zdjęcia albo obrazu w kształcie ustawisz **jasność**, **kontrast**, **nasycenie** i **rozmycie** oraz włączysz **odcień szarości** albo **sepię**. Plik się nie zmienia; [Bez filtrów] wraca do oryginału.
+
+![Filtry obrazu](k-filtry.png)
 
 # 9. Tabela
 
@@ -615,6 +625,11 @@ Panel z lewej pokazuje miniatury wszystkich stron w kolejności druku, pogrupowa
 (szare nagłówki). Kliknięcie miniatury otwiera stronę. Strona powielana z danych ma znaczek
 **×N** — tyle razy wyjdzie w wydruku (→ 16).
 
+Na telefonie strony stoją w poziomym pasku, który przewijasz palcem: nazwa sekcji to wąska etykieta
+z [⋯], a miniatury mają całą wysokość paska — okładka w poziomie jest szeroka, strony w pionie wąskie.
+
+![Pasek stron na telefonie](k-strony-telefon.png@telefon)
+
 ![Panel stron z menu strony](strony.png)
 
 ## 11.2 Dodawanie i porządkowanie stron
@@ -654,10 +669,12 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (→ 11.5). |
-| **Format** | Rozmiar strony; **Szerokość** i **Wysokość** w mm. |
+| **Rodzaj sekcji** | **Strony** albo **Okładka z grzbietem** — wtedy wymiary liczą się same (→ 11.6). |
+| **Format** | Rozmiar strony; **Szerokość (mm)** i **Wysokość (mm)**. Przycisk [Zamień orientację] (kartka ze strzałką) zamienia szerokość z wysokością. |
 | **Marginesy i spad** | Na schemacie strony: górny nad kartką, dolny pod nią, wewnętrzny i zewnętrzny po bokach, spad przy przerywanej ramce. Schemat od razu pokazuje proporcje. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 11.8). |
+| **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (→ 11.7). |
 | **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 12.2). |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
 
@@ -688,15 +705,21 @@ Okładkę robisz jako osobną sekcję z jedną szeroką stroną: tył, grzbiet i
 
 | Ustawienie | Co znaczy |
 |---|---|
-| **Oprawa** | **Miękka klejona**, **Zeszytowa** (zszywki, bez grzbietu) albo **Twarda** — tektura z zawinięciem; ustawisz **Zawinięcie**, **Big**, **Naddatek** i grubość tektury. |
-| **Papier środka** | **Gramatura** i rodzaj papieru (offset, kredowy mat, kredowy błysk, objętościowy) albo wprost **Grubość kartki** od drukarni. |
-| **Strony środka** | Liczone same — ze wszystkich stron środka, razem z powieleniami serii. Możesz też wpisać liczbę. Gdy środków jest kilka, wybierz, które sekcje się liczą. |
+| **Oprawa** | **Miękka klejona (z grzbietem)**, **Zeszytowa – szyta zszywkami (bez grzbietu)** albo **Twarda (tektura z zawinięciem)** — przy twardej ustawisz **Zawinięcie**, **Big**, **Naddatek tektury** i **Grubość tektury** (mm). |
+| **Papier środka** | **Gramatura** — **Gramatura (g/m²)** i **Rodzaj papieru** (offset, kredowy mat, kredowy błysk, objętościowy) — albo **Grubość kartki** w mm od drukarni. |
+| **Strony środka** | **Policz same** — ze wszystkich stron środka, razem z powieleniami serii — albo **Wpisz** liczbę. **Środek to sekcje** wybiera, które sekcje się liczą, gdy jest ich kilka. |
 
 Schemat w oknie pokazuje tył, grzbiet i przód, a pod nim wynik, np. „Grzbiet 6,6 mm · Okładka 352,6 × 246 mm”. Szerokość i wysokość okładki liczą się same.
 
+![Okno sekcji: okładka z grzbietem, schemat i wynik](k-okladka-okno.png)
+
 Na płótnie przerywane linie pokazują zgięcia (grzbiet, bigi, zawinięcia), a niebieskie ramki — bezpieczne pola tyłu, grzbietu i przodu.
 
-Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sama: tył zostaje, przód przesuwa się razem z grzbietem, napisy na grzbiecie zostają na jego środku, a tło na całą okładkę się rozciąga. W panelu elementu, w części **Inne**, wybierzesz, czego element ma się trzymać: **tyłu**, **grzbietu** albo **przodu**; pasek na grzbiecie może **dopasować szerokość do grzbietu**. Ostrzeżenie „Szerszy niż grzbiet” mówi, że element zachodzi na tył albo przód.
+![Okładka na płótnie: tył, grzbiet, przód](okladka.png)
+
+Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sama: tył zostaje, przód przesuwa się razem z grzbietem, napisy na grzbiecie zostają na jego środku, a tło na całą okładkę się rozciąga. W panelu elementu, w części **Inne**, lista **Na okładce trzyma się** (automatycznie, tyłu, grzbietu albo przodu) mówi, czego element się trzyma; przełącznik **Dopasuj szerokość do grzbietu** rozciąga pasek na grzbiecie na całą jego szerokość. Ostrzeżenie „Szerszy niż grzbiet” mówi, że element zachodzi na tył albo przód.
+
+![Element przypięty do części okładki](k-okladka-przypiecie.png)
 
 > Uwaga: wzorce przypisane do sekcji okładki nie przesuwają się same.
 
@@ -705,6 +728,8 @@ Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sa
 Środek szyty albo klejony ze składek musi mieć liczbę stron podzielną przez wielkość składki. W ustawieniach sekcji wybierz **Składki**: co 4, 8, 16 albo 32 strony.
 
 Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pełnej składki (×16)”. [Dopełnij pustymi] dodaje brakujące puste strony na końcu sekcji — cofniesz to jak każdą zmianę. **Sprawdź przed drukiem** też przypomni o niepełnej składce, a przy oprawie zeszytowej — o liczbie stron niepodzielnej przez 4.
+
+![Licznik składki i „Dopełnij pustymi”](k-skladki.png)
 
 ## 11.8 Numeracja stron
 
@@ -779,6 +804,7 @@ Linie pomocnicze nie są drukowane:
 | **Różowy pas** | Spad. Tła i zdjęcia, które mają sięgać krawędzi, rozciągnij aż do jego końca. |
 | **Niebieska przerywana** | Margines. Teksty trzymaj w środku. |
 | **Gruba ciemna** | Grzbiet rozkładówki. |
+| **Przerywane z podpisami** | Na okładce: zgięcia — grzbiet, bigi, zawinięcia (→ 11.6). |
 | **Turkusowa** | Prowadnica (→ 13.4). |
 
 [Linie pomocnicze] (<kbd>W</kbd>) w prawym dolnym rogu chowa je wszystkie.
