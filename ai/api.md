@@ -10,7 +10,7 @@ Dokumenty obok: [instrukcja obsługi](https://makietka.app/ai/instrukcja.md), [f
 
 Klucz należy do **konta**, nie do jednego projektu.
 
-1. **Ustawienia konta → Dostęp dla AI → Zarządzaj…** (albo w otwartym projekcie menu **⋯** → **Dostęp dla AI…** – wtedy ten projekt jest od razu zaznaczony).
+1. **Ustawienia konta → Dostęp dla AI → Zarządzaj…**.
 2. Wpisz, dla kogo jest klucz (np. „Claude – kalendarze”), wybierz **Czyta i zmienia** albo **Tylko czyta**, ważność (1, 7, 30, 90 dni, rok albo bez terminu) i zakres:
    - **Wybrane projekty** – zaznaczasz projekty (własne i udostępnione Ci przez innych); listę zmienisz potem bez zmiany adresu,
    - **Pełny dostęp** – wszystkie projekty konta, także te, które dojdą później; klucz, który czyta i zmienia, może wtedy **tworzyć i usuwać** projekty.

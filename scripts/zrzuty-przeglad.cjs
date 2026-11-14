@@ -476,9 +476,9 @@ const WIDOKI = [
   ['14-sekcja', async (s) => { await doEdytora(s); await s.evaluate(() => window.seriodruk.otworzUstawieniaSekcji(window.seriodruk.stan.projekt.sekcje[1].id)); await s.waitForSelector('#dlg-sekcja[open]'); }, E],
   ['15-pdf', async (s) => { await doEdytora(s); await akcja(s, 'pdf'); await s.waitForSelector('#dlg-pdf[open]'); }, E],
   ['16-kontrola', async (s) => { await doEdytora(s); await akcja(s, 'kontrola'); await s.waitForSelector('#dlg-kontrola[open]'); await czekaj(s, 1500); }, E],
-  ['17-dostep-ai', async (s) => { await doEdytora(s); await akcja(s, 'dostep-ai'); await s.waitForSelector('#dlg-dostep-ai[open]'); }, E],
+  ['17-dostep-ai', async (s) => { await doEdytora(s); await s.evaluate(async () => (await import('./js/app/dostep-ai.js')).otworzDostepAi({ projektId: window.seriodruk.stan.projekt?.id })); await s.waitForSelector('#dlg-dostep-ai[open]'); }, E],
   ['17b-dostep-ai-klucz', async (s) => {
-    await doEdytora(s); await akcja(s, 'dostep-ai'); await s.waitForSelector('#dlg-dostep-ai[open]');
+    await doEdytora(s); await s.evaluate(async () => (await import('./js/app/dostep-ai.js')).otworzDostepAi({ projektId: window.seriodruk.stan.projekt?.id })); await s.waitForSelector('#dlg-dostep-ai[open]');
     await s.locator('#dlg-dostep-ai input[type=text], #dlg-dostep-ai input:not([type])').first().fill('Claude – kalendarz').catch(() => {});
     await s.click('[data-akcja="dostep-ai-utworz"]'); await czekaj(s, 1200);
   }, E],

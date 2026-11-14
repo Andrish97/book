@@ -664,4 +664,16 @@ const wAplikacji = (strona, fn, arg) => strona.evaluate(fn, arg);
 
 const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 
-module.exports = { otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };
+// Okno „Dostęp dla AI” (tylko w ustawieniach konta, #100) – w testach otwierane wprost, nad otwartym projektem,
+// z zaznaczonym otwartym projektem na liście nowego klucza (jak gdyby wybrał go użytkownik).
+async function oknoAi(strona, { zaznacz = true } = {}) {
+  await strona.evaluate(async (zaznaczOtwarty) => {
+    const id = window.seriodruk?.stan?.projekt?.id;
+    await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+    const pole = id && zaznaczOtwarty && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
+    if (pole && !pole.checked) pole.click();
+  }, zaznacz);
+  await strona.waitForSelector('#dlg-dostep-ai[open]');
+}
+
+module.exports = { oknoAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };

@@ -524,7 +524,7 @@ export const ROZDZIALY = [
     obraz: 'dostep-ai.png',
     podpis: 'Klucze AI konta: zakres (wybrane projekty albo pełny dostęp), adres łącznika do skopiowania i kroki dla Claude i ChatGPT.',
     punkty: [
-      'Klucz należy do konta: <b>Ustawienia konta → Dostęp dla AI → Zarządzaj…</b> (albo w edytorze menu <b>⋯</b> → <b>Dostęp dla AI…</b> – wtedy otwarty projekt jest od razu zaznaczony). Wpisz, dla kogo jest klucz, wybierz <b>Czyta i zmienia</b> albo <b>Tylko czyta</b>, ważność (od 1 dnia do roku albo bez terminu) i zakres, potem <b>Utwórz klucz</b>.',
+      'Klucz należy do konta: <b>Ustawienia konta → Dostęp dla AI → Zarządzaj…</b>. Wpisz, dla kogo jest klucz, wybierz <b>Czyta i zmienia</b> albo <b>Tylko czyta</b>, ważność (od 1 dnia do roku albo bez terminu) i zakres, potem <b>Utwórz klucz</b>.',
       '<b>Zakres.</b> <b>Wybrane projekty</b> – zaznaczasz projekty (własne i udostępnione Ci przez innych). <b>Pełny dostęp</b> – wszystkie projekty konta, także te, które dojdą później; AI może wtedy też <b>tworzyć nowe projekty</b> i <b>usuwać</b> Twoje (zawsze z podaniem dokładnej nazwy projektu). W rozmowie AI zaczyna od listy projektów i pyta, na którym pracować – albo napisz od razu, np. „w projekcie Kalendarz 2027 popraw literówki”.',
       'Okno pokaże <b>adres łącznika</b> (z kluczem w środku). Widać go <b>tylko raz</b> – skopiuj go od razu przyciskiem obok.',
       '<b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <b>Dostosuj → Łączniki</b> (Customize → Connectors) → <b>+</b> → <b>Dodaj własny łącznik</b>. Nazwa: Makietka, adres: wklej skopiowany, logowanie: <b>bez logowania</b> (No sign-in). W rozmowie włącz łącznik i napisz np. „Przejrzyj mój projekt w Makietce i popraw literówki w tytułach”.',

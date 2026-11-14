@@ -79,7 +79,6 @@ test('zaproszenie e-mailem: plakietka „Zaproszenia” na żywo, przyjęcie, pr
   await bartek.strona.waitForFunction((pid) => window.seriodruk.stan.projekt?.id === pid && document.body.dataset.ekran === 'edytor', id, { timeout: 15000 });
   await tekstNaPlotnie(bartek.strona, 'Tytuł Anny');
   assert.equal(await bartek.strona.evaluate(() => document.body.classList.contains('wspolpracownik')), true);
-  assert.equal(await bartek.strona.locator('#menu-wiecej [data-akcja="dostep-ai"]').isHidden(), true, 'dostęp dla AI – tylko właściciel');
 
   // Obecność: każde widzi drugie (inicjał w pasku edytora).
   await anna.strona.waitForFunction(() => [...document.querySelectorAll('#obecnosc .awatar-obecnosci')].some((k) => k.textContent === 'B'), null, { timeout: 15000 });
