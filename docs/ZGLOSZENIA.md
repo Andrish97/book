@@ -9,6 +9,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
+| 106 | Sekrety po angielsku; bez generowania klucza skrzynki – jeden sekret `SUPABASE_SERVICE_ROLE_KEY` w Cloudflare, ustawiany raz | 🔄 |
+| 107 | Bez przejściowego stanu „link aktualizowany” i bez starego magazynu Supabase Storage; polecenia i opisy AI także w oknie Dostęp dla AI w ustawieniach konta | 🔄 |
 | 105 | Drugi dostawca maili – Zoho ZeptoMail (EU) jako zapasowy po Brevo; bez dopisków, gotowy do włączenia przełącznikiem w panelu | 🔄 |
 | 103 | Wygląd: 48 bezpiecznych propozycji z analizy (ikony, zwarte okna, równe przyciski) + usprawnienia edytora (pasek szybkich akcji, wyrównywanie, kolory projektu, Ctrl+K, podgląd wiersza danych, szablony) | 🔄 |
 
@@ -26,10 +28,10 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Krok | Stan |
 |---|---|
-| Panel administratora → Ustawienia poczty → Nowy klucz skrzynki → Cloudflare makietka-api → sekret `KLUCZ_SKRZYNKI` | 👤 |
+| Cloudflare → makietka-api → Settings → Variables and Secrets → sekret `SUPABASE_SERVICE_ROLE_KEY` (secret key z Supabase → Project Settings → API Keys) – po wdrożeniu #106 | 👤 |
 | Email Routing: kontakt@, noreply@, no-reply@ → Send to a Worker → makietka-api (catch-all zostaje) | 👤 |
 | Zoho: weryfikacja domeny makietka.app (support), potem włączenie ZeptoMail w panelu | 👤 |
-| Otworzyć raz projekt z linkiem z hasłem (strony przejdą do R2) | 👤 |
+| Opublikować ponownie link z hasłem w oknie Udostępnij (po #107) i usunąć w Supabase → Storage buckety zasoby i podglady | 👤 |
 | Wyczyścić dane strony andrish97.github.io na swoich urządzeniach (stary moduł offline nie przekierowuje) | 👤 |
 
 ## Zrobione
