@@ -593,7 +593,7 @@ if (require.main === module) (async () => {
   await zrzut(d, 'kontrola.png');
   await d.click('#kontrola-zamknij');
 
-  // Dostęp dla AI: nowy klucz – adres łącznika i kroki dla Claude i ChatGPT
+  // Dostęp dla AI: klucz konta z wybranym projektem – zakres, adres łącznika i kroki dla Claude i ChatGPT
   await d.click('#przycisk-wiecej');
   await d.click('[data-akcja="dostep-ai"]');
   await d.waitForSelector('#dlg-dostep-ai[open]');
@@ -601,7 +601,7 @@ if (require.main === module) (async () => {
   await d.click('[data-akcja="dostep-ai-utworz"]');
   await d.waitForSelector('#dostep-ai-gotowy:not([hidden])');
   // Zrzut pokazuje adres prawdziwej bazy, nie atrapy, z której korzysta skrypt.
-  await d.evaluate(() => { const p = document.querySelector('#dostep-ai-adres'); p.value = p.value.replace('atrapa.supabase.co', 'pganajmivwtstapnwsgv.supabase.co'); p.setSelectionRange(0, 0); p.scrollLeft = 0; });
+  await d.evaluate(() => { const p = document.querySelector('#dostep-ai-adres'); p.value = p.value.replace('https://atrapa.supabase.co/functions/v1/mcp/', 'https://api.makietka.app/mcp/'); p.setSelectionRange(0, 0); p.scrollLeft = 0; });
   await zrzut(d, 'dostep-ai.png');
   await d.click('[data-akcja="dostep-ai-zamknij"]');
 
