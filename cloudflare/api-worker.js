@@ -308,6 +308,13 @@ async function obsluzPliki(zapytanie, env, u) {
   if (!uid) return json(401, { blad: 'Zaloguj się ponownie.' }, cors);
   const reszta = u.pathname.slice('/pliki/'.length);
   if (reszta === '_miejsce' && zapytanie.method === 'GET') return miejsceKonta(env, uid, cors);
+  // Załącznik poczty przychodzącej (cloudflare/poczta.js, decyzja #95) – tylko administrator (czy_administrator w bazie).
+  if (reszta.startsWith('_poczta/') && zapytanie.method === 'GET') {
+    const czesci = czesciSciezki(reszta.slice('_poczta/'.length));
+    if (!czesci || czesci.length !== 2) return json(400, { blad: 'Nieprawidłowa ścieżka.' }, cors);
+    if (await rpc(env, token, 'czy_administrator', {}) !== true) return json(403, { blad: 'Tylko dla administratora.' }, cors);
+    return wyslijObiekt(env, zapytanie, `poczta/${czesci.join('/')}`, cors, 'private, no-store');
+  }
   if (reszta === '_usun' && zapytanie.method === 'POST') return usunWiele(zapytanie, env, token, uid, cors);
   if (reszta === '_osierocone' && zapytanie.method === 'GET') return osierocone(env, token, uid, cors);
   if (reszta === '_lista' && zapytanie.method === 'GET') {
@@ -356,7 +363,7 @@ export default {
     // (Upgrade) – odpowiedź 101 z bazy wraca do przeglądarki bez zmian. Przekierowania podaje dalej.
     return fetch(new Request(adresCelu(zapytanie.url, baza(env)), zapytanie), { redirect: 'manual' });
   },
-  // Poczta przychodząca na kontakt@makietka.app (Email Routing → „Send to a Worker”).
+  // Poczta przychodząca na kontakt@, noreply@ i no-reply@makietka.app (Email Routing → „Send to a Worker”).
   async email(wiadomosc, env, ctx) {
     await obsluzEmail(wiadomosc, env, ctx);
   },

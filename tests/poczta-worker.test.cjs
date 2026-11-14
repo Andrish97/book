@@ -63,11 +63,11 @@ ${Buffer.from('%PDF-1.4 test').toString('base64')}
 --ZEW--
 `);
 
-function wiadomosc(surowa, { rawSize = surowa.length } = {}) {
+function wiadomosc(surowa, { rawSize = surowa.length, to = 'kontakt@makietka.app' } = {}) {
   const odrzucone = [];
   const przekazane = [];
   return {
-    from: 'bounce@przyklad.pl', to: 'kontakt@makietka.app', rawSize,
+    from: 'bounce@przyklad.pl', to, rawSize,
     raw: new Blob([Buffer.from(surowa, 'latin1')]).stream(),
     headers: new Headers(),
     setReject: (p) => odrzucone.push(p),
@@ -121,12 +121,13 @@ test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowi
     assert.match(p.zalaczniki[0].klucz, /^poczta\/[0-9a-f-]+\/cennik\.pdf$/);
     assert.equal(r2.get(p.zalaczniki[0].klucz).o.httpMetadata.contentType, 'application/pdf');
 
-    // Bez R2 – sam opis załącznika; DMARC nieudany – spam.
+    // DMARC nieudany – spam; poczta na noreply@ – ten sam zapis, adres w do_email (plakietka w panelu).
     const spam = SUROWA.replace('dmarc=pass', 'dmarc=fail');
-    await obsluzEmail(wiadomosc(spam), { KLUCZ_SKRZYNKI: 'msk_klucz' });
+    await obsluzEmail(wiadomosc(spam, { to: 'noreply@makietka.app' }), { KLUCZ_SKRZYNKI: 'msk_klucz', PLIKI });
     const p2 = s.wywolania[1].tresc.p;
     assert.equal(p2.spam, true);
-    assert.deepEqual(p2.zalaczniki, [{ nazwa: 'cennik.pdf', typ: 'application/pdf', rozmiar: 13 }]);
+    assert.equal(p2.do_email, 'noreply@makietka.app');
+    assert.equal(r2.size, 2);
 
     const bezKlucza = wiadomosc(SUROWA);
     await obsluzEmail(bezKlucza, {});
@@ -140,7 +141,7 @@ test('poczta przychodząca → skrzynka: dane do poczta_przyjmij (wątek, odpowi
   const s2 = siec({ '/rest/v1/rpc/poczta_przyjmij': { tresc: { blad: 'za-czesto', za_sekund: 3600 } } });
   try {
     const m = wiadomosc(SUROWA);
-    await obsluzEmail(m, { KLUCZ_SKRZYNKI: 'msk_klucz' });
+    await obsluzEmail(m, { KLUCZ_SKRZYNKI: 'msk_klucz', PLIKI });
     assert.match(m.odrzucone[0], /Za dużo/);
   } finally { s2.przywroc(); }
 });
@@ -216,5 +217,34 @@ test('cron Workera co minutę prosi funkcję poczta o przebieg kolejki', async (
     assert.equal(s.wywolania.length, 1);
     assert.equal(s.wywolania[0].url, 'https://pganajmivwtstapnwsgv.supabase.co/functions/v1/poczta');
     assert.deepEqual(s.wywolania[0].tresc, { kolejka: true });
+  } finally { s.przywroc(); }
+});
+
+test('załącznik poczty z R2: GET /pliki/_poczta/… tylko dla administratora (czy_administrator w bazie)', async () => {
+  const { default: w, wyczyscPamiec } = await worker();
+  wyczyscPamiec();
+  const KLUCZ = 'poczta/0f0e0d0c-0000-4000-8000-000000000001/cennik.pdf';
+  const tresc = new TextEncoder().encode('%PDF-1.4 test');
+  const PLIKI = {
+    get: async (k) => (k === KLUCZ ? { size: tresc.length, httpEtag: '"e1"', body: tresc, writeHttpMetadata: (h) => h.set('content-type', 'application/pdf') } : null),
+  };
+  let admin = true;
+  const s = siec({ '/auth/v1/user': () => ({ tresc: { id: 'u1' } }), '/rest/v1/rpc/czy_administrator': () => ({ tresc: admin }) });
+  const pobierz = (sciezka, token = 'tok-admina') => w.fetch(new Request(`https://api.makietka.app/pliki/_poczta/${sciezka}`, {
+    headers: { authorization: `Bearer ${token}`, origin: 'https://makietka.app' },
+  }), { PLIKI });
+  try {
+    let odp = await pobierz(KLUCZ.slice('poczta/'.length));
+    assert.equal(odp.status, 200);
+    assert.equal(odp.headers.get('content-type'), 'application/pdf');
+    assert.equal(odp.headers.get('cache-control'), 'private, no-store');
+    assert.equal(await odp.text(), '%PDF-1.4 test');
+    const rpc = s.wywolania.find((x) => x.url.endsWith('/rpc/czy_administrator'));
+    assert.equal(rpc.o.headers.authorization, 'Bearer tok-admina', 'baza sprawdza token zalogowanego');
+    assert.equal((await pobierz('0f0e0d0c-0000-4000-8000-000000000001/inny.pdf')).status, 404);
+    assert.equal((await pobierz('..%2F/x')).status, 400);
+    admin = false;
+    odp = await pobierz(KLUCZ.slice('poczta/'.length), 'tok-zwyklego');
+    assert.equal(odp.status, 403);
   } finally { s.przywroc(); }
 });

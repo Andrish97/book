@@ -558,6 +558,13 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!publiczne && !k) return odp(401, { blad: 'Zaloguj się ponownie.' });
       if (!publiczne && reszta === '_miejsce') return odp(200, miejsceAtrapy(stan, 'pliki_miejsce', {}, k));
       if (!publiczne && reszta === '_osierocone') return odp(200, miejsceAtrapy(stan, 'pliki_osierocone', {}, k));
+      // Załącznik poczty (GET /pliki/_poczta/…) – tylko administrator, jak w Workerze.
+      if (!publiczne && reszta.startsWith('_poczta/')) {
+        if (!stan.administratorzy.has(k.id)) return odp(403, { blad: 'Tylko dla administratora.' });
+        const plik = stan.pliki.get(reszta.slice(1));
+        if (!plik) return odp(404, { blad: 'Nie ma takiego pliku.' });
+        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*', 'cache-control': 'private, no-store' } });
+      }
       if (!publiczne && reszta === '_lista') {
         const bucket = url.searchParams.get('bucket') === 'podglady' ? 'podglady' : 'zasoby';
         const prefiks = url.searchParams.get('prefiks') || '';

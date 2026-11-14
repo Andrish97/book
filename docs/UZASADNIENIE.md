@@ -440,5 +440,5 @@ statystyki. Kolejka chroni przed spamowaniem (zaproszenia nie wychodzą seriami)
 limitu Brevo (300/dobę) – mail ponad limit czeka do następnego dnia zamiast przepadać, a nieudana wysyłka wraca
 po 1, 5, 15 i 60 minutach. Bez nowych sekretów w repozytorium: Worker zapisuje pocztę kluczem skrzynki
 (w bazie tylko skrót), funkcja poczty czyta kolejkę kluczem serwisowym środowiska Supabase.
-Ograniczenie: załączniki poczty przychodzącej mają treść tylko wtedy, gdy Worker ma pliki R2; panel nie pokazuje
+Ograniczenia: załączniki ponad 10 MB mają w panelu tylko opis (mniejsze leżą w R2 i pobiera się je z panelu); panel nie pokazuje
 treści HTML wiadomości (tylko tekst) – świadomie, bez ryzyka skryptów z obcej poczty.

@@ -1,9 +1,10 @@
 // Panel administratora (#/admin, decyzja #95) – wzorem panelu Familiady, w wyglądzie Makietki:
 // skrzynka kontakt@makietka.app (poczta przychodząca i formularz kontaktowy, odpowiedzi), kolejka maili,
 // ustawienia poczty (nadawca, dostawcy z dziennymi limitami, odstępy, klucz skrzynki, test) i statystyki.
-// Wszystko przez funkcje bazy admin_* (security definer, tylko konta z tabeli administratorzy).
+// Wszystko przez funkcje bazy admin_* (security definer, tylko konta z tabeli administratorzy). Miejsce całej
+// aplikacji (pliki R2, baza i jej największe tabele) – tylko tu: rozmiary_tabel() i GET /pliki/_miejsce Workera.
 
-import { supabase, komunikatBledu } from '../chmura.js';
+import { supabase, komunikatBledu, r2 } from '../chmura.js';
 import { $, $$, powiadom, potwierdz, kiedy, odmiana } from '../ui.js';
 import { wstawIkony } from '../ikony.js';
 import { stan, trasa } from './kontekst.js';
@@ -82,7 +83,7 @@ async function rysujSkrzynke() {
     li.dataset.id = t.id;
     li.classList.toggle('nowy', !t.przeczytany);
     li.classList.toggle('wybrany', t.id === otwartyWatek);
-    li.innerHTML = `<button type="button"><span class="od">${esc(t.od_nazwa || t.od_email)}${t.zrodlo === 'formularz' ? '<span class="plakietka-zrodla">formularz</span>' : ''}</span>
+    li.innerHTML = `<button type="button"><span class="od">${esc(t.od_nazwa || t.od_email)}${t.zrodlo === 'formularz' ? '<span class="plakietka-zrodla">formularz</span>' : ''}${t.na_adres ? `<span class="plakietka-zrodla" title="Wiadomość na adres ${esc(t.na_adres)}, nie na skrzynkę">na ${esc(t.na_adres.split('@')[0])}@</span>` : ''}</span>
       <span class="kiedy">${esc(kiedy(t.ostatnia))}</span><span class="temat">${esc(t.temat)}${t.liczba > 1 ? ` (${t.liczba})` : ''}</span>
       <span class="zajawka">${esc(t.zajawka || '')}</span></button>`;
     li.querySelector('button').addEventListener('click', () => otworzWatek(t.id));
@@ -120,12 +121,14 @@ async function otworzWatek(id) {
     <div class="wiadomosci-watku">${w.wiadomosci.map((m) => `
       <article class="wiadomosc ${m.kierunek}">
         <div class="wiadomosc-meta"><strong>${esc(m.kierunek === 'wychodzaca' ? 'Ty' : (m.od_nazwa || m.od_email))}</strong>
-          ${m.kierunek === 'przychodzaca' && m.od_nazwa ? `<span>${esc(m.od_email)}</span>` : ''}${m.kierunek === 'wychodzaca' ? `<span>do ${esc(m.do_email)}</span>` : ''}
+          ${m.kierunek === 'przychodzaca' && m.od_nazwa ? `<span>${esc(m.od_email)}</span>` : ''}${m.kierunek === 'przychodzaca' && m.do_email && m.do_email.toLowerCase() !== String(w.skrzynka).toLowerCase() ? `<span class="na-adres">na ${esc(m.do_email)}</span>` : ''}${m.kierunek === 'wychodzaca' ? `<span>do ${esc(m.do_email)}</span>` : ''}
           <span>${esc(data(m.utworzono))}</span>${m.spam ? '<span>możliwy spam</span>' : ''}
           ${m.kierunek === 'wychodzaca' && m.stan ? `<span class="stan-wysylki ${m.stan === 'blad' ? 'blad' : ''}">${esc({ czeka: 'czeka w kolejce', wysylanie: 'wysyłanie…', wyslany: 'wysłano', blad: `błąd: ${m.blad || ''}`, anulowany: 'anulowano' }[m.stan] || m.stan)}</span>` : ''}
         </div>
         <div class="wiadomosc-tresc">${esc(m.tekst || '(bez treści tekstowej)')}</div>
-        ${(m.zalaczniki || []).length ? `<div class="wiadomosc-zalaczniki">${m.zalaczniki.map((z) => `<span title="${esc(z.typ)}">📎 ${esc(z.nazwa)} · ${esc(mb(z.rozmiar || 0))}</span>`).join('')}</div>` : ''}
+        ${(m.zalaczniki || []).length ? `<div class="wiadomosc-zalaczniki">${m.zalaczniki.map((z) => (z.klucz
+          ? `<button type="button" class="przycisk maly" data-zalacznik="${esc(z.klucz)}" data-nazwa="${esc(z.nazwa)}" data-ikona="pobierz" title="${esc(z.typ)}">${esc(z.nazwa)} · ${esc(mb(z.rozmiar || 0))}</button>`
+          : `<span title="${esc(z.typ)} – za duży, by go zachować (ponad 10 MB)">📎 ${esc(z.nazwa)} · ${esc(mb(z.rozmiar || 0))}</span>`)).join('')}</div>` : ''}
       </article>`).join('')}
     </div>
     <form class="form-odpowiedzi" novalidate>
@@ -147,6 +150,17 @@ async function otworzWatek(id) {
         zamknijWatek();
         await rysujSkrzynke();
       } catch (e) { blad(e); }
+    });
+  }
+  for (const b of box.querySelectorAll('[data-zalacznik]')) {
+    b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        const adres = URL.createObjectURL(await r2.zalacznikPoczty(b.dataset.zalacznik));
+        const a = Object.assign(document.createElement('a'), { href: adres, download: b.dataset.nazwa });
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(adres), 60000);
+      } catch (e) { blad(e); } finally { b.disabled = false; }
     });
   }
   box.querySelector('[data-nieprzeczytany]').addEventListener('click', async () => {
@@ -308,7 +322,12 @@ function wykres(tytul, seria) {
 }
 
 async function rysujStatystyki() {
-  const s = await rpc('admin_statystyki', { p_dni: 30 });
+  // Pliki liczy Worker (cały bucket R2, z załącznikami poczty); błąd przekaźnika pokazujemy w kafelku, reszta działa.
+  const [s, rozmiary, pliki] = await Promise.all([
+    rpc('admin_statystyki', { p_dni: 30 }),
+    rpc('rozmiary_tabel'),
+    r2.miejsce().catch((e) => ({ blad: komunikatBledu(e) })),
+  ]);
   const kafel = (opis, wartosc, dopisek = '') => `<div class="admin-kafelek"><span>${esc(opis)}</span><strong>${esc(wartosc)}</strong>${dopisek ? `<small>${esc(dopisek)}</small>` : ''}</div>`;
   $('#admin-kafelki').innerHTML = [
     kafel('Konta', s.konta.razem, `nowe w 7 dni: ${s.konta.nowe_7}`),
@@ -319,9 +338,15 @@ async function rysujStatystyki() {
     kafel('Maile dziś', s.maile.wyslane_dzis, `30 dni: ${s.maile.wyslane_30}`),
     kafel('Kolejka', s.maile.w_kolejce, `błędy: ${s.maile.bledy}`),
     kafel('Skrzynka', s.skrzynka.nieprzeczytane, `nieprzeczytane · rozmów w 30 dni: ${s.skrzynka.rozmowy_30}`),
-    kafel('Pliki', mb(s.miejsce.pliki), 'magazyn plików'),
-    kafel('Baza', mb(s.miejsce.baza), 'z 500 MB'),
+    pliki.blad
+      ? kafel('Pliki (R2)', '–', `nie udało się odczytać: ${pliki.blad}`)
+      : kafel('Pliki (R2)', mb(pliki.pliki_razem), `z ${mb(pliki.limit_plikow)} puli (${Math.round((pliki.pliki_razem / pliki.limit_plikow) * 100)}%)`),
+    kafel('Baza', mb(rozmiary.baza), `z 500 MB (${Math.round((rozmiary.baza / (500 * 1024 ** 2)) * 100)}%)`),
   ].join('');
+  const tabele = (rozmiary.tabele || []).slice(0, 12);
+  $('#admin-tabele').innerHTML = tabele.length
+    ? `<table class="admin-tabela"><thead><tr><th>Tabela</th><th>Rozmiar</th><th>Wiersze (szac.)</th></tr></thead><tbody>${tabele.map((x) => `<tr><td>${esc(x.tabela)}</td><td>${esc(mb(x.bajty))}</td><td>${esc(Math.max(0, x.wiersze).toLocaleString('pl-PL'))}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="ciche">Żadna tabela nie przekracza 256 kB.</p>';
   $('#admin-wykresy').innerHTML = [wykres('Nowe konta', s.serie.konta), wykres('Nowe projekty', s.serie.projekty), wykres('Wysłane maile', s.serie.maile)].join('');
 }
 

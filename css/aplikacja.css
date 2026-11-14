@@ -1959,6 +1959,13 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 .admin-wykres rect.slupek { fill: var(--akcent); }
 .admin-wykres rect.slupek:hover { fill: var(--na-akcencie-tle); }
 .admin-wykres line { stroke: var(--linia); }
+.admin-podtytul { font-size: 14px; margin: 20px 0 8px; }
+.admin-tabele { overflow-x: auto; }
+.admin-tabela { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.admin-tabela th, .admin-tabela td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--linia); white-space: nowrap; }
+.admin-tabela th { color: var(--cichy); font-weight: 500; }
+.admin-tabela td:not(:first-child), .admin-tabela th:not(:first-child) { text-align: right; }
+.wiadomosc-meta .na-adres { color: var(--tusz); border: 1px solid var(--linia); border-radius: 999px; padding: 0 6px; }
 .admin-wykres text { fill: var(--cichy); font-size: 10px; }
 
 /* Wąski ekran (telefon): rozmowa zamiast listy, tabele przewijane. */

@@ -1,5 +1,5 @@
 // Poczta w Workerze api.makietka.app (decyzja #95), wzorem Familiady (cloudflare/maintenance-worker/src/lib/email):
-//  • email()  – poczta przychodząca na kontakt@makietka.app (Cloudflare Email Routing → „Send to a Worker”):
+//  • email()  – poczta przychodząca na kontakt@ (i noreply@, no-reply@ – z plakietką w panelu) (Cloudflare Email Routing → „Send to a Worker”):
 //               rozbiór MIME, prosta ochrona przed spamem, zapis do skrzynki w bazie (poczta_przyjmij),
 //  • /kontakt – formularz kontaktowy z aplikacji: pułapka na boty, Cloudflare Turnstile (gdy jest sekret),
 //               limity na IP i adres (liczy baza – kontakt_przyjmij), potwierdzenie mailem przez kolejkę,
@@ -163,13 +163,12 @@ export async function obsluzEmail(message, env, ctx) {
   const zalaczniki = [];
   for (const z of w.zalaczniki.slice(0, 20)) {
     const opis = { nazwa: z.nazwa.slice(0, 200), typ: z.typ, rozmiar: z.bajty.length };
-    // Treść załącznika – tylko gdy Worker ma pliki R2 (binding PLIKI); inaczej sam opis.
-    if (env.PLIKI && z.bajty.length <= MAKS_ZALACZNIK) {
+    // Treść załącznika do R2 (binding PLIKI, prefiks poczta/; pobieranie: GET /pliki/_poczta/… tylko dla administratora).
+    // Większe niż 10 MB – sam opis. Błąd zapisu przerywa przyjęcie – serwer nadawcy ponowi wysyłkę.
+    if (z.bajty.length <= MAKS_ZALACZNIK) {
       const klucz = `poczta/${crypto.randomUUID()}/${opis.nazwa.replace(/[^\p{L}\p{N}._-]+/gu, '_')}`;
-      try {
-        await env.PLIKI.put(klucz, z.bajty, { httpMetadata: { contentType: z.typ } });
-        opis.klucz = klucz;
-      } catch { /* zostaje sam opis */ }
+      await env.PLIKI.put(klucz, z.bajty, { httpMetadata: { contentType: z.typ } });
+      opis.klucz = klucz;
     }
     zalaczniki.push(opis);
   }

@@ -32,10 +32,10 @@ function atrapaPoczty(stan) {
   const watek = (id) => P.watki.find((t) => t.id === id) || (() => { throw blad('Nie ma takiej rozmowy'); })();
 
   // Wiadomość „przychodząca” (test dopisuje ją tak, jak zrobiłby to Worker).
-  function przyjmij({ od_email, od_nazwa = null, temat, tekst, zrodlo = 'mail', folder = 'skrzynka' }) {
+  function przyjmij({ od_email, od_nazwa = null, temat, tekst, zrodlo = 'mail', folder = 'skrzynka', do_email = zrodlo === 'mail' ? P.ustawienia.skrzynka_email : null, zalaczniki = [] }) {
     const t = { id: crypto.randomUUID(), temat, od_email, od_nazwa, zrodlo, folder, przeczytany: false, liczba: 1, ostatnia: teraz(), utworzono: teraz() };
     P.watki.push(t);
-    P.wiadomosci.push({ id: crypto.randomUUID(), watek: t.id, kierunek: 'przychodzaca', od_email, od_nazwa, temat, tekst, zalaczniki: [], utworzono: teraz() });
+    P.wiadomosci.push({ id: crypto.randomUUID(), watek: t.id, kierunek: 'przychodzaca', od_email, od_nazwa, do_email, temat, tekst, zalaczniki, utworzono: teraz() });
     return t;
   }
 
@@ -46,7 +46,11 @@ function atrapaPoczty(stan) {
       const s = (p_szukaj || '').toLowerCase();
       const watki = P.watki.filter((t) => t.folder === p_folder && (!s || `${t.temat} ${t.od_email}`.toLowerCase().includes(s)))
         .sort((a, b) => b.ostatnia.localeCompare(a.ostatnia))
-        .map((t) => ({ ...t, zajawka: P.wiadomosci.filter((w) => w.watek === t.id).at(-1)?.tekst?.slice(0, 160) || '' }));
+        .map((t) => ({
+          ...t,
+          zajawka: P.wiadomosci.filter((w) => w.watek === t.id).at(-1)?.tekst?.slice(0, 160) || '',
+          na_adres: P.wiadomosci.filter((w) => w.watek === t.id && w.kierunek === 'przychodzaca' && w.do_email && w.do_email.toLowerCase() !== P.ustawienia.skrzynka_email).at(-1)?.do_email || null,
+        }));
       const liczniki = Object.fromEntries(['skrzynka', 'archiwum', 'spam', 'kosz'].map((f) => [f, P.watki.filter((t) => t.folder === f && (f !== 'skrzynka' || !t.przeczytany)).length]));
       return { watki, liczniki };
     },
@@ -56,6 +60,7 @@ function atrapaPoczty(stan) {
       t.przeczytany = true;
       return {
         watek: t,
+        skrzynka: P.ustawienia.skrzynka_email,
         wiadomosci: P.wiadomosci.filter((w) => w.watek === p_id).map((w) => ({ ...w, stan: P.kolejka.find((q) => q.id === w.kolejka)?.stan || null })),
       };
     },
@@ -128,6 +133,11 @@ function atrapaPoczty(stan) {
       P.kolejka.push({ id: crypto.randomUUID(), rodzaj: 'test', do_email: p_do, stan: 'czeka', proby: 0, nastepna_proba: teraz(), utworzono: teraz() });
       return { ok: true };
     },
+    // Jak rozmiary_tabel() (migracja 20261114210000) – w aplikacji woła ją tylko panel administratora.
+    rozmiary_tabel: () => ({
+      baza: 12 * 1024 * 1024,
+      tabele: [{ tabela: 'public.strony', bajty: 6 * 1024 * 1024, wiersze: 1200 }, { tabela: 'public.projekty', bajty: 2 * 1024 * 1024, wiersze: 40 }],
+    }),
     admin_statystyki: (_p, k) => {
       admin(k);
       const dni = Array.from({ length: 30 }, (_, i) => new Date(Date.now() - (29 - i) * 86400000).toISOString().slice(0, 10));
@@ -139,7 +149,6 @@ function atrapaPoczty(stan) {
         zaproszenia: { razem: (stan.zaproszenia || []).length, przyjete: 0, czekajace: 0 },
         maile: { wyslane_dzis: P.kolejka.filter((q) => q.stan === 'wyslany').length, wyslane_30: P.kolejka.filter((q) => q.stan === 'wyslany').length, bledy: 0, w_kolejce: P.kolejka.filter((q) => q.stan === 'czeka').length },
         skrzynka: { nieprzeczytane: P.watki.filter((t) => t.folder === 'skrzynka' && !t.przeczytany).length, rozmowy_30: P.watki.length },
-        miejsce: { pliki: 4 * 1024 * 1024, baza: 12 * 1024 * 1024 },
         serie: { konta: seria(stan.konta.map(() => teraz())), projekty: seria(stan.projekty.map(() => teraz())), maile: seria(P.kolejka.filter((q) => q.wyslano).map((q) => q.wyslano)) },
       };
     },

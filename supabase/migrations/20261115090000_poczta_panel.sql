@@ -525,13 +525,18 @@ set search_path = ''
 as $$
 declare
   v_szukaj text := nullif(btrim(coalesce(p_szukaj, '')), '');
+  v_skrzynka text := (select lower(u.skrzynka_email) from public.poczta_ustawienia u where u.id = 1);
 begin
   perform public.wymagaj_administratora();
   return jsonb_build_object(
     'watki', coalesce((select jsonb_agg(x order by x.ostatnia desc) from (
       select t.id, t.temat, t.od_email, t.od_nazwa, t.zrodlo, t.folder, t.przeczytany, t.liczba, t.ostatnia,
              (select left(coalesce(w.tekst, regexp_replace(coalesce(w.html, ''), '<[^>]*>', ' ', 'g')), 160) from public.poczta_wiadomosci w
-                where w.watek = t.id order by w.utworzono desc limit 1) as zajawka
+                where w.watek = t.id order by w.utworzono desc limit 1) as zajawka,
+             -- Poczta na inny adres niż skrzynka (np. noreply@, no-reply@) – plakietka „na …” w panelu.
+             (select w.do_email from public.poczta_wiadomosci w
+                where w.watek = t.id and w.kierunek = 'przychodzaca' and lower(w.do_email) <> v_skrzynka
+                order by w.utworzono desc limit 1) as na_adres
         from public.poczta_watki t
         where t.folder = coalesce(p_folder, 'skrzynka')
           and (v_szukaj is null or t.temat ilike '%' || v_szukaj || '%' or t.od_email ilike '%' || v_szukaj || '%'
@@ -557,7 +562,9 @@ begin
   if not found then
     raise exception 'Nie ma takiej rozmowy';
   end if;
-  return jsonb_build_object('watek', to_jsonb(t), 'wiadomosci', coalesce((
+  return jsonb_build_object('watek', to_jsonb(t),
+    'skrzynka', (select u.skrzynka_email from public.poczta_ustawienia u where u.id = 1),
+    'wiadomosci', coalesce((
     select jsonb_agg(jsonb_build_object('id', w.id, 'kierunek', w.kierunek, 'od_email', w.od_email, 'od_nazwa', w.od_nazwa, 'do_email', w.do_email,
       'temat', w.temat, 'tekst', w.tekst, 'html', w.html, 'zalaczniki', w.zalaczniki, 'spam', w.spam, 'utworzono', w.utworzono,
       'stan', (select k.stan from public.poczta_kolejka k where k.id = w.kolejka), 'blad', (select k.blad from public.poczta_kolejka k where k.id = w.kolejka))
@@ -791,10 +798,8 @@ as $$
 declare
   v_dni int := least(greatest(coalesce(p_dni, 30), 7), 180);
   v_od date := current_date - (v_dni - 1);
-  v_pliki bigint;
 begin
   perform public.wymagaj_administratora();
-  select coalesce(sum((o.metadata->>'size')::bigint), 0) into v_pliki from storage.objects o;
   return jsonb_build_object(
     'dni', v_dni,
     'konta', jsonb_build_object(
@@ -818,7 +823,6 @@ begin
     'skrzynka', jsonb_build_object(
       'nieprzeczytane', (select count(*) from public.poczta_watki t where t.folder = 'skrzynka' and not t.przeczytany),
       'rozmowy_30', (select count(*) from public.poczta_watki t where t.utworzono > now() - interval '30 days')),
-    'miejsce', jsonb_build_object('pliki', v_pliki, 'baza', pg_database_size(current_database())),
     'serie', jsonb_build_object(
       'konta', (select jsonb_agg(jsonb_build_object('dzien', d, 'ile', (select count(*) from auth.users u where u.created_at::date = d)) order by d)
                   from generate_series(v_od, current_date, interval '1 day') g(d0), lateral (select g.d0::date d) x),

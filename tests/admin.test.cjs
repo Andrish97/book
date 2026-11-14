@@ -29,7 +29,12 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'projekty');
 
   baza.adminPoczta.przyjmij({ od_email: 'jan@przyklad.pl', od_nazwa: 'Jan', temat: 'Faktura', tekst: 'Proszę o fakturę za druk.' });
-  baza.adminPoczta.przyjmij({ od_email: 'ola@przyklad.pl', temat: 'Pomysł', tekst: 'Dodajcie szablon tygodniowy.' });
+  // Druga – na noreply@ (Email Routing → Worker), z załącznikiem zapisanym w R2.
+  baza.pliki.set('poczta/u1/pomysl.txt', { typ: 'text/plain', tresc: Buffer.from('szablon tygodniowy') });
+  baza.adminPoczta.przyjmij({
+    od_email: 'ola@przyklad.pl', do_email: 'noreply@makietka.app', temat: 'Pomysł', tekst: 'Dodajcie szablon tygodniowy.',
+    zalaczniki: [{ nazwa: 'pomysl.txt', typ: 'text/plain', rozmiar: 18, klucz: 'poczta/u1/pomysl.txt' }],
+  });
   await jakoAdmin(strona, baza);
   await strona.click('#awatar');
   await strona.click('#pozycja-admin');
@@ -38,6 +43,8 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   await strona.waitForFunction(() => document.querySelectorAll('#admin-watki li').length === 2);
   assert.equal(await strona.textContent('#admin-nieprzeczytane'), '2');
   assert.equal(await strona.locator('#admin-watki li.nowy').count(), 2);
+  assert.equal(await strona.textContent('#admin-watki li:has-text("Pomysł") .plakietka-zrodla'), 'na noreply@');
+  assert.equal(await strona.locator('#admin-watki li:has-text("Faktura") .plakietka-zrodla').count(), 0, 'na skrzynkę – bez plakietki');
 
   // Rozmowa i odpowiedź – idzie przez kolejkę, przebieg od razu („wysłano”).
   await strona.click('#admin-watki li:has-text("Faktura") button');
@@ -55,6 +62,13 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   await strona.waitForFunction(() => document.querySelectorAll('#admin-watki li').length === 1);
   await strona.click('#admin-foldery [data-folder="archiwum"]');
   await strona.waitForFunction(() => document.querySelector('#admin-watki li')?.textContent.includes('Faktura'));
+  // Rozmowa z noreply@: adres przy wiadomości, załącznik do pobrania (tylko administrator – przez Workera).
+  await strona.click('#admin-watki li:has-text("Pomysł") button');
+  await strona.waitForSelector('#admin-watek .na-adres');
+  assert.equal(await strona.textContent('#admin-watek .na-adres'), 'na noreply@makietka.app');
+  const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#admin-watek [data-zalacznik]')]);
+  assert.equal(plik.suggestedFilename(), 'pomysl.txt');
+  assert.equal(require('node:fs').readFileSync(await plik.path(), 'utf8'), 'szablon tygodniowy');
   // Wyszukiwanie.
   await strona.click('#admin-foldery [data-folder="skrzynka"]');
   await strona.fill('#admin-szukaj', 'nic-takiego');
@@ -92,6 +106,10 @@ test('panel administratora: tylko dla administratora; skrzynka – wątki, odpow
   await strona.waitForSelector('#admin-kafelki .admin-kafelek');
   assert.ok(await strona.locator('#admin-kafelki .admin-kafelek').count() >= 8);
   assert.equal(await strona.locator('#admin-wykresy svg').count(), 3);
+  // Miejsce całej aplikacji – tylko tutaj: pliki R2 z puli (Worker) i baza z największymi tabelami (rozmiary_tabel).
+  assert.match(await strona.textContent('#admin-kafelki'), /Pliki \(R2\).*puli.*Baza.*12\.0 MB.*z 500 MB/s);
+  assert.equal(await strona.locator('#admin-tabele tbody tr').count(), 2);
+  assert.match(await strona.textContent('#admin-tabele'), /public\.strony.*6\.0 MB/s);
   assert.equal(await strona.evaluate(() => location.hash), '#/admin/statystyki');
   assert.deepEqual(bledy, []);
 });
