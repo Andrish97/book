@@ -81,13 +81,15 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
 { "id": "sek_okl", "nazwa": "Okładka", "numeracja": { "tryb": "brak", "od": 1 },
   "okladka": { "oprawa": "twarda", "srodek": null, "strony": { "tryb": "auto", "liczba": 0 },
                 "papier": { "tryb": "gramatura", "gramatura": 90, "rodzaj": "offset", "grubosc_mm": 0.1 },
-                "zawiniecie_mm": 15, "big_mm": 7, "naddatek_mm": 3, "tektura_mm": 2 } }
+                "zawiniecie_mm": 15, "big_mm": 7, "naddatek_mm": 3, "tektura_mm": 2,
+                "wymiary": { "tryb": "auto", "grzbiet_mm": 0, "szerokosc_mm": 0, "wysokosc_mm": 0 } } }
 ```
 
 - `oprawa`: `miekka` (klejona, grzbiet = kartki × grubość kartki), `zeszytowa` (zszywki, bez grzbietu), `twarda` (tektura: grzbiet = blok + 2 × `tektura_mm`; dookoła `zawiniecie_mm`, przy grzbiecie bigi `big_mm`, tektura wystaje o `naddatek_mm`).
 - `srodek`: `null` – środek to wszystkie sekcje poza okładkami; albo lista id sekcji. Format strony środka bierze się z pierwszej z nich.
 - `strony.tryb`: `auto` – liczba stron środka liczona z sekcji środka (z powieleniami serii); `reczne` – `strony.liczba`.
 - `papier.tryb`: `grubosc` – `grubosc_mm` jednej kartki; `gramatura` – grubość = `gramatura` × wolumen papieru / 1000 (`rodzaj`: `offset` 1,25, `ksiazkowy` 1,5, `objetosciowy` 1,8, `kredowy_mat` 0,95, `kredowy_blysk` 0,8 cm³/g).
+- `wymiary.tryb`: `auto` – grzbiet i rozmiar liczone; `grzbiet` – `grzbiet_mm` wpisany (np. podany przez drukarnię) zamiast liczonego z papieru; `rozmiar` – `szerokosc_mm` × `wysokosc_mm` całej okładki bez spadu (tył i przód dzielą resztę po równo wokół grzbietu; grzbiet = `grzbiet_mm`, a gdy 0 – liczony). Liczone wartości aplikacja zapisuje w `wynik.liczone`.
 - `okladka.wynik` zapisuje aplikacja (strefy `zawiniecie_l`, `tyl`, `big_l`, `grzbiet`, `big_p`, `przod`, `zawiniecie_p` z `x1`/`x2` w mm od lewej krawędzi cięcia, `gora`/`dol` – granice pola okładki bez zawinięcia). Przy zmianie grzbietu aplikacja przesuwa elementy: element grzbietu zostaje na jego środku, przód przesuwa się o różnicę, tło na całą okładkę się rozciąga. Element może mieć `okladka`: `tyl` | `grzbiet` | `przod` (przypięcie zamiast liczonego z położenia) i `okladka_dopasuj`: `true` (szerokość = szerokość grzbietu).
 
 ## 4. Strony i wzorce

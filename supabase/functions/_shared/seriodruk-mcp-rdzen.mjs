@@ -601,7 +601,7 @@ function przeglad(w) {
   const wiersz = (o) => `${o.id} (${o.type}${o.text != null ? `: „${krotko(o.text, 40)}”` : ''}${o.zasob ? `: obraz ${p.zasoby?.[o.zasob]?.nazwa || o.zasob}` : ''}${o.tabela ? ': tabela' : ''})`;
   return [
     `Projekt „${p.nazwa}” (id ${p.id}) – wersja ${w.wersja}. Dostęp: ${w.dostep.rola === 'edycja' ? 'czytanie i zmiany' : 'tylko czytanie'}, ${opisWaznosci(w.dostep.wazny_do)}.`,
-    `Sekcje: ${(p.sekcje || []).map((s) => `${s.id} „${s.nazwa}” ${s.wydruk?.szerokosc_mm}×${s.wydruk?.wysokosc_mm} mm, ${s.uklad || 'pojedyncze'}${s.okladka ? `, okładka ${s.okladka.oprawa}${s.okladka.wynik ? ` (grzbiet ${s.okladka.wynik.grzbiet} mm, liczona sama)` : ''}` : ''}${s.skladka ? `, składki ×${s.skladka}` : ''}`).join('; ')}`,
+    `Sekcje: ${(p.sekcje || []).map((s) => `${s.id} „${s.nazwa}” ${s.wydruk?.szerokosc_mm}×${s.wydruk?.wysokosc_mm} mm, ${s.uklad || 'pojedyncze'}${s.okladka ? `, okładka ${s.okladka.oprawa}${s.okladka.wynik ? ` (grzbiet ${s.okladka.wynik.grzbiet} mm, ${s.okladka.wymiary?.tryb === 'rozmiar' ? 'rozmiar wpisany' : s.okladka.wymiary?.tryb === 'grzbiet' ? 'grzbiet wpisany' : 'liczona sama'})` : ''}` : ''}${s.skladka ? `, składki ×${s.skladka}` : ''}`).join('; ')}`,
     `Strony (${p.strony.length}, w tej kolejności):`,
     ...p.strony.map((s, i) => `  ${i + 1}. ${s.id} „${s.nazwa || ''}” sekcja=${s.sekcja}${s.seria ? ` seria=${s.seria}` : ''} – ${(s.obiekty || []).map(wiersz).join(', ') || 'pusta'}`),
     `Wzorce: ${(p.wzorce || []).map((x) => `${x.id} „${x.nazwa}” (${(x.obiekty || []).length} el.)`).join('; ') || 'brak'}`,

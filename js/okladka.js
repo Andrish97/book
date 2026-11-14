@@ -50,9 +50,14 @@ export function domyslnaOkladka() {
     big_mm: 7, // twarda: rowek przy grzbiecie
     naddatek_mm: 3, // twarda: o tyle tektura wystaje poza blok (góra, dół, przód)
     tektura_mm: 2, // twarda: grubość tektury – grzbiet = blok + 2 × tektura
+    // Wymiary (#125): auto – wszystko liczone; grzbiet – wpisany grzbiet (np. od drukarni);
+    // rozmiar – wpisana szerokość × wysokość całej okładki (bez spadu), grzbiet wpisany albo liczony (0).
+    wymiary: { tryb: 'auto', grzbiet_mm: 0, szerokosc_mm: 0, wysokosc_mm: 0 },
     wynik: null,
   };
 }
+
+export const TRYBY_WYMIAROW = { auto: 'Policz same', grzbiet: 'Wpisz grzbiet', rozmiar: 'Wpisz rozmiar okładki' };
 
 export function normalizujOkladke(o) {
   if (!o || typeof o !== 'object') return null;
@@ -72,6 +77,12 @@ export function normalizujOkladke(o) {
     big_mm: liczbaLub(o.big_mm, d.big_mm, 0, 30),
     naddatek_mm: liczbaLub(o.naddatek_mm, d.naddatek_mm, 0, 20),
     tektura_mm: liczbaLub(o.tektura_mm, d.tektura_mm, 0, 10),
+    wymiary: {
+      tryb: TRYBY_WYMIAROW[o.wymiary?.tryb] ? o.wymiary.tryb : 'auto',
+      grzbiet_mm: liczbaLub(o.wymiary?.grzbiet_mm, 0, 0, 200),
+      szerokosc_mm: liczbaLub(o.wymiary?.szerokosc_mm, 0, 0, 3000),
+      wysokosc_mm: liczbaLub(o.wymiary?.wysokosc_mm, 0, 0, 3000),
+    },
     wynik: o.wynik && typeof o.wynik === 'object' ? o.wynik : null,
   };
 }
@@ -112,12 +123,23 @@ export function geometriaOkladki(projekt, sekcja, ciag = rozwin(projekt)) {
   const strefy = [];
   let x = 0;
   const dodaj = (rodzaj, w) => { strefy.push({ rodzaj, x1: zaokraglij(x), x2: zaokraglij(x + w) }); x += w; };
-  let grzbiet;
-  let wysokosc;
+  const twarda = o.oprawa === 'twarda';
+  const zeszyt = o.oprawa === 'zeszytowa';
+  // Grzbiet i rozmiar liczone z papieru i formatu środka – zawsze, jako podpowiedź przy wpisanych wartościach.
+  const grzbietLiczony = zeszyt ? 0 : zaokraglij(kartek * kartka + (twarda ? 2 * o.tektura_mm : 0));
+  const stale = twarda ? 2 * o.zawiniecie_mm + 2 * o.big_mm : 0;
+  const panelLiczony = twarda ? sz + o.naddatek_mm : sz;
+  const szerokoscLiczona = zaokraglij(2 * panelLiczony + grzbietLiczony + stale);
+  const wysokoscLiczona = zaokraglij(twarda ? wy + 2 * o.naddatek_mm + 2 * o.zawiniecie_mm : wy);
+  const w = o.wymiary;
+  let grzbiet = grzbietLiczony;
+  if (!zeszyt && w.tryb !== 'auto' && w.grzbiet_mm > 0) grzbiet = zaokraglij(w.grzbiet_mm);
+  let panel = panelLiczony;
+  let wysokosc = twarda ? wysokoscLiczona : wy;
+  if (w.tryb === 'rozmiar' && w.szerokosc_mm > 0) panel = Math.max(1, (w.szerokosc_mm - grzbiet - stale) / 2);
+  if (w.tryb === 'rozmiar' && w.wysokosc_mm > 0) wysokosc = w.wysokosc_mm;
   let gora;
-  if (o.oprawa === 'twarda') {
-    grzbiet = zaokraglij(kartek * kartka + 2 * o.tektura_mm);
-    const panel = sz + o.naddatek_mm;
+  if (twarda) {
     dodaj('zawiniecie_l', o.zawiniecie_mm);
     dodaj('tyl', panel);
     dodaj('big_l', o.big_mm);
@@ -125,21 +147,19 @@ export function geometriaOkladki(projekt, sekcja, ciag = rozwin(projekt)) {
     dodaj('big_p', o.big_mm);
     dodaj('przod', panel);
     dodaj('zawiniecie_p', o.zawiniecie_mm);
-    gora = o.zawiniecie_mm;
-    wysokosc = wy + 2 * o.naddatek_mm + 2 * o.zawiniecie_mm;
+    gora = Math.min(o.zawiniecie_mm, wysokosc / 4);
   } else {
-    grzbiet = o.oprawa === 'zeszytowa' ? 0 : zaokraglij(kartek * kartka);
-    dodaj('tyl', sz);
+    dodaj('tyl', panel);
     if (grzbiet > 0) dodaj('grzbiet', grzbiet);
-    dodaj('przod', sz);
+    dodaj('przod', panel);
     gora = 0;
-    wysokosc = wy;
   }
-  const szerokosc = zaokraglij(x);
+  const szerokosc = w.tryb === 'rozmiar' && w.szerokosc_mm > 0 ? zaokraglij(w.szerokosc_mm) : zaokraglij(x);
   wysokosc = zaokraglij(wysokosc);
+  const liczone = { grzbiet: grzbietLiczony, szerokosc: szerokoscLiczona, wysokosc: wysokoscLiczona };
   return {
     oprawa: o.oprawa, strona: { sz, wy }, stron, kartek, kartka_mm: Math.round(kartka * 1000) / 1000, grzbiet,
-    szerokosc, wysokosc, strefy, gora: zaokraglij(gora), dol: zaokraglij(wysokosc - gora),
+    szerokosc, wysokosc, strefy, gora: zaokraglij(gora), dol: zaokraglij(wysokosc - gora), tryb: w.tryb, liczone,
   };
 }
 
