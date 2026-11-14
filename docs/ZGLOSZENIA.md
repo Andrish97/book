@@ -13,13 +13,16 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
 | 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
+| 131A | Typografia: dzielenie wyrazów, wdowy i sieroty, spójniki, inicjały, tabulatory, style znakowe, siatka linii bazowych, oblewanie tekstem | 🔄 |
+| 131A | Z Canvy: kalendarz miesiąca, wykresy z danych, biblioteka kształtów, kolaże | 🔄 |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
-| Propozycje z InDesigna i Publishera (#130): dzielenie wyrazów, wdowy i sieroty, spójniki, inicjały, tabulatory, oblewanie tekstem, spis treści, żywa pagina, przypisy, odsyłacze, znajdź i zamień, malarz formatów, biblioteka elementów, druk broszury, podgląd separacji, PDF z zakładkami | ⏳ czeka na wybór |
-| Propozycje z Canvy (#129): tekst po łuku, kalendarz miesiąca, zmiana formatu ze skalowaniem, zestaw marki, wykresy z danych, biblioteka kształtów, kolaż, komentarze, historia wersji, makieta 3D | ⏳ czeka na wybór |
+| 131B: spis treści, żywa pagina, przypisy, odsyłacze, skorowidz; tekst po ścieżce i wyginanie tekstu | ⏳ partia B |
+| 131C: znajdź i zamień, malarz formatów, biblioteka elementów, sprawdzanie pisowni; druk broszury, podgląd separacji, PDF z zakładkami i linkami | ⏳ partia C |
+| 131D: zmiana formatu ze skalowaniem, zestaw marki, komentarze na stronach, makieta 3D | ⏳ partia D |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
