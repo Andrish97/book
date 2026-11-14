@@ -10,6 +10,7 @@ import * as chmura from '../chmura.js';
 import { ikona } from '../ikony.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
+import { postep } from '../postep.js';
 import { zaplanujAktualizacjeLinku, odswiezPodglad, OPOZNIENIE_LINKU_Z_KONTA_MS } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
@@ -289,7 +290,8 @@ export function zapiszBiezacyCel() {
     zapiszPolaZPlotna(projekt, cel, 0, edytor.prowadniceStron()[0]);
     // Strony z tym wzorcem trzeba przerysować.
     for (const s of stronyZWzorcem(projekt, cel.id)) stan.miniatury.delete(s.id);
-    stan.miniatury.set(cel.id, edytor.miniatura(200, 0));
+    // Miniaturę rysuje w tle odrysujMiniaturyWTle (zapiszTeraz) – raz po serii zmian, nie przy każdym
+    // przepisaniu płótna (krok historii, zapis, łączenie – to trzy rysowania całej strony na jedną zmianę).
   } else {
     const obiekty = edytor.obiektyStron();
     const prowadnice = edytor.prowadniceStron();
@@ -298,7 +300,6 @@ export function zapiszBiezacyCel() {
       if (!cel) return;
       cel.obiekty = bezZmianZPlotna(obiekty[i]);
       zapiszPolaZPlotna(projekt, cel, i, prowadnice[i]);
-      stan.miniatury.set(cel.id, edytor.miniatura(200, i));
     });
     // Tekst, który przepłynął do ramek na innych stronach, wraca do tych stron.
     const inne = new Set();
@@ -389,8 +390,11 @@ async function wyslijNaKonto({ wymus = false } = {}) {
   }
   if (stan.konflikt === p.id && !wymus) { pominietaWysylka = true; return; } // trwa łączenie albo czekamy na decyzję użytkownika
   const wersja = p.zmieniono;
+  // Nowe obrazy (wgrane tutaj albo przez AI) idą na konto przed projektem – przy dużych zdjęciach widać postęp.
+  const doWyslania = Object.values(p.zasoby || {}).filter((z) => z && (!z.sciezka || chmura.czyOdAi(z.sciezka))).length;
+  const pasek = doWyslania ? postep('Wysyłanie obrazów na konto…', { razem: doWyslania, opoznienie: 800 }) : null;
   try {
-    await chmura.zapiszWChmurze(p, { wymus });
+    await chmura.zapiszWChmurze(p, { wymus, postep: pasek && ((i, n) => pasek.krok(i, n)) });
     stan.konflikt = null;
     await zapiszLokalnie(p, wlasciciel(), p.zmieniono !== wersja);
     await zachowajHistorie(p); // nowy numer wersji z konta
@@ -400,6 +404,8 @@ async function wyslijNaKonto({ wymus = false } = {}) {
   } catch (e) {
     if (e.konflikt) { polaczZKontem(p, { konflikt: e }); return; }
     stanZapisu('blad', `Nie wysłano: ${chmura.komunikatBledu(e)}`);
+  } finally {
+    pasek?.koniec();
   }
 }
 
@@ -494,7 +500,11 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
     const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));
     if (zKonta.wersja_chmury === p.wersja_chmury) { koniec(); return; } // to już mamy
     // Obrazy, które doszły na koncie, pobieramy zawczasu – po połączeniu płótno ma się odświeżyć od razu.
-    try { await podlaczZasoby(zKonta, chmura.pobierzZasob); } catch { /* brakujące obrazy pokażą się jako brakujące */ }
+    // Przy wielu nowych obrazach widać to jako postęp (np. zdjęcia wgrane przez AI).
+    const pasekObrazow = postep('Pobieranie obrazów z konta…', { opoznienie: 800 });
+    try {
+      await podlaczZasoby(zKonta, chmura.pobierzZasob, (i, n) => pasekObrazow.krok(i, n));
+    } catch { /* brakujące obrazy pokażą się jako brakujące */ } finally { pasekObrazow.koniec(); }
     const kontoDoPorownan = postacDoPorownan(zKonta);
     const podstawaKonta = podstawaProjektu(zKonta);
     const plan = () => {

@@ -12,7 +12,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 - PDF wektorowy z prawdziwym tekstem, osadzonymi czcionkami i ligaturami; PDF/X-4 z profilem drukarni i CMYK – także w trybie „Obrazy stron”. Próbki sprawdzone czterema niezależnymi programami.
 - Tekst płynie przez ramki i strony, a kursor idzie za nim; tabela jest jednym elementem; rysunek SVG rozkłada się na edytowalne elementy; element grupy zmienia się bez rozgrupowywania.
 - „Sprawdź przed drukiem” przechodzi każdą powieloną stronę: brakujące dane i obrazy, powtórzenia, teksty, które się nie mieszczą.
-- Push na `main` wdraża aplikację i bazę, a 197 testów pilnuje, żeby nic się nie psuło.
+- Push na `main` wdraża aplikację i bazę, a 211 testów pilnuje, żeby nic się nie psuło.
 
 **Słabe.**
 - Zmiany trafiają na konto po około 3 sekundach, a drugie urządzenie dowiaduje się o nich dopiero przy własnym zapisie albo otwarciu projektu – stąd pytania o połączenie zmian (B4).
@@ -64,7 +64,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Dlaczego tak.** Projekt trafia do druku, a drukarnia mówi w milimetrach. Dzięki temu eksport do PDF to proste przeliczenie mm na punkty, bez zgadywania rozdzielczości ekranu, a to samo położenie znaczy to samo w edytorze, podglądzie i pliku.
 
 ### A4. Testy w repozytorium ✅
-**Co jest.** W `tests/` są 184 testy w 39 plikach. Otwierają aplikację w przeglądarce i klikają jak człowiek: edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst i jego przelewanie przez strony, narzędzia precyzji, podgląd, udostępnianie, łączenie zmian z dwóch urządzeń, warstwy i grupy, tabela, dane, pola i serie, czcionki, obrazy, rozkładanie rysunków SVG, eksport PDF (wektorowy, PDF/X-4, CMYK – z porównaniem obrazu pliku z obrazem z aplikacji) i kontrola przed drukiem. Bazę zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”): najpierw sprawdzenie kodu, potem testy, na końcu wypisane pomiary zgodności PDF.
+**Co jest.** W `tests/` jest 211 testów w 44 plikach. Otwierają aplikację w przeglądarce i klikają jak człowiek: edytor, dotyk, konto, pliki, sekcje, wzorce, rozkładówki, tekst i jego przelewanie przez strony, narzędzia precyzji, podgląd, udostępnianie, łączenie zmian z dwóch urządzeń, warstwy i grupy, tabela, dane, pola i serie, czcionki, obrazy, rozkładanie rysunków SVG, eksport PDF (wektorowy, PDF/X-4, CMYK – z porównaniem obrazu pliku z obrazem z aplikacji) i kontrola przed drukiem. Bazę zastępuje atrapa w `tests/pomoc.cjs`, więc testy nie dotykają Twojej bazy. Uruchamiają się w GitHub Actions przy każdym pushu (workflow „Testy”): najpierw sprawdzenie kodu, potem testy, na końcu wypisane pomiary zgodności PDF.
 **Dlaczego tak.** Aplikacja ma dużo części, które od siebie zależą (serie, przelewanie tekstu, składanie strony). Test, który klika, wyłapuje to, czego nie widać przy czytaniu kodu. Porównanie PDF z obrazem z aplikacji robi niezależny czytnik PDF, więc pilnuje tego, co naprawdę zobaczy drukarnia.
 **Sprawdzone.** Osobny skrypt `npm run proba` przechodzi opublikowaną aplikację na prawdziwej bazie (0.2).
 **Słabe.** Próbę na prawdziwej bazie trzeba uruchomić ręcznie. Na prawdziwym tablecie i telefonie nikt aplikacji jeszcze nie przeklikał.
@@ -247,6 +247,7 @@ Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z o
 **Dlaczego tak.** Układ znany z programów do składu; jeden panel zmieniający treść zajmuje mniej miejsca niż kilka okienek. Strony, wzorce i warstwy to trzy różne rzeczy, więc są w trzech różnych miejscach.
 **Twoje decyzje.** Własne kontrolki; strony, wzorce i warstwy osobno (#50, #53). Zawężanie długich list (#61).
 **Słabe.** Panel tekstu nadal ma wiele części (zwijanych).
+**Poprawione (#83).** Wydajność na dużym projekcie (Twój dziennik: do ~300 elementów na stronie): przy pisaniu i przeciąganiu reszta strony jest rysowana raz do gotowych obrazów (`js/warstwy-plotna.js`) – pisanie ok. 7× szybsze, przeciąganie ok. 3× więcej klatek na sekundę; miniatura strony rysuje się po zmianie raz zamiast trzech razy; miniatury w oknie „Obrazy projektu” zostają na urządzeniu. Dłuższe czynności (otwieranie, wgrywanie, pobieranie i wysyłanie obrazów, wczytywanie pliku, porządkowanie, eksport PDF) pokazują wspólną kartę postępu (`js/postep.js`). Pierwsze narysowanie strony z kilkuset elementami (przejście na inną stronę) nadal trwa 100–250 ms – to budowanie pamięci elementów w Fabric.
 
 ### D10. Dotyk i telefon ⚠️
 **Co jest.** Jeden palec zaznacza i przesuwa elementy, dwa palce przesuwają i powiększają widok. Na telefonie edytor działa w pionie: strona u góry, panele wysuwane z dołu jako arkusze o stałej wysokości. Telefon trzymany poziomo i okno niższe niż 480 px pokazują planszę „Za mało miejsca na wysokość”. „W rozkładówkach pokazuj jedną stronę” jest na wąskim ekranie włączone domyślnie. Schowane na małym ekranie: wielokąt, pióro, tabela, edycja punktów, kadrowanie ramką i linijki.

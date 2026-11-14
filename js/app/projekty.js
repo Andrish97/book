@@ -10,6 +10,7 @@ import { ikona } from '../ikony.js';
 import { zapiszPlikProjektu, ROZSZERZENIE, wczytajPlikProjektu as odczytajPlik } from '../plik-projektu.js';
 import { powiadom, $, kiedy, przelaczMenu, zamknijMenu, zapytajONazwe, pobierz, bezpiecznaNazwa, potwierdz } from '../ui.js';
 import { NAZWA } from '../marka.js';
+import { postep } from '../postep.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { wlasciciel, stan, pokazEkran, trasa } from './kontekst.js';
 import { czekajNaEdytor, edytorGotowy, doczytajWTle } from './doczytaj.js';
@@ -116,36 +117,43 @@ export async function pokazProjekty({ cicho = false } = {}) {
   }
 }
 
-export async function wczytajProjektZWpisu(w) {
+// pasek – opcjonalny wskaźnik postępu (js/postep.js): opis i licznik pobieranych obrazów.
+export async function wczytajProjektZWpisu(w, pasek = null) {
   const lokalny = w.lokalnie ? (await wczytajLokalnie(w.id))?.projekt : null;
   // Nowsza wersja wygrywa; niewysłane zmiany lokalne mają pierwszeństwo.
   const chmuraNowsza = w.wChmurze && (!lokalny || (!w.doSynchronizacji && w.wChmurze > (lokalny.zmieniono || '')));
   if (!chmuraNowsza) {
     // Starszy zapis trzymał obrazy w środku projektu – przy pierwszym otwarciu przechodzą do magazynu plików.
     if (lokalny && await odlozZasoby(lokalny)) await zapiszLokalnie(lokalny, wlasciciel(), Boolean(w.doSynchronizacji));
-    if (lokalny) await podlaczObrazy(lokalny);
+    if (lokalny) await podlaczObrazy(lokalny, pasek);
     return lokalny;
   }
+  pasek?.opis('Pobieranie projektu z konta…');
   const projekt = normalizuj(await chmura.wczytajZChmury(w.id));
   projekt.podstawa_chmury = podstawaProjektu(projekt); // stan uzgodniony z kontem – punkt odniesienia przy łączeniu zmian
   await zapiszLokalnie(projekt, wlasciciel(), false);
-  await podlaczObrazy(projekt);
+  await podlaczObrazy(projekt, pasek);
   return projekt;
 }
 
 // Obrazy projektu dostają adresy plików z magazynu przeglądarki; brakujące są pobierane z konta.
-export async function podlaczObrazy(projekt) {
-  const brak = await podlaczZasoby(projekt, stan.uzytkownik ? chmura.pobierzZasob : null);
+export async function podlaczObrazy(projekt, pasek = null) {
+  const brak = await podlaczZasoby(projekt, stan.uzytkownik ? chmura.pobierzZasob : null, pasek && ((i, n) => { pasek.opis('Pobieranie obrazów z konta…'); pasek.krok(i, n); }));
   if (brak.length) powiadom(`Nie udało się wczytać ${brak.length === 1 ? `obrazu „${brak[0]}”` : `obrazów (${brak.length}): ${brak.slice(0, 3).join(', ')}${brak.length > 3 ? '…' : ''}`}.${navigator.onLine ? '' : ' Są na koncie – pobiorą się po powrocie internetu.'}`, true);
 }
 
 async function otworzZListy(w) {
+  const pasek = postep(`Otwieranie „${w.nazwa || 'projektu'}”…`);
   try {
-    const projekt = await wczytajProjektZWpisu(w);
+    const projekt = await wczytajProjektZWpisu(w, pasek);
     if (!projekt) throw new Error('Nie znaleziono projektu.');
+    pasek.opis(`Otwieranie „${projekt.nazwa}”…`);
+    pasek.razem(null);
     await otworzProjekt(projekt);
   } catch (e) {
     powiadom(`Nie udało się otworzyć projektu: ${chmura.komunikatBledu(e)}`, true);
+  } finally {
+    pasek.koniec();
   }
 }
 
@@ -281,8 +289,10 @@ export async function doProjektow() {
 // ---------- Pliki ----------
 
 export async function wczytajPlikProjektu(plik) {
+  let pasek = postep(`Wczytywanie pliku „${plik.name || 'projektu'}”…`);
   try {
     const projekt = normalizuj(await odczytajPlik(plik));
+    pasek.koniec(); // na czas ewentualnego pytania – bez karty postępu nad oknem
     // Plik nie wie, co jest teraz na koncie: gdy zastąpi projekt zmieniony w międzyczasie gdzie indziej,
     // aplikacja zapyta o cały projekt, zamiast łączyć zmiany (js/laczenie.js).
     delete projekt.podstawa_chmury;
@@ -295,14 +305,18 @@ export async function wczytajPlikProjektu(plik) {
       );
       if (!zastap) projekt.id = crypto.randomUUID();
     }
+    pasek = postep(`Otwieranie „${projekt.nazwa}”…`);
     if (stan.projekt) await zapiszTeraz();
     // Plik w miejsce projektu: dawna historia cofania do niego nie pasuje.
     if (istniejacy && projekt.id === istniejacy.id) await usunHistorie(projekt.id);
     await otworzProjekt(projekt);
+    pasek.opis('Zapisywanie projektu na urządzeniu…');
     await zapiszTeraz();
     powiadom(`Wczytano „${projekt.nazwa}”.`);
   } catch (e) {
     powiadom(`Nie udało się wczytać pliku: ${e.message}`, true);
+  } finally {
+    pasek.koniec();
   }
 }
 

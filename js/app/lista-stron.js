@@ -192,6 +192,12 @@ export function odswiezMiniature(id) {
 
 // Miniatury renderowane leniwie poza ekranem – tym samym kodem co podgląd
 // (zlozenie.js), więc z wzorcami pod i nad treścią.
+// Czeka na wolną chwilę przeglądarki (najwyżej 1,5 s).
+const bezczynnie = () => new Promise((ok) => {
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => ok(), { timeout: 1500 });
+  else setTimeout(ok, 50);
+});
+
 let generowanie = null;
 export function generujMiniatury() {
   if (generowanie) return;
@@ -227,9 +233,13 @@ export function odrysujMiniaturyWTle(ids) {
     for (const id of kolejka) {
       const cel = projekt.strony.find((s) => s.id === id) || projekt.wzorce.find((w) => w.id === id);
       if (!cel || stan.projekt !== projekt) continue;
+      // Rysowanie strony to dłuższa chwila – w wolnym czasie przeglądarki, nie w pół pisania.
+      await bezczynnie();
+      if (stan.projekt !== projekt || doOdrysowania.has(id)) continue;
       const obraz = await renderujCel(projekt, cel, { szerokoscPx: 200, ciag });
       if (stan.projekt !== projekt || doOdrysowania.has(id)) continue;
       stan.miniatury.set(id, obraz);
+      if (projekt.strony[0]?.id === id) projekt.miniatura = obraz; // miniatura projektu na liście projektów
       odswiezMiniature(id);
     }
   }, 900);

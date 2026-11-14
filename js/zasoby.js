@@ -85,11 +85,14 @@ async function wlozPlik(projekt, id, blob, zasob) {
 
 // Przed zapisem: obrazy, które mają jeszcze `dataUrl`, trafiają do magazynu, a z projektu znika ich treść.
 // Zwraca true, gdy coś przeniesiono.
-export async function odlozZasoby(projekt) {
+export async function odlozZasoby(projekt, postep = null) {
   const pomin = czcionki(projekt);
   let cos = false;
-  for (const [id, z] of Object.entries(projekt?.zasoby || {})) {
-    if (!z?.dataUrl || pomin.has(id)) continue;
+  const doOdlozenia = Object.entries(projekt?.zasoby || {}).filter(([id, z]) => z?.dataUrl && !pomin.has(id));
+  let gotowe = 0;
+  for (const [id, z] of doOdlozenia) {
+    postep?.(gotowe, doOdlozenia.length);
+    gotowe += 1;
     const dataUrl = z.dataUrl;
     const opis = await wlozPlik(projekt, id, await naBlob(dataUrl), z);
     // W trakcie zapisu obraz mógł zostać podmieniony – wtedy zostaje do następnego zapisu.
@@ -101,8 +104,8 @@ export async function odlozZasoby(projekt) {
 
 // Po otwarciu projektu: każdy obraz dostaje adres pliku z magazynu. Obraz, którego nie ma na tym
 // urządzeniu, a jest na koncie (`sciezka`), jest pobierany funkcją `pobierz(sciezka)` → Blob.
-// Zwraca listę nazw obrazów, których nie udało się znaleźć.
-export async function podlaczZasoby(projekt, pobierz = null) {
+// Zwraca listę nazw obrazów, których nie udało się znaleźć. postep(gotowe, razem) – przy pobieraniu z konta.
+export async function podlaczZasoby(projekt, pobierz = null, postep = null) {
   const pomin = czcionki(projekt);
   // Obrazy usunięte na innym urządzeniu: ich pliki znikają też stąd.
   const usuniete = (projekt?.zasoby_usuniete || []).map((id) => klucz(projekt, id));
@@ -133,10 +136,15 @@ export async function podlaczZasoby(projekt, pobierz = null) {
     else brak.push(z.nazwa || id);
   }
   // Pobieranie z konta: po kilka naraz, żeby projekt z setką zdjęć nie czekał na każde osobno.
+  const razem = doPobrania.length;
+  let gotowe = 0;
+  if (razem) postep?.(0, razem);
   await Promise.all(Array.from({ length: Math.min(4, doPobrania.length) }, async () => {
     for (let w = doPobrania.shift(); w; w = doPobrania.shift()) {
       const [id, z] = w;
       try { Object.assign(z, await wlozPlik(projekt, id, await pobierz(z.sciezka), z)); } catch { brak.push(z.nazwa || id); }
+      gotowe += 1;
+      postep?.(gotowe, razem);
     }
   }));
   return brak;
