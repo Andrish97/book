@@ -8,6 +8,7 @@
 
 import { rozwin } from './serie.js';
 import { $ } from './ui.js';
+import { ikona } from './ikony.js';
 
 const MAKS_PX = 1800; // górna granica szerokości renderowanego obrazu
 const MAKS_PX_ZOOM = 4096; // powiększona strona w prezentacji – ostra, ale bez zjadania pamięci
@@ -328,20 +329,29 @@ export class Podglad {
 
     const el = document.createElement('div');
     el.className = 'prezentacja';
+    // Pasek w stylu odtwarzacza (#102): półprzezroczysta „pigułka” na dole – poprzednia/następna, numer strony,
+    // powiększenie; zamknięcie to X w prawym górnym rogu. Na dotyku bez powiększenia (przybliża się palcami).
+    // Pasek i X chowają się po chwili bez ruchu; wracają po ruchu myszy, stuknięciu albo klawiszu.
     el.innerHTML = '<div class="prezentacja-scena"></div>'
-      + '<button type="button" class="prezentacja-strzalka wstecz" aria-label="Poprzednia strona">‹</button>'
-      + '<button type="button" class="prezentacja-strzalka dalej" aria-label="Następna strona">›</button>'
-      + '<div class="prezentacja-pasek"><span class="prezentacja-licznik"></span>'
-      + '<div class="prezentacja-zoom"><button type="button" class="prezentacja-minus" aria-label="Pomniejsz" title="Pomniejsz (−)">−</button>'
-      + '<button type="button" class="prezentacja-wartosc" aria-label="Dopasuj do ekranu" title="Dopasuj do ekranu (0)">100%</button>'
-      + '<button type="button" class="prezentacja-plus" aria-label="Powiększ" title="Powiększ (+)">+</button></div>'
-      + '<button type="button" class="prezentacja-zamknij">Zamknij<span class="tylko-klawiatura"> (Esc)</span></button></div>';
+      + `<button type="button" class="prezentacja-strzalka wstecz" aria-label="Poprzednia strona">${ikona('wstecz', { rozmiar: 30 })}</button>`
+      + `<button type="button" class="prezentacja-strzalka dalej" aria-label="Następna strona">${ikona('dalej', { rozmiar: 30 })}</button>`
+      + `<button type="button" class="prezentacja-zamknij prezentacja-sterowanie" aria-label="Zamknij prezentację" title="Zamknij prezentację (Esc)">${ikona('zamknij', { rozmiar: 22 })}</button>`
+      + '<div class="prezentacja-pasek prezentacja-sterowanie"><div class="prezentacja-pigulka">'
+      + `<button type="button" class="prezentacja-krok wstecz" data-krok="-1" aria-label="Poprzednia strona" title="Poprzednia strona (←)">${ikona('wstecz', { rozmiar: 18 })}</button>`
+      + '<span class="prezentacja-licznik" aria-live="polite"></span>'
+      + `<button type="button" class="prezentacja-krok dalej" data-krok="1" aria-label="Następna strona" title="Następna strona (→)">${ikona('dalej', { rozmiar: 18 })}</button>`
+      + '<div class="powiekszenie prezentacja-zoom" role="group" aria-label="Powiększenie">'
+      + `<button type="button" class="powiekszenie-krok prezentacja-minus" aria-label="Pomniejsz" title="Pomniejsz (−)">${ikona('minus', { rozmiar: 16 })}</button>`
+      + '<button type="button" class="wartosc-zoom prezentacja-wartosc" aria-label="Dopasuj do ekranu" title="Dopasuj do ekranu (0)">100%</button>'
+      + `<button type="button" class="powiekszenie-krok prezentacja-plus" aria-label="Powiększ" title="Powiększ (+)">${ikona('plus', { rozmiar: 16 })}</button></div>`
+      + '</div></div>';
     this.el.parentElement.append(el);
     const p = {
       el, kroki, i: start, zoom: 1, x: 0, y: 0,
     };
     this.prezentacja = p;
     p.klawisze = (e) => {
+      p.pokazSterowanie?.();
       const pow = p.zoom > 1.02;
       const PRZESUN = 80;
       const przesuniecia = {
@@ -369,8 +379,19 @@ export class Podglad {
     document.addEventListener('keydown', p.klawisze, true);
     window.addEventListener('resize', p.rozmiar);
     document.addEventListener('fullscreenchange', p.pelnyEkran);
-    el.querySelector('.wstecz').addEventListener('click', () => this._krokPrezentacji(-1));
-    el.querySelector('.dalej').addEventListener('click', () => this._krokPrezentacji(1));
+    for (const b of el.querySelectorAll('.prezentacja-strzalka.wstecz, .prezentacja-krok.wstecz')) b.addEventListener('click', () => this._krokPrezentacji(-1));
+    for (const b of el.querySelectorAll('.prezentacja-strzalka.dalej, .prezentacja-krok.dalej')) b.addEventListener('click', () => this._krokPrezentacji(1));
+    // Sterowanie chowa się po 2,5 s bez ruchu (na dotyku stuknięcie w scenę je pokazuje i chowa).
+    p.pokazSterowanie = () => {
+      el.classList.remove('bez-sterowania');
+      clearTimeout(p.timerSterowania);
+      p.timerSterowania = setTimeout(() => { if (!el.querySelector('.prezentacja-sterowanie:hover, .prezentacja-sterowanie :focus-visible')) el.classList.add('bez-sterowania'); }, 2500);
+    };
+    el.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') p.pokazSterowanie(); });
+    el.addEventListener('pointerdown', p.pokazSterowanie);
+    el.addEventListener('keydown', p.pokazSterowanie);
+    el.addEventListener('focusin', p.pokazSterowanie);
+    p.pokazSterowanie();
     el.querySelector('.prezentacja-zamknij').addEventListener('click', () => this.zamknijPrezentacje());
     el.querySelector('.prezentacja-plus').addEventListener('click', () => this.powieksz(1.25));
     el.querySelector('.prezentacja-minus').addEventListener('click', () => this.powieksz(0.8));
@@ -456,8 +477,8 @@ export class Podglad {
     }
     const numery = strony.filter(Boolean).map((s) => s.nr ?? '–').join('–');
     p.el.querySelector('.prezentacja-licznik').textContent = `${sekcja.nazwa} · str. ${numery} · ${p.i + 1} z ${p.kroki.length}`;
-    p.el.querySelector('.wstecz').disabled = p.i === 0;
-    p.el.querySelector('.dalej').disabled = p.i === p.kroki.length - 1;
+    for (const b of p.el.querySelectorAll('.wstecz')) b.disabled = p.i === 0;
+    for (const b of p.el.querySelectorAll('.dalej')) b.disabled = p.i === p.kroki.length - 1;
   }
 
   // ---------- Powiększanie prezentacji ----------
@@ -581,6 +602,7 @@ export class Podglad {
     if (!p) return;
     this.prezentacja = null;
     clearTimeout(p.timerOstrosci);
+    clearTimeout(p.timerSterowania);
     p.gesty?.odlacz();
     document.removeEventListener('keydown', p.klawisze, true);
     window.removeEventListener('resize', p.rozmiar);

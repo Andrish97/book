@@ -125,8 +125,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
         <div class="okladka">${w.miniatura ? '<img alt="">' : '<div class="pusta-okladka"></div>'}</div>
         <div class="opis"><strong></strong><small></small></div>
       </button>
-      ${w.udostepniony ? `<button class="plakietka-linku" title="Projekt ma link do podglądu – kliknij, żeby go skopiować albo unieważnić">${ikona('link', { rozmiar: 14 })}Udostępniony</button>` : ''}
-      ${w.wspolpraca ? `<button class="plakietka-linku plakietka-wspolpracy" title="Projekt udostępniony Ci przez inną osobę – kliknij, żeby zobaczyć, kto ma dostęp">${ikonaWspolpracy()}<span></span></button>` : ''}
+      ${w.udostepniony || w.wspolpraca ? `<div class="plakietki-karty">${w.udostepniony ? `<button class="plakietka-linku" title="Projekt ma link do podglądu – kliknij, żeby go skopiować albo unieważnić">${ikona('link', { rozmiar: 14 })}<span>Udostępniony</span></button>` : ''}${w.wspolpraca ? `<button class="plakietka-linku plakietka-wspolpracy" title="Projekt udostępniony Ci przez inną osobę – kliknij, żeby zobaczyć, kto ma dostęp">${ikonaWspolpracy()}<span></span></button>` : ''}</div>` : ''}
       <button class="przycisk-ikona menu-karty" aria-label="Opcje projektu" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
         <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>

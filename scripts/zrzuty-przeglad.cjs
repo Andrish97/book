@@ -28,6 +28,18 @@ const TYLKO = ARG.urzadzenia ? ARG.urzadzenia.split(',') : null;
 const MOTYWY = (ARG.motywy || 'jasny,ciemny').split(',');
 const WZOR_WIDOKOW = ARG.widoki ? new RegExp(ARG.widoki) : null;
 const ROWNOLEGLE = Math.max(1, Number(ARG.rownolegle) || 2);
+// --wyciecia: udawane wycięcia ekranu (Chromium nie ma env(safe-area-inset-*)) – telefon pionowo 47 px u góry
+// i 21 px u dołu, poziomo 47 px po bokach; zmienne --bezp-* z css/aplikacja.css (#99).
+const WYCIECIA = Boolean(ARG.wyciecia);
+async function udawajWyciecia(kontekst, u) {
+  if (!WYCIECIA || !u.opcje.hasTouch) return;
+  const poziomo = u.opcje.viewport.width > u.opcje.viewport.height;
+  const css = poziomo ? ':root{--bezp-gora:0px!important;--bezp-dol:21px!important;--bezp-lewo:47px!important;--bezp-prawo:47px!important}' : ':root{--bezp-gora:47px!important;--bezp-dol:21px!important;--bezp-lewo:0px!important;--bezp-prawo:0px!important}';
+  await kontekst.addInitScript((tresc) => {
+    const wstaw = () => { const st = document.createElement('style'); st.textContent = tresc; document.head.append(st); };
+    if (document.head) wstaw(); else document.addEventListener('DOMContentLoaded', wstaw);
+  }, css);
+}
 
 const UA_TEL = devices['Pixel 7'].userAgent;
 const UA_TAB = devices['iPad Mini'].userAgent;
@@ -571,6 +583,8 @@ const WIDOKI = [
   ['28-prezentacja', async (s) => {
     await doPodgladu(s);
     await akcja(s, 'podglad-prezentacja'); await s.waitForSelector('.prezentacja'); await czekaj(s, 1200);
+    // Sterowanie chowa się po chwili bez ruchu (#102) – ruch myszy je pokazuje (na dotyku jest po wejściu).
+    await s.evaluate(() => document.querySelector('.prezentacja')?.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse' })));
   }, {}],
   ['29-instrukcja', async (s) => { await doEdytora(s); await akcja(s, 'instrukcja'); await s.waitForSelector('#dlg-instrukcja[open]'); await czekaj(s, 600); }, E],
   ['30-nowy-projekt', async (s) => {
@@ -698,6 +712,7 @@ async function widokiLogowania(s, zrzut) {
 // Udostępniony podgląd oczami gościa: link z hasłem (pole hasła), potem strony.
 async function widokiGoscia(przegladarka, u, motyw, baza, link, zrzutStrony) {
   const k = await przegladarka.newContext({ ...u.opcje, deviceScaleFactor: 1, serviceWorkers: 'block', colorScheme: motyw === 'ciemny' ? 'dark' : 'light' });
+  await udawajWyciecia(k, u);
   await podlaczAtrape(k).catch(() => {});
   baza.podlacz?.(k);
   await k.route('https://atrapa.supabase.co/storage/v1/object/public/**', async (r) => {
@@ -722,6 +737,7 @@ async function zrzutyUrzadzenia(przegladarka, u, motyw) {
   const katalog = path.join(KATALOG, u.nazwa, motyw);
   fs.mkdirSync(katalog, { recursive: true });
   const kontekst = await przegladarka.newContext({ ...u.opcje, deviceScaleFactor: 1, serviceWorkers: 'block', colorScheme: motyw === 'ciemny' ? 'dark' : 'light' });
+  await udawajWyciecia(kontekst, u);
   const baza = await podlaczAtrape(kontekst);
   const s = await kontekst.newPage();
   const bledy = [];
