@@ -1857,6 +1857,9 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 #ekran-admin[data-zakladka="skrzynka"] .admin-sekcje { min-height: 0; height: 100%; }
 .admin-panel-skrzynka { height: 100%; min-height: 0; }
 #pozycja-admin .licznik-admin { margin-left: auto; }
+:root[data-dotyk] .lista-folderow button { min-height: 44px; }
+:root[data-dotyk] .skrzynka .przycisk-ikona { --dotyk: 44px; }
+:root[data-dotyk] .adres button { width: 32px; height: 32px; }
 
 .skrzynka {
   --szer-folderow: 196px; --szer-listy: minmax(300px, 400px);
@@ -1865,7 +1868,7 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 }
 .skrzynka [hidden] { display: none !important; }
 .skrzynka .plakietka {
-  display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; line-height: 1; color: var(--tusz-2);
+  display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; line-height: 1; color: var(--tusz-2);
   border: 1px solid var(--linia-mocna); border-radius: 999px; padding: 3px 7px; margin-right: 6px; white-space: nowrap; vertical-align: 1px;
 }
 .skrzynka .plakietka.zgloszenie { background: var(--uwaga-tlo); color: var(--uwaga); border-color: transparent; font-variant-numeric: tabular-nums; }

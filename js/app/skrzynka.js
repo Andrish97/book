@@ -795,8 +795,14 @@ async function dodajPliki(pliki) {
 
 // Zmiany w tabeli rozmów (nowa poczta, wynik wysyłki, inne okno panelu) – lista, licznik i otwarta rozmowa.
 let timerNaZywo = null;
-export async function sledzSkrzynke() {
-  if (s.kanal) return;
+let sledzenie = null;
+export function sledzSkrzynke() {
+  // Jeden kanał na sesję – kilka wywołań naraz (logowanie, trasa) czeka na to samo.
+  if (!sledzenie) sledzenie = podlaczKanal().catch((e) => { sledzenie = null; throw e; });
+  return sledzenie;
+}
+
+async function podlaczKanal() {
   const sb = await supabase();
   const { data: sesja } = await sb.auth.getSession();
   if (sesja.session?.access_token) await sb.realtime.setAuth(sesja.session.access_token);
@@ -813,10 +819,12 @@ export async function sledzSkrzynke() {
 }
 
 export async function przestanSledzic() {
+  await sledzenie?.catch(() => {});
+  sledzenie = null;
   if (!s.kanal) return;
-  const sb = await supabase();
-  await sb.removeChannel(s.kanal);
+  const kanal = s.kanal;
   s.kanal = null;
+  await (await supabase()).removeChannel(kanal);
 }
 
 async function naZywo(id) {

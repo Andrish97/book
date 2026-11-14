@@ -670,14 +670,16 @@ const WIDOKI = [
     await czekaj(s, 400);
   }, {}],
   ['41b-admin-rozmowa', async (s) => {
-    await s.evaluate(() => { location.hash = '#/admin/skrzynka'; });
+    // Na telefonie poprzednia scena zostawia otwartą rozmowę – najpierw powrót do listy.
+    await s.evaluate(() => { location.hash = '#/admin/skrzynka'; document.querySelector('#admin-watek .watek-wstecz')?.click(); });
     await s.waitForSelector('#admin-watki li:has-text("Faktura") .otworz');
     await s.click('#admin-watki li:has-text("Faktura") .otworz');
     await s.waitForSelector('#admin-watek iframe.ramka-wiadomosci');
     await czekaj(s, 600);
   }, {}],
   ['41c-admin-pisz', async (s) => {
-    await s.evaluate(() => { location.hash = '#/admin/skrzynka'; });
+    // Na telefonie poprzednia scena zostawia otwartą rozmowę – najpierw powrót do listy.
+    await s.evaluate(() => { location.hash = '#/admin/skrzynka'; document.querySelector('#admin-watek .watek-wstecz')?.click(); });
     await s.waitForSelector('#admin-watki li:has-text("Faktura") .otworz');
     await s.click('#admin-watki li:has-text("Faktura") .otworz');
     await s.waitForSelector('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
