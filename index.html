@@ -250,18 +250,19 @@
     </header>
     <main class="konto-tresc">
       <div class="konto-uklad">
-        <nav class="konto-nawigacja" aria-label="Sekcje ustawień">
-          <a href="#" data-do="ust-profil" data-ikona="uzytkownik">Profil</a>
-          <a href="#" data-do="ust-logowanie" data-ikona="klodka">Logowanie</a>
-          <a href="#" data-do="ust-wyglad" data-ikona="motyw">Wygląd</a>
-          <a href="#" data-do="ust-urzadzenia" data-ikona="wyloguj">Urządzenia</a>
-          <a href="#" data-do="ust-ai" data-ikona="klucz">Dostęp dla AI</a>
-          <a href="#" data-do="ust-miejsce" data-ikona="chmura">Miejsce</a>
-          <a href="#" data-do="ust-usun" class="niebezpieczny" data-ikona="kosz">Usuwanie konta</a>
+        <nav class="konto-nawigacja konto-lista" aria-label="Ustawienia konta">
+          <a href="#/konto/profil" data-do="ust-profil" data-sekcja="profil"><span class="ikona-wiersza" data-ikona="uzytkownik"></span><span class="tytul">Nazwa użytkownika</span><span class="wartosc" data-podsumowanie="nazwa"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie"><span class="ikona-wiersza" data-ikona="koperta"></span><span class="tytul">E-mail</span><span class="wartosc" data-podsumowanie="email"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie" data-cel="haslo"><span class="ikona-wiersza" data-ikona="klodka"></span><span class="tytul">Hasło</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/wyglad" data-do="ust-wyglad" data-sekcja="wyglad"><span class="ikona-wiersza" data-ikona="motyw"></span><span class="tytul">Motyw</span><span class="wartosc" data-podsumowanie="motyw"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Dostęp dla AI</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/miejsce" data-do="ust-miejsce" data-sekcja="miejsce"><span class="ikona-wiersza" data-ikona="chmura"></span><span class="tytul">Miejsce</span><span class="wartosc" data-podsumowanie="miejsce"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/usun" data-do="ust-usun" data-sekcja="usun" class="niebezpieczny"><span class="ikona-wiersza" data-ikona="kosz"></span><span class="tytul">Usuwanie konta</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
         </nav>
 
         <div class="konto-sekcje">
           <section class="grupa-ustawien" id="ust-profil">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Profil</h2>
             <p class="ciche">Jak aplikacja się do Ciebie zwraca.</p>
             <div class="wiersze-ustawien">
@@ -288,8 +289,9 @@
           </section>
 
           <section class="grupa-ustawien" id="ust-logowanie">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Logowanie</h2>
-            <p class="ciche">Adres e-mail i hasło, którymi wchodzisz do aplikacji.</p>
+            <p class="ciche">Adres e-mail i hasło, którymi wchodzisz do aplikacji, oraz wylogowanie ze wszystkich urządzeń.</p>
             <div class="wiersze-ustawien">
               <div class="wiersz-ustawien">
                 <div class="wiersz-glowny">
@@ -340,10 +342,17 @@
                   </div>
                 </form>
               </div>
+              <div class="wiersz-ustawien" id="wiersz-wyloguj-wszedzie">
+                <div class="wiersz-glowny">
+                  <div class="wiersz-opis"><strong>Wszystkie urządzenia</strong><span>Jesteś zalogowany, dopóki sam się nie wylogujesz. Wylogowanie ze wszystkich urządzeń przydaje się po logowaniu na cudzym albo zgubionym urządzeniu.</span></div>
+                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-wszedzie" data-ikona="wyloguj">Wyloguj wszędzie</button></div>
+                </div>
+              </div>
             </div>
           </section>
 
           <section class="grupa-ustawien" id="ust-wyglad">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Wygląd</h2>
             <p class="ciche">Dotyczy tego urządzenia. Strony publikacji zawsze są pokazywane na białym papierze.</p>
             <div class="wiersze-ustawien">
@@ -362,26 +371,8 @@
             </div>
           </section>
 
-          <section class="grupa-ustawien" id="ust-urzadzenia">
-            <h2>Urządzenia</h2>
-            <p class="ciche">Jesteś zalogowany, dopóki sam się nie wylogujesz.</p>
-            <div class="wiersze-ustawien">
-              <div class="wiersz-ustawien">
-                <div class="wiersz-glowny">
-                  <div class="wiersz-opis"><strong>To urządzenie</strong><span>Wylogowuje tylko tę przeglądarkę.</span></div>
-                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-tutaj">Wyloguj</button></div>
-                </div>
-              </div>
-              <div class="wiersz-ustawien">
-                <div class="wiersz-glowny">
-                  <div class="wiersz-opis"><strong>Wszystkie urządzenia</strong><span>Przydatne po logowaniu na cudzym albo zgubionym urządzeniu.</span></div>
-                  <div class="wiersz-akcje"><button type="button" class="przycisk" id="wyloguj-wszedzie">Wyloguj wszędzie</button></div>
-                </div>
-              </div>
-            </div>
-          </section>
-
           <section class="grupa-ustawien" id="ust-ai">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Dostęp dla AI</h2>
             <p class="ciche">Klucze, którymi asystent AI (Claude, ChatGPT) czyta i zmienia Twoje projekty: wybrane albo wszystkie – wtedy może też tworzyć i usuwać projekty.</p>
             <div class="wiersze-ustawien">
@@ -395,6 +386,7 @@
           </section>
 
           <section class="grupa-ustawien" id="ust-miejsce">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Miejsce</h2>
             <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Konto ma limit miejsca na pliki.</p>
             <div class="wiersze-ustawien">
@@ -442,6 +434,7 @@
           </section>
 
           <section class="grupa-ustawien niebezpieczna" id="ust-usun">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
             <h2>Usuwanie konta</h2>
             <p class="ciche">Usuwa konto razem ze wszystkimi projektami i obrazami. Tego nie da się cofnąć – jeśli chcesz zachować projekty, najpierw wyeksportuj je do plików.</p>
             <div class="wiersze-ustawien">
@@ -554,9 +547,9 @@
         <button class="przycisk-ikona" data-akcja="cofnij" data-ikona="cofnij" title="Cofnij (Ctrl+Z)" aria-label="Cofnij"></button>
         <button class="przycisk-ikona" data-akcja="ponow" data-ikona="ponow" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów"></button>
       </div>
-      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="wzorzec" title="Wzorce: wspólne elementy stron – tła, stopki, numery"><span class="etyk">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
-      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii"><span class="etyk">Dane</span></button>
-      <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)"><span class="etyk">Podgląd</span></button>
+      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="wzorzec" title="Wzorce: wspólne elementy stron – tła, stopki, numery" aria-label="Wzorce"><span class="etyk etyk-paska">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
+      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii" aria-label="Dane"><span class="etyk etyk-paska">Dane</span></button>
+      <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)" aria-label="Podgląd"><span class="etyk etyk-paska">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="instrukcja" data-ikona="ksiazka" title="Instrukcja" aria-label="Instrukcja"></button>
@@ -586,7 +579,6 @@
         </div>
         <ol class="lista-stron" id="lista-stron"></ol>
         <div class="stopka-panelu" id="stopka-strony">
-          <button class="przycisk" data-akcja="strona-dodaj" data-ikona="plus" id="przycisk-dodaj-strone">Strona</button>
           <button class="przycisk" data-akcja="sekcja-dodaj" data-ikona="plus" title="Nowa sekcja z własnym formatem i marginesami">Sekcja</button>
         </div>
       </aside>
@@ -619,8 +611,8 @@
         <div class="kontrolki-widoku" id="kontrolki-widoku">
           <button class="przycisk-ikona" data-akcja="prowadnice" id="przycisk-prowadnice" data-ikona="prowadnice" title="Pokaż/ukryj linie pomocnicze (W)" aria-pressed="true"></button>
           <div class="menu-widoku-opak">
-            <button class="przycisk-ikona" id="przycisk-widok" data-ikona="siatka" title="Siatka, przyciąganie, linijki" aria-label="Siatka, przyciąganie, linijki" aria-haspopup="menu" aria-expanded="false"></button>
-            <div class="menu menu-widoku" id="menu-widoku" role="group" aria-label="Siatka i przyciąganie" hidden>
+            <button class="przycisk-ikona" id="przycisk-widok" data-ikona="siatka" title="Widok: siatka, przyciąganie, linijki, wygląd edytora" aria-label="Widok: siatka, przyciąganie, linijki, wygląd edytora" aria-haspopup="menu" aria-expanded="false"></button>
+            <div class="menu menu-widoku" id="menu-widoku" role="group" aria-label="Widok i wygląd edytora" hidden>
               <label class="przelacznik"><input type="checkbox" id="widok-siatka"><span>Siatka</span><kbd>Ctrl '</kbd></label>
               <label class="przelacznik"><input type="checkbox" id="widok-do-siatki"><span>Przyciągaj do siatki</span><kbd>Ctrl Shift '</kbd></label>
               <label class="pole-widoku"><span>Krok siatki</span><span class="z-jednostka"><input type="text" inputmode="decimal" id="widok-krok" aria-label="Krok siatki w milimetrach"><i>mm</i></span></label>
@@ -631,6 +623,18 @@
               <button class="przycisk" data-akcja="prowadnice-usun" id="przycisk-usun-prowadnice">Usuń prowadnice z tej strony</button>
               <hr>
               <label class="przelacznik"><input type="checkbox" id="widok-jedna"><span>W rozkładówkach pokazuj jedną stronę</span></label>
+              <div class="wyglad-edytora" role="group" aria-labelledby="wyglad-edytora-tytul">
+                <hr>
+                <p class="naglowek-widoku" id="wyglad-edytora-tytul">Wygląd edytora</p>
+                <label class="przelacznik"><input type="checkbox" id="widok-podpisy"><span>Podpisy narzędzi</span></label>
+                <div class="pole-widoku pole-napisow"><span id="widok-napisy-opis">Napisy na górnym pasku</span>
+                  <div class="przelacznik-segmentowy maly" id="widok-napisy" role="radiogroup" aria-labelledby="widok-napisy-opis">
+                    <label title="Tylko gdy się mieszczą"><input type="radio" name="widok-napisy" value="auto"><span>Auto</span></label>
+                    <label><input type="radio" name="widok-napisy" value="zawsze"><span>Zawsze</span></label>
+                    <label><input type="radio" name="widok-napisy" value="nigdy"><span>Nigdy</span></label>
+                  </div>
+                </div>
+              </div>
               <p class="podpowiedz-widoku">Prowadnicę wyciągasz z linijki; wyciągnięta poza stronę znika. Przytrzymaj <kbd>Ctrl</kbd> przy przeciąganiu, żeby na chwilę wyłączyć przyciąganie. <kbd>Alt</kbd> pokazuje odległości zaznaczonego elementu.</p>
             </div>
           </div>
@@ -650,14 +654,15 @@
             <label><input type="radio" name="zakladka-panelu" value="wlasciwosci" checked><span>Właściwości</span></label>
             <label><input type="radio" name="zakladka-panelu" value="warstwy"><span>Warstwy</span></label>
           </div>
-        </div>
-        <div class="naglowek-panelu" id="naglowek-wlasciwosci">
-          <h2 id="tytul-wlasciwosci">Strona</h2>
+          <!-- Kopiuj, duplikuj, usuń: w jednym wierszu z zakładkami (#109). -->
           <div class="akcje-obiektu" id="akcje-obiektu" hidden>
             <button class="przycisk-ikona maly" data-akcja="kopiuj" data-ikona="wklej" title="Kopiuj do schowka – wkleisz na tej lub innej stronie (Ctrl+C)" aria-label="Kopiuj do schowka"></button>
             <button class="przycisk-ikona maly" data-akcja="duplikuj" data-ikona="kopiuj" title="Duplikuj (Ctrl+D)" aria-label="Duplikuj"></button>
             <button class="przycisk-ikona maly" data-akcja="usun" data-ikona="kosz" title="Usuń (Delete)" aria-label="Usuń"></button>
           </div>
+        </div>
+        <div class="naglowek-panelu" id="naglowek-wlasciwosci">
+          <h2 id="tytul-wlasciwosci">Strona</h2>
         </div>
         <div id="wlasciwosci" class="wlasciwosci"></div>
         <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu" hidden></ol>
@@ -780,7 +785,6 @@
           <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
           <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="0.1" required inputmode="decimal"></label>
           <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="ponow"></button>
-          <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
         </div>
       </fieldset>
 
@@ -796,12 +800,15 @@
       </details>
 
       <fieldset class="grupa-pol">
-        <legend>Marginesy (mm)</legend>
-        <div class="rzad cztery">
-          <label class="pole"><span>Górny</span><input name="margines_gora" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole"><span>Dolny</span><input name="margines_dol" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole"><span id="etykieta-wewnetrzny">Lewy</span><input name="margines_wewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
-          <label class="pole"><span id="etykieta-zewnetrzny">Prawy</span><input name="margines_zewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+        <legend>Marginesy i spad (mm)</legend>
+        <!-- Schemat strony (#109): pola stoją tam, gdzie margines leży na stronie; przerywana ramka to spad. -->
+        <div class="schemat-marginesow" id="schemat-marginesow">
+          <label class="pole schemat-gora"><span>Górny</span><input name="margines_gora" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-lewy"><span id="etykieta-wewnetrzny">Lewy</span><input name="margines_wewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <div class="schemat-strona" aria-hidden="true"><div class="schemat-spad"></div><div class="schemat-kartka"><div class="schemat-pole-tekstu"></div></div></div>
+          <label class="pole schemat-prawy"><span id="etykieta-zewnetrzny">Prawy</span><input name="margines_zewnetrzny" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-dol"><span>Dolny</span><input name="margines_dol" type="number" min="0" max="200" step="0.5" required inputmode="decimal"></label>
+          <label class="pole schemat-spad-pole"><span>Spad</span><input name="spad_mm" type="number" min="0" max="20" step="0.5" required inputmode="decimal"></label>
         </div>
       </fieldset>
 
@@ -1402,11 +1409,10 @@
           <p class="podpowiedz" id="dane-opis"></p>
           <p class="podpowiedz dane-pomijane" id="dane-pomijane" role="status" hidden></p>
           <div class="dane-wyglad-pasek" role="toolbar" aria-label="Wygląd zaznaczonych komórek">
-            <span class="podpowiedz">Wygląd komórki:</span>
             <button type="button" class="przycisk-ikona maly" id="dane-pogrubienie" title="Pogrubienie zaznaczonych komórek (Shift+kliknięcie zaznacza kilka)" aria-label="Pogrubienie" data-ikona="pogrubienie"></button>
             <button type="button" class="przycisk-ikona maly" id="dane-kursywa" title="Kursywa zaznaczonych komórek" aria-label="Kursywa" data-ikona="kursywa"></button>
             <label class="dane-kolor" title="Kolor liter zaznaczonych komórek"><span class="ukryte">Kolor liter</span><input type="color" id="dane-kolor" value="#c1121f"></label>
-            <button type="button" class="przycisk maly" id="dane-bez-wygladu" title="Usuwa pogrubienie, kursywę i kolor z zaznaczonych komórek">Bez wyglądu</button>
+            <button type="button" class="przycisk-ikona maly" id="dane-bez-wygladu" title="Wyczyść wygląd: usuwa pogrubienie, kursywę i kolor z zaznaczonych komórek" aria-label="Wyczyść wygląd" data-ikona="gumka"></button>
           </div>
           <label class="przelacznik" id="dane-wyglad-pole" hidden><input type="checkbox" id="dane-wyglad"><span>Przenoś wygląd komórek na strony (pogrubienia, kursywa, kolory liter)</span></label>
           <p class="podpowiedz dane-powtorzenia" id="dane-powtorzenia" role="status" hidden></p>
@@ -1469,7 +1475,7 @@
         </div>
       </fieldset>
       <div class="przyciski-dialogu">
-        <button type="button" class="przycisk" id="seria-usun">Usuń serię</button>
+        <button type="button" class="przycisk-ikona niebezpieczny-ikona" id="seria-usun" data-ikona="kosz" title="Usuń serię (strony zostają, przestają się powielać)" aria-label="Usuń serię"></button>
         <span class="odstep"></span>
         <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
         <button class="przycisk glowny" value="ok" id="zapisz-serie">Zapisz</button>

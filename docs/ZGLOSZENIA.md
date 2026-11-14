@@ -15,7 +15,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Uwaga | Stan |
 |---|---|
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
-| 15 decyzji wyglądu (#109) – wdrożenie | 🔄 |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
@@ -67,4 +66,5 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 112 | Szary procent po stuknięciu, opis tabeli prostymi słowami, ikona książki dla instrukcji wszędzie, pole szukania z lupą, kroki instrukcji rozbite na kolumny |
 | 111 | „Podgląd” na kafelku otwiera od razu podgląd, bez mignięcia edytora |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |
+| 109 | 15 decyzji wyglądu: chmurka na karcie, ikony na górnym pasku z napisami „gdy się mieszczą”, „Wygląd edytora” w menu widoku, akcje przy zakładkach, kółko koloru przy rozmiarze, kafelek „+” na liście stron, warstwy z uchwytem ⋮⋮, „+” przy wzorcach, gumka i kosz w oknach, schemat marginesów, ustawienia konta jako lista, Wyloguj w menu awatara, jaśniejsze logowanie, zasłonki bez „Anuluj” |
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |

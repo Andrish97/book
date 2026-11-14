@@ -32,6 +32,7 @@ import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { stan, edytor, biezacyCel, biezacaSekcja, jednaStrona, KLUCZ_JEDNA } from './kontekst.js';
 import { podlaczArkusze } from './arkusze.js';
+import { wlaczWygladEdytora } from './wyglad-edytora.js';
 import { wczytajPlikProjektu } from './projekty.js';
 import {
   naPlotnie, zapiszBiezacyCel, cofnijKrok, zaplanujZapis, wybierzStroneArkusza, zaladujCel,
@@ -244,6 +245,7 @@ export const akcje = {
   'obroc-format': () => {
     const f = $('#dlg-sekcja form');
     [f.elements.szerokosc_mm.value, f.elements.wysokosc_mm.value] = [f.elements.wysokosc_mm.value, f.elements.szerokosc_mm.value];
+    f.elements.szerokosc_mm.dispatchEvent(new Event('input', { bubbles: true })); // schemat marginesów
   },
 
   'strona-dodaj': () => dodajStrone(),
@@ -439,6 +441,8 @@ edytor.addEventListener('prowadnice', zaplanujZapis);
   });
   lista.addEventListener('dragend', () => { ciagnieta = null; znacznik(null); lista.querySelectorAll('.ciagnieta').forEach((x) => x.classList.remove('ciagnieta')); });
 }
+
+wlaczWygladEdytora(); // podpisy narzędzi i napisy na górnym pasku (#109)
 
 // Jedna strona zamiast rozkładówki – ustawienie tego urządzenia.
 $('#widok-jedna').addEventListener('change', async (e) => {

@@ -625,17 +625,17 @@ const WIDOKI = [
   ['31b-konto-wyglad', async (s) => {
     await s.evaluate(() => { location.hash = '#/konto'; });
     await s.waitForFunction(() => document.body.dataset.ekran === 'konto');
-    await s.locator('[data-do="ust-wyglad"]:visible').first().click().catch(() => {});
+    await s.locator('.konto-lista [data-sekcja="wyglad"]').first().click().catch(() => {});
     await czekaj(s, 500);
   }, {}],
   ['31d-konto-miejsce', async (s) => {
     await s.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); location.hash = '#/konto'; });
     await s.waitForFunction(() => document.body.dataset.ekran === 'konto');
-    await s.locator('[data-do="ust-miejsce"]:visible').first().click();
+    await s.locator('.konto-lista [data-sekcja="miejsce"]').first().click();
     await czekaj(s, 1200);
   }, {}],
   ['31c-konto-dol', async (s) => {
-    await s.evaluate(() => { location.hash = '#/konto'; });
+    await s.evaluate(() => { location.hash = '#/konto/logowanie'; });
     await s.waitForFunction(() => document.body.dataset.ekran === 'konto');
     await s.evaluate(() => { const t = document.querySelector('.konto-tresc'); (t && t.scrollHeight > t.clientHeight ? t : document.scrollingElement).scrollTo(0, 1e6); });
     await czekaj(s, 300);

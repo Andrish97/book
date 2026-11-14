@@ -72,13 +72,6 @@ function renderujListeStron() {
     $('small', nag).title = opis.join(' · ');
     $('button', nag).addEventListener('click', (e) => { e.stopPropagation(); otworzMenuSekcji(e.currentTarget, sekcja.id); });
     lista.append(nag);
-    if (!strony.length) {
-      const pusto = document.createElement('li');
-      pusto.className = 'sekcja-pusta';
-      pusto.innerHTML = '<button class="link">+ Dodaj pierwszą stronę</button>';
-      $('button', pusto).addEventListener('click', () => dodajStrone(sekcja.id));
-      lista.append(pusto);
-    }
     strony.forEach((s, k) => {
       const i = projekt.strony.indexOf(s);
       const aktywna = stan.tryb === 'strona' && i === stan.indeks;
@@ -121,7 +114,27 @@ function renderujListeStron() {
       });
       lista.append(li);
     });
+    lista.append(kafelekDodawania(sekcja, strony.length === 0));
   }
+}
+
+// Kafelek „+” na końcu stron sekcji (#109): wygląda jak miniatura, dodaje stronę (po bieżącej, jeśli
+// bieżąca jest w tej sekcji – jak dawny przycisk „Strona” – inaczej na koniec sekcji).
+function kafelekDodawania(sekcja, pusta) {
+  const li = document.createElement('li');
+  li.className = `kafelek-dodaj-strone${pusta ? ' w-pustej' : ''}`;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'kafelek-dodaj';
+  const opis = pusta ? `Dodaj pierwszą stronę sekcji „${sekcja.nazwa}”` : 'Dodaj stronę';
+  b.title = opis;
+  b.setAttribute('aria-label', opis);
+  b.innerHTML = `${ikona('plus', { rozmiar: 22 })}${pusta ? '<span>Dodaj pierwszą stronę</span>' : ''}`;
+  b.style.aspectRatio = `${sekcja.wydruk.szerokosc_mm + 2 * sekcja.wydruk.spad_mm} / ${sekcja.wydruk.wysokosc_mm + 2 * sekcja.wydruk.spad_mm}`;
+  const wBiezacej = stan.tryb === 'strona' && biezacaStrona()?.sekcja === sekcja.id;
+  if (wBiezacej) { b.dataset.akcja = 'strona-dodaj'; b.id = 'przycisk-dodaj-strone'; } else b.addEventListener('click', () => dodajStrone(sekcja.id));
+  li.append(b);
+  return li;
 }
 
 // Wzorce projektu w oknie „Wzorce”: miniatura, liczba stron, dodawanie do bieżącej strony i sekcji.

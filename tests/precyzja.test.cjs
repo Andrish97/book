@@ -292,7 +292,8 @@ test('warstwy: lista od wierzchu, zaznaczanie, ukrywanie, blokada, zmiana kolejn
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.nazwa === 'dół').zablokowany), true);
 
   // „dół” przeciągnięty na samą górę listy = na wierzch stosu.
-  await strona.locator('#lista-warstw li:has-text("dół")').dragTo(strona.locator('#lista-warstw li:has-text("góra")'), { targetPosition: { x: 60, y: 4 } });
+  // Przeciąganie za uchwyt ⋮⋮ (#109) – zdarzenia wskaźnika, jak palcem.
+  await strona.locator('#lista-warstw li:has-text("dół") .warstwa-uchwyt').dragTo(strona.locator('#lista-warstw li:has-text("góra")'), { targetPosition: { x: 60, y: 4 } });
   assert.deepEqual(await lista(), ['dół', 'góra', 'środek']);
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().map((o) => o.nazwa)), ['środek', 'góra', 'dół']);
   assert.deepEqual(bledy, []);
@@ -405,11 +406,17 @@ test('prowadnice liczbą, warstwy z przyciskami kolejności i elementami wzorcó
   await strona.click('#zakladki-panelu label:has-text("Warstwy")');
   const lista = () => strona.locator('#lista-warstw li.warstwa:not(.ze-wzorca) .warstwa-nazwa').allTextContents();
   assert.deepEqual(await lista(), ['c', 'b', 'a']);
-  // ▼ przy „c” przesuwa go o jedno miejsce w dół, ▲ przy „a” – w górę.
-  await strona.click('#lista-warstw li.warstwa:has-text("c") .warstwa-nizej');
+  // ⋯ przy „c” → „Niżej” przesuwa go o jedno miejsce w dół, ⋯ przy „a” → „Wyżej” – w górę (#109: ▲▼ w menu wiersza).
+  await strona.click('#lista-warstw li.warstwa:has-text("c") .warstwa-menu');
+  assert.equal(await strona.isDisabled('#menu-warstwy [data-op="wyzej"]'), true, 'wierzchniego nie da się dać wyżej');
+  await strona.click('#menu-warstwy [data-op="nizej"]');
   assert.deepEqual(await lista(), ['b', 'c', 'a']);
-  await strona.click('#lista-warstw li.warstwa:has(.warstwa-nazwa:text-is("a")) .warstwa-wyzej');
+  await strona.click('#lista-warstw li.warstwa:has(.warstwa-nazwa:text-is("a")) .warstwa-menu');
+  await strona.click('#menu-warstwy [data-op="wyzej"]');
   assert.deepEqual(await lista(), ['b', 'a', 'c']);
+  await strona.click('#lista-warstw li.warstwa:has(.warstwa-nazwa:text-is("c")) .warstwa-menu');
+  await strona.click('#menu-warstwy [data-op="wierzch"]');
+  assert.deepEqual(await lista(), ['c', 'b', 'a']);
   // Element wzorca jest na liście w osobnej części; kliknięcie otwiera wzorzec.
   assert.equal(await strona.textContent('#lista-warstw .warstwy-naglowek'), 'Ze wzorców (edycja we wzorcu)');
   assert.equal(await strona.textContent('#lista-warstw li.ze-wzorca .warstwa-nazwa'), 'Pasek stopki');

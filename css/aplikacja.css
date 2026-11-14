@@ -266,6 +266,15 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .kartka.k2 span:first-child { background: #c2410c; }
 .kartka.k3 { left: 232px; transform: rotate(7deg); }
 .kartka.k3 span:first-child { background: #18794e; }
+/* Jasny motyw (#109): lewa połowa jasna, ciepły papier, i miękkie przejście w tło formularza zamiast ostrej krawędzi. */
+:root:not([data-motyw="ciemny"]) .logowanie-bok {
+  background:
+    radial-gradient(120% 90% at 0% 0%, #fffdf8 0%, transparent 60%),
+    linear-gradient(90deg, #e9e5da 0%, #efebe2 62%, var(--papier) 100%);
+  color: var(--tusz);
+}
+:root:not([data-motyw="ciemny"]) .logowanie-bok p { color: var(--tusz-2); }
+:root:not([data-motyw="ciemny"]) .logowanie-bok .kartka { box-shadow: 0 14px 34px rgba(60, 50, 30, .18), 0 1px 3px rgba(60, 50, 30, .12); }
 
 .logowanie-forma {
   position: relative; overflow: auto;
@@ -362,7 +371,65 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .oczekuje > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .oczekuje small { color: inherit; opacity: .8; }
 .grupa-ustawien.niebezpieczna > h2 { color: var(--blad); }
+
+/* Ustawienia konta jako lista jak w telefonie (#109): wiersz „Tytuł · wartość ›” otwiera jedną sekcję.
+   Szeroki ekran: lista po lewej, wybrana sekcja po prawej. Wąski: sama lista albo sama sekcja z „‹ Ustawienia”. */
+#ekran-konta .konto-uklad { grid-template-columns: 280px minmax(0, 1fr); }
+#ekran-konta .konto-lista {
+  gap: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); background: var(--powierzchnia, var(--tlo));
+  overflow: hidden;
+}
+#ekran-konta .konto-lista a {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  min-height: 46px; padding: 8px 12px; border-radius: 0; border-bottom: 1px solid var(--linia);
+}
+#ekran-konta .konto-lista a:last-child { border-bottom: 0; }
+#ekran-konta .konto-lista a .ikona-wiersza { display: inline-flex; color: var(--cichy); }
+#ekran-konta .konto-lista a .tytul { white-space: nowrap; }
+#ekran-konta .konto-lista a .wartosc {
+  justify-self: end; max-width: 100%; color: var(--cichy); font-weight: 400; font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#ekran-konta .konto-lista a .strzalka { display: inline-flex; color: var(--cichy); grid-column: 4; }
+#ekran-konta .konto-lista a.aktywna { background: var(--akcent-tlo); color: var(--na-akcencie-tle, var(--tusz)); }
+#ekran-konta .konto-lista a.aktywna .ikona-wiersza { color: inherit; }
+#ekran-konta .konto-lista a.niebezpieczny .tytul { color: var(--blad); }
+#ekran-konta .grupa-ustawien:not(.wybrana) { display: none; }
+#ekran-konta .do-listy-ustawien { display: none; margin: 0 0 8px -8px; }
 .przycisk.niebezpieczny { border-color: var(--blad-linia); }
+.przycisk-ikona.niebezpieczny-ikona { color: var(--blad); }
+
+/* Ustawienia sekcji: marginesy na schemacie strony (#109). Proporcje kartki i marginesów ustawia js/app/sekcje.js
+   (--sz, --wy, --m-gora… w % szerokości/wysokości kartki, --spad w % szerokości). */
+.schemat-marginesow {
+  display: grid; grid-template-columns: minmax(64px, 96px) minmax(120px, 200px) minmax(64px, 96px);
+  grid-template-areas: "spad gora ." "lewy strona prawy" ". dol .";
+  gap: 8px 12px; align-items: center; justify-content: center; padding: 4px 0;
+}
+.schemat-marginesow .pole { min-width: 0; }
+.schemat-marginesow .pole input { width: 100%; text-align: center; }
+.schemat-gora { grid-area: gora; justify-self: center; width: 96px; }
+.schemat-dol { grid-area: dol; justify-self: center; width: 96px; }
+.schemat-lewy { grid-area: lewy; }
+.schemat-prawy { grid-area: prawy; }
+.schemat-spad-pole { grid-area: spad; align-self: end; }
+.schemat-strona { grid-area: strona; position: relative; width: 100%; max-height: 220px; aspect-ratio: var(--sz, 148) / var(--wy, 210); justify-self: center; }
+.schemat-spad { position: absolute; inset: 0; border: 1.5px dashed color-mix(in srgb, var(--blad) 55%, transparent); border-radius: 2px; }
+.schemat-kartka {
+  position: absolute; inset: var(--spad-y, 4%) var(--spad-x, 4%);
+  background: #fff; box-shadow: 0 1px 4px rgba(28, 27, 25, .25); border-radius: 1px;
+}
+.schemat-pole-tekstu {
+  position: absolute; top: var(--m-gora, 10%); bottom: var(--m-dol, 10%); left: var(--m-lewy, 12%); right: var(--m-prawy, 12%);
+  border: 1px dashed var(--akcent); background: color-mix(in srgb, var(--akcent) 8%, transparent);
+}
+/* Rozkładówki: kreska grzbietu przy marginesie wewnętrznym (schemat pokazuje prawą stronę). */
+.schemat-marginesow.rozkladowki .schemat-kartka { box-shadow: inset 3px 0 0 -1px rgba(28, 27, 25, .35), 0 1px 4px rgba(28, 27, 25, .25); }
+.schemat-marginesow.bez-spadu .schemat-spad { display: none; }
+@media (max-width: 420px) {
+  .schemat-marginesow { grid-template-columns: 72px minmax(96px, 1fr) 72px; column-gap: 8px; }
+}
+@media (hover: hover) { .przycisk-ikona.niebezpieczny-ikona:hover { background: var(--blad-tlo); color: var(--blad); } }
 @media (hover: hover) { .przycisk.niebezpieczny:hover { background: var(--blad-tlo); border-color: var(--blad); } }
 .menu-naglowek strong { display: block; color: var(--tusz); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
 .wybor-motywu span { gap: 6px; }
@@ -442,7 +509,10 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .karta-projektu .pusta-okladka { width: 60%; aspect-ratio: 148 / 210; }
 .karta-projektu .opis { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .karta-projektu .opis strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.karta-projektu .opis small { color: var(--cichy); font-size: 12.5px; }
+.karta-projektu .opis small { color: var(--cichy); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.karta-projektu .stan-wysylki { display: inline-flex; vertical-align: -2px; margin-right: 6px; color: var(--cichy); }
+.karta-projektu .stan-wysylki.chmura_ok { color: var(--sukces, #2e7d4f); }
+.karta-projektu .stan-wysylki.chmura_czeka { color: var(--uwaga, #b7791f); }
 .karta-projektu { position: relative; }
 .plakietka-linku { display: inline-flex; max-width: 100%; min-width: 0; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--linia-mocna); border-radius: 999px; background: var(--powierzchnia); color: var(--tekst); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 @media (hover: hover) { .plakietka-linku:hover { border-color: var(--akcent); color: var(--akcent); } }
@@ -540,7 +610,7 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 
 /* Warstwy */
 .lista-warstw { flex: 1; overflow: auto; list-style: none; margin: 0; padding: 4px 8px 12px; display: flex; flex-direction: column; gap: 1px; }
-.warstwa { display: grid; grid-template-columns: 28px 20px minmax(0, 1fr) auto 28px; align-items: center; gap: 4px; min-height: 34px; padding: 0 2px; border-radius: var(--r-s); cursor: pointer; border-top: 2px solid transparent; border-bottom: 2px solid transparent; }
+.warstwa { display: grid; grid-template-columns: 18px 28px 20px minmax(0, 1fr) 28px 28px; align-items: center; gap: 2px; min-height: 32px; padding: 0 2px; border-radius: var(--r-s); cursor: pointer; border-top: 2px solid transparent; border-bottom: 2px solid transparent; }
 @media (hover: hover) { .warstwa:hover { background: var(--wypelnienie); } }
 .warstwa.zaznaczona { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
 .warstwa.ukryta .warstwa-nazwa, .warstwa.ukryta .warstwa-typ { opacity: .45; }
@@ -552,11 +622,17 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 @media (hover: hover) { .warstwa button:hover { background: var(--wypelnienie-hover); color: var(--tusz); } }
 .warstwa:not(.zablokowana):not(:hover) .warstwa-klodka { opacity: 0; }
 .warstwa .warstwa-klodka:focus-visible { opacity: 1; }
-.warstwa-kolejnosc { display: flex; gap: 0; }
-.warstwa .warstwa-kolejnosc button { width: 22px; font-size: 10px; }
-@media (hover: hover) { .warstwa:not(:hover):not(:focus-within) .warstwa-kolejnosc { opacity: 0; } }
+/* Uchwyt ⋮⋮ do przeciągania (mysz i palec, #109) i ⋯ z kolejnością. */
+.warstwa-uchwyt { display: grid; place-items: center; align-self: stretch; color: var(--cichy); cursor: grab; touch-action: none; }
+.lista-warstw.przeciaganie, .lista-warstw.przeciaganie * { cursor: grabbing; }
+.warstwa.ciagnieta { opacity: .55; }
+.warstwa .warstwa-menu[aria-expanded="true"] { background: var(--wypelnienie-hover); color: var(--tusz); }
+@media (hover: hover) {
+  .warstwa:not(:hover):not(:focus-within) .warstwa-menu:not([aria-expanded="true"]),
+  .warstwa:not(:hover) .warstwa-uchwyt { opacity: .35; }
+}
 .warstwa .warstwa-rozwin { width: 20px; font-size: 11px; }
-.warstwa.w-grupie { grid-template-columns: 28px 20px minmax(0, 1fr); padding-left: 24px; min-height: 30px; }
+.warstwa.w-grupie { grid-template-columns: 28px 20px minmax(0, 1fr); padding-left: 22px; min-height: 30px; }
 /* Komórki rozwiniętej tabeli: adres „wiersz.kolumna” i początek treści; kreska oddziela wiersze tabeli. */
 .warstwa.w-tabeli { grid-template-columns: 34px minmax(0, 1fr); padding-left: 52px; min-height: 26px; cursor: text; }
 .warstwa.w-tabeli.nowy-wiersz { border-top: 1px solid var(--linia); }
@@ -619,6 +695,22 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .pole-widoku .z-jednostka { display: inline-flex; align-items: center; gap: 6px; }
 .pole-widoku input { width: 64px; height: 32px; padding: 0 8px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); text-align: right; }
 .pole-widoku i { font-style: normal; color: var(--cichy); font-size: 12px; }
+/* Wygląd edytora w menu widoku (#109). */
+.naglowek-widoku { margin: 4px 0 2px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--cichy); }
+.pole-napisow { flex-direction: column; align-items: stretch; gap: 6px; padding: 4px 0 2px; }
+.pole-napisow .przelacznik-segmentowy { display: flex; }
+.pole-napisow .przelacznik-segmentowy label { flex: 1; }
+.pole-napisow .przelacznik-segmentowy span { flex: 1; min-height: 28px; padding: 0 8px; font-size: 12.5px; }
+/* Napisy „Wzorce”, „Dane”, „Podgląd” na górnym pasku: tylko gdy się mieszczą (js/app/wyglad-edytora.js). */
+.pasek-edytora .etyk-paska { display: none; }
+.pasek-edytora.z-napisami .etyk-paska { display: inline; }
+/* Podpisy narzędzi wyłączone (domyślnie): same ikony, mniejsze przyciski. */
+@media (min-width: 761px) {
+  #ekran-edytora:not([data-podpisy-narzedzi]) .pasek-narzedzi button { min-width: 44px; height: 44px; padding: 4px; }
+  #ekran-edytora:not([data-podpisy-narzedzi]) .pasek-narzedzi button > span { display: none; }
+}
+/* Na wąskim ekranie pasek narzędzi i górny pasek i tak mają same ikony – opcje wyglądu nic by nie zmieniły. */
+@media (max-width: 760px) { .wyglad-edytora { display: none; } }
 .podpowiedz-widoku { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--linia); font-size: 12px; line-height: 1.6; color: var(--cichy); }
 .kontrolki-widoku .separator { margin: 6px 2px; }
 
@@ -648,6 +740,11 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .wlasciwosci > .akcje-obrazu { padding: 2px 0 12px; }
 .wlasciwosci > .akcje-obrazu .przycisk { flex: 1 1 auto; justify-content: center; }
 .wlasciwosci .kolor { display: flex; align-items: center; gap: 8px; }
+.wlasciwosci .rozmiar-z-kolorem { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.wlasciwosci .rozmiar-z-kolorem > .jednostka { flex: 1; min-width: 0; }
+.wlasciwosci .kolor.kolko { flex: none; }
+.wlasciwosci .kolor.kolko .kolor-przycisk { border-radius: 50%; }
+.wlasciwosci .kolor.kolko .kolor-przycisk i { border-radius: 50%; }
 .wlasciwosci input[type="color"] {
   width: 36px; height: 36px; min-height: 0; padding: 3px;
   border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); cursor: pointer;
@@ -940,6 +1037,12 @@ dialog > .postepy { position: fixed; }
   .konto-uklad { grid-template-columns: 1fr; gap: 20px; padding-top: 20px; }
   .konto-nawigacja { position: static; flex-direction: row; overflow-x: auto; }
   .konto-nawigacja a { white-space: nowrap; }
+  #ekran-konta .konto-uklad { grid-template-columns: 1fr; }
+  #ekran-konta .konto-lista { flex-direction: column; overflow: hidden; }
+  #ekran-konta .konto-lista a { min-height: 52px; }
+  #ekran-konta[data-sekcja=""] .konto-sekcje,
+  #ekran-konta:not([data-sekcja=""]) .konto-lista { display: none; }
+  #ekran-konta .do-listy-ustawien { display: inline-flex; }
   .wiersz-glowny { grid-template-columns: 1fr; }
   .wiersz-akcje { justify-content: flex-start; }
 }
@@ -1030,6 +1133,7 @@ dialog > .postepy { position: fixed; }
   .sekcja-ostrzezen { border-top: 0; }
   .lista-stron { flex-direction: row; overflow-x: auto; padding-bottom: 10px; }
   .strona { flex: 0 0 104px; grid-template-columns: 1fr; }
+  .lista-stron > li.kafelek-dodaj-strone { flex: 0 0 104px; padding-left: 0; }
   .strona .numer { display: none; }
   .strona .nazwa { grid-column: 1; }
   .strona .menu-miniatury { opacity: 1; }
@@ -1103,7 +1207,15 @@ dialog > .postepy { position: fixed; }
 .opis-sekcji { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .opis-sekcji strong { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .opis-sekcji small { font-size: 11px; color: var(--cichy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sekcja-pusta { padding: 0 0 0 28px; font-size: 12.5px; }
+/* Kafelek „+” na końcu stron sekcji (#109) – jak miniatura strony. */
+.kafelek-dodaj-strone { padding-left: 28px; }
+.kafelek-dodaj {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 6px; border: 2px dashed var(--linia-mocna); border-radius: 4px;
+  background: transparent; color: var(--cichy); font-size: 12px; cursor: pointer;
+  transition: color var(--czas), border-color var(--czas), background var(--czas);
+}
+.kafelek-dodaj:hover, .kafelek-dodaj:focus-visible { color: var(--akcent); border-color: var(--akcent); background: var(--akcent-tlo); outline: none; }
 .lista-wzorcow .numer { display: grid; place-items: center; color: var(--cichy); padding-top: 4px; }
 .pusto-wzorce { padding: 12px; border-radius: var(--r-m); background: var(--powierzchnia-2); border: 1px dashed var(--linia-mocna); font-size: 12.5px; color: var(--tusz-2); }
 .pusto-wzorce p { margin-top: 6px; color: var(--cichy); line-height: 1.5; }
@@ -1398,9 +1510,14 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .galeria-wzorcow.standardowe { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .galeria-wzorcow.standardowe > li.wzorzec { grid-template-columns: minmax(0, 1fr) auto; }
 .galeria-wzorcow.standardowe .opis-wzorca strong { white-space: normal; }
+.dodaj-standardowy { gap: 4px; }
+.dodaj-standardowy > span { display: none; }
+:root[data-urzadzenie="telefon"] .dodaj-standardowy > span { display: inline; }
+:root:not([data-urzadzenie="telefon"]) .dodaj-standardowy { width: 32px; padding: 0; justify-content: center; }
 @media (max-width: 640px) { .galeria-wzorcow.standardowe { grid-template-columns: minmax(0, 1fr); } .galeria-wzorcow > li.wzorzec { grid-template-columns: 64px minmax(0, 1fr) auto; } .galeria-wzorcow .miniatura { width: 64px; } }
 .panel-strony .naglowek-panelu h2 { padding-left: 6px; }
-.zakladki-panelu-opak { padding: 8px 10px 0; min-height: 0; }
+.zakladki-panelu-opak { padding: 8px 10px 0; min-height: 0; display: flex; align-items: center; gap: 6px; }
+.zakladki-panelu-opak .akcje-obiektu { flex: none; }
 .panel-inspektor .lista-warstw { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px 10px 12px; list-style: none; }
 #przycisk-wiecej ~ .menu { z-index: 60; }
 [data-akcja="wzorce"] .licznik { margin-left: 2px; }
@@ -1580,6 +1697,13 @@ dialog:focus { outline: none; }
   position: sticky; bottom: 0; z-index: 2; margin: 2px -16px 0; padding: 10px 16px 12px;
   background: var(--powierzchnia); border-top: 1px solid var(--linia);
 }
+/* Telefon (#109): zasłonkę zamyka uchwyt, tło albo Esc – bez „Anuluj”; główny przycisk na całą szerokość.
+   Pytania (potwierdz) zostają z „Anuluj”, bo tam to odpowiedź „nie”. Anulowanie trwającego eksportu PDF
+   i wyboru obrazów zostaje (to nie zamykanie okna). */
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu > button:is([value="anuluj"], [value="nie"], [data-akcja="kontakt-zamknij"]) { display: none; }
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu > .przycisk.glowny { flex: 1 1 auto; justify-content: center; min-height: 44px; }
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu:has(> .przycisk.glowny) > .odstep { display: none; }
+:root[data-zaslonka][data-urzadzenie="telefon"] #dlg-zrodlo-obrazu .przyciski-dialogu { display: none; }
 /* Duże okna (Dane, Instrukcja, Obrazy): stała wysokość prawie na cały ekran. */
 :root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja, .dialog-obrazy) { height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora)); }
 :root[data-zaslonka] .dialog-dane .dane-lista, :root[data-zaslonka] .dialog-instrukcja .instrukcja-spis { padding-right: 14px; }
@@ -1643,7 +1767,7 @@ dialog:focus { outline: none; }
 :root[data-dotyk] .strona .menu-miniatury, :root[data-dotyk] .strona.w-rozkladowce .menu-miniatury, :root[data-dotyk] .menu-miniatury { --dotyk: 36px; }
 :root[data-dotyk] .wlasciwosci .zwijak { min-height: 40px; }
 :root[data-dotyk] .wlasciwosci .segmenty button { min-height: 40px; }
-:root[data-dotyk] .warstwa { grid-template-columns: 40px 20px minmax(0, 1fr) auto 40px; min-height: 44px; }
+:root[data-dotyk] .warstwa { grid-template-columns: 32px 40px 20px minmax(0, 1fr) 40px 40px; min-height: 44px; }
 :root[data-dotyk] .warstwa.w-grupie { grid-template-columns: 40px 20px minmax(0, 1fr); }
 :root[data-dotyk] .warstwa button { min-height: 40px; min-width: 32px; }
 :root[data-dotyk] .siatka-obrazow .obraz-nazwa { padding: 11px 0; margin: -11px 0; }

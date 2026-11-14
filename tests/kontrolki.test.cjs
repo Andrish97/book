@@ -49,7 +49,11 @@ test('własne kontrolki: lista rozwijana (mysz, klawiatura, grupy) i wybór kolo
   assert.match(await strona.evaluate(() => window.seriodruk.edytor.aktywny.text), /\{nr\}$/);
 
   // Kolor: własne okienko z kodem koloru i paletą; zmiana widać od razu, zapis po zamknięciu.
-  const kolor = '.wlasciwosci label:has-text("Kolor")';
+  // Kolor tekstu to kółko na prawym brzegu wiersza „Rozmiar” (#109).
+  const kolor = '.wlasciwosci .rozmiar-z-kolorem .kolor.kolko';
+  const [rRozmiar, rKolko] = await strona.evaluate((k) => [document.querySelector(k).previousElementSibling, document.querySelector(k)].map((e) => e.getBoundingClientRect().toJSON()), kolor);
+  assert.ok(Math.abs(rRozmiar.top + rRozmiar.height / 2 - (rKolko.top + rKolko.height / 2)) < 3 && rKolko.left >= rRozmiar.right, 'kółko koloru obok pola rozmiaru');
+  assert.equal(await strona.evaluate((k) => getComputedStyle(document.querySelector(`${k} .kolor-przycisk`)).borderRadius, kolor), '50%');
   await strona.click(`${kolor} .kolor-przycisk`);
   await strona.waitForSelector('.kolor-okienko');
   await strona.fill('.kolor-okienko .kolor-hex input', '#c00');

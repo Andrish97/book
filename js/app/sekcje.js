@@ -69,9 +69,39 @@ function odswiezPolaSekcji() {
   $('#pole-pierwsza').hidden = !rozkladowki;
   $('#podpowiedz-rozkladowki').hidden = !rozkladowki;
   $('#pole-numeracja-od').hidden = f.elements.numeracja.value !== 'od';
+  rysujSchemat();
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
   if (['uklad', 'numeracja'].includes(e.target.name)) odswiezPolaSekcji();
+});
+
+// Schemat strony przy marginesach (#109): kartka w proporcjach formatu, pole tekstu wewnątrz marginesów,
+// przerywana ramka spadu. Rysowany na bieżąco przy pisaniu liczb.
+function rysujSchemat() {
+  const f = $('#dlg-sekcja form');
+  const el = $('#schemat-marginesow');
+  const n = (k) => Math.max(0, Number(String(f.elements[k].value).replace(',', '.')) || 0);
+  const sz = n('szerokosc_mm') || 148;
+  const wy = n('wysokosc_mm') || 210;
+  const spad = Math.min(n('spad_mm'), 20);
+  // Spad na schemacie trochę powiększony, żeby był widoczny także przy 3 mm.
+  const spadWidok = spad ? Math.max(spad, Math.min(sz, wy) * 0.04) : 0;
+  const pelnaSz = sz + 2 * spadWidok;
+  const pelnaWy = wy + 2 * spadWidok;
+  el.style.setProperty('--sz', String(pelnaSz));
+  el.style.setProperty('--wy', String(pelnaWy));
+  el.style.setProperty('--spad-x', `${(spadWidok / pelnaSz) * 100}%`);
+  el.style.setProperty('--spad-y', `${(spadWidok / pelnaWy) * 100}%`);
+  const proc = (mm, bok) => `${Math.min(45, (mm / bok) * 100)}%`;
+  el.style.setProperty('--m-gora', proc(n('margines_gora'), wy));
+  el.style.setProperty('--m-dol', proc(n('margines_dol'), wy));
+  el.style.setProperty('--m-lewy', proc(n('margines_wewnetrzny'), sz));
+  el.style.setProperty('--m-prawy', proc(n('margines_zewnetrzny'), sz));
+  el.classList.toggle('rozkladowki', f.elements.uklad.value === 'rozkladowki');
+  el.classList.toggle('bez-spadu', !spad);
+}
+$('#dlg-sekcja form').addEventListener('input', (e) => {
+  if (/^(margines_|spad_mm|szerokosc_mm|wysokosc_mm)/.test(e.target.name || '')) rysujSchemat();
 });
 
 // Kalkulator okładki: tył + grzbiet + przód. Grzbiet = liczba kartek × grubość kartki.
@@ -174,6 +204,7 @@ $('#dlg-sekcja select[name="format"]').addEventListener('change', () => {
   const poziomo = Number(f.elements.szerokosc_mm.value) > Number(f.elements.wysokosc_mm.value);
   f.elements.szerokosc_mm.value = poziomo ? Math.max(...wym) : wym[0];
   f.elements.wysokosc_mm.value = poziomo ? Math.min(...wym) : wym[1];
+  rysujSchemat();
 });
 for (const n of ['szerokosc_mm', 'wysokosc_mm']) {
   $(`#dlg-sekcja [name="${n}"]`).addEventListener('input', () => {

@@ -21,6 +21,8 @@ export const brakiHasla = (h) => ZASADY_HASLA.filter(([, , test]) => !test(h)).m
 
 const poprawnyEmail = (e) => /^\S+@\S+\.\S+$/.test(e);
 const ODSTEP_WYSYLKI = 60; // sekund między kolejnymi wiadomościami
+// Ustawienia konta na wąskim ekranie: lista albo jedna sekcja (jak w telefonie), próg jak w css/aplikacja.css.
+const WASKIE_USTAWIENIA = matchMedia('(max-width: 760px)');
 
 // Lista zasad hasła zaznaczana na bieżąco podczas pisania.
 function listaZasad(kontener, input) {
@@ -295,13 +297,23 @@ export class Konto {
   inicjujUstawienia() {
     $$('#ekran-konta [data-rozwin]').forEach((b) => b.addEventListener('click', () => this.rozwin(b.dataset.rozwin)));
     $$('#ekran-konta [data-zwin]').forEach((b) => b.addEventListener('click', () => this.zwin(b.dataset.zwin)));
-    $$('.konto-nawigacja a[data-do]').forEach((a) => a.addEventListener('click', (e) => {
+    // Lista jak w ustawieniach telefonu (#109): wiersz otwiera swoją sekcję; na wąskim ekranie sekcja
+    // zastępuje listę i ma przycisk powrotu, na szerokim lista zostaje po lewej.
+    $$('#ekran-konta .konto-lista a[data-sekcja]').forEach((a) => a.addEventListener('click', (e) => {
       e.preventDefault();
-      document.getElementById(a.dataset.do).scrollIntoView({ block: 'start' });
+      this.pokazSekcje(a.dataset.sekcja, { cel: a.dataset.cel, historia: true });
     }));
+    $$('#ekran-konta .do-listy-ustawien').forEach((b) => b.addEventListener('click', () => {
+      if (history.state?.sekcjaKonta) history.back(); else this.pokazSekcje(null, { historia: true });
+    }));
+    WASKIE_USTAWIENIA.addEventListener('change', () => { if (document.body.dataset.ekran === 'konto') this.pokazSekcje(this.sekcja); });
+    // Podsumowania w wierszach listy: wartości wypełniane z opóźnieniem (klucze AI, miejsce) śledzone na bieżąco.
+    const sledz = (zrodlo, cel) => new MutationObserver(() => this.podsumuj(cel)).observe($(zrodlo), { childList: true, characterData: true, subtree: true });
+    sledz('#ust-ai-opis', 'ai');
+    sledz('#miejsce-konto', 'miejsce');
     const zaznaczMotyw = () => $$('#wybor-motywu input').forEach((r) => { r.checked = r.value === wybranyMotyw(); });
     $('#wybor-motywu').addEventListener('change', (e) => ustawMotyw(e.target.value));
-    document.addEventListener('motyw', zaznaczMotyw);
+    document.addEventListener('motyw', () => { zaznaczMotyw(); this.podsumuj('motyw'); });
     zaznaczMotyw();
 
     const formularz = (id, fn) => $(id).addEventListener('submit', async (e) => {
@@ -397,7 +409,6 @@ export class Konto {
       if (!await potwierdz('Wylogować ze wszystkich urządzeń?', 'Na każdym urządzeniu, także na tym, trzeba będzie zalogować się ponownie.', 'Wyloguj wszędzie')) return;
       await this.o.wyloguj(true);
     });
-    $('#wyloguj-tutaj').addEventListener('click', () => this.o.wyloguj(false));
 
     formularz('#form-usun', async (f, blad) => {
       const { stan } = this.o;
@@ -444,15 +455,58 @@ export class Konto {
       ? new Date(u.created_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
       : '—';
     this.o.liczbaProjektow().then((n) => { $('#konto-projekty').textContent = String(n); }).catch(() => {});
+    for (const k of ['nazwa', 'email', 'motyw', 'ai', 'miejsce']) this.podsumuj(k);
   }
 
-  pokazUstawienia() {
+  // Krótka wartość w wierszu listy ustawień („E-mail · adres ›”).
+  podsumuj(klucz) {
+    const el = $(`#ekran-konta .konto-lista [data-podsumowanie="${klucz}"]`);
+    if (!el) return;
+    const u = this.o.stan.uzytkownik;
+    const tekst = {
+      nazwa: () => (u ? chmura.nazwaUzytkownika(u) : ''),
+      email: () => u?.email || '',
+      motyw: () => ({ system: 'Jak w systemie', jasny: 'Jasny', ciemny: 'Ciemny' })[wybranyMotyw()] || '',
+      ai: () => {
+        const t = $('#ust-ai-opis').textContent.trim();
+        const ile = t.match(/Aktywne klucze: (\d+)/);
+        if (ile) { const n = Number(ile[1]); return `${n} ${n === 1 ? 'klucz' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'klucze' : 'kluczy')}`; }
+        return /Nie masz/.test(t) ? 'Brak kluczy' : '';
+      },
+      miejsce: () => { const t = $('#miejsce-konto').textContent.trim(); return /Sprawdzam/.test(t) ? '' : t; },
+    }[klucz]();
+    el.textContent = tekst;
+    el.hidden = !tekst;
+  }
+
+  // Pokazuje jedną sekcję ustawień. Bez sekcji: na wąskim ekranie sama lista, na szerokim – Profil.
+  pokazSekcje(sekcja, { cel, historia = false } = {}) {
+    const znana = sekcja && document.getElementById(`ust-${sekcja}`) ? sekcja : null;
+    this.sekcja = znana;
+    const wybrana = znana || (WASKIE_USTAWIENIA.matches ? null : 'profil');
+    $('#ekran-konta').dataset.sekcja = wybrana || '';
+    $$('#ekran-konta .grupa-ustawien').forEach((g) => { g.classList.toggle('wybrana', g.id === `ust-${wybrana}`); });
+    $$('#ekran-konta .konto-lista a[data-sekcja]').forEach((a) => {
+      const tak = a.dataset.sekcja === wybrana;
+      a.classList.toggle('aktywna', tak);
+      if (tak) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+    });
+    if (historia) {
+      const adres = `#/konto${znana ? `/${znana}` : ''}`;
+      if (location.hash !== adres) history.pushState({ sekcjaKonta: Boolean(znana) }, '', adres);
+    }
+    $('.konto-tresc').scrollTop = 0;
+    if (cel === 'haslo') $('#form-haslo').closest('.wiersz-ustawien').scrollIntoView({ block: 'nearest' });
+  }
+
+  pokazUstawienia(sekcja = null) {
     for (const id of ['form-email', 'form-haslo', 'form-usun']) this.zwin(id);
     $('#form-nazwa .komunikat').textContent = '';
     $('.konto-tresc').scrollTop = 0;
     this.wypelnijUstawienia();
     import('./miejsce-ustawienia.js').then((m) => m.pokazMiejsce()).catch(() => {}); // sekcja „Miejsce” (#90)
     import('./app/dostep-ai.js').then((m) => m.podsumowanieKluczy()).catch(() => {}); // sekcja „Dostęp dla AI” (#94)
+    this.pokazSekcje(sekcja);
     document.title = `Ustawienia konta – ${NAZWA}`;
   }
 }

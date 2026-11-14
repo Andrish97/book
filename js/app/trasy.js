@@ -38,9 +38,11 @@ export function przejdzDoTrasy() {
       return;
     }
     if (t.ekran === 'konto' && stan.uzytkownik) {
+      // Przejście między listą a sekcją ustawień (Wstecz) – bez przeładowania ekranu.
+      if (document.body.dataset.ekran === 'konto') { konto.pokazSekcje(t.sekcja); return; }
       if (stan.projekt) { await zapiszTeraz(); stan.projekt = null; }
       pokazEkran('konto');
-      konto.pokazUstawienia();
+      konto.pokazUstawienia(t.sekcja);
       return;
     }
     // #/admin – panel administratora (decyzja #95); dla innych kont – lista projektów.

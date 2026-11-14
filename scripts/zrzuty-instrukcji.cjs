@@ -187,12 +187,13 @@ if (require.main === module) (async () => {
     await k.click('#awatar');
     await k.click('[data-akcja="ustawienia-konta"]');
     await k.waitForFunction(() => document.body.dataset.ekran === 'konto');
+    await k.click('.konto-lista [data-sekcja="logowanie"]:not([data-cel])');
     await k.click('[data-rozwin="form-email"]');
     await zrzut(k, 'konto.png');
     await k.click('[data-zwin="form-email"]');
     await k.click('#wybor-motywu label:has-text("Ciemny")');
     await k.waitForTimeout(400);
-    await k.click('.konto-nawigacja a:has-text("Wygląd")');
+    await k.click('.konto-lista [data-sekcja="wyglad"]');
     await zrzut(k, 'motyw.png');
     await k.click('#wybor-motywu label:has-text("Jak w systemie")');
 
