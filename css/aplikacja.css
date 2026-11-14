@@ -1844,7 +1844,7 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 @media (max-width: 600px) {
   .lista-dostepow .klucz-akcje { flex: 1 1 100%; }
   .lista-dostepow .klucz-akcje .przycisk { flex: 1 1 auto; }
-=======
+}
 /* Menu w niskim oknie (telefon 320×568: menu ⋯ urosło o „Współpraca…”) – nie dłuższe niż ekran, reszta się przewija. */
 #menu-wiecej, #menu-uzytkownika { max-height: calc(100svh - 64px); overflow-y: auto; overscroll-behavior: contain; }
 
