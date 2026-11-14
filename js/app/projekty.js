@@ -11,6 +11,7 @@ import { zapiszPlikProjektu, ROZSZERZENIE, wczytajPlikProjektu as odczytajPlik }
 import { powiadom, $, kiedy, przelaczMenu, zamknijMenu, zapytajONazwe, pobierz, bezpiecznaNazwa, potwierdz } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { postep } from '../postep.js';
+import { limitProjektow } from '../miejsce.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { wlasciciel, stan, pokazEkran, trasa } from './kontekst.js';
 import { czekajNaEdytor, edytorGotowy, doczytajWTle } from './doczytaj.js';
@@ -233,6 +234,7 @@ export async function zapiszGdziekolwiek(projekt) {
 }
 
 async function duplikujProjekt(w) {
+  if (await ponadLimit()) return;
   try {
     const zrodlo = await wczytajProjektZWpisu(w);
     const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
@@ -295,7 +297,16 @@ async function usunProjekt(w) {
 
 const FORMATY_KART = [...Object.entries(FORMATY), ['Własny', null]];
 
-export function otworzNowyProjekt() {
+// Limit projektów konta (#92): komunikat zamiast nowego projektu, którego baza i tak nie przyjmie.
+async function ponadLimit() {
+  if (!stan.uzytkownik) return false;
+  const tekst = await limitProjektow();
+  if (tekst) powiadom(tekst, true);
+  return Boolean(tekst);
+}
+
+export async function otworzNowyProjekt() {
+  if (await ponadLimit()) return;
   const dlg = $('#dlg-nowy');
   const f = $('#form-nowy');
   f.reset();
@@ -397,6 +408,7 @@ export async function wczytajPlikProjektu(plik) {
       );
       if (!zastap) projekt.id = crypto.randomUUID();
     }
+    if ((!istniejacy || projekt.id !== istniejacy.id) && await ponadLimit()) return;
     pasek = postep(`Otwieranie „${projekt.nazwa}”…`);
     if (stan.projekt) await zapiszTeraz();
     // Plik w miejsce projektu: dawna historia cofania do niego nie pasuje.

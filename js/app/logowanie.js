@@ -48,6 +48,8 @@ export function odswiezNaglowek() {
 
 export async function poZalogowaniu(uzytkownik) {
   stan.uzytkownik = uzytkownik;
+  // Pliki ze starego magazynu przechodzą do R2 (raz) – pobieranie plików czeka na to samo.
+  import('../przeniesienie-plikow.js').then((m) => m.przeniesPliki(uzytkownik)).catch(() => { /* zostaną w starym magazynie, spróbujemy przy następnym zalogowaniu */ });
   wlaczNaZywo(uzytkownik); // powiadomienia o zmianach z innych urządzeń; nie wstrzymuje wejścia
   const motywKonta = uzytkownik?.user_metadata?.motyw;
   if (motywKonta && motywKonta !== wybranyMotyw()) ustawMotyw(motywKonta);

@@ -53,6 +53,12 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 **Sprawdzone.** Testy `tests/miejsce.test.cjs` (licznik, ostrzeżenie, sprzątanie ręczne i w tle, plik z projektu w tej przeglądarce zostaje, pobieranie tylko zmienionych stron); krok w próbie na prawdziwej bazie. Pomiar: zmiana od AI w projekcie 12 stron – 27 kB pobrania przed, 1,2 kB po; strona linku 1200 px – 296 kB JPEG, 134 kB WebP.
 **Słabe.** Plik młodszy niż 2 dni zostaje (może czekać na zapis projektu). Pierwsze łączenie po własnym zapisie pobiera strony, które ta karta właśnie wysłała (baza nie oddaje ich skrótów przy zapisie). Czcionki na koncie nie są sprzątane. Limit jest wspólny dla wszystkich osób – po jego wyczerpaniu zostaje plan płatny albo przeniesienie plików (np. Cloudflare R2).
 
+### 0.5. Pliki w Cloudflare R2, limity kont i panel użycia ✅ (#92, #93)
+**Co jest.** Pliki (obrazy, czcionki, obrazy stron linków) leżą w Cloudflare R2 za przekaźnikiem `api.makietka.app` – 10 GB za darmo i bez opłat za transfer. Przekaźnik sprawdza token sesji i uprawnienia (właściciel, współpracownik przez `dostep_do_plikow`), pilnuje limitów i liczy miejsce. Limity: 500 MB plików na konto, 25 MB na plik, 30 projektów na konto, 300 obrazów w projekcie, 10 osób w projekcie. Ustawienia konta (Miejsce) pokazują Twoje zużycie: paski wobec limitów i listę projektów z rozmiarem, obrazami i stronami, z „Otwórz” i „Pokaż obrazy”. Pliki ze starego magazynu przenoszą się raz, po zalogowaniu.
+**Dlaczego tak.** Limit 1 GB i 5 GB transferu w darmowym planie bazy kończyłby się pierwszy (zdjęcia po kilkanaście MB, każde otwarcie na nowym urządzeniu pobiera je od nowa). R2 daje dziesięć razy więcej miejsca bez opłat za pobrania, a przekaźnik i tak już stał pod tą domeną. Limity na konto są po to, żeby jedno konto nie zajęło miejsca wszystkim.
+**Sprawdzone.** `tests/worker-pliki.test.cjs` (uprawnienia, limity, ETag/304, Range, CORS, lista, usuwanie, miejsce, osierocone), `tests/pliki-r2.test.cjs` (przeniesienie plików, limity w aplikacji, panel użycia), migracja przepuszczona przez lokalny Postgres 16 (limity projektów i osób, odwołania, panel).
+**Słabe.** Liczenie miejsca w przekaźniku przegląda listę plików konta (z pamięcią na minutę) – przy tysiącach plików wolniej. Odebrany dostęp współpracownika do plików działa najpóźniej po minucie (pamięć przekaźnika). Stary magazyn i kod przeniesienia do usunięcia, gdy będzie pusty (#92b).
+
 ## A. Fundamenty techniczne
 
 ### A1. Aplikacja statyczna, moduły bez etapu budowania ✅ / ⚠️
