@@ -223,7 +223,7 @@ test('telefon: arkusz właściwości – od góry, bez krzyżyka, uchwyt, elemen
   await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
   await otwarty();
 
-  // Uchwyt: przeciągnięcie w górę powiększa, stuknięcie wraca do zwykłej wysokości, w dół zamyka.
+  // Uchwyt: przeciągnięcie w górę powiększa, stuknięcie wraca do zwykłej wysokości, następne zamyka (#118), w dół zamyka.
   const uchwyt = await strona.evaluate(() => { const r = document.querySelector('.panel-inspektor .uchwyt-arkusza').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
   const cdp = await strona.context().newCDPSession(strona);
   const ciagnij = async ([x, y], dy) => {
@@ -240,6 +240,23 @@ test('telefon: arkusz właściwości – od góry, bez krzyżyka, uchwyt, elemen
   await strona.waitForTimeout(350);
   s = await stanArkusza();
   assert.ok(Math.abs(s.panel.height - s.okno * 0.45) < 2, 'stuknięcie w uchwyt wraca do zwykłej wysokości');
+  // #118: stuknięcie w uchwyt zwykłego arkusza zamyka go (nie powiększa).
+  await strona.tap('.panel-inspektor .uchwyt-arkusza');
+  await strona.waitForTimeout(350);
+  assert.equal(await strona.evaluate(() => document.body.dataset.panel), '', 'stuknięcie zamyka zwykły arkusz');
+  assert.notEqual(await strona.evaluate(() => document.body.dataset.arkusz), 'pelny');
+  // Arkusz stron i ostrzeżeń też zamyka stuknięcie.
+  for (const panel of ['strony', 'ostrzezenia']) {
+    await strona.tap(`.zakladki-mobilne [data-panel="${panel}"]`);
+    await strona.waitForFunction((p) => document.body.dataset.panel === p, panel);
+    await strona.waitForTimeout(300);
+    const arkusz = panel === 'strony' ? '#panel-strony' : '#panel-inspektor';
+    await strona.tap(`${arkusz} .uchwyt-arkusza`);
+    await strona.waitForTimeout(350);
+    assert.equal(await strona.evaluate(() => document.body.dataset.panel), '', `stuknięcie zamyka arkusz ${panel}`);
+  }
+  await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
+  await otwarty();
   const uchwyt2 = await strona.evaluate(() => { const r = document.querySelector('.panel-inspektor .uchwyt-arkusza').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
   await ciagnij(uchwyt2, 200);
   assert.equal(await strona.evaluate(() => document.body.dataset.panel), '');
