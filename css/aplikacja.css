@@ -1746,3 +1746,4 @@ dialog:focus { outline: none; }
    „Zachowaj wersję z tego urządzenia”), przechodzą do kolejnego rzędu także na komputerze – wcześniej lewy
    wystawał poza okno. */
 .przyciski-dialogu { flex-wrap: wrap; }
+:root[data-kompakt] .galeria-wzorcow > li.wzorzec .rzad-przyciskow .przycisk { width: 100%; }
