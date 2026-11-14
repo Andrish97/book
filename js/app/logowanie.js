@@ -8,7 +8,6 @@ import { Konto } from '../konto.js';
 import { wybranyMotyw, ustawMotyw } from '../motyw.js';
 import { stan, trasa, pokazEkran } from './kontekst.js';
 import { wpisyProjektow, pokazProjekty, plikiDoOtwarcia, otworzOczekujacePliki } from './projekty.js';
-import { instrukcja } from './instrukcja-leniwa.js';
 import { edytorGotowy } from './doczytaj.js';
 import { przejdzDoTrasy } from './trasy.js';
 import { wlaczNaZywo, wylaczNaZywo } from './na-zywo.js';
@@ -57,13 +56,12 @@ export async function poZalogowaniu(uzytkownik) {
   odswiezNaglowek();
   await przejdzDoTrasy();
   if (document.body.dataset.ekran === 'start' || document.body.dataset.ekran === 'logowanie') await pokazProjekty();
-  // Konto bez nazwy użytkownika (#100): nazwa z rejestracji albo okno „Wybierz nazwę użytkownika” – przed instrukcją.
+  // Konto bez nazwy użytkownika (#100): nazwa z rejestracji albo okno „Wybierz nazwę użytkownika”.
   try {
     const m = await import('../nazwa-uzytkownika.js');
     await m.upewnijSieONazwie(uzytkownik, { naZmiane: (u) => { if (u && stan.uzytkownik?.id === u.id) { stan.uzytkownik = u; odswiezNaglowek(); } } });
   } catch { /* bez sieci – zapytamy przy następnym logowaniu */ }
   if (plikiDoOtwarcia.length) await otworzOczekujacePliki();
-  else instrukcja.otworzJesliNowa(uzytkownik?.id || 'lokalny');
 }
 
 export async function wyloguj(wszedzie = false) {

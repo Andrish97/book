@@ -80,7 +80,7 @@ const akcje = {
   'dostep-ai-kopiuj-polecenie': async () => (await dostepAi()).kopiujPolecenieAi(),
   'dostep-ai-zamknij': async () => (await dostepAi()).zamknijDostepAi(),
   'nowy-projekt': otworzNowyProjekt,
-  instrukcja: () => instrukcja.otworz(0),
+  instrukcja: () => { zamknijMenu(); instrukcja.otworz(); },
   'zamknij-instrukcje': () => instrukcja.zamknij(),
   wyloguj: () => wyloguj(false),
   'ustawienia-konta': () => { zamknijMenu(); trasa.ustaw('konto'); przejdzDoTrasy(); },
@@ -219,6 +219,8 @@ async function start() {
       pokazEkran('logowanie');
       // Link z zaproszeniem do projektu: po zalogowaniu albo założeniu konta adres zostaje i pytanie wraca.
       if (trasa.odczytaj().ekran === 'zaproszenie') konto.komunikat('Masz zaproszenie do projektu. Zaloguj się albo załóż konto – zaraz potem je przyjmiesz.', true);
+      // #/instrukcja bez konta: podręcznik nad ekranem logowania (#114).
+      if (trasa.odczytaj().ekran === 'instrukcja') instrukcja.otworzZAdresu('#/');
     }
   } catch (e) {
     pokazEkran('logowanie');

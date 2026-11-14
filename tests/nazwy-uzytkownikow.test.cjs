@@ -44,7 +44,7 @@ test('rejestracja: nazwa użytkownika – zasady, zajęta z propozycją, zapis p
   celina.potwierdzone = true;
   await strona.click('#widok-wyslano [data-tryb="logowanie"]');
   await zaloguj(strona, 'celina@test.pl');
-  await strona.waitForSelector('#dlg-instrukcja[open]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
   assert.equal(baza.profile.get(celina.id), 'bartek2');
   assert.equal(await strona.locator('#dlg-nazwa-uzytkownika[open]').count(), 0);
   assert.deepEqual(bledy, []);
@@ -60,7 +60,7 @@ test('pierwsze logowanie konta bez nazwy: okno „Wybierz nazwę użytkownika”
   // Esc nie zamyka – nazwa jest wymagana.
   await strona.keyboard.press('Escape');
   assert.equal(await strona.locator('#dlg-nazwa-uzytkownika[open]').count(), 1);
-  // Zajęta – komunikat; wolna – zapis, okno znika, potem instrukcja jak zwykle.
+  // Zajęta – komunikat; wolna – zapis, okno znika, potem lista projektów.
   await strona.fill('#nazwa-uzytkownika-pole', 'anna');
   await strona.click('#form-nazwa-uzytkownika button[type=submit]');
   await strona.waitForFunction(() => /zajęta/.test(document.querySelector('#nazwa-uzytkownika-komunikat').textContent));
@@ -70,8 +70,7 @@ test('pierwsze logowanie konta bez nazwy: okno „Wybierz nazwę użytkownika”
   await strona.waitForFunction(() => !document.querySelector('#dlg-nazwa-uzytkownika').open);
   assert.equal(baza.profile.get(jan.id), 'jan_k');
   assert.equal(jan.nazwa, 'jan_k', 'nazwa także w metadanych konta (do wyświetlania)');
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await zamknijOkno(strona, '#dlg-instrukcja');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
   assert.equal(await strona.textContent('#nazwa-uzytkownika'), 'jan_k');
   assert.deepEqual(bledy, []);
 });

@@ -1,6 +1,6 @@
 # Format projektu Makietki – opis dla AI
 
-Ten dokument opisuje, jak samodzielnie zbudować projekt [Makietki](https://makietka.app/) (edytor publikacji z powtarzanymi stronami: kalendarze, planery, notesy), który użytkownik wczyta przyciskiem **Importuj** na liście projektów. Opis jest sprawdzany testem (`tests/format-ai.test.cjs`): oba przykłady z `ai/przyklady/` wczytują się w aplikacji i przechodzą „Sprawdź przed drukiem” bez uwag.
+Ten dokument opisuje, jak samodzielnie zbudować projekt [Makietki](https://makietka.app/) (edytor publikacji do druku: książki, kalendarze, planery, zaproszenia i inne dokumenty), który użytkownik wczyta przyciskiem **Importuj** na liście projektów. Opis jest sprawdzany testem (`tests/format-ai.test.cjs`): oba przykłady z `ai/przyklady/` wczytują się w aplikacji i przechodzą „Sprawdź przed drukiem” bez uwag.
 
 Instrukcja obsługi aplikacji (co robi każdy przycisk): [ai/instrukcja.md](https://makietka.app/ai/instrukcja.md).
 

@@ -160,8 +160,7 @@ test('obrazy na koncie: drugie urządzenie pobiera je prosto do magazynu plików
     await strona.click('#przycisk-logowania');
   };
   await zaloguj();
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
   await nowyProjekt(strona, 'Na koncie');
   await dodajZdjecia(strona, 2);
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());

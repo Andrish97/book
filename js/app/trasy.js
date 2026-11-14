@@ -8,6 +8,7 @@ import { pokazUdostepniony } from './udostepnione.js';
 import { konto } from './logowanie.js';
 import { czekajNaEdytor, edytorGotowy } from './doczytaj.js';
 import { pokazZaproszenieZLinku } from './wspolpraca.js';
+import { instrukcja } from './instrukcja-leniwa.js';
 
 // Funkcje edytora: wczytują go, gdy adres prowadzi do projektu (js/app/doczytaj.js).
 const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
@@ -30,6 +31,12 @@ export function przejdzDoTrasy() {
     const t = trasa.odczytaj();
     if (t.ekran === 'udostepnione') { await pokazUdostepniony(t); return; }
     if (document.body.classList.contains('podglad-publiczny')) { location.reload(); return; }
+    // #/instrukcja – podręcznik nad bieżącym ekranem, także bez konta (#114).
+    if (t.ekran === 'instrukcja') {
+      if (stan.uzytkownik && !stan.projekt && document.body.dataset.ekran !== 'projekty') await pokazProjekty();
+      await instrukcja.otworzZAdresu(stan.projekt ? `#/p/${stan.projekt.id}` : (stan.uzytkownik ? '#/projekty' : '#/'));
+      return;
+    }
     if (!stan.uzytkownik) return;
     // #/zaproszenie/<kod> – zaproszenie do projektu (współpraca): pytanie, czy je przyjąć.
     if (t.ekran === 'zaproszenie') {

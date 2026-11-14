@@ -56,6 +56,7 @@ export const trasa = {
       };
     }
     if (rodzaj === 'konto') return { ekran: 'konto', sekcja: id || null };
+    if (rodzaj === 'instrukcja') return { ekran: 'instrukcja' }; // podręcznik – także bez konta (#114)
     if (rodzaj === 'admin') return { ekran: 'admin', zakladka: id || 'skrzynka' };
     if (rodzaj === 'zaproszenie' && id) return { ekran: 'zaproszenie', kod: id };
     if (rodzaj === 'u' && id && typ && cel) return { ekran: 'udostepnione', konto: id, projekt: typ, kod: cel };

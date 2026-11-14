@@ -29,8 +29,10 @@ test('okno Dostęp dla AI: polecenie do skopiowania, rozszerzenie do pobrania, o
   assert.match(przed.code, /mcp\/<klucz>$/);
   // Ten sam tekst co w instrukcji.
   const zgodne = await strona.evaluate(async (tekst) => {
-    const { ROZDZIAL_AI_START } = await import('./js/instrukcja-przewodnik.js');
-    return ROZDZIAL_AI_START.prompty.some((p) => p.tekst === tekst);
+    const { ROZDZIALY } = await import('./js/instrukcja.js');
+    const d = document.createElement('div');
+    d.innerHTML = ROZDZIALY.find((r) => r.tytul === 'Praca z AI').sekcje.map((s) => s.html).join('');
+    return [...d.querySelectorAll('.prompt-instrukcji pre')].some((p) => p.textContent === tekst);
   }, przed.polecenie);
   assert.equal(zgodne, true);
   await strona.click('[data-akcja="dostep-ai-kopiuj-polecenie"]');

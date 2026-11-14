@@ -1,4 +1,4 @@
-// Gotowe polecenia dla AI (decyzje #104, #107) – jedno źródło dla instrukcji (js/instrukcja-przewodnik.js) i okna
+// Gotowe polecenia dla AI (decyzje #104, #107) – jedno źródło dla instrukcji (docs/instrukcja, wstawka {{polecenie: …}}) i okna
 // „Dostęp dla AI” w ustawieniach konta (js/app/dostep-ai.js). W poleceniu „Podłącz Makietkę” okno podstawia prawdziwy
 // adres łącznika z kluczem, gdy jest widoczny (zaraz po utworzeniu klucza).
 

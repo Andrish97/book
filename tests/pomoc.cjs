@@ -649,15 +649,13 @@ async function podlaczAtrape(kontekst, opcje = {}) {
   return atrapaSupabase(kontekst, opcje);
 }
 
-// Logowanie pierwszym kontem atrapy; zamyka instrukcję, która otwiera się przy pierwszym wejściu.
+// Logowanie pierwszym kontem atrapy; czeka na listę projektów (instrukcja nie otwiera się sama, #114).
 async function zaloguj(strona, baza) {
   const k = baza.konta[0];
   await strona.waitForSelector('#form-logowania input[name=email]', { state: 'visible' });
   await strona.fill('#form-logowania input[name=email]', k.email);
   await strona.fill('#form-logowania input[name=haslo]', k.haslo);
   await strona.click('#przycisk-logowania');
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await zamknijOkno(strona, '#dlg-instrukcja');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
 }
 

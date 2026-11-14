@@ -216,8 +216,7 @@ test('moje czcionki na koncie: plik i spis w prywatnym folderze, drugie urządze
   await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
   await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
   await strona.click('#przycisk-logowania');
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
   const folder = 'zasoby/11111111-1111-4111-8111-111111111111/_czcionki/';
   const naKoncie = () => [...baza.pliki.keys()].filter((k) => k.startsWith(folder)).map((k) => k.slice(folder.length));
   const spis = () => JSON.parse(baza.pliki.get(`${folder}spis.json`).tresc.toString());

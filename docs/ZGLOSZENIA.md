@@ -15,7 +15,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Uwaga | Stan |
 |---|---|
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
-| Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
 | Niestabilne testy pod obciążeniem: „obrazy poza pamięcią”, „grupa otwarta: obraz kadruje”, „tekst przez strony” – naprawić | ⏳ |
@@ -63,6 +62,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 108 | Konta testowe usunięte |
 | 107 | Bez starego magazynu i trybu przejściowego linków; okno Dostęp dla AI: polecenie „Podłącz Makietkę” do skopiowania na wierzchu (adres wpisany po utworzeniu klucza), przycisk pobrania rozszerzenia dla Claude Desktop, krótkie zwinięte opisy aplikacji |
 | 103 | Kompaktowość i ikony (13 propozycji: tabela −/+, PDF „Zaawansowane”, ikony w Danych, Czcionkach, Obrazach, zaproszeniach, imporcie) + paleta poleceń Ctrl+K i kolory projektu w wyborze koloru |
+| 114 | Instrukcja jako pełny podręcznik w układzie Familiady: części, rozdziały, numerowane podrozdziały, tabele opcji, kadry z zaznaczeniem; strona główna, spis dwupoziomowy, spis-zasłonka na telefonie; dostęp bez konta; nowe pozycjonowanie Makietki; bez samoczynnego otwierania |
 | 112 | Szary procent po stuknięciu, opis tabeli prostymi słowami, ikona książki dla instrukcji wszędzie, pole szukania z lupą, kroki instrukcji rozbite na kolumny |
 | 111 | „Podgląd” na kafelku otwiera od razu podgląd, bez mignięcia edytora |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |

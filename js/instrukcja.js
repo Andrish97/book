@@ -1,24 +1,33 @@
-// Instrukcja obsługi: rozdziały ze zrzutami ekranu (img/instrukcja/*.png).
-// Zrzuty generuje skrypt scripts/zrzuty-instrukcji.cjs (z argumentem „ciemny” – komplet w ciemnym
-// motywie, img/instrukcja/ciemny/) – po zmianach w wyglądzie wystarczy go uruchomić ponownie.
+// Instrukcja – podręcznik aplikacji (decyzja #114), w układzie podręcznika Familiady:
+// części → rozdziały (każdy na osobnej stronie) → numerowane podrozdziały.
+// Treść: js/instrukcja-tresc.js, budowana skryptem scripts/instrukcja-buduj.cjs z docs/instrukcja/*.md.
+// Zrzuty: img/instrukcja/*.png (ciemne w img/instrukcja/ciemny/), robi je scripts/zrzuty-instrukcji.cjs.
+//
+// Nawigacja: strona główna (części z listą rozdziałów), spis z lewej – części, rozdziały, a przy
+// otwartym rozdziale jego podrozdziały; okruszki „Instrukcja › Część”; „W tym rozdziale”; Poprzedni /
+// Następny z tytułami. Na wąskim ekranie spis otwiera przycisk z nazwą bieżącego rozdziału.
 
 import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
 import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
 import { czyCiemny } from './motyw.js';
-import {
-  ROZDZIALY_START, ROZDZIAL_NARZEDZIA, ROZDZIAL_PANEL, ROZDZIAL_DANE_PRZYKLADY, ROZDZIAL_AI_START, ROZDZIAL_KOMIKS, ROZDZIAL_SLOWNICZEK,
-} from './instrukcja-przewodnik.js';
+import { CZESCI, ROZDZIALY as ZRODLO } from './instrukcja-tresc.js';
 
-// Lista pól dokumentu i zapisów liczb – z tych samych tabel, z których korzysta aplikacja.
+// Rozdziały z nazwą części (grupa) i tekstem do wyszukiwania (rozdział i każdy podrozdział).
+const naTekst = (html) => String(html || '').replace(/<pre>[\s\S]*?<\/pre>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+export const ROZDZIALY = ZRODLO.map((r) => ({ ...r, grupa: r.czesc }));
+export { CZESCI };
+export const tekstRozdzialu = (r) => naTekst(`${r.tytul} ${r.sekcje.map((s) => `${s.tytul} ${s.html}`).join(' ')}`);
+
+const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 function tabelaPol() {
   const pola = POLA_DOKUMENTU.map(([nazwa, opis]) => `<tr><td><code>{${nazwa}}</code></td><td>${opis.replace(/\{[^}]+\}/g, (m) => `<code>${m}</code>`)}</td></tr>`).join('');
   const zapisy = ZAPISY_LICZB.map(([zapis, opis]) => `<tr><td><code>{nr${zapis ? `:${zapis}` : ''}}</code></td><td>${opis}</td></tr>`).join('');
-  return `<h4>Pola dokumentu</h4><table class="skroty"><tbody>${pola}</tbody></table>`
-    + `<h4>Zapis liczby (po dwukropku, przy każdym polu z liczbą)</h4><table class="skroty"><tbody>${zapisy}</tbody></table>`;
+  return `<div class="tabela-instrukcji"><table><thead><tr><th>Pole</th><th>Znaczenie</th></tr></thead><tbody>${pola}</tbody></table></div>`
+    + `<h4>Zapis liczby (po dwukropku, przy każdym polu z liczbą)</h4><div class="tabela-instrukcji"><table><thead><tr><th>Zapis</th><th>Znaczenie</th></tr></thead><tbody>${zapisy}</tbody></table></div>`;
 }
 
-// Tabela skrótów powstaje z tej samej listy, z której działa klawiatura.
 function tabelaSkrotow() {
   const grupy = [];
   for (const s of SKROTY) {
@@ -26,710 +35,7 @@ function tabelaSkrotow() {
     if (!g) { g = { nazwa: s.grupa, wiersze: [] }; grupy.push(g); }
     g.wiersze.push(`<tr><td>${opisKlawiszy(s).split('+').map((k) => `<kbd>${k}</kbd>`).join(' ')}</td><td>${s.opis}</td></tr>`);
   }
-  return grupy.map((g) => `<h4>${g.nazwa}</h4><table class="skroty"><tbody>${g.wiersze.join('')}</tbody></table>`).join('');
-}
-
-const KLUCZ_PRZECZYTANA = 'seriodruk:instrukcja-przeczytana';
-
-const PODSTAWOWE = [
-  {
-    tytul: 'Na początek',
-    wstep: 'Makietka służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a aplikacja wstawia do nich dane z arkusza, powiela strony – po jednej na każdy wiersz – i zapisuje gotowy plik PDF do druku.',
-    obraz: 'projekty.png',
-    podpis: 'Lista projektów po zalogowaniu.',
-    punkty: [
-      'Projekt to jedna publikacja – np. „Kalendarz 2027”. Karta pokazuje pierwszą stronę i datę ostatniej zmiany.',
-      '<b>Chmurka</b> przy nazwie projektu mówi, czy zmiany są już na koncie: z ptaszkiem – zapisano na koncie, z zegarem – czeka na wysłanie, przekreślona – brak internetu, zmiany są na tym urządzeniu i pójdą na konto po powrocie sieci. Najedź na nią (albo przytrzymaj palec), żeby zobaczyć opis.',
-      'Każda zmiana zapisuje się sama – nie ma przycisku „Zapisz”.',
-      'Menu <b>⋯</b> na karcie projektu: podgląd, zmiana nazwy, duplikowanie, eksport do pliku, usunięcie. <b>Importuj</b> wczytuje projekt z pliku <code>.makietka</code>.',
-      'Plakietka <b>Udostępniony</b> na karcie oznacza, że projekt ma czynny link do podglądu. Kliknięcie plakietki otwiera okienko z linkiem – tam go skopiujesz albo unieważnisz.',
-      'Typowa kolejność pracy: nowy projekt → wzorce (wspólne tła, stopki, numery) → strony → dane i serie → podgląd → „Sprawdź przed drukiem” → PDF.',
-      'Instrukcję otworzysz w każdej chwili przyciskiem <b>Instrukcja</b> albo <b>?</b> w edytorze.',
-    ],
-  },
-  {
-    tytul: 'Konto: logowanie i rejestracja',
-    wstep: 'Projekty są zapisane na koncie i dostępne na każdym urządzeniu. Konto zakładasz adresem e-mail i hasłem.',
-    obraz: 'rejestracja.png',
-    podpis: 'Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.',
-    punkty: [
-      '<b>Nowe konto</b>: wpisz <b>nazwę użytkownika</b>, e-mail i dwa razy hasło. Nazwa użytkownika (3–30 znaków: litery, cyfry, _ . -) jest unikalna – po niej inni mogą Cię zaprosić do projektu; pod polem widać od razu, czy jest wolna, a zajęta dostaje propozycję wolnej. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.',
-      'Konto bez nazwy użytkownika (założone wcześniej) przy logowaniu dostaje okno <b>Wybierz nazwę użytkownika</b> z gotową propozycją – nazwę trzeba wybrać, zmienisz ją potem w ustawieniach konta.',
-      'Konto działa od razu po założeniu. Jeśli administrator włączy potwierdzanie adresu, na podany e-mail przyjdzie wiadomość „Potwierdź swoje konto” z przyciskiem i dopiero po kliknięciu można się zalogować (wiadomość można wysłać ponownie po minucie).',
-      '<b>Nie pamiętasz hasła?</b> – podaj e-mail, a dostaniesz link do ustawienia nowego hasła.',
-      'Link z wiadomości działa jeden raz. Jeśli wygasł, aplikacja o tym powie – poproś wtedy o nowy.',
-    ],
-  },
-  {
-    tytul: 'Ustawienia konta',
-    wstep: 'Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz „Ustawienia konta”. Ustawienia to lista jak w telefonie: każdy wiersz pokazuje bieżącą wartość (np. „E-mail · adres”, „Motyw · Jasny”), a kliknięcie otwiera szczegóły. Na komputerze lista stoi z lewej, a wybrane ustawienie z prawej; na telefonie wiersz otwiera osobny widok, a <b>‹ Ustawienia</b> (albo „Wstecz”) wraca do listy.',
-    obraz: 'konto.png',
-    podpis: 'Ustawienia konta z rozwiniętą zmianą adresu e-mail.',
-    punkty: [
-      '<b>Nazwa użytkownika</b> – nazwa użytkownika: po niej inni zapraszają Cię do projektu; widać ją też w prawym górnym rogu.',
-      '<b>E-mail</b> i <b>Hasło</b> (wspólny widok „Logowanie”) – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. <b>Wpisz inny adres</b> zastępuje oczekujący adres nowym.',
-      '<b>Wyloguj wszędzie</b> (w widoku „Logowanie”) wylogowuje wszystkie urządzenia naraz – przydatne po logowaniu na cudzym albo zgubionym urządzeniu. Zwykłe <b>Wyloguj</b> (tylko to urządzenie) jest w menu pod kółkiem z inicjałem.',
-      '<b>Motyw</b> – jasny albo ciemny (następny rozdział).',
-      '<b>Miejsce</b> – ile zajmują Twoje pliki (obrazy, czcionki, podglądy linków) wobec limitu konta (2 GB), ile masz projektów (najwyżej 100) i ile obrazów w największym projekcie (najwyżej 1000 w jednym projekcie; jeden plik – do 50 MB). Niżej lista Twoich projektów: ile zajmuje każdy, ile ma obrazów i stron, kiedy go zmieniano – z przyciskami <b>Otwórz</b> i <b>Pokaż obrazy</b>; projekty innych osób, do których masz dostęp, są osobno i nie liczą się do Twojego limitu. Od 80% pojawia się ostrzeżenie – tu i przy wgrywaniu obrazów. <b>Posprzątaj…</b> pokazuje, ile plików i megabajtów zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych i przemianowanych zdjęć, pliki usuniętych projektów, podglądy wyłączonych linków, porzucone wgrania od AI. Pliki z ostatnich dwóch dni i czcionki zostają. Aplikacja sprząta tak sama raz na dobę.',
-      '<b>Usuwanie konta</b> – usuwa konto i wszystkie projekty. Jeśli chcesz je zachować, najpierw wyeksportuj je do plików.',
-      '<b>Kontakt</b> – w menu konta (i w stopce ekranu logowania) jest formularz kontaktowy: pytanie, pomysł albo błąd trafia do nas, a na podany adres przychodzi potwierdzenie. Możesz też pisać wprost na kontakt@makietka.app.',
-    ],
-  },
-  {
-    tytul: 'Jasny i ciemny motyw',
-    wstep: 'Aplikacja ma dwa motywy. Wybór dotyczy urządzenia, na którym go ustawiasz.',
-    obraz: 'motyw.png',
-    podpis: 'Ciemny motyw w ustawieniach konta.',
-    punkty: [
-      'W <b>Ustawieniach konta → Wygląd</b> wybierz: <b>Jak w systemie</b> (zmienia się razem z ustawieniem urządzenia), <b>Jasny</b> albo <b>Ciemny</b>.',
-      'Szybki przełącznik – ikona półkola – jest na ekranie logowania, na liście projektów, w menu <b>⋯</b> edytora i w podglądzie otwartym z linku.',
-      'Strony publikacji zawsze są pokazywane na białym papierze. Ciemny motyw zmienia tylko interfejs wokół nich.',
-    ],
-  },
-  {
-    tytul: 'Nowy projekt',
-    wstep: 'Projekt to cała publikacja: sekcje, wzorce i wszystkie strony.',
-    obraz: 'nowy-projekt.png',
-    podpis: 'Okno „Nowy projekt”.',
-    punkty: [
-      'Wpisz nazwę i wybierz format – kafelki pokazują proporcje strony. <b>Własny</b> pozwala wpisać dowolny wymiar w milimetrach, a <b>Orientacja</b> obraca stronę (pionowo albo poziomo).',
-      '<b>Spad</b> to pas za krawędzią strony, który drukarnia odcina. Zwykle 3 mm.',
-      '<b>Marginesy</b> wyznaczają bezpieczny obszar na teksty. Wszystkie te ustawienia zmienisz później w ustawieniach sekcji.',
-      '<b>Układ stron</b>: pojedyncze strony albo rozkładówki (lewa + prawa, jak w książce).',
-      'Projekt zaczyna od jednej sekcji „Główna”. Kolejne sekcje, np. okładkę o innym rozmiarze, dodasz w edytorze.',
-    ],
-  },
-  {
-    tytul: 'Edytor – przegląd',
-    wstep: 'Po otwarciu projektu widzisz edytor. Każda rzecz ma swoje miejsce:',
-    obraz: 'edytor.png',
-    podpis: 'Edytor: strony z lewej, strona pośrodku, właściwości i warstwy z prawej.',
-    punkty: [
-      '<b>Strony</b> (z lewej) – miniatury wszystkich stron, pogrupowane w sekcje. Kolejność miniatur to kolejność w publikacji.',
-      '<b>Strona</b> (pośrodku) – tu układasz elementy. Nad nią pasek <b>Wstaw</b>, w prawym dolnym rogu powiększenie oraz menu siatki i linii pomocniczych.',
-      '<b>Właściwości</b> i <b>Warstwy</b> (z prawej, dwie zakładki) – ustawienia zaznaczonego elementu albo strony oraz lista elementów otwartej strony. Są obok siebie, bo dotyczą tego samego: tego, co leży na otwartej stronie.',
-      'Górny pasek: powrót do projektów, nazwa projektu (kliknij, żeby ją zmienić), stan zapisu, cofanie, ikony <b>Wzorce</b> (szablony wspólnych elementów stron), <b>Dane</b> (tabele do pól i serii) i <b>Podgląd</b> – napisy obok nich pojawiają się same, gdy okno jest na tyle szerokie, że się mieszczą (można to zmienić w menu widoku: <b>Napisy na górnym pasku</b> – auto, zawsze, nigdy), sekcja i jej format, <b>pełny ekran</b>, instrukcja i menu <b>⋯</b> (PDF, PNG, sprawdzenie przed drukiem, czcionki, motyw; na wąskim ekranie także pełny ekran).',
-      'Listy rozwijane, wybór koloru i pola wyboru wyglądają i działają tak samo na każdym urządzeniu – rysuje je aplikacja, nie system. W długiej liście (np. czcionek) wystarczy zacząć pisać: zostają tylko pozycje zawierające wpisany fragment, bez rozróżniania wielkości liter i polskich znaków; <kbd>Backspace</kbd> cofa, <kbd>Esc</kbd> czyści szukanie. Wybór koloru ma pole barw, kod koloru, paletę i ostatnio używane kolory.',
-    ],
-  },
-  {
-    tytul: 'Wstawianie elementów',
-    wstep: 'Pasek nad stroną wstawia nowe elementy na stronę.',
-    obraz: 'wstawianie.png',
-    podpis: 'Zaznaczony tekst z uchwytami.',
-    obraz2: 'pioro.png',
-    podpis2: 'Kształt narysowany piórem w trakcie edycji punktów: punkty kształtu i uchwyty łuków.',
-    punkty: [
-      '<b>Tekst</b> – kliknij dwa razy, aby pisać bezpośrednio na stronie, albo wpisz treść w polu <b>Treść</b> po prawej.',
-      '<b>Prostokąt, Elipsa, Wielokąt, Linia</b> – kształty do ramek, tła i podziałów. Wielokąt zaczyna jako trójkąt; liczbę boków zmienisz we właściwościach, tam też zrobisz z niego gwiazdę.',
-      '<b>Rysuj</b> (klawisz <kbd>B</kbd>) – rysowanie odręczne: przeciągaj po stronie, a powstanie wygładzona linia. Tryb zostaje włączony, więc możesz narysować kilka kresek; <kbd>Esc</kbd> albo ponowne kliknięcie przycisku go kończy. Narysowana linia jest zwykłym elementem: ma kolor i grubość, da się ją przesuwać, skalować i obracać.',
-      '<b>Pióro</b> (klawisz <kbd>N</kbd>) – kształt z punktów. Kliknięcie stawia punkt, a kolejne punkty łączą się prostymi odcinkami. Kliknięcie z przeciągnięciem stawia punkt z łukiem: im dalej przeciągniesz, tym łagodniejszy łuk. <kbd>Enter</kbd> albo podwójne kliknięcie kończy kształt otwarty, kliknięcie w pierwszy punkt go zamyka. <kbd>Backspace</kbd> cofa ostatni punkt, <kbd>Esc</kbd> porzuca zaczęty kształt, a drugi <kbd>Esc</kbd> wyłącza pióro. Gotowy kształt jest zwykłym elementem: ma kolor i grubość linii, a zamknięty – także wypełnienie.',
-      '<b>Edycja punktów</b>: kliknij dwa razy kształt z pióra albo linię narysowaną odręcznie (albo wybierz <b>Edytuj punkty</b> we właściwościach). Pojawią się punkty – przeciągaj je myszą. Zaznaczony punkt łuku pokazuje uchwyty, którymi zmieniasz wygięcie. Podwójne kliknięcie w linię dodaje punkt, <kbd>Delete</kbd> usuwa zaznaczony. <kbd>Enter</kbd> zatwierdza zmiany, <kbd>Esc</kbd> przywraca kształt sprzed edycji.',
-      '<b>Wypełnienie</b> kształtu: jeden kolor, <b>gradient liniowy</b> albo <b>kołowy</b>, albo brak. Gradient może mieć dowolną liczbę kolorów – każdy ma swoje położenie w procentach; do tego kierunek (gotowy albo kąt), a w kołowym promień. Każdy element może mieć też <b>cień</b> z przesunięciem i rozmyciem w mm.',
-      '<b>Obraz</b> – zdjęcie lub grafika (PNG, JPEG, WebP, GIF, SVG). Przycisk pyta: <b>Wgraj z urządzenia</b> albo <b>Wybierz z obrazów projektu</b> (obraz, który już jest w projekcie – bez drugiej kopii); w projekcie bez obrazów od razu otwiera wybór pliku. Każdy wstawiony obraz trafia do okna <b>Obrazy projektu</b>. Możesz też przeciągnąć plik na stronę albo <b>wkleić obraz ze schowka</b> (<kbd>Ctrl</kbd>+<kbd>V</kbd>): zrzut ekranu, obraz skopiowany ze strony internetowej albo z programu graficznego, a także kod SVG skopiowany jako tekst. Rysunek SVG wstawia się jako jeden element – możesz go skalować, obracać i kadrować, a po powiększeniu zostaje ostry; żeby zmieniać jego części, rozłóż go na elementy (rozdział <b>Położenie, wyrównanie, schowek</b>). Duże zdjęcia aplikacja pokazuje w edytorze lżejszą kopią, żeby praca była płynna; do pliku PDF i PNG zawsze idzie oryginał.',
-      '<b>Tabela</b> – podajesz liczbę wierszy i kolumn. Tabelę przesuwasz, powiększasz i obracasz w całości, jak każdy inny element strony; żeby pisać w komórce, kliknij ją dwa razy (więcej w rozdziale <b>Tabela</b>).',
-      'Przeciągnij element, aby go przesunąć. Kółka w rogach zmieniają rozmiar, kółko nad elementem go obraca.',
-      'Przy przesuwaniu i przy zmianie rozmiaru element „przykleja się” do krawędzi, marginesów, środka strony, prowadnic i innych elementów – pokazuje to różowa linia (więcej w rozdziale <b>Odległości i równe odstępy</b>).',
-    ],
-  },
-  {
-    tytul: 'Tekst i style',
-    wstep: 'Właściwości tekstu są w panelu z prawej. Rozmiar czcionki podajesz w punktach, pozostałe wymiary w milimetrach.',
-    obraz: 'wlasciwosci.png',
-    podpis: 'Właściwości tekstu ze stylem „Tytuł”.',
-    punkty: [
-      '<b>Styl tekstu</b> to zapisany wygląd, np. „Tytuł” albo „Podpis”. Nadaj go tekstom, które mają wyglądać tak samo.',
-      'Gdy zmienisz tekst ze stylem, pojawi się <b>Aktualizuj styl</b> – kliknięcie zmienia wszystkie teksty z tym stylem w całym projekcie. <b>Przywróć</b> wraca do wyglądu ze stylu.',
-      '<b>Nowy styl</b> zapisuje wygląd bieżącego tekstu pod własną nazwą.',
-      'Czcionka, rozmiar (z <b>kółkiem koloru tekstu</b> na prawym brzegu tego samego wiersza), interlinia, <b>odstęp liter</b> (w tysięcznych wysokości pisma), pogrubienie, kursywa, podkreślenie, przekreślenie, wyrównanie.',
-      '<b>Wielkość liter</b>: <b>AA</b> (wielkie) i <b>aa</b> (małe) zmieniają tylko wygląd – treść zostaje taka, jak ją wpisano, więc wartości z tabeli też pokażą się wielkimi literami, a po wyłączeniu wszystko wraca. <b>Aa</b> („jak w zdaniu”) zmienia samą treść.',
-      '<b>Kapitaliki</b> (przycisk <b>Aᴀ</b> obok): małe litery wyglądają jak wielkie, tylko niższe, a wielkie zostają pełnej wysokości – tak składa się np. nazwiska i nagłówki. To też tylko wygląd: treść zostaje taka, jak ją wpisano, a w PDF-ie tekst da się zaznaczyć i wyszukać.',
-      '<b>Lista</b>: punkty, kreski albo numery przed każdym akapitem. Dalsze wiersze akapitu stoją równo pod pierwszym. Znak listy nie jest częścią treści, więc pola z danych działają bez zmian. Skróty: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>8</kbd> (punkty) i <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>7</kbd> (numery).',
-      'Aby zmienić tylko część tekstu, kliknij go dwa razy, zaznacz fragment i użyj tych samych ustawień – panel pokaże „Zmieniasz tylko zaznaczony fragment”.',
-      'Tekst, który ma się zmieścić w stałym miejscu (np. dane o różnej długości), ustawisz w części <b>Ramka tekstu</b>: stała wysokość i zmniejszanie czcionki do zadanego minimum – patrz rozdział <b>Ramka tekstu i obrazy z danych</b>.',
-    ],
-  },
-  {
-    tytul: 'Czcionki',
-    wstep: 'Aplikacja ma jeden oficjalny zestaw czcionek – ten sam dla wszystkich projektów i użytkowników. Okno czcionek otwiera menu <b>⋯ → Czcionki projektu</b>.',
-    obraz: 'czcionki.png',
-    podpis: 'Okno „Czcionki”: oficjalny zestaw aplikacji na dole, wyżej własne czcionki projektu.',
-    punkty: [
-      '<b>Zestaw czcionek Makietki</b> to 52 rodziny: bezszeryfowe do tekstu (m.in. Inter, Open Sans, Lato, Roboto, Poppins), wąskie do nagłówków (Oswald, Bebas Neue), szeryfowe (Lora, Merriweather, Playfair Display, EB Garamond…), odręczne i ozdobne (Caveat, Pacifico, Dancing Script…) oraz maszynowe. Wszystkie mają polskie znaki i licencję pozwalającą na druk komercyjny. Pełną listę z próbkami pokazuje okno czcionek.',
-      'Nie każda czcionka ma wszystkie odmiany – odręczne i nagłówkowe często mają jedną grubość i nie mają kursywy. Wtedy przyciski <b>Pogrubienie</b> i <b>Kursywa</b> w panelu tekstu są wyszarzone, a po wybraniu takiej czcionki tekst wraca do odmiany zwykłej.',
-      'Pliki czcionki pobierają się przy pierwszym użyciu (aplikacja nie ściąga całego zestawu na zapas), a na długiej liście czcionek wystarczy zacząć pisać nazwę, żeby ją znaleźć.',
-      'Czcionki z zestawu są na liście w każdym projekcie, na każdym urządzeniu. W pliku PDF wektorowym są osadzone, więc drukarnia nie musi ich mieć. Do pliku trafiają tylko <b>użyte znaki</b> każdej czcionki, więc czcionki prawie nie powiększają pliku (wyjątek: własna czcionka OTF z obrysami CFF jest osadzana cała).',
-      '<b>Pobieranie plików</b>: przy każdej rodzinie jest <b>Pobierz pliki</b>, a pod listą <b>Pobierz cały zestaw (ZIP)</b>. Dostajesz zwykłe pliki TTF z licencją – do zainstalowania u drukarni albo grafika.',
-      '<b>Czcionki razem z projektem</b>: w oknie eksportu PDF opcja <b>Dołącz pliki czcionek użytych w projekcie</b> dodaje do pobieranej paczki folder <code>czcionki</code> z plikami TTF. Zaznacza się sama, gdy plik nie ma czcionek w środku (obrazy stron albo tekst zamieniony na krzywe).',
-      '<b>Własne czcionki</b> (dodatek, nie musisz z nich korzystać): na końcu listy czcionek w panelu tekstu jest <b>+ Wgraj własną czcionkę…</b>. Pliki TTF, OTF, WOFF albo WOFF2, każda odmiana osobno. Wgrana czcionka jest częścią projektu i zostaje też w „Moich czcionkach” – pod ręką w następnych projektach.',
-      'Do PDF własne czcionki najlepiej wgrywać jako TTF albo OTF, z osobnym plikiem dla każdej odmiany – wtedy tekst jest w pliku prawdziwym tekstem. Czcionki z pliku WOFF2, czcionki zmiennej i kursywy, której czcionka nie ma (przeglądarka pochyla wtedy pismo proste), nie da się osadzić: taki tekst trafia do PDF jako <b>krzywe</b> – jest ostry w każdym powiększeniu, ale nie da się go zaznaczyć. Tylko pogrubienie bez własnego pliku i czcionka zmienna w pliku WOFF2 użyta w innej grubości niż podstawowa idą jako obraz. Aplikacja mówi o tym po eksporcie.',
-    ],
-  },
-  {
-    tytul: 'Położenie, wyrównanie, schowek',
-    wstep: 'Poniżej ustawień wyglądu każdy element ma dokładne położenie i narzędzia do układania.',
-    obraz: 'wyrownanie.png',
-    podpis: 'Kilka zaznaczonych elementów: wyrównanie do siebie i równe odstępy.',
-    obraz2: 'rysunek-svg.png',
-    podpis2: 'U góry rysunek SVG wstawiony jako obraz, na dole ten sam po rozłożeniu na elementy: napis jest zwykłym tekstem w czcionce z zestawu, a kształt ma inny kolor.',
-    punkty: [
-      '<b>Położenie i rozmiar</b>: dokładne X, Y, szerokość, wysokość i obrót.',
-      '<b>Wyrównaj</b>: jeden element wyrównuje się do marginesów strony, kilka zaznaczonych – do siebie. Przy trzech i więcej dochodzą <b>równe odstępy</b>.',
-      'Kilka elementów zaznaczysz, przeciągając prostokąt po pustym miejscu strony albo klikając z wciśniętym Shift. Zaznaczonym razem możesz też zmienić <b>kolejność</b> – przesuwają się wtedy wspólnie. Możesz je <b>zgrupować</b> (<kbd>Ctrl</kbd>+<kbd>G</kbd>) – grupa przesuwa się i skaluje jak jeden element; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> ją rozdziela.',
-      '<b>Element w grupie bez rozgrupowywania</b>: kliknij grupę dwa razy – otworzy się, a element pod kursorem będzie zaznaczony. Możesz go przesunąć, przeskalować, obrócić, zmienić we właściwościach albo napisać w nim tekst; kliknięcie innego elementu grupy zaznacza tamten. Otwartą grupę widać po pomarańczowej przerywanej ramce z podpisem. <kbd>Esc</kbd>, kliknięcie poza grupą albo przycisk <b>Wróć do całej grupy</b> zamykają ją: grupa znów jest jednym elementem, na tym samym miejscu wśród warstw, z ramką dopasowaną do nowego układu.',
-      'W otwartej grupie <b>Duplikuj</b> zostawia kopię w grupie, <b>Usuń</b> usuwa tylko zaznaczone elementy, a przyciski kolejności zmieniają ją wśród elementów grupy. Skopiowany element grupy wkleja się jako osobny element strony. Blokadę i ustawienia „Z danych” ma cała grupa, nie jej element.',
-      '<b>Kilka elementów grupy naraz</b>: w otwartej grupie kliknij kolejne elementy z klawiszem <kbd>Shift</kbd>, naciśnij <kbd>Ctrl</kbd>+<kbd>A</kbd> (wszystkie elementy tej grupy) albo <b>przeciągnij ramkę</b> od pustego miejsca wewnątrz grupy – zaznaczą się elementy, których ramka dotknie (z <kbd>Shift</kbd> dołączą do już zaznaczonych). Zaznaczone przesuwasz i skalujesz razem, wyrównujesz do siebie, rozkładasz równo, kopiujesz i usuwasz, a <b>Kolejność</b> (na wierzch, wyżej, niżej, na spód) zmienia je razem – między sobą zostają ułożone tak, jak były. Samo kliknięcie w puste miejsce grupy zamyka ją. Element spoza grupy do takiego zaznaczenia nie wchodzi. <b>Zgrupuj</b> robi z zaznaczonych <b>grupę w grupie</b>.',
-      '<b>Obraz w otwartej grupie</b> kadrujesz jak każdy inny – podwójnym kliknięciem albo przyciskiem <b>Kadruj przeciąganiem</b>, a <b>kształt z pióra</b> zmieniasz punkt po punkcie (podwójne kliknięcie albo <b>Edytuj punkty</b>). Na czas kadrowania i edycji punktów element jest rysowany nad swoją grupą; po zatwierdzeniu albo anulowaniu wraca na swoje miejsce wśród jej elementów.',
-      '<b>Grupa w grupie</b>: podwójne kliknięcie grupy leżącej w otwartej grupie otwiera ją jako kolejny poziom – podpis ramki mówi wtedy „Grupa w grupie”, a bledsze ramki pokazują grupy nad nią. <kbd>Esc</kbd> wraca o jeden poziom, kliknięcie poza grupą zamyka wszystkie. Na liście warstw rozwinięta grupa pokazuje też zawartość grup w niej, z wcięciem; kliknięcie elementu z głębi otwiera od razu potrzebne poziomy.',
-      '<b>Kolejność</b> przenosi element nad lub pod inne.',
-      '<b>Zablokuj położenie i rozmiar</b> chroni element przed przypadkowym przesunięciem.',
-      'Ikony w wierszu zakładek <b>Właściwości</b> / <b>Warstwy</b>: <b>kopiuj do schowka</b>, duplikuj, usuń. Skopiowany element wkleisz na innej stronie przyciskiem <b>Wklej skopiowane elementy</b> we właściwościach strony (albo <kbd>Ctrl</kbd>+<kbd>V</kbd>) – trafi w to samo miejsce.',
-      '<b>Obraz</b>: kliknij go dwa razy (albo <b>Kadruj przeciąganiem</b>), żeby wybrać widoczny fragment ramką – <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. Działa także na obrazie obróconym i odbitym (na czas kadrowania obraz jest prostowany). Do tego przycięcie liczbami, obrys, odbicie i informacja o rozdzielczości (do druku 300 dpi). <b>Podmień zdjęcie</b> (na górze właściwości obrazu) wstawia inny plik w tę samą ramkę: rozmiar, miejsce, obrót, obrys i cień zostają, a zdjęcie o innych proporcjach wypełnia ramkę z przyciętym nadmiarem.',
-      '<b>Rysunek SVG</b> wstawia się jako obraz: wygląda wiernie, ale nic się w nim nie zmieni, a napisy przeglądarka rysuje czcionką zastępczą. <b>Rozłóż rysunek na elementy</b> (we właściwościach obrazu) zamienia go w zwykłą <b>grupę kształtów i napisów</b> w tym samym miejscu: grupę można rozgrupować, kształtom zmienić kolor, obrys i punkty, a napisy poprawić jak każdy tekst. Napis zachowuje czcionkę, jeśli jest ona w zestawie aplikacji albo wśród czcionek projektu – inną zastępuje domyślna, o czym aplikacja mówi. Napis ułożony w rysunku w kilku wierszach zostaje jedną ramką z wierszami. Zdjęcie osadzone w rysunku staje się zwykłym obrazem projektu. Jeśli obraz był przycięty, grupa jest przycięta tak samo – przycięcie zdejmuje <b>Pokaż cały rysunek</b> we właściwościach grupy (po rozgrupowaniu elementy widać w całości). Rzeczy, których edytor nie ma (filtry, maski, wzory), znikają – wtedy lepiej zostawić obraz; <kbd>Ctrl</kbd>+<kbd>Z</kbd> go przywraca.',
-      'Tytuły części panelu (np. <b>Cień</b>, <b>Ramka tekstu</b>) zwijają je i rozwijają. Zwinięte zostają zwinięte przy kolejnych elementach.',
-    ],
-  },
-  {
-    tytul: 'Strony',
-    wstep: 'Każdą stronę projektujesz osobno. Kolejność miniatur to kolejność stron w publikacji.',
-    obraz: 'strony.png',
-    podpis: 'Menu strony.',
-    punkty: [
-      'Kafelek <b>+</b> na końcu stron sekcji (wygląda jak miniatura) wstawia pustą stronę za bieżącą, w tej samej sekcji; w innej sekcji – na jej koniec. <b>+ Sekcja</b> na dole panelu tworzy nową sekcję.',
-      'Przycisk <b>⋯</b> na miniaturze: zmiana nazwy, duplikowanie, przesuwanie, usuwanie.',
-      'Kolejność zmienisz też <b>przeciągając miniaturę</b> myszą; upuszczona w innej sekcji strona przechodzi do niej.',
-      'Usunięcie albo przesunięcie strony cofniesz przyciskiem <b>Cofnij</b> w komunikacie na dole ekranu albo <kbd>Ctrl</kbd>+<kbd>Z</kbd> – dopóki nie zmienisz czegoś na stronie.',
-      'Gdy nic nie jest zaznaczone, panel z prawej pokazuje ustawienia strony: nazwę, sekcję, tło, wzorce, serię i prowadnice.',
-      'Po zmianie kolejności stron w rozkładówkach aplikacja ostrzega, jeśli element leżący przez grzbiet trafił obok innej strony niż przedtem.',
-    ],
-  },
-  {
-    tytul: 'Sekcje',
-    wstep: 'Projekt dzieli się na sekcje – części o różnych ustawieniach, np. „Okładka” i „Środek”.',
-    obraz: 'sekcje.png',
-    podpis: 'Ustawienia sekcji.',
-    punkty: [
-      'Każda sekcja ma własny <b>format</b>, <b>spad</b> i cztery <b>marginesy</b>. Marginesy i spad wpisujesz na <b>schemacie strony</b>: pole górnego marginesu stoi nad kartką, dolnego pod nią, lewego (wewnętrznego) i prawego (zewnętrznego) po bokach, a spad – przy przerywanej ramce. Schemat od razu pokazuje proporcje strony i pole na tekst.',
-      '<b>Układ stron</b>: pojedyncze albo rozkładówki. <b>Numeracja</b>: dalszy ciąg poprzedniej sekcji, od wybranego numeru albo bez numerów (np. okładka).',
-      'Na liście stron sekcje są szarymi nagłówkami. Przycisk <b>⋯</b> przy nagłówku: ustawienia, dodanie strony, zmiana kolejności, usunięcie. <b>+ Sekcja</b> tworzy nową.',
-      'Okładkę z grzbietem ustaw jako jedną szeroką stronę: tył + grzbiet + przód (np. 148 + 6 + 148 mm). W ustawieniach sekcji jest kalkulator <b>Okładka z grzbietem: policz szerokość</b>: wpisz szerokość strony środka, liczbę stron w środku i grubość kartki (podaje ją drukarnia), a <b>Ustaw tę szerokość</b> wpisze szerokość okładki razem z grzbietem.',
-      '<b>Pierwsza strona sekcji</b> w rozkładówkach: prawa (jak w książce) albo lewa (od razu pełna rozkładówka). <b>Wzorce na stronach tej sekcji</b> wybierają wzorce domyślne sekcji (rozdział <b>Wzorce</b>). <b>Znaki cięcia w pliku PDF</b> dodaje znaki cięcia na stronach tej sekcji przy eksporcie do drukarni.',
-      'Stronę przeniesiesz do innej sekcji w jej właściwościach (pole <b>Sekcja</b>).',
-    ],
-  },
-  {
-    tytul: 'Rozkładówki',
-    wstep: 'W sekcji z układem „Rozkładówki” strony tworzą pary: lewa i prawa, jak w otwartej książce.',
-    obraz: 'rozkladowki.png',
-    podpis: 'Obie strony rozkładówki na jednym płótnie; niebieski pas leży przez grzbiet.',
-    punkty: [
-      'Marginesy są <b>lustrzane</b>: wewnętrzny przy grzbiecie, zewnętrzny przy krawędzi. Na lewej stronie wewnętrzny jest z prawej, na prawej – z lewej.',
-      'Lewą i prawą stronę edytujesz <b>razem</b>, jak otwartą książkę. Nowe elementy trafiają na stronę bieżącą – wybierasz ją kliknięciem w jej obszar albo na liście stron.',
-      'Element może leżeć <b>przez grzbiet</b>, np. zdjęcie albo pas na całą szerokość rozkładówki. Przeciągnij go tak, żeby zachodził na drugą stronę – na każdej stronie wydrukuje się jego część.',
-      'Element należy do tej strony, na której leży jego środek. To ważne przy usuwaniu, duplikowaniu i przenoszeniu stron: element przez grzbiet idzie razem ze swoją stroną.',
-      'Gruba ciemna linia to <b>grzbiet</b>. Tekstu i drobnych elementów nie kładź tuż przy nim – po zszyciu może ich nie być widać. Aplikacja ostrzega o elemencie, który tylko wystaje w pas przy grzbiecie; o takim, który świadomie leży na obu stronach, już nie.',
-      'Pierwsza strona sekcji jest zwykle prawa i stoi sama – tak jak pierwsza strona książki. Zmienisz to w ustawieniach sekcji.',
-      'Na liście stron rozkładówki są pokazane parami.',
-      '<b>Strony powielane z danych</b> (serie) też trzymają swoją stronę rozkładówki: przy serii z włączonym <b>Pilnuj lewej i prawej strony</b> aplikacja wstawia pustą, białą stronę tam, gdzie strona wypadłaby po przeciwnej stronie – np. gdy dane kończą się na lewej stronie, a prawej już nie ma. Szczegóły są w rozdziale „Serie: powielanie stron”.',
-      'Na małym ekranie możesz w menu widoku włączyć <b>W rozkładówkach pokazuj jedną stronę</b>. Widać wtedy także to, co z <b>sąsiedniej strony</b> przechodzi przez grzbiet na tę (np. pas na całą rozkładówkę, także z wzorca) – przycięte do tej strony ze spadem. Takich elementów nie da się tu zaznaczyć ani zmienić; kliknięcie podpowiada przejście do widoku rozkładówki.',
-    ],
-  },
-  {
-    tytul: 'Wzorce',
-    wstep: 'Wzorzec to szablon z elementami wspólnymi dla wielu stron – tło, ramka, logo, stopka, numer strony. Rysujesz go raz i dodajesz do stron albo do całej sekcji; zmiana we wzorcu zmienia wszystkie te strony naraz.',
-    obraz: 'okno-wzorcow.png',
-    podpis: 'Okno „Wzorce”: szablony tego projektu z przyciskami dodawania oraz wzorce standardowe.',
-    punkty: [
-      'Okno otwiera przycisk <b>Wzorce</b> na górnym pasku edytora (liczba obok to liczba wzorców w projekcie).',
-      '<b>Wzorce w tym projekcie</b>: każdy ma miniaturę i dwa przyciski. <b>+ Dodaj do tej strony</b> włącza go na otwartej stronie, <b>+ Do całej sekcji</b> – na wszystkich stronach sekcji, które nie mają własnego wyboru. Ponowne kliknięcie (✓) go zdejmuje.',
-      '<b>Edytuj</b> (albo kliknięcie miniatury) otwiera wzorzec do edycji. <b>Nowy pusty wzorzec</b> tworzy czysty szablon. Menu <b>⋯</b>: nazwa, duplikowanie, kolejność, usunięcie.',
-      '<b>Wzorce standardowe</b> to gotowe szablony: numer strony na dole albo przy zewnętrznej krawędzi, stopka, nagłówek, linie do pisania, kratka, ramka, zakładka na brzegu. Dopasowują się do formatu i marginesów bieżącej sekcji. Przycisk <b>+</b> przy wzorcu (na telefonie <b>Dodaj</b>) dodaje go do projektu – potem zmieniasz go jak własny.',
-      'Strona może mieć <b>kilka wzorców naraz</b>, np. „tło miesiąca” i „stopka”. Sekcja ma swoje wzorce domyślne, a pojedyncza strona może mieć własny wybór (właściwości strony → <b>Wzorce</b>).',
-      'Elementy wzorca leżą <b>pod</b> treścią strony. Zaznacz element we wzorcu i włącz <b>Nad treścią strony</b>, jeśli ma ją przykrywać (ramka, znak wodny).',
-      '<b>Odbijaj lustrzanie na lewych stronach</b>: element narysowany przy prawej krawędzi (np. numer strony) na lewych stronach rozkładówek przejdzie na lewą krawędź.',
-      'Numer strony: wpisz w tekście wzorca <code>{nr}</code>. Pełna lista pól, także liczby rzymskie i odwołania do innych sekcji, jest w rozdziale <b>Pola w tekście</b>.',
-      'Edycję wzorca poznasz po fioletowym pasku nad stroną; <b>Gotowe</b> wraca do stron. Na zwykłych stronach elementów wzorca nie da się zaznaczyć ani przesunąć – widać je na liście warstw, a kliknięcie tam otwiera wzorzec.',
-    ],
-  },
-  {
-    tytul: 'Dane: tabele',
-    wstep: 'Dane do powielanych stron trzymasz w tabelach projektu. Tabela to arkusz: kolumny mają nazwy, a każdy wiersz to jedna powielona strona (albo jeden blok stron).',
-    obraz: 'dane.png',
-    podpis: 'Okno „Dane”: lista tabel z lewej, edytor tabeli z prawej.',
-    punkty: [
-      'Okno otwiera przycisk <b>Dane</b> na górnym pasku edytora.',
-      '<b>Importuj plik</b> wczytuje CSV albo Excel. Pierwszy wiersz pliku to nazwy kolumn. Z pliku Excela powstaje po jednej tabeli na każdy arkusz. Separator (średnik, przecinek, tabulator) i kodowanie polskich znaków aplikacja rozpoznaje sama.',
-      'Z pliku Excela (<code>.xlsx</code>) przechodzi też <b>wygląd komórek</b>: pogrubienie, kursywa i kolor liter. Komórka wygląda tak samo w oknie Dane, a na stronie jej wartość wstawiona w pole dostaje ten wygląd – np. święta pogrubione na czerwono wprost z arkusza. Przechodzi też wygląd <b>części tekstu</b> w komórce – np. jedno pogrubione słowo zostaje pogrubione na stronie. Przełącznik <b>Przenoś wygląd komórek na strony</b> nad tabelą to wyłącza (wygląd zostaje zapisany).',
-      '<b>Wygląd komórki w oknie Dane</b>: kliknij komórkę (<kbd>Shift</kbd>+kliknięcie zaznacza prostokąt kilku komórek) i użyj przycisków <b>B</b> (pogrubienie), <b>I</b> (kursywa), koloru liter albo gumki <b>Wyczyść wygląd</b>. Pogrubienie i kursywa przełączają się: gdy wszystkie zaznaczone komórki je mają – znikają. Zmiana tekstu komórki zdejmuje wygląd części tekstu (przestaje pasować do liter), wygląd całej komórki zostaje.',
-      'Plik CSV, <code>.xls</code>, <code>.ods</code> i szablon danych nie niosą wyglądu. Gdy takim plikiem podmieniasz dane tabeli, wygląd <b>zostaje w komórkach, których wartość się nie zmieniła</b> (ten sam wiersz i ta sama kolumna); przy zmienionych wartościach znika. Po imporcie aplikacja mówi, w ilu komórkach wygląd został.',
-      'Wszystko jest tekstem: liczby i daty trafiają do tabeli tak, jak je widać w arkuszu. Datę najlepiej rozbić na osobne kolumny, np. <code>dzien</code>, <code>miesiac</code>, <code>rok</code>.',
-      'Tabelę możesz <b>poprawiać w aplikacji</b>: kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd> robi nową linię w komórce. <b>+ Wiersz</b> i <b>+ Kolumna</b> dodają miejsce, znak × przy wierszu albo kolumnie je usuwa.',
-      'Dane skopiowane z Excela albo Arkuszy Google wklejasz od zaznaczonej komórki (<kbd>Ctrl</kbd>+<kbd>V</kbd>). Tabela sama rośnie w dół i w prawo.',
-      'Nazwę kolumny zmieniasz, klikając jej nagłówek. Aplikacja poprawi tę nazwę we wszystkich tekstach projektu.',
-      'Poprawiłeś dane w arkuszu? Zaimportuj plik jeszcze raz. Gdy w projekcie jest tabela o tej samej nazwie, aplikacja zapyta, czy podmienić jej dane.',
-      '<b>CSV</b> pobiera tabelę jako plik – np. żeby dokończyć ją w arkuszu.',
-      '<b>Wiersz pomijany</b> wstawia wiersz ze znacznikiem <code>[pomiń]</code> w pierwszej komórce – nad wierszem, w którym stoi kursor, a bez kursora na początku tabeli. W serii taki wiersz zajmuje miejsce w bloku stron, ale strona dla niego nie powstaje; służy do wyrównania danych z blokiem (rozdział „Serie: powielanie stron”). Wiersz jest szary i ma podpis „pomijany”.',
-      'Długa tabela (tysiące wierszy) przewija się w całości – kolejne wiersze dorysowują się w miarę przewijania.',
-      '<b>Pilnowanie powtórzeń</b>: znak <b>≠</b> przy nazwie kolumny oznacza, że wartości w niej nie powinny się powtarzać (np. tagi, hasła dnia). Powtórzone komórki są podświetlone na czerwono, a przed drukiem aplikacja pokaże, na których stronach ta sama wartość wypada dwa razy. Wielkość liter i zbędne spacje nie mają znaczenia: „Praca”, „praca ” i „PRACA” to ta sama wartość.',
-      '<b>Lista dozwolonych wartości</b>: znak <b>☰</b> przy nazwie kolumny otwiera okno, w którym wpisujesz wartości – każdą w osobnym wierszu albo po średniku, np. <code>praca; dom; wolne</code>. Przycisk <b>Usuń listę</b> ją usuwa. Komórki z inną wartością są podświetlone, przed drukiem aplikacja je wymieni, a w szablonie danych komórki tej kolumny dostają listę rozwijaną.',
-    ],
-  },
-  {
-    tytul: 'Pola w tekście',
-    wstep: 'Pole to nazwa w nawiasach klamrowych wpisana w zwykły tekst, np. <code>{dzien}. {miesiac}</code>. Na powielonej stronie w jego miejsce wchodzi wartość z tabeli. Są też pola dokumentu – numer strony, nazwa sekcji, data – które wynikają z samego projektu, tak jak pola w Wordzie.',
-    obraz: 'pola.png',
-    podpis: 'Pola w edytorze mają fioletowe tło; pole, którego aplikacja nie zna – czerwone.',
-    punkty: [
-      'Pole najprościej wstawić z listy <b>Wstaw pole</b> we właściwościach tekstu – lista zaczyna się od kolumn tabeli tej strony, potem są pola dokumentu. Możesz je też wpisać ręcznie.',
-      'Potrzebujesz <b>zwykłych klamer</b> w tekście, np. <code>{uwaga}</code> jako napisu? Zaznacz tekst i włącz <b>Klamry { } to zwykły tekst, nie pola</b> (przełącznik pojawia się, gdy w tekście są klamry). W tym tekście nic nie będzie podstawiane.',
-      'Pole i zwykłe klamry <b>w jednym tekście</b>: wpisz klamry podwójnie. <code>{{</code> i <code>}}</code> w podglądzie i w PDF stają się pojedynczymi klamrami, a pola obok działają jak zwykle – np. <code>Dzień {dzien}, wzór {{x}}</code> da „Dzień 5, wzór {x}”.',
-      'Pola z tabeli działają na stronach, które należą do <b>serii</b> z tą tabelą (następny rozdział). Pola dokumentu działają wszędzie, także we wzorcach.',
-      'W edytorze widzisz nazwy pól, a na miniaturze i w <b>Podglądzie</b> – prawdziwe dane.',
-      'Pole o nieznanej nazwie (np. literówka) dostaje czerwone tło i trafia na listę <b>Ostrzeżenia</b>.',
-      'Formatowanie fragmentu z polem zostaje przy wstawionej wartości: pogrubione <code>{dzien}</code> da pogrubioną liczbę.',
-      'Gdy kolumna tabeli nazywa się tak samo jak pole dokumentu, na stronach tej tabeli wygrywa kolumna.',
-    ],
-    html: tabelaPol,
-  },
-  {
-    tytul: 'Serie: powielanie stron',
-    wstep: 'Seria to strona albo kilka sąsiednich stron (blok), które w wydruku powtarzają się wiele razy – np. strona dnia po jednej na każdy wiersz tabeli. W edytorze projektujesz blok raz, jako wzór.',
-    obraz: 'serie.png',
-    podpis: 'Podgląd: strona-wzór powielona dla kolejnych wierszy tabeli, z kolejnymi numerami stron.',
-    punkty: [
-      'We właściwościach strony (nic nie zaznaczone) wybierz <b>Seria → + Nowa seria…</b>. W oknie serii wskaż tabelę z danymi.',
-      'Kilka stron w bloku: nadaj tę samą serię sąsiednim stronom. Powielają się razem, w swojej kolejności.',
-      '<b>Ile razy powielić</b>: tyle razy, ile wierszy ma tabela, albo stałą liczbę razy (np. 12 miesięcy; dane z tabeli idą wtedy w kółko).',
-      '<b>Jak czytać tabelę</b>: jeden wiersz na cały blok (kolumny np. <code>s1_tytul</code>, <code>s2_tytul</code> dla kolejnych stron bloku) albo jeden wiersz na każdą stronę bloku.',
-      'Strony serii mają na liście stron fioletowy znaczek z liczbą powieleń, np. <b>×31</b>.',
-      '<b>Seria kończy się na ostatnim wierszu danych.</b> Przy „jednym wierszu na każdą stronę bloku” ostatnie powielenie może być niepełne: blok 8 stron i 30 wierszy dają 30 stron, nie 32. Jeśli wolisz dokończyć blok stronami bez danych, zaznacz <b>Dokończ ostatni blok</b>.',
-      '<b>Dane zaczynają się w środku bloku – wiersze pomijane.</b> Przykład: kalendarz na 365 dni, blok 8 stron na tydzień (siedem dni i strona notatek), a rok zaczyna się w czwartek. Bez niczego pierwszy dzień roku trafiłby na stronę poniedziałku. Dlatego na początku tabeli dopisujesz <b>trzy wiersze pomijane</b> – za poniedziałek, wtorek i środę, których w tym roku nie ma. Wiersz pomijany ma w <b>pierwszej komórce</b> znacznik <code>[pomiń]</code> (można pisać <code>[pomin]</code>, wielkość liter nie ma znaczenia); reszta komórek może zostać pusta.',
-      'Wiersz pomijany <b>zajmuje swoje miejsce w bloku, ale jego strona nie powstaje</b>: nie ma jej w podglądzie, w PDF ani w numeracji. W przykładzie pierwszą stroną wydruku jest strona czwartku (czwarta strona bloku), a zaraz po niej piątek, sobota, niedziela i notatki. Koniec roku nie wymaga niczego: seria kończy się na ostatnim wierszu danych, więc jeśli 31 grudnia wypada w środę, strony od czwartku po prostu nie powstają.',
-      'Jak wstawić wiersz pomijany: w oknie <b>Dane</b> kliknij komórkę w wierszu, <b>nad którym</b> ma stanąć, i naciśnij <b>Wiersz pomijany</b> (bez kliknięcia w tabelę wiersz stanie na samym początku). Możesz też wpisać <code>[pomiń]</code> ręcznie – w aplikacji, w Excelu albo w pliku CSV. Taki wiersz jest w oknie Dane szary, z podpisem „pomijany” przy numerze.',
-      'Wiersze pomijane mogą stać także <b>w środku tabeli</b> (np. tydzień przerwy) – zawsze znaczą to samo: miejsce jest zajęte, strony nie ma. Przy „jednym wierszu na cały blok” wiersz pomijany pomija <b>całe powielenie bloku</b>. Przy stałej liczbie powieleń dane idą w kółko tylko po wierszach z danymi.',
-      'Liczenie się nie przesuwa: <b>tabele dodatkowe</b> („co 8 stron”, „gdy zmieni się kolumna”) i pole <code>{egzemplarz}</code> liczą miejsca razem z pomijanymi. Tabela tygodni ustawiona „co 8 stron” sama trafia więc w granice tygodni – pierwszy, niepełny tydzień jest tygodniem numer 1 i nie trzeba wpisywać, przez ile stron obowiązuje pierwszy wiersz. Pola <code>{nr}</code> i <code>{liczba_stron}</code> liczą tylko strony, które naprawdę powstają.',
-      'Okno serii i właściwości strony pokazują, <b>ile stron wyjdzie w wydruku i ile wierszy jest pomijanych</b>. Fioletowy znaczek na liście stron (np. <b>×52</b>) liczy, ile razy ta strona naprawdę wychodzi; <b>×0</b> znaczy, że wszystkie jej wiersze są pomijane i w wydruku jej nie ma.',
-      '<b>Dodatkowe tabele</b>: dane, które zmieniają się rzadziej niż strony serii. Przykład: strony dni biorą dane z tabeli dni, a hasło tygodnia – z tabeli tygodni, która przechodzi do następnego wiersza <b>co 7 stron</b>. Gdy pierwszy okres jest krótszy (rok zaczyna się w środę), wpisz, przez ile stron obowiązuje pierwszy wiersz – albo dodaj na początku tabeli dni wiersze pomijane (wyżej), wtedy nic nie trzeba wpisywać.',
-      'Okresy nierównej długości – np. <b>miesiące</b> (28–31 dni): na liście <b>Nowy wiersz</b> zamiast stałej liczby stron wybierz <b>gdy zmieni się kolumna…</b> i wskaż kolumnę tabeli głównej, np. <code>miesiac</code>. Tabela miesięcy przejdzie do następnego wiersza dokładnie tam, gdzie w tabeli dni zmienia się miesiąc.',
-      'Gdy okres wyznaczają <b>dwie kolumny</b> – np. miesiąc i rok w kalendarzu na kilka lat – po wybraniu pierwszej kolumny pojawia się lista <b>albo kolumna</b>: wskaż w niej drugą (i kolejne). Nowy wiersz zaczyna się, gdy zmieni się wartość w <b>którejkolwiek</b> z nich, więc grudzień 2027 i grudzień 2028 to dwa osobne okresy, nawet gdy stoją obok siebie.',
-      'Pole z tabeli dodatkowej wpisujesz z nazwą tabeli: <code>{Tygodnie.haslo}</code>. Sama nazwa kolumny też działa, jeśli nie ma jej w tabeli głównej. Na liście <b>Wstaw pole</b> tabele dodatkowe mają własną grupę.',
-      '<b>Brak danych</b>: gdy tabeli dodatkowej zabraknie wierszy przed końcem serii, okno serii i właściwości strony pokazują to na czerwono (ile wierszy jest, ile potrzeba, od której strony pola będą puste). To samo trafia na listę uwag przed eksportem PDF.',
-      'Okno serii pokazuje, <b>jakich danych potrzebują strony</b>: wszystkie pola użyte na stronach bloku. Jeśli w tabeli brakuje kolumny, <b>Dodaj brakujące kolumny</b> dopisze je jednym kliknięciem (bez tabeli – utworzy ją z tych pól).',
-      '<b>Pobierz szablon danych (Excel)</b> daje plik z kolumnami dokładnie takimi, jakich wymagają strony, razem z tym, co już jest w tabeli. Drugi arkusz, „Instrukcja”, opisuje każdą kolumnę. Wypełniony plik importujesz w oknie <b>Dane</b> – aplikacja zaproponuje podmianę danych tabeli.',
-      'W szablonie komórki części kolumn mają <b>listę rozwijaną</b>: kolumna z dozwolonymi wartościami (☰ w oknie Dane) – tylko te wartości; kolumna z nazwą pliku obrazu – nazwy obrazów wgranych do projektu; kolumna z kadrem – góra, dół, lewa, prawa, środek; kolumna, od której zależy widoczność elementu – sprawdzana wartość. Trzy ostatnie listy to podpowiedzi: komórka przyjmie też inną wartość (np. punkt kadru w procentach).',
-      'Powielone strony nie są zapisywane osobno – powstają na bieżąco. Po zmianie tabeli podgląd od razu pokazuje nowe dane.',
-      'Numery stron liczą się po powieleniu: strona za serią 31 dni dostaje numer o 31 większy. Pole <code>{nr}</code> trzyma się ustawień numeracji sekcji, a <code>{nr_ogolny}</code> liczy wszystkie strony projektu od 1.',
-      '<b>Serie w rozkładówkach – lewa i prawa strona.</b> W oknie serii jest ustawienie <b>Pilnuj lewej i prawej strony – wstaw pustą stronę, gdy trzeba</b> (widoczne, gdy projekt ma rozkładówki; w nowych seriach od razu włączone). Z nim strona zaprojektowana jako lewa wychodzi w wydruku po lewej, a prawa po prawej – cokolwiek dzieje się z danymi.',
-      'Kiedy pojawia się <b>pusta strona</b>: gdy seria zaczyna się od nieparzystej liczby wierszy pomijanych (pierwsza prawdziwa strona jest prawa, więc przed nią staje pusta lewa); gdy wiersz pomijany stoi w środku danych; oraz <b>za serią</b>, gdy dane kończą się na lewej stronie – wtedy prawa jest pusta, a następna strona projektu stoi tam, gdzie stała w układzie stron. Pusta strona jest biała, bez wzorców i bez numeru na kartce, ale <b>liczy się w numeracji</b> – tak jak w drukowanych książkach.',
-      'W edytorze blok wygląda zawsze tak samo: strony stoją parami jak na liście stron, niezależnie od tego, od którego miejsca zaczynają się dane. <b>Sprawdź przed drukiem</b> wypisuje, na których stronach stoją puste strony. Gdy ustawienie jest wyłączone, a strony bloku wypadają po przeciwnej stronie rozkładówki, ta sama lista ostrzega o tym i mówi, od której strony.',
-      'Blok o <b>nieparzystej</b> liczbie stron (np. jedna strona na dzień) z natury wychodzi na przemian po lewej i po prawej – wzorce z odbiciem lustrzanym ustawiają się wtedy same. W takim bloku ustawienie pilnuje tylko strony <b>za serią</b>. Starsze serie mają ustawienie wyłączone, żeby ich wydruk się nie zmienił; włączysz je jednym kliknięciem w oknie serii.',
-    ],
-  },
-  {
-    tytul: 'Kolor i położenie z danych',
-    wstep: 'Element może zmieniać kolor, miejsce albo rozmiar na kolejnych powielonych stronach. Tak robi się na przykład zakładki na brzegu strony: na każdej stronie niżej i w innym kolorze – albo słupki o wysokości z tabeli.',
-    obraz: 'zakladki.png',
-    podpis: 'Podgląd: ta sama zakładka na sześciu powielonych stronach – kolor z kolumny tabeli, położenie z numeru powielenia.',
-    punkty: [
-      'Zaznacz element i rozwiń <b>Z danych</b> we właściwościach.',
-      '<b>Kolor z pola</b>: wybierz kolumnę, w której wpisane są kolory, np. <code>#d1495b</code>, <code>2e86ab</code> albo nazwę koloru po angielsku (<code>navy</code>). Pusta albo błędna wartość zostawia kolor wzoru. Linia i kształt bez wypełnienia dostają kolor obrysu.',
-      'Gdy element jest wypełniony <b>przejściem kolorów</b>, przejście zostaje, a pod listą pól wybierasz, co kolor z pola w nim zmienia: <b>pierwszy kolor</b> (tak jest od razu po wybraniu pola), <b>ostatni kolor</b> albo <b>całe przejście w odcieniach</b> koloru z pola – pierwszy kolor to kolor z pola, a pozostałe są od niego jaśniejsze albo ciemniejsze tak jak we wzorze. Ostatnia możliwość, <b>całe wypełnienie</b>, zastępuje przejście jednym kolorem.',
-      '<b>Przesunięcie w pionie / w poziomie z pola</b>: wybierz pole z liczbą. Może to być kolumna tabeli albo pole dokumentu, np. <code>{egzemplarz}</code> – numer powielenia serii (1, 2, 3…).',
-      'Lista <b>Wartość pola to</b> → <b>numer pozycji</b>: element przesuwa się o <b>krok</b> (w mm) za każdą kolejną pozycję. <b>Od nowa co 6</b> znaczy, że pozycja 7 wraca na miejsce pierwszej – dwanaście miesięcy ułoży się w dwóch seriach po sześć na wysokość strony.',
-      '<b>Wartość pola to</b> → <b>przesunięcie w mm</b>: liczba z tabeli jest wprost przesunięciem względem wzoru (może być ujemna, z przecinkiem).',
-      '<b>Szerokość z pola / Wysokość z pola</b>: wybierz pole z liczbą – każdy wymiar osobno. Wartość to <b>procent rozmiaru wzoru</b> (100 = bez zmian, 50 = połowa) albo <b>rozmiar w mm</b>. Lista <b>Przy zmianie rozmiaru na miejscu zostaje</b> wybiera punkt zaczepienia: lewy górny róg, środek albo dół – słupek wykresu z kotwicą „dół” rośnie w górę. Wartość 0 chowa element; pole puste albo bez liczby zostawia rozmiar wzoru.',
-      'Co znaczy zmiana rozmiaru: <b>tekst</b> dostaje węższą albo szerszą ramkę i układa się od nowa (wysokość działa przy stałej wysokości ramki) – litery się nie rozciągają; <b>obraz</b> zmienia ramkę – obraz z kolumny wpisuje się w nią tak, jak ustawiono („zmieść” albo „wypełnij”), zwykły obraz ją wypełnia, a nadmiar jest przycinany; <b>tabela</b> zmienia szerokości kolumn i najmniejsze wysokości wierszy; <b>kształty i grupy</b> są skalowane.',
-      '<b>Obrót z pola</b>: liczba z pola to kąt w stopniach, dodawany do obrotu wzoru. Element obraca się wokół swojego środka – np. wskazówka albo strzałka ustawiona inaczej na każdej stronie.',
-      '<b>Pokaż element</b>: zawsze albo tylko wtedy, gdy wybrane pole <b>nie jest puste</b>, <b>jest puste</b> albo <b>równa się</b> wpisanej wartości (wielkość liter nie ma znaczenia). Tak robi się np. gwiazdkę przy świętach: kolumna <code>swieto</code> wypełniona tylko w niektórych wierszach i gwiazdka pokazywana „gdy pole nie jest puste”.',
-      'W edytorze element stoi w miejscu pozycji 1, ma kolor, rozmiar i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej strony widać w <b>Podglądzie</b>, na miniaturach i w PDF.',
-      'Na lewych stronach rozkładówki element wzorca z odbiciem lustrzanym przesuwa się lustrzanie – zakładka trafia na zewnętrzny brzeg.',
-      'Pole, którego aplikacja nie zna, trafia na listę <b>Ostrzeżenia</b>, tak jak nieznane pole w tekście.',
-    ],
-  },
-  {
-    tytul: 'Ramka tekstu i obrazy z danych',
-    wstep: 'Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. Do tego służy ramka o stałej wysokości. Obraz też może przychodzić z tabeli.',
-    obraz: 'ramka-tekstu.png',
-    podpis: 'Ramka o stałej wysokości: tekst wyrównany do dołu, zmniejszany, gdy się nie mieści. Ustawienia są we właściwościach tekstu.',
-    punkty: [
-      'Zaznacz tekst i włącz <b>Stała wysokość ramki</b>. Wysokość wpisujesz w mm albo zmieniasz górnym lub dolnym uchwytem.',
-      '<b>Tekst w pionie</b>: do góry, na środku albo do dołu ramki.',
-      '<b>Zmniejszaj tekst, gdy się nie mieści</b>: czcionka maleje, aż tekst zmieści się w ramce, ale nie poniżej <b>najmniejszego rozmiaru</b>. Krótszy tekst wraca do rozmiaru zadanego. Fragmenty z własnym rozmiarem (np. większy tytuł w tej samej ramce) maleją razem z resztą, w tej samej proporcji, i razem z nią wracają do swojego rozmiaru.',
-      'Tekst, który mimo to się nie mieści, jest ucinany na dolnej krawędzi ramki i trafia na listę <b>Ostrzeżenia</b>.',
-      '<b>Obraz z danych</b>: wstaw dowolny obraz jako wzór (wyznacza miejsce i rozmiar), zaznacz go i wybierz <b>kolumnę z nazwą pliku</b>. Na każdej powielonej stronie pojawi się obraz o nazwie z tej kolumny, bez zmiany proporcji.',
-      '<b>Podmieniony obraz</b> może <b>mieścić się w ramce</b> (cały widoczny, z wolnym miejscem po bokach albo u góry) albo <b>wypełniać ramkę</b> (bez pustych pasów, brzegi przycięte) – wybierz to, gdy zdjęcia mają różne proporcje, a układ ma być równy. Przy wypełnianiu wybierasz też, <b>która część zdjęcia zostaje</b>: środek, góra, dół, lewa albo prawa strona (np. „góra” przy portretach, żeby nie ucinać głów).',
-      'Gdy każde zdjęcie wymaga innego przycięcia, wybierz <b>Kadr z kolumny</b>: w tej kolumnie tabeli wpisujesz dla każdego wiersza <code>góra</code>, <code>dół</code>, <code>lewa</code>, <code>prawa</code> albo <code>środek</code> (można po dwa: <code>góra lewa</code>; także bez polskich znaków i po angielsku), albo <b>punkt zdjęcia w procentach</b> od lewej i od góry, np. <code>30% 20%</code> – kadr ustawi się tak, żeby ten punkt był w środku ramki. Pusta komórka zostawia ustawienie obrazu-wzoru.',
-      'Pliki obrazów do danych wgrywasz naraz w oknie <b>⋯ → Obrazy projektu</b> (przycisk <b>Wgraj obrazy…</b>; we właściwościach obrazu jest przycisk <b>Obrazy projektu…</b>; na telefonie telefon pokaże galerię). Obrazy wstawione na strony też tam są i też można ich użyć w danych. W tabeli wpisz <b>nazwę pliku z rozszerzeniem</b>, np. <code>las.jpg</code> – najprościej skopiować ją w oknie (<b>Kopiuj nazwę</b> albo zaznacz kilka obrazów i <b>Kopiuj nazwy</b>). Rozszerzenie się liczy: <code>las.jpg</code> i <code>las.png</code> to dwa różne obrazy (wielkość liter nie ma znaczenia). Nazwa bez rozszerzenia działa tylko wtedy, gdy pasuje dokładnie jeden plik – przy kilku strona pokaże brak obrazu, a <b>Sprawdź przed drukiem</b> poprosi o dopisanie rozszerzenia.',
-    ],
-  },
-  {
-    tytul: 'Obrazy projektu',
-    wstep: 'Wszystkie obrazy projektu są w jednym miejscu: wstawione na strony (narzędziem, przeciągnięciem, ze schowka, przez „Podmień zdjęcie”) i wgrane do pól z danych. Okno otwiera <b>⋯ → Obrazy projektu</b> (obok „Czcionki projektu”) albo przycisk <b>Obrazy projektu…</b> we właściwościach obrazu.',
-    obraz: 'obrazy-projektu.png',
-    podpis: 'Okno „Obrazy projektu”: miniatury z pełnymi nazwami, wymiarami i rozmiarem pliku; przy każdym obrazie – gdzie jest użyty.',
-    punkty: [
-      'Przy każdym obrazie jest miniatura, <b>pełna nazwa pliku</b> (z rozszerzeniem – tak wpisuje się ją w tabeli), wymiary w pikselach, rozmiar pliku i to, <b>gdzie jest użyty</b>: numery stron, wzorce albo „w danych” (gdy jego nazwa jest w tabeli). Obraz nigdzie nieużyty ma napis <b>nieużywany</b> i przerywaną ramkę.',
-      '<b>Wgraj obrazy…</b> dodaje pliki z urządzenia (kilka naraz) – także <b>archiwum ZIP</b>: aplikacja wyjmie z niego obrazy (PNG, JPEG, WebP, GIF, SVG, najwyżej 100, każdy do 15 MB) i pominie resztę. Wgrane obrazy zostają zaznaczone – od razu możesz skopiować ich nazwy.',
-      '<b>Kopiuj nazwę</b> (ikona przy obrazie) kopiuje nazwę jednego pliku. <b>Zaznaczanie</b>: kliknij obraz (albo jego pole wyboru); <kbd>Ctrl</kbd> dodaje kolejne, <kbd>Shift</kbd> – cały zakres. Na telefonie przytrzymaj obraz albo stuknij <b>Zaznacz</b> i stukaj kolejne. Gdy coś jest zaznaczone, na pasku są <b>Kopiuj nazwy</b> (nazwy jedna pod drugą – wklejone w tabelę albo w Excela wypełnią kolejne wiersze kolumny), <b>Usuń</b> i <b>Odznacz</b>.',
-      '<b>Zmień nazwę</b>: kliknij nazwę albo ikonę. Nazwa musi być inna niż pozostałych obrazów (dane wskazują obrazy nazwą). Gdy obraz jest w tabeli danych, komórki z jego nazwą dostają nową.',
-      '<b>Podmień plik</b> wstawia nowy plik w miejsce starego: wszędzie, gdzie obraz był, pojawia się nowy, w tym samym miejscu i rozmiarze. Nazwa zostaje, więc dane dalej go znajdują. <b>Pokaż</b> (oko) otwiera stronę albo wzorzec z obrazem i go zaznacza.',
-      '<b>Usuń</b> usuwa zaznaczone obrazy z projektu, z urządzenia i z konta. Obrazów, które są użyte, aplikacja nie usunie – powie, gdzie są (najpierw usuń je ze strony albo z tabeli, albo podmień plik). <b>Usuń nieużywane</b> sprząta naraz wszystkie obrazy, których nigdzie nie ma.',
-      'Usuniętego obrazu nie przywróci ani <b>Cofnij</b>, ani drugie urządzenie. Jeśli obraz był przed chwilą na stronie, a element usunięto, aplikacja uprzedzi, że cofnięcie przywróci element już bez obrazu. Po „Podmień zdjęcie” we właściwościach poprzednie zdjęcie zostaje w oknie – jeśli nigdzie go nie ma, jako nieużywane.',
-      '<b>Wybór z obrazów projektu</b> (narzędzie „Obraz” i „Podmień zdjęcie”): to samo okno, w którym stukasz obraz i <b>Wstaw</b> (albo <b>Podmień</b>), albo klikasz go dwa razy.',
-      '<b>Ten sam plik drugi raz</b> nie tworzy kopii: wstawiony na stronę używa obrazu, który już jest, a przy wgrywaniu pojawia się informacja „Ten obraz już jest jako …”. Aplikacja rozpoznaje to po treści pliku, nie po nazwie.',
-      '<b>Inny plik o tej samej nazwie</b> (ta sama nazwa z rozszerzeniem, bez względu na wielkość liter): przy wgrywaniu aplikacja pokazuje oba obrazy obok siebie i pyta – <b>Zastąp</b> (jak „Podmień plik”), <b>Zachowaj oba</b> (nowy dostaje dopisek „(2)”) albo <b>Pomiń</b>. Przy kilku plikach można zaznaczyć <b>Tak samo dla pozostałych</b>. Obraz wstawiany na stronę dostaje dopisek „(2)” sam. <code>las.jpg</code> i <code>las.png</code> to różne nazwy.',
-      '<b>Starsze projekty</b> (sprzed tego okna) mogą mieć ten sam plik kilka razy albo dwa różne obrazy o tej samej nazwie. Okno pokazuje wtedy u góry pasek z przyciskiem <b>Uporządkuj</b>: kopie tego samego pliku stają się jednym obrazem (elementy na stronach zostają na miejscu, komórki tabel wskazujące kopię dostają nazwę obrazu, który zostaje), a obrazy o zajętej nazwie i innej treści dostają dopisek „(2)” – dane w tabelach pokazują ten sam obraz co dotąd.',
-      'Obrazy wgrane w tym czasie przez AI albo na innym urządzeniu pojawiają się w otwartym oknie od razu. Zmiany stron z innego urządzenia czekają, aż zamkniesz okno – tak jak przy każdym innym oknie.',
-      'AI z łącznikiem Makietka może robić z obrazami to samo co Ty w tym oknie (rozdział „Praca z AI”). Link, który daje AI, żeby wgrać zdjęcia (<code>…#/p/…/obrazy</code>), otwiera projekt od razu z tym oknem.',
-    ],
-  },
-  {
-    tytul: 'Kolumny i przelewanie tekstu',
-    wstep: 'Dłuższy tekst może płynąć przez kilka ramek: to, co nie mieści się w pierwszej, pojawia się w następnej. Tak powstają kolumny i teksty, które zaczynają się w jednym miejscu strony, a kończą w innym.',
-    obraz: 'uklad.png',
-    podpis: 'Trzy połączone ramki (kolumny), listy z numerami i punktami oraz tabela. Fioletowa linia pokazuje, dokąd płynie tekst z zaznaczonej ramki.',
-    punkty: [
-      '<b>Podziel na kolumny</b> (2, 3 albo 4) we właściwościach tekstu zamienia ramkę na kolumny obok siebie i rozkłada tekst po równo.',
-      '<b>Dodaj ramkę z ciągiem dalszym</b> tworzy drugą ramkę – obok, a gdy się nie mieści, pod spodem. Przesuń ją, gdzie chcesz.',
-      '<b>Ciąg dalszy na następnej stronie</b> tworzy ramkę na następnej stronie (gdy bieżąca jest ostatnia w sekcji – razem z nową stroną). Tekst płynie wtedy <b>przez strony</b>: dłuższe opowiadanie, regulamin albo wstęp układasz w ramkach na kolejnych stronach, a aplikacja sama pilnuje, co jest na której.',
-      'Dwie istniejące ramki połączysz, zaznaczając je razem i wybierając <b>Połącz ramki tekstu</b>. Tekst płynie z góry na dół, a w ramkach leżących obok siebie – od lewej.',
-      'O tym, ile tekstu zostaje w ramce, decyduje jej <b>wysokość</b>. Zmień ją uchwytem albo liczbą, a tekst ułoży się od nowa. Ostatnia ramka bierze całą resztę; jeśli i tam się nie mieści, zobaczysz ostrzeżenie.',
-      'Piszesz w dowolnej z ramek, a tekst <b>przelewa się na bieżąco</b>: gdy ramka się zapełni, pisany tekst przechodzi do następnej i kursor idzie za nim; gdy coś usuniesz, tekst z następnych ramek wraca. Jeśli następna ramka jest <b>na innej stronie</b>, aplikacja sama otwiera tę stronę i piszesz dalej bez przerwy – znaki wciśnięte w chwili przejścia nie giną.',
-      'Na granicy ramek klawisze działają jak w jednym tekście: <kbd>Backspace</kbd> na początku ramki usuwa znak z końca poprzedniej, <kbd>Delete</kbd> na końcu – znak z początku następnej, a strzałki w lewo i w prawo przechodzą do sąsiedniej ramki. Strzałka <b>w dół</b> w ostatnim wierszu ramki przenosi kursor do pierwszego wiersza następnej, a <b>w górę</b> w pierwszym wierszu – do ostatniego wiersza poprzedniej; kursor staje pod (nad) miejscem, w którym stał, liczonym od lewego brzegu ramki. Gdy sąsiednia ramka jest na innej stronie, działa to tak samo: aplikacja otwiera tę stronę, gdy kursor do niej trafia (strzałką albo kasując wstecz).',
-      '<b>Cały połączony tekst naraz</b>: zaznaczenia w tekście nie da się rozciągnąć z jednej ramki do drugiej (Shift ze strzałkami zatrzymuje się na końcu ramki). Zamiast tego naciśnij w trakcie pisania <kbd>Ctrl</kbd>+<kbd>A</kbd> <b>dwa razy</b> – pierwszy raz zaznacza tekst tej ramki, drugi <b>cały połączony tekst</b>, razem z ramkami na innych stronach – albo kliknij <b>Zaznacz cały połączony tekst</b> we właściwościach ramki. Ramki tekstu na stronie są wtedy podświetlone. Zmiana wyglądu (czcionka, rozmiar, pogrubienie, kolor…) obejmuje całość, także fragmenty, które miały własny wygląd; <kbd>Ctrl</kbd>+<kbd>C</kbd> kopiuje cały tekst, a <kbd>Delete</kbd> go usuwa – ramki zostają połączone i puste. Kliknięcie gdzie indziej albo ponowne pisanie kończy ten tryb.',
-      'Przy ramce połączonej z ramkami na innych stronach panel pokazuje przyciski <b>Poprzednia ramka</b> i <b>Następna ramka</b> z numerem strony – przenoszą prosto do niej.',
-      'Po przestawieniu stron tekst płynący przez strony układa się w nowej kolejności stron: początek jest zawsze na wcześniejszej stronie, ciąg dalszy na późniejszej.',
-      'Wygląd tekstu (czcionka, rozmiar, kolor, wyrównanie, lista) jest wspólny dla połączonych ramek. Pogrubienia i kolory fragmentów wędrują razem z tekstem.',
-      'Pola z danych działają jak zwykle: na każdej powielonej stronie tekst przelewa się osobno, zależnie od długości wartości z tabeli.',
-      'Usunięcie jednej z ramek nie usuwa tekstu – wraca on do pozostałych. <b>Rozłącz ramki</b> zostawia każdą ramkę z jej częścią tekstu.',
-      'Zaznaczaniem łączysz ramki widoczne razem (jedna strona albo rozkładówka); między stronami łączy przycisk „Ciąg dalszy na następnej stronie”. Kopia połączonej ramki i kopia całej strony są zwykłymi, niepołączonymi ramkami. Usunięcie strony nie usuwa płynącego przez nią tekstu – wraca on do ramek na pozostałych stronach.',
-      'W serii tekst płynie między stronami tego samego powielenia bloku: każde powielenie przelewa swoje dane osobno.',
-    ],
-  },
-  {
-    tytul: 'Tabela',
-    wstep: 'Tabela to jeden element strony z wierszami i kolumnami. Wstawiasz ją przyciskiem <b>Tabela</b> na pasku nad stroną.',
-    obraz: 'tabela.png',
-    podpis: 'Tabela z tłem nagłówka, co drugim wierszem w kolorze i scaloną komórką; po prawej jej ustawienia.',
-    punkty: [
-      '<b>Pojedyncze kliknięcie</b> zaznacza całą tabelę – przesuwasz ją, obracasz i układasz w warstwach jak każdy inny element. Na liście warstw to jeden wiersz „Tabela”; trójkąt przy nim pokazuje jej komórki, a kliknięcie komórki na liście zaczyna w niej pisanie.',
-      '<b>Podwójne kliknięcie komórki</b> zaczyna w niej pisanie. <kbd>Tab</kbd> przechodzi do następnej komórki, <kbd>Shift</kbd>+<kbd>Tab</kbd> do poprzedniej; <kbd>Tab</kbd> w ostatniej komórce dodaje nowy wiersz. Kliknięcie innej komórki przenosi tam pisanie, <kbd>Esc</kbd> kończy je i wraca do zaznaczenia całej tabeli.',
-      'Komórka to zwykły tekst: wstawisz w niej <b>pole z danych</b> (np. <code>{opis}</code>), pogrubisz fragment, zmienisz czcionkę. W trakcie pisania panel z prawej pokazuje ustawienia tekstu tej komórki.',
-      '<b>Wiersz rośnie razem z tekstem.</b> Gdy treść komórki nie mieści się w wysokości wiersza, cały wiersz robi się wyższy – także na stronach powielanych z danych, osobno dla każdej strony. Tekst w tabeli nigdy nie jest ucinany.',
-      '<b>Szerokość kolumn</b>: przy zaznaczonej tabeli nad granicami kolumn widać niebieskie znaczniki – przeciągnij znacznik, a granica się przesunie (kolumna obok zwęża się o tyle samo; ostatni znacznik zmienia szerokość całej tabeli). Dokładne szerokości wpiszesz liczbami w panelu; <b>Równe szerokości</b> wyrównuje kolumny.',
-      '<b>Wiersze i kolumny</b>: przyciski w panelu dodają i usuwają ostatni wiersz albo kolumnę. W trakcie pisania w komórce przyciski dotyczą jej wiersza i kolumny: wstaw wiersz poniżej, usuń ten wiersz, wstaw kolumnę z prawej, usuń tę kolumnę.',
-      '<b>Scalanie komórek</b>: w trakcie pisania w komórce panel ma przyciski <b>Scal z komórką po prawej</b> i <b>Scal z komórką poniżej</b>. Klikając kilka razy, zrobisz komórkę na kilka kolumn albo wierszy – np. tytuł przez całą szerokość tabeli. Tekst nie znika: to, co było w dołączanych komórkach, dopisuje się do scalonej komórki jako kolejne akapity (wierszami, od lewej). <b>Rozdziel komórki</b> przywraca osobne komórki – cały tekst zostaje w pierwszej (lewej górnej), a stan sprzed scalenia przywraca <kbd>Ctrl</kbd>+<kbd>Z</kbd>. Linie siatki nie przecinają scalonej komórki, a <kbd>Tab</kbd> ją przeskakuje jak jedną.',
-      'W panelu tabeli ustawisz też: <b>wiersz nagłówka</b> (pogrubiony, z grubszą linią pod spodem), kolor i grubość linii (0 = bez linii) oraz czcionkę, rozmiar, kolor i wyrównanie tekstu we wszystkich komórkach naraz.',
-      '<b>Linie jednej komórki</b>: w trakcie pisania w komórce panel ma część <b>Linie tej komórki</b>. Każdą krawędź – u góry, u dołu, z lewej, z prawej – ustawiasz osobno: <b>jak w tabeli</b>, <b>bez linii</b> albo <b>własna</b> (swoja grubość i kolor). Tak zrobisz grubszą kreskę pod wierszem sumy, ramkę wokół jednej komórki albo tabelę bez linii pionowych w wybranym miejscu. Krawędź jest wspólna z sąsiednią komórką, więc zmienia się u obu; w scalonej komórce dotyczy całego jej boku. Wstawiane i usuwane wiersze i kolumny przesuwają te ustawienia razem z komórkami.',
-      '<b>Linie całego wiersza, kolumny albo tabeli</b>: pod liniami komórki jest część <b>Linie wiersza, kolumny, tabeli</b>. Wybierasz, <b>do czego zastosować</b> (ten wiersz, ta kolumna, cała tabela) i <b>które linie</b> (obramowanie, wewnętrzne poziome, wewnętrzne pionowe albo wszystkie), ustawiasz kolor i grubość i klikasz <b>Ustaw te linie</b>. <b>Bez linii</b> je chowa, a <b>Jak w tabeli</b> zdejmuje własne ustawienia – linie znów wyglądają jak siatka. Przy zaznaczonej całej tabeli ta sama część nazywa się <b>Obramowanie i linie wewnętrzne</b> – tak zrobisz grubą ramkę wokół tabeli albo tabelę z samymi liniami poziomymi. To te same ustawienia co przy pojedynczej komórce, tylko nadawane wielu krawędziom naraz, więc potem każdą krawędź możesz jeszcze poprawić osobno.',
-      '<b>Tło wierszy</b>: osobny kolor tła dla wiersza nagłówka i dla co drugiego wiersza treści (tabela w paski czyta się łatwiej). Oba są opcjonalne.',
-      '<b>Wysokość wierszy</b>: najmniejsza wysokość wspólna dla wszystkich wierszy albo osobna dla każdego – lista wierszy w panelu tabeli, a w trakcie pisania pole „Najmniejsza wysokość tego wiersza”. Wiersz i tak urośnie, gdy tekst będzie wyższy.',
-      'Narożne uchwyty zmieniają rozmiar tabeli: kolumny i wiersze dostają nowe wymiary już w trakcie przeciągania, a pismo zostaje w swoim rozmiarze.',
-      'Na telefonie tabelę wstawiasz tym samym przyciskiem, a pisanie w komórce zaczynasz, <b>stukając w nią dwa razy</b>. Szerokości kolumn, wiersze i wygląd zmienisz w panelu właściwości.',
-      'Tabele wstawione w starszej wersji (siatka i osobne ramki tekstu) zostają takie, jak były.',
-    ],
-  },
-  {
-    tytul: 'Eksport do PDF',
-    wstep: 'Plik PDF do drukarni albo do obejrzenia: wszystkie strony w kolejności wydruku, razem z powieleniami serii. Znajdziesz go w menu <b>⋯</b> w edytorze.',
-    obraz: 'pdf.png',
-    podpis: 'Okno eksportu: rodzaj pliku, zakres, przeznaczenie, opcje i lista rzeczy do sprawdzenia.',
-    punkty: [
-      '<b>Rodzaj pliku – Wektorowy</b> (domyślny): tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać, jest ostry w każdym powiększeniu), kształty, linie, gradienty i rysunki odręczne są wektorami, a zdjęcia JPEG i PNG idą w oryginale – bez ponownej kompresji i tylko raz w pliku, choćby były na stu stronach.',
-      '<b>Rodzaj pliku – Obrazy stron</b>: każda strona jest jednym obrazem w wybranej rozdzielczości. Wygląda identycznie wszędzie, ale tekstu nie da się zaznaczyć, a plik jest większy.',
-      'Litery stoją w pliku w tych samych miejscach co na ekranie. Także <b>ligatury</b> – połączone znaki w rodzaju „fi” czy „fl”, które wiele czcionek rysuje jednym kształtem – wyglądają w PDF tak jak w edytorze, a przy zaznaczaniu i wyszukiwaniu zostają zwykłymi literami.',
-      '<b>Zamień tekst na krzywe</b> (wektorowy): litery stają się kształtami. Plik nie zawiera czcionek – tego często wymagają drukarnie – ale tekstu nie da się już zaznaczyć ani poprawić.',
-      '<b>Standard dla drukarni – PDF/X-4</b>: plik dostaje <b>profil barwny warunków druku</b> i oznaczenia, po których programy drukarni rozpoznają standard. Wybierasz papier: <b>powlekany</b> (kredowy – okładki, albumy; FOGRA39) albo <b>niepowlekany</b> (offsetowy – środki notesów i planerów; FOGRA47). Jeśli drukarnia podała własny profil (np. ISO Coated v2 albo PSO Coated v3), wybierz <b>profil od drukarni</b> i wskaż plik <code>.icc</code>. Profil papieru powlekanego dodaje do pliku ok. 8 MB.',
-      '<b>Kolory tekstu i kształtów w CMYK</b> (wektorowy): kolory są zapisane czterema farbami drukarskimi, a czarny tekst i szarości idą samą czarną farbą – litery są wtedy ostre. Razem z PDF/X-4 kolory są przeliczane <b>przez profil</b> wybranego papieru (tak jak robią to programy do składu); bez standardu – prostym wzorem, który papieru nie zna.',
-      '<b>Zdjęcia też w CMYK</b> (wektorowy z PDF/X-4): zdjęcia są przeliczane przez ten sam profil, w rozdzielczości z pola „Jakość”. Zdjęcie JPEG zostaje JPEG-iem, tylko w czterech farbach; pozostałe obrazy (PNG, obrazy z przezroczystością) są zapisywane bez strat. Plik jest większy niż z oryginalnymi zdjęciami. Bez tej opcji zdjęcia zostają w RGB z opisem sRGB i na farby przelicza je drukarnia według dołączonego profilu; to też jest zgodne z PDF/X-4 i zwykle wystarcza.',
-      '<b>Obrazy stron w CMYK</b> (obrazy stron z PDF/X-4): cały obraz strony jest przeliczany przez profil. Czarny i szary tekst, kształty i cienie idą <b>samą czarną farbą</b> – także wtedy, gdy leżą na zdjęciu – i są zapisane bez strat, co do piksela. Same zdjęcia idą czterema farbami, jak wynika z profilu, i są zapisane jako JPEG (pod spodem; reszta strony leży na nich z maską), dzięki czemu strona ze zdjęciem zajmuje kilka razy mniej niż zapisana w całości bez strat. Biel to czysty papier. Tekst zostaje obrazem: nie da się go zaznaczyć, a jego ostrość zależy od pola <b>Jakość</b> (do druku 300 dpi lub więcej).',
-      'Którą opcję wybrać? Zapytaj drukarnię, czego wymaga. Jeśli mówi „PDF/X-4” – wybierz standard i jej papier. Jeśli mówi „wszystko w CMYK” – zaznacz dodatkowo oba pola CMYK. <b>Przed pierwszym zleceniem wyślij próbny plik</b>: aplikacja buduje go według normy, ale nie sprawdza go programem kontrolnym drukarni.',
-      'Czego nie da się zapisać wektorowo, trafia do pliku jako obraz <b>tego jednego elementu</b>: element z cieniem, element przycięty maską, tekst ze znakiem spoza czcionki, rysunek SVG z filtrem, maską albo wzorem. Rozdzielczość tych obrazów ustawiasz w polu <b>Jakość</b>.',
-      '<b>Rysunki SVG</b> idą do pliku jako wektory: aplikacja rozkłada rysunek na kształty i sprawdza, czy wyglądają tak samo jak oryginał; jeśli nie – rysunek zostaje obrazem.',
-      'Tekst pisany czcionką, której nie da się osadzić (własny plik WOFF2, czcionka zmienna, kursywa bez własnego pliku), jest zapisywany jako <b>krzywe</b>: ostry, ale nie do zaznaczenia. Po eksporcie aplikacja wypisuje osobno, co poszło jako obraz, a co jako krzywe.',
-      '<b>Zakres</b>: cały projekt, bieżąca sekcja albo strony od–do (kolejne numery stron w całym wydruku).',
-      '<b>Do drukarni</b>: każda strona ma spad dookoła, a sekcje z włączonymi znakami cięcia dostają znaki cięcia. Plik zawiera informację o formacie po obcięciu i o spadzie, którą odczytują programy drukarni. <b>Do oglądania</b>: strony równo do formatu, bez spadu i znaków.',
-      '<b>Jakość</b>: 300 dpi to standard do druku; 150 dpi daje mały plik na próbę; 600 dpi – bardzo ostro, kosztem rozmiaru pliku.',
-      '<b>Podział na pliki</b>: jeden plik, osobny plik dla każdej sekcji albo części po zadanej liczbie stron. Kilka plików dostajesz w jednym archiwum ZIP.',
-      '<b>Dołącz pliki czcionek użytych w projekcie</b>: dostaniesz archiwum ZIP z plikiem PDF i folderem <code>czcionki</code> ze zwykłymi plikami TTF z oficjalnego zestawu (i z własnymi czcionkami projektu). Opcja zaznacza się sama, gdy plik nie ma czcionek w środku: przy obrazach stron i przy tekście zamienionym na krzywe.',
-      '<b>Do sprawdzenia przed drukiem</b>: na dole okna jest lista uwag do całego projektu (następny rozdział). Uwagi nie blokują eksportu. Długi eksport możesz przerwać przyciskiem <b>Przerwij</b>.',
-    ],
-  },
-  {
-    tytul: 'Sprawdź przed drukiem',
-    wstep: 'Zanim wyślesz plik do drukarni, aplikacja przegląda cały projekt – już po powieleniu serii – i wypisuje miejsca, na które warto spojrzeć. Okno otwierasz z menu <b>⋯ → Sprawdź przed drukiem</b>; ta sama lista jest w oknie eksportu PDF.',
-    obraz: 'kontrola.png',
-    podpis: 'Lista uwag z numerami stron; „Pokaż” otwiera stronę, której dotyczy uwaga.',
-    punkty: [
-      '<b>Tekst nie mieści się w ramce</b>: aplikacja wstawia dane z każdego wiersza tabeli i sprawdza każdą powieloną stronę. Uwaga podaje, na których stronach tekst wystaje – np. gdy jedno hasło w tabeli jest dużo dłuższe od pozostałych.',
-      '<b>Pole bez wartości</b>: w tekście jest pole, którego aplikacja nie zna (literówka, usunięta kolumna).',
-      '<b>Brak pliku obrazu</b>: w kolumnie z nazwami obrazów jest nazwa, do której nie wgrano pliku.',
-      '<b>Powtórzenia</b> w kolumnach oznaczonych znakiem ≠ – z numerami stron, na których ta sama wartość wypada dwa razy.',
-      '<b>Wartości spoza listy</b> w kolumnach z listą dozwolonych wartości (znak ☰) – z numerami wierszy tabeli.',
-      '<b>Brak danych</b> w tabeli dodatkowej serii i <b>niepełny ostatni blok</b> serii.',
-      '<b>Strony serii w rozkładówkach</b>: gdzie aplikacja wstawiła puste strony, a przy wyłączonym <b>Pilnuj lewej i prawej strony</b> – od której strony strony bloku wychodzą po przeciwnej stronie rozkładówki. Seria, której wszystkie wiersze są pomijane, też dostaje uwagę.',
-      '<b>Tabela wychodzi poza stronę</b>: wiersze tabeli rosną razem z treścią, więc na stronie z dłuższymi danymi tabela może wyjść poza kartkę. Uwaga podaje, na których stronach i o ile milimetrów.',
-      'Przycisk <b>Pokaż</b> przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy – już z danymi tego powielenia, z wyróżnioną kartką. <b>Otwórz wzór</b> otwiera w edytorze stronę-wzór z zaznaczonym elementem, żeby od razu go poprawić. Sprawdzanie tekstów w dużym projekcie trwa chwilę – lista uzupełnia się na bieżąco.',
-    ],
-  },
-  {
-    tytul: 'Podgląd',
-    wstep: 'Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – bez linii pomocniczych i bez możliwości przypadkowej zmiany.',
-    obraz: 'podglad.png',
-    podpis: 'Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.',
-    punkty: [
-      'Otwórz go przyciskiem <b>Podgląd</b> na górnym pasku edytora albo z menu <b>⋯</b> projektu na liście.',
-      '<b>Prezentacja</b> pokazuje jedną stronę albo rozkładówkę naraz na całym ekranie. Strzałki i spacja przewracają strony, <kbd>Esc</kbd> zamyka. Następna i poprzednia strona rysują się zawczasu, a strona, która jeszcze się rysuje, jest białą kartką z paskiem postępu u dołu. Działa także w podglądzie otwartym z linku.',
-      '<b>Powiększanie</b> – w podglądzie i w prezentacji: przyciski <b>−</b> i <b>+</b> (100% to cała rozkładówka w oknie, kliknięcie liczby wraca do tego), <kbd>Ctrl</kbd> + kółko myszy albo szczypanie na gładziku (powiększa w miejscu kursora), <kbd>Ctrl</kbd> <kbd>+</kbd> / <kbd>Ctrl</kbd> <kbd>−</kbd> / <kbd>Ctrl</kbd> <kbd>0</kbd> (w prezentacji same <kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd>) i <b>dwuklik</b> – powiększa w tym miejscu, drugi wraca do dopasowania. Powiększoną stronę przesuwasz, przeciągając myszą, kółkiem albo strzałkami. <kbd>Esc</kbd> najpierw wraca do dopasowania, dopiero potem zamyka. Powiększona strona w prezentacji po chwili rysuje się ostrzej.',
-      '<b>Palcami</b> (telefon, tablet): szczypanie dwoma palcami powiększa, jednym palcem przesuwasz, podwójne stuknięcie powiększa w tym miejscu albo wraca do dopasowania. W prezentacji przesunięcie palcem w lewo albo w prawo przewraca stronę (strona idzie za palcem), stuknięcie przy lewej albo prawej krawędzi – też; przesunięcie w dół zamyka prezentację. W siatce podglądu pojedyncze stuknięcie w stronę otwiera ją w edytorze, więc podwójne stuknięcie działa w tle między stronami.',
-      'Podgląd pokazuje projekt po powieleniu: każdą stronę serii tyle razy, ile wynika z danych, z jej numerem i podpisem „3 z 31”.',
-      'Strony idą po kolei, rozkładówki stoją obok siebie. Przyciski <b>−</b> i <b>+</b> zmieniają powiększenie, kliknięcie liczby dopasowuje do okna.',
-      'Kliknięcie strony otwiera ją w edytorze. <b>Edytor</b> albo <kbd>Esc</kbd> wraca do edycji.',
-      '<b>Otwarty podgląd odświeża się sam</b>, gdy projekt zmieni się gdzie indziej – na innym urządzeniu albo przez asystenta AI. Podgląd zostaje w tym samym miejscu i w tym samym powiększeniu, a od nowa rysują się tylko strony, które wyglądają inaczej. Dzięki temu możesz np. trzymać podgląd na telefonie i patrzeć, jak zmienia się projekt, nad którym pracuje AI.',
-    ],
-  },
-  {
-    tytul: 'Udostępnianie linkiem',
-    wstep: 'Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukarni – wysyłając link. Projekt ma jeden link.',
-    obraz: 'udostepnianie.png',
-    podpis: 'Okno „Udostępnij podgląd” z gotowym linkiem.',
-    punkty: [
-      'W podglądzie kliknij <b>Udostępnij</b>, potem <b>Utwórz link</b>. Aplikacja przygotuje obrazy wszystkich stron – przy dużym projekcie chwilę to potrwa.',
-      'Skopiuj link i wyślij go. Osoba z linkiem widzi strony tak jak w podglądzie; nie może nic zmienić i nie ma dostępu do reszty Twoich projektów.',
-      '<b>Link aktualizuje się sam</b>: kilka sekund po zapisaniu zmian na koncie aplikacja wysyła obrazy tych stron, które się zmieniły. Adres zostaje ten sam. <b>Aktualizuj teraz</b> robi to od ręki.',
-      'Obrazy stron rysuje Twoja aplikacja, więc link nadąża za zmianami wtedy, gdy masz projekt otwarty (w edytorze albo w podglądzie, na dowolnym urządzeniu). Zmiany od asystenta AI też trafiają do linku – kilkanaście sekund po tym, jak dojdą do otwartego projektu. Gdy projekt jest zamknięty, link pokazuje ostatni stan i zaktualizuje się po otwarciu.',
-      'Osoba, która ma link otwarty, nie musi go odświeżać: strona co minutę (i po powrocie do karty) sprawdza, czy jest nowsza wersja, i podmienia tylko obrazy zmienionych stron.',
-      '<b>Unieważnij link</b> usuwa udostępnione strony; stary adres przestaje działać. Ponowne udostępnienie daje nowy adres.',
-      'Projekt z czynnym linkiem ma na liście projektów plakietkę <b>Udostępniony</b> – kliknięcie otwiera to samo okienko, bez wchodzenia do projektu.',
-      'Link jest długi i losowy, więc nie da się go zgadnąć – ale każdy, kto go dostanie, może go przekazać dalej.',
-      '<b>Ochrona linku</b> (w tym samym okienku): <b>Hasło</b> – osoba z linkiem widzi najpierw pole hasła i dopiero po wpisaniu poprawnego zobaczy strony. <b>Ważny do wybranego dnia</b> – dzień wybierasz w kalendarzu (strzałki obok nazwy miesiąca zmieniają miesiąc, <b>Dziś</b> wybiera dzisiejszy dzień; dni, które już minęły, są wyszarzone); po tym dniu link pokazuje „Link wygasł”. Możesz ustawić jedno, drugie albo oba, także przed utworzeniem linku. <b>Zapisz ochronę</b> zmienia ustawienia istniejącego linku – adres zostaje ten sam.',
-      'Hasło zmienisz, wpisując nowe; puste pole przy zaznaczonym haśle zostawia dotychczasowe. Odznaczenie obu pól zdejmuje ochronę. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła.',
-      'Strony linku z ochroną nie leżą w publicznym folderze: aplikacja wydaje je dopiero po sprawdzeniu daty i hasła, a hasło jest zapisane tylko w postaci, z której nie da się go odczytać. Nie wysyłaj hasła w tej samej wiadomości co link.',
-    ],
-  },
-  {
-    tytul: 'Współpraca',
-    wstep: 'Projekt możesz robić razem z innymi osobami – każda na swoim koncie. Zapraszasz je adresem e-mail, a zmiany widać u wszystkich na żywo.',
-    obraz: 'wspolpraca.png',
-    podpis: 'Okno „Współpraca”: świeże zaproszenie z linkiem i osoby z dostępem.',
-    punkty: [
-      'W edytorze menu <b>⋯</b> → <b>Współpraca…</b> (albo <b>⋯</b> na karcie projektu). Wpisz adres e-mail albo <b>nazwę użytkownika</b> (po dwóch pierwszych literach pojawią się pasujące nazwy) i wybierz rolę: <b>Może edytować</b> – zmienia projekt razem z Tobą; <b>Może oglądać</b> – widzi tylko podgląd i prezentację.',
-      'Aplikacja wysyła e-mail z linkiem do zaproszenia. Osoba, która ma już konto, zobaczy zaproszenie także w aplikacji: na liście projektów pojawi się przycisk <b>Zaproszenia</b> z liczbą (od razu, bez odświeżania). Osoba bez konta otwiera link, zakłada konto i od razu przyjmuje zaproszenie.',
-      'Przy zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby – na liście jest jej nazwa, a e-mail z zaproszeniem wysyła aplikacja. Link możesz też skopiować albo (przy zaproszeniu na adres) wysłać ze swojej poczty (<b>Wyślij ze swojej poczty</b>). Działa jeden raz i jest ważny 14 dni. Jeśli e-mail nie wyszedł, okno to napisze – wtedy wyślij link sam.',
-      'Projekty udostępnione Ci przez innych są na Twojej liście z plakietką osoby, która je udostępniła, i z dopiskiem <b>Możesz edytować</b> albo <b>Możesz oglądać</b>. Gdy masz takie projekty, nad listą są przyciski <b>Wszystkie</b>, <b>Moje</b> i <b>Udostępnione mi</b>.',
-      '<b>Razem na żywo.</b> Zmiany łączą się element po elemencie, tak jak między Twoimi urządzeniami: gdy Ty poprawiasz tytuł, a ktoś przesuwa zdjęcie, zostają obie zmiany. O ten sam element zmieniony przez dwie osoby naraz aplikacja zapyta. <b>Cofnij</b> zdejmuje tylko Twoje zmiany.',
-      '<b>Kto jest w projekcie.</b> Kółka z inicjałami w pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty (wskaż kółko, żeby zobaczyć, na której jest stronie). Kolorowa ramka przy miniaturze strony mówi, na której stronie ktoś pracuje, a przerywana obwódka w jego kolorze – co ma zaznaczone.',
-      '<b>Właściciel</b> zmienia rolę osoby, odbiera dostęp (działa od razu), cofa zaproszenie, kopiuje jego link albo wysyła e-mail ponownie. Tylko właściciel może usunąć projekt, udostępnić go linkiem i dać dostęp dla AI. Obrazy wgrane przez współpracowników trafiają na konto właściciela.',
-      'Współpracownik może sam <b>opuścić projekt</b> (menu <b>⋯</b> na karcie albo przycisk w oknie Współpraca). <b>Zrób własną kopię</b> tworzy Twój własny projekt z tą samą treścią.',
-    ],
-    rada: 'Zaproszenie przyjmuje osoba, która ma link – także z innego adresu niż ten, na który poszło (np. konto firmowe zamiast prywatnego). W oknie Współpraca zawsze widać, kto naprawdę dołączył, i w każdej chwili można odebrać dostęp.',
-  },
-  {
-    tytul: 'Praca z AI',
-    wstep: 'Asystent AI (Claude, ChatGPT) może czytać i poprawiać wybrane projekty albo wszystkie projekty konta razem z Tobą – a z pełnym dostępem także tworzyć i usuwać projekty. Podłączasz go adresem łącznika Makietka – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.',
-    obraz: 'dostep-ai.png',
-    podpis: 'Klucze AI konta: zakres (wybrane projekty albo pełny dostęp), adres łącznika do skopiowania i kroki dla Claude i ChatGPT.',
-    punkty: [
-      'Klucz należy do konta: <b>Ustawienia konta → Dostęp dla AI → Zarządzaj…</b>. Wpisz, dla kogo jest klucz, wybierz <b>Czyta i zmienia</b> albo <b>Tylko czyta</b>, ważność (od 1 dnia do roku albo bez terminu) i zakres, potem <b>Utwórz klucz</b>.',
-      '<b>Zakres.</b> <b>Wybrane projekty</b> – zaznaczasz projekty (własne i udostępnione Ci przez innych). <b>Pełny dostęp</b> – wszystkie projekty konta, także te, które dojdą później; AI może wtedy też <b>tworzyć nowe projekty</b> i <b>usuwać</b> Twoje (zawsze z podaniem dokładnej nazwy projektu). W rozmowie AI zaczyna od listy projektów i pyta, na którym pracować – albo napisz od razu, np. „w projekcie Kalendarz 2027 popraw literówki”.',
-      'Okno pokaże <b>adres łącznika</b> (z kluczem w środku). Widać go <b>tylko raz</b> – skopiuj go od razu przyciskiem obok.',
-      '<b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <b>Dostosuj → Łączniki</b> (Customize → Connectors) → <b>+</b> → <b>Dodaj własny łącznik</b>. Nazwa: Makietka, adres: wklej skopiowany, logowanie: <b>bez logowania</b> (No sign-in). W rozmowie włącz łącznik i napisz np. „Przejrzyj mój projekt w Makietce i popraw literówki w tytułach”.',
-      '<b>ChatGPT</b>: <b>chatgpt.com/plugins</b> → <b>+</b> → <b>Add custom MCP server</b>, wklej adres, uwierzytelnianie <b>No Authentication</b>, potwierdź. Gdy tej opcji nie ma, włącz tryb dewelopera (Ustawienia → Aplikacje → Zaawansowane).',
-      'Łącznik działa po stronie Makietki: Claude i ChatGPT łączą się z nim ze swoich serwerów. Jeśli AI prosi o odblokowanie domeny albo zmianę ustawień sieci, żeby łączyć się z bazą, nie rób tego – poproś, żeby użyło narzędzi łącznika Makietka (a jeśli ich nie ma, dodaj łącznik jak wyżej).',
-      'W części <b>Dla zaawansowanych</b> okno ma sam klucz, polecenie dla <b>Claude Code</b> i serwer do uruchomienia u siebie. Szczegóły: <a href="ai/api.md" target="_blank" rel="noopener">Dostęp dla AI</a>.',
-      'AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który ktoś Ci udostępnił tylko do oglądania, klucz tylko czyta, a gdy właściciel odbierze Ci dostęp, klucz traci go od razu. Klucz nie otwiera ustawień konta, hasła, czcionek konta, linków udostępniania ani współpracy.',
-      '<b>Obrazy przez AI.</b> AI robi z obrazami to samo co Ty w oknie <b>Obrazy projektu</b>: wgrywa je, wstawia na stronę jako pojedyncze zdjęcie (z ramką „zmieść” albo „wypełnij”), zmienia nazwy, podmienia pliki, usuwa nieużywane i porządkuje powtórzenia. Wgrany obraz pojawia się u Ciebie po chwili, a przy najbliższym zapisie trafia na Twoje konto jak każdy inny.',
-      '<b>Skąd AI bierze zdjęcia.</b> Łącznik przyjmuje od AI tylko tekst, więc zdjęcia, które masz u siebie, dochodzą inną drogą – zależnie od aplikacji. Wielkość nie gra roli: jeden obraz do 25 MB, ZIP do 50 MB.',
-      '<b>ChatGPT:</b> zdjęcia i ZIP-y wrzucone do rozmowy wchodzą wprost – ChatGPT sam podaje je łącznikowi.',
-      '<b>Claude:</b> zdjęcia z rozmowy i pliki z miejsca roboczego wgrywa sam przez łącznik, kawałkami – bez żadnych ustawień. To dobra droga dla grafik do kilkuset KB; duże zdjęcia szybciej przejdą przez link do wgrania. W <b>Claude Desktop z rozszerzeniem Makietka</b> AI czyta pliki, foldery i ZIP-y z Twojego dysku dowolnej wielkości – wystarczy ścieżka z jego miejsca roboczego, np. „grafiki/zdjęcia.zip”.',
-      '<b>Zawsze, bez ustawień – link do wgrania.</b> AI daje link, który otwiera ten projekt z oknem <b>Obrazy projektu</b>; wrzucasz tam zdjęcia albo ZIP, a AI widzi je na liście i działa dalej. Jeśli AI mówi, że do Twoich plików nie sięga, poproś je o ten link.',
-      '<b>Poza tym:</b> link do pliku albo ZIP-a na <b>Dysku Google</b> lub w <b>Dropboxie</b> udostępnionego „każdemu, kto ma link” (Dropbox odda też cały folder) i rysunki SVG, które AI samo narysuje (ozdobniki, ikony, ramki).',
-      '<b>Wymiana użytych zdjęć.</b> Obrazu, który stoi na stronie, AI nie usuwa – zostałaby pusta ramka. Wymienia go jednym krokiem na nowy plik (podmiana): wszystkie strony, wzorce i dane pokazują od razu nowy, a stary znika. Gdy wgrywasz sam, to samo daje w oknie <b>Obrazy projektu</b> „Zastąp” z zaznaczonym „Tak samo dla pozostałych plików o powtórzonych nazwach”. Szczegóły: <a href="ai/api.md" target="_blank" rel="noopener">Dostęp dla AI</a>.',
-      'Zmiany AI łączą się z Twoimi element po elemencie: gdy Ty przesuwasz zdjęcie, a AI poprawia tytuł, zostają obie zmiany. <b>Cofnij</b> zdejmuje tylko Twoje zmiany.',
-      'Lista <b>Klucze konta</b> pokazuje zakres, ważność i to, kiedy klucza ostatnio użyto. <b>Zmień zakres</b> dodaje i usuwa projekty albo przełącza na pełny dostęp – adres łącznika się nie zmienia. <b>Odbierz</b> wyłącza klucz – i adres łącznika – od razu.',
-      'Projekt utworzony przez AI pojawia się na liście projektów od razu. Projekt usunięty przez AI znika z listy (także z tego urządzenia); jeśli akurat był otwarty, edytor zamyka się z wyjaśnieniem.',
-    ],
-    rada: 'Adres łącznika (z kluczem) trafia do firmy, która prowadzi AI. Dawaj najwęższy zakres i najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy. Pełny dostęp daj tylko AI, któremu ufasz przy usuwaniu projektów. Przed dużymi zmianami zrób <b>Eksport</b> projektu.',
-  },
-  {
-    tytul: 'Linie i ostrzeżenia',
-    wstep: 'Na stronie widać linie pomocnicze. Nie są drukowane.',
-    obraz: 'ostrzezenia.png',
-    podpis: 'Element wychodzący w margines i lista ostrzeżeń.',
-    punkty: [
-      '<b>Czerwona linia</b> – krawędź strony po przycięciu.',
-      '<b>Różowy pas</b> – spad. Tła i zdjęcia, które mają sięgać krawędzi, rozciągnij aż do jego końca.',
-      '<b>Niebieska przerywana</b> – margines. Teksty trzymaj wewnątrz.',
-      'Element w marginesie lub poza spadem dostaje pomarańczową ramkę i trafia na listę <b>Ostrzeżenia</b>. Jeśli to celowe (np. tło na spad), kliknij <b>Wycisz</b>.',
-      'Linie ukryjesz przyciskiem w prawym dolnym rogu, obok powiększenia.',
-    ],
-  },
-  {
-    tytul: 'Siatka, linijki i prowadnice',
-    wstep: 'Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: <b>Siatka</b>, <b>Przyciągaj do siatki</b>, <b>Krok siatki</b>, <b>Przyciągaj do elementów i pokazuj odległości</b>, <b>Linijki</b>, <b>Zablokuj prowadnice</b>, <b>Usuń prowadnice z tej strony</b> i <b>W rozkładówkach pokazuj jedną stronę</b>. Na dole menu jest część <b>Wygląd edytora</b>: <b>Podpisy narzędzi</b> (napisy pod ikonami paska Wstaw, domyślnie wyłączone) i <b>Napisy na górnym pasku</b> (auto – tylko gdy się mieszczą, zawsze, nigdy). Te ustawienia zapamiętuje to urządzenie.',
-    obraz: 'siatka.png',
-    podpis: 'Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).',
-    punkty: [
-      '<b>Siatka</b>: linie co zadany krok w mm, liczone od rogu strony. <b>Przyciągaj do siatki</b> sprawia, że lewy górny róg przesuwanego elementu staje na linii siatki.',
-      '<b>Linijki</b> pokazują milimetry; zero leży w rogu strony, na której pracujesz.',
-      '<b>Prowadnica</b>: przeciągnij z górnej linijki w dół (pozioma) albo z lewej w prawo (pionowa). Prowadnicę można przesunąć; wyciągnięta poza stronę znika. Prowadnice zapisują się razem ze stroną.',
-      '<b>Prowadnica liczbą</b>: we właściwościach strony (nic nie zaznaczone) jest część <b>Prowadnice</b> – lista z położeniem każdej w mm, przyciski dodania pionowej i poziomej oraz usuwanie. Tak ustawisz prowadnicę dokładnie, także na telefonie, gdzie linijek nie ma.',
-      'Elementy przyciągają się do prowadnic, marginesów, krawędzi i środka strony – przy przesuwaniu i przy zmianie rozmiaru uchwytem.',
-      'Przytrzymaj <kbd>Ctrl</kbd> przy przeciąganiu, żeby na chwilę wyłączyć przyciąganie.',
-      '<b>Zablokuj prowadnice</b> (w menu z kratką): zablokowanych prowadnic nie da się złapać ani przesunąć myszą – nie przesuniesz ich przypadkiem, celując w element. Liczbą we właściwościach strony nadal je ustawisz.',
-      'Dodanie, przesunięcie i usunięcie prowadnicy cofniesz <kbd>Ctrl</kbd>+<kbd>Z</kbd>, jak każdą inną zmianę.',
-      'Siatka i prowadnice nie są drukowane. Klawisz <kbd>W</kbd> chowa wszystkie linie pomocnicze.',
-    ],
-  },
-  {
-    tytul: 'Odległości i równe odstępy',
-    wstep: 'Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – tak jak inteligentne linie pomocnicze w programach Adobe.',
-    obraz: 'odleglosci.png',
-    podpis: 'Trzeci kwadrat w równym odstępie od drugiego: oba odstępy mają tę samą liczbę na fioletowym tle.',
-    punkty: [
-      '<b>Różowa linia</b> pojawia się, gdy krawędź albo środek elementu zrównuje się z innym elementem. Element sam „wskakuje” na tę linię.',
-      '<b>Strzałki z liczbą</b> pokazują odległość w mm do najbliższego elementu z lewej, prawej, z góry i z dołu. Gdy naprzeciwko nie ma sąsiada, mierzony jest najbliższy element po skosie – cienka linia przedłuża wtedy jego krawędź. Do takiego sąsiada widać też <b>odległość w linii prostej</b> (po przekątnej): przerywany odcinek z liczbą łączy najbliższe sobie punkty obu elementów – zwykle narożniki, a przy elemencie obróconym także punkt na jego boku. Obrócony element liczy się swoim prawdziwym kształtem, nie prostokątem dookoła.',
-      '<b>Równe odstępy</b>: gdy odstęp od sąsiada jest taki sam jak inny odstęp w tym rzędzie (albo element stoi dokładnie na środku między sąsiadami), obie strzałki dostają fioletową etykietę.',
-      'Przytrzymaj <kbd>Alt</kbd> przy zaznaczonym elemencie, żeby zobaczyć jego odległości także do krawędzi strony.',
-      'Przyciąganie do elementów wyłączysz w menu z kratką.',
-    ],
-  },
-  {
-    tytul: 'Warstwy',
-    wstep: 'Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.',
-    obraz: 'warstwy.png',
-    podpis: 'Lista warstw: uchwyt ⋮⋮ do przeciągania, oko ukrywa element, kłódka go blokuje, ⋯ zmienia kolejność.',
-    punkty: [
-      'Kliknięcie nazwy zaznacza element – przydatne, gdy leży pod innym i trudno w niego trafić.',
-      'Kolejność zmienisz, przeciągając wiersz za <b>uchwyt ⋮⋮</b> z lewej – myszą albo palcem. Menu <b>⋯</b> na końcu wiersza ma <b>Na wierzch</b>, <b>Wyżej</b>, <b>Niżej</b>, <b>Na spód</b> i <b>Zmień nazwę</b>.',
-      '<b>Oko</b> ukrywa element. Ukryty element zostaje w projekcie, ale nie jest drukowany.',
-      '<b>Kłódka</b> blokuje położenie i rozmiar.',
-      'Podwójne kliknięcie nazwy pozwala ją zmienić.',
-      'Na dole i na górze listy widać <b>elementy wzorców</b> tej strony (pod treścią i nad treścią), z nazwą wzorca. Nie zmienisz ich tutaj – kliknięcie otwiera wzorzec do edycji.',
-      'Zgrupowane elementy są na liście jednym wierszem „Grupa”. Trójkąt przy grupie <b>rozwija jej zawartość</b>: pod spodem widać elementy grupy, każdy z własnym okiem (ukrywa tylko ten element) i nazwą, którą zmienisz podwójnym kliknięciem. <b>Kliknięcie elementu grupy otwiera grupę i zaznacza ten element</b> – zmienisz go bez rozgrupowywania (grupa jest wtedy oznaczona na liście pomarańczowym paskiem); kliknięcie innego wiersza listy ją zamyka.',
-      '<b>Tabelę też rozwiniesz</b> trójkątem: pod nią stoją jej komórki wierszami – numer „wiersz.kolumna” i początek treści. Kliknięcie komórki na liście <b>zaczyna w niej pisanie</b>, tak jak podwójne kliknięcie na stronie; przydaje się w gęstej tabeli i przy małych komórkach. Komórki nie mają własnego oka ani kłódki – ukrywa się i blokuje całą tabelę.',
-    ],
-  },
-  {
-    tytul: 'Tablet, telefon i instalacja',
-    wstep: 'Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można ją też zainstalować jak zwykły program.',
-    obraz: 'telefon.png',
-    podpis: 'Telefon trzymany pionowo: zaznaczony element nad panelem właściwości, u góry panelu uchwyt.',
-    obrazWaski: true,
-    obraz2: 'telefon-zaslonka.png',
-    podpis2: 'Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.',
-    obraz2Waski: true,
-    punkty: [
-      '<b>Jeden palec</b> – zaznaczanie i przesuwanie elementów. <b>Dwa palce</b> – przesuwanie widoku i powiększanie.',
-      'W <b>Podglądzie</b> i w <b>prezentacji</b> też działają palce: szczypanie powiększa, podwójne stuknięcie powiększa albo dopasowuje, a w prezentacji przesunięcie w bok przewraca stronę, w dół – zamyka.',
-      '<b>Na telefonie edytor działa w pionie.</b> Panele <b>Strony</b>, <b>Właściwości</b>, <b>Warstwy</b> i <b>Ostrzeżenia</b> otwierasz przyciskami na dole ekranu; panel wysuwa się z dołu na niecałą połowę ekranu i ma stałą wysokość, więc nie skacze, gdy przeglądarka chowa pasek adresu. Widok sam przesuwa się tak, żeby zaznaczony element był widoczny nad panelem, a po zamknięciu panelu wraca na miejsce.',
-      '<b>Uchwyt</b> (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel prawie na cały ekran, w dół – żeby go zmniejszyć albo zamknąć; stuknięcie przełącza wysokość. Panel zamyka też ponowne stuknięcie jego przycisku na dole ekranu – krzyżyka nie ma.',
-      '<b>Okna jako zasłonki.</b> Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu, potwierdzenia i inne) nie stoją na środku, tylko wysuwają się od dołu ekranu – na telefonie na całą szerokość, na tablecie szeroko, ale nie od krawędzi do krawędzi. Zamiast krzyżyka u góry jest <b>uchwyt</b> (kreska): pociągnij go w dół albo stuknij, żeby zamknąć. Zamyka też stuknięcie w przyciemnione tło nad zasłonką. Zamknięcie działa tak samo jak dawny krzyżyk – np. okno Dane zapisuje zmiany, a potwierdzenie odpowiada „nie”. Na telefonie zasłonka nie ma przycisku <b>Anuluj</b> – zamykasz ją uchwytem, stuknięciem w tło albo Esc, a główny przycisk (np. <b>Zapisz</b>) jest na całą szerokość; pytania („Usunąć…?”) dalej mają <b>Anuluj</b>. Przyciski na dole zasłonki stoją w miejscu, gdy przewijasz jej treść. Na komputerze okna zostają zwykłymi oknami z krzyżykiem.',
-      'Na urządzeniu dotykowym przyciski, pola i przełączniki są trochę większe – łatwiej trafić w nie palcem.',
-      'Na wąskim ekranie górny pasek zostawia miejsce na nazwę projektu: <b>Wzorce</b>, <b>Dane</b> i <b>Instrukcja</b> są w menu <b>⋯</b>. Ucięta nazwa pokazuje się w całości po stuknięciu w nią.',
-      'We właściwościach obrazu na samej górze są przyciski <b>Podmień zdjęcie</b> (nowe zdjęcie z galerii albo z obrazów projektu, w tej samej ramce i miejscu) i <b>Obrazy projektu…</b>.',
-      '<b>Układ dopasowuje się do urządzenia.</b> Aplikacja rozpoznaje telefon, tablet i komputer oraz to, czy trzymasz urządzenie pionowo, czy poziomo, i dla każdego z tych trybów ma osobny układ: na telefonie wszystko w pionie, z panelami i oknami od dołu i większymi przyciskami; na tablecie w pionie – jak na telefonie, ale szerzej; na tablecie poziomo i na komputerze – panele po bokach strony. Logowanie i formularze w niskim oknie (telefon poziomo, otwarta klawiatura) dają się przewinąć do samej góry, nic nie ucieka poza ekran.',
-      'Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” – pasek adresu i panele nie zostawiają wtedy miejsca na stronę. To samo zobaczysz na komputerze w bardzo niskim oknie (poniżej 480 px). Lista projektów, logowanie i udostępniony podgląd działają w obu ułożeniach.',
-      '<b>Dwa szybkie stuknięcia</b> działają jak podwójne kliknięcie: zaczynają pisanie w komórce tabeli, otwierają grupę, zaczynają edycję punktów kształtu. <b>Tabela</b> i <b>pióro</b> są na pasku wstawiania także na telefonie: piórem stawiasz punkty stuknięciami, a kształt kończysz przyciskiem <b>Zakończ kształt</b> we właściwościach (albo stuknięciem w pierwszy punkt – wtedy kształt jest zamknięty). Punkty kształtu przeciągasz palcem po stuknięciu <b>Edytuj punkty</b> – przed przeciąganiem zamknij panel właściwości, żeby nie zasłaniał strony.',
-      'Na małym ekranie schowane są narzędzia, którymi trudno sterować palcem: wielokąt, kadrowanie ramką i linijki. Prowadnice wpisujesz liczbą, a obraz przytniesz liczbami we właściwościach. Gdy pasek wstawiania nie zmieści się na bardzo wąskim ekranie, przewija się w bok, a jego wygaszony brzeg pokazuje, że dalej są kolejne przyciski.',
-      '<b>Pełny ekran</b>: przycisk z czterema narożnikami na liście projektów, w edytorze i w podglądzie (na telefonie – w menu ⋯) chowa paski przeglądarki; <kbd>Esc</kbd> albo ten sam przycisk wraca. Na iPhonie przeglądarka nie pozwala stronie na pełny ekran – tam daje go zainstalowanie aplikacji.',
-      '<b>Instalacja na Androidzie</b> (Chrome): menu ⋮ → <b>Zainstaluj aplikację</b> / <b>Dodaj do ekranu głównego</b>. Zainstalowana aplikacja nie ma paska adresu, więc na stronę zostaje więcej miejsca.',
-      '<b>Instalacja na Macu</b> (Chrome lub Edge): ikona instalacji w pasku adresu. W Safari: Plik → <b>Dodaj do Docka</b>.',
-      'Zainstalowana aplikacja na komputerze otwiera pliki <code>.makietka</code> dwuklikiem.',
-    ],
-  },
-  {
-    tytul: 'Zapis, pliki i kilka urządzeń',
-    wstep: 'Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na koncie.',
-    obraz: 'menu.png',
-    podpis: 'Menu projektu na liście projektów.',
-    punkty: [
-      'Stan zapisu widać obok nazwy projektu: <b>Zapisano</b>, <b>Zapisywanie…</b> albo <b>Offline</b> – wtedy zmiany czekają na urządzeniu.',
-      '<b>Dłuższe czynności</b> – otwieranie dużego projektu, pobieranie i wysyłanie obrazów, wgrywanie zdjęć albo archiwum ZIP, miniatury w oknie <b>Obrazy projektu</b>, porządkowanie obrazów, wczytywanie pliku, eksport do PDF – pokazują u góry ekranu kartę z paskiem postępu i licznikiem (np. „12 z 48”). Karta nie blokuje pracy; przy eksporcie do PDF ma też <b>Anuluj</b>.',
-      '<b>Zmiany na żywo.</b> Gdy ten sam projekt masz otwarty na dwóch urządzeniach (albo w dwóch kartach), zmiana zapisana na jednym pojawia się na drugim po chwili – bez odświeżania strony. Jeśli akurat piszesz, przeciągasz element albo masz otwarte okno, aplikacja poczeka, aż skończysz, i wróci kursorem w to samo miejsce. Zmiana strony, której nie masz na ekranie, w ogóle nie rusza tego, nad czym pracujesz – odświeża się tylko jej miniatura. Lista projektów też aktualizuje się sama.',
-      'Gdy połączenie na żywo nie działa (np. w sieci firmowej), aplikacja sprawdza konto sama: po powrocie do karty, po odzyskaniu internetu i co pół minuty.',
-      '<b>Praca na dwóch urządzeniach.</b> Jeśli ten sam projekt zmieniono w międzyczasie gdzie indziej, aplikacja nic nie nadpisze, tylko <b>połączy zmiany</b>: strony, wzorce, tabele danych, sekcje, serie i style zmienione tylko w jednym miejscu zostają z obu urządzeń, bez pytania. Zobaczysz komunikat „Połączono zmiany z innego urządzenia”.',
-      'Na tej samej stronie (i w tym samym wzorcu) zmiany łączą się <b>element po elemencie</b>: gdy na jednym urządzeniu przesuniesz zdjęcie, a na drugim poprawisz tytuł, zostaną obie zmiany. Pytanie pojawia się tylko wtedy, gdy <b>ten sam element</b> (albo to samo ustawienie strony, np. tło czy nazwę, albo tę samą tabelę danych, styl…) zmieniono w obu miejscach. Okno wymienia wyłącznie takie rzeczy i przy każdej pozwala wybrać: <b>z tego urządzenia</b> albo <b>z konta</b>. Tekst płynący przez kilka połączonych ramek jest jedną całością: pytanie dotyczy całego tekstu, a wybrana wersja obejmuje wszystkie jego ramki.',
-      'Po połączeniu <b>Cofnij</b> działa dalej: cofa tylko to, co zrobiono na tym urządzeniu. Zmiany, które przyszły z innego urządzenia, zostają przy każdym kroku wstecz i do przodu.',
-      'Wyjątek: gdy projekt wczytasz z pliku <code>.makietka</code> w miejsce istniejącego, a na koncie jest już inna wersja, aplikacja nie ma z czym porównać zmian i pyta o cały projekt: zachować wersję z tego urządzenia czy wczytać wersję z konta.',
-      '<b>Cofnij</b> i <b>Ponów</b> (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) obejmują cały projekt: zmiany na stronach i wzorcach, dodawanie i usuwanie stron, sekcje, style, dane i serie. Po cofnięciu edytor otwiera stronę, której dotyczyła zmiana. Historia sięga 80 kroków wstecz i jest zapisywana na urządzeniu: po zamknięciu projektu (albo przeglądarki) i ponownym otwarciu na tym samym urządzeniu <b>Cofnij</b> działa dalej. Zmiany z innego urządzenia, które dojdą w tym czasie, zostają – cofanie zdejmuje tylko to, co zrobiono tutaj. Gdy historii nie da się do nich dopasować, zaczyna się od nowa (aplikacja o tym mówi). Zmiany zrobione w jednym otwarciu okna <b>Dane</b> to jeden krok. Historia znika, gdy usuniesz projekt albo wczytasz w jego miejsce plik <code>.makietka</code>.',
-      'Na konto wysyłane są tylko te strony, które się zmieniły – duży projekt zapisuje się tak samo szybko jak mały.',
-      '<b>Zdjęcia nie obciążają pamięci.</b> Oryginał każdego obrazu leży w osobnym magazynie przeglądarki (na dysku), a w edytorze pracuje lżejsza kopia. Projekt z setkami zdjęć otwiera się i zapisuje tak jak mały; po oryginał aplikacja sięga dopiero przy eksporcie do PDF, PNG albo do pliku projektu. Na drugim urządzeniu obrazy pobierają się z konta raz, przy pierwszym otwarciu projektu.',
-      '<b>Eksport</b> zapisuje cały projekt do pliku <code>.makietka</code> (kopia zapasowa), <b>Importuj</b> wczytuje go z powrotem, <b>Duplikuj</b> tworzy kopię projektu, np. na kolejny rok.',
-      'W edytorze menu <b>⋯</b> eksportuje projekt do <b>PDF</b> (osobny rozdział) i pobiera bieżącą stronę jako obraz PNG w 300 dpi, ze spadem.',
-      'Czcionki i silnik edytora są częścią aplikacji, a przeglądarka zapamiętuje je po pierwszym uruchomieniu – kolejne starty nie czekają na sieć, a edytor działa także bez internetu. Wszystkie biblioteki (także do PDF, Excela i plików ZIP) są częścią aplikacji – nic nie jest pobierane z obcych serwerów. Te do PDF, Excela i ZIP przeglądarka wczytuje przy pierwszym użyciu i potem też działają bez sieci.',
-      'Lista projektów otwiera się szybko, bo nie wczytuje edytora – ten doczytuje się w tle. Jeśli otworzysz projekt, zanim skończy, przez chwilę zobaczysz „Wczytuję edytor…”.',
-      'Po wdrożeniu nowej wersji aplikacji, gdy masz otwarty projekt, na dole ekranu pojawi się <b>Jest nowa wersja aplikacji</b> z przyciskiem <b>Odśwież</b> – zmiany zapiszą się przed odświeżeniem. Bez otwartego projektu nowa wersja włącza się sama.',
-      'Każdy ekran ma własny adres – odświeżenie zostawia Cię w tym samym miejscu, a „Wstecz” w przeglądarce wraca do poprzedniego ekranu.',
-    ],
-  },
-  {
-    tytul: 'Skróty klawiszowe',
-    wstep: 'Skróty są takie jak w programach do składu i grafiki. <kbd>Ctrl</kbd> na Macu to <kbd>⌘</kbd>. Tę listę otwiera klawisz <kbd>?</kbd>.',
-    html: tabelaSkrotow,
-    rada: 'Skróty z literami działają, gdy kursor nie stoi w polu formularza. W trakcie pisania tekstu na stronie działają skróty z grupy „Tekst”.',
-  },
-];
-
-// Grupy spisu treści (decyzja #104) i miejsca rozdziałów „krok po kroku” z js/instrukcja-przewodnik.js.
-const KOLEJNOSC_GRUP = ['Na początek', 'Edytor', 'Strony i układ', 'Dane i serie', 'Obrazy', 'Druk i podgląd', 'AI i współpraca', 'Urządzenia i zapis', 'Na koniec'];
-const GRUPY = {
-  'Na początek': 'Na początek', 'Konto: logowanie i rejestracja': 'Na początek', 'Ustawienia konta': 'Na początek', 'Jasny i ciemny motyw': 'Na początek', 'Nowy projekt': 'Na początek',
-  'Edytor – przegląd': 'Edytor', 'Wstawianie elementów': 'Edytor', 'Tekst i style': 'Edytor', Czcionki: 'Edytor', 'Położenie, wyrównanie, schowek': 'Edytor',
-  'Linie i ostrzeżenia': 'Edytor', 'Siatka, linijki i prowadnice': 'Edytor', 'Odległości i równe odstępy': 'Edytor', Warstwy: 'Edytor', 'Kolumny i przelewanie tekstu': 'Edytor', Tabela: 'Edytor',
-  Strony: 'Strony i układ', Sekcje: 'Strony i układ', Rozkładówki: 'Strony i układ', Wzorce: 'Strony i układ',
-  'Dane: tabele': 'Dane i serie', 'Pola w tekście': 'Dane i serie', 'Serie: powielanie stron': 'Dane i serie', 'Kolor i położenie z danych': 'Dane i serie', 'Ramka tekstu i obrazy z danych': 'Dane i serie',
-  'Obrazy projektu': 'Obrazy',
-  'Eksport do PDF': 'Druk i podgląd', 'Sprawdź przed drukiem': 'Druk i podgląd', Podgląd: 'Druk i podgląd', 'Udostępnianie linkiem': 'Druk i podgląd',
-  Współpraca: 'AI i współpraca', 'Praca z AI': 'AI i współpraca',
-  'Tablet, telefon i instalacja': 'Urządzenia i zapis', 'Zapis, pliki i kilka urządzeń': 'Urządzenia i zapis', 'Skróty klawiszowe': 'Urządzenia i zapis',
-};
-const PO = {
-  'Na początek': ROZDZIALY_START,
-  'Edytor – przegląd': [ROZDZIAL_NARZEDZIA],
-  'Położenie, wyrównanie, schowek': [ROZDZIAL_PANEL],
-  'Ramka tekstu i obrazy z danych': [ROZDZIAL_DANE_PRZYKLADY],
-  'Praca z AI': [ROZDZIAL_AI_START, ROZDZIAL_KOMIKS],
-};
-function zlozRozdzialy() {
-  const lista = [];
-  for (const r of PODSTAWOWE) {
-    lista.push({ grupa: GRUPY[r.tytul] || 'Na koniec', ...r });
-    for (const d of PO[r.tytul] || []) lista.push(d);
-  }
-  lista.push(ROZDZIAL_SLOWNICZEK);
-  const g = (r) => Math.max(0, KOLEJNOSC_GRUP.indexOf(r.grupa));
-  return lista.map((r, i) => [r, i]).sort((a, b) => g(a[0]) - g(b[0]) || a[1] - b[1]).map(([r]) => r);
-}
-export const ROZDZIALY = zlozRozdzialy();
-
-// Tekst rozdziału bez znaczników – do wyszukiwania w spisie.
-const naTekst = (h) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ');
-export function tekstRozdzialu(r) {
-  const czesci = [r.tytul, r.wstep, r.podpis, ...(r.punkty || []), ...(r.kroki || []), r.rada,
-    ...(r.sekcje || []).flatMap((x) => [x.tytul, x.tekst, ...(x.punkty || []), ...(x.kroki || [])]),
-    ...(r.ramki || []).map((x) => x.tekst), ...(r.prompty || []).flatMap((x) => [x.tytul, x.opis])];
-  return naTekst(czesci.filter(Boolean).join(' ')).toLowerCase();
-}
-
-// Treść rozdziału (bez obrazów i nagłówka) – wspólna dla okna; scripts/instrukcja-md.cjs ma swoją wersję w Markdown.
-const escHtml = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-function htmlDodatkow(r) {
-  const h = [];
-  if (r.kroki?.length) h.push(`<ol class="punkty kroki">${r.kroki.map((p) => `<li>${p}</li>`).join('')}</ol>`);
-  for (const x of r.sekcje || []) {
-    h.push(`<h4 class="sekcja-instrukcji">${x.tytul}</h4>`);
-    if (x.tekst) h.push(`<p class="akapit">${x.tekst}</p>`);
-    if (x.kroki?.length) h.push(`<ol class="punkty kroki">${x.kroki.map((p) => `<li>${p}</li>`).join('')}</ol>`);
-    if (x.punkty?.length) h.push(`<ul class="punkty">${x.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
-  }
-  for (const x of r.ramki || []) h.push(`<p class="ramka-instrukcji ${x.rodzaj}"><b>${x.rodzaj === 'uwaga' ? 'Uwaga' : 'Wskazówka'}.</b> ${x.tekst}</p>`);
-  (r.prompty || []).forEach((x, i) => {
-    h.push(`<div class="prompt-instrukcji"><div class="prompt-naglowek"><b>${x.tytul}</b><button type="button" class="przycisk" data-kopiuj-prompt="${i}" data-ikona="kopiuj">Kopiuj</button></div>`
-      + `${x.opis ? `<p class="ciche">${x.opis}</p>` : ''}<pre>${escHtml(x.tekst)}</pre></div>`);
-  });
-  if (r.zobacz?.length) h.push(`<p class="zobacz-instrukcji">Zobacz też: ${r.zobacz.map((t) => `<a href="#" data-rozdzial="${t}">${t}</a>`).join(' · ')}</p>`);
-  return h.join('');
+  return grupy.map((g) => `<h4>${g.nazwa}</h4><div class="tabela-instrukcji"><table class="skroty"><tbody>${g.wiersze.join('')}</tbody></table></div>`).join('');
 }
 
 async function kopiujTekst(tekst) {
@@ -743,138 +49,233 @@ async function kopiujTekst(tekst) {
   return ok;
 }
 
+const idSekcji = (id) => `s-${String(id).replace(/\./g, '-')}`;
+const rozdzialNr = (nr) => ROZDZIALY.findIndex((r) => r.nr === String(nr));
+
 export class Instrukcja {
   constructor() {
     this.dlg = document.getElementById('dlg-instrukcja');
-    // Zmiana motywu przy otwartej instrukcji podmienia zrzuty na pasujące.
-    document.addEventListener('motyw', () => { if (this.dlg?.open && this.indeks >= 0) this.pokaz(this.indeks); });
+    this.uklad = this.dlg.querySelector('.instrukcja');
     this.spis = document.getElementById('instrukcja-rozdzialy');
     this.tresc = document.getElementById('instrukcja-tresc');
     this.numer = document.getElementById('instrukcja-numer');
     this.wstecz = document.getElementById('instrukcja-wstecz');
     this.dalej = document.getElementById('instrukcja-dalej');
-    this.indeks = 0;
-
-    this.teksty = ROZDZIALY.map(tekstRozdzialu);
-    let grupa = null;
-    ROZDZIALY.forEach((r, i) => {
-      if (r.grupa !== grupa) {
-        grupa = r.grupa;
-        const g = document.createElement('li');
-        g.className = 'grupa-spisu';
-        g.dataset.grupa = grupa;
-        g.textContent = grupa;
-        this.spis.append(g);
-      }
-      const li = document.createElement('li');
-      li.dataset.i = i;
-      li.dataset.grupa = grupa;
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.i = i;
-      b.innerHTML = `<small>${i + 1}</small><span></span>`;
-      b.querySelector('span').textContent = r.tytul;
-      b.addEventListener('click', () => this.pokaz(i));
-      li.append(b);
-      this.spis.append(li);
-    });
-    // Wyszukiwarka nad spisem: zostają rozdziały, w których są wszystkie wpisane słowa.
+    this.wybor = document.getElementById('instrukcja-wybor');
     this.szukaj = document.getElementById('instrukcja-szukaj');
+    this.indeks = -1; // -1 = strona główna instrukcji
+    this.teksty = ROZDZIALY.map((r) => r.sekcje.map((s) => naTekst(`${r.tytul} ${s.tytul} ${s.html}`)));
+
+    this.zbudujSpis();
+    // Zmiana motywu przy otwartej instrukcji podmienia zrzuty na pasujące.
+    document.addEventListener('motyw', () => { if (this.dlg?.open) this.pokaz(this.indeks, { przewin: false }); });
     this.szukaj?.addEventListener('input', () => this.filtruj(this.szukaj.value));
-    // Linki do innych rozdziałów i kopiowanie poleceń dla AI.
-    this.tresc.addEventListener('click', async (e) => {
-      const link = e.target.closest('[data-rozdzial]');
-      if (link) { e.preventDefault(); this.otworzRozdzial(link.dataset.rozdzial); return; }
+    this.wybor?.addEventListener('click', () => this.przelaczSpis());
+    this.dlg.querySelector('[data-akcja="instrukcja-spis-zamknij"]')?.addEventListener('click', () => this.przelaczSpis(false));
+    this.dlg.querySelector('.instrukcja-tlo-spisu')?.addEventListener('click', () => this.przelaczSpis(false));
+
+    // Kliknięcia w spisie, okruszkach, na stronie głównej i w treści: rozdział, podrozdział, kopiowanie, powiększenie obrazu.
+    this.dlg.addEventListener('click', async (e) => {
+      const start = e.target.closest('[data-instrukcja-start]');
+      if (start) { e.preventDefault(); this.pokaz(-1); this.przelaczSpis(false); return; }
+      const cel = e.target.closest('[data-cel]');
+      if (cel) { e.preventDefault(); this.przejdz(cel.dataset.cel); this.przelaczSpis(false); return; }
+      const czesc = e.target.closest('[data-czesc-przelacz]');
+      if (czesc) { e.preventDefault(); this.przelaczCzesc(czesc.closest('li.czesc-spisu')); return; }
       const kop = e.target.closest('[data-kopiuj-prompt]');
       if (kop) {
-        const p = ROZDZIALY[this.indeks]?.prompty?.[Number(kop.dataset.kopiujPrompt)];
-        if (!p) return;
-        const ok = await kopiujTekst(p.tekst);
+        const ok = await kopiujTekst(kop.closest('.prompt-instrukcji').querySelector('pre').textContent);
         const tekst = kop.lastChild;
         const przed = tekst.textContent;
         tekst.textContent = ok ? 'Skopiowano' : 'Zaznacz i skopiuj ręcznie';
         setTimeout(() => { tekst.textContent = przed; }, 1800);
+        return;
       }
+      const obraz = e.target.closest('.instrukcja-tresc figure img');
+      if (obraz) { this.powieksz(obraz); return; }
+      if (e.target.closest('.instrukcja-lupa')) this.powieksz(null);
     });
     this.wstecz.addEventListener('click', () => this.pokaz(this.indeks - 1));
     this.dalej.addEventListener('click', () => {
       if (this.indeks < ROZDZIALY.length - 1) this.pokaz(this.indeks + 1);
-      else this.zamknij();
+      else this.pokaz(-1);
     });
-    this.dlg.addEventListener('close', () => this.oznaczPrzeczytana());
     this.dlg.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.uklad.classList.contains('spis-otwarty')) { e.preventDefault(); this.przelaczSpis(false); return; }
+      if (e.key === 'Escape' && this.dlg.querySelector('.instrukcja-lupa')) { e.preventDefault(); this.powieksz(null); return; }
       if (e.target.closest('input, textarea')) return;
-      if (e.key === 'ArrowRight') this.pokaz(this.indeks + 1);
-      if (e.key === 'ArrowLeft') this.pokaz(this.indeks - 1);
+      if (e.key === 'ArrowRight' && this.indeks < ROZDZIALY.length - 1) this.pokaz(this.indeks + 1);
+      if (e.key === 'ArrowLeft' && this.indeks >= 0) this.pokaz(this.indeks - 1);
+    });
+    this.dlg.addEventListener('close', () => {
+      this.przelaczSpis(false);
+      this.powieksz(null);
+      // Instrukcja otwarta z adresu #/instrukcja – po zamknięciu adres wraca na poprzedni.
+      if (/^#\/instrukcja/.test(location.hash)) history.replaceState(null, '', this.adresPrzed || '#/');
     });
   }
 
-  otworz(indeks = 0) {
+  // Spis: części (zwijane) z rozdziałami; rozdział otwarty pokazuje swoje podrozdziały.
+  zbudujSpis() {
+    const html = CZESCI.map((c) => `<li class="czesc-spisu" data-czesc="${c.nr}">`
+      + `<button type="button" class="czesc-przycisk" data-czesc-przelacz aria-expanded="false"><span data-ikona="${c.ikona}" data-rozmiar="16"></span><span class="tytul">${esc(c.tytul)}</span><span class="strzalka" data-ikona="dalej" data-rozmiar="14"></span></button>`
+      + `<ol class="rozdzialy-spisu">${c.rozdzialy.map((nr) => {
+        const i = rozdzialNr(nr);
+        const r = ROZDZIALY[i];
+        return `<li data-i="${i}"><button type="button" class="rozdzial-przycisk" data-cel="${nr}"><small>${nr}</small><span>${esc(r.tytul)}</span></button>`
+          + `<ol class="podrozdzialy-spisu">${r.sekcje.map((s) => `<li data-sekcja="${s.id}"><button type="button" data-cel="${s.id}"><small>${s.id}</small><span>${esc(s.tytul)}</span></button></li>`).join('')}</ol></li>`;
+      }).join('')}</ol></li>`).join('');
+    this.spis.innerHTML = html;
+    wstawIkony(this.spis);
+  }
+
+  przelaczCzesc(li, otworz = null) {
+    if (!li) return;
+    const tak = otworz ?? !li.classList.contains('otwarta');
+    li.classList.toggle('otwarta', tak);
+    li.querySelector('.czesc-przycisk').setAttribute('aria-expanded', String(tak));
+  }
+
+  // Spis jako zasłonka na wąskim ekranie.
+  przelaczSpis(otworz = null) {
+    const tak = otworz ?? !this.uklad.classList.contains('spis-otwarty');
+    this.uklad.classList.toggle('spis-otwarty', tak);
+    this.wybor?.setAttribute('aria-expanded', String(tak));
+    if (tak) this.przewinSpis(this.spis.querySelector('[aria-current="true"]'), true);
+  }
+
+  otworz(indeks = -1) {
     this.pokaz(indeks);
     if (!this.dlg.open) this.dlg.showModal();
-    this.tresc.focus();
+    this.tresc.focus({ preventScroll: true });
+  }
+
+  // Z adresu #/instrukcja – zapamiętuje adres sprzed, żeby po zamknięciu do niego wrócić.
+  otworzZAdresu(adresPrzed) {
+    this.adresPrzed = adresPrzed;
+    this.otworz(-1);
   }
 
   otworzRozdzial(tytul) {
     this.otworz(Math.max(0, ROZDZIALY.findIndex((r) => r.tytul === tytul)));
   }
 
+  // „7” – rozdział, „7.3” – podrozdział (strona rozdziału przewinięta do niego).
+  przejdz(cel) {
+    const [nr] = String(cel).split('.');
+    const i = rozdzialNr(nr);
+    if (i < 0) return;
+    if (!this.dlg.open) this.dlg.showModal();
+    this.pokaz(i, { sekcja: String(cel).includes('.') ? cel : null });
+  }
+
   filtruj(zapytanie) {
     const slowa = String(zapytanie || '').toLowerCase().split(/\s+/).filter(Boolean);
-    const widoczne = new Set();
-    this.spis.querySelectorAll('li[data-i]').forEach((li) => {
-      const tak = slowa.every((s) => this.teksty[Number(li.dataset.i)].includes(s));
-      li.hidden = !tak;
-      if (tak) widoczne.add(li.dataset.grupa);
+    this.uklad.classList.toggle('szukanie', slowa.length > 0);
+    this.spis.querySelectorAll('li.czesc-spisu').forEach((cz) => {
+      let jest = false;
+      cz.querySelectorAll(':scope > ol > li[data-i]').forEach((li) => {
+        const i = Number(li.dataset.i);
+        let trafione = 0;
+        li.querySelectorAll('li[data-sekcja]').forEach((p, j) => {
+          const tak = slowa.length > 0 && slowa.every((s) => this.teksty[i][j].includes(s));
+          p.hidden = slowa.length > 0 && !tak;
+          if (tak) trafione += 1;
+        });
+        const tytulTak = slowa.length > 0 && slowa.every((s) => ROZDZIALY[i].tytul.toLowerCase().includes(s));
+        if (tytulTak && !trafione) li.querySelectorAll('li[data-sekcja]').forEach((p) => { p.hidden = false; });
+        const widac = !slowa.length || trafione > 0 || tytulTak;
+        li.hidden = !widac;
+        li.classList.toggle('trafiony', slowa.length > 0 && trafione > 0);
+        if (widac) jest = true;
+      });
+      cz.hidden = !jest;
+      if (slowa.length) this.przelaczCzesc(cz, jest);
     });
-    this.spis.querySelectorAll('li.grupa-spisu').forEach((g) => { g.hidden = !widoczne.has(g.dataset.grupa); });
+    if (!slowa.length) this.zaznaczWSpisie();
+  }
+
+  zaznaczWSpisie() {
+    const r = ROZDZIALY[this.indeks];
+    this.spis.querySelectorAll('li[data-i]').forEach((li) => {
+      const tak = Number(li.dataset.i) === this.indeks;
+      li.classList.toggle('otwarty', tak);
+      li.querySelector('.rozdzial-przycisk').setAttribute('aria-current', String(tak));
+    });
+    if (this.uklad.classList.contains('szukanie')) return;
+    this.spis.querySelectorAll('li.czesc-spisu').forEach((cz) => this.przelaczCzesc(cz, Boolean(r) && cz.dataset.czesc === CZESCI.find((c) => c.rozdzialy.includes(r.nr))?.nr));
   }
 
   zamknij() {
-    this.oznaczPrzeczytana(); // od razu – zdarzenie „close” przychodzi z opóźnieniem
     this.dlg.close();
   }
 
-  pokaz(i) {
-    if (i < 0 || i >= ROZDZIALY.length) return;
+  powieksz(img) {
+    this.dlg.querySelector('.instrukcja-lupa')?.remove();
+    if (!img) return;
+    const lupa = document.createElement('div');
+    lupa.className = 'instrukcja-lupa';
+    lupa.setAttribute('role', 'button');
+    lupa.setAttribute('aria-label', 'Zamknij powiększenie');
+    lupa.innerHTML = `<img src="${img.getAttribute('src')}" alt="${esc(img.alt)}">`;
+    this.uklad.append(lupa);
+  }
+
+  stronaGlowna() {
+    return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1">Instrukcja Makietki</h1>`
+      + '<p class="instrukcja-lead">Makietka to edytor publikacji do druku: książek, kalendarzy, planerów, zaproszeń i innych dokumentów. '
+      + 'Ten podręcznik opisuje wszystkie funkcje aplikacji – co robią, gdzie je znaleźć i jakie mają ustawienia. Wybierz rozdział albo wpisz, czego szukasz.</p></header>'
+      + `<div class="instrukcja-czesci">${CZESCI.map((c) => `<section class="karta-czesci"><h2><span data-ikona="${c.ikona}" data-rozmiar="18"></span>Część ${c.nr}. ${esc(c.tytul)}</h2>`
+        + `<p class="ciche">${esc(c.opis)}</p><ol>${c.rozdzialy.map((nr) => `<li><a href="#" data-cel="${nr}"><small>${nr}</small>${esc(ROZDZIALY[rozdzialNr(nr)].tytul)}</a></li>`).join('')}</ol></section>`).join('')}</div>`;
+  }
+
+  stronaRozdzialu(r, i) {
+    const katalog = czyCiemny() ? 'img/instrukcja/ciemny/' : 'img/instrukcja/';
+    const html = r.sekcje.map((s) => `<section class="podrozdzial" id="${idSekcji(s.id)}" data-sekcja="${s.id}"><h2><small>${s.id}</small>${esc(s.tytul)}</h2>${s.html}</section>`).join('')
+      .replace(/src="img\/instrukcja\//g, `src="${katalog}`);
+    const sasiad = (j, rodzaj, podpis) => {
+      const x = ROZDZIALY[j];
+      return x ? `<a href="#" class="strona-obok ${rodzaj}" data-cel="${x.nr}"><span class="ciche">${podpis}</span><span>${x.nr}. ${esc(x.tytul)}</span></a>` : '<span></span>';
+    };
+    return `<header class="instrukcja-naglowek"><nav class="okruszki" aria-label="Jesteś tutaj"><a href="#" data-instrukcja-start>Instrukcja</a><span aria-hidden="true">›</span><span>Część ${CZESCI.find((c) => c.rozdzialy.includes(r.nr))?.nr}. ${esc(r.czesc)}</span></nav>`
+      + `<h1 class="instrukcja-h1"><small>${r.nr}.</small> ${esc(r.tytul)}</h1>`
+      + (r.sekcje.length > 1 ? `<nav class="w-rozdziale" aria-label="W tym rozdziale"><span class="ciche">W tym rozdziale</span><ol>${r.sekcje.map((s) => `<li><a href="#" data-cel="${s.id}"><small>${s.id}</small>${esc(s.tytul)}</a></li>`).join('')}</ol></nav>` : '')
+      + `</header><div class="instrukcja-dokument">${html}</div>`
+      + `<nav class="strony-obok">${sasiad(i - 1, 'poprzedni', 'Poprzedni')}${sasiad(i + 1, 'nastepny', 'Następny')}</nav>`;
+  }
+
+  pokaz(i, { sekcja = null, przewin = true } = {}) {
+    if (i < -1 || i >= ROZDZIALY.length) return;
+    const gora = this.tresc.scrollTop;
     this.indeks = i;
     const r = ROZDZIALY[i];
-    this.spis.querySelectorAll('button[data-i]').forEach((b) => b.setAttribute('aria-current', String(Number(b.dataset.i) === i)));
-    this.spis.querySelector(`li[data-i="${i}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-
-    const html = [`<p class="grupa-rozdzialu">${r.grupa}</p>`, `<h3>${r.tytul}</h3>`, `<p class="wstep">${r.wstep}</p>`];
-    // Zrzuty są w dwóch kompletach: jasnym i ciemnym – instrukcja pokazuje ten, który pasuje do motywu.
-    const katalog = czyCiemny() ? 'img/instrukcja/ciemny/' : 'img/instrukcja/';
-    if (r.obraz) {
-      html.push(`<figure><img src="${katalog}${r.obraz}" alt="${r.podpis || ''}" loading="lazy"${r.obrazWaski ? ' style="max-width:320px"' : ''}>`
-        + `${r.podpis ? `<figcaption>${r.podpis}</figcaption>` : ''}</figure>`);
-    }
-    if (r.punkty?.length) html.push(`<ul class="punkty">${r.punkty.map((p) => `<li>${p}</li>`).join('')}</ul>`);
-    // Drugi obrazek rozdziału – pod punktami.
-    if (r.obraz2) html.push(`<figure><img src="${katalog}${r.obraz2}" alt="${r.podpis2 || ''}" loading="lazy"${r.obraz2Waski ? ' style="max-width:320px"' : ''}>${r.podpis2 ? `<figcaption>${r.podpis2}</figcaption>` : ''}</figure>`);
-    if (r.html) html.push(r.html());
-    html.push(htmlDodatkow(r));
-    if (r.rada) html.push(`<p class="rada">${r.rada}</p>`);
-    this.tresc.innerHTML = html.join('');
-    this.tresc.scrollTop = 0;
-
-    this.numer.textContent = `${i + 1} / ${ROZDZIALY.length}`;
-    this.wstecz.disabled = i === 0;
-    this.dalej.textContent = i === ROZDZIALY.length - 1 ? 'Zaczynamy' : 'Następny';
-    wstawIkony(this.dlg);
+    this.tresc.innerHTML = r ? this.stronaRozdzialu(r, i) : this.stronaGlowna();
+    this.tresc.querySelectorAll('[data-wstaw="pola"]').forEach((d) => { d.outerHTML = tabelaPol(); });
+    this.tresc.querySelectorAll('[data-wstaw="skroty"]').forEach((d) => { d.outerHTML = tabelaSkrotow(); });
+    wstawIkony(this.tresc);
+    this.zaznaczWSpisie();
+    // Bieżący rozdział na przycisku spisu (wąski ekran) i numer w stopce.
+    const tytul = this.wybor?.querySelector('.instrukcja-wybor-tytul');
+    if (tytul) tytul.textContent = r ? `${r.nr}. ${r.tytul}` : 'Spis treści';
+    const podpis = this.wybor?.querySelector('.instrukcja-wybor-czesc');
+    if (podpis) podpis.textContent = r ? r.czesc : 'Instrukcja';
+    this.numer.textContent = r ? `${i + 1} z ${ROZDZIALY.length}` : '';
+    this.wstecz.disabled = i < 0;
+    this.dalej.textContent = r ? (i === ROZDZIALY.length - 1 ? 'Spis treści' : 'Następny') : 'Zacznij czytać';
+    if (sekcja) {
+      const el = this.tresc.querySelector(`#${idSekcji(sekcja)}`);
+      if (el) { this.tresc.scrollTop = el.offsetTop - 8; el.classList.add('wskazany'); setTimeout(() => el.classList.remove('wskazany'), 1600); }
+    } else this.tresc.scrollTop = przewin ? 0 : gora;
+    this.przewinSpis(this.spis.querySelector(`li[data-i="${i}"]`));
   }
 
-  // Pokazywana automatycznie tylko raz na konto (w tej przeglądarce).
-  czyPrzeczytana(kto) {
-    try { return localStorage.getItem(`${KLUCZ_PRZECZYTANA}:${kto}`) === '1'; } catch { return true; }
-  }
-
-  oznaczPrzeczytana() {
-    try { localStorage.setItem(`${KLUCZ_PRZECZYTANA}:${this.kto}`, '1'); } catch { /* tryb prywatny */ }
-  }
-
-  otworzJesliNowa(kto) {
-    this.kto = kto;
-    if (!this.czyPrzeczytana(kto)) this.otworz(0);
+  // Przewija tylko spis (scrollIntoView przesunąłby też okno, gdy spis jest schowaną zasłonką).
+  przewinSpis(el, naSrodek = false) {
+    if (!el) return;
+    const s = this.spis.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (naSrodek) this.spis.scrollTop += r.top - s.top - s.height / 2 + r.height / 2;
+    else if (r.top < s.top) this.spis.scrollTop += r.top - s.top - 8;
+    else if (r.bottom > s.bottom) this.spis.scrollTop += Math.min(r.bottom - s.bottom + 8, r.top - s.top - 8);
   }
 }

@@ -17,8 +17,7 @@ async function zaloguj(strona, konto) {
   await strona.fill('#form-logowania input[name=email]', konto.email);
   await strona.fill('#form-logowania input[name=haslo]', konto.haslo);
   await strona.click('#przycisk-logowania');
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await zamknijOkno(strona, '#dlg-instrukcja');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
 }
 
 async function projektAnny(t) {

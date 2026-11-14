@@ -1,6 +1,6 @@
 # Makietka
 
-Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy): projektujesz wzory stron, aplikacja podstawia do nich dane z arkusza i składa PDF do druku.
+Webowy edytor publikacji do druku – książek, kalendarzy, planerów, zaproszeń i innych dokumentów: sekcje, rozkładówki, wzorce stron i style tekstu, a gdy trzeba – strony powielane z danych z arkusza. Na koniec PDF dla drukarni.
 
 - Aplikacja: https://makietka.app/
 - Domena, przekaźnik API i poczta: [docs/KONFIGURACJA-DOMENY.md](docs/KONFIGURACJA-DOMENY.md) · marka i adresy w jednym miejscu: `js/marka.js` (teksty: `node scripts/marka.cjs`)
@@ -58,7 +58,7 @@ Testy używają atrapy Supabase (`tests/pomoc.cjs`) – nie łączą się z praw
 Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla AI (i wyszukiwarek) strona publikuje jej wersję tekstową oraz opis formatu pliku projektu:
 
 - `llms.txt` – spis dokumentów dla AI (https://makietka.app/llms.txt).
-- `ai/instrukcja.md` – instrukcja w Markdownie, generowana z `js/instrukcja.js`. Po każdej zmianie instrukcji: `node scripts/instrukcja-md.cjs` (test `tests/instrukcja-md.test.cjs` pada, gdy plik jest nieaktualny).
+- `docs/instrukcja/*.md` – źródło instrukcji (podręcznika) w Markdownie. `node scripts/instrukcja-buduj.cjs` buduje z niego treść dla aplikacji (`js/instrukcja-tresc.js`) i `ai/instrukcja.md`; test `tests/instrukcja-md.test.cjs` pada, gdy któryś plik jest nieaktualny.
 - `ai/format-makietka.md` – jak zbudować plik `.json` albo `.makietka`, który użytkownik wczyta przyciskiem Importuj, z gotowym poleceniem dla innego AI.
 - `ai/api.md` – dostęp dla AI do jednego projektu kluczem (okno „Dostęp dla AI” w edytorze): adres łącznika, dodanie go w Claude i ChatGPT, funkcje bazy `ai_projekt` i `ai_zapisz` (migracja `20261111200000_dostep_ai.sql`).
 - `cloudflare/` – przekaźnik `api.makietka.app` → baza (Cloudflare Worker, wdrażany integracją Git Cloudflare z `wrangler.jsonc`); skraca adres łącznika do `/mcp/<klucz>`; test `tests/worker.test.cjs`.

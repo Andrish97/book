@@ -32,6 +32,41 @@ async function zrzut(strona, nazwa, opcje = {}) {
   console.log('✓', nazwa);
 }
 
+// Kadr (decyzja #114): wycinek ekranu wokół wskazanych elementów, z pomarańczową obwódką wokół miejsca,
+// które się klika. obszar, zaznacz – selektory Playwright (pierwszy pasujący widoczny element).
+async function kadr(strona, nazwa, { obszar, zaznacz = [], margines = 16 }) {
+  const ramki = [];
+  for (const sel of [].concat(obszar)) {
+    const r = await strona.locator(sel).locator('visible=true').first().boundingBox();
+    if (!r) throw new Error(`kadr ${nazwa}: brak ${sel}`);
+    ramki.push(r);
+  }
+  const znaczniki = [];
+  for (const sel of [].concat(zaznacz)) {
+    const r = await strona.locator(sel).locator('visible=true').first().boundingBox();
+    if (!r) throw new Error(`kadr ${nazwa}: brak ${sel}`);
+    znaczniki.push(r);
+  }
+  await strona.evaluate((lista) => {
+    for (const r of lista) {
+      const d = document.createElement('div');
+      d.className = 'znacznik-kadru';
+      Object.assign(d.style, {
+        position: 'fixed', left: `${r.x - 4}px`, top: `${r.y - 4}px`, width: `${r.width + 8}px`, height: `${r.height + 8}px`,
+        border: '3px solid #ea580c', borderRadius: '10px', boxShadow: '0 0 0 4px rgba(234, 88, 12, .22)', zIndex: 2147483647, pointerEvents: 'none',
+      });
+      document.body.append(d);
+    }
+  }, znaczniki);
+  const v = strona.viewportSize();
+  const x0 = Math.max(0, Math.min(...ramki.map((r) => r.x)) - margines);
+  const y0 = Math.max(0, Math.min(...ramki.map((r) => r.y)) - margines);
+  const x1 = Math.min(v.width, Math.max(...ramki.map((r) => r.x + r.width)) + margines);
+  const y1 = Math.min(v.height, Math.max(...ramki.map((r) => r.y + r.height)) + margines);
+  await zrzut(strona, nazwa, { clip: { x: Math.round(x0), y: Math.round(y0), width: Math.round(x1 - x0), height: Math.round(y1 - y0) } });
+  await strona.evaluate(() => document.querySelectorAll('.znacznik-kadru').forEach((d) => d.remove()));
+}
+
 // Przykładowe projekty budowane przez API edytora.
 async function przykladoweProjekty(strona) {
   await strona.evaluate(() => window.seriodruk.doczytajEdytor()); // edytor wczytuje się dopiero po zalogowaniu, w tle
@@ -163,6 +198,7 @@ if (require.main === module) (async () => {
     await k.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
     await k.locator('.stopka-logowania').click();
     await zrzut(k, 'logowanie.png');
+    await kadr(k, 'k-zobacz-jak.png', { obszar: '.karta-logowania', zaznacz: '.zobacz-jak' });
 
     await k.click('#tryb-logowania label:has-text("Nowe konto")');
     await k.fill('#form-logowania input[name=nazwa]', 'jan.kowalski');
@@ -182,19 +218,20 @@ if (require.main === module) (async () => {
     await k.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');
     await k.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
     await k.click('#przycisk-logowania');
-    await k.waitForSelector('#dlg-instrukcja[open]');
-    await k.click('[data-akcja="zamknij-instrukcje"]');
+    await k.waitForFunction(() => document.body.dataset.ekran === 'projekty');
     await k.click('#awatar');
+    await kadr(k, 'k-menu-konta.png', { obszar: ['#menu-uzytkownika', '#awatar'], zaznacz: '#menu-uzytkownika [data-akcja="ustawienia-konta"]' });
     await k.click('[data-akcja="ustawienia-konta"]');
     await k.waitForFunction(() => document.body.dataset.ekran === 'konto');
     await k.click('.konto-lista [data-sekcja="logowanie"]:not([data-cel])');
     await k.click('[data-rozwin="form-email"]');
     await zrzut(k, 'konto.png');
     await k.click('[data-zwin="form-email"]');
+    await k.click('.konto-lista [data-sekcja="wyglad"]');
     await k.click('#wybor-motywu label:has-text("Ciemny")');
     await k.waitForTimeout(400);
-    await k.click('.konto-lista [data-sekcja="wyglad"]');
     await zrzut(k, 'motyw.png');
+    await kadr(k, 'k-konto-ai.png', { obszar: '.konto-lista', zaznacz: '.konto-lista [data-sekcja="ai"]' });
     await k.click('#wybor-motywu label:has-text("Jak w systemie")');
 
     // Udostępnianie podglądu linkiem
@@ -214,6 +251,7 @@ if (require.main === module) (async () => {
     await k.click('[data-akcja="strona-dodaj"]');
     await k.click('[data-akcja="podglad"]');
     await k.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+    await kadr(k, 'k-udostepnij.png', { obszar: ['.pasek-podgladu [data-akcja="podglad-prezentacja"]', '.pasek-podgladu .powiekszenie'], zaznacz: '.pasek-podgladu [data-akcja="udostepnij"]', margines: 12 });
     await k.click('[data-akcja="udostepnij"]');
     await k.click('#udostepnij-utworz');
     await k.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
@@ -235,6 +273,7 @@ if (require.main === module) (async () => {
   await s.waitForSelector('.karta-projektu:not(.szkielet)');
   await s.waitForTimeout(600);
   await zrzut(s, 'projekty.png');
+  await kadr(s, 'k-nowy-projekt.png', { obszar: '.projekty-naglowek', zaznacz: '.projekty-naglowek [data-akcja="nowy-projekt"]' });
 
   // Nowy projekt
   await s.click('.projekty-naglowek [data-akcja="nowy-projekt"]');
@@ -263,6 +302,22 @@ if (require.main === module) (async () => {
     void znacz; // numerki nie są już potrzebne – rozdział opisuje części edytora słowami
   });
   await zrzut(s, 'edytor.png');
+  await kadr(s, 'k-pasek-gorny.png', { obszar: '.pasek-edytora', margines: 0 });
+  await kadr(s, 'k-wstaw.png', { obszar: '#pasek-narzedzi', margines: 12 });
+  await kadr(s, 'k-widok.png', { obszar: '#kontrolki-widoku', margines: 12 });
+  const przyciskiPaska = ['.pasek-edytora [data-akcja="cofnij"]', '.pasek-edytora [data-akcja="podglad"]', '#przycisk-wiecej'];
+  await kadr(s, 'k-wzorce.png', { obszar: przyciskiPaska, zaznacz: '.pasek-edytora [data-akcja="wzorce"]', margines: 10 });
+  await kadr(s, 'k-dane.png', { obszar: przyciskiPaska, zaznacz: '.pasek-edytora [data-akcja="dane"]', margines: 10 });
+  await kadr(s, 'k-podglad.png', { obszar: przyciskiPaska, zaznacz: '.pasek-edytora [data-akcja="podglad"]', margines: 10 });
+  await s.click('#przycisk-wiecej');
+  await kadr(s, 'k-menu-wiecej.png', { obszar: ['#menu-wiecej', '#przycisk-wiecej'] });
+  await kadr(s, 'k-menu-pdf.png', { obszar: ['#menu-wiecej', '#przycisk-wiecej'], zaznacz: '#menu-wiecej [data-akcja="pdf"]' });
+  await kadr(s, 'k-menu-kontrola.png', { obszar: ['#menu-wiecej', '#przycisk-wiecej'], zaznacz: '#menu-wiecej [data-akcja="kontrola"]' });
+  await kadr(s, 'k-menu-wspolpraca.png', { obszar: ['#menu-wiecej', '#przycisk-wiecej'], zaznacz: '#menu-wiecej [data-akcja="wspolpraca"]' });
+  await s.keyboard.press('Escape');
+  await s.click('#przycisk-widok');
+  await kadr(s, 'k-menu-widoku.png', { obszar: ['#menu-widoku', '#kontrolki-widoku'] });
+  await s.keyboard.press('Escape');
   await s.evaluate(() => document.querySelectorAll('.znacznik-zrzutu').forEach((d) => d.remove()));
 
   // Wstawianie: zaznaczony tekst
@@ -373,7 +428,10 @@ if (require.main === module) (async () => {
   d.on('pageerror', (e) => console.error('błąd strony:', e.message));
   await d.goto(ADRES);
   await zaloguj(d, bazakp);
-  await d.click('[data-akcja="nowy-projekt"]:visible');
+  // Przycisk „Nowy projekt” na pustej liście (kliknięcie wprost – lista odświeża się w tle po zalogowaniu).
+  await d.waitForFunction(() => [...document.querySelectorAll('[data-akcja="nowy-projekt"]')].some((e) => e.offsetParent));
+  await d.evaluate(() => [...document.querySelectorAll('[data-akcja="nowy-projekt"]')].find((e) => e.offsetParent).click());
+  await d.waitForSelector('#dlg-nowy[open]');
   await d.fill('#form-nowy input[name=nazwa]', 'Planer dzienny');
   await d.click('#form-nowy button[value=ok]');
   await d.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.wydruk);
@@ -449,7 +507,10 @@ if (require.main === module) (async () => {
   await d.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.text?.startsWith('Imieniny')).id); });
   await d.waitForTimeout(700);
   await zrzut(d, 'pola.png');
+  await kadr(d, 'k-wstaw-pole.png', { obszar: '#panel-inspektor fieldset:has(select.wstaw-pole)', zaznacz: '#panel-inspektor label:has(select.wstaw-pole)', margines: 8 });
   await d.evaluate(() => window.seriodruk.edytor.odznacz());
+  await d.waitForTimeout(400);
+  await kadr(d, 'k-seria.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Seria"))', zaznacz: '#panel-inspektor fieldset:has(> legend:has-text("Seria")) label:has-text("Seria")', margines: 8 });
   await d.click('[data-akcja="dane"]');
   await d.waitForSelector('#dlg-dane[open]');
   await zrzut(d, 'dane.png');

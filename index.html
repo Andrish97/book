@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f4f3ef">
-  <meta name="description" content="Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.">
+  <meta name="description" content="Makietka – edytor publikacji do druku: książki, kalendarze, planery i zaproszenia. Sekcje, rozkładówki, wzorce, strony z danych i PDF dla drukarni.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Makietka">
   <meta name="mobile-web-app-capable" content="yes">
@@ -50,8 +50,8 @@
   <main class="ekran ekran-logowania" id="ekran-logowania">
     <section class="logowanie-bok" aria-hidden="true">
       <div class="marka"><span class="znak-logo">M</span> Makietka</div>
-      <h1>Strony z danych,<br>gotowe do druku.</h1>
-      <p>Edytor kalendarzy, planerów i notesów: sekcje, rozkładówki, wzorce stron i style tekstu w jednym miejscu.</p>
+      <h1>Makiety publikacji,<br>gotowe do druku.</h1>
+      <p>Edytor książek, kalendarzy, planerów i zaproszeń: sekcje, rozkładówki, wzorce stron i style tekstu – a gdy trzeba, strony powielane z danych.</p>
       <div class="podglad-stron">
         <div class="kartka k1"><span></span><span></span><span class="krotka"></span><span></span></div>
         <div class="kartka k2"><span></span><span class="krotka"></span><span></span><span></span></div>
@@ -108,6 +108,7 @@
           <button type="button" class="link" id="link-reset" data-tryb="reset">Nie pamiętasz hasła?</button>
           <button type="button" class="link" id="link-logowanie" data-tryb="logowanie" hidden>Wróć do logowania</button>
         </div>
+        <button type="button" class="zobacz-jak" data-akcja="instrukcja" data-ikona="ksiazka">Zobacz, jak to działa</button>
       </div>
 
       <div id="widok-wyslano" class="widok-wyslano" hidden>
@@ -124,7 +125,7 @@
         <p>W pliku <code>js/konfiguracja.js</code> brakuje adresu projektu Supabase. Aplikacja działa tylko z kontem, więc bez tej konfiguracji nie da się z niej korzystać.</p>
       </div>
       </div>
-      <footer class="stopka-logowania">Makietka · edytor kalendarzy, planerów i notesów · <button type="button" class="link-przycisk" data-akcja="kontakt">Kontakt</button></footer>
+      <footer class="stopka-logowania">Makietka · edytor publikacji do druku · <button type="button" class="link-przycisk" data-akcja="kontakt">Kontakt</button></footer>
     </section>
   </main>
 
@@ -499,17 +500,12 @@
       </div>
 
       <section class="pusto-projekty" id="pusto-projekty" hidden>
-        <h2>Zacznij od pierwszego projektu</h2>
-        <p class="ciche">Tak będzie wyglądać praca z Makietką:</p>
-        <ol class="kroki">
-          <li><span class="numer-kroku">1</span><div><strong>Format</strong><p>Wybierz rozmiar strony, spad i marginesy – np. A5 do kalendarza książkowego.</p></div></li>
-          <li><span class="numer-kroku">2</span><div><strong>Wzory stron</strong><p>Zaprojektuj każdą stronę osobno: teksty, kształty, zdjęcia.</p></div></li>
-          <li><span class="numer-kroku">3</span><div><strong>Dane</strong><p>Wczytaj arkusz (Excel albo CSV) – strony powielą się według wierszy, a pola w tekście wypełnią się danymi.</p></div></li>
-          <li><span class="numer-kroku">4</span><div><strong>PDF do druku</strong><p>Jeden plik ze spadem i znakami cięcia, z osadzonymi czcionkami – także PDF/X-4 w CMYK dla drukarni.</p></div></li>
-        </ol>
+        <h2>Nie masz jeszcze projektów</h2>
+        <p class="ciche">Projekt to jedna publikacja – książka, kalendarz, planer, zaproszenie. Utwórz pierwszy albo wczytaj projekt z pliku.</p>
         <div class="przyciski-naglowka">
           <button class="przycisk glowny" data-akcja="nowy-projekt" data-ikona="plus">Utwórz projekt</button>
           <button class="przycisk" data-akcja="importuj-projekt" data-ikona="wyslij">Importuj z pliku</button>
+          <button class="przycisk przezroczysty" data-akcja="instrukcja" data-ikona="ksiazka">Instrukcja</button>
         </div>
       </section>
 
@@ -1483,13 +1479,24 @@
     </form>
   </dialog>
 
-  <!-- Instrukcja (podręcznik ze zrzutami ekranu) -->
+  <!-- Instrukcja – podręcznik aplikacji (decyzja #114): części, rozdziały i podrozdziały (js/instrukcja.js) -->
   <dialog id="dlg-instrukcja" class="dialog-instrukcja" aria-labelledby="instrukcja-tytul">
     <div class="instrukcja">
-      <nav class="instrukcja-spis" aria-label="Rozdziały">
-        <h2 id="instrukcja-tytul">Instrukcja</h2>
+      <div class="instrukcja-pasek">
+        <button type="button" class="instrukcja-wybor" id="instrukcja-wybor" aria-expanded="false" aria-controls="instrukcja-spis">
+          <span data-ikona="strony" data-rozmiar="18"></span>
+          <span class="instrukcja-wybor-tekst"><small class="instrukcja-wybor-czesc">Instrukcja</small><span class="instrukcja-wybor-tytul">Spis treści</span></span>
+          <span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span>
+        </button>
+      </div>
+      <div class="instrukcja-tlo-spisu" aria-hidden="true"></div>
+      <nav class="instrukcja-spis" id="instrukcja-spis" aria-label="Spis treści">
+        <div class="instrukcja-spis-gora">
+          <h2 id="instrukcja-tytul"><a href="#" data-instrukcja-start>Instrukcja</a></h2>
+          <button type="button" class="przycisk-ikona instrukcja-spis-zamknij" data-akcja="instrukcja-spis-zamknij" data-ikona="zamknij" aria-label="Zamknij spis"></button>
+        </div>
         <label class="instrukcja-szukaj"><span data-ikona="szukaj" data-rozmiar="16"></span><input type="search" id="instrukcja-szukaj" placeholder="Szukaj w instrukcji" aria-label="Szukaj w instrukcji" autocomplete="off" spellcheck="false"></label>
-        <ol id="instrukcja-rozdzialy"></ol>
+        <ol id="instrukcja-rozdzialy" class="spis-czesci"></ol>
       </nav>
       <article class="instrukcja-tresc" id="instrukcja-tresc" tabindex="-1"></article>
       <div class="instrukcja-stopka">

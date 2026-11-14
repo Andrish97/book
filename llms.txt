@@ -1,6 +1,6 @@
 # Makietka
 
-> Makietka to edytor publikacji z powtarzanymi stronami (kalendarze, planery, notesy) działający w przeglądarce: wzory stron, dane z arkusza, serie powielające strony według wierszy, PDF do druku (także PDF/X-4 w CMYK). Aplikacja i dokumentacja są po polsku.
+> Makietka to edytor publikacji do druku (książki, kalendarze, planery, zaproszenia i inne dokumenty) działający w przeglądarce: sekcje, rozkładówki, wzorce stron, style tekstu, dane z arkusza i serie powielające strony według wierszy, PDF do druku (także PDF/X-4 w CMYK). Aplikacja i dokumentacja są po polsku.
 
 Aplikacja: https://makietka.app/ (wymaga konta). Treść instrukcji pokazuje się dopiero w uruchomionej aplikacji – poniższe pliki są jej wersją do czytania.
 

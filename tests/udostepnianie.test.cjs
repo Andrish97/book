@@ -7,8 +7,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
   await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
   await strona.click('#przycisk-logowania');
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
 
   await nowyProjekt(strona, 'Do pokazania');
   await strona.click('[data-akcja="dodaj-tekst"]');
@@ -158,8 +157,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
   await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
   await strona.click('#przycisk-logowania');
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
   await nowyProjekt(strona, 'Tylko dla klienta');
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.click('[data-akcja="strona-dodaj"]');

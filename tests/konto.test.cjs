@@ -13,8 +13,7 @@ async function zaloguj(strona, email = 'anna@test.pl', haslo = HASLO) {
 
 async function zalogujIZamknijInstrukcje(strona) {
   await zaloguj(strona);
-  await strona.waitForSelector('#dlg-instrukcja[open]');
-  await strona.click('[data-akcja="zamknij-instrukcje"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
 }
 
 test('logowanie: błędne hasło, poprawne hasło, sesja po odświeżeniu, wylogowanie', async (t) => {

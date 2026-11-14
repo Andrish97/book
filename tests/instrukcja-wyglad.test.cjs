@@ -14,7 +14,7 @@ test('instrukcja: kroki jako tekst, pole szukania z lupą, ikona książki wszę
   await strona.evaluate(() => document.querySelector('[data-akcja="instrukcja"]').click());
   await strona.waitForSelector('#dlg-instrukcja[open]');
   assert.equal(await strona.locator('.instrukcja-szukaj svg').count(), 1, 'lupa w polu szukania');
-  await strona.evaluate(() => [...document.querySelectorAll('#instrukcja-rozdzialy button')].find((b) => /Praca z AI – krok po kroku/.test(b.textContent)).click());
+  await strona.evaluate(() => [...document.querySelectorAll('#instrukcja-rozdzialy .rozdzial-przycisk')].find((b) => /Makietka w skrócie/.test(b.textContent)).click());
   await strona.waitForSelector('#instrukcja-tresc ol.kroki > li');
   const uklad = await strona.evaluate(() => [...document.querySelectorAll('#instrukcja-tresc ol.kroki > li')].map((li) => getComputedStyle(li).display));
   assert.ok(uklad.every((d) => d === 'block'), `kroki: ${uklad}`);

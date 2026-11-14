@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Makietka",
   "short_name": "Makietka",
-  "description": "Edytor kalendarzy, planerów i notesów: wzory stron, dane z arkusza i PDF do druku.",
+  "description": "Edytor publikacji do druku: książki, kalendarze, planery i zaproszenia – sekcje, rozkładówki, wzorce, strony z danych i PDF dla drukarni.",
   "lang": "pl",
   "dir": "ltr",
   "start_url": "./#/projekty",

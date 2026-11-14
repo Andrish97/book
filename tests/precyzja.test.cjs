@@ -209,7 +209,7 @@ test('skróty: zaznaczanie, kolejność, blokada, tekst, widok, kopia z Alt, ruc
   // ? otwiera listę skrótów w instrukcji.
   await strona.keyboard.press('Shift+Slash');
   await strona.waitForSelector('#dlg-instrukcja[open]');
-  assert.equal(await strona.textContent('#instrukcja-tresc h3'), 'Skróty klawiszowe');
+  assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Skróty klawiszowe/);
   assert.ok(await strona.locator('#instrukcja-tresc table.skroty tr').count() > 40);
   assert.deepEqual(bledy, []);
 });
