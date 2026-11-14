@@ -1,4 +1,4 @@
-Zestaw czcionek Seriodruku (pliki .woff2 i .ttf w tym katalogu) pochodzi z Google Fonts.
+Zestaw czcionek Makietki (pliki .woff2 i .ttf w tym katalogu) pochodzi z Google Fonts.
 Wszystkie czcionki wolno używać także w druku komercyjnym. Prawa autorskie i licencje:
 
 Na licencji SIL Open Font License 1.1 (pełny tekst niżej):

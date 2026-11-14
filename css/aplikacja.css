@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Seriodruk – wygląd
+   Makietka – wygląd
    Spokojna, „papierowa” paleta: ciepłe szarości, jeden kolor akcentu.
    ========================================================================== */
 
@@ -230,7 +230,7 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
 .znak-logo {
   display: inline-grid; place-items: center;
   width: 30px; height: 30px; border-radius: 8px;
-  /* Ten sam znak co ikona aplikacji (img/ikony/): biała litera S na niebieskim tle. */
+  /* Ten sam znak co ikona aplikacji (img/ikony/): biała litera M na niebieskim tle. */
   background: #2f5bd3; color: #ffffff;
   font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 18px;
 }

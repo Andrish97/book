@@ -1820,7 +1820,7 @@ export class Edytor extends EventTarget {
     this._schowekX = this.strony[this.stronaW(this._srodekObiektu(akt).x)].x;
     // Schowek systemu dostaje tekst elementu (albo jego nazwę). Dzięki temu Ctrl+V wkleja to,
     // co skopiowano ostatnio – a nie obraz, który został w schowku systemu sprzed godziny.
-    navigator.clipboard?.writeText(akt.type === 'textbox' && akt.text ? akt.text : `Seriodruk: ${opisObiektu(akt)}`).catch(() => {});
+    navigator.clipboard?.writeText(akt.type === 'textbox' && akt.text ? akt.text : `Makietka: ${opisObiektu(akt)}`).catch(() => {});
     this.dispatchEvent(new Event('schowek'));
     return true;
   }

@@ -63,7 +63,7 @@ export function odmianyRodziny(projekt, rodzina) {
 //
 // Plik czcionki jest zasobem projektu (tak jak obraz), a projekt.czcionki opisuje,
 // czym jest: [{ id (zasobu), rodzina, waga (100–900), kursywa }]. Dzięki temu
-// czcionka jedzie z projektem na konto i do pliku .seriodruk.
+// czcionka jedzie z projektem na konto i do pliku .makietka.
 
 const TYPY_PLIKOW = { ttf: 'font/ttf', otf: 'font/otf', woff: 'font/woff', woff2: 'font/woff2' };
 export const ROZSZERZENIA_CZCIONEK = Object.keys(TYPY_PLIKOW);

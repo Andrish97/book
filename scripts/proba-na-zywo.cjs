@@ -13,7 +13,7 @@
 
 const { chromium } = require('playwright');
 const crypto = require('crypto');
-const ADRES = process.argv[2] || 'https://andrish97.github.io/book/';
+const ADRES = process.argv[2] || 'https://makietka.app/';
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 const email = `seriodruk-test-${crypto.randomBytes(5).toString('hex')}@example.com`;
 const haslo = `Tt#9${crypto.randomBytes(8).toString('hex')}`;
@@ -274,7 +274,7 @@ const krok = async (nazwa, fn) => {
         return w.dane.result;
       };
       const init = await wywolaj('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'proba-na-zywo', version: '1' } });
-      if (init.serverInfo?.name !== 'seriodruk') throw new Error(`initialize: ${JSON.stringify(init).slice(0, 200)}`);
+      if (init.serverInfo?.name !== 'makietka') throw new Error(`initialize: ${JSON.stringify(init).slice(0, 200)}`);
       const lista = await wywolaj('tools/list', {});
       if (!lista.tools.some((x) => x.name === 'zmien_elementy')) throw new Error('brak narzędzi na liście');
       if (!lista.tools.some((x) => x.name === 'adres_do_wysylki') || !lista.tools.find((x) => x.name === 'wgraj_obraz')?._meta?.['openai/fileParams']) throw new Error('łącznik bez adres_do_wysylki albo pliki_z_czatu – stara wersja funkcji');

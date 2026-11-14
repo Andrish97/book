@@ -87,7 +87,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
         <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>
         <button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>
         <button role="menuitem" data-op="duplikuj">${ikona('kopiuj')}Duplikuj</button>
-        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.seriodruk)</button>
+        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.makietka)</button>
         <hr>
         <button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}Usuń projekt</button>
       </div>`;
@@ -189,7 +189,7 @@ async function zmienNazweProjektu(w) {
   pokazProjekty();
 }
 
-// Eksport całego projektu do pliku .seriodruk (z obrazami) – kopia zapasowa
+// Eksport całego projektu do pliku .makietka (z obrazami) – kopia zapasowa
 // albo przeniesienie na inne konto.
 async function eksportujProjekt(w) {
   try {
@@ -318,7 +318,7 @@ export async function wczytajPlikProjektu(plik) {
   }
 }
 
-// Pliki .seriodruk otwierane z systemu (zainstalowana aplikacja na komputerze).
+// Pliki .makietka otwierane z systemu (zainstalowana aplikacja na komputerze).
 // Wczytujemy je dopiero po zalogowaniu.
 export const plikiDoOtwarcia = [];
 export async function otworzOczekujacePliki() {

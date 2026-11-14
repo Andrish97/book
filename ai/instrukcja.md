@@ -1,6 +1,6 @@
-# Instrukcja Seriodruku
+# Instrukcja Makietki
 
-Seriodruk (https://andrish97.github.io/book/) to edytor publikacji z powtarzanymi stronami – kalendarzy, planerów, notesów – działający w przeglądarce. To jest instrukcja obsługi z aplikacji (przycisk ze znakiem zapytania), w postaci do czytania przez ludzi i AI. Opis formatu pliku projektu: https://andrish97.github.io/book/ai/format-seriodruk.md.
+Makietka (https://makietka.app/) to edytor publikacji z powtarzanymi stronami – kalendarzy, planerów, notesów – działający w przeglądarce. To jest instrukcja obsługi z aplikacji (przycisk ze znakiem zapytania), w postaci do czytania przez ludzi i AI. Opis formatu pliku projektu: https://makietka.app/ai/format-makietka.md.
 
 <!-- Plik generowany z js/instrukcja.js przez scripts/instrukcja-md.cjs – nie edytuj go ręcznie. -->
 
@@ -44,14 +44,14 @@ Seriodruk (https://andrish97.github.io/book/) to edytor publikacji z powtarzanym
 
 ## 1. Na początek
 
-Seriodruk służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a aplikacja wstawia do nich dane z arkusza, powiela strony – po jednej na każdy wiersz – i zapisuje gotowy plik PDF do druku.
+Makietka służy do składania publikacji z powtarzalnymi stronami: kalendarzy, planerów, notesów. Projektujesz wzory stron, a aplikacja wstawia do nich dane z arkusza, powiela strony – po jednej na każdy wiersz – i zapisuje gotowy plik PDF do druku.
 
-![Lista projektów po zalogowaniu.](https://andrish97.github.io/book/img/instrukcja/projekty.png)
+![Lista projektów po zalogowaniu.](https://makietka.app/img/instrukcja/projekty.png)
 *Lista projektów po zalogowaniu.*
 
 - Projekt to jedna publikacja – np. „Kalendarz 2027”. Karta pokazuje pierwszą stronę i datę ostatniej zmiany.
 - Każda zmiana zapisuje się sama – nie ma przycisku „Zapisz”.
-- Menu **⋯** na karcie projektu: podgląd, zmiana nazwy, duplikowanie, eksport do pliku, usunięcie. **Importuj** wczytuje projekt z pliku `.seriodruk`.
+- Menu **⋯** na karcie projektu: podgląd, zmiana nazwy, duplikowanie, eksport do pliku, usunięcie. **Importuj** wczytuje projekt z pliku `.makietka`.
 - Plakietka **Udostępniony** na karcie oznacza, że projekt ma czynny link do podglądu. Kliknięcie plakietki otwiera okienko z linkiem – tam go skopiujesz albo unieważnisz.
 - Typowa kolejność pracy: nowy projekt → wzorce (wspólne tła, stopki, numery) → strony → dane i serie → podgląd → „Sprawdź przed drukiem” → PDF.
 - Instrukcję otworzysz w każdej chwili przyciskiem **Instrukcja** albo **?** w edytorze.
@@ -60,7 +60,7 @@ Seriodruk służy do składania publikacji z powtarzalnymi stronami: kalendarzy,
 
 Projekty są zapisane na koncie i dostępne na każdym urządzeniu. Konto zakładasz adresem e-mail i hasłem.
 
-![Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.](https://andrish97.github.io/book/img/instrukcja/rejestracja.png)
+![Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.](https://makietka.app/img/instrukcja/rejestracja.png)
 *Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.*
 
 - **Nowe konto**: wpisz swoją nazwę (tak aplikacja będzie się do Ciebie zwracać), e-mail i dwa razy hasło. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.
@@ -72,7 +72,7 @@ Projekty są zapisane na koncie i dostępne na każdym urządzeniu. Konto zakła
 
 Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz „Ustawienia konta”. Ustawienia są pogrupowane; lista po lewej przenosi do wybranej grupy.
 
-![Ustawienia konta z rozwiniętą zmianą adresu e-mail.](https://andrish97.github.io/book/img/instrukcja/konto.png)
+![Ustawienia konta z rozwiniętą zmianą adresu e-mail.](https://makietka.app/img/instrukcja/konto.png)
 *Ustawienia konta z rozwiniętą zmianą adresu e-mail.*
 
 - **Profil** – nazwa widoczna w prawym górnym rogu.
@@ -85,7 +85,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz �
 
 Aplikacja ma dwa motywy. Wybór dotyczy urządzenia, na którym go ustawiasz.
 
-![Ciemny motyw w ustawieniach konta.](https://andrish97.github.io/book/img/instrukcja/motyw.png)
+![Ciemny motyw w ustawieniach konta.](https://makietka.app/img/instrukcja/motyw.png)
 *Ciemny motyw w ustawieniach konta.*
 
 - W **Ustawieniach konta → Wygląd** wybierz: **Jak w systemie** (zmienia się razem z ustawieniem urządzenia), **Jasny** albo **Ciemny**.
@@ -96,7 +96,7 @@ Aplikacja ma dwa motywy. Wybór dotyczy urządzenia, na którym go ustawiasz.
 
 Projekt to cała publikacja: sekcje, wzorce i wszystkie strony.
 
-![Okno „Nowy projekt”.](https://andrish97.github.io/book/img/instrukcja/nowy-projekt.png)
+![Okno „Nowy projekt”.](https://makietka.app/img/instrukcja/nowy-projekt.png)
 *Okno „Nowy projekt”.*
 
 - Wpisz nazwę i wybierz format – kafelki pokazują proporcje strony. **Własny** pozwala wpisać dowolny wymiar w milimetrach, a **Orientacja** obraca stronę (pionowo albo poziomo).
@@ -109,7 +109,7 @@ Projekt to cała publikacja: sekcje, wzorce i wszystkie strony.
 
 Po otwarciu projektu widzisz edytor. Każda rzecz ma swoje miejsce:
 
-![Edytor: strony z lewej, strona pośrodku, właściwości i warstwy z prawej.](https://andrish97.github.io/book/img/instrukcja/edytor.png)
+![Edytor: strony z lewej, strona pośrodku, właściwości i warstwy z prawej.](https://makietka.app/img/instrukcja/edytor.png)
 *Edytor: strony z lewej, strona pośrodku, właściwości i warstwy z prawej.*
 
 - **Strony** (z lewej) – miniatury wszystkich stron, pogrupowane w sekcje. Kolejność miniatur to kolejność w publikacji.
@@ -122,7 +122,7 @@ Po otwarciu projektu widzisz edytor. Każda rzecz ma swoje miejsce:
 
 Pasek nad stroną wstawia nowe elementy na stronę.
 
-![Zaznaczony tekst z uchwytami.](https://andrish97.github.io/book/img/instrukcja/wstawianie.png)
+![Zaznaczony tekst z uchwytami.](https://makietka.app/img/instrukcja/wstawianie.png)
 *Zaznaczony tekst z uchwytami.*
 
 - **Tekst** – kliknij dwa razy, aby pisać bezpośrednio na stronie, albo wpisz treść w polu **Treść** po prawej.
@@ -136,14 +136,14 @@ Pasek nad stroną wstawia nowe elementy na stronę.
 - Przeciągnij element, aby go przesunąć. Kółka w rogach zmieniają rozmiar, kółko nad elementem go obraca.
 - Przy przesuwaniu i przy zmianie rozmiaru element „przykleja się” do krawędzi, marginesów, środka strony, prowadnic i innych elementów – pokazuje to różowa linia (więcej w rozdziale **Odległości i równe odstępy**).
 
-![Kształt narysowany piórem w trakcie edycji punktów: punkty kształtu i uchwyty łuków.](https://andrish97.github.io/book/img/instrukcja/pioro.png)
+![Kształt narysowany piórem w trakcie edycji punktów: punkty kształtu i uchwyty łuków.](https://makietka.app/img/instrukcja/pioro.png)
 *Kształt narysowany piórem w trakcie edycji punktów: punkty kształtu i uchwyty łuków.*
 
 ## 8. Tekst i style
 
 Właściwości tekstu są w panelu z prawej. Rozmiar czcionki podajesz w punktach, pozostałe wymiary w milimetrach.
 
-![Właściwości tekstu ze stylem „Tytuł”.](https://andrish97.github.io/book/img/instrukcja/wlasciwosci.png)
+![Właściwości tekstu ze stylem „Tytuł”.](https://makietka.app/img/instrukcja/wlasciwosci.png)
 *Właściwości tekstu ze stylem „Tytuł”.*
 
 - **Styl tekstu** to zapisany wygląd, np. „Tytuł” albo „Podpis”. Nadaj go tekstom, które mają wyglądać tak samo.
@@ -160,10 +160,10 @@ Właściwości tekstu są w panelu z prawej. Rozmiar czcionki podajesz w punktac
 
 Aplikacja ma jeden oficjalny zestaw czcionek – ten sam dla wszystkich projektów i użytkowników. Okno czcionek otwiera menu **⋯ → Czcionki projektu**.
 
-![Okno „Czcionki”: oficjalny zestaw aplikacji na dole, wyżej własne czcionki projektu.](https://andrish97.github.io/book/img/instrukcja/czcionki.png)
+![Okno „Czcionki”: oficjalny zestaw aplikacji na dole, wyżej własne czcionki projektu.](https://makietka.app/img/instrukcja/czcionki.png)
 *Okno „Czcionki”: oficjalny zestaw aplikacji na dole, wyżej własne czcionki projektu.*
 
-- **Zestaw czcionek Seriodruku** to 52 rodziny: bezszeryfowe do tekstu (m.in. Inter, Open Sans, Lato, Roboto, Poppins), wąskie do nagłówków (Oswald, Bebas Neue), szeryfowe (Lora, Merriweather, Playfair Display, EB Garamond…), odręczne i ozdobne (Caveat, Pacifico, Dancing Script…) oraz maszynowe. Wszystkie mają polskie znaki i licencję pozwalającą na druk komercyjny. Pełną listę z próbkami pokazuje okno czcionek.
+- **Zestaw czcionek Makietki** to 52 rodziny: bezszeryfowe do tekstu (m.in. Inter, Open Sans, Lato, Roboto, Poppins), wąskie do nagłówków (Oswald, Bebas Neue), szeryfowe (Lora, Merriweather, Playfair Display, EB Garamond…), odręczne i ozdobne (Caveat, Pacifico, Dancing Script…) oraz maszynowe. Wszystkie mają polskie znaki i licencję pozwalającą na druk komercyjny. Pełną listę z próbkami pokazuje okno czcionek.
 - Nie każda czcionka ma wszystkie odmiany – odręczne i nagłówkowe często mają jedną grubość i nie mają kursywy. Wtedy przyciski **Pogrubienie** i **Kursywa** w panelu tekstu są wyszarzone, a po wybraniu takiej czcionki tekst wraca do odmiany zwykłej.
 - Pliki czcionki pobierają się przy pierwszym użyciu (aplikacja nie ściąga całego zestawu na zapas), a na długiej liście czcionek wystarczy zacząć pisać nazwę, żeby ją znaleźć.
 - Czcionki z zestawu są na liście w każdym projekcie, na każdym urządzeniu. W pliku PDF wektorowym są osadzone, więc drukarnia nie musi ich mieć. Do pliku trafiają tylko **użyte znaki** każdej czcionki, więc czcionki prawie nie powiększają pliku (wyjątek: własna czcionka OTF z obrysami CFF jest osadzana cała).
@@ -176,7 +176,7 @@ Aplikacja ma jeden oficjalny zestaw czcionek – ten sam dla wszystkich projekt�
 
 Poniżej ustawień wyglądu każdy element ma dokładne położenie i narzędzia do układania.
 
-![Kilka zaznaczonych elementów: wyrównanie do siebie i równe odstępy.](https://andrish97.github.io/book/img/instrukcja/wyrownanie.png)
+![Kilka zaznaczonych elementów: wyrównanie do siebie i równe odstępy.](https://makietka.app/img/instrukcja/wyrownanie.png)
 *Kilka zaznaczonych elementów: wyrównanie do siebie i równe odstępy.*
 
 - **Położenie i rozmiar**: dokładne X, Y, szerokość, wysokość i obrót.
@@ -194,14 +194,14 @@ Poniżej ustawień wyglądu każdy element ma dokładne położenie i narzędzia
 - **Rysunek SVG** wstawia się jako obraz: wygląda wiernie, ale nic się w nim nie zmieni, a napisy przeglądarka rysuje czcionką zastępczą. **Rozłóż rysunek na elementy** (we właściwościach obrazu) zamienia go w zwykłą **grupę kształtów i napisów** w tym samym miejscu: grupę można rozgrupować, kształtom zmienić kolor, obrys i punkty, a napisy poprawić jak każdy tekst. Napis zachowuje czcionkę, jeśli jest ona w zestawie aplikacji albo wśród czcionek projektu – inną zastępuje domyślna, o czym aplikacja mówi. Napis ułożony w rysunku w kilku wierszach zostaje jedną ramką z wierszami. Zdjęcie osadzone w rysunku staje się zwykłym obrazem projektu. Jeśli obraz był przycięty, grupa jest przycięta tak samo – przycięcie zdejmuje **Pokaż cały rysunek** we właściwościach grupy (po rozgrupowaniu elementy widać w całości). Rzeczy, których edytor nie ma (filtry, maski, wzory), znikają – wtedy lepiej zostawić obraz; `Ctrl`+`Z` go przywraca.
 - Tytuły części panelu (np. **Cień**, **Ramka tekstu**) zwijają je i rozwijają. Zwinięte zostają zwinięte przy kolejnych elementach.
 
-![U góry rysunek SVG wstawiony jako obraz, na dole ten sam po rozłożeniu na elementy: napis jest zwykłym tekstem w czcionce z zestawu, a kształt ma inny kolor.](https://andrish97.github.io/book/img/instrukcja/rysunek-svg.png)
+![U góry rysunek SVG wstawiony jako obraz, na dole ten sam po rozłożeniu na elementy: napis jest zwykłym tekstem w czcionce z zestawu, a kształt ma inny kolor.](https://makietka.app/img/instrukcja/rysunek-svg.png)
 *U góry rysunek SVG wstawiony jako obraz, na dole ten sam po rozłożeniu na elementy: napis jest zwykłym tekstem w czcionce z zestawu, a kształt ma inny kolor.*
 
 ## 11. Strony
 
 Każdą stronę projektujesz osobno. Kolejność miniatur to kolejność stron w publikacji.
 
-![Menu strony.](https://andrish97.github.io/book/img/instrukcja/strony.png)
+![Menu strony.](https://makietka.app/img/instrukcja/strony.png)
 *Menu strony.*
 
 - **+ Strona** na dole panelu wstawia pustą stronę za bieżącą, w tej samej sekcji.
@@ -215,7 +215,7 @@ Każdą stronę projektujesz osobno. Kolejność miniatur to kolejność stron w
 
 Projekt dzieli się na sekcje – części o różnych ustawieniach, np. „Okładka” i „Środek”.
 
-![Ustawienia sekcji.](https://andrish97.github.io/book/img/instrukcja/sekcje.png)
+![Ustawienia sekcji.](https://makietka.app/img/instrukcja/sekcje.png)
 *Ustawienia sekcji.*
 
 - Każda sekcja ma własny **format**, **spad** i cztery **marginesy**.
@@ -229,7 +229,7 @@ Projekt dzieli się na sekcje – części o różnych ustawieniach, np. „Okł
 
 W sekcji z układem „Rozkładówki” strony tworzą pary: lewa i prawa, jak w otwartej książce.
 
-![Obie strony rozkładówki na jednym płótnie; niebieski pas leży przez grzbiet.](https://andrish97.github.io/book/img/instrukcja/rozkladowki.png)
+![Obie strony rozkładówki na jednym płótnie; niebieski pas leży przez grzbiet.](https://makietka.app/img/instrukcja/rozkladowki.png)
 *Obie strony rozkładówki na jednym płótnie; niebieski pas leży przez grzbiet.*
 
 - Marginesy są **lustrzane**: wewnętrzny przy grzbiecie, zewnętrzny przy krawędzi. Na lewej stronie wewnętrzny jest z prawej, na prawej – z lewej.
@@ -246,7 +246,7 @@ W sekcji z układem „Rozkładówki” strony tworzą pary: lewa i prawa, jak w
 
 Wzorzec to szablon z elementami wspólnymi dla wielu stron – tło, ramka, logo, stopka, numer strony. Rysujesz go raz i dodajesz do stron albo do całej sekcji; zmiana we wzorcu zmienia wszystkie te strony naraz.
 
-![Okno „Wzorce”: szablony tego projektu z przyciskami dodawania oraz wzorce standardowe.](https://andrish97.github.io/book/img/instrukcja/okno-wzorcow.png)
+![Okno „Wzorce”: szablony tego projektu z przyciskami dodawania oraz wzorce standardowe.](https://makietka.app/img/instrukcja/okno-wzorcow.png)
 *Okno „Wzorce”: szablony tego projektu z przyciskami dodawania oraz wzorce standardowe.*
 
 - Okno otwiera przycisk **Wzorce** na górnym pasku edytora (liczba obok to liczba wzorców w projekcie).
@@ -263,7 +263,7 @@ Wzorzec to szablon z elementami wspólnymi dla wielu stron – tło, ramka, logo
 
 Dane do powielanych stron trzymasz w tabelach projektu. Tabela to arkusz: kolumny mają nazwy, a każdy wiersz to jedna powielona strona (albo jeden blok stron).
 
-![Okno „Dane”: lista tabel z lewej, edytor tabeli z prawej.](https://andrish97.github.io/book/img/instrukcja/dane.png)
+![Okno „Dane”: lista tabel z lewej, edytor tabeli z prawej.](https://makietka.app/img/instrukcja/dane.png)
 *Okno „Dane”: lista tabel z lewej, edytor tabeli z prawej.*
 
 - Okno otwiera przycisk **Dane** na górnym pasku edytora.
@@ -286,7 +286,7 @@ Dane do powielanych stron trzymasz w tabelach projektu. Tabela to arkusz: kolumn
 
 Pole to nazwa w nawiasach klamrowych wpisana w zwykły tekst, np. `{dzien}. {miesiac}`. Na powielonej stronie w jego miejsce wchodzi wartość z tabeli. Są też pola dokumentu – numer strony, nazwa sekcji, data – które wynikają z samego projektu, tak jak pola w Wordzie.
 
-![Pola w edytorze mają fioletowe tło; pole, którego aplikacja nie zna – czerwone.](https://andrish97.github.io/book/img/instrukcja/pola.png)
+![Pola w edytorze mają fioletowe tło; pole, którego aplikacja nie zna – czerwone.](https://makietka.app/img/instrukcja/pola.png)
 *Pola w edytorze mają fioletowe tło; pole, którego aplikacja nie zna – czerwone.*
 
 - Pole najprościej wstawić z listy **Wstaw pole** we właściwościach tekstu – lista zaczyna się od kolumn tabeli tej strony, potem są pola dokumentu. Możesz je też wpisać ręcznie.
@@ -335,7 +335,7 @@ Pole to nazwa w nawiasach klamrowych wpisana w zwykły tekst, np. `{dzien}. {mie
 
 Seria to strona albo kilka sąsiednich stron (blok), które w wydruku powtarzają się wiele razy – np. strona dnia po jednej na każdy wiersz tabeli. W edytorze projektujesz blok raz, jako wzór.
 
-![Podgląd: strona-wzór powielona dla kolejnych wierszy tabeli, z kolejnymi numerami stron.](https://andrish97.github.io/book/img/instrukcja/serie.png)
+![Podgląd: strona-wzór powielona dla kolejnych wierszy tabeli, z kolejnymi numerami stron.](https://makietka.app/img/instrukcja/serie.png)
 *Podgląd: strona-wzór powielona dla kolejnych wierszy tabeli, z kolejnymi numerami stron.*
 
 - We właściwościach strony (nic nie zaznaczone) wybierz **Seria → + Nowa seria…**. W oknie serii wskaż tabelę z danymi.
@@ -369,7 +369,7 @@ Seria to strona albo kilka sąsiednich stron (blok), które w wydruku powtarzaj�
 
 Element może zmieniać kolor, miejsce albo rozmiar na kolejnych powielonych stronach. Tak robi się na przykład zakładki na brzegu strony: na każdej stronie niżej i w innym kolorze – albo słupki o wysokości z tabeli.
 
-![Podgląd: ta sama zakładka na sześciu powielonych stronach – kolor z kolumny tabeli, położenie z numeru powielenia.](https://andrish97.github.io/book/img/instrukcja/zakladki.png)
+![Podgląd: ta sama zakładka na sześciu powielonych stronach – kolor z kolumny tabeli, położenie z numeru powielenia.](https://makietka.app/img/instrukcja/zakladki.png)
 *Podgląd: ta sama zakładka na sześciu powielonych stronach – kolor z kolumny tabeli, położenie z numeru powielenia.*
 
 - Zaznacz element i rozwiń **Z danych** we właściwościach.
@@ -390,7 +390,7 @@ Element może zmieniać kolor, miejsce albo rozmiar na kolejnych powielonych str
 
 Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. Do tego służy ramka o stałej wysokości. Obraz też może przychodzić z tabeli.
 
-![Ramka o stałej wysokości: tekst wyrównany do dołu, zmniejszany, gdy się nie mieści. Ustawienia są we właściwościach tekstu.](https://andrish97.github.io/book/img/instrukcja/ramka-tekstu.png)
+![Ramka o stałej wysokości: tekst wyrównany do dołu, zmniejszany, gdy się nie mieści. Ustawienia są we właściwościach tekstu.](https://makietka.app/img/instrukcja/ramka-tekstu.png)
 *Ramka o stałej wysokości: tekst wyrównany do dołu, zmniejszany, gdy się nie mieści. Ustawienia są we właściwościach tekstu.*
 
 - Zaznacz tekst i włącz **Stała wysokość ramki**. Wysokość wpisujesz w mm albo zmieniasz górnym lub dolnym uchwytem.
@@ -406,7 +406,7 @@ Teksty z tabeli mają różną długość, a układ strony ma zostać taki sam. 
 
 Wszystkie obrazy projektu są w jednym miejscu: wstawione na strony (narzędziem, przeciągnięciem, ze schowka, przez „Podmień zdjęcie”) i wgrane do pól z danych. Okno otwiera **⋯ → Obrazy projektu** (obok „Czcionki projektu”) albo przycisk **Obrazy projektu…** we właściwościach obrazu.
 
-![Okno „Obrazy projektu”: miniatury z pełnymi nazwami, wymiarami i rozmiarem pliku; przy każdym obrazie – gdzie jest użyty.](https://andrish97.github.io/book/img/instrukcja/obrazy-projektu.png)
+![Okno „Obrazy projektu”: miniatury z pełnymi nazwami, wymiarami i rozmiarem pliku; przy każdym obrazie – gdzie jest użyty.](https://makietka.app/img/instrukcja/obrazy-projektu.png)
 *Okno „Obrazy projektu”: miniatury z pełnymi nazwami, wymiarami i rozmiarem pliku; przy każdym obrazie – gdzie jest użyty.*
 
 - Przy każdym obrazie jest miniatura, **pełna nazwa pliku** (z rozszerzeniem – tak wpisuje się ją w tabeli), wymiary w pikselach, rozmiar pliku i to, **gdzie jest użyty**: numery stron, wzorce albo „w danych” (gdy jego nazwa jest w tabeli). Obraz nigdzie nieużyty ma napis **nieużywany** i przerywaną ramkę.
@@ -421,13 +421,13 @@ Wszystkie obrazy projektu są w jednym miejscu: wstawione na strony (narzędziem
 - **Inny plik o tej samej nazwie** (ta sama nazwa z rozszerzeniem, bez względu na wielkość liter): przy wgrywaniu aplikacja pokazuje oba obrazy obok siebie i pyta – **Zastąp** (jak „Podmień plik”), **Zachowaj oba** (nowy dostaje dopisek „(2)”) albo **Pomiń**. Przy kilku plikach można zaznaczyć **Tak samo dla pozostałych**. Obraz wstawiany na stronę dostaje dopisek „(2)” sam. `las.jpg` i `las.png` to różne nazwy.
 - **Starsze projekty** (sprzed tego okna) mogą mieć ten sam plik kilka razy albo dwa różne obrazy o tej samej nazwie. Okno pokazuje wtedy u góry pasek z przyciskiem **Uporządkuj**: kopie tego samego pliku stają się jednym obrazem (elementy na stronach zostają na miejscu, komórki tabel wskazujące kopię dostają nazwę obrazu, który zostaje), a obrazy o zajętej nazwie i innej treści dostają dopisek „(2)” – dane w tabelach pokazują ten sam obraz co dotąd.
 - Obrazy wgrane w tym czasie przez AI albo na innym urządzeniu pojawiają się w otwartym oknie od razu. Zmiany stron z innego urządzenia czekają, aż zamkniesz okno – tak jak przy każdym innym oknie.
-- AI z łącznikiem Seriodruk może robić z obrazami to samo co Ty w tym oknie (rozdział „Praca z AI”). Link, który daje AI, żeby wgrać zdjęcia (`…#/p/…/obrazy`), otwiera projekt od razu z tym oknem.
+- AI z łącznikiem Makietka może robić z obrazami to samo co Ty w tym oknie (rozdział „Praca z AI”). Link, który daje AI, żeby wgrać zdjęcia (`…#/p/…/obrazy`), otwiera projekt od razu z tym oknem.
 
 ## 21. Kolumny i przelewanie tekstu
 
 Dłuższy tekst może płynąć przez kilka ramek: to, co nie mieści się w pierwszej, pojawia się w następnej. Tak powstają kolumny i teksty, które zaczynają się w jednym miejscu strony, a kończą w innym.
 
-![Trzy połączone ramki (kolumny), listy z numerami i punktami oraz tabela. Fioletowa linia pokazuje, dokąd płynie tekst z zaznaczonej ramki.](https://andrish97.github.io/book/img/instrukcja/uklad.png)
+![Trzy połączone ramki (kolumny), listy z numerami i punktami oraz tabela. Fioletowa linia pokazuje, dokąd płynie tekst z zaznaczonej ramki.](https://makietka.app/img/instrukcja/uklad.png)
 *Trzy połączone ramki (kolumny), listy z numerami i punktami oraz tabela. Fioletowa linia pokazuje, dokąd płynie tekst z zaznaczonej ramki.*
 
 - **Podziel na kolumny** (2, 3 albo 4) we właściwościach tekstu zamienia ramkę na kolumny obok siebie i rozkłada tekst po równo.
@@ -450,7 +450,7 @@ Dłuższy tekst może płynąć przez kilka ramek: to, co nie mieści się w pie
 
 Tabela to jeden element strony z wierszami i kolumnami. Wstawiasz ją przyciskiem **Tabela** na pasku nad stroną.
 
-![Tabela z tłem nagłówka, co drugim wierszem w kolorze i scaloną komórką; po prawej jej ustawienia.](https://andrish97.github.io/book/img/instrukcja/tabela.png)
+![Tabela z tłem nagłówka, co drugim wierszem w kolorze i scaloną komórką; po prawej jej ustawienia.](https://makietka.app/img/instrukcja/tabela.png)
 *Tabela z tłem nagłówka, co drugim wierszem w kolorze i scaloną komórką; po prawej jej ustawienia.*
 
 - **Pojedyncze kliknięcie** zaznacza całą tabelę – przesuwasz ją, obracasz i układasz w warstwach jak każdy inny element. Na liście warstw to jeden wiersz „Tabela”; trójkąt przy nim pokazuje jej komórki, a kliknięcie komórki na liście zaczyna w niej pisanie.
@@ -473,7 +473,7 @@ Tabela to jeden element strony z wierszami i kolumnami. Wstawiasz ją przyciskie
 
 Plik PDF do drukarni albo do obejrzenia: wszystkie strony w kolejności wydruku, razem z powieleniami serii. Znajdziesz go w menu **⋯** w edytorze.
 
-![Okno eksportu: rodzaj pliku, zakres, przeznaczenie, opcje i lista rzeczy do sprawdzenia.](https://andrish97.github.io/book/img/instrukcja/pdf.png)
+![Okno eksportu: rodzaj pliku, zakres, przeznaczenie, opcje i lista rzeczy do sprawdzenia.](https://makietka.app/img/instrukcja/pdf.png)
 *Okno eksportu: rodzaj pliku, zakres, przeznaczenie, opcje i lista rzeczy do sprawdzenia.*
 
 - **Rodzaj pliku – Wektorowy** (domyślny): tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać, jest ostry w każdym powiększeniu), kształty, linie, gradienty i rysunki odręczne są wektorami, a zdjęcia JPEG i PNG idą w oryginale – bez ponownej kompresji i tylko raz w pliku, choćby były na stu stronach.
@@ -499,7 +499,7 @@ Plik PDF do drukarni albo do obejrzenia: wszystkie strony w kolejności wydruku,
 
 Zanim wyślesz plik do drukarni, aplikacja przegląda cały projekt – już po powieleniu serii – i wypisuje miejsca, na które warto spojrzeć. Okno otwierasz z menu **⋯ → Sprawdź przed drukiem**; ta sama lista jest w oknie eksportu PDF.
 
-![Lista uwag z numerami stron; „Pokaż” otwiera stronę, której dotyczy uwaga.](https://andrish97.github.io/book/img/instrukcja/kontrola.png)
+![Lista uwag z numerami stron; „Pokaż” otwiera stronę, której dotyczy uwaga.](https://makietka.app/img/instrukcja/kontrola.png)
 *Lista uwag z numerami stron; „Pokaż” otwiera stronę, której dotyczy uwaga.*
 
 - **Tekst nie mieści się w ramce**: aplikacja wstawia dane z każdego wiersza tabeli i sprawdza każdą powieloną stronę. Uwaga podaje, na których stronach tekst wystaje – np. gdy jedno hasło w tabeli jest dużo dłuższe od pozostałych.
@@ -516,7 +516,7 @@ Zanim wyślesz plik do drukarni, aplikacja przegląda cały projekt – już po 
 
 Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – bez linii pomocniczych i bez możliwości przypadkowej zmiany.
 
-![Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.](https://andrish97.github.io/book/img/instrukcja/podglad.png)
+![Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.](https://makietka.app/img/instrukcja/podglad.png)
 *Podgląd: rozkładówki obok siebie, z numerami stron z wzorca.*
 
 - Otwórz go przyciskiem **Podgląd** na górnym pasku edytora albo z menu **⋯** projektu na liście.
@@ -532,7 +532,7 @@ Podgląd pokazuje cały projekt tak, jak będzie wyglądał po przycięciu – b
 
 Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukarni – wysyłając link. Projekt ma jeden link.
 
-![Okno „Udostępnij podgląd” z gotowym linkiem.](https://andrish97.github.io/book/img/instrukcja/udostepnianie.png)
+![Okno „Udostępnij podgląd” z gotowym linkiem.](https://makietka.app/img/instrukcja/udostepnianie.png)
 *Okno „Udostępnij podgląd” z gotowym linkiem.*
 
 - W podglądzie kliknij **Udostępnij**, potem **Utwórz link**. Aplikacja przygotuje obrazy wszystkich stron – przy dużym projekcie chwilę to potrwa.
@@ -549,25 +549,25 @@ Podgląd możesz pokazać komuś, kto nie ma konta – np. klientowi albo drukar
 
 ## 27. Praca z AI
 
-Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Podłączasz go adresem łącznika Seriodruk – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.
+Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z Tobą. Podłączasz go adresem łącznika Makietka – bez instalowania czegokolwiek i bez zmieniania ustawień sieci. Zmiany AI pojawiają się w otwartym edytorze po chwili, tak jak zmiany z drugiego urządzenia.
 
-![Nowy klucz dla AI: adres łącznika do skopiowania i kroki dla Claude i ChatGPT.](https://andrish97.github.io/book/img/instrukcja/dostep-ai.png)
+![Nowy klucz dla AI: adres łącznika do skopiowania i kroki dla Claude i ChatGPT.](https://makietka.app/img/instrukcja/dostep-ai.png)
 *Nowy klucz dla AI: adres łącznika do skopiowania i kroki dla Claude i ChatGPT.*
 
 - W edytorze menu **⋯** → **Dostęp dla AI…**. Wpisz, dla kogo jest klucz, wybierz **Czyta i zmienia** albo **Tylko czyta** i ważność (1, 7 albo 30 dni), potem **Utwórz klucz**.
 - Okno pokaże **adres łącznika** (z kluczem w środku). Widać go **tylko raz** – skopiuj go od razu przyciskiem obok.
-- **Claude** (claude.ai, aplikacja na komputer i telefon): **Dostosuj → Łączniki** (Customize → Connectors) → **+** → **Dodaj własny łącznik**. Nazwa: Seriodruk, adres: wklej skopiowany, logowanie: **bez logowania** (No sign-in). W rozmowie włącz łącznik i napisz np. „Przejrzyj mój projekt w Seriodruku i popraw literówki w tytułach”.
+- **Claude** (claude.ai, aplikacja na komputer i telefon): **Dostosuj → Łączniki** (Customize → Connectors) → **+** → **Dodaj własny łącznik**. Nazwa: Makietka, adres: wklej skopiowany, logowanie: **bez logowania** (No sign-in). W rozmowie włącz łącznik i napisz np. „Przejrzyj mój projekt w Makietce i popraw literówki w tytułach”.
 - **ChatGPT**: **chatgpt.com/plugins** → **+** → **Add custom MCP server**, wklej adres, uwierzytelnianie **No Authentication**, potwierdź. Gdy tej opcji nie ma, włącz tryb dewelopera (Ustawienia → Aplikacje → Zaawansowane).
-- Łącznik działa po stronie Seriodruku: Claude i ChatGPT łączą się z nim ze swoich serwerów. Jeśli AI prosi o odblokowanie domeny albo zmianę ustawień sieci, żeby łączyć się z bazą, nie rób tego – poproś, żeby użyło narzędzi łącznika Seriodruk (a jeśli ich nie ma, dodaj łącznik jak wyżej).
-- W części **Dla zaawansowanych** okno ma sam klucz, polecenie dla **Claude Code** i serwer do uruchomienia u siebie. Szczegóły: [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
+- Łącznik działa po stronie Makietki: Claude i ChatGPT łączą się z nim ze swoich serwerów. Jeśli AI prosi o odblokowanie domeny albo zmianę ustawień sieci, żeby łączyć się z bazą, nie rób tego – poproś, żeby użyło narzędzi łącznika Makietka (a jeśli ich nie ma, dodaj łącznik jak wyżej).
+- W części **Dla zaawansowanych** okno ma sam klucz, polecenie dla **Claude Code** i serwer do uruchomienia u siebie. Szczegóły: [Dostęp dla AI](https://makietka.app/ai/api.md).
 - Klucz otwiera **tylko ten projekt**: AI może zmieniać strony, elementy, wzorce, style, tabele danych, serie i sekcje oraz obrazy projektu, ale nie utworzy ani nie usunie projektu, nie wgra czcionek i nie zobaczy innych projektów.
 - **Obrazy przez AI.** AI robi z obrazami to samo co Ty w oknie **Obrazy projektu**: wgrywa je, wstawia na stronę jako pojedyncze zdjęcie (z ramką „zmieść” albo „wypełnij”), zmienia nazwy, podmienia pliki, usuwa nieużywane i porządkuje powtórzenia. Wgrany obraz pojawia się u Ciebie po chwili, a przy najbliższym zapisie trafia na Twoje konto jak każdy inny.
 - **Skąd AI bierze zdjęcia.** Łącznik przyjmuje od AI tylko tekst, więc zdjęcia, które masz u siebie, dochodzą inną drogą – zależnie od aplikacji. Wielkość nie gra roli: jeden obraz do 25 MB, ZIP do 50 MB.
 - **ChatGPT:** zdjęcia i ZIP-y wrzucone do rozmowy wchodzą wprost – ChatGPT sam podaje je łącznikowi.
-- **Claude:** zdjęcia z rozmowy i pliki z miejsca roboczego wgrywa sam przez łącznik, kawałkami – bez żadnych ustawień. To dobra droga dla grafik do kilkuset KB; duże zdjęcia szybciej przejdą przez link do wgrania. W **Claude Desktop z rozszerzeniem Seriodruk** AI czyta pliki, foldery i ZIP-y z Twojego dysku dowolnej wielkości – wystarczy ścieżka z jego miejsca roboczego, np. „grafiki/zdjęcia.zip”.
+- **Claude:** zdjęcia z rozmowy i pliki z miejsca roboczego wgrywa sam przez łącznik, kawałkami – bez żadnych ustawień. To dobra droga dla grafik do kilkuset KB; duże zdjęcia szybciej przejdą przez link do wgrania. W **Claude Desktop z rozszerzeniem Makietka** AI czyta pliki, foldery i ZIP-y z Twojego dysku dowolnej wielkości – wystarczy ścieżka z jego miejsca roboczego, np. „grafiki/zdjęcia.zip”.
 - **Zawsze, bez ustawień – link do wgrania.** AI daje link, który otwiera ten projekt z oknem **Obrazy projektu**; wrzucasz tam zdjęcia albo ZIP, a AI widzi je na liście i działa dalej. Jeśli AI mówi, że do Twoich plików nie sięga, poproś je o ten link.
 - **Poza tym:** link do pliku albo ZIP-a na **Dysku Google** lub w **Dropboxie** udostępnionego „każdemu, kto ma link” (Dropbox odda też cały folder) i rysunki SVG, które AI samo narysuje (ozdobniki, ikony, ramki).
-- **Wymiana użytych zdjęć.** Obrazu, który stoi na stronie, AI nie usuwa – zostałaby pusta ramka. Wymienia go jednym krokiem na nowy plik (podmiana): wszystkie strony, wzorce i dane pokazują od razu nowy, a stary znika. Gdy wgrywasz sam, to samo daje w oknie **Obrazy projektu** „Zastąp” z zaznaczonym „Tak samo dla pozostałych plików o powtórzonych nazwach”. Szczegóły: [Dostęp dla AI](https://andrish97.github.io/book/ai/api.md).
+- **Wymiana użytych zdjęć.** Obrazu, który stoi na stronie, AI nie usuwa – zostałaby pusta ramka. Wymienia go jednym krokiem na nowy plik (podmiana): wszystkie strony, wzorce i dane pokazują od razu nowy, a stary znika. Gdy wgrywasz sam, to samo daje w oknie **Obrazy projektu** „Zastąp” z zaznaczonym „Tak samo dla pozostałych plików o powtórzonych nazwach”. Szczegóły: [Dostęp dla AI](https://makietka.app/ai/api.md).
 - Zmiany AI łączą się z Twoimi element po elemencie: gdy Ty przesuwasz zdjęcie, a AI poprawia tytuł, zostają obie zmiany. **Cofnij** zdejmuje tylko Twoje zmiany.
 - Lista w tym samym oknie pokazuje aktywne klucze i to, kiedy ostatnio ich użyto. **Odbierz** wyłącza klucz – i adres łącznika – od razu.
 
@@ -577,7 +577,7 @@ Asystent AI (Claude, ChatGPT) może czytać i poprawiać jeden projekt razem z T
 
 Na stronie widać linie pomocnicze. Nie są drukowane.
 
-![Element wychodzący w margines i lista ostrzeżeń.](https://andrish97.github.io/book/img/instrukcja/ostrzezenia.png)
+![Element wychodzący w margines i lista ostrzeżeń.](https://makietka.app/img/instrukcja/ostrzezenia.png)
 *Element wychodzący w margines i lista ostrzeżeń.*
 
 - **Czerwona linia** – krawędź strony po przycięciu.
@@ -590,7 +590,7 @@ Na stronie widać linie pomocnicze. Nie są drukowane.
 
 Narzędzia do równego układania elementów. Włączasz je w menu pod przyciskiem z kratką w prawym dolnym rogu płótna: **Siatka**, **Przyciągaj do siatki**, **Krok siatki**, **Przyciągaj do elementów i pokazuj odległości**, **Linijki**, **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** i **W rozkładówkach pokazuj jedną stronę**.
 
-![Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).](https://andrish97.github.io/book/img/instrukcja/siatka.png)
+![Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).](https://makietka.app/img/instrukcja/siatka.png)
 *Siatka co 5 mm, linijki i dwie własne prowadnice (turkusowe).*
 
 - **Siatka**: linie co zadany krok w mm, liczone od rogu strony. **Przyciągaj do siatki** sprawia, że lewy górny róg przesuwanego elementu staje na linii siatki.
@@ -607,7 +607,7 @@ Narzędzia do równego układania elementów. Włączasz je w menu pod przyciski
 
 Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – tak jak inteligentne linie pomocnicze w programach Adobe.
 
-![Trzeci kwadrat w równym odstępie od drugiego: oba odstępy mają tę samą liczbę na fioletowym tle.](https://andrish97.github.io/book/img/instrukcja/odleglosci.png)
+![Trzeci kwadrat w równym odstępie od drugiego: oba odstępy mają tę samą liczbę na fioletowym tle.](https://makietka.app/img/instrukcja/odleglosci.png)
 *Trzeci kwadrat w równym odstępie od drugiego: oba odstępy mają tę samą liczbę na fioletowym tle.*
 
 - **Różowa linia** pojawia się, gdy krawędź albo środek elementu zrównuje się z innym elementem. Element sam „wskakuje” na tę linię.
@@ -620,7 +620,7 @@ Podczas przesuwania elementu aplikacja pokazuje, jak leży względem innych – 
 
 Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie.
 
-![Lista warstw: oko ukrywa element, kłódka go blokuje, strzałki zmieniają kolejność.](https://andrish97.github.io/book/img/instrukcja/warstwy.png)
+![Lista warstw: oko ukrywa element, kłódka go blokuje, strzałki zmieniają kolejność.](https://makietka.app/img/instrukcja/warstwy.png)
 *Lista warstw: oko ukrywa element, kłódka go blokuje, strzałki zmieniają kolejność.*
 
 - Kliknięcie nazwy zaznacza element – przydatne, gdy leży pod innym i trudno w niego trafić.
@@ -636,7 +636,7 @@ Zakładka „Warstwy” w prawym panelu (obok „Właściwości”) pokazuje wsz
 
 Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można ją też zainstalować jak zwykły program.
 
-![Telefon trzymany pionowo: zaznaczony element nad panelem właściwości, u góry panelu uchwyt.](https://andrish97.github.io/book/img/instrukcja/telefon.png)
+![Telefon trzymany pionowo: zaznaczony element nad panelem właściwości, u góry panelu uchwyt.](https://makietka.app/img/instrukcja/telefon.png)
 *Telefon trzymany pionowo: zaznaczony element nad panelem właściwości, u góry panelu uchwyt.*
 
 - **Jeden palec** – zaznaczanie i przesuwanie elementów. **Dwa palce** – przesuwanie widoku i powiększanie.
@@ -653,16 +653,16 @@ Aplikacja działa w przeglądarce na tablecie, telefonie i komputerze. Można j�
 - **Pełny ekran**: przycisk z czterema narożnikami na liście projektów, w edytorze i w podglądzie (na telefonie – w menu ⋯) chowa paski przeglądarki; `Esc` albo ten sam przycisk wraca. Na iPhonie przeglądarka nie pozwala stronie na pełny ekran – tam daje go zainstalowanie aplikacji.
 - **Instalacja na Androidzie** (Chrome): menu ⋮ → **Zainstaluj aplikację** / **Dodaj do ekranu głównego**. Zainstalowana aplikacja nie ma paska adresu, więc na stronę zostaje więcej miejsca.
 - **Instalacja na Macu** (Chrome lub Edge): ikona instalacji w pasku adresu. W Safari: Plik → **Dodaj do Docka**.
-- Zainstalowana aplikacja na komputerze otwiera pliki `.seriodruk` dwuklikiem.
+- Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem.
 
-![Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.](https://andrish97.github.io/book/img/instrukcja/telefon-zaslonka.png)
+![Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.](https://makietka.app/img/instrukcja/telefon-zaslonka.png)
 *Okno na telefonie wysuwa się od dołu jako zasłonka: uchwyt zamiast krzyżyka, przyciski na dole zawsze widoczne.*
 
 ## 33. Zapis, pliki i kilka urządzeń
 
 Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na koncie.
 
-![Menu projektu na liście projektów.](https://andrish97.github.io/book/img/instrukcja/menu.png)
+![Menu projektu na liście projektów.](https://makietka.app/img/instrukcja/menu.png)
 *Menu projektu na liście projektów.*
 
 - Stan zapisu widać obok nazwy projektu: **Zapisano**, **Zapisywanie…** albo **Offline** – wtedy zmiany czekają na urządzeniu.
@@ -672,11 +672,11 @@ Zmiany zapisują się same: najpierw na urządzeniu, a po około sekundzie na ko
 - **Praca na dwóch urządzeniach.** Jeśli ten sam projekt zmieniono w międzyczasie gdzie indziej, aplikacja nic nie nadpisze, tylko **połączy zmiany**: strony, wzorce, tabele danych, sekcje, serie i style zmienione tylko w jednym miejscu zostają z obu urządzeń, bez pytania. Zobaczysz komunikat „Połączono zmiany z innego urządzenia”.
 - Na tej samej stronie (i w tym samym wzorcu) zmiany łączą się **element po elemencie**: gdy na jednym urządzeniu przesuniesz zdjęcie, a na drugim poprawisz tytuł, zostaną obie zmiany. Pytanie pojawia się tylko wtedy, gdy **ten sam element** (albo to samo ustawienie strony, np. tło czy nazwę, albo tę samą tabelę danych, styl…) zmieniono w obu miejscach. Okno wymienia wyłącznie takie rzeczy i przy każdej pozwala wybrać: **z tego urządzenia** albo **z konta**. Tekst płynący przez kilka połączonych ramek jest jedną całością: pytanie dotyczy całego tekstu, a wybrana wersja obejmuje wszystkie jego ramki.
 - Po połączeniu **Cofnij** działa dalej: cofa tylko to, co zrobiono na tym urządzeniu. Zmiany, które przyszły z innego urządzenia, zostają przy każdym kroku wstecz i do przodu.
-- Wyjątek: gdy projekt wczytasz z pliku `.seriodruk` w miejsce istniejącego, a na koncie jest już inna wersja, aplikacja nie ma z czym porównać zmian i pyta o cały projekt: zachować wersję z tego urządzenia czy wczytać wersję z konta.
-- **Cofnij** i **Ponów** (`Ctrl`+`Z`) obejmują cały projekt: zmiany na stronach i wzorcach, dodawanie i usuwanie stron, sekcje, style, dane i serie. Po cofnięciu edytor otwiera stronę, której dotyczyła zmiana. Historia sięga 80 kroków wstecz i jest zapisywana na urządzeniu: po zamknięciu projektu (albo przeglądarki) i ponownym otwarciu na tym samym urządzeniu **Cofnij** działa dalej. Zmiany z innego urządzenia, które dojdą w tym czasie, zostają – cofanie zdejmuje tylko to, co zrobiono tutaj. Gdy historii nie da się do nich dopasować, zaczyna się od nowa (aplikacja o tym mówi). Zmiany zrobione w jednym otwarciu okna **Dane** to jeden krok. Historia znika, gdy usuniesz projekt albo wczytasz w jego miejsce plik `.seriodruk`.
+- Wyjątek: gdy projekt wczytasz z pliku `.makietka` w miejsce istniejącego, a na koncie jest już inna wersja, aplikacja nie ma z czym porównać zmian i pyta o cały projekt: zachować wersję z tego urządzenia czy wczytać wersję z konta.
+- **Cofnij** i **Ponów** (`Ctrl`+`Z`) obejmują cały projekt: zmiany na stronach i wzorcach, dodawanie i usuwanie stron, sekcje, style, dane i serie. Po cofnięciu edytor otwiera stronę, której dotyczyła zmiana. Historia sięga 80 kroków wstecz i jest zapisywana na urządzeniu: po zamknięciu projektu (albo przeglądarki) i ponownym otwarciu na tym samym urządzeniu **Cofnij** działa dalej. Zmiany z innego urządzenia, które dojdą w tym czasie, zostają – cofanie zdejmuje tylko to, co zrobiono tutaj. Gdy historii nie da się do nich dopasować, zaczyna się od nowa (aplikacja o tym mówi). Zmiany zrobione w jednym otwarciu okna **Dane** to jeden krok. Historia znika, gdy usuniesz projekt albo wczytasz w jego miejsce plik `.makietka`.
 - Na konto wysyłane są tylko te strony, które się zmieniły – duży projekt zapisuje się tak samo szybko jak mały.
 - **Zdjęcia nie obciążają pamięci.** Oryginał każdego obrazu leży w osobnym magazynie przeglądarki (na dysku), a w edytorze pracuje lżejsza kopia. Projekt z setkami zdjęć otwiera się i zapisuje tak jak mały; po oryginał aplikacja sięga dopiero przy eksporcie do PDF, PNG albo do pliku projektu. Na drugim urządzeniu obrazy pobierają się z konta raz, przy pierwszym otwarciu projektu.
-- **Eksport** zapisuje cały projekt do pliku `.seriodruk` (kopia zapasowa), **Importuj** wczytuje go z powrotem, **Duplikuj** tworzy kopię projektu, np. na kolejny rok.
+- **Eksport** zapisuje cały projekt do pliku `.makietka` (kopia zapasowa), **Importuj** wczytuje go z powrotem, **Duplikuj** tworzy kopię projektu, np. na kolejny rok.
 - W edytorze menu **⋯** eksportuje projekt do **PDF** (osobny rozdział) i pobiera bieżącą stronę jako obraz PNG w 300 dpi, ze spadem.
 - Czcionki i silnik edytora są częścią aplikacji, a przeglądarka zapamiętuje je po pierwszym uruchomieniu – kolejne starty nie czekają na sieć, a edytor działa także bez internetu. Wszystkie biblioteki (także do PDF, Excela i plików ZIP) są częścią aplikacji – nic nie jest pobierane z obcych serwerów. Te do PDF, Excela i ZIP przeglądarka wczytuje przy pierwszym użyciu i potem też działają bez sieci.
 - Lista projektów otwiera się szybko, bo nie wczytuje edytora – ten doczytuje się w tle. Jeśli otworzysz projekt, zanim skończy, przez chwilę zobaczysz „Wczytuję edytor…”.

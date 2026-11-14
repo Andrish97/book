@@ -1,7 +1,7 @@
-// Zdalny łącznik MCP Seriodruku po HTTP (transport Streamable HTTP) – logika niezależna od Deno, żeby dało się
+// Zdalny łącznik MCP Makietki po HTTP (transport Streamable HTTP) – logika niezależna od Deno, żeby dało się
 // ją sprawdzać w Node. Funkcja Edge (supabase/functions/mcp/index.ts) tylko przekazuje tu żądania.
 //
-// Adres łącznika: https://<projekt>.supabase.co/functions/v1/mcp/<klucz sdk_…>
+// Adres łącznika: https://api.makietka.app/mcp/<klucz sdk_…> (przekaźnik Cloudflare) = https://<projekt>.supabase.co/functions/v1/mcp/<klucz>
 // Klucz w adresie, bo łączniki Claude („No sign-in”) i ChatGPT („No authentication”) nie wysyłają
 // własnych nagłówków. Przyjmujemy też nagłówek Authorization: Bearer sdk_… i parametr ?klucz=.
 // Klucz sprawdza baza (funkcje ai_projekt / ai_zapisz) – łącznik nie ma żadnego klucza serwisowego.
@@ -76,7 +76,7 @@ const MAKS_POST = 50 * 1024 * 1024;
 
 async function obsluzObraz(request, url, env, cors) {
   const klucz = kluczZZadania(request);
-  if (!WZOR_KLUCZA.test(klucz)) return json(401, { blad: 'Adres nie zawiera prawidłowego klucza dostępu (…/functions/v1/mcp/<klucz sdk_…>/obraz).' }, cors);
+  if (!WZOR_KLUCZA.test(klucz)) return json(401, { blad: 'Adres nie zawiera prawidłowego klucza dostępu (…/mcp/<klucz sdk_…>/obraz).' }, cors);
   if (Number(request.headers.get('content-length') || 0) > MAKS_POST) return json(413, { blad: 'Plik jest za duży (najwyżej 50 MB; jeden obraz – 25 MB).' }, cors);
   const bajty = new Uint8Array(await request.arrayBuffer());
   if (!bajty.length) return json(400, { blad: 'Pusta treść – wyślij plik obrazu albo ZIP jako treść żądania POST.' }, cors);
@@ -89,7 +89,7 @@ async function obsluzObraz(request, url, env, cors) {
   }
 }
 
-// env: { adres?, kluczPubliczny? } – adres bazy i publikowalny klucz (domyślnie baza Seriodruku).
+// env: { adres?, kluczPubliczny? } – adres bazy i publikowalny klucz (domyślnie baza Makietki).
 export async function obsluzHttp(request, env = {}) {
   const origin = request.headers.get('origin');
   if (origin && !ZRODLA.some((r) => r.test(origin))) {
@@ -101,7 +101,7 @@ export async function obsluzHttp(request, env = {}) {
   // Łącznik nie używa logowania OAuth: brak opisu serwera autoryzacji oznacza „bez logowania”.
   if (url.pathname.includes('/.well-known/')) return json(404, { error: 'not_found' }, cors);
   if (request.method !== 'POST') {
-    return json(405, { jsonrpc: '2.0', error: { code: BLEDY.ZADANIE, message: 'Łącznik MCP Seriodruku przyjmuje tylko POST (Streamable HTTP).' } }, { ...cors, allow: 'POST, OPTIONS' });
+    return json(405, { jsonrpc: '2.0', error: { code: BLEDY.ZADANIE, message: 'Łącznik MCP Makietki przyjmuje tylko POST (Streamable HTTP).' } }, { ...cors, allow: 'POST, OPTIONS' });
   }
 
   // Plik wysłany wprost: POST …/mcp/<klucz>/obraz?nazwa=… z treścią pliku (obraz albo ZIP z obrazami).

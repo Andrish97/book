@@ -1,16 +1,16 @@
-# Format projektu Seriodruku – opis dla AI
+# Format projektu Makietki – opis dla AI
 
-Ten dokument opisuje, jak samodzielnie zbudować projekt [Seriodruku](https://andrish97.github.io/book/) (edytor publikacji z powtarzanymi stronami: kalendarze, planery, notesy), który użytkownik wczyta przyciskiem **Importuj** na liście projektów. Opis jest sprawdzany testem (`tests/format-ai.test.cjs`): oba przykłady z `ai/przyklady/` wczytują się w aplikacji i przechodzą „Sprawdź przed drukiem” bez uwag.
+Ten dokument opisuje, jak samodzielnie zbudować projekt [Makietki](https://makietka.app/) (edytor publikacji z powtarzanymi stronami: kalendarze, planery, notesy), który użytkownik wczyta przyciskiem **Importuj** na liście projektów. Opis jest sprawdzany testem (`tests/format-ai.test.cjs`): oba przykłady z `ai/przyklady/` wczytują się w aplikacji i przechodzą „Sprawdź przed drukiem” bez uwag.
 
-Instrukcja obsługi aplikacji (co robi każdy przycisk): [ai/instrukcja.md](https://andrish97.github.io/book/ai/instrukcja.md).
+Instrukcja obsługi aplikacji (co robi każdy przycisk): [ai/instrukcja.md](https://makietka.app/ai/instrukcja.md).
 
-Ten sam model zmienia AI podłączone do istniejącego projektu łącznikiem Seriodruk (adres z okna „Dostęp dla AI”, dodany w Claude albo ChatGPT jako własny łącznik MCP): [ai/api.md](https://andrish97.github.io/book/ai/api.md). Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Seriodruk.
+Ten sam model zmienia AI podłączone do istniejącego projektu łącznikiem Makietka (adres z okna „Dostęp dla AI”, dodany w Claude albo ChatGPT jako własny łącznik MCP): [ai/api.md](https://makietka.app/ai/api.md). Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka.
 
 ## 1. Dwie postacie pliku
 
 ### Najprostsza: plik `.json`
 
-Zwykły plik JSON z obiektem projektu (rozdział 2). Obrazy i własne czcionki wpisujesz w `zasoby` jako `dataUrl` (base64). Aplikacja przyjmuje go tak samo jak `.seriodruk`. **Tę postać polecam AI** – jeden plik tekstowy, bez archiwum.
+Zwykły plik JSON z obiektem projektu (rozdział 2). Obrazy i własne czcionki wpisujesz w `zasoby` jako `dataUrl` (base64). Aplikacja przyjmuje go tak samo jak `.makietka`. **Tę postać polecam AI** – jeden plik tekstowy, bez archiwum.
 
 ```json
 {
@@ -21,14 +21,14 @@ Zwykły plik JSON z obiektem projektu (rozdział 2). Obrazy i własne czcionki w
 }
 ```
 
-### Archiwum `.seriodruk`
+### Archiwum `.makietka`
 
-Archiwum ZIP (jak `.docx`) z rozszerzeniem `.seriodruk`. Zawartość, w tej kolejności:
+Archiwum ZIP (jak `.docx`) z rozszerzeniem `.makietka`. Zawartość, w tej kolejności:
 
 | Plik | Zawartość |
 |---|---|
 | `mimetype` | dokładnie `application/vnd.seriodruk+zip`; **pierwszy plik w archiwum i bez kompresji** (STORE) |
-| `manifest.json` | `{ "format": "seriodruk", "wersja_formatu": 1, "aplikacja": "Seriodruk", "pliki": { "projekt": "projekt.json", "miniatura": null }, "zasoby": [{ "id", "plik", "typ", "nazwa" }] }` |
+| `manifest.json` | `{ "format": "seriodruk", "wersja_formatu": 1, "aplikacja": "Makietka", "pliki": { "projekt": "projekt.json", "miniatura": null }, "zasoby": [{ "id", "plik", "typ", "nazwa" }] }` |
 | `projekt.json` | obiekt projektu (rozdział 2); w `zasoby` zamiast `dataUrl` jest `"plik": "zasoby/<id>.<rozszerzenie>"` |
 | `zasoby/<id>.<rozszerzenie>` | pliki obrazów i czcionek bez kodowania (`png`, `jpg`, `webp`, `svg`, `gif`, `ttf`, `otf`, `woff`, `woff2`) |
 | `miniatura.png` | nieobowiązkowa; wtedy `"miniatura": "miniatura.png"` w manifeście |
@@ -253,8 +253,8 @@ Grupa z opisem `tabela` i komórkami-tekstami (wierszami, od lewej; liczba komó
 
 Oba wczytują się w aplikacji bez uwag (sprawdza to test). Buduje je skrypt `scripts/przyklady-ai.cjs`.
 
-- [`ai/przyklady/minimalny.json`](https://andrish97.github.io/book/ai/przyklady/minimalny.json) – jedna strona A5: niebieski prostokąt, tytuł i tekst.
-- [`ai/przyklady/kalendarz.json`](https://andrish97.github.io/book/ai/przyklady/kalendarz.json) – kalendarz na 2027 r., 367 stron w wydruku z 9 stron w projekcie:
+- [`ai/przyklady/minimalny.json`](https://makietka.app/ai/przyklady/minimalny.json) – jedna strona A5: niebieski prostokąt, tytuł i tekst.
+- [`ai/przyklady/kalendarz.json`](https://makietka.app/ai/przyklady/kalendarz.json) – kalendarz na 2027 r., 367 stron w wydruku z 9 stron w projekcie:
   - sekcja „Okładka” (bez numeracji) z obrazem na spad (`bez_ostrzezen`) i tytułem;
   - sekcja „Kalendarz” z wzorcem „Stopka z numerem” (`{nr}`) i numeracją od 1;
   - blok 7 stron (poniedziałek–niedziela) z serią `uklad: "dlugi"` według tabeli „Dni”: cztery wiersze `[pomiń]` (rok zaczyna się w piątek), potem 365 dni;
@@ -263,7 +263,7 @@ Oba wczytują się w aplikacji bez uwag (sprawdza to test). Buduje je skrypt `sc
 
 ## 12. Gotowe polecenie dla innego AI
 
-> Zbuduj mi projekt Seriodruku jako jeden plik `.json` zgodnie z opisem https://andrish97.github.io/book/ai/format-seriodruk.md (wzoruj się na https://andrish97.github.io/book/ai/przyklady/kalendarz.json).
+> Zbuduj mi projekt Makietki jako jeden plik `.json` zgodnie z opisem https://makietka.app/ai/format-makietka.md (wzoruj się na https://makietka.app/ai/przyklady/kalendarz.json).
 > Publikacja: [opisz: format, liczba i rodzaj stron, sekcje, co ma być na stronach].
 > Dane: [wklej albo opisz tabelę, np. dni roku z imieninami].
 > Wymagania: wszystkie wymiary w mm (rozmiar pisma też: pt × 25,4 / 72); czcionki tylko z zestawu z opisu; każdy element ma `id`, tekst ma `strokeWidth: 0`; strony powtarzane zrób jako serię z tabeli, nie jako osobne strony; obrazy wpisz do `zasoby` jako `dataUrl` (jeśli ich nie masz, użyj obrazów-wzorów i podaj nazwy plików w tabeli – wgram je w aplikacji w oknie „Obrazy projektu”, także jako ZIP).

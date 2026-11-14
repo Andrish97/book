@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Seriodruk – dostęp dla AI",
+    "title": "Makietka – dostęp dla AI",
     "version": "1.0.0",
-    "description": "Czytanie i zmiany jednego projektu Seriodruku kluczem dostępu z aplikacji (menu ⋯ edytora → Dostęp dla AI). Klucz (sdk_…) podawaj jako p_klucz. Nagłówek apikey to publiczny klucz bazy (sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq) – ustaw go w uwierzytelnianiu akcji. Model projektu: https://andrish97.github.io/book/ai/format-seriodruk.md, opis: https://andrish97.github.io/book/ai/api.md"
+    "description": "Czytanie i zmiany jednego projektu Makietki kluczem dostępu z aplikacji (menu ⋯ edytora → Dostęp dla AI). Klucz (sdk_…) podawaj jako p_klucz. Nagłówek apikey to publiczny klucz bazy (sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq) – ustaw go w uwierzytelnianiu akcji. Model projektu: https://makietka.app/ai/format-makietka.md, opis: https://makietka.app/ai/api.md"
   },
   "servers": [{ "url": "https://pganajmivwtstapnwsgv.supabase.co" }],
   "security": [{ "kluczBazy": [] }],
@@ -28,7 +28,7 @@
               "properties": {
                 "dostep": { "type": "object", "properties": { "rola": { "type": "string", "enum": ["odczyt", "edycja"] }, "opis": { "type": "string" }, "wazny_do": { "type": "string" } } },
                 "wersja": { "type": "integer" },
-                "projekt": { "type": "object", "description": "Model projektu (format-seriodruk.md): nazwa, sekcje, strony, wzorce, style, tabele, serie, widok, zasoby {id: {nazwa, typ, szer, wys, rozmiar, skrot}}.", "additionalProperties": true },
+                "projekt": { "type": "object", "description": "Model projektu (format-makietka.md): nazwa, sekcje, strony, wzorce, style, tabele, serie, widok, zasoby {id: {nazwa, typ, szer, wys, rozmiar, skrot}}.", "additionalProperties": true },
                 "blad": { "type": "string" }
               }
             } } }
@@ -116,7 +116,7 @@
   "components": {
     "schemas": {},
     "securitySchemes": {
-      "kluczBazy": { "type": "apiKey", "in": "header", "name": "apikey", "description": "Publiczny klucz bazy Seriodruku (nie jest tajny)." }
+      "kluczBazy": { "type": "apiKey", "in": "header", "name": "apikey", "description": "Publiczny klucz bazy Makietki (nie jest tajny)." }
     }
   }
 }

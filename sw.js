@@ -1,4 +1,4 @@
-// Service worker Seriodruku: drugie i kolejne uruchomienie nie czeka na sieć.
+// Service worker Makietki: drugie i kolejne uruchomienie nie czeka na sieć.
 //
 // - Kod aplikacji (index.html, js/, css/, manifest) jednej wersji leży w pamięci tej wersji
 //   („seriodruk-<wersja>”) i z niej jest podawany – bez pytania sieci. Przy wdrożeniu skrypt

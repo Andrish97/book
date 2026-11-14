@@ -18,7 +18,7 @@ test('eksport do pliku projektu, usunięcie i import z powrotem', async (t) => {
 
   await strona.click('.karta-projektu .menu-karty');
   const [pobranie] = await Promise.all([strona.waitForEvent('download'), strona.click('.karta-projektu [data-op="eksport"]')]);
-  assert.equal(pobranie.suggestedFilename(), 'Do pliku.seriodruk');
+  assert.equal(pobranie.suggestedFilename(), 'Do pliku.makietka');
   const plik = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'seriodruk-')), pobranie.suggestedFilename());
   await pobranie.saveAs(plik);
   assert.equal(fs.readFileSync(plik).subarray(0, 2).toString(), 'PK', 'plik jest archiwum ZIP');

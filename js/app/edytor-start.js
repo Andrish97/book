@@ -9,7 +9,7 @@
 //   zapis.js            płótno ↔ projekt, zapis w przeglądarce i na koncie, cofanie
 //   trasy.js            adresy podstron (#/projekty, #/p/<id>/s/<id strony>…)
 //   logowanie.js        ekran logowania i wylogowanie
-//   projekty.js         ekran „Projekty”, nowy projekt, pliki .seriodruk
+//   projekty.js         ekran „Projekty”, nowy projekt, pliki .makietka
 //   lista-stron.js      lista stron i wzorców, miniatury, operacje na stronach
 //   sekcje.js           okno ustawień sekcji
 //   wzorce.js           operacje na wzorcach

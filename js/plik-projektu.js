@@ -1,4 +1,4 @@
-// Własny format pliku projektu: .seriodruk
+// Własny format pliku projektu: .makietka
 //
 // Plik to archiwum ZIP (tak jak .docx czy .odt), w środku:
 //   mimetype         application/vnd.seriodruk+zip (pierwszy, bez kompresji)
@@ -74,7 +74,7 @@ export async function zapiszPlikProjektu(projekt) {
   return zip.generateAsync({ type: 'blob', mimeType: TYP_MIME, compression: 'DEFLATE', compressionOptions: { level: 6 } });
 }
 
-// Wczytuje .seriodruk (lub starszy .json) i zwraca obiekt projektu z obrazami w dataUrl.
+// Wczytuje .makietka (lub starszy .json) i zwraca obiekt projektu z obrazami w dataUrl.
 export async function wczytajPlikProjektu(plik) {
   const naglowek = new Uint8Array(await plik.slice(0, 4).arrayBuffer());
   const toZip = naglowek[0] === 0x50 && naglowek[1] === 0x4b; // „PK”

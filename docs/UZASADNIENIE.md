@@ -42,8 +42,8 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 ### 0.3. Poczta i domena ⚠️
 **Co jest.** Wbudowana poczta Supabase dostarcza wiadomości tylko właścicielom projektu i ma limit kilku na godzinę. Dlatego rejestracja działa bez linku potwierdzającego, a reset hasła i zmiana adresu e-mail u innych osób nie zadziałają, dopóki nie podepniesz własnego serwera poczty (Authentication → Emails → SMTP Settings). Dopiero wtedy da się też włączyć własne szablony wiadomości – w `config.toml` są przygotowane, ale zakomentowane, bo bez własnej poczty Supabase odrzuca ich zmianę.
 **Dlaczego tak.** Nie da się tego obejść kodem aplikacji: ograniczenie jest po stronie Supabase. Rejestracja bez potwierdzenia pozwala korzystać z aplikacji już teraz.
-**Twoje decyzje.** Rejestracja bez potwierdzania adresu (#33). Poczta i szablony odłożone do czasu domeny (#34). W dniu wyboru nazwy (#25) wolne były `seriodruk.com`, `seriodruk.app` i `seriodruk.pl` – nie sprawdzałem tego ponownie.
-**Słabe.** Osoba inna niż Ty nie odzyska hasła sama. Po podpięciu domeny trzeba zmienić adres aplikacji i adresy powrotu w `config.toml` (dziś wskazują na `andrish97.github.io/book`).
+**Twoje decyzje.** Rejestracja bez potwierdzania adresu (#33). Poczta i szablony odłożone do czasu domeny (#34). Nazwa i domena: Makietka, `makietka.app` (#88).
+**Słabe.** Dopóki maile przez Brevo nie są podpięte (docs/KONFIGURACJA-DOMENY.md, „Maile (Brevo)”), osoba inna niż Ty nie odzyska hasła sama. Adres aplikacji i adresy powrotu w `config.toml` wskazują już na `makietka.app`.
 
 ## A. Fundamenty techniczne
 
@@ -99,7 +99,7 @@ Ocena: ✅ dobrze tak zostawić · ⚠️ działa, ale ma słabe strony · ❌ n
 Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu projektu, po powrocie do karty, po odzyskaniu sieci i co 30 s.
 **Dlaczego tak.** Zapis robi jedna funkcja w bazie: sprawdza numer wersji, zapisuje projekt i zmienione strony, usuwa strony, których już nie ma – wszystko naraz albo wcale, więc przerwane połączenie nie zostawi na koncie projektu w połowie zapisanego. Łączenie robi przeglądarka, porównując trzy stany: ostatnio uzgodniony z kontem, lokalny i ten z konta. Realtime wysyła tylko informację o nowej wersji, i tylko właścicielowi (reguły dostępu obowiązują także tu); treść urządzenie pobiera zwykłym zapytaniem.
 **Twoje decyzje.** Zapis tylko zmienionych stron (#43). Łączenie zmian zamiast pytania o cały projekt (#63). Zapis na żywo: „powinniśmy natychmiast wysyłać zmiany do bazy” (#67). Otwarta karta nie przeszkadza AI (#80).
-**Słabe.** Dwie zmiany tego samego elementu dają pytanie o cały element, nie o pojedyncze pole. Przy zmianie widocznej na płótnie strona wczytuje się od nowa (kursor i zaznaczenie wracają), zamiast podmienić jeden element. Kanał na żywo zależy od migracji wdrażanej na `main` – potwierdzi go próba na prawdziwej bazie. Plik `.seriodruk` wczytany w miejsce istniejącego projektu pyta o całość – celowo, żeby przywrócona kopia nie została po cichu połączona z tym, co miała zastąpić.
+**Słabe.** Dwie zmiany tego samego elementu dają pytanie o cały element, nie o pojedyncze pole. Przy zmianie widocznej na płótnie strona wczytuje się od nowa (kursor i zaznaczenie wracają), zamiast podmienić jeden element. Kanał na żywo zależy od migracji wdrażanej na `main` – potwierdzi go próba na prawdziwej bazie. Plik `.makietka` wczytany w miejsce istniejącego projektu pyta o całość – celowo, żeby przywrócona kopia nie została po cichu połączona z tym, co miała zastąpić.
 
 ### B5. Tryb bez konta ✅
 **Co jest.** Trybu bez konta nie ma: aplikacja działa tylko z kontem. Bez konfiguracji bazy pokazuje sam komunikat. Kopia projektów w przeglądarce zostaje – jako pamięć podręczna i do pracy bez sieci zalogowanego użytkownika.
@@ -109,7 +109,7 @@ Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu pro
 ## C. Ekrany
 
 ### C1. Lista projektów ✅
-**Co jest.** Karty z miniaturą pierwszej strony. Menu karty: Podgląd, Zmień nazwę, Duplikuj, Eksportuj do pliku (`.seriodruk`), Usuń projekt. Obok „Nowy projekt” jest „Importuj”. Projekt z linkiem do podglądu ma plakietkę, która otwiera okienko z tym linkiem.
+**Co jest.** Karty z miniaturą pierwszej strony. Menu karty: Podgląd, Zmień nazwę, Duplikuj, Eksportuj do pliku (`.makietka`), Usuń projekt. Obok „Nowy projekt” jest „Importuj”. Projekt z linkiem do podglądu ma plakietkę, która otwiera okienko z tym linkiem.
 **Dlaczego tak.** Eksport i import całego projektu są tutaj, a nie w menu edytora, bo dotyczą projektu jako całości. Miniatura mówi więcej niż sama nazwa.
 **Twoje decyzje.** Lista projektów jako pierwszy ekran po logowaniu (#6). Eksport i import na liście projektów (#15).
 
@@ -231,7 +231,7 @@ Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z o
 **Słabe.** Historia jest tylko na tym urządzeniu. Zmiany w oknie danych łączą się w jeden krok na jedno otwarcie okna (celowo).
 
 ### D7. Czcionki: oficjalny zestaw 52 rodzin i własne pliki ✅ / ⚠️
-**Co jest.** Aplikacja ma jeden zestaw czcionek dla wszystkich projektów: 52 rodziny z polskimi znakami, z licencjami pozwalającymi na druk komercyjny (50 na OFL 1.1, 2 na Apache 2.0). Pliki leżą w repozytorium, a lista jest w jednym miejscu (`js/zestaw-czcionek.js`). Przeglądarka pobiera czcionkę dopiero wtedy, gdy jest potrzebna: na starcie domyślną, potem te z otwieranych stron i tę wybraną w panelu. Pogrubienie i kursywa są wyszarzone, gdy czcionka nie ma takiej odmiany. Okno „Czcionki projektu…” (menu ⋯) pokazuje czcionki projektu, „Moje czcionki” i cały zestaw z próbkami; pozwala pobrać pliki TTF jednej rodziny albo całego zestawu, z licencją. Do projektu można też wgrać własne pliki TTF, OTF, WOFF albo WOFF2 – aplikacja czyta z pliku nazwę rodziny, grubość i kursywę. Własna czcionka jedzie z projektem na konto i do pliku `.seriodruk`, a raz wgrana jest na liście w każdym następnym projekcie („Moje czcionki”; przy pracy z kontem – na każdym urządzeniu). W PDF wektorowym czcionki są osadzone w pliku; opcja „Dołącz pliki czcionek użytych w projekcie” dodaje je do pobieranej paczki i włącza się sama, gdy plik nie ma czcionek w środku (obrazy stron, tekst na krzywe).
+**Co jest.** Aplikacja ma jeden zestaw czcionek dla wszystkich projektów: 52 rodziny z polskimi znakami, z licencjami pozwalającymi na druk komercyjny (50 na OFL 1.1, 2 na Apache 2.0). Pliki leżą w repozytorium, a lista jest w jednym miejscu (`js/zestaw-czcionek.js`). Przeglądarka pobiera czcionkę dopiero wtedy, gdy jest potrzebna: na starcie domyślną, potem te z otwieranych stron i tę wybraną w panelu. Pogrubienie i kursywa są wyszarzone, gdy czcionka nie ma takiej odmiany. Okno „Czcionki projektu…” (menu ⋯) pokazuje czcionki projektu, „Moje czcionki” i cały zestaw z próbkami; pozwala pobrać pliki TTF jednej rodziny albo całego zestawu, z licencją. Do projektu można też wgrać własne pliki TTF, OTF, WOFF albo WOFF2 – aplikacja czyta z pliku nazwę rodziny, grubość i kursywę. Własna czcionka jedzie z projektem na konto i do pliku `.makietka`, a raz wgrana jest na liście w każdym następnym projekcie („Moje czcionki”; przy pracy z kontem – na każdym urządzeniu). W PDF wektorowym czcionki są osadzone w pliku; opcja „Dołącz pliki czcionek użytych w projekcie” dodaje je do pobieranej paczki i włącza się sama, gdy plik nie ma czcionek w środku (obrazy stron, tekst na krzywe).
 **Dlaczego tak.** Jeden oficjalny zestaw oznacza, że projekt wygląda tak samo u każdego i że drukarnia może dostać te same pliki. Pliki w repozytorium, a nie z serwerów Google, bo aplikacja nie powinna zależeć od cudzego serwera. Własna czcionka należy do projektu, bo projekt musi dać się otworzyć z pliku na innym komputerze i wyglądać tak samo.
 **Twoje decyzje.** Czcionki jako lista plików, z dołączaniem do eksportu (#49). Jeden oficjalny zestaw dla całego systemu, dostępny do pobrania; własne czcionki jako dodatek (#60). Skład zestawu: 52 rodziny; wyszarzanie odmian, których czcionka nie ma (#62).
 **Słabe.** Własna czcionka w pliku WOFF2, czcionka zmienna i kursywa bez własnego pliku trafiają do PDF jako krzywe – ostre, ale nie do zaznaczenia; czcionka zmienna w grubości innej niż podstawowa i udawane pogrubienie idą jako obraz. Do PDF własne czcionki najlepiej wgrywać jako TTF albo OTF, z osobnym plikiem na każdą odmianę. Repozytorium urosło o pliki czcionek (ok. 18 MB).
@@ -333,9 +333,9 @@ Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z o
 ## F. Pliki, instalacja, pomoc
 
 ### F1. Nazwa i plik projektu ✅
-**Co jest.** Aplikacja nazywa się Seriodruk, a projekt eksportuje się do pliku `.seriodruk` – archiwum ZIP z opisem projektu, obrazami w oryginale i czcionkami projektu. Nazwa jest w jednym miejscu w kodzie (`js/marka.js`) plus kilka plików statycznych wymienionych tam w komentarzu.
+**Co jest.** Aplikacja nazywa się Makietka, a projekt eksportuje się do pliku `.makietka` – archiwum ZIP z opisem projektu, obrazami w oryginale i czcionkami projektu. Nazwa jest w jednym miejscu w kodzie (`js/marka.js`) plus kilka plików statycznych wymienionych tam w komentarzu.
 **Dlaczego tak.** Nazwa nie sugeruje programu Microsoftu i nawiązuje do druku serii stron z danych. Własny format zamiast gołego pliku JSON mieści obrazy w oryginale i ma numer wersji, więc starsze pliki da się otwierać w nowszych wersjach aplikacji.
-**Twoje decyzje.** Własny format pliku (#16). Nazwa Seriodruk (#25).
+**Twoje decyzje.** Własny format pliku (#16). Nazwa Makietka (#25).
 
 ### F2. Instalacja jako aplikacja ⚠️
 **Co jest.** Aplikację można zainstalować z przeglądarki (manifest, ikony, uruchamianie we własnym oknie). Pliki aplikacji są pobierane najpierw z sieci, a przy braku sieci z kopii zapamiętanej przy poprzednich wizytach, więc aplikacja otwiera się także przy słabym internecie i po każdym wdrożeniu od razu działa nowa wersja. Zapytania do bazy nigdy nie są zapamiętywane.
@@ -360,7 +360,7 @@ Narzędzie „Obraz” i „Podmień zdjęcie” pytają: z urządzenia albo z o
 - rysunek SVG napisany przez AI (wymiary dopisane z viewBox, bez skryptów);
 - małe pliki w base64;
 - w rozszerzeniu (serwer u siebie) – pliki i foldery z dysku, z ZIP-ami;
-- wysyłka pliku wprost: `POST …/functions/v1/mcp/<klucz>/obraz?nazwa=…` (dla AI z wykonywaniem kodu i dla skryptów);
+- wysyłka pliku wprost: `POST https://api.makietka.app/mcp/<klucz>/obraz?nazwa=…` (dla AI z wykonywaniem kodu i dla skryptów);
 - link do aplikacji `#/p/<projekt>/obrazy`, który otwiera projekt od razu z oknem obrazów – dla zdjęć z rozmowy.
 
 Archiwa ZIP przyjmuje też okno „Obrazy projektu” w aplikacji.
