@@ -2,7 +2,7 @@
 
 import { postep } from '../postep.js';
 import { powiadom } from '../ui.js';
-import { trasa, stan, pokazEkran, edytor } from './kontekst.js';
+import { trasa, stan, pokazEkran } from './kontekst.js';
 import { doProjektow, pokazProjekty, wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
 import { pokazUdostepniony } from './udostepnione.js';
 import { konto } from './logowanie.js';
@@ -13,6 +13,7 @@ import { pokazZaproszenieZLinku } from './wspolpraca.js';
 const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
 const otworzProjekt = async (...a) => (await czekajNaEdytor()).otworzProjekt(...a);
 const pokazPodglad = async (...a) => (await czekajNaEdytor()).pokazPodglad(...a);
+const pokazEdytor = async () => (await czekajNaEdytor()).pokazEdytor();
 const przejdzDoStrony = async (i) => (await czekajNaEdytor()).przejdzDoStrony(i);
 const edytujWzorzec = async (id) => (await czekajNaEdytor()).edytujWzorzec(id);
 // #/p/<id>/obrazy – projekt z oknem „Obrazy projektu” (link, który AI daje, żeby wgrać zdjęcia albo ZIP).
@@ -59,7 +60,7 @@ export function przejdzDoTrasy() {
     const tylkoPodglad = () => stan.projekt?.wspolpraca_chmury?.rola === 'odczyt';
     if (stan.projekt?.id === t.id) {
       if (t.podglad || tylkoPodglad()) { await pokazPodglad(); return; }
-      if (document.body.dataset.ekran === 'podglad') { pokazEkran('edytor'); edytor.canvas.calcOffset(); }
+      if (document.body.dataset.ekran === 'podglad') await pokazEdytor();
       if (t.obrazy) { await otworzOknoObrazow(); return; }
       if (t.wzorzec && (stan.tryb !== 'wzorzec' || stan.idWzorca !== t.wzorzec)) await edytujWzorzec(t.wzorzec);
       else if (t.strona) {
@@ -82,7 +83,7 @@ export function przejdzDoTrasy() {
       }
       pasek.opis(`Otwieranie „${projekt.nazwa}”…`);
       pasek.razem(null);
-      await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec });
+      await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec, podglad: !!t.podglad || projekt.wspolpraca_chmury?.rola === 'odczyt' });
     } finally {
       pasek.koniec();
     }

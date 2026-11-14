@@ -35,6 +35,19 @@ export let naPlotnie = null;
 
 // Odłącza płótno od projektu: to, co na nim jest, nie zostanie przepisane do projektu.
 export function odlaczPlotno() { naPlotnie = null; }
+// Projekt otwarty prosto w podglądzie (przycisk „Podgląd” na kafelku): płótno edytora wczytuje się
+// dopiero przy przejściu do edycji – bez mignięcia edytora przed podglądem.
+export let plotnoOdlozone = false;
+
+// Pokazuje ekran edytora; wczytuje płótno, jeśli projekt otwarto prosto w podglądzie.
+export async function pokazEdytor() {
+  pokazEkran('edytor');
+  if (plotnoOdlozone) {
+    plotnoOdlozone = false;
+    await zaladujCel({ dopasuj: true });
+  }
+  edytor.canvas.calcOffset();
+}
 
 // Przepisuje płótno do projektu i zapamiętuje stan jako krok historii.
 function zapamietajStan() {
@@ -177,7 +190,8 @@ export function stanZapisu(rodzaj, tekst) {
   el.title = tekst;
 }
 
-// cel: { strona: id, wzorzec: id } – opcjonalnie, np. z adresu strony.
+// cel: { strona: id, wzorzec: id, podglad: true } – opcjonalnie, np. z adresu strony.
+// podglad: projekt otwiera się prosto w podglądzie – bez pokazywania edytora i wczytywania płótna.
 export async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
   naPlotnie = null;
@@ -196,7 +210,8 @@ export async function otworzProjekt(p, cel = {}) {
   stan.idWzorca = wzorzec ? wzorzec.id : null;
   stan.miniatury.clear();
   ustawZakladke(wzorzec ? 'wzorce' : 'strony');
-  pokazEkran('edytor');
+  plotnoOdlozone = !!cel.podglad;
+  if (!plotnoOdlozone) pokazEkran('edytor');
   if (trasa.odczytaj().id !== stan.projekt.id) trasa.ustaw(`p/${stan.projekt.id}`);
   pokazNazwe(stan.projekt.nazwa);
   document.title = `${stan.projekt.nazwa} – ${NAZWA}`;
@@ -204,7 +219,7 @@ export async function otworzProjekt(p, cel = {}) {
   clearTimeout(stan.timerHistorii);
   stan.doHistorii = false;
   await przywrocHistorie(stan.projekt);
-  await zaladujCel({ dopasuj: true });
+  if (!plotnoOdlozone) await zaladujCel({ dopasuj: true });
   odswiezCofanie();
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
   generujMiniatury();

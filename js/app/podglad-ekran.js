@@ -7,7 +7,7 @@ import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { ukladProjektu, stronyUkladu } from '../podglad.js';
 import { stan, pokazEkran, trasa, edytor, biezacaStrona } from './kontekst.js';
-import { zapiszTeraz } from './zapis.js';
+import { zapiszTeraz, pokazEdytor, plotnoOdlozone } from './zapis.js';
 import { podglad } from './skladniki.js';
 import { przejdzDoStrony } from './lista-stron.js';
 import { zapiszGdziekolwiek, pokazProjekty } from './projekty.js';
@@ -15,10 +15,10 @@ import { wzorceStrony } from '../projekt.js';
 
 export async function doEdycji(idStrony) {
   const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);
-  pokazEkran('edytor');
+  if (plotnoOdlozone && i >= 0) { stan.tryb = 'strona'; stan.indeks = i; }
+  await pokazEdytor();
   if (stan.tryb === 'strona' && i === stan.indeks) {
     trasa.ustaw(`p/${stan.projekt.id}/s/${idStrony}`);
-    edytor.canvas.calcOffset();
   } else {
     trasa.ustaw(`p/${stan.projekt.id}`);
     await przejdzDoStrony(i);
