@@ -10,12 +10,12 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 107 | Bez przejściowego stanu „link aktualizowany” i bez starego magazynu Supabase Storage; polecenia i opisy AI także w oknie Dostęp dla AI w ustawieniach konta | 🔄 |
+| 110 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista z zaznaczaniem i operacjami zbiorczymi, rozmowa z bezpiecznym HTML, pisanie (Do/DW/UDW, TinyMCE, załączniki, podpis), odpowiedz / wszystkim / przekaż, robocze, zgłoszenia ZGL-…, na żywo, telefon; statystyki bez kont testowych | ✅ w gałęzi, czeka na scalenie |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
-| Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | 15 decyzji wyglądu (#109) – wdrożenie | 🔄 |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |

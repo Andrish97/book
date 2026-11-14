@@ -642,6 +642,7 @@ function rysujAdresy(pole) {
   const box = $(`[data-adresy="${pole}"]`);
   const input = box.querySelector('input');
   box.querySelectorAll('.adres').forEach((x) => x.remove());
+  input.placeholder = pole === 'do' && !pisz.adresy.do.length ? 'adres@przyklad.pl' : '';
   for (const [i, a] of pisz.adresy[pole].entries()) {
     const chip = document.createElement('span');
     chip.className = `adres ${POPRAWNY.test(a) ? '' : 'zly'}`;
