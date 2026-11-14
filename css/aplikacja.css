@@ -568,7 +568,7 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 
 /* Warstwy */
 .lista-warstw { flex: 1; overflow: auto; list-style: none; margin: 0; padding: 4px 8px 12px; display: flex; flex-direction: column; gap: 1px; }
-.warstwa { display: grid; grid-template-columns: 28px 20px minmax(0, 1fr) auto 28px; align-items: center; gap: 4px; min-height: 34px; padding: 0 2px; border-radius: var(--r-s); cursor: pointer; border-top: 2px solid transparent; border-bottom: 2px solid transparent; }
+.warstwa { display: grid; grid-template-columns: 18px 28px 20px minmax(0, 1fr) 28px 28px; align-items: center; gap: 2px; min-height: 32px; padding: 0 2px; border-radius: var(--r-s); cursor: pointer; border-top: 2px solid transparent; border-bottom: 2px solid transparent; }
 .warstwa:hover { background: var(--wypelnienie); }
 .warstwa.zaznaczona { background: var(--akcent-tlo); color: var(--na-akcencie-tle); }
 .warstwa.ukryta .warstwa-nazwa, .warstwa.ukryta .warstwa-typ { opacity: .45; }
@@ -580,11 +580,17 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .warstwa button:hover { background: var(--wypelnienie-hover); color: var(--tusz); }
 .warstwa:not(.zablokowana):not(:hover) .warstwa-klodka { opacity: 0; }
 .warstwa .warstwa-klodka:focus-visible { opacity: 1; }
-.warstwa-kolejnosc { display: flex; gap: 0; }
-.warstwa .warstwa-kolejnosc button { width: 22px; font-size: 10px; }
-@media (hover: hover) { .warstwa:not(:hover):not(:focus-within) .warstwa-kolejnosc { opacity: 0; } }
+/* Uchwyt ⋮⋮ do przeciągania (mysz i palec, #109) i ⋯ z kolejnością. */
+.warstwa-uchwyt { display: grid; place-items: center; align-self: stretch; color: var(--cichy); cursor: grab; touch-action: none; }
+.lista-warstw.przeciaganie, .lista-warstw.przeciaganie * { cursor: grabbing; }
+.warstwa.ciagnieta { opacity: .55; }
+.warstwa .warstwa-menu[aria-expanded="true"] { background: var(--wypelnienie-hover); color: var(--tusz); }
+@media (hover: hover) {
+  .warstwa:not(:hover):not(:focus-within) .warstwa-menu:not([aria-expanded="true"]),
+  .warstwa:not(:hover) .warstwa-uchwyt { opacity: .35; }
+}
 .warstwa .warstwa-rozwin { width: 20px; font-size: 11px; }
-.warstwa.w-grupie { grid-template-columns: 28px 20px minmax(0, 1fr); padding-left: 24px; min-height: 30px; }
+.warstwa.w-grupie { grid-template-columns: 28px 20px minmax(0, 1fr); padding-left: 22px; min-height: 30px; }
 /* Komórki rozwiniętej tabeli: adres „wiersz.kolumna” i początek treści; kreska oddziela wiersze tabeli. */
 .warstwa.w-tabeli { grid-template-columns: 34px minmax(0, 1fr); padding-left: 52px; min-height: 26px; cursor: text; }
 .warstwa.w-tabeli.nowy-wiersz { border-top: 1px solid var(--linia); }
@@ -1070,6 +1076,7 @@ dialog > .postepy { position: fixed; }
   .sekcja-ostrzezen { border-top: 0; }
   .lista-stron { flex-direction: row; overflow-x: auto; padding-bottom: 10px; }
   .strona { flex: 0 0 104px; grid-template-columns: 1fr; }
+  .lista-stron > li.kafelek-dodaj-strone { flex: 0 0 104px; padding-left: 0; }
   .strona .numer { display: none; }
   .strona .nazwa { grid-column: 1; }
   .strona .menu-miniatury { opacity: 1; }
@@ -1143,7 +1150,15 @@ dialog > .postepy { position: fixed; }
 .opis-sekcji { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .opis-sekcji strong { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .opis-sekcji small { font-size: 11px; color: var(--cichy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sekcja-pusta { padding: 0 0 0 28px; font-size: 12.5px; }
+/* Kafelek „+” na końcu stron sekcji (#109) – jak miniatura strony. */
+.kafelek-dodaj-strone { padding-left: 28px; }
+.kafelek-dodaj {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 6px; border: 2px dashed var(--linia-mocna); border-radius: 4px;
+  background: transparent; color: var(--cichy); font-size: 12px; cursor: pointer;
+  transition: color var(--czas), border-color var(--czas), background var(--czas);
+}
+.kafelek-dodaj:hover, .kafelek-dodaj:focus-visible { color: var(--akcent); border-color: var(--akcent); background: var(--akcent-tlo); outline: none; }
 .lista-wzorcow .numer { display: grid; place-items: center; color: var(--cichy); padding-top: 4px; }
 .pusto-wzorce { padding: 12px; border-radius: var(--r-m); background: var(--powierzchnia-2); border: 1px dashed var(--linia-mocna); font-size: 12.5px; color: var(--tusz-2); }
 .pusto-wzorce p { margin-top: 6px; color: var(--cichy); line-height: 1.5; }
@@ -1683,7 +1698,7 @@ dialog:focus { outline: none; }
 :root[data-dotyk] .strona .menu-miniatury, :root[data-dotyk] .strona.w-rozkladowce .menu-miniatury, :root[data-dotyk] .menu-miniatury { --dotyk: 36px; }
 :root[data-dotyk] .wlasciwosci .zwijak { min-height: 40px; }
 :root[data-dotyk] .wlasciwosci .segmenty button { min-height: 40px; }
-:root[data-dotyk] .warstwa { grid-template-columns: 40px 20px minmax(0, 1fr) auto 40px; min-height: 44px; }
+:root[data-dotyk] .warstwa { grid-template-columns: 32px 40px 20px minmax(0, 1fr) 40px 40px; min-height: 44px; }
 :root[data-dotyk] .warstwa.w-grupie { grid-template-columns: 40px 20px minmax(0, 1fr); }
 :root[data-dotyk] .warstwa button { min-height: 40px; min-width: 32px; }
 :root[data-dotyk] .siatka-obrazow .obraz-nazwa { padding: 11px 0; margin: -11px 0; }
