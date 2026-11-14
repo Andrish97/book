@@ -3459,7 +3459,7 @@ export class Edytor extends EventTarget {
     this._rysujOtwarta(ctx, X, Y);
 
     // Kadrowanie: część obrazu poza ramką jest przyciemniona.
-    if (this._kadr) {
+    if (this._kadr && !this._kadr.ksztalt) {
       const { obj, ramka, nw, nh } = this._kadr;
       ctx.fillStyle = 'rgba(28, 27, 25, 0.55)';
       ctx.beginPath();

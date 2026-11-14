@@ -38,6 +38,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 123 | Z Canvy: kształt jako ramka obrazu (kadr, wyjęcie, dane, PDF wektorowy), zdjęcie z zaokrąglonymi rogami / w kole, usuwanie tła bez AI (nowy plik), przezroczystość w przejściach (PDF z maską), filtry obrazu, obrys liter. Na później: kod QR, tekst po łuku |
 | 116 | Załączniki w formularzu kontaktowym (do 5 plików, 10 MB) – trafiają do zgłoszenia w skrzynce |
 | 113a | Powiadomienia bez sekretów: klucze tworzą się same, nic nie trzeba ustawiać |
 | 113 | Powiadomienia push jak w Familiadzie: zaproszenie, udostępnienie, odpowiedź na zaproszenie, zmiana roli, odebranie dostępu; włączanie w Ustawieniach konta |

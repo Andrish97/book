@@ -158,7 +158,9 @@ export class PanelWlasciwosci {
     if (obj.kadr) {
       this.tytul.textContent = 'Kadrowanie';
       const s = this.sekcja('Kadr');
-      s.append(this.wskazowka('Przesuń i rozciągnij ramkę – zostanie tylko jasna część obrazu. Enter zatwierdza, Esc anuluje.'));
+      s.append(this.wskazowka(this.edytor._kadr?.ksztalt
+        ? 'Przesuń obraz i powiększ go narożnikami – w kształcie zostaje to, co leży pod nim. Enter zatwierdza, Esc anuluje.'
+        : 'Przesuń i rozciągnij ramkę – zostanie tylko jasna część obrazu. Enter zatwierdza, Esc anuluje.'));
       s.append(this.akcje([['ok', 'Zastosuj', () => this.edytor.zakonczKadrowanie(true)], ['zamknij', 'Anuluj', () => this.edytor.zakonczKadrowanie(false)]]));
       return;
     }
