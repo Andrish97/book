@@ -533,7 +533,7 @@ Object.assign(window.seriodruk, {
 Object.defineProperty(window.seriodruk, 'oknoPdf', { get: () => oknoPdf, configurable: true });
 
 // Dla reszty aplikacji (js/app/doczytaj.js): to, co wywołuje się spoza edytora.
-export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
+export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, pokazEdytor } from './zapis.js';
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
 export { edytujWzorzec } from './wzorce.js';
