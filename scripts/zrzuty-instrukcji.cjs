@@ -882,6 +882,41 @@ if (require.main === module) (async () => {
   await d.waitForTimeout(300);
   await kadr(d, 'k-krycie-przejscia.png', { obszar: ['#panel-inspektor label:has-text("Kolor 1")', '#panel-inspektor label:has-text("Kolor 2")', '#panel-inspektor label:has-text("Krycie") >> nth=1'], zaznacz: '#panel-inspektor label:has-text("Krycie") >> nth=1', margines: 12 }).catch((err) => console.error('pominięto k-krycie-przejscia:', err.message));
 
+  // ---------- Kolory do druku: kolory dodatkowe, uszlachetnienia (#127) ----------
+  await pustaStrona();
+  await d.evaluate(() => {
+    const { stan, edytor: e } = window.seriodruk;
+    stan.projekt.kolory_dodatkowe = [{ id: 'kd186', nazwa: 'PANTONE 186 C', cmyk: [0, 100, 81, 4] }, { id: 'kd871', nazwa: 'PANTONE 871 C', cmyk: [20, 25, 60, 25] }];
+    const r = e.dodajProstokat();
+    r.set({ left: 20, top: 30, width: 108, height: 40, rx: 3, ry: 3, strokeWidth: 0, fill: '#1c2541', uszlachetnienie: 'folia', folia: 'zloto' });
+    r.setCoords();
+    e.zatwierdz();
+    e.odznacz();
+    e.zaznacz(r.id);
+  });
+  await d.waitForTimeout(400);
+  await d.click('#przycisk-wiecej');
+  await d.click('#menu-wiecej [data-akcja="kolory-druku"]');
+  await d.waitForSelector('#dlg-kolory-druku[open]');
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-kolory-druku.png', { obszar: '#dlg-kolory-druku .formularz', margines: 0 }).catch((err) => console.error('pominięto k-kolory-druku:', err.message));
+  await d.click('#dlg-kolory-druku .przyciski-dialogu [data-akcja="kolory-druku-zamknij"]');
+  await d.waitForTimeout(300);
+  await d.evaluate(() => [...document.querySelectorAll('#wlasciwosci legend button.zwijak')].find((b) => b.textContent === 'Uszlachetnienie')?.scrollIntoView({ block: 'start' }));
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-uszlachetnienie.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Uszlachetnienie"))', margines: 8 }).catch((err) => console.error('pominięto k-uszlachetnienie:', err.message));
+  await d.evaluate(() => document.querySelector('#wlasciwosci')?.scrollTo?.(0, 0));
+  try {
+    await d.locator('#wlasciwosci .kolor-przycisk').first().scrollIntoViewIfNeeded();
+    await d.click('#wlasciwosci .kolor-przycisk >> nth=0');
+    await d.waitForSelector('.kolor-okienko .kolor-dodatkowe:not([hidden])', { timeout: 5000 });
+    await d.waitForTimeout(300);
+    await kadr(d, 'k-kolor-dodatkowy.png', { obszar: '.kolor-okienko', zaznacz: '.kolor-okienko .kolor-dodatkowe', margines: 8 });
+  } catch (err) { console.error('pominięto k-kolor-dodatkowy:', err.message); }
+  await d.keyboard.press('Escape');
+  await d.waitForTimeout(300);
+  await d.evaluate(() => { window.seriodruk.stan.projekt.kolory_dodatkowe = undefined; });
+
   // ---------- Okładka z grzbietem i składki (#119, #120) ----------
   await d.evaluate(async () => {
     const { stan } = window.seriodruk;

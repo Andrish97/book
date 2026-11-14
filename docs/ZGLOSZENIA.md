@@ -11,7 +11,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 |---|---|---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
-| 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 
 ## Czeka (kolejne etapy)
@@ -41,6 +40,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 127 | Kolory do druku: kolory dodatkowe (Pantone) na osobnych płytach, uszlachetnienia (lakier UV, złocenie, tłoczenie, wytłoczenie, biały poddruk) z nadrukiem, tryb skali szarości i cz/b + 1 kolor; okno „Kolory do druku”, część „Uszlachetnienie” w panelu, rozdział 22 instrukcji |
 | 114b | Instrukcja po #115–#123: okładka z grzbietem i składki (tekst zgodny z oknem sekcji), pasek stron i uchwyt na telefonie, załączniki w formularzu kontaktowym, kontrola przed drukiem (niepełna składka), linie zgięć; 13 nowych zrzutów (jasne i ciemne): okładka, okno okładki, przypięcie, składki, obraz w kształcie, kadrowanie w kształcie, Usuń tło, filtry, krycie w przejściu, pasek stron na telefonie, formularz kontaktowy |
 | 117 | Pasek stron na telefonie: miniatury na całą wysokość paska, wąska etykieta sekcji, mniejszy ⋯, kafelek „+” tej samej wysokości |
 | 118 | Uchwyt arkuszy na telefonie: stuknięcie zwija powiększony, zwykły zamyka (już nie rozwija) |

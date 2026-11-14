@@ -50,7 +50,8 @@ Na wąskim telefonie [Wzorce], [Dane] i [Instrukcja] przechodzą do menu [⋯].
 | [Sprawdź przed drukiem] | Lista miejsc do sprawdzenia w całym projekcie (→ 20). |
 | [Obrazy projektu…] | Wszystkie obrazy projektu (→ 8.5). |
 | [Czcionki projektu…] | Zestaw czcionek i własne czcionki (→ 6.8). |
-| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 23). |
+| [Kolory do druku…] | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (→ 22.1, 22.5). |
+| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 24). |
 | [Jasny / ciemny motyw] | Przełącza motyw aplikacji (→ 2.4). |
 
 ## 4.4 Pasek wstawiania
@@ -92,7 +93,7 @@ ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (→ 13.2).
 ![Ustawienia narzędzia: rysowanie](k-rysowanie.png)
 
 Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu:
-[Strony], [Właściwości], [Warstwy] i [Ostrzeżenia] (→ 26.2).
+[Strony], [Właściwości], [Warstwy] i [Ostrzeżenia] (→ 27.2).
 
 ![Właściwości zaznaczonego tekstu](wlasciwosci.png)
 
@@ -116,6 +117,7 @@ Menu widoku:
 | **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
 | [Usuń prowadnice z tej strony] | Usuwa wszystkie prowadnice otwartej strony. |
 | **W rozkładówkach pokazuj jedną stronę** | W sekcji z rozkładówkami pokazuje tylko jedną stronę (→ 11.5). |
+| **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (→ 22.3). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | [Auto] — gdy się mieszczą, [Zawsze], [Nigdy]. |
 
@@ -853,4 +855,4 @@ zaznaczonym elemencie pokazuje też odległości do krawędzi strony.
 - [−] i [+] w prawym dolnym rogu; kliknięcie procentu dopasowuje stronę do okna (<kbd>Ctrl</kbd>+<kbd>0</kbd>).
 - <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora.
 - Spacja + przeciąganie przesuwa widok.
-- Na telefonie i tablecie — dwa palce (→ 26.1).
+- Na telefonie i tablecie — dwa palce (→ 27.1).
