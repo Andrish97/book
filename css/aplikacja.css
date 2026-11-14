@@ -1741,3 +1741,8 @@ dialog:focus { outline: none; }
   .prezentacja-zoom .prezentacja-wartosc { min-width: 48px; }
   :root[data-dotyk] .prezentacja-zamknij { min-height: 44px; }
 }
+
+/* Przyciski okna, które nie mieszczą się w jednym rzędzie (długie napisy, np. „Wczytaj wersję z konta” obok
+   „Zachowaj wersję z tego urządzenia”), przechodzą do kolejnego rzędu także na komputerze – wcześniej lewy
+   wystawał poza okno. */
+.przyciski-dialogu { flex-wrap: wrap; }

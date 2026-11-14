@@ -133,7 +133,7 @@ function audytUkladu({ dotyk: naDotyku, telefon: naTelefonie }) {
   const korzen = okno || document.body;
   const ro = okno ? okno.getBoundingClientRect() : null;
   // Warstwa elementu: okno, otwarte menu albo okienko (lista, kolor, kalendarz, dymek) – porównujemy tylko w jednej warstwie.
-  const WARSTWY = 'dialog[open], .menu:not([hidden]), .wybor-lista, .kolor-okienko, .kalendarz-okienko, .dymek, .powiadomienie, .prezentacja, .blokada-ekranu';
+  const WARSTWY = '.postepy, dialog[open], .menu:not([hidden]), .wybor-lista, .kolor-okienko, .kalendarz-okienko, .dymek, .powiadomienie, .prezentacja, .blokada-ekranu';
   const warstwa = (el) => el.closest(WARSTWY) || document.body;
   const sterowanie = [...korzen.querySelectorAll('button, input:not([type=hidden]), select, textarea, a[href], [role=button], label.przelacznik, .wybor-przycisk')]
     .filter((el) => !el.closest('.wybor-natywny, .kolor-natywny, canvas, [data-audyt-pomin]') && widoczny(el));
