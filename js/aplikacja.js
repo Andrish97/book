@@ -76,6 +76,7 @@ const akcje = {
   'dostep-ai-utworz': async () => (await dostepAi()).utworzKluczAi(),
   'dostep-ai-kopiuj': async () => (await dostepAi()).kopiujKluczAi(),
   'dostep-ai-kopiuj-adres': async () => (await dostepAi()).kopiujAdresAi(),
+  'dostep-ai-kopiuj-polecenie': async () => (await dostepAi()).kopiujPolecenieAi(),
   'dostep-ai-zamknij': async () => (await dostepAi()).zamknijDostepAi(),
   'nowy-projekt': otworzNowyProjekt,
   instrukcja: () => instrukcja.otworz(0),
@@ -112,8 +113,6 @@ const akcjePodgladuZLinku = {
 };
 
 document.addEventListener('click', (e) => {
-  const polecenie = e.target.closest('[data-kopiuj-polecenie-ai]');
-  if (polecenie) { dostepAi().then((m) => m.kopiujPolecenieAi(polecenie.dataset.kopiujPolecenieAi)); return; }
   const b = e.target.closest('[data-akcja]');
   if (b) {
     const nazwa = b.dataset.akcja;

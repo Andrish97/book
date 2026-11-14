@@ -11,10 +11,9 @@
 import * as chmura from '../chmura.js';
 import { udostepnioneMi } from '../wspolpraca-chmura.js';
 import { $, powiadom, kiedy, potwierdz } from '../ui.js';
-import { wstawIkony } from '../ikony.js';
 import { SUPABASE_URL } from '../konfiguracja.js';
 import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
-import { POLECENIA_AI, tekstPolecenia, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
+import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
 
@@ -78,25 +77,19 @@ function instrukcje(klucz) {
   $('#dostep-ai-claude-code').textContent = `claude mcp add --transport http makietka ${adresLacznika(klucz)}`;
 }
 
-// Gotowe polecenia dla AI (#107, te same co w instrukcji – js/polecenia-ai.js). adres – adres łącznika z kluczem,
-// widoczny tylko zaraz po utworzeniu klucza; wtedy polecenia i komenda Claude Code mają go już wpisanego.
+// Polecenie „Podłącz Makietkę” (#107, ten sam tekst co w instrukcji – js/polecenia-ai.js). adres – adres łącznika
+// z kluczem, widoczny tylko zaraz po utworzeniu klucza; wtedy polecenie i komenda Claude Code mają go już wpisanego.
 let adresWOknie = '';
 function pokazPolecenia(adres = '') {
   adresWOknie = adres;
-  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  $('#dostep-ai-lista-polecen').innerHTML = POLECENIA_AI.map((p) => `<div class="prompt-instrukcji"><div class="prompt-naglowek"><b>${p.tytul}</b>`
-    + `<button type="button" class="przycisk" data-kopiuj-polecenie-ai="${p.id}" data-ikona="kopiuj">Kopiuj</button></div>`
-    + `<p class="ciche">${p.opis}</p><pre>${esc(tekstPolecenia(p, adres))}</pre></div>`).join('');
-  wstawIkony($('#dostep-ai-lista-polecen'));
+  $('#dostep-ai-polecenie').textContent = polecenieZAdresem(adres);
   $('#dostep-ai-polecenie-code').textContent = `claude mcp add --transport http makietka ${adres || ADRES_ZASTEPCZY}`;
 }
 
-export async function kopiujPolecenieAi(id) {
-  const p = POLECENIA_AI.find((x) => x.id === id);
-  if (!p) return;
+export async function kopiujPolecenieAi() {
   try {
-    await navigator.clipboard.writeText(tekstPolecenia(p, adresWOknie));
-    powiadom(`Skopiowano polecenie „${p.tytul}”.`);
+    await navigator.clipboard.writeText(polecenieZAdresem(adresWOknie));
+    powiadom('Skopiowano polecenie – wklej je w rozmowie ze swoim AI.');
   } catch {
     powiadom('Nie udało się skopiować – zaznacz tekst polecenia i skopiuj go ręcznie.', true);
   }

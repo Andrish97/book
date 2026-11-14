@@ -322,7 +322,7 @@ export const ROZDZIAL_AI_START = {
       tytul: 'Krok 2. Łącznik w aplikacji AI',
       punkty: [
         '<b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <b>Ustawienia → Łączniki → Dodaj własny łącznik</b>, nazwa „Makietka”, wklej adres, bez OAuth. W rozmowie włącz go w menu narzędzi pod polem wiadomości. Łączniki są w płatnych planach Claude.',
-        '<b>Claude Desktop – rozszerzenie</b>: pobierz <code>https://makietka.app/ai/mcp/makietka.mcpb</code>, otwórz plik dwuklikiem i wklej klucz. Rozszerzenie dodatkowo czyta pliki i foldery z Twojego dysku (zdjęcia dowolnej wielkości).',
+        '<b>Claude Desktop – rozszerzenie</b>: w oknie Dostęp dla AI kliknij <b>Pobierz rozszerzenie dla Claude Desktop</b>, kliknij dwukrotnie pobrany plik – Claude Desktop zapyta o instalację – i wklej klucz. Rozszerzenie dodatkowo czyta pliki i foldery z Twojego dysku (zdjęcia dowolnej wielkości).',
         '<b>ChatGPT</b>: <b>Ustawienia → Aplikacje / Łączniki → Dodaj własny serwer MCP</b> (w części planów trzeba włączyć tryb dewelopera), uwierzytelnianie: brak. ChatGPT umie przekazać łącznikowi zdjęcia wrzucone do rozmowy.',
         '<b>Claude Code</b>: <code>claude mcp add --transport http makietka https://api.makietka.app/mcp/sdk_…</code>. <b>Cursor</b> i inne programy z MCP: dodaj serwer HTTP z tym adresem.',
         'Sprawdzenie: napisz do AI „Pokaż moje projekty w Makietce”. Powinno użyć narzędzia <b>projekty</b>.',

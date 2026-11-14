@@ -60,6 +60,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 99 | Własne kontrolki (listy na telefonie), instalacja aplikacji, bezpieczne marginesy, plakietka na kafelku, pełny ekran na logowaniu, przycisk motywu |
 | 100 | Nazwy użytkownika (rejestracja, pierwsze logowanie, zapraszanie po nazwie); konto bez danych całej aplikacji |
 | 104 | Instrukcja w stylu Familiady: 42 rozdziały, spis z wyszukiwarką, edytor i panel właściwości szczegółowo, dane w praktyce (kalendarz ze świętami, dziennik, planer, obrót i kolor z danych), AI krok po kroku + komiks + polecenia „Kopiuj”, automatyczne zrzuty w CI |
-| 107 | Bez starego magazynu i trybu przejściowego linków; okno Dostęp dla AI z opisem aplikacji i gotowymi poleceniami (Kopiuj, adres wpisany po utworzeniu klucza) |
+| 107 | Bez starego magazynu i trybu przejściowego linków; okno Dostęp dla AI: polecenie „Podłącz Makietkę” do skopiowania na wierzchu (adres wpisany po utworzeniu klucza), przycisk pobrania rozszerzenia dla Claude Desktop, krótkie zwinięte opisy aplikacji |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |

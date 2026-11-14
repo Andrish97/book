@@ -42,12 +42,6 @@ export const PROMPT_DANE = `Korzystając z łącznika Makietka, w projekcie „<
 4. Zrób stronę-wzór dnia: duża liczba {dzien} z kolorem z pola „kolor”, pod nią {dzien_tygodnia} i {miesiac}, a niżej {swieto}. Ustaw serię „Dni” z tą tabelą.
 5. Pokaż mi, ile stron powstanie, i uruchom kontrolę przed drukiem.`;
 
-// Lista do pokazania z przyciskiem „Kopiuj”: { id, tytul, opis, tekst }.
-export const POLECENIA_AI = [
-  { id: 'podlacz', tytul: 'Podłącz Makietkę', opis: 'Wklej do rozmowy ze swoim AI – rozpozna, w jakiej aplikacji działa, i poprowadzi Cię krok po kroku przez podłączenie.', tekst: PROMPT_PODLACZENIE },
-  { id: 'komiks', tytul: 'Komiks do druku', opis: 'Dopisz na końcu pomysł na komiks i wyślij AI z podłączoną Makietką.', tekst: PROMPT_KOMIKS },
-  { id: 'dane', tytul: 'Kalendarz dni z tabelą', opis: 'Podmień nazwę projektu i wyślij – AI zrobi tabelę dni roku i stronę dnia z serią.', tekst: PROMPT_DANE },
-];
-
-// Treść polecenia z podstawionym adresem łącznika (gdy adres jest znany).
-export const tekstPolecenia = (p, adres = '') => (adres ? p.tekst.split(ADRES_ZASTEPCZY).join(adres) : p.tekst);
+// Polecenie „Podłącz Makietkę” z podstawionym adresem łącznika (gdy adres jest znany – zaraz po utworzeniu klucza).
+// W oknie „Dostęp dla AI” jest tylko to polecenie; „Komiks” i „Kalendarz” są w instrukcji.
+export const polecenieZAdresem = (adres = '') => (adres ? PROMPT_PODLACZENIE.split(ADRES_ZASTEPCZY).join(adres) : PROMPT_PODLACZENIE);
