@@ -20,15 +20,23 @@ export const ROLE = { wlasciciel: 'właściciel', edycja: 'może edytować', odc
 // Link do przyjęcia zaproszenia – adres aplikacji z kodem.
 export const linkZaproszenia = (kod) => `${location.origin}${location.pathname}#/zaproszenie/${encodeURIComponent(kod)}`;
 
-export const zaprosDoProjektu = (projekt, email, rola) => rpc('zapros_do_projektu', { p_projekt: projekt, p_email: email, p_rola: rola });
+// Zmiany, o których baza wysyła powiadomienie push (#113): zaraz po nich prosimy o wysyłkę, żeby druga osoba
+// dostała je od razu, a nie dopiero przy minutowym przebiegu kolejki (Cron Workera).
+const zPowiadomieniem = (nazwa) => async (parametry) => {
+  const wynik = await rpc(nazwa, parametry);
+  import('./powiadomienia.js').then((m) => m.wyslijTeraz()).catch(() => {});
+  return wynik;
+};
+
+export const zaprosDoProjektu = (projekt, email, rola) => zPowiadomieniem('zapros_do_projektu')({ p_projekt: projekt, p_email: email, p_rola: rola });
 export const osobyProjektu = async (projekt) => lista(await rpc('osoby_projektu', { p_projekt: projekt }));
 export const cofnijZaproszenie = (id) => rpc('cofnij_zaproszenie', { p_id: id });
-export const zmienRole = (projekt, uzytkownik, rola) => rpc('zmien_role_wspolpracownika', { p_projekt: projekt, p_uzytkownik: uzytkownik, p_rola: rola });
-export const usunZProjektu = (projekt, uzytkownik) => rpc('usun_z_projektu', { p_projekt: projekt, p_uzytkownik: uzytkownik });
+export const zmienRole = (projekt, uzytkownik, rola) => zPowiadomieniem('zmien_role_wspolpracownika')({ p_projekt: projekt, p_uzytkownik: uzytkownik, p_rola: rola });
+export const usunZProjektu = (projekt, uzytkownik) => zPowiadomieniem('usun_z_projektu')({ p_projekt: projekt, p_uzytkownik: uzytkownik });
 export const mojeZaproszenia = async () => lista(await rpc('moje_zaproszenia'));
 export const zaproszenieZKodu = (kod) => rpc('zaproszenie_z_kodu', { p_kod: kod });
-export const przyjmijZaproszenie = (kod) => rpc('przyjmij_zaproszenie', { p_kod: kod });
-export const odrzucZaproszenie = (kod) => rpc('odrzuc_zaproszenie', { p_kod: kod });
+export const przyjmijZaproszenie = (kod) => zPowiadomieniem('przyjmij_zaproszenie')({ p_kod: kod });
+export const odrzucZaproszenie = (kod) => zPowiadomieniem('odrzuc_zaproszenie')({ p_kod: kod });
 
 // E-mail z zaproszeniem (Funkcja Edge poczta, poczta Brevo). Zwraca { wyslano, powod?, blad? };
 // gdy poczty nie skonfigurowano – { wyslano: false, powod: 'brak-konfiguracji' }.

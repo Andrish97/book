@@ -43,6 +43,38 @@ self.addEventListener('message', (e) => {
   if (e.data === 'wlacz-nowa-wersje') self.skipWaiting();
 });
 
+// Powiadomienia push (decyzja #113): treść i adres składa Funkcja Edge powiadomienia, tu tylko pokazanie
+// i otwarcie właściwego miejsca w aplikacji (zapis urządzenia: js/powiadomienia.js).
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = {}; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Makietka', {
+    body: d.body || '',
+    icon: new URL('img/ikony/ikona-192.png', self.registration.scope).href,
+    tag: d.tag,
+    renotify: Boolean(d.tag),
+    timestamp: d.timestamp,
+    data: { url: d.url || './#/projekty' },
+  }));
+});
+
+// Kliknięcie: otwarte okno aplikacji przechodzi pod adres powiadomienia, a bez okna – nowe okno.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const cel = new URL(e.notification.data?.url || './#/projekty', self.registration.scope);
+  if (cel.origin !== self.location.origin) return;
+  e.waitUntil((async () => {
+    const okna = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const okno = okna.find((w) => new URL(w.url).origin === self.location.origin);
+    if (okno) {
+      await okno.focus();
+      if ('navigate' in okno) return okno.navigate(cel.href).catch(() => self.clients.openWindow(cel.href));
+      return undefined;
+    }
+    return self.clients.openWindow(cel.href);
+  })());
+});
+
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     const klucze = await caches.keys();

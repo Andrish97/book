@@ -255,6 +255,7 @@
           <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie"><span class="ikona-wiersza" data-ikona="koperta"></span><span class="tytul">E-mail</span><span class="wartosc" data-podsumowanie="email"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie" data-cel="haslo"><span class="ikona-wiersza" data-ikona="klodka"></span><span class="tytul">Hasło</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/wyglad" data-do="ust-wyglad" data-sekcja="wyglad"><span class="ikona-wiersza" data-ikona="motyw"></span><span class="tytul">Motyw</span><span class="wartosc" data-podsumowanie="motyw"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/powiadomienia" data-do="ust-powiadomienia" data-sekcja="powiadomienia"><span class="ikona-wiersza" data-ikona="dzwonek"></span><span class="tytul">Powiadomienia</span><span class="wartosc" data-podsumowanie="powiadomienia"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Dostęp dla AI</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/miejsce" data-do="ust-miejsce" data-sekcja="miejsce"><span class="ikona-wiersza" data-ikona="chmura"></span><span class="tytul">Miejsce</span><span class="wartosc" data-podsumowanie="miejsce"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/usun" data-do="ust-usun" data-sekcja="usun" class="niebezpieczny"><span class="ikona-wiersza" data-ikona="kosz"></span><span class="tytul">Usuwanie konta</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
@@ -368,6 +369,30 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+
+          <section class="grupa-ustawien" id="ust-powiadomienia">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
+            <h2>Powiadomienia</h2>
+            <p class="ciche">Powiadomienia przychodzą na to urządzenie od razu – także wtedy, gdy Makietka jest zamknięta.</p>
+            <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="wiersz-glowny z-przelacznikiem">
+                  <div class="wiersz-opis"><strong>Na tym urządzeniu</strong><span id="powiadomienia-stan">Sprawdzam…</span></div>
+                  <div class="wiersz-akcje"><label class="przelacznik"><input type="checkbox" id="powiadomienia-wlacz" aria-label="Powiadomienia na tym urządzeniu"><span></span></label></div>
+                </div>
+                <div class="powiadomienia-uwaga" id="powiadomienia-uwaga" hidden>
+                  <p class="ciche" id="powiadomienia-uwaga-tekst"></p>
+                  <button type="button" class="przycisk" data-akcja="zainstaluj" data-ikona="pobierz" id="powiadomienia-instaluj" hidden>Zainstaluj aplikację</button>
+                </div>
+              </div>
+              <fieldset class="wiersz-ustawien powiadomienia-rodzaje" id="powiadomienia-rodzaje" hidden>
+                <legend>Powiadamiaj, gdy</legend>
+                <label class="przelacznik"><input type="checkbox" name="rodzaj" value="zaproszenia"><span>ktoś mnie zaprosi albo udostępni mi projekt</span></label>
+                <label class="przelacznik"><input type="checkbox" name="rodzaj" value="odpowiedzi"><span>ktoś przyjmie albo odrzuci moje zaproszenie</span></label>
+                <label class="przelacznik"><input type="checkbox" name="rodzaj" value="dostep"><span>zmieni się moja rola albo stracę dostęp do projektu</span></label>
+              </fieldset>
             </div>
           </section>
 

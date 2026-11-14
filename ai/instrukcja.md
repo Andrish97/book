@@ -972,6 +972,7 @@ Projekt możesz robić razem z innymi osobami – każda na swoim koncie. Zapras
 - **Kto jest w projekcie.** Kółka z inicjałami w pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty (wskaż kółko, żeby zobaczyć, na której jest stronie). Kolorowa ramka przy miniaturze strony mówi, na której stronie ktoś pracuje, a przerywana obwódka w jego kolorze – co ma zaznaczone.
 - **Właściciel** zmienia rolę osoby, odbiera dostęp (działa od razu), cofa zaproszenie, kopiuje jego link albo wysyła e-mail ponownie. Tylko właściciel może usunąć projekt, udostępnić go linkiem i dać dostęp dla AI. Obrazy wgrane przez współpracowników trafiają na konto właściciela.
 - Współpracownik może sam **opuścić projekt** (menu **⋯** na karcie albo przycisk w oknie Współpraca). **Zrób własną kopię** tworzy Twój własny projekt z tą samą treścią.
+- **Powiadomienia.** Włącz je w **Ustawieniach konta → Powiadomienia**, a dowiesz się od razu, gdy ktoś Cię zaprosi albo udostępni Ci projekt, przyjmie Twoje zaproszenie albo zmieni Twój dostęp. Kliknięcie powiadomienia otwiera właściwy projekt. Na iPhonie i iPadzie powiadomienia działają w zainstalowanej aplikacji.
 
 > Zaproszenie przyjmuje osoba, która ma link – także z innego adresu niż ten, na który poszło (np. konto firmowe zamiast prywatnego). W oknie Współpraca zawsze widać, kto naprawdę dołączył, i w każdej chwili można odebrać dostęp.
 
