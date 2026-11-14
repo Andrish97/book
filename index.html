@@ -21,6 +21,17 @@
       try { wybor = localStorage.getItem('seriodruk:motyw') || 'system'; } catch (e) { /* tryb prywatny */ }
       var ciemny = wybor === 'ciemny' || (wybor === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.dataset.motyw = ciemny ? 'ciemny' : 'jasny';
+      // Tryb urządzenia przed pierwszym rysowaniem (bez mignięcia układu); dalej pilnuje go js/urzadzenie.js.
+      var r = document.documentElement, mq = function (q) { return window.matchMedia(q).matches; };
+      var dotyk = mq('(pointer: coarse)'), sw = screen.width || innerWidth, sh = screen.height || innerHeight;
+      var rodzaj = dotyk ? (Math.min(sw, sh) < 700 ? 'telefon' : 'tablet') : 'komputer';
+      var orient = innerWidth >= innerHeight ? 'poziom' : 'pion';
+      r.dataset.urzadzenie = rodzaj;
+      r.dataset.orientacja = orient;
+      r.dataset.uklad = rodzaj === 'komputer' ? (innerWidth <= 860 ? 'komputer-waski' : innerWidth >= 1680 ? 'komputer-duzy' : 'komputer') : rodzaj + '-' + orient;
+      if (dotyk) r.setAttribute('data-dotyk', '');
+      if (innerWidth <= 600) r.setAttribute('data-kompakt', '');
+      if (dotyk || innerWidth <= 600) r.setAttribute('data-zaslonka', '');
     })();
   </script>
   <link rel="stylesheet" href="css/aplikacja.css">
@@ -267,8 +278,15 @@
 
           <section class="grupa-ustawien" id="ust-miejsce">
             <h2>Miejsce</h2>
-            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Aplikacja ma wspólny limit miejsca na pliki wszystkich osób – tu widać, ile go zostało.</p>
+            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Każde konto ma swój limit miejsca na pliki, a aplikacja – wspólny magazyn dla wszystkich osób.</p>
             <div class="wiersze-ustawien">
+              <div class="wiersz-ustawien">
+                <div class="miejsce-aplikacji" id="miejsce-konta" aria-live="polite">
+                  <div class="miejsce-naglowek"><strong>Twoje konto</strong><span id="miejsce-konto">Sprawdzam…</span></div>
+                  <div class="miejsce-pasek" role="progressbar" aria-label="Zajęte miejsce na pliki konta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="miejsce-pasek-konta" class="moje"></span></div>
+                  <p class="ciche" id="miejsce-limity"></p>
+                </div>
+              </div>
               <div class="wiersz-ustawien">
                 <div class="miejsce-aplikacji" id="miejsce-aplikacji" aria-live="polite">
                   <div class="miejsce-naglowek"><strong>Cała aplikacja</strong><span id="miejsce-razem">Sprawdzam…</span></div>
@@ -285,6 +303,23 @@
                   <div><dt>Podglądy linków</dt><dd id="miejsce-podglady">—</dd></div>
                   <div><dt>Obrazy od AI w drodze</dt><dd id="miejsce-od-ai">—</dd></div>
                 </dl>
+              </div>
+              <div class="wiersz-ustawien">
+                <div class="uzycie-projektow" id="uzycie-projektow">
+                  <div class="miejsce-naglowek"><strong>Twoje projekty</strong>
+                    <label class="uzycie-sortowanie">Sortuj <select id="uzycie-sortuj" aria-label="Sortowanie projektów">
+                      <option value="rozmiar">po rozmiarze</option><option value="zmiana">po ostatniej zmianie</option><option value="nazwa">po nazwie</option>
+                    </select></label>
+                  </div>
+                  <div class="uzycie-paski" id="uzycie-paski"></div>
+                  <ul class="uzycie-lista" id="uzycie-lista"></ul>
+                  <p class="ciche" id="uzycie-pusto" hidden>Nie masz jeszcze projektów na koncie.</p>
+                  <p class="ciche" id="uzycie-dodatki"></p>
+                  <details class="uzycie-u-innych" id="uzycie-u-innych" hidden>
+                    <summary>U innych – nie liczy się do Twojego limitu (<span id="uzycie-u-innych-licznik">0</span>)</summary>
+                    <ul class="uzycie-lista" id="uzycie-lista-innych"></ul>
+                  </details>
+                </div>
               </div>
               <div class="wiersz-ustawien">
                 <div class="wiersz-glowny">

@@ -39,34 +39,6 @@ function uruchomSerwer() {
 const BEZ_BAZY = "export const SUPABASE_URL = '';\nexport const SUPABASE_ANON_KEY = '';\n";
 const Z_ATRAPA = "export const SUPABASE_URL = 'https://atrapa.supabase.co';\nexport const SUPABASE_ANON_KEY = 'sb_publishable_test';\n";
 
-// Biblioteka Supabase wysyła pliki jako formularz wieloczęściowy – wyciągamy
-// z niego samą treść pliku i jej typ.
-function plikZZadania(req) {
-  const cialo = req.postDataBuffer() || Buffer.alloc(0);
-  const typ = req.headers()['content-type'] || 'application/octet-stream';
-  const granica = /boundary=(.+)$/.exec(typ)?.[1];
-  if (!granica) return { typ, tresc: cialo };
-  const znacznik = Buffer.from(`--${granica}`);
-  let od = 0;
-  let plik = null;
-  let cacheControl = null;
-  for (;;) {
-    const start = cialo.indexOf(znacznik, od);
-    if (start < 0) break;
-    const koniecNaglowkow = cialo.indexOf('\r\n\r\n', start);
-    const nastepny = cialo.indexOf(znacznik, start + znacznik.length);
-    if (koniecNaglowkow < 0 || nastepny < 0) break;
-    const naglowki = cialo.subarray(start, koniecNaglowkow).toString();
-    if (/name="cacheControl"/.test(naglowki)) cacheControl = cialo.subarray(koniecNaglowkow + 4, nastepny - 2).toString();
-    if (/filename=/.test(naglowki) || /name="?"?;?\s*$/m.test(naglowki) || !plik) {
-      const typPliku = /content-type:\s*([^\r\n]+)/i.exec(naglowki)?.[1];
-      if (typPliku) plik = { typ: typPliku.trim(), tresc: cialo.subarray(koniecNaglowkow + 4, nastepny - 2) };
-    }
-    od = nastepny;
-  }
-  return { ...(plik || { typ, tresc: cialo }), ...(cacheControl ? { cacheControl } : {}) };
-}
-
 // Baza trzyma projekt i strony w kolumnach jsonb, a te nie pamiętają kolejności pól: oddają je
 // posortowane po długości nazwy, potem alfabetycznie. Atrapa oddaje dane tak samo, żeby żaden test
 // nie przechodził dzięki kolejności, której prawdziwa baza nie zachowa.
@@ -77,7 +49,8 @@ function jakJsonb(x) {
   return Object.fromEntries(klucze.map((k) => [k, jakJsonb(x[k])]));
 }
 
-// Funkcje miejsca i sprzątania – ta sama logika co w migracji 20261114150000_miejsce_na_koncie.sql.
+// Funkcje miejsca i sprzątania – ta sama logika co w bazie (migracje 20261114150000_miejsce_na_koncie.sql,
+// 20261114180000_pliki_r2_limity.sql) i w przekaźniku plików (cloudflare/api-worker.js: _miejsce, _osierocone).
 // Wiek pliku: stan.pliki.get(klucz).czas (test może go cofnąć), wiersze AI: utworzono, linki chronione: zmieniono.
 function miejsceAtrapy(stan, funkcja, tresc, k) {
   const DWA_DNI = 2 * 24 * 3600 * 1000;
@@ -90,18 +63,37 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   const ai = [...(stan.obrazyAi || new Map())].filter(([, o]) => o.owner_id === k.id);
   const bajtyAi = (o) => (o.dane?.length || 0) + [...(o.kawalki?.values() || [])].reduce((n, b) => n + b.length, 0);
   if (funkcja === 'miejsce_na_koncie') {
-    const suma = (f) => moje.filter(f).reduce((n, x) => n + rozmiarPliku(x.p), 0);
+    // Część z bazy (migracja 20261114180000_pliki_r2_limity.sql); pliki liczy przekaźnik (/pliki/_miejsce).
     return {
-      obrazy: suma((x) => x.bucket === 'zasoby' && !x.nazwa.startsWith(`${prefiks}_czcionki/`)),
-      czcionki: suma((x) => x.bucket === 'zasoby' && x.nazwa.startsWith(`${prefiks}_czcionki/`)),
-      podglady: suma((x) => x.bucket === 'podglady'),
-      plikow: moje.length,
       chronione: chronione.reduce((n, [, u]) => n + [...u.pliki.values()].reduce((m, f) => m + (f.dane?.length || f.tresc?.length || 0), 0), 0),
       od_ai: ai.reduce((n, [, o]) => n + bajtyAi(o), 0),
-      pliki_razem: [...stan.pliki].filter(([klucz]) => /^(zasoby|podglady)\//.test(klucz)).reduce((n, [, p]) => n + rozmiarPliku(p), 0) + (stan.inneKontaBajty || 0),
       baza_razem: stan.bazaBajty ?? 12 * 1024 * 1024,
-      limit_plikow: stan.limitPlikow || 1073741824,
       limit_bazy: 524288000,
+      projekty: stan.projekty.filter((pr) => pr.owner_id === k.id).length,
+      limit_projektow: stan.limitProjektow ?? 30,
+      osoby_w_projekcie: 10,
+      obrazy_w_projekcie: 300,
+    };
+  }
+  if (funkcja === 'pliki_miejsce') {
+    // Jak GET /pliki/_miejsce w przekaźniku (cloudflare/api-worker.js).
+    const suma = (f) => moje.filter(f).reduce((n, x) => n + rozmiarPliku(x.p), 0);
+    const czcionki = suma((x) => x.bucket === 'zasoby' && x.nazwa.startsWith(`${prefiks}_czcionki/`));
+    const obrazy = suma((x) => x.bucket === 'zasoby') - czcionki;
+    const podglady = suma((x) => x.bucket === 'podglady');
+    const projekty = {};
+    for (const x of moje) {
+      const pr = x.nazwa.split('/')[1];
+      if (!pr || pr.startsWith('_')) continue;
+      const w = projekty[pr] || (projekty[pr] = { bajty: 0, plikow: 0, podglady: 0 });
+      if (x.bucket === 'podglady') w.podglady += rozmiarPliku(x.p); else { w.bajty += rozmiarPliku(x.p); w.plikow += 1; }
+    }
+    return {
+      projekty,
+      obrazy, czcionki, podglady, plikow: moje.length, konto: obrazy + czcionki + podglady,
+      limit_konta: stan.limitKonta || 500 * 1024 * 1024, limit_pliku: stan.limitPliku || 25 * 1024 * 1024,
+      pliki_razem: [...stan.pliki].filter(([klucz]) => /^(zasoby|podglady)\//.test(klucz)).reduce((n, [, p]) => n + rozmiarPliku(p), 0) + (stan.inneKontaBajty || 0),
+      limit_plikow: stan.limitPlikow || 10 * 1024 * 1024 * 1024,
     };
   }
   if (funkcja === 'pliki_osierocone') {
@@ -137,7 +129,8 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
   const stan = {
     konta: poczatkowe.konta || [{ id: '11111111-1111-4111-8111-111111111111', email: 'anna@test.pl', haslo: 'Dobre#Haslo1', potwierdzone: true, nazwa: 'Anna' }],
     projekty: [],
-    pliki: new Map(), // Storage: "bucket/ścieżka" -> { typ, tresc }
+    pliki: new Map(), // Pliki w R2 (przekaźnik): "zasoby|podglady/ścieżka" -> { typ, tresc, czas, cacheControl }
+    staryMagazyn: new Map(), // Supabase Storage przed przeniesieniem do R2: "bucket/ścieżka" -> { typ, tresc }
     wyslania: [], // kolejne wysłane pliki (klucze), także powtórnie
     strony: new Map(), // wiersze projekty_strony: "projekt/strona" -> dane
     zapisy: [], // kolejne zapisy projektu: które strony wysłano, ile ich jest
@@ -476,6 +469,24 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       return r.fulfill({ status: 200, contentType: 'application/json', body: tresc });
     }
     // Miejsce na koncie i sprzątanie (migracja 20261114150000_miejsce_na_koncie.sql).
+    if (sc === '/rest/v1/rpc/uzycie_projektow') {
+      // Jak w bazie (migracja 20261114180000_pliki_r2_limity.sql): własne projekty i projekty innych z dostępem.
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'JWT', 'PGRST301');
+      const fonty = (d) => new Set((d?.czcionki || []).map((c) => c.id));
+      const obrazy = (d) => Object.keys(d?.zasoby || {}).filter((id) => !fonty(d).has(id)).length;
+      const strony = (pr) => (Array.isArray(pr.dane?.strony) ? pr.dane.strony.length : [...stan.strony.keys()].filter((x) => x.startsWith(`${pr.id}/`)).length);
+      const wlasne = stan.projekty.filter((pr) => pr.owner_id === k.id).map((pr) => ({
+        id: pr.id, nazwa: pr.nazwa, zmieniono: pr.zmieniono, obrazy: obrazy(pr.dane), strony: strony(pr),
+        dane_bajty: JSON.stringify(pr.dane || {}).length, klucze_ai: (stan.dostepy || []).filter((d) => d.projekt_id === pr.id && !d.odwolany).length,
+        link: Boolean(pr.dane?.udostepnienie?.kod), link_chroniony: [...(stan.chronione || new Map()).keys()].some((x) => x.startsWith(`${k.id}/${pr.id}/`)),
+      }));
+      const uInnych = stan.projekty.filter((pr) => pr.owner_id !== k.id && rolaW(stan, k, pr.id)).map((pr) => ({
+        id: pr.id, nazwa: pr.nazwa, zmieniono: pr.zmieniono, obrazy: obrazy(pr.dane), strony: strony(pr), rola: rolaW(stan, k, pr.id),
+        wlasciciel: stan.konta.find((x) => x.id === pr.owner_id)?.nazwa || 'ktoś',
+      }));
+      return json(r, 200, { wlasne, u_innych: uInnych });
+    }
     if (/^\/rest\/v1\/rpc\/(miejsce_na_koncie|pliki_osierocone|posprzataj_konto)$/.test(sc)) {
       const k = zTokenu(req);
       if (!k) return blad(r, 401, 'JWT', 'PGRST301');
@@ -522,36 +533,77 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return json(r, 200, []);
       }
     }
-    if (sc.startsWith('/storage/v1/object/list/')) {
-      // Jak w Supabase: bezpośrednie pliki folderu oraz nazwy podfolderów.
-      const prefiks = `${sc.slice('/storage/v1/object/list/'.length)}/${tresc.prefix ? `${tresc.prefix}/` : ''}`;
-      const nazwy = new Set();
-      for (const klucz of stan.pliki.keys()) if (klucz.startsWith(prefiks)) nazwy.add(klucz.slice(prefiks.length).split('/')[0]);
-      return json(r, 200, [...nazwy].map((name) => ({ name })));
+    // Pliki w R2 przez przekaźnik (cloudflare/api-worker.js, #92): te same klucze „zasoby/…” i „podglady/…”.
+    if (sc.startsWith('/pliki/') || sc.startsWith('/podglady/')) {
+      const publiczne = sc.startsWith('/podglady/');
+      const reszta = decodeURIComponent(sc.slice(publiczne ? '/podglady/'.length : '/pliki/'.length));
+      const k = zTokenu(req);
+      const odp = (kod, dane) => r.fulfill({ status: kod, contentType: 'application/json', body: JSON.stringify(dane), headers: { 'access-control-allow-origin': '*' } });
+      if (!publiczne && !k) return odp(401, { blad: 'Zaloguj się ponownie.' });
+      if (!publiczne && reszta === '_miejsce') return odp(200, miejsceAtrapy(stan, 'pliki_miejsce', {}, k));
+      if (!publiczne && reszta === '_osierocone') return odp(200, miejsceAtrapy(stan, 'pliki_osierocone', {}, k));
+      if (!publiczne && reszta === '_lista') {
+        const bucket = url.searchParams.get('bucket') === 'podglady' ? 'podglady' : 'zasoby';
+        const prefiks = url.searchParams.get('prefiks') || '';
+        if (!prefiks.startsWith(`${k.id}/`)) return odp(403, { blad: 'Lista tylko z własnego folderu.' });
+        return odp(200, [...stan.pliki].filter(([klucz]) => klucz.startsWith(`${bucket}/${prefiks}`))
+          .map(([klucz, p]) => ({ klucz: klucz.slice(bucket.length + 1), rozmiar: p.tresc?.length || 0, czas: p.czas || 0 })));
+      }
+      if (!publiczne && reszta === '_usun') {
+        const bucket = tresc.bucket === 'podglady' ? 'podglady' : 'zasoby';
+        let usuniete = 0;
+        for (const x of tresc.klucze || []) if (stan.pliki.delete(`${bucket}/${x}`)) usuniete += 1;
+        return odp(200, { usuniete, pominiete: (tresc.klucze || []).length - usuniete });
+      }
+      const klucz = `${publiczne ? 'podglady' : 'zasoby'}/${reszta}`;
+      if (m === 'GET' || m === 'HEAD') {
+        const plik = stan.pliki.get(klucz);
+        if (!plik) return odp(404, { blad: 'Nie ma takiego pliku.' });
+        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*', 'cache-control': plik.cacheControl || 'private, max-age=31536000, immutable' } });
+      }
+      if (!k) return odp(401, { blad: 'Zaloguj się ponownie.' });
+      if (m === 'DELETE') { stan.pliki.delete(klucz); return odp(200, { usuniete: 1 }); }
+      if (m === 'PUT') {
+        const dane = req.postDataBuffer() || Buffer.alloc(0);
+        if (dane.length > (stan.limitPliku || 25 * 1024 * 1024)) return odp(413, { blad: 'Plik jest za duży (najwyżej 25 MB).', kod: 'limit_pliku' });
+        const wlasciciel = reszta.split('/')[0];
+        const zajete = [...stan.pliki].filter(([x]) => x.startsWith(`zasoby/${wlasciciel}/`) || x.startsWith(`podglady/${wlasciciel}/`))
+          .reduce((n, [x, p]) => n + (x === klucz ? 0 : (p.tresc?.length || 0)), 0);
+        if (zajete + dane.length > (stan.limitKonta || 500 * 1024 * 1024)) {
+          return odp(413, { blad: 'Na koncie nie ma już miejsca na pliki. Usuń nieużywane obrazy albo posprzątaj w ustawieniach konta (Miejsce).', kod: 'limit_konta' });
+        }
+        stan.pliki.set(klucz, { typ: req.headers()['content-type'] || 'application/octet-stream', tresc: dane, czas: Date.now(), cacheControl: req.headers()['x-cache-control'] || null });
+        stan.wyslania.push(klucz);
+        return odp(200, { klucz: reszta, rozmiar: dane.length });
+      }
+      return odp(405, { blad: 'Niedozwolona metoda.' });
     }
-    if (sc.startsWith('/storage/v1/object/public/')) {
-      const plik = stan.pliki.get(sc.slice('/storage/v1/object/public/'.length));
-      if (!plik) return blad(r, 404, 'Object not found', 'not_found');
-      return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
+    // Stary magazyn (Supabase Storage) – tylko jednorazowe przeniesienie plików do R2 (js/przeniesienie-plikow.js).
+    // Osobna mapa stan.staryMagazyn, żeby przeniesienie nie ruszało plików „w R2” z mapy stan.pliki.
+    if (sc.startsWith('/storage/v1/object/list/')) {
+      // Jak w Supabase: pliki folderu (z id i opisem) oraz podfoldery (bez id).
+      const prefiks = `${sc.slice('/storage/v1/object/list/'.length)}/${tresc.prefix ? `${tresc.prefix}/` : ''}`;
+      const wpisy = new Map();
+      for (const klucz of stan.staryMagazyn.keys()) {
+        if (!klucz.startsWith(prefiks)) continue;
+        const [nazwa, ...dalej] = klucz.slice(prefiks.length).split('/');
+        wpisy.set(nazwa, dalej.length ? { name: nazwa, id: null, metadata: null } : { name: nazwa, id: nazwa, metadata: { size: stan.staryMagazyn.get(klucz).tresc.length } });
+      }
+      return json(r, 200, [...wpisy.values()]);
     }
     if (sc.startsWith('/storage/v1/object/')) {
-      const klucz = sc.slice('/storage/v1/object/'.length);
+      const klucz = sc.slice('/storage/v1/object/'.length).replace(/^(authenticated|public)\//, '');
       if (m === 'DELETE') {
         const bucket = klucz.split('/')[0];
-        for (const p of tresc.prefixes || []) stan.pliki.delete(`${bucket}/${p}`);
+        for (const p of tresc.prefixes || []) stan.staryMagazyn.delete(`${bucket}/${p}`);
         return json(r, 200, []);
       }
       if (m === 'GET') {
-        const plik = stan.pliki.get(klucz.replace(/^authenticated\//, ''));
+        const plik = stan.staryMagazyn.get(klucz);
         if (!plik) return blad(r, 404, 'Object not found', 'not_found');
-        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc });
+        return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
       }
-      if (m === 'POST' || m === 'PUT') {
-        if (!zTokenu(req)) return blad(r, 401, 'JWT', 'unauthorized');
-        stan.pliki.set(klucz, { ...plikZZadania(req), czas: Date.now() });
-        stan.wyslania.push(klucz);
-      }
-      return json(r, 200, { Key: klucz });
+      return blad(r, 405, 'Stary magazyn tylko do odczytu', 'blad');
     }
     return json(r, 200, {});
   });

@@ -11,3 +11,11 @@ Kroki w panelu: `docs/KONFIGURACJA-DOMENY.md`, krok 3. Test: `tests/worker.test.
 
 Po pierwszym wdrożeniu, gdy `https://api.makietka.app/` odpowiada „Makietka – API”, przełącz
 `PRZEZ_WORKER` na `true` w `js/marka.js`.
+
+## Pliki w R2 (decyzja #92)
+
+Ten sam Worker obsługuje pliki aplikacji w Cloudflare R2 (binding `PLIKI` → bucket `makietka-files`):
+`/pliki/<właściciel>/<projekt>/<id>` (z tokenem sesji; właściciel albo współpracownik przez `dostep_do_plikow`),
+`/podglady/…` (obrazy stron linków – odczyt publiczny), `GET /pliki/_miejsce`, `GET /pliki/_lista`,
+`POST /pliki/_usun`, `GET /pliki/_osierocone`. Limity plików: `LIMITY` w `api-worker.js`.
+Test: `tests/worker-pliki.test.cjs`. Bucket tworzy się raz w panelu (docs/KONFIGURACJA-DOMENY.md, 3a).

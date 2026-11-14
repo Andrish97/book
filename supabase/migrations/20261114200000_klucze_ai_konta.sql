@@ -438,3 +438,49 @@ end;
 $$;
 revoke all on function public.ai_usun_projekt(text, uuid, text) from public;
 grant execute on function public.ai_usun_projekt(text, uuid, text) to anon, authenticated;
+
+-- ---------- Panel użycia (migracja 20261114180000_pliki_r2_limity.sql) ----------
+-- Liczba kluczy AI przy projekcie liczyła wiersze po kolumnie projekt_id, której już nie ma: teraz klucze konta,
+-- które obejmują projekt (pełny dostęp albo projekt na liście).
+create or replace function public.uzycie_projektow()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then
+    raise exception 'Brak sesji';
+  end if;
+  return jsonb_build_object(
+    'wlasne', coalesce((
+      select jsonb_agg(jsonb_build_object(
+          'id', p.id, 'nazwa', p.nazwa, 'zmieniono', p.zmieniono,
+          'obrazy', public.obrazy_w_danych(p.dane),
+          'strony', case when jsonb_typeof(p.dane->'strony') = 'array' then jsonb_array_length(p.dane->'strony') else 0 end,
+          'dane_bajty', pg_column_size(p.dane) + coalesce((select sum(pg_column_size(s.dane)) from public.projekty_strony s where s.projekt_id = p.id), 0),
+          'klucze_ai', (select count(*) from public.dostepy_projektu d
+                          where d.owner_id = v_uid and (d.zakres = 'pelny' or p.id = any(d.projekty))
+                            and d.odwolany is null and d.wazny_do > now()),
+          'link', coalesce(p.dane->'udostepnienie'->>'kod', '') <> '',
+          'link_chroniony', exists (select 1 from public.udostepnienia u where u.projekt_id = p.id and u.owner_id = v_uid))
+        order by p.zmieniono desc)
+        from public.projekty p where p.owner_id = v_uid), '[]'::jsonb),
+    'u_innych', coalesce((
+      select jsonb_agg(jsonb_build_object(
+          'id', p.id, 'nazwa', p.nazwa, 'zmieniono', p.zmieniono, 'rola', w.rola,
+          'obrazy', public.obrazy_w_danych(p.dane),
+          'strony', case when jsonb_typeof(p.dane->'strony') = 'array' then jsonb_array_length(p.dane->'strony') else 0 end,
+          'wlasciciel', coalesce(nullif(btrim(u.raw_user_meta_data->>'nazwa'), ''), split_part(u.email, '@', 1)))
+        order by p.zmieniono desc)
+        from public.wspolpracownicy w
+        join public.projekty p on p.id = w.projekt_id
+        left join auth.users u on u.id = p.owner_id
+        where w.uzytkownik = v_uid), '[]'::jsonb));
+end;
+$$;
+revoke all on function public.uzycie_projektow() from public, anon;
+grant execute on function public.uzycie_projektow() to authenticated;

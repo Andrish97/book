@@ -210,6 +210,8 @@ export async function skrotSha256(bajty) {
   const b = await crypto.subtle.digest('SHA-256', bajty);
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
+// Najwięcej obrazów w jednym projekcie (limit konta, decyzja #92; ta sama wartość w bazie: limity_aplikacji()).
+export const LIMIT_OBRAZOW_W_PROJEKCIE = 300;
 // WSPOLNE-KONIEC
 
 const ROZSZERZENIA = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
@@ -844,6 +846,12 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     }
     if (doWgrania.length > LIMITY_ZIP.maksPlikow) throw new BladBazy(`To ${doWgrania.length} obrazów – naraz wgrywam najwyżej ${LIMITY_ZIP.maksPlikow}.`);
     if (doWgrania.length > 1 && zastap) throw new BladBazy('„zastap” działa tylko dla jednego obrazu.');
+    if (!zastap) {
+      const ile = obrazyWProjekcie((await pobierz()).projekt).length;
+      if (ile + doWgrania.length > LIMIT_OBRAZOW_W_PROJEKCIE) {
+        throw new BladBazy(`Projekt ma ${ile} obrazów, a limit jednego projektu to ${LIMIT_OBRAZOW_W_PROJEKCIE}. Usuń nieużywane obrazy (usun_obrazy z nieuzywane: true) albo wgraj mniej.`);
+      }
+    }
     const wyniki = [];
     let ostatni = null;
     for (const plik of doWgrania) {

@@ -172,7 +172,7 @@ test('obrazy na koncie: drugie urządzenie pobiera je prosto do magazynu plików
 
   // „Drugie urządzenie”: przeglądarka bez zapisanych projektów i bez magazynu plików.
   await strona.evaluate(() => Promise.all(['seriodruk', 'seriodruk-zasoby'].map((n) => new Promise((ok) => { const r = indexedDB.deleteDatabase(n); r.onsuccess = r.onerror = r.onblocked = () => ok(); }))));
-  const pobrania = () => baza.zadania.filter((z) => z.startsWith('GET /storage/v1/object/zasoby/') && !z.includes('_czcionki')).length;
+  const pobrania = () => baza.zadania.filter((z) => z.startsWith('GET /pliki/') && !z.includes('_czcionki')).length;
   const przedtem = pobrania();
   await strona.reload(); // sesja i adres projektu zostają – aplikacja otwiera go od razu
   await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image' && o.getElement().naturalWidth > 0).length === 2);
