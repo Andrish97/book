@@ -10,6 +10,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
+| 117 | Pasek stron na telefonie: miniatury na całą wysokość pasa, mały nagłówek sekcji zamiast wielkiej karty | ⏳ 17:40 |
+| 118 | Zasłonki na telefonie: stuknięcie w uchwyt rozwija zamiast zamykać | ⏳ 17:40 |
 
 ## Czeka (kolejne etapy)
 
