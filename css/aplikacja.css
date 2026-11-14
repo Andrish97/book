@@ -2228,6 +2228,9 @@ button.zalacznik:hover { border-color: var(--akcent); color: var(--akcent); }
 .pisz-zalaczniki { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 8px 16px 0; list-style: none; }
 .pisz-zalaczniki .zalacznik { cursor: default; padding-right: 2px; }
 .pisz-zalaczniki .zalacznik.wysylanie { opacity: .65; }
+/* Formularz kontaktowy: załączniki pod treścią (#116). */
+.kontakt-zalaczniki { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.kontakt-zalaczniki .pisz-zalaczniki { padding: 0; }
 .pisz-zalaczniki .przycisk-ikona { --dotyk: 28px; }
 .pisz-stopka { display: flex; align-items: center; gap: 8px; padding: 10px 16px 12px; }
 .pisz-stopka .przycisk.glowny { border-radius: 999px; padding: 0 22px; }

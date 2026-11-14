@@ -373,8 +373,19 @@ test('formularz kontaktowy: z ekranu logowania i z menu; Worker bez sekretu – 
   assert.equal(await strona.isVisible('#dlg-kontakt'), true, 'okno zostaje otwarte z komunikatem');
 
   baza.poczta.sekretWorkera = true;
+  // Załączniki (#116): plik na liście, usuwanie z listy, wysyłka razem z wiadomością.
+  await strona.setInputFiles('#kontakt-pliki', [
+    { name: 'zrzut.png', mimeType: 'image/png', buffer: Buffer.from('obraz') },
+    { name: 'zbedny.txt', mimeType: 'text/plain', buffer: Buffer.from('x') },
+  ]);
+  assert.equal(await strona.locator('#kontakt-lista-plikow li').count(), 2);
+  await strona.click('#kontakt-lista-plikow li:nth-child(2) button');
+  assert.equal(await strona.locator('#kontakt-lista-plikow li').count(), 1);
   await strona.click('#kontakt-wyslij');
   await zamkniete(strona);
+  const zal = baza.poczta.wiadomosci.find((m) => m.od_email === 'gosc@przyklad.pl')?.zalaczniki || [];
+  assert.deepEqual(zal.map((z) => z.nazwa), ['zrzut.png'], 'załącznik w zgłoszeniu');
+  assert.equal(await strona.locator('#kontakt-lista-plikow li').count(), 0, 'lista czysta po wysłaniu');
   assert.ok(baza.wyslane.some((w) => w.typ === 'kontakt' && w.email === 'gosc@przyklad.pl'), 'potwierdzenie do nadawcy');
   assert.equal(baza.poczta.watki.length, 1);
   assert.equal(baza.poczta.watki[0].zrodlo, 'formularz');

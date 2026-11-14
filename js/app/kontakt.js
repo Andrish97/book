@@ -5,6 +5,7 @@
 import { SUPABASE_URL } from '../konfiguracja.js';
 import { supabase } from '../chmura.js';
 import { $, powiadom } from '../ui.js';
+import { wstawIkony } from '../ikony.js';
 import { stan } from './kontekst.js';
 
 // Klucz witryny Cloudflare Turnstile (publiczny; sekret jest w Workerze jako TURNSTILE_SECRET). Pusty – bez Turnstile:
@@ -15,6 +16,37 @@ const dlg = $('#dlg-kontakt');
 const form = $('#form-kontakt');
 const kom = $('#kontakt-komunikat');
 let widget = null;
+
+// Załączniki (#116): do 5 plików, razem do 10 MB – tak samo pilnuje Worker.
+const MAKS_PLIKOW = 5;
+const MAKS_RAZEM = 10 * 1024 * 1024;
+let pliki = [];
+const rozmiar = (b) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} kB` : `${(b / 1024 / 1024).toFixed(1).replace('.', ',')} MB`);
+function pokazPliki() {
+  const ul = $('#kontakt-lista-plikow');
+  ul.replaceChildren(...pliki.map((f, i) => {
+    const li = document.createElement('li');
+    li.className = 'zalacznik';
+    li.innerHTML = '<span data-ikona="spinacz" data-rozmiar="16"></span><span class="nazwa"></span><span class="ciche"></span>'
+      + '<button type="button" class="przycisk-ikona maly" data-ikona="zamknij" data-rozmiar="14" title="Usuń załącznik"></button>';
+    li.querySelector('.nazwa').textContent = f.name;
+    li.querySelector('.ciche').textContent = rozmiar(f.size);
+    li.querySelector('button').setAttribute('aria-label', `Usuń załącznik ${f.name}`);
+    li.querySelector('button').addEventListener('click', () => { pliki.splice(i, 1); pokazPliki(); });
+    return li;
+  }));
+  ul.hidden = !pliki.length;
+  wstawIkony(ul);
+}
+$('#kontakt-pliki').addEventListener('change', (e) => {
+  for (const f of e.target.files) {
+    if (pliki.length >= MAKS_PLIKOW) { powiadom(`Najwyżej ${MAKS_PLIKOW} załączników.`, true); break; }
+    if (pliki.reduce((n, x) => n + x.size, 0) + f.size > MAKS_RAZEM) { powiadom(`„${f.name}” się nie zmieści – załączniki razem mogą mieć najwyżej 10 MB.`, true); continue; }
+    pliki.push(f);
+  }
+  e.target.value = '';
+  pokazPliki();
+});
 
 function turnstile() {
   if (!KLUCZ_TURNSTILE) return Promise.resolve(null);
@@ -49,8 +81,8 @@ form.addEventListener('submit', async (e) => {
   kom.className = 'komunikat';
   kom.textContent = 'Wysyłam…';
   try {
-    // Zwykłe zapytanie (text/plain) – bez osobnego zapytania wstępnego CORS; Worker i tak czyta treść jako JSON.
-    const naglowki = { 'content-type': 'text/plain;charset=UTF-8' };
+    // Zwykłe zapytanie (text/plain albo multipart z plikami) – bez osobnego zapytania wstępnego CORS.
+    const naglowki = pliki.length ? {} : { 'content-type': 'text/plain;charset=UTF-8' };
     if (stan.uzytkownik) {
       const token = (await (await supabase()).auth.getSession()).data.session?.access_token;
       if (token) naglowki.authorization = `Bearer ${token}`;
@@ -58,15 +90,24 @@ form.addEventListener('submit', async (e) => {
     const odp = await fetch(`${SUPABASE_URL.replace(/\/+$/, '')}/kontakt`, {
       method: 'POST',
       headers: naglowki,
-      body: JSON.stringify({
-        email: form.email.value.trim(), temat: form.temat.value.trim(), tresc: form.tresc.value.trim(), www: form.www.value,
-        turnstile: widget !== null ? window.turnstile?.getResponse(widget) : undefined,
-      }),
+      body: (() => {
+        const dane = JSON.stringify({
+          email: form.email.value.trim(), temat: form.temat.value.trim(), tresc: form.tresc.value.trim(), www: form.www.value,
+          turnstile: widget !== null ? window.turnstile?.getResponse(widget) : undefined,
+        });
+        if (!pliki.length) return dane;
+        const fd = new window.FormData();
+        fd.append('dane', dane);
+        for (const f of pliki) fd.append('pliki', f, f.name);
+        return fd;
+      })(),
     });
     const w = await odp.json().catch(() => ({}));
     if (!odp.ok) throw new Error(w.blad || `Nie udało się wysłać (${odp.status}).`);
     form.temat.value = '';
     form.tresc.value = '';
+    pliki = [];
+    pokazPliki();
     kom.textContent = '';
     dlg.close();
     powiadom('Dziękujemy! Zgłoszenie dotarło – odpowiemy na podany adres.');

@@ -1236,6 +1236,10 @@
       <label class="pole"><span>Twój e-mail</span><input id="kontakt-email" name="email" type="email" autocomplete="email" required maxlength="320"></label>
       <label class="pole"><span>Temat</span><input id="kontakt-temat" name="temat" type="text" maxlength="200" placeholder="np. Pytanie o druk"></label>
       <label class="pole"><span>Wiadomość</span><textarea id="kontakt-tresc" name="tresc" rows="6" required minlength="10" maxlength="5000"></textarea></label>
+      <div class="kontakt-zalaczniki">
+        <label class="przycisk" data-ikona="spinacz" title="Zrzut ekranu, plik projektu, PDF – do 5 plików, razem do 10 MB">Załącz pliki<input type="file" id="kontakt-pliki" multiple hidden></label>
+        <ul class="pisz-zalaczniki" id="kontakt-lista-plikow" aria-label="Załączniki" hidden></ul>
+      </div>
       <!-- Pułapka na boty: pole niewidoczne dla ludzi. -->
       <label class="pulapka" aria-hidden="true">Strona www<input name="www" type="text" tabindex="-1" autocomplete="off"></label>
       <div class="kontakt-turnstile" id="kontakt-turnstile" hidden></div>
