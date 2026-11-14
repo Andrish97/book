@@ -3,6 +3,7 @@
 Webowy edytor publikacji z powtarzalnymi stronami (kalendarze, planery, notesy): projektujesz wzory stron, aplikacja podstawia do nich dane z arkusza i składa PDF do druku.
 
 - Aplikacja: https://makietka.app/
+- Domena, przekaźnik API i poczta: [docs/KONFIGURACJA-DOMENY.md](docs/KONFIGURACJA-DOMENY.md) · marka i adresy w jednym miejscu: `js/marka.js` (teksty: `node scripts/marka.cjs`)
 - Plan: [docs/PLAN.md](docs/PLAN.md) · Decyzje: [docs/DECYZJE.md](docs/DECYZJE.md) · Uzasadnienie i lista braków: [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md)
 
 ## Co działa
@@ -60,6 +61,7 @@ Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla
 - `ai/instrukcja.md` – instrukcja w Markdownie, generowana z `js/instrukcja.js`. Po każdej zmianie instrukcji: `node scripts/instrukcja-md.cjs` (test `tests/instrukcja-md.test.cjs` pada, gdy plik jest nieaktualny).
 - `ai/format-makietka.md` – jak zbudować plik `.json` albo `.makietka`, który użytkownik wczyta przyciskiem Importuj, z gotowym poleceniem dla innego AI.
 - `ai/api.md` – dostęp dla AI do jednego projektu kluczem (okno „Dostęp dla AI” w edytorze): adres łącznika, dodanie go w Claude i ChatGPT, funkcje bazy `ai_projekt` i `ai_zapisz` (migracja `20261111200000_dostep_ai.sql`).
+- `cloudflare/` – przekaźnik `api.makietka.app` → baza (Cloudflare Worker, wdrażany integracją Git Cloudflare z `wrangler.jsonc`); skraca adres łącznika do `/mcp/<klucz>`; test `tests/worker.test.cjs`.
 - `supabase/functions/mcp` – zdalny łącznik MCP (Funkcja Edge, Streamable HTTP, bez stanu): `https://api.makietka.app/mcp/<klucz>`. Claude i ChatGPT łączą się z nim ze swoich serwerów, więc AI nie potrzebuje dostępu do bazy z własnej piaskownicy. Wdraża go integracja Supabase z GitHubem (blok `[functions.mcp]` w `supabase/config.toml`, `verify_jwt = false` – klucz sprawdza baza). Logika w `supabase/functions/_shared/mcp-http.mjs`, narzędzia we wspólnym rdzeniu `_shared/seriodruk-mcp-rdzen.mjs`; test `tests/lacznik-mcp.test.cjs` uruchamia ją w Node przeciw atrapie bazy.
 - `ai/mcp/makietka-mcp.mjs` – ten sam serwer do uruchomienia u siebie (stdio, jeden plik, bez zależności), składany z rdzenia poleceniem `node scripts/mcp-buduj.cjs`; test `tests/mcp.test.cjs` uruchamia go przeciw atrapie bazy (`tests/atrapa-ai.cjs`).
 - `ai/openapi.json` – opis funkcji AI dla akcji własnego GPT w ChatGPT.

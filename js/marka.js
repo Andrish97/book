@@ -11,10 +11,11 @@ export const DOMENA = 'makietka.app';
 export const ADRES_APLIKACJI = 'https://makietka.app/';
 export const NADAWCA = 'no-reply@makietka.app';
 
-// Baza: aplikacja i łącznik AI idą przez przekaźnik Cloudflare Worker (cloudflare/api-worker.js) pod
-// api.makietka.app. Dopóki Workera nie ma, wystarczy przestawić PRZEZ_WORKER na false – wtedy wszystko
-// idzie wprost do Supabase (adres łącznika z /functions/v1/mcp/).
-export const PRZEZ_WORKER = true;
+// Baza: aplikacja i łącznik AI mogą iść przez przekaźnik Cloudflare Worker (cloudflare/api-worker.js) pod
+// api.makietka.app. Przełącz na true DOPIERO, gdy https://api.makietka.app/ odpowiada („Makietka – API”):
+// wtedy aplikacja łączy się z bazą przez przekaźnik (jednorazowe wylogowanie – inny adres sesji),
+// a okno „Dostęp dla AI” pokazuje krótki adres łącznika …/mcp/<klucz>. Przy false – wprost do Supabase.
+export const PRZEZ_WORKER = false;
 export const ADRES_SUPABASE = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const ADRES_API = PRZEZ_WORKER ? 'https://api.makietka.app' : ADRES_SUPABASE;
 // Adres zdalnego łącznika MCP (bez klucza): Worker skraca /functions/v1/mcp do /mcp.
