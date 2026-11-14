@@ -11,6 +11,7 @@ import {
 import { wstawIkony } from '../ikony.js';
 import { adresZasobu } from '../zasoby.js';
 import { kopiaRobocza } from '../obrazy.js';
+import { wczytajMiniature, zapiszMiniature } from '../miniatury-obrazow.js';
 import { rozpakujZip } from '../obrazy-wspolne.js';
 import * as chmura from '../chmura.js';
 import {
@@ -172,29 +173,47 @@ function nastepnaMiniatura() {
   }
 }
 
-// Prawdziwa miniatura (najwyżej 320 px), robiona raz na sesję i trzymana w pamięci: przy kilkudziesięciu
-// dużych zdjęciach przeglądarka nie trzyma w oknie pełnych obrazów i nie pomniejsza ich przy każdym
-// przewinięciu (okno „laguje”). Wymiary – zawsze oryginału.
+// Prawdziwa miniatura (najwyżej 320 px): przy kilkudziesięciu dużych zdjęciach przeglądarka nie trzyma w oknie
+// pełnych obrazów i nie pomniejsza ich przy każdym przewinięciu (okno „laguje”). Robiona raz i zapisywana na
+// urządzeniu (js/miniatury-obrazow.js) – kolejne otwarcia okna, także po odświeżeniu strony, są natychmiastowe.
+// Pomniejszanie idzie poza głównym wątkiem (createImageBitmap z docelowym rozmiarem), gdy znamy wymiary pliku.
+// Wymiary – zawsze oryginału.
 const miniatury = new Map(); // klucz pliku → { url, szer, wys }
 const BOK_MINIATURY = 320;
 async function miniaturaZasobu(z) {
   const src = kopiaRobocza(z) || adresZasobu(z);
-  if (!src) return null;
   const klucz = z.skrot || z.sciezka || src;
+  if (!klucz) return null;
   if (miniatury.has(klucz)) return miniatury.get(klucz);
+  const zapisana = (z.skrot || z.sciezka) ? await wczytajMiniature(klucz) : null;
+  if (zapisana?.blob) {
+    const w = { url: URL.createObjectURL(zapisana.blob), szer: z.szer || zapisana.szer || null, wys: z.wys || zapisana.wys || null };
+    miniatury.set(klucz, w);
+    return w;
+  }
+  if (!src) return null;
   let wynik = { url: src, szer: z.szer || null, wys: z.wys || null };
   try {
-    const bmp = await window.createImageBitmap(await (await fetch(src)).blob());
+    const plik = await (await fetch(src)).blob();
     const zOryginalu = src === adresZasobu(z);
+    // Znane wymiary: przeglądarka pomniejsza przy rozpakowaniu, w tle. Inaczej – rozpakowanie całego pliku.
+    const znane = zOryginalu && z.szer && z.wys ? { szer: z.szer, wys: z.wys } : null;
+    const skalaZnana = znane ? Math.min(1, BOK_MINIATURY / Math.max(znane.szer, znane.wys)) : 1;
+    const bmp = znane && skalaZnana < 1
+      ? await window.createImageBitmap(plik, { resizeWidth: Math.max(1, Math.round(znane.szer * skalaZnana)), resizeHeight: Math.max(1, Math.round(znane.wys * skalaZnana)), resizeQuality: 'medium' })
+      : await window.createImageBitmap(plik);
     if (zOryginalu && !(wynik.szer && wynik.wys)) wynik = { ...wynik, szer: bmp.width, wys: bmp.height };
     const skala = Math.min(1, BOK_MINIATURY / Math.max(bmp.width, bmp.height));
-    if (skala < 1) {
+    if (skala < 1 || (znane && skalaZnana < 1)) {
       const c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(bmp.width * skala));
       c.height = Math.max(1, Math.round(bmp.height * skala));
       c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
       const blob = await new Promise((ok) => { c.toBlob(ok, 'image/webp', 0.85); });
-      if (blob) wynik.url = URL.createObjectURL(blob);
+      if (blob) {
+        wynik.url = URL.createObjectURL(blob);
+        if (z.skrot || z.sciezka) zapiszMiniature(klucz, { blob, szer: wynik.szer, wys: wynik.wys });
+      }
     }
     bmp.close?.();
   } catch { /* np. SVG – pokazujemy plik wprost */ }

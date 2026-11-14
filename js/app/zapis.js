@@ -289,7 +289,8 @@ export function zapiszBiezacyCel() {
     zapiszPolaZPlotna(projekt, cel, 0, edytor.prowadniceStron()[0]);
     // Strony z tym wzorcem trzeba przerysować.
     for (const s of stronyZWzorcem(projekt, cel.id)) stan.miniatury.delete(s.id);
-    stan.miniatury.set(cel.id, edytor.miniatura(200, 0));
+    // Miniaturę rysuje w tle odrysujMiniaturyWTle (zapiszTeraz) – raz po serii zmian, nie przy każdym
+    // przepisaniu płótna (krok historii, zapis, łączenie – to trzy rysowania całej strony na jedną zmianę).
   } else {
     const obiekty = edytor.obiektyStron();
     const prowadnice = edytor.prowadniceStron();
@@ -298,7 +299,6 @@ export function zapiszBiezacyCel() {
       if (!cel) return;
       cel.obiekty = bezZmianZPlotna(obiekty[i]);
       zapiszPolaZPlotna(projekt, cel, i, prowadnice[i]);
-      stan.miniatury.set(cel.id, edytor.miniatura(200, i));
     });
     // Tekst, który przepłynął do ramek na innych stronach, wraca do tych stron.
     const inne = new Set();
