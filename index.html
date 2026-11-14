@@ -21,6 +21,17 @@
       try { wybor = localStorage.getItem('seriodruk:motyw') || 'system'; } catch (e) { /* tryb prywatny */ }
       var ciemny = wybor === 'ciemny' || (wybor === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.dataset.motyw = ciemny ? 'ciemny' : 'jasny';
+      // Tryb urządzenia przed pierwszym rysowaniem (bez mignięcia układu); dalej pilnuje go js/urzadzenie.js.
+      var r = document.documentElement, mq = function (q) { return window.matchMedia(q).matches; };
+      var dotyk = mq('(pointer: coarse)'), sw = screen.width || innerWidth, sh = screen.height || innerHeight;
+      var rodzaj = dotyk ? (Math.min(sw, sh) < 700 ? 'telefon' : 'tablet') : 'komputer';
+      var orient = innerWidth >= innerHeight ? 'poziom' : 'pion';
+      r.dataset.urzadzenie = rodzaj;
+      r.dataset.orientacja = orient;
+      r.dataset.uklad = rodzaj === 'komputer' ? (innerWidth <= 860 ? 'komputer-waski' : innerWidth >= 1680 ? 'komputer-duzy' : 'komputer') : rodzaj + '-' + orient;
+      if (dotyk) r.setAttribute('data-dotyk', '');
+      if (innerWidth <= 600) r.setAttribute('data-kompakt', '');
+      if (dotyk || innerWidth <= 600) r.setAttribute('data-zaslonka', '');
     })();
   </script>
   <link rel="stylesheet" href="css/aplikacja.css">

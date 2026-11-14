@@ -55,6 +55,18 @@ const URZADZENIA = [
 
 const czekaj = (s, ms) => s.waitForTimeout(ms);
 
+// Pytanie o cały projekt („Projekt zmieniono na innym urządzeniu”) potrafi wyskoczyć po przygotowaniu danych
+// (projekt zapisany lokalnie, zanim konto znało jego wersję). Zrzut robimy raz (to też widok do oceny),
+// potem zostaje wersja z tego urządzenia.
+async function niespodzianki(s) {
+  const pytanie = s.locator('#dlg-potwierdz[open]:has-text("na innym urządzeniu")');
+  if (!await pytanie.count()) return;
+  if (s.zrzutPytania) { const z = s.zrzutPytania; s.zrzutPytania = null; await z(); }
+  await s.locator('#dlg-potwierdz[open] button.glowny').click();
+  await s.waitForSelector('#dlg-potwierdz[open]', { state: 'detached', timeout: 5000 }).catch(() => {});
+  await czekaj(s, 600);
+}
+
 // ---------- Audyt układu (wykonywany w stronie przy każdym zrzucie) ----------
 // Sprawdza otwarte okno albo menu, a bez nich – stronę:
 //  poziome-przewijanie   dokument przewija się w poziomie (zakazane wszędzie)
@@ -104,6 +116,17 @@ function audytUkladu({ dotyk: naDotyku, telefon: naTelefonie }) {
   };
   const doc = document.scrollingElement;
   if (doc.scrollWidth > W + 1) wynik.push({ rodzaj: 'poziome-przewijanie', el: 'dokument', szczegol: `${doc.scrollWidth} > ${W}` });
+  // Treść ucięta od góry: przewijany obszar wyśrodkowany (justify-content: center) z treścią wyższą niż on –
+  // góra treści wystaje ponad obszar i nie da się do niej przewinąć (np. logowanie w niskim oknie).
+  for (const el of document.querySelectorAll('body *')) {
+    if (el.closest('svg, canvas')) continue;
+    const st = getComputedStyle(el);
+    if (!/(auto|scroll|hidden)/.test(st.overflowY) || el.scrollHeight <= el.clientHeight + 1 || el.scrollTop > 0) continue;
+    if (!widoczny(el)) continue;
+    const gora = el.getBoundingClientRect().top + parseFloat(st.borderTopWidth || 0);
+    const pierwszy = [...el.children].find((c) => widoczny(c) && getComputedStyle(c).position !== 'absolute' && getComputedStyle(c).position !== 'fixed');
+    if (pierwszy && pierwszy.getBoundingClientRect().top < gora - 2) wynik.push({ rodzaj: 'ucieta-gora', el: opis(el), szczegol: `${Math.round(gora - pierwszy.getBoundingClientRect().top)} px nad obszarem` });
+  }
   const okno = [...document.querySelectorAll('dialog[open]')].pop() || document.querySelector('.prezentacja');
   const korzen = okno || document.body;
   const ro = okno ? okno.getBoundingClientRect() : null;
@@ -277,6 +300,7 @@ async function panel(s, ktory) {
 
 // Stan wyjściowy przed każdym widokiem edytora: projekt „Kalendarz 2027”, bez okien, menu i paneli.
 async function doEdytora(s, nazwaStrony = 'Styczeń') {
+  await niespodzianki(s);
   await s.keyboard.press('Escape').catch(() => {});
   await s.evaluate(async (nazwa) => {
     for (const d of document.querySelectorAll('dialog[open]')) d.close();
@@ -307,6 +331,7 @@ const zaznacz = (s, warunek) => s.evaluate((w) => {
 }, warunek);
 
 const doPodgladu = async (s) => {
+  await niespodzianki(s);
   await s.keyboard.press('Escape').catch(() => {});
   await s.evaluate(() => {
     for (const d of document.querySelectorAll('dialog[open]')) d.close();
@@ -585,6 +610,8 @@ async function zrzutyUrzadzenia(przegladarka, u, motyw) {
     await czekaj(strona, 450);
     // Komunikat z przygotowania danych („Wgrano 3 obrazy”) nie należy do ocenianego widoku.
     await strona.evaluate(() => { const p = document.querySelector('#powiadomienie'); if (p && /Wgrano|Pominięto|Zapisano projekt/.test(p.textContent)) p.hidden = true; });
+    // Na dotyku Playwright klika „myszą” – dymek po najechaniu, którego palec nie wywoła, nie należy do widoku.
+    if (u.opcje.hasTouch) await strona.evaluate(() => document.querySelector('#dymek')?.remove());
     await strona.screenshot({ path: path.join(katalog, `${nazwa}.png`) });
     const w = await strona.evaluate(audytUkladu, { dotyk: Boolean(u.opcje.hasTouch), telefon });
     if (w.length) audyt[nazwa] = w;
@@ -601,17 +628,24 @@ async function zrzutyUrzadzenia(przegladarka, u, motyw) {
   await uzupelnij(s);
   await s.click('[data-akcja="do-projektow"]:visible').catch(async () => { await s.evaluate(() => { location.hash = '#/projekty'; }); });
   await s.waitForSelector('.karta-projektu:not(.szkielet)');
+  s.zrzutPytania = () => zrzut('02c-pytanie-o-projekt');
+  await czekaj(s, 1500);
+  await niespodzianki(s);
   await zrzut('02-projekty');
   await s.click('.karta-projektu:has-text("Kalendarz 2027") .menu-karty');
   await zrzut('02b-projekty-menu');
   await s.keyboard.press('Escape');
+  await niespodzianki(s);
   await s.click('.karta-projektu:has-text("Kalendarz 2027") .otworz-projekt');
+  await czekaj(s, 800);
+  await niespodzianki(s);
   await s.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Kalendarz 2027' && document.body.dataset.ekran === 'edytor');
   await s.evaluate(() => { window.idKalendarza = window.seriodruk.stan.projekt.id; });
   for (const [nazwa, przygotuj, opcje = {}] of WIDOKI) {
     if (!chce(nazwa)) continue;
     if (u.poziomTel && opcje.edytor && !opcje.teżPoziomo) continue;
     try {
+      await niespodzianki(s);
       await przygotuj(s);
       await zrzut(u.poziomTel && nazwa === '03-edytor' ? '32-za-malo-miejsca' : nazwa);
     } catch (e) {
