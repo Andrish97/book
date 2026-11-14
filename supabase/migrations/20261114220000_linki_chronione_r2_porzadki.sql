@@ -246,6 +246,57 @@ $$;
 revoke all on function public.miejsce_na_koncie() from public;
 grant execute on function public.miejsce_na_koncie() to authenticated;
 
+-- Sprzątanie konta (#90): pliki linków z ochroną leżą teraz w R2 – liczy je i usuwa przekaźnik (osierocone
+-- foldery), tu zostają tylko ustawienia porzuconych linków (linki_bajty – zawsze 0).
+create or replace function public.posprzataj_konto(p_policz boolean default false)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_ai uuid[];
+  v_ai_bajty bigint;
+  v_linki integer;
+begin
+  if v_uid is null then
+    raise exception 'Brak sesji';
+  end if;
+  -- Obrazy od AI: porzucone wgrania (niedokończone od doby) i gotowe, których żaden projekt nie używa od 2 dni.
+  select coalesce(array_agg(a.id), '{}'),
+         coalesce(sum(coalesce(octet_length(a.dane), 0) + coalesce((select sum(octet_length(c.dane)) from public.obrazy_ai_czesci c where c.wiersz = a.id), 0)), 0)
+    into v_ai, v_ai_bajty
+    from public.obrazy_ai a
+    where a.owner_id = v_uid
+      and (
+        (not a.gotowy and a.utworzono < now() - interval '1 day')
+        or (a.gotowy and a.utworzono < now() - interval '2 days'
+            and not exists (
+              select 1 from public.projekty p,
+                jsonb_each(case when jsonb_typeof(p.dane->'zasoby') = 'object' then p.dane->'zasoby' else '{}'::jsonb end) z
+              where p.id = a.projekt_id and z.value->>'sciezka' = 'ai:' || a.id::text))
+      );
+  -- Linki chronione, których projekt już nie ma albo ma inny kod (link wyłączony albo zmieniony) – od 2 dni.
+  select count(*) into v_linki
+    from public.udostepnienia u
+    where u.owner_id = v_uid
+      and u.zmieniono < now() - interval '2 days'
+      and not exists (select 1 from public.projekty p where p.id = u.projekt_id and p.dane->'udostepnienie'->>'kod' = u.kod);
+  if not coalesce(p_policz, false) then
+    delete from public.obrazy_ai where id = any(v_ai);
+    delete from public.udostepnienia u
+      where u.owner_id = v_uid
+        and u.zmieniono < now() - interval '2 days'
+        and not exists (select 1 from public.projekty p where p.id = u.projekt_id and p.dane->'udostepnienie'->>'kod' = u.kod);
+  end if;
+  return jsonb_build_object('ai', coalesce(array_length(v_ai, 1), 0), 'ai_bajty', v_ai_bajty, 'linki', v_linki, 'linki_bajty', 0);
+end;
+$$;
+
+revoke all on function public.posprzataj_konto(boolean) from public;
+grant execute on function public.posprzataj_konto(boolean) to authenticated;
+
 -- ---------- Porządki (jednorazowo; miejsce odzyska autovacuum – VACUUM nie działa w transakcji migracji) ----------
 
 -- Zaproszenia: przyjęte albo odrzucone ponad 30 dni temu i przeterminowane ponad 30 dni temu.
