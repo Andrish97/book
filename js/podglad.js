@@ -590,6 +590,15 @@ export class Podglad {
   }
 }
 
+// Safari na iPhonie i iPadzie powiększa przy szczypaniu całą stronę (z napisami i paskami) mimo touch-action
+// i preventDefault na touchmove – trzeba zatrzymać jego własne zdarzenia gestów. W podglądzie i prezentacji
+// powiększamy sami: rosną tylko strony, napisy i paski zostają (decyzja #101).
+if (typeof document !== 'undefined' && !document.__bezGestowSafari) {
+  document.__bezGestowSafari = true;
+  const zatrzymaj = (e) => { if (e.target?.closest?.('.podglad-tresc, .prezentacja')) e.preventDefault(); };
+  for (const zdarzenie of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(zdarzenie, zatrzymaj, { passive: false });
+}
+
 // ---------- Siatka podglądu: kółko, dwuklik, przeciąganie i szczypanie ----------
 // Jeden zestaw zdarzeń na element (własny podgląd i podgląd z linku dzielą #podglad-tresc); działa na podgląd,
 // który jest akurat pokazany (aktywny), a w prezentacji ustępuje jej własnym gestom.

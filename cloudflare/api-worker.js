@@ -11,7 +11,9 @@
 // Dostęp: token sesji Supabase (Authorization: Bearer …) sprawdzany w /auth/v1/user. Właściciel – wszystko
 // w swoim folderze; współpracownik projektu – odczyt (rola „odczyt”) albo odczyt i zapis (rola „edycja”) plików
 // projektu, sprawdzane funkcją bazy dostep_do_plikow wywołaną jego tokenem; obrazy stron linków czyta każdy.
-// Linki z hasłem nie trzymają plików tutaj (tabela udostepnienia_pliki w bazie – bez zmian).
+//   /podglady/<konto>/<projekt>/<kod>.<sekret>/<plik>  link z hasłem albo datą ważności (#97): sekret zna tylko
+//                                             właściciel i ten, kto podał hasło; plik wydajemy, gdy link żyje
+//                                             (link_chroniony_wazny – sekret aktualny, data ważności nie minęła).
 // Meta: GET /pliki/_miejsce, GET /pliki/_lista, POST /pliki/_usun, GET /pliki/_osierocone.
 // Limity plików – LIMITY niżej (jedno miejsce). Bez sekretów – klucz publikowalny bazy jest jawny.
 
@@ -277,15 +279,43 @@ async function osierocone(env, token, uid, cors) {
 
 // ---------- Ścieżki plików ----------
 
+// Link z ochroną (hasło albo data ważności, #97): folder „<kod>.<sekret>”. Sekret zna tylko właściciel i ten,
+// kto podał dobre hasło; tu sprawdzamy jeszcze, czy link żyje (sekret aktualny, data ważności nie minęła).
+const pamiecLinkow = new Map(); // konto|projekt|folder → { tak }
+async function linkChronionyWazny(env, konto, projekt, folder) {
+  const i = folder.indexOf('.');
+  const klucz = `${konto}|${projekt}|${folder}`;
+  const w = zPamieci(pamiecLinkow, klucz);
+  if (w) return w.tak;
+  let tak = false;
+  try {
+    tak = (await rpc(env, kluczBazy(env), 'link_chroniony_wazny', { p_konto: konto, p_projekt: projekt, p_kod: folder.slice(0, i), p_sekret: folder.slice(i + 1) })) === true;
+  } catch { tak = false; }
+  doPamieci(pamiecLinkow, klucz, { tak });
+  return tak;
+}
+
 async function obsluzPodglady(zapytanie, env, u, cors) {
   const czesci = czesciSciezki(u.pathname.slice('/podglady/'.length));
   if (!czesci || czesci.length < 2) return json(400, { blad: 'Nieprawidłowa ścieżka.' }, cors);
   const klucz = `podglady/${czesci.join('/')}`;
-  if (zapytanie.method === 'GET' || zapytanie.method === 'HEAD') return wyslijObiekt(env, zapytanie, klucz, cors, 'public, max-age=3600');
+  const chroniony = czesci.length >= 4 && czesci[2].includes('.');
+  if (zapytanie.method === 'GET' || zapytanie.method === 'HEAD') {
+    if (chroniony && !await linkChronionyWazny(env, czesci[0], czesci[1], czesci[2])) return json(404, { blad: 'Nie ma takiego pliku.' }, cors);
+    return wyslijObiekt(env, zapytanie, klucz, cors, chroniony ? 'private, max-age=3600' : 'public, max-age=3600');
+  }
   const uid = await uzytkownik(env, tokenZZapytania(zapytanie));
   if (!uid) return json(401, { blad: 'Zaloguj się ponownie.' }, cors);
   if (czesci[0] !== uid) return json(403, { blad: 'Brak dostępu do tego pliku.' }, cors);
-  if (zapytanie.method === 'PUT') return zapiszObiekt(env, zapytanie, klucz, uid, cors, 'public, max-age=3600');
+  if (zapytanie.method === 'PUT') {
+    // Plikom linku z ochroną nie wolno trafić do pamięci współdzielonej (CDN) – tylko „private”.
+    if (chroniony && /\bpublic\b/.test(zapytanie.headers.get('x-cache-control') || '')) {
+      const h = new Headers(zapytanie.headers);
+      h.set('x-cache-control', h.get('x-cache-control').replace(/\bpublic\b/, 'private'));
+      zapytanie = new Request(zapytanie, { headers: h });
+    }
+    return zapiszObiekt(env, zapytanie, klucz, uid, cors, chroniony ? 'private, max-age=3600' : 'public, max-age=3600');
+  }
   if (zapytanie.method === 'DELETE') {
     await env.PLIKI.delete(klucz);
     pamiecZajetosci.delete(uid);
@@ -359,5 +389,6 @@ export function wyczyscPamiec() {
   pamiecTokenow.clear();
   pamiecDostepu.clear();
   pamiecZajetosci.clear();
+  pamiecLinkow.clear();
   pamiecRazem = null;
 }

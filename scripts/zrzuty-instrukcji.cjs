@@ -165,7 +165,7 @@ if (require.main === module) (async () => {
     await zrzut(k, 'logowanie.png');
 
     await k.click('#tryb-logowania label:has-text("Nowe konto")');
-    await k.fill('#form-logowania input[name=nazwa]', 'Jan');
+    await k.fill('#form-logowania input[name=nazwa]', 'jan.kowalski');
     await k.fill('#form-logowania input[name=email]', 'jan@przyklad.pl');
     await k.fill('#form-logowania input[name=haslo]', 'Kalendarz7');
     await k.locator('.stopka-logowania').click();
