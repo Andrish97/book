@@ -25,6 +25,9 @@ import { wylaczNaZywo } from './app/na-zywo.js';
 import { instrukcja } from './app/instrukcja-leniwa.js';
 import { pokazUdostepniony, podgladZLinku } from './app/udostepnione.js';
 import { doczytajEdytor, czekajNaEdytor, edytorGotowy } from './app/doczytaj.js';
+import {
+  otworzWspolprace, zamknijWspolprace, kopiujLinkZaproszenia, opuscProjekt, otworzZaproszenia,
+} from './app/wspolpraca.js';
 
 window.addEventListener('popstate', () => przejdzDoTrasy());
 
@@ -72,6 +75,14 @@ const akcje = {
   'do-projektow': doProjektow,
   motyw: () => { zamknijMenu(); przelaczMotyw(); },
   'pelny-ekran': () => przelaczPelnyEkran(),
+  // Współpraca między kontami (js/app/wspolpraca.js).
+  wspolpraca: () => { zamknijMenu(); otworzWspolprace(stan.projekt); },
+  'wspolpraca-zamknij': () => zamknijWspolprace(),
+  'wspolpraca-kopiuj': () => kopiujLinkZaproszenia(),
+  'wspolpraca-opusc': () => opuscProjekt(),
+  zaproszenia: () => otworzZaproszenia(),
+  'zaproszenia-zamknij': () => $('#dlg-zaproszenia').close(),
+  'zaproszenie-pozniej': () => $('#dlg-zaproszenie').close(),
 };
 
 // Podgląd otwarty z linku ma własny, lekki podgląd (bez edytora).
@@ -179,6 +190,8 @@ async function start() {
       if (powrot.typ === 'email_change') powiadom('Adres e-mail został zmieniony.');
     } else {
       pokazEkran('logowanie');
+      // Link z zaproszeniem do projektu: po zalogowaniu albo założeniu konta adres zostaje i pytanie wraca.
+      if (trasa.odczytaj().ekran === 'zaproszenie') konto.komunikat('Masz zaproszenie do projektu. Zaloguj się albo załóż konto – zaraz potem je przyjmiesz.', true);
     }
   } catch (e) {
     pokazEkran('logowanie');

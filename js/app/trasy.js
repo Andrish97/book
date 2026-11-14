@@ -6,6 +6,7 @@ import { doProjektow, pokazProjekty, wpisyProjektow, wczytajProjektZWpisu } from
 import { pokazUdostepniony } from './udostepnione.js';
 import { konto } from './logowanie.js';
 import { czekajNaEdytor, edytorGotowy } from './doczytaj.js';
+import { pokazZaproszenieZLinku } from './wspolpraca.js';
 
 // Funkcje edytora: wczytują go, gdy adres prowadzi do projektu (js/app/doczytaj.js).
 const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
@@ -28,6 +29,12 @@ export function przejdzDoTrasy() {
     if (t.ekran === 'udostepnione') { await pokazUdostepniony(t); return; }
     if (document.body.classList.contains('podglad-publiczny')) { location.reload(); return; }
     if (!stan.uzytkownik) return;
+    // #/zaproszenie/<kod> – zaproszenie do projektu (współpraca): pytanie, czy je przyjąć.
+    if (t.ekran === 'zaproszenie') {
+      if (stan.projekt) await doProjektow();
+      await pokazZaproszenieZLinku(t.kod);
+      return;
+    }
     if (t.ekran === 'konto' && stan.uzytkownik) {
       if (stan.projekt) { await zapiszTeraz(); stan.projekt = null; }
       pokazEkran('konto');
@@ -38,8 +45,10 @@ export function przejdzDoTrasy() {
       if (stan.projekt) await doProjektow(); else if (document.body.dataset.ekran !== 'projekty') await pokazProjekty();
       return;
     }
+    // Rola „może oglądać” (współpraca): projekt otwiera się tylko w podglądzie.
+    const tylkoPodglad = () => stan.projekt?.wspolpraca_chmury?.rola === 'odczyt';
     if (stan.projekt?.id === t.id) {
-      if (t.podglad) { await pokazPodglad(); return; }
+      if (t.podglad || tylkoPodglad()) { await pokazPodglad(); return; }
       if (document.body.dataset.ekran === 'podglad') { pokazEkran('edytor'); edytor.canvas.calcOffset(); }
       if (t.obrazy) { await otworzOknoObrazow(); return; }
       if (t.wzorzec && (stan.tryb !== 'wzorzec' || stan.idWzorca !== t.wzorzec)) await edytujWzorzec(t.wzorzec);
@@ -60,7 +69,7 @@ export function przejdzDoTrasy() {
       return;
     }
     await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec });
-    if (t.podglad) await pokazPodglad();
+    if (t.podglad || tylkoPodglad()) await pokazPodglad();
     if (t.obrazy) await otworzOknoObrazow();
   }).catch((e) => console.error(e));
   return obslugaTrasy;

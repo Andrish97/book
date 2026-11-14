@@ -1588,3 +1588,66 @@ dialog:focus { outline: none; }
 :root[data-zaslonka] .uchwyt-zaslonki { height: 30px; }
 :root[data-dotyk] .uchwyt-arkusza { height: 30px; }
 :root[data-dotyk] .lista-ostrzezen .przycisk { min-height: 40px; }
+
+/* ======================================================================
+   Współpraca między kontami (js/app/wspolpraca.js, js/app/obecnosc.js) – decyzja #86
+   ====================================================================== */
+/* Projekt kogoś innego: bez linku podglądu i dostępu dla AI; rola „może oglądać” – tylko podgląd. */
+body.wspolpracownik .tylko-wlasciciel-projektu,
+body.tylko-ogladanie .tylko-wlasciciel,
+body.tylko-ogladanie .tylko-wlasciciel-projektu { display: none !important; }
+.tylko-ogladajacy { display: none !important; }
+body.tylko-ogladanie .tylko-ogladajacy { display: inline-flex !important; }
+
+.filtry-projektow { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; }
+.filtry-projektow[hidden] { display: none; }
+.filtry-projektow .filtr {
+  min-height: 34px; padding: 0 14px; border: 1px solid var(--linia); border-radius: 999px;
+  background: var(--powierzchnia); color: var(--tekst); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+}
+.filtry-projektow .filtr:hover { border-color: var(--linia-mocna); }
+.filtry-projektow .filtr[aria-pressed="true"] { background: var(--akcent); border-color: var(--akcent); color: var(--akcent-tekst); }
+:root[data-dotyk] .filtry-projektow .filtr { min-height: 40px; }
+.przycisk-zaproszen .licznik { background: var(--akcent); color: var(--akcent-tekst); margin-left: 2px; }
+
+.plakietka-wspolpracy { max-width: calc(100% - 64px); }
+.plakietka-wspolpracy span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+fieldset.bez-ramki { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+fieldset.bez-ramki > legend { padding: 0; margin-bottom: 2px; }
+.rzad-zaproszenia { flex-wrap: wrap; }
+.rzad-zaproszenia > .pole:first-child { flex: 1 1 240px; }
+.rzad-zaproszenia > .pole:last-child { flex: 0 1 190px; }
+
+.lista-osob li { justify-content: flex-start; }
+.lista-osob li > div:not(.osoba-akcje) { flex: 1 1 auto; }
+.lista-osob strong, .lista-osob .ciche { overflow-wrap: anywhere; }
+.osoba-akcje { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; flex: 0 0 auto; }
+.osoba-akcje select { width: auto; min-width: 150px; }
+.awatar-maly {
+  flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center;
+  background: var(--akcent); color: #fff; font-size: 14px; font-weight: 700;
+}
+.osoba-zaproszenie .awatar-maly { background: var(--wypelnienie); color: var(--cichy); border: 1px dashed var(--linia-mocna); }
+#zaproszenie-opis { margin: 0; line-height: 1.5; }
+@media (max-width: 600px) {
+  .lista-osob li { flex-wrap: wrap; }
+  .lista-osob li > div:not(.osoba-akcje) { flex-basis: calc(100% - 44px); }
+  .osoba-akcje { width: 100%; }
+  .osoba-akcje select { flex: 1 1 auto; }
+}
+
+/* Obecność: kółka osób w pasku, kropka przy stronie (reguły dopisuje js/app/obecnosc.js). */
+.obecnosc { display: inline-flex; align-items: center; padding: 0 6px 0 2px; }
+.obecnosc[hidden] { display: none; }
+.awatar-obecnosci {
+  width: 28px; height: 28px; margin-left: -7px; border-radius: 50%; display: inline-grid; place-items: center;
+  border: 2px solid var(--powierzchnia); color: #fff; font-size: 12px; font-weight: 700; cursor: default;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+}
+.awatar-obecnosci:first-child { margin-left: 0; }
+.awatar-obecnosci.reszta { background: var(--wypelnienie); color: var(--tekst); }
+.lista-stron li.strona::after {
+  position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; pointer-events: none;
+}

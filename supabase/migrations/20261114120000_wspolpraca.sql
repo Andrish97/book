@@ -648,3 +648,35 @@ as $$
    where projekt_id = p_projekt and public.rola_w_projekcie(p_projekt) in ('wlasciciel', 'edycja')
      and sciezka = any(p_sciezki);
 $$;
+
+-- ---------- Obecność: kanał prywatny „obecnosc-<projekt>” tylko dla osób z dostępem ----------
+-- Kto jest w projekcie i co ma zaznaczone (js/app/obecnosc.js) idzie kanałem Realtime z obecnością.
+-- Kanał jest prywatny: Realtime pyta o regułę na realtime.messages, a ta wpuszcza tylko właściciela
+-- i współpracowników projektu. Reguły powstają tylko tam, gdzie jest schemat realtime (Supabase).
+create or replace function public.obecnosc_dozwolona(p_temat text)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if p_temat is null or p_temat !~ '^obecnosc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+    return false;
+  end if;
+  return public.rola_w_projekcie(substring(p_temat from 10)::uuid) is not null;
+end;
+$$;
+revoke all on function public.obecnosc_dozwolona(text) from public, anon;
+grant execute on function public.obecnosc_dozwolona(text) to authenticated;
+
+do $$
+begin
+  if to_regclass('realtime.messages') is not null then
+    execute 'drop policy if exists "obecnosc: odczyt" on realtime.messages';
+    execute 'create policy "obecnosc: odczyt" on realtime.messages for select to authenticated using (public.obecnosc_dozwolona(realtime.topic()))';
+    execute 'drop policy if exists "obecnosc: zapis" on realtime.messages';
+    execute 'create policy "obecnosc: zapis" on realtime.messages for insert to authenticated with check (public.obecnosc_dozwolona(realtime.topic()))';
+  end if;
+end
+$$;

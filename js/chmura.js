@@ -161,7 +161,7 @@ export async function usunKonto() {
 export async function listaWChmurze() {
   const sb = await supabase();
   return sprawdz(await sb.from('projekty')
-    .select('id, nazwa, zmieniono, miniatura:dane->>miniatura, udostepnienie:dane->udostepnienie')
+    .select('id, owner_id, nazwa, zmieniono, miniatura:dane->>miniatura, udostepnienie:dane->udostepnienie')
     .order('zmieniono', { ascending: false }));
 }
 
@@ -189,7 +189,9 @@ export async function sluchajZmian(uzytkownik, naZmiane, naStan = () => {}) {
   // i (przez RLS) nie wysyła żadnych wierszy. Odświeżone tokeny biblioteka dosyła sama.
   const { data } = await sb.auth.getSession();
   if (data.session?.access_token) await sb.realtime.setAuth(data.session.access_token);
-  const filtr = { schema: 'public', table: 'projekty', filter: `owner_id=eq.${uzytkownik.id}` };
+  // Bez filtra po właścicielu: RLS przepuszcza wiersze własnych projektów i projektów, do których to konto
+  // zaproszono (współpraca, migracja 20261114120000_wspolpraca.sql).
+  const filtr = { schema: 'public', table: 'projekty' };
   const przekaz = (z) => {
     const w = z?.new;
     if (w?.id) naZmiane({ id: w.id, wersja: Number(w.wersja), zmieniono: w.zmieniono });
@@ -233,7 +235,8 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
     if (zasob.sciezka && !czyOdAi(zasob.sciezka)) continue;
     const blob = await blobZasobu(projekt, id); // świeży obraz ma treść w projekcie, zapisany – w magazynie przeglądarki
     if (!blob) continue;
-    const sciezka = `${uzytkownik.id}/${projekt.id}/${id}`;
+    // Pliki projektu leżą w folderze jego właściciela – także te wgrane przez współpracownika.
+    const sciezka = `${projekt.wspolpraca_chmury?.wlasciciel || uzytkownik.id}/${projekt.id}/${id}`;
     sprawdz(await sb.storage.from(BUCKET).upload(sciezka, blob, {
       upsert: true, contentType: blob.type || zasob.typ || 'application/octet-stream',
     }));
@@ -245,6 +248,7 @@ export async function zapiszWChmurze(projekt, { wymus = false } = {}) {
     .map(([id, { dataUrl, ...reszta }]) => [id, reszta]));
   const { wersja_chmury: znana, strony, ...reszta } = projekt;
   delete reszta.podstawa_chmury; // odciski ostatnio uzgodnionego stanu – sprawa tego urządzenia, nie konta
+  delete reszta.wspolpraca_chmury; // czyj to projekt i jaka moja rola – wie to baza, nie treść projektu
   // Odciski tego, co właśnie wysyłamy: po udanym zapisie to jest stan uzgodniony z kontem (js/laczenie.js).
   const podstawa = podstawaProjektu(projekt);
   // Strony leżą na koncie w osobnych wierszach. Wysyłamy tylko te, których treść

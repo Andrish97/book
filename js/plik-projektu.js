@@ -39,6 +39,7 @@ export async function zapiszPlikProjektu(projekt) {
 
   const { miniatura, ...dane } = projekt;
   delete dane.podstawa_chmury; // wiedza tego urządzenia o stanie konta – do pliku nie należy
+  delete dane.wspolpraca_chmury;
   const zasoby = {};
   const listaZasobow = [];
   for (const [id, z] of Object.entries(projekt.zasoby || {})) {
