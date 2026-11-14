@@ -3,7 +3,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, oknoAi } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 
@@ -15,12 +15,13 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.set({ text: 'Tytuł', top: 120 }); e.aktywny.setCoords(); e.zatwierdz(); e.odznacz(); });
   await zapisano(strona);
 
-  // Okno: nowy klucz do zmian.
+  // Klucze AI są tylko w ustawieniach konta (#100): w menu ⋯ projektu nie ma już „Dostęp dla AI…”.
   await strona.click('#przycisk-wiecej');
-  await strona.click('[data-akcja="dostep-ai"]');
-  await strona.waitForSelector('#dlg-dostep-ai[open]');
+  assert.equal(await strona.locator('#menu-wiecej [data-akcja="dostep-ai"]').count(), 0);
+  await strona.keyboard.press('Escape');
+  // Okno (jak z ustawień konta): nowy klucz do zmian, projekt wybrany na liście.
+  await oknoAi(strona);
   assert.equal(await strona.isVisible('#dostep-ai-gotowy'), false);
-  // Skrót z menu projektu: na liście nowego klucza zaznaczony jest ten projekt, zakres „Wybrane projekty”.
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-projekty input:checked').length === 1);
   assert.equal(await strona.isChecked('#dostep-ai-nowy input[value="wybrane"]'), true);
   assert.match(await strona.textContent('#dostep-ai-projekty'), /Projekt dla AI/);
@@ -41,9 +42,7 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   assert.match(await strona.textContent('#dostep-ai-lista li'), /Claude – test.*„Projekt dla AI”.*czyta i zmienia.*ważny do.*jeszcze nieużyty/s);
   // Po zamknięciu i ponownym otwarciu klucza już nie widać.
   await strona.click('[data-akcja="dostep-ai-zamknij"]');
-  await strona.click('#przycisk-wiecej');
-  await strona.click('[data-akcja="dostep-ai"]');
-  await strona.waitForSelector('#dlg-dostep-ai[open]');
+  await oknoAi(strona, { zaznacz: false });
   assert.equal(await strona.inputValue('#dostep-ai-klucz'), '');
   assert.equal(await strona.inputValue('#dostep-ai-adres'), '');
   assert.equal(await strona.textContent('#dostep-ai-claude-code'), '');
@@ -79,8 +78,7 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   assert.match(baza.ai('ai_zapisz', { p_klucz: tylkoOdczyt.klucz, p_znana_wersja: w, p_zmiany: { nazwa: 'X' } }).blad, /tylko czytać/);
 
   // Odebranie z listy w oknie: klucz przestaje działać.
-  await strona.click('#przycisk-wiecej');
-  await strona.click('[data-akcja="dostep-ai"]');
+  await oknoAi(strona, { zaznacz: false });
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 2);
   assert.match(await strona.textContent('#dostep-ai-lista'), /ostatnio użyty/);
   // Zmiana zakresu w miejscu: pełny dostęp – ten sam klucz widzi teraz wszystkie projekty konta.

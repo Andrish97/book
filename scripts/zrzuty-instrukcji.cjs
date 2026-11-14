@@ -165,7 +165,7 @@ if (require.main === module) (async () => {
     await zrzut(k, 'logowanie.png');
 
     await k.click('#tryb-logowania label:has-text("Nowe konto")');
-    await k.fill('#form-logowania input[name=nazwa]', 'Jan');
+    await k.fill('#form-logowania input[name=nazwa]', 'jan.kowalski');
     await k.fill('#form-logowania input[name=email]', 'jan@przyklad.pl');
     await k.fill('#form-logowania input[name=haslo]', 'Kalendarz7');
     await k.locator('.stopka-logowania').click();
@@ -596,8 +596,11 @@ if (require.main === module) (async () => {
   await d.click('#kontrola-zamknij');
 
   // Dostęp dla AI: klucz konta z wybranym projektem – zakres, adres łącznika i kroki dla Claude i ChatGPT
-  await d.click('#przycisk-wiecej');
-  await d.click('[data-akcja="dostep-ai"]');
+  // Okno jest w ustawieniach konta (#100) – otwierane wprost, z wybranym otwartym projektem.
+  await d.evaluate(async () => {
+    const id = window.seriodruk.stan.projekt?.id;
+    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ projektId: id });
+  });
   await d.waitForSelector('#dlg-dostep-ai[open]');
   await d.fill('#dostep-ai-opis', 'Claude – poprawki kalendarza');
   await d.click('[data-akcja="dostep-ai-utworz"]');

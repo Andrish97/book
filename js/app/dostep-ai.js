@@ -1,5 +1,5 @@
 // Okno „Dostęp dla AI”: klucze konta, którymi asystent AI czyta i zmienia projekty (decyzja #94, ai/api.md).
-// Klucz należy do konta (Ustawienia konta → Dostęp dla AI; skrót w menu ⋯ projektu z tym projektem zaznaczonym)
+// Klucz należy do konta i zarządza się nim tylko w ustawieniach konta (Ustawienia konta → Dostęp dla AI, #100)
 // i ma zakres: wybrane projekty (własne albo udostępnione mi – listę można zmieniać bez zmiany adresu) albo
 // pełny dostęp (wszystkie projekty, także tworzenie i usuwanie projektów). AI dostaje co najwyżej moje
 // uprawnienia. Główna droga to adres zdalnego łącznika MCP z kluczem w adresie – Claude i ChatGPT łączą się z nim
@@ -186,8 +186,8 @@ function pokazZakresNowego() {
   $('#dostep-ai-projekty').hidden = pelny;
 }
 
-// Otwiera okno. projektId – projekt zaznaczony na liście nowego klucza (skrót z menu ⋯ projektu).
-export async function otworzDostepAi({ projektId = stan.projekt?.id || null } = {}) {
+// Otwiera okno (z ustawień konta). projektId – projekt zaznaczony na liście nowego klucza (domyślnie żaden).
+export async function otworzDostepAi({ projektId = null } = {}) {
   if (!stan.uzytkownik) { powiadom('Dostęp dla AI wymaga zalogowania.', true); return; }
   $('#dostep-ai-gotowy').hidden = true;
   $('#dostep-ai-klucz').value = '';

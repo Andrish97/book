@@ -387,12 +387,13 @@ async function obsluzZaproszenie(request, id, env, wyslij) {
   } catch (e) {
     return json(e.status === 401 ? 401 : 400, { blad: e.message || 'Nie można wysłać tego zaproszenia.' }, true);
   }
+  // Bez adresu w odpowiedzi: przy zaproszeniu po nazwie użytkownika zapraszający go nie zna (#100).
   if (plan?.blad === 'za-czesto') return json(200, { wyslano: false, powod: 'za-czesto', za: plan.za, za_sekund: plan.za_sekund }, true);
   if (!env.BREVO_API_KEY) return json(200, { wyslano: false, powod: 'brak-konfiguracji' }, true);
   const przebieg = await przetworzKolejke(env, wyslij).catch((e) => ({ wyslane: [], bledy: [{ id: plan.id, blad: e.message }] }));
-  if (przebieg.wyslane.includes(plan.id)) return json(200, { wyslano: true, email: plan.email }, true);
+  if (przebieg.wyslane.includes(plan.id)) return json(200, { wyslano: true }, true);
   const blad = przebieg.bledy.find((b) => b.id === plan.id)?.blad;
-  return json(200, { wyslano: false, powod: blad ? 'blad-wysylki' : 'w-kolejce', ...(blad ? { blad } : {}), email: plan.email }, true);
+  return json(200, { wyslano: false, powod: blad ? 'blad-wysylki' : 'w-kolejce', ...(blad ? { blad } : {}) }, true);
 }
 
 // ---------- Wejście funkcji ----------

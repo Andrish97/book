@@ -74,8 +74,9 @@
 
         <form id="form-logowania" class="formularz" novalidate>
           <label class="pole" id="pole-nazwa" hidden>
-            <span>Imię lub nazwa <small>(opcjonalnie)</small></span>
-            <input name="nazwa" type="text" autocomplete="nickname" maxlength="40" placeholder="Jak się do Ciebie zwracać?">
+            <span>Nazwa użytkownika</span>
+            <input name="nazwa" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" placeholder="np. ola.kowalska">
+            <small class="podpowiedz-nazwy" id="rejestracja-nazwa-podpowiedz" aria-live="polite"></small>
           </label>
           <label class="pole" id="pole-email">
             <span>E-mail</span>
@@ -274,12 +275,13 @@
               <div class="wiersz-ustawien">
                 <form id="form-nazwa" novalidate>
                   <div class="wiersz-glowny">
-                    <label class="wiersz-opis" for="konto-nazwa"><strong>Nazwa</strong><span>Widoczna w prawym górnym rogu i w wiadomościach od aplikacji.</span></label>
+                    <label class="wiersz-opis" for="konto-nazwa"><strong>Nazwa użytkownika</strong><span>Po niej inni mogą Cię zaprosić do projektu. Widoczna też w prawym górnym rogu i w wiadomościach od aplikacji.</span></label>
                     <div class="wiersz-akcje">
-                      <input id="konto-nazwa" name="nazwa" type="text" maxlength="40" autocomplete="nickname" style="width: 200px">
+                      <input id="konto-nazwa" name="nazwa" type="text" maxlength="30" autocomplete="username" autocapitalize="none" spellcheck="false" style="width: 200px">
                       <button type="submit" class="przycisk">Zapisz</button>
                     </div>
                   </div>
+                  <small class="podpowiedz-nazwy" id="konto-nazwa-podpowiedz" aria-live="polite"></small>
                   <p class="komunikat" role="status"></p>
                 </form>
               </div>
@@ -401,21 +403,13 @@
 
           <section class="grupa-ustawien" id="ust-miejsce">
             <h2>Miejsce</h2>
-            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Każde konto ma swój limit miejsca na pliki, a aplikacja – wspólny magazyn dla wszystkich osób.</p>
+            <p class="ciche">Obrazy, czcionki i podglądy linków leżą na koncie. Konto ma limit miejsca na pliki.</p>
             <div class="wiersze-ustawien">
               <div class="wiersz-ustawien">
                 <div class="miejsce-aplikacji" id="miejsce-konta" aria-live="polite">
                   <div class="miejsce-naglowek"><strong>Twoje konto</strong><span id="miejsce-konto">Sprawdzam…</span></div>
                   <div class="miejsce-pasek" role="progressbar" aria-label="Zajęte miejsce na pliki konta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="miejsce-pasek-konta" class="moje"></span></div>
                   <p class="ciche" id="miejsce-limity"></p>
-                </div>
-              </div>
-              <div class="wiersz-ustawien">
-                <div class="miejsce-aplikacji" id="miejsce-aplikacji" aria-live="polite">
-                  <div class="miejsce-naglowek"><strong>Cała aplikacja</strong><span id="miejsce-razem">Sprawdzam…</span></div>
-                  <div class="miejsce-pasek" role="progressbar" aria-label="Zajęte miejsce na pliki" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="miejsce-pasek-moje" class="moje"></span><span id="miejsce-pasek-inne" class="inne"></span></div>
-                  <p class="miejsce-legenda"><span class="kropka moje"></span><span id="miejsce-moje-opis">Twoje pliki</span> <span class="kropka inne"></span><span>pliki innych osób</span></p>
-                  <p class="ciche" id="miejsce-baza"></p>
                   <p class="miejsce-ostrzezenie" id="miejsce-ostrzezenie" role="alert" hidden></p>
                 </div>
               </div>
@@ -569,7 +563,6 @@
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
           <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik">Współpraca…</button>
-          <button role="menuitem" class="tylko-wlasciciel-projektu" data-akcja="dostep-ai" data-ikona="link">Dostęp dla AI…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
           <button role="menuitem" class="tylko-waski-pasek" data-akcja="pelny-ekran" data-ikona="pelny-ekran" hidden>Pełny ekran</button>
         </div>
@@ -1060,7 +1053,7 @@
         <fieldset class="bez-ramki">
           <legend>Zaproś osobę</legend>
           <div class="rzad rzad-zaproszenia">
-            <label class="pole"><span>Adres e-mail</span><input type="email" id="wspolpraca-email" autocomplete="email" inputmode="email" maxlength="254" placeholder="np. ola@przyklad.pl" required></label>
+            <div class="pole pole-z-podpowiedziami"><label for="wspolpraca-email"><span>E-mail albo nazwa użytkownika</span></label><input type="text" id="wspolpraca-email" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="254" placeholder="np. ola@przyklad.pl albo ola.kowalska" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="wspolpraca-podpowiedzi"><ul class="lista-podpowiedzi" id="wspolpraca-podpowiedzi" role="listbox" hidden></ul></div>
             <label class="pole"><span>Rola</span><select id="wspolpraca-rola"><option value="edycja">może edytować</option><option value="odczyt">może oglądać</option></select></label>
           </div>
           <div class="rzad-przyciskow"><button type="submit" class="przycisk glowny" id="wspolpraca-zapros" data-ikona="koperta">Zaproś</button></div>
@@ -1122,6 +1115,17 @@
       <ul class="lista-dostepow lista-osob" id="zaproszenia-lista"></ul>
       <p class="podpowiedz" id="zaproszenia-pusto" hidden>Nie masz czekających zaproszeń.</p>
     </div>
+  </dialog>
+
+  <dialog id="dlg-nazwa-uzytkownika">
+    <form class="formularz" id="form-nazwa-uzytkownika" novalidate>
+      <h2>Wybierz nazwę użytkownika</h2>
+      <p class="ciche">Po tej nazwie inne osoby mogą zaprosić Cię do wspólnej pracy nad projektem – bez podawania adresu e-mail. Zmienisz ją później w ustawieniach konta.</p>
+      <label class="pole"><span>Nazwa użytkownika</span><input id="nazwa-uzytkownika-pole" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" required>
+        <small class="podpowiedz-nazwy" id="nazwa-uzytkownika-podpowiedz" aria-live="polite"></small></label>
+      <p class="komunikat" id="nazwa-uzytkownika-komunikat" role="alert"></p>
+      <div class="przyciski-dialogu"><span class="odstep"></span><button type="submit" class="przycisk glowny">Zapisz</button></div>
+    </form>
   </dialog>
 
   <dialog id="dlg-zaproszenie">

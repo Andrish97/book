@@ -17,6 +17,7 @@ const ADRES = process.argv[2] || 'https://makietka.app/';
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 const email = `seriodruk-test-${crypto.randomBytes(5).toString('hex')}@example.com`;
 const haslo = `Tt#9${crypto.randomBytes(8).toString('hex')}`;
+const nazwaUz = `test_${crypto.randomBytes(4).toString('hex')}`; // nazwa użytkownika konta testowego (#100)
 const wyniki = [`konto testowe: ${email}`];
 const krok = async (nazwa, fn) => {
   const t = Date.now();
@@ -36,7 +37,7 @@ const krok = async (nazwa, fn) => {
     await krok('aplikacja się otwiera', async () => { await p.goto(ADRES); await p.waitForSelector('#form-logowania'); });
     await krok('rejestracja bez potwierdzania e-mailem', async () => {
       await p.click('#tryb-logowania label:has-text("Nowe konto")');
-      await p.fill('#form-logowania input[name=nazwa]', 'Test automatyczny');
+      await p.fill('#form-logowania input[name=nazwa]', nazwaUz);
       await p.fill('#form-logowania input[name=email]', email);
       await p.fill('#form-logowania input[name=haslo]', haslo);
       await p.fill('#form-logowania input[name=haslo2]', haslo);
@@ -48,6 +49,23 @@ const krok = async (nazwa, fn) => {
       ]);
       zalogowany = true;
       await p.click('[data-akcja="zamknij-instrukcje"]');
+    });
+    await krok('nazwa użytkownika: zapisana przy rejestracji, zajęta dla innych, zaproszenie po nazwie (#100)', async () => {
+      const w = await p.evaluate(async ({ nazwa, adres }) => {
+        const chmura = await import('./js/chmura.js');
+        const sb = await chmura.supabase();
+        const moja = (await sb.rpc('moja_nazwa_uzytkownika')).data;
+        const { SUPABASE_URL, SUPABASE_ANON_KEY } = await import('./js/konfiguracja.js');
+        const anon = await (await fetch(`${SUPABASE_URL}/rest/v1/rpc/nazwa_wolna`, { method: 'POST', headers: { apikey: SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ p_nazwa: nazwa.toUpperCase() }) })).json();
+        const szukaj = (await sb.rpc('szukaj_nazw_uzytkownikow', { p_tekst: nazwa })).data;
+        const projekt = window.seriodruk?.stan?.projekt?.id || null;
+        void adres;
+        return { moja, anon, szukaj, projekt };
+      }, { nazwa: nazwaUz, adres: ADRES });
+      if (w.moja !== nazwaUz) throw new Error(`moja nazwa: ${w.moja}`);
+      if (w.anon?.wolna !== false || !w.anon?.propozycja) throw new Error(`nazwa_wolna bez sesji: ${JSON.stringify(w.anon)}`);
+      if (!Array.isArray(w.szukaj) || w.szukaj.includes(nazwaUz)) throw new Error(`szukaj_nazw: ${JSON.stringify(w.szukaj)}`);
+      return `nazwa ${nazwaUz}, dla innych zajęta (propozycja ${w.anon.propozycja})`;
     });
     let idProjektu;
     await krok('nowy projekt zapisuje się na koncie', async () => {
@@ -253,9 +271,13 @@ const krok = async (nazwa, fn) => {
     });
     await krok('dostęp dla AI: klucz z aplikacji zapisuje zmianę, edytor ją widzi, odebrany klucz przestaje działać', async () => {
       await p.keyboard.press('Escape');
-      await p.waitForSelector('#przycisk-wiecej', { state: 'visible' });
-      await p.click('#przycisk-wiecej');
-      await p.click('[data-akcja="dostep-ai"]');
+      await p.evaluate(async () => {
+        const id = window.seriodruk?.stan?.projekt?.id;
+        await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+        const pole = id && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
+        if (pole && !pole.checked) pole.click();
+      }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
+      await p.waitForSelector('#dlg-dostep-ai[open]');
       await p.fill('#dostep-ai-opis', 'Próba na żywo');
       await p.click('[data-akcja="dostep-ai-utworz"]');
       await p.waitForSelector('#dostep-ai-gotowy:not([hidden])');
@@ -280,8 +302,13 @@ const krok = async (nazwa, fn) => {
         const pr = window.seriodruk.stan.projekt;
         return pr?.nazwa === 'Test bazy (AI)' && pr.strony.some((x) => (x.obiekty || []).some((o) => o.id === 'ai_proba'));
       }, null, { timeout: 30000 });
-      await p.click('#przycisk-wiecej');
-      await p.click('[data-akcja="dostep-ai"]');
+      await p.evaluate(async () => {
+        const id = window.seriodruk?.stan?.projekt?.id;
+        await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+        const pole = id && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
+        if (pole && !pole.checked) pole.click();
+      }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
+      await p.waitForSelector('#dlg-dostep-ai[open]');
       await p.click('#dostep-ai-lista li:has-text("Próba na żywo") button:has-text("Odbierz")');
       await p.click('#potwierdz-tak');
       await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li'));
@@ -324,8 +351,13 @@ const krok = async (nazwa, fn) => {
     // Zdalny łącznik MCP (Funkcja Edge supabase/functions/mcp): tak łączą się Claude i ChatGPT.
     // Wymaga wdrożonej funkcji (integracja Supabase z GitHubem, [functions.mcp] w supabase/config.toml).
     await krok('zdalny łącznik MCP: adres z okna działa (initialize, lista narzędzi, odczyt, zmiana widoczna w edytorze), odebrany klucz przestaje działać', async () => {
-      await p.click('#przycisk-wiecej');
-      await p.click('[data-akcja="dostep-ai"]');
+      await p.evaluate(async () => {
+        const id = window.seriodruk?.stan?.projekt?.id;
+        await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+        const pole = id && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
+        if (pole && !pole.checked) pole.click();
+      }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
+      await p.waitForSelector('#dlg-dostep-ai[open]');
       await p.fill('#dostep-ai-opis', 'Łącznik na żywo');
       await p.click('[data-akcja="dostep-ai-utworz"]');
       await p.waitForSelector('#dostep-ai-gotowy:not([hidden])');
@@ -424,8 +456,13 @@ const krok = async (nazwa, fn) => {
       if (!/Usunięto 2: „proba-wprost\.png”, „proba-duza\.jpg”|Usunięto 2: „proba-duza\.jpg”, „proba-wprost\.png”/.test(usuniety.content[0].text) || !/proba-ai\.png” – strona \d/.test(usuniety.content[0].text)) throw new Error(`usun_obrazy: ${usuniety.content[0].text.slice(0, 300)}`);
       const get = await mcp(null, {}, 'GET');
       if (get.status !== 405) throw new Error(`GET powinien dać 405, dał ${get.status}`);
-      await p.click('#przycisk-wiecej');
-      await p.click('[data-akcja="dostep-ai"]');
+      await p.evaluate(async () => {
+        const id = window.seriodruk?.stan?.projekt?.id;
+        await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+        const pole = id && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
+        if (pole && !pole.checked) pole.click();
+      }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
+      await p.waitForSelector('#dlg-dostep-ai[open]');
       await p.click('#dostep-ai-lista li:has-text("Łącznik na żywo") button');
       await p.click('#potwierdz-tak');
       await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li button'));

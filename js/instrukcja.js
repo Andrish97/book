@@ -49,7 +49,8 @@ export const ROZDZIALY = [
     obraz: 'rejestracja.png',
     podpis: 'Zakładanie konta – wymagania hasła zaznaczają się podczas pisania.',
     punkty: [
-      '<b>Nowe konto</b>: wpisz swoją nazwę (tak aplikacja będzie się do Ciebie zwracać), e-mail i dwa razy hasło. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.',
+      '<b>Nowe konto</b>: wpisz <b>nazwę użytkownika</b>, e-mail i dwa razy hasło. Nazwa użytkownika (3–30 znaków: litery, cyfry, _ . -) jest unikalna – po niej inni mogą Cię zaprosić do projektu; pod polem widać od razu, czy jest wolna, a zajęta dostaje propozycję wolnej. Hasło musi mieć co najmniej 8 znaków, małą i wielką literę, cyfrę i znak specjalny.',
+      'Konto bez nazwy użytkownika (założone wcześniej) przy logowaniu dostaje okno <b>Wybierz nazwę użytkownika</b> z gotową propozycją – nazwę trzeba wybrać, zmienisz ją potem w ustawieniach konta.',
       'Konto działa od razu po założeniu. Jeśli administrator włączy potwierdzanie adresu, na podany e-mail przyjdzie wiadomość „Potwierdź swoje konto” z przyciskiem i dopiero po kliknięciu można się zalogować (wiadomość można wysłać ponownie po minucie).',
       '<b>Nie pamiętasz hasła?</b> – podaj e-mail, a dostaniesz link do ustawienia nowego hasła.',
       'Link z wiadomości działa jeden raz. Jeśli wygasł, aplikacja o tym powie – poproś wtedy o nowy.',
@@ -61,7 +62,7 @@ export const ROZDZIALY = [
     obraz: 'konto.png',
     podpis: 'Ustawienia konta z rozwiniętą zmianą adresu e-mail.',
     punkty: [
-      '<b>Profil</b> – nazwa widoczna w prawym górnym rogu.',
+      '<b>Profil</b> – nazwa użytkownika: po niej inni zapraszają Cię do projektu; widać ją też w prawym górnym rogu.',
       '<b>Logowanie</b> – <b>Zmień adres</b> i <b>Zmień hasło</b> rozwijają formularz w swoim wierszu. Po zmianie adresu na nowy przychodzi link potwierdzający; do kliknięcia logujesz się dotychczasowym. Rozpoczętej zmiany nie da się cofnąć z aplikacji (Supabase na to nie pozwala), ale bez kliknięcia linku nic się nie zmieni – link wygaśnie. <b>Wpisz inny adres</b> zastępuje oczekujący adres nowym.',
       '<b>Wygląd</b> – jasny albo ciemny motyw (następny rozdział).',
       '<b>Urządzenia</b> – <b>Wyloguj</b> wylogowuje tylko to urządzenie, <b>Wyloguj wszędzie</b> – wszystkie naraz (przydatne po logowaniu na cudzym albo zgubionym urządzeniu).',
@@ -508,9 +509,9 @@ export const ROZDZIALY = [
     obraz: 'wspolpraca.png',
     podpis: 'Okno „Współpraca”: świeże zaproszenie z linkiem i osoby z dostępem.',
     punkty: [
-      'W edytorze menu <b>⋯</b> → <b>Współpraca…</b> (albo <b>⋯</b> na karcie projektu). Wpisz adres e-mail i wybierz rolę: <b>Może edytować</b> – zmienia projekt razem z Tobą; <b>Może oglądać</b> – widzi tylko podgląd i prezentację.',
+      'W edytorze menu <b>⋯</b> → <b>Współpraca…</b> (albo <b>⋯</b> na karcie projektu). Wpisz adres e-mail albo <b>nazwę użytkownika</b> (po dwóch pierwszych literach pojawią się pasujące nazwy) i wybierz rolę: <b>Może edytować</b> – zmienia projekt razem z Tobą; <b>Może oglądać</b> – widzi tylko podgląd i prezentację.',
       'Aplikacja wysyła e-mail z linkiem do zaproszenia. Osoba, która ma już konto, zobaczy zaproszenie także w aplikacji: na liście projektów pojawi się przycisk <b>Zaproszenia</b> z liczbą (od razu, bez odświeżania). Osoba bez konta otwiera link, zakłada konto i od razu przyjmuje zaproszenie.',
-      'Link możesz też skopiować albo wysłać ze swojej poczty (<b>Wyślij ze swojej poczty</b>). Działa jeden raz i jest ważny 14 dni. Jeśli e-mail nie wyszedł, okno to napisze – wtedy wyślij link sam.',
+      'Przy zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby – na liście jest jej nazwa, a e-mail z zaproszeniem wysyła aplikacja. Link możesz też skopiować albo (przy zaproszeniu na adres) wysłać ze swojej poczty (<b>Wyślij ze swojej poczty</b>). Działa jeden raz i jest ważny 14 dni. Jeśli e-mail nie wyszedł, okno to napisze – wtedy wyślij link sam.',
       'Projekty udostępnione Ci przez innych są na Twojej liście z plakietką osoby, która je udostępniła, i z dopiskiem <b>Możesz edytować</b> albo <b>Możesz oglądać</b>. Gdy masz takie projekty, nad listą są przyciski <b>Wszystkie</b>, <b>Moje</b> i <b>Udostępnione mi</b>.',
       '<b>Razem na żywo.</b> Zmiany łączą się element po elemencie, tak jak między Twoimi urządzeniami: gdy Ty poprawiasz tytuł, a ktoś przesuwa zdjęcie, zostają obie zmiany. O ten sam element zmieniony przez dwie osoby naraz aplikacja zapyta. <b>Cofnij</b> zdejmuje tylko Twoje zmiany.',
       '<b>Kto jest w projekcie.</b> Kółka z inicjałami w pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty (wskaż kółko, żeby zobaczyć, na której jest stronie). Kolorowa ramka przy miniaturze strony mówi, na której stronie ktoś pracuje, a przerywana obwódka w jego kolorze – co ma zaznaczone.',
@@ -525,7 +526,7 @@ export const ROZDZIALY = [
     obraz: 'dostep-ai.png',
     podpis: 'Klucze AI konta: zakres (wybrane projekty albo pełny dostęp), adres łącznika do skopiowania i kroki dla Claude i ChatGPT.',
     punkty: [
-      'Klucz należy do konta: <b>Ustawienia konta → Dostęp dla AI → Zarządzaj…</b> (albo w edytorze menu <b>⋯</b> → <b>Dostęp dla AI…</b> – wtedy otwarty projekt jest od razu zaznaczony). Wpisz, dla kogo jest klucz, wybierz <b>Czyta i zmienia</b> albo <b>Tylko czyta</b>, ważność (od 1 dnia do roku albo bez terminu) i zakres, potem <b>Utwórz klucz</b>.',
+      'Klucz należy do konta: <b>Ustawienia konta → Dostęp dla AI → Zarządzaj…</b>. Wpisz, dla kogo jest klucz, wybierz <b>Czyta i zmienia</b> albo <b>Tylko czyta</b>, ważność (od 1 dnia do roku albo bez terminu) i zakres, potem <b>Utwórz klucz</b>.',
       '<b>Zakres.</b> <b>Wybrane projekty</b> – zaznaczasz projekty (własne i udostępnione Ci przez innych). <b>Pełny dostęp</b> – wszystkie projekty konta, także te, które dojdą później; AI może wtedy też <b>tworzyć nowe projekty</b> i <b>usuwać</b> Twoje (zawsze z podaniem dokładnej nazwy projektu). W rozmowie AI zaczyna od listy projektów i pyta, na którym pracować – albo napisz od razu, np. „w projekcie Kalendarz 2027 popraw literówki”.',
       'Okno pokaże <b>adres łącznika</b> (z kluczem w środku). Widać go <b>tylko raz</b> – skopiuj go od razu przyciskiem obok.',
       '<b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <b>Dostosuj → Łączniki</b> (Customize → Connectors) → <b>+</b> → <b>Dodaj własny łącznik</b>. Nazwa: Makietka, adres: wklej skopiowany, logowanie: <b>bez logowania</b> (No sign-in). W rozmowie włącz łącznik i napisz np. „Przejrzyj mój projekt w Makietce i popraw literówki w tytułach”.',

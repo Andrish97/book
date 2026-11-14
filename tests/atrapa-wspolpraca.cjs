@@ -11,7 +11,24 @@ function blad(tekst, kod = 'P0001', status = 400) {
   return e;
 }
 
-const nazwaKonta = (k) => (k?.nazwa || '').trim() || String(k?.email || '').split('@')[0];
+// Nazwy użytkownika (#100, migracja nazwy_uzytkownikow): stan.profile – id konta → nazwa. Konta z testów (bez
+// rejestracji przez aplikację) dostają nazwę same – z imienia albo z adresu – chyba że test poda nazwaUzytkownika: null.
+const poprawnaNazwa = (n) => /^[A-Za-z0-9ĄĆĘŁŃÓŚŹŻąćęłńóśźż][A-Za-z0-9ĄĆĘŁŃÓŚŹŻąćęłńóśźż_.-]{2,29}$/.test(String(n || '')) && !/[_.-]{2}/.test(String(n || ''));
+function nazwaUzytkownika(stan, k) {
+  if (!k) return null;
+  stan.profile = stan.profile || new Map();
+  if (stan.profile.has(k.id)) return stan.profile.get(k.id);
+  if (k.zRejestracji || k.nazwaUzytkownika === null) return null;
+  const zajete = (n) => [...stan.profile.values()].some((x) => x.toLowerCase() === n.toLowerCase());
+  let n = k.nazwaUzytkownika || (poprawnaNazwa(k.nazwa) ? k.nazwa : String(k.email || '').split('@')[0].replace(/[^A-Za-z0-9]/g, ''));
+  if (n.length < 3) n = `${n}konto`;
+  let wolna = n;
+  for (let i = 2; zajete(wolna); i += 1) wolna = `${n}${i}`;
+  stan.profile.set(k.id, wolna);
+  return wolna;
+}
+let stanNazw = null;
+const nazwaKonta = (k) => (stanNazw && nazwaUzytkownika(stanNazw, k)) || (k?.nazwa || '').trim() || String(k?.email || '').split('@')[0];
 
 // Rola konta w projekcie: 'wlasciciel' | 'edycja' | 'odczyt' | null.
 function rolaW(stan, konto, projektId) {
@@ -22,6 +39,8 @@ function rolaW(stan, konto, projektId) {
 }
 
 function atrapaWspolpracy(stan) {
+  stanNazw = stan;
+  stan.profile = stan.profile || new Map();
   stan.wspolpracownicy = stan.wspolpracownicy || [];
   stan.zaproszenia = stan.zaproszenia || [];
   const konto = (id) => stan.konta.find((k) => k.id === id);
@@ -30,7 +49,7 @@ function atrapaWspolpracy(stan) {
   // Wiersze tabel współpracy na żywo (Realtime + RLS): zaproszenie – do zaproszonego adresu i zapraszającego,
   // współpraca – do współpracownika i właściciela projektu.
   const oglosZaproszenie = (z, typ) => {
-    const odbiorcy = stan.konta.filter((k) => k.email.toLowerCase() === z.email.toLowerCase() || k.id === z.zaprosil).map((k) => k.id);
+    const odbiorcy = stan.konta.filter((k) => k.email.toLowerCase() === z.email.toLowerCase() || k.id === z.konto).map((k) => k.id);
     stan.oglosWiersz?.('zaproszenia', typ, { id: z.id, projekt_id: z.projekt_id, email: z.email, rola: z.rola, stan: z.stan }, odbiorcy);
   };
   const oglosDostep = (w, typ) => {
@@ -42,27 +61,40 @@ function atrapaWspolpracy(stan) {
     zapros_do_projektu(k, { p_projekt, p_email, p_rola }) {
       if (rolaW(stan, k, p_projekt) !== 'wlasciciel') throw blad('Zapraszać może tylko właściciel projektu (a projekt musi być zapisany na koncie)', '42501', 403);
       if (!['edycja', 'odczyt'].includes(p_rola)) throw blad('Nieznana rola: wybierz „może edytować” albo „może oglądać”');
-      const email = String(p_email || '').trim().toLowerCase();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw blad('To nie wygląda na adres e-mail');
-      if (email === k.email.toLowerCase()) throw blad('To Twój adres – jesteś właścicielem tego projektu');
-      const istniejace = stan.konta.find((x) => x.email.toLowerCase() === email);
+      const kto = String(p_email || '').trim();
+      const przezNazwe = !kto.replace(/^@/, '').includes('@');
+      let email;
+      let istniejace;
+      if (przezNazwe) {
+        const n = kto.replace(/^@/, '').toLowerCase();
+        istniejace = stan.konta.find((x) => (nazwaUzytkownika(stan, x) || '').toLowerCase() === n);
+        if (!istniejace) throw blad(`Nie ma konta o nazwie użytkownika „${kto.replace(/^@/, '')}” – sprawdź nazwę albo wpisz adres e-mail`);
+        if (istniejace.id === k.id) throw blad('To Twoja nazwa – jesteś właścicielem tego projektu');
+        email = istniejace.email.toLowerCase();
+      } else {
+        email = kto.toLowerCase();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw blad('To nie wygląda na adres e-mail ani nazwę użytkownika');
+        if (email === k.email.toLowerCase()) throw blad('To Twój adres – jesteś właścicielem tego projektu');
+        istniejace = stan.konta.find((x) => x.email.toLowerCase() === email);
+      }
       if (istniejace && stan.wspolpracownicy.some((w) => w.projekt_id === p_projekt && w.uzytkownik === istniejace.id)) {
         throw blad('Ta osoba już ma dostęp do projektu – rolę zmienisz na liście poniżej');
       }
-      let z = stan.zaproszenia.find((x) => x.projekt_id === p_projekt && x.email === email && x.stan === 'czeka' && wazne(x));
+      let z = stan.zaproszenia.find((x) => x.projekt_id === p_projekt && (x.email === email || (istniejace && x.konto === istniejace.id)) && x.stan === 'czeka' && wazne(x));
       if (z) {
-        Object.assign(z, { rola: p_rola, wazne_do: new Date(Date.now() + 14 * 86400000).toISOString() });
+        Object.assign(z, { rola: p_rola, wazne_do: new Date(Date.now() + 14 * 86400000).toISOString(), konto: z.konto || istniejace?.id || null, przez_nazwe: z.przez_nazwe && przezNazwe });
         oglosZaproszenie(z, 'UPDATE');
       } else {
         if (stan.zaproszenia.filter((x) => x.zaprosil === k.id && Date.now() - new Date(x.utworzono) < 86400000).length >= 30) throw blad('Za dużo zaproszeń w ciągu doby – spróbuj jutro');
         z = {
           id: crypto.randomUUID(), projekt_id: p_projekt, email, rola: p_rola, kod: crypto.randomBytes(18).toString('base64url'),
           zaprosil: k.id, utworzono: new Date().toISOString(), wazne_do: new Date(Date.now() + 14 * 86400000).toISOString(), stan: 'czeka', przyjal: null,
+          konto: istniejace?.id || null, przez_nazwe: przezNazwe,
         };
         stan.zaproszenia.push(z);
         oglosZaproszenie(z, 'INSERT');
       }
-      return { id: z.id, kod: z.kod, email: z.email, rola: z.rola, wazne_do: z.wazne_do, konto: Boolean(istniejace) };
+      return { id: z.id, kod: z.kod, email: z.przez_nazwe ? null : z.email, nazwa: istniejace ? nazwaUzytkownika(stan, istniejace) : null, rola: z.rola, wazne_do: z.wazne_do, konto: Boolean(istniejace), przez_nazwe: z.przez_nazwe };
     },
     osoby_projektu(k, { p_projekt }) {
       const rola = rolaW(stan, k, p_projekt);
@@ -70,13 +102,13 @@ function atrapaWspolpracy(stan) {
       const p = stan.projekty.find((x) => x.id === p_projekt);
       const w = konto(p.owner_id);
       return [
-        { typ: 'wlasciciel', id: w.id, nazwa: nazwaKonta(w), email: w.email, rola: 'wlasciciel', ja: w.id === k.id },
+        { typ: 'wlasciciel', id: w.id, nazwa: nazwaKonta(w), email: w.id === k.id ? w.email : null, rola: 'wlasciciel', ja: w.id === k.id },
         ...stan.wspolpracownicy.filter((x) => x.projekt_id === p_projekt).map((x) => {
           const u = konto(x.uzytkownik);
-          return { typ: 'wspolpracownik', id: u.id, nazwa: nazwaKonta(u), email: u.email, rola: x.rola, od: x.dodano, ja: u.id === k.id };
+          return { typ: 'wspolpracownik', id: u.id, nazwa: nazwaKonta(u), email: u.id === k.id ? u.email : null, rola: x.rola, od: x.dodano, ja: u.id === k.id };
         }),
         ...stan.zaproszenia.filter((z) => z.projekt_id === p_projekt && z.stan === 'czeka' && wazne(z)).map((z) => ({
-          typ: 'zaproszenie', id: z.id, email: z.email, rola: z.rola, od: z.utworzono, wazne_do: z.wazne_do, kod: rola === 'wlasciciel' ? z.kod : null, ja: false,
+          typ: 'zaproszenie', id: z.id, email: z.przez_nazwe ? null : z.email, nazwa: z.konto ? nazwaUzytkownika(stan, konto(z.konto)) : null, rola: z.rola, od: z.utworzono, wazne_do: z.wazne_do, kod: rola === 'wlasciciel' ? z.kod : null, ja: false,
         })),
       ];
     },
@@ -101,7 +133,7 @@ function atrapaWspolpracy(stan) {
     },
     moje_zaproszenia(k) {
       return stan.zaproszenia
-        .filter((z) => z.email === k.email.toLowerCase() && z.stan === 'czeka' && wazne(z))
+        .filter((z) => (z.konto === k.id || z.email === k.email.toLowerCase()) && z.stan === 'czeka' && wazne(z))
         .filter((z) => { const p = stan.projekty.find((x) => x.id === z.projekt_id); return p && p.owner_id !== k.id && !rolaW(stan, k, z.projekt_id); })
         .map((z) => {
           const p = stan.projekty.find((x) => x.id === z.projekt_id);
@@ -141,6 +173,32 @@ function atrapaWspolpracy(stan) {
       if (z) { z.stan = 'odrzucone'; oglosZaproszenie(z, 'UPDATE'); }
       return null;
     },
+    nazwa_wolna(k, { p_nazwa }) {
+      const n = String(p_nazwa || '').trim();
+      if (!poprawnaNazwa(n)) return { poprawna: false, wolna: false };
+      stan.konta.forEach((x) => nazwaUzytkownika(stan, x));
+      const zajeta = (x) => [...stan.profile].some(([id, v]) => v.toLowerCase() === x.toLowerCase() && id !== k?.id);
+      if (!zajeta(n)) return { poprawna: true, wolna: true };
+      let i = 2;
+      while (zajeta(`${n.slice(0, 27)}${i}`)) i += 1;
+      return { poprawna: true, wolna: false, propozycja: `${n.slice(0, 27)}${i}` };
+    },
+    moja_nazwa_uzytkownika(k) { return nazwaUzytkownika(stan, k); },
+    ustaw_nazwe_uzytkownika(k, { p_nazwa }) {
+      const n = String(p_nazwa || '').trim();
+      if (!poprawnaNazwa(n)) throw blad('Nazwa użytkownika: 3–30 znaków – litery, cyfry, _ . -; na początku litera albo cyfra');
+      stan.konta.forEach((x) => nazwaUzytkownika(stan, x));
+      if ([...stan.profile].some(([id, v]) => v.toLowerCase() === n.toLowerCase() && id !== k.id)) throw blad('Ta nazwa użytkownika jest już zajęta – wybierz inną');
+      stan.profile.set(k.id, n);
+      return n;
+    },
+    szukaj_nazw_uzytkownikow(k, { p_tekst }) {
+      const t = String(p_tekst || '').trim().replace(/^@/, '').toLowerCase();
+      if (t.length < 2 || t.includes('@')) return [];
+      stan.konta.forEach((x) => nazwaUzytkownika(stan, x));
+      return [...stan.profile].filter(([id, v]) => id !== k.id && v.toLowerCase().startsWith(t)).map(([, v]) => v)
+        .sort((a, b) => a.length - b.length || a.localeCompare(b)).slice(0, 5);
+    },
     udostepnione_mi(k) {
       return stan.wspolpracownicy.filter((w) => w.uzytkownik === k.id).map((w) => {
         const p = stan.projekty.find((x) => x.id === w.projekt_id);
@@ -151,7 +209,7 @@ function atrapaWspolpracy(stan) {
   };
 
   const wywolaj = (nazwa, tresc, k) => {
-    if (!k) throw blad('Brak sesji', 'PGRST301', 401);
+    if (!k && nazwa !== 'nazwa_wolna') throw blad('Brak sesji', 'PGRST301', 401);
     return funkcje[nazwa](k, tresc || {});
   };
   wywolaj.ma = (nazwa) => Object.prototype.hasOwnProperty.call(funkcje, nazwa);

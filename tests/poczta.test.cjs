@@ -150,7 +150,7 @@ test('zaproszenie do projektu idzie przez kolejkę: plan tokenem zapraszającego
 
   let s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k1', email: 'ola@przyklad.pl' } }, poczta_kolejka_pobierz: partia(), poczta_kolejka_wynik: { tresc: null } });
   let odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
-  assert.deepEqual(await odp.json(), { wyslano: true, email: 'ola@przyklad.pl' });
+  assert.deepEqual(await odp.json(), { wyslano: true }, 'bez adresu w odpowiedzi (#100)');
   assert.equal(s.rpc('poczta_zaplanuj_zaproszenie')[0].o.headers.authorization, 'Bearer token-anny', 'plan – tokenem zapraszającego');
   assert.equal(s.rpc('poczta_kolejka_pobierz')[0].o.headers.authorization, 'Bearer klucz-serwisowy', 'kolejka – kluczem serwisowym');
   assert.deepEqual(s.rpc('poczta_kolejka_wynik')[0].tresc, { p_id: 'k1', p_ok: true, p_blad: null, p_message_id: '<id-brevo@smtp-relay.mailin.fr>' });
@@ -171,7 +171,7 @@ test('zaproszenie do projektu idzie przez kolejkę: plan tokenem zapraszającego
   // Mail czeka w kolejce (np. dzienny limit dostawcy) – przebieg go nie wysłał.
   s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k2', email: 'ola@przyklad.pl' } }, poczta_kolejka_pobierz: { tresc: { wiadomosci: [], powod: 'limit-dzienny' } } });
   odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
-  assert.deepEqual(await odp.json(), { wyslano: false, powod: 'w-kolejce', email: 'ola@przyklad.pl' });
+  assert.deepEqual(await odp.json(), { wyslano: false, powod: 'w-kolejce' });
   // Brevo odrzuca – wynik do bazy (ponowienie później), aplikacja dostaje błąd do pokazania.
   s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k1', email: 'ola@przyklad.pl' } }, poczta_kolejka_pobierz: partia(), poczta_kolejka_wynik: { tresc: null } },
     () => ({ status: 401, tresc: { message: 'Key not found' } }));

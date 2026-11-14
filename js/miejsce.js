@@ -28,8 +28,9 @@ async function rpc(nazwa, parametry) {
 let ostatnie = null;
 let kiedy = 0;
 
-// { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku, pliki_razem, limit_plikow (R2),
-//   od_ai, baza_razem, limit_bazy, projekty, limit_projektow, osoby_w_projekcie, obrazy_w_projekcie (baza) }
+// { obrazy, czcionki, podglady, plikow, konto, limit_konta, limit_pliku (R2), od_ai, projekty, limit_projektow,
+//   osoby_w_projekcie, obrazy_w_projekcie (baza) } – sumy całej aplikacji (pliki_razem, baza_razem) przychodzą,
+//   ale konto ich nie pokazuje (#100).
 export async function miejsce({ swieze = false } = {}) {
   if (!swieze && ostatnie && Date.now() - kiedy < WAZNOSC_MS) return ostatnie;
   const [baza, pliki] = await Promise.all([rpc('miejsce_na_koncie'), chmura.r2.miejsce()]);
@@ -40,23 +41,15 @@ export async function miejsce({ swieze = false } = {}) {
 
 const liczba = (x) => Number(x) || 0;
 export const mojeRazem = (m) => liczba(m.obrazy) + liczba(m.czcionki) + liczba(m.podglady) + liczba(m.od_ai);
-export const udzialPlikow = (m) => (m.limit_plikow ? liczba(m.pliki_razem) / m.limit_plikow : 0);
 export const udzialKonta = (m) => (m.limit_konta ? liczba(m.konto) / m.limit_konta : 0);
-export const udzialBazy = (m) => (m.limit_bazy && m.baza_razem != null ? liczba(m.baza_razem) / m.limit_bazy : 0);
 
-// Tekst ostrzeżenia albo null, gdy miejsca jest dość.
+// Tekst ostrzeżenia albo null, gdy miejsca jest dość. Tylko konto – użytkownik nie widzi danych całej aplikacji
+// (#100); gdy kończy się miejsce całego magazynu, wgranie dostaje odmowę z neutralnym komunikatem.
 export function ostrzezenie(m) {
   const konto = udzialKonta(m);
-  const pliki = udzialPlikow(m);
-  const baza = udzialBazy(m);
-  const najwiecej = Math.max(konto, pliki, baza);
-  if (najwiecej < PROG_OSTRZEZENIA) return null;
-  let co;
-  if (konto === najwiecej) co = `Twoje pliki zajmują ${Math.round(konto * 100)}% miejsca konta (${rozmiar(m.konto)} z ${rozmiar(m.limit_konta)}).`;
-  else if (pliki === najwiecej) co = `Pliki całej aplikacji zajmują ${Math.round(pliki * 100)}% miejsca (${rozmiar(m.pliki_razem)} z ${rozmiar(m.limit_plikow)}).`;
-  else co = `Baza danych aplikacji zajmuje ${Math.round(baza * 100)}% miejsca (${rozmiar(m.baza_razem)} z ${rozmiar(m.limit_bazy)}).`;
-  const skutek = najwiecej >= 1 ? 'Nowe obrazy nie zapiszą się na koncie.' : 'Gdy miejsce się skończy, nowe obrazy nie zapiszą się na koncie.';
-  return `${co} ${skutek} Posprzątaj stare pliki w ustawieniach konta (Miejsce) albo usuń nieużywane obrazy i projekty.`;
+  if (konto < PROG_OSTRZEZENIA) return null;
+  const skutek = konto >= 1 ? 'Nowe obrazy nie zapiszą się na koncie.' : 'Gdy miejsce się skończy, nowe obrazy nie zapiszą się na koncie.';
+  return `Twoje pliki zajmują ${Math.round(konto * 100)}% miejsca konta (${rozmiar(m.konto)} z ${rozmiar(m.limit_konta)}). ${skutek} Posprzątaj stare pliki w ustawieniach konta (Miejsce) albo usuń nieużywane obrazy i projekty.`;
 }
 
 // Komunikat, gdy konto ma już tyle projektów, ile wolno (sprawdzane przed „Nowy projekt”, „Duplikuj”, „Importuj”);

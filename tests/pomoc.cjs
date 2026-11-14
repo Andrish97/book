@@ -153,7 +153,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     const user = {
       id: k.id, email: k.email, aud: 'authenticated', role: 'authenticated',
       email_confirmed_at: k.potwierdzone ? new Date().toISOString() : null,
-      user_metadata: { nazwa: k.nazwa || '', ...(k.motyw ? { motyw: k.motyw } : {}) }, new_email: k.nowyEmail || undefined,
+      user_metadata: { nazwa: k.nazwa || '', ...(k.nazwaRejestracji ? { nazwa_uzytkownika: k.nazwaRejestracji } : {}), ...(k.motyw ? { motyw: k.motyw } : {}) }, new_email: k.nowyEmail || undefined,
     };
     const token = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: k.id, email: k.email, exp, role: 'authenticated', aud: 'authenticated' })}.podpis`;
     return { access_token: token, token_type: 'bearer', expires_in: 3600, expires_at: exp, refresh_token: `r-${k.id}`, user };
@@ -310,7 +310,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       const istnieje = stan.konta.find((x) => x.email === tresc.email);
       if (istnieje && istnieje.potwierdzone) return blad(r, 422, 'User already registered', 'user_already_exists');
       const k = istnieje || { id: `22222222-2222-4222-8222-${String(stan.konta.length).padStart(12, '0')}`, email: tresc.email, potwierdzone: false };
-      Object.assign(k, { haslo: tresc.password, nazwa: tresc.data?.nazwa || '' });
+      Object.assign(k, { haslo: tresc.password, nazwa: tresc.data?.nazwa || '', nazwaRejestracji: tresc.data?.nazwa_uzytkownika || '', zRejestracji: true });
       if (!istnieje) stan.konta.push(k);
       stan.wyslane.push({ typ: 'potwierdzenie', email: k.email });
       return json(r, 200, sesja(k).user);
@@ -431,7 +431,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (!z || p.owner_id !== k.id || z.stan !== 'czeka') return json(r, 400, { blad: 'Nie można wysłać tego zaproszenia.' });
       if (stan.brevo === false) return json(r, 200, { wyslano: false, powod: 'brak-konfiguracji' });
       stan.wyslane.push({ typ: 'zaproszenie', email: z.email, kod: z.kod });
-      return json(r, 200, { wyslano: true, email: z.email });
+      return json(r, 200, { wyslano: true });
     }
     if (sc === '/rest/v1/rpc/usun_konto') {
       const k = zTokenu(req);
@@ -696,4 +696,16 @@ const wAplikacji = (strona, fn, arg) => strona.evaluate(fn, arg);
 
 const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEIGBkYGBgYAAAhCAEB2eTzpAAAAABJRU5ErkJggg==', 'base64');
 
-module.exports = { otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };
+// Okno „Dostęp dla AI” (tylko w ustawieniach konta, #100) – w testach otwierane wprost, nad otwartym projektem,
+// z zaznaczonym otwartym projektem na liście nowego klucza (jak gdyby wybrał go użytkownik).
+async function oknoAi(strona, { zaznacz = true } = {}) {
+  await strona.evaluate(async (zaznaczOtwarty) => {
+    const id = window.seriodruk?.stan?.projekt?.id;
+    await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+    const pole = id && zaznaczOtwarty && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
+    if (pole && !pole.checked) pole.click();
+  }, zaznacz);
+  await strona.waitForSelector('#dlg-dostep-ai[open]');
+}
+
+module.exports = { oknoAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };

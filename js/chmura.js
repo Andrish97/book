@@ -166,7 +166,7 @@ export async function zarejestruj(email, haslo, nazwa) {
   const dane = sprawdz(await sb.auth.signUp({
     email,
     password: haslo,
-    options: { emailRedirectTo: adresPowrotu(), data: { nazwa: nazwa || '' } },
+    options: { emailRedirectTo: adresPowrotu(), data: { nazwa: nazwa || '', nazwa_uzytkownika: nazwa || '' } },
   }));
   // Dla istniejącego, potwierdzonego adresu Supabase nie zwraca błędu,
   // tylko konto bez tożsamości – nie zdradzamy tego inaczej niż komunikatem.
