@@ -2233,3 +2233,14 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .stan-sekretu { font-size: 12.5px; font-weight: 600; }
 .stan-sekretu.ok { color: var(--sukces); }
 .stan-sekretu.brak { color: var(--blad); }
+
+/* ---------- Dostęp dla AI: jak podłączyć i gotowe polecenia (js/polecenia-ai.js, #107) ---------- */
+.dostep-ai-pomoc .dostep-ai-jak > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
+:root[data-dotyk] .dostep-ai-pomoc .dostep-ai-jak > summary { min-height: 44px; display: flex; align-items: center; }
+.dostep-ai-pomoc ul.dostep-ai-kroki { list-style: disc; }
+.dostep-ai-pomoc code { font-size: 12px; overflow-wrap: anywhere; }
+.dostep-ai-polecenie { border: 1px solid var(--linia); border-radius: var(--r-m, 8px); padding: 8px 10px; }
+.dostep-ai-polecenie .prompt-naglowek { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.dostep-ai-polecenie pre { margin: 8px 0 0; padding: 10px; font-size: 12px; line-height: 1.45; background: var(--wypelnienie); border-radius: var(--r-s); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow-y: auto; }
+.dostep-ai-rozszerzenie { margin-top: 10px; }
+.dostep-ai-rozszerzenie .podpowiedz { margin: 4px 0 0; }

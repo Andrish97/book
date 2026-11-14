@@ -335,19 +335,6 @@ export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
   }, opoznienie);
 }
 
-// Po otwarciu projektu: link z ochroną, którego strony trzeba opublikować w nowym folderze (po przeniesieniu
-// plików linków z bazy do R2, #97) – właściciel publikuje je sam, bez czekania na zmianę w projekcie.
-export async function sprawdzLinkPoOtwarciu(p) {
-  const u = p?.udostepnienie;
-  if (!u?.ochrona || !stan.uzytkownik || (u.konto && u.konto !== stan.uzytkownik.id)) return;
-  try {
-    if (await chmura.linkChronionyDoPublikacji(p.id, u.kod) && stan.projekt === p) {
-      u.odcisk = null;
-      zaplanujAktualizacjeLinku(500);
-    }
-  } catch { /* bez sieci – sprawdzimy przy następnym otwarciu */ }
-}
-
 function odswiezOknoUdostepnianiaZachowujacKomunikat() {
   const k = $('#udostepnij-komunikat');
   const [tekst, sukces] = [k.textContent, k.classList.contains('sukces')];

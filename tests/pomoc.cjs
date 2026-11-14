@@ -371,7 +371,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
             }
             u.nieudane = 0;
           }
-          if (!u.sekret) return json(r, 200, { stan: 'aktualizacja' });
+          if (!u.sekret) return json(r, 200, { stan: 'brak' });
         }
         stan.zapytaniaChronione = (stan.zapytaniaChronione || 0) + 1;
         return json(r, 200, { stan: 'ok', folder: `${tresc.p_kod}.${u.sekret}`, haslo: Boolean(u.haslo), wazny_do: u.wazny_do, nowy });

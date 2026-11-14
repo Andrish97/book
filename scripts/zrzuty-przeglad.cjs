@@ -715,12 +715,6 @@ async function widokiGoscia(przegladarka, u, motyw, baza, link, zrzutStrony) {
   await udawajWyciecia(k, u);
   await podlaczAtrape(k).catch(() => {});
   baza.podlacz?.(k);
-  await k.route('https://atrapa.supabase.co/storage/v1/object/public/**', async (r) => {
-    const klucz = new URL(r.request().url()).pathname.slice('/storage/v1/object/public/'.length);
-    const plik = baza.pliki.get(klucz);
-    if (!plik) return r.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
-    return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
-  });
   const g = await k.newPage();
   await g.goto(link);
   await g.waitForSelector('#podglad-haslo input[name=haslo]', { timeout: 15000 });

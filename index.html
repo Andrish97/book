@@ -1027,12 +1027,7 @@
             <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj-adres" data-ikona="kopiuj" title="Kopiuj adres" aria-label="Kopiuj adres łącznika"></button>
           </span>
         </label>
-        <ol class="dostep-ai-kroki">
-          <li><b>Claude</b> (claude.ai, aplikacja na komputer i telefon): <i>Dostosuj</i> (Customize) → <i>Łączniki</i> (Connectors) → <b>+</b> → <i>Dodaj własny łącznik</i> (Add custom connector). Nazwa: Makietka, adres: wklej powyższy, logowanie: <i>bez logowania</i> (No sign-in).</li>
-          <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>. Wklej adres, uwierzytelnianie: <i>No Authentication</i>, potwierdź. Jeśli tej opcji nie ma, włącz tryb dewelopera: Ustawienia → Aplikacje → Zaawansowane.</li>
-          <li>W rozmowie włącz łącznik Makietka i napisz, co zmienić – np. „popraw literówki na okładce”. Zmiany AI zobaczysz w edytorze na żywo.</li>
-        </ol>
-        <p class="podpowiedz">AI nie łączy się z bazą samo i nie trzeba niczego odblokowywać ani instalować – łącznik działa po stronie Makietki.</p>
+        <p class="podpowiedz">Teraz dodaj ten adres w swojej aplikacji AI – zobacz „Jak podłączyć” niżej. W poleceniu do skopiowania adres jest już wpisany.</p>
         <details class="dostep-ai-jak">
           <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
           <label class="pole"><span>Klucz dostępu</span>
@@ -1046,6 +1041,29 @@
           <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/makietka-mcp.mjs" download="makietka-mcp.mjs">makietka-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
           <pre id="dostep-ai-claude-desktop"></pre>
           <p class="podpowiedz">Opis narzędzi i formatu projektu: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
+        </details>
+      </fieldset>
+      <fieldset class="grupa-pol dostep-ai-pomoc">
+        <legend>Jak podłączyć</legend>
+        <div class="dostep-ai-polecenie">
+          <div class="prompt-naglowek"><b>Nie wiesz, jak podłączyć? Skopiuj to polecenie i wklej swojemu AI – poprowadzi Cię.</b>
+            <button type="button" class="przycisk glowny" data-akcja="dostep-ai-kopiuj-polecenie" data-ikona="kopiuj">Kopiuj polecenie</button></div>
+          <pre id="dostep-ai-polecenie"></pre>
+        </div>
+        <div class="dostep-ai-rozszerzenie">
+          <a class="przycisk" id="dostep-ai-pobierz-mcpb" href="https://makietka.app/ai/mcp/makietka.mcpb" download="makietka.mcpb" data-ikona="pobierz">Pobierz rozszerzenie dla Claude Desktop</a>
+          <p class="podpowiedz">Kliknij dwukrotnie pobrany plik – Claude Desktop zapyta o instalację – i wklej klucz.</p>
+        </div>
+        <details class="dostep-ai-jak" id="dostep-ai-aplikacje">
+          <summary>Krótko dla każdej aplikacji</summary>
+          <ul class="dostep-ai-kroki">
+            <li><b>Claude</b>: <i>Dostosuj</i> → <i>Łączniki</i> → <b>+</b> → <i>Dodaj własny łącznik</i>; wklej adres łącznika, logowanie: <i>bez logowania</i>.</li>
+            <li><b>Claude Desktop</b>: rozszerzenie wyżej – czyta zdjęcia, foldery i ZIP-y prosto z dysku.</li>
+            <li><b>Claude Code</b>: <code id="dostep-ai-polecenie-code">claude mcp add --transport http makietka https://api.makietka.app/mcp/&lt;klucz&gt;</code></li>
+            <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>; wklej adres, <i>No Authentication</i>.</li>
+            <li><b>Inne</b> (Cursor, Windsurf): łącznik MCP przez HTTP – podaj adres. Dla programistów: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</li>
+          </ul>
+          <p class="podpowiedz"><b>Ograniczenia:</b> nie każda aplikacja i nie każdy plan obsługuje własne łączniki. Claude w czacie nie przekazuje łącznikom zdjęć z rozmowy – większe zdjęcia wrzucisz przez link, który poda AI. AI widzi tylko projekty z klucza.</p>
         </details>
       </fieldset>
       <fieldset class="grupa-pol">

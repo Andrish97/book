@@ -9,7 +9,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
-| 107 | Bez przejściowego stanu „link aktualizowany” i bez starego magazynu Supabase Storage; polecenia i opisy AI także w oknie Dostęp dla AI w ustawieniach konta | 🔄 |
 
 ## Czeka (kolejne etapy)
 
@@ -30,7 +29,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Cloudflare → makietka-api → Settings → Variables and Secrets → sekret `SUPABASE_SERVICE_ROLE_KEY` (secret key z Supabase → Project Settings → API Keys) – po wdrożeniu #106 | 👤 |
 | Email Routing: kontakt@, noreply@, no-reply@ → Send to a Worker → makietka-api (catch-all zostaje) | 👤 |
 | Zoho: weryfikacja domeny makietka.app (support), potem włączenie ZeptoMail w panelu | 👤 |
-| Opublikować ponownie link z hasłem w oknie Udostępnij (po #107) i usunąć w Supabase → Storage buckety zasoby i podglady | 👤 |
+| Supabase → Storage: w bucketach `zasoby` i `podglady` zaznacz wszystko → Delete, potem ⋯ → Delete bucket | ✅ zrobione |
+| Link z hasłem: otwórz okno Udostępnij i opublikuj link ponownie (stary link bez sekretu jest nieaktywny) | 👤 |
 | Wyczyścić dane strony andrish97.github.io na swoich urządzeniach (stary moduł offline nie przekierowuje) | 👤 |
 
 ## Zrobione
@@ -62,6 +62,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 104 | Instrukcja w stylu Familiady: 42 rozdziały, spis z wyszukiwarką, edytor i panel właściwości szczegółowo, dane w praktyce (kalendarz ze świętami, dziennik, planer, obrót i kolor z danych), AI krok po kroku + komiks + polecenia „Kopiuj”, automatyczne zrzuty w CI |
 | 105–106 | ZeptoMail (Zoho, EU) jako drugi dostawca po Brevo, włączany przełącznikiem; sekrety po angielsku, bez klucza skrzynki – jeden sekret `SUPABASE_SERVICE_ROLE_KEY` |
 | 108 | Konta testowe usunięte |
+| 107 | Bez starego magazynu i trybu przejściowego linków; okno Dostęp dla AI: polecenie „Podłącz Makietkę” do skopiowania na wierzchu (adres wpisany po utworzeniu klucza), przycisk pobrania rozszerzenia dla Claude Desktop, krótkie zwinięte opisy aplikacji |
 | 103 | Kompaktowość i ikony (13 propozycji: tabela −/+, PDF „Zaawansowane”, ikony w Danych, Czcionkach, Obrazach, zaproszeniach, imporcie) + paleta poleceń Ctrl+K i kolory projektu w wyborze koloru |
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |
