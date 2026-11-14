@@ -68,3 +68,14 @@ test('telefon: „Zaawansowane” w eksporcie PDF zwinięte z podsumowaniem; czc
   const opisy = await strona.evaluate(() => [...document.querySelectorAll('dialog p.ciche.podpowiedz-zwijana')].length);
   assert.ok(opisy >= 3, `zwinięte opisy okien: ${opisy}`);
 });
+
+test('wybór koloru: kolory użyte w projekcie (najczęstsze najpierw) – także z obrysów, teł i grup', async (t) => {
+  const { strona } = await otworz(t);
+  await nowyProjekt(strona, 'Kolory');
+  const kolory = await strona.evaluate(async () => {
+    const { koloryProjektu } = await import('./js/kontrolki.js');
+    const p = { strony: [{ tlo: '#FFEEDD', obiekty: [{ fill: '#123456' }, { fill: '#123456', stroke: '#abcdef' }, { type: 'group', objects: [{ fill: '#123456' }, { fill: 'rgba(0,0,0,.5)' }] }] }], wzorce: [{ obiekty: [{ stroke: '#ABCDEF' }] }] };
+    return koloryProjektu(p);
+  });
+  assert.deepEqual(kolory, ['#123456', '#abcdef', '#ffeedd']);
+});

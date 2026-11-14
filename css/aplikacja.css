@@ -1305,7 +1305,9 @@ button.podglad-kartka:hover { outline: 2px solid var(--akcent); outline-offset: 
 .kolor-paleta { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
 .kolor-paleta button { aspect-ratio: 1; padding: 0; border: 0; border-radius: 4px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); }
 .kolor-paleta button:hover, .kolor-paleta button:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
-.kolor-paleta.ostatnie { padding-top: 8px; border-top: 1px solid var(--linia); }
+.kolor-paleta.ostatnie, .kolor-paleta.projektu { padding-top: 8px; border-top: 1px solid var(--linia); }
+.kolor-paleta.ostatnie::before { content: "Ostatnie"; } .kolor-paleta.projektu::before { content: "W projekcie"; }
+.kolor-paleta.ostatnie::before, .kolor-paleta.projektu::before { grid-column: 1 / -1; font-size: 11.5px; color: var(--cichy); }
 
 /* Pola wyboru i opcje: własny wygląd zamiast systemowego. */
 input[type="checkbox"], input[type="radio"] {
