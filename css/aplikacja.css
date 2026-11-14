@@ -1632,3 +1632,15 @@ dialog:focus { outline: none; }
 @media (max-width: 860px) {
   body[data-ekran="edytor"] .powiadomienie { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }
+
+/* Menu „Siatka, przyciąganie, linijki” otwiera się w górę od przycisku na dole ekranu: w niskim oknie
+   (telefon 320×568) jego góra wychodziła ponad ekran. Teraz ma najwyżej tyle wysokości, ile jest nad
+   przyciskiem, a resztę przewija. */
+.menu-widoku { max-height: calc(var(--widok-h, 100svh) - 150px); overflow-y: auto; overscroll-behavior: contain; }
+
+/* Drobny tekst na telefonie: najmniej 12 px (dopiski przy polach, opisy sekcji w panelu stron). */
+:root[data-kompakt] .pole small, :root[data-kompakt] .opis-sekcji small,
+:root[data-kompakt] .warstwa-adres, :root[data-kompakt] .warstwa.ze-wzorca small { font-size: 12px; }
+
+/* Najwęższy telefon (320 px): wszystkie przyciski wstawiania mieszczą się w pasku bez przewijania w bok. */
+@media (max-width: 340px) { .pasek-narzedzi button { min-width: 36px; } }

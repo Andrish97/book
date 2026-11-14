@@ -204,14 +204,27 @@ function audytUkladu({ dotyk: naDotyku, telefon: naTelefonie }) {
     return nadInnym(a, wspolny) || nadInnym(b, wspolny);
   };
   const elementy = [...sterowanie.filter((el) => !el.matches('label.przelacznik')), ...teksty];
+  // Widoczna część prostokąta: przycięta do przodków, które obcinają albo przewijają treść
+  // (karta przewinięta pod pasek nie „nachodzi” na pasek – jej widoczna część kończy się pod nim).
+  const przytnij = (el, r) => {
+    let { left, top, right, bottom } = r;
+    for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) {
+      const st = getComputedStyle(e);
+      if (st.overflowX === 'visible' && st.overflowY === 'visible') continue;
+      const p = e.getBoundingClientRect();
+      left = Math.max(left, p.left); top = Math.max(top, p.top); right = Math.min(right, p.right); bottom = Math.min(bottom, p.bottom);
+    }
+    return { left, top, right, bottom, width: right - left, height: bottom - top };
+  };
   const prostokaty = elementy.map((el) => {
-    // Tekst: prostokąt samych liter (Range), nie całego bloku.
+    let r = el.getBoundingClientRect();
+    // Tekst: prostokąt samych liter (Range), nie całego bloku – ale nie szerszy niż element (wielokropek).
     if (!el.matches('button, input, select, textarea, a, [role=button], .wybor-przycisk')) {
       const rng = document.createRange(); rng.selectNodeContents(el);
-      const r = rng.getBoundingClientRect();
-      return { el, r, w: warstwa(el) };
+      const t = rng.getBoundingClientRect();
+      r = { left: Math.max(t.left, r.left), top: Math.max(t.top, r.top), right: Math.min(t.right, r.right), bottom: Math.min(t.bottom, r.bottom) };
     }
-    return { el, r: el.getBoundingClientRect(), w: warstwa(el) };
+    return { el, r: przytnij(el, r), w: warstwa(el) };
   }).filter((x) => x.r.width > 1 && x.r.height > 1 && naWierzchu(x.el, x.r));
   const nachodzi = [];
   for (let i = 0; i < prostokaty.length; i += 1) {
@@ -231,7 +244,7 @@ function audytUkladu({ dotyk: naDotyku, telefon: naTelefonie }) {
   for (const k of kontenery) {
     const st = getComputedStyle(k);
     if (!/flex|grid/.test(st.display) || (st.display.includes('flex') && st.flexDirection.startsWith('column'))) continue;
-    const dzieci = [...k.children].filter((c) => widoczny(c) && c.matches('button, input:not([type=checkbox]):not([type=radio]), .wybor-przycisk, .przycisk'));
+    const dzieci = [...k.children].filter((c) => widoczny(c) && c.matches('button, input:not([type=checkbox]):not([type=radio]), .wybor-przycisk, .przycisk') && !/absolute|fixed/.test(getComputedStyle(c).position));
     if (dzieci.length < 2) continue;
     const linie = new Map();
     for (const c of dzieci) {
@@ -268,7 +281,7 @@ function audytUkladu({ dotyk: naDotyku, telefon: naTelefonie }) {
     const widziane = new Set();
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
       const el = n.parentElement;
-      if (!el || widziane.has(el) || !n.textContent.trim() || el.closest('svg, canvas, kbd, [data-audyt-pomin], .kartka, .podglad-stron, .miniatura, .licznik, .kropka')) continue;
+      if (!el || widziane.has(el) || !/\p{L}{2}/u.test(n.textContent) || el.closest('svg, canvas, kbd, [data-audyt-pomin], .kartka, .podglad-stron, .miniatura, .licznik, .kropka')) continue;
       widziane.add(el);
       if (!widoczny(el)) continue;
       const fs = parseFloat(getComputedStyle(el).fontSize);
