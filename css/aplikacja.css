@@ -1811,7 +1811,7 @@ dialog:focus { outline: none; }
 :root[data-kompakt] .warstwa-adres, :root[data-kompakt] .warstwa.ze-wzorca small { font-size: 12px; }
 
 /* Najwęższy telefon (320 px): wszystkie przyciski wstawiania mieszczą się w pasku bez przewijania w bok. */
-@media (max-width: 340px) { .pasek-narzedzi button { min-width: 36px; } }
+@media (max-width: 380px) { .pasek-narzedzi button { min-width: 32px; padding-left: 0; padding-right: 0; } }
 
 /* Tablet w pionie i wąskie okno: nazwa projektu w górnym pasku zajmuje wolne miejsce, zamiast kończyć się
    na „Kalendarz 2…” obok pustej przestrzeni. */
