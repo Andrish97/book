@@ -667,6 +667,7 @@
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
+          <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj">Zmień format projektu…</button>
           <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory do druku…</button>
           <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik">Współpraca…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
@@ -917,6 +918,8 @@
           <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="any" required inputmode="decimal"></label>
           <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="obroc"></button>
         </div>
+        <p class="podpowiedz" id="sekcja-format-skaluj-opis">Zmiana formatu tutaj nie rusza elementów. Żeby przeskalować albo przesunąć je razem z formatem:</p>
+        <button type="button" class="przycisk" data-akcja="format-sekcji" data-ikona="skaluj">Zmień format i dopasuj elementy…</button>
       </fieldset>
 
       <!-- Okładka liczona sama (#119): format, grzbiet i zawinięcia z formatu i liczby stron środka oraz papieru. -->
@@ -1463,6 +1466,44 @@
         </div>
       </div>
     </div>
+  </dialog>
+
+  <!-- Zmiana formatu ze skalowaniem (#131D): sekcja albo cały projekt, z podglądem przed i po. -->
+  <dialog id="dlg-format" class="dialog-szeroki" aria-labelledby="format-tytul">
+    <form method="dialog" class="formularz" id="form-format">
+      <div class="naglowek-dialogu">
+        <h2 id="format-tytul">Zmień format</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="format-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche" id="format-zakres"></p>
+      <div class="rzad">
+        <label class="pole"><span>Nowy format</span><select name="format"></select></label>
+        <label class="pole waskie"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
+        <label class="pole waskie"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
+        <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="format-obroc" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="obroc"></button>
+      </div>
+      <fieldset class="grupa-pol">
+        <legend>Co z elementami</legend>
+        <label class="przelacznik-opcja"><input type="radio" name="sposob" value="skaluj" checked><span><strong>Skaluj wszystko</strong><small>Elementy, pismo, linie, marginesy i wzorce zmieniają się proporcjonalnie.</small></span></label>
+        <label class="pole" id="format-dopasowanie-pole"><span>Skala</span><select name="dopasowanie">
+          <option value="zmiesc">Zmieść całą stronę (wyśrodkuj)</option>
+          <option value="szerokosc">Dopasuj do szerokości</option>
+          <option value="wysokosc">Dopasuj do wysokości</option>
+        </select></label>
+        <label class="przelacznik-opcja"><input type="radio" name="sposob" value="przesun"><span><strong>Zostaw rozmiary, przesuń względem krawędzi</strong><small>Elementy trzymają się najbliższej krawędzi albo środka; tło na całą stronę się rozciąga.</small></span></label>
+        <label class="przelacznik-opcja"><input type="radio" name="sposob" value="format"><span><strong>Tylko zmień format</strong><small>Elementy zostają tam, gdzie są.</small></span></label>
+      </fieldset>
+      <div class="format-podglad" aria-label="Podgląd przed i po">
+        <figure><div class="format-kartka" id="format-przed"></div><figcaption>Teraz</figcaption></figure>
+        <span class="format-strzalka" aria-hidden="true">→</span>
+        <figure><div class="format-kartka" id="format-po"></div><figcaption>Po zmianie</figcaption></figure>
+      </div>
+      <p class="podpowiedz" id="format-uwagi"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" data-akcja="format-zamknij">Anuluj</button>
+        <button class="przycisk glowny" value="ok" id="format-zastosuj">Zmień format</button>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="dlg-kolory-druku" class="dialog-szeroki" aria-labelledby="kolory-druku-tytul">

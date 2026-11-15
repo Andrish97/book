@@ -273,6 +273,15 @@ export const akcje = {
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
   'kolory-druku': () => { zamknijMenu(); otworzKoloryDruku(); },
+  // Zmiana formatu ze skalowaniem (#131D): cały projekt (menu ⋯ projektu) albo sekcja (okno ustawień sekcji).
+  'format-projektu': async () => { zamknijMenu(); (await import('./zmiana-formatu.js')).otworzZmianeFormatu(null); },
+  'format-sekcji': async () => {
+    const id = $('#dlg-sekcja').dataset.id || stan.projekt.sekcje[0]?.id;
+    $('#dlg-sekcja').close();
+    (await import('./zmiana-formatu.js')).otworzZmianeFormatu(id ? [id] : null);
+  },
+  'format-obroc': async () => (await import('./zmiana-formatu.js')).obrocFormat(),
+  'format-zamknij': () => $('#dlg-format').close(),
   'kolory-druku-zamknij': () => $('#dlg-kolory-druku').close(),
   // Wiele zdjęć naraz – np. dla obrazów z danych (nazwy plików w tabeli); także na telefonie.
   obrazy: async () => { zamknijMenu(); (await oknoObrazow()).otworzObrazy(); },

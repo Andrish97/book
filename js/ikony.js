@@ -26,6 +26,9 @@ const P = {
   cofnij: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   ponow: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
   // Obrót / zamiana orientacji (#121): kartka i strzałka po łuku – inna niż Cofnij i Ponów.
+  skaluj: '<rect x="3.5" y="9.5" width="11" height="11" rx="1.5"/><path d="M13 3.5h7.5V11M20.5 3.5l-8 8"/>',
+  marka: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+  makieta: '<path d="M5 4.5h10.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h10.5"/><path d="M17.5 6.5 20 8v12l-2.5-1.5"/>',
   obroc: '<rect x="3.5" y="9" width="10" height="12" rx="1.5"/><path d="M11 3.5a8 8 0 0 1 8.5 8"/><path d="m16.8 9.6 2.7 2.4 2.4-2.7"/>',
   kopiuj: '<rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5.5a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/>',
   kosz: '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 12.5A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.5L18 7"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>',

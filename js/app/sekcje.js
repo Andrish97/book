@@ -24,6 +24,9 @@ export function otworzUstawieniaSekcji(id) {
   const wzor = istniejaca || biezacaSekcja();
   const w = wzor.wydruk;
   dlg.dataset.id = id || '';
+  // Zmiana formatu z dopasowaniem elementów (#131D) – dla istniejącej sekcji.
+  $('[data-akcja="format-sekcji"]').hidden = !istniejaca;
+  $('#sekcja-format-skaluj-opis').hidden = !istniejaca;
   $('#tytul-sekcji').textContent = istniejaca ? 'Ustawienia sekcji' : 'Nowa sekcja';
   $('#zapisz-sekcje').textContent = istniejaca ? 'Zapisz' : 'Dodaj sekcję';
   f.elements.nazwa.value = istniejaca ? istniejaca.nazwa : `Sekcja ${projekt.sekcje.length + 1}`;
