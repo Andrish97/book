@@ -375,4 +375,4 @@ Kod to element (w zapisie grupa z polem `kod`), którego rysunek liczy aplikacja
 
 ## Pola tylko do odczytu
 
-Tych pól nie ustawiaj – liczy je i zapisuje aplikacja (łącznik zachowuje wartości z projektu): `okladka.wynik` (układ okładki), `ramka_pola` (ramka obrazu podmienionego z danych, liczona przy składaniu strony), `wersja` projektu, `z` (kolejność elementu na rozkładówce – aplikacja zapisuje ją przy dzieleniu stron).
+Tych pól nie ustawiaj – liczy je i zapisuje aplikacja (łącznik zachowuje wartości z projektu): `okladka.wynik` (układ okładki), `ramka_pola` (ramka obrazu podmienionego z danych, liczona przy składaniu strony), `wersja` projektu, `z` (kolejność elementu na rozkładówce – aplikacja zapisuje ją przy dzieleniu stron), `kod.narysowano` (dla jakiej treści narysowano kod QR/EAN – po zmianie `kod.tresc` aplikacja sama przerysuje kod). Łącznik zawsze zostawia te pola takie, jakie są w projekcie, więc ich zmiana nic nie da.

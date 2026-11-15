@@ -286,3 +286,25 @@ test('openapi.json dla ChatGPT: poprawny opis funkcji z migracji dostępnych bez
   // Odnośniki w opisie wskazują istniejące pliki ai/.
   for (const [, plik] of JSON.stringify(api).matchAll(/makietka\.app\/(ai\/[\w./-]+?\.md)/g)) assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), plik);
 });
+
+test('MCP: pola liczone przez aplikację są chronione – AI ich nie nadpisuje ani nie usuwa (#138, #141)', async (t) => {
+  const s = await srodowisko(t);
+  const p = s.stan.projekty[0];
+  Object.assign(p.dane.strony[0].obiekty[0], { z: 3, ramka_pola: { left: 1, top: 2, width: 3, height: 4 } });
+  p.dane.strony[0].obiekty.push({ id: 'qr', type: 'group', kod: { rodzaj: 'qr', tresc: 'https://makietka.app', narysowano: 'https://makietka.app' }, left: 10, top: 10, width: 20, height: 20, objects: [] });
+  const { narzedzie } = s.uruchom(s.edycja);
+  // AI próbuje ustawić albo usunąć pola liczone – zostają z projektu; zwykłe pola zmieniają się normalnie.
+  const z = await narzedzie('zmien_elementy', { gdzie: 'strona:s1', zmiany: [
+    { id: 'tlo', pola: { fill: '#123456', z: 9, ramka_pola: null } },
+    { id: 'qr', pola: { kod: { rodzaj: 'qr', tresc: 'https://example.org', narysowano: 'udaje' } } },
+  ] });
+  assert.equal(z.blad, false, z.tekst);
+  const obiekty = s.projekt().projekt.strony[0].obiekty;
+  const o = obiekty.find((x) => x.id === 'tlo');
+  assert.equal(o.fill, '#123456');
+  assert.equal(o.z, 3, 'z – kolejność na rozkładówce liczy aplikacja');
+  assert.deepEqual(o.ramka_pola, { left: 1, top: 2, width: 3, height: 4 });
+  const qr = obiekty.find((x) => x.id === 'qr');
+  assert.equal(qr.kod.tresc, 'https://example.org');
+  assert.equal(qr.kod.narysowano, 'https://makietka.app', 'narysowano zostaje z projektu – aplikacja widzi nową treść i przerysuje kod');
+});

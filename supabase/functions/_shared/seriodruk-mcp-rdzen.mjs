@@ -788,15 +788,44 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   }
 
 
-  // Pola, które liczy aplikacja (np. układ okładki „okladka.wynik”), zostają takie, jakie są w projekcie –
-  // AI ich nie nadpisuje. Inaczej zapisany po swojemu układ wywracał otwieranie projektu (#141).
-  function zachowajWyliczone(zmiany, projekt) {
-    if (!Array.isArray(zmiany.sekcje)) return;
-    for (const s of zmiany.sekcje) {
-      if (!s?.okladka || typeof s.okladka !== 'object') continue;
-      const dawna = (projekt.sekcje || []).find((x) => x.id === s.id)?.okladka?.wynik;
-      if (dawna) s.okladka.wynik = dawna; else delete s.okladka.wynik;
+  // Pola liczone przez aplikację są chronione (#141, #138): AI ich nie ustawia ani nie nadpisuje – łącznik zostawia
+  // wartości z projektu (albo je usuwa, gdy w projekcie ich nie ma), niezależnie od tego, co przyszło w zmianie.
+  // Inaczej zapisany po swojemu układ okładki wywracał otwieranie projektu (#141), a przeliczenia w edytorze
+  // poprawiały je z powrotem i każda strona wyglądała na zmienioną w dwóch miejscach.
+  //  • sekcja: okladka.wynik (układ okładki),
+  //  • element (także w grupach i we wzorcach): ramka_pola (ramka obrazu z danych), z (kolejność na rozkładówce),
+  //    kod.narysowano (dla jakiej treści narysowano kod QR/EAN),
+  //  • projekt: wersja.
+  const POLA_ELEMENTU_LICZONE = ['ramka_pola', 'z'];
+  function przywrocPola(nowy, dawny) {
+    if (!nowy || typeof nowy !== 'object') return;
+    for (const k of POLA_ELEMENTU_LICZONE) {
+      if (dawny && dawny[k] !== undefined) nowy[k] = dawny[k]; else delete nowy[k];
     }
+    if (nowy.kod && typeof nowy.kod === 'object') {
+      if (dawny?.kod?.narysowano !== undefined) nowy.kod.narysowano = dawny.kod.narysowano; else delete nowy.kod.narysowano;
+    }
+    if (Array.isArray(nowy.objects)) {
+      const dawne = new Map((dawny?.objects || []).filter((o) => o?.id).map((o) => [o.id, o]));
+      for (const o of nowy.objects) przywrocPola(o, o?.id ? dawne.get(o.id) : null);
+    }
+  }
+  function zachowajObiekty(lista, dawneListy) {
+    if (!Array.isArray(lista)) return;
+    const dawne = new Map((dawneListy || []).flatMap((x) => x?.obiekty || []).filter((o) => o?.id).map((o) => [o.id, o]));
+    for (const cel of lista) for (const o of cel?.obiekty || []) przywrocPola(o, o?.id ? dawne.get(o.id) : null);
+  }
+  function zachowajWyliczone(zmiany, projekt) {
+    if (Array.isArray(zmiany.sekcje)) {
+      for (const s of zmiany.sekcje) {
+        if (!s?.okladka || typeof s.okladka !== 'object') continue;
+        const dawna = (projekt.sekcje || []).find((x) => x.id === s.id)?.okladka?.wynik;
+        if (dawna) s.okladka.wynik = dawna; else delete s.okladka.wynik;
+      }
+    }
+    zachowajObiekty(zmiany.strony, projekt.strony);
+    zachowajObiekty(zmiany.wzorce, projekt.wzorce);
+    delete zmiany.wersja;
   }
 
   // Pobierz → zmień → zapisz z numerem wersji. Przy odmowie (projekt zmienił się w międzyczasie, np. ktoś
@@ -804,9 +833,11 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   async function zmien(zmiana) {
     for (let proba = 0; proba < 2; proba += 1) {
       const { projekt, wersja } = await pobierz();
+      // Stan sprzed zmiany: narzędzia zmieniają projekt w miejscu, a pola liczone trzeba wziąć sprzed tej zmiany.
+      const przed = JSON.parse(JSON.stringify(projekt));
       const { zmiany, opis } = zmiana(projekt);
       if (!zmiany || !Object.keys(zmiany).length) return opis || 'Nic do zmiany.';
-      zachowajWyliczone(zmiany, projekt);
+      zachowajWyliczone(zmiany, przed);
       const w = await rpc('ai_zapisz', { p_klucz: KLUCZ, p_znana_wersja: wersja, p_zmiany: zmiany });
       if (w?.konflikt && proba === 0) continue;
       if (w?.blad) throw new BladBazy(opisBledu(w));

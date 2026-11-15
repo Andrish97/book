@@ -202,6 +202,7 @@ export function stanZapisu(rodzaj, tekst) {
 export async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
   naPlotnie = null;
+  dotkniete.clear();
   stan.projekt = normalizuj(p);
   // Obrazy leżą w magazynie plików przeglądarki – tu dostają adresy (brakujące pobierają się z konta).
   try { await podlaczZasoby(stan.projekt, stan.uzytkownik ? chmura.pobierzZasob : null); } catch { /* bez magazynu obrazy pokażą się jako brakujące */ }
@@ -264,12 +265,16 @@ function zdjeciePlotna(cele) {
 // element – sama zmiana kolejności innych nie jest zmianą tego elementu.
 const kanonBezZ = (o) => kanon({ ...o, z: undefined });
 // Postać z płótna albo – dla elementu, którego od wczytania nie zmieniono – ta z projektu.
+// Elementy, które użytkownik zmienił na płótnie tego urządzenia od ostatniego uzgodnienia z kontem (#138).
+// Przy łączeniu: element zmieniony i tutaj, i na koncie, ale nieruszony tutaj ręcznie (różni się tylko przez
+// przeliczenie: okładka, spis treści, kod, układ elementu z danych) – bierze wersję z konta bez pytania.
+const dotkniete = new Set();
 function bezZmianZPlotna(obiekty) {
   const wczytane = naPlotnie?.wczytane;
-  if (!wczytane?.size) return obiekty;
+  if (!wczytane?.size) { for (const o of obiekty) if (o?.id) dotkniete.add(o.id); return obiekty; }
   return obiekty.map((o) => {
     const w = o?.id && wczytane.get(o.id);
-    if (!w || w.kanon !== kanonBezZ(o)) return o;
+    if (!w || w.kanon !== kanonBezZ(o)) { if (o?.id) dotkniete.add(o.id); return o; }
     return w.obiekt.z === undefined || w.obiekt.z === o.z ? w.obiekt : { ...w.obiekt, z: o.z };
   });
 }
@@ -493,6 +498,7 @@ async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
   const pasek = doWyslania ? postep('Wysyłanie obrazów na konto…', { razem: doWyslania, opoznienie: 800 }) : null;
   try {
     await chmura.zapiszWChmurze(p, { wymus, postep: pasek && ((i, n) => pasek.krok(i, n)) });
+    if (otwarty) dotkniete.clear(); // wysłane – to jest teraz stan uzgodniony z kontem
     stan.konflikt = null;
     await zapiszLokalnie(p, wlasciciel(), p.zmieniono !== wersja);
     await zachowajHistorie(p); // nowy numer wersji z konta
@@ -625,10 +631,12 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       if (stan.projekt !== p) { stan.konflikt = null; return; }
       pierwszy = plan();
     }
-    let wybory = new Map();
-    if (pierwszy.konflikty.length) {
+    // Element, którego użytkownik tutaj nie ruszał (różnica tylko z przeliczenia), bierze wersję z konta bez pytania.
+    const wybory = new Map(pierwszy.konflikty.filter((k) => k.element && !dotkniete.has(k.element)).map((k) => [k.klucz, 'konto']));
+    const pytania = pierwszy.konflikty.filter((k) => !wybory.has(k.klucz));
+    if (pytania.length) {
       stanZapisu('blad', 'To samo zmieniono na dwóch urządzeniach – wybierz wersję');
-      wybory = await zapytajOKonflikty(p, pierwszy.konflikty);
+      for (const [k, v] of await zapytajOKonflikty(p, pytania)) wybory.set(k, v);
     }
     if (stan.projekt !== p) { stan.konflikt = null; return; } // projekt zamknięto – łączenie wróci przy następnym zapisie
     const ostateczny = plan(); // jeszcze raz, tuż przed zastosowaniem: w czasie pytania projekt mógł się zmienić
