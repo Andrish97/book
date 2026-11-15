@@ -91,7 +91,8 @@ function otworzOkienko(okienko, przycisk, opcje = {}) {
   zamknijOkienko();
   (przycisk.closest('dialog') || document.body).append(okienko);
   ustawPod(okienko, przycisk, opcje);
-  otwarte = { okienko, przycisk, poZamknieciu: opcje.poZamknieciu };
+  const r = przycisk.getBoundingClientRect();
+  otwarte = { okienko, przycisk, poZamknieciu: opcje.poZamknieciu, gdzie: [r.left, r.top] };
 }
 
 document.addEventListener('pointerdown', (e) => {
@@ -102,7 +103,13 @@ let szerokoscOkna = window.innerWidth;
 window.addEventListener('resize', () => {
   if (window.innerWidth !== szerokoscOkna) { szerokoscOkna = window.innerWidth; zamknijOkienko(); }
 });
-document.addEventListener('scroll', (e) => { if (otwarte && !otwarte.okienko.contains(e.target)) zamknijOkienko(); }, true);
+// Przewinięcie zamyka okienko tylko wtedy, gdy przycisk naprawdę się przesunął – spóźnione zdarzenie
+// przewijania z chwili otwarcia (np. przewinięcie panelu do przycisku) nie zamyka świeżo otwartej listy.
+document.addEventListener('scroll', (e) => {
+  if (!otwarte || otwarte.okienko.contains(e.target)) return;
+  const r = otwarte.przycisk.getBoundingClientRect();
+  if (Math.abs(r.left - otwarte.gdzie[0]) > 2 || Math.abs(r.top - otwarte.gdzie[1]) > 2) zamknijOkienko();
+}, true);
 document.addEventListener('close', zamknijOkienko, true); // zamknięcie okna dialogowego
 
 // ---------- Lista rozwijana ----------
