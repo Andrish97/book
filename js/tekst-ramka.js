@@ -9,6 +9,10 @@
 // stron z danymi – dlatego jest łatką na sam obiekt tekstu.
 
 import './fabric-ustawienia.js';
+// Skład (dzielenie, spójniki, tabulatory, inicjał, oblewanie, siatka bazowa) – musi załatać Textbox przed tym plikiem.
+import { wciecieListy, zalatajSklad } from './sklad.js';
+
+zalatajSklad();
 
 const PT = 25.4 / 72;
 const liczDomyslnie = fabric.Textbox.prototype.initDimensions;
@@ -59,7 +63,7 @@ function luzWRamce(o) {
 }
 
 fabric.Textbox.prototype._getTopOffset = function _getTopOffset() {
-  return -this.height / 2 + luzWRamce(this);
+  return -this.height / 2 + luzWRamce(this) + (this._odstepGory || 0);
 };
 
 // Kliknięcie w tekst trafia we właściwy wiersz także wtedy, gdy treść jest odsunięta od górnej
@@ -74,7 +78,7 @@ fabric.Textbox.prototype._getTopOffset = function _getTopOffset() {
 // akapitu (ustawia go przelewanie tekstu w kolejnej ramce).
 
 const ZNAKI_LISTY = { punkty: '•', kreski: '–' };
-export const wciecieListy = (o) => (o.lista ? o.fontSize * (o.lista === 'numery' ? 1.9 : 1.2) : 0);
+export { wciecieListy };
 
 const P = fabric.Textbox.prototype;
 // Właściwości, po których zmianie tekst trzeba zmierzyć i narysować od nowa.

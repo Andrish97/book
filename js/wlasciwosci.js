@@ -17,7 +17,7 @@ import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
 import { trescQR } from './kody.js';
 import { ikona } from './ikony.js';
 import { maPrzejscie } from './pola.js';
-import { stylZObiektu, zastosujStyl, POLA_STYLU } from './style-tekstu.js';
+import { stylZObiektu, zastosujStyl, POLA_STYLU, rowneWStylu, stylZnakowyZFragmentu, zastosujStylZnakowy, stylZnakowyNaPozycji } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
 import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTekstTabeli, ulozTabele, wysokosciWierszy, ustawTloTabeli, ustawWysokoscWiersza, krawedzKomorki, ustawKrawedzKomorki, ustawLinieZakresu } from './tabela-obiekt.js';
 
@@ -240,6 +240,19 @@ export class PanelWlasciwosci {
     if (!wGrupie) inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
+    // Oblewanie tekstem (#131): teksty na stronie opływają ten element.
+    if (obj.type !== 'textbox' && !wGrupie) {
+      const ksztalt = ['ellipse', 'circle', 'polygon', 'polyline', 'path'].includes(obj.type);
+      const obl = this.wybor('Oblewanie tekstem', [
+        ['', 'brak – tekst może na nim leżeć'],
+        ['prostokat', 'tekst opływa ramkę elementu'],
+        ...(ksztalt ? [['ksztalt', 'tekst opływa kształt']] : []),
+        ['skok', 'tekst przeskakuje pod element'],
+      ], () => obj.oblewanie || '', (v) => { obj.oblewanie = v || undefined; this.edytor.ulozSkladStrony?.(); setTimeout(() => this.zbuduj()); });
+      obl.classList.add('szeroki');
+      inne.append(obl);
+      if (obj.oblewanie) inne.append(this.liczba('Odstęp tekstu od elementu', () => zaokr(obj.oblewanie_odstep ?? 2, 1), (v) => { obj.oblewanie_odstep = Math.max(0, Math.min(30, v)); this.edytor.ulozSkladStrony?.(); }, { jednostka: 'mm', krok: 0.5, min: 0 }));
+    }
     if (wGrupie) return;
     this.opcje.dodatkiElementu?.(this, obj, inne);
     const okl = this.edytor.wydruk?.okladka;
@@ -921,6 +934,8 @@ export class PanelWlasciwosci {
     // Komórka tabeli nie ma własnej ramki ani przelewania – jej rozmiarem rządzi tabela.
     if (komorka) return;
 
+    this.zbudujSklad(obj);
+
     // Przelewanie: połączone ramki i kolumny.
     const w = this.sekcja('Przelewanie tekstu');
     const watek = this.edytor.watekRamki(obj);
@@ -1092,6 +1107,80 @@ export class PanelWlasciwosci {
   }
 
   // Styl tekstu: wybór, zapis jako nowy, aktualizacja, usunięcie.
+  // Skład akapitu (#131): dzielenie wyrazów, spójniki, wdowy i sieroty, siatka bazowa, inicjał, tabulatory.
+  // Zwinięta, dopóki tekst nie używa żadnego z tych ustawień poza domyślnymi dla nowych tekstów.
+  zbudujSklad(obj) {
+    const uzywa = obj.dziel_wyrazy || obj.inicjal || obj.tabulatory?.length || obj.do_siatki || obj.bez_oblewania;
+    const s = this.sekcja('Skład akapitu', { zwinieta: !uzywa });
+    const przebuduj = () => setTimeout(() => this.zbuduj());
+    const ustaw = (k, v) => { obj.set(k, v); this.edytor.ulozSkladStrony?.(); };
+
+    s.append(this.przelacznik('Dziel wyrazy', () => Boolean(obj.dziel_wyrazy), (v) => { ustaw('dziel_wyrazy', v || undefined); przebuduj(); }));
+    if (obj.dziel_wyrazy) {
+      s.append(this.liczba('Najkrótszy dzielony wyraz', () => obj.dziel_min || 5, (v) => ustaw('dziel_min', Math.max(3, Math.min(15, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 3 }));
+      s.append(this.liczba('Najmniej liter przed łącznikiem', () => obj.dziel_przed || 2, (v) => ustaw('dziel_przed', Math.max(1, Math.min(6, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 1 }));
+      s.append(this.liczba('Najmniej liter po łączniku', () => obj.dziel_po || 2, (v) => ustaw('dziel_po', Math.max(1, Math.min(6, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 1 }));
+    }
+    const spojniki = this.wybor('Spójniki na końcu wiersza', [
+      ['', 'mogą zostać na końcu wiersza'],
+      ['tak', 'a, i, w, z… przechodzą dalej'],
+      ['dwuliterowe', 'także do, na, że…'],
+    ], () => (obj.spojniki === true ? 'tak' : (obj.spojniki || '')), (v) => ustaw('spojniki', v === 'tak' ? true : (v || undefined)));
+    spojniki.classList.add('szeroki');
+    s.append(spojniki);
+    const wdowy = this.wybor('Wdowy i sieroty', [
+      ['', 'bez pilnowania'],
+      ['2', 'co najmniej 2 wiersze'],
+      ['3', 'co najmniej 3 wiersze'],
+    ], () => (obj.wdowy ? String(obj.wdowy) : ''), (v) => ustaw('wdowy', v ? Number(v) : undefined));
+    wdowy.classList.add('szeroki');
+    s.append(wdowy);
+    s.append(this.wskazowka('Wdowy i sieroty: akapit przechodzący do następnej ramki albo kolumny zostawia po obu stronach co najmniej tyle wierszy.'));
+
+    s.append(this.przelacznik('Wyrównaj do siatki linii bazowych', () => Boolean(obj.do_siatki), (v) => { ustaw('do_siatki', v || undefined); przebuduj(); }));
+    if (obj.do_siatki && !this.edytor.wydruk?.siatka_bazowa) s.append(this.wskazowka('Ta sekcja nie ma siatki linii bazowych – włącz ją w ustawieniach sekcji.', true));
+
+    // Inicjał: pierwsza litera pierwszego akapitu na kilka wierszy.
+    const inicjal = this.wybor('Inicjał', [['', 'brak'], ['2', 'na 2 wiersze'], ['3', 'na 3 wiersze'], ['4', 'na 4 wiersze'], ['5', 'na 5 wierszy']],
+      () => (obj.inicjal ? String(obj.inicjal) : ''), (v) => { ustaw('inicjal', v ? Number(v) : undefined); przebuduj(); });
+    inicjal.classList.add('szeroki');
+    s.append(inicjal);
+    if (obj.inicjal) {
+      const rodziny = this.opcje.czcionki?.() || CZCIONKI.map((c) => c.nazwa);
+      this._czcionkiWLiscie = true;
+      const cz = this.wybor('Czcionka inicjału', [['', 'jak w tekście'], ...rodziny.map((n) => [n, n])], () => obj.inicjal_czcionka || '', (v) => {
+        ustaw('inicjal_czcionka', v || undefined);
+        if (v) this.edytor.doczytajCzcionke(v);
+      });
+      this._czcionkiWLiscie = false;
+      cz.classList.add('szeroki');
+      s.append(cz);
+      s.append(this.kolor('Kolor inicjału', () => obj.inicjal_kolor || '', (v) => ustaw('inicjal_kolor', v || undefined), { brak: true }));
+    }
+
+    // Tabulatory: klawisz Tab w tekście przeskakuje do najbliższej pozycji.
+    const tabs = obj.tabulatory || [];
+    const zapiszTaby = (lista) => { ustaw('tabulatory', lista.length ? lista.map((t) => ({ ...t })) : undefined); przebuduj(); };
+    tabs.forEach((t, i) => {
+      const wiersz = document.createElement('div');
+      wiersz.className = 'wiersz-tabulatora';
+      const zmien = (pole, v) => { const lista = tabs.map((x) => ({ ...x })); lista[i][pole] = v; zapiszTaby(lista.sort((a, b) => a.poz - b.poz)); };
+      wiersz.append(
+        this.liczba(`Tabulator ${i + 1}`, () => zaokr(t.poz, 1), (v) => zmien('poz', Math.max(0, v)), { jednostka: 'mm', krok: 1, min: 0 }),
+        this.wybor('Wyrównanie', [['lewy', 'do lewej'], ['srodek', 'do środka'], ['prawy', 'do prawej'], ['dziesietny', 'do przecinka']], () => t.rodzaj || 'lewy', (v) => zmien('rodzaj', v)),
+        this.wybor('Wypełnienie', [['', 'brak'], ['.', 'kropki . . .'], ['-', 'kreski - - -'], ['_', 'linia ___']], () => t.wypelniacz || '', (v) => zmien('wypelniacz', v)),
+        this.akcje([['kosz', `Usuń tabulator ${i + 1}`, () => zapiszTaby(tabs.filter((_, j) => j !== i))]]),
+      );
+      s.append(wiersz);
+    });
+    s.append(this.akcje([['plus', 'Dodaj tabulator', () => {
+      const ost = Math.max(0, ...tabs.map((t) => t.poz));
+      zapiszTaby([...tabs, { poz: Math.round(Math.min(obj.width, ost + Math.max(10, obj.width / 4))), rodzaj: tabs.length ? 'prawy' : 'lewy', wypelniacz: tabs.length ? '.' : '' }]);
+    }]]));
+    s.append(this.wskazowka('Klawisz Tab w pisanym tekście wstawia tabulator. Bez ustawionych pozycji tabulator skacze co 12,5 mm.'));
+    s.append(this.przelacznik('Nie opływaj innych elementów', () => Boolean(obj.bez_oblewania), (v) => ustaw('bez_oblewania', v || undefined)));
+  }
+
   zbudujStyl(obj) {
     const style = this.opcje.style?.();
     if (!style) return;
@@ -1101,7 +1190,7 @@ export class PanelWlasciwosci {
       const st = znajdz();
       if (!st) return false;
       const teraz = stylZObiektu(obj, st.nazwa, st.id);
-      return POLA_STYLU.some((k) => (typeof st[k] === 'number' ? Math.abs(st[k] - teraz[k]) > 0.001 : (st[k] ?? false) !== (teraz[k] ?? false)));
+      return POLA_STYLU.some((k) => st[k] !== undefined && !rowneWStylu(st[k], teraz[k]));
     };
     const wybor = this.wybor('Styl', [['', '— bez stylu —'], ...style.map((x) => [x.id, x.nazwa])], () => obj.styl || '', (v) => {
       const st = style.find((x) => x.id === v);
@@ -1153,6 +1242,7 @@ export class PanelWlasciwosci {
     });
     usun.classList.add('niebezpieczny');
     s.append(zmieniony, przyciski);
+    this.zbudujStylZnakowy(obj, s);
     const odswiez = () => {
       const ma = Boolean(znajdz());
       const inny = ma && rozniSie();
@@ -1164,6 +1254,48 @@ export class PanelWlasciwosci {
     };
     this.odswiezacze.push(odswiez);
     odswiez();
+  }
+
+  // Styl znakowy (#131): wygląd zaznaczonego fragmentu zapisany pod nazwą – obok stylu akapitu.
+  zbudujStylZnakowy(obj, s) {
+    const lista = this.opcje.styleZnakowe?.();
+    if (!lista) return;
+    const fragment = () => obj.isEditing && obj.selectionStart !== obj.selectionEnd;
+    const aktualny = () => stylZnakowyNaPozycji(obj, fragment() ? obj.selectionStart : 0);
+    const wybor = this.wybor('Styl znakowy', [['', '— bez stylu znakowego —'], ...lista.map((x) => [x.id, x.nazwa])], aktualny, (v) => {
+      zastosujStylZnakowy(obj, lista.find((x) => x.id === v) || null);
+      this.opcje.poZmianieStyliZnakowych?.(null);
+    });
+    wybor.classList.add('szeroki');
+    wybor.title = 'Nadaje styl zaznaczonemu fragmentowi (bez zaznaczenia – całemu tekstowi)';
+    const przyciski = this.akcje([
+      ['plus', 'Nowy styl znakowy z wyglądu zaznaczenia', async () => {
+        const nazwa = await zapytajONazwe('Nowy styl znakowy', 'Nazwa stylu', 'Wyróżnienie');
+        if (!nazwa) return;
+        const i = fragment() ? obj.selectionStart : 0;
+        const st = stylZnakowyZFragmentu(obj.getStyleAtPosition ? obj.getStyleAtPosition(i, true) : obj, nazwa);
+        lista.push(st);
+        zastosujStylZnakowy(obj, st);
+        this.opcje.poZmianieStyliZnakowych?.(null);
+        this.zbuduj();
+      }],
+      ['olowek', 'Aktualizuj styl znakowy wyglądem zaznaczenia – zmienią się wszystkie fragmenty z tym stylem', () => {
+        const st = lista.find((x) => x.id === aktualny());
+        if (!st) { powiadom('Zaznacz fragment, który ma już styl znakowy.', true); return; }
+        const i = fragment() ? obj.selectionStart : 0;
+        Object.assign(st, stylZnakowyZFragmentu(obj.getStyleAtPosition(i, true), st.nazwa, st.id));
+        this.opcje.poZmianieStyliZnakowych?.(st);
+      }],
+      ['kosz', 'Usuń styl znakowy – fragmenty zachowają wygląd', async () => {
+        const st = lista.find((x) => x.id === aktualny());
+        if (!st) return;
+        if (!await potwierdz(`Usunąć styl znakowy „${st.nazwa}”?`, 'Fragmenty zachowają obecny wygląd, ale przestaną być ze sobą powiązane.', 'Usuń styl', true)) return;
+        lista.splice(lista.indexOf(st), 1);
+        this.opcje.poZmianieStyliZnakowych?.({ usuniety: st.id });
+        this.zbuduj();
+      }],
+    ]);
+    s.append(wybor, przyciski);
   }
 
   zbudujWypelnienie(obj) {

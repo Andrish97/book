@@ -70,3 +70,25 @@ zarejestrujKategorie({
     { id: 'ean', nazwa: 'Kod kreskowy EAN / ISBN', slowa: 'kod kreskowy ean isbn ksiazka okladka', duzy: true, podglad: PODGLAD_EAN, opis: 'Np. ISBN na okładkę książki', wstaw: (e) => e.dodajKod('ean') },
   ],
 });
+
+// Style tekstu (#131A, #134): style akapitu projektu. Kliknięcie nadaje styl zaznaczonemu tekstowi,
+// a bez zaznaczonego tekstu wstawia nowy tekst w tym stylu. Style tworzy się i zmienia w panelu tekstu.
+const escS = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
+zarejestrujKategorie({
+  id: 'style', nazwa: 'Style tekstu', ikona: 'tekst', kolejnosc: 65,
+  elementy: () => ((typeof window !== 'undefined' && window.seriodruk?.stan?.projekt?.style) || []).map((st) => ({
+    id: st.id, nazwa: st.nazwa, slowa: `styl tekst akapit ${st.fontFamily || ''}`, duzy: true,
+    podglad: `<svg viewBox="0 0 70 52" aria-hidden="true"><text x="35" y="32" text-anchor="middle" style="font-family:'${escS(st.fontFamily || 'Inter')}';font-weight:${st.fontWeight === 'bold' ? 700 : 400};font-style:${st.fontStyle === 'italic' ? 'italic' : 'normal'}" font-size="18" fill="${escS(typeof st.fill === 'string' ? st.fill : 'currentColor')}">Aa</text></svg>`,
+    opis: `${st.fontFamily || ''}${st.fontSize ? ` · ${Math.round(st.fontSize * 72 / 25.4)} pt` : ''}`,
+    wstaw: async (e) => {
+      const { zastosujStyl } = await import('./style-tekstu.js');
+      let obj = e.aktywny;
+      if (!obj || !/text/i.test(obj.type)) obj = e.dodajTekst();
+      zastosujStyl(obj, st);
+      obj.initDimensions?.();
+      e.canvas.requestRenderAll();
+      e.zatwierdz();
+      return obj;
+    },
+  })),
+});

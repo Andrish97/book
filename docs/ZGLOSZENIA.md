@@ -10,7 +10,9 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
-| 131A | Typografia: dzielenie wyrazów, wdowy i sieroty, spójniki, inicjały, tabulatory, style znakowe, siatka linii bazowych, oblewanie tekstem | 🔄 |
+| 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
+| 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
+| 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 
@@ -43,6 +45,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 131A | Typografia: dzielenie wyrazów po polsku, spójniki na końcu wiersza, wdowy i sieroty, inicjały, tabulatory z wypełniaczem, style znakowe, siatka linii bazowych, oblewanie tekstem (prostokąt, kształt, skok) – w edytorze, podglądzie i PDF |
 | 135 | Zmiany od AI znikały po otwarciu projektu na innym urządzeniu – bezpieczne domyślne wybory, bez nadpisywania konta, wersje liczone numerem |
 | 133 | Marginesy i inne wymiary w mm – dowolna wartość, nie tylko co 0,5 |
 | 132 | Instrukcja na telefonie dawała się przewinąć cała (pusto pod stopką) |

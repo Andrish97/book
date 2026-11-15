@@ -368,6 +368,7 @@ Menu widoku:
 | **Siatka** | Linie co zadany krok (rozdział „13.3 Siatka”). |
 | **Przyciągaj do siatki** | Przesuwany element staje rogiem na linii siatki. |
 | **Krok siatki** | Odstęp linii siatki w mm. |
+| **Siatka linii bazowych** | Linie bazowe z ustawień sekcji (rozdział „6.13 Siatka linii bazowych”). |
 | **Przyciągaj do elementów i pokazuj odległości** | Różowe linie i odległości w mm przy przesuwaniu (rozdział „13.5 Przyciąganie i odległości”). |
 | **Linijki** | Linijki w mm nad stroną i z lewej (rozdział „13.4 Linijki i prowadnice”). |
 | **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
@@ -479,6 +480,8 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (rozdział „5.9 Kalendarz miesiąca”). |
 | **Wykresy** | Słupkowy, poziomy, liniowy, kołowy i pierścieniowy z tabeli danych (rozdział „5.10 Wykres”). |
 | **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (rozdział „5.11 Kolaż zdjęć”). |
+| **Style tekstu** | Style akapitu projektu: kliknięcie nadaje styl zaznaczonemu tekstowi, a bez zaznaczenia wstawia nowy tekst w tym stylu (rozdział „6.4 Style”). |
+| **Kody** | Kod QR i kod kreskowy EAN / ISBN (rozdział „5.12 Kod QR i kod kreskowy”). |
 
 Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”).
 
@@ -585,6 +588,15 @@ Kliknij tekst dwa razy, zaznacz fragment i zmień go tymi samymi ustawieniami �
 - Lista **Styl** we właściwościach nadaje styl zaznaczonemu tekstowi.
 - **Nowy styl** zapisuje wygląd zaznaczonego tekstu pod nową nazwą.
 - Gdy zmienisz tekst ze stylem, pojawią się **Aktualizuj styl** — zmienia wszystkie teksty z tym stylem w całym projekcie — i **Przywróć** — wraca do wyglądu ze stylu.
+- Styl zapisuje też ustawienia **Składu akapitu** (rozdział „6.9 Skład akapitu”) — np. dzielenie wyrazów dla całego tekstu książki.
+
+**Styl znakowy** to zapisany wygląd fragmentu tekstu, np. „Wyróżnienie” albo „Nazwa własna”.
+
+1. Zaznacz fragment tekstu (kliknij tekst dwa razy i zaznacz słowa).
+2. Ustaw jego wygląd (rozdział „6.3 Fragment tekstu”), potem w części **Styl tekstu** wybierz **Nowy styl znakowy z wyglądu zaznaczenia**.
+3. Inne fragmenty zaznacz i wybierz styl z listy **Styl znakowy**. Bez zaznaczenia styl dostaje cały tekst.
+
+**Aktualizuj styl znakowy** przenosi wygląd zaznaczenia do stylu — zmienią się wszystkie fragmenty z tym stylem w projekcie. Usunięty styl znakowy nie zmienia wyglądu fragmentów.
 
 ### 6.5 Listy
 
@@ -634,6 +646,66 @@ Okno **⋯** → **Czcionki projektu…**:
 > **Wskazówka:** Do druku własną czcionkę najlepiej wgrać jako TTF albo OTF, osobny plik dla pogrubienia i kursywy. Inne pliki trafią do PDF jako krzywe — tekst będzie ostry, ale nie da się go zaznaczyć.
 
 ![Okno czcionek](https://makietka.app/img/instrukcja/czcionki.png)
+
+### 6.9 Skład akapitu
+
+Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, jak tekst łamie się na wiersze. Te same ustawienia zapiszesz w stylu (rozdział „6.4 Style”).
+
+| Ustawienie | Co robi |
+|---|---|
+| **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad, z łącznikiem `-`. Wyjustowany tekst nie ma wtedy dziur między słowami. Treść się nie zmienia — łącznik jest tylko na stronie. |
+| **Najkrótszy dzielony wyraz** | Krótsze wyrazy nigdy się nie dzielą (domyślnie 5 liter). |
+| **Najmniej liter przed łącznikiem / po łączniku** | Ile liter zostaje w wierszu i ile przechodzi dalej (domyślnie po 2). |
+| **Spójniki na końcu wiersza** | **a, i, w, z… przechodzą dalej** — pojedyncze **a, i, o, u, w, z** idą do następnego wiersza razem ze słowem, jak w polskim składzie; **także do, na, że…** dotyczy też dwuliterowych. Nowe teksty mają to włączone. |
+| **Wdowy i sieroty** | Tekst płynący przez kilka ramek albo kolumn (rozdział „6.7 Kolumny i tekst przez kilka ramek”) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. Nowe teksty pilnują 2 wierszy. |
+| **Wyrównaj do siatki linii bazowych** | Wiersze stają na liniach siatki sekcji (rozdział „6.13 Siatka linii bazowych”). |
+| **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (rozdział „6.12 Oblewanie tekstem”) — np. podpis na zdjęciu. |
+
+![Skład akapitu we właściwościach tekstu](https://makietka.app/img/instrukcja/k-sklad-akapitu.png)
+
+### 6.10 Inicjał
+
+Inicjał to powiększona pierwsza litera akapitu, na kilka wierszy. W części **Skład akapitu** wybierz **Inicjał**: **na 2 wiersze** … **na 5 wierszy**. Litera rośnie od górnej krawędzi pierwszego wiersza do linii bazowej ostatniego, a tekst ją opływa. **Czcionka inicjału** i **Kolor inicjału** mogą być inne niż w tekście.
+
+Inicjał dostaje pierwszy akapit tekstu. W tekście płynącym przez kilka ramek — tylko w pierwszej ramce.
+
+![Inicjał, dzielenie wyrazów, tabulatory z kropkami i tekst opływający koło](https://makietka.app/img/instrukcja/sklad.png)
+
+### 6.11 Tabulatory
+
+Klawisz `Tab` w pisanym tekście wstawia tabulator: tekst za nim przeskakuje do najbliższej pozycji. Bez ustawionych pozycji tabulatory stoją co 12,5 mm.
+
+W części **Skład akapitu** **Dodaj tabulator** dodaje pozycję. Każda ma:
+
+| Pole | Znaczenie |
+|---|---|
+| **Tabulator N** | Pozycja w mm od lewej krawędzi ramki. |
+| **Wyrównanie** | **do lewej**, **do środka**, **do prawej** albo **do przecinka** (liczby z przecinkiem jedna pod drugą). |
+| **Wypełnienie** | Pusto, kropki, kreski albo linia przed tekstem — np. spis treści „Rozdział 1 . . . . . 12”. |
+
+![Tabulator do prawej z kropkami](https://makietka.app/img/instrukcja/k-tabulatory.png)
+
+### 6.12 Oblewanie tekstem
+
+Zdjęcie, kształt albo grupa może odpychać tekst. Zaznacz element i w części **Inne** wybierz **Oblewanie tekstem**:
+
+| Wartość | Znaczenie |
+|---|---|
+| **tekst opływa ramkę elementu** | Wiersze kończą się przed prostokątem elementu (albo zaczynają za nim). |
+| **tekst opływa kształt** | Dla elipsy, wielokąta i kształtu z pióra — wiersze idą wzdłuż jego brzegu. |
+| **tekst przeskakuje pod element** | Obok elementu nie ma tekstu, ciąg dalszy jest pod nim. |
+
+**Odstęp tekstu od elementu** to wolne miejsce wokół elementu (domyślnie 2 mm). Oblewanie działa na wszystkie teksty na stronie — także w trakcie przesuwania elementu. Tekst wybiera tę stronę elementu, po której ma więcej miejsca.
+
+![Oblewanie tekstem w części Inne](https://makietka.app/img/instrukcja/k-oblewanie.png)
+
+### 6.13 Siatka linii bazowych
+
+Siatka linii bazowych ustawia wiersze wszystkich kolumn i stron na tej samej wysokości — jak w książkach, w których wiersze z obu stron kartki pokrywają się pod światło.
+
+1. W ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”) włącz **Siatka linii bazowych w tej sekcji**: **Odstęp** (zwykle interlinia tekstu podstawowego) i **Pierwsza linia** (mm od górnej krawędzi strony, zwykle górny margines).
+2. W menu widoku (rozdział „4.6 Prawy dolny róg i menu widoku”) **Siatka linii bazowych** pokazuje te linie na stronie.
+3. Tekstom, które mają stać na siatce, włącz **Wyrównaj do siatki linii bazowych** (rozdział „6.9 Skład akapitu”) — najlepiej w stylu tekstu podstawowego.
 
 ## 7. Kształty, linie i kolory
 
@@ -946,6 +1018,7 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 | **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (rozdział „11.7 Składki”). |
 | **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (rozdział „12.2 Okno Wzorce”). |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
+| **Siatka linii bazowych** | **Odstęp** i **Pierwsza linia** (mm od góry) — wiersze tekstów z „Wyrównaj do siatki” stoją na tych liniach (rozdział „6.13 Siatka linii bazowych”). |
 
 ![Ustawienia sekcji](https://makietka.app/img/instrukcja/sekcje.png)
 

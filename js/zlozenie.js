@@ -16,6 +16,8 @@ import { toKod, ulozKod } from './kod-obiekt.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu, zbierzZasoby } from './obrazy.js';
 import { adresZasobu, dataUrlZasobu } from './zasoby.js';
 import { rozlejWatki } from './watki.js';
+import { ulozStrone } from './sklad.js';
+import { zaladujDzielenie, uzywaDzielenia } from './dzielenie.js';
 import { zapewnijCzcionki } from './czcionki.js';
 import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
@@ -186,6 +188,7 @@ export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { ory
     const obiekty = await ozyw(podmienZasoby(surowe, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, surowe))));
     ulozElementyDanych(obiekty, { projekt, wartosc }); // kalendarze i wykresy z danych tej strony (#131A)
     wpiszWRamki(obiekty);
+    ulozStrone(obiekty, { siatka: egz.sekcja.wydruk.siatka_bazowa }); // oblewanie i siatka bazowa (#131)
     rozlejWatki(obiekty); // po podstawieniu danych tekst ma inną długość
     for (const o of obiekty) {
       if (w.lustro && lewa) odbij(o, szerokosc);
@@ -236,6 +239,7 @@ export function obiektyZSasiadem(projekt, cel, ciag = rozwin(projekt)) {
 // Służy do sprawdzenia przed drukiem, czy tekst mieści się w ramce na każdej powielonej stronie.
 // Zwraca [{ obiekt (Fabric), zrodlo: 'strona' | 'wzorzec', id }].
 export async function tekstyEgzemplarza(projekt, egz, ciag) {
+  if (uzywaDzielenia(egz.strona.obiekty) || projekt.wzorce.some((w) => uzywaDzielenia(w.obiekty))) await zaladujDzielenie();
   const wartosc = wartosciPol(projekt, egz, ciag);
   const zbierz = (obiekty, wynik = []) => {
     for (const o of obiekty || []) {
@@ -302,11 +306,14 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
   const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, egz.strona).wydruk;
   const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
+  // Wzorce dzielenia wyrazów – zanim teksty się ułożą (tylko gdy któryś tekst dzieli wyrazy).
+  if (uzywaDzielenia(tresc) || projekt.wzorce.some((w) => uzywaDzielenia(w.obiekty))) await zaladujDzielenie();
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, tresc))));
   // Kalendarze i wykresy: miesiąc i liczby z danych tej strony (#131A).
   ulozElementyDanych(wlasne, { projekt, wartosc: egz ? wartosciPol(projekt, egz, rozwiniety) : undefined });
   wpiszWRamki(wlasne);
+  ulozStrone(wlasne, { siatka: wydruk.siatka_bazowa }); // oblewanie tekstem i siatka linii bazowych (#131)
   // Po podstawieniu danych tekst ma inną długość – połączone ramki przelewają go od nowa.
   // Ramki tych samych wątków z innych stron biorą udział w przelewaniu, ale nie są tu rysowane.
   const idWatkow = new Set(tresc.filter((o) => o.watek).map((o) => o.watek));

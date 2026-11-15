@@ -354,6 +354,10 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   await nowyProjekt(strona, 'Szukanie na liście');
   await strona.click('[data-akcja="dodaj-tekst"]');
   const czcionka = '.wlasciwosci label:has-text("Czcionka")';
+  // Panel tekstu jest dłuższy niż ekran: przewinięcie do listy przed fokusem, żeby spóźnione zdarzenie
+  // przewijania (z samego focus()) nie zamknęło świeżo otwartej listy.
+  await strona.locator(`${czcionka} .wybor-przycisk`).scrollIntoViewIfNeeded();
+  await strona.waitForTimeout(150);
   const widoczne = () => strona.evaluate(() => [...document.querySelectorAll('.wybor-lista .wybor-opcja')].filter((el) => !el.hidden).map((el) => el.textContent));
   await strona.focus(`${czcionka} .wybor-przycisk`);
   await strona.keyboard.press('ArrowDown');

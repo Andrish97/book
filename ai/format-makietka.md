@@ -75,6 +75,7 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
 - `uklad`: `pojedyncze` albo `rozkladowki`. W rozkładówkach margines `wewnetrzny` jest przy grzbiecie, a `pierwsza` mówi, czy sekcja zaczyna się stroną prawą (zwykle) czy lewą.
 - `wzorce`: identyfikatory wzorców obowiązujących na stronach sekcji (pierwszy leży najniżej).
 - `numeracja.tryb`: `ciagla` (numery biegną dalej), `od` (sekcja zaczyna od `od`), `brak` (strony bez numeru, np. okładka).
+- `wydruk.siatka_bazowa` (opcjonalnie): `{ "odstep": 5, "przesuniecie": 12 }` – siatka linii bazowych (mm): pierwsza linia `przesuniecie` od górnej krawędzi strony, kolejne co `odstep`. Teksty z `do_siatki: true` stawiają na niej wiersze.
 - `skladka` (opcjonalnie): `4`, `8`, `16` albo `32` – środek składany ze składek; aplikacja pilnuje, żeby liczba stron sekcji (po powieleniach serii) była wielokrotnością składki, i proponuje dopełnienie pustymi stronami.
 
 **Okładka liczona sama.** Sekcja z polem `okladka` jest okładką z grzbietem: jej `wydruk.szerokosc_mm` i `wysokosc_mm` liczy aplikacja (nie wpisuj ich), a `uklad` jest zawsze `pojedyncze`.
@@ -168,6 +169,14 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `tabela` | tabela jako jeden element (rozdział 9) |
 | `kod` | kod QR albo kod kreskowy EAN-13 / ISBN (niżej, „Kody”) |
 | `bez_pol` | `true` – klamry w tym tekście to zwykły tekst |
+| `dziel_wyrazy` | `true` – dzielenie wyrazów po polsku (łącznik na końcu wiersza tylko w wyglądzie, treść bez zmian); `dziel_min` (najkrótszy dzielony wyraz, 5), `dziel_przed` / `dziel_po` (najmniej liter przed i po łączniku, 2) |
+| `spojniki` | `true` – jednoliterowe spójniki i przyimki (a, i, o, u, w, z) nie zostają na końcu wiersza; `"dwuliterowe"` – także do, na, od, po, we, za, ze, że… Nowe teksty mają `true` |
+| `wdowy` | najmniej wierszy akapitu na końcu i początku ramki przy tekście płynącym przez ramki (2 albo 3; brak – bez pilnowania). Nowe teksty mają 2 |
+| `inicjal` | 2–5 – pierwsza litera pierwszego akapitu jako inicjał na tyle wierszy; `inicjal_czcionka`, `inicjal_kolor` (domyślnie jak tekst) |
+| `tabulatory` | `[{ "poz": 70, "rodzaj": "prawy", "wypelniacz": "." }]` – pozycje (mm od lewej krawędzi ramki), `rodzaj`: `lewy`, `srodek`, `prawy`, `dziesietny`; `wypelniacz`: `""`, `"."`, `"-"`, `"_"`. W treści znak `\t`; bez pozycji tabulator skacze co 12,5 mm |
+| `do_siatki` | `true` – wiersze na siatce linii bazowych sekcji (`wydruk.siatka_bazowa`, rozdział 3) |
+| `oblewanie`, `oblewanie_odstep` | dowolny element poza tekstem: `prostokat` (tekst opływa ramkę), `ksztalt` (elipsa, wielokąt, ścieżka – opływa kształt), `skok` (tekst przeskakuje pod element); odstęp w mm (domyślnie 2) |
+| `bez_oblewania` | tekst: `true` – nie opływa innych elementów |
 
 ## 6. Style tekstu
 
@@ -175,6 +184,10 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 { "id": "st_tytul", "nazwa": "Tytuł", "fontFamily": "Playfair Display", "fontSize": 9.878, "fontWeight": "bold",
   "fontStyle": "normal", "underline": false, "linethrough": false, "lineHeight": 1.1, "charSpacing": 0, "fill": "#1a1a1a", "textAlign": "left" }
 ```
+
+Styl może zawierać też ustawienia składu (`dziel_wyrazy`, `spojniki`, `wdowy`, `do_siatki`, `inicjal`, `tabulatory`…) – `null` znaczy „wyłączone”.
+
+**Style znakowe** (`style_znakowe` w projekcie): `{ "id": "sz_wyr", "nazwa": "Wyróżnienie", "fontWeight": "bold", "fill": "#c8102e" }` – pola jak we fragmencie tekstu (`fontFamily`, `fontSize`, `fontWeight`, `fontStyle`, `underline`, `linethrough`, `fill`). Fragment wskazuje styl polem `styl_znakowy` w swoim `style` i ma te same wartości.
 
 Tekst wskazuje styl polem `styl` i powinien mieć te same wartości (styl nie jest nakładany przy wczytaniu – służy do zmiany wielu tekstów naraz w edytorze).
 

@@ -94,7 +94,8 @@ export function nowyProjekt(nazwa = 'Nowy projekt', wydruk = domyslnyWydruk(), u
     nazwa,
     sekcje: [sekcja],
     wzorce: [],
-    style: [], // style tekstu wspólne dla projektu
+    style: [], // style tekstu wspólne dla projektu (akapitowe)
+    style_znakowe: [], // style znakowe – wygląd fragmentu tekstu (#131)
     tabele: [], // dane: { id, nazwa, kolumny: [nazwa], wiersze: [[tekst]] }
     serie: [], // powielanie: { id, nazwa, tabela, tryb, ile, uklad, dodatkowe, dopelnij } – strona wskazuje serię polem `seria`
     strony: [nowaStrona('Strona 1', sekcja.id)],
@@ -122,7 +123,7 @@ export function normalizujWidok(w) {
   const wynik = { ...DOMYSLNY_WIDOK, ...(w && typeof w === 'object' ? w : {}) };
   const krok = Number(wynik.siatka_mm);
   wynik.siatka_mm = Number.isFinite(krok) && krok >= 0.5 ? Math.min(100, krok) : DOMYSLNY_WIDOK.siatka_mm;
-  for (const k of ['siatka', 'do_siatki', 'do_elementow', 'linijki', 'blokada_prowadnic']) wynik[k] = Boolean(wynik[k]);
+  for (const k of ['siatka', 'do_siatki', 'do_elementow', 'linijki', 'blokada_prowadnic', 'siatka_bazowa']) wynik[k] = Boolean(wynik[k]);
   return wynik;
 }
 
@@ -196,7 +197,7 @@ export function normalizuj(p) {
   // Własne czcionki: opis plików czcionek leżących w zasobach (js/czcionki.js).
   wynik.czcionki = (Array.isArray(p.czcionki) ? p.czcionki : []).filter((c) => c?.id && c.rodzina && wynik.zasoby[c.id])
     .map((c) => ({ id: c.id, rodzina: String(c.rodzina), waga: Number.isFinite(c.waga) ? c.waga : 400, kursywa: Boolean(c.kursywa) }));
-  for (const klucz of ['tabele', 'serie', 'style']) {
+  for (const klucz of ['tabele', 'serie', 'style', 'style_znakowe']) {
     if (!Array.isArray(wynik[klucz])) wynik[klucz] = [];
   }
   delete wynik.zrodla; // szkic z planu, nigdy nieużywane
