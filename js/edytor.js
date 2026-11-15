@@ -3951,6 +3951,9 @@ const NAZWY_TYPOW = {
 
 export function opisObiektu(o) {
   if (o.nazwa) return o.nazwa;
+  if (toKalendarz(o)) return `Kalendarz: ${o.getObjects?.().find((c) => c.type === 'textbox' && c.text)?.text || 'miesiąc'}`;
+  if (toWykres(o)) return o.wykres?.tytul ? `Wykres: „${o.wykres.tytul}”` : 'Wykres';
+  if (toKolaz(o)) return 'Kolaż';
   if (toTabela(o)) return `Tabela ${o.tabela.wiersze.length}×${o.tabela.kolumny.length}`;
   const typ = NAZWY_TYPOW[o.type] || o.type;
   if (o.text) {

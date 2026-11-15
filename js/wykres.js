@@ -145,7 +145,7 @@ export function ulozWykres(g, dane = { etykiety: [], serie: [] }) {
   const pozycje = kolowy ? dane.etykiety : dane.serie.map((s) => s.nazwa);
   let dol = y0 + H;
   if (o.legenda && pozycje.length && (kolowy || dane.serie.length > 1 || dane.serie[0]?.nazwa)) {
-    const elementy = pozycje.map((nazwa, i) => ({ nazwa: String(nazwa), i, szer: r * 1.4 + (String(nazwa).length * r * 0.55) + r * 1.2 }));
+    const elementy = pozycje.map((nazwa, i) => ({ nazwa: String(nazwa), i, szer: r * 1.3 + (String(nazwa).length * r * 0.62) + r * 2 }));
     const rzedy = [];
     let rzad = [];
     let szer = 0;

@@ -14,7 +14,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 | 131A | Typografia: dzielenie wyrazów, wdowy i sieroty, spójniki, inicjały, tabulatory, style znakowe, siatka linii bazowych, oblewanie tekstem | 🔄 |
-| 131A | Z Canvy: kalendarz miesiąca, wykresy z danych, biblioteka kształtów, kolaże | 🔄 |
 
 ## Czeka (kolejne etapy)
 
@@ -45,6 +44,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 131A, 134 | Biblioteka – jedno okno z wyszukiwarką i kategoriami (kształty, strzałki i dymki, ozdobniki i ramki, kalendarze, wykresy, kolaże), przeciąganie na stronę; kalendarz miesiąca ze świętami i miesiącem z danych, wykresy z tabel danych, ~60 kształtów, 12 kolaży; łącznik AI i instrukcja (5.8–5.11) |
 | 114b | Instrukcja po #115–#123: okładka z grzbietem i składki (tekst zgodny z oknem sekcji), pasek stron i uchwyt na telefonie, załączniki w formularzu kontaktowym, kontrola przed drukiem (niepełna składka), linie zgięć; 13 nowych zrzutów (jasne i ciemne): okładka, okno okładki, przypięcie, składki, obraz w kształcie, kadrowanie w kształcie, Usuń tło, filtry, krycie w przejściu, pasek stron na telefonie, formularz kontaktowy |
 | 117 | Pasek stron na telefonie: miniatury na całą wysokość paska, wąska etykieta sekcji, mniejszy ⋯, kafelek „+” tej samej wysokości |
 | 118 | Uchwyt arkuszy na telefonie: stuknięcie zwija powiększony, zwykły zamyka (już nie rozwija) |

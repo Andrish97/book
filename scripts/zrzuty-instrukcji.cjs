@@ -882,6 +882,38 @@ if (require.main === module) (async () => {
   await d.waitForTimeout(300);
   await kadr(d, 'k-krycie-przejscia.png', { obszar: ['#panel-inspektor label:has-text("Kolor 1")', '#panel-inspektor label:has-text("Kolor 2")', '#panel-inspektor label:has-text("Krycie") >> nth=1'], zaznacz: '#panel-inspektor label:has-text("Krycie") >> nth=1', margines: 12 }).catch((err) => console.error('pominięto k-krycie-przejscia:', err.message));
 
+  // ---------- Biblioteka: kalendarz miesiąca, wykres (#131A) ----------
+  await pustaStrona();
+  await d.evaluate(() => {
+    const { stan } = window.seriodruk;
+    if (!stan.projekt.tabele.some((t) => t.id === 't_wykres')) {
+      stan.projekt.tabele.push({ id: 't_wykres', nazwa: 'Sprzedaż', kolumny: ['miesiac', 'sklep', 'internet'], wiersze: [['styczeń', '12', '5'], ['luty', '15,5', '8'], ['marzec', '9', '11'], ['kwiecień', '14', '13']] });
+    }
+  });
+  await d.click('[data-akcja="biblioteka"]');
+  await d.waitForSelector('#dlg-biblioteka[open]');
+  await d.click('#kategorie-biblioteki [data-kategoria="strzalki"]');
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-biblioteka.png', { obszar: ['#pasek-narzedzi', '#dlg-biblioteka'], zaznacz: '[data-akcja="biblioteka"]', margines: 10 }).catch((err) => console.error('pominięto k-biblioteka:', err.message));
+  await d.click('#biblioteka-zamknij');
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const k = e.dodajKalendarz({ rok: 2027, miesiac: 5, nazwy_swiat: true });
+    e.odznacz();
+    e.zaznacz(k.id);
+  });
+  await d.waitForTimeout(500);
+  await kadr(d, 'k-kalendarz.png', { obszar: ['.arkusz', '#panel-inspektor fieldset:has(> legend:has-text("Kalendarz"))'], margines: 8 }).catch((err) => console.error('pominięto k-kalendarz:', err.message));
+  await pustaStrona();
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const w = e.dodajWykres({ tabela: 't_wykres', etykiety: 'miesiac', wartosci: ['sklep', 'internet'], tytul: 'Sprzedaż' });
+    e.odznacz();
+    e.zaznacz(w.id);
+  });
+  await d.waitForTimeout(500);
+  await kadr(d, 'k-wykres.png', { obszar: ['.arkusz', '#panel-inspektor fieldset:has(> legend:has-text("Wykres"))'], margines: 8 }).catch((err) => console.error('pominięto k-wykres:', err.message));
+
   // ---------- Okładka z grzbietem i składki (#119, #120) ----------
   await d.evaluate(async () => {
     const { stan } = window.seriodruk;

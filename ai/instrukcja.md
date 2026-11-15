@@ -327,6 +327,7 @@ Pasek nad stroną wstawia nowe elementy (rozdział „5.1 Wstawianie”).
 | **Rysuj** | `B` | Linię rysowaną odręcznie (rozdział „7.3 Rysowanie odręczne”). |
 | **Pióro** | `N` | Kształt z punktów i łuków (rozdział „7.4 Pióro i edycja punktów”). |
 | **Tabela** | — | Tabelę z wierszami i kolumnami (rozdział „9 Tabela”). |
+| **Biblioteka** | — | Gotowe elementy: kształty, strzałki, dymki, ramki, kalendarz miesiąca, wykresy, kolaże zdjęć (rozdział „5.8 Biblioteka”). |
 
 Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (rozdział „4.6 Prawy dolny róg i menu widoku”).
 
@@ -454,6 +455,72 @@ Część **Cień** działa dla każdego elementu:
 | **Siła** | Jak mocny jest cień (krycie). |
 | **W prawo**, **W dół** | Przesunięcie cienia w mm; wartość ujemna przesuwa w lewo albo w górę. |
 | **Rozmycie** | Jak miękka jest krawędź cienia, w mm. |
+
+### 5.8 Biblioteka
+
+Wszystkie gotowe elementy są w jednym miejscu: przycisk **Biblioteka** na pasku wstawiania (ostatni z prawej) albo `Ctrl`+`K` i „biblioteka”.
+
+![Biblioteka obok strony](https://makietka.app/img/instrukcja/k-biblioteka.png)
+
+1. Wybierz kategorię u góry albo wpisz słowo w pole **Szukaj** – szukanie przegląda wszystkie kategorie naraz.
+2. Kliknij element – stanie na środku bieżącej strony. Na komputerze możesz też przeciągnąć kafelek na stronę: element stanie tam, gdzie go upuścisz.
+3. Resztę ustawisz w panelu właściwości, jak przy każdym elemencie.
+
+Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych wstawień; na telefonie i tablecie wyjeżdża od dołu i zamyka się po wstawieniu.
+
+| Kategoria | Co w niej jest |
+|---|---|
+| **Kształty** | Figury, gwiazdy, serca, chmura, tarcza, liść i proste ikony (dom, pinezka, zegar, ptaszek, koperta, telefon…). |
+| **Strzałki i dymki** | Strzałki w każdą stronę, zakręcone i obustronne, szewrony, metki; dymki komiksowe, myśli i krzyku. |
+| **Ozdobniki i ramki** | Wstęgi, proporczyki, bilety, zakładki; ramki (zwykła, falista, okrągła, podwójna); linie ozdobne. |
+| **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (rozdział „5.9 Kalendarz miesiąca”). |
+| **Wykresy** | Słupkowy, poziomy, liniowy, kołowy i pierścieniowy z tabeli danych (rozdział „5.10 Wykres”). |
+| **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (rozdział „5.11 Kolaż zdjęć”). |
+
+Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”).
+
+### 5.9 Kalendarz miesiąca
+
+Siatka dni jednego miesiąca z nazwą miesiąca i dniami tygodnia. Niedziele i polskie święta – także ruchome: Wielkanoc, Poniedziałek Wielkanocny, Zielone Świątki, Boże Ciało – są wyróżnione kolorem.
+
+![Kalendarz miesiąca i jego ustawienia](https://makietka.app/img/instrukcja/k-kalendarz.png)
+
+| Ustawienie | Co zmienia |
+|---|---|
+| **Miesiąc**, **Rok** | Pokazany miesiąc. |
+| **Miesiąc z kolumny danych** | Na każdej stronie serii inny miesiąc – z kolumny z wartościami typu „2027-03”, „marzec 2027” albo „3” (rok wtedy z **Rok z kolumny**). Tak powstaje kalendarz na 12 miesięcy z jednej strony-wzoru (rozdział „16 Serie”). |
+| **Tydzień zaczyna się od** | Poniedziałku albo niedzieli. |
+| **Nazwy dni** | Pełne, skrócone albo same litery. |
+| **Dni innych miesięcy** | Wyszarzone, jak zwykłe dni albo ukryte. |
+| **Nazwa miesiąca nad dniami**, **Numery tygodni** | Dodatkowy wiersz i kolumna. |
+| **Miejsce na notatki** | Data w rogu, wyższe kratki do pisania. |
+| **Polskie święta**, **Nazwa święta pod datą** | Wyróżnienie świąt i ich nazwy w kratkach. |
+| **Święta z tabeli danych** | Własne dni (urodziny, imieniny, terminy) z tabeli: kolumna z datą („2027-05-26”, „26.05.2027” albo „26.05” – co roku) i kolumna z nazwą. |
+| **Kolory kalendarza** | Dni, nazwy, niedziele, soboty, święta, dni innych miesięcy. |
+
+Linie, tła wierszy, czcionkę i wyrównanie zmieniasz jak w tabeli (rozdział „9.5 Linie i tła”). Daty układa aplikacja – w kratkach kalendarza się nie pisze.
+
+### 5.10 Wykres
+
+Wykres rysuje liczby z tabeli danych projektu (rozdział „14 Tabele danych”) i zmienia się sam, gdy zmienisz dane.
+
+![Wykres słupkowy i jego ustawienia](https://makietka.app/img/instrukcja/k-wykres.png)
+
+| Ustawienie | Co zmienia |
+|---|---|
+| **Rodzaj** | Słupkowy, poziomy, liniowy, kołowy, pierścieniowy. |
+| **Tabela danych**, **Podpisy z kolumny**, **Liczby z kolumn** | Skąd wykres bierze dane; każda zaznaczona kolumna liczb to osobna seria (osobny kolor). |
+| **Wiersze** | Wszystkie, wybrane (od–do) albo **wiersz strony serii** – na każdej powielonej stronie wykres z jej wiersza. |
+| **Tytuł**, **Liczby przy słupkach**, **Oś**, **Linie siatki**, **Legenda** | Co widać na wykresie. |
+| **Szerokość**, **Wysokość**, **Czcionka**, **Rozmiar pisma**, **Kolory** | Wygląd. Uchwyty zmieniają rozmiar wykresu, nie wielkość pisma. |
+
+Liczby w komórkach mogą mieć przecinek, spacje i znak %.
+
+### 5.11 Kolaż zdjęć
+
+Kolaż to gotowy układ pól na zdjęcia. Upuść zdjęcie z komputera na pole – trafi do tego pola. Możesz też kliknąć kolaż dwa razy, wybrać pole i w części **Obraz w kształcie** wstawić obraz z projektu (rozdział „8.7 Obraz w kształcie”).
+
+W panelu kolażu zmienisz **Układ** (pola przybywają albo ubywają, zdjęcia w pierwszych polach zostają), **Odstęp między zdjęciami**, **Zaokrąglenie rogów**, **Szerokość** i **Wysokość**.
 
 ## 6. Tekst
 
