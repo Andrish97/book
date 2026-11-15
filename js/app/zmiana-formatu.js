@@ -18,9 +18,10 @@ const sekcjeZakresu = () => stan.projekt.sekcje.filter((s) => zakres.includes(s.
 
 // Sekcja do podglądu: bieżąca strona, jeśli jest w zakresie, inaczej pierwsza strona zakresu.
 function stronaPodgladu() {
+  const wZakresie = (s) => zakres.includes(s.sekcja) && !stan.projekt.sekcje.find((x) => x.id === s.sekcja)?.okladka;
   const b = biezacaStrona();
-  if (b && zakres.includes(b.sekcja)) return b;
-  return stan.projekt.strony.find((s) => zakres.includes(s.sekcja) && !stan.projekt.sekcje.find((x) => x.id === s.sekcja)?.okladka) || null;
+  if (b && wZakresie(b)) return b;
+  return stan.projekt.strony.find(wZakresie) || null;
 }
 
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
@@ -36,7 +37,7 @@ function schemat(sekcja, strona) {
     return `<rect class="${kl}" x="${o.left || 0}" y="${o.top || 0}" width="${w}" height="${h}" transform="rotate(${o.angle || 0} ${o.left || 0} ${o.top || 0})"/>`;
   }).join('');
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(`${W} × ${H} mm`)}">
-    <rect class="kartka" x="0" y="0" width="${W}" height="${H}"/>
+    <rect class="fk-kartka" x="0" y="0" width="${W}" height="${H}"/>
     <rect class="margines" x="${m.wewnetrzny ?? m.lewy ?? 0}" y="${m.gora ?? 0}" width="${Math.max(0, W - (m.wewnetrzny ?? 0) - (m.zewnetrzny ?? 0))}" height="${Math.max(0, H - (m.gora ?? 0) - (m.dol ?? 0))}"/>
     <g>${el}</g></svg>`;
 }

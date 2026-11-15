@@ -33,7 +33,36 @@ Powiększenie zmienia tylko strony — podpisy i pasek zostają w swoim rozmiarz
 przewracają strony, <kbd>Esc</kbd> albo [×] zamyka. Na telefonie przesunięcie palcem w bok przewraca
 stronę, w dół — zamyka prezentację.
 
-## 20.4 Podgląd na żywo
+## 20.4 Makieta 3D
+
+[Makieta 3D] obok [Separacje] na pasku podglądu pokazuje projekt jako wydrukowaną rzecz — można ją
+obracać i kartkować, zanim pójdzie do drukarni.
+
+![Makieta 3D: książka w twardej oprawie](k-makieta.png)
+
+| Rodzaj | Jak wygląda |
+|---|---|
+| **Książka – miękka oprawa** | Okładka z sekcji okładki (→ 11.6): przód, grzbiet i tył; środek kartka po kartce. Bez sekcji okładki okładką jest pierwsza strona. |
+| **Książka – twarda oprawa** | Grubsza okładka z tektury, większa od środka. |
+| **Notes na spirali** | Kartki na spirali wzdłuż grzbietu. |
+| **Kalendarz ścienny** | Karta po karcie na spirali u góry; przewrócona karta przechodzi na tył. |
+| **Kalendarz biurkowy** | Stojak z tektury; karty przewracają się przez górę na drugą stronę. |
+| **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — przód i tył. |
+
+Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka);
+zmienisz go listą **Rodzaj**.
+
+- **Obracanie** — przeciągnij myszą albo palcem.
+- **Przybliżanie** — kółko myszy, dwa palce albo [−] i [+]; [Widok] wraca do widoku z przodu.
+- **Kartkowanie** — strzałki pod makietą, klawisze <kbd>←</kbd> <kbd>→</kbd> albo stuknięcie w prawą lub lewą połowę obrazu. Pod spodem widać, co jest otwarte, np. „Strony 2–3” albo „Karta 3 z 13”.
+- [Pobierz obraz makiety] zapisuje obraz PNG z przezroczystym tłem — np. do oferty albo wpisu w sieci.
+
+![Makieta 3D: kalendarz ścienny](k-makieta-kalendarz.png)
+
+> Wskazówka: makieta pokazuje kształt i grubość publikacji z papieru i liczby stron (→ 11.6) — to
+> podgląd, nie próbny wydruk. Kolory sprawdzisz w [Separacje] (→ 23.6).
+
+## 20.5 Podgląd na żywo
 
 Otwarty podgląd odświeża się sam, gdy projekt zmieni się gdzie indziej — na innym urządzeniu, u
 współpracownika albo przez AI. Zostaje w tym samym miejscu i powiększeniu; przerysowują się tylko

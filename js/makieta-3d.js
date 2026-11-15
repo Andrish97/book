@@ -264,7 +264,7 @@ void main() {
   gl_Position = u_rzut * u_widok * vec4(a_p, 1.0);
   vec3 n = normalize((u_widok * vec4(a_n, 0.0)).xyz);
   float d = max(dot(n, normalize(vec3(-0.35, 0.55, 0.75))), 0.0);
-  v_s = 0.68 + 0.34 * d;
+  v_s = min(1.0, 0.8 + 0.26 * d);
   v_uv = a_uv;
 }`;
 const FS = `precision mediump float; uniform sampler2D u_t; varying vec2 v_uv; varying float v_s;

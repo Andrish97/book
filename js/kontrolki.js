@@ -384,7 +384,7 @@ function ulepszKolor(input) {
       <label class="kolor-hex"><span>Kod koloru</span><input type="text" maxlength="7" spellcheck="false" autocomplete="off"></label>
       <div class="kolor-paleta" role="group" aria-label="Gotowe kolory"></div>
       <div class="kolor-paleta ostatnie" role="group" aria-label="Ostatnio używane" hidden></div>
-      <div class="kolor-marki" hidden>
+      <div class="kolor-z-marki" hidden>
         <span class="kolor-podpis">Marka</span>
         <div class="kolor-paleta marki" role="group" aria-label="Kolory marki"></div>
       </div>
@@ -496,7 +496,7 @@ function ulepszKolor(input) {
     // Marka (#131D): kolory zestawu marki z konta – z nazwami, nad „Użyte w projekcie”.
     const marka = biezacaMarka().kolory;
     if (marka.length) {
-      okienko.querySelector('.kolor-marki').hidden = false;
+      okienko.querySelector('.kolor-z-marki').hidden = false;
       const el = okienko.querySelector('.kolor-paleta.marki');
       paleta(el, marka.map((k) => k.kolor));
       [...el.children].forEach((b, i) => {

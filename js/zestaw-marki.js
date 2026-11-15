@@ -89,14 +89,20 @@ export function najblizszyKolorMarki(kolor, marka = biezacaMarka()) {
   return marka.kolory.reduce((naj, k) => (odleglosc(h, k.kolor) < odleglosc(h, naj.kolor) ? k : naj)).kolor;
 }
 
-// Propozycja mapowania: kolory projektu → najbliższe kolory marki (czerń i biel zostają, gdy marka ich nie ma),
+const neutralny = (h) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  return Math.max(r, g, b) - Math.min(r, g, b) < 12;
+};
+
+// Propozycja mapowania: kolory projektu → najbliższe kolory marki (czerń, biel i szarości zostają, gdy marka nie ma kolorów neutralnych),
 // czcionki: najczęstsza → czcionka tekstu marki, pozostałe (zwykle nagłówkowe) → czcionka nagłówków.
 export function propozycjaMapowania(kolory, czcionki, marka = biezacaMarka()) {
   const mapaKolorow = {};
   for (const { kolor } of kolory) {
     const h = hex(kolor);
     if (!h) continue;
-    if ((h === '#000000' || h === '#ffffff') && !marka.kolory.some((k) => k.kolor === h)) { mapaKolorow[h] = h; continue; }
+    // Czerń, biel i szarości (np. kolor tekstu) zostają, chyba że marka ma własne kolory neutralne.
+    if (neutralny(h) && !marka.kolory.some((k) => neutralny(k.kolor))) { mapaKolorow[h] = h; continue; }
     mapaKolorow[h] = najblizszyKolorMarki(h, marka) || h;
   }
   const mapaCzcionek = {};

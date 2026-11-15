@@ -132,6 +132,7 @@ Ustawienia to lista: każdy wiersz pokazuje bieżącą wartość, a kliknięcie 
 | **Hasło** | **Zmień hasło** — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
 | **Motyw** | Wygląd aplikacji (rozdział „2.4 Motyw”). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (rozdział „2.6 Powiadomienia”). |
+| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (rozdział „2.9 Zestaw marki”). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (rozdział „26.2 Klucz dla AI”). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (rozdział „2.5 Miejsce i limity”). |
 | **Usuń konto** | Usunięcie konta (rozdział „2.7 Usuwanie konta”). |
@@ -191,6 +192,31 @@ Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomi
 Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem logowania. Wpisz swój adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. **Załącz pliki** dodaje zrzut ekranu, plik projektu albo PDF: do 5 plików, razem do 10 MB. Możesz też pisać na kontakt@makietka.app.
 
 ![Formularz kontaktowy z załącznikiem](https://makietka.app/img/instrukcja/k-kontakt.png)
+
+### 2.9 Zestaw marki
+
+Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — na koncie — i masz je w każdym projekcie. **Ustawienia konta** → **Zestaw marki** → **Edytuj zestaw marki…**; to samo okno otworzysz w Bibliotece, w kategorii **Marka** → **Edytuj zestaw marki…**.
+
+| Część | Co w niej ustawisz |
+|---|---|
+| **Kolory marki** | **Dodaj kolor** — kolor z próbnika albo kodem (np. `#1c2541`) i **nazwa**, np. „Granat marki”. Przełącznik **Pantone / CMYK** dodaje wartości C, M, Y, K — taki kolor przy zastosowaniu marki trafi do kolorów dodatkowych projektu (rozdział „23.1 Kolory dodatkowe”) i wydrukuje się osobną płytą. |
+| **Czcionki marki** | **Nagłówki** i **Tekst** — po jednej czcionce z listy. |
+| **Logo** | **Dodaj logo…** — pliki PNG, JPG, WebP albo SVG. Logo wstawisz potem z Biblioteki. |
+
+**Zapisz** zapisuje zestaw na koncie. Na liście ustawień wiersz **Zestaw marki** pokazuje np. „3 kol. · 1 logo”.
+
+![Zestaw marki](https://makietka.app/img/instrukcja/k-marka.png)
+
+Gdzie zobaczysz markę w projekcie:
+
+- **wybór koloru** — część **Marka** nad „Użytymi w projekcie” (rozdział „7.7 Wybór koloru”),
+- **lista czcionek** — grupa **Marka** na samej górze (rozdział „6.8 Czcionki”),
+- **Biblioteka** — kategoria **Marka**: logo, **Zastosuj markę do projektu…** i **Edytuj zestaw marki…** (rozdział „5.8 Biblioteka”),
+- **⋯** → **Zastosuj markę do projektu…** — zamiana kolorów i czcionek całego projektu na markowe (rozdział „4.3 Menu ⋯”).
+
+**Zastosuj markę do projektu.** Okno pokazuje każdy kolor i każdą czcionkę projektu z propozycją: kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu, pozostałe — czcionkę nagłówków. Na listach zmienisz propozycję albo wybierzesz „bez zmian”. **Zastosuj** zmienia strony, wzorce i style naraz; całość cofniesz jednym **Cofnij** (`Ctrl`+`Z`).
+
+![Zastosuj markę do projektu](https://makietka.app/img/instrukcja/k-marka-zastosuj.png)
 
 ## 3. Projekty
 
@@ -311,6 +337,8 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | **Sprawdź przed drukiem** | Lista miejsc do sprawdzenia w całym projekcie (rozdział „21 Sprawdź przed drukiem”). |
 | **Obrazy projektu…** | Wszystkie obrazy projektu (rozdział „8.5 Okno Obrazy projektu”). |
 | **Czcionki projektu…** | Zestaw czcionek i własne czcionki (rozdział „6.8 Czcionki”). |
+| **Zmień format projektu…** | Nowy format wszystkich sekcji — ze skalowaniem albo przesunięciem elementów (rozdział „11.9 Zmiana formatu ze skalowaniem”). |
+| **Zastosuj markę do projektu…** | Kolory i czcionki projektu zamienione na kolory i czcionki marki (rozdział „2.9 Zestaw marki”). |
 | **Kolory do druku…** | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (rozdział „23.1 Kolory dodatkowe”, „23.5 Tryb kolorów projektu”). |
 | **Współpraca…** | Zaproszenia do wspólnej pracy (rozdział „25 Współpraca”). |
 | **Jasny / ciemny motyw** | Przełącza motyw aplikacji (rozdział „2.4 Motyw”). |
@@ -487,6 +515,7 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (rozdział „5.11 Kolaż zdjęć”). |
 | **Teksty** | Gotowe napisy po łuku, w okręgu (pieczęć), falisty baner, flaga, wypukły tytuł (rozdział „6.14 Tekst po łuku, okręgu i ścieżce; wyginanie”). |
 | **Style tekstu** | Style akapitu projektu: kliknięcie nadaje styl zaznaczonemu tekstowi, a bez zaznaczenia wstawia nowy tekst w tym stylu (rozdział „6.4 Style”). |
+| **Marka** | Logo z zestawu marki, **Zastosuj markę do projektu…** i **Edytuj zestaw marki…** (rozdział „2.9 Zestaw marki”). |
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (rozdział „5.12 Kod QR i kod kreskowy”). |
 
 Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”).
@@ -698,6 +727,8 @@ Na górze listy **Czcionka** są **Użyte w projekcie** — czcionki z tekstów 
 
 ![Użyte w projekcie na liście czcionek](https://makietka.app/img/instrukcja/k-czcionki-uzyte.png)
 
+Gdy masz zestaw marki (rozdział „2.9 Zestaw marki”), nad nimi jest grupa **Marka** — czcionka nagłówków i czcionka tekstu marki.
+
 ### 6.9 Skład akapitu
 
 Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, jak tekst łamie się na wiersze. Te same ustawienia zapiszesz w stylu (rozdział „6.4 Style”).
@@ -888,6 +919,10 @@ Kliknięcie kółka koloru otwiera okno koloru:
 - **Użyte w projekcie** — kolory wypełnień, obrysów, tekstów (także fragmentów), przejść i teł ze wszystkich stron, wzorców i stylów, najczęstsze najpierw. Po najechaniu widać kod i liczbę użyć, a przy kolorze dodatkowym (rozdział „23.1 Kolory dodatkowe”) — jego nazwę, np. „PANTONE 186 C”.
 
 ![Użyte w projekcie w oknie koloru](https://makietka.app/img/instrukcja/k-kolory-uzyte.png)
+
+Gdy masz zestaw marki (rozdział „2.9 Zestaw marki”), nad „Użytymi w projekcie” jest część **Marka** — kolory marki z nazwami (nazwę i kod widać po najechaniu).
+
+![Kolory marki w oknie koloru](https://makietka.app/img/instrukcja/k-marka-kolor.png)
 
 ## 8. Obrazy
 
@@ -1129,7 +1164,7 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (rozdział „11.5 Rozkładówki”). |
 | **Rodzaj sekcji** | **Strony** albo **Okładka z grzbietem** — wtedy wymiary liczą się same (rozdział „11.6 Okładka z grzbietem”). |
-| **Format** | Rozmiar strony; **Szerokość (mm)** i **Wysokość (mm)**. Przycisk **Zamień orientację** (kartka ze strzałką) zamienia szerokość z wysokością. |
+| **Format** | Rozmiar strony; **Szerokość (mm)** i **Wysokość (mm)**. Przycisk **Zamień orientację** (kartka ze strzałką) zamienia szerokość z wysokością. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij **Zmień format i dopasuj elementy…** (rozdział „11.9 Zmiana formatu ze skalowaniem”). |
 | **Marginesy i spad** | Na schemacie strony: górny nad kartką, dolny pod nią, wewnętrzny i zewnętrzny po bokach, spad przy przerywanej ramce. Schemat od razu pokazuje proporcje. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (rozdział „11.8 Numeracja stron”). |
@@ -1203,6 +1238,29 @@ Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pe�
 ### 11.8 Numeracja stron
 
 Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (rozdział „12.6 Numer strony we wzorcu”). Numeracja zależy od ustawień sekcji (rozdział „11.4 Ustawienia sekcji”) i liczy strony po powieleniu serii. Inne zapisy numeru (rzymskie, z zerami) są w tabeli pól (rozdział „16.2 Pola dokumentu”).
+
+### 11.9 Zmiana formatu ze skalowaniem
+
+Kalendarz z A4 na A3, książka z B5 na A5 — format zmienisz razem z elementami:
+
+- jedna sekcja: okno sekcji (rozdział „11.4 Ustawienia sekcji”) → **Zmień format i dopasuj elementy…**,
+- cały projekt: **⋯** → **Zmień format projektu…**.
+
+1. Wybierz **Nowy format** z listy albo wpisz **Szerokość (mm)** i **Wysokość (mm)**; **Zamień orientację** obraca kartkę.
+2. Wybierz, **Co z elementami**:
+
+| Sposób | Co się dzieje |
+|---|---|
+| **Skaluj wszystko** | Elementy, pismo, linie, marginesy, prowadnice i wzorce zmieniają się proporcjonalnie. **Skala**: **Zmieść całą stronę (wyśrodkuj)**, **Dopasuj do szerokości** albo **Dopasuj do wysokości**. |
+| **Zostaw rozmiary, przesuń względem krawędzi** | Rozmiary zostają; element trzyma się najbliższej krawędzi albo środka. Tło i paski na całą szerokość lub wysokość rozciągają się na nową stronę. |
+| **Tylko zmień format** | Elementy zostają tam, gdzie są. |
+
+1. Podgląd **Teraz → Po zmianie** pokazuje pierwszą stronę przed i po. Pod nim są uwagi, np. ile elementów wyjdzie poza stronę.
+2. **Zmień format**. Całą zmianę cofniesz jednym **Cofnij** (`Ctrl`+`Z`).
+
+![Zmiana formatu z podglądem przed i po](https://makietka.app/img/instrukcja/k-format.png)
+
+Rozkładówki zmieniają się razem (obie strony), serie — na wszystkich powieleniach, bo zmienia się wzór. Okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”) ma format liczony ze środka: po zmianie formatu środka przelicza się sama, a jej elementy trzymają się tyłu, grzbietu i przodu. Elementy, które po zmianie wystają poza stronę, pokaże **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”).
 
 ## 12. Wzorce
 
@@ -1676,7 +1734,33 @@ Powiększenie zmienia tylko strony — podpisy i pasek zostają w swoim rozmiarz
 
 **Prezentacja** pokazuje jedną stronę albo rozkładówkę naraz, na całym ekranie. Strzałki i spacja przewracają strony, `Esc` albo **×** zamyka. Na telefonie przesunięcie palcem w bok przewraca stronę, w dół — zamyka prezentację.
 
-### 20.4 Podgląd na żywo
+### 20.4 Makieta 3D
+
+**Makieta 3D** obok **Separacje** na pasku podglądu pokazuje projekt jako wydrukowaną rzecz — można ją obracać i kartkować, zanim pójdzie do drukarni.
+
+![Makieta 3D: książka w twardej oprawie](https://makietka.app/img/instrukcja/k-makieta.png)
+
+| Rodzaj | Jak wygląda |
+|---|---|
+| **Książka – miękka oprawa** | Okładka z sekcji okładki (rozdział „11.6 Okładka z grzbietem”): przód, grzbiet i tył; środek kartka po kartce. Bez sekcji okładki okładką jest pierwsza strona. |
+| **Książka – twarda oprawa** | Grubsza okładka z tektury, większa od środka. |
+| **Notes na spirali** | Kartki na spirali wzdłuż grzbietu. |
+| **Kalendarz ścienny** | Karta po karcie na spirali u góry; przewrócona karta przechodzi na tył. |
+| **Kalendarz biurkowy** | Stojak z tektury; karty przewracają się przez górę na drugą stronę. |
+| **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — przód i tył. |
+
+Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka); zmienisz go listą **Rodzaj**.
+
+- **Obracanie** — przeciągnij myszą albo palcem.
+- **Przybliżanie** — kółko myszy, dwa palce albo **−** i **+**; **Widok** wraca do widoku z przodu.
+- **Kartkowanie** — strzałki pod makietą, klawisze `←` `→` albo stuknięcie w prawą lub lewą połowę obrazu. Pod spodem widać, co jest otwarte, np. „Strony 2–3” albo „Karta 3 z 13”.
+- **Pobierz obraz makiety** zapisuje obraz PNG z przezroczystym tłem — np. do oferty albo wpisu w sieci.
+
+![Makieta 3D: kalendarz ścienny](https://makietka.app/img/instrukcja/k-makieta-kalendarz.png)
+
+> **Wskazówka:** makieta pokazuje kształt i grubość publikacji z papieru i liczby stron (rozdział „11.6 Okładka z grzbietem”) — to podgląd, nie próbny wydruk. Kolory sprawdzisz w **Separacje** (rozdział „23.6 Podgląd separacji”).
+
+### 20.5 Podgląd na żywo
 
 Otwarty podgląd odświeża się sam, gdy projekt zmieni się gdzie indziej — na innym urządzeniu, u współpracownika albo przez AI. Zostaje w tym samym miejscu i powiększeniu; przerysowują się tylko zmienione strony.
 

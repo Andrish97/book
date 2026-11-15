@@ -52,6 +52,8 @@ Na wąskim telefonie [Wzorce], [Dane], [Instrukcja] i lupa przechodzą do menu [
 | [Sprawdź przed drukiem] | Lista miejsc do sprawdzenia w całym projekcie (→ 21). |
 | [Obrazy projektu…] | Wszystkie obrazy projektu (→ 8.5). |
 | [Czcionki projektu…] | Zestaw czcionek i własne czcionki (→ 6.8). |
+| [Zmień format projektu…] | Nowy format wszystkich sekcji — ze skalowaniem albo przesunięciem elementów (→ 11.9). |
+| [Zastosuj markę do projektu…] | Kolory i czcionki projektu zamienione na kolory i czcionki marki (→ 2.9). |
 | [Kolory do druku…] | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (→ 23.1, 23.5). |
 | [Współpraca…] | Zaproszenia do wspólnej pracy (→ 25). |
 | [Jasny / ciemny motyw] | Przełącza motyw aplikacji (→ 2.4). |
@@ -248,6 +250,7 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (→ 5.11). |
 | **Teksty** | Gotowe napisy po łuku, w okręgu (pieczęć), falisty baner, flaga, wypukły tytuł (→ 6.14). |
 | **Style tekstu** | Style akapitu projektu: kliknięcie nadaje styl zaznaczonemu tekstowi, a bez zaznaczenia wstawia nowy tekst w tym stylu (→ 6.4). |
+| **Marka** | Logo z zestawu marki, [Zastosuj markę do projektu…] i [Edytuj zestaw marki…] (→ 2.9). |
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (→ 5.12). |
 
 Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (→ 7.4), a zamknięty kształt może być ramką zdjęcia (→ 8.7).
@@ -490,6 +493,8 @@ i stylów, najczęstsze najpierw, z liczbą użyć (np. „Inter · 5×”). Ni�
 
 ![Użyte w projekcie na liście czcionek](k-czcionki-uzyte.png)
 
+Gdy masz zestaw marki (→ 2.9), nad nimi jest grupa **Marka** — czcionka nagłówków i czcionka tekstu marki.
+
 ## 6.9 Skład akapitu
 
 Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, jak tekst łamie się na wiersze.
@@ -712,6 +717,11 @@ Kliknięcie kółka koloru otwiera okno koloru:
   dodatkowym (→ 23.1) — jego nazwę, np. „PANTONE 186 C”.
 
 ![Użyte w projekcie w oknie koloru](k-kolory-uzyte.png)
+
+Gdy masz zestaw marki (→ 2.9), nad „Użytymi w projekcie” jest część **Marka** — kolory marki z nazwami
+(nazwę i kod widać po najechaniu).
+
+![Kolory marki w oknie koloru](k-marka-kolor.png)
 
 # 8. Obrazy
 
@@ -983,7 +993,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (→ 11.5). |
 | **Rodzaj sekcji** | **Strony** albo **Okładka z grzbietem** — wtedy wymiary liczą się same (→ 11.6). |
-| **Format** | Rozmiar strony; **Szerokość (mm)** i **Wysokość (mm)**. Przycisk [Zamień orientację] (kartka ze strzałką) zamienia szerokość z wysokością. |
+| **Format** | Rozmiar strony; **Szerokość (mm)** i **Wysokość (mm)**. Przycisk [Zamień orientację] (kartka ze strzałką) zamienia szerokość z wysokością. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij [Zmień format i dopasuj elementy…] (→ 11.9). |
 | **Marginesy i spad** | Na schemacie strony: górny nad kartką, dolny pod nią, wewnętrzny i zewnętrzny po bokach, spad przy przerywanej ramce. Schemat od razu pokazuje proporcje. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 11.8). |
@@ -1062,6 +1072,32 @@ Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pe�
 Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (→ 12.6).
 Numeracja zależy od ustawień sekcji (→ 11.4) i liczy strony po powieleniu serii. Inne zapisy
 numeru (rzymskie, z zerami) są w tabeli pól (→ 16.2).
+
+## 11.9 Zmiana formatu ze skalowaniem
+
+Kalendarz z A4 na A3, książka z B5 na A5 — format zmienisz razem z elementami:
+
+- jedna sekcja: okno sekcji (→ 11.4) → [Zmień format i dopasuj elementy…],
+- cały projekt: [⋯] → [Zmień format projektu…].
+
+1. Wybierz **Nowy format** z listy albo wpisz **Szerokość (mm)** i **Wysokość (mm)**; [Zamień orientację] obraca kartkę.
+2. Wybierz, **Co z elementami**:
+
+| Sposób | Co się dzieje |
+|---|---|
+| **Skaluj wszystko** | Elementy, pismo, linie, marginesy, prowadnice i wzorce zmieniają się proporcjonalnie. **Skala**: **Zmieść całą stronę (wyśrodkuj)**, **Dopasuj do szerokości** albo **Dopasuj do wysokości**. |
+| **Zostaw rozmiary, przesuń względem krawędzi** | Rozmiary zostają; element trzyma się najbliższej krawędzi albo środka. Tło i paski na całą szerokość lub wysokość rozciągają się na nową stronę. |
+| **Tylko zmień format** | Elementy zostają tam, gdzie są. |
+
+3. Podgląd **Teraz → Po zmianie** pokazuje pierwszą stronę przed i po. Pod nim są uwagi, np. ile elementów wyjdzie poza stronę.
+4. [Zmień format]. Całą zmianę cofniesz jednym [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
+
+![Zmiana formatu z podglądem przed i po](k-format.png)
+
+Rozkładówki zmieniają się razem (obie strony), serie — na wszystkich powieleniach, bo zmienia się wzór.
+Okładka z grzbietem (→ 11.6) ma format liczony ze środka: po zmianie formatu środka przelicza się
+sama, a jej elementy trzymają się tyłu, grzbietu i przodu. Elementy, które po zmianie wystają poza stronę,
+pokaże **Sprawdź przed drukiem** (→ 21).
 
 # 12. Wzorce
 
