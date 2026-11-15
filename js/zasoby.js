@@ -64,6 +64,17 @@ function zarejestruj(k, blob, zasob) {
   if (zasob) podlaczone.set(zasob, k);
 }
 
+// Nowy adres pliku zasobu odczytanego ponownie z magazynu – gdy dotychczasowy przestał działać (przeglądarka
+// potrafi pod obciążeniem nie odczytać pliku spod adresu wydanego wcześniej; #137). null, gdy pliku nie ma.
+export async function odswiezAdresZasobu(zasob) {
+  const k = zasob && !zasob.dataUrl && podlaczone.get(zasob);
+  if (!k) return null;
+  const blob = await transakcja('readonly', (m) => m.get(k)).catch(() => null);
+  if (!blob) return null;
+  zarejestruj(k, blob, zasob);
+  return adresy.get(k);
+}
+
 // Adres, z którego przeglądarka wczyta oryginał obrazu: świeżo dodany ma `dataUrl`, zapisany – plik w magazynie.
 export function adresZasobu(zasob) {
   if (!zasob) return null;
