@@ -788,6 +788,17 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   }
 
 
+  // Pola, które liczy aplikacja (np. układ okładki „okladka.wynik”), zostają takie, jakie są w projekcie –
+  // AI ich nie nadpisuje. Inaczej zapisany po swojemu układ wywracał otwieranie projektu (#141).
+  function zachowajWyliczone(zmiany, projekt) {
+    if (!Array.isArray(zmiany.sekcje)) return;
+    for (const s of zmiany.sekcje) {
+      if (!s?.okladka || typeof s.okladka !== 'object') continue;
+      const dawna = (projekt.sekcje || []).find((x) => x.id === s.id)?.okladka?.wynik;
+      if (dawna) s.okladka.wynik = dawna; else delete s.okladka.wynik;
+    }
+  }
+
   // Pobierz → zmień → zapisz z numerem wersji. Przy odmowie (projekt zmienił się w międzyczasie, np. ktoś
   // pisze w edytorze) pobiera projekt na nowo i nanosi zmianę jeszcze raz – raz.
   async function zmien(zmiana) {
@@ -795,6 +806,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       const { projekt, wersja } = await pobierz();
       const { zmiany, opis } = zmiana(projekt);
       if (!zmiany || !Object.keys(zmiany).length) return opis || 'Nic do zmiany.';
+      zachowajWyliczone(zmiany, projekt);
       const w = await rpc('ai_zapisz', { p_klucz: KLUCZ, p_znana_wersja: wersja, p_zmiany: zmiany });
       if (w?.konflikt && proba === 0) continue;
       if (w?.blad) throw new BladBazy(opisBledu(w));

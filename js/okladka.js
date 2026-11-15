@@ -59,6 +59,28 @@ export function domyslnaOkladka() {
 
 export const TRYBY_WYMIAROW = { auto: 'Policz same', grzbiet: 'Wpisz grzbiet', rozmiar: 'Wpisz rozmiar okładki' };
 
+// Zapisany układ okładki (liczy go aplikacja). Starszy albo obcy zapis – strefy jako obiekt { tyl: { x1, x2 }, … }
+// zamiast listy (np. zapisany przez AI) – zamieniamy na listę; zapis, z którego nie da się odczytać stref, pomijamy
+// (okładka przeliczy się od nowa), zamiast wywracać otwieranie projektu.
+const KOLEJNOSC_STREF = ['zawiniecie_l', 'tyl', 'big_l', 'grzbiet', 'big_p', 'przod', 'zawiniecie_p'];
+function poprawnyWynik(w) {
+  if (!w || typeof w !== 'object') return null;
+  const liczba = (v) => typeof v === 'number' && Number.isFinite(v);
+  let strefy = Array.isArray(w.strefy) ? w.strefy : KOLEJNOSC_STREF.filter((k) => w[k] && typeof w[k] === 'object').map((k) => ({ rodzaj: k, x1: w[k].x1, x2: w[k].x2 }));
+  strefy = strefy.filter((z) => z && typeof z.rodzaj === 'string' && liczba(z.x1) && liczba(z.x2)).sort((a, b) => a.x1 - b.x1 || a.x2 - b.x2);
+  if (!strefy.some((z) => z.rodzaj === 'tyl') || !strefy.some((z) => z.rodzaj === 'przod')) return null;
+  const szerokosc = liczba(w.szerokosc) ? w.szerokosc : Math.max(...strefy.map((z) => z.x2));
+  const gora = liczba(w.gora) ? w.gora : 0;
+  const wysokosc = liczba(w.wysokosc) ? w.wysokosc : (liczba(w.dol) ? gora + w.dol : null);
+  if (!liczba(wysokosc)) return null;
+  const g = strefy.find((z) => z.rodzaj === 'grzbiet');
+  const wynik = { ...w, strefy, szerokosc, wysokosc, gora, dol: liczba(w.dol) ? w.dol : wysokosc - gora };
+  if (!liczba(wynik.grzbiet)) wynik.grzbiet = g ? Math.round((g.x2 - g.x1) * 10) / 10 : 0;
+  if (!Array.isArray(w.strefy)) wynik.obcy = true; // zapis spoza aplikacji – przy przeliczeniu zostaje, jak jest
+  for (const k of KOLEJNOSC_STREF) delete wynik[k];
+  return wynik;
+}
+
 export function normalizujOkladke(o) {
   if (!o || typeof o !== 'object') return null;
   const d = domyslnaOkladka();
@@ -82,8 +104,10 @@ export function normalizujOkladke(o) {
       grzbiet_mm: liczbaLub(o.wymiary?.grzbiet_mm, 0, 0, 200),
       szerokosc_mm: liczbaLub(o.wymiary?.szerokosc_mm, 0, 0, 3000),
       wysokosc_mm: liczbaLub(o.wymiary?.wysokosc_mm, 0, 0, 3000),
+      // Górna granica pola okładki (twarda oprawa, wpisany rozmiar): zachowana z układu spoza aplikacji; brak – liczona.
+      ...(Number.isFinite(o.wymiary?.gora_mm) && o.wymiary.gora_mm >= 0 ? { gora_mm: o.wymiary.gora_mm } : {}),
     },
-    wynik: o.wynik && typeof o.wynik === 'object' ? o.wynik : null,
+    wynik: poprawnyWynik(o.wynik),
   };
 }
 
@@ -148,6 +172,7 @@ export function geometriaOkladki(projekt, sekcja, ciag = rozwin(projekt)) {
     dodaj('przod', panel);
     dodaj('zawiniecie_p', o.zawiniecie_mm);
     gora = Math.min(o.zawiniecie_mm, wysokosc / 4);
+    if (w.tryb === 'rozmiar' && Number.isFinite(w.gora_mm)) gora = Math.min(w.gora_mm, wysokosc / 2);
   } else {
     dodaj('tyl', panel);
     if (grzbiet > 0) dodaj('grzbiet', grzbiet);
@@ -272,6 +297,29 @@ export function przesunElementy(obiekty, stary, nowy, spad = 0) {
 const takiSam = (a, b) => a && b && a.szerokosc === b.szerokosc && a.wysokosc === b.wysokosc && a.gora === b.gora
   && JSON.stringify(a.strefy) === JSON.stringify(b.strefy);
 
+// Okładka z układem zapisanym spoza aplikacji (np. przez AI): jej wymiary i strefy zostają dokładnie takie,
+// jakie są – zapisujemy je jako wpisane ręcznie (rozmiar, grzbiet, zawinięcia, bigi), zamiast przeliczać
+// z papieru i przesuwać elementy. Zmienić je można potem w oknie sekcji.
+function zachowajObcyUklad(sekcja) {
+  const o = sekcja.okladka;
+  const w = o.wynik;
+  if (!w?.obcy) return;
+  const szer = (r) => { const z = w.strefy.find((x) => x.rodzaj === r); return z ? Math.round((z.x2 - z.x1) * 100) / 100 : 0; };
+  if (o.oprawa === 'twarda') {
+    o.zawiniecie_mm = szer('zawiniecie_l');
+    o.big_mm = szer('big_l');
+  }
+  o.wymiary = {
+    ...o.wymiary,
+    tryb: 'rozmiar',
+    szerokosc_mm: sekcja.wydruk.szerokosc_mm,
+    wysokosc_mm: sekcja.wydruk.wysokosc_mm,
+    grzbiet_mm: szer('grzbiet'),
+    ...(o.oprawa === 'twarda' ? { gora_mm: w.gora } : {}),
+  };
+  delete w.obcy;
+}
+
 // Przelicza wszystkie okładki projektu: format sekcji, wynik i położenie elementów na ich stronach.
 // Zwraca id sekcji, które się zmieniły (ich strony trzeba przerysować).
 export function przeliczOkladki(projekt, ciag = null) {
@@ -281,6 +329,7 @@ export function przeliczOkladki(projekt, ciag = null) {
   const c = ciag || rozwin(projekt);
   for (const sekcja of okladki) {
     sekcja.okladka = normalizujOkladke(sekcja.okladka);
+    zachowajObcyUklad(sekcja);
     const nowy = geometriaOkladki(projekt, sekcja, c);
     const stary = sekcja.okladka.wynik;
     const w = sekcja.wydruk;
