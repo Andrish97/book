@@ -131,7 +131,9 @@ export async function podlaczZasoby(projekt, pobierz = null, postep = null) {
   const brak = [];
   const doPobrania = [];
   for (const [id, z, k] of wpisy) {
-    if (pliki.has(k)) zarejestruj(k, pliki.get(k), z);
+    // Dwa podłączenia naraz (otwarcie projektu i zaraz potem dołączenie zmian z konta) czytają ten sam plik; drugie
+    // nie może podmienić adresu, bo unieważniłoby adres, z którego płótno właśnie wczytuje obraz – obraz znikał (#137).
+    if (pliki.has(k)) { if (adresy.has(k)) podlaczone.set(z, k); else zarejestruj(k, pliki.get(k), z); }
     else if (z.sciezka && pobierz) doPobrania.push([id, z]);
     else brak.push(z.nazwa || id);
   }
