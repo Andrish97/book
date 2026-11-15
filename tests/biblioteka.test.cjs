@@ -33,7 +33,7 @@ test('biblioteka: rejestr kategorii, wyszukiwanie we wszystkich kategoriach, kol
   await modul('js/biblioteka-elementy.js');
   const { kategorieBiblioteki, szukajWBibliotece, zarejestrujKategorie, elementBiblioteki } = await modul('js/biblioteka.js');
   const { polaKolazu, KSZTALTY, KOLAZE } = await modul('js/ksztalty-biblioteka.js');
-  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['ksztalty', 'strzalki', 'ozdobniki', 'kalendarze', 'wykresy', 'kolaze']);
+  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['ksztalty', 'strzalki', 'ozdobniki', 'kalendarze', 'wykresy', 'kolaze', 'kody']);
   assert.ok(KSZTALTY.length >= 50, `kształtów: ${KSZTALTY.length}`);
   assert.equal(KOLAZE.length, 12);
   // Wyszukiwanie bez polskich znaków, w każdej kategorii naraz.
@@ -55,7 +55,7 @@ test('kalendarz miesiąca z biblioteki: siatka marca 2027, niedziele i święta,
   await nowyProjekt(strona, 'Kalendarz');
   await strona.click('[data-akcja="biblioteka"]');
   await strona.waitForSelector('#dlg-biblioteka[open]');
-  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 6);
+  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 7);
   await strona.click('#kategorie-biblioteki [data-kategoria="kalendarze"]');
   await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="zwykly"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.kalendarz);
@@ -237,5 +237,19 @@ test('elementy biblioteki dodane przez AI skrótem (grupa z opisem, bez treści)
   assert.equal(wynik.wierszy, 2 + 5);
   assert.ok(wynik.napisy.includes('45') && wynik.napisy.includes('1b'), wynik.napisy.join('|'));
   assert.equal(wynik.pole, 58.5);
+  assert.deepEqual(bledy, []);
+});
+
+test('biblioteka: kategoria „Kody” wstawia kod QR i kod kreskowy EAN (#128, #134)', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kody');
+  await strona.click('[data-akcja="biblioteka"]');
+  await strona.waitForSelector('#dlg-biblioteka[open]');
+  await strona.click('#kategorie-biblioteki [data-kategoria="kody"]');
+  const nazwy = await strona.$$eval('#dlg-biblioteka [data-element]', (l) => l.map((x) => x.textContent.trim()));
+  assert.ok(nazwy.some((n) => /Kod QR/.test(n)) && nazwy.some((n) => /EAN/.test(n)), nazwy.join(' | '));
+  await strona.click('#dlg-biblioteka [data-element="qr"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.kod?.rodzaj === 'qr'));
   assert.deepEqual(bledy, []);
 });
