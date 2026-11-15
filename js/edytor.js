@@ -4168,6 +4168,26 @@ export class Edytor extends EventTarget {
       if (Math.abs(nowyZoom - this.zoom) / this.zoom > 0.02) this.ustawZoom(nowyZoom, sr);
     }, { capture: true, passive: false });
 
+    // Szybkie przesunięcie jednym palcem w poziomie po pustym miejscu, gdy cała strona mieści się na ekranie
+    // (zwykłe przybliżenie) – następna albo poprzednia strona (#146). Przy powiększeniu palec przewija widok.
+    let szybki = null;
+    k.addEventListener('touchstart', (e) => {
+      szybki = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() } : null;
+    }, { capture: true, passive: true });
+    k.addEventListener('touchend', (e) => {
+      const s = szybki;
+      szybki = null;
+      if (!s || e.touches.length || e.changedTouches.length !== 1) return;
+      const dx = e.changedTouches[0].clientX - s.x;
+      const dy = e.changedTouches[0].clientY - s.y;
+      const miesciSie = k.scrollWidth <= k.clientWidth + 2;
+      const zajety = this.canvas._currentTransform || this.aktywny?.isEditing || this.rysuje || this.kadruje || this._pioro || this._punkty || this.reka;
+      if (!miesciSie || zajety || performance.now() - s.t > 350 || Math.abs(dx) < 70 || Math.abs(dx) < 2 * Math.abs(dy)) return;
+      this.canvas._groupSelector = null;
+      this.canvas.requestRenderAll();
+      k.dispatchEvent(new CustomEvent('seriodruk:przewin-strone', { bubbles: true, detail: { kierunek: dx < 0 ? 1 : -1 } }));
+    }, { capture: true });
+
     const koniec = (e) => {
       if (gest && e.touches.length === 0) gest = null;
     };

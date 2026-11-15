@@ -217,7 +217,7 @@ zmienia strony, wzorce i style naraz; całość cofniesz jednym [Cofnij] (<kbd>C
 ## 3.1 Lista projektów
 
 Po zalogowaniu widzisz swoje projekty. Karta projektu pokazuje pierwszą stronę, nazwę i datę
-ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze.
+ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze – na stronie, którą ostatnio edytowałeś na tym urządzeniu.
 
 - **Chmurka** przy nazwie mówi, czy zmiany są na koncie: z ptaszkiem — zapisano, z zegarem —
   czekają na wysłanie, przekreślona — brak internetu (zmiany są na urządzeniu i wyślą się same).

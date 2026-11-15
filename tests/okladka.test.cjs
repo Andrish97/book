@@ -255,3 +255,35 @@ test('okładka zapisana spoza aplikacji (strefy jako obiekt, np. przez AI): proj
   assert.deepEqual(w.poz, [250, 60], 'elementy okładki nie przesunęły się');
   assert.deepEqual(bledy, []);
 });
+
+test('przejście na okładkę zaraz po dodaniu stron w środku pokazuje okładkę już przeliczoną (#144)', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Okładka na bieżąco');
+  await strona.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const { normalizujOkladke } = await import('./js/okladka.js');
+    const p = window.seriodruk.stan.projekt;
+    const ok = P.nowaSekcja('Okładka', { ...p.sekcje[0].wydruk });
+    ok.okladka = normalizujOkladke({ oprawa: 'miekka', srodek: [p.sekcje[0].id] });
+    p.sekcje.unshift(ok);
+    p.strony.unshift(P.nowaStrona('Okładka', ok.id));
+    await (await import('./js/app/zapis.js')).otworzProjekt(p);
+  });
+  const szerokosc = () => strona.evaluate(() => window.seriodruk.edytor.wydruk.szerokosc_mm);
+  const naOkladce = () => strona.evaluate(async () => (await import('./js/app/lista-stron.js')).przejdzDoStrony(0));
+  await naOkladce();
+  const przed = await szerokosc();
+  // Środek: 40 nowych stron, od razu (bez czekania na przeliczenie w tle) przejście na okładkę.
+  await strona.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const { przejdzDoStrony } = await import('./js/app/lista-stron.js');
+    const p = window.seriodruk.stan.projekt;
+    await przejdzDoStrony(1);
+    for (let i = 0; i < 40; i += 1) p.strony.push(P.nowaStrona(`S${i}`, p.sekcje[1].id));
+    await przejdzDoStrony(0);
+  });
+  const po = await szerokosc();
+  assert.ok(po > przed + 1, `grzbiet urósł od razu: ${przed} → ${po}`);
+  assert.deepEqual(bledy, []);
+});

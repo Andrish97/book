@@ -222,7 +222,7 @@ Gdzie zobaczysz markę w projekcie:
 
 ### 3.1 Lista projektów
 
-Po zalogowaniu widzisz swoje projekty. Karta projektu pokazuje pierwszą stronę, nazwę i datę ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze.
+Po zalogowaniu widzisz swoje projekty. Karta projektu pokazuje pierwszą stronę, nazwę i datę ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze – na stronie, którą ostatnio edytowałeś na tym urządzeniu.
 
 - **Chmurka** przy nazwie mówi, czy zmiany są na koncie: z ptaszkiem — zapisano, z zegarem — czekają na wysłanie, przekreślona — brak internetu (zmiany są na urządzeniu i wyślą się same). Najedź na nią albo przytrzymaj palec, żeby zobaczyć opis.
 - Plakietka **Udostępniony** — projekt ma link do podglądu (rozdział „24 Udostępnianie linkiem”). Kliknięcie plakietki otwiera okno linku.
@@ -2176,6 +2176,7 @@ Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie
 |---|---|
 | **Jeden palec** | Zaznacza i przesuwa elementy. |
 | **Dwa palce** | Przesuwają widok i powiększają. |
+| **Szybkie przesunięcie w bok** | Po pustym miejscu strony, gdy cała strona mieści się na ekranie: w lewo – następna strona, w prawo – poprzednia (przy rozkładówce cały arkusz). Wolne przeciągnięcie zaznacza ramką jak zwykle. |
 | **Dwa szybkie stuknięcia** | Jak podwójne kliknięcie: pisanie w tekście i komórce tabeli, wejście do grupy, edycja punktów. |
 | **Przytrzymanie** | Pokazuje podpowiedź, np. opis chmurki zapisu. |
 

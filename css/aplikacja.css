@@ -2893,6 +2893,10 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .podglad-biblioteki path.otwarta { fill: none; stroke-width: 4; }
 .podglad-biblioteki rect { fill: color-mix(in srgb, var(--akcent) 18%, var(--powierzchnia)); stroke: var(--tusz-2); stroke-width: 0.8; }
 .podglad-biblioteki rect.tlo { fill: var(--powierzchnia); }
+/* Kody w Bibliotece: ciemne moduły na jasnym polu, bez obrysu (prawdziwy QR i EAN-13). */
+.podglad-biblioteki rect.kod-tlo { fill: #fff; stroke: var(--linia); stroke-width: .6; }
+.podglad-biblioteki rect.kod-modul { fill: #1c1b19; stroke: none; }
+.podglad-biblioteki text.kod-cyfry { fill: #1c1b19; font: 600 5px/1 Inter, sans-serif; letter-spacing: .3px; }
 .podglad-biblioteki rect.pasek { fill: color-mix(in srgb, var(--akcent) 30%, var(--powierzchnia)); stroke: none; }
 /* Książka (#131B): podglądy spisu treści i skorowidza w Bibliotece. */
 .podglad-biblioteki path.linia { fill: none; stroke-width: 2.4; }
