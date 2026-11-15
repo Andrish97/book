@@ -2,6 +2,7 @@
 // kolaże zdjęć. Rejestracja w js/biblioteka.js.
 
 import { zarejestrujKategorie } from './biblioteka.js';
+import { qrMacierz, ean13, STRAZNIKI_EAN } from './kody.js';
 import { KSZTALTY, KOLAZE, svgKolazu, svgKsztaltu } from './ksztalty-biblioteka.js';
 
 const ksztaltyZ = (...kategorie) => () => KSZTALTY.filter((k) => kategorie.includes(k.kategoria)).map((k) => ({
@@ -58,11 +59,23 @@ zarejestrujKategorie({
 
 
 // Kody (#128, #134): kod QR i kod kreskowy EAN-13 / ISBN – ten sam element co z palety poleceń.
-const PODGLAD_QR = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="19" y="5" width="32" height="32" rx="1" class="tlo"/>'
-  + '<path d="M22 8h9v9h-9zM39 8h9v9h-9zM22 25h9v9h-9zM34 20h3v3h-3zM39 25h3v3h-3zM44 30h4v4h-4zM34 30h3v4h-3zM40 20h8v2h-8z"/>'
-  + '</svg>';
-const PODGLAD_EAN = `<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="10" y="6" width="50" height="38" rx="1" class="tlo"/>${
-  [13, 15, 18, 20, 23, 26, 28, 31, 33, 36, 39, 41, 44, 47, 49, 52, 55].map((x, i) => `<rect x="${x}" y="9" width="${i % 3 ? 1.2 : 2}" height="${i === 0 || i === 8 || i === 16 ? 30 : 26}"/>`).join('')}</svg>`;
+// Podglądy kodów rysowane prawdziwym generatorem (js/kody.js): QR z adresu i EAN-13 z przykładowego numeru.
+function podgladQR() {
+  const { rozmiar: n, moduly } = qrMacierz('makietka.app', 'L');
+  const m = 42 / n; const x0 = 35 - 21; const y0 = 26 - 21;
+  let r = '';
+  for (let y = 0; y < n; y += 1) for (let x = 0; x < n; x += 1) if (moduly[y][x]) r += `<rect class="kod-modul" x="${(x0 + x * m).toFixed(2)}" y="${(y0 + y * m).toFixed(2)}" width="${(m + 0.05).toFixed(2)}" height="${(m + 0.05).toFixed(2)}"/>`;
+  return `<svg viewBox="0 0 70 52" aria-hidden="true"><rect class="kod-tlo" x="${x0 - 3}" y="${y0 - 3}" width="48" height="48" rx="2"/>${r}</svg>`;
+}
+function podgladEAN() {
+  const { moduly } = ean13('590123412345');
+  const m = 54 / moduly.length; const x0 = 8;
+  let r = '';
+  moduly.forEach((b, i) => { if (b) r += `<rect class="kod-modul" x="${(x0 + i * m).toFixed(2)}" y="7" width="${(m + 0.04).toFixed(2)}" height="${STRAZNIKI_EAN.has(i) ? 36 : 32}"/>`; });
+  return `<svg viewBox="0 0 70 52" aria-hidden="true"><rect class="kod-tlo" x="4" y="3" width="62" height="46" rx="2"/>${r}<text class="kod-cyfry" x="35" y="47" text-anchor="middle">5 901234 123457</text></svg>`;
+}
+const PODGLAD_QR = podgladQR();
+const PODGLAD_EAN = podgladEAN();
 zarejestrujKategorie({
   id: 'kody', nazwa: 'Kody', ikona: 'kod', kolejnosc: 70,
   elementy: () => [
