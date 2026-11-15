@@ -356,7 +356,7 @@ export async function wylaczUdostepnienie() {
     if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
     odswiezOknoUdostepniania();
     $('#udostepnij-komunikat').textContent = 'Link unieważniony.';
-    if (document.body.dataset.ekran === 'projekty') pokazProjekty();
+    if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
   } catch (e) {
     $('#udostepnij-komunikat').textContent = `Nie udało się unieważnić: ${chmura.komunikatBledu(e)}`;
   }

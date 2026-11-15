@@ -364,7 +364,17 @@ export class Edytor extends EventTarget {
   // Jedna strona rozkładówki może mieć pole `sasiednia`: { bok: 'lewa' | 'prawa', obiekty, warstwy } – drugą
   // stronę tej rozkładówki. Jej elementy, które przechodzą przez grzbiet, są wtedy widoczne na tej stronie
   // (przycięte do niej ze spadem), ale nie da się ich tu zmienić ani zapisać – należą do sąsiedniej strony.
-  async wczytajArkusz(strony, zasoby) {
+  // Wczytania idą po kolei (#137): Fabric czyści płótno i dodaje elementy asynchronicznie, więc dwa nakładające się
+  // wczytania (np. otwarcie projektu i zaraz potem dołączenie zmian z konta albo przeliczenie okładki) potrafiły
+  // zostawić na płótnie tylko część elementów strony.
+  wczytajArkusz(strony, zasoby) {
+    const poprzednie = this._kolejkaWczytan || Promise.resolve();
+    const teraz = poprzednie.catch(() => {}).then(() => this._wczytajArkusz(strony, zasoby));
+    this._kolejkaWczytan = teraz;
+    return teraz;
+  }
+
+  async _wczytajArkusz(strony, zasoby) {
     this._poza = [];
     const sasiednia = strony.length === 1 ? strony[0].sasiednia || null : null;
     const doWczytania = [...strony.flatMap((s) => s.obiekty || []), ...(sasiednia?.obiekty || [])];

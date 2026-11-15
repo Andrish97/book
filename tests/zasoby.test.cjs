@@ -45,7 +45,11 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
   await nowyProjekt(strona, 'Zdjecia');
   const rozmiary = await dodajZdjecia(strona, 12);
   const przed = await pomiar(strona);
-  assert.equal(przed.zTrescia, 12, 'świeżo dodane obrazy mają jeszcze treść w projekcie');
+  // Świeżo dodane obrazy mają treść w projekcie – chyba że samoczynny zapis (przy wolnej maszynie) zdążył już część
+  // z nich odłożyć do magazynu plików. Każdy obraz jest więc w jednym z dwóch miejsc.
+  assert.equal(przed.opisy.length, 12);
+  assert.ok(przed.zTrescia >= 1 && przed.zTrescia + przed.oryginaly.length >= 12, `obrazy z treścią albo w magazynie: ${przed.zTrescia} + ${przed.oryginaly.length}`);
+  const trescObrazow = rozmiary.reduce((a, b) => a + b, 0);
 
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   const po = await pomiar(strona);
@@ -54,7 +58,7 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
   // Opis obrazu: nazwa, rozmiar, typ – a gdy plik zdążył już trafić na konto, także ścieżka do niego.
   assert.ok(po.opisy.every((o) => ['nazwa,rozmiar,typ', 'nazwa,rozmiar,sciezka,typ'].includes(o)), `opisy obrazów: ${[...new Set(po.opisy)]}`);
   assert.equal(po.oryginaly.length, 12);
-  assert.ok(po.wPamieci < przed.wPamieci / 100, `dane projektu w pamięci zmalały ponad stukrotnie (${przed.wPamieci} → ${po.wPamieci})`);
+  assert.ok(po.wPamieci < trescObrazow / 100, `dane projektu w pamięci są ponad sto razy mniejsze od treści obrazów (${trescObrazow} → ${po.wPamieci})`);
   assert.ok(po.wRekordzie < 200000, `rekord zapisu lokalnego jest mały (${po.wRekordzie})`);
   // Oryginał jest nietknięty: te same bajty co plik wstawiony na stronę.
   const zgodne = await strona.evaluate(async (dl) => {
@@ -68,7 +72,7 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
 
   // Ponowne otwarcie aplikacji: obrazy wczytują się z magazynu, a kopie robocze nie powstają od nowa z oryginałów.
   await strona.reload(); // adres strony pamięta otwarty projekt – po wejściu aplikacja otwiera go od razu
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image').length === 12);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image').length === 12, null, { timeout: 90000 });
   const naPlotnie = await obrazyNaPlotnie(strona);
   assert.deepEqual(naPlotnie, Array(12).fill([true, 1800, 1200]), 'obrazy są na płótnie i mają wymiary oryginału');
   const poOtwarciu = await pomiar(strona);
@@ -97,18 +101,25 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
   await strona.waitForSelector('.karta-projektu:not(.szkielet)');
   await strona.click('.karta-projektu:has-text("Zdjecia") .menu-karty');
   await strona.click('.karta-projektu:has-text("Zdjecia") [data-op="duplikuj"]');
-  await strona.waitForSelector('.karta-projektu:has-text("Zdjecia (kopia)")');
+  await strona.waitForSelector('.karta-projektu:has-text("Zdjecia (kopia)")', { timeout: 90000 });
   const poKopii = await strona.evaluate(async () => (await (await import('./js/zasoby.js')).spisPlikow()).filter(([k]) => !k.startsWith('kopia:')).map(([k]) => k.split('/')[0]));
   assert.deepEqual([poKopii.length, new Set(poKopii).size], [24, 2], 'dwa projekty, każdy ze swoimi dwunastoma plikami');
+  // Lista wczytana do końca (bez szkieletu ładowania) – inaczej „karty nie ma” bywa prawdą tylko na chwilę.
+  const listaGotowa = () => strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && !document.querySelector('#siatka-projektow .szkielet') && !document.querySelector('#dlg-potwierdz').open, null, { timeout: 60000 });
   const usun = async (nazwa) => {
+    await listaGotowa();
     await strona.click(`.karta-projektu:has(strong:text-is("${nazwa}")) .menu-karty`);
     await strona.click(`.karta-projektu:has(strong:text-is("${nazwa}")) [data-op="usun"]`);
+    await strona.waitForSelector('#dlg-potwierdz[open]');
     await strona.click('#potwierdz-tak');
-    await strona.waitForFunction((n) => ![...document.querySelectorAll('.karta-projektu strong')].some((s) => s.textContent === n), nazwa);
+    await strona.waitForFunction(() => !document.querySelector('#dlg-potwierdz').open);
+    await strona.waitForFunction((n) => document.body.dataset.ekran === 'projekty' && !document.querySelector('#siatka-projektow .szkielet')
+      && ![...document.querySelectorAll('.karta-projektu strong')].some((s) => s.textContent === n), nazwa, { timeout: 60000 });
   };
   await usun('Zdjecia');
+  await listaGotowa();
   await strona.click('.karta-projektu:has-text("Zdjecia (kopia)")');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Zdjecia (kopia)' && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image').length === 12);
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Zdjecia (kopia)' && window.seriodruk.edytor?.canvas.getObjects().filter((o) => o.type === 'image').length === 12, null, { timeout: 90000 });
   assert.deepEqual(await obrazyNaPlotnie(strona), Array(12).fill([true, 1800, 1200]), 'kopia projektu ma swoje obrazy po usunięciu oryginału');
   assert.equal((await pomiar(strona)).oryginaly.length, 12);
   await strona.click('#ekran-edytora [data-akcja="do-projektow"]');

@@ -89,7 +89,22 @@ $('#filtry-projektow').addEventListener('click', (e) => {
 
 // cicho: odświeżenie listy, która już jest na ekranie (zmiana na koncie z innego urządzenia) – bez
 // szkieletu ładowania i bez ruszania adresu.
+// Ciche odświeżenie nie przebudowuje kart, gdy na którejś jest otwarte menu – czeka, aż się zamknie (#137);
+// inaczej menu znikało spod palca w chwili, gdy w tle skończyła się wysyłka albo przyszła zmiana z konta.
+const otwarteMenuKarty = () => Boolean($('#siatka-projektow .menu:not([hidden])'));
+let odswiezPoMenu = null;
+function odswiezGdyMenuZamkniete() {
+  if (odswiezPoMenu) return;
+  odswiezPoMenu = setInterval(() => {
+    if (otwarteMenuKarty()) return;
+    clearInterval(odswiezPoMenu);
+    odswiezPoMenu = null;
+    if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
+  }, 300);
+}
+
 export async function pokazProjekty({ cicho = false } = {}) {
+  if (cicho && otwarteMenuKarty()) { odswiezGdyMenuZamkniete(); return; }
   const siatka = $('#siatka-projektow');
   if (!cicho) {
     pokazEkran('projekty');
@@ -112,6 +127,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
   for (const b of filtry.querySelectorAll('[data-filtr]')) b.setAttribute('aria-pressed', String(b.dataset.filtr === filtr));
   // Osierocone pliki na koncie – ciche sprzątanie najwyżej raz na dobę (#90).
   if (stan.uzytkownik) import('../miejsce.js').then((m) => m.sprzatnijWTle(stan.uzytkownik.id)).catch(() => {});
+  if (cicho && otwarteMenuKarty()) { odswiezGdyMenuZamkniete(); return; } // menu otwarte w trakcie pobierania listy
   siatka.replaceChildren();
   $('#pusto-projekty').hidden = wszystkie.length > 0;
   $('.projekty-naglowek .przyciski-naglowka').hidden = wszystkie.length === 0;
@@ -268,7 +284,7 @@ async function duplikujProjekt(w) {
   } catch (e) {
     powiadom(`Nie udało się zduplikować: ${chmura.komunikatBledu(e)}`, true);
   }
-  pokazProjekty();
+  if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); // bez zmiany adresu – patrz niżej (#137)
 }
 
 async function zmienNazweProjektu(w) {
@@ -278,7 +294,7 @@ async function zmienNazweProjektu(w) {
   projekt.nazwa = nazwa;
   projekt.zmieniono = new Date().toISOString();
   await zapiszGdziekolwiek(projekt);
-  pokazProjekty();
+  if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); // bez zmiany adresu – patrz niżej (#137)
 }
 
 // Eksport całego projektu do pliku .makietka (z obrazami) – kopia zapasowa
@@ -313,7 +329,9 @@ async function usunProjekt(w) {
   } catch (e) {
     powiadom(`Nie udało się usunąć: ${chmura.komunikatBledu(e)}`, true);
   }
-  if (document.body.dataset.ekran === 'projekty') pokazProjekty();
+  // Odświeżenie listy po czynności na karcie – ciche: pełne ustawia adres #/projekty, a spóźniona zmiana adresu
+  // wyrzucała z edytora, gdy w tym czasie otwierano już inny projekt (#137).
+  if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
   return true;
 }
 
