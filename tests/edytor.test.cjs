@@ -119,9 +119,10 @@ test('telefon: praca w pionie – panele z dołu, schowany wielokąt; trzymany p
   await strona.setViewportSize({ width: 360, height: 740 });
   assert.deepEqual(await pasek(), [true, true]);
   await strona.setViewportSize({ width: 412, height: 915 });
-  // Trudne narzędzia (wielokąt) są na telefonie schowane; podstawowe zostają, a pióro i tabela działają dotykiem.
+  // Pasek wstawiania na telefonie (#139, #142): podstawowe narzędzia w pasku, reszta (wielokąt, rysowanie, pióro,
+  // komentarz, „Kopiuj wygląd”) pod jego przyciskiem ⋯.
   await strona.tap('.zakladki-mobilne button.aktywny').catch(() => {});
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'rysuj', 'pioro', 'dodaj-tabele', 'biblioteka', 'komentarz']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja || b.id)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
 
   // Telefon trzymany poziomo (i każde zbyt niskie okno): plansza; przycisk wraca do projektów, gdzie poziom jest w porządku.
   const plansza = () => strona.evaluate(() => getComputedStyle(document.querySelector('#blokada-ekranu')).display);
@@ -307,14 +308,15 @@ test('telefon: tabela, pióro i edycja punktów są dostępne i działają dotyk
     const c = window.seriodruk.edytor.canvas; const v = c.viewportTransform; const r = c.upperCanvasEl.getBoundingClientRect();
     return [r.left + mx * v[0] + v[4], r.top + my * v[3] + v[5]];
   }, [x, y]);
-  // Pasek wstawiania mieści się na ekranie, a pióro i tabela są na nim widoczne (wielokąt zostaje schowany).
+  // Pasek wstawiania mieści się na ekranie; tabela jest w pasku, pióro w menu ⋯ paska (#139), wielokąt też.
   const pasek = await strona.evaluate(() => {
     const p = document.querySelector('#pasek-narzedzi').getBoundingClientRect();
-    const widac = (a) => getComputedStyle(document.querySelector(`[data-akcja="${a}"]`)).display !== 'none';
+    const widac = (a) => getComputedStyle(document.querySelector(`.pasek-narzedzi [data-akcja="${a}"]`)).display !== 'none';
     return { lewo: p.left, prawo: p.right, okno: innerWidth, pioro: widac('pioro'), tabela: widac('dodaj-tabele'), wielokat: widac('dodaj-wielokat') };
   });
   assert.ok(pasek.lewo >= 0 && pasek.prawo <= pasek.okno, `pasek na ekranie: ${pasek.lewo}–${pasek.prawo} z ${pasek.okno}`);
-  assert.deepEqual([pasek.pioro, pasek.tabela, pasek.wielokat], [true, true, false]);
+  assert.deepEqual([pasek.pioro, pasek.tabela, pasek.wielokat], [false, true, false]);
+  assert.ok(await strona.evaluate(() => Boolean(document.querySelector('#menu-narzedzi [data-akcja="pioro"]'))), 'pióro w menu ⋯ paska');
 
   // Tabela: wstawienie z okna i dwa stuknięcia w komórkę – pisanie w niej.
   await strona.tap('[data-akcja="dodaj-tabele"]');
@@ -332,7 +334,8 @@ test('telefon: tabela, pióro i edycja punktów są dostępne i działają dotyk
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.exitEditing(); e.canvas.discardActiveObject(); e.canvas.requestRenderAll(); });
 
   // Pióro: stuknięcia stawiają punkty, „Zakończ kształt” w panelu właściwości kończy kształt.
-  await strona.tap('[data-akcja="pioro"]');
+  await strona.tap('#przycisk-narzedzia-wiecej');
+  await strona.tap('#menu-narzedzi [data-akcja="pioro"]');
   for (const [px, py] of [[30, 120], [90, 120], [60, 170]]) { await strona.touchscreen.tap(...(await naEkranie(px, py))); await strona.waitForTimeout(450); }
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.punktyPiora), 3);
   await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');

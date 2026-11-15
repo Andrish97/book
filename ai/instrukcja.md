@@ -360,9 +360,14 @@ Pasek nad stroną wstawia nowe elementy (rozdział „5.1 Wstawianie”).
 | **Rysuj** | `B` | Linię rysowaną odręcznie (rozdział „7.3 Rysowanie odręczne”). |
 | **Pióro** | `N` | Kształt z punktów i łuków (rozdział „7.4 Pióro i edycja punktów”). |
 | **Tabela** | — | Tabelę z wierszami i kolumnami (rozdział „9 Tabela”). |
-| **Biblioteka** | — | Gotowe elementy: kształty, strzałki, dymki, ramki, kalendarz miesiąca, wykresy, kolaże zdjęć (rozdział „5.8 Biblioteka”). |
+| **Biblioteka** | — | Gotowe elementy: kształty, strzałki, dymki, ramki, linie, etykiety, planer, kalendarz miesiąca, wykresy, kolaże zdjęć (rozdział „5.8 Biblioteka”). |
+| **Komentarz** | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (rozdział „25.7 Komentarze”). |
 
 Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (rozdział „4.6 Prawy dolny róg i menu widoku”).
+
+**Na telefonie** w pasku są podstawowe narzędzia: **Tekst**, **Prostokąt**, **Elipsa**, **Linia**, **Obraz**, **Tabela** i **Biblioteka**. Pozostałe są pod przyciskiem **⋯** na końcu paska: **Wielokąt albo gwiazda**, **Rysowanie odręczne**, **Pióro**, **Komentarz** i **Kopiuj wygląd** (dla zaznaczonego elementu, → 5.13). Gdy jedno z tych narzędzi działa, przycisk **⋯** pokazuje jego ikonę na niebieskim tle — stuknięcie go kończy narzędzie.
+
+![Menu ⋯ paska wstawiania na telefonie](https://makietka.app/img/instrukcja/k-wstaw-telefon.png)
 
 ### 4.5 Właściwości i warstwy
 
@@ -605,7 +610,7 @@ Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Spr
 
 Wygląd jednego elementu przeniesiesz na inny jednym kliknięciem — bez przepisywania kolorów i grubości.
 
-**Gdzie:** przycisk **Kopiuj wygląd** (pędzel) w nagłówku panelu właściwości, obok **Kopiuj do schowka** i **Duplikuj**, oraz **⋯** przy elemencie na liście warstw → **Kopiuj wygląd**. Skróty `Ctrl`+`Alt`+`C` / `Ctrl`+`Alt`+`V` to dodatek.
+**Gdzie:** przycisk **Kopiuj wygląd** (pędzel) w nagłówku panelu właściwości, obok **Kopiuj do schowka** i **Duplikuj**, **⋯** przy elemencie na liście warstw → **Kopiuj wygląd**, a na telefonie także **⋯** na końcu paska wstawiania → **Kopiuj wygląd** (rozdział „4.4 Pasek wstawiania”). Skróty `Ctrl`+`Alt`+`C` / `Ctrl`+`Alt`+`V` to dodatek.
 
 ![Kopiuj wygląd w nagłówku panelu](https://makietka.app/img/instrukcja/k-malarz.png)
 

@@ -30,6 +30,7 @@ import { OknoKontroli } from '../okno-kontroli.js';
 import { otworzKoloryDruku, zamienKoloryNaDozwolone } from './kolory-druku-okno.js';
 import { stanUszlachetnien, ustawPokazUszlachetnien } from '../kolory-druku.js';
 import { obsluzKlawisz } from '../skroty.js';
+import { ikona } from '../ikony.js';
 import { $, powiadom, pobierz, bezpiecznaNazwa, zamknijMenu, przelaczMenu } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
@@ -498,11 +499,13 @@ edytor.addEventListener('element-sasiedniej-strony', () => {
   });
 });
 edytor.addEventListener('rysowanie', (e) => {
-  $('[data-akcja="rysuj"]').setAttribute('aria-pressed', String(e.detail));
+  for (const b of document.querySelectorAll('[data-akcja="rysuj"]')) b.setAttribute('aria-pressed', String(e.detail));
+  odswiezWiecejNarzedzi();
   if (e.detail) powiadom('Rysowanie odręczne: przeciągaj po stronie. Esc albo ponowne kliknięcie „Rysuj” kończy.');
 });
 edytor.addEventListener('pioro', (e) => {
-  $('[data-akcja="pioro"]').setAttribute('aria-pressed', String(e.detail));
+  for (const b of document.querySelectorAll('[data-akcja="pioro"]')) b.setAttribute('aria-pressed', String(e.detail));
+  odswiezWiecejNarzedzi();
   if (e.detail) powiadom('Pióro: kliknij, żeby postawić punkt; kliknij i przeciągnij, żeby zrobić łuk. Enter kończy kształt, kliknięcie w pierwszy punkt go zamyka.');
 });
 edytor.addEventListener('punkty', (e) => {
@@ -582,6 +585,7 @@ const malarz = { wyglad: null, wielokrotny: false };
 function ustawMalarza(wl) {
   document.body.classList.toggle('malarz-aktywny', wl);
   for (const b of document.querySelectorAll('[data-akcja="malarz"]')) b.setAttribute('aria-pressed', String(wl));
+  odswiezWiecejNarzedzi();
 }
 function kopiujWyglad(wielokrotny = false) {
   const w = wygladZ(edytor.aktywny);
@@ -715,7 +719,7 @@ const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan
 dodajPolecenie({ nazwa: 'Komentarze', opis: 'Lista komentarzy projektu (przycisk z licznikiem na górnym pasku)', wykonaj: () => otworzKomentarze(), dostepne: () => Boolean(stan.projekt) });
 dodajPolecenie({ nazwa: 'Dodaj komentarz', opis: 'Narzędzie „Komentarz”: kliknij miejsce albo element na stronie', wykonaj: () => narzedzieKomentarz(), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Znajdź i zamień', opis: 'Teksty wszystkich stron i wzorców (Ctrl+F, Ctrl+H)', wykonaj: () => otworzZnajdz(), dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: 'Malarz formatów: wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C; przycisk w nagłówku panelu)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
+dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: 'Malarz formatów: wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C; przycisk w nagłówku panelu właściwości, na telefonie też w ⋯ paska narzędzi)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
 dodajPolecenie({ nazwa: 'Zapisz w bibliotece', opis: 'Zaznaczenie trafi do Biblioteki → Moje elementy, w każdym projekcie', wykonaj: () => zapiszWBibliotece(), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
 dodajPolecenie({ nazwa: 'Moje elementy', opis: 'Biblioteka – elementy zapisane na koncie', wykonaj: () => otworzBiblioteke('moje'), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Sprawdzaj pisownię', opis: 'Włącz albo wyłącz falistą linię pod słowami spoza słownika (menu widoku)', wykonaj: () => { sprawdzanie.ustawWlaczona(!sprawdzanie.wlaczona()); panel.zbuduj(); }, dostepne: wEdytorze });
@@ -740,3 +744,42 @@ export { edytujWzorzec } from './wzorce.js';
 
 // Zestaw marki z konta (#131D): kolory i czcionki marki w wyborze koloru i na liście czcionek od razu.
 if (stan.uzytkownik) import('../zestaw-marki.js').then((m) => m.wczytajMarke()).catch(() => {});
+
+// ---------- Telefon: ⋯ paska wstawiania (#139, #142) ----------
+// Narzędzia, które nie mieszczą się w pasku na małym ekranie (wielokąt, rysowanie, pióro, komentarz, „Kopiuj
+// wygląd”), są w menu pod ⋯. Gdy któreś działa, ⋯ pokazuje jego ikonę i jest wciśnięty – stuknięcie kończy narzędzie.
+const NARZEDZIA_W_MENU = ['rysuj', 'pioro', 'komentarz'];
+function aktywneZMenu() {
+  if (document.body.classList.contains('malarz-aktywny')) return 'malarz';
+  return NARZEDZIA_W_MENU.find((a) => $(`.pasek-narzedzi [data-akcja="${a}"]`)?.getAttribute('aria-pressed') === 'true') || null;
+}
+export function odswiezWiecejNarzedzi() {
+  const b = $('#przycisk-narzedzia-wiecej');
+  if (!b) return;
+  const akt = aktywneZMenu();
+  const nazwa = akt || 'wiecej';
+  if (b.dataset.ikona !== nazwa) {
+    b.dataset.ikona = nazwa;
+    b.querySelector(':scope > svg.ikona')?.remove();
+    b.insertAdjacentHTML('afterbegin', ikona(nazwa));
+  }
+  const etykieta = akt ? `Zakończ: ${$(`#menu-narzedzi [data-akcja="${akt}"]`).textContent.trim()}` : 'Więcej narzędzi';
+  // Tylko przy zmianie – obserwator paska reaguje na każdy zapis atrybutu.
+  if (b.getAttribute('aria-pressed') !== String(Boolean(akt))) b.setAttribute('aria-pressed', String(Boolean(akt)));
+  if (b.getAttribute('aria-label') !== etykieta) { b.setAttribute('aria-label', etykieta); b.title = etykieta; }
+}
+$('#przycisk-narzedzia-wiecej')?.addEventListener('click', (e) => {
+  const akt = aktywneZMenu();
+  if (akt) { zamknijMenu(); if (akt === 'malarz') zakonczMalarza(); else akcje[akt](); return; }
+  const menu = $('#menu-narzedzi');
+  $('#menu-narzedzi-malarz').disabled = !edytor.aktywny;
+  const r = e.currentTarget.getBoundingClientRect();
+  menu.style.top = `${Math.round(r.bottom + 6)}px`;
+  przelaczMenu(e.currentTarget, menu);
+  if (menu.hidden) return;
+  menu.style.translate = '';
+  const w = menu.offsetWidth;
+  menu.style.left = `${Math.round(Math.max(8, Math.min(window.innerWidth - 8 - w, r.right - w)))}px`;
+});
+$('#menu-narzedzi')?.addEventListener('click', (e) => { if (e.target.closest('button')) zamknijMenu(); });
+new MutationObserver(odswiezWiecejNarzedzi).observe($('#pasek-narzedzi'), { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });

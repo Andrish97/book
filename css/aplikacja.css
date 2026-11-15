@@ -2686,10 +2686,8 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
 /* ---------- Kompaktowość i ikony (#103) ---------- */
 /* Eksport PDF: ustawienia zaawansowane w zwijanej sekcji z podsumowaniem w nagłówku. */
 details.zaawansowane { border-top: 1px solid var(--linia); padding-top: 10px; }
-details.zaawansowane > summary { cursor: pointer; font-weight: 600; font-size: 13.5px; list-style: none; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+details.zaawansowane > summary { cursor: pointer; font-weight: 600; font-size: 13.5px; list-style: none; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 details.zaawansowane > summary::-webkit-details-marker { display: none; }
-details.zaawansowane > summary::before { content: '›'; display: inline-block; transition: transform .15s; color: var(--cichy); }
-details.zaawansowane[open] > summary::before { transform: rotate(90deg); }
 details.zaawansowane > summary .ciche { font-weight: 400; font-size: 12.5px; }
 details.zaawansowane[open] > summary .ciche { display: none; }
 details.zaawansowane > :not(summary) { margin-top: 12px; }
@@ -3127,4 +3125,35 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
   .makieta-scena { height: 52vh; }
   .makieta-model { flex: 1 1 100%; }
   .makieta-sterowanie [data-akcja="makieta-pobierz"] { margin-left: 0; flex: 1 1 100%; justify-content: center; }
+}
+
+/* ---------- Telefon: menu ⋯ paska wstawiania (#139, #142) ----------
+   Na małym ekranie pasek ma podstawowe narzędzia; wielokąt, rysowanie, pióro, komentarz i „Kopiuj wygląd”
+   są pod jego przyciskiem ⋯. Gdy jedno z tych narzędzi działa, ⋯ pokazuje jego ikonę – stuknięcie je kończy. */
+.menu-narzedzi { position: fixed; top: 0; left: 0; right: auto; min-width: 220px; }
+.menu-narzedzi button[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); }
+.menu-narzedzi button:disabled { opacity: .45; }
+@media (max-width: 600px) {
+  .pasek-narzedzi .w-menu-narzedzi { display: none !important; }
+}
+
+/* Podgląd (#139): gdy napisy przycisków są schowane, przyciski wyglądają jak ikony górnego paska edytora
+   (bez obramowania), a nie jak puste ramki. */
+@media (max-width: 1180px) {
+  .pasek-podgladu .przycisk:has(> .etyk) { border-color: transparent; background: transparent; box-shadow: none; width: var(--dotyk); min-width: var(--dotyk); padding: 0; justify-content: center; gap: 0; color: var(--tusz-2); position: relative; }
+  .pasek-podgladu .przycisk:has(> .etyk)[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); }
+  .pasek-podgladu .komentarze-podgladu .licznik-komentarzy { position: absolute; top: 2px; right: 0; margin: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; }
+}
+#przycisk-narzedzia-wiecej { display: none; }
+@media (max-width: 600px) { .pasek-narzedzi #przycisk-narzedzia-wiecej { display: flex; } }
+#menu-wiecej { min-width: 280px; }
+.menu kbd { white-space: nowrap; }
+
+/* Przełączniki segmentowe w oknach (#139): gdy tor zajmuje całą szerokość, opcje dzielą ją po równo –
+   jak w oknie „Nowy projekt”, „Ustawienia sekcji”, „Usuń tło” (a nie stłoczone z lewej). */
+dialog .przelacznik-segmentowy label { flex: 1 1 0; min-width: 0; }
+dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
+@media (max-width: 600px) {
+  .usun-tlo-narzedzia .segmenty { flex: 1 1 100%; }
+  .usun-tlo-narzedzia .segmenty button { flex: 1 1 0; justify-content: center; }
 }

@@ -75,9 +75,17 @@ Pasek nad stroną wstawia nowe elementy (→ 5.1).
 | [Rysuj] | <kbd>B</kbd> | Linię rysowaną odręcznie (→ 7.3). |
 | [Pióro] | <kbd>N</kbd> | Kształt z punktów i łuków (→ 7.4). |
 | [Tabela] | — | Tabelę z wierszami i kolumnami (→ 9). |
-| [Biblioteka] | — | Gotowe elementy: kształty, strzałki, dymki, ramki, kalendarz miesiąca, wykresy, kolaże zdjęć (→ 5.8). |
+| [Biblioteka] | — | Gotowe elementy: kształty, strzałki, dymki, ramki, linie, etykiety, planer, kalendarz miesiąca, wykresy, kolaże zdjęć (→ 5.8). |
+| [Komentarz] | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (→ 25.7). |
 
 Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (→ 4.6).
+
+**Na telefonie** w pasku są podstawowe narzędzia: [Tekst], [Prostokąt], [Elipsa], [Linia], [Obraz], [Tabela]
+i [Biblioteka]. Pozostałe są pod przyciskiem [⋯] na końcu paska: [Wielokąt albo gwiazda], [Rysowanie odręczne],
+[Pióro], [Komentarz] i [Kopiuj wygląd] (dla zaznaczonego elementu, → 5.13). Gdy jedno z tych narzędzi
+działa, przycisk [⋯] pokazuje jego ikonę na niebieskim tle — stuknięcie go kończy narzędzie.
+
+![Menu ⋯ paska wstawiania na telefonie](k-wstaw-telefon.png@telefon)
 
 ## 4.5 Właściwości i warstwy
 
@@ -345,7 +353,8 @@ Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Spr
 Wygląd jednego elementu przeniesiesz na inny jednym kliknięciem — bez przepisywania kolorów i grubości.
 
 **Gdzie:** przycisk [Kopiuj wygląd] (pędzel) w nagłówku panelu właściwości, obok [Kopiuj do schowka]
-i [Duplikuj], oraz [⋯] przy elemencie na liście warstw → [Kopiuj wygląd]. Skróty
+i [Duplikuj], [⋯] przy elemencie na liście warstw → [Kopiuj wygląd], a na telefonie także [⋯] na końcu paska
+wstawiania → [Kopiuj wygląd] (→ 4.4). Skróty
 <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd> to dodatek.
 
 ![Kopiuj wygląd w nagłówku panelu](k-malarz.png)
