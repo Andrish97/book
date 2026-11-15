@@ -829,6 +829,7 @@
       <div class="obecnosc" role="group" aria-label="Kto jeszcze jest w projekcie" hidden></div>
       <button class="przycisk" data-akcja="podglad-prezentacja" data-ikona="dopasuj" title="Jedna strona albo rozkładówka naraz, na całym ekranie"><span class="etyk">Prezentacja</span></button>
       <button class="przycisk tylko-wlasciciel" data-akcja="podglad-separacje" data-ikona="separacje" title="Podgląd płyt druku: CMYK, kolory dodatkowe, uszlachetnienia, pokrycie farbą"><span class="etyk">Separacje</span></button>
+      <button class="przycisk tylko-wlasciciel" data-akcja="podglad-makieta" data-ikona="makieta" title="Projekt jako wydrukowana rzecz: książka, notes, kalendarz, kartka – z kartkowaniem i obracaniem"><span class="etyk">Makieta 3D</span></button>
       <button class="przycisk tylko-wlasciciel tylko-wlasciciel-projektu" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona tylko-gosc" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
@@ -1475,6 +1476,35 @@
           <p class="podpowiedz" id="separacje-wynik" role="status"></p>
         </div>
       </div>
+    </div>
+  </dialog>
+
+  <!-- Makieta 3D (#131D): projekt jako wydrukowana rzecz – js/app/makieta-okno.js, js/makieta-3d.js. -->
+  <dialog id="dlg-makieta" class="dialog-szeroki dialog-makieta" aria-labelledby="makieta-tytul">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2 id="makieta-tytul">Makieta 3D</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="makieta-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <div class="makieta-scena">
+        <canvas id="makieta-plotno" aria-label="Makieta projektu – przeciągnij, żeby obrócić; stuknij w prawą lub lewą połowę, żeby przewrócić kartkę"></canvas>
+        <p id="makieta-brak-3d" class="komunikat blad" hidden>Ta przeglądarka nie pokazuje grafiki 3D (WebGL jest wyłączony). Włącz przyspieszenie sprzętowe albo otwórz projekt w innej przeglądarce.</p>
+      </div>
+      <div class="makieta-sterowanie">
+        <label class="pole makieta-model"><span>Rodzaj</span><select id="makieta-model"></select></label>
+        <div class="makieta-kartki" role="group" aria-label="Kartkowanie">
+          <button type="button" class="przycisk-ikona" id="makieta-wstecz" data-ikona="wstecz" title="Poprzednia kartka (←)" aria-label="Poprzednia kartka"></button>
+          <span id="makieta-polozenie" class="ciche" aria-live="polite"></span>
+          <button type="button" class="przycisk-ikona" id="makieta-dalej" data-ikona="dalej" title="Następna kartka (→)" aria-label="Następna kartka"></button>
+        </div>
+        <div class="powiekszenie" role="group" aria-label="Powiększenie makiety">
+          <button type="button" class="powiekszenie-krok" data-akcja="makieta-minus" data-ikona="minus" aria-label="Oddal" title="Oddal"></button>
+          <button type="button" class="wartosc-zoom" data-akcja="makieta-przod" title="Widok z przodu">Widok</button>
+          <button type="button" class="powiekszenie-krok" data-akcja="makieta-plus" data-ikona="plus" aria-label="Przybliż" title="Przybliż"></button>
+        </div>
+        <button type="button" class="przycisk" data-akcja="makieta-pobierz" data-ikona="pobierz">Pobierz obraz makiety</button>
+      </div>
+      <p class="ciche makieta-podpowiedz">Przeciągnij, żeby obrócić; kółkiem myszy albo dwoma palcami przybliżasz. Kartki przewracasz strzałkami albo stuknięciem w prawą lub lewą połowę.</p>
     </div>
   </dialog>
 
