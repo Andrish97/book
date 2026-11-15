@@ -8,7 +8,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 ## W toku
 
 | # | Uwaga | Stan |
-|---|---|---|
+|---|---|
+| 139: przegląd spójności i prostoty całości (panel właściwości, nazwy, ikony, widoczność funkcji, telefon, oba motywy) | ⏳ po partii D i #138 |---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
 | 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
