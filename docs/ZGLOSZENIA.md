@@ -15,6 +15,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
+| 138 | Nadpisywanie pracy – pełny audyt zapisu, naprawa przyczyn w aplikacji, kopie awaryjne i dziennik zapisów | 🔄 najwyższy priorytet |
+| 137 | Niestabilne testy – przyczyny i naprawa | 🔄 |
 
 ## Czeka (kolejne etapy)
 
