@@ -1766,25 +1766,25 @@ Powiększenie zmienia tylko strony — podpisy i pasek zostają w swoim rozmiarz
 
 ### 20.4 Makieta 3D
 
-**Makieta 3D** obok **Separacje** na pasku podglądu pokazuje projekt jako wydrukowaną rzecz — można ją obracać i kartkować, zanim pójdzie do drukarni.
+**Makieta 3D** obok **Separacje** na pasku podglądu pokazuje projekt jako wydrukowaną rzecz — jak zdjęcie produktu w studiu: prawdziwe wymiary stron, grubość z papieru i liczby stron, światło z cieniem na stole albo ścianie. Można ją obracać i kartkować, zanim pójdzie do drukarni.
 
-![Makieta 3D: książka w twardej oprawie](https://makietka.app/img/instrukcja/k-makieta.png)
+![Makieta 3D: otwarta książka w twardej oprawie](https://makietka.app/img/instrukcja/k-makieta.png)
 
 | Rodzaj | Jak wygląda |
 |---|---|
-| **Książka – miękka oprawa** | Okładka z sekcji okładki (rozdział „11.6 Okładka z grzbietem”): przód, grzbiet i tył; środek kartka po kartce. Bez sekcji okładki okładką jest pierwsza strona. |
-| **Książka – twarda oprawa** | Grubsza okładka z tektury, większa od środka. |
-| **Notes na spirali** | Kartki na spirali wzdłuż grzbietu. |
-| **Kalendarz ścienny** | Karta po karcie na spirali u góry; przewrócona karta przechodzi na tył. |
-| **Kalendarz biurkowy** | Stojak z tektury; karty przewracają się przez górę na drugą stronę. |
-| **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — przód i tył. |
+| **Książka – miękka oprawa** | Leży na stole. Okładka z sekcji okładki (rozdział „11.6 Okładka z grzbietem”): przód, grzbiet i tył; środek kartka po kartce, otwarte strony wygięte przy grzbiecie, krawędzie kartek widać z boku. Bez sekcji okładki okładką jest pierwsza strona. |
+| **Książka – twarda oprawa** | Okładka z tektury, większa od środka i z lekkim połyskiem, grzbiet zaokrąglony. |
+| **Notes na spirali** | Kartki na podwójnej spirali z drutu wzdłuż grzbietu, z otworami. |
+| **Kalendarz ścienny** | Wisi na ścianie na wieszaku; karta po karcie na spirali u góry, przewrócona karta przechodzi na tył. |
+| **Kalendarz biurkowy** | Stoi na biurku na stojaku z grubej tektury; karty przewracają się przez górę na drugą stronę. |
+| **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — leży na stole, przód i tył. |
 
 Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka); zmienisz go listą **Rodzaj**.
 
-- **Obracanie** — przeciągnij myszą albo palcem.
+- **Obracanie** — przeciągnij myszą albo palcem. Światło idzie razem z widokiem, a makieta nie daje się obrócić pod stół ani za ścianę.
 - **Przybliżanie** — kółko myszy, dwa palce albo **−** i **+**; **Widok** wraca do widoku z przodu.
 - **Kartkowanie** — strzałki pod makietą, klawisze `←` `→` albo stuknięcie w prawą lub lewą połowę obrazu. Pod spodem widać, co jest otwarte, np. „Strony 2–3” albo „Karta 3 z 13”.
-- **Pobierz obraz makiety** zapisuje obraz PNG z przezroczystym tłem — np. do oferty albo wpisu w sieci.
+- **Pobierz obraz makiety** zapisuje obraz PNG w dużej rozdzielczości (dłuższy bok 3200 px), z tłem studia i cieniem, w tym samym kadrze co na ekranie — np. do oferty albo wpisu w sieci. W ciemnym motywie tło jest ciemne.
 
 ![Makieta 3D: kalendarz ścienny](https://makietka.app/img/instrukcja/k-makieta-kalendarz.png)
 

@@ -2,7 +2,7 @@
 // k-marka-zastosuj.png (zestaw marki), k-makieta.png, k-makieta-kalendarz.png (makieta 3D).
 // Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje zrobZrzutyPartiiD na końcu; tu można je zrobić osobno.
 //
-// Użycie:  node scripts/zrzuty-partii-d.cjs [adres] [ciemny]
+// Użycie:  node scripts/zrzuty-partii-d.cjs [adres] [ciemny] [makieta]   (makieta – tylko kadry makiety 3D)
 
 const { otworz, nowyProjekt } = require('../tests/pomoc.cjs');
 
@@ -55,13 +55,14 @@ async function przygotujProjekt(d) {
   });
 }
 
-async function zrobZrzutyPartiiD(kadr, { ciemny = false } = {}) {
+async function zrobZrzutyPartiiD(kadr, { ciemny = false, tylkoMakieta = false } = {}) {
   const sprzatanie = [];
   const { strona: d } = await otworz({ after: (f) => sprzatanie.push(f) });
   try {
     await d.emulateMedia({ colorScheme: ciemny ? 'dark' : 'light' });
 
     // Zestaw marki w ustawieniach konta.
+    if (!tylkoMakieta) {
     await d.evaluate(async () => {
       const m = await import('./js/zestaw-marki.js');
       await m.zapiszMarke({
@@ -81,12 +82,15 @@ async function zrobZrzutyPartiiD(kadr, { ciemny = false } = {}) {
     await d.waitForTimeout(400);
     await kadr(d, 'k-marka.png', { obszar: '#dlg-marka', zaznacz: '#marka-dodaj-kolor', margines: 8 });
     await d.click('#dlg-marka [data-akcja="marka-zamknij"]');
+    }
 
     await d.evaluate(() => { location.hash = '#/projekty'; });
     await d.waitForFunction(() => document.body.dataset.ekran === 'projekty');
     await nowyProjekt(d, 'Cztery pory roku');
-    await d.waitForFunction(() => (globalThis.makietkaMarka?.kolory || []).length === 3);
+    if (!tylkoMakieta) await d.waitForFunction(() => (globalThis.makietkaMarka?.kolory || []).length === 3);
     await przygotujProjekt(d);
+
+    if (!tylkoMakieta) {
 
     // Kolory marki w oknie koloru.
     await d.evaluate(() => window.seriodruk.edytor.zaznacz('tlo1'));
@@ -117,6 +121,7 @@ async function zrobZrzutyPartiiD(kadr, { ciemny = false } = {}) {
     await d.waitForTimeout(500);
     await kadr(d, 'k-format.png', { obszar: '#dlg-format', zaznacz: '#form-format input[value="skaluj"] + span', margines: 8 });
     await d.click('#dlg-format [data-akcja="format-zamknij"]');
+    }
 
     // Makieta 3D w podglądzie.
     await d.click('[data-akcja="podglad"]');
@@ -124,12 +129,18 @@ async function zrobZrzutyPartiiD(kadr, { ciemny = false } = {}) {
     await d.click('[data-akcja="podglad-makieta"]');
     await d.waitForSelector('#dlg-makieta[open]');
     await d.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
+    // Książka otwarta na rozkładówce – kartki wygięte przy grzbiecie, cień w zgięciu i pod książką.
+    await d.click('#makieta-dalej');
+    await d.click('#makieta-dalej');
+    await d.waitForTimeout(1500);
+    await d.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
     await d.waitForTimeout(600);
     await kadr(d, 'k-makieta.png', { obszar: '#dlg-makieta', margines: 0 });
     await d.selectOption('#makieta-model', 'kalendarz_scienny');
     await d.click('#makieta-dalej');
     await d.waitForTimeout(1200);
     await d.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
+    await d.waitForTimeout(600);
     await kadr(d, 'k-makieta-kalendarz.png', { obszar: '.makieta-scena', zaznacz: '#makieta-model', margines: 8 });
   } finally {
     for (const f of sprzatanie) await f();
@@ -140,5 +151,5 @@ module.exports = { zrobZrzutyPartiiD };
 
 if (require.main === module) {
   const { kadr } = require('./zrzuty-instrukcji.cjs');
-  zrobZrzutyPartiiD(kadr, { ciemny: process.argv[3] === 'ciemny' }).catch((e) => { console.error(e); process.exit(1); });
+  zrobZrzutyPartiiD(kadr, { ciemny: process.argv[3] === 'ciemny', tylkoMakieta: process.argv.includes('makieta') }).catch((e) => { console.error(e); process.exit(1); });
 }
