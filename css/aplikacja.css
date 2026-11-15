@@ -1258,6 +1258,14 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
   .podglad-tresc { padding: 16px 12px 60px; }
   .podglad-opis { display: none; }
 }
+/* Wąski ekran (#154): przy tylu przyciskach nazwa projektu nie mieściła się w pasku – idzie do drugiej linii,
+   na całą szerokość, pod przyciskami. */
+@media (max-width: 860px) {
+  .pasek-podgladu { flex-wrap: wrap; height: auto; min-height: var(--pasek); row-gap: 0; padding-bottom: 6px; }
+  .pasek-podgladu > * { min-height: 0; }
+  .pasek-podgladu .tytul-ekranu { order: 10; flex: 1 0 100% !important; margin: -4px 0 0; padding: 0 4px; font-size: 13.5px !important; font-weight: 600; line-height: 1.3; color: var(--tusz-2); }
+  .pasek-podgladu .tytul-ekranu ~ .odstep { display: block !important; flex: 1 1 auto; }
+}
 
 /* ---------- Podgląd udostępniony linkiem ---------- */
 
@@ -2375,6 +2383,7 @@ button.zalacznik:hover { border-color: var(--akcent); color: var(--akcent); }
 }
 /* Góra: pasek aplikacji wyższy o wycięcie, przyciski pod nim. */
 .pasek-aplikacji { height: calc(var(--pasek) + var(--bezp-gora)); padding-top: var(--bezp-gora); }
+@media (max-width: 860px) { .pasek-aplikacji.pasek-podgladu { height: auto; min-height: calc(var(--pasek) + var(--bezp-gora)); } }
 /* Ekrany bez paska u góry. */
 #ekran-logowania, #ekran-start { padding-top: var(--bezp-gora); padding-bottom: var(--bezp-dol); }
 .logowanie-akcje {
@@ -3004,7 +3013,8 @@ body.malarz-aktywny .upper-canvas { cursor: copy !important; }
 .separacje-uklad { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
 .separacje-obraz { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .separacje-strony { display: flex; align-items: center; gap: 8px; }
-#separacje-plotno { width: 100%; height: auto; max-height: 68vh; object-fit: contain; background: #fff; box-shadow: var(--cien-1, 0 1px 3px rgba(0,0,0,.2)); border-radius: 2px; }
+/* Wymiary z proporcji strony (#154): przy „width: 100%” i ograniczonej wysokości białe tło płótna było szersze od strony. */
+#separacje-plotno { width: auto; height: auto; max-width: 100%; max-height: 68vh; align-self: center; background: #fff; box-shadow: var(--cien-1, 0 1px 3px rgba(0,0,0,.2)); border-radius: 2px; }
 .separacje-ustawienia { display: flex; flex-direction: column; gap: 10px; }
 .lista-plyt { display: flex; flex-direction: column; gap: 6px; }
 .lista-plyt .plyta { gap: 8px; }

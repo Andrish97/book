@@ -65,6 +65,7 @@ const P = {
   strony: '<rect x="4" y="3" width="11" height="15" rx="1.5"/><path d="M9 21h9.5a1.5 1.5 0 0 0 1.5-1.5V8"/>',
   suwaki: '<path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/>',
   zamknij: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
+  prezentacja: '<rect x="3" y="4" width="18" height="12.5" rx="1.5"/><path d="M10.2 7.8v5l4.2-2.5z"/><path d="M12 16.5V20"/><path d="M8.5 20h7"/>',
   oko: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
   okoOff: '<path d="M3 3l18 18"/><path d="M10.6 5.6A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.6 3.4"/><path d="M6.6 6.6C4 8.3 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.4-1.1"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/>',
   doLewej: '<path d="M4 6h16"/><path d="M4 10h10"/><path d="M4 14h16"/><path d="M4 18h10"/>',
