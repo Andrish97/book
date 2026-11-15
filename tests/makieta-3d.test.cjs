@@ -167,3 +167,47 @@ test('makieta 3D w podglądzie: przycisk obok „Separacji”, książka z okła
   await strona.waitForSelector('#dlg-makieta', { state: 'hidden' });
   assert.deepEqual(bledy, []);
 });
+
+// #157: drugie otwarcie makiety nie może trafić na utracony kontekst („brak WebGL” na każdym urządzeniu),
+// a po utracie kontekstu (telefon w tle) obraz wraca sam.
+test('makieta 3D: kolejne otwarcia i utrata kontekstu WebGL – obraz rysuje się dalej', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t, { telefon: true });
+  await nowyProjekt(strona, 'Makieta');
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForSelector('.podglad-strona[data-id]');
+  const rysuje = () => strona.evaluate(() => {
+    const c = document.querySelector('#makieta-plotno');
+    const x = document.createElement('canvas'); x.width = 40; x.height = 40;
+    const g = x.getContext('2d'); g.drawImage(c, 0, 0, 40, 40);
+    const d = g.getImageData(0, 0, 40, 40).data;
+    let rozne = 0;
+    for (let i = 4; i < d.length; i += 4) if (Math.abs(d[i] - d[0]) + Math.abs(d[i + 1] - d[1]) + Math.abs(d[i + 2] - d[2]) > 30) rozne += 1;
+    return { brak: !document.querySelector('#makieta-brak-3d').hidden, rozne };
+  });
+  for (let i = 0; i < 3; i += 1) {
+    await strona.evaluate(() => document.querySelector('[data-akcja="podglad-makieta"]').click());
+    await strona.waitForSelector('#dlg-makieta[open]');
+    await strona.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 20000 });
+    await strona.waitForTimeout(300);
+    const r = await rysuje();
+    assert.equal(r.brak, false, `otwarcie ${i + 1}: komunikat o braku WebGL`);
+    assert.ok(r.rozne > 50, `otwarcie ${i + 1}: na płótnie jest makieta (${r.rozne})`);
+    if (i < 2) {
+      await strona.evaluate(() => document.querySelector('[data-akcja="makieta-zamknij"]').click());
+      await strona.waitForSelector('#dlg-makieta', { state: 'hidden' });
+    }
+  }
+  // Utrata i powrót kontekstu.
+  await strona.evaluate(async () => {
+    const ext = document.querySelector('#makieta-plotno').getContext('webgl').getExtension('WEBGL_lose_context');
+    ext.loseContext();
+    await new Promise((r) => setTimeout(r, 200));
+    ext.restoreContext();
+  });
+  await strona.waitForTimeout(1500);
+  const po = await rysuje();
+  assert.equal(po.brak, false);
+  assert.ok(po.rozne > 50, `po przywróceniu kontekstu makieta znów widoczna (${po.rozne})`);
+  assert.deepEqual(bledy, []);
+});

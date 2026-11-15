@@ -842,15 +842,19 @@ function teksturaKrawedzi() {
 
 // Renderer na płótnie: ustawTeksture(klucz, obraz|płótno), maTeksture(klucz), rysuj(quady, kamera, opcje), zwolnij().
 // kamera: { srodek, odleglosc, obrotY, obrotX }; opcje: { ciemny }. Zwraca null, gdy przeglądarka nie ma WebGL.
+// Powód ostatniej porażki (#157) – okno pokazuje go w komunikacie zamiast samego „nie działa”.
+export let powodBrakuWebGL = '';
 export function utworzRenderer(plotno) {
+  powodBrakuWebGL = '';
   const atr = { preserveDrawingBuffer: true, antialias: true, alpha: false, premultipliedAlpha: false };
   const gl = plotno.getContext('webgl', atr) || plotno.getContext('experimental-webgl', atr);
-  if (!gl) return null;
+  if (!gl) { powodBrakuWebGL = 'przeglądarka nie udostępnia WebGL'; return null; }
+  if (gl.isContextLost()) { powodBrakuWebGL = 'kontekst grafiki został utracony'; return null; }
   const shader = (typ, zrodlo) => {
     const s = gl.createShader(typ);
     gl.shaderSource(s, zrodlo);
     gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { const log = gl.getShaderInfoLog(s); console.error(log); powodBrakuWebGL ||= `karta graficzna nie skompilowała programu (${String(log).trim().slice(0, 160)})`; }
     return s;
   };
   const program = (vs, fs) => {
@@ -858,7 +862,7 @@ export function utworzRenderer(plotno) {
     gl.attachShader(p, shader(gl.VERTEX_SHADER, vs));
     gl.attachShader(p, shader(gl.FRAGMENT_SHADER, fs));
     gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return null;
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { powodBrakuWebGL ||= `karta graficzna nie połączyła programu (${String(gl.getProgramInfoLog(p)).trim().slice(0, 160)})`; return null; }
     const u = {};
     const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < n; i += 1) { const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
@@ -1121,10 +1125,15 @@ export function utworzRenderer(plotno) {
       }
       wylaczAtrybuty();
     },
+    // Zwalnia zasoby, ale nie sam kontekst (#157): płótno jest to samo przy każdym otwarciu okna, a utracony
+    // kontekst wraca z getContext() jako martwy – drugie otwarcie makiety kończyło się „brak WebGL”.
     zwolnij() {
       for (const t of tekstury.values()) gl.deleteTexture(t);
       tekstury.clear();
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      for (const m of [mapaKlucz, mapaKontakt]) { gl.deleteTexture(m.t); gl.deleteFramebuffer(m.fb); gl.deleteRenderbuffer(m.rb); }
+      for (const x of Object.values(P)) gl.deleteProgram(x.p);
+      gl.deleteBuffer(bufor);
+      gl.deleteBuffer(buforTla);
     },
   };
 }

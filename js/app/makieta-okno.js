@@ -6,7 +6,7 @@ import { $, powiadom, bezpiecznaNazwa } from '../ui.js';
 import { rozwin } from '../serie.js';
 import { renderujCel } from '../zlozenie.js';
 import { geometriaOkladki, jestOkladka, normalizujOkladke } from '../okladka.js';
-import { MODELE, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer, widokModelu } from '../makieta-3d.js';
+import { MODELE, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer, widokModelu, powodBrakuWebGL } from '../makieta-3d.js';
 
 const dlg = $('#dlg-makieta');
 const plotno = $('#makieta-plotno');
@@ -193,6 +193,22 @@ function dopasujPlotno() {
 }
 const obserwator = new ResizeObserver(() => { if (st) dopasujPlotno(); });
 
+function pokazBrak3D() {
+  const k = $('#makieta-brak-3d');
+  k.hidden = Boolean(renderer);
+  if (!renderer) k.textContent = `Nie udało się pokazać makiety 3D: ${powodBrakuWebGL || 'nieznany błąd grafiki'}. Spróbuj zamknąć i otworzyć okno jeszcze raz; jeśli to nie pomoże – zaktualizuj przeglądarkę (Chrome) albo włącz w niej przyspieszenie sprzętowe.`;
+}
+
+// Utrata kontekstu WebGL (#157): telefon odbiera go np. przy przejściu aplikacji w tło. Bez preventDefault
+// nie wraca nigdy; po powrocie renderer powstaje od nowa, a tekstury stron wczytują się jeszcze raz.
+plotno.addEventListener('webglcontextlost', (e) => { e.preventDefault(); renderer = null; });
+plotno.addEventListener('webglcontextrestored', () => {
+  if (!st) return;
+  renderer = utworzRenderer(plotno);
+  pokazBrak3D();
+  if (renderer) { st.scena = null; rysujPozniej(); }
+});
+
 export function otworzMakiete(projekt) {
   const ciag = rozwin(projekt);
   const okladka = projekt.sekcje.find((s) => jestOkladka(s)) || null;
@@ -206,7 +222,7 @@ export function otworzMakiete(projekt) {
   st = { projekt, ciag, strony, okladka: geometria ? okladka : null, geometria, format, kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null } };
   if (!dlg.open) dlg.showModal();
   renderer = utworzRenderer(plotno);
-  $('#makieta-brak-3d').hidden = Boolean(renderer);
+  pokazBrak3D();
   if (!renderer) return;
   let zapamietany = null;
   try { zapamietany = sessionStorage.getItem(`makieta:${projekt.id}`); } catch { /* bez pamięci */ }
