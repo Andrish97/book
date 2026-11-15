@@ -3,7 +3,8 @@
 
 import { zarejestrujKategorie } from './biblioteka.js';
 import { qrMacierz, ean13, STRAZNIKI_EAN } from './kody.js';
-import { KSZTALTY, KOLAZE, svgKolazu, svgKsztaltu } from './ksztalty-biblioteka.js';
+import { KSZTALTY, KOLAZE, svgKolazu, svgKsztaltu, wzorKresek } from './ksztalty-biblioteka.js';
+import { SZABLONY, svgSzablonu } from './szablony-planera.js';
 
 const ksztaltyZ = (...kategorie) => () => KSZTALTY.filter((k) => kategorie.includes(k.kategoria)).map((k) => ({
   id: k.id, nazwa: k.nazwa, slowa: `${k.slowa} ${k.kategoria}`, podglad: svgKsztaltu(k),
@@ -12,7 +13,49 @@ const ksztaltyZ = (...kategorie) => () => KSZTALTY.filter((k) => kategorie.inclu
 
 zarejestrujKategorie({ id: 'ksztalty', nazwa: 'Kształty', ikona: 'ksztalty', kolejnosc: 10, elementy: ksztaltyZ('Figury', 'Gwiazdy i serca', 'Ikony') });
 zarejestrujKategorie({ id: 'strzalki', nazwa: 'Strzałki i dymki', ikona: 'strzalka', kolejnosc: 20, elementy: ksztaltyZ('Strzałki', 'Dymki') });
-zarejestrujKategorie({ id: 'ozdobniki', nazwa: 'Ozdobniki i ramki', ikona: 'ozdobnik', kolejnosc: 30, elementy: ksztaltyZ('Wstęgi i banery', 'Ramki', 'Linie ozdobne') });
+zarejestrujKategorie({ id: 'ozdobniki', nazwa: 'Ozdobniki i ramki', ikona: 'ozdobnik', kolejnosc: 30, elementy: ksztaltyZ('Wstęgi i banery', 'Ramki') });
+zarejestrujKategorie({ id: 'etykiety', nazwa: 'Etykiety i plakietki', ikona: 'etykieta', kolejnosc: 35, elementy: ksztaltyZ('Etykiety') });
+
+// Linie i separatory (#143): zwykłe linie – rodzaj, grubość i kolor zmienia się potem w panelu „Linia”.
+const LINIE = [
+  ['ciagla', 'Linia ciągła', 'linia prosta kreska', { grubosc: 0.5 }],
+  ['cienka', 'Linia cienka', 'linia cienka wloskowa', { grubosc: 0.2 }],
+  ['gruba', 'Linia gruba', 'linia gruba pogrubiona', { grubosc: 1.5 }],
+  ['przerywana', 'Linia przerywana', 'linia przerywana kreski ciecie', { grubosc: 0.5, kreski: 'przerywana' }],
+  ['kropkowana', 'Linia kropkowana', 'linia kropkowana kropki wypelnienie', { grubosc: 0.6, kreski: 'kropkowana' }],
+  ['kreska-kropka', 'Linia kreska – kropka', 'linia kreska kropka os', { grubosc: 0.5, kreski: 'kreska-kropka' }],
+  ['podwojna', 'Linia podwójna', 'linia podwojna separator', { grubosc: 0.3, podwojna: true }],
+  ['pionowa', 'Linia pionowa', 'linia pionowa kolumna separator', { grubosc: 0.5, pionowa: true }],
+];
+const svgLinii = ({ grubosc = 0.5, kreski = 'ciagla', podwojna, pionowa }) => {
+  const g = Math.max(0.6, grubosc * 3);
+  const wzor = wzorKresek(kreski, grubosc);
+  const kr = wzor ? `;stroke-dasharray:${wzor.map((x) => x * 3 || 0.01).join(' ')}` : '';
+  // Styl w atrybucie: ogólna reguła podglądów (grubość 3, zaokrąglone końce) nie może go przykryć.
+  const styl = `stroke-width:${g};stroke-linecap:${['kropkowana', 'kreska-kropka'].includes(kreski) ? 'round' : 'butt'}${kr}`;
+  const odc = (o) => (pionowa ? `M ${35 + o} 6 V 46` : `M 6 ${26 + o} H 64`);
+  const d = podwojna ? `${odc(-2.5)} ${odc(2.5)}` : odc(0);
+  return `<svg viewBox="0 0 70 52" aria-hidden="true"><path d="${d}" class="linia-biblioteki" style="${styl}"/></svg>`;
+};
+zarejestrujKategorie({
+  id: 'linie', nazwa: 'Linie i separatory', ikona: 'separator', kolejnosc: 32,
+  elementy: () => [
+    ...LINIE.map(([id, nazwa, slowa, opis]) => ({ id, nazwa, slowa: `${slowa} separator`, podglad: svgLinii(opis), wstaw: (e, punkt) => e.dodajLinieZBiblioteki({ ...opis, nazwa }, punkt) })),
+    ...ksztaltyZ('Linie ozdobne')(),
+  ],
+});
+
+// Planer (#143): gotowe tabele (lista zadań, tracker nawyków, plan tygodnia…), pola wyboru, kratka i kropki.
+zarejestrujKategorie({
+  id: 'planer', nazwa: 'Planer', ikona: 'planer', kolejnosc: 45,
+  elementy: () => [
+    ...SZABLONY.map((s) => ({
+      id: s.id, nazwa: s.nazwa, slowa: `planer tabela ${s.slowa}`, duzy: true, podglad: svgSzablonu(s), opis: s.opis,
+      wstaw: (e, punkt) => e.dodajSzablonTabeli(s.id, punkt),
+    })),
+    ...ksztaltyZ('Planer')(),
+  ],
+});
 
 // Kalendarze: ten sam element w trzech gotowych ustawieniach.
 const KALENDARZE = [

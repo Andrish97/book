@@ -121,9 +121,9 @@ Elementy to obiekty JSON biblioteki Fabric.js 7 w postaci, w jakiej zapisuje je 
 | `textbox` | `text`, `left`, `top`, `width`, `fontSize` (mm), `fontFamily`, `fontWeight` (`normal`/`bold`), `fontStyle` (`normal`/`italic`), `fill`, `textAlign` (`left`/`center`/`right`/`justify`), `lineHeight` (mnożnik, np. 1,2), `charSpacing` (tysięczne części wysokości pisma), `underline`, `linethrough`, **`strokeWidth: 0`** |
 | `rect` | `left`, `top`, `width`, `height`, `fill`, `stroke`, `strokeWidth` (mm), `rx`, `ry` (zaokrąglenie) |
 | `ellipse` | `left`, `top`, `rx`, `ry` (promienie), `fill`, `stroke`, `strokeWidth` |
-| `line` | `left`, `top`, `x1`, `y1`, `x2`, `y2` (względem siebie), `width`, `height`, `stroke`, `strokeWidth`, `strokeUniform: true` |
+| `line` | `left`, `top`, `x1`, `y1`, `x2`, `y2` (względem siebie), `width`, `height`, `stroke`, `strokeWidth`, `strokeUniform: true`; linia przerywana: `strokeDashArray` (mm, np. `[3, 2]`; kropkowana `[0, 1.2]` z `"strokeLineCap": "round"`) |
 | `polygon` | `left`, `top`, `points: [{ x, y }]`, `fill`, `stroke`; wielokąt foremny ma też `boki` i `gwiazda` |
-| `path` | `left`, `top`, `path` (lista poleceń SVG, np. `[["M",0,0],["L",10,0]]`), `fill`, `stroke` |
+| `path` | `left`, `top`, `path` (lista poleceń SVG, np. `[["M",0,0],["L",10,0]]`), `fill`, `stroke`, `strokeDashArray` jak przy `line` |
 | `image` | `left`, `top`, `width`, `height` (**piksele obrazu**), `scaleX`, `scaleY`, `zasob`, `src`, `cropX`, `cropY` (piksele) |
 | `group` | tylko dla tabeli (rozdział 9); zwykłych grup nie twórz – położenia ich elementów liczą się od środka grupy |
 
@@ -308,6 +308,10 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
 ```
 
 - `uklad`: `2-pion`, `2-poziom`, `3-kolumny`, `3-duzy-lewo`, `3-duzy-gora`, `4-siatka`, `4-duzy-lewo`, `5-mozaika`, `5-duzy-gora`, `6-siatka`, `6-pion`, `9-siatka`. Pola to prostokąty – ramki obrazu: zdjęcie wstawisz, ustawiając polu `zasob` (jak kształtowi z obrazem).
+
+Pozostałe elementy Biblioteki nie mają skrótu – to zwykłe elementy, które zapiszesz sam:
+- **Planer** (lista zadań, tracker nawyków, plan tygodnia i dnia, notatki w linie, siatka dni, budżet, kontakty, plan lekcji) to zwykła tabela (rozdział 9): wąska pierwsza kolumna z pustymi komórkami to kratki do odhaczania, notatki w linie to tabela z jedną kolumną bez linii pionowych (`linie_komorek`).
+- **Kształty, etykiety, pola wyboru, kratka i kropki do notatek** to `path`; **linie i separatory** to `line` (przerywana i kropkowana przez `strokeDashArray`) albo `path` z dwiema liniami (podwójna).
 
 ## 9b. Książka: spis treści, żywa pagina, przypisy, odsyłacze, skorowidz
 

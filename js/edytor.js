@@ -23,14 +23,15 @@ import { wlaczPamiecWarstw } from './warstwy-plotna.js';
 import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
 import {
   toTabela, nowaTabela, ulozTabele, przygotujTabele, komorkiTabeli, komorkaWPunkcie, miejsceKomorki, utrwalSkaleTabeli,
-  dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, scalKomorki, rozdzielKomorki, komorkaSchowana,
+  dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, scalKomorki, rozdzielKomorki, komorkaSchowana, ustawLinieZakresu, ustawKrawedzKomorki,
 } from './tabela-obiekt.js';
 import { toKod, nowyKod, ulozKod, utrwalSkaleKodu } from './kod-obiekt.js';
 import { nowyKalendarz, toKalendarz } from './kalendarz-miesiaca.js';
 import { ustawKontrolkiKsztaltu, normalizujKsztalt } from './tekst-ksztalt.js';
 import { nowyWykres, toWykres } from './wykres.js';
 import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych, toKolaz, ulozKolaz } from './elementy-danych.js';
-import { KSZTALTY, ukladKolazu } from './ksztalty-biblioteka.js';
+import { KSZTALTY, ukladKolazu, wzorKresek } from './ksztalty-biblioteka.js';
+import { szablonPlanera, zastosujSzablon } from './szablony-planera.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -1831,17 +1832,61 @@ export class Edytor extends EventTarget {
   dodajKsztaltZBiblioteki(id, punkt = null) {
     const k = KSZTALTY.find((x) => x.id === id);
     if (!k) return null;
+    // Kratka i kropki do notatek (#143): cienkie szare linie albo kropki, bez obrysu.
+    const wyglad = k.siatka
+      ? (k.otwarta ? { fill: '', stroke: '#b5b2aa', strokeWidth: 0.15 } : { fill: '#8a877f', stroke: '', strokeWidth: 0 })
+      : { fill: k.otwarta ? '' : '#d9e6f2', stroke: '#1a1a1a', strokeWidth: k.otwarta ? 0.6 : 0.3 };
     const p = new fabric.Path(k.d, {
-      fill: k.otwarta ? '' : '#d9e6f2', stroke: '#1a1a1a', strokeWidth: k.otwarta ? 0.6 : 0.3, strokeUniform: true,
+      ...wyglad, strokeUniform: true,
       strokeLineJoin: 'round', strokeLineCap: 'round', fillRule: k.otwor ? 'evenodd' : 'nonzero', nazwa: k.nazwa,
     });
-    const skala = 50 / Math.max(p.width, p.height);
+    const skala = k.siatka ? 0.5 : 50 / Math.max(p.width, p.height); // kratka i kropki co 5 mm
     p.set({ scaleX: skala, scaleY: skala });
     p.set(this._srodek(p.width * skala, p.height * skala));
     this._wPunkcie(p, punkt);
     const wynik = this._wstaw(p);
     this.oznaczZmiane();
     return wynik;
+  }
+
+  // Linia z Biblioteki (#143): zwykła linia (ciągła, przerywana, kropkowana…) albo podwójna jako ścieżka.
+  // opis: { grubosc mm, kreski: 'ciagla' | 'przerywana' | 'kropkowana' | 'kreska-kropka', dlugosc mm, pionowa, podwojna }
+  dodajLinieZBiblioteki(opis = {}, punkt = null) {
+    const { grubosc = 0.5, kreski = 'ciagla', dlugosc = 80, pionowa = false, podwojna = false, kolor = '#1a1a1a', nazwa = 'Linia' } = opis;
+    const wspolne = { stroke: kolor, strokeWidth: grubosc, strokeUniform: true, strokeLineCap: ['kropkowana', 'kreska-kropka'].includes(kreski) ? 'round' : 'butt', strokeDashArray: wzorKresek(kreski, grubosc), nazwa };
+    let o;
+    if (podwojna) {
+      const r = Math.max(1, grubosc * 3);
+      o = new fabric.Path(pionowa ? `M 0 0 L 0 ${dlugosc} M ${r} 0 L ${r} ${dlugosc}` : `M 0 0 L ${dlugosc} 0 M 0 ${r} L ${dlugosc} ${r}`, { ...wspolne, fill: '' });
+    } else {
+      o = new fabric.Line(pionowa ? [0, 0, 0, dlugosc] : [0, 0, dlugosc, 0], wspolne);
+    }
+    o.set(this._srodek(o.width, o.height));
+    this._wPunkcie(o, punkt);
+    const wynik = this._wstaw(o);
+    this.oznaczZmiane();
+    return wynik;
+  }
+
+  // Szablon planera z Biblioteki (#143): zwykła tabela (lista zadań, tracker nawyków, plan tygodnia…).
+  dodajSzablonTabeli(id, punkt = null) {
+    const s = szablonPlanera(id);
+    if (!s) return null;
+    const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+    const szer = Math.max(40, w - this.marg.lewy - this.marg.prawy);
+    const tabela = nowaTabela({
+      wiersze: s.wiersze, kolumny: s.kolumny.length, naglowek: Boolean(s.naglowek), wysokoscWiersza: s.wysokosc, szerokosc: szer,
+      lewo: this.strony[this.aktywna].x + this.marg.lewy, gora: 0, wyglad: { fontFamily: DOMYSLNA, fontSize: ptNaMm(9) },
+    }, uid);
+    zastosujSzablon(tabela, s, szer, { komorkiTabeli, ulozTabele, ustawLinieZakresu, ustawKrawedzKomorki });
+    tabela.set({ top: Math.max(this.marg.gora, (h - tabela.height) / 2), nazwa: s.nazwa });
+    this._wPunkcie(tabela, punkt);
+    this.canvas.discardActiveObject();
+    this.canvas.add(tabela);
+    this.canvas.setActiveObject(tabela);
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    return tabela;
   }
 
   // „Moje elementy” (#131C): zaznaczenie jako JSON do zapisu w Bibliotece – położenie liczone od lewego górnego

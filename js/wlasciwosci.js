@@ -14,7 +14,7 @@ import { nazwaTypu, toKolaz } from './edytor.js';
 import { RODZAJE_KSZTALTU, normalizujKsztalt, ustawKontrolkiKsztaltu, sciezkaZKsztaltu, czyWygiecie } from './tekst-ksztalt.js';
 import { toKalendarz, MIESIACE, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
 import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
-import { KOLAZE } from './ksztalty-biblioteka.js';
+import { KOLAZE, RODZAJE_KRESEK, wzorKresek, rodzajKresek } from './ksztalty-biblioteka.js';
 import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
 import { trescQR } from './kody.js';
 import { naglowkiProjektu, celeOdsylaczy, LICZENIE_PRZYPISOW, RODZAJE as RODZAJE_KSIAZKI } from './ksiazka.js';
@@ -1739,7 +1739,15 @@ export class PanelWlasciwosci {
   zbudujLinie(obj) {
     const s = this.sekcja('Linia');
     s.append(this.kolor('Kolor', () => obj.stroke, (v) => obj.set('stroke', v)));
-    s.append(this.liczba('Grubość', () => zaokr(obj.strokeWidth, 2), (v) => obj.set({ strokeWidth: Math.max(0.05, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0.05 }));
+    // Kreski rosną razem z grubością (#143).
+    const kreski = (rodzaj, grubosc) => ({ strokeDashArray: wzorKresek(rodzaj, grubosc), strokeLineCap: ['kropkowana', 'kreska-kropka'].includes(rodzaj) ? 'round' : (obj.type === 'path' ? 'round' : 'butt') });
+    s.append(this.liczba('Grubość', () => zaokr(obj.strokeWidth, 2), (v) => {
+      const g = Math.max(0.05, v);
+      obj.set({ strokeWidth: g, strokeUniform: true, ...(rodzajKresek(obj) === 'ciagla' ? {} : kreski(rodzajKresek(obj), g)) });
+    }, { jednostka: 'mm', krok: 0.1, min: 0.05 }));
+    const rodzaj = this.wybor('Rodzaj', RODZAJE_KRESEK, () => rodzajKresek(obj), (v) => obj.set(kreski(v, obj.strokeWidth)));
+    rodzaj.dataset.pole = 'rodzaj-linii';
+    s.append(rodzaj);
     if (obj.type !== 'path') return;
     // Zamknięty kształt (z pióra) może mieć wypełnienie.
     if (obj.path?.some((k) => k[0] === 'Z')) s.append(this.kolor('Wypełnienie', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
