@@ -47,6 +47,7 @@ const maTab = (o) => typeof o.text === 'string' && o.text.includes('\t');
 
 // Czy tekst potrzebuje składu (inaczej – zwykłe łamanie Fabric, bez żadnej zmiany).
 export function skladAktywny(o) {
+  if (globalThis.__bezSkladu) return false;
   return Boolean(o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
 }
 
@@ -261,9 +262,21 @@ function sklad(o, linieTekstu, szerokoscRamki) {
           const tekst = zn.slice(od, s.do).join('');
           if (tekst.length === s.do - od) {
             const miejsca = miejscaPodzialu(tekst, dziel);
-            const wolne = miejsce.w - x - (slowWWierszu ? przerwa : 0) - lacznikSzer();
-            for (let m = miejsca.length - 1; m >= 0; m -= 1) {
-              if (szer(od, od + miejsca[m]) <= wolne + 0.001) { podzial = od + miejsca[m]; break; }
+            if (miejsca.length) {
+              const wolne = miejsce.w - x - (slowWWierszu ? przerwa : 0) - lacznikSzer();
+              // Szerokości przedrostków słowa jednym przejściem po znakach (bez mierzenia od nowa dla każdego miejsca).
+              let suma = 0;
+              let prev;
+              let m = 0;
+              for (let i = od; i < s.do && m < miejsca.length; i += 1) {
+                suma += o._getGraphemeBox(zn[i], p, i, prev, true).kernedWidth;
+                prev = zn[i];
+                if (i + 1 - od === miejsca[m]) {
+                  if (suma > wolne + 0.001) break;
+                  podzial = od + miejsca[m];
+                  m += 1;
+                }
+              }
             }
           }
         }
@@ -569,6 +582,7 @@ function punktyObiektu(ob) {
 // tylko teksty, którym coś się zmieniło. siatka: { odstep, przesuniecie } w mm albo null.
 // Zwraca listę tekstów ułożonych od nowa.
 export function ulozStrone(obiekty, { siatka = null } = {}) {
+  if (globalThis.__bezUkladu) return [];
   const przeszkody = obiekty.filter((o) => o.oblewanie && o.visible !== false && o.type !== 'textbox');
   const zmienione = [];
   for (const t of obiekty) {
@@ -594,7 +608,10 @@ export function ulozStrone(obiekty, { siatka = null } = {}) {
     const s = siatka && siatka.odstep > 0 ? { odstep: siatka.odstep, poczatek: ((t.top || 0) - (siatka.przesuniecie || 0)) } : null;
     const podpis = JSON.stringify([nowe || null, s && t.do_siatki ? [Math.round(s.poczatek * 1000), s.odstep] : null]);
     if (podpis === t._podpisStrony) continue;
+    const bylo = t._podpisStrony;
     t._podpisStrony = podpis;
+    // Pierwsze spotkanie tekstu bez przeszkód i siatki – nic do zmiany, bez ponownego układania.
+    if (bylo === undefined && !nowe && !(s && t.do_siatki)) continue;
     t._przeszkody = nowe;
     t._siatka = s;
     t.initDimensions();

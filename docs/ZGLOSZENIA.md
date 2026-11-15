@@ -13,7 +13,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
 | 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
-| 131A | Typografia: dzielenie wyrazów, wdowy i sieroty, spójniki, inicjały, tabulatory, style znakowe, siatka linii bazowych, oblewanie tekstem | 🔄 |
 | 131A | Z Canvy: kalendarz miesiąca, wykresy z danych, biblioteka kształtów, kolaże | 🔄 |
 
 ## Czeka (kolejne etapy)
@@ -45,6 +44,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 131A | Typografia: dzielenie wyrazów po polsku, spójniki na końcu wiersza, wdowy i sieroty, inicjały, tabulatory z wypełniaczem, style znakowe, siatka linii bazowych, oblewanie tekstem (prostokąt, kształt, skok) – w edytorze, podglądzie i PDF |
 | 133 | Marginesy i inne wymiary w mm – dowolna wartość, nie tylko co 0,5 |
 | 132 | Instrukcja na telefonie dawała się przewinąć cała (pusto pod stopką) |
 | 114b | Instrukcja po #115–#123: okładka z grzbietem i składki (tekst zgodny z oknem sekcji), pasek stron i uchwyt na telefonie, załączniki w formularzu kontaktowym, kontrola przed drukiem (niepełna składka), linie zgięć; 13 nowych zrzutów (jasne i ciemne): okładka, okno okładki, przypięcie, składki, obraz w kształcie, kadrowanie w kształcie, Usuń tło, filtry, krycie w przejściu, pasek stron na telefonie, formularz kontaktowy |

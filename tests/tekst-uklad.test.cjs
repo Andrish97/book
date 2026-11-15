@@ -119,6 +119,8 @@ test('przelewanie: ramka z ciągiem dalszym, zmiana wysokości, usunięcie ramki
   await strona.evaluate(() => {
     const e = window.seriodruk.edytor;
     const pierwsza = e.canvas.getObjects().find((o) => o.watek_nr === 0);
+    // Sama liczba wierszy, bez pilnowania wdów i sierot (to sprawdza tests/sklad.test.cjs).
+    for (const o of e.canvas.getObjects()) if (o.watek) o.wdowy = undefined;
     pierwsza.ramka_h = pierwsza.getHeightOfLine(0) * 6 + 0.01;
     pierwsza.initDimensions();
     e.oznaczZmiane();

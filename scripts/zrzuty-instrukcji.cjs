@@ -771,6 +771,42 @@ if (require.main === module) (async () => {
   await kadr(d, 'k-rysowanie.png', { obszar: ['#panel-inspektor .naglowek-panelu', '#panel-inspektor fieldset:has(> legend:has-text("Pędzel"))'], margines: 8 });
   await d.keyboard.press('Escape');
 
+  // Skład akapitu (#131): dzielenie wyrazów i inicjał, tabulatory z kropkami, tekst opływający koło.
+  await pustaStrona();
+  await d.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    await (await import('./js/dzielenie.js')).dzielenieGotowe;
+    const a = e.dodajTekst('Przedsiębiorstwo poligraficzne przygotowało niezapominajkowe kalendarze z przepięknymi ilustracjami i kolorowymi zakładkami dla wszystkich czytelników w całym kraju. Każdy miesiąc ma osobną stronę z miejscem na notatki.');
+    a.set({ left: 16, top: 16, width: 70, textAlign: 'justify', dziel_wyrazy: true, inicjal: 3, inicjal_kolor: '#b45309', inicjal_czcionka: 'Playfair Display' });
+    e.doczytajCzcionke('Playfair Display');
+    const b = e.dodajTekst('Styczeń\t12\nLuty\t7\nMarzec\t123\nKwiecień\t45');
+    b.set({ left: 16, top: 80, width: 70, tabulatory: [{ poz: 68, rodzaj: 'prawy', wypelniacz: '.' }] });
+    const c = e.dodajTekst('Tekst opływa zdjęcie dookoła. '.repeat(12));
+    c.set({ left: 16, top: 112, width: 116, textAlign: 'justify', dziel_wyrazy: true });
+    const k = e.dodajElipse();
+    k.set({ left: 76, top: 120, rx: 18, ry: 18, width: 36, height: 36, fill: '#f6d8b8', oblewanie: 'ksztalt', oblewanie_odstep: 2 });
+    k.setCoords();
+    e.ulozSkladStrony({ teraz: true });
+    e.zatwierdz();
+    e.odznacz();
+    e.zaznacz(a.id);
+  });
+  await d.waitForTimeout(900);
+  await d.evaluate(() => { const f = [...document.querySelectorAll('#panel-inspektor fieldset')].find((x) => /Skład akapitu/.test(x.querySelector('legend')?.textContent || '')); f?.classList.remove('zwinieta'); f?.scrollIntoView({ block: 'start' }); });
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-sklad-akapitu.png', { obszar: ['#panel-inspektor fieldset:has(> legend:has-text("Skład akapitu"))'], margines: 8 });
+  await d.evaluate(() => { window.seriodruk.edytor.odznacz(); });
+  await d.waitForTimeout(400);
+  await zrzut(d, 'sklad.png');
+  await d.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.tabulatory).id); });
+  await d.waitForTimeout(400);
+  await kadr(d, 'k-tabulatory.png', { obszar: ['#panel-inspektor .wiersz-tabulatora'], margines: 8 });
+  await d.evaluate(() => { const e = window.seriodruk.edytor; e.zaznacz(e.canvas.getObjects().find((o) => o.oblewanie).id); });
+  await d.waitForTimeout(400);
+  await d.evaluate(() => { const f = [...document.querySelectorAll('#panel-inspektor fieldset')].find((x) => /Inne/.test(x.querySelector('legend')?.textContent || '')); f?.classList.remove('zwinieta'); f?.scrollIntoView({ block: 'start' }); });
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-oblewanie.png', { obszar: ['#panel-inspektor label:has-text("Oblewanie tekstem")'], margines: 10 });
+
   // Pióro: kształt z łukami w trakcie edycji punktów
   await pustaStrona();
   await d.evaluate(() => {
