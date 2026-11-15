@@ -132,6 +132,15 @@ function odswiezCofanie() {
 // Wczytuje bieżący cel do edytora; dopasowuje widok, gdy zmienił się rozmiar.
 export async function zaladujCel({ dopasuj = false } = {}) {
   const { projekt } = stan;
+  // Strona okładki: przeliczenie przed wczytaniem, żeby po przejściu z innej strony (np. po dodaniu stron
+  // w środku) okładka była od razu w aktualnym rozmiarze, a nie dopiero po chwili (#144).
+  if (stan.tryb === 'strona' && projekt.sekcje.find((s) => s.id === biezacyCel()?.sekcja)?.okladka) {
+    clearTimeout(timerOkladek);
+    try {
+      const zmienione = przeliczOkladki(projekt);
+      for (const st of projekt.strony) if (zmienione.includes(st.sekcja)) stan.miniatury.delete(st.id);
+    } catch (e) { console.error(e); }
+  }
   const wydruk = wydrukCelu();
   const cel = biezacyCel();
   const poprzedni = edytor.wydruk;
