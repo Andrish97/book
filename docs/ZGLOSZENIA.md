@@ -26,7 +26,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
-| Niestabilne testy pod obciążeniem: „obrazy poza pamięcią”, „grupa otwarta: obraz kadruje”, „tekst przez strony” – naprawić | ⏳ |
 | Sprawdzenie na prawdziwym telefonie: gesty iPhone (#101), klawiatura w zasłonkach, instalacja aplikacji | ⏳ |
 
 ## Kroki po Twojej stronie
@@ -44,6 +43,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 137 | Niestabilne testy naprawione u źródła: historia nie zapisuje stanu w trakcie kadrowania, płótno wczytuje się po kolei, lista projektów nie wyrzuca z edytora, menu karty nie znika, przerwany pierwszy zapis bez fałszywego konfliktu |
 | 131B | Książka: spis treści (z Biblioteki, sam się układa, z powieleniami serii), żywa pagina {rozdzial}, przypisy dolne z panelu (numeracja w sekcji / na stronie / w całości), odsyłacze „s. 12”, skorowidz z polskim sortowaniem; podgląd, PDF, łącznik AI, rozdział 14 instrukcji |
 | 131B | Tekst po łuku, okręgu, elipsie i ścieżce oraz wyginanie (fala, flaga, wypukłość…) – panel „Kształt tekstu”, uchwyt zgięcia, Biblioteka „Teksty”, PDF wektorowy, instrukcja 6.14 |
 | 131A | Typografia: dzielenie wyrazów po polsku, spójniki na końcu wiersza, wdowy i sieroty, inicjały, tabulatory z wypełniaczem, style znakowe, siatka linii bazowych, oblewanie tekstem (prostokąt, kształt, skok) – w edytorze, podglądzie i PDF |

@@ -41,11 +41,14 @@ test('panel administratora: tylko dla administratora; skrzynka – rozmowy, odpo
   baza.konta.push({ id: '55555555-5555-4555-8555-555555555555', email: 'seriodruk-test-8fcc174b40@example.com', haslo: 'x', potwierdzone: true, nazwa: 'test' });
   await jakoAdmin(strona, baza);
   await strona.click('#awatar');
+  // Licznik dochodzi z bazy po chwili (pod obciążeniem dłużej) – czekamy na niego, zamiast czytać od razu (#137).
+  await strona.waitForFunction(() => document.querySelector('#admin-licznik-menu')?.textContent === '2', null, { timeout: 15000 }).catch(() => {});
   assert.equal(await strona.textContent('#admin-licznik-menu'), '2', 'licznik nieprzeczytanych przy pozycji menu');
   await strona.click('#pozycja-admin');
   await naEkranie(strona, 'admin');
   assert.equal(await strona.evaluate(() => location.hash), '#/admin');
   await strona.waitForFunction(() => document.querySelectorAll('#admin-watki li').length === 2);
+  await strona.waitForFunction(() => document.querySelector('#admin-nieprzeczytane')?.textContent === '2', null, { timeout: 15000 }).catch(() => {});
   assert.equal(await strona.textContent('#admin-nieprzeczytane'), '2');
   assert.equal(await strona.textContent('#admin-foldery [data-folder="skrzynka"] .licznik-folderu'), '2');
   assert.equal(await strona.locator('#admin-watki li.nowy').count(), 2);
@@ -124,8 +127,14 @@ test('panel administratora: tylko dla administratora; skrzynka – rozmowy, odpo
   assert.equal(baza.poczta.dostawcy[0].dzienny_limit, 250);
   assert.equal(baza.poczta.odstepy.find((o) => o.akcja === 'kontakt:email').sekundy, 600);
   assert.equal(baza.poczta.ustawienia.podpis, 'Anna z Makietki');
-  await strona.fill('#admin-form-ustawien [name="nadawca_email"]', 'ja@gmail.com');
-  await strona.click('#admin-form-ustawien [type="submit"]');
+  // Po „Zapisano.” formularz rysuje się jeszcze raz z bazy – wpisany za wcześnie adres zostałby nadpisany zapisaną
+  // wartością (pod obciążeniem bywało) – wpisujemy więc do skutku, aż serwer odrzuci adres spoza domeny (#137).
+  for (let proba = 0; proba < 5; proba += 1) {
+    await strona.fill('#admin-form-ustawien [name="nadawca_email"]', 'ja@gmail.com');
+    await strona.click('#admin-form-ustawien [type="submit"]');
+    const ok = await strona.waitForFunction(() => /domenie makietka\.app/.test(document.querySelector('#admin-ustawienia-komunikat').textContent), null, { timeout: 6000 }).then(() => true, () => false);
+    if (ok) break;
+  }
   await strona.waitForFunction(() => /domenie makietka\.app/.test(document.querySelector('#admin-ustawienia-komunikat').textContent));
   assert.equal(await strona.locator('#ekran-admin [id*="klucz"], #ekran-admin input[readonly]').count(), 0, 'w panelu nie ma kluczy do kopiowania');
   assert.equal(await strona.inputValue('#admin-test-adres'), baza.konta[0].email);
@@ -275,6 +284,7 @@ test('skrzynka: zaznaczanie i operacje zbiorcze (przeczytane, gwiazdka, archiwum
   await strona.click('#admin-watek .watek-zgloszenie [data-watek-akcja="zamknij"]');
   await strona.waitForFunction(() => /zamknięte/.test(document.querySelector('#admin-watek .watek-zgloszenie')?.textContent || ''));
   assert.equal(baza.poczta.watki.find((x) => x.zgloszenie).zgloszenie_stan, 'zamkniete');
+  await strona.waitForFunction(() => document.querySelector('#admin-foldery [data-folder="zgloszenia"] .licznik-folderu')?.textContent === '', null, { timeout: 15000 }).catch(() => {});
   assert.equal(await strona.textContent('#admin-foldery [data-folder="zgloszenia"] .licznik-folderu'), '');
   // Odpowiedź na zgłoszenie – numer w temacie.
   await strona.click('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');

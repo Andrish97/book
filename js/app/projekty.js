@@ -224,7 +224,11 @@ async function wczytajProjektZWpisuBez(w, pasek = null) {
   const nowszaWersja = lokalny?.wersja_chmury != null && w.wersjaChmury != null
     ? w.wersjaChmury > lokalny.wersja_chmury
     : w.wChmurze > (lokalny?.zmieniono || '');
-  const chmuraNowsza = w.wChmurze && (!lokalny || (!w.doSynchronizacji && nowszaWersja));
+  // Kopia z urządzenia z zapamiętanym stanem uzgodnionym z kontem (podstawa_chmury) też otwiera się sama – zmiany
+  // z konta dołączają się zaraz po otwarciu (sprawdzKonto → łączenie), a historia cofania z tego urządzenia zostaje
+  // i przelicza się z nimi. Bez takiej podstawy (nie ma z czym łączyć) nowsza wersja z konta wczytuje się wprost (#137).
+  const polaczyPoOtwarciu = Boolean(lokalny?.podstawa_chmury && lokalny?.wersja_chmury != null && stan.uzytkownik);
+  const chmuraNowsza = w.wChmurze && (!lokalny || (!w.doSynchronizacji && nowszaWersja && !polaczyPoOtwarciu));
   if (!chmuraNowsza) {
     // Starszy zapis trzymał obrazy w środku projektu – przy pierwszym otwarciu przechodzą do magazynu plików.
     if (lokalny && await odlozZasoby(lokalny)) await zapiszLokalnie(lokalny, wlasciciel(), Boolean(w.doSynchronizacji));
