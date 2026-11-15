@@ -188,7 +188,7 @@ Linki są w pliku wektorowym; zakładki — w obu rodzajach pliku. W PDF/X-4 dla
 
 ## 22.8 Drukuj w domu
 
-Wydruk na zwykłej drukarce, bez wysyłania pliku do drukarni. Gdzie: menu **⋯** projektu → [Drukuj w domu…] (skrót <kbd>Ctrl</kbd>+<kbd>P</kbd> w edytorze).
+Wydruk na zwykłej drukarce, bez wysyłania pliku do drukarni. Gdzie: menu **⋯** projektu → [Drukuj w domu…] (skrót <kbd>Ctrl</kbd>+<kbd>P</kbd> w edytorze i podglądzie – Makietka przejmuje go i zamiast zwykłego drukowania strony przeglądarki otwiera to okno; gdy wybierzesz „Drukuj” z menu samej przeglądarki, na kartce będzie tylko podpowiedź, gdzie jest właściwy druk).
 
 ![Okno Drukuj w domu](k-druk.png)
 

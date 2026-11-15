@@ -3157,3 +3157,13 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
   .usun-tlo-narzedzia .segmenty { flex: 1 1 100%; }
   .usun-tlo-narzedzia .segmenty button { flex: 1 1 0; justify-content: center; }
 }
+
+/* Druk z menu przeglądarki w edytorze i podglądzie (#150): zamiast zrzutu aplikacji kartka z podpowiedzią.
+   Właściwy wydruk idzie przez „Drukuj w domu” (gotowy PDF w osobnej ramce – tego ta reguła nie dotyczy). */
+@media print {
+  body[data-ekran="edytor"] > *, body[data-ekran="podglad"]:not(.podglad-publiczny) > * { display: none !important; }
+  body[data-ekran="edytor"]::before, body[data-ekran="podglad"]:not(.podglad-publiczny)::before {
+    content: "Aby wydrukować projekt, użyj w Makietce: menu ⋯ → Drukuj w domu (albo Ctrl+P). Ustawi wydruk, broszurę i skalę za Ciebie.";
+    display: block; margin: 40mm 20mm; font: 14pt/1.5 sans-serif; color: #000;
+  }
+}

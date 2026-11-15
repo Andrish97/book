@@ -43,5 +43,21 @@ test('druk w domu: menu ⋯ i Ctrl+P, broszura A4 – 2 kartki dla 6 stron, druk
   await strona.keyboard.press('Control+p');
   await strona.waitForSelector('#dlg-druk[open]');
   assert.equal(await strona.inputValue('#form-druk [name="uklad"]'), 'broszura');
+  // Druk z menu przeglądarki: zamiast zrzutu aplikacji tylko podpowiedź (#150).
+  await strona.keyboard.press('Escape');
+  await strona.emulateMedia({ media: 'print' });
+  const wydruk = await strona.evaluate(() => ({
+    widoczne: [...document.body.children].filter((el) => getComputedStyle(el).display !== 'none').length,
+    tekst: getComputedStyle(document.body, '::before').content,
+  }));
+  await strona.emulateMedia({ media: 'screen' });
+  assert.equal(wydruk.widoczne, 0);
+  assert.match(wydruk.tekst, /Drukuj w domu/);
+  // W podglądzie Ctrl+P też otwiera okno druku.
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.evaluate(() => document.querySelector('#dlg-druk')?.close());
+  await strona.keyboard.press('Control+p');
+  await strona.waitForSelector('#dlg-druk[open]');
   assert.deepEqual(bledy, []);
 });

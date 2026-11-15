@@ -240,7 +240,8 @@ async function otworzOknoPdf() {
 }
 
 // Druk w domu (#145): okno wczytuje się przy pierwszym otwarciu (razem z zapisem PDF). Ctrl+P w edytorze
-// otwiera to okno zamiast drukowania strony aplikacji.
+// i w podglądzie otwiera to okno zamiast drukowania strony aplikacji (#150); druk z menu przeglądarki
+// dostaje zamiast zrzutu aplikacji kartkę z podpowiedzią (css: @media print).
 let oknoDruku = null;
 async function otworzOknoDruku() {
   if (!oknoDruku) {
@@ -260,7 +261,8 @@ async function otworzOknoDruku() {
 }
 window.addEventListener('keydown', (e) => {
   if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || e.key.toLowerCase() !== 'p') return;
-  if (document.body.dataset.ekran !== 'edytor' || !stan.projekt) return;
+  if (!['edytor', 'podglad'].includes(document.body.dataset.ekran) || !stan.projekt) return;
+  if (document.body.classList.contains('podglad-publiczny')) return;
   e.preventDefault();
   otworzOknoDruku();
 }, true);
