@@ -261,6 +261,14 @@ export const akcje = {
   'podglad-minus': () => podglad.powieksz(0.8),
   'podglad-dopasuj': () => podglad.dopasuj(),
   'podglad-prezentacja': () => podglad.prezentuj(),
+  // Podgląd separacji (#131C) – strona widoczna w środku podglądu.
+  'podglad-separacje': async () => {
+    const tresc = $('#podglad-tresc');
+    const srodek = tresc.getBoundingClientRect().top + tresc.clientHeight / 2;
+    const widoczna = [...tresc.querySelectorAll('.podglad-strona[data-id]')].find((f) => f.getBoundingClientRect().bottom > srodek - 40);
+    (await import('./separacje-okno.js')).otworzSeparacje(stan.projekt, widoczna?.dataset.id || null);
+  },
+  'separacje-zamknij': () => $('#dlg-separacje').close(),
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
@@ -651,10 +659,10 @@ export function wstawKod(rodzaj = 'qr') {
 const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan.projekt);
 // Praca (#131C): znajdź i zamień, malarz formatów, Moje elementy, pisownia.
 dodajPolecenie({ nazwa: 'Znajdź i zamień', opis: 'Teksty wszystkich stron i wzorców (Ctrl+F, Ctrl+H)', wykonaj: () => otworzZnajdz(), dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Kopiuj wygląd (malarz formatów)', opis: 'Wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
+dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: 'Malarz formatów: wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C; przycisk w nagłówku panelu)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
 dodajPolecenie({ nazwa: 'Zapisz w bibliotece', opis: 'Zaznaczenie trafi do Biblioteki → Moje elementy, w każdym projekcie', wykonaj: () => zapiszWBibliotece(), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
 dodajPolecenie({ nazwa: 'Moje elementy', opis: 'Biblioteka – elementy zapisane na koncie', wykonaj: () => otworzBiblioteke('moje'), dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Sprawdzaj pisownię (włącz / wyłącz)', opis: 'Falista linia pod słowami spoza słownika', wykonaj: () => { sprawdzanie.ustawWlaczona(!sprawdzanie.wlaczona()); panel.zbuduj(); }, dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Sprawdzaj pisownię', opis: 'Włącz albo wyłącz falistą linię pod słowami spoza słownika (menu widoku)', wykonaj: () => { sprawdzanie.ustawWlaczona(!sprawdzanie.wlaczona()); panel.zbuduj(); }, dostepne: wEdytorze });
 podlaczPisownie();
 ustawPisowniePanelu(sprawdzanie);
 $('#widok-pisownia').addEventListener('change', (e) => { sprawdzanie.ustawWlaczona(e.target.checked); panel.zbuduj(); });

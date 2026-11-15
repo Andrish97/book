@@ -1114,6 +1114,8 @@ if (require.main === module) (async () => {
   await require('./zrzuty-ksiazki.cjs').zrobZrzutyKsiazki(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty książki:', err.message));
   // Narzędzia pracy (#131C, #136): znajdź i zamień, malarz, moje elementy, pisownia, użyte w projekcie.
   await require('./zrzuty-pracy.cjs').zrobZrzutyPracy(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty narzędzi pracy:', err.message));
+  // Druk (#131C): układ arkuszy w oknie eksportu, podgląd separacji.
+  await require('./zrzuty-druku.cjs').zrobZrzutyDruku(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty druku:', err.message));
 
   await przegladarka.close();
 })();

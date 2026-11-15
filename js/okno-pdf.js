@@ -8,6 +8,7 @@ import { sprawdzMieszczenie } from './kontrola-skladu.js';
 import { eksportujPdf, wybierzEgzemplarze, planPlikow, JAKOSCI_PDF, Przerwano } from './eksport.js';
 import { WARUNKI_DRUKU } from './profil-icc.js';
 import { postep } from './postep.js';
+import { planImpozycji, opisPlanu } from './impozycja.js';
 
 export class OknoPdf {
   // projekt() → bieżący projekt, sekcja() → bieżąca sekcja, przedEksportem() –
@@ -24,6 +25,7 @@ export class OknoPdf {
       // chyba że to pole zostało już przestawione ręcznie.
       const el = this.f.elements;
       if (e.target === el.czcionki) this.czcionkiRecznie = true;
+      if (e.target === el.nawigacja) this.nawigacjaRecznie = true;
       else if (!this.czcionkiRecznie && (e.target === el.tryb || e.target === el.krzywe)) el.czcionki.checked = el.tryb.value === 'obraz' || el.krzywe.checked;
       this.odswiez();
     });
@@ -60,6 +62,9 @@ export class OknoPdf {
     };
     const uwagi = sprawdzProjekt(this.zrodlo.projekt(), this.ciag);
     pokazUwagi(uwagi);
+    // Składka z ustawień sekcji (#120), gdy jakaś sekcja ją ma.
+    const skl = this.zrodlo.projekt().sekcje.map((s) => Number(s.skladka)).find((k) => [4, 8, 16, 32].includes(k));
+    if (skl) this.f.elements.skladka.value = String(skl);
     // Na telefonie ustawienia zaawansowane zwinięte (podsumowanie w nagłówku); na większym ekranie rozwinięte (#103).
     $('#pdf-zaawansowane').open = document.documentElement.dataset.urzadzenie !== 'telefon';
     this.odswiez();
@@ -97,6 +102,12 @@ export class OknoPdf {
       ileStron: Number(e.ile.value),
       dolaczCzcionki: e.czcionki.checked,
       uszlachetnienia: e.uszlachetnienia.value,
+      uklad: e.uklad.value,
+      formatArkusza: e.formatArkusza.value,
+      skladka: Number(e.skladka.value),
+      pelzanie: Math.max(0, Number(String(e.pelzanie.value).replace(',', '.')) || 0),
+      // Zakładki i linki: nie w PDF/X (plik dla drukarni) i nie na arkuszach broszury.
+      nawigacja: e.nawigacja.checked && !e.pdfx.value && e.uklad.value === 'zwykly',
     };
   }
 
@@ -140,8 +151,21 @@ export class OknoPdf {
         : `${o.cmyk ? 'Tekst i kształty są przeliczone na CMYK przez ten profil (czerń i szarości samą czarną farbą).' : 'Tekst i kształty zostają w RGB z opisem sRGB.'} ${o.zdjeciaCmyk ? 'Zdjęcia są przeliczone na CMYK przez ten profil, w rozdzielczości z pola „Jakość” (zdjęcia JPEG zostają JPEG-iem w czterech farbach, pozostałe obrazy bez strat) – plik będzie większy.' : 'Zdjęcia zostają w RGB z opisem sRGB – na farby przeliczy je drukarnia według dołączonego profilu (to zgodne z PDF/X-4).'}`;
       opisPdfx.textContent = `Plik PDF/X-4: zawiera profil barwny (${papier}) i oznaczenia, po których programy drukarni rozpoznają standard. ${kolory}${o.pdfx === 'fogra39' ? ' Profil papieru powlekanego dodaje do pliku ok. 8 MB.' : ''} Przed pierwszym zleceniem wyślij drukarni próbny plik.`;
     }
+    // Układ arkuszy (#131C): broszura, składki, 2 albo 4 strony na arkuszu.
+    const arkusze = o.uklad !== 'zwykly';
+    $('#pdf-pole-arkusze').hidden = !arkusze;
+    $('#pdf-pole-skladka').hidden = o.uklad !== 'skladki';
+    $('#pdf-pole-pelzanie').hidden = o.uklad !== 'broszura' && o.uklad !== 'skladki';
+    // PDF do czytania: domyślnie dla zwykłego pliku; przy PDF/X i arkuszach – wyłączone.
+    const nawig = this.f.elements.nawigacja;
+    nawig.disabled = Boolean(o.pdfx) || arkusze;
+    if (!this.nawigacjaRecznie) nawig.checked = !o.pdfx && !arkusze;
     const projekt = this.zrodlo.projekt();
     const egz = wybierzEgzemplarze(this.ciag, o);
+    if (arkusze) {
+      $('#pdf-opis-arkuszy').textContent = `${opisPlanu(egz.length, o)} Strony stoją równo do formatu (bez spadu)${o.formatArkusza === 'auto' ? '' : ' i w razie potrzeby są zmniejszone'}; znaki cięcia${o.uklad === 'broszura' || o.uklad === 'skladki' ? ' i złamu (przerywane)' : ''} – przy „Do drukarni”.`;
+      pokazPlanArkuszy($('#pdf-plan-arkuszy'), egz, o);
+    }
     const pliki = planPlikow(projekt, egz, o);
     const powielone = egz.filter((e) => e.nrEgz > 1).length;
     const stron = `${egz.length} ${odmiana(egz.length, 'strona', 'strony', 'stron')}`;
@@ -151,7 +175,7 @@ export class OknoPdf {
     // Podsumowanie zwiniętej sekcji „Zaawansowane”: jakość, kolory, standard, podział.
     const f = this.f.elements;
     const wybrana = (pole) => pole?.selectedOptions?.[0]?.textContent?.split(/ [–-] /)[0] || '';
-    $('#pdf-zaawansowane-opis').textContent = [wybrana(f.dpi), o.cmyk && wektor ? 'CMYK' : 'RGB', o.pdfx ? 'PDF/X-4' : '', wybrana(f.podzial)].filter(Boolean).join(' · ');
+    $('#pdf-zaawansowane-opis').textContent = [arkusze ? wybrana(f.uklad) : '', wybrana(f.dpi), o.cmyk && wektor ? 'CMYK' : 'RGB', o.pdfx ? 'PDF/X-4' : '', wybrana(f.podzial)].filter(Boolean).join(' · ');
     $('#pdf-eksportuj').disabled = this.trwa || !egz.length || (o.pdfx === 'wlasny' && !this.profilWlasny);
   }
 
@@ -194,4 +218,20 @@ export class OknoPdf {
       this.odswiez();
     }
   }
+}
+
+// Podgląd układu: miniaturki arkuszy z numerami stron (pierwsze 12 stron arkuszy; reszta jako „…”).
+function pokazPlanArkuszy(lista, egz, o) {
+  const plan = planImpozycji(egz.length, o);
+  const numer = (i) => (i === null || i === undefined ? '' : String(egz[i]?.nr ?? i + 1));
+  const broszura = o.uklad === 'broszura' || o.uklad === 'skladki';
+  const pozycje = plan.strony.slice(0, 12).map((a, k) => {
+    const li = document.createElement('li');
+    li.className = `arkusz-planu${a.wiersze > 1 ? ' cztery' : ''}${a.falc ? ' falc' : ''}`;
+    li.title = broszura ? `Arkusz ${Math.floor(k / 2) + 1}, ${k % 2 ? 'tył' : 'przód'}` : `Arkusz ${k + 1}`;
+    li.innerHTML = a.pola.map((i) => `<span class="${i === null ? 'pusta' : ''}">${numer(i)}</span>`).join('') + (broszura ? `<small>${Math.floor(k / 2) + 1}${k % 2 ? ' tył' : ' przód'}</small>` : '');
+    return li;
+  });
+  if (plan.strony.length > 12) pozycje.push(Object.assign(document.createElement('li'), { className: 'arkusz-planu reszta', textContent: `+${plan.strony.length - 12}` }));
+  lista.replaceChildren(...pozycje);
 }

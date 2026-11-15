@@ -224,3 +224,34 @@ test('ostrzeżenia: linia od spadu do spadu nie „wychodzi poza spad”; na ok�
   assert.ok(okl.typy.includes('grzbiet:szerszy_niz_grzbiet'), okl.typy.join(' '));
   assert.deepEqual(bledy, []);
 });
+
+test('okładka zapisana spoza aplikacji (strefy jako obiekt, np. przez AI): projekt się otwiera, wymiary i elementy zostają (#141)', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Okładka od AI');
+  const w = await strona.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const p = JSON.parse(JSON.stringify(window.seriodruk.stan.projekt));
+    const srodek = p.sekcje[0];
+    const ok = P.nowaSekcja('Okładka', { ...srodek.wydruk, szerokosc_mm: 357.4, wysokosc_mm: 240.2, format: 'wlasny' });
+    ok.okladka = {
+      oprawa: 'twarda', zawiniecie_mm: 15, big_mm: 7, naddatek_mm: 3, tektura_mm: 2, srodek: [srodek.id],
+      papier: { tryb: 'gramatura', rodzaj: 'offset', gramatura: 80, grubosc_mm: 0.1 }, strony: { tryb: 'auto', liczba: 0 },
+      wymiary: { tryb: 'auto', grzbiet_mm: 0, szerokosc_mm: 0, wysokosc_mm: 0 },
+      wynik: { gora: 12.1, dol: 228.1, zawiniecie_l: { x1: 0, x2: 15 }, tyl: { x1: 15, x2: 166 }, big_l: { x1: 166, x2: 166 }, grzbiet: { x1: 166, x2: 191.4 }, big_p: { x1: 191.4, x2: 191.4 }, przod: { x1: 191.4, x2: 342.4 }, zawiniecie_p: { x1: 342.4, x2: 357.4 } },
+    };
+    p.sekcje.unshift(ok);
+    const s = P.nowaStrona('Okładka', ok.id);
+    s.obiekty = [{ type: 'textbox', id: 'tytul', left: 250, top: 60, width: 60, text: 'Tytuł', fontFamily: 'Inter', fontSize: 6, styles: [] }];
+    p.strony.unshift(s);
+    const z = await import('./js/app/zapis.js');
+    await z.otworzProjekt(P.normalizuj(p));
+    const q = window.seriodruk.stan.projekt;
+    const o = q.strony[0].obiekty.find((x) => x.id === 'tytul');
+    return { wym: [q.sekcje[0].wydruk.szerokosc_mm, q.sekcje[0].wydruk.wysokosc_mm], grzbiet: q.sekcje[0].okladka.wynik.grzbiet, poz: [o.left, o.top] };
+  });
+  assert.deepEqual(w.wym, [357.4, 240.2]);
+  assert.equal(w.grzbiet, 25.4);
+  assert.deepEqual(w.poz, [250, 60], 'elementy okładki nie przesunęły się');
+  assert.deepEqual(bledy, []);
+});

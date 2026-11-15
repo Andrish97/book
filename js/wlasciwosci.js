@@ -243,6 +243,12 @@ export class PanelWlasciwosci {
     const inne = this.sekcja('Inne');
     if (!wGrupie) inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
+    // Link (#131C): w PDF do czytania na ekranie element jest klikalny (adres strony, e-mail, telefon).
+    if (!wGrupie) {
+      const link = this.tekst('Link w PDF (adres strony, e-mail)', () => obj.link || '', (v) => { obj.link = String(v || '').trim() || undefined; }, true);
+      link.title = 'W pliku PDF do czytania na ekranie kliknięcie elementu otwiera ten adres.';
+      inne.append(link);
+    }
     inne.append(this.liczba('Krycie', () => zaokr((obj.opacity ?? 1) * 100, 0), (v) => { obj.opacity = Math.min(100, Math.max(0, v)) / 100; }, { jednostka: '%', krok: 5 }));
     // Oblewanie tekstem (#131): teksty na stronie opływają ten element.
     if (obj.type !== 'textbox' && !wGrupie) {

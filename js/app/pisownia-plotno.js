@@ -54,7 +54,7 @@ function wlasneSlowa() {
 
 // Zakresy błędów w tekście (na płótnie). Słowa jeszcze niesprawdzone idą do kolejki.
 function bledy(o) {
-  if (!wlaczona || !o?.text || o.bez_pisowni) return [];
+  if (!wlaczona || !o?.text) return [];
   const wynik = [];
   for (const s of slowaWTekscie(o.text)) {
     const w = wyniki.get(s.slowo);
