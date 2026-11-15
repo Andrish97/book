@@ -2092,6 +2092,7 @@ Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie
 |---|---|
 | **Jeden palec** | Zaznacza i przesuwa elementy. |
 | **Dwa palce** | Przesuwają widok i powiększają. |
+| **Szybkie przesunięcie w bok** | Po pustym miejscu strony, gdy cała strona mieści się na ekranie: w lewo – następna strona, w prawo – poprzednia (przy rozkładówce cały arkusz). Wolne przeciągnięcie zaznacza ramką jak zwykle. |
 | **Dwa szybkie stuknięcia** | Jak podwójne kliknięcie: pisanie w tekście i komórce tabeli, wejście do grupy, edycja punktów. |
 | **Przytrzymanie** | Pokazuje podpowiedź, np. opis chmurki zapisu. |
 
