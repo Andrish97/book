@@ -71,6 +71,7 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
   "numeracja": { "tryb": "ciagla", "od": 1 } }
 ```
 
+- Sekcja: `wydruk` (format, wymiary, spad, marginesy), `uklad`, `pierwsza`, `wzorce`, `numeracja` (`tryb`: `ciagla` | `od` | `brak`, `od`: pierwszy numer). Projekt ma też `wersja` (wersja modelu danych – nie zmieniaj).
 - `wydruk.format` to tylko nazwa (`A4`, `A5`, `A6`, `B5`, `Kwadrat` albo własna) – rozmiar wyznaczają `szerokosc_mm` i `wysokosc_mm`. Domyślnie A5 148 × 210, spad 3, marginesy 10.
 - `uklad`: `pojedyncze` albo `rozkladowki`. W rozkładówkach margines `wewnetrzny` jest przy grzbiecie, a `pierwsza` mówi, czy sekcja zaczyna się stroną prawą (zwykle) czy lewą.
 - `wzorce`: identyfikatory wzorców obowiązujących na stronach sekcji (pierwszy leży najniżej).
@@ -321,8 +322,8 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
   Przez łącznik wystarczy skrót `{ "type": "spis", "left": 15, "top": 25, "width": 118, "poziomy": 2 }` albo `{ "type": "skorowidz", … }`. Numery stron biorą się z numeracji sekcji, razem ze stronami powielonymi serią.
 - **Żywa pagina**: pole `{rozdzial}` (ostatni nagłówek poziomu 1 do tej strony) albo `{rozdzial:2}` – zwykle w stopce albo nagłówku wzorca.
 - **Odsyłacz**: `{s:<id elementu>}` – numer strony, na której stoi element (np. nagłówek): „zob. s. {s:r2}”.
-- **Przypis dolny**: w tekście pole `{przypis:<id>}` (zwykle w indeksie górnym: formatowanie fragmentu `fontSize` ≈ 0,62 × rozmiaru, `deltaY` ≈ −0,36 × rozmiaru), a treść w polu tekstu `przypisy: { "<id>": "Treść przypisu." }`. Numer i treść na dole strony układa aplikacja; numeracja według `ksiazka.przypisy` projektu: `sekcja` (domyślnie), `strona`, `ciagle`.
-- **Skorowidz**: hasła w polu tekstu `hasla: ["kot", "pies"]`; skorowidz pokazuje wszystkie strony, na których słowo występuje w jakimkolwiek tekście.
+- **Przypis dolny**: w tekście pole `{przypis:<id>}` (zwykle w indeksie górnym: formatowanie fragmentu `fontSize` ≈ 0,62 × rozmiaru, `deltaY` ≈ −0,36 × rozmiaru), a treść w polu tekstu `przypisy` (`{ "<id>": "Treść przypisu." }`). Numer i treść na dole strony układa aplikacja; numeracja według `ksiazka.przypisy` projektu: `sekcja` (domyślnie), `strona`, `ciagle`.
+- **Skorowidz**: hasła w polu tekstu `hasla` (`["kot", "pies"]`); skorowidz pokazuje wszystkie strony, na których słowo występuje w jakimkolwiek tekście.
 
 ## 10. Czego nie robić
 
@@ -371,3 +372,7 @@ Kod to element (w zapisie grupa z polem `kod`), którego rysunek liczy aplikacja
 - `szerokosc` (mm; QR jest kwadratem), dla EAN też `wysokosc` (nominalnie 37,29 × 25,93 mm, najmniej 80%).
 - Opcjonalnie: `korekcja` (`L`/`M`/`Q`/`H`), `kolor` (domyślnie `#000000`), `tlo` (`#ffffff` albo `null` – przezroczyste), `cisza` (margines ciszy, domyślnie `true`), `napis` (EAN: cyfry pod kodem).
 - Moduł QR powinien mieć najmniej 0,33 mm – przy długiej treści kod musi być większy. Kontrola przed drukiem ostrzega o za małym, za jasnym albo złym kodzie.
+
+## Pola tylko do odczytu
+
+Tych pól nie ustawiaj – liczy je i zapisuje aplikacja (łącznik zachowuje wartości z projektu): `okladka.wynik` (układ okładki), `ramka_pola` (ramka obrazu podmienionego z danych, liczona przy składaniu strony), `wersja` projektu, `z` (kolejność elementu na rozkładówce – aplikacja zapisuje ją przy dzieleniu stron).
