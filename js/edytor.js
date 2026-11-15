@@ -3744,10 +3744,11 @@ export class Edytor extends EventTarget {
       obraz_kadr: { x: Math.round((cx / W) * 1e4) / 1e4, y: Math.round((cy / H) * 1e4) / 1e4, skala: Math.round(Math.max(1, img.scaleX / k0) * 1e4) / 1e4 },
       fill: '', stroke: img.stroke || null, strokeWidth: img.strokeWidth || 0, strokeUniform: true, shadow: img.shadow || null, opacity: img.opacity ?? 1,
       filtry: img.filtry, pole: img.pole?.kolumna ? { kolumna: img.pole.kolumna, kadr: img.pole.kadr } : undefined, bez_ostrzezen: img.bez_ostrzezen,
+      strokeDashArray: img.strokeDashArray || null, strokeLineCap: img.strokeLineCap, miekkie_krawedzie: img.miekkie_krawedzie, miekkie_rodzaj: img.miekkie_rodzaj,
     };
     const ksztalt = rodzaj === 'kolo'
       ? new fabric.Ellipse({ ...wspolne, rx: W / 2, ry: H / 2 })
-      : new fabric.Rect({ ...wspolne, width: W, height: H, rx: zaokraglenie, ry: zaokraglenie });
+      : new fabric.Rect({ ...wspolne, width: W, height: H, rx: img.zaokraglenie || zaokraglenie, ry: img.zaokraglenie || zaokraglenie });
     ksztalt.setPositionByOrigin(img.getCenterPoint(), 'center', 'center');
     ksztalt.setCoords();
     await przygotujObrazyKsztaltow([ksztalt]);

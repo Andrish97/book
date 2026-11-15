@@ -724,7 +724,11 @@ Każdy kolor przejścia ma pole **Krycie** — np. kolor przechodzący w przezro
 
 ## 7.6 Obrys
 
-Kolor obrysu i **Grubość obrysu** w mm. Grubość nie zmienia się, gdy powiększasz kształt.
+Kolor obrysu i **Grubość obrysu** w mm. Grubość nie zmienia się, gdy powiększasz kształt. Przy włączonym
+obrysie są też **Krycie obrysu** (półprzezroczysta ramka) i **Rodzaj linii** — ciągła, przerywana, kropkowana
+albo kreska – kropka; kreski rosną razem z grubością.
+
+Kształt (także z obrazem w środku) może mieć **Miękkie krawędzie** — tak jak zdjęcie (→ 8.10).
 
 ## 7.7 Wybór koloru
 
@@ -771,7 +775,7 @@ jej brzegi. <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. To samo liczbam
 | [Podmień zdjęcie] | Inne zdjęcie w tej samej ramce (→ 8.4). |
 | [Obrazy projektu…] | Okno wszystkich obrazów (→ 8.5). |
 | Opis pod nagłówkiem | Wymiary oryginału w pikselach i rozdzielczość w tym rozmiarze (dpi). Do druku — co najmniej 300 dpi; przy mniejszej opis zmienia kolor. |
-| **Obrys** | Ramka wokół zdjęcia: kolor i grubość. |
+| **Obramowanie** | Ramka wokół zdjęcia: kolor, **Grubość**, **Krycie obrysu**, **Rodzaj linii** (ciągła, przerywana, kropkowana, kreska – kropka) i **Zaokrąglenie narożników** w mm — zaokrąglenie przycina też samo zdjęcie (→ 8.10). |
 | **Odbij lustrzanie w poziomie** | Odwraca obraz. |
 | **Obraz z danych** | Inny obraz na każdej powielonej stronie (→ 18.5). |
 
@@ -853,6 +857,26 @@ Zaznacz zdjęcie (albo kształt z obrazem) i wybierz [Usuń tło…].
 W części **Filtry** zdjęcia albo obrazu w kształcie ustawisz **jasność**, **kontrast**, **nasycenie** i **rozmycie** oraz włączysz **odcień szarości** albo **sepię**. Plik się nie zmienia; [Bez filtrów] wraca do oryginału.
 
 ![Filtry obrazu](k-filtry.png)
+
+## 8.10 Obramowanie i miękkie krawędzie
+
+Część **Obramowanie** zdjęcia: kolor (pole **brak** wyłącza ramkę), **Grubość** w mm, **Krycie obrysu**,
+**Rodzaj linii** i **Zaokrąglenie narożników** w mm. Zaokrąglenie przycina samo zdjęcie, a obramowanie
+idzie po zaokrągleniu. Grubość i zaokrąglenie zostają takie same, gdy zmieniasz rozmiar zdjęcia.
+
+Część **Miękkie krawędzie** (zdjęcie i kształty): **Szerokość przejścia** w mm — tyle od brzegu zdjęcie
+płynnie znika w przezroczystość; 0 to ostry brzeg. **Rodzaj**:
+
+| Rodzaj | Wygląd |
+|---|---|
+| **równo wzdłuż brzegu** | Przejście biegnie wzdłuż brzegu — prostokąta, kształtu albo przezroczystych miejsc obrazu PNG. |
+| **owalna winieta** | Widać owal w środku, który miękko znika ku brzegom i narożnikom. |
+
+![Obramowanie z zaokrągleniem i owalna winieta](k-obramowanie.png)
+
+Obramowanie, zaokrąglenie i miękkie krawędzie przenosi też [Kopiuj wygląd]. W PDF zdjęcie z miękkimi
+krawędziami zapisuje się jako obraz w rozdzielczości druku z przezroczystością; obramowanie i zaokrąglenie
+zostają wektorowe.
 
 # 9. Tabela
 

@@ -15,6 +15,7 @@ import { RODZAJE_KSZTALTU, normalizujKsztalt, ustawKontrolkiKsztaltu, sciezkaZKs
 import { toKalendarz, MIESIACE, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
 import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
 import { KOLAZE, RODZAJE_KRESEK, wzorKresek, rodzajKresek } from './ksztalty-biblioteka.js';
+import { RODZAJE_MIEKKICH, maMiekkie } from './miekkie-krawedzie.js';
 import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
 import { trescQR } from './kody.js';
 import { naglowkiProjektu, celeOdsylaczy, LICZENIE_PRZYPISOW, RODZAJE as RODZAJE_KSIAZKI } from './ksiazka.js';
@@ -238,6 +239,7 @@ export class PanelWlasciwosci {
 
     this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
+    this.zbudujMiekkieKrawedzie(obj);
     this.zbudujCien(obj);
     if (!wGrupie) this.zbudujUszlachetnienie(obj);
     if (!wGrupie) this.zbudujZDanych(obj);
@@ -1641,8 +1643,7 @@ export class PanelWlasciwosci {
         s.append(this.liczba('Promień', promien, (v) => ustawGradient({ r: Math.min(200, Math.max(5, v)) }), { jednostka: '%', krok: 5, min: 5 }));
       }
     }
-    s.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
-    s.append(this.liczba('Grubość obrysu', () => zaokr(obj.strokeWidth, 2), (v) => obj.set({ strokeWidth: Math.max(0, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0 }));
+    this.polaObrysu(s, obj);
     if (obj.type === 'rect') {
       s.append(this.liczba('Zaokrąglenie', () => zaokr(obj.rx || 0, 1), (v) => obj.set({ rx: Math.max(0, v), ry: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
     }
@@ -1711,6 +1712,47 @@ export class PanelWlasciwosci {
       }
     }
     if (maObraz(obj)) this.zbudujFiltry(obj);
+  }
+
+  // Obrys kształtu albo obramowanie obrazu (#156): kolor, krycie, grubość, rodzaj linii (kreski rosną z grubością).
+  polaObrysu(s, obj) {
+    const kolor = () => (obj.stroke && obj.stroke !== 'transparent' ? new fabric.Color(obj.stroke) : null);
+    const zKryciem = (hex, krycie) => {
+      const [r, g, b] = new fabric.Color(hex).getSource();
+      return krycie >= 1 ? `#${new fabric.Color(hex).toHex()}` : `rgba(${r},${g},${b},${Math.round(krycie * 100) / 100})`;
+    };
+    const kreski = (rodzaj, grubosc) => ({ strokeDashArray: wzorKresek(rodzaj, grubosc), strokeLineCap: ['kropkowana', 'kreska-kropka'].includes(rodzaj) ? 'round' : 'butt' });
+    s.append(this.kolor(obj.type === 'image' ? 'Kolor obramowania' : 'Obrys', () => obj.stroke, (v) => {
+      obj.set('stroke', v ? zKryciem(v, kolor()?.getAlpha() ?? 1) : null);
+      if (v && !obj.strokeWidth) obj.set({ strokeWidth: 0.5, strokeUniform: true });
+    }, { brak: true }));
+    s.append(this.liczba(obj.type === 'image' ? 'Grubość' : 'Grubość obrysu', () => zaokr(obj.strokeWidth || 0, 2), (v) => {
+      const g = Math.max(0, v);
+      obj.set({ strokeWidth: g, strokeUniform: true, ...(rodzajKresek(obj) === 'ciagla' ? {} : kreski(rodzajKresek(obj), g)) });
+    }, { jednostka: 'mm', krok: 0.1, min: 0 }));
+    if (!kolor()) return;
+    s.append(this.liczba('Krycie obrysu', () => Math.round((kolor()?.getAlpha() ?? 1) * 100), (v) => { const k = kolor(); if (k) obj.set('stroke', zKryciem(`#${k.toHex()}`, Math.min(100, Math.max(0, v)) / 100)); }, { jednostka: '%', krok: 10, min: 0 }));
+    const rodzaj = this.wybor('Rodzaj linii', RODZAJE_KRESEK, () => rodzajKresek(obj), (v) => obj.set(kreski(v, obj.strokeWidth || 0.5)));
+    rodzaj.dataset.pole = 'rodzaj-obrysu';
+    s.append(rodzaj);
+  }
+
+  // Miękkie krawędzie (#156): brzeg przechodzi płynnie w przezroczystość – równo wzdłuż brzegu albo owalna winieta.
+  zbudujMiekkieKrawedzie(obj) {
+    if (toZaznaczenie(obj) || obj.type === 'group' || toTabela(obj) || toKod(obj)) return;
+    if (!(obj.type === 'image' || KSZTALTY.has(obj.type) || obj.type === 'path')) return;
+    const s = this.sekcja('Miękkie krawędzie', { zwinieta: !maMiekkie(obj) });
+    s.append(this.liczba('Szerokość przejścia', () => zaokr(obj.miekkie_krawedzie || 0, 1), (v) => {
+      const bylo = maMiekkie(obj);
+      obj.set('miekkie_krawedzie', v > 0 ? Math.round(v * 10) / 10 : undefined);
+      if (!maMiekkie(obj)) obj.set('miekkie_rodzaj', undefined);
+      obj.dirty = true;
+      if (bylo !== maMiekkie(obj)) setTimeout(() => this.zbuduj());
+    }, { jednostka: 'mm', krok: 1, min: 0 }));
+    if (maMiekkie(obj)) {
+      s.append(this.wybor('Rodzaj', RODZAJE_MIEKKICH, () => obj.miekkie_rodzaj || 'rowno', (v) => { obj.set('miekkie_rodzaj', v === 'owal' ? 'owal' : undefined); obj.dirty = true; }));
+    }
+    s.append(this.wskazowka('0 mm – ostry brzeg. W PDF element z miękkimi krawędziami zapisuje się jako obraz w rozdzielczości druku.'));
   }
 
   // Cień: przesunięcie i rozmycie w mm, kolor z przezroczystością.
@@ -1871,9 +1913,10 @@ export class PanelWlasciwosci {
       : 'Gdy strona należy do serii z tabelą, ten obraz może się zmieniać na każdej powielonej stronie – według nazwy pliku z wybranej kolumny.'));
 
     this.zbudujFiltry(obj);
-    const o = this.sekcja('Obrys i odbicie');
-    o.append(this.kolor('Obrys', () => obj.stroke, (v) => obj.set('stroke', v), { brak: true }));
-    o.append(this.liczba('Grubość obrysu', () => zaokr(obj.strokeWidth || 0, 2), (v) => obj.set({ strokeWidth: Math.max(0, v), strokeUniform: true }), { jednostka: 'mm', krok: 0.1, min: 0 }));
+    // Obramowanie (#156): kolor z kryciem, grubość, rodzaj linii i zaokrąglone narożniki (przycinają też obraz).
+    const o = this.sekcja('Obramowanie');
+    this.polaObrysu(o, obj);
+    o.append(this.liczba('Zaokrąglenie narożników', () => zaokr(obj.zaokraglenie || 0, 1), (v) => { obj.set('zaokraglenie', v > 0 ? Math.round(v * 10) / 10 : undefined); obj.dirty = true; }, { jednostka: 'mm', krok: 0.5, min: 0 }));
     o.append(this.przelacznik('Odbij lustrzanie w poziomie', () => Boolean(obj.flipX), (v) => obj.set('flipX', v)));
     const info = this.wskazowka('');
     this.odswiezacze.push(() => {
