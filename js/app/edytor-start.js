@@ -282,6 +282,9 @@ export const akcje = {
   },
   'format-obroc': async () => (await import('./zmiana-formatu.js')).obrocFormat(),
   'format-zamknij': () => $('#dlg-format').close(),
+  // Zestaw marki (#131D): zastosowanie do projektu – rzecz całego projektu (menu ⋯ projektu, Biblioteka).
+  'marka-zastosuj': async () => { zamknijMenu(); (await import('./marka-zastosuj.js')).otworzZastosowanieMarki(); },
+  'marka-zastosuj-zamknij': () => $('#dlg-marka-zastosuj').close(),
   'kolory-druku-zamknij': () => $('#dlg-kolory-druku').close(),
   // Wiele zdjęć naraz – np. dla obrazów z danych (nazwy plików w tabeli); także na telefonie.
   obrazy: async () => { zamknijMenu(); (await oknoObrazow()).otworzObrazy(); },
@@ -691,3 +694,6 @@ export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, pokazEdytor } f
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
 export { edytujWzorzec } from './wzorce.js';
+
+// Zestaw marki z konta (#131D): kolory i czcionki marki w wyborze koloru i na liście czcionek od razu.
+if (stan.uzytkownik) import('../zestaw-marki.js').then((m) => m.wczytajMarke()).catch(() => {});

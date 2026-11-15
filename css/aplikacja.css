@@ -3012,3 +3012,26 @@ body.malarz-aktywny .upper-canvas { cursor: copy !important; }
 .format-kartka .ksztalt { fill: color-mix(in srgb, var(--cichy) 25%, transparent); stroke: var(--cichy); stroke-width: .3; }
 .format-strzalka { font-size: 22px; color: var(--cichy); }
 @media (max-width: 420px) { .format-kartka { width: 120px; height: 120px; } }
+
+/* ---------- Zestaw marki (#131D) ---------- */
+.lista-kolorow-marki, .lista-logo-marki, .mapowanie-marki { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.kolor-marki { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--linia); border-radius: var(--r-m); }
+.kolor-marki .nazwa { flex: 1 1 160px; min-width: 0; }
+.kolor-marki .kod { width: 86px; font-variant-numeric: tabular-nums; }
+.kolor-marki .cmyk { display: flex; gap: 6px; flex: 1 1 100%; }
+.kolor-marki .cmyk label { display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--cichy); }
+.kolor-marki .cmyk input { width: 58px; }
+.kolor-marki .przelacznik-maly { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--tusz-2); }
+.logo-marki { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 1px solid var(--linia); border-radius: var(--r-m); }
+.logo-marki .podglad { width: 56px; height: 40px; display: grid; place-items: center; background: repeating-conic-gradient(#e8e6e0 0 25%, #fff 0 50%) 0 0 / 10px 10px; border-radius: 4px; overflow: hidden; }
+.logo-marki .podglad img { max-width: 100%; max-height: 100%; }
+.logo-marki .nazwa { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podsumowanie-marki { margin: 6px 0 12px; }
+.probki-marki { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.probki-marki .probka, .mapowanie-marki .probka { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--linia-mocna); flex: none; }
+.mapowanie-marki li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mapowanie-marki select { flex: 1 1 160px; min-width: 0; }
+.mapowanie-marki .czcionka-proba { width: 34px; font-size: 20px; text-align: center; }
+.kolor-okienko .kolor-marki { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 0; border: 0; }
+.kolor-okienko .kolor-marki[hidden] { display: none; }
+.podglad-biblioteki img { max-width: 100%; max-height: 100%; object-fit: contain; }

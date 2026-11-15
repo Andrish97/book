@@ -338,6 +338,7 @@
           <a href="#/konto/wyglad" data-do="ust-wyglad" data-sekcja="wyglad"><span class="ikona-wiersza" data-ikona="motyw"></span><span class="tytul">Motyw</span><span class="wartosc" data-podsumowanie="motyw"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/powiadomienia" data-do="ust-powiadomienia" data-sekcja="powiadomienia"><span class="ikona-wiersza" data-ikona="dzwonek"></span><span class="tytul">Powiadomienia</span><span class="wartosc" data-podsumowanie="powiadomienia"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Dostęp dla AI</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/marka" data-do="ust-marka" data-sekcja="marka"><span class="ikona-wiersza" data-ikona="marka"></span><span class="tytul">Zestaw marki</span><span class="wartosc" data-podsumowanie="marka"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/miejsce" data-do="ust-miejsce" data-sekcja="miejsce"><span class="ikona-wiersza" data-ikona="chmura"></span><span class="tytul">Miejsce</span><span class="wartosc" data-podsumowanie="miejsce"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/usun" data-do="ust-usun" data-sekcja="usun" class="niebezpieczny"><span class="ikona-wiersza" data-ikona="kosz"></span><span class="tytul">Usuwanie konta</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
         </nav>
@@ -489,6 +490,14 @@
                 </div>
               </div>
             </div>
+          </section>
+
+          <section class="grupa-ustawien" id="ust-marka">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
+            <h2>Zestaw marki</h2>
+            <p class="ciche">Kolory, czcionki i logo Twojej marki – pod ręką w każdym projekcie: w wyborze koloru, na liście czcionek i w Bibliotece.</p>
+            <div class="podsumowanie-marki" id="podsumowanie-marki"></div>
+            <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="marka-edytuj" data-ikona="marka">Edytuj zestaw marki…</button></div>
           </section>
 
           <section class="grupa-ustawien" id="ust-miejsce">
@@ -668,6 +677,7 @@
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
           <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj">Zmień format projektu…</button>
+          <button role="menuitem" data-akcja="marka-zastosuj" data-ikona="marka">Zastosuj markę do projektu…</button>
           <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory do druku…</button>
           <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik">Współpraca…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
@@ -1502,6 +1512,56 @@
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk" data-akcja="format-zamknij">Anuluj</button>
         <button class="przycisk glowny" value="ok" id="format-zastosuj">Zmień format</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Zestaw marki (#131D): kolory, czcionki i logo na koncie. -->
+  <dialog id="dlg-marka" class="dialog-szeroki" aria-labelledby="marka-tytul">
+    <form method="dialog" class="formularz" id="form-marka">
+      <div class="naglowek-dialogu">
+        <h2 id="marka-tytul">Zestaw marki</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="marka-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <fieldset class="grupa-pol">
+        <legend>Kolory marki</legend>
+        <ul class="lista-kolorow-marki" id="marka-kolory"></ul>
+        <button type="button" class="przycisk" id="marka-dodaj-kolor" data-ikona="plus">Dodaj kolor</button>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Czcionki marki</legend>
+        <div class="rzad">
+          <label class="pole"><span>Nagłówki</span><select name="naglowek"></select></label>
+          <label class="pole"><span>Tekst</span><select name="tekst"></select></label>
+        </div>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Logo</legend>
+        <ul class="lista-logo-marki" id="marka-loga"></ul>
+        <label class="przycisk" data-ikona="obraz">Dodaj logo…<input type="file" id="marka-plik-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden></label>
+      </fieldset>
+      <p class="komunikat" id="marka-komunikat" role="status"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" data-akcja="marka-zamknij">Anuluj</button>
+        <button class="przycisk glowny" value="ok" id="marka-zapisz">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Zastosuj markę do projektu (#131D): zamiana kolorów i czcionek z podglądem. -->
+  <dialog id="dlg-marka-zastosuj" class="dialog-szeroki" aria-labelledby="marka-zastosuj-tytul">
+    <form method="dialog" class="formularz" id="form-marka-zastosuj">
+      <div class="naglowek-dialogu">
+        <h2 id="marka-zastosuj-tytul">Zastosuj markę do projektu</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="marka-zastosuj-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Kolory i czcionki projektu zamienią się na kolory i czcionki marki – na wszystkich stronach, we wzorcach i stylach. Dla każdego możesz wybrać „bez zmian”.</p>
+      <fieldset class="grupa-pol"><legend>Kolory</legend><ul class="mapowanie-marki" id="marka-mapa-kolory"></ul></fieldset>
+      <fieldset class="grupa-pol"><legend>Czcionki</legend><ul class="mapowanie-marki" id="marka-mapa-czcionki"></ul></fieldset>
+      <p class="podpowiedz" id="marka-zastosuj-opis"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" data-akcja="marka-zastosuj-zamknij">Anuluj</button>
+        <button class="przycisk glowny" value="ok" id="marka-zastosuj-ok">Zastosuj</button>
       </div>
     </form>
   </dialog>

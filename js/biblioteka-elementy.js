@@ -153,3 +153,30 @@ zarejestrujKategorie({
     ],
   })),
 });
+
+// Marka (#131D): logo z zestawu marki (konto) do wstawienia, edycja zestawu i zastosowanie do projektu.
+const PODGLAD_MARKI = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="8" y="10" width="54" height="32" rx="4" class="tlo"/><path d="M35 15l3.3 6.7 7.4 1.1-5.4 5.2 1.3 7.3L35 31.9l-6.6 3.4 1.3-7.3-5.4-5.2 7.4-1.1z"/></svg>';
+const markaZKonta = () => { try { return globalThis.makietkaMarka || null; } catch { return null; } };
+zarejestrujKategorie({
+  id: 'marka', nazwa: 'Marka', ikona: 'marka', kolejnosc: 66,
+  elementy: () => {
+    const m = markaZKonta();
+    const loga = (m?.loga || []).map((l) => ({
+      id: `logo-${l.id}`, nazwa: l.nazwa, slowa: 'logo marka znak', duzy: true,
+      podglad: l.podglad ? `<img src="${l.podglad.replace(/"/g, '&quot;')}" alt="">` : PODGLAD_MARKI,
+      opis: 'Logo z zestawu marki',
+      wstaw: async (e) => {
+        const [{ plikLogo }, { przyjmijPlik }] = await Promise.all([import('./zestaw-marki.js'), import('./obrazy-projektu.js')]);
+        const { blob, nazwa } = await plikLogo(l.id);
+        const projekt = globalThis.seriodruk.stan.projekt;
+        const { id, nazwa: n } = await przyjmijPlik(projekt, blob, nazwa);
+        return e.dodajObraz(null, n, projekt.zasoby, { id });
+      },
+    }));
+    return [
+      ...loga,
+      { id: 'zastosuj', nazwa: 'Zastosuj markę do projektu…', slowa: 'marka kolory czcionki zamien', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory i czcionki projektu → marki', wstaw: async () => { (await import('./app/marka-zastosuj.js')).otworzZastosowanieMarki(); return null; } },
+      { id: 'edytuj', nazwa: 'Edytuj zestaw marki…', slowa: 'marka zestaw kolory czcionki logo', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory, czcionki i logo na koncie', wstaw: async () => { (await import('./marka-okno.js')).otworzMarke(); return null; } },
+    ];
+  },
+});
