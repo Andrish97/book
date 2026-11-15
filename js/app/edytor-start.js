@@ -46,7 +46,7 @@ import {
 } from './podglad-ekran.js';
 import { NAZWY_POL_DOKUMENTU, tabeleStrony } from './panel-strony.js';
 import { polePoTabelach } from '../serie.js';
-import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek, podmiana } from './skladniki.js';
+import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek, podmiana, ustawPisowniePanelu } from './skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
   wzorzecZMenu, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
@@ -55,6 +55,10 @@ import { podlaczDokWarstw } from './dok-warstw.js';
 import { dodajPolecenie } from '../paleta-polecen.js';
 import '../biblioteka-elementy.js';
 import { otworzBiblioteke, wstawZBiblioteki, TYP_PRZECIAGANIA } from './biblioteka-okno.js';
+import { otworzZnajdz } from './znajdz-okno.js';
+import { zapiszWBibliotece } from './moje-elementy-okno.js';
+import { sprawdzanie, podlaczPisownie } from './pisownia-plotno.js';
+import { wygladZ, nalozWyglad } from '../malarz.js';
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje, zamienNaOkladke } from './sekcje.js';
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
@@ -319,6 +323,9 @@ export const akcje = {
   pioro: () => edytor.ustawPioro(!edytor.pioro),
   'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
   biblioteka: () => otworzBiblioteke(),
+  znajdz: () => { zamknijMenu(); otworzZnajdz(); },
+  'zapisz-w-bibliotece': () => zapiszWBibliotece(),
+  malarz: () => malarzPrzycisk(),
   cofnij: () => cofnijKrok(-1),
   ponow: () => cofnijKrok(1),
   duplikuj: () => edytor.duplikuj(),
@@ -354,7 +361,7 @@ $('#wzorce-standardowe').addEventListener('click', (e) => {
 });
 
 $('#przycisk-wiecej').addEventListener('click', (e) => przelaczMenu(e.currentTarget, $('#menu-wiecej')));
-$('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); $('#widok-jedna').checked = jednaStrona(); $('#widok-uszlachetnienia').checked = stanUszlachetnien.pokaz; przelaczMenu(e.currentTarget, $('#menu-widoku')); });
+$('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); $('#widok-jedna').checked = jednaStrona(); $('#widok-uszlachetnienia').checked = stanUszlachetnien.pokaz; $('#widok-pisownia').checked = sprawdzanie.wlaczona(); przelaczMenu(e.currentTarget, $('#menu-widoku')); });
 $('#naglowek-ostrzezen').addEventListener('click', (e) => {
   const b = e.currentTarget;
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
@@ -517,8 +524,58 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('keyup', (e) => { if (e.key === 'Alt') edytor.pokazPomiary(false); });
 window.addEventListener('blur', () => edytor.pokazPomiary(false));
 
+// ---------- Malarz formatów (#131C): „Kopiuj wygląd” i nałożenie kliknięciem na inny element ----------
+const malarz = { wyglad: null, wielokrotny: false };
+function ustawMalarza(wl) {
+  document.body.classList.toggle('malarz-aktywny', wl);
+  for (const b of document.querySelectorAll('[data-akcja="malarz"]')) b.setAttribute('aria-pressed', String(wl));
+}
+function kopiujWyglad(wielokrotny = false) {
+  const w = wygladZ(edytor.aktywny);
+  if (!w) { powiadom('Zaznacz element, którego wygląd chcesz skopiować (tekst, kształt albo zdjęcie).', true); return false; }
+  malarz.wyglad = w;
+  malarz.wielokrotny = wielokrotny;
+  ustawMalarza(true);
+  powiadom(wielokrotny ? 'Wygląd skopiowany – klikaj kolejne elementy. Esc kończy.' : 'Wygląd skopiowany – kliknij element, który ma go dostać.');
+  return true;
+}
+function zakonczMalarza() { malarz.wielokrotny = false; ustawMalarza(false); }
+function nalozWygladNa(obj) {
+  if (!obj || !malarz.wyglad || obj.zWzorca) return false;
+  if (!nalozWyglad(obj, malarz.wyglad)) { powiadom('Ten element nie przyjmie tego wyglądu (np. wygląd tekstu na zdjęcie).', true); return false; }
+  edytor.canvas.requestRenderAll();
+  edytor.zatwierdz();
+  panel.odswiez();
+  return true;
+}
+// Przycisk: zaznaczony fragment pisanego tekstu i skopiowany wygląd – nałożenie; inaczej kopiowanie wyglądu.
+let ostatniMalarz = 0;
+function malarzPrzycisk() {
+  const akt = edytor.aktywny;
+  const teraz = Date.now();
+  const dwaRazy = teraz - ostatniMalarz < 400;
+  ostatniMalarz = teraz;
+  if (dwaRazy && malarz.wyglad) { malarz.wielokrotny = true; ustawMalarza(true); powiadom('Wygląd skopiowany – klikaj kolejne elementy. Esc kończy.'); return; }
+  if (malarz.wyglad && akt?.isEditing && akt.selectionEnd > akt.selectionStart && document.body.classList.contains('malarz-aktywny')) { nalozWygladNa(akt); if (!malarz.wielokrotny) zakonczMalarza(); return; }
+  if (document.body.classList.contains('malarz-aktywny')) { zakonczMalarza(); return; }
+  kopiujWyglad(false);
+}
+edytor.canvas.on('mouse:up', (e) => {
+  if (!document.body.classList.contains('malarz-aktywny') || !malarz.wyglad) return;
+  const cel = e.target;
+  if (!cel || cel === edytor.aktywny?.__malarzZrodlo) return;
+  if (cel.isEditing) return; // zaznaczanie fragmentu – nałożenie przyciskiem albo Ctrl+Alt+V
+  if (nalozWygladNa(cel) && !malarz.wielokrotny) zakonczMalarza();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.body.classList.contains('malarz-aktywny')) zakonczMalarza();
+}, true);
+
 const kontekstSkrotow = {
   edytor,
+  znajdz: (zamiana) => otworzZnajdz({ zamiana }),
+  malarzKopiuj: () => kopiujWyglad(false),
+  malarzNaloz: () => { if (!malarz.wyglad) powiadom('Najpierw skopiuj wygląd: Ctrl+Alt+C.', true); else nalozWygladNa(edytor.aktywny); },
   cofnij: () => akcje.cofnij(),
   ponow: () => akcje.ponow(),
   widok: menuWidoku,
@@ -534,7 +591,8 @@ const kontekstSkrotow = {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') zamknijMenu();
   if (document.body.dataset.ekran === 'podglad' && e.key === 'Escape' && !$('dialog[open]') && !podglad.wPrezentacji) { zamknijPodglad(); return; }
-  if (document.body.dataset.ekran !== 'edytor' || $('dialog[open]')) return;
+  // Panel obok strony (Biblioteka, „Znajdź i zamień”) nie wyłącza skrótów na stronie – tylko w samym panelu.
+  if (document.body.dataset.ekran !== 'edytor' || $('dialog[open]:not(.obok-strony)') || e.target.closest?.('dialog')) return;
   const cel = e.target;
   const wPolu = Boolean(cel !== document.body && cel.closest('input, textarea:not([data-fabric="textarea"]), select, [contenteditable]'));
   const wEdycji = Boolean(edytor.aktywny?.isEditing);
@@ -599,6 +657,16 @@ export function wstawKod(rodzaj = 'qr') {
   return edytor.dodajKod(rodzaj === 'ean' ? 'ean' : 'qr');
 }
 const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan.projekt);
+// Praca (#131C): znajdź i zamień, malarz formatów, Moje elementy, pisownia.
+dodajPolecenie({ nazwa: 'Znajdź i zamień', opis: 'Teksty wszystkich stron i wzorców (Ctrl+F, Ctrl+H)', wykonaj: () => otworzZnajdz(), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: 'Malarz formatów: wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C; przycisk w nagłówku panelu)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
+dodajPolecenie({ nazwa: 'Zapisz w bibliotece', opis: 'Zaznaczenie trafi do Biblioteki → Moje elementy, w każdym projekcie', wykonaj: () => zapiszWBibliotece(), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
+dodajPolecenie({ nazwa: 'Moje elementy', opis: 'Biblioteka – elementy zapisane na koncie', wykonaj: () => otworzBiblioteke('moje'), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Sprawdzaj pisownię', opis: 'Włącz albo wyłącz falistą linię pod słowami spoza słownika (menu widoku)', wykonaj: () => { sprawdzanie.ustawWlaczona(!sprawdzanie.wlaczona()); panel.zbuduj(); }, dostepne: wEdytorze });
+podlaczPisownie();
+ustawPisowniePanelu(sprawdzanie);
+$('#widok-pisownia').addEventListener('change', (e) => { sprawdzanie.ustawWlaczona(e.target.checked); panel.zbuduj(); });
+
 // Książka (#131B): spis treści, skorowidz, przypis, hasło skorowidza.
 const poKsiazce = () => { zaplanujZapis(); setTimeout(() => odswiezKsiazke().catch((e) => console.error(e)), 50); };
 const zTekstem = () => wEdytorze() && edytor.aktywny?.type === 'textbox';

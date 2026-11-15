@@ -554,6 +554,26 @@ export async function kontoCzcionek() {
   };
 }
 
+// „Moje elementy” (#131C): spis i pliki elementów zapisanych w Bibliotece, w folderze <konto>/_elementy/
+// (pliki na „_” nie są sprzątane jako osierocone – jak „Moje czcionki”).
+export async function kontoElementow() {
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Moje elementy są na koncie – zaloguj się.');
+  const folder = `${uzytkownik.id}/_elementy`;
+  const json = (dane) => new Blob([JSON.stringify(dane)], { type: 'application/json' });
+  return {
+    spis: async () => {
+      const pliki = await r2.lista(BUCKET, `${folder}/`);
+      if (!pliki.some((p) => p.klucz.endsWith('/spis.json'))) return { elementy: [] };
+      return JSON.parse(await (await r2.pobierz(BUCKET, `${folder}/spis.json`)).text());
+    },
+    zapiszSpis: (spis) => r2.wyslij(BUCKET, `${folder}/spis.json`, json(spis), { cache: 'no-cache' }),
+    wyslij: (id, dane) => r2.wyslij(BUCKET, `${folder}/${id}.json`, json(dane), { cache: 'private, max-age=3600' }),
+    pobierz: async (id) => JSON.parse(await (await r2.pobierz(BUCKET, `${folder}/${id}.json`)).text()),
+    usun: (id) => r2.usun(BUCKET, [`${folder}/${id}.json`]),
+  };
+}
+
 export function blobNaDataUrl(blob) {
   return new Promise((ok, blad) => {
     const r = new FileReader();
@@ -654,6 +674,12 @@ async function skrotPliku(plik) {
 export async function zapiszMotyw(motyw) {
   const sb = await supabase();
   return sprawdz(await sb.auth.updateUser({ data: { motyw } })).user;
+}
+
+// Słownik użytkownika do sprawdzania pisowni (#131C) – słowa dodane „Do słownika”, na każdym urządzeniu.
+export async function zapiszSlownik(slowa) {
+  const sb = await supabase();
+  return sprawdz(await sb.auth.updateUser({ data: { slownik: slowa } })).user;
 }
 
 export async function wylaczPodglad(projektId, kod) {

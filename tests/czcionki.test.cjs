@@ -57,7 +57,7 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
       wpis: [c.rodzina, c.waga, c.kursywa], zasob: [p.zasoby[c.id].nazwa, p.zasoby[c.id].dataUrl.slice(0, 20)],
       wPrzegladarce: [...document.fonts].some((f) => f.family === 'Odreczna' && f.weight === '700' && f.status === 'loaded'),
       tekst: p.strony[0].obiekty[0].fontFamily,
-      lista: [...document.querySelectorAll('.wlasciwosci label')].find((l) => l.textContent.startsWith('Czcionka')).querySelectorAll('option')[0].value,
+      lista: [...document.querySelectorAll('.wlasciwosci label')].find((l) => l.textContent.startsWith('Czcionka')).querySelector('select > option, optgroup[label="Wszystkie czcionki"] > option').value, // bez grupy „Użyte w projekcie” (#136)
     };
   });
   assert.deepEqual(stan.wpis, ['Odreczna', 700, false]);
@@ -147,7 +147,8 @@ const wgraj = (strona, nazwa) => strona.evaluate(async ([b64, n]) => {
   const plik = new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], n, { type: 'font/woff2' });
   await window.seriodruk.oknoCzcionek.dodaj([plik]);
 }, [PLIK_CZCIONKI.toString('base64'), nazwa]);
-const opcjeCzcionek = (strona) => strona.evaluate(() => [...[...document.querySelectorAll('.wlasciwosci label')].find((l) => l.textContent.startsWith('Czcionka')).querySelectorAll('option')].map((o) => o.value));
+// Pełna lista czcionek – bez grupy „Użyte w projekcie” na górze (#136).
+const opcjeCzcionek = (strona) => strona.evaluate(() => [...[...document.querySelectorAll('.wlasciwosci label')].find((l) => l.textContent.startsWith('Czcionka')).querySelectorAll('select > option, optgroup:not([label="Użyte w projekcie"]) > option')].map((o) => o.value));
 const doProjektow = async (strona) => {
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   await strona.click('#ekran-edytora [data-akcja="do-projektow"]');

@@ -1843,6 +1843,41 @@ export class Edytor extends EventTarget {
     return wynik;
   }
 
+  // „Moje elementy” (#131C): zaznaczenie jako JSON do zapisu w Bibliotece – położenie liczone od lewego górnego
+  // rogu zaznaczenia, obrazy jako „zasob:<id>” (pliki dokłada js/moje-elementy.js). Null bez zaznaczenia.
+  async elementDoBiblioteki() {
+    const akt = this.aktywny;
+    if (!akt || akt.isEditing || akt.zWzorca) return null;
+    akt.setCoords();
+    const ramka = akt.getBoundingRect();
+    const kopie = await this._kopie(akt);
+    const json = podmienZasoby(kopie.map((k) => k.toObject()), null)
+      .map((o) => ({ ...o, left: (o.left || 0) - ramka.left, top: (o.top || 0) - ramka.top, id: undefined }));
+    let podglad = null;
+    try { podglad = akt.toDataURL({ format: 'png', multiplier: Math.min(4, 120 / Math.max(1, ramka.width * this.canvas.getZoom())) * this.canvas.getZoom() }); } catch { /* bez podglądu */ }
+    return { obiekty: json, szer: ramka.width, wys: ramka.height, podglad };
+  }
+
+  // Wstawia element z „Moich elementów” na bieżącą stronę (środek albo punkt upuszczenia). `zasoby` – obrazy projektu.
+  async wstawElementZBiblioteki(dane, zasoby, punkt = null) {
+    const json = dane?.obiekty || [];
+    if (!json.length) return null;
+    await przygotujKopie(zasoby, json);
+    await zapewnijCzcionki(json);
+    const zywe = await fabric.util.enlivenObjects(podmienZasoby(JSON.parse(JSON.stringify(json)), zrodloObrazu(zasoby)));
+    await przygotujObrazyKsztaltow(zywe);
+    const { left, top } = punkt
+      ? { left: punkt.x - (dane.szer || 0) / 2, top: punkt.y - (dane.wys || 0) / 2 }
+      : this._srodek(dane.szer || 0, dane.wys || 0);
+    if (this._pioro) this.ustawPioro(false);
+    if (this._punkty) this.zakonczPunkty(true);
+    this.canvas.discardActiveObject();
+    for (const o of zywe) { o.set({ left: (o.left || 0) + left, top: (o.top || 0) + top, evented: true }); o.setCoords(); }
+    this._wstawKopie(zywe);
+    this.oznaczZmiane();
+    return zywe.length === 1 ? zywe[0] : this.aktywny;
+  }
+
   // Tekst po kształcie albo wygięty z Biblioteki (#131B): gotowy napis, od razu z kształtem (bez wchodzenia w pisanie).
   dodajTekstWKsztalcie(tresc, ksztalt, punkt = null, { rozmiarPt = 20, gruby = true } = {}) {
     const t = new fabric.Textbox(tresc, {
@@ -2599,6 +2634,52 @@ export class Edytor extends EventTarget {
           });
           ctx.closePath();
           ctx.fill();
+        }
+      }
+    }
+  }
+
+  // Sprawdzanie pisowni (#131C): falista czerwona linia pod słowami spoza słownika. Tylko w edytorze –
+  // eksport i podgląd jej nie mają. `this.pisownia.bledy(obj)` daje zakresy [{ start, koniec }] (js/app/pisownia-plotno.js).
+  _podkreslPisownie(ctx, X, Y) {
+    const s = this.canvas.viewportTransform[0];
+    for (const o of this.canvas.getObjects()) {
+      if (o.zWzorca || o.type !== 'textbox' || o.visible === false || !o.__charBounds) continue;
+      const bledy = this.pisownia.bledy(o);
+      if (!bledy?.length) continue;
+      const m = o.calcTransformMatrix();
+      const lewo0 = o._getLeftOffset();
+      const gora0 = o._getTopOffset();
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 1.2;
+      for (const b of bledy) {
+        const czesci = new Map();
+        for (let i = b.start; i < b.koniec; i += 1) {
+          const { lineIndex: w, charIndex: z } = o.get2DCursorLocation(i);
+          const znak = o.__charBounds[w]?.[z];
+          if (!znak) continue;
+          const x = lewo0 + o._getLineLeftOffset(w) + znak.left;
+          const cz = czesci.get(w);
+          if (cz) cz.x2 = Math.max(cz.x2, x + znak.kernedWidth); else czesci.set(w, { x1: x, x2: x + znak.kernedWidth });
+        }
+        for (const [w, cz] of czesci) {
+          let y = gora0;
+          for (let k = 0; k < w; k += 1) y += o.getHeightOfLine(k);
+          y += o.getHeightOfLine(w) / o.lineHeight;
+          const a = new fabric.Point(cz.x1, y).transform(m);
+          const z = new fabric.Point(cz.x2, y).transform(m);
+          const dl = Math.hypot(X(z.x) - X(a.x), Y(z.y) - Y(a.y));
+          if (dl < 2) continue;
+          const kat = Math.atan2(Y(z.y) - Y(a.y), X(z.x) - X(a.x));
+          const fala = Math.max(1.5, Math.min(3, s * 0.45));
+          ctx.save();
+          ctx.translate(X(a.x), Y(a.y) + 1);
+          ctx.rotate(kat);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          for (let x = 0, n = 0; x <= dl; x += fala, n += 1) ctx.lineTo(x, n % 2 ? fala * 0.7 : 0);
+          ctx.stroke();
+          ctx.restore();
         }
       }
     }
@@ -3898,6 +3979,7 @@ export class Edytor extends EventTarget {
     }
 
     if (this.pokazProwadnice) this._podswietlPola(ctx, X, Y);
+    if (this.pisownia) this._podkreslPisownie(ctx, X, Y);
     if (this.pokazProwadnice) this._rysujWatek(ctx, X, Y);
     if (this._trybPunktow()) this._rysujPunkty(ctx, X, Y);
     this._rysujOtwarta(ctx, X, Y);

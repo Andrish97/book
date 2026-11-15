@@ -139,7 +139,9 @@ export class PanelWarstw {
         <button role="menuitem" data-op="nizej">Niżej</button>
         <button role="menuitem" data-op="spod">Na spód</button>
         <hr>
-        <button role="menuitem" data-op="nazwa">Zmień nazwę</button>`;
+        <button role="menuitem" data-op="nazwa">Zmień nazwę</button>
+        <button role="menuitem" data-op="malarz">Kopiuj wygląd</button>
+        <button role="menuitem" data-op="zapisz-w-bibliotece">Zapisz w bibliotece</button>`;
       menu.addEventListener('click', async (e) => {
         const b = e.target.closest('[data-op]');
         if (!b || b.disabled) return;
@@ -151,7 +153,11 @@ export class PanelWarstw {
         else if (b.dataset.op === 'nizej') this.edytor.przesunWarstwe(cel, -1);
         else if (b.dataset.op === 'wierzch' && i > 0) this.edytor.przeniesWarstwe(cel, ids[0]);
         else if (b.dataset.op === 'spod' && i < ids.length - 1) this.edytor.przeniesWarstwe(cel, null);
-        else if (b.dataset.op === 'nazwa') {
+        // Kopiuj wygląd, Zapisz w bibliotece (#131C, #140): ten sam przycisk co w nagłówku panelu – po zaznaczeniu.
+        else if (b.dataset.op === 'malarz' || b.dataset.op === 'zapisz-w-bibliotece') {
+          this.edytor.zaznacz(cel);
+          document.querySelector(`#akcje-obiektu [data-akcja="${b.dataset.op}"]`)?.click();
+        } else if (b.dataset.op === 'nazwa') {
           const li = this.lista.querySelector(`:scope > li[data-id="${CSS.escape(cel)}"]`);
           const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', li?.querySelector('.warstwa-nazwa').textContent || '');
           if (nazwa) this.edytor.nazwij(cel, nazwa);

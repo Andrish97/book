@@ -27,9 +27,15 @@ import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
 export { instrukcja } from './instrukcja-leniwa.js';
 // Obraz, który dostanie plik wybrany przyciskiem „Podmień zdjęcie”.
 export const podmiana = { obj: null, doKsztaltu: false };
+let pisowniaPanelu = null;
+export const ustawPisowniePanelu = (p) => { pisowniaPanelu = p; };
 export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
   tytulPusty: () => (stan.tryb === 'wzorzec' ? 'Wzorzec' : 'Strona'),
   projekt: () => stan.projekt, // tabele danych dla kalendarza i wykresu (#131A)
+  // Moje elementy (#131C): kilka zaznaczonych elementów razem do Biblioteki.
+  zapiszWBibliotece: () => import('./moje-elementy-okno.js').then((m) => m.zapiszWBibliotece()),
+  // Pisownia (#131C): lista błędów i podpowiedzi w panelu tekstu.
+  get pisownia() { return pisowniaPanelu; },
   // Książka (#131B): przypisy, odsyłacze, skorowidz, spis treści – po zmianie zapis i przeliczenie spisów.
   poZmianieKsiazki: () => { zaplanujZapis(); setTimeout(() => odswiezKsiazke().catch((e) => console.error(e)), 50); },
   budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),

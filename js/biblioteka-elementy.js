@@ -126,3 +126,30 @@ zarejestrujKategorie({
     { id: 'skorowidz', nazwa: 'Skorowidz', slowa: 'skorowidz indeks hasla slowa ksiazka', duzy: true, podglad: PODGLAD_SKOROWIDZA, opis: 'Hasła alfabetycznie z numerami stron', wstaw: (e, punkt) => e.dodajElementKsiazki('skorowidz', punkt) },
   ],
 });
+
+// Moje elementy (#131C): elementy zapisane z zaznaczenia („Zapisz w bibliotece”), z konta – w każdym projekcie.
+// Lista jest w pamięci (js/moje-elementy.js); okno odświeża ją przy otwarciu (odswiez) i po każdej zmianie.
+// Lista i operacje podpina aplikacja (js/app/moje-elementy-okno.js) – tu bez zależności od interfejsu.
+export const MOJE = { lista: [], zmienNazwe: null, usun: null };
+const escM = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
+zarejestrujKategorie({
+  id: 'moje', nazwa: 'Moje elementy', ikona: 'zapisz_w_bibliotece', kolejnosc: 5,
+  pusto: 'Tu trafią Twoje elementy. Zaznacz element albo kilka na stronie i wybierz „Zapisz w bibliotece” (we właściwościach, obok Kopiuj i Duplikuj) – będzie pod ręką w każdym projekcie.',
+  odswiez: async () => (await import('./moje-elementy.js')).wczytajMojeElementy(),
+  elementy: () => (MOJE.lista || []).map((m) => ({
+    id: m.id, nazwa: m.nazwa, slowa: 'moje zapisane wlasne', duzy: true,
+    podglad: m.podglad ? `<img src="${escM(m.podglad)}" alt="">` : '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="12" y="8" width="46" height="36" rx="3" class="tlo"/></svg>',
+    opis: m.szer ? `${Math.round(m.szer)} × ${Math.round(m.wys)} mm` : '',
+    wstaw: async (e, punkt) => {
+      const projekt = typeof window !== 'undefined' ? window.seriodruk?.stan?.projekt : null;
+      if (!projekt) return null;
+      const { mojElementDoWstawienia } = await import('./moje-elementy.js');
+      const dane = await mojElementDoWstawienia(m.id, projekt);
+      return e.wstawElementZBiblioteki(dane, projekt.zasoby, punkt);
+    },
+    akcje: [
+      { ikona: 'olowek', nazwa: 'Zmień nazwę', fn: () => MOJE.zmienNazwe?.(m) },
+      { ikona: 'kosz', nazwa: 'Usuń z biblioteki', fn: () => MOJE.usun?.(m) },
+    ],
+  })),
+});

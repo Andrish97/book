@@ -51,6 +51,10 @@ export async function pokazEdytor() {
   edytor.canvas.calcOffset();
 }
 
+// Okno, przy którym krok historii czeka, a cofanie nie działa. Panele obok strony (Biblioteka,
+// „Znajdź i zamień”) nie blokują – zmiany z nich da się cofać, gdy panel jest jeszcze otwarty.
+const OKNO_BLOKUJACE = 'dialog[open]:not(.obok-strony)';
+
 // Przepisuje płótno do projektu i zapamiętuje stan jako krok historii.
 function zapamietajStan() {
   clearTimeout(stan.timerHistorii);
@@ -65,7 +69,7 @@ function zapamietajStan() {
 // wzorzec, którego dotyczyła zmiana.
 export async function cofnijKrok(kierunek) {
   const p = stan.projekt;
-  if (!p || $('dialog[open]')) return;
+  if (!p || $(OKNO_BLOKUJACE)) return;
   zapamietajStan();
   const zaznaczony = edytor.aktywny?.id;
   const zmiana = kierunek < 0 ? historia.cofnij(p) : historia.ponow(p);
@@ -415,7 +419,7 @@ export function zaplanujZapis({ historia: doHistorii = true } = {}) {
     stan.doHistorii = true;
     clearTimeout(stan.timerHistorii);
     // Przy otwartym oknie (dane, serie, sekcje) krok powstaje dopiero po jego zamknięciu.
-    stan.timerHistorii = setTimeout(() => { if ($('dialog[open]')) zaplanujZapis(); else zapamietajStan(); }, 300);
+    stan.timerHistorii = setTimeout(() => { if ($(OKNO_BLOKUJACE)) zaplanujZapis(); else zapamietajStan(); }, 300);
     odswiezCofanie();
   }
 }

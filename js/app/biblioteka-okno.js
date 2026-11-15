@@ -38,9 +38,25 @@ function pokazElementy() {
   // Z wpisanym słowem szukamy we wszystkich kategoriach – nie trzeba zgadywać, gdzie leży strzałka.
   const trafione = szukajWBibliotece(zapytanie, zapytanie ? null : kategoria);
   chipy.classList.toggle('przy-szukaniu', Boolean(zapytanie));
-  if (!trafione.length) { lista.innerHTML = '<p class="ciche pusto-biblioteki">Nic nie pasuje – spróbuj innego słowa.</p>'; return; }
+  if (!trafione.length) {
+    const k = !zapytanie && kategorieBiblioteki().find((x) => x.id === kategoria);
+    lista.innerHTML = `<p class="ciche pusto-biblioteki">${esc(k?.pusto || 'Nic nie pasuje – spróbuj innego słowa.')}</p>`;
+    return;
+  }
   const przeciagalne = naKomputerze();
-  lista.innerHTML = trafione.map(({ kategoria: k, element: e }) => `<button type="button" class="kafel-biblioteki${e.duzy ? ' duzy' : ''}" data-kategoria="${k.id}" data-element="${esc(e.id)}"${przeciagalne ? ' draggable="true"' : ''} title="${esc(e.nazwa)}${przeciagalne ? ' – kliknij albo przeciągnij na stronę' : ''}" aria-label="${esc(e.nazwa)}"><span class="podglad-biblioteki">${e.podglad}</span>${e.duzy ? `<strong>${esc(e.nazwa)}</strong>${e.opis ? `<small>${esc(e.opis)}</small>` : ''}` : ''}</button>`).join('');
+  lista.innerHTML = trafione.map(({ kategoria: k, element: e }) => {
+    const kafel = `<button type="button" class="kafel-biblioteki${e.duzy ? ' duzy' : ''}" data-kategoria="${k.id}" data-element="${esc(e.id)}"${przeciagalne ? ' draggable="true"' : ''} title="${esc(e.nazwa)}${przeciagalne ? ' – kliknij albo przeciągnij na stronę' : ''}" aria-label="${esc(e.nazwa)}"><span class="podglad-biblioteki">${e.podglad}</span>${e.duzy ? `<strong>${esc(e.nazwa)}</strong>${e.opis ? `<small>${esc(e.opis)}</small>` : ''}` : ''}</button>`;
+    // Elementy z akcjami (Moje elementy: zmień nazwę, usuń) – małe przyciski w rogu kafelka.
+    if (!e.akcje?.length) return kafel;
+    return `<div class="kafel-z-akcjami">${kafel}<span class="akcje-kafla">${e.akcje.map((a, i) => `<button type="button" class="przycisk-ikona maly" data-akcja-kafla="${i}" data-kategoria="${k.id}" data-element="${esc(e.id)}" title="${esc(a.nazwa)}" aria-label="${esc(a.nazwa)}: ${esc(e.nazwa)}">${ikona(a.ikona, { rozmiar: 14 })}</button>`).join('')}</span></div>`;
+  }).join('');
+}
+
+// Kategoria z danymi z konta (Moje elementy): lista odświeża się przy otwarciu i po każdej zmianie.
+export function odswiezBiblioteke() {
+  if (!dlg.open) return;
+  pokazChipy();
+  pokazElementy();
 }
 
 export function otworzBiblioteke(idKategorii = null) {
@@ -48,6 +64,7 @@ export function otworzBiblioteke(idKategorii = null) {
   pole.value = '';
   pokazChipy();
   pokazElementy();
+  for (const k of kategorieBiblioteki()) k.odswiez?.().then(odswiezBiblioteke).catch(() => {});
   if (dlg.open) { pole.focus(); return; }
   dlg.classList.toggle('obok-strony', naKomputerze());
   if (naKomputerze()) dlg.show(); else dlg.showModal();
@@ -72,6 +89,12 @@ chipy.addEventListener('click', (e) => {
   pokazElementy();
 });
 lista.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-akcja-kafla]');
+  if (a) {
+    const el = elementBiblioteki(a.dataset.kategoria, a.dataset.element);
+    el?.akcje?.[Number(a.dataset.akcjaKafla)]?.fn();
+    return;
+  }
   const b = e.target.closest('.kafel-biblioteki');
   if (b) wstawZBiblioteki(b.dataset.kategoria, b.dataset.element);
 });

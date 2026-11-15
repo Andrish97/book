@@ -295,22 +295,48 @@ const poprawnyHex = (t) => { const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(t.t
 function ostatnieKolory() {
   try { return JSON.parse(localStorage.getItem(KLUCZ_OSTATNICH) || '[]').filter((k) => poprawnyHex(k)).slice(0, 10); } catch { return []; }
 }
-// Kolory używane w otwartym projekcie (wypełnienia, obrysy, tła; najczęstsze najpierw) – żeby trzymać się
-// kolorów dokumentu bez przepisywania kodów (#103). Bez projektu – pusto.
-export function koloryProjektu(projekt = globalThis.seriodruk?.stan?.projekt, ile = 12) {
+// Kolory użyte w projekcie (#103, #136): wypełnienia, obrysy, kolory tekstu (także fragmentów), przejścia,
+// tła, cienie i style – ze wszystkich stron i wzorców, najczęstsze najpierw. Bez projektu – pusto.
+// uzyteKolory → [{ kolor, ile }], koloryProjektu → same kody (zgodność ze starszym użyciem).
+export function uzyteKolory(projekt = globalThis.seriodruk?.stan?.projekt, ile = 16) {
   if (!projekt) return [];
   const licz = new Map();
-  const dodaj = (k) => { const h = typeof k === 'string' ? poprawnyHex(k) : null; if (h) licz.set(h, (licz.get(h) || 0) + 1); };
+  const dodaj = (k) => {
+    if (k && typeof k === 'object' && Array.isArray(k.colorStops)) { for (const st of k.colorStops) dodaj(st.color); return; }
+    const h = typeof k === 'string' ? poprawnyHex(k) : null;
+    if (h) licz.set(h, (licz.get(h) || 0) + 1);
+  };
   const przejdz = (obiekty) => {
     for (const o of obiekty || []) {
-      dodaj(o.fill); dodaj(o.stroke);
+      dodaj(o.fill); dodaj(o.stroke); dodaj(o.shadow?.color);
+      for (const st of Array.isArray(o.styles) ? o.styles : []) { dodaj(st.style?.fill); dodaj(st.style?.stroke); }
       if (Array.isArray(o.objects)) przejdz(o.objects);
     }
   };
   for (const st of projekt.strony || []) { dodaj(st.tlo); przejdz(st.obiekty); }
   for (const w of projekt.wzorce || []) { dodaj(w.tlo); przejdz(w.obiekty); }
-  return [...licz].sort((a, b) => b[1] - a[1]).map(([k]) => k).slice(0, ile);
+  for (const st of [...(projekt.style || []), ...(projekt.style_znakowe || [])]) dodaj(st.fill);
+  return [...licz].sort((a, b) => b[1] - a[1]).slice(0, ile).map(([kolor, n]) => ({ kolor, ile: n }));
 }
+// Czcionki użyte w projekcie (#136): teksty stron i wzorców (także fragmenty i inicjały) i style – najczęstsze
+// najpierw: [{ nazwa, ile }].
+export function uzyteCzcionki(projekt = globalThis.seriodruk?.stan?.projekt) {
+  if (!projekt) return [];
+  const licz = new Map();
+  const dodaj = (n) => { if (typeof n === 'string' && n.trim()) licz.set(n, (licz.get(n) || 0) + 1); };
+  const przejdz = (obiekty) => {
+    for (const o of obiekty || []) {
+      if (typeof o.text === 'string') { dodaj(o.fontFamily); dodaj(o.inicjal_czcionka); }
+      for (const st of Array.isArray(o.styles) ? o.styles : []) dodaj(st.style?.fontFamily);
+      if (Array.isArray(o.objects)) przejdz(o.objects);
+    }
+  };
+  for (const st of projekt.strony || []) przejdz(st.obiekty);
+  for (const w of projekt.wzorce || []) przejdz(w.obiekty);
+  for (const st of [...(projekt.style || []), ...(projekt.style_znakowe || [])]) dodaj(st.fontFamily);
+  return [...licz].sort((a, b) => b[1] - a[1]).map(([nazwa, ile]) => ({ nazwa, ile }));
+}
+export const koloryProjektu = (projekt, ile = 12) => uzyteKolory(projekt, ile).map((k) => k.kolor);
 
 function zapamietajKolor(hex) {
   try { localStorage.setItem(KLUCZ_OSTATNICH, JSON.stringify([hex, ...ostatnieKolory().filter((k) => k !== hex)].slice(0, 10))); } catch { /* tryb prywatny – trudno */ }
@@ -357,7 +383,10 @@ function ulepszKolor(input) {
       <label class="kolor-hex"><span>Kod koloru</span><input type="text" maxlength="7" spellcheck="false" autocomplete="off"></label>
       <div class="kolor-paleta" role="group" aria-label="Gotowe kolory"></div>
       <div class="kolor-paleta ostatnie" role="group" aria-label="Ostatnio używane" hidden></div>
-      <div class="kolor-paleta projektu" role="group" aria-label="Kolory w projekcie" hidden></div>
+      <div class="kolor-uzyte" hidden>
+        <span class="kolor-podpis">Użyte w projekcie</span>
+        <div class="kolor-paleta projektu" role="group" aria-label="Użyte w projekcie"></div>
+      </div>
       <div class="kolor-dodatkowe" hidden>
         <span class="kolor-podpis">Kolory dodatkowe</span>
         <div class="kolor-paleta spoty" role="group" aria-label="Kolory dodatkowe"></div>
@@ -459,8 +488,22 @@ function ulepszKolor(input) {
     }
     const ostatnie = ostatnieKolory();
     if (ostatnie.length) { const el = okienko.querySelector('.kolor-paleta.ostatnie'); el.hidden = false; paleta(el, ostatnie); }
-    const wProjekcie = koloryProjektu();
-    if (wProjekcie.length) { const el = okienko.querySelector('.kolor-paleta.projektu'); el.hidden = false; paleta(el, wProjekcie); }
+    // Użyte w projekcie (#136): z liczbą użyć w podpowiedzi; kolor dodatkowy (Pantone) – z nazwą.
+    const wProjekcie = uzyteKolory();
+    if (wProjekcie.length) {
+      okienko.querySelector('.kolor-uzyte').hidden = false;
+      const el = okienko.querySelector('.kolor-paleta.projektu');
+      paleta(el, wProjekcie.map((k) => k.kolor));
+      const spoty = mapaSpotow(koloryDodatkowe(globalThis.seriodruk?.stan?.projekt));
+      [...el.children].forEach((b, i) => {
+        const { kolor, ile: n } = wProjekcie[i];
+        const spot = spoty.get(kolor);
+        const nazwa = spot ? `${spot.nazwa}${spot.t < 1 ? ` ${Math.round(spot.t * 100)}%` : ''} · ` : '';
+        const opis = `${nazwa}${kolor} · ${n} ${n === 1 ? 'raz' : 'razy'} w projekcie`;
+        b.title = opis;
+        b.setAttribute('aria-label', `Kolor ${opis}`);
+      });
+    }
     okienko.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); zamknijOkienko(); przycisk.focus(); } });
     otworzOkienko(okienko, przycisk, { zaslonka: true,
       poZamknieciu: () => {

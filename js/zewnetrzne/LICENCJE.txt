@@ -31,3 +31,8 @@ hyphen-1.14.1.js – hyphen 1.14.1 (dzielenie wyrazów), https://github.com/ytiu
 hyphen-pl-1.14.1.js – polskie wzorce dzielenia z pakietu hyphen 1.14.1, pochodzące z hyph-utf8 (hyph-pl.tex: Hanna Kołodziejska, Bogusław Jackowski, Marek Ryćko); licencja wzorców „knuth” (wolne użycie, kopiowanie i rozpowszechnianie), pakiet – ISC.
 
 Treść licencji MIT jak wyżej (dla Fabric.js). Pełny tekst licencji Apache 2.0: https://www.apache.org/licenses/LICENSE-2.0
+
+slownik-pl/pl.aff, slownik-pl/pl.dic – słownik do sprawdzania pisowni po polsku (Hunspell), sjp.pl / Polish Native
+Lang Project (OpenOffice.org, 2008), w wersji z pakietu dictionary-pl 2.0.0 (https://github.com/wooorm/dictionaries);
+licencja do wyboru: GPL, LGPL, MPL albo Creative Commons ShareAlike – pełna treść w slownik-pl/LICENCJA.txt.
+Pliki bez zmian. Silnik sprawdzania jest własny (js/pisownia-rdzen.js) – bez bibliotek obcych.

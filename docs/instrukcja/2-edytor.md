@@ -32,12 +32,13 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | [Podgląd] | Cały projekt bez edycji, z danymi (→ 20). |
 | **Format** (np. „A5”) | Ustawienia bieżącej sekcji: format, spad, marginesy (→ 11.4). |
 | [Pełny ekran] | Chowa paski przeglądarki; <kbd>Esc</kbd> wraca. |
+| [Znajdź i zamień] | Lupa: szukanie i zamiana tekstu w całym projekcie (→ 6.15). |
 | [Instrukcja] | Ta instrukcja. |
 | [⋯] | Menu z eksportem i oknami projektu (→ 4.3). |
 
 [Wzorce], [Dane] i [Podgląd] to ikony; napisy obok nich pojawiają się same, gdy jest na nie
 miejsce. Zmienisz to w menu widoku: **Napisy na górnym pasku** — [Auto], [Zawsze], [Nigdy] (→ 4.6).
-Na wąskim telefonie [Wzorce], [Dane] i [Instrukcja] przechodzą do menu [⋯].
+Na wąskim telefonie [Wzorce], [Dane], [Instrukcja] i lupa przechodzą do menu [⋯] ([Znajdź i zamień…] jest tam na górze).
 
 ## 4.3 Menu ⋯
 
@@ -45,6 +46,7 @@ Na wąskim telefonie [Wzorce], [Dane] i [Instrukcja] przechodzą do menu [⋯].
 
 | Pozycja | Co robi |
 |---|---|
+| [Znajdź i zamień…] | Szukanie i zamiana tekstu na wszystkich stronach i we wzorcach (<kbd>Ctrl</kbd>+<kbd>F</kbd>, → 6.15). |
 | [Eksportuj do PDF…] | Okno eksportu do pliku PDF (→ 22). |
 | [Pobierz bieżącą stronę jako PNG] | Obraz otwartej strony w 300 dpi, ze spadem (→ 22.5). |
 | [Sprawdź przed drukiem] | Lista miejsc do sprawdzenia w całym projekcie (→ 21). |
@@ -88,7 +90,8 @@ Nagłówek właściwości mówi, czego dotyczą ustawienia:
 | **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (→ 11.3). |
 
 Przy zaznaczonym elemencie w nagłówku są przyciski [Kopiuj do schowka] (<kbd>Ctrl</kbd>+<kbd>C</kbd>),
-[Duplikuj] (<kbd>Ctrl</kbd>+<kbd>D</kbd>) i [Usuń] (<kbd>Delete</kbd>). Tytuł części (np. „Cień”) zwija
+[Duplikuj] (<kbd>Ctrl</kbd>+<kbd>D</kbd>), [Kopiuj wygląd] (→ 5.13), [Zapisz w bibliotece] (→ 5.8)
+i [Usuń] (<kbd>Delete</kbd>). Tytuł części (np. „Cień”) zwija
 ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (→ 13.2).
 
 ![Ustawienia narzędzia: rysowanie](k-rysowanie.png)
@@ -119,6 +122,7 @@ Menu widoku:
 | **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
 | [Usuń prowadnice z tej strony] | Usuwa wszystkie prowadnice otwartej strony. |
 | **W rozkładówkach pokazuj jedną stronę** | W sekcji z rozkładówkami pokazuje tylko jedną stronę (→ 11.5). |
+| **Sprawdzaj pisownię** | Falista czerwona linia pod słowami spoza słownika i część **Pisownia** w panelu tekstu (→ 6.16). |
 | **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (→ 23.3). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | [Auto] — gdy się mieszczą, [Zawsze], [Nigdy]. |
@@ -235,6 +239,7 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 
 | Kategoria | Co w niej jest |
 |---|---|
+| **Moje elementy** | Elementy zapisane przez Ciebie – na koncie, w każdym projekcie (niżej). |
 | **Kształty** | Figury, gwiazdy, serca, chmura, tarcza, liść i proste ikony (dom, pinezka, zegar, ptaszek, koperta, telefon…). |
 | **Strzałki i dymki** | Strzałki w każdą stronę, zakręcone i obustronne, szewrony, metki; dymki komiksowe, myśli i krzyku. |
 | **Ozdobniki i ramki** | Wstęgi, proporczyki, bilety, zakładki; ramki (zwykła, falista, okrągła, podwójna); linie ozdobne. |
@@ -246,6 +251,21 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (→ 5.12). |
 
 Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (→ 7.4), a zamknięty kształt może być ramką zdjęcia (→ 8.7).
+
+**Moje elementy.** Logo, stopkę firmy czy ulubioną ramkę zapiszesz raz i wstawisz w każdym projekcie:
+
+1. Zaznacz element albo kilka elementów (np. logo z podpisem).
+2. Kliknij [Zapisz w bibliotece] w nagłówku panelu (przy kilku zaznaczonych — w części **Zaznaczenie**)
+   albo w [⋯] przy elemencie na liście warstw. Paleta poleceń (<kbd>Ctrl</kbd>+<kbd>K</kbd>) to dodatek.
+3. Wpisz nazwę. Element trafi do kategorii **Moje elementy**.
+
+![Moje elementy w Bibliotece](k-moje-elementy.png)
+
+- Elementy są na Twoim koncie — jak „Moje czcionki” — więc widać je w każdym projekcie i na każdym urządzeniu.
+- Zapisują się razem z obrazami. Wstawienie kopiuje obraz do obrazów projektu (→ 8.5), więc projekt
+  nie zależy od Biblioteki — usunięcie elementu z Biblioteki nie zmienia stron, na których już stoi.
+- Ołówek w rogu kafelka zmienia nazwę, kosz usuwa element z Biblioteki.
+- Elementów wzorca i tekstu w trakcie pisania nie zapiszesz — najpierw wyjdź z pisania.
 
 ## 5.9 Kalendarz miesiąca
 
@@ -309,6 +329,43 @@ Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na ka�
 Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Sprawdź przed drukiem** pojawi się uwaga, gdy kod będzie za mały (moduł QR mniejszy niż 0,33 mm, EAN mniejszy niż 80% nominału), za jasny albo z błędną treścią.
 
 ![Kod QR i jego ustawienia](k-kod.png)
+
+## 5.13 Kopiuj wygląd (malarz formatów)
+
+Wygląd jednego elementu przeniesiesz na inny jednym kliknięciem — bez przepisywania kolorów i grubości.
+
+**Gdzie:** przycisk [Kopiuj wygląd] (pędzel) w nagłówku panelu właściwości, obok [Kopiuj do schowka]
+i [Duplikuj], oraz [⋯] przy elemencie na liście warstw → [Kopiuj wygląd]. Skróty
+<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd> to dodatek.
+
+![Kopiuj wygląd w nagłówku panelu](k-malarz.png)
+
+1. Zaznacz element, który ma już dobry wygląd.
+2. Kliknij [Kopiuj wygląd] w nagłówku panelu (pędzel) albo naciśnij <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>.
+   Przycisk zostaje wciśnięty, a kursor nad stroną zmienia się w kopiowanie.
+3. Kliknij element, który ma dostać ten wygląd. Gotowe — przycisk się wyłącza.
+
+- **Dwa kliknięcia** w [Kopiuj wygląd] — tryb ciągły: klikasz kolejne elementy, aż naciśniesz <kbd>Esc</kbd>
+  albo klikniesz przycisk jeszcze raz.
+- Bez myszy: zaznacz element docelowy i naciśnij <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>.
+- **Fragment tekstu:** po skopiowaniu wyglądu kliknij tekst dwa razy, zaznacz słowa i kliknij [Kopiuj wygląd]
+  jeszcze raz — wygląd (czcionka, rozmiar, kolor, pogrubienie…) dostanie tylko zaznaczony fragment.
+  Wygląd skopiujesz też z fragmentu: zaznacz w pisanym tekście słowo o dobrym wyglądzie i kliknij [Kopiuj wygląd].
+- W trakcie pisania tekstu skróty <kbd>Ctrl</kbd>+<kbd>Alt</kbd> nie działają — na polskiej klawiaturze to
+  polskie litery (<kbd>Alt Gr</kbd>+<kbd>C</kbd> = „ć”).
+
+| Skąd → dokąd | Co przechodzi |
+|---|---|
+| Kształt → kształt | Wypełnienie (także przejście), obrys, grubość i przerywanie obrysu, zaokrąglenie rogów, krycie, cień. |
+| Tekst → tekst | Czcionka, rozmiar, pogrubienie, kursywa, kolor, odstępy, wyrównanie, styl, wielkość liter, obrys liter, krycie, cień. Treść zostaje. |
+| Obraz → obraz | Filtry, obrys ramki, zaokrąglenie rogów, krycie, cień. |
+| Każdy → każdy | Krycie, cień i uszlachetnienia (lakier, folia). |
+
+Wygląd nie przechodzi na tabele, kody, wykresy ani kalendarze — mają własne ustawienia. Każde przeniesienie
+cofniesz [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
+
+> Wskazówka: Kolory i czcionki, których już użyłeś na innych stronach, są też pod ręką w oknie koloru
+> i na liście czcionek, w części **Użyte w projekcie** (→ 6.8, 7.7).
 
 # 6. Tekst
 
@@ -428,6 +485,11 @@ Okno [⋯] → [Czcionki projektu…]:
 
 ![Okno czcionek](czcionki.png)
 
+Na górze listy **Czcionka** są **Użyte w projekcie** — czcionki z tekstów wszystkich stron, wzorców
+i stylów, najczęstsze najpierw, z liczbą użyć (np. „Inter · 5×”). Niżej jest pełna lista.
+
+![Użyte w projekcie na liście czcionek](k-czcionki-uzyte.png)
+
 ## 6.9 Skład akapitu
 
 Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, jak tekst łamie się na wiersze.
@@ -518,6 +580,59 @@ Zaznacz tekst i w części **Kształt tekstu** panelu wybierz **Kształt**. Goto
 - W PDF litery zostają tekstem z osadzoną czcionką – ostre w każdym powiększeniu.
 - **Prosto** przywraca zwykły tekst w ramce o dawnej szerokości.
 
+## 6.15 Znajdź i zamień
+
+**Gdzie:** przycisk [Znajdź i zamień] (lupa) na górnym pasku albo [⋯] → [Znajdź i zamień…] — pierwsza
+pozycja menu (na telefonie tylko tam). Skróty jako dodatek: <kbd>Ctrl</kbd>+<kbd>F</kbd> (na Macu
+<kbd>⌘</kbd>+<kbd>F</kbd>), <kbd>Ctrl</kbd>+<kbd>H</kbd> — od razu z polem zamiany, i paleta poleceń
+(<kbd>Ctrl</kbd>+<kbd>K</kbd>).
+
+![Znajdź i zamień obok strony](k-znajdz.png)
+
+1. Wpisz szukany tekst. Lista pokazuje każde trafienie: stronę albo wzorzec i kawałek tekstu wokół.
+2. Kliknij trafienie (albo <kbd>Enter</kbd> w polu, <kbd>Shift</kbd>+<kbd>Enter</kbd> — wstecz) — edytor
+   otworzy tę stronę i zaznaczy znaleziony fragment.
+3. Żeby zamienić, wpisz nowy tekst w drugim polu i kliknij [Zamień] (wybrane trafienie)
+   albo [Zamień wszystkie].
+
+| Opcja | Znaczenie |
+|---|---|
+| **Wielkość liter** | „Kalendarz” nie znajdzie „kalendarz”. |
+| **Całe słowa** | „kot” nie znajdzie „kotka”. |
+| **Także w danych** | Szuka też w komórkach tabel danych (→ 14). |
+| **W nazwach stylów** | Szuka też w nazwach stylów akapitu i znakowych (→ 6.4). |
+
+- Szukanie obejmuje wszystkie strony i wzorce, także teksty w grupach.
+- Pola w klamrach, np. `{miesiac}`, zostają nietknięte — chyba że wpiszesz klamrę w szukanym tekście.
+- Wygląd fragmentów (np. pogrubione słowo) zostaje na swoim miejscu po zamianie.
+- [Zamień wszystkie] to jeden krok cofania — [Cofnij] przywraca wszystkie teksty naraz, także przy otwartym panelu.
+
+Na komputerze okno stoi obok strony i zostaje otwarte, możesz więc klikać kolejne trafienia i poprawiać tekst.
+Na telefonie wyjeżdża od dołu.
+
+## 6.16 Sprawdzanie pisowni
+
+Słowa spoza słownika polskiego są podkreślone falistą czerwoną linią — tylko w edytorze, nigdy w PDF.
+
+![Podpowiedzi przy podkreślonym słowie](k-pisownia-dymek.png)
+
+**Gdzie:** podpowiedzi są przy samym słowie, a włącznik w menu widoku (**Sprawdzaj pisownię**).
+
+1. Kliknij tekst dwa razy i kliknij (na telefonie stuknij) podkreślone słowo — albo kliknij je prawym przyciskiem
+   myszy. Obok słowa pojawi się dymek z podpowiedziami i [Dodaj do słownika].
+2. Kliknij podpowiedź (np. „wcześniej”) — słowo zmieni się w tym miejscu.
+3. Nazwę własną, której słownik nie zna (np. nazwę firmy), dodaj przyciskiem [Dodaj do słownika].
+   Twój słownik jest na koncie, więc działa w każdym projekcie.
+
+Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części **Pisownia** — tam podpowiedź
+zmienia słowo we wszystkich miejscach tego tekstu.
+
+![Część „Pisownia” w panelu tekstu](k-pisownia.png)
+
+- Pomijane są pola `{…}`, liczby, słowa z cyframi, adresy stron i e-maile.
+- Słownik (z odmianą wyrazów) wczytuje się przy pierwszym tekście, w tle — edytor nie zwalnia.
+- Wyłączysz sprawdzanie w menu widoku: **Sprawdzaj pisownię**. Ustawienie dotyczy tego urządzenia.
+
 # 7. Kształty, linie i kolory
 
 ## 7.1 Prostokąt, elipsa i wielokąt
@@ -591,7 +706,12 @@ Kliknięcie kółka koloru otwiera okno koloru:
 - pole nasycenia i jasności oraz suwak barwy,
 - **Kod koloru** (np. `#2f5bd3`) do wpisania albo wklejenia,
 - **gotowe kolory**,
-- **ostatnio używane** kolory i **kolory w projekcie** — te, które już są na stronach.
+- **ostatnio używane** kolory,
+- **Użyte w projekcie** — kolory wypełnień, obrysów, tekstów (także fragmentów), przejść i teł ze wszystkich
+  stron, wzorców i stylów, najczęstsze najpierw. Po najechaniu widać kod i liczbę użyć, a przy kolorze
+  dodatkowym (→ 23.1) — jego nazwę, np. „PANTONE 186 C”.
+
+![Użyte w projekcie w oknie koloru](k-kolory-uzyte.png)
 
 # 8. Obrazy
 
@@ -799,7 +919,7 @@ na spodzie. Widać go zawsze — niezależnie od tego, czy coś jest zaznaczone 
 | **Uchwyt ⋮⋮** | Przeciągnij wiersz, żeby zmienić kolejność — myszą albo palcem. |
 | **Oko** | Ukrywa element. Ukryty element nie jest drukowany. |
 | **Kłódka** | Blokuje położenie i rozmiar. |
-| [⋯] | [Na wierzch], [Wyżej], [Niżej], [Na spód], [Zmień nazwę]. |
+| [⋯] | [Na wierzch], [Wyżej], [Niżej], [Na spód], [Zmień nazwę], [Kopiuj wygląd] (→ 5.13), [Zapisz w bibliotece] (→ 5.8). |
 
 Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w niego trafić na stronie.
 

@@ -23,7 +23,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
-| 131C: znajdź i zamień, malarz formatów, biblioteka elementów, sprawdzanie pisowni | 🔄 partia C w toku |
 | 131D: zmiana formatu ze skalowaniem, zestaw marki, komentarze na stronach, makieta 3D | ⏳ partia D |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
@@ -47,6 +46,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 131C „praca”, 136, 140 | Znajdź i zamień (lupa na górnym pasku, pierwsza pozycja ⋯, Ctrl+F / Ctrl+H, strony, wzorce, opcjonalnie dane i nazwy stylów; „Zamień wszystkie” jednym krokiem cofania; pola {…} nietknięte), Kopiuj wygląd – malarz formatów (nagłówek panelu, ⋯ na liście warstw, Ctrl+Alt+C / Ctrl+Alt+V, tryb ciągły, fragment tekstu), Moje elementy w Bibliotece (na koncie, z obrazami), sprawdzanie pisowni po polsku (falista linia, dymek z podpowiedziami przy słowie, własny słownik na koncie); „Użyte w projekcie” w oknie koloru i na liście czcionek z liczbą użyć; instrukcja 4.3, 4.6, 5.8, 5.13, 6.8, 6.15, 6.16, 7.7 |
 | 131C | Druk: broszura do składania i ze składek, 2 i 4 strony na arkuszu (plan arkuszy, pełzanie, znaki złamu); PDF do czytania na ekranie (zakładki, klikalny spis treści, odsyłacze, linki elementów i kodów QR); podgląd separacji (płyty CMYK, kolory dodatkowe, uszlachetnienia z nadrukiem, pokrycie farbą) i ostrzeżenie o pokryciu w „Sprawdź przed drukiem” |
 | 131B | Książka: spis treści (z Biblioteki, sam się układa, z powieleniami serii), żywa pagina {rozdzial}, przypisy dolne z panelu (numeracja w sekcji / na stronie / w całości), odsyłacze „s. 12”, skorowidz z polskim sortowaniem; podgląd, PDF, łącznik AI, rozdział 14 instrukcji |
 | 131B | Tekst po łuku, okręgu, elipsie i ścieżce oraz wyginanie (fala, flaga, wypukłość…) – panel „Kształt tekstu”, uchwyt zgięcia, Biblioteka „Teksty”, PDF wektorowy, instrukcja 6.14 |
