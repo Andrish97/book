@@ -6,15 +6,31 @@ import { qrMacierz, ean13, STRAZNIKI_EAN } from './kody.js';
 import { KSZTALTY, KOLAZE, svgKolazu, svgKsztaltu, wzorKresek } from './ksztalty-biblioteka.js';
 import { SZABLONY, svgSzablonu } from './szablony-planera.js';
 
-const ksztaltyZ = (...kategorie) => () => KSZTALTY.filter((k) => kategorie.includes(k.kategoria)).map((k) => ({
-  id: k.id, nazwa: k.nazwa, slowa: `${k.slowa} ${k.kategoria}`, podglad: svgKsztaltu(k),
+// Kształty z js/ksztalty-biblioteka.js w kategoriach okna; grupa kształtu (k.kategoria) to nagłówek w kategorii
+// (#155). Nazwa grupy w oknie może być krótsza („Ramki proste” → „Proste”).
+const NAZWY_GRUP = {
+  'Ramki proste': 'Proste', 'Ramki zaokrąglone': 'Zaokrąglone', 'Ramki podwójne i przerywane': 'Podwójne i przerywane',
+  'Ramki ozdobne': 'Ozdobne', 'Ramki z tytułem': 'Z miejscem na tytuł', 'Ramki w kształcie': 'W kształcie',
+  'Na zdjęcie': 'Na zdjęcie – wstaw obraz do środka', Notatki: 'Siatki do notatek',
+};
+const ksztaltyZ = (...grupy) => () => grupy.flatMap((g) => KSZTALTY.filter((k) => k.kategoria === g)).map((k) => ({
+  id: k.id, nazwa: k.nazwa, slowa: `${k.slowa} ${k.kategoria}`, podglad: svgKsztaltu(k), grupa: NAZWY_GRUP[k.kategoria] || k.kategoria,
   wstaw: (e, punkt) => e.dodajKsztaltZBiblioteki(k.id, punkt),
 }));
 
-zarejestrujKategorie({ id: 'ksztalty', nazwa: 'Kształty', ikona: 'ksztalty', kolejnosc: 10, elementy: ksztaltyZ('Figury', 'Gwiazdy i serca', 'Ikony') });
-zarejestrujKategorie({ id: 'strzalki', nazwa: 'Strzałki i dymki', ikona: 'strzalka', kolejnosc: 20, elementy: ksztaltyZ('Strzałki', 'Dymki') });
-zarejestrujKategorie({ id: 'ozdobniki', nazwa: 'Ozdobniki i ramki', ikona: 'ozdobnik', kolejnosc: 30, elementy: ksztaltyZ('Wstęgi i banery', 'Ramki') });
-zarejestrujKategorie({ id: 'etykiety', nazwa: 'Etykiety i plakietki', ikona: 'etykieta', kolejnosc: 35, elementy: ksztaltyZ('Etykiety') });
+// Grupy kształtów w kategoriach okna (kolejność = kolejność nagłówków).
+export const GRUPY_KATEGORII = {
+  ksztalty: ['Podstawowe', 'Wielokąty', 'Gwiazdy i odznaki', 'Serca i natura', 'Symbole i ikony', 'Okolicznościowe', 'Znaki'],
+  strzalki: ['Strzałki', 'Dymki'],
+  ramki: ['Ramki proste', 'Ramki zaokrąglone', 'Ramki podwójne i przerywane', 'Ramki ozdobne', 'Ramki z tytułem', 'Ramki w kształcie', 'Na zdjęcie', 'Kartki i notatki', 'Obramowania stron'],
+  ozdobniki: ['Wstęgi i banery', 'Narożniki', 'Rozety i ornamenty'],
+  etykiety: ['Etykiety'],
+};
+zarejestrujKategorie({ id: 'ksztalty', nazwa: 'Kształty', ikona: 'ksztalty', kolejnosc: 10, elementy: ksztaltyZ(...GRUPY_KATEGORII.ksztalty) });
+zarejestrujKategorie({ id: 'strzalki', nazwa: 'Strzałki i dymki', ikona: 'strzalka', kolejnosc: 20, elementy: ksztaltyZ(...GRUPY_KATEGORII.strzalki) });
+zarejestrujKategorie({ id: 'ramki', nazwa: 'Ramki', ikona: 'ramka', kolejnosc: 25, elementy: ksztaltyZ(...GRUPY_KATEGORII.ramki) });
+zarejestrujKategorie({ id: 'ozdobniki', nazwa: 'Ozdobniki', ikona: 'ozdobnik', kolejnosc: 30, elementy: ksztaltyZ(...GRUPY_KATEGORII.ozdobniki) });
+zarejestrujKategorie({ id: 'etykiety', nazwa: 'Etykiety i plakietki', ikona: 'etykieta', kolejnosc: 35, elementy: ksztaltyZ(...GRUPY_KATEGORII.etykiety) });
 
 // Linie i separatory (#143): zwykłe linie – rodzaj, grubość i kolor zmienia się potem w panelu „Linia”.
 const LINIE = [
@@ -40,20 +56,21 @@ const svgLinii = ({ grubosc = 0.5, kreski = 'ciagla', podwojna, pionowa }) => {
 zarejestrujKategorie({
   id: 'linie', nazwa: 'Linie i separatory', ikona: 'separator', kolejnosc: 32,
   elementy: () => [
-    ...LINIE.map(([id, nazwa, slowa, opis]) => ({ id, nazwa, slowa: `${slowa} separator`, podglad: svgLinii(opis), wstaw: (e, punkt) => e.dodajLinieZBiblioteki({ ...opis, nazwa }, punkt) })),
-    ...ksztaltyZ('Linie ozdobne')(),
+    ...LINIE.map(([id, nazwa, slowa, opis]) => ({ id, nazwa, slowa: `${slowa} separator`, podglad: svgLinii(opis), grupa: 'Linie', wstaw: (e, punkt) => e.dodajLinieZBiblioteki({ ...opis, nazwa }, punkt) })),
+    ...ksztaltyZ('Separatory ozdobne')(),
   ],
 });
 
-// Planer (#143): gotowe tabele (lista zadań, tracker nawyków, plan tygodnia…), pola wyboru, kratka i kropki.
+// Planer (#143, #155): gotowe tabele (lista zadań, tracker nawyków, plan tygodnia…) i siatki do notatek
+// (kratka, kropki, linie). Luźne kształty (pola wyboru itp.) są w Kształtach → Znaki.
 zarejestrujKategorie({
   id: 'planer', nazwa: 'Planer', ikona: 'planer', kolejnosc: 45,
   elementy: () => [
     ...SZABLONY.map((s) => ({
-      id: s.id, nazwa: s.nazwa, slowa: `planer tabela ${s.slowa}`, duzy: true, podglad: svgSzablonu(s), opis: s.opis,
+      id: s.id, nazwa: s.nazwa, slowa: `planer tabela ${s.slowa}`, duzy: true, podglad: svgSzablonu(s), opis: s.opis, grupa: 'Gotowe tabele',
       wstaw: (e, punkt) => e.dodajSzablonTabeli(s.id, punkt),
     })),
-    ...ksztaltyZ('Planer')(),
+    ...ksztaltyZ('Notatki')(),
   ],
 });
 

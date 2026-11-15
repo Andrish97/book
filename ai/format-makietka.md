@@ -311,7 +311,8 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
 
 Pozostałe elementy Biblioteki nie mają skrótu – to zwykłe elementy, które zapiszesz sam:
 - **Planer** (lista zadań, tracker nawyków, plan tygodnia i dnia, notatki w linie, siatka dni, budżet, kontakty, plan lekcji) to zwykła tabela (rozdział 9): wąska pierwsza kolumna z pustymi komórkami to kratki do odhaczania, notatki w linie to tabela z jedną kolumną bez linii pionowych (`linie_komorek`).
-- **Kształty, etykiety, pola wyboru, kratka i kropki do notatek** to `path`; **linie i separatory** to `line` (przerywana i kropkowana przez `strokeDashArray`) albo `path` z dwiema liniami (podwójna).
+- **Kształty, ramki, ozdobniki, etykiety, pola wyboru, kratka, kropki i linie do notatek** to `path` (ramki z otworem: `"fillRule": "evenodd"`); **linie i separatory** to `line` (przerywana i kropkowana przez `strokeDashArray`) albo `path` z dwiema liniami (podwójna).
+- **Ramka przerywana albo kropkowana** to `path` bez wypełnienia (`"fill": ""`) z `strokeDashArray`. **Pole na zdjęcie** (koło, owal, serce, łuk…) to zamknięta `path` z jasnoszarym wypełnieniem – zdjęcie wstawisz, ustawiając jej `zasob` (jak kształtowi z obrazem). **Obramowanie strony** to `path` rozciągnięta na całą stronę (w połowie marginesów).
 
 ## 9b. Książka: spis treści, żywa pagina, przypisy, odsyłacze, skorowidz
 

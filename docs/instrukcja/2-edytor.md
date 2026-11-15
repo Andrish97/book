@@ -250,13 +250,14 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | Kategoria | Co w niej jest |
 |---|---|
 | **Moje elementy** | Elementy zapisane przez Ciebie – na koncie, w każdym projekcie (niżej). |
-| **Kształty** | Figury (wielokąty, prostokąt zaokrąglony, pigułka, klepsydra, łuk, etap procesu…), gwiazdy, serca, naklejka ząbkowana, płatek śniegu, chmura, tarcza, liść i proste ikony (dom, pinezka, zegar, ptaszek, koperta, telefon, lupa, prezent, samolot, aparat, kubek, drzewo, krzyż, uwaga, informacja, Wi-Fi…). |
-| **Strzałki i dymki** | Strzałki w każdą stronę, na skos, zakręcone, zawracające, w kółko, na cztery strony, obustronne; szewrony, wskaźnik, metki; dymki komiksowe, okrągłe, z lewej, podpis, myśli i krzyku. |
-| **Ozdobniki i ramki** | Wstęgi, proporczyki, bilety, zakładki, wstęga narożna, baner zawinięty, odznaka ze wstążkami; ramki (zwykła, falista, okrągła, owalna, zaokrąglona, podwójna, jak odbitka zdjęcia, narożniki). |
-| **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; linie ozdobne (fala, zygzak, z rombem, z sercem, trzy gwiazdki, zawijas…). Rodzaj i grubość zmienisz potem w części **Linia** (→ 7.2). |
-| **Etykiety i plakietki** | Etykiety (zaokrąglona, ze ściętymi rogami, ozdobna), metka z dziurką, plakietka okrągła, pieczątka, znaczek pocztowy, tabliczka z zawieszką — w środek wstaw tekst. |
+| **Kształty** | Ponad 200 kształtów w grupach: **Podstawowe** (koło, kwadrat, owale, trójkąty, łuki, pierścień, sześcian, walec…), **Wielokąty** (także zaokrąglone, plaster miodu), **Gwiazdy i odznaki** (gwiazdy, pieczęcie, medal, zębatka, odznaki promocyjne), **Serca i natura** (serca, kwiaty, liście, chmury, góry, fala, płomień, tęcza, zwierzęta…), **Symbole i ikony** (dom, telefon, korona, puchar, kłódka, osoba, laptop, klucz, puzzel, mapa…), **Okolicznościowe** (prezent, balon, choinka, bombka, tort, pisanka, bałwanek…), **Znaki** (plus, minus, procent, pytajnik, ptaszek, pola wyboru…). |
+| **Strzałki i dymki** | Strzałki w każdą stronę, na skos, zakręcone, z kolanem, łukiem, faliste, wymiany, rozgałęzione; szewrony; dymki z każdej strony, okrągłe, owalne, myśli, chmurka, krzyku, dwa dymki. |
+| **Ramki** | Ponad 60 ramek w grupach: **Proste**, **Zaokrąglone**, **Podwójne i przerywane** (przerywana, kropkowana, kreska – kropka – to sam obrys), **Ozdobne**, **Z miejscem na tytuł**, **W kształcie** (serce, owal, koło, chmurka, ośmiokąt, łuk, gwiazda…), **Na zdjęcie** (pola w kształcie koła, serca, łuku, chmurki… – wstaw do nich obraz, a także odbitka, slajd, klatka filmu), **Kartki i notatki**, **Obramowania stron** (wstawiają się od razu na całą stronę). |
+| **Ozdobniki** | Wstęgi i banery, narożniki (pojedyncze i komplety czterech), rozety i ornamenty (mandala, róża wiatrów, lilia, medalion…). |
+| **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; separatory ozdobne (fala, zygzak, z kropką, kółkiem, gwiazdką, kwiatkiem, rombami, zawijasy, pętelki, listki…). Rodzaj i grubość zmienisz potem w części **Linia** (→ 7.2). |
+| **Etykiety i plakietki** | Etykiety zaokrąglone, ze ściętymi rogami, owalne, z obwódką, faliste, ząbkowane, na słoik, herbowe, cenówka, metka, plakietka, pieczątka, znaczek pocztowy, tabliczka — w środek wstaw tekst. |
 | **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (→ 5.9). |
-| **Planer** | Gotowe tabele do planerów i notesów: lista zadań, tracker nawyków, plan tygodnia, plan dnia (godziny), notatki w linie, siatka dni tygodnia, lista zakupów, cele, budżet, kontakty, plan lekcji; do tego pola wyboru (puste, okrągłe, zaznaczone), notatki w kratkę i w kropki (co 5 mm). |
+| **Planer** | Gotowe tabele do planerów i notesów: lista zadań, tracker nawyków, plan tygodnia, plan dnia (godziny), notatki w linie, siatka dni tygodnia, lista zakupów, cele, budżet, kontakty, plan lekcji; do tego siatki do notatek: kratka, kropki, linie (co 5 mm), papier milimetrowy, siatka izometryczna. Pola wyboru są w **Kształtach → Znaki**. |
 | **Wykresy** | Słupkowy, poziomy, liniowy, kołowy i pierścieniowy z tabeli danych (→ 5.10). |
 | **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (→ 5.11). |
 | **Teksty** | Gotowe napisy po łuku, w okręgu (pieczęć), falisty baner, flaga, wypukły tytuł (→ 6.14). |
@@ -265,7 +266,7 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (→ 5.12). |
 
 Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (→ 7.4), a zamknięty kształt może być ramką zdjęcia (→ 8.7).
-Szablon z kategorii **Planer** to zwykła tabela (→ 9): wpisujesz w komórki, dodajesz wiersze i kolumny, zmieniasz linie i kolory.
+Długie kategorie mają nagłówki grup (np. Podstawowe, Wielokąty); przy szukaniu nagłówków nie ma, a wyniki są ze wszystkich kategorii. Szablon z kategorii **Planer** to zwykła tabela (→ 9): wpisujesz w komórki, dodajesz wiersze i kolumny, zmieniasz linie i kolory.
 Żeby planer powtarzał się na wielu stronach, wstaw go we wzorcu (→ 12) albo na stronie serii (→ 17).
 
 ![Kategoria Planer w Bibliotece](k-biblioteka-planer.png)

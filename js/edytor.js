@@ -1868,17 +1868,30 @@ export class Edytor extends EventTarget {
     const k = KSZTALTY.find((x) => x.id === id);
     if (!k) return null;
     // Kratka i kropki do notatek (#143): cienkie szare linie albo kropki, bez obrysu.
-    const wyglad = k.siatka
-      ? (k.otwarta ? { fill: '', stroke: '#b5b2aa', strokeWidth: 0.15 } : { fill: '#8a877f', stroke: '', strokeWidth: 0 })
-      : { fill: k.otwarta ? '' : '#d9e6f2', stroke: '#1a1a1a', strokeWidth: k.otwarta ? 0.6 : 0.3 };
+    // Kontur (#155): sam obrys, także przerywany; pole na zdjęcie: jasnoszare, bez obrysu – obraz wstawia się
+    // do środka (Obraz w kształcie, #123).
+    let wyglad;
+    if (k.siatka) wyglad = k.otwarta ? { fill: '', stroke: '#b5b2aa', strokeWidth: 0.15 } : { fill: '#8a877f', stroke: '', strokeWidth: 0 };
+    else if (k.kontur) wyglad = { fill: '', stroke: '#1a1a1a', strokeWidth: 0.5, strokeDashArray: k.kreski ? wzorKresek(k.kreski, 0.5) : null };
+    else if (k.naZdjecie) wyglad = { fill: '#e3e1dc', stroke: '', strokeWidth: 0 };
+    else wyglad = { fill: k.otwarta ? '' : '#d9e6f2', stroke: '#1a1a1a', strokeWidth: k.otwarta ? 0.6 : 0.3 };
     const p = new fabric.Path(k.d, {
       ...wyglad, strokeUniform: true,
-      strokeLineJoin: 'round', strokeLineCap: 'round', fillRule: k.otwor ? 'evenodd' : 'nonzero', nazwa: k.nazwa,
+      strokeLineJoin: 'round', strokeLineCap: k.kreski === 'kropkowana' || !k.kontur ? 'round' : 'butt', fillRule: k.otwor ? 'evenodd' : 'nonzero', nazwa: k.nazwa,
     });
-    const skala = k.siatka ? 0.5 : 50 / Math.max(p.width, p.height); // kratka i kropki co 5 mm
-    p.set({ scaleX: skala, scaleY: skala });
-    p.set(this._srodek(p.width * skala, p.height * skala));
-    this._wPunkcie(p, punkt);
+    if (k.strona && !punkt) {
+      // Obramowanie strony: na całą stronę, w połowie marginesów.
+      const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
+      const m = this.marg;
+      const szer = w - (m.lewy + m.prawy) / 2;
+      const wys = h - (m.gora + m.dol) / 2;
+      p.set({ scaleX: szer / p.width, scaleY: wys / p.height, left: this.strony[this.aktywna].x + m.lewy / 2, top: m.gora / 2 });
+    } else {
+      const skala = k.siatka ? 0.5 : 50 / Math.max(p.width, p.height); // kratka i kropki co 5 mm
+      p.set({ scaleX: skala, scaleY: skala });
+      p.set(this._srodek(p.width * skala, p.height * skala));
+      this._wPunkcie(p, punkt);
+    }
     const wynik = this._wstaw(p);
     this.oznaczZmiane();
     return wynik;

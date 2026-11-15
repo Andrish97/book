@@ -2903,6 +2903,11 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
   padding: 8px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); color: var(--tusz); cursor: pointer; font: inherit;
 }
 .kafel-biblioteki[draggable="true"] { cursor: grab; }
+/* Setki kafelków (#155): przeglądarka rysuje tylko widoczne; nagłówki grup na całą szerokość siatki. */
+.elementy-biblioteki > .kafel-biblioteki:not(.duzy) { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+.grupa-biblioteki { grid-column: 1 / -1; margin: 8px 2px 0; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--cichy); }
+.grupa-biblioteki:first-child { margin-top: 0; }
+.podglad-biblioteki path.na-zdjecie { fill: color-mix(in srgb, var(--tusz) 14%, var(--powierzchnia)); stroke: var(--tusz-2); stroke-dasharray: 6 5; stroke-width: 2.5; }
 .kafel-biblioteki:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
 @media (hover: hover) { .kafel-biblioteki:hover { border-color: var(--akcent); background: var(--akcent-tlo); } }
 .kafel-biblioteki.duzy { grid-column: span 2; aspect-ratio: auto; min-height: 120px; text-align: center; }
