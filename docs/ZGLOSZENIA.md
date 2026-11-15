@@ -20,7 +20,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
-| 131C: znajdź i zamień, malarz formatów, biblioteka elementów, sprawdzanie pisowni; druk broszury, podgląd separacji, PDF z zakładkami i linkami | ⏳ partia C |
+| 131C: znajdź i zamień, malarz formatów, biblioteka elementów, sprawdzanie pisowni; druk broszury, podgląd separacji, PDF z zakładkami i linkami | 🔄 partia C w toku |
 | 131D: zmiana formatu ze skalowaniem, zestaw marki, komentarze na stronach, makieta 3D | ⏳ partia D |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
