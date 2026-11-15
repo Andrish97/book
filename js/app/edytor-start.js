@@ -297,11 +297,30 @@ export const akcje = {
     (await import('./separacje-okno.js')).otworzSeparacje(stan.projekt, widoczna?.dataset.id || null);
   },
   'separacje-zamknij': () => $('#dlg-separacje').close(),
+  // Makieta 3D (#131D) – obok „Separacji” w podglądzie.
+  'podglad-makieta': async () => (await import('./makieta-okno.js')).otworzMakiete(stan.projekt),
+  'makieta-zamknij': () => $('#dlg-makieta').close(),
+  'makieta-plus': async () => (await import('./makieta-okno.js')).powiekszMakiete(1.25),
+  'makieta-minus': async () => (await import('./makieta-okno.js')).powiekszMakiete(0.8),
+  'makieta-przod': async () => (await import('./makieta-okno.js')).widokZPrzodu(),
+  'makieta-pobierz': async () => (await import('./makieta-okno.js')).pobierzObrazMakiety(),
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
   drukuj: () => { zamknijMenu(); otworzOknoDruku(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
   'kolory-druku': () => { zamknijMenu(); otworzKoloryDruku(); },
+  // Zmiana formatu ze skalowaniem (#131D): cały projekt (menu ⋯ projektu) albo sekcja (okno ustawień sekcji).
+  'format-projektu': async () => { zamknijMenu(); (await import('./zmiana-formatu.js')).otworzZmianeFormatu(null); },
+  'format-sekcji': async () => {
+    const id = $('#dlg-sekcja').dataset.id || stan.projekt.sekcje[0]?.id;
+    $('#dlg-sekcja').close();
+    (await import('./zmiana-formatu.js')).otworzZmianeFormatu(id ? [id] : null);
+  },
+  'format-obroc': async () => (await import('./zmiana-formatu.js')).obrocFormat(),
+  'format-zamknij': () => $('#dlg-format').close(),
+  // Zestaw marki (#131D): zastosowanie do projektu – rzecz całego projektu (menu ⋯ projektu, Biblioteka).
+  'marka-zastosuj': async () => { zamknijMenu(); (await import('./marka-zastosuj.js')).otworzZastosowanieMarki(); },
+  'marka-zastosuj-zamknij': () => $('#dlg-marka-zastosuj').close(),
   'kolory-druku-zamknij': () => $('#dlg-kolory-druku').close(),
   // Wiele zdjęć naraz – np. dla obrazów z danych (nazwy plików w tabeli); także na telefonie.
   obrazy: async () => { zamknijMenu(); (await oknoObrazow()).otworzObrazy(); },
@@ -718,3 +737,6 @@ export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, pokazEdytor } f
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
 export { edytujWzorzec } from './wzorce.js';
+
+// Zestaw marki z konta (#131D): kolory i czcionki marki w wyborze koloru i na liście czcionek od razu.
+if (stan.uzytkownik) import('../zestaw-marki.js').then((m) => m.wczytajMarke()).catch(() => {});

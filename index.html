@@ -338,6 +338,7 @@
           <a href="#/konto/wyglad" data-do="ust-wyglad" data-sekcja="wyglad"><span class="ikona-wiersza" data-ikona="motyw"></span><span class="tytul">Motyw</span><span class="wartosc" data-podsumowanie="motyw"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/powiadomienia" data-do="ust-powiadomienia" data-sekcja="powiadomienia"><span class="ikona-wiersza" data-ikona="dzwonek"></span><span class="tytul">Powiadomienia</span><span class="wartosc" data-podsumowanie="powiadomienia"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Dostęp dla AI</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/marka" data-do="ust-marka" data-sekcja="marka"><span class="ikona-wiersza" data-ikona="marka"></span><span class="tytul">Zestaw marki</span><span class="wartosc" data-podsumowanie="marka"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/miejsce" data-do="ust-miejsce" data-sekcja="miejsce"><span class="ikona-wiersza" data-ikona="chmura"></span><span class="tytul">Miejsce</span><span class="wartosc" data-podsumowanie="miejsce"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/usun" data-do="ust-usun" data-sekcja="usun" class="niebezpieczny"><span class="ikona-wiersza" data-ikona="kosz"></span><span class="tytul">Usuwanie konta</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
         </nav>
@@ -490,6 +491,14 @@
                 </div>
               </div>
             </div>
+          </section>
+
+          <section class="grupa-ustawien" id="ust-marka">
+            <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
+            <h2>Zestaw marki</h2>
+            <p class="ciche">Kolory, czcionki i logo Twojej marki – pod ręką w każdym projekcie: w wyborze koloru, na liście czcionek i w Bibliotece.</p>
+            <div class="podsumowanie-marki" id="podsumowanie-marki"></div>
+            <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="marka-edytuj" data-ikona="marka">Edytuj zestaw marki…</button></div>
           </section>
 
           <section class="grupa-ustawien" id="ust-miejsce">
@@ -671,6 +680,8 @@
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
+          <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj">Zmień format projektu…</button>
+          <button role="menuitem" data-akcja="marka-zastosuj" data-ikona="marka">Zastosuj markę do projektu…</button>
           <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory do druku…</button>
           <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik">Współpraca…</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
@@ -825,6 +836,7 @@
       <button class="przycisk komentarze-podgladu" data-akcja="komentarze" data-ikona="komentarz" title="Komentarze: przeczytaj, odpowiedz albo dodaj komentarz do strony"><span class="etyk">Komentarze</span><span class="licznik licznik-komentarzy" hidden></span></button>
       <button class="przycisk" data-akcja="podglad-prezentacja" data-ikona="dopasuj" title="Jedna strona albo rozkładówka naraz, na całym ekranie"><span class="etyk">Prezentacja</span></button>
       <button class="przycisk tylko-wlasciciel" data-akcja="podglad-separacje" data-ikona="separacje" title="Podgląd płyt druku: CMYK, kolory dodatkowe, uszlachetnienia, pokrycie farbą"><span class="etyk">Separacje</span></button>
+      <button class="przycisk tylko-wlasciciel" data-akcja="podglad-makieta" data-ikona="makieta" title="Projekt jako wydrukowana rzecz: książka, notes, kalendarz, kartka – z kartkowaniem i obracaniem"><span class="etyk">Makieta 3D</span></button>
       <button class="przycisk tylko-wlasciciel tylko-wlasciciel-projektu" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
       <button class="przycisk-ikona tylko-gosc" data-akcja="motyw" data-ikona="motyw" title="Jasny / ciemny motyw" aria-label="Przełącz motyw"></button>
@@ -924,6 +936,8 @@
           <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="any" required inputmode="decimal"></label>
           <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="obroc-format" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="obroc"></button>
         </div>
+        <p class="podpowiedz" id="sekcja-format-skaluj-opis">Zmiana formatu tutaj nie rusza elementów. Żeby przeskalować albo przesunąć je razem z formatem:</p>
+        <button type="button" class="przycisk" data-akcja="format-sekcji" data-ikona="skaluj">Zmień format i dopasuj elementy…</button>
       </fieldset>
 
       <!-- Okładka liczona sama (#119): format, grzbiet i zawinięcia z formatu i liczby stron środka oraz papieru. -->
@@ -1528,6 +1542,123 @@
         </div>
       </div>
     </div>
+  </dialog>
+
+  <!-- Makieta 3D (#131D): projekt jako wydrukowana rzecz – js/app/makieta-okno.js, js/makieta-3d.js. -->
+  <dialog id="dlg-makieta" class="dialog-szeroki dialog-makieta" aria-labelledby="makieta-tytul">
+    <div class="formularz">
+      <div class="naglowek-dialogu">
+        <h2 id="makieta-tytul">Makieta 3D</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="makieta-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <div class="makieta-scena">
+        <canvas id="makieta-plotno" aria-label="Makieta projektu – przeciągnij, żeby obrócić; stuknij w prawą lub lewą połowę, żeby przewrócić kartkę"></canvas>
+        <p id="makieta-brak-3d" class="komunikat blad" hidden>Ta przeglądarka nie pokazuje grafiki 3D (WebGL jest wyłączony). Włącz przyspieszenie sprzętowe albo otwórz projekt w innej przeglądarce.</p>
+      </div>
+      <div class="makieta-sterowanie">
+        <label class="pole makieta-model"><span>Rodzaj</span><select id="makieta-model"></select></label>
+        <div class="makieta-kartki" role="group" aria-label="Kartkowanie">
+          <button type="button" class="przycisk-ikona" id="makieta-wstecz" data-ikona="wstecz" title="Poprzednia kartka (←)" aria-label="Poprzednia kartka"></button>
+          <span id="makieta-polozenie" class="ciche" aria-live="polite"></span>
+          <button type="button" class="przycisk-ikona" id="makieta-dalej" data-ikona="dalej" title="Następna kartka (→)" aria-label="Następna kartka"></button>
+        </div>
+        <div class="powiekszenie" role="group" aria-label="Powiększenie makiety">
+          <button type="button" class="powiekszenie-krok" data-akcja="makieta-minus" data-ikona="minus" aria-label="Oddal" title="Oddal"></button>
+          <button type="button" class="wartosc-zoom" data-akcja="makieta-przod" title="Widok z przodu">Widok</button>
+          <button type="button" class="powiekszenie-krok" data-akcja="makieta-plus" data-ikona="plus" aria-label="Przybliż" title="Przybliż"></button>
+        </div>
+        <button type="button" class="przycisk" data-akcja="makieta-pobierz" data-ikona="pobierz">Pobierz obraz makiety</button>
+      </div>
+      <p class="ciche makieta-podpowiedz">Przeciągnij, żeby obrócić; kółkiem myszy albo dwoma palcami przybliżasz. Kartki przewracasz strzałkami albo stuknięciem w prawą lub lewą połowę.</p>
+    </div>
+  </dialog>
+
+  <!-- Zmiana formatu ze skalowaniem (#131D): sekcja albo cały projekt, z podglądem przed i po. -->
+  <dialog id="dlg-format" class="dialog-szeroki" aria-labelledby="format-tytul">
+    <form method="dialog" class="formularz" id="form-format">
+      <div class="naglowek-dialogu">
+        <h2 id="format-tytul">Zmień format</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="format-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche" id="format-zakres"></p>
+      <div class="rzad">
+        <label class="pole"><span>Nowy format</span><select name="format"></select></label>
+        <label class="pole waskie"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
+        <label class="pole waskie"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
+        <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="format-obroc" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="obroc"></button>
+      </div>
+      <fieldset class="grupa-pol">
+        <legend>Co z elementami</legend>
+        <label class="przelacznik-opcja"><input type="radio" name="sposob" value="skaluj" checked><span><strong>Skaluj wszystko</strong><small>Elementy, pismo, linie, marginesy i wzorce zmieniają się proporcjonalnie.</small></span></label>
+        <label class="pole" id="format-dopasowanie-pole"><span>Skala</span><select name="dopasowanie">
+          <option value="zmiesc">Zmieść całą stronę (wyśrodkuj)</option>
+          <option value="szerokosc">Dopasuj do szerokości</option>
+          <option value="wysokosc">Dopasuj do wysokości</option>
+        </select></label>
+        <label class="przelacznik-opcja"><input type="radio" name="sposob" value="przesun"><span><strong>Zostaw rozmiary, przesuń względem krawędzi</strong><small>Elementy trzymają się najbliższej krawędzi albo środka; tło na całą stronę się rozciąga.</small></span></label>
+        <label class="przelacznik-opcja"><input type="radio" name="sposob" value="format"><span><strong>Tylko zmień format</strong><small>Elementy zostają tam, gdzie są.</small></span></label>
+      </fieldset>
+      <div class="format-podglad" aria-label="Podgląd przed i po">
+        <figure><div class="format-kartka" id="format-przed"></div><figcaption>Teraz</figcaption></figure>
+        <span class="format-strzalka" aria-hidden="true">→</span>
+        <figure><div class="format-kartka" id="format-po"></div><figcaption>Po zmianie</figcaption></figure>
+      </div>
+      <p class="podpowiedz" id="format-uwagi"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" data-akcja="format-zamknij">Anuluj</button>
+        <button class="przycisk glowny" value="ok" id="format-zastosuj">Zmień format</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Zestaw marki (#131D): kolory, czcionki i logo na koncie. -->
+  <dialog id="dlg-marka" class="dialog-szeroki" aria-labelledby="marka-tytul">
+    <form method="dialog" class="formularz" id="form-marka">
+      <div class="naglowek-dialogu">
+        <h2 id="marka-tytul">Zestaw marki</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="marka-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <fieldset class="grupa-pol">
+        <legend>Kolory marki</legend>
+        <ul class="lista-kolorow-marki" id="marka-kolory"></ul>
+        <button type="button" class="przycisk" id="marka-dodaj-kolor" data-ikona="plus">Dodaj kolor</button>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Czcionki marki</legend>
+        <div class="rzad">
+          <label class="pole"><span>Nagłówki</span><select name="naglowek"></select></label>
+          <label class="pole"><span>Tekst</span><select name="tekst"></select></label>
+        </div>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Logo</legend>
+        <ul class="lista-logo-marki" id="marka-loga"></ul>
+        <label class="przycisk" data-ikona="obraz">Dodaj logo…<input type="file" id="marka-plik-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden></label>
+      </fieldset>
+      <p class="komunikat" id="marka-komunikat" role="status"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" data-akcja="marka-zamknij">Anuluj</button>
+        <button class="przycisk glowny" value="ok" id="marka-zapisz">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Zastosuj markę do projektu (#131D): zamiana kolorów i czcionek z podglądem. -->
+  <dialog id="dlg-marka-zastosuj" class="dialog-szeroki" aria-labelledby="marka-zastosuj-tytul">
+    <form method="dialog" class="formularz" id="form-marka-zastosuj">
+      <div class="naglowek-dialogu">
+        <h2 id="marka-zastosuj-tytul">Zastosuj markę do projektu</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="marka-zastosuj-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Kolory i czcionki projektu zamienią się na kolory i czcionki marki – na wszystkich stronach, we wzorcach i stylach. Dla każdego możesz wybrać „bez zmian”.</p>
+      <fieldset class="grupa-pol"><legend>Kolory</legend><ul class="mapowanie-marki" id="marka-mapa-kolory"></ul></fieldset>
+      <fieldset class="grupa-pol"><legend>Czcionki</legend><ul class="mapowanie-marki" id="marka-mapa-czcionki"></ul></fieldset>
+      <p class="podpowiedz" id="marka-zastosuj-opis"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" data-akcja="marka-zastosuj-zamknij">Anuluj</button>
+        <button class="przycisk glowny" value="ok" id="marka-zastosuj-ok">Zastosuj</button>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="dlg-kolory-druku" class="dialog-szeroki" aria-labelledby="kolory-druku-tytul">

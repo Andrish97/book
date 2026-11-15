@@ -339,7 +339,7 @@ test('ustawienia konta na telefonie: lista, sekcja z powrotem, Wstecz wraca do l
   assert.ok(await strona.isVisible('.konto-lista'), 'najpierw sama lista');
   assert.ok(await strona.isHidden('#ust-profil'));
   const wiersze = await strona.locator('.konto-lista a .tytul').allTextContents();
-  assert.deepEqual(wiersze, ['Nazwa użytkownika', 'E-mail', 'Hasło', 'Motyw', 'Powiadomienia', 'Dostęp dla AI', 'Miejsce', 'Usuwanie konta']);
+  assert.deepEqual(wiersze, ['Nazwa użytkownika', 'E-mail', 'Hasło', 'Motyw', 'Powiadomienia', 'Dostęp dla AI', 'Zestaw marki', 'Miejsce', 'Usuwanie konta']);
   await strona.waitForFunction(() => /@/.test(document.querySelector('.konto-lista [data-podsumowanie="email"]').textContent));
   await strona.waitForFunction(() => /GB/.test(document.querySelector('.konto-lista [data-podsumowanie="miejsce"]').textContent));
   await strona.waitForFunction(() => /kluczy|klucz/.test(document.querySelector('.konto-lista [data-podsumowanie="ai"]').textContent));

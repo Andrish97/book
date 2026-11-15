@@ -81,6 +81,9 @@ const akcje = {
   'dostep-ai-zamknij': async () => (await dostepAi()).zamknijDostepAi(),
   'nowy-projekt': otworzNowyProjekt,
   instrukcja: () => { zamknijMenu(); instrukcja.otworz(); },
+  // Zestaw marki (#131D) – z ustawień konta i z edytora (Biblioteka); okno bez edytora.
+  'marka-edytuj': async () => { zamknijMenu(); (await import('./marka-okno.js')).otworzMarke(); },
+  'marka-zamknij': () => document.getElementById('dlg-marka')?.close(),
   'zamknij-instrukcje': () => instrukcja.zamknij(),
   wyloguj: () => wyloguj(false),
   'ustawienia-konta': () => { zamknijMenu(); trasa.ustaw('konto'); przejdzDoTrasy(); },

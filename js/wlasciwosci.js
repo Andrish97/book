@@ -1,6 +1,7 @@
 /* global fabric */
 // Panel właściwości: pola liczbowe w mm (4.7 – precyzja na tablecie).
 
+import { biezacaMarka } from './zestaw-marki.js';
 import { STREFY, strefaW } from './okladka.js';
 import { toZaznaczenie } from './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
@@ -867,8 +868,16 @@ export class PanelWlasciwosci {
     const moje = (this.opcje.mojeCzcionki?.() || []).map((n) => [`moja:${n}`, `${n} – z moich czcionek`]);
     // Użyte w projekcie (#136): na górze listy, z liczbą użyć – szybki powrót do czcionek dokumentu.
     const uzyte = uzyteCzcionki(this.opcje.projekt?.()).filter((c) => rodziny.includes(c.nazwa)).slice(0, 6);
-    const listaCzcionek = uzyte.length
-      ? [{ grupa: 'Użyte w projekcie', opcje: uzyte.map((c) => [c.nazwa, `${c.nazwa} · ${c.ile}×`]) }, { grupa: 'Wszystkie czcionki', opcje: [...rodziny.map((n) => [n, n]), ...moje] }]
+    // Marka (#131D): czcionki zestawu marki na samej górze (nagłówki, tekst).
+    const { naglowek: mNag, tekst: mTekst } = biezacaMarka().czcionki;
+    const wMarce = [[mNag, 'nagłówki'], [mTekst, 'tekst']].filter(([n], i, t) => n && t.findIndex(([m]) => m === n) === i)
+      .map(([n, rola]) => (rodziny.includes(n) ? [n, `${n} · marka (${rola})`] : (this.opcje.mojeCzcionki?.() || []).includes(n) ? [`moja:${n}`, `${n} · marka (${rola})`] : null)).filter(Boolean);
+    const grupy = [
+      ...(wMarce.length ? [{ grupa: 'Marka', opcje: wMarce }] : []),
+      ...(uzyte.length ? [{ grupa: 'Użyte w projekcie', opcje: uzyte.map((c) => [c.nazwa, `${c.nazwa} · ${c.ile}×`]) }] : []),
+    ];
+    const listaCzcionek = grupy.length
+      ? [...grupy, { grupa: 'Wszystkie czcionki', opcje: [...rodziny.map((n) => [n, n]), ...moje] }]
       : [...rodziny.map((n) => [n, n]), ...moje];
     const czcionka = this.wybor('Czcionka', [...listaCzcionek, ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
       if (v === '+') { this.opcje.wgrajCzcionke(); return; }

@@ -574,6 +574,25 @@ export async function kontoElementow() {
   };
 }
 
+// Zestaw marki (#131D): <konto>/_marka/marka.json (kolory, czcionki, opis logo) i pliki logo obok.
+// Folder na „_” nie jest sprzątany jako osierocony – jak „Moje elementy”.
+export async function kontoMarki() {
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Zestaw marki jest na koncie – zaloguj się.');
+  const folder = `${uzytkownik.id}/_marka`;
+  return {
+    wczytaj: async () => {
+      const pliki = await r2.lista(BUCKET, `${folder}/`);
+      if (!pliki.some((p) => p.klucz.endsWith('/marka.json'))) return null;
+      return JSON.parse(await (await r2.pobierz(BUCKET, `${folder}/marka.json`)).text());
+    },
+    zapisz: (marka) => r2.wyslij(BUCKET, `${folder}/marka.json`, new Blob([JSON.stringify(marka)], { type: 'application/json' }), { cache: 'no-cache' }),
+    wyslijLogo: (plik, blob) => r2.wyslij(BUCKET, `${folder}/${plik}`, blob, { cache: 'private, max-age=31536000' }),
+    pobierzLogo: (plik) => r2.pobierz(BUCKET, `${folder}/${plik}`),
+    usunLogo: (plik) => r2.usun(BUCKET, [`${folder}/${plik}`]),
+  };
+}
+
 export function blobNaDataUrl(blob) {
   return new Promise((ok, blad) => {
     const r = new FileReader();

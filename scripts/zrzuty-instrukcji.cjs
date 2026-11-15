@@ -1116,6 +1116,8 @@ if (require.main === module) (async () => {
   await require('./zrzuty-pracy.cjs').zrobZrzutyPracy(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty narzędzi pracy:', err.message));
   // Druk (#131C): układ arkuszy w oknie eksportu, podgląd separacji.
   await require('./zrzuty-druku.cjs').zrobZrzutyDruku(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty druku:', err.message));
+  // Partia D (#131D): zmiana formatu, zestaw marki, makieta 3D.
+  await require('./zrzuty-partii-d.cjs').zrobZrzutyPartiiD(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty partii D:', err.message));
 
   // Komentarze na stronach (#131D): narzędzie, licznik, pinezki, panel z wątkiem.
   await require('./zrzuty-komentarzy.cjs').zrobZrzutyKomentarzy(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty komentarzy:', err.message));

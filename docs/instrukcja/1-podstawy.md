@@ -109,6 +109,7 @@ osobny widok, a [‹ Ustawienia] wraca do listy.
 | **Motyw** | Wygląd aplikacji (→ 2.4). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 2.6). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (→ 26.2). |
+| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (→ 2.9). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 2.5). |
 | **Usuń konto** | Usunięcie konta (→ 2.7). |
 
@@ -180,6 +181,36 @@ dodaje zrzut ekranu, plik projektu albo PDF: do 5 plików, razem do 10 MB. Może
 na kontakt@makietka.app.
 
 ![Formularz kontaktowy z załącznikiem](k-kontakt.png)
+
+## 2.9 Zestaw marki
+
+Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — na koncie — i masz je
+w każdym projekcie. [Ustawienia konta] → **Zestaw marki** → [Edytuj zestaw marki…]; to samo okno
+otworzysz w Bibliotece, w kategorii **Marka** → [Edytuj zestaw marki…].
+
+| Część | Co w niej ustawisz |
+|---|---|
+| **Kolory marki** | [Dodaj kolor] — kolor z próbnika albo kodem (np. `#1c2541`) i **nazwa**, np. „Granat marki”. Przełącznik **Pantone / CMYK** dodaje wartości C, M, Y, K — taki kolor przy zastosowaniu marki trafi do kolorów dodatkowych projektu (→ 23.1) i wydrukuje się osobną płytą. |
+| **Czcionki marki** | **Nagłówki** i **Tekst** — po jednej czcionce z listy. |
+| **Logo** | [Dodaj logo…] — pliki PNG, JPG, WebP albo SVG. Logo wstawisz potem z Biblioteki. |
+
+[Zapisz] zapisuje zestaw na koncie. Na liście ustawień wiersz **Zestaw marki** pokazuje np. „3 kol. · 1 logo”.
+
+![Zestaw marki](k-marka.png)
+
+Gdzie zobaczysz markę w projekcie:
+
+- **wybór koloru** — część **Marka** nad „Użytymi w projekcie” (→ 7.7),
+- **lista czcionek** — grupa **Marka** na samej górze (→ 6.8),
+- **Biblioteka** — kategoria **Marka**: logo, [Zastosuj markę do projektu…] i [Edytuj zestaw marki…] (→ 5.8),
+- [⋯] → [Zastosuj markę do projektu…] — zamiana kolorów i czcionek całego projektu na markowe (→ 4.3).
+
+**Zastosuj markę do projektu.** Okno pokazuje każdy kolor i każdą czcionkę projektu z propozycją:
+kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu,
+pozostałe — czcionkę nagłówków. Na listach zmienisz propozycję albo wybierzesz „bez zmian”. [Zastosuj]
+zmienia strony, wzorce i style naraz; całość cofniesz jednym [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
+
+![Zastosuj markę do projektu](k-marka-zastosuj.png)
 
 # 3. Projekty
 
