@@ -9,6 +9,7 @@ import { odmiana } from './ui.js';
 import { bilansSkladki } from './okladka.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
 import { uwagiKolorowDruku } from './kolory-druku.js';
+import { tacKoloru, silnikTac, LIMIT_TAC } from './separacje.js';
 import { indeksKsiazki, uzywaKsiazki } from './ksiazka.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
@@ -244,6 +245,26 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   const pierwszyNr = new Map();
   for (const e of ciag.egzemplarze) if (!pierwszyNr.has(e.strona.id)) pierwszyNr.set(e.strona.id, e.indeks + 1);
   uwagi.push(...uwagiKolorowDruku(projekt, { numerStrony: (id) => pierwszyNr.get(id) || null }));
+  // Łączne pokrycie farbą (#131C): kolory elementów, które po przeliczeniu profilem drukarni przekraczają 300%.
+  // Bez wczytanego profilu (podgląd separacji z profilem albo eksport PDF/X) prosta zamiana nie przekracza limitu.
+  if (silnikTac()) {
+    const zaDuzo = new Map(); // kolor → { tac, strony }
+    const kolory = (o) => [o.fill, o.stroke, ...(o.styles ? Object.values(o.styles).flatMap((w) => Object.values(w).map((z) => z.fill)) : [])].filter((k) => typeof k === 'string');
+    const przejdz = (obiekty, nr) => {
+      for (const o of obiekty || []) {
+        for (const k of kolory(o)) {
+          const t = tacKoloru(k);
+          if (t > LIMIT_TAC) { const w = zaDuzo.get(k) || { tac: t, strony: new Set() }; if (nr) w.strony.add(nr); zaDuzo.set(k, w); }
+        }
+        przejdz(o.objects, nr);
+      }
+    };
+    for (const s of projekt.strony) przejdz(s.obiekty, pierwszyNr.get(s.id));
+    for (const [k, w] of zaDuzo) {
+      const strony = [...w.strony];
+      uwagi.push({ rodzaj: 'pokrycie_farba', strony, opis: `Kolor ${k} po przeliczeniu na CMYK daje ${w.tac}% pokrycia farbą (powyżej ${LIMIT_TAC}%) – drukarnia może prosić o jaśniejszy kolor albo czerń bez domieszek.${strony.length ? ` ${odmiana(strony.length, 'Strona', 'Strony', 'Strony')} ${strony.join(', ')}.` : ''} Sprawdź w podglądzie separacji.` });
+    }
+  }
   const pamiec = new Map();
   const nieznane = new Map(); // pole → strony
   const brakObrazu = new Map(); // "kolumna\nplik" → strony

@@ -788,6 +788,17 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   }
 
 
+  // Pola, które liczy aplikacja (np. układ okładki „okladka.wynik”), zostają takie, jakie są w projekcie –
+  // AI ich nie nadpisuje. Inaczej zapisany po swojemu układ wywracał otwieranie projektu (#141).
+  function zachowajWyliczone(zmiany, projekt) {
+    if (!Array.isArray(zmiany.sekcje)) return;
+    for (const s of zmiany.sekcje) {
+      if (!s?.okladka || typeof s.okladka !== 'object') continue;
+      const dawna = (projekt.sekcje || []).find((x) => x.id === s.id)?.okladka?.wynik;
+      if (dawna) s.okladka.wynik = dawna; else delete s.okladka.wynik;
+    }
+  }
+
   // Pobierz → zmień → zapisz z numerem wersji. Przy odmowie (projekt zmienił się w międzyczasie, np. ktoś
   // pisze w edytorze) pobiera projekt na nowo i nanosi zmianę jeszcze raz – raz.
   async function zmien(zmiana) {
@@ -795,6 +806,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       const { projekt, wersja } = await pobierz();
       const { zmiany, opis } = zmiana(projekt);
       if (!zmiany || !Object.keys(zmiany).length) return opis || 'Nic do zmiany.';
+      zachowajWyliczone(zmiany, projekt);
       const w = await rpc('ai_zapisz', { p_klucz: KLUCZ, p_znana_wersja: wersja, p_zmiany: zmiany });
       if (w?.konflikt && proba === 0) continue;
       if (w?.blad) throw new BladBazy(opisBledu(w));
@@ -1082,7 +1094,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'zmien_elementy',
       title: 'Zmień elementy',
-      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty – opis w opis_formatu). Podawaj tylko zmieniane pola; null usuwa pole.',
+      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty – opis w opis_formatu), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole.',
       inputSchema: S('', { gdzie: GDZIE, zmiany: { type: 'array', items: S('', { id: tekst('id elementu'), pola: obiekt('Pola do zmiany') }, ['id', 'pola']) } }, ['gdzie', 'zmiany']),
       dzialaj: ({ gdzie, zmiany }) => zmien((p) => {
         const m = miejsce(p, gdzie);

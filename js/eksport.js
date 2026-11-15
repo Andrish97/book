@@ -19,6 +19,10 @@ import { biblioteka } from './biblioteki.js';
 import { bezpiecznaNazwa } from './ui.js';
 import { uzyteCzcionki, CZCIONKI } from './czcionki.js';
 import { spotyDruku, mapaSpotow, trybKolorow, uzyteKoloryDruku, stanUszlachetnien } from './kolory-druku.js';
+import { impozycjaPdf } from './impozycja.js';
+import { linkiStrony, dodajLinki, dodajZakladki } from './pdf-nawigacja.js';
+import { indeksKsiazki } from './ksiazka.js';
+import { ustawSilnikTac } from './separacje.js';
 
 const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
 const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
@@ -121,7 +125,12 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) 
 // Kolory do druku (#127): kolory dodatkowe idą w pliku wektorowym na osobne płyty (Separation), uszlachetnienia
 // też – z nadrukiem; uszlachetnienia: 'plyty' (w tym samym pliku) | 'pomin' | 'tylko' (z tylkoPlyta – plik jednej płyty).
 // Tryb kolorów projektu „Skala szarości” i „cz/b + 1 kolor”: wszystko poza płytą koloru trybu samą czernią.
-export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), uszlachetnienia = 'plyty', tylkoPlyta = null, postep, przerwij } = {}) {
+// Do czytania na ekranie (#131C): nawigacja – zakładki (sekcje, nagłówki) i linki (spis treści, odsyłacze „s. 12”,
+// element z adresem, kod QR z adresem; linki tylko w pliku wektorowym). Układ arkuszy (impozycja): uklad
+// ('zwykly' | 'broszura' | 'skladki' | 'dwie' | 'cztery'), skladka, formatArkusza ('auto' | 'A4' | 'A3'), pelzanie (mm).
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), uszlachetnienia = 'plyty', tylkoPlyta = null, nawigacja = false, uklad = 'zwykly', skladka = 16, formatArkusza = 'auto', pelzanie = 0, postep, przerwij } = {}) {
+  const arkusze = uklad && uklad !== 'zwykly';
+  if (arkusze) { spad = false; nawigacja = false; } // na arkuszach strony stoją równo do formatu, bez linków
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
   const warunki = druk || (pdfx ? await wczytajWarunki(pdfx, profilWlasny) : null);
   const wektor = tryb === 'wektor';
@@ -149,6 +158,9 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     };
   }
   let nr = 0;
+  const naNumer = new Map(); // numer strony w wydruku → strona PDF (linki ze spisu i odsyłaczy)
+  const naKlucz = new Map(); // klucz egzemplarza → strona PDF (zakładki)
+  const doLinkow = [];
   stanUszlachetnien.eksport = !wektor; // obrazy stron: bez efektów uszlachetnień (to nie farba)
   try {
   for (const egz of egzemplarze) {
@@ -163,6 +175,11 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
       const { tlo, obiekty } = await zlozCel(projekt, egz, { ciag, oryginaly: true });
       strona = pdf.addPage([szer, wys]);
       await rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m });
+      if (nawigacja) {
+        const zOdsylaczami = idyZOdsylaczami(egz.strona.obiekty);
+        const linki = linkiStrony(obiekty, { maOdsylacze: (o) => zOdsylaczami.has(o.id) });
+        if (linki.length) doLinkow.push({ strona, m, linki });
+      }
     } else if (silnikStron) {
       // Obraz strony w CMYK przez profil; czerń i szarości poza zdjęciami samą czarną farbą.
       // Zdjęcia idą pod spodem jako JPEG w czterech farbach, reszta strony na wierzchu bez strat (js/strona-cmyk.js).
@@ -192,6 +209,8 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     strona.setTrimBox(m.pas * PT, m.pas * PT, m.w * PT, m.h * PT);
     strona.setBleedBox((m.pas - m.spad) * PT, (m.pas - m.spad) * PT, (m.w + 2 * m.spad) * PT, (m.h + 2 * m.spad) * PT);
     if (zeZnakami) rysujZnaki(strona, PDFLib, m, Boolean(warunki) || (wektor && cmyk));
+    if (egz.nr !== null && egz.nr !== undefined && !naNumer.has(egz.nr)) naNumer.set(egz.nr, strona);
+    naKlucz.set(egz.klucz ?? egz, strona);
     nr += 1;
     postep?.(nr);
     await new Promise((ok) => setTimeout(ok)); // oddaj głos przeglądarce – postęp się odmaluje
@@ -200,9 +219,43 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   // Czcionki wczytane, ale ostatecznie nieużyte (np. tekst poszedł jako obraz), nie trafiają do pliku.
   if (srodowisko) pdf.fonts = pdf.fonts.filter((f) => srodowisko.uzyteCzcionki.has(f));
   if (srodowisko) await poprawOpisCzcionekOtf(PDFLib, pdf);
-  if (warunki) await dodajPdfX(PDFLib, pdf, warunki, { tytul: projekt.nazwa });
-  const bajty = await pdf.save();
+  if (nawigacja) {
+    for (const d of doLinkow) dodajLinki(PDFLib, pdf, d.strona, d.m, d.linki, (n) => naNumer.get(n) || null);
+    dodajZakladki(PDFLib, pdf, zakladkiPliku(projekt, egzemplarze, ciag, naKlucz));
+  }
+  let wynik = pdf;
+  if (arkusze) wynik = (await impozycjaPdf(PDFLib, await pdf.save(), { uklad, skladka, format: formatArkusza, pelzanie, znaki: znaki !== false, tytul: projekt.nazwa })).pdf;
+  if (warunki) await dodajPdfX(PDFLib, wynik, warunki, { tytul: projekt.nazwa });
+  const bajty = await wynik.save();
   return new Blob([warunki ? naglowekPdfX(bajty) : bajty], { type: 'application/pdf' });
+}
+
+// Id elementów strony, których tekst ma odsyłacz {s:…} (złożony tekst ma już wpisane numery stron).
+function idyZOdsylaczami(obiekty, zbior = new Set()) {
+  for (const o of obiekty || []) {
+    if (typeof o?.text === 'string' && o.text.includes('{s:')) zbior.add(o.id);
+    if (Array.isArray(o?.objects)) idyZOdsylaczami(o.objects, zbior);
+  }
+  return zbior;
+}
+
+// Zakładki pliku: sekcje (gdy jest ich więcej niż jedna), pod nimi nagłówki książki ze stron tego pliku.
+export function zakladkiPliku(projekt, egzemplarze, ciag, naKlucz) {
+  const strona = (egz) => naKlucz.get(egz.klucz ?? egz) || null;
+  const sekcje = [...new Set(egzemplarze.map((e) => e.sekcja))];
+  const zSekcjami = sekcje.length > 1;
+  let naglowki = [];
+  try { naglowki = indeksKsiazki(projekt, ciag).naglowki; } catch { /* projekt bez książki */ }
+  const wynik = [];
+  for (const s of sekcje) {
+    const pierwszy = egzemplarze.find((e) => e.sekcja === s);
+    if (zSekcjami && strona(pierwszy)) wynik.push({ tytul: s.nazwa || 'Sekcja', strona: strona(pierwszy), poziom: 1 });
+    for (const n of naglowki) {
+      if (n.egz.sekcja !== s || !strona(n.egz)) continue;
+      wynik.push({ tytul: n.tekst, strona: strona(n.egz), poziom: n.poziom + (zSekcjami ? 1 : 0) });
+    }
+  }
+  return wynik;
 }
 
 // Strona-obraz w odcieniach szarości (tryby cz/b, plik z obrazów stron).
@@ -276,6 +329,8 @@ export async function eksportujPdf(projekt, opcje = {}) {
   const razem = pliki.reduce((s, p) => s + p.egzemplarze.length, 0);
   // Profil warunków druku wczytuje się raz na cały eksport.
   const druk = opcje.pdfx ? await wczytajWarunki(opcje.pdfx, opcje.profilWlasny) : null;
+  // Profil drukarni wczytany – „Sprawdź przed drukiem” liczy nim pokrycie farbą (#131C).
+  if (druk) { try { ustawSilnikTac(druk.silnik()); } catch { /* profil bez przeliczania */ } }
   let gotowe = 0;
   const wyniki = [];
   // Uszlachetnienia „osobno” (#127): główny plik bez nich, a do tego plik na każdą płytę uszlachetnienia.

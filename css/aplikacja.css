@@ -2915,3 +2915,35 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .chip-hasla { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 6px 0 10px; border: 1px solid var(--linia); border-radius: 999px; background: var(--powierzchnia-2); color: var(--tusz); font: inherit; font-size: 12.5px; cursor: pointer; }
 @media (hover: hover) { .chip-hasla:hover { border-color: var(--blad); color: var(--blad); } }
 :root[data-dotyk] .chip-hasla { min-height: 36px; }
+
+/* Układ arkuszy w eksporcie PDF (#131C): miniaturki arkuszy z numerami stron. */
+.plan-arkuszy { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.arkusz-planu {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr; width: 64px; height: 44px;
+  border: 1px solid var(--linia-mocna); border-radius: 3px; background: var(--powierzchnia); font-size: 11px; font-variant-numeric: tabular-nums;
+}
+.arkusz-planu.cztery { grid-template-rows: 1fr 1fr; }
+.arkusz-planu > span { display: grid; place-items: center; color: var(--tusz-2); }
+.arkusz-planu > span + span { border-left: 1px solid var(--linia); }
+.arkusz-planu.cztery > span:nth-child(3) { border-left: 0; }
+.arkusz-planu.cztery > span:nth-child(n + 3) { border-top: 1px solid var(--linia); }
+.arkusz-planu.falc > span + span { border-left-style: dashed; }
+.arkusz-planu > span.pusta { background: repeating-linear-gradient(45deg, transparent 0 4px, var(--wypelnienie) 4px 8px); }
+.arkusz-planu > small { position: absolute; left: 0; right: 0; bottom: -15px; text-align: center; font-size: 10px; color: var(--cichy); }
+.plan-arkuszy:has(small) { row-gap: 22px; margin-bottom: 14px; }
+.arkusz-planu.reszta { display: grid; place-items: center; grid-template-columns: 1fr; color: var(--cichy); border-style: dashed; }
+
+/* Podgląd separacji (#131C): obraz strony z płytami i lista płyt. */
+.dialog-separacje { width: min(1040px, calc(100vw - 24px)); }
+.separacje-uklad { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
+.separacje-obraz { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.separacje-strony { display: flex; align-items: center; gap: 8px; }
+#separacje-plotno { width: 100%; height: auto; max-height: 68vh; object-fit: contain; background: #fff; box-shadow: var(--cien-1, 0 1px 3px rgba(0,0,0,.2)); border-radius: 2px; }
+.separacje-ustawienia { display: flex; flex-direction: column; gap: 10px; }
+.lista-plyt { display: flex; flex-direction: column; gap: 6px; }
+.lista-plyt .plyta { gap: 8px; }
+.probka-plyty { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--linia); flex: none; }
+@media (max-width: 760px) {
+  .separacje-uklad { grid-template-columns: 1fr; }
+  #separacje-plotno { max-height: 46vh; }
+}

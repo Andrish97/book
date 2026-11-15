@@ -222,7 +222,9 @@ export async function otworzProjekt(p, cel = {}) {
   edytor.wydruk = null;
   clearTimeout(stan.timerHistorii);
   stan.doHistorii = false;
-  przeliczOkladki(stan.projekt); // okładka mogła się zmienić, gdy projekt był zamknięty (np. strony od AI)
+  // Okładka mogła się zmienić, gdy projekt był zamknięty (np. strony od AI). Błąd przeliczenia (np. dziwne dane
+  // okładki) nie może zablokować otwarcia projektu – okładka zostaje wtedy jak była.
+  try { przeliczOkladki(stan.projekt); } catch (e) { console.error(e); powiadom('Nie udało się przeliczyć okładki – zostaje bez zmian. Sprawdź ustawienia sekcji okładki.', true); }
   await przywrocHistorie(stan.projekt);
   if (!plotnoOdlozone) await zaladujCel({ dopasuj: true });
   odswiezCofanie();
@@ -358,7 +360,8 @@ export async function odswiezOkladki() {
   if (!p) return [];
   const naOkladce = stan.tryb === 'strona' && naPlotnie && p.sekcje.find((s) => s.id === biezacyCel()?.sekcja)?.okladka;
   if (naOkladce) zapiszBiezacyCel();
-  const zmienione = przeliczOkladki(p);
+  let zmienione = [];
+  try { zmienione = przeliczOkladki(p); } catch (e) { console.error(e); return []; }
   if (!zmienione.length) return zmienione;
   for (const s of p.strony) if (zmienione.includes(s.sekcja)) stan.miniatury.delete(s.id);
   if (stan.tryb === 'strona' && zmienione.includes(biezacyCel()?.sekcja)) await zaladujCel({ dopasuj: true });

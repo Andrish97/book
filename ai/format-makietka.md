@@ -71,6 +71,7 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
   "numeracja": { "tryb": "ciagla", "od": 1 } }
 ```
 
+- Sekcja: `wydruk` (format, wymiary, spad, marginesy), `uklad`, `pierwsza`, `wzorce`, `numeracja` (`tryb`: `ciagla` | `od` | `brak`, `od`: pierwszy numer). Projekt ma też `wersja` (wersja modelu danych – nie zmieniaj).
 - `wydruk.format` to tylko nazwa (`A4`, `A5`, `A6`, `B5`, `Kwadrat` albo własna) – rozmiar wyznaczają `szerokosc_mm` i `wysokosc_mm`. Domyślnie A5 148 × 210, spad 3, marginesy 10.
 - `uklad`: `pojedyncze` albo `rozkladowki`. W rozkładówkach margines `wewnetrzny` jest przy grzbiecie, a `pierwsza` mówi, czy sekcja zaczyna się stroną prawą (zwykle) czy lewą.
 - `wzorce`: identyfikatory wzorców obowiązujących na stronach sekcji (pierwszy leży najniżej).
@@ -93,7 +94,7 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
 - `strony.tryb`: `auto` – liczba stron środka liczona z sekcji środka (z powieleniami serii); `reczne` – `strony.liczba`.
 - `papier.tryb`: `grubosc` – `grubosc_mm` jednej kartki; `gramatura` – grubość = `gramatura` × wolumen papieru / 1000 (`rodzaj`: `offset` 1,25, `ksiazkowy` 1,5, `objetosciowy` 1,8, `kredowy_mat` 0,95, `kredowy_blysk` 0,8 cm³/g).
 - `wymiary.tryb`: `auto` – grzbiet i rozmiar liczone; `grzbiet` – `grzbiet_mm` wpisany (np. podany przez drukarnię) zamiast liczonego z papieru; `rozmiar` – `szerokosc_mm` × `wysokosc_mm` całej okładki bez spadu (tył i przód dzielą resztę po równo wokół grzbietu; grzbiet = `grzbiet_mm`, a gdy 0 – liczony). Liczone wartości aplikacja zapisuje w `wynik.liczone`.
-- `okladka.wynik` zapisuje aplikacja (strefy `zawiniecie_l`, `tyl`, `big_l`, `grzbiet`, `big_p`, `przod`, `zawiniecie_p` z `x1`/`x2` w mm od lewej krawędzi cięcia, `gora`/`dol` – granice pola okładki bez zawinięcia). Przy zmianie grzbietu aplikacja przesuwa elementy: element grzbietu zostaje na jego środku, przód przesuwa się o różnicę, tło na całą okładkę się rozciąga. Element może mieć `okladka`: `tyl` | `grzbiet` | `przod` (przypięcie zamiast liczonego z położenia) i `okladka_dopasuj`: `true` (szerokość = szerokość grzbietu).
+- `okladka.wynik` **liczy i zapisuje wyłącznie aplikacja – nie ustawiaj go** (łącznik i tak zachowuje wartość z projektu). Wymiary okładki ustawiasz przez `wymiary` (np. `tryb: "rozmiar"` z `szerokosc_mm`, `wysokosc_mm`, `grzbiet_mm`). Dla orientacji: `wynik` to (strefy `zawiniecie_l`, `tyl`, `big_l`, `grzbiet`, `big_p`, `przod`, `zawiniecie_p` z `x1`/`x2` w mm od lewej krawędzi cięcia, `gora`/`dol` – granice pola okładki bez zawinięcia). Przy zmianie grzbietu aplikacja przesuwa elementy: element grzbietu zostaje na jego środku, przód przesuwa się o różnicę, tło na całą okładkę się rozciąga. Element może mieć `okladka`: `tyl` | `grzbiet` | `przod` (przypięcie zamiast liczonego z położenia) i `okladka_dopasuj`: `true` (szerokość = szerokość grzbietu).
 
 ## 4. Strony i wzorce
 
@@ -177,6 +178,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `do_siatki` | `true` – wiersze na siatce linii bazowych sekcji (`wydruk.siatka_bazowa`, rozdział 3) |
 | `oblewanie`, `oblewanie_odstep` | dowolny element poza tekstem: `prostokat` (tekst opływa ramkę), `ksztalt` (elipsa, wielokąt, ścieżka – opływa kształt), `skok` (tekst przeskakuje pod element); odstęp w mm (domyślnie 2) |
 | `bez_oblewania` | tekst: `true` – nie opływa innych elementów |
+| `link` | adres klikalny w PDF do czytania na ekranie (#131C): `"https://…"`, `"mailto:…"`, `"tel:…"` (bez schematu – `www.…` dostaje `https://`). Działa dla każdego elementu (cały jego obszar); kod QR z adresem jest klikalny sam |
 | `ksztalt_tekstu` | tekst po kształcie albo wygięty (#131B): `{ "rodzaj": "luk", "zgiecie": 50 }`. `rodzaj`: `luk` (`zgiecie` −100…100, ujemne – łuk w dół; `promien` mm, 0 – sam), `okrag` (`promien`, `przesuniecie` – obrót początku w stopniach, `strona`: `zewn` – litery na zewnątrz u góry, `wewn` – do środka u dołu), `elipsa` (`promien`, `zgiecie` 0…100 – spłaszczenie, `przesuniecie` w %), `sciezka` (`d` – ścieżka SVG w mm względem środka tekstu, `przesuniecie` w %, `wyrownanie`: `lewo` / `srodek` / `prawo`, `strona`: `zewn` – nad linią, `wewn` – pod, `odwroc`: `true`), wygięcia `luk_gora`, `luk_dol`, `wypuklosc`, `wkleslosc`, `fala`, `flaga`, `zwezenie` (siła w `zgiecie`). Tekst jest jednym wierszem; `width` i `height` elementu aplikacja liczy sama z liter po kształcie. Usunięcie pola (null) – tekst prosto |
 
 ## 6. Style tekstu
@@ -320,8 +322,8 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
   Przez łącznik wystarczy skrót `{ "type": "spis", "left": 15, "top": 25, "width": 118, "poziomy": 2 }` albo `{ "type": "skorowidz", … }`. Numery stron biorą się z numeracji sekcji, razem ze stronami powielonymi serią.
 - **Żywa pagina**: pole `{rozdzial}` (ostatni nagłówek poziomu 1 do tej strony) albo `{rozdzial:2}` – zwykle w stopce albo nagłówku wzorca.
 - **Odsyłacz**: `{s:<id elementu>}` – numer strony, na której stoi element (np. nagłówek): „zob. s. {s:r2}”.
-- **Przypis dolny**: w tekście pole `{przypis:<id>}` (zwykle w indeksie górnym: formatowanie fragmentu `fontSize` ≈ 0,62 × rozmiaru, `deltaY` ≈ −0,36 × rozmiaru), a treść w polu tekstu `przypisy: { "<id>": "Treść przypisu." }`. Numer i treść na dole strony układa aplikacja; numeracja według `ksiazka.przypisy` projektu: `sekcja` (domyślnie), `strona`, `ciagle`.
-- **Skorowidz**: hasła w polu tekstu `hasla: ["kot", "pies"]`; skorowidz pokazuje wszystkie strony, na których słowo występuje w jakimkolwiek tekście.
+- **Przypis dolny**: w tekście pole `{przypis:<id>}` (zwykle w indeksie górnym: formatowanie fragmentu `fontSize` ≈ 0,62 × rozmiaru, `deltaY` ≈ −0,36 × rozmiaru), a treść w polu tekstu `przypisy` (`{ "<id>": "Treść przypisu." }`). Numer i treść na dole strony układa aplikacja; numeracja według `ksiazka.przypisy` projektu: `sekcja` (domyślnie), `strona`, `ciagle`.
+- **Skorowidz**: hasła w polu tekstu `hasla` (`["kot", "pies"]`); skorowidz pokazuje wszystkie strony, na których słowo występuje w jakimkolwiek tekście.
 
 ## 10. Czego nie robić
 
@@ -370,3 +372,7 @@ Kod to element (w zapisie grupa z polem `kod`), którego rysunek liczy aplikacja
 - `szerokosc` (mm; QR jest kwadratem), dla EAN też `wysokosc` (nominalnie 37,29 × 25,93 mm, najmniej 80%).
 - Opcjonalnie: `korekcja` (`L`/`M`/`Q`/`H`), `kolor` (domyślnie `#000000`), `tlo` (`#ffffff` albo `null` – przezroczyste), `cisza` (margines ciszy, domyślnie `true`), `napis` (EAN: cyfry pod kodem).
 - Moduł QR powinien mieć najmniej 0,33 mm – przy długiej treści kod musi być większy. Kontrola przed drukiem ostrzega o za małym, za jasnym albo złym kodzie.
+
+## Pola tylko do odczytu
+
+Tych pól nie ustawiaj – liczy je i zapisuje aplikacja (łącznik zachowuje wartości z projektu): `okladka.wynik` (układ okładki), `ramka_pola` (ramka obrazu podmienionego z danych, liczona przy składaniu strony), `wersja` projektu, `z` (kolejność elementu na rozkładówce – aplikacja zapisuje ją przy dzieleniu stron).

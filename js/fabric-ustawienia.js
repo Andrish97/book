@@ -7,6 +7,7 @@ import { zainstalujUszlachetnienia } from './kolory-druku.js';
 
 // Własne właściwości obiektów, które zapisujemy razem z JSON-em Fabric.
 export const WLASNE_POLA = [
+  'link', // adres klikalny w PDF do czytania na ekranie (#131C, pdf-nawigacja.js)
   'id', 'nazwa', 'zasob', 'bez_ostrzezen',
   'warstwa', // element wzorca: 'nad' = nad treścią strony (domyślnie pod)
   'zablokowany', 'styl',
