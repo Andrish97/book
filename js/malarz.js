@@ -6,9 +6,11 @@ import { POLA_STYLU } from './style-tekstu.js';
 // Wygląd wspólny dla wszystkich elementów.
 const WSPOLNE = ['opacity', 'shadow', 'uszlachetnienie', 'folia'];
 // Kształty (prostokąt, elipsa, wielokąt, ścieżka, linia, obraz w kształcie).
-const KSZTALT = ['fill', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', 'rx', 'ry', 'filtry'];
-// Obraz: filtry, zaokrąglenia, obrys.
-const OBRAZ = ['filtry', 'stroke', 'strokeWidth', 'rx', 'ry'];
+const KSZTALT = ['fill', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', 'rx', 'ry', 'filtry', 'miekkie_krawedzie', 'miekkie_rodzaj'];
+// Obraz: filtry, zaokrąglenie narożników, obramowanie, miękkie krawędzie (#156).
+const OBRAZ = ['filtry', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 'zaokraglenie', 'miekkie_krawedzie', 'miekkie_rodzaj'];
+// Kształt ↔ obraz: to, co znaczy to samo w obu.
+const KSZTALT_OBRAZ = ['filtry', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 'miekkie_krawedzie', 'miekkie_rodzaj'];
 // Tekst: style akapitu i skład, plus nazwa stylu i obrys liter.
 const TEKST = [...POLA_STYLU, 'styl', 'stroke', 'strokeWidth', 'wielkosc_liter'];
 // Wygląd znaku – to, co da się nałożyć na zaznaczony fragment tekstu.
@@ -67,8 +69,7 @@ export function nalozWyglad(o, wyglad) {
   }
   let dozwolone = WSPOLNE;
   if (cel === rodzaj) dozwolone = [...WSPOLNE, ...(cel === 'tekst' ? TEKST : cel === 'obraz' ? OBRAZ : KSZTALT)];
-  else if (cel === 'ksztalt' && rodzaj === 'obraz') dozwolone = [...WSPOLNE, 'filtry', 'stroke', 'strokeWidth', 'rx', 'ry'];
-  else if (cel === 'obraz' && rodzaj === 'ksztalt') dozwolone = [...WSPOLNE, 'filtry', 'stroke', 'strokeWidth', 'rx', 'ry'];
+  else if ((cel === 'ksztalt' && rodzaj === 'obraz') || (cel === 'obraz' && rodzaj === 'ksztalt')) dozwolone = [...WSPOLNE, ...KSZTALT_OBRAZ];
   const zmiany = {};
   for (const k of dozwolone) if (pola[k] !== undefined) zmiany[k] = kopia(pola[k]);
   if (cel === 'tekst' && rodzaj === 'tekst') {

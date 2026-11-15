@@ -4,6 +4,7 @@
 
 // Uszlachetnienia (#127): efekt w edytorze i płyty w PDF – nakładka na rysowanie obiektów Fabric.
 import { zainstalujUszlachetnienia } from './kolory-druku.js';
+import { zainstalujMiekkieKrawedzie } from './miekkie-krawedzie.js';
 
 // Własne właściwości obiektów, które zapisujemy razem z JSON-em Fabric.
 export const WLASNE_POLA = [
@@ -37,12 +38,15 @@ export const WLASNE_POLA = [
   'kalendarz', // kalendarz miesiąca: tabela z opisem miesiąca i wyglądu dni (kalendarz-miesiaca.js, #131A)
   'wykres', // wykres z danych (wykres.js, #131A)
   'ksztalt_tekstu', // tekst po łuku, okręgu, ścieżce albo wygięty (tekst-ksztalt.js, #131B)
+  'zaokraglenie', // zaokrąglone narożniki zwykłego obrazu w mm – obraz przycięty, obrys po zaokrągleniu (miekkie-krawedzie.js, #156)
+  'miekkie_krawedzie', 'miekkie_rodzaj', // miękkie krawędzie (wtapianie) w mm; rodzaj: brak = równo wzdłuż brzegu, owal = winieta (#156)
   'kolaz', // kolaż: { uklad, odstep, zaokraglenie, szerokosc, wysokosc } – grupa pól na zdjęcia (#131A)
 ];
 
 if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   fabric.BaseFabricObject.prototype._ustawieniaSeriodruku = true;
   zainstalujUszlachetnienia();
+  zainstalujMiekkieKrawedzie();
 
   // Położenie obiektu (left, top) to jego lewy górny róg – tak są zapisane wszystkie projekty.
   // (Fabric 7 domyślnie liczy od środka.)
@@ -66,7 +70,7 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   // Każda klasa Fabric ma własną listę – dopisujemy do każdej, która może mieć obraz.
   for (const klasa of ['FabricObject', 'Rect', 'Ellipse', 'Circle', 'Polygon', 'Polyline', 'Triangle', 'Path', 'FabricImage']) {
     const lista = fabric[klasa]?.cacheProperties;
-    if (Array.isArray(lista)) for (const k of ['filtry', 'obraz_kadr', 'zasob', 'uszlachetnienie', 'folia']) if (!lista.includes(k)) lista.push(k);
+    if (Array.isArray(lista)) for (const k of ['filtry', 'obraz_kadr', 'zasob', 'uszlachetnienie', 'folia', 'zaokraglenie', 'miekkie_krawedzie', 'miekkie_rodzaj']) if (!lista.includes(k)) lista.push(k);
   }
 
   // W zapisie typ obiektu zostaje taki jak dotąd (małe litery: 'textbox', 'image', 'rect'…).
