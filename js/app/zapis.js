@@ -129,6 +129,23 @@ function odswiezCofanie() {
   $('[data-akcja="ponow"]').disabled = !historia.moznaPonowic;
 }
 
+// Ostatnio edytowana strona projektu – na tym urządzeniu (#147). Brak pamięci przeglądarki nic nie psuje.
+const KLUCZ_STRONY = 'makietka:ostatnia-strona';
+function ostatniaStrona(id) {
+  try { return JSON.parse(localStorage.getItem(KLUCZ_STRONY) || '{}')[id] || null; } catch { return null; }
+}
+function zapamietajStrone(id, strona) {
+  try {
+    const m = JSON.parse(localStorage.getItem(KLUCZ_STRONY) || '{}');
+    if (m[id] === strona) return;
+    delete m[id];
+    m[id] = strona;
+    const klucze = Object.keys(m);
+    for (const k of klucze.slice(0, Math.max(0, klucze.length - 200))) delete m[k]; // najwyżej 200 projektów
+    localStorage.setItem(KLUCZ_STRONY, JSON.stringify(m));
+  } catch { /* bez pamięci przeglądarki – projekt otworzy się na pierwszej stronie */ }
+}
+
 // Wczytuje bieżący cel do edytora; dopasowuje widok, gdy zmienił się rozmiar.
 export async function zaladujCel({ dopasuj = false } = {}) {
   const { projekt } = stan;
@@ -141,6 +158,7 @@ export async function zaladujCel({ dopasuj = false } = {}) {
       for (const st of projekt.strony) if (zmienione.includes(st.sekcja)) stan.miniatury.delete(st.id);
     } catch (e) { console.error(e); }
   }
+  if (stan.tryb === 'strona' && projekt.strony[stan.indeks]) zapamietajStrone(projekt.id, projekt.strony[stan.indeks].id);
   const wydruk = wydrukCelu();
   const cel = biezacyCel();
   const poprzedni = edytor.wydruk;
@@ -190,6 +208,7 @@ export function wybierzStroneArkusza(k) {
   const i = stan.projekt.strony.findIndex((s) => s.id === id);
   if (i < 0 || (stan.tryb === 'strona' && i === stan.indeks)) return;
   stan.indeks = i;
+  zapamietajStrone(stan.projekt.id, id);
   edytor.ustawAktywna(k);
   odswiezPasekEdytora();
   renderujListe();
@@ -221,6 +240,8 @@ export async function otworzProjekt(p, cel = {}) {
   // Czcionki stylów tekstu projektu pobierają się w tle – żeby nadanie stylu od razu mierzyło tekst
   // właściwą czcionką. Nie wstrzymują otwarcia projektu (czcionki stron wczytuje edytor przed rysowaniem).
   zapewnijRodziny((stan.projekt.style || []).map((s) => s.fontFamily)).catch(() => {});
+  // Bez strony w adresie – ostatnio edytowana strona tego projektu na tym urządzeniu (#147).
+  if (!cel.strona && !cel.wzorzec) cel = { ...cel, strona: ostatniaStrona(stan.projekt.id) };
   stan.indeks = Math.max(0, stan.projekt.strony.findIndex((x) => x.id === cel.strona));
   const wzorzec = cel.wzorzec && stan.projekt.wzorce.find((w) => w.id === cel.wzorzec);
   stan.tryb = wzorzec ? 'wzorzec' : 'strona';
