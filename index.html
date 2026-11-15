@@ -663,6 +663,7 @@
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="ksiazka">Instrukcja</button>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
+          <button role="menuitem" data-akcja="drukuj" data-ikona="drukarka">Drukuj w domu…<kbd>Ctrl P</kbd></button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
@@ -1089,6 +1090,64 @@
         <button type="button" class="przycisk glowny" id="udostepnij-utworz" data-akcja="udostepnij-utworz">Utwórz link</button>
       </div>
     </div>
+  </dialog>
+
+  <!-- Druk w domu (#145): wydruk z przeglądarki – zwykły, broszura do złożenia, kilka stron na kartce – z pomocą. -->
+  <dialog id="dlg-druk" aria-labelledby="druk-tytul">
+    <form class="formularz" id="form-druk">
+      <div class="naglowek-dialogu">
+        <h2 id="druk-tytul">Drukuj w domu</h2>
+        <button type="button" class="przycisk-ikona x-okna" data-akcja="druk-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <p class="ciche">Na zwykłej drukarce: strony ułożone na kartkach, bez spadu. Do drukarni użyj „Eksportuj do PDF”.</p>
+      <label class="pole"><span>Co wydrukować</span>
+        <select name="uklad">
+          <option value="jedna" selected>Zwykły wydruk – strona na kartce</option>
+          <option value="broszura">Broszura do złożenia (zszywana w środku)</option>
+          <option value="dwie">2 strony na kartce</option>
+          <option value="cztery">4 strony na kartce</option>
+        </select>
+      </label>
+      <div class="rzad">
+        <label class="pole"><span>Papier</span>
+          <select name="papier">
+            <option value="A4" selected>A4</option>
+            <option value="A3">A3</option>
+            <option value="Letter">Letter</option>
+          </select>
+        </label>
+        <label class="pole"><span>Rozmiar stron</span>
+          <select name="dopasowanie">
+            <option value="rzeczywisty" selected>Rzeczywisty rozmiar</option>
+            <option value="dopasuj">Dopasuj do kartki</option>
+          </select>
+        </label>
+      </div>
+      <label class="pole"><span>Strony</span>
+        <select name="zakres">
+          <option value="wszystko" selected>Wszystkie</option>
+          <option value="strony">Od–do</option>
+          <option value="biezaca">Tylko bieżąca strona</option>
+        </select>
+      </label>
+      <div class="rzad" id="druk-pole-strony" hidden>
+        <label class="pole"><span>Od strony</span><input name="od" type="number" min="1" step="1" inputmode="numeric"></label>
+        <label class="pole"><span>Do strony</span><input name="do" type="number" min="1" step="1" inputmode="numeric"></label>
+      </div>
+      <label class="przelacznik"><input name="szarosc" type="checkbox"><span>W odcieniach szarości</span></label>
+      <label class="przelacznik" id="druk-pole-znaki" hidden><input name="znaki" type="checkbox"><span>Znaki cięcia i złamu (broszura do przycięcia)</span></label>
+      <p class="podpowiedz" id="druk-opis"></p>
+      <ol class="plan-arkuszy" id="druk-plan" aria-label="Układ kartek"></ol>
+      <details class="druk-pomoc" id="druk-pomoc">
+        <summary>Jak wydrukować</summary>
+        <div id="druk-pomoc-tresc"></div>
+      </details>
+      <p class="komunikat" role="status" id="druk-komunikat"></p>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk" id="druk-pobierz" data-ikona="pobierz">Pobierz PDF do druku</button>
+        <button type="submit" class="przycisk glowny" id="druk-drukuj" data-ikona="drukarka">Drukuj</button>
+      </div>
+    </form>
   </dialog>
 
   <dialog id="dlg-pdf">

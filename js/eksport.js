@@ -128,7 +128,7 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) 
 // Do czytania na ekranie (#131C): nawigacja – zakładki (sekcje, nagłówki) i linki (spis treści, odsyłacze „s. 12”,
 // element z adresem, kod QR z adresem; linki tylko w pliku wektorowym). Układ arkuszy (impozycja): uklad
 // ('zwykly' | 'broszura' | 'skladki' | 'dwie' | 'cztery'), skladka, formatArkusza ('auto' | 'A4' | 'A3'), pelzanie (mm).
-export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), uszlachetnienia = 'plyty', tylkoPlyta = null, nawigacja = false, uklad = 'zwykly', skladka = 16, formatArkusza = 'auto', pelzanie = 0, postep, przerwij } = {}) {
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), uszlachetnienia = 'plyty', tylkoPlyta = null, nawigacja = false, uklad = 'zwykly', skladka = 16, formatArkusza = 'auto', pelzanie = 0, powieksz = false, postep, przerwij } = {}) {
   const arkusze = uklad && uklad !== 'zwykly';
   if (arkusze) { spad = false; nawigacja = false; } // na arkuszach strony stoją równo do formatu, bez linków
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
@@ -224,7 +224,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     dodajZakladki(PDFLib, pdf, zakladkiPliku(projekt, egzemplarze, ciag, naKlucz));
   }
   let wynik = pdf;
-  if (arkusze) wynik = (await impozycjaPdf(PDFLib, await pdf.save(), { uklad, skladka, format: formatArkusza, pelzanie, znaki: znaki !== false, tytul: projekt.nazwa })).pdf;
+  if (arkusze) wynik = (await impozycjaPdf(PDFLib, await pdf.save(), { uklad, skladka, format: formatArkusza, pelzanie, znaki: znaki !== false, powieksz, tytul: projekt.nazwa })).pdf;
   if (warunki) await dodajPdfX(PDFLib, wynik, warunki, { tytul: projekt.nazwa });
   const bajty = await wynik.save();
   return new Blob([warunki ? naglowekPdfX(bajty) : bajty], { type: 'application/pdf' });

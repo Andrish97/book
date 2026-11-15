@@ -144,7 +144,7 @@ Pod ustawieniami widać plan: każdy arkusz z numerami stron (z przodu i z tyłu
 ![Broszura: plan arkuszy w oknie eksportu](k-pdf-arkusze.png)
  Przy **Do drukarni** arkusze mają znaki cięcia, a broszura — przerywane znaki złamu. Strony na arkuszach stoją równo do formatu, bez spadu.
 
-> Wskazówka: Broszurę drukuj dwustronnie z obracaniem po dłuższej krawędzi. Najpierw wydrukuj jeden arkusz próbnie.
+> Wskazówka: Broszurę drukuj dwustronnie z obracaniem po krótszej krawędzi. Najpierw wydrukuj jeden arkusz próbnie.
 
 ## 22.7 PDF do czytania na ekranie
 
@@ -156,6 +156,31 @@ Zwykły plik PDF ma od razu nawigację dla czytających na ekranie:
 - **link elementu** — w panelu elementu, w części **Inne**, pole **Link w PDF (adres strony, e-mail)**: kliknięcie elementu w PDF otwiera adres; kod QR z adresem strony jest klikalny sam.
 
 Linki są w pliku wektorowym; zakładki — w obu rodzajach pliku. W PDF/X-4 dla drukarni nawigacji nie ma.
+
+## 22.8 Drukuj w domu
+
+Wydruk na zwykłej drukarce, bez wysyłania pliku do drukarni. Gdzie: menu **⋯** projektu → [Drukuj w domu…] (skrót <kbd>Ctrl</kbd>+<kbd>P</kbd> w edytorze).
+
+![Okno Drukuj w domu](k-druk.png)
+
+| Ustawienie | Co znaczy |
+|---|---|
+| **Co wydrukować** | **Zwykły wydruk** (strona na kartce), **Broszura do złożenia** (kartki składane na pół i zszywane w środku – kolejność stron układa się sama), **2** albo **4 strony na kartce**. |
+| **Papier** | A4, A3 albo Letter – kartka obraca się sama. |
+| **Rozmiar stron** | **Rzeczywisty** (strony zmniejszone tylko, gdy się nie mieszczą) albo **Dopasuj do kartki**. |
+| **Strony** | Wszystkie, od–do albo tylko bieżąca. |
+| **W odcieniach szarości** | Wydruk czarno-biały. |
+| **Znaki cięcia i złamu** | Przy broszurze, którą przytniesz po zszyciu. |
+
+Pod ustawieniami widać, jak strony ułożą się na kartkach. [Drukuj] otwiera okno drukowania przeglądarki z gotowym plikiem; na telefonie plik otwiera się w nowej karcie – wybierz tam **Udostępnij → Drukuj**. [Pobierz PDF do druku] zapisuje ten sam plik.
+
+Część **Jak wydrukować** w oknie podpowiada krok po kroku:
+
+1. Najpierw wydrukuj jedną kartkę na próbę.
+2. W oknie drukarki ustaw skalę **Rzeczywisty rozmiar / 100%**.
+3. Broszurę drukuj dwustronnie, **obracanie po krótszej krawędzi** (kartka leży poziomo).
+4. Drukarka bez druku dwustronnego: najpierw tylko strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
+5. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu; grubą broszurę podziel na składki.
 
 # 23. Kolory dodatkowe i uszlachetnienia
 

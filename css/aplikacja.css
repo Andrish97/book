@@ -2997,3 +2997,16 @@ body.malarz-aktywny .upper-canvas { cursor: copy !important; }
   .separacje-uklad { grid-template-columns: 1fr; }
   #separacje-plotno { max-height: 46vh; }
 }
+
+/* ---------- Drukuj w domu (#145) ---------- */
+#dlg-druk { width: min(560px, calc(100vw - 24px)); }
+.druk-pomoc { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 8px 12px; background: var(--powierzchnia-2); }
+.druk-pomoc summary { cursor: pointer; font-weight: 600; font-size: 13.5px; }
+.druk-kroki { list-style: none; margin: 10px 0 2px; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: krok; }
+.druk-kroki li { counter-increment: krok; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; font-size: 13px; line-height: 1.45; }
+.druk-kroki li::before { content: counter(krok); grid-row: span 2; align-self: start; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--akcent); color: var(--akcent-tekst, #fff); font-size: 12px; font-weight: 700; }
+.druk-kroki li svg { width: 110px; height: 44px; }
+.druk-kroki li:has(svg) span { grid-column: 2; }
+.druk-kroki .kartka { fill: var(--powierzchnia); stroke: var(--tusz-2); stroke-width: 1; }
+.druk-kroki .strzalka { fill: none; stroke: var(--akcent); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.druk-kroki text { font: 600 8px/1 Inter, sans-serif; fill: var(--tusz-2); }
