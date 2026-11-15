@@ -583,3 +583,15 @@ export async function przeniesStrone(idStrony, idCelu, po) {
   ostrzezOGrzbiecie(sasiedziPrzed);
   zaplanujZapis();
 }
+
+// Szybkie przesunięcie palcem w poziomie na płótnie (#146): następna albo poprzednia strona – przy rozkładówce
+// cały arkusz dalej. Na początku i końcu projektu nic się nie dzieje.
+document.addEventListener('seriodruk:przewin-strone', (e) => {
+  if (stan.tryb !== 'strona' || !stan.projekt) return;
+  const strony = stan.projekt.strony;
+  const naArkuszu = (naPlotnie?.strony || [strony[stan.indeks]?.id]).map((id) => strony.findIndex((s) => s.id === id)).filter((i) => i >= 0);
+  if (!naArkuszu.length) naArkuszu.push(stan.indeks);
+  const cel = e.detail?.kierunek > 0 ? Math.max(...naArkuszu) + 1 : Math.min(...naArkuszu) - 1;
+  if (cel < 0 || cel >= strony.length) return;
+  przejdzDoStrony(cel);
+});
