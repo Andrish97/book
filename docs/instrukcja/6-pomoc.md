@@ -65,6 +65,20 @@ Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem.
 przeglądarki; <kbd>Esc</kbd> albo ten sam przycisk wraca. Na iPhonie przeglądarka nie pozwala na
 pełny ekran — tam daje go zainstalowanie aplikacji (→ 28.4).
 
+## 28.6 Dłuższe czynności
+
+Gdy coś trwa dłużej niż chwilę — otwieranie projektu, eksport PDF i PNG, druk w domu, podgląd separacji,
+wczytywanie stron makiety 3D, kopiowanie projektu, wczytywanie pliku z danymi, czcionek albo obrazów,
+usuwanie tła, udostępnianie — u góry pojawia się karta z nazwą czynności i paskiem. Gdy wiadomo, ile
+zostało, obok jest licznik, np. „17 z 48” stron. Przy eksporcie PDF jest
+[Anuluj] — przerywa czynność bez zapisywania pliku. Krótkie czynności karty nie pokazują.
+
+W oknie (np. Eksport do PDF) karta stoi nad oknem, a na telefonie w edytorze — pod paskiem narzędzi,
+żeby go nie zasłaniać. Miniatury stron po otwarciu dużego projektu rysują się w tle; ile jeszcze
+zostało, widać cienkim paskiem w panelu Strony — można w tym czasie normalnie pracować.
+
+![Karta postępu przy eksporcie PDF](k-postep.png)
+
 # 29. Skróty klawiszowe
 
 ## 29.1 Lista skrótów

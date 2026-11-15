@@ -32,6 +32,7 @@ import { stanUszlachetnien, ustawPokazUszlachetnien } from '../kolory-druku.js';
 import { obsluzKlawisz } from '../skroty.js';
 import { ikona } from '../ikony.js';
 import { $, powiadom, pobierz, bezpiecznaNazwa, zamknijMenu, przelaczMenu } from '../ui.js';
+import { zPostepem } from '../postep.js';
 import { NAZWA } from '../marka.js';
 import { domyslneStyle } from '../style-tekstu.js';
 import { stan, edytor, biezacyCel, biezacaSekcja, jednaStrona, KLUCZ_JEDNA } from './kontekst.js';
@@ -195,8 +196,10 @@ async function pobierzPng() {
   const cel = biezacyCel();
   const nazwa = stan.tryb === 'wzorzec' ? `wzorzec-${cel.nazwa}` : `s${stan.indeks + 1}`;
   try {
-    const { pngCelu } = await import('../eksport.js'); // eksport wczytuje się przy pierwszym użyciu
-    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-${bezpiecznaNazwa(nazwa)}.png`, await pngCelu(stan.projekt, cel, 300));
+    await zPostepem('Przygotowanie obrazu PNG (300 dpi)…', async () => {
+      const { pngCelu } = await import('../eksport.js'); // eksport wczytuje się przy pierwszym użyciu
+      pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-${bezpiecznaNazwa(nazwa)}.png`, await pngCelu(stan.projekt, cel, 300));
+    });
   } catch (blad) {
     powiadom(blad.message || 'Nie udało się przygotować obrazu.');
   }

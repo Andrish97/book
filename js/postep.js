@@ -13,7 +13,8 @@
 //   p.koniec();            // znika (także po błędzie – w finally)
 //   await zPostepem('Otwieranie projektu…', () => otworz());  // bez licznika
 
-const OPOZNIENIE = 400;
+// Krótkie czynności (poniżej ~0,3 s) nie pokazują karty wcale – nic nie mruga (#159).
+const OPOZNIENIE = 300;
 
 let host = null;
 function dajHost() {
@@ -26,10 +27,15 @@ function dajHost() {
   const okna = [...document.querySelectorAll('dialog[open]')];
   const rodzic = okna.at(-1) || document.body;
   if (host.parentElement !== rodzic) rodzic.append(host);
+  // Karta nie zasłania pływającego paska narzędzi edytora (telefon, #159) – stoi tuż pod nim.
+  const pasek = rodzic === document.body && document.body.dataset.ekran === 'edytor' ? document.querySelector('#pasek-narzedzi') : null;
+  const r = pasek?.offsetParent ? pasek.getBoundingClientRect() : null;
+  host.style.top = r && r.bottom > 0 && r.top < window.innerHeight / 2 ? `${Math.round(r.bottom + 8)}px` : '';
   return host;
 }
 
-export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNIENIE } = {}) {
+// procent: licznik jako „37%” zamiast „12 z 48” (np. gdy liczy się bajty, a nie strony).
+export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNIENIE, procent = false } = {}) {
   const el = document.createElement('div');
   el.className = 'postep';
   el.setAttribute('role', 'status');
@@ -39,6 +45,11 @@ export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNI
   const opisEl = el.querySelector('.postep-opis');
   const licznikEl = el.querySelector('.postep-licznik');
   const wypelnienie = el.querySelector('.postep-wypelnienie');
+  // Pasek dla czytników ekranu: role=progressbar z wartością (bez wartości – czynność bez znanej długości).
+  const pasekEl = el.querySelector('.postep-pasek');
+  pasekEl.setAttribute('role', 'progressbar');
+  pasekEl.setAttribute('aria-valuemin', '0');
+  pasekEl.setAttribute('aria-valuemax', '100');
   if (anuluj) {
     const b = document.createElement('button');
     b.type = 'button';
@@ -53,17 +64,21 @@ export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNI
   const odswiez = () => {
     const znany = Number.isFinite(calosc) && calosc > 0;
     el.classList.toggle('nieokreslony', !znany);
-    licznikEl.textContent = znany ? `${Math.min(zrobione, calosc)} z ${calosc}` : '';
-    wypelnienie.style.width = znany ? `${Math.round((Math.min(zrobione, calosc) / calosc) * 100)}%` : '';
+    const pr = znany ? Math.round((Math.min(zrobione, calosc) / calosc) * 100) : null;
+    licznikEl.textContent = !znany ? '' : procent ? `${pr}%` : `${Math.min(zrobione, calosc)} z ${calosc}`;
+    wypelnienie.style.width = znany ? `${pr}%` : '';
+    if (znany) pasekEl.setAttribute('aria-valuenow', String(pr)); else pasekEl.removeAttribute('aria-valuenow');
+    pasekEl.setAttribute('aria-valuetext', licznikEl.textContent || 'w toku');
     if (el.isConnected) dajHost();
   };
-  opisEl.textContent = tekst;
+  const ustawOpis = (t) => { opisEl.textContent = t; pasekEl.setAttribute('aria-label', t); };
+  ustawOpis(tekst);
   odswiez();
   const pokaz = setTimeout(() => { if (!zakonczony) { dajHost().append(el); el.dataset.widoczny = ''; } }, opoznienie);
   return {
     krok(n = zrobione + 1, r = calosc) { zrobione = n; calosc = r; odswiez(); },
     razem(r) { calosc = r; odswiez(); },
-    opis(t) { opisEl.textContent = t; },
+    opis(t) { ustawOpis(t); },
     koniec() {
       zakonczony = true;
       clearTimeout(pokaz);
@@ -78,4 +93,14 @@ export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNI
 export async function zPostepem(tekst, fn, opcje = {}) {
   const p = postep(tekst, opcje);
   try { return await fn(p); } finally { p.koniec(); }
+}
+
+// Czynność liczona naraz, bez przerw (np. zmiana formatu wszystkich stron): przeglądarka nie odświeży ekranu
+// w trakcie, więc karta musi pojawić się przed nią. Pokazywana tylko, gdy czynność jest duża (np. dużo stron)
+// – przy małej nie mruga (#159).
+export async function przedDlugaCzynnoscia(tekst, duza, fn) {
+  if (!duza) return fn();
+  const p = postep(tekst, { opoznienie: 0 });
+  await new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok)));
+  try { return await fn(); } finally { p.koniec(); }
 }

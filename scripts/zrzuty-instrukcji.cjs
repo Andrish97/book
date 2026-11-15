@@ -1125,6 +1125,7 @@ if (require.main === module) (async () => {
   await require('./zrzuty-biblioteki.cjs').zrobZrzutyBiblioteki(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty biblioteki:', err.message));
   await require('./zrzuty-paska-telefonu.cjs').zrobZrzutPaskaTelefonu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut paska telefonu:', err.message));
   await require('./zrzuty-obramowania.cjs').zrobZrzutObramowania(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut obramowania:', err.message));
+  await require('./zrzuty-postepu.cjs').zrobZrzutPostepu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut postępu:', err.message));
 
   await przegladarka.close();
 })();

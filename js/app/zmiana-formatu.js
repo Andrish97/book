@@ -5,6 +5,7 @@ import { FORMATY } from '../projekt.js';
 import { zmienFormat, elementyPozaStrona, nazwaFormatu } from '../format-projektu.js';
 import { przeliczOkladki } from '../okladka.js';
 import { $, powiadom } from '../ui.js';
+import { przedDlugaCzynnoscia } from '../postep.js';
 import { stan, biezacaStrona, edytor } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { panel } from './skladniki.js';
@@ -99,11 +100,15 @@ async function zastosuj() {
   const o = opcje();
   zapiszBiezacyCel();
   const { projekt } = stan;
-  const wynik = zmienFormat(projekt, zakres, o, o);
+  let wynik = null;
+  await przedDlugaCzynnoscia('Zmiana formatu stron…', projekt.strony.length > 24, async () => {
+    wynik = zmienFormat(projekt, zakres, o, o);
+    if (!wynik.sekcje.length) return;
+    przeliczOkladki(projekt); // okładka idzie za nowym formatem środka (#119)
+    stan.miniatury.clear();
+    await zaladujCel({ dopasuj: true });
+  });
   if (!wynik.sekcje.length) { powiadom('Format się nie zmienił.'); return; }
-  przeliczOkladki(projekt); // okładka idzie za nowym formatem środka (#119)
-  stan.miniatury.clear();
-  await zaladujCel({ dopasuj: true });
   if (!edytor.aktywny) panel.zbuduj();
   zaplanujZapis();
   const poza = elementyPozaStrona(projekt, wynik.sekcje).length;

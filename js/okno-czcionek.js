@@ -3,6 +3,7 @@
 import { $, powiadom, potwierdz, odmiana, pobierz } from './ui.js';
 import { uid } from './projekt.js';
 import { wstawIkony } from './ikony.js';
+import { zPostepem } from './postep.js';
 import {
   CZCIONKI, ROZSZERZENIA_CZCIONEK, dodajCzcionkiDoProjektu, zarejestrujCzcionkiProjektu, nazwaOdmiany, uzyteCzcionki,
 } from './czcionki.js';
@@ -165,7 +166,7 @@ export class OknoCzcionek {
   async dodaj(pliki) {
     if (!pliki.length) return [];
     this.zrodlo.przedZmiana();
-    const { dodane, odrzucone } = await dodajCzcionkiDoProjektu(this.zrodlo.projekt(), pliki, uid);
+    const { dodane, odrzucone } = await zPostepem(pliki.length > 1 ? `Wczytywanie czcionek (${pliki.length})…` : 'Wczytywanie czcionki…', () => dodajCzcionkiDoProjektu(this.zrodlo.projekt(), pliki, uid));
     if (odrzucone.length) powiadom(`Nie udało się wczytać: ${odrzucone.join(', ')}. Obsługiwane pliki: TTF, OTF, WOFF, WOFF2.`, true);
     if (dodane.length) {
       const rodziny = [...new Set(dodane.map((c) => c.rodzina))];

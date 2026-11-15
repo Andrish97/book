@@ -44,6 +44,7 @@
   <div class="ekran ekran-start" id="ekran-start">
     <div class="logo-duze"><span class="znak-logo">M</span></div>
     <p class="ciche">Wczytywanie…</p>
+    <div class="postep-pasek pasek-startu" role="progressbar" aria-label="Wczytywanie aplikacji"><div class="postep-wypelnienie"></div></div>
   </div>
 
   <!-- ===================== Logowanie ===================== -->
@@ -701,6 +702,8 @@
         <div class="naglowek-panelu">
           <h2>Strony <span class="licznik" id="liczba-stron">1</span></h2>
         </div>
+        <!-- Miniatury rysowane w tle (#159): cienki pasek w panelu zamiast karty – praca nie jest przerywana. -->
+        <div class="postep-miniatur" id="postep-miniatur" hidden><span id="postep-miniatur-tekst"></span><div class="postep-pasek" role="progressbar" aria-label="Rysowanie miniatur stron" aria-valuemin="0" aria-valuemax="100"><div class="postep-wypelnienie"></div></div></div>
         <ol class="lista-stron" id="lista-stron"></ol>
         <div class="stopka-panelu" id="stopka-strony">
           <button class="przycisk" data-akcja="sekcja-dodaj" data-ikona="plus" title="Nowa sekcja z własnym formatem i marginesami">Sekcja</button>

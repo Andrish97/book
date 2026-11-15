@@ -3,6 +3,7 @@
 // w obrazach projektu i trafia do zaznaczonego obrazu (albo kształtu z obrazem); oryginał zostaje w projekcie.
 
 import { $, powiadom } from '../ui.js';
+import { postep } from '../postep.js';
 import { stan, edytor } from './kontekst.js';
 import { blobZasobu } from '../zasoby.js';
 import { przyjmijPlik } from '../obrazy-projektu.js';
@@ -70,7 +71,8 @@ plotno.addEventListener('pointerdown', async (e) => {
   zapamietaj();
   if (st.tryb === 'rozdzka') {
     stanTekst('Usuwam…');
-    st.maska = await rozdzkaWTle(p.x, p.y);
+    const pasek = postep('Usuwanie tła…');
+    try { st.maska = await rozdzkaWTle(p.x, p.y); } finally { pasek.koniec(); }
     stanTekst('Kliknij kolejne miejsce tła albo popraw brzegi pędzlem.');
     rysujPozniej();
     return;
@@ -109,6 +111,7 @@ $('#usun-tlo-zapisz').addEventListener('click', async () => {
   st.zapisuje = true;
   $('#usun-tlo-zapisz').disabled = true;
   stanTekst('Zapisuję…');
+  const pasek = postep('Zapisywanie obrazu bez tła…');
   try {
     rysuj();
     const blob = await new Promise((ok) => plotno.toBlob(ok, 'image/png'));
@@ -123,6 +126,7 @@ $('#usun-tlo-zapisz').addEventListener('click', async () => {
   } catch (e) {
     powiadom(e.message || 'Nie udało się zapisać obrazu.', true);
   } finally {
+    pasek.koniec();
     st.zapisuje = false;
     $('#usun-tlo-zapisz').disabled = false;
   }
@@ -139,6 +143,7 @@ export async function otworzUsuwanieTla(obj) {
   stanTekst('Wczytuję obraz…');
   ctx.clearRect(0, 0, plotno.width, plotno.height);
   if (!dlg.open) dlg.showModal();
+  const pasek = postep('Wczytywanie obrazu…');
   try {
     const blob = await blobZasobu(stan.projekt, zasob);
     if (!blob) throw new Error('Nie ma oryginału tego obrazu na urządzeniu – otwórz projekt z internetem i spróbuj jeszcze raz.');
@@ -159,5 +164,7 @@ export async function otworzUsuwanieTla(obj) {
     rysuj();
   } catch (e) {
     stanTekst(e.message || 'Nie udało się wczytać obrazu.');
+  } finally {
+    pasek.koniec();
   }
 }

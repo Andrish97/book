@@ -232,6 +232,20 @@ export function generujMiniatury() {
     const projekt = stan.projekt;
     const ciag = rozwin(projekt);
     const cele = [...projekt.strony, ...projekt.wzorce];
+    // Postęp w panelu stron, gdy brakuje wielu miniatur (#159) – np. po otwarciu dużego projektu.
+    const brak = cele.filter((c) => !stan.miniatury.has(c.id)).length;
+    let gotowe = 0;
+    const pokazPostep = brak > 12;
+    const pasek = $('#postep-miniatur');
+    const odswiezPostep = () => {
+      if (!pasek || !pokazPostep) return;
+      const pr = Math.round((gotowe / brak) * 100);
+      pasek.hidden = gotowe >= brak;
+      $('#postep-miniatur-tekst').textContent = `Miniatury stron: ${gotowe} z ${brak}`;
+      pasek.querySelector('.postep-wypelnienie').style.width = `${pr}%`;
+      pasek.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', String(pr));
+    };
+    odswiezPostep();
     for (const cel of cele) {
       if (stan.projekt !== projekt) break;
       if (stan.miniatury.has(cel.id)) continue;
@@ -239,8 +253,10 @@ export function generujMiniatury() {
       if (stan.projekt !== projekt || stan.miniatury.has(cel.id)) continue;
       stan.miniatury.set(cel.id, await renderujCel(projekt, cel, { szerokoscPx: 200, ciag }));
       odswiezMiniature(cel.id);
+      gotowe += 1;
+      odswiezPostep();
     }
-  })().finally(() => { generowanie = null; });
+  })().finally(() => { generowanie = null; const p = $('#postep-miniatur'); if (p) p.hidden = true; });
 }
 
 // Miniatura z edytora pojawia się od razu, ale wycina stronę z płótna – w pasku spadu przy
