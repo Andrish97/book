@@ -257,6 +257,14 @@ export const akcje = {
   'podglad-minus': () => podglad.powieksz(0.8),
   'podglad-dopasuj': () => podglad.dopasuj(),
   'podglad-prezentacja': () => podglad.prezentuj(),
+  // Podgląd separacji (#131C) – strona widoczna w środku podglądu.
+  'podglad-separacje': async () => {
+    const tresc = $('#podglad-tresc');
+    const srodek = tresc.getBoundingClientRect().top + tresc.clientHeight / 2;
+    const widoczna = [...tresc.querySelectorAll('.podglad-strona[data-id]')].find((f) => f.getBoundingClientRect().bottom > srodek - 40);
+    (await import('./separacje-okno.js')).otworzSeparacje(stan.projekt, widoczna?.dataset.id || null);
+  },
+  'separacje-zamknij': () => $('#dlg-separacje').close(),
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },

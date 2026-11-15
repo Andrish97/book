@@ -266,7 +266,8 @@ export function uwagiKolorowDruku(projekt, { numerStrony = () => null } = {}) {
 const KLUCZ_POKAZ = 'makietka:pokaz-uszlachetnienia';
 // pokaz – efekt widać w edytorze i podglądzie; eksport – pliku z obrazów stron nie dostają uszlachetnień
 // (to nie farba); surowo – element rysowany bez efektu (maska uszlachetnienia w PDF).
-export const stanUszlachetnien = { pokaz: true, eksport: false, surowo: false };
+// maska – nazwa płyty: rysują się tylko elementy tej płyty, bez efektu (podgląd separacji, #131C).
+export const stanUszlachetnien = { pokaz: true, eksport: false, surowo: false, maska: null };
 try { stanUszlachetnien.pokaz = localStorage.getItem(KLUCZ_POKAZ) !== '0'; } catch { /* bez pamięci – domyślnie widać */ }
 export function ustawPokazUszlachetnien(tak) {
   stanUszlachetnien.pokaz = Boolean(tak);
@@ -348,6 +349,24 @@ export function zainstalujUszlachetnienia() {
       if (!u) return render.call(this, ctx);
       ctx.uszlStos.push(u);
       try { return render.call(this, ctx); } finally { ctx.uszlStos.pop(); }
+    }
+    if (stanUszlachetnien.maska) {
+      if (u && u.plyta === stanUszlachetnien.maska) {
+        // Element płyty (także cała grupa) – rysowany bez efektu, razem z zawartością.
+        // Maska: kształt elementu na czarno (biały lakier na białym tle też ma być widać); obraz – jak jest.
+        const m = stanUszlachetnien.maska;
+        const obraz = this.type === 'image' || (this.zasob && !this.fill);
+        const stare = { fill: this.fill, stroke: this.stroke, shadow: this.shadow };
+        stanUszlachetnien.maska = null;
+        try {
+          if (!obraz && !this._objects) { if (this.fill) this.fill = '#000000'; if (this.stroke) this.stroke = '#000000'; this.shadow = null; this.dirty = true; }
+          return render.call(this, ctx);
+        } finally {
+          stanUszlachetnien.maska = m;
+          if (!obraz && !this._objects) { Object.assign(this, stare); this.dirty = true; }
+        }
+      }
+      return this._objects ? render.call(this, ctx) : undefined;
     }
     if (u && stanUszlachetnien.eksport && !stanUszlachetnien.surowo) return undefined;
     if (u && stanUszlachetnien.pokaz && !stanUszlachetnien.surowo) return rysujZEfektem(this, ctx, render, u);

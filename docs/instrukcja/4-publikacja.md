@@ -59,6 +59,7 @@ projekt — także każdą powieloną stronę — i wypisuje miejsca, na które 
 | **Strony serii w rozkładówkach** | Gdzie stoją puste strony albo od której strony blok wychodzi po przeciwnej stronie. |
 | **Tabela wychodzi poza stronę** | Wiersze urosły razem z treścią i tabela wyszła poza kartkę. |
 | **Niepełna składka** | Sekcji brakuje stron do pełnej składki (→ 11.7); przy oprawie zeszytowej — liczba stron niepodzielna przez 4. |
+| **Pokrycie farbą** | Kolor elementu po przeliczeniu profilem drukarni daje ponad 300% farby — po otwarciu podglądu separacji z profilem albo eksporcie PDF/X-4 (→ 23.6). |
 | **Element w marginesie albo poza spadem** | Jak na liście ostrzeżeń w edytorze (→ 13.2). |
 
 [Pokaż] przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy, z wyróżnioną
@@ -80,6 +81,7 @@ Wybierz [⋯] → [Eksportuj do PDF…].
 | **Rodzaj pliku** | **Wektorowy – ostry tekst i kształty**: tekst z osadzonymi czcionkami, ostry w każdym powiększeniu, da się go zaznaczyć. **Obrazy stron – strona jako zdjęcie**: każda strona to jeden obraz; wygląda wszędzie tak samo, ale plik jest większy. |
 | **Zakres** | **Cały projekt**, **Tylko bieżąca sekcja** albo **Strony od–do** (numery w całym wydruku). |
 | **Przeznaczenie** | **Do drukarni – ze spadem i znakami cięcia** albo **Do oglądania – równo do formatu**. Znaki cięcia dostają sekcje, które mają je włączone (→ 11.4). |
+| **Układ arkuszy** | **Zwykłe strony** albo strony ułożone na arkuszach do samodzielnego druku (→ 22.6). |
 | **Jakość** | Rozdzielczość zdjęć: 300 dpi — standard do druku, 150 dpi — mały plik na próbę, 600 dpi — bardzo ostro. |
 
 Na dole okna jest lista **Do sprawdzenia przed drukiem** (→ 21). [Eksportuj] zapisuje plik; długi
@@ -99,6 +101,7 @@ Część **Zaawansowane**:
 | **Zdjęcia też w CMYK (większy plik)** | Przy PDF/X-4: zdjęcia przeliczone na farby drukarskie przez ten sam profil. |
 | **Podział na pliki** | **Jeden plik**, **Osobny plik dla każdej sekcji** albo **Części po tyle stron** (**Stron w części**). Kilka plików dostajesz w archiwum ZIP. |
 | **Dołącz pliki czcionek użytych w projekcie** | Do pobrania trafia ZIP z plikiem PDF i folderem `czcionki`. |
+| **PDF do czytania na ekranie: zakładki i klikalne linki** | Zakładki i linki dla czytających na ekranie (→ 22.7). Domyślnie włączone; przy PDF/X-4 i układzie arkuszy niedostępne. |
 | **Uszlachetnienia** | Gdy projekt je ma: **Osobne płyty w tym samym pliku PDF**, **Osobny plik PDF na każde uszlachetnienie** albo **Pomiń uszlachetnienia** (→ 23.4). |
 
 ## 22.3 Jak wybrać ustawienia dla drukarni
@@ -123,6 +126,36 @@ trafia do pliku jako krzywe. Po eksporcie aplikacja mówi, jeśli coś takiego s
 
 [⋯] → [Pobierz bieżącą stronę jako PNG] zapisuje obraz otwartej strony w 300 dpi, ze spadem —
 np. do pokazania komuś w wiadomości.
+
+## 22.6 Broszura i kilka stron na arkuszu
+
+**Układ arkuszy** w oknie eksportu kładzie strony na arkuszach — do druku na zwykłej drukarce albo w małej drukarni:
+
+| Układ | Co robi |
+|---|---|
+| **Broszura do składania (zeszyt)** | Strony parami, tak żeby po wydrukowaniu dwustronnym i złożeniu arkuszy na pół wyszedł zeszyt: przy 16 stronach pierwszy arkusz to 16 i 1 z przodu, 2 i 15 z tyłu. Liczba stron dopełnia się pustymi do wielokrotności 4. |
+| **Broszura ze składek** | To samo, ale osobno dla każdej składki po **Składka (stron)** — 4, 8, 16 albo 32 (domyślnie jak w ustawieniach sekcji, → 11.7). Składki zszywa się albo klei razem. |
+| **2 strony na arkuszu**, **4 strony na arkuszu** | Kolejne strony obok siebie — np. ulotki A6 po cztery na A4. |
+
+**Arkusz**: **Dopasowany do stron** (dwie strony A5 → arkusz 296 × 210 mm) albo **A4** / **A3** — strony stoją pośrodku i zmniejszają się, jeśli się nie mieszczą. **Pełzanie (mm)**: w grubszej broszurze środkowe kartki po złożeniu wystają; strony na nich przesuwają się o część tej wartości w stronę grzbietu (np. 0,5–1 mm przy 40 stronach).
+
+Pod ustawieniami widać plan: każdy arkusz z numerami stron (z przodu i z tyłu), puste strony zakreskowane.
+
+![Broszura: plan arkuszy w oknie eksportu](k-pdf-arkusze.png)
+ Przy **Do drukarni** arkusze mają znaki cięcia, a broszura — przerywane znaki złamu. Strony na arkuszach stoją równo do formatu, bez spadu.
+
+> Wskazówka: Broszurę drukuj dwustronnie z obracaniem po dłuższej krawędzi. Najpierw wydrukuj jeden arkusz próbnie.
+
+## 22.7 PDF do czytania na ekranie
+
+Zwykły plik PDF ma od razu nawigację dla czytających na ekranie:
+
+- **zakładki** w bocznym panelu czytnika — sekcje projektu, a pod nimi nagłówki (style nagłówków książki, → 14),
+- **klikalny spis treści** — wiersz spisu prowadzi do strony,
+- **odsyłacze** „s. 12” prowadzą do tej strony,
+- **link elementu** — w panelu elementu, w części **Inne**, pole **Link w PDF (adres strony, e-mail)**: kliknięcie elementu w PDF otwiera adres; kod QR z adresem strony jest klikalny sam.
+
+Linki są w pliku wektorowym; zakładki — w obu rodzajach pliku. W PDF/X-4 dla drukarni nawigacji nie ma.
 
 # 23. Kolory dodatkowe i uszlachetnienia
 
@@ -189,6 +222,19 @@ Plik z obrazów stron nie ma osobnych płyt — wybierz plik wektorowy.
 W wyborze koloru zostają wtedy odcienie czerni i kolor trybu. Kolory spoza trybu okno pokaże — [Zamień na najbliższe dozwolone] zamieni je na czerń albo kolor trybu. To samo zrobi przycisk w **Sprawdź przed drukiem**.
 
 > Wskazówka: Rozszerzony CMYK (CMYK z dodatkowymi farbami, np. pomarańczową, zieloną i fioletową) robi drukarnia sama z Twojego pliku — nie trzeba osobnej palety.
+
+## 23.6 Podgląd separacji
+
+W podglądzie projektu [Separacje] pokazuje stronę rozbitą na płyty, którymi wydrukuje ją drukarnia: **Cyjan**, **Magenta**, **Żółty**, **Czarny**, kolory dodatkowe i uszlachetnienia.
+
+![Podgląd separacji: kolor dodatkowy i lakier UV z nadrukiem](separacje.png)
+
+1. Strzałkami nad obrazem przechodzisz między stronami.
+2. Odznacz płytę, żeby zobaczyć stronę bez niej; zostaw jedną i zaznacz **Jedna płyta w szarości** — zobaczysz samą farbę tej płyty (czarne = 100%).
+3. **Pokaż nadruk uszlachetnień** — uszlachetnienia jako kreskowana nakładka nad farbą (drukują się z nadrukiem, nie wybijają farby pod spodem).
+4. **Zaznacz pokrycie farbą ponad** **Limit pokrycia (%)** — miejsca, gdzie suma farb przekracza limit (zwykle 300% dla papieru powlekanego), robią się czerwone. Pod spodem jest największe pokrycie na stronie.
+
+**Przeliczanie na CMYK**: **Proste** — tak jak plik wektorowy w CMYK bez profilu (czerń i szarości samą czernią; nie przekracza 300%); **Papier powlekany (FOGRA39)** albo **Papier niepowlekany (FOGRA47)** — tak, jak przeliczy profil drukarni. Po przeliczeniu profilem **Sprawdź przed drukiem** wskaże też kolory elementów z pokryciem farbą powyżej 300% (→ 21).
 
 # 24. Udostępnianie linkiem
 

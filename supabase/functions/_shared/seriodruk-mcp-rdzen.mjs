@@ -1082,7 +1082,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'zmien_elementy',
       title: 'Zmień elementy',
-      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty – opis w opis_formatu). Podawaj tylko zmieniane pola; null usuwa pole.',
+      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty – opis w opis_formatu), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole.',
       inputSchema: S('', { gdzie: GDZIE, zmiany: { type: 'array', items: S('', { id: tekst('id elementu'), pola: obiekt('Pola do zmiany') }, ['id', 'pola']) } }, ['gdzie', 'zmiany']),
       dzialaj: ({ gdzie, zmiany }) => zmien((p) => {
         const m = miejsce(p, gdzie);
