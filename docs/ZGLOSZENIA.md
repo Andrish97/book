@@ -9,7 +9,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|
-| 143: uzupełnienie Biblioteki – więcej elementów w kategoriach i nowe kategorie (tabele i formularze, etykiety, ikony tematyczne, tła i wzory, dodatki kalendarzowe) | ⏳ po partii D |
 | 139: przegląd spójności i prostoty całości (panel właściwości, nazwy, ikony, widoczność funkcji #140, miejsca na telefonie #142: narzędzia na pasku z ⋯ paska, rzeczy funkcji przy funkcji, rzeczy projektu w menu projektu; oba motywy) | ⏳ po partii D i #138 |---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
@@ -45,6 +44,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 143 | Uzupełnienie Biblioteki: 120 kształtów (nowe figury, gwiazdy, strzałki, dymki, wstęgi, ramki, linie ozdobne, ikony), nowe kategorie „Linie i separatory” (ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna, pionowa; rodzaj linii w panelu), „Etykiety i plakietki” i „Planer” (11 gotowych tabel: lista zadań, tracker nawyków, plan tygodnia i dnia, notatki w linie, siatka dni, lista zakupów, cele, budżet, kontakty, plan lekcji; pola wyboru, kratka i kropki co 5 mm) |
 | 149 | Zmiana strony (gest, lista stron) na telefonie bez stanów pośrednich: zamrożony obraz poprzedniej strony do pełnego narysowania nowej, płótno nie jest już czyszczone przy tym samym rozmiarze. |
 | 145 | Drukuj w domu: zwykły wydruk, broszura do złożenia, 2/4 strony na kartce, papier A4/A3/Letter, druk z przeglądarki i pomoc krok po kroku (menu ⋯, Ctrl+P) |
 | 131D komentarze | Komentarze na stronach: narzędzie „Komentarz” na pasku narzędzi (miejsce na stronie albo zaznaczony element), pinezki z numerem na płótnie i w podglądzie (nie w PDF), przycisk „Komentarze” z licznikiem nierozwiązanych na górnym pasku edytora i w podglądzie (na wąskim telefonie w ⋯), wątki odpowiedzi, @wzmianki z podpowiedziami, „Rozwiąż” / „Otwórz ponownie”, filtry nierozwiązane / wszystkie / moje, „Pokaż na stronie”; na żywo między kontami; komentują też osoby „może oglądać”; powiadomienia push (przełącznik „Komentarze”), link z powiadomienia otwiera wątek; AI: narzędzia `komentarze`, `skomentuj`, `odpowiedz`, `rozwiaz_komentarz`; instrukcja 25.7 ze zrzutami. |

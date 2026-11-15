@@ -507,10 +507,13 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | Kategoria | Co w niej jest |
 |---|---|
 | **Moje elementy** | Elementy zapisane przez Ciebie – na koncie, w każdym projekcie (niżej). |
-| **Kształty** | Figury, gwiazdy, serca, chmura, tarcza, liść i proste ikony (dom, pinezka, zegar, ptaszek, koperta, telefon…). |
-| **Strzałki i dymki** | Strzałki w każdą stronę, zakręcone i obustronne, szewrony, metki; dymki komiksowe, myśli i krzyku. |
-| **Ozdobniki i ramki** | Wstęgi, proporczyki, bilety, zakładki; ramki (zwykła, falista, okrągła, podwójna); linie ozdobne. |
+| **Kształty** | Figury (wielokąty, prostokąt zaokrąglony, pigułka, klepsydra, łuk, etap procesu…), gwiazdy, serca, naklejka ząbkowana, płatek śniegu, chmura, tarcza, liść i proste ikony (dom, pinezka, zegar, ptaszek, koperta, telefon, lupa, prezent, samolot, aparat, kubek, drzewo, krzyż, uwaga, informacja, Wi-Fi…). |
+| **Strzałki i dymki** | Strzałki w każdą stronę, na skos, zakręcone, zawracające, w kółko, na cztery strony, obustronne; szewrony, wskaźnik, metki; dymki komiksowe, okrągłe, z lewej, podpis, myśli i krzyku. |
+| **Ozdobniki i ramki** | Wstęgi, proporczyki, bilety, zakładki, wstęga narożna, baner zawinięty, odznaka ze wstążkami; ramki (zwykła, falista, okrągła, owalna, zaokrąglona, podwójna, jak odbitka zdjęcia, narożniki). |
+| **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; linie ozdobne (fala, zygzak, z rombem, z sercem, trzy gwiazdki, zawijas…). Rodzaj i grubość zmienisz potem w części **Linia** (rozdział „7.2 Linia”). |
+| **Etykiety i plakietki** | Etykiety (zaokrąglona, ze ściętymi rogami, ozdobna), metka z dziurką, plakietka okrągła, pieczątka, znaczek pocztowy, tabliczka z zawieszką — w środek wstaw tekst. |
 | **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (rozdział „5.9 Kalendarz miesiąca”). |
+| **Planer** | Gotowe tabele do planerów i notesów: lista zadań, tracker nawyków, plan tygodnia, plan dnia (godziny), notatki w linie, siatka dni tygodnia, lista zakupów, cele, budżet, kontakty, plan lekcji; do tego pola wyboru (puste, okrągłe, zaznaczone), notatki w kratkę i w kropki (co 5 mm). |
 | **Wykresy** | Słupkowy, poziomy, liniowy, kołowy i pierścieniowy z tabeli danych (rozdział „5.10 Wykres”). |
 | **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (rozdział „5.11 Kolaż zdjęć”). |
 | **Teksty** | Gotowe napisy po łuku, w okręgu (pieczęć), falisty baner, flaga, wypukły tytuł (rozdział „6.14 Tekst po łuku, okręgu i ścieżce; wyginanie”). |
@@ -518,7 +521,9 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Marka** | Logo z zestawu marki, **Zastosuj markę do projektu…** i **Edytuj zestaw marki…** (rozdział „2.9 Zestaw marki”). |
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (rozdział „5.12 Kod QR i kod kreskowy”). |
 
-Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”).
+Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”). Szablon z kategorii **Planer** to zwykła tabela (rozdział „9 Tabela”): wpisujesz w komórki, dodajesz wiersze i kolumny, zmieniasz linie i kolory. Żeby planer powtarzał się na wielu stronach, wstaw go we wzorcu (rozdział „12 Wzorce”) albo na stronie serii (rozdział „17 Serie”).
+
+![Kategoria Planer w Bibliotece](https://makietka.app/img/instrukcja/k-biblioteka-planer.png)
 
 **Moje elementy.** Logo, stopkę firmy czy ulubioną ramkę zapiszesz raz i wstawisz w każdym projekcie:
 
@@ -864,7 +869,7 @@ Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części
 
 ### 7.2 Linia
 
-**Linia** wstawia odcinek. Część **Linia**: **Kolor** i **Grubość** w mm. Z `Shift` linia jest pozioma, pionowa albo pod kątem 45°. Linia rysowana odręcznie i kształt z pióra mają tę samą część, a zamknięty kształt z pióra — także **Wypełnienie**.
+**Linia** wstawia odcinek. Część **Linia**: **Kolor**, **Grubość** w mm i **Rodzaj** — ciągła, przerywana, kropkowana albo kreska – kropka (kreski rosną razem z grubością). Z `Shift` linia jest pozioma, pionowa albo pod kątem 45°. Linia rysowana odręcznie i kształt z pióra mają tę samą część, a zamknięty kształt z pióra — także **Wypełnienie**. Gotowe linie (cienka, gruba, przerywana, podwójna, pionowa, ozdobne) są w Bibliotece, w kategorii **Linie i separatory** (rozdział „5.8 Biblioteka”).
 
 ### 7.3 Rysowanie odręczne
 

@@ -984,7 +984,7 @@ if (require.main === module) (async () => {
   await d.waitForSelector('#dlg-biblioteka[open]');
   await d.click('#kategorie-biblioteki [data-kategoria="strzalki"]');
   await d.waitForTimeout(300);
-  await kadr(d, 'k-biblioteka.png', { obszar: ['#pasek-narzedzi', '#dlg-biblioteka'], zaznacz: '[data-akcja="biblioteka"]', margines: 10 }).catch((err) => console.error('pominięto k-biblioteka:', err.message));
+  // k-biblioteka.png robi scripts/zrzuty-biblioteki.cjs (na końcu, #143).
   await d.click('#biblioteka-zamknij');
   await d.evaluate(() => {
     const e = window.seriodruk.edytor;
@@ -1121,6 +1121,8 @@ if (require.main === module) (async () => {
 
   // Komentarze na stronach (#131D): narzędzie, licznik, pinezki, panel z wątkiem.
   await require('./zrzuty-komentarzy.cjs').zrobZrzutyKomentarzy(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty komentarzy:', err.message));
+  // Biblioteka (#143): okno z kategoriami i kategoria „Planer”.
+  await require('./zrzuty-biblioteki.cjs').zrobZrzutyBiblioteki(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty biblioteki:', err.message));
 
   await przegladarka.close();
 })();

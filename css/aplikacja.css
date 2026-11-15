@@ -2904,6 +2904,10 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .podglad-biblioteki path.kropki { fill: none; stroke-width: 1.6; stroke-dasharray: 0.1 3; }
 .podglad-biblioteki text { fill: var(--tusz); }
 .podglad-biblioteki rect.dz { fill: var(--wypelnienie); stroke: none; }
+.podglad-biblioteki path.cienka { fill: none; stroke-width: .7; }
+.podglad-biblioteki path.linia-biblioteki { fill: none; stroke: var(--tusz); }
+.podglad-biblioteki path.siatka { fill: none; stroke-width: 1.2; }
+.podglad-biblioteki path.kropki-siatki { fill: var(--tusz-2); stroke: var(--tusz-2); stroke-width: 3.5; }
 .podglad-biblioteki rect.nd { fill: color-mix(in srgb, #c62828 35%, var(--powierzchnia)); stroke: none; }
 .podglad-wykresu path, .podglad-wykresu rect { stroke: var(--tusz-2); stroke-width: 1.4; fill: color-mix(in srgb, var(--akcent) 45%, var(--powierzchnia)); }
 .podglad-wykresu path.linia { fill: none; stroke: var(--akcent); stroke-width: 2.4; }
