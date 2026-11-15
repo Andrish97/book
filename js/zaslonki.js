@@ -59,7 +59,8 @@ function podlaczCiagniecie(dlg, uchwyt) {
   const przesun = (e) => {
     if (!ruch) return;
     const dy = e.clientY - ruch.y;
-    if (!ruch.przesuniety && Math.abs(dy) < 5) return;
+    // Palec drży: na telefonie stuknięcie przesuwa się często o kilka pikseli – do 10 px to nadal stuknięcie (#163).
+    if (!ruch.przesuniety && Math.abs(dy) < 10) return;
     ruch.przesuniety = true;
     ruch.predkosc = (e.clientY - ruch.ostatnieY) / Math.max(1, e.timeStamp - ruch.czas);
     ruch.ostatnieY = e.clientY;
@@ -72,9 +73,12 @@ function podlaczCiagniecie(dlg, uchwyt) {
     const { przesuniety, zUchwytu, predkosc } = ruch;
     const dy = ruch.ostatnieY - ruch.y;
     ruch = null;
-    if (e.type === 'pointercancel') { wrocNaMiejsce(dlg); return; }
+    // Android potrafi przerwać dotyk (pointercancel) zaraz po stuknięciu – stuknięcie uchwytu i tak zamyka (#163).
+    if (e.type === 'pointercancel') { if (zUchwytu && !przesuniety) zamknijZasuwajac(dlg); else wrocNaMiejsce(dlg); return; }
     // Samo stuknięcie uchwytu zamyka; z nagłówka – nic (tam stuka się w tytuł albo obok przycisków).
     if (!przesuniety) { if (zUchwytu) zamknijZasuwajac(dlg); return; }
+    // Krótkie pociągnięcie samego uchwytu (mniej niż 24 px) to też stuknięcie, nie próba odciągnięcia.
+    if (zUchwytu && Math.abs(dy) < 24) { zamknijZasuwajac(dlg); return; }
     const prog = Math.min(160, dlg.offsetHeight * 0.25);
     if (dy > prog || predkosc > 0.6) zamknijZasuwajac(dlg);
     else wrocNaMiejsce(dlg);
@@ -151,7 +155,10 @@ function przygotuj(dlg) {
   // być uchwyt – Enter zamknąłby okno zamiast zatwierdzić.
   dlg.append(uchwyt);
   // Krzyżyk okna: na zasłonce ukryty (zastępuje go uchwyt), ale to on zamyka okno.
-  dlg.querySelector('button[data-ikona="zamknij"]')?.classList.add('x-okna');
+  // Tylko krzyżyk samego okna – nie „zamknij” wewnętrznego panelu (np. spisu w instrukcji): wtedy uchwyt
+  // zamykał spis zamiast okna, a na telefonie przycisk spisu był ukryty (#163).
+  const krzyzyki = [...dlg.querySelectorAll('button[data-ikona="zamknij"]')].filter((b) => !b.closest('nav, aside, [data-panel-wewnetrzny]') && !/-spis-zamknij$/.test(b.dataset.akcja || ''));
+  (krzyzyki.find((b) => b.closest('.naglowek-dialogu')) || krzyzyki[0])?.classList.add('x-okna');
   podlaczCiagniecie(dlg, uchwyt);
   podlaczTlo(dlg);
   new MutationObserver(() => { if (dlg.open) poOtwarciu(dlg); else poZamknieciu(dlg); })

@@ -134,3 +134,26 @@ test('tablet (dotyk): zasłonka szeroka, ale nie na całą szerokość; komputer
   await komputer.strona.waitForFunction(() => !document.querySelector('#dlg-pdf').open);
   assert.deepEqual(komputer.bledy, []);
 });
+
+// #163: stuknięcie paska z drżeniem palca (kilka px) zamyka okno; w instrukcji pasek zamyka okno, nie spis
+// (przycisk „Zamknij spis” nie jest krzyżykiem okna i zostaje widoczny).
+test('telefon: stuknięcie paska z drżeniem palca zamyka okno instrukcji (nie tylko spis)', async (t) => {
+  const { strona, kontekst, bledy } = await otworz(t, { telefon: true });
+  await nowyProjekt(strona, 'Pasek');
+  const cdp = await kontekst.newCDPSession(strona);
+  const dotyk = (type, pkt) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pkt.map((q, i) => ({ x: q[0], y: q[1], id: i })) });
+  for (const drganie of [0, 7, 15]) {
+    await strona.evaluate(() => document.querySelector('[data-akcja="instrukcja"]').click());
+    await strona.waitForSelector('#dlg-instrukcja[open]');
+    await strona.waitForTimeout(600);
+    assert.equal(await strona.evaluate(() => document.querySelector('#dlg-instrukcja .instrukcja-spis-zamknij').classList.contains('x-okna')), false);
+    const r = await strona.locator('#dlg-instrukcja > .uchwyt-zaslonki').boundingBox();
+    const x = r.x + r.width / 2;
+    const y = r.y + r.height / 2;
+    await dotyk('touchStart', [[x, y]]);
+    if (drganie) await dotyk('touchMove', [[x + 2, y + drganie]]);
+    await dotyk('touchEnd', []);
+    await strona.waitForFunction(() => !document.querySelector('#dlg-instrukcja').open, null, { timeout: 3000 });
+  }
+  assert.deepEqual(bledy, []);
+});
