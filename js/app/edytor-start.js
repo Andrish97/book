@@ -20,6 +20,7 @@
 
 import './edytor-instancja.js';
 import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
+import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { toZaznaczenie } from '../fabric-ustawienia.js';
 import { opisObiektu } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
@@ -352,6 +353,8 @@ export const akcje = {
   'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
   biblioteka: () => otworzBiblioteke(),
   znajdz: () => { zamknijMenu(); otworzZnajdz(); },
+  komentarze: () => { zamknijMenu(); otworzKomentarze(); },
+  komentarz: () => narzedzieKomentarz(),
   'zapisz-w-bibliotece': () => zapiszWBibliotece(),
   malarz: () => malarzPrzycisk(),
   cofnij: () => cofnijKrok(-1),
@@ -690,6 +693,8 @@ export function wstawKod(rodzaj = 'qr') {
 }
 const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan.projekt);
 // Praca (#131C): znajdź i zamień, malarz formatów, Moje elementy, pisownia.
+dodajPolecenie({ nazwa: 'Komentarze', opis: 'Lista komentarzy projektu (przycisk z licznikiem na górnym pasku)', wykonaj: () => otworzKomentarze(), dostepne: () => Boolean(stan.projekt) });
+dodajPolecenie({ nazwa: 'Dodaj komentarz', opis: 'Narzędzie „Komentarz”: kliknij miejsce albo element na stronie', wykonaj: () => narzedzieKomentarz(), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Znajdź i zamień', opis: 'Teksty wszystkich stron i wzorców (Ctrl+F, Ctrl+H)', wykonaj: () => otworzZnajdz(), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: 'Malarz formatów: wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C; przycisk w nagłówku panelu)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
 dodajPolecenie({ nazwa: 'Zapisz w bibliotece', opis: 'Zaznaczenie trafi do Biblioteki → Moje elementy, w każdym projekcie', wykonaj: () => zapiszWBibliotece(), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });

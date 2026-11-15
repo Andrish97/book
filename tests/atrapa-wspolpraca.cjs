@@ -57,6 +57,50 @@ function atrapaWspolpracy(stan) {
     stan.oglosWiersz?.('wspolpracownicy', typ, { projekt_id: w.projekt_id, uzytkownik: w.uzytkownik, rola: w.rola }, [w.uzytkownik, p?.owner_id].filter(Boolean));
   };
 
+  stan.komentarze = stan.komentarze || [];
+  let nrKomentarza = 0;
+  const osobyZDostepem = (projektId) => {
+    const p = stan.projekty.find((x) => x.id === projektId);
+    return [p?.owner_id, ...stan.wspolpracownicy.filter((w) => w.projekt_id === projektId).map((w) => w.uzytkownik)].filter(Boolean);
+  };
+  const wzmianki = (projektId, tresc) => {
+    const nazwy = [...String(tresc).matchAll(/(^|\s)@([A-Za-z0-9ĄĆĘŁŃÓŚŹŻąćęłńóśźż_.-]{3,30})/g)].map((m) => m[2].replace(/[.]+$/, '').toLowerCase());
+    return osobyZDostepem(projektId).filter((id) => nazwy.includes(String(nazwaKonta(konto(id)) || '').toLowerCase()));
+  };
+  const oglosKomentarz = (x, typ) => stan.oglosWiersz?.('komentarze', typ, { id: x.id, projekt_id: x.projekt_id }, osobyZDostepem(x.projekt_id));
+  const komentarzJson = (x, k) => ({
+    id: x.id, projekt_id: x.projekt_id, watek: x.watek, autor: x.autor,
+    autor_nazwa: x.zrodlo === 'ai' ? (x.podpis || 'AI') : nazwaKonta(konto(x.autor)), zrodlo: x.zrodlo,
+    strona_id: x.strona_id, element_id: x.element_id, x: x.x, y: x.y, tresc: x.tresc, wzmianki: x.wzmianki,
+    rozwiazany: x.rozwiazany, rozwiazal_nazwa: x.rozwiazal ? nazwaKonta(konto(x.rozwiazal)) : null, rozwiazano: x.rozwiazano,
+    utworzono: x.utworzono, zmieniono: x.zmieniono, moj: Boolean(k && x.autor === k.id && x.zrodlo === 'konto'),
+  });
+  // Wspólne dla aplikacji i AI (ai_skomentuj): k – konto autora (przy AI właściciel klucza).
+  const dodajKomentarz = (k, { p_projekt, p_strona = null, p_element = null, p_x = null, p_y = null, p_tresc, p_watek = null }, zrodlo, podpis) => {
+    if (!rolaW(stan, k, p_projekt)) throw blad('Nie masz dostępu do tego projektu', '42501', 403);
+    const tresc = String(p_tresc || '').trim();
+    if (!tresc) throw blad('Komentarz nie może być pusty');
+    if (tresc.length > 4000) throw blad('Komentarz jest za długi (najwyżej 4000 znaków)');
+    let watek = null;
+    let strona = p_strona;
+    if (p_watek) {
+      const w = stan.komentarze.find((y) => y.id === p_watek && y.projekt_id === p_projekt);
+      if (!w) throw blad('Nie ma takiego wątku', 'P0002', 404);
+      watek = w.watek || w.id;
+      strona = stan.komentarze.find((y) => y.id === watek).strona_id;
+    } else if (!strona) throw blad('Podaj stronę komentarza');
+    const x = {
+      id: crypto.randomUUID(), n: (nrKomentarza += 1), projekt_id: p_projekt, watek, autor: k.id, zrodlo, podpis,
+      strona_id: strona, element_id: watek ? null : p_element, x: watek ? null : p_x, y: watek ? null : p_y,
+      tresc, wzmianki: wzmianki(p_projekt, tresc), rozwiazany: false, rozwiazal: null, rozwiazano: null,
+      utworzono: new Date(Date.now() + nrKomentarza).toISOString(), zmieniono: null,
+    };
+    stan.komentarze.push(x);
+    oglosKomentarz(x, 'INSERT');
+    return x;
+  };
+  stan.komentarzeAI = { dodaj: dodajKomentarz, json: komentarzJson, rozwiaz: (k, a) => funkcje.rozwiaz_komentarz(k, a) };
+
   const funkcje = {
     zapros_do_projektu(k, { p_projekt, p_email, p_rola }) {
       if (rolaW(stan, k, p_projekt) !== 'wlasciciel') throw blad('Zapraszać może tylko właściciel projektu (a projekt musi być zapisany na koncie)', '42501', 403);
@@ -198,6 +242,42 @@ function atrapaWspolpracy(stan) {
       stan.konta.forEach((x) => nazwaUzytkownika(stan, x));
       return [...stan.profile].filter(([id, v]) => id !== k.id && v.toLowerCase().startsWith(t)).map(([, v]) => v)
         .sort((a, b) => a.length - b.length || a.localeCompare(b)).slice(0, 5);
+    },
+    // Komentarze na stronach (migracja 20261116200000_komentarze.sql, #131D).
+    komentarze_projektu(k, { p_projekt }) {
+      if (!rolaW(stan, k, p_projekt)) throw blad('Nie masz dostępu do tego projektu', '42501', 403);
+      return stan.komentarze.filter((x) => x.projekt_id === p_projekt).sort((a, b) => a.n - b.n).map((x) => komentarzJson(x, k));
+    },
+    dodaj_komentarz(k, a) {
+      return komentarzJson(dodajKomentarz(k, a, 'konto', null), k);
+    },
+    zmien_komentarz(k, { p_id, p_tresc }) {
+      const x = stan.komentarze.find((y) => y.id === p_id);
+      if (!x || x.autor !== k.id || x.zrodlo !== 'konto') throw blad('Zmienić można tylko własny komentarz', '42501', 403);
+      x.tresc = String(p_tresc || '').trim();
+      x.wzmianki = wzmianki(x.projekt_id, x.tresc);
+      x.zmieniono = new Date().toISOString();
+      oglosKomentarz(x, 'UPDATE');
+      return komentarzJson(x, k);
+    },
+    usun_komentarz(k, { p_id }) {
+      const x = stan.komentarze.find((y) => y.id === p_id);
+      if (!x) return null;
+      const rola = rolaW(stan, k, x.projekt_id);
+      if (!(rola === 'wlasciciel' || (x.autor === k.id && x.zrodlo === 'konto'))) throw blad('Usunąć może autor albo właściciel projektu', '42501', 403);
+      stan.komentarze = stan.komentarze.filter((y) => y !== x && y.watek !== x.id);
+      oglosKomentarz(x, 'DELETE');
+      return null;
+    },
+    rozwiaz_komentarz(k, { p_id, p_rozwiazany }) {
+      const x = stan.komentarze.find((y) => y.id === p_id);
+      if (!x || !rolaW(stan, k, x.projekt_id)) throw blad('Nie ma takiego komentarza', 'P0002', 404);
+      if (x.watek) throw blad('Rozwiązuje się cały wątek, nie odpowiedź');
+      x.rozwiazany = p_rozwiazany !== false;
+      x.rozwiazal = x.rozwiazany ? k.id : null;
+      x.rozwiazano = x.rozwiazany ? new Date().toISOString() : null;
+      oglosKomentarz(x, 'UPDATE');
+      return komentarzJson(x, k);
     },
     udostepnione_mi(k) {
       return stan.wspolpracownicy.filter((w) => w.uzytkownik === k.id).map((w) => {

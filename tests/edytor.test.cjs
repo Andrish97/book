@@ -121,7 +121,7 @@ test('telefon: praca w pionie – panele z dołu, schowany wielokąt; trzymany p
   await strona.setViewportSize({ width: 412, height: 915 });
   // Trudne narzędzia (wielokąt) są na telefonie schowane; podstawowe zostają, a pióro i tabela działają dotykiem.
   await strona.tap('.zakladki-mobilne button.aktywny').catch(() => {});
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'rysuj', 'pioro', 'dodaj-tabele', 'biblioteka']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'rysuj', 'pioro', 'dodaj-tabele', 'biblioteka', 'komentarz']);
 
   // Telefon trzymany poziomo (i każde zbyt niskie okno): plansza; przycisk wraca do projektów, gdzie poziom jest w porządku.
   const plansza = () => strona.evaluate(() => getComputedStyle(document.querySelector('#blokada-ekranu')).display);

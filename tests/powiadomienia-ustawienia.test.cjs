@@ -64,7 +64,7 @@ test('powiadomienia: zgoda po kliknięciu, urządzenie z rodzajami, wysyłka po 
   await strona.click('#ust-powiadomienia .przelacznik:has(#powiadomienia-wlacz)');
   await strona.waitForFunction(() => document.querySelector('#powiadomienia-stan').textContent === 'Włączone na tym urządzeniu');
   assert.equal(await strona.evaluate(() => window.__zgoda), 1);
-  assert.deepEqual(push.urzadzenie, { endpoint: 'https://fcm.googleapis.com/fcm/send/test-urzadzenie', rodzaje: ['zaproszenia', 'odpowiedzi', 'dostep'] });
+  assert.deepEqual(push.urzadzenie, { endpoint: 'https://fcm.googleapis.com/fcm/send/test-urzadzenie', rodzaje: ['zaproszenia', 'odpowiedzi', 'dostep', 'komentarze'] });
   assert.deepEqual(push.funkcja[0], { klucz: true }, 'klucz publiczny z Funkcji Edge');
   const klucz = await strona.evaluate(() => window.__klucz);
   assert.equal(Buffer.from(klucz).toString('base64url'), KLUCZ);
@@ -74,8 +74,8 @@ test('powiadomienia: zgoda po kliknięciu, urządzenie z rodzajami, wysyłka po 
 
   // Rodzaj „dostęp” wyłączony – zapis bez niego.
   await strona.click('#powiadomienia-rodzaje label:has(input[value="dostep"])');
-  for (let i = 0; i < 50 && push.urzadzenie.rodzaje.length !== 2; i += 1) await strona.waitForTimeout(50);
-  assert.deepEqual(push.urzadzenie.rodzaje, ['zaproszenia', 'odpowiedzi']);
+  for (let i = 0; i < 50 && push.urzadzenie.rodzaje.length !== 3; i += 1) await strona.waitForTimeout(50);
+  assert.deepEqual(push.urzadzenie.rodzaje, ['zaproszenia', 'odpowiedzi', 'komentarze']);
 
   // Zmiana we współpracy → od razu przebieg kolejki (bez czekania na Cron).
   const przed = push.funkcja.length;

@@ -45,6 +45,7 @@ export function pokazEkran(nazwa) {
 //   #/p/<id projektu>/w/<id wzorca>  edycja wzorca
 //   #/p/<id projektu>/podglad        podgląd bez edycji
 //   #/p/<id projektu>/obrazy         projekt z otwartym oknem „Obrazy projektu” (link od AI: „wrzuć zdjęcia tutaj”)
+//   #/p/<id projektu>/k/<id wątku>   projekt z otwartym panelem komentarzy na tym wątku (powiadomienie, #131D)
 //   #/u/<konto>/<projekt>/<kod>      podgląd udostępniony linkiem (bez logowania)
 
 export const trasa = {
@@ -52,7 +53,7 @@ export const trasa = {
     const [rodzaj, id, typ, cel] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
     if (rodzaj === 'p' && id) {
       return {
-        ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null, podglad: typ === 'podglad', obrazy: typ === 'obrazy',
+        ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null, podglad: typ === 'podglad', obrazy: typ === 'obrazy', komentarz: typ === 'k' ? cel : null,
       };
     }
     if (rodzaj === 'konto') return { ekran: 'konto', sekcja: id || null };

@@ -746,7 +746,7 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Uwagi osób do stron czytasz narzędziem komentarze; odpowiadasz przez odpowiedz (rozwiaz=true, gdy poprawka jest już w projekcie), nowe uwagi dodaje skomentuj. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
 export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, projekt: wybranyProjekt = null }) {
   const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu };
@@ -1567,6 +1567,68 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => { const u = kontrola((await pobierz()).projekt); return u.length ? `Uwagi (${u.length}):\n${u.map((x) => `- ${x}`).join('\n')}` : 'Brak uwag.'; },
+    },
+    {
+      name: 'komentarze',
+      title: 'Komentarze projektu',
+      description: 'Komentarze na stronach (osobno od projektu, nie zmieniają jego wersji): wątki z numerem pinezki, stroną, elementem albo miejscem (mm od lewego górnego rogu strony), autorem, treścią, stanem (otwarty/rozwiązany) i odpowiedziami. Domyślnie tylko nierozwiązane.',
+      inputSchema: S('', { wszystkie: { type: 'boolean', description: 'true – także rozwiązane wątki' } }),
+      readOnly: true,
+      dzialaj: async ({ wszystkie = false } = {}) => {
+        if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+        const w = await rpc('ai_komentarze', { p_klucz: KLUCZ });
+        if (w?.blad) throw new BladBazy(w.blad);
+        const lista = Array.isArray(w.komentarze) ? w.komentarze : [];
+        const watki = lista.filter((k) => !k.watek);
+        const nr = new Map(watki.map((k, i) => [k.id, i + 1]));
+        const widoczne = watki.filter((k) => wszystkie || !k.rozwiazany);
+        if (!widoczne.length) return wszystkie ? 'Projekt nie ma komentarzy.' : 'Brak nierozwiązanych komentarzy (wszystkie=true pokaże rozwiązane).';
+        return widoczne.map((k) => {
+          const gdzie = `strona ${k.strona_id}${k.element_id ? `, element ${k.element_id}` : ''}${k.x !== null && k.x !== undefined ? `, miejsce ${k.x}×${k.y} mm` : ''}`;
+          const odp = lista.filter((o) => o.watek === k.id).map((o) => `   ↳ ${o.autor_nazwa}${o.zrodlo === 'ai' ? ' (AI)' : ''}: ${o.tresc}`);
+          return [`#${nr.get(k.id)} [${k.rozwiazany ? 'rozwiązany' : 'otwarty'}] id ${k.id} · ${gdzie} · ${k.autor_nazwa}${k.zrodlo === 'ai' ? ' (AI)' : ''}, ${k.utworzono}`, `   ${k.tresc}`, ...odp].join('\n');
+        }).join('\n');
+      },
+    },
+    {
+      name: 'skomentuj',
+      title: 'Dodaj komentarz na stronie',
+      description: 'Nowy wątek komentarza przypięty do strony: do elementu (element = id) albo do miejsca (x, y w mm od lewego górnego rogu strony). Osoby w projekcie zobaczą pinezkę z numerem; @nazwa wspomina osobę z projektu (dostanie powiadomienie). Komentarz nie zmienia projektu – działa też z kluczem tylko do czytania. Podpisany opisem klucza.',
+      inputSchema: S('', { strona: tekst('id strony (przeglad_projektu)'), element: tekst('id elementu na tej stronie (opcjonalnie)'), x: { type: 'number', description: 'mm od lewej krawędzi strony' }, y: { type: 'number', description: 'mm od górnej krawędzi strony' }, tresc: tekst('Treść komentarza') }, ['strona', 'tresc']),
+      dzialaj: async ({ strona, element = null, x = null, y = null, tresc }) => {
+        if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+        const w = await rpc('ai_skomentuj', { p_klucz: KLUCZ, p_strona: strona, p_element: element, p_x: x, p_y: y, p_tresc: tresc, p_watek: null });
+        if (w?.blad) throw new BladBazy(w.blad);
+        return `Dodano komentarz (id ${w.id}) na stronie ${w.strona_id}${w.element_id ? ` przy elemencie ${w.element_id}` : ''}.`;
+      },
+    },
+    {
+      name: 'odpowiedz',
+      title: 'Odpowiedz na komentarz',
+      description: 'Odpowiedź w wątku komentarza (komentarz = id wątku albo odpowiedzi z narzędzia komentarze). Opcjonalnie rozwiaz=true zamyka wątek po odpowiedzi (np. gdy poprawka już jest w projekcie).',
+      inputSchema: S('', { komentarz: tekst('id komentarza (wątku)'), tresc: tekst('Treść odpowiedzi'), rozwiaz: { type: 'boolean', description: 'true – oznacz wątek jako rozwiązany' } }, ['komentarz', 'tresc']),
+      dzialaj: async ({ komentarz, tresc, rozwiaz = false }) => {
+        if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+        const w = await rpc('ai_skomentuj', { p_klucz: KLUCZ, p_strona: null, p_element: null, p_x: null, p_y: null, p_tresc: tresc, p_watek: komentarz });
+        if (w?.blad) throw new BladBazy(w.blad);
+        if (rozwiaz) {
+          const r = await rpc('ai_rozwiaz_komentarz', { p_klucz: KLUCZ, p_id: w.watek || komentarz, p_rozwiazany: true });
+          if (r?.blad) throw new BladBazy(r.blad);
+        }
+        return `Dodano odpowiedź (id ${w.id})${rozwiaz ? ' i oznaczono wątek jako rozwiązany' : ''}.`;
+      },
+    },
+    {
+      name: 'rozwiaz_komentarz',
+      title: 'Rozwiąż albo otwórz wątek komentarza',
+      description: 'Oznacza wątek komentarza jako rozwiązany (rozwiazany=true, domyślnie) albo otwiera go ponownie (false).',
+      inputSchema: S('', { komentarz: tekst('id wątku'), rozwiazany: { type: 'boolean' } }, ['komentarz']),
+      dzialaj: async ({ komentarz, rozwiazany = true }) => {
+        if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+        const w = await rpc('ai_rozwiaz_komentarz', { p_klucz: KLUCZ, p_id: komentarz, p_rozwiazany: rozwiazany });
+        if (w?.blad) throw new BladBazy(w.blad);
+        return rozwiazany ? 'Wątek oznaczony jako rozwiązany.' : 'Wątek otwarty ponownie.';
+      },
     },
     {
       name: 'opis_formatu',

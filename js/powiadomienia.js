@@ -1,13 +1,13 @@
 // Powiadomienia push na tym urządzeniu (decyzja #113) – wzorem Familiady (web/shared/js/core/push.js):
 // zgoda przeglądarki (dopiero po kliknięciu), subskrypcja u usługi push kluczem publicznym VAPID z Funkcji Edge
 // powiadomienia i zapis urządzenia w bazie (push_zapisz_urzadzenie). Wysyła Funkcja Edge, pokazuje sw.js.
-// Ustawienia konta → Powiadomienia: przełącznik urządzenia i rodzaje (zaproszenia, odpowiedzi, dostęp).
+// Ustawienia konta → Powiadomienia: przełącznik urządzenia i rodzaje (zaproszenia, odpowiedzi, dostęp, komentarze).
 
 import * as chmura from './chmura.js';
 import { iOS, zainstalowana } from './instalacja.js';
 import { $, $$ } from './ui.js';
 
-export const RODZAJE = ['zaproszenia', 'odpowiedzi', 'dostep'];
+export const RODZAJE = ['zaproszenia', 'odpowiedzi', 'dostep', 'komentarze'];
 const KLUCZ_WLASCICIEL = 'makietka:powiadomienia-konto'; // konto, które włączyło powiadomienia na tym urządzeniu
 const KLUCZ_SYNCHRONIZACJA = 'makietka:powiadomienia-synchronizacja';
 const SYNCHRONIZACJA_CO = 24 * 3600 * 1000;

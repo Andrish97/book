@@ -19,6 +19,12 @@ const przejdzDoStrony = async (i) => (await czekajNaEdytor()).przejdzDoStrony(i)
 const edytujWzorzec = async (id) => (await czekajNaEdytor()).edytujWzorzec(id);
 // #/p/<id>/obrazy – projekt z oknem „Obrazy projektu” (link, który AI daje, żeby wgrać zdjęcia albo ZIP).
 // Adres wraca potem do zwykłego adresu projektu, żeby odświeżenie strony nie otwierało okna drugi raz.
+// #/p/<id>/k/<wątek> – panel komentarzy na tym wątku (link z powiadomienia, #131D).
+const otworzKomentarzZTrasy = async (watek) => {
+  await czekajNaEdytor();
+  trasa.ustaw(`p/${stan.projekt.id}`, { zastap: true });
+  (await import('./komentarze.js')).otworzKomentarze({ watek });
+};
 const otworzOknoObrazow = async () => {
   await czekajNaEdytor();
   trasa.ustaw(`p/${stan.projekt.id}`, { zastap: true });
@@ -68,6 +74,7 @@ export function przejdzDoTrasy() {
     // Rola „może oglądać” (współpraca): projekt otwiera się tylko w podglądzie.
     const tylkoPodglad = () => stan.projekt?.wspolpraca_chmury?.rola === 'odczyt';
     if (stan.projekt?.id === t.id) {
+      if (t.komentarz) { await otworzKomentarzZTrasy(t.komentarz); return; }
       if (t.podglad || tylkoPodglad()) { await pokazPodglad(); return; }
       if (document.body.dataset.ekran === 'podglad') await pokazEdytor();
       if (t.obrazy) { await otworzOknoObrazow(); return; }
@@ -98,6 +105,7 @@ export function przejdzDoTrasy() {
     }
     if (t.podglad || tylkoPodglad()) await pokazPodglad();
     if (t.obrazy) await otworzOknoObrazow();
+    if (t.komentarz) await otworzKomentarzZTrasy(t.komentarz);
   }).catch((e) => console.error(e));
   return obslugaTrasy;
 }

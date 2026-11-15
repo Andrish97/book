@@ -157,9 +157,9 @@ zamknięta. Włączysz to w [Ustawienia konta] → **Powiadomienia**:
 | Ustawienie | Znaczenie |
 |---|---|
 | **Na tym urządzeniu** | Przełącznik — powiadomienia na tym urządzeniu. Przeglądarka zapyta o zgodę. |
-| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**. |
+| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**, **ktoś skomentuje mój projekt, odpowie w moim wątku albo wspomni mnie w komentarzu** (→ 25.7). |
 
-Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomienia włącza się osobno
+Kliknięcie powiadomienia otwiera właściwy projekt, zaproszenie albo wątek komentarza. Powiadomienia włącza się osobno
 na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (→ 28.4) — w ustawieniach
 jest wtedy przycisk [Zainstaluj aplikację].
 

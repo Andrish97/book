@@ -308,3 +308,40 @@ test('MCP: pola liczone przez aplikację są chronione – AI ich nie nadpisuje 
   assert.equal(qr.kod.tresc, 'https://example.org');
   assert.equal(qr.kod.narysowano, 'https://makietka.app', 'narysowano zostaje z projektu – aplikacja widzi nową treść i przerysuje kod');
 });
+
+test('MCP: komentarze – lista, nowy wątek, odpowiedź z rozwiązaniem, klucz tylko do czytania też komentuje (#131D)', async (t) => {
+  const { atrapaWspolpracy } = require('./atrapa-wspolpraca.cjs');
+  const s = await srodowisko(t);
+  s.stan.konta = [{ id: WLASCICIEL.id, email: 'ola@example.com', nazwa: 'Ola' }];
+  s.stan.wspolpraca = atrapaWspolpracy(s.stan);
+  // Komentarz osoby z aplikacji (konto właściciela).
+  const zAplikacji = s.stan.wspolpraca('dodaj_komentarz', { p_projekt: 'p-1', p_strona: 's1', p_x: 20, p_y: 30, p_tresc: 'Tytuł większy?' }, s.stan.konta[0]);
+  const { narzedzie } = s.uruchom(s.edycja);
+
+  const lista = await narzedzie('komentarze');
+  assert.equal(lista.blad, false, lista.tekst);
+  assert.match(lista.tekst, /#1 \[otwarty\] id [\w-]+ · strona s1, miejsce 20×30 mm · Ola/);
+  assert.match(lista.tekst, /Tytuł większy\?/);
+
+  const odp = await narzedzie('odpowiedz', { komentarz: zAplikacji.id, tresc: 'Powiększyłem do 32 pt.', rozwiaz: true });
+  assert.equal(odp.blad, false, odp.tekst);
+  assert.match((await narzedzie('komentarze')).tekst, /Brak nierozwiązanych/);
+  const wszystkie = await narzedzie('komentarze', { wszystkie: true });
+  assert.match(wszystkie.tekst, /\[rozwiązany\]/);
+  assert.match(wszystkie.tekst, /↳ Claude \(AI\): Powiększyłem do 32 pt\./, 'odpowiedź AI podpisana opisem klucza');
+
+  // Klucz tylko do czytania: komentować wolno (komentarz nie zmienia projektu), zmieniać projektu – nie.
+  const czyta = s.uruchom(s.odczyt);
+  const nowy = await czyta.narzedzie('skomentuj', { strona: 's2', element: 'mies', tresc: 'Literówka w nazwie miesiąca @Ola' });
+  assert.equal(nowy.blad, false, nowy.tekst);
+  assert.match(nowy.tekst, /przy elemencie mies/);
+  const k = s.stan.komentarze.find((x) => x.element_id === 'mies');
+  assert.equal(k.zrodlo, 'ai');
+  assert.deepEqual(k.wzmianki, [WLASCICIEL.id], '@nazwa wspomina osobę z projektu');
+  assert.equal(s.projekt().wersja, 1, 'komentarze nie zmieniają wersji projektu');
+  assert.equal((await czyta.narzedzie('skomentuj', { strona: 's1', tresc: ' ' })).blad, true);
+  assert.equal((await czyta.narzedzie('rozwiaz_komentarz', { komentarz: k.id })).blad, false);
+  assert.equal(k.rozwiazany, true);
+  assert.equal((await czyta.narzedzie('rozwiaz_komentarz', { komentarz: k.id, rozwiazany: false })).blad, false);
+  assert.equal(k.rozwiazany, false);
+});
