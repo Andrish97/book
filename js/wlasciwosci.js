@@ -15,6 +15,7 @@ import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
 import { KOLAZE } from './ksztalty-biblioteka.js';
 import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
 import { trescQR } from './kody.js';
+import { naglowkiProjektu, celeOdsylaczy, LICZENIE_PRZYPISOW, RODZAJE as RODZAJE_KSIAZKI } from './ksiazka.js';
 import { ikona } from './ikony.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU, rowneWStylu, stylZnakowyZFragmentu, zastosujStylZnakowy, stylZnakowyNaPozycji } from './style-tekstu.js';
@@ -832,6 +833,7 @@ export class PanelWlasciwosci {
     const czytaj = (k) => this._czytajTekst(obj, k);
     const ustaw = (w) => this._ustawTekst(obj, w);
 
+    if (obj.ksiazka && !komorka) this.zbudujElementKsiazki(obj);
     this.zbudujStyl(obj);
 
     const s = this.sekcja('Tekst');
@@ -935,6 +937,7 @@ export class PanelWlasciwosci {
     if (komorka) return;
 
     this.zbudujSklad(obj);
+    if (!obj.ksiazka) this.zbudujKsiazke(obj);
 
     // Przelewanie: połączone ramki i kolumny.
     const w = this.sekcja('Przelewanie tekstu');
@@ -1179,6 +1182,102 @@ export class PanelWlasciwosci {
     }]]));
     s.append(this.wskazowka('Klawisz Tab w pisanym tekście wstawia tabulator. Bez ustawionych pozycji tabulator skacze co 12,5 mm.'));
     s.append(this.przelacznik('Nie opływaj innych elementów', () => Boolean(obj.bez_oblewania), (v) => ustaw('bez_oblewania', v || undefined)));
+  }
+
+  // Książka (#131B): przypisy dolne, odsyłacze i hasła skorowidza tego tekstu.
+  zbudujKsiazke(obj) {
+    const projekt = this.opcje.projekt?.();
+    if (!projekt) return;
+    const przypisy = Object.entries(obj.przypisy || {});
+    const hasla = obj.hasla || [];
+    const s = this.sekcja('Przypisy, odsyłacze, skorowidz', { zwinieta: !przypisy.length && !hasla.length && !/\{s:/.test(obj.text || '') });
+    const przebuduj = () => setTimeout(() => this.zbuduj());
+    const poZmianie = () => this.opcje.poZmianieKsiazki?.();
+    // Przypisy dolne.
+    s.append(this.akcje([['plus', 'Wstaw przypis', () => { this.edytor.wstawPrzypis(''); poZmianie(); przebuduj(); }]]));
+    przypisy.forEach(([id, tresc], i) => {
+      const pole = this.obszarTekstu(`Przypis ${i + 1}`, () => obj.przypisy?.[id] ?? tresc, (v) => this.edytor.zmienPrzypis(obj, id, v));
+      pole.querySelector('textarea')?.addEventListener('change', poZmianie);
+      s.append(pole, this.akcje([['kosz', `Usuń przypis ${i + 1}`, () => { this.edytor.zmienPrzypis(obj, id, null); poZmianie(); przebuduj(); }]]));
+    });
+    if (przypisy.length) {
+      const liczenie = this.wybor('Numeracja przypisów', Object.entries(LICZENIE_PRZYPISOW), () => projekt.ksiazka?.przypisy || 'sekcja', (v) => {
+        projekt.ksiazka = { ...(projekt.ksiazka || {}), przypisy: v };
+        poZmianie();
+      });
+      liczenie.classList.add('szeroki');
+      s.append(liczenie);
+    }
+    s.append(this.wskazowka('Przypis: numer w tekście w miejscu kursora, treść na dole tej samej strony (widać ją w podglądzie i na stronie, pod treścią). Numery liczą się same.'));
+    // Odsyłacz do nagłówka.
+    const cele = celeOdsylaczy(projekt);
+    if (cele.length) {
+      const odsylacz = this.wybor('Wstaw odsyłacz do', [['', 'wybierz nagłówek…'], ...cele.map((c) => [c.id, `${'· '.repeat(c.poziom - 1)}${c.tekst.slice(0, 60)}${c.nr !== null ? ` (s. ${c.nr})` : ''}`])], () => '', (v) => {
+        if (!v) return;
+        this.edytor.wstawOdsylacz(v);
+        poZmianie();
+      });
+      odsylacz.classList.add('szeroki');
+      s.append(odsylacz, this.wskazowka('Odsyłacz wstawia „s. 12” – numer strony nagłówka, który zmienia się sam, gdy strony się przesuną.'));
+    } else s.append(this.wskazowka('Odsyłacze prowadzą do nagłówków – tekstów w stylu nagłówka (np. „Tytuł”). Nadaj styl tytułom rozdziałów, żeby się tu pojawiły.'));
+    // Skorowidz.
+    s.append(this.akcje([['plus', 'Dodaj do skorowidza', async () => {
+      let slowo = this.edytor.dodajDoSkorowidza();
+      if (!slowo) {
+        const wpis = await zapytajONazwe('Dodaj do skorowidza', 'Hasło (słowo z tego tekstu)', '');
+        slowo = wpis ? this.edytor.dodajDoSkorowidza(wpis) : null;
+      }
+      if (slowo) { poZmianie(); przebuduj(); }
+    }]]));
+    if (hasla.length) {
+      const lista = document.createElement('div');
+      lista.className = 'hasla-skorowidza';
+      for (const h of hasla) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip-hasla';
+        b.title = `Usuń „${h}” ze skorowidza`;
+        b.innerHTML = `<span></span>${ikona('zamknij', { rozmiar: 12 })}`;
+        b.querySelector('span').textContent = h;
+        b.addEventListener('click', () => { this.edytor.usunZeSkorowidza(obj, h); poZmianie(); przebuduj(); });
+        lista.append(b);
+      }
+      s.append(lista);
+    }
+    s.append(this.wskazowka('Zaznacz słowo w pisanym tekście i wybierz „Dodaj do skorowidza”. Skorowidz (z Biblioteki) pokaże wszystkie strony, na których to słowo występuje.'));
+  }
+
+  // Spis treści albo skorowidz – tekst składany sam (#131B).
+  zbudujElementKsiazki(obj) {
+    const projekt = this.opcje.projekt?.();
+    const poZmianie = () => this.opcje.poZmianieKsiazki?.();
+    const przebuduj = () => setTimeout(() => this.zbuduj());
+    const k = obj.ksiazka;
+    const s = this.sekcja(RODZAJE_KSIAZKI[k.rodzaj] || 'Spis treści');
+    if (k.rodzaj === 'spis') {
+      const poziomy = this.wybor('Poziomy', [['1', 'tylko rozdziały'], ['2', 'rozdziały i podrozdziały'], ['3', 'trzy poziomy']], () => String(k.poziomy || 2), (v) => { obj.ksiazka = { ...obj.ksiazka, poziomy: Number(v) }; poZmianie(); });
+      poziomy.classList.add('szeroki');
+      s.append(poziomy);
+    }
+    s.append(this.przelacznik('Kropki do numeru strony', () => k.kropki !== false, (v) => { obj.ksiazka = { ...obj.ksiazka, kropki: v }; poZmianie(); }));
+    if (k.rodzaj === 'spis' && projekt) {
+      // Które style akapitu są nagłówkami – wspólne dla spisu treści, żywej paginy i odsyłaczy.
+      const nagl = naglowkiProjektu(projekt);
+      const poziomStylu = new Map(nagl.map((n) => [n.styl, n.poziom]));
+      for (const st of projekt.style || []) {
+        s.append(this.wybor(`Styl „${st.nazwa}”`, [['', 'nie jest nagłówkiem'], ['1', 'nagłówek 1 (rozdział)'], ['2', 'nagłówek 2'], ['3', 'nagłówek 3']], () => String(poziomStylu.get(st.id) || ''), (v) => {
+          const lista = naglowkiProjektu(projekt).filter((n) => n.styl !== st.id);
+          if (v) lista.push({ styl: st.id, poziom: Number(v) });
+          projekt.ksiazka = { ...(projekt.ksiazka || {}), naglowki: lista };
+          poZmianie();
+          przebuduj();
+        }));
+      }
+    }
+    s.append(this.akcje([['cofnij', 'Odśwież teraz', () => poZmianie()]]));
+    s.append(this.wskazowka(k.rodzaj === 'skorowidz'
+      ? 'Skorowidz układa się sam: hasła alfabetycznie, z numerami stron, na których występują. Hasła dodasz w części „Przypisy, odsyłacze, skorowidz” zwykłego tekstu.'
+      : 'Spis treści układa się sam z tekstów w stylach nagłówków – z numerami stron, także stron powielonych serią. Długi spis przelej do kolejnej ramki („Przelewanie tekstu”).'));
   }
 
   zbudujStyl(obj) {

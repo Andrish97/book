@@ -2,9 +2,9 @@
 
 Podgląd, sprawdzenie przed drukiem, plik PDF i link do podglądu.
 
-# 19. Podgląd
+# 20. Podgląd
 
-## 19.1 Otwieranie podglądu
+## 20.1 Otwieranie podglądu
 
 Podgląd pokazuje całą publikację tak, jak będzie wyglądać po przycięciu: z danymi, z powielonymi
 stronami, bez linii pomocniczych i bez możliwości przypadkowej zmiany.
@@ -19,7 +19,7 @@ Kliknięcie strony otwiera ją w edytorze; [Edytor] albo <kbd>Esc</kbd> wraca do
 
 ![Podgląd](podglad.png)
 
-## 19.2 Powiększanie
+## 20.2 Powiększanie
 
 - [−] i [+] na pasku; kliknięcie procentu wraca do 100%, czyli całej rozkładówki w oknie.
 - <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora.
@@ -27,21 +27,21 @@ Kliknięcie strony otwiera ją w edytorze; [Edytor] albo <kbd>Esc</kbd> wraca do
 
 Powiększenie zmienia tylko strony — podpisy i pasek zostają w swoim rozmiarze.
 
-## 19.3 Prezentacja
+## 20.3 Prezentacja
 
 [Prezentacja] pokazuje jedną stronę albo rozkładówkę naraz, na całym ekranie. Strzałki i spacja
 przewracają strony, <kbd>Esc</kbd> albo [×] zamyka. Na telefonie przesunięcie palcem w bok przewraca
 stronę, w dół — zamyka prezentację.
 
-## 19.4 Podgląd na żywo
+## 20.4 Podgląd na żywo
 
 Otwarty podgląd odświeża się sam, gdy projekt zmieni się gdzie indziej — na innym urządzeniu, u
 współpracownika albo przez AI. Zostaje w tym samym miejscu i powiększeniu; przerysowują się tylko
 zmienione strony.
 
-# 20. Sprawdź przed drukiem
+# 21. Sprawdź przed drukiem
 
-## 20.1 Lista uwag
+## 21.1 Lista uwag
 
 Zanim wyślesz plik do drukarni, wybierz [⋯] → [Sprawdź przed drukiem]. Aplikacja przegląda cały
 projekt — także każdą powieloną stronę — i wypisuje miejsca, na które warto spojrzeć.
@@ -67,9 +67,9 @@ jest na dole okna eksportu PDF.
 
 ![Lista uwag](kontrola.png)
 
-# 21. Eksport do PDF i PNG
+# 22. Eksport do PDF i PNG
 
-## 21.1 Okno eksportu
+## 22.1 Okno eksportu
 
 Wybierz [⋯] → [Eksportuj do PDF…].
 
@@ -82,12 +82,12 @@ Wybierz [⋯] → [Eksportuj do PDF…].
 | **Przeznaczenie** | **Do drukarni – ze spadem i znakami cięcia** albo **Do oglądania – równo do formatu**. Znaki cięcia dostają sekcje, które mają je włączone (→ 11.4). |
 | **Jakość** | Rozdzielczość zdjęć: 300 dpi — standard do druku, 150 dpi — mały plik na próbę, 600 dpi — bardzo ostro. |
 
-Na dole okna jest lista **Do sprawdzenia przed drukiem** (→ 20). [Eksportuj] zapisuje plik; długi
+Na dole okna jest lista **Do sprawdzenia przed drukiem** (→ 21). [Eksportuj] zapisuje plik; długi
 eksport przerwiesz przyciskiem [Anuluj] na karcie postępu.
 
 ![Okno eksportu](pdf.png)
 
-## 21.2 Zaawansowane
+## 22.2 Zaawansowane
 
 Część **Zaawansowane**:
 
@@ -99,9 +99,9 @@ Część **Zaawansowane**:
 | **Zdjęcia też w CMYK (większy plik)** | Przy PDF/X-4: zdjęcia przeliczone na farby drukarskie przez ten sam profil. |
 | **Podział na pliki** | **Jeden plik**, **Osobny plik dla każdej sekcji** albo **Części po tyle stron** (**Stron w części**). Kilka plików dostajesz w archiwum ZIP. |
 | **Dołącz pliki czcionek użytych w projekcie** | Do pobrania trafia ZIP z plikiem PDF i folderem `czcionki`. |
-| **Uszlachetnienia** | Gdy projekt je ma: **Osobne płyty w tym samym pliku PDF**, **Osobny plik PDF na każde uszlachetnienie** albo **Pomiń uszlachetnienia** (→ 22.4). |
+| **Uszlachetnienia** | Gdy projekt je ma: **Osobne płyty w tym samym pliku PDF**, **Osobny plik PDF na każde uszlachetnienie** albo **Pomiń uszlachetnienia** (→ 23.4). |
 
-## 21.3 Jak wybrać ustawienia dla drukarni
+## 22.3 Jak wybrać ustawienia dla drukarni
 
 Zapytaj drukarnię, czego wymaga:
 
@@ -113,20 +113,20 @@ Zapytaj drukarnię, czego wymaga:
 > Wskazówka: Plik z projektu w kolorach ekranu wygląda w druku nieco inaczej. Najpewniej zamówić
 > wydruk próbny.
 
-## 21.4 Czego nie da się zapisać wektorowo
+## 22.4 Czego nie da się zapisać wektorowo
 
 Element z cieniem, element przycięty maską i rysunek SVG z filtrem trafiają do pliku jako obraz
 tego jednego elementu — reszta strony zostaje wektorowa. Tekst w czcionce, której nie da się osadzić,
 trafia do pliku jako krzywe. Po eksporcie aplikacja mówi, jeśli coś takiego się zdarzyło.
 
-## 21.5 Strona jako PNG
+## 22.5 Strona jako PNG
 
 [⋯] → [Pobierz bieżącą stronę jako PNG] zapisuje obraz otwartej strony w 300 dpi, ze spadem —
 np. do pokazania komuś w wiadomości.
 
-# 22. Kolory dodatkowe i uszlachetnienia
+# 23. Kolory dodatkowe i uszlachetnienia
 
-## 22.1 Kolory dodatkowe
+## 23.1 Kolory dodatkowe
 
 Druk to nie tylko cztery farby CMYK. Makietka zna kolory dodatkowe (np. Pantone), uszlachetnienia — lakier, złocenie, tłoczenie, biały poddruk — i druk tylko czarną farbą albo czarną z jednym kolorem. Wszystko trafia do pliku PDF tak, jak oczekuje drukarnia: każda farba na osobnej płycie.
 
@@ -144,7 +144,7 @@ Kolor dodatkowy wybierasz w każdym polu koloru — wypełnienie, obrys, tekst, 
 
 Zmiana CMYK koloru dodatkowego zmienia wszystkie elementy w tym kolorze. Usunięcie koloru zostawia elementy w zwykłym kolorze CMYK.
 
-## 22.2 Uszlachetnienia
+## 23.2 Uszlachetnienia
 
 Uszlachetnienie ustawiasz przy elemencie, w części **Uszlachetnienie**:
 
@@ -160,13 +160,13 @@ Uszlachetnienie ustawiasz przy elemencie, w części **Uszlachetnienie**:
 
 Element z uszlachetnieniem drukuje się **tylko** na płycie uszlachetnienia — jego kolory nie idą do druku. Żeby mieć napis w kolorze i ze złoceniem, zaznacz napis i w **Dodaj kopię z uszlachetnieniem** wybierz złocenie: kopia stanie dokładnie nad napisem.
 
-> Wskazówka: Uszlachetnienie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (→ 20).
+> Wskazówka: Uszlachetnienie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (→ 21).
 
-## 22.3 Widok uszlachetnień
+## 23.3 Widok uszlachetnień
 
 W edytorze i podglądzie uszlachetnienie widać jako efekt: połysk lakieru, metaliczną folię, cień tłoczenia, biel na szachownicy. Menu widoku → **Pokaż uszlachetnienia** wyłącza efekt (→ 4.6).
 
-## 22.4 Uszlachetnienia w pliku PDF
+## 23.4 Uszlachetnienia w pliku PDF
 
 W pliku wektorowym każde uszlachetnienie to osobna płyta z **nadrukiem** — nie wybija farby pod spodem. W oknie eksportu, w części **Zaawansowane**, wybierz **Uszlachetnienia**:
 
@@ -176,7 +176,7 @@ W pliku wektorowym każde uszlachetnienie to osobna płyta z **nadrukiem** — n
 
 Plik z obrazów stron nie ma osobnych płyt — wybierz plik wektorowy.
 
-## 22.5 Tryb kolorów projektu
+## 23.5 Tryb kolorów projektu
 
 [⋯] → [Kolory do druku…] → **Tryb kolorów projektu**:
 
@@ -190,9 +190,9 @@ W wyborze koloru zostają wtedy odcienie czerni i kolor trybu. Kolory spoza tryb
 
 > Wskazówka: Rozszerzony CMYK (CMYK z dodatkowymi farbami, np. pomarańczową, zieloną i fioletową) robi drukarnia sama z Twojego pliku — nie trzeba osobnej palety.
 
-# 23. Udostępnianie linkiem
+# 24. Udostępnianie linkiem
 
-## 23.1 Tworzenie linku
+## 24.1 Tworzenie linku
 
 Link do podglądu pokażesz komuś, kto nie ma konta: klientowi, rodzinie, drukarni. Osoba z linkiem
 widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
@@ -206,7 +206,7 @@ widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innyc
 
 Projekt z linkiem ma na liście projektów plakietkę **Udostępniony** — kliknięcie otwiera to samo okno.
 
-## 23.2 Aktualizacja
+## 24.2 Aktualizacja
 
 Link aktualizuje się sam: kilka sekund po Twoich zmianach aplikacja wysyła obrazy stron, które się
 zmieniły. Adres zostaje ten sam. [Aktualizuj teraz] robi to od razu. Osoba, która ma link otwarty,
@@ -215,7 +215,7 @@ nie musi odświeżać strony — nowe strony pojawią się same.
 Obrazy stron przygotowuje aplikacja, więc link nadąża za zmianami, gdy projekt jest otwarty —
 w edytorze albo w podglądzie, na dowolnym urządzeniu.
 
-## 23.3 Ochrona linku
+## 24.3 Ochrona linku
 
 Część **Ochrona linku**:
 
@@ -227,7 +227,7 @@ Część **Ochrona linku**:
 [Zapisz ochronę] zapisuje ustawienia. Puste pole hasła przy zaznaczonym haśle zostawia dotychczasowe;
 odznaczenie obu pól zdejmuje ochronę.
 
-## 23.4 Unieważnienie linku
+## 24.4 Unieważnienie linku
 
 [Unieważnij link] usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne
 udostępnienie daje nowy adres.

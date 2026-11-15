@@ -21,6 +21,9 @@ export const WLASNE_POLA = [
   'z_danych', // kolor i przesunięcie zależne od pola z danych (pola.js)
   'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
   'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana
+  'ksiazka', // spis treści albo skorowidz – tekst składany sam: { rodzaj, poziomy, kropki } (ksiazka.js, #131B)
+  'przypisy', // przypisy dolne tekstu: { id: treść }; odnośnik w tekście to pole {przypis:id} (#131B)
+  'hasla', // hasła skorowidza z tego tekstu: ['słowo', …] (#131B)
   'kod', // kod QR albo EAN-13 / ISBN jako jeden element: { rodzaj, typ, dane, tresc, korekcja, kolor, tlo, … } (kod-obiekt.js, #128)
   'tabela', // tabela jako jeden element: { kolumny, wiersze, naglowek, linia } (tabela-obiekt.js)
   'okladka', 'okladka_dopasuj', // okładka (#119): przypięcie do tyłu, grzbietu albo przodu; dopasowanie do grzbietu

@@ -62,7 +62,7 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
 
   // Odnośnik w treści (→ 15.1) prowadzi do innego rozdziału; okruszek „Instrukcja” wraca na stronę główną.
   await pokaz(strona, 'Przykłady');
-  await strona.click('#instrukcja-tresc a[data-cel="15.1"]');
+  await strona.click('#instrukcja-tresc a[data-cel="16.1"]');
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Pola w tekście/);
   await strona.click('#instrukcja-tresc .okruszki [data-instrukcja-start]');
   assert.equal(await strona.locator('#instrukcja-tresc .karta-czesci').count(), dane.czesci);

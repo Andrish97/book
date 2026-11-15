@@ -18,7 +18,7 @@ export const ADRES_APLIKACJI = 'https://makietka.app/';
 const ADRES_LACZNIKA = 'https://api.makietka.app/mcp';
 
 // Te same listy co w aplikacji (js/pola.js, js/style-tekstu.js) – test pilnuje, żeby się zgadzały.
-export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony'];
+export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony', 'rozdzial', 's', 'przypis'];
 export const POLA_STYLU = ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'lineHeight', 'charSpacing', 'fill', 'textAlign',
   // Skład akapitu (#131) – jak w js/style-tekstu.js.
   'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'do_siatki', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory'];
@@ -554,6 +554,15 @@ function elementZBiblioteki(o) {
       objects: Array.from({ length: kolumny * wiersze }, () => ({ ...KOMORKA, id: noweId('o') })),
     };
   }
+  // Spis treści albo skorowidz (#131B): tekst, który aplikacja składa sama z nagłówków albo haseł.
+  if (o.type === 'spis' || o.type === 'skorowidz') {
+    const ksiazka = o.type === 'spis' ? { rodzaj: 'spis', poziomy: Math.min(3, Math.max(1, Number(o.poziomy) || 2)), kropki: o.kropki !== false } : { rodzaj: 'skorowidz', kropki: o.kropki !== false };
+    return {
+      type: 'textbox', id: o.id, left: o.left ?? 15, top: o.top ?? 20, width: Number(o.width) > 20 ? Number(o.width) : 110,
+      text: o.type === 'spis' ? 'Spis treści' : 'Skorowidz', fontFamily: o.fontFamily || 'Inter', fontSize: o.fontSize || Math.round((10.5 * 25.4 / 72) * 1000) / 1000,
+      fill: o.fill || '#1a1a1a', lineHeight: 1.5, styles: [], ksiazka,
+    };
+  }
   if (o.type === 'wykres') {
     const w = o.wykres || {};
     return { ...GRUPA_STALA, id: o.id, left: o.left ?? 10, top: o.top ?? 10, width: w.szerokosc || 100, height: w.wysokosc || 60, wykres: { szerokosc: 100, wysokosc: 60, ...w }, objects: [] };
@@ -1084,7 +1093,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }; skrótem także kalendarz miesiąca { type: "kalendarz", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: "wykres", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } i kolaż { type: "kolaz", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } } – opis w opis_formatu) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }; skrótem także kalendarz miesiąca { type: "kalendarz", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: "wykres", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } kolaż { type: "kolaz", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } }, spis treści { type: "spis", left, top, width, poziomy } i skorowidz { type: "skorowidz", left, top, width } – opis w opis_formatu) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);
@@ -1479,7 +1488,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'zmien_projekt',
       title: 'Zmień projekt (ogólnie)',
-      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron?, kolory_dodatkowe? (kolory spot, np. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu? }. Kolor dodatkowy w elemencie i uszlachetnienia (pole elementu uszlachetnienie) – opis w opis_formatu. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
+      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron?, kolory_dodatkowe? (kolory spot, np. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu?, ksiazka? (nagłówki spisu treści i liczenie przypisów: { naglowki: [{ styl, poziom }], przypisy: sekcja | strona | ciagle }) }. Kolor dodatkowy w elemencie i uszlachetnienia (pole elementu uszlachetnienie) – opis w opis_formatu. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
       inputSchema: S('', { zmiany: obiekt('Części projektu do zapisu') }, ['zmiany']),
       dzialaj: ({ zmiany }) => zmien(() => ({ zmiany, opis: `Zapisano części: ${Object.keys(zmiany).join(', ')}.` })),
     },

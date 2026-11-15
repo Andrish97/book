@@ -2894,6 +2894,10 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .podglad-biblioteki rect { fill: color-mix(in srgb, var(--akcent) 18%, var(--powierzchnia)); stroke: var(--tusz-2); stroke-width: 0.8; }
 .podglad-biblioteki rect.tlo { fill: var(--powierzchnia); }
 .podglad-biblioteki rect.pasek { fill: color-mix(in srgb, var(--akcent) 30%, var(--powierzchnia)); stroke: none; }
+/* Książka (#131B): podglądy spisu treści i skorowidza w Bibliotece. */
+.podglad-biblioteki path.linia { fill: none; stroke-width: 2.4; }
+.podglad-biblioteki path.kropki { fill: none; stroke-width: 1.6; stroke-dasharray: 0.1 3; }
+.podglad-biblioteki text { fill: var(--tusz); }
 .podglad-biblioteki rect.dz { fill: var(--wypelnienie); stroke: none; }
 .podglad-biblioteki rect.nd { fill: color-mix(in srgb, #c62828 35%, var(--powierzchnia)); stroke: none; }
 .podglad-wykresu path, .podglad-wykresu rect { stroke: var(--tusz-2); stroke-width: 1.4; fill: color-mix(in srgb, var(--akcent) 45%, var(--powierzchnia)); }
@@ -2904,3 +2908,9 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 :root[data-dotyk] .podpowiedz-biblioteki { display: none; }
 /* Panel wykresu: lista kolumn z liczbami. */
 .kolumny-wykresu { gap: 6px; }
+
+/* Książka (#131B): hasła skorowidza w panelu tekstu – żetony z krzyżykiem. */
+.hasla-skorowidza { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
+.chip-hasla { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 6px 0 10px; border: 1px solid var(--linia); border-radius: 999px; background: var(--powierzchnia-2); color: var(--tusz); font: inherit; font-size: 12.5px; cursor: pointer; }
+@media (hover: hover) { .chip-hasla:hover { border-color: var(--blad); color: var(--blad); } }
+:root[data-dotyk] .chip-hasla { min-height: 36px; }

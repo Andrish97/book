@@ -19,6 +19,7 @@ import { uzupelnijWymiary } from '../obrazy-projektu.js';
 import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan, noweNagrobki, kanon } from '../laczenie.js';
 import { toTabela, miejsceKomorki } from '../tabela-obiekt.js';
 import { przeliczOkladki } from '../okladka.js';
+import { przeliczKsiazke, uzywaKsiazki, przypisyStrony, poleKsiazki } from '../ksiazka.js';
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
@@ -158,6 +159,7 @@ export async function zaladujCel({ dopasuj = false } = {}) {
     await edytor.ustawRamkiPoza(ramkiZInnychStron(projekt, strony));
     naPlotnie = { strony: strony.map((s) => s.id), wczytane: zdjeciePlotna(strony) };
     naPlotnie.pola = zdjeciePol(strony);
+    podpisKsiazki = uzywaKsiazki(projekt) ? podpisWarstwKsiazki(projekt) : ''; // to, co pokazują wczytane warstwy (#131B)
   }
   edytor.przeliczOstrzezenia(); // które pola są znane, wiadomo dopiero po wczytaniu
   edytor.ustawWidok(projekt.widok);
@@ -225,6 +227,7 @@ export async function otworzProjekt(p, cel = {}) {
   odswiezCofanie();
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
   generujMiniatury();
+  zaplanujKsiazke(); // spis treści i skorowidz mogły się zmienić poza edytorem (np. przez AI) – #131B
   // Czcionki tego projektu trafiają do „Moich czcionek”; lista w panelu dostaje czcionki z innych projektów.
   stan.mojeRodziny = [];
   odswiezMojeCzcionki({ projekt: stan.projekt, zKontem: true });
@@ -359,8 +362,49 @@ export async function odswiezOkladki() {
   return zmienione;
 }
 
+// Książka (#131B): spis treści i skorowidz składają się same po każdej zmianie; przypisy dolne i żywa pagina
+// (warstwa nad treścią, jak wzorce) odświeżają się na płótnie, gdy zmieniły się na stronach, które są na nim.
+let timerKsiazki = null;
+let podpisKsiazki = '';
+const ksiazkaNaPlotnie = () => (edytor.canvas?.getObjects() || []).some((o) => o.ksiazka || o.przypisy || o.hasla || (typeof o.text === 'string' && /\{(rozdzial|s|przypis)[:}]/.test(o.text)));
+function zaplanujKsiazke() {
+  if (!stan.projekt || !(uzywaKsiazki(stan.projekt) || ksiazkaNaPlotnie())) return;
+  clearTimeout(timerKsiazki);
+  timerKsiazki = setTimeout(() => { odswiezKsiazke().catch((e) => console.error(e)); }, 600);
+}
+function podpisWarstwKsiazki(p) {
+  if (!naPlotnie?.strony) return '';
+  const ciag = rozwin(p);
+  return JSON.stringify(naPlotnie.strony.map((id) => {
+    const egz = ciag.pierwszy.get(id);
+    if (!egz) return null;
+    const naglowki = egz.pusta ? [] : [1, 2, 3].map((n) => poleKsiazki(p, egz, ciag, 'rozdzial', String(n)));
+    return [przypisyStrony(p, egz, ciag), naglowki];
+  }));
+}
+export async function odswiezKsiazke() {
+  const p = stan.projekt;
+  if (!p || !(uzywaKsiazki(p) || ksiazkaNaPlotnie())) return [];
+  // Nie w pół słowa: pisanie w tekście dokończy się, zanim płótno się przeładuje.
+  if (edytor.aktywny?.isEditing || edytor.canvas?._currentTransform) { zaplanujKsiazke(); return []; }
+  zapiszBiezacyCel();
+  const zmienione = przeliczKsiazke(p);
+  for (const id of zmienione) stan.miniatury.delete(id);
+  const podpis = podpisWarstwKsiazki(p);
+  const naPlotnieZmiana = zmienione.some((id) => naPlotnie?.strony?.includes(id) || naPlotnie?.wzorzec === id);
+  if (naPlotnieZmiana || podpis !== podpisKsiazki) {
+    const zaznaczony = edytor.aktywny?.id;
+    await zaladujCel();
+    if (zaznaczony) edytor.zaznacz(zaznaczony);
+  }
+  podpisKsiazki = podpis;
+  if (zmienione.length) { generujMiniatury(); zaplanujZapis(); }
+  return zmienione;
+}
+
 export function zaplanujZapis({ historia: doHistorii = true } = {}) {
   zaplanujOkladki();
+  zaplanujKsiazke();
   stanZapisu('zapis', 'Zapisywanie…');
   clearTimeout(stan.timerZapisu);
   stan.timerZapisu = setTimeout(zapiszTeraz, 700);

@@ -92,3 +92,17 @@ zarejestrujKategorie({
     },
   })),
 });
+
+// Książka (#131B): spis treści i skorowidz – teksty, które składają się same.
+const PODGLAD_SPISU = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="8" y="5" width="54" height="42" rx="1" class="tlo"/>'
+  + '<path d="M13 13h22M13 21h18M17 27h16M13 35h20" class="linia"/><path d="M38 13h14M35 21h17M37 27h15M37 35h15" class="kropki"/>'
+  + '<path d="M54 11h3v4h-3zM54 19h3v4h-3zM54 25h3v4h-3zM54 33h3v4h-3z"/></svg>';
+const PODGLAD_SKOROWIDZA = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="8" y="5" width="54" height="42" rx="1" class="tlo"/>'
+  + '<path d="M13 12h4v5h-4z"/><path d="M13 22h16M13 28h20M13 34h14M13 40h18" class="linia"/><path d="M44 22h12M44 28h12M44 34h12M44 40h12" class="kropki"/></svg>';
+zarejestrujKategorie({
+  id: 'ksiazka', nazwa: 'Książka', ikona: 'ksiazka', kolejnosc: 68,
+  elementy: () => [
+    { id: 'spis', nazwa: 'Spis treści', slowa: 'spis tresci rozdzialy naglowki strony ksiazka', duzy: true, podglad: PODGLAD_SPISU, opis: 'Rozdziały z numerami stron – układa się sam', wstaw: (e, punkt) => e.dodajElementKsiazki('spis', punkt) },
+    { id: 'skorowidz', nazwa: 'Skorowidz', slowa: 'skorowidz indeks hasla slowa ksiazka', duzy: true, podglad: PODGLAD_SKOROWIDZA, opis: 'Hasła alfabetycznie z numerami stron', wstaw: (e, punkt) => e.dodajElementKsiazki('skorowidz', punkt) },
+  ],
+});

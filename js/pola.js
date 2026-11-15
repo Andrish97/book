@@ -50,6 +50,9 @@ export const POLA_DOKUMENTU = [
   ['poczatek', 'Numer pierwszej strony sekcji o podanej nazwie, np. {poczatek:Notatki}'],
   ['koniec', 'Numer ostatniej strony sekcji o podanej nazwie, np. {koniec:Notatki}'],
   ['nr_strony', 'Numer strony o podanej nazwie, np. {nr_strony:Styczeń}'],
+  ['rozdzial', 'Żywa pagina: tytuł bieżącego rozdziału – ostatni nagłówek poziomu 1 do tej strony; {rozdzial:2} – poziomu 2'],
+  ['s', 'Odsyłacz: numer strony, na której stoi wskazany nagłówek albo element – wstawia „Wstaw odsyłacz”'],
+  ['przypis', 'Numer przypisu dolnego – wstawia „Wstaw przypis”'],
 ];
 
 // Zapisy liczb po dwukropku: {nr:I}, {nr:000}, {egzemplarz:a}…

@@ -1090,5 +1090,8 @@ if (require.main === module) (async () => {
   await kadr(t, 'k-strony-telefon.png', { obszar: '#panel-strony', margines: 0 });
   await tel.close();
 
+  // Książka (#131B): spis treści, przypisy, żywa pagina – osobny projekt na atrapie konta.
+  await require('./zrzuty-ksiazki.cjs').zrobZrzutyKsiazki(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty książki:', err.message));
+
   await przegladarka.close();
 })();

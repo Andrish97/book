@@ -306,6 +306,22 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
 
 - `uklad`: `2-pion`, `2-poziom`, `3-kolumny`, `3-duzy-lewo`, `3-duzy-gora`, `4-siatka`, `4-duzy-lewo`, `5-mozaika`, `5-duzy-gora`, `6-siatka`, `6-pion`, `9-siatka`. Pola to prostokąty – ramki obrazu: zdjęcie wstawisz, ustawiając polu `zasob` (jak kształtowi z obrazem).
 
+## 9b. Książka: spis treści, żywa pagina, przypisy, odsyłacze, skorowidz
+
+- **Nagłówki** to teksty w stylach akapitu, które projekt uznaje za nagłówki: `ksiazka.naglowki` w projekcie (`[{ "styl": "<id stylu>", "poziom": 1 }]`, poziomy 1–3). Bez tego ustawienia nagłówkiem poziomu 1 jest styl „Tytuł” (albo „Rozdział…”), poziomu 2 – „Nagłówek”.
+- **Spis treści** i **skorowidz** to teksty z polem `ksiazka`, których treść aplikacja składa sama (nie wpisuj jej):
+
+```json
+{ "type": "textbox", "id": "spis", "left": 15, "top": 25, "width": 118, "text": "", "fontFamily": "Inter", "fontSize": 3.7,
+  "ksiazka": { "rodzaj": "spis", "poziomy": 2, "kropki": true } }
+```
+
+  Przez łącznik wystarczy skrót `{ "type": "spis", "left": 15, "top": 25, "width": 118, "poziomy": 2 }` albo `{ "type": "skorowidz", … }`. Numery stron biorą się z numeracji sekcji, razem ze stronami powielonymi serią.
+- **Żywa pagina**: pole `{rozdzial}` (ostatni nagłówek poziomu 1 do tej strony) albo `{rozdzial:2}` – zwykle w stopce albo nagłówku wzorca.
+- **Odsyłacz**: `{s:<id elementu>}` – numer strony, na której stoi element (np. nagłówek): „zob. s. {s:r2}”.
+- **Przypis dolny**: w tekście pole `{przypis:<id>}` (zwykle w indeksie górnym: formatowanie fragmentu `fontSize` ≈ 0,62 × rozmiaru, `deltaY` ≈ −0,36 × rozmiaru), a treść w polu tekstu `przypisy: { "<id>": "Treść przypisu." }`. Numer i treść na dole strony układa aplikacja; numeracja według `ksiazka.przypisy` projektu: `sekcja` (domyślnie), `strona`, `ciagle`.
+- **Skorowidz**: hasła w polu tekstu `hasla: ["kot", "pies"]`; skorowidz pokazuje wszystkie strony, na których słowo występuje w jakimkolwiek tekście.
+
 ## 10. Czego nie robić
 
 - Nie zapisuj powielonych stron serii jako osobnych stron – zrób jedną stronę-wzór z polami i tabelę.
