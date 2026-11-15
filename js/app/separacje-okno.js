@@ -3,6 +3,7 @@
 // i zaznaczeniem łącznego pokrycia farbą powyżej limitu (TAC). Rdzeń obliczeń: js/separacje.js.
 
 import { $ } from '../ui.js';
+import { postep } from '../postep.js';
 import { rozwin } from '../serie.js';
 import { naPlotnieCelu } from '../zlozenie.js';
 import { spotyDruku, mapaSpotow, uzyteKoloryDruku, stanUszlachetnien, cmykNaRgb } from '../kolory-druku.js';
@@ -29,6 +30,12 @@ async function przelicznik() {
 // Obraz strony i maski uszlachetnień → płyty.
 async function przelicz() {
   const nr = ++liczy;
+  // Postęp w oknie (#159): obraz strony, maska każdego uszlachetnienia, rozbicie na płyty.
+  const ileUszl = uzyteKoloryDruku(stan.projekt).uszlachetnienia.length;
+  const pasek = postep('Liczenie płyt druku…', { razem: ileUszl + 2 });
+  try { await przeliczZPaskiem(nr, pasek); } finally { pasek.koniec(); }
+}
+async function przeliczZPaskiem(nr, pasek) {
   const { projekt, ciag } = stan;
   const egz = ciag.egzemplarze[stan.i];
   $('#separacje-numer').textContent = `Strona ${stan.i + 1} z ${ciag.egzemplarze.length}`;
@@ -39,8 +46,10 @@ async function przelicz() {
   stanUszlachetnien.eksport = true;
   let obraz;
   try { obraz = await naPlotnieCelu(projekt, egz, opcje, (p) => odczyt(p)); } finally { stanUszlachetnien.eksport = false; }
+  pasek.krok(1);
   const maski = new Map();
   for (const u of uzyteKoloryDruku(projekt).uszlachetnienia) {
+    if (nr !== liczy) return;
     stanUszlachetnien.maska = u.plyta;
     try {
       const d = await naPlotnieCelu(projekt, egz, opcje, (p) => {
@@ -53,6 +62,7 @@ async function przelicz() {
       });
       maski.set(u.plyta, maskaZRoznicy(d.data, d.width, d.height));
     } finally { stanUszlachetnien.maska = null; }
+    pasek.krok();
   }
   if (nr !== liczy) return;
   const spoty = new Map();

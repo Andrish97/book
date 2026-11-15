@@ -57,6 +57,7 @@ test('telefon: długa lista wyboru w okienku nie jest ucięta od góry, wybór d
   await strona.waitForTimeout(600);
   await strona.locator('#dlg-tabela .wybor-przycisk').first().tap();
   await strona.waitForSelector('.okienko-zaslonka > .uchwyt-okienka');
+  await strona.waitForTimeout(400); // po animacji wjazdu
   const w = await strona.evaluate(() => {
     const o = document.querySelector('.okienko-zaslonka');
     const u = o.querySelector('.uchwyt-okienka').getBoundingClientRect();

@@ -1,6 +1,7 @@
 // Ekran podglądu bez edycji i udostępnianie podglądu linkiem.
 
 import { renderujCel } from '../zlozenie.js';
+import { postep as pasekPostepu } from '../postep.js';
 import { rozwin } from '../serie.js';
 import * as chmura from '../chmura.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
@@ -292,7 +293,9 @@ export async function opublikujUdostepnienie() {
       }
     }
     komunikat.textContent = 'Przygotowuję strony…';
-    const wynik = await opublikuj(p, (i, n) => { komunikat.textContent = `Strony: ${i} z ${n}…`; });
+    const pasek = pasekPostepu('Udostępnianie: strony podglądu');
+    let wynik;
+    try { wynik = await opublikuj(p, (i, n) => { komunikat.textContent = `Strony: ${i} z ${n}…`; pasek.krok(i, n); }); } finally { pasek.koniec(); }
     komunikat.textContent = wynik.wyslane < wynik.wszystkie
       ? `Gotowe. Wysłano ${wynik.wyslane} z ${wynik.wszystkie} stron – reszta się nie zmieniła.`
       : 'Gotowe. Skopiuj link i wyślij go, komu chcesz. Od teraz będzie się aktualizował sam.';

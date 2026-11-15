@@ -279,14 +279,19 @@ export async function zapiszGdziekolwiek(projekt) {
 
 async function duplikujProjekt(w) {
   if (await ponadLimit()) return;
+  const pasek = postep(`Kopiowanie „${w.nazwa || 'projektu'}”…`);
   try {
     const zrodlo = await wczytajProjektZWpisu(w);
     const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
+    pasek.opis('Kopiowanie obrazów…');
     await kopiujPliki(zrodlo, kopia); // kopia ma własne pliki obrazów – podmiana zdjęcia w niej nie rusza oryginału
+    pasek.opis('Zapisywanie kopii…');
     await zapiszGdziekolwiek(kopia);
     powiadom(`Utworzono „${kopia.nazwa}”.`);
   } catch (e) {
     powiadom(`Nie udało się zduplikować: ${chmura.komunikatBledu(e)}`, true);
+  } finally {
+    pasek.koniec();
   }
   if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); // bez zmiany adresu – patrz niżej (#137)
 }

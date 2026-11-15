@@ -3,6 +3,7 @@
 // „Zamień wszystkie” to jeden krok cofania.
 
 import { $, powiadom } from '../ui.js';
+import { przedDlugaCzynnoscia } from '../postep.js';
 import { szukaj, zamien } from '../znajdz.js';
 import { edytor, stan } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
@@ -83,10 +84,14 @@ async function zamienTrafienia(lista2) {
   if (edytor.aktywny?.isEditing) edytor.aktywny.exitEditing();
   zapiszBiezacyCel();
   const zaznaczony = edytor.aktywny?.id;
-  const zm = zamien(stan.projekt, lista2, zamiennik.value);
+  let zm = null;
+  await przedDlugaCzynnoscia(`Zamiana ${lista2.length} wystąpień…`, lista2.length > 60, async () => {
+    zm = zamien(stan.projekt, lista2, zamiennik.value);
+    if (!zm.liczba) return;
+    stan.miniatury.clear();
+    await zaladujCel();
+  });
   if (!zm.liczba) { powiadom('Tekst zmienił się w międzyczasie – szukam jeszcze raz.'); pokaz(); return; }
-  stan.miniatury.clear();
-  await zaladujCel();
   if (zaznaczony) edytor.zaznacz(zaznaczony);
   renderujListe();
   zaplanujZapis();

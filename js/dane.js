@@ -10,6 +10,7 @@ import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, za
 import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
+import { zPostepem } from './postep.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
 const PORCJA_WIERSZY = 400;
@@ -541,7 +542,7 @@ export class Dane {
   async importuj(plik) {
     const p = this.projekt();
     let wczytane;
-    try { wczytane = await wczytajPlik(plik); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return; }
+    try { wczytane = await zPostepem(`Wczytywanie „${plik.name || 'pliku'}”…`, () => wczytajPlik(plik)); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return; }
     let ostatnia = null;
     let zachowano = null; // wygląd zachowany przy imporcie pliku bez wyglądu: { ile, bylo }
     for (const surowa of wczytane) {

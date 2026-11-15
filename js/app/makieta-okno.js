@@ -3,6 +3,7 @@
 // Okładka pochodzi z sekcji okładki (#119): tył, grzbiet i przód wycięte z jej strony według stref.
 
 import { $, powiadom, bezpiecznaNazwa } from '../ui.js';
+import { postep } from '../postep.js';
 import { rozwin } from '../serie.js';
 import { renderujCel } from '../zlozenie.js';
 import { geometriaOkladki, jestOkladka, normalizujOkladke } from '../okladka.js';
@@ -39,11 +40,25 @@ const obrazZUrl = (url) => new Promise((ok, zle) => {
 
 // Tekstury wczytywane w tle: najpierw te widoczne, potem sąsiednie.
 const wToku = new Set();
+// Postęp wczytywania stron (#159): „x z y” dla bieżącej partii, znika, gdy wszystkie gotowe.
+let partia = null; // { pasek, razem, gotowe }
+function startTekstury() {
+  if (!partia) partia = { pasek: postep('Wczytywanie stron makiety…', { razem: 0 }), razem: 0, gotowe: 0 };
+  partia.razem += 1;
+  partia.pasek.krok(partia.gotowe, partia.razem);
+}
+function koniecTekstury() {
+  if (!partia) return;
+  partia.gotowe += 1;
+  partia.pasek.krok(partia.gotowe, partia.razem);
+  if (!wToku.size) { partia.pasek.koniec(); partia = null; }
+}
 async function wczytajTeksture(klucz) {
   if (!st || !renderer || renderer.maTeksture(klucz) || wToku.has(klucz)) return;
   const moje = st;
   const lista = st.lista;
   wToku.add(klucz);
+  startTekstury();
   try {
     let obraz;
     if (klucz.startsWith('p:')) {
@@ -57,7 +72,7 @@ async function wczytajTeksture(klucz) {
     rysujPozniej();
   } catch {
     if (moje === st && renderer) renderer.ustawTeksture(klucz, '#ffffff');
-  } finally { wToku.delete(klucz); }
+  } finally { wToku.delete(klucz); koniecTekstury(); }
 }
 
 // Okładka: cała strona sekcji okładki raz, potem wycinki stref (tył | grzbiet | przód, bez zawinięć).
@@ -333,6 +348,8 @@ wybor.addEventListener('change', () => { if (st) ustawModel(wybor.value); });
 $('#makieta-wstecz').addEventListener('click', () => kartkuj(-1));
 $('#makieta-dalej').addEventListener('click', () => kartkuj(1));
 dlg.addEventListener('close', () => {
+  partia?.pasek.koniec();
+  partia = null;
   obserwator.disconnect();
   cancelAnimationFrame(klatka);
   klatka = 0;
