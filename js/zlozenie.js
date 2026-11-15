@@ -9,7 +9,8 @@
 // którego elementy mogą przechodzić przez grzbiet.
 
 import './fabric-ustawienia.js';
-import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
+import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony, marginesyStrony, ptNaMm } from './projekt.js';
+import { przypisyStrony, uzywaKsiazki, trescElementu } from './ksiazka.js';
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach, kadrZWartosci, punktKadru } from './pola.js';
 import { toKod, ulozKod } from './kod-obiekt.js';
@@ -171,11 +172,41 @@ function trescEgzemplarza(projekt, egz, ciag) {
   return obrazyZPol(podstawWObiektach(egz.strona.obiekty, wartosc), wartosc, projekt.zasoby);
 }
 
+// Przypisy dolne egzemplarza (#131B): kreska i tekst „1 Treść…” nad dolnym marginesem strony, w wyglądzie stylu
+// „Przypis” (gdy jest w projekcie) albo tekstu 8 pt. Gotowe obiekty Fabric oznaczone jak elementy wzorca.
+export async function obszarPrzypisow(projekt, egz, ciag) {
+  const lista = przypisyStrony(projekt, egz, ciag);
+  if (!lista.length) return [];
+  const { wydruk } = egz.sekcja;
+  const m = marginesyStrony(projekt, egz.strona, egz.bok);
+  const szer = Math.max(20, wydruk.szerokosc_mm - m.lewy - m.prawy);
+  const styl = (projekt.style || []).find((x) => /^przypis/i.test(x.nazwa || '')) || (projekt.style || []).find((x) => /^tekst/i.test(x.nazwa || ''));
+  const rozmiar = styl && /^przypis/i.test(styl.nazwa) ? styl.fontSize : ptNaMm(8);
+  const tekst = {
+    type: 'textbox', id: `przypisy-${egz.klucz}`, left: m.lewy, top: 0, width: szer,
+    text: lista.map((p) => `${p.numer}\t${p.tresc}`).join('\n'),
+    fontFamily: styl?.fontFamily || 'Inter', fontSize: rozmiar, fill: styl?.fill || '#1a1a1a', lineHeight: 1.2,
+    fontWeight: styl && /^przypis/i.test(styl.nazwa) ? styl.fontWeight : 'normal', fontStyle: 'normal',
+    tabulatory: [{ poz: Math.max(3, rozmiar * 1.6), rodzaj: 'lewy', wypelniacz: '' }], styles: [], przypisyStrony: true,
+  };
+  const [t] = await ozyw([tekst]);
+  t.initDimensions?.();
+  const dol = wydruk.wysokosc_mm - m.dol;
+  t.set({ top: dol - t.height });
+  t.setCoords();
+  const y = t.top - rozmiar * 0.6;
+  const kreska = new fabric.Line([m.lewy, y, m.lewy + Math.min(40, szer / 3), y], { stroke: tekst.fill, strokeWidth: 0.25, strokeUniform: true });
+  for (const o of [kreska, t]) o.set({ zWzorca: true, nazwaWzorca: 'przypisy dolne', przypisy_strony: true, selectable: false, evented: false, excludeFromExport: true, hoverCursor: 'default' });
+  return [kreska, t];
+}
+
 // Elementy wzorców dla strony (jej pierwszego egzemplarza) albo dla egzemplarza,
 // jako gotowe obiekty Fabric: { pod: [], nad: [] }.
 export async function warstwyWzorcow(projekt, cel, ciag = rozwin(projekt), { oryginaly = false } = {}) {
   const wynik = { pod: [], nad: [] };
   const egz = egzemplarz(cel, ciag);
+  // Przypisy dolne tej strony (#131B) – nad treścią, jak element wzorca (widać je w edytorze, nie da się ich zaznaczyć).
+  if (egz && !egz.pusta && uzywaKsiazki(projekt)) wynik.nad.push(...await obszarPrzypisow(projekt, egz, ciag));
   const wzorce = wzorceStrony(projekt, egz.strona);
   if (!wzorce.length) return wynik;
   const wartosc = wartosciPol(projekt, egz, ciag);
@@ -305,7 +336,10 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const rozwiniety = jestWzorcem ? null : (ciag || rozwin(projekt));
   const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
   const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, egz.strona).wydruk;
-  const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
+  // Spis treści i skorowidz (#131B) zawsze aktualne w podglądzie i PDF – nawet gdy edytor nie zdążył ich przeliczyć
+  // (np. zmiana przyszła od AI). Ramki wątku składa edytor (js/app/zapis.js: odswiezKsiazke).
+  const tresc = (jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety))
+    .map((o) => (o.ksiazka && !o.watek && rozwiniety ? { ...o, text: trescElementu(projekt, o.ksiazka, rozwiniety), styles: [] } : o));
   // Wzorce dzielenia wyrazów – zanim teksty się ułożą (tylko gdy któryś tekst dzieli wyrazy).
   if (uzywaDzielenia(tresc) || projekt.wzorce.some((w) => uzywaDzielenia(w.obiekty))) await zaladujDzielenie();
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);

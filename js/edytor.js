@@ -2424,6 +2424,111 @@ export class Edytor extends EventTarget {
     this.oznaczZmiane();
   }
 
+  // ---------- Książka (#131B): przypisy, odsyłacze, skorowidz ----------
+
+  // Wstawia napis w miejscu kursora (albo na końcu tekstu) i zwraca { obj, start } – albo null bez tekstu.
+  _wstawWTekscie(napis) {
+    const obj = this.aktywny;
+    if (!obj || obj.type !== 'textbox') return null;
+    let start;
+    if (obj.isEditing) {
+      start = obj.selectionStart;
+      obj.insertChars(napis, null, start, obj.selectionEnd);
+      obj.selectionStart = start + napis.length;
+      obj.selectionEnd = start + napis.length;
+      if (obj.hiddenTextarea) obj.hiddenTextarea.value = obj.text;
+      obj._updateTextarea?.();
+    } else {
+      const t = obj.text === TEKST_ZACHETY ? '' : (obj.text || '');
+      obj.set('text', `${t}${napis}`);
+      start = t.length;
+    }
+    return { obj, start };
+  }
+
+  _poWstawieniu(obj) {
+    obj.initDimensions();
+    obj.dirty = true;
+    obj.setCoords();
+    this.canvas.requestRenderAll();
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // Przypis dolny: odnośnik {przypis:id} w indeksie górnym, treść w `przypisy` tekstu (na dole strony – zlozenie.js).
+  wstawPrzypis(tresc = '') {
+    const id = uid('pp');
+    const pole = `{przypis:${id}}`;
+    const w = this._wstawWTekscie(pole);
+    if (!w) return null;
+    const { obj, start } = w;
+    const fs = obj.fontSize || 4;
+    obj.setSelectionStyles({ fontSize: fs * 0.62, deltaY: -fs * 0.36 }, start, start + pole.length);
+    obj.przypisy = { ...(obj.przypisy || {}), [id]: tresc };
+    this._poWstawieniu(obj);
+    return id;
+  }
+
+  // Zmiana treści albo usunięcie przypisu (wraz z odnośnikiem w tekście).
+  zmienPrzypis(obj, id, tresc) {
+    if (!obj?.przypisy || !(id in obj.przypisy)) return;
+    if (tresc === null) {
+      const pole = `{przypis:${id}}`;
+      const i = obj.text.indexOf(pole);
+      if (i >= 0) {
+        if (typeof obj.removeChars === 'function') obj.removeChars(i, i + pole.length);
+        else obj.set('text', obj.text.replace(pole, ''));
+      }
+      const { [id]: _, ...reszta } = obj.przypisy;
+      obj.przypisy = Object.keys(reszta).length ? reszta : undefined;
+      this._poWstawieniu(obj);
+      return;
+    }
+    obj.przypisy = { ...obj.przypisy, [id]: tresc };
+    this.oznaczZmiane();
+  }
+
+  // Odsyłacz do nagłówka albo elementu: „s. {s:id}” – numer strony aktualizuje się sam.
+  wstawOdsylacz(id, przedrostek = 's. ') {
+    const w = this._wstawWTekscie(`${przedrostek}{s:${id}}`);
+    if (w) this._poWstawieniu(w.obj);
+    return Boolean(w);
+  }
+
+  // Hasło skorowidza: zaznaczony fragment tekstu (albo podane słowo).
+  dodajDoSkorowidza(haslo = null) {
+    const obj = this.aktywny;
+    if (!obj || obj.type !== 'textbox') return null;
+    const slowo = String(haslo ?? (obj.isEditing && obj.selectionEnd > obj.selectionStart ? obj.text.slice(obj.selectionStart, obj.selectionEnd) : '')).replace(/\s+/g, ' ').trim();
+    if (!slowo) return null;
+    const lista = obj.hasla || [];
+    if (!lista.some((h) => h.toLocaleLowerCase('pl') === slowo.toLocaleLowerCase('pl'))) obj.hasla = [...lista, slowo];
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+    return slowo;
+  }
+
+  usunZeSkorowidza(obj, haslo) {
+    if (!obj?.hasla) return;
+    const lista = obj.hasla.filter((h) => h !== haslo);
+    obj.hasla = lista.length ? lista : undefined;
+    this._emitujZaznaczenie();
+    this.oznaczZmiane();
+  }
+
+  // Spis treści albo skorowidz (tekst składany sam): ramka na szerokość pola tekstu strony.
+  dodajElementKsiazki(rodzaj, punkt = null) {
+    const m = this.marg;
+    const s = this.strony[this.aktywna];
+    const szer = Math.max(30, (s.w ?? this.wydruk.szerokosc_mm) - m.lewy - m.prawy);
+    const o = new fabric.Textbox(rodzaj === 'skorowidz' ? 'Skorowidz' : 'Spis treści', {
+      left: punkt ? punkt.x : s.x + m.lewy, top: punkt ? punkt.y : m.gora, width: szer,
+      fontFamily: 'Inter', fontSize: ptNaMm(10.5), lineHeight: 1.5, fill: '#1a1a1a',
+      ksiazka: rodzaj === 'skorowidz' ? { rodzaj: 'skorowidz', kropki: true } : { rodzaj: 'spis', poziomy: 2, kropki: true },
+    });
+    return this._wstaw(o);
+  }
+
   // Pola nieznane na stronie, na której leży tekst (do ostrzeżeń i podświetlenia).
   _nieznanePola(o) {
     if (o.type !== 'textbox' || !o.text.includes('{') || o.bez_pol) return [];

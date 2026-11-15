@@ -1,7 +1,7 @@
 // Kontrola danych przed drukiem i szablon danych serii (plan 5.1 i 5.2).
 // Czyste funkcje: dostają projekt, niczego w nim nie zmieniają.
 
-import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie } from './pola.js';
+import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdzPola } from './pola.js';
 import { normalizujKod, uwagiKodu } from './kody.js';
 import { wzorceStrony } from './projekt.js';
 import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
@@ -9,6 +9,7 @@ import { odmiana } from './ui.js';
 import { bilansSkladki } from './okladka.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
 import { uwagiKolorowDruku } from './kolory-druku.js';
+import { indeksKsiazki, uzywaKsiazki } from './ksiazka.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
 
@@ -281,6 +282,16 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
         wartosci.set(tasama(v), stan); kolumny.set(zrodlo.kolumna, wartosci); uzycia.set(zrodlo.tabela, kolumny);
       }
     }
+  }
+
+  // Książka (#131B): odsyłacze {s:…} do elementów, których już nie ma.
+  if (uzywaKsiazki(projekt)) {
+    const ix = indeksKsiazki(projekt, ciag);
+    const zerwane = new Set();
+    const szukaj = (obiekty) => { for (const o of obiekty || []) { if (typeof o?.text === 'string' && !o.bez_pol) for (const p of znajdzPola(o.text)) if (p.nazwa === 's' && !ix.gdzie.has(p.zapis)) zerwane.add(o.text.slice(0, 40)); if (Array.isArray(o?.objects)) szukaj(o.objects); } };
+    for (const st of projekt.strony) szukaj(st.obiekty);
+    for (const w of projekt.wzorce || []) szukaj(w.obiekty);
+    if (zerwane.size) uwagi.push({ rodzaj: 'odsylacz', opis: `Odsyłacz prowadzi do elementu, którego już nie ma (zamiast numeru strony widać „?”): ${[...zerwane].map((t) => `„${t}”`).join(', ')}. Wstaw odsyłacz jeszcze raz.` });
   }
 
   for (const [nazwa, strony] of nieznane) {

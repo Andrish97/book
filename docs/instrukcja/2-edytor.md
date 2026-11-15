@@ -28,8 +28,8 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | **Nazwa projektu** | Kliknij, żeby ją zmienić. Obok jest stan zapisu (→ 3.4). |
 | [Cofnij], [Ponów] | Cofanie i ponawianie zmian w całym projekcie (→ 3.5). |
 | [Wzorce] | Okno wzorców — wspólnych elementów stron (→ 12). Liczba obok to liczba wzorców. |
-| [Dane] | Okno tabel danych (→ 14). |
-| [Podgląd] | Cały projekt bez edycji, z danymi (→ 19). |
+| [Dane] | Okno tabel danych (→ 15). |
+| [Podgląd] | Cały projekt bez edycji, z danymi (→ 20). |
 | **Format** (np. „A5”) | Ustawienia bieżącej sekcji: format, spad, marginesy (→ 11.4). |
 | [Pełny ekran] | Chowa paski przeglądarki; <kbd>Esc</kbd> wraca. |
 | [Instrukcja] | Ta instrukcja. |
@@ -45,13 +45,13 @@ Na wąskim telefonie [Wzorce], [Dane] i [Instrukcja] przechodzą do menu [⋯].
 
 | Pozycja | Co robi |
 |---|---|
-| [Eksportuj do PDF…] | Okno eksportu do pliku PDF (→ 21). |
-| [Pobierz bieżącą stronę jako PNG] | Obraz otwartej strony w 300 dpi, ze spadem (→ 21.5). |
-| [Sprawdź przed drukiem] | Lista miejsc do sprawdzenia w całym projekcie (→ 20). |
+| [Eksportuj do PDF…] | Okno eksportu do pliku PDF (→ 22). |
+| [Pobierz bieżącą stronę jako PNG] | Obraz otwartej strony w 300 dpi, ze spadem (→ 22.5). |
+| [Sprawdź przed drukiem] | Lista miejsc do sprawdzenia w całym projekcie (→ 21). |
 | [Obrazy projektu…] | Wszystkie obrazy projektu (→ 8.5). |
 | [Czcionki projektu…] | Zestaw czcionek i własne czcionki (→ 6.8). |
-| [Kolory do druku…] | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (→ 22.1, 22.5). |
-| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 24). |
+| [Kolory do druku…] | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (→ 23.1, 23.5). |
+| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 25). |
 | [Jasny / ciemny motyw] | Przełącza motyw aplikacji (→ 2.4). |
 
 ## 4.4 Pasek wstawiania
@@ -94,7 +94,7 @@ ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (→ 13.2).
 ![Ustawienia narzędzia: rysowanie](k-rysowanie.png)
 
 Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu:
-[Strony], [Właściwości], [Warstwy] i [Ostrzeżenia] (→ 27.2).
+[Strony], [Właściwości], [Warstwy] i [Ostrzeżenia] (→ 28.2).
 
 ![Właściwości zaznaczonego tekstu](wlasciwosci.png)
 
@@ -119,7 +119,7 @@ Menu widoku:
 | **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
 | [Usuń prowadnice z tej strony] | Usuwa wszystkie prowadnice otwartej strony. |
 | **W rozkładówkach pokazuj jedną stronę** | W sekcji z rozkładówkami pokazuje tylko jedną stronę (→ 11.5). |
-| **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (→ 22.3). |
+| **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (→ 23.3). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | [Auto] — gdy się mieszczą, [Zawsze], [Nigdy]. |
 
@@ -256,7 +256,7 @@ Siatka dni jednego miesiąca z nazwą miesiąca i dniami tygodnia. Niedziele i p
 | Ustawienie | Co zmienia |
 |---|---|
 | **Miesiąc**, **Rok** | Pokazany miesiąc. |
-| **Miesiąc z kolumny danych** | Na każdej stronie serii inny miesiąc – z kolumny z wartościami typu „2027-03”, „marzec 2027” albo „3” (rok wtedy z **Rok z kolumny**). Tak powstaje kalendarz na 12 miesięcy z jednej strony-wzoru (→ 16). |
+| **Miesiąc z kolumny danych** | Na każdej stronie serii inny miesiąc – z kolumny z wartościami typu „2027-03”, „marzec 2027” albo „3” (rok wtedy z **Rok z kolumny**). Tak powstaje kalendarz na 12 miesięcy z jednej strony-wzoru (→ 17). |
 | **Tydzień zaczyna się od** | Poniedziałku albo niedzieli. |
 | **Nazwy dni** | Pełne, skrócone albo same litery. |
 | **Dni innych miesięcy** | Wyszarzone, jak zwykłe dni albo ukryte. |
@@ -270,7 +270,7 @@ Linie, tła wierszy, czcionkę i wyrównanie zmieniasz jak w tabeli (→ 9.5). D
 
 ## 5.10 Wykres
 
-Wykres rysuje liczby z tabeli danych projektu (→ 14) i zmienia się sam, gdy zmienisz dane.
+Wykres rysuje liczby z tabeli danych projektu (→ 15) i zmienia się sam, gdy zmienisz dane.
 
 ![Wykres słupkowy i jego ustawienia](k-wykres.png)
 
@@ -304,7 +304,7 @@ Kod wstawisz z [Biblioteka] (kategoria **Kody**) albo z palety poleceń: <kbd>Ct
 | **Kolor kodu**, **Tło** | Kod musi być ciemny na jasnym tle; tło może być przezroczyste. |
 | **Margines ciszy** | Pusty pas wokół kodu, którego potrzebuje czytnik. |
 
-Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na każdej stronie serii (→ 15).
+Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na każdej stronie serii (→ 16).
 
 Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Sprawdź przed drukiem** pojawi się uwaga, gdy kod będzie za mały (moduł QR mniejszy niż 0,33 mm, EAN mniejszy niż 80% nominału), za jasny albo z błędną treścią.
 
@@ -345,7 +345,7 @@ Właściwości zaznaczonego tekstu:
 
 Kliknij tekst dwa razy, zaznacz fragment i zmień go tymi samymi ustawieniami — panel pokaże
 „Zmieniasz tylko zaznaczony fragment”. Tak pogrubisz jedno słowo albo zmienisz kolor jednej linijki.
-Wygląd fragmentu z polem (→ 15) przechodzi na wstawioną wartość.
+Wygląd fragmentu z polem (→ 16) przechodzi na wstawioną wartość.
 
 ## 6.4 Style
 
@@ -377,7 +377,7 @@ numery liczą się dalej. Skróty: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>8</kbd>
 ## 6.6 Ramka tekstu
 
 Część **Ramka tekstu** przydaje się, gdy tekst ma zająć stałe miejsce — np. teksty z danych o różnej
-długości (→ 17.6):
+długości (→ 18.6):
 
 | Ustawienie | Znaczenie |
 |---|---|
@@ -621,7 +621,7 @@ jej brzegi. <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. To samo liczbam
 | Opis pod nagłówkiem | Wymiary oryginału w pikselach i rozdzielczość w tym rozmiarze (dpi). Do druku — co najmniej 300 dpi; przy mniejszej opis zmienia kolor. |
 | **Obrys** | Ramka wokół zdjęcia: kolor i grubość. |
 | **Odbij lustrzanie w poziomie** | Odwraca obraz. |
-| **Obraz z danych** | Inny obraz na każdej powielonej stronie (→ 17.5). |
+| **Obraz z danych** | Inny obraz na każdej powielonej stronie (→ 18.5). |
 
 ## 8.4 Podmiana zdjęcia
 
@@ -725,7 +725,7 @@ komórki** zaznaczonej tabeli wybiera tę komórkę (→ 9.3), **dwukrotne** —
 Kliknij komórkę dwa razy, żeby w niej pisać. <kbd>Tab</kbd> przechodzi do następnej komórki,
 <kbd>Shift</kbd>+<kbd>Tab</kbd> do poprzedniej; <kbd>Tab</kbd> w ostatniej komórce dodaje wiersz.
 Komórka to zwykły tekst: pogrubisz w niej fragment, zmienisz czcionkę, wstawisz pole z danych
-(→ 15). Wiersz rośnie razem z tekstem — także na stronach powielonych z danych.
+(→ 16). Wiersz rośnie razem z tekstem — także na stronach powielonych z danych.
 
 ## 9.3 Wiersze, kolumny i ich rozmiar
 
@@ -816,7 +816,7 @@ Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w nie
 
 Panel z lewej pokazuje miniatury wszystkich stron w kolejności druku, pogrupowane w sekcje
 (szare nagłówki). Kliknięcie miniatury otwiera stronę. Strona powielana z danych ma znaczek
-**×N** — tyle razy wyjdzie w wydruku (→ 16).
+**×N** — tyle razy wyjdzie w wydruku (→ 17).
 
 Na telefonie strony stoją w poziomym pasku, który przewijasz palcem: nazwa sekcji to wąska etykieta
 z [⋯], a miniatury mają całą wysokość paska — okładka w poziomie jest szeroka, strony w pionie wąskie.
@@ -847,7 +847,7 @@ Gdy nic nie jest zaznaczone, panel właściwości pokazuje ustawienia otwartej s
 | **Sekcja** | Przeniesienie strony do innej sekcji. |
 | **Tło** | Kolor tła tej strony. |
 | **Wzorce** | Wzorce z sekcji albo własny wybór dla tej strony (→ 12.2). |
-| **Seria** | Powielanie strony z tabeli danych (→ 16). |
+| **Seria** | Powielanie strony z tabeli danych (→ 17). |
 | **Prowadnice** | Prowadnice wpisane liczbą (→ 13.4). |
 | [Wklej skopiowane elementy] | Wkleja elementy ze schowka w to samo miejsce. |
 
@@ -941,7 +941,7 @@ Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pe�
 
 Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (→ 12.6).
 Numeracja zależy od ustawień sekcji (→ 11.4) i liczy strony po powieleniu serii. Inne zapisy
-numeru (rzymskie, z zerami) są w tabeli pól (→ 15.2).
+numeru (rzymskie, z zerami) są w tabeli pól (→ 16.2).
 
 # 12. Wzorce
 
@@ -1059,4 +1059,79 @@ zaznaczonym elemencie pokazuje też odległości do krawędzi strony.
 - [−] i [+] w prawym dolnym rogu; kliknięcie procentu dopasowuje stronę do okna (<kbd>Ctrl</kbd>+<kbd>0</kbd>).
 - <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora.
 - Spacja + przeciąganie przesuwa widok.
-- Na telefonie i tablecie — dwa palce (→ 27.1).
+- Na telefonie i tablecie — dwa palce (→ 28.1).
+
+# 14. Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz
+
+## 14.1 W skrócie
+
+Rzeczy potrzebne w książce, które aplikacja liczy sama: spis treści z numerami stron, tytuł rozdziału w stopce, przypisy dolne, odsyłacze „zob. s. 12” i skorowidz. Numery stron biorą się z numeracji sekcji (→ 11.8), także ze stronami powielonymi serią (→ 17).
+
+![Spis treści, przypis i żywa pagina na stronach książki](ksiazka.png)
+
+## 14.2 Nagłówki
+
+Nagłówki to teksty w stylach akapitu (→ 6.4), które projekt uznaje za tytuły rozdziałów. Z nich powstają spis treści, żywa pagina i lista odsyłaczy.
+
+- Bez ustawień styl **Tytuł** to nagłówek 1 (rozdział), a **Nagłówek** – nagłówek 2.
+- Inne style ustawisz w panelu spisu treści: przy każdym stylu wybierz **nagłówek 1**, **nagłówek 2**, **nagłówek 3** albo **nie jest nagłówkiem**.
+
+> Wskazówka: nadaj ten sam styl wszystkim tytułom rozdziałów – wtedy spis treści i pagina ułożą się same.
+
+## 14.3 Spis treści
+
+1. Otwórz [Biblioteka] → **Książka** → **Spis treści** (albo <kbd>Ctrl</kbd>+<kbd>K</kbd> i „spis treści”).
+2. Spis staje na stronie jako tekst i od razu wypełnia się nagłówkami z numerami stron.
+3. Wygląd (czcionkę, rozmiar, interlinię) zmieniasz jak w każdym tekście.
+
+![Spis treści i jego panel](k-spis-tresci.png)
+
+| Ustawienie | Co robi |
+|---|---|
+| **Poziomy** | **tylko rozdziały**, **rozdziały i podrozdziały** albo **trzy poziomy**; niższe poziomy są wcięte. |
+| **Kropki do numeru strony** | Wypełnia odstęp między tytułem a numerem kropkami. |
+| **Styl „…”** | Który styl jest nagłówkiem i jakiego poziomu (→ 14.2). |
+| [Odśwież teraz] | Układa spis od razu. Zwykle nie trzeba – spis odświeża się sam po każdej zmianie. |
+
+Długi spis przelej do kolejnej ramki, także na następnej stronie (→ 6.7). Treści spisu nie wpisuje się ręcznie – przy następnym odświeżeniu ułożyłaby się od nowa.
+
+## 14.4 Żywa pagina
+
+Żywa pagina to tytuł bieżącego rozdziału w stopce albo nagłówku strony.
+
+1. Otwórz wzorzec stopki (→ 12).
+2. W tekście stopki wybierz **Wstaw pole** → **{rozdzial}**. Obok możesz dać numer strony: `{rozdzial} – {nr}`.
+
+Na każdej stronie pole pokazuje ostatni nagłówek 1 do tej strony. `{rozdzial:2}` pokazuje nagłówek 2 – nowy rozdział go zeruje.
+
+## 14.5 Przypisy dolne
+
+1. Zaznacz tekst (albo pisz w nim – przypis stanie w miejscu kursora).
+2. W panelu, w części **Przypisy, odsyłacze, skorowidz**, wybierz [Wstaw przypis] (albo <kbd>Ctrl</kbd>+<kbd>K</kbd> i „przypis”).
+3. W polu **Przypis 1** wpisz treść.
+
+![Przypis w panelu i na dole strony](k-przypisy.png)
+
+- W tekście staje numer w indeksie górnym, a treść – na dole tej samej strony, nad dolnym marginesem, pod krótką kreską. W edytorze widać ją od razu, ale nie da się jej zaznaczyć: zmieniasz ją w panelu.
+- Numery liczą się same. **Numeracja przypisów**: **Od nowa w każdej sekcji**, **Od nowa na każdej stronie** albo **W całym projekcie**.
+- Tekst płynący przez kilka ramek zabiera przypis ze sobą: przypis jest na tej stronie, na której stoi jego numer.
+- Wygląd przypisów: styl akapitu o nazwie **Przypis** (jeśli go nie ma – pismo 8 pt).
+- [Usuń przypis] zdejmuje i numer z tekstu, i treść.
+
+## 14.6 Odsyłacze
+
+Odsyłacz to numer strony innego miejsca w książce, np. „zob. s. 12”.
+
+1. Zaznacz tekst, w którym ma stać odsyłacz.
+2. W części **Przypisy, odsyłacze, skorowidz** wybierz z listy **Wstaw odsyłacz do** nagłówek.
+3. W tekście pojawi się „s. 12” – numer zmienia się sam, gdy strony się przesuną.
+
+W edytorze odsyłacz widać jako pole `{s:…}`; liczbę zobaczysz w podglądzie i w PDF. Gdy nagłówek usuniesz, zamiast numeru stanie „?”, a **Sprawdź przed drukiem** o tym przypomni (→ 21).
+
+## 14.7 Skorowidz
+
+1. Zaznacz słowo w pisanym tekście.
+2. Wybierz [Dodaj do skorowidza] (albo <kbd>Ctrl</kbd>+<kbd>K</kbd> i „skorowidz”). Bez zaznaczenia aplikacja zapyta o hasło.
+3. Wstaw skorowidz: [Biblioteka] → **Książka** → **Skorowidz**.
+
+Skorowidz ma hasła alfabetycznie (po polsku: ą po a, ł po l) z numerami wszystkich stron, na których słowo występuje w jakimkolwiek tekście – wielkość liter nie ma znaczenia, a kolejne strony łączą się w zakres (3–5). Hasła tekstu widać w panelu jako żetony; kliknięcie żetonu usuwa hasło.

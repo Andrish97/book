@@ -2,9 +2,9 @@
 
 Telefon i tablet, skróty klawiszowe i słowniczek.
 
-# 27. Telefon i tablet
+# 28. Telefon i tablet
 
-## 27.1 Gesty
+## 28.1 Gesty
 
 Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie dotykowym:
 
@@ -15,9 +15,9 @@ Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie
 | **Dwa szybkie stuknięcia** | Jak podwójne kliknięcie: pisanie w tekście i komórce tabeli, wejście do grupy, edycja punktów. |
 | **Przytrzymanie** | Pokazuje podpowiedź, np. opis chmurki zapisu. |
 
-W podglądzie szczypanie powiększa, a w prezentacji przesunięcie w bok przewraca stronę (→ 19).
+W podglądzie szczypanie powiększa, a w prezentacji przesunięcie w bok przewraca stronę (→ 20).
 
-## 27.2 Edytor na telefonie
+## 28.2 Edytor na telefonie
 
 Na telefonie edytor działa w pionie. Panele **Strony**, **Właściwości**, **Warstwy** i
 **Ostrzeżenia** otwierasz przyciskami na dole ekranu. Panel wysuwa się z dołu, a widok sam
@@ -34,7 +34,7 @@ Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” 
 
 ![Edytor na telefonie](telefon.png@telefon)
 
-## 27.3 Okna od dołu
+## 28.3 Okna od dołu
 
 Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu i inne) wysuwają się od
 dołu ekranu. Zamiast krzyżyka mają **uchwyt** — pociągnij go w dół albo stuknij, żeby zamknąć;
@@ -42,7 +42,7 @@ zamyka też stuknięcie w przyciemnione tło. Główny przycisk okna jest na dol
 
 ![Okno na telefonie](telefon-zaslonka.png@telefon)
 
-## 27.4 Instalacja aplikacji
+## 28.4 Instalacja aplikacji
 
 Zainstalowana Makietka otwiera się z ekranu głównego jak zwykła aplikacja — na całym ekranie,
 bez paska przeglądarki.
@@ -55,15 +55,15 @@ bez paska przeglądarki.
 
 Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem.
 
-## 27.5 Pełny ekran
+## 28.5 Pełny ekran
 
 [Pełny ekran] (cztery narożniki) na liście projektów, w edytorze i w podglądzie chowa paski
 przeglądarki; <kbd>Esc</kbd> albo ten sam przycisk wraca. Na iPhonie przeglądarka nie pozwala na
-pełny ekran — tam daje go zainstalowanie aplikacji (→ 27.4).
+pełny ekran — tam daje go zainstalowanie aplikacji (→ 28.4).
 
-# 28. Skróty klawiszowe
+# 29. Skróty klawiszowe
 
-## 28.1 Lista skrótów
+## 29.1 Lista skrótów
 
 Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast <kbd>Ctrl</kbd> naciśnij
 <kbd>⌘</kbd>. Tę listę otworzy w edytorze klawisz <kbd>?</kbd>. Skróty z literami działają, gdy
@@ -74,9 +74,9 @@ kursor nie stoi w polu formularza; w trakcie pisania tekstu działają skróty z
 
 {{tabela-skrotow}}
 
-# 29. Słowniczek
+# 30. Słowniczek
 
-## 29.1 Pojęcia
+## 30.1 Pojęcia
 
 | Pojęcie | Znaczenie |
 |---|---|

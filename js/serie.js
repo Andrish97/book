@@ -32,6 +32,7 @@
 
 import { sekcjaStrony } from './projekt.js';
 import { zapiszLiczbe } from './pola.js';
+import { poleKsiazki } from './ksiazka.js';
 
 // Znacznik wiersza pomijanego – wpisywany w pierwszej komórce wiersza (w Excelu, CSV albo w oknie Dane).
 export const ZNACZNIK_POMIJANIA = '[pomiń]';
@@ -376,7 +377,8 @@ export function wartosciPol(projekt, egz, ciag) {
         const cel = projekt.strony.find((s) => s.nazwa.trim().toLowerCase() === String(zapis || '').trim().toLowerCase());
         return cel ? liczba(ciag.pierwszy.get(cel.id)?.nr ?? null) : undefined;
       }
-      default: return undefined;
+      // Pola książki (#131B): {rozdzial}, {s:id}, {przypis:id} (js/ksiazka.js).
+      default: return poleKsiazki(projekt, egz, ciag, nazwa, zapis);
     }
   };
   // Wygląd komórki przeniesiony z arkusza (pogrubienie, kursywa, kolor liter) jako formatowanie fragmentu tekstu

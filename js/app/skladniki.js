@@ -17,7 +17,7 @@ import { $, powiadom, odmiana } from '../ui.js';
 import { Podglad } from '../podglad.js';
 import { odepnijStyl, zastosujStylWProjekcie, odepnijStylZnakowy, zastosujStylZnakowyWProjekcie } from '../style-tekstu.js';
 import { edytor, stan, biezacaStrona, wlasciciel } from './kontekst.js';
-import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno } from './zapis.js';
+import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno, odswiezKsiazke } from './zapis.js';
 import { doEdycji } from './podglad-ekran.js';
 import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './panel-strony.js';
 import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki } from './lista-stron.js';
@@ -30,6 +30,8 @@ export const podmiana = { obj: null, doKsztaltu: false };
 export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
   tytulPusty: () => (stan.tryb === 'wzorzec' ? 'Wzorzec' : 'Strona'),
   projekt: () => stan.projekt, // tabele danych dla kalendarza i wykresu (#131A)
+  // Książka (#131B): przypisy, odsyłacze, skorowidz, spis treści – po zmianie zapis i przeliczenie spisów.
+  poZmianieKsiazki: () => { zaplanujZapis(); setTimeout(() => odswiezKsiazke().catch((e) => console.error(e)), 50); },
   budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),
   // Dodatkowe ustawienia elementu zależne od tego, co edytujemy.
   dodatkiElementu: (p, obj, sekcja) => {

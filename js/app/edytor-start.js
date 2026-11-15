@@ -38,7 +38,7 @@ import { wlaczWygladEdytora } from './wyglad-edytora.js';
 import { wczytajPlikProjektu } from './projekty.js';
 import {
   naPlotnie, zapiszBiezacyCel, cofnijKrok, zaplanujZapis, wybierzStroneArkusza, zaladujCel,
-  zapiszTeraz, synchronizuj, zaplanujChmure, stanZapisu, otworzProjekt, odlaczPlotno,
+  zapiszTeraz, synchronizuj, zaplanujChmure, stanZapisu, otworzProjekt, odlaczPlotno, odswiezKsiazke,
 } from './zapis.js';
 import {
   pokazPodglad, otworzUdostepnianie, opublikujUdostepnienie, wylaczUdostepnienie,
@@ -591,6 +591,13 @@ export function wstawKod(rodzaj = 'qr') {
   return edytor.dodajKod(rodzaj === 'ean' ? 'ean' : 'qr');
 }
 const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan.projekt);
+// Książka (#131B): spis treści, skorowidz, przypis, hasło skorowidza.
+const poKsiazce = () => { zaplanujZapis(); setTimeout(() => odswiezKsiazke().catch((e) => console.error(e)), 50); };
+const zTekstem = () => wEdytorze() && edytor.aktywny?.type === 'textbox';
+dodajPolecenie({ nazwa: 'Wstaw spis treści', opis: 'Rozdziały z numerami stron – układa się sam', wykonaj: () => { edytor.dodajElementKsiazki('spis'); poKsiazce(); }, dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Wstaw skorowidz', opis: 'Hasła alfabetycznie z numerami stron', wykonaj: () => { edytor.dodajElementKsiazki('skorowidz'); poKsiazce(); }, dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Wstaw przypis', opis: 'Przypis dolny w miejscu kursora; treść wpiszesz w panelu', wykonaj: () => { edytor.wstawPrzypis(''); poKsiazce(); panel.zbuduj(); }, dostepne: zTekstem });
+dodajPolecenie({ nazwa: 'Dodaj do skorowidza', opis: 'Zaznaczone słowo trafia do skorowidza', wykonaj: () => { if (edytor.dodajDoSkorowidza()) poKsiazce(); else powiadom('Zaznacz słowo w pisanym tekście.', true); }, dostepne: zTekstem });
 dodajPolecenie({ nazwa: 'Wstaw kod QR', opis: 'Adres, tekst, e-mail, telefon albo sieć Wi-Fi – także z pola danych', wykonaj: () => wstawKod('qr'), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Wstaw kod kreskowy EAN / ISBN', opis: 'EAN-13 albo ISBN, np. na okładkę książki', wykonaj: () => wstawKod('ean'), dostepne: wEdytorze });
 
