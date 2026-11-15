@@ -108,8 +108,8 @@ osobny widok, a [‹ Ustawienia] wraca do listy.
 | **Hasło** | [Zmień hasło] — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
 | **Motyw** | Wygląd aplikacji (→ 2.4). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 2.6). |
-| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (→ 2.9). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (→ 26.2). |
+| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (→ 2.9). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 2.5). |
 | **Usuń konto** | Usunięcie konta (→ 2.7). |
 

@@ -132,8 +132,8 @@ Ustawienia to lista: każdy wiersz pokazuje bieżącą wartość, a kliknięcie 
 | **Hasło** | **Zmień hasło** — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
 | **Motyw** | Wygląd aplikacji (rozdział „2.4 Motyw”). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (rozdział „2.6 Powiadomienia”). |
-| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (rozdział „2.9 Zestaw marki”). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (rozdział „26.2 Klucz dla AI”). |
+| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (rozdział „2.9 Zestaw marki”). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (rozdział „2.5 Miejsce i limity”). |
 | **Usuń konto** | Usunięcie konta (rozdział „2.7 Usuwanie konta”). |
 
