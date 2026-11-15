@@ -40,27 +40,6 @@ Jeden **projekt** to jedna publikacja. Projekt składa się z:
 
 Projekt zapisuje się sam, na Twoim koncie (→ 3.4).
 
-## 1.3 Pierwszy projekt w skrócie
-
-1. Na liście projektów wybierz [Nowy projekt], wpisz nazwę i wybierz format (→ 3.2).
-2. Wstaw elementy z paska nad stroną: tekst, obraz, kształt, tabelę (→ 5.1).
-3. To, co powtarza się na wielu stronach — tło, stopkę, numer strony — połóż we wzorcu (→ 12).
-4. Sprawdź całość w [Podgląd] (→ 20).
-5. Wybierz [⋯] → [Sprawdź przed drukiem], a potem [⋯] → [Eksportuj do PDF…] (→ 21, 22).
-
-![Nowy projekt](k-nowy-projekt.png)
-
-## 1.4 Instrukcja
-
-Instrukcję otworzysz przyciskiem z ikoną książki — na liście projektów, w edytorze i w menu [⋯]
-na telefonie. Bez konta otworzysz ją na ekranie logowania: [Zobacz, jak to działa].
-
-Strona główna instrukcji pokazuje wszystkie części i rozdziały. Pole [Szukaj w instrukcji] zostawia
-w spisie tylko rozdziały ze wszystkimi wpisanymi słowami. Na telefonie spis otwierasz przyciskiem
-z nazwą bieżącego rozdziału, nad treścią.
-
-![Instrukcja dostępna bez konta](k-zobacz-jak.png)
-
 # 2. Konto
 
 ## 2.1 Zakładanie konta

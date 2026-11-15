@@ -33,12 +33,11 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | **Format** (np. „A5”) | Ustawienia bieżącej sekcji: format, spad, marginesy (→ 11.4). |
 | [Pełny ekran] | Chowa paski przeglądarki; <kbd>Esc</kbd> wraca. |
 | [Znajdź i zamień] | Lupa: szukanie i zamiana tekstu w całym projekcie (→ 6.15). |
-| [Instrukcja] | Ta instrukcja. |
 | [⋯] | Menu z eksportem i oknami projektu (→ 4.3). |
 
 [Wzorce], [Dane] i [Podgląd] to ikony; napisy obok nich pojawiają się same, gdy jest na nie
 miejsce. Zmienisz to w menu widoku: **Napisy na górnym pasku** — [Auto], [Zawsze], [Nigdy] (→ 4.6).
-Na wąskim telefonie [Wzorce], [Dane], [Instrukcja] i lupa przechodzą do menu [⋯] ([Znajdź i zamień…] jest tam na górze).
+Na wąskim telefonie [Wzorce], [Dane] i lupa przechodzą do menu [⋯] ([Znajdź i zamień…] jest tam na górze).
 
 ## 4.3 Menu ⋯
 

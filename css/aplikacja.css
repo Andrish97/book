@@ -2658,11 +2658,6 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
   font: 12.5px/1.5 ui-monospace, Menlo, monospace; color: var(--tusz-2);
 }
 /* Poprzedni / następny rozdział pod treścią. */
-.strony-obok { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; }
-.strona-obok { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--linia); border-radius: var(--r-m); color: var(--tusz); text-decoration: none; font-weight: 600; font-size: 14px; }
-.strona-obok .ciche { font-weight: 400; font-size: 12px; }
-.strona-obok.nastepny { text-align: right; grid-column: 2; }
-@media (hover: hover) { .strona-obok:hover { border-color: var(--akcent); color: var(--akcent); } }
 /* Strona główna: części z listami rozdziałów. */
 .instrukcja-czesci { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; max-width: none !important; }
 .karta-czesci { padding: 16px 18px; border: 1px solid var(--linia); border-radius: var(--r-l, 14px); background: var(--powierzchnia); }
@@ -2704,8 +2699,6 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
   .podrozdzial > h2 { font-size: 17.5px; }
   .w-rozdziale ol { columns: 1; }
   .instrukcja-tresc figure.telefon img { width: min(300px, 100%); }
-  .strony-obok { grid-template-columns: 1fr; }
-  .strona-obok.nastepny { grid-column: auto; }
   .instrukcja-stopka { padding: 10px 14px calc(10px + var(--bezp-dol)); }
 }
 @media (prefers-reduced-motion: reduce) { .instrukcja-spis, .instrukcja-tresc { transition: none !important; scroll-behavior: auto; } }

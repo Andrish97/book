@@ -233,15 +233,10 @@ export class Instrukcja {
     const katalog = czyCiemny() ? 'img/instrukcja/ciemny/' : 'img/instrukcja/';
     const html = r.sekcje.map((s) => `<section class="podrozdzial" id="${idSekcji(s.id)}" data-sekcja="${s.id}"><h2><small>${s.id}</small>${esc(s.tytul)}</h2>${s.html}</section>`).join('')
       .replace(/src="img\/instrukcja\//g, `src="${katalog}`);
-    const sasiad = (j, rodzaj, podpis) => {
-      const x = ROZDZIALY[j];
-      return x ? `<a href="#" class="strona-obok ${rodzaj}" data-cel="${x.nr}"><span class="ciche">${podpis}</span><span>${x.nr}. ${esc(x.tytul)}</span></a>` : '<span></span>';
-    };
     return `<header class="instrukcja-naglowek"><nav class="okruszki" aria-label="Jesteś tutaj"><a href="#" data-instrukcja-start>Instrukcja</a><span aria-hidden="true">›</span><span>Część ${CZESCI.find((c) => c.rozdzialy.includes(r.nr))?.nr}. ${esc(r.czesc)}</span></nav>`
       + `<h1 class="instrukcja-h1"><small>${r.nr}.</small> ${esc(r.tytul)}</h1>`
       + (r.sekcje.length > 1 ? `<nav class="w-rozdziale" aria-label="W tym rozdziale"><span class="ciche">W tym rozdziale</span><ol>${r.sekcje.map((s) => `<li><a href="#" data-cel="${s.id}"><small>${s.id}</small>${esc(s.tytul)}</a></li>`).join('')}</ol></nav>` : '')
-      + `</header><div class="instrukcja-dokument">${html}</div>`
-      + `<nav class="strony-obok">${sasiad(i - 1, 'poprzedni', 'Poprzedni')}${sasiad(i + 1, 'nastepny', 'Następny')}</nav>`;
+      + `</header><div class="instrukcja-dokument">${html}</div>`;
   }
 
   pokaz(i, { sekcja = null, przewin = true } = {}) {

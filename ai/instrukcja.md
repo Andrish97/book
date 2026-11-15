@@ -76,24 +76,6 @@ Jeden **projekt** to jedna publikacja. Projekt składa się z:
 
 Projekt zapisuje się sam, na Twoim koncie (rozdział „3.4 Zapis”).
 
-### 1.3 Pierwszy projekt w skrócie
-
-1. Na liście projektów wybierz **Nowy projekt**, wpisz nazwę i wybierz format (rozdział „3.2 Nowy projekt”).
-2. Wstaw elementy z paska nad stroną: tekst, obraz, kształt, tabelę (rozdział „5.1 Wstawianie”).
-3. To, co powtarza się na wielu stronach — tło, stopkę, numer strony — połóż we wzorcu (rozdział „12 Wzorce”).
-4. Sprawdź całość w **Podgląd** (rozdział „20 Podgląd”).
-5. Wybierz **⋯** → **Sprawdź przed drukiem**, a potem **⋯** → **Eksportuj do PDF…** (rozdział „21 Sprawdź przed drukiem”, „22 Eksport do PDF i PNG”).
-
-![Nowy projekt](https://makietka.app/img/instrukcja/k-nowy-projekt.png)
-
-### 1.4 Instrukcja
-
-Instrukcję otworzysz przyciskiem z ikoną książki — na liście projektów, w edytorze i w menu **⋯** na telefonie. Bez konta otworzysz ją na ekranie logowania: **Zobacz, jak to działa**.
-
-Strona główna instrukcji pokazuje wszystkie części i rozdziały. Pole **Szukaj w instrukcji** zostawia w spisie tylko rozdziały ze wszystkimi wpisanymi słowami. Na telefonie spis otwierasz przyciskiem z nazwą bieżącego rozdziału, nad treścią.
-
-![Instrukcja dostępna bez konta](https://makietka.app/img/instrukcja/k-zobacz-jak.png)
-
 ## 2. Konto
 
 ### 2.1 Zakładanie konta
@@ -320,10 +302,9 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | **Format** (np. „A5”) | Ustawienia bieżącej sekcji: format, spad, marginesy (rozdział „11.4 Ustawienia sekcji”). |
 | **Pełny ekran** | Chowa paski przeglądarki; `Esc` wraca. |
 | **Znajdź i zamień** | Lupa: szukanie i zamiana tekstu w całym projekcie (rozdział „6.15 Znajdź i zamień”). |
-| **Instrukcja** | Ta instrukcja. |
 | **⋯** | Menu z eksportem i oknami projektu (rozdział „4.3 Menu ⋯”). |
 
-**Wzorce**, **Dane** i **Podgląd** to ikony; napisy obok nich pojawiają się same, gdy jest na nie miejsce. Zmienisz to w menu widoku: **Napisy na górnym pasku** — **Auto**, **Zawsze**, **Nigdy** (rozdział „4.6 Prawy dolny róg i menu widoku”). Na wąskim telefonie **Wzorce**, **Dane**, **Instrukcja** i lupa przechodzą do menu **⋯** (**Znajdź i zamień…** jest tam na górze).
+**Wzorce**, **Dane** i **Podgląd** to ikony; napisy obok nich pojawiają się same, gdy jest na nie miejsce. Zmienisz to w menu widoku: **Napisy na górnym pasku** — **Auto**, **Zawsze**, **Nigdy** (rozdział „4.6 Prawy dolny róg i menu widoku”). Na wąskim telefonie **Wzorce**, **Dane** i lupa przechodzą do menu **⋯** (**Znajdź i zamień…** jest tam na górze).
 
 ### 4.3 Menu ⋯
 
