@@ -201,17 +201,29 @@ test('tekst przez strony: kursor idzie za tekstem na następną stronę i wraca 
   assert.equal(caly(await proj()), POKASOWANIU, 'zapis ma ten sam tekst co ekran');
 
   // Cofanie: każdy krok to cały tekst w jednym z wcześniejszych stanów (nic w połowie), a na końcu tekst wyjściowy.
-  await strona.waitForTimeout(450);
+  await strona.waitForFunction(() => !window.seriodruk.stan.doHistorii, null, { timeout: 15000 });
   const stany = [];
   for (let i = 0; i < 8; i += 1) {
     if (await strona.evaluate(() => document.querySelector('[data-akcja="cofnij"]').disabled)) break;
     await strona.click('[data-akcja="cofnij"]');
-    await strona.waitForTimeout(250);
-    stany.push(caly(await proj()));
+    // Cofnięcie wczytuje stronę i układa tekst w ramkach od nowa – czytamy stan dopiero, gdy przestał się zmieniać (#137).
+    let poprzedni = null;
+    let biezacy = caly(await proj());
+    for (let k = 0; k < 40 && biezacy !== poprzedni; k += 1) {
+      await strona.waitForTimeout(250);
+      poprzedni = biezacy;
+      biezacy = caly(await proj());
+    }
+    stany.push(biezacy);
     if (stany.at(-1) === DLUGI) break;
   }
   assert.equal(stany.at(-1), DLUGI, `cofanie wraca do tekstu wyjściowego: ${JSON.stringify(stany.map((s) => s.length))}`);
-  for (const s of stany) assert.ok(s === DLUGI || (s.startsWith(DLUGI.slice(0, 40)) && s.endsWith(DLUGI.slice(-40)) && s.length >= DLUGI.length - 12 && s.length <= POTEM.length), `stan pośredni jest całym tekstem (${s.length} znaków)`);
+  // Krok historii powstaje po chwili bez zmian – pod obciążeniem także w połowie pisania albo kasowania (#137).
+  // Każdy stan to więc cały tekst: wyjściowy z częścią dopisanego zdania albo po dopisaniu z częścią skasowanych znaków.
+  const dozwolone = new Set([DLUGI]);
+  for (let k = 0; k <= DOPISANE.length; k += 1) dozwolone.add(DLUGI.slice(0, n1) + DOPISANE.slice(0, k) + DLUGI.slice(n1));
+  for (let d = 0; d <= 12; d += 1) dozwolone.add(POTEM.slice(0, przed - d) + POTEM.slice(przed));
+  for (const s of stany) assert.ok(dozwolone.has(s), `stan pośredni jest całym tekstem (${s.length} znaków)`);
   assert.deepEqual(bledy, []);
 });
 

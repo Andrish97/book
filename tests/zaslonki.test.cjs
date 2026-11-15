@@ -31,7 +31,9 @@ async function pociagnij(strona, sel, dy) {
   const y = r.y + r.height / 2;
   await strona.mouse.move(x, y);
   await strona.mouse.down();
-  for (let i = 1; i <= 6; i += 1) await strona.mouse.move(x, y + (dy * i) / 6);
+  // Ruch rozłożony w czasie (ok. 40 ms na krok): bez przerw prędkość zależała od tego, jak szybko przyszły zdarzenia,
+  // a pod obciążeniem krótkie pociągnięcie wyglądało jak szybkie machnięcie i zamykało zasłonkę (#137).
+  for (let i = 1; i <= 6; i += 1) { await strona.mouse.move(x, y + (dy * i) / 6); await strona.waitForTimeout(40); }
   await strona.mouse.up();
 }
 async function otworzMenuWiecej(strona, akcja) {

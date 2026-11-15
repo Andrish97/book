@@ -59,11 +59,13 @@ test('telefon: „Zaawansowane” w eksporcie PDF zwinięte z podsumowaniem; czc
   await strona.evaluate(() => document.querySelector('#dlg-pdf').close());
   await strona.evaluate(() => document.querySelector('[data-akcja="czcionki"]').click());
   await strona.waitForSelector('#czcionki-zestaw li button');
+  // Mierzymy po wjeździe okna (zasłonka na telefonie) – w trakcie animacji wysokość jest jeszcze przeskalowana (#137).
+  await strona.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'), null, { timeout: 10000 }).catch(() => {});
   const cz = await strona.evaluate(() => { const li = document.querySelector('#czcionki-zestaw li'); const b = li.querySelector('button'); return { nazwa: li.querySelector('.nazwa-rodziny').textContent, etykieta: b.getAttribute('aria-label'), tekst: b.textContent.trim(), wys: b.getBoundingClientRect().height }; });
   assert.ok(cz.nazwa.length > 1);
   assert.match(cz.etykieta, /Pobierz pliki czcionki/);
   assert.equal(cz.tekst, '');
-  assert.ok(cz.wys >= 40, `cel dotyku ${cz.wys}`);
+  assert.ok(cz.wys >= 39.99, `cel dotyku ${cz.wys}`); // zaokrąglenie ułamkowych pikseli
   // Długie opisy okien zwinięte do dwóch linii (stuknięcie rozwija).
   const opisy = await strona.evaluate(() => [...document.querySelectorAll('dialog p.ciche.podpowiedz-zwijana')].length);
   assert.ok(opisy >= 3, `zwinięte opisy okien: ${opisy}`);

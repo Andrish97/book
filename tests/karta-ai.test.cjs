@@ -68,11 +68,11 @@ test('otwarta karta nie udaje zmian: element od AI (same podstawowe pola), tło 
   await ai.wywolaj('zmien_elementy', { gdzie: `strona:${s1.id}`, zmiany: [{ id: tekst.id, pola: { text: 'Od AI' } }] });
   // Element z samymi podstawowymi polami – płótno dopisze mu kilkadziesiąt pól domyślnych (wymiary, krój, krycie…).
   await ai.wywolaj('dodaj_elementy', { gdzie: `strona:${s1.id}`, elementy: [{ type: 'textbox', id: 'ai1', text: 'Nowy od AI', left: 50, top: 300 }] });
-  await doszlo(strona, () => window.seriodruk.edytor.canvas.getObjects().some((o) => o.id === 'ai1'));
+  await doszlo(strona, () => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.id === 'ai1'));
   // Ten sam element jeszcze raz: dotąd karta pytała tu „to samo zmieniono w dwóch miejscach”,
   // a odpowiedź „z tego urządzenia” cofała zmianę AI.
   await ai.wywolaj('zmien_elementy', { gdzie: `strona:${s1.id}`, zmiany: [{ id: 'ai1', pola: { text: 'Poprawione od AI', fill: '#ff0000' } }, { id: tekst.id, pola: { left: 77 } }] });
-  await doszlo(strona, () => window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === 'ai1')?.text === 'Poprawione od AI');
+  await doszlo(strona, () => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.id === 'ai1')?.text === 'Poprawione od AI');
   assert.equal(await pytanie(strona), 0, 'karta nie pyta o element, którego nikt w niej nie ruszał');
   // Tło (kolor wielkimi literami) i prowadnice z ułamkami – płótno zapisuje je w innej postaci.
   await ai.wywolaj('zmien_strone', { id: s1.id, pola: { tlo: '#FFEEDD', prowadnice: { x: [10.123456], y: [] } } });
@@ -96,12 +96,12 @@ test('otwarta karta nie udaje zmian: element od AI (same podstawowe pola), tło 
 test('zmiana w karcie i równoległe zmiany AI na tej samej stronie łączą się bez pytania; ten sam element – pytanie zostaje; „Cofnij” nie zdejmuje zmian AI', async (t) => {
   const { strona, baza, bledy, klucz, ai, s1, tekst, prostokat } = await przygotuj(t);
   await ai.wywolaj('dodaj_elementy', { gdzie: `strona:${s1.id}`, elementy: [{ type: 'textbox', id: 'ai1', text: 'Od AI', left: 50, top: 300 }] });
-  await doszlo(strona, () => window.seriodruk.edytor.canvas.getObjects().some((o) => o.id === 'ai1'));
+  await doszlo(strona, () => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.id === 'ai1'));
   // Użytkownik przesuwa prostokąt; w tym samym czasie AI zmienia swój element i tło strony.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; const r = e.canvas.getObjects().find((x) => x.type === 'rect'); r.set({ top: 99 }); r.setCoords(); e.zatwierdz(); });
   await ai.wywolaj('zmien_elementy', { gdzie: `strona:${s1.id}`, zmiany: [{ id: 'ai1', pola: { text: 'Poprawione od AI' } }] });
   await ai.wywolaj('zmien_strone', { id: s1.id, pola: { tlo: '#AABBCC' } });
-  await doszlo(strona, () => window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === 'ai1')?.text === 'Poprawione od AI');
+  await doszlo(strona, () => window.seriodruk.edytor?.canvas.getObjects().find((o) => o.id === 'ai1')?.text === 'Poprawione od AI');
   await zapisano(strona);
   assert.equal(await pytanie(strona), 0);
   let s = naKoncie(baza, klucz).strony[0];
@@ -142,7 +142,7 @@ for (const sposob of ['lista', 'przeładowanie']) {
     const wersjaAi = baza.ai('ai_projekt', { p_klucz: klucz }).wersja;
     // Otwarcie projektu.
     await strona.evaluate((pid) => { location.hash = `#/p/${pid}`; }, id);
-    await doszlo(strona, () => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text === 'Tytuł od AI') && window.seriodruk.edytor.canvas.getObjects().some((o) => o.id === 'ai-nowy'));
+    await doszlo(strona, () => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.text === 'Tytuł od AI') && window.seriodruk.edytor?.canvas.getObjects().some((o) => o.id === 'ai-nowy'));
     await strona.waitForTimeout(3000);
     assert.equal(await pytanie(strona), 0, 'bez pytania o konflikt');
     const s = naKoncie(baza, klucz).strony[0];

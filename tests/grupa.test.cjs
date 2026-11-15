@@ -17,7 +17,12 @@ const przeciagnij = async (strona, z, na) => {
   await strona.mouse.move(...(await naEkranie(strona, ...na)), { steps: 6 });
   await strona.mouse.up();
 };
-const krok = (strona) => strona.waitForTimeout(450); // osobny krok historii
+// Osobny krok historii: czekamy, aż zmiana naprawdę stanie się krokiem cofania (licznik 300 ms w js/app/zapis.js),
+// a nie stałą chwilę – pod obciążeniem licznik się spóźnia i dwa kroki zlewały się w jeden (#137).
+const krok = async (strona) => {
+  await strona.waitForTimeout(50);
+  await strona.waitForFunction(() => !window.seriodruk.stan.doHistorii, null, { timeout: 15000 });
+};
 // Mysz trafia w całe piksele ekranu, czyli z dokładnością ok. 0,4 mm strony.
 const blisko = (a, b, tol = 0.6) => Math.abs(a - b) <= tol;
 
@@ -558,7 +563,7 @@ test('grupa otwarta: obraz kadruje się przeciąganiem, a kształt zmienia punkt
       ksztalt: rogi(ksztalt), grupa: (() => { g.setCoords(); const r = g.getBoundingRect(); return [z(r.left), z(r.top), z(r.width), z(r.height)]; })(),
     };
   });
-  await strona.waitForTimeout(450);
+  await krok(strona);
   let o = await opis();
   assert.deepEqual([o.naArkuszu, o.wGrupie], [['group'], ['Obraz', 'Kształt', 'Kwadrat']]);
   const obrazPrzed = o.obraz;
@@ -609,7 +614,7 @@ test('grupa otwarta: obraz kadruje się przeciąganiem, a kształt zmienia punkt
 
   // Grupa obrócona: kadrowanie i edycja punktów nie przestawiają elementów; anulowanie zostawia wszystko jak było.
   await strona.evaluate((gid) => { const e = window.seriodruk.edytor; const g = e.canvas.getObjects().find((x) => x.id === gid); g.rotate(25); g.setCoords(); e.canvas.discardActiveObject(); e.zatwierdz(); }, id);
-  await strona.waitForTimeout(450);
+  await krok(strona);
   const obrocona = await opis();
   await strona.evaluate((gid) => { const e = window.seriodruk.edytor; const img = e.otworzGrupe(gid, 0); e.kadruj(img); }, id);
   assert.equal((await opis()).kadruje, true);

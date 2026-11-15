@@ -62,7 +62,12 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
 
   // Odnośnik w treści (→ 15.1) prowadzi do innego rozdziału; okruszek „Instrukcja” wraca na stronę główną.
   await pokaz(strona, 'Przykłady');
-  await strona.click('#instrukcja-tresc a[data-cel="16.1"]');
+  // Rozdział rysuje się po otwarciu okna – klikamy, gdy odnośnik już stoi, i czekamy na nowy rozdział (#137).
+  await strona.waitForFunction(() => /Przykłady/.test(document.querySelector('#instrukcja-tresc .instrukcja-h1')?.textContent || ''));
+  for (let proba = 0; proba < 3; proba += 1) {
+    await strona.click('#instrukcja-tresc a[data-cel="16.1"]');
+    if (await strona.waitForFunction(() => /Pola w tekście/.test(document.querySelector('#instrukcja-tresc .instrukcja-h1')?.textContent || ''), null, { timeout: 5000 }).then(() => true, () => false)) break;
+  }
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Pola w tekście/);
   await strona.click('#instrukcja-tresc .okruszki [data-instrukcja-start]');
   assert.equal(await strona.locator('#instrukcja-tresc .karta-czesci').count(), dane.czesci);
@@ -151,8 +156,12 @@ test('instrukcja bez konta: „Zobacz, jak to działa” na ekranie logowania i 
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Instrukcja Makietki/);
   await strona.click('[data-akcja="zamknij-instrukcje"]');
   await strona.waitForFunction(() => !document.querySelector('#dlg-instrukcja').open);
+  // Zdarzenie „close” okna przychodzi chwilę po zamknięciu i przywraca adres – dopiero potem ustawiamy nowy,
+  // inaczej przywrócenie nadpisywało #/instrukcja tuż przed przeładowaniem (#137).
+  await strona.waitForFunction(() => !/^#\/instrukcja/.test(location.hash));
   // Adres prowadzi wprost do instrukcji; po zamknięciu adres wraca.
   await strona.evaluate(() => { location.hash = '#/instrukcja'; });
+  await strona.waitForSelector('#dlg-instrukcja[open]');
   await strona.reload();
   await strona.waitForSelector('#dlg-instrukcja[open]');
   assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'logowanie');

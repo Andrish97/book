@@ -18,6 +18,7 @@ import { polaBezpieczne, STREFY } from './okladka.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
+import { odswiezAdresZasobu } from './zasoby.js';
 import { maObraz, moznaWstawicObraz, przygotujObrazyKsztaltow, ukladObrazu, ustawKadr, ustawZrodloObrazow } from './obraz-w-ksztalcie.js';
 import { wlaczPamiecWarstw } from './warstwy-plotna.js';
 import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
@@ -366,7 +367,17 @@ export class Edytor extends EventTarget {
   // Jedna strona rozkładówki może mieć pole `sasiednia`: { bok: 'lewa' | 'prawa', obiekty, warstwy } – drugą
   // stronę tej rozkładówki. Jej elementy, które przechodzą przez grzbiet, są wtedy widoczne na tej stronie
   // (przycięte do niej ze spadem), ale nie da się ich tu zmienić ani zapisać – należą do sąsiedniej strony.
-  async wczytajArkusz(strony, zasoby) {
+  // Wczytania idą po kolei (#137): Fabric czyści płótno i dodaje elementy asynchronicznie, więc dwa nakładające się
+  // wczytania (np. otwarcie projektu i zaraz potem dołączenie zmian z konta albo przeliczenie okładki) potrafiły
+  // zostawić na płótnie tylko część elementów strony.
+  wczytajArkusz(strony, zasoby) {
+    const poprzednie = this._kolejkaWczytan || Promise.resolve();
+    const teraz = poprzednie.catch(() => {}).then(() => this._wczytajArkusz(strony, zasoby));
+    this._kolejkaWczytan = teraz;
+    return teraz;
+  }
+
+  async _wczytajArkusz(strony, zasoby) {
     this._poza = [];
     const sasiednia = strony.length === 1 ? strony[0].sasiednia || null : null;
     const doWczytania = [...strony.flatMap((s) => s.obiekty || []), ...(sasiednia?.obiekty || [])];
@@ -429,6 +440,22 @@ export class Edytor extends EventTarget {
     }
     const obiekty = podmienZasoby(json, zrodloObrazu(zasoby));
     await this.canvas.loadFromJSON({ objects: obiekty });
+    // Fabric pomija po cichu obraz, którego adres się nie wczytał – element zniknąłby ze strony (i z zapisu).
+    // Takie obrazy dostają świeży adres pliku z magazynu (a w ostateczności obraz zastępczy) i strona wczytuje się
+    // jeszcze raz (#137).
+    const obrazyWJson = (lista) => (lista || []).flatMap((o) => (o.type === 'image' ? [o.zasob] : obrazyWJson(o.objects)));
+    const wczytane = new Set(obrazyWJson(this.canvas.getObjects().map((o) => ({ type: o.type, zasob: o.zasob, objects: o._objects?.map((x) => ({ type: x.type, zasob: x.zasob })) }))));
+    const brakujace = [...new Set(obrazyWJson(json))].filter((id) => id && !wczytane.has(id));
+    if (brakujace.length) {
+      const zastepcze = new Set();
+      for (const id of brakujace) {
+        const adres = await odswiezAdresZasobu(zasoby?.[id]);
+        const dziala = adres && await new Promise((ok) => { const i = new Image(); i.onload = () => ok(true); i.onerror = () => ok(false); i.src = adres; });
+        if (!dziala) zastepcze.add(id);
+      }
+      const zrodlo = zrodloObrazu(zasoby);
+      await this.canvas.loadFromJSON({ objects: podmienZasoby(json, (id) => (zastepcze.has(id) ? zrodloObrazu(null)(id) : zrodlo(id))) });
+    }
     await przygotujObrazyKsztaltow(this.canvas.getObjects());
     ulozElementyDanych(this.canvas.getObjects().filter((o) => !o.zWzorca)); // kalendarze i wykresy z bieżących danych
     if (sasiednia) {

@@ -56,9 +56,14 @@ export async function pokazEdytor() {
 const OKNO_BLOKUJACE = 'dialog[open]:not(.obok-strony)';
 
 // Przepisuje płótno do projektu i zapamiętuje stan jako krok historii.
+// W trakcie kadrowania i edycji punktów płótno ma stan przejściowy (np. obraz z grupy leży na czas kadrowania nad
+// nią) – takiego stanu nie wolno zapisać jako kroku cofania ani do projektu; krok powstaje po zakończeniu (#137).
+const stanPrzejsciowy = () => Boolean(edytor.kadruje || edytor.edytujePunkty);
+
 function zapamietajStan() {
   clearTimeout(stan.timerHistorii);
   if (!stan.projekt || !stan.doHistorii) return;
+  if (stanPrzejsciowy()) { stan.timerHistorii = setTimeout(zapamietajStan, 300); return; }
   stan.doHistorii = false;
   zapiszBiezacyCel();
   historia.zapisz(stan.projekt);
@@ -512,7 +517,10 @@ export function zaplanujZapis({ historia: doHistorii = true } = {}) {
   zaplanujKsiazke();
   stanZapisu('zapis', 'Zapisywanie…');
   clearTimeout(stan.timerZapisu);
-  stan.timerZapisu = setTimeout(zapiszTeraz, 700);
+  stan.timerZapisu = setTimeout(function zapiszPoChwili() {
+    if (stanPrzejsciowy()) { stan.timerZapisu = setTimeout(zapiszPoChwili, 500); return; }
+    zapiszTeraz();
+  }, 700);
   if (doHistorii) {
     stan.doHistorii = true;
     clearTimeout(stan.timerHistorii);
@@ -693,7 +701,25 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
   // Bez zapamiętanego stanu uzgodnionego z kontem (projekt zapisany przed wprowadzeniem łączenia albo
   // wczytany z pliku w miejsce istniejącego) nie wiadomo, kto co zmienił – zostaje pytanie o cały projekt,
   // ale dopiero przy zapisie: samo powiadomienie niczego nie rusza.
-  if (!p.podstawa_chmury) { if (konflikt) await zapytajOCalyProjekt(p, konflikt); return; }
+  if (!p.podstawa_chmury) {
+    if (!konflikt) return;
+    // Zapis przerwany w połowie (np. przeładowanie strony w trakcie pierwszej wysyłki): konto ma już dokładnie to,
+    // co to urządzenie – przyjmujemy jego numer wersji bez pytania (#137). Pytanie zostaje, gdy treść się różni.
+    try {
+      const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));
+      const odciski = podstawaProjektu(zKonta);
+      if (stan.projekt === p && tenSamStan(p, odciski)) {
+        p.wersja_chmury = zKonta.wersja_chmury;
+        p.podstawa_chmury = odciski;
+        await zapiszLokalnie(p, wlasciciel(), false);
+        await oznaczZsynchronizowany(p.id, p.zmieniono);
+        if (!stan.timerZapisu) stanZapisu('ok', 'Zapisano');
+        return;
+      }
+    } catch { /* bez sieci albo błąd odczytu – zostaje pytanie */ }
+    await zapytajOCalyProjekt(p, konflikt);
+    return;
+  }
   stan.konflikt = p.id;
   pominietaWysylka = false;
   const koniec = () => {
