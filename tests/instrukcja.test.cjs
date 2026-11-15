@@ -156,8 +156,12 @@ test('instrukcja bez konta: „Zobacz, jak to działa” na ekranie logowania i 
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Instrukcja Makietki/);
   await strona.click('[data-akcja="zamknij-instrukcje"]');
   await strona.waitForFunction(() => !document.querySelector('#dlg-instrukcja').open);
+  // Zdarzenie „close” okna przychodzi chwilę po zamknięciu i przywraca adres – dopiero potem ustawiamy nowy,
+  // inaczej przywrócenie nadpisywało #/instrukcja tuż przed przeładowaniem (#137).
+  await strona.waitForFunction(() => !/^#\/instrukcja/.test(location.hash));
   // Adres prowadzi wprost do instrukcji; po zamknięciu adres wraca.
   await strona.evaluate(() => { location.hash = '#/instrukcja'; });
+  await strona.waitForSelector('#dlg-instrukcja[open]');
   await strona.reload();
   await strona.waitForSelector('#dlg-instrukcja[open]');
   assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'logowanie');
