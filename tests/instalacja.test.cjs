@@ -64,6 +64,8 @@ test('logowanie: przycisk pełnego ekranu jest i wyłącza pełny ekran (Android
   assert.equal(await przycisk.isVisible(), true, 'przycisk na ekranie logowania');
   await przycisk.tap();
   await strona.waitForFunction(() => Boolean(document.fullscreenElement));
+  // Przycisk przestawia się na zdarzenie fullscreenchange – chwilę po wejściu w pełny ekran (#137).
+  await strona.waitForFunction(() => document.querySelector('#ekran-logowania [data-akcja="pelny-ekran"]')?.getAttribute('aria-pressed') === 'true', null, { timeout: 5000 }).catch(() => {});
   assert.equal(await przycisk.getAttribute('aria-pressed'), 'true');
   await przycisk.tap();
   await strona.waitForFunction(() => !document.fullscreenElement);

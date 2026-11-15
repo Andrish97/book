@@ -238,7 +238,11 @@ test('skrzynka: nowa wiadomość z Do/DW/UDW, podpowiedziami i załącznikiem; k
   });
   assert.equal(z.id, w.id);
   await strona.waitForFunction(() => document.querySelectorAll('#admin-watek .wiadomosc').length === 2, null, { timeout: 8000 });
-  await strona.click('#admin-watek .wiadomosc:last-of-type [data-pisz-tryb="przekaz"]');
+  // Rozmowa może się jeszcze przerysować na żywo (nowa wiadomość) – klikamy do skutku, aż otworzy się pisanie (#137).
+  for (let proba = 0; proba < 3; proba += 1) {
+    await strona.click('#admin-watek .wiadomosc:last-of-type [data-pisz-tryb="przekaz"]');
+    if (await strona.waitForSelector('#admin-pisz:not([hidden])', { timeout: 6000 }).then(() => true, () => false)) break;
+  }
   await strona.waitForSelector('#admin-pisz:not([hidden])');
   assert.equal(await strona.inputValue('#admin-pisz-temat'), 'Fwd: Cennik');
   assert.equal(await strona.locator('[data-adresy="do"] .adres').count(), 0);
