@@ -9,7 +9,7 @@ import { $, $$, powiadom, kiedy } from '../ui.js';
 import { stan, trasa } from './kontekst.js';
 import { rysujSkrzynke, sledzSkrzynke, przestanSledzic, przebiegKolejki } from './skrzynka.js';
 
-const ZAKLADKI = ['skrzynka', 'kolejka', 'ustawienia', 'statystyki'];
+const ZAKLADKI = ['skrzynka', 'kolejka', 'ustawienia', 'statystyki', 'zapisy'];
 let zakladka = 'skrzynka';
 let stanKolejki = '';
 let czyAdmin = null; // { konto, tak }
@@ -58,9 +58,49 @@ export async function odswiez() {
     if (zakladka === 'skrzynka') await rysujSkrzynke();
     else if (zakladka === 'kolejka') await rysujKolejke();
     else if (zakladka === 'ustawienia') await rysujUstawienia();
+    else if (zakladka === 'zapisy') await rysujZapisy();
     else await rysujStatystyki();
   } catch (e) { blad(e); }
 }
+
+// ---------- Zapisy i kopie awaryjne (#138) ----------
+// Dziennik zapisów projektów (kto: urządzenie / AI / serwis / przywrócenie) i przywracanie stanu sprzed zapisu.
+const KTO = { 'urządzenie': 'Urządzenie', AI: 'AI (łącznik)', serwis: 'Serwis', 'przywrócenie': 'Przywrócenie' };
+async function rysujZapisy() {
+  const pole = $('#admin-zapisy-projekt');
+  const projekt = pole.value.trim() || null;
+  const lista = await rpc('admin_dziennik_zapisow', { p_projekt: projekt, p_limit: 200 });
+  const miejsce = $('#admin-zapisy');
+  miejsce.innerHTML = lista.length
+    ? `<table class="admin-tabela"><thead><tr><th>Kiedy</th><th>Projekt</th><th>Kto</th><th>Wersja</th><th>Strony</th><th></th></tr></thead><tbody>${lista.map((z) => `<tr>
+        <td>${esc(data(z.kiedy))}</td>
+        <td><button type="button" class="link-przycisk" data-filtr-projektu="${esc(z.projekt_id)}" title="Pokaż tylko ten projekt">${esc(z.projekt || z.projekt_id)}</button><br><small class="ciche">${esc(z.wlasciciel || '')}</small></td>
+        <td>${esc(KTO[z.kto] || z.kto)}${z.uzytkownik ? `<br><small class="ciche">${esc(z.uzytkownik)}</small>` : ''}</td>
+        <td>${esc(z.wersja_przed)} → ${esc(z.wersja_po)}</td>
+        <td>${esc(z.strony_zmienione)} zm.${z.strony_usuniete ? `, ${esc(z.strony_usuniete)} usun.` : ''}</td>
+        <td>${z.kopia ? `<button type="button" class="przycisk maly" data-przywroc="${esc(z.kopia)}" title="Przywróć projekt do stanu sprzed tego zapisu">Przywróć stan sprzed</button>` : ''}</td>
+      </tr>`).join('')}</tbody></table>`
+    : '<p class="ciche">Brak zapisów w ostatnich 14 dniach.</p>';
+}
+document.addEventListener('click', async (e) => {
+  const filtr = e.target.closest('[data-filtr-projektu]');
+  if (filtr) { $('#admin-zapisy-projekt').value = filtr.dataset.filtrProjektu; rysujZapisy().catch(blad); return; }
+  const b = e.target.closest('[data-przywroc]');
+  if (!b) return;
+  const { potwierdz } = await import('../ui.js');
+  if (!await potwierdz('Przywrócić stan sprzed zapisu?', 'Dane projektu i strony zmienione albo usunięte przez ten zapis wrócą do stanu sprzed niego. Otwarte edytory dostaną to jak każdą zmianę z konta. Samo przywrócenie też trafi do kopii – da się je cofnąć.', 'Przywróć')) return;
+  try {
+    const w = await rpc('admin_przywroc_kopie', { p_kopia: Number(b.dataset.przywroc) });
+    powiadom(`Przywrócono (stron: ${w.strony}, wersja ${w.wersja}).`);
+    await rysujZapisy();
+  } catch (err) { blad(err); }
+});
+let timerFiltra = null;
+document.addEventListener('input', (e) => {
+  if (e.target.id !== 'admin-zapisy-projekt') return;
+  clearTimeout(timerFiltra);
+  timerFiltra = setTimeout(() => rysujZapisy().catch(blad), 400);
+});
 
 // ---------- Kolejka ----------
 

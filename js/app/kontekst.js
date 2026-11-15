@@ -39,7 +39,7 @@ export function pokazEkran(nazwa) {
 //
 //   #/projekty                       lista projektów
 //   #/konto[/<sekcja>]               ustawienia konta (profil, logowanie, wyglad, ai, miejsce, usun)
-//   #/admin[/<zakładka>]             panel administratora (skrzynka, kolejka, ustawienia, statystyki)
+//   #/admin[/<zakładka>]             panel administratora (skrzynka, kolejka, ustawienia, statystyki, zapisy)
 //   #/p/<id projektu>                projekt (pierwsza strona)
 //   #/p/<id projektu>/s/<id strony>  konkretna strona
 //   #/p/<id projektu>/w/<id wzorca>  edycja wzorca
