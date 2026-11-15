@@ -346,7 +346,7 @@ Te same ustawienia zapiszesz w stylu (→ 6.4).
 | **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad, z łącznikiem `-`. Wyjustowany tekst nie ma wtedy dziur między słowami. Treść się nie zmienia — łącznik jest tylko na stronie. |
 | **Najkrótszy dzielony wyraz** | Krótsze wyrazy nigdy się nie dzielą (domyślnie 5 liter). |
 | **Najmniej liter przed łącznikiem / po łączniku** | Ile liter zostaje w wierszu i ile przechodzi dalej (domyślnie po 2). |
-| **Spójniki na końcu wiersza** | Pojedyncze **a, i, o, u, w, z** przechodzą do następnego wiersza razem ze słowem, jak w polskim składzie; opcja **także dwuliterowe** dotyczy też **do, na, że** i podobnych. Nowe teksty mają to włączone. |
+| **Spójniki na końcu wiersza** | **a, i, w, z… przechodzą dalej** — pojedyncze **a, i, o, u, w, z** idą do następnego wiersza razem ze słowem, jak w polskim składzie; **także do, na, że…** dotyczy też dwuliterowych. Nowe teksty mają to włączone. |
 | **Wdowy i sieroty** | Tekst płynący przez kilka ramek albo kolumn (→ 6.7) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. Nowe teksty pilnują 2 wierszy. |
 | **Wyrównaj do siatki linii bazowych** | Wiersze stają na liniach siatki sekcji (→ 6.13). |
 | **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (→ 6.12) — np. podpis na zdjęciu. |

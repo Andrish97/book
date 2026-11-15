@@ -904,19 +904,19 @@ export class PanelWlasciwosci {
     }
     const spojniki = this.wybor('Spójniki na końcu wiersza', [
       ['', 'mogą zostać na końcu wiersza'],
-      ['tak', 'jednoliterowe idą do następnego (a, i, w, z…)'],
-      ['dwuliterowe', 'także dwuliterowe (do, na, że…)'],
+      ['tak', 'a, i, w, z… przechodzą dalej'],
+      ['dwuliterowe', 'także do, na, że…'],
     ], () => (obj.spojniki === true ? 'tak' : (obj.spojniki || '')), (v) => ustaw('spojniki', v === 'tak' ? true : (v || undefined)));
     spojniki.classList.add('szeroki');
     s.append(spojniki);
     const wdowy = this.wybor('Wdowy i sieroty', [
       ['', 'bez pilnowania'],
-      ['2', 'co najmniej 2 wiersze akapitu w ramce'],
-      ['3', 'co najmniej 3 wiersze akapitu w ramce'],
+      ['2', 'co najmniej 2 wiersze'],
+      ['3', 'co najmniej 3 wiersze'],
     ], () => (obj.wdowy ? String(obj.wdowy) : ''), (v) => ustaw('wdowy', v ? Number(v) : undefined));
     wdowy.classList.add('szeroki');
     s.append(wdowy);
-    if (obj.wdowy && !obj.watek) s.append(this.wskazowka('Wdowy i sieroty liczą się, gdy tekst płynie przez kilka ramek albo kolumn.'));
+    s.append(this.wskazowka('Wdowy i sieroty: akapit przechodzący do następnej ramki albo kolumny zostawia po obu stronach co najmniej tyle wierszy.'));
 
     s.append(this.przelacznik('Wyrównaj do siatki linii bazowych', () => Boolean(obj.do_siatki), (v) => { ustaw('do_siatki', v || undefined); przebuduj(); }));
     if (obj.do_siatki && !this.edytor.wydruk?.siatka_bazowa) s.append(this.wskazowka('Ta sekcja nie ma siatki linii bazowych – włącz ją w ustawieniach sekcji.', true));

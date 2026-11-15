@@ -47,7 +47,6 @@ const maTab = (o) => typeof o.text === 'string' && o.text.includes('\t');
 
 // Czy tekst potrzebuje składu (inaczej – zwykłe łamanie Fabric, bez żadnej zmiany).
 export function skladAktywny(o) {
-  if (globalThis.__bezSkladu) return false;
   return Boolean(o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
 }
 
@@ -582,7 +581,6 @@ function punktyObiektu(ob) {
 // tylko teksty, którym coś się zmieniło. siatka: { odstep, przesuniecie } w mm albo null.
 // Zwraca listę tekstów ułożonych od nowa.
 export function ulozStrone(obiekty, { siatka = null } = {}) {
-  if (globalThis.__bezUkladu) return [];
   const przeszkody = obiekty.filter((o) => o.oblewanie && o.visible !== false && o.type !== 'textbox');
   const zmienione = [];
   for (const t of obiekty) {
