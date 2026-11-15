@@ -133,7 +133,7 @@ test('instrukcja na telefonie: przycisk z nazwą rozdziału otwiera spis jako za
   await strona.tap('.czesc-spisu:has-text("Gotowa publikacja") .czesc-przycisk');
   await strona.tap('.czesc-spisu:has-text("Gotowa publikacja") .rozdzial-przycisk:has-text("Eksport do PDF")');
   await strona.waitForFunction(() => !document.querySelector('.instrukcja').classList.contains('spis-otwarty'));
-  assert.match(await strona.textContent('#instrukcja-wybor'), /21\. Eksport do PDF i PNG/);
+  assert.match(await strona.textContent('#instrukcja-wybor'), /22\. Eksport do PDF i PNG/);
   // Nic nie wystaje w bok.
   const szersze = await strona.evaluate(() => {
     const t = document.querySelector('#instrukcja-tresc');

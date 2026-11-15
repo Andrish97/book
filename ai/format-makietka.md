@@ -177,6 +177,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `do_siatki` | `true` – wiersze na siatce linii bazowych sekcji (`wydruk.siatka_bazowa`, rozdział 3) |
 | `oblewanie`, `oblewanie_odstep` | dowolny element poza tekstem: `prostokat` (tekst opływa ramkę), `ksztalt` (elipsa, wielokąt, ścieżka – opływa kształt), `skok` (tekst przeskakuje pod element); odstęp w mm (domyślnie 2) |
 | `bez_oblewania` | tekst: `true` – nie opływa innych elementów |
+| `ksztalt_tekstu` | tekst po kształcie albo wygięty (#131B): `{ "rodzaj": "luk", "zgiecie": 50 }`. `rodzaj`: `luk` (`zgiecie` −100…100, ujemne – łuk w dół; `promien` mm, 0 – sam), `okrag` (`promien`, `przesuniecie` – obrót początku w stopniach, `strona`: `zewn` – litery na zewnątrz u góry, `wewn` – do środka u dołu), `elipsa` (`promien`, `zgiecie` 0…100 – spłaszczenie, `przesuniecie` w %), `sciezka` (`d` – ścieżka SVG w mm względem środka tekstu, `przesuniecie` w %, `wyrownanie`: `lewo` / `srodek` / `prawo`, `strona`: `zewn` – nad linią, `wewn` – pod, `odwroc`: `true`), wygięcia `luk_gora`, `luk_dol`, `wypuklosc`, `wkleslosc`, `fala`, `flaga`, `zwezenie` (siła w `zgiecie`). Tekst jest jednym wierszem; `width` i `height` elementu aplikacja liczy sama z liter po kształcie. Usunięcie pola (null) – tekst prosto |
 
 ## 6. Style tekstu
 

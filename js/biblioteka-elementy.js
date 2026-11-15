@@ -93,6 +93,26 @@ zarejestrujKategorie({
   })),
 });
 
+// Teksty (#131B): gotowe napisy po łuku, w okręgu i wygięte – zwykły tekst z kształtem (panel „Kształt tekstu”).
+const TEKSTY = [
+  ['luk', 'Napis po łuku', 'NAPIS PO ŁUKU', { rodzaj: 'luk', zgiecie: 45 }, '<path d="M10 40 Q35 4 60 40" class="linia"/>'],
+  ['pieczec', 'Pieczęć – napis w okręgu', 'MAKIETKA • PIECZĘĆ • 2027 •', { rodzaj: 'okrag', strona: 'zewn' }, '<circle cx="35" cy="26" r="19" class="linia"/><circle cx="35" cy="26" r="12" class="linia"/>', 12],
+  ['usmiech', 'Łuk w dół', 'UŚMIECHNIJ SIĘ', { rodzaj: 'luk', zgiecie: -45 }, '<path d="M10 12 Q35 48 60 12" class="linia"/>'],
+  ['fala', 'Falisty baner', 'FALUJĄCY NAPIS', { rodzaj: 'fala', zgiecie: 60 }, '<path d="M6 26 C18 6 26 6 35 26 S52 46 64 26" class="linia"/>'],
+  ['flaga', 'Flaga', 'NA WIETRZE', { rodzaj: 'flaga', zgiecie: 50 }, '<path d="M8 18 C20 8 30 28 42 18 S56 10 62 16 M8 34 C20 24 30 44 42 34 S56 26 62 32" class="linia"/>'],
+  ['wypukly', 'Wypukły tytuł', 'TYTUŁ', { rodzaj: 'wypuklosc', zgiecie: 60 }, '<path d="M8 16 Q35 2 62 16 M8 36 Q35 50 62 36" class="linia"/>'],
+  ['zwezenie', 'Zwężający się napis', 'PERSPEKTYWA', { rodzaj: 'zwezenie', zgiecie: 60 }, '<path d="M6 10 L64 20 M6 42 L64 32" class="linia"/>'],
+];
+zarejestrujKategorie({
+  id: 'teksty', nazwa: 'Teksty', ikona: 'tekst', kolejnosc: 62,
+  elementy: () => TEKSTY.map(([id, nazwa, tresc, ksztalt, svg, pt]) => ({
+    id, nazwa, slowa: `tekst napis ${nazwa} luk okrag fala wygiecie`, duzy: true,
+    podglad: `<svg viewBox="0 0 70 52" aria-hidden="true" class="podglad-wykresu">${svg}</svg>`,
+    opis: 'Tekst po kształcie – zmienisz go w panelu „Kształt tekstu”',
+    wstaw: (e, punkt) => e.dodajTekstWKsztalcie(tresc, ksztalt, punkt, { rozmiarPt: pt || 20 }),
+  })),
+});
+
 // Książka (#131B): spis treści i skorowidz – teksty, które składają się same.
 const PODGLAD_SPISU = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="8" y="5" width="54" height="42" rx="1" class="tlo"/>'
   + '<path d="M13 13h22M13 21h18M17 27h16M13 35h20" class="linia"/><path d="M38 13h14M35 21h17M37 27h15M37 35h15" class="kropki"/>'

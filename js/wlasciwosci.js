@@ -10,6 +10,7 @@ import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
 import { USZLACHETNIENIA, FOLIE, plytaUszlachetnienia } from './kolory-druku.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu, toKolaz } from './edytor.js';
+import { RODZAJE_KSZTALTU, normalizujKsztalt, ustawKontrolkiKsztaltu, sciezkaZKsztaltu, czyWygiecie } from './tekst-ksztalt.js';
 import { toKalendarz, MIESIACE, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
 import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
 import { KOLAZE } from './ksztalty-biblioteka.js';
@@ -936,6 +937,7 @@ export class PanelWlasciwosci {
     // Komórka tabeli nie ma własnej ramki ani przelewania – jej rozmiarem rządzi tabela.
     if (komorka) return;
 
+    this.zbudujKsztaltTekstu(obj);
     this.zbudujSklad(obj);
     if (!obj.ksiazka) this.zbudujKsiazke(obj);
 
@@ -1107,6 +1109,83 @@ export class PanelWlasciwosci {
     s.append(this.wskazowka(jest
       ? 'W edytorze element stoi w miejscu pozycji 1, ma kolor, rozmiar i obrót wzoru i jest zawsze widoczny. Właściwy wygląd każdej powielonej strony zobaczysz w podglądzie. „Od nowa co 6” znaczy, że pozycja 7 wraca na miejsce pierwszej (0 – bez powrotu).'
       : 'Kolor, położenie albo rozmiar mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykłady: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej; słupek wykresu o wysokości z kolumny.'));
+  }
+
+  // Kształt tekstu (#131B): prosto, po łuku, okręgu, elipsie, po ścieżce (kształt ze strony) albo wygięty.
+  zbudujKsztaltTekstu(obj) {
+    const s = this.sekcja('Kształt tekstu', { zwinieta: !obj.ksztalt_tekstu });
+    const przebuduj = () => setTimeout(() => this.zbuduj());
+    const k = () => normalizujKsztalt(obj.ksztalt_tekstu) || normalizujKsztalt({ rodzaj: 'luk' }); // przy „Prosto” odświeżanie pól przed przebudową panelu
+    const odswiezObiekt = () => {
+      obj.dirty = true;
+      obj.initDimensions();
+      obj.setCoords();
+      ustawKontrolkiKsztaltu(obj, () => this.odswiez());
+      this.edytor.canvas.requestRenderAll();
+    };
+    const zmien = (zmiany) => { obj.set('ksztalt_tekstu', { ...k(), ...zmiany }); odswiezObiekt(); };
+    const wybor = this.wybor('Kształt', RODZAJE_KSZTALTU, () => normalizujKsztalt(obj.ksztalt_tekstu)?.rodzaj || 'prosto', (v) => {
+      const teraz = normalizujKsztalt(obj.ksztalt_tekstu);
+      if (v === 'prosto') {
+        const szer = teraz?.szer;
+        obj.set('ksztalt_tekstu', undefined);
+        if (szer > 0) obj.set('width', szer);
+      } else {
+        // Szerokość ramki prosto zostaje zapamiętana – wraca na czas pisania i po wybraniu „Prosto”.
+        obj.set('ksztalt_tekstu', normalizujKsztalt({ ...(teraz || {}), rodzaj: v, szer: teraz?.szer || obj.width, zgiecie: teraz && teraz.rodzaj === v ? teraz.zgiecie : undefined }));
+      }
+      odswiezObiekt();
+      przebuduj();
+    });
+    wybor.classList.add('szeroki');
+    s.append(wybor);
+    const r = normalizujKsztalt(obj.ksztalt_tekstu)?.rodzaj;
+    if (!r) {
+      s.append(this.wskazowka('Napis po łuku, w okręgu (np. pieczęć), po dowolnej linii albo wygięty jak fala czy flaga. Gotowe przykłady są też w Bibliotece, w kategorii „Teksty”.'));
+      return;
+    }
+    const sila = (etykieta) => this.liczba(etykieta, () => k().zgiecie, (v) => zmien({ zgiecie: Math.max(-100, Math.min(100, Math.round(v))) }), { jednostka: '%', krok: 5 });
+    if (r === 'luk') {
+      s.append(sila('Zgięcie'));
+      s.append(this.liczba('Promień (0 – sam)', () => zaokr(k().promien, 1), (v) => zmien({ promien: Math.max(0, v) }), { jednostka: 'mm', krok: 1, min: 0 }));
+    } else if (r === 'okrag') {
+      s.append(this.liczba('Promień (0 – sam)', () => zaokr(k().promien, 1), (v) => zmien({ promien: Math.max(0, v) }), { jednostka: 'mm', krok: 1, min: 0 }));
+      s.append(this.liczba('Obrót początku', () => k().przesuniecie, (v) => zmien({ przesuniecie: Math.round(v) }), { jednostka: '°', krok: 5 }));
+      const strona = this.wybor('Litery', [['zewn', 'na zewnątrz (u góry)'], ['wewn', 'do środka (u dołu)']], () => k().strona, (v) => zmien({ strona: v }));
+      strona.classList.add('szeroki');
+      s.append(strona);
+    } else if (r === 'elipsa') {
+      s.append(this.liczba('Promień (0 – sam)', () => zaokr(k().promien, 1), (v) => zmien({ promien: Math.max(0, v) }), { jednostka: 'mm', krok: 1, min: 0 }));
+      s.append(this.liczba('Spłaszczenie', () => Math.abs(k().zgiecie), (v) => zmien({ zgiecie: Math.max(0, Math.min(100, Math.round(v))) }), { jednostka: '%', krok: 5, min: 0 }));
+      s.append(this.liczba('Przesunięcie początku', () => k().przesuniecie, (v) => zmien({ przesuniecie: Math.round(v) }), { jednostka: '%', krok: 5 }));
+    } else if (r === 'sciezka') {
+      // Kształty na tej stronie (bez tekstów i obrazów): tekst dostaje kopię ich linii.
+      const ksztalty = this.edytor.canvas.getObjects().filter((o) => o !== obj && !o.zWzorca && ['rect', 'ellipse', 'circle', 'line', 'polygon', 'polyline', 'path'].includes(String(o.type).toLowerCase()));
+      const opisy = ksztalty.map((o, i) => [o.id || String(i), `${o.nazwa || nazwaTypu(o)} ${i + 1}`]);
+      const wskaz = this.wybor('Linia z kształtu na stronie', [['', ksztalty.length ? '— wybierz kształt —' : '— na stronie nie ma kształtów —'], ...opisy], () => obj._sciezkaZ || '', (v) => {
+        const ks = ksztalty.find((o, i) => (o.id || String(i)) === v);
+        const d = ks ? sciezkaZKsztaltu(ks, obj) : null;
+        if (!d) return;
+        obj._sciezkaZ = v;
+        zmien({ d });
+      });
+      wskaz.classList.add('szeroki');
+      s.append(wskaz);
+      if (!k().d) s.append(this.wskazowka('Narysuj linię piórem, kształt albo wstaw go z Biblioteki, a potem wybierz go tutaj. Tekst dostaje kopię jego linii – kształt możesz potem przesunąć, ukryć albo usunąć.', true));
+      s.append(this.liczba('Przesunięcie początku', () => k().przesuniecie, (v) => zmien({ przesuniecie: Math.round(v) }), { jednostka: '%', krok: 5 }));
+      const wyr = this.wybor('Wyrównanie', [['lewo', 'od początku linii'], ['srodek', 'na środku'], ['prawo', 'do końca linii']], () => k().wyrownanie, (v) => zmien({ wyrownanie: v }));
+      wyr.classList.add('szeroki');
+      s.append(wyr);
+      const strona = this.wybor('Litery', [['zewn', 'nad linią'], ['wewn', 'pod linią']], () => k().strona, (v) => zmien({ strona: v }));
+      strona.classList.add('szeroki');
+      s.append(strona);
+      s.append(this.przelacznik('Odwróć kierunek', () => k().odwroc, (v) => zmien({ odwroc: v })));
+    } else {
+      s.append(sila('Siła wygięcia'));
+    }
+    s.append(this.wskazowka(r === 'luk' || czyWygiecie(r)
+      ? 'Uchwyt ◆ pod tekstem zgina go przeciąganiem w górę i w dół. W trakcie pisania tekst jest prosto, a po wyjściu z pisania wraca kształt.'
+      : 'W trakcie pisania tekst jest prosto, a po wyjściu z pisania wraca kształt.'));
   }
 
   // Styl tekstu: wybór, zapis jako nowy, aktualizacja, usunięcie.

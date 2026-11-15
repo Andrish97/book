@@ -2902,6 +2902,7 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .podglad-biblioteki rect.nd { fill: color-mix(in srgb, #c62828 35%, var(--powierzchnia)); stroke: none; }
 .podglad-wykresu path, .podglad-wykresu rect { stroke: var(--tusz-2); stroke-width: 1.4; fill: color-mix(in srgb, var(--akcent) 45%, var(--powierzchnia)); }
 .podglad-wykresu path.linia { fill: none; stroke: var(--akcent); stroke-width: 2.4; }
+.podglad-wykresu circle.linia { fill: none; stroke: var(--akcent); stroke-width: 2.4; }
 .podglad-wykresu path.drugi { fill: color-mix(in srgb, #e07b39 55%, var(--powierzchnia)); }
 .pusto-biblioteki { grid-column: 1 / -1; padding: 16px 4px; }
 .podpowiedz-biblioteki { font-size: 12px; margin: 0; flex: none; }

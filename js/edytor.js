@@ -27,6 +27,7 @@ import {
 } from './tabela-obiekt.js';
 import { toKod, nowyKod, ulozKod, utrwalSkaleKodu } from './kod-obiekt.js';
 import { nowyKalendarz, toKalendarz } from './kalendarz-miesiaca.js';
+import { ustawKontrolkiKsztaltu, normalizujKsztalt } from './tekst-ksztalt.js';
 import { nowyWykres, toWykres } from './wykres.js';
 import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych, toKolaz, ulozKolaz } from './elementy-danych.js';
 import { KSZTALTY, ukladKolazu } from './ksztalty-biblioteka.js';
@@ -184,6 +185,8 @@ export class Edytor extends EventTarget {
     });
     c.on('object:added', (e) => {
       if (toTabela(e.target) && !e.target.zWzorca) this._przygotujTabele(e.target);
+      // Tekst po łuku albo wygięty (#131B): uchwyt zgięcia pod tekstem.
+      if (e.target?.ksztalt_tekstu && !e.target.zWzorca) ustawKontrolkiKsztaltu(e.target, () => this.oznaczZmiane?.());
       // Kod dodany z opisu bez rysunku (np. przez łącznik AI) albo z inną treścią niż rysunek – rysujemy go.
       if (toKod(e.target) && e.target.kod.narysowano !== e.target.kod.tresc) ulozKod(e.target);
       if (this._wczytywanie || e.target?.zWzorca) return;
@@ -1836,6 +1839,22 @@ export class Edytor extends EventTarget {
     p.set(this._srodek(p.width * skala, p.height * skala));
     this._wPunkcie(p, punkt);
     const wynik = this._wstaw(p);
+    this.oznaczZmiane();
+    return wynik;
+  }
+
+  // Tekst po kształcie albo wygięty z Biblioteki (#131B): gotowy napis, od razu z kształtem (bez wchodzenia w pisanie).
+  dodajTekstWKsztalcie(tresc, ksztalt, punkt = null, { rozmiarPt = 20, gruby = true } = {}) {
+    const t = new fabric.Textbox(tresc, {
+      left: 0, top: 0, width: 100, fontFamily: DOMYSLNA, fontSize: ptNaMm(rozmiarPt), fontWeight: gruby ? 'bold' : 'normal',
+      lineHeight: 1.2, fill: '#1a1a1a', textAlign: 'center', strokeWidth: 0,
+    });
+    t.set('ksztalt_tekstu', normalizujKsztalt({ ...ksztalt, szer: 100 }));
+    t.initDimensions();
+    t.set(this._srodek(t.width, t.height));
+    this._wPunkcie(t, punkt);
+    const wynik = this._wstaw(t);
+    ustawKontrolkiKsztaltu(t, () => this.oznaczZmiane());
     this.oznaczZmiane();
     return wynik;
   }
