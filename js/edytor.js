@@ -43,6 +43,14 @@ export { toKolaz, ulozKolaz };
 
 export { WLASNE_POLA };
 
+// Gotowe wielokąty i gwiazdy (#151): wybór przy wstawianiu i we Właściwościach → Kształt.
+export const WIELOKATY = [
+  [3, false, 'Trójkąt'], [4, false, 'Romb'], [5, false, 'Pięciokąt'], [6, false, 'Sześciokąt'], [8, false, 'Ośmiokąt'],
+  [4, true, 'Gwiazda 4'], [5, true, 'Gwiazda 5'], [6, true, 'Gwiazda 6'], [8, true, 'Gwiazda 8'], [12, true, 'Gwiazda 12'],
+];
+// Mały podgląd SVG kształtu (32×32) do przycisków wyboru.
+export const podgladWielokata = (n, g) => `<svg viewBox="0 0 32 32" aria-hidden="true"><polygon points="${punktyWielokata(n, g, 14).map((q) => `${(q.x + 2).toFixed(1)},${(q.y + 2).toFixed(1)}`).join(' ')}"/></svg>`;
+
 export const TEKST_ZACHETY = 'Kliknij dwa razy, aby edytować';
 
 // Punkty wielokąta foremnego (albo gwiazdy) wpisanego w okrąg o promieniu r,

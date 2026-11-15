@@ -22,7 +22,7 @@ import './edytor-instancja.js';
 import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { toZaznaczenie } from '../fabric-ustawienia.js';
-import { opisObiektu, punktyWielokata } from '../edytor.js';
+import { opisObiektu, WIELOKATY, podgladWielokata } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
 import { przyjmijPlik } from '../obrazy-projektu.js';
 import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
@@ -787,16 +787,11 @@ $('#menu-narzedzi')?.addEventListener('click', (e) => { if (e.target.closest('bu
 
 // Wielokąt albo gwiazda (#151): wybór kształtu z podglądem zamiast samego trójkąta – liczbę boków i gwiazdę
 // można potem zmienić we Właściwościach → Kształt.
-const WIELOKATY = [
-  [3, false, 'Trójkąt'], [4, false, 'Romb'], [5, false, 'Pięciokąt'], [6, false, 'Sześciokąt'], [8, false, 'Ośmiokąt'],
-  [4, true, 'Gwiazda 4'], [5, true, 'Gwiazda 5'], [6, true, 'Gwiazda 6'], [8, true, 'Gwiazda 8'], [12, true, 'Gwiazda 12'],
-];
 function otworzWyborWielokata() {
   const menu = $('#menu-wielokata');
   if (!menu.childElementCount) {
     menu.innerHTML = `<div class="siatka-wielokatow">${WIELOKATY.map(([n, g, nazwa]) => {
-      const pkt = punktyWielokata(n, g, 14).map((q) => `${(q.x + 2).toFixed(1)},${(q.y + 2).toFixed(1)}`).join(' ');
-      return `<button role="menuitem" data-boki="${n}" data-gwiazda="${g ? 1 : ''}" title="${nazwa}" aria-label="${nazwa}"><svg viewBox="0 0 32 32" aria-hidden="true"><polygon points="${pkt}"/></svg><span>${nazwa}</span></button>`;
+      return `<button role="menuitem" data-boki="${n}" data-gwiazda="${g ? 1 : ''}" title="${nazwa}" aria-label="${nazwa}">${podgladWielokata(n, g)}<span>${nazwa}</span></button>`;
     }).join('')}</div><p class="podpowiedz-menu">Liczbę boków i gwiazdę zmienisz potem we Właściwościach → Kształt.</p>`;
     menu.addEventListener('click', (e) => {
       const b = e.target.closest('button[data-boki]');

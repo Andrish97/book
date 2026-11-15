@@ -40,6 +40,9 @@ Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” 
 Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu i inne) wysuwają się od
 dołu ekranu. Zamiast krzyżyka mają **uchwyt** — pociągnij go w dół albo stuknij, żeby zamknąć;
 zamyka też stuknięcie w przyciemnione tło. Główny przycisk okna jest na dole, zawsze widoczny.
+Ten sam uchwyt mają listy wyboru, wybór koloru i daty, które na telefonie też wysuwają się od dołu —
+stuknięcie poza nimi albo w uchwyt je chowa. Małe menu (⋯, widok) rozwijają się pod przyciskiem
+i chowają się po stuknięciu obok.
 
 ![Okno na telefonie](telefon-zaslonka.png@telefon)
 

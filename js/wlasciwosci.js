@@ -10,7 +10,7 @@ import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js'
 import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
 import { USZLACHETNIENIA, FOLIE, plytaUszlachetnienia } from './kolory-druku.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
-import { nazwaTypu, toKolaz } from './edytor.js';
+import { nazwaTypu, toKolaz, WIELOKATY, podgladWielokata } from './edytor.js';
 import { RODZAJE_KSZTALTU, normalizujKsztalt, ustawKontrolkiKsztaltu, sciezkaZKsztaltu, czyWygiecie } from './tekst-ksztalt.js';
 import { toKalendarz, MIESIACE, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
 import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
@@ -1545,6 +1545,24 @@ export class PanelWlasciwosci {
   zbudujWypelnienie(obj) {
     if (obj.type === 'polygon') {
       const k = this.sekcja('Kształt');
+      // Gotowe kształty (#152): ten sam wybór co przy wstawianiu; miejsce i wielkość zostają.
+      const wybor = document.createElement('div');
+      wybor.className = 'siatka-wielokatow wybor-wielokata';
+      wybor.setAttribute('role', 'group');
+      wybor.setAttribute('aria-label', 'Kształt wielokąta');
+      wybor.innerHTML = WIELOKATY.map(([n, g, nazwa]) => `<button type="button" data-boki="${n}" data-gwiazda="${g ? 1 : ''}" title="${nazwa}" aria-label="${nazwa}">${podgladWielokata(n, g)}<span>${nazwa}</span></button>`).join('');
+      const zapiszKsztalt = this._zapisz(([n, g]) => this.edytor.przeksztalcWielokat(obj, n, g));
+      wybor.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-boki]');
+        if (b) zapiszKsztalt([Number(b.dataset.boki), Boolean(b.dataset.gwiazda)]);
+      });
+      const odswiezWybor = () => {
+        const n = obj.boki || obj.points.length;
+        for (const b of wybor.children) b.setAttribute('aria-pressed', String(Number(b.dataset.boki) === n && Boolean(b.dataset.gwiazda) === Boolean(obj.gwiazda)));
+      };
+      this.odswiezacze.push(odswiezWybor);
+      odswiezWybor();
+      k.append(wybor);
       k.append(this.liczba('Liczba boków', () => obj.boki || obj.points.length, (v) => this.edytor.przeksztalcWielokat(obj, v, obj.gwiazda), { krok: 1, min: 3 }));
       k.append(this.przelacznik('Gwiazda', () => Boolean(obj.gwiazda), (v) => this.edytor.przeksztalcWielokat(obj, obj.boki || 5, v)));
     }

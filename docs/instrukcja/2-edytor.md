@@ -665,7 +665,8 @@ prostokątna (tak jak przy każdym elemencie), sam kształt nie. Klawisz <kbd>P<
 Część **Kształt**:
 
 - prostokąt — **Zaokrąglenie** narożników w mm,
-- wielokąt — **Liczba boków** (3–24) i przełącznik **Gwiazda**; zmiana zachowuje miejsce i wielkość.
+- wielokąt — te same gotowe kształty co przy wstawianiu (trójkąt … gwiazda 12), **Liczba boków** (3–24)
+  i przełącznik **Gwiazda**; zmiana zachowuje miejsce i wielkość.
 
 ## 7.2 Linia
 

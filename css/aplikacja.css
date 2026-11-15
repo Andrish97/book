@@ -1760,6 +1760,8 @@ dialog:focus { outline: none; }
 :root[data-dotyk] .siatka-obrazow .obraz-nazwa { padding: 11px 0; margin: -11px 0; }
 :root[data-dotyk] .wlasciwosci, :root[data-dotyk] .panel-strony { --dotyk: 40px; }
 :root[data-dotyk] .wlasciwosci :is(input, select, .przycisk, .wybor-przycisk), :root[data-dotyk] .panel-strony :is(input, .przycisk, .wybor-przycisk) { min-height: 40px; }
+/* Pola wyboru zostają kwadratowe (18×18) – reguły „pod palec” dla pól nie mogą ich wyciągać w górę (#152). */
+:root input:is([type="checkbox"], [type="radio"]) { min-height: 0 !important; min-width: 0 !important; height: 18px !important; width: 18px !important; padding: 0 !important; }
 :root[data-dotyk] #dlg-seria .grupa-pol .przelacznik { min-height: 40px; }
 /* Uchwyty zasłonek i arkuszy: pasek na całą szerokość, wysoki na palec. */
 :root[data-zaslonka] .uchwyt-zaslonki { height: 30px; }
@@ -2392,6 +2394,18 @@ dialog { max-height: calc(100dvh - var(--bezp-gora) - var(--bezp-dol) - 16px); }
   animation: okienkoZaslonka .18s ease-out;
 }
 .okienko-zaslonka.wybor-lista .wybor-opcja { padding: 12px 14px; font-size: 15px; white-space: normal; }
+.uchwyt-okienka { display: none; }
+.okienko-zaslonka > .uchwyt-okienka {
+  display: block; position: sticky; top: -5px; z-index: 2; width: calc(100% + 10px); height: 26px; margin: -5px -5px 2px; padding: 0;
+  border: 0; background: var(--powierzchnia); cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+}
+.okienko-zaslonka > .uchwyt-okienka::before {
+  content: ""; position: absolute; left: 50%; top: 10px; width: 44px; height: 5px; border-radius: 3px;
+  background: var(--linia-mocna); transform: translateX(-50%);
+}
+.okienko-zaslonka .wybor-filtr { top: 21px; }
+.okienko-zaslonka.kolor-okienko > .uchwyt-okienka { position: relative; top: 0; width: calc(100% + 24px); margin: -12px -12px -6px; }
+.okienko-zaslonka.kalendarz-okienko > .uchwyt-okienka { position: relative; top: 0; width: calc(100% + 20px); margin: -10px -10px 0; }
 @keyframes okienkoZaslonka { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .okienko-zaslonka { animation: none; } }
 
@@ -3171,6 +3185,10 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 /* Wybór wielokąta albo gwiazdy (#151) */
 .menu-wielokata { position: fixed; top: 0; left: 0; right: auto; min-width: 0; width: min(340px, calc(100vw - 16px)); }
 .siatka-wielokatow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+.wybor-wielokata button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 2px; min-height: 58px; border: 1px solid transparent; border-radius: var(--r-s); background: none; color: var(--tusz); font: inherit; font-size: 10.5px; line-height: 1.2; cursor: pointer; }
+.wybor-wielokata { grid-column: 1 / -1; width: 100%; }
+.wybor-wielokata button[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); color: var(--akcent); }
+@media (hover: hover) { .wybor-wielokata button:hover { background: var(--wypelnienie); } }
 .menu .siatka-wielokatow button { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 2px; min-height: 64px; text-align: center; font-size: 11px; line-height: 1.2; }
 .siatka-wielokatow svg { width: 28px; height: 28px; }
 .siatka-wielokatow polygon { fill: var(--akcent-tlo); stroke: var(--tusz); stroke-width: 1.2; stroke-linejoin: round; }

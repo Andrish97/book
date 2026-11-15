@@ -60,9 +60,38 @@ function marginesEkranu(bok) {
 // szerokość, nad paskiem systemowym. Zwykłe okienko pod małym przyciskiem bywało za wąskie i zasłaniane.
 const naTelefonie = () => document.documentElement.dataset.urzadzenie === 'telefon';
 
+// Paseczek u góry, jak w zasłonkach okien (#152): stuknięcie albo pociągnięcie w dół zamyka okienko.
+function dodajUchwyt(okienko) {
+  if (okienko.querySelector(':scope > .uchwyt-okienka')) return;
+  const u = document.createElement('button');
+  u.type = 'button';
+  u.className = 'uchwyt-okienka';
+  u.setAttribute('aria-label', 'Zamknij');
+  let start = null;
+  u.addEventListener('pointerdown', (e) => { start = e.clientY; u.setPointerCapture?.(e.pointerId); });
+  u.addEventListener('pointermove', (e) => {
+    if (start == null) return;
+    okienko.style.transform = `translateY(${Math.max(0, e.clientY - start)}px)`;
+  });
+  const koniec = (e) => {
+    if (start == null) return;
+    const dy = e.clientY - start;
+    start = null;
+    okienko.style.transform = '';
+    if (dy > 50 || Math.abs(dy) < 6) zamknijOkienko();
+  };
+  u.addEventListener('pointerup', koniec);
+  // Bez „kliknięcia-ducha”: po zamknięciu stuknięcie nie może trafić w pole pod okienkiem.
+  u.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+  u.addEventListener('pointercancel', () => { start = null; okienko.style.transform = ''; });
+  u.addEventListener('click', (e) => e.preventDefault());
+  okienko.prepend(u);
+}
+
 function ustawJakZaslonke(okienko) {
   const okno = { w: window.innerWidth, h: window.visualViewport?.height || window.innerHeight };
   okienko.classList.add('okienko-zaslonka');
+  dodajUchwyt(okienko);
   okienko.style.minWidth = '';
   okienko.style.width = `${okno.w}px`;
   okienko.style.maxHeight = `${Math.round(Math.min(okno.h * 0.7, okno.h - 48 - marginesEkranu('gora')))}px`;
