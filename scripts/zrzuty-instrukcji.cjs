@@ -807,6 +807,26 @@ if (require.main === module) (async () => {
   await d.waitForTimeout(300);
   await kadr(d, 'k-oblewanie.png', { obszar: ['#panel-inspektor label:has-text("Oblewanie tekstem")'], margines: 10 });
 
+  // Kształt tekstu (#131B): łuk, okrąg i fala; panel „Kształt tekstu” zaznaczonego łuku.
+  await pustaStrona();
+  await d.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const x0 = e.strony[e.aktywna].x;
+    const a = e.dodajTekstWKsztalcie('MAKIETKA • NAPIS PO ŁUKU', { rodzaj: 'luk', zgiecie: 55 }, null, { rozmiarPt: 18 });
+    a.set({ left: x0 + 22, top: 22, fill: '#1c2541' }); a.setCoords();
+    const b = e.dodajTekstWKsztalcie('PIECZĘĆ • MAKIETKA • 2027 •', { rodzaj: 'okrag', strona: 'zewn' }, null, { rozmiarPt: 12 });
+    b.set({ left: x0 + 44, top: 72, fill: '#b3263c' }); b.setCoords();
+    const c = e.dodajTekstWKsztalcie('FALUJĄCY BANER', { rodzaj: 'fala', zgiecie: 60 }, null, { rozmiarPt: 22 });
+    c.set({ left: x0 + 22, top: 150, fill: '#2563eb' }); c.setCoords();
+    e.zatwierdz();
+    e.canvas.discardActiveObject();
+    e.zaznacz(a.id);
+  });
+  await d.waitForTimeout(600);
+  await d.evaluate(() => { const f = [...document.querySelectorAll('#panel-inspektor fieldset')].find((x) => /Kształt tekstu/.test(x.querySelector('legend')?.textContent || '')); f?.classList.remove('zwinieta'); f?.scrollIntoView({ block: 'start' }); });
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-ksztalt-tekstu.png', { obszar: ['.arkusz', '#panel-inspektor fieldset:has(> legend:has-text("Kształt tekstu"))'], margines: 8 }).catch((err) => console.error('pominięto k-ksztalt-tekstu:', err.message));
+
   // Pióro: kształt z łukami w trakcie edycji punktów
   await pustaStrona();
   await d.evaluate(() => {

@@ -32,6 +32,7 @@ export const WLASNE_POLA = [
   'uszlachetnienie', 'folia', // uszlachetnienie (#127): 'uv' | 'folia' | 'tloczenie' | 'wytloczenie' | 'bialy'; folia: 'zloto' | 'srebro' | 'miedz'
   'kalendarz', // kalendarz miesiąca: tabela z opisem miesiąca i wyglądu dni (kalendarz-miesiaca.js, #131A)
   'wykres', // wykres z danych (wykres.js, #131A)
+  'ksztalt_tekstu', // tekst po łuku, okręgu, ścieżce albo wygięty (tekst-ksztalt.js, #131B)
   'kolaz', // kolaż: { uklad, odstep, zaokraglenie, szerokosc, wysokosc } – grupa pól na zdjęcia (#131A)
 ];
 

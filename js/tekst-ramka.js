@@ -11,6 +11,8 @@
 import './fabric-ustawienia.js';
 // Skład (dzielenie, spójniki, tabulatory, inicjał, oblewanie, siatka bazowa) – musi załatać Textbox przed tym plikiem.
 import { wciecieListy, zalatajSklad } from './sklad.js';
+// Kształt tekstu (łuk, okrąg, ścieżka, wygięcia; #131B) – łatka na końcu pliku, po wszystkich pozostałych.
+import { zalatajKsztaltTekstu } from './tekst-ksztalt.js';
 
 zalatajSklad();
 
@@ -195,3 +197,6 @@ P._renderChar = function _renderChar(metoda, ctx, nrWiersza, nrZnaku, znak, lewo
 
 // Czy treść wystaje poza ramkę (do ostrzeżeń).
 export const nieMiesciSie = (o) => o.type === 'textbox' && o.ramka_h > 0 && (o._wysokoscTresci ?? 0) > o.ramka_h + 0.05;
+
+// Kształt tekstu (#131B) zakłada łatki na końcu – opakowuje wymiary i rysowanie wszystkich powyżej.
+zalatajKsztaltTekstu();
