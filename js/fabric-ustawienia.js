@@ -27,6 +27,9 @@ export const WLASNE_POLA = [
   'obraz_kadr', // kształt jako ramka obrazu: { x, y, skala } (obraz-w-ksztalcie.js, #123)
   'filtry', // filtry obrazu bez zmiany pliku: { jasnosc, kontrast, nasycenie, szarosc, sepia, rozmycie } (#123)
   'uszlachetnienie', 'folia', // uszlachetnienie (#127): 'uv' | 'folia' | 'tloczenie' | 'wytloczenie' | 'bialy'; folia: 'zloto' | 'srebro' | 'miedz'
+  'kalendarz', // kalendarz miesiąca: tabela z opisem miesiąca i wyglądu dni (kalendarz-miesiaca.js, #131A)
+  'wykres', // wykres z danych (wykres.js, #131A)
+  'kolaz', // kolaż: { uklad, odstep, zaokraglenie, szerokosc, wysokosc } – grupa pól na zdjęcia (#131A)
 ];
 
 if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
@@ -66,6 +69,7 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
     o.type = this.type;
     // Opis tabeli jest zmieniany w miejscu – zapis dostaje własną kopię, nie odwołanie do żywego obiektu.
     if (o.tabela) o.tabela = JSON.parse(JSON.stringify(o.tabela));
+    for (const k of ['kalendarz', 'wykres', 'kolaz']) if (o[k]) o[k] = JSON.parse(JSON.stringify(o[k]));
     // Grupa otwarta w edytorze (zmiana pojedynczego elementu, pisanie w komórce tabeli) w zapisie jest zwykłą grupą.
     if (o.interactive) o.interactive = false;
     if (o.subTargetCheck) o.subTargetCheck = false;

@@ -10,6 +10,7 @@ import { OknoCzcionek } from '../okno-czcionek.js';
 import { rodzinyCzcionek, odmianyRodziny } from '../czcionki.js';
 import { uzgodnijZKontem, rodzinySpozaProjektu, poznaj } from '../moje-czcionki.js';
 import { uid } from '../projekt.js';
+import { ustawProjektDanych } from '../elementy-danych.js';
 import { toRysunekSvg, rozlozRysunek } from '../svg-elementy.js';
 import * as chmura from '../chmura.js';
 import { $, powiadom, odmiana } from '../ui.js';
@@ -28,6 +29,7 @@ export { instrukcja } from './instrukcja-leniwa.js';
 export const podmiana = { obj: null, doKsztaltu: false };
 export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwosci'), edytor, {
   tytulPusty: () => (stan.tryb === 'wzorzec' ? 'Wzorzec' : 'Strona'),
+  projekt: () => stan.projekt, // tabele danych dla kalendarza i wykresu (#131A)
   budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),
   // Dodatkowe ustawienia elementu zależne od tego, co edytujemy.
   dodatkiElementu: (p, obj, sekcja) => {
@@ -139,6 +141,9 @@ export const menuWidoku = new MenuWidoku({
   widok: () => stan.projekt?.widok,
   poZmianie: (widok) => { edytor.ustawWidok(widok); linijki.ustaw(widok.linijki); zaplanujZapis(); },
 });
+
+// Kalendarze i wykresy w edytorze liczą się z danych otwartego projektu (#131A).
+ustawProjektDanych(() => stan.projekt);
 
 // Dane: tabele i serie. Po zmianie danych strony trzeba narysować od nowa.
 export const dane = new Dane({

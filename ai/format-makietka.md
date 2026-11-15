@@ -263,6 +263,36 @@ Grupa z opisem `tabela` i komórkami-tekstami (wierszami, od lewej; liczba komó
 - `wiersze` to najmniejsze wysokości – wiersz rośnie, gdy tekst się nie mieści. Komórki mogą zawierać pola `{kolumna}`.
 - Nieobowiązkowo: `scalenia: [{ w, k, ileW, ileK }]` (scalone komórki), `linie_komorek` (własne linie odcinków siatki – zobacz README).
 
+## 9a. Kalendarz miesiąca, wykres i kolaż (Biblioteka)
+
+Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** – łącznik zrobi z niego grupę, a treść (daty, słupki, pola na zdjęcia) aplikacja ułoży sama przy wczytaniu strony i przy składaniu każdej strony serii.
+
+```json
+{ "type": "kalendarz", "left": 14, "top": 40, "width": 120,
+  "kalendarz": { "rok": 2027, "miesiac": 3, "pole_daty": "miesiac", "pierwszy": 1, "nazwy": "skrot", "tytul": true,
+                 "tygodnie": false, "inne": "wyszarz", "notatki": false, "swieta": true, "nazwy_swiat": false, "wiersz_dnia": 9,
+                 "swieta_z": { "tabela": "t_swieta", "data": "data", "nazwa": "nazwa" },
+                 "kolory": { "dni": "#1a1a1a", "naglowek": "#1a1a1a", "niedziele": "#c62828", "soboty": null, "swieta": "#c62828", "inne": "#b5b2aa" } } }
+```
+
+- Kalendarz to tabela (`tabela` + komórki) z opisem `kalendarz`. `pole_daty` – kolumna danych z miesiącem („2027-03”, „marzec 2027”, „3” + `pole_roku`); na każdej stronie serii inny miesiąc. Bez niej – stały `rok` i `miesiac`.
+- Polskie święta (stałe i ruchome: Wielkanoc, Poniedziałek Wielkanocny, Zielone Świątki, Boże Ciało, od 2025 Wigilia) liczą się same; `swieta_z` dokłada dni z tabeli danych (data „2027-05-26”, „26.05.2027” albo „26.05” – co roku).
+- Komórek kalendarza nie wpisuje się ręcznie – układa je aplikacja.
+
+```json
+{ "type": "wykres", "left": 20, "top": 120, "wykres": { "rodzaj": "slupki", "tabela": "t_sprzedaz", "etykiety": "miesiac",
+  "wartosci": ["sklep", "internet"], "zakres": "wszystkie", "szerokosc": 120, "wysokosc": 70, "tytul": "Sprzedaż",
+  "etykiety_wartosci": true, "os": true, "siatka": true, "legenda": true, "rozmiar": 2.6, "kolory": ["#2f6fb0", "#e07b39"] } }
+```
+
+- `rodzaj`: `slupki` | `poziome` | `linia` | `kolo` | `pierscien`. `zakres`: `wszystkie` | `zakres` (`od`, `do` – numery wierszy od 1) | `wiersz` (wiersz strony serii: kategorie to kolumny `wartosci`, liczby z bieżącego wiersza). Liczby w komórkach mogą mieć przecinek, spacje i „%”.
+
+```json
+{ "type": "kolaz", "left": 10, "top": 20, "kolaz": { "uklad": "3-duzy-lewo", "odstep": 2, "zaokraglenie": 0, "szerokosc": 128, "wysokosc": 90 } }
+```
+
+- `uklad`: `2-pion`, `2-poziom`, `3-kolumny`, `3-duzy-lewo`, `3-duzy-gora`, `4-siatka`, `4-duzy-lewo`, `5-mozaika`, `5-duzy-gora`, `6-siatka`, `6-pion`, `9-siatka`. Pola to prostokąty – ramki obrazu: zdjęcie wstawisz, ustawiając polu `zasob` (jak kształtowi z obrazem).
+
 ## 10. Czego nie robić
 
 - Nie zapisuj powielonych stron serii jako osobnych stron – zrób jedną stronę-wzór z polami i tabelę.

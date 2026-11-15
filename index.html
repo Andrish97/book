@@ -689,6 +689,7 @@
           <button data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false" title="Rysowanie odręczne (B) – przeciągaj po stronie; Esc kończy"><span>Rysuj</span></button>
           <button data-akcja="pioro" data-ikona="pioro" aria-pressed="false" title="Pióro (N) – kliknięcia stawiają punkty, przeciągnięcie robi łuk; Enter kończy kształt"><span>Pióro</span></button>
           <button data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: jeden element z wierszami i kolumnami; dwuklik komórki zaczyna pisanie"><span>Tabela</span></button>
+          <button data-akcja="biblioteka" data-ikona="biblioteka" title="Biblioteka: kształty, strzałki, dymki, ramki, ozdobniki, kalendarz miesiąca, wykresy, kolaże zdjęć"><span>Biblioteka</span></button>
         </div>
 
         <div id="kontener-plotna" class="kontener-plotna">
@@ -1566,6 +1567,20 @@
         <button class="przycisk glowny" value="tak" id="potwierdz-tak">OK</button>
       </div>
     </form>
+  </dialog>
+
+  <!-- Biblioteka (#131A, #134): jedno miejsce na gotowe elementy – kategorie dopisują moduły (js/biblioteka.js). -->
+  <dialog id="dlg-biblioteka" class="dialog-biblioteki" aria-labelledby="biblioteka-tytul">
+    <div class="biblioteka">
+      <div class="naglowek-dialogu">
+        <h2 id="biblioteka-tytul">Biblioteka</h2>
+        <button type="button" class="przycisk-ikona x-okna" id="biblioteka-zamknij" data-ikona="zamknij" aria-label="Zamknij bibliotekę"></button>
+      </div>
+      <label class="szukaj-w-bibliotece"><span data-ikona="szukaj" data-rozmiar="16"></span><input type="search" id="szukaj-w-bibliotece" placeholder="Szukaj (strzałka, dymek, serce, kalendarz…)" aria-label="Szukaj w bibliotece" autocomplete="off" spellcheck="false"></label>
+      <div class="kategorie-biblioteki" id="kategorie-biblioteki" role="toolbar" aria-label="Kategorie"></div>
+      <div class="elementy-biblioteki" id="elementy-biblioteki"></div>
+      <p class="ciche podpowiedz-biblioteki">Kliknij element, żeby wstawić go na środek strony, albo przeciągnij go na stronę.</p>
+    </div>
   </dialog>
 
   <dialog id="dlg-tabela">

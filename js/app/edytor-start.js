@@ -53,6 +53,8 @@ import {
 } from './lista-stron.js';
 import { podlaczDokWarstw } from './dok-warstw.js';
 import { dodajPolecenie } from '../paleta-polecen.js';
+import '../biblioteka-elementy.js';
+import { otworzBiblioteke, wstawZBiblioteki, TYP_PRZECIAGANIA } from './biblioteka-okno.js';
 import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje, zamienNaOkladke } from './sekcje.js';
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
@@ -308,6 +310,7 @@ export const akcje = {
   rysuj: () => edytor.ustawRysowanie(!edytor.rysuje),
   pioro: () => edytor.ustawPioro(!edytor.pioro),
   'dodaj-tabele': () => { $('#dlg-tabela').returnValue = ''; $('#dlg-tabela').showModal(); },
+  biblioteka: () => otworzBiblioteke(),
   cofnij: () => cofnijKrok(-1),
   ponow: () => cofnijKrok(1),
   duplikuj: () => edytor.duplikuj(),
@@ -381,6 +384,14 @@ const kontener = $('#kontener-plotna');
 kontener.addEventListener('dragover', (e) => e.preventDefault());
 kontener.addEventListener('drop', (e) => {
   e.preventDefault();
+  // Element przeciągnięty z biblioteki: staje w miejscu upuszczenia (#131A).
+  const zBiblioteki = e.dataTransfer.getData(TYP_PRZECIAGANIA);
+  if (zBiblioteki) {
+    const [kat, el] = zBiblioteki.split('|');
+    const p = edytor.canvas.getScenePoint(e);
+    wstawZBiblioteki(kat, el, { x: p.x, y: p.y });
+    return;
+  }
   // Plik upuszczony na kształt trafia do kształtu (kształt jako ramka obrazu, #123).
   const cel = edytor.elementWPunkcie(e);
   const pliki = [...e.dataTransfer.files];
