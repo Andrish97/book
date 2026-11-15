@@ -38,7 +38,7 @@ import { wlaczWygladEdytora } from './wyglad-edytora.js';
 import { wczytajPlikProjektu } from './projekty.js';
 import {
   naPlotnie, zapiszBiezacyCel, cofnijKrok, zaplanujZapis, wybierzStroneArkusza, zaladujCel,
-  zapiszTeraz, synchronizuj, zaplanujChmure, stanZapisu, otworzProjekt, odlaczPlotno, odswiezKsiazke,
+  zapiszTeraz, synchronizuj, zaplanujChmure, stanZapisu, sprawdzKonto, otworzProjekt, odlaczPlotno, odswiezKsiazke,
 } from './zapis.js';
 import {
   pokazPodglad, otworzUdostepnianie, opublikujUdostepnienie, wylaczUdostepnienie,
@@ -561,7 +561,8 @@ document.addEventListener('paste', async (e) => {
 });
 window.addEventListener('blur', () => edytor.ustawReke(false));
 
-window.addEventListener('online', () => zaplanujChmure(500));
+// Po powrocie sieci najpierw zmiany z konta (np. od AI), potem wysyłka tego, co zostało na urządzeniu (#138).
+window.addEventListener('online', () => { sprawdzKonto().finally(() => zaplanujChmure(500)); });
 window.addEventListener('offline', () => { if (stan.projekt && stan.uzytkownik) stanZapisu('offline', 'Offline – zapisano na urządzeniu'); });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && stan.projekt) zapiszTeraz();
