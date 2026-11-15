@@ -1112,6 +1112,8 @@ if (require.main === module) (async () => {
 
   // Książka (#131B): spis treści, przypisy, żywa pagina – osobny projekt na atrapie konta.
   await require('./zrzuty-ksiazki.cjs').zrobZrzutyKsiazki(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty książki:', err.message));
+  // Narzędzia pracy (#131C, #136): znajdź i zamień, malarz, moje elementy, pisownia, użyte w projekcie.
+  await require('./zrzuty-pracy.cjs').zrobZrzutyPracy(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty narzędzi pracy:', err.message));
 
   await przegladarka.close();
 })();

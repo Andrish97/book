@@ -18,6 +18,10 @@ export const SKROTY = [
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyV'], opis: 'Wklej: element skopiowany w aplikacji (na innej stronie – w to samo miejsce) albo obraz ze schowka systemu – zrzut ekranu, skopiowany plik, kod SVG', systemowe: true },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyD'], opis: 'Duplikuj', zaznaczenie: true, akcja: (k) => k.edytor.duplikuj() },
   { grupa: 'Edycja', klawisze: ['Delete', 'Backspace'], opis: 'Usuń', zaznaczenie: true, akcja: (k) => k.edytor.usun() },
+  { grupa: 'Edycja', klawisze: ['Ctrl+KeyF'], opis: 'Znajdź w tekstach projektu', zawsze: true, akcja: (k) => k.znajdz(false) },
+  { grupa: 'Edycja', klawisze: ['Ctrl+KeyH'], opis: 'Znajdź i zamień', zawsze: true, akcja: (k) => k.znajdz(true) },
+  { grupa: 'Edycja', klawisze: ['Ctrl+Alt+KeyC'], pokaz: 'Ctrl+Alt+C', opis: 'Kopiuj wygląd zaznaczonego elementu (poza pisaniem tekstu)', zaznaczenie: true, akcja: (k) => k.malarzKopiuj() },
+  { grupa: 'Edycja', klawisze: ['Ctrl+Alt+KeyV'], pokaz: 'Ctrl+Alt+V', opis: 'Nałóż skopiowany wygląd na zaznaczenie', zaznaczenie: true, akcja: (k) => k.malarzNaloz() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyS'], opis: 'Zapisz od razu (zapis i tak jest automatyczny)', zawsze: true, akcja: (k) => k.zapisz() },
 
   // ---------- Zaznaczanie ----------

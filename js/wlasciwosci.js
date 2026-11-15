@@ -18,6 +18,7 @@ import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
 import { trescQR } from './kody.js';
 import { naglowkiProjektu, celeOdsylaczy, LICZENIE_PRZYPISOW, RODZAJE as RODZAJE_KSIAZKI } from './ksiazka.js';
 import { ikona } from './ikony.js';
+import { uzyteCzcionki } from './kontrolki.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU, rowneWStylu, stylZnakowyZFragmentu, zastosujStylZnakowy, stylZnakowyNaPozycji } from './style-tekstu.js';
 import { zapytajONazwe, potwierdz, powiadom } from './ui.js';
@@ -181,7 +182,8 @@ export class PanelWlasciwosci {
       s.append(this.wskazowka(wOtwartej
         ? 'To elementy otwartej grupy: przesuwasz je razem i wyrównujesz do siebie. „Zgrupuj” zrobi z nich grupę w tej grupie. Esc wraca do całej grupy.'
         : 'Przesuwasz je razem. Zgrupuj, żeby zawsze trzymały się razem.'));
-      s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()], ...(wOtwartej ? [['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]] : [])]));
+      s.append(this.akcje([['grupuj', 'Zgrupuj', () => this.edytor.grupuj()], ...(wOtwartej ? [['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]] : []),
+        ...(this.opcje.zapiszWBibliotece && !wOtwartej ? [['zapisz_w_bibliotece', 'Zapisz w bibliotece', () => this.opcje.zapiszWBibliotece()]] : [])]));
       if (obj.getObjects().every((o) => o.type === 'textbox')) {
         const p = this.sekcja('Przelewanie tekstu');
         p.append(this.wskazowka('Po połączeniu tekst, który nie mieści się w pierwszej ramce, płynie do następnej (z góry na dół, obok siebie – od lewej).'));
@@ -857,7 +859,12 @@ export class PanelWlasciwosci {
     const rodziny = this.opcje.czcionki?.() || CZCIONKI.map((c) => c.nazwa);
     // „Moje czcionki” – wgrane kiedyś w innym projekcie; wybranie dodaje je do tego projektu.
     const moje = (this.opcje.mojeCzcionki?.() || []).map((n) => [`moja:${n}`, `${n} – z moich czcionek`]);
-    const czcionka = this.wybor('Czcionka', [...rodziny.map((n) => [n, n]), ...moje, ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
+    // Użyte w projekcie (#136): na górze listy, z liczbą użyć – szybki powrót do czcionek dokumentu.
+    const uzyte = uzyteCzcionki(this.opcje.projekt?.()).filter((c) => rodziny.includes(c.nazwa)).slice(0, 6);
+    const listaCzcionek = uzyte.length
+      ? [{ grupa: 'Użyte w projekcie', opcje: uzyte.map((c) => [c.nazwa, `${c.nazwa} · ${c.ile}×`]) }, { grupa: 'Wszystkie czcionki', opcje: [...rodziny.map((n) => [n, n]), ...moje] }]
+      : [...rodziny.map((n) => [n, n]), ...moje];
+    const czcionka = this.wybor('Czcionka', [...listaCzcionek, ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
       if (v === '+') { this.opcje.wgrajCzcionke(); return; }
       if (v.startsWith('moja:')) { this.opcje.dodajMojaCzcionke(v.slice(5)); return; }
       // Czcionka bez pogrubienia albo kursywy: tekst wraca do odmiany, którą czcionka ma (bez „udawanej”).
@@ -940,6 +947,7 @@ export class PanelWlasciwosci {
     this.zbudujKsztaltTekstu(obj);
     this.zbudujSklad(obj);
     if (!obj.ksiazka) this.zbudujKsiazke(obj);
+    if (!obj.ksiazka) this.zbudujPisownie(obj);
 
     // Przelewanie: połączone ramki i kolumny.
     const w = this.sekcja('Przelewanie tekstu');
@@ -1261,6 +1269,49 @@ export class PanelWlasciwosci {
     }]]));
     s.append(this.wskazowka('Klawisz Tab w pisanym tekście wstawia tabulator. Bez ustawionych pozycji tabulator skacze co 12,5 mm.'));
     s.append(this.przelacznik('Nie opływaj innych elementów', () => Boolean(obj.bez_oblewania), (v) => ustaw('bez_oblewania', v || undefined)));
+  }
+
+  // Pisownia (#131C): słowa spoza słownika w tym tekście z podpowiedziami – działa też na telefonie,
+  // gdzie nie ma menu pod prawym przyciskiem. Tylko gdy sprawdzanie pisowni jest włączone (menu widoku).
+  zbudujPisownie(obj) {
+    const p = this.opcje.pisownia;
+    if (!p?.wlaczona()) return;
+    const s = this.sekcja('Pisownia', { zwinieta: false });
+    const lista = document.createElement('div');
+    lista.className = 'lista-pisowni';
+    lista.textContent = 'Sprawdzam…';
+    s.append(lista);
+    p.bledyTekstu(obj).then(async (bledy) => {
+      if (!lista.isConnected) return;
+      lista.replaceChildren();
+      if (!bledy.length) { lista.append(this.wskazowka('Bez błędów – wszystkie słowa są w słowniku.')); return; }
+      for (const slowo of bledy.slice(0, 12)) {
+        const wiersz = document.createElement('div');
+        wiersz.className = 'blad-pisowni';
+        const nazwa = document.createElement('strong');
+        nazwa.textContent = slowo;
+        const podp = document.createElement('div');
+        podp.className = 'podpowiedzi-pisowni';
+        wiersz.append(nazwa, podp);
+        lista.append(wiersz);
+        const propozycje = await p.podpowiedzi(slowo);
+        for (const nowe of propozycje.slice(0, 4)) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'przycisk maly';
+          b.textContent = nowe;
+          b.title = `Zamień „${slowo}” na „${nowe}” w tym tekście`;
+          b.addEventListener('click', () => { p.popraw(obj, slowo, nowe); setTimeout(() => this.zbuduj()); });
+          podp.append(b);
+        }
+        const dodaj = document.createElement('button');
+        dodaj.type = 'button';
+        dodaj.className = 'przycisk maly przezroczysty';
+        dodaj.textContent = 'Dodaj do słownika';
+        dodaj.addEventListener('click', async () => { await p.dodajDoSlownika(slowo); setTimeout(() => this.zbuduj()); });
+        podp.append(dodaj);
+      }
+    }).catch((e) => { if (lista.isConnected) lista.textContent = `Nie udało się sprawdzić pisowni: ${e.message}`; });
   }
 
   // Książka (#131B): przypisy dolne, odsyłacze i hasła skorowidza tego tekstu.
@@ -1939,12 +1990,21 @@ export class PanelWlasciwosci {
     const label = document.createElement('label');
     label.append(etykieta);
     const sel = document.createElement('select');
-    for (const [wartosc, opis] of opcje) {
+    const opcja = (wartosc, opis) => {
       const o = document.createElement('option');
       o.value = wartosc;
       o.textContent = opis;
-      if (this._czcionkiWLiscie && wartosc !== '+') o.style.fontFamily = `"${wartosc}"`;
-      sel.append(o);
+      if (this._czcionkiWLiscie && wartosc !== '+' && !wartosc.startsWith('moja:')) o.style.fontFamily = `"${wartosc}"`;
+      return o;
+    };
+    // Pozycja { grupa, opcje } – nagłówek grupy na liście (np. „Użyte w projekcie” nad czcionkami).
+    for (const p of opcje) {
+      if (p && !Array.isArray(p) && p.grupa) {
+        const g = document.createElement('optgroup');
+        g.label = p.grupa;
+        for (const [w, o] of p.opcje) g.append(opcja(w, o));
+        sel.append(g);
+      } else sel.append(opcja(p[0], p[1]));
     }
     const zapisz = this._zapisz(set);
     sel.addEventListener('change', () => zapisz(sel.value));
@@ -1958,6 +2018,10 @@ export class PanelWlasciwosci {
         sel.append(o);
       }
       sel.value = v;
+      // Ta sama pozycja w dwóch grupach („Użyte w projekcie” i pełna lista): zaznaczona ta z pełnej listy,
+      // żeby na przycisku stała sama nazwa, bez liczby użyć.
+      const ostatnia = [...sel.options].filter((o) => o.value === v).pop();
+      if (ostatnia) ostatnia.selected = true;
     };
     this.odswiezacze.push(odswiez);
     odswiez();

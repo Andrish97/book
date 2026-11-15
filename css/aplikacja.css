@@ -1381,8 +1381,8 @@ button.podglad-kartka { cursor: pointer; }
 .kolor-paleta button:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
 @media (hover: hover) { .kolor-paleta button:hover { outline: 2px solid var(--akcent); outline-offset: 1px; } }
 .kolor-paleta.ostatnie, .kolor-paleta.projektu { padding-top: 8px; border-top: 1px solid var(--linia); }
-.kolor-paleta.ostatnie::before { content: "Ostatnie"; } .kolor-paleta.projektu::before { content: "W projekcie"; }
-.kolor-paleta.ostatnie::before, .kolor-paleta.projektu::before { grid-column: 1 / -1; font-size: 11.5px; color: var(--cichy); }
+.kolor-paleta.ostatnie::before { content: "Ostatnie"; } /* „Użyte w projekcie” ma własny podpis (#136) */
+.kolor-paleta.ostatnie::before { grid-column: 1 / -1; font-size: 11.5px; color: var(--cichy); }
 
 /* Pola wyboru i opcje: własny wygląd zamiast systemowego. */
 input[type="checkbox"], input[type="radio"] {
@@ -2915,3 +2915,48 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .chip-hasla { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 6px 0 10px; border: 1px solid var(--linia); border-radius: 999px; background: var(--powierzchnia-2); color: var(--tusz); font: inherit; font-size: 12.5px; cursor: pointer; }
 @media (hover: hover) { .chip-hasla:hover { border-color: var(--blad); color: var(--blad); } }
 :root[data-dotyk] .chip-hasla { min-height: 36px; }
+
+/* ---------- Praca (#131C): Moje elementy, Znajdź i zamień, malarz formatów, pisownia ---------- */
+.kafel-z-akcjami { position: relative; display: grid; grid-column: span 2; }
+.kafel-z-akcjami .kafel-biblioteki { grid-column: auto; }
+.akcje-kafla { position: absolute; top: 4px; right: 4px; display: flex; gap: 2px; }
+.akcje-kafla .przycisk-ikona { --dotyk: 28px; width: 28px; height: 28px; min-height: 28px; background: color-mix(in srgb, var(--powierzchnia) 86%, transparent); }
+.podglad-biblioteki img { max-width: 90px; max-height: 64px; object-fit: contain; }
+.dialog-znajdz { width: min(520px, calc(100vw - 32px)); padding: 0; }
+.dialog-znajdz.obok-strony {
+  position: fixed; inset: 70px 16px auto auto; margin: 0; width: 380px; max-height: calc(100vh - 92px);
+  box-shadow: var(--cien-2); border: 1px solid var(--linia); z-index: 30;
+}
+.znajdz { display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 12px; max-height: inherit; min-height: 0; box-sizing: border-box; }
+.dialog-znajdz:not(.obok-strony) .znajdz { max-height: min(84vh, 720px); }
+.znajdz .naglowek-dialogu { margin: 0; }
+.dialog-znajdz:not(.z-zamiana) .znajdz-zamiana, .dialog-znajdz:not(.z-zamiana) #znajdz-zamien-jedno, .dialog-znajdz:not(.z-zamiana) #znajdz-zamien-wszystkie { display: none; }
+.dialog-znajdz.z-zamiana #znajdz-pokaz-zamiane { display: none; }
+.znajdz-opcje { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
+.znajdz-licznik { margin: 0; font-size: 12.5px; min-height: 1em; }
+.znajdz-lista { list-style: none; margin: 0; padding: 0; overflow-y: auto; min-height: 60px; display: flex; flex-direction: column; gap: 4px; overscroll-behavior: contain; }
+.trafienie {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 7px 10px; text-align: left; font: inherit; font-size: 13px;
+  border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz-2); cursor: pointer;
+}
+.trafienie small { font-size: 11px; color: var(--cichy); }
+.trafienie span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trafienie mark { background: color-mix(in srgb, #facc15 55%, transparent); color: var(--tusz); border-radius: 2px; padding: 0 1px; }
+.trafienie.wybrane { border-color: var(--akcent); background: var(--akcent-tlo); }
+@media (hover: hover) { .trafienie:hover { border-color: var(--akcent); } }
+.znajdz-przyciski { margin: 0; justify-content: flex-end; }
+:root[data-dotyk] .trafienie { min-height: 44px; }
+/* Malarz formatów: przycisk wciśnięty, kursor pędzla nad płótnem. */
+[data-akcja="malarz"][aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); }
+body.malarz-aktywny .upper-canvas { cursor: copy !important; }
+/* Pisownia w panelu tekstu. */
+.lista-pisowni { display: flex; flex-direction: column; gap: 8px; font-size: 13px; grid-column: 1 / -1; width: 100%; }
+.blad-pisowni { width: 100%; }
+.blad-pisowni strong { color: #dc2626; text-decoration: underline wavy #dc2626; text-underline-offset: 3px; font-weight: 600; }
+.podpowiedzi-pisowni { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.kolor-uzyte { display: flex; flex-direction: column; gap: 6px; }
+.kolor-uzyte .kolor-podpis { font-size: 11.5px; color: var(--cichy); }
+/* Dymek pisowni przy podkreślonym słowie (#140). */
+.menu.menu-pisowni { position: fixed; z-index: 60; right: auto; bottom: auto; width: max-content; min-width: 180px; max-width: 280px; }
+.menu-pisowni-tytul { display: block; padding: 6px 12px 4px; color: var(--cichy); font-size: 12px; }
+.menu-pisowni .podpowiedz-pisowni { font-weight: 600; }

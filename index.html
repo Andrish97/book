@@ -646,10 +646,12 @@
       <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)" aria-label="Podgląd"><span class="etyk etyk-paska">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
+      <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="znajdz" data-ikona="znajdz" title="Znajdź i zamień w tekstach projektu (Ctrl+F)" aria-label="Znajdź i zamień"></button>
       <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="instrukcja" data-ikona="ksiazka" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
         <div class="menu" id="menu-wiecej" role="menu" hidden>
+          <button role="menuitem" data-akcja="znajdz" data-ikona="znajdz">Znajdź i zamień…<kbd>Ctrl F</kbd></button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="wzorce" data-ikona="wzorzec">Wzorce…</button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="ksiazka">Instrukcja</button>
@@ -721,6 +723,7 @@
               <hr>
               <label class="przelacznik"><input type="checkbox" id="widok-jedna"><span>W rozkładówkach pokazuj jedną stronę</span></label>
               <label class="przelacznik"><input type="checkbox" id="widok-uszlachetnienia"><span>Pokaż uszlachetnienia</span></label>
+              <label class="przelacznik"><input type="checkbox" id="widok-pisownia"><span>Sprawdzaj pisownię</span></label>
               <div class="wyglad-edytora" role="group" aria-labelledby="wyglad-edytora-tytul">
                 <hr>
                 <p class="naglowek-widoku" id="wyglad-edytora-tytul">Wygląd edytora</p>
@@ -756,6 +759,8 @@
           <div class="akcje-obiektu" id="akcje-obiektu" hidden>
             <button class="przycisk-ikona maly" data-akcja="kopiuj" data-ikona="wklej" title="Kopiuj do schowka – wkleisz na tej lub innej stronie (Ctrl+C)" aria-label="Kopiuj do schowka"></button>
             <button class="przycisk-ikona maly" data-akcja="duplikuj" data-ikona="kopiuj" title="Duplikuj (Ctrl+D)" aria-label="Duplikuj"></button>
+            <button class="przycisk-ikona maly" data-akcja="malarz" data-ikona="malarz" aria-pressed="false" title="Kopiuj wygląd – potem kliknij inny element (dwa kliknięcia: na wiele elementów, Esc kończy; Ctrl+Alt+C / Ctrl+Alt+V)" aria-label="Kopiuj wygląd"></button>
+            <button class="przycisk-ikona maly" data-akcja="zapisz-w-bibliotece" data-ikona="zapisz_w_bibliotece" title="Zapisz w bibliotece – element będzie pod ręką w każdym projekcie (Biblioteka → Moje elementy)" aria-label="Zapisz w bibliotece"></button>
             <button class="przycisk-ikona maly" data-akcja="usun" data-ikona="kosz" title="Usuń (Delete)" aria-label="Usuń"></button>
           </div>
         </div>
@@ -1581,6 +1586,33 @@
   </dialog>
 
   <!-- Biblioteka (#131A, #134): jedno miejsce na gotowe elementy – kategorie dopisują moduły (js/biblioteka.js). -->
+  <!-- Znajdź i zamień (#131C): na komputerze panel obok strony, na telefonie zasłonka. -->
+  <dialog id="dlg-znajdz" class="dialog-znajdz" aria-labelledby="znajdz-tytul">
+    <div class="znajdz">
+      <div class="naglowek-dialogu">
+        <h2 id="znajdz-tytul">Znajdź i zamień</h2>
+        <button type="button" class="przycisk-ikona x-okna" id="znajdz-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <label class="szukaj-w-bibliotece"><span data-ikona="szukaj" data-rozmiar="16"></span><input type="search" id="znajdz-fraza" placeholder="Szukaj w tekstach projektu" aria-label="Szukaj" autocomplete="off" spellcheck="false"></label>
+      <div class="znajdz-zamiana">
+        <label class="szukaj-w-bibliotece"><span data-ikona="olowek" data-rozmiar="16"></span><input type="text" id="znajdz-zamien" placeholder="Zamień na" aria-label="Zamień na" autocomplete="off" spellcheck="false"></label>
+      </div>
+      <div class="znajdz-opcje">
+        <label class="przelacznik maly"><input type="checkbox" id="znajdz-wielkosc"><span>Wielkość liter</span></label>
+        <label class="przelacznik maly"><input type="checkbox" id="znajdz-slowa"><span>Całe słowa</span></label>
+        <label class="przelacznik maly"><input type="checkbox" id="znajdz-dane"><span>Także w danych</span></label>
+        <label class="przelacznik maly"><input type="checkbox" id="znajdz-style"><span>W nazwach stylów</span></label>
+      </div>
+      <p class="ciche znajdz-licznik" id="znajdz-licznik" role="status"></p>
+      <ol class="znajdz-lista" id="znajdz-lista" aria-label="Wyniki"></ol>
+      <div class="przyciski-dialogu znajdz-przyciski">
+        <button type="button" class="przycisk" id="znajdz-pokaz-zamiane" data-ikona="olowek">Zamień…</button>
+        <button type="button" class="przycisk" id="znajdz-zamien-jedno">Zamień</button>
+        <button type="button" class="przycisk glowny" id="znajdz-zamien-wszystkie">Zamień wszystkie</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="dlg-biblioteka" class="dialog-biblioteki" aria-labelledby="biblioteka-tytul">
     <div class="biblioteka">
       <div class="naglowek-dialogu">

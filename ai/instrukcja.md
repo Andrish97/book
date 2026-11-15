@@ -293,10 +293,11 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | **Podgląd** | Cały projekt bez edycji, z danymi (rozdział „20 Podgląd”). |
 | **Format** (np. „A5”) | Ustawienia bieżącej sekcji: format, spad, marginesy (rozdział „11.4 Ustawienia sekcji”). |
 | **Pełny ekran** | Chowa paski przeglądarki; `Esc` wraca. |
+| **Znajdź i zamień** | Lupa: szukanie i zamiana tekstu w całym projekcie (rozdział „6.15 Znajdź i zamień”). |
 | **Instrukcja** | Ta instrukcja. |
 | **⋯** | Menu z eksportem i oknami projektu (rozdział „4.3 Menu ⋯”). |
 
-**Wzorce**, **Dane** i **Podgląd** to ikony; napisy obok nich pojawiają się same, gdy jest na nie miejsce. Zmienisz to w menu widoku: **Napisy na górnym pasku** — **Auto**, **Zawsze**, **Nigdy** (rozdział „4.6 Prawy dolny róg i menu widoku”). Na wąskim telefonie **Wzorce**, **Dane** i **Instrukcja** przechodzą do menu **⋯**.
+**Wzorce**, **Dane** i **Podgląd** to ikony; napisy obok nich pojawiają się same, gdy jest na nie miejsce. Zmienisz to w menu widoku: **Napisy na górnym pasku** — **Auto**, **Zawsze**, **Nigdy** (rozdział „4.6 Prawy dolny róg i menu widoku”). Na wąskim telefonie **Wzorce**, **Dane**, **Instrukcja** i lupa przechodzą do menu **⋯** (**Znajdź i zamień…** jest tam na górze).
 
 ### 4.3 Menu ⋯
 
@@ -304,6 +305,7 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 
 | Pozycja | Co robi |
 |---|---|
+| **Znajdź i zamień…** | Szukanie i zamiana tekstu na wszystkich stronach i we wzorcach (`Ctrl`+`F`, → 6.15). |
 | **Eksportuj do PDF…** | Okno eksportu do pliku PDF (rozdział „22 Eksport do PDF i PNG”). |
 | **Pobierz bieżącą stronę jako PNG** | Obraz otwartej strony w 300 dpi, ze spadem (rozdział „22.5 Strona jako PNG”). |
 | **Sprawdź przed drukiem** | Lista miejsc do sprawdzenia w całym projekcie (rozdział „21 Sprawdź przed drukiem”). |
@@ -346,7 +348,7 @@ Nagłówek właściwości mówi, czego dotyczą ustawienia:
 | **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. **Rysuj**. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
 | **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (rozdział „11.3 Właściwości strony”). |
 
-Przy zaznaczonym elemencie w nagłówku są przyciski **Kopiuj do schowka** (`Ctrl`+`C`), **Duplikuj** (`Ctrl`+`D`) i **Usuń** (`Delete`). Tytuł części (np. „Cień”) zwija ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (rozdział „13.2 Ostrzeżenia”).
+Przy zaznaczonym elemencie w nagłówku są przyciski **Kopiuj do schowka** (`Ctrl`+`C`), **Duplikuj** (`Ctrl`+`D`), **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”), **Zapisz w bibliotece** (rozdział „5.8 Biblioteka”) i **Usuń** (`Delete`). Tytuł części (np. „Cień”) zwija ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (rozdział „13.2 Ostrzeżenia”).
 
 ![Ustawienia narzędzia: rysowanie](https://makietka.app/img/instrukcja/k-rysowanie.png)
 
@@ -375,6 +377,7 @@ Menu widoku:
 | **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
 | **Usuń prowadnice z tej strony** | Usuwa wszystkie prowadnice otwartej strony. |
 | **W rozkładówkach pokazuj jedną stronę** | W sekcji z rozkładówkami pokazuje tylko jedną stronę (rozdział „11.5 Rozkładówki”). |
+| **Sprawdzaj pisownię** | Falista czerwona linia pod słowami spoza słownika i część **Pisownia** w panelu tekstu (rozdział „6.16 Sprawdzanie pisowni”). |
 | **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (rozdział „23.3 Widok uszlachetnień”). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | **Auto** — gdy się mieszczą, **Zawsze**, **Nigdy**. |
@@ -475,6 +478,7 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 
 | Kategoria | Co w niej jest |
 |---|---|
+| **Moje elementy** | Elementy zapisane przez Ciebie – na koncie, w każdym projekcie (niżej). |
 | **Kształty** | Figury, gwiazdy, serca, chmura, tarcza, liść i proste ikony (dom, pinezka, zegar, ptaszek, koperta, telefon…). |
 | **Strzałki i dymki** | Strzałki w każdą stronę, zakręcone i obustronne, szewrony, metki; dymki komiksowe, myśli i krzyku. |
 | **Ozdobniki i ramki** | Wstęgi, proporczyki, bilety, zakładki; ramki (zwykła, falista, okrągła, podwójna); linie ozdobne. |
@@ -486,6 +490,19 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (rozdział „5.12 Kod QR i kod kreskowy”). |
 
 Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”).
+
+**Moje elementy.** Logo, stopkę firmy czy ulubioną ramkę zapiszesz raz i wstawisz w każdym projekcie:
+
+1. Zaznacz element albo kilka elementów (np. logo z podpisem).
+2. Kliknij **Zapisz w bibliotece** w nagłówku panelu (przy kilku zaznaczonych — w części **Zaznaczenie**) albo w **⋯** przy elemencie na liście warstw. Paleta poleceń (`Ctrl`+`K`) to dodatek.
+3. Wpisz nazwę. Element trafi do kategorii **Moje elementy**.
+
+![Moje elementy w Bibliotece](https://makietka.app/img/instrukcja/k-moje-elementy.png)
+
+- Elementy są na Twoim koncie — jak „Moje czcionki” — więc widać je w każdym projekcie i na każdym urządzeniu.
+- Zapisują się razem z obrazami. Wstawienie kopiuje obraz do obrazów projektu (rozdział „8.5 Okno Obrazy projektu”), więc projekt nie zależy od Biblioteki — usunięcie elementu z Biblioteki nie zmienia stron, na których już stoi.
+- Ołówek w rogu kafelka zmienia nazwę, kosz usuwa element z Biblioteki.
+- Elementów wzorca i tekstu w trakcie pisania nie zapiszesz — najpierw wyjdź z pisania.
 
 ### 5.9 Kalendarz miesiąca
 
@@ -549,6 +566,34 @@ Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na ka�
 Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Sprawdź przed drukiem** pojawi się uwaga, gdy kod będzie za mały (moduł QR mniejszy niż 0,33 mm, EAN mniejszy niż 80% nominału), za jasny albo z błędną treścią.
 
 ![Kod QR i jego ustawienia](https://makietka.app/img/instrukcja/k-kod.png)
+
+### 5.13 Kopiuj wygląd (malarz formatów)
+
+Wygląd jednego elementu przeniesiesz na inny jednym kliknięciem — bez przepisywania kolorów i grubości.
+
+**Gdzie:** przycisk **Kopiuj wygląd** (pędzel) w nagłówku panelu właściwości, obok **Kopiuj do schowka** i **Duplikuj**, oraz **⋯** przy elemencie na liście warstw → **Kopiuj wygląd**. Skróty `Ctrl`+`Alt`+`C` / `Ctrl`+`Alt`+`V` to dodatek.
+
+![Kopiuj wygląd w nagłówku panelu](https://makietka.app/img/instrukcja/k-malarz.png)
+
+1. Zaznacz element, który ma już dobry wygląd.
+2. Kliknij **Kopiuj wygląd** w nagłówku panelu (pędzel) albo naciśnij `Ctrl`+`Alt`+`C`. Przycisk zostaje wciśnięty, a kursor nad stroną zmienia się w kopiowanie.
+3. Kliknij element, który ma dostać ten wygląd. Gotowe — przycisk się wyłącza.
+
+- **Dwa kliknięcia** w **Kopiuj wygląd** — tryb ciągły: klikasz kolejne elementy, aż naciśniesz `Esc` albo klikniesz przycisk jeszcze raz.
+- Bez myszy: zaznacz element docelowy i naciśnij `Ctrl`+`Alt`+`V`.
+- **Fragment tekstu:** po skopiowaniu wyglądu kliknij tekst dwa razy, zaznacz słowa i kliknij **Kopiuj wygląd** jeszcze raz — wygląd (czcionka, rozmiar, kolor, pogrubienie…) dostanie tylko zaznaczony fragment. Wygląd skopiujesz też z fragmentu: zaznacz w pisanym tekście słowo o dobrym wyglądzie i kliknij **Kopiuj wygląd**.
+- W trakcie pisania tekstu skróty `Ctrl`+`Alt` nie działają — na polskiej klawiaturze to polskie litery (`Alt Gr`+`C` = „ć”).
+
+| Skąd → dokąd | Co przechodzi |
+|---|---|
+| Kształt → kształt | Wypełnienie (także przejście), obrys, grubość i przerywanie obrysu, zaokrąglenie rogów, krycie, cień. |
+| Tekst → tekst | Czcionka, rozmiar, pogrubienie, kursywa, kolor, odstępy, wyrównanie, styl, wielkość liter, obrys liter, krycie, cień. Treść zostaje. |
+| Obraz → obraz | Filtry, obrys ramki, zaokrąglenie rogów, krycie, cień. |
+| Każdy → każdy | Krycie, cień i uszlachetnienia (lakier, folia). |
+
+Wygląd nie przechodzi na tabele, kody, wykresy ani kalendarze — mają własne ustawienia. Każde przeniesienie cofniesz **Cofnij** (`Ctrl`+`Z`).
+
+> **Wskazówka:** Kolory i czcionki, których już użyłeś na innych stronach, są też pod ręką w oknie koloru i na liście czcionek, w części **Użyte w projekcie** (rozdział „6.8 Czcionki”, „7.7 Wybór koloru”).
 
 ## 6. Tekst
 
@@ -649,6 +694,10 @@ Okno **⋯** → **Czcionki projektu…**:
 
 ![Okno czcionek](https://makietka.app/img/instrukcja/czcionki.png)
 
+Na górze listy **Czcionka** są **Użyte w projekcie** — czcionki z tekstów wszystkich stron, wzorców i stylów, najczęstsze najpierw, z liczbą użyć (np. „Inter · 5×”). Niżej jest pełna lista.
+
+![Użyte w projekcie na liście czcionek](https://makietka.app/img/instrukcja/k-czcionki-uzyte.png)
+
 ### 6.9 Skład akapitu
 
 Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, jak tekst łamie się na wiersze. Te same ustawienia zapiszesz w stylu (rozdział „6.4 Style”).
@@ -729,6 +778,50 @@ Zaznacz tekst i w części **Kształt tekstu** panelu wybierz **Kształt**. Goto
 - W PDF litery zostają tekstem z osadzoną czcionką – ostre w każdym powiększeniu.
 - **Prosto** przywraca zwykły tekst w ramce o dawnej szerokości.
 
+### 6.15 Znajdź i zamień
+
+**Gdzie:** przycisk **Znajdź i zamień** (lupa) na górnym pasku albo **⋯** → **Znajdź i zamień…** — pierwsza pozycja menu (na telefonie tylko tam). Skróty jako dodatek: `Ctrl`+`F` (na Macu `⌘`+`F`), `Ctrl`+`H` — od razu z polem zamiany, i paleta poleceń (`Ctrl`+`K`).
+
+![Znajdź i zamień obok strony](https://makietka.app/img/instrukcja/k-znajdz.png)
+
+1. Wpisz szukany tekst. Lista pokazuje każde trafienie: stronę albo wzorzec i kawałek tekstu wokół.
+2. Kliknij trafienie (albo `Enter` w polu, `Shift`+`Enter` — wstecz) — edytor otworzy tę stronę i zaznaczy znaleziony fragment.
+3. Żeby zamienić, wpisz nowy tekst w drugim polu i kliknij **Zamień** (wybrane trafienie) albo **Zamień wszystkie**.
+
+| Opcja | Znaczenie |
+|---|---|
+| **Wielkość liter** | „Kalendarz” nie znajdzie „kalendarz”. |
+| **Całe słowa** | „kot” nie znajdzie „kotka”. |
+| **Także w danych** | Szuka też w komórkach tabel danych (rozdział „14 Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz”). |
+| **W nazwach stylów** | Szuka też w nazwach stylów akapitu i znakowych (rozdział „6.4 Style”). |
+
+- Szukanie obejmuje wszystkie strony i wzorce, także teksty w grupach.
+- Pola w klamrach, np. `{miesiac}`, zostają nietknięte — chyba że wpiszesz klamrę w szukanym tekście.
+- Wygląd fragmentów (np. pogrubione słowo) zostaje na swoim miejscu po zamianie.
+- **Zamień wszystkie** to jeden krok cofania — **Cofnij** przywraca wszystkie teksty naraz, także przy otwartym panelu.
+
+Na komputerze okno stoi obok strony i zostaje otwarte, możesz więc klikać kolejne trafienia i poprawiać tekst. Na telefonie wyjeżdża od dołu.
+
+### 6.16 Sprawdzanie pisowni
+
+Słowa spoza słownika polskiego są podkreślone falistą czerwoną linią — tylko w edytorze, nigdy w PDF.
+
+![Podpowiedzi przy podkreślonym słowie](https://makietka.app/img/instrukcja/k-pisownia-dymek.png)
+
+**Gdzie:** podpowiedzi są przy samym słowie, a włącznik w menu widoku (**Sprawdzaj pisownię**).
+
+1. Kliknij tekst dwa razy i kliknij (na telefonie stuknij) podkreślone słowo — albo kliknij je prawym przyciskiem myszy. Obok słowa pojawi się dymek z podpowiedziami i **Dodaj do słownika**.
+2. Kliknij podpowiedź (np. „wcześniej”) — słowo zmieni się w tym miejscu.
+3. Nazwę własną, której słownik nie zna (np. nazwę firmy), dodaj przyciskiem **Dodaj do słownika**. Twój słownik jest na koncie, więc działa w każdym projekcie.
+
+Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części **Pisownia** — tam podpowiedź zmienia słowo we wszystkich miejscach tego tekstu.
+
+![Część „Pisownia” w panelu tekstu](https://makietka.app/img/instrukcja/k-pisownia.png)
+
+- Pomijane są pola `{…}`, liczby, słowa z cyframi, adresy stron i e-maile.
+- Słownik (z odmianą wyrazów) wczytuje się przy pierwszym tekście, w tle — edytor nie zwalnia.
+- Wyłączysz sprawdzanie w menu widoku: **Sprawdzaj pisownię**. Ustawienie dotyczy tego urządzenia.
+
 ## 7. Kształty, linie i kolory
 
 ### 7.1 Prostokąt, elipsa i wielokąt
@@ -791,7 +884,10 @@ Kliknięcie kółka koloru otwiera okno koloru:
 - pole nasycenia i jasności oraz suwak barwy,
 - **Kod koloru** (np. `#2f5bd3`) do wpisania albo wklejenia,
 - **gotowe kolory**,
-- **ostatnio używane** kolory i **kolory w projekcie** — te, które już są na stronach.
+- **ostatnio używane** kolory,
+- **Użyte w projekcie** — kolory wypełnień, obrysów, tekstów (także fragmentów), przejść i teł ze wszystkich stron, wzorców i stylów, najczęstsze najpierw. Po najechaniu widać kod i liczbę użyć, a przy kolorze dodatkowym (rozdział „23.1 Kolory dodatkowe”) — jego nazwę, np. „PANTONE 186 C”.
+
+![Użyte w projekcie w oknie koloru](https://makietka.app/img/instrukcja/k-kolory-uzyte.png)
 
 ## 8. Obrazy
 
@@ -977,7 +1073,7 @@ Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na 
 | **Uchwyt ⋮⋮** | Przeciągnij wiersz, żeby zmienić kolejność — myszą albo palcem. |
 | **Oko** | Ukrywa element. Ukryty element nie jest drukowany. |
 | **Kłódka** | Blokuje położenie i rozmiar. |
-| **⋯** | **Na wierzch**, **Wyżej**, **Niżej**, **Na spód**, **Zmień nazwę**. |
+| **⋯** | **Na wierzch**, **Wyżej**, **Niżej**, **Na spód**, **Zmień nazwę**, **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”), **Zapisz w bibliotece** (rozdział „5.8 Biblioteka”). |
 
 Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w niego trafić na stronie.
 
@@ -2007,6 +2103,10 @@ Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast `Ctrl` 
 | `Ctrl` + `V` | Wklej: element skopiowany w aplikacji (na innej stronie – w to samo miejsce) albo obraz ze schowka systemu – zrzut ekranu, skopiowany plik, kod SVG |
 | `Ctrl` + `D` | Duplikuj |
 | `Delete` | Usuń |
+| `Ctrl` + `F` | Znajdź w tekstach projektu |
+| `Ctrl` + `H` | Znajdź i zamień |
+| `Ctrl` + `Alt` + `C` | Kopiuj wygląd zaznaczonego elementu (poza pisaniem tekstu) |
+| `Ctrl` + `Alt` + `V` | Nałóż skopiowany wygląd na zaznaczenie |
 | `Ctrl` + `S` | Zapisz od razu (zapis i tak jest automatyczny) |
 
 #### Zaznaczanie

@@ -361,7 +361,9 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   const widoczne = () => strona.evaluate(() => [...document.querySelectorAll('.wybor-lista .wybor-opcja')].filter((el) => !el.hidden).map((el) => el.textContent));
   await strona.focus(`${czcionka} .wybor-przycisk`);
   await strona.keyboard.press('ArrowDown');
-  assert.equal((await widoczne()).length, 53, 'cały zestaw i wgrywanie własnej');
+  // Na górze grupa „Użyte w projekcie” (#136) – te same czcionki jeszcze raz, z liczbą użyć.
+  const uzyte = await strona.evaluate(() => document.querySelectorAll('.wlasciwosci optgroup[label="Użyte w projekcie"] option').length);
+  assert.equal((await widoczne()).length, 53 + uzyte, 'cały zestaw i wgrywanie własnej');
   assert.ok(await strona.isHidden('.wybor-filtr'));
 
   // Fragment ze środka nazwy.
@@ -374,7 +376,7 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   assert.ok(zG.length > 4 && zG.includes('Great Vibes') && zG.includes('EB Garamond') && !zG.includes('Inter'), `pozycje z „g”: ${zG}`);
   // Esc czyści szukanie (lista zostaje otwarta), dopiero drugi zamyka.
   await strona.keyboard.press('Escape');
-  assert.equal((await widoczne()).length, 53);
+  assert.equal((await widoczne()).length, 53 + uzyte);
   assert.equal(await strona.locator('.wybor-lista').count(), 1);
   // Bez polskich znaków i wielkości liter: „WLASNA” znajduje „własną”.
   await strona.keyboard.type('WLASNA');

@@ -21,7 +21,12 @@ test('własne kontrolki: lista rozwijana (mysz, klawiatura, grupy) i wybór kolo
   await strona.click(`${czcionka} .wybor-przycisk`);
   const zestaw = await strona.evaluate(async () => (await import('./js/czcionki.js')).CZCIONKI.map((c) => c.nazwa));
   assert.equal(zestaw.length, 52);
-  assert.deepEqual(await strona.locator('.wybor-lista .wybor-opcja').allTextContents(), [...zestaw, '+ Wgraj własną czcionkę…']);
+  // Grupa „Użyte w projekcie” (#136) na górze: nazwa z liczbą użyć; niżej pełny zestaw.
+  const pozycje = await strona.locator('.wybor-lista .wybor-opcja').allTextContents();
+  const uzyte = pozycje.filter((x) => / · \d+×$/.test(x));
+  assert.ok(uzyte.length >= 1 && pozycje.slice(0, uzyte.length).every((x) => uzyte.includes(x)), `użyte na górze: ${uzyte}`);
+  assert.deepEqual(pozycje.slice(uzyte.length), [...zestaw, '+ Wgraj własną czcionkę…']);
+  assert.deepEqual(await strona.locator('.wybor-lista .wybor-grupa').allTextContents(), ['Użyte w projekcie', 'Wszystkie czcionki']);
   assert.equal(await strona.locator('.wybor-lista .wybor-opcja:has-text("Lora")').evaluate((el) => el.style.fontFamily), 'Lora', 'pozycja listy pokazuje krój czcionki');
   await strona.click('.wybor-lista .wybor-opcja:has-text("Lora")');
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.aktywny.fontFamily), 'Lora');

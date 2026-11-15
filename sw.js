@@ -26,7 +26,8 @@ const PODSTAWA = ['./', './index.html', './manifest.webmanifest'];
 const CDN = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
 // Duże biblioteki używane rzadko (PDF, Excel, ZIP) – w repozytorium, z wersją w nazwie pliku. Nie są pobierane
 // przy każdym wdrożeniu: trafiają do pamięci przy pierwszym użyciu i zostają w niej między wersjami aplikacji.
-const toRzadkaBiblioteka = (sciezka) => /\/js\/zewnetrzne\/(pdf-lib|fontkit|jszip|xlsx)-[\d.]+[^/]*\.js$/.test(sciezka);
+// Słownik do sprawdzania pisowni (js/zewnetrzne/slownik-pl/, ok. 5 MB) – tak samo: przy pierwszym włączeniu.
+const toRzadkaBiblioteka = (sciezka) => /\/js\/zewnetrzne\/(pdf-lib|fontkit|jszip|xlsx)-[\d.]+[^/]*\.js$/.test(sciezka) || /\/js\/zewnetrzne\/slownik-pl\//.test(sciezka);
 const toKod = (sciezka) => sciezka === '/' || /\/(index\.html|manifest\.webmanifest|sw\.js)$/.test(sciezka) || /\/(js|css)\//.test(sciezka);
 
 self.addEventListener('install', (e) => {

@@ -33,7 +33,7 @@ test('biblioteka: rejestr kategorii, wyszukiwanie we wszystkich kategoriach, kol
   await modul('js/biblioteka-elementy.js');
   const { kategorieBiblioteki, szukajWBibliotece, zarejestrujKategorie, elementBiblioteki } = await modul('js/biblioteka.js');
   const { polaKolazu, KSZTALTY, KOLAZE } = await modul('js/ksztalty-biblioteka.js');
-  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['ksztalty', 'strzalki', 'ozdobniki', 'kalendarze', 'wykresy', 'kolaze', 'teksty', 'style', 'ksiazka', 'kody']);
+  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['moje', 'ksztalty', 'strzalki', 'ozdobniki', 'kalendarze', 'wykresy', 'kolaze', 'teksty', 'style', 'ksiazka', 'kody']);
   assert.ok(KSZTALTY.length >= 50, `kształtów: ${KSZTALTY.length}`);
   assert.equal(KOLAZE.length, 12);
   // Wyszukiwanie bez polskich znaków, w każdej kategorii naraz.
@@ -41,7 +41,7 @@ test('biblioteka: rejestr kategorii, wyszukiwanie we wszystkich kategoriach, kol
   assert.ok(szukajWBibliotece('strzalka w prawo').some((x) => x.element.id === 'strzalka-prawo'));
   assert.ok(szukajWBibliotece('kalendarz').some((x) => x.kategoria.id === 'kalendarze'));
   assert.equal(szukajWBibliotece('', 'wykresy').length, 5);
-  // Kolejne partie dopisują kategorie bez zmian w oknie (np. „Moje elementy”).
+  // Kolejne partie dopisują kategorie bez zmian w oknie (np. „Moje elementy”, #131C – tu zastąpiona próbną).
   zarejestrujKategorie({ id: 'moje', nazwa: 'Moje elementy', kolejnosc: 5, elementy: () => [{ id: 'stopka', nazwa: 'Stopka firmy', podglad: '', wstaw: () => 'ok' }] });
   assert.equal(kategorieBiblioteki()[0].id, 'moje');
   assert.equal(elementBiblioteki('moje', 'stopka').wstaw(), 'ok');
@@ -55,7 +55,7 @@ test('kalendarz miesiąca z biblioteki: siatka marca 2027, niedziele i święta,
   await nowyProjekt(strona, 'Kalendarz');
   await strona.click('[data-akcja="biblioteka"]');
   await strona.waitForSelector('#dlg-biblioteka[open]');
-  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 10);
+  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 11, 'z „Moimi elementami”');
   await strona.click('#kategorie-biblioteki [data-kategoria="kalendarze"]');
   await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="zwykly"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.kalendarz);
