@@ -43,6 +43,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 135 | Zmiany od AI znikały po otwarciu projektu na innym urządzeniu – bezpieczne domyślne wybory, bez nadpisywania konta, wersje liczone numerem |
 | 133 | Marginesy i inne wymiary w mm – dowolna wartość, nie tylko co 0,5 |
 | 132 | Instrukcja na telefonie dawała się przewinąć cała (pusto pod stopką) |
 | 125 | Okładka: „Wymiary – Policz same / Wpisz grzbiet / Wpisz rozmiar okładki”, liczone wartości jako podpowiedź |

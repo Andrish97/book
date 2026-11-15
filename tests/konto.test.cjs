@@ -231,19 +231,23 @@ test('konflikt zapisu bez punktu odniesienia: pytanie o cały projekt, zmiana z 
 
   await strona.click('[data-akcja="dodaj-prostokat"]');
   await strona.waitForSelector('#dlg-potwierdz[open]', { timeout: 15000 });
-  assert.match(await strona.textContent('#potwierdz-tytul'), /zmieniono na innym urządzeniu/);
+  assert.match(await strona.textContent('#potwierdz-tytul'), /zmieniono w innym miejscu/);
   assert.equal(baza.projekty[0].wersja, 7, 'nic nie zostało nadpisane przed decyzją');
 
-  // Wybór: wczytaj wersję z konta.
+  // Domyślny wybór: wczytaj wersję z konta, a swoją zachowaj jako kopię – nic nie przepada (#135).
+  assert.match(await strona.textContent('#potwierdz-tak'), /Wczytaj wersję z konta/);
+  assert.equal(await strona.locator('#dlg-potwierdz button:has-text("Zachowaj wersję z tego urządzenia")').count(), 0, 'nie ma już nadpisania konta');
   await strona.click('#potwierdz-nie');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Wspólny (z telefonu)');
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury), 7);
   assert.ok(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.podstawa_chmury)), 'wczytana wersja z konta jest nowym punktem odniesienia');
+  for (let i = 0; i < 50 && !baza.projekty.some((x) => / \(z tego urządzenia\)$/.test(x.nazwa)); i += 1) await strona.waitForTimeout(100);
+  assert.ok(baza.projekty.some((x) => x.nazwa === 'Wspólny (z tego urządzenia)'), 'wersja z urządzenia zachowana jako kopia na koncie');
 
   // Kolejna zmiana zapisuje się już normalnie.
   await strona.click('[data-akcja="dodaj-elipse"]');
   await strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
-  assert.equal(baza.projekty[0].wersja, 8);
+  assert.equal(baza.projekty.find((x) => x.nazwa === 'Wspólny (z telefonu)').wersja, 8);
   assert.deepEqual(bledy, []);
 });
 

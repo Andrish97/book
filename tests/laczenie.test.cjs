@@ -247,7 +247,7 @@ test('ta sama strona zmieniona na dwóch urządzeniach: różne elementy łącz�
   assert.equal(pytania.length, 1, 'jedno pytanie – o element, nie o stronę');
   assert.equal(pytania[0][0], `strony:${p.strony[0]}#tel-1`);
   assert.match(pytania[0][1], /^Strona „Okładka z telefonu”: tekst „Kliknij dwa razy/);
-  assert.deepEqual(pytania[0].slice(2), ['moje', 'Z tego urządzenia (zmieniony tutaj)', 'Z konta (zmieniony na koncie)']);
+  assert.deepEqual(pytania[0].slice(2), ['konto', 'Z tego urządzenia (zmieniony tutaj)', 'Z konta (zmieniony na koncie)'], 'domyślnie wersja z konta (#135)');
   assert.match(await strona.textContent('#konflikt-opis'), /Jedną część zmieniono w obu miejscach/);
   // Esc nie zamyka okna bez decyzji.
   await strona.keyboard.press('Escape');
@@ -266,6 +266,8 @@ test('ta sama strona zmieniona na dwóch urządzeniach: różne elementy łącz�
   await tutaj(55);
   await strona.waitForSelector('#dlg-konflikt[open]', { timeout: 15000 });
   assert.equal(await strona.locator('#konflikt-lista li').count(), 1);
+  assert.equal(await strona.isChecked('#konflikt-lista li input[value="konto"]'), true, 'domyślnie wersja z konta (#135)');
+  await strona.click('#konflikt-lista li input[value="moje"]');
   await strona.click('#konflikt-zastosuj');
   await strona.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury === w + 2, wersja, { timeout: 15000 });
   await zapisano(strona);
