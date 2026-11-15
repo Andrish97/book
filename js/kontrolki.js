@@ -22,6 +22,7 @@ function zamknijOkienko() {
   if (!otwarte) return;
   const o = otwarte;
   otwarte = null;
+  if (o.okienko.matches?.(':popover-open')) o.okienko.hidePopover();
   o.okienko.remove();
   o.poZamknieciu?.();
 }
@@ -91,6 +92,12 @@ function dodajUchwyt(okienko) {
 function ustawJakZaslonke(okienko) {
   const okno = { w: window.innerWidth, h: window.visualViewport?.height || window.innerHeight };
   okienko.classList.add('okienko-zaslonka');
+  // Warstwa nad oknami (#165): w zasłonce lista leżała wewnątrz okna, które ją przycinało – długa lista
+  // wychodziła ponad górną krawędź okna i jej początek (z paseczkiem) był ucięty.
+  if (typeof okienko.showPopover === 'function' && !okienko.matches(':popover-open')) {
+    okienko.popover = 'manual';
+    okienko.showPopover();
+  }
   dodajUchwyt(okienko);
   okienko.style.minWidth = '';
   okienko.style.width = `${okno.w}px`;

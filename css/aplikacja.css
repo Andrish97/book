@@ -2404,6 +2404,7 @@ dialog { max-height: calc(100dvh - var(--bezp-gora) - var(--bezp-dol) - 16px); }
 }
 .okienko-zaslonka.wybor-lista .wybor-opcja { padding: 12px 14px; font-size: 15px; white-space: normal; }
 .uchwyt-okienka { display: none; }
+.okienko-zaslonka[popover] { margin: 0; inset: auto; position: fixed; overflow: auto; }
 .okienko-zaslonka > .uchwyt-okienka {
   display: block; position: sticky; top: -5px; z-index: 2; width: calc(100% + 10px); height: 26px; margin: -5px -5px 2px; padding: 0;
   border: 0; background: var(--powierzchnia); cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;

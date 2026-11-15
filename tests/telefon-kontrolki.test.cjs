@@ -40,3 +40,34 @@ test('telefon: kwadratowe pola wyboru, paseczek w okienkach list i koloru, kszta
   assert.equal(await strona.locator('.okienko-zaslonka').count(), 0);
   assert.deepEqual(bledy, []);
 });
+
+// Długa lista w okienku (zasłonce) na telefonie: cała widoczna od paseczka, nie przycięta przez okno (#165);
+// wybór opcji działa.
+test('telefon: długa lista wyboru w okienku nie jest ucięta od góry, wybór działa', async (t) => {
+  const { strona, bledy } = await otworz(t, { telefon: true });
+  await nowyProjekt(strona, 'Lista');
+  await strona.evaluate(() => {
+    const f = document.querySelector('#dlg-tabela form');
+    const s = document.createElement('select');
+    s.name = 'proba';
+    for (let i = 0; i < 40; i += 1) s.add(new Option(`Opcja ${i}`, String(i)));
+    f.prepend(s);
+    document.querySelector('#dlg-tabela').showModal();
+  });
+  await strona.waitForTimeout(600);
+  await strona.locator('#dlg-tabela .wybor-przycisk').first().tap();
+  await strona.waitForSelector('.okienko-zaslonka > .uchwyt-okienka');
+  const w = await strona.evaluate(() => {
+    const o = document.querySelector('.okienko-zaslonka');
+    const u = o.querySelector('.uchwyt-okienka').getBoundingClientRect();
+    const r = o.getBoundingClientRect();
+    const naGorze = document.elementFromPoint(u.left + u.width / 2, u.top + u.height / 2);
+    return { widacUchwyt: naGorze === o.querySelector('.uchwyt-okienka'), wEkranie: r.top >= 0 && r.bottom <= innerHeight + 1 };
+  });
+  assert.deepEqual(w, { widacUchwyt: true, wEkranie: true });
+  await strona.locator('.okienko-zaslonka .wybor-opcja', { hasText: 'Opcja 2' }).first().tap();
+  await strona.waitForTimeout(300);
+  assert.equal(await strona.evaluate(() => document.querySelector('#dlg-tabela select[name=proba]').value), '2');
+  assert.equal(await strona.locator('.okienko-zaslonka').count(), 0);
+  assert.deepEqual(bledy, []);
+});
