@@ -147,6 +147,54 @@ function zapamietajStrone(id, strona) {
 }
 
 // Wczytuje bieżący cel do edytora; dopasowuje widok, gdy zmienił się rozmiar.
+// Zamrożony obraz obszaru płótna na czas wczytywania innej strony (#149): kopia tego, co widać, leży nad
+// płótnem, aż nowa strona jest narysowana w całości – na telefonie (wolniejsze rysowanie) nie widać już
+// stanów pośrednich (wyczyszczone płótno, stara strona w nowym widoku, strona bez przeliczeń).
+let zamrozenie = null;
+function zamrozObraz() {
+  const kontener = edytor.kontener;
+  const plotno = edytor.canvas?.lowerCanvasEl;
+  if (zamrozenie) { zamrozenie.ile += 1; return zamrozenie; }
+  if (!kontener || !plotno?.width || !edytor.wydruk) return null;
+  const rk = kontener.getBoundingClientRect();
+  const rp = plotno.getBoundingClientRect();
+  if (rk.width < 2 || rk.height < 2) return null;
+  const dpr = window.devicePixelRatio || 1;
+  const obraz = document.createElement('canvas');
+  obraz.className = 'zamrozony-obraz';
+  obraz.width = Math.round(rk.width * dpr);
+  obraz.height = Math.round(rk.height * dpr);
+  Object.assign(obraz.style, { left: `${rk.left}px`, top: `${rk.top}px`, width: `${rk.width}px`, height: `${rk.height}px` });
+  const g = obraz.getContext('2d');
+  g.scale(dpr, dpr);
+  g.fillStyle = getComputedStyle(kontener).backgroundColor;
+  g.fillRect(0, 0, rk.width, rk.height);
+  const x = rp.left - rk.left;
+  const y = rp.top - rk.top;
+  g.save();
+  g.shadowColor = 'rgba(0, 0, 0, 0.16)';
+  g.shadowBlur = 10;
+  g.shadowOffsetY = 2;
+  g.fillStyle = '#ffffff';
+  g.fillRect(x, y, rp.width, rp.height);
+  g.restore();
+  g.drawImage(plotno, x, y, rp.width, rp.height);
+  kontener.after(obraz);
+  zamrozenie = { ile: 1, obraz };
+  return zamrozenie;
+}
+function odmrozObraz(z) {
+  if (!z) return;
+  z.ile -= 1;
+  if (z.ile > 0) return;
+  // Dwie klatki: najpierw płótno rysuje nową stronę, w następnej obraz znika.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (z.ile > 0) return;
+    z.obraz.remove();
+    if (zamrozenie === z) zamrozenie = null;
+  }));
+}
+
 export async function zaladujCel({ dopasuj = false } = {}) {
   const { projekt } = stan;
   // Strona okładki: przeliczenie przed wczytaniem, żeby po przejściu z innej strony (np. po dodaniu stron
@@ -168,6 +216,7 @@ export async function zaladujCel({ dopasuj = false } = {}) {
   // Rysowanie wstrzymane na czas wczytywania (#148): stara strona zostaje na ekranie, aż nowa jest gotowa
   // w całości (wzorce, elementy, tekst z innych stron, ostrzeżenia, dopasowanie widoku) – jedno podmienienie
   // zamiast kilku pośrednich stanów.
+  const zamrozone = zamrozObraz();
   const c = edytor.canvas;
   const { requestRenderAll: zlecRysowanie, renderAll: rysuj } = c;
   c.requestRenderAll = () => c;
@@ -208,7 +257,8 @@ export async function zaladujCel({ dopasuj = false } = {}) {
   } finally {
     c.requestRenderAll = zlecRysowanie;
     c.renderAll = rysuj;
-    c.requestRenderAll();
+    c.renderAll();
+    odmrozObraz(zamrozone);
   }
   odswiezPasekEdytora();
   renderujListe();

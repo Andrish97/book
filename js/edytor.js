@@ -301,10 +301,11 @@ export class Edytor extends EventTarget {
     const { wysokosc_mm: h, spad_mm: b } = this.wydruk;
     const w = this.szerokoscArkusza;
     const s = this.skala;
-    this.canvas.setDimensions({
-      width: Math.round((w + 2 * b) * s),
-      height: Math.round((h + 2 * b) * s),
-    });
+    const szer = Math.round((w + 2 * b) * s);
+    const wys = Math.round((h + 2 * b) * s);
+    // Ten sam rozmiar – bez ustawiania od nowa: zmiana wymiarów czyści płótno, a przy przechodzeniu między
+    // stronami tego samego formatu przez chwilę widać by było pustą stronę (#149).
+    if (this.canvas.getWidth() !== szer || this.canvas.getHeight() !== wys) this.canvas.setDimensions({ width: szer, height: wys });
     this.canvas.setViewportTransform([s, 0, 0, s, b * s, b * s]);
     this.canvas.calcOffset();
     this.canvas.requestRenderAll();

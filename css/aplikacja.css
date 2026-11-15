@@ -656,6 +656,7 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .kontener-plotna.przesuwa, .kontener-plotna.przesuwa canvas { cursor: grabbing !important; }
 .arkusz { margin: auto; padding: 84px 48px 80px; }
 .arkusz .canvas-container { box-shadow: var(--cien-strony); }
+.zamrozony-obraz { position: fixed; z-index: 3; pointer-events: none; }
 
 .pasek-narzedzi, .kontrolki-widoku {
   position: absolute; z-index: 5;
