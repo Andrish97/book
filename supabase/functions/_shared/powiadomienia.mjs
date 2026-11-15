@@ -30,7 +30,9 @@ export function trescPowiadomienia(zdarzenie) {
   const kto = String(d.kto || '').trim() || 'Ktoś';
   const rola = ROLA[d.rola] || '';
   const doProjektu = d.projekt_id ? `./#/p/${d.projekt_id}` : './#/projekty';
-  const tag = `${zdarzenie?.zdarzenie || 'makietka'}-${d.projekt_id || ''}`.slice(0, 32);
+  const doKomentarza = d.projekt_id && d.komentarz ? `./#/p/${d.projekt_id}/k/${d.komentarz}` : doProjektu;
+  const tresc = String(d.tresc || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  const tag = (d.komentarz ? `k-${d.komentarz}` : `${zdarzenie?.zdarzenie || 'makietka'}-${d.projekt_id || ''}`).slice(0, 32);
   switch (zdarzenie?.zdarzenie) {
     case 'zaproszenie':
       return { title: 'Zaproszenie do projektu', body: `${kto} zaprasza Cię do projektu ${projekt}${rola ? ` (${rola})` : ''}.`, url: d.kod ? `./#/zaproszenie/${d.kod}` : './#/projekty', tag };
@@ -42,6 +44,12 @@ export function trescPowiadomienia(zdarzenie) {
       return { title: 'Zaproszenie odrzucone', body: `${kto} nie dołączy do projektu ${projekt}.`, url: doProjektu, tag };
     case 'rola':
       return { title: 'Zmiana dostępu', body: `${kto} zmienia Twoją rolę w projekcie ${projekt}${rola ? `: ${rola}` : ''}.`, url: doProjektu, tag };
+    case 'komentarz':
+      return { title: `Komentarz w projekcie ${projekt}`, body: `${kto}: ${tresc}`, url: doKomentarza, tag };
+    case 'odpowiedz_komentarz':
+      return { title: 'Odpowiedź na komentarz', body: `${kto} w projekcie ${projekt}: ${tresc}`, url: doKomentarza, tag };
+    case 'wzmianka':
+      return { title: `${kto} wspomina Cię w komentarzu`, body: `Projekt ${projekt}: ${tresc}`, url: doKomentarza, tag };
     case 'odebrano':
       return { title: 'Koniec dostępu', body: `Nie masz już dostępu do projektu ${projekt}.`, url: './#/projekty', tag };
     default:

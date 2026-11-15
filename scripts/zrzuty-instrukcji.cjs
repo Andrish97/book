@@ -1117,5 +1117,8 @@ if (require.main === module) (async () => {
   // Druk (#131C): układ arkuszy w oknie eksportu, podgląd separacji.
   await require('./zrzuty-druku.cjs').zrobZrzutyDruku(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty druku:', err.message));
 
+  // Komentarze na stronach (#131D): narzędzie, licznik, pinezki, panel z wątkiem.
+  await require('./zrzuty-komentarzy.cjs').zrobZrzutyKomentarzy(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty komentarzy:', err.message));
+
   await przegladarka.close();
 })();

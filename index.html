@@ -473,6 +473,7 @@
                 <label class="przelacznik"><input type="checkbox" name="rodzaj" value="zaproszenia"><span>ktoś mnie zaprosi albo udostępni mi projekt</span></label>
                 <label class="przelacznik"><input type="checkbox" name="rodzaj" value="odpowiedzi"><span>ktoś przyjmie albo odrzuci moje zaproszenie</span></label>
                 <label class="przelacznik"><input type="checkbox" name="rodzaj" value="dostep"><span>zmieni się moja rola albo stracę dostęp do projektu</span></label>
+                <label class="przelacznik"><input type="checkbox" name="rodzaj" value="komentarze"><span>ktoś skomentuje mój projekt, odpowie w moim wątku albo wspomni mnie w komentarzu</span></label>
               </fieldset>
             </div>
           </section>
@@ -653,12 +654,14 @@
       <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)" aria-label="Podgląd"><span class="etyk etyk-paska">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy"><span class="etyk" id="opis-formatu">A5</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden></button>
+      <button class="przycisk-ikona poza-waskim-paskiem przycisk-komentarzy" data-akcja="komentarze" data-ikona="komentarz" title="Komentarze projektu" aria-label="Komentarze"><span class="licznik licznik-komentarzy" hidden></span></button>
       <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="znajdz" data-ikona="znajdz" title="Znajdź i zamień w tekstach projektu (Ctrl+F)" aria-label="Znajdź i zamień"></button>
       <button class="przycisk-ikona poza-waskim-paskiem" data-akcja="instrukcja" data-ikona="ksiazka" title="Instrukcja" aria-label="Instrukcja"></button>
       <div class="menu-wiecej">
         <button class="przycisk-ikona" id="przycisk-wiecej" data-ikona="wiecej" aria-label="Więcej" aria-haspopup="menu" aria-expanded="false"></button>
         <div class="menu" id="menu-wiecej" role="menu" hidden>
           <button role="menuitem" data-akcja="znajdz" data-ikona="znajdz">Znajdź i zamień…<kbd>Ctrl F</kbd></button>
+          <button role="menuitem" class="tylko-waski-telefon" data-akcja="komentarze" data-ikona="komentarz">Komentarze<span class="licznik licznik-komentarzy" hidden></span></button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="wzorce" data-ikona="wzorzec">Wzorce…</button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="ksiazka">Instrukcja</button>
@@ -699,6 +702,7 @@
           <button data-akcja="pioro" data-ikona="pioro" aria-pressed="false" title="Pióro (N) – kliknięcia stawiają punkty, przeciągnięcie robi łuk; Enter kończy kształt"><span>Pióro</span></button>
           <button data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: jeden element z wierszami i kolumnami; dwuklik komórki zaczyna pisanie"><span>Tabela</span></button>
           <button data-akcja="biblioteka" data-ikona="biblioteka" title="Biblioteka: kształty, strzałki, dymki, ramki, ozdobniki, kalendarz miesiąca, wykresy, kolaże zdjęć"><span>Biblioteka</span></button>
+          <button data-akcja="komentarz" data-ikona="komentarz" aria-pressed="false" title="Komentarz: kliknij miejsce na stronie albo zaznacz element; Esc kończy"><span>Komentarz</span></button>
         </div>
 
         <div id="kontener-plotna" class="kontener-plotna">
@@ -816,6 +820,7 @@
       <span class="ciche podglad-opis" id="podglad-opis"></span>
       <div class="odstep"></div>
       <div class="obecnosc" role="group" aria-label="Kto jeszcze jest w projekcie" hidden></div>
+      <button class="przycisk komentarze-podgladu" data-akcja="komentarze" data-ikona="komentarz" title="Komentarze: przeczytaj, odpowiedz albo dodaj komentarz do strony"><span class="etyk">Komentarze</span><span class="licznik licznik-komentarzy" hidden></span></button>
       <button class="przycisk" data-akcja="podglad-prezentacja" data-ikona="dopasuj" title="Jedna strona albo rozkładówka naraz, na całym ekranie"><span class="etyk">Prezentacja</span></button>
       <button class="przycisk tylko-wlasciciel" data-akcja="podglad-separacje" data-ikona="separacje" title="Podgląd płyt druku: CMYK, kolory dodatkowe, uszlachetnienia, pokrycie farbą"><span class="etyk">Separacje</span></button>
       <button class="przycisk tylko-wlasciciel tylko-wlasciciel-projektu" data-akcja="udostepnij" data-ikona="link" title="Link do podglądu dla osób bez konta"><span class="etyk">Udostępnij</span></button>
@@ -1681,6 +1686,35 @@
         <button type="button" class="przycisk" id="znajdz-pokaz-zamiane" data-ikona="olowek">Zamień…</button>
         <button type="button" class="przycisk" id="znajdz-zamien-jedno">Zamień</button>
         <button type="button" class="przycisk glowny" id="znajdz-zamien-wszystkie">Zamień wszystkie</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Komentarze (#131D): na komputerze panel obok strony, na telefonie zasłonka. Dane – js/komentarze-chmura.js. -->
+  <dialog id="dlg-komentarze" class="dialog-znajdz dialog-komentarzy" aria-labelledby="komentarze-tytul">
+    <div class="znajdz komentarze">
+      <div class="naglowek-dialogu">
+        <h2 id="komentarze-tytul">Komentarze</h2>
+        <button type="button" class="przycisk-ikona x-okna" id="komentarze-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <div class="filtry-komentarzy" role="group" aria-label="Pokaż">
+        <button type="button" class="chip-biblioteki" data-filtr="otwarte" aria-pressed="true">Nierozwiązane</button>
+        <button type="button" class="chip-biblioteki" data-filtr="wszystkie" aria-pressed="false">Wszystkie</button>
+        <button type="button" class="chip-biblioteki" data-filtr="moje" aria-pressed="false">Moje</button>
+      </div>
+      <form class="nowy-komentarz" id="nowy-komentarz" hidden>
+        <p class="ciche" id="nowy-komentarz-gdzie"></p>
+        <textarea id="nowy-komentarz-tresc" rows="3" maxlength="4000" placeholder="Napisz komentarz… (@nazwa wspomina osobę)" aria-label="Treść komentarza"></textarea>
+        <div class="podpowiedzi-wzmianek" hidden></div>
+        <div class="przyciski-dialogu">
+          <button type="button" class="przycisk" id="nowy-komentarz-anuluj">Anuluj</button>
+          <button type="submit" class="przycisk glowny" id="nowy-komentarz-dodaj">Dodaj komentarz</button>
+        </div>
+      </form>
+      <p class="ciche komentarze-pusto" id="komentarze-pusto" hidden></p>
+      <ol class="znajdz-lista lista-komentarzy" id="lista-komentarzy" aria-label="Wątki"></ol>
+      <div class="przyciski-dialogu">
+        <button type="button" class="przycisk glowny" id="komentarze-nowy" data-ikona="plus">Nowy komentarz</button>
       </div>
     </div>
   </dialog>

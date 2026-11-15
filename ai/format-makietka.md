@@ -325,6 +325,21 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
 - **Przypis dolny**: w tekście pole `{przypis:<id>}` (zwykle w indeksie górnym: formatowanie fragmentu `fontSize` ≈ 0,62 × rozmiaru, `deltaY` ≈ −0,36 × rozmiaru), a treść w polu tekstu `przypisy` (`{ "<id>": "Treść przypisu." }`). Numer i treść na dole strony układa aplikacja; numeracja według `ksiazka.przypisy` projektu: `sekcja` (domyślnie), `strona`, `ciagle`.
 - **Skorowidz**: hasła w polu tekstu `hasla` (`["kot", "pies"]`); skorowidz pokazuje wszystkie strony, na których słowo występuje w jakimkolwiek tekście.
 
+## 9c. Komentarze (nie są częścią projektu)
+
+Komentarze osób do stron leżą osobno, w bazie – nie ma ich w JSON-ie projektu ani w pliku `.makietka`, nie zmieniają `wersja` i nie trafiają do PDF. Czyta się je narzędziem `komentarze`, a dodaje przez `skomentuj` / `odpowiedz` / `rozwiaz_komentarz`. Pola komentarza:
+
+| Pole | Znaczenie |
+|---|---|
+| `id`, `watek` | identyfikator; `watek` – id wątku, na który to odpowiedź (`null` – początek wątku) |
+| `strona_id`, `element_id` | strona projektu i (opcjonalnie) element, którego dotyczy wątek |
+| `x`, `y` | miejsce pinezki w mm od lewego górnego rogu strony (bez spadu) |
+| `tresc`, `wzmianki` | treść (`@nazwa` wspomina osobę z projektu) i id wspomnianych kont |
+| `autor_nazwa`, `zrodlo` | kto napisał; `zrodlo`: `konto` albo `ai` (wtedy podpisem jest opis klucza) |
+| `rozwiazany`, `rozwiazal_nazwa`, `rozwiazano` | stan wątku („Rozwiąż” / „Otwórz ponownie” w aplikacji) |
+
+Numer pinezki to kolejność wątku w projekcie (od najstarszego). Po poprawce w projekcie odpowiedz w wątku z `rozwiaz: true`.
+
 ## 10. Czego nie robić
 
 - Nie zapisuj powielonych stron serii jako osobnych stron – zrób jedną stronę-wzór z polami i tabelę.

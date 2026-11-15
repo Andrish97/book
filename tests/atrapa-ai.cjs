@@ -483,6 +483,20 @@ function atrapaAi(stan) {
     if (funkcja === 'ai_nowy_projekt') return aiNowyProjekt(tresc);
     if (funkcja === 'ai_usun_projekt') return aiUsunProjekt(tresc);
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
+    // Komentarze (#131D) – wspólny stan z atrapą współpracy (tests/atrapa-wspolpraca.cjs).
+    if (['ai_komentarze', 'ai_skomentuj', 'ai_rozwiaz_komentarz'].includes(funkcja)) {
+      const d = sprawdzKlucz(tresc.p_klucz, false);
+      if (d.blad) return d;
+      const k = (stan.konta || []).find((x) => x.id === d.owner_id);
+      const km = stan.komentarzeAI;
+      try {
+        if (funkcja === 'ai_komentarze') return { projekt_id: d.projekt_id, komentarze: stan.komentarze.filter((x) => x.projekt_id === d.projekt_id).sort((a, b) => a.n - b.n).map((x) => km.json(x, null)) };
+        if (funkcja === 'ai_skomentuj') return km.json(km.dodaj(k, { ...tresc, p_projekt: d.projekt_id }, 'ai', (d.opis || '').trim() || 'AI'), null);
+        const x = stan.komentarze.find((y) => y.id === tresc.p_id && !y.watek && y.projekt_id === d.projekt_id);
+        if (!x) return { blad: 'Nie ma takiego wątku w tym projekcie.' };
+        return km.rozwiaz(k, { p_id: x.id, p_rozwiazany: tresc.p_rozwiazany !== false });
+      } catch (e) { return { blad: e.message }; }
+    }
     // Jedno zapytanie z całym dużym plikiem nie mieści się w limicie czasu bazy (rola anon) – tak jak na produkcji.
     if (/^ai_/.test(funkcja) && JSON.stringify(tresc || {}).length > 1.5 * 1024 * 1024) blad(500, 'canceling statement due to statement timeout');
     if (funkcja === 'ai_wgraj_obraz') return aiWgrajObraz(tresc);

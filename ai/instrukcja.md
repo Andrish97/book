@@ -174,9 +174,9 @@ Makietka może od razu dać znać o sprawach projektów innych osób — także 
 | Ustawienie | Znaczenie |
 |---|---|
 | **Na tym urządzeniu** | Przełącznik — powiadomienia na tym urządzeniu. Przeglądarka zapyta o zgodę. |
-| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**. |
+| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**, **ktoś skomentuje mój projekt, odpowie w moim wątku albo wspomni mnie w komentarzu** (rozdział „25.7 Komentarze”). |
 
-Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (rozdział „28.4 Instalacja aplikacji”) — w ustawieniach jest wtedy przycisk **Zainstaluj aplikację**.
+Kliknięcie powiadomienia otwiera właściwy projekt, zaproszenie albo wątek komentarza. Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (rozdział „28.4 Instalacja aplikacji”) — w ustawieniach jest wtedy przycisk **Zainstaluj aplikację**.
 
 ![Powiadomienia w ustawieniach konta](https://makietka.app/img/instrukcja/k-powiadomienia.png)
 
@@ -1960,6 +1960,35 @@ Właściciel w oknie Współpraca przy każdej osobie:
 
 Współpracownik może **Opuść projekt** — w menu **⋯** na karcie albo w oknie Współpraca. **Zrób własną kopię** tworzy Twój własny projekt z tą samą treścią.
 
+### 25.7 Komentarze
+
+Komentarz to uwaga przypięta do miejsca na stronie albo do elementu — jak karteczka na wydruku. Na stronie widać ją jako pomarańczową pinezkę z numerem. Komentują wszyscy w projekcie: właściciel, **może edytować** i **może oglądać** (w podglądzie). Komentarze nie zmieniają projektu i nie trafiają do PDF.
+
+![Narzędzie Komentarz i przycisk Komentarze z licznikiem](https://makietka.app/img/instrukcja/k-komentarz-narzedzie.png)
+
+**Dodanie komentarza**
+
+1. Kliknij **Komentarz** na pasku narzędzi (w podglądzie: **Komentarze** → **Nowy komentarz**).
+2. Kliknij miejsce na stronie. Jeśli najpierw zaznaczysz element, komentarz od razu przypnie się do niego.
+3. Wpisz treść i kliknij **Dodaj komentarz** (albo Ctrl+Enter). Esc rezygnuje.
+
+Wpisz **@** i początek nazwy, żeby wspomnieć osobę z projektu — aplikacja podpowie nazwy.
+
+**Lista komentarzy**
+
+Przycisk **Komentarze** na górnym pasku edytora i w podglądzie pokazuje liczbę nierozwiązanych wątków. Na wąskim telefonie jest w menu **⋯**. Kliknięcie pinezki na stronie otwiera jej wątek.
+
+![Panel Komentarze z wątkiem i odpowiedzią](https://makietka.app/img/instrukcja/komentarze.png)
+
+- Filtry: **Nierozwiązane**, **Wszystkie**, **Moje** (moje wątki, moje odpowiedzi i wzmianki o mnie).
+- Kliknij wątek, żeby go rozwinąć: odpowiedzi, pole **Odpowiedz**, **Pokaż na stronie** — przejście do strony i zaznaczenie elementu.
+- **Rozwiąż** zamyka wątek, gdy uwaga jest załatwiona; pinezka znika ze strony. **Otwórz ponownie** przywraca go (filtr **Wszystkie**).
+- Usuwa autor komentarza albo właściciel projektu.
+
+Komentarze i odpowiedzi pojawiają się u wszystkich od razu. Gdy masz włączone powiadomienia z przełącznikiem **Komentarze**, dowiesz się o nowym komentarzu w Twoim projekcie, o odpowiedzi w Twoim wątku i o wzmiance o Tobie — kliknięcie powiadomienia otwiera wątek (**Ustawienia konta** → **Powiadomienia**, → 2.6).
+
+AI połączone kluczem też czyta komentarze, odpowiada na nie i może je rozwiązać po poprawce (rozdział „26.1 Co potrafi AI”).
+
 ## 26. Praca z AI
 
 ### 26.1 Co potrafi AI
@@ -1972,6 +2001,7 @@ Asystent AI — Claude, ChatGPT i inne — może pracować w Twoich projektach r
 | dodawać i zmieniać strony, elementy, style i wzorce | zmienić Twojego konta ani hasła |
 | wypełniać tabele danych i ustawiać serie | wyeksportować PDF — plik robisz sam |
 | wgrywać, wstawiać i wymieniać zdjęcia |  |
+| czytać komentarze, odpowiadać na nie i dodawać własne (rozdział „25.7 Komentarze”) |  |
 
 Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój. Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi jak zmiany współpracownika (rozdział „25.4 Praca na żywo”).
 
