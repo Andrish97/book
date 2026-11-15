@@ -20,7 +20,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
-| 131B: spis treści, żywa pagina, przypisy, odsyłacze, skorowidz; tekst po ścieżce i wyginanie tekstu | 🔄 partia B w toku |
+| 131B: spis treści, żywa pagina, przypisy, odsyłacze, skorowidz | 🔄 partia B w toku |
 | 131C: znajdź i zamień, malarz formatów, biblioteka elementów, sprawdzanie pisowni; druk broszury, podgląd separacji, PDF z zakładkami i linkami | ⏳ partia C |
 | 131D: zmiana formatu ze skalowaniem, zestaw marki, komentarze na stronach, makieta 3D | ⏳ partia D |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
@@ -45,6 +45,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 131B | Tekst po łuku, okręgu, elipsie i ścieżce oraz wyginanie (fala, flaga, wypukłość…) – panel „Kształt tekstu”, uchwyt zgięcia, Biblioteka „Teksty”, PDF wektorowy, instrukcja 6.14 |
 | 131A | Typografia: dzielenie wyrazów po polsku, spójniki na końcu wiersza, wdowy i sieroty, inicjały, tabulatory z wypełniaczem, style znakowe, siatka linii bazowych, oblewanie tekstem (prostokąt, kształt, skok) – w edytorze, podglądzie i PDF |
 | 135 | Zmiany od AI znikały po otwarciu projektu na innym urządzeniu – bezpieczne domyślne wybory, bez nadpisywania konta, wersje liczone numerem |
 | 133 | Marginesy i inne wymiary w mm – dowolna wartość, nie tylko co 0,5 |

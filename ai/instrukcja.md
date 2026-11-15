@@ -480,6 +480,7 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (rozdział „5.9 Kalendarz miesiąca”). |
 | **Wykresy** | Słupkowy, poziomy, liniowy, kołowy i pierścieniowy z tabeli danych (rozdział „5.10 Wykres”). |
 | **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (rozdział „5.11 Kolaż zdjęć”). |
+| **Teksty** | Gotowe napisy po łuku, w okręgu (pieczęć), falisty baner, flaga, wypukły tytuł (rozdział „6.14 Tekst po łuku, okręgu i ścieżce; wyginanie”). |
 | **Style tekstu** | Style akapitu projektu: kliknięcie nadaje styl zaznaczonemu tekstowi, a bez zaznaczenia wstawia nowy tekst w tym stylu (rozdział „6.4 Style”). |
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (rozdział „5.12 Kod QR i kod kreskowy”). |
 
@@ -706,6 +707,26 @@ Siatka linii bazowych ustawia wiersze wszystkich kolumn i stron na tej samej wys
 1. W ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”) włącz **Siatka linii bazowych w tej sekcji**: **Odstęp** (zwykle interlinia tekstu podstawowego) i **Pierwsza linia** (mm od górnej krawędzi strony, zwykle górny margines).
 2. W menu widoku (rozdział „4.6 Prawy dolny róg i menu widoku”) **Siatka linii bazowych** pokazuje te linie na stronie.
 3. Tekstom, które mają stać na siatce, włącz **Wyrównaj do siatki linii bazowych** (rozdział „6.9 Skład akapitu”) — najlepiej w stylu tekstu podstawowego.
+
+### 6.14 Tekst po łuku, okręgu i ścieżce; wyginanie
+
+Zaznacz tekst i w części **Kształt tekstu** panelu wybierz **Kształt**. Gotowe przykłady znajdziesz też w **Biblioteka**, w kategorii **Teksty**.
+
+![Tekst po łuku, w okręgu i wygięty](https://makietka.app/img/instrukcja/k-ksztalt-tekstu.png)
+
+| Kształt | Co robi i co ustawisz |
+|---|---|
+| **Łuk** | Napis po łuku. **Zgięcie** w %: dodatnie – łuk w górę, ujemne – w dół. **Promień** w mm (0 – dobrany sam). |
+| **Okrąg** | Napis dookoła koła, np. pieczęć. **Promień**, **Obrót początku** w stopniach, **Litery**: na zewnątrz (czytane u góry) albo do środka (czytane u dołu). |
+| **Elipsa** | Napis dookoła elipsy: **Promień**, **Spłaszczenie**, **Przesunięcie początku**. |
+| **Po ścieżce** | Napis po linii dowolnego kształtu ze strony: narysuj linię piórem, kształt albo wstaw go z Biblioteki i wybierz go w **Linia z kształtu na stronie**. Tekst dostaje kopię linii – kształt możesz potem przesunąć, ukryć albo usunąć. Dalej: **Przesunięcie początku**, **Wyrównanie**, **Litery** nad albo pod linią, **Odwróć kierunek**. |
+| **Wygięcie** | Litery na prostej linii, wygięte jak: łuk górny, łuk dolny, wypukłość, wklęsłość, fala, flaga albo zwężenie. **Siła wygięcia** w %. |
+
+- Przy łuku i wygięciach pod tekstem jest uchwyt ◆ – przeciągnij go w górę albo w dół, żeby zgiąć tekst mocniej albo słabiej.
+- Kliknij tekst dwa razy, żeby go poprawić: w trakcie pisania tekst stoi prosto, a po wyjściu z pisania wraca do kształtu.
+- Tekst po kształcie jest jednym wierszem. Czcionka, kolor, obrys liter, odstęp liter, style i pola z danych `{…}` działają jak w zwykłym tekście.
+- W PDF litery zostają tekstem z osadzoną czcionką – ostre w każdym powiększeniu.
+- **Prosto** przywraca zwykły tekst w ramce o dawnej szerokości.
 
 ## 7. Kształty, linie i kolory
 

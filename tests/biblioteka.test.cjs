@@ -33,7 +33,7 @@ test('biblioteka: rejestr kategorii, wyszukiwanie we wszystkich kategoriach, kol
   await modul('js/biblioteka-elementy.js');
   const { kategorieBiblioteki, szukajWBibliotece, zarejestrujKategorie, elementBiblioteki } = await modul('js/biblioteka.js');
   const { polaKolazu, KSZTALTY, KOLAZE } = await modul('js/ksztalty-biblioteka.js');
-  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['ksztalty', 'strzalki', 'ozdobniki', 'kalendarze', 'wykresy', 'kolaze', 'style', 'kody']);
+  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['ksztalty', 'strzalki', 'ozdobniki', 'kalendarze', 'wykresy', 'kolaze', 'teksty', 'style', 'kody']);
   assert.ok(KSZTALTY.length >= 50, `kształtów: ${KSZTALTY.length}`);
   assert.equal(KOLAZE.length, 12);
   // Wyszukiwanie bez polskich znaków, w każdej kategorii naraz.
@@ -55,7 +55,7 @@ test('kalendarz miesiąca z biblioteki: siatka marca 2027, niedziele i święta,
   await nowyProjekt(strona, 'Kalendarz');
   await strona.click('[data-akcja="biblioteka"]');
   await strona.waitForSelector('#dlg-biblioteka[open]');
-  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 8);
+  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 9);
   await strona.click('#kategorie-biblioteki [data-kategoria="kalendarze"]');
   await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="zwykly"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.kalendarz);
