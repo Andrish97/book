@@ -712,7 +712,7 @@
           <button data-akcja="dodaj-tekst" data-ikona="tekst" title="Tekst (T)"><span>Tekst</span></button>
           <button data-akcja="dodaj-prostokat" data-ikona="prostokat" title="Prostokąt (R)"><span>Prostokąt</span></button>
           <button data-akcja="dodaj-elipse" data-ikona="elipsa" title="Elipsa (E)"><span>Elipsa</span></button>
-          <button class="w-menu-narzedzi" data-akcja="dodaj-wielokat" data-ikona="wielokat" title="Wielokąt albo gwiazda (P)"><span>Wielokąt</span></button>
+          <button class="w-menu-narzedzi" data-akcja="dodaj-wielokat" data-ikona="wielokat" aria-haspopup="menu" aria-expanded="false" title="Wielokąt albo gwiazda (P)"><span>Wielokąt</span></button>
           <button data-akcja="dodaj-linie" data-ikona="linia" title="Linia (L)"><span>Linia</span></button>
           <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz: z urządzenia albo z obrazów projektu"><span>Obraz</span></button>
           <button class="w-menu-narzedzi" data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false" title="Rysowanie odręczne (B) – przeciągaj po stronie; Esc kończy"><span>Rysuj</span></button>
@@ -731,6 +731,9 @@
           <hr>
           <button role="menuitem" data-akcja="malarz" data-ikona="malarz" aria-pressed="false" id="menu-narzedzi-malarz">Kopiuj wygląd</button>
         </div>
+
+        <!-- Wielokąt albo gwiazda (#151): wybór kształtu od razu przy wstawianiu; boki i gwiazdę można potem zmienić we Właściwościach → Kształt. -->
+        <div class="menu menu-wielokata" id="menu-wielokata" role="menu" aria-label="Wielokąt albo gwiazda" hidden></div>
 
         <div id="kontener-plotna" class="kontener-plotna">
           <div class="arkusz">

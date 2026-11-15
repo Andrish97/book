@@ -35,10 +35,16 @@ test('telefon: menu ⋯ paska wstawiania – narzędzia, stan na przycisku, kopi
   assert.deepEqual(await przycisk(), ['wiecej', 'false', 'Więcej narzędzi']);
   assert.equal(await strona.isVisible('#menu-narzedzi'), false, 'zakończenie nie otwiera menu');
 
-  // Wielokąt z menu dodaje element.
+  // Wielokąt z menu: wybór kształtu (#151), gwiazda 5 dodaje gwiazdę.
   await strona.tap('#przycisk-narzedzia-wiecej');
   await strona.tap('#menu-narzedzi [data-akcja="dodaj-wielokat"]');
+  await strona.waitForSelector('#menu-wielokata:not([hidden])');
+  const wybor = await strona.evaluate(() => { const r = document.querySelector('#menu-wielokata').getBoundingClientRect(); return { n: document.querySelectorAll('#menu-wielokata [data-boki]').length, w_ekranie: r.left >= 0 && r.right <= innerWidth }; });
+  assert.deepEqual(wybor, { n: 10, w_ekranie: true });
+  await strona.tap('#menu-wielokata [aria-label="Gwiazda 5"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny);
+  assert.deepEqual(await strona.evaluate(() => { const a = window.seriodruk.edytor.aktywny; return [a.type, a.boki, Boolean(a.gwiazda), a.points.length]; }), ['polygon', 5, true, 10]);
+  assert.equal(await strona.isVisible('#menu-wielokata'), false);
   // Kopiuj wygląd zaznaczonego elementu – na ⋯ widać malarza, stuknięcie go kończy.
   await strona.tap('#przycisk-narzedzia-wiecej');
   assert.equal(await strona.isDisabled('#menu-narzedzi [data-akcja="malarz"]'), false);

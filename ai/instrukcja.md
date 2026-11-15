@@ -867,10 +867,10 @@ Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części
 
 ### 7.1 Prostokąt, elipsa i wielokąt
 
-**Prostokąt**, **Elipsa** i **Wielokąt** wstawiają kształty z wypełnieniem i obrysem (rozdział „7.5 Wypełnienie”, „7.6 Obrys”). Część **Kształt**:
+**Prostokąt**, **Elipsa** i **Wielokąt** wstawiają kształty z wypełnieniem i obrysem (rozdział „7.5 Wypełnienie”, „7.6 Obrys”). **Wielokąt** najpierw pokazuje wybór: trójkąt, romb, pięcio-, sześcio- i ośmiokąt albo gwiazda o 4, 5, 6, 8 lub 12 ramionach — stuknij kształt, a pojawi się na stronie. Ramka zaznaczenia wokół niego jest zawsze prostokątna (tak jak przy każdym elemencie), sam kształt nie. Klawisz `P` wstawia od razu trójkąt. Część **Kształt**:
 
 - prostokąt — **Zaokrąglenie** narożników w mm,
-- wielokąt — **Liczba boków** i przełącznik **Gwiazda**.
+- wielokąt — **Liczba boków** (3–24) i przełącznik **Gwiazda**; zmiana zachowuje miejsce i wielkość.
 
 ### 7.2 Linia
 
