@@ -237,6 +237,33 @@ async function otworzOknoPdf() {
   oknoPdf.otworz();
 }
 
+// Druk w domu (#145): okno wczytuje się przy pierwszym otwarciu (razem z zapisem PDF). Ctrl+P w edytorze
+// otwiera to okno zamiast drukowania strony aplikacji.
+let oknoDruku = null;
+async function otworzOknoDruku() {
+  if (!oknoDruku) {
+    try {
+      const { OknoDruku } = await import('../okno-druku.js');
+      oknoDruku ||= new OknoDruku({
+        projekt: () => stan.projekt,
+        biezacaStrona: () => (stan.tryb === 'strona' ? biezacyCel()?.id : null),
+        przedDrukiem: zapiszBiezacyCel,
+      });
+    } catch (e) {
+      powiadom(`Nie udało się wczytać druku: ${e.message}`, true);
+      return;
+    }
+  }
+  oknoDruku.otworz();
+}
+window.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || e.key.toLowerCase() !== 'p') return;
+  if (document.body.dataset.ekran !== 'edytor' || !stan.projekt) return;
+  e.preventDefault();
+  otworzOknoDruku();
+}, true);
+Object.defineProperty(window.seriodruk, 'oknoDruku', { get: () => oknoDruku, configurable: true });
+
 $('#dlg-tabela').addEventListener('close', (e) => {
   if (e.target.returnValue !== 'tak') return;
   const f = e.target.querySelector('form').elements;
@@ -271,6 +298,7 @@ export const akcje = {
   'separacje-zamknij': () => $('#dlg-separacje').close(),
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
+  drukuj: () => { zamknijMenu(); otworzOknoDruku(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
   'kolory-druku': () => { zamknijMenu(); otworzKoloryDruku(); },
   'kolory-druku-zamknij': () => $('#dlg-kolory-druku').close(),

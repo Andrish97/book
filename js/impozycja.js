@@ -12,13 +12,14 @@
 // każda składka układana jak osobna broszura.
 
 const PT = 72 / 25.4;
-export const ARKUSZE = { A4: [210, 297], A3: [297, 420] };
+export const ARKUSZE = { A4: [210, 297], A3: [297, 420], Letter: [215.9, 279.4] };
 export const UKLADY = {
   zwykly: 'Zwykłe strony',
   broszura: 'Broszura do składania (zeszyt)',
   skladki: 'Broszura ze składek',
   dwie: '2 strony na arkuszu',
   cztery: '4 strony na arkuszu',
+  jedna: 'Jedna strona na arkuszu (druk w domu)',
 };
 const MARGINES_ARKUSZA = 5; // mm – odstęp od brzegu arkusza A4/A3
 const ZNAK = 5; // mm – długość znaku cięcia
@@ -66,8 +67,9 @@ export function planImpozycji(n, { uklad = 'zwykly', skladka = 16 } = {}) {
   return { strony: Array.from({ length: n }, (_, i) => ({ pola: [i], kolumny: 1, wiersze: 1, falc: false })), puste: 0, skladek: 0 };
 }
 
-// Wymiary arkusza (mm) dla bloku stron w×h na kolumny×wiersze. format: 'auto' (blok + miejsce na znaki) | 'A4' | 'A3'.
-export function wymiaryArkusza(w, h, kolumny, wiersze, { format = 'auto', znaki = true } = {}) {
+// Wymiary arkusza (mm) dla bloku stron w×h na kolumny×wiersze. format: 'auto' (blok + miejsce na znaki) | 'A4' | 'A3' | 'Letter'.
+// powieksz: blok może też urosnąć do kartki (druk w domu: „Dopasuj do kartki”); bez tego tylko się zmniejsza.
+export function wymiaryArkusza(w, h, kolumny, wiersze, { format = 'auto', znaki = true, powieksz = false } = {}) {
   const blokW = w * kolumny; const blokH = h * wiersze;
   if (format === 'auto' || !ARKUSZE[format]) {
     const pas = znaki ? ODSTEP_ZNAKU + ZNAK + 1 : 0;
@@ -76,7 +78,7 @@ export function wymiaryArkusza(w, h, kolumny, wiersze, { format = 'auto', znaki 
   const [a, b] = ARKUSZE[format];
   // Orientacja, w której blok mieści się większy.
   const opcje = [[a, b], [b, a]].map(([sw, sh]) => {
-    const skala = Math.min(1, (sw - 2 * MARGINES_ARKUSZA) / blokW, (sh - 2 * MARGINES_ARKUSZA) / blokH);
+    const skala = Math.min(powieksz ? Infinity : 1, (sw - 2 * MARGINES_ARKUSZA) / blokW, (sh - 2 * MARGINES_ARKUSZA) / blokH);
     return { szer: sw, wys: sh, skala, blokW: blokW * skala, blokH: blokH * skala };
   });
   const naj = opcje[0].skala >= opcje[1].skala ? opcje[0] : opcje[1];
@@ -85,7 +87,7 @@ export function wymiaryArkusza(w, h, kolumny, wiersze, { format = 'auto', znaki 
 
 // Nakłada strony pliku PDF (bajty) na arkusze; zwraca nowy PDFDocument (bez zapisu – można dołożyć PDF/X).
 // opcje: uklad, skladka, format, pelzanie (mm), znaki (cięcia i złamu).
-export async function impozycjaPdf(PDFLib, bajty, { uklad = 'broszura', skladka = 16, format = 'auto', pelzanie = 0, znaki = true, tytul = '' } = {}) {
+export async function impozycjaPdf(PDFLib, bajty, { uklad = 'broszura', skladka = 16, format = 'auto', pelzanie = 0, znaki = true, powieksz = false, tytul = '' } = {}) {
   const zrodlo = await PDFLib.PDFDocument.load(bajty);
   const strony = zrodlo.getPages();
   const plan = planImpozycji(strony.length, { uklad, skladka });
@@ -107,7 +109,7 @@ export async function impozycjaPdf(PDFLib, bajty, { uklad = 'broszura', skladka 
   };
   const czarny = PDFLib.cmyk(0, 0, 0, 1);
   for (const arkusz of plan.strony) {
-    const a = wymiaryArkusza(w, h, arkusz.kolumny, arkusz.wiersze, { format, znaki });
+    const a = wymiaryArkusza(w, h, arkusz.kolumny, arkusz.wiersze, { format, znaki, powieksz });
     const strona = pdf.addPage([a.szer * PT, a.wys * PT]);
     const pw = w * a.skala; const ph = h * a.skala;
     // Pełzanie: środkowe arkusze broszury – strony bliżej grzbietu.
@@ -155,9 +157,9 @@ const strones = (strony) => {
 export function opisPlanu(n, opcje) {
   if (!n || !opcje.uklad || opcje.uklad === 'zwykly') return '';
   const plan = planImpozycji(n, opcje);
-  const arkuszy = opcje.uklad === 'dwie' || opcje.uklad === 'cztery' ? plan.strony.length : plan.strony.length / 2;
+  const arkuszy = opcje.uklad === 'broszura' || opcje.uklad === 'skladki' ? plan.strony.length / 2 : plan.strony.length;
   const czesci = [`${arkuszy} ${arkuszy === 1 ? 'arkusz' : (arkuszy % 10 >= 2 && arkuszy % 10 <= 4 && (arkuszy % 100 < 10 || arkuszy % 100 >= 20) ? 'arkusze' : 'arkuszy')}`];
-  if (opcje.uklad === 'broszura' || opcje.uklad === 'skladki') czesci[0] += ' do druku dwustronnego (przód i tył, obracanie po dłuższej krawędzi)';
+  if (opcje.uklad === 'broszura' || opcje.uklad === 'skladki') czesci[0] += ' do druku dwustronnego (przód i tył, obracanie po krótszej krawędzi)';
   if (plan.skladek > 1) czesci.push(`${plan.skladek} składek po ${opcje.skladka} stron`);
   if (plan.puste) czesci.push(`dopełnione ${plan.puste} ${plan.puste === 1 ? 'pustą stroną' : 'pustymi stronami'} na końcu`);
   return `${czesci.join(', ')}.`;

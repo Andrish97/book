@@ -46,6 +46,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 145 | Drukuj w domu: zwykły wydruk, broszura do złożenia, 2/4 strony na kartce, papier A4/A3/Letter, druk z przeglądarki i pomoc krok po kroku (menu ⋯, Ctrl+P) |
 | 131C „praca”, 136, 140 | Znajdź i zamień (lupa na górnym pasku, pierwsza pozycja ⋯, Ctrl+F / Ctrl+H, strony, wzorce, opcjonalnie dane i nazwy stylów; „Zamień wszystkie” jednym krokiem cofania; pola {…} nietknięte), Kopiuj wygląd – malarz formatów (nagłówek panelu, ⋯ na liście warstw, Ctrl+Alt+C / Ctrl+Alt+V, tryb ciągły, fragment tekstu), Moje elementy w Bibliotece (na koncie, z obrazami), sprawdzanie pisowni po polsku (falista linia, dymek z podpowiedziami przy słowie, własny słownik na koncie); „Użyte w projekcie” w oknie koloru i na liście czcionek z liczbą użyć; instrukcja 4.3, 4.6, 5.8, 5.13, 6.8, 6.15, 6.16, 7.7 |
 | 138 | Psucie i nadpisywanie pracy: elementy nieruszone ręcznie biorą wersję z konta bez pytania, po powrocie sieci najpierw konto; kopie awaryjne i dziennik zapisów na serwerze (panel administratora → „Zapisy i kopie”); 8 scenariuszy w testach |
 | 131C | Druk: broszura do składania i ze składek, 2 i 4 strony na arkuszu (plan arkuszy, pełzanie, znaki złamu); PDF do czytania na ekranie (zakładki, klikalny spis treści, odsyłacze, linki elementów i kodów QR); podgląd separacji (płyty CMYK, kolory dodatkowe, uszlachetnienia z nadrukiem, pokrycie farbą) i ostrzeżenie o pokryciu w „Sprawdź przed drukiem” |

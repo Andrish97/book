@@ -72,6 +72,7 @@ const P = {
   separacje: '<circle cx="9" cy="9" r="5.5"/><circle cx="15" cy="9" r="5.5"/><circle cx="12" cy="14.5" r="5.5"/>',
   szukaj: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
   dane: '<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9.5h17"/><path d="M3.5 15h17"/><path d="M9.5 4v16"/>',
+  drukarka: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="1.5"/><path d="M7 14h10v6.5H7z"/><path d="M17 12h.01"/>',
   pdf: '<path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="m9.5 14.5 2.5 2.5 2.5-2.5"/>',
   podkreslenie: '<path d="M7 4v7a5 5 0 0 0 10 0V4"/><path d="M5 20h14"/>',
   przekreslenie: '<path d="M4 12h16"/><path d="M16.5 7.5A4 4 0 0 0 12.5 5h-1.3a3.4 3.4 0 0 0-2.6 5.6"/><path d="M8 16.5a4 4 0 0 0 3.6 2.5h1.2a3.6 3.6 0 0 0 3.3-5"/>',

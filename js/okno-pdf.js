@@ -221,7 +221,7 @@ export class OknoPdf {
 }
 
 // Podgląd układu: miniaturki arkuszy z numerami stron (pierwsze 12 stron arkuszy; reszta jako „…”).
-function pokazPlanArkuszy(lista, egz, o) {
+export function pokazPlanArkuszy(lista, egz, o) {
   const plan = planImpozycji(egz.length, o);
   const numer = (i) => (i === null || i === undefined ? '' : String(egz[i]?.nr ?? i + 1));
   const broszura = o.uklad === 'broszura' || o.uklad === 'skladki';
