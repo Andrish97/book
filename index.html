@@ -671,19 +671,24 @@
         <div class="menu" id="menu-wiecej" role="menu" hidden>
           <button role="menuitem" data-akcja="znajdz" data-ikona="znajdz">Znajdź i zamień…<kbd>Ctrl F</kbd></button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="komentarze" data-ikona="komentarz">Komentarze<span class="licznik licznik-komentarzy" hidden></span></button>
+          <hr>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="wzorce" data-ikona="wzorzec">Wzorce…</button>
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
-          <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="ksiazka">Instrukcja</button>
+          <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
+          <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
+          <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory do druku…</button>
+          <hr>
+          <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj">Zmień format projektu…</button>
+          <button role="menuitem" data-akcja="marka-zastosuj" data-ikona="marka">Zastosuj markę do projektu…</button>
+          <hr>
+          <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="drukuj" data-ikona="drukarka">Drukuj w domu…<kbd>Ctrl P</kbd></button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
-          <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
-          <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
-          <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
-          <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj">Zmień format projektu…</button>
-          <button role="menuitem" data-akcja="marka-zastosuj" data-ikona="marka">Zastosuj markę do projektu…</button>
-          <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory do druku…</button>
+          <hr>
           <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik">Współpraca…</button>
+          <hr>
+          <button role="menuitem" class="tylko-waski-telefon" data-akcja="instrukcja" data-ikona="ksiazka">Instrukcja</button>
           <button role="menuitem" data-akcja="motyw" data-ikona="motyw">Jasny / ciemny motyw</button>
           <button role="menuitem" class="tylko-waski-pasek" data-akcja="pelny-ekran" data-ikona="pelny-ekran" hidden>Pełny ekran</button>
         </div>
@@ -707,14 +712,24 @@
           <button data-akcja="dodaj-tekst" data-ikona="tekst" title="Tekst (T)"><span>Tekst</span></button>
           <button data-akcja="dodaj-prostokat" data-ikona="prostokat" title="Prostokąt (R)"><span>Prostokąt</span></button>
           <button data-akcja="dodaj-elipse" data-ikona="elipsa" title="Elipsa (E)"><span>Elipsa</span></button>
-          <button class="tylko-duzy-ekran" data-akcja="dodaj-wielokat" data-ikona="wielokat" title="Wielokąt albo gwiazda (P)"><span>Wielokąt</span></button>
+          <button class="w-menu-narzedzi" data-akcja="dodaj-wielokat" data-ikona="wielokat" title="Wielokąt albo gwiazda (P)"><span>Wielokąt</span></button>
           <button data-akcja="dodaj-linie" data-ikona="linia" title="Linia (L)"><span>Linia</span></button>
           <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz: z urządzenia albo z obrazów projektu"><span>Obraz</span></button>
-          <button data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false" title="Rysowanie odręczne (B) – przeciągaj po stronie; Esc kończy"><span>Rysuj</span></button>
-          <button data-akcja="pioro" data-ikona="pioro" aria-pressed="false" title="Pióro (N) – kliknięcia stawiają punkty, przeciągnięcie robi łuk; Enter kończy kształt"><span>Pióro</span></button>
+          <button class="w-menu-narzedzi" data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false" title="Rysowanie odręczne (B) – przeciągaj po stronie; Esc kończy"><span>Rysuj</span></button>
+          <button class="w-menu-narzedzi" data-akcja="pioro" data-ikona="pioro" aria-pressed="false" title="Pióro (N) – kliknięcia stawiają punkty, przeciągnięcie robi łuk; Enter kończy kształt"><span>Pióro</span></button>
           <button data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: jeden element z wierszami i kolumnami; dwuklik komórki zaczyna pisanie"><span>Tabela</span></button>
           <button data-akcja="biblioteka" data-ikona="biblioteka" title="Biblioteka: kształty, strzałki, dymki, ramki, ozdobniki, kalendarz miesiąca, wykresy, kolaże zdjęć"><span>Biblioteka</span></button>
-          <button data-akcja="komentarz" data-ikona="komentarz" aria-pressed="false" title="Komentarz: kliknij miejsce na stronie albo zaznacz element; Esc kończy"><span>Komentarz</span></button>
+          <button class="w-menu-narzedzi" data-akcja="komentarz" data-ikona="komentarz" aria-pressed="false" title="Komentarz: kliknij miejsce na stronie albo zaznacz element; Esc kończy"><span>Komentarz</span></button>
+          <button id="przycisk-narzedzia-wiecej" data-ikona="wiecej" title="Więcej narzędzi" aria-label="Więcej narzędzi" aria-haspopup="menu" aria-expanded="false" aria-pressed="false"><span>Więcej</span></button>
+        </div>
+        <!-- Telefon (#139, #142): narzędzia, które nie mieszczą się w pasku wstawiania, są pod jego przyciskiem ⋯. -->
+        <div class="menu menu-narzedzi" id="menu-narzedzi" role="menu" aria-label="Więcej narzędzi" hidden>
+          <button role="menuitem" data-akcja="dodaj-wielokat" data-ikona="wielokat">Wielokąt albo gwiazda</button>
+          <button role="menuitem" data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false">Rysowanie odręczne</button>
+          <button role="menuitem" data-akcja="pioro" data-ikona="pioro" aria-pressed="false">Pióro</button>
+          <button role="menuitem" data-akcja="komentarz" data-ikona="komentarz" aria-pressed="false">Komentarz</button>
+          <hr>
+          <button role="menuitem" data-akcja="malarz" data-ikona="malarz" aria-pressed="false" id="menu-narzedzi-malarz">Kopiuj wygląd</button>
         </div>
 
         <div id="kontener-plotna" class="kontener-plotna">
@@ -1581,10 +1596,10 @@
         <button type="button" class="przycisk-ikona x-okna" data-akcja="format-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
       <p class="ciche" id="format-zakres"></p>
+      <label class="pole"><span>Nowy format</span><select name="format"></select></label>
       <div class="rzad">
-        <label class="pole"><span>Nowy format</span><select name="format"></select></label>
-        <label class="pole waskie"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
-        <label class="pole waskie"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
+        <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
+        <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="3000" step="any" required inputmode="decimal"></label>
         <button type="button" class="przycisk-ikona wyrownaj-dol" data-akcja="format-obroc" title="Zamień orientację" aria-label="Zamień orientację" data-ikona="obroc"></button>
       </div>
       <fieldset class="grupa-pol">

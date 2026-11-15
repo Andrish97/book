@@ -9,7 +9,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|
-| 139: przegląd spójności i prostoty całości (panel właściwości, nazwy, ikony, widoczność funkcji #140, miejsca na telefonie #142: narzędzia na pasku z ⋯ paska, rzeczy funkcji przy funkcji, rzeczy projektu w menu projektu; oba motywy) | ⏳ po partii D i #138 |---|
 | 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
 | 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
 | 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
@@ -44,6 +43,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 139 | Przegląd spójności ze zrzutami (telefon 360 px i komputer, jasny i ciemny motyw, 36 okien): menu ⋯ paska wstawiania na telefonie (wielokąt, rysowanie, pióro, komentarz, „Kopiuj wygląd”; działające narzędzie widać na ⋯), menu ⋯ projektu w grupach, podwójny znaczek przy „Zaawansowane” naprawiony, przyciski podglądu bez pustych ramek, przełączniki segmentowe po równo, „Zmień format” – pola w rzędzie jak w sekcji. |
 | 143 | Uzupełnienie Biblioteki: 120 kształtów (nowe figury, gwiazdy, strzałki, dymki, wstęgi, ramki, linie ozdobne, ikony), nowe kategorie „Linie i separatory” (ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna, pionowa; rodzaj linii w panelu), „Etykiety i plakietki” i „Planer” (11 gotowych tabel: lista zadań, tracker nawyków, plan tygodnia i dnia, notatki w linie, siatka dni, lista zakupów, cele, budżet, kontakty, plan lekcji; pola wyboru, kratka i kropki co 5 mm) |
 | 149 | Zmiana strony (gest, lista stron) na telefonie bez stanów pośrednich: zamrożony obraz poprzedniej strony do pełnego narysowania nowej, płótno nie jest już czyszczone przy tym samym rozmiarze. |
 | 145 | Drukuj w domu: zwykły wydruk, broszura do złożenia, 2/4 strony na kartce, papier A4/A3/Letter, druk z przeglądarki i pomoc krok po kroku (menu ⋯, Ctrl+P) |
