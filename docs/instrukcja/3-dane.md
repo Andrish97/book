@@ -258,7 +258,7 @@ Jedna strona na dzień, z dniem tygodnia, imieninami i świętami w kolorze.
 6. Numer strony i stopkę dodaj jako wzorzec (→ 12.4).
 7. Sprawdź podgląd i wyeksportuj PDF (→ 19, 21).
 
-{{polecenie: PROMPT_DANE | Polecenie dla AI: tabela dni do kalendarza | Skopiuj, podmień nazwę projektu i wklej do rozmowy z AI, które ma podłączoną Makietkę (→ 24).}}
+{{polecenie: PROMPT_DANE | Polecenie dla AI: tabela dni do kalendarza | Skopiuj, podmień nazwę projektu i wklej do rozmowy z AI, które ma podłączoną Makietkę (→ 25).}}
 
 ## 18.2 Planer z obrazkiem miesiąca
 

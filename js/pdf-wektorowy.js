@@ -21,6 +21,7 @@ import './fabric-ustawienia.js';
 import { CZCIONKI } from './czcionki.js';
 import { spakuj } from './pdf-x.js';
 import { jpegCmyk } from './jpeg-cmyk.js';
+import { plytaUszlachetnienia, stanUszlachetnien, rgbNaHex } from './kolory-druku.js';
 
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
@@ -338,7 +339,8 @@ export function svgZgodny(el, czesci, opcje) {
 // Obrazy jednego pliku PDF: każdy plik graficzny jest w nim tylko raz, choćby był na stu stronach.
 export class ObrazyPdf {
   // silnik: przeliczanie przez profil drukarski (js/profil-icc.js) – wtedy obrazy trafiają do pliku w CMYK.
-  constructor(pdf, { silnik = null } = {}) { this.pdf = pdf; this.silnik = silnik; this.znane = new Map(); this.svg = new Map(); }
+  // szarosc (#127, tryby „Skala szarości” i „cz/b + 1 kolor”): obrazy jako DeviceGray – sama czarna farba.
+  constructor(pdf, { silnik = null, szarosc = false } = {}) { this.pdf = pdf; this.silnik = szarosc ? null : silnik; this.szarosc = szarosc; this.znane = new Map(); this.svg = new Map(); }
 
   // Rysunki SVG wśród obiektów (także w grupach) są rozkładane na kształty – raz na cały plik PDF.
   // this.svg: adres obrazu → { obiekty, w, h } albo { brak: powód } (wtedy rysunek idzie jako obraz).
@@ -424,9 +426,26 @@ export class ObrazyPdf {
     return { ref: ctx.register(ctx.stream(bezStrat, { ...opis, ColorSpace: 'DeviceCMYK' })) };
   }
 
+  // Piksele płótna → obraz PDF w odcieniach szarości (jasność), przezroczystość jako maska.
+  async _plotnoSzare(plotno) {
+    const { width: w, height: h } = plotno;
+    const rgba = plotno.getContext('2d').getImageData(0, 0, w, h).data;
+    const ctx = this.pdf.context;
+    const opis = { Type: 'XObject', Subtype: 'Image', Width: w, Height: h, BitsPerComponent: 8, Filter: 'FlateDecode', ColorSpace: 'DeviceGray' };
+    const szare = new Uint8Array(w * h);
+    let maska = null;
+    for (let i = 0; i < szare.length; i += 1) {
+      szare[i] = Math.round(0.299 * rgba[i * 4] + 0.587 * rgba[i * 4 + 1] + 0.114 * rgba[i * 4 + 2]);
+      if (rgba[i * 4 + 3] < 255 && !maska) maska = new Uint8Array(w * h).fill(255);
+      if (maska) maska[i] = rgba[i * 4 + 3];
+    }
+    if (maska) opis.SMask = ctx.register(ctx.stream(await spakuj(maska), { ...opis }));
+    return { ref: ctx.register(ctx.stream(await spakuj(szare), opis)) };
+  }
+
   async _osadz(el, szerPx) {
     const typ = /^data:(image\/[a-z+.-]+)/i.exec(el.src)?.[1]?.toLowerCase();
-    if (typ === 'image/jpeg' || typ === 'image/png') {
+    if (!this.szarosc && (typ === 'image/jpeg' || typ === 'image/png')) {
       const bajty = await bajtyZAdresu(el.src);
       if (typ === 'image/png') return this.pdf.embedPng(bajty);
       if (obrotJpeg(bajty) === 1) return this.pdf.embedJpg(bajty);
@@ -443,6 +462,7 @@ export class ObrazyPdf {
   }
 
   async osadzPlotno(plotno, bezPrzezroczystosci = false) {
+    if (this.szarosc) { const obraz = await this._plotnoSzare(plotno); plotno.width = 0; plotno.height = 0; return obraz; }
     if (this.silnik) { const obraz = await this._plotnoCmyk(plotno, bezPrzezroczystosci); plotno.width = 0; plotno.height = 0; return obraz; }
     const url = bezPrzezroczystosci ? plotno.toDataURL('image/jpeg', 0.92) : plotno.toDataURL('image/png');
     const obraz = await (bezPrzezroczystosci ? this.pdf.embedJpg(url) : this.pdf.embedPng(url));
@@ -452,6 +472,8 @@ export class ObrazyPdf {
 }
 
 // ---------- Kontekst rysowania zapisujący PDF ----------
+
+const SEPARACJE = new WeakMap(); // plik PDF → nazwa płyty → przestrzeń kolorów Separation
 
 const STAN = ['fillStyle', 'strokeStyle', 'lineWidth', 'lineCap', 'lineJoin', 'miterLimit', 'lineDashOffset', 'globalAlpha', 'font', 'textAlign', 'textBaseline', 'direction', 'globalCompositeOperation', 'imageSmoothingEnabled', 'imageSmoothingQuality', 'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'letterSpacing', 'fontKerning', 'filter'];
 const KONCE = { butt: 0, round: 1, square: 2 };
@@ -480,6 +502,12 @@ class KontekstPdf {
     this.krzyweTeraz = new Set();
     this.obrazyTeraz = new Set();
     this.ligaturTeraz = 0; // ile ligatur zapisał rysowany właśnie element
+    // Kolory do druku (#127): rysowany element z uszlachetnieniem (płyta na szczycie stosu), tryb eksportu
+    // uszlachetnień ('plyty' | 'pomin' | 'tylko' + tylkoPlyta) – czyta to nakładka na render() w kolory-druku.js.
+    this.jestPdf = true;
+    this.uszlStos = [];
+    this.trybUszl = opcje.trybUszl || 'plyty';
+    this.tylkoPlyta = opcje.tylkoPlyta || null;
   }
 
   // --- stan ---
@@ -587,13 +615,31 @@ class KontekstPdf {
 
   _kolor(k, obrys) {
     const [r, g, b] = k;
+    // Uszlachetnienie: każda farba elementu idzie na płytę uszlachetnienia, z nadrukiem.
+    const u = this.uszlStos.at(-1);
+    if (u) return this._plyta(u.plyta, u.alt, 1, obrys, true);
+    // Kolor dodatkowy (spot): ten sam kolor ekranu co odcień z rejestru projektu → osobna płyta.
+    const spot = this.opcje.spoty?.get(rgbNaHex(r * 255, g * 255, b * 255));
+    if (spot) return this._plyta(spot.nazwa, spot.cmyk, spot.t, obrys, false);
     if (this.opcje.cmyk) return `${this.opcje.naCmyk([r, g, b]).map(L).join(' ')} ${obrys ? 'K' : 'k'}`;
     return `${L(r)} ${L(g)} ${L(b)} ${obrys ? 'RG' : 'rg'}`;
   }
 
   _krycie(a) { this.op.push(`/${this.strona.krycie(Math.min(1, Math.max(0, a)))} gs`); }
 
+  // Farba na płycie Separation: przestrzeń kolorów strony + odcień; nadruk (overprint) dla uszlachetnień.
+  _plyta(nazwa, alt, odcien, obrys, nadruk) {
+    const cs = this.strona.separacja(nazwa, alt);
+    if (nadruk) this.op.push(`/${this.strona.nadruk()} gs`);
+    return `/${cs} ${obrys ? 'CS' : 'cs'} ${L(odcien)} ${obrys ? 'SCN' : 'scn'}`;
+  }
+
   _styl(styl, obrys) {
+    if (styl instanceof Gradient && this.uszlStos.length) {
+      this._krycie(this.globalAlpha);
+      this.op.push(this._kolor([0, 0, 0], obrys));
+      return null;
+    }
     if (styl instanceof Gradient) return styl;
     if (typeof styl !== 'string') throw new Niewektorowe('wypełnienie wzorem');
     const k = rozlozKolor(styl);
@@ -804,7 +850,7 @@ class KontekstPdf {
     });
     if (!widoczne.length) return;
     const styl = obrys ? this.strokeStyle : this.fillStyle;
-    if (typeof styl !== 'string') throw new Niewektorowe('tekst wypełniony gradientem');
+    if (typeof styl !== 'string' && !this.uszlStos.length) throw new Niewektorowe('tekst wypełniony gradientem');
     this.ligaturTeraz += ligatur;
 
     if (this.opcje.krzywe || czcionka.krzywe) {
@@ -849,6 +895,7 @@ class KontekstPdf {
   // --- obrazy ---
   drawImage(el, ...a) {
     this._sprawdz();
+    if (this.uszlStos.length) throw new Niewektorowe('uszlachetnienie na obrazie');
     if (el?.tagName !== 'IMG') throw new Niewektorowe(el?.dataset?.powod || 'obraz przetworzony');
     const nw = el.naturalWidth || el.width; const nh = el.naturalHeight || el.height;
     if (!nw || !nh) return;
@@ -935,6 +982,26 @@ class StronaPdf {
     return this._nazwa(`krycie ${w}`, (n) => this._slownik('ExtGState').set(n, this.pdf.context.obj({ Type: 'ExtGState', ca: w, CA: w })));
   }
 
+  // Płyta koloru dodatkowego albo uszlachetnienia: [/Separation /Nazwa /DeviceCMYK funkcja odcienia].
+  // Ta sama nazwa w całym pliku to ten sam obiekt – drukarnia widzi jedną płytę.
+  separacja(nazwa, alt) {
+    return this._nazwa(`sep ${nazwa}`, (n) => {
+      const { PDFName } = this.PDFLib;
+      const { context } = this.pdf;
+      let wspolne = SEPARACJE.get(this.pdf);
+      if (!wspolne) { wspolne = new Map(); SEPARACJE.set(this.pdf, wspolne); }
+      if (!wspolne.has(nazwa)) {
+        const funkcja = context.obj({ FunctionType: 2, Domain: [0, 1], C0: [0, 0, 0, 0], C1: alt.map((v) => Math.round(v * 1000) / 1000), N: 1 });
+        wspolne.set(nazwa, context.register(context.obj([PDFName.of('Separation'), PDFName.of(nazwa), PDFName.of('DeviceCMYK'), funkcja])));
+      }
+      this._slownik('ColorSpace').set(n, wspolne.get(nazwa));
+    });
+  }
+
+  nadruk() {
+    return this._nazwa('nadruk', (n) => this._slownik('ExtGState').set(n, this.pdf.context.obj({ Type: 'ExtGState', OP: true, op: true, OPM: 1 })));
+  }
+
   obraz(el, opcje) {
     return this._nazwa(el, (n) => { this.czekaja.push(this.obrazy.osadz(el, opcje).then((o) => this.strona.node.setXObject(n, o.ref))); });
   }
@@ -1003,8 +1070,13 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
   const dolicz = (mapa, powody) => { if (mapa) for (const p of powody) mapa.set(p, (mapa.get(p) || 0) + 1); };
   const zasoby = new StronaPdf(PDFLib, pdf, strona, obrazy);
   // Kolory tekstu i kształtów w CMYK: przez profil drukarni, gdy jest (PDF/X), inaczej prostym wzorem.
-  const { silnik = null } = srodowisko;
-  const opcje = { cmyk, krzywe, pikseliNaJednostke: dpi / 25.4, naCmyk: silnik ? (k) => silnik.wektor(k[0], k[1], k[2]) : naCmyk };
+  const { silnik = null, szarosc = false, spoty = null, trybUszl = 'plyty', tylkoPlyta = null } = srodowisko;
+  // Skala szarości i „cz/b + 1 kolor” (#127): kolory spoza płyt idą samą czernią (K) o tej samej jasności.
+  const naK = (k) => [0, 0, 0, 1 - (0.299 * k[0] + 0.587 * k[1] + 0.114 * k[2])];
+  const opcje = {
+    cmyk, krzywe, pikseliNaJednostke: dpi / 25.4, naCmyk: szarosc ? naK : (silnik ? (k) => silnik.wektor(k[0], k[1], k[2]) : naCmyk),
+    spoty, trybUszl, tylkoPlyta,
+  };
   const ctx = new KontekstPdf(zasoby, czcionki, opcje);
   const pole = [-m.spad, -m.spad, m.w + 2 * m.spad, m.h + 2 * m.spad];
 
@@ -1012,8 +1084,11 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
   // Milimetry strony (oś Y w dół) → punkty PDF (oś Y w górę); początek w rogu strony po obcięciu.
   ctx.transform(PT, 0, 0, -PT, m.pas * PT, (m.h + m.pas) * PT);
   ctx.beginPath(); ctx.rect(...pole); ctx.clip();
-  ctx.fillStyle = tlo || '#ffffff';
-  ctx.fillRect(...pole);
+  // Plik samego uszlachetnienia: bez tła – na płycie jest tylko uszlachetnienie.
+  if (trybUszl !== 'tylko') {
+    ctx.fillStyle = tlo || '#ffffff';
+    ctx.fillRect(...pole);
+  }
   ctx.beginPath();
 
   for (const o of obiekty) {
@@ -1047,6 +1122,14 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
       ctx.sciezka = [];
       uwagi?.set(e.message, (uwagi.get(e.message) || 0) + 1);
       zasoby.uzyteCzcionki = new Set(przed.czcionki);
+      const u = plytaUszlachetnienia(o);
+      if (u) {
+        // Uszlachetnienie, którego nie da się zapisać wektorem (np. na zdjęciu): kształt elementu jako maska
+        // farby płyty – dalej osobna płyta z nadrukiem, nie obraz w CMYK.
+        if (trybUszl !== 'pomin' && (!tylkoPlyta || u.plyta === tylkoPlyta)) await wstawJakoMaske(ctx, zasoby, o, pole, dpi, u);
+        continue;
+      }
+      if (trybUszl === 'tylko') continue;
       await wstawJakoObraz(ctx, zasoby, obrazy, o, pole, dpi);
     }
   }
@@ -1084,4 +1167,41 @@ async function wstawJakoObraz(ctx, zasoby, obrazy, o, pole, dpi) {
   plotno.dispose();
   const nazwa = zasoby.obrazGotowy(obraz);
   ctx.op.push('q', `${L(x1 - x0)} 0 0 ${L(-(y1 - y0))} ${L(x0)} ${L(y1)} cm`, `/${nazwa} Do`, 'Q');
+}
+
+// Uszlachetnienie jako maska (#127): element narysowany bez efektu, piksele kryjące (≥ 50%) malują farbą
+// płyty uszlachetnienia (obraz-maska 1 bit, /ImageMask), z nadrukiem.
+async function wstawJakoMaske(ctx, zasoby, o, pole, dpi, u) {
+  o.setCoords();
+  const rogi = Object.values(o.aCoords || {});
+  if (!rogi.length) return;
+  const x0 = Math.max(pole[0], Math.min(...rogi.map((p) => p.x)) - 0.5);
+  const y0 = Math.max(pole[1], Math.min(...rogi.map((p) => p.y)) - 0.5);
+  const x1 = Math.min(pole[0] + pole[2], Math.max(...rogi.map((p) => p.x)) + 0.5);
+  const y1 = Math.min(pole[1] + pole[3], Math.max(...rogi.map((p) => p.y)) + 0.5);
+  if (!(x1 > x0) || !(y1 > y0)) return;
+  let k = dpi / 25.4;
+  k = Math.min(k, Math.sqrt(MAX_PIKSELI_OBRAZU / ((x1 - x0) * (y1 - y0))));
+  const plotno = new fabric.StaticCanvas(undefined, {
+    width: Math.max(1, Math.round((x1 - x0) * k)), height: Math.max(1, Math.round((y1 - y0) * k)), enableRetinaScaling: false, renderOnAddRemove: false,
+  });
+  plotno.setViewportTransform([k, 0, 0, k, -x0 * k, -y0 * k]);
+  const cien = o.shadow; o.shadow = null;
+  stanUszlachetnien.surowo = true;
+  try { plotno.add(o); plotno.renderAll(); } finally { stanUszlachetnien.surowo = false; o.shadow = cien; }
+  const el = plotno.toCanvasElement();
+  plotno.remove(o);
+  plotno.dispose();
+  const { width: w, height: h } = el;
+  const rgba = el.getContext('2d').getImageData(0, 0, w, h).data;
+  const wiersz = Math.ceil(w / 8);
+  const bity = new Uint8Array(wiersz * h).fill(255); // 1 = nie maluj (Decode domyślne: 0 maluje)
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) if (rgba[(y * w + x) * 4 + 3] >= 128) bity[y * wiersz + (x >> 3)] &= ~(0x80 >> (x & 7));
+  }
+  el.width = 0; el.height = 0;
+  const { context } = zasoby.pdf;
+  const ref = context.register(context.stream(await spakuj(bity), { Type: 'XObject', Subtype: 'Image', Width: w, Height: h, ImageMask: true, BitsPerComponent: 1, Filter: 'FlateDecode' }));
+  const nazwa = zasoby._nazwa(ref, (n) => zasoby.strona.node.setXObject(n, ref));
+  ctx.op.push('q', `/${zasoby.nadruk()} gs`, `/${zasoby.separacja(u.plyta, u.alt)} cs 1 scn`, `${L(x1 - x0)} 0 0 ${L(-(y1 - y0))} ${L(x0)} ${L(y1)} cm`, `/${nazwa} Do`, 'Q');
 }

@@ -96,12 +96,32 @@ function odswiezPolaSekcji() {
   $('#pole-ok-gramatura').hidden = papier !== 'gramatura';
   $('#pole-ok-grubosc').hidden = papier !== 'grubosc';
   $('#pole-ok-twarda').hidden = f.elements.ok_oprawa.value !== 'twarda';
+  // Wymiary (#125): grzbiet do wpisania (bez zeszytowej), przy „Wpisz rozmiar” także szerokość i wysokość.
+  const wymiary = f.elements.ok_wymiary.value;
+  const zeszyt = f.elements.ok_oprawa.value === 'zeszytowa';
+  $('#pole-ok-wymiary').hidden = wymiary === 'auto' || (wymiary === 'grzbiet' && zeszyt);
+  $('#pole-ok-grzbiet').hidden = zeszyt;
+  $('#pole-ok-szerokosc').hidden = wymiary !== 'rozmiar';
+  $('#pole-ok-wysokosc').hidden = wymiary !== 'rozmiar';
+  $('#pole-ok-grzbiet span').textContent = wymiary === 'rozmiar' ? 'Grzbiet (mm, puste – liczony)' : 'Grzbiet (mm)';
   f.elements.ok_liczba.disabled = f.elements.ok_strony.value !== 'reczne';
   rysujSchemat();
   if (okladka) rysujOkladke(); else opiszSkladke();
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
-  if (['uklad', 'numeracja', 'rodzaj', 'ok_papier', 'ok_oprawa', 'ok_strony', 'skladka'].includes(e.target.name)) odswiezPolaSekcji();
+  if (['uklad', 'numeracja', 'rodzaj', 'ok_papier', 'ok_oprawa', 'ok_strony', 'ok_wymiary', 'skladka'].includes(e.target.name)) {
+    // Przejście na wpisane wymiary: pola dostają bieżące, liczone wartości – do poprawienia, nie od zera.
+    if (e.target.name === 'ok_wymiary') {
+      const f = e.target.form;
+      const g = podgladOkladki(f);
+      if (g) {
+        if (!Number(f.elements.ok_grzbiet.value)) f.elements.ok_grzbiet.value = e.target.value === 'rozmiar' ? '' : g.liczone.grzbiet;
+        if (!Number(f.elements.ok_szerokosc.value)) f.elements.ok_szerokosc.value = g.liczone.szerokosc;
+        if (!Number(f.elements.ok_wysokosc.value)) f.elements.ok_wysokosc.value = g.liczone.wysokosc;
+      }
+    }
+    odswiezPolaSekcji();
+  }
   else if (e.target.name === 'ok_srodek') rysujOkladke();
 });
 
@@ -159,6 +179,10 @@ function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
   f.elements.ok_big.value = o.big_mm;
   f.elements.ok_naddatek.value = o.naddatek_mm;
   f.elements.ok_tektura.value = o.tektura_mm;
+  f.elements.ok_wymiary.value = o.wymiary.tryb;
+  f.elements.ok_grzbiet.value = o.wymiary.grzbiet_mm || '';
+  f.elements.ok_szerokosc.value = o.wymiary.szerokosc_mm || '';
+  f.elements.ok_wysokosc.value = o.wymiary.wysokosc_mm || '';
   // Sekcje środka: wybór tylko wtedy, gdy jest z czego wybierać.
   const kandydaci = stan.projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s));
   $('#ok-srodek').replaceChildren(...kandydaci.map((s) => {
@@ -185,6 +209,7 @@ function okladkaZPol(f) {
     strony: { tryb: f.elements.ok_strony.value, liczba: n('ok_liczba') },
     papier: { tryb: f.elements.ok_papier.value, gramatura: n('ok_gramatura'), grubosc_mm: n('ok_grubosc'), rodzaj: f.elements.ok_rodzaj.value },
     zawiniecie_mm: n('ok_zawiniecie'), big_mm: n('ok_big'), naddatek_mm: n('ok_naddatek'), tektura_mm: n('ok_tektura'),
+    wymiary: { tryb: f.elements.ok_wymiary.value, grzbiet_mm: n('ok_grzbiet'), szerokosc_mm: n('ok_szerokosc'), wysokosc_mm: n('ok_wysokosc') },
   });
 }
 
@@ -230,6 +255,13 @@ function rysujOkladke() {
   m.textContent = `Środek: ${g.stron} stron (${g.kartek} kartek × ${String(g.kartka_mm).replace('.', ',')} mm), strona ${liczba(g.strona.sz)} × ${liczba(g.strona.wy)} mm.`
     + (zeszyt && g.stron % 4 ? ' Oprawa zeszytowa potrzebuje liczby stron podzielnej przez 4.' : '');
   $('#wynik-okladki').replaceChildren(b, m);
+  // Podpowiedź przy wpisanych wymiarach: co wychodzi z papieru i formatu środka.
+  const liczone = $('#ok-liczone');
+  liczone.hidden = g.tryb === 'auto';
+  if (g.tryb !== 'auto') {
+    liczone.textContent = `Z papieru i formatu środka wychodzi: ${zeszyt ? 'bez grzbietu' : `grzbiet ${liczba(g.liczone.grzbiet)} mm`}, okładka ${liczba(g.liczone.szerokosc)} × ${liczba(g.liczone.wysokosc)} mm.`
+      + (g.tryb === 'rozmiar' ? ' Tył i przód dzielą resztę szerokości po równo wokół grzbietu.' : '');
+  }
 }
 $('#sekcja-okladka').addEventListener('input', () => rysujOkladke());
 

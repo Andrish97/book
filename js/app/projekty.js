@@ -50,6 +50,7 @@ export async function wpisyProjektow() {
         naKoncie.add(c.id);
         const w = wpisy.get(c.id) || { id: c.id, nazwa: c.nazwa, miniatura: c.miniatura };
         w.wChmurze = c.zmieniono;
+        w.wersjaChmury = c.wersja ?? null;
         // Projekt kogoś innego, do którego mnie zaproszono (współpraca, decyzja #86).
         const cudzy = Boolean(c.owner_id) && c.owner_id !== stan.uzytkownik.id;
         const u = udzialy.get(c.id);
@@ -200,8 +201,14 @@ export async function wczytajProjektZWpisu(w, pasek = null) {
 
 async function wczytajProjektZWpisuBez(w, pasek = null) {
   const lokalny = w.lokalnie ? (await wczytajLokalnie(w.id))?.projekt : null;
-  // Nowsza wersja wygrywa; niewysłane zmiany lokalne mają pierwszeństwo.
-  const chmuraNowsza = w.wChmurze && (!lokalny || (!w.doSynchronizacji && w.wChmurze > (lokalny.zmieniono || '')));
+  // Bez niewysłanych zmian na urządzeniu wygrywa wersja z konta, jeśli jest nowsza. „Nowsza” liczymy numerem
+  // wersji z bazy, nie zegarem urządzenia: zegar telefonu może się spieszyć, a wtedy stara kopia z urządzenia
+  // wyglądała na nowszą od zmian zrobionych w międzyczasie (np. przez AI) i je zasłaniała (#135).
+  // Niewysłane zmiany lokalne: otwiera się kopia z urządzenia, a zmiany z konta dołączają się zaraz po otwarciu.
+  const nowszaWersja = lokalny?.wersja_chmury != null && w.wersjaChmury != null
+    ? w.wersjaChmury > lokalny.wersja_chmury
+    : w.wChmurze > (lokalny?.zmieniono || '');
+  const chmuraNowsza = w.wChmurze && (!lokalny || (!w.doSynchronizacji && nowszaWersja));
   if (!chmuraNowsza) {
     // Starszy zapis trzymał obrazy w środku projektu – przy pierwszym otwarciu przechodzą do magazynu plików.
     if (lokalny && await odlozZasoby(lokalny)) await zapiszLokalnie(lokalny, wlasciciel(), Boolean(w.doSynchronizacji));

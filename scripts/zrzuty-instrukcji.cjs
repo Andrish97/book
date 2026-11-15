@@ -182,7 +182,7 @@ async function przykladoweProjekty(strona) {
   });
 }
 
-module.exports = { przykladoweProjekty };
+module.exports = { przykladoweProjekty, kadr, zrzut };
 if (require.main === module) (async () => {
   const przegladarka = await chromium.launch();
 
@@ -918,6 +918,41 @@ if (require.main === module) (async () => {
   await d.waitForTimeout(300);
   await kadr(d, 'k-krycie-przejscia.png', { obszar: ['#panel-inspektor label:has-text("Kolor 1")', '#panel-inspektor label:has-text("Kolor 2")', '#panel-inspektor label:has-text("Krycie") >> nth=1'], zaznacz: '#panel-inspektor label:has-text("Krycie") >> nth=1', margines: 12 }).catch((err) => console.error('pominięto k-krycie-przejscia:', err.message));
 
+  // ---------- Kolory do druku: kolory dodatkowe, uszlachetnienia (#127) ----------
+  await pustaStrona();
+  await d.evaluate(() => {
+    const { stan, edytor: e } = window.seriodruk;
+    stan.projekt.kolory_dodatkowe = [{ id: 'kd186', nazwa: 'PANTONE 186 C', cmyk: [0, 100, 81, 4] }, { id: 'kd871', nazwa: 'PANTONE 871 C', cmyk: [20, 25, 60, 25] }];
+    const r = e.dodajProstokat();
+    r.set({ left: 20, top: 30, width: 108, height: 40, rx: 3, ry: 3, strokeWidth: 0, fill: '#1c2541', uszlachetnienie: 'folia', folia: 'zloto' });
+    r.setCoords();
+    e.zatwierdz();
+    e.odznacz();
+    e.zaznacz(r.id);
+  });
+  await d.waitForTimeout(400);
+  await d.click('#przycisk-wiecej');
+  await d.click('#menu-wiecej [data-akcja="kolory-druku"]');
+  await d.waitForSelector('#dlg-kolory-druku[open]');
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-kolory-druku.png', { obszar: '#dlg-kolory-druku .formularz', margines: 0 }).catch((err) => console.error('pominięto k-kolory-druku:', err.message));
+  await d.click('#dlg-kolory-druku .przyciski-dialogu [data-akcja="kolory-druku-zamknij"]');
+  await d.waitForTimeout(300);
+  await d.evaluate(() => [...document.querySelectorAll('#wlasciwosci legend button.zwijak')].find((b) => b.textContent === 'Uszlachetnienie')?.scrollIntoView({ block: 'start' }));
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-uszlachetnienie.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Uszlachetnienie"))', margines: 8 }).catch((err) => console.error('pominięto k-uszlachetnienie:', err.message));
+  await d.evaluate(() => document.querySelector('#wlasciwosci')?.scrollTo?.(0, 0));
+  try {
+    await d.locator('#wlasciwosci .kolor-przycisk').first().scrollIntoViewIfNeeded();
+    await d.click('#wlasciwosci .kolor-przycisk >> nth=0');
+    await d.waitForSelector('.kolor-okienko .kolor-dodatkowe:not([hidden])', { timeout: 5000 });
+    await d.waitForTimeout(300);
+    await kadr(d, 'k-kolor-dodatkowy.png', { obszar: '.kolor-okienko', zaznacz: '.kolor-okienko .kolor-dodatkowe', margines: 8 });
+  } catch (err) { console.error('pominięto k-kolor-dodatkowy:', err.message); }
+  await d.keyboard.press('Escape');
+  await d.waitForTimeout(300);
+  await d.evaluate(() => { window.seriodruk.stan.projekt.kolory_dodatkowe = undefined; });
+
   // ---------- Okładka z grzbietem i składki (#119, #120) ----------
   await d.evaluate(async () => {
     const { stan } = window.seriodruk;
@@ -970,7 +1005,22 @@ if (require.main === module) (async () => {
   await d.mouse.move(2, 2);
   await d.waitForTimeout(600);
   await kadr(d, 'k-okladka-okno.png', { obszar: ['#pole-rodzaj-sekcji', '#sekcja-okladka'], zaznacz: '#pole-rodzaj-sekcji label:has-text("Okładka z grzbietem")', margines: 10 });
+  // Wymiary okładki wpisane ręcznie (#125): grzbiet od drukarni.
+  await d.click('#sekcja-okladka label:has-text("Wpisz grzbiet")');
+  await d.fill('#dlg-sekcja input[name=ok_grzbiet]', '8');
+  await d.waitForTimeout(400);
+  await kadr(d, 'k-okladka-wymiary.png', { obszar: ['#wynik-okladki', '#ok-liczone'], zaznacz: ['#sekcja-okladka label:has-text("Wpisz grzbiet")', '#pole-ok-grzbiet'], margines: 10 });
   await d.keyboard.press('Escape');
+  // Kod QR (#128): element i jego część „Kod” w panelu.
+  await d.waitForTimeout(400);
+  await d.evaluate(async () => {
+    const { stan, przejdzDoStrony, edytor } = window.seriodruk;
+    const i = stan.projekt.strony.findIndex((x) => !stan.projekt.sekcje.find((s) => s.id === x.sekcja)?.okladka);
+    await przejdzDoStrony(Math.max(0, i));
+    edytor.dodajKod('qr', { typ: 'adres', dane: { adres: 'https://makietka.app' }, tresc: 'https://makietka.app', szerokosc: 30 });
+  });
+  await d.waitForTimeout(600);
+  await kadr(d, 'k-kod.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Kod"))', zaznacz: '#panel-inspektor label:has-text("Co zawiera") .wybor-przycisk', margines: 8 });
   await kp.close();
 
   // ---------- Telefon ----------

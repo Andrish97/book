@@ -14,6 +14,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
 | 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 | 131A | Z Canvy: kalendarz miesiąca, wykresy z danych, biblioteka kształtów, kolaże | 🔄 |
+| 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
+| 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
 
 ## Czeka (kolejne etapy)
 
@@ -45,8 +47,13 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga |
 |---|---|
 | 131A | Typografia: dzielenie wyrazów po polsku, spójniki na końcu wiersza, wdowy i sieroty, inicjały, tabulatory z wypełniaczem, style znakowe, siatka linii bazowych, oblewanie tekstem (prostokąt, kształt, skok) – w edytorze, podglądzie i PDF |
+| 135 | Zmiany od AI znikały po otwarciu projektu na innym urządzeniu – bezpieczne domyślne wybory, bez nadpisywania konta, wersje liczone numerem |
 | 133 | Marginesy i inne wymiary w mm – dowolna wartość, nie tylko co 0,5 |
 | 132 | Instrukcja na telefonie dawała się przewinąć cała (pusto pod stopką) |
+| 125 | Okładka: „Wymiary – Policz same / Wpisz grzbiet / Wpisz rozmiar okładki”, liczone wartości jako podpowiedź |
+| 126 | Składki liczą strony po powieleniach serii – sprawdzone testem (licznik, „Dopełnij pustymi”, kontrola) |
+| 128 | Kod QR (adres, tekst, e-mail, telefon, Wi-Fi; z pola danych) i kod kreskowy EAN-13 / ISBN – wektorowo, z ostrzeżeniami |
+| 127 | Kolory do druku: kolory dodatkowe (Pantone) na osobnych płytach, uszlachetnienia (lakier UV, złocenie, tłoczenie, wytłoczenie, biały poddruk) z nadrukiem, tryb skali szarości i cz/b + 1 kolor; okno „Kolory do druku”, część „Uszlachetnienie” w panelu, rozdział 22 instrukcji |
 | 114b | Instrukcja po #115–#123: okładka z grzbietem i składki (tekst zgodny z oknem sekcji), pasek stron i uchwyt na telefonie, załączniki w formularzu kontaktowym, kontrola przed drukiem (niepełna składka), linie zgięć; 13 nowych zrzutów (jasne i ciemne): okładka, okno okładki, przypięcie, składki, obraz w kształcie, kadrowanie w kształcie, Usuń tło, filtry, krycie w przejściu, pasek stron na telefonie, formularz kontaktowy |
 | 117 | Pasek stron na telefonie: miniatury na całą wysokość paska, wąska etykieta sekcji, mniejszy ⋯, kafelek „+” tej samej wysokości |
 | 118 | Uchwyt arkuszy na telefonie: stuknięcie zwija powiększony, zwykły zamyka (już nie rozwija) |

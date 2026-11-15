@@ -5,6 +5,7 @@ const P = {
   prostokat: '<rect x="4" y="6" width="16" height="12" rx="1.5"/>',
   pioro: '<path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.500-7.500L2 2l3.500 14.500L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
   rysuj: '<path d="M4 20c2.5-.4 3.8-1.8 4.2-3.6L18.5 6.1a2.1 2.1 0 0 0-3-3L5.2 13.4C3.6 14 3.2 16.500 4 20Z"/><path d="m14 5 3.500 3.500"/>',
+  kod: '<rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h3v3M20.5 14v.01M14 20.5h.01M17 20.5h3.5V17"/>',
   tabela: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 10h18"/><path d="M3 14.5h18"/><path d="M9 5v14"/><path d="M15 5v14"/>',
   elipsa: '<ellipse cx="12" cy="12" rx="8" ry="6.5"/>',
   linia: '<path d="M5 19 19 5"/>',
@@ -95,6 +96,8 @@ const P = {
   odpowiedzWszystkim: '<path d="M8 15 3 10l5-5"/><path d="M12 15 7 10l5-5"/><path d="M7 10h7a6 6 0 0 1 6 6v3"/>',
   przekaz: '<path d="m15 15 5-5-5-5"/><path d="M20 10H10a6 6 0 0 0-6 6v3"/>',
   zgloszenie: '<path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14.5 7v10" stroke-dasharray="2 2.2"/>',
+  // Kolory do druku (#127): kropla farby z płytką.
+  'kolor-druku': '<path d="M12 3.5c3 3.6 5 6.4 5 9a5 5 0 0 1-10 0c0-2.6 2-5.4 5-9z"/><path d="M9.5 13.5a2.5 2.5 0 0 0 2.5 2.5"/>',
   przeczytane: '<path d="M3 9.5 12 4l9 5.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="m3.5 10 8.5 5.5 8.5-5.5"/>',
 };
 

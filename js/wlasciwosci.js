@@ -7,8 +7,11 @@ import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
 import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js';
 import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
+import { USZLACHETNIENIA, FOLIE, plytaUszlachetnienia } from './kolory-druku.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu } from './edytor.js';
+import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
+import { trescQR } from './kody.js';
 import { ikona } from './ikony.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU, rowneWStylu, stylZnakowyZFragmentu, zastosujStylZnakowy, stylZnakowyNaPozycji } from './style-tekstu.js';
@@ -85,10 +88,10 @@ export class PanelWlasciwosci {
     else if (!obj) { rodzaj = 'strona'; ik = this.tytul.textContent === 'Wzorzec' ? 'wzorzec' : 'strony'; nad = 'Nic nie jest zaznaczone'; }
     else if (toZaznaczenie(obj)) { ik = 'grupuj'; nad = 'Zaznaczone elementy'; }
     else {
-      const typ = toTabela(obj) || toTabela(obj.group) ? 'tabela' : obj.type;
+      const typ = toTabela(obj) || toTabela(obj.group) ? 'tabela' : (toKod(obj) ? 'kod' : obj.type);
       ik = {
         textbox: 'tekst', 'i-text': 'tekst', text: 'tekst', rect: 'prostokat', ellipse: 'elipsa', circle: 'elipsa',
-        polygon: 'wielokat', line: 'linia', image: 'obraz', path: 'pioro', group: 'grupuj', tabela: 'tabela',
+        polygon: 'wielokat', line: 'linia', image: 'obraz', path: 'pioro', group: 'grupuj', tabela: 'tabela', kod: 'kod',
       }[typ] || 'suwaki';
     }
     opak.dataset.rodzaj = rodzaj;
@@ -212,8 +215,10 @@ export class PanelWlasciwosci {
     }
     if (obj.type === 'image') this.zbudujAkcjeObrazu(obj);
     if (toTabela(obj)) this.zbudujTabele(obj);
+    if (toKod(obj)) this.zbudujKod(obj);
     if (TEKSTOWE.has(obj.type)) this.zbudujTekst(obj);
-    this.zbudujGeometrie(obj);
+    // Rozmiar kodu ustawia się w części „Kod” (QR zostaje kwadratem, rysunek liczy się od nowa).
+    this.zbudujGeometrie(obj, { tylkoPozycja: toKod(obj) });
     if (KSZTALTY.has(obj.type)) this.zbudujWypelnienie(obj);
     if (obj.type === 'line' || obj.type === 'path') this.zbudujLinie(obj);
     if (moznaWstawicObraz(obj)) this.zbudujObrazWKsztalcie(obj);
@@ -222,6 +227,7 @@ export class PanelWlasciwosci {
     this.zbudujWyrownanie(1);
     this.zbudujKolejnosc(obj);
     this.zbudujCien(obj);
+    if (!wGrupie) this.zbudujUszlachetnienie(obj);
     if (!wGrupie) this.zbudujZDanych(obj);
     const inne = this.sekcja('Inne');
     if (!wGrupie) inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
@@ -401,6 +407,70 @@ export class PanelWlasciwosci {
   }
 
   // ---------- Tabela ----------
+
+  // Kod QR albo kod kreskowy EAN-13 / ISBN (#128): rodzaj, treść, korekcja, kolory, rozmiar, uwagi.
+  zbudujKod(obj) {
+    const k = () => obj.kod;
+    const zmien = (z, przebuduj = false) => {
+      this.edytor.zmienKod(z, obj);
+      if (przebuduj) this.zbuduj();
+    };
+    const sek = this.sekcja('Kod');
+    sek.append(this.wybor('Rodzaj', [['qr', 'Kod QR'], ['ean', 'Kod kreskowy EAN-13 / ISBN']], () => k().rodzaj, (v) => {
+      if (v === k().rodzaj) return;
+      const nowy = domyslnyKod(v);
+      zmien({ ...nowy, kolor: k().kolor, tlo: k().tlo }, true);
+    }));
+    if (k().rodzaj === 'qr') {
+      const ustawDane = (pole) => (v) => {
+        const dane = { ...k().dane, [pole]: v };
+        zmien({ dane, tresc: trescQR(k().typ, dane) });
+      };
+      const dana = (pole) => () => k().dane?.[pole] ?? '';
+      sek.append(this.wybor('Co zawiera', [['adres', 'Adres strony'], ['tekst', 'Tekst'], ['email', 'E-mail'], ['telefon', 'Telefon'], ['wifi', 'Sieć Wi-Fi']], () => k().typ, (v) => {
+        zmien({ typ: v, tresc: trescQR(v, k().dane) }, true);
+      }));
+      const typ = k().typ;
+      if (typ === 'adres') sek.append(this.tekst('Adres', dana('adres'), ustawDane('adres'), true));
+      if (typ === 'tekst') sek.append(this.obszarTekstu('Tekst', dana('tekst'), ustawDane('tekst')));
+      if (typ === 'email') {
+        sek.append(this.tekst('Adres e-mail', dana('email'), ustawDane('email'), true));
+        sek.append(this.tekst('Temat (opcjonalnie)', dana('temat'), ustawDane('temat'), true));
+        sek.append(this.tekst('Treść (opcjonalnie)', dana('tresc'), ustawDane('tresc'), true));
+      }
+      if (typ === 'telefon') sek.append(this.tekst('Numer telefonu', dana('telefon'), ustawDane('telefon'), true));
+      if (typ === 'wifi') {
+        sek.append(this.tekst('Nazwa sieci', dana('siec'), ustawDane('siec'), true));
+        sek.append(this.wybor('Zabezpieczenie', [['WPA', 'WPA / WPA2 / WPA3'], ['WEP', 'WEP'], ['nopass', 'Bez hasła']], () => k().dane?.szyfrowanie || 'WPA', (v) => { ustawDane('szyfrowanie')(v); this.zbuduj(); }));
+        if ((k().dane?.szyfrowanie || 'WPA') !== 'nopass') sek.append(this.tekst('Hasło', dana('haslo'), ustawDane('haslo'), true));
+        sek.append(this.przelacznik('Sieć ukryta', () => Boolean(k().dane?.ukryta), ustawDane('ukryta')));
+      }
+      sek.append(this.wybor('Korekcja błędów', [['L', 'Niska (7%) – najmniejszy kod'], ['M', 'Średnia (15%)'], ['Q', 'Wysoka (25%)'], ['H', 'Najwyższa (30%) – np. pod logo']], () => k().korekcja, (v) => zmien({ korekcja: v })));
+      sek.append(this.liczba('Rozmiar', () => zaokr(k().szerokosc, 2), (v) => zmien({ szerokosc: Math.max(5, v), wysokosc: Math.max(5, v) }), { jednostka: 'mm', krok: 1, min: 5 }));
+    } else {
+      sek.append(this.tekst('Numer EAN albo ISBN', () => k().tresc, (v) => zmien({ tresc: v }), true));
+      sek.append(this.wskazowka('12 cyfr – cyfra kontrolna dopisze się sama. ISBN wpisz z myślnikami albo bez (978-83-…); stary ISBN-10 zamieni się na ISBN-13.'));
+      sek.append(this.przelacznik('Cyfry pod kodem', () => k().napis, (v) => zmien({ napis: v })));
+      const rozmiar = this.liczba('Szerokość', () => zaokr(k().szerokosc, 2), (v) => zmien({ szerokosc: Math.max(10, v) }), { jednostka: 'mm', krok: 0.5, min: 10 });
+      const wysokosc = this.liczba('Wysokość', () => zaokr(k().wysokosc, 2), (v) => zmien({ wysokosc: Math.max(5, v) }), { jednostka: 'mm', krok: 0.5, min: 5 });
+      sek.append(rozmiar, wysokosc);
+      sek.append(this.akcje([['dopasuj', 'Rozmiar nominalny (100%)', () => zmien({ szerokosc: Math.round(EAN_NOMINAL.szerokosc * 100) / 100, wysokosc: EAN_NOMINAL.wysokosc })]]));
+    }
+    sek.append(this.kolor('Kolor kodu', () => k().kolor, (v) => zmien({ kolor: v })));
+    sek.append(this.kolor('Tło', () => k().tlo, (v) => zmien({ tlo: v || null }), { brak: true }));
+    sek.append(this.przelacznik('Margines ciszy (pusty pas wokół kodu)', () => k().cisza, (v) => zmien({ cisza: v })));
+    sek.append(this.wskazowka('Pole z danych, np. {adres} albo {isbn}, w treści daje inny kod na każdej stronie serii.'));
+    const uwagi = document.createElement('div');
+    uwagi.className = 'uwagi-kodu';
+    const odswiezUwagi = () => {
+      const lista = uwagiKodu(obj.kod, obj._modulKodu || null);
+      if (obj._bladKodu && !lista.includes(obj._bladKodu)) lista.unshift(obj._bladKodu);
+      uwagi.replaceChildren(...lista.map((u) => this.wskazowka(u, true)));
+    };
+    this.odswiezacze.push(odswiezUwagi);
+    odswiezUwagi();
+    sek.append(uwagi);
+  }
 
   zbudujTabele(obj) {
     const e = this.edytor;
@@ -1250,6 +1320,27 @@ export class PanelWlasciwosci {
     c.append(this.liczba('W prawo', () => zaokr(obj.shadow.offsetX, 1), (v) => ustaw({ x: v }), { jednostka: 'mm', krok: 0.5 }));
     c.append(this.liczba('W dół', () => zaokr(obj.shadow.offsetY, 1), (v) => ustaw({ y: v }), { jednostka: 'mm', krok: 0.5 }));
     c.append(this.liczba('Rozmycie', () => zaokr(obj.shadow.blur, 1), (v) => ustaw({ blur: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
+  }
+
+  // Uszlachetnienie (#127): element na płycie lakieru UV, folii, tłoczenia albo białego poddruku – z nadrukiem.
+  zbudujUszlachetnienie(obj) {
+    if (toZaznaczenie(obj) || obj.type === 'group' || toTabela(obj) || obj.group) return;
+    const s = this.sekcja('Uszlachetnienie', { zwinieta: !obj.uszlachetnienie });
+    s.append(this.wybor('Uszlachetnienie', [['', 'Brak – zwykły druk'], ...USZLACHETNIENIA.map((u) => [u.id, u.nazwa])], () => obj.uszlachetnienie || '', (v) => {
+      obj.set({ uszlachetnienie: v || undefined, folia: v === 'folia' ? (obj.folia || 'zloto') : undefined });
+      obj.dirty = true;
+      this.zbuduj();
+    }));
+    if (obj.uszlachetnienie === 'folia') {
+      s.append(this.wybor('Kolor folii', Object.entries(FOLIE).map(([k, f]) => [k, f.nazwa]), () => obj.folia || 'zloto', (v) => { obj.set('folia', v); obj.dirty = true; this.zbuduj(); }));
+    }
+    const u = plytaUszlachetnienia(obj);
+    if (u) {
+      s.append(this.wskazowka(`Ten element drukuje się tylko na płycie „${u.plyta}” (z nadrukiem) – jego kolory nie idą do druku. Kolor i uszlachetnienie naraz: ustaw „Brak” i dodaj kopię z uszlachetnieniem.`));
+    } else {
+      s.append(this.wybor('Dodaj kopię z uszlachetnieniem', [['', 'Wybierz…'], ...USZLACHETNIENIA.map((x) => [x.id, x.nazwa])], () => '', (v) => { if (v) this.edytor.uszlachetnienieKopia(v); }));
+      s.append(this.wskazowka('Kopia staje dokładnie nad elementem: element drukuje się w kolorze, a kopia – na płycie uszlachetnienia.'));
+    }
   }
 
   zbudujLinie(obj) {

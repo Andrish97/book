@@ -12,6 +12,7 @@ import './fabric-ustawienia.js';
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony } from './projekt.js';
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach, kadrZWartosci, punktKadru } from './pola.js';
+import { toKod, ulozKod } from './kod-obiekt.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu, zbierzZasoby } from './obrazy.js';
 import { adresZasobu, dataUrlZasobu } from './zasoby.js';
 import { rozlejWatki } from './watki.js';
@@ -105,6 +106,7 @@ function wpiszWRamki(obiekty) {
     if (o.type === 'group') {
       wpiszWRamki(o.getObjects());
       if (toTabela(o)) ulozTabele(o); // po podstawieniu danych wiersze tabeli rosną razem z treścią
+      if (toKod(o) && o.kod.narysowano !== o.kod.tresc) ulozKod(o); // kod z pola danych – inny na każdej stronie
       continue;
     }
     const r = o.ramka_pola;
@@ -149,7 +151,7 @@ function odbijWMiejscu(o) {
   if (typeof o.textAlign === 'string') {
     o.set('textAlign', { left: 'right', right: 'left' }[o.textAlign] || o.textAlign);
   }
-  if (o.type !== 'group' || toTabela(o)) return; // tabela przechodzi na drugą stronę, ale kolumny zostają w swojej kolejności
+  if (o.type !== 'group' || toTabela(o) || toKod(o)) return; // tabela (i kod) przechodzi na drugą stronę, ale kolumny zostają w swojej kolejności
   for (const czesc of o.getObjects()) {
     const s = czesc.getRelativeCenterPoint(); // położenie części liczone od środka grupy
     odbijWMiejscu(czesc);

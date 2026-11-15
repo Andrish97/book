@@ -52,6 +52,8 @@ Wszystkie wymiary są w **milimetrach**. Rozmiar pisma też w mm: `mm = pt × 25
 | `zasoby_usuniete` | `[id]` (opcjonalne) | identyfikatory obrazów usuniętych z projektu – żeby łączenie z innym urządzeniem ich nie przywróciło; nie używaj tych identyfikatorów |
 | `czcionki` | `[{ id, rodzina, waga, kursywa }]` | tylko własne czcionki spoza zestawu; `id` wskazuje plik w `zasoby`; `waga` 100–900 (400 zwykła, 700 pogrubiona) |
 | `widok` | `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }` | nieobowiązkowe ustawienia edytora |
+| `kolory_dodatkowe` | `[{ id, nazwa, cmyk: [c, m, y, k] }]` (opcjonalne) | kolory dodatkowe (spot, np. „PANTONE 186 C”) – osobne płyty w PDF; `cmyk` (0–100) to zapas do podglądu; rozdział 5, „Kolory do druku” |
+| `tryb_kolorow` | `"pelny"` \| `"szarosc"` \| `"czb1"` (opcjonalne) | pełny kolor (domyślnie), skala szarości (sama czerń), czerń + 1 kolor dodatkowy (`kolor_trybu` – jego `id`) |
 
 Identyfikatory (`id`) wymyślasz sam: dowolne niepowtarzalne napisy, np. `s_1`, `o_tytul`, `z_styczen`. Pole `id` projektu pomiń – aplikacja nada nowe.
 
@@ -82,13 +84,15 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
 { "id": "sek_okl", "nazwa": "Okładka", "numeracja": { "tryb": "brak", "od": 1 },
   "okladka": { "oprawa": "twarda", "srodek": null, "strony": { "tryb": "auto", "liczba": 0 },
                 "papier": { "tryb": "gramatura", "gramatura": 90, "rodzaj": "offset", "grubosc_mm": 0.1 },
-                "zawiniecie_mm": 15, "big_mm": 7, "naddatek_mm": 3, "tektura_mm": 2 } }
+                "zawiniecie_mm": 15, "big_mm": 7, "naddatek_mm": 3, "tektura_mm": 2,
+                "wymiary": { "tryb": "auto", "grzbiet_mm": 0, "szerokosc_mm": 0, "wysokosc_mm": 0 } } }
 ```
 
 - `oprawa`: `miekka` (klejona, grzbiet = kartki × grubość kartki), `zeszytowa` (zszywki, bez grzbietu), `twarda` (tektura: grzbiet = blok + 2 × `tektura_mm`; dookoła `zawiniecie_mm`, przy grzbiecie bigi `big_mm`, tektura wystaje o `naddatek_mm`).
 - `srodek`: `null` – środek to wszystkie sekcje poza okładkami; albo lista id sekcji. Format strony środka bierze się z pierwszej z nich.
 - `strony.tryb`: `auto` – liczba stron środka liczona z sekcji środka (z powieleniami serii); `reczne` – `strony.liczba`.
 - `papier.tryb`: `grubosc` – `grubosc_mm` jednej kartki; `gramatura` – grubość = `gramatura` × wolumen papieru / 1000 (`rodzaj`: `offset` 1,25, `ksiazkowy` 1,5, `objetosciowy` 1,8, `kredowy_mat` 0,95, `kredowy_blysk` 0,8 cm³/g).
+- `wymiary.tryb`: `auto` – grzbiet i rozmiar liczone; `grzbiet` – `grzbiet_mm` wpisany (np. podany przez drukarnię) zamiast liczonego z papieru; `rozmiar` – `szerokosc_mm` × `wysokosc_mm` całej okładki bez spadu (tył i przód dzielą resztę po równo wokół grzbietu; grzbiet = `grzbiet_mm`, a gdy 0 – liczony). Liczone wartości aplikacja zapisuje w `wynik.liczone`.
 - `okladka.wynik` zapisuje aplikacja (strefy `zawiniecie_l`, `tyl`, `big_l`, `grzbiet`, `big_p`, `przod`, `zawiniecie_p` z `x1`/`x2` w mm od lewej krawędzi cięcia, `gora`/`dol` – granice pola okładki bez zawinięcia). Przy zmianie grzbietu aplikacja przesuwa elementy: element grzbietu zostaje na jego środku, przód przesuwa się o różnicę, tło na całą okładkę się rozciąga. Element może mieć `okladka`: `tyl` | `grzbiet` | `przod` (przypięcie zamiast liczonego z położenia) i `okladka_dopasuj`: `true` (szerokość = szerokość grzbietu).
 
 ## 4. Strony i wzorce
@@ -131,6 +135,7 @@ Zasady, które łatwo przeoczyć:
 - Filtry obrazu (bez zmiany pliku): `"filtry": { "jasnosc": 0, "kontrast": 0, "nasycenie": 0, "szarosc": false, "sepia": false, "rozmycie": 0 }` – wartości −100…100 (rozmycie 0–100); pomijaj te, których nie zmieniasz.
 - Kolory: `#rrggbb`. Przejście kolorów: `fill: { "type": "linear", "gradientUnits": "percentage", "coords": { "x1": 0, "y1": 0, "x2": 1, "y2": 0 }, "colorStops": [{ "offset": 0, "color": "#06d6a0" }, { "offset": 1, "color": "#ef476f" }] }` (albo `"type": "radial"`). Kolor przejścia może być półprzezroczysty: `"color": "rgba(6,214,160,0.4)"`.
 - Obrót: `angle` (stopnie). Przezroczystość: `opacity` (0–1).
+- **Kolory do druku.** Kolor dodatkowy (spot) z `kolory_dodatkowe` wpisujesz w `fill`/`stroke` (także w `styles` fragmentu) jako jego kolor ekranu w danym odcieniu: dla `cmyk = [c, m, y, k]` i odcienia `t` (0–1) to `#rrggbb` z `r = 255·(1 − c·t/100)·(1 − k·t/100)`, `g = 255·(1 − m·t/100)·(1 − k·t/100)`, `b = 255·(1 − y·t/100)·(1 − k·t/100)` (zaokrąglone). Ten dokładny kod PDF zamienia na płytę o nazwie koloru. Uszlachetnienie elementu: `"uszlachetnienie": "uv" | "folia" | "tloczenie" | "wytloczenie" | "bialy"`, przy folii `"folia": "zloto" | "srebro" | "miedz"` – element drukuje się tylko na płycie uszlachetnienia (Spot_UV, Foil_Gold…, Emboss, Debossing, White), z nadrukiem; żeby mieć kolor i uszlachetnienie, zrób kopię elementu nad nim z polem `uszlachetnienie`.
 - Fragment tekstu z innym wyglądem: `styles: [{ "start": 5, "end": 12, "style": { "fontWeight": "bold", "fill": "#c8102e" } }]` (indeksy znaków całego tekstu).
 - Element, który świadomie wychodzi na spad albo poza margines (np. tło okładki), dostaje `"bez_ostrzezen": true` – inaczej „Sprawdź przed drukiem” go zgłosi.
 
@@ -162,6 +167,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `pole` | obraz z danych (rozdział 8) |
 | `z_danych` | kolor, położenie, obrót, rozmiar i widoczność z danych (rozdział 8) |
 | `tabela` | tabela jako jeden element (rozdział 9) |
+| `kod` | kod QR albo kod kreskowy EAN-13 / ISBN (niżej, „Kody”) |
 | `bez_pol` | `true` – klamry w tym tekście to zwykły tekst |
 | `dziel_wyrazy` | `true` – dzielenie wyrazów po polsku (łącznik na końcu wiersza tylko w wyglądzie, treść bez zmian); `dziel_min` (najkrótszy dzielony wyraz, 5), `dziel_przed` / `dziel_po` (najmniej liter przed i po łączniku, 2) |
 | `spojniki` | `true` – jednoliterowe spójniki i przyimki (a, i, o, u, w, z) nie zostają na końcu wiersza; `"dwuliterowe"` – także do, na, od, po, we, za, ze, że… Nowe teksty mają `true` |
@@ -301,3 +307,19 @@ Oba wczytują się w aplikacji bez uwag (sprawdza to test). Buduje je skrypt `sc
 > Na koniec wypisz, ile stron powstanie w wydruku i co mam sprawdzić po wczytaniu.
 
 Po wczytaniu pliku w aplikacji (Importuj na liście projektów) warto otworzyć **Sprawdź przed drukiem** w menu ⋯ edytora – pokaże brakujące zdjęcia, nieznane pola i tekst, który nie mieści się w ramce.
+
+
+## Kody QR i kreskowe (EAN-13, ISBN)
+
+Kod to element (w zapisie grupa z polem `kod`), którego rysunek liczy aplikacja. Dodaj go narzędziem `dodaj_elementy` w skróconej postaci:
+
+```json
+{ "type": "kod", "rodzaj": "qr", "tresc": "https://makietka.app", "szerokosc": 25, "left": 110, "top": 170 }
+{ "type": "kod", "rodzaj": "ean", "tresc": "978-83-01-00000", "left": 20, "top": 200 }
+```
+
+- `rodzaj`: `qr` albo `ean` (EAN-13; ISBN-13 to EAN-13 zaczynający się od 978/979; ISBN-10 zamienia się sam).
+- `tresc`: treść kodu – adres, tekst, `mailto:…`, `tel:…`, `WIFI:T:WPA;S:sieć;P:hasło;;` albo cyfry EAN (12 cyfr – kontrolna dopisze się sama; myślniki można zostawić). Może zawierać pola z danych, np. `{adres}` – na każdej stronie serii powstaje inny kod.
+- `szerokosc` (mm; QR jest kwadratem), dla EAN też `wysokosc` (nominalnie 37,29 × 25,93 mm, najmniej 80%).
+- Opcjonalnie: `korekcja` (`L`/`M`/`Q`/`H`), `kolor` (domyślnie `#000000`), `tlo` (`#ffffff` albo `null` – przezroczyste), `cisza` (margines ciszy, domyślnie `true`), `napis` (EAN: cyfry pod kodem).
+- Moduł QR powinien mieć najmniej 0,33 mm – przy długiej treści kod musi być większy. Kontrola przed drukiem ostrzega o za małym, za jasnym albo złym kodzie.

@@ -241,7 +241,7 @@ export async function usunKonto() {
 export async function listaWChmurze() {
   const sb = await supabase();
   return sprawdz(await sb.from('projekty')
-    .select('id, owner_id, nazwa, zmieniono, miniatura:dane->>miniatura, udostepnienie:dane->udostepnienie')
+    .select('id, owner_id, nazwa, zmieniono, wersja, miniatura:dane->>miniatura, udostepnienie:dane->udostepnienie')
     .order('zmieniono', { ascending: false }));
 }
 

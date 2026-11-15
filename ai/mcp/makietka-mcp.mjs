@@ -559,6 +559,17 @@ function przygotujElement(e) {
   if (!o.id) o.id = noweId('o');
   if (typeof o.type === 'string') o.type = o.type.toLowerCase();
   if (o.type === 'textbox' && o.strokeWidth === undefined) o.strokeWidth = 0;
+  // Kod QR / EAN-13 / ISBN (#128): { type: 'kod', rodzaj, tresc, … } – grupa z opisem; rysunek doda aplikacja.
+  if (o.type === 'kod' || (o.type === 'group' && o.kod)) {
+    const k = { ...(o.kod || {}), ...Object.fromEntries(['rodzaj', 'tresc', 'korekcja', 'kolor', 'tlo', 'cisza', 'napis', 'szerokosc', 'wysokosc'].filter((x) => o[x] !== undefined).map((x) => [x, o[x]])) };
+    k.rodzaj = k.rodzaj === 'ean' ? 'ean' : 'qr';
+    if (!k.typ) { k.typ = 'tekst'; k.dane = { tekst: String(k.tresc ?? '') }; }
+    const szer = Number(k.szerokosc) > 0 ? Number(k.szerokosc) : (k.rodzaj === 'ean' ? 37.29 : 25);
+    k.szerokosc = szer;
+    k.wysokosc = k.rodzaj === 'qr' ? szer : (Number(k.wysokosc) > 0 ? Number(k.wysokosc) : 25.93);
+    delete k.narysowano;
+    return { type: 'group', id: o.id, left: Number(o.left) || 0, top: Number(o.top) || 0, width: k.szerokosc, height: k.wysokosc, angle: o.angle || 0, nazwa: o.nazwa, kod: k, objects: [] };
+  }
   // Tekst bez kroju, rozmiaru albo koloru dostawał na płótnie domyślne Fabric (Times New Roman, 40 mm) –
   // uzupełniamy tym, co daje przycisk „Tekst” w aplikacji (Inter 14 pt, ciemnoszary, interlinia 1,2).
   if (['textbox', 'i-text', 'text'].includes(o.type)) {
@@ -622,13 +633,14 @@ function przeglad(w) {
   const wiersz = (o) => `${o.id} (${o.type}${o.text != null ? `: „${krotko(o.text, 40)}”` : ''}${o.zasob ? `: obraz ${p.zasoby?.[o.zasob]?.nazwa || o.zasob}` : ''}${o.tabela ? ': tabela' : ''})`;
   return [
     `Projekt „${p.nazwa}” (id ${p.id}) – wersja ${w.wersja}. Dostęp: ${w.dostep.rola === 'edycja' ? 'czytanie i zmiany' : 'tylko czytanie'}, ${opisWaznosci(w.dostep.wazny_do)}.`,
-    `Sekcje: ${(p.sekcje || []).map((s) => `${s.id} „${s.nazwa}” ${s.wydruk?.szerokosc_mm}×${s.wydruk?.wysokosc_mm} mm, ${s.uklad || 'pojedyncze'}${s.okladka ? `, okładka ${s.okladka.oprawa}${s.okladka.wynik ? ` (grzbiet ${s.okladka.wynik.grzbiet} mm, liczona sama)` : ''}` : ''}${s.skladka ? `, składki ×${s.skladka}` : ''}`).join('; ')}`,
+    `Sekcje: ${(p.sekcje || []).map((s) => `${s.id} „${s.nazwa}” ${s.wydruk?.szerokosc_mm}×${s.wydruk?.wysokosc_mm} mm, ${s.uklad || 'pojedyncze'}${s.okladka ? `, okładka ${s.okladka.oprawa}${s.okladka.wynik ? ` (grzbiet ${s.okladka.wynik.grzbiet} mm, ${s.okladka.wymiary?.tryb === 'rozmiar' ? 'rozmiar wpisany' : s.okladka.wymiary?.tryb === 'grzbiet' ? 'grzbiet wpisany' : 'liczona sama'})` : ''}` : ''}${s.skladka ? `, składki ×${s.skladka}` : ''}`).join('; ')}`,
     `Strony (${p.strony.length}, w tej kolejności):`,
     ...p.strony.map((s, i) => `  ${i + 1}. ${s.id} „${s.nazwa || ''}” sekcja=${s.sekcja}${s.seria ? ` seria=${s.seria}` : ''} – ${(s.obiekty || []).map(wiersz).join(', ') || 'pusta'}`),
     `Wzorce: ${(p.wzorce || []).map((x) => `${x.id} „${x.nazwa}” (${(x.obiekty || []).length} el.)`).join('; ') || 'brak'}`,
     `Style: ${(p.style || []).map((x) => `${x.id} „${x.nazwa}”`).join('; ') || 'brak'}`,
     `Tabele: ${(p.tabele || []).map((t) => `${t.id} „${t.nazwa}” kolumny: ${(t.kolumny || []).join(', ')}; ${(t.wiersze || []).length} wierszy`).join(' | ') || 'brak'}`,
     `Serie: ${(p.serie || []).map((s) => `${s.id} „${s.nazwa}” tabela=${s.tabela || '–'} tryb=${s.tryb || 'tabela'}`).join('; ') || 'brak'}`,
+    `Kolory do druku: tryb ${p.tryb_kolorow || 'pelny'}${p.tryb_kolorow === 'czb1' ? ` (kolor trybu: ${p.kolor_trybu || 'brak'})` : ''}; kolory dodatkowe: ${(p.kolory_dodatkowe || []).map((k) => `${k.id} „${k.nazwa}” CMYK ${(k.cmyk || []).join('/')}`).join('; ') || 'brak'}`,
     `Obrazy i czcionki w projekcie (szczegóły obrazów: obrazy_projektu): ${Object.entries(p.zasoby || {}).map(([id, z]) => `${id} ${z.nazwa}`).join(', ') || 'brak'}`,
   ].join('\n');
 }
@@ -1056,7 +1068,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);
@@ -1451,7 +1463,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'zmien_projekt',
       title: 'Zmień projekt (ogólnie)',
-      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron? }. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
+      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron?, kolory_dodatkowe? (kolory spot, np. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu? }. Kolor dodatkowy w elemencie i uszlachetnienia (pole elementu uszlachetnienie) – opis w opis_formatu. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
       inputSchema: S('', { zmiany: obiekt('Części projektu do zapisu') }, ['zmiany']),
       dzialaj: ({ zmiany }) => zmien(() => ({ zmiany, opis: `Zapisano części: ${Object.keys(zmiany).join(', ')}.` })),
     },

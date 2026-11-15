@@ -11,6 +11,7 @@
 
 import { odlaczWatkiKopii } from './watki.js';
 import { normalizujOkladke, normalizujSkladke } from './okladka.js';
+import { normalizujKoloryDruku } from './kolory-druku.js';
 
 export const WERSJA_MODELU = 3;
 
@@ -225,6 +226,7 @@ export function normalizuj(p) {
     pilnuj_stron: Boolean(s.pilnuj_stron),
   }));
   wynik.widok = normalizujWidok(p.widok);
+  normalizujKoloryDruku(wynik); // kolory dodatkowe i tryb kolorów (#127)
   delete wynik.motywy; // zastąpione wzorcami
   delete wynik.uklad;
 

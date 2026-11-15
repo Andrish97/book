@@ -25,6 +25,7 @@ import {
   toTabela, nowaTabela, ulozTabele, przygotujTabele, komorkiTabeli, komorkaWPunkcie, miejsceKomorki, utrwalSkaleTabeli,
   dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, scalKomorki, rozdzielKomorki, komorkaSchowana,
 } from './tabela-obiekt.js';
+import { toKod, nowyKod, ulozKod, utrwalSkaleKodu } from './kod-obiekt.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -167,10 +168,13 @@ export class Edytor extends EventTarget {
     c.on('object:modified', (e) => {
       utrwalSkaleTekstu(e.target);
       utrwalSkaleTabeli(e.target);
+      utrwalSkaleKodu(e.target);
       this.oznaczZmiane();
     });
     c.on('object:added', (e) => {
       if (toTabela(e.target) && !e.target.zWzorca) this._przygotujTabele(e.target);
+      // Kod dodany z opisu bez rysunku (np. przez łącznik AI) albo z inną treścią niż rysunek – rysujemy go.
+      if (toKod(e.target) && e.target.kod.narysowano !== e.target.kod.tresc) ulozKod(e.target);
       if (this._wczytywanie || e.target?.zWzorca) return;
       this._uporzadkujWzorce();
       this.oznaczZmiane();
@@ -1209,6 +1213,20 @@ export class Edytor extends EventTarget {
     this._wstawKopie(kopie);
   }
 
+  // Kopia elementu z uszlachetnieniem (#127) dokładnie nad nim: element drukuje się w kolorze, kopia na płycie
+  // uszlachetnienia (lakier, folia, tłoczenie, biel). Zaznacza kopię.
+  async uszlachetnienieKopia(rodzaj, folia = 'zloto') {
+    const akt = this.aktywny;
+    if (!akt || toZaznaczenie(akt) || akt.group || !rodzaj) return null;
+    const [k] = await this._kopie(akt);
+    k.set({ id: uid('o'), uszlachetnienie: rodzaj, folia: rodzaj === 'folia' ? folia : undefined, watek: undefined, watek_nr: undefined, lacznik: undefined, nazwa: undefined });
+    this.canvas.discardActiveObject();
+    this.canvas.insertAt(this.canvas.getObjects().indexOf(akt) + 1, k);
+    this.canvas.setActiveObject(k);
+    this.canvas.requestRenderAll();
+    return k;
+  }
+
   // Kopie zaznaczonego elementu albo wszystkich elementów zaznaczenia – każda z położeniem
   // na arkuszu (element w zaznaczeniu ma położenie liczone względem tego zaznaczenia).
   async _kopie(obj) {
@@ -1714,6 +1732,31 @@ export class Edytor extends EventTarget {
 
   // Tabela: jeden element strony (js/tabela-obiekt.js). Pojedyncze kliknięcie zaznacza całość,
   // podwójne kliknięcie komórki zaczyna w niej pisanie.
+  // Kod QR albo kod kreskowy EAN / ISBN (#128): jeden element, rysunek liczony z opisu (js/kod-obiekt.js).
+  dodajKod(rodzaj = 'qr', kod = {}) {
+    const { wysokosc_mm: h } = this.wydruk;
+    const g = nowyKod({ rodzaj, kod, lewo: 0, gora: 0 }, uid);
+    const s = this.strony[this.aktywna];
+    g.set({ left: s.x + Math.max(this.marg.lewy, (s.w ?? this.wydruk.szerokosc_mm) / 2 - g.width / 2), top: Math.max(this.marg.gora, (h - g.height) / 2) });
+    g.setCoords();
+    this.canvas.discardActiveObject();
+    this.canvas.add(g);
+    this.canvas.setActiveObject(g);
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    return g;
+  }
+
+  // Zmiana opisu kodu z panelu: rysunek liczy się od nowa, lewy górny róg zostaje.
+  zmienKod(zmiany, g = this.aktywny) {
+    if (!toKod(g)) return;
+    g.kod = { ...g.kod, ...zmiany, dane: { ...g.kod.dane, ...(zmiany.dane || {}) } };
+    ulozKod(g);
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this._emitujZaznaczenie();
+  }
+
   dodajTabele({ wiersze = 3, kolumny = 3, naglowek = true, wysokoscWiersza = 9 } = {}) {
     const { szerokosc_mm: w, wysokosc_mm: h } = this.wydruk;
     const szer = Math.max(20, w - this.marg.lewy - this.marg.prawy);
@@ -2054,7 +2097,7 @@ export class Edytor extends EventTarget {
 
   rozgrupuj() {
     const akt = this.aktywny;
-    if (!akt || akt.type !== 'group' || toTabela(akt)) return; // tabela jest jednym elementem
+    if (!akt || akt.type !== 'group' || toTabela(akt) || toKod(akt)) return; // tabela i kod są jednym elementem
     // Grupa leżąca w otwartej grupie rozkłada się na elementy tej grupy; inaczej – na elementy arkusza.
     if (akt.parent && akt.parent !== this._otwarta) return;
     const c = this.canvas;
@@ -2327,13 +2370,13 @@ export class Edytor extends EventTarget {
       const szukaj = (g) => {
         for (const o of g.getObjects()) {
           if (o.id === id) return o;
-          const d = o.type === 'group' && !toTabela(o) ? szukaj(o) : null;
+          const d = o.type === 'group' && !toTabela(o) && !toKod(o) ? szukaj(o) : null;
           if (d) return d;
         }
         return null;
       };
       for (const g of this.canvas.getObjects()) {
-        const d = g.type === 'group' && !toTabela(g) && !g.zWzorca && !g.zablokowany ? szukaj(g) : null;
+        const d = g.type === 'group' && !toTabela(g) && !toKod(g) && !g.zWzorca && !g.zablokowany ? szukaj(g) : null;
         if (d) { this.otworzGrupe(d.parent, d); return; }
       }
       return;
@@ -2354,7 +2397,7 @@ export class Edytor extends EventTarget {
   // Czy grupę da się otworzyć: zwykła grupa na arkuszu albo grupa leżąca w otwartej grupie (kolejny poziom)
   // – nie tabela, nie element wzorca, nie zablokowana.
   _doOtwarcia(g) {
-    return Boolean(g && g.type === 'group' && !toTabela(g) && !g.zWzorca && !g.zablokowany && g.canvas === this.canvas
+    return Boolean(g && g.type === 'group' && !toTabela(g) && !toKod(g) && !g.zWzorca && !g.zablokowany && g.canvas === this.canvas
       && (!g.parent || g.parent === this._otwarta || this._sciezkaOtwartych().includes(g)));
   }
 
@@ -2478,7 +2521,7 @@ export class Edytor extends EventTarget {
   // Robi z grupy bieżący (najgłębszy) otwarty poziom. Grupa leżąca głębiej otwiera po drodze grupy nad sobą;
   // grupa już otwarta zamyka poziomy pod sobą; inna grupa na arkuszu zamyka dotychczasową.
   _otworzPoziom(g) {
-    if (!g || g.type !== 'group' || toTabela(g) || g.zWzorca || g.zablokowany || g.canvas !== this.canvas) return false;
+    if (!g || g.type !== 'group' || toTabela(g) || toKod(g) || g.zWzorca || g.zablokowany || g.canvas !== this.canvas) return false;
     if (this._sciezkaOtwartych().includes(g)) {
       while (this._otwarta !== g) this._zamknijPoziom(false);
       return true;
@@ -2503,9 +2546,9 @@ export class Edytor extends EventTarget {
     if (typeof wybrany === 'string') {
       const kroki = wybrany.split('.').map(Number);
       wybrany = kroki.pop();
-      for (const nr of kroki) g = g?.type === 'group' && !toTabela(g) ? g.getObjects()[nr] : null;
+      for (const nr of kroki) g = g?.type === 'group' && !toTabela(g) && !toKod(g) ? g.getObjects()[nr] : null;
     } else if (wybrany && typeof wybrany === 'object' && wybrany.parent && wybrany.parent !== g) g = wybrany.parent;
-    if (!g || g.type !== 'group' || toTabela(g)) return null;
+    if (!g || g.type !== 'group' || toTabela(g) || toKod(g)) return null;
     const dzieci = g.getObjects();
     const d = typeof wybrany === 'number' ? dzieci[wybrany] : (wybrany || dzieci.filter((x) => x.visible !== false).at(-1));
     if (!d || d.parent !== g || d.visible === false) return null;
@@ -3386,7 +3429,7 @@ export class Edytor extends EventTarget {
       otwarta: o === this._korzenOtwartej(), // grupa, w której zmieniane są pojedyncze elementy
       // Zawartość grupy (od wierzchu), razem z zawartością grup w niej; tabela jest jednym elementem
       // i nie pokazuje swoich części.
-      dzieci: o.type === 'group' && !toTabela(o) ? this._dzieciGrupy(o, zaznaczone) : null,
+      dzieci: o.type === 'group' && !toTabela(o) && !toKod(o) ? this._dzieciGrupy(o, zaznaczone) : null,
     }));
   }
 
@@ -3395,7 +3438,7 @@ export class Edytor extends EventTarget {
   _dzieciGrupy(g, zaznaczone, sciezka = '', poziom = 1) {
     const lista = [];
     g.getObjects().map((d, nr) => [d, `${sciezka}${nr}`]).reverse().forEach(([d, nr]) => {
-      const grupa = d.type === 'group' && !toTabela(d);
+      const grupa = d.type === 'group' && !toTabela(d) && !toKod(d);
       lista.push({ nr, typ: d.type, opis: opisObiektu(d), ukryty: d.visible === false, zaznaczony: zaznaczone.has(d), poziom, otwarta: grupa && this._sciezkaOtwartych().includes(d) });
       if (grupa) lista.push(...this._dzieciGrupy(d, zaznaczone, `${nr}.`, poziom + 1));
     });
@@ -3407,8 +3450,8 @@ export class Edytor extends EventTarget {
     let g = this._poId(id);
     const kroki = String(nr).split('.').map(Number);
     const ostatni = kroki.pop();
-    for (const k of kroki) g = g?.type === 'group' && !toTabela(g) ? g.getObjects()[k] : null;
-    return g?.type === 'group' && !toTabela(g) ? { g, d: g.getObjects()[ostatni] || null } : { g: null, d: null };
+    for (const k of kroki) g = g?.type === 'group' && !toTabela(g) && !toKod(g) ? g.getObjects()[k] : null;
+    return g?.type === 'group' && !toTabela(g) && !toKod(g) ? { g, d: g.getObjects()[ostatni] || null } : { g: null, d: null };
   }
 
   // Ukrywa albo pokazuje pojedynczy element grupy (nr = miejsce w grupie, od spodu).
@@ -3885,6 +3928,7 @@ const NAZWY_TYPOW = {
 export function opisObiektu(o) {
   if (o.nazwa) return o.nazwa;
   if (toTabela(o)) return `Tabela ${o.tabela.wiersze.length}×${o.tabela.kolumny.length}`;
+  if (toKod(o)) return o.kod.rodzaj === 'ean' ? `Kod EAN ${o.kod.tresc}` : `Kod QR ${String(o.kod.tresc).slice(0, 30)}`;
   const typ = NAZWY_TYPOW[o.type] || o.type;
   if (o.text) {
     const t = o.text.replace(/\s+/g, ' ').trim();
@@ -3895,6 +3939,7 @@ export function opisObiektu(o) {
 
 export function nazwaTypu(o) {
   if (toTabela(o)) return 'Tabela';
+  if (toKod(o)) return o.kod.rodzaj === 'ean' ? 'Kod kreskowy' : 'Kod QR';
   if (toTabela(o.group)) return 'Komórka tabeli';
   return NAZWY_TYPOW[o.type] || o.type;
 }

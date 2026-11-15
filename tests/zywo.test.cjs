@@ -301,7 +301,8 @@ test('dwa urządzenia na tej samej stronie: przesunięcie na jednym i pisanie na
   const pytania = await a.strona.$$eval('#konflikt-lista li', (l) => l.map((li) => li.querySelector('strong').textContent));
   assert.equal(pytania.length, 1);
   assert.match(pytania[0], /^Strona „.*”: prostokąt$/);
-  await a.strona.click('#konflikt-zastosuj'); // zostaje wersja z A
+  await a.strona.click('#konflikt-lista li input[value="moje"]'); // zostaje wersja z A (domyślnie byłaby z konta, #135)
+  await a.strona.click('#konflikt-zastosuj');
   await zapisano(a.strona);
   assert.equal(await prostokat(a.strona), 71);
   assert.equal([...a.baza.strony.values()][0].obiekty.find((o) => o.type.toLowerCase() === 'rect').left, 71);

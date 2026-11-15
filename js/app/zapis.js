@@ -1,7 +1,7 @@
 // Otwarty projekt a płótno: wczytywanie strony albo wzorca na płótno, przepisywanie płótna do projektu,
 // zapis (w przeglądarce i na koncie), historia cofania.
 
-import { marginesyWzorca, tloStrony, marginesyStrony, normalizuj, stronyZWzorcem } from '../projekt.js';
+import { marginesyWzorca, tloStrony, marginesyStrony, normalizuj, stronyZWzorcem, kopiujProjekt } from '../projekt.js';
 import { warstwyWzorcow } from '../zlozenie.js';
 import { rozwin, arkuszStrony, bokStrony } from '../serie.js';
 import { zapiszLokalnie, oznaczZsynchronizowany } from '../lokalny.js';
@@ -14,7 +14,7 @@ import { postep } from '../postep.js';
 import { zaplanujAktualizacjeLinku, odswiezPodglad, OPOZNIENIE_LINKU_Z_KONTA_MS } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
-import { podlaczZasoby } from '../zasoby.js';
+import { podlaczZasoby, kopiujPliki } from '../zasoby.js';
 import { uzupelnijWymiary } from '../obrazy-projektu.js';
 import { polaczProjekty, zastosujPolaczenie, postacDoPorownan, podstawaProjektu, tenSamStan, noweNagrobki, kanon } from '../laczenie.js';
 import { toTabela, miejsceKomorki } from '../tabela-obiekt.js';
@@ -687,7 +687,7 @@ function zapytajOKonflikty(p, konflikty) {
   lista.replaceChildren(...konflikty.map((k, i) => {
     const li = document.createElement('li');
     li.dataset.klucz = k.klucz;
-    li.innerHTML = '<strong></strong><label><input type="radio" value="moje" checked><span></span></label><label><input type="radio" value="konto"><span></span></label>';
+    li.innerHTML = '<strong></strong><label><input type="radio" value="moje"><span></span></label><label><input type="radio" value="konto" checked><span></span></label>';
     li.querySelector('strong').textContent = k.nazwa;
     const [moje, konto] = li.querySelectorAll('label');
     for (const pole of li.querySelectorAll('input')) pole.name = `konflikt-${i}`;
@@ -702,7 +702,7 @@ function zapytajOKonflikty(p, konflikty) {
       dlg.removeEventListener('cancel', anuluj);
       dlg.removeEventListener('close', zamknij);
       $('#konflikt-wszystko-konto').removeEventListener('click', wszystko);
-      ok(new Map([...lista.children].map((li) => [li.dataset.klucz, li.querySelector('input:checked')?.value || 'moje'])));
+      ok(new Map([...lista.children].map((li) => [li.dataset.klucz, li.querySelector('input:checked')?.value || 'konto'])));
     };
     dlg.addEventListener('cancel', anuluj);
     dlg.addEventListener('close', zamknij);
@@ -712,21 +712,32 @@ function zapytajOKonflikty(p, konflikty) {
 }
 
 // Pytanie o cały projekt – tylko wtedy, gdy nie ma z czym porównać zmian (patrz wyżej).
+// Nic nie przepada (#135): domyślnie wczytuje się wersja z konta (tam są np. zmiany od AI), a wersja z tego
+// urządzenia może zostać jako osobna kopia projektu. Nadpisania konta stąd już nie ma.
 async function zapytajOCalyProjekt(p, e) {
   stan.konflikt = p.id;
-  stanZapisu('blad', 'Nowsza wersja na koncie – wybierz, którą zachować');
+  stanZapisu('blad', 'Nowsza wersja na koncie');
   const kiedyTamta = e.zmieniono ? ` (zapisana ${kiedy(e.zmieniono)})` : '';
-  const moja = await potwierdz(
-    'Projekt zmieniono na innym urządzeniu',
-    `Na koncie jest inna wersja projektu „${p.nazwa}”${kiedyTamta}. Możesz zachować wersję z tego urządzenia – tamta zostanie zastąpiona – albo wczytać wersję z konta i porzucić zmiany zrobione tutaj.`,
-    'Zachowaj wersję z tego urządzenia',
-    false,
+  const tylkoKonto = await potwierdz(
+    'Projekt zmieniono w innym miejscu',
+    `Na koncie jest nowsza wersja projektu „${p.nazwa}”${kiedyTamta} – np. z innego urządzenia albo od AI. Wczytaj ją. Jeśli na tym urządzeniu też coś zmieniono, możesz te zmiany zachować jako osobną kopię projektu – nic nie przepadnie.`,
     'Wczytaj wersję z konta',
+    false,
+    'Wczytaj i zachowaj moją jako kopię',
   );
   if (stan.projekt !== p) { stan.konflikt = null; return; }
-  if (moja) {
-    await synchronizuj({ wymus: true });
-    return;
+  if (!tylkoKonto) {
+    try {
+      if (stan.projekt === p) zapiszBiezacyCel(); // kopia z tym, co jest na płótnie
+      const kopia = kopiujProjekt(p, `${p.nazwa} (z tego urządzenia)`);
+      await kopiujPliki(p, kopia);
+      await zapiszLokalnie(kopia, wlasciciel(), true);
+      await chmura.zapiszWChmurze(kopia);
+      await oznaczZsynchronizowany(kopia.id, kopia.zmieniono);
+      powiadom(`Twoja wersja jest zachowana jako „${kopia.nazwa}” na liście projektów.`);
+    } catch (blad) {
+      powiadom(`Nie udało się zapisać kopii na koncie: ${chmura.komunikatBledu(blad)}. Kopia została na tym urządzeniu.`, true);
+    }
   }
   try {
     const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));

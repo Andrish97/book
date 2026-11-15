@@ -50,7 +50,8 @@ Na wąskim telefonie [Wzorce], [Dane] i [Instrukcja] przechodzą do menu [⋯].
 | [Sprawdź przed drukiem] | Lista miejsc do sprawdzenia w całym projekcie (→ 20). |
 | [Obrazy projektu…] | Wszystkie obrazy projektu (→ 8.5). |
 | [Czcionki projektu…] | Zestaw czcionek i własne czcionki (→ 6.8). |
-| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 23). |
+| [Kolory do druku…] | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (→ 22.1, 22.5). |
+| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 24). |
 | [Jasny / ciemny motyw] | Przełącza motyw aplikacji (→ 2.4). |
 
 ## 4.4 Pasek wstawiania
@@ -92,7 +93,7 @@ ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (→ 13.2).
 ![Ustawienia narzędzia: rysowanie](k-rysowanie.png)
 
 Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu:
-[Strony], [Właściwości], [Warstwy] i [Ostrzeżenia] (→ 26.2).
+[Strony], [Właściwości], [Warstwy] i [Ostrzeżenia] (→ 27.2).
 
 ![Właściwości zaznaczonego tekstu](wlasciwosci.png)
 
@@ -117,6 +118,7 @@ Menu widoku:
 | **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
 | [Usuń prowadnice z tej strony] | Usuwa wszystkie prowadnice otwartej strony. |
 | **W rozkładówkach pokazuj jedną stronę** | W sekcji z rozkładówkami pokazuje tylko jedną stronę (→ 11.5). |
+| **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (→ 22.3). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | [Auto] — gdy się mieszczą, [Zawsze], [Nigdy]. |
 
@@ -217,6 +219,26 @@ Część **Cień** działa dla każdego elementu:
 | **Siła** | Jak mocny jest cień (krycie). |
 | **W prawo**, **W dół** | Przesunięcie cienia w mm; wartość ujemna przesuwa w lewo albo w górę. |
 | **Rozmycie** | Jak miękka jest krawędź cienia, w mm. |
+
+## 5.8 Kod QR i kod kreskowy
+
+Kod wstawisz z palety poleceń: <kbd>Ctrl</kbd>+<kbd>K</kbd> (na Macu <kbd>⌘</kbd>+<kbd>K</kbd>) i **Wstaw kod QR** albo **Wstaw kod kreskowy EAN / ISBN**. W części **Kod** panelu ustawisz wszystko inne:
+
+| Ustawienie | Co znaczy |
+|---|---|
+| **Rodzaj** | **Kod QR** albo **Kod kreskowy EAN-13 / ISBN** (np. ISBN na okładce książki). |
+| **Co zawiera** (QR) | **Adres strony**, **Tekst**, **E-mail** (adres, temat, treść), **Telefon** albo **Sieć Wi-Fi** (nazwa, zabezpieczenie, hasło) — pola zmieniają się z wyborem. |
+| **Korekcja błędów** (QR) | Ile kodu może być zniszczone albo zasłonięte: od **Niska (7%)** — najmniejszy kod — do **Najwyższa (30%)**, np. pod logo. |
+| **Numer EAN albo ISBN** | 12 cyfr — cyfra kontrolna dopisze się sama; 13 cyfr — sprawdzi się. ISBN możesz wpisać z myślnikami; stary ISBN-10 zamieni się na ISBN-13. **Cyfry pod kodem** włącza napis. |
+| **Rozmiar** / **Szerokość** i **Wysokość** | Kod QR jest zawsze kwadratem. [Rozmiar nominalny (100%)] ustawia kod EAN na 37,29 × 25,93 mm. Rozmiar zmienisz też uchwytem. |
+| **Kolor kodu**, **Tło** | Kod musi być ciemny na jasnym tle; tło może być przezroczyste. |
+| **Margines ciszy** | Pusty pas wokół kodu, którego potrzebuje czytnik. |
+
+Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na każdej stronie serii (→ 15).
+
+Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Sprawdź przed drukiem** pojawi się uwaga, gdy kod będzie za mały (moduł QR mniejszy niż 0,33 mm, EAN mniejszy niż 80% nominału), za jasny albo z błędną treścią.
+
+![Kod QR i jego ustawienia](k-kod.png)
 
 # 6. Tekst
 
@@ -793,6 +815,18 @@ Okładkę robisz jako osobną sekcję z jedną szeroką stroną: tył, grzbiet i
 
 Schemat w oknie pokazuje tył, grzbiet i przód, a pod nim wynik, np. „Grzbiet 6,6 mm · Okładka 352,6 × 246 mm”. Szerokość i wysokość okładki liczą się same.
 
+**Wymiary** — gdy drukarnia poda grzbiet albo cały rozmiar okładki:
+
+| Wybór | Co się dzieje |
+|---|---|
+| **Policz same** | Grzbiet z papieru i liczby stron, rozmiar z formatu środka. |
+| **Wpisz grzbiet** | **Grzbiet (mm)** od drukarni zamiast liczonego. Reszta liczy się jak zwykle. |
+| **Wpisz rozmiar** | **Szerokość okładki** i **Wysokość okładki** (mm, bez spadu) — tył i przód dzielą resztę szerokości po równo wokół grzbietu. Grzbiet możesz też wpisać; puste pole — grzbiet liczony. |
+
+Przy wpisanych wymiarach pod schematem widać, co wychodzi z papieru, np. „Z papieru i formatu środka wychodzi: grzbiet 6,6 mm, okładka 352,6 × 246 mm”.
+
+![Wymiary okładki wpisane ręcznie](k-okladka-wymiary.png)
+
 ![Okno sekcji: okładka z grzbietem, schemat i wynik](k-okladka-okno.png)
 
 Na płótnie przerywane linie pokazują zgięcia (grzbiet, bigi, zawinięcia), a niebieskie ramki — bezpieczne pola tyłu, grzbietu i przodu.
@@ -935,4 +969,4 @@ zaznaczonym elemencie pokazuje też odległości do krawędzi strony.
 - [−] i [+] w prawym dolnym rogu; kliknięcie procentu dopasowuje stronę do okna (<kbd>Ctrl</kbd>+<kbd>0</kbd>).
 - <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora.
 - Spacja + przeciąganie przesuwa widok.
-- Na telefonie i tablecie — dwa palce (→ 26.1).
+- Na telefonie i tablecie — dwa palce (→ 27.1).

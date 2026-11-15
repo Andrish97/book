@@ -20,9 +20,15 @@ function etykieta(el) {
   return (el.getAttribute('aria-label') || '').trim() || tekst || (el.title || '').split(/[(–.]/)[0].trim();
 }
 
-// Polecenia dostępne teraz: [{ nazwa, opis, el }].
+// Polecenia bez przycisku na ekranie (np. „Wstaw kod QR” – #128, potem kategoria Biblioteki):
+// { nazwa, opis, wykonaj, dostepne?: () => bool }. Dopisuje je moduł, który umie je wykonać.
+const dodatkowe = [];
+export function dodajPolecenie(p) { dodatkowe.push(p); }
+
+// Polecenia dostępne teraz: [{ nazwa, opis, el?, wykonaj? }].
 export function polecenia() {
   const wynik = [];
+  for (const p of dodatkowe) if (!p.dostepne || p.dostepne()) wynik.push({ nazwa: p.nazwa, opis: p.opis || '', wykonaj: p.wykonaj });
   const byly = new Set();
   for (const el of document.querySelectorAll('button[data-akcja], [role="menuitem"][data-akcja]')) {
     if (!widoczny(el)) continue;
@@ -62,7 +68,7 @@ function zbuduj() {
   let widoczne = [];
   const wykonaj = (p) => {
     okno.close();
-    p.el.click();
+    if (p.wykonaj) p.wykonaj(); else p.el.click();
   };
   const rysuj = () => {
     widoczne = wszystkie.map((p) => ({ p, w: pasuje(p, pole.value) })).filter((x) => x.w > 0)

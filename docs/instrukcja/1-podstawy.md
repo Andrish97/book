@@ -69,7 +69,7 @@ Projekty są zapisane na koncie, więc otworzysz je na każdym urządzeniu. Na e
 wybierz [Nowe konto] i wpisz:
 
 - **Nazwę użytkownika** — 3–30 znaków: litery, cyfry, `_`, `.` i `-`. Po tej nazwie inni zaproszą
-  Cię do projektu (→ 23.1). Pod polem od razu widać, czy nazwa jest wolna; dla zajętej aplikacja
+  Cię do projektu (→ 24.1). Pod polem od razu widać, czy nazwa jest wolna; dla zajętej aplikacja
   proponuje wolną.
 - **E-mail**.
 - **Hasło** i **Powtórz hasło** — co najmniej 8 znaków, mała i wielka litera, cyfra i znak specjalny.
@@ -108,7 +108,7 @@ osobny widok, a [‹ Ustawienia] wraca do listy.
 | **Hasło** | [Zmień hasło] — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
 | **Motyw** | Wygląd aplikacji (→ 2.4). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 2.6). |
-| **Dostęp dla AI** | Klucze dla asystentów AI (→ 24.2). |
+| **Dostęp dla AI** | Klucze dla asystentów AI (→ 25.2). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 2.5). |
 | **Usuń konto** | Usunięcie konta (→ 2.7). |
 
@@ -160,7 +160,7 @@ zamknięta. Włączysz to w [Ustawienia konta] → **Powiadomienia**:
 | **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**. |
 
 Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomienia włącza się osobno
-na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (→ 26.4) — w ustawieniach
+na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (→ 27.4) — w ustawieniach
 jest wtedy przycisk [Zainstaluj aplikację].
 
 ![Powiadomienia w ustawieniach konta](k-powiadomienia.png)
@@ -191,12 +191,12 @@ ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze.
 - **Chmurka** przy nazwie mówi, czy zmiany są na koncie: z ptaszkiem — zapisano, z zegarem —
   czekają na wysłanie, przekreślona — brak internetu (zmiany są na urządzeniu i wyślą się same).
   Najedź na nią albo przytrzymaj palec, żeby zobaczyć opis.
-- Plakietka **Udostępniony** — projekt ma link do podglądu (→ 22). Kliknięcie plakietki otwiera
+- Plakietka **Udostępniony** — projekt ma link do podglądu (→ 23). Kliknięcie plakietki otwiera
   okno linku.
 - Projekty udostępnione Ci przez innych mają plakietkę z nazwą właściciela i dopisek
   „Możesz edytować” albo „Możesz oglądać”. Filtry [Wszystkie], [Moje] i [Udostępnione mi]
   pojawiają się, gdy masz takie projekty.
-- [Zaproszenia] z liczbą — zaproszenia do cudzych projektów czekające na odpowiedź (→ 23.3).
+- [Zaproszenia] z liczbą — zaproszenia do cudzych projektów czekające na odpowiedź (→ 24.3).
 
 ![Lista projektów](projekty.png)
 
@@ -228,10 +228,10 @@ Przycisk [⋯] na karcie projektu otwiera menu:
 | [Zmień nazwę] | Nowa nazwa projektu. |
 | [Duplikuj] | Kopia całego projektu, np. kalendarz na kolejny rok. |
 | [Eksportuj do pliku (.makietka)] | Plik z całym projektem (→ 3.6). |
-| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 23). |
+| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 24). |
 | [Usuń projekt] | Usuwa projekt (z potwierdzeniem). |
 
-W projekcie innej osoby zamiast [Duplikuj] jest [Zrób własną kopię], a zamiast [Usuń projekt] — [Opuść projekt] (→ 23.6).
+W projekcie innej osoby zamiast [Duplikuj] jest [Zrób własną kopię], a zamiast [Usuń projekt] — [Opuść projekt] (→ 24.6).
 
 ![Menu projektu](menu.png)
 
@@ -267,4 +267,4 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
 - [Eksportuj do pliku (.makietka)] (menu [⋯] na karcie) zapisuje cały projekt, z obrazami i czcionkami,
   do pliku `.makietka` — to kopia zapasowa albo sposób na przekazanie projektu.
 - Przycisk ze strzałką obok [Nowy projekt] wczytuje projekt z pliku `.makietka`.
-- Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (→ 26.4).
+- Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (→ 27.4).
