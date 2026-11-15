@@ -4,28 +4,17 @@ Tabele danych, pola w tekście i strony powielane z tabeli.
 
 # 15. Tabele danych
 
+Dane trzymasz w tabelach projektu; z nich biorą się wartości pól i powielane strony.
+
 ## 15.1 Okno Dane
 
-Dane trzymasz w tabelach projektu. Tabela to arkusz: kolumny mają nazwy (np. `dzien`, `imie`),
-a wiersze — wartości. Z tabel biorą się wartości pól w tekście (→ 16) i powielone strony (→ 17).
+Tabela to arkusz: kolumny mają nazwy (np. `dzien`, `imie`), a wiersze — wartości. Z tabel biorą się
+wartości pól w tekście (→ 16) i powielone strony (→ 17).
 
-Kliknij [Dane] na górnym pasku edytora.
-
-![Dane na górnym pasku](k-dane.png)
-
-Z lewej jest lista tabel projektu, z prawej wybrana tabela:
-
-| Przycisk | Co robi |
-|---|---|
-| [+] (Nowa tabela) | Pusta tabela. |
-| [Importuj CSV albo Excel] | Tabela z pliku (→ 15.2). |
-| **Nazwa tabeli** | Kliknij, żeby zmienić. |
-| [+ Wiersz], [+ Kolumna] | Dodają wiersz i kolumnę. |
-| [Wiersz pomijany] | Wstawia wiersz `[pomiń]` (→ 17.4). |
-| [Pobierz tabelę jako plik CSV] | Tabela do dokończenia w arkuszu. |
-| [Usuń tabelę] | Usuwa tabelę z projektu. |
-
-Zmiany zrobione w jednym otwarciu okna to jeden krok [Cofnij].
+Okno otwiera [Dane] na górnym pasku edytora. Z lewej jest lista tabel projektu, z prawej wybrana tabela.
+[+] dodaje pustą tabelę, [Importuj CSV albo Excel] — tabelę z pliku (→ 15.2), [Wiersz pomijany] — wiersz
+`[pomiń]` (→ 17.4), a [Pobierz tabelę jako plik CSV] daje tabelę do dokończenia w arkuszu.
+Zmiany z jednego otwarcia okna cofniesz jednym [Cofnij].
 
 ![Okno Dane](dane.png)
 
@@ -74,6 +63,8 @@ Przy nazwie każdej kolumny są dwa znaki:
 
 # 16. Pola w tekście
 
+Pole to miejsce w tekście, w które wchodzi wartość z tabeli albo z projektu, np. numer strony.
+
 ## 16.1 Wstawianie pola
 
 Pole to nazwa kolumny w klamrach, wpisana w zwykły tekst, np. `Imieniny: {imieniny}`. Na gotowej
@@ -110,11 +101,12 @@ Gdy kolumna tabeli nazywa się tak samo jak pole dokumentu, na stronach tej tabe
 
 # 17. Serie
 
+Seria powiela stronę dla każdego wiersza tabeli — tak powstaje kalendarz na 365 dni z jednej strony.
+
 ## 17.1 Czym jest seria
 
-Seria powiela stronę dla kolejnych wierszy tabeli. Projektujesz jedną stronę dnia — dostajesz
-365 stron, każdą z danymi swojego wiersza. Seria może obejmować kilka sąsiednich stron (**blok**),
-np. tydzień na rozkładówce: wtedy cały blok powiela się razem.
+Projektujesz jedną stronę dnia — dostajesz 365 stron, każdą z danymi swojego wiersza. Seria może
+obejmować kilka sąsiednich stron (**blok**), np. tydzień na rozkładówce: wtedy cały blok powiela się razem.
 
 Powielone strony nie są zapisywane osobno — powstają na bieżąco, więc zmiana tabeli od razu
 zmienia publikację.
@@ -189,6 +181,8 @@ wartości, nazwami obrazów albo kadrem mają listy rozwijane. Wypełniony plik 
 
 # 18. Wygląd z danych
 
+Kolor, położenie, obraz albo widoczność elementu mogą zmieniać się na każdej powielonej stronie.
+
 ## 18.1 Część Z danych
 
 Element może zmieniać się razem z danymi na kolejnych powielonych stronach: kolor, miejsce, rozmiar,
@@ -244,6 +238,8 @@ na których tekst mimo to się nie mieści.
 ![Ramka o stałej wysokości](ramka-tekstu.png)
 
 # 19. Przykłady
+
+Gotowe przepisy krok po kroku.
 
 ## 19.1 Kalendarz książkowy
 

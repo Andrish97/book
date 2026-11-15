@@ -4,10 +4,12 @@ Wspólna praca nad projektem i asystent AI.
 
 # 25. Współpraca
 
+Wspólna praca nad projektem: zaproszenia, role i komentarze.
+
 ## 25.1 Zapraszanie
 
-Projekt możesz robić razem z innymi osobami — każda pracuje na swoim koncie, a zmiany widać u
-wszystkich na żywo. Wybierz [⋯] → [Współpraca…] w edytorze albo na karcie projektu.
+Każda osoba pracuje na swoim koncie, a zmiany widać u wszystkich na żywo. Wybierz [⋯] → [Współpraca…]
+w edytorze albo na karcie projektu.
 
 ![Współpraca w menu ⋯](k-menu-wspolpraca.png)
 
@@ -40,8 +42,7 @@ plakietką właściciela.
 Zaproszenie przyjmuje osoba, która ma link — także z innego adresu niż ten, na który poszło.
 W oknie Współpraca zawsze widać, kto naprawdę jest w projekcie.
 
-Gdy masz włączone powiadomienia, o zaproszeniu dowiesz się od razu — także przy zamkniętej aplikacji.
-Włączysz je w [Ustawienia konta] → **Powiadomienia** (→ 2.6).
+Z włączonymi powiadomieniami (→ 2.6) dowiesz się o zaproszeniu od razu.
 
 ## 25.4 Praca na żywo
 
@@ -67,10 +68,9 @@ Współpracownik może [Opuść projekt] — w menu [⋯] na karcie albo w oknie
 
 ## 25.7 Komentarze
 
-Komentarz to uwaga przypięta do miejsca na stronie albo do elementu — jak karteczka na wydruku.
-Na stronie widać ją jako pomarańczową pinezkę z numerem. Komentują wszyscy w projekcie: właściciel,
-**może edytować** i **może oglądać** (w podglądzie). Komentarze nie zmieniają projektu i nie trafiają
-do PDF.
+Komentarz to uwaga przypięta do miejsca na stronie albo do elementu — jak karteczka na wydruku —
+widoczna jako pomarańczowa pinezka z numerem. Komentować mogą wszyscy w projekcie, także z rolą
+**może oglądać** (w podglądzie). Komentarzy nie ma w PDF.
 
 ![Narzędzie Komentarz i przycisk Komentarze z licznikiem](k-komentarz-narzedzie.png)
 
@@ -84,31 +84,28 @@ Wpisz **@** i początek nazwy, żeby wspomnieć osobę z projektu — aplikacja 
 
 **Lista komentarzy**
 
-Przycisk [Komentarze] na górnym pasku edytora i w podglądzie pokazuje liczbę nierozwiązanych wątków.
-Na wąskim telefonie jest w menu [⋯]. Kliknięcie pinezki na stronie otwiera jej wątek.
+[Komentarze] na górnym pasku edytora i w podglądzie pokazuje liczbę nierozwiązanych wątków. Kliknięcie
+pinezki otwiera jej wątek.
 
 ![Panel Komentarze z wątkiem i odpowiedzią](komentarze.png)
 
 - Filtry: **Nierozwiązane**, **Wszystkie**, **Moje** (moje wątki, moje odpowiedzi i wzmianki o mnie).
-- Kliknij wątek, żeby go rozwinąć: odpowiedzi, pole [Odpowiedz], [Pokaż na stronie] — przejście do
-  strony i zaznaczenie elementu.
-- [Rozwiąż] zamyka wątek, gdy uwaga jest załatwiona; pinezka znika ze strony. [Otwórz ponownie]
-  przywraca go (filtr **Wszystkie**).
-- Usuwa autor komentarza albo właściciel projektu.
+- W wątku są odpowiedzi, [Odpowiedz] i [Pokaż na stronie].
+- [Rozwiąż] zamyka załatwiony wątek i chowa pinezkę; [Otwórz ponownie] (filtr **Wszystkie**) go przywraca.
+- Usunąć komentarz może autor albo właściciel projektu.
 
-Komentarze i odpowiedzi pojawiają się u wszystkich od razu. Gdy masz włączone powiadomienia z
-przełącznikiem **Komentarze**, dowiesz się o nowym komentarzu w Twoim projekcie, o odpowiedzi w Twoim
-wątku i o wzmiance o Tobie — kliknięcie powiadomienia otwiera wątek ([Ustawienia konta] →
-**Powiadomienia**, → 2.6).
+Komentarze pojawiają się u wszystkich od razu; o nowych dowiesz się też z powiadomień (→ 2.6).
 
 AI połączone kluczem też czyta komentarze, odpowiada na nie i może je rozwiązać po poprawce (→ 26.1).
 
 # 26. Praca z AI
 
+Asystent AI może budować i zmieniać Twoje projekty razem z Tobą.
+
 ## 26.1 Co potrafi AI
 
-Asystent AI — Claude, ChatGPT i inne — może pracować w Twoich projektach razem z Tobą. Łączy się
-z Makietką przez **łącznik**: adres z Twoim kluczem, który dodajesz w aplikacji AI.
+Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik**: adres z Twoim kluczem,
+który dodajesz w aplikacji AI.
 
 | AI może | AI nie może |
 |---|---|

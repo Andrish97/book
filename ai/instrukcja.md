@@ -46,9 +46,7 @@ Podręcznik aplikacji Makietka (https://makietka.app/) – edytora publikacji do
 
 ### 1.1 Co zrobisz w Makietce
 
-Makietka to edytor publikacji do druku. Składasz w niej książki, kalendarze, planery, notesy, zeszyty, zaproszenia, etykiety i inne dokumenty — strona po stronie, jak na makiecie. Na koniec zapisujesz plik PDF, który możesz od razu wysłać do drukarni.
-
-Edytor ma to, czego potrzebuje publikacja wielostronicowa:
+Makietka to edytor publikacji do druku: książek, kalendarzy, planerów, notesów, zaproszeń, etykiet — strona po stronie, jak na makiecie. Na koniec dostajesz plik PDF gotowy dla drukarni. Ma to, czego potrzebuje publikacja wielostronicowa:
 
 - **sekcje** o różnych formatach — np. okładka z grzbietem liczonym samym z liczby stron i papieru (rozdział „11.6 Okładka z grzbietem”) i środek (rozdział „11.4 Ustawienia sekcji”),
 - **rozkładówki** z lustrzanymi marginesami, jak w książce (rozdział „11.5 Rozkładówki”),
@@ -78,24 +76,24 @@ Projekt zapisuje się sam, na Twoim koncie (rozdział „3.4 Zapis”).
 
 ## 2. Konto
 
+Konto przechowuje Twoje projekty, czcionki i elementy, więc masz je na każdym urządzeniu.
+
 ### 2.1 Zakładanie konta
 
-Projekty są zapisane na koncie, więc otworzysz je na każdym urządzeniu. Na ekranie logowania wybierz **Nowe konto** i wpisz:
+Na ekranie logowania wybierz **Nowe konto** i wpisz:
 
-- **Nazwę użytkownika** — 3–30 znaków: litery, cyfry, `_`, `.` i `-`. Po tej nazwie inni zaproszą Cię do projektu (rozdział „25.1 Zapraszanie”). Pod polem od razu widać, czy nazwa jest wolna; dla zajętej aplikacja proponuje wolną.
+- **Nazwę użytkownika** — 3–30 znaków: litery, cyfry, `_`, `.` i `-`. Po tej nazwie inni zaproszą Cię do projektu (rozdział „25.1 Zapraszanie”).
 - **E-mail**.
-- **Hasło** i **Powtórz hasło** — co najmniej 8 znaków, mała i wielka litera, cyfra i znak specjalny. Spełnione wymagania zaznaczają się w trakcie pisania.
+- **Hasło** — co najmniej 8 znaków, mała i wielka litera, cyfra i znak specjalny.
 
-Konto działa od razu. Jeśli wymagane jest potwierdzenie adresu, przyjdzie e-mail „Potwierdź swoje konto” z przyciskiem — dopiero po jego kliknięciu zalogujesz się. **Wyślij ponownie** wysyła wiadomość jeszcze raz.
+Jeśli przyjdzie e-mail „Potwierdź swoje konto”, kliknij w nim przycisk — dopiero wtedy się zalogujesz.
 
 ![Nowe konto](https://makietka.app/img/instrukcja/rejestracja.png)
 ![Sprawdź skrzynkę](https://makietka.app/img/instrukcja/rejestracja-wyslano.png)
 
 ### 2.2 Logowanie i hasło
 
-Zaloguj się adresem e-mail i hasłem. **Nie pamiętasz hasła?** wysyła link do ustawienia nowego hasła. Link z wiadomości działa jeden raz; jeśli wygasł, aplikacja to powie — poproś wtedy o nowy.
-
-Konto założone, zanim w aplikacji pojawiły się nazwy użytkowników, przy logowaniu dostaje okno „Wybierz nazwę użytkownika” z gotową propozycją.
+**Nie pamiętasz hasła?** wysyła link do ustawienia nowego hasła. Link działa jeden raz; gdy wygaśnie, poproś o nowy.
 
 ![Logowanie](https://makietka.app/img/instrukcja/logowanie.png)
 
@@ -105,13 +103,11 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz **
 
 ![Menu konta](https://makietka.app/img/instrukcja/k-menu-konta.png)
 
-Ustawienia to lista: każdy wiersz pokazuje bieżącą wartość, a kliknięcie otwiera szczegóły. Na komputerze lista stoi z lewej, a wybrane ustawienie z prawej. Na telefonie wiersz otwiera osobny widok, a **‹ Ustawienia** wraca do listy.
-
 | Wiersz | Co zmienisz |
 |---|---|
 | **Nazwa użytkownika** | Nazwę, po której inni zapraszają Cię do projektów. |
 | **E-mail** | Adres konta. **Zmień adres** wysyła link potwierdzający na nowy adres; do jego kliknięcia logujesz się dotychczasowym. **Wpisz inny adres** zastępuje oczekujący adres nowym. |
-| **Hasło** | **Zmień hasło** — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
+| **Hasło** | **Zmień hasło**. |
 | **Motyw** | Wygląd aplikacji (rozdział „2.4 Motyw”). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (rozdział „2.6 Powiadomienia”). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (rozdział „26.2 Klucz dla AI”). |
@@ -119,19 +115,13 @@ Ustawienia to lista: każdy wiersz pokazuje bieżącą wartość, a kliknięcie 
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (rozdział „2.5 Miejsce i limity”). |
 | **Usuń konto** | Usunięcie konta (rozdział „2.7 Usuwanie konta”). |
 
-W widoku **Logowanie** jest też **Wyloguj wszędzie** — wylogowuje wszystkie urządzenia naraz, np. po zalogowaniu na cudzym komputerze. Zwykłe **Wyloguj** (tylko to urządzenie) jest w menu konta.
+**Wyloguj wszędzie** (w widoku **Logowanie**) wylogowuje wszystkie urządzenia naraz — np. po pracy na cudzym komputerze.
 
 ![Ustawienia konta](https://makietka.app/img/instrukcja/konto.png)
 
 ### 2.4 Motyw
 
-W **Ustawienia konta** → **Motyw** wybierz:
-
-- **Jak w systemie** — jasny albo ciemny, tak jak ustawienie urządzenia,
-- **Jasny**,
-- **Ciemny**.
-
-Szybki przełącznik — ikona półkola — jest na ekranie logowania, na liście projektów i w menu **⋯** edytora. Strony publikacji zawsze są na białym papierze; motyw zmienia tylko wygląd aplikacji.
+**Ustawienia konta** → **Motyw**: **Jak w systemie**, **Jasny** albo **Ciemny**. Szybki przełącznik (ikona półkola) jest też na liście projektów i w menu **⋯** edytora. Motyw zmienia tylko wygląd aplikacji — strony publikacji zawsze są na białym papierze.
 
 ![Ciemny motyw](https://makietka.app/img/instrukcja/motyw.png)
 
@@ -152,14 +142,9 @@ Od 80% limitu aplikacja ostrzega — tutaj i przy wgrywaniu obrazów. **Posprzą
 
 ### 2.6 Powiadomienia
 
-Makietka może od razu dać znać o sprawach projektów innych osób — także wtedy, gdy aplikacja jest zamknięta. Włączysz to w **Ustawienia konta** → **Powiadomienia**:
+Powiadomienia mówią od razu o zaproszeniach i komentarzach — także przy zamkniętej aplikacji. W **Ustawienia konta** → **Powiadomienia** włącz **Na tym urządzeniu** (przeglądarka zapyta o zgodę) i wybierz, o czym chcesz wiedzieć: zaproszenia, odpowiedzi na Twoje zaproszenia, zmiany roli i dostępu, komentarze i wzmianki (rozdział „25.7 Komentarze”). Kliknięcie powiadomienia otwiera właściwy projekt albo wątek.
 
-| Ustawienie | Znaczenie |
-|---|---|
-| **Na tym urządzeniu** | Przełącznik — powiadomienia na tym urządzeniu. Przeglądarka zapyta o zgodę. |
-| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**, **ktoś skomentuje mój projekt, odpowie w moim wątku albo wspomni mnie w komentarzu** (rozdział „25.7 Komentarze”). |
-
-Kliknięcie powiadomienia otwiera właściwy projekt, zaproszenie albo wątek komentarza. Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (rozdział „28.4 Instalacja aplikacji”) — w ustawieniach jest wtedy przycisk **Zainstaluj aplikację**.
+Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają tylko w zainstalowanej aplikacji (rozdział „28.4 Instalacja aplikacji”).
 
 ![Powiadomienia w ustawieniach konta](https://makietka.app/img/instrukcja/k-powiadomienia.png)
 
@@ -171,42 +156,35 @@ Kliknięcie powiadomienia otwiera właściwy projekt, zaproszenie albo wątek ko
 
 ### 2.8 Kontakt
 
-Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem logowania. Wpisz swój adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. **Załącz pliki** dodaje zrzut ekranu, plik projektu albo PDF: do 5 plików, razem do 10 MB. Możesz też pisać na kontakt@makietka.app.
+Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem logowania. **Załącz pliki** dodaje zrzut ekranu, plik projektu albo PDF (do 5 plików, razem 10 MB). Możesz też pisać na kontakt@makietka.app.
 
 ![Formularz kontaktowy z załącznikiem](https://makietka.app/img/instrukcja/k-kontakt.png)
 
 ### 2.9 Zestaw marki
 
-Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — na koncie — i masz je w każdym projekcie. **Ustawienia konta** → **Zestaw marki** → **Edytuj zestaw marki…**; to samo okno otworzysz w Bibliotece, w kategorii **Marka** → **Edytuj zestaw marki…**.
+Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — na koncie — i masz je w każdym projekcie: **Ustawienia konta** → **Zestaw marki** → **Edytuj zestaw marki…** (albo Biblioteka → **Marka**).
 
-| Część | Co w niej ustawisz |
-|---|---|
-| **Kolory marki** | **Dodaj kolor** — kolor z próbnika albo kodem (np. `#1c2541`) i **nazwa**, np. „Granat marki”. Przełącznik **Pantone / CMYK** dodaje wartości C, M, Y, K — taki kolor przy zastosowaniu marki trafi do kolorów dodatkowych projektu (rozdział „23.1 Kolory dodatkowe”) i wydrukuje się osobną płytą. |
-| **Czcionki marki** | **Nagłówki** i **Tekst** — po jednej czcionce z listy. |
-| **Logo** | **Dodaj logo…** — pliki PNG, JPG, WebP albo SVG. Logo wstawisz potem z Biblioteki. |
-
-**Zapisz** zapisuje zestaw na koncie. Na liście ustawień wiersz **Zestaw marki** pokazuje np. „3 kol. · 1 logo”.
+- **Kolory marki** — z nazwą, np. „Granat marki”. Przełącznik **Pantone / CMYK** robi z koloru kolor dodatkowy, drukowany osobną farbą (rozdział „23.1 Kolory dodatkowe”).
+- **Czcionki marki** — jedna do nagłówków, jedna do tekstu.
+- **Logo** — PNG, JPG, WebP albo SVG; wstawisz je z Biblioteki.
 
 ![Zestaw marki](https://makietka.app/img/instrukcja/k-marka.png)
 
-Gdzie zobaczysz markę w projekcie:
+Marka jest pod ręką w oknie koloru (rozdział „7.7 Wybór koloru”), na górze listy czcionek (rozdział „6.8 Czcionki”) i w Bibliotece (rozdział „5.8 Biblioteka”).
 
-- **wybór koloru** — część **Marka** nad „Użytymi w projekcie” (rozdział „7.7 Wybór koloru”),
-- **lista czcionek** — grupa **Marka** na samej górze (rozdział „6.8 Czcionki”),
-- **Biblioteka** — kategoria **Marka**: logo, **Zastosuj markę do projektu…** i **Edytuj zestaw marki…** (rozdział „5.8 Biblioteka”),
-- **⋯** → **Zastosuj markę do projektu…** — zamiana kolorów i czcionek całego projektu na markowe (rozdział „4.3 Menu ⋯”).
-
-**Zastosuj markę do projektu.** Okno pokazuje każdy kolor i każdą czcionkę projektu z propozycją: kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu, pozostałe — czcionkę nagłówków. Na listach zmienisz propozycję albo wybierzesz „bez zmian”. **Zastosuj** zmienia strony, wzorce i style naraz; całość cofniesz jednym **Cofnij** (`Ctrl`+`Z`).
+**Zastosuj markę do projektu** (**⋯** w edytorze) zamienia kolory i czcionki całego projektu na markowe: każdy kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu, pozostałe — nagłówków. Przed **Zastosuj** zmienisz każdą propozycję albo wybierzesz „bez zmian”.
 
 ![Zastosuj markę do projektu](https://makietka.app/img/instrukcja/k-marka-zastosuj.png)
 
 ## 3. Projekty
 
+Projekt to jedna publikacja: tu zakładasz, otwierasz, kopiujesz i zapisujesz projekty.
+
 ### 3.1 Lista projektów
 
-Po zalogowaniu widzisz swoje projekty. Karta projektu pokazuje pierwszą stronę, nazwę i datę ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze – na stronie, którą ostatnio edytowałeś na tym urządzeniu.
+Kliknięcie karty otwiera projekt w edytorze — na stronie, którą ostatnio edytowałeś na tym urządzeniu.
 
-- **Chmurka** przy nazwie mówi, czy zmiany są na koncie: z ptaszkiem — zapisano, z zegarem — czekają na wysłanie, przekreślona — brak internetu (zmiany są na urządzeniu i wyślą się same). Najedź na nią albo przytrzymaj palec, żeby zobaczyć opis.
+- **Chmurka** przy nazwie mówi, czy zmiany są na koncie: z ptaszkiem — zapisano, z zegarem — czekają na wysłanie, przekreślona — brak internetu (zmiany są na urządzeniu i wyślą się same).
 - Plakietka **Udostępniony** — projekt ma link do podglądu (rozdział „24 Udostępnianie linkiem”). Kliknięcie plakietki otwiera okno linku.
 - Projekty udostępnione Ci przez innych mają plakietkę z nazwą właściciela i dopisek „Możesz edytować” albo „Możesz oglądać”. Filtry **Wszystkie**, **Moje** i **Udostępnione mi** pojawiają się, gdy masz takie projekty.
 - **Zaproszenia** z liczbą — zaproszenia do cudzych projektów czekające na odpowiedź (rozdział „25.3 Przyjmowanie zaproszenia”).
@@ -215,47 +193,27 @@ Po zalogowaniu widzisz swoje projekty. Karta projektu pokazuje pierwszą stronę
 
 ### 3.2 Nowy projekt
 
-Wybierz **Nowy projekt**. Okno ma pola:
+**Nowy projekt** pyta o nazwę, format strony (A4, A5, A6, B5, kwadrat albo **Własny** w mm), orientację i:
 
 | Pole | Co ustawia |
 |---|---|
-| **Nazwa** | Nazwa projektu na liście. Zmienisz ją później w edytorze. |
-| **Format strony** | Rozmiar strony. Kafelki A4, A5, A6, B5 i Kwadrat pokazują proporcje strony. **Własny** — dowolna **Szerokość** i **Wysokość** w mm. |
-| **Orientacja** | Pionowo albo poziomo. |
 | **Spad** | Pas za krawędzią strony, który drukarnia odcina — zwykle 3 mm (rozdział „13.1 Linie na stronie”). |
 | **Marginesy** | Bezpieczny obszar na teksty, w mm. |
 | **Układ stron** | **Pojedyncze strony** albo **Rozkładówki (lewa + prawa)**, jak w książce. |
 
-Wszystkie te ustawienia zmienisz później w ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”). Nowy projekt ma jedną sekcję „Główna” i jedną stronę.
+Wszystko zmienisz później w ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”).
 
 ![Nowy projekt](https://makietka.app/img/instrukcja/nowy-projekt.png)
 
 ### 3.3 Menu projektu
 
-Przycisk **⋯** na karcie projektu otwiera menu:
-
-| Pozycja | Co robi |
-|---|---|
-| **Podgląd** | Otwiera od razu podgląd projektu (rozdział „20 Podgląd”). |
-| **Zmień nazwę** | Nowa nazwa projektu. |
-| **Duplikuj** | Kopia całego projektu, np. kalendarz na kolejny rok. |
-| **Eksportuj do pliku (.makietka)** | Plik z całym projektem (rozdział „3.6 Plik projektu”). |
-| **Współpraca…** | Zaproszenia do wspólnej pracy (rozdział „25 Współpraca”). |
-| **Usuń projekt** | Usuwa projekt (z potwierdzeniem). |
-
-W projekcie innej osoby zamiast **Duplikuj** jest **Zrób własną kopię**, a zamiast **Usuń projekt** — **Opuść projekt** (rozdział „25.6 Opuszczanie projektu i kopia”).
+**⋯** na karcie projektu: **Podgląd** (od razu, bez edytora, rozdział „20 Podgląd”), **Zmień nazwę**, **Duplikuj** (np. kalendarz na kolejny rok), **Eksportuj do pliku (.makietka)** (rozdział „3.6 Plik projektu”), **Współpraca…** (rozdział „25 Współpraca”) i **Usuń projekt**. W projekcie innej osoby zamiast duplikowania i usuwania są **Zrób własną kopię** i **Opuść projekt** (rozdział „25.6 Opuszczanie projektu i kopia”).
 
 ![Menu projektu](https://makietka.app/img/instrukcja/menu.png)
 
 ### 3.4 Zapis
 
-Nie ma przycisku „Zapisz” — każda zmiana zapisuje się sama, najpierw na urządzeniu, a po chwili na koncie. Stan zapisu widać w edytorze obok nazwy projektu:
-
-- **Zapisano** — zmiany są na koncie,
-- **Zapisywanie…** — zmiany właśnie się wysyłają,
-- **Offline** — brak internetu; zmiany czekają na urządzeniu i wyślą się same po powrocie sieci.
-
-Dłuższe czynności (otwieranie dużego projektu, wgrywanie zdjęć, eksport PDF) pokazują u góry ekranu kartę z paskiem postępu. Karta nie blokuje pracy.
+Nie ma przycisku „Zapisz” — każda zmiana zapisuje się sama, najpierw na urządzeniu, a po chwili na koncie. Bez internetu zmiany czekają na urządzeniu i wyślą się same po powrocie sieci. Stan zapisu pokazuje chmurka obok nazwy projektu (rozdział „3.1 Lista projektów”).
 
 ### 3.5 Kilka urządzeń i cofanie
 
@@ -272,6 +230,8 @@ Gdy projekt zmieniono w dwóch miejscach naraz, aplikacja **łączy zmiany eleme
 - Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (rozdział „28.4 Instalacja aplikacji”).
 
 ## 4. Ekran edytora
+
+Gdzie co jest w edytorze — paski, panele i menu.
 
 ### 4.1 Układ ekranu
 
@@ -291,38 +251,23 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 
 ![Górny pasek](https://makietka.app/img/instrukcja/k-pasek-gorny.png)
 
-| Przycisk | Co robi |
-|---|---|
-| **← Projekty** | Wraca do listy projektów. Niczego nie trzeba zapisywać. |
-| **Nazwa projektu** | Kliknij, żeby ją zmienić. Obok jest stan zapisu (rozdział „3.4 Zapis”). |
-| **Cofnij**, **Ponów** | Cofanie i ponawianie zmian w całym projekcie (rozdział „3.5 Kilka urządzeń i cofanie”). |
-| **Wzorce** | Okno wzorców — wspólnych elementów stron (rozdział „12 Wzorce”). Liczba obok to liczba wzorców. |
-| **Dane** | Okno tabel danych (rozdział „15 Tabele danych”). |
-| **Podgląd** | Cały projekt bez edycji, z danymi (rozdział „20 Podgląd”). |
-| **Format** (np. „A5”) | Ustawienia bieżącej sekcji: format, spad, marginesy (rozdział „11.4 Ustawienia sekcji”). |
-| **Pełny ekran** | Chowa paski przeglądarki; `Esc` wraca. |
-| **Znajdź i zamień** | Lupa: szukanie i zamiana tekstu w całym projekcie (rozdział „6.15 Znajdź i zamień”). |
-| **⋯** | Menu z eksportem i oknami projektu (rozdział „4.3 Menu ⋯”). |
+Od lewej: **← Projekty**, **nazwa projektu** (kliknij, żeby ją zmienić) ze stanem zapisu (rozdział „3.4 Zapis”), **Cofnij** i **Ponów** (rozdział „3.5 Kilka urządzeń i cofanie”), **Wzorce** (rozdział „12 Wzorce”), **Dane** (rozdział „15 Tabele danych”), **Podgląd** (rozdział „20 Podgląd”), **format** sekcji, np. „A5” — otwiera ustawienia sekcji (rozdział „11.4 Ustawienia sekcji”), **Komentarze** (rozdział „25.7 Komentarze”), lupa **Znajdź i zamień** (rozdział „6.15 Znajdź i zamień”) i **⋯** (rozdział „4.3 Menu ⋯”).
 
-**Wzorce**, **Dane** i **Podgląd** to ikony; napisy obok nich pojawiają się same, gdy jest na nie miejsce. Zmienisz to w menu widoku: **Napisy na górnym pasku** — **Auto**, **Zawsze**, **Nigdy** (rozdział „4.6 Prawy dolny róg i menu widoku”). Na wąskim telefonie **Wzorce**, **Dane** i lupa przechodzą do menu **⋯** (**Znajdź i zamień…** jest tam na górze).
+Napisy obok ikon pojawiają się, gdy jest na nie miejsce — zmienisz to w menu widoku: **Napisy na górnym pasku** (rozdział „4.6 Prawy dolny róg i menu widoku”). Na wąskim telefonie **Wzorce**, **Dane**, **Komentarze** i lupa są w menu **⋯**.
 
 ### 4.3 Menu ⋯
 
 ![Menu ⋯](https://makietka.app/img/instrukcja/k-menu-wiecej.png)
 
-| Pozycja | Co robi |
+Pozycje są w grupach:
+
+| Grupa | Pozycje |
 |---|---|
-| **Znajdź i zamień…** | Szukanie i zamiana tekstu na wszystkich stronach i we wzorcach (`Ctrl`+`F`, → 6.15). |
-| **Eksportuj do PDF…** | Okno eksportu do pliku PDF (rozdział „22 Eksport do PDF i PNG”). |
-| **Pobierz bieżącą stronę jako PNG** | Obraz otwartej strony w 300 dpi, ze spadem (rozdział „22.5 Strona jako PNG”). |
-| **Sprawdź przed drukiem** | Lista miejsc do sprawdzenia w całym projekcie (rozdział „21 Sprawdź przed drukiem”). |
-| **Obrazy projektu…** | Wszystkie obrazy projektu (rozdział „8.5 Okno Obrazy projektu”). |
-| **Czcionki projektu…** | Zestaw czcionek i własne czcionki (rozdział „6.8 Czcionki”). |
-| **Zmień format projektu…** | Nowy format wszystkich sekcji — ze skalowaniem albo przesunięciem elementów (rozdział „11.9 Zmiana formatu ze skalowaniem”). |
-| **Zastosuj markę do projektu…** | Kolory i czcionki projektu zamienione na kolory i czcionki marki (rozdział „2.9 Zestaw marki”). |
-| **Kolory do druku…** | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (rozdział „23.1 Kolory dodatkowe”, „23.5 Tryb kolorów projektu”). |
-| **Współpraca…** | Zaproszenia do wspólnej pracy (rozdział „25 Współpraca”). |
-| **Jasny / ciemny motyw** | Przełącza motyw aplikacji (rozdział „2.4 Motyw”). |
+| Szukanie i uwagi | **Znajdź i zamień…** (rozdział „6.15 Znajdź i zamień”), **Komentarze** (rozdział „25.7 Komentarze”). |
+| Zasoby projektu | **Obrazy projektu…** (rozdział „8.5 Okno Obrazy projektu”), **Czcionki projektu…** (rozdział „6.8 Czcionki”), **Kolory do druku…** (rozdział „23.1 Kolory dodatkowe”, „23.5 Tryb kolorów projektu”); na telefonie też **Wzorce…** i **Dane…**. |
+| Format i marka | **Zmień format projektu…** (rozdział „11.9 Zmiana formatu ze skalowaniem”), **Zastosuj markę do projektu…** (rozdział „2.9 Zestaw marki”). |
+| Druk i eksport | **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”), **Eksportuj do PDF…** (rozdział „22 Eksport do PDF i PNG”), **Drukuj w domu…** (rozdział „22.8 Drukuj w domu”), **Pobierz bieżącą stronę jako PNG** (rozdział „22.5 Strona jako PNG”). |
+| Pozostałe | **Współpraca…** (rozdział „25 Współpraca”) i przełącznik motywu (rozdział „2.4 Motyw”). |
 
 ### 4.4 Pasek wstawiania
 
@@ -335,26 +280,24 @@ Pasek nad stroną wstawia nowe elementy (rozdział „5.1 Wstawianie”).
 | **Tekst** | `T` | Ramkę tekstu (rozdział „6 Tekst”). |
 | **Prostokąt** | `R` | Prostokąt (rozdział „7.1 Prostokąt, elipsa i wielokąt”). |
 | **Elipsa** | `E` | Elipsę albo koło (rozdział „7.1 Prostokąt, elipsa i wielokąt”). |
-| **Wielokąt** | `P` | Wielokąt albo gwiazdę (rozdział „7.1 Prostokąt, elipsa i wielokąt”). |
+| **Wielokąt** | `P` | Wielokąt albo gwiazdę — najpierw wybór kształtu (rozdział „7.1 Prostokąt, elipsa i wielokąt”). |
 | **Linia** | `L` | Odcinek (rozdział „7.2 Linia”). |
 | **Obraz** | — | Zdjęcie albo grafikę (rozdział „8.1 Wstawianie obrazu”). |
 | **Rysuj** | `B` | Linię rysowaną odręcznie (rozdział „7.3 Rysowanie odręczne”). |
 | **Pióro** | `N` | Kształt z punktów i łuków (rozdział „7.4 Pióro i edycja punktów”). |
 | **Tabela** | — | Tabelę z wierszami i kolumnami (rozdział „9 Tabela”). |
-| **Biblioteka** | — | Gotowe elementy: kształty, strzałki, dymki, ramki, linie, etykiety, planer, kalendarz miesiąca, wykresy, kolaże zdjęć (rozdział „5.8 Biblioteka”). |
+| **Biblioteka** | — | Gotowe elementy: kształty, ramki, ozdobniki, planery, kalendarze, wykresy i inne (rozdział „5.8 Biblioteka”). |
 | **Komentarz** | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (rozdział „25.7 Komentarze”). |
 
 Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (rozdział „4.6 Prawy dolny róg i menu widoku”).
 
-**Na telefonie** w pasku są podstawowe narzędzia: **Tekst**, **Prostokąt**, **Elipsa**, **Linia**, **Obraz**, **Tabela** i **Biblioteka**. Pozostałe są pod przyciskiem **⋯** na końcu paska: **Wielokąt albo gwiazda**, **Rysowanie odręczne**, **Pióro**, **Komentarz** i **Kopiuj wygląd** (dla zaznaczonego elementu, → 5.13). Gdy jedno z tych narzędzi działa, przycisk **⋯** pokazuje jego ikonę na niebieskim tle — stuknięcie go kończy narzędzie.
+**Na telefonie** pozostałe narzędzia — **Wielokąt albo gwiazda**, **Rysowanie odręczne**, **Pióro**, **Komentarz** i **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”) — są pod **⋯** na końcu paska. Gdy jedno z nich działa, **⋯** pokazuje jego ikonę; stuknięcie kończy narzędzie.
 
 ![Menu ⋯ paska wstawiania na telefonie](https://makietka.app/img/instrukcja/k-wstaw-telefon.png)
 
 ### 4.5 Właściwości i warstwy
 
-Prawa kolumna ma dwie części: u góry **właściwości**, pod nimi panel **Warstwy** (rozdział „10 Warstwy”).
-
-Nagłówek właściwości mówi, czego dotyczą ustawienia:
+U góry prawej kolumny są **właściwości**, pod nimi panel **Warstwy** (rozdział „10 Warstwy”). Nagłówek właściwości mówi, czego dotyczą ustawienia:
 
 | Nagłówek | Kiedy | Co ustawiasz |
 |---|---|---|
@@ -362,11 +305,11 @@ Nagłówek właściwości mówi, czego dotyczą ustawienia:
 | **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. **Rysuj**. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
 | **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (rozdział „11.3 Właściwości strony”). |
 
-Przy zaznaczonym elemencie w nagłówku są przyciski **Kopiuj do schowka** (`Ctrl`+`C`), **Duplikuj** (`Ctrl`+`D`), **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”), **Zapisz w bibliotece** (rozdział „5.8 Biblioteka”) i **Usuń** (`Delete`). Tytuł części (np. „Cień”) zwija ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (rozdział „13.2 Ostrzeżenia”).
+Przy zaznaczonym elemencie w nagłówku są **Kopiuj do schowka**, **Duplikuj**, **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”), **Zapisz w bibliotece** (rozdział „5.8 Biblioteka”) i **Usuń**. Na dole kolumny jest lista **Ostrzeżenia** (rozdział „13.2 Ostrzeżenia”).
 
 ![Ustawienia narzędzia: rysowanie](https://makietka.app/img/instrukcja/k-rysowanie.png)
 
-Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu: **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** (rozdział „28.2 Edytor na telefonie”).
+Na telefonie te panele otwierają przyciski na dole ekranu (rozdział „28.2 Edytor na telefonie”).
 
 ![Właściwości zaznaczonego tekstu](https://makietka.app/img/instrukcja/wlasciwosci.png)
 
@@ -374,33 +317,33 @@ Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi prz
 
 ![Prawy dolny róg](https://makietka.app/img/instrukcja/k-widok.png)
 
-- **Linie pomocnicze** (`W`) — pokazuje albo chowa marginesy, spad, grzbiet i prowadnice (rozdział „13.1 Linie na stronie”).
-- **Widok** (ikona kratki) — menu widoku.
+- **dwie kartki** — tylko w sekcji z rozkładówkami: cała rozkładówka albo jedna strona (rozdział „11.5 Rozkładówki”),
+- **Linie pomocnicze** (`W`) — pokazuje albo chowa marginesy, spad, grzbiet i prowadnice (rozdział „13.1 Linie na stronie”),
+- **Widok** (ikona kratki) — menu widoku,
 - **−**, procent, **+** — powiększenie (rozdział „13.6 Powiększenie”).
 
 Menu widoku:
 
 | Pozycja | Co robi |
 |---|---|
-| **Siatka** | Linie co zadany krok (rozdział „13.3 Siatka”). |
-| **Przyciągaj do siatki** | Przesuwany element staje rogiem na linii siatki. |
-| **Krok siatki** | Odstęp linii siatki w mm. |
+| **Siatka**, **Przyciągaj do siatki**, **Krok siatki** | Siatka co zadany krok w mm (rozdział „13.3 Siatka”). |
 | **Siatka linii bazowych** | Linie bazowe z ustawień sekcji (rozdział „6.13 Siatka linii bazowych”). |
 | **Przyciągaj do elementów i pokazuj odległości** | Różowe linie i odległości w mm przy przesuwaniu (rozdział „13.5 Przyciąganie i odległości”). |
 | **Linijki** | Linijki w mm nad stroną i z lewej (rozdział „13.4 Linijki i prowadnice”). |
-| **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
-| **Usuń prowadnice z tej strony** | Usuwa wszystkie prowadnice otwartej strony. |
-| **W rozkładówkach pokazuj jedną stronę** | W sekcji z rozkładówkami pokazuje tylko jedną stronę (rozdział „11.5 Rozkładówki”). |
+| **Zablokuj prowadnice**, **Usuń prowadnice z tej strony** | Ochrona i sprzątanie prowadnic (rozdział „13.4 Linijki i prowadnice”). |
+| **W rozkładówkach pokazuj jedną stronę** | To samo co przycisk z dwiema kartkami (rozdział „11.5 Rozkładówki”). |
 | **Sprawdzaj pisownię** | Falista czerwona linia pod słowami spoza słownika i część **Pisownia** w panelu tekstu (rozdział „6.16 Sprawdzanie pisowni”). |
 | **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (rozdział „23.3 Widok uszlachetnień”). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | **Auto** — gdy się mieszczą, **Zawsze**, **Nigdy**. |
 
-Ustawienia „Wyglądu edytora” dotyczą tego urządzenia.
+Ustawienia widoku dotyczą tylko tego urządzenia.
 
 ![Menu widoku](https://makietka.app/img/instrukcja/k-menu-widoku.png)
 
 ## 5. Elementy na stronie
+
+Wszystko, co stoi na stronie, to element: tu jest to, co wspólne dla wszystkich — zaznaczanie, przesuwanie, grupy, gotowe elementy z Biblioteki.
 
 ### 5.1 Wstawianie
 
@@ -464,31 +407,21 @@ Zaznacz kilka elementów i wybierz **Zgrupuj** (`Ctrl`+`G`). Grupa przesuwa się
 - Część **Inne**: - **Krycie** — przezroczystość elementu w %, - **Zablokuj położenie i rozmiar** — elementu nie przesuniesz przypadkiem; kolor i tekst zmienisz dalej, - **Wycisz ostrzeżenia dla tego obiektu** — np. dla tła, które celowo wychodzi na spad, - **Nazwa** — nazwa elementu na liście warstw.
 - **Kopiuj do schowka** i `Ctrl`+`V` na innej stronie wklejają element w to samo miejsce. We właściwościach strony jest też **Wklej skopiowane elementy**.
 
-> **Uwaga:** Usunięcie albo przesunięcie elementu cofniesz **Cofnij** (`Ctrl`+`Z`).
-
 ### 5.7 Cień
 
 Część **Cień** działa dla każdego elementu:
 
-| Ustawienie | Znaczenie |
-|---|---|
-| **Cień pod elementem** | Włącza cień. |
-| **Kolor cienia** | Kolor cienia. |
-| **Siła** | Jak mocny jest cień (krycie). |
-| **W prawo**, **W dół** | Przesunięcie cienia w mm; wartość ujemna przesuwa w lewo albo w górę. |
-| **Rozmycie** | Jak miękka jest krawędź cienia, w mm. |
+**Cień pod elementem** włącza cień. Ustawisz jego kolor, **Siłę**, przesunięcie **W prawo** i **W dół** w mm (ujemne — w lewo albo w górę) i **Rozmycie** krawędzi w mm.
 
 ### 5.8 Biblioteka
 
-Wszystkie gotowe elementy są w jednym miejscu: przycisk **Biblioteka** na pasku wstawiania (ostatni z prawej) albo `Ctrl`+`K` i „biblioteka”.
+Biblioteka to gotowe elementy do wstawienia: kształty, ramki, ozdobniki, planery, kalendarze, wykresy i Twoje własne elementy. Otwiera ją **Biblioteka** na pasku wstawiania.
 
 ![Biblioteka obok strony](https://makietka.app/img/instrukcja/k-biblioteka.png)
 
 1. Wybierz kategorię u góry albo wpisz słowo w pole **Szukaj** – szukanie przegląda wszystkie kategorie naraz.
 2. Kliknij element – stanie na środku bieżącej strony. Na komputerze możesz też przeciągnąć kafelek na stronę: element stanie tam, gdzie go upuścisz.
 3. Resztę ustawisz w panelu właściwości, jak przy każdym elemencie.
-
-Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych wstawień; na telefonie i tablecie wyjeżdża od dołu i zamyka się po wstawieniu.
 
 | Kategoria | Co w niej jest |
 |---|---|
@@ -515,13 +448,13 @@ Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (ro
 **Moje elementy.** Logo, stopkę firmy czy ulubioną ramkę zapiszesz raz i wstawisz w każdym projekcie:
 
 1. Zaznacz element albo kilka elementów (np. logo z podpisem).
-2. Kliknij **Zapisz w bibliotece** w nagłówku panelu (przy kilku zaznaczonych — w części **Zaznaczenie**) albo w **⋯** przy elemencie na liście warstw. Paleta poleceń (`Ctrl`+`K`) to dodatek.
+2. Kliknij **Zapisz w bibliotece** w nagłówku panelu (przy kilku zaznaczonych — w części **Zaznaczenie**) albo w **⋯** przy elemencie na liście warstw.
 3. Wpisz nazwę. Element trafi do kategorii **Moje elementy**.
 
 ![Moje elementy w Bibliotece](https://makietka.app/img/instrukcja/k-moje-elementy.png)
 
-- Elementy są na Twoim koncie — jak „Moje czcionki” — więc widać je w każdym projekcie i na każdym urządzeniu.
-- Zapisują się razem z obrazami. Wstawienie kopiuje obraz do obrazów projektu (rozdział „8.5 Okno Obrazy projektu”), więc projekt nie zależy od Biblioteki — usunięcie elementu z Biblioteki nie zmienia stron, na których już stoi.
+- Elementy są na Twoim koncie, więc widać je w każdym projekcie i na każdym urządzeniu.
+- Wstawiony element jest kopią — usunięcie go z Biblioteki nie zmienia stron, na których już stoi.
 - Ołówek w rogu kafelka zmienia nazwę, kosz usuwa element z Biblioteki.
 - Elementów wzorca i tekstu w trakcie pisania nie zapiszesz — najpierw wyjdź z pisania.
 
@@ -570,21 +503,20 @@ W panelu kolażu zmienisz **Układ** (pola przybywają albo ubywają, zdjęcia w
 
 ### 5.12 Kod QR i kod kreskowy
 
-Kod wstawisz z **Biblioteka** (kategoria **Kody**) albo z palety poleceń: `Ctrl`+`K` (na Macu `⌘`+`K`) i **Wstaw kod QR** albo **Wstaw kod kreskowy EAN / ISBN**. W części **Kod** panelu ustawisz wszystko inne:
+Kod wstawisz z **Biblioteka**, kategoria **Kody**. W części **Kod** panelu ustawisz resztę:
 
 | Ustawienie | Co znaczy |
 |---|---|
 | **Rodzaj** | **Kod QR** albo **Kod kreskowy EAN-13 / ISBN** (np. ISBN na okładce książki). |
-| **Co zawiera** (QR) | **Adres strony**, **Tekst**, **E-mail** (adres, temat, treść), **Telefon** albo **Sieć Wi-Fi** (nazwa, zabezpieczenie, hasło) — pola zmieniają się z wyborem. |
-| **Korekcja błędów** (QR) | Ile kodu może być zniszczone albo zasłonięte: od **Niska (7%)** — najmniejszy kod — do **Najwyższa (30%)**, np. pod logo. |
-| **Numer EAN albo ISBN** | 12 cyfr — cyfra kontrolna dopisze się sama; 13 cyfr — sprawdzi się. ISBN możesz wpisać z myślnikami; stary ISBN-10 zamieni się na ISBN-13. **Cyfry pod kodem** włącza napis. |
-| **Rozmiar** / **Szerokość** i **Wysokość** | Kod QR jest zawsze kwadratem. **Rozmiar nominalny (100%)** ustawia kod EAN na 37,29 × 25,93 mm. Rozmiar zmienisz też uchwytem. |
-| **Kolor kodu**, **Tło** | Kod musi być ciemny na jasnym tle; tło może być przezroczyste. |
-| **Margines ciszy** | Pusty pas wokół kodu, którego potrzebuje czytnik. |
+| **Co zawiera** (QR) | **Adres strony**, **Tekst**, **E-mail**, **Telefon** albo **Sieć Wi-Fi**. |
+| **Korekcja błędów** (QR) | Ile kodu może być zasłonięte: od **Niska (7%)** — najmniejszy kod — do **Najwyższa (30%)**, np. pod logo. |
+| **Numer EAN albo ISBN** | Cyfra kontrolna dopisze się sama; ISBN możesz wpisać z myślnikami. |
+| **Rozmiar** | **Rozmiar nominalny (100%)** ustawia kod EAN na 37,29 × 25,93 mm. |
+| **Kolor kodu**, **Tło**, **Margines ciszy** | Kod musi być ciemny na jasnym tle, z pustym pasem wokół. |
 
 Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na każdej stronie serii (rozdział „16 Pola w tekście”).
 
-Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Sprawdź przed drukiem** pojawi się uwaga, gdy kod będzie za mały (moduł QR mniejszy niż 0,33 mm, EAN mniejszy niż 80% nominału), za jasny albo z błędną treścią.
+Gdy kod będzie za mały, za jasny albo z błędną treścią, przypomni o tym panel i **Sprawdź przed drukiem**.
 
 ![Kod QR i jego ustawienia](https://makietka.app/img/instrukcja/k-kod.png)
 
@@ -592,31 +524,22 @@ Kod jest wektorowy: ostry w każdym powiększeniu i w PDF. Pod panelem i w **Spr
 
 Wygląd jednego elementu przeniesiesz na inny jednym kliknięciem — bez przepisywania kolorów i grubości.
 
-**Gdzie:** przycisk **Kopiuj wygląd** (pędzel) w nagłówku panelu właściwości, obok **Kopiuj do schowka** i **Duplikuj**, **⋯** przy elemencie na liście warstw → **Kopiuj wygląd**, a na telefonie także **⋯** na końcu paska wstawiania → **Kopiuj wygląd** (rozdział „4.4 Pasek wstawiania”). Skróty `Ctrl`+`Alt`+`C` / `Ctrl`+`Alt`+`V` to dodatek.
+**Kopiuj wygląd** (pędzel) jest w nagłówku panelu właściwości, w **⋯** przy elemencie na liście warstw, a na telefonie też pod **⋯** paska wstawiania (rozdział „4.4 Pasek wstawiania”).
 
 ![Kopiuj wygląd w nagłówku panelu](https://makietka.app/img/instrukcja/k-malarz.png)
 
 1. Zaznacz element, który ma już dobry wygląd.
-2. Kliknij **Kopiuj wygląd** w nagłówku panelu (pędzel) albo naciśnij `Ctrl`+`Alt`+`C`. Przycisk zostaje wciśnięty, a kursor nad stroną zmienia się w kopiowanie.
-3. Kliknij element, który ma dostać ten wygląd. Gotowe — przycisk się wyłącza.
+2. Kliknij **Kopiuj wygląd** (`Ctrl`+`Alt`+`C`).
+3. Kliknij element, który ma dostać ten wygląd.
 
-- **Dwa kliknięcia** w **Kopiuj wygląd** — tryb ciągły: klikasz kolejne elementy, aż naciśniesz `Esc` albo klikniesz przycisk jeszcze raz.
-- Bez myszy: zaznacz element docelowy i naciśnij `Ctrl`+`Alt`+`V`.
-- **Fragment tekstu:** po skopiowaniu wyglądu kliknij tekst dwa razy, zaznacz słowa i kliknij **Kopiuj wygląd** jeszcze raz — wygląd (czcionka, rozmiar, kolor, pogrubienie…) dostanie tylko zaznaczony fragment. Wygląd skopiujesz też z fragmentu: zaznacz w pisanym tekście słowo o dobrym wyglądzie i kliknij **Kopiuj wygląd**.
-- W trakcie pisania tekstu skróty `Ctrl`+`Alt` nie działają — na polskiej klawiaturze to polskie litery (`Alt Gr`+`C` = „ć”).
+- **Dwa kliknięcia** w **Kopiuj wygląd** — tryb ciągły: klikasz kolejne elementy, aż naciśniesz `Esc`.
+- **Fragment tekstu:** w pisanym tekście zaznacz słowa i kliknij **Kopiuj wygląd** — wygląd dostanie tylko zaznaczony fragment. Tak samo skopiujesz wygląd z fragmentu.
 
-| Skąd → dokąd | Co przechodzi |
-|---|---|
-| Kształt → kształt | Wypełnienie (także przejście), obrys, grubość i przerywanie obrysu, zaokrąglenie rogów, krycie, cień. |
-| Tekst → tekst | Czcionka, rozmiar, pogrubienie, kursywa, kolor, odstępy, wyrównanie, styl, wielkość liter, obrys liter, krycie, cień. Treść zostaje. |
-| Obraz → obraz | Filtry, obrys ramki, zaokrąglenie rogów, krycie, cień. |
-| Każdy → każdy | Krycie, cień i uszlachetnienia (lakier, folia). |
-
-Wygląd nie przechodzi na tabele, kody, wykresy ani kalendarze — mają własne ustawienia. Każde przeniesienie cofniesz **Cofnij** (`Ctrl`+`Z`).
-
-> **Wskazówka:** Kolory i czcionki, których już użyłeś na innych stronach, są też pod ręką w oknie koloru i na liście czcionek, w części **Użyte w projekcie** (rozdział „6.8 Czcionki”, „7.7 Wybór koloru”).
+Przechodzi wszystko, co dotyczy wyglądu — kolory, przejścia, obrys, czcionka, odstępy, filtry zdjęcia, krycie, cień, uszlachetnienia — a treść zostaje. Tabele, kody, wykresy i kalendarze mają własne ustawienia i wyglądu nie przejmują.
 
 ## 6. Tekst
+
+Ramki tekstu, ich wygląd, style i skład — od jednego napisu po tekst książki płynący przez wiele stron.
 
 ### 6.1 Pisanie
 
@@ -705,11 +628,7 @@ Piszesz w dowolnej ramce, a tekst przelewa się na bieżąco. Wygląd tekstu (cz
 
 Do wyboru są 52 rodziny czcionek z polskimi znakami, które wolno używać w druku komercyjnym: bezszeryfowe do tekstu (np. Inter, Lato, Roboto), wąskie do nagłówków (Oswald, Bebas Neue), szeryfowe (Lora, Merriweather, Playfair Display, EB Garamond), odręczne i ozdobne (Caveat, Pacifico, Dancing Script) oraz maszynowe.
 
-Okno **⋯** → **Czcionki projektu…**:
-
-- pokazuje próbki wszystkich czcionek,
-- **Pobierz pliki** przy rodzinie i **Pobierz cały zestaw (ZIP)** — pliki TTF, np. dla drukarni albo grafika,
-- **własne czcionki projektu** — pliki TTF, OTF, WOFF albo WOFF2, każda odmiana osobno. Wgrasz je też z listy czcionek: **+ Wgraj własną czcionkę…**. Wgrana czcionka zostaje w „Moich czcionkach” i przyda się w kolejnych projektach.
+**⋯** → **Czcionki projektu…** pokazuje próbki, daje pliki czcionek do pobrania (np. dla drukarni) i pozwala wgrać **własną czcionkę** (TTF, OTF, WOFF, WOFF2; każda odmiana osobno) — także z listy czcionek: **+ Wgraj własną czcionkę…**. Wgrana czcionka zostaje na koncie, w „Moich czcionkach”.
 
 > **Wskazówka:** Do druku własną czcionkę najlepiej wgrać jako TTF albo OTF, osobny plik dla pogrubienia i kursywy. Inne pliki trafią do PDF jako krzywe — tekst będzie ostry, ale nie da się go zaznaczyć.
 
@@ -727,11 +646,9 @@ Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, 
 
 | Ustawienie | Co robi |
 |---|---|
-| **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad, z łącznikiem `-`. Wyjustowany tekst nie ma wtedy dziur między słowami. Treść się nie zmienia — łącznik jest tylko na stronie. |
-| **Najkrótszy dzielony wyraz** | Krótsze wyrazy nigdy się nie dzielą (domyślnie 5 liter). |
-| **Najmniej liter przed łącznikiem / po łączniku** | Ile liter zostaje w wierszu i ile przechodzi dalej (domyślnie po 2). |
-| **Spójniki na końcu wiersza** | **a, i, w, z… przechodzą dalej** — pojedyncze **a, i, o, u, w, z** idą do następnego wiersza razem ze słowem, jak w polskim składzie; **także do, na, że…** dotyczy też dwuliterowych. Nowe teksty mają to włączone. |
-| **Wdowy i sieroty** | Tekst płynący przez kilka ramek albo kolumn (rozdział „6.7 Kolumny i tekst przez kilka ramek”) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. Nowe teksty pilnują 2 wierszy. |
+| **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad — wyjustowany tekst nie ma wtedy dziur. Obok ustawisz najkrótszy dzielony wyraz i ile liter zostaje przed łącznikiem i po nim. |
+| **Spójniki na końcu wiersza** | Pojedyncze **a, i, o, u, w, z** (albo też dwuliterowe: do, na, że…) przechodzą do następnego wiersza razem ze słowem, jak w polskim składzie. |
+| **Wdowy i sieroty** | Tekst płynący przez kilka ramek (rozdział „6.7 Kolumny i tekst przez kilka ramek”) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. |
 | **Wyrównaj do siatki linii bazowych** | Wiersze stają na liniach siatki sekcji (rozdział „6.13 Siatka linii bazowych”). |
 | **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (rozdział „6.12 Oblewanie tekstem”) — np. podpis na zdjęciu. |
 
@@ -789,21 +706,19 @@ Zaznacz tekst i w części **Kształt tekstu** panelu wybierz **Kształt**. Goto
 
 | Kształt | Co robi i co ustawisz |
 |---|---|
-| **Łuk** | Napis po łuku. **Zgięcie** w %: dodatnie – łuk w górę, ujemne – w dół. **Promień** w mm (0 – dobrany sam). |
-| **Okrąg** | Napis dookoła koła, np. pieczęć. **Promień**, **Obrót początku** w stopniach, **Litery**: na zewnątrz (czytane u góry) albo do środka (czytane u dołu). |
-| **Elipsa** | Napis dookoła elipsy: **Promień**, **Spłaszczenie**, **Przesunięcie początku**. |
-| **Po ścieżce** | Napis po linii dowolnego kształtu ze strony: narysuj linię piórem, kształt albo wstaw go z Biblioteki i wybierz go w **Linia z kształtu na stronie**. Tekst dostaje kopię linii – kształt możesz potem przesunąć, ukryć albo usunąć. Dalej: **Przesunięcie początku**, **Wyrównanie**, **Litery** nad albo pod linią, **Odwróć kierunek**. |
-| **Wygięcie** | Litery na prostej linii, wygięte jak: łuk górny, łuk dolny, wypukłość, wklęsłość, fala, flaga albo zwężenie. **Siła wygięcia** w %. |
+| **Łuk** | Napis po łuku. **Zgięcie** w %: dodatnie – łuk w górę, ujemne – w dół. |
+| **Okrąg**, **Elipsa** | Napis dookoła, np. pieczęć: promień, początek, litery na zewnątrz albo do środka. |
+| **Po ścieżce** | Napis po linii dowolnego kształtu ze strony (narysowanego piórem albo z Biblioteki) — wybierz go w **Linia z kształtu na stronie**. |
+| **Wygięcie** | Litery wygięte jak łuk, wypukłość, fala, flaga albo zwężenie; **Siła wygięcia** w %. |
 
-- Przy łuku i wygięciach pod tekstem jest uchwyt ◆ – przeciągnij go w górę albo w dół, żeby zgiąć tekst mocniej albo słabiej.
-- Kliknij tekst dwa razy, żeby go poprawić: w trakcie pisania tekst stoi prosto, a po wyjściu z pisania wraca do kształtu.
-- Tekst po kształcie jest jednym wierszem. Czcionka, kolor, obrys liter, odstęp liter, style i pola z danych `{…}` działają jak w zwykłym tekście.
-- W PDF litery zostają tekstem z osadzoną czcionką – ostre w każdym powiększeniu.
-- **Prosto** przywraca zwykły tekst w ramce o dawnej szerokości.
+- Przy łuku i wygięciach uchwyt ◆ pod tekstem zgina tekst mocniej albo słabiej.
+- Kliknij tekst dwa razy, żeby go poprawić — w trakcie pisania stoi prosto.
+- Tekst po kształcie jest jednym wierszem; czcionka, kolor, style i pola `{…}` działają jak zwykle.
+- **Prosto** przywraca zwykły tekst.
 
 ### 6.15 Znajdź i zamień
 
-**Gdzie:** przycisk **Znajdź i zamień** (lupa) na górnym pasku albo **⋯** → **Znajdź i zamień…** — pierwsza pozycja menu (na telefonie tylko tam). Skróty jako dodatek: `Ctrl`+`F` (na Macu `⌘`+`F`), `Ctrl`+`H` — od razu z polem zamiany, i paleta poleceń (`Ctrl`+`K`).
+Lupa na górnym pasku albo **⋯** → **Znajdź i zamień…** (`Ctrl`+`F`; `Ctrl`+`H` — od razu z polem zamiany).
 
 ![Znajdź i zamień obok strony](https://makietka.app/img/instrukcja/k-znajdz.png)
 
@@ -815,23 +730,19 @@ Zaznacz tekst i w części **Kształt tekstu** panelu wybierz **Kształt**. Goto
 |---|---|
 | **Wielkość liter** | „Kalendarz” nie znajdzie „kalendarz”. |
 | **Całe słowa** | „kot” nie znajdzie „kotka”. |
-| **Także w danych** | Szuka też w komórkach tabel danych (rozdział „14 Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz”). |
+| **Także w danych** | Szuka też w komórkach tabel danych (rozdział „15 Tabele danych”). |
 | **W nazwach stylów** | Szuka też w nazwach stylów akapitu i znakowych (rozdział „6.4 Style”). |
 
 - Szukanie obejmuje wszystkie strony i wzorce, także teksty w grupach.
 - Pola w klamrach, np. `{miesiac}`, zostają nietknięte — chyba że wpiszesz klamrę w szukanym tekście.
 - Wygląd fragmentów (np. pogrubione słowo) zostaje na swoim miejscu po zamianie.
-- **Zamień wszystkie** to jeden krok cofania — **Cofnij** przywraca wszystkie teksty naraz, także przy otwartym panelu.
-
-Na komputerze okno stoi obok strony i zostaje otwarte, możesz więc klikać kolejne trafienia i poprawiać tekst. Na telefonie wyjeżdża od dołu.
+- **Zamień wszystkie** cofniesz jednym **Cofnij**.
 
 ### 6.16 Sprawdzanie pisowni
 
 Słowa spoza słownika polskiego są podkreślone falistą czerwoną linią — tylko w edytorze, nigdy w PDF.
 
 ![Podpowiedzi przy podkreślonym słowie](https://makietka.app/img/instrukcja/k-pisownia-dymek.png)
-
-**Gdzie:** podpowiedzi są przy samym słowie, a włącznik w menu widoku (**Sprawdzaj pisownię**).
 
 1. Kliknij tekst dwa razy i kliknij (na telefonie stuknij) podkreślone słowo — albo kliknij je prawym przyciskiem myszy. Obok słowa pojawi się dymek z podpowiedziami i **Dodaj do słownika**.
 2. Kliknij podpowiedź (np. „wcześniej”) — słowo zmieni się w tym miejscu.
@@ -842,14 +753,15 @@ Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części
 ![Część „Pisownia” w panelu tekstu](https://makietka.app/img/instrukcja/k-pisownia.png)
 
 - Pomijane są pola `{…}`, liczby, słowa z cyframi, adresy stron i e-maile.
-- Słownik (z odmianą wyrazów) wczytuje się przy pierwszym tekście, w tle — edytor nie zwalnia.
-- Wyłączysz sprawdzanie w menu widoku: **Sprawdzaj pisownię**. Ustawienie dotyczy tego urządzenia.
+- Wyłączysz sprawdzanie w menu widoku: **Sprawdzaj pisownię**.
 
 ## 7. Kształty, linie i kolory
 
+Kształty, linie, rysowanie i kolory: wypełnienia, przejścia i obrysy.
+
 ### 7.1 Prostokąt, elipsa i wielokąt
 
-**Prostokąt**, **Elipsa** i **Wielokąt** wstawiają kształty z wypełnieniem i obrysem (rozdział „7.5 Wypełnienie”, „7.6 Obrys”). **Wielokąt** najpierw pokazuje wybór: trójkąt, romb, pięcio-, sześcio- i ośmiokąt albo gwiazda o 4, 5, 6, 8 lub 12 ramionach — stuknij kształt, a pojawi się na stronie. Ramka zaznaczenia wokół niego jest zawsze prostokątna (tak jak przy każdym elemencie), sam kształt nie. Klawisz `P` wstawia od razu trójkąt. Część **Kształt**:
+**Prostokąt**, **Elipsa** i **Wielokąt** wstawiają kształty z wypełnieniem i obrysem (rozdział „7.5 Wypełnienie”, „7.6 Obrys”). **Wielokąt** najpierw pokazuje wybór: trójkąt, romb, pięcio-, sześcio- i ośmiokąt albo gwiazda o 4, 5, 6, 8 lub 12 ramionach. Klawisz `P` wstawia od razu trójkąt. Część **Kształt**:
 
 - prostokąt — **Zaokrąglenie** narożników w mm,
 - wielokąt — te same gotowe kształty co przy wstawianiu (trójkąt … gwiazda 12), **Liczba boków** (3–24) i przełącznik **Gwiazda**; zmiana zachowuje miejsce i wielkość.
@@ -862,7 +774,7 @@ Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części
 
 **Rysuj** (`B`): przeciągaj po stronie jak ołówkiem — drżenie ręki jest wygładzane. Każde pociągnięcie to osobny element. Tryb zostaje włączony, więc narysujesz kilka kresek.
 
-Gdy rysowanie jest włączone, właściwości pokazują **Ustawienia narzędzia · Rysowanie** (rozdział „4.5 Właściwości i warstwy”), część **Pędzel**: **Kolor linii** i **Grubość linii** w mm — tak będą wyglądać następne linie. **Zakończ rysowanie**, `Esc` albo ponowne kliknięcie **Rysuj** kończy rysowanie. Gotową linię zaznaczysz jak każdy element i zmienisz jej kolor i grubość.
+Kolor i grubość następnych linii ustawisz we właściwościach, w części **Pędzel** (rozdział „4.5 Właściwości i warstwy”). **Zakończ rysowanie** albo `Esc` kończy rysowanie.
 
 ![Rysowanie: kolor i grubość pędzla](https://makietka.app/img/instrukcja/k-rysowanie.png)
 
@@ -883,12 +795,7 @@ Gdy rysowanie jest włączone, właściwości pokazują **Ustawienia narzędzia 
 
 Część **Wypełnienie i obrys**, lista **Wypełnienie**:
 
-| Wartość | Znaczenie |
-|---|---|
-| **Brak** | Kształt bez wypełnienia. |
-| **Jeden kolor** | Wypełnienie jednym kolorem. |
-| **Przejście liniowe** | Kolory przechodzą w jednym kierunku: poziomo, pionowo, po skosie albo pod zadanym **Kątem**. |
-| **Przejście kołowe** | Kolory przechodzą od środka na zewnątrz; **Promień** ustala zasięg. |
+**Brak**, **Jeden kolor**, **Przejście liniowe** (w jednym kierunku, pod zadanym **Kątem**) albo **Przejście kołowe** (od środka na zewnątrz, zasięg — **Promień**).
 
 Pasek przejścia pokazuje kolory. **Dodaj kolor** dokłada kolejny; kliknięcie koloru na pasku pozwala zmienić go i jego położenie w %, **Usuń ten kolor z przejścia** go usuwa.
 
@@ -904,13 +811,7 @@ Kształt (także z obrazem w środku) może mieć **Miękkie krawędzie** — ta
 
 ### 7.7 Wybór koloru
 
-Kliknięcie kółka koloru otwiera okno koloru:
-
-- pole nasycenia i jasności oraz suwak barwy,
-- **Kod koloru** (np. `#2f5bd3`) do wpisania albo wklejenia,
-- **gotowe kolory**,
-- **ostatnio używane** kolory,
-- **Użyte w projekcie** — kolory wypełnień, obrysów, tekstów (także fragmentów), przejść i teł ze wszystkich stron, wzorców i stylów, najczęstsze najpierw. Po najechaniu widać kod i liczbę użyć, a przy kolorze dodatkowym (rozdział „23.1 Kolory dodatkowe”) — jego nazwę, np. „PANTONE 186 C”.
+Kliknięcie kółka koloru otwiera okno koloru: próbnik, **Kod koloru** (np. `#2f5bd3`), gotowe i ostatnio używane kolory oraz **Użyte w projekcie** — kolory ze wszystkich stron, wzorców i stylów, najczęstsze najpierw (przy kolorze dodatkowym widać jego nazwę, np. „PANTONE 186 C”, rozdział „23.1 Kolory dodatkowe”).
 
 ![Użyte w projekcie w oknie koloru](https://makietka.app/img/instrukcja/k-kolory-uzyte.png)
 
@@ -919,6 +820,8 @@ Gdy masz zestaw marki (rozdział „2.9 Zestaw marki”), nad „Użytymi w proj
 ![Kolory marki w oknie koloru](https://makietka.app/img/instrukcja/k-marka-kolor.png)
 
 ## 8. Obrazy
+
+Zdjęcia i grafiki: wstawianie, kadrowanie, ramki, filtry i usuwanie tła.
 
 ### 8.1 Wstawianie obrazu
 
@@ -946,7 +849,7 @@ Kliknij obraz dwa razy albo wybierz **Kadruj przeciąganiem**: przesuwasz zdjęc
 
 ### 8.4 Podmiana zdjęcia
 
-**Podmień zdjęcie** (na górze właściwości obrazu) wstawia inny plik w tę samą ramkę: rozmiar, miejsce, obrót, obrys i cień zostają. Zdjęcie o innych proporcjach wypełnia ramkę, a nadmiar jest przycięty.
+**Podmień zdjęcie** wstawia inny plik w tę samą ramkę: rozmiar, miejsce, obrót, obrys i cień zostają, a zdjęcie o innych proporcjach jest przycięte do ramki.
 
 ### 8.5 Okno Obrazy projektu
 
@@ -1027,9 +930,11 @@ Część **Miękkie krawędzie** (zdjęcie i kształty): **Szerokość przejści
 
 ![Obramowanie z zaokrągleniem i owalna winieta](https://makietka.app/img/instrukcja/k-obramowanie.png)
 
-Obramowanie, zaokrąglenie i miękkie krawędzie przenosi też **Kopiuj wygląd**. W PDF zdjęcie z miękkimi krawędziami zapisuje się jako obraz w rozdzielczości druku z przezroczystością; obramowanie i zaokrąglenie zostają wektorowe.
+Obramowanie, zaokrąglenie i miękkie krawędzie przenosi też **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”).
 
 ## 9. Tabela
+
+Tabela na stronie — do cenników, planów, list. To co innego niż tabela danych do powielania stron (rozdział „15 Tabele danych”).
 
 ### 9.1 Wstawianie tabeli
 
@@ -1052,31 +957,11 @@ Kliknij komórkę dwa razy, żeby w niej pisać. `Tab` przechodzi do następnej 
 
 ### 9.3 Wiersze, kolumny i ich rozmiar
 
-Ustawienia tabeli są w trzech częściach właściwości.
-
-**Cała tabela** — dotyczy wszystkich wierszy i kolumn:
-
-| Ustawienie | Znaczenie |
-|---|---|
-| **Wiersze** **−** **+** | **Usuń ostatni wiersz**, **Dodaj wiersz na końcu**. |
-| **Kolumny** **−** **+** | **Usuń ostatnią kolumnę**, **Dodaj kolumnę na końcu**. |
-| **Pierwszy wiersz to nagłówek** | Pierwszy wiersz pogrubiony, z grubszą linią pod spodem. |
-| **Szerokość tabeli** | W mm; kolumny zmieniają się proporcjonalnie. |
-| **Wysokość wierszy** | Najmniejsza wysokość każdego wiersza; wiersz rośnie sam, gdy tekst się nie mieści. |
-| **Wyrównaj szerokości kolumn** | Wszystkie kolumny równej szerokości. |
+**Cała tabela**: **Wiersze** i **Kolumny** **−** **+** (ostatni wiersz i kolumna), **Pierwszy wiersz to nagłówek**, **Szerokość tabeli** w mm (kolumny zmieniają się proporcjonalnie), **Wysokość wierszy** (najmniejsza — wiersz rośnie sam z tekstem) i **Wyrównaj szerokości kolumn**.
 
 ![Cała tabela](https://makietka.app/img/instrukcja/k-tabela-cala.png)
 
-**Kolumna i wiersz** — kliknij raz komórkę zaznaczonej tabeli. Część pokazuje „Komórka: kolumna 2, wiersz 3” i ustawienia tej kolumny i tego wiersza:
-
-| Ustawienie | Znaczenie |
-|---|---|
-| **Szerokość kolumny N** | Szerokość tej kolumny w mm. |
-| **Kolumna przed**, **Kolumna po**, **Usuń kolumnę** | Wstawia kolumnę przed tą albo po niej, usuwa tę kolumnę. |
-| **Wysokość wiersza N** | Najmniejsza wysokość tego wiersza w mm. |
-| **Wiersz nad**, **Wiersz pod**, **Usuń wiersz** | Wstawia wiersz nad tym albo pod nim, usuwa ten wiersz. |
-
-To samo masz w trakcie pisania w komórce.
+**Kolumna i wiersz** — kliknij raz komórkę zaznaczonej tabeli (albo pisz w niej): szerokość tej kolumny i wysokość tego wiersza w mm, **Kolumna przed**, **Kolumna po**, **Wiersz nad**, **Wiersz pod** i usuwanie.
 
 ![Kolumna i wiersz wybranej komórki](https://makietka.app/img/instrukcja/k-tabela-komorka.png)
 
@@ -1100,12 +985,11 @@ W trakcie pisania w komórce: **Scal z komórką po prawej** i **Scal z komórk�
 
 ## 10. Warstwy
 
+Lista wszystkich elementów strony — do zaznaczania, ukrywania i zmiany kolejności.
+
 ### 10.1 Panel Warstwy
 
-Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie. Widać go zawsze — niezależnie od tego, czy coś jest zaznaczone i czy włączone jest narzędzie.
-
-- **Na komputerze** panel stoi w prawej kolumnie, pod właściwościami. Nagłówek „Warstwy” z liczbą elementów zwija go i rozwija; zwinięcie zostaje zapamiętane.
-- **Na telefonie i tablecie w pionie** panel otwiera przycisk **Warstwy** na dole ekranu.
+Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie. Na komputerze stoi pod właściwościami, na telefonie otwiera go przycisk **Warstwy** na dole ekranu.
 
 ![Warstwy](https://makietka.app/img/instrukcja/warstwy.png)
 
@@ -1128,11 +1012,13 @@ Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w nie
 
 ## 11. Strony, sekcje i rozkładówki
 
+Kolejność stron, sekcje o różnych formatach, rozkładówki, okładka z grzbietem i numeracja.
+
 ### 11.1 Panel stron
 
 Panel z lewej pokazuje miniatury wszystkich stron w kolejności druku, pogrupowane w sekcje (szare nagłówki). Kliknięcie miniatury otwiera stronę. Strona powielana z danych ma znaczek **×N** — tyle razy wyjdzie w wydruku (rozdział „17 Serie”).
 
-Na telefonie strony stoją w poziomym pasku, który przewijasz palcem: nazwa sekcji to wąska etykieta z **⋯**, a miniatury mają całą wysokość paska — okładka w poziomie jest szeroka, strony w pionie wąskie.
+Na telefonie strony stoją w poziomym pasku, który przewijasz palcem.
 
 ![Pasek stron na telefonie](https://makietka.app/img/instrukcja/k-strony-telefon.png)
 
@@ -1145,8 +1031,6 @@ Na telefonie strony stoją w poziomym pasku, który przewijasz palcem: nazwa sek
 - **Przeciągnij miniaturę**, żeby zmienić kolejność; upuszczona w innej sekcji przechodzi do niej.
 - **⋯** na miniaturze: **Zmień nazwę**, **Duplikuj**, **Przesuń wyżej**, **Przesuń niżej**, **Usuń stronę**.
 - **⋯** przy nagłówku sekcji: **Ustawienia sekcji**, **Dodaj stronę do sekcji**, **Przesuń sekcję wyżej**, **Przesuń sekcję niżej**, **Usuń sekcję**.
-
-Usunięcie albo przesunięcie strony cofniesz przyciskiem **Cofnij** w komunikacie na dole ekranu albo `Ctrl`+`Z`.
 
 ### 11.3 Właściwości strony
 
@@ -1173,8 +1057,8 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (rozdział „11.5 Rozkładówki”). |
 | **Rodzaj sekcji** | **Strony** albo **Okładka z grzbietem** — wtedy wymiary liczą się same (rozdział „11.6 Okładka z grzbietem”). |
-| **Format** | Rozmiar strony; **Szerokość (mm)** i **Wysokość (mm)**. Przycisk **Zamień orientację** (kartka ze strzałką) zamienia szerokość z wysokością. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij **Zmień format i dopasuj elementy…** (rozdział „11.9 Zmiana formatu ze skalowaniem”). |
-| **Marginesy i spad** | Na schemacie strony: górny nad kartką, dolny pod nią, wewnętrzny i zewnętrzny po bokach, spad przy przerywanej ramce. Schemat od razu pokazuje proporcje. |
+| **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij **Zmień format i dopasuj elementy…** (rozdział „11.9 Zmiana formatu ze skalowaniem”). |
+| **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (rozdział „11.8 Numeracja stron”). |
 | **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (rozdział „11.7 Składki”). |
@@ -1192,19 +1076,13 @@ W sekcji z rozkładówkami strony tworzą pary: lewa i prawa, jak w otwartej ksi
 - Marginesy są **lustrzane**: wewnętrzny przy grzbiecie, zewnętrzny przy krawędzi.
 - Element może leżeć **przez grzbiet**, np. zdjęcie na całą rozkładówkę — każda strona wydrukuje swoją część. Element należy do strony, na której leży jego środek.
 - Gruba ciemna linia to grzbiet. Tekstu nie kładź tuż przy nim — po zszyciu może go nie być widać; aplikacja ostrzega o elementach, które wystają w pas przy grzbiecie.
-- Na małym ekranie w menu widoku włączysz **W rozkładówkach pokazuj jedną stronę**.
+- Przycisk z dwiema kartkami obok powiększenia przełącza całą rozkładówkę i jedną stronę (na telefonie domyślnie jedna strona).
 
 ![Rozkładówka](https://makietka.app/img/instrukcja/rozkladowki.png)
 
-Na telefonie rozkładówka pokazuje się domyślnie jako jedna strona. Przycisk z dwiema kartkami obok powiększenia (prawy dolny róg, tylko w sekcji z rozkładówkami) przełącza całą rozkładówkę i jedną stronę – to samo co „W rozkładówkach pokazuj jedną stronę” w menu widoku.
-
 ### 11.6 Okładka z grzbietem
 
-Okładkę robisz jako osobną sekcję z jedną szeroką stroną: tył, grzbiet i przód. Włączysz ją na trzy sposoby:
-
-- w oknie sekcji: **Rodzaj sekcji** → **Okładka z grzbietem**,
-- w menu sekcji (⋯ przy nazwie sekcji): **Zamień na okładkę z grzbietem** — elementy zostają,
-- w oknie nowego projektu: pole **Okładka** — przed środkiem powstaje sekcja „Okładka”.
+Okładka to osobna sekcja z jedną szeroką stroną: tył, grzbiet i przód. Zrobisz ją w oknie sekcji (**Rodzaj sekcji** → **Okładka z grzbietem**), w menu sekcji (**Zamień na okładkę z grzbietem**) albo od razu w oknie nowego projektu (pole **Okładka**).
 
 | Ustawienie | Co znaczy |
 |---|---|
@@ -1221,8 +1099,6 @@ Schemat w oknie pokazuje tył, grzbiet i przód, a pod nim wynik, np. „Grzbiet
 | **Policz same** | Grzbiet z papieru i liczby stron, rozmiar z formatu środka. |
 | **Wpisz grzbiet** | **Grzbiet (mm)** od drukarni zamiast liczonego. Reszta liczy się jak zwykle. |
 | **Wpisz rozmiar** | **Szerokość okładki** i **Wysokość okładki** (mm, bez spadu) — tył i przód dzielą resztę szerokości po równo wokół grzbietu. Grzbiet możesz też wpisać; puste pole — grzbiet liczony. |
-
-Przy wpisanych wymiarach pod schematem widać, co wychodzi z papieru, np. „Z papieru i formatu środka wychodzi: grzbiet 6,6 mm, okładka 352,6 × 246 mm”.
 
 ![Wymiary okładki wpisane ręcznie](https://makietka.app/img/instrukcja/k-okladka-wymiary.png)
 
@@ -1271,7 +1147,7 @@ Kalendarz z A4 na A3, książka z B5 na A5 — format zmienisz razem z elementam
 
 ![Zmiana formatu z podglądem przed i po](https://makietka.app/img/instrukcja/k-format.png)
 
-Rozkładówki zmieniają się razem (obie strony), serie — na wszystkich powieleniach, bo zmienia się wzór. Okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”) ma format liczony ze środka: po zmianie formatu środka przelicza się sama, a jej elementy trzymają się tyłu, grzbietu i przodu. Elementy, które po zmianie wystają poza stronę, pokaże **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”).
+Okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”) przelicza się sama po zmianie formatu środka. Elementy, które po zmianie wystają poza stronę, pokaże **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”).
 
 ## 12. Wzorce
 
@@ -1320,6 +1196,8 @@ Elementy wzorca leżą **pod** treścią strony. Zaznacz element we wzorcu i wł
 Wpisz we wzorcu tekst z polem `{nr}`, np. `Strona {nr} z {liczba_stron}`. Na każdej stronie pojawi się jej numer. Najprościej dodać wzorzec standardowy z numerem strony (rozdział „12.4 Wzorce standardowe”).
 
 ## 13. Linie pomocnicze, siatka i powiększenie
+
+Rzeczy, które pomagają ustawiać elementy, a nie drukują się: marginesy, spad, siatka, prowadnice, powiększenie.
 
 ### 13.1 Linie na stronie
 
@@ -1372,13 +1250,15 @@ Przytrzymany `Ctrl` na chwilę wyłącza przyciąganie. Przytrzymany `Alt` przy 
 - **−** i **+** w prawym dolnym rogu; kliknięcie procentu dopasowuje stronę do okna (`Ctrl`+`0`).
 - `Ctrl` + kółko myszy powiększa w miejscu kursora.
 - Spacja + przeciąganie przesuwa widok.
-- Na telefonie i tablecie — dwa palce (rozdział „28.1 Gesty”).
+- Na ekranie dotykowym — dwa palce (rozdział „28.1 Gesty”).
 
 ## 14. Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz
 
+Spis treści, tytuł rozdziału w stopce, przypisy, odsyłacze i skorowidz — liczą się same.
+
 ### 14.1 W skrócie
 
-Rzeczy potrzebne w książce, które aplikacja liczy sama: spis treści z numerami stron, tytuł rozdziału w stopce, przypisy dolne, odsyłacze „zob. s. 12” i skorowidz. Numery stron biorą się z numeracji sekcji (rozdział „11.8 Numeracja stron”), także ze stronami powielonymi serią (rozdział „17 Serie”).
+Numery stron biorą się z numeracji sekcji (rozdział „11.8 Numeracja stron”), także ze stronami powielonymi serią (rozdział „17 Serie”).
 
 ![Spis treści, przypis i żywa pagina na stronach książki](https://makietka.app/img/instrukcja/ksiazka.png)
 
@@ -1451,27 +1331,13 @@ Skorowidz ma hasła alfabetycznie (po polsku: ą po a, ł po l) z numerami wszys
 
 ## 15. Tabele danych
 
+Dane trzymasz w tabelach projektu; z nich biorą się wartości pól i powielane strony.
+
 ### 15.1 Okno Dane
 
-Dane trzymasz w tabelach projektu. Tabela to arkusz: kolumny mają nazwy (np. `dzien`, `imie`), a wiersze — wartości. Z tabel biorą się wartości pól w tekście (rozdział „16 Pola w tekście”) i powielone strony (rozdział „17 Serie”).
+Tabela to arkusz: kolumny mają nazwy (np. `dzien`, `imie`), a wiersze — wartości. Z tabel biorą się wartości pól w tekście (rozdział „16 Pola w tekście”) i powielone strony (rozdział „17 Serie”).
 
-Kliknij **Dane** na górnym pasku edytora.
-
-![Dane na górnym pasku](https://makietka.app/img/instrukcja/k-dane.png)
-
-Z lewej jest lista tabel projektu, z prawej wybrana tabela:
-
-| Przycisk | Co robi |
-|---|---|
-| **+** (Nowa tabela) | Pusta tabela. |
-| **Importuj CSV albo Excel** | Tabela z pliku (rozdział „15.2 Import z Excela i CSV”). |
-| **Nazwa tabeli** | Kliknij, żeby zmienić. |
-| **+ Wiersz**, **+ Kolumna** | Dodają wiersz i kolumnę. |
-| **Wiersz pomijany** | Wstawia wiersz `**pomiń**` (rozdział „17.4 Wiersze pomijane”). |
-| **Pobierz tabelę jako plik CSV** | Tabela do dokończenia w arkuszu. |
-| **Usuń tabelę** | Usuwa tabelę z projektu. |
-
-Zmiany zrobione w jednym otwarciu okna to jeden krok **Cofnij**.
+Okno otwiera **Dane** na górnym pasku edytora. Z lewej jest lista tabel projektu, z prawej wybrana tabela. **+** dodaje pustą tabelę, **Importuj CSV albo Excel** — tabelę z pliku (rozdział „15.2 Import z Excela i CSV”), **Wiersz pomijany** — wiersz `**pomiń**` (rozdział „17.4 Wiersze pomijane”), a **Pobierz tabelę jako plik CSV** daje tabelę do dokończenia w arkuszu. Zmiany z jednego otwarcia okna cofniesz jednym **Cofnij**.
 
 ![Okno Dane](https://makietka.app/img/instrukcja/dane.png)
 
@@ -1511,6 +1377,8 @@ Przy nazwie każdej kolumny są dwa znaki:
 | **☰** | Lista dozwolonych wartości, np. `praca; dom; wolne`. Inne wartości są podświetlone i trafiają na listę przed drukiem; w szablonie danych komórki dostają listę rozwijaną. **Usuń listę** ją usuwa. |
 
 ## 16. Pola w tekście
+
+Pole to miejsce w tekście, w które wchodzi wartość z tabeli albo z projektu, np. numer strony.
 
 ### 16.1 Wstawianie pola
 
@@ -1573,9 +1441,11 @@ Gdy kolumna tabeli nazywa się tak samo jak pole dokumentu, na stronach tej tabe
 
 ## 17. Serie
 
+Seria powiela stronę dla każdego wiersza tabeli — tak powstaje kalendarz na 365 dni z jednej strony.
+
 ### 17.1 Czym jest seria
 
-Seria powiela stronę dla kolejnych wierszy tabeli. Projektujesz jedną stronę dnia — dostajesz 365 stron, każdą z danymi swojego wiersza. Seria może obejmować kilka sąsiednich stron (**blok**), np. tydzień na rozkładówce: wtedy cały blok powiela się razem.
+Projektujesz jedną stronę dnia — dostajesz 365 stron, każdą z danymi swojego wiersza. Seria może obejmować kilka sąsiednich stron (**blok**), np. tydzień na rozkładówce: wtedy cały blok powiela się razem.
 
 Powielone strony nie są zapisywane osobno — powstają na bieżąco, więc zmiana tabeli od razu zmienia publikację.
 
@@ -1635,6 +1505,8 @@ Pole z tabeli dodatkowej: `{Tygodnie.haslo}`. Gdy tabeli dodatkowej zabraknie wi
 
 ## 18. Wygląd z danych
 
+Kolor, położenie, obraz albo widoczność elementu mogą zmieniać się na każdej powielonej stronie.
+
 ### 18.1 Część Z danych
 
 Element może zmieniać się razem z danymi na kolejnych powielonych stronach: kolor, miejsce, rozmiar, obrót, obraz albo widoczność. Zaznacz element i rozwiń część **Z danych** we właściwościach.
@@ -1681,6 +1553,8 @@ Teksty z tabeli mają różną długość, a układ strony ma zostać ten sam. U
 
 ## 19. Przykłady
 
+Gotowe przepisy krok po kroku.
+
 ### 19.1 Kalendarz książkowy
 
 Jedna strona na dzień, z dniem tygodnia, imieninami i świętami w kolorze.
@@ -1721,11 +1595,11 @@ Korzystając z łącznika Makietka, w projekcie „<nazwa projektu>”:
 
 ## 20. Podgląd
 
+Podgląd pokazuje całą publikację tak, jak wyjdzie z druku.
+
 ### 20.1 Otwieranie podglądu
 
-Podgląd pokazuje całą publikację tak, jak będzie wyglądać po przycięciu: z danymi, z powielonymi stronami, bez linii pomocniczych i bez możliwości przypadkowej zmiany.
-
-Otworzysz go przyciskiem **Podgląd** na górnym pasku edytora (`Shift`+`W`) albo z menu **⋯** na karcie projektu — wtedy podgląd otwiera się od razu, bez edytora.
+Podgląd jest z danymi i powielonymi stronami, bez linii pomocniczych i bez możliwości przypadkowej zmiany. Otworzysz go przyciskiem **Podgląd** na górnym pasku edytora (`Shift`+`W`) albo z menu **⋯** na karcie projektu — wtedy podgląd otwiera się od razu, bez edytora.
 
 ![Podgląd na górnym pasku](https://makietka.app/img/instrukcja/k-podglad.png)
 
@@ -1738,8 +1612,6 @@ Strony idą po kolei, rozkładówki stoją obok siebie. Strony serii mają podpi
 - **−** i **+** na pasku; kliknięcie procentu wraca do 100%, czyli całej rozkładówki w oknie.
 - `Ctrl` + kółko myszy powiększa w miejscu kursora.
 - Na telefonie i tablecie: szczypanie dwoma palcami, podwójne stuknięcie powiększa albo wraca.
-
-Powiększenie zmienia tylko strony — podpisy i pasek zostają w swoim rozmiarze.
 
 ### 20.3 Prezentacja
 
@@ -1777,9 +1649,11 @@ Otwarty podgląd odświeża się sam, gdy projekt zmieni się gdzie indziej — 
 
 ## 21. Sprawdź przed drukiem
 
+Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
+
 ### 21.1 Lista uwag
 
-Zanim wyślesz plik do drukarni, wybierz **⋯** → **Sprawdź przed drukiem**. Aplikacja przegląda cały projekt — także każdą powieloną stronę — i wypisuje miejsca, na które warto spojrzeć.
+**⋯** → **Sprawdź przed drukiem** przegląda cały projekt — także każdą powieloną stronę.
 
 ![Sprawdź przed drukiem w menu ⋯](https://makietka.app/img/instrukcja/k-menu-kontrola.png)
 
@@ -1802,6 +1676,8 @@ Zanim wyślesz plik do drukarni, wybierz **⋯** → **Sprawdź przed drukiem**.
 ![Lista uwag](https://makietka.app/img/instrukcja/kontrola.png)
 
 ## 22. Eksport do PDF i PNG
+
+Plik dla drukarni, do oglądania na ekranie albo do wydruku w domu.
 
 ### 22.1 Okno eksportu
 
@@ -1861,25 +1737,23 @@ Element z cieniem, element przycięty maską i rysunek SVG z filtrem trafiają d
 
 | Układ | Co robi |
 |---|---|
-| **Broszura do składania (zeszyt)** | Strony parami, tak żeby po wydrukowaniu dwustronnym i złożeniu arkuszy na pół wyszedł zeszyt: przy 16 stronach pierwszy arkusz to 16 i 1 z przodu, 2 i 15 z tyłu. Liczba stron dopełnia się pustymi do wielokrotności 4. |
-| **Broszura ze składek** | To samo, ale osobno dla każdej składki po **Składka (stron)** — 4, 8, 16 albo 32 (domyślnie jak w ustawieniach sekcji, → 11.7). Składki zszywa się albo klei razem. |
+| **Broszura do składania (zeszyt)** | Strony parami, tak żeby po wydrukowaniu dwustronnym i złożeniu arkuszy na pół wyszedł zeszyt. Liczba stron dopełnia się pustymi do wielokrotności 4. |
+| **Broszura ze składek** | To samo, ale osobno dla każdej składki po **Składka (stron)** — 4, 8, 16 albo 32 (domyślnie jak w ustawieniach sekcji, rozdział „11.7 Składki”). Składki zszywa się albo klei razem. |
 | **2 strony na arkuszu**, **4 strony na arkuszu** | Kolejne strony obok siebie — np. ulotki A6 po cztery na A4. |
 
 **Arkusz**: **Dopasowany do stron** (dwie strony A5 → arkusz 296 × 210 mm) albo **A4** / **A3** — strony stoją pośrodku i zmniejszają się, jeśli się nie mieszczą. **Pełzanie (mm)**: w grubszej broszurze środkowe kartki po złożeniu wystają; strony na nich przesuwają się o część tej wartości w stronę grzbietu (np. 0,5–1 mm przy 40 stronach).
-
-Pod ustawieniami widać plan: każdy arkusz z numerami stron (z przodu i z tyłu), puste strony zakreskowane.
 
 ![Broszura: plan arkuszy w oknie eksportu](https://makietka.app/img/instrukcja/k-pdf-arkusze.png)
 
 Przy **Do drukarni** arkusze mają znaki cięcia, a broszura — przerywane znaki złamu. Strony na arkuszach stoją równo do formatu, bez spadu.
 
-> **Wskazówka:** Broszurę drukuj dwustronnie z obracaniem po krótszej krawędzi. Najpierw wydrukuj jeden arkusz próbnie.
+> **Wskazówka:** Broszurę na domowej drukarce łatwiej wydrukować przez **Drukuj w domu…** (rozdział „22.8 Drukuj w domu”).
 
 ### 22.7 PDF do czytania na ekranie
 
 Zwykły plik PDF ma od razu nawigację dla czytających na ekranie:
 
-- **zakładki** w bocznym panelu czytnika — sekcje projektu, a pod nimi nagłówki (style nagłówków książki, → 14),
+- **zakładki** w bocznym panelu czytnika — sekcje projektu, a pod nimi nagłówki (style nagłówków książki, rozdział „14 Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz”),
 - **klikalny spis treści** — wiersz spisu prowadzi do strony,
 - **odsyłacze** „s. 12” prowadzą do tej strony,
 - **link elementu** — w panelu elementu, w części **Inne**, pole **Link w PDF (adres strony, e-mail)**: kliknięcie elementu w PDF otwiera adres; kod QR z adresem strony jest klikalny sam.
@@ -1888,7 +1762,7 @@ Linki są w pliku wektorowym; zakładki — w obu rodzajach pliku. W PDF/X-4 dla
 
 ### 22.8 Drukuj w domu
 
-Wydruk na zwykłej drukarce, bez wysyłania pliku do drukarni. Gdzie: menu **⋯** projektu → **Drukuj w domu…** (skrót `Ctrl`+`P` w edytorze i podglądzie – Makietka przejmuje go i zamiast zwykłego drukowania strony przeglądarki otwiera to okno; gdy wybierzesz „Drukuj” z menu samej przeglądarki, na kartce będzie tylko podpowiedź, gdzie jest właściwy druk).
+Wydruk na zwykłej drukarce: **⋯** → **Drukuj w domu…** albo `Ctrl`+`P` w edytorze i podglądzie. Okno samo układa strony na kartkach — nie drukuj projektu z menu przeglądarki.
 
 ![Okno Drukuj w domu](https://makietka.app/img/instrukcja/k-druk.png)
 
@@ -1901,15 +1775,12 @@ Wydruk na zwykłej drukarce, bez wysyłania pliku do drukarni. Gdzie: menu **⋯
 | **W odcieniach szarości** | Wydruk czarno-biały. |
 | **Znaki cięcia i złamu** | Przy broszurze, którą przytniesz po zszyciu. |
 
-Pod ustawieniami widać, jak strony ułożą się na kartkach. **Drukuj** otwiera okno drukowania przeglądarki z gotowym plikiem; na telefonie plik otwiera się w nowej karcie – wybierz tam **Udostępnij → Drukuj**. **Pobierz PDF do druku** zapisuje ten sam plik.
-
-Część **Jak wydrukować** w oknie podpowiada krok po kroku:
+Pod ustawieniami widać, jak strony ułożą się na kartkach. **Drukuj** otwiera okno drukowania z gotowym plikiem (na telefonie plik otwiera się w nowej karcie — wybierz tam **Udostępnij → Drukuj**), a **Pobierz PDF do druku** zapisuje ten sam plik.
 
 1. Najpierw wydrukuj jedną kartkę na próbę.
 2. W oknie drukarki ustaw skalę **Rzeczywisty rozmiar / 100%**.
-3. Broszurę drukuj dwustronnie, **obracanie po krótszej krawędzi** (kartka leży poziomo).
-4. Drukarka bez druku dwustronnego: najpierw tylko strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
-5. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu; grubą broszurę podziel na składki.
+3. Broszurę drukuj dwustronnie, **obracanie po krótszej krawędzi**; bez druku dwustronnego — najpierw strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
+4. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu.
 
 ## 23. Kolory dodatkowe i uszlachetnienia
 
@@ -1992,9 +1863,11 @@ W podglądzie projektu **Separacje** pokazuje stronę rozbitą na płyty, który
 
 ## 24. Udostępnianie linkiem
 
+Link do podglądu dla osób bez konta — klienta, rodziny, drukarni.
+
 ### 24.1 Tworzenie linku
 
-Link do podglądu pokażesz komuś, kto nie ma konta: klientowi, rodzinie, drukarni. Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
+Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
 
 1. W podglądzie kliknij **Udostępnij**.
 2. **Utwórz link** — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.
@@ -2030,9 +1903,11 @@ Część **Ochrona linku**:
 
 ## 25. Współpraca
 
+Wspólna praca nad projektem: zaproszenia, role i komentarze.
+
 ### 25.1 Zapraszanie
 
-Projekt możesz robić razem z innymi osobami — każda pracuje na swoim koncie, a zmiany widać u wszystkich na żywo. Wybierz **⋯** → **Współpraca…** w edytorze albo na karcie projektu.
+Każda osoba pracuje na swoim koncie, a zmiany widać u wszystkich na żywo. Wybierz **⋯** → **Współpraca…** w edytorze albo na karcie projektu.
 
 ![Współpraca w menu ⋯](https://makietka.app/img/instrukcja/k-menu-wspolpraca.png)
 
@@ -2060,7 +1935,7 @@ Kliknij link z wiadomości. Jeśli masz konto, zaproszenie zobaczysz też w apli
 
 Zaproszenie przyjmuje osoba, która ma link — także z innego adresu niż ten, na który poszło. W oknie Współpraca zawsze widać, kto naprawdę jest w projekcie.
 
-Gdy masz włączone powiadomienia, o zaproszeniu dowiesz się od razu — także przy zamkniętej aplikacji. Włączysz je w **Ustawienia konta** → **Powiadomienia** (rozdział „2.6 Powiadomienia”).
+Z włączonymi powiadomieniami (rozdział „2.6 Powiadomienia”) dowiesz się o zaproszeniu od razu.
 
 ### 25.4 Praca na żywo
 
@@ -2082,7 +1957,7 @@ Współpracownik może **Opuść projekt** — w menu **⋯** na karcie albo w o
 
 ### 25.7 Komentarze
 
-Komentarz to uwaga przypięta do miejsca na stronie albo do elementu — jak karteczka na wydruku. Na stronie widać ją jako pomarańczową pinezkę z numerem. Komentują wszyscy w projekcie: właściciel, **może edytować** i **może oglądać** (w podglądzie). Komentarze nie zmieniają projektu i nie trafiają do PDF.
+Komentarz to uwaga przypięta do miejsca na stronie albo do elementu — jak karteczka na wydruku — widoczna jako pomarańczowa pinezka z numerem. Komentować mogą wszyscy w projekcie, także z rolą **może oglądać** (w podglądzie). Komentarzy nie ma w PDF.
 
 ![Narzędzie Komentarz i przycisk Komentarze z licznikiem](https://makietka.app/img/instrukcja/k-komentarz-narzedzie.png)
 
@@ -2096,24 +1971,26 @@ Wpisz **@** i początek nazwy, żeby wspomnieć osobę z projektu — aplikacja 
 
 **Lista komentarzy**
 
-Przycisk **Komentarze** na górnym pasku edytora i w podglądzie pokazuje liczbę nierozwiązanych wątków. Na wąskim telefonie jest w menu **⋯**. Kliknięcie pinezki na stronie otwiera jej wątek.
+**Komentarze** na górnym pasku edytora i w podglądzie pokazuje liczbę nierozwiązanych wątków. Kliknięcie pinezki otwiera jej wątek.
 
 ![Panel Komentarze z wątkiem i odpowiedzią](https://makietka.app/img/instrukcja/komentarze.png)
 
 - Filtry: **Nierozwiązane**, **Wszystkie**, **Moje** (moje wątki, moje odpowiedzi i wzmianki o mnie).
-- Kliknij wątek, żeby go rozwinąć: odpowiedzi, pole **Odpowiedz**, **Pokaż na stronie** — przejście do strony i zaznaczenie elementu.
-- **Rozwiąż** zamyka wątek, gdy uwaga jest załatwiona; pinezka znika ze strony. **Otwórz ponownie** przywraca go (filtr **Wszystkie**).
-- Usuwa autor komentarza albo właściciel projektu.
+- W wątku są odpowiedzi, **Odpowiedz** i **Pokaż na stronie**.
+- **Rozwiąż** zamyka załatwiony wątek i chowa pinezkę; **Otwórz ponownie** (filtr **Wszystkie**) go przywraca.
+- Usunąć komentarz może autor albo właściciel projektu.
 
-Komentarze i odpowiedzi pojawiają się u wszystkich od razu. Gdy masz włączone powiadomienia z przełącznikiem **Komentarze**, dowiesz się o nowym komentarzu w Twoim projekcie, o odpowiedzi w Twoim wątku i o wzmiance o Tobie — kliknięcie powiadomienia otwiera wątek (**Ustawienia konta** → **Powiadomienia**, → 2.6).
+Komentarze pojawiają się u wszystkich od razu; o nowych dowiesz się też z powiadomień (rozdział „2.6 Powiadomienia”).
 
 AI połączone kluczem też czyta komentarze, odpowiada na nie i może je rozwiązać po poprawce (rozdział „26.1 Co potrafi AI”).
 
 ## 26. Praca z AI
 
+Asystent AI może budować i zmieniać Twoje projekty razem z Tobą.
+
 ### 26.1 Co potrafi AI
 
-Asystent AI — Claude, ChatGPT i inne — może pracować w Twoich projektach razem z Tobą. Łączy się z Makietką przez **łącznik**: adres z Twoim kluczem, który dodajesz w aplikacji AI.
+Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik**: adres z Twoim kluczem, który dodajesz w aplikacji AI.
 
 | AI może | AI nie może |
 |---|---|
@@ -2234,9 +2111,11 @@ Mój pomysł na komiks: <opisz tutaj bohaterów, historię i nastrój>
 
 ## 28. Telefon i tablet
 
+Jak pracować na ekranie dotykowym i jak zainstalować aplikację.
+
 ### 28.1 Gesty
 
-Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie dotykowym:
+Na ekranie dotykowym:
 
 | Gest | Co robi |
 |---|---|
@@ -2254,7 +2133,7 @@ Na telefonie edytor działa w pionie. Panele **Strony**, **Właściwości**, **W
 
 **Uchwyt** (kreska u góry panelu): pociągnij w górę, żeby powiększyć panel, w dół — żeby go zmniejszyć albo zamknąć. Stuknięcie w uchwyt zwija powiększony panel do zwykłej wysokości, a zwykły zamyka. Panel zamyka też ponowne stuknięcie jego przycisku.
 
-Na małym ekranie schowane są narzędzia, którymi trudno sterować palcem: wielokąt, kadrowanie ramką i linijki. Prowadnice wpiszesz liczbą, a obraz przytniesz liczbami we właściwościach.
+Rzadsze narzędzia — wielokąt, rysowanie, pióro, komentarz, kopiowanie wyglądu — są pod **⋯** na końcu paska wstawiania (rozdział „4.4 Pasek wstawiania”). Linijek i kadrowania ramką na telefonie nie ma: prowadnice wpiszesz liczbą (rozdział „13.4 Linijki i prowadnice”), a obraz przytniesz liczbami we właściwościach (rozdział „8.2 Kadrowanie”).
 
 Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” — obróć go do pionu.
 
@@ -2284,9 +2163,7 @@ Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem.
 
 ### 28.6 Dłuższe czynności
 
-Gdy coś trwa dłużej niż chwilę — otwieranie projektu, eksport PDF i PNG, druk w domu, podgląd separacji, wczytywanie stron makiety 3D, kopiowanie projektu, wczytywanie pliku z danymi, czcionek albo obrazów, usuwanie tła, udostępnianie — u góry pojawia się karta z nazwą czynności i paskiem. Gdy wiadomo, ile zostało, obok jest licznik, np. „17 z 48” stron. Przy eksporcie PDF jest **Anuluj** — przerywa czynność bez zapisywania pliku. Krótkie czynności karty nie pokazują.
-
-W oknie (np. Eksport do PDF) karta stoi nad oknem, a na telefonie w edytorze — pod paskiem narzędzi, żeby go nie zasłaniać. Miniatury stron po otwarciu dużego projektu rysują się w tle; ile jeszcze zostało, widać cienkim paskiem w panelu Strony — można w tym czasie normalnie pracować.
+Gdy coś trwa dłużej niż chwilę — np. otwieranie dużego projektu, eksport PDF, druk w domu, wgrywanie obrazów — u góry pojawia się karta z paskiem, a gdy wiadomo, ile zostało, z licznikiem, np. „17 z 48”. Eksport PDF przerwiesz przyciskiem **Anuluj**. Miniatury stron dużego projektu rysują się w tle (cienki pasek w panelu Strony) — możesz w tym czasie normalnie pracować.
 
 ![Karta postępu przy eksporcie PDF](https://makietka.app/img/instrukcja/k-postep.png)
 
@@ -2294,7 +2171,7 @@ W oknie (np. Eksport do PDF) karta stoi nad oknem, a na telefonie w edytorze —
 
 ### 29.1 Lista skrótów
 
-Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast `Ctrl` naciśnij `⌘`. Tę listę otworzy w edytorze klawisz `?`. Skróty z literami działają, gdy kursor nie stoi w polu formularza; w trakcie pisania tekstu działają skróty z grupy „Tekst”.
+Na Macu zamiast `Ctrl` naciśnij `⌘`. W edytorze tę listę pokaże klawisz `?`. W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 
 `Ctrl`+`K` otwiera paletę poleceń: wpisz kilka liter nazwy polecenia i naciśnij `Enter`.
 
@@ -2409,7 +2286,9 @@ Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast `Ctrl` 
 
 | Pojęcie | Znaczenie |
 |---|---|
+| **Bigowanie (big)** | Wgniecenie w kartonie okładki, po którym się zgina. |
 | **Blok** | Strona albo kilka sąsiednich stron serii, powielane razem. |
+| **CMYK** | Cztery farby drukarskie: cyjan, magenta, żółty, czarny. |
 | **Element** | Wszystko, co stoi na stronie: tekst, kształt, linia, obraz, tabela, grupa. |
 | **Grzbiet** | Część okładki między przodem a tyłem; w rozkładówce — miejsce zszycia. |
 | **Łącznik** | Adres, przez który asystent AI pracuje w Twoich projektach. |
@@ -2419,6 +2298,7 @@ Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast `Ctrl` 
 | **Rozkładówka** | Lewa i prawa strona obok siebie, jak w otwartej książce. |
 | **Sekcja** | Część publikacji z własnym formatem, marginesami i numeracją. |
 | **Seria** | Powielanie strony albo bloku dla kolejnych wierszy tabeli. |
+| **Składka** | Arkusz złożony w kilka kartek — książkę szyje się ze składek po 4, 8, 16 albo 32 strony. |
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
 | **Styl** | Zapisany wygląd tekstu, zmieniany naraz we wszystkich tekstach. |
 | **Tabela danych** | Arkusz w projekcie, z którego biorą się pola i serie — nie mylić z tabelą na stronie. |

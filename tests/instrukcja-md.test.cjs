@@ -23,6 +23,18 @@ test('instrukcja: pliki zbudowane z docs/instrukcja są aktualne, ai/instrukcja.
   for (const zakazane of [/pobierają się przy pierwszym użyciu/i, /magazyn/i, /pamięci podręcznej|cache/i, /Supabase/, /Zajmie około/i]) {
     assert.doesNotMatch(md, zakazane);
   }
+  // Bez treści o samej instrukcji i oczywistości (#168, #169).
+  for (const zakazane of [/Ta instrukcja/i, /Pierwszy projekt w skrócie/, /Niczego nie trzeba zapisywać/i, /to dodatek/i, /Ten podręcznik/i]) {
+    assert.doesNotMatch(md, zakazane);
+  }
+  // Każdy odsyłacz „→ 6.15” – także w środku dłuższego nawiasu – zamienia się na tytuł rozdziału (#169);
+  // do nieistniejącego miejsca budowa się nie uda.
+  assert.doesNotMatch(md, /→ \d/);
+  assert.doesNotMatch(js, /[^>]→ \d/);
+  // Rozdziały mają krótki wstęp „do czego to służy” (#169).
+  const { ROZDZIALY } = await import('../js/instrukcja-tresc.js');
+  const zeWstepem = ROZDZIALY.filter((r) => r.wstep).length;
+  assert.ok(zeWstepem >= 20, `rozdziałów ze wstępem: ${zeWstepem}`);
   // llms.txt prowadzi do obu dokumentów dla AI, a pliki istnieją.
   const llms = fs.readFileSync(path.join(__dirname, '..', 'llms.txt'), 'utf8');
   for (const plik of ['ai/instrukcja.md', 'ai/format-makietka.md', 'ai/przyklady/kalendarz.json']) {

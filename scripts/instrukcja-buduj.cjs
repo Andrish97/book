@@ -50,7 +50,7 @@ function wczytaj() {
       }
       if ((m = linia.match(/^# (\d+)\. (.+)$/))) {
         if (!czesc) throw new Error(`${plik}: rozdział ${m[1]} przed pierwszą częścią`);
-        rozdzial = { nr: m[1], tytul: m[2].trim(), czesc: czesc.tytul, ikona: czesc.ikona, sekcje: [] };
+        rozdzial = { nr: m[1], tytul: m[2].trim(), czesc: czesc.tytul, ikona: czesc.ikona, wstep: '', sekcje: [] };
         rozdzialy.push(rozdzial);
         czesc.rozdzialy.push(m[1]);
         sekcja = null;
@@ -68,6 +68,8 @@ function wczytaj() {
         continue;
       }
       if (sekcja) sekcja.linie.push(linia);
+      // Wstęp rozdziału (#169): jedno–dwa zdania „do czego to służy” między „# N.” a pierwszym „## N.1”.
+      else if (rozdzial && linia.trim()) rozdzial.wstep += (rozdzial.wstep ? ' ' : '') + linia.trim();
       else if (linia.trim()) throw new Error(`${plik}: tekst poza podrozdziałem: ${linia}`);
     }
   }
@@ -168,6 +170,11 @@ function htmlWiersza(tekst, t) {
     const linki = c.map((x) => `<a href="#" data-cel="${x.id}">${esc(x.tytul)}</a>`);
     return `(<span class="zobacz">→</span> ${c[0]?.zakres ? linki.join(' – ') : linki.join(', ')})`;
   });
+  // Odsyłacz w środku dłuższego nawiasu, np. „(Ctrl+F, → 6.15)” – też link i też sprawdzany (#169).
+  s = s.replace(/→ (\d+(?:\.\d+)?)(?![\d.])/g, (_, id) => {
+    const [c] = cele(id, t);
+    return `<span class="zobacz">→</span> <a href="#" data-cel="${c.id}">${esc(c.tytul)}</a>`;
+  });
   s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
   s = s.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>');
   s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
@@ -214,6 +221,7 @@ function mdWiersza(tekst, t) {
       const c = cele(z, t);
       return `(rozdział ${c.map((x) => `„${x.id} ${x.tytul}”`).join(c[0]?.zakres ? ' – ' : ', ')})`;
     })
+    .replace(/→ (\d+(?:\.\d+)?)(?![\d.])/g, (_, id) => { const [c] = cele(id, t); return `rozdział „${c.id} ${c.tytul}”`; })
     .replace(/<kbd>([^<]+)<\/kbd>/g, '`$1`')
     .replace(/\[([^\]]+)\](?!\()/g, '**$1**')
     .replace(/\*\*\*\*/g, '');
@@ -261,6 +269,7 @@ async function zbuduj() {
     czesci: czesci.map(({ nr, tytul, ikona, opis, rozdzialy: rr }) => ({ nr, tytul, ikona, opis, rozdzialy: rr })),
     rozdzialy: wynik.map((r) => ({
       nr: r.nr, tytul: r.tytul, czesc: r.czesc, ikona: r.ikona,
+      ...(r.wstep ? { wstep: htmlWiersza(r.wstep, t) } : {}),
       sekcje: r.sekcje.map((s) => ({ id: s.id, tytul: s.tytul, html: s.html })),
     })),
   };
@@ -294,6 +303,7 @@ async function zbuduj() {
     ...wynik.flatMap((r) => [
       `## ${r.nr}. ${r.tytul}`,
       '',
+      ...(r.wstep ? [mdWiersza(r.wstep, t), ''] : []),
       ...r.sekcje.flatMap((s) => [`### ${s.id} ${s.tytul}`, '', mdBlokow(s.bloki, t, polecenia, pola, skroty), '']),
     ]),
   ].join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';

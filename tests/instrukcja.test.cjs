@@ -1,5 +1,5 @@
 // Instrukcja – podręcznik (#114): strona główna z częściami, spis dwupoziomowy (części → rozdziały → podrozdziały),
-// okruszki, „W tym rozdziale”, odnośniki do podrozdziałów, wyszukiwarka, „Kopiuj” przy poleceniach dla AI,
+// „W tym rozdziale” (na wąskim ekranie), odnośniki do podrozdziałów, wyszukiwarka, „Kopiuj” przy poleceniach dla AI,
 // spis jako zasłonka na telefonie, dostęp bez konta (ekran logowania i adres #/instrukcja), bez samoczynnego otwierania.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -12,7 +12,7 @@ const pokaz = (strona, tytul) => strona.evaluate(async (t) => {
   await window.seriodruk.instrukcja.otworz(ROZDZIALY.findIndex((r) => r.tytul === t));
 }, tytul);
 
-test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wyszukiwarka i „Kopiuj”', async (t) => {
+test('instrukcja: strona główna, spis dwupoziomowy, bez powtórzeń nawigacji, odnośniki, wyszukiwarka i „Kopiuj”', async (t) => {
   const { strona, bledy } = await otworz(t);
   await strona.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   // Po zalogowaniu instrukcja nie otwiera się sama – to podręcznik, nie powitanie.
@@ -36,11 +36,14 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
   assert.equal(await strona.locator('#instrukcja-tresc .karta-czesci').count(), dane.czesci);
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-lead'), /edytor publikacji do druku/);
 
-  // Kafelek części → rozdział: okruszki, „W tym rozdziale”, spis z rozwiniętą częścią i podrozdziałami.
+  // Kafelek części → rozdział: spis z rozwiniętą częścią i podrozdziałami. Bez okruszków, a „W tym rozdziale”
+  // (te same podrozdziały co w spisie z boku) na szerokim ekranie schowane (#169).
   await strona.click('#instrukcja-tresc .karta-czesci a:has-text("Tekst")');
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Tekst/);
-  assert.match(await strona.textContent('#instrukcja-tresc .okruszki'), /Instrukcja.*Część II\. Edytor/);
+  assert.equal(await strona.locator('#instrukcja-tresc .okruszki').count(), 0);
+  assert.equal(await strona.locator('#instrukcja-tresc .strony-obok').count(), 0, 'Poprzedni / Następny tylko w stopce');
   assert.ok(await strona.locator('#instrukcja-tresc .w-rozdziale li').count() >= 5);
+  assert.equal(await strona.locator('#instrukcja-tresc .w-rozdziale').isVisible(), false);
   assert.equal(await strona.locator('.czesc-spisu.otwarta').count(), 1, 'rozwinięta tylko część bieżącego rozdziału');
   assert.ok(await strona.locator('li.otwarty .podrozdzialy-spisu button').first().isVisible(), 'podrozdziały otwartego rozdziału w spisie');
   assert.equal(await strona.locator('.rozdzial-przycisk[aria-current="true"] span').textContent(), 'Tekst');
@@ -60,7 +63,7 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
   await strona.click('.czesc-spisu:has-text("Dane i serie") .czesc-przycisk');
   assert.ok(await strona.locator('.czesc-spisu:has-text("Dane i serie") .rozdzialy-spisu').isVisible());
 
-  // Odnośnik w treści (→ 15.1) prowadzi do innego rozdziału; okruszek „Instrukcja” wraca na stronę główną.
+  // Odnośnik w treści (→ 15.1) prowadzi do innego rozdziału; „Instrukcja” nad spisem wraca na stronę główną.
   await pokaz(strona, 'Przykłady');
   // Rozdział rysuje się po otwarciu okna – klikamy, gdy odnośnik już stoi, i czekamy na nowy rozdział (#137).
   await strona.waitForFunction(() => /Przykłady/.test(document.querySelector('#instrukcja-tresc .instrukcja-h1')?.textContent || ''));
@@ -69,7 +72,7 @@ test('instrukcja: strona główna, spis dwupoziomowy, okruszki, odnośniki, wysz
     if (await strona.waitForFunction(() => /Pola w tekście/.test(document.querySelector('#instrukcja-tresc .instrukcja-h1')?.textContent || ''), null, { timeout: 5000 }).then(() => true, () => false)) break;
   }
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Pola w tekście/);
-  await strona.click('#instrukcja-tresc .okruszki [data-instrukcja-start]');
+  await strona.click('.instrukcja-spis [data-instrukcja-start]');
   assert.equal(await strona.locator('#instrukcja-tresc .karta-czesci').count(), dane.czesci);
 
   // Wszystkie odnośniki w treści prowadzą do istniejących miejsc, a zrzuty istnieją.
