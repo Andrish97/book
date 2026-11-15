@@ -775,7 +775,7 @@ if (require.main === module) (async () => {
   await pustaStrona();
   await d.evaluate(async () => {
     const e = window.seriodruk.edytor;
-    await (await import('./js/dzielenie.js')).dzielenieGotowe;
+    await (await import('./js/dzielenie.js')).zaladujDzielenie();
     const a = e.dodajTekst('Przedsiębiorstwo poligraficzne przygotowało niezapominajkowe kalendarze z przepięknymi ilustracjami i kolorowymi zakładkami dla wszystkich czytelników w całym kraju. Każdy miesiąc ma osobną stronę z miejscem na notatki.');
     a.set({ left: 16, top: 16, width: 70, textAlign: 'justify', dziel_wyrazy: true, inicjal: 3, inicjal_kolor: '#b45309', inicjal_czcionka: 'Playfair Display' });
     e.doczytajCzcionke('Playfair Display');

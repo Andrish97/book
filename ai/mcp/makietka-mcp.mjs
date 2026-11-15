@@ -527,6 +527,7 @@ export function pustyProjekt({ nazwa = 'Nowy projekt', format = 'A5', szerokosc 
       { id: noweId('st'), nazwa: 'Tekst', ...podstawa, fontSize: ptMm(10.5), lineHeight: 1.35 },
       { id: noweId('st'), nazwa: 'Podpis', ...podstawa, fontSize: ptMm(8), fill: '#6b6861', charSpacing: 20 },
     ],
+    style_znakowe: [], // style znakowe – wygląd fragmentu tekstu (#131)
     tabele: [],
     serie: [],
     strony: [{ id: noweId('s'), nazwa: 'Strona 1', sekcja: sekcja.id, wzorce: 'z_sekcji', obiekty: [], tlo: null }],

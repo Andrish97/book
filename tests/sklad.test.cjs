@@ -11,7 +11,7 @@ const DLUGI = 'Przedsiębiorstwo telekomunikacyjne przygotowało niezapominajkow
 async function tekst(strona, wlasciwosci) {
   return strona.evaluate(async ({ w, dlugi }) => {
     const { edytor } = window.seriodruk;
-    await (await import('./js/dzielenie.js')).dzielenieGotowe;
+    await (await import('./js/dzielenie.js')).zaladujDzielenie();
     const t = edytor.dodajTekst(w.text ?? dlugi);
     t.set({ width: 60, ...w });
     t.initDimensions();
@@ -219,7 +219,7 @@ test('PDF: tekst z dzieleniem, inicjałem i tabulatorami z kropkami zostaje wekt
   await nowyProjekt(strona, 'PDF');
   const wynik = await strona.evaluate(async (dlugi) => {
     const { edytor, stan } = window.seriodruk;
-    await (await import('./js/dzielenie.js')).dzielenieGotowe;
+    await (await import('./js/dzielenie.js')).zaladujDzielenie();
     const a = edytor.dodajTekst(dlugi);
     a.set({ width: 60, dziel_wyrazy: true, inicjal: 3, textAlign: 'justify' });
     const b = edytor.dodajTekst('Styczeń\t12\nLuty\t7');

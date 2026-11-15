@@ -16,7 +16,7 @@ import { przygotujKopie, kopiaRobocza, rozmiarOryginalu, zbierzZasoby } from './
 import { adresZasobu, dataUrlZasobu } from './zasoby.js';
 import { rozlejWatki } from './watki.js';
 import { ulozStrone } from './sklad.js';
-import { dzielenieGotowe } from './dzielenie.js';
+import { zaladujDzielenie, uzywaDzielenia } from './dzielenie.js';
 import { zapewnijCzcionki } from './czcionki.js';
 import { toTabela, ulozTabele } from './tabela-obiekt.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
@@ -235,6 +235,7 @@ export function obiektyZSasiadem(projekt, cel, ciag = rozwin(projekt)) {
 // Służy do sprawdzenia przed drukiem, czy tekst mieści się w ramce na każdej powielonej stronie.
 // Zwraca [{ obiekt (Fabric), zrodlo: 'strona' | 'wzorzec', id }].
 export async function tekstyEgzemplarza(projekt, egz, ciag) {
+  if (uzywaDzielenia(egz.strona.obiekty) || projekt.wzorce.some((w) => uzywaDzielenia(w.obiekty))) await zaladujDzielenie();
   const wartosc = wartosciPol(projekt, egz, ciag);
   const zbierz = (obiekty, wynik = []) => {
     for (const o of obiekty || []) {
@@ -300,7 +301,8 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
   const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
   const wydruk = jestWzorcem ? cel.wydruk : sekcjaStrony(projekt, egz.strona).wydruk;
   const tresc = jestWzorcem ? cel.obiekty : obiektyZSasiadem(projekt, egz, rozwiniety);
-  await dzielenieGotowe; // wzorce dzielenia wyrazów – zanim teksty się ułożą
+  // Wzorce dzielenia wyrazów – zanim teksty się ułożą (tylko gdy któryś tekst dzieli wyrazy).
+  if (uzywaDzielenia(tresc) || projekt.wzorce.some((w) => uzywaDzielenia(w.obiekty))) await zaladujDzielenie();
   if (!oryginaly) await przygotujKopie(projekt.zasoby, tresc);
   const wlasne = await ozyw(podmienZasoby(tresc, zrodloObrazu(projekt.zasoby, oryginaly && await oryginalyObrazow(projekt, tresc))));
   wpiszWRamki(wlasne);
