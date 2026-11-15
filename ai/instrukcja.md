@@ -30,15 +30,16 @@ Podręcznik aplikacji Makietka (https://makietka.app/) – edytora publikacji do
   - 19. Podgląd
   - 20. Sprawdź przed drukiem
   - 21. Eksport do PDF i PNG
-  - 22. Udostępnianie linkiem
+  - 22. Kolory dodatkowe i uszlachetnienia
+  - 23. Udostępnianie linkiem
 - **Część V. Razem z innymi** — Wspólna praca nad projektem i asystent AI.
-  - 23. Współpraca
-  - 24. Praca z AI
-  - 25. Przykład: komiks z AI
+  - 24. Współpraca
+  - 25. Praca z AI
+  - 26. Przykład: komiks z AI
 - **Część VI. Urządzenia i pomoc** — Telefon i tablet, skróty klawiszowe i słowniczek.
-  - 26. Telefon i tablet
-  - 27. Skróty klawiszowe
-  - 28. Słowniczek
+  - 27. Telefon i tablet
+  - 28. Skróty klawiszowe
+  - 29. Słowniczek
 
 ## 1. Makietka w skrócie
 
@@ -98,7 +99,7 @@ Strona główna instrukcji pokazuje wszystkie części i rozdziały. Pole **Szuk
 
 Projekty są zapisane na koncie, więc otworzysz je na każdym urządzeniu. Na ekranie logowania wybierz **Nowe konto** i wpisz:
 
-- **Nazwę użytkownika** — 3–30 znaków: litery, cyfry, `_`, `.` i `-`. Po tej nazwie inni zaproszą Cię do projektu (rozdział „23.1 Zapraszanie”). Pod polem od razu widać, czy nazwa jest wolna; dla zajętej aplikacja proponuje wolną.
+- **Nazwę użytkownika** — 3–30 znaków: litery, cyfry, `_`, `.` i `-`. Po tej nazwie inni zaproszą Cię do projektu (rozdział „24.1 Zapraszanie”). Pod polem od razu widać, czy nazwa jest wolna; dla zajętej aplikacja proponuje wolną.
 - **E-mail**.
 - **Hasło** i **Powtórz hasło** — co najmniej 8 znaków, mała i wielka litera, cyfra i znak specjalny. Spełnione wymagania zaznaczają się w trakcie pisania.
 
@@ -130,7 +131,7 @@ Ustawienia to lista: każdy wiersz pokazuje bieżącą wartość, a kliknięcie 
 | **Hasło** | **Zmień hasło** — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
 | **Motyw** | Wygląd aplikacji (rozdział „2.4 Motyw”). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (rozdział „2.6 Powiadomienia”). |
-| **Dostęp dla AI** | Klucze dla asystentów AI (rozdział „24.2 Klucz dla AI”). |
+| **Dostęp dla AI** | Klucze dla asystentów AI (rozdział „25.2 Klucz dla AI”). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (rozdział „2.5 Miejsce i limity”). |
 | **Usuń konto** | Usunięcie konta (rozdział „2.7 Usuwanie konta”). |
 
@@ -174,7 +175,7 @@ Makietka może od razu dać znać o sprawach projektów innych osób — także 
 | **Na tym urządzeniu** | Przełącznik — powiadomienia na tym urządzeniu. Przeglądarka zapyta o zgodę. |
 | **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**. |
 
-Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (rozdział „26.4 Instalacja aplikacji”) — w ustawieniach jest wtedy przycisk **Zainstaluj aplikację**.
+Kliknięcie powiadomienia otwiera właściwy projekt albo zaproszenie. Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (rozdział „27.4 Instalacja aplikacji”) — w ustawieniach jest wtedy przycisk **Zainstaluj aplikację**.
 
 ![Powiadomienia w ustawieniach konta](https://makietka.app/img/instrukcja/k-powiadomienia.png)
 
@@ -197,9 +198,9 @@ Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem lo
 Po zalogowaniu widzisz swoje projekty. Karta projektu pokazuje pierwszą stronę, nazwę i datę ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze.
 
 - **Chmurka** przy nazwie mówi, czy zmiany są na koncie: z ptaszkiem — zapisano, z zegarem — czekają na wysłanie, przekreślona — brak internetu (zmiany są na urządzeniu i wyślą się same). Najedź na nią albo przytrzymaj palec, żeby zobaczyć opis.
-- Plakietka **Udostępniony** — projekt ma link do podglądu (rozdział „22 Udostępnianie linkiem”). Kliknięcie plakietki otwiera okno linku.
+- Plakietka **Udostępniony** — projekt ma link do podglądu (rozdział „23 Udostępnianie linkiem”). Kliknięcie plakietki otwiera okno linku.
 - Projekty udostępnione Ci przez innych mają plakietkę z nazwą właściciela i dopisek „Możesz edytować” albo „Możesz oglądać”. Filtry **Wszystkie**, **Moje** i **Udostępnione mi** pojawiają się, gdy masz takie projekty.
-- **Zaproszenia** z liczbą — zaproszenia do cudzych projektów czekające na odpowiedź (rozdział „23.3 Przyjmowanie zaproszenia”).
+- **Zaproszenia** z liczbą — zaproszenia do cudzych projektów czekające na odpowiedź (rozdział „24.3 Przyjmowanie zaproszenia”).
 
 ![Lista projektów](https://makietka.app/img/instrukcja/projekty.png)
 
@@ -230,10 +231,10 @@ Przycisk **⋯** na karcie projektu otwiera menu:
 | **Zmień nazwę** | Nowa nazwa projektu. |
 | **Duplikuj** | Kopia całego projektu, np. kalendarz na kolejny rok. |
 | **Eksportuj do pliku (.makietka)** | Plik z całym projektem (rozdział „3.6 Plik projektu”). |
-| **Współpraca…** | Zaproszenia do wspólnej pracy (rozdział „23 Współpraca”). |
+| **Współpraca…** | Zaproszenia do wspólnej pracy (rozdział „24 Współpraca”). |
 | **Usuń projekt** | Usuwa projekt (z potwierdzeniem). |
 
-W projekcie innej osoby zamiast **Duplikuj** jest **Zrób własną kopię**, a zamiast **Usuń projekt** — **Opuść projekt** (rozdział „23.6 Opuszczanie projektu i kopia”).
+W projekcie innej osoby zamiast **Duplikuj** jest **Zrób własną kopię**, a zamiast **Usuń projekt** — **Opuść projekt** (rozdział „24.6 Opuszczanie projektu i kopia”).
 
 ![Menu projektu](https://makietka.app/img/instrukcja/menu.png)
 
@@ -259,7 +260,7 @@ Gdy projekt zmieniono w dwóch miejscach naraz, aplikacja **łączy zmiany eleme
 
 - **Eksportuj do pliku (.makietka)** (menu **⋯** na karcie) zapisuje cały projekt, z obrazami i czcionkami, do pliku `.makietka` — to kopia zapasowa albo sposób na przekazanie projektu.
 - Przycisk ze strzałką obok **Nowy projekt** wczytuje projekt z pliku `.makietka`.
-- Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (rozdział „26.4 Instalacja aplikacji”).
+- Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (rozdział „27.4 Instalacja aplikacji”).
 
 ## 4. Ekran edytora
 
@@ -307,7 +308,8 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | **Sprawdź przed drukiem** | Lista miejsc do sprawdzenia w całym projekcie (rozdział „20 Sprawdź przed drukiem”). |
 | **Obrazy projektu…** | Wszystkie obrazy projektu (rozdział „8.5 Okno Obrazy projektu”). |
 | **Czcionki projektu…** | Zestaw czcionek i własne czcionki (rozdział „6.8 Czcionki”). |
-| **Współpraca…** | Zaproszenia do wspólnej pracy (rozdział „23 Współpraca”). |
+| **Kolory do druku…** | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (rozdział „22.1 Kolory dodatkowe”, „22.5 Tryb kolorów projektu”). |
+| **Współpraca…** | Zaproszenia do wspólnej pracy (rozdział „24 Współpraca”). |
 | **Jasny / ciemny motyw** | Przełącza motyw aplikacji (rozdział „2.4 Motyw”). |
 
 ### 4.4 Pasek wstawiania
@@ -346,7 +348,7 @@ Przy zaznaczonym elemencie w nagłówku są przyciski **Kopiuj do schowka** (`Ct
 
 ![Ustawienia narzędzia: rysowanie](https://makietka.app/img/instrukcja/k-rysowanie.png)
 
-Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu: **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** (rozdział „26.2 Edytor na telefonie”).
+Na telefonie i tablecie w pionie właściwości i warstwy otwierasz osobnymi przyciskami na dole ekranu: **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** (rozdział „27.2 Edytor na telefonie”).
 
 ![Właściwości zaznaczonego tekstu](https://makietka.app/img/instrukcja/wlasciwosci.png)
 
@@ -370,6 +372,7 @@ Menu widoku:
 | **Zablokuj prowadnice** | Prowadnic nie da się złapać myszą. |
 | **Usuń prowadnice z tej strony** | Usuwa wszystkie prowadnice otwartej strony. |
 | **W rozkładówkach pokazuj jedną stronę** | W sekcji z rozkładówkami pokazuje tylko jedną stronę (rozdział „11.5 Rozkładówki”). |
+| **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (rozdział „22.3 Widok uszlachetnień”). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | **Auto** — gdy się mieszczą, **Zawsze**, **Nigdy**. |
 
@@ -1042,7 +1045,7 @@ Przytrzymany `Ctrl` na chwilę wyłącza przyciąganie. Przytrzymany `Alt` przy 
 - **−** i **+** w prawym dolnym rogu; kliknięcie procentu dopasowuje stronę do okna (`Ctrl`+`0`).
 - `Ctrl` + kółko myszy powiększa w miejscu kursora.
 - Spacja + przeciąganie przesuwa widok.
-- Na telefonie i tablecie — dwa palce (rozdział „26.1 Gesty”).
+- Na telefonie i tablecie — dwa palce (rozdział „27.1 Gesty”).
 
 ## 14. Tabele danych
 
@@ -1285,7 +1288,7 @@ Jedna strona na dzień, z dniem tygodnia, imieninami i świętami w kolorze.
 6. Numer strony i stopkę dodaj jako wzorzec (rozdział „12.4 Wzorce standardowe”).
 7. Sprawdź podgląd i wyeksportuj PDF (rozdział „19 Podgląd”, „21 Eksport do PDF i PNG”).
 
-**Polecenie dla AI: tabela dni do kalendarza** — Skopiuj, podmień nazwę projektu i wklej do rozmowy z AI, które ma podłączoną Makietkę (rozdział „24 Praca z AI”).
+**Polecenie dla AI: tabela dni do kalendarza** — Skopiuj, podmień nazwę projektu i wklej do rozmowy z AI, które ma podłączoną Makietkę (rozdział „25 Praca z AI”).
 
 ```text
 Korzystając z łącznika Makietka, w projekcie „<nazwa projektu>”:
@@ -1397,6 +1400,7 @@ Część **Zaawansowane**:
 | **Zdjęcia też w CMYK (większy plik)** | Przy PDF/X-4: zdjęcia przeliczone na farby drukarskie przez ten sam profil. |
 | **Podział na pliki** | **Jeden plik**, **Osobny plik dla każdej sekcji** albo **Części po tyle stron** (**Stron w części**). Kilka plików dostajesz w archiwum ZIP. |
 | **Dołącz pliki czcionek użytych w projekcie** | Do pobrania trafia ZIP z plikiem PDF i folderem `czcionki`. |
+| **Uszlachetnienia** | Gdy projekt je ma: **Osobne płyty w tym samym pliku PDF**, **Osobny plik PDF na każde uszlachetnienie** albo **Pomiń uszlachetnienia** (rozdział „22.4 Uszlachetnienia w pliku PDF”). |
 
 ### 21.3 Jak wybrać ustawienia dla drukarni
 
@@ -1417,9 +1421,75 @@ Element z cieniem, element przycięty maską i rysunek SVG z filtrem trafiają d
 
 **⋯** → **Pobierz bieżącą stronę jako PNG** zapisuje obraz otwartej strony w 300 dpi, ze spadem — np. do pokazania komuś w wiadomości.
 
-## 22. Udostępnianie linkiem
+## 22. Kolory dodatkowe i uszlachetnienia
 
-### 22.1 Tworzenie linku
+### 22.1 Kolory dodatkowe
+
+Druk to nie tylko cztery farby CMYK. Makietka zna kolory dodatkowe (np. Pantone), uszlachetnienia — lakier, złocenie, tłoczenie, biały poddruk — i druk tylko czarną farbą albo czarną z jednym kolorem. Wszystko trafia do pliku PDF tak, jak oczekuje drukarnia: każda farba na osobnej płycie.
+
+Kolor dodatkowy drukuje się osobną, gotową farbą — dokładnie w tym odcieniu, którego potrzebujesz (np. kolor logo).
+
+1. **⋯** → **Kolory do druku…** → **Dodaj kolor dodatkowy**.
+2. Wpisz **Nazwę** dokładnie jak w drukarni albo we wzorniku, np. „PANTONE 186 C”.
+3. Wpisz **C**, **M**, **Y**, **K** — to tylko podgląd na ekranie; drukarnia użyje swojej farby.
+
+![Okno „Kolory do druku”](https://makietka.app/img/instrukcja/k-kolory-druku.png)
+
+Kolor dodatkowy wybierasz w każdym polu koloru — wypełnienie, obrys, tekst, fragment tekstu — w części **Kolory dodatkowe**, razem z **Odcieniem** (np. 40%).
+
+![Kolor dodatkowy w wyborze koloru](https://makietka.app/img/instrukcja/k-kolor-dodatkowy.png)
+
+Zmiana CMYK koloru dodatkowego zmienia wszystkie elementy w tym kolorze. Usunięcie koloru zostawia elementy w zwykłym kolorze CMYK.
+
+### 22.2 Uszlachetnienia
+
+Uszlachetnienie ustawiasz przy elemencie, w części **Uszlachetnienie**:
+
+| Uszlachetnienie | Co to jest | Płyta w PDF |
+|---|---|---|
+| **Lakier UV wybiórczy** | Błyszczący lakier tylko w tym miejscu, np. na tytule. | Spot_UV |
+| **Złocenie (folia)** | Metaliczna folia; **Kolor folii**: złoto, srebro albo miedź. | Foil_Gold, Foil_Silver, Foil_Copper |
+| **Tłoczenie (wypukłe)** | Wzór wypchnięty w papierze. | Emboss |
+| **Wytłoczenie (wklęsłe)** | Wzór wciśnięty w papier. | Debossing |
+| **Biały poddruk** | Biała farba — na kolorowym albo przezroczystym podłożu. | White |
+
+![Uszlachetnienie w panelu elementu](https://makietka.app/img/instrukcja/k-uszlachetnienie.png)
+
+Element z uszlachetnieniem drukuje się **tylko** na płycie uszlachetnienia — jego kolory nie idą do druku. Żeby mieć napis w kolorze i ze złoceniem, zaznacz napis i w **Dodaj kopię z uszlachetnieniem** wybierz złocenie: kopia stanie dokładnie nad napisem.
+
+> **Wskazówka:** Uszlachetnienie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (rozdział „20 Sprawdź przed drukiem”).
+
+### 22.3 Widok uszlachetnień
+
+W edytorze i podglądzie uszlachetnienie widać jako efekt: połysk lakieru, metaliczną folię, cień tłoczenia, biel na szachownicy. Menu widoku → **Pokaż uszlachetnienia** wyłącza efekt (rozdział „4.6 Prawy dolny róg i menu widoku”).
+
+### 22.4 Uszlachetnienia w pliku PDF
+
+W pliku wektorowym każde uszlachetnienie to osobna płyta z **nadrukiem** — nie wybija farby pod spodem. W oknie eksportu, w części **Zaawansowane**, wybierz **Uszlachetnienia**:
+
+- **Osobne płyty w tym samym pliku PDF** — najczęstsze,
+- **Osobny plik PDF na każde uszlachetnienie** — główny plik bez uszlachetnień i osobny plik każdej płyty, w jednym ZIP,
+- **Pomiń uszlachetnienia**.
+
+Plik z obrazów stron nie ma osobnych płyt — wybierz plik wektorowy.
+
+### 22.5 Tryb kolorów projektu
+
+**⋯** → **Kolory do druku…** → **Tryb kolorów projektu**:
+
+| Tryb | Kiedy |
+|---|---|
+| **Pełny kolor** | Zwykły druk CMYK (domyślnie). |
+| **Skala szarości** | Druk jedną czarną farbą — kolory i zdjęcia idą odcieniami czerni. |
+| **Cz/b + 1 kolor** | Czerń i jeden kolor dodatkowy, np. kalendarz z czerwonymi niedzielami. **Kolor dodatkowy trybu** wybierasz pod spodem. |
+
+W wyborze koloru zostają wtedy odcienie czerni i kolor trybu. Kolory spoza trybu okno pokaże — **Zamień na najbliższe dozwolone** zamieni je na czerń albo kolor trybu. To samo zrobi przycisk w **Sprawdź przed drukiem**.
+
+> **Wskazówka:** Rozszerzony CMYK (CMYK z dodatkowymi farbami, np. pomarańczową, zieloną i fioletową) robi drukarnia sama z Twojego pliku — nie trzeba osobnej palety.
+
+## 23. Udostępnianie linkiem
+
+### 23.1 Tworzenie linku
 
 Link do podglądu pokażesz komuś, kto nie ma konta: klientowi, rodzinie, drukarni. Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
 
@@ -1432,13 +1502,13 @@ Link do podglądu pokażesz komuś, kto nie ma konta: klientowi, rodzinie, druka
 
 Projekt z linkiem ma na liście projektów plakietkę **Udostępniony** — kliknięcie otwiera to samo okno.
 
-### 22.2 Aktualizacja
+### 23.2 Aktualizacja
 
 Link aktualizuje się sam: kilka sekund po Twoich zmianach aplikacja wysyła obrazy stron, które się zmieniły. Adres zostaje ten sam. **Aktualizuj teraz** robi to od razu. Osoba, która ma link otwarty, nie musi odświeżać strony — nowe strony pojawią się same.
 
 Obrazy stron przygotowuje aplikacja, więc link nadąża za zmianami, gdy projekt jest otwarty — w edytorze albo w podglądzie, na dowolnym urządzeniu.
 
-### 22.3 Ochrona linku
+### 23.3 Ochrona linku
 
 Część **Ochrona linku**:
 
@@ -1449,15 +1519,15 @@ Część **Ochrona linku**:
 
 **Zapisz ochronę** zapisuje ustawienia. Puste pole hasła przy zaznaczonym haśle zostawia dotychczasowe; odznaczenie obu pól zdejmuje ochronę.
 
-### 22.4 Unieważnienie linku
+### 23.4 Unieważnienie linku
 
 **Unieważnij link** usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne udostępnienie daje nowy adres.
 
 > **Uwaga:** Link jest długi i losowy, więc nie da się go zgadnąć, ale każdy, kto go dostanie, może go przekazać dalej. Do poufnych projektów ustaw hasło.
 
-## 23. Współpraca
+## 24. Współpraca
 
-### 23.1 Zapraszanie
+### 24.1 Zapraszanie
 
 Projekt możesz robić razem z innymi osobami — każda pracuje na swoim koncie, a zmiany widać u wszystkich na żywo. Wybierz **⋯** → **Współpraca…** w edytorze albo na karcie projektu.
 
@@ -1466,14 +1536,14 @@ Projekt możesz robić razem z innymi osobami — każda pracuje na swoim koncie
 W części **Zaproś osobę**:
 
 1. W polu **E-mail albo nazwa użytkownika** wpisz adres albo nazwę — po dwóch literach pojawią się pasujące nazwy użytkowników.
-2. Wybierz **Rolę** (rozdział „23.2 Role”).
+2. Wybierz **Rolę** (rozdział „24.2 Role”).
 3. Kliknij **Zaproś**.
 
 Aplikacja wysyła e-mail z linkiem do zaproszenia. Link możesz też skopiować i wysłać sam. Przy zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby.
 
 ![Okno Współpraca](https://makietka.app/img/instrukcja/wspolpraca.png)
 
-### 23.2 Role
+### 24.2 Role
 
 | Rola | Co może |
 |---|---|
@@ -1481,7 +1551,7 @@ Aplikacja wysyła e-mail z linkiem do zaproszenia. Link możesz też skopiować 
 | **może oglądać** | Otwiera projekt tylko w podglądzie. |
 | **Właściciel** | Wszystko powyższe, a do tego zaprasza, zmienia role, odbiera dostęp, udostępnia link do podglądu i usuwa projekt. |
 
-### 23.3 Przyjmowanie zaproszenia
+### 24.3 Przyjmowanie zaproszenia
 
 Kliknij link z wiadomości. Jeśli masz konto, zaproszenie zobaczysz też w aplikacji: na liście projektów pojawi się przycisk **Zaproszenia** z liczbą. Przyjęty projekt jest na Twojej liście z plakietką właściciela.
 
@@ -1489,13 +1559,13 @@ Zaproszenie przyjmuje osoba, która ma link — także z innego adresu niż ten,
 
 Gdy masz włączone powiadomienia, o zaproszeniu dowiesz się od razu — także przy zamkniętej aplikacji. Włączysz je w **Ustawienia konta** → **Powiadomienia** (rozdział „2.6 Powiadomienia”).
 
-### 23.4 Praca na żywo
+### 24.4 Praca na żywo
 
 - Zmiany łączą się element po elemencie: gdy Ty poprawiasz tytuł, a ktoś przesuwa zdjęcie, zostają obie zmiany. O ten sam element aplikacja zapyta (rozdział „3.5 Kilka urządzeń i cofanie”).
 - Kółka z inicjałami na pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty; wskaż kółko, żeby zobaczyć, na której jest stronie.
 - **Cofnij** cofa tylko Twoje zmiany.
 
-### 23.5 Zarządzanie osobami
+### 24.5 Zarządzanie osobami
 
 Właściciel w oknie Współpraca przy każdej osobie:
 
@@ -1503,13 +1573,13 @@ Właściciel w oknie Współpraca przy każdej osobie:
 - **Odbierz** — odbiera dostęp od razu; zmiany, które ta osoba już zapisała, zostają,
 - przy zaproszeniu, które czeka: **Kopiuj link zaproszenia**, **Wyślij e-mail z zaproszeniem ponownie** i **Cofnij zaproszenie**.
 
-### 23.6 Opuszczanie projektu i kopia
+### 24.6 Opuszczanie projektu i kopia
 
 Współpracownik może **Opuść projekt** — w menu **⋯** na karcie albo w oknie Współpraca. **Zrób własną kopię** tworzy Twój własny projekt z tą samą treścią.
 
-## 24. Praca z AI
+## 25. Praca z AI
 
-### 24.1 Co potrafi AI
+### 25.1 Co potrafi AI
 
 Asystent AI — Claude, ChatGPT i inne — może pracować w Twoich projektach razem z Tobą. Łączy się z Makietką przez **łącznik**: adres z Twoim kluczem, który dodajesz w aplikacji AI.
 
@@ -1520,9 +1590,9 @@ Asystent AI — Claude, ChatGPT i inne — może pracować w Twoich projektach r
 | wypełniać tabele danych i ustawiać serie | wyeksportować PDF — plik robisz sam |
 | wgrywać, wstawiać i wymieniać zdjęcia |  |
 
-Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój. Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi jak zmiany współpracownika (rozdział „23.4 Praca na żywo”).
+Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój. Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi jak zmiany współpracownika (rozdział „24.4 Praca na żywo”).
 
-### 24.2 Klucz dla AI
+### 25.2 Klucz dla AI
 
 Klucz należy do konta: **Ustawienia konta** → **Dostęp dla AI** → **Zarządzaj…**.
 
@@ -1544,7 +1614,7 @@ Lista **Klucze konta** pokazuje zakres, ważność i ostatnie użycie każdego k
 
 ![Okno Dostęp dla AI](https://makietka.app/img/instrukcja/dostep-ai.png)
 
-### 24.3 Podłączenie w aplikacji AI
+### 25.3 Podłączenie w aplikacji AI
 
 | Aplikacja | Jak podłączyć |
 |---|---|
@@ -1582,7 +1652,7 @@ Pisz prosto, po polsku, jeden krok na raz i czekaj, aż powiem, że zrobione.
 
 > **Wskazówka:** Łączniki są zwykle w płatnych planach aplikacji AI. Na telefonie można zwykle tylko używać łączników dodanych wcześniej na komputerze.
 
-### 24.4 Zdjęcia przez AI
+### 25.4 Zdjęcia przez AI
 
 - **ChatGPT** bierze zdjęcia wrzucone do rozmowy wprost.
 - **Claude** wgrywa sam małe grafiki z rozmowy; **Claude Desktop z rozszerzeniem** — pliki i foldery z dysku.
@@ -1591,22 +1661,22 @@ Pisz prosto, po polsku, jeden krok na raz i czekaj, aż powiem, że zrobione.
 
 Zdjęcia, które stoi na stronie, AI nie usuwa — wymienia je na nowy plik w tym samym miejscu.
 
-### 24.5 Bezpieczeństwo
+### 25.5 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta, a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 
 > **Uwaga:** Adres łącznika zawiera klucz — kto go ma, ma dostęp do wybranych projektów. Nie publikuj go, dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy.
 
-## 25. Przykład: komiks z AI
+## 26. Przykład: komiks z AI
 
-### 25.1 Od pomysłu do pliku
+### 26.1 Od pomysłu do pliku
 
 Zeszyt A5 z okładką: AI układa kadry i dymki, Ty dajesz rysunki i decydujesz.
 
-1. Utwórz klucz z **pełnym dostępem** i **czytać i zmieniać** — AI utworzy nowy projekt (rozdział „24.2 Klucz dla AI”).
+1. Utwórz klucz z **pełnym dostępem** i **czytać i zmieniać** — AI utworzy nowy projekt (rozdział „25.2 Klucz dla AI”).
 2. Skopiuj polecenie „Komiks do druku” (niżej), dopisz pomysł i wyślij. AI najpierw pokaże plan stron — popraw go, zanim zacznie.
 3. Otwórz nowy projekt — zobaczysz, jak przybywa stron, kadrów i dymków.
-4. Poproś AI o link do wgrania i wrzuć rysunki (rozdział „24.4 Zdjęcia przez AI”). AI wstawi je w kadry.
+4. Poproś AI o link do wgrania i wrzuć rysunki (rozdział „25.4 Zdjęcia przez AI”). AI wstawi je w kadry.
 5. Popraw, co chcesz: tekst w dymkach (styl „Dymek” zmienia wszystkie naraz), kadrowanie, kolejność stron.
 6. Okładkę zrób jako osobną sekcję z grzbietem (rozdział „11.6 Okładka z grzbietem”).
 7. **Sprawdź przed drukiem**, potem PDF **Do drukarni** (rozdział „20 Sprawdź przed drukiem”, „21 Eksport do PDF i PNG”).
@@ -1629,9 +1699,9 @@ Mój pomysł na komiks: <opisz tutaj bohaterów, historię i nastrój>
 
 > **Wskazówka:** Zeszyt zszywany ma liczbę stron podzielną przez 4 (8, 12, 16…). Rysunki do druku przygotuj w co najmniej 300 dpi w rozmiarze kadru.
 
-## 26. Telefon i tablet
+## 27. Telefon i tablet
 
-### 26.1 Gesty
+### 27.1 Gesty
 
 Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie dotykowym:
 
@@ -1644,7 +1714,7 @@ Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie
 
 W podglądzie szczypanie powiększa, a w prezentacji przesunięcie w bok przewraca stronę (rozdział „19 Podgląd”).
 
-### 26.2 Edytor na telefonie
+### 27.2 Edytor na telefonie
 
 Na telefonie edytor działa w pionie. Panele **Strony**, **Właściwości**, **Warstwy** i **Ostrzeżenia** otwierasz przyciskami na dole ekranu. Panel wysuwa się z dołu, a widok sam przesuwa się tak, żeby zaznaczony element był widoczny nad panelem.
 
@@ -1656,13 +1726,13 @@ Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” 
 
 ![Edytor na telefonie](https://makietka.app/img/instrukcja/telefon.png)
 
-### 26.3 Okna od dołu
+### 27.3 Okna od dołu
 
 Na telefonie i tablecie okna (Dane, Wzorce, Eksport do PDF, Obrazy projektu i inne) wysuwają się od dołu ekranu. Zamiast krzyżyka mają **uchwyt** — pociągnij go w dół albo stuknij, żeby zamknąć; zamyka też stuknięcie w przyciemnione tło. Główny przycisk okna jest na dole, zawsze widoczny.
 
 ![Okno na telefonie](https://makietka.app/img/instrukcja/telefon-zaslonka.png)
 
-### 26.4 Instalacja aplikacji
+### 27.4 Instalacja aplikacji
 
 Zainstalowana Makietka otwiera się z ekranu głównego jak zwykła aplikacja — na całym ekranie, bez paska przeglądarki.
 
@@ -1674,13 +1744,13 @@ Zainstalowana Makietka otwiera się z ekranu głównego jak zwykła aplikacja �
 
 Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem.
 
-### 26.5 Pełny ekran
+### 27.5 Pełny ekran
 
-**Pełny ekran** (cztery narożniki) na liście projektów, w edytorze i w podglądzie chowa paski przeglądarki; `Esc` albo ten sam przycisk wraca. Na iPhonie przeglądarka nie pozwala na pełny ekran — tam daje go zainstalowanie aplikacji (rozdział „26.4 Instalacja aplikacji”).
+**Pełny ekran** (cztery narożniki) na liście projektów, w edytorze i w podglądzie chowa paski przeglądarki; `Esc` albo ten sam przycisk wraca. Na iPhonie przeglądarka nie pozwala na pełny ekran — tam daje go zainstalowanie aplikacji (rozdział „27.4 Instalacja aplikacji”).
 
-## 27. Skróty klawiszowe
+## 28. Skróty klawiszowe
 
-### 27.1 Lista skrótów
+### 28.1 Lista skrótów
 
 Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast `Ctrl` naciśnij `⌘`. Tę listę otworzy w edytorze klawisz `?`. Skróty z literami działają, gdy kursor nie stoi w polu formularza; w trakcie pisania tekstu działają skróty z grupy „Tekst”.
 
@@ -1787,9 +1857,9 @@ Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast `Ctrl` 
 | `Ctrl` + `Shift` + `P` | Nowa strona za bieżącą |
 | `?` | Ta lista skrótów |
 
-## 28. Słowniczek
+## 29. Słowniczek
 
-### 28.1 Pojęcia
+### 29.1 Pojęcia
 
 | Pojęcie | Znaczenie |
 |---|---|

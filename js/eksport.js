@@ -18,6 +18,7 @@ import { rozwin } from './serie.js';
 import { biblioteka } from './biblioteki.js';
 import { bezpiecznaNazwa } from './ui.js';
 import { uzyteCzcionki, CZCIONKI } from './czcionki.js';
+import { spotyDruku, mapaSpotow, trybKolorow, uzyteKoloryDruku, stanUszlachetnien } from './kolory-druku.js';
 
 const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
 const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
@@ -117,12 +118,23 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) 
 // PDF/X-4 z profilem warunków druku; wtedy cmyk przelicza tekst i kształty przez ten profil, a zdjeciaCmyk –
 // także zdjęcia. W trybie obrazów zdjeciaCmyk przelicza przez profil cały obraz strony (js/strona-cmyk.js).
 // `druk` to wczytane już warunki (wczytajWarunki), żeby przy kilku plikach nie czytać profilu za każdym razem.
-export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), postep, przerwij } = {}) {
+// Kolory do druku (#127): kolory dodatkowe idą w pliku wektorowym na osobne płyty (Separation), uszlachetnienia
+// też – z nadrukiem; uszlachetnienia: 'plyty' (w tym samym pliku) | 'pomin' | 'tylko' (z tylkoPlyta – plik jednej płyty).
+// Tryb kolorów projektu „Skala szarości” i „cz/b + 1 kolor”: wszystko poza płytą koloru trybu samą czernią.
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), uszlachetnienia = 'plyty', tylkoPlyta = null, postep, przerwij } = {}) {
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
   const warunki = druk || (pdfx ? await wczytajWarunki(pdfx, profilWlasny) : null);
   const wektor = tryb === 'wektor';
-  const silnik = warunki && wektor && (cmyk || zdjeciaCmyk) ? warunki.silnik() : null;
-  const silnikStron = warunki && !wektor && zdjeciaCmyk ? warunki.silnik() : null;
+  const szarosc = trybKolorow(projekt) !== 'pelny';
+  if (szarosc) cmyk = true; // czerń i płyty – zawsze w farbach drukarskich
+  const silnik = warunki && wektor && (cmyk || zdjeciaCmyk) && !szarosc ? warunki.silnik() : null;
+  const silnikStron = warunki && !wektor && zdjeciaCmyk && !szarosc ? warunki.silnik() : null;
+  const trybUszl = tylkoPlyta ? 'tylko' : (uszlachetnienia === 'pomin' ? 'pomin' : 'plyty');
+  if (!wektor) {
+    const { uszlachetnienia: uzyte } = uzyteKoloryDruku(projekt);
+    if (uzyte.length) uwagi.set('uszlachetnienia pominięte – plik z obrazów stron nie ma osobnych płyt (wybierz plik wektorowy)', uzyte.reduce((n, u) => n + u.ile, 0));
+    if (trybKolorow(projekt) === 'czb1') uwagi.set('kolor dodatkowy w odcieniach szarości – plik z obrazów stron nie ma osobnej płyty (wybierz plik wektorowy)', 1);
+  }
   const pdf = await PDFLib.PDFDocument.create();
   pdf.setTitle(projekt.nazwa);
   pdf.setCreator('Makietka');
@@ -131,9 +143,14 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   if (tryb === 'wektor') {
     const fontkit = await biblioteka(FONTKIT_URL, 'fontkit', 'modułu czcionek PDF');
     pdf.registerFontkit(fontkit);
-    srodowisko = { PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf, { silnik: zdjeciaCmyk ? silnik : null }), cmyk, silnik: cmyk ? silnik : null, krzywe, dpi, uwagi, jakoKrzywe, ligatury, uzyteCzcionki: new Set() };
+    srodowisko = {
+      PDFLib, pdf, czcionki: new CzcionkiPdf(pdf, projekt, fontkit, { krzywe }), obrazy: new ObrazyPdf(pdf, { silnik: zdjeciaCmyk ? silnik : null, szarosc }), cmyk, silnik: cmyk ? silnik : null, krzywe, dpi, uwagi, jakoKrzywe, ligatury, uzyteCzcionki: new Set(),
+      szarosc, spoty: mapaSpotow(spotyDruku(projekt)), trybUszl, tylkoPlyta,
+    };
   }
   let nr = 0;
+  stanUszlachetnien.eksport = !wektor; // obrazy stron: bez efektów uszlachetnień (to nie farba)
+  try {
   for (const egz of egzemplarze) {
     if (przerwij?.()) throw new Przerwano();
     const { wydruk } = egz.sekcja;
@@ -168,7 +185,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
         szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true,
       });
       if (!url.startsWith('data:image/jpeg')) throw new Error('Strona jest za duża na tę rozdzielczość. Wybierz niższą jakość.');
-      const obraz = await pdf.embedJpg(url);
+      const obraz = await pdf.embedJpg(szarosc ? await szaryJpeg(url, jakosc) : url);
       strona = pdf.addPage([szer, wys]);
       strona.drawImage(obraz, { x: (m.pas - m.spad) * PT, y: (m.pas - m.spad) * PT, width: (m.w + 2 * m.spad) * PT, height: (m.h + 2 * m.spad) * PT });
     }
@@ -179,12 +196,28 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     postep?.(nr);
     await new Promise((ok) => setTimeout(ok)); // oddaj głos przeglądarce – postęp się odmaluje
   }
+  } finally { stanUszlachetnien.eksport = false; }
   // Czcionki wczytane, ale ostatecznie nieużyte (np. tekst poszedł jako obraz), nie trafiają do pliku.
   if (srodowisko) pdf.fonts = pdf.fonts.filter((f) => srodowisko.uzyteCzcionki.has(f));
   if (srodowisko) await poprawOpisCzcionekOtf(PDFLib, pdf);
   if (warunki) await dodajPdfX(PDFLib, pdf, warunki, { tytul: projekt.nazwa });
   const bajty = await pdf.save();
   return new Blob([warunki ? naglowekPdfX(bajty) : bajty], { type: 'application/pdf' });
+}
+
+// Strona-obraz w odcieniach szarości (tryby cz/b, plik z obrazów stron).
+async function szaryJpeg(url, jakosc) {
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const x = c.getContext('2d');
+  x.filter = 'grayscale(1)';
+  x.drawImage(img, 0, 0);
+  const wynik = c.toDataURL('image/jpeg', jakosc);
+  c.width = 0; c.height = 0;
+  return wynik;
 }
 
 // Pliki jednej rodziny z oficjalnego zestawu czcionek aplikacji: zwykłe pliki TTF, po jednym
@@ -245,10 +278,17 @@ export async function eksportujPdf(projekt, opcje = {}) {
   const druk = opcje.pdfx ? await wczytajWarunki(opcje.pdfx, opcje.profilWlasny) : null;
   let gotowe = 0;
   const wyniki = [];
+  // Uszlachetnienia „osobno” (#127): główny plik bez nich, a do tego plik na każdą płytę uszlachetnienia.
+  const osobno = opcje.uszlachetnienia === 'osobno' && (opcje.tryb || 'wektor') === 'wektor';
+  const plyty = osobno ? uzyteKoloryDruku(projekt).uszlachetnienia : [];
   for (const p of pliki) {
     const start = gotowe;
-    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, druk, uwagi, jakoKrzywe, ligatury, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
+    const blob = await zlozPdf(projekt, p.egzemplarze, { ...opcje, uszlachetnienia: osobno ? 'pomin' : opcje.uszlachetnienia, druk, uwagi, jakoKrzywe, ligatury, ciag, postep: (n) => { gotowe = start + n; opcje.postep?.(gotowe, razem); } });
     wyniki.push({ nazwa: p.nazwa, blob });
+    for (const u of plyty) {
+      const plik = await zlozPdf(projekt, p.egzemplarze, { ...opcje, tylkoPlyta: u.plyta, druk, uwagi: new Map(), jakoKrzywe: new Map(), ligatury: { ile: 0 }, ciag });
+      wyniki.push({ nazwa: p.nazwa.replace(/\.pdf$/, ` - ${bezpiecznaNazwa(u.etykieta)} (${u.plyta}).pdf`), blob: plik });
+    }
   }
   const czcionki = opcje.dolaczCzcionki ? await plikiCzcionek(projekt) : [];
   if (wyniki.length === 1 && !czcionki.length) return { ...wyniki[0], uwagi: [...uwagi], krzywe: [...jakoKrzywe], ligatury: ligatury.ile };

@@ -2,6 +2,9 @@
 // Ustawienia Fabric.js 7 wspólne dla edytora i składania stron. Każdy moduł, który tworzy
 // albo wczytuje obiekty Fabric, importuje ten plik – ustawienia są gotowe przed pierwszym użyciem.
 
+// Uszlachetnienia (#127): efekt w edytorze i płyty w PDF – nakładka na rysowanie obiektów Fabric.
+import { zainstalujUszlachetnienia } from './kolory-druku.js';
+
 // Własne właściwości obiektów, które zapisujemy razem z JSON-em Fabric.
 export const WLASNE_POLA = [
   'id', 'nazwa', 'zasob', 'bez_ostrzezen',
@@ -23,10 +26,12 @@ export const WLASNE_POLA = [
   'okladka', 'okladka_dopasuj', // okładka (#119): przypięcie do tyłu, grzbietu albo przodu; dopasowanie do grzbietu
   'obraz_kadr', // kształt jako ramka obrazu: { x, y, skala } (obraz-w-ksztalcie.js, #123)
   'filtry', // filtry obrazu bez zmiany pliku: { jasnosc, kontrast, nasycenie, szarosc, sepia, rozmycie } (#123)
+  'uszlachetnienie', 'folia', // uszlachetnienie (#127): 'uv' | 'folia' | 'tloczenie' | 'wytloczenie' | 'bialy'; folia: 'zloto' | 'srebro' | 'miedz'
 ];
 
 if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   fabric.BaseFabricObject.prototype._ustawieniaSeriodruku = true;
+  zainstalujUszlachetnienia();
 
   // Położenie obiektu (left, top) to jego lewy górny róg – tak są zapisane wszystkie projekty.
   // (Fabric 7 domyślnie liczy od środka.)
@@ -50,7 +55,7 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   // Każda klasa Fabric ma własną listę – dopisujemy do każdej, która może mieć obraz.
   for (const klasa of ['FabricObject', 'Rect', 'Ellipse', 'Circle', 'Polygon', 'Polyline', 'Triangle', 'Path', 'FabricImage']) {
     const lista = fabric[klasa]?.cacheProperties;
-    if (Array.isArray(lista)) for (const k of ['filtry', 'obraz_kadr', 'zasob']) if (!lista.includes(k)) lista.push(k);
+    if (Array.isArray(lista)) for (const k of ['filtry', 'obraz_kadr', 'zasob', 'uszlachetnienie', 'folia']) if (!lista.includes(k)) lista.push(k);
   }
 
   // W zapisie typ obiektu zostaje taki jak dotąd (małe litery: 'textbox', 'image', 'rect'…).

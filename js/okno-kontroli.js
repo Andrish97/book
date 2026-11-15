@@ -8,7 +8,7 @@ import { sprawdzMieszczenie } from './kontrola-skladu.js';
 // Wypełnia listę uwagami. Przy uwadze z numerami stron jest „Pokaż” – otwiera podgląd na pierwszej z tych
 // stron (już z danymi tego powielenia); przy uwadze o konkretnym elemencie także „Otwórz wzór” – stronę
 // w edytorze, z zaznaczonym elementem.
-export function rysujUwagi(ul, uwagi, { wPodgladzie, wzor } = {}) {
+export function rysujUwagi(ul, uwagi, { wPodgladzie, wzor, napraw } = {}) {
   ul.replaceChildren(...uwagi.map((u) => {
     const li = document.createElement('li');
     const opis = document.createElement('span');
@@ -23,6 +23,7 @@ export function rysujUwagi(ul, uwagi, { wPodgladzie, wzor } = {}) {
     };
     if (wPodgladzie && u.strony?.length) dodaj('Pokaż', 'Pokaż tę stronę w podglądzie – z danymi tego powielenia', () => wPodgladzie(Math.min(...u.strony)));
     if (wzor && u.idStrony) dodaj('Otwórz wzór', 'Otwórz stronę-wzór w edytorze i zaznacz element', () => wzor(u.idStrony, u.idObiektu));
+    if (napraw && u.naprawa === 'kolory_trybu') dodaj('Zamień na dozwolone', 'Zamień kolory spoza trybu kolorów na najbliższe dozwolone (czerń albo kolor trybu)', () => napraw(u));
     if (przyciski.children.length) li.append(przyciski);
     return li;
   }));
@@ -32,8 +33,8 @@ export class OknoKontroli {
   // projekt() → bieżący projekt; przedSprawdzeniem() – płótno oddaje treść do projektu;
   // pokaz(idStrony, idObiektu) – otwiera stronę-wzór i zaznacza element;
   // pokazWPodgladzie(nr) – otwiera podgląd na stronie o tym numerze w wydruku.
-  constructor({ projekt, przedSprawdzeniem, pokaz, pokazWPodgladzie }) {
-    this.zrodlo = { projekt, przedSprawdzeniem, pokaz, pokazWPodgladzie };
+  constructor({ projekt, przedSprawdzeniem, pokaz, pokazWPodgladzie, napraw }) {
+    this.zrodlo = { projekt, przedSprawdzeniem, pokaz, pokazWPodgladzie, napraw };
     this.okno = $('#dlg-kontrola');
     this.nr = 0;
     $('#kontrola-zamknij').addEventListener('click', () => this.okno.close());
@@ -50,6 +51,7 @@ export class OknoKontroli {
     const pokaz = {
       wzor: (idStrony, idObiektu) => { this.okno.close(); this.zrodlo.pokaz(idStrony, idObiektu); },
       wPodgladzie: this.zrodlo.pokazWPodgladzie ? (nrStrony) => { this.okno.close(); this.zrodlo.pokazWPodgladzie(nrStrony); } : null,
+      napraw: this.zrodlo.napraw ? async (u) => { await this.zrodlo.napraw(u); this.okno.close(); this.otworz(); } : null,
     };
     let uwagi = sprawdzProjekt(projekt, ciag);
     rysujUwagi(lista, uwagi, pokaz);

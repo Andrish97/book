@@ -637,6 +637,7 @@ function przeglad(w) {
     `Style: ${(p.style || []).map((x) => `${x.id} „${x.nazwa}”`).join('; ') || 'brak'}`,
     `Tabele: ${(p.tabele || []).map((t) => `${t.id} „${t.nazwa}” kolumny: ${(t.kolumny || []).join(', ')}; ${(t.wiersze || []).length} wierszy`).join(' | ') || 'brak'}`,
     `Serie: ${(p.serie || []).map((s) => `${s.id} „${s.nazwa}” tabela=${s.tabela || '–'} tryb=${s.tryb || 'tabela'}`).join('; ') || 'brak'}`,
+    `Kolory do druku: tryb ${p.tryb_kolorow || 'pelny'}${p.tryb_kolorow === 'czb1' ? ` (kolor trybu: ${p.kolor_trybu || 'brak'})` : ''}; kolory dodatkowe: ${(p.kolory_dodatkowe || []).map((k) => `${k.id} „${k.nazwa}” CMYK ${(k.cmyk || []).join('/')}`).join('; ') || 'brak'}`,
     `Obrazy i czcionki w projekcie (szczegóły obrazów: obrazy_projektu): ${Object.entries(p.zasoby || {}).map(([id, z]) => `${id} ${z.nazwa}`).join(', ') || 'brak'}`,
   ].join('\n');
 }
@@ -1459,7 +1460,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'zmien_projekt',
       title: 'Zmień projekt (ogólnie)',
-      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron? }. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
+      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron?, kolory_dodatkowe? (kolory spot, np. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu? }. Kolor dodatkowy w elemencie i uszlachetnienia (pole elementu uszlachetnienie) – opis w opis_formatu. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
       inputSchema: S('', { zmiany: obiekt('Części projektu do zapisu') }, ['zmiany']),
       dzialaj: ({ zmiany }) => zmien(() => ({ zmiany, opis: `Zapisano części: ${Object.keys(zmiany).join(', ')}.` })),
     },

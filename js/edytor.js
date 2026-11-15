@@ -1195,6 +1195,20 @@ export class Edytor extends EventTarget {
     this._wstawKopie(kopie);
   }
 
+  // Kopia elementu z uszlachetnieniem (#127) dokładnie nad nim: element drukuje się w kolorze, kopia na płycie
+  // uszlachetnienia (lakier, folia, tłoczenie, biel). Zaznacza kopię.
+  async uszlachetnienieKopia(rodzaj, folia = 'zloto') {
+    const akt = this.aktywny;
+    if (!akt || toZaznaczenie(akt) || akt.group || !rodzaj) return null;
+    const [k] = await this._kopie(akt);
+    k.set({ id: uid('o'), uszlachetnienie: rodzaj, folia: rodzaj === 'folia' ? folia : undefined, watek: undefined, watek_nr: undefined, lacznik: undefined, nazwa: undefined });
+    this.canvas.discardActiveObject();
+    this.canvas.insertAt(this.canvas.getObjects().indexOf(akt) + 1, k);
+    this.canvas.setActiveObject(k);
+    this.canvas.requestRenderAll();
+    return k;
+  }
+
   // Kopie zaznaczonego elementu albo wszystkich elementów zaznaczenia – każda z położeniem
   // na arkuszu (element w zaznaczeniu ma położenie liczone względem tego zaznaczenia).
   async _kopie(obj) {
