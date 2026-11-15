@@ -267,3 +267,23 @@ test('biblioteka: „Style tekstu” nadaje styl zaznaczonemu tekstowi (#131A, #
   await strona.waitForFunction((id) => window.seriodruk.edytor.canvas.getObjects().some((o) => o.styl === id), styl.id);
   assert.deepEqual(bledy, []);
 });
+
+test('zasada #140: polecenia palety Ctrl+K mają też widoczne miejsce w interfejsie', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Zasada 140');
+  const brak = await strona.evaluate(async () => {
+    const { kategorieBiblioteki } = await import('./js/biblioteka.js');
+    const wBibliotece = kategorieBiblioteki().flatMap((k) => k.elementy().map((e) => e.nazwa.toLowerCase()));
+    const html = document.body.innerHTML.toLowerCase();
+    const zrodla = (await (await fetch('./js/wlasciwosci.js')).text()).toLowerCase();
+    const polecenia = (await (await fetch('./js/app/edytor-start.js')).text()).match(/dodajPolecenie\(\{ nazwa: '([^']+)'/g) || [];
+    return polecenia.map((p) => p.replace(/^dodajPolecenie\(\{ nazwa: '/, '').replace(/'$/, ''))
+      .filter((n) => {
+        const krotko = n.toLowerCase().replace(/^wstaw /, '');
+        return !wBibliotece.some((e) => e.includes(krotko) || krotko.includes(e)) && !html.includes(n.toLowerCase()) && !zrodla.includes(`'${n.toLowerCase()}'`);
+      });
+  });
+  assert.deepEqual(brak, [], `polecenia tylko w palecie: ${brak.join(', ')}`);
+  assert.deepEqual(bledy, []);
+});
