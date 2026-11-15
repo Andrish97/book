@@ -4,7 +4,8 @@ import { FORMATY, stronyZWzorcem, tloStrony, WZORCE_Z_SEKCJI, stronySekcji, norm
 import { bokStrony, rozwin, tabelaSerii, tabeleSerii } from '../serie.js';
 import { POLA_DOKUMENTU } from '../pola.js';
 import { $ } from '../ui.js';
-import { liczba, stan, biezacyWzorzec, biezacaSekcja, biezacaStrona, edytor, tenSamRozmiar } from './kontekst.js';
+import { ikona } from '../ikony.js';
+import { liczba, stan, biezacyWzorzec, biezacaSekcja, biezacaStrona, edytor, tenSamRozmiar, jednaStrona } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { panel, dane } from './skladniki.js';
 import { renderujListe, przeniesStroneDoSekcji } from './lista-stron.js';
@@ -27,6 +28,19 @@ export function nazwaFormatu(w, pelny = false, rozkladowki = false) {
 
 export function odswiezPasekEdytora() {
   const wz = stan.tryb === 'wzorzec';
+  // Przycisk „rozkładówka / jedna strona” – tylko w sekcji z rozkładówkami (#148).
+  const przRozk = $('#przycisk-rozkladowka');
+  if (przRozk) {
+    const rozk = !wz && biezacaSekcja()?.uklad === 'rozkladowki';
+    przRozk.hidden = !rozk;
+    if (rozk) {
+      const jedna = jednaStrona();
+      przRozk.setAttribute('aria-pressed', String(!jedna));
+      przRozk.title = jedna ? 'Pokaż całą rozkładówkę' : 'Pokaż jedną stronę';
+      przRozk.setAttribute('aria-label', przRozk.title);
+      przRozk.innerHTML = ikona(jedna ? 'rozkladowka' : 'jednaStrona', { rozmiar: 20 });
+    }
+  }
   document.body.classList.toggle('tryb-wzorca', wz);
   $('#pasek-wzorca').hidden = !wz;
   if (wz) {

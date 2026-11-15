@@ -15,7 +15,7 @@ test('telefon: szybki gest w poziomie po pustym miejscu – następna/poprzednia
   });
   const cdp = await kontekst.newCDPSession(strona);
   const dotyk = (type, pkt) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pkt.map((q, i) => ({ x: q[0], y: q[1], id: i })) });
-  const przesun = async (x0, y, dx, kroki = 4) => {
+  const przesun = async (x0, y, dx, kroki = 2) => {
     await dotyk('touchStart', [[x0, y]]);
     for (let i = 1; i <= kroki; i += 1) await dotyk('touchMove', [[x0 + (dx * i) / kroki, y]]);
     await dotyk('touchEnd', []);

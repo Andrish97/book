@@ -500,12 +500,15 @@ edytor.addEventListener('prowadnice', zaplanujZapis);
 
 wlaczWygladEdytora(); // podpisy narzędzi i napisy na górnym pasku (#109)
 
-// Jedna strona zamiast rozkładówki – ustawienie tego urządzenia.
-$('#widok-jedna').addEventListener('change', async (e) => {
-  try { localStorage.setItem(KLUCZ_JEDNA, e.target.checked ? '1' : '0'); } catch { /* tryb prywatny */ }
+// Jedna strona zamiast rozkładówki – ustawienie tego urządzenia. Przełącza je też widoczny przycisk obok
+// powiększenia, pokazywany tylko w sekcjach z rozkładówkami (#148).
+async function ustawJednaStrone(jedna) {
+  try { localStorage.setItem(KLUCZ_JEDNA, jedna ? '1' : '0'); } catch { /* tryb prywatny */ }
   zapiszBiezacyCel();
   await zaladujCel({ dopasuj: true });
-});
+}
+$('#widok-jedna').addEventListener('change', (e) => ustawJednaStrone(e.target.checked));
+$('#przycisk-rozkladowka').addEventListener('click', () => ustawJednaStrone(!jednaStrona()));
 
 // Uszlachetnienia (#127): efekt (połysk, metal, tłoczenie, biel) w edytorze i podglądzie – albo zwykły widok.
 $('#widok-uszlachetnienia').addEventListener('change', (e) => {

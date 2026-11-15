@@ -1009,6 +1009,8 @@ W sekcji z rozkładówkami strony tworzą pary: lewa i prawa, jak w otwartej ksi
 
 ![Rozkładówka](rozkladowki.png)
 
+
+Na telefonie rozkładówka pokazuje się domyślnie jako jedna strona. Przycisk z dwiema kartkami obok powiększenia (prawy dolny róg, tylko w sekcji z rozkładówkami) przełącza całą rozkładówkę i jedną stronę – to samo co „W rozkładówkach pokazuj jedną stronę” w menu widoku.
 ## 11.6 Okładka z grzbietem
 
 Okładkę robisz jako osobną sekcję z jedną szeroką stroną: tył, grzbiet i przód. Włączysz ją na trzy sposoby:

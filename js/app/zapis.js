@@ -165,6 +165,14 @@ export async function zaladujCel({ dopasuj = false } = {}) {
   const bylaRozkladowka = poprzedni ? edytor.rozkladowka : null;
   const innyRozmiar = !poprzedni || ['szerokosc_mm', 'wysokosc_mm', 'spad_mm'].some((k) => poprzedni[k] !== wydruk[k]);
   naPlotnie = null;
+  // Rysowanie wstrzymane na czas wczytywania (#148): stara strona zostaje na ekranie, aż nowa jest gotowa
+  // w całości (wzorce, elementy, tekst z innych stron, ostrzeżenia, dopasowanie widoku) – jedno podmienienie
+  // zamiast kilku pośrednich stanów.
+  const c = edytor.canvas;
+  const { requestRenderAll: zlecRysowanie, renderAll: rysuj } = c;
+  c.requestRenderAll = () => c;
+  c.renderAll = () => c;
+  try {
   if (stan.tryb === 'wzorzec') {
     edytor.ustawWydruk(wydruk, marginesyWzorca(cel));
     await edytor.wczytajStrone({ id: cel.id, obiekty: cel.obiekty, tlo: cel.tlo || '#ffffff', prowadnice: cel.prowadnice }, projekt.zasoby, null);
@@ -197,6 +205,11 @@ export async function zaladujCel({ dopasuj = false } = {}) {
   linijki.ustaw(projekt.widok.linijki);
   panelWarstw.odswiez();
   if (dopasuj || innyRozmiar || bylaRozkladowka !== edytor.rozkladowka) edytor.dopasujDoOkna();
+  } finally {
+    c.requestRenderAll = zlecRysowanie;
+    c.renderAll = rysuj;
+    c.requestRenderAll();
+  }
   odswiezPasekEdytora();
   renderujListe();
   trasa.ustaw(`p/${projekt.id}/${stan.tryb === 'wzorzec' ? `w/${cel.id}` : `s/${cel.id}`}`, { zastap: true });
