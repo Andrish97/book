@@ -1,4 +1,4 @@
-// Zrzuty instrukcji Biblioteki (#143): k-biblioteka.png (okno z kategoriami, kształty) i k-biblioteka-planer.png
+// Zrzuty instrukcji Biblioteki (#143, #155): k-biblioteka.png (okno z kategoriami – Ramki z nagłówkami grup) i k-biblioteka-planer.png
 // (kategoria „Planer” z gotowymi tabelami). Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje
 // zrobZrzutyBiblioteki na końcu; tu można je zrobić osobno.
 //
@@ -14,7 +14,7 @@ async function zrobZrzutyBiblioteki(kadr, { ciemny = false } = {}) {
     await nowyProjekt(d, 'Planer');
     await d.click('[data-akcja="biblioteka"]');
     await d.waitForSelector('#dlg-biblioteka[open]');
-    await d.click('#kategorie-biblioteki [data-kategoria="strzalki"]');
+    await d.click('#kategorie-biblioteki [data-kategoria="ramki"]');
     await d.waitForTimeout(300);
     await kadr(d, 'k-biblioteka.png', { obszar: ['#pasek-narzedzi', '#dlg-biblioteka'], zaznacz: '[data-akcja="biblioteka"]', margines: 10 });
     await d.click('#kategorie-biblioteki [data-kategoria="planer"]');

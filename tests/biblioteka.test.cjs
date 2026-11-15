@@ -33,11 +33,13 @@ test('biblioteka: rejestr kategorii, wyszukiwanie we wszystkich kategoriach, kol
   await modul('js/biblioteka-elementy.js');
   const { kategorieBiblioteki, szukajWBibliotece, zarejestrujKategorie, elementBiblioteki } = await modul('js/biblioteka.js');
   const { polaKolazu, KSZTALTY, KOLAZE } = await modul('js/ksztalty-biblioteka.js');
-  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['moje', 'ksztalty', 'strzalki', 'ozdobniki', 'linie', 'etykiety', 'kalendarze', 'planer', 'wykresy', 'kolaze', 'teksty', 'style', 'marka', 'ksiazka', 'kody']);
-  assert.ok(KSZTALTY.length >= 110, `kształtów: ${KSZTALTY.length}`);
+  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['moje', 'ksztalty', 'strzalki', 'ramki', 'ozdobniki', 'linie', 'etykiety', 'kalendarze', 'planer', 'wykresy', 'kolaze', 'teksty', 'style', 'marka', 'ksiazka', 'kody']);
+  assert.ok(KSZTALTY.length >= 400, `kształtów: ${KSZTALTY.length}`);
   assert.equal(KOLAZE.length, 12);
   // Wyszukiwanie bez polskich znaków, w każdej kategorii naraz.
-  assert.deepEqual(szukajWBibliotece('serce').map((x) => x.element.id), ['serce-ramka', 'serce', 'linia-serce']);
+  const serca = szukajWBibliotece('serce').map((x) => x.element.id);
+  for (const id of ['serce', 'serce-ramka', 'linia-serce', 'zdj-serce', 'dwa-serca']) assert.ok(serca.includes(id), id);
+  assert.deepEqual([...new Set(szukajWBibliotece('serce').map((x) => x.kategoria.id))], ['ksztalty', 'ramki', 'linie']);
   assert.ok(szukajWBibliotece('strzalka w prawo').some((x) => x.element.id === 'strzalka-prawo'));
   assert.ok(szukajWBibliotece('kalendarz').some((x) => x.kategoria.id === 'kalendarze'));
   assert.equal(szukajWBibliotece('', 'wykresy').length, 5);
@@ -55,7 +57,7 @@ test('kalendarz miesiąca z biblioteki: siatka marca 2027, niedziele i święta,
   await nowyProjekt(strona, 'Kalendarz');
   await strona.click('[data-akcja="biblioteka"]');
   await strona.waitForSelector('#dlg-biblioteka[open]');
-  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 15, 'z „Moimi elementami” i „Marką”');
+  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 16, 'z „Moimi elementami” i „Marką”');
   await strona.click('#kategorie-biblioteki [data-kategoria="kalendarze"]');
   await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="zwykly"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.kalendarz);

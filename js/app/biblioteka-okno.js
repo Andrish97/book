@@ -44,12 +44,20 @@ function pokazElementy() {
     return;
   }
   const przeciagalne = naKomputerze();
+  // Długie kategorie (#155): nagłówki grup (Podstawowe, Wielokąty…) – tylko przy przeglądaniu kategorii.
+  let grupa = null;
   lista.innerHTML = trafione.map(({ kategoria: k, element: e }) => {
-    const kafel = `<button type="button" class="kafel-biblioteki${e.duzy ? ' duzy' : ''}" data-kategoria="${k.id}" data-element="${esc(e.id)}"${przeciagalne ? ' draggable="true"' : ''} title="${esc(e.nazwa)}${przeciagalne ? ' – kliknij albo przeciągnij na stronę' : ''}" aria-label="${esc(e.nazwa)}"><span class="podglad-biblioteki">${e.podglad}</span>${e.duzy ? `<strong>${esc(e.nazwa)}</strong>${e.opis ? `<small>${esc(e.opis)}</small>` : ''}` : ''}</button>`;
-    // Elementy z akcjami (Moje elementy: zmień nazwę, usuń) – małe przyciski w rogu kafelka.
-    if (!e.akcje?.length) return kafel;
-    return `<div class="kafel-z-akcjami">${kafel}<span class="akcje-kafla">${e.akcje.map((a, i) => `<button type="button" class="przycisk-ikona maly" data-akcja-kafla="${i}" data-kategoria="${k.id}" data-element="${esc(e.id)}" title="${esc(a.nazwa)}" aria-label="${esc(a.nazwa)}: ${esc(e.nazwa)}">${ikona(a.ikona, { rozmiar: 14 })}</button>`).join('')}</span></div>`;
+    const naglowek = !zapytanie && e.grupa && e.grupa !== grupa ? `<h3 class="grupa-biblioteki">${esc(e.grupa)}</h3>` : '';
+    if (!zapytanie && e.grupa) grupa = e.grupa;
+    return naglowek + kafelek(k, e, przeciagalne);
   }).join('');
+}
+
+function kafelek(k, e, przeciagalne) {
+  const kafel = `<button type="button" class="kafel-biblioteki${e.duzy ? ' duzy' : ''}" data-kategoria="${k.id}" data-element="${esc(e.id)}"${przeciagalne ? ' draggable="true"' : ''} title="${esc(e.nazwa)}${przeciagalne ? ' – kliknij albo przeciągnij na stronę' : ''}" aria-label="${esc(e.nazwa)}"><span class="podglad-biblioteki">${e.podglad}</span>${e.duzy ? `<strong>${esc(e.nazwa)}</strong>${e.opis ? `<small>${esc(e.opis)}</small>` : ''}` : ''}</button>`;
+  // Elementy z akcjami (Moje elementy: zmień nazwę, usuń) – małe przyciski w rogu kafelka.
+  if (!e.akcje?.length) return kafel;
+  return `<div class="kafel-z-akcjami">${kafel}<span class="akcje-kafla">${e.akcje.map((a, i) => `<button type="button" class="przycisk-ikona maly" data-akcja-kafla="${i}" data-kategoria="${k.id}" data-element="${esc(e.id)}" title="${esc(a.nazwa)}" aria-label="${esc(a.nazwa)}: ${esc(e.nazwa)}">${ikona(a.ikona, { rozmiar: 14 })}</button>`).join('')}</span></div>`;
 }
 
 // Kategoria z danymi z konta (Moje elementy): lista odświeża się przy otwarciu i po każdej zmianie.

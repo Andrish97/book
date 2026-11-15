@@ -2903,9 +2903,21 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
   padding: 8px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); color: var(--tusz); cursor: pointer; font: inherit;
 }
 .kafel-biblioteki[draggable="true"] { cursor: grab; }
+/* Setki kafelków (#155): przeglądarka rysuje tylko widoczne; nagłówki grup na całą szerokość siatki. */
+.elementy-biblioteki > .kafel-biblioteki:not(.duzy) { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+.grupa-biblioteki { grid-column: 1 / -1; margin: 8px 2px 0; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--cichy); }
+.grupa-biblioteki:first-child { margin-top: 0; }
+.podglad-biblioteki path.na-zdjecie { fill: color-mix(in srgb, var(--tusz) 14%, var(--powierzchnia)); stroke: var(--tusz-2); stroke-dasharray: 6 5; stroke-width: 2.5; }
 .kafel-biblioteki:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
 @media (hover: hover) { .kafel-biblioteki:hover { border-color: var(--akcent); background: var(--akcent-tlo); } }
 .kafel-biblioteki.duzy { grid-column: span 2; aspect-ratio: auto; min-height: 120px; text-align: center; }
+/* Parzysta liczba kolumn (#155): duży kafel zajmuje dwie, więc przy nieparzystej zostawała pusta kolumna obok. */
+.biblioteka { container-type: inline-size; container-name: biblioteka; }
+@container biblioteka (max-width: 459px) { .elementy-biblioteki { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container biblioteka (min-width: 460px) and (max-width: 619px) { .elementy-biblioteki { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@container biblioteka (min-width: 620px) and (max-width: 779px) { .elementy-biblioteki { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+@container biblioteka (min-width: 780px) { .elementy-biblioteki { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+.kafel-biblioteki.duzy .podglad-biblioteki { flex: none; height: 64px; margin-bottom: 4px; }
 .kafel-biblioteki strong { font-size: 12.5px; font-weight: 600; line-height: 1.25; }
 .kafel-biblioteki small { font-size: 11px; color: var(--cichy); line-height: 1.3; }
 .podglad-biblioteki { display: grid; place-items: center; width: 100%; flex: 1; min-height: 0; }

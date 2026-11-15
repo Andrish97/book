@@ -25,6 +25,7 @@ const P = {
   kalendarz: '<rect x="3.5" y="5" width="17" height="15.5" rx="1.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M7.5 13.5h1M11.5 13.5h1M15.5 13.5h1M7.5 17h1M11.5 17h1"/>',
   wykres: '<path d="M4 20h16"/><rect x="5.5" y="12" width="3" height="6" rx=".5"/><rect x="10.5" y="7" width="3" height="11" rx=".5"/><rect x="15.5" y="10" width="3" height="8" rx=".5"/>',
   ksztalty: '<path d="M7 3.5 11 10.5H3z"/><circle cx="17" cy="7" r="3.5"/><path d="M12 20.5c-2.6-1.9-6.5-4.4-6.5-7.2a2.9 2.9 0 0 1 6.5-1 2.9 2.9 0 0 1 6.5 1c0 2.8-3.9 5.3-6.5 7.2z"/>',
+  ramka: '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><rect x="7.5" y="7.5" width="9" height="9" rx="0.5"/>',
   kolaz: '<rect x="3.5" y="3.5" width="9" height="17" rx="1"/><rect x="14.5" y="3.5" width="6" height="7.5" rx="1"/><rect x="14.5" y="13" width="6" height="7.5" rx="1"/>',
   obraz: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m20.5 16-4.5-4.5L6 19.5"/>',
   cofnij: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
