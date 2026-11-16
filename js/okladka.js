@@ -123,9 +123,26 @@ export function gruboscKartki(papier) {
 }
 
 // Sekcje środka dla okładki: wskazane albo wszystkie, które nie są okładkami.
+// Sekcje, które nie są blokiem (#179, typy sekcji #177): wyklejki, obwoluta – nie liczą się do grzbietu ani formatu.
+const POZA_BLOKIEM = new Set(['okladka', 'wyklejka_przednia', 'wyklejka_tylna', 'obwoluta']);
 export function sekcjeSrodka(projekt, sekcja) {
   const wybrane = sekcja.okladka?.srodek;
-  return projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s) && (!wybrane || wybrane.includes(s.id)));
+  return projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s) && !POZA_BLOKIEM.has(s.typ) && (!wybrane || wybrane.includes(s.id)));
+}
+
+// Format bloku (#179): najczęstszy format stron środka (ważony liczbą stron), nie format pierwszej sekcji –
+// pierwszą bywa np. wyklejka A4, a wtedy okładka liczyła się dla A4.
+export function formatSrodka(srodek, ciag) {
+  const ile = new Map();
+  for (const s of srodek) {
+    const k = `${s.wydruk.szerokosc_mm}x${s.wydruk.wysokosc_mm}`;
+    ile.set(k, (ile.get(k) || 0) + Math.max(1, ciag?.sekcje?.get(s.id)?.lista.length || 1));
+  }
+  let naj = null;
+  for (const [k, n] of ile) if (!naj || n > naj.n) naj = { k, n };
+  if (!naj) return { szerokosc_mm: 148, wysokosc_mm: 210 };
+  const [sz, wy] = naj.k.split('x').map(Number);
+  return { szerokosc_mm: sz, wysokosc_mm: wy };
 }
 
 // Liczba stron w wydruku (z powieleniami serii i stronami pustymi) dla listy sekcji.
@@ -138,7 +155,7 @@ export function stronWydruku(ciag, sekcje) {
 export function geometriaOkladki(projekt, sekcja, ciag = rozwin(projekt)) {
   const o = normalizujOkladke(sekcja.okladka);
   const srodek = sekcjeSrodka(projekt, sekcja);
-  const wzor = srodek[0]?.wydruk || { szerokosc_mm: 148, wysokosc_mm: 210 };
+  const wzor = formatSrodka(srodek, ciag);
   const sz = wzor.szerokosc_mm;
   const wy = wzor.wysokosc_mm;
   const stron = o.strony.tryb === 'reczne' ? o.strony.liczba : stronWydruku(ciag, srodek);

@@ -46,6 +46,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 179 | Makieta 3D: wyklejka na tekturze z widoczną okleiną i cienkim zgięciem, Wire-O wg norm (pary drutów, średnice 1/4″–1¼″, skok 3:1/2:1, wycięcie na wieszak w kalendarzu ściennym), sztywna miękka okładka w rozmiarze bloku, format bloku okładki bez wyklejek, ułożenie Leży/Stoi |
 | 175 | AI zleca plik PDF albo PNG strony (eksport_pdf, eksport_png, stan_eksportu): otwarta aplikacja robi plik i wgrywa go na konto, AI podaje link do pobrania (7 dni); bez otwartej aplikacji – link do aplikacji, po którego otwarciu plik robi się sam |
 | 169 | Instrukcja odchudzona i uporządkowana: bez treści meta, oczywistości i powtórzeń, aktualne opisy (menu ⋯, rozkładówka, wielokąt, narzędzia na telefonie), wstęp „do czego to służy” w rozdziałach, odsyłacze sprawdzane przy budowie, bez okruszków i zdublowanego spisu podrozdziałów na komputerze. |
 | 166 | Gotowe sekcje: 33 szablony dokumentów (kalendarze, planery, notesy, zaproszenia, dyplomy, wizytówki, ulotki, menu, rozdział książki, okładka…) jako generatory dopasowane do formatu, marginesów i kolorów marki; okno z miniaturami i podglądem, wejścia: [Gotowa] przy liście stron, Biblioteka, nowy projekt. |

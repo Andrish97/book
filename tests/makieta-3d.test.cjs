@@ -275,8 +275,11 @@ test('makieta 3D (#161): wyklejki, proporcje bloku, grzbiet twardej oprawy, okł
     const blokN = obwiednia(qn.filter((x) => x.mat !== 'drut'));
     assert.ok(drut.min[1] > -0.05 && drut.min[1] < 0.2, `notes ${strony} s.: drut na stole (${drut.min[1].toFixed(2)})`);
     assert.ok(drut.max[1] > blokN.max[1] + 1 && drut.min[1] < blokN.min[1] - 1, `notes ${strony} s.: pętle obejmują blok`);
+    // Średnica z tabeli Wire-O (#179) – pierścień większy od bloku, z drutem.
+    const { parametryWireO } = await modul('js/makieta-3d.js');
+    const wo = parametryWireO(Tn);
     const sr = drut.max[1] - drut.min[1];
-    assert.ok(sr >= Tn + 3 && sr <= Math.max(Tn + 7, 9.5), `notes ${strony} s.: średnica pętli ${sr.toFixed(1)} przy grubości ${Tn.toFixed(1)}`);
+    assert.ok(sr >= Tn + 3 && Math.abs(sr - (wo.srednica + wo.drut)) < 0.6, `notes ${strony} s.: średnica pętli ${sr.toFixed(1)} przy grubości ${Tn.toFixed(1)} (Wire-O ${wo.srednica} mm)`);
   }
 });
 
@@ -389,4 +392,68 @@ test('makieta 3D (#161): telefon – płótno w proporcjach widoku, okładka A5 
   const prop = r.h / r.w;
   assert.ok(prop > 1.3 && prop < 1.6, `okładka z góry pionowa jak A5 (wys./szer. ${prop.toFixed(2)}, ${r.w}×${r.h} px)`);
   assert.deepEqual(bledy, []);
+});
+
+// #179: twarda oprawa jak prawdziwa – okleina zawinięta na wnętrze tektury, na niej płaska wyklejka 3 mm od
+// krawędzi, zgięcie wyklejki bez „listwy”; miękka okładka sztywna (karton), w rozmiarze bloku; Wire-O wg
+// tabel; książka stojąca; format bloku okładki bez wyklejek.
+test('makieta 3D (#179): wyklejka na tekturze, zawias, sztywna miękka okładka, Wire-O, ułożenie stojące', async () => {
+  const { kartkiModelu, scena, obwiednia, parametryWireO, widokModelu } = await modul('js/makieta-3d.js');
+  const A5 = { w: 148, h: 210 };
+  const okl = { w: 151, h: 216, tektura: 2.5 };
+  const k = kartkiModelu('ksiazka_twarda', { strony: 200, format: A5, okladka: okl, wnetrze: { przod: true, tyl: true } });
+  assert.equal(k[0].wyklejka, 'B');
+  assert.equal(k.at(-1).wyklejka, 'A');
+  assert.equal(k[0].okleina, 'okl:okleina');
+  const q = scena('ksiazka_twarda', k, 1);
+  // Wnętrze tektury: okleina; wyklejka osobnym, płaskim arkuszem (bez grubości) wielkości strony bloku.
+  assert.ok(q.some((x) => x.tex === 'okl:okleina' && x.mat === 'twarda'), 'okleina na wnętrzu tektury');
+  const tektura = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
+  const wkl = obwiednia(q.filter((x) => x.tex === 'p:0'));
+  assert.ok(wkl.max[1] - wkl.min[1] < 0.2, `wyklejka płaska (${(wkl.max[1] - wkl.min[1]).toFixed(2)} mm)`);
+  assert.ok(Math.abs((wkl.max[0] - wkl.min[0]) - 148) < 0.5 && Math.abs((wkl.max[2] - wkl.min[2]) - 210) < 0.5, 'wyklejka w rozmiarze strony bloku');
+  assert.ok(wkl.min[0] - tektura.min[0] > 2.5, 'wyklejka 3 mm od przedniej krawędzi tektury (zawinięcie okleiny widać)');
+  assert.ok(wkl.min[2] - tektura.min[2] > 2.5 && tektura.max[2] - wkl.max[2] > 2.5, '3 mm od głowy i stopy');
+  // Zgięcie wyklejki: papier nie wystaje ponad wierzch bloku (bez „listwy” w zawiasie).
+  const blokTop = Math.max(...q.filter((x) => x.mat === 'krawedz').flatMap((x) => x.p.map((p) => p[1])));
+  const zgiecie = q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier' && x.p.every((p) => p[0] < 2 && p[0] > -10));
+  assert.ok(zgiecie.length, 'zgięcie wyklejki jest');
+  assert.ok(zgiecie.every((x) => x.p.every((p) => p[1] <= blokTop + 0.3)), 'zgięcie nie odstaje nad blok');
+  // Miękka: okładka w rozmiarze bloku (nawet gdy sekcja okładki jest twarda), sztywna w trakcie otwierania.
+  const km = kartkiModelu('ksiazka_miekka', { strony: 100, format: A5, okladka: okl });
+  assert.deepEqual([km[0].w, km[0].h], [148, 210], 'miękka okładka = blok');
+  const qm = scena('ksiazka_miekka', km, 0.5);
+  const nn = qm.filter((x) => x.tex === 'okl:przod').map((x) => x.n.map((v) => Math.round(v * 100) / 100).join());
+  assert.ok(new Set(nn).size <= 4, `okładka płaska jak karton – płaszczyzna i trzy brzegi, bez wygięcia (${new Set(nn).size} kierunków)`);
+  // Wire-O wg tabel producentów.
+  assert.deepEqual([parametryWireO(3.5).srednica, parametryWireO(3.5).typ, parametryWireO(3.5).skok], [6.4, '3:1', 8.47]);
+  assert.deepEqual([parametryWireO(10).srednica, parametryWireO(10).typ], [12.7, '3:1']);
+  assert.deepEqual([parametryWireO(11).srednica, parametryWireO(11).typ, parametryWireO(11).skok], [14.3, '2:1', 12.7]);
+  assert.equal(parametryWireO(27).srednica, 31.8);
+  assert.equal(parametryWireO(40).zaGruby, true);
+  assert.equal(parametryWireO(20).zaGruby, false);
+  // Kalendarz ścienny: przerwa w spirali pośrodku (wycięcie pod wieszak).
+  const kk = kartkiModelu('kalendarz_scienny', { strony: 12, format: { w: 297, h: 420 } });
+  const qk = scena('kalendarz_scienny', kk, 0);
+  const drutX = qk.filter((x) => x.mat === 'drut' && x.p.every((p) => p[1] < 0)).flatMap((x) => x.p.map((p) => p[0]));
+  assert.ok(drutX.length && !drutX.some((x) => Math.abs(x) < 8), 'bez spinek pośrodku – miejsce na wieszak');
+  // Stojąca: na stole (min y = 0), wysoka na wysokość okładki, płytka.
+  const os = obwiednia(scena('ksiazka_twarda', k, 0, { ulozenie: 'stoi' }));
+  assert.ok(Math.abs(os.min[1]) < 0.01 && os.max[1] > 210, `stoi na stopce (${os.min[1].toFixed(2)}..${os.max[1].toFixed(1)})`);
+  assert.ok(os.max[2] - os.min[2] < 60, 'grubość w głąb');
+  const oso = obwiednia(scena('ksiazka_twarda', k, 50, { ulozenie: 'stoi' }));
+  assert.ok(oso.max[2] - oso.min[2] > 80, 'otwarta stojąca – rozłożona w V');
+  assert.ok(widokModelu('ksiazka_twarda', 'stoi').obrotX < widokModelu('ksiazka_twarda').obrotX, 'niższa kamera dla stojącej');
+  // Okładka: format bloku – najczęstszy w środku, wyklejki (typ) nie liczą się.
+  const { formatSrodka, sekcjeSrodka } = await modul('js/okladka.js');
+  const sek = [
+    { id: 'o', okladka: { oprawa: 'twarda' }, wydruk: { szerokosc_mm: 380, wysokosc_mm: 250 } },
+    { id: 'w', typ: 'wyklejka_przednia', wydruk: { szerokosc_mm: 297, wysokosc_mm: 210 } },
+    { id: 'b', wydruk: { szerokosc_mm: 148, wysokosc_mm: 210 } },
+    { id: 'n', wydruk: { szerokosc_mm: 297, wysokosc_mm: 210 } },
+  ];
+  const sr = sekcjeSrodka({ sekcje: sek }, sek[0]);
+  assert.deepEqual(sr.map((s) => s.id), ['b', 'n'], 'wyklejka poza blokiem');
+  const ciag = { sekcje: new Map([['b', { lista: Array(100) }], ['n', { lista: Array(2) }]]) };
+  assert.deepEqual(formatSrodka(sr, ciag), { szerokosc_mm: 148, wysokosc_mm: 210 }, 'format bloku – najczęstszy, nie pierwszej sekcji');
 });
