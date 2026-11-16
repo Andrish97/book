@@ -11,7 +11,7 @@ import { ikona } from '../ikony.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { postep } from '../postep.js';
-import { zaplanujAktualizacjeLinku, odswiezPodglad, OPOZNIENIE_LINKU_Z_KONTA_MS } from './podglad-ekran.js';
+import { zaplanujAktualizacjeLinku, odswiezPodglad, OPOZNIENIE_LINKU_Z_KONTA_MS, uzupelnijKrotkiLink } from './podglad-ekran.js';
 import { zarejestrujCzcionkiProjektu, zapewnijRodziny } from '../czcionki.js';
 import { ramkiZInnychStron } from '../watki.js';
 import { podlaczZasoby, kopiujPliki } from '../zasoby.js';
@@ -380,6 +380,7 @@ export async function otworzProjekt(p, cel = {}) {
   // Link nieaktualny względem projektu (np. sprzed makiety 3D w linku, #189) aktualizuje się sam po otwarciu –
   // z opóźnieniem jak przy zmianach z konta, żeby dwa otwarte urządzenia nie rysowały go naraz.
   if (stan.uzytkownik) zaplanujAktualizacjeLinku(OPOZNIENIE_LINKU_Z_KONTA_MS);
+  if (stan.uzytkownik) setTimeout(() => { uzupelnijKrotkiLink(); }, 3000); // krótki adres starego linku (#195)
   // Starsze obrazy nie mają zapisanych wymiarów – łącznik AI potrzebuje ich do wstawiania (czytane z nagłówka pliku).
   uzupelnijWymiary(stan.projekt).then((ile) => { if (ile && stan.uzytkownik) zaplanujChmure(2000); }).catch(() => {});
   // Współpraca (js/app/wspolpraca.js, js/app/obecnosc.js): tryb projektu i obecność innych osób.

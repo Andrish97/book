@@ -416,7 +416,7 @@ i bez zmiany rodzaju. Makieta aktualizuje się w linku sama, także w linkach ut
 3. Skopiuj link i wyślij go.
 
 Link jest krótki: **makietka.app/** i sześć znaków, np. `makietka.app/k7m2xq`. Linki utworzone wcześniej
-dostają krótki adres przy otwarciu okna Udostępnij; stary, długi adres dalej działa.
+dostają krótki adres same, przy najbliższym otwarciu projektu; stary, długi adres dalej działa.
 
 ![Udostępnij w podglądzie](k-udostepnij.png)
 ![Okno Udostępnij podgląd](udostepnianie.png)

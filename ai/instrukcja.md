@@ -1947,7 +1947,7 @@ Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i
 2. **Utwórz link** — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.
 3. Skopiuj link i wyślij go.
 
-Link jest krótki: **makietka.app/** i sześć znaków, np. `makietka.app/k7m2xq`. Linki utworzone wcześniej dostają krótki adres przy otwarciu okna Udostępnij; stary, długi adres dalej działa.
+Link jest krótki: **makietka.app/** i sześć znaków, np. `makietka.app/k7m2xq`. Linki utworzone wcześniej dostają krótki adres same, przy najbliższym otwarciu projektu; stary, długi adres dalej działa.
 
 ![Udostępnij w podglądzie](https://makietka.app/img/instrukcja/k-udostepnij.png)
 ![Okno Udostępnij podgląd](https://makietka.app/img/instrukcja/udostepnianie.png)

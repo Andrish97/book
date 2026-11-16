@@ -390,6 +390,14 @@ async function zapewnijKrotki(p) {
   try { u.krotki = await chmura.krotkiLink(p.id, u.kod); return Boolean(u.krotki); } catch { return false; }
 }
 
+// Projekt otwarty w edytorze, link bez krótkiego adresu (sprzed #195): krótki kod dochodzi sam, w tle – długi
+// adres działa dalej. Zapis projektu niesie kod na konto i na inne urządzenia.
+export async function uzupelnijKrotkiLink() {
+  const p = stan.projekt;
+  if (!p?.udostepnienie || p.udostepnienie.krotki || !navigator.onLine) return;
+  if (await zapewnijKrotki(p) && stan.projekt === p) zapiszTeraz().catch(() => {});
+}
+
 // Przycisk „Utwórz link” albo „Aktualizuj teraz”.
 export async function opublikujUdostepnienie() {
   const p = stan.projekt;

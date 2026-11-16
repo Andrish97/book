@@ -23,8 +23,18 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   const link = await strona.inputValue('#udostepnij-link');
   // Krótki link (#195): adres strony i 6 znaków (małe litery i cyfry bez 0/o, 1/l/i).
   assert.match(link, /^http:\/\/[^/]+\/[a-hj-km-np-z2-9]{6}$/);
-  // Link sprzed krótkich adresów (bez krotki w projekcie) dostaje krótki kod przy otwarciu okna – ten sam,
-  // bo kod linku się nie zmienił.
+  // Link sprzed krótkich adresów sam dostaje krótki kod przy otwarciu projektu (bez okna Udostępnij).
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    delete p.udostepnienie.krotki;
+    await (await import('./js/app/zapis.js')).otworzProjekt(p);
+  });
+  await strona.waitForFunction((k) => window.seriodruk.stan.projekt.udostepnienie?.krotki === k, link.split('/').pop(), { timeout: 15000 });
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  // …i przy otwarciu okna – ten sam, bo kod linku się nie zmienił.
   await strona.click('[data-akcja="udostepnij-zamknij"]');
   await strona.evaluate(() => { delete window.seriodruk.stan.projekt.udostepnienie.krotki; });
   await strona.click('[data-akcja="udostepnij"]');
