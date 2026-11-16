@@ -49,9 +49,13 @@ export function pokazEkran(nazwa) {
 //   #/p/<id projektu>/k/<id wątku>   projekt z otwartym panelem komentarzy na tym wątku (powiadomienie, #131D)
 //   #/p/<id projektu>/eksport/<id>   projekt i eksport PDF/PNG zlecony przez AI (link od AI, gdy aplikacja była zamknięta, #175)
 //   #/u/<konto>/<projekt>/<kod>      podgląd udostępniony linkiem (bez logowania)
+//   /<kod z 6 znaków>                 to samo – krótki link (#195)
 
 export const trasa = {
   odczytaj() {
+    // Krótki link podglądu (#195): makietka.app/<6 znaków> – bez # (strona trafia tu przez 404.html).
+    const krotki = /^\/([a-hj-km-np-z2-9]{6})\/?$/.exec(location.pathname.replace(/^.*?(\/[^/]*\/?)$/, '$1'));
+    if (krotki && !location.hash.replace(/^#\/?/, '')) return { ekran: 'udostepnione', krotki: krotki[1] };
     const [rodzaj, id, typ, cel] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
     if (rodzaj === 'p' && id) {
       return {

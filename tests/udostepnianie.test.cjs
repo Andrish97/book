@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, krotkieLinkiGoscia } = require('./pomoc.cjs');
 
 test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktualizacja, wyłączenie', async (t) => {
   const { strona, baza, bledy, przegladarka, kontekst, Z_ATRAPA } = await otworz(t, { tryb: 'atrapa' });
@@ -21,7 +21,14 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.click('#udostepnij-utworz');
   await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   const link = await strona.inputValue('#udostepnij-link');
-  assert.match(link, /#\/u\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{24}$/);
+  // Krótki link (#195): adres strony i 6 znaków (małe litery i cyfry bez 0/o, 1/l/i).
+  assert.match(link, /^http:\/\/[^/]+\/[a-hj-km-np-z2-9]{6}$/);
+  // Link sprzed krótkich adresów (bez krotki w projekcie) dostaje krótki kod przy otwarciu okna – ten sam,
+  // bo kod linku się nie zmienił.
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await strona.evaluate(() => { delete window.seriodruk.stan.projekt.udostepnienie.krotki; });
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.waitForFunction((l) => document.querySelector('#udostepnij-link').value === l, link);
   assert.match(await strona.textContent('#udostepnij-stan'), /aktualny stan/);
   const pliki = [...baza.pliki.keys()].filter((k) => k.startsWith('podglady/'));
   assert.equal(pliki.filter((k) => /\.(webp|jpg)$/.test(k)).length, 2, 'po jednym obrazie na stronę');
@@ -35,6 +42,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
 
   // Osoba bez konta: osobna przeglądarka, bez sesji.
   const gosc = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+  await krotkieLinkiGoscia(gosc, baza);
   await gosc.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
   await gosc.route('https://atrapa.supabase.co/podglady/**', async (r) => {
     const klucz = `podglady/${decodeURIComponent(new URL(r.request().url()).pathname.slice('/podglady/'.length))}`;
@@ -185,6 +193,7 @@ async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
     }
     return odp({}, 404);
   });
+  await krotkieLinkiGoscia(k, baza); // po ogólnej trasie – Playwright sprawdza trasy od ostatnio dodanej
   const s = await k.newPage();
   const bledyGoscia = [];
   s.on('pageerror', (e) => bledyGoscia.push(e.message));
@@ -230,7 +239,8 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   assert.match(u.sekret, /^[A-Za-z0-9_-]{32}$/, 'sekret – 24 losowe bajty');
   assert.deepEqual(plikiChronione(baza, klucz).map((k) => (k.endsWith('manifest.json') ? 'manifest.json' : 'strona')).sort(), ['manifest.json', 'strona', 'strona']);
   assert.ok(plikiChronione(baza, klucz).filter((k) => !k.endsWith('manifest.json')).every((k) => /^private/.test(baza.pliki.get(k).cacheControl)), 'obrazy linku z ochroną – bez pamięci współdzielonej');
-  assert.ok(link.endsWith(klucz.split('/').pop()), 'ten sam kod w linku i w bazie');
+  assert.equal([...baza.krotkie.values()].find((w) => w.projekt === klucz.split('/')[1])?.kod, klucz.split('/').pop(), 'krótki kod prowadzi do kodu linku z bazy');
+  assert.equal(baza.krotkie.get(link.split('/').pop())?.kod, klucz.split('/').pop());
   assert.equal(await strona.textContent('#udostepnij-ochrona-stan'), 'Link chroniony hasłem.');
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.ochrona), { haslo: true, wazny_do: null });
 

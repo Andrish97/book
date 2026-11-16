@@ -93,6 +93,7 @@ function odciskPodgladu(egz, ciag) {
 
 function linkUdostepnienia(p) {
   const u = p.udostepnienie;
+  if (u.krotki) return `${location.origin}/${u.krotki}`; // krótki link (#195)
   return `${location.origin}${location.pathname}#/u/${u.konto}/${p.id}/${u.kod}`;
 }
 
@@ -334,6 +335,12 @@ export async function otworzUdostepnianie(projekt = null) {
   wypelnijZnak(celOkna || stan.projekt);
   odswiezOknoUdostepniania();
   $('#dlg-udostepnij').showModal();
+  // Link sprzed krótkich adresów (#195) dostaje krótki kod przy otwarciu okna.
+  const p = celOkna || stan.projekt;
+  if (p?.udostepnienie && !p.udostepnienie.krotki && await zapewnijKrotki(p)) {
+    if (p === stan.projekt) zapiszTeraz().catch(() => {}); else { p.zmieniono = new Date().toISOString(); zapiszGdziekolwiek(p).catch(() => {}); }
+    if ($('#dlg-udostepnij').open) odswiezOknoUdostepnianiaZachowujacKomunikat();
+  }
 }
 
 let webp = null;
@@ -369,8 +376,18 @@ async function opublikuj(p, postep = () => {}, { pelna = false } = {}) {
   const wynik = ochrona
     ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie })
     : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie });
-  p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}) };
+  const krotki = p.udostepnienie?.kod === kod ? p.udostepnienie.krotki : null;
+  p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}) };
+  await zapewnijKrotki(p);
   return wynik;
+}
+
+// Krótki kod linku (#195): przy pierwszej publikacji i dla linków sprzed tej zmiany (przy otwarciu okna).
+// Bez sieci albo przy błędzie link zostaje długi – i tak działa.
+async function zapewnijKrotki(p) {
+  const u = p.udostepnienie;
+  if (!u?.kod || u.krotki || !stan.uzytkownik) return false;
+  try { u.krotki = await chmura.krotkiLink(p.id, u.kod); return Boolean(u.krotki); } catch { return false; }
 }
 
 // Przycisk „Utwórz link” albo „Aktualizuj teraz”.
@@ -455,6 +472,7 @@ export async function wylaczUdostepnienie() {
     clearTimeout(timerLinku);
     if (p.udostepnienie.ochrona) await chmura.usunPodgladChroniony(p.id, p.udostepnienie.kod);
     await chmura.wylaczPodglad(p.id, p.udostepnienie.kod);
+    if (p.udostepnienie.krotki) await chmura.usunKrotkiLink(p.id).catch(() => {});
     delete p.udostepnienie;
     if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
     odswiezOknoUdostepniania();

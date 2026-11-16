@@ -1,4 +1,4 @@
-// Podgląd udostępniony linkiem (#/u/<konto>/<projekt>/<kod>) – bez logowania i bez edytora.
+// Podgląd udostępniony linkiem (#/u/<konto>/<projekt>/<kod> albo krótko /<kod z 6 znaków>, #195) – bez logowania i bez edytora.
 // Oglądający dostaje gotowe obrazy stron, więc ten moduł nie potrzebuje biblioteki płótna ani składania
 // stron; własny podgląd (Podglad) tworzy dopiero przy pierwszym użyciu.
 
@@ -19,6 +19,11 @@ export async function pokazUdostepniony(t) {
   document.body.classList.add('podglad-publiczny');
   pokazEkran('podglad');
   try {
+    if (t.krotki) {
+      const pelny = await chmura.rozwinKrotkiLink(t.krotki);
+      if (!pelny) throw new Error('Link mógł zostać unieważniony albo jest wpisany z błędem.');
+      t = { ...t, ...pelny };
+    }
     let dane;
     try {
       dane = await chmura.wczytajPodgladPubliczny(t.konto, t.projekt, t.kod);

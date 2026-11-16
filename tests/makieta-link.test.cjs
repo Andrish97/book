@@ -3,7 +3,7 @@
 // Stary link (manifest bez opisu makiety) – przycisku nie ma.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, krotkieLinkiGoscia } = require('./pomoc.cjs');
 
 test('makieta 3D z linku: ta sama bryła co u właściciela, obrazy linku, kartkowanie, bez ustawień; stary link bez przycisku', async (t) => {
   const { strona, baza, przegladarka, Z_ATRAPA } = await otworz(t, { tryb: 'atrapa' });
@@ -50,6 +50,7 @@ test('makieta 3D z linku: ta sama bryła co u właściciela, obrazy linku, kartk
   assert.equal(JSON.stringify(manifest).includes('obiekty'), false, 'opis makiety bez treści stron');
 
   const gosc = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+  await krotkieLinkiGoscia(gosc, baza);
   await gosc.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
   await gosc.route('https://atrapa.supabase.co/podglady/**', async (r) => {
     const klucz = `podglady/${decodeURIComponent(new URL(r.request().url()).pathname.slice('/podglady/'.length))}`;

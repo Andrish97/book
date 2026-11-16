@@ -714,6 +714,25 @@ export async function zapiszSlownik(slowa) {
   return sprawdz(await sb.auth.updateUser({ data: { slownik: slowa } })).user;
 }
 
+// Krótkie linki podglądu (#195, migracja krotkie_linki): makietka.app/<kod z 6 znaków>.
+export async function krotkiLink(projektId, kodLinku) {
+  const sb = await supabase();
+  const { data, error } = await sb.rpc('krotki_link_utworz', { p_projekt: projektId, p_kod_linku: kodLinku });
+  if (error) throw error;
+  return data;
+}
+export async function rozwinKrotkiLink(kod) {
+  const sb = await supabase();
+  const { data, error } = await sb.rpc('krotki_link', { p_kod: kod });
+  if (error) throw error;
+  return data; // { konto, projekt, kod } albo null
+}
+export async function usunKrotkiLink(projektId) {
+  const sb = await supabase();
+  const { error } = await sb.rpc('krotki_link_usun', { p_projekt: projektId });
+  if (error) throw error;
+}
+
 export async function wylaczPodglad(projektId, kod) {
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');

@@ -138,7 +138,7 @@ Gdy kanał na żywo nie działa, aplikacja sprawdza numer wersji po otwarciu pro
 **Dlaczego tak.** Pytam tylko o to, bez czego nie da się zacząć; resztę (numerację, wzorce, kolejne sekcje w innym formacie) ustawia się potem w sekcji. Style na start oszczędzają pierwsze kroki w każdym projekcie.
 
 ### C3. Adresy podstron ✅
-**Co jest.** `#/projekty`, `#/konto`, `#/p/<projekt>/s/<strona>`, `#/p/<projekt>/w/<wzorzec>`, `#/p/<projekt>/podglad` i `#/u/<konto>/<projekt>/<kod>` dla podglądu z linku. Zmiana ekranu dodaje wpis do historii przeglądarki (działa „Wstecz”), zmiana strony w projekcie tylko podmienia adres.
+**Co jest.** `#/projekty`, `#/konto`, `#/p/<projekt>/s/<strona>`, `#/p/<projekt>/w/<wzorzec>`, `#/p/<projekt>/podglad` i `#/u/<konto>/<projekt>/<kod>` dla podglądu z linku (krócej: `/<kod z 6 znaków>`, #195). Zmiana ekranu dodaje wpis do historii przeglądarki (działa „Wstecz”), zmiana strony w projekcie tylko podmienia adres.
 **Dlaczego tak.** Odświeżenie karty wraca w to samo miejsce, a adres strony można zapisać albo wysłać samemu sobie na inne urządzenie.
 **Twoje decyzje.** Podział na podstrony z identyfikatorem projektu (#14).
 

@@ -26,6 +26,8 @@ function uruchomSerwer() {
     let plik = path.join(KORZEN, sciezka);
     if (!plik.startsWith(KORZEN)) { res.writeHead(403).end(); return; }
     if (fs.existsSync(plik) && fs.statSync(plik).isDirectory()) plik = path.join(plik, 'index.html');
+    // Krótki link podglądu (#195): na GitHub Pages nieznany adres dostaje 404.html – kopię aplikacji.
+    if (/^\/[a-hj-km-np-z2-9]{6}\/?$/.test(sciezka)) plik = path.join(KORZEN, 'index.html');
     fs.readFile(plik, (blad, dane) => {
       if (blad) { res.writeHead(404).end('brak'); return; }
       res.writeHead(200, { 'Content-Type': TYPY[path.extname(plik)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
@@ -346,6 +348,27 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     }
     // Link chroniony (migracje udostepnienia_chronione i linki_chronione_r2_porzadki, #97): te same zasady co funkcje
     // w bazie. Pliki linku leżą w R2 (stan.pliki) w folderze „<kod>.<sekret>”; baza zwraca tylko nazwę folderu.
+    // Krótkie linki (#195, migracja krotkie_linki): jeden kod na projekt, nowy kod linku → nowy krótki kod.
+    if (sc.startsWith('/rest/v1/rpc/krotki_link')) {
+      const k = zTokenu(req);
+      const funkcja = sc.slice('/rest/v1/rpc/'.length);
+      stan.krotkie = stan.krotkie || new Map(); // kod -> { konto, projekt, kod }
+      if (funkcja === 'krotki_link') return json(r, 200, stan.krotkie.get(String(tresc.p_kod || '').toLowerCase()) || null);
+      if (!k) return blad(r, 401, 'Brak sesji', 'PGRST301');
+      if (funkcja === 'krotki_link_usun') { for (const [kod, w] of stan.krotkie) if (w.projekt === tresc.p_projekt && w.konto === k.id) stan.krotkie.delete(kod); return json(r, 200, null); }
+      if (funkcja === 'krotki_link_utworz') {
+        for (const [kod, w] of stan.krotkie) {
+          if (w.projekt !== tresc.p_projekt) continue;
+          if (w.kod === tresc.p_kod_linku) return json(r, 200, kod);
+          stan.krotkie.delete(kod);
+        }
+        const znaki = 'abcdefghjkmnpqrstuvwxyz23456789';
+        let kod;
+        do kod = Array.from(crypto.randomBytes(6), (b) => znaki[b % 31]).join(''); while (stan.krotkie.has(kod));
+        stan.krotkie.set(kod, { konto: k.id, projekt: tresc.p_projekt, kod: tresc.p_kod_linku });
+        return json(r, 200, kod);
+      }
+    }
     if (sc.startsWith('/rest/v1/rpc/') && /udostepnieni|podglad_chroniony|link_chroniony_wazny/.test(sc)) {
       const k = zTokenu(req);
       const funkcja = sc.slice('/rest/v1/rpc/'.length);
@@ -644,6 +667,15 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
 // Otwiera aplikację. tryb: 'zalogowany' (domyślnie: atrapa bazy i zalogowane konto testowe, instrukcja zamknięta),
 // 'atrapa' (atrapa bazy, ekran logowania) albo 'bez-bazy' (pusta konfiguracja – sam komunikat).
 // Dawna nazwa 'lokalny' znaczy to samo co 'zalogowany' (aplikacja nie ma już pracy bez konta).
+// Kontekst gościa w testach (osobna przeglądarka bez atrapy): krótki link (#195) zamienia się na pełny tak jak
+// funkcja bazy krotki_link – z tej samej atrapy (baza.krotkie).
+async function krotkieLinkiGoscia(kontekst, baza) {
+  await kontekst.route('https://atrapa.supabase.co/rest/v1/rpc/krotki_link', (r) => {
+    const t = JSON.parse(r.request().postData() || '{}');
+    r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(baza.krotkie?.get(String(t.p_kod || '').toLowerCase()) || null), headers: { 'access-control-allow-origin': '*' } });
+  });
+}
+
 async function otworz(test, { tryb = 'zalogowany', telefon = false, urzadzenie = null, konta, widok = { width: 1280, height: 800 }, sciezka = '', bezKanalu = false } = {}) {
   const serwer = await uruchomSerwer();
   // Bez „dociągania” liter do pikseli: tekst rysuje się tak samo na każdym komputerze, a testy porównujące
@@ -735,4 +767,5 @@ async function oknoAi(strona, { zaznacz = true } = {}) {
   await strona.waitForSelector('#dlg-dostep-ai[open]');
 }
 
-module.exports = { oknoAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };
+module.exports = {
+  krotkieLinkiGoscia, oknoAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };
