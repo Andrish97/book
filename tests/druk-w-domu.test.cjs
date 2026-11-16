@@ -40,14 +40,31 @@ test('druk w domu: menu ⋯ i Ctrl+P, broszura A4 – 2 kartki dla 6 stron, druk
     const bajty = new Uint8Array(await (await fetch(window.__druk[0])).arrayBuffer());
     const doc = await window.PDFLib.PDFDocument.load(bajty);
     const { width, height } = doc.getPages()[0].getSize();
-    return { strony: doc.getPageCount(), szer: width, wys: height };
+    const v = doc.catalog.getViewerPreferences();
+    return { strony: doc.getPageCount(), szer: width, wys: height, skala: v?.getPrintScaling(), dupleks: v?.getDuplex() };
   });
+  // Ustawienia druku zapisane w pliku (#187): 100% bez dopasowania, dwustronnie po krótszej krawędzi.
+  assert.equal(pdf.skala, 'None');
+  assert.equal(pdf.dupleks, 'DuplexFlipShortEdge');
   assert.equal(pdf.strony, 4, 'broszura 6 stron → 2 kartki dwustronnie');
   assert.ok(Math.abs(pdf.szer - 841.89) < 1 && Math.abs(pdf.wys - 595.28) < 1, `A4 poziomo: ${pdf.szer}×${pdf.wys}`);
+  // Strona próbna (#187): jedna kartka A4 pionowo z linijką; widoczne ustawienia okna drukarki.
+  const probna = await strona.evaluate(async () => {
+    const { stronaProbnaPdf } = await import('./js/okno-druku.js');
+    const doc = await window.PDFLib.PDFDocument.load(new Uint8Array(await (await stronaProbnaPdf('A4')).arrayBuffer()));
+    const { width, height } = doc.getPages()[0].getSize();
+    return { strony: doc.getPageCount(), szer: width, wys: height, skala: doc.catalog.getViewerPreferences()?.getPrintScaling() };
+  });
+  assert.equal(probna.strony, 1);
+  assert.ok(Math.abs(probna.szer - 595.28) < 1 && Math.abs(probna.wys - 841.89) < 1, `A4 pionowo: ${probna.szer}×${probna.wys}`);
+  assert.equal(probna.skala, 'None');
   // Ctrl+P otwiera to samo okno, z zapamiętanym układem.
   await strona.keyboard.press('Control+p');
   await strona.waitForSelector('#dlg-druk[open]');
   assert.equal(await strona.inputValue('#form-druk [name="uklad"]'), 'broszura');
+  assert.match(await strona.textContent('#druk-ustawienia'), /100%.*Nagłówki i stopki/s);
+  await strona.click('#druk-probna');
+  await strona.waitForFunction(() => window.__druk.length === 2, null, { timeout: 15000 });
   // Druk z menu przeglądarki: zamiast zrzutu aplikacji tylko podpowiedź (#150).
   await strona.keyboard.press('Escape');
   await strona.emulateMedia({ media: 'print' });

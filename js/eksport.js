@@ -26,7 +26,7 @@ import { ustawSilnikTac } from './separacje.js';
 import { wynikDlaStrony, rolaSekcji, ROLE_SEKCJI } from './sekcje-specjalne.js';
 import { rysujLinieSpecjalne, arkuszeUzytkow } from './pdf-specjalne.js';
 
-const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
+export const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
 const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
 const FONTKIT_URL = 'js/zewnetrzne/fontkit-1.1.1.umd.min.js';
 
@@ -147,7 +147,7 @@ function rysujZnaki(strona, PDFLib, { w, h, pas, odstep }, czarnaFarba = false) 
 // Do czytania na ekranie (#131C): nawigacja – zakładki (sekcje, nagłówki) i linki (spis treści, odsyłacze „s. 12”,
 // element z adresem, kod QR z adresem; linki tylko w pliku wektorowym). Układ arkuszy (impozycja): uklad
 // ('zwykly' | 'broszura' | 'skladki' | 'dwie' | 'cztery'), skladka, formatArkusza ('auto' | 'A4' | 'A3'), pelzanie (mm).
-export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), uszlachetnienia = 'plyty', tylkoPlyta = null, nawigacja = false, uklad = 'zwykly', skladka = 16, formatArkusza = 'auto', pelzanie = 0, powieksz = false, postep, przerwij } = {}) {
+export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300, spad = true, znaki = 'sekcje', jakosc = 0.92, cmyk = false, krzywe = false, pdfx = '', profilWlasny = null, zdjeciaCmyk = false, druk = null, uwagi = new Map(), jakoKrzywe = new Map(), ligatury = { ile: 0 }, ciag = rozwin(projekt), uszlachetnienia = 'plyty', tylkoPlyta = null, nawigacja = false, uklad = 'zwykly', skladka = 16, formatArkusza = 'auto', pelzanie = 0, powieksz = false, ustawieniaDruku = null, postep, przerwij } = {}) {
   const arkusze = uklad && uklad !== 'zwykly';
   if (arkusze) { spad = false; nawigacja = false; } // na arkuszach strony stoją równo do formatu, bez linków
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
@@ -273,8 +273,23 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   if (grupyUzytkow.length) wynik = await arkuszeUzytkow(PDFLib, await pdf.save(), grupyUzytkow, { znaki: znaki !== false });
   if (arkusze) wynik = (await impozycjaPdf(PDFLib, await pdf.save(), { uklad, skladka, format: formatArkusza, pelzanie, znaki: znaki !== false, powieksz, tytul: projekt.nazwa })).pdf;
   if (warunki) await dodajPdfX(PDFLib, wynik, warunki, { tytul: projekt.nazwa });
+  if (ustawieniaDruku) ustawPreferencjeDruku(PDFLib, wynik, ustawieniaDruku);
   const bajty = await wynik.save();
   return new Blob([warunki ? naglowekPdfX(bajty) : bajty], { type: 'application/pdf' });
+}
+
+// Druk w domu (#187): ustawienia zapisane w pliku, które okno drukowania przeglądarki (Chrome, Edge,
+// Acrobat, podgląd systemowy) bierze jako domyślne – skala 100% bez „dopasuj”, druk dwustronny z obracaniem
+// po właściwej krawędzi (kartka pozioma – krótsza, pionowa – dłuższa), podajnik według rozmiaru strony.
+export function ustawPreferencjeDruku(PDFLib, pdf, { dwustronnie = 'auto' } = {}) {
+  const v = pdf.catalog.getOrCreateViewerPreferences();
+  if (dwustronnie === 'auto') {
+    const s = pdf.getPages()[0]?.getSize();
+    dwustronnie = s && s.width > s.height ? 'krotsza' : 'dluzsza';
+  }
+  v.setPrintScaling(PDFLib.PrintScaling.None);
+  v.setDuplex(dwustronnie === 'krotsza' ? PDFLib.Duplex.DuplexFlipShortEdge : PDFLib.Duplex.DuplexFlipLongEdge);
+  v.setPickTrayByPDFSize(true);
 }
 
 // Id elementów strony, których tekst ma odsyłacz {s:…} (złożony tekst ma już wpisane numery stron).

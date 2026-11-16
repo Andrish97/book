@@ -1823,8 +1823,20 @@ Wydruk na zwykłej drukarce: **⋯** → **Drukuj w domu…** albo `Ctrl`+`P` w 
 
 Pod ustawieniami widać, jak strony ułożą się na kartkach. **Drukuj** otwiera okno drukowania z gotowym plikiem (na telefonie plik otwiera się w nowej karcie — wybierz tam **Udostępnij → Drukuj**), a **Pobierz PDF do druku** zapisuje ten sam plik.
 
+Okno drukowania przeglądarki potrafi po swojemu zmienić skalę, dodać marginesy albo nagłówek z datą i adresem. Makietka drukuje gotowy plik PDF, a nie samą stronę, więc nagłówków i stopek w nim nie ma; skala 100% i druk dwustronny są zapisane w pliku. Nie każda przeglądarka słucha tych ustawień, dlatego okno pokazuje, co sprawdzić w oknie drukarki:
+
+| W oknie drukarki | Ustaw |
+|---|---|
+| **Skala** | **100% / Rzeczywisty rozmiar** — nie „Dopasuj” ani „Zmniejsz do strony”. |
+| **Marginesy** | Domyślne. Plik ma już marginesy, a strony są ułożone na kartce. |
+| **Nagłówki i stopki** | Wyłączone. Jeśli w podglądzie widać datę i adres, odznacz tę opcję. |
+
+Drukarka nie zadrukuje kilku milimetrów przy brzegu kartki. Strona o rozmiarze kartki jest więc lekko zmniejszona, tak żeby zostało 5 mm marginesu; okno pisze, o ile.
+
+> **Wskazówka:** Najpewniejszy wydruk: **Pobierz PDF do druku** i drukuj z programu do plików PDF. Za pierwszym razem wydrukuj **stronę próbną**: linijka 100 mm ma mieć dokładnie 100 mm, a ramki 3, 5 i 10 mm pokazują, ile przy brzegu zostawia Twoja drukarka.
+
 1. Najpierw wydrukuj jedną kartkę na próbę.
-2. W oknie drukarki ustaw skalę **Rzeczywisty rozmiar / 100%**.
+2. Sprawdź w oknie drukarki skalę **Rzeczywisty rozmiar / 100%**.
 3. Broszurę drukuj dwustronnie, **obracanie po krótszej krawędzi**; bez druku dwustronnego — najpierw strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
 4. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu.
 

@@ -6,8 +6,9 @@
 
 import { $, pobierz, powiadom, bezpiecznaNazwa } from './ui.js';
 import { rozwin } from './serie.js';
-import { zlozPdf, wybierzEgzemplarze } from './eksport.js';
-import { opisPlanu, planImpozycji } from './impozycja.js';
+import { zlozPdf, wybierzEgzemplarze, ustawPreferencjeDruku, PDFLIB_URL } from './eksport.js';
+import { opisPlanu, planImpozycji, wymiaryArkusza, ARKUSZE } from './impozycja.js';
+import { biblioteka } from './biblioteki.js';
 import { pokazPlanArkuszy } from './okno-pdf.js';
 import { postep } from './postep.js';
 
@@ -21,6 +22,7 @@ export function opcjeDruku(o) {
     tryb: 'wektor', spad: false, nawigacja: false, uszlachetnienia: 'pomin',
     uklad: o.uklad || 'jedna', formatArkusza: o.papier || 'A4', powieksz: o.dopasowanie === 'dopasuj',
     znaki: broszura && o.znaki ? 'sekcje' : false,
+    ustawieniaDruku: { dwustronnie: 'auto' }, // skala 100% i dupleks zapisane w pliku (#187)
   };
 }
 
@@ -47,6 +49,45 @@ export function drukujPlik(url) {
   document.body.append(ramka);
 }
 
+// Strona próbna (#187): linijki 100 mm w poziomie i w pionie, kwadrat 50 mm i ramki 3, 5 i 10 mm od brzegu.
+// Po wydruku linijka przyłożona do linijki pokazuje, czy drukarka nie zmienia skali, a ramki – ile
+// przy brzegu kartki drukarka zostawia niezadrukowane. Same liczby (czcionka wbudowana PDF nie ma polskich liter).
+export async function stronaProbnaPdf(papier = 'A4') {
+  const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
+  const PT = 72 / 25.4;
+  const [W, H] = ARKUSZE[papier] || ARKUSZE.A4;
+  const pdf = await PDFLib.PDFDocument.create();
+  pdf.setTitle('Makietka - strona probna');
+  pdf.setCreator('Makietka');
+  const s = pdf.addPage([W * PT, H * PT]);
+  const font = await pdf.embedFont(PDFLib.StandardFonts.Helvetica);
+  const czarny = PDFLib.rgb(0, 0, 0); const szary = PDFLib.rgb(0.45, 0.45, 0.45);
+  // Współrzędne w mm od lewego górnego rogu.
+  const linia = (x1, y1, x2, y2, grubosc = 0.25, kolor = czarny) => s.drawLine({ start: { x: x1 * PT, y: (H - y1) * PT }, end: { x: x2 * PT, y: (H - y2) * PT }, thickness: grubosc, color: kolor });
+  const tekst = (t, x, y, rozmiar = 7, kolor = czarny) => s.drawText(t, { x: x * PT, y: (H - y) * PT, size: rozmiar, font, color: kolor });
+  for (const m of [3, 5, 10]) {
+    s.drawRectangle({ x: m * PT, y: m * PT, width: (W - 2 * m) * PT, height: (H - 2 * m) * PT, borderColor: m === 5 ? czarny : szary, borderWidth: 0.4, borderDashArray: m === 3 ? [2, 2] : undefined });
+    tekst(`${m} mm`, W / 2 - 4 + (m - 5) * 6, m + 3.2, 6, m === 5 ? czarny : szary);
+  }
+  const x0 = (W - 100) / 2; const y0 = H / 2 - 40;
+  for (let i = 0; i <= 100; i += 1) {
+    const d = i % 10 === 0 ? 6 : i % 5 === 0 ? 4 : 2.5;
+    linia(x0 + i, y0, x0 + i, y0 + d);
+    linia(x0, y0 + 20 + i, x0 + d, y0 + 20 + i);
+    if (i % 10 === 0) {
+      tekst(String(i / 10), x0 + i - 1, y0 + 9.5, 7);
+      if (i) tekst(String(i / 10), x0 + 8, y0 + 21.2 + i, 7);
+    }
+  }
+  linia(x0, y0, x0 + 100, y0, 0.4); linia(x0, y0 + 20, x0, y0 + 120, 0.4);
+  tekst('100 mm', x0 + 42, y0 + 15, 9);
+  s.drawRectangle({ x: (x0 + 40) * PT, y: (H - (y0 + 90)) * PT, width: 50 * PT, height: 50 * PT, borderColor: czarny, borderWidth: 0.5 });
+  tekst('50 x 50 mm', x0 + 51, y0 + 66, 9);
+  tekst('Makietka', x0, y0 + 132, 8, szary);
+  ustawPreferencjeDruku(PDFLib, pdf);
+  return new Blob([await pdf.save()], { type: 'application/pdf' });
+}
+
 // Krótka pomoc z rysunkami: dwustronnie (krótsza krawędź), bez dupleksu, test na jednej kartce, 100%, składanie.
 function pomoc(uklad) {
   const broszura = uklad === 'broszura';
@@ -54,7 +95,6 @@ function pomoc(uklad) {
   const krok = (svg, tekst) => `<li>${svg ? `<svg viewBox="0 0 110 44" aria-hidden="true">${svg}</svg>` : ''}<span>${tekst}</span></li>`;
   return `<ol class="druk-kroki">${[
     krok('', 'Najpierw wydrukuj <b>jedną kartkę na próbę</b> (w oknie drukarki: strony 1–2) i sprawdź, czy strony stoją dobrze.'),
-    krok('', 'W oknie drukarki ustaw skalę <b>Rzeczywisty rozmiar / 100%</b> (nie „Dopasuj”), żeby wymiary się zgadzały.'),
     broszura
       ? krok(`${kartka(4, '8 | 1')}<path d="M52 22h7m-3-3 3 3-3 3" class="strzalka"/>${kartka(62, '2 | 7')}`, 'Broszura: drukuj <b>dwustronnie, obracanie po krótszej krawędzi</b> (kartka leży poziomo). Na odwrocie kartki 1 są strony 2 i 7.')
       : krok('', uklad === 'jedna' ? 'Dwustronnie: obracanie po <b>dłuższej</b> krawędzi (kartka pionowo).' : 'Dwustronnie: kartka z kilkoma stronami leży poziomo – obracanie po <b>krótszej</b> krawędzi.'),
@@ -63,6 +103,20 @@ function pomoc(uklad) {
     broszura ? krok('<path d="M8 8h40v28H8zM28 8v28" class="kartka"/><path d="M62 22h40M82 10v24" class="strzalka"/>', 'Złóż kartki razem na pół (pierwsza kartka na wierzchu), wyrównaj i <b>zszyj w zgięciu</b> (2 zszywki). Grubą broszurę podziel na składki po kilka kartek.') : '',
     broszura ? krok('', 'Jeśli wybrałeś znaki cięcia, po zszyciu przytnij brzegi wzdłuż znaków (nożykiem przy linijce albo w punkcie ksero).') : '',
   ].join('')}</ol>`;
+}
+
+// Ile strona zmieni się na kartce: drukarka nie zadrukuje kilku mm przy brzegu, więc strona o rozmiarze
+// kartki jest lekko zmniejszona (5 mm marginesu) – lepiej to powiedzieć wprost niż dać się zaskoczyć (#187).
+function opisSkali(egz, plan, o) {
+  const w = egz[0]?.sekcja?.wydruk;
+  if (!w) return '';
+  const p = planImpozycji(egz.length, plan).strony[0];
+  const a = wymiaryArkusza(w.szerokosc_mm, w.wysokosc_mm, p.kolumny, p.wiersze, { format: o.papier, znaki: false, powieksz: o.dopasowanie === 'dopasuj' });
+  const proc = Math.round(a.skala * 100);
+  if (proc === 100) return '';
+  return proc < 100
+    ? `Strony będą zmniejszone do ${proc}%, żeby zmieściły się na kartce z marginesem 5 mm (tyle przy brzegu drukarka zwykle nie zadrukuje).`
+    : `Strony będą powiększone do ${proc}% (Dopasuj do kartki).`;
 }
 
 export class OknoDruku {
@@ -74,6 +128,9 @@ export class OknoDruku {
     this.f.addEventListener('input', (e) => { if (e.target.type === 'number') this.odswiez(); });
     this.f.addEventListener('submit', (e) => { e.preventDefault(); this.wykonaj(true); });
     $('#druk-pobierz').addEventListener('click', () => this.wykonaj(false));
+    $('#druk-probna').addEventListener('click', async () => {
+      try { drukujPlik(URL.createObjectURL(await stronaProbnaPdf(this.opcje().papier))); } catch (e) { $('#druk-komunikat').textContent = e.message; }
+    });
     for (const b of this.okno.querySelectorAll('[data-akcja="druk-zamknij"]')) b.addEventListener('click', () => this.okno.close());
   }
 
@@ -126,6 +183,7 @@ export class OknoDruku {
     $('#druk-opis').textContent = o.uklad === 'jedna'
       ? `${egz.length} ${egz.length === 1 ? 'strona' : 'stron'} na ${o.papier}, ${o.dopasowanie === 'dopasuj' ? 'dopasowane do kartki' : 'w rzeczywistym rozmiarze (zmniejszone tylko, gdy się nie mieszczą)'}.`
       : `${opisPlanu(egz.length, plan)} Papier ${o.papier}.`;
+    $('#druk-skala').textContent = opisSkali(egz, plan, o);
     pokazPlanArkuszy($('#druk-plan'), egz, plan);
     $('#druk-pomoc-tresc').innerHTML = pomoc(o.uklad);
   }

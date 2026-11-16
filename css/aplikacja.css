@@ -3179,6 +3179,12 @@ body.malarz-aktywny .upper-canvas { cursor: copy !important; }
 
 /* ---------- Drukuj w domu (#145) ---------- */
 #dlg-druk { width: min(560px, calc(100vw - 24px)); }
+.druk-ustawienia { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 8px 12px; font-size: 13px; line-height: 1.45; }
+.druk-ustawienia p { margin: 0; }
+.druk-ustawienia ul { margin: 6px 0; padding-left: 18px; }
+.druk-ustawienia li + li { margin-top: 3px; }
+.druk-ustawienia .przycisk-tekst { padding: 0; min-height: 0; border: 0; background: none; color: var(--akcent); font: inherit; text-decoration: underline; cursor: pointer; }
+#druk-skala:empty { display: none; }
 .druk-pomoc { border: 1px solid var(--linia); border-radius: var(--r-m); padding: 8px 12px; background: var(--powierzchnia-2); }
 .druk-pomoc summary { cursor: pointer; font-weight: 600; font-size: 13.5px; }
 .druk-kroki { list-style: none; margin: 10px 0 2px; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: krok; }

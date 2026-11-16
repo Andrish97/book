@@ -1335,7 +1335,17 @@
       <label class="przelacznik"><input name="szarosc" type="checkbox"><span>W odcieniach szarości</span></label>
       <label class="przelacznik" id="druk-pole-znaki" hidden><input name="znaki" type="checkbox"><span>Znaki cięcia i złamu (broszura do przycięcia)</span></label>
       <p class="podpowiedz" id="druk-opis"></p>
+      <p class="podpowiedz" id="druk-skala"></p>
       <ol class="plan-arkuszy" id="druk-plan" aria-label="Układ kartek"></ol>
+      <div class="druk-ustawienia" id="druk-ustawienia">
+        <p><b>W oknie drukarki</b> (plik ma te ustawienia zapisane, ale nie każda przeglądarka ich słucha):</p>
+        <ul>
+          <li>Skala: <b>100% / Rzeczywisty rozmiar</b> – nie „Dopasuj” ani „Zmniejsz do strony”.</li>
+          <li>Marginesy: zostaw <b>domyślne</b> – plik ma już własne, a strony są ułożone na kartce.</li>
+          <li>Nagłówki i stopki: <b>wyłączone</b> – drukujemy gotowy PDF, więc data i adres strony nie powinny się pojawić; jeśli widzisz je w podglądzie, odznacz tę opcję.</li>
+        </ul>
+        <p class="ciche">Najpewniej: <b>Pobierz PDF do druku</b> i wydrukuj z programu do PDF. Pierwszy raz? Wydrukuj <button type="button" class="przycisk-tekst" id="druk-probna">stronę próbną</button> i przyłóż linijkę – 100 mm ma mieć 100 mm.</p>
+      </div>
       <details class="druk-pomoc" id="druk-pomoc">
         <summary>Jak wydrukować</summary>
         <div id="druk-pomoc-tresc"></div>
