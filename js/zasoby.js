@@ -88,10 +88,19 @@ export const kluczZasobu = (zasob) => (zasob && !zasob.dataUrl && podlaczone.get
 // Wkłada plik do magazynu i podłącza jego adres do opisu zasobu. Zwraca dane do opisu w projekcie.
 async function wlozPlik(projekt, id, blob, zasob) {
   const k = klucz(projekt, id);
-  await transakcja('readwrite', (m) => { m.put(blob, k); m.delete(KOPIA + k); });
-  // Adres wskazuje plik odczytany z magazynu (z dysku), nie kopię trzymaną w pamięci.
-  zarejestruj(k, (await transakcja('readonly', (m) => m.get(k))) || blob, zasob);
-  return { typ: blob.type || 'application/octet-stream', rozmiar: blob.size };
+  // Plik odczytany z powrotem musi być tym, który zapisaliśmy: pod dużym obciążeniem przeglądarka potrafiła
+  // zapisać zamiast zdjęcia kilkubajtowy plik bez typu (#184) – a po odłożeniu treść znika z projektu, więc
+  // zdjęcie przepadało. Zapis powtarzamy; gdy się nie uda, błąd zostawia treść obrazu w projekcie.
+  for (let proba = 0; proba < 3; proba += 1) {
+    await transakcja('readwrite', (m) => { m.put(blob, k); m.delete(KOPIA + k); });
+    const zapisany = await transakcja('readonly', (m) => m.get(k));
+    if (zapisany && zapisany.size === blob.size && zapisany.type === blob.type) {
+      // Adres wskazuje plik odczytany z magazynu (z dysku), nie kopię trzymaną w pamięci.
+      zarejestruj(k, zapisany, zasob);
+      return { typ: blob.type || 'application/octet-stream', rozmiar: blob.size };
+    }
+  }
+  throw new Error(`Nie udało się zapisać obrazu „${zasob?.nazwa || id}” w pamięci przeglądarki.`);
 }
 
 // Plik z konta musi się zgadzać z opisem obrazu w projekcie (#184): niepełny albo inny plik (np. przerwana wysyłka
