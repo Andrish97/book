@@ -14,6 +14,10 @@
 // na ścianie (płaszczyzna z = const), biurkowy stoi na biurku (y = 0). scena() zwraca listę czworokątów
 // { p: [4 punkty], uv: [4], tex, n, nv?: [4 normalne], ao?: [4], mat } i opis podłoża (quady.podloze).
 
+import { normalizujOpcje, DOMYSLNE_OPCJE, DRUT, TEKTURA } from './makieta-ustawienia.js';
+
+export { normalizujOpcje, DOMYSLNE_OPCJE };
+
 export const MODELE = {
   ksiazka_miekka: 'Książka – miękka oprawa',
   ksiazka_twarda: 'Książka – twarda oprawa',
@@ -21,15 +25,23 @@ export const MODELE = {
   kalendarz_scienny: 'Kalendarz ścienny',
   kalendarz_biurkowy: 'Kalendarz biurkowy',
   kartka: 'Pojedyncza kartka',
+  // Makiety sekcji specjalnych (#181) – tylko gdy projekt ma taką sekcję (okno pokazuje pasujące modele).
+  ulotka: 'Ulotka składana',
+  koperta: 'Koperta',
+  pudelko: 'Pudełko z wykrojnika',
+  trojdzielny: 'Kalendarz trójdzielny',
 };
+// Modele z jednej sekcji specjalnej (rodzaj → model): ich kartki to strony tej sekcji, geometria z jej wyniku.
+export const MODELE_SPECJALNE = ['ulotka', 'koperta', 'pudelko', 'trojdzielny'];
+export const jestSpecjalnyModel = (model) => MODELE_SPECJALNE.includes(model);
 
 const PAPIER = '#fbfaf7';
 const KRAWEDZ_OKLADKI = '#e8e4dc';
-const DRUT = '#2f3237';
-const TEKTURA = '#a29a8d';
 const KRAFT = '#cdbd9f'; // papier podklejki grzbietu twardej oprawy (wnętrze skorupy grzbietu, #179)
 const OKLEINA = '#2b2f3a'; // okleina twardej oprawy, gdy projekt nie ma sekcji okładki
 const OTWOR = '#6b675f';
+const KARTON = '#eeeae1'; // wnętrze koperty i pudełka (strona bez druku)
+const RAMKA_OKIENKA = '#c4161c';
 export const KRAWEDZ_KARTEK = 'tex:krawedz';
 export const SKLADKI = 'tex:skladki';
 export const KAPITALKI = 'tex:kapitalka';
@@ -65,10 +77,20 @@ export function ukladStron(rozmiary) {
 // każdej strony (gdy sekcje mają różne formaty), okladka: { w, h, tektura } | null, kartka_mm: grubość kartki.
 // wnetrze: { przod: bool, tyl: bool } – pierwsza / ostatnia strona (połowa wyklejki) jest przyklejona do wnętrza
 // przedniej / tylnej okładki, a nie osobną kartką (#161).
-export function kartkiModelu(model, { strony, format, okladka = null, kartka_mm = 0.1, rozmiary = null, wnetrze = null }) {
+// specjalna (#181): parametry sekcji specjalnej z jej wynikiem ({ ...parametry, wynik }) – ulotka, koperta, pudełko,
+// kalendarz trójdzielny: jedna „kartka” wielkości arkusza (przód – strona 0, tył – strona 1, jeśli jest).
+// obwoluta (#181): { skrzydelko_mm } – twarda okładka dostaje skrzydełka obwoluty po wewnętrznej stronie.
+export function kartkiModelu(model, { strony, format, okladka = null, kartka_mm = 0.1, rozmiary = null, wnetrze = null, specjalna = null, obwoluta = null }) {
   const d = Math.max(0.06, kartka_mm || 0.1);
   const wym = (i) => rozmiary?.[i] || format;
   const kartki = [];
+  if (jestSpecjalnyModel(model)) {
+    const wynik = specjalna?.wynik;
+    if (!wynik) return kartki;
+    const gr = model === 'pudelko' ? 0.45 : model === 'trojdzielny' ? 1.2 : model === 'koperta' ? 0.12 : 0.15;
+    kartki.push({ przod: strony > 0 ? 'p:0' : null, tyl: strony > 1 ? 'p:1' : null, w: wynik.szerokosc, h: wynik.wysokosc, d: gr, kolor: PAPIER, specjalna });
+    return kartki;
+  }
   if (model === 'kalendarz_scienny' || model === 'kalendarz_biurkowy') {
     for (let i = 0; i < strony; i += 1) kartki.push({ przod: `p:${i}`, tyl: null, ...wymiar(wym(i)), d: Math.max(d, 0.18), kolor: PAPIER });
     return kartki;
@@ -97,24 +119,38 @@ export function kartkiModelu(model, { strony, format, okladka = null, kartka_mm 
   // strony bloku, 3 mm od krawędzi tektury; wyklejka: 'A' – na stronie przodu, 'B' – tyłu kartki okładki.
   const okleina = okladka ? 'okl:okleina' : `kolor:${OKLEINA}`;
   const wklejka = (strona) => (twarda ? { wyklejka: strona, okleina, wBloku: w, hBloku: h } : {});
-  if (zOkladka) kartki.push({ przod: okladka ? 'okl:przod' : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(wPrzod ? wklejka('B') : {}) });
+  // Obwoluta (#181): skrzydełka zawinięte na wewnętrzną stronę tektury (przód – strona B, tył – A).
+  const skrz = (czesc, strona) => (twarda && obwoluta?.skrzydelko_mm > 0 ? { skrzydelko: { tex: `obw:${czesc}`, w: Math.min(obwoluta.skrzydelko_mm, wOkl - 4), strona } } : {});
+  const naOkl = twarda && obwoluta ? 'obw' : 'okl'; // obwoluta zakrywa przód, grzbiet i tył okładki
+  const zObw = Boolean(okladka) || naOkl === 'obw';
+  if (zOkladka) kartki.push({ przod: zObw ? `${naOkl}:przod` : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(wPrzod ? wklejka('B') : {}), ...skrz('skrzydelko_p', -1) });
   // Bez sekcji okładki pierwsza strona jest okładką (miękka): środek zaczyna się od niej.
-  const od = (zOkladka && !okladka && strony) || wPrzod ? 1 : 0;
+  const od = (zOkladka && !zObw && strony) || wPrzod ? 1 : 0;
   const ile = wTyl ? strony - 1 : strony;
   for (let i = od; i < ile; i += 2) kartki.push({ przod: `p:${i}`, tyl: i + 1 < ile ? `p:${i + 1}` : null, w, h, d, kolor: PAPIER });
-  if (zOkladka) kartki.push({ przod: wTyl ? `p:${strony - 1}` : null, tyl: okladka ? 'okl:tyl' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(wTyl ? wklejka('A') : {}) });
+  if (zOkladka) kartki.push({ przod: wTyl ? `p:${strony - 1}` : null, tyl: zObw ? `${naOkl}:tyl` : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(wTyl ? wklejka('A') : {}), ...skrz('skrzydelko_l', 1) });
   return kartki;
 }
 const wymiar = (r) => ({ w: Math.max(10, r.w), h: Math.max(10, r.h) });
 
 // Ile położeń kartkowania ma model (u od 0 do tej liczby).
-export const polozenia = (model, kartki) => (model === 'kartka' ? Math.max(1, kartki.length * 2 - 1) : kartki.length);
+// Ulotka: złożona → rozłożona (środek) → odwrócona (zewnątrz); koperta: przód → tył → otwarta klapa;
+// pudełko: wykrojnik płasko → złożone; trójdzielny – jedno położenie.
+const POLOZENIA_SPECJALNE = { ulotka: 2, koperta: 2, pudelko: 1, trojdzielny: 0 };
+export const polozenia = (model, kartki) => {
+  if (jestSpecjalnyModel(model)) return kartki.length ? POLOZENIA_SPECJALNE[model] : 0;
+  return model === 'kartka' ? Math.max(1, kartki.length * 2 - 1) : kartki.length;
+};
 
 // Opis położenia dla człowieka – „Okładka”, „Strony 2–3”, „Strona 5 z 13”…
 // numer(i) – numer strony p:i w projekcie (null: strona bez numeru, np. połowa wyklejki); domyślnie i + 1.
 export function opisPolozenia(model, kartki, u, numer = (i) => i + 1) {
   const t = Math.round(u);
   const nr = (klucz) => (klucz?.startsWith('p:') ? numer(Number(klucz.slice(2))) : null);
+  if (model === 'ulotka') return t === 0 ? 'Złożona' : t === 1 ? 'Rozłożona – środek' : 'Rozłożona – zewnątrz';
+  if (model === 'koperta') return ['Przód koperty', 'Tył – klapa zamknięta', 'Tył – klapa otwarta'][Math.min(2, t)];
+  if (model === 'pudelko') return t === 0 ? 'Wykrojnik (płasko)' : 'Pudełko złożone';
+  if (model === 'trojdzielny') return 'Kalendarz trójdzielny';
   if (model === 'kartka') {
     const k = kartki[Math.floor(t / 2)];
     const klucz = t % 2 ? k?.tyl : k?.przod;
@@ -338,7 +374,7 @@ function blok(quady, { strona, w, h, z0, wierzch, texWierzch, texSpod, aoX, grzb
 function lisc(quady, kar, krzywa, mat) {
   const L = kar.w;
   // Brzeg okładki w kolorze jej zewnętrznej strony (wnętrze bywa wyklejką – #161).
-  const zewn = [kar.przod, kar.tyl].find((k) => k?.startsWith('okl:'));
+  const zewn = [kar.przod, kar.tyl].find((k) => k?.startsWith('okl:') || k?.startsWith('obw:'));
   const brzeg = zewn || kar.przod || kar.tyl;
   const okl = kar.okladka && brzeg;
   const brzegPrzod = brzeg === kar.przod;
@@ -356,6 +392,53 @@ function lisc(quady, kar, krzywa, mat) {
     krawedzieUv: okl ? (sg, g) => [ogr(brzegPrzod ? sg / L : 1 - sg / L, 0.004, 0.996), g ? 0.996 : 0.004] : null,
   });
   if (wA || wB) wyklejkaNaTekturze(quady, kar, krzywa, wA ? 1 : -1);
+  if (kar.skrzydelko) skrzydelkoObwoluty(quady, kar, krzywa);
+}
+
+// Punkt na prostej krzywej tektury (długość sg), przesunięty o o po normalnej: [x, z, kąt].
+function naTekturze(krzywa, sg, o) {
+  const { c, fi } = krzywa;
+  const n = c.length - 1;
+  const L = krzywa.sigma[n];
+  const t = Math.min(1, Math.max(0, sg / L));
+  const i = Math.min(n - 1, Math.floor(t * n));
+  const f = fi[i];
+  const x = lerp(c[i][0], c[i + 1][0], t * n - i);
+  const z = lerp(c[i][1], c[i + 1][1], t * n - i);
+  return [x - Math.sin(f) * o, z + Math.cos(f) * o, f];
+}
+
+// Skrzydełko obwoluty (#181): pas papieru od przedniej krawędzi tektury do środka, po wewnętrznej stronie (na
+// wyklejce), z zawinięciem wokół krawędzi. Czytane jak wydrukowane: przód – od przedniej krawędzi w stronę
+// grzbietu, tył – od grzbietu w stronę krawędzi.
+function skrzydelkoObwoluty(quady, kar, krzywa) {
+  const { tex, w: s, strona } = kar.skrzydelko;
+  const L = krzywa.sigma.at(-1);
+  const o = strona * (kar.d / 2 + 0.1);
+  const h = kar.h - 0.6;
+  const N = 6;
+  siatka(quady, N, 2, (i, j) => {
+    const sg = L - s + (s * i) / N;
+    const [x, z, f] = naTekturze(krzywa, sg, o);
+    const y = lerp(h / 2, -h / 2, j / 2);
+    const u = strona < 0 ? (L - sg) / s : (sg - (L - s)) / s;
+    return { p: naStol([x, y, z]), n: naStol([-Math.sin(f) * strona, 0, Math.cos(f) * strona]), uv: [u, (h / 2 - y) / h], ao: 1 - 0.18 * Math.exp(-(sg - (L - s)) / 2) };
+  }, tex, 'papier');
+  // Zawinięcie wokół przedniej krawędzi tektury (półwalec z papieru obwoluty).
+  const [x1, z1, f] = naTekturze(krzywa, L, 0);
+  const t = [Math.cos(f), Math.sin(f)];
+  const nn = [-Math.sin(f), Math.cos(f)];
+  const r = kar.d / 2 + 0.1;
+  const K = 6;
+  const ue = strona < 0 ? 0.002 : 0.998;
+  const pkt = (a, y) => naStol([x1 + t[0] * r * Math.sin(a) + nn[0] * r * Math.cos(a), y, z1 + t[1] * r * Math.sin(a) + nn[1] * r * Math.cos(a)]);
+  for (let i = 0; i < K; i += 1) {
+    const a0 = (Math.PI * i) / K;
+    const a1 = (Math.PI * (i + 1)) / K;
+    const am = (a0 + a1) / 2;
+    const nrm = naStol([t[0] * Math.sin(am) + nn[0] * Math.cos(am), 0, t[1] * Math.sin(am) + nn[1] * Math.cos(am)]);
+    quad(quady, [pkt(a0, h / 2), pkt(a1, h / 2), pkt(a1, -h / 2), pkt(a0, -h / 2)], [[ue, 0], [ue, 0], [ue, 1], [ue, 1]], tex, 'papier', { n: nrm });
+  }
 }
 
 // Połowa wyklejki przyklejona do tektury (#179): arkusz wielkości strony bloku (bez grubości), od zawiasu
@@ -389,16 +472,19 @@ function wyklejkaNaTekturze(quady, kar, krzywa, strona) {
   }, tex || `kolor:${PAPIER}`, 'papier');
 }
 
-function ksiazka(quady, model, kartki, u) {
+// wachlarz (#181): tyle kartek z wierzchu prawej strony rozłożonej książki stoi uniesionych pod różnymi kątami.
+function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
   const n = kartki.length;
   const twarda = model === 'ksiazka_twarda';
   const k = Math.floor(u + 1e-9);
   const ulamek = u - k;
   const s = ulamek > 1e-6 ? gladko(Math.min(1, ulamek)) : 0;
   const obr = ulamek > 1e-6 && k < n ? k : null;
+  const wach = [];
+  if (wachlarz > 0 && obr === null && k > 0) for (let j = k; j < n && wach.length < wachlarz; j += 1) if (!kartki[j].okladka) wach.push(j);
   const lewe = [];
   const prawe = [];
-  for (let j = 0; j < n; j += 1) if (j !== obr) (j < k ? lewe : prawe).push(j);
+  for (let j = 0; j < n; j += 1) if (j !== obr && !wach.includes(j)) (j < k ? lewe : prawe).push(j);
   const grubosc = (lista) => lista.reduce((a, j) => a + kartki[j].d, 0);
   const T = grubosc(kartki.map((_, j) => j));
   const srodek = kartki.find((x) => !x.okladka) || kartki[0];
@@ -488,7 +574,7 @@ function ksiazka(quady, model, kartki, u) {
   // przesuwa się razem z grzbietem (zamknięta – na górze bloku, otwarta – obok bloku).
   const przyGrzbiecie = (S, p) => (S.czesci.length && !S.czesci.at(-1).okladka && p ? p(0) : S.wysokosc);
   let zawias = null; // { p: [x, z] zewnętrzna strona przy grzbiecie, d: kierunek okładki }
-  if (obr !== null) {
+  const obracaj = (obr, s) => {
     const kar = kartki[obr];
     // Okładka – tektura albo karton 250–350 g (#179): sztywna, zgina się tylko na zawiasie/bigach przy grzbiecie.
     const sztywna = Boolean(kar.okladka);
@@ -508,7 +594,10 @@ function ksiazka(quady, model, kartki, u) {
       const sg = obr === 0 ? 1 : -1;
       zawias = { p: [krzywa.c[0][0] + (sg * nn[0] * kar.d) / 2, krzywa.c[0][1] + (sg * nn[1] * kar.d) / 2], d: [Math.cos(krzywa.fi[0]), Math.sin(krzywa.fi[0])], wew: [krzywa.c[0][0] - (sg * nn[0] * kar.d) / 2, krzywa.c[0][1] - (sg * nn[1] * kar.d) / 2] };
     }
-  }
+  };
+  if (obr !== null) obracaj(obr, s);
+  // Wachlarz: wierzchnia kartka najwyżej (ok. 100°), kolejne coraz niżej.
+  wach.forEach((j, i) => obracaj(j, lerp(0.56, 0.07, wach.length > 1 ? i / (wach.length - 1) : 0)));
 
   // Grzbiet okładki (#161): cienka skorupa od zawiasu okładki pod blokiem do zawiasu drugiej okładki – nie
   // bryła. Twarda: zaokrąglona płyta odsunięta od wypukłego grzbietu bloku (szczelina – widać składki
@@ -555,15 +644,16 @@ function ksiazka(quady, model, kartki, u) {
         const krzywa = krzywaZPunktow(k0.c.map((p, i) => [p[0] + sg0 * Math.sin(k0.fi[i]) * dS / 2, p[1] - sg0 * Math.cos(k0.fi[i]) * dS / 2]));
         const L = krzywa.sigma.at(-1);
         const tylNaDole = dolnaB === n - 1;
-        const texZew = kar.przod?.startsWith('okl') ? 'okl:grzbiet' : `kolor:${KRAWEDZ_OKLADKI}`;
-        const uZew = texZew === 'okl:grzbiet' ? (sg) => ogr(tylNaDole ? 1 - sg / L : sg / L, 0.003, 0.997) : () => 0.5;
+        const pre = kar.przod?.match(/^(okl|obw):/)?.[1]; // obwoluta (#181) – grzbiet z obwoluty
+        const texZew = pre ? `${pre}:grzbiet` : `kolor:${KRAWEDZ_OKLADKI}`;
+        const uZew = pre ? (sg) => ogr(tylNaDole ? 1 - sg / L : sg / L, 0.003, 0.997) : () => 0.5;
         const texWew = `kolor:${twarda ? KRAFT : PAPIER}`;
         const od = quady.length;
         arkusz(quady, krzywa, kar.h, dS, {
           texA: zewA ? texZew : texWew, texB: zewA ? texWew : texZew,
           uA: zewA ? uZew : () => 0.5, uB: zewA ? () => 0.5 : uZew,
           mat: matOkl, krawedz: texZew, matKrawedzi: matOkl,
-          krawedzieUv: texZew === 'okl:grzbiet' ? (sg, g) => [uZew(sg), g ? 0.004 : 0.996] : null, vOdwrotnie: true,
+          krawedzieUv: pre ? (sg, g) => [uZew(sg), g ? 0.004 : 0.996] : null, vOdwrotnie: true,
         });
         for (let i = od; i < quady.length; i += 1) quady[i].grzbiet = true;
       }
@@ -882,39 +972,367 @@ function kartkaNaStole(quady, kartki, u) {
 // – rozłożone w „V” jak na półce wystawowej (grzbiet z tyłu).
 export const ULOZENIA = { lezy: 'Leży', stoi: 'Stoi' };
 export const mozeStac = (model) => model.startsWith('ksiazka') || model === 'notes';
-export function scena(model, kartki, u = 0, { ulozenie = 'lezy' } = {}) {
+// ---------- Sekcje specjalne (#181) ----------
+
+// Ścieżka w płaszczyźnie (x, z): od punktu start w kierunku kierunek; kroki – odcinki { L } albo łuki { r, kat }
+// (kat > 0 – w lewo, czyli w górę przy kierunku w prawo).
+function sciezka(start, kierunek, kroki) {
+  const pts = [start.slice()];
+  let p = start.slice();
+  let h = kierunek;
+  for (const k of kroki) {
+    if (k.kat === undefined || Math.abs(k.kat) < 1e-5) {
+      const L = k.kat === undefined ? k.L : k.r * Math.abs(k.kat);
+      if (L < 1e-6) continue;
+      p = [p[0] + Math.cos(h) * L, p[1] + Math.sin(h) * L];
+      pts.push(p);
+      continue;
+    }
+    const sg = Math.sign(k.kat);
+    const c = [p[0] - Math.sin(h) * k.r * sg, p[1] + Math.cos(h) * k.r * sg];
+    const N = 8;
+    for (let i = 1; i <= N; i += 1) {
+      const a = h + (k.kat * i) / N;
+      p = [c[0] + k.r * sg * Math.sin(a), c[1] - k.r * sg * Math.cos(a)];
+      pts.push(p);
+    }
+    h += k.kat;
+  }
+  return pts;
+}
+
+// Ulotka składana: arkusz łamany na panelach (zgięcia – łuki o promieniu z grubości papieru). u 0 – złożona
+// (okładka na wierzchu), 1 – rozłożona środkiem do góry, 2 – odwrócona (zewnątrz). Zwijana (C): panel 2 leży na
+// stole, kolejne zwijają się do środka, panel 1 (okładka) przykrywa całość; harmonijka (Z): zygzak, panel 1 na
+// wierzchu. Rozkładanie po kolei: najpierw okładka, potem panele wewnętrzne.
+function ulotka(quady, kar, u) {
+  const sp = kar.specjalna;
+  const panele = sp.wynik.panele?.length ? sp.wynik.panele : [kar.w];
+  const n = panele.length;
+  const zz = sp.zlozenie === 'z' && n > 2;
+  const d = kar.d;
+  const S = panele.reduce((a, x) => a + x, 0);
+  const e = ogr(u, 0, 1);
+  const m = n - 1;
+  const span = m > 1 ? 0.6 : 1;
+  const otw = (i) => gladko(ogr((e - (m > 1 ? (i * (1 - span)) / (m - 1) : 0)) / span, 0, 1));
+  // Kąt zgięcia i (między panelem i a i + 1): dokładnie π po złożeniu, lekka pamięć zgięcia po rozłożeniu.
+  const kat = (i, znak) => znak * (Math.PI * (1 - otw(i)) + 0.05 * otw(i));
+  const dl = (k) => k.r * Math.abs(k.kat);
+  let pts;
+  if (!zz) {
+    // Zwijana: baza – drugi panel, w prawo kolejne (łuki w górę, wewnętrzne ciaśniejsze), w lewo – okładka.
+    const R = Array.from({ length: n }, () => d);
+    for (let i = n - 2; i >= 1; i -= 1) R[i] = (n - 1 - i) * d;
+    const R0 = n > 2 ? R[1] + d : d;
+    const luk = [];
+    for (let i = 0; i < m; i += 1) luk.push({ r: i === 0 ? R0 : R[i], kat: i === 0 ? -kat(0, 1) : kat(i, 1) });
+    const prosta = (i) => panele[i] - (i > 0 ? dl(luk[i - 1]) / 2 : 0) - (i < m ? dl(luk[i]) / 2 : 0);
+    const prawo = [{ L: prosta(1) }];
+    for (let i = 2; i < n; i += 1) prawo.push(luk[i - 1], { L: prosta(i) });
+    const lewo = sciezka([0, 0], Math.PI, [luk[0], { L: prosta(0) }]);
+    pts = [...lewo.slice(1).reverse(), ...sciezka([0, 0], 0, prawo)];
+  } else {
+    // Harmonijka: od pierwszego panelu w prawo, zgięcia na przemian (kolejność punktów zostaje – środek po +n).
+    const luk = Array.from({ length: m }, (_, i) => ({ r: d, kat: kat(i, i % 2 ? -1 : 1) }));
+    const kroki = [];
+    for (let i = 0; i < n; i += 1) {
+      kroki.push({ L: panele[i] - (i > 0 ? dl(luk[i - 1]) / 2 : 0) - (i < m ? dl(luk[i]) / 2 : 0) });
+      if (i < m) kroki.push(luk[i]);
+    }
+    // Pierwszy panel leży, reszta się od niego odgina; całość obrócona o π (złożona) → 0 (rozłożona środkiem do góry)
+    // – harmonijkę przy rozkładaniu odwraca się w dłoniach.
+    const a = Math.PI * (1 - gladko(e));
+    pts = sciezka([0, 0], 0, kroki).map(([x, z]) => [x * Math.cos(a) - z * Math.sin(a), x * Math.sin(a) + z * Math.cos(a)]);
+  }
+  const krzywa = krzywaZPunktow(pts);
+  // Odwracanie rozłożonej ulotki (u 1 → 2): obrót wokół pionowej osi strony, z uniesieniem nad stół.
+  const th = Math.PI * gladko(ogr(u - 1, 0, 1));
+  let x0 = Infinity;
+  let x1 = -Infinity;
+  for (const [x] of krzywa.c) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }
+  const cx = (x0 + x1) / 2;
+  krzywa.c = krzywa.c.map(([x, z]) => [(x - cx) * Math.cos(th) - z * Math.sin(th), (x - cx) * Math.sin(th) + z * Math.cos(th)]);
+  krzywa.fi = krzywa.fi.map((f) => f + th);
+  let min = Infinity;
+  for (const [, z] of krzywa.c) min = Math.min(min, z);
+  krzywa.c = krzywa.c.map(([x, z]) => [x, z - min + d / 2 + 0.02]);
+  arkusz(quady, krzywa, kar.h, d, {
+    texA: kar.tyl || `kolor:${PAPIER}`, texB: kar.przod || `kolor:${PAPIER}`,
+    uA: (sg) => ogr(sg / S, 0, 1), uB: (sg) => ogr(1 - sg / S, 0, 1), mat: 'papier',
+  });
+}
+
+// Przekształcenia sztywne { R: macierz 3×3 wierszami, t } – zawiasy wykrojników.
+const T_JEDN = { R: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [0, 0, 0] };
+const naR = (R, v) => [R[0] * v[0] + R[1] * v[1] + R[2] * v[2], R[3] * v[0] + R[4] * v[1] + R[5] * v[2], R[6] * v[0] + R[7] * v[1] + R[8] * v[2]];
+const naT = (T, p) => dod(naR(T.R, p), T.t);
+function zlozT(A, B) {
+  const R = [];
+  for (let i = 0; i < 3; i += 1) for (let j = 0; j < 3; j += 1) R.push(A.R[i * 3] * B.R[j] + A.R[i * 3 + 1] * B.R[3 + j] + A.R[i * 3 + 2] * B.R[6 + j]);
+  return { R, t: dod(naR(A.R, B.t), A.t) };
+}
+// Obrót o kąt wokół prostej przez punkt A o kierunku k (wzór Rodriguesa).
+function obrotOs(A, k, kat) {
+  const [x, y, z] = k;
+  const c = Math.cos(kat);
+  const s = Math.sin(kat);
+  const C = 1 - c;
+  const R = [c + x * x * C, x * y * C - z * s, x * z * C + y * s, y * x * C + z * s, c + y * y * C, y * z * C - x * s, z * x * C - y * s, z * y * C + x * s, c + z * z * C];
+  return { R, t: odj(A, naR(R, A)) };
+}
+
+// Wykrojnik złożony z paneli na zawiasach: { poly: [[x, y]…] w mm arkusza, rodzic, zawias: [[x, y], [x, y]], kat,
+// warstwa }. Arkusz leży nadrukiem w dół (to zewnątrz bryły), płasko: X = −(x − cx), Z = y − cy; panele zginają
+// się do środka (w górę). Nadruk z uv arkusza, środek – karton.
+function wykrojnik(quady, kar, panele, { e = 0.3 } = {}) {
+  const S = kar.w;
+  const Hs = kar.h;
+  const F = ([x, y]) => [-(x - S / 2), 0, y - Hs / 2];
+  const T = [];
+  panele.forEach((pn, i) => {
+    let Ti = T_JEDN;
+    if (pn.rodzic !== undefined) {
+      const A = F(pn.zawias[0]);
+      const k = norm(odj(F(pn.zawias[1]), A));
+      const sr = F(pn.poly.reduce((a, p) => [a[0] + p[0] / pn.poly.length, a[1] + p[1] / pn.poly.length], [0, 0]));
+      const znak = naT(obrotOs(A, k, 0.1), sr)[1] >= 0 ? 1 : -1;
+      const rot = obrotOs(A, k, znak * pn.kat);
+      // Warstwy (klapki jedna na drugiej): złożone panele odsunięte o ułamek milimetra.
+      rot.t = dod(rot.t, [0, (pn.warstwa || 0) * 0.3 * ogr(pn.kat / Math.PI, 0, 1) * 2, 0]);
+      Ti = zlozT(T[pn.rodzic], rot);
+    }
+    T[i] = Ti;
+    const nN = naR(Ti.R, [0, -1, 0]); // nadruk – na zewnątrz
+    const P = pn.poly.map((p) => naT(Ti, F(p)));
+    const uv = pn.poly.map(([x, y]) => [ogr(x / S, 0, 1), ogr(y / Hs, 0, 1)]);
+    quad(quady, P.map((v) => dod(v, razy(nN, e / 2))), uv, kar.przod || `kolor:${PAPIER}`, 'okladka', { n: nN });
+    quad(quady, P.map((v) => dod(v, razy(nN, -e / 2))), uv, `kolor:${KARTON}`, 'tektura', { n: razy(nN, -1) });
+  });
+  return T;
+}
+
+// Bryła (czworokąty od indeksu od) obrócona o kąt wokół osi Z przez środek świata i postawiona na stole.
+function obrocNaStol(quady, od, kat) {
+  if (Math.abs(kat) > 1e-6) {
+    const R = obrotOs([0, 0, 0], [0, 0, 1], kat);
+    for (let i = od; i < quady.length; i += 1) {
+      const q = quady[i];
+      quady[i] = { ...q, p: q.p.map((v) => naT(R, v)), n: naR(R.R, q.n), nv: q.nv ? q.nv.map((v) => naR(R.R, v)) : q.nv };
+    }
+  }
+  let min = Infinity;
+  for (let i = od; i < quady.length; i += 1) for (const v of quady[i].p) min = Math.min(min, v[1]);
+  for (let i = od; i < quady.length; i += 1) quady[i] = { ...quady[i], p: quady[i].p.map(([x, y, z]) => [x, y - min, z]) };
+}
+
+const strefa = (wynik, rodzaj) => wynik.strefy?.find((z) => z.rodzaj === rodzaj);
+const rog = (z) => [[z.x1, z.y1], [z.x2, z.y1], [z.x2, z.y2], [z.x1, z.y2]];
+
+// Koperta: przód (adres) – podstawa, klapki boczne, spód i klapa zamykająca na zawiasach. u 0 – przód do góry,
+// 1 – tył (odwrócona), 2 – klapa otwarta.
+function koperta(quady, kar, u) {
+  const w = kar.specjalna.wynik;
+  const fr = strefa(w, 'front');
+  if (!fr) return;
+  const { x1: x0, y1: y0, x2: xk, y2: yk } = fr;
+  const W = xk - x0;
+  const H = yk - y0;
+  const b = w.wysokosc - yk;
+  const sb = x0;
+  const klapa = Math.PI * (1 - 0.8 * gladko(ogr(u - 1, 0, 1)));
+  const panele = [
+    { poly: rog(fr) },
+    { poly: [[x0, y0], [x0, yk], [0, y0 + H * 0.86], [0, y0 + H * 0.14]], rodzic: 0, zawias: [[x0, y0], [x0, yk]], kat: Math.PI, warstwa: 1 },
+    { poly: [[xk, yk], [xk, y0], [xk + sb, y0 + H * 0.14], [xk + sb, y0 + H * 0.86]], rodzic: 0, zawias: [[xk, y0], [xk, yk]], kat: Math.PI, warstwa: 1 },
+    { poly: [[x0, yk], [xk, yk], [x0 + W * 0.93, yk + b], [x0 + W * 0.07, yk + b]], rodzic: 0, zawias: [[x0, yk], [xk, yk]], kat: Math.PI, warstwa: 2 },
+    { poly: [[x0, y0], [x0 + W * 0.12, 0], [x0 + W * 0.88, 0], [xk, y0]], rodzic: 0, zawias: [[x0, y0], [xk, y0]], kat: klapa, warstwa: 3 },
+  ];
+  const od = quady.length;
+  wykrojnik(quady, kar, panele, { e: 0.25 });
+  // Przód do góry (u = 0): cała koperta obrócona wokół osi wzdłuż wysokości.
+  obrocNaStol(quady, od, Math.PI * (1 - gladko(ogr(u, 0, 1))));
+}
+
+// Pudełko klapowe: dno na stole, ścianki, zakładka klejowa, klapki przeciwkurzowe, wieczko z językiem.
+// u 0 – wykrojnik płasko (nadrukiem do góry), 1 – złożone pudełko: najpierw obrót arkusza, potem ścianki, wieczko.
+function pudelko(quady, kar, u) {
+  const w = kar.specjalna.wynik;
+  const [pr, bl, ty, bp, wg, wd, kl] = ['przod', 'bok_l', 'tyl', 'bok_p', 'wieczko_g', 'wieczko_d', 'klej'].map((r) => strefa(w, r));
+  if (!pr || !bl || !ty || !bp || !wg || !wd) return;
+  const top = pr.y1;
+  const d = pr.y2;
+  const L = pr.x2 - pr.x1;
+  const Wd = wd.y2 - wd.y1;
+  const jez = Math.min(15, Wd * 0.6);
+  const df = Math.min(Wd * 0.8, L * 0.45);
+  const sc = gladko(ogr((u - 0.25) / 0.5, 0, 1)) * (Math.PI / 2);
+  const kp = gladko(ogr((u - 0.6) / 0.25, 0, 1)) * (Math.PI / 2);
+  const wk = gladko(ogr((u - 0.7) / 0.3, 0, 1)) * (Math.PI / 2);
+  const panele = [
+    { poly: rog(wd) }, // 0 dno
+    { poly: rog(pr), rodzic: 0, zawias: [[pr.x1, d], [pr.x2, d]], kat: sc }, // 1 przód
+    { poly: [[wd.x1, wd.y2], [wd.x2, wd.y2], [wd.x2 - 4, wd.y2 + jez], [wd.x1 + 4, wd.y2 + jez]], rodzic: 0, zawias: [[wd.x1, wd.y2], [wd.x2, wd.y2]], kat: sc }, // 2 język dna
+    { poly: rog(bl), rodzic: 1, zawias: [[bl.x1, top], [bl.x1, d]], kat: sc }, // 3 bok
+    { poly: rog(ty), rodzic: 3, zawias: [[ty.x1, top], [ty.x1, d]], kat: sc }, // 4 tył
+    { poly: rog(bp), rodzic: 4, zawias: [[bp.x1, top], [bp.x1, d]], kat: sc }, // 5 bok
+    { poly: rog(wg), rodzic: 4, zawias: [[wg.x1, top], [wg.x2, top]], kat: wk }, // 6 wieczko
+    { poly: [[wg.x1, wg.y1], [wg.x2, wg.y1], [wg.x2 - 4, wg.y1 - jez], [wg.x1 + 4, wg.y1 - jez]], rodzic: 6, zawias: [[wg.x1, wg.y1], [wg.x2, wg.y1]], kat: wk }, // 7 język wieczka
+    { poly: [[bl.x1, top], [bl.x2, top], [bl.x2 - 6, top - df], [bl.x1 + 2, top - df]], rodzic: 3, zawias: [[bl.x1, top], [bl.x2, top]], kat: kp }, // klapki przeciwkurzowe
+    { poly: [[bp.x1, top], [bp.x2, top], [bp.x2 - 2, top - df], [bp.x1 + 6, top - df]], rodzic: 5, zawias: [[bp.x1, top], [bp.x2, top]], kat: kp },
+    { poly: [[bl.x1, d], [bl.x2, d], [bl.x2 - 6, d + df], [bl.x1 + 2, d + df]], rodzic: 3, zawias: [[bl.x1, d], [bl.x2, d]], kat: sc, warstwa: 0.5 },
+    { poly: [[bp.x1, d], [bp.x2, d], [bp.x2 - 2, d + df], [bp.x1 + 6, d + df]], rodzic: 5, zawias: [[bp.x1, d], [bp.x2, d]], kat: sc, warstwa: 0.5 },
+  ];
+  if (kl) panele.push({ poly: rog(kl), rodzic: 1, zawias: [[pr.x1, top], [pr.x1, d]], kat: sc, warstwa: 0.5 });
+  const od = quady.length;
+  wykrojnik(quady, kar, panele, { e: 0.45 });
+  obrocNaStol(quady, od, Math.PI * (1 - gladko(ogr(u / 0.3, 0, 1))));
+}
+
+// Kalendarz trójdzielny na ścianie: plecy z tektury (cały arkusz – główka, tło kalendariów, pasek reklamowy),
+// na nich trzy bloczki kalendariów (wydruk ze stref arkusza), czerwone okienko na środkowym, otwór na gwóźdź.
+function trojdzielny(quady, kar) {
+  const w = kar.specjalna.wynik;
+  const W = kar.w;
+  const Hc = kar.h;
+  const d = kar.d;
+  const tex = kar.przod || `kolor:${PAPIER}`;
+  const P = (x, y, z) => [x - W / 2, Hc - y, z];
+  const uv = (x, y) => [ogr(x / W, 0, 1), ogr(y / Hc, 0, 1)];
+  const u0 = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  const bryla = (x1, y1, x2, y2, z0, z1, texPrzod, matP, texBok, uvPrzod = true) => {
+    quad(quady, [P(x1, y1, z1), P(x2, y1, z1), P(x2, y2, z1), P(x1, y2, z1)], uvPrzod ? [uv(x1, y1), uv(x2, y1), uv(x2, y2), uv(x1, y2)] : u0, texPrzod, matP, { n: [0, 0, 1] });
+    quad(quady, [P(x1, y1, z1), P(x2, y1, z1), P(x2, y1, z0), P(x1, y1, z0)], u0, texBok, 'krawedz', { n: [0, 1, 0] });
+    quad(quady, [P(x1, y2, z0), P(x2, y2, z0), P(x2, y2, z1), P(x1, y2, z1)], u0, texBok, 'krawedz', { n: [0, -1, 0] });
+    quad(quady, [P(x1, y1, z0), P(x1, y2, z0), P(x1, y2, z1), P(x1, y1, z1)], u0, texBok, 'krawedz', { n: [-1, 0, 0] });
+    quad(quady, [P(x2, y1, z1), P(x2, y2, z1), P(x2, y2, z0), P(x2, y1, z0)], u0, texBok, 'krawedz', { n: [1, 0, 0] });
+  };
+  bryla(0, 0, W, Hc, -d / 2, d / 2, tex, 'okladka', `kolor:${TEKTURA}`);
+  quad(quady, [P(W, 0, -d / 2), P(0, 0, -d / 2), P(0, Hc, -d / 2), P(W, Hc, -d / 2)], u0, `kolor:${TEKTURA}`, 'tektura', { n: [0, 0, -1] });
+  const gr = 3.2; // bloczek kalendarium (12 kartek)
+  for (const z of (w.strefy || []).filter((s) => s.rodzaj.startsWith('kalendarium_'))) bryla(z.x1, z.y1, z.x2, z.y2, d / 2, d / 2 + gr, tex, 'papier', KRAWEDZ_KARTEK);
+  const ok = strefa(w, 'okienko');
+  if (ok) {
+    const zf = d / 2 + gr + 0.3;
+    const b = 2.4;
+    const ramka = (x1, y1, x2, y2) => bryla(x1, y1, x2, y2, d / 2 + gr, zf, `kolor:${RAMKA_OKIENKA}`, 'okladka', `kolor:${RAMKA_OKIENKA}`, false);
+    ramka(ok.x1 - b, ok.y1 - b, ok.x2 + b, ok.y1);
+    ramka(ok.x1 - b, ok.y2, ok.x2 + b, ok.y2 + b);
+    ramka(ok.x1 - b, ok.y1, ok.x1, ok.y2);
+    ramka(ok.x2, ok.y1, ok.x2 + b, ok.y2);
+  }
+  // Otwór na gwóźdź (pośrodku główki, 8 mm od góry).
+  const ro = 2.6;
+  const zo = d / 2 + 0.03;
+  for (let i = 0; i < 12; i += 1) {
+    const a0 = (i / 12) * 2 * Math.PI;
+    const a1 = ((i + 1) / 12) * 2 * Math.PI;
+    const c = [W / 2, 8];
+    quad(quady, [P(c[0], c[1], zo), P(c[0] + ro * Math.cos(a0), c[1] + ro * Math.sin(a0), zo), P(c[0] + ro * Math.cos(a1), c[1] + ro * Math.sin(a1), zo), P(c[0], c[1], zo)], u0, `kolor:${OTWOR}`, 'papier', { n: [0, 0, 1] });
+  }
+  quady.podloze = { typ: 'sciana', poziom: -d / 2 - 0.4 };
+}
+
+// ---------- Ustawienia sceny (#181) ----------
+
+// Rozłożona książka zgięta wokół grzbietu: każda połowa podniesiona o th – kąt otwarcia π − 2·th.
+function zegnij(quady, th) {
+  if (!th) return;
+  const obr = (a) => ([x, y, z]) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z];
+  for (let i = 0; i < quady.length; i += 1) {
+    const q = quady[i];
+    const p = q.p.map((v) => obr(th * ogr(v[0] / 4, -1, 1))(v));
+    const R = obr(th * ogr(q.p.reduce((acc, v) => acc + v[0], 0) / 16, -1, 1));
+    quady[i] = { ...q, p, n: R(q.n), nv: q.nv ? q.nv.map(R) : q.nv };
+  }
+}
+
+// Kilka egzemplarzy (#181): obok siebie, w stosie albo przód i tył (drugi odwrócony wokół osi wzdłuż wysokości).
+function powiel(quady, { n = 1, uklad = 'obok' } = {}) {
+  const ile = uklad === 'przodTyl' ? 2 : ogr(Math.round(n), 1, 6);
+  if (ile < 2 || !quady.length) return;
+  const ob = obwiednia(quady);
+  const dx = ob.max[0] - ob.min[0];
+  const dy = ob.max[1] - ob.min[1];
+  const [cx, cy, cz] = ob.srodek;
+  const zrodlo = quady.slice();
+  quady.length = 0;
+  const obrY = (a) => ({
+    p: ([x, y, z]) => [cx + (x - cx) * Math.cos(a) + (z - cz) * Math.sin(a), y, cz - (x - cx) * Math.sin(a) + (z - cz) * Math.cos(a)],
+    n: ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)],
+  });
+  for (let k = 0; k < ile; k += 1) {
+    let f;
+    let fn;
+    if (uklad === 'stos') {
+      const r = obrY((((k * 37) % 11) - 5) * 0.018);
+      const o = [(((k * 53) % 7) - 3) * 1.2, k * (dy + 0.04), (((k * 29) % 5) - 2) * 1.2];
+      f = (v) => dod(r.p(v), o);
+      fn = r.n;
+    } else if (uklad === 'przodTyl' && k === 1) {
+      f = ([x, y, z]) => [cx - (x - cx) + dx * 0.56, cy - (y - cy), z];
+      fn = ([x, y, z]) => [-x, -y, z];
+    } else {
+      const sp = uklad === 'przodTyl' ? -dx * 0.56 : (k - (ile - 1) / 2) * dx * 1.1;
+      const r = obrY(((k % 2) * 2 - 1) * 0.03);
+      f = (v) => dod(r.p(v), [sp, 0, 0]);
+      fn = r.n;
+    }
+    for (const q of zrodlo) quady.push({ ...q, p: q.p.map(f), n: fn(q.n), nv: q.nv ? q.nv.map(fn) : q.nv });
+  }
+  if (uklad === 'przodTyl') {
+    // Odwrócony egzemplarz leży na stole tak samo jak pierwszy.
+    let min = Infinity;
+    const pol = quady.length / 2;
+    for (let i = pol; i < quady.length; i += 1) for (const v of quady[i].p) min = Math.min(min, v[1]);
+    for (let i = pol; i < quady.length; i += 1) quady[i] = { ...quady[i], p: quady[i].p.map(([x, y, z]) => [x, y - min + ob.min[1], z]) };
+  }
+}
+
+// Scena modelu w położeniu u: lista czworokątów (współrzędne świata) i quady.podloze. Opcje (#181):
+// otwarcie – kąt rozłożenia książki w stopniach (180 – płasko; domyślnie płasko na leżąco, ok. 110° na stojąco),
+// wachlarz – ile kartek uniesionych wachlarzem, ilosc – { n, uklad: 'obok' | 'stos' | 'przodTyl' }.
+export function scena(model, kartki, u = 0, { ulozenie = 'lezy', otwarcie = null, wachlarz = 0, ilosc = null } = {}) {
   const quady = [];
   quady.podloze = { typ: 'stol', poziom: 0 };
   if (!kartki.length) return quady;
   if (model === 'kartka') kartkaNaStole(quady, kartki, u);
   else if (model.startsWith('kalendarz')) kalendarz(quady, model, kartki, u);
-  else ksiazka(quady, model, kartki, u);
-  if (ulozenie === 'stoi' && mozeStac(model)) postaw(quady, kartki, u);
+  else if (model === 'ulotka') ulotka(quady, kartki[0], u);
+  else if (model === 'koperta') koperta(quady, kartki[0], u);
+  else if (model === 'pudelko') pudelko(quady, kartki[0], u);
+  else if (model === 'trojdzielny') trojdzielny(quady, kartki[0]);
+  else ksiazka(quady, model, kartki, u, { wachlarz });
+  const otwarta = mozeStac(model) && u > 0.02 && u < kartki.length - 0.02;
+  const stoi = ulozenie === 'stoi' && mozeStac(model);
+  const th = otwarta && Number.isFinite(otwarcie) ? (Math.PI - ogr(otwarcie, 60, 180) * (Math.PI / 180)) / 2 : (otwarta && stoi ? 0.62 : 0);
+  if (stoi) postaw(quady, th);
+  else if (th) { zegnij(quady, th); polozNaStole(quady); }
+  if (ilosc && (ilosc.n > 1 || ilosc.uklad === 'przodTyl')) {
+    const pod = quady.podloze;
+    powiel(quady, ilosc);
+    quady.podloze = pod;
+  }
   return quady;
 }
 
-// Książka leżąca (oś Y – grubość, Z – wysokość strony) → stojąca na stopce: wysokość strony w górę, grubość
-// w głąb. Otwarta: obie połowy podniesione wokół grzbietu (V, ok. 110°), potem postawiona.
-function postaw(quady, kartki, u) {
-  const otwarta = u > 0.02 && u < kartki.length - 0.02;
-  const th = otwarta ? 0.62 : 0;
-  const zgnij = ([x, y, z]) => {
-    if (!th) return [x, y, z];
-    const a = th * ogr(x / 4, -1, 1);
-    return [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z];
-  };
-  const stoj = ([x, y, z]) => [x, -z, y];
-  for (let i = 0; i < quady.length; i += 1) {
-    const q = quady[i];
-    const p = q.p.map((v) => stoj(zgnij(v)));
-    // Normalne obrócone jak czworokąt (kąt wg środka – połowa lewa / prawa).
-    const a = th * ogr(q.p.reduce((acc, v) => acc + v[0], 0) / 16, -1, 1);
-    const nrm = ([x, y, z]) => stoj([x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z]);
-    quady[i] = { ...q, p, n: nrm(q.n), nv: q.nv ? q.nv.map(nrm) : q.nv };
-  }
+// Najniższy punkt sceny na stole (y = 0).
+function polozNaStole(quady) {
   let min = Infinity;
   for (const q of quady) for (const v of q.p) min = Math.min(min, v[1]);
   for (let i = 0; i < quady.length; i += 1) quady[i] = { ...quady[i], p: quady[i].p.map(([x, y, z]) => [x, y - min, z]) };
+}
+
+// Książka leżąca (oś Y – grubość, Z – wysokość strony) → stojąca na stopce: wysokość strony w górę, grubość
+// w głąb. Otwarta: obie połowy podniesione wokół grzbietu o th (V, domyślnie ok. 110°), potem postawiona.
+function postaw(quady, th) {
+  zegnij(quady, th);
+  const stoj = ([x, y, z]) => [x, -z, y];
+  for (let i = 0; i < quady.length; i += 1) {
+    const q = quady[i];
+    quady[i] = { ...q, p: q.p.map(stoj), n: stoj(q.n), nv: q.nv ? q.nv.map(stoj) : q.nv };
+  }
+  polozNaStole(quady);
   quady.podloze = { typ: 'stol', poziom: 0 };
 }
 
@@ -930,10 +1348,64 @@ export function obwiednia(quady) {
 // Ustawienia widoku dla modelu: kąty startowe i granice obracania (żeby nie zajrzeć pod stół ani za ścianę).
 export function widokModelu(model, ulozenie = 'lezy') {
   if (ulozenie === 'stoi' && mozeStac(model)) return { obrotY: -0.42, obrotX: 0.2, minX: 0.02, maxX: 1.1, minY: -Infinity, maxY: Infinity };
-  if (model === 'kalendarz_scienny') return { obrotY: -0.38, obrotX: 0.12, minX: -0.7, maxX: 0.95, minY: -1.25, maxY: 1.25 };
+  if (model === 'kalendarz_scienny' || model === 'trojdzielny') return { obrotY: -0.38, obrotX: 0.12, minX: -0.7, maxX: 0.95, minY: -1.25, maxY: 1.25 };
   if (model === 'kalendarz_biurkowy') return { obrotY: -0.5, obrotX: 0.3, minX: 0.04, maxX: 1.35, minY: -Infinity, maxY: Infinity };
   return { obrotY: -0.32, obrotX: 0.68, minX: 0.1, maxX: 1.5, minY: -Infinity, maxY: Infinity };
 }
+
+// ---------- Gotowe ujęcia (#181) ----------
+
+// Ujęcie jednym przyciskiem: { nazwa, ikona, dla(model, kartki) – czy pasuje, ustaw(model, kartki) – stan }.
+// Stan: { u, ulozenie, kamera: { obrotY, obrotX, zoom, fov }, scena: { otwarcie, wachlarz, ilosc }, opcje? }.
+const ksiazkowy = (model) => model.startsWith('ksiazka') || model === 'notes';
+const srodekKsiazki = (kartki) => Math.max(1, Math.round(kartki.length / 2));
+const domyslnaScena = () => ({ otwarcie: null, wachlarz: 0, ilosc: null });
+const katy = (w) => ({ obrotY: w.obrotY, obrotX: w.obrotX });
+export const UJECIA = {
+  przod: {
+    nazwa: 'Przód', ikona: 'makieta', dla: () => true,
+    ustaw: (model) => (mozeStac(model)
+      ? { u: 0, ulozenie: 'stoi', kamera: { obrotY: 0, obrotX: 0.06, zoom: 1, fov: 22 }, scena: domyslnaScena() }
+      : { u: 0, ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: model.startsWith('kalendarz') || model === 'trojdzielny' ? 0.04 : 1.48, zoom: 1, fov: 22 }, scena: domyslnaScena() }),
+  },
+  trzyCzwarte: {
+    nazwa: '¾ (klasyczne)', ikona: 'obroc', dla: () => true,
+    ustaw: (model) => ({ u: 0, ulozenie: 'lezy', kamera: { ...katy(widokModelu(model)), obrotY: model === 'kalendarz_scienny' || model === 'trojdzielny' ? -0.55 : -0.62, zoom: 1, fov: 28 }, scena: domyslnaScena() }),
+  },
+  zGory: {
+    nazwa: 'Z góry (płasko)', ikona: 'siatka', dla: (model) => !(model === 'kalendarz_scienny' || model === 'trojdzielny'),
+    ustaw: () => ({ u: 0, ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: 1.5, zoom: 1, fov: 24 }, scena: domyslnaScena() }),
+  },
+  grzbiet: {
+    nazwa: 'Grzbiet', ikona: 'separator', dla: (model) => model.startsWith('ksiazka'),
+    ustaw: () => ({ u: 0, ulozenie: 'stoi', kamera: { obrotY: 1.22, obrotX: 0.14, zoom: 1, fov: 26 }, scena: domyslnaScena() }),
+  },
+  stojaca: {
+    nazwa: 'Stojąca', ikona: 'ksiazka', dla: (model) => mozeStac(model),
+    ustaw: (model) => ({ u: 0, ulozenie: 'stoi', kamera: { ...katy(widokModelu(model, 'stoi')), zoom: 1, fov: 28 }, scena: domyslnaScena() }),
+  },
+  rozkladowka: {
+    nazwa: 'Rozkładówka z góry', ikona: 'rozkladowka', dla: (model) => ksiazkowy(model),
+    ustaw: (model, kartki) => ({ u: srodekKsiazki(kartki), ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: 1.45, zoom: 1, fov: 24 }, scena: { ...domyslnaScena(), otwarcie: 172 } }),
+  },
+  wachlarz: {
+    nazwa: 'Wachlarz kartek', ikona: 'warstwy', dla: (model) => model.startsWith('ksiazka'),
+    ustaw: (model, kartki) => ({ u: srodekKsiazki(kartki), ulozenie: 'lezy', kamera: { obrotY: -0.5, obrotX: 0.5, zoom: 1, fov: 28 }, scena: { ...domyslnaScena(), wachlarz: 6 } }),
+  },
+  stos: {
+    nazwa: 'Stos egzemplarzy', ikona: 'kopiuj', dla: (model) => !(model === 'kalendarz_scienny' || model === 'trojdzielny'),
+    ustaw: () => ({ u: 0, ulozenie: 'lezy', kamera: { obrotY: -0.55, obrotX: 0.42, zoom: 1, fov: 28 }, scena: { ...domyslnaScena(), ilosc: { n: 3, uklad: 'stos' } } }),
+  },
+  przodTyl: {
+    nazwa: 'Przód i tył', ikona: 'strony', dla: (model) => ksiazkowy(model) || model === 'kartka' || model === 'koperta' || model === 'ulotka',
+    ustaw: () => ({ u: 0, ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: 1.42, zoom: 1, fov: 24 }, scena: { ...domyslnaScena(), ilosc: { n: 2, uklad: 'przodTyl' } } }),
+  },
+  sciana: {
+    nazwa: 'Na ścianie', ikona: 'kalendarz', dla: (model) => model === 'kalendarz_scienny' || model === 'trojdzielny',
+    ustaw: () => ({ u: 0, ulozenie: 'lezy', kamera: { obrotY: -0.18, obrotX: 0.02, zoom: 0.82, fov: 30 }, scena: domyslnaScena(), opcje: { tlo: 'tynk', swiatlo: 'okno', silaCienia: 1.2 } }),
+  },
+};
+export const ujeciaModelu = (model) => Object.keys(UJECIA).filter((id) => UJECIA[id].dla(model));
 
 // ---------- WebGL ----------
 
@@ -1015,23 +1487,42 @@ float cien(vec3 p, float promien) {
 `;
 const FS = `${PREC}${PAKUJ}${CIEN}
 uniform sampler2D u_t; uniform vec3 u_L; uniform vec3 u_F; uniform vec3 u_oko; uniform vec4 u_mat; uniform float u_promien; uniform float u_przes; uniform vec3 u_spot; uniform float u_spotR;
+uniform vec3 u_barwa; uniform float u_silaC; uniform vec3 u_tint; uniform sampler2D u_pol; uniform float u_maPol;
 varying vec2 v_uv; varying vec3 v_n; varying vec3 v_p; varying float v_ao;
 void main() {
   vec3 N = normalize(v_n); vec3 V = normalize(u_oko - v_p);
   if (dot(N, V) < 0.0) N = -N;
   vec4 t = texture2D(u_t, v_uv);
-  vec3 a = pow(t.rgb, vec3(2.2));
+  vec3 a = pow(t.rgb, vec3(2.2)) * u_tint;
   float ndl = max(dot(N, u_L), 0.0);
-  float sh = ndl > 0.0 ? cien(v_p + N * u_przes, u_promien) : 0.0;
+  float sh = ndl > 0.0 ? mix(1.0, cien(v_p + N * u_przes, u_promien), u_silaC) : 0.0;
   float ndf = max(dot(N, u_F), 0.0);
   float hemi = mix(0.30, 0.50, N.y * 0.5 + 0.5);
   vec3 H = normalize(u_L + V);
-  float spec = u_mat.x * pow(max(dot(N, H), 0.0), u_mat.y) * sh * ndl;
+  float ndh = max(dot(N, H), 0.0);
+  float spec = u_mat.x * pow(ndh, u_mat.y) * sh * ndl;
   float fres = u_mat.z * pow(1.0 - max(dot(N, V), 0.0), 5.0);
+  // Uszlachetnienia (#181): maska z płyt projektu – folia (kolor metalu, alfa – pokrycie) błyszczy jak metal,
+  // lakier UV (czarny w masce) – ostry, jasny odblask na matowym druku.
+  vec3 dodatek = vec3(0.0);
+  if (u_maPol > 0.5) {
+    vec4 m = texture2D(u_pol, v_uv);
+    if (m.a > 0.01) {
+      float jasn = max(m.r, max(m.g, m.b));
+      if (jasn > 0.06) {
+        vec3 f = pow(m.rgb, vec3(2.2));
+        a = mix(a, f * 0.28, m.a);
+        float blysk = pow(ndh, 22.0) * 2.6 * sh * ndl + 0.22 * hemi + 0.5 * pow(1.0 - max(dot(N, V), 0.0), 2.0);
+        dodatek += f * blysk * m.a * u_barwa;
+      } else {
+        dodatek += vec3(0.85 * pow(ndh, 180.0) * sh * ndl + 0.18 * pow(ndh, 12.0) * sh * ndl + 0.10 * pow(1.0 - max(dot(N, V), 0.0), 3.0) + 0.025) * m.a;
+      }
+    }
+  }
   // Światło studyjne słabnie z odległością od miejsca, w które świeci (żywszy, nie płaski obraz).
   vec3 dp = v_p - u_spot; float spot = clamp(1.10 - 0.30 * dot(dp, dp) / (u_spotR * u_spotR), 0.72, 1.10);
-  vec3 swiatlo = vec3(1.0, 0.982, 0.955) * (0.70 * ndl * sh * spot) + vec3(0.92, 0.95, 1.0) * (0.16 * ndf) + vec3(hemi) * v_ao * mix(0.92, 1.04, spot - 0.72);
-  vec3 c = a * swiatlo * u_mat.w + vec3(spec + fres * (0.35 + 0.65 * sh));
+  vec3 swiatlo = u_barwa * (0.70 * ndl * sh * spot) + vec3(0.92, 0.95, 1.0) * (0.16 * ndf) + vec3(hemi) * v_ao * mix(0.92, 1.04, spot - 0.72);
+  vec3 c = a * swiatlo * u_mat.w + vec3(spec + fres * (0.35 + 0.65 * sh)) * u_barwa + dodatek;
   c = c / (1.0 + 0.08 * c);
   gl_FragColor = vec4(pow(clamp(c, 0.0, 1.0), vec3(1.0 / 2.2)), 1.0);
 }`;
@@ -1041,7 +1532,41 @@ const VS_POD = `attribute vec3 a_p; uniform mat4 u_rzut; uniform mat4 u_widok; v
 void main() { gl_Position = u_rzut * u_widok * vec4(a_p, 1.0); v_p = a_p; }`;
 const FS_POD = `${PREC}${PAKUJ}${CIEN}
 uniform sampler2D u_kontakt; uniform mat4 u_mKontakt; uniform float u_kKrok; uniform float u_kZasieg; uniform vec3 u_srodek; uniform float u_R; uniform float u_Rob; uniform float u_sila;
+uniform float u_wzor; uniform vec3 u_kol; uniform float u_sciana; uniform vec3 u_barwaP;
 varying vec3 v_p;
+// Podłoże z faktury (#181) – proceduralne, bez plików: drewno, papier, beton, marmur, tkanina, tynk.
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float szum(vec2 p) {
+  vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+float fbm(vec2 p) { float s = 0.0; float a = 0.5; for (int i = 0; i < 5; i++) { s += a * szum(p); p = p * 2.03 + vec2(17.0, 9.0); a *= 0.5; } return s; }
+vec3 faktura(vec2 q) {
+  vec3 k = u_kol;
+  if (u_wzor < 1.5) { // drewno: deski wzdłuż x, słoje, łączenia
+    float deska = floor(q.y / 95.0);
+    float g = fbm(vec2(q.x * 0.004, q.y * 0.06 + deska * 7.0));
+    float sloje = 0.5 + 0.5 * sin(q.y * 0.09 + g * 9.0 + deska * 3.1);
+    float laczenie = smoothstep(0.0, 1.2, abs(mod(q.y, 95.0))) * smoothstep(0.0, 1.2, 95.0 - mod(q.y, 95.0));
+    return k * (0.80 + 0.16 * sloje + 0.10 * (hash(vec2(deska, 3.0)) - 0.5) + 0.08 * (fbm(q * 0.05) - 0.5)) * mix(0.62, 1.0, laczenie);
+  }
+  if (u_wzor < 2.5) return k * (0.965 + 0.05 * fbm(q * 0.35) + 0.02 * (szum(q * 2.2) - 0.5)); // papier: włókna
+  if (u_wzor < 3.5) { // beton: plamy i pory
+    float por = step(0.992, hash(floor(q * 1.6)));
+    return k * (0.84 + 0.22 * fbm(q * 0.018) + 0.06 * (szum(q * 0.6) - 0.5)) * (1.0 - 0.25 * por);
+  }
+  if (u_wzor < 4.5) { // marmur: żyłki
+    float z = abs(sin(q.x * 0.012 + q.y * 0.007 + fbm(q * 0.01) * 7.0));
+    float zylka = pow(1.0 - z, 14.0) + 0.35 * pow(1.0 - abs(sin(q.x * 0.03 - q.y * 0.02 + fbm(q * 0.03) * 5.0)), 30.0);
+    return mix(k * (0.96 + 0.05 * fbm(q * 0.02)), k * vec3(0.55, 0.56, 0.58), clamp(zylka, 0.0, 1.0) * 0.75);
+  }
+  if (u_wzor < 5.5) { // tkanina: splot płócienny i zgrubienia
+    float s1 = 0.5 + 0.5 * sin(q.x * 3.4); float s2 = 0.5 + 0.5 * sin(q.y * 3.4);
+    float splot = mix(s1, s2, step(0.5, fract(floor(q.x * 0.54) * 0.5 + floor(q.y * 0.54) * 0.5)));
+    return k * (0.86 + 0.10 * splot + 0.08 * (fbm(q * vec2(0.08, 0.5)) - 0.5));
+  }
+  return k * (0.93 + 0.08 * fbm(q * 0.08) + 0.04 * (szum(q * 1.4) - 0.5)); // tynk
+}
 float kontakt(vec3 p) {
   vec4 q = u_mKontakt * vec4(p, 1.0); vec3 c = q.xyz / q.w * 0.5 + 0.5;
   float s = 0.0;
@@ -1062,7 +1587,12 @@ void main() {
   float odl = length(v_p - u_srodek);
   float zanik = 1.0 - smoothstep(u_Rob * 1.3, u_Rob * 3.2, odl);
   float ciemn = (1.0 - sh) * 0.30 + k * 0.62;
-  gl_FragColor = vec4(0.0, 0.0, 0.0, clamp(ciemn * u_sila * zanik, 0.0, 0.85));
+  if (u_wzor < 0.5) { gl_FragColor = vec4(0.0, 0.0, 0.0, clamp(ciemn * u_sila * zanik, 0.0, 0.85)); return; }
+  // Faktura: nieprzezroczysta przy obiekcie, w oddali przechodzi w tło (jej średni kolor).
+  vec2 q = u_sciana > 0.5 ? v_p.xy : v_p.xz;
+  vec3 c = faktura(q) * u_barwaP * (1.0 - clamp(ciemn * u_sila, 0.0, 0.88));
+  float daleko = 1.0 - smoothstep(u_Rob * 2.4, u_Rob * 6.0, odl);
+  gl_FragColor = vec4(clamp(c, 0.0, 1.0), daleko);
 }`;
 
 // Tło studia: gradient (jaśniej u góry i w środku) – zapisuje się też w PNG.
@@ -1084,6 +1614,15 @@ const MATERIALY = {
   drut: [0.85, 45, 0.25, 1.0],
   tektura: [0.03, 10, 0.02, 1.0],
 };
+// Wykończenie okładki (#181) – zastępuje materiał okładki i twardej oprawy.
+const WYKONCZENIA = {
+  mat: [0.025, 8, 0.01, 0.97],
+  blysk: [0.42, 110, 0.14, 1.0],
+  soft: [0.012, 5, 0.0, 0.95],
+};
+
+const KOLORY_FAKTUR = { drewno: '#a77a52', papier: '#efe9dc', beton: '#a3a09a', marmur: '#eceae6', tkanina: '#5f6d7c', tynk: '#e9e4da' };
+const WZORY = { drewno: 1, papier: 2, beton: 3, marmur: 4, tkanina: 5, tynk: 6 };
 
 const POT = (v) => 2 ** Math.ceil(Math.log2(Math.max(1, v)));
 
@@ -1151,7 +1690,7 @@ function teksturaKapitalki() {
 export let powodBrakuWebGL = '';
 export function utworzRenderer(plotno) {
   powodBrakuWebGL = '';
-  const atr = { preserveDrawingBuffer: true, antialias: true, alpha: false, premultipliedAlpha: false };
+  const atr = { preserveDrawingBuffer: true, antialias: true, alpha: true, premultipliedAlpha: false }; // alfa – PNG z przezroczystym tłem (#181)
   const gl = plotno.getContext('webgl', atr) || plotno.getContext('experimental-webgl', atr);
   if (!gl) { powodBrakuWebGL = 'przeglądarka nie udostępnia WebGL'; return null; }
   if (gl.isContextLost()) { powodBrakuWebGL = 'kontekst grafiki został utracony'; return null; }
@@ -1292,16 +1831,27 @@ export function utworzRenderer(plotno) {
   return {
     gl,
     maTeksture: (klucz) => klucz.startsWith('kolor:') || klucz.startsWith('tex:') || tekstury.has(klucz),
+    // Maska uszlachetnień tekstury (#181) – klucz „pol|<tekstura>”; null usuwa.
+    ustawMaske(klucz, obraz) {
+      const k = `pol|${klucz}`;
+      const stara = tekstury.get(k);
+      if (stara) gl.deleteTexture(stara);
+      if (obraz) tekstury.set(k, nowaTekstura(obraz)); else tekstury.delete(k);
+    },
     // Tekstury stron do wymiany (inna lista stron po zmianie rodzaju makiety).
-    zapomnijStrony() {
-      for (const [klucz, t] of tekstury) if (klucz.startsWith('p:')) { gl.deleteTexture(t); tekstury.delete(klucz); }
+    // wszystkie – także okładka i obwoluta (inny sposób rysowania uszlachetnień, #181).
+    zapomnijStrony(wszystkie = false) {
+      const re = wszystkie ? /^(pol\|)?(p|okl|obw):/ : /^(pol\|)?p:/;
+      for (const [klucz, t] of tekstury) if (re.test(klucz)) { gl.deleteTexture(t); tekstury.delete(klucz); }
     },
     ustawTeksture(klucz, obraz) {
       const stara = tekstury.get(klucz);
       if (stara) gl.deleteTexture(stara);
       tekstury.set(klucz, nowaTekstura(obraz));
     },
-    rysuj(quady, kamera, { ciemny = false } = {}) {
+    rysuj(quady, kamera, opcjeRys = {}) {
+      const ciemny = Boolean(opcjeRys.ciemny);
+      const op = normalizujOpcje(opcjeRys);
       const W = plotno.width;
       const H = plotno.height;
       const asp = W / Math.max(1, H);
@@ -1313,8 +1863,20 @@ export function utworzRenderer(plotno) {
       // (zawsze dobrze oświetlony widok), wysokość stała.
       const az = -kamera.obrotY;
       const obrocY = ([x, y, z]) => [x * Math.cos(az) + z * Math.sin(az), y, -x * Math.sin(az) + z * Math.cos(az)];
-      const L = norm(obrocY(sciana ? [-0.62, 0.62, 0.8] : [-0.74, 0.8, 0.6]));
-      const F = norm(obrocY(sciana ? [0.7, 0.2, 0.9] : [0.75, 0.45, 0.6]));
+      // Kierunek światła (#181): z lewej (domyślnie), z prawej, z góry albo nisko z boku jak z okna.
+      const KIER = {
+        lewo: sciana ? [-0.62, 0.62, 0.8] : [-0.74, 0.8, 0.6],
+        prawo: sciana ? [0.62, 0.62, 0.8] : [0.74, 0.8, 0.6],
+        gora: sciana ? [-0.08, 0.95, 0.55] : [-0.12, 1, 0.22],
+        okno: sciana ? [-0.95, 0.3, 0.45] : [-0.95, 0.42, -0.15],
+      };
+      const L0 = KIER[op.swiatlo];
+      const L = norm(obrocY(L0));
+      const F = norm(obrocY(sciana ? [-L0[0] * 0.9, 0.2, 0.9] : [-L0[0] || 0.75, 0.45, 0.6]));
+      const barwa = { neutralna: [1.0, 0.982, 0.955], ciepla: [1.0, 0.9, 0.76], zimna: [0.88, 0.94, 1.0] }[op.barwa];
+      const miekko = 0.3 + 1.4 * op.miekkosc;
+      const przezroczyste = op.tlo === 'przezroczyste';
+      const wzor = WZORY[op.tlo] || 0;
       const c = kamera.srodek || ob.srodek;
       const vb = wierzcholki(quady);
       // Podłoże: duży prostokąt pod / za obiektem.
@@ -1351,24 +1913,32 @@ export function utworzRenderer(plotno) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       wylaczAtrybuty();
 
-      // 3. Tło.
+      // 3. Tło: gradient studia, jednolity kolor, faktura (w oddali – jej przyciemniony kolor) albo przezroczyste.
       gl.viewport(0, 0, W, H);
       gl.disable(gl.DEPTH_TEST);
-      gl.useProgram(P.tlo.p);
       const kol = (h) => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
-      const [g1, d1, s1] = ciemny ? ['#34363b', '#1c1d20', '#3d4045'] : ['#f2f0ec', '#d5d1c9', '#faf9f6'];
-      gl.uniform3fv(P.tlo.u.u_g, kol(g1));
-      gl.uniform3fv(P.tlo.u.u_d, kol(d1));
-      gl.uniform3fv(P.tlo.u.u_s, kol(s1));
-      gl.uniform1f(P.tlo.u.u_asp, asp);
-      gl.bindBuffer(gl.ARRAY_BUFFER, buforTla);
-      gl.enableVertexAttribArray(P.tlo.a.a_p);
-      gl.vertexAttribPointer(P.tlo.a.a_p, 2, gl.FLOAT, false, 8, 0);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-      wylaczAtrybuty();
+      const kolFaktury = wzor ? kol(op.kolorTla !== DOMYSLNE_OPCJE.kolorTla ? op.kolorTla : KOLORY_FAKTUR[op.tlo]) : null;
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      if (!przezroczyste) {
+        gl.useProgram(P.tlo.p);
+        let g1; let d1; let s1;
+        if (op.tlo === 'kolor') { const k = kol(op.kolorTla); g1 = k; d1 = k.map((v) => v * 0.9); s1 = k.map((v) => Math.min(1, v * 1.03)); }
+        else if (wzor) { g1 = kolFaktury.map((v) => v * 0.8); d1 = kolFaktury.map((v) => v * 0.62); s1 = kolFaktury.map((v) => v * 0.86); }
+        else [g1, d1, s1] = (ciemny ? ['#34363b', '#1c1d20', '#3d4045'] : ['#f2f0ec', '#d5d1c9', '#faf9f6']).map(kol);
+        gl.uniform3fv(P.tlo.u.u_g, g1);
+        gl.uniform3fv(P.tlo.u.u_d, d1);
+        gl.uniform3fv(P.tlo.u.u_s, s1);
+        gl.uniform1f(P.tlo.u.u_asp, asp);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buforTla);
+        gl.enableVertexAttribArray(P.tlo.a.a_p);
+        gl.vertexAttribPointer(P.tlo.a.a_p, 2, gl.FLOAT, false, 8, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        wylaczAtrybuty();
+      }
 
       // Kamera.
-      const fov = (28 * Math.PI) / 180;
+      const fov = ((Number.isFinite(kamera.fov) ? kamera.fov : 28) * Math.PI) / 180;
       // Bliska płaszczyzna jak najdalej (#161): na telefonach bufor głębokości bywa 16-bitowy – przy bliskiej
       // płaszczyźnie za blisko kamery kartki, otwory i grzbiet migotały (z-fighting).
       const rzut = perspektywa(fov, asp, Math.max(1, kamera.odleglosc / 40, kamera.odleglosc - R * 2.2), kamera.odleglosc + R * 12);
@@ -1379,7 +1949,8 @@ export function utworzRenderer(plotno) {
 
       // 4. Podłoże (cień) – przyciemnia tło.
       gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      // Alfa sumuje się osobno – na przezroczystym tle cień zostaje półprzezroczysty w PNG.
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.useProgram(P.podloze.p);
       const up = P.podloze.u;
       gl.uniformMatrix4fv(up.u_rzut, false, rzut);
@@ -1392,9 +1963,13 @@ export function utworzRenderer(plotno) {
       gl.uniform1f(up.u_kZasieg, zasieg + 1);
       gl.uniform1f(up.u_bias, 0.002);
       gl.uniform3fv(up.u_srodek, sr);
-      gl.uniform1f(up.u_R, 5.5 / texelSw);
+      gl.uniform1f(up.u_R, (5.5 * miekko) / texelSw);
       gl.uniform1f(up.u_Rob, R);
-      gl.uniform1f(up.u_sila, ciemny ? 1.25 : 1.0);
+      gl.uniform1f(up.u_sila, (ciemny && !wzor && op.tlo !== 'kolor' ? 1.25 : 1.0) * op.silaCienia);
+      gl.uniform1f(up.u_wzor, przezroczyste ? 0 : wzor);
+      gl.uniform3fv(up.u_kol, kolFaktury || [1, 1, 1]);
+      gl.uniform3fv(up.u_barwaP, barwa.map((v) => 0.9 + 0.1 * v / barwa[0]));
+      gl.uniform1f(up.u_sciana, sciana ? 1 : 0);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, mapaKlucz.t); gl.uniform1i(up.u_cien, 1);
       gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, mapaKontakt.t); gl.uniform1i(up.u_kontakt, 2);
       gl.bindBuffer(gl.ARRAY_BUFFER, bufor);
@@ -1415,7 +1990,10 @@ export function utworzRenderer(plotno) {
       gl.uniformMatrix4fv(uo.u_mCien, false, mSw);
       gl.uniform1f(uo.u_texel, 1 / mapaKlucz.rozmiar);
       gl.uniform1f(uo.u_bias, 0.0012);
-      gl.uniform1f(uo.u_promien, Math.max(1.5, 0.9 / texelSw));
+      gl.uniform1f(uo.u_promien, Math.max(1.5, (0.9 * miekko) / texelSw));
+      gl.uniform3fv(uo.u_barwa, barwa);
+      gl.uniform1f(uo.u_silaC, Math.min(1, op.silaCienia));
+      gl.uniform1i(uo.u_pol, 3);
       gl.uniform3fv(uo.u_spot, dod(sr, razy([L[0], 0, L[2]], R * 0.45)));
       gl.uniform1f(uo.u_spotR, R * 1.4);
       gl.uniform1f(uo.u_przes, Math.max(0.15, (2 * Rc) / mapaKlucz.rozmiar) * 1.2);
@@ -1427,9 +2005,22 @@ export function utworzRenderer(plotno) {
       gl.bindBuffer(gl.ARRAY_BUFFER, bufor);
       gl.bufferData(gl.ARRAY_BUFFER, vb.dane, gl.DYNAMIC_DRAW);
       atrybuty(P.obiekt);
+      const kremowy = op.papier === 'kremowy';
       for (const g of vb.grupy) {
-        gl.uniform4fv(uo.u_mat, MATERIALY[g.mat] || MATERIALY.papier);
-        gl.bindTexture(gl.TEXTURE_2D, tekstura(g.tex));
+        const okl = g.mat === 'okladka' || g.mat === 'twarda';
+        gl.uniform4fv(uo.u_mat, (okl && WYKONCZENIA[op.wykonczenie]) || MATERIALY[g.mat] || MATERIALY.papier);
+        // Papier kremowy (#181): druk na kremowym – kartki i ich krawędzie lekko zabarwione.
+        const kartka = (g.mat === 'papier' || g.mat === 'krawedz') && (g.tex.startsWith('p:') || g.tex.startsWith('tex:') || g.tex === `kolor:${PAPIER}`);
+        gl.uniform3fv(uo.u_tint, kremowy && kartka ? [1.0, 0.955, 0.86] : [1, 1, 1]);
+        let tex = g.tex;
+        if (tex === `kolor:${DRUT}` && op.kolorSpirali !== DRUT) tex = `kolor:${op.kolorSpirali}`;
+        if (tex === `kolor:${TEKTURA}` && op.kolorStojaka !== TEKTURA) tex = `kolor:${op.kolorStojaka}`;
+        const maska = op.uszlachetnienia ? tekstury.get(`pol|${g.tex}`) : null;
+        gl.uniform1f(uo.u_maPol, maska ? 1 : 0);
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_2D, maska || tekstura(`kolor:${PAPIER}`));
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tekstura(tex));
         gl.drawArrays(gl.TRIANGLES, g.od, g.ile);
       }
       wylaczAtrybuty();
