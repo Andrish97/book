@@ -1130,6 +1130,8 @@ if (require.main === module) (async () => {
   await require('./zrzuty-gotowych-sekcji.cjs').zrobZrzutyGotowychSekcji(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty gotowych sekcji:', err.message));
   // Wzorce stron (#164): wyjaśnienie i galeria gotowych wzorców.
   await require('./zrzuty-wzorcow.cjs').zrobZrzutWzorcow(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut wzorców:', err.message));
+  // Sekcje specjalne (#177): okno sekcji z ulotką składaną i wykrojnik pudełka na stronie.
+  await require('./zrzuty-sekcji-specjalnych.cjs').zrobZrzutySekcjiSpecjalnych(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty sekcji specjalnych:', err.message));
 
   await przegladarka.close();
 })();

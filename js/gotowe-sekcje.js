@@ -19,6 +19,7 @@
 import { uid, ptNaMm, nowaSekcja, nowaStrona, nowyWzorzec, nowaTabela, nowaSeria, normalizujWydruk, uporzadkujStrony, WZORCE_Z_SEKCJI } from './projekt.js';
 import { szablonPlanera, zastosujSzablon } from './szablony-planera.js';
 import { normalizujOkladke, geometriaOkladki } from './okladka.js';
+import { domyslnaSpecjalna, geometriaSpecjalna } from './sekcje-specjalne.js';
 import { domyslneStyle } from './style-tekstu.js';
 
 // Zależności rysujące – wczytywane raz, przy pierwszym wstawieniu.
@@ -732,6 +733,8 @@ export const SZABLONY_SEKCJI = [
   // ---------- Firma i reklama ----------
   {
     id: 'wizytowki', nazwa: 'Wizytówki', kategoria: 'firma', format: [85, 55], marginesy: 4, paleta: 'granat',
+    // Sekcja specjalna (#177): arkusz użytków – w PDF wizytówki stoją na arkuszu SRA3 ze znakami cięcia.
+    specjalna: { rodzaj: 'arkusz', uzytek_szer_mm: 85, uzytek_wys_mm: 55, arkusz: 'SRA3' },
     opis: 'Wizytówka 85 × 55 mm dla każdej osoby z tabeli: imię, stanowisko, telefon, e-mail.', slowa: 'wizytowki wizytowka firma kontakt osoby telefon email',
     dane: true,
     schemat: [['akcent', 0, 0, 30, 4], ['tytul', 3, 10, 18, 3], ['tekst', 3, 15, 14, 1.5], ['tekst', 3, 30, 18, 3]],
@@ -795,6 +798,8 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'broszura-skladana', nazwa: 'Broszura składana (3 części)', kategoria: 'firma', format: [297, 210], paleta: 'zielen',
+    // Ulotka składana (#177): panele i zgięcia zna sekcja – panel składany do środka jest o 2 mm węższy.
+    specjalna: { rodzaj: 'ulotka', panele: 3, zlozenie: 'c', szerokosc_mm: 99, wysokosc_mm: 210, skrot_mm: 2 },
     opis: 'Arkusz A4 poziomo składany na trzy: strona zewnętrzna i wewnętrzna, z prowadnicami złamów.', slowa: 'broszura skladana trifold ulotka skladana trzy czesci',
     schemat: [['tekst', 1, 4, 8, 20], ['zdjecie', 11, 4, 8, 12], ['tytul', 21, 6, 8, 5]],
     buduj(c, n) {
@@ -950,6 +955,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'etykiety', nazwa: 'Etykiety i naklejki', kategoria: 'inne', format: [70, 40], marginesy: 3, paleta: 'zielen',
+    specjalna: { rodzaj: 'arkusz', uzytek_szer_mm: 70, uzytek_wys_mm: 40, arkusz: 'A4', ksztalt: 'naklejka', zaokraglenie_mm: 3 },
     opis: 'Etykieta 70 × 40 mm dla każdego wiersza tabeli – np. na słoiki, przetwory, prezenty.', slowa: 'etykiety naklejki sloiki przetwory prezenty opis',
     dane: true,
     schemat: [['ramka', 2, 10, 26, 22], ['tytul', 5, 16, 20, 4], ['tekst', 7, 23, 16, 1.5]],
@@ -1079,6 +1085,12 @@ export async function wstawGotowaSekcje(projekt, id, opcje = {}) {
     return s;
   };
   const indeks = Number.isInteger(opcje.poIndeksie) ? opcje.poIndeksie : projekt.sekcje.length - 1;
+  // Sekcja specjalna szablonu (#177): parametry rodzaju; wynik i format policzy przeliczenie po wstawieniu.
+  if (szablon.specjalna) {
+    sekcja.specjalna = { ...domyslnaSpecjalna(szablon.specjalna.rodzaj), ...szablon.specjalna, wynik: null };
+    if (szablon.specjalna.rodzaj === 'arkusz' && opcje.wlasnyFormat === false) Object.assign(sekcja.specjalna, { uzytek_szer_mm: wydruk.szerokosc_mm, uzytek_wys_mm: wydruk.wysokosc_mm });
+    if (szablon.specjalna.rodzaj === 'ulotka' && opcje.wlasnyFormat === false) Object.assign(sekcja.specjalna, { szerokosc_mm: Math.round((wydruk.szerokosc_mm / 3) * 10) / 10, wysokosc_mm: wydruk.wysokosc_mm });
+  }
   if (szablon.okladka) {
     sekcja.okladka = normalizujOkladke({ oprawa: odpowiedzi.oprawa || szablon.okladka });
     sekcja.uklad = 'pojedyncze';
@@ -1092,6 +1104,15 @@ export async function wstawGotowaSekcje(projekt, id, opcje = {}) {
     okladka = geometriaOkladki(projekt, sekcja);
     Object.assign(sekcja.wydruk, { szerokosc_mm: okladka.szerokosc, wysokosc_mm: okladka.wysokosc, format: 'wlasny' });
     sekcja.okladka.wynik = okladka;
+  }
+  // Sekcja specjalna: format z geometrii (np. ulotka zwijana 99 + 99 + 97 mm) – szablon układa się w nim od razu.
+  if (sekcja.specjalna) {
+    const g = geometriaSpecjalna(projekt, sekcja);
+    if (g) {
+      Object.assign(sekcja.wydruk, { szerokosc_mm: g.szerokosc, wysokosc_mm: g.wysokosc, format: 'wlasny' });
+      sekcja.specjalna.wynik = g;
+      sekcja.uklad = 'pojedyncze';
+    }
   }
   const W = sekcja.wydruk.szerokosc_mm;
   const H = sekcja.wydruk.wysokosc_mm;
@@ -1139,7 +1160,7 @@ export async function wstawGotowaSekcje(projekt, id, opcje = {}) {
     if (st.seria && serie.has(st.seria)) strona.seria = serie.get(st.seria);
     if (Array.isArray(st.wzorce)) strona.wzorce = st.wzorce;
     else strona.wzorce = WZORCE_Z_SEKCJI;
-    if (st.prowadnice) strona.prowadnice = st.prowadnice;
+    if (st.prowadnice && !sekcja.specjalna) strona.prowadnice = st.prowadnice; // sekcja specjalna sama rysuje zgięcia
     return strona;
   });
   projekt.strony.push(...strony);
