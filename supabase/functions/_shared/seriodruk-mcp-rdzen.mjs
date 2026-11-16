@@ -818,6 +818,11 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   function zachowajWyliczone(zmiany, projekt) {
     if (Array.isArray(zmiany.sekcje)) {
       for (const s of zmiany.sekcje) {
+        // Sekcja specjalna (#177): wynik (strefy, zgięcia, wykrojnik) liczy aplikacja – jak układ okładki.
+        if (s?.specjalna && typeof s.specjalna === 'object') {
+          const dawnaSp = (projekt.sekcje || []).find((x) => x.id === s.id)?.specjalna;
+          if (dawnaSp?.wynik && dawnaSp.rodzaj === s.specjalna.rodzaj) s.specjalna.wynik = dawnaSp.wynik; else delete s.specjalna.wynik;
+        }
         if (!s?.okladka || typeof s.okladka !== 'object') continue;
         const dawna = (projekt.sekcje || []).find((x) => x.id === s.id)?.okladka?.wynik;
         if (dawna) s.okladka.wynik = dawna; else delete s.okladka.wynik;
