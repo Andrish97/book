@@ -7,12 +7,15 @@ import { postep } from '../postep.js';
 import { rozwin } from '../serie.js';
 import { renderujCel } from '../zlozenie.js';
 import { geometriaOkladki, jestOkladka, normalizujOkladke } from '../okladka.js';
-import { MODELE, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer, widokModelu, powodBrakuWebGL } from '../makieta-3d.js';
+import { MODELE, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer, widokModelu, powodBrakuWebGL } from '../makieta-3d.js';
 
 const dlg = $('#dlg-makieta');
 const plotno = $('#makieta-plotno');
 const wybor = $('#makieta-model');
-const SZEROKOSC_STRONY = 1024; // px tekstury strony – ostro przy zbliżeniu (mipmapy w rendererze), szybko się liczy
+// px tekstury strony (#161): 1280 na co dzień (telefon z dpr ~2,6 – strona ok. 1000 px na ekranie), po przybliżeniu
+// strony rysują się od nowa w 2048 px – ostro z bliska; mipmapy w rendererze uśredniają z daleka.
+const SZEROKOSC_STRONY = 1280;
+const SZEROKOSC_OSTRA = 2048;
 
 let st = null; // { projekt, ciag, strony, okladka, format, model, kartki, u, cel, kamera, ... }
 let renderer = null;
@@ -53,17 +56,19 @@ function koniecTekstury() {
   partia.pasek.krok(partia.gotowe, partia.razem);
   if (!wToku.size) { partia.pasek.koniec(); partia = null; }
 }
-async function wczytajTeksture(klucz) {
-  if (!st || !renderer || renderer.maTeksture(klucz) || wToku.has(klucz)) return;
+// ostra – ponowne wczytanie strony w wyższej rozdzielczości (stara tekstura zostaje do chwili podmiany).
+async function wczytajTeksture(klucz, ostra = false) {
+  if (!st || !renderer || (!ostra && renderer.maTeksture(klucz)) || wToku.has(klucz)) return;
   const moje = st;
+  if (ostra) (moje.ostre ||= new Set()).add(klucz);
   const lista = st.lista;
   wToku.add(klucz);
-  startTekstury();
+  if (!ostra) startTekstury(); // doostrzanie po przybliżeniu – bez paska postępu
   try {
     let obraz;
     if (klucz.startsWith('p:')) {
-      const egz = moje.lista[Number(klucz.slice(2))];
-      obraz = egz.pusta ? null : await obrazZUrl(await renderujCel(moje.projekt, egz, { szerokoscPx: SZEROKOSC_STRONY, spad: false, ciag: moje.ciag }));
+      const wpis = moje.lista[Number(klucz.slice(2))];
+      obraz = wpis.egz.pusta ? null : await obrazStrony(moje, wpis);
     } else if (klucz.startsWith('okl:')) {
       obraz = await czescOkladki(moje, klucz.slice(4));
     }
@@ -72,7 +77,27 @@ async function wczytajTeksture(klucz) {
     rysujPozniej();
   } catch {
     if (moje === st && renderer) renderer.ustawTeksture(klucz, '#ffffff');
-  } finally { wToku.delete(klucz); koniecTekstury(); }
+  } finally { wToku.delete(klucz); if (!ostra) koniecTekstury(); }
+}
+
+// Strona środka: obraz całej strony (raz na egzemplarz), połowa strony podwójnej szerokości – wycinek (#161).
+function obrazStrony(moje, wpis) {
+  moje.obrazy ||= new Map();
+  const egz = wpis.egz;
+  const klucz = `${moje.ostro ? 'o' : 'z'}|${moje.strony.indexOf(egz)}`;
+  if (!moje.obrazy.has(klucz)) {
+    const baza = moje.ostro ? SZEROKOSC_OSTRA : SZEROKOSC_STRONY;
+    const szer = Math.min(4096, wpis.polowa ? 2 * baza : baza);
+    moje.obrazy.set(klucz, renderujCel(moje.projekt, egz, { szerokoscPx: szer, spad: false, ciag: moje.ciag, oryginaly: Boolean(moje.ostro) }).then(obrazZUrl));
+  }
+  return moje.obrazy.get(klucz).then((img) => {
+    if (!wpis.polowa) return img;
+    const c = document.createElement('canvas');
+    c.width = Math.max(2, Math.floor(img.width / 2));
+    c.height = img.height;
+    c.getContext('2d').drawImage(img, wpis.polowa === 'L' ? 0 : img.width - c.width, 0, c.width, c.height, 0, 0, c.width, c.height);
+    return c;
+  });
 }
 
 // Okładka: cała strona sekcji okładki raz, potem wycinki stref (tył | grzbiet | przód, bez zawinięć).
@@ -108,9 +133,10 @@ function odlegloscDla(ob) {
   const asp = plotno.width / Math.max(1, plotno.height);
   const tV = Math.tan(FOV / 2);
   const tH = tV * asp;
-  // Kadr liczony dla widoku startowego (stały przy obracaniu – bez „pompowania”): rogi obwiedni
-  // w układzie kamery, odległość taka, żeby każdy zmieścił się w kącie widzenia.
-  const { obrotX: a, obrotY: b } = widokModelu(st.model);
+  // Kadr dla bieżącego kąta kamery (#161 – po obróceniu rzecz nie wychodzi poza kadr); zmiana odległości
+  // jest płynna, więc obracanie nie skacze. Rogi obwiedni w układzie kamery – każdy w kącie widzenia.
+  const a = st.kamera.obrotX ?? widokModelu(st.model).obrotX;
+  const b = st.kamera.obrotY ?? widokModelu(st.model).obrotY;
   let d = 0;
   for (const x of [ob.min[0], ob.max[0]]) for (const y of [ob.min[1], ob.max[1]]) for (const z of [ob.min[2], ob.max[2]]) {
     const [dx, dy, dz] = [x - ob.srodek[0], y - ob.srodek[1], z - ob.srodek[2]];
@@ -143,12 +169,16 @@ function rysuj() {
   const ob = st.kadr.ob;
   const k = st.kamera;
   const cel = odlegloscDla(ob);
-  k.srodek = k.srodek ? k.srodek.map((v, i) => v + (ob.srodek[i] - v) * 0.22) : ob.srodek;
+  const celSrodek = k.przes ? ob.srodek.map((v, i) => v + k.przes[i]) : ob.srodek; // przes – tylko testy i zrzuty
+  k.srodek = k.srodek ? k.srodek.map((v, i) => v + (celSrodek[i] - v) * 0.22) : celSrodek;
   k.baza = k.baza ? k.baza + (cel - k.baza) * 0.22 : cel;
-  if (k.srodek.some((v, i) => Math.abs(v - ob.srodek[i]) > 0.3) || Math.abs(k.baza - cel) > cel * 0.004) rysujPozniej();
+  if (k.srodek.some((v, i) => Math.abs(v - celSrodek[i]) > 0.3) || Math.abs(k.baza - cel) > cel * 0.004) rysujPozniej();
   k.odleglosc = k.baza / k.zoom;
+  // Przybliżenie: strony rysują się od nowa w wyższej rozdzielczości (raz – potem zostają ostre).
+  if (k.zoom > 1.6) st.ostro = true;
+  if (st.ostro) for (const q of quady) if (q.tex.startsWith('p:') && !st.ostre?.has(q.tex)) wczytajTeksture(q.tex, true);
   renderer.rysuj(quady, k, { ciemny: ciemny() });
-  $('#makieta-polozenie').textContent = opisPolozenia(st.model, st.kartki, st.cel);
+  $('#makieta-polozenie').textContent = opisPolozenia(st.model, st.kartki, st.cel, (i) => st.numery?.[i] ?? null);
   $('#makieta-wstecz').disabled = st.cel <= 0;
   $('#makieta-dalej').disabled = st.cel >= polozenia(st.model, st.kartki);
   plotno.dataset.gotowe = String(!wToku.size && st.u === st.cel);
@@ -159,16 +189,58 @@ function rysuj() {
   }
 }
 
+// Lista stron modelu (#161). Rola sekcji wyłącznie z jej typu (#177): typSekcji(s) – 'okladka', 'wyklejka_przednia',
+// 'wyklejka_tylna', 'obwoluta'… Wyklejki i obwoluta nie są kartkami bloku. W książce z okładką wyklejka przednia:
+// pierwsza strona (albo lewa połowa arkusza dwa razy szerszego od bloku) przyklejona do wnętrza przedniej okładki,
+// reszta – luźna kartka przed stroną 1; tylna odwrotnie. Twarda oprawa bez wyklejek – czysta wyklejka (papier).
+// Blok zaczyna się od nowej kartki. Strony dwa razy szersze od bloku (rozkładówka na jednym arkuszu) – dwie
+// połowy. Format bloku – najczęstszy format stron. Obwoluta – na razie bez modelu (docs/ZGLOSZENIA.md).
+export const typSekcji = (s) => s?.typ || (s?.okladka ? 'okladka' : 'zwykla');
+function listaStron(model) {
+  const ksiazka = !model.startsWith('kalendarz') && model !== 'kartka';
+  const typ = (e) => typSekcji(e.sekcja);
+  const wyklejka = (e) => typ(e) === 'wyklejka_przednia' || typ(e) === 'wyklejka_tylna';
+  // Obwoluta nigdy w kartkach; kalendarz i kartka – bez wyklejek i pustych stron wyrównujących.
+  const egz = st.strony.filter((e) => typ(e) !== 'obwoluta' && (ksiazka || (!e.pusta && !wyklejka(e))));
+  const { format, wpisy } = ukladStron(egz.map((e) => ({ w: e.sekcja?.wydruk?.szerokosc_mm || st.format.w, h: e.sekcja?.wydruk?.wysokosc_mm || st.format.h, pusta: e.pusta })));
+  let lista = wpisy.map((x) => ({ ...x, egz: egz[x.zrodlo], typ: typ(egz[x.zrodlo]) }));
+  const zOkladka = ksiazka && (Boolean(st.okladka) || model !== 'ksiazka_miekka');
+  let wnetrze = { przod: false, tyl: false };
+  if (zOkladka) {
+    const pusta = () => ({ egz: { pusta: true, sekcja: null }, polowa: null, w: format.w, h: format.h, pusta: true, typ: 'wyklejka' });
+    let przod = lista.filter((x) => x.typ === 'wyklejka_przednia');
+    let tyl = lista.filter((x) => x.typ === 'wyklejka_tylna');
+    const srodek = lista.filter((x) => x.typ !== 'wyklejka_przednia' && x.typ !== 'wyklejka_tylna');
+    const twarda = model === 'ksiazka_twarda';
+    if (!przod.length && twarda) przod = [pusta(), pusta()];
+    if (!tyl.length && twarda) tyl = [pusta(), pusta()];
+    const wolneP = przod.slice(1);
+    if (wolneP.length % 2) wolneP.push(pusta()); // blok od nowej kartki
+    if (srodek.length % 2 && tyl.length) srodek.push(pusta());
+    const wolneT = tyl.slice(0, -1);
+    if (wolneT.length % 2) wolneT.unshift(pusta());
+    lista = [...przod.slice(0, 1), ...wolneP, ...srodek, ...wolneT, ...tyl.slice(-1)];
+    wnetrze = { przod: przod.length > 0, tyl: tyl.length > 0 && lista.length > 1 };
+  } else if (ksiazka) lista = lista.filter((x) => !wyklejka(x.egz));
+  // Numery stron: wyklejki i dodane czyste strony bez numeru.
+  let n = 0;
+  const numery = lista.map((x) => (x.typ.startsWith('wyklejka') ? null : (n += 1)));
+  return { lista, format, wnetrze, numery };
+}
+
 function ustawModel(model) {
   st.model = model;
-  // Kalendarz i kartka nie mają rozkładówek – puste strony wyrównujące (np. przed rozkładówką) pomijamy.
-  const lista = model.startsWith('kalendarz') || model === 'kartka' ? st.strony.filter((e) => !e.pusta) : st.strony;
-  if (lista !== st.lista) { st.lista = lista; renderer?.zapomnijStrony?.(); }
+  const { lista, format, wnetrze, numery } = listaStron(model);
+  const klucz = lista.map((x) => `${st.strony.indexOf(x.egz)}${x.polowa || ''}`).join(',');
+  if (klucz !== st.kluczListy) { st.kluczListy = klucz; st.ostre = null; renderer?.zapomnijStrony?.(); }
+  st.lista = lista;
+  st.numery = numery;
   st.kartki = kartkiModelu(model, {
     strony: lista.length,
-    format: st.format,
+    format,
+    wnetrze,
     // Każda strona w swoim formacie (sekcje mogą mieć różne) – tekstura leży na kartce bez rozciągania.
-    rozmiary: lista.map((e) => ({ w: e.sekcja?.wydruk?.szerokosc_mm || st.format.w, h: e.sekcja?.wydruk?.wysokosc_mm || st.format.h })),
+    rozmiary: lista.map((e) => ({ w: e.w, h: e.h })),
     okladka: st.geometria ? { w: st.geometria.strefy.find((z) => z.rodzaj === 'przod')?.x2 - st.geometria.strefy.find((z) => z.rodzaj === 'przod')?.x1, h: st.geometria.dol - st.geometria.gora, tektura: normalizujOkladke(st.okladka.okladka).tektura_mm } : null,
     kartka_mm: st.geometria?.kartka_mm || 0.1,
   });
@@ -195,11 +267,16 @@ export function kartkuj(d) {
 let eksport = false;
 function dopasujRozmiar() {
   if (eksport) return;
-  const r = plotno.getBoundingClientRect();
-  if (r.width < 2 || r.height < 2) return;
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const w = Math.max(1, Math.round(r.width * dpr));
-  const h = Math.max(1, Math.round(r.height * dpr));
+  // Rozmiar z układu strony (clientWidth/Height), nie z getBoundingClientRect – ten liczy też przesunięcia
+  // i skalowanie w trakcie wjazdu okna. Pełna gęstość ekranu (do 3×, #161: na telefonie z dpr 2,6 obraz był
+  // rozciągany z 2× i miękki), ale najwyżej ok. 4,5 mln pikseli.
+  const cw = plotno.clientWidth;
+  const ch = plotno.clientHeight;
+  if (cw < 2 || ch < 2) return;
+  let dpr = Math.min(3, window.devicePixelRatio || 1);
+  dpr = Math.min(dpr, Math.sqrt(4.5e6 / (cw * ch)));
+  const w = Math.max(1, Math.round(cw * dpr));
+  const h = Math.max(1, Math.round(ch * dpr));
   if (plotno.width !== w || plotno.height !== h) { plotno.width = w; plotno.height = h; }
 }
 function dopasujPlotno() {
@@ -247,14 +324,16 @@ export function otworzMakiete(projekt) {
 }
 
 // Do testów i zrzutów: ustawia położenie kartkowania wprost (także ułamkowe – kartka w trakcie przewracania).
-export function ustawPolozenieMakiety(u) {
+// natychmiast – kamera od razu w docelowym kadrze (bez płynnego dojścia).
+export function ustawPolozenieMakiety(u, { natychmiast = false } = {}) {
   if (!st) return;
   st.u = u;
   st.cel = u;
+  if (natychmiast) { st.kamera.srodek = null; st.kamera.baza = null; }
   rysujPozniej();
 }
 
-export const stanMakiety = () => (st ? { model: st.model, u: st.u, cel: st.cel, kartek: st.kartki.length, polozen: polozenia(st.model, st.kartki), kamera: { ...st.kamera }, renderer: Boolean(renderer) } : null);
+export const stanMakiety = () => (st ? { model: st.model, u: st.u, cel: st.cel, kartek: st.kartki.length, polozen: polozenia(st.model, st.kartki), kamera: { ...st.kamera }, renderer: Boolean(renderer), wToku: [...wToku] } : null);
 
 // Obraz makiety (PNG z tłem studia i cieniem) – w dużej rozdzielczości (dłuższy bok 3200 px), w tym samym
 // kadrze co na ekranie.
@@ -284,6 +363,15 @@ export async function pobierzObrazMakiety() {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+export const kartkiMakiety = () => st?.kartki || null;
+
+// Do testów i zrzutów: kąt i przybliżenie kamery wprost.
+export function ustawKamereMakiety(zmiany) {
+  if (!st) return;
+  Object.assign(st.kamera, zmiany);
+  rysujPozniej();
 }
 
 export function powiekszMakiete(k) {

@@ -33,8 +33,9 @@ test('makieta 3D: kartki modeli i geometria w świecie (stół, ściana, biurko)
   assert.ok(bliskie(op.max[0] - op.min[0], 148, 0.01) && bliskie(op.max[2] - op.min[2], 210, 0.01), 'przód okładki 148 × 210 mm');
   // Grzbiet z okładki: na zewnątrz zawiasu (x ≤ 0), od spodu do wierzchu; blok nie ma pod nim własnej ściany.
   const grzbiet = q.filter((x) => x.grzbiet);
-  assert.ok(grzbiet.length && grzbiet.every((x) => x.tex === 'okl:grzbiet'));
-  assert.ok(grzbiet.every((x) => x.p.every((p) => p[0] <= 1e-6)), 'grzbiet na zewnątrz');
+  // Grzbiet to cienka skorupa (#161): z zewnątrz okładka (okl:grzbiet), od środka papier/tektura.
+  assert.ok(grzbiet.length && grzbiet.some((x) => x.tex === 'okl:grzbiet'));
+  assert.ok(grzbiet.every((x) => x.p.every((p) => p[0] <= 0.05)), 'grzbiet na zewnątrz (poza zawiasami)');
   const og = obwiednia(grzbiet);
   assert.ok(bliskie(og.min[1], 0, 1e-3) && bliskie(og.max[1], T, 1e-3));
   assert.ok(!q.some((x) => x.tex === KRAWEDZ_KARTEK && x.p.every((p) => Math.abs(p[0]) < 1e-6)), 'brak ściany bloku w płaszczyźnie grzbietu (bez migotania)');
@@ -139,7 +140,9 @@ test('makieta 3D w podglądzie: przycisk obok „Separacji”, książka z okła
   // Bufor płótna w proporcjach tego, co widać – obraz nie jest rozciągnięty.
   const proporcje = await strona.evaluate(() => { const c = document.querySelector('#makieta-plotno'); const r = c.getBoundingClientRect(); return [c.width / c.height, r.width / r.height]; });
   assert.ok(Math.abs(proporcje[0] - proporcje[1]) < 0.02, `proporcje płótna ${proporcje}`);
-  // Kartkowanie przyciskiem i klawiszem.
+  // Kartkowanie przyciskiem i klawiszem. Twarda oprawa bez wyklejek w projekcie ma czystą wyklejkę (#161).
+  await strona.click('#makieta-dalej');
+  await strona.waitForFunction(() => document.querySelector('#makieta-polozenie').textContent === 'Wyklejka');
   await strona.click('#makieta-dalej');
   await strona.waitForFunction(() => document.querySelector('#makieta-polozenie').textContent === 'Strona 1');
   await strona.keyboard.press('ArrowRight');
@@ -209,5 +212,181 @@ test('makieta 3D: kolejne otwarcia i utrata kontekstu WebGL – obraz rysuje si�
   const po = await rysuje();
   assert.equal(po.brak, false);
   assert.ok(po.rozne > 50, `po przywróceniu kontekstu makieta znów widoczna (${po.rozne})`);
+  assert.deepEqual(bledy, []);
+});
+
+// #161 (zrzuty z Androida): format bloku z najczęstszego formatu stron (wyklejka A4 poziomo nie rozciąga
+// książki), wyklejki na wnętrzu okładek, twarda oprawa ze skorupą grzbietu (nie bryłą), okładka po otwarciu
+// połączona grzbietem z blokiem, napis na grzbiecie nie w lustrze, spirala obejmująca cały blok.
+test('makieta 3D (#161): wyklejki, proporcje bloku, grzbiet twardej oprawy, okładka połączona z blokiem, spirala', async () => {
+  const { ukladStron, kartkiModelu, scena, obwiednia } = await modul('js/makieta-3d.js');
+  const A5 = { w: 148, h: 210 };
+  const A4p = { w: 297, h: 210 };
+  const u = ukladStron([A4p, ...Array(6).fill(A5), A4p]);
+  assert.deepEqual(u.format, A5, 'format bloku – najczęstszy (A5), nie pierwszej strony (wyklejka A4)');
+  assert.equal(u.wpisy.length, 10, 'wyklejki A4 – po dwie połowy');
+  assert.deepEqual(u.wpisy.slice(0, 2).map((x) => [x.zrodlo, x.polowa, x.w]), [[0, 'L', 148.5], [0, 'R', 148.5]]);
+  assert.deepEqual(u.wpisy.slice(-2).map((x) => [x.zrodlo, x.polowa]), [[7, 'L'], [7, 'R']]);
+  const okl = { w: 151, h: 216, tektura: 2.5 };
+  const k = kartkiModelu('ksiazka_twarda', { strony: 10, format: u.format, okladka: okl, wnetrze: { przod: true, tyl: true }, rozmiary: u.wpisy });
+  assert.equal(k[0].tyl, 'p:0', 'lewa połowa przedniej wyklejki na wnętrzu przedniej okładki');
+  assert.equal(k.at(-1).przod, 'p:9', 'prawa połowa tylnej wyklejki na wnętrzu tylnej okładki');
+  const srodek = k.filter((x) => !x.okladka);
+  assert.ok(srodek.every((x) => x.w === 148 && x.h === 210), 'blok A5');
+  assert.ok(k[0].w - 148 <= 4 && k[0].h - 210 <= 7, `okładka tylko nieco większa od bloku (${k[0].w} × ${k[0].h})`);
+  // Napis na grzbiecie nie w lustrze: ta sama skrętność układu tekstury co na przodzie okładki.
+  const skretnosc = (q) => {
+    const [p0, p1, , p3] = q.p;
+    const [t0, t1, , t3] = q.uv;
+    const e1 = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]];
+    const e2 = [p3[0] - p0[0], p3[1] - p0[1], p3[2] - p0[2]];
+    const a = [t1[0] - t0[0], t1[1] - t0[1]];
+    const b = [t3[0] - t0[0], t3[1] - t0[1]];
+    const det = a[0] * b[1] - b[0] * a[1];
+    if (Math.abs(det) < 1e-12) return 0;
+    const T = e1.map((v, i) => (v * b[1] - e2[i] * a[1]) / det);
+    const B = e2.map((v, i) => (v * a[0] - e1[i] * b[0]) / det);
+    const c = [T[1] * B[2] - T[2] * B[1], T[2] * B[0] - T[0] * B[2], T[0] * B[1] - T[1] * B[0]];
+    return Math.sign(c[0] * q.n[0] + c[1] * q.n[1] + c[2] * q.n[2]);
+  };
+  let q = scena('ksiazka_twarda', kartkiModelu('ksiazka_twarda', { strony: 200, format: A5, okladka: okl }), 0);
+  const przodZ = q.filter((x) => x.tex === 'okl:przod' && x.n[1] > 0.9).map(skretnosc).filter(Boolean);
+  const grzbietZ = q.filter((x) => x.grzbiet && x.tex === 'okl:grzbiet' && x.n[0] < -0.5).map(skretnosc).filter(Boolean);
+  assert.ok(przodZ.length && grzbietZ.length);
+  assert.ok(grzbietZ.every((s) => s === przodZ[0]), 'grzbiet bez lustrzanego odbicia');
+  // Skorupa grzbietu: cienka, wypukła na zewnątrz, z przerwą do zaokrąglonego grzbietu bloku (składki widać).
+  const sk = obwiednia(q.filter((x) => x.grzbiet));
+  assert.ok(sk.min[0] < -1, 'grzbiet wypukły na zewnątrz');
+  assert.ok(q.some((x) => x.tex === 'tex:skladki'), 'zaokrąglony grzbiet bloku ze składkami');
+  assert.ok(q.some((x) => x.tex === 'tex:kapitalka'), 'kapitałka');
+  // Strona 1: okładka leży obok, grzbiet łączy ją z blokiem (bez przerwy).
+  q = scena('ksiazka_twarda', k, 1);
+  const okladkaL = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
+  const grz = obwiednia(q.filter((x) => x.grzbiet));
+  assert.ok(okladkaL.max[0] < 0.5, 'otwarta okładka po lewej');
+  assert.ok(grz.min[0] <= okladkaL.max[0] + 0.5 && grz.max[0] >= -0.5, `grzbiet łączy okładkę (${okladkaL.max[0].toFixed(1)}) z blokiem (0): ${grz.min[0].toFixed(1)}..${grz.max[0].toFixed(1)}`);
+  assert.ok(q.some((x) => x.tex === 'p:0'), 'wyklejka na wnętrzu otwartej okładki');
+  // Spirala: pętle obejmują cały blok (średnica ≈ grubość + 3–4 mm), notes leży na drucie.
+  for (const strony of [20, 400]) {
+    const kn = kartkiModelu('notes', { strony, format: A5 });
+    const Tn = kn.reduce((a, x) => a + x.d, 0);
+    const qn = scena('notes', kn, 0);
+    const drut = obwiednia(qn.filter((x) => x.mat === 'drut'));
+    const blokN = obwiednia(qn.filter((x) => x.mat !== 'drut'));
+    assert.ok(drut.min[1] > -0.05 && drut.min[1] < 0.2, `notes ${strony} s.: drut na stole (${drut.min[1].toFixed(2)})`);
+    assert.ok(drut.max[1] > blokN.max[1] + 1 && drut.min[1] < blokN.min[1] - 1, `notes ${strony} s.: pętle obejmują blok`);
+    const sr = drut.max[1] - drut.min[1];
+    assert.ok(sr >= Tn + 3 && sr <= Math.max(Tn + 7, 9.5), `notes ${strony} s.: średnica pętli ${sr.toFixed(1)} przy grubości ${Tn.toFixed(1)}`);
+  }
+});
+
+test('makieta 3D (#161): telefon – płótno w proporcjach widoku, okładka A5 pionowa z góry, kadr mieści całość', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t, { telefon: true });
+  await nowyProjekt(strona, 'Makieta');
+  await strona.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const O = await import('./js/okladka.js');
+    const p = window.seriodruk.stan.projekt;
+    const srodek = p.sekcje[0];
+    for (let i = 1; i < 30; i += 1) p.strony.push(P.nowaStrona(`S${i + 1}`, srodek.id));
+    // Wyklejka A4 poziomo przed środkiem – jak w projekcie użytkownika.
+    const wy = P.nowaSekcja('Wyklejka');
+    wy.typ = 'wyklejka_przednia'; // rola sekcji tylko z jawnego typu (#177)
+    wy.wydruk.szerokosc_mm = 297;
+    wy.wydruk.wysokosc_mm = 210;
+    p.sekcje.splice(0, 0, wy);
+    p.strony.unshift(P.nowaStrona('Wyklejka', wy.id));
+    const wt = P.nowaSekcja('Wyklejka tylna');
+    wt.typ = 'wyklejka_tylna';
+    wt.wydruk.szerokosc_mm = 297;
+    wt.wydruk.wysokosc_mm = 210;
+    p.sekcje.push(wt);
+    p.strony.push(P.nowaStrona('Wyklejka tylna', wt.id));
+    const ok = P.nowaSekcja('Okładka');
+    ok.okladka = { oprawa: 'twarda' };
+    p.sekcje.unshift(ok);
+    const so = P.nowaStrona('Okładka', ok.id);
+    so.tlo = '#0b1d6b';
+    p.strony.unshift(so);
+    O.przeliczOkladki(p);
+  });
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForSelector('.podglad-strona[data-id]');
+  await strona.click('[data-akcja="podglad-makieta"]');
+  await strona.waitForFunction(() => document.querySelector('#dlg-makieta')?.open, null, { timeout: 60000 });
+  await strona.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 60000 });
+  await strona.waitForTimeout(800);
+  // Wyklejki (sekcje typu wyklejka_przednia / wyklejka_tylna, arkusze A4 przy bloku A5): nie są kartkami bloku – lewa połowa przedniej na
+  // wnętrzu okładki, prawa – luźna kartka przed stroną 1; tylna odwrotnie. Wszystkie kartki w formacie bloku.
+  const uklad = await strona.evaluate(async () => {
+    const W = await import('./js/app/makieta-okno.js');
+    const k = W.kartkiMakiety();
+    const opis = async (u) => { W.ustawPolozenieMakiety(u, { natychmiast: true }); await new Promise((r) => setTimeout(r, 300)); return document.querySelector('#makieta-polozenie').textContent; };
+    return {
+      kartki: k.filter((x) => !x.okladka).map((x) => [x.w, x.h]),
+      wnetrzeP: k[0].tyl, luznaP: k[1].przod, wnetrzeT: k.at(-1).przod,
+      opisy: [await opis(1), await opis(2), await opis(k.length - 1)],
+    };
+  });
+  assert.ok(uklad.kartki.every(([w, h]) => w === 148 && h === 210), 'kartki w formacie bloku (A5)');
+  assert.ok(uklad.wnetrzeP && uklad.luznaP && uklad.wnetrzeT, 'wyklejki na wnętrzu okładek i jako luźne kartki');
+  assert.deepEqual(uklad.opisy.slice(0, 2), ['Wyklejka', 'Strona 1'], 'po okładce wyklejka, potem strona 1');
+  await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).ustawPolozenieMakiety(0, { natychmiast: true }));
+  await strona.waitForTimeout(500);
+  // Bufor płótna w proporcjach elementu (bez rozciągania przez CSS), gęstość ekranu telefonu.
+  const pl = await strona.evaluate(() => { const c = document.querySelector('#makieta-plotno'); return { w: c.width, h: c.height, cw: c.clientWidth, ch: c.clientHeight, dpr: devicePixelRatio }; });
+  assert.ok(Math.abs(pl.w / pl.h - pl.cw / pl.ch) < 0.01, `proporcje bufora ${pl.w}×${pl.h} i widoku ${pl.cw}×${pl.ch}`);
+  assert.ok(pl.w >= pl.cw * Math.min(2.5, pl.dpr) - 2, `pełna gęstość ekranu (${pl.w} px przy ${pl.cw} px × ${pl.dpr})`);
+  // Kadr: wszystkie rogi obwiedni sceny w polu widzenia (kamera jak w oknie).
+  const kadr = () => strona.evaluate(async () => {
+    const M = await import('./js/makieta-3d.js');
+    const W = await import('./js/app/makieta-okno.js');
+    const s = W.stanMakiety();
+    const ob = M.obwiednia(M.scena(s.model, W.kartkiMakiety(), s.cel));
+    const c = document.querySelector('#makieta-plotno');
+    const asp = c.width / c.height;
+    const t = Math.tan((28 * Math.PI) / 360);
+    const k = s.kamera;
+    let max = 0;
+    for (const x of [ob.min[0], ob.max[0]]) for (const y of [ob.min[1], ob.max[1]]) for (const z of [ob.min[2], ob.max[2]]) {
+      const [dx, dy, dz] = [x - k.srodek[0], y - k.srodek[1], z - k.srodek[2]];
+      const x1 = dx * Math.cos(k.obrotY) + dz * Math.sin(k.obrotY);
+      const z1 = -dx * Math.sin(k.obrotY) + dz * Math.cos(k.obrotY);
+      const y2 = dy * Math.cos(k.obrotX) - z1 * Math.sin(k.obrotX);
+      const z2 = dy * Math.sin(k.obrotX) + z1 * Math.cos(k.obrotX);
+      const glebia = k.odleglosc - z2;
+      max = Math.max(max, Math.abs(x1 / (glebia * t * asp)), Math.abs(y2 / (glebia * t)));
+    }
+    return max;
+  });
+  for (const u of [0, 1, 8]) {
+    await strona.evaluate(async (u) => (await import('./js/app/makieta-okno.js')).ustawPolozenieMakiety(u, { natychmiast: true }), u);
+    await strona.waitForTimeout(500);
+    await strona.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 60000 });
+    const m = await kadr();
+    assert.ok(m <= 1, `położenie ${u}: całość w kadrze (${m.toFixed(2)})`);
+  }
+  // Z góry: zamknięta książka A5 jest pionowa (okładka ~151 × 216 mm), nie rozciągnięta w poziomie.
+  await strona.evaluate(async () => { const W = await import('./js/app/makieta-okno.js'); W.ustawPolozenieMakiety(0); W.ustawKamereMakiety({ obrotX: 1.5, obrotY: 0, zoom: 1 }); });
+  await strona.waitForTimeout(3000);
+  await strona.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 60000 });
+  const r = await strona.evaluate(() => {
+    const c = document.querySelector('#makieta-plotno');
+    const x = document.createElement('canvas');
+    x.width = c.width;
+    x.height = c.height;
+    const g = x.getContext('2d');
+    g.drawImage(c, 0, 0);
+    const d = g.getImageData(0, 0, x.width, x.height).data;
+    let x0 = Infinity; let x1 = -1; let y0 = Infinity; let y1 = -1;
+    for (let y = 0; y < x.height; y += 2) for (let xx = 0; xx < x.width; xx += 2) {
+      const i = (y * x.width + xx) * 4;
+      if (d[i + 2] > d[i] + 40 && d[i + 2] > 60) { x0 = Math.min(x0, xx); x1 = Math.max(x1, xx); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    }
+    return { w: x1 - x0, h: y1 - y0 };
+  });
+  const prop = r.h / r.w;
+  assert.ok(prop > 1.3 && prop < 1.6, `okładka z góry pionowa jak A5 (wys./szer. ${prop.toFixed(2)}, ${r.w}×${r.h} px)`);
   assert.deepEqual(bledy, []);
 });
