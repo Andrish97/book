@@ -23,6 +23,8 @@ import { impozycjaPdf } from './impozycja.js';
 import { linkiStrony, dodajLinki, dodajZakladki } from './pdf-nawigacja.js';
 import { indeksKsiazki } from './ksiazka.js';
 import { ustawSilnikTac } from './separacje.js';
+import { wynikDlaStrony } from './sekcje-specjalne.js';
+import { rysujLinieSpecjalne, arkuszeUzytkow } from './pdf-specjalne.js';
 
 const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
 const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
@@ -158,6 +160,9 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     };
   }
   let nr = 0;
+  // Sekcje specjalne (#177): numer strony w sekcji (ulotka: zewnątrz / środek) i zakresy stron arkuszy użytków.
+  const wSekcji = new Map();
+  const grupyUzytkow = [];
   const naNumer = new Map(); // numer strony w wydruku → strona PDF (linki ze spisu i odsyłaczy)
   const naKlucz = new Map(); // klucz egzemplarza → strona PDF (zakładki)
   const doLinkow = [];
@@ -209,6 +214,19 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     strona.setTrimBox(m.pas * PT, m.pas * PT, m.w * PT, m.h * PT);
     strona.setBleedBox((m.pas - m.spad) * PT, (m.pas - m.spad) * PT, (m.w + 2 * m.spad) * PT, (m.h + 2 * m.spad) * PT);
     if (zeZnakami) rysujZnaki(strona, PDFLib, m, Boolean(warunki) || (wektor && cmyk));
+    const specjalna = egz.sekcja.specjalna?.wynik;
+    if (specjalna) {
+      const i = wSekcji.get(egz.sekcja.id) || 0;
+      wSekcji.set(egz.sekcja.id, i + 1);
+      if (specjalna.rodzaj === 'arkusz' && !arkusze && specjalna.uzytki?.na_arkuszu) {
+        // Użytek idzie na arkusz (po pętli) – bez znaków cięcia na samej stronie użytku, linia wykrojnika rysuje się na arkuszu.
+        const ost = grupyUzytkow[grupyUzytkow.length - 1];
+        if (ost && ost.id === egz.sekcja.id && ost.od + ost.ile === nr) ost.ile += 1;
+        else grupyUzytkow.push({ id: egz.sekcja.id, od: nr, ile: 1, uklad: specjalna.uzytki, uzytek: { w: m.w, h: m.h }, spad: m.spad, ciecie: specjalna.ciecie });
+      } else {
+        rysujLinieSpecjalne(PDFLib, pdf, strona, m, wynikDlaStrony(specjalna, i), { czarnaFarba: Boolean(warunki) || (wektor && cmyk) });
+      }
+    }
     if (egz.nr !== null && egz.nr !== undefined && !naNumer.has(egz.nr)) naNumer.set(egz.nr, strona);
     naKlucz.set(egz.klucz ?? egz, strona);
     nr += 1;
@@ -224,6 +242,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     dodajZakladki(PDFLib, pdf, zakladkiPliku(projekt, egzemplarze, ciag, naKlucz));
   }
   let wynik = pdf;
+  if (grupyUzytkow.length) wynik = await arkuszeUzytkow(PDFLib, await pdf.save(), grupyUzytkow, { znaki: znaki !== false });
   if (arkusze) wynik = (await impozycjaPdf(PDFLib, await pdf.save(), { uklad, skladka, format: formatArkusza, pelzanie, znaki: znaki !== false, powieksz, tytul: projekt.nazwa })).pdf;
   if (warunki) await dodajPdfX(PDFLib, wynik, warunki, { tytul: projekt.nazwa });
   const bajty = await wynik.save();

@@ -48,8 +48,18 @@ export function ukladProjektu(projekt, ciag = rozwin(projekt)) {
         nazwa: sekcja.nazwa, w: sekcja.wydruk.szerokosc_mm, h: sekcja.wydruk.wysokosc_mm, rozkladowki, wiersze,
         // Okładka (#119): linie zgięć (grzbiet, bigi, zawinięcia) jako delikatne tło pomocnicze podglądu.
         ...(sekcja.okladka?.wynik ? { zgiecia: zgieciaOkladki(sekcja.okladka.wynik) } : {}),
+        // Sekcje specjalne (#177): pełne linie zgięć (bigi) – ulotka ma je na obu stronach w tych samych miejscach.
+        ...(sekcja.specjalna?.wynik?.bigi?.length && sekcja.specjalna.rodzaj !== 'wykrojnik' ? { zgiecia: zgieciaSpecjalne(sekcja.specjalna.wynik) } : {}),
       };
     }),
+  };
+}
+
+function zgieciaSpecjalne(w) {
+  const bigi = [...w.bigi.filter((b) => !b.strona), ...(w.perforacje || [])];
+  return {
+    x: [...new Set(bigi.filter((b) => b.x1 === b.x2).map((b) => (b.x1 / w.szerokosc) * 100))],
+    y: [...new Set(bigi.filter((b) => b.y1 === b.y2).map((b) => (b.y1 / w.wysokosc) * 100))],
   };
 }
 
