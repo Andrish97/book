@@ -100,6 +100,9 @@ const serwer = utworzSerwer({
   klucz: process.env.MAKIETKA_KLUCZ || '',
   brakKlucza: 'Brak klucza dostępu: ustaw zmienną MAKIETKA_KLUCZ (klucz z aplikacji: menu ⋯ → Dostęp dla AI).',
   czytajOpis: () => readFile(new URL('../format-makietka.md', import.meta.url), 'utf8'),
+  // Czekanie na plik eksportu (ms) – do testów; domyślnie 45 s, sprawdzanie co 1,5 s.
+  ...(process.env.MAKIETKA_CZEKANIE_EKSPORTU ? { czekanieEksportu: Number(process.env.MAKIETKA_CZEKANIE_EKSPORTU) } : {}),
+  ...(process.env.MAKIETKA_KROK_EKSPORTU ? { krokEksportu: Number(process.env.MAKIETKA_KROK_EKSPORTU) } : {}),
 });
 export const obsluz = serwer.obsluz;
 

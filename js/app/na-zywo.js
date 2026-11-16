@@ -70,11 +70,14 @@ export async function wlaczNaZywo(uzytkownik) {
     });
   } catch { /* bez kanału zostaje sprawdzanie co pół minuty */ }
   if (dla === uzytkownik.id) wlaczWspolprace(uzytkownik); // zaproszenia do projektów na żywo
+  // Eksport PDF/PNG zlecony przez AI (#175): ta karta może przyjąć zlecenie i zrobić plik.
+  if (dla === uzytkownik.id) import('./eksport-ai.js').then((m) => m.wlaczZleceniaEksportu(uzytkownik)).catch(() => {});
 }
 
 export async function wylaczNaZywo() {
   dla = null;
   wylaczWspolprace();
+  import('./eksport-ai.js').then((m) => m.wylaczZleceniaEksportu()).catch(() => {});
   polaczony = false;
   clearTimeout(timer);
   clearTimeout(timerListy);

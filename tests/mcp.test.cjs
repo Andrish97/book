@@ -59,9 +59,9 @@ async function srodowisko(t) {
   await new Promise((r) => http1.listen(0, '127.0.0.1', r));
   t.after(() => http1.close());
 
-  const uruchom = (klucz) => {
+  const uruchom = (klucz, dodatkowe = {}) => {
     const proc = spawn(process.execPath, [SERWER], {
-      env: { ...process.env, MAKIETKA_KLUCZ: klucz, MAKIETKA_ADRES: `http://127.0.0.1:${http1.address().port}`, MAKIETKA_KLUCZ_PUBLICZNY: 'sb_publishable_test' },
+      env: { ...process.env, MAKIETKA_KLUCZ: klucz, MAKIETKA_ADRES: `http://127.0.0.1:${http1.address().port}`, MAKIETKA_KLUCZ_PUBLICZNY: 'sb_publishable_test', ...dodatkowe },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     t.after(() => proc.kill());
@@ -344,4 +344,69 @@ test('MCP: komentarze – lista, nowy wątek, odpowiedź z rozwiązaniem, klucz 
   assert.equal(k.rozwiazany, true);
   assert.equal((await czyta.narzedzie('rozwiaz_komentarz', { komentarz: k.id, rozwiazany: false })).blad, false);
   assert.equal(k.rozwiazany, false);
+});
+
+test('MCP: eksport_pdf i eksport_png zlecane aplikacji – link do pobrania albo link do aplikacji i stan_eksportu (#175)', async (t) => {
+  const s = await srodowisko(t);
+  const CZEKANIE = { MAKIETKA_CZEKANIE_EKSPORTU: '2500', MAKIETKA_KROK_EKSPORTU: '100' };
+  const KONTO = { id: WLASCICIEL.id };
+  // „Otwarta aplikacja”: przyjmuje czekające zlecenia i kończy je plikiem w folderze _eksporty konta.
+  let aplikacja = true;
+  const petla = setInterval(() => {
+    if (!aplikacja || !s.stan.eksport) return;
+    for (const z of s.stan.eksport.app('eksporty_czekajace', {}, KONTO)) {
+      if (!s.stan.eksport.app('przyjmij_eksport', { p_id: z.id, p_karta: 'karta-testu' }, KONTO)) continue;
+      const png = z.rodzaj === 'png';
+      s.stan.eksport.app('zakoncz_eksport', {
+        p_id: z.id, p_karta: 'karta-testu', p_plik: `${WLASCICIEL.id}/_eksporty/${z.id}.${png ? 'png' : 'pdf'}`, p_nazwa: png ? 'Kalendarz-Okładka.png' : 'Kalendarz.pdf',
+        p_typ: png ? 'image/png' : 'application/pdf', p_rozmiar: 2400000, p_strony: png ? 1 : 3, p_uwagi: png ? [] : ['Strona 2: tekst wychodzi poza ramkę'], p_blad: null,
+      }, KONTO);
+    }
+  }, 50);
+  t.after(() => clearInterval(petla));
+
+  const { narzedzie, wyslij, meta } = s.uruchom(s.odczyt, CZEKANIE);
+  const nazwy = (await wyslij('tools/list', meta)).result.tools.map((x) => x.name);
+  for (const n of ['eksport_pdf', 'eksport_png', 'stan_eksportu']) assert.ok(nazwy.includes(n), n);
+
+  // Aplikacja otwarta: link do pobrania z sekretem, rozmiar, strony i uwagi z kontroli. Klucz tylko do czytania wystarcza.
+  const pdf = await narzedzie('eksport_pdf', { przeznaczenie: 'drukarnia', pdfx: 'fogra39', uklad: 'broszura', format_arkusza: 'A4' });
+  assert.equal(pdf.blad, false, pdf.tekst);
+  const z1 = s.stan.eksporty[0];
+  assert.deepEqual(z1.ustawienia, { przeznaczenie: 'drukarnia', pdfx: 'fogra39', uklad: 'broszura', formatArkusza: 'A4' });
+  assert.equal(z1.projekt_id, 'p-1');
+  assert.match(pdf.tekst, /Plik PDF gotowy: Kalendarz\.pdf \(2,3 MB, 3 stron\(y\)\)/);
+  assert.ok(pdf.tekst.includes(`https://api.makietka.app/eksport/${z1.id}/${z1.sekret}/Kalendarz.pdf`), pdf.tekst);
+  assert.match(pdf.tekst, /tekst wychodzi poza ramkę/);
+
+  const png = await narzedzie('eksport_png', { strona: 's1', dpi: 150 });
+  assert.equal(png.blad, false, png.tekst);
+  assert.match(png.tekst, /Plik PNG gotowy: Kalendarz-Okładka\.png/);
+  assert.deepEqual(s.stan.eksporty[1].ustawienia, { strona: 's1', egzemplarz: 1, dpi: 150 });
+
+  // Aplikacja zamknięta: po czasie czekania – link do aplikacji i numer zlecenia; później stan_eksportu daje plik.
+  aplikacja = false;
+  const czeka = await narzedzie('eksport_pdf', {});
+  assert.equal(czeka.blad, false, czeka.tekst);
+  const z3 = s.stan.eksporty[2];
+  assert.equal(z3.stan, 'czeka');
+  assert.ok(czeka.tekst.includes(`https://makietka.app/#/p/p-1/eksport/${z3.id}`), czeka.tekst);
+  assert.match(czeka.tekst, /stan_eksportu/);
+  assert.match((await narzedzie('stan_eksportu', { zlecenie: z3.id })).tekst, /czeka/);
+  aplikacja = true;
+  await new Promise((r) => setTimeout(r, 300));
+  assert.match((await narzedzie('stan_eksportu', { zlecenie: z3.id })).tekst, new RegExp(`eksport/${z3.id}/${z3.sekret}/Kalendarz\\.pdf`));
+
+  // Bez czekania (czekaj=false) – samo zlecenie; zły rodzaj i obce zlecenie – czytelny błąd.
+  aplikacja = false;
+  const bez = await narzedzie('eksport_pdf', { czekaj: false });
+  assert.match(bez.tekst, /czeka/);
+  const obce = await narzedzie('stan_eksportu', { zlecenie: '00000000-0000-4000-8000-000000000000' });
+  assert.equal(obce.blad, true);
+  assert.match(obce.tekst, /Nie ma takiego zlecenia/);
+  // Limit kolejki: najwyżej 5 czekających zleceń na konto.
+  for (let i = 0; i < 4; i += 1) await narzedzie('eksport_pdf', { czekaj: false });
+  const za = await narzedzie('eksport_pdf', { czekaj: false });
+  assert.equal(za.blad, true);
+  assert.match(za.tekst, /5 eksportów/);
 });

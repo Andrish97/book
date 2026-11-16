@@ -6,6 +6,7 @@
 //         oglos?(projekt) }. Funkcja zwraca wynik albo rzuca { status, message } (błąd jak z PostgREST).
 
 const crypto = require('node:crypto');
+const { atrapaEksportu } = require('./atrapa-eksport.cjs');
 
 const CZESCI = ['nazwa', 'sekcje', 'wzorce', 'style', 'tabele', 'serie', 'widok', 'strony', 'usun_strony', 'kolejnosc_stron'];
 const TYPY = ['textbox', 'i-text', 'text', 'rect', 'ellipse', 'circle', 'line', 'polygon', 'polyline', 'path', 'image', 'group', 'triangle'];
@@ -483,6 +484,11 @@ function atrapaAi(stan) {
     if (funkcja === 'ai_nowy_projekt') return aiNowyProjekt(tresc);
     if (funkcja === 'ai_usun_projekt') return aiUsunProjekt(tresc);
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
+    // Eksport zlecony przez AI (#175) – wspólny stan z aplikacją (tests/atrapa-eksport.cjs).
+    if (funkcja === 'ai_zlec_eksport' || funkcja === 'ai_stan_eksportu') {
+      stan.eksport = stan.eksport || atrapaEksportu(stan);
+      return stan.eksport.ai(funkcja, tresc, { sprawdzKlucz, kluczKonta });
+    }
     // Komentarze (#131D) – wspólny stan z atrapą współpracy (tests/atrapa-wspolpraca.cjs).
     if (['ai_komentarze', 'ai_skomentuj', 'ai_rozwiaz_komentarz'].includes(funkcja)) {
       const d = sprawdzKlucz(tresc.p_klucz, false);

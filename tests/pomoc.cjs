@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
 const { atrapaAi } = require('./atrapa-ai.cjs');
+const { atrapaEksportu } = require('./atrapa-eksport.cjs');
 const { atrapaWspolpracy, rolaW } = require('./atrapa-wspolpraca.cjs');
 const { atrapaPoczty } = require('./atrapa-poczta.cjs');
 const ATRAPA_TINYMCE = require('node:fs').readFileSync(require('node:path').join(__dirname, 'atrapa-tinymce.js'), 'utf8');
@@ -398,6 +399,15 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       stan.ai = stan.ai || atrapaAi(stan);
       try {
         return json(r, 200, stan.ai(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)));
+      } catch (e) {
+        return blad(r, e.status || 400, e.message, 'P0001');
+      }
+    }
+    // Eksport zlecony przez AI (#175): funkcje aplikacji (przyjmij, zakończ, sprzątanie) – tests/atrapa-eksport.cjs.
+    if (sc.startsWith('/rest/v1/rpc/') && atrapaEksportu.ma(sc.slice('/rest/v1/rpc/'.length))) {
+      stan.eksport = stan.eksport || atrapaEksportu(stan);
+      try {
+        return json(r, 200, stan.eksport.app(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)) ?? null);
       } catch (e) {
         return blad(r, e.status || 400, e.message, 'P0001');
       }

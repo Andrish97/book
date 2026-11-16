@@ -34,6 +34,8 @@ const ADRES_OPISU = 'https://makietka.app/ai/format-makietka.md';
 export const ADRES_APLIKACJI = 'https://makietka.app/';
 // Publiczny adres łącznika (przekaźnik Cloudflare api.makietka.app → Funkcja Edge mcp, cloudflare/api-worker.js).
 const ADRES_LACZNIKA = 'https://api.makietka.app/mcp';
+// Pliki eksportu zleconego przez AI (#175): przekaźnik wydaje je pod /eksport/<zlecenie>/<sekret>/<nazwa>.
+export const ADRES_POBIERANIA = 'https://api.makietka.app/eksport/';
 
 // Te same listy co w aplikacji (js/pola.js, js/style-tekstu.js) – test pilnuje, żeby się zgadzały.
 export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony', 'rozdzial', 's', 'przypis'];
@@ -746,10 +748,11 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Uwagi osób do stron czytasz narzędziem komentarze; odpowiadasz przez odpowiedz (rozwiaz=true, gdy poprawka jest już w projekcie), nowe uwagi dodaje skomentuj. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Uwagi osób do stron czytasz narzędziem komentarze; odpowiadasz przez odpowiedz (rozwiaz=true, gdy poprawka jest już w projekcie), nowe uwagi dodaje skomentuj. Gotowy plik: eksport_pdf (cały projekt, sekcja albo strony, do drukarni albo na ekran) i eksport_png (jedna strona) zwracają link do pobrania – plik robi otwarta aplikacja Makietki; gdy nie jest otwarta, daj użytkownikowi link do aplikacji z odpowiedzi i sprawdź stan_eksportu. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
-export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, projekt: wybranyProjekt = null }) {
-  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu };
+// czekanieEksportu, krokEksportu (ms): jak długo i jak często łącznik czeka na plik zlecony aplikacji (#175).
+export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Dostęp dla AI).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA }) {
+  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu, czekanieEksportu, krokEksportu, adresPobierania };
   const ADRES = String(adres || '').replace(/\/+$/, '');
   const KLUCZ_PUBLICZNY = kluczPubliczny;
   // Klucz konta (ustawienia konta → Dostęp dla AI) i – dla narzędzi projektu – wybrany projekt: funkcje bazy ai_*
@@ -803,6 +806,39 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     const w = await rpc('ai_projekt', { p_klucz: KLUCZ });
     if (w?.blad) throw new BladBazy(w.blad);
     return w; // { dostep, wersja, projekt }
+  }
+
+  // ---------- Eksport zlecony aplikacji (#175) ----------
+  // PDF i PNG rysuje przeglądarka (czcionki, profile barwne) – łącznik składa zlecenie (ai_zlec_eksport), otwarta
+  // aplikacja konta klucza robi plik i wgrywa go na konto, a łącznik czeka chwilę i podaje link do pobrania.
+  // Bez otwartej aplikacji – link, po którego otwarciu aplikacja zrobi plik sama.
+  const MB = (b) => `${(Number(b || 0) / 1048576).toFixed(Number(b || 0) < 10485760 ? 1 : 0).replace('.', ',')} MB`;
+  function opisEksportu(z) {
+    const linkAplikacji = `${ADRES_APLIKACJI}#/p/${z.projekt_id}/eksport/${z.id}`;
+    const rodzaj = z.rodzaj === 'png' ? 'PNG' : 'PDF';
+    if (z.stan === 'gotowe' && z.sekret) {
+      const link = `${adresPobierania}${z.id}/${z.sekret}/${encodeURIComponent(z.nazwa || `eksport.${z.rodzaj}`)}`;
+      const uwagi = Array.isArray(z.uwagi) && z.uwagi.length ? `\nUwagi z kontroli przed drukiem (${z.uwagi.length}):\n${z.uwagi.map((u) => `- ${u}`).join('\n')}` : '';
+      return `Plik ${rodzaj} gotowy: ${z.nazwa} (${MB(z.rozmiar)}${z.strony ? `, ${z.strony} ${z.strony === 1 ? 'strona' : 'stron(y)'}` : ''}).\nLink do pobrania (bez logowania, ważny 7 dni – do ${z.wygasa}): ${link}${uwagi}`;
+    }
+    if (z.stan === 'blad') return `Aplikacja nie zrobiła pliku ${rodzaj}: ${z.blad || 'nieznany błąd'}. Zlecenie: ${z.id}. Popraw ustawienia albo projekt i zleć jeszcze raz.`;
+    if (z.stan === 'w_toku') return `Aplikacja właśnie robi plik ${rodzaj} (zlecenie ${z.id}). Duży projekt może potrwać kilka minut – sprawdź narzędziem stan_eksportu (zlecenie: ${z.id}).`;
+    return `Zlecenie eksportu ${rodzaj} czeka (${z.id}): plik rysuje aplikacja Makietki w przeglądarce, a teraz żadna nie jest otwarta na tym koncie. Daj użytkownikowi ten link – po jego otwarciu (zalogowany na koncie klucza) aplikacja sama zrobi plik: ${linkAplikacji}\nPotem sprawdź stan_eksportu (zlecenie: ${z.id}) i podaj link do pobrania. Gdy aplikacja jest już otwarta, przyjmie zlecenie sama w ciągu kilku sekund.`;
+  }
+  async function zlecEksport(rodzaj, ustawienia, czekaj = true) {
+    if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+    const z = await rpc('ai_zlec_eksport', { p_klucz: KLUCZ, p_rodzaj: rodzaj, p_ustawienia: ustawienia });
+    if (z?.blad) throw new BladBazy(z.blad);
+    if (!czekaj) return opisEksportu(z);
+    let s = z;
+    const koniec = Date.now() + czekanieEksportu;
+    while (Date.now() < koniec) {
+      await new Promise((r) => setTimeout(r, krokEksportu));
+      s = await rpc('ai_stan_eksportu', { p_klucz: KLUCZ_KONTA, p_id: z.id });
+      if (s?.blad) throw new BladBazy(s.blad);
+      if (s.stan === 'gotowe' || s.stan === 'blad') break;
+    }
+    return opisEksportu(s);
   }
 
 
@@ -1631,6 +1667,57 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
       },
     },
     {
+      name: 'eksport_pdf',
+      title: 'Eksportuj projekt do PDF',
+      description: 'Plik PDF projektu (do drukarni albo do czytania na ekranie). PDF rysuje aplikacja Makietki w przeglądarce użytkownika: narzędzie składa zlecenie, otwarta aplikacja konta klucza robi plik i wgrywa go na konto, a narzędzie czeka do ok. 45 s i zwraca link do pobrania (bez logowania, ważny 7 dni) z uwagami z kontroli przed drukiem. Gdy aplikacja nie jest otwarta – zwraca link do aplikacji dla użytkownika (po jego otwarciu plik zrobi się sam) i numer zlecenia do stan_eksportu. Działa też z kluczem tylko do czytania.',
+      inputSchema: S('', {
+        zakres: { type: 'string', enum: ['wszystko', 'sekcja', 'strony'], description: 'wszystko (domyślnie), jedna sekcja albo strony od–do (numery w całym wydruku, z powieleniami serii)' },
+        sekcja: tekst('id albo nazwa sekcji (zakres: sekcja)'),
+        od: { type: 'integer', minimum: 1, description: 'pierwsza strona (zakres: strony)' },
+        do: { type: 'integer', minimum: 1, description: 'ostatnia strona (zakres: strony)' },
+        przeznaczenie: { type: 'string', enum: ['drukarnia', 'ekran'], description: 'drukarnia (domyślnie) – ze spadem i znakami cięcia; ekran – sam format strony, z zakładkami i linkami' },
+        rodzaj: { type: 'string', enum: ['wektor', 'obraz'], description: 'wektor (domyślnie) – tekst i kształty wektorowo, czcionki osadzone; obraz – każda strona jako obraz' },
+        dpi: { type: 'integer', enum: [150, 300, 600], description: 'rozdzielczość obrazów (domyślnie 300)' },
+        cmyk: { type: 'boolean', description: 'tekst i kształty w CMYK (plik wektorowy)' },
+        pdfx: { type: 'string', enum: ['', 'fogra39', 'fogra47'], description: 'PDF/X-4 z profilem: fogra39 – papier powlekany, fogra47 – niepowlekany; pusty – zwykły PDF' },
+        uklad: { type: 'string', enum: ['zwykly', 'broszura', 'skladki', 'dwie', 'cztery'], description: 'zwykly (domyślnie) – strona po stronie; broszura – arkusze do złożenia i zszycia; skladki – broszura w składkach; dwie / cztery – strony na arkuszu' },
+        format_arkusza: { type: 'string', enum: ['auto', 'A4', 'A3'], description: 'arkusz przy układzie innym niż zwykly' },
+        skladka: { type: 'integer', enum: [4, 8, 16, 32], description: 'stron w składce (uklad: skladki)' },
+        czekaj: { type: 'boolean', description: 'false – tylko złóż zlecenie i od razu wróć (stan sprawdzisz narzędziem stan_eksportu)' },
+      }),
+      readOnly: true,
+      dzialaj: async ({ czekaj = true, format_arkusza: formatArkusza, ...reszta } = {}) => {
+        const u = Object.fromEntries(Object.entries({ ...reszta, formatArkusza }).filter(([, v]) => v !== undefined && v !== null));
+        return zlecEksport('pdf', u, czekaj !== false);
+      },
+    },
+    {
+      name: 'eksport_png',
+      title: 'Pobierz stronę jako PNG',
+      description: 'Obraz PNG jednej strony (ze spadem), np. do pokazania w czacie albo w internecie. Jak eksport_pdf: obraz rysuje otwarta aplikacja Makietki, narzędzie czeka do ok. 45 s i zwraca link do pobrania (ważny 7 dni) albo link do aplikacji, gdy żadna nie jest otwarta.',
+      inputSchema: S('', {
+        strona: tekst('id strony (przeglad_projektu)'),
+        egzemplarz: { type: 'integer', minimum: 1, description: 'który egzemplarz strony z serii (domyślnie 1)' },
+        dpi: { type: 'integer', minimum: 72, maximum: 600, description: 'rozdzielczość (domyślnie 150)' },
+        czekaj: { type: 'boolean', description: 'false – tylko złóż zlecenie' },
+      }, ['strona']),
+      readOnly: true,
+      dzialaj: async ({ strona, egzemplarz = 1, dpi = 150, czekaj = true }) => zlecEksport('png', { strona, egzemplarz, dpi }, czekaj !== false),
+    },
+    {
+      name: 'stan_eksportu',
+      title: 'Stan zleconego eksportu',
+      description: 'Stan zlecenia z eksport_pdf / eksport_png: czeka na aplikację, w toku, gotowe (z linkiem do pobrania) albo błąd.',
+      inputSchema: S('', { zlecenie: tekst('numer zlecenia (z odpowiedzi eksport_pdf / eksport_png)') }, ['zlecenie']),
+      readOnly: true,
+      dzialaj: async ({ zlecenie }) => {
+        if (!KLUCZ_KONTA) throw new BladBazy(BRAK_KLUCZA);
+        const s = await rpc('ai_stan_eksportu', { p_klucz: KLUCZ_KONTA, p_id: zlecenie });
+        if (s?.blad) throw new BladBazy(s.blad);
+        return opisEksportu(s);
+      },
+    },
+    {
       name: 'opis_formatu',
       title: 'Opis formatu projektu',
       description: 'Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm). Przeczytaj przed większymi zmianami.',
@@ -1663,7 +1750,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
   }
 
   // Narzędzia konta (bez parametru „projekt” albo z własnym, jak usun_projekt) – reszta działa na wskazanym projekcie.
-  const BEZ_PROJEKTU = new Set(['projekty', 'nowy_projekt', 'usun_projekt', 'opis_formatu']);
+  const BEZ_PROJEKTU = new Set(['projekty', 'nowy_projekt', 'usun_projekt', 'opis_formatu', 'stan_eksportu']);
   const PARAMETR_PROJEKTU = tekst('id albo nazwa projektu (lista: narzędzie projekty); można pominąć, gdy klucz obejmuje jeden projekt.');
 
   async function obsluz(w, stanSesji = {}) {
@@ -1801,6 +1888,9 @@ const serwer = utworzSerwer({
   klucz: process.env.MAKIETKA_KLUCZ || '',
   brakKlucza: 'Brak klucza dostępu: ustaw zmienną MAKIETKA_KLUCZ (klucz z aplikacji: menu ⋯ → Dostęp dla AI).',
   czytajOpis: () => readFile(new URL('../format-makietka.md', import.meta.url), 'utf8'),
+  // Czekanie na plik eksportu (ms) – do testów; domyślnie 45 s, sprawdzanie co 1,5 s.
+  ...(process.env.MAKIETKA_CZEKANIE_EKSPORTU ? { czekanieEksportu: Number(process.env.MAKIETKA_CZEKANIE_EKSPORTU) } : {}),
+  ...(process.env.MAKIETKA_KROK_EKSPORTU ? { krokEksportu: Number(process.env.MAKIETKA_KROK_EKSPORTU) } : {}),
 });
 export const obsluz = serwer.obsluz;
 

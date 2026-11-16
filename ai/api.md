@@ -113,6 +113,9 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 | `link_do_wgrywania` | link do aplikacji, który otwiera projekt od razu z oknem „Obrazy projektu” (`…/#/p/<projekt>/obrazy`) – dla zdjęć, które masz u siebie |
 | `wgraj_czesciami` | wgrywa plik ze środowiska AI kawałkami base64 (start → czesc → koniec), składany po stronie łącznika – bez dostępu sieci; `zastap` podmienia użyty obraz |
 | `adres_do_wysylki` | adres `POST …/obraz` z kluczem – dla własnych skryptów i środowisk, które łączą się z bazą |
+| `eksport_pdf` | plik PDF: `zakres` (wszystko / sekcja / strony `od`–`do`), `przeznaczenie` (drukarnia – spad i znaki cięcia; ekran – zakładki i linki), `rodzaj` (wektor / obraz), `dpi`, `cmyk`, `pdfx` (fogra39 / fogra47), `uklad` (zwykly, broszura, skladki, dwie, cztery), `format_arkusza`, `skladka`. Plik rysuje aplikacja w przeglądarce użytkownika: narzędzie składa zlecenie, otwarta aplikacja konta klucza robi plik, a narzędzie czeka do ok. 45 s i zwraca link do pobrania (bez logowania, 7 dni) z uwagami z kontroli. Bez otwartej aplikacji – link do aplikacji (`…/#/p/<projekt>/eksport/<zlecenie>`), po którego otwarciu plik robi się sam. Także z kluczem tylko do czytania |
+| `eksport_png` | obraz PNG jednej strony (`strona`, `egzemplarz` z serii, `dpi` 72–600) – tak samo jak `eksport_pdf` |
+| `stan_eksportu` | stan zlecenia (`zlecenie`): czeka, w toku, gotowe z linkiem do pobrania albo błąd |
 | `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące albo niejednoznaczne pliki obrazów z danych (rozszerzenie się liczy: `a.jpg` ≠ `a.png`; nazwa bez rozszerzenia działa tylko przy jednym pasującym pliku), elementy poza stroną |
 | `opis_formatu` | ten sam opis modelu co [format-makietka.md](https://makietka.app/ai/format-makietka.md) |
 
@@ -222,6 +225,10 @@ Kawałki i koniec nie liczą się do limitu 120 zapytań na minutę (liczy się 
 ### `ai_zmien_obrazy` – nowe nazwy i usuwanie
 
 Treść: `{"p_klucz": "sdk_…", "p_kopie": {"z_nowe": {"z": "z_ab12", "nazwa": "styczen.jpg"}}, "p_usun": ["z_ab12"]}`. `p_kopie` dodaje wpis pod nowym id z tym samym plikiem i nową (wolną) nazwą; `p_usun` usuwa wpisy, których nie pokazuje żaden element (najpierw przepnij elementy zwykłym `ai_zapisz`). Tak łącznik zmienia nazwę (kopia → przepięcie elementów i komórek → usunięcie starego) i porządkuje obrazy. Usunięte id trafiają do `zasoby_usuniete`; plik obrazu z folderu konta usuwa potem aplikacja właściciela (funkcja bazy nie może usunąć pliku z magazynu plików).
+
+### `ai_zlec_eksport`, `ai_stan_eksportu` – plik PDF albo PNG zrobiony przez aplikację
+
+`ai_zlec_eksport(p_klucz, p_rodzaj, p_ustawienia)` (`p_rodzaj`: `pdf` albo `png`; `p_ustawienia` – te same pola co w narzędziach `eksport_pdf` / `eksport_png`, `format_arkusza` jako `formatArkusza`) zapisuje zlecenie dla aplikacji konta klucza i zwraca `{id, stan: "czeka", …}`. Najwyżej 5 czekających zleceń i 30 na godzinę. `ai_stan_eksportu(p_klucz, p_id)` → `{stan: czeka | w_toku | gotowe | blad, nazwa, rozmiar, strony, uwagi, blad, wygasa}`, a dla gotowego pliku także `sekret` – link do pobrania: `https://api.makietka.app/eksport/<id>/<sekret>/<nazwa>` (bez logowania, do `wygasa`, 7 dni). Plik robi otwarta aplikacja (przyjmuje zlecenie na żywo); bez niej – `https://makietka.app/#/p/<projekt>/eksport/<id>` otwiera projekt i robi plik.
 
 ### Funkcje właściciela (zalogowany użytkownik aplikacji)
 
