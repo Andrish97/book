@@ -684,7 +684,7 @@ const WIDOKI = [
     await s.click('#admin-watki li:has-text("Faktura") .otworz');
     await s.waitForSelector('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
     await s.click('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
-    await s.waitForSelector('#admin-pisz:not([hidden]) .tox-tinymce, #admin-pisz:not([hidden]) .atrapa-tinymce', { timeout: 30000 });
+    await s.waitForSelector('#admin-pisz:not([hidden]) .edytor-wiadomosci-tresc', { timeout: 30000 });
     await czekaj(s, 1200);
   }, {}],
   ['42-admin-kolejka', async (s) => {

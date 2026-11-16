@@ -243,6 +243,13 @@
                   <button type="button" class="przycisk-ikona skrzynka-odswiez" data-akcja="admin-odswiez" data-ikona="ponow" title="Odśwież" aria-label="Odśwież"></button>
                 </div>
                 <div class="skrzynka-szukaj"><span data-ikona="szukaj" data-rozmiar="18"></span><input type="search" id="admin-szukaj" placeholder="Szukaj w poczcie" aria-label="Szukaj w poczcie"></div>
+                <!-- Filtry listy (#183): razem z folderem i wyszukiwaniem, liczone po stronie bazy. -->
+                <div class="skrzynka-filtry" id="admin-filtry" role="group" aria-label="Filtr wiadomości">
+                  <button type="button" class="chip" data-filtr="" aria-pressed="true">Wszystkie</button>
+                  <button type="button" class="chip" data-filtr="nieprzeczytane" aria-pressed="false">Nieprzeczytane</button>
+                  <button type="button" class="chip" data-filtr="zalaczniki" aria-pressed="false"><span data-ikona="spinacz" data-rozmiar="14"></span>Z załącznikami</button>
+                  <button type="button" class="chip" data-filtr="gwiazdka" aria-pressed="false"><span data-ikona="gwiazdka" data-rozmiar="14"></span>Z gwiazdką</button>
+                </div>
                 <ul class="lista-watkow" id="admin-watki" aria-label="Wiadomości"></ul>
                 <p class="skrzynka-pusto" id="admin-watki-pusto" hidden>Pusto.</p>
                 <div class="skrzynka-stopka">

@@ -193,11 +193,12 @@ Skrzynka działa jak zwykła poczta, jak w Familiadzie (bez marketingu):
 - **Lista:** pole wyboru przy każdej wiadomości i „zaznacz wszystkie” u góry – nad listą pojawiają się operacje
   dla zaznaczonych: przeczytane / nieprzeczytane, gwiazdka, archiwum, spam, kosz, przywrócenie, a w Koszu i Spamie
   **usunięcie na zawsze** (z załącznikami). „Opróżnij” na dole Kosza i Spamu. Szukanie obejmuje temat, nadawcę,
-  adresatów, numer zgłoszenia i treść.
+  adresatów, numer zgłoszenia i treść. Pod polem szukania filtry **Nieprzeczytane**, **Z załącznikami** i
+  **Z gwiazdką** – działają razem z folderem i szukaniem (#183).
 - **Rozmowa:** treść HTML wyświetla się w zamkniętej ramce bez skryptów; obrazy z internetu dopiero po
   **Pokaż obrazy** (inaczej nadawca widziałby, że wiadomość otwarto). Załączniki pobiera się kliknięciem.
 - **Pisanie:** **Napisz**, a w rozmowie **Odpowiedz**, **Odpowiedz wszystkim**, **Przekaż** (z załącznikami
-  oryginału). Pola Do, DW, UDW podpowiadają znane adresy (z poczty i konta aplikacji); treść w edytorze TinyMCE;
+  oryginału). Pola Do, DW, UDW podpowiadają znane adresy (z poczty i konta aplikacji); treść we własnym edytorze (pogrubienie, kursywa, podkreślenie, przekreślenie, kolor, listy, cytat, link, nagłówek; wklejony tekst czyszczony z skryptów – bez bibliotek z CDN, #183);
   **Załącz** – pliki razem do 10 MB. Wiadomość zapisuje się sama w **Robocze** (zamknięcie też ją tam zostawia;
   kosz w stopce ją odrzuca). Podpis ustawia się w **Ustawieniach poczty**. Ctrl+Enter – wyślij.
 - Wysyłka idzie przez **kolejkę** (Brevo, potem ZeptoMail) z adresu `kontakt@`; odpowiedź ma nagłówki

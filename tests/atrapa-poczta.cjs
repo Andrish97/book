@@ -105,8 +105,12 @@ function atrapaPoczty(stan) {
 
   const funkcje = {
     czy_administrator: (_p, k) => Boolean(k && stan.administratorzy.has(k.id)),
-    admin_poczta_watki: ({ p_folder = 'skrzynka', p_szukaj = null, p_limit = 50, p_od = 0 }, k) => {
+    admin_poczta_watki: ({ p_folder = 'skrzynka', p_szukaj = null, p_limit = 50, p_od = 0, p_filtr = null }, k) => {
       admin(k);
+      // Filtry listy (#183) – jak w migracji 20261117120000_skrzynka_filtry.sql.
+      if (p_filtr && !['nieprzeczytane', 'zalaczniki', 'gwiazdka'].includes(p_filtr)) throw new Error('Nieznany filtr');
+      const zPlikiem = (id) => P.wiadomosci.some((w) => w.watek === id && (w.zalaczniki || []).length > 0);
+      const pasujeFiltr = (t) => !p_filtr || (p_filtr === 'nieprzeczytane' && !t.przeczytany) || (p_filtr === 'gwiazdka' && t.gwiazdka) || (p_filtr === 'zalaczniki' && zPlikiem(t.id));
       const sz = (p_szukaj || '').toLowerCase();
       const liczniki = {
         skrzynka: P.watki.filter((t) => t.folder === 'skrzynka' && !t.przeczytany).length,
@@ -115,7 +119,7 @@ function atrapaPoczty(stan) {
         robocze: P.robocze.length,
       };
       if (p_folder === 'robocze') {
-        const lista = P.robocze.filter((r) => !sz || `${r.temat} ${r.do_lista.join(' ')} ${r.html}`.toLowerCase().includes(sz))
+        const lista = P.robocze.filter((r) => (!sz || `${r.temat} ${r.do_lista.join(' ')} ${r.html}`.toLowerCase().includes(sz)) && (!p_filtr || (p_filtr === 'zalaczniki' && r.zalaczniki.length > 0)))
           .sort((a, b) => b.zmieniono.localeCompare(a.zmieniono));
         return {
           watki: lista.slice(p_od, p_od + p_limit).map((r) => ({
@@ -125,7 +129,7 @@ function atrapaPoczty(stan) {
           razem: lista.length, skrzynka: P.ustawienia.skrzynka_email, podpis: P.ustawienia.podpis, od: p_od, limit: p_limit, liczniki,
         };
       }
-      const lista = P.watki.filter((t) => wFolderze(t, p_folder) && (!sz || `${t.temat} ${t.od_email} ${t.zgloszenie || ''}`.toLowerCase().includes(sz)
+      const lista = P.watki.filter((t) => wFolderze(t, p_folder) && pasujeFiltr(t) && (!sz || `${t.temat} ${t.od_email} ${t.zgloszenie || ''}`.toLowerCase().includes(sz)
         || P.wiadomosci.some((w) => w.watek === t.id && `${w.tekst || ''} ${(w.do_lista || []).join(' ')}`.toLowerCase().includes(sz))))
         .sort((a, b) => b.ostatnia.localeCompare(a.ostatnia));
       const watki = lista.slice(p_od, p_od + p_limit).map((t) => {

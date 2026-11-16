@@ -1,5 +1,5 @@
 // Panel administratora (#/admin, decyzje #95, #110) i formularz kontaktowy – w przeglądarce na atrapie bazy
-// (tests/atrapa-poczta.cjs, TinyMCE – zaślepka tests/atrapa-tinymce.js): tylko administrator widzi panel; skrzynka jako
+// (tests/atrapa-poczta.cjs; edytor treści własny – js/edytor-wiadomosci.js, #183): tylko administrator widzi panel; skrzynka jako
 // klient poczty (foldery, lista z zaznaczaniem i operacjami zbiorczymi, rozmowa z bezpieczną treścią HTML, pisanie
 // z Do/DW/UDW, podpowiedziami, załącznikami, kopiami roboczymi, odpowiedź / wszystkim / przekazanie, zgłoszenia,
 // zmiany na żywo), kolejka, ustawienia poczty (zapis, podpis, zła domena, bez kluczy, test), statystyki bez kont
@@ -64,16 +64,16 @@ test('panel administratora: tylko dla administratora; skrzynka – rozmowy, odpo
   assert.match(await strona.textContent('#admin-watek'), /Proszę o fakturę za druk\./);
   assert.equal(await strona.textContent('#admin-nieprzeczytane'), '1', 'otwarta – przeczytana');
   await strona.click('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
-  await strona.waitForSelector('#admin-pisz:not([hidden]) .atrapa-tinymce');
+  await strona.waitForSelector('#admin-pisz:not([hidden]) .edytor-wiadomosci-tresc');
   assert.deepEqual(await strona.locator('[data-adresy="do"] .adres').allTextContents(), ['jan@przyklad.pl']);
   assert.equal(await strona.inputValue('#admin-pisz-temat'), 'Re: Faktura');
-  const tresc = await strona.textContent('.atrapa-tinymce');
+  const tresc = await strona.textContent('.edytor-wiadomosci-tresc');
   assert.match(tresc, /Pozdrawiamy[\s\S]*Zespół Makietki/, 'podpis');
   assert.match(tresc, /napisał\(a\):[\s\S]*Proszę o fakturę za druk\./, 'cytat');
   await strona.evaluate(() => {
-    const ed = window.tinymce.get('admin-pisz-tresc');
-    ed.setContent(`<p>Dzień dobry, faktura w załączniku.</p>${ed.getContent()}`);
-    ed.fire('input');
+    const ed = document.querySelector('#admin-pisz .edytor-wiadomosci-tresc');
+    ed.innerHTML = `<p>Dzień dobry, faktura w załączniku.</p>${ed.innerHTML}`;
+    ed.dispatchEvent(new Event('input', { bubbles: true }));
   });
   await strona.click('#admin-form-pisz [type="submit"]');
   await strona.waitForSelector('#admin-watek .wiadomosc.wychodzaca');
@@ -168,9 +168,9 @@ test('skrzynka: nowa wiadomość z Do/DW/UDW, podpowiedziami i załącznikiem; k
 
   // Nowa wiadomość: podpowiedź adresu (znane adresy z poczty), DW i UDW, temat, treść, załącznik do R2.
   await strona.click('#admin-napisz');
-  await strona.waitForSelector('#admin-pisz:not([hidden]) .atrapa-tinymce');
+  await strona.waitForSelector('#admin-pisz:not([hidden]) .edytor-wiadomosci-tresc');
   assert.equal(await strona.textContent('#admin-pisz-tytul'), 'Nowa wiadomość');
-  assert.match(await strona.textContent('.atrapa-tinymce'), /Zespół Makietki/, 'podpis w nowej wiadomości');
+  assert.match(await strona.textContent('.edytor-wiadomosci-tresc'), /Zespół Makietki/, 'podpis w nowej wiadomości');
   await strona.fill('#admin-pisz-do', 'pio');
   await strona.waitForSelector('#admin-podpowiedzi:not([hidden]) li');
   assert.match(await strona.textContent('#admin-podpowiedzi'), /piotr@przyklad\.pl/);
@@ -181,7 +181,7 @@ test('skrzynka: nowa wiadomość z Do/DW/UDW, podpowiedziami i załącznikiem; k
   await strona.fill('#admin-pisz-udw', 'szef@przyklad.pl');
   await strona.keyboard.press('Enter');
   await strona.fill('#admin-pisz-temat', 'Oferta druku');
-  await strona.click('.atrapa-tinymce');
+  await strona.click('.edytor-wiadomosci-tresc');
   await strona.keyboard.press('Control+Home');
   await strona.keyboard.type('Przesyłam ofertę.');
   await strona.setInputFiles('#admin-pisz-pliki', { name: 'oferta.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 oferta') });
@@ -203,7 +203,7 @@ test('skrzynka: nowa wiadomość z Do/DW/UDW, podpowiedziami i załącznikiem; k
   await strona.waitForSelector('#admin-pisz:not([hidden])');
   assert.equal(await strona.inputValue('#admin-pisz-temat'), 'Oferta druku');
   assert.deepEqual(await strona.locator('[data-adresy="udw"] .adres').allTextContents(), ['szef@przyklad.pl']);
-  assert.match(await strona.textContent('.atrapa-tinymce'), /Przesyłam ofertę\./);
+  assert.match(await strona.textContent('.edytor-wiadomosci-tresc'), /Przesyłam ofertę\./);
   await strona.click('#admin-form-pisz [type="submit"]');
   await strona.waitForSelector('#admin-watek .wiadomosc.wychodzaca');
   const nowa = baza.wyslane.find((x) => x.typ === 'wiadomosc');
@@ -246,7 +246,7 @@ test('skrzynka: nowa wiadomość z Do/DW/UDW, podpowiedziami i załącznikiem; k
   await strona.waitForSelector('#admin-pisz:not([hidden])');
   assert.equal(await strona.inputValue('#admin-pisz-temat'), 'Fwd: Cennik');
   assert.equal(await strona.locator('[data-adresy="do"] .adres').count(), 0);
-  assert.match(await strona.textContent('.atrapa-tinymce'), /Przekazana wiadomość[\s\S]*Od:[\s\S]*ola@przyklad\.pl[\s\S]*Cennik w załączniku\./);
+  assert.match(await strona.textContent('.edytor-wiadomosci-tresc'), /Przekazana wiadomość[\s\S]*Od:[\s\S]*ola@przyklad\.pl[\s\S]*Cennik w załączniku\./);
   assert.match(await strona.textContent('#admin-pisz-zalaczniki'), /cennik\.pdf/);
   // Bez adresata – komunikat, nic nie wychodzi.
   await strona.click('#admin-form-pisz [type="submit"]');
@@ -292,7 +292,7 @@ test('skrzynka: zaznaczanie i operacje zbiorcze (przeczytane, gwiazdka, archiwum
   assert.equal(await strona.textContent('#admin-foldery [data-folder="zgloszenia"] .licznik-folderu'), '');
   // Odpowiedź na zgłoszenie – numer w temacie.
   await strona.click('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
-  await strona.waitForSelector('#admin-pisz:not([hidden]) .atrapa-tinymce');
+  await strona.waitForSelector('#admin-pisz:not([hidden]) .edytor-wiadomosci-tresc');
   await strona.click('#admin-form-pisz [type="submit"]');
   await strona.waitForFunction(() => document.querySelector('#admin-pisz').hidden);
   assert.match(baza.wyslane.at(-1).temat, /^Re: Druk A5 \[ZGL-\d{4}-0001\]$/);
@@ -430,7 +430,7 @@ test('skrzynka na telefonie: foldery i lista, potem rozmowa, potem pisanie – k
   await strona.evaluate(() => { location.hash = '#/admin/skrzynka'; });
   await naEkranie(strona, 'admin');
   await strona.waitForSelector('#admin-watki li');
-  const pozaEkranem = () => strona.evaluate(() => [...document.querySelectorAll('#ekran-admin button:not(.lista-folderow button), #ekran-admin input:not([type="checkbox"]):not([type="file"]), #ekran-admin .atrapa-tinymce')]
+  const pozaEkranem = () => strona.evaluate(() => [...document.querySelectorAll('#ekran-admin button:not(.lista-folderow button), #ekran-admin input:not([type="checkbox"]):not([type="file"]), #ekran-admin .edytor-wiadomosci-tresc')]
     .filter((e) => e.offsetParent && e.getClientRects().length).map((e) => e.getBoundingClientRect()).filter((r) => r.width && (r.right > innerWidth + 1 || r.left < -1)).length);
   const widoczne = (sel) => strona.isVisible(sel);
   assert.equal(await widoczne('#admin-watek'), false, 'na telefonie najpierw sama lista');
@@ -445,7 +445,7 @@ test('skrzynka na telefonie: foldery i lista, potem rozmowa, potem pisanie – k
   assert.equal(await strona.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   // Pisanie odpowiedzi – osobny ekran; wstecz wraca do rozmowy.
   await strona.click('#admin-watek .watek-odpowiedz [data-pisz-tryb="odpowiedz"]');
-  await strona.waitForSelector('#admin-pisz:not([hidden]) .atrapa-tinymce');
+  await strona.waitForSelector('#admin-pisz:not([hidden]) .edytor-wiadomosci-tresc');
   assert.equal(await widoczne('#admin-watek'), false);
   assert.equal(await widoczne('#admin-form-pisz .pisz-wstecz'), true);
   assert.equal(await pozaEkranem(), 0, 'żaden przycisk ani pole pisania nie wychodzi poza ekran');
