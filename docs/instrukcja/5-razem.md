@@ -111,9 +111,10 @@ który dodajesz w aplikacji AI.
 |---|---|
 | tworzyć i usuwać projekty (z pełnym dostępem) | zobaczyć projektów spoza klucza |
 | dodawać i zmieniać strony, elementy, style i wzorce | zmienić Twojego konta ani hasła |
-| wypełniać tabele danych i ustawiać serie | wyeksportować PDF — plik robisz sam |
+| wypełniać tabele danych i ustawiać serie | zrobić pliku PDF bez Makietki — rysuje go Twoja przeglądarka (→ 26.5) |
 | wgrywać, wstawiać i wymieniać zdjęcia | |
 | czytać komentarze, odpowiadać na nie i dodawać własne (→ 25.7) | |
+| zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 26.5) | |
 
 Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój.
 Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi
@@ -173,7 +174,22 @@ aplikacji jesteś, i powie, co kliknąć:
 
 Zdjęcia, które stoi na stronie, AI nie usuwa — wymienia je na nowy plik w tym samym miejscu.
 
-## 26.5 Bezpieczeństwo
+## 26.5 Plik PDF przez AI
+
+Poproś AI np. „Zrób PDF do drukarni” albo „Pokaż okładkę jako obraz”. Plik rysuje Makietka w Twojej
+przeglądarce, tak samo jak [Eksportuj do PDF…] (→ 22):
+
+- **Makietka jest otwarta** (dowolna karta, na komputerze albo telefonie) — przyjmuje zlecenie sama.
+  Na górze pojawia się pasek „AI zleciło eksport PDF…”, a po chwili powiadomienie z przyciskiem
+  [Pobierz]. AI dostaje link do pobrania pliku i uwagi ze sprawdzenia przed drukiem.
+- **Makietka jest zamknięta** — AI poda link do aplikacji. Otwórz go: projekt się otworzy, plik
+  zrobi się sam, a AI poda link do pobrania, gdy znów go zapytasz.
+
+Link do pobrania działa bez logowania przez 7 dni, potem plik znika z konta. AI może zlecić cały
+projekt, jedną sekcję albo wybrane strony, plik do drukarni (ze spadem i znakami cięcia, także PDF/X)
+albo do czytania na ekranie, broszurę do złożenia albo PNG jednej strony.
+
+## 26.6 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta,
 a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.

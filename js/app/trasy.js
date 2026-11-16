@@ -25,6 +25,11 @@ const otworzKomentarzZTrasy = async (watek) => {
   trasa.ustaw(`p/${stan.projekt.id}`, { zastap: true });
   (await import('./komentarze.js')).otworzKomentarze({ watek });
 };
+// #/p/<id>/eksport/<zlecenie> – eksport PDF/PNG zlecony przez AI, gdy aplikacja była zamknięta (#175):
+// projekt się otwiera, a aplikacja robi plik i oddaje go łącznikowi. Bez czekania na koniec – kolejka trasy idzie dalej.
+const eksportZTrasy = async (zlecenie) => {
+  (await import('./eksport-ai.js')).wykonajZTrasy(zlecenie).catch((e) => console.error(e));
+};
 const otworzOknoObrazow = async () => {
   await czekajNaEdytor();
   trasa.ustaw(`p/${stan.projekt.id}`, { zastap: true });
@@ -74,6 +79,7 @@ export function przejdzDoTrasy() {
     // Rola „może oglądać” (współpraca): projekt otwiera się tylko w podglądzie.
     const tylkoPodglad = () => stan.projekt?.wspolpraca_chmury?.rola === 'odczyt';
     if (stan.projekt?.id === t.id) {
+      if (t.eksport) { await eksportZTrasy(t.eksport); return; }
       if (t.komentarz) { await otworzKomentarzZTrasy(t.komentarz); return; }
       if (t.podglad || tylkoPodglad()) { await pokazPodglad(); return; }
       if (document.body.dataset.ekran === 'podglad') await pokazEdytor();
@@ -106,6 +112,7 @@ export function przejdzDoTrasy() {
     if (t.podglad || tylkoPodglad()) await pokazPodglad();
     if (t.obrazy) await otworzOknoObrazow();
     if (t.komentarz) await otworzKomentarzZTrasy(t.komentarz);
+    if (t.eksport) await eksportZTrasy(t.eksport);
   }).catch((e) => console.error(e));
   return obslugaTrasy;
 }

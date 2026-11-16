@@ -51,6 +51,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 175 | AI zleca plik PDF albo PNG strony (eksport_pdf, eksport_png, stan_eksportu): otwarta aplikacja robi plik i wgrywa go na konto, AI podaje link do pobrania (7 dni); bez otwartej aplikacji – link do aplikacji, po którego otwarciu plik robi się sam |
 | 169 | Instrukcja odchudzona i uporządkowana: bez treści meta, oczywistości i powtórzeń, aktualne opisy (menu ⋯, rozkładówka, wielokąt, narzędzia na telefonie), wstęp „do czego to służy” w rozdziałach, odsyłacze sprawdzane przy budowie, bez okruszków i zdublowanego spisu podrozdziałów na komputerze. |
 | 159 | Paski postępu przy dłuższych czynnościach: jeden wygląd (karta, licznik x z y, pasek nieokreślony, Anuluj przy PDF), dopiero po 0,3 s, dostępne dla czytników ekranu; dodane przy PNG, separacjach, makiecie 3D, duplikowaniu, imporcie danych, czcionkach, usuwaniu tła, udostępnianiu, zmianie formatu, „Zamień wszystkie”, ekranie startowym i miniaturach (w panelu Strony). |
 | 158 | Wydajność: bufory Fabric tylko dla elementów, którym się opłacają (odrysowanie strony ~6× szybciej, 72 MB → 0 MB pamięci buforów na gęstej stronie), zmiana strony bez przebudowy listy stron, szybsze porównania przy zapisie, miniatury nie przeszkadzają w pisaniu i przeciąganiu, moduły pobierane naraz (`modulepreload`). |

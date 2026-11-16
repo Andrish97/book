@@ -288,3 +288,41 @@ test('załączniki skrzynki w R2 (#110): wysyłka, odczyt i usunięcie tylko dla
   assert.equal((await zapytaj(`/pliki/_poczta/${U}/oferta.pdf`, { metoda: 'DELETE', token: 'tA' })).status, 200);
   assert.equal(env.PLIKI.m.has(`poczta/${U}/oferta.pdf`), false);
 });
+
+// #175: plik eksportu zleconego przez AI – link /eksport/<zlecenie>/<sekret>/<nazwa> bez logowania; baza sprawdza
+// sekret i ważność (eksport_do_pobrania), przekaźnik wydaje plik z folderu _eksporty konta jako załącznik.
+test('eksport zlecony przez AI (#175): link z sekretem wydaje plik jako załącznik, zły sekret i wygasłe – 404', async (t) => {
+  const { default: worker, wyczyscPamiec } = await import(pathToFileURL(WORKER).href);
+  wyczyscPamiec();
+  const env = { PLIKI: new AtrapaR2() };
+  const Z = '12345678-1234-4123-8123-123456789abc';
+  const SEKRET = 'a'.repeat(64);
+  let wazny = true;
+  let pytan = 0;
+  const prawdziwyFetch = globalThis.fetch;
+  globalThis.fetch = async (adres, opcje = {}) => {
+    const u = new URL(typeof adres === 'string' ? adres : adres.url);
+    if (u.pathname === '/rest/v1/rpc/eksport_do_pobrania') {
+      pytan += 1;
+      const p = JSON.parse(opcje.body);
+      return Response.json(wazny && p.p_id === Z && p.p_sekret === SEKRET ? { plik: `${A}/_eksporty/${Z}.pdf`, nazwa: 'Dziennik 2027.pdf', typ: 'application/pdf' } : null);
+    }
+    throw new Error(`nieoczekiwane zapytanie ${u}`);
+  };
+  t.after(() => { globalThis.fetch = prawdziwyFetch; });
+  await env.PLIKI.put(`zasoby/${A}/_eksporty/${Z}.pdf`, Buffer.from('%PDF-1.7 test'), { httpMetadata: { contentType: 'application/pdf' } });
+  const zapytaj = (sciezka, metoda = 'GET') => worker.fetch(new Request(`https://api.makietka.app${sciezka}`, { method: metoda }), env);
+  const r = await zapytaj(`/eksport/${Z}/${SEKRET}/Dziennik%202027.pdf`);
+  assert.equal(r.status, 200);
+  assert.equal(await r.text(), '%PDF-1.7 test');
+  assert.equal(r.headers.get('content-type'), 'application/pdf');
+  assert.equal(r.headers.get('content-disposition'), 'attachment; filename="Dziennik 2027.pdf"; filename*=UTF-8\'\'Dziennik%202027.pdf');
+  assert.match(r.headers.get('cache-control'), /no-store/);
+  assert.equal((await zapytaj(`/eksport/${Z}/${'b'.repeat(64)}/x.pdf`)).status, 404, 'zły sekret');
+  const ile = pytan;
+  assert.equal((await zapytaj(`/eksport/${Z}/krotki/x.pdf`)).status, 404, 'sekret w złej postaci');
+  assert.equal(pytan, ile, 'bez pytania bazy');
+  assert.equal((await zapytaj(`/eksport/${Z}/${SEKRET}/x.pdf`, 'PUT')).status, 405, 'tylko odczyt');
+  wazny = false;
+  assert.equal((await zapytaj(`/eksport/${Z}/${SEKRET}/x.pdf`)).status, 404, 'wygasłe zlecenie');
+});

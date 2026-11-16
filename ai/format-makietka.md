@@ -347,6 +347,10 @@ Komentarze osób do stron leżą osobno, w bazie – nie ma ich w JSON-ie projek
 
 Numer pinezki to kolejność wątku w projekcie (od najstarszego). Po poprawce w projekcie odpowiedz w wątku z `rozwiaz: true`.
 
+## 9d. Plik PDF i PNG (eksport przez aplikację)
+
+Gotowego pliku nie zapisuje się w projekcie i AI go nie składa samo – PDF (czcionki, spad, CMYK, PDF/X) rysuje aplikacja Makietki w przeglądarce użytkownika. Narzędzie `eksport_pdf` (cały projekt, sekcja albo strony; do drukarni albo na ekran; broszura i arkusze) i `eksport_png` (jedna strona) składają zlecenie: otwarta aplikacja konta klucza robi plik i wgrywa go na konto, a narzędzie zwraca link do pobrania (ważny 7 dni) z uwagami z kontroli przed drukiem. Gdy aplikacja nie jest otwarta, narzędzie zwraca link do aplikacji – daj go użytkownikowi, a potem sprawdź `stan_eksportu`. Zlecenie nie zmienia projektu ani `wersja` (działa też z kluczem tylko do czytania).
+
 ## 10. Czego nie robić
 
 - Nie zapisuj powielonych stron serii jako osobnych stron – zrób jedną stronę-wzór z polami i tabelę.

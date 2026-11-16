@@ -103,7 +103,7 @@ jest na dole okna eksportu PDF.
 
 # 22. Eksport do PDF i PNG
 
-Plik dla drukarni, do oglądania na ekranie albo do wydruku w domu.
+Plik dla drukarni, do oglądania na ekranie albo do wydruku w domu. Plik może też zlecić asystent AI (→ 26.5).
 
 ## 22.1 Okno eksportu
 

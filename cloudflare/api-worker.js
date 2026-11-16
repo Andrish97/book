@@ -15,6 +15,9 @@
 //                                             właściciel i ten, kto podał hasło; plik wydajemy, gdy link żyje
 //                                             (link_chroniony_wazny – sekret aktualny, data ważności nie minęła).
 // Meta: GET /pliki/_miejsce, GET /pliki/_lista, POST /pliki/_usun, GET /pliki/_osierocone.
+// Eksport zlecony przez AI (#175): GET /eksport/<zlecenie>/<sekret>/<nazwa> – plik „zasoby/<konto>/_eksporty/…”,
+// gdy baza (eksport_do_pobrania, klucz publiczny) potwierdzi sekret i ważność zlecenia (7 dni). Bez logowania –
+// link podaje łącznik AI, a otwiera go człowiek w zwykłej przeglądarce.
 // Załączniki skrzynki (#95, #110): /pliki/_poczta/<uuid>/<plik> → klucz R2 „poczta/…”. Odczyt, wysyłka (PUT, do 10 MB)
 // i usunięcie – tylko administrator (czy_administrator); odczyt także dla kolejki maili z kluczem serwisowym
 // w nagłówku x-service-key (sprawdza go baza – poczta_serwis, tylko rola service_role).
@@ -367,6 +370,28 @@ async function obsluzPodglady(zapytanie, env, u, cors) {
   return json(405, { blad: 'Niedozwolona metoda.' }, cors);
 }
 
+// Plik eksportu zleconego przez AI (#175). Odpowiedź „attachment” – przeglądarka zapisuje plik pod jego nazwą.
+async function obsluzEksport(zapytanie, env, u) {
+  const cors = naglowkiCors(zapytanie, true);
+  if (zapytanie.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+  if (!['GET', 'HEAD'].includes(zapytanie.method)) return json(405, { blad: 'Niedozwolona metoda.' }, cors);
+  if (!env.PLIKI) return json(503, { blad: 'Magazyn plików nie jest podłączony (binding PLIKI).' }, cors);
+  const czesci = czesciSciezki(u.pathname.slice('/eksport/'.length));
+  const brak = () => json(404, { blad: 'Nie ma takiego pliku albo link wygasł (pliki eksportu żyją 7 dni).' }, cors);
+  if (!czesci || czesci.length < 2 || !/^[0-9a-f-]{36}$/i.test(czesci[0]) || !/^[0-9a-f]{32,128}$/i.test(czesci[1])) return brak();
+  let w = null;
+  try { w = await rpc(env, kluczBazy(env), 'eksport_do_pobrania', { p_id: czesci[0], p_sekret: czesci[1] }); } catch { w = null; }
+  if (!w?.plik) return brak();
+  const odp = await wyslijObiekt(env, zapytanie, `zasoby/${w.plik}`, cors, 'private, no-store');
+  if (!odp.ok) return odp;
+  const h = new Headers(odp.headers);
+  const nazwa = String(w.nazwa || 'eksport').replace(/["\\\r\n]/g, '_');
+  h.set('content-disposition', `attachment; filename="${nazwa.replace(/[^\x20-\x7e]/g, '_')}"; filename*=UTF-8''${encodeURIComponent(nazwa)}`);
+  if (w.typ) h.set('content-type', w.typ);
+  h.set('cache-control', 'private, no-store');
+  return new Response(odp.body, { status: odp.status, headers: h });
+}
+
 async function obsluzPliki(zapytanie, env, u) {
   const publiczne = u.pathname.startsWith('/podglady/');
   const cors = naglowkiCors(zapytanie, publiczne);
@@ -425,6 +450,13 @@ export default {
       return new Response('Makietka – API (przekaźnik do bazy i pliki). Aplikacja: https://makietka.app/\n', {
         headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
       });
+    }
+    if (u.pathname.startsWith('/eksport/')) {
+      try {
+        return await obsluzEksport(zapytanie, env, u);
+      } catch (e) {
+        return json(500, { blad: `Błąd magazynu plików: ${e.message}` }, naglowkiCors(zapytanie, true));
+      }
     }
     if (u.pathname.startsWith('/pliki/') || u.pathname.startsWith('/podglady/')) {
       try {
