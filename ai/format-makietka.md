@@ -55,6 +55,7 @@ Wszystkie wymiary są w **milimetrach**. Rozmiar pisma też w mm: `mm = pt × 25
 | `kolory_dodatkowe` | `[{ id, nazwa, cmyk: [c, m, y, k] }]` (opcjonalne) | kolory dodatkowe (spot, np. „PANTONE 186 C”) – osobne płyty w PDF; `cmyk` (0–100) to zapas do podglądu; rozdział 5, „Kolory do druku” |
 | `tryb_kolorow` | `"pelny"` \| `"szarosc"` \| `"czb1"` (opcjonalne) | pełny kolor (domyślnie), skala szarości (sama czerń), czerń + 1 kolor dodatkowy (`kolor_trybu` – jego `id`) |
 | `makieta` | `{ ujecia: [...] }` (opcjonalne) | zapisane ujęcia makiety 3D (kamera, światło, tło, położenie kartek); rozdział 9e. Bez ujęć pole nie występuje |
+| `znak_wodny` | `{ tekst }` (opcjonalne) | znak wodny na stronach podglądu udostępnionego linkiem (napis ukośnie, wtopiony w obrazy linku); ustawia użytkownik w oknie Udostępnij. Nie zmienia wydruku ani PDF |
 
 Identyfikatory (`id`) wymyślasz sam: dowolne niepowtarzalne napisy, np. `s_1`, `o_tytul`, `z_styczen`. Pole `id` projektu pomiń – aplikacja nada nowe.
 

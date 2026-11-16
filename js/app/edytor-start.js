@@ -45,7 +45,7 @@ import {
 } from './zapis.js';
 import {
   pokazPodglad, otworzUdostepnianie, opublikujUdostepnienie, wylaczUdostepnienie,
-  kopiujLinkUdostepnienia, zamknijPodglad, zapiszOchroneLinku,
+  kopiujLinkUdostepnienia, zamknijPodglad, zapiszOchroneLinku, zapiszZnakWodny,
 } from './podglad-ekran.js';
 import { NAZWY_POL_DOKUMENTU, tabeleStrony } from './panel-strony.js';
 import { polePoTabelach } from '../serie.js';
@@ -313,6 +313,7 @@ export const akcje = {
   'udostepnij-wylacz': wylaczUdostepnienie,
   'udostepnij-kopiuj': kopiujLinkUdostepnienia,
   'udostepnij-ochrona': zapiszOchroneLinku,
+  'udostepnij-znak': zapiszZnakWodny,
   'podglad-zamknij': zamknijPodglad,
   'podglad-plus': () => podglad.powieksz(1.25),
   'podglad-minus': () => podglad.powieksz(0.8),

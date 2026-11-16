@@ -1280,6 +1280,17 @@
         <div class="rzad-przyciskow"><button type="button" class="przycisk" id="udostepnij-ochrona-zapisz" data-akcja="udostepnij-ochrona">Zapisz ochronę</button></div>
       </fieldset>
 
+      <!-- Znak wodny (#191): napis wtopiony w obrazy stron linku – oglądający nie usunie go z obrazu. -->
+      <fieldset class="ochrona-linku" id="udostepnij-znak" hidden>
+        <legend>Znak wodny</legend>
+        <label class="przelacznik"><input type="checkbox" id="udostepnij-znak-wl"><span>Napis ukośnie na każdej stronie linku</span></label>
+        <label class="pole" id="udostepnij-znak-pole" hidden><span>Tekst znaku wodnego</span>
+          <input id="udostepnij-znak-tekst" type="text" maxlength="40" placeholder="PODGLĄD">
+        </label>
+        <p class="podpowiedz" id="udostepnij-znak-stan"></p>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="udostepnij-znak-zapisz" data-akcja="udostepnij-znak">Zapisz znak wodny</button></div>
+      </fieldset>
+
       <p class="komunikat" id="udostepnij-komunikat" role="status"></p>
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk niebezpieczny" id="udostepnij-wylacz" data-akcja="udostepnij-wylacz" hidden>Unieważnij link</button>

@@ -69,7 +69,7 @@ function skrot(tekst) {
 }
 // 'm1' i projekt.makieta (#189): link idzie też za makietą 3D – a link sprzed #188 (bez opisu makiety) ma inny
 // odcisk, więc przy najbliższym otwarciu projektu sam się uzupełnia (wysyła się tylko opis, strony się nie zmieniły).
-const odciskTresci = (projekt) => skrot(JSON.stringify(['m1', projekt.nazwa, projekt.sekcje, projekt.wzorce, projekt.strony, projekt.style, projekt.tabele, projekt.serie, projekt.czcionki, projekt.makieta || null]));
+const odciskTresci = (projekt) => skrot(JSON.stringify(['m1', projekt.nazwa, projekt.sekcje, projekt.wzorce, projekt.strony, projekt.style, projekt.tabele, projekt.serie, projekt.czcionki, projekt.makieta || null, projekt.znak_wodny || null]));
 
 // Skrót wszystkiego, od czego zależy wygląd jednej strony wydruku. Strona o tym samym
 // skrócie co przy poprzedniej aktualizacji linku nie jest rysowana ani wysyłana.
@@ -78,7 +78,7 @@ function odciskStrony(projekt, egz, ciag) {
   return skrot(JSON.stringify([
     egz.strona.obiekty, egz.strona.tlo, egz.sasiad?.strona.obiekty, egz.sasiad?.wiersz, wzorce, egz.sekcja.wydruk, egz.sekcja.nazwa, projekt.nazwa,
     egz.wiersz, egz.dodatkowe.map((d) => d.wiersz), egz.nr, egz.indeks, egz.nrWSekcji, egz.nrEgz, egz.ileEgz, egz.bok, ciag.liczbaStron, ciag.egzemplarze.length,
-    projekt.czcionki, projekt.sekcje.map((s) => s.nazwa), projekt.strony.map((s) => s.nazwa),
+    projekt.czcionki, projekt.sekcje.map((s) => s.nazwa), projekt.strony.map((s) => s.nazwa), projekt.znak_wodny || null,
   ]));
 }
 
@@ -114,6 +114,7 @@ function odswiezOknoUdostepniania() {
   $('#udostepnij-komunikat').textContent = zKontem ? '' : 'Udostępnianie wymaga zalogowania.';
   $('#udostepnij-komunikat').classList.remove('sukces');
   odswiezOchrone(p, zKontem && (otwarty || Boolean(u))); // z listy projektów: ochronę istniejącego linku też zmienisz (#190)
+  odswiezZnak(p, zKontem && (otwarty || Boolean(u)));
   if (!u) return;
   $('#udostepnij-link').value = linkUdostepnienia(p);
   const aktualny = u.odcisk === odciskTresci(p);
@@ -243,11 +244,94 @@ export async function zapiszOchroneLinku() {
 
 for (const id of ['#udostepnij-haslo-wl', '#udostepnij-termin-wl']) $(id)?.addEventListener('change', odswiezPolaOchrony);
 
+// ---------- Znak wodny (#191) ----------
+// projekt.znak_wodny = { tekst } – napis ukośnie, powtarzany na całej stronie, wtopiony w obrazy linku
+// (nie nakładka w przeglądarce oglądającego, więc nie da się go wyłączyć ani wyciąć z obrazu jednym ruchem).
+export const ZNAK_DOMYSLNY = 'PODGLĄD';
+
+function wypelnijZnak(p) {
+  $('#udostepnij-znak-wl').checked = Boolean(p?.znak_wodny);
+  $('#udostepnij-znak-tekst').value = p?.znak_wodny?.tekst || '';
+}
+
+function odswiezZnak(p, mozna) {
+  $('#udostepnij-znak').hidden = !mozna;
+  $('#udostepnij-znak-pole').hidden = !$('#udostepnij-znak-wl').checked;
+  $('#udostepnij-znak-stan').textContent = p.znak_wodny
+    ? `Strony linku mają znak wodny „${p.znak_wodny.tekst}”.`
+    : 'Bez znaku wodnego.';
+}
+$('#udostepnij-znak-wl')?.addEventListener('change', () => { $('#udostepnij-znak-pole').hidden = !$('#udostepnij-znak-wl').checked; });
+
+// Obraz strony z napisem: ukośne rzędy tekstu na całej powierzchni, półprzezroczyste, z jasną obwódką –
+// widoczne na jasnym i ciemnym tle.
+export async function zeZnakiemWodnym(blob, tekst) {
+  const obraz = await window.createImageBitmap(blob);
+  const c = document.createElement('canvas');
+  c.width = obraz.width; c.height = obraz.height;
+  const g = c.getContext('2d');
+  g.drawImage(obraz, 0, 0);
+  obraz.close?.();
+  const rozmiar = Math.max(14, Math.round(Math.min(c.width, c.height) / 9));
+  g.font = `700 ${rozmiar}px Inter, Arial, sans-serif`;
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineJoin = 'round';
+  const szer = g.measureText(tekst).width + rozmiar * 1.6;
+  const krok = rozmiar * 3.2;
+  const przekatna = Math.hypot(c.width, c.height);
+  g.translate(c.width / 2, c.height / 2);
+  g.rotate(-Math.atan2(c.height, c.width));
+  for (let y = -przekatna / 2, rzad = 0; y <= przekatna / 2; y += krok, rzad += 1) {
+    for (let x = -przekatna / 2 + (rzad % 2) * szer / 2; x <= przekatna / 2; x += szer) {
+      g.lineWidth = Math.max(2, rozmiar / 10);
+      g.strokeStyle = 'rgba(255,255,255,0.3)';
+      g.strokeText(tekst, x, y);
+      g.fillStyle = 'rgba(60,60,60,0.24)';
+      g.fillText(tekst, x, y);
+    }
+  }
+  return new Promise((ok) => { c.toBlob((b) => ok(b || blob), blob.type || 'image/jpeg', 0.85); });
+}
+
+// Przycisk „Zapisz znak wodny”: zapis w projekcie; przy istniejącym linku strony rysują się od nowa
+// (także z listy projektów – w tle, bez otwierania projektu).
+export async function zapiszZnakWodny() {
+  const p = celOkna || stan.projekt;
+  if (!p) return;
+  const komunikat = $('#udostepnij-komunikat');
+  komunikat.classList.remove('sukces');
+  const wl = $('#udostepnij-znak-wl').checked;
+  const nowy = wl ? { tekst: ($('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY).slice(0, 40) } : null;
+  if (JSON.stringify(nowy) === JSON.stringify(p.znak_wodny || null)) { komunikat.textContent = 'Bez zmian.'; return; }
+  const przycisk = $('#udostepnij-znak-zapisz');
+  przycisk.disabled = true;
+  trwaPublikacja = true;
+  try {
+    if (nowy) p.znak_wodny = nowy; else delete p.znak_wodny;
+    if (p.udostepnienie) {
+      if (p !== stan.projekt) await przygotujDoRysowania(p);
+      komunikat.textContent = 'Przygotowuję strony linku…';
+      await opublikuj(p, (i, n) => { komunikat.textContent = `Strony: ${i} z ${n}…`; });
+    }
+    if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
+    komunikat.textContent = nowy ? `Zapisano. Znak wodny „${nowy.tekst}”${p.udostepnienie ? ' jest już na stronach linku' : ' pojawi się na stronach linku'}.` : 'Zapisano. Strony linku są bez znaku wodnego.';
+    komunikat.classList.add('sukces');
+    wypelnijZnak(p);
+  } catch (e) {
+    komunikat.textContent = `Nie udało się zapisać znaku wodnego: ${chmura.komunikatBledu(e)}`;
+  } finally {
+    trwaPublikacja = false;
+    przycisk.disabled = false;
+    odswiezOknoUdostepnianiaZachowujacKomunikat();
+  }
+}
+
 export async function otworzUdostepnianie(projekt = null) {
   // Ten sam projekt co otwarty (np. wczytany drugi raz z listy) – pracujemy na otwartym, żeby nie było dwóch kopii.
   celOkna = projekt && projekt !== stan.projekt && projekt.id !== stan.projekt?.id ? projekt : null;
   if (!celOkna && !stan.projekt) return;
   wypelnijOchrone(celOkna || stan.projekt);
+  wypelnijZnak(celOkna || stan.projekt);
   odswiezOknoUdostepniania();
   $('#dlg-udostepnij').showModal();
 }
@@ -278,7 +362,8 @@ async function opublikuj(p, postep = () => {}, { pelna = false } = {}) {
   const rozszerzenie = umieWebp() ? 'webp' : 'jpg';
   const obraz = async (s) => {
     const url = await renderujCel(p, poKluczu.get(s.id), { szerokoscPx: 1200, spad: false, ciag, ...(rozszerzenie === 'webp' ? { format: 'webp', jakosc: 0.8 } : { format: 'jpeg' }) });
-    return (await fetch(url)).blob();
+    const blob = await (await fetch(url)).blob();
+    return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst) : blob;
   };
   const odcisk = odciskTresci(p);
   const wynik = ochrona

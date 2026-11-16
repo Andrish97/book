@@ -1969,7 +1969,11 @@ Ochronę możesz ustawić przy tworzeniu linku albo w każdej chwili później: 
 
 **Zapisz ochronę** zapisuje ustawienia. Puste pole hasła przy zaznaczonym haśle zostawia dotychczasowe; odznaczenie obu pól zdejmuje ochronę. Sama zmiana daty działa od razu. Nowe hasło, włączenie albo zdjęcie ochrony przygotowuje strony linku od nowa — chwilę to potrwa, także z listy projektów (projekt się nie otwiera).
 
-### 23.4 Unieważnienie linku
+### 23.4 Znak wodny
+
+Część **Znak wodny** w oknie Udostępnij: zaznacz **Napis ukośnie na każdej stronie linku**, wpisz **Tekst znaku wodnego** (puste pole — „PODGLĄD”) i kliknij **Zapisz znak wodny**. Napis jest wtopiony w obrazy stron linku, także w makiecie 3D oglądającego, więc nie da się go wyłączyć po stronie oglądającego. Zapis przygotowuje strony linku od nowa; odznaczenie i zapis usuwa znak. Znak wodny działa też z listy projektów i nie zmienia wydruku ani pliku PDF.
+
+### 23.5 Unieważnienie linku
 
 **Unieważnij link** usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne udostępnienie daje nowy adres.
 
