@@ -1065,7 +1065,7 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (rozdział „11.5 Rozkładówki”). |
-| **Rodzaj sekcji** | **Strony** albo **Okładka z grzbietem** — wtedy wymiary liczą się same (rozdział „11.6 Okładka z grzbietem”). |
+| **Rodzaj sekcji** | **Strony**, **Okładka z grzbietem** (rozdział „11.6 Okładka z grzbietem”) albo sekcja specjalna: obwoluta, ulotka składana, kalendarz z datami, kalendarz trójdzielny, wykrojnik, arkusz użytków (rozdział „11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki”) — wtedy wymiary liczą się same. |
 | **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij **Zmień format i dopasuj elementy…** (rozdział „11.9 Zmiana formatu ze skalowaniem”). |
 | **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
@@ -1171,6 +1171,29 @@ Cały gotowy dokument wstawisz jednym kliknięciem jako nową sekcję: kalendarz
 ![Szczegóły szablonu – podgląd, rok i kolory](https://makietka.app/img/instrukcja/k-gotowe-szczegoly.png)
 
 Szablon nie jest zamrożonym plikiem: buduje się dla Twojego formatu, marginesów i spadu, w kolorach i czcionkach marki. Po wstawieniu to zwykłe strony, wzorce (np. numer strony), style i tabela danych z serią (rozdział „15 Tabele danych”, „17 Serie”) – zmienisz w nich wszystko jak we własnych. Szare pola to miejsca na zdjęcia: wstaw do nich obraz (rozdział „8.7 Obraz w kształcie”). Całą wstawioną sekcję usuwa jedno **Cofnij** (`Ctrl`+`Z`).
+
+### 11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki
+
+Sekcja specjalna działa jak okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”): wie, czym jest wydrukowana rzecz. Sama liczy swój format, podpisuje na stronie strefy (panele, skrzydełka, klapy), rysuje linie zgięć (bigi, przerywane), perforacji (kropkowane) i cięcia (ciągła różowa linia), ostrzega o tekście na zgięciu i o elementach poza linią cięcia, a w pliku PDF daje arkusz w pełnym wymiarze. Rodzaj wybierasz w ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”): **Rodzaj sekcji**. Schemat w oknie pokazuje strefy i zgięcia na bieżąco, pod nim wymiary arkusza.
+
+![Ulotka składana w ustawieniach sekcji](https://makietka.app/img/instrukcja/k-sekcja-ulotka.png)
+
+| Rodzaj | Co liczy |
+|---|---|
+| **Obwoluta ze skrzydełkami** | Tył, grzbiet i przód z twardej okładki projektu (płyty i grzbiet), dwa skrzydełka (**Skrzydełko**, 0 – około połowy przodu) i zapas na zgięcie przy płycie. Przybędzie stron – obwoluta przeliczy się sama, a elementy przodu przesuną się razem z nim. |
+| **Ulotka składana** | Arkusz na 2, 3 albo 4 panele, **Złożenie**: **Zwijane** (łamana C – panel składany do środka jest węższy o **Skrót**, żeby się nie zaginał) albo **Harmonijka** (Z – panele równe). Sekcja ma dwie strony: zewnętrzną (z panelem **Okładka**) i wewnętrzną. |
+| **Kalendarz z datami (rok)** | **Rok**, **Strona na** miesiąc, tydzień albo dzień, początek tygodnia i **Święta** (Polska: stałe i ruchome – Wielkanoc, Zielone Świątki, Boże Ciało). Tworzy tabelę danych i serię: pierwsza strona sekcji powiela się dla każdego miesiąca, tygodnia albo dnia. Zmiana roku przelicza wszystko. |
+| **Kalendarz trójdzielny** | Główka, trzy kalendaria jedno pod drugim, okienko na środkowym i pasek reklamowy – z bigiem pod główką i perforacjami. |
+| **Wykrojnik** | **Koperta** (C6, DL, C5, kwadrat), **Teczka ofertowa** z kieszenią i nacięciami na wizytówkę albo **Pudełko** (długość, szerokość, wysokość → siatka z wieczkiem, dnem, klapkami i zakładką klejową). |
+| **Arkusz użytków** | Naklejki, wizytówki, etykiety: projektujesz jeden użytek (albo kolejne z danych – seria), a w PDF stoją obok siebie na arkuszu (SRA3, A3, A4, B2) ze znakami cięcia. **Naklejka** dostaje linię wykrojnika z zaokrąglonymi rogami. |
+
+![Wykrojnik pudełka na stronie: strefy, zgięcia i linia cięcia](https://makietka.app/img/instrukcja/k-sekcja-wykrojnik.png)
+
+**Pola kalendarza z datami** do wstawienia w tekst (rozdział „16 Pola w tekście”): `{data}`, `{dzien}`, `{miesiac}`, `{dzien_tygodnia}`, `{tydzien}`, `{swieto}`; kolumna `wolne` ma wartość „tak” w niedziele i święta – użyj jej w kolorze zależnym od danych (rozdział „18 Wygląd z danych”), żeby święta były czerwone. Własne kolumny dopisane do tej tabeli zostają po zmianie roku.
+
+**W pliku PDF** (rozdział „22 Eksport do PDF i PNG”): linia cięcia wykrojnika jest osobnym kolorem dodatkowym **CutContour**, zgięcia – **Crease**, perforacje – **Perforation**: drukarnia ich nie drukuje, tylko wycina, biguje i perforuje. Przy obwolucie, ulotce i kalendarzu trójdzielnym (cięte prosto) zgięcia i perforacje są zaznaczone kreskami poza formatem, obok znaków cięcia. Arkusz użytków składa się sam, gdy w eksporcie jest **Układ arkuszy: Zwykły**. Uwagi o tekście na zgięciu i elementach poza linią cięcia pokazuje też **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”).
+
+Gotowe sekcje (rozdział „11.10 Gotowe sekcje (szablony dokumentów)”) **Broszura składana**, **Wizytówki** i **Etykiety i naklejki** wstawiają się od razu jako ulotka składana i arkusz użytków.
 
 ## 12. Wzorce stron
 
@@ -2347,6 +2370,7 @@ Na Macu zamiast `Ctrl` naciśnij `⌘`. W edytorze tę listę pokaże klawisz `?
 | **CMYK** | Cztery farby drukarskie: cyjan, magenta, żółty, czarny. Kolory na ekranie (RGB) drukarnia przelicza na CMYK. |
 | **Dpi** | Liczba punktów obrazu na cal w rozmiarze druku. Zdjęcie do druku powinno mieć co najmniej 300 dpi. |
 | **Element** | Wszystko, co stoi na stronie: tekst, kształt, linia, obraz, tabela, grupa. |
+| **Falc (złam)** | Linia, wzdłuż której składa się arkusz (np. ulotkę na trzy); na kartonie poprzedza go big. |
 | **Format** | Wymiary strony po przycięciu, np. A5 = 148 × 210 mm. |
 | **Gradient (przejście)** | Płynne przejście między kolorami w wypełnieniu, także do przezroczystości. |
 | **Gramatura** | Grubość papieru podawana jako masa metra kwadratowego (g/m²) — od niej zależy m.in. szerokość grzbietu. |
@@ -2365,11 +2389,13 @@ Na Macu zamiast `Ctrl` naciśnij `⌘`. W edytorze tę listę pokaże klawisz `?
 | **Margines** | Pas przy brzegu strony, w którym nie stawia się tekstu. |
 | **Miękkie krawędzie** | Brzeg zdjęcia albo kształtu płynnie przechodzący w przezroczystość. |
 | **Nadruk (overprint)** | Farba drukowana na farbie pod spodem, bez wycinania jej — ważne przy czarnym tekście i uszlachetnieniach. |
+| **Obwoluta** | Papierowa okładka zakładana na twardą oprawę, z dwoma skrzydełkami zawiniętymi do środka (rozdział „11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki”). |
 | **Oprawa** | Sposób połączenia kartek: zeszytowa (zszywki), klejona (miękka okładka), twarda, na spirali. |
 | **PDF/X-4** | Odmiana PDF dla drukarni: osadzone czcionki, zapisany profil kolorów, przezroczystości bez spłaszczania. |
+| **Perforacja** | Linia drobnych nacięć, po której łatwo oderwać część arkusza, np. kartkę kalendarza. |
 | **Pokrycie farbą** | Suma farb CMYK w jednym miejscu (w %). Zbyt duże (zwykle ponad 300%) sprawia, że farba nie schnie. |
-| **Pole** | Nazwa w klamrach, np. `{dzien}`; na gotowej stronie zamienia się w wartość. |
 | **Pole dokumentu** | Pole wynikające z projektu: numer strony, sekcja, data. |
+| **Pole** | Nazwa w klamrach, np. `{dzien}`; na gotowej stronie zamienia się w wartość. |
 | **Profil kolorów (ICC)** | Opis maszyny i papieru drukarni; przy przeliczaniu na CMYK daje kolory jak najbliższe zamierzonym. |
 | **Prowadnica** | Linia pomocnicza na stronie do wyrównywania elementów; nie drukuje się. |
 | **Rozdzielczość** | Zob. Dpi. |
@@ -2378,15 +2404,18 @@ Na Macu zamiast `Ctrl` naciśnij `⌘`. W edytorze tę listę pokaże klawisz `?
 | **Separacje** | Osobne płyty drukarskie dla każdej farby (C, M, Y, K, kolory dodatkowe, uszlachetnienia). |
 | **Seria** | Powielanie strony albo bloku dla kolejnych wierszy tabeli. |
 | **Składka** | Arkusz złożony w kilka kartek — książkę szyje się ze składek po 4, 8, 16 albo 32 strony. |
+| **Skrzydełko** | Część obwoluty albo okładki zawinięta do środka za płytę okładki. |
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
 | **Styl** | Zapisany wygląd tekstu, zmieniany naraz we wszystkich tekstach. |
 | **Tabela danych** | Arkusz w projekcie, z którego biorą się pola i serie — nie mylić z tabelą na stronie. |
 | **Tłoczenie** | Wypukły albo wklęsły wzór wyciśnięty w papierze. |
 | **Uszlachetnienie** | Dodatkowe wykończenie druku: lakier, złocenie (folia), tłoczenie, biały poddruk. |
+| **Użytek** | Jeden egzemplarz małej rzeczy (wizytówki, naklejki) na arkuszu drukarskim – na jednym arkuszu mieści się ich wiele. |
 | **Wdowa i sierota** | Pojedynczy wiersz akapitu, który został sam na końcu albo na początku kolumny lub strony. |
 | **Wektor** | Rysunek opisany kształtami, a nie pikselami — ostry w każdym powiększeniu (teksty, kształty, PDF wektorowy). |
 | **Wiersz pomijany** | Wiersz `**pomiń**`: zajmuje miejsce w bloku, ale jego strona nie powstaje. |
 | **Wyklejka** | Kartka łącząca blok książki z twardą okładką, przyklejona do wnętrza okładki. |
+| **Wykrojnik** | Kształt, po którym drukarnia wycina i biguje arkusz (koperta, pudełko, naklejka); w PDF osobny kolor CutContour. |
 | **Wzorzec** | Wspólne elementy wielu stron: tło, stopka, numer strony. |
 | **Złocenie (folia)** | Błyszcząca folia (złota, srebrna, kolorowa) przenoszona na papier w wybranych miejscach. |
 | **Znaki cięcia** | Kreski w pliku PDF, które pokazują drukarni, gdzie ciąć. |

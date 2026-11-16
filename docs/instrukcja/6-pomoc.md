@@ -103,6 +103,7 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 | **CMYK** | Cztery farby drukarskie: cyjan, magenta, żółty, czarny. Kolory na ekranie (RGB) drukarnia przelicza na CMYK. |
 | **Dpi** | Liczba punktów obrazu na cal w rozmiarze druku. Zdjęcie do druku powinno mieć co najmniej 300 dpi. |
 | **Element** | Wszystko, co stoi na stronie: tekst, kształt, linia, obraz, tabela, grupa. |
+| **Falc (złam)** | Linia, wzdłuż której składa się arkusz (np. ulotkę na trzy); na kartonie poprzedza go big. |
 | **Format** | Wymiary strony po przycięciu, np. A5 = 148 × 210 mm. |
 | **Gradient (przejście)** | Płynne przejście między kolorami w wypełnieniu, także do przezroczystości. |
 | **Gramatura** | Grubość papieru podawana jako masa metra kwadratowego (g/m²) — od niej zależy m.in. szerokość grzbietu. |
@@ -121,11 +122,13 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 | **Margines** | Pas przy brzegu strony, w którym nie stawia się tekstu. |
 | **Miękkie krawędzie** | Brzeg zdjęcia albo kształtu płynnie przechodzący w przezroczystość. |
 | **Nadruk (overprint)** | Farba drukowana na farbie pod spodem, bez wycinania jej — ważne przy czarnym tekście i uszlachetnieniach. |
+| **Obwoluta** | Papierowa okładka zakładana na twardą oprawę, z dwoma skrzydełkami zawiniętymi do środka (→ 11.11). |
 | **Oprawa** | Sposób połączenia kartek: zeszytowa (zszywki), klejona (miękka okładka), twarda, na spirali. |
 | **PDF/X-4** | Odmiana PDF dla drukarni: osadzone czcionki, zapisany profil kolorów, przezroczystości bez spłaszczania. |
+| **Perforacja** | Linia drobnych nacięć, po której łatwo oderwać część arkusza, np. kartkę kalendarza. |
 | **Pokrycie farbą** | Suma farb CMYK w jednym miejscu (w %). Zbyt duże (zwykle ponad 300%) sprawia, że farba nie schnie. |
-| **Pole** | Nazwa w klamrach, np. `{dzien}`; na gotowej stronie zamienia się w wartość. |
 | **Pole dokumentu** | Pole wynikające z projektu: numer strony, sekcja, data. |
+| **Pole** | Nazwa w klamrach, np. `{dzien}`; na gotowej stronie zamienia się w wartość. |
 | **Profil kolorów (ICC)** | Opis maszyny i papieru drukarni; przy przeliczaniu na CMYK daje kolory jak najbliższe zamierzonym. |
 | **Prowadnica** | Linia pomocnicza na stronie do wyrównywania elementów; nie drukuje się. |
 | **Rozdzielczość** | Zob. Dpi. |
@@ -134,15 +137,18 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 | **Separacje** | Osobne płyty drukarskie dla każdej farby (C, M, Y, K, kolory dodatkowe, uszlachetnienia). |
 | **Seria** | Powielanie strony albo bloku dla kolejnych wierszy tabeli. |
 | **Składka** | Arkusz złożony w kilka kartek — książkę szyje się ze składek po 4, 8, 16 albo 32 strony. |
+| **Skrzydełko** | Część obwoluty albo okładki zawinięta do środka za płytę okładki. |
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
 | **Styl** | Zapisany wygląd tekstu, zmieniany naraz we wszystkich tekstach. |
 | **Tabela danych** | Arkusz w projekcie, z którego biorą się pola i serie — nie mylić z tabelą na stronie. |
 | **Tłoczenie** | Wypukły albo wklęsły wzór wyciśnięty w papierze. |
 | **Uszlachetnienie** | Dodatkowe wykończenie druku: lakier, złocenie (folia), tłoczenie, biały poddruk. |
+| **Użytek** | Jeden egzemplarz małej rzeczy (wizytówki, naklejki) na arkuszu drukarskim – na jednym arkuszu mieści się ich wiele. |
 | **Wdowa i sierota** | Pojedynczy wiersz akapitu, który został sam na końcu albo na początku kolumny lub strony. |
 | **Wektor** | Rysunek opisany kształtami, a nie pikselami — ostry w każdym powiększeniu (teksty, kształty, PDF wektorowy). |
 | **Wiersz pomijany** | Wiersz `[pomiń]`: zajmuje miejsce w bloku, ale jego strona nie powstaje. |
 | **Wyklejka** | Kartka łącząca blok książki z twardą okładką, przyklejona do wnętrza okładki. |
+| **Wykrojnik** | Kształt, po którym drukarnia wycina i biguje arkusz (koperta, pudełko, naklejka); w PDF osobny kolor CutContour. |
 | **Wzorzec** | Wspólne elementy wielu stron: tło, stopka, numer strony. |
 | **Złocenie (folia)** | Błyszcząca folia (złota, srebrna, kolorowa) przenoszona na papier w wybranych miejscach. |
 | **Znaki cięcia** | Kreski w pliku PDF, które pokazują drukarni, gdzie ciąć. |

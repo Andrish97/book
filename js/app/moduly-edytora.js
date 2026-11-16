@@ -70,7 +70,6 @@ export const MODULY_EDYTORA = [
   'js/ksztalty-geometria.js',
   'js/ksztalty-wiecej.js',
   'js/separacje.js',
-  'js/swieta.js',
   'js/tabele.js',
   'js/arkusz-wyglad.js',
 ];

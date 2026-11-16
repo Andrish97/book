@@ -19,11 +19,11 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
+| Makieta 3D dla sekcji specjalnych (ulotka składana, koperta, pudełko złożone z wykrojnika, kalendarz trójdzielny) – #177 | ⏳ |
 | Zestaw marki: więcej stylów tekstu do dodania (nagłówki H1–H6, akapit, podpis, cytat, listy, własne) | ⏳ |
 | Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ⏳ |
 | Instrukcja i system jeszcze raz dogłębnie: czy wszystko jest dostępne i intuicyjne, kompletność instrukcji, wszystkie zrzuty aktualne (np. ustawienia konta bez zestawu marki) – po scaleniu wątków zmieniających interfejs | ⏳ |
 | Przeniesienie „Konta” bliżej końca instrukcji (przenumerowanie rozdziałów) – po scaleniu wątków | ⏳ |
-| Sekcje „inteligentne” jak okładka z grzbietem (system wie, jak działają): obwoluta ze skrzydełkami, ulotka składana z bigami, kalendarz z datami i świętami, kalendarz trójdzielny, koperta/teczka/pudełko z wykrojnikiem, arkusz naklejek/wizytówek – po #166 | ⏳ |
 | 137 (reszta): „obrazy poza pamięcią” pada jeszcze ok. raz na 2–3 pełne przebiegi pod obciążeniem – pliki obrazów z magazynu przeglądarki bywają wtedy nieczytelne (adres pliku daje 404, eksport bierze mniej plików); przyczyna w magazynie nieustalona do końca, obraz na stronie już nie znika (świeży adres albo obraz zastępczy) | ⏳ do zbadania |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
@@ -47,6 +47,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 177 | Sekcje specjalne, które „wiedzą”, jak działają (jak okładka z grzbietem): obwoluta ze skrzydełkami, ulotka składana (zwijana / harmonijka, 2–4 panele), kalendarz z datami i polskimi świętami, kalendarz trójdzielny, wykrojniki (koperta, teczka, pudełko) i arkusz użytków (wizytówki, naklejki) – strefy, bigi, perforacje i linia cięcia na stronie, ostrzeżenia, PDF z CutContour/Crease i arkuszami użytków |
 | 169 | Instrukcja odchudzona i uporządkowana: bez treści meta, oczywistości i powtórzeń, aktualne opisy (menu ⋯, rozkładówka, wielokąt, narzędzia na telefonie), wstęp „do czego to służy” w rozdziałach, odsyłacze sprawdzane przy budowie, bez okruszków i zdublowanego spisu podrozdziałów na komputerze. |
 | 166 | Gotowe sekcje: 33 szablony dokumentów (kalendarze, planery, notesy, zaproszenia, dyplomy, wizytówki, ulotki, menu, rozdział książki, okładka…) jako generatory dopasowane do formatu, marginesów i kolorów marki; okno z miniaturami i podglądem, wejścia: [Gotowa] przy liście stron, Biblioteka, nowy projekt. |
 | 173 | 159 | Paski postępu przy dłuższych czynnościach: jeden wygląd (karta, licznik x z y, pasek nieokreślony, Anuluj przy PDF), dopiero po 0,3 s, dostępne dla czytników ekranu; dodane przy PNG, separacjach, makiecie 3D, duplikowaniu, imporcie danych, czcionkach, usuwaniu tła, udostępnianiu, zmianie formatu, „Zamień wszystkie”, ekranie startowym i miniaturach (w panelu Strony). |

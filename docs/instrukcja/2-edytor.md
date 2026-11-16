@@ -961,7 +961,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (→ 11.5). |
-| **Rodzaj sekcji** | **Strony** albo **Okładka z grzbietem** — wtedy wymiary liczą się same (→ 11.6). |
+| **Rodzaj sekcji** | **Strony**, **Okładka z grzbietem** (→ 11.6) albo sekcja specjalna: obwoluta, ulotka składana, kalendarz z datami, kalendarz trójdzielny, wykrojnik, arkusz użytków (→ 11.11) — wtedy wymiary liczą się same. |
 | **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij [Zmień format i dopasuj elementy…] (→ 11.9). |
 | **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
@@ -1086,6 +1086,40 @@ Szablon nie jest zamrożonym plikiem: buduje się dla Twojego formatu, margines�
 czcionkach marki. Po wstawieniu to zwykłe strony, wzorce (np. numer strony), style i tabela danych z serią
 (→ 15, 17) – zmienisz w nich wszystko jak we własnych. Szare pola to miejsca na zdjęcia: wstaw do nich obraz
 (→ 8.7). Całą wstawioną sekcję usuwa jedno [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
+
+## 11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki
+
+Sekcja specjalna działa jak okładka z grzbietem (→ 11.6): wie, czym jest wydrukowana rzecz. Sama liczy swój
+format, podpisuje na stronie strefy (panele, skrzydełka, klapy), rysuje linie zgięć (bigi, przerywane), perforacji
+(kropkowane) i cięcia (ciągła różowa linia), ostrzega o tekście na zgięciu i o elementach poza linią cięcia,
+a w pliku PDF daje arkusz w pełnym wymiarze. Rodzaj wybierasz w ustawieniach sekcji (→ 11.4): **Rodzaj sekcji**.
+Schemat w oknie pokazuje strefy i zgięcia na bieżąco, pod nim wymiary arkusza.
+
+![Ulotka składana w ustawieniach sekcji](k-sekcja-ulotka.png)
+
+| Rodzaj | Co liczy |
+|---|---|
+| **Obwoluta ze skrzydełkami** | Tył, grzbiet i przód z twardej okładki projektu (płyty i grzbiet), dwa skrzydełka (**Skrzydełko**, 0 – około połowy przodu) i zapas na zgięcie przy płycie. Przybędzie stron – obwoluta przeliczy się sama, a elementy przodu przesuną się razem z nim. |
+| **Ulotka składana** | Arkusz na 2, 3 albo 4 panele, **Złożenie**: **Zwijane** (łamana C – panel składany do środka jest węższy o **Skrót**, żeby się nie zaginał) albo **Harmonijka** (Z – panele równe). Sekcja ma dwie strony: zewnętrzną (z panelem **Okładka**) i wewnętrzną. |
+| **Kalendarz z datami (rok)** | **Rok**, **Strona na** miesiąc, tydzień albo dzień, początek tygodnia i **Święta** (Polska: stałe i ruchome – Wielkanoc, Zielone Świątki, Boże Ciało). Tworzy tabelę danych i serię: pierwsza strona sekcji powiela się dla każdego miesiąca, tygodnia albo dnia. Zmiana roku przelicza wszystko. |
+| **Kalendarz trójdzielny** | Główka, trzy kalendaria jedno pod drugim, okienko na środkowym i pasek reklamowy – z bigiem pod główką i perforacjami. |
+| **Wykrojnik** | **Koperta** (C6, DL, C5, kwadrat), **Teczka ofertowa** z kieszenią i nacięciami na wizytówkę albo **Pudełko** (długość, szerokość, wysokość → siatka z wieczkiem, dnem, klapkami i zakładką klejową). |
+| **Arkusz użytków** | Naklejki, wizytówki, etykiety: projektujesz jeden użytek (albo kolejne z danych – seria), a w PDF stoją obok siebie na arkuszu (SRA3, A3, A4, B2) ze znakami cięcia. **Naklejka** dostaje linię wykrojnika z zaokrąglonymi rogami. |
+
+![Wykrojnik pudełka na stronie: strefy, zgięcia i linia cięcia](k-sekcja-wykrojnik.png)
+
+**Pola kalendarza z datami** do wstawienia w tekst (→ 16): `{data}`, `{dzien}`, `{miesiac}`, `{dzien_tygodnia}`,
+`{tydzien}`, `{swieto}`; kolumna `wolne` ma wartość „tak” w niedziele i święta – użyj jej w kolorze zależnym
+od danych (→ 18), żeby święta były czerwone. Własne kolumny dopisane do tej tabeli zostają po zmianie roku.
+
+**W pliku PDF** (→ 22): linia cięcia wykrojnika jest osobnym kolorem dodatkowym **CutContour**, zgięcia –
+**Crease**, perforacje – **Perforation**: drukarnia ich nie drukuje, tylko wycina, biguje i perforuje. Przy
+obwolucie, ulotce i kalendarzu trójdzielnym (cięte prosto) zgięcia i perforacje są zaznaczone kreskami poza
+formatem, obok znaków cięcia. Arkusz użytków składa się sam, gdy w eksporcie jest **Układ arkuszy: Zwykły**.
+Uwagi o tekście na zgięciu i elementach poza linią cięcia pokazuje też **Sprawdź przed drukiem** (→ 21).
+
+Gotowe sekcje (→ 11.10) **Broszura składana**, **Wizytówki** i **Etykiety i naklejki** wstawiają się od razu
+jako ulotka składana i arkusz użytków.
 
 # 12. Wzorce stron
 
