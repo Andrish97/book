@@ -9,6 +9,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
+| 180 | Instrukcja i system dogłębnie: dostępność, intuicyjność, kompletność; wszystkie zrzuty aktualne; Konto i ustawienia bliżej końca instrukcji | 🔄 |
 | 179 | Makieta 3D: wyklejka jak w prawdziwej twardej oprawie (zawinięcie okleiny, płaska wyklejka, cienki zawias), spirale z poprawnymi parametrami (Wire-O 3:1/2:1, średnica z grubości, kalendarz ścienny z wieszakiem), sztywna okładka miękka zginana na bigach, poprawne wymiary okładki względem bloku, tryb stojący | 🔄 |
 
 ## Czeka (kolejne etapy)
@@ -16,23 +17,14 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Uwaga | Stan |
 |---|---|
 | Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ⏳ |
-| Instrukcja i system jeszcze raz dogłębnie: czy wszystko jest dostępne i intuicyjne, kompletność instrukcji, wszystkie zrzuty aktualne (np. ustawienia konta bez zestawu marki) – po scaleniu wątków zmieniających interfejs | ⏳ |
-| Przeniesienie „Konta” bliżej końca instrukcji (przenumerowanie rozdziałów) – po scaleniu wątków | ⏳ |
 | 162 (reszta): wzór z Biblioteki jako wypełnienie zaznaczonego kształtu (dziś wzory wstawiają się na całą stronę; przycięcie kształtem musi zostać wektorowe w PDF) | ⏳ |
 | 161 (reszta): makieta 3D – obwoluta (osobny obiekt nałożony na okładkę, skrzydełka zawinięte do środka) jeszcze nie pokazywana; rola sekcji tylko z jawnego typu (typSekcji w js/app/makieta-okno.js – do podpięcia pod wspólną funkcję z #177); obwoluta (typ 'obwoluta') pomijana – model obwoluty do zrobienia. Projekt użytkownika do czasu ustawienia typów wyklejek pokaże je jako zwykłe rozkładówki | ⏳ |
 | 161 (uwaga): geometria okładki bez listy sekcji środka (tryb auto) bierze format pierwszej sekcji – gdy to wyklejka A4, okładka liczy się dla A4 (makieta już tego nie przenosi, ale sama okładka do druku – do sprawdzenia razem z rolami sekcji #177) | ⏳ do sprawdzenia |
 | Makieta 3D dla sekcji specjalnych (ulotka składana, koperta, pudełko złożone z wykrojnika, kalendarz trójdzielny) – #177 | ⏳ |
-| Zestaw marki: więcej stylów tekstu do dodania (nagłówki H1–H6, akapit, podpis, cytat, listy, własne) | ⏳ |
-| Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ⏳ |
-| Instrukcja i system jeszcze raz dogłębnie: czy wszystko jest dostępne i intuicyjne, kompletność instrukcji, wszystkie zrzuty aktualne (np. ustawienia konta bez zestawu marki) – po scaleniu wątków zmieniających interfejs | ⏳ |
-| Przeniesienie „Konta” bliżej końca instrukcji (przenumerowanie rozdziałów) – po scaleniu wątków | ⏳ |
 | 137 (reszta): „obrazy poza pamięcią” pada jeszcze ok. raz na 2–3 pełne przebiegi pod obciążeniem – pliki obrazów z magazynu przeglądarki bywają wtedy nieczytelne (adres pliku daje 404, eksport bierze mniej plików); przyczyna w magazynie nieustalona do końca, obraz na stronie już nie znika (świeży adres albo obraz zastępczy) | ⏳ do zbadania |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
-| Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
-| Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
 | Sprawdzenie na prawdziwym telefonie: gesty iPhone (#101), klawiatura w zasłonkach, instalacja aplikacji | ⏳ |
-| Instrukcja: rozważyć kolejność części (Konto i ustawienia po Współpracy, przed Pomocą) – po scaleniu wątków, które dopisują podrozdziały (#169) | ⏳ |
 | 160: ręczna lista kontrolna z docs/TESTY.md (iPhone/Safari, Android, prawdziwa drukarka, e-maile, push, migracje na produkcji) – tego nie sprawdzą testy w tym środowisku; do tego „grupa otwarta: ramka zaznaczenia” padła raz na 4 przebiegi (cofnięcie kolejności w grupie) | ⏳ ręcznie / do zbadania |
 
 ## Kroki po Twojej stronie
