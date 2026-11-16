@@ -162,7 +162,7 @@ Testy podane bez `.test.cjs`. „→” – zmiana głębokości po audycie.
 | 22.5 PNG | eksport | P | tylko rozdzielczość |
 | 22.6 Broszura, kilka stron na arkuszu | druk-arkusze, druk-w-domu | D | – |
 | 22.7 PDF do czytania | druk-arkusze | D | – |
-| 22.8 Drukuj w domu | druk-w-domu | P | systemowe okno drukowania – ręcznie |
+| 22.8 Drukuj w domu | druk-w-domu, pdf-kontrola-narzedziami | D | systemowe okno drukowania i prawdziwa drukarka – ręcznie |
 | 23.1–23.6 Kolory dodatkowe, uszlachetnienia, separacje | kolory-druku, kolory-druku-ui, druk-arkusze, podglad-pasek | D | – |
 | 24.1–24.4 Udostępnianie linkiem | udostepnianie, worker-pliki | D | – |
 
@@ -198,15 +198,29 @@ Testy podane bez `.test.cjs`. „→” – zmiana głębokości po audycie.
 
 Jedyna pozostała funkcja bez testu (B): `zdrowie` (bez logiki) oraz – częściowo – prawdziwe RLS w Postgresie.
 
+## Symulacja zamiast ręcznej listy (#186)
+
+Część ręcznej listy (niżej) sprawdzają teraz testy – w emulacji i programami spoza aplikacji:
+
+| Plik | Co sprawdza |
+|---|---|
+| `tests/iphone-emulacja.test.cjs` | Chromium z ekranem, dotykiem (kilka palców przez protokół przeglądarki), skalą ekranu i nagłówkiem przeglądarki iPhone'a 14, iPhone'a SE i iPada Mini: (1) element przesuwa się palcem; szczypanie powiększa stronę projektu, a nie całą aplikację (`visualViewport.scale` zostaje 1); (2) szybki gest w bok – następna strona, a w każdej klatce (90 klatek) płótno ma treść albo leży nad nim obraz poprzedniej strony (bez mignięcia); (3) lista wyboru i kolor wyjeżdżają od dołu w całości, na całą szerokość, paseczek na wierzchu je zamyka – w jasnym i ciemnym motywie; (4) makieta 3D rysuje się, obraca palcem, rysuje przy drugim otwarciu i po utracie kontekstu WebGL. Do tego wycięcie ekranu (bezpieczne marginesy 47/34 px jak w iPhonie 14): przyciski paska pod wycięciem, zakładki i przyciski okien nad paskiem systemowym; klawiatura ekranowa w dwóch wariantach – iOS (maleje tylko `visualViewport`) i Android (maleje okno): zasłonka nad klawiaturą, pole z fokusem widoczne i niezakryte. Zrzuty: `ZRZUTY_IPHONE=/katalog`. |
+| `tests/pdf-kontrola-narzedziami.test.cjs` | Książka w twardej oprawie (okładka, wyklejki z typem, blok A5 64 str. z tekstem, zdjęciem, kolorem dodatkowym PANTONE i złoceniem) eksportowana jak w oknie PDF: „Pliki dla drukarni” → trzy pliki (okładka, wyklejki, blok) w tej kolejności. Każdy: `qpdf --check`, PDF/X-4 według popplera, warunki druku z profilem CMYK, czcionki osadzone (`pdffonts`), żadnego polecenia ani obrazu RGB, `gs inkcov` dla każdej strony. Pola strony z qpdf: format po obcięciu (okładka = geometria z `js/okladka.js`, wyklejka = 2 × blok, blok A5), spad równy dookoła, miejsce na znaki cięcia. Płyty z `gs tiffsep`: kolor dodatkowy na własnej płycie (nie na magencie), złocenie tylko pod złoconymi elementami (blok i tytuł okładki), zdjęcie w farbach kolorowych, poza spadem tylko znaki cięcia na czarnej. `pdftoppm` – proporcje i treść strony. „Drukuj w domu”: broszura A4 poziomo, 32 strony kartek, kolejność stron z `pdftotext` (64\|1, 2\|63, 62\|3…). Własny projekt tą samą drogą: `MAKIETKA_PROJEKT=projekt.json`. Bez gs/qpdf/poppler test się pomija. |
+
+Ograniczenia: to Chromium udający iPhone'a, nie silnik WebKit – typowe tylko dla Safari rzeczy (paski Safari, gumowe przewijanie,
+własne zachowanie klawiatury i powiększania, WebGL na GPU telefonu, instalacja na ekranie początkowym, powiadomienia) zostają
+do sprawdzenia ręcznie. Pliki PDF są zmierzone programami, ale nie przez preflight drukarni (Acrobat/PitStop) ani na papierze.
+
 ## Czego nie da się sprawdzić tutaj – lista kontrolna do zrobienia ręcznie
 
 Środowisko testów ma tylko Chromium (bez WebKita/Safari, bez prawdziwego GPU telefonu, drukarki, poczty i push).
+Punkty oznaczone „(emulacja #186)” przechodzą w `tests/iphone-emulacja.test.cjs` – na prawdziwym iPhonie wystarczy rzut oka.
 
 **iPhone / iPad (Safari)** – raz po większych zmianach:
-1. Zaloguj się, otwórz projekt, przesuń element palcem, powiększ dwoma palcami – strona się nie przybliża cała.
-2. Przesuń szybko palcem w bok po pustym miejscu – następna strona, bez mignięcia.
-3. Otwórz listę wyboru (np. czcionka) i kolor – wyjeżdżają od dołu, pasek u góry je zamyka.
-4. Podgląd → Makieta 3D: obraz się rysuje, obracanie palcem działa; zamknij i otwórz drugi raz.
+1. Zaloguj się, otwórz projekt, przesuń element palcem, powiększ dwoma palcami – strona się nie przybliża cała. (emulacja #186)
+2. Przesuń szybko palcem w bok po pustym miejscu – następna strona, bez mignięcia. (emulacja #186)
+3. Otwórz listę wyboru (np. czcionka) i kolor – wyjeżdżają od dołu, pasek u góry je zamyka. (emulacja #186)
+4. Podgląd → Makieta 3D: obraz się rysuje, obracanie palcem działa; zamknij i otwórz drugi raz. (emulacja #186 – WebGL Chromium, nie GPU iPhone'a)
 5. Zainstaluj (Udostępnij → Do ekranu początkowego), otwórz z ikony, włącz powiadomienia.
 
 **Android (Chrome)** – sprawdzone przez użytkownika 2026-11-16, wszystko działa:
@@ -215,8 +229,8 @@ Jedyna pozostała funkcja bez testu (B): `zdrowie` (bez logiki) oraz – częśc
 3. Zrób zmianę i od razu zamknij kartę / aplikację; otwórz ponownie – zmiana jest (błąd nr 2).
 
 **Druk i pliki**:
-1. Drukuj w domu: broszura A4 na prawdziwej drukarce (próbna kartka, obracanie po krótszej krawędzi).
-2. PDF dla drukarni z okładką: otwórz w Acrobacie – „Wyjście → Podgląd wyjścia”: okładka w rozmiarze z ustawień, spad 3 mm, CMYK.
+1. Drukuj w domu: broszura A4 na prawdziwej drukarce (próbna kartka, obracanie po krótszej krawędzi). Plik (format, liczba kartek, kolejność stron) sprawdza `pdf-kontrola-narzedziami` – zostaje sam papier i ustawienia drukarki.
+2. PDF dla drukarni z okładką: otwórz w Acrobacie – „Wyjście → Podgląd wyjścia”: okładka w rozmiarze z ustawień, spad 3 mm, CMYK. Rozmiar, spad, CMYK, płyty i osobne pliki mierzy `pdf-kontrola-narzedziami` (qpdf, poppler, Ghostscript) – zostaje preflight drukarni.
 
 **Konto i poczta**:
 1. Rejestracja na nowy adres – przychodzi e-mail z linkiem; reset hasła – też.
