@@ -299,7 +299,7 @@ test('Rysunek SVG z napisem w kilku wierszach i z osadzonym zdjęciem: wiersze z
   assert.deepEqual(bledy, []);
 });
 
-test('Rozkładanie rysunku SVG: uwaga o rzeczach, których edytor nie ma; zwykłe zdjęcie nie ma tego przycisku', async (t) => {
+test('Rozkładanie rysunku SVG: fragment z filtrem zostaje obrazem; zwykłe zdjęcie nie ma tego przycisku', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Rysunek 5');
   await strona.evaluate(async (adresKod) => {
@@ -312,7 +312,9 @@ test('Rozkładanie rysunku SVG: uwaga o rzeczach, których edytor nie ma; zwykł
     edytor.zatwierdz();
   }, ADRES);
   await rozloz(strona, 'filtr.svg');
-  assert.match(await strona.textContent('#powiadomienie'), /Rysunek używa elementu „filter”, którego edytor nie ma – wygląd mógł się zmienić\. Ctrl\+Z przywraca obraz\.$/);
+  // Filtr nie znika (#173): fragment z rozmyciem zostaje obrazem w swoim miejscu.
+  assert.match(await strona.textContent('#powiadomienie'), /1 fragment z efektami został obrazem – reszta jest edytowalna\. Ctrl\+Z przywraca obraz\.$/);
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().flatMap((o) => (o.type === 'group' ? o.getObjects() : [o])).filter((o) => o.type === 'image' && /fragment z efektem/.test(o.nazwa || '')).length), 1);
   await strona.evaluate(async () => {
     const { stan, edytor } = window.seriodruk;
     const p = Object.assign(document.createElement('canvas'), { width: 20, height: 20 });
