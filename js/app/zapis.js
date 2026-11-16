@@ -344,6 +344,44 @@ export async function otworzProjekt(p, cel = {}) {
   uzupelnijWymiary(stan.projekt).then((ile) => { if (ile && stan.uzytkownik) zaplanujChmure(2000); }).catch(() => {});
   // Współpraca (js/app/wspolpraca.js, js/app/obecnosc.js): tryb projektu i obecność innych osób.
   document.dispatchEvent(new CustomEvent('seriodruk:projekt', { detail: stan.projekt }));
+  const otwarty = stan.projekt;
+  setTimeout(() => podpowiedzTypu(otwarty), 1200);
+}
+
+// Typ sekcji (#177): sekcja zwykła, której nazwa wygląda na wyklejkę, dostaje jednorazową propozycję zmiany typu.
+// To tylko podpowiedź – typ nigdy nie wynika z nazwy sam; decyduje użytkownik (raz na sekcję na tym urządzeniu).
+const KLUCZ_PODPOWIEDZI_TYPU = 'makietka:podpowiedz-typu';
+export function sekcjaDoPodpowiedzi(projekt) {
+  let byly = {};
+  try { byly = JSON.parse(localStorage.getItem(KLUCZ_PODPOWIEDZI_TYPU) || '{}'); } catch { /* bez pamięci – bez pominięć */ }
+  return projekt.sekcje.find((x) => (x.typ === 'zwykla' || x.typ === 'blok') && /wyklejk/i.test(x.nazwa) && !byly[`${projekt.id}:${x.id}`]) || null;
+}
+function podpowiedzTypu(projekt) {
+  if (!projekt || stan.projekt !== projekt || projekt.wspolpraca_chmury?.rola === 'odczyt') return; // tylko do oglądania – bez propozycji
+  const s = sekcjaDoPodpowiedzi(projekt);
+  if (!s) return;
+  try {
+    const byly = JSON.parse(localStorage.getItem(KLUCZ_PODPOWIEDZI_TYPU) || '{}');
+    byly[`${projekt.id}:${s.id}`] = 1;
+    localStorage.setItem(KLUCZ_PODPOWIEDZI_TYPU, JSON.stringify(byly));
+  } catch { /* podpowiedź pokaże się znowu przy następnym otwarciu */ }
+  const typ = /ty[lł]/i.test(s.nazwa) ? 'wyklejka_tylna' : 'wyklejka_przednia';
+  powiadom(`Sekcja „${s.nazwa}” wygląda na wyklejkę – ustawić typ „${typ === 'wyklejka_tylna' ? 'Wyklejka tylna' : 'Wyklejka przednia'}”?`, false, {
+    etykieta: 'Ustaw typ',
+    fn: async () => {
+      if (stan.projekt !== projekt) return;
+      const { normalizujSpecjalna } = await import('../sekcje-specjalne.js');
+      zapiszBiezacyCel();
+      Object.assign(s, { typ, uklad: 'pojedyncze', specjalna: normalizujSpecjalna({ rodzaj: 'wyklejka', strona: typ === 'wyklejka_tylna' ? 'tylna' : 'przednia' }) });
+      delete s.skladka;
+      delete s.okladka;
+      przeliczOkladki(projekt);
+      stan.miniatury.clear();
+      await zaladujCel();
+      zaplanujZapis();
+      powiadom(`Sekcja „${s.nazwa}” ma teraz typ wyklejki – format i strefy liczą się z bloku.`);
+    },
+  });
 }
 
 // Elementy tuż po wczytaniu na płótno: dla każdego id – jego postać z płótna i element z projektu.

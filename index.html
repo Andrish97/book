@@ -77,12 +77,15 @@
   <link rel="modulepreload" href="js/podglad.js">
   <link rel="modulepreload" href="js/postep.js">
   <link rel="modulepreload" href="js/projekt.js">
+  <link rel="modulepreload" href="js/sekcje-specjalne.js">
   <link rel="modulepreload" href="js/style-tekstu.js">
   <link rel="modulepreload" href="js/wspolpraca-chmura.js">
   <link rel="modulepreload" href="js/zasoby.js">
   <link rel="modulepreload" href="js/zestaw-czcionek.js">
   <link rel="modulepreload" href="js/zestaw-marki.js">
   <link rel="modulepreload" href="js/serie.js">
+  <link rel="modulepreload" href="js/swieta.js">
+  <link rel="modulepreload" href="js/typ-sekcji.js">
   <link rel="modulepreload" href="js/watki.js">
   <link rel="modulepreload" href="js/ksiazka.js">
   <link rel="modulepreload" href="js/pola.js">
@@ -1010,13 +1013,84 @@
           </div>
         </div>
       </div>
-      <div class="pole pole-orientacja" id="pole-rodzaj-sekcji">
-        <span>Rodzaj sekcji</span>
-        <div class="przelacznik-segmentowy" role="radiogroup">
-          <label><input type="radio" name="rodzaj" value="strony" checked><span>Strony</span></label>
-          <label><input type="radio" name="rodzaj" value="okladka"><span>Okładka z grzbietem</span></label>
-        </div>
+      <!-- Typ sekcji (#177): wybierany przez użytkownika – sam ustala geometrię i zachowanie sekcji (okładka z grzbietem,
+           wyklejka, obwoluta, wkładka, ulotka składana…). Karty buduje js/app/sekcje.js z TYPY_SEKCJI (js/typ-sekcji.js). -->
+      <fieldset class="typy-sekcji" id="pole-typ-sekcji">
+        <legend>Typ sekcji</legend>
+        <div class="lista-typow" id="lista-typow-sekcji"></div>
+      </fieldset>
+      <input type="hidden" name="rodzaj" value="strony">
+      <p class="podpowiedz" id="opis-rodzaju-sekcji" hidden></p>
+      <div class="rzad" id="pole-papier-wkladki" hidden>
+        <label class="pole waskie"><span>Papier wkładki (g/m²)</span><input name="rola_gramatura" type="number" min="30" max="400" step="1" inputmode="numeric"></label>
+        <label class="pole"><span>Rodzaj papieru wkładki</span><select name="rola_papier"><option value="kredowy_mat">Kredowy matowy</option><option value="kredowy_blysk">Kredowy błyszczący</option><option value="offset">Offsetowy</option><option value="ksiazkowy">Książkowy</option><option value="objetosciowy">Objętościowy</option></select></label>
       </div>
+      <fieldset class="grupa-pol" id="sekcja-specjalna" hidden>
+        <legend id="legenda-specjalnej">Sekcja</legend>
+        <div class="schemat-okladki schemat-specjalnej" id="schemat-specjalnej" aria-hidden="true"></div>
+        <p class="wynik-okladki" id="wynik-specjalnej" role="status"></p>
+        <div class="rzad" data-sp="wyklejka">
+          <label class="pole"><span>Zadruk</span><select name="sp_zadruk"><option value="czysta">czysta (bez druku)</option><option value="jednostronny">zadrukowana – strona widoczna</option><option value="dwustronny">zadrukowana z obu stron</option></select></label>
+          <label class="pole waskie"><span>Papier (g/m²)</span><input name="sp_gramatura" type="number" min="60" max="400" step="1" inputmode="numeric"></label>
+        </div>
+        <div class="rzad" data-sp="obwoluta">
+          <label class="pole waskie"><span>Skrzydełko (mm, 0 – samo)</span><input name="sp_skrzydelko_mm" type="number" min="0" max="300" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Zapas na zgięcie (mm)</span><input name="sp_zapas_mm" type="number" min="0" max="20" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Naddatek wysokości (mm)</span><input name="sp_naddatek_wys_mm" type="number" min="0" max="20" step="any" inputmode="decimal"></label>
+        </div>
+        <div class="rzad" data-sp="ulotka">
+          <label class="pole waskie"><span>Panele</span><select name="sp_panele"><option value="2">2 (złożona na pół)</option><option value="3">3</option><option value="4">4</option></select></label>
+          <label class="pole"><span>Złożenie</span><select name="sp_zlozenie"><option value="c">Zwijane (łamana C, „rolowana”)</option><option value="z">Harmonijka (Z)</option></select></label>
+        </div>
+        <div class="rzad" data-sp="ulotka">
+          <label class="pole waskie"><span>Panel – szerokość (mm)</span><input name="sp_szerokosc_mm" type="number" min="30" max="500" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Wysokość (mm)</span><input name="sp_wysokosc_mm" type="number" min="30" max="700" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Skrót panelu do środka (mm)</span><input name="sp_skrot_mm" type="number" min="0" max="10" step="any" inputmode="decimal"></label>
+        </div>
+        <div class="rzad" data-sp="kalendarz">
+          <label class="pole waskie"><span>Rok</span><input name="sp_rok" type="number" min="1900" max="2200" step="1" inputmode="numeric"></label>
+          <label class="pole"><span>Strona na</span><select name="sp_jednostka"><option value="miesiac">miesiąc (12 stron)</option><option value="tydzien">tydzień (52–53)</option><option value="dzien">dzień (365–366)</option></select></label>
+        </div>
+        <div class="rzad" data-sp="kalendarz">
+          <label class="pole"><span>Tydzień zaczyna się w</span><select name="sp_pierwszy"><option value="pn">poniedziałek</option><option value="nd">niedzielę</option></select></label>
+          <label class="pole"><span>Święta</span><select name="sp_swieta"><option value="pl">Polska (stałe i ruchome)</option><option value="brak">bez świąt</option></select></label>
+        </div>
+        <div class="rzad" data-sp="trojdzielny">
+          <label class="pole waskie"><span>Szerokość (mm)</span><input name="sp_t_szerokosc_mm" type="number" min="150" max="500" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Główka (mm)</span><input name="sp_glowka_mm" type="number" min="50" max="400" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Kalendarium (mm)</span><input name="sp_kalendarium_mm" type="number" min="60" max="300" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Pasek reklamowy (mm)</span><input name="sp_reklama_mm" type="number" min="0" max="200" step="any" inputmode="decimal"></label>
+        </div>
+        <label class="przelacznik" data-sp="trojdzielny"><input type="checkbox" name="sp_okienko"><span>Okienko (suwak) na środkowym kalendarium</span></label>
+        <div class="rzad" data-sp="wykrojnik">
+          <label class="pole"><span>Kształt</span><select name="sp_ksztalt"><option value="koperta">Koperta</option><option value="teczka">Teczka ofertowa z kieszenią</option><option value="pudelko">Pudełko składane</option></select></label>
+          <label class="pole waskie" data-sp-ksztalt="koperta"><span>Format koperty</span><select name="sp_koperta"><option value="C6">C6 (114 × 162)</option><option value="DL">DL (110 × 220)</option><option value="C5">C5 (162 × 229)</option><option value="kwadrat">Kwadrat (155 × 155)</option></select></label>
+        </div>
+        <div class="rzad" data-sp="wykrojnik" data-sp-ksztalt="teczka">
+          <label class="pole waskie"><span>Panel – szerokość (mm)</span><input name="sp_panel_szer_mm" type="number" min="80" max="400" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Panel – wysokość (mm)</span><input name="sp_panel_wys_mm" type="number" min="80" max="500" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Grzbiet (mm)</span><input name="sp_grzbiet_mm" type="number" min="0" max="50" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Kieszeń (mm)</span><input name="sp_kieszen_mm" type="number" min="30" max="200" step="any" inputmode="decimal"></label>
+        </div>
+        <label class="przelacznik" data-sp="wykrojnik" data-sp-ksztalt="teczka"><input type="checkbox" name="sp_wizytowka"><span>Nacięcia na wizytówkę na kieszeni</span></label>
+        <div class="rzad" data-sp="wykrojnik" data-sp-ksztalt="pudelko">
+          <label class="pole waskie"><span>Długość (mm)</span><input name="sp_dlugosc_mm" type="number" min="20" max="400" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Szerokość (mm)</span><input name="sp_p_szerokosc_mm" type="number" min="10" max="400" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Wysokość (mm)</span><input name="sp_p_wysokosc_mm" type="number" min="10" max="500" step="any" inputmode="decimal"></label>
+        </div>
+        <div class="rzad" data-sp="arkusz">
+          <label class="pole waskie"><span>Użytek – szerokość (mm)</span><input name="sp_uzytek_szer_mm" type="number" min="10" max="500" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Użytek – wysokość (mm)</span><input name="sp_uzytek_wys_mm" type="number" min="10" max="500" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Arkusz</span><select name="sp_arkusz"><option value="SRA3">SRA3 (320 × 450)</option><option value="A3">A3</option><option value="A4">A4</option><option value="B2">B2 (500 × 700)</option></select></label>
+        </div>
+        <div class="rzad" data-sp="arkusz">
+          <label class="pole waskie"><span>Odstęp (mm)</span><input name="sp_odstep_mm" type="number" min="0" max="50" step="any" inputmode="decimal"></label>
+          <label class="pole waskie"><span>Margines arkusza (mm)</span><input name="sp_margines_mm" type="number" min="0" max="50" step="any" inputmode="decimal"></label>
+          <label class="pole"><span>Cięcie</span><select name="sp_u_ksztalt"><option value="prostokat">Prostokąt (gilotyna)</option><option value="naklejka">Naklejka – wykrojnik po obrysie</option></select></label>
+          <label class="pole waskie"><span>Zaokrąglenie rogów (mm)</span><input name="sp_zaokraglenie_mm" type="number" min="0" max="50" step="any" inputmode="decimal"></label>
+        </div>
+        <p class="podpowiedz" id="podpowiedz-specjalnej"></p>
+      </fieldset>
       <p class="podpowiedz" id="podpowiedz-rozkladowki" hidden>Strony tworzą pary lewa + prawa. Margines wewnętrzny jest przy grzbiecie – na lewych stronach z prawej, na prawych z lewej.</p>
 
       <fieldset class="grupa-pol" id="sekcja-format">
@@ -1091,6 +1165,10 @@
           <label class="pole waskie"><span>Big (mm)</span><input name="ok_big" type="number" min="0" max="30" step="any" inputmode="decimal"></label>
           <label class="pole waskie"><span>Naddatek tektury (mm)</span><input name="ok_naddatek" type="number" min="0" max="20" step="any" inputmode="decimal"></label>
           <label class="pole waskie"><span>Grubość tektury (mm)</span><input name="ok_tektura" type="number" min="0" max="10" step="any" inputmode="decimal"></label>
+        </div>
+        <div class="rzad" id="pole-ok-tasiemka" hidden>
+          <label class="przelacznik"><input type="checkbox" name="ok_tasiemka"><span>Zakładka – tasiemka w grzbiecie</span></label>
+          <label class="pole waskie"><span>Kolor tasiemki</span><input name="ok_tasiemka_kolor" type="color" value="#8b1e2d"></label>
         </div>
         <p class="podpowiedz">Grubość kartki (albo gramaturę i rodzaj papieru) podaje drukarnia. Okładka przelicza się sama, gdy przybędzie stron w środku – elementy grzbietu zostają na jego środku, a przód przesuwa się razem z nim.</p>
       </fieldset>
@@ -1352,6 +1430,7 @@
             <select name="podzial">
               <option value="jeden">Jeden plik</option>
               <option value="sekcje">Osobny plik dla każdej sekcji</option>
+              <option value="role">Pliki dla drukarni: okładka, wyklejki, blok…</option>
               <option value="czesci">Części po tyle stron</option>
             </select>
           </label>

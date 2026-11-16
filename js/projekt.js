@@ -10,7 +10,9 @@
 //   kilka wzorców naraz, a każdy element wzorca leży pod albo nad treścią strony.
 
 import { odlaczWatkiKopii } from './watki.js';
-import { normalizujOkladke, normalizujSkladke } from './okladka.js';
+import { normalizujOkladke, normalizujSkladke, domyslnaOkladka } from './okladka.js';
+import { TYPY_SEKCJI, typSekcji, wBloku } from './typ-sekcji.js';
+import { normalizujSpecjalna } from './sekcje-specjalne.js';
 import { normalizujKoloryDruku, normalizujTrybySekcji } from './kolory-druku.js';
 
 export const WERSJA_MODELU = 3;
@@ -256,10 +258,28 @@ export function normalizuj(p) {
       tryb: ['ciagla', 'od', 'brak'].includes(n.tryb) ? n.tryb : 'ciagla',
       od: Number.isFinite(n.od) ? Math.max(0, Math.round(n.od)) : 1,
     };
-    // Okładka liczona sama (#119) i składki środka (#120).
-    if (s.okladka) { sekcja.okladka = normalizujOkladke(s.okladka); sekcja.uklad = 'pojedyncze'; } else delete sekcja.okladka;
+    // Typ sekcji (#177): jawne pole `typ` ustala jej parametry i zachowanie. Sekcja bez typu (starszy projekt)
+    // dostaje go jednorazowo z parametrów: okładka → 'okladka', sekcja specjalna → jej rodzaj, inaczej 'zwykla'.
+    // Nazwy sekcji nie biorą w tym udziału.
+    const typ = typSekcji(s);
+    const rodzaj = TYPY_SEKCJI[typ].rodzaj;
+    sekcja.typ = typ;
+    // Okładka liczona sama (#119).
+    if (rodzaj === 'okladka') { sekcja.okladka = normalizujOkladke(s.okladka) || domyslnaOkladka(); sekcja.uklad = 'pojedyncze'; } else delete sekcja.okladka;
+    // Sekcje specjalne: obwoluta, wyklejka, ulotka składana, kalendarz z datami, trójdzielny, wykrojnik, arkusz użytków.
+    if (rodzaj && rodzaj !== 'okladka') {
+      const wlasne = s.specjalna?.rodzaj === rodzaj ? s.specjalna : {};
+      sekcja.specjalna = normalizujSpecjalna({ ...wlasne, rodzaj, ...(rodzaj === 'wyklejka' ? { strona: typ === 'wyklejka_tylna' ? 'tylna' : 'przednia' } : {}) });
+      if (rodzaj !== 'kalendarz') sekcja.uklad = 'pojedyncze';
+    } else delete sekcja.specjalna;
+    // Składki środka (#120) – tylko w sekcjach bloku.
     const skladka = normalizujSkladke(s.skladka);
-    if (skladka && !sekcja.okladka) sekcja.skladka = skladka; else delete sekcja.skladka;
+    if (skladka && wBloku(sekcja)) sekcja.skladka = skladka; else delete sekcja.skladka;
+    // Wkładka: własny papier (gramatura, rodzaj) – do grubości grzbietu.
+    delete sekcja.rola;
+    const g = Number(s.papier?.gramatura);
+    if (typ === 'wkladka' && g >= 30 && g <= 400) sekcja.papier = { gramatura: g, rodzaj: ['offset', 'ksiazkowy', 'objetosciowy', 'kredowy_mat', 'kredowy_blysk'].includes(s.papier.rodzaj) ? s.papier.rodzaj : 'offset' };
+    else delete sekcja.papier;
     return sekcja;
   });
   delete wynik.wydruk;

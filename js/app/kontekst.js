@@ -1,6 +1,7 @@
 // Wspólny stan aplikacji: otwarty projekt, edytor, historia cofania i krótkie funkcje „co jest teraz otwarte”.
 // Ten moduł nie zależy od pozostałych części aplikacji – wszystkie mogą z niego korzystać.
 
+import { wynikDlaStrony } from '../sekcje-specjalne.js';
 import { sekcjaStrony } from '../projekt.js';
 import { Historia } from '../historia.js';
 import { zamknijMenu, $$ } from '../ui.js';
@@ -95,7 +96,13 @@ export function wydrukCelu() {
   if (stan.tryb === 'wzorzec') return biezacyWzorzec().wydruk;
   const sekcja = biezacaSekcja();
   // Okładka (#119): edytor dostaje też strefy (tył, grzbiet, przód…) – do prowadnic i ostrzeżeń.
-  return sekcja.okladka?.wynik ? { ...sekcja.wydruk, okladka: sekcja.okladka.wynik } : sekcja.wydruk;
+  if (sekcja.okladka?.wynik) return { ...sekcja.wydruk, okladka: sekcja.okladka.wynik };
+  // Sekcja specjalna (#177): strefy, bigi, perforacje i wykrojnik tej strony sekcji (ulotka: zewnątrz / środek).
+  if (sekcja.specjalna?.wynik) {
+    const indeks = stan.projekt.strony.filter((s) => s.sekcja === sekcja.id).indexOf(biezacaStrona());
+    return { ...sekcja.wydruk, specjalna: wynikDlaStrony(sekcja.specjalna.wynik, Math.max(0, indeks)) };
+  }
+  return sekcja.wydruk;
 }
 
 export const liczba = (v) => String(Math.round(v * 100) / 100).replace('.', ',');

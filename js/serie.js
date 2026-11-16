@@ -33,6 +33,7 @@
 import { sekcjaStrony } from './projekt.js';
 import { zapiszLiczbe } from './pola.js';
 import { poleKsiazki } from './ksiazka.js';
+import { pozaNumeracja as bezNumerow } from './typ-sekcji.js';
 
 // Znacznik wiersza pomijanego – wpisywany w pierwszej komórce wiersza (w Excelu, CSV albo w oknie Dane).
 export const ZNACZNIK_POMIJANIA = '[pomiń]';
@@ -224,11 +225,14 @@ export function rozwin(projekt) {
   projekt.sekcje.forEach((sekcja, nrSekcji) => {
     const lista = egzemplarze.filter((e) => e.sekcja === sekcja);
     const { tryb, od } = sekcja.numeracja || { tryb: 'ciagla' };
+    // Typ sekcji (#177): okładka, wyklejki, obwoluta, wkładka, podkładka i druki osobne nie mają numerów stron
+    // i nie przesuwają numeracji bloku.
+    const pozaNumeracja = bezNumerow(sekcja);
     if (tryb === 'od') nastepny = od;
     const rozkladowki = sekcja.uklad === 'rozkladowki';
     lista.forEach((e, k) => {
       e.nrWSekcji = k + 1;
-      if (tryb !== 'brak') { e.nr = nastepny; nastepny += 1; }
+      if (tryb !== 'brak' && !pozaNumeracja) { e.nr = nastepny; nastepny += 1; }
       if (rozkladowki) {
         e.bok = bokMiejsca(sekcja, k);
         e.sasiad = lista[e.bok === 'lewa' ? k + 1 : k - 1] || null;

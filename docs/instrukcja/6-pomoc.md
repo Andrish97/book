@@ -106,6 +106,7 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 | **Rozdzielczość** | Zob. Dpi. |
 | **Separacje** | Osobne płyty drukarskie dla każdej farby (C, M, Y, K, kolory dodatkowe, uszlachetnienia). |
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
+| **Użytek** | Jeden egzemplarz małej rzeczy (wizytówki, naklejki) na arkuszu drukarskim – na jednym arkuszu mieści się ich wiele. |
 | **Wektor** | Rysunek opisany kształtami, a nie pikselami — ostry w każdym powiększeniu (teksty, kształty, PDF wektorowy). |
 | **Znaki cięcia** | Kreski w pliku PDF, które pokazują drukarni, gdzie ciąć. |
 
@@ -115,9 +116,13 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 |---|---|
 | **Biały poddruk** | Warstwa białej farby pod kolorami — potrzebna przy druku na przezroczystym, kolorowym albo metalizowanym podłożu. |
 | **Big, bigowanie** | Wgniecenie w kartonie (np. okładki), po którym karton zgina się równo i nie pęka. |
+| **Falc (złam)** | Linia, wzdłuż której składa się arkusz (np. ulotkę na trzy); na kartonie poprzedza go big. |
 | **Lakier wybiórczy** | Błyszczący lakier tylko na wybranych miejscach strony, np. na tytule. |
+| **Perforacja** | Linia drobnych nacięć, po której łatwo oderwać część arkusza, np. kartkę kalendarza. |
 | **Tłoczenie** | Wypukły albo wklęsły wzór wyciśnięty w papierze. |
+| **Typ sekcji** | Czym sekcja jest w publikacji (blok, okładka, wyklejka, wkładka, ulotka…) – ustala jej format, numerację i miejsce w grzbiecie. |
 | **Uszlachetnienie** | Dodatkowe wykończenie druku: lakier, złocenie (folia), tłoczenie, biały poddruk. |
+| **Wykrojnik** | Kształt, po którym drukarnia wycina i biguje arkusz (koperta, pudełko, naklejka); w PDF osobny kolor CutContour. |
 | **Złocenie (folia)** | Błyszcząca folia (złota, srebrna, kolorowa) przenoszona na papier w wybranych miejscach. |
 
 ## 30.3 Papier i oprawa
@@ -130,10 +135,14 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 | **Gramatura** | Grubość papieru podawana jako masa metra kwadratowego (g/m²) — od niej zależy m.in. szerokość grzbietu. |
 | **Grzbiet** | Część okładki między przodem a tyłem; jego szerokość zależy od liczby stron i papieru. W rozkładówce — miejsce zszycia. |
 | **Kapitałka** | Pasek tkaniny na górze i dole grzbietu bloku w twardej oprawie. |
+| **Obwoluta** | Papierowa okładka zakładana na twardą oprawę, z dwoma skrzydełkami zawiniętymi do środka (→ 11.11). |
 | **Oprawa** | Sposób połączenia kartek: zeszytowa (zszywki), klejona (miękka okładka), twarda, na spirali. |
 | **Rozkładówka** | Lewa i prawa strona obok siebie, jak w otwartej książce. |
 | **Składka** | Arkusz złożony w kilka kartek — książkę szyje się ze składek po 4, 8, 16 albo 32 strony. |
-| **Wyklejka** | Kartka łącząca blok książki z twardą okładką, przyklejona do wnętrza okładki. |
+| **Skrzydełko** | Część obwoluty albo okładki zawinięta do środka za płytę okładki. |
+| **Tasiemka (zakładka)** | Wąska wstążka wklejona w grzbiet twardej oprawy, do zaznaczania miejsca w książce. |
+| **Wkładka** | Kartki na innym papierze wszyte w środek książki, np. zdjęcia na kredzie – bez numerów stron. |
+| **Wyklejka** | Arkusz łączący blok książki z twardą okładką: połowa przyklejona do wnętrza okładki, połowa to pierwsza (albo ostatnia) luźna kartka. |
 
 ## 30.4 Tekst i typografia
 

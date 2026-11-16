@@ -1058,7 +1058,7 @@ if (require.main === module) (async () => {
   await d.waitForSelector('#dlg-sekcja[open]');
   await d.mouse.move(2, 2);
   await d.waitForTimeout(600);
-  await kadr(d, 'k-okladka-okno.png', { obszar: ['#pole-rodzaj-sekcji', '#sekcja-okladka'], zaznacz: '#pole-rodzaj-sekcji label:has-text("Okładka z grzbietem")', margines: 10 });
+  await kadr(d, 'k-okladka-okno.png', { obszar: ['#pole-typ-sekcji', '#sekcja-okladka'], zaznacz: '#pole-typ-sekcji .karta-typu[data-typ="okladka"]', margines: 10 });
   // Wymiary okładki wpisane ręcznie (#125): grzbiet od drukarni.
   await d.click('#sekcja-okladka label:has-text("Wpisz grzbiet")');
   await d.fill('#dlg-sekcja input[name=ok_grzbiet]', '8');
@@ -1134,6 +1134,8 @@ if (require.main === module) (async () => {
   await require('./zrzuty-gotowych-sekcji.cjs').zrobZrzutyGotowychSekcji(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty gotowych sekcji:', err.message));
   // Wzorce stron (#164): wyjaśnienie i galeria gotowych wzorców.
   await require('./zrzuty-wzorcow.cjs').zrobZrzutWzorcow(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut wzorców:', err.message));
+  // Sekcje specjalne (#177): okno sekcji z ulotką składaną i wykrojnik pudełka na stronie.
+  await require('./zrzuty-sekcji-specjalnych.cjs').zrobZrzutySekcjiSpecjalnych(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty sekcji specjalnych:', err.message));
 
   await przegladarka.close();
 })();

@@ -72,6 +72,8 @@ const OPIS_OSTRZEZEN = {
   poza_strona: 'Poza stroną – nie będzie widoczny w druku.',
   poza_spadem: 'Wychodzi poza spad – część zostanie ucięta.',
   szerszy_niz_grzbiet: 'Szerszy niż grzbiet – zachodzi na tył albo przód okładki.',
+  na_zgieciu: 'Tekst leży na zgięciu albo perforacji – po złożeniu będzie przełamany. Przesuń go do jednego panelu.',
+  poza_wykrojnikiem: 'Poza wykrojnikiem – ta część zostanie wycięta i nie trafi na gotową rzecz.',
   w_marginesie: 'Wchodzi w margines – może zostać przycięty.',
   nieznane_pole: 'Pole w klamrach nie pasuje do kolumny tabeli tej strony ani do pola dokumentu.',
   nie_miesci_sie: 'Tekst nie mieści się w ramce – dół zostanie ucięty.',
@@ -222,7 +224,22 @@ const oknoKontroli = new OknoKontroli({
   },
   pokazWPodgladzie: (nrStrony) => pokazPodglad({ nrStrony }),
   // Naprawy prosto z listy uwag (#127): kolory spoza trybu kolorów → najbliższe dozwolone.
-  napraw: async (u) => { if (u.naprawa === 'kolory_trybu') await zamienKoloryNaDozwolone(); },
+  napraw: async (u) => {
+    if (u.naprawa === 'kolory_trybu') await zamienKoloryNaDozwolone();
+    // Twarda oprawa bez wyklejek (#177): brakujące wyklejki dochodzą jako czyste sekcje.
+    if (u.naprawa === 'wyklejki') {
+      zapiszBiezacyCel();
+      const { dodajWyklejki } = await import('../sekcje-specjalne.js');
+      const { przeliczOkladki } = await import('../okladka.js');
+      const nowe = dodajWyklejki(stan.projekt);
+      przeliczOkladki(stan.projekt);
+      stan.miniatury.clear();
+      await zaladujCel();
+      zaplanujZapis();
+      powiadom(nowe.length ? `Dodano: ${nowe.map((s) => s.nazwa.toLowerCase()).join(' i ')}.` : 'Wyklejki już są.');
+      oknoKontroli.otworz();
+    }
+  },
 });
 
 // Okno eksportu PDF razem z całym zapisem PDF (pdf-lib, czcionki, profile barwne) wczytuje się przy pierwszym

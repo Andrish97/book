@@ -23,6 +23,8 @@ import { impozycjaPdf } from './impozycja.js';
 import { linkiStrony, dodajLinki, dodajZakladki } from './pdf-nawigacja.js';
 import { indeksKsiazki } from './ksiazka.js';
 import { ustawSilnikTac } from './separacje.js';
+import { wynikDlaStrony, rolaSekcji, ROLE_SEKCJI } from './sekcje-specjalne.js';
+import { rysujLinieSpecjalne, arkuszeUzytkow } from './pdf-specjalne.js';
 
 const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
 const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
@@ -73,6 +75,23 @@ export function planPlikow(projekt, egzemplarze, { podzial = 'jeden', ileStron =
     for (const e of egzemplarze) grupy.set(e.sekcja, [...(grupy.get(e.sekcja) || []), e]);
     if (grupy.size > 1) {
       return [...grupy].map(([s, lista], i) => ({ nazwa: `${podstawa} - ${i + 1} ${bezpiecznaNazwa(s.nazwa)}.pdf`, egzemplarze: lista }));
+    }
+  }
+  // Pliki dla drukarni według roli sekcji (#177): okładka, obwoluta, wyklejki (przednia i tylna razem), blok,
+  // wkładki, podkładka; druki osobne (ulotka, wykrojnik, arkusz użytków…) – każdy we własnym pliku.
+  if (podzial === 'role') {
+    const KOLEJNOSC = ['okladka', 'obwoluta', 'wyklejka', 'blok', 'wkladka', 'podkladka', 'osobny'];
+    const NAZWY = { okladka: 'okladka', obwoluta: 'obwoluta', wyklejka: 'wyklejki', blok: 'blok', wkladka: 'wkladki', podkladka: 'podkladka' };
+    const grupy = new Map();
+    for (const e of egzemplarze) {
+      const rola = rolaSekcji(projekt, e.sekcja);
+      const klucz = rola === 'osobny' ? `osobny:${e.sekcja.id}` : rola;
+      if (!grupy.has(klucz)) grupy.set(klucz, { rola, sekcja: e.sekcja, lista: [] });
+      grupy.get(klucz).lista.push(e);
+    }
+    if (grupy.size > 1) {
+      return [...grupy.values()].sort((a, b) => KOLEJNOSC.indexOf(a.rola) - KOLEJNOSC.indexOf(b.rola))
+        .map((g, i) => ({ nazwa: `${podstawa} - ${i + 1} ${g.rola === 'osobny' ? bezpiecznaNazwa(g.sekcja.nazwa) : NAZWY[g.rola]}.pdf`, egzemplarze: g.lista, rola: g.rola, opis: ROLE_SEKCJI[g.rola]?.nazwa }));
     }
   }
   if (podzial === 'czesci') {
@@ -169,6 +188,9 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     return { ...srodowisko, szarosc: sz, cmyk: srodowisko.cmyk || sz, silnik: sz ? null : srodowisko.silnik, obrazy: sz ? (obrazySzare || srodowisko.obrazy) : srodowisko.obrazy, spoty: mapaSpotow(spotyDruku(projekt, sek)) };
   };
   let nr = 0;
+  // Sekcje specjalne (#177): numer strony w sekcji (ulotka: zewnątrz / środek) i zakresy stron arkuszy użytków.
+  const wSekcji = new Map();
+  const grupyUzytkow = [];
   const naNumer = new Map(); // numer strony w wydruku → strona PDF (linki ze spisu i odsyłaczy)
   const naKlucz = new Map(); // klucz egzemplarza → strona PDF (zakładki)
   const doLinkow = [];
@@ -220,6 +242,19 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     strona.setTrimBox(m.pas * PT, m.pas * PT, m.w * PT, m.h * PT);
     strona.setBleedBox((m.pas - m.spad) * PT, (m.pas - m.spad) * PT, (m.w + 2 * m.spad) * PT, (m.h + 2 * m.spad) * PT);
     if (zeZnakami) rysujZnaki(strona, PDFLib, m, Boolean(warunki) || (wektor && cmyk));
+    const specjalna = egz.sekcja.specjalna?.wynik;
+    if (specjalna) {
+      const i = wSekcji.get(egz.sekcja.id) || 0;
+      wSekcji.set(egz.sekcja.id, i + 1);
+      if (specjalna.rodzaj === 'arkusz' && !arkusze && specjalna.uzytki?.na_arkuszu) {
+        // Użytek idzie na arkusz (po pętli) – bez znaków cięcia na samej stronie użytku, linia wykrojnika rysuje się na arkuszu.
+        const ost = grupyUzytkow[grupyUzytkow.length - 1];
+        if (ost && ost.id === egz.sekcja.id && ost.od + ost.ile === nr) ost.ile += 1;
+        else grupyUzytkow.push({ id: egz.sekcja.id, od: nr, ile: 1, uklad: specjalna.uzytki, uzytek: { w: m.w, h: m.h }, spad: m.spad, ciecie: specjalna.ciecie });
+      } else {
+        rysujLinieSpecjalne(PDFLib, pdf, strona, m, wynikDlaStrony(specjalna, i), { czarnaFarba: Boolean(warunki) || (wektor && cmyk) });
+      }
+    }
     if (egz.nr !== null && egz.nr !== undefined && !naNumer.has(egz.nr)) naNumer.set(egz.nr, strona);
     naKlucz.set(egz.klucz ?? egz, strona);
     nr += 1;
@@ -235,6 +270,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     dodajZakladki(PDFLib, pdf, zakladkiPliku(projekt, egzemplarze, ciag, naKlucz));
   }
   let wynik = pdf;
+  if (grupyUzytkow.length) wynik = await arkuszeUzytkow(PDFLib, await pdf.save(), grupyUzytkow, { znaki: znaki !== false });
   if (arkusze) wynik = (await impozycjaPdf(PDFLib, await pdf.save(), { uklad, skladka, format: formatArkusza, pelzanie, znaki: znaki !== false, powieksz, tytul: projekt.nazwa })).pdf;
   if (warunki) await dodajPdfX(PDFLib, wynik, warunki, { tytul: projekt.nazwa });
   const bajty = await wynik.save();

@@ -307,6 +307,14 @@ test('MCP: pola liczone przez aplikację są chronione – AI ich nie nadpisuje 
   const qr = obiekty.find((x) => x.id === 'qr');
   assert.equal(qr.kod.tresc, 'https://example.org');
   assert.equal(qr.kod.narysowano, 'https://makietka.app', 'narysowano zostaje z projektu – aplikacja widzi nową treść i przerysuje kod');
+  // Sekcja specjalna (#177): wynik (strefy, zgięcia) liczy aplikacja – AI zmienia parametry, wynik zostaje.
+  const wynik = { szerokosc: 295, wysokosc: 210, strefy: [{ rodzaj: 'zew_1', nazwa: 'Okładka', x1: 0, y1: 0, x2: 99, y2: 210 }] };
+  p.dane.sekcje[0].specjalna = { rodzaj: 'ulotka', panele: 3, zlozenie: 'c', szerokosc_mm: 99, wysokosc_mm: 210, skrot_mm: 2, wynik };
+  const zs = await narzedzie('zmien_czesc', { czesc: 'sekcje', id: p.dane.sekcje[0].id, pola: { specjalna: { rodzaj: 'ulotka', panele: 4, zlozenie: 'z', szerokosc_mm: 99, wysokosc_mm: 210, wynik: { szerokosc: 1, wysokosc: 1, strefy: [] } } } });
+  assert.equal(zs.blad, false, zs.tekst);
+  const sp = s.projekt().projekt.sekcje[0].specjalna;
+  assert.equal(sp.panele, 4);
+  assert.deepEqual(sp.wynik, wynik, 'specjalna.wynik zostaje z projektu');
 });
 
 test('MCP: komentarze – lista, nowy wątek, odpowiedź z rozwiązaniem, klucz tylko do czytania też komentuje (#131D)', async (t) => {

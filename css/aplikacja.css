@@ -2881,6 +2881,18 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .wynik-okladki strong { font-size: 14px; }
 .wynik-okladki small { font-size: 12px; color: var(--cichy); }
 #pole-ok-liczba input:disabled { opacity: .7; }
+/* Sekcje specjalne (#177): schemat stref, zgięć i wykrojnika rysowany w SVG. */
+.schemat-specjalnej { background: transparent; border: 0; overflow: visible; }
+.schemat-specjalnej svg { display: block; width: 100%; height: 100%; }
+.schemat-specjalnej .sp-strefa { fill: var(--powierzchnia); stroke: var(--linia-mocna); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.schemat-specjalnej .sp-strefa.pomocnicza { fill: color-mix(in srgb, #eab308 18%, var(--powierzchnia)); }
+.schemat-specjalnej .sp-strefa.waska { fill: color-mix(in srgb, var(--akcent) 18%, var(--powierzchnia)); }
+.schemat-specjalnej .sp-big { stroke: #0d9488; stroke-width: 1.2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.schemat-specjalnej .sp-perforacja { stroke: #7c3aed; stroke-width: 1.2; stroke-dasharray: 1 3; vector-effect: non-scaling-stroke; }
+.schemat-specjalnej .sp-ciecie { fill: none; stroke: #db2777; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.schemat-specjalnej text { font: 600 11px Inter, system-ui, sans-serif; fill: var(--tusz-2); text-anchor: middle; dominant-baseline: middle; }
+.schemat-specjalnej text.podpis-strony { font-size: 10px; fill: var(--cichy); text-anchor: start; }
+[data-sp][hidden], [data-sp-ksztalt][hidden] { display: none !important; }
 /* Licznik składek w panelu stron (#120). */
 .skladka-sekcji { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 2px 0 0; font-size: 11px; color: var(--cichy); }
 .skladka-sekcji.brak { color: var(--uwaga); font-weight: 600; }
@@ -3385,3 +3397,17 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 .pola-stylu-marki { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; padding: 4px 12px 12px; }
 .pola-stylu-marki .szeroko { grid-column: 1 / -1; }
 .pola-stylu-marki [data-usun] { justify-self: start; }
+
+/* Typ sekcji (#177): karty z ikoną, nazwą i jednym zdaniem opisu. */
+.typy-sekcji { border: 0; padding: 0; margin: 0 0 8px; min-width: 0; }
+.typy-sekcji legend { font-size: 0.85rem; color: var(--cichy); padding: 0; margin-bottom: 6px; }
+.lista-typow { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+.karta-typu { position: relative; display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-m); cursor: pointer; background: var(--powierzchnia); }
+.karta-typu:hover { background: var(--wypelnienie-hover); }
+.karta-typu.wybrana { border-color: var(--akcent); background: var(--akcent-tlo); }
+.karta-typu input { position: absolute; opacity: 0; pointer-events: none; }
+.karta-typu:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.karta-typu .ikona { flex: none; margin-top: 1px; color: var(--akcent); }
+.karta-typu span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.karta-typu strong { font-size: 0.9rem; font-weight: 600; }
+.karta-typu small { font-size: 0.78rem; color: var(--cichy); line-height: 1.3; }

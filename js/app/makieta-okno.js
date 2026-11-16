@@ -8,6 +8,7 @@ import { rozwin } from '../serie.js';
 import { renderujCel } from '../zlozenie.js';
 import { geometriaOkladki, jestOkladka, normalizujOkladke } from '../okladka.js';
 import { MODELE, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer, widokModelu, powodBrakuWebGL } from '../makieta-3d.js';
+import { typSekcji } from '../typ-sekcji.js'; // typ sekcji wspólny z resztą programu (#177)
 
 const dlg = $('#dlg-makieta');
 const plotno = $('#makieta-plotno');
@@ -195,7 +196,7 @@ function rysuj() {
 // reszta – luźna kartka przed stroną 1; tylna odwrotnie. Twarda oprawa bez wyklejek – czysta wyklejka (papier).
 // Blok zaczyna się od nowej kartki. Strony dwa razy szersze od bloku (rozkładówka na jednym arkuszu) – dwie
 // połowy. Format bloku – najczęstszy format stron. Obwoluta – na razie bez modelu (docs/ZGLOSZENIA.md).
-export const typSekcji = (s) => s?.typ || (s?.okladka ? 'okladka' : 'zwykla');
+export { typSekcji };
 function listaStron(model) {
   const ksiazka = !model.startsWith('kalendarz') && model !== 'kartka';
   const typ = (e) => typSekcji(e.sekcja);
