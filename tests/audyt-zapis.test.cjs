@@ -32,7 +32,15 @@ test('zmiana tuż przed przeładowaniem karty zostaje – na urządzeniu i potem
     if (czekaj) await strona.waitForTimeout(czekaj);
     await strona.reload();
     await strona.waitForFunction(() => window.seriodruk?.edytor?.canvas?.getObjects().length === 1);
-    assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects()[0].fill), kolor, `zmiana ${czekaj} ms przed przeładowaniem`);
+    const naPlotnie = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects()[0].fill);
+    // Opis błędu: co jest w zapisie na urządzeniu i co na koncie – żeby było wiadomo, gdzie zmiana zginęła.
+    const stanZapisu = naPlotnie === kolor ? '' : await strona.evaluate(async () => {
+      const { wczytajLokalnie } = await import('./js/lokalny.js');
+      const r = await wczytajLokalnie(window.seriodruk.stan.projekt.id);
+      return JSON.stringify({ urzadzenie: r?.projekt?.strony?.[0]?.obiekty?.[0]?.fill, doWyslania: r?.doSynchronizacji, wersja: r?.projekt?.wersja_chmury, konflikt: window.seriodruk.stan.konflikt, dotkniete: localStorage.getItem(`makietka:dotkniete:${window.seriodruk.stan.projekt.id}`) });
+    });
+    const naKoncieTeraz = [...baza.strony.values()].flatMap((s) => s.obiekty || []).map((o) => o.fill);
+    assert.equal(naPlotnie, kolor, `zmiana ${czekaj} ms przed przeładowaniem ${stanZapisu} konto: ${naKoncieTeraz}`);
   }
   // Wysyłka na konto idzie z zapisu na urządzeniu.
   const naKoncieJest = async (kolor) => {

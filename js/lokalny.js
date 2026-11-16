@@ -86,6 +86,9 @@ export function zapiszLokalnieOdRazu(projekt, wlasciciel) {
   try {
     const tx = polaczenie.transaction(MAGAZYN, 'readwrite');
     tx.objectStore(MAGAZYN).put({ id: projekt.id, wlasciciel, miniatura: projekt.miniatura || null, nazwa: projekt.nazwa, zmieniono: projekt.zmieniono, projekt, doSynchronizacji: true });
+    // Zatwierdzenie od razu, bez czekania na koniec bieżącego zadania strony – przy zamykaniu karty liczy się
+    // każda chwila: transakcja niezatwierdzona w chwili zniszczenia strony przepada (#184).
+    tx.commit?.();
     return true;
   } catch { return false; }
 }
