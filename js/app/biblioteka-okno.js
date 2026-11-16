@@ -3,7 +3,8 @@
 // stronę – element staje w miejscu upuszczenia. Na komputerze okno jest panelem obok strony (zostaje otwarte
 // do kolejnych wstawień), na telefonie i tablecie – zasłonką, która zamyka się po wstawieniu.
 
-import { $ } from '../ui.js';
+import { $, zapytajOWybor } from '../ui.js';
+import { moznaWzor } from '../wzor-wypelnienia.js';
 import { ikona } from '../ikony.js';
 import { kategorieBiblioteki, szukajWBibliotece, elementBiblioteki } from '../biblioteka.js';
 import { ustawDomyslneDaneWykresu } from '../biblioteka-elementy.js';
@@ -83,6 +84,21 @@ export function otworzBiblioteke(idKategorii = null) {
 export function wstawZBiblioteki(idKategorii, idElementu, punkt = null) {
   const e = elementBiblioteki(idKategorii, idElementu);
   if (!e) return null;
+  // Wzór przy zaznaczonym kształcie (#182): wypełnić kształt albo wstawić tło na całą stronę.
+  const akt = edytor.aktywny;
+  const wzor = idKategorii === 'tla' && /^wzor-/.test(idElementu) ? idElementu.slice(5) : null;
+  if (wzor && !punkt && moznaWzor(akt)) {
+    return (async () => {
+      const wybor = await zapytajOWybor('Wzór', `„${e.nazwa.replace(/^Wzór: /, '')}” – wypełnić nim zaznaczony kształt czy wstawić tło na całą stronę?`, 'Wypełnij zaznaczony kształt', 'Wstaw na stronę');
+      if (!wybor) return null;
+      if (!naKomputerze()) dlg.close();
+      if (wybor === 'nie') return e.wstaw(edytor, punkt);
+      edytor.ustawWzor(akt, wzor);
+      edytor.zaznacz(akt.id);
+      edytor.zatwierdz();
+      return akt;
+    })();
+  }
   const obj = e.wstaw(edytor, punkt);
   if (!naKomputerze()) dlg.close();
   return obj;

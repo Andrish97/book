@@ -237,7 +237,7 @@ i Twoje własne elementy. Otwiera ją [Biblioteka] na pasku wstawiania.
 | **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; separatory ozdobne (fala, zygzak, z kropką, kółkiem, gwiazdką, kwiatkiem, rombami, zawijasy, pętelki, listki…). Rodzaj i grubość zmienisz potem w części **Linia** (→ 6.2). |
 | **Etykiety i plakietki** | Etykiety zaokrąglone, ze ściętymi rogami, owalne, z obwódką, faliste, ząbkowane, na słoik, herbowe, cenówka, metka, plakietka, pieczątka, znaczek pocztowy, tabliczka — w środek wstaw tekst. |
 | **Okolicznościowe** | Zestawy w jednym stylu na **Boże Narodzenie**, **Wielkanoc**, **urodziny**, **ślub**, **chrzest**, **Pierwszą Komunię** i **szkołę**: nagłówek z życzeniami, ramka, szlaczek i gotowa kartka. |
-| **Tła i wzory** | **Wzory na całą stronę** (paski, kropki, groszki, kratka, krata, jodełka, fale, zygzak, romby, gwiazdki, kwiatki, plaster miodu, łuski, trójkąty, krzyżyki, koła), **Tekstury papieru** (płótno lniane, karton, papier pakowy, czerpany, w linie z marginesem, milimetrowy), **Przejścia kolorów** i **Plamy i akwarela**. Wzory, tekstury i przejścia wstawiają się na całą stronę ze spadem, pod treść; wzór to jeden wektorowy element na tle – kolory zmienisz po otwarciu grupy (dwuklik). |
+| **Tła i wzory** | **Wzory na całą stronę** (paski, kropki, groszki, kratka, krata, jodełka, fale, zygzak, romby, gwiazdki, kwiatki, plaster miodu, łuski, trójkąty, krzyżyki, koła), **Tekstury papieru** (płótno lniane, karton, papier pakowy, czerpany, w linie z marginesem, milimetrowy), **Przejścia kolorów** i **Plamy i akwarela**. Wzory, tekstury i przejścia wstawiają się na całą stronę ze spadem, pod treść; wzór to jeden wektorowy element na tle – kolory zmienisz po otwarciu grupy (dwuklik). Przy zaznaczonym kształcie wzór może go wypełnić (→ 6.5). |
 | **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (→ 4.9). |
 | **Planer** | Gotowe tabele do planerów i notesów: lista zadań, tracker nawyków, plan tygodnia, plan dnia (godziny), notatki w linie, siatka dni tygodnia, lista zakupów, cele, budżet, kontakty, plan lekcji; **Plany**: kalendarz roczny (12 miesięcy na stronie), plan miesiąca, tydzień w kolumnach i z priorytetami, plan posiłków; **Trackery**: nastrój, woda, czytanie, dziennik modlitwy; **Listy i budżet**: lista życzeń, budżet miesięczny; do tego siatki do notatek: kratka, kropki, linie (co 5 mm), papier milimetrowy, siatka izometryczna. Pola wyboru są w **Kształtach → Znaki**. |
 | **Formularze do druku** | Data i podpis, kratki na litery, pola na dane, odcinek do odcięcia z nożyczkami, pola wyboru, skala ocen 1–5, pole na uwagi, kupon, zgoda z podpisem; tabelka zamówienia i lista obecności (zwykłe tabele). |
@@ -668,8 +668,8 @@ sprzed edycji. Tak samo zmienisz linię rysowaną odręcznie.
 
 Część **Wypełnienie i obrys**, lista **Wypełnienie**:
 
-**Brak**, **Jeden kolor**, **Przejście liniowe** (w jednym kierunku, pod zadanym **Kątem**) albo
-**Przejście kołowe** (od środka na zewnątrz, zasięg — **Promień**).
+**Brak**, **Jeden kolor**, **Przejście liniowe** (w jednym kierunku, pod zadanym **Kątem**),
+**Przejście kołowe** (od środka na zewnątrz, zasięg — **Promień**) albo **Wzór**.
 
 Pasek przejścia pokazuje kolory. [Dodaj kolor] dokłada kolejny; kliknięcie koloru na pasku pozwala
 zmienić go i jego położenie w %, [Usuń ten kolor z przejścia] go usuwa.
@@ -677,6 +677,14 @@ zmienić go i jego położenie w %, [Usuń ten kolor z przejścia] go usuwa.
 Każdy kolor przejścia ma pole **Krycie** — np. kolor przechodzący w przezroczystość nad zdjęciem.
 
 ![Krycie koloru w przejściu](k-krycie-przejscia.png)
+
+**Wzór** wypełnia kształt powtarzalnym wzorem z Biblioteki — paski, kropki, kratka, jodełka, fale i inne.
+Wybierasz go z kafelków, a pod nimi ustawiasz **Kolor wzoru**, **Kolor tła**, **Skalę wzoru** i **Obrót wzoru**.
+Wzór nie rozciąga się, gdy zmieniasz rozmiar kształtu, a w pliku PDF zostaje ostry (wektorowy). Zamknięty
+kształt z pióra i kształty z Biblioteki mają w części **Linia** przełącznik **Wypełnij wzorem**. Kafelek wzoru
+w Bibliotece przy zaznaczonym kształcie pyta, czy [Wypełnij zaznaczony kształt], czy [Wstaw na stronę].
+
+![Kształty wypełnione wzorem](k-wzor-ksztaltu.png)
 
 ## 6.6 Obrys
 

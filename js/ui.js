@@ -36,6 +36,21 @@ export function potwierdz(tytul, tresc, tak = 'OK', niebezpieczne = false, nie =
   return new Promise((ok) => dlg.addEventListener('close', () => ok(dlg.returnValue === 'tak'), { once: true }));
 }
 
+// Wybór jednej z dwóch dróg (#182): 'tak' | 'nie' | null (zamknięte bez wyboru – Esc, uchwyt, tło).
+export function zapytajOWybor(tytul, tresc, tak, nie) {
+  const dlg = $('#dlg-potwierdz');
+  $('#potwierdz-tytul').textContent = tytul;
+  $('#potwierdz-tresc').textContent = tresc;
+  const b = $('#potwierdz-tak');
+  b.textContent = tak;
+  b.style.background = '';
+  b.style.borderColor = '';
+  $('#potwierdz-nie').textContent = nie;
+  dlg.returnValue = '';
+  dlg.showModal();
+  return new Promise((ok) => dlg.addEventListener('close', () => ok(dlg.returnValue === 'tak' ? 'tak' : (dlg.returnValue === 'nie' ? 'nie' : null)), { once: true }));
+}
+
 export function zapytajONazwe(tytul, etykieta, wartosc) {
   const dlg = $('#dlg-nazwa');
   $('#nazwa-tytul').textContent = tytul;

@@ -11,6 +11,7 @@ import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
 import { USZLACHETNIENIA, FOLIE, plytaUszlachetnienia, trybKolorow, sekcjaBiezaca, koloryDodatkowe, mapaSpotow, dodajKolorDodatkowy, rgbNaCmyk, hexSpotu } from './kolory-druku.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu, toKolaz, WIELOKATY, podgladWielokata } from './edytor.js';
+import { WZORY, podgladWzoru, moznaWzor } from './wzor-wypelnienia.js';
 import { RODZAJE_KSZTALTU, normalizujKsztalt, ustawKontrolkiKsztaltu, sciezkaZKsztaltu, czyWygiecie } from './tekst-ksztalt.js';
 import { toKalendarz, MIESIACE, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
 import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
@@ -1564,6 +1565,29 @@ export class PanelWlasciwosci {
     s.append(wybor, przyciski);
   }
 
+  // Wzór jako wypełnienie (#182): siatka wzorów z podglądem, kolor wzoru, kolor tła, skala i obrót.
+  czescWzoru(s, obj, { bezTla = false } = {}) {
+    const wybor = document.createElement('div');
+    wybor.className = 'wybor-wzoru';
+    wybor.setAttribute('role', 'group');
+    wybor.setAttribute('aria-label', 'Wzór');
+    wybor.innerHTML = WZORY.map((w) => `<button type="button" data-wzor="${w.id}" title="${w.nazwa}" aria-label="${w.nazwa}">${podgladWzoru(w.id)}</button>`).join('');
+    const zapiszWzor = this._zapisz((id) => this.edytor.ustawWzor(obj, id));
+    wybor.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-wzor]');
+      if (b) zapiszWzor(b.dataset.wzor);
+    });
+    const odswiezWybor = () => { for (const b of wybor.children) b.setAttribute('aria-pressed', String(b.dataset.wzor === obj.wzor?.id)); };
+    this.odswiezacze.push(odswiezWybor);
+    odswiezWybor();
+    s.append(wybor);
+    const zmien = (zmiany) => this.edytor.ustawWzor(obj, obj.wzor?.id, zmiany);
+    s.append(this.kolor('Kolor wzoru', () => obj.wzor?.kolor || '#2f5d8a', (v) => zmien({ kolor: v })));
+    if (!bezTla && (typeof obj.fill === 'string' || !obj.fill)) s.append(this.kolor('Kolor tła', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
+    s.append(this.liczba('Skala wzoru', () => Math.round((obj.wzor?.skala ?? 1) * 100), (v) => zmien({ skala: Math.min(400, Math.max(25, v)) / 100 }), { jednostka: '%', krok: 25, min: 25 }));
+    s.append(this.liczba('Obrót wzoru', () => Math.round(obj.wzor?.obrot ?? 0), (v) => zmien({ obrot: v }), { jednostka: '°', krok: 15 }));
+  }
+
   zbudujWypelnienie(obj) {
     if (obj.type === 'polygon') {
       const k = this.sekcja('Kształt');
@@ -1591,7 +1615,7 @@ export class PanelWlasciwosci {
     const s = this.sekcja('Wypełnienie i obrys');
     // Wypełnienie: jeden kolor, przejście liniowe albo kołowe – z dowolną liczbą kolorów.
     const gradient = () => (obj.fill && typeof obj.fill === 'object' && obj.fill.colorStops ? obj.fill : null);
-    const rodzaj = () => (gradient() ? (gradient().type === 'radial' ? 'kolowy' : 'liniowy') : (!obj.fill || obj.fill === 'transparent' ? 'brak' : 'kolor'));
+    const rodzaj = () => (obj.wzor ? 'wzor' : gradient() ? (gradient().type === 'radial' ? 'kolowy' : 'liniowy') : (!obj.fill || obj.fill === 'transparent' ? 'brak' : 'kolor'));
     const przystanki = () => [...gradient().colorStops].sort((p, q) => p.offset - q.offset).map((p) => ({ offset: p.offset, color: p.color }));
     const KIERUNKI = { poziomo: [0, 0, 1, 0], pionowo: [0, 0, 0, 1], ukos: [0, 0, 1, 1] };
     const wspolrzedne = () => { const c = gradient()?.coords; return c ? [c.x1, c.y1, c.x2, c.y2] : KIERUNKI.poziomo; };
@@ -1606,8 +1630,12 @@ export class PanelWlasciwosci {
       obj.set('fill', new fabric.Gradient({ type: typ === 'kolowy' ? 'radial' : 'linear', gradientUnits: 'percentage', coords, colorStops: kolory }));
     };
     const pierwszyKolor = () => (gradient() ? przystanki()[0].color : (naHex(obj.fill) || '#2f5bd3'));
-    const wyborRodzaju = this.wybor('Wypełnienie', [['kolor', 'Jeden kolor'], ['liniowy', 'Przejście liniowe'], ['kolowy', 'Przejście kołowe'], ['brak', 'Brak']], rodzaj, (v) => {
+    const rodzaje = [['kolor', 'Jeden kolor'], ['liniowy', 'Przejście liniowe'], ['kolowy', 'Przejście kołowe'], ...(moznaWzor(obj) ? [['wzor', 'Wzór']] : []), ['brak', 'Brak']];
+    const wyborRodzaju = this.wybor('Wypełnienie', rodzaje, rodzaj, (v) => {
       const kolor = pierwszyKolor();
+      // Wzór (#182) leży na tle z wypełnienia – przy zmianie na inny rodzaj znika, tło zostaje.
+      if (v === 'wzor') { this.edytor.ustawWzor(obj, obj.wzor?.id || 'paski-skosne'); this.zbuduj(); return; }
+      if (obj.wzor) this.edytor.ustawWzor(obj, null);
       if (v === 'kolor') obj.set('fill', kolor);
       else if (v === 'brak') obj.set('fill', '');
       else ustawGradient({ typ: v, kolory: gradient() ? przystanki() : [{ offset: 0, color: kolor }, { offset: 1, color: '#ffffff' }], wsp: gradient()?.type === 'linear' ? wspolrzedne() : KIERUNKI.poziomo, r: 50 });
@@ -1616,6 +1644,7 @@ export class PanelWlasciwosci {
     wyborRodzaju.classList.add('szeroki');
     s.append(wyborRodzaju);
     if (rodzaj() === 'kolor') s.append(this.kolor('Kolor wypełnienia', () => obj.fill, (v) => obj.set('fill', v)));
+    if (rodzaj() === 'wzor') this.czescWzoru(s, obj);
     if (gradient()) {
       // Kolory przejścia: każdy ma położenie w procentach; dwa skrajne zostają zawsze.
       przystanki().forEach((p, i, wszystkie) => {
@@ -1904,7 +1933,12 @@ export class PanelWlasciwosci {
     s.append(rodzaj);
     if (obj.type !== 'path') return;
     // Zamknięty kształt (z pióra) może mieć wypełnienie.
-    if (obj.path?.some((k) => k[0] === 'Z')) s.append(this.kolor('Wypełnienie', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
+    if (obj.path?.some((k) => k[0] === 'Z')) {
+      s.append(this.kolor('Wypełnienie', () => (typeof obj.fill === 'string' ? obj.fill : ''), (v) => obj.set('fill', v || ''), { brak: true }));
+      // Wzór w zamkniętym kształcie (#182) – także w kształtach z Biblioteki.
+      s.append(this.przelacznik('Wypełnij wzorem', () => Boolean(obj.wzor), (v) => { this.edytor.ustawWzor(obj, v ? (obj.wzor?.id || 'paski-skosne') : null); this.zbuduj(); }));
+      if (obj.wzor) this.czescWzoru(s, obj, { bezTla: true });
+    }
     const punkty = this.akcje([['suwaki', 'Edytuj punkty', () => { if (!this.edytor.edytujPunkty(obj)) powiadom('Punkty edytuje się w kształcie, który nie jest zablokowany. Kształt w grupie: najpierw kliknij grupę dwa razy.'); }]]);
     s.append(punkty);
     s.append(this.wskazowka('Albo kliknij kształt dwa razy (na ekranie dotykowym: stuknij dwa razy).'));

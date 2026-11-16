@@ -5,6 +5,7 @@
 // Uszlachetnienia (#127): efekt w edytorze i płyty w PDF – nakładka na rysowanie obiektów Fabric.
 import { zainstalujUszlachetnienia } from './kolory-druku.js';
 import { zainstalujMiekkieKrawedzie } from './miekkie-krawedzie.js';
+import { zainstalujWzory } from './wzor-wypelnienia.js';
 
 // Własne właściwości obiektów, które zapisujemy razem z JSON-em Fabric.
 export const WLASNE_POLA = [
@@ -40,6 +41,7 @@ export const WLASNE_POLA = [
   'ksztalt_tekstu', // tekst po łuku, okręgu, ścieżce albo wygięty (tekst-ksztalt.js, #131B)
   'zaokraglenie', // zaokrąglone narożniki zwykłego obrazu w mm – obraz przycięty, obrys po zaokrągleniu (miekkie-krawedzie.js, #156)
   'miekkie_krawedzie', 'miekkie_rodzaj', // miękkie krawędzie (wtapianie) w mm; rodzaj: brak = równo wzdłuż brzegu, owal = winieta (#156)
+  'wzor', // wzór jako wypełnienie kształtu: { id, kolor, skala, obrot } – tłem jest fill (wzor-wypelnienia.js, #182)
   'kolaz', // kolaż: { uklad, odstep, zaokraglenie, szerokosc, wysokosc } – grupa pól na zdjęcia (#131A)
 ];
 
@@ -47,6 +49,7 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   fabric.BaseFabricObject.prototype._ustawieniaSeriodruku = true;
   zainstalujUszlachetnienia();
   zainstalujMiekkieKrawedzie();
+  zainstalujWzory();
 
   // Pamięć podręczna obiektów tylko tam, gdzie się opłaca (#158). Fabric domyślnie trzyma każdy obiekt
   // w osobnym płótnie (min. 256×256 px) i przy każdym odrysowaniu nakłada je na stronę – przy 200–300
@@ -56,7 +59,7 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   // bufor zostaje dla grup (tabele, kalendarze, kody, kolaże), obrazów, cieni, przycięć, miękkich krawędzi,
   // wypełnień obrazem, tekstu po kształcie i bardzo złożonych ścieżek.
   const oplacaSieCache = (o) => Boolean(o._objects || o.type === 'image' || o.shadow || o.clipPath
-    || Number(o.miekkie_krawedzie) > 0 || o.ksztalt_tekstu || o.filtry
+    || Number(o.miekkie_krawedzie) > 0 || o.ksztalt_tekstu || o.filtry || o.wzor
     || (o.fill && typeof o.fill === 'object' && o.fill.source)
     || (o.path && o.path.length > 200) || (o.points && o.points.length > 200));
   const zCache = fabric.FabricObject.prototype.shouldCache;
@@ -87,7 +90,7 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   // Każda klasa Fabric ma własną listę – dopisujemy do każdej, która może mieć obraz.
   for (const klasa of ['FabricObject', 'Rect', 'Ellipse', 'Circle', 'Polygon', 'Polyline', 'Triangle', 'Path', 'FabricImage']) {
     const lista = fabric[klasa]?.cacheProperties;
-    if (Array.isArray(lista)) for (const k of ['filtry', 'obraz_kadr', 'zasob', 'uszlachetnienie', 'folia', 'zaokraglenie', 'miekkie_krawedzie', 'miekkie_rodzaj']) if (!lista.includes(k)) lista.push(k);
+    if (Array.isArray(lista)) for (const k of ['filtry', 'obraz_kadr', 'zasob', 'uszlachetnienie', 'folia', 'zaokraglenie', 'miekkie_krawedzie', 'miekkie_rodzaj', 'wzor']) if (!lista.includes(k)) lista.push(k);
   }
 
   // W zapisie typ obiektu zostaje taki jak dotąd (małe litery: 'textbox', 'image', 'rect'…).
