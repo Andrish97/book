@@ -47,6 +47,7 @@ export const MODULY_EDYTORA = [
   'js/linijki.js',
   'js/makieta-opis.js',
   'js/miekkie-krawedzie.js',
+  'js/miniatury-stron.js',
   'js/moje-czcionki.js',
   'js/moje-elementy.js',
   'js/nazwy-obrazow.js',

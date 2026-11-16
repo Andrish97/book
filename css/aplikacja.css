@@ -1283,7 +1283,9 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 .podglad-wiersz.pojedyncze { flex-wrap: wrap; justify-content: center; gap: 28px 24px; }
 .podglad-strona { margin: 0; width: calc(var(--w) * var(--skala) * 1px); flex: none; }
 .podglad-strona img { display: block; width: 100%; height: 100%; }
+/* Strona podglądu przed narysowaniem (img bez src): migoczące tło ma kartka, sam obraz jest niewidoczny. */
 .podglad-strona img:not([src]) { visibility: hidden; }
+.podglad-kartka:has(> img:not([src])), .podglad-kartka:has(> img:not(.zaladowany)) { background: var(--obraz-laduje-tlo); background-size: 300% 100%; animation: ladowanie-obrazu 1.4s linear infinite; }
 .podglad-strona figcaption { margin-top: 8px; font-size: 12px; line-height: 1.35; color: var(--tusz-2); text-align: center; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .podglad-strona.pusta { visibility: hidden; }
 
@@ -3498,3 +3500,14 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 .makieta-uwaga p { margin: 0 0 6px; }
 .makieta-uwaga p:last-child { margin-bottom: 0; }
 .makieta-uwaga .przycisk { margin-top: 4px; }
+
+/* Obrazy w czasie ładowania (#193, js/obrazy-ladowanie.js): migoczące tło zamiast pustego miejsca, napisu alt
+   albo ikonki „zepsutego obrazu”; nieudany obraz dostaje zastępczy rysunek. Załadowany – klasa .zaladowany. */
+:root { --obraz-laduje-tlo: linear-gradient(100deg, color-mix(in srgb, var(--tusz) 5%, transparent) 30%, color-mix(in srgb, var(--tusz) 11%, transparent) 50%, color-mix(in srgb, var(--tusz) 5%, transparent) 70%); }
+@keyframes ladowanie-obrazu { from { background-position: 100% 0; } to { background-position: 0 0; } }
+img[src]:not(.zaladowany) { color: transparent; background: var(--obraz-laduje-tlo); background-size: 300% 100%; animation: ladowanie-obrazu 1.4s linear infinite; }
+img:not([src]):not(.zaladowany) { color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  img[src]:not(.zaladowany), .podglad-kartka:has(> img:not(.zaladowany)) { animation: none; background-position: 50% 0; }
+}
+

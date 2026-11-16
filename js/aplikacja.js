@@ -7,6 +7,7 @@
 // tablica `akcje` z części edytora.
 
 import './urzadzenie.js'; // najpierw: atrybuty urządzenia na <html> (zasłonki, cele dotyku)
+import { wlaczLadowanieObrazow } from './obrazy-ladowanie.js';
 import * as chmura from './chmura.js';
 import { wstawIkony } from './ikony.js';
 import { $, powiadom, zamknijMenu, przelaczMenu } from './ui.js';
@@ -290,6 +291,7 @@ Object.defineProperty(window.seriodruk, 'edytor', { get: () => edytor, configura
 // Listy rozwijane, wybór koloru i daty, sprawdzanie formularzy (js/kontrolki.js) oraz dymki z podpowiedziami
 // (js/dymki.js) rysuje aplikacja, nie system.
 wlaczWlasneKontrolki();
+wlaczLadowanieObrazow(); // obrazy: migoczące tło w czasie ładowania, bez ikonki „zepsutego obrazu” (#193)
 wlaczDymki();
 // Okna dialogowe na telefonie i tablecie wyjeżdżają od dołu jako zasłonki z uchwytem (js/zaslonki.js).
 wlaczZaslonki();

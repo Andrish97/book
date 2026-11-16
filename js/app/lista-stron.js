@@ -1,5 +1,6 @@
 // Lewa kolumna edytora: lista stron w sekcjach, lista wzorców, miniatury, operacje na stronach i menu kontekstowe.
 
+import { odciskProjektu, odciskMiniatury, wczytajMiniaturyProjektu, zapiszMiniatureStrony, oznaczUzyte } from '../miniatury-stron.js';
 import {
   stronySekcji, stronyZWzorcem, nowaStrona, uporzadkujStrony, kopiujStrone, wzorceStrony, sekcjaStrony,
 } from '../projekt.js';
@@ -285,13 +286,32 @@ export function generujMiniatury() {
       pasek.querySelector('.postep-wypelnienie').style.width = `${pr}%`;
       pasek.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', String(pr));
     };
+    // Miniatury zapisane na urządzeniu (#193): ta sama strona w tym samym stanie – bez rysowania.
+    const wspolny = odciskProjektu(projekt);
+    const zapisane = brak ? await wczytajMiniaturyProjektu(projekt.id) : new Map();
+    const uzyte = [];
+    for (const cel of cele) {
+      if (stan.projekt !== projekt) break;
+      if (stan.miniatury.has(cel.id)) continue;
+      const z = zapisane.get(cel.id);
+      if (z && z.odcisk === odciskMiniatury(projekt, cel, wspolny, ciag.liczbaStron)) {
+        stan.miniatury.set(cel.id, z.url);
+        odswiezMiniature(cel.id);
+        uzyte.push(z);
+        gotowe += 1;
+      }
+    }
+    oznaczUzyte(uzyte);
     odswiezPostep();
     for (const cel of cele) {
       if (stan.projekt !== projekt) break;
       if (stan.miniatury.has(cel.id)) continue;
       await new Promise((ok) => (window.requestIdleCallback || setTimeout)(ok));
       if (stan.projekt !== projekt || stan.miniatury.has(cel.id)) continue;
-      stan.miniatury.set(cel.id, await renderujCel(projekt, cel, { szerokoscPx: 200, ciag }));
+      const odcisk = odciskMiniatury(projekt, cel, odciskProjektu(projekt), ciag.liczbaStron);
+      const url = await renderujCel(projekt, cel, { szerokoscPx: 200, ciag });
+      stan.miniatury.set(cel.id, url);
+      zapiszMiniatureStrony(projekt.id, cel.id, odcisk, url);
       odswiezMiniature(cel.id);
       gotowe += 1;
       odswiezPostep();

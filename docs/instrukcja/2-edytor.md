@@ -948,6 +948,8 @@ Kolejność stron, sekcje o różnych formatach, rozkładówki, okładka z grzbi
 Panel z lewej pokazuje miniatury wszystkich stron w kolejności druku, pogrupowane w sekcje
 (szare nagłówki). Kliknięcie miniatury otwiera stronę. Strona powielana z danych ma znaczek
 **×N** — tyle razy wyjdzie w wydruku (→ 16).
+Miniatury zapamiętują się na urządzeniu: przy kolejnym otwarciu projektu pokazują się od razu, a od nowa
+rysują się tylko strony zmienione od tamtej pory.
 
 Na telefonie strony stoją w poziomym pasku, który przewijasz palcem.
 
