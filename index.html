@@ -677,7 +677,7 @@
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
-          <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory do druku…</button>
+          <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory projektu…</button>
           <hr>
           <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj">Zmień format projektu…</button>
           <button role="menuitem" data-akcja="marka-zastosuj" data-ikona="marka">Zastosuj markę do projektu…</button>
@@ -1529,7 +1529,7 @@
     </div>
   </dialog>
 
-  <!-- Kolory do druku (#127): tryb kolorów projektu i kolory dodatkowe (spot) -->
+  <!-- Kolory projektu (#127, #167): kolory w projekcie, tryb druku (projekt albo sekcja), kolory dodatkowe (spot) -->
   <dialog id="dlg-separacje" class="dialog-szeroki dialog-separacje" aria-labelledby="separacje-tytul">
     <div class="formularz">
       <div class="naglowek-dialogu">
@@ -1651,6 +1651,16 @@
           <label class="pole"><span>Tekst</span><select name="tekst"></select></label>
         </div>
       </fieldset>
+      <!-- #167: style tekstu marki – gotowe miejsca i własne, bez limitu. -->
+      <fieldset class="grupa-pol">
+        <legend>Style tekstu</legend>
+        <p class="podpowiedz">Wygląd tytułów, nagłówków, akapitów i podpisów marki. „Zastosuj markę do projektu” przenosi je do stylów projektu: styl o tej samej nazwie dostaje wygląd marki (teksty z nim zostają powiązane), brakujące dochodzą.</p>
+        <ul class="lista-stylow-marki" id="marka-style"></ul>
+        <div class="rzad-przyciskow">
+          <button type="button" class="przycisk" id="marka-gotowe-style" data-ikona="plus">Dodaj gotowe style</button>
+          <button type="button" class="przycisk" id="marka-dodaj-styl" data-ikona="plus">Własny styl</button>
+        </div>
+      </fieldset>
       <fieldset class="grupa-pol">
         <legend>Logo</legend>
         <ul class="lista-logo-marki" id="marka-loga"></ul>
@@ -1671,9 +1681,13 @@
         <h2 id="marka-zastosuj-tytul">Zastosuj markę do projektu</h2>
         <button type="button" class="przycisk-ikona x-okna" data-akcja="marka-zastosuj-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Kolory i czcionki projektu zamienią się na kolory i czcionki marki – na wszystkich stronach, we wzorcach i stylach. Dla każdego możesz wybrać „bez zmian”.</p>
+      <p class="ciche">Kolory i czcionki projektu zamienią się na kolory i czcionki marki – na wszystkich stronach, we wzorcach i stylach (dla każdego możesz wybrać „bez zmian”), a style tekstu marki trafią do stylów projektu.</p>
       <fieldset class="grupa-pol"><legend>Kolory</legend><ul class="mapowanie-marki" id="marka-mapa-kolory"></ul></fieldset>
       <fieldset class="grupa-pol"><legend>Czcionki</legend><ul class="mapowanie-marki" id="marka-mapa-czcionki"></ul></fieldset>
+      <fieldset class="grupa-pol"><legend>Style tekstu</legend>
+        <label class="przelacznik"><input type="checkbox" id="marka-style-tak" checked><span>Przenieś style tekstu marki do stylów projektu</span></label>
+        <ul class="mapowanie-marki" id="marka-mapa-style"></ul>
+      </fieldset>
       <p class="podpowiedz" id="marka-zastosuj-opis"></p>
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk" data-akcja="marka-zastosuj-zamknij">Anuluj</button>
@@ -1685,12 +1699,21 @@
   <dialog id="dlg-kolory-druku" class="dialog-szeroki" aria-labelledby="kolory-druku-tytul">
     <div class="formularz">
       <div class="naglowek-dialogu">
-        <h2 id="kolory-druku-tytul">Kolory do druku</h2>
+        <h2 id="kolory-druku-tytul">Kolory projektu</h2>
         <button type="button" class="przycisk-ikona x-okna" data-akcja="kolory-druku-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
+      <!-- #167: wszystko dla całego projektu albo dla jednej sekcji (np. okładka w kolorze, środek czarno-biały). -->
+      <p class="ciche">Kolory użyte w projekcie i to, jak pójdą do druku. Ustawisz je dla całego projektu albo osobno dla jednej sekcji – np. okładka w pełnym kolorze, a środek czarno-biały.</p>
+      <label class="pole" id="kolory-zakres-pole"><span>Dotyczy</span><select id="kolory-zakres"></select></label>
       <fieldset class="grupa-pol">
-        <legend>Tryb kolorów projektu</legend>
-        <div class="przelacznik-segmentowy" id="kolory-tryb" role="radiogroup" aria-label="Tryb kolorów projektu">
+        <legend id="kolory-uzyte-tytul">Kolory w projekcie</legend>
+        <p class="podpowiedz" id="kolory-uzyte-opis">Kliknij kolor, żeby zamienić go na inny – wszędzie, gdzie występuje.</p>
+        <ul class="lista-uzytych-kolorow" id="kolory-uzyte"></ul>
+      </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Druk kolorów</legend>
+        <div class="przelacznik-segmentowy" id="kolory-tryb" role="radiogroup" aria-label="Tryb kolorów w druku">
+          <label id="kolory-tryb-dziedzicz" hidden><input type="radio" name="tryb-kolorow" value="dziedzicz"><span>Jak w projekcie</span></label>
           <label><input type="radio" name="tryb-kolorow" value="pelny"><span>Pełny kolor</span></label>
           <label><input type="radio" name="tryb-kolorow" value="szarosc"><span>Skala szarości</span></label>
           <label><input type="radio" name="tryb-kolorow" value="czb1"><span>Cz/b + 1 kolor</span></label>
@@ -1703,14 +1726,19 @@
         </div>
       </fieldset>
       <fieldset class="grupa-pol">
-        <legend>Kolory dodatkowe</legend>
-        <p class="podpowiedz">Kolor dodatkowy (np. Pantone) drukuje się osobną farbą – w pliku PDF to osobna płyta. Wpisz nazwę dokładnie tak, jak podaje drukarnia albo wzornik; CMYK służy tylko do podglądu na ekranie. Kolor wybierzesz potem w każdym polu koloru, w części „Kolory dodatkowe”, razem z odcieniem.</p>
+        <legend>Kolory dodatkowe (np. Pantone)</legend>
+        <p class="podpowiedz">Farba mieszana osobno, np. Pantone – w PDF to osobna płyta. Wpisz nazwę tak, jak podaje drukarnia albo wzornik; CMYK obok służy tylko do podglądu na ekranie. Nowy kolor dodatkowy możesz też dodać od razu przy elemencie – w wyborze koloru albo we Właściwościach → „Wykończenie druku”.</p>
         <ul class="lista-spotow" id="kolory-lista"></ul>
         <div class="rzad-przyciskow"><button type="button" class="przycisk" id="kolory-dodaj" data-ikona="plus">Dodaj kolor dodatkowy</button></div>
       </fieldset>
+      <fieldset class="grupa-pol">
+        <legend>Wykończenia druku</legend>
+        <p class="podpowiedz">Lakier, złocenie, tłoczenie i biel ustawiasz przy elemencie: zaznacz go i wybierz we Właściwościach → „Wykończenie druku”. Tu widać, co jest w projekcie.</p>
+        <ul class="lista-wykonczen" id="kolory-wykonczenia"></ul>
+      </fieldset>
       <details class="opis-zwiniety">
-        <summary>Rozszerzony CMYK, biel i inne farby</summary>
-        <p class="podpowiedz">Rozszerzony CMYK (np. CMYK + pomarańczowy, zielony i fioletowy) robi drukarnia sama z Twojego pliku – nie trzeba osobnej palety. Biel, lakier, złocenie i tłoczenie ustawiasz przy elemencie, w części „Uszlachetnienie”. Każda z tych farb trafia do PDF jako osobna płyta z nadrukiem.</p>
+        <summary>Rozszerzony CMYK i inne farby</summary>
+        <p class="podpowiedz">Rozszerzony CMYK (np. CMYK + pomarańczowy, zielony i fioletowy) robi drukarnia sama z Twojego pliku – nie trzeba osobnej palety. Biel, lakier, złocenie i tłoczenie trafiają do PDF jako osobne płyty z nadrukiem (drukarnia widzi, gdzie je położyć).</p>
       </details>
       <div class="przyciski-dialogu"><button type="button" class="przycisk glowny" data-akcja="kolory-druku-zamknij">Gotowe</button></div>
     </div>

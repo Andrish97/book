@@ -142,7 +142,7 @@ export class OknoDruku {
     try {
       this.zrodlo.przedDrukiem?.();
       const p = this.zrodlo.projekt();
-      const projekt = o.szarosc ? { ...p, tryb_kolorow: 'szarosc' } : p;
+      const projekt = o.szarosc ? { ...p, tryb_kolorow: 'szarosc', tryb_wymuszony: 'szarosc' } : p; // także sekcje z własnym trybem (#167)
       const blob = await zlozPdf(projekt, egz, { ...opcjeDruku(o), ciag: this.ciag, postep: (n) => pasek.krok(n, egz.length) });
       const url = URL.createObjectURL(blob);
       if (drukuj) {

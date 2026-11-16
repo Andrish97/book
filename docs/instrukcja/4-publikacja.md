@@ -215,43 +215,46 @@ Część **Jak wydrukować** w oknie podpowiada krok po kroku:
 4. Drukarka bez druku dwustronnego: najpierw tylko strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
 5. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu; grubą broszurę podziel na składki.
 
-# 23. Kolory dodatkowe i uszlachetnienia
+# 23. Kolory projektu, farby i wykończenia
 
 ## 23.1 Kolory dodatkowe
 
-Druk to nie tylko cztery farby CMYK. Makietka zna kolory dodatkowe (np. Pantone), uszlachetnienia — lakier, złocenie, tłoczenie, biały poddruk — i druk tylko czarną farbą albo czarną z jednym kolorem. Wszystko trafia do pliku PDF tak, jak oczekuje drukarnia: każda farba na osobnej płycie.
+Druk to nie tylko cztery farby CMYK. Makietka zna kolory dodatkowe (np. Pantone), wykończenia — lakier, złocenie, tłoczenie, biel — i druk tylko czarną farbą albo czarną z jednym kolorem. Wszystko trafia do pliku PDF tak, jak oczekuje drukarnia: każda farba na osobnej płycie.
 
-Kolor dodatkowy drukuje się osobną, gotową farbą — dokładnie w tym odcieniu, którego potrzebujesz (np. kolor logo).
+Kolor dodatkowy to osobna, gotowa farba — dokładnie w tym odcieniu, którego potrzebujesz (np. kolor logo). Najprościej dodać go przy elemencie:
 
-1. [⋯] → [Kolory do druku…] → [Dodaj kolor dodatkowy].
-2. Wpisz **Nazwę** dokładnie jak w drukarni albo we wzorniku, np. „PANTONE 186 C”.
-3. Wpisz **C**, **M**, **Y**, **K** — to tylko podgląd na ekranie; drukarnia użyje swojej farby.
+1. Zaznacz element i otwórz jego kolor (np. **Kolor wypełnienia**).
+2. Na dole wyboru koloru: [Zrób z tego koloru kolor dodatkowy…].
+3. Wpisz nazwę farby dokładnie jak w drukarni albo we wzorniku, np. „PANTONE 186 C”, i [Dodaj].
 
-![Okno „Kolory do druku”](k-kolory-druku.png)
-
-Kolor dodatkowy wybierasz w każdym polu koloru — wypełnienie, obrys, tekst, fragment tekstu — w części **Kolory dodatkowe**, razem z **Odcieniem** (np. 40%).
+To samo zrobisz we Właściwościach → **Wykończenie druku** → **Farba specjalna** → **Nowa z obecnego koloru…**. Dodany kolor wybierasz potem w każdym polu koloru — wypełnienie, obrys, tekst, fragment tekstu — w części **Kolory dodatkowe**, razem z **Odcieniem** (np. 40%).
 
 ![Kolor dodatkowy w wyborze koloru](k-kolor-dodatkowy.png)
 
-Zmiana CMYK koloru dodatkowego zmienia wszystkie elementy w tym kolorze. Usunięcie koloru zostawia elementy w zwykłym kolorze CMYK.
+Listę kolorów dodatkowych masz w [⋯] → [Kolory projektu…]: tam zmienisz nazwę, wpiszesz **C**, **M**, **Y**, **K** (to tylko podgląd na ekranie — drukarnia użyje swojej farby) albo usuniesz kolor. Zmiana CMYK koloru dodatkowego zmienia wszystkie elementy w tym kolorze. Usunięcie koloru zostawia elementy w zwykłym kolorze CMYK.
 
-## 23.2 Uszlachetnienia
+## 23.2 Wykończenie druku: lakier, złocenie, tłoczenie, biel
 
-Uszlachetnienie ustawiasz przy elemencie, w części **Uszlachetnienie**:
+Wykończenie ustawiasz przy elemencie — nic nie trzeba wcześniej dodawać. Zaznacz element → Właściwości → **Wykończenie druku** i stuknij efekt:
 
-| Uszlachetnienie | Co to jest | Płyta w PDF |
+| Efekt | Co to jest | Płyta w PDF |
 |---|---|---|
-| **Lakier UV wybiórczy** | Błyszczący lakier tylko w tym miejscu, np. na tytule. | Spot_UV |
-| **Złocenie (folia)** | Metaliczna folia; **Kolor folii**: złoto, srebro albo miedź. | Foil_Gold, Foil_Silver, Foil_Copper |
-| **Tłoczenie (wypukłe)** | Wzór wypchnięty w papierze. | Emboss |
-| **Wytłoczenie (wklęsłe)** | Wzór wciśnięty w papier. | Debossing |
-| **Biały poddruk** | Biała farba — na kolorowym albo przezroczystym podłożu. | White |
+| **Lakier** | Błyszczący lakier tylko w tym miejscu, np. tytuł na matowej okładce. | Spot_UV |
+| **Złocenie** | Metaliczna folia; **Kolor folii**: złoto, srebro albo miedź. | Foil_Gold, Foil_Silver, Foil_Copper |
+| **Tłoczenie** | Wypukły wzór wyciśnięty w papierze. | Emboss |
+| **Wytłoczenie** | Wklęsły wzór wciśnięty w papier. | Debossing |
+| **Biel** | Biała farba pod spodem — na kolorowym, kraftowym albo przezroczystym podłożu. | White |
 
-![Uszlachetnienie w panelu elementu](k-uszlachetnienie.png)
+![Wykończenie druku w panelu elementu](k-uszlachetnienie.png)
 
-Element z uszlachetnieniem drukuje się **tylko** na płycie uszlachetnienia — jego kolory nie idą do druku. Żeby mieć napis w kolorze i ze złoceniem, zaznacz napis i w **Dodaj kopię z uszlachetnieniem** wybierz złocenie: kopia stanie dokładnie nad napisem.
+Nad kafelkami wybierasz, **jak** dodać efekt:
 
-> Wskazówka: Uszlachetnienie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (→ 21).
+- **Kolor + efekt** — element drukuje się w swoich kolorach, a efekt idzie na jego kopię dokładnie nad nim. Tak zrobisz lakier na zdjęciu albo kolorowy napis ze złoceniem. Dla zdjęć to ustawienie domyślne.
+- **Sam efekt** — element nie drukuje się żadną farbą, jest tylko efektem, np. napis samym złotem. Dla kształtów i tekstu to ustawienie domyślne.
+
+W tej samej części jest **Farba specjalna** — wypełnienie elementu kolorem dodatkowym (→ 23.1).
+
+> Wskazówka: Wykończenie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (→ 21).
 
 ## 23.3 Widok uszlachetnień
 
@@ -267,17 +270,26 @@ W pliku wektorowym każde uszlachetnienie to osobna płyta z **nadrukiem** — n
 
 Plik z obrazów stron nie ma osobnych płyt — wybierz plik wektorowy.
 
-## 23.5 Tryb kolorów projektu
+## 23.5 Kolory projektu i druk kolorów — dla całości albo dla sekcji
 
-[⋯] → [Kolory do druku…] → **Tryb kolorów projektu**:
+[⋯] → [Kolory projektu…] zbiera w jednym oknie wszystko o kolorach. Na górze, w polu **Dotyczy**, wybierasz **Cały projekt** albo jedną sekcję — np. okładka w pełnym kolorze, a środek czarno-biały.
+
+![Okno „Kolory projektu” dla sekcji „Środek”](k-kolory-druku.png)
+
+**Kolory w projekcie** (albo **w sekcji**) to kolory, których używasz, z liczbą użyć. Stuknij kolor i wybierz nowy — zmieni się wszędzie w tym zakresie: dla całego projektu na stronach, we wzorcach i w stylach, dla sekcji tylko na jej stronach. Zmianę cofniesz zwykłym [Cofnij].
+
+**Druk kolorów** mówi, jakimi farbami pójdzie druk:
 
 | Tryb | Kiedy |
 |---|---|
 | **Pełny kolor** | Zwykły druk CMYK (domyślnie). |
 | **Skala szarości** | Druk jedną czarną farbą — kolory i zdjęcia idą odcieniami czerni. |
 | **Cz/b + 1 kolor** | Czerń i jeden kolor dodatkowy, np. kalendarz z czerwonymi niedzielami. **Kolor dodatkowy trybu** wybierasz pod spodem. |
+| **Jak w projekcie** | Tylko dla sekcji: sekcja drukuje się tak jak cały projekt (domyślnie). |
 
-W wyborze koloru zostają wtedy odcienie czerni i kolor trybu. Kolory spoza trybu okno pokaże — [Zamień na najbliższe dozwolone] zamieni je na czerń albo kolor trybu. To samo zrobi przycisk w **Sprawdź przed drukiem**.
+W PDF każda strona idzie w trybie swojej sekcji. W wyborze koloru na stronie takiej sekcji zostają odcienie czerni i kolor trybu, a kolory sekcji widać osobno — **W tej sekcji**. Kolory spoza trybu okno pokaże — [Zamień na najbliższe dozwolone] zamieni je na czerń albo kolor trybu. To samo zrobi przycisk w **Sprawdź przed drukiem**.
+
+Na dole okna, w części **Wykończenia druku**, widać, jakie efekty są w projekcie i na ilu elementach.
 
 > Wskazówka: Rozszerzony CMYK (CMYK z dodatkowymi farbami, np. pomarańczową, zieloną i fioletową) robi drukarnia sama z Twojego pliku — nie trzeba osobnej palety.
 

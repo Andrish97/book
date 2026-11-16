@@ -1,13 +1,16 @@
-// Okno „Kolory do druku” (decyzja #127): tryb kolorów projektu (pełny kolor, skala szarości, cz/b + 1 kolor)
-// i lista kolorów dodatkowych (spot) – nazwa jak w drukarni i zapas CMYK do podglądu.
+// Okno „Kolory projektu” (decyzje #127, #167): kolory użyte w projekcie (zamiana jednym kliknięciem), tryb
+// kolorów w druku (pełny kolor, skala szarości, cz/b + 1 kolor), kolory dodatkowe (spot) i przegląd wykończeń
+// druku. Kolory w projekcie i tryb druku ustawia się dla całego projektu albo dla jednej sekcji („Dotyczy”):
+// np. okładka w pełnym kolorze, a środek czarno-biały. Sekcja bez własnego trybu drukuje się jak projekt.
 
-import { $, potwierdz } from '../ui.js';
+import { $, potwierdz, powiadom } from '../ui.js';
 import { ikona } from '../ikony.js';
 import { stan } from './kontekst.js';
-import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
+import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { panel } from './skladniki.js';
 import {
   TRYBY_KOLOROW, hexSpotu, koloryDodatkowe, trybKolorow, koloryPozaTrybem, najblizszyDozwolony, przekolorujProjekt, zmienZapasSpotu,
+  koloryWZakresie, zamienKolorWZakresie, mapaSpotow, uzyteKoloryDruku, sekcjaBiezaca,
 } from '../kolory-druku.js';
 
 const dlg = $('#dlg-kolory-druku');
@@ -17,34 +20,85 @@ const OPISY = {
   czb1: 'Czerń i jeden kolor dodatkowy, np. kalendarz czarno-biały z czerwonymi niedzielami. Pozostałe kolory idą odcieniami czerni.',
 };
 
+// Zakres okna: 'projekt' albo id sekcji.
+let zakres = 'projekt';
+const sekcjaZakresu = () => (zakres === 'projekt' ? null : stan.projekt?.sekcje.find((s) => s.id === zakres) || null);
+
 // Zmiana projektu z okna: płótno oddaje treść, projekt się zmienia, płótno wczytuje się od nowa (kolory elementów).
 async function zmien(fn) {
   zapiszBiezacyCel();
-  fn(stan.projekt);
+  const wynik = fn(stan.projekt);
   stan.miniatury.clear();
   await zaladujCel();
   panel.zbuduj();
   zaplanujZapis();
   rysuj();
+  return wynik;
 }
 
-function rysuj() {
+function rysujZakres() {
   const p = stan.projekt;
-  if (!p) return;
-  const tryb = trybKolorow(p);
-  for (const r of dlg.querySelectorAll('input[name="tryb-kolorow"]')) r.checked = r.value === tryb;
-  $('#kolory-tryb-opis').textContent = OPISY[tryb];
+  const sel = $('#kolory-zakres');
+  const opcje = [new Option('Cały projekt', 'projekt'), ...p.sekcje.map((s) => new Option(`Sekcja „${s.nazwa}”${s.tryb_kolorow ? ' – własny druk kolorów' : ''}`, s.id))];
+  sel.replaceChildren(...opcje);
+  if (zakres !== 'projekt' && !p.sekcje.some((s) => s.id === zakres)) zakres = 'projekt';
+  sel.value = zakres;
+  $('#kolory-zakres-pole').hidden = p.sekcje.length < 2 && zakres === 'projekt';
+}
+
+function rysujUzyte() {
+  const p = stan.projekt;
+  const sek = sekcjaZakresu();
+  $('#kolory-uzyte-tytul').textContent = sek ? `Kolory w sekcji „${sek.nazwa}”` : 'Kolory w projekcie';
+  const uzyte = koloryWZakresie(p, zakres);
+  const spoty = mapaSpotow(koloryDodatkowe(p));
+  $('#kolory-uzyte-opis').textContent = uzyte.length
+    ? (sek ? 'Kliknij kolor, żeby zamienić go na inny na stronach tej sekcji (wzorce i style zostają bez zmian).' : 'Kliknij kolor, żeby zamienić go na inny wszędzie: na stronach, we wzorcach i w stylach.')
+    : (sek ? 'Na stronach tej sekcji nie ma jeszcze kolorów – pojawią się tu, gdy pokolorujesz elementy.' : 'W projekcie nie ma jeszcze kolorów – pojawią się tu, gdy pokolorujesz elementy.');
+  $('#kolory-uzyte').replaceChildren(...uzyte.slice(0, 40).map(({ kolor, ile }) => {
+    const li = document.createElement('li');
+    const spot = spoty.get(kolor);
+    const nazwa = spot ? `${spot.nazwa}${spot.t < 1 ? ` ${Math.round(spot.t * 100)}%` : ''}` : kolor;
+    li.innerHTML = `<label class="uzyty-kolor"><input type="color"><span class="uzyty-opis"><b></b><small></small></span></label>`;
+    const inp = li.querySelector('input');
+    inp.value = kolor;
+    inp.setAttribute('aria-label', `Zamień kolor ${nazwa}`);
+    li.querySelector('b').textContent = nazwa;
+    li.querySelector('small').textContent = `${ile} ${ile === 1 ? 'raz' : 'razy'}`;
+    inp.addEventListener('change', async () => {
+      const nowy = inp.value;
+      const n = await zmien((proj) => zamienKolorWZakresie(proj, zakres, kolor, nowy));
+      if (n) powiadom(`Zamieniono kolor w ${n} ${n === 1 ? 'miejscu' : 'miejscach'}.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+    });
+    return li;
+  }));
+}
+
+function rysujTryb() {
+  const p = stan.projekt;
+  const sek = sekcjaZakresu();
+  const wlasny = sek ? sek.tryb_kolorow || null : null;
+  const tryb = trybKolorow(p, sek);
+  $('#kolory-tryb-dziedzicz').hidden = !sek;
+  const zaznaczony = sek && !wlasny ? 'dziedzicz' : tryb;
+  for (const r of dlg.querySelectorAll('input[name="tryb-kolorow"]')) r.checked = r.value === zaznaczony;
+  const dziedziczony = sek && !wlasny ? ` Teraz jak w całym projekcie: ${TRYBY_KOLOROW.find((t) => t.id === trybKolorow(p)).nazwa.toLowerCase()}.` : '';
+  $('#kolory-tryb-opis').textContent = OPISY[tryb] + dziedziczony;
   const spoty = koloryDodatkowe(p);
   const pole = $('#kolory-tryb-spot-pole');
-  pole.hidden = tryb !== 'czb1';
+  pole.hidden = tryb !== 'czb1' || (sek && !wlasny);
   const sel = $('#kolory-tryb-spot');
   sel.replaceChildren(...(spoty.length ? spoty.map((s) => new Option(s.nazwa, s.id)) : [new Option('Najpierw dodaj kolor dodatkowy', '')]));
-  sel.value = p.kolor_trybu || '';
+  sel.value = (sek ? sek.kolor_trybu : p.kolor_trybu) || '';
   sel.disabled = !spoty.length;
   const zle = koloryPozaTrybem(p);
   $('#kolory-tryb-zle').hidden = !zle.length;
-  $('#kolory-tryb-zle-opis').textContent = `${zle.length} ${zle.length === 1 ? 'kolor nie pasuje' : 'kolorów nie pasuje'} do trybu.`;
+  $('#kolory-tryb-zle-opis').textContent = `${zle.length} ${zle.length === 1 ? 'kolor nie pasuje' : 'kolorów nie pasuje'} do trybu druku (pójdą odcieniami czerni).`;
+}
 
+function rysujSpoty() {
+  const p = stan.projekt;
+  const spoty = koloryDodatkowe(p);
   const lista = $('#kolory-lista');
   lista.replaceChildren(...spoty.map((s) => {
     const li = document.createElement('li');
@@ -67,40 +121,89 @@ function rysuj() {
     }
     li.querySelector('button').addEventListener('click', async () => {
       if (!await potwierdz('Usunąć kolor dodatkowy?', `Elementy w kolorze „${s.nazwa}” zostaną w zwykłym kolorze (CMYK) – bez osobnej płyty.`, 'Usuń', true)) return;
-      zmien((proj) => { proj.kolory_dodatkowe = koloryDodatkowe(proj).filter((x) => x !== s); if (proj.kolor_trybu === s.id) proj.kolor_trybu = proj.kolory_dodatkowe[0]?.id || null; });
+      zmien((proj) => {
+        proj.kolory_dodatkowe = koloryDodatkowe(proj).filter((x) => x !== s);
+        if (proj.kolor_trybu === s.id) proj.kolor_trybu = proj.kolory_dodatkowe[0]?.id || null;
+        for (const sek of proj.sekcje) if (sek.kolor_trybu === s.id) sek.kolor_trybu = proj.kolory_dodatkowe[0]?.id || null;
+      });
     });
     return li;
   }));
 }
 
+function rysujWykonczenia() {
+  const { uszlachetnienia } = uzyteKoloryDruku(stan.projekt);
+  const lista = $('#kolory-wykonczenia');
+  if (!uszlachetnienia.length) {
+    const li = document.createElement('li');
+    li.className = 'ciche';
+    li.textContent = 'Na razie bez wykończeń – wszystko drukuje się samymi farbami.';
+    lista.replaceChildren(li);
+    return;
+  }
+  lista.replaceChildren(...uszlachetnienia.map((u) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<b></b> <span class="ciche"></span>';
+    li.querySelector('b').textContent = u.etykieta;
+    li.querySelector('span').textContent = `· ${u.ile} ${u.ile === 1 ? 'element' : (u.ile < 5 ? 'elementy' : 'elementów')} · płyta w PDF „${u.plyta}”`;
+    return li;
+  }));
+}
+
+function rysuj() {
+  if (!stan.projekt) return;
+  rysujZakres();
+  rysujUzyte();
+  rysujTryb();
+  rysujSpoty();
+  rysujWykonczenia();
+}
+
 dlg.addEventListener('change', (e) => {
+  if (e.target.id === 'kolory-zakres') { zakres = e.target.value; rysuj(); return; }
   if (e.target.name === 'tryb-kolorow') {
+    const v = e.target.value;
     zmien((p) => {
-      p.tryb_kolorow = e.target.value;
+      const sek = sekcjaZakresu();
+      if (sek) {
+        if (v === 'dziedzicz') { delete sek.tryb_kolorow; delete sek.kolor_trybu; return; }
+        sek.tryb_kolorow = v;
+        if (v === 'czb1') sek.kolor_trybu = sek.kolor_trybu || p.kolor_trybu || koloryDodatkowe(p)[0]?.id || null;
+        else delete sek.kolor_trybu;
+        return;
+      }
+      p.tryb_kolorow = v;
       if (p.tryb_kolorow === 'czb1' && !p.kolor_trybu) p.kolor_trybu = koloryDodatkowe(p)[0]?.id || null;
     });
   }
-  if (e.target.id === 'kolory-tryb-spot') zmien((p) => { p.kolor_trybu = e.target.value || null; });
+  if (e.target.id === 'kolory-tryb-spot') {
+    zmien((p) => { const sek = sekcjaZakresu(); if (sek) sek.kolor_trybu = e.target.value || null; else p.kolor_trybu = e.target.value || null; });
+  }
 });
 $('#kolory-dodaj').addEventListener('click', () => zmien((p) => {
   const n = koloryDodatkowe(p).length + 1;
   p.kolory_dodatkowe = [...koloryDodatkowe(p), { id: `kd${Date.now().toString(36)}`, nazwa: `PANTONE ${n === 1 ? '186 C' : `kolor ${n}`}`, cmyk: [0, 100, 81, 4] }];
   if (p.tryb_kolorow === 'czb1' && !p.kolor_trybu) p.kolor_trybu = p.kolory_dodatkowe[0].id;
 }));
-$('#kolory-tryb-zamien').addEventListener('click', () => zmien((p) => przekolorujProjekt(p, (k) => najblizszyDozwolony(k, p))));
+const naDozwolone = (p) => przekolorujProjekt(p, (k, sek) => najblizszyDozwolony(k, p, sek));
+$('#kolory-tryb-zamien').addEventListener('click', () => zmien(naDozwolone));
 
-export function otworzKoloryDruku() {
+// zakresStart: 'sekcja' – okno otwiera się na sekcji bieżącej strony (np. z podpowiedzi przy elemencie).
+export function otworzKoloryDruku({ zakresStart = null } = {}) {
   if (!stan.projekt) return;
+  if (!dlg.open) zakres = zakresStart === 'sekcja' && stan.projekt.sekcje.length > 1 ? (sekcjaBiezaca(stan.projekt)?.id || 'projekt') : 'projekt';
   rysuj();
   if (!dlg.open) dlg.showModal();
 }
 
-// Naprawa z „Sprawdź przed drukiem”: kolory spoza trybu → najbliższe dozwolone.
+// Naprawa z „Sprawdź przed drukiem”: kolory spoza trybu (projektu albo sekcji) → najbliższe dozwolone.
 export function zamienKoloryNaDozwolone() {
-  return zmien((p) => przekolorujProjekt(p, (k) => najblizszyDozwolony(k, p)));
+  return zmien(naDozwolone);
 }
 
-// Pole koloru prosi o to okno („Zarządzaj kolorami dodatkowymi…” w wyborze koloru).
-document.addEventListener('makietka:kolory-druku', otworzKoloryDruku);
+// Pole koloru prosi o to okno („Kolory projektu…” w wyborze koloru).
+document.addEventListener('makietka:kolory-druku', () => otworzKoloryDruku());
+// Kolor dodatkowy dodany prosto z wyboru koloru albo z Właściwości – do zapisu projektu (#167).
+document.addEventListener('makietka:kolor-dodatkowy', () => { zaplanujZapis(); if (dlg.open) rysuj(); });
 
 export { TRYBY_KOLOROW };

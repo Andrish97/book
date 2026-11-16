@@ -77,16 +77,54 @@ export function normalizujKoloryDruku(p) {
   return p;
 }
 
+// Tryb kolorów sekcji (#167): np. okładka w pełnym kolorze, środek w skali szarości. Brak pola = jak w projekcie.
+// Wywoływane po znormalizowaniu sekcji (js/projekt.js).
+export function normalizujTrybySekcji(p) {
+  const spoty = koloryDodatkowe(p);
+  for (const sek of Array.isArray(p.sekcje) ? p.sekcje : []) {
+    if (!TRYBY_KOLOROW.some((t) => t.id === sek.tryb_kolorow)) { delete sek.tryb_kolorow; delete sek.kolor_trybu; continue; }
+    if (sek.tryb_kolorow !== 'czb1') delete sek.kolor_trybu;
+    else if (!spoty.some((x) => x.id === sek.kolor_trybu)) sek.kolor_trybu = spoty[0]?.id || null;
+  }
+  return p;
+}
+
 export const koloryDodatkowe = (projekt) => projekt?.kolory_dodatkowe || [];
-export const trybKolorow = (projekt) => projekt?.tryb_kolorow || 'pelny';
-export const spotTrybu = (projekt) => (trybKolorow(projekt) === 'czb1' ? koloryDodatkowe(projekt).find((s) => s.id === projekt.kolor_trybu) || null : null);
+// Sekcja: obiekt sekcji albo jej id. Tryb sekcji ma pierwszeństwo przed trybem projektu (#167).
+const sekcjaZ = (projekt, sekcja) => (typeof sekcja === 'string' ? (projekt?.sekcje || []).find((s) => s.id === sekcja) : sekcja) || null;
+export const trybSekcjiWlasny = (projekt, sekcja) => sekcjaZ(projekt, sekcja)?.tryb_kolorow || null;
+// tryb_wymuszony (tylko w pamięci, np. „Drukuj w domu” w odcieniach szarości) – dla wszystkich sekcji.
+export function trybKolorow(projekt, sekcja = null) {
+  return projekt?.tryb_wymuszony || trybSekcjiWlasny(projekt, sekcja) || projekt?.tryb_kolorow || 'pelny';
+}
+export function spotTrybu(projekt, sekcja = null) {
+  if (trybKolorow(projekt, sekcja) !== 'czb1') return null;
+  const s = sekcjaZ(projekt, sekcja);
+  const id = s?.tryb_kolorow && !projekt.tryb_wymuszony ? s.kolor_trybu : projekt.kolor_trybu;
+  return koloryDodatkowe(projekt).find((x) => x.id === id) || null;
+}
+// Czy któraś sekcja ma własny tryb kolorów.
+export const trybyWSekcjach = (projekt) => !projekt?.tryb_wymuszony && (projekt?.sekcje || []).some((s) => s.tryb_kolorow);
 
 // Spoty, które w danym trybie idą na osobne płyty: pełny kolor – wszystkie, cz/b + 1 – tylko kolor trybu.
-export function spotyDruku(projekt) {
-  const tryb = trybKolorow(projekt);
+// Bez sekcji – dla całego projektu: suma po sekcjach (każda w swoim trybie).
+export function spotyDruku(projekt, sekcja) {
+  if (sekcja === undefined && trybyWSekcjach(projekt)) {
+    const ids = new Set();
+    for (const s of projekt.sekcje) for (const x of spotyDruku(projekt, s)) ids.add(x.id);
+    return koloryDodatkowe(projekt).filter((x) => ids.has(x.id));
+  }
+  const tryb = trybKolorow(projekt, sekcja || null);
   if (tryb === 'szarosc') return [];
-  if (tryb === 'czb1') return spotTrybu(projekt) ? [spotTrybu(projekt)] : [];
+  if (tryb === 'czb1') { const sp = spotTrybu(projekt, sekcja || null); return sp ? [sp] : []; }
   return koloryDodatkowe(projekt);
+}
+// Sekcja bieżącej strony w edytorze (wybór koloru, Właściwości) – albo null (wzorzec, brak edytora).
+export function sekcjaBiezaca(projekt = globalThis.seriodruk?.stan?.projekt) {
+  const st = globalThis.seriodruk?.stan;
+  if (!projekt || !st || st.tryb !== 'strona') return null;
+  const id = projekt.strony?.[st.indeks]?.sekcja;
+  return (projekt.sekcje || []).find((s) => s.id === id) || null;
 }
 
 // Rejestr: kolor ekranu (#rrggbb) → { id, nazwa, cmyk (0–1), t (0–1) } dla odcieni 1–100%.
@@ -123,25 +161,25 @@ const szary = (k) => { const l = Math.round(jasnosc(k)); return rgbNaHex(l, l, l
 const odleglosc = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const zKryciem = (hex, a) => (a < 1 ? `rgba(${hexNaRgb(hex).join(',')},${Math.round(a * 1000) / 1000})` : hex);
 
-// Czy kolor pasuje do trybu kolorów projektu. Przezroczysty zawsze pasuje.
-export function kolorDozwolony(kolor, projekt, mapa = null) {
-  const tryb = trybKolorow(projekt);
+// Czy kolor pasuje do trybu kolorów projektu (albo sekcji, #167). Przezroczysty zawsze pasuje.
+export function kolorDozwolony(kolor, projekt, mapa = null, sekcja = null) {
+  const tryb = trybKolorow(projekt, sekcja);
   if (tryb === 'pelny') return true;
   const k = rozbierzKolor(kolor);
   if (!k || k[3] === 0) return true;
   if (Math.max(k[0], k[1], k[2]) - Math.min(k[0], k[1], k[2]) <= 1) return true; // szarości = sama czerń
   if (tryb === 'szarosc') return false;
-  const m = mapa || mapaSpotow(spotyDruku(projekt));
+  const m = mapa || mapaSpotow(spotyDruku(projekt, sekcja));
   return m.has(rgbNaHex(k[0], k[1], k[2]));
 }
 
-// Najbliższy kolor dozwolony w trybie: szarość o tej samej jasności albo odcień koloru trybu.
-export function najblizszyDozwolony(kolor, projekt) {
+// Najbliższy kolor dozwolony w trybie (projektu albo sekcji): szarość o tej samej jasności albo odcień koloru trybu.
+export function najblizszyDozwolony(kolor, projekt, sekcja = null) {
   const k = rozbierzKolor(kolor);
   if (!k) return kolor;
   const sz = szary(k);
-  const spot = spotTrybu(projekt);
-  if (trybKolorow(projekt) !== 'czb1' || !spot) return zKryciem(sz, k[3]);
+  const spot = spotTrybu(projekt, sekcja);
+  if (trybKolorow(projekt, sekcja) !== 'czb1' || !spot) return zKryciem(sz, k[3]);
   let najlepszy = sz; let d = odleglosc(k, hexNaRgb(sz));
   for (let t = 1; t <= 100; t += 1) {
     const h = hexSpotu(spot, t / 100);
@@ -169,21 +207,88 @@ function przejdzKolory(wartosc, fn, klucz = '') {
   return undefined;
 }
 const zrodlaKolorow = (projekt) => [...(projekt.strony || []), ...(projekt.wzorce || []), ...(projekt.style || [])];
+// Źródła kolorów razem z sekcją, której tryb obowiązuje: strony – swoja sekcja; wzorce i style – tryb projektu.
+const zrodlaZSekcja = (projekt) => [
+  ...(projekt.strony || []).map((z) => [z, (projekt.sekcje || []).find((s) => s.id === z.sekcja) || null]),
+  ...[...(projekt.wzorce || []), ...(projekt.style || [])].map((z) => [z, null]),
+];
 
-// Zmienia kolory w całym projekcie (fn: kolor → nowy kolor). Zwraca liczbę zmian.
+// Zmienia kolory w całym projekcie (fn: kolor, sekcja → nowy kolor). Zwraca liczbę zmian.
 export function przekolorujProjekt(projekt, fn) {
   let ile = 0;
-  for (const z of zrodlaKolorow(projekt)) przejdzKolory(z, (k) => { const n = fn(k); if (n !== k) ile += 1; return n; });
+  for (const [z, sek] of zrodlaZSekcja(projekt)) przejdzKolory(z, (k) => { const n = fn(k, sek); if (n !== k) ile += 1; return n; });
   return ile;
 }
 
-// Kolory projektu niepasujące do trybu: [kolor] (bez powtórzeń).
+// Zakres kolorów (#167): 'projekt' – strony, wzorce i style; id sekcji – tylko strony tej sekcji.
+function zrodlaZakresu(projekt, zakres) {
+  if (!zakres || zakres === 'projekt') return zrodlaKolorow(projekt);
+  return (projekt.strony || []).filter((s) => s.sekcja === zakres);
+}
+// Kolory użyte w zakresie: [{ kolor (#rrggbb), ile }], najczęstsze najpierw (bez przezroczystych).
+export function koloryWZakresie(projekt, zakres = 'projekt') {
+  const licz = new Map();
+  for (const z of zrodlaZakresu(projekt, zakres)) {
+    przejdzKolory(z, (k) => {
+      const r = rozbierzKolor(k);
+      if (r && r[3] > 0) { const h = rgbNaHex(r[0], r[1], r[2]); licz.set(h, (licz.get(h) || 0) + 1); }
+      return k;
+    });
+  }
+  return [...licz].sort((a, b) => b[1] - a[1]).map(([kolor, ile]) => ({ kolor, ile }));
+}
+// Zamienia kolor na inny w zakresie – krycie każdego miejsca zostaje. Zwraca liczbę zmian.
+export function zamienKolorWZakresie(projekt, zakres, stary, nowy) {
+  const s = rozbierzKolor(stary);
+  const n = rozbierzKolor(nowy);
+  if (!s || !n) return 0;
+  const cel = rgbNaHex(s[0], s[1], s[2]);
+  const nowyHex = rgbNaHex(n[0], n[1], n[2]);
+  if (cel === nowyHex) return 0;
+  let ile = 0;
+  for (const z of zrodlaZakresu(projekt, zakres)) {
+    przejdzKolory(z, (k) => {
+      const r = rozbierzKolor(k);
+      if (!r || rgbNaHex(r[0], r[1], r[2]) !== cel) return k;
+      ile += 1;
+      return zKryciem(nowyHex, r[3]);
+    });
+  }
+  return ile;
+}
+
+// Kolory projektu niepasujące do trybu: [kolor] (bez powtórzeń). Strona – w trybie swojej sekcji.
 export function koloryPozaTrybem(projekt) {
-  if (trybKolorow(projekt) === 'pelny') return [];
-  const mapa = mapaSpotow(spotyDruku(projekt));
   const zle = new Set();
-  for (const z of zrodlaKolorow(projekt)) przejdzKolory(z, (k) => { if (!kolorDozwolony(k, projekt, mapa)) zle.add(k); return k; });
+  const mapy = new Map();
+  for (const [z, sek] of zrodlaZSekcja(projekt)) {
+    if (trybKolorow(projekt, sek) === 'pelny') continue;
+    const klucz = sek?.tryb_kolorow ? sek.id : '';
+    if (!mapy.has(klucz)) mapy.set(klucz, mapaSpotow(spotyDruku(projekt, sek)));
+    przejdzKolory(z, (k) => { if (!kolorDozwolony(k, projekt, mapy.get(klucz), sek)) zle.add(k); return k; });
+  }
   return [...zle];
+}
+
+// Prosty CMYK (0–100) z koloru ekranu – zapas nowego koloru dodatkowego tworzonego z wybranego koloru.
+export function rgbNaCmyk(kolor) {
+  const r = rozbierzKolor(kolor) || [0, 0, 0, 1];
+  const [rr, gg, bb] = r.slice(0, 3).map((v) => v / 255);
+  const k = 1 - Math.max(rr, gg, bb);
+  if (k >= 1) return [0, 0, 0, 100];
+  return [(1 - rr - k) / (1 - k), (1 - gg - k) / (1 - k), (1 - bb - k) / (1 - k), k].map((v) => Math.round(v * 1000) / 10);
+}
+// Dodaje kolor dodatkowy do projektu – pierwsze użycie tworzy go od razu, bez osobnego okna (#167).
+export function dodajKolorDodatkowy(projekt, { nazwa, cmyk } = {}) {
+  const n = koloryDodatkowe(projekt).length + 1;
+  const spot = {
+    id: `kd${Date.now().toString(36)}${n}`,
+    nazwa: String(nazwa || '').trim().slice(0, 60) || `PANTONE kolor ${n}`,
+    cmyk: (cmyk || [0, 100, 81, 4]).map((v) => Math.round(ogranicz(liczba(v), 0, 100) * 10) / 10),
+  };
+  projekt.kolory_dodatkowe = [...koloryDodatkowe(projekt), spot];
+  if (projekt.tryb_kolorow === 'czb1' && !projekt.kolor_trybu) projekt.kolor_trybu = spot.id;
+  return spot;
 }
 
 // Zmiana zapasu CMYK koloru dodatkowego: elementy w tym kolorze (w każdym odcieniu) dostają nowy zapas.
@@ -226,10 +331,12 @@ export function uwagiKolorowDruku(projekt, { numerStrony = () => null } = {}) {
   if (uszlachetnienia.length) uwagi.push({ rodzaj: 'uszlachetnienia', strony: [], opis: `Uszlachetnienia w projekcie: ${uszlachetnienia.map((u) => `${u.etykieta} (płyta ${u.plyta}, ${u.ile} ${u.ile === 1 ? 'element' : 'elem.'})`).join(', ')}. Każde idzie na osobną płytę z nadrukiem.` });
   const zle = koloryPozaTrybem(projekt);
   if (zle.length) {
-    const tryb = TRYBY_KOLOROW.find((t) => t.id === trybKolorow(projekt)).nazwa;
-    uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], naprawa: 'kolory_trybu', opis: `Tryb „${tryb}”: ${zle.length} ${zle.length === 1 ? 'kolor nie pasuje' : 'kolorów nie pasuje'} do trybu (np. ${zle.slice(0, 3).join(', ')}). W PDF pójdą jako odcienie czerni – albo zamień je na najbliższe dozwolone.` });
+    const tryb = trybyWSekcjach(projekt) ? 'Tryb kolorów sekcji' : `Tryb „${TRYBY_KOLOROW.find((t) => t.id === trybKolorow(projekt)).nazwa}”`;
+    uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], naprawa: 'kolory_trybu', opis: `${tryb}: ${zle.length} ${zle.length === 1 ? 'kolor nie pasuje' : 'kolorów nie pasuje'} do trybu (np. ${zle.slice(0, 3).join(', ')}). W PDF pójdą jako odcienie czerni – albo zamień je na najbliższe dozwolone.` });
   }
-  if (trybKolorow(projekt) === 'czb1' && !spotTrybu(projekt)) uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], opis: 'Tryb „Czarno-biały + 1 kolor dodatkowy” nie ma wybranego koloru – dodaj kolor dodatkowy w oknie „Kolory do druku”.' });
+  for (const sek of [null, ...(projekt.sekcje || []).filter((s) => s.tryb_kolorow)]) {
+    if (trybKolorow(projekt, sek) === 'czb1' && !spotTrybu(projekt, sek)) uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], opis: `Tryb „Czarno-biały + 1 kolor dodatkowy”${sek ? ` w sekcji „${sek.nazwa}”` : ''} nie ma wybranego koloru – dodaj kolor dodatkowy w oknie „Kolory projektu”.` });
+  }
   // Uszlachetnienie za drobne albo przy krawędzi bez spadu.
   const MIN_LINIA = 0.3; const MIN_TEKST = (6 * 25.4) / 72;
   for (const strona of projekt.strony || []) {

@@ -54,7 +54,7 @@ Na wąskim telefonie [Wzorce], [Dane], [Instrukcja] i lupa przechodzą do menu [
 | [Czcionki projektu…] | Zestaw czcionek i własne czcionki (→ 6.8). |
 | [Zmień format projektu…] | Nowy format wszystkich sekcji — ze skalowaniem albo przesunięciem elementów (→ 11.9). |
 | [Zastosuj markę do projektu…] | Kolory i czcionki projektu zamienione na kolory i czcionki marki (→ 2.9). |
-| [Kolory do druku…] | Kolory dodatkowe (np. Pantone) i tryb kolorów projektu (→ 23.1, 23.5). |
+| [Kolory projektu…] | Kolory użyte w projekcie (zamiana), druk kolorów dla projektu albo sekcji, kolory dodatkowe (np. Pantone) i przegląd wykończeń (→ 23.1, 23.5). |
 | [Współpraca…] | Zaproszenia do wspólnej pracy (→ 25). |
 | [Jasny / ciemny motyw] | Przełącza motyw aplikacji (→ 2.4). |
 

@@ -2873,6 +2873,31 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
 .kolor-odcien i { font-style: normal; }
 .kolor-zarzadzaj { align-self: flex-start; font-size: 12.5px; }
 .kolor-tryb { margin: 0; font-size: 12px; color: var(--cichy); line-height: 1.4; }
+/* #167: kolory sekcji, nowy kolor dodatkowy prosto z wyboru koloru, wykończenie druku kafelkami, okno „Kolory projektu”. */
+.kolor-w-sekcji { display: flex; flex-direction: column; gap: 6px; }
+.kolor-w-sekcji .kolor-podpis { font-size: 11.5px; color: var(--cichy); }
+.kolor-linki { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.kolor-linki .link-przycisk { font-size: 12.5px; }
+.kolor-nowy-spot { display: flex; align-items: flex-end; gap: 8px; }
+.kolor-nowy-spot .kolor-hex { flex: 1; }
+.wlasciwosci .jak-wykonczenie button { font-size: 12.5px; font-weight: 600; }
+.wlasciwosci .jak-wykonczenie button[aria-pressed="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
+.wybor-wykonczenia { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.wlasciwosci .jak-wykonczenie-pole { grid-column: 1 / -1; }
+.wybor-wykonczenia button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 58px; padding: 6px 4px;
+  border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz-2); font: inherit; font-size: 12px; cursor: pointer;
+}
+.wybor-wykonczenia button[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); color: var(--akcent); font-weight: 600; }
+@media (hover: hover) { .wybor-wykonczenia button:hover { border-color: var(--akcent); } }
+.wybor-wykonczenia button[data-wykonczenie="folia"] svg { color: #b8892b; }
+.wybor-wykonczenia button[data-wykonczenie="uv"] svg { color: #3b82c4; }
+.lista-uzytych-kolorow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 10px; }
+.lista-uzytych-kolorow .uzyty-kolor { display: flex; align-items: center; gap: 8px; min-width: 0; cursor: pointer; }
+.lista-uzytych-kolorow .uzyty-opis { display: flex; flex-direction: column; min-width: 0; font-size: 12.5px; }
+.lista-uzytych-kolorow .uzyty-opis b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-uzytych-kolorow .uzyty-opis small { color: var(--cichy); font-size: 11.5px; }
+.lista-wykonczen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 /* ---------- Biblioteka (#131A, #134): wyszukiwarka, kategorie, kafelki elementów ---------- */
 .dialog-biblioteki { width: min(600px, calc(100vw - 32px)); padding: 0; }
 /* Na komputerze: panel obok strony, bez zaciemnienia – można przeciągać elementy na stronę. */
@@ -3223,3 +3248,13 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 .siatka-wielokatow svg { width: 28px; height: 28px; }
 .siatka-wielokatow polygon { fill: var(--akcent-tlo); stroke: var(--tusz); stroke-width: 1.2; stroke-linejoin: round; }
 .menu-wielokata .podpowiedz-menu { margin: 6px 6px 2px; font-size: 12px; color: var(--cichy); }
+
+/* Style tekstu marki (#167): lista zwiniętych stylów z podglądem nazwy w ich wyglądzie. */
+.lista-stylow-marki { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.lista-stylow-marki .styl-marki details { border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); }
+.lista-stylow-marki summary { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 8px 12px; cursor: pointer; min-height: 40px; }
+.lista-stylow-marki .proba-stylu { flex: 1; text-align: left; background: #fffdf8; padding: 2px 8px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; }
+.lista-stylow-marki summary small { flex: none; font-size: 11.5px; }
+.pola-stylu-marki { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; padding: 4px 12px 12px; }
+.pola-stylu-marki .szeroko { grid-column: 1 / -1; }
+.pola-stylu-marki [data-usun] { justify-self: start; }

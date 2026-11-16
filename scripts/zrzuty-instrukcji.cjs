@@ -955,12 +955,9 @@ if (require.main === module) (async () => {
   await d.click('#menu-wiecej [data-akcja="kolory-druku"]');
   await d.waitForSelector('#dlg-kolory-druku[open]');
   await d.waitForTimeout(300);
-  await kadr(d, 'k-kolory-druku.png', { obszar: '#dlg-kolory-druku .formularz', margines: 0 }).catch((err) => console.error('pominięto k-kolory-druku:', err.message));
+  // k-kolory-druku.png i k-uszlachetnienie.png robi scripts/zrzuty-kolorow.cjs (na końcu, #167).
   await d.click('#dlg-kolory-druku .przyciski-dialogu [data-akcja="kolory-druku-zamknij"]');
   await d.waitForTimeout(300);
-  await d.evaluate(() => [...document.querySelectorAll('#wlasciwosci legend button.zwijak')].find((b) => b.textContent === 'Uszlachetnienie')?.scrollIntoView({ block: 'start' }));
-  await d.waitForTimeout(300);
-  await kadr(d, 'k-uszlachetnienie.png', { obszar: '#panel-inspektor fieldset:has(> legend:has-text("Uszlachetnienie"))', margines: 8 }).catch((err) => console.error('pominięto k-uszlachetnienie:', err.message));
   await d.evaluate(() => document.querySelector('#wlasciwosci')?.scrollTo?.(0, 0));
   try {
     await d.locator('#wlasciwosci .kolor-przycisk').first().scrollIntoViewIfNeeded();
@@ -1125,6 +1122,7 @@ if (require.main === module) (async () => {
   await require('./zrzuty-biblioteki.cjs').zrobZrzutyBiblioteki(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty biblioteki:', err.message));
   await require('./zrzuty-paska-telefonu.cjs').zrobZrzutPaskaTelefonu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut paska telefonu:', err.message));
   await require('./zrzuty-obramowania.cjs').zrobZrzutObramowania(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut obramowania:', err.message));
+  await require('./zrzuty-kolorow.cjs').zrobZrzutyKolorow(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty kolorów:', err.message));
   await require('./zrzuty-postepu.cjs').zrobZrzutPostepu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut postępu:', err.message));
 
   await przegladarka.close();

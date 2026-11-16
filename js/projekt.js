@@ -11,7 +11,7 @@
 
 import { odlaczWatkiKopii } from './watki.js';
 import { normalizujOkladke, normalizujSkladke } from './okladka.js';
-import { normalizujKoloryDruku } from './kolory-druku.js';
+import { normalizujKoloryDruku, normalizujTrybySekcji } from './kolory-druku.js';
 
 export const WERSJA_MODELU = 3;
 
@@ -282,6 +282,7 @@ export function normalizuj(p) {
     return strona;
   });
   if (wynik.strony.length === 0) wynik.strony.push(nowaStrona('Strona 1', wynik.sekcje[0].id));
+  normalizujTrybySekcji(wynik); // tryb kolorów sekcji (#167)
   uporzadkujStrony(wynik);
 
   if (!/^[0-9a-f-]{36}$/i.test(String(wynik.id))) wynik.id = crypto.randomUUID();

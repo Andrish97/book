@@ -3,7 +3,7 @@
 
 import { CZCIONKI } from './czcionki.js';
 import { cmykNaRgb } from './kolory-druku.js';
-import { biezacaMarka, wczytajMarke, zapiszMarke, dodajLogo, usunLogo, normalizujMarke, markaPusta } from './zestaw-marki.js';
+import { biezacaMarka, wczytajMarke, zapiszMarke, dodajLogo, usunLogo, normalizujMarke, markaPusta, ROLE_STYLOW, WIELKOSCI_LITER, gotowyStylMarki, normalizujStylMarki } from './zestaw-marki.js';
 import { wstawIkony } from './ikony.js';
 
 const $ = (s) => document.querySelector(s);
@@ -61,6 +61,69 @@ function rysujLoga() {
   wstawIkony(ul);
 }
 
+// Style tekstu marki (#167): każdy styl zwinięty do podglądu nazwy w jego wyglądzie; po rozwinięciu – wszystkie pola.
+const WAGI = [['normal', 'Normalna'], ['300', 'Lekka'], ['600', 'Półgruba'], ['bold', 'Pogrubiona']];
+function podgladStylu(el, s) {
+  Object.assign(el.style, {
+    fontFamily: `'${s.czcionka}'`, fontWeight: s.waga, fontStyle: s.kursywa ? 'italic' : 'normal', color: s.kolor,
+    fontSize: `${Math.max(11, Math.min(26, s.rozmiar * 1.1))}px`, letterSpacing: `${s.odstep_liter / 1000}em`,
+    textTransform: { wielkie: 'uppercase', male: 'lowercase' }[s.wielkosc_liter] || 'none', fontVariant: s.wielkosc_liter === 'kapitaliki' ? 'small-caps' : 'normal',
+  });
+}
+function rysujStyle(otwarty = null) {
+  const ul = $('#marka-style');
+  const kolory = [...robocza.kolory.map((k) => [k.kolor, k.nazwa || k.kolor]), ['#1a1a1a', 'Czarny tekst'], ['#6b6861', 'Szary'], ['#ffffff', 'Biały']];
+  const czcionki = [...new Set([robocza.czcionki.naglowek, robocza.czcionki.tekst, ...CZCIONKI.map((c) => c.nazwa)].filter(Boolean))];
+  ul.replaceChildren(...robocza.style.map((s, i) => {
+    const li = document.createElement('li');
+    li.className = 'styl-marki';
+    const opcje = (lista, v) => lista.map(([w, n]) => `<option value="${esc(w)}"${w === v ? ' selected' : ''}>${esc(n)}</option>`).join('');
+    const listaKolorow = kolory.some(([k]) => k === s.kolor) ? kolory : [...kolory, [s.kolor, s.kolor]];
+    li.innerHTML = `<details${s.id === otwarty ? ' open' : ''}><summary><span class="proba-stylu"></span><small class="ciche"></small></summary>
+      <div class="pola-stylu-marki">
+        <label class="pole szeroko"><span>Nazwa</span><input type="text" data-pole="nazwa" maxlength="60" value="${esc(s.nazwa)}"></label>
+        <label class="pole szeroko"><span>Czcionka</span><select data-pole="czcionka">${opcje([...(czcionki.includes(s.czcionka) ? [] : [s.czcionka]), ...czcionki].map((c) => [c, c]), s.czcionka)}</select></label>
+        <label class="pole"><span>Rozmiar (pt)</span><input type="number" data-pole="rozmiar" min="4" max="400" step="any" inputmode="decimal" value="${s.rozmiar}"></label>
+        <label class="pole"><span>Waga</span><select data-pole="waga">${opcje(WAGI, s.waga)}</select></label>
+        <label class="pole"><span>Interlinia</span><input type="number" data-pole="interlinia" min="0.6" max="4" step="0.05" inputmode="decimal" value="${s.interlinia}"></label>
+        <label class="pole"><span>Odstęp liter (‰)</span><input type="number" data-pole="odstep_liter" min="-200" max="2000" step="10" inputmode="numeric" value="${s.odstep_liter}"></label>
+        <label class="pole"><span>Kolor</span><select data-pole="kolor">${opcje(listaKolorow, s.kolor)}</select></label>
+        <label class="pole"><span>Wielkość liter</span><select data-pole="wielkosc_liter">${opcje(WIELKOSCI_LITER, s.wielkosc_liter)}</select></label>
+        <label class="przelacznik szeroko"><input type="checkbox" data-pole="kursywa"${s.kursywa ? ' checked' : ''}><span>Kursywa</span></label>
+        <button type="button" class="przycisk maly niebezpieczny szeroko" data-usun>Usuń styl</button>
+      </div></details>`;
+    const proba = li.querySelector('.proba-stylu');
+    const opis = li.querySelector('summary small');
+    const odswiez = () => {
+      proba.textContent = s.nazwa;
+      podgladStylu(proba, s);
+      opis.textContent = `${s.czcionka} · ${String(s.rozmiar).replace('.', ',')} pt${s.rola ? '' : ' · własny'}`;
+    };
+    for (const pole of li.querySelectorAll('[data-pole]')) {
+      pole.addEventListener(pole.type === 'checkbox' || pole.tagName === 'SELECT' ? 'change' : 'input', () => {
+        const k = pole.dataset.pole;
+        const v = pole.type === 'checkbox' ? pole.checked : pole.value;
+        Object.assign(s, normalizujStylMarki({ ...s, [k]: v }));
+        odswiez();
+      });
+    }
+    li.querySelector('[data-usun]').addEventListener('click', () => { robocza.style.splice(i, 1); rysujStyle(); });
+    odswiez();
+    return li;
+  }));
+  $('#marka-gotowe-style').hidden = ROLE_STYLOW.every(([r]) => robocza.style.some((s) => s.rola === r));
+}
+$('#marka-gotowe-style').addEventListener('click', () => {
+  for (const [rola] of ROLE_STYLOW) if (!robocza.style.some((s) => s.rola === rola)) robocza.style.push(gotowyStylMarki(rola, robocza));
+  rysujStyle();
+});
+$('#marka-dodaj-styl').addEventListener('click', () => {
+  const s = normalizujStylMarki({ id: `sm${Date.now().toString(36)}`, nazwa: `Mój styl ${robocza.style.filter((x) => !x.rola).length + 1}`, czcionka: robocza.czcionki.tekst || 'Inter', rozmiar: 11, interlinia: 1.35 });
+  robocza.style.push(s);
+  rysujStyle(s.id);
+  $('#marka-style li:last-child [data-pole="nazwa"]')?.select();
+});
+
 function rysujCzcionki() {
   const opcje = ['', ...CZCIONKI.map((c) => c.nazwa)];
   for (const pole of ['naglowek', 'tekst']) {
@@ -95,6 +158,7 @@ export async function otworzMarke() {
   komunikat('');
   rysujKolory();
   rysujCzcionki();
+  rysujStyle();
   rysujLoga();
   if (!dlg.open) dlg.showModal();
 }
@@ -136,11 +200,11 @@ export async function pokazPodsumowanieMarki() {
   const el = $('#podsumowanie-marki');
   const m = biezacaMarka();
   const wiersz = document.querySelector('#ekran-konta [data-podsumowanie="marka"]');
-  if (wiersz) wiersz.textContent = markaPusta(m) ? 'pusty' : `${m.kolory.length} kol. · ${m.loga.length} logo`;
+  if (wiersz) wiersz.textContent = markaPusta(m) ? 'pusty' : `${m.kolory.length} kol. · ${m.style.length} styl. · ${m.loga.length} logo`;
   if (!el) return;
   if (markaPusta(m)) { el.innerHTML = '<p class="ciche">Zestaw jest pusty. Dodaj kolory, czcionki i logo – zobaczysz je potem w każdym projekcie.</p>'; return; }
   el.innerHTML = `<div class="probki-marki">${m.kolory.map((k) => `<span class="probka" style="background:${esc(k.kolor)}" title="${esc(k.nazwa || k.kolor)}"></span>`).join('')}</div>
-    <p class="ciche">${[m.czcionki.naglowek && `Nagłówki: ${esc(m.czcionki.naglowek)}`, m.czcionki.tekst && `Tekst: ${esc(m.czcionki.tekst)}`, m.loga.length && `Logo: ${m.loga.length}`].filter(Boolean).join(' · ')}</p>`;
+    <p class="ciche">${[m.czcionki.naglowek && `Nagłówki: ${esc(m.czcionki.naglowek)}`, m.czcionki.tekst && `Tekst: ${esc(m.czcionki.tekst)}`, m.style.length && `Style tekstu: ${m.style.length}`, m.loga.length && `Logo: ${m.loga.length}`].filter(Boolean).join(' · ')}</p>`;
 }
 
 export async function odswiezMarkeWUstawieniach() {

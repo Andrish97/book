@@ -45,7 +45,7 @@ Wszystkie wymiary są w **milimetrach**. Rozmiar pisma też w mm: `mm = pt × 25
 | `sekcje` | lista sekcji | co najmniej jedna; rozdział 3 |
 | `strony` | lista stron | **obowiązkowa**, w kolejności wydruku; rozdział 4 |
 | `wzorce` | lista wzorców | wspólne elementy wielu stron (tło, stopka); rozdział 4 |
-| `style` | lista stylów tekstu | rozdział 6 |
+| `style` | lista stylów tekstu (pola jak w tekście: czcionka, rozmiar, waga, interlinia, odstęp liter, kolor, skład akapitu, także `wielkosc_liter`) | rozdział 6 |
 | `tabele` | lista tabel z danymi | rozdział 7 |
 | `serie` | lista serii | powielanie stron według tabel; rozdział 8 |
 | `zasoby` | `{ id: { nazwa, dataUrl } }` | obrazy i pliki czcionek; `nazwa` z rozszerzeniem, np. `styczen.jpg`; nazwy obrazów są różne (bez względu na wielkość liter). Projekt na koncie ma zamiast `dataUrl` opis pliku: `typ`, `rozmiar`, `szer`/`wys` (piksele), `skrot` (SHA-256 treści) i `sciezka` (plik na koncie albo `ai:…` – obraz wgrany przez AI, który aplikacja przeniesie na konto) |
@@ -77,6 +77,7 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
 - `wzorce`: identyfikatory wzorców obowiązujących na stronach sekcji (pierwszy leży najniżej).
 - `numeracja.tryb`: `ciagla` (numery biegną dalej), `od` (sekcja zaczyna od `od`), `brak` (strony bez numeru, np. okładka).
 - `wydruk.siatka_bazowa` (opcjonalnie): `{ "odstep": 5, "przesuniecie": 12 }` – siatka linii bazowych (mm): pierwsza linia `przesuniecie` od górnej krawędzi strony, kolejne co `odstep`. Teksty z `do_siatki: true` stawiają na niej wiersze.
+- `tryb_kolorow` (opcjonalnie, sekcja): `"pelny"` | `"szarosc"` | `"czb1"` – tryb kolorów w druku tylko tej sekcji, np. okładka w pełnym kolorze, a środek w skali szarości; bez pola sekcja drukuje się w trybie projektu (`tryb_kolorow` projektu). Przy `"czb1"` sekcja ma `kolor_trybu` (id koloru z `kolory_dodatkowe`). W PDF każda strona idzie w trybie swojej sekcji.
 - `skladka` (opcjonalnie): `4`, `8`, `16` albo `32` – środek składany ze składek; aplikacja pilnuje, żeby liczba stron sekcji (po powieleniach serii) była wielokrotnością składki, i proponuje dopełnienie pustymi stronami.
 
 **Okładka liczona sama.** Sekcja z polem `okladka` jest okładką z grzbietem: jej `wydruk.szerokosc_mm` i `wysokosc_mm` liczy aplikacja (nie wpisuj ich), a `uklad` jest zawsze `pojedyncze`.
@@ -138,7 +139,7 @@ Zasady, które łatwo przeoczyć:
 - Filtry obrazu (bez zmiany pliku): `"filtry": { "jasnosc": 0, "kontrast": 0, "nasycenie": 0, "szarosc": false, "sepia": false, "rozmycie": 0 }` – wartości −100…100 (rozmycie 0–100); pomijaj te, których nie zmieniasz.
 - Kolory: `#rrggbb`. Przejście kolorów: `fill: { "type": "linear", "gradientUnits": "percentage", "coords": { "x1": 0, "y1": 0, "x2": 1, "y2": 0 }, "colorStops": [{ "offset": 0, "color": "#06d6a0" }, { "offset": 1, "color": "#ef476f" }] }` (albo `"type": "radial"`). Kolor przejścia może być półprzezroczysty: `"color": "rgba(6,214,160,0.4)"`.
 - Obrót: `angle` (stopnie). Przezroczystość: `opacity` (0–1).
-- **Kolory do druku.** Kolor dodatkowy (spot) z `kolory_dodatkowe` wpisujesz w `fill`/`stroke` (także w `styles` fragmentu) jako jego kolor ekranu w danym odcieniu: dla `cmyk = [c, m, y, k]` i odcienia `t` (0–1) to `#rrggbb` z `r = 255·(1 − c·t/100)·(1 − k·t/100)`, `g = 255·(1 − m·t/100)·(1 − k·t/100)`, `b = 255·(1 − y·t/100)·(1 − k·t/100)` (zaokrąglone). Ten dokładny kod PDF zamienia na płytę o nazwie koloru. Uszlachetnienie elementu: `"uszlachetnienie": "uv" | "folia" | "tloczenie" | "wytloczenie" | "bialy"`, przy folii `"folia": "zloto" | "srebro" | "miedz"` – element drukuje się tylko na płycie uszlachetnienia (Spot_UV, Foil_Gold…, Emboss, Debossing, White), z nadrukiem; żeby mieć kolor i uszlachetnienie, zrób kopię elementu nad nim z polem `uszlachetnienie`.
+- **Kolory projektu i druku.** Kolor dodatkowy (spot) z `kolory_dodatkowe` wpisujesz w `fill`/`stroke` (także w `styles` fragmentu) jako jego kolor ekranu w danym odcieniu: dla `cmyk = [c, m, y, k]` i odcienia `t` (0–1) to `#rrggbb` z `r = 255·(1 − c·t/100)·(1 − k·t/100)`, `g = 255·(1 − m·t/100)·(1 − k·t/100)`, `b = 255·(1 − y·t/100)·(1 − k·t/100)` (zaokrąglone). Ten dokładny kod PDF zamienia na płytę o nazwie koloru. Uszlachetnienie elementu: `"uszlachetnienie": "uv" | "folia" | "tloczenie" | "wytloczenie" | "bialy"`, przy folii `"folia": "zloto" | "srebro" | "miedz"` – element drukuje się tylko na płycie uszlachetnienia (Spot_UV, Foil_Gold…, Emboss, Debossing, White), z nadrukiem; żeby mieć kolor i uszlachetnienie, zrób kopię elementu nad nim z polem `uszlachetnienie`.
 - Fragment tekstu z innym wyglądem: `styles: [{ "start": 5, "end": 12, "style": { "fontWeight": "bold", "fill": "#c8102e" } }]` (indeksy znaków całego tekstu).
 - Element, który świadomie wychodzi na spad albo poza margines (np. tło okładki), dostaje `"bez_ostrzezen": true` – inaczej „Sprawdź przed drukiem” go zgłosi.
 

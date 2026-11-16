@@ -8,7 +8,7 @@ import { CZCIONKI } from './czcionki.js';
 import { rozmiarOryginalu } from './obrazy.js';
 import { maObraz, moznaWstawicObraz, ukladObrazu } from './obraz-w-ksztalcie.js';
 import { BEZ_FILTROW, maFiltry } from './filtry-obrazu.js';
-import { USZLACHETNIENIA, FOLIE, plytaUszlachetnienia } from './kolory-druku.js';
+import { USZLACHETNIENIA, FOLIE, plytaUszlachetnienia, trybKolorow, sekcjaBiezaca, koloryDodatkowe, mapaSpotow, dodajKolorDodatkowy, rgbNaCmyk, hexSpotu } from './kolory-druku.js';
 import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu, toKolaz, WIELOKATY, podgladWielokata } from './edytor.js';
 import { RODZAJE_KSZTALTU, normalizujKsztalt, ustawKontrolkiKsztaltu, sciezkaZKsztaltu, czyWygiecie } from './tekst-ksztalt.js';
@@ -28,6 +28,26 @@ import { toTabela, komorkiTabeli, ustawSzerokoscKolumny, ustawNaglowek, ustawTek
 
 const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
+
+// Wykończenie druku (#167): krótkie nazwy na kafelkach, opis prostymi słowami i ikona każdego efektu.
+const KROTKO_WYKONCZEN = { uv: 'Lakier', folia: 'Złocenie', tloczenie: 'Tłoczenie', wytloczenie: 'Wytłoczenie', bialy: 'Biel' };
+const OPISY_WYKONCZEN = {
+  brak: 'Zwykły druk – bez wykończenia.',
+  uv: 'Lakier wybiórczy: błyszcząca warstwa tylko w tym miejscu, np. tytuł na matowej okładce.',
+  folia: 'Złocenie: metaliczna folia – złoto, srebro albo miedź.',
+  tloczenie: 'Tłoczenie: wypukły relief wyciśnięty w papierze.',
+  wytloczenie: 'Wytłoczenie: wklęsły relief wciśnięty w papier.',
+  bialy: 'Biel: biała farba pod spodem – na kolorowym, kraftowym albo przezroczystym podłożu.',
+};
+const ik = (sciezki) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${sciezki}</svg>`;
+const IKONY_WYKONCZEN = {
+  brak: ik('<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>'),
+  uv: ik('<path d="M12 3.5c3.2 4 5.5 7 5.5 10a5.5 5.5 0 0 1-11 0c0-3 2.3-6 5.5-10z"/><path d="M9.6 14.2a2.6 2.6 0 0 0 2 2.3"/>'),
+  folia: ik('<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>'),
+  tloczenie: ik('<path d="M3.5 17.5h17"/><path d="M6.5 17.5v-5.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v5.5"/><path d="M9 10V7.5"/><path d="M15 10V7.5"/>'),
+  wytloczenie: ik('<path d="M3.5 9.5h3v5.5a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V9.5h3"/><path d="M9 17v2.5"/><path d="M15 17v2.5"/>'),
+  bialy: ik('<rect x="4.5" y="4.5" width="15" height="15" rx="2"/><path d="M4.5 12h15M12 4.5v15"/><path d="M4.5 4.5L12 12M12 12l7.5 7.5" stroke-opacity=".45"/>'),
+};
 
 const zaokr = (v, miejsc = 2) => {
   const k = 10 ** miejsc;
@@ -1775,25 +1795,99 @@ export class PanelWlasciwosci {
     c.append(this.liczba('Rozmycie', () => zaokr(obj.shadow.blur, 1), (v) => ustaw({ blur: Math.max(0, v) }), { jednostka: 'mm', krok: 0.5, min: 0 }));
   }
 
-  // Uszlachetnienie (#127): element na płycie lakieru UV, folii, tłoczenia albo białego poddruku – z nadrukiem.
+  // Wykończenie druku (#127, #167): lakier, złocenie, tłoczenie, biel i farba specjalna – jedna część, wybór
+  // kafelkami z opisem. Nic nie trzeba wcześniej dodawać: płyta wykończenia powstaje sama w PDF, a nowy kolor
+  // dodatkowy – w projekcie. „Jak”: kolor elementu zostaje, a efekt idzie na kopię nad nim (np. lakier na zdjęciu),
+  // albo element jest samym efektem, bez farby (np. złocony napis).
   zbudujUszlachetnienie(obj) {
     if (toZaznaczenie(obj) || obj.type === 'group' || toTabela(obj) || obj.group) return;
-    const s = this.sekcja('Uszlachetnienie', { zwinieta: !obj.uszlachetnienie });
-    s.append(this.wybor('Uszlachetnienie', [['', 'Brak – zwykły druk'], ...USZLACHETNIENIA.map((u) => [u.id, u.nazwa])], () => obj.uszlachetnienie || '', (v) => {
-      obj.set({ uszlachetnienie: v || undefined, folia: v === 'folia' ? (obj.folia || 'zloto') : undefined });
+    const u = plytaUszlachetnienia(obj);
+    const s = this.sekcja('Wykończenie druku: lakier, złocenie, tłoczenie', { zwinieta: !u });
+    const obraz = obj.type === 'image' || (obj.zasob && !obj.fill);
+    if (!u) {
+      const jak = this.jakWykonczenie || (obraz ? 'kopia' : 'sam');
+      const rzad = document.createElement('div');
+      rzad.className = 'segmenty tekstowe jak-wykonczenie';
+      rzad.setAttribute('role', 'group');
+      rzad.setAttribute('aria-label', 'Jak dodać wykończenie');
+      for (const [id, tekst, tytul] of [['kopia', 'Kolor + efekt', 'Element drukuje się w kolorze, a efekt idzie na wierzch (np. lakier na zdjęciu)'], ['sam', 'Sam efekt', 'Element jest samym efektem, bez farby (np. złocony napis)']]) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = tekst;
+        b.title = tytul;
+        b.setAttribute('aria-pressed', String(jak === id));
+        b.addEventListener('click', () => { this.jakWykonczenie = id; this.zbuduj(); });
+        rzad.append(b);
+      }
+      const opak = document.createElement('div');
+      opak.className = 'jak-wykonczenie-pole';
+      const etykieta = document.createElement('label');
+      etykieta.textContent = 'Jak';
+      opak.append(etykieta, rzad);
+      s.append(opak);
+    }
+    const wybor = document.createElement('div');
+    wybor.className = 'wybor-wykonczenia';
+    wybor.setAttribute('role', 'group');
+    wybor.setAttribute('aria-label', 'Wykończenie druku');
+    const OPCJE = [['', 'Brak'], ...USZLACHETNIENIA.map((x) => [x.id, KROTKO_WYKONCZEN[x.id] || x.nazwa])];
+    const zapisz = async (v) => {
+      if (!v) obj.set({ uszlachetnienie: undefined, folia: undefined });
+      else if (!u && (this.jakWykonczenie || (obraz ? 'kopia' : 'sam')) === 'kopia') await this.edytor.uszlachetnienieKopia(v);
+      else obj.set({ uszlachetnienie: v, folia: v === 'folia' ? (obj.folia || 'zloto') : undefined });
       obj.dirty = true;
-      this.zbuduj();
-    }));
+      this.edytor.zatwierdz();
+    };
+    for (const [id, tekst] of OPCJE) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.wykonczenie = id || 'brak';
+      b.innerHTML = `${IKONY_WYKONCZEN[id || 'brak']}<span></span>`;
+      b.querySelector('span').textContent = tekst;
+      b.title = OPISY_WYKONCZEN[id || 'brak'];
+      b.setAttribute('aria-pressed', String((obj.uszlachetnienie || '') === id));
+      b.addEventListener('click', async () => { await zapisz(id); this.zbuduj(); });
+      wybor.append(b);
+    }
+    s.append(wybor);
     if (obj.uszlachetnienie === 'folia') {
       s.append(this.wybor('Kolor folii', Object.entries(FOLIE).map(([k, f]) => [k, f.nazwa]), () => obj.folia || 'zloto', (v) => { obj.set('folia', v); obj.dirty = true; this.zbuduj(); }));
     }
-    const u = plytaUszlachetnienia(obj);
-    if (u) {
-      s.append(this.wskazowka(`Ten element drukuje się tylko na płycie „${u.plyta}” (z nadrukiem) – jego kolory nie idą do druku. Kolor i uszlachetnienie naraz: ustaw „Brak” i dodaj kopię z uszlachetnieniem.`));
-    } else {
-      s.append(this.wybor('Dodaj kopię z uszlachetnieniem', [['', 'Wybierz…'], ...USZLACHETNIENIA.map((x) => [x.id, x.nazwa])], () => '', (v) => { if (v) this.edytor.uszlachetnienieKopia(v); }));
-      s.append(this.wskazowka('Kopia staje dokładnie nad elementem: element drukuje się w kolorze, a kopia – na płycie uszlachetnienia.'));
-    }
+    s.append(this.wskazowka(u
+      ? `${OPISY_WYKONCZEN[u.id]} Ten element nie drukuje się farbą – w PDF trafia na osobną płytę „${u.plyta}”, z której drukarnia robi efekt.`
+      : 'Wybierz efekt – nic nie trzeba wcześniej dodawać. W PDF każdy efekt to osobna płyta, z której drukarnia wie, gdzie go położyć. Na stronie widać go od razu (Widok → „Pokaż uszlachetnienia”).'));
+    if (!obraz && typeof obj.fill === 'string' && !u) this.zbudujFarbeSpecjalna(s, obj);
+  }
+
+  // Farba specjalna (kolor dodatkowy, np. Pantone) dla wypełnienia elementu – wybór z projektu albo nowy kolor
+  // dodatkowy z obecnego koloru, jednym krokiem (#167).
+  zbudujFarbeSpecjalna(s, obj) {
+    const projekt = globalThis.seriodruk?.stan?.projekt;
+    if (!projekt || trybKolorow(projekt, sekcjaBiezaca(projekt)) === 'szarosc') return;
+    const spoty = koloryDodatkowe(projekt);
+    const mapa = mapaSpotow(spoty);
+    const teraz = mapa.get(String(obj.fill).toLowerCase());
+    const farba = s.appendChild(this.wybor('Farba specjalna (np. Pantone)', [['', 'Brak – zwykłe CMYK'], ...spoty.map((x) => [x.id, x.nazwa]), ['+', 'Nowa z obecnego koloru…']], () => teraz?.id || '', async (v) => {
+      if (v === '+') {
+        const nazwa = await zapytajONazwe('Nowy kolor dodatkowy', 'Nazwa farby (tak jak w drukarni, np. PANTONE 186 C)', 'PANTONE ');
+        if (!nazwa) { this.zbuduj(); return; }
+        const sp = dodajKolorDodatkowy(projekt, { nazwa, cmyk: rgbNaCmyk(obj.fill) });
+        document.dispatchEvent(new CustomEvent('makietka:kolor-dodatkowy', { detail: sp }));
+        obj.set('fill', hexSpotu(sp, 1));
+      } else if (v) {
+        obj.set('fill', hexSpotu(spoty.find((x) => x.id === v), teraz?.t || 1));
+      } else if (teraz) {
+        // Zwykłe CMYK: ten sam kolor na ekranie, ale poza rejestrem farb (o jeden stopień czerwieni obok).
+        const h = String(obj.fill).toLowerCase();
+        const r = parseInt(h.slice(1, 3), 16);
+        obj.set('fill', `#${(r > 0 ? r - 1 : r + 1).toString(16).padStart(2, '0')}${h.slice(3)}`);
+      }
+      obj.dirty = true;
+      this.edytor.zatwierdz();
+      this.zbuduj();
+    }));
+    farba.style.gridColumn = '1 / -1';
+    s.append(this.wskazowka(teraz ? `Wypełnienie drukuje się farbą „${teraz.nazwa}” (osobna płyta w PDF).` : 'Wypełnienie może iść osobną farbą, np. Pantone – osobna płyta w PDF. Nowa farba dostaje nazwę od Ciebie, a kolor – obecny.'));
   }
 
   zbudujLinie(obj) {
