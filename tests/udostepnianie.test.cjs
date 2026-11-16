@@ -19,7 +19,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.click('[data-akcja="udostepnij"]');
   assert.ok(await strona.isHidden('#udostepnij-link-blok'), 'przed udostępnieniem nie ma linku');
   await strona.click('#udostepnij-utworz');
-  await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   const link = await strona.inputValue('#udostepnij-link');
   assert.match(link, /#\/u\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{24}$/);
   assert.match(await strona.textContent('#udostepnij-stan'), /aktualny stan/);
@@ -154,6 +154,7 @@ const plikiZwykle = (baza) => [...baza.pliki.keys()].filter((k) => k.startsWith(
 
 test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole hasła u gościa, zmiana hasła, ponowna publikacja, wygaśnięcie', async (t) => {
   const { strona, baza, bledy, przegladarka, Z_ATRAPA } = await otworz(t, { tryb: 'atrapa' });
+  // Publikacja kończy się w finally (pole linku, przyciski) – sam komunikat „sukces” przychodzi chwilę wcześniej (#160).
   await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
   await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
   await strona.click('#przycisk-logowania');
@@ -177,7 +178,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   assert.equal(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.udostepnienie)), false);
   await strona.fill('#udostepnij-haslo', 'tajne-haslo');
   await strona.click('#udostepnij-utworz');
-  await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   const link = await strona.inputValue('#udostepnij-link');
   assert.equal(plikiZwykle(baza).length, 0, 'nic w zwykłym folderze linku');
   const [klucz, u] = [...baza.chronione.entries()][0];
@@ -209,7 +210,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   const staryFolder = `podglady/${klucz}.${u.sekret}/`;
   await strona.fill('#udostepnij-haslo', 'nowe-haslo');
   await strona.click('#udostepnij-ochrona-zapisz');
-  await strona.waitForSelector('#udostepnij-komunikat.sukces', { timeout: 20000 });
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   assert.notEqual(`podglady/${klucz}.${baza.chronione.get(klucz).sekret}/`, staryFolder);
   assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith(staryFolder)).length, 0, 'stary folder usunięty');
   assert.equal(plikiChronione(baza, klucz).length, 3, 'opis i dwie strony w nowym folderze');
@@ -236,7 +237,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   assert.equal(await strona.inputValue('#udostepnij-termin'), jutro);
   assert.match(await strona.textContent('#udostepnij-termin-pole .wybor-tekst'), /^\d+ \S+ \d{4}$/);
   await strona.click('#udostepnij-ochrona-zapisz');
-  await strona.waitForSelector('#udostepnij-komunikat.sukces');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   assert.match(await strona.textContent('#udostepnij-komunikat'), /^Zapisano\. Link ważny do \d+ \S+ \d{4}\.$/);
   assert.equal(baza.chronione.get(klucz).haslo, null);
   const g2 = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
@@ -253,7 +254,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   baza.chronione.get(klucz).wazny_do = new Date(Date.now() + 86400000).toISOString();
   await strona.uncheck('#udostepnij-termin-wl');
   await strona.click('#udostepnij-ochrona-zapisz');
-  await strona.waitForSelector('#udostepnij-komunikat.sukces');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   assert.equal(baza.chronione.size, 0);
   assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && /\.(webp|jpg)$/.test(k)).length, 2);
   assert.match(await strona.textContent('#udostepnij-ochrona-stan'), /bez ochrony/);
@@ -264,7 +265,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   await strona.check('#udostepnij-haslo-wl');
   await strona.fill('#udostepnij-haslo', 'drugie');
   await strona.click('#udostepnij-ochrona-zapisz');
-  await strona.waitForSelector('#udostepnij-komunikat.sukces');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   assert.equal(plikiZwykle(baza).length, 0, 'publiczne pliki usunięte');
   assert.equal(plikiChronione(baza, klucz).length, 3);
   await strona.click('#udostepnij-wylacz');

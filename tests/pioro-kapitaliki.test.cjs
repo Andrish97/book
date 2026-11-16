@@ -225,7 +225,8 @@ test('kapitaliki: małe litery jako mniejsze wielkie – tylko wygląd; pomiar, 
     e.zatwierdz();
   });
   // Najpierw szerokość wiersza: to ona każe zmierzyć znaki, jeśli pomiar został wyczyszczony (np. po doczytaniu czcionki).
-  const pomiar = () => strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; const wiersz = o.getLineWidth(0); return { tresc: o.text, tryb: o.wielkosc_liter, szer: o.__charBounds[0].slice(0, o._textLines[0].length).map((b) => b.width), wiersz, wysokosc: o.getHeightOfLine(0) }; });
+  // Czcionka z polskimi znakami doczytuje się osobno – mierzymy po jej wczytaniu (inaczej „Ż” z zastępczej, #160).
+  const pomiar = () => strona.evaluate(async () => { await document.fonts.ready; const o = window.seriodruk.edytor.aktywny; const wiersz = o.getLineWidth(0); return { tresc: o.text, tryb: o.wielkosc_liter, szer: o.__charBounds[0].slice(0, o._textLines[0].length).map((b) => b.width), wiersz, wysokosc: o.getHeightOfLine(0) }; });
   await strona.click('#wlasciwosci button[aria-label^="WSZYSTKIE WIELKIE"]');
   const wielkie = await pomiar();
   await strona.click('#wlasciwosci button[aria-label^="Kapitaliki"]');

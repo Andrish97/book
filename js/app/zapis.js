@@ -4,7 +4,7 @@
 import { marginesyWzorca, tloStrony, marginesyStrony, normalizuj, stronyZWzorcem, kopiujProjekt } from '../projekt.js';
 import { warstwyWzorcow } from '../zlozenie.js';
 import { rozwin, arkuszStrony, bokStrony } from '../serie.js';
-import { zapiszLokalnie, oznaczZsynchronizowany } from '../lokalny.js';
+import { zapiszLokalnie, oznaczZsynchronizowany, wczytajLokalnie, przygotujSzybkiZapis, zapiszLokalnieOdRazu } from '../lokalny.js';
 import { zapiszHistorie, wczytajHistorie, usunHistorie } from '../historia-zapis.js';
 import * as chmura from '../chmura.js';
 import { ikona } from '../ikony.js';
@@ -73,6 +73,9 @@ function zapamietajStan() {
 // kierunek: −1 cofnij, 1 ponów. Po cofnięciu edytor otwiera stronę albo
 // wzorzec, którego dotyczyła zmiana.
 export async function cofnijKrok(kierunek) {
+  // Najpierw dokończ trwające wczytanie: czynność, która je uruchomiła, zapisze wtedy swój krok (jej
+  // dalszy ciąg czeka na tę samą obietnicę wcześniej niż my).
+  while (wczytywanie) await wczytywanie.catch(() => {});
   const p = stan.projekt;
   if (!p || $(OKNO_BLOKUJACE)) return;
   zapamietajStan();
@@ -200,8 +203,20 @@ function odmrozObraz(z) {
   }));
 }
 
+// Trwające wczytanie strony na płótno (#160). Czynności na stronach (usuń, duplikuj, przenieś…) zapisują krok
+// cofania dopiero po wczytaniu – „Cofnij” w tym czasie cofało poprzednią czynność, a bieżąca zostawała.
+// Cofanie czeka więc, aż wczytanie się skończy (i czynność zapisze swój krok), dopiero potem cofa.
 // nawigacja: tylko przejście na inną stronę (bez zmian w stronach) – lista stron nie jest budowana od nowa (#158).
-export async function zaladujCel({ dopasuj = false, nawigacja = false } = {}) {
+let wczytywanie = null;
+export function zaladujCel(opcje) {
+  const w = (async () => {
+    try { return await wczytajCel(opcje); } finally { if (wczytywanie === w) wczytywanie = null; }
+  })();
+  wczytywanie = w;
+  return w;
+}
+
+async function wczytajCel({ dopasuj = false, nawigacja = false } = {}) {
   const { projekt } = stan;
   // Strona okładki: przeliczenie przed wczytaniem, żeby po przejściu z innej strony (np. po dodaniu stron
   // w środku) okładka była od razu w aktualnym rozmiarze, a nie dopiero po chwili (#144).
@@ -299,7 +314,8 @@ export function stanZapisu(rodzaj, tekst) {
 export async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
   naPlotnie = null;
-  dotkniete.clear();
+  przywrocDotkniete(p.id);
+  przygotujSzybkiZapis();
   stan.projekt = normalizuj(p);
   // Obrazy leżą w magazynie plików przeglądarki – tu dostają adresy (brakujące pobierają się z konta).
   try { await podlaczZasoby(stan.projekt, stan.uzytkownik ? chmura.pobierzZasob : null); } catch { /* bez magazynu obrazy pokażą się jako brakujące */ }
@@ -339,6 +355,14 @@ export async function otworzProjekt(p, cel = {}) {
   odswiezMojeCzcionki({ projekt: stan.projekt, zKontem: true });
   // Projekt mógł się zmienić na innym urządzeniu, gdy to miało niewysłane zmiany – dołączamy od razu.
   if (stan.uzytkownik) sprawdzKonto();
+  // Niewysłane zmiany z tego urządzenia (np. zapisane tuż przed zamknięciem karty, #160) idą na konto zaraz po
+  // otwarciu – sprawdzKonto rusza tylko wtedy, gdy na koncie jest coś nowszego, więc bez tego zostałyby tylko tu.
+  if (stan.uzytkownik) {
+    const otwarty = stan.projekt;
+    // Tylko gdy kopia naprawdę różni się od stanu uzgodnionego z kontem – samo otwarcie nie tworzy nowej wersji.
+    const rozni = () => !otwarty.podstawa_chmury || !tenSamStan(otwarty, otwarty.podstawa_chmury);
+    wczytajLokalnie(otwarty.id).then((r) => { if (r?.doSynchronizacji && stan.projekt === otwarty && rozni()) zaplanujChmure(); }).catch(() => {});
+  }
   obrazyOdAi(stan.projekt);
   // Starsze obrazy nie mają zapisanych wymiarów – łącznik AI potrzebuje ich do wstawiania (czytane z nagłówka pliku).
   uzupelnijWymiary(stan.projekt).then((ile) => { if (ile && stan.uzytkownik) zaplanujChmure(2000); }).catch(() => {});
@@ -406,6 +430,21 @@ const kanonBezZ = (o) => kanon({ ...o, z: undefined });
 // Przy łączeniu: element zmieniony i tutaj, i na koncie, ale nieruszony tutaj ręcznie (różni się tylko przez
 // przeliczenie: okładka, spis treści, kod, układ elementu z danych) – bierze wersję z konta bez pytania.
 const dotkniete = new Set();
+// Zbiór przeżywa przeładowanie i zamknięcie karty (#160): bez tego niewysłana ręczna zmiana z poprzedniej wizyty
+// wyglądała po ponownym otwarciu na „nieruszoną” i przy łączeniu przegrywała z kontem bez pytania.
+const kluczDotknietych = (id) => `makietka:dotkniete:${id}`;
+function zapamietajDotkniete() {
+  const id = stan.projekt?.id;
+  if (!id) return;
+  try {
+    if (dotkniete.size) localStorage.setItem(kluczDotknietych(id), JSON.stringify([...dotkniete]));
+    else localStorage.removeItem(kluczDotknietych(id));
+  } catch { /* bez pamięci – zostaje zachowanie z tej karty */ }
+}
+function przywrocDotkniete(id) {
+  dotkniete.clear();
+  try { for (const x of JSON.parse(localStorage.getItem(kluczDotknietych(id)) || '[]')) dotkniete.add(x); } catch { /* nic */ }
+}
 function bezZmianZPlotna(obiekty) {
   const wczytane = naPlotnie?.wczytane;
   if (!wczytane?.size) { for (const o of obiekty) if (o?.id) dotkniete.add(o.id); return obiekty; }
@@ -569,11 +608,21 @@ export function zaplanujZapis({ historia: doHistorii = true } = {}) {
   }
 }
 
+// Zamknięcie albo przeładowanie karty zaraz po zmianie (#160): zapis rusza od razu, a rekord projektu trafia do
+// IndexedDB jeszcze w tym samym kroku (zwykła ścieżka biegnie obok). Wysyłka na konto pójdzie z tego zapisu przy
+// następnym otwarciu projektu.
+export function zapiszPrzyZamknieciu() {
+  if (!stan.timerZapisu || !stan.projekt) return;
+  zapiszTeraz();
+  zapiszLokalnieOdRazu(stan.projekt, wlasciciel());
+}
+
 export async function zapiszTeraz() {
   clearTimeout(stan.timerZapisu);
   stan.timerZapisu = null;
   if (!stan.projekt) return stan.zapisywanie;
   zapiszBiezacyCel();
+  if (stan.uzytkownik) zapamietajDotkniete(); // od razu, synchronicznie – także przy zamykaniu karty
   for (const id of naPlotnie?.strony || [naPlotnie?.wzorzec]) odswiezMiniature(id);
   odrysujMiniaturyWTle(naPlotnie?.strony || [naPlotnie?.wzorzec]);
   stan.projekt.zmieniono = new Date().toISOString();
@@ -638,7 +687,8 @@ async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
   const pasek = doWyslania ? postep('Wysyłanie obrazów na konto…', { razem: doWyslania, opoznienie: 800 }) : null;
   try {
     await chmura.zapiszWChmurze(p, { wymus, postep: pasek && ((i, n) => pasek.krok(i, n)) });
-    if (otwarty) dotkniete.clear(); // wysłane – to jest teraz stan uzgodniony z kontem
+    // Wysłane – to jest teraz stan uzgodniony z kontem.
+    if (otwarty) { dotkniete.clear(); zapamietajDotkniete(); } else try { localStorage.removeItem(kluczDotknietych(p.id)); } catch { /* nic */ }
     stan.konflikt = null;
     await zapiszLokalnie(p, wlasciciel(), p.zmieniono !== wersja);
     await zachowajHistorie(p); // nowy numer wersji z konta

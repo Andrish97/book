@@ -223,7 +223,7 @@ Wszystko zmienisz później w ustawieniach sekcji (rozdział „11.4 Ustawienia 
 
 ### 3.4 Zapis
 
-Nie ma przycisku „Zapisz” — każda zmiana zapisuje się sama, najpierw na urządzeniu, a po chwili na koncie. Bez internetu zmiany czekają na urządzeniu i wyślą się same po powrocie sieci. Stan zapisu pokazuje chmurka obok nazwy projektu (rozdział „3.1 Lista projektów”).
+Nie ma przycisku „Zapisz” — każda zmiana zapisuje się sama, najpierw na urządzeniu, a po chwili na koncie. Bez internetu zmiany czekają na urządzeniu i wyślą się same po powrocie sieci. Stan zapisu pokazuje chmurka obok nazwy projektu (rozdział „3.1 Lista projektów”). Zmiana zrobiona tuż przed zamknięciem karty też zostaje: zapisuje się na urządzeniu i trafia na konto przy następnym otwarciu projektu.
 
 ### 3.5 Kilka urządzeń i cofanie
 

@@ -41,7 +41,7 @@ import { wlaczWygladEdytora } from './wyglad-edytora.js';
 import { wczytajPlikProjektu } from './projekty.js';
 import {
   naPlotnie, zapiszBiezacyCel, cofnijKrok, zaplanujZapis, wybierzStroneArkusza, zaladujCel,
-  zapiszTeraz, synchronizuj, zaplanujChmure, stanZapisu, sprawdzKonto, otworzProjekt, odlaczPlotno, odswiezKsiazke,
+  zapiszTeraz, zapiszPrzyZamknieciu, synchronizuj, zaplanujChmure, stanZapisu, sprawdzKonto, otworzProjekt, odlaczPlotno, odswiezKsiazke,
 } from './zapis.js';
 import {
   pokazPodglad, otworzUdostepnianie, opublikujUdostepnienie, wylaczUdostepnienie,
@@ -730,9 +730,10 @@ window.addEventListener('offline', () => { if (stan.projekt && stan.uzytkownik) 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && stan.projekt) zapiszTeraz();
 });
-window.addEventListener('beforeunload', () => {
-  if (stan.timerZapisu && stan.projekt) zapiszBiezacyCel();
-});
+// Zamknięcie albo przeładowanie karty zaraz po zmianie (#160): zapis w przeglądarce czekał jeszcze ok. 0,7 s
+// i zmiana sprzed chwili ginęła (js/app/zapis.js, zapiszPrzyZamknieciu).
+window.addEventListener('beforeunload', zapiszPrzyZamknieciu);
+window.addEventListener('pagehide', zapiszPrzyZamknieciu);
 let timerOkna = null;
 window.addEventListener('resize', () => {
   clearTimeout(timerOkna);

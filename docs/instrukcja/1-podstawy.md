@@ -226,6 +226,8 @@ W projekcie innej osoby zamiast duplikowania i usuwania są [Zrób własną kopi
 Nie ma przycisku „Zapisz” — każda zmiana zapisuje się sama, najpierw na urządzeniu, a po chwili
 na koncie. Bez internetu zmiany czekają na urządzeniu i wyślą się same po powrocie sieci. Stan zapisu
 pokazuje chmurka obok nazwy projektu (→ 3.1).
+Zmiana zrobiona tuż przed zamknięciem karty też zostaje: zapisuje się na urządzeniu i trafia na konto przy
+następnym otwarciu projektu.
 
 ## 3.5 Kilka urządzeń i cofanie
 

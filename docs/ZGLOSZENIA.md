@@ -10,7 +10,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | # | Uwaga | Stan |
 |---|---|---|
 | 179 | Makieta 3D: wyklejka jak w prawdziwej twardej oprawie (zawinięcie okleiny, płaska wyklejka, cienki zawias), spirale z poprawnymi parametrami (Wire-O 3:1/2:1, średnica z grubości, kalendarz ścienny z wieszakiem), sztywna okładka miękka zginana na bigach, poprawne wymiary okładki względem bloku, tryb stojący | 🔄 |
-| 160 | Audyt pokrycia testami wszystkich funkcji, docs/TESTY.md, lista kontrolna do ręcznego sprawdzenia | 🔄 |
 
 ## Czeka (kolejne etapy)
 
@@ -34,6 +33,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
 | Sprawdzenie na prawdziwym telefonie: gesty iPhone (#101), klawiatura w zasłonkach, instalacja aplikacji | ⏳ |
 | Instrukcja: rozważyć kolejność części (Konto i ustawienia po Współpracy, przed Pomocą) – po scaleniu wątków, które dopisują podrozdziały (#169) | ⏳ |
+| 160: ręczna lista kontrolna z docs/TESTY.md (iPhone/Safari, Android, prawdziwa drukarka, e-maile, push, migracje na produkcji) – tego nie sprawdzą testy w tym środowisku; do tego „grupa otwarta: ramka zaznaczenia” padła raz na 4 przebiegi (cofnięcie kolejności w grupie) | ⏳ ręcznie / do zbadania |
 
 ## Kroki po Twojej stronie
 
@@ -63,6 +63,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 164 | Wzorce stron: zrozumiałe wyjaśnienie z rysunkiem, wejścia przy stronach (przycisk pod listą, menu strony i sekcji, pusty stan we właściwościach), znak wzorca na miniaturze, 39 gotowych wzorców z podglądami w 9 grupach (też w Bibliotece), dodanie jednym kliknięciem od razu na strony sekcji. |
 | 162 | Biblioteka: 9 nowych działów – Ikony (260), Ilustracje, Okolicznościowe, Tła i wzory, Formularze do druku, Infografiki, Nagłówki i tytuły, Bloki treści, Układy stron – i Planer +11 (kalendarz roczny, plany, trackery, budżet miesięczny); wszystko edytowalne (grupy tekstów, kształtów i ścieżek), wzory i tła wektorowe w PDF; instrukcja 5.8 z nowym kadrem |
 | 161 | Makieta 3D z telefonu: format bloku z większości stron (wyklejka A4 nie rozciąga książki, dzieli się na połowy na wnętrzu okładek), twarda oprawa ze skorupą grzbietu, szczeliną, składkami i kapitałką, otwarta okładka połączona z blokiem, napis na grzbiecie nie w lustrze, spirala skalowana z grubością i obejmująca blok, bez mory i migotania, ostrzejszy obraz i tekstury, kadr dla bieżącego kąta. |
+| 160 | Audyt testów (docs/TESTY.md): tabela funkcji → testy → głębokość, nowe testy (okładka w PDF, operacje na stronach, 4 uwagi „Sprawdź przed drukiem”, narzędzie AI kolejnosc_elementow, zapis przy zamknięciu karty); naprawione 3 błędy (cofanie w trakcie wczytywania strony, utrata zmiany sprzed zamknięcia karty, niewysłana zmiana po ponownym otwarciu) i 5 niestabilnych testów. |
 | 156 | Obramowanie zdjęcia (kolor z kryciem, grubość, rodzaj linii, zaokrąglone narożniki przycinające zdjęcie) i miękkie krawędzie zdjęć i kształtów (równo wzdłuż brzegu albo owalna winieta) – w edytorze, podglądzie, PNG i PDF. |
 | 155 | Biblioteka: porządek (Planer tylko tabele i siatki do notatek, osobna kategoria Ramki, każdy kształt w jednym miejscu) i rozbudowa – ponad 400 kształtów (Kształty 200+, Ramki 80+ w grupach, ozdobniki, separatory, etykiety), nagłówki grup w oknie, ramki przerywane, pola na zdjęcie, obramowania stron |
 | 153 | Makieta 3D jak zdjęcie produktu: rzeczywiste proporcje bez rozciągania, światło z cieniem rzucanym i kontaktowym (stół, ściana), cień w zgięciu, wygięte kartki, krawędzie kartek, zaokrąglony grzbiet twardej oprawy bez artefaktów, spirala z drutu, stojak biurkowy z tektury, tło studia (też w PNG 3200 px). |

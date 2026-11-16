@@ -17,7 +17,12 @@ test('druk w domu: menu ⋯ i Ctrl+P, broszura A4 – 2 kartki dla 6 stron, druk
     window.seriodruk.drukujTestowo = (url) => window.__druk.push(url);
   });
   // Widoczne miejsce: menu ⋯ projektu (#140, #142).
-  await strona.click('#przycisk-wiecej');
+  // Projekt otwarty wprost zmienia adres – obsługa adresu przychodzi chwilę później i zamyka otwarte menu
+  // (pokazEkran). Menu otwieramy, aż pozycja jest widoczna (#160).
+  for (let i = 0; i < 10 && !(await strona.isVisible('#menu-wiecej [data-akcja="drukuj"]')); i += 1) {
+    if (await strona.evaluate(() => document.querySelector('#menu-wiecej').hidden)) await strona.click('#przycisk-wiecej');
+    await strona.waitForTimeout(300);
+  }
   await strona.click('#menu-wiecej [data-akcja="drukuj"]');
   await strona.waitForSelector('#dlg-druk[open]');
   await strona.evaluate(() => {
