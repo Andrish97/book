@@ -15,7 +15,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
-| 161 (reszta): projekt użytkownika do czasu ustawienia typów wyklejek (sekcje wyklejek → typ „Wyklejka przednia / tylna”) pokaże je jako zwykłe rozkładówki | 👤 |
+| 161 (reszta, #185 – makieta już o tym ostrzega z przyciskiem „Ustaw typ sekcji…”): projekt użytkownika do czasu ustawienia typów wyklejek (sekcje wyklejek → typ „Wyklejka przednia / tylna”) pokaże je jako zwykłe rozkładówki | 👤 |
 | Sprawdzenie na prawdziwym telefonie: gesty iPhone (#101), klawiatura w zasłonkach, instalacja aplikacji | ⏳ |
 | 160: ręczna lista kontrolna z docs/TESTY.md (iPhone/Safari, Android, prawdziwa drukarka, e-maile, push, migracje na produkcji) – tego nie sprawdzą testy w tym środowisku; do tego „grupa otwarta: ramka zaznaczenia” padła raz na 4 przebiegi (cofnięcie kolejności w grupie) | ⏳ ręcznie / do zbadania |
 
@@ -25,7 +25,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 |---|---|
 | Cloudflare → makietka-api → Settings → Variables and Secrets → sekret `SUPABASE_SERVICE_ROLE_KEY` (secret key z Supabase → Project Settings → API Keys) – po wdrożeniu #106 | 👤 |
 | Email Routing: kontakt@, noreply@, no-reply@ → Send to a Worker → makietka-api (catch-all zostaje) | 👤 |
-| Zoho: weryfikacja domeny makietka.app (support), potem włączenie ZeptoMail w panelu | 👤 |
+| Zoho: weryfikacja domeny makietka.app (support), potem włączenie ZeptoMail w panelu | ✅ zrobione (ZeptoMail działa) |
 | Supabase → Storage: w bucketach `zasoby` i `podglady` zaznacz wszystko → Delete, potem ⋯ → Delete bucket | ✅ zrobione |
 | Link z hasłem: otwórz okno Udostępnij i opublikuj link ponownie (stary link bez sekretu jest nieaktywny) | 👤 |
 | Wyczyścić dane strony andrish97.github.io na swoich urządzeniach (stary moduł offline nie przekierowuje) | 👤 |

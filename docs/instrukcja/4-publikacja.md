@@ -53,6 +53,9 @@ albo ścianie. Można ją obracać i kartkować, zanim pójdzie do drukarni.
 | **Pudełko z wykrojnika** | Z wykrojnika pudełka: najpierw płaski arkusz z nadrukiem, potem ścianki, klapki i wieczko składają się w bryłę. |
 | **Kalendarz trójdzielny** | Wisi na ścianie: plecy z główką, trzy bloczki kalendariów i czerwone okienko na środkowym. |
 
+Gdy któraś sekcja środka ma inny format niż reszta (np. wyklejka A4 przy środku A5, bez ustawionego typu),
+makieta nie złoży jej poprawnie w książkę i powie to pod obrazem – [Ustaw typ sekcji…] otwiera ustawienia tej sekcji (→ 10.4).
+
 Lista **Rodzaj** pokazuje tylko to, co pasuje do sekcji projektu: ulotka, koperta, pudełko i kalendarz
 trójdzielny — gdy projekt ma taką sekcję; książki, notes, kalendarze i kartka — gdy ma zwykłe strony.
 Gdy projekt ma sekcję **obwoluty**, książka w twardej oprawie pokazuje ją na okładce (przód, grzbiet i tył

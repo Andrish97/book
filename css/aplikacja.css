@@ -3467,3 +3467,8 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 .wybor-wzoru button svg { width: 100%; height: 100%; }
 .wybor-wzoru button[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); color: var(--akcent); }
 @media (hover: hover) { .wybor-wzoru button:hover { border-color: var(--akcent); } }
+
+/* Uwagi pod makietą (#179, #185): każda w osobnym akapicie, przycisk w linii z tekstem. */
+.makieta-uwaga p { margin: 0 0 6px; }
+.makieta-uwaga p:last-child { margin-bottom: 0; }
+.makieta-uwaga .przycisk { margin-top: 4px; }

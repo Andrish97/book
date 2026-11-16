@@ -1635,6 +1635,8 @@ Strony idą po kolei, rozkładówki stoją obok siebie. Strony serii mają podpi
 | **Pudełko z wykrojnika** | Z wykrojnika pudełka: najpierw płaski arkusz z nadrukiem, potem ścianki, klapki i wieczko składają się w bryłę. |
 | **Kalendarz trójdzielny** | Wisi na ścianie: plecy z główką, trzy bloczki kalendariów i czerwone okienko na środkowym. |
 
+Gdy któraś sekcja środka ma inny format niż reszta (np. wyklejka A4 przy środku A5, bez ustawionego typu), makieta nie złoży jej poprawnie w książkę i powie to pod obrazem – **Ustaw typ sekcji…** otwiera ustawienia tej sekcji (rozdział „10.4 Ustawienia sekcji”).
+
 Lista **Rodzaj** pokazuje tylko to, co pasuje do sekcji projektu: ulotka, koperta, pudełko i kalendarz trójdzielny — gdy projekt ma taką sekcję; książki, notes, kalendarze i kartka — gdy ma zwykłe strony. Gdy projekt ma sekcję **obwoluty**, książka w twardej oprawie pokazuje ją na okładce (przód, grzbiet i tył z obwoluty, skrzydełka zawinięte do środka); przełącznik **Pokaż obwolutę** chowa ją i odsłania okładkę.
 
 Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka); zmienisz go listą **Rodzaj**. Książkę i notes ustawisz listą **Ułożenie**: **Leży** albo **Stoi** — zamknięta stoi na dolnej krawędzi, otwarta rozkłada się w „V” jak na półce wystawowej. Wybór zostaje zapamiętany dla projektu.

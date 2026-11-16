@@ -9,16 +9,16 @@ import { $, powiadom, bezpiecznaNazwa, odmiana } from '../ui.js';
 import { postep } from '../postep.js';
 import { rozwin } from '../serie.js';
 import { renderujCel, naPlotnieCelu } from '../zlozenie.js';
-import { geometriaOkladki, jestOkladka, normalizujOkladke } from '../okladka.js';
+import { geometriaOkladki, jestOkladka, normalizujOkladke, formatSrodka } from '../okladka.js';
 import {
   MODELE, mozeStac, parametryWireO, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer,
-  widokModelu, powodBrakuWebGL, jestSpecjalnyModel, UJECIA, ujeciaModelu,
+  widokModelu, powodBrakuWebGL, jestSpecjalnyModel, UJECIA, ujeciaModelu, MODELE_SPECJALNE,
 } from '../makieta-3d.js';
 import {
   DOMYSLNE_OPCJE, normalizujOpcje, normalizujScene, normalizujUjecie, TLA, SWIATLA, BARWY, WYKONCZENIA_OKLADKI, PAPIERY, ILOSCI,
   iloscSceny, idIlosci,
 } from '../makieta-ustawienia.js';
-import { typSekcji, rolaTypu } from '../typ-sekcji.js'; // typ sekcji wspólny z resztą programu (#177)
+import { typSekcji, rolaTypu, wBloku } from '../typ-sekcji.js'; // typ sekcji wspólny z resztą programu (#177)
 import { geometriaSpecjalna, normalizujSpecjalna } from '../sekcje-specjalne.js';
 import { uzyteKoloryDruku, stanUszlachetnien, FOLIE, plytaUszlachetnienia } from '../kolory-druku.js';
 import { maskaZRoznicy } from '../separacje.js';
@@ -501,8 +501,25 @@ function ustawModel(model, { kamera = true } = {}) {
   const spirala = model === 'notes' || model.startsWith('kalendarz');
   const T = st.kartki.reduce((a, x) => a + x.d, 0);
   const wo = parametryWireO(T);
-  uwaga.hidden = !(spirala && wo.zaGruby);
-  if (!uwaga.hidden) uwaga.textContent = `Blok ma ok. ${Math.round(T)} mm grubości – więcej niż mieści największy pierścień Wire-O (${wo.maks} mm). Makieta pokazuje największą spiralę; do druku podziel projekt na tomy albo wybierz oprawę klejoną.`;
+  const uwagi = [];
+  if (spirala && wo.zaGruby) uwagi.push(`Blok ma ok. ${Math.round(T)} mm grubości – więcej niż mieści największy pierścień Wire-O (${wo.maks} mm). Makieta pokazuje największą spiralę; do druku podziel projekt na tomy albo wybierz oprawę klejoną.`);
+  // Sekcja środka w innym formacie niż reszta bloku (#185) – np. wyklejka A4 bez ustawionego typu. Takiej strony
+  // nie da się poprawnie złożyć w książkę: makieta mówi to wprost i prowadzi do ustawienia typu sekcji.
+  const obce = model === 'kartka' || MODELE_SPECJALNE.includes(model) ? [] : niepasujaceSekcje(st.projekt, st.ciag);
+  uwaga.replaceChildren();
+  for (const t of uwagi) { const p = document.createElement('p'); p.textContent = t; uwaga.append(p); }
+  for (const o of obce) {
+    const p = document.createElement('p');
+    p.textContent = `Sekcja „${o.sekcja.nazwa}” ma format ${o.w} × ${o.h} mm, a środek ${o.wb} × ${o.hb} mm – takich stron nie da się złożyć w książkę i makieta pokaże je źle. Jeśli to wyklejka, okładka albo inna część publikacji, ustaw jej typ. `;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'przycisk maly';
+    b.textContent = 'Ustaw typ sekcji…';
+    b.addEventListener('click', () => { $('#dlg-makieta').close(); window.seriodruk?.otworzUstawieniaSekcji?.(o.sekcja.id); });
+    p.append(b);
+    uwaga.append(p);
+  }
+  uwaga.hidden = !uwaga.childElementCount;
   wyborUlozenia.value = st.ulozenie;
   try { sessionStorage.setItem(`makieta:${st.projekt.id}`, model); } catch { /* bez pamięci – zostaje domyślny */ }
   pokazUjecia();
@@ -1166,3 +1183,12 @@ dlg.addEventListener('close', () => {
   renderer = null;
   st = null;
 });
+
+// Sekcje bloku, których format różni się od formatu środka (#185) – z zaokrągleniem do 1 mm.
+export function niepasujaceSekcje(projekt, ciag) {
+  const blok = projekt.sekcje.filter((x) => wBloku(x));
+  if (blok.length < 2) return [];
+  const f = formatSrodka(blok, ciag);
+  return blok.filter((x) => Math.abs(x.wydruk.szerokosc_mm - f.szerokosc_mm) > 1 || Math.abs(x.wydruk.wysokosc_mm - f.wysokosc_mm) > 1)
+    .map((x) => ({ sekcja: x, w: Math.round(x.wydruk.szerokosc_mm), h: Math.round(x.wydruk.wysokosc_mm), wb: Math.round(f.szerokosc_mm), hb: Math.round(f.wysokosc_mm) }));
+}
