@@ -167,6 +167,14 @@ export class Konto {
     $('#przycisk-logowania').textContent = t.przycisk;
     $('#pole-nazwa').hidden = !rej;
     $('#pole-email').hidden = nowe;
+    // Logowanie przyjmuje też nazwę użytkownika (#192): pole tekstowe z podpowiedzią menedżera haseł „username”.
+    const login = tryb === 'logowanie';
+    $('#pole-email > span').textContent = login ? 'E-mail albo nazwa użytkownika' : 'E-mail';
+    f.elements.email.type = login ? 'text' : 'email';
+    f.elements.email.autocomplete = login ? 'username' : 'email';
+    f.elements.email.inputMode = login ? 'text' : 'email';
+    f.elements.email.autocapitalize = 'none';
+    f.elements.email.spellcheck = false;
     $('#pole-haslo').hidden = tryb === 'reset';
     $('#pole-haslo > span:first-child').textContent = nowe ? 'Nowe hasło' : 'Hasło';
     $('#pole-haslo2').hidden = !(rej || nowe);
@@ -218,7 +226,11 @@ export class Konto {
     const email = f.elements.email.value.trim();
     const haslo = f.elements.haslo.value;
     const { tryb } = this;
-    if (tryb !== 'nowe-haslo' && !poprawnyEmail(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
+    // Logowanie: adres e-mail albo nazwa użytkownika (#192).
+    if (tryb === 'logowanie' && !email) { this.komunikat('Podaj adres e-mail albo nazwę użytkownika.'); return; }
+    if (tryb === 'logowanie' && !email.includes('@') && !poprawnaNazwa(email)) { this.komunikat('Podaj poprawny adres e-mail albo nazwę użytkownika.'); return; }
+    if (tryb !== 'nowe-haslo' && tryb !== 'logowanie' && !poprawnyEmail(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
+    if (tryb === 'logowanie' && email.includes('@') && !poprawnyEmail(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
     if (tryb === 'logowanie' && !haslo) { this.komunikat('Podaj hasło.'); return; }
     if (tryb === 'rejestracja' && !poprawnaNazwa(f.elements.nazwa.value.trim())) {
       this.komunikat(`Nazwa użytkownika: ${ZASADY_NAZWY}`);

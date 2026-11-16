@@ -2219,6 +2219,8 @@ Jeśli przyjdzie e-mail „Potwierdź swoje konto”, kliknij w nim przycisk —
 
 ### 27.2 Logowanie i hasło
 
+W polu **E-mail albo nazwa użytkownika** wpisz adres konta albo swoją nazwę użytkownika (wielkość liter nie ma znaczenia), potem hasło. Po 10 nieudanych próbach logowania tą samą nazwą trzeba odczekać kwadrans — adresem e-mail zalogujesz się od razu.
+
 **Nie pamiętasz hasła?** wysyła link do ustawienia nowego hasła. Link działa jeden raz; gdy wygaśnie, poproś o nowy.
 
 ![Logowanie](https://makietka.app/img/instrukcja/logowanie.png)

@@ -228,6 +228,18 @@ function atrapaWspolpracy(stan) {
       return { poprawna: true, wolna: false, propozycja: `${n.slice(0, 27)}${i}` };
     },
     moja_nazwa_uzytkownika(k) { return nazwaUzytkownika(stan, k); },
+    // #192 (migracja logowanie_nazwa): adres tylko przy zgodnym haśle; 10 nieudanych prób w 15 min – blokada.
+    email_do_logowania(k, { p_nazwa, p_haslo }) {
+      const n = String(p_nazwa || '').trim().toLowerCase();
+      stan.probyNazwy = stan.probyNazwy || new Map();
+      const proby = (stan.probyNazwy.get(n) || []).filter((t) => t > Date.now() - 15 * 60000);
+      if (proby.length >= 10) throw blad('za_duzo_prob_logowania: Za dużo nieudanych prób logowania tą nazwą. Spróbuj ponownie za kwadrans albo zaloguj się adresem e-mail.');
+      stan.konta.forEach((x) => nazwaUzytkownika(stan, x));
+      const konto = stan.konta.find((x) => (stan.profile.get(x.id) || '').toLowerCase() === n);
+      if (konto && konto.haslo === p_haslo) { stan.probyNazwy.delete(n); return konto.email; }
+      stan.probyNazwy.set(n, [...proby, Date.now()]);
+      return null;
+    },
     ustaw_nazwe_uzytkownika(k, { p_nazwa }) {
       const n = String(p_nazwa || '').trim();
       if (!poprawnaNazwa(n)) throw blad('Nazwa użytkownika: 3–30 znaków – litery, cyfry, _ . -; na początku litera albo cyfra');
@@ -293,7 +305,7 @@ function atrapaWspolpracy(stan) {
   };
 
   const wywolaj = (nazwa, tresc, k) => {
-    if (!k && nazwa !== 'nazwa_wolna') throw blad('Brak sesji', 'PGRST301', 401);
+    if (!k && nazwa !== 'nazwa_wolna' && nazwa !== 'email_do_logowania') throw blad('Brak sesji', 'PGRST301', 401);
     return funkcje[nazwa](k, tresc || {});
   };
   wywolaj.ma = (nazwa) => Object.prototype.hasOwnProperty.call(funkcje, nazwa);

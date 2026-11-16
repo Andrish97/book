@@ -37,6 +37,41 @@ test('logowanie: błędne hasło, poprawne hasło, sesja po odświeżeniu, wylog
   assert.deepEqual(bledy, []);
 });
 
+// #192: logowanie nazwą użytkownika – pole przyjmuje adres albo nazwę; zła nazwa/hasło – ten sam komunikat;
+// 10 nieudanych prób tej samej nazwy – blokada na kwadrans (adresem e-mail można dalej).
+test('logowanie nazwą użytkownika: pole „E-mail albo nazwa użytkownika”, złe hasło, dobre, blokada po 10 próbach', async (t) => {
+  const { strona, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.waitForSelector('#ekran-logowania', { state: 'visible' });
+  assert.equal(await strona.textContent('#pole-email > span'), 'E-mail albo nazwa użytkownika');
+  assert.equal(await strona.getAttribute('#form-logowania input[name=email]', 'type'), 'text');
+  await zaloguj(strona, 'Anna', 'zle');
+  await strona.waitForFunction(() => document.querySelector('#komunikat-logowania').textContent);
+  assert.equal(await strona.textContent('#komunikat-logowania'), 'Nieprawidłowa nazwa użytkownika lub hasło.');
+  await zaloguj(strona, 'anna', HASLO); // wielkość liter bez znaczenia
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  assert.equal(await strona.textContent('#awatar'), 'A');
+  await strona.click('#awatar');
+  await strona.click('[data-akcja="wyloguj"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'logowanie');
+  // Rejestracja: pole znów tylko na adres e-mail.
+  await strona.click('#tryb-logowania input[value="rejestracja"]').catch(() => strona.evaluate(() => { const r = document.querySelector('#tryb-logowania input[value="rejestracja"]'); r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }));
+  assert.equal(await strona.textContent('#pole-email > span'), 'E-mail');
+  assert.equal(await strona.getAttribute('#form-logowania input[name=email]', 'type'), 'email');
+  await strona.evaluate(() => { const r = document.querySelector('#tryb-logowania input[value="logowanie"]'); r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); });
+  for (let i = 0; i < 10; i += 1) {
+    await strona.evaluate(() => { document.querySelector('#komunikat-logowania').textContent = ''; });
+    await zaloguj(strona, 'Anna', `zle${i}`);
+    await strona.waitForFunction(() => document.querySelector('#komunikat-logowania').textContent);
+  }
+  await strona.evaluate(() => { document.querySelector('#komunikat-logowania').textContent = ''; });
+  await zaloguj(strona, 'Anna', HASLO);
+  await strona.waitForFunction(() => document.querySelector('#komunikat-logowania').textContent);
+  assert.match(await strona.textContent('#komunikat-logowania'), /Za dużo nieudanych prób logowania tą nazwą/);
+  await zaloguj(strona, 'anna@test.pl', HASLO);
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  assert.deepEqual(bledy, []);
+});
+
 test('rejestracja: zasady hasła, wysłany link, ponowna wysyłka, konto już istnieje', async (t) => {
   const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
   await strona.click('#tryb-logowania label:has-text("Nowe konto")');

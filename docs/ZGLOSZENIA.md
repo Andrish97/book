@@ -38,6 +38,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 192 | Logowanie nazwą użytkownika albo adresem e-mail (adres z nazwy tylko przy dobrym haśle, limit prób) |
 | 191 | Znak wodny w podglądzie z linku: włączany w oknie Udostępnij (własny tekst, domyślnie „PODGLĄD”), wtopiony w obrazy stron – oglądający go nie wyłączy |
 | 190 | Ochrona linku (hasło, data ważności, włączenie i zdjęcie) zmieniana w każdej chwili – także z listy projektów |
 | 189 | Makieta w linku aktualizuje się sama, także w starych linkach (po otwarciu projektu i po zapisie ujęcia); w podglądzie nazwa projektu w jednej linii zamiast trzech, nagłówek sekcji okładki nie ucina się z lewej |

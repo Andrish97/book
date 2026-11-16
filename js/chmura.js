@@ -116,6 +116,7 @@ const adresPowrotu = () => location.origin + location.pathname;
 
 const KOMUNIKATY = {
   invalid_credentials: 'Nieprawidłowy e-mail lub hasło.',
+  invalid_credentials_nazwa: 'Nieprawidłowa nazwa użytkownika lub hasło.',
   email_not_confirmed: 'Konto czeka na potwierdzenie – kliknij link z wiadomości e-mail.',
   user_already_exists: 'Konto z tym adresem już istnieje. Zaloguj się albo przypomnij hasło.',
   email_exists: 'Ten adres e-mail jest już zajęty.',
@@ -136,8 +137,8 @@ export function komunikatBledu(e) {
   if (e?.kod && KOMUNIKATY[e.kod]) return KOMUNIKATY[e.kod];
   const m = String(e?.message || e || '');
   // Limity z bazy (migracja 20261114180000_pliki_r2_limity.sql): „limit_projektow: Masz już …”.
-  const limit = /\blimit_(projektow|osob):\s*(.+)$/s.exec(m);
-  if (limit) return limit[2].trim();
+  const limit = /\b(?:limit_(?:projektow|osob)|za_duzo_prob_logowania):\s*(.+)$/s.exec(m);
+  if (limit) return limit[1].trim();
   const mapa = [
     [/invalid login credentials/i, KOMUNIKATY.invalid_credentials],
     [/email not confirmed/i, KOMUNIKATY.email_not_confirmed],
@@ -161,8 +162,17 @@ export function komunikatBledu(e) {
 
 export const nazwaUzytkownika = (u) => (u?.user_metadata?.nazwa || '').trim() || (u?.email || '').split('@')[0];
 
-export async function zalogujHaslem(email, haslo) {
+// login: adres e-mail albo nazwa użytkownika (#192). Nazwa → adres daje baza tylko przy zgodnym haśle
+// (email_do_logowania), potem zwykłe logowanie adresem.
+export async function zalogujHaslem(login, haslo) {
   const sb = await supabase();
+  let email = String(login || '').trim();
+  if (!email.includes('@')) {
+    const { data, error } = await sb.rpc('email_do_logowania', { p_nazwa: email, p_haslo: haslo });
+    if (error) throw error;
+    if (!data) throw Object.assign(new Error(KOMUNIKATY.invalid_credentials_nazwa), { kod: 'invalid_credentials_nazwa' });
+    email = data;
+  }
   return sprawdz(await sb.auth.signInWithPassword({ email, password: haslo })).user;
 }
 
