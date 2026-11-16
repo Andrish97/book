@@ -3325,7 +3325,14 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .makieta-grupy > fieldset { align-self: start; justify-content: flex-start; gap: 10px; }
 .makieta-grupy > fieldset > * { flex: 0 0 auto; }
 .makieta-suwak { display: grid; grid-template-columns: 8.5em 1fr 3.4em; align-items: center; gap: 8px; font-size: 13px; color: var(--tusz-2); }
-.makieta-suwak input[type="range"] { width: 100%; min-width: 0; accent-color: var(--akcent); height: 28px; margin: 0; }
+/* Własny suwak (#186): ten sam wygląd w każdej przeglądarce i motywie, uchwyt 22 px dla palca. */
+.makieta-suwak input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; height: 28px; margin: 0; background: transparent; cursor: pointer; touch-action: pan-y; }
+.makieta-suwak input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--linia); }
+.makieta-suwak input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--linia); }
+.makieta-suwak input[type="range"]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--akcent); }
+.makieta-suwak input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%; background: var(--powierzchnia); border: 2px solid var(--akcent); box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
+.makieta-suwak input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--powierzchnia); border: 2px solid var(--akcent); box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
+.makieta-suwak input[type="range"]:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; border-radius: 4px; }
 .makieta-suwak output { font-variant-numeric: tabular-nums; text-align: right; color: var(--cichy); font-size: 12.5px; }
 .makieta-czesc .rzad { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .makieta-czesc input[type="color"] { width: 100%; height: 34px; padding: 2px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); }

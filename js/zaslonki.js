@@ -121,6 +121,19 @@ function sledzKlawiature() {
   const zakryte = Math.max(0, window.innerHeight - v.height - v.offsetTop);
   root.style.setProperty('--klawiatura', `${Math.round(zakryte)}px`);
   root.style.setProperty('--widok-h', `${Math.round(v.height)}px`);
+  pokazPolePrzyKlawiaturze();
+}
+
+// Pole z fokusem w zasłonce widać nad klawiaturą (#186): zasłonka maleje do widocznej części okna, ale pole
+// niżej w jej treści zostawało pod dolną krawędzią – na iPhonie Safari nie przewija sam treści stałej zasłonki.
+function pokazPolePrzyKlawiaturze() {
+  const a = document.activeElement;
+  if (!a?.closest?.('dialog[open]') || !a.matches('input, textarea, [contenteditable="true"]')) return;
+  requestAnimationFrame(() => {
+    const v = window.visualViewport;
+    const r = a.getBoundingClientRect();
+    if (r.bottom > v.offsetTop + v.height || r.top < v.offsetTop) a.scrollIntoView({ block: 'nearest' });
+  });
 }
 window.visualViewport?.addEventListener('resize', sledzKlawiature);
 window.visualViewport?.addEventListener('scroll', sledzKlawiature);

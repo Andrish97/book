@@ -14,7 +14,9 @@ const NATYWNE = () => {
   const zle = [];
   for (const el of document.querySelectorAll('select')) if (!el.multiple && !el.dataset.wybor && widoczny(el)) zle.push(`select#${el.id}`);
   for (const el of document.querySelectorAll('select.wybor-natywny')) if (widoczny(el) && getComputedStyle(el).opacity !== '0') zle.push(`select (pod spodem)#${el.id}`);
-  for (const el of document.querySelectorAll('input[type="date"]:not([data-data]), input[type="color"]:not([data-kolor]), input[type="range"], input[type="file"]')) if (widoczny(el)) zle.push(`${el.type}#${el.id}`);
+  for (const el of document.querySelectorAll('input[type="date"]:not([data-data]), input[type="color"]:not([data-kolor]), input[type="file"]')) if (widoczny(el)) zle.push(`${el.type}#${el.id}`);
+  // Suwak: własny wygląd (appearance: none + własny tor i uchwyt, #186) – systemowy tylko bez tego.
+  for (const el of document.querySelectorAll('input[type="range"]')) if (widoczny(el) && getComputedStyle(el).appearance !== 'none') zle.push(`range#${el.id}`);
   for (const el of document.querySelectorAll('input[type="checkbox"], input[type="radio"]')) {
     if (widoczny(el) && getComputedStyle(el).appearance !== 'none') zle.push(`${el.type}#${el.id || el.name}`);
   }
