@@ -23,7 +23,7 @@ import { przeliczKsiazke, uzywaKsiazki, przypisyStrony, poleKsiazki } from '../k
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
-import { ustawZakladke, generujMiniatury, renderujListe, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
+import { ustawZakladke, generujMiniatury, renderujListe, oznaczBiezacaWLiscie, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
 
 // Nazwa projektu w górnym pasku; pełna także w dymku – na wąskim ekranie pole bywa ucięte.
 const pokazNazwe = (nazwa) => { const pole = $('#nazwa-projektu'); pole.value = nazwa; pole.title = nazwa; };
@@ -200,7 +200,8 @@ function odmrozObraz(z) {
   }));
 }
 
-export async function zaladujCel({ dopasuj = false } = {}) {
+// nawigacja: tylko przejście na inną stronę (bez zmian w stronach) – lista stron nie jest budowana od nowa (#158).
+export async function zaladujCel({ dopasuj = false, nawigacja = false } = {}) {
   const { projekt } = stan;
   // Strona okładki: przeliczenie przed wczytaniem, żeby po przejściu z innej strony (np. po dodaniu stron
   // w środku) okładka była od razu w aktualnym rozmiarze, a nie dopiero po chwili (#144).
@@ -266,7 +267,7 @@ export async function zaladujCel({ dopasuj = false } = {}) {
     odmrozObraz(zamrozone);
   }
   odswiezPasekEdytora();
-  renderujListe();
+  if (nawigacja) oznaczBiezacaWLiscie(); else renderujListe();
   trasa.ustaw(`p/${projekt.id}/${stan.tryb === 'wzorzec' ? `w/${cel.id}` : `s/${cel.id}`}`, { zastap: true });
 }
 
@@ -279,7 +280,7 @@ export function wybierzStroneArkusza(k) {
   zapamietajStrone(stan.projekt.id, id);
   edytor.ustawAktywna(k);
   odswiezPasekEdytora();
-  renderujListe();
+  oznaczBiezacaWLiscie();
   trasa.ustaw(`p/${stan.projekt.id}/s/${id}`, { zastap: true });
   if (!edytor.aktywny) panel.zbuduj();
 }

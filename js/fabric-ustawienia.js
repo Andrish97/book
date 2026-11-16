@@ -48,6 +48,23 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   zainstalujUszlachetnienia();
   zainstalujMiekkieKrawedzie();
 
+  // Pamięć podręczna obiektów tylko tam, gdzie się opłaca (#158). Fabric domyślnie trzyma każdy obiekt
+  // w osobnym płótnie (min. 256×256 px) i przy każdym odrysowaniu nakłada je na stronę – przy 200–300
+  // tekstach, liniach i kółkach na stronie dziennika to setki płócien (dziesiątki MB pamięci karty) i
+  // 200–450 ms na jedno odrysowanie na telefonie, a w miniaturach i podglądzie (strona rysowana raz)
+  // czysta strata. Teksty, linie i proste kształty rysują się wprost szybciej (i ostrzej przy przybliżeniu);
+  // bufor zostaje dla grup (tabele, kalendarze, kody, kolaże), obrazów, cieni, przycięć, miękkich krawędzi,
+  // wypełnień obrazem, tekstu po kształcie i bardzo złożonych ścieżek.
+  const oplacaSieCache = (o) => Boolean(o._objects || o.type === 'image' || o.shadow || o.clipPath
+    || Number(o.miekkie_krawedzie) > 0 || o.ksztalt_tekstu || o.filtry
+    || (o.fill && typeof o.fill === 'object' && o.fill.source)
+    || (o.path && o.path.length > 200) || (o.points && o.points.length > 200));
+  const zCache = fabric.FabricObject.prototype.shouldCache;
+  fabric.FabricObject.prototype.shouldCache = function shouldCache() {
+    if (!oplacaSieCache(this)) { this.ownCaching = this.needsItsOwnCache(); return this.ownCaching; }
+    return zCache.call(this);
+  };
+
   // Położenie obiektu (left, top) to jego lewy górny róg – tak są zapisane wszystkie projekty.
   // (Fabric 7 domyślnie liczy od środka.)
   Object.assign(fabric.BaseFabricObject.ownDefaults, { originX: 'left', originY: 'top' });

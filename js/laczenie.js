@@ -29,16 +29,23 @@ const POMIJANE = new Set(['id', 'wersja_chmury', 'podstawa_chmury', 'wspolpraca_
 const MOJE_BEZ_PYTANIA = new Set(['widok']);
 
 // Zapis wartości z kluczami w ustalonej kolejności, zgodny z JSON (pola undefined znikają).
-export function kanon(x) {
+// pamiec (WeakMap, opcjonalnie): zapis każdego obiektu liczony raz w obrębie jednego obliczenia (#158) –
+// odciski projektu zapisują element raz osobno i drugi raz wewnątrz strony; przy dużym projekcie to
+// setki milisekund przy każdym zapisie. Wynik jest dokładnie ten sam (odciski zapamiętane w projektach
+// muszą się zgadzać), więc pamięci używa się tylko wtedy, gdy nic się w międzyczasie nie zmienia.
+export function kanon(x, pamiec = null) {
   if (x === null || typeof x !== 'object') return JSON.stringify(x) ?? 'null';
-  if (Array.isArray(x)) return `[${x.map(kanon).join(',')}]`;
-  const klucze = Object.keys(x).filter((k) => x[k] !== undefined && typeof x[k] !== 'function').sort();
-  return `{${klucze.map((k) => `${JSON.stringify(k)}:${kanon(x[k])}`).join(',')}}`;
+  if (pamiec) { const z = pamiec.get(x); if (z !== undefined) return z; }
+  const w = Array.isArray(x)
+    ? `[${x.map((y) => kanon(y, pamiec)).join(',')}]`
+    : `{${Object.keys(x).filter((k) => x[k] !== undefined && typeof x[k] !== 'function').sort().map((k) => `${JSON.stringify(k)}:${kanon(x[k], pamiec)}`).join(',')}}`;
+  if (pamiec) pamiec.set(x, w);
+  return w;
 }
 
 // Krótki odcisk treści (53 bity + długość) – do porównań, nie do zabezpieczeń.
-export function odcisk(x) {
-  const t = kanon(x);
+export function odcisk(x, pamiec = null) {
+  const t = kanon(x, pamiec);
   let a = 0xdeadbeef ^ t.length;
   let b = 0x41c6ce57 ^ t.length;
   for (let i = 0; i < t.length; i += 1) {
@@ -68,18 +75,18 @@ const Z_ELEMENTAMI = new Set(['strony', 'wzorce']);
 // Odciski części strony albo wzorca: każdy element osobno (po id), ich kolejność, wątki tekstu, a pozostałe
 // pola (nazwa, tło, prowadnice, przypisane wzorce…) każde osobno. null, gdy elementom nie da się zaufać
 // (brak albo powtórzone id) – taka strona łączy się jako całość.
-export function odciskiCzesci(e) {
+export function odciskiCzesci(e, pamiec = null) {
   const obiekty = Array.isArray(e?.obiekty) ? e.obiekty : [];
   const kolejnosc = obiekty.map((o) => o?.id);
   if (kolejnosc.some((id) => typeof id !== 'string' || !id) || new Set(kolejnosc).size !== kolejnosc.length) return null;
   const elementy = {};
   const watki = {};
   for (const o of obiekty) {
-    elementy[o.id] = odcisk(o);
+    elementy[o.id] = odcisk(o, pamiec);
     if (o.watek) watki[o.id] = o.watek;
   }
   const pola = {};
-  for (const k of Object.keys(e)) if (k !== 'id' && k !== 'obiekty' && e[k] !== undefined) pola[k] = odcisk(e[k]);
+  for (const k of Object.keys(e)) if (k !== 'id' && k !== 'obiekty' && e[k] !== undefined) pola[k] = odcisk(e[k], pamiec);
   return { kolejnosc, elementy, watki, pola };
 }
 
@@ -93,7 +100,7 @@ export function postacDoPorownan(projekt) {
 }
 
 // Odciski stanu uzgodnionego z kontem – zapamiętywane w projekcie jako `podstawa_chmury`.
-export const podstawaProjektu = (projekt) => odciskiProjektu(postacDoPorownan(projekt));
+export const podstawaProjektu = (projekt, pamiec = new WeakMap()) => odciskiProjektu(postacDoPorownan(projekt), pamiec);
 
 // Czy projekt jest taki sam jak stan o podanych odciskach – z dokładnością do ustawień widoku (siatka,
 // linijki), które każde urządzenie ma swoje. Tak aplikacja rozstrzyga, czy po dołączeniu zmian z konta
@@ -104,17 +111,17 @@ export function tenSamStan(projekt, odciski) {
 }
 
 // Odciski wszystkich części projektu: { listy: { strony: { kolejnosc: [id], elementy: { id: odcisk } }, … }, reszta: { klucz: odcisk } }.
-export function odciskiProjektu(projekt) {
+export function odciskiProjektu(projekt, pamiec = new WeakMap()) {
   const listy = {};
   for (const l of LISTY) {
     const elementy = {};
     const lista = Array.isArray(projekt?.[l]) ? projekt[l] : [];
-    for (const e of lista) elementy[e.id] = odcisk(e);
+    for (const e of lista) elementy[e.id] = odcisk(e, pamiec);
     listy[l] = { kolejnosc: lista.map((e) => e.id), elementy };
-    if (Z_ELEMENTAMI.has(l)) listy[l].czesci = Object.fromEntries(lista.map((e) => [e.id, odciskiCzesci(e)]));
+    if (Z_ELEMENTAMI.has(l)) listy[l].czesci = Object.fromEntries(lista.map((e) => [e.id, odciskiCzesci(e, pamiec)]));
   }
   const reszta = {};
-  for (const k of klucze(projekt)) reszta[k] = odcisk(projekt[k]);
+  for (const k of klucze(projekt)) reszta[k] = odcisk(projekt[k], pamiec);
   return { listy, reszta };
 }
 

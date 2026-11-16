@@ -338,12 +338,15 @@ export async function zapiszWChmurze(projekt, { wymus = false, postep = null } =
   delete reszta.podstawa_chmury; // odciski ostatnio uzgodnionego stanu – sprawa tego urządzenia, nie konta
   delete reszta.wspolpraca_chmury; // czyj to projekt i jaka moja rola – wie to baza, nie treść projektu
   // Odciski tego, co właśnie wysyłamy: po udanym zapisie to jest stan uzgodniony z kontem (js/laczenie.js).
-  const podstawa = podstawaProjektu(projekt);
+  // Wspólna pamięć zapisów (#158): elementy stron są te same w odciskach i w liście stron do wysłania –
+  // każdy zamieniany na tekst raz, nie dwa razy (przy dużym projekcie setki ms przy każdym zapisie).
+  const pamiec = new WeakMap();
+  const podstawa = podstawaProjektu(projekt, pamiec);
   // Strony leżą na koncie w osobnych wierszach. Wysyłamy tylko te, których treść
   // różni się od ostatnio wysłanej z tego urządzenia; przy wymuszeniu – wszystkie,
   // bo na koncie może być wersja z innego urządzenia. Porównujemy zapis o ustalonej
   // kolejności pól: baza oddaje pola w innej kolejności, niż je dostała.
-  const teksty = new Map(strony.map((st) => [st.id, kanon(st)]));
+  const teksty = new Map(strony.map((st) => [st.id, kanon(st, pamiec)]));
   const poprzednie = (!wymus && znana && wyslaneStrony.get(projekt.id)) || new Map();
   const zmienione = [...teksty].filter(([id, tekst]) => poprzednie.get(id) !== tekst).map(([id, tekst]) => ({ id, dane: JSON.parse(tekst) }));
   const wynik = sprawdz(await sb.rpc('zapisz_projekt', {
