@@ -1,5 +1,6 @@
 // Ekran podglądu bez edycji i udostępnianie podglądu linkiem.
 
+import { opisMakiety } from '../makieta-opis.js';
 import { renderujCel } from '../zlozenie.js';
 import { postep as pasekPostepu } from '../postep.js';
 import { rozwin } from '../serie.js';
@@ -256,6 +257,8 @@ async function opublikuj(p, postep = () => {}, { pelna = false } = {}) {
   const ciag = rozwin(p);
   const poKluczu = new Map(ciag.egzemplarze.map((e) => [e.klucz, e]));
   const uklad = ukladProjektu(p, ciag);
+  // Makieta 3D dla oglądającego (#188): opis bryły i wariantu – bez treści stron (tekstury to obrazy linku).
+  try { uklad.makieta = opisMakiety(p, ciag); } catch { /* bez makiety – link działa jak dawniej */ }
   const strony = stronyUkladu(uklad);
   const odciski = Object.fromEntries(strony.map((s) => [s.id, odciskStrony(p, poKluczu.get(s.id), ciag)]));
   // WebP: ten sam wygląd przy ok. 30–40% mniejszych plikach (mniej transferu dla oglądających, #90).

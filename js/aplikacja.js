@@ -26,7 +26,7 @@ import { przejdzDoTrasy } from './app/trasy.js';
 import { wyloguj, konto, odswiezNaglowek, poZalogowaniu } from './app/logowanie.js';
 import { wylaczNaZywo } from './app/na-zywo.js';
 import { instrukcja } from './app/instrukcja-leniwa.js';
-import { pokazUdostepniony, podgladZLinku } from './app/udostepnione.js';
+import { pokazUdostepniony, podgladZLinku, otworzMakieteLinku } from './app/udostepnione.js';
 import { doczytajEdytor, czekajNaEdytor, edytorGotowy } from './app/doczytaj.js';
 import {
   otworzWspolprace, zamknijWspolprace, kopiujLinkZaproszenia, opuscProjekt, otworzZaproszenia,
@@ -115,6 +115,13 @@ const akcjePodgladuZLinku = {
   'podglad-minus': (p) => p.powieksz(0.8),
   'podglad-dopasuj': (p) => p.dopasuj(),
   'podglad-prezentacja': (p) => p.prezentuj(),
+  // Makieta 3D z linku (#188) – jeden wariant, bez ustawień.
+  'podglad-makieta': () => otworzMakieteLinku(),
+  'makieta-zamknij': () => $('#dlg-makieta').close(),
+  'makieta-plus': async () => (await import('./app/makieta-okno.js')).powiekszMakiete(1.25),
+  'makieta-minus': async () => (await import('./app/makieta-okno.js')).powiekszMakiete(0.8),
+  'makieta-przod': async () => (await import('./app/makieta-okno.js')).widokZPrzodu(),
+  'makieta-pobierz': async () => (await import('./app/makieta-okno.js')).pobierzObrazMakiety(),
 };
 
 document.addEventListener('click', (e) => {

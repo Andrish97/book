@@ -7,9 +7,9 @@
 
 import { $, powiadom, bezpiecznaNazwa, odmiana } from '../ui.js';
 import { postep } from '../postep.js';
-import { rozwin } from '../serie.js';
-import { renderujCel, naPlotnieCelu } from '../zlozenie.js';
-import { geometriaOkladki, jestOkladka, normalizujOkladke, formatSrodka } from '../okladka.js';
+// Składanie stron (Fabric) – dopiero u właściciela; gość z linku (#188) dostaje gotowe obrazy stron.
+const zlozenie = () => import('../zlozenie.js');
+import { normalizujOkladke, formatSrodka } from '../okladka.js';
 import {
   MODELE, mozeStac, parametryWireO, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer,
   widokModelu, powodBrakuWebGL, jestSpecjalnyModel, UJECIA, ujeciaModelu, MODELE_SPECJALNE,
@@ -19,7 +19,7 @@ import {
   iloscSceny, idIlosci,
 } from '../makieta-ustawienia.js';
 import { typSekcji, rolaTypu, wBloku } from '../typ-sekcji.js'; // typ sekcji wspólny z resztą programu (#177)
-import { geometriaSpecjalna, normalizujSpecjalna } from '../sekcje-specjalne.js';
+import { bazaMakiety, bazaZOpisu, domyslnyModel, modeleProjektu } from '../makieta-opis.js';
 import { uzyteKoloryDruku, stanUszlachetnien, FOLIE, plytaUszlachetnienia } from '../kolory-druku.js';
 import { maskaZRoznicy } from '../separacje.js';
 import { KoderGif } from '../gif.js';
@@ -46,43 +46,12 @@ wypelnij($('#makieta-wykonczenie'), WYKONCZENIA_OKLADKI);
 wypelnij($('#makieta-papier'), PAPIERY);
 wypelnij($('#makieta-ilosc'), ILOSCI);
 
-// Domyślny model: z okładką – książka (twarda, gdy taka oprawa), kalendarz z nazwy albo z 12–14 kart,
-// jedna strona – kartka, reszta – książka w miękkiej oprawie.
-export function domyslnyModel(projekt, liczbaStron, okladka) {
-  if (okladka) return normalizujOkladke(okladka.okladka).oprawa === 'twarda' ? 'ksiazka_twarda' : 'ksiazka_miekka';
-  const nazwa = String(projekt.nazwa || '').toLowerCase();
-  if (/biurk/.test(nazwa)) return 'kalendarz_biurkowy';
-  if (/kalend/.test(nazwa) || (liczbaStron >= 12 && liczbaStron <= 14)) return 'kalendarz_scienny';
-  if (liczbaStron <= 2) return 'kartka';
-  return 'ksiazka_miekka';
-}
-
-// Modele pasujące do sekcji projektu (#181): ogólne (książka, notes, kalendarz, kartka) – gdy projekt ma zwykłe
-// strony albo okładkę; ulotka, koperta, pudełko, trójdzielny – tylko z sekcją takiego typu. Zwraca też sekcje
-// specjalne modeli: { modele: [...], specjalne: { model: sekcja } }.
-export function modeleProjektu(projekt) {
-  const specjalne = {};
-  let ogolne = false;
-  for (const s of projekt.sekcje || []) {
-    const t = typSekcji(s);
-    const rola = rolaTypu(t);
-    const maStrony = (projekt.strony || []).some((x) => x.sekcja === s.id);
-    if (maStrony && (rola === 'blok' || rola === 'wkladka' || rola === 'podkladka' || rola === 'wyklejka' || rola === 'okladka')) ogolne = true;
-    let model = null;
-    if (t === 'ulotka') model = 'ulotka';
-    else if (t === 'trojdzielny') model = 'trojdzielny';
-    else if (t === 'wykrojnik') {
-      const k = normalizujSpecjalna(s.specjalna)?.ksztalt;
-      model = k === 'pudelko' ? 'pudelko' : k === 'koperta' ? 'koperta' : null;
-    }
-    if (model && !specjalne[model] && maStrony) specjalne[model] = s;
-  }
-  const lista = Object.keys(MODELE).filter((m) => (jestSpecjalnyModel(m) ? Boolean(specjalne[m]) : ogolne || !Object.keys(specjalne).length));
-  return { modele: lista, specjalne };
-}
+// Domyślny model i modele projektu – w js/makieta-opis.js (wspólne z opisem makiety dla linku, #188).
+export { domyslnyModel, modeleProjektu };
 
 const obrazZUrl = (url) => new Promise((ok, zle) => {
   const img = new Image();
+  img.crossOrigin = 'anonymous'; // obrazy stron z linku (#188) idą do WebGL – bez tego płótno byłoby „skażone”
   img.onload = () => ok(img);
   img.onerror = () => zle(new Error('Nie udało się narysować strony.'));
   img.src = url;
@@ -107,14 +76,15 @@ async function rysunekMaski(f) {
 // Obraz strony do tekstury. Uszlachetnienia „w świetle” (#181): strona bez efektów podglądu (folia i lakier to nie
 // farba – dorysowuje je światło z maski), inaczej – jak w podglądzie edytora.
 function rysujCel(moje, egz, szerokoscPx, oryginaly = false) {
+  if (moje.adresObrazu) return Promise.resolve(moje.adresObrazu(egz.klucz)); // z linku: gotowy obraz strony (#188)
   const opcje = { szerokoscPx, spad: false, ciag: moje.ciag, oryginaly };
   if (moje.opcje.uszlachetnienia && maPolysk(moje.projekt, egz)) {
     return rysunekMaski(async () => {
       stanUszlachetnien.eksport = true;
-      try { return await renderujCel(moje.projekt, egz, opcje); } finally { stanUszlachetnien.eksport = false; }
+      try { return await (await zlozenie()).renderujCel(moje.projekt, egz, opcje); } finally { stanUszlachetnien.eksport = false; }
     });
   }
-  return rysunekStrony(() => renderujCel(moje.projekt, egz, opcje));
+  return rysunekStrony(async () => (await zlozenie()).renderujCel(moje.projekt, egz, opcje));
 }
 
 // Tekstury wczytywane w tle: najpierw te widoczne, potem sąsiednie.
@@ -268,7 +238,7 @@ function maskaStrony(moje, egz, szerPx) {
       const odczyt = await rysunekMaski(async () => {
         stanUszlachetnien.maska = u.plyta;
         try {
-          return await naPlotnieCelu(moje.projekt, egz, { szerokoscPx: szerPx, spad: false, ciag: moje.ciag, oryginaly: false }, (p) => {
+          return await (await zlozenie()).naPlotnieCelu(moje.projekt, egz, { szerokoscPx: szerPx, spad: false, ciag: moje.ciag, oryginaly: false }, (p) => {
             const tlo = p.backgroundColor;
             p.backgroundColor = '#ffffff';
             p.renderAll();
@@ -454,11 +424,7 @@ const obwolutaWidoczna = () => Boolean(st?.obwoluta && st.model === 'ksiazka_twa
 // Kartki modelu z bieżącej listy stron (obwoluta: skrzydełka i tekstury obwoluty na okładce).
 function przeliczKartki() {
   const model = st.model;
-  const sp = st.specjalne[model];
-  let specjalna = null;
-  if (sp) {
-    try { specjalna = { ...normalizujSpecjalna(sp.specjalna), wynik: geometriaSpecjalna(st.projekt, sp, st.ciag) }; } catch { specjalna = null; }
-  }
+  const specjalna = st.specjalneDane?.[model] || null; // policzone z góry (bazaMakiety) – działa też z linku
   const przod = st.geometria?.strefy.find((z) => z.rodzaj === 'przod');
   const skrz = st.obwoluta?.wynik.strefy.find((x) => x.rodzaj === 'skrzydelko_p');
   st.kartki = kartkiModelu(model, {
@@ -505,7 +471,7 @@ function ustawModel(model, { kamera = true } = {}) {
   if (spirala && wo.zaGruby) uwagi.push(`Blok ma ok. ${Math.round(T)} mm grubości – więcej niż mieści największy pierścień Wire-O (${wo.maks} mm). Makieta pokazuje największą spiralę; do druku podziel projekt na tomy albo wybierz oprawę klejoną.`);
   // Sekcja środka w innym formacie niż reszta bloku (#185) – np. wyklejka A4 bez ustawionego typu. Takiej strony
   // nie da się poprawnie złożyć w książkę: makieta mówi to wprost i prowadzi do ustawienia typu sekcji.
-  const obce = model === 'kartka' || MODELE_SPECJALNE.includes(model) ? [] : niepasujaceSekcje(st.projekt, st.ciag);
+  const obce = st.gosc || model === 'kartka' || MODELE_SPECJALNE.includes(model) ? [] : niepasujaceSekcje(st.projekt, st.ciag);
   uwaga.replaceChildren();
   for (const t of uwagi) { const p = document.createElement('p'); p.textContent = t; uwaga.append(p); }
   for (const o of obce) {
@@ -521,7 +487,7 @@ function ustawModel(model, { kamera = true } = {}) {
   }
   uwaga.hidden = !uwaga.childElementCount;
   wyborUlozenia.value = st.ulozenie;
-  try { sessionStorage.setItem(`makieta:${st.projekt.id}`, model); } catch { /* bez pamięci – zostaje domyślny */ }
+  if (!st.gosc) try { sessionStorage.setItem(`makieta:${st.projekt.id}`, model); } catch { /* bez pamięci – zostaje domyślny */ }
   pokazUjecia();
   pokazKontrolki();
   rysujPozniej();
@@ -577,46 +543,49 @@ plotno.addEventListener('webglcontextrestored', () => {
 // Ustawienia światła i tła – na tym urządzeniu, dla projektu (zapisane ujęcia – w projekcie).
 const kluczOpcji = (projekt) => `makieta-opcje:${projekt.id}`;
 function zapiszOpcje() {
+  if (st.gosc) return;
   try { localStorage.setItem(kluczOpcji(st.projekt), JSON.stringify(st.opcje)); } catch { /* bez pamięci */ }
 }
 
 export function otworzMakiete(projekt) {
-  const ciag = rozwin(projekt);
-  const okladka = projekt.sekcje.find((s) => jestOkladka(s)) || null;
-  const strony = ciag.egzemplarze.filter((e) => !jestOkladka(e.sekcja));
-  const pierwsza = projekt.sekcje.find((s) => !jestOkladka(s) && rolaTypu(typSekcji(s)) === 'blok') || projekt.sekcje.find((s) => !jestOkladka(s)) || projekt.sekcje[0];
-  const format = { w: pierwsza.wydruk.szerokosc_mm, h: pierwsza.wydruk.wysokosc_mm };
-  let geometria = null;
-  try { if (okladka) geometria = geometriaOkladki(projekt, okladka, ciag); } catch { geometria = null; }
-  // Obwoluta (#181): pierwsza sekcja typu „obwoluta” z co najmniej jedną stroną.
-  let obwoluta = null;
-  const sObw = projekt.sekcje.find((s) => typSekcji(s) === 'obwoluta');
-  const eObw = sObw && ciag.egzemplarze.find((e) => e.sekcja.id === sObw.id && !e.pusta);
-  if (eObw) {
-    try { const wynik = geometriaSpecjalna(projekt, sObw, ciag); if (wynik?.strefy?.length) obwoluta = { sekcja: sObw, egz: eObw, wynik }; } catch { obwoluta = null; }
-  }
-  renderer?.zwolnij();
-  renderer = null;
-  const { modele, specjalne } = modeleProjektu(projekt);
   let opcje = DOMYSLNE_OPCJE;
   try { opcje = JSON.parse(localStorage.getItem(kluczOpcji(projekt)) || 'null') || DOMYSLNE_OPCJE; } catch { opcje = DOMYSLNE_OPCJE; }
+  let zapamietany = null;
+  try { zapamietany = sessionStorage.getItem(`makieta:${projekt.id}`); } catch { /* bez pamięci */ }
+  let ulozenie = 'lezy';
+  try { ulozenie = localStorage.getItem(`makieta-ulozenie:${projekt.id}`) === 'stoi' ? 'stoi' : 'lezy'; } catch { ulozenie = 'lezy'; }
+  const baza = bazaMakiety(projekt);
+  const dm = domyslnyModel(projekt, baza.strony.length, baza.okladka);
+  uruchom({ projekt, ...baza, opcje: normalizujOpcje(opcje) }, {
+    model: baza.modele.includes(zapamietany) ? zapamietany : baza.modele.includes(dm) ? dm : baza.modele[0], ulozenie,
+  });
+}
+
+// Podgląd z linku (#188): jeden wariant zapisany przy publikacji (rodzaj, ułożenie, ujęcie, światło), strony –
+// gotowe obrazy linku. Bez projektu, bez składania stron i bez zapisu czegokolwiek.
+export function otworzMakieteZLinku(opis, adresObrazu) {
+  const w = opis.wariant || {};
+  const projekt = { id: 'link', nazwa: opis.nazwa || 'Makieta', sekcje: opis.sekcje, strony: [] };
+  uruchom({ projekt, ...bazaZOpisu(opis), opcje: normalizujOpcje({ ...(w.opcje || {}), uszlachetnienia: false }), gosc: true, adresObrazu }, { model: opis.model, ulozenie: w.ulozenie });
+  if (st && renderer && w.kamera) zastosujStan({ ...w, model: opis.model });
+}
+
+function uruchom(baza, { model, ulozenie }) {
+  renderer?.zwolnij();
+  renderer = null;
   st = {
-    projekt, ciag, strony, okladka: geometria ? okladka : null, geometria, format, ulozenie: 'lezy', obwoluta, pokazObwolute: Boolean(obwoluta),
-    modele: modele.length ? modele : Object.keys(MODELE).filter((m) => !jestSpecjalnyModel(m)), specjalne,
-    kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null, fov: 28 },
-    opcje: normalizujOpcje(opcje), sc: normalizujScene({}),
+    ...baza, ulozenie: 'lezy', pokazObwolute: Boolean(baza.obwoluta),
+    kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null, fov: 28 }, sc: normalizujScene({}),
   };
+  dlg.classList.toggle('makieta-z-linku', Boolean(baza.gosc));
   wybor.replaceChildren(...st.modele.map((id) => new Option(MODELE[id], id)));
   if (!dlg.open) dlg.showModal();
   renderer = utworzRenderer(plotno);
   pokazBrak3D();
   pokazZapisane();
   if (!renderer) return;
-  let zapamietany = null;
-  try { zapamietany = sessionStorage.getItem(`makieta:${projekt.id}`); } catch { /* bez pamięci */ }
-  try { st.ulozenie = localStorage.getItem(`makieta-ulozenie:${projekt.id}`) === 'stoi' ? 'stoi' : 'lezy'; } catch { st.ulozenie = 'lezy'; }
-  const dm = domyslnyModel(projekt, strony.length, st.okladka);
-  ustawModel(st.modele.includes(zapamietany) ? zapamietany : st.modele.includes(dm) ? dm : st.modele[0]);
+  st.ulozenie = ulozenie === 'stoi' ? 'stoi' : 'lezy';
+  ustawModel(model);
   obserwator.observe(plotno);
   dopasujPlotno();
 }
@@ -1023,7 +992,7 @@ function pokazKontrolki() {
   $('#makieta-wykonczenie').value = o.wykonczenie;
   $('#makieta-papier').value = o.papier;
   $('#makieta-uszl').checked = o.uszlachetnienia;
-  $('#makieta-uszl-pole').hidden = !uzyteKoloryDruku(st.projekt).uszlachetnienia.some((u) => u.plyta === 'Spot_UV' || u.plyta.startsWith('Foil_'));
+  $('#makieta-uszl-pole').hidden = st.gosc || !uzyteKoloryDruku(st.projekt).uszlachetnienia.some((u) => u.plyta === 'Spot_UV' || u.plyta.startsWith('Foil_'));
   $('#makieta-spirala').value = o.kolorSpirali;
   $('#makieta-stojak').value = o.kolorStojaka;
   $('#makieta-spirala-pole').hidden = !(st.model === 'notes' || st.model.startsWith('kalendarz'));

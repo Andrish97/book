@@ -1648,6 +1648,8 @@ Format środka to format większości stron projektu. Sekcje typu wyklejka (prze
 - **Kartkowanie** — strzałki pod makietą, klawisze `←` `→` albo stuknięcie w prawą lub lewą połowę obrazu. Pod spodem widać, co jest otwarte, np. „Strony 2–3” albo „Karta 3 z 13”.
 - **Pobierz obraz makiety** zapisuje obraz PNG w tym samym kadrze co na ekranie — np. do oferty albo wpisu w sieci. Rozmiar wybierasz w części **Eksport** (niżej). W ciemnym motywie tło studia jest ciemne.
 
+Osoba z linkiem do podglądu (rozdział „23.1 Tworzenie linku”) też widzi makietę — w jednym wariancie, bez ustawień; po zmianie ujęć kliknij w oknie Udostępnij **Aktualizuj teraz**, żeby link pokazywał nowy wariant.
+
 #### Gotowe ujęcia
 
 Nad makietą jest rząd kafelków — jedno stuknięcie ustawia kamerę, ułożenie i kartki: **Przód**, **¾ (klasyczne)**, **Z góry (płasko)**, **Grzbiet**, **Stojąca**, **Rozkładówka z góry**, **Wachlarz kartek**, **Stos egzemplarzy**, **Przód i tył** (dwa egzemplarze obok siebie, drugi odwrócony) oraz **Na ścianie** dla kalendarzy ściennych (ściana z tynku, światło z okna). Widać tylko ujęcia, które pasują do rodzaju. Po wybraniu ujęcia możesz dalej obracać i przybliżać.
@@ -1937,7 +1939,7 @@ Link do podglądu dla osób bez konta — klienta, rodziny, drukarni.
 
 ### 23.1 Tworzenie linku
 
-Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
+Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów. Może też otworzyć **Makieta 3D** (rozdział „19.4 Makieta 3D”): obracać ją, kartkować i pobrać obraz — w jednym wariancie, takim jak Twój w chwili publikacji (pierwsze zapisane ujęcie, a bez ujęć — rodzaj, ułożenie i światło z Twojej makiety), bez ustawień i bez zmiany rodzaju.
 
 1. W podglądzie kliknij **Udostępnij**.
 2. **Utwórz link** — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.
