@@ -68,7 +68,7 @@ test('instrukcja: strona główna, spis dwupoziomowy, bez powtórzeń nawigacji,
   // Rozdział rysuje się po otwarciu okna – klikamy, gdy odnośnik już stoi, i czekamy na nowy rozdział (#137).
   await strona.waitForFunction(() => /Przykłady/.test(document.querySelector('#instrukcja-tresc .instrukcja-h1')?.textContent || ''));
   for (let proba = 0; proba < 3; proba += 1) {
-    await strona.click('#instrukcja-tresc a[data-cel="16.1"]');
+    await strona.click('#instrukcja-tresc a[data-cel="15.1"]');
     if (await strona.waitForFunction(() => /Pola w tekście/.test(document.querySelector('#instrukcja-tresc .instrukcja-h1')?.textContent || ''), null, { timeout: 5000 }).then(() => true, () => false)) break;
   }
   assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /Pola w tekście/);
@@ -102,7 +102,7 @@ test('instrukcja: strona główna, spis dwupoziomowy, bez powtórzeń nawigacji,
   assert.ok(widoczne.includes('Przykład: komiks z AI'), widoczne.join(', '));
   assert.ok(!widoczne.includes('Warstwy'));
   await strona.fill('#instrukcja-szukaj', 'okładka z grzbietem');
-  assert.ok(await strona.locator('li[data-sekcja="11.6"]:not([hidden])').isVisible(), 'trafiony podrozdział widać w spisie');
+  assert.ok(await strona.locator('li[data-sekcja="10.6"]:not([hidden])').isVisible(), 'trafiony podrozdział widać w spisie');
   // Słowniczek (#176): pojęcia drukarskie, np. „big”, są do znalezienia.
   await strona.fill('#instrukcja-szukaj', 'big');
   const zBigiem = await strona.$$eval('#instrukcja-rozdzialy li[data-i]:not([hidden]) .rozdzial-przycisk span', (s) => s.map((x) => x.textContent));
@@ -133,7 +133,7 @@ test('instrukcja na telefonie: przycisk z nazwą rozdziału otwiera spis jako za
   });
   await strona.waitForSelector('#dlg-instrukcja[open]');
   assert.ok(await strona.locator('#instrukcja-wybor').isVisible());
-  assert.match(await strona.textContent('#instrukcja-wybor'), /12\. Wzorce/);
+  assert.match(await strona.textContent('#instrukcja-wybor'), /11\. Wzorce/);
   assert.equal(await strona.locator('#instrukcja-spis').isVisible(), false, 'spis schowany');
   // Treść zaczyna się pod paskiem (okno nie jest przewinięte).
   assert.equal(await strona.evaluate(() => document.querySelector('#dlg-instrukcja .instrukcja').scrollTop), 0);
@@ -145,7 +145,7 @@ test('instrukcja na telefonie: przycisk z nazwą rozdziału otwiera spis jako za
   await strona.tap('.czesc-spisu:has-text("Gotowa publikacja") .czesc-przycisk');
   await strona.tap('.czesc-spisu:has-text("Gotowa publikacja") .rozdzial-przycisk:has-text("Eksport do PDF")');
   await strona.waitForFunction(() => !document.querySelector('.instrukcja').classList.contains('spis-otwarty'));
-  assert.match(await strona.textContent('#instrukcja-wybor'), /22\. Eksport do PDF i PNG/);
+  assert.match(await strona.textContent('#instrukcja-wybor'), /21\. Eksport do PDF i PNG/);
   // Nic nie wystaje w bok.
   const szersze = await strona.evaluate(() => {
     const t = document.querySelector('#instrukcja-tresc');

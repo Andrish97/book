@@ -16,9 +16,10 @@ async function zrobZrzutySekcjiSpecjalnych(kadr, { ciemny = false } = {}) {
     await t.waitForSelector('#dlg-sekcja[open]');
     await t.click('#dlg-sekcja .karta-typu[data-typ="ulotka"]');
     await t.waitForSelector('#schemat-specjalnej svg');
-    await t.evaluate(() => document.querySelector('#dlg-sekcja .karta-typu[data-typ="ulotka"]').scrollIntoView({ block: 'start' }));
+    // Sama część „Ulotka składana” ze schematem paneli (#180) – karta typu wychodziła ponad kadr, schemat był ucięty.
+    await t.evaluate(() => document.querySelector('#sekcja-specjalna').scrollIntoView({ block: 'start' }));
     await t.waitForTimeout(300);
-    await kadr(t, 'k-sekcja-ulotka.png', { obszar: ['#dlg-sekcja .karta-typu[data-typ="ulotka"]', '#sekcja-specjalna'], zaznacz: '#dlg-sekcja .karta-typu[data-typ="ulotka"]', margines: 10 });
+    await kadr(t, 'k-sekcja-ulotka.png', { obszar: '#sekcja-specjalna', margines: 10 });
     await t.keyboard.press('Escape');
     // Pudełko: wykrojnik na stronie.
     await t.evaluate(async () => {

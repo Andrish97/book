@@ -2,37 +2,37 @@
 
 Ekran edytora, elementy na stronie, tekst, obrazy, tabele, strony i wzorce.
 
-# 4. Ekran edytora
+# 3. Ekran edytora
 
 Gdzie co jest w edytorze — paski, panele i menu.
 
-## 4.1 Układ ekranu
+## 3.1 Układ ekranu
 
 Projekt otwiera się w edytorze. Ekran ma pięć części:
 
-- **górny pasek** — nawigacja, cofanie, okna projektu i menu [⋯] (→ 4.2, 4.3),
-- **panel stron** z lewej — miniatury stron pogrupowane w sekcje (→ 11.1),
-- **strona** pośrodku, a nad nią pasek wstawiania (→ 4.4),
-- **prawa kolumna** — właściwości, a pod nimi warstwy (→ 4.5, 10),
-- **prawy dolny róg** — linie pomocnicze, siatka i powiększenie (→ 4.6).
+- **górny pasek** — nawigacja, cofanie, okna projektu i menu [⋯] (→ 3.2, 3.3),
+- **panel stron** z lewej — miniatury stron pogrupowane w sekcje (→ 10.1),
+- **strona** pośrodku, a nad nią pasek wstawiania (→ 3.4),
+- **prawa kolumna** — zakładki Właściwości i Warstwy (→ 3.5, 9),
+- **prawy dolny róg** — linie pomocnicze, ostrzeżenia, menu widoku i powiększenie (→ 3.6).
 
 Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 
 ![Edytor](edytor.png)
 
-## 4.2 Górny pasek
+## 3.2 Górny pasek
 
 ![Górny pasek](k-pasek-gorny.png)
 
-Od lewej: [← Projekty], **nazwa projektu** (kliknij, żeby ją zmienić) ze stanem zapisu (→ 3.4),
-[Cofnij] i [Ponów] (→ 3.5), [Wzorce] (→ 12), [Dane] (→ 15), [Podgląd] (→ 20), **format** sekcji,
-np. „A5” — otwiera ustawienia sekcji (→ 11.4), [Komentarze] (→ 25.7), lupa [Znajdź i zamień] (→ 6.15)
-i [⋯] (→ 4.3).
+Od lewej: [Projekty], **nazwa projektu** (kliknij, żeby ją zmienić) ze stanem zapisu (→ 2.4),
+[Cofnij] i [Ponów] (→ 2.5), [Wzorce] (→ 11), [Dane] (→ 14), [Podgląd] (→ 19), **format** sekcji,
+np. „A5” — otwiera ustawienia sekcji (→ 10.4), [Komentarze] (→ 24.7), lupa [Znajdź i zamień] (→ 5.15)
+i [⋯] (→ 3.3).
 
 Napisy obok ikon pojawiają się, gdy jest na nie miejsce — zmienisz to w menu widoku: **Napisy na górnym
-pasku** (→ 4.6). Na wąskim telefonie [Wzorce], [Dane], [Komentarze] i lupa są w menu [⋯].
+pasku** (→ 3.6). Na wąskim telefonie [Wzorce], [Dane], [Komentarze] i lupa są w menu [⋯].
 
-## 4.3 Menu ⋯
+## 3.3 Menu ⋯
 
 ![Menu ⋯](k-menu-wiecej.png)
 
@@ -40,53 +40,53 @@ Pozycje są w grupach:
 
 | Grupa | Pozycje |
 |---|---|
-| Szukanie i uwagi | [Znajdź i zamień…] (→ 6.15), [Komentarze] (→ 25.7). |
-| Zasoby projektu | [Obrazy projektu…] (→ 8.5), [Czcionki projektu…] (→ 6.8), [Kolory projektu…] — kolory projektu i sekcji, kolory dodatkowe, wykończenia (→ 23.1, 23.5); na telefonie też [Wzorce…] i [Dane…]. |
-| Format i marka | [Zmień format projektu…] (→ 11.9), [Zastosuj markę do projektu…] (→ 2.9). |
-| Druk i eksport | [Sprawdź przed drukiem] (→ 21), [Eksportuj do PDF…] (→ 22), [Drukuj w domu…] (→ 22.8), [Pobierz bieżącą stronę jako PNG] (→ 22.5). |
-| Pozostałe | [Współpraca…] (→ 25) i przełącznik motywu (→ 2.4). |
+| Szukanie i uwagi | [Znajdź i zamień…] (→ 5.15), [Komentarze] (→ 24.7). |
+| Zasoby projektu | [Obrazy projektu…] (→ 7.5), [Czcionki projektu…] (→ 5.8), [Kolory projektu…] — kolory projektu i sekcji, kolory dodatkowe, wykończenia (→ 22.1, 22.5); na telefonie też [Wzorce stron…] i [Dane…]. |
+| Format i marka | [Zmień format projektu…] (→ 10.9), [Zastosuj markę do projektu…] (→ 27.9). |
+| Druk i eksport | [Sprawdź przed drukiem] (→ 20), [Eksportuj do PDF…] (→ 21), [Drukuj w domu…] (→ 21.8), [Pobierz bieżącą stronę jako PNG] (→ 21.5). |
+| Pozostałe | [Współpraca…] (→ 24) i przełącznik motywu (→ 27.4). |
 
-## 4.4 Pasek wstawiania
+## 3.4 Pasek wstawiania
 
-Pasek nad stroną wstawia nowe elementy (→ 5.1).
+Pasek nad stroną wstawia nowe elementy (→ 4.1).
 
 ![Pasek wstawiania](k-wstaw.png)
 
 | Przycisk | Klawisz | Co wstawia |
 |---|---|---|
-| [Tekst] | <kbd>T</kbd> | Ramkę tekstu (→ 6). |
-| [Prostokąt] | <kbd>R</kbd> | Prostokąt (→ 7.1). |
-| [Elipsa] | <kbd>E</kbd> | Elipsę albo koło (→ 7.1). |
-| [Wielokąt] | <kbd>P</kbd> | Wielokąt albo gwiazdę — najpierw wybór kształtu (→ 7.1). |
-| [Linia] | <kbd>L</kbd> | Odcinek (→ 7.2). |
-| [Obraz] | — | Zdjęcie albo grafikę (→ 8.1). |
-| [Rysuj] | <kbd>B</kbd> | Linię rysowaną odręcznie (→ 7.3). |
-| [Pióro] | <kbd>N</kbd> | Kształt z punktów i łuków (→ 7.4). |
-| [Tabela] | — | Tabelę z wierszami i kolumnami (→ 9). |
-| [Biblioteka] | — | Gotowe elementy: kształty, ramki, ozdobniki, planery, kalendarze, wykresy i inne (→ 5.8). |
-| [Komentarz] | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (→ 25.7). |
+| [Tekst] | <kbd>T</kbd> | Ramkę tekstu (→ 5). |
+| [Prostokąt] | <kbd>R</kbd> | Prostokąt (→ 6.1). |
+| [Elipsa] | <kbd>E</kbd> | Elipsę albo koło (→ 6.1). |
+| [Wielokąt] | <kbd>P</kbd> | Wielokąt albo gwiazdę — najpierw wybór kształtu (→ 6.1). |
+| [Linia] | <kbd>L</kbd> | Odcinek (→ 6.2). |
+| [Obraz] | — | Zdjęcie albo grafikę (→ 7.1). |
+| [Rysuj] | <kbd>B</kbd> | Linię rysowaną odręcznie (→ 6.3). |
+| [Pióro] | <kbd>N</kbd> | Kształt z punktów i łuków (→ 6.4). |
+| [Tabela] | — | Tabelę z wierszami i kolumnami (→ 8). |
+| [Biblioteka] | — | Gotowe elementy: kształty, ramki, ozdobniki, planery, kalendarze, wykresy i inne (→ 4.8). |
+| [Komentarz] | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (→ 24.7). |
 
-Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (→ 4.6).
+Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (→ 3.6).
 
 **Na telefonie** pozostałe narzędzia — [Wielokąt albo gwiazda], [Rysowanie odręczne], [Pióro], [Komentarz]
-i [Kopiuj wygląd] (→ 5.13) — są pod [⋯] na końcu paska. Gdy jedno z nich działa, [⋯] pokazuje jego ikonę;
+i [Kopiuj wygląd] (→ 4.13) — są pod [⋯] na końcu paska. Gdy jedno z nich działa, [⋯] pokazuje jego ikonę;
 stuknięcie kończy narzędzie.
 
 ![Menu ⋯ paska wstawiania na telefonie](k-wstaw-telefon.png@telefon)
 
-## 4.5 Właściwości i warstwy
+## 3.5 Właściwości i warstwy
 
-Prawa kolumna ma u góry dwie zakładki: [Właściwości] i [Warstwy] (→ 10), przełączane kliknięciem albo <kbd>F7</kbd>.
+Prawa kolumna ma u góry dwie zakładki: [Właściwości] i [Warstwy] (→ 9), przełączane kliknięciem albo <kbd>F7</kbd>.
 Nagłówek właściwości mówi, czego dotyczą ustawienia:
 
 | Nagłówek | Kiedy | Co ustawiasz |
 |---|---|---|
 | **Zaznaczony element** · rodzaj (np. „Tekst”) | Jest zaznaczony element. | Wygląd i położenie tego elementu. |
 | **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. [Rysuj]. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
-| **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (→ 11.3). |
+| **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (→ 10.3). |
 
-Przy zaznaczonym elemencie w nagłówku są [Kopiuj do schowka], [Duplikuj], [Kopiuj wygląd] (→ 5.13),
-[Zapisz w bibliotece] (→ 5.8) i [Usuń]. **Ostrzeżenia** otwiera przycisk z trójkątem obok powiększenia (→ 13.2).
+Przy zaznaczonym elemencie w nagłówku są [Kopiuj do schowka], [Duplikuj], [Kopiuj wygląd] (→ 4.13),
+[Zapisz w bibliotece] (→ 4.8) i [Usuń]. **Ostrzeżenia** otwiera przycisk z trójkątem obok powiększenia (→ 12.2).
 
 ![Ustawienia narzędzia: rysowanie](k-rysowanie.png)
 
@@ -94,27 +94,28 @@ Na telefonie te panele otwierają przyciski na dole ekranu (→ 28.2).
 
 ![Właściwości zaznaczonego tekstu](wlasciwosci.png)
 
-## 4.6 Prawy dolny róg i menu widoku
+## 3.6 Prawy dolny róg i menu widoku
 
 ![Prawy dolny róg](k-widok.png)
 
-- **dwie kartki** — tylko w sekcji z rozkładówkami: cała rozkładówka albo jedna strona (→ 11.5),
-- [Linie pomocnicze] (<kbd>W</kbd>) — pokazuje albo chowa marginesy, spad, grzbiet i prowadnice (→ 13.1),
+- **dwie kartki** — tylko w sekcji z rozkładówkami: cała rozkładówka albo jedna strona (→ 10.5),
+- przycisk **linii pomocniczych** (<kbd>W</kbd>) — pokazuje albo chowa marginesy, spad, grzbiet i prowadnice (→ 12.1),
+- przycisk **Ostrzeżenia** (trójkąt, <kbd>F8</kbd>) — liczba uwag na stronie; otwiera okienko ostrzeżeń (→ 12.2),
 - [Widok] (ikona kratki) — menu widoku,
-- [−], procent, [+] — powiększenie (→ 13.6).
+- [−], procent, [+] — powiększenie (→ 12.6).
 
 Menu widoku:
 
 | Pozycja | Co robi |
 |---|---|
-| **Siatka**, **Przyciągaj do siatki**, **Krok siatki** | Siatka co zadany krok w mm (→ 13.3). |
-| **Siatka linii bazowych** | Linie bazowe z ustawień sekcji (→ 6.13). |
-| **Przyciągaj do elementów i pokazuj odległości** | Różowe linie i odległości w mm przy przesuwaniu (→ 13.5). |
-| **Linijki** | Linijki w mm nad stroną i z lewej (→ 13.4). |
-| **Zablokuj prowadnice**, [Usuń prowadnice z tej strony] | Ochrona i sprzątanie prowadnic (→ 13.4). |
-| **W rozkładówkach pokazuj jedną stronę** | To samo co przycisk z dwiema kartkami (→ 11.5). |
-| **Sprawdzaj pisownię** | Falista czerwona linia pod słowami spoza słownika i część **Pisownia** w panelu tekstu (→ 6.16). |
-| **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (→ 23.3). |
+| **Siatka**, **Przyciągaj do siatki**, **Krok siatki** | Siatka co zadany krok w mm (→ 12.3). |
+| **Siatka linii bazowych** | Linie bazowe z ustawień sekcji (→ 5.13). |
+| **Przyciągaj do elementów i pokazuj odległości** | Różowe linie i odległości w mm przy przesuwaniu (→ 12.5). |
+| **Linijki** | Linijki w mm nad stroną i z lewej (→ 12.4). |
+| **Zablokuj prowadnice**, [Usuń prowadnice z tej strony] | Ochrona i sprzątanie prowadnic (→ 12.4). |
+| **W rozkładówkach pokazuj jedną stronę** | To samo co przycisk z dwiema kartkami (→ 10.5). |
+| **Sprawdzaj pisownię** | Falista czerwona linia pod słowami spoza słownika i część **Pisownia** w panelu tekstu (→ 5.16). |
+| **Pokaż uszlachetnienia** | Efekt lakieru, folii, tłoczenia i bieli na stronie; wyłączony — zwykły widok (→ 22.3). |
 | **Podpisy narzędzi** | Podpisy pod ikonami paska wstawiania. |
 | **Napisy na górnym pasku** | [Auto] — gdy się mieszczą, [Zawsze], [Nigdy]. |
 
@@ -122,32 +123,32 @@ Ustawienia widoku dotyczą tylko tego urządzenia.
 
 ![Menu widoku](k-menu-widoku.png)
 
-# 5. Elementy na stronie
+# 4. Elementy na stronie
 
 Wszystko, co stoi na stronie, to element: tu jest to, co wspólne dla wszystkich — zaznaczanie, przesuwanie, grupy, gotowe elementy z Biblioteki.
 
-## 5.1 Wstawianie
+## 4.1 Wstawianie
 
-Kliknij narzędzie na pasku wstawiania (→ 4.4) — element pojawi się na środku widoku i będzie
+Kliknij narzędzie na pasku wstawiania (→ 3.4) — element pojawi się na środku widoku i będzie
 zaznaczony. Obraz możesz też przeciągnąć z dysku na stronę albo wkleić ze schowka
 (<kbd>Ctrl</kbd>+<kbd>V</kbd>).
 
-Elementy wzorców (→ 12) widać na stronie, ale nie da się ich tu zaznaczyć — zmieniasz je we wzorcu.
+Elementy wzorców (→ 11) widać na stronie, ale nie da się ich tu zaznaczyć — zmieniasz je we wzorcu.
 
 ![Wstawiony tekst](wstawianie.png)
 
-## 5.2 Zaznaczanie
+## 4.2 Zaznaczanie
 
 - **Kliknięcie** zaznacza element.
 - <kbd>Shift</kbd> + kliknięcie dodaje element do zaznaczenia albo go z niego usuwa.
 - **Przeciągnięcie ramki** od pustego miejsca strony zaznacza elementy, których dotknie.
 - <kbd>Ctrl</kbd>+<kbd>A</kbd> zaznacza wszystkie elementy strony.
-- Element leżący pod innym zaznaczysz na liście warstw (→ 10).
+- Element leżący pod innym zaznaczysz na liście warstw (→ 9).
 - **Kliknięcie dwa razy**: w tekście — pisanie, w grupie — wejście do grupy, w komórce tabeli —
   pisanie w komórce, w kształcie z pióra — edycja punktów, w obrazie — kadrowanie.
 - <kbd>Esc</kbd> zdejmuje zaznaczenie.
 
-## 5.3 Przesuwanie, rozmiar i obrót
+## 4.3 Przesuwanie, rozmiar i obrót
 
 - **Przeciągnij** element, żeby go przesunąć. Strzałki przesuwają o 1 mm, z <kbd>Shift</kbd> — o 10 mm.
 - **Kółka w rogach i na bokach** zmieniają rozmiar, **kółko nad elementem** obraca.
@@ -164,7 +165,7 @@ Dokładne wartości wpiszesz we właściwościach, w części **Położenie i ro
 
 Przy kilku zaznaczonych elementach liczby dotyczą ich wspólnej ramki.
 
-## 5.4 Wyrównywanie i równe odstępy
+## 4.4 Wyrównywanie i równe odstępy
 
 Część **Wyrównaj** we właściwościach:
 
@@ -174,11 +175,11 @@ Część **Wyrównaj** we właściwościach:
 - **trzy i więcej** — dodatkowo [Rozłóż równo] w poziomie i w pionie: równe odstępy między elementami.
 
 Przy przesuwaniu element „przykleja się” do krawędzi i środków innych elementów, a strzałki
-podają odległości w mm (→ 13.5).
+podają odległości w mm (→ 12.5).
 
 ![Wyrównywanie kilku elementów](wyrownanie.png)
 
-## 5.5 Grupy
+## 4.5 Grupy
 
 Zaznacz kilka elementów i wybierz [Zgrupuj] (<kbd>Ctrl</kbd>+<kbd>G</kbd>). Grupa przesuwa się,
 skaluje i obraca jak jeden element. [Rozgrupuj] (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>)
@@ -192,10 +193,10 @@ dodaje kolejne. <kbd>Esc</kbd>, kliknięcie poza grupą albo [Wróć do całej g
 - W otwartej grupie [Duplikuj] zostawia kopię w grupie, a [Usuń] usuwa tylko zaznaczony element.
 - Grupa w grupie otwiera się kolejnym podwójnym kliknięciem; <kbd>Esc</kbd> wraca o poziom wyżej.
 
-## 5.6 Kolejność, blokada i schowek
+## 4.6 Kolejność, blokada i schowek
 
 - Część **Kolejność**: [Na wierzch], [Wyżej], [Niżej], [Na spód]. To samo zrobisz przeciąganiem
-  na liście warstw (→ 10).
+  na liście warstw (→ 9).
 - Część **Inne**:
   - **Krycie** — przezroczystość elementu w %,
   - **Zablokuj położenie i rozmiar** — elementu nie przesuniesz przypadkiem; kolor i tekst zmienisz dalej,
@@ -204,14 +205,14 @@ dodaje kolejne. <kbd>Esc</kbd>, kliknięcie poza grupą albo [Wróć do całej g
 - [Kopiuj do schowka] i <kbd>Ctrl</kbd>+<kbd>V</kbd> na innej stronie wklejają element w to samo
   miejsce. We właściwościach strony jest też [Wklej skopiowane elementy].
 
-## 5.7 Cień
+## 4.7 Cień
 
 Część **Cień** działa dla każdego elementu:
 
 **Cień pod elementem** włącza cień. Ustawisz jego kolor, **Siłę**, przesunięcie **W prawo** i **W dół**
 w mm (ujemne — w lewo albo w górę) i **Rozmycie** krawędzi w mm.
 
-## 5.8 Biblioteka
+## 4.8 Biblioteka
 
 Biblioteka to gotowe elementy do wstawienia: kształty, ramki, ozdobniki, planery, kalendarze, wykresy
 i Twoje własne elementy. Otwiera ją [Biblioteka] na pasku wstawiania.
@@ -226,39 +227,39 @@ i Twoje własne elementy. Otwiera ją [Biblioteka] na pasku wstawiania.
 | Kategoria | Co w niej jest |
 |---|---|
 | **Moje elementy** | Elementy zapisane przez Ciebie – na koncie, w każdym projekcie (niżej). |
-| **Gotowe sekcje** | Całe dokumenty: kalendarze, planery, notesy, zaproszenia, dyplomy, wizytówki, ulotki, menu, rozdziały książki… Kafelek otwiera okno gotowych sekcji na tym szablonie (→ 11.10). |
+| **Gotowe sekcje** | Całe dokumenty: kalendarze, planery, notesy, zaproszenia, dyplomy, wizytówki, ulotki, menu, rozdziały książki… Kafelek otwiera okno gotowych sekcji na tym szablonie (→ 10.10). |
 | **Ikony** | 260 ikon liniowych w jednym stylu, w grupach: **Kontakt**, **Czas i kalendarz**, **Pogoda**, **Jedzenie**, **Podróże**, **Szkoła i nauka**, **Wiara** (krzyż, gołębica, ryba, świeca, dłonie złożone, Biblia, kielich, różaniec…), **Zdrowie**, **Finanse**, **Dom**, **Natura**, **Technologia**, **Strzałki**. Kolor i grubość linii zmienisz w części **Obrys**; przy powiększaniu linia rośnie razem z ikoną. |
 | **Ilustracje** | Rysunki liniowe do przekolorowania: góry, las, żaglówka, latarnia, dom z drzewem, kościół na wzgórzu, kawa i książka, świeca z księgą, monstera, gałązka, kaktus, ptaki, motyl, kot, snop zboża, winorośl, gołębica z gałązką, dłonie z sercem, krzyż na wzgórzu, księżyc, miasto, rower, prezent. |
 | **Kształty** | Ponad 200 kształtów w grupach: **Podstawowe** (koło, kwadrat, owale, trójkąty, łuki, pierścień, sześcian, walec…), **Wielokąty** (także zaokrąglone, plaster miodu), **Gwiazdy i odznaki** (gwiazdy, pieczęcie, medal, zębatka, odznaki promocyjne), **Serca i natura** (serca, kwiaty, liście, chmury, góry, fala, płomień, tęcza, zwierzęta…), **Symbole i ikony** (dom, telefon, korona, puchar, kłódka, osoba, laptop, klucz, puzzel, mapa…), **Okolicznościowe** (prezent, balon, choinka, bombka, tort, pisanka, bałwanek…), **Znaki** (plus, minus, procent, pytajnik, ptaszek, pola wyboru…). |
 | **Strzałki i dymki** | Strzałki w każdą stronę, na skos, zakręcone, z kolanem, łukiem, faliste, wymiany, rozgałęzione; szewrony; dymki z każdej strony, okrągłe, owalne, myśli, chmurka, krzyku, dwa dymki. |
 | **Ramki** | Ponad 60 ramek w grupach: **Proste**, **Zaokrąglone**, **Podwójne i przerywane** (przerywana, kropkowana, kreska – kropka – to sam obrys), **Ozdobne**, **Z miejscem na tytuł**, **W kształcie** (serce, owal, koło, chmurka, ośmiokąt, łuk, gwiazda…), **Na zdjęcie** (pola w kształcie koła, serca, łuku, chmurki… – wstaw do nich obraz, a także odbitka, slajd, klatka filmu), **Kartki i notatki**, **Obramowania stron** (wstawiają się od razu na całą stronę). |
 | **Ozdobniki** | Wstęgi i banery, narożniki (pojedyncze i komplety czterech), rozety i ornamenty (mandala, róża wiatrów, lilia, medalion…). |
-| **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; separatory ozdobne (fala, zygzak, z kropką, kółkiem, gwiazdką, kwiatkiem, rombami, zawijasy, pętelki, listki…). Rodzaj i grubość zmienisz potem w części **Linia** (→ 7.2). |
+| **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; separatory ozdobne (fala, zygzak, z kropką, kółkiem, gwiazdką, kwiatkiem, rombami, zawijasy, pętelki, listki…). Rodzaj i grubość zmienisz potem w części **Linia** (→ 6.2). |
 | **Etykiety i plakietki** | Etykiety zaokrąglone, ze ściętymi rogami, owalne, z obwódką, faliste, ząbkowane, na słoik, herbowe, cenówka, metka, plakietka, pieczątka, znaczek pocztowy, tabliczka — w środek wstaw tekst. |
 | **Okolicznościowe** | Zestawy w jednym stylu na **Boże Narodzenie**, **Wielkanoc**, **urodziny**, **ślub**, **chrzest**, **Pierwszą Komunię** i **szkołę**: nagłówek z życzeniami, ramka, szlaczek i gotowa kartka. |
 | **Tła i wzory** | **Wzory na całą stronę** (paski, kropki, groszki, kratka, krata, jodełka, fale, zygzak, romby, gwiazdki, kwiatki, plaster miodu, łuski, trójkąty, krzyżyki, koła), **Tekstury papieru** (płótno lniane, karton, papier pakowy, czerpany, w linie z marginesem, milimetrowy), **Przejścia kolorów** i **Plamy i akwarela**. Wzory, tekstury i przejścia wstawiają się na całą stronę ze spadem, pod treść; wzór to jeden wektorowy element na tle – kolory zmienisz po otwarciu grupy (dwuklik). |
-| **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (→ 5.9). |
+| **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (→ 4.9). |
 | **Planer** | Gotowe tabele do planerów i notesów: lista zadań, tracker nawyków, plan tygodnia, plan dnia (godziny), notatki w linie, siatka dni tygodnia, lista zakupów, cele, budżet, kontakty, plan lekcji; **Plany**: kalendarz roczny (12 miesięcy na stronie), plan miesiąca, tydzień w kolumnach i z priorytetami, plan posiłków; **Trackery**: nastrój, woda, czytanie, dziennik modlitwy; **Listy i budżet**: lista życzeń, budżet miesięczny; do tego siatki do notatek: kratka, kropki, linie (co 5 mm), papier milimetrowy, siatka izometryczna. Pola wyboru są w **Kształtach → Znaki**. |
 | **Formularze do druku** | Data i podpis, kratki na litery, pola na dane, odcinek do odcięcia z nożyczkami, pola wyboru, skala ocen 1–5, pole na uwagi, kupon, zgoda z podpisem; tabelka zamówienia i lista obecności (zwykłe tabele). |
-| **Wykresy** | Słupkowy, poziomy, liniowy, kołowy i pierścieniowy z tabeli danych (→ 5.10). |
+| **Wykresy** | Słupkowy, poziomy, liniowy, kołowy i pierścieniowy z tabeli danych (→ 4.10). |
 | **Infografiki** | Oś czasu pozioma i pionowa, kroki i strzałki procesu, liczby i statystyki, porównanie, drzewo, piramida, cykl, paski postępu, ocena gwiazdkami, lejek, mapa myśli, macierz 2 × 2. |
-| **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (→ 5.11). |
-| **Teksty** | Gotowe napisy po łuku, w okręgu (pieczęć), falisty baner, flaga, wypukły tytuł (→ 6.14). |
+| **Kolaże zdjęć** | Gotowe układy 2–9 pól na zdjęcia (→ 4.11). |
+| **Teksty** | Gotowe napisy po łuku, w okręgu (pieczęć), falisty baner, flaga, wypukły tytuł (→ 5.14). |
 | **Nagłówki i tytuły** | Tytuł z podtytułem, tytuł między liniami, numer rozdziału, inicjał z akapitem, cytat z autorem, pieczątki, wstęga z napisem, tytuł na pasku, odręczny, z dwóch krojów, z etykietą, w narożnikach, nagłówek strony, tytuł z datą. |
 | **Bloki treści** | Ramki **Uwaga**, **Wskazówka**, **Ciekawostka**, **Ważne**, cytat wyróżniony, werset, lista z ikonami i numerowana, kolumna boczna, stopka redakcyjna, notka o autorze (z polem na zdjęcie), kontakt, pytanie i odpowiedź, „Do zapamiętania”. |
 | **Układy stron** | Całe strony na obszar treści: strona tytułowa, początek rozdziału, galeria 2 × 2, strona z cytatem, strona na notatki, dyplom, ogłoszenie, strona dnia. |
-| **Style tekstu** | Style akapitu projektu: kliknięcie nadaje styl zaznaczonemu tekstowi, a bez zaznaczenia wstawia nowy tekst w tym stylu (→ 6.4). |
-| **Marka** | Logo z zestawu marki, [Zastosuj markę do projektu…] i [Edytuj zestaw marki…] (→ 2.9). |
-| **Kody** | Kod QR i kod kreskowy EAN / ISBN (→ 5.12). |
+| **Style tekstu** | Style akapitu projektu: kliknięcie nadaje styl zaznaczonemu tekstowi, a bez zaznaczenia wstawia nowy tekst w tym stylu (→ 5.4). |
+| **Marka** | Logo z zestawu marki, [Zastosuj markę do projektu…] i [Edytuj zestaw marki…] (→ 27.9). |
+| **Kody** | Kod QR i kod kreskowy EAN / ISBN (→ 4.12). |
 
-Ikony, ilustracje, nagłówki, bloki, infografiki, formularze, układy i zestawy okolicznościowe to zwykłe teksty, kształty i linie złożone w jedną grupę – przesuwasz je razem, a po dwukliku (otwarta grupa, → 5.5) zmieniasz każdy tekst, kolor czy kształt osobno. Kolory i czcionki biorą z zestawu marki (→ 2.9), jeśli go masz; cała wstawka to jeden krok cofania.
+Ikony, ilustracje, nagłówki, bloki, infografiki, formularze, układy i zestawy okolicznościowe to zwykłe teksty, kształty i linie złożone w jedną grupę – przesuwasz je razem, a po dwukliku (otwarta grupa, → 4.5) zmieniasz każdy tekst, kolor czy kształt osobno. Kolory i czcionki biorą z zestawu marki (→ 27.9), jeśli go masz; cała wstawka to jeden krok cofania.
 Na komputerze kategorie zajmują najwyżej trzy rzędy – pozostałe zobaczysz po przewinięciu tego miejsca.
 
 ![Nagłówek, blok „Wskazówka”, oś czasu i werset z Biblioteki](k-biblioteka-dzialy.png)
 
-Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (→ 7.4), a zamknięty kształt może być ramką zdjęcia (→ 8.7).
-Długie kategorie mają nagłówki grup (np. Podstawowe, Wielokąty); przy szukaniu nagłówków nie ma, a wyniki są ze wszystkich kategorii. Szablon z kategorii **Planer** to zwykła tabela (→ 9): wpisujesz w komórki, dodajesz wiersze i kolumny, zmieniasz linie i kolory.
-Żeby planer powtarzał się na wielu stronach, wstaw go we wzorcu (→ 12) albo na stronie serii (→ 17).
+Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (→ 6.4), a zamknięty kształt może być ramką zdjęcia (→ 7.7).
+Długie kategorie mają nagłówki grup (np. Podstawowe, Wielokąty); przy szukaniu nagłówków nie ma, a wyniki są ze wszystkich kategorii. Szablon z kategorii **Planer** to zwykła tabela (→ 8): wpisujesz w komórki, dodajesz wiersze i kolumny, zmieniasz linie i kolory.
+Żeby planer powtarzał się na wielu stronach, wstaw go we wzorcu (→ 11) albo na stronie serii (→ 16).
 
 ![Kategoria Planer w Bibliotece](k-biblioteka-planer.png)
 
@@ -276,7 +277,7 @@ Długie kategorie mają nagłówki grup (np. Podstawowe, Wielokąty); przy szuka
 - Ołówek w rogu kafelka zmienia nazwę, kosz usuwa element z Biblioteki.
 - Elementów wzorca i tekstu w trakcie pisania nie zapiszesz — najpierw wyjdź z pisania.
 
-## 5.9 Kalendarz miesiąca
+## 4.9 Kalendarz miesiąca
 
 Siatka dni jednego miesiąca z nazwą miesiąca i dniami tygodnia. Niedziele i polskie święta – także ruchome: Wielkanoc, Poniedziałek Wielkanocny, Zielone Świątki, Boże Ciało – są wyróżnione kolorem.
 
@@ -285,7 +286,7 @@ Siatka dni jednego miesiąca z nazwą miesiąca i dniami tygodnia. Niedziele i p
 | Ustawienie | Co zmienia |
 |---|---|
 | **Miesiąc**, **Rok** | Pokazany miesiąc. |
-| **Miesiąc z kolumny danych** | Na każdej stronie serii inny miesiąc – z kolumny z wartościami typu „2027-03”, „marzec 2027” albo „3” (rok wtedy z **Rok z kolumny**). Tak powstaje kalendarz na 12 miesięcy z jednej strony-wzoru (→ 17). |
+| **Miesiąc z kolumny danych** | Na każdej stronie serii inny miesiąc – z kolumny z wartościami typu „2027-03”, „marzec 2027” albo „3” (rok wtedy z **Rok z kolumny**). Tak powstaje kalendarz na 12 miesięcy z jednej strony-wzoru (→ 16). |
 | **Tydzień zaczyna się od** | Poniedziałku albo niedzieli. |
 | **Nazwy dni** | Pełne, skrócone albo same litery. |
 | **Dni innych miesięcy** | Wyszarzone, jak zwykłe dni albo ukryte. |
@@ -295,11 +296,11 @@ Siatka dni jednego miesiąca z nazwą miesiąca i dniami tygodnia. Niedziele i p
 | **Święta z tabeli danych** | Własne dni (urodziny, imieniny, terminy) z tabeli: kolumna z datą („2027-05-26”, „26.05.2027” albo „26.05” – co roku) i kolumna z nazwą. |
 | **Kolory kalendarza** | Dni, nazwy, niedziele, soboty, święta, dni innych miesięcy. |
 
-Linie, tła wierszy, czcionkę i wyrównanie zmieniasz jak w tabeli (→ 9.5). Daty układa aplikacja – w kratkach kalendarza się nie pisze.
+Linie, tła wierszy, czcionkę i wyrównanie zmieniasz jak w tabeli (→ 8.5). Daty układa aplikacja – w kratkach kalendarza się nie pisze.
 
-## 5.10 Wykres
+## 4.10 Wykres
 
-Wykres rysuje liczby z tabeli danych projektu (→ 15) i zmienia się sam, gdy zmienisz dane.
+Wykres rysuje liczby z tabeli danych projektu (→ 14) i zmienia się sam, gdy zmienisz dane.
 
 ![Wykres słupkowy i jego ustawienia](k-wykres.png)
 
@@ -313,13 +314,13 @@ Wykres rysuje liczby z tabeli danych projektu (→ 15) i zmienia się sam, gdy z
 
 Liczby w komórkach mogą mieć przecinek, spacje i znak %.
 
-## 5.11 Kolaż zdjęć
+## 4.11 Kolaż zdjęć
 
-Kolaż to gotowy układ pól na zdjęcia. Upuść zdjęcie z komputera na pole – trafi do tego pola. Możesz też kliknąć kolaż dwa razy, wybrać pole i w części **Obraz w kształcie** wstawić obraz z projektu (→ 8.7).
+Kolaż to gotowy układ pól na zdjęcia. Upuść zdjęcie z komputera na pole – trafi do tego pola. Możesz też kliknąć kolaż dwa razy, wybrać pole i w części **Obraz w kształcie** wstawić obraz z projektu (→ 7.7).
 
 W panelu kolażu zmienisz **Układ** (pola przybywają albo ubywają, zdjęcia w pierwszych polach zostają), **Odstęp między zdjęciami**, **Zaokrąglenie rogów**, **Szerokość** i **Wysokość**.
 
-## 5.12 Kod QR i kod kreskowy
+## 4.12 Kod QR i kod kreskowy
 
 Kod wstawisz z [Biblioteka], kategoria **Kody**. W części **Kod** panelu ustawisz resztę:
 
@@ -332,18 +333,18 @@ Kod wstawisz z [Biblioteka], kategoria **Kody**. W części **Kod** panelu ustaw
 | **Rozmiar** | [Rozmiar nominalny (100%)] ustawia kod EAN na 37,29 × 25,93 mm. |
 | **Kolor kodu**, **Tło**, **Margines ciszy** | Kod musi być ciemny na jasnym tle, z pustym pasem wokół. |
 
-Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na każdej stronie serii (→ 16).
+Pole z danych w treści — np. `{adres}` albo `{isbn}` — daje inny kod na każdej stronie serii (→ 15).
 
 Gdy kod będzie za mały, za jasny albo z błędną treścią, przypomni o tym panel i **Sprawdź przed drukiem**.
 
 ![Kod QR i jego ustawienia](k-kod.png)
 
-## 5.13 Kopiuj wygląd (malarz formatów)
+## 4.13 Kopiuj wygląd (malarz formatów)
 
 Wygląd jednego elementu przeniesiesz na inny jednym kliknięciem — bez przepisywania kolorów i grubości.
 
 [Kopiuj wygląd] (pędzel) jest w nagłówku panelu właściwości, w [⋯] przy elemencie na liście warstw,
-a na telefonie też pod [⋯] paska wstawiania (→ 4.4).
+a na telefonie też pod [⋯] paska wstawiania (→ 3.4).
 
 ![Kopiuj wygląd w nagłówku panelu](k-malarz.png)
 
@@ -359,46 +360,46 @@ Przechodzi wszystko, co dotyczy wyglądu — kolory, przejścia, obrys, czcionka
 krycie, cień, uszlachetnienia — a treść zostaje. Tabele, kody, wykresy i kalendarze mają własne ustawienia
 i wyglądu nie przejmują.
 
-# 6. Tekst
+# 5. Tekst
 
 Ramki tekstu, ich wygląd, style i skład — od jednego napisu po tekst książki płynący przez wiele stron.
 
-## 6.1 Pisanie
+## 5.1 Pisanie
 
 Wstaw tekst przyciskiem [Tekst] (<kbd>T</kbd>) i od razu pisz. Istniejący tekst kliknij dwa razy,
 żeby pisać w nim; <kbd>Esc</kbd> kończy pisanie. <kbd>Enter</kbd> zaczyna nowy akapit.
 
 Szerokość ramki zmieniasz bocznymi uchwytami — tekst układa się od nowa, litery się nie rozciągają.
-Wysokość ramki rośnie razem z tekstem, chyba że ustawisz stałą wysokość (→ 6.6).
+Wysokość ramki rośnie razem z tekstem, chyba że ustawisz stałą wysokość (→ 5.6).
 
 ![Tekst na stronie](wstawianie.png)
 
-## 6.2 Wygląd tekstu
+## 5.2 Wygląd tekstu
 
 Właściwości zaznaczonego tekstu:
 
 | Ustawienie | Znaczenie |
 |---|---|
-| **Styl** | Zapisany wygląd tekstu (→ 6.4). |
-| **Czcionka** | Krój pisma. Na liście zacznij pisać nazwę, żeby ją znaleźć (→ 6.8). |
+| **Styl** | Zapisany wygląd tekstu (→ 5.4). |
+| **Czcionka** | Krój pisma. Na liście zacznij pisać nazwę, żeby ją znaleźć (→ 5.8). |
 | **Rozmiar** | W punktach (pt). Kółko z prawej to **kolor tekstu**. |
 | [B] [I] [U] [S] | Pogrubienie, kursywa, podkreślenie, przekreślenie. Wyszarzone, gdy czcionka nie ma takiej odmiany. |
 | **Wyrównanie** | Do lewej, do środka, do prawej, wyjustowanie. |
 | **Interlinia** | Odstęp między wierszami; 1 to pojedynczy. |
 | **Odstęp liter** | Rozstrzelenie liter; wartość ujemna ściska tekst. |
 | **Wielkość liter** | [AA] — wszystkie wielkie, [aa] — wszystkie małe, [Aᴀ] — kapitaliki: to tylko wygląd, treść zostaje taka, jak ją wpisano. [Aa] — „jak w zdaniu”: zmienia samą treść. |
-| **Lista** | Punkty, kreski albo numery przed każdym akapitem (→ 6.5). |
+| **Lista** | Punkty, kreski albo numery przed każdym akapitem (→ 5.5). |
 | **Obrys liter** | Kolor i **Grubość obrysu liter** — kontur wokół każdej litery. |
 
 ![Właściwości tekstu](wlasciwosci.png)
 
-## 6.3 Fragment tekstu
+## 5.3 Fragment tekstu
 
 Kliknij tekst dwa razy, zaznacz fragment i zmień go tymi samymi ustawieniami — panel pokaże
 „Zmieniasz tylko zaznaczony fragment”. Tak pogrubisz jedno słowo albo zmienisz kolor jednej linijki.
-Wygląd fragmentu z polem (→ 16) przechodzi na wstawioną wartość.
+Wygląd fragmentu z polem (→ 15) przechodzi na wstawioną wartość.
 
-## 6.4 Style
+## 5.4 Style
 
 **Styl** to zapisany wygląd tekstu, np. „Tytuł”, „Podpis”, „Dymek”. Nadaj go wszystkim tekstom,
 które mają wyglądać tak samo.
@@ -407,28 +408,28 @@ które mają wyglądać tak samo.
 - [Nowy styl] zapisuje wygląd zaznaczonego tekstu pod nową nazwą.
 - Gdy zmienisz tekst ze stylem, pojawią się [Aktualizuj styl] — zmienia wszystkie teksty z tym stylem
   w całym projekcie — i [Przywróć] — wraca do wyglądu ze stylu.
-- Styl zapisuje też ustawienia **Składu akapitu** (→ 6.9) — np. dzielenie wyrazów dla całego tekstu książki.
+- Styl zapisuje też ustawienia **Składu akapitu** (→ 5.9) — np. dzielenie wyrazów dla całego tekstu książki.
 
 **Styl znakowy** to zapisany wygląd fragmentu tekstu, np. „Wyróżnienie” albo „Nazwa własna”.
 
 1. Zaznacz fragment tekstu (kliknij tekst dwa razy i zaznacz słowa).
-2. Ustaw jego wygląd (→ 6.3), potem w części **Styl tekstu** wybierz [Nowy styl znakowy].
+2. Ustaw jego wygląd (→ 5.3), potem w części **Styl tekstu** wybierz [Nowy styl znakowy].
 3. Inne fragmenty zaznacz i wybierz styl z listy **Styl znakowy**. Bez zaznaczenia styl dostaje cały tekst.
 
 [Aktualizuj styl] przenosi wygląd zaznaczenia do stylu — zmienią się wszystkie fragmenty z tym stylem
 w projekcie. Usunięty styl znakowy nie zmienia wyglądu fragmentów.
 
-## 6.5 Listy
+## 5.5 Listy
 
 Lista **Lista** we właściwościach tekstu: **Punkty**, **Kreski** albo **Numery**. Znak listy stoi przed
 każdym akapitem, a dalsze wiersze akapitu równo pod pierwszym. W tekście płynącym przez kilka ramek
 numery liczą się dalej. Skróty: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>8</kbd> (punkty) i
 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>7</kbd> (numery).
 
-## 6.6 Ramka tekstu
+## 5.6 Ramka tekstu
 
 Część **Ramka tekstu** przydaje się, gdy tekst ma zająć stałe miejsce — np. teksty z danych o różnej
-długości (→ 18.6):
+długości (→ 17.6):
 
 | Ustawienie | Znaczenie |
 |---|---|
@@ -440,7 +441,7 @@ Tekst, który mimo to się nie mieści, jest ucinany na dole ramki i trafia na l
 
 ![Ramka o stałej wysokości](ramka-tekstu.png)
 
-## 6.7 Kolumny i tekst przez kilka ramek
+## 5.7 Kolumny i tekst przez kilka ramek
 
 Dłuższy tekst może płynąć przez kilka ramek: to, co nie mieści się w pierwszej, przechodzi do
 następnej. Część **Przelewanie tekstu**:
@@ -459,7 +460,7 @@ jest wspólny dla połączonych ramek. Fioletowa linia pokazuje, dokąd płynie 
 
 ![Kolumny, listy i tabela](uklad.png)
 
-## 6.8 Czcionki
+## 5.8 Czcionki
 
 Do wyboru są 52 rodziny czcionek z polskimi znakami, które wolno używać w druku komercyjnym:
 bezszeryfowe do tekstu (np. Inter, Lato, Roboto), wąskie do nagłówków (Oswald, Bebas Neue),
@@ -480,24 +481,24 @@ i stylów, najczęstsze najpierw, z liczbą użyć (np. „Inter · 5×”). Ni�
 
 ![Użyte w projekcie na liście czcionek](k-czcionki-uzyte.png)
 
-Gdy masz zestaw marki (→ 2.9), nad nimi jest grupa **Marka** — czcionka nagłówków i czcionka tekstu marki.
+Gdy masz zestaw marki (→ 27.9), nad nimi jest grupa **Marka** — czcionka nagłówków i czcionka tekstu marki.
 
-## 6.9 Skład akapitu
+## 5.9 Skład akapitu
 
 Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, jak tekst łamie się na wiersze.
-Te same ustawienia zapiszesz w stylu (→ 6.4).
+Te same ustawienia zapiszesz w stylu (→ 5.4).
 
 | Ustawienie | Co robi |
 |---|---|
 | **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad — wyjustowany tekst nie ma wtedy dziur. Obok ustawisz najkrótszy dzielony wyraz i ile liter zostaje przed łącznikiem i po nim. |
 | **Spójniki na końcu wiersza** | Pojedyncze **a, i, o, u, w, z** (albo też dwuliterowe: do, na, że…) przechodzą do następnego wiersza razem ze słowem, jak w polskim składzie. |
-| **Wdowy i sieroty** | Tekst płynący przez kilka ramek (→ 6.7) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. |
-| **Wyrównaj do siatki linii bazowych** | Wiersze stają na liniach siatki sekcji (→ 6.13). |
-| **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (→ 6.12) — np. podpis na zdjęciu. |
+| **Wdowy i sieroty** | Tekst płynący przez kilka ramek (→ 5.7) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. |
+| **Wyrównaj do siatki linii bazowych** | Wiersze stają na liniach siatki sekcji (→ 5.13). |
+| **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (→ 5.12) — np. podpis na zdjęciu. |
 
 ![Skład akapitu we właściwościach tekstu](k-sklad-akapitu.png)
 
-## 6.10 Inicjał
+## 5.10 Inicjał
 
 Inicjał to powiększona pierwsza litera akapitu, na kilka wierszy. W części **Skład akapitu** wybierz
 **Inicjał**: **na 2 wiersze** … **na 5 wierszy**. Litera rośnie od górnej krawędzi pierwszego wiersza
@@ -508,7 +509,7 @@ Inicjał dostaje pierwszy akapit tekstu. W tekście płynącym przez kilka ramek
 
 ![Inicjał, dzielenie wyrazów, tabulatory z kropkami i tekst opływający koło](sklad.png)
 
-## 6.11 Tabulatory
+## 5.11 Tabulatory
 
 Klawisz <kbd>Tab</kbd> w pisanym tekście wstawia tabulator: tekst za nim przeskakuje do najbliższej pozycji.
 Bez ustawionych pozycji tabulatory stoją co 12,5 mm.
@@ -523,7 +524,7 @@ W części **Skład akapitu** [Dodaj tabulator] dodaje pozycję. Każda ma:
 
 ![Tabulator do prawej z kropkami](k-tabulatory.png)
 
-## 6.12 Oblewanie tekstem
+## 5.12 Oblewanie tekstem
 
 Zdjęcie, kształt albo grupa może odpychać tekst. Zaznacz element i w części **Inne** wybierz **Oblewanie tekstem**:
 
@@ -539,18 +540,18 @@ po której ma więcej miejsca.
 
 ![Oblewanie tekstem w części Inne](k-oblewanie.png)
 
-## 6.13 Siatka linii bazowych
+## 5.13 Siatka linii bazowych
 
 Siatka linii bazowych ustawia wiersze wszystkich kolumn i stron na tej samej wysokości — jak w książkach,
 w których wiersze z obu stron kartki pokrywają się pod światło.
 
-1. W ustawieniach sekcji (→ 11.4) włącz **Siatka linii bazowych w tej sekcji**: **Odstęp** (zwykle interlinia
+1. W ustawieniach sekcji (→ 10.4) włącz **Siatka linii bazowych w tej sekcji**: **Odstęp** (zwykle interlinia
    tekstu podstawowego) i **Pierwsza linia** (mm od górnej krawędzi strony, zwykle górny margines).
-2. W menu widoku (→ 4.6) **Siatka linii bazowych** pokazuje te linie na stronie.
-3. Tekstom, które mają stać na siatce, włącz **Wyrównaj do siatki linii bazowych** (→ 6.9) — najlepiej w stylu
+2. W menu widoku (→ 3.6) **Siatka linii bazowych** pokazuje te linie na stronie.
+3. Tekstom, które mają stać na siatce, włącz **Wyrównaj do siatki linii bazowych** (→ 5.9) — najlepiej w stylu
    tekstu podstawowego.
 
-## 6.14 Tekst po łuku, okręgu i ścieżce; wyginanie
+## 5.14 Tekst po łuku, okręgu i ścieżce; wyginanie
 
 Zaznacz tekst i w części **Kształt tekstu** panelu wybierz **Kształt**. Gotowe przykłady znajdziesz też w [Biblioteka], w kategorii **Teksty**.
 
@@ -568,7 +569,7 @@ Zaznacz tekst i w części **Kształt tekstu** panelu wybierz **Kształt**. Goto
 - Tekst po kształcie jest jednym wierszem; czcionka, kolor, style i pola `{…}` działają jak zwykle.
 - **Prosto** przywraca zwykły tekst.
 
-## 6.15 Znajdź i zamień
+## 5.15 Znajdź i zamień
 
 Lupa na górnym pasku albo [⋯] → [Znajdź i zamień…] (<kbd>Ctrl</kbd>+<kbd>F</kbd>; <kbd>Ctrl</kbd>+<kbd>H</kbd> —
 od razu z polem zamiany).
@@ -585,15 +586,15 @@ od razu z polem zamiany).
 |---|---|
 | **Wielkość liter** | „Kalendarz” nie znajdzie „kalendarz”. |
 | **Całe słowa** | „kot” nie znajdzie „kotka”. |
-| **Także w danych** | Szuka też w komórkach tabel danych (→ 15). |
-| **W nazwach stylów** | Szuka też w nazwach stylów akapitu i znakowych (→ 6.4). |
+| **Także w danych** | Szuka też w komórkach tabel danych (→ 14). |
+| **W nazwach stylów** | Szuka też w nazwach stylów akapitu i znakowych (→ 5.4). |
 
 - Szukanie obejmuje wszystkie strony i wzorce, także teksty w grupach.
 - Pola w klamrach, np. `{miesiac}`, zostają nietknięte — chyba że wpiszesz klamrę w szukanym tekście.
 - Wygląd fragmentów (np. pogrubione słowo) zostaje na swoim miejscu po zamianie.
 - [Zamień wszystkie] cofniesz jednym [Cofnij].
 
-## 6.16 Sprawdzanie pisowni
+## 5.16 Sprawdzanie pisowni
 
 Słowa spoza słownika polskiego są podkreślone falistą czerwoną linią — tylko w edytorze, nigdy w PDF.
 
@@ -614,13 +615,13 @@ zmienia słowo we wszystkich miejscach tego tekstu.
 - Pomijane są pola `{…}`, liczby, słowa z cyframi, adresy stron i e-maile.
 - Wyłączysz sprawdzanie w menu widoku: **Sprawdzaj pisownię**.
 
-# 7. Kształty, linie i kolory
+# 6. Kształty, linie i kolory
 
 Kształty, linie, rysowanie i kolory: wypełnienia, przejścia i obrysy.
 
-## 7.1 Prostokąt, elipsa i wielokąt
+## 6.1 Prostokąt, elipsa i wielokąt
 
-[Prostokąt], [Elipsa] i [Wielokąt] wstawiają kształty z wypełnieniem i obrysem (→ 7.5, 7.6).
+[Prostokąt], [Elipsa] i [Wielokąt] wstawiają kształty z wypełnieniem i obrysem (→ 6.5, 6.6).
 [Wielokąt] najpierw pokazuje wybór: trójkąt, romb, pięcio-, sześcio- i ośmiokąt albo gwiazda o 4, 5, 6, 8
 lub 12 ramionach. Klawisz <kbd>P</kbd> wstawia od razu trójkąt.
 Część **Kształt**:
@@ -629,25 +630,25 @@ Część **Kształt**:
 - wielokąt — te same gotowe kształty co przy wstawianiu (trójkąt … gwiazda 12), **Liczba boków** (3–24)
   i przełącznik **Gwiazda**; zmiana zachowuje miejsce i wielkość.
 
-## 7.2 Linia
+## 6.2 Linia
 
 [Linia] wstawia odcinek. Część **Linia**: **Kolor**, **Grubość** w mm i **Rodzaj** — ciągła, przerywana,
 kropkowana albo kreska – kropka (kreski rosną razem z grubością). Z <kbd>Shift</kbd> linia jest
 pozioma, pionowa albo pod kątem 45°. Linia rysowana odręcznie i kształt z pióra mają tę samą część,
 a zamknięty kształt z pióra — także **Wypełnienie**. Gotowe linie (cienka, gruba, przerywana, podwójna,
-pionowa, ozdobne) są w Bibliotece, w kategorii **Linie i separatory** (→ 5.8).
+pionowa, ozdobne) są w Bibliotece, w kategorii **Linie i separatory** (→ 4.8).
 
-## 7.3 Rysowanie odręczne
+## 6.3 Rysowanie odręczne
 
 [Rysuj] (<kbd>B</kbd>): przeciągaj po stronie jak ołówkiem — drżenie ręki jest wygładzane. Każde
 pociągnięcie to osobny element. Tryb zostaje włączony, więc narysujesz kilka kresek.
 
-Kolor i grubość następnych linii ustawisz we właściwościach, w części **Pędzel** (→ 4.5).
+Kolor i grubość następnych linii ustawisz we właściwościach, w części **Pędzel** (→ 3.5).
 [Zakończ rysowanie] albo <kbd>Esc</kbd> kończy rysowanie.
 
 ![Rysowanie: kolor i grubość pędzla](k-rysowanie.png)
 
-## 7.4 Pióro i edycja punktów
+## 6.4 Pióro i edycja punktów
 
 [Pióro] (<kbd>N</kbd>) tworzy kształt z punktów:
 
@@ -663,7 +664,7 @@ sprzed edycji. Tak samo zmienisz linię rysowaną odręcznie.
 
 ![Edycja punktów](pioro.png)
 
-## 7.5 Wypełnienie
+## 6.5 Wypełnienie
 
 Część **Wypełnienie i obrys**, lista **Wypełnienie**:
 
@@ -677,32 +678,32 @@ Każdy kolor przejścia ma pole **Krycie** — np. kolor przechodzący w przezro
 
 ![Krycie koloru w przejściu](k-krycie-przejscia.png)
 
-## 7.6 Obrys
+## 6.6 Obrys
 
 Kolor obrysu i **Grubość obrysu** w mm. Grubość nie zmienia się, gdy powiększasz kształt. Przy włączonym
 obrysie są też **Krycie obrysu** (półprzezroczysta ramka) i **Rodzaj linii** — ciągła, przerywana, kropkowana
 albo kreska – kropka; kreski rosną razem z grubością.
 
-Kształt (także z obrazem w środku) może mieć **Miękkie krawędzie** — tak jak zdjęcie (→ 8.10).
+Kształt (także z obrazem w środku) może mieć **Miękkie krawędzie** — tak jak zdjęcie (→ 7.10).
 
-## 7.7 Wybór koloru
+## 6.7 Wybór koloru
 
 Kliknięcie kółka koloru otwiera okno koloru: próbnik, **Kod koloru** (np. `#2f5bd3`), gotowe i ostatnio
 używane kolory oraz **Użyte w projekcie** — kolory ze wszystkich stron, wzorców i stylów, najczęstsze
-najpierw (przy kolorze dodatkowym widać jego nazwę, np. „PANTONE 186 C”, → 23.1).
+najpierw (przy kolorze dodatkowym widać jego nazwę, np. „PANTONE 186 C”, → 22.1).
 
 ![Użyte w projekcie w oknie koloru](k-kolory-uzyte.png)
 
-Gdy masz zestaw marki (→ 2.9), nad „Użytymi w projekcie” jest część **Marka** — kolory marki z nazwami
+Gdy masz zestaw marki (→ 27.9), nad „Użytymi w projekcie” jest część **Marka** — kolory marki z nazwami
 (nazwę i kod widać po najechaniu).
 
 ![Kolory marki w oknie koloru](k-marka-kolor.png)
 
-# 8. Obrazy
+# 7. Obrazy
 
 Zdjęcia i grafiki: wstawianie, kadrowanie, ramki, filtry i usuwanie tła.
 
-## 8.1 Wstawianie obrazu
+## 7.1 Wstawianie obrazu
 
 [Obraz] pyta, skąd wziąć obraz:
 
@@ -713,29 +714,29 @@ W projekcie bez obrazów od razu otwiera się wybór pliku. Obraz wstawisz też,
 na stronę albo wklejając ze schowka (<kbd>Ctrl</kbd>+<kbd>V</kbd>) — np. zrzut ekranu albo
 obraz skopiowany ze strony internetowej.
 
-## 8.2 Kadrowanie
+## 7.2 Kadrowanie
 
 Kliknij obraz dwa razy albo wybierz [Kadruj przeciąganiem]: przesuwasz zdjęcie w ramce i zmieniasz
 jej brzegi. <kbd>Enter</kbd> zatwierdza, <kbd>Esc</kbd> anuluje. To samo liczbami: **Przycięcie
 (% oryginału)** — **Z góry**, **Z dołu**, **Z lewej**, **Z prawej**.
 
-## 8.3 Właściwości obrazu
+## 7.3 Właściwości obrazu
 
 | Ustawienie | Znaczenie |
 |---|---|
-| [Podmień zdjęcie] | Inne zdjęcie w tej samej ramce (→ 8.4). |
-| [Obrazy projektu…] | Okno wszystkich obrazów (→ 8.5). |
+| [Podmień zdjęcie] | Inne zdjęcie w tej samej ramce (→ 7.4). |
+| [Obrazy projektu…] | Okno wszystkich obrazów (→ 7.5). |
 | Opis pod nagłówkiem | Wymiary oryginału w pikselach i rozdzielczość w tym rozmiarze (dpi). Do druku — co najmniej 300 dpi; przy mniejszej opis zmienia kolor. |
-| **Obramowanie** | Ramka wokół zdjęcia: kolor, **Grubość**, **Krycie obrysu**, **Rodzaj linii** (ciągła, przerywana, kropkowana, kreska – kropka) i **Zaokrąglenie narożników** w mm — zaokrąglenie przycina też samo zdjęcie (→ 8.10). |
+| **Obramowanie** | Ramka wokół zdjęcia: kolor, **Grubość**, **Krycie obrysu**, **Rodzaj linii** (ciągła, przerywana, kropkowana, kreska – kropka) i **Zaokrąglenie narożników** w mm — zaokrąglenie przycina też samo zdjęcie (→ 7.10). |
 | **Odbij lustrzanie w poziomie** | Odwraca obraz. |
-| **Obraz z danych** | Inny obraz na każdej powielonej stronie (→ 18.5). |
+| **Obraz z danych** | Inny obraz na każdej powielonej stronie (→ 17.5). |
 
-## 8.4 Podmiana zdjęcia
+## 7.4 Podmiana zdjęcia
 
 [Podmień zdjęcie] wstawia inny plik w tę samą ramkę: rozmiar, miejsce, obrót, obrys i cień zostają,
 a zdjęcie o innych proporcjach jest przycięte do ramki.
 
-## 8.5 Okno Obrazy projektu
+## 7.5 Okno Obrazy projektu
 
 [⋯] → [Obrazy projektu…] pokazuje wszystkie obrazy projektu: miniaturę, pełną nazwę pliku, wymiary,
 rozmiar i miejsca użycia (numery stron, wzorce, tabele danych).
@@ -751,13 +752,15 @@ rozmiar i miejsca użycia (numery stron, wzorce, tabele danych).
 
 Kliknięcie obrazu go zaznacza; <kbd>Ctrl</kbd> dodaje kolejne, <kbd>Shift</kbd> — cały zakres.
 Ten sam plik wgrany drugi raz nie tworzy kopii. Inny plik o tej samej nazwie — aplikacja pokaże
-oba obrazy i zapyta: [Zastąp] albo [Zachowaj oba].
+oba obrazy i zapyta: [Zastąp], [Zachowaj oba] albo [Pomiń]. Gdy projekt ma powtórzone obrazy sprzed tego
+okna, u góry pojawia się pasek z [Uporządkuj] — scala kopie w jeden plik. Przy kilku zaznaczonych obrazach
+[Kopiuj nazwy] kopiuje wszystkie nazwy naraz, np. do kolumny tabeli danych.
 
 > Uwaga: Usuniętego obrazu nie przywróci [Cofnij].
 
 ![Obrazy projektu](obrazy-projektu.png)
 
-## 8.6 Rysunki SVG
+## 7.6 Rysunki SVG
 
 Plik SVG wstawia się jako obraz: wygląda wiernie i zostaje ostry w każdym powiększeniu, ale nie
 zmienisz w nim kolorów ani napisów.
@@ -779,7 +782,7 @@ Nic przy tym nie znika:
 
 ![Rysunek SVG przed i po rozłożeniu](rysunek-svg.png)
 
-## 8.7 Obraz w kształcie
+## 7.7 Obraz w kształcie
 
 Każdy kształt może być ramką obrazu: prostokąt, elipsa, wielokąt, gwiazda i zamknięty kształt z pióra.
 
@@ -795,7 +798,7 @@ Kształt zmieniasz jak zwykle — rozmiar, punkty, obrys, cień — a obraz idzi
 
 Zdjęcie zamienisz w kształt jednym kliknięciem: w części **Kadrowanie** [Zaokrąglone rogi] albo [Koło]. Zaokrąglenie zmienisz potem w części **Wypełnienie i obrys**.
 
-## 8.8 Usuwanie tła
+## 7.8 Usuwanie tła
 
 Zaznacz zdjęcie (albo kształt z obrazem) i wybierz [Usuń tło…].
 
@@ -810,13 +813,13 @@ Zaznacz zdjęcie (albo kształt z obrazem) i wybierz [Usuń tło…].
 
 ![Okno „Usuń tło”](usun-tlo.png)
 
-## 8.9 Filtry
+## 7.9 Filtry
 
 W części **Filtry** zdjęcia albo obrazu w kształcie ustawisz **jasność**, **kontrast**, **nasycenie** i **rozmycie** oraz włączysz **odcień szarości** albo **sepię**. Plik się nie zmienia; [Bez filtrów] wraca do oryginału.
 
 ![Filtry obrazu](k-filtry.png)
 
-## 8.10 Obramowanie i miękkie krawędzie
+## 7.10 Obramowanie i miękkie krawędzie
 
 Część **Obramowanie** zdjęcia: kolor (pole **brak** wyłącza ramkę), **Grubość** w mm, **Krycie obrysu**,
 **Rodzaj linii** i **Zaokrąglenie narożników** w mm. Zaokrąglenie przycina samo zdjęcie, a obramowanie
@@ -832,13 +835,13 @@ płynnie znika w przezroczystość; 0 to ostry brzeg. **Rodzaj**:
 
 ![Obramowanie z zaokrągleniem i owalna winieta](k-obramowanie.png)
 
-Obramowanie, zaokrąglenie i miękkie krawędzie przenosi też [Kopiuj wygląd] (→ 5.13).
+Obramowanie, zaokrąglenie i miękkie krawędzie przenosi też [Kopiuj wygląd] (→ 4.13).
 
-# 9. Tabela
+# 8. Tabela
 
-Tabela na stronie — do cenników, planów, list. To co innego niż tabela danych do powielania stron (→ 15).
+Tabela na stronie — do cenników, planów, list. To co innego niż tabela danych do powielania stron (→ 14).
 
-## 9.1 Wstawianie tabeli
+## 8.1 Wstawianie tabeli
 
 [Tabela] otwiera okno **Wstaw tabelę**:
 
@@ -850,18 +853,18 @@ Tabela na stronie — do cenników, planów, list. To co innego niż tabela dany
 | **Pierwszy wiersz to nagłówek** | Pierwszy wiersz pogrubiony, z grubszą linią pod spodem. |
 
 Tabelę przesuwasz, powiększasz i obracasz w całości, jak każdy element. **Pojedyncze kliknięcie
-komórki** zaznaczonej tabeli wybiera tę komórkę (→ 9.3), **dwukrotne** — zaczyna w niej pisanie (→ 9.2).
+komórki** zaznaczonej tabeli wybiera tę komórkę (→ 8.3), **dwukrotne** — zaczyna w niej pisanie (→ 8.2).
 
 ![Tabela](tabela.png)
 
-## 9.2 Pisanie w komórkach
+## 8.2 Pisanie w komórkach
 
 Kliknij komórkę dwa razy, żeby w niej pisać. <kbd>Tab</kbd> przechodzi do następnej komórki,
 <kbd>Shift</kbd>+<kbd>Tab</kbd> do poprzedniej; <kbd>Tab</kbd> w ostatniej komórce dodaje wiersz.
 Komórka to zwykły tekst: pogrubisz w niej fragment, zmienisz czcionkę, wstawisz pole z danych
-(→ 16). Wiersz rośnie razem z tekstem — także na stronach powielonych z danych.
+(→ 15). Wiersz rośnie razem z tekstem — także na stronach powielonych z danych.
 
-## 9.3 Wiersze, kolumny i ich rozmiar
+## 8.3 Wiersze, kolumny i ich rozmiar
 
 **Cała tabela**: **Wiersze** i **Kolumny** [−] [+] (ostatni wiersz i kolumna), **Pierwszy wiersz to nagłówek**,
 **Szerokość tabeli** w mm (kolumny zmieniają się proporcjonalnie), **Wysokość wierszy** (najmniejsza — wiersz
@@ -879,12 +882,12 @@ i wysokość tego wiersza w mm, [Kolumna przed], [Kolumna po], [Wiersz nad], [Wi
 Granicę kolumn przesuniesz też myszą: przy zaznaczonej tabeli nad granicami kolumn są niebieskie
 znaczniki. Kolumna obok zwęża się o tyle samo, a ostatni znacznik zmienia szerokość całej tabeli.
 
-## 9.4 Scalanie komórek
+## 8.4 Scalanie komórek
 
 W trakcie pisania w komórce: [Scal z komórką po prawej] i [Scal z komórką poniżej]. Klikając kilka
-razy, zrobisz komórkę na kilka kolumn albo wierszy. [Rozdziel komórkę] wraca do pojedynczych komórek.
+razy, zrobisz komórkę na kilka kolumn albo wierszy. [Rozdziel komórki] wraca do pojedynczych komórek.
 
-## 9.5 Linie i tła
+## 8.5 Linie i tła
 
 | Część | Co ustawisz |
 |---|---|
@@ -894,11 +897,11 @@ razy, zrobisz komórkę na kilka kolumn albo wierszy. [Rozdziel komórkę] wraca
 | **Tło wierszy** | Kolor wiersza nagłówka i co drugiego wiersza (tabela w paski). |
 | **Tekst w komórkach** | Czcionka, rozmiar, kolor, wyrównanie i odstęp od brzegu komórki. |
 
-# 10. Warstwy
+# 9. Warstwy
 
 Lista wszystkich elementów strony — do zaznaczania, ukrywania i zmiany kolejności.
 
-## 10.1 Panel Warstwy
+## 9.1 Panel Warstwy
 
 Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego
 na spodzie. Na komputerze to zakładka [Warstwy] u góry prawej kolumny (<kbd>F7</kbd>), z liczbą elementów strony;
@@ -906,7 +909,7 @@ na telefonie otwiera go przycisk [Warstwy] na dole ekranu.
 
 ![Warstwy](warstwy.png)
 
-## 10.2 Wiersz warstwy
+## 9.2 Wiersz warstwy
 
 | W wierszu | Co robi |
 |---|---|
@@ -914,26 +917,26 @@ na telefonie otwiera go przycisk [Warstwy] na dole ekranu.
 | **Uchwyt ⋮⋮** | Przeciągnij wiersz, żeby zmienić kolejność — myszą albo palcem. |
 | **Oko** | Ukrywa element. Ukryty element nie jest drukowany. |
 | **Kłódka** | Blokuje położenie i rozmiar. |
-| [⋯] | [Na wierzch], [Wyżej], [Niżej], [Na spód], [Zmień nazwę], [Kopiuj wygląd] (→ 5.13), [Zapisz w bibliotece] (→ 5.8). |
+| [⋯] | [Na wierzch], [Wyżej], [Niżej], [Na spód], [Zmień nazwę], [Kopiuj wygląd] (→ 4.13), [Zapisz w bibliotece] (→ 4.8). |
 
 Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w niego trafić na stronie.
 
-## 10.3 Grupy, tabele i wzorce na liście
+## 9.3 Grupy, tabele i wzorce na liście
 
 - Trójkąt przy grupie albo tabeli rozwija jej zawartość. Kliknięcie elementu grupy otwiera grupę z tym
-  elementem zaznaczonym (→ 5.5); kliknięcie komórki tabeli zaczyna w niej pisanie.
+  elementem zaznaczonym (→ 4.5); kliknięcie komórki tabeli zaczyna w niej pisanie.
 - Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Nie zmienisz ich
-  tutaj — kliknięcie otwiera wzorzec do edycji (→ 12.5).
+  tutaj — kliknięcie otwiera wzorzec do edycji (→ 11.5).
 
-# 11. Strony, sekcje i rozkładówki
+# 10. Strony, sekcje i rozkładówki
 
 Kolejność stron, sekcje o różnych formatach, rozkładówki, okładka z grzbietem i numeracja.
 
-## 11.1 Panel stron
+## 10.1 Panel stron
 
 Panel z lewej pokazuje miniatury wszystkich stron w kolejności druku, pogrupowane w sekcje
 (szare nagłówki). Kliknięcie miniatury otwiera stronę. Strona powielana z danych ma znaczek
-**×N** — tyle razy wyjdzie w wydruku (→ 17).
+**×N** — tyle razy wyjdzie w wydruku (→ 16).
 
 Na telefonie strony stoją w poziomym pasku, który przewijasz palcem.
 
@@ -941,17 +944,17 @@ Na telefonie strony stoją w poziomym pasku, który przewijasz palcem.
 
 ![Panel stron z menu strony](strony.png)
 
-## 11.2 Dodawanie i porządkowanie stron
+## 10.2 Dodawanie i porządkowanie stron
 
 - Kafelek **+** na końcu stron sekcji dodaje pustą stronę za bieżącą.
-- [+ Sekcja] na dole panelu tworzy nową sekcję.
+- [Sekcja] na dole panelu tworzy nową sekcję.
 - **Przeciągnij miniaturę**, żeby zmienić kolejność; upuszczona w innej sekcji przechodzi do niej.
 - [⋯] na miniaturze: [Zmień nazwę], [Duplikuj], [Przesuń wyżej], [Przesuń niżej], [Usuń stronę].
 - [⋯] przy nagłówku sekcji: [Ustawienia sekcji], [Dodaj stronę do sekcji], [Przesuń sekcję wyżej],
   [Przesuń sekcję niżej], [Usuń sekcję].
 
 
-## 11.3 Właściwości strony
+## 10.3 Właściwości strony
 
 Gdy nic nie jest zaznaczone, panel właściwości pokazuje ustawienia otwartej strony:
 
@@ -960,14 +963,14 @@ Gdy nic nie jest zaznaczone, panel właściwości pokazuje ustawienia otwartej s
 | **Nazwa strony** | Nazwa na liście stron. |
 | **Sekcja** | Przeniesienie strony do innej sekcji. |
 | **Tło** | Kolor tła tej strony. |
-| **Wzorce** | Wzorce z sekcji albo własny wybór dla tej strony (→ 12.4). |
-| **Seria** | Powielanie strony z tabeli danych (→ 17). |
-| **Prowadnice** | Prowadnice wpisane liczbą (→ 13.4). |
+| **Wzorce** | Wzorce z sekcji albo własny wybór dla tej strony (→ 11.4). |
+| **Seria** | Powielanie strony z tabeli danych (→ 16). |
+| **Prowadnice** | Prowadnice wpisane liczbą (→ 12.4). |
 | [Wklej skopiowane elementy] | Wkleja elementy ze schowka w to samo miejsce. |
 
 ![Ustawienia strony: seria](k-seria.png)
 
-## 11.4 Ustawienia sekcji
+## 10.4 Ustawienia sekcji
 
 Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „Środek”. Okno otworzysz
 przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Ustawienia sekcji].
@@ -975,20 +978,20 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 | Ustawienie | Znaczenie |
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
-| **Układ stron** | **Pojedyncze** albo **Rozkładówki** (→ 11.5). |
-| **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (→ 11.6), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (→ 11.11). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy [+ Sekcja] i zmieniasz tutaj. |
-| **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij [Zmień format i dopasuj elementy…] (→ 11.9). |
+| **Układ stron** | **Pojedyncze** albo **Rozkładówki** (→ 10.5). |
+| **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (→ 10.6), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (→ 10.11). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy [Sekcja] i zmieniasz tutaj. |
+| **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij [Zmień format i dopasuj elementy…] (→ 10.9). |
 | **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
-| **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 11.8). |
-| **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (→ 11.7). |
-| **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 12.4). |
+| **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 10.8). |
+| **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (→ 10.7). |
+| **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 11.4). |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
-| **Siatka linii bazowych** | **Odstęp** i **Pierwsza linia** (mm od góry) — wiersze tekstów z „Wyrównaj do siatki” stoją na tych liniach (→ 6.13). |
+| **Siatka linii bazowych** | **Odstęp** i **Pierwsza linia** (mm od góry) — wiersze tekstów z „Wyrównaj do siatki” stoją na tych liniach (→ 5.13). |
 
 ![Ustawienia sekcji](sekcje.png)
 
-## 11.5 Rozkładówki
+## 10.5 Rozkładówki
 
 W sekcji z rozkładówkami strony tworzą pary: lewa i prawa, jak w otwartej książce.
 
@@ -1004,7 +1007,7 @@ W sekcji z rozkładówkami strony tworzą pary: lewa i prawa, jak w otwartej ksi
 
 ![Rozkładówka](rozkladowki.png)
 
-## 11.6 Okładka z grzbietem
+## 10.6 Okładka z grzbietem
 
 Okładka to osobna sekcja z jedną szeroką stroną: tył, grzbiet i przód. Zrobisz ją w oknie sekcji
 (**Typ sekcji** → **Okładka**), w menu sekcji ([Zamień na okładkę z grzbietem]) albo od razu
@@ -1041,7 +1044,7 @@ Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sa
 
 > Uwaga: wzorce przypisane do sekcji okładki nie przesuwają się same.
 
-## 11.7 Składki
+## 10.7 Składki
 
 Środek szyty albo klejony ze składek musi mieć liczbę stron podzielną przez wielkość składki. W ustawieniach sekcji wybierz **Składki**: co 4, 8, 16 albo 32 strony.
 
@@ -1049,20 +1052,20 @@ Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pe�
 
 ![Licznik składki i „Dopełnij pustymi”](k-skladki.png)
 
-## 11.8 Numeracja stron
+## 10.8 Numeracja stron
 
-Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (→ 12.7).
-Numeracja zależy od ustawień sekcji (→ 11.4) i liczy strony po powieleniu serii. Numerowane są tylko
+Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (→ 11.7).
+Numeracja zależy od ustawień sekcji (→ 10.4) i liczy strony po powieleniu serii. Numerowane są tylko
 sekcje bloku (typ **Zwykła**, **Blok**, **Kalendarz roczny**): okładka, wyklejki, obwoluta, wkładka, podkładka
 i druki osobne nie mają numerów i nie przesuwają numeracji — pierwsza strona bloku ma numer 1 także wtedy,
 gdy przed nią stoją okładka i wyklejka. Inne zapisy
-numeru (rzymskie, z zerami) są w tabeli pól (→ 16.2).
+numeru (rzymskie, z zerami) są w tabeli pól (→ 15.2).
 
-## 11.9 Zmiana formatu ze skalowaniem
+## 10.9 Zmiana formatu ze skalowaniem
 
 Kalendarz z A4 na A3, książka z B5 na A5 — format zmienisz razem z elementami:
 
-- jedna sekcja: okno sekcji (→ 11.4) → [Zmień format i dopasuj elementy…],
+- jedna sekcja: okno sekcji (→ 10.4) → [Zmień format i dopasuj elementy…],
 - cały projekt: [⋯] → [Zmień format projektu…].
 
 1. Wybierz **Nowy format** z listy albo wpisz **Szerokość (mm)** i **Wysokość (mm)**; [Zamień orientację] obraca kartkę.
@@ -1079,22 +1082,22 @@ Kalendarz z A4 na A3, książka z B5 na A5 — format zmienisz razem z elementam
 
 ![Zmiana formatu z podglądem przed i po](k-format.png)
 
-Okładka z grzbietem (→ 11.6) przelicza się sama po zmianie formatu środka. Elementy, które po zmianie
-wystają poza stronę, pokaże **Sprawdź przed drukiem** (→ 21).
+Okładka z grzbietem (→ 10.6) przelicza się sama po zmianie formatu środka. Elementy, które po zmianie
+wystają poza stronę, pokaże **Sprawdź przed drukiem** (→ 20).
 
-## 11.10 Gotowe sekcje (szablony dokumentów)
+## 10.10 Gotowe sekcje (szablony dokumentów)
 
 Cały gotowy dokument wstawisz jednym kliknięciem jako nową sekcję: kalendarz ścienny, planer na 365 dni,
 notes, zaproszenie, dyplomy dla listy osób, wizytówki, ulotkę, menu, rozdział książki i ponad 30 innych.
-Gdzie: na dole panelu stron przycisk [Gotowa] (obok [Sekcja]), w Bibliotece kategoria **Gotowe sekcje** (→ 5.8)
-albo od razu przy nowym projekcie: **Zacznij od → Gotowego szablonu** (→ 3.2).
+Gdzie: na dole panelu stron przycisk [Gotowa] (obok [Sekcja]), w Bibliotece kategoria **Gotowe sekcje** (→ 4.8)
+albo od razu przy nowym projekcie: **Zacznij od → Gotowego szablonu** (→ 2.2).
 
 ![Gotowe sekcje – galeria szablonów](k-gotowe-sekcje.png)
 
 1. Wybierz rodzaj u góry (**Książka**, **Kalendarze**, **Planery i notesy**, **Zaproszenia i dyplomy**, **Firma i reklama**, **Inne**) albo wpisz słowo w **Szukaj**. Miniatura pokazuje pierwszą stronę w formacie Twojego projektu, a pod nią widać, ile stron powstanie. Plakietka **z danymi** – strony biorą treść z tabeli (np. 365 dni, osoby do dyplomów).
 2. Kliknij szablon. Zobaczysz podgląd pierwszych stron i ustawienia:
    - pytania szablonu, np. **Rok** kalendarza albo **Liczba stron** notesu,
-   - **Kolory**: kolory marki (gdy masz zestaw marki, → 2.9), kolory szablonu albo jedna z gotowych palet,
+   - **Kolory**: kolory marki (gdy masz zestaw marki, → 27.9), kolory szablonu albo jedna z gotowych palet,
    - szablony z własnym formatem (wizytówka 85 × 55 mm, dyplom A4 poziomo, etykieta 70 × 40 mm) mają przełącznik formatu – odznacz go, żeby szablon dopasował się do formatu sekcji.
 3. [Wstaw jako nową sekcję]. Sekcja staje za bieżącą, a edytor przechodzi na jej pierwszą stronę.
 
@@ -1102,16 +1105,16 @@ albo od razu przy nowym projekcie: **Zacznij od → Gotowego szablonu** (→ 3.2
 
 Szablon nie jest zamrożonym plikiem: buduje się dla Twojego formatu, marginesów i spadu, w kolorach i
 czcionkach marki. Po wstawieniu to zwykłe strony, wzorce (np. numer strony), style i tabela danych z serią
-(→ 15, 17) – zmienisz w nich wszystko jak we własnych. Szare pola to miejsca na zdjęcia: wstaw do nich obraz
-(→ 8.7). Całą wstawioną sekcję usuwa jedno [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
+(→ 14, 16) – zmienisz w nich wszystko jak we własnych. Szare pola to miejsca na zdjęcia: wstaw do nich obraz
+(→ 7.7). Całą wstawioną sekcję usuwa jedno [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
 
-## 11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki
+## 10.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki
 
-Sekcja specjalna działa jak okładka z grzbietem (→ 11.6): wie, czym jest wydrukowana rzecz. Sama liczy swój
+Sekcja specjalna działa jak okładka z grzbietem (→ 10.6): wie, czym jest wydrukowana rzecz. Sama liczy swój
 format, podpisuje na stronie strefy (panele, skrzydełka, klapy), rysuje linie zgięć (bigi, przerywane), perforacji
 (kropkowane) i cięcia (ciągła różowa linia), ostrzega o tekście na zgięciu i o elementach poza linią cięcia,
-a w pliku PDF daje arkusz w pełnym wymiarze. Wybierasz ją jako **Typ sekcji** przy [+ Sekcja] albo w ustawieniach
-sekcji (→ 11.4).
+a w pliku PDF daje arkusz w pełnym wymiarze. Wybierasz ją jako **Typ sekcji** przy [Sekcja] albo w ustawieniach
+sekcji (→ 10.4).
 Schemat w oknie pokazuje strefy i zgięcia na bieżąco, pod nim wymiary arkusza.
 
 ![Ulotka składana w ustawieniach sekcji](k-sekcja-ulotka.png)
@@ -1128,34 +1131,34 @@ Schemat w oknie pokazuje strefy i zgięcia na bieżąco, pod nim wymiary arkusza
 
 ![Wykrojnik pudełka na stronie: strefy, zgięcia i linia cięcia](k-sekcja-wykrojnik.png)
 
-**Pola kalendarza z datami** do wstawienia w tekst (→ 16): `{data}`, `{dzien}`, `{miesiac}`, `{dzien_tygodnia}`,
+**Pola kalendarza z datami** do wstawienia w tekst (→ 15): `{data}`, `{dzien}`, `{miesiac}`, `{dzien_tygodnia}`,
 `{tydzien}`, `{swieto}`; kolumna `wolne` ma wartość „tak” w niedziele i święta – użyj jej w kolorze zależnym
-od danych (→ 18), żeby święta były czerwone. Własne kolumny dopisane do tej tabeli zostają po zmianie roku.
+od danych (→ 17), żeby święta były czerwone. Własne kolumny dopisane do tej tabeli zostają po zmianie roku.
 
-**W pliku PDF** (→ 22): linia cięcia wykrojnika jest osobnym kolorem dodatkowym **CutContour**, zgięcia –
+**W pliku PDF** (→ 21): linia cięcia wykrojnika jest osobnym kolorem dodatkowym **CutContour**, zgięcia –
 **Crease**, perforacje – **Perforation**: drukarnia ich nie drukuje, tylko wycina, biguje i perforuje. Przy
 obwolucie, ulotce i kalendarzu trójdzielnym (cięte prosto) zgięcia i perforacje są zaznaczone kreskami poza
 formatem, obok znaków cięcia. Arkusz użytków składa się sam, gdy w eksporcie jest **Układ arkuszy: Zwykły**.
-Uwagi o tekście na zgięciu i elementach poza linią cięcia pokazuje też **Sprawdź przed drukiem** (→ 21).
+Uwagi o tekście na zgięciu i elementach poza linią cięcia pokazuje też **Sprawdź przed drukiem** (→ 20).
 
-Gotowe sekcje (→ 11.10) **Broszura składana**, **Wizytówki** i **Etykiety i naklejki** wstawiają się od razu
+Gotowe sekcje (→ 10.10) **Broszura składana**, **Wizytówki** i **Etykiety i naklejki** wstawiają się od razu
 jako ulotka składana i arkusz użytków, a **Okładka** w twardej oprawie — razem z dwiema czystymi wyklejkami.
 
 **Książka w twardej oprawie** składa się z sekcji typów: **Okładka** (oprawa twarda), **Wyklejka przednia**,
 **Blok**, ewentualnie **Wkładka** (np. zdjęcia na kredzie — z własnym papierem, bez numerów stron) i **Wyklejka
 tylna**. Grzbiet okładki liczy się z bloku i dodaje luźne kartki wyklejek i kartki wkładek, każde swoim papierem.
-**Sprawdź przed drukiem** (→ 21) ostrzega, gdy twarda okładka nie ma wyklejek (przycisk [Dodaj wyklejki] dopisuje
+**Sprawdź przed drukiem** (→ 20) ostrzega, gdy twarda okładka nie ma wyklejek (przycisk [Dodaj wyklejki] dopisuje
 obie, czyste), i gdy wyklejka stoi przy miękkiej oprawie. Twarda okładka może mieć też **Zakładkę – tasiemkę
-w grzbiecie** w wybranym kolorze. W eksporcie PDF (→ 22) **Pliki dla drukarni: okładka, wyklejki, blok…** daje
+w grzbiecie** w wybranym kolorze. W eksporcie PDF (→ 21) **Pliki dla drukarni: okładka, wyklejki, blok…** daje
 osobny plik dla każdej części: okładki, obwoluty, wyklejek, bloku, wkładek i każdego druku osobnego.
 
 Sekcja ze starszego projektu, która w nazwie ma „wyklejka”, a typ zwykły, dostaje raz podpowiedź
 „Sekcja … wygląda na wyklejkę – ustawić typ…?” z przyciskiem [Ustaw typ]. To tylko propozycja — bez kliknięcia
 sekcja zostaje zwykła.
 
-# 12. Wzorce stron
+# 11. Wzorce stron
 
-## 12.1 Czym jest wzorzec i kiedy go użyć
+## 11.1 Czym jest wzorzec i kiedy go użyć
 
 Niektóre rzeczy powtarzają się na wielu stronach: **numer strony, nagłówek, stopka, tło, ramka,
 linie do pisania**. Zamiast wstawiać je na każdą stronę osobno, wstawiasz je raz — jako **wzorzec**.
@@ -1171,7 +1174,7 @@ wzorzec. Jeśli tylko na jednej stronie — zwykły element.
 
 ![Okno Wzorce stron: co to jest i gotowe wzorce](k-wzorce-galeria.png)
 
-## 12.2 Gdzie są wzorce
+## 11.2 Gdzie są wzorce
 
 - [Wzorce] pod listą stron (obok [Sekcja]) i na górnym pasku edytora — otwiera okno **Wzorce stron**.
 - Menu ⋯ strony → [Wzorce tej strony…] — przechodzi na tę stronę i otwiera okno.
@@ -1182,7 +1185,7 @@ wzorzec. Jeśli tylko na jednej stronie — zwykły element.
 
 Strona, na której leży wzorzec, ma na miniaturze mały fioletowy znak; podpowiedź na nim mówi, jakie to wzorce.
 
-## 12.3 Gotowe wzorce
+## 11.3 Gotowe wzorce
 
 W oknie **Wzorce stron** niżej jest galeria gotowych wzorców z podglądami — na schemacie elementy wzorca
 są wyraźne, a blade bloki to treść strony. Grupy:
@@ -1200,9 +1203,9 @@ są wyraźne, a blade bloki to treść strony. Grupy:
 Kliknięcie karty dodaje wzorzec do projektu i **od razu na wszystkie strony sekcji** otwartej strony —
 okno się zamyka, a wzorzec widać na stronie. [Cofnij] w komunikacie albo <kbd>Ctrl</kbd>+<kbd>Z</kbd>
 odwraca to jednym krokiem. Gotowe wzorce dopasowują się do formatu i marginesów sekcji, a kolory
-i czcionki biorą z zestawu marki (→ 2.9), jeśli go masz. Po dodaniu to zwykły wzorzec — możesz go zmienić.
+i czcionki biorą z zestawu marki (→ 27.9), jeśli go masz. Po dodaniu to zwykły wzorzec — możesz go zmienić.
 
-## 12.4 Na których stronach jest wzorzec
+## 11.4 Na których stronach jest wzorzec
 
 W oknie, w części **W tym projekcie**, przy każdym wzorcu:
 
@@ -1210,7 +1213,7 @@ W oknie, w części **W tym projekcie**, przy każdym wzorcu:
 |---|---|
 | [+ Dodaj do tej strony] | Włącza wzorzec tylko na otwartej stronie. Ponowne kliknięcie (✓) go zdejmuje. |
 | [+ Do całej sekcji] | Włącza wzorzec na stronach sekcji, które nie mają własnego wyboru. |
-| [Edytuj] | Otwiera wzorzec do edycji (→ 12.5). |
+| [Edytuj] | Otwiera wzorzec do edycji (→ 11.5). |
 | [⋯] | [Zmień nazwę], [Duplikuj], [Przesuń wyżej], [Przesuń niżej], [Usuń wzorzec]. |
 
 Pojedynczej stronie wybierzesz wzorce też we właściwościach strony: **Wzorce na tej stronie** →
@@ -1218,7 +1221,7 @@ Pojedynczej stronie wybierzesz wzorce też we właściwościach strony: **Wzorce
 
 ![Okno Wzorce](okno-wzorcow.png)
 
-## 12.5 Własny wzorzec i edycja
+## 11.5 Własny wzorzec i edycja
 
 [Narysuj własny wzorzec] tworzy pusty wzorzec i od razu go otwiera. [Edytuj] otwiera istniejący.
 Fioletowy pasek nad stroną przypomina, że zmieniasz wzorzec — wszystko, co tu narysujesz, pojawi się
@@ -1227,7 +1230,7 @@ na liście warstw, a kliknięcie tam otwiera wzorzec.
 
 ![Edycja wzorca](wzorce.png)
 
-## 12.6 Nad treścią i odbicie lustrzane
+## 11.6 Nad treścią i odbicie lustrzane
 
 Elementy wzorca leżą **pod** treścią strony. Zaznacz element we wzorcu i włącz:
 
@@ -1236,17 +1239,17 @@ Elementy wzorca leżą **pod** treścią strony. Zaznacz element we wzorcu i wł
   na lewych stronach rozkładówek przejdzie na lewą krawędź. Gotowe wzorce „przy zewnętrznej krawędzi”
   mają to włączone.
 
-## 12.7 Pola we wzorcu
+## 11.7 Pola we wzorcu
 
 Wpisz we wzorcu tekst z polem, np. `Strona {nr} z {liczba_stron}`, `{sekcja}` albo `{rozdzial}`
 (tytuł bieżącego rozdziału). Na każdej stronie pojawi się jej wartość. Najprościej zacząć od gotowego
-wzorca z numerem strony (→ 12.3).
+wzorca z numerem strony (→ 11.3).
 
-# 13. Linie pomocnicze, siatka i powiększenie
+# 12. Linie pomocnicze, siatka i powiększenie
 
 Rzeczy, które pomagają ustawiać elementy, a nie drukują się: marginesy, spad, siatka, prowadnice, powiększenie.
 
-## 13.1 Linie na stronie
+## 12.1 Linie na stronie
 
 Linie pomocnicze nie są drukowane:
 
@@ -1256,12 +1259,12 @@ Linie pomocnicze nie są drukowane:
 | **Różowy pas** | Spad. Tła i zdjęcia, które mają sięgać krawędzi, rozciągnij aż do jego końca. |
 | **Niebieska przerywana** | Margines. Teksty trzymaj w środku. |
 | **Gruba ciemna** | Grzbiet rozkładówki. |
-| **Przerywane z podpisami** | Na okładce: zgięcia — grzbiet, bigi, zawinięcia (→ 11.6). |
-| **Turkusowa** | Prowadnica (→ 13.4). |
+| **Przerywane z podpisami** | Na okładce: zgięcia — grzbiet, bigi, zawinięcia (→ 10.6). |
+| **Turkusowa** | Prowadnica (→ 12.4). |
 
-[Linie pomocnicze] (<kbd>W</kbd>) w prawym dolnym rogu chowa je wszystkie.
+Przycisk linii pomocniczych (<kbd>W</kbd>) przy powiększeniu chowa je wszystkie.
 
-## 13.2 Ostrzeżenia
+## 12.2 Ostrzeżenia
 
 Element w marginesie albo poza spadem, tekst, który się nie mieści, czy pole z literówką dostają
 pomarańczową ramkę i trafiają na listę **Ostrzeżenia**. Na komputerze otwiera ją przycisk z trójkątem
@@ -1271,14 +1274,14 @@ zaznacza element. Gdy to celowe (np. tło na spad), kliknij [Wycisz].
 
 ![Ostrzeżenia](ostrzezenia.png)
 
-## 13.3 Siatka
+## 12.3 Siatka
 
-W menu widoku (→ 4.6): **Siatka** pokazuje linie co **Krok siatki** (w mm, od rogu strony),
+W menu widoku (→ 3.6): **Siatka** pokazuje linie co **Krok siatki** (w mm, od rogu strony),
 a **Przyciągaj do siatki** ustawia lewy górny róg przesuwanego elementu na linii siatki.
 
 ![Siatka i prowadnice](siatka.png)
 
-## 13.4 Linijki i prowadnice
+## 12.4 Linijki i prowadnice
 
 - **Linijki** pokazują milimetry; zero leży w rogu otwartej strony.
 - **Prowadnicę** wyciągniesz z linijki: z górnej w dół — poziomą, z lewej w prawo — pionową.
@@ -1287,7 +1290,7 @@ a **Przyciągaj do siatki** ustawia lewy górny róg przesuwanego elementu na li
   prowadnicę pionową albo poziomą.
 - **Zablokuj prowadnice** w menu widoku chroni je przed przypadkowym przesunięciem.
 
-## 13.5 Przyciąganie i odległości
+## 12.5 Przyciąganie i odległości
 
 Przy przesuwaniu i zmianie rozmiaru element przyciąga się do krawędzi, marginesów i środka strony,
 do prowadnic i do innych elementów:
@@ -1301,33 +1304,33 @@ zaznaczonym elemencie pokazuje też odległości do krawędzi strony.
 
 ![Równe odstępy](odleglosci.png)
 
-## 13.6 Powiększenie
+## 12.6 Powiększenie
 
 - [−] i [+] w prawym dolnym rogu; kliknięcie procentu dopasowuje stronę do okna (<kbd>Ctrl</kbd>+<kbd>0</kbd>).
 - <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora.
 - Spacja + przeciąganie przesuwa widok.
 - Na ekranie dotykowym — dwa palce (→ 28.1).
 
-# 14. Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz
+# 13. Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz
 
 Spis treści, tytuł rozdziału w stopce, przypisy, odsyłacze i skorowidz — liczą się same.
 
-## 14.1 W skrócie
+## 13.1 W skrócie
 
-Numery stron biorą się z numeracji sekcji (→ 11.8), także ze stronami powielonymi serią (→ 17).
+Numery stron biorą się z numeracji sekcji (→ 10.8), także ze stronami powielonymi serią (→ 16).
 
 ![Spis treści, przypis i żywa pagina na stronach książki](ksiazka.png)
 
-## 14.2 Nagłówki
+## 13.2 Nagłówki
 
-Nagłówki to teksty w stylach akapitu (→ 6.4), które projekt uznaje za tytuły rozdziałów. Z nich powstają spis treści, żywa pagina i lista odsyłaczy.
+Nagłówki to teksty w stylach akapitu (→ 5.4), które projekt uznaje za tytuły rozdziałów. Z nich powstają spis treści, żywa pagina i lista odsyłaczy.
 
 - Bez ustawień styl **Tytuł** to nagłówek 1 (rozdział), a **Nagłówek** – nagłówek 2.
 - Inne style ustawisz w panelu spisu treści: przy każdym stylu wybierz **nagłówek 1**, **nagłówek 2**, **nagłówek 3** albo **nie jest nagłówkiem**.
 
 > Wskazówka: nadaj ten sam styl wszystkim tytułom rozdziałów – wtedy spis treści i pagina ułożą się same.
 
-## 14.3 Spis treści
+## 13.3 Spis treści
 
 1. Otwórz [Biblioteka] → **Książka** → **Spis treści** (albo <kbd>Ctrl</kbd>+<kbd>K</kbd> i „spis treści”).
 2. Spis staje na stronie jako tekst i od razu wypełnia się nagłówkami z numerami stron.
@@ -1339,21 +1342,21 @@ Nagłówki to teksty w stylach akapitu (→ 6.4), które projekt uznaje za tytu�
 |---|---|
 | **Poziomy** | **tylko rozdziały**, **rozdziały i podrozdziały** albo **trzy poziomy**; niższe poziomy są wcięte. |
 | **Kropki do numeru strony** | Wypełnia odstęp między tytułem a numerem kropkami. |
-| **Styl „…”** | Który styl jest nagłówkiem i jakiego poziomu (→ 14.2). |
+| **Styl „…”** | Który styl jest nagłówkiem i jakiego poziomu (→ 13.2). |
 | [Odśwież teraz] | Układa spis od razu. Zwykle nie trzeba – spis odświeża się sam po każdej zmianie. |
 
-Długi spis przelej do kolejnej ramki, także na następnej stronie (→ 6.7). Treści spisu nie wpisuje się ręcznie – przy następnym odświeżeniu ułożyłaby się od nowa.
+Długi spis przelej do kolejnej ramki, także na następnej stronie (→ 5.7). Treści spisu nie wpisuje się ręcznie – przy następnym odświeżeniu ułożyłaby się od nowa.
 
-## 14.4 Żywa pagina
+## 13.4 Żywa pagina
 
 Żywa pagina to tytuł bieżącego rozdziału w stopce albo nagłówku strony.
 
-1. Otwórz wzorzec stopki (→ 12).
+1. Otwórz wzorzec stopki (→ 11).
 2. W tekście stopki wybierz **Wstaw pole** → **{rozdzial}**. Obok możesz dać numer strony: `{rozdzial} – {nr}`.
 
 Na każdej stronie pole pokazuje ostatni nagłówek 1 do tej strony. `{rozdzial:2}` pokazuje nagłówek 2 – nowy rozdział go zeruje.
 
-## 14.5 Przypisy dolne
+## 13.5 Przypisy dolne
 
 1. Zaznacz tekst (albo pisz w nim – przypis stanie w miejscu kursora).
 2. W panelu, w części **Przypisy, odsyłacze, skorowidz**, wybierz [Wstaw przypis] (albo <kbd>Ctrl</kbd>+<kbd>K</kbd> i „przypis”).
@@ -1367,7 +1370,7 @@ Na każdej stronie pole pokazuje ostatni nagłówek 1 do tej strony. `{rozdzial:
 - Wygląd przypisów: styl akapitu o nazwie **Przypis** (jeśli go nie ma – pismo 8 pt).
 - [Usuń przypis] zdejmuje i numer z tekstu, i treść.
 
-## 14.6 Odsyłacze
+## 13.6 Odsyłacze
 
 Odsyłacz to numer strony innego miejsca w książce, np. „zob. s. 12”.
 
@@ -1375,9 +1378,9 @@ Odsyłacz to numer strony innego miejsca w książce, np. „zob. s. 12”.
 2. W części **Przypisy, odsyłacze, skorowidz** wybierz z listy **Wstaw odsyłacz do** nagłówek.
 3. W tekście pojawi się „s. 12” – numer zmienia się sam, gdy strony się przesuną.
 
-W edytorze odsyłacz widać jako pole `{s:…}`; liczbę zobaczysz w podglądzie i w PDF. Gdy nagłówek usuniesz, zamiast numeru stanie „?”, a **Sprawdź przed drukiem** o tym przypomni (→ 21).
+W edytorze odsyłacz widać jako pole `{s:…}`; liczbę zobaczysz w podglądzie i w PDF. Gdy nagłówek usuniesz, zamiast numeru stanie „?”, a **Sprawdź przed drukiem** o tym przypomni (→ 20).
 
-## 14.7 Skorowidz
+## 13.7 Skorowidz
 
 1. Zaznacz słowo w pisanym tekście.
 2. Wybierz [Dodaj do skorowidza] (albo <kbd>Ctrl</kbd>+<kbd>K</kbd> i „skorowidz”). Bez zaznaczenia aplikacja zapyta o hasło.

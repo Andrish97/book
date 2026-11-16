@@ -2,11 +2,11 @@
 
 Wspólna praca nad projektem i asystent AI.
 
-# 25. Współpraca
+# 24. Współpraca
 
 Wspólna praca nad projektem: zaproszenia, role i komentarze.
 
-## 25.1 Zapraszanie
+## 24.1 Zapraszanie
 
 Każda osoba pracuje na swoim koncie, a zmiany widać u wszystkich na żywo. Wybierz [⋯] → [Współpraca…]
 w edytorze albo na karcie projektu.
@@ -17,7 +17,7 @@ W części **Zaproś osobę**:
 
 1. W polu **E-mail albo nazwa użytkownika** wpisz adres albo nazwę — po dwóch literach pojawią się
    pasujące nazwy użytkowników.
-2. Wybierz **Rolę** (→ 25.2).
+2. Wybierz **Rolę** (→ 24.2).
 3. Kliknij [Zaproś].
 
 Aplikacja wysyła e-mail z linkiem do zaproszenia. Link możesz też skopiować i wysłać sam. Przy
@@ -25,7 +25,7 @@ zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby.
 
 ![Okno Współpraca](wspolpraca.png)
 
-## 25.2 Role
+## 24.2 Role
 
 | Rola | Co może |
 |---|---|
@@ -33,7 +33,7 @@ zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby.
 | **może oglądać** | Otwiera projekt tylko w podglądzie. |
 | **Właściciel** | Wszystko powyższe, a do tego zaprasza, zmienia role, odbiera dostęp, udostępnia link do podglądu i usuwa projekt. |
 
-## 25.3 Przyjmowanie zaproszenia
+## 24.3 Przyjmowanie zaproszenia
 
 Kliknij link z wiadomości. Jeśli masz konto, zaproszenie zobaczysz też w aplikacji: na liście
 projektów pojawi się przycisk [Zaproszenia] z liczbą. Przyjęty projekt jest na Twojej liście z
@@ -42,17 +42,17 @@ plakietką właściciela.
 Zaproszenie przyjmuje osoba, która ma link — także z innego adresu niż ten, na który poszło.
 W oknie Współpraca zawsze widać, kto naprawdę jest w projekcie.
 
-Z włączonymi powiadomieniami (→ 2.6) dowiesz się o zaproszeniu od razu.
+Z włączonymi powiadomieniami (→ 27.6) dowiesz się o zaproszeniu od razu.
 
-## 25.4 Praca na żywo
+## 24.4 Praca na żywo
 
 - Zmiany łączą się element po elemencie: gdy Ty poprawiasz tytuł, a ktoś przesuwa zdjęcie, zostają
-  obie zmiany. O ten sam element aplikacja zapyta (→ 3.5).
+  obie zmiany. O ten sam element aplikacja zapyta (→ 2.5).
 - Kółka z inicjałami na pasku edytora i podglądu pokazują, kto jeszcze ma projekt otwarty; wskaż
   kółko, żeby zobaczyć, na której jest stronie.
 - [Cofnij] cofa tylko Twoje zmiany.
 
-## 25.5 Zarządzanie osobami
+## 24.5 Zarządzanie osobami
 
 Właściciel w oknie Współpraca przy każdej osobie:
 
@@ -61,12 +61,12 @@ Właściciel w oknie Współpraca przy każdej osobie:
 - przy zaproszeniu, które czeka: [Kopiuj link zaproszenia], [Wyślij e-mail z zaproszeniem ponownie]
   i [Cofnij zaproszenie].
 
-## 25.6 Opuszczanie projektu i kopia
+## 24.6 Opuszczanie projektu i kopia
 
 Współpracownik może [Opuść projekt] — w menu [⋯] na karcie albo w oknie Współpraca.
 [Zrób własną kopię] tworzy Twój własny projekt z tą samą treścią.
 
-## 25.7 Komentarze
+## 24.7 Komentarze
 
 Komentarz to uwaga przypięta do miejsca na stronie albo do elementu — jak karteczka na wydruku —
 widoczna jako pomarańczowa pinezka z numerem. Komentować mogą wszyscy w projekcie, także z rolą
@@ -99,16 +99,16 @@ pinezki otwiera jej wątek.
 - Komentarze dodaje się na stronach, nie na wzorcach.
 
 Komentarze pojawiają się u wszystkich od razu; odpowiedź, którą piszesz, nie znika, gdy ktoś coś doda.
-O nowych dowiesz się też z powiadomień (→ 2.6).
+O nowych dowiesz się też z powiadomień (→ 27.6).
 
 
-AI połączone kluczem też czyta komentarze, odpowiada na nie i może je rozwiązać po poprawce (→ 26.1).
+AI połączone kluczem też czyta komentarze, odpowiada na nie i może je rozwiązać po poprawce (→ 25.1).
 
-# 26. Praca z AI
+# 25. Praca z AI
 
 Asystent AI może budować i zmieniać Twoje projekty razem z Tobą.
 
-## 26.1 Co potrafi AI
+## 25.1 Co potrafi AI
 
 Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik**: adres z Twoim kluczem,
 który dodajesz w aplikacji AI.
@@ -117,16 +117,16 @@ który dodajesz w aplikacji AI.
 |---|---|
 | tworzyć i usuwać projekty (z pełnym dostępem) | zobaczyć projektów spoza klucza |
 | dodawać i zmieniać strony, elementy, style i wzorce | zmienić Twojego konta ani hasła |
-| wypełniać tabele danych i ustawiać serie | zrobić pliku PDF bez Makietki — rysuje go Twoja przeglądarka (→ 26.5) |
+| wypełniać tabele danych i ustawiać serie | zrobić pliku PDF bez Makietki — rysuje go Twoja przeglądarka (→ 25.5) |
 | wgrywać, wstawiać i wymieniać zdjęcia | |
-| czytać komentarze, odpowiadać na nie i dodawać własne (→ 25.7) | |
-| zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 26.5) | |
+| czytać komentarze, odpowiadać na nie i dodawać własne (→ 24.7) | |
+| zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 25.5) | |
 
 Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój.
 Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi
-jak zmiany współpracownika (→ 25.4).
+jak zmiany współpracownika (→ 24.4).
 
-## 26.2 Klucz dla AI
+## 25.2 Klucz dla AI
 
 Klucz należy do konta: [Ustawienia konta] → **Dostęp dla AI** → [Zarządzaj…].
 
@@ -149,7 +149,7 @@ dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łączni
 
 ![Okno Dostęp dla AI](dostep-ai.png)
 
-## 26.3 Podłączenie w aplikacji AI
+## 25.3 Podłączenie w aplikacji AI
 
 | Aplikacja | Jak podłączyć |
 |---|---|
@@ -168,7 +168,7 @@ aplikacji jesteś, i powie, co kliknąć:
 > Wskazówka: Łączniki są zwykle w płatnych planach aplikacji AI. Na telefonie można zwykle tylko
 > używać łączników dodanych wcześniej na komputerze.
 
-## 26.4 Zdjęcia przez AI
+## 25.4 Zdjęcia przez AI
 
 - **ChatGPT** bierze zdjęcia wrzucone do rozmowy wprost.
 - **Claude** wgrywa sam małe grafiki z rozmowy; **Claude Desktop z rozszerzeniem** — pliki i foldery
@@ -180,10 +180,10 @@ aplikacji jesteś, i powie, co kliknąć:
 
 Zdjęcia, które stoi na stronie, AI nie usuwa — wymienia je na nowy plik w tym samym miejscu.
 
-## 26.5 Plik PDF przez AI
+## 25.5 Plik PDF przez AI
 
 Poproś AI np. „Zrób PDF do drukarni” albo „Pokaż okładkę jako obraz”. Plik rysuje Makietka w Twojej
-przeglądarce, tak samo jak [Eksportuj do PDF…] (→ 22):
+przeglądarce, tak samo jak [Eksportuj do PDF…] (→ 21):
 
 - **Makietka jest otwarta** (dowolna karta, na komputerze albo telefonie) — przyjmuje zlecenie sama.
   Na górze pojawia się pasek „AI zleciło eksport PDF…”, a po chwili powiadomienie z przyciskiem
@@ -195,7 +195,7 @@ Link do pobrania działa bez logowania przez 7 dni, potem plik znika z konta. AI
 projekt, jedną sekcję albo wybrane strony, plik do drukarni (ze spadem i znakami cięcia, także PDF/X)
 albo do czytania na ekranie, broszurę do złożenia albo PNG jednej strony.
 
-## 26.6 Bezpieczeństwo
+## 25.6 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta,
 a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
@@ -203,20 +203,20 @@ a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 > Uwaga: Adres łącznika zawiera klucz — kto go ma, ma dostęp do wybranych projektów. Nie publikuj
 > go, dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy.
 
-# 27. Przykład: komiks z AI
+# 26. Przykład: komiks z AI
 
-## 27.1 Od pomysłu do pliku
+## 26.1 Od pomysłu do pliku
 
 Zeszyt A5 z okładką: AI układa kadry i dymki, Ty dajesz rysunki i decydujesz.
 
-1. Utwórz klucz z **pełnym dostępem** i **czytać i zmieniać** — AI utworzy nowy projekt (→ 26.2).
+1. Utwórz klucz z **pełnym dostępem** i **czytać i zmieniać** — AI utworzy nowy projekt (→ 25.2).
 2. Skopiuj polecenie „Komiks do druku” (niżej), dopisz pomysł i wyślij. AI najpierw pokaże plan stron —
    popraw go, zanim zacznie.
 3. Otwórz nowy projekt — zobaczysz, jak przybywa stron, kadrów i dymków.
-4. Poproś AI o link do wgrania i wrzuć rysunki (→ 26.4). AI wstawi je w kadry.
+4. Poproś AI o link do wgrania i wrzuć rysunki (→ 25.4). AI wstawi je w kadry.
 5. Popraw, co chcesz: tekst w dymkach (styl „Dymek” zmienia wszystkie naraz), kadrowanie, kolejność stron.
-6. Okładkę zrób jako osobną sekcję z grzbietem (→ 11.6).
-7. [Sprawdź przed drukiem], potem PDF **Do drukarni** (→ 21, 22).
+6. Okładkę zrób jako osobną sekcję z grzbietem (→ 10.6).
+7. [Sprawdź przed drukiem], potem PDF **Do drukarni** (→ 20, 21).
 
 {{polecenie: PROMPT_KOMIKS | Polecenie „Komiks do druku” | Skopiuj, dopisz pomysł na końcu i wyślij AI z podłączoną Makietką.}}
 

@@ -1,6 +1,144 @@
-# Część VI. Urządzenia i pomoc {ikona=motyw}
+# Część VI. Konto, urządzenia i pomoc {ikona=motyw}
 
-Telefon i tablet, skróty klawiszowe i słowniczek.
+Konto i jego ustawienia, telefon i tablet, skróty klawiszowe i słowniczek.
+
+# 27. Konto
+
+Konto przechowuje Twoje projekty, czcionki i elementy, więc masz je na każdym urządzeniu.
+
+## 27.1 Zakładanie konta
+
+Na ekranie logowania wybierz [Nowe konto] i wpisz:
+
+- **Nazwę użytkownika** — 3–30 znaków: litery, cyfry, `_`, `.` i `-`. Po tej nazwie inni zaproszą
+  Cię do projektu (→ 24.1).
+- **E-mail**.
+- **Hasło** — co najmniej 8 znaków, mała i wielka litera, cyfra i znak specjalny.
+
+Jeśli przyjdzie e-mail „Potwierdź swoje konto”, kliknij w nim przycisk — dopiero wtedy się zalogujesz.
+
+![Nowe konto](rejestracja.png)
+![Sprawdź skrzynkę](rejestracja-wyslano.png)
+
+## 27.2 Logowanie i hasło
+
+[Nie pamiętasz hasła?] wysyła link do ustawienia nowego hasła. Link działa jeden raz; gdy wygaśnie,
+poproś o nowy.
+
+![Logowanie](logowanie.png)
+
+## 27.3 Ustawienia konta
+
+Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz [Ustawienia konta].
+
+![Menu konta](k-menu-konta.png)
+
+| Wiersz | Co zmienisz |
+|---|---|
+| **Nazwa użytkownika** | Nazwę, po której inni zapraszają Cię do projektów. |
+| **E-mail** | Adres konta. [Zmień adres] wysyła link potwierdzający na nowy adres; do jego kliknięcia logujesz się dotychczasowym. [Wpisz inny adres] zastępuje oczekujący adres nowym. |
+| **Hasło** | [Zmień hasło]. |
+| **Motyw** | Wygląd aplikacji (→ 27.4). |
+| **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 27.6). |
+| **Dostęp dla AI** | Klucze dla asystentów AI (→ 25.2). |
+| **Zestaw marki** | Kolory, czcionki, style tekstu i logo marki — dostępne w każdym projekcie (→ 27.9). |
+| **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 27.5). |
+| **Usuń konto** | Usunięcie konta (→ 27.7). |
+
+[Wyloguj wszędzie] (w widoku **Logowanie**) wylogowuje wszystkie urządzenia naraz — np. po pracy
+na cudzym komputerze.
+
+![Ustawienia konta](konto.png)
+
+## 27.4 Motyw
+
+[Ustawienia konta] → **Motyw**: **Jak w systemie**, **Jasny** albo **Ciemny**. Szybki przełącznik
+(ikona półkola) jest też na liście projektów i w menu [⋯] edytora. Motyw zmienia tylko wygląd
+aplikacji — strony publikacji zawsze są na białym papierze.
+
+![Ciemny motyw](motyw.png)
+
+## 27.5 Miejsce i limity
+
+[Ustawienia konta] → **Miejsce** pokazuje paski limitów konta:
+
+| Limit | Ile |
+|---|---|
+| Pliki konta (obrazy, czcionki, podglądy linków) | 2 GB |
+| Jeden plik | 50 MB |
+| Projekty | 100 |
+| Obrazy w jednym projekcie | 1000 |
+
+Niżej jest lista Twoich projektów: ile zajmuje każdy, ile ma obrazów i stron, kiedy go zmieniano.
+[Otwórz] otwiera projekt, [Pokaż obrazy] — jego okno obrazów (→ 7.5). Projekty innych osób, do
+których masz dostęp, są osobno i nie liczą się do Twoich limitów.
+
+Od 80% limitu aplikacja ostrzega — tutaj i przy wgrywaniu obrazów. [Posprzątaj…] pokazuje, ile
+miejsca zwolni, i usuwa tylko pliki, których żaden projekt już nie używa: stare wersje podmienionych
+zdjęć, pliki usuniętych projektów i wyłączonych linków. Pliki z ostatnich dwóch dni zostają.
+
+## 27.6 Powiadomienia
+
+Powiadomienia mówią od razu o zaproszeniach i komentarzach — także przy zamkniętej aplikacji.
+W [Ustawienia konta] → **Powiadomienia**
+włącz **Na tym urządzeniu** (przeglądarka zapyta o zgodę) i wybierz, o czym chcesz wiedzieć: zaproszenia,
+odpowiedzi na Twoje zaproszenia, zmiany roli i dostępu, komentarze i wzmianki (→ 24.7). Kliknięcie
+powiadomienia otwiera właściwy projekt albo wątek.
+
+Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają tylko
+w zainstalowanej aplikacji (→ 28.4).
+
+![Powiadomienia w ustawieniach konta](k-powiadomienia.png)
+
+## 27.7 Usuwanie konta
+
+[Ustawienia konta] → **Usuń konto** usuwa konto i wszystkie Twoje projekty. Zanim to zrobisz,
+wyeksportuj projekty, które chcesz zachować (→ 2.6).
+
+> Uwaga: Usunięcia konta nie da się cofnąć.
+
+## 27.8 Kontakt
+
+Pytanie, pomysł albo błąd? [Kontakt] jest w menu konta i pod formularzem logowania. [Załącz pliki]
+dodaje zrzut ekranu, plik projektu albo PDF (do 5 plików, razem 10 MB). Możesz też pisać
+na kontakt@makietka.app.
+
+![Formularz kontaktowy z załącznikiem](k-kontakt.png)
+
+## 27.9 Zestaw marki
+
+Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — na koncie — i masz je
+w każdym projekcie: [Ustawienia konta] → **Zestaw marki** → [Edytuj zestaw marki…] (albo Biblioteka →
+**Marka**).
+
+- **Kolory marki** — z nazwą, np. „Granat marki”. Przełącznik **Pantone / CMYK** robi z koloru kolor
+  dodatkowy, drukowany osobną farbą (→ 22.1).
+- **Czcionki marki** — jedna do nagłówków, jedna do tekstu.
+- **Style tekstu** — [Dodaj gotowe style] dodaje Tytuł, Podtytuł, Nagłówek 1–4, Akapit, Akapit wyróżniony, Podpis,
+  Cytat, Listę, Przypis, Stopkę / żywą paginę i Etykietę w czcionkach i kolorze marki; [Własny styl] — kolejne, bez
+  limitu. Każdy styl ma czcionkę, rozmiar, wagę, kursywę, interlinię, odstęp liter, kolor i wielkość liter.
+- **Logo** — PNG, JPG, WebP albo SVG; wstawisz je z Biblioteki.
+
+![Style tekstu marki](k-marka-style.png)
+
+
+![Zestaw marki](k-marka.png)
+
+Marka jest pod ręką w oknie koloru (→ 6.7), na górze listy czcionek (→ 5.8) i w Bibliotece (→ 4.8).
+
+- **wybór koloru** — część **Marka** nad „Użytymi w projekcie” (→ 6.7),
+- **lista czcionek** — grupa **Marka** na samej górze (→ 5.8),
+- **Biblioteka** — kategoria **Marka**: logo, [Zastosuj markę do projektu…] i [Edytuj zestaw marki…] (→ 4.8),
+- [⋯] → [Zastosuj markę do projektu…] — zamiana kolorów i czcionek całego projektu na markowe (→ 3.3).
+
+**Zastosuj markę do projektu.** Okno pokazuje każdy kolor i każdą czcionkę projektu z propozycją:
+kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu,
+pozostałe — czcionkę nagłówków. Na listach zmienisz propozycję albo wybierzesz „bez zmian”. Część
+**Style tekstu** przenosi style marki do stylów projektu (→ 5.4): styl projektu o tej samej nazwie (np. „Tytuł”)
+dostaje wygląd marki i zostaje powiązany ze swoimi tekstami — zmienią się od razu — a brakujące style dochodzą.
+[Zastosuj] zmienia strony, wzorce i style naraz; całość cofniesz jednym [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
+
+![Zastosuj markę do projektu](k-marka-zastosuj.png)
 
 # 28. Telefon i tablet
 
@@ -18,7 +156,7 @@ Na ekranie dotykowym:
 | **Dwa szybkie stuknięcia** | Jak podwójne kliknięcie: pisanie w tekście i komórce tabeli, wejście do grupy, edycja punktów. |
 | **Przytrzymanie** | Pokazuje podpowiedź, np. opis chmurki zapisu. |
 
-W podglądzie szczypanie powiększa, a w prezentacji przesunięcie w bok przewraca stronę (→ 20).
+W podglądzie szczypanie powiększa, a w prezentacji przesunięcie w bok przewraca stronę (→ 19).
 
 ## 28.2 Edytor na telefonie
 
@@ -31,8 +169,8 @@ zmniejszyć albo zamknąć. Stuknięcie w uchwyt zwija powiększony panel do zwy
 zamyka. Panel zamyka też ponowne stuknięcie jego przycisku.
 
 Rzadsze narzędzia — wielokąt, rysowanie, pióro, komentarz, kopiowanie wyglądu — są pod [⋯] na końcu paska
-wstawiania (→ 4.4). Linijek i kadrowania ramką na telefonie nie ma: prowadnice wpiszesz liczbą (→ 13.4),
-a obraz przytniesz liczbami we właściwościach (→ 8.2).
+wstawiania (→ 3.4). Linijek i kadrowania ramką na telefonie nie ma: prowadnice wpiszesz liczbą (→ 12.4),
+a obraz przytniesz liczbami we właściwościach (→ 7.2).
 
 Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” — obróć go do pionu.
 
@@ -135,7 +273,7 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 | **Gramatura** | Grubość papieru podawana jako masa metra kwadratowego (g/m²) — od niej zależy m.in. szerokość grzbietu. |
 | **Grzbiet** | Część okładki między przodem a tyłem; jego szerokość zależy od liczby stron i papieru. W rozkładówce — miejsce zszycia. |
 | **Kapitałka** | Pasek tkaniny na górze i dole grzbietu bloku w twardej oprawie. |
-| **Obwoluta** | Papierowa okładka zakładana na twardą oprawę, z dwoma skrzydełkami zawiniętymi do środka (→ 11.11). |
+| **Obwoluta** | Papierowa okładka zakładana na twardą oprawę, z dwoma skrzydełkami zawiniętymi do środka (→ 10.11). |
 | **Oprawa** | Sposób połączenia kartek: zeszytowa (zszywki), klejona (miękka okładka), twarda, na spirali. |
 | **Rozkładówka** | Lewa i prawa strona obok siebie, jak w otwartej książce. |
 | **Składka** | Arkusz złożony w kilka kartek — książkę szyje się ze składek po 4, 8, 16 albo 32 strony. |
@@ -185,8 +323,8 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 
 | Pojęcie | Znaczenie |
 |---|---|
-| **Asystent AI** | Program do rozmowy (np. Claude, ChatGPT), który po podłączeniu łącznika czyta i zmienia Twoje projekty (→ 26.1). |
-| **Klucz dla AI** | Uprawnienie dla asystenta: do których projektów ma dostęp, czy może tylko czytać i jak długo jest ważne (→ 26.2). |
+| **Asystent AI** | Program do rozmowy (np. Claude, ChatGPT), który po podłączeniu łącznika czyta i zmienia Twoje projekty (→ 25.1). |
+| **Klucz dla AI** | Uprawnienie dla asystenta: do których projektów ma dostęp, czy może tylko czytać i jak długo jest ważne (→ 25.2). |
 | **Łącznik** | Adres z Twoim kluczem, przez który asystent AI pracuje w Twoich projektach. Widać go tylko raz, przy tworzeniu klucza. |
 | **Zakres klucza** | Wybrane projekty albo pełny dostęp do wszystkich, także tworzenie i usuwanie projektów. |
 

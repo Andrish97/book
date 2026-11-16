@@ -232,8 +232,10 @@ if (require.main === module) (async () => {
     await k.click('#wybor-motywu label:has-text("Ciemny")');
     await k.waitForTimeout(400);
     await zrzut(k, 'motyw.png');
-    await kadr(k, 'k-konto-ai.png', { obszar: '.konto-lista', zaznacz: '.konto-lista [data-sekcja="ai"]' });
     await k.click('#wybor-motywu label:has-text("Jak w systemie")');
+    await k.waitForTimeout(400);
+    // Lista ustawień w motywie zestawu zrzutów (#180) – z „Zestawem marki” i „Dostępem dla AI”.
+    await kadr(k, 'k-konto-ai.png', { obszar: '.konto-lista', zaznacz: '.konto-lista [data-sekcja="ai"]' });
     await k.click('.konto-lista [data-sekcja="powiadomienia"]');
     await k.waitForTimeout(500);
     await kadr(k, 'k-powiadomienia.png', { obszar: '#ust-powiadomienia', margines: 8 });
@@ -1058,7 +1060,10 @@ if (require.main === module) (async () => {
   await d.waitForSelector('#dlg-sekcja[open]');
   await d.mouse.move(2, 2);
   await d.waitForTimeout(600);
-  await kadr(d, 'k-okladka-okno.png', { obszar: ['#pole-typ-sekcji', '#sekcja-okladka'], zaznacz: '#pole-typ-sekcji .karta-typu[data-typ="okladka"]', margines: 10 });
+  // Część „Okładka” okna sekcji (#180): sam kadr ustawień okładki, karty typów pokazuje k-sekcja-ulotka.png.
+  await d.evaluate(() => document.querySelector('#sekcja-okladka')?.scrollIntoView({ block: 'start' }));
+  await d.waitForTimeout(300);
+  await kadr(d, 'k-okladka-okno.png', { obszar: '#sekcja-okladka', margines: 10 });
   // Wymiary okładki wpisane ręcznie (#125): grzbiet od drukarni.
   await d.click('#sekcja-okladka label:has-text("Wpisz grzbiet")');
   await d.fill('#dlg-sekcja input[name=ok_grzbiet]', '8');
