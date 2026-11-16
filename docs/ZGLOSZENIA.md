@@ -16,7 +16,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 166 | Gotowe sekcje (szablony dokumentów dopasowujące się do formatu): nowy projekt z szablonu, „+ Sekcja → gotowa”, Biblioteka | 🔄 |
 | 167 | Kolory projektu i sekcji, ustawienia per sekcja, „Wykończenie druku” (tłoczenie, lakier, złocenie, biały, Pantone) prosto z Właściwości | 🔄 |
 | 171 | Komputer: Właściwości i Warstwy osobno (zakładki), Ostrzeżenia pod przyciskiem z licznikiem; ucięte przyciski i listy w panelu | 🔄 |
-| 169 | Instrukcja odchudzona (gotowe, scalanie) | 🔄 |
 
 ## Czeka (kolejne etapy)
 
@@ -35,6 +34,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
 | Pełny przegląd zrzutów wszystkich ekranów po zmianach #103/#104 (kolejny etap poprawek interfejsu) | ⏳ |
 | Sprawdzenie na prawdziwym telefonie: gesty iPhone (#101), klawiatura w zasłonkach, instalacja aplikacji | ⏳ |
+| Instrukcja: rozważyć kolejność części (Konto i ustawienia po Współpracy, przed Pomocą) – po scaleniu wątków, które dopisują podrozdziały (#169) | ⏳ |
 
 ## Kroki po Twojej stronie
 
@@ -51,6 +51,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 169 | Instrukcja odchudzona i uporządkowana: bez treści meta, oczywistości i powtórzeń, aktualne opisy (menu ⋯, rozkładówka, wielokąt, narzędzia na telefonie), wstęp „do czego to służy” w rozdziałach, odsyłacze sprawdzane przy budowie, bez okruszków i zdublowanego spisu podrozdziałów na komputerze. |
 | 159 | Paski postępu przy dłuższych czynnościach: jeden wygląd (karta, licznik x z y, pasek nieokreślony, Anuluj przy PDF), dopiero po 0,3 s, dostępne dla czytników ekranu; dodane przy PNG, separacjach, makiecie 3D, duplikowaniu, imporcie danych, czcionkach, usuwaniu tła, udostępnianiu, zmianie formatu, „Zamień wszystkie”, ekranie startowym i miniaturach (w panelu Strony). |
 | 158 | Wydajność: bufory Fabric tylko dla elementów, którym się opłacają (odrysowanie strony ~6× szybciej, 72 MB → 0 MB pamięci buforów na gęstej stronie), zmiana strony bez przebudowy listy stron, szybsze porównania przy zapisie, miniatury nie przeszkadzają w pisaniu i przeciąganiu, moduły pobierane naraz (`modulepreload`). |
 | 156 | Obramowanie zdjęcia (kolor z kryciem, grubość, rodzaj linii, zaokrąglone narożniki przycinające zdjęcie) i miękkie krawędzie zdjęć i kształtów (równo wzdłuż brzegu albo owalna winieta) – w edytorze, podglądzie, PNG i PDF. |

@@ -4,11 +4,11 @@ Podgląd, sprawdzenie przed drukiem, plik PDF i link do podglądu.
 
 # 20. Podgląd
 
+Podgląd pokazuje całą publikację tak, jak wyjdzie z druku.
+
 ## 20.1 Otwieranie podglądu
 
-Podgląd pokazuje całą publikację tak, jak będzie wyglądać po przycięciu: z danymi, z powielonymi
-stronami, bez linii pomocniczych i bez możliwości przypadkowej zmiany.
-
+Podgląd jest z danymi i powielonymi stronami, bez linii pomocniczych i bez możliwości przypadkowej zmiany.
 Otworzysz go przyciskiem [Podgląd] na górnym pasku edytora (<kbd>Shift</kbd>+<kbd>W</kbd>) albo
 z menu [⋯] na karcie projektu — wtedy podgląd otwiera się od razu, bez edytora.
 
@@ -25,7 +25,6 @@ Kliknięcie strony otwiera ją w edytorze; [Edytor] albo <kbd>Esc</kbd> wraca do
 - <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora.
 - Na telefonie i tablecie: szczypanie dwoma palcami, podwójne stuknięcie powiększa albo wraca.
 
-Powiększenie zmienia tylko strony — podpisy i pasek zostają w swoim rozmiarze.
 
 ## 20.3 Prezentacja
 
@@ -74,10 +73,11 @@ zmienione strony.
 
 # 21. Sprawdź przed drukiem
 
+Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
+
 ## 21.1 Lista uwag
 
-Zanim wyślesz plik do drukarni, wybierz [⋯] → [Sprawdź przed drukiem]. Aplikacja przegląda cały
-projekt — także każdą powieloną stronę — i wypisuje miejsca, na które warto spojrzeć.
+[⋯] → [Sprawdź przed drukiem] przegląda cały projekt — także każdą powieloną stronę.
 
 ![Sprawdź przed drukiem w menu ⋯](k-menu-kontrola.png)
 
@@ -102,6 +102,8 @@ jest na dole okna eksportu PDF.
 ![Lista uwag](kontrola.png)
 
 # 22. Eksport do PDF i PNG
+
+Plik dla drukarni, do oglądania na ekranie albo do wydruku w domu.
 
 ## 22.1 Okno eksportu
 
@@ -166,18 +168,17 @@ np. do pokazania komuś w wiadomości.
 
 | Układ | Co robi |
 |---|---|
-| **Broszura do składania (zeszyt)** | Strony parami, tak żeby po wydrukowaniu dwustronnym i złożeniu arkuszy na pół wyszedł zeszyt: przy 16 stronach pierwszy arkusz to 16 i 1 z przodu, 2 i 15 z tyłu. Liczba stron dopełnia się pustymi do wielokrotności 4. |
+| **Broszura do składania (zeszyt)** | Strony parami, tak żeby po wydrukowaniu dwustronnym i złożeniu arkuszy na pół wyszedł zeszyt. Liczba stron dopełnia się pustymi do wielokrotności 4. |
 | **Broszura ze składek** | To samo, ale osobno dla każdej składki po **Składka (stron)** — 4, 8, 16 albo 32 (domyślnie jak w ustawieniach sekcji, → 11.7). Składki zszywa się albo klei razem. |
 | **2 strony na arkuszu**, **4 strony na arkuszu** | Kolejne strony obok siebie — np. ulotki A6 po cztery na A4. |
 
 **Arkusz**: **Dopasowany do stron** (dwie strony A5 → arkusz 296 × 210 mm) albo **A4** / **A3** — strony stoją pośrodku i zmniejszają się, jeśli się nie mieszczą. **Pełzanie (mm)**: w grubszej broszurze środkowe kartki po złożeniu wystają; strony na nich przesuwają się o część tej wartości w stronę grzbietu (np. 0,5–1 mm przy 40 stronach).
 
-Pod ustawieniami widać plan: każdy arkusz z numerami stron (z przodu i z tyłu), puste strony zakreskowane.
 
 ![Broszura: plan arkuszy w oknie eksportu](k-pdf-arkusze.png)
  Przy **Do drukarni** arkusze mają znaki cięcia, a broszura — przerywane znaki złamu. Strony na arkuszach stoją równo do formatu, bez spadu.
 
-> Wskazówka: Broszurę drukuj dwustronnie z obracaniem po krótszej krawędzi. Najpierw wydrukuj jeden arkusz próbnie.
+> Wskazówka: Broszurę na domowej drukarce łatwiej wydrukować przez [Drukuj w domu…] (→ 22.8).
 
 ## 22.7 PDF do czytania na ekranie
 
@@ -192,7 +193,8 @@ Linki są w pliku wektorowym; zakładki — w obu rodzajach pliku. W PDF/X-4 dla
 
 ## 22.8 Drukuj w domu
 
-Wydruk na zwykłej drukarce, bez wysyłania pliku do drukarni. Gdzie: menu **⋯** projektu → [Drukuj w domu…] (skrót <kbd>Ctrl</kbd>+<kbd>P</kbd> w edytorze i podglądzie – Makietka przejmuje go i zamiast zwykłego drukowania strony przeglądarki otwiera to okno; gdy wybierzesz „Drukuj” z menu samej przeglądarki, na kartce będzie tylko podpowiedź, gdzie jest właściwy druk).
+Wydruk na zwykłej drukarce: [⋯] → [Drukuj w domu…] albo <kbd>Ctrl</kbd>+<kbd>P</kbd> w edytorze i podglądzie.
+Okno samo układa strony na kartkach — nie drukuj projektu z menu przeglądarki.
 
 ![Okno Drukuj w domu](k-druk.png)
 
@@ -205,15 +207,15 @@ Wydruk na zwykłej drukarce, bez wysyłania pliku do drukarni. Gdzie: menu **⋯
 | **W odcieniach szarości** | Wydruk czarno-biały. |
 | **Znaki cięcia i złamu** | Przy broszurze, którą przytniesz po zszyciu. |
 
-Pod ustawieniami widać, jak strony ułożą się na kartkach. [Drukuj] otwiera okno drukowania przeglądarki z gotowym plikiem; na telefonie plik otwiera się w nowej karcie – wybierz tam **Udostępnij → Drukuj**. [Pobierz PDF do druku] zapisuje ten sam plik.
-
-Część **Jak wydrukować** w oknie podpowiada krok po kroku:
+Pod ustawieniami widać, jak strony ułożą się na kartkach. [Drukuj] otwiera okno drukowania z gotowym plikiem
+(na telefonie plik otwiera się w nowej karcie — wybierz tam **Udostępnij → Drukuj**), a [Pobierz PDF do druku]
+zapisuje ten sam plik.
 
 1. Najpierw wydrukuj jedną kartkę na próbę.
 2. W oknie drukarki ustaw skalę **Rzeczywisty rozmiar / 100%**.
-3. Broszurę drukuj dwustronnie, **obracanie po krótszej krawędzi** (kartka leży poziomo).
-4. Drukarka bez druku dwustronnego: najpierw tylko strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
-5. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu; grubą broszurę podziel na składki.
+3. Broszurę drukuj dwustronnie, **obracanie po krótszej krawędzi**; bez druku dwustronnego — najpierw
+   strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
+4. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu.
 
 # 23. Kolory dodatkowe i uszlachetnienia
 
@@ -296,10 +298,11 @@ W podglądzie projektu [Separacje] pokazuje stronę rozbitą na płyty, którymi
 
 # 24. Udostępnianie linkiem
 
+Link do podglądu dla osób bez konta — klienta, rodziny, drukarni.
+
 ## 24.1 Tworzenie linku
 
-Link do podglądu pokażesz komuś, kto nie ma konta: klientowi, rodzinie, drukarni. Osoba z linkiem
-widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
+Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
 
 1. W podglądzie kliknij [Udostępnij].
 2. [Utwórz link] — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.

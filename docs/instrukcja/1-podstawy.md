@@ -6,11 +6,9 @@ Czym jest Makietka, konto i projekty.
 
 ## 1.1 Co zrobisz w Makietce
 
-Makietka to edytor publikacji do druku. Składasz w niej książki, kalendarze, planery, notesy,
-zeszyty, zaproszenia, etykiety i inne dokumenty — strona po stronie, jak na makiecie. Na koniec
-zapisujesz plik PDF, który możesz od razu wysłać do drukarni.
-
-Edytor ma to, czego potrzebuje publikacja wielostronicowa:
+Makietka to edytor publikacji do druku: książek, kalendarzy, planerów, notesów, zaproszeń, etykiet —
+strona po stronie, jak na makiecie. Na koniec dostajesz plik PDF gotowy dla drukarni. Ma to, czego
+potrzebuje publikacja wielostronicowa:
 
 - **sekcje** o różnych formatach — np. okładka z grzbietem liczonym samym z liczby stron i papieru (→ 11.6) i środek (→ 11.4),
 - **rozkładówki** z lustrzanymi marginesami, jak w książce (→ 11.5),
@@ -42,31 +40,26 @@ Projekt zapisuje się sam, na Twoim koncie (→ 3.4).
 
 # 2. Konto
 
+Konto przechowuje Twoje projekty, czcionki i elementy, więc masz je na każdym urządzeniu.
+
 ## 2.1 Zakładanie konta
 
-Projekty są zapisane na koncie, więc otworzysz je na każdym urządzeniu. Na ekranie logowania
-wybierz [Nowe konto] i wpisz:
+Na ekranie logowania wybierz [Nowe konto] i wpisz:
 
 - **Nazwę użytkownika** — 3–30 znaków: litery, cyfry, `_`, `.` i `-`. Po tej nazwie inni zaproszą
-  Cię do projektu (→ 25.1). Pod polem od razu widać, czy nazwa jest wolna; dla zajętej aplikacja
-  proponuje wolną.
+  Cię do projektu (→ 25.1).
 - **E-mail**.
-- **Hasło** i **Powtórz hasło** — co najmniej 8 znaków, mała i wielka litera, cyfra i znak specjalny.
-  Spełnione wymagania zaznaczają się w trakcie pisania.
+- **Hasło** — co najmniej 8 znaków, mała i wielka litera, cyfra i znak specjalny.
 
-Konto działa od razu. Jeśli wymagane jest potwierdzenie adresu, przyjdzie e-mail „Potwierdź swoje konto”
-z przyciskiem — dopiero po jego kliknięciu zalogujesz się. [Wyślij ponownie] wysyła wiadomość jeszcze raz.
+Jeśli przyjdzie e-mail „Potwierdź swoje konto”, kliknij w nim przycisk — dopiero wtedy się zalogujesz.
 
 ![Nowe konto](rejestracja.png)
 ![Sprawdź skrzynkę](rejestracja-wyslano.png)
 
 ## 2.2 Logowanie i hasło
 
-Zaloguj się adresem e-mail i hasłem. [Nie pamiętasz hasła?] wysyła link do ustawienia nowego hasła.
-Link z wiadomości działa jeden raz; jeśli wygasł, aplikacja to powie — poproś wtedy o nowy.
-
-Konto założone, zanim w aplikacji pojawiły się nazwy użytkowników, przy logowaniu dostaje okno
-„Wybierz nazwę użytkownika” z gotową propozycją.
+[Nie pamiętasz hasła?] wysyła link do ustawienia nowego hasła. Link działa jeden raz; gdy wygaśnie,
+poproś o nowy.
 
 ![Logowanie](logowanie.png)
 
@@ -76,15 +69,11 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz [U
 
 ![Menu konta](k-menu-konta.png)
 
-Ustawienia to lista: każdy wiersz pokazuje bieżącą wartość, a kliknięcie otwiera szczegóły.
-Na komputerze lista stoi z lewej, a wybrane ustawienie z prawej. Na telefonie wiersz otwiera
-osobny widok, a [‹ Ustawienia] wraca do listy.
-
 | Wiersz | Co zmienisz |
 |---|---|
 | **Nazwa użytkownika** | Nazwę, po której inni zapraszają Cię do projektów. |
 | **E-mail** | Adres konta. [Zmień adres] wysyła link potwierdzający na nowy adres; do jego kliknięcia logujesz się dotychczasowym. [Wpisz inny adres] zastępuje oczekujący adres nowym. |
-| **Hasło** | [Zmień hasło] — nowe hasło z tymi samymi wymaganiami co przy zakładaniu konta. |
+| **Hasło** | [Zmień hasło]. |
 | **Motyw** | Wygląd aplikacji (→ 2.4). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 2.6). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (→ 26.2). |
@@ -92,21 +81,16 @@ osobny widok, a [‹ Ustawienia] wraca do listy.
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 2.5). |
 | **Usuń konto** | Usunięcie konta (→ 2.7). |
 
-W widoku **Logowanie** jest też [Wyloguj wszędzie] — wylogowuje wszystkie urządzenia naraz, np. po
-zalogowaniu na cudzym komputerze. Zwykłe [Wyloguj] (tylko to urządzenie) jest w menu konta.
+[Wyloguj wszędzie] (w widoku **Logowanie**) wylogowuje wszystkie urządzenia naraz — np. po pracy
+na cudzym komputerze.
 
 ![Ustawienia konta](konto.png)
 
 ## 2.4 Motyw
 
-W [Ustawienia konta] → **Motyw** wybierz:
-
-- **Jak w systemie** — jasny albo ciemny, tak jak ustawienie urządzenia,
-- **Jasny**,
-- **Ciemny**.
-
-Szybki przełącznik — ikona półkola — jest na ekranie logowania, na liście projektów i w menu [⋯]
-edytora. Strony publikacji zawsze są na białym papierze; motyw zmienia tylko wygląd aplikacji.
+[Ustawienia konta] → **Motyw**: **Jak w systemie**, **Jasny** albo **Ciemny**. Szybki przełącznik
+(ikona półkola) jest też na liście projektów i w menu [⋯] edytora. Motyw zmienia tylko wygląd
+aplikacji — strony publikacji zawsze są na białym papierze.
 
 ![Ciemny motyw](motyw.png)
 
@@ -131,17 +115,14 @@ zdjęć, pliki usuniętych projektów i wyłączonych linków. Pliki z ostatnich
 
 ## 2.6 Powiadomienia
 
-Makietka może od razu dać znać o sprawach projektów innych osób — także wtedy, gdy aplikacja jest
-zamknięta. Włączysz to w [Ustawienia konta] → **Powiadomienia**:
+Powiadomienia mówią od razu o zaproszeniach i komentarzach — także przy zamkniętej aplikacji.
+W [Ustawienia konta] → **Powiadomienia**
+włącz **Na tym urządzeniu** (przeglądarka zapyta o zgodę) i wybierz, o czym chcesz wiedzieć: zaproszenia,
+odpowiedzi na Twoje zaproszenia, zmiany roli i dostępu, komentarze i wzmianki (→ 25.7). Kliknięcie
+powiadomienia otwiera właściwy projekt albo wątek.
 
-| Ustawienie | Znaczenie |
-|---|---|
-| **Na tym urządzeniu** | Przełącznik — powiadomienia na tym urządzeniu. Przeglądarka zapyta o zgodę. |
-| **Powiadamiaj, gdy** | **ktoś mnie zaprosi albo udostępni mi projekt**, **ktoś przyjmie albo odrzuci moje zaproszenie**, **zmieni się moja rola albo stracę dostęp do projektu**, **ktoś skomentuje mój projekt, odpowie w moim wątku albo wspomni mnie w komentarzu** (→ 25.7). |
-
-Kliknięcie powiadomienia otwiera właściwy projekt, zaproszenie albo wątek komentarza. Powiadomienia włącza się osobno
-na każdym urządzeniu. Na iPhonie i iPadzie działają w zainstalowanej aplikacji (→ 28.4) — w ustawieniach
-jest wtedy przycisk [Zainstaluj aplikację].
+Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają tylko
+w zainstalowanej aplikacji (→ 28.4).
 
 ![Powiadomienia w ustawieniach konta](k-powiadomienia.png)
 
@@ -154,9 +135,8 @@ wyeksportuj projekty, które chcesz zachować (→ 3.6).
 
 ## 2.8 Kontakt
 
-Pytanie, pomysł albo błąd? [Kontakt] jest w menu konta i pod formularzem logowania. Wpisz swój
-adres, temat i wiadomość — trafi do nas, a na Twój adres przyjdzie potwierdzenie. [Załącz pliki]
-dodaje zrzut ekranu, plik projektu albo PDF: do 5 plików, razem do 10 MB. Możesz też pisać
+Pytanie, pomysł albo błąd? [Kontakt] jest w menu konta i pod formularzem logowania. [Załącz pliki]
+dodaje zrzut ekranu, plik projektu albo PDF (do 5 plików, razem 10 MB). Możesz też pisać
 na kontakt@makietka.app.
 
 ![Formularz kontaktowy z załącznikiem](k-kontakt.png)
@@ -164,43 +144,35 @@ na kontakt@makietka.app.
 ## 2.9 Zestaw marki
 
 Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — na koncie — i masz je
-w każdym projekcie. [Ustawienia konta] → **Zestaw marki** → [Edytuj zestaw marki…]; to samo okno
-otworzysz w Bibliotece, w kategorii **Marka** → [Edytuj zestaw marki…].
+w każdym projekcie: [Ustawienia konta] → **Zestaw marki** → [Edytuj zestaw marki…] (albo Biblioteka →
+**Marka**).
 
-| Część | Co w niej ustawisz |
-|---|---|
-| **Kolory marki** | [Dodaj kolor] — kolor z próbnika albo kodem (np. `#1c2541`) i **nazwa**, np. „Granat marki”. Przełącznik **Pantone / CMYK** dodaje wartości C, M, Y, K — taki kolor przy zastosowaniu marki trafi do kolorów dodatkowych projektu (→ 23.1) i wydrukuje się osobną płytą. |
-| **Czcionki marki** | **Nagłówki** i **Tekst** — po jednej czcionce z listy. |
-| **Logo** | [Dodaj logo…] — pliki PNG, JPG, WebP albo SVG. Logo wstawisz potem z Biblioteki. |
+- **Kolory marki** — z nazwą, np. „Granat marki”. Przełącznik **Pantone / CMYK** robi z koloru kolor
+  dodatkowy, drukowany osobną farbą (→ 23.1).
+- **Czcionki marki** — jedna do nagłówków, jedna do tekstu.
+- **Logo** — PNG, JPG, WebP albo SVG; wstawisz je z Biblioteki.
 
-[Zapisz] zapisuje zestaw na koncie. Na liście ustawień wiersz **Zestaw marki** pokazuje np. „3 kol. · 1 logo”.
 
 ![Zestaw marki](k-marka.png)
 
-Gdzie zobaczysz markę w projekcie:
+Marka jest pod ręką w oknie koloru (→ 7.7), na górze listy czcionek (→ 6.8) i w Bibliotece (→ 5.8).
 
-- **wybór koloru** — część **Marka** nad „Użytymi w projekcie” (→ 7.7),
-- **lista czcionek** — grupa **Marka** na samej górze (→ 6.8),
-- **Biblioteka** — kategoria **Marka**: logo, [Zastosuj markę do projektu…] i [Edytuj zestaw marki…] (→ 5.8),
-- [⋯] → [Zastosuj markę do projektu…] — zamiana kolorów i czcionek całego projektu na markowe (→ 4.3).
-
-**Zastosuj markę do projektu.** Okno pokazuje każdy kolor i każdą czcionkę projektu z propozycją:
-kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu,
-pozostałe — czcionkę nagłówków. Na listach zmienisz propozycję albo wybierzesz „bez zmian”. [Zastosuj]
-zmienia strony, wzorce i style naraz; całość cofniesz jednym [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
+**Zastosuj markę do projektu** ([⋯] w edytorze) zamienia kolory i czcionki całego projektu na markowe:
+każdy kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę
+tekstu, pozostałe — nagłówków. Przed [Zastosuj] zmienisz każdą propozycję albo wybierzesz „bez zmian”.
 
 ![Zastosuj markę do projektu](k-marka-zastosuj.png)
 
 # 3. Projekty
 
+Projekt to jedna publikacja: tu zakładasz, otwierasz, kopiujesz i zapisujesz projekty.
+
 ## 3.1 Lista projektów
 
-Po zalogowaniu widzisz swoje projekty. Karta projektu pokazuje pierwszą stronę, nazwę i datę
-ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze – na stronie, którą ostatnio edytowałeś na tym urządzeniu.
+Kliknięcie karty otwiera projekt w edytorze — na stronie, którą ostatnio edytowałeś na tym urządzeniu.
 
 - **Chmurka** przy nazwie mówi, czy zmiany są na koncie: z ptaszkiem — zapisano, z zegarem —
   czekają na wysłanie, przekreślona — brak internetu (zmiany są na urządzeniu i wyślą się same).
-  Najedź na nią albo przytrzymaj palec, żeby zobaczyć opis.
 - Plakietka **Udostępniony** — projekt ma link do podglądu (→ 24). Kliknięcie plakietki otwiera
   okno linku.
 - Projekty udostępnione Ci przez innych mają plakietkę z nazwą właściciela i dopisek
@@ -212,50 +184,32 @@ ostatniej zmiany. Kliknięcie karty otwiera projekt w edytorze – na stronie, k
 
 ## 3.2 Nowy projekt
 
-Wybierz [Nowy projekt]. Okno ma pola:
+[Nowy projekt] pyta o nazwę, format strony (A4, A5, A6, B5, kwadrat albo **Własny** w mm), orientację
+i:
 
 | Pole | Co ustawia |
 |---|---|
-| **Nazwa** | Nazwa projektu na liście. Zmienisz ją później w edytorze. |
-| **Format strony** | Rozmiar strony. Kafelki A4, A5, A6, B5 i Kwadrat pokazują proporcje strony. **Własny** — dowolna **Szerokość** i **Wysokość** w mm. |
-| **Orientacja** | Pionowo albo poziomo. |
 | **Spad** | Pas za krawędzią strony, który drukarnia odcina — zwykle 3 mm (→ 13.1). |
 | **Marginesy** | Bezpieczny obszar na teksty, w mm. |
 | **Układ stron** | **Pojedyncze strony** albo **Rozkładówki (lewa + prawa)**, jak w książce. |
 
-Wszystkie te ustawienia zmienisz później w ustawieniach sekcji (→ 11.4). Nowy projekt ma jedną
-sekcję „Główna” i jedną stronę.
+Wszystko zmienisz później w ustawieniach sekcji (→ 11.4).
 
 ![Nowy projekt](nowy-projekt.png)
 
 ## 3.3 Menu projektu
 
-Przycisk [⋯] na karcie projektu otwiera menu:
-
-| Pozycja | Co robi |
-|---|---|
-| [Podgląd] | Otwiera od razu podgląd projektu (→ 20). |
-| [Zmień nazwę] | Nowa nazwa projektu. |
-| [Duplikuj] | Kopia całego projektu, np. kalendarz na kolejny rok. |
-| [Eksportuj do pliku (.makietka)] | Plik z całym projektem (→ 3.6). |
-| [Współpraca…] | Zaproszenia do wspólnej pracy (→ 25). |
-| [Usuń projekt] | Usuwa projekt (z potwierdzeniem). |
-
-W projekcie innej osoby zamiast [Duplikuj] jest [Zrób własną kopię], a zamiast [Usuń projekt] — [Opuść projekt] (→ 25.6).
+[⋯] na karcie projektu: [Podgląd] (od razu, bez edytora, → 20), [Zmień nazwę], [Duplikuj] (np. kalendarz
+na kolejny rok), [Eksportuj do pliku (.makietka)] (→ 3.6), [Współpraca…] (→ 25) i [Usuń projekt].
+W projekcie innej osoby zamiast duplikowania i usuwania są [Zrób własną kopię] i [Opuść projekt] (→ 25.6).
 
 ![Menu projektu](menu.png)
 
 ## 3.4 Zapis
 
 Nie ma przycisku „Zapisz” — każda zmiana zapisuje się sama, najpierw na urządzeniu, a po chwili
-na koncie. Stan zapisu widać w edytorze obok nazwy projektu:
-
-- **Zapisano** — zmiany są na koncie,
-- **Zapisywanie…** — zmiany właśnie się wysyłają,
-- **Offline** — brak internetu; zmiany czekają na urządzeniu i wyślą się same po powrocie sieci.
-
-Dłuższe czynności (otwieranie dużego projektu, wgrywanie zdjęć, eksport PDF) pokazują u góry
-ekranu kartę z paskiem postępu. Karta nie blokuje pracy.
+na koncie. Bez internetu zmiany czekają na urządzeniu i wyślą się same po powrocie sieci. Stan zapisu
+pokazuje chmurka obok nazwy projektu (→ 3.1).
 
 ## 3.5 Kilka urządzeń i cofanie
 

@@ -4,9 +4,11 @@ Telefon i tablet, skróty klawiszowe i słowniczek.
 
 # 28. Telefon i tablet
 
+Jak pracować na ekranie dotykowym i jak zainstalować aplikację.
+
 ## 28.1 Gesty
 
-Makietka działa w przeglądarce na telefonie, tablecie i komputerze. Na ekranie dotykowym:
+Na ekranie dotykowym:
 
 | Gest | Co robi |
 |---|---|
@@ -28,8 +30,9 @@ przesuwa się tak, żeby zaznaczony element był widoczny nad panelem.
 zmniejszyć albo zamknąć. Stuknięcie w uchwyt zwija powiększony panel do zwykłej wysokości, a zwykły
 zamyka. Panel zamyka też ponowne stuknięcie jego przycisku.
 
-Na małym ekranie schowane są narzędzia, którymi trudno sterować palcem: wielokąt, kadrowanie ramką
-i linijki. Prowadnice wpiszesz liczbą, a obraz przytniesz liczbami we właściwościach.
+Rzadsze narzędzia — wielokąt, rysowanie, pióro, komentarz, kopiowanie wyglądu — są pod [⋯] na końcu paska
+wstawiania (→ 4.4). Linijek i kadrowania ramką na telefonie nie ma: prowadnice wpiszesz liczbą (→ 13.4),
+a obraz przytniesz liczbami we właściwościach (→ 8.2).
 
 Telefon trzymany poziomo pokazuje planszę „Za mało miejsca na wysokość” — obróć go do pionu.
 
@@ -67,15 +70,10 @@ pełny ekran — tam daje go zainstalowanie aplikacji (→ 28.4).
 
 ## 28.6 Dłuższe czynności
 
-Gdy coś trwa dłużej niż chwilę — otwieranie projektu, eksport PDF i PNG, druk w domu, podgląd separacji,
-wczytywanie stron makiety 3D, kopiowanie projektu, wczytywanie pliku z danymi, czcionek albo obrazów,
-usuwanie tła, udostępnianie — u góry pojawia się karta z nazwą czynności i paskiem. Gdy wiadomo, ile
-zostało, obok jest licznik, np. „17 z 48” stron. Przy eksporcie PDF jest
-[Anuluj] — przerywa czynność bez zapisywania pliku. Krótkie czynności karty nie pokazują.
-
-W oknie (np. Eksport do PDF) karta stoi nad oknem, a na telefonie w edytorze — pod paskiem narzędzi,
-żeby go nie zasłaniać. Miniatury stron po otwarciu dużego projektu rysują się w tle; ile jeszcze
-zostało, widać cienkim paskiem w panelu Strony — można w tym czasie normalnie pracować.
+Gdy coś trwa dłużej niż chwilę — np. otwieranie dużego projektu, eksport PDF, druk w domu, wgrywanie
+obrazów — u góry pojawia się karta z paskiem, a gdy wiadomo, ile zostało, z licznikiem, np. „17 z 48”.
+Eksport PDF przerwiesz przyciskiem [Anuluj]. Miniatury stron dużego projektu rysują się w tle (cienki pasek
+w panelu Strony) — możesz w tym czasie normalnie pracować.
 
 ![Karta postępu przy eksporcie PDF](k-postep.png)
 
@@ -83,9 +81,8 @@ zostało, widać cienkim paskiem w panelu Strony — można w tym czasie normaln
 
 ## 29.1 Lista skrótów
 
-Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast <kbd>Ctrl</kbd> naciśnij
-<kbd>⌘</kbd>. Tę listę otworzy w edytorze klawisz <kbd>?</kbd>. Skróty z literami działają, gdy
-kursor nie stoi w polu formularza; w trakcie pisania tekstu działają skróty z grupy „Tekst”.
+Na Macu zamiast <kbd>Ctrl</kbd> naciśnij <kbd>⌘</kbd>. W edytorze tę listę pokaże klawisz <kbd>?</kbd>.
+W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 
 <kbd>Ctrl</kbd>+<kbd>K</kbd> otwiera paletę poleceń: wpisz kilka liter nazwy polecenia i naciśnij
 <kbd>Enter</kbd>.
@@ -98,7 +95,9 @@ kursor nie stoi w polu formularza; w trakcie pisania tekstu działają skróty z
 
 | Pojęcie | Znaczenie |
 |---|---|
+| **Bigowanie (big)** | Wgniecenie w kartonie okładki, po którym się zgina. |
 | **Blok** | Strona albo kilka sąsiednich stron serii, powielane razem. |
+| **CMYK** | Cztery farby drukarskie: cyjan, magenta, żółty, czarny. |
 | **Element** | Wszystko, co stoi na stronie: tekst, kształt, linia, obraz, tabela, grupa. |
 | **Grzbiet** | Część okładki między przodem a tyłem; w rozkładówce — miejsce zszycia. |
 | **Łącznik** | Adres, przez który asystent AI pracuje w Twoich projektach. |
@@ -108,6 +107,7 @@ kursor nie stoi w polu formularza; w trakcie pisania tekstu działają skróty z
 | **Rozkładówka** | Lewa i prawa strona obok siebie, jak w otwartej książce. |
 | **Sekcja** | Część publikacji z własnym formatem, marginesami i numeracją. |
 | **Seria** | Powielanie strony albo bloku dla kolejnych wierszy tabeli. |
+| **Składka** | Arkusz złożony w kilka kartek — książkę szyje się ze składek po 4, 8, 16 albo 32 strony. |
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
 | **Styl** | Zapisany wygląd tekstu, zmieniany naraz we wszystkich tekstach. |
 | **Tabela danych** | Arkusz w projekcie, z którego biorą się pola i serie — nie mylić z tabelą na stronie. |

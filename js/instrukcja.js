@@ -4,8 +4,8 @@
 // Zrzuty: img/instrukcja/*.png (ciemne w img/instrukcja/ciemny/), robi je scripts/zrzuty-instrukcji.cjs.
 //
 // Nawigacja: strona główna (części z listą rozdziałów), spis z lewej – części, rozdziały, a przy
-// otwartym rozdziale jego podrozdziały; okruszki „Instrukcja › Część”; „W tym rozdziale”; Poprzedni /
-// Następny z tytułami. Na wąskim ekranie spis otwiera przycisk z nazwą bieżącego rozdziału.
+// otwartym rozdziale jego podrozdziały; Poprzedni / Następny w stopce. Na wąskim ekranie spis otwiera
+// przycisk z nazwą bieżącego rozdziału, a podrozdziały pokazuje „W tym rozdziale” nad treścią.
 
 import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
@@ -223,8 +223,7 @@ export class Instrukcja {
 
   stronaGlowna() {
     return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1">Instrukcja Makietki</h1>`
-      + '<p class="instrukcja-lead">Makietka to edytor publikacji do druku: książek, kalendarzy, planerów, zaproszeń i innych dokumentów. '
-      + 'Ten podręcznik opisuje wszystkie funkcje aplikacji – co robią, gdzie je znaleźć i jakie mają ustawienia. Wybierz rozdział albo wpisz, czego szukasz.</p></header>'
+      + '<p class="instrukcja-lead">Makietka to edytor publikacji do druku: książek, kalendarzy, planerów, zaproszeń i innych dokumentów.</p></header>'
       + `<div class="instrukcja-czesci">${CZESCI.map((c) => `<section class="karta-czesci"><h2><span data-ikona="${c.ikona}" data-rozmiar="18"></span>Część ${c.nr}. ${esc(c.tytul)}</h2>`
         + `<p class="ciche">${esc(c.opis)}</p><ol>${c.rozdzialy.map((nr) => `<li><a href="#" data-cel="${nr}"><small>${nr}</small>${esc(ROZDZIALY[rozdzialNr(nr)].tytul)}</a></li>`).join('')}</ol></section>`).join('')}</div>`;
   }
@@ -233,8 +232,9 @@ export class Instrukcja {
     const katalog = czyCiemny() ? 'img/instrukcja/ciemny/' : 'img/instrukcja/';
     const html = r.sekcje.map((s) => `<section class="podrozdzial" id="${idSekcji(s.id)}" data-sekcja="${s.id}"><h2><small>${s.id}</small>${esc(s.tytul)}</h2>${s.html}</section>`).join('')
       .replace(/src="img\/instrukcja\//g, `src="${katalog}`);
-    return `<header class="instrukcja-naglowek"><nav class="okruszki" aria-label="Jesteś tutaj"><a href="#" data-instrukcja-start>Instrukcja</a><span aria-hidden="true">›</span><span>Część ${CZESCI.find((c) => c.rozdzialy.includes(r.nr))?.nr}. ${esc(r.czesc)}</span></nav>`
-      + `<h1 class="instrukcja-h1"><small>${r.nr}.</small> ${esc(r.tytul)}</h1>`
+    // Bez okruszków (#169): część i rozdział pokazuje już spis z boku, a na telefonie przycisk nad treścią.
+    return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1"><small>${r.nr}.</small> ${esc(r.tytul)}</h1>`
+      + (r.wstep ? `<p class="instrukcja-lead wstep-rozdzialu">${r.wstep}</p>` : '')
       + (r.sekcje.length > 1 ? `<nav class="w-rozdziale" aria-label="W tym rozdziale"><span class="ciche">W tym rozdziale</span><ol>${r.sekcje.map((s) => `<li><a href="#" data-cel="${s.id}"><small>${s.id}</small>${esc(s.tytul)}</a></li>`).join('')}</ol></nav>` : '')
       + `</header><div class="instrukcja-dokument">${html}</div>`;
   }

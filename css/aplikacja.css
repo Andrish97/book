@@ -2593,11 +2593,11 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
 .instrukcja-tresc { grid-area: tresc; overflow: auto; padding: 30px 48px 28px; outline: none; scroll-behavior: smooth; line-height: 1.6; }
 .instrukcja-tresc > * { max-width: 800px; }
 .instrukcja-naglowek { margin-bottom: 8px; }
-.okruszki { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 12.5px; color: var(--cichy); }
-.okruszki a { color: var(--akcent); text-decoration: none; }
 .instrukcja-h1 { margin: 0 0 10px; font-size: 26px; line-height: 1.2; }
 .instrukcja-h1 small { color: var(--cichy); font-weight: 600; }
 .instrukcja-lead { margin: 0 0 22px; max-width: 68ch; font-size: 15.5px; color: var(--tusz-2); }
+/* „W tym rozdziale” tylko na wąskim ekranie – na szerokim te same podrozdziały są w spisie z boku (#169). */
+@media (min-width: 861px) { .w-rozdziale { display: none; } }
 .w-rozdziale { margin: 14px 0 6px; padding: 12px 16px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia-2); }
 .w-rozdziale > .ciche { display: block; margin-bottom: 4px; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 .w-rozdziale ol { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 24px; }
