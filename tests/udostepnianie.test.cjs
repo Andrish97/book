@@ -91,6 +91,50 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.waitForSelector('#dlg-udostepnij[open]');
   assert.equal(await strona.inputValue('#udostepnij-link'), link);
 
+  // #190: ochronę istniejącego linku zmienisz też z listy projektów. Włączenie ochrony (data ważności) rysuje
+  // strony od nowa, więc projekt się otwiera; sama zmiana daty – bez otwierania projektu.
+  const zListy = async () => {
+    await strona.goto(strona.url().split('#')[0]); // lista projektów (adres projektu otworzyłby edytor)
+    await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && document.querySelector('.karta-projektu .plakietka-linku'));
+    assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt), null, 'żaden projekt nie jest otwarty');
+    await strona.click('.karta-projektu .plakietka-linku');
+    await strona.waitForSelector('#dlg-udostepnij[open]');
+  };
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await zListy();
+  assert.ok(await strona.isVisible('#udostepnij-ochrona'), 'ochrona widoczna także z listy');
+  const wybierzDzien = async (ile) => {
+    await strona.click('#udostepnij-termin-pole .wybor-przycisk');
+    await strona.waitForSelector('.kalendarz-okienko');
+    for (let i = 0; i < ile; i += 1) await strona.keyboard.press('ArrowRight');
+    await strona.keyboard.press('Enter');
+  };
+  await strona.check('#udostepnij-termin-wl');
+  await wybierzDzien(1);
+  await strona.click('#udostepnij-ochrona-zapisz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  assert.equal(baza.chronione.size, 1, 'link chroniony datą');
+  const pierwszyTermin = [...baza.chronione.values()][0].wazny_do;
+  assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'projekty', 'strony linku rysują się w tle – zostajemy na liście');
+  assert.equal(plikiChronione(baza, [...baza.chronione.keys()][0]).length, 3, 'opis i dwie strony w folderze z ochroną');
+  await zListy();
+  assert.ok(await strona.isChecked('#udostepnij-termin-wl'));
+  await wybierzDzien(2);
+  await strona.click('#udostepnij-ochrona-zapisz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'projekty', 'sama data – projekt się nie otwiera');
+  assert.notEqual([...baza.chronione.values()][0].wazny_do, pierwszyTermin, 'nowa data ważności');
+  // Hasło dodane z listy: nowy folder z sekretem, strony narysowane w tle.
+  await zListy();
+  await strona.check('#udostepnij-haslo-wl');
+  await strona.fill('#udostepnij-haslo', 'z-listy');
+  await strona.click('#udostepnij-ochrona-zapisz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'projekty');
+  const kluczChr = [...baza.chronione.keys()][0];
+  assert.ok(baza.chronione.get(kluczChr).haslo, 'hasło ustawione');
+  assert.equal(plikiChronione(baza, kluczChr).length, 3);
+
   // Wyłączenie linku usuwa pliki; link przestaje działać.
   await strona.click('#udostepnij-wylacz');
   await strona.click('#potwierdz-tak');

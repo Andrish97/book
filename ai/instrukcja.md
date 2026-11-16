@@ -1965,7 +1965,9 @@ Część **Ochrona linku**:
 | **Hasło – bez niego podglądu nie zobaczy nikt** | Osoba z linkiem najpierw wpisuje **Hasło do linku**. Po 10 błędnych próbach link na kwadrans przestaje przyjmować hasła. |
 | **Ważny do wybranego dnia** | Po **Ostatnim dniu ważności** link przestaje działać. |
 
-**Zapisz ochronę** zapisuje ustawienia. Puste pole hasła przy zaznaczonym haśle zostawia dotychczasowe; odznaczenie obu pól zdejmuje ochronę.
+Ochronę możesz ustawić przy tworzeniu linku albo w każdej chwili później: zmienić hasło, przesunąć datę ważności, dodać ochronę do zwykłego linku albo ją zdjąć. Adres linku się nie zmienia. To samo okno otworzysz też z listy projektów, klikając plakietkę linku na karcie projektu.
+
+**Zapisz ochronę** zapisuje ustawienia. Puste pole hasła przy zaznaczonym haśle zostawia dotychczasowe; odznaczenie obu pól zdejmuje ochronę. Sama zmiana daty działa od razu. Nowe hasło, włączenie albo zdjęcie ochrony przygotowuje strony linku od nowa — chwilę to potrwa, także z listy projektów (projekt się nie otwiera).
 
 ### 23.4 Unieważnienie linku
 

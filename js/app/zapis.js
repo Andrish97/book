@@ -315,6 +315,15 @@ export function stanZapisu(rodzaj, tekst) {
 
 // cel: { strona: id, wzorzec: id, podglad: true } – opcjonalnie, np. z adresu strony.
 // podglad: projekt otwiera się prosto w podglądzie – bez pokazywania edytora i wczytywania płótna.
+// Projekt zamknięty (np. z listy projektów) gotowy do narysowania stron bez otwierania edytora (#190):
+// obrazy dostają adresy, własne czcionki są zarejestrowane, okładka przeliczona.
+export async function przygotujDoRysowania(p) {
+  await stan.czcionki;
+  try { await podlaczZasoby(p, stan.uzytkownik ? chmura.pobierzZasob : null); } catch { /* obrazy jako brakujące */ }
+  await zarejestrujCzcionkiProjektu(p);
+  try { przeliczOkladki(p); } catch { /* okładka zostaje jak była */ }
+}
+
 export async function otworzProjekt(p, cel = {}) {
   await stan.czcionki;
   naPlotnie = null;

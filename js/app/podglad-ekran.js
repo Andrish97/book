@@ -9,7 +9,7 @@ import { $, kiedy, potwierdz, powiadom } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { ukladProjektu, stronyUkladu } from '../podglad.js';
 import { stan, pokazEkran, trasa, edytor, biezacaStrona } from './kontekst.js';
-import { zapiszTeraz, pokazEdytor, plotnoOdlozone } from './zapis.js';
+import { zapiszTeraz, pokazEdytor, plotnoOdlozone, przygotujDoRysowania } from './zapis.js';
 import { podglad } from './skladniki.js';
 import { przejdzDoStrony } from './lista-stron.js';
 import { zapiszGdziekolwiek, pokazProjekty } from './projekty.js';
@@ -113,7 +113,7 @@ function odswiezOknoUdostepniania() {
   $('#udostepnij-teraz').hidden = !zKontem || !u || !otwarty;
   $('#udostepnij-komunikat').textContent = zKontem ? '' : 'Udostępnianie wymaga zalogowania.';
   $('#udostepnij-komunikat').classList.remove('sukces');
-  odswiezOchrone(p, zKontem && otwarty);
+  odswiezOchrone(p, zKontem && (otwarty || Boolean(u))); // z listy projektów: ochronę istniejącego linku też zmienisz (#190)
   if (!u) return;
   $('#udostepnij-link').value = linkUdostepnienia(p);
   const aktualny = u.odcisk === odciskTresci(p);
@@ -179,7 +179,7 @@ function ochronaZOkna(p) {
   if (chceTerminu && !dzien) return { blad: 'Wybierz ostatni dzień ważności linku.' };
   const waznyDo = chceTerminu ? isoZDnia(dzien) : null;
   if (waznyDo && new Date(waznyDo) < new Date()) return { blad: 'Data ważności już minęła – wybierz dzisiejszą albo późniejszą.' };
-  return { chroniony: chceHasla || chceTerminu, zmienHaslo: !chceHasla || Boolean(haslo), haslo: chceHasla ? haslo : '', waznyDo };
+  return { chroniony: chceHasla || chceTerminu, zmienHaslo: chceHasla ? Boolean(haslo) : Boolean(o?.haslo), haslo: chceHasla ? haslo : '', waznyDo };
 }
 
 // Ustawia ochronę linku i – gdy zmienia się rodzaj linku – przenosi strony między folderem
@@ -204,9 +204,14 @@ async function zastosujOchrone(p, w, postep = () => {}) {
   }
 }
 
-// Przycisk „Zapisz ochronę”.
+// Czy zmiana ochrony wymaga narysowania stron od nowa: przejście między linkiem publicznym a chronionym
+// albo zmiana / zdjęcie hasła (nowy folder z sekretem). Sama data ważności – nie.
+const ochronaRysuje = (u, w) => Boolean(w.chroniony) !== Boolean(u.ochrona) || (w.chroniony && w.zmienHaslo && (Boolean(w.haslo) || Boolean(u.ochrona?.haslo)));
+
+// Przycisk „Zapisz ochronę”. Z listy projektów (#190): zmiana samej daty od razu; zmiana wymagająca stron
+// (hasło, włączenie albo zdjęcie ochrony) rysuje je w tle, bez otwierania projektu.
 export async function zapiszOchroneLinku() {
-  const p = stan.projekt;
+  const p = celOkna || stan.projekt;
   const komunikat = $('#udostepnij-komunikat');
   komunikat.classList.remove('sukces');
   if (!p?.udostepnienie) return;
@@ -217,9 +222,13 @@ export async function zapiszOchroneLinku() {
   przycisk.disabled = true;
   trwaPublikacja = true;
   try {
+    if (p !== stan.projekt && ochronaRysuje(p.udostepnienie, w)) {
+      komunikat.textContent = 'Przygotowuję strony linku…';
+      await przygotujDoRysowania(p);
+    }
     komunikat.textContent = 'Zapisuję ochronę linku…';
     await zastosujOchrone(p, w, (i, n) => { komunikat.textContent = `Przenoszę strony: ${i} z ${n}…`; });
-    await zapiszTeraz();
+    if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
     komunikat.textContent = `Zapisano. ${opisOchrony(p.udostepnienie.ochrona)}`;
     komunikat.classList.add('sukces');
     wypelnijOchrone(p);
@@ -235,7 +244,8 @@ export async function zapiszOchroneLinku() {
 for (const id of ['#udostepnij-haslo-wl', '#udostepnij-termin-wl']) $(id)?.addEventListener('change', odswiezPolaOchrony);
 
 export async function otworzUdostepnianie(projekt = null) {
-  celOkna = projekt && projekt !== stan.projekt ? projekt : null;
+  // Ten sam projekt co otwarty (np. wczytany drugi raz z listy) – pracujemy na otwartym, żeby nie było dwóch kopii.
+  celOkna = projekt && projekt !== stan.projekt && projekt.id !== stan.projekt?.id ? projekt : null;
   if (!celOkna && !stan.projekt) return;
   wypelnijOchrone(celOkna || stan.projekt);
   odswiezOknoUdostepniania();
