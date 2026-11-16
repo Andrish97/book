@@ -9,6 +9,7 @@ import { Podglad } from '../podglad.js';
 import { pokazEkran } from './kontekst.js';
 
 let podgladPubliczny = null;
+let daneLinku = null; // ostatni manifest i adresy obrazów – do makiety 3D (#188)
 // Podgląd strony z linku (powiększanie, prezentacja) – null, gdy to nie jest podgląd z linku.
 export const podgladZLinku = () => (document.body.classList.contains('podglad-publiczny') ? podgladPubliczny : null);
 
@@ -53,8 +54,21 @@ function zrodloLinku({ manifest, adresObrazu }) {
   };
 }
 
+// Makieta 3D z linku (#188): przycisk tylko, gdy manifest ma opis makiety (link opublikowany po #188).
+function ustawDaneLinku(dane) {
+  daneLinku = dane;
+  document.body.toggleAttribute('data-makieta-linku', Boolean(dane.manifest.uklad?.makieta?.strony?.length));
+}
+
+export async function otworzMakieteLinku() {
+  const opis = daneLinku?.manifest.uklad?.makieta;
+  if (!opis) return;
+  (await import('./makieta-okno.js')).otworzMakieteZLinku(opis, daneLinku.adresObrazu);
+}
+
 function pokazStronyLinku(dane, t, haslo = '') {
   const { manifest } = dane;
+  ustawDaneLinku(dane);
   document.title = `${manifest.uklad.nazwa} – ${NAZWA}`;
   podgladPubliczny ||= new Podglad();
   podgladPubliczny.pokaz(manifest.uklad, zrodloLinku(dane));
@@ -85,6 +99,7 @@ async function sprawdzLink() {
     if (sledzony !== s || dane.manifest.zaktualizowano === s.zaktualizowano) return;
     s.zaktualizowano = dane.manifest.zaktualizowano;
     document.title = `${dane.manifest.uklad.nazwa} – ${NAZWA}`;
+    ustawDaneLinku(dane);
     podgladPubliczny.odswiez(dane.manifest.uklad, zrodloLinku(dane));
   } catch { /* link wyłączony albo brak sieci – zostaje to, co widać */ }
 }

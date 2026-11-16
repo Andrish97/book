@@ -1337,6 +1337,9 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 
 body.podglad-publiczny .tylko-gosc { display: inline-flex !important; }
 body.podglad-publiczny .tylko-wlasciciel { display: none !important; }
+/* Makieta 3D z linku (#188): przycisk tylko przy linku z opisem makiety; w oknie – jeden wariant, bez ustawień. */
+body.podglad-publiczny:not([data-makieta-linku]) [data-akcja="podglad-makieta"] { display: none !important; }
+.makieta-z-linku :is(.makieta-model, #makieta-ulozenie-pole, #makieta-ujecia, #makieta-ustawienia, #makieta-eksport, #makieta-zapisane, #makieta-obwoluta-pole, #makieta-uwaga) { display: none !important; }
 a.marka { color: inherit; text-decoration: none; }
 .podglad-kartka {
   display: block; width: 100%; height: calc(var(--h) * var(--skala) * 1px);
