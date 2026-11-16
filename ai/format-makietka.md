@@ -369,6 +369,10 @@ Oba wczytują się w aplikacji bez uwag (sprawdza to test). Buduje je skrypt `sc
   - na stronie dnia: `{dzien} {miesiac} 2027`, `{dzien_tygodnia} · {Miesiace.haslo}` z tabeli dodatkowej zmieniającej wiersz razem z miesiącem, zdjęcie z danych (`pole.kolumna: "zdjecie"`, `tryb: "wypelnij"`), kropka widoczna tylko w niedziele (`z_danych.widok`) i linie na notatki;
   - strona „Cele” z tabelą-elementem 3 × 4.
 
+### Gotowe sekcje w aplikacji
+
+Użytkownik ma w aplikacji okno **Gotowe sekcje** (ponad 30 szablonów dokumentów: okładka książki, rozdział, kalendarz ścienny, biurkowy i roczny, planer dzienny/tygodniowy/miesięczny, notesy, trackery, zaproszenie, dyplom, certyfikat, wizytówki, ulotka, plakat, broszura składana, katalog, menu, gazetka, przepisy, album, etykiety, śpiewnik, formularz, lista kontrolna). Szablon wstawia się jako **zwykła sekcja** – strony z elementami (`textbox`, `rect`, `ellipse`, `path`, tabele i kalendarze z rozdziałów 9–9a), wzorzec z numerem strony, tabela danych i seria. Nie ma osobnego pola „szablon” w projekcie, więc AI nie musi (i nie może przez łącznik) wywołać szablonu: albo poproś użytkownika, żeby wstawił gotową sekcję z okna (przycisk [Gotowa] przy liście stron albo Biblioteka → Gotowe sekcje) i potem ją zmieniasz narzędziami łącznika, albo zbuduj taką sekcję sam według tego opisu (np. planer dzienny = jedna strona-wzór z polami `{data}`, `{dzien_tygodnia}` i seria `uklad: "dlugi"` po tabeli 365 dni).
+
 ## 12. Gotowe polecenie dla innego AI
 
 > Zbuduj mi projekt Makietki jako jeden plik `.json` zgodnie z opisem https://makietka.app/ai/format-makietka.md (wzoruj się na https://makietka.app/ai/przyklady/kalendarz.json).

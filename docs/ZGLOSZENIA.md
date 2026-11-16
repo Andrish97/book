@@ -43,6 +43,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 166 | Gotowe sekcje: 33 szablony dokumentów (kalendarze, planery, notesy, zaproszenia, dyplomy, wizytówki, ulotki, menu, rozdział książki, okładka…) jako generatory dopasowane do formatu, marginesów i kolorów marki; okno z miniaturami i podglądem, wejścia: [Gotowa] przy liście stron, Biblioteka, nowy projekt. |
 | 159 | Paski postępu przy dłuższych czynnościach: jeden wygląd (karta, licznik x z y, pasek nieokreślony, Anuluj przy PDF), dopiero po 0,3 s, dostępne dla czytników ekranu; dodane przy PNG, separacjach, makiecie 3D, duplikowaniu, imporcie danych, czcionkach, usuwaniu tła, udostępnianiu, zmianie formatu, „Zamień wszystkie”, ekranie startowym i miniaturach (w panelu Strony). |
 | 156 | Obramowanie zdjęcia (kolor z kryciem, grubość, rodzaj linii, zaokrąglone narożniki przycinające zdjęcie) i miękkie krawędzie zdjęć i kształtów (równo wzdłuż brzegu albo owalna winieta) – w edytorze, podglądzie, PNG i PDF. |
 | 155 | Biblioteka: porządek (Planer tylko tabele i siatki do notatek, osobna kategoria Ramki, każdy kształt w jednym miejscu) i rozbudowa – ponad 400 kształtów (Kształty 200+, Ramki 80+ w grupach, ozdobniki, separatory, etykiety), nagłówki grup w oknie, ramki przerywane, pola na zdjęcie, obramowania stron |

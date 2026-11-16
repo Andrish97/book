@@ -706,7 +706,8 @@
         <div class="postep-miniatur" id="postep-miniatur" hidden><span id="postep-miniatur-tekst"></span><div class="postep-pasek" role="progressbar" aria-label="Rysowanie miniatur stron" aria-valuemin="0" aria-valuemax="100"><div class="postep-wypelnienie"></div></div></div>
         <ol class="lista-stron" id="lista-stron"></ol>
         <div class="stopka-panelu" id="stopka-strony">
-          <button class="przycisk" data-akcja="sekcja-dodaj" data-ikona="plus" title="Nowa sekcja z własnym formatem i marginesami">Sekcja</button>
+          <button class="przycisk" data-akcja="sekcja-dodaj" data-ikona="plus" title="Nowa pusta sekcja z własnym formatem i marginesami">Sekcja</button>
+          <button class="przycisk" data-akcja="gotowe-sekcje" data-ikona="strony" title="Gotowa sekcja: kalendarz, planer, zaproszenie, rozdział… dopasowana do formatu projektu">Gotowa</button>
         </div>
       </aside>
 
@@ -882,6 +883,13 @@
         <span>Nazwa</span>
         <input name="nazwa" required maxlength="80" placeholder="np. Kalendarz 2027">
       </label>
+      <div class="pole">
+        <span>Zacznij od</span>
+        <div class="przelacznik-segmentowy" role="radiogroup">
+          <label><input type="radio" name="start" value="pusty" checked><span>Pustej strony</span></label>
+          <label><input type="radio" name="start" value="szablon"><span>Gotowego szablonu</span></label>
+        </div>
+      </div>
       <fieldset class="pole">
         <legend>Format strony</legend>
         <div class="karty-formatu" id="karty-formatu"></div>
@@ -1927,6 +1935,37 @@
       <ol class="znajdz-lista lista-komentarzy" id="lista-komentarzy" aria-label="Wątki"></ol>
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk glowny" id="komentarze-nowy" data-ikona="plus">Nowy komentarz</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Gotowe sekcje (#166): szablony całych dokumentów – galeria z miniaturami i wstawienie jako nowa sekcja. -->
+  <dialog id="dlg-gotowe-sekcje" class="dialog-gotowe" aria-labelledby="gotowe-tytul">
+    <div class="gotowe">
+      <div class="naglowek-dialogu">
+        <h2 id="gotowe-tytul">Gotowe sekcje</h2>
+        <button type="button" class="przycisk-ikona x-okna" id="gotowe-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <div class="gotowe-galeria" id="gotowe-galeria">
+        <p class="ciche gotowe-wstep">Całe gotowe dokumenty: kalendarze, planery, zaproszenia, dyplomy, ulotki, rozdziały książki… Wstawiają się jako nowa sekcja w formacie projektu i w kolorach marki – potem zmieniasz je jak zwykłe strony.</p>
+        <label class="szukaj-w-bibliotece"><span data-ikona="szukaj" data-rozmiar="16"></span><input type="search" id="gotowe-szukaj" placeholder="Szukaj (kalendarz, dyplom, menu…)" aria-label="Szukaj szablonu" autocomplete="off" spellcheck="false"></label>
+        <div class="kategorie-biblioteki" id="gotowe-kategorie" role="toolbar" aria-label="Rodzaje"></div>
+        <div class="gotowe-lista" id="gotowe-lista"></div>
+      </div>
+      <div class="gotowe-szczegoly" id="gotowe-szczegoly" hidden>
+        <button type="button" class="przycisk przezroczysty gotowe-wroc" id="gotowe-wroc">Wszystkie szablony</button>
+        <h3 id="gotowe-nazwa"></h3>
+        <p class="ciche" id="gotowe-opis"></p>
+        <div class="gotowe-podglad" id="gotowe-podglad" aria-label="Podgląd pierwszych stron"></div>
+        <p class="ciche gotowe-podsumowanie" id="gotowe-podsumowanie"></p>
+        <div class="gotowe-ustawienia">
+          <div class="rzad" id="gotowe-pytania"></div>
+          <label class="pole"><span>Kolory</span><select id="gotowe-paleta"></select></label>
+          <label class="przelacznik szeroki" id="gotowe-format-pole" hidden><input type="checkbox" id="gotowe-wlasny-format" checked><span id="gotowe-format-opis"></span></label>
+        </div>
+        <div class="przyciski-dialogu">
+          <button type="button" class="przycisk glowny" id="gotowe-wstaw">Wstaw jako nową sekcję</button>
+        </div>
       </div>
     </div>
   </dialog>

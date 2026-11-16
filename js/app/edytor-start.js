@@ -346,6 +346,8 @@ export const akcje = {
   'strona-dol': przezMenu(indeksZMenu, (i) => przesunStrone(i, 1)),
 
   'sekcja-dodaj': () => otworzUstawieniaSekcji(null),
+  // Gotowe sekcje (#166): okno ładowane przy pierwszym otwarciu.
+  'gotowe-sekcje': async () => { zamknijMenu(); (await import('./gotowe-sekcje-okno.js')).otworzGotoweSekcje(); },
   'sekcja-ustawienia': przezMenu(sekcjaZMenu, otworzUstawieniaSekcji),
   'sekcja-strona': przezMenu(sekcjaZMenu, dodajStrone),
   'sekcja-okladka': przezMenu(sekcjaZMenu, zamienNaOkladke),

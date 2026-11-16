@@ -1126,6 +1126,8 @@ if (require.main === module) (async () => {
   await require('./zrzuty-paska-telefonu.cjs').zrobZrzutPaskaTelefonu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut paska telefonu:', err.message));
   await require('./zrzuty-obramowania.cjs').zrobZrzutObramowania(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut obramowania:', err.message));
   await require('./zrzuty-postepu.cjs').zrobZrzutPostepu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut postępu:', err.message));
+  // Gotowe sekcje (#166): galeria szablonów i szczegóły szablonu.
+  await require('./zrzuty-gotowych-sekcji.cjs').zrobZrzutyGotowychSekcji(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty gotowych sekcji:', err.message));
 
   await przegladarka.close();
 })();

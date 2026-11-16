@@ -14,8 +14,8 @@ test('biblioteka #143: każdy element ma podgląd i wstawia się bez błędów; 
     const e = window.seriodruk.edytor;
     const zle = [];
     let ile = 0;
-    // Kategorie zależne od konta i projektu albo otwierające okna (moje, style, marka, kody, książka) – osobne testy.
-    for (const k of kategorieBiblioteki().filter((x) => !['moje', 'style', 'marka', 'kody', 'ksiazka'].includes(x.id))) {
+    // Kategorie zależne od konta i projektu albo otwierające okna (moje, style, marka, kody, książka, gotowe sekcje) – osobne testy.
+    for (const k of kategorieBiblioteki().filter((x) => !['moje', 'style', 'marka', 'kody', 'ksiazka', 'gotowe-sekcje'].includes(x.id))) {
       for (const el of k.elementy()) {
         if (!/^<svg[\s\S]*<\/svg>$/.test(el.podglad || '')) zle.push(`${k.id}/${el.id}: podgląd`);
         const przed = e.canvas.getObjects().length;

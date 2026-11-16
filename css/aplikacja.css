@@ -3223,3 +3223,50 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 .siatka-wielokatow svg { width: 28px; height: 28px; }
 .siatka-wielokatow polygon { fill: var(--akcent-tlo); stroke: var(--tusz); stroke-width: 1.2; stroke-linejoin: round; }
 .menu-wielokata .podpowiedz-menu { margin: 6px 6px 2px; font-size: 12px; color: var(--cichy); }
+
+/* ---------- Gotowe sekcje (#166): galeria szablonów dokumentów ---------- */
+.dialog-gotowe { width: min(860px, calc(100vw - 32px)); padding: 0; }
+.gotowe { display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 14px; max-height: min(86vh, 860px); box-sizing: border-box; min-height: 0; }
+.gotowe .naglowek-dialogu { margin: 0; }
+.gotowe-galeria, .gotowe-szczegoly { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1; }
+.gotowe-galeria[hidden], .gotowe-szczegoly[hidden] { display: none; }
+.gotowe-wstep { margin: 0; font-size: 13px; line-height: 1.45; }
+.gotowe-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; overflow-y: auto; overscroll-behavior: contain; padding: 2px; min-height: 160px; align-content: start; }
+.karta-szablonu {
+  position: relative; display: flex; flex-direction: column; gap: 4px; padding: 8px; text-align: left; cursor: pointer;
+  border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); color: var(--tusz); font: inherit;
+}
+.karta-szablonu[hidden] { display: none; }
+@media (hover: hover) { .karta-szablonu:hover { border-color: var(--akcent); background: var(--akcent-tlo); } }
+.karta-szablonu:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.karta-szablonu strong { font-size: 13px; line-height: 1.25; }
+.karta-szablonu small { font-size: 11.5px; line-height: 1.35; color: var(--cichy); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.miniatura-szablonu { display: grid; place-items: center; height: 150px; border-radius: var(--r-s); background: var(--wypelnienie); overflow: hidden; }
+.miniatura-szablonu img { max-width: 92%; max-height: 92%; box-shadow: 0 1px 4px rgb(0 0 0 / .25); background: #fff; }
+.miniatura-szablonu svg { width: 100%; height: 100%; }
+.miniatura-szablonu .sch-strona { fill: #fff; stroke: var(--linia-mocna); stroke-width: .4; }
+.miniatura-szablonu .sch-tlo { fill: color-mix(in srgb, var(--akcent) 55%, #fff); }
+.miniatura-szablonu .sch-tytul { fill: var(--tusz); }
+.miniatura-szablonu .sch-tekst, .miniatura-szablonu .sch-linia { fill: var(--linia-mocna); }
+.miniatura-szablonu .sch-akcent { fill: var(--akcent); }
+.miniatura-szablonu .sch-zdjecie, .miniatura-szablonu .sch-pole { fill: color-mix(in srgb, var(--akcent) 16%, #fff); }
+.miniatura-szablonu .sch-ramka { fill: none; stroke: var(--akcent); stroke-width: .6; }
+.plakietka-danych { position: absolute; top: 12px; left: 12px; padding: 1px 6px; border-radius: 6px; font-size: 10.5px; font-weight: 600; background: var(--akcent); color: var(--akcent-tekst, #fff); }
+.meta-szablonu { font-size: 11px; color: var(--tusz-2); }
+.gotowe-wroc { align-self: flex-start; gap: 6px; }
+.gotowe-szczegoly h3 { margin: 0; font-size: 18px; }
+.gotowe-szczegoly > p { margin: 0; font-size: 13px; line-height: 1.45; }
+.gotowe-podglad { display: flex; gap: 12px; overflow-x: auto; padding: 12px; min-height: 160px; align-items: center; border-radius: var(--r-m); background: var(--obszar); }
+.gotowe-podglad img { height: 230px; flex: none; box-shadow: 0 2px 8px rgb(0 0 0 / .22); background: #fff; }
+.gotowe-podglad[aria-busy="true"] { opacity: .6; }
+.gotowe-podsumowanie { font-size: 12px !important; }
+.gotowe-ustawienia { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; }
+.gotowe-ustawienia .rzad { display: contents; }
+.gotowe-ustawienia .pole { min-width: 160px; flex: 1 1 160px; }
+.gotowe-ustawienia .pole.waskie { flex: 0 1 120px; min-width: 100px; }
+.gotowe-ustawienia .przelacznik { flex: 1 1 100%; }
+@media (max-width: 600px) {
+  .gotowe-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .miniatura-szablonu { height: 120px; }
+  .gotowe-podglad img { height: 180px; }
+}

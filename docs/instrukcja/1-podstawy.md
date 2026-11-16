@@ -238,6 +238,7 @@ Wybierz [Nowy projekt]. Okno ma pola:
 | Pole | Co ustawia |
 |---|---|
 | **Nazwa** | Nazwa projektu na liście. Zmienisz ją później w edytorze. |
+| **Zacznij od** | **Pustej strony** albo **Gotowego szablonu** – po utworzeniu projektu otworzy się galeria gotowych sekcji (kalendarz, planer, zaproszenie…), a wybrany szablon zastąpi pustą stronę (→ 11.10). |
 | **Format strony** | Rozmiar strony. Kafelki A4, A5, A6, B5 i Kwadrat pokazują proporcje strony. **Własny** — dowolna **Szerokość** i **Wysokość** w mm. |
 | **Orientacja** | Pionowo albo poziomo. |
 | **Spad** | Pas za krawędzią strony, który drukarnia odcina — zwykle 3 mm (→ 13.1). |
