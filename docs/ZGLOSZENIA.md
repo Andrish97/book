@@ -11,7 +11,6 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 |---|---|---|
 | 160 | Audyt pokrycia testami wszystkich funkcji, docs/TESTY.md, lista kontrolna do ręcznego sprawdzenia | 🔄 |
 | 161 | Makieta 3D z telefonu: grzbiet jak w prawdziwej oprawie (szczelina, składki, kapitałka), proporcje bez rozciągania, okładka przytwierdzona do bloku na stronie 1, spirala (skala, gruby blok, artefakty) | 🔄 |
-| 162 | Biblioteka – nowe działy: tła i wzory, ikony, nagłówki, bloki treści, infografiki, formularze, planer, okolicznościowe, ilustracje | 🔄 |
 | 167 | Kolory projektu i sekcji, ustawienia per sekcja, „Wykończenie druku” (tłoczenie, lakier, złocenie, biały, Pantone) prosto z Właściwości | 🔄 |
 | 171 | Komputer: Właściwości i Warstwy osobno (zakładki), Ostrzeżenia pod przyciskiem z licznikiem; ucięte przyciski i listy w panelu | 🔄 |
 
@@ -24,6 +23,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | Instrukcja i system jeszcze raz dogłębnie: czy wszystko jest dostępne i intuicyjne, kompletność instrukcji, wszystkie zrzuty aktualne (np. ustawienia konta bez zestawu marki) – po scaleniu wątków zmieniających interfejs | ⏳ |
 | Przeniesienie „Konta” bliżej końca instrukcji (przenumerowanie rozdziałów) – po scaleniu wątków | ⏳ |
 | Sekcje „inteligentne” jak okładka z grzbietem (system wie, jak działają): obwoluta ze skrzydełkami, ulotka składana z bigami, kalendarz z datami i świętami, kalendarz trójdzielny, koperta/teczka/pudełko z wykrojnikiem, arkusz naklejek/wizytówek – po #166 | ⏳ |
+| 162 (reszta): wzór z Biblioteki jako wypełnienie zaznaczonego kształtu (dziś wzory wstawiają się na całą stronę; przycięcie kształtem musi zostać wektorowe w PDF) | ⏳ |
 | 137 (reszta): „obrazy poza pamięcią” pada jeszcze ok. raz na 2–3 pełne przebiegi pod obciążeniem – pliki obrazów z magazynu przeglądarki bywają wtedy nieczytelne (adres pliku daje 404, eksport bierze mniej plików); przyczyna w magazynie nieustalona do końca, obraz na stronie już nie znika (świeży adres albo obraz zastępczy) | ⏳ do zbadania |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
@@ -55,6 +55,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 172 | Komentarze – przegląd i poprawki: usunięty wątek znika u wszystkich od razu, poprawianie własnego komentarza, pisana odpowiedź nie ginie przy zmianach na żywo, Ctrl+Enter w odpowiedzi, komentarz do usuniętego wątku/strony – czytelnie |
 | 159 | Paski postępu przy dłuższych czynnościach: jeden wygląd (karta, licznik x z y, pasek nieokreślony, Anuluj przy PDF), dopiero po 0,3 s, dostępne dla czytników ekranu; dodane przy PNG, separacjach, makiecie 3D, duplikowaniu, imporcie danych, czcionkach, usuwaniu tła, udostępnianiu, zmianie formatu, „Zamień wszystkie”, ekranie startowym i miniaturach (w panelu Strony). |
 | 164 | Wzorce stron: zrozumiałe wyjaśnienie z rysunkiem, wejścia przy stronach (przycisk pod listą, menu strony i sekcji, pusty stan we właściwościach), znak wzorca na miniaturze, 39 gotowych wzorców z podglądami w 9 grupach (też w Bibliotece), dodanie jednym kliknięciem od razu na strony sekcji. |
+| 162 | Biblioteka: 9 nowych działów – Ikony (260), Ilustracje, Okolicznościowe, Tła i wzory, Formularze do druku, Infografiki, Nagłówki i tytuły, Bloki treści, Układy stron – i Planer +11 (kalendarz roczny, plany, trackery, budżet miesięczny); wszystko edytowalne (grupy tekstów, kształtów i ścieżek), wzory i tła wektorowe w PDF; instrukcja 5.8 z nowym kadrem |
 | 156 | Obramowanie zdjęcia (kolor z kryciem, grubość, rodzaj linii, zaokrąglone narożniki przycinające zdjęcie) i miękkie krawędzie zdjęć i kształtów (równo wzdłuż brzegu albo owalna winieta) – w edytorze, podglądzie, PNG i PDF. |
 | 155 | Biblioteka: porządek (Planer tylko tabele i siatki do notatek, osobna kategoria Ramki, każdy kształt w jednym miejscu) i rozbudowa – ponad 400 kształtów (Kształty 200+, Ramki 80+ w grupach, ozdobniki, separatory, etykiety), nagłówki grup w oknie, ramki przerywane, pola na zdjęcie, obramowania stron |
 | 153 | Makieta 3D jak zdjęcie produktu: rzeczywiste proporcje bez rozciągania, światło z cieniem rzucanym i kontaktowym (stół, ściana), cień w zgięciu, wygięte kartki, krawędzie kartek, zaokrąglony grzbiet twardej oprawy bez artefaktów, spirala z drutu, stojak biurkowy z tektury, tło studia (też w PNG 3200 px). |

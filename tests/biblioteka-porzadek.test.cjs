@@ -24,7 +24,9 @@ test('biblioteka #155: liczności, grupy, Planer bez luźnych kształtów, nazwy
     const wKategoriach = new Map();
     const zKsztaltami = ['ksztalty', 'strzalki', 'ramki', 'ozdobniki', 'etykiety', 'linie', 'planer'];
     for (const [id, l] of Object.entries(kat)) if (zKsztaltami.includes(id)) for (const e of l) if (KSZTALTY.some((k) => k.id === e.id)) wKategoriach.set(e.id, [...(wKategoriach.get(e.id) || []), id]);
-    const planer = kat.planer.map((e) => (SZABLONY.some((s) => s.id === e.id) ? 'tabela' : KSZTALTY.find((k) => k.id === e.id)?.siatka ? 'siatka' : `luźny: ${e.id}`));
+    // Planer (#162): także kalendarz roczny (teksty, nie luźny kształt).
+    const { PLANER_SKLADY } = await import('./js/biblioteka-kompozycje.js');
+    const planer = kat.planer.map((e) => (SZABLONY.some((s) => s.id === e.id) ? 'tabela' : PLANER_SKLADY.some((p) => p.id === e.id) ? 'planer' : KSZTALTY.find((k) => k.id === e.id)?.siatka ? 'siatka' : `luźny: ${e.id}`));
     const grupyWOknie = (id) => [...new Set(kat[id].map((e) => e.grupa))];
     return {
       ile: Object.fromEntries(Object.entries(kat).map(([id, l]) => [id, l.length])),

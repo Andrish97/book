@@ -1,5 +1,6 @@
-// Zrzuty instrukcji Biblioteki (#143, #155): k-biblioteka.png (okno z kategoriami – Ramki z nagłówkami grup) i k-biblioteka-planer.png
-// (kategoria „Planer” z gotowymi tabelami). Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje
+// Zrzuty instrukcji Biblioteki (#143, #155, #162): k-biblioteka.png (okno z kategoriami – Ramki z nagłówkami grup),
+// k-biblioteka-planer.png (kategoria „Planer” z gotowymi tabelami) i k-biblioteka-dzialy.png (Nagłówki i tytuły – nagłówek,
+// blok treści, oś czasu i ikona na stronie). Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje
 // zrobZrzutyBiblioteki na końcu; tu można je zrobić osobno.
 //
 // Użycie:  node scripts/zrzuty-biblioteki.cjs [adres] [ciemny]
@@ -32,6 +33,24 @@ async function zrobZrzutyBiblioteki(kadr, { ciemny = false } = {}) {
     });
     await d.waitForTimeout(400);
     await kadr(d, 'k-biblioteka-planer.png', { obszar: ['#dlg-biblioteka', '#kontener-plotna .canvas-container'], zaznacz: '#kategorie-biblioteki [data-kategoria="planer"]', margines: 10 });
+    // Nowe działy (#162): nagłówek z datą, ramka „Wskazówka”, oś czasu i ikona na czystej stronie.
+    await d.evaluate(async () => {
+      const { elementBiblioteki } = await import('./js/biblioteka.js');
+      const e = window.seriodruk.edytor;
+      e.canvas.remove(...e.canvas.getObjects());
+      let y = e.marg.gora;
+      for (const [k, id] of [['naglowki', 'tytul-data'], ['bloki', 'blok-wskazowka'], ['infografiki', 'os-czasu-pozioma'], ['bloki', 'blok-werset']]) {
+        const o = await elementBiblioteki(k, id).wstaw(e, null);
+        o.set({ top: y });
+        o.setCoords();
+        y += o.getScaledHeight() + 9;
+      }
+      e.canvas.discardActiveObject();
+      e.canvas.requestRenderAll();
+    });
+    await d.click('#kategorie-biblioteki [data-kategoria="naglowki"]');
+    await d.waitForTimeout(500);
+    await kadr(d, 'k-biblioteka-dzialy.png', { obszar: ['#dlg-biblioteka', '#kontener-plotna .canvas-container'], zaznacz: '#kategorie-biblioteki [data-kategoria="naglowki"]', margines: 10 });
   } finally {
     for (const f of sprzatanie) await f();
   }

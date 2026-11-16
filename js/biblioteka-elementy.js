@@ -4,7 +4,11 @@
 import { zarejestrujKategorie } from './biblioteka.js';
 import { qrMacierz, ean13, STRAZNIKI_EAN } from './kody.js';
 import { KSZTALTY, KOLAZE, svgKolazu, svgKsztaltu, wzorKresek } from './ksztalty-biblioteka.js';
-import { SZABLONY, svgSzablonu } from './szablony-planera.js';
+import { SZABLONY, SZABLONY_FORMULARZY, svgSzablonu } from './szablony-planera.js';
+import { elementZeSkladu, rysunek } from './biblioteka-sklad.js';
+import { IKONY } from './ikony-biblioteki.js';
+import { TLA } from './wzory-tla.js';
+import { NAGLOWKI, BLOKI, INFOGRAFIKI, FORMULARZE, OKOLICZNOSCIOWE, ILUSTRACJE, UKLADY, PLANER_SKLADY } from './biblioteka-kompozycje.js';
 
 // Kształty z js/ksztalty-biblioteka.js w kategoriach okna; grupa kształtu (k.kategoria) to nagłówek w kategorii
 // (#155). Nazwa grupy w oknie może być krótsza („Ramki proste” → „Proste”).
@@ -61,15 +65,19 @@ zarejestrujKategorie({
   ],
 });
 
+const tabelaSzablonu = (s) => ({
+  id: s.id, nazwa: s.nazwa, slowa: `planer tabela ${s.slowa}`, duzy: true, podglad: svgSzablonu(s), opis: s.opis, grupa: s.grupa,
+  wstaw: (e, punkt) => e.dodajSzablonTabeli(s.id, punkt),
+});
+
 // Planer (#143, #155): gotowe tabele (lista zadań, tracker nawyków, plan tygodnia…) i siatki do notatek
 // (kratka, kropki, linie). Luźne kształty (pola wyboru itp.) są w Kształtach → Znaki.
 zarejestrujKategorie({
   id: 'planer', nazwa: 'Planer', ikona: 'planer', kolejnosc: 45,
   elementy: () => [
-    ...SZABLONY.map((s) => ({
-      id: s.id, nazwa: s.nazwa, slowa: `planer tabela ${s.slowa}`, duzy: true, podglad: svgSzablonu(s), opis: s.opis, grupa: 'Gotowe tabele',
-      wstaw: (e, punkt) => e.dodajSzablonTabeli(s.id, punkt),
-    })),
+    ...SZABLONY.filter((s) => s.grupa === 'Gotowe tabele').map(tabelaSzablonu),
+    ...PLANER_SKLADY.map((el) => elementZeSkladu(el)),
+    ...SZABLONY.filter((s) => s.grupa !== 'Gotowe tabele').map(tabelaSzablonu),
     ...ksztaltyZ('Notatki')(),
   ],
 });
@@ -253,6 +261,33 @@ zarejestrujKategorie({
     ];
   },
 });
+
+// ---------- Nowe działy (#162) ----------
+// Ikony liniowe: spójny zestaw 24 × 24 (js/ikony-biblioteki.js) w grupach tematycznych.
+const ROZMIAR_IKONY = 14;
+const ELEMENTY_IKON = Object.entries(IKONY).flatMap(([grupa, lista]) => lista.map(([id, nazwa, slowa, d]) => ({
+  id: `ikona-${id}`, nazwa, slowa: `ikona ${slowa} ${grupa}`, grupa, buduj: () => rysunek(d, ROZMIAR_IKONY, { nazwa: `Ikona: ${nazwa}` }),
+})).map((el) => elementZeSkladu(el)));
+zarejestrujKategorie({ id: 'ikony', nazwa: 'Ikony', ikona: 'ikony', kolejnosc: 12, elementy: () => ELEMENTY_IKON });
+
+const kategoriaSkladow = (id, nazwa, ikona, kolejnosc, lista, grupa) => {
+  const elementy = lista.map((el) => elementZeSkladu(el, grupa));
+  zarejestrujKategorie({ id, nazwa, ikona, kolejnosc, elementy: () => elementy });
+};
+// Duże kafelki (z nazwą) tam, gdzie sam rysunek nie mówi wszystkiego.
+const duze = (lista) => lista.map((el) => ({ ...el, duzy: true }));
+kategoriaSkladow('ilustracje', 'Ilustracje', 'ilustracja', 14, ILUSTRACJE, 'Rysunki liniowe');
+kategoriaSkladow('okolicznosciowe', 'Okolicznościowe', 'okolicznosc', 36, duze(OKOLICZNOSCIOWE));
+kategoriaSkladow('tla', 'Tła i wzory', 'tlo', 38, TLA.map((el) => ({ ...el, kontekstPodgladu: { w: 54, h: 76, spad: 0, szer: 46, wysTresci: 66, akcent: '#2f5d8a', akcent2: '#c08a2e' } })));
+kategoriaSkladow('infografiki', 'Infografiki', 'infografika', 52, duze(INFOGRAFIKI), 'Schematy i liczby');
+kategoriaSkladow('naglowki', 'Nagłówki i tytuły', 'naglowek', 61, duze(NAGLOWKI), 'Tytuły');
+kategoriaSkladow('bloki', 'Bloki treści', 'blok', 63, duze(BLOKI), 'Ramki i listy');
+kategoriaSkladow('uklady', 'Układy stron', 'uklad', 64, duze(UKLADY), 'Całe strony');
+// Tabele formularzy dopisane do kategorii formularzy (zwykła tabela – jak w Planerze).
+{
+  const formularze = [...FORMULARZE.map((el) => elementZeSkladu({ ...el, duzy: true }, 'Pola i podpisy')), ...SZABLONY_FORMULARZY.map(tabelaSzablonu)];
+  zarejestrujKategorie({ id: 'formularze', nazwa: 'Formularze do druku', ikona: 'formularz', kolejnosc: 47, elementy: () => formularze });
+}
 
 // Gotowe sekcje (#166) – kategoria w osobnym module.
 import './biblioteka-gotowe-sekcje.js';
