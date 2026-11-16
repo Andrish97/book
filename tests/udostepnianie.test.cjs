@@ -60,6 +60,13 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   assert.equal(await obca.locator('button.podglad-kartka').count(), 0, 'stron nie da się kliknąć do edycji');
   assert.ok(await obca.isHidden('[data-akcja="udostepnij"]'));
   assert.ok(await obca.isHidden('[data-akcja="podglad-zamknij"]'));
+  // Stary, długi link (sprzed #195) działa dalej.
+  const dlugi = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return `${location.origin}/#/u/${p.udostepnienie.konto}/${p.id}/${p.udostepnienie.kod}`; });
+  const stara = await gosc.newPage();
+  await stara.goto(dlugi);
+  await stara.waitForFunction(() => document.body.dataset.ekran === 'podglad' && document.querySelectorAll('.podglad-strona[data-id]').length === 2);
+  assert.equal(await stara.textContent('#podglad-tytul'), 'Do pokazania');
+  await stara.close();
   assert.equal(await obca.locator('canvas').count() >= 0, true);
   assert.deepEqual(bledyGoscia, []);
 
