@@ -23,20 +23,20 @@ async function projektTrzyStrony(strona) {
   await nowyProjekt(strona, 'Nic nie ginie');
   for (let i = 0; i < 2; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 3);
-  await strona.evaluate(() => {
+  // Model zmieniany wprost razem z odłączeniem płótna, w jednym kroku: inaczej zaplanowany zapis (po „Dodaj
+  // stronę”) przepisałby płótno bieżącej strony – bez nowego prostokąta – z powrotem do projektu (#160).
+  await strona.evaluate(async () => {
     const p = window.seriodruk.stan.projekt;
     p.strony.forEach((s, i) => {
       s.obiekty.push({ type: 'Rect', id: `r${i + 1}`, left: 20, top: 20 + i * 10, width: 30, height: 20, fill: '#336699' });
     });
     p.strony[0].obiekty.push({ type: 'Textbox', id: 't1', left: 20, top: 80, width: 100, text: 'Tekst użytkownika', fontFamily: 'Inter', fontSize: 5 });
-  });
-  await strona.evaluate(async () => {
-    const z = await import('./js/app/zapis.js');
     window.seriodruk.stan.tryb = 'strona';
     window.seriodruk.stan.indeks = 0; // pierwsza strona (z tekstem) na płótnie
-    await z.zaladujCel({ dopasuj: true });
+    await window.seriodruk.przeladuj();
     window.seriodruk.edytor.zatwierdz();
   });
+  await strona.waitForFunction(() => ['r1', 'r2', 'r3', 't1'].every((id) => window.seriodruk.stan.projekt.strony.some((s) => s.obiekty.some((o) => o.id === id))));
   await zapisano(strona);
 }
 

@@ -312,7 +312,7 @@ test('skrzynka: zaznaczanie i operacje zbiorcze (przeczytane, gwiazdka, archiwum
   await strona.waitForFunction(() => !document.querySelector('#admin-watki li:has(.wybor input:checked)'));
   assert.ok([a, b].every((x) => x.przeczytany));
   await strona.click(`#admin-watki li[data-id="${a.id}"] .gwiazdka`);
-  for (let i = 0; i < 50 && !a.gwiazdka; i += 1) await strona.waitForTimeout(50);
+  for (let i = 0; i < 200 && !a.gwiazdka; i += 1) await strona.waitForTimeout(50); // do 10 s – pod obciążeniem odpowiedź bywa wolna (#160)
   assert.equal(a.gwiazdka, true);
   await strona.click('#admin-foldery [data-folder="gwiazdka"]');
   await strona.waitForFunction(() => document.querySelectorAll('#admin-watki li').length === 1);

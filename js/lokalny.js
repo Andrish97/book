@@ -68,6 +68,28 @@ async function transakcja(tryb, fn) {
 
 // Rekord: { id, wlasciciel, nazwa, zmieniono, miniatura, projekt, doSynchronizacji }
 // wlasciciel: id użytkownika Supabase albo 'lokalny' (praca bez konta).
+// Zapis przy zamykaniu karty (#160): zwykły zapis ma po drodze kilka kroków asynchronicznych (otwarcie bazy,
+// odłożenie obrazów) i strona potrafi zniknąć wcześniej. Tu połączenie jest otwarte zawczasu, a rekord trafia do
+// transakcji od razu – przeglądarka kończy transakcję rozpoczętą przy zamykaniu strony. Tylko gdy w projekcie nie
+// ma obrazów do odłożenia (wtedy zwykły zapis i tak nic więcej nie robi); inaczej zwraca false.
+let polaczenie = null;
+export function przygotujSzybkiZapis() {
+  if (polaczenie || typeof indexedDB === 'undefined') return;
+  otworz().then((db) => {
+    polaczenie = db;
+    db.onversionchange = () => { db.close(); polaczenie = null; };
+    db.onclose = () => { polaczenie = null; };
+  }).catch(() => {});
+}
+export function zapiszLokalnieOdRazu(projekt, wlasciciel) {
+  if (!polaczenie || Object.values(projekt?.zasoby || {}).some((z) => z?.dataUrl)) return false;
+  try {
+    const tx = polaczenie.transaction(MAGAZYN, 'readwrite');
+    tx.objectStore(MAGAZYN).put({ id: projekt.id, wlasciciel, miniatura: projekt.miniatura || null, nazwa: projekt.nazwa, zmieniono: projekt.zmieniono, projekt, doSynchronizacji: true });
+    return true;
+  } catch { return false; }
+}
+
 export async function zapiszLokalnie(projekt, wlasciciel, doSynchronizacji = true) {
   // Nowe obrazy trafiają do magazynu plików, a z projektu znika ich treść. Gdyby magazyn zawiódł
   // (np. brak miejsca), obraz zostaje w projekcie jak dawniej – zapis nie może przepaść.

@@ -248,6 +248,34 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   assert.match((await bez.narzedzie('przeglad_projektu')).tekst, /MAKIETKA_KLUCZ/);
 });
 
+// Audyt testów (#160): jedyne narzędzie łącznika bez testu.
+test('MCP: kolejnosc_elementow – kolejność warstw na stronie i we wzorcu; lista niepełna albo z obcym id odrzucona bez zmian; klucz tylko do odczytu', async (t) => {
+  const s = await srodowisko(t);
+  const { narzedzie } = s.uruchom(s.edycja);
+  const ids = () => s.projekt().projekt.strony[0].obiekty.map((o) => o.id);
+  assert.deepEqual(ids(), ['tlo', 'tyt']);
+  const ok = await narzedzie('kolejnosc_elementow', { gdzie: 'strona:s1', id: ['tyt', 'tlo'] });
+  assert.ok(!ok.blad, ok.tekst);
+  assert.deepEqual(ids(), ['tyt', 'tlo'], 'od spodu do wierzchu');
+  // Elementy zostają te same (bez utraty pól), tylko w innej kolejności.
+  const tyt = s.projekt().projekt.strony[0].obiekty[0];
+  assert.equal(tyt.text, 'Kalendarz {rok}');
+  assert.equal(tyt.styles[0][0].fill, '#ff0000');
+  for (const zle of [['tyt'], ['tyt', 'tlo', 'tlo'], ['tyt', 'nie-ma']]) {
+    const r = await narzedzie('kolejnosc_elementow', { gdzie: 'strona:s1', id: zle });
+    assert.equal(r.blad, true, `odrzucone: ${zle}`);
+    assert.deepEqual(ids(), ['tyt', 'tlo'], 'po odmowie bez zmian');
+  }
+  // Wzorzec z jednym elementem – ta sama lista przechodzi; nieznane miejsce – błąd.
+  assert.ok(!(await narzedzie('kolejnosc_elementow', { gdzie: 'wzorzec:wz1', id: ['nr'] })).blad);
+  assert.equal((await narzedzie('kolejnosc_elementow', { gdzie: 'strona:nie-ma', id: [] })).blad, true);
+  // Klucz tylko do odczytu.
+  const czyta = s.uruchom(s.odczyt);
+  const odm = await czyta.narzedzie('kolejnosc_elementow', { gdzie: 'strona:s1', id: ['tlo', 'tyt'] });
+  assert.equal(odm.blad, true);
+  assert.deepEqual(ids(), ['tyt', 'tlo']);
+});
+
 test('MCP: listy pól i stylów zgodne z aplikacją', async () => {
   const mcp = await import(SERWER);
   const blok = (plik, nazwa) => new RegExp(`export const ${nazwa} = \\[([\\s\\S]*?)\\];`).exec(fs.readFileSync(path.join(__dirname, '..', 'js', plik), 'utf8'))[1];

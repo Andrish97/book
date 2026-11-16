@@ -275,6 +275,9 @@ na koncie. Stan zapisu widać w edytorze obok nazwy projektu:
 - **Zapisywanie…** — zmiany właśnie się wysyłają,
 - **Offline** — brak internetu; zmiany czekają na urządzeniu i wyślą się same po powrocie sieci.
 
+Zmiana zrobiona tuż przed zamknięciem karty albo aplikacji też zostaje: zapisuje się na urządzeniu
+przy zamykaniu i trafia na konto przy następnym otwarciu projektu.
+
 Dłuższe czynności (otwieranie dużego projektu, wgrywanie zdjęć, eksport PDF) pokazują u góry
 ekranu kartę z paskiem postępu. Karta nie blokuje pracy.
 
