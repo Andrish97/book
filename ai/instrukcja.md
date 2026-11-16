@@ -18,7 +18,7 @@ Podręcznik aplikacji Makietka (https://makietka.app/) – edytora publikacji do
   - 9. Tabela
   - 10. Warstwy
   - 11. Strony, sekcje i rozkładówki
-  - 12. Wzorce
+  - 12. Wzorce stron
   - 13. Linie pomocnicze, siatka i powiększenie
   - 14. Książka: spis treści, pagina, przypisy, odsyłacze, skorowidz
 - **Część III. Dane i serie** — Tabele danych, pola w tekście i strony powielane z tabeli.
@@ -52,7 +52,7 @@ Edytor ma to, czego potrzebuje publikacja wielostronicowa:
 
 - **sekcje** o różnych formatach — np. okładka z grzbietem liczonym samym z liczby stron i papieru (rozdział „11.6 Okładka z grzbietem”) i środek (rozdział „11.4 Ustawienia sekcji”),
 - **rozkładówki** z lustrzanymi marginesami, jak w książce (rozdział „11.5 Rozkładówki”),
-- **wzorce** — tła, stopki i numery stron rysowane raz dla wielu stron (rozdział „12 Wzorce”),
+- **wzorce** — tła, stopki i numery stron rysowane raz dla wielu stron (rozdział „12 Wzorce stron”),
 - **style tekstu** — jeden wygląd dla wszystkich tytułów czy podpisów (rozdział „6.4 Style”),
 - **plik dla drukarni** ze spadem, znakami cięcia i osadzonymi czcionkami, także PDF/X-4 w CMYK (rozdział „22 Eksport do PDF i PNG”).
 
@@ -80,7 +80,7 @@ Projekt zapisuje się sam, na Twoim koncie (rozdział „3.4 Zapis”).
 
 1. Na liście projektów wybierz **Nowy projekt**, wpisz nazwę i wybierz format (rozdział „3.2 Nowy projekt”).
 2. Wstaw elementy z paska nad stroną: tekst, obraz, kształt, tabelę (rozdział „5.1 Wstawianie”).
-3. To, co powtarza się na wielu stronach — tło, stopkę, numer strony — połóż we wzorcu (rozdział „12 Wzorce”).
+3. To, co powtarza się na wielu stronach — tło, stopkę, numer strony — połóż we wzorcu (rozdział „12 Wzorce stron”).
 4. Sprawdź całość w **Podgląd** (rozdział „20 Podgląd”).
 5. Wybierz **⋯** → **Sprawdź przed drukiem**, a potem **⋯** → **Eksportuj do PDF…** (rozdział „21 Sprawdź przed drukiem”, „22 Eksport do PDF i PNG”).
 
@@ -314,7 +314,7 @@ Najechanie myszą na przycisk pokazuje jego nazwę i skrót klawiszowy.
 | **← Projekty** | Wraca do listy projektów. Niczego nie trzeba zapisywać. |
 | **Nazwa projektu** | Kliknij, żeby ją zmienić. Obok jest stan zapisu (rozdział „3.4 Zapis”). |
 | **Cofnij**, **Ponów** | Cofanie i ponawianie zmian w całym projekcie (rozdział „3.5 Kilka urządzeń i cofanie”). |
-| **Wzorce** | Okno wzorców — wspólnych elementów stron (rozdział „12 Wzorce”). Liczba obok to liczba wzorców. |
+| **Wzorce** | Okno wzorców — wspólnych elementów stron (rozdział „12 Wzorce stron”). Liczba obok to liczba wzorców. |
 | **Dane** | Okno tabel danych (rozdział „15 Tabele danych”). |
 | **Podgląd** | Cały projekt bez edycji, z danymi (rozdział „20 Podgląd”). |
 | **Format** (np. „A5”) | Ustawienia bieżącej sekcji: format, spad, marginesy (rozdział „11.4 Ustawienia sekcji”). |
@@ -425,7 +425,7 @@ Ustawienia „Wyglądu edytora” dotyczą tego urządzenia.
 
 Kliknij narzędzie na pasku wstawiania (rozdział „4.4 Pasek wstawiania”) — element pojawi się na środku widoku i będzie zaznaczony. Obraz możesz też przeciągnąć z dysku na stronę albo wkleić ze schowka (`Ctrl`+`V`).
 
-Elementy wzorców (rozdział „12 Wzorce”) widać na stronie, ale nie da się ich tu zaznaczyć — zmieniasz je we wzorcu.
+Elementy wzorców (rozdział „12 Wzorce stron”) widać na stronie, ale nie da się ich tu zaznaczyć — zmieniasz je we wzorcu.
 
 ![Wstawiony tekst](https://makietka.app/img/instrukcja/wstawianie.png)
 
@@ -527,7 +527,7 @@ Na komputerze biblioteka jest panelem obok strony i zostaje otwarta do kolejnych
 | **Marka** | Logo z zestawu marki, **Zastosuj markę do projektu…** i **Edytuj zestaw marki…** (rozdział „2.9 Zestaw marki”). |
 | **Kody** | Kod QR i kod kreskowy EAN / ISBN (rozdział „5.12 Kod QR i kod kreskowy”). |
 
-Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”). Długie kategorie mają nagłówki grup (np. Podstawowe, Wielokąty); przy szukaniu nagłówków nie ma, a wyniki są ze wszystkich kategorii. Szablon z kategorii **Planer** to zwykła tabela (rozdział „9 Tabela”): wpisujesz w komórki, dodajesz wiersze i kolumny, zmieniasz linie i kolory. Żeby planer powtarzał się na wielu stronach, wstaw go we wzorcu (rozdział „12 Wzorce”) albo na stronie serii (rozdział „17 Serie”).
+Kształt z biblioteki to zwykły kształt: zmienisz mu kolor, obrys i punkty (rozdział „7.4 Pióro i edycja punktów”), a zamknięty kształt może być ramką zdjęcia (rozdział „8.7 Obraz w kształcie”). Długie kategorie mają nagłówki grup (np. Podstawowe, Wielokąty); przy szukaniu nagłówków nie ma, a wyniki są ze wszystkich kategorii. Szablon z kategorii **Planer** to zwykła tabela (rozdział „9 Tabela”): wpisujesz w komórki, dodajesz wiersze i kolumny, zmieniasz linie i kolory. Żeby planer powtarzał się na wielu stronach, wstaw go we wzorcu (rozdział „12 Wzorce stron”) albo na stronie serii (rozdział „17 Serie”).
 
 ![Kategoria Planer w Bibliotece](https://makietka.app/img/instrukcja/k-biblioteka-planer.png)
 
@@ -1143,7 +1143,7 @@ Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w nie
 ### 10.3 Grupy, tabele i wzorce na liście
 
 - Trójkąt przy grupie albo tabeli rozwija jej zawartość. Kliknięcie elementu grupy otwiera grupę z tym elementem zaznaczonym (rozdział „5.5 Grupy”); kliknięcie komórki tabeli zaczyna w niej pisanie.
-- Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Nie zmienisz ich tutaj — kliknięcie otwiera wzorzec do edycji (rozdział „12.3 Edycja wzorca”).
+- Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Nie zmienisz ich tutaj — kliknięcie otwiera wzorzec do edycji (rozdział „12.5 Własny wzorzec i edycja”).
 
 ## 11. Strony, sekcje i rozkładówki
 
@@ -1176,7 +1176,7 @@ Gdy nic nie jest zaznaczone, panel właściwości pokazuje ustawienia otwartej s
 | **Nazwa strony** | Nazwa na liście stron. |
 | **Sekcja** | Przeniesienie strony do innej sekcji. |
 | **Tło** | Kolor tła tej strony. |
-| **Wzorce** | Wzorce z sekcji albo własny wybór dla tej strony (rozdział „12.2 Okno Wzorce”). |
+| **Wzorce** | Wzorce z sekcji albo własny wybór dla tej strony (rozdział „12.4 Na których stronach jest wzorzec”). |
 | **Seria** | Powielanie strony z tabeli danych (rozdział „17 Serie”). |
 | **Prowadnice** | Prowadnice wpisane liczbą (rozdział „13.4 Linijki i prowadnice”). |
 | **Wklej skopiowane elementy** | Wkleja elementy ze schowka w to samo miejsce. |
@@ -1197,7 +1197,7 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (rozdział „11.8 Numeracja stron”). |
 | **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (rozdział „11.7 Składki”). |
-| **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (rozdział „12.2 Okno Wzorce”). |
+| **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (rozdział „12.4 Na których stronach jest wzorzec”). |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
 | **Siatka linii bazowych** | **Odstęp** i **Pierwsza linia** (mm od góry) — wiersze tekstów z „Wyrównaj do siatki” stoją na tych liniach (rozdział „6.13 Siatka linii bazowych”). |
 
@@ -1267,7 +1267,7 @@ Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pe�
 
 ### 11.8 Numeracja stron
 
-Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (rozdział „12.6 Numer strony we wzorcu”). Numeracja zależy od ustawień sekcji (rozdział „11.4 Ustawienia sekcji”) i liczy strony po powieleniu serii. Inne zapisy numeru (rzymskie, z zerami) są w tabeli pól (rozdział „16.2 Pola dokumentu”).
+Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (rozdział „12.7 Pola we wzorcu”). Numeracja zależy od ustawień sekcji (rozdział „11.4 Ustawienia sekcji”) i liczy strony po powieleniu serii. Inne zapisy numeru (rzymskie, z zerami) są w tabeli pól (rozdział „16.2 Pola dokumentu”).
 
 ### 11.9 Zmiana formatu ze skalowaniem
 
@@ -1292,51 +1292,78 @@ Kalendarz z A4 na A3, książka z B5 na A5 — format zmienisz razem z elementam
 
 Rozkładówki zmieniają się razem (obie strony), serie — na wszystkich powieleniach, bo zmienia się wzór. Okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”) ma format liczony ze środka: po zmianie formatu środka przelicza się sama, a jej elementy trzymają się tyłu, grzbietu i przodu. Elementy, które po zmianie wystają poza stronę, pokaże **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”).
 
-## 12. Wzorce
+## 12. Wzorce stron
 
-### 12.1 Czym jest wzorzec
+### 12.1 Czym jest wzorzec i kiedy go użyć
 
-Wzorzec to elementy wspólne dla wielu stron: tło, ramka, logo, stopka, numer strony. Rysujesz go raz i dodajesz do stron albo do całej sekcji. Zmiana we wzorcu zmienia wszystkie te strony naraz. Strona może mieć kilka wzorców, np. „Tło miesiąca” i „Stopka”.
+Niektóre rzeczy powtarzają się na wielu stronach: **numer strony, nagłówek, stopka, tło, ramka, linie do pisania**. Zamiast wstawiać je na każdą stronę osobno, wstawiasz je raz — jako **wzorzec**.
 
-### 12.2 Okno Wzorce
+- Wzorzec leży **pod** treścią każdej strony, która go ma. Na samej stronie go nie zaznaczysz ani nie przesuniesz — dzięki temu nie rozjedzie się przypadkiem.
+- Zmieniasz go raz, a zmieniają się **wszystkie** te strony.
+- Pole `{nr}` we wzorcu pokazuje na każdej stronie jej własny numer: jeden wzorzec, a na stronach 1, 2, 3…
+- Strona może mieć kilka wzorców naraz, np. „Kratka” pod treścią i „Numer strony” na dole.
 
-Kliknij **Wzorce** na górnym pasku.
+Kiedy wzorzec, a kiedy zwykły element? Jeśli coś ma być **na wielu stronach w tym samym miejscu** — wzorzec. Jeśli tylko na jednej stronie — zwykły element.
 
-![Wzorce na górnym pasku](https://makietka.app/img/instrukcja/k-wzorce.png)
+![Okno Wzorce stron: co to jest i gotowe wzorce](https://makietka.app/img/instrukcja/k-wzorce-galeria.png)
 
-Lista **Wzorce w tym projekcie** — przy każdym wzorcu:
+### 12.2 Gdzie są wzorce
+
+- **Wzorce** pod listą stron (obok **Sekcja**) i na górnym pasku edytora — otwiera okno **Wzorce stron**.
+- Menu ⋯ strony → **Wzorce tej strony…** — przechodzi na tę stronę i otwiera okno.
+- Menu ⋯ sekcji → **Wzorce sekcji…**.
+- Właściwości strony (nic nie jest zaznaczone) → część **Wzorce**: które wzorce są na tej stronie; dopóki projekt nie ma wzorców, jest tam przycisk **Wybierz gotowy wzorzec…**.
+- Biblioteka → kategoria **Wzorce stron** — te same gotowe wzorce co w oknie.
+
+Strona, na której leży wzorzec, ma na miniaturze mały fioletowy znak; podpowiedź na nim mówi, jakie to wzorce.
+
+### 12.3 Gotowe wzorce
+
+W oknie **Wzorce stron** niżej jest galeria gotowych wzorców z podglądami — na schemacie elementy wzorca są wyraźne, a blade bloki to treść strony. Grupy:
+
+| Grupa | Przykłady |
+|---|---|
+| Numeracja | numer na dole, przy zewnętrznej krawędzi, „Strona 5 z 120”, w kółku, na pasku bocznym, rzymski |
+| Nagłówki i stopki | nazwa sekcji, projekt i sekcja, kolorowy pas, stopka z kontaktem |
+| Tła i papier | linie, kratka, kropki, papier milimetrowy, zeszyt z marginesem, kolorowe tło, znak wodny |
+| Ramki | w marginesach, podwójna, zaokrąglona, obwódka strony, narożniki |
+| Kalendarz i planer | zakładka na brzegu, nagłówek dnia, kolumna „Notatki”, tydzień |
+| Książka | żywa pagina z tytułem rozdziału, numer i rozdział u góry |
+| Katalog i oferta, Gazetka, Zaproszenie | logo i kontakt, winieta, szpalty, ozdobna ramka, pasy |
+
+Kliknięcie karty dodaje wzorzec do projektu i **od razu na wszystkie strony sekcji** otwartej strony — okno się zamyka, a wzorzec widać na stronie. **Cofnij** w komunikacie albo `Ctrl`+`Z` odwraca to jednym krokiem. Gotowe wzorce dopasowują się do formatu i marginesów sekcji, a kolory i czcionki biorą z zestawu marki (rozdział „2.9 Zestaw marki”), jeśli go masz. Po dodaniu to zwykły wzorzec — możesz go zmienić.
+
+### 12.4 Na których stronach jest wzorzec
+
+W oknie, w części **W tym projekcie**, przy każdym wzorcu:
 
 | Przycisk | Co robi |
 |---|---|
-| **+ Dodaj do tej strony** | Włącza wzorzec na otwartej stronie. Ponowne kliknięcie (✓) go zdejmuje. |
+| **+ Dodaj do tej strony** | Włącza wzorzec tylko na otwartej stronie. Ponowne kliknięcie (✓) go zdejmuje. |
 | **+ Do całej sekcji** | Włącza wzorzec na stronach sekcji, które nie mają własnego wyboru. |
-| **Edytuj** | Otwiera wzorzec do edycji (rozdział „12.3 Edycja wzorca”). |
+| **Edytuj** | Otwiera wzorzec do edycji (rozdział „12.5 Własny wzorzec i edycja”). |
 | **⋯** | **Zmień nazwę**, **Duplikuj**, **Przesuń wyżej**, **Przesuń niżej**, **Usuń wzorzec**. |
 
-**Nowy pusty wzorzec** tworzy czysty wzorzec.
+Pojedynczej stronie wybierzesz wzorce też we właściwościach strony: **Wzorce na tej stronie** → **Jak w sekcji** albo **Własny wybór** i przełączniki przy nazwach.
 
 ![Okno Wzorce](https://makietka.app/img/instrukcja/okno-wzorcow.png)
 
-### 12.3 Edycja wzorca
+### 12.5 Własny wzorzec i edycja
 
-**Edytuj** otwiera wzorzec w edytorze. Fioletowy pasek nad stroną przypomina, że zmieniasz wzorzec; **Gotowe** wraca do stron. Na zwykłych stronach elementów wzorca nie da się zaznaczyć — widać je na liście warstw, a kliknięcie tam otwiera wzorzec.
+**Narysuj własny wzorzec** tworzy pusty wzorzec i od razu go otwiera. **Edytuj** otwiera istniejący. Fioletowy pasek nad stroną przypomina, że zmieniasz wzorzec — wszystko, co tu narysujesz, pojawi się na stronach z tym wzorcem; **Gotowe** wraca do stron. Na zwykłych stronach elementy wzorca widać na liście warstw, a kliknięcie tam otwiera wzorzec.
 
 ![Edycja wzorca](https://makietka.app/img/instrukcja/wzorce.png)
 
-### 12.4 Wzorce standardowe
-
-Niżej w oknie są gotowe **wzorce standardowe**: numer strony na dole albo przy zewnętrznej krawędzi, stopka, nagłówek, linie do pisania, kratka, ramka, zakładka na brzegu. Dopasowują się do formatu i marginesów sekcji. Przycisk **+** (na telefonie **Dodaj**) dodaje wzorzec do projektu — potem zmieniasz go jak własny.
-
-### 12.5 Nad treścią i odbicie lustrzane
+### 12.6 Nad treścią i odbicie lustrzane
 
 Elementy wzorca leżą **pod** treścią strony. Zaznacz element we wzorcu i włącz:
 
 - **Nad treścią strony** — element przykryje treść, np. ramka albo znak wodny,
-- **Odbijaj lustrzanie na lewych stronach** — element przy prawej krawędzi (np. numer strony) na lewych stronach rozkładówek przejdzie na lewą krawędź.
+- **Odbijaj lustrzanie na lewych stronach** — element przy prawej krawędzi (np. numer strony) na lewych stronach rozkładówek przejdzie na lewą krawędź. Gotowe wzorce „przy zewnętrznej krawędzi” mają to włączone.
 
-### 12.6 Numer strony we wzorcu
+### 12.7 Pola we wzorcu
 
-Wpisz we wzorcu tekst z polem `{nr}`, np. `Strona {nr} z {liczba_stron}`. Na każdej stronie pojawi się jej numer. Najprościej dodać wzorzec standardowy z numerem strony (rozdział „12.4 Wzorce standardowe”).
+Wpisz we wzorcu tekst z polem, np. `Strona {nr} z {liczba_stron}`, `{sekcja}` albo `{rozdzial}` (tytuł bieżącego rozdziału). Na każdej stronie pojawi się jej wartość. Najprościej zacząć od gotowego wzorca z numerem strony (rozdział „12.3 Gotowe wzorce”).
 
 ## 13. Linie pomocnicze, siatka i powiększenie
 
@@ -1431,7 +1458,7 @@ Długi spis przelej do kolejnej ramki, także na następnej stronie (rozdział �
 
 Żywa pagina to tytuł bieżącego rozdziału w stopce albo nagłówku strony.
 
-1. Otwórz wzorzec stopki (rozdział „12 Wzorce”).
+1. Otwórz wzorzec stopki (rozdział „12 Wzorce stron”).
 2. W tekście stopki wybierz **Wstaw pole** → **{rozdzial}**. Obok możesz dać numer strony: `{rozdzial} – {nr}`.
 
 Na każdej stronie pole pokazuje ostatni nagłówek 1 do tej strony. `{rozdzial:2}` pokazuje nagłówek 2 – nowy rozdział go zeruje.
@@ -1709,7 +1736,7 @@ Jedna strona na dzień, z dniem tygodnia, imieninami i świętami w kolorze.
 3. Na stronie wstaw teksty `{dzien}`, `{dzien_tygodnia}` i `Imieniny: {imieniny}` (rozdział „16.1 Wstawianie pola”).
 4. Kliknij puste miejsce strony i w **Seria** utwórz serię z tabelą Dni (rozdział „17.2 Nowa seria”) — powstanie 365 stron.
 5. Wstaw mały tekst `{swieto}` w kolorze czerwonym i ustaw **Pokaż element → nie jest puste** (rozdział „18.4 Pokaż element”).
-6. Numer strony i stopkę dodaj jako wzorzec (rozdział „12.4 Wzorce standardowe”).
+6. Numer strony i stopkę dodaj jako wzorzec (rozdział „12.3 Gotowe wzorce”).
 7. Sprawdź podgląd i wyeksportuj PDF (rozdział „20 Podgląd”, „22 Eksport do PDF i PNG”).
 
 **Polecenie dla AI: tabela dni do kalendarza** — Skopiuj, podmień nazwę projektu i wklej do rozmowy z AI, które ma podłączoną Makietkę (rozdział „26 Praca z AI”).

@@ -56,6 +56,7 @@ import {
 import { podlaczDokWarstw } from './dok-warstw.js';
 import { dodajPolecenie } from '../paleta-polecen.js';
 import '../biblioteka-elementy.js';
+import '../biblioteka-wzorce.js'; // kategoria „Wzorce stron” (#164) – osobny moduł
 import { otworzBiblioteke, wstawZBiblioteki, TYP_PRZECIAGANIA } from './biblioteka-okno.js';
 import { otworzZnajdz } from './znajdz-okno.js';
 import { zapiszWBibliotece } from './moje-elementy-okno.js';
@@ -338,12 +339,19 @@ export const akcje = {
   'strona-dodaj': () => dodajStrone(),
   'strona-nazwa': przezMenu(indeksZMenu, zmienNazweStrony),
   'strona-duplikuj': przezMenu(indeksZMenu, duplikujStrone),
+  // Wzorce wybranej strony (#164): przejście na nią i okno wzorców z przełącznikami „na tej stronie”.
+  'strona-wzorce': przezMenu(indeksZMenu, async (i) => { await przejdzDoStrony(i); otworzWzorce(); }),
   'strona-usun': przezMenu(indeksZMenu, usunStrone),
   'strona-gora': przezMenu(indeksZMenu, (i) => przesunStrone(i, -1)),
   'strona-dol': przezMenu(indeksZMenu, (i) => przesunStrone(i, 1)),
 
   'sekcja-dodaj': () => otworzUstawieniaSekcji(null),
   'sekcja-ustawienia': przezMenu(sekcjaZMenu, otworzUstawieniaSekcji),
+  'sekcja-wzorce': przezMenu(sekcjaZMenu, async (id) => {
+    const i = stan.projekt.strony.findIndex((st) => st.sekcja === id);
+    if (i >= 0 && (stan.tryb !== 'strona' || stan.projekt.strony[stan.indeks]?.sekcja !== id)) await przejdzDoStrony(i);
+    otworzWzorce();
+  }),
   'sekcja-strona': przezMenu(sekcjaZMenu, dodajStrone),
   'sekcja-okladka': przezMenu(sekcjaZMenu, zamienNaOkladke),
   'sekcja-gora': przezMenu(sekcjaZMenu, (id) => przesunSekcje(id, -1)),

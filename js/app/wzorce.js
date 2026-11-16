@@ -2,7 +2,8 @@
 
 import { ikona } from '../ikony.js';
 import { nowyWzorzec, kopiujWzorzec, stronyZWzorcem, WZORCE_Z_SEKCJI } from '../projekt.js';
-import { WZORCE_STANDARDOWE } from '../wzorce-standardowe.js';
+import { WZORCE_STANDARDOWE, GRUPY_WZORCOW, zbudujWzorzecStandardowy, markaDoWzorcow, podgladSvgWzorca } from '../wzorce-standardowe.js';
+import { biezacaMarka } from '../zestaw-marki.js';
 import { $, powiadom, zapytajONazwe, potwierdz } from '../ui.js';
 import { stan, ustawPanel, biezacaSekcja, edytor } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
@@ -108,39 +109,61 @@ export function otworzWzorce() {
   if (!stan.projekt) return;
   zapiszBiezacyCel();
   renderujListe();
+  const sekcja = biezacaSekcja();
+  $('#wzorce-sekcja').textContent = `„${sekcja.nazwa}”`;
   const lista = $('#wzorce-standardowe');
-  lista.replaceChildren(...WZORCE_STANDARDOWE.map((w) => {
-    const li = document.createElement('li');
-    li.className = 'strona wzorzec standardowy';
-    // „+” z podpowiedzią zamiast „Dodaj do projektu” (#109); na telefonie krótkie „Dodaj” (css).
-    li.innerHTML = `<div class="opis-wzorca"><strong class="nazwa"></strong><small></small></div><button type="button" class="przycisk maly dodaj-standardowy">${ikona('plus', { rozmiar: 18 })}<span>Dodaj</span></button>`;
-    li.querySelector('.nazwa').textContent = w.nazwa;
-    li.querySelector('small').textContent = w.opis;
-    const b = li.querySelector('button');
-    b.dataset.standard = w.klucz;
-    b.title = `Dodaj wzorzec „${w.nazwa}” do projektu`;
-    b.setAttribute('aria-label', b.title);
-    return li;
-  }));
+  const marka = markaDoWzorcow(biezacaMarka());
+  const elementy = [];
+  for (const grupa of GRUPY_WZORCOW) {
+    const naglowek = document.createElement('li');
+    naglowek.className = 'grupa-wzorcow';
+    naglowek.textContent = grupa;
+    elementy.push(naglowek);
+    for (const w of WZORCE_STANDARDOWE.filter((x) => x.grupa === grupa)) {
+      const li = document.createElement('li');
+      li.className = 'wzorzec standardowy';
+      // Cała karta jest przyciskiem: podgląd, nazwa, opis i „+ Dodaj” (#109, #164).
+      li.innerHTML = `<button type="button" class="karta-wzorca dodaj-standardowy"><span class="podglad-wzorca"></span><span class="opis-wzorca"><strong class="nazwa"></strong><small></small></span><span class="znak-dodaj">${ikona('plus', { rozmiar: 16 })}<span>Dodaj</span></span></button>`;
+      li.querySelector('.nazwa').textContent = w.nazwa;
+      li.querySelector('small').textContent = w.opis;
+      const b = li.querySelector('button');
+      b.dataset.standard = w.klucz;
+      b.title = `Dodaj wzorzec „${w.nazwa}” do stron sekcji „${sekcja.nazwa}”`;
+      b.setAttribute('aria-label', b.title);
+      // Podgląd schematyczny w formacie sekcji i kolorach marki (#164) – miniatura prawdziwej strony była
+      // za mała, żeby rozpoznać numer czy stopkę; tu elementy wzorca są wyraźne, treść strony blada.
+      li.querySelector('.podglad-wzorca').innerHTML = podgladSvgWzorca(w, sekcja.wydruk, marka);
+      elementy.push(li);
+    }
+  }
+  lista.replaceChildren(...elementy);
   if (!$('#dlg-wzorce').open) $('#dlg-wzorce').showModal();
 }
 
-// Wzorzec standardowy zbudowany dla formatu bieżącej sekcji trafia do projektu jako zwykły wzorzec.
-export function dodajWzorzecStandardowy(klucz) {
+// Gotowy wzorzec zbudowany dla formatu bieżącej sekcji (i kolorów marki) trafia do projektu jako zwykły
+// wzorzec i od razu na strony tej sekcji (#164) – widać skutek od razu; „Cofnij” w komunikacie odwraca całość.
+export async function dodajWzorzecStandardowy(klucz, { doSekcji = true } = {}) {
   const def = WZORCE_STANDARDOWE.find((w) => w.klucz === klucz);
   if (!def) return null;
   const { projekt } = stan;
+  zapiszBiezacyCel();
   const sekcja = biezacaSekcja();
   let nazwa = def.nazwa;
   for (let n = 2; projekt.wzorce.some((w) => w.nazwa === nazwa); n += 1) nazwa = `${def.nazwa} ${n}`;
   const w = nowyWzorzec(nazwa, sekcja.wydruk);
-  w.obiekty = def.obiekty(sekcja.wydruk);
-  w.lustro = Boolean(def.lustro);
+  Object.assign(w, zbudujWzorzecStandardowy(def, sekcja.wydruk, markaDoWzorcow(biezacaMarka())));
   projekt.wzorce.push(w);
+  // Okno się zamyka – od razu widać wzorzec na stronie, a „Cofnij” działa (przy otwartym oknie cofanie czeka).
+  if ($('#dlg-wzorce').open) $('#dlg-wzorce').close();
+  if (doSekcji) {
+    sekcja.wzorce = [...sekcja.wzorce, w.id];
+    stan.miniatury.clear();
+    await zaladujCel();
+  }
   renderujListe();
   generujMiniatury();
   zaplanujZapis();
-  powiadom(`Dodano wzorzec „${nazwa}”. Dodaj go teraz do strony albo do całej sekcji.`);
+  powiadom(doSekcji ? `Wzorzec „${nazwa}” jest teraz na wszystkich stronach sekcji „${sekcja.nazwa}”.` : `Dodano wzorzec „${nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
   return w;
 }
 

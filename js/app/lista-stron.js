@@ -118,6 +118,15 @@ function renderujListeStron() {
           ? `Seria „${blok.seria.nazwa}”: ta strona wychodzi w wydruku ${ile} ${ile === 1 ? 'raz' : 'razy'}`
           : `Seria „${blok.seria.nazwa}”: tej strony nie ma w wydruku – wszystkie jej wiersze są pomijane`;
       }
+      // Które wzorce leżą na stronie (#164): mały znak na miniaturze, nazwy w podpowiedzi.
+      const wzStrony = wzorceStrony(projekt, s);
+      if (wzStrony.length) {
+        const znak = document.createElement('span');
+        znak.className = 'znak-wzorcow';
+        znak.innerHTML = `${ikona('wzorzec', { rozmiar: 11 })}${wzStrony.length > 1 ? `<span>${wzStrony.length}</span>` : ''}`;
+        znak.title = `Wzorce: ${wzStrony.map((w) => w.nazwa).join(', ')}`;
+        $('.miniatura', li).append(znak);
+      }
       $('.nazwa', li).textContent = bok ? `${nr ?? '–'} · ${s.nazwa}` : s.nazwa;
       $('.nazwa', li).title = s.nazwa;
       $('.miniatura', li).addEventListener('click', () => przejdzDoStrony(projekt.strony.indexOf(s)));
@@ -158,10 +167,12 @@ function renderujListeWzorcow() {
   const { projekt } = stan;
   $('#liczba-wzorcow').textContent = projekt.wzorce.length;
   $('#liczba-wzorcow').hidden = projekt.wzorce.length === 0;
+  const lp = $('#liczba-wzorcow-panel');
+  if (lp) { lp.textContent = projekt.wzorce.length; lp.hidden = projekt.wzorce.length === 0; }
   if (!projekt.wzorce.length) {
     const li = document.createElement('li');
     li.className = 'pusto-wzorce';
-    li.innerHTML = '<strong>Brak wzorców</strong><p>Dodaj pusty wzorzec i narysuj go sam albo wybierz jeden ze standardowych poniżej.</p>';
+    li.innerHTML = '<strong>Brak wzorców</strong><p>Na razie każda strona ma tylko własną treść. Wybierz gotowy wzorzec poniżej – np. numer strony – a pojawi się od razu na wszystkich stronach sekcji.</p>';
     lista.append(li);
     return;
   }
