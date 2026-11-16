@@ -138,8 +138,10 @@ test('dymki z podpowiedzią zamiast systemowych: najechanie myszą, Tab, Esc, zm
   await strona.keyboard.press('Escape');
   // Okno dialogowe: dymek jest w oknie (inaczej leżałby pod nim).
   await strona.click('[data-akcja="wydruk"]');
-  await strona.waitForSelector('dialog[open] [title]');
-  await strona.locator('dialog[open] [title]').first().hover();
+  // Pierwszy WIDOCZNY element z podpowiedzią (ukryte części okna sekcji też mają title, #180).
+  const zTytulem = strona.locator('dialog[open] button[title]:visible, dialog[open] label[title]:visible').first();
+  await zTytulem.waitFor();
+  await zTytulem.hover();
   await strona.waitForSelector('.dymek');
   assert.ok(await strona.evaluate(() => Boolean(document.querySelector('.dymek').closest('dialog[open]'))));
   assert.deepEqual(bledy, []);

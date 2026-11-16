@@ -356,11 +356,13 @@ async function ponadLimit() {
   return Boolean(tekst);
 }
 
-export async function otworzNowyProjekt() {
+// szablon: od razu „Zacznij od: Gotowego szablonu” (przycisk w pustej liście projektów, #180).
+export async function otworzNowyProjekt({ szablon = false } = {}) {
   if (await ponadLimit()) return;
   const dlg = $('#dlg-nowy');
   const f = $('#form-nowy');
   f.reset();
+  if (szablon && f.elements.start) f.elements.start.value = 'szablon';
   const karty = $('#karty-formatu');
   karty.replaceChildren();
   for (const [nazwa, wym] of FORMATY_KART) {

@@ -12,7 +12,7 @@ on:
       - "css/**"
       - "js/**"
       - "img/ikony/**"
-      - "scripts/zrzuty-instrukcji.cjs"
+      - "scripts/zrzuty-*.cjs"
       - "tests/pomoc.cjs"
       - ".github/workflows/zrzuty-instrukcji.yml"
   workflow_dispatch:

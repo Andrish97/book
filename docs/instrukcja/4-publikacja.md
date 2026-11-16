@@ -2,11 +2,11 @@
 
 Podgląd, sprawdzenie przed drukiem, plik PDF i link do podglądu.
 
-# 20. Podgląd
+# 19. Podgląd
 
 Podgląd pokazuje całą publikację tak, jak wyjdzie z druku.
 
-## 20.1 Otwieranie podglądu
+## 19.1 Otwieranie podglądu
 
 Podgląd jest z danymi i powielonymi stronami, bez linii pomocniczych i bez możliwości przypadkowej zmiany.
 Otworzysz go przyciskiem [Podgląd] na górnym pasku edytora (<kbd>Shift</kbd>+<kbd>W</kbd>) albo
@@ -19,20 +19,20 @@ Kliknięcie strony otwiera ją w edytorze; [Edytor] albo <kbd>Esc</kbd> wraca do
 
 ![Podgląd](podglad.png)
 
-## 20.2 Powiększanie
+## 19.2 Powiększanie
 
 - [−] i [+] na pasku; kliknięcie procentu wraca do 100%, czyli całej rozkładówki w oknie.
 - <kbd>Ctrl</kbd> + kółko myszy powiększa w miejscu kursora.
 - Na telefonie i tablecie: szczypanie dwoma palcami, podwójne stuknięcie powiększa albo wraca.
 
 
-## 20.3 Prezentacja
+## 19.3 Prezentacja
 
 [Prezentacja] pokazuje jedną stronę albo rozkładówkę naraz, na całym ekranie. Strzałki i spacja
 przewracają strony, <kbd>Esc</kbd> albo [×] zamyka. Na telefonie przesunięcie palcem w bok przewraca
 stronę, w dół — zamyka prezentację.
 
-## 20.4 Makieta 3D
+## 19.4 Makieta 3D
 
 [Makieta 3D] obok [Separacje] na pasku podglądu pokazuje projekt jako wydrukowaną rzecz — jak zdjęcie
 produktu w studiu: prawdziwe wymiary stron, grubość z papieru i liczby stron, światło z cieniem na stole
@@ -42,7 +42,7 @@ albo ścianie. Można ją obracać i kartkować, zanim pójdzie do drukarni.
 
 | Rodzaj | Jak wygląda |
 |---|---|
-| **Książka – miękka oprawa** | Leży na stole. Okładka z sekcji okładki (→ 11.6): przód, grzbiet i tył; środek kartka po kartce, otwarte strony wygięte przy grzbiecie, krawędzie kartek widać z boku. Bez sekcji okładki okładką jest pierwsza strona. |
+| **Książka – miękka oprawa** | Leży na stole. Okładka z sekcji okładki (→ 10.6): przód, grzbiet i tył; środek kartka po kartce, otwarte strony wygięte przy grzbiecie, krawędzie kartek widać z boku. Bez sekcji okładki okładką jest pierwsza strona. |
 | **Książka – twarda oprawa** | Okładki z tektury wystają ok. 3 mm poza środek i mają lekki połysk. Grzbiet to cienka, zaokrąglona płyta odsunięta od bloku — od góry i dołu widać szczelinę, zaokrąglony grzbiet środka ze składkami i kapitałkę. Otwarta okładka leży obok bloku i łączy się z nim grzbietem i wyklejką. |
 | **Notes na spirali** | Kartki na podwójnej spirali z drutu przez otwory przy brzegu. Pętle obejmują cały blok z okładkami — im grubszy notes, tym większe pętle (gruby notes – rzadszy skok i grubszy drut, jak w prawdziwej oprawie); notes leży na drucie. |
 | **Kalendarz ścienny** | Wisi na ścianie na wieszaku; karta po karcie na spirali u góry, przewrócona karta przechodzi na tył. |
@@ -69,20 +69,20 @@ jednym arkuszu — też dzieli się na dwie strony.
 
 ![Makieta 3D: kalendarz ścienny](k-makieta-kalendarz.png)
 
-> Wskazówka: makieta pokazuje kształt i grubość publikacji z papieru i liczby stron (→ 11.6) — to
-> podgląd, nie próbny wydruk. Kolory sprawdzisz w [Separacje] (→ 23.6).
+> Wskazówka: makieta pokazuje kształt i grubość publikacji z papieru i liczby stron (→ 10.6) — to
+> podgląd, nie próbny wydruk. Kolory sprawdzisz w [Separacje] (→ 22.6).
 
-## 20.5 Podgląd na żywo
+## 19.5 Podgląd na żywo
 
 Otwarty podgląd odświeża się sam, gdy projekt zmieni się gdzie indziej — na innym urządzeniu, u
 współpracownika albo przez AI. Zostaje w tym samym miejscu i powiększeniu; przerysowują się tylko
 zmienione strony.
 
-# 21. Sprawdź przed drukiem
+# 20. Sprawdź przed drukiem
 
 Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 
-## 21.1 Lista uwag
+## 20.1 Lista uwag
 
 [⋯] → [Sprawdź przed drukiem] przegląda cały projekt — także każdą powieloną stronę.
 
@@ -98,9 +98,9 @@ Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 | **Brak danych** | Tabeli dodatkowej zabrakło wierszy przed końcem serii. |
 | **Strony serii w rozkładówkach** | Gdzie stoją puste strony albo od której strony blok wychodzi po przeciwnej stronie. |
 | **Tabela wychodzi poza stronę** | Wiersze urosły razem z treścią i tabela wyszła poza kartkę. |
-| **Niepełna składka** | Sekcji brakuje stron do pełnej składki (→ 11.7); przy oprawie zeszytowej — liczba stron niepodzielna przez 4. |
-| **Pokrycie farbą** | Kolor elementu po przeliczeniu profilem drukarni daje ponad 300% farby — po otwarciu podglądu separacji z profilem albo eksporcie PDF/X-4 (→ 23.6). |
-| **Element w marginesie albo poza spadem** | Jak na liście ostrzeżeń w edytorze (→ 13.2). |
+| **Niepełna składka** | Sekcji brakuje stron do pełnej składki (→ 10.7); przy oprawie zeszytowej — liczba stron niepodzielna przez 4. |
+| **Pokrycie farbą** | Kolor elementu po przeliczeniu profilem drukarni daje ponad 300% farby — po otwarciu podglądu separacji z profilem albo eksporcie PDF/X-4 (→ 22.6). |
+| **Element w marginesie albo poza spadem** | Jak na liście ostrzeżeń w edytorze (→ 12.2). |
 
 [Pokaż] przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy, z wyróżnioną
 kartką. [Otwórz wzór] otwiera w edytorze stronę-wzór. Uwagi nie blokują eksportu — ta sama lista
@@ -108,11 +108,11 @@ jest na dole okna eksportu PDF.
 
 ![Lista uwag](kontrola.png)
 
-# 22. Eksport do PDF i PNG
+# 21. Eksport do PDF i PNG
 
-Plik dla drukarni, do oglądania na ekranie albo do wydruku w domu. Plik może też zlecić asystent AI (→ 26.5).
+Plik dla drukarni, do oglądania na ekranie albo do wydruku w domu. Plik może też zlecić asystent AI (→ 25.5).
 
-## 22.1 Okno eksportu
+## 21.1 Okno eksportu
 
 Wybierz [⋯] → [Eksportuj do PDF…].
 
@@ -122,16 +122,16 @@ Wybierz [⋯] → [Eksportuj do PDF…].
 |---|---|
 | **Rodzaj pliku** | **Wektorowy – ostry tekst i kształty**: tekst z osadzonymi czcionkami, ostry w każdym powiększeniu, da się go zaznaczyć. **Obrazy stron – strona jako zdjęcie**: każda strona to jeden obraz; wygląda wszędzie tak samo, ale plik jest większy. |
 | **Zakres** | **Cały projekt**, **Tylko bieżąca sekcja** albo **Strony od–do** (numery w całym wydruku). |
-| **Przeznaczenie** | **Do drukarni – ze spadem i znakami cięcia** albo **Do oglądania – równo do formatu**. Znaki cięcia dostają sekcje, które mają je włączone (→ 11.4). |
-| **Układ arkuszy** | **Zwykłe strony** albo strony ułożone na arkuszach do samodzielnego druku (→ 22.6). |
+| **Przeznaczenie** | **Do drukarni – ze spadem i znakami cięcia** albo **Do oglądania – równo do formatu**. Znaki cięcia dostają sekcje, które mają je włączone (→ 10.4). |
+| **Układ arkuszy** | **Zwykłe strony** albo strony ułożone na arkuszach do samodzielnego druku (→ 21.6). |
 | **Jakość** | Rozdzielczość zdjęć: 300 dpi — standard do druku, 150 dpi — mały plik na próbę, 600 dpi — bardzo ostro. |
 
-Na dole okna jest lista **Do sprawdzenia przed drukiem** (→ 21). [Eksportuj] zapisuje plik; długi
+Na dole okna jest lista **Do sprawdzenia przed drukiem** (→ 20). [Eksportuj] zapisuje plik; długi
 eksport przerwiesz przyciskiem [Anuluj] na karcie postępu.
 
 ![Okno eksportu](pdf.png)
 
-## 22.2 Zaawansowane
+## 21.2 Zaawansowane
 
 Część **Zaawansowane**:
 
@@ -143,10 +143,10 @@ Część **Zaawansowane**:
 | **Zdjęcia też w CMYK (większy plik)** | Przy PDF/X-4: zdjęcia przeliczone na farby drukarskie przez ten sam profil. |
 | **Podział na pliki** | **Jeden plik**, **Osobny plik dla każdej sekcji** albo **Części po tyle stron** (**Stron w części**). Kilka plików dostajesz w archiwum ZIP. |
 | **Dołącz pliki czcionek użytych w projekcie** | Do pobrania trafia ZIP z plikiem PDF i folderem `czcionki`. |
-| **PDF do czytania na ekranie: zakładki i klikalne linki** | Zakładki i linki dla czytających na ekranie (→ 22.7). Domyślnie włączone; przy PDF/X-4 i układzie arkuszy niedostępne. |
-| **Uszlachetnienia** | Gdy projekt je ma: **Osobne płyty w tym samym pliku PDF**, **Osobny plik PDF na każde uszlachetnienie** albo **Pomiń uszlachetnienia** (→ 23.4). |
+| **PDF do czytania na ekranie: zakładki i klikalne linki** | Zakładki i linki dla czytających na ekranie (→ 21.7). Domyślnie włączone; przy PDF/X-4 i układzie arkuszy niedostępne. |
+| **Uszlachetnienia** | Gdy projekt je ma: **Osobne płyty w tym samym pliku PDF**, **Osobny plik PDF na każde uszlachetnienie** albo **Pomiń uszlachetnienia** (→ 22.4). |
 
-## 22.3 Jak wybrać ustawienia dla drukarni
+## 21.3 Jak wybrać ustawienia dla drukarni
 
 Zapytaj drukarnię, czego wymaga:
 
@@ -158,25 +158,25 @@ Zapytaj drukarnię, czego wymaga:
 > Wskazówka: Plik z projektu w kolorach ekranu wygląda w druku nieco inaczej. Najpewniej zamówić
 > wydruk próbny.
 
-## 22.4 Czego nie da się zapisać wektorowo
+## 21.4 Czego nie da się zapisać wektorowo
 
 Element z cieniem, element przycięty maską i rysunek SVG z filtrem trafiają do pliku jako obraz
 tego jednego elementu — reszta strony zostaje wektorowa. Tekst w czcionce, której nie da się osadzić,
 trafia do pliku jako krzywe. Po eksporcie aplikacja mówi, jeśli coś takiego się zdarzyło.
 
-## 22.5 Strona jako PNG
+## 21.5 Strona jako PNG
 
 [⋯] → [Pobierz bieżącą stronę jako PNG] zapisuje obraz otwartej strony w 300 dpi, ze spadem —
 np. do pokazania komuś w wiadomości.
 
-## 22.6 Broszura i kilka stron na arkuszu
+## 21.6 Broszura i kilka stron na arkuszu
 
 **Układ arkuszy** w oknie eksportu kładzie strony na arkuszach — do druku na zwykłej drukarce albo w małej drukarni:
 
 | Układ | Co robi |
 |---|---|
 | **Broszura do składania (zeszyt)** | Strony parami, tak żeby po wydrukowaniu dwustronnym i złożeniu arkuszy na pół wyszedł zeszyt. Liczba stron dopełnia się pustymi do wielokrotności 4. |
-| **Broszura ze składek** | To samo, ale osobno dla każdej składki po **Składka (stron)** — 4, 8, 16 albo 32 (domyślnie jak w ustawieniach sekcji, → 11.7). Składki zszywa się albo klei razem. |
+| **Broszura ze składek** | To samo, ale osobno dla każdej składki po **Składka (stron)** — 4, 8, 16 albo 32 (domyślnie jak w ustawieniach sekcji, → 10.7). Składki zszywa się albo klei razem. |
 | **2 strony na arkuszu**, **4 strony na arkuszu** | Kolejne strony obok siebie — np. ulotki A6 po cztery na A4. |
 
 **Arkusz**: **Dopasowany do stron** (dwie strony A5 → arkusz 296 × 210 mm) albo **A4** / **A3** — strony stoją pośrodku i zmniejszają się, jeśli się nie mieszczą. **Pełzanie (mm)**: w grubszej broszurze środkowe kartki po złożeniu wystają; strony na nich przesuwają się o część tej wartości w stronę grzbietu (np. 0,5–1 mm przy 40 stronach).
@@ -185,20 +185,20 @@ np. do pokazania komuś w wiadomości.
 ![Broszura: plan arkuszy w oknie eksportu](k-pdf-arkusze.png)
  Przy **Do drukarni** arkusze mają znaki cięcia, a broszura — przerywane znaki złamu. Strony na arkuszach stoją równo do formatu, bez spadu.
 
-> Wskazówka: Broszurę na domowej drukarce łatwiej wydrukować przez [Drukuj w domu…] (→ 22.8).
+> Wskazówka: Broszurę na domowej drukarce łatwiej wydrukować przez [Drukuj w domu…] (→ 21.8).
 
-## 22.7 PDF do czytania na ekranie
+## 21.7 PDF do czytania na ekranie
 
 Zwykły plik PDF ma od razu nawigację dla czytających na ekranie:
 
-- **zakładki** w bocznym panelu czytnika — sekcje projektu, a pod nimi nagłówki (style nagłówków książki, → 14),
+- **zakładki** w bocznym panelu czytnika — sekcje projektu, a pod nimi nagłówki (style nagłówków książki, → 13),
 - **klikalny spis treści** — wiersz spisu prowadzi do strony,
 - **odsyłacze** „s. 12” prowadzą do tej strony,
 - **link elementu** — w panelu elementu, w części **Inne**, pole **Link w PDF (adres strony, e-mail)**: kliknięcie elementu w PDF otwiera adres; kod QR z adresem strony jest klikalny sam.
 
 Linki są w pliku wektorowym; zakładki — w obu rodzajach pliku. W PDF/X-4 dla drukarni nawigacji nie ma.
 
-## 22.8 Drukuj w domu
+## 21.8 Drukuj w domu
 
 Wydruk na zwykłej drukarce: [⋯] → [Drukuj w domu…] albo <kbd>Ctrl</kbd>+<kbd>P</kbd> w edytorze i podglądzie.
 Okno samo układa strony na kartkach — nie drukuj projektu z menu przeglądarki.
@@ -224,9 +224,9 @@ zapisuje ten sam plik.
    strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
 4. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu.
 
-# 23. Kolory projektu, farby i wykończenia
+# 22. Kolory projektu, farby i wykończenia
 
-## 23.1 Kolory dodatkowe
+## 22.1 Kolory dodatkowe
 
 Druk to nie tylko cztery farby CMYK. Makietka zna kolory dodatkowe (np. Pantone), wykończenia — lakier, złocenie, tłoczenie, biel — i druk tylko czarną farbą albo czarną z jednym kolorem. Wszystko trafia do pliku PDF tak, jak oczekuje drukarnia: każda farba na osobnej płycie.
 
@@ -242,7 +242,7 @@ To samo zrobisz we Właściwościach → **Wykończenie druku** → **Farba spec
 
 Listę kolorów dodatkowych masz w [⋯] → [Kolory projektu…]: tam zmienisz nazwę, wpiszesz **C**, **M**, **Y**, **K** (to tylko podgląd na ekranie — drukarnia użyje swojej farby) albo usuniesz kolor. Zmiana CMYK koloru dodatkowego zmienia wszystkie elementy w tym kolorze. Usunięcie koloru zostawia elementy w zwykłym kolorze CMYK.
 
-## 23.2 Wykończenie druku: lakier, złocenie, tłoczenie, biel
+## 22.2 Wykończenie druku: lakier, złocenie, tłoczenie, biel
 
 Wykończenie ustawiasz przy elemencie — nic nie trzeba wcześniej dodawać. Zaznacz element → Właściwości → **Wykończenie druku** i stuknij efekt:
 
@@ -261,15 +261,15 @@ Nad kafelkami wybierasz, **jak** dodać efekt:
 - **Kolor + efekt** — element drukuje się w swoich kolorach, a efekt idzie na jego kopię dokładnie nad nim. Tak zrobisz lakier na zdjęciu albo kolorowy napis ze złoceniem. Dla zdjęć to ustawienie domyślne.
 - **Sam efekt** — element nie drukuje się żadną farbą, jest tylko efektem, np. napis samym złotem. Dla kształtów i tekstu to ustawienie domyślne.
 
-W tej samej części jest **Farba specjalna** — wypełnienie elementu kolorem dodatkowym (→ 23.1).
+W tej samej części jest **Farba specjalna** — wypełnienie elementu kolorem dodatkowym (→ 22.1).
 
-> Wskazówka: Wykończenie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (→ 21).
+> Wskazówka: Wykończenie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (→ 20).
 
-## 23.3 Widok uszlachetnień
+## 22.3 Widok uszlachetnień
 
-W edytorze i podglądzie uszlachetnienie widać jako efekt: połysk lakieru, metaliczną folię, cień tłoczenia, biel na szachownicy. Menu widoku → **Pokaż uszlachetnienia** wyłącza efekt (→ 4.6).
+W edytorze i podglądzie uszlachetnienie widać jako efekt: połysk lakieru, metaliczną folię, cień tłoczenia, biel na szachownicy. Menu widoku → **Pokaż uszlachetnienia** wyłącza efekt (→ 3.6).
 
-## 23.4 Uszlachetnienia w pliku PDF
+## 22.4 Uszlachetnienia w pliku PDF
 
 W pliku wektorowym każde uszlachetnienie to osobna płyta z **nadrukiem** — nie wybija farby pod spodem. W oknie eksportu, w części **Zaawansowane**, wybierz **Uszlachetnienia**:
 
@@ -279,7 +279,7 @@ W pliku wektorowym każde uszlachetnienie to osobna płyta z **nadrukiem** — n
 
 Plik z obrazów stron nie ma osobnych płyt — wybierz plik wektorowy.
 
-## 23.5 Kolory projektu i druk kolorów — dla całości albo dla sekcji
+## 22.5 Kolory projektu i druk kolorów — dla całości albo dla sekcji
 
 [⋯] → [Kolory projektu…] zbiera w jednym oknie wszystko o kolorach. Na górze, w polu **Dotyczy**, wybierasz **Cały projekt** albo jedną sekcję — np. okładka w pełnym kolorze, a środek czarno-biały.
 
@@ -302,7 +302,7 @@ Na dole okna, w części **Wykończenia druku**, widać, jakie efekty są w proj
 
 > Wskazówka: Rozszerzony CMYK (CMYK z dodatkowymi farbami, np. pomarańczową, zieloną i fioletową) robi drukarnia sama z Twojego pliku — nie trzeba osobnej palety.
 
-## 23.6 Podgląd separacji
+## 22.6 Podgląd separacji
 
 W podglądzie projektu [Separacje] pokazuje stronę rozbitą na płyty, którymi wydrukuje ją drukarnia: **Cyjan**, **Magenta**, **Żółty**, **Czarny**, kolory dodatkowe i uszlachetnienia.
 
@@ -313,13 +313,13 @@ W podglądzie projektu [Separacje] pokazuje stronę rozbitą na płyty, którymi
 3. **Pokaż nadruk uszlachetnień** — uszlachetnienia jako kreskowana nakładka nad farbą (drukują się z nadrukiem, nie wybijają farby pod spodem).
 4. **Zaznacz pokrycie farbą ponad** **Limit pokrycia (%)** — miejsca, gdzie suma farb przekracza limit (zwykle 300% dla papieru powlekanego), robią się czerwone. Pod spodem jest największe pokrycie na stronie.
 
-**Przeliczanie na CMYK**: **Proste** — tak jak plik wektorowy w CMYK bez profilu (czerń i szarości samą czernią; nie przekracza 300%); **Papier powlekany (FOGRA39)** albo **Papier niepowlekany (FOGRA47)** — tak, jak przeliczy profil drukarni. Po przeliczeniu profilem **Sprawdź przed drukiem** wskaże też kolory elementów z pokryciem farbą powyżej 300% (→ 21).
+**Przeliczanie na CMYK**: **Proste** — tak jak plik wektorowy w CMYK bez profilu (czerń i szarości samą czernią; nie przekracza 300%); **Papier powlekany (FOGRA39)** albo **Papier niepowlekany (FOGRA47)** — tak, jak przeliczy profil drukarni. Po przeliczeniu profilem **Sprawdź przed drukiem** wskaże też kolory elementów z pokryciem farbą powyżej 300% (→ 20).
 
-# 24. Udostępnianie linkiem
+# 23. Udostępnianie linkiem
 
 Link do podglądu dla osób bez konta — klienta, rodziny, drukarni.
 
-## 24.1 Tworzenie linku
+## 23.1 Tworzenie linku
 
 Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
 
@@ -332,7 +332,7 @@ Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i
 
 Projekt z linkiem ma na liście projektów plakietkę **Udostępniony** — kliknięcie otwiera to samo okno.
 
-## 24.2 Aktualizacja
+## 23.2 Aktualizacja
 
 Link aktualizuje się sam: kilka sekund po Twoich zmianach aplikacja wysyła obrazy stron, które się
 zmieniły. Adres zostaje ten sam. [Aktualizuj teraz] robi to od razu. Osoba, która ma link otwarty,
@@ -341,7 +341,7 @@ nie musi odświeżać strony — nowe strony pojawią się same.
 Obrazy stron przygotowuje aplikacja, więc link nadąża za zmianami, gdy projekt jest otwarty —
 w edytorze albo w podglądzie, na dowolnym urządzeniu.
 
-## 24.3 Ochrona linku
+## 23.3 Ochrona linku
 
 Część **Ochrona linku**:
 
@@ -353,7 +353,7 @@ Część **Ochrona linku**:
 [Zapisz ochronę] zapisuje ustawienia. Puste pole hasła przy zaznaczonym haśle zostawia dotychczasowe;
 odznaczenie obu pól zdejmuje ochronę.
 
-## 24.4 Unieważnienie linku
+## 23.4 Unieważnienie linku
 
 [Unieważnij link] usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne
 udostępnienie daje nowy adres.

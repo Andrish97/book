@@ -79,7 +79,8 @@ const akcje = {
   'dostep-ai-kopiuj-adres': async () => (await dostepAi()).kopiujAdresAi(),
   'dostep-ai-kopiuj-polecenie': async () => (await dostepAi()).kopiujPolecenieAi(),
   'dostep-ai-zamknij': async () => (await dostepAi()).zamknijDostepAi(),
-  'nowy-projekt': otworzNowyProjekt,
+  'nowy-projekt': () => otworzNowyProjekt(),
+  'nowy-z-szablonu': () => otworzNowyProjekt({ szablon: true }),
   instrukcja: () => { zamknijMenu(); instrukcja.otworz(); },
   // Zestaw marki (#131D) – z ustawień konta i z edytora (Biblioteka); okno bez edytora.
   'marka-edytuj': async () => { zamknijMenu(); (await import('./marka-okno.js')).otworzMarke(); },
