@@ -219,7 +219,22 @@ const oknoKontroli = new OknoKontroli({
   },
   pokazWPodgladzie: (nrStrony) => pokazPodglad({ nrStrony }),
   // Naprawy prosto z listy uwag (#127): kolory spoza trybu kolorów → najbliższe dozwolone.
-  napraw: async (u) => { if (u.naprawa === 'kolory_trybu') await zamienKoloryNaDozwolone(); },
+  napraw: async (u) => {
+    if (u.naprawa === 'kolory_trybu') await zamienKoloryNaDozwolone();
+    // Twarda oprawa bez wyklejek (#177): brakujące wyklejki dochodzą jako czyste sekcje.
+    if (u.naprawa === 'wyklejki') {
+      zapiszBiezacyCel();
+      const { dodajWyklejki } = await import('../sekcje-specjalne.js');
+      const { przeliczOkladki } = await import('../okladka.js');
+      const nowe = dodajWyklejki(stan.projekt);
+      przeliczOkladki(stan.projekt);
+      stan.miniatury.clear();
+      await zaladujCel();
+      zaplanujZapis();
+      powiadom(nowe.length ? `Dodano: ${nowe.map((s) => s.nazwa.toLowerCase()).join(' i ')}.` : 'Wyklejki już są.');
+      oknoKontroli.otworz();
+    }
+  },
 });
 
 // Okno eksportu PDF razem z całym zapisem PDF (pdf-lib, czcionki, profile barwne) wczytuje się przy pierwszym

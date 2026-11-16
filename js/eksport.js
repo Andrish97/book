@@ -23,7 +23,7 @@ import { impozycjaPdf } from './impozycja.js';
 import { linkiStrony, dodajLinki, dodajZakladki } from './pdf-nawigacja.js';
 import { indeksKsiazki } from './ksiazka.js';
 import { ustawSilnikTac } from './separacje.js';
-import { wynikDlaStrony } from './sekcje-specjalne.js';
+import { wynikDlaStrony, rolaSekcji, ROLE_SEKCJI } from './sekcje-specjalne.js';
 import { rysujLinieSpecjalne, arkuszeUzytkow } from './pdf-specjalne.js';
 
 const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
@@ -75,6 +75,23 @@ export function planPlikow(projekt, egzemplarze, { podzial = 'jeden', ileStron =
     for (const e of egzemplarze) grupy.set(e.sekcja, [...(grupy.get(e.sekcja) || []), e]);
     if (grupy.size > 1) {
       return [...grupy].map(([s, lista], i) => ({ nazwa: `${podstawa} - ${i + 1} ${bezpiecznaNazwa(s.nazwa)}.pdf`, egzemplarze: lista }));
+    }
+  }
+  // Pliki dla drukarni według roli sekcji (#177): okładka, obwoluta, wyklejki (przednia i tylna razem), blok,
+  // wkładki, podkładka; druki osobne (ulotka, wykrojnik, arkusz użytków…) – każdy we własnym pliku.
+  if (podzial === 'role') {
+    const KOLEJNOSC = ['okladka', 'obwoluta', 'wyklejka', 'blok', 'wkladka', 'podkladka', 'osobny'];
+    const NAZWY = { okladka: 'okladka', obwoluta: 'obwoluta', wyklejka: 'wyklejki', blok: 'blok', wkladka: 'wkladki', podkladka: 'podkladka' };
+    const grupy = new Map();
+    for (const e of egzemplarze) {
+      const rola = rolaSekcji(projekt, e.sekcja);
+      const klucz = rola === 'osobny' ? `osobny:${e.sekcja.id}` : rola;
+      if (!grupy.has(klucz)) grupy.set(klucz, { rola, sekcja: e.sekcja, lista: [] });
+      grupy.get(klucz).lista.push(e);
+    }
+    if (grupy.size > 1) {
+      return [...grupy.values()].sort((a, b) => KOLEJNOSC.indexOf(a.rola) - KOLEJNOSC.indexOf(b.rola))
+        .map((g, i) => ({ nazwa: `${podstawa} - ${i + 1} ${g.rola === 'osobny' ? bezpiecznaNazwa(g.sekcja.nazwa) : NAZWY[g.rola]}.pdf`, egzemplarze: g.lista, rola: g.rola, opis: ROLE_SEKCJI[g.rola]?.nazwa }));
     }
   }
   if (podzial === 'czesci') {

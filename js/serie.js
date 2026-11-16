@@ -224,11 +224,14 @@ export function rozwin(projekt) {
   projekt.sekcje.forEach((sekcja, nrSekcji) => {
     const lista = egzemplarze.filter((e) => e.sekcja === sekcja);
     const { tryb, od } = sekcja.numeracja || { tryb: 'ciagla' };
+    // Rola sekcji (#177): okładka, wyklejki, obwoluta, wkładki, podkładka i druki osobne nie mają numerów stron
+    // i nie przesuwają numeracji bloku.
+    const pozaNumeracja = Boolean(sekcja.okladka) || (Boolean(sekcja.specjalna) && sekcja.specjalna.rodzaj !== 'kalendarz') || sekcja.rola === 'wkladka' || sekcja.rola === 'podkladka';
     if (tryb === 'od') nastepny = od;
     const rozkladowki = sekcja.uklad === 'rozkladowki';
     lista.forEach((e, k) => {
       e.nrWSekcji = k + 1;
-      if (tryb !== 'brak') { e.nr = nastepny; nastepny += 1; }
+      if (tryb !== 'brak' && !pozaNumeracja) { e.nr = nastepny; nastepny += 1; }
       if (rozkladowki) {
         e.bok = bokMiejsca(sekcja, k);
         e.sasiad = lista[e.bok === 'lewa' ? k + 1 : k - 1] || null;

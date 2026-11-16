@@ -50,6 +50,7 @@ export function domyslnaOkladka() {
     big_mm: 7, // twarda: rowek przy grzbiecie
     naddatek_mm: 3, // twarda: o tyle tektura wystaje poza blok (góra, dół, przód)
     tektura_mm: 2, // twarda: grubość tektury – grzbiet = blok + 2 × tektura
+    tasiemka: null, // zakładka – tasiemka wklejona w grzbiet (#177): null albo { kolor }
     // Wymiary (#125): auto – wszystko liczone; grzbiet – wpisany grzbiet (np. od drukarni);
     // rozmiar – wpisana szerokość × wysokość całej okładki (bez spadu), grzbiet wpisany albo liczony (0).
     wymiary: { tryb: 'auto', grzbiet_mm: 0, szerokosc_mm: 0, wysokosc_mm: 0 },
@@ -99,6 +100,7 @@ export function normalizujOkladke(o) {
     big_mm: liczbaLub(o.big_mm, d.big_mm, 0, 30),
     naddatek_mm: liczbaLub(o.naddatek_mm, d.naddatek_mm, 0, 20),
     tektura_mm: liczbaLub(o.tektura_mm, d.tektura_mm, 0, 10),
+    tasiemka: o.tasiemka && typeof o.tasiemka === 'object' && /^#[0-9a-f]{6}$/i.test(o.tasiemka.kolor || '') ? { kolor: o.tasiemka.kolor.toLowerCase() } : null,
     wymiary: {
       tryb: TRYBY_WYMIAROW[o.wymiary?.tryb] ? o.wymiary.tryb : 'auto',
       grzbiet_mm: liczbaLub(o.wymiary?.grzbiet_mm, 0, 0, 200),
@@ -125,10 +127,31 @@ export function gruboscKartki(papier) {
 // Sekcje środka dla okładki: wskazane albo wszystkie, które nie są okładkami.
 export function sekcjeSrodka(projekt, sekcja) {
   const wybrane = sekcja.okladka?.srodek;
-  // Sekcje specjalne z własnym arkuszem (obwoluta, ulotka, wykrojnik…, #177) nie są środkiem książki;
-  // kalendarz z datami – jest.
+  // Środek to blok (#177): bez sekcji specjalnych z własnym arkuszem (obwoluta, wyklejka, ulotka, wykrojnik…;
+  // kalendarz z datami jest blokiem) i bez wkładek i podkładek – wkładki liczą się do grzbietu osobno, swoim papierem.
   const osobnyArkusz = (s) => Boolean(s.specjalna) && s.specjalna.rodzaj !== 'kalendarz';
-  return projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s) && !osobnyArkusz(s) && (!wybrane || wybrane.includes(s.id)));
+  const pozaBlokiem = (s) => s.rola === 'wkladka' || s.rola === 'podkladka';
+  return projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s) && !osobnyArkusz(s) && !pozaBlokiem(s) && (!wybrane || wybrane.includes(s.id)));
+}
+
+// Grubość, którą wyklejki i wkładki dokładają do grzbietu bloku (mm, #177): luźna kartka każdej wyklejki
+// (jej papier) i kartki wkładek (ich papier albo – bez własnego – papier bloku `kartkaBloku`).
+export function dodatekGrzbietu(projekt, ciag, kartkaBloku) {
+  let mm = 0;
+  let wyklejek = 0;
+  let wkladek = 0;
+  for (const s of projekt.sekcje || []) {
+    if (s.specjalna?.rodzaj === 'wyklejka') {
+      mm += gruboscKartki({ tryb: 'gramatura', gramatura: Number(s.specjalna.gramatura) || 140, rodzaj: 'offset' });
+      wyklejek += 1;
+    } else if (s.rola === 'wkladka') {
+      const stron = ciag?.sekcje?.get(s.id)?.lista.length || 0;
+      const k = s.papier?.gramatura ? gruboscKartki({ tryb: 'gramatura', gramatura: Number(s.papier.gramatura), rodzaj: s.papier.rodzaj || 'offset' }) : kartkaBloku;
+      mm += Math.ceil(stron / 2) * k;
+      wkladek += Math.ceil(stron / 2);
+    }
+  }
+  return { mm, wyklejek, wkladek };
 }
 
 // Liczba stron w wydruku (z powieleniami serii i stronami pustymi) dla listy sekcji.
@@ -153,7 +176,9 @@ export function geometriaOkladki(projekt, sekcja, ciag = rozwin(projekt)) {
   const twarda = o.oprawa === 'twarda';
   const zeszyt = o.oprawa === 'zeszytowa';
   // Grzbiet i rozmiar liczone z papieru i formatu środka – zawsze, jako podpowiedź przy wpisanych wartościach.
-  const grzbietLiczony = zeszyt ? 0 : zaokraglij(kartek * kartka + (twarda ? 2 * o.tektura_mm : 0));
+  // Do bloku dochodzą luźne kartki wyklejek i kartki wkładek, każde swoim papierem (#177).
+  const dodatek = zeszyt ? { mm: 0, wyklejek: 0, wkladek: 0 } : dodatekGrzbietu(projekt, ciag, kartka);
+  const grzbietLiczony = zeszyt ? 0 : zaokraglij(kartek * kartka + dodatek.mm + (twarda ? 2 * o.tektura_mm : 0));
   const stale = twarda ? 2 * o.zawiniecie_mm + 2 * o.big_mm : 0;
   const panelLiczony = twarda ? sz + o.naddatek_mm : sz;
   const szerokoscLiczona = zaokraglij(2 * panelLiczony + grzbietLiczony + stale);
@@ -187,6 +212,7 @@ export function geometriaOkladki(projekt, sekcja, ciag = rozwin(projekt)) {
   const liczone = { grzbiet: grzbietLiczony, szerokosc: szerokoscLiczona, wysokosc: wysokoscLiczona };
   return {
     oprawa: o.oprawa, strona: { sz, wy }, stron, kartek, kartka_mm: Math.round(kartka * 1000) / 1000, grzbiet,
+    ...(dodatek.wyklejek || dodatek.wkladek ? { dodatek: { mm: Math.round(dodatek.mm * 100) / 100, wyklejek: dodatek.wyklejek, wkladek: dodatek.wkladek } } : {}),
     szerokosc, wysokosc, strefy, gora: zaokraglij(gora), dol: zaokraglij(wysokosc - gora), tryb: w.tryb, liczone,
   };
 }

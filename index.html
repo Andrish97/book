@@ -1009,6 +1009,7 @@
         <select name="rodzaj">
           <option value="strony">Strony</option>
           <option value="okladka">Okładka z grzbietem</option>
+          <option value="wyklejka">Wyklejka (twarda oprawa)</option>
           <option value="obwoluta">Obwoluta ze skrzydełkami</option>
           <option value="ulotka">Ulotka składana</option>
           <option value="kalendarz">Kalendarz z datami (rok)</option>
@@ -1018,10 +1019,28 @@
         </select>
       </label>
       <p class="podpowiedz" id="opis-rodzaju-sekcji" hidden></p>
+      <!-- Rola zwykłej sekcji stron w publikacji (#177): blok, wkładka (inny papier, poza numeracją), podkładka. -->
+      <div class="rzad" id="pole-rola-sekcji">
+        <label class="pole"><span>Rola w publikacji</span>
+          <select name="rola">
+            <option value="blok">Blok (środek książki)</option>
+            <option value="wkladka">Wkładka – inny papier, bez numerów stron</option>
+            <option value="podkladka">Podkładka / plecy (karton)</option>
+          </select>
+        </label>
+        <label class="pole waskie" id="pole-rola-gramatura"><span>Papier wkładki (g/m²)</span><input name="rola_gramatura" type="number" min="30" max="400" step="1" inputmode="numeric"></label>
+        <label class="pole" id="pole-rola-papier"><span>Rodzaj papieru wkładki</span><select name="rola_papier"><option value="kredowy_mat">Kredowy matowy</option><option value="kredowy_blysk">Kredowy błyszczący</option><option value="offset">Offsetowy</option><option value="ksiazkowy">Książkowy</option><option value="objetosciowy">Objętościowy</option></select></label>
+      </div>
+      <p class="podpowiedz" id="opis-roli-sekcji"></p>
       <fieldset class="grupa-pol" id="sekcja-specjalna" hidden>
         <legend id="legenda-specjalnej">Sekcja</legend>
         <div class="schemat-okladki schemat-specjalnej" id="schemat-specjalnej" aria-hidden="true"></div>
         <p class="wynik-okladki" id="wynik-specjalnej" role="status"></p>
+        <div class="rzad" data-sp="wyklejka">
+          <label class="pole waskie"><span>Wyklejka</span><select name="sp_strona"><option value="przednia">przednia</option><option value="tylna">tylna</option></select></label>
+          <label class="pole"><span>Zadruk</span><select name="sp_zadruk"><option value="czysta">czysta (bez druku)</option><option value="jednostronny">zadrukowana – strona widoczna</option><option value="dwustronny">zadrukowana z obu stron</option></select></label>
+          <label class="pole waskie"><span>Papier (g/m²)</span><input name="sp_gramatura" type="number" min="60" max="400" step="1" inputmode="numeric"></label>
+        </div>
         <div class="rzad" data-sp="obwoluta">
           <label class="pole waskie"><span>Skrzydełko (mm, 0 – samo)</span><input name="sp_skrzydelko_mm" type="number" min="0" max="300" step="any" inputmode="decimal"></label>
           <label class="pole waskie"><span>Zapas na zgięcie (mm)</span><input name="sp_zapas_mm" type="number" min="0" max="20" step="any" inputmode="decimal"></label>
@@ -1154,6 +1173,10 @@
           <label class="pole waskie"><span>Big (mm)</span><input name="ok_big" type="number" min="0" max="30" step="any" inputmode="decimal"></label>
           <label class="pole waskie"><span>Naddatek tektury (mm)</span><input name="ok_naddatek" type="number" min="0" max="20" step="any" inputmode="decimal"></label>
           <label class="pole waskie"><span>Grubość tektury (mm)</span><input name="ok_tektura" type="number" min="0" max="10" step="any" inputmode="decimal"></label>
+        </div>
+        <div class="rzad" id="pole-ok-tasiemka" hidden>
+          <label class="przelacznik"><input type="checkbox" name="ok_tasiemka"><span>Zakładka – tasiemka w grzbiecie</span></label>
+          <label class="pole waskie"><span>Kolor tasiemki</span><input name="ok_tasiemka_kolor" type="color" value="#8b1e2d"></label>
         </div>
         <p class="podpowiedz">Grubość kartki (albo gramaturę i rodzaj papieru) podaje drukarnia. Okładka przelicza się sama, gdy przybędzie stron w środku – elementy grzbietu zostają na jego środku, a przód przesuwa się razem z nim.</p>
       </fieldset>
@@ -1415,6 +1438,7 @@
             <select name="podzial">
               <option value="jeden">Jeden plik</option>
               <option value="sekcje">Osobny plik dla każdej sekcji</option>
+              <option value="role">Pliki dla drukarni: okładka, wyklejki, blok…</option>
               <option value="czesci">Części po tyle stron</option>
             </select>
           </label>

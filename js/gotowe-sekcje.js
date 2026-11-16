@@ -19,7 +19,7 @@
 import { uid, ptNaMm, nowaSekcja, nowaStrona, nowyWzorzec, nowaTabela, nowaSeria, normalizujWydruk, uporzadkujStrony, WZORCE_Z_SEKCJI } from './projekt.js';
 import { szablonPlanera, zastosujSzablon } from './szablony-planera.js';
 import { normalizujOkladke, geometriaOkladki } from './okladka.js';
-import { domyslnaSpecjalna, geometriaSpecjalna } from './sekcje-specjalne.js';
+import { domyslnaSpecjalna, geometriaSpecjalna, dodajWyklejki } from './sekcje-specjalne.js';
 import { domyslneStyle } from './style-tekstu.js';
 
 // Zależności rysujące – wczytywane raz, przy pierwszym wstawieniu.
@@ -1165,6 +1165,8 @@ export async function wstawGotowaSekcje(projekt, id, opcje = {}) {
   });
   projekt.strony.push(...strony);
   uporzadkujStrony(projekt);
+  // Okładka twarda (#177): od razu z wyklejkami (czystymi) – twarda oprawa bez nich nie zostanie zszyta z blokiem.
+  if (sekcja.okladka?.oprawa === 'twarda') dodajWyklejki(projekt, { zadruk: 'czysta' });
   return { sekcja, strony };
 }
 

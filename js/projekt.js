@@ -267,6 +267,13 @@ export function normalizuj(p) {
       sekcja.specjalna = specjalna;
       if (specjalna.rodzaj !== 'kalendarz') { sekcja.uklad = 'pojedyncze'; delete sekcja.skladka; }
     } else delete sekcja.specjalna;
+    // Rola zwykłej sekcji stron (#177): blok (domyślnie, bez pola), wkładka (z własnym papierem) albo podkładka.
+    if (!sekcja.okladka && !sekcja.specjalna && ['wkladka', 'podkladka'].includes(s.rola)) {
+      sekcja.rola = s.rola;
+      const g = Number(s.papier?.gramatura);
+      if (s.rola === 'wkladka' && g >= 30 && g <= 400) sekcja.papier = { gramatura: g, rodzaj: ['offset', 'ksiazkowy', 'objetosciowy', 'kredowy_mat', 'kredowy_blysk'].includes(s.papier.rodzaj) ? s.papier.rodzaj : 'offset' };
+      else delete sekcja.papier;
+    } else { delete sekcja.rola; delete sekcja.papier; }
     return sekcja;
   });
   delete wynik.wydruk;

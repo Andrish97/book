@@ -17,7 +17,7 @@
 import { geometriaOkladki, normalizujOkladke, przesunElementy, poPrzeliczeniu } from './okladka.js';
 import { swietaPolskie, dataIso } from './swieta.js';
 import { rozwin } from './serie.js';
-import { uid, WZORCE_Z_SEKCJI } from './projekt.js';
+import { uid, WZORCE_Z_SEKCJI, uporzadkujStrony } from './projekt.js';
 
 const zaokr = (mm) => Math.round(mm * 10) / 10;
 const liczbaLub = (v, d, min = 0, max = Infinity) => {
@@ -36,7 +36,7 @@ const punkty = (lista) => lista.map(([x, y]) => ({ x: zaokr(x), y: zaokr(y) }));
 function ksiazkaPodObwolute(projekt, sekcja, ciag) {
   const okladka = (projekt.sekcje || []).find((s) => s.okladka && s.okladka.oprawa === 'twarda');
   const wzorOkladki = okladka || { id: '__obwoluta__', okladka: normalizujOkladke({ oprawa: 'twarda' }) };
-  const zbior = okladka ? projekt : { ...projekt, sekcje: [...projekt.sekcje.filter((s) => s !== sekcja && !s.specjalna), wzorOkladki] };
+  const zbior = okladka ? projekt : { ...projekt, sekcje: [...projekt.sekcje.filter((s) => s !== sekcja && (!s.specjalna || s.specjalna.rodzaj === 'wyklejka')), wzorOkladki] };
   const g = geometriaOkladki(zbior, wzorOkladki, ciag);
   const plyta = g.strefy.find((z) => z.rodzaj === 'przod');
   const grzbiet = g.strefy.find((z) => z.rodzaj === 'grzbiet');
@@ -301,6 +301,75 @@ function geometriaArkusza(p) {
   };
 }
 
+// ---------- Wyklejka ----------
+
+// Sekcje bloku (środka książki): zwykłe strony z rolą „blok” i kalendarz z datami – bez okładki, wyklejek,
+// wkładek i sekcji z osobnym arkuszem.
+export function sekcjeBloku(projekt) {
+  return (projekt.sekcje || []).filter((s) => rolaSekcji(projekt, s) === 'blok');
+}
+
+// Wyklejka: arkusz w rozłożeniu – dwie kartki formatu bloku obok siebie, złożone w grzbiecie. Jedna połowa
+// przykleja się do wewnętrznej strony twardej okładki, druga jest pierwszą (przednia) albo ostatnią (tylna)
+// luźną kartką książki. Strona 1 – zadrukowana strona widoczna po otwarciu okładki; strona 2 (zadruk dwustronny) –
+// odwrotna strona arkusza.
+function geometriaWyklejki(projekt, sekcja, p) {
+  const blok = sekcjeBloku(projekt)[0]?.wydruk || { szerokosc_mm: 148, wysokosc_mm: 210 };
+  const sz = blok.szerokosc_mm;
+  const wy = blok.wysokosc_mm;
+  const przednia = p.strona === 'przednia';
+  const naOkladce = 'Na okładce (przyklejona)';
+  const luzna = przednia ? 'Pierwsza luźna kartka' : 'Ostatnia luźna kartka';
+  const strefy = [
+    prost(przednia ? 'na_okladke' : 'luzna', przednia ? naOkladce : luzna, 0, 0, sz, wy, { strona: 0 }),
+    prost(przednia ? 'luzna' : 'na_okladke', przednia ? luzna : naOkladce, sz, 0, 2 * sz, wy, { strona: 0 }),
+    prost(przednia ? 'luzna_tyl' : 'klej', przednia ? 'Luźna kartka – odwrotna strona' : 'Klejona do okładki (niewidoczna)', 0, 0, sz, wy, { strona: 1 }),
+    prost(przednia ? 'klej' : 'luzna_tyl', przednia ? 'Klejona do okładki (niewidoczna)' : 'Luźna kartka – odwrotna strona', sz, 0, 2 * sz, wy, { strona: 1 }),
+  ];
+  return {
+    szerokosc: zaokr(2 * sz), wysokosc: zaokr(wy), stron: p.zadruk === 'dwustronny' ? 2 : 1, strefy,
+    bigi: [linia(sz, 0, sz, wy)], perforacje: [], ciecie: [], naciecia: [], kartka_mm: zaokr((p.gramatura * 1.25) / 100) / 10,
+  };
+}
+
+// ---------- Rola sekcji w publikacji ----------
+
+// Rola, którą rozumie cała aplikacja: grzbiet okładki liczy się z bloku (i osobno z wyklejek i wkładek),
+// numeracja stron pomija okładkę, wyklejki, obwolutę i wkładki, PDF dla drukarni dzieli się na pliki według roli,
+// a kontrola przed drukiem pilnuje kompletu (twarda oprawa bez wyklejek, wyklejka przy miękkiej).
+export const ROLE_SEKCJI = {
+  blok: { nazwa: 'Blok (środek książki)', opis: 'Strony środka: liczą się do numeracji i do grubości grzbietu (papier środka z okładki).' },
+  okladka: { nazwa: 'Okładka', opis: 'Okładka z grzbietem liczonym z bloku – osobny plik dla drukarni, bez numerów stron.' },
+  wyklejka: { nazwa: 'Wyklejka', opis: 'Arkusz łączący blok z twardą okładką: połowa na okładce, połowa to pierwsza albo ostatnia kartka. Własny papier, bez numerów stron.' },
+  obwoluta: { nazwa: 'Obwoluta', opis: 'Papierowa okładka na twardą oprawę, ze skrzydełkami – osobny plik.' },
+  wkladka: { nazwa: 'Wkładka', opis: 'Kartki na innym papierze w środku (np. zdjęcia na kredzie): poza numeracją, grubość z własnego papieru.' },
+  podkladka: { nazwa: 'Podkładka / plecy', opis: 'Karton pod kalendarzem albo notesem (np. plecy z główką): poza numeracją i grzbietem.' },
+  osobny: { nazwa: 'Osobny druk', opis: 'Rzecz drukowana osobno (ulotka, wykrojnik, arkusz użytków, kalendarz trójdzielny).' },
+};
+// Role do wyboru przy zwykłej sekcji stron (pozostałe wynikają z rodzaju sekcji).
+export const ROLE_STRON = ['blok', 'wkladka', 'podkladka'];
+
+export function rolaSekcji(projekt, sekcja) {
+  if (!sekcja) return 'blok';
+  if (sekcja.okladka) return 'okladka';
+  const r = sekcja.specjalna?.rodzaj;
+  if (r === 'wyklejka' || r === 'obwoluta') return r;
+  if (r && r !== 'kalendarz') return 'osobny';
+  return ROLE_STRON.includes(sekcja.rola) ? sekcja.rola : 'blok';
+}
+
+// Wyklejki projektu: { przednia, tylna } – sekcje (albo null) z wymiarami arkusza. Dla makiety 3D (#161):
+// przednia.wynik.strefy z rodzajem 'na_okladke' – połowa do przyklejenia do okładki, 'luzna' – pierwsza kartka.
+export function wyklejkiProjektu(projekt) {
+  const wynik = { przednia: null, tylna: null };
+  for (const s of projekt.sekcje || []) {
+    if (s.specjalna?.rodzaj !== 'wyklejka') continue;
+    const strona = s.specjalna.strona === 'tylna' ? 'tylna' : 'przednia';
+    if (!wynik[strona]) wynik[strona] = s;
+  }
+  return wynik;
+}
+
 // ---------- Kalendarz z datami ----------
 
 const DNI = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
@@ -424,6 +493,16 @@ export const RODZAJE_SEKCJI = {
       dlugosc_mm: liczbaLub(o.dlugosc_mm, d.dlugosc_mm, 20, 400), szerokosc_mm: liczbaLub(o.szerokosc_mm, d.szerokosc_mm, 10, 400), wysokosc_mm: liczbaLub(o.wysokosc_mm, d.wysokosc_mm, 10, 500),
     }),
     geometria: (projekt, sekcja, p) => geometriaWykrojnika(p),
+  },
+  wyklejka: {
+    nazwa: 'Wyklejka',
+    opis: 'Przednia albo tylna wyklejka twardej oprawy: arkusz z dwóch kartek formatu bloku – połowa na okładce, połowa to luźna kartka. Własny papier, bez numerów stron.',
+    domyslne: { strona: 'przednia', zadruk: 'jednostronny', gramatura: 140 },
+    normalizuj: (o, d) => ({
+      strona: zListy(o.strona, ['przednia', 'tylna'], d.strona), zadruk: zListy(o.zadruk, ['czysta', 'jednostronny', 'dwustronny'], d.zadruk),
+      gramatura: liczbaLub(o.gramatura, d.gramatura, 60, 400),
+    }),
+    geometria: (projekt, sekcja, p) => geometriaWyklejki(projekt, sekcja, p),
   },
   arkusz: {
     nazwa: 'Arkusz użytków',
@@ -564,7 +643,7 @@ function przeliczKalendarz(projekt, sekcja) {
 function dopelnijStrony(projekt, sekcja, stron) {
   const obecne = projekt.strony.filter((s) => s.sekcja === sekcja.id);
   if (obecne.length >= stron) return false;
-  const nazwy = sekcja.specjalna.rodzaj === 'ulotka' ? ['Strona zewnętrzna', 'Strona wewnętrzna'] : [];
+  const nazwy = sekcja.specjalna.rodzaj === 'ulotka' ? ['Strona zewnętrzna', 'Strona wewnętrzna'] : sekcja.specjalna.rodzaj === 'wyklejka' ? ['Wyklejka – strona widoczna', 'Wyklejka – odwrotna strona'] : [];
   let po = obecne.length ? projekt.strony.indexOf(obecne[obecne.length - 1]) : projekt.strony.length - 1;
   for (let i = obecne.length; i < stron; i += 1) {
     const st = { id: uid('s'), nazwa: nazwy[i] || `Strona ${i + 1}`, sekcja: sekcja.id, wzorce: WZORCE_Z_SEKCJI, obiekty: [], tlo: null };
@@ -643,11 +722,35 @@ export function opisSpecjalnej(sekcja) {
   if (p.rodzaj === 'ulotka') return `Arkusz ${rozmiar}, ${p.panele} panele${p.zlozenie === 'c' && p.panele > 2 ? ` (zwijana: panele ${w.panele.map(mm).join(' / ')} mm)` : ''}, strona zewnętrzna i wewnętrzna.`;
   if (p.rodzaj === 'trojdzielny') return `Kalendarz ${rozmiar}: główka ${mm(p.glowka_mm)} mm, 3 kalendaria po ${mm(p.kalendarium_mm)} mm${p.reklama_mm ? `, pasek reklamowy ${mm(p.reklama_mm)} mm` : ''}.`;
   if (p.rodzaj === 'wykrojnik') return `Rozkładówka ${rozmiar}; po złożeniu ${mm(w.zlozona.w)} × ${mm(w.zlozona.h)}${w.zlozona.g ? ` × ${mm(w.zlozona.g)}` : ''} mm. Wykrojnik w PDF jako osobny kolor „CutContour”.`;
+  if (p.rodzaj === 'wyklejka') return `Wyklejka ${p.strona} ${rozmiar} (dwie kartki formatu bloku), papier ${p.gramatura} g/m²${p.zadruk === 'czysta' ? ', bez zadruku' : p.zadruk === 'dwustronny' ? ', zadruk dwustronny' : ''}. Bez numerów stron; luźna kartka liczy się do grzbietu.`;
   if (p.rodzaj === 'arkusz') {
     const u = w.uzytki;
     return `Użytek ${rozmiar}; na arkuszu ${mm(u.arkusz.w)} × ${mm(u.arkusz.h)} mm mieści się ${u.kolumny} × ${u.wiersze} = ${u.na_arkuszu}.`;
   }
   return rozmiar;
+}
+
+// Dodaje brakujące wyklejki (przednią za okładką, tylną na końcu) – po jednej stronie, czyste (do zadrukowania).
+// Zwraca nowe sekcje. Format i wynik policzy przeliczenie (okladka.przeliczOkladki).
+export function dodajWyklejki(projekt, { zadruk = 'czysta' } = {}) {
+  const wyk = wyklejkiProjektu(projekt);
+  const nowe = [];
+  for (const strona of ['przednia', 'tylna']) {
+    if (wyk[strona]) continue;
+    const wzor = sekcjeBloku(projekt)[0]?.wydruk || projekt.sekcje[0]?.wydruk;
+    const sekcja = {
+      id: uid('sek'), nazwa: strona === 'przednia' ? 'Wyklejka przednia' : 'Wyklejka tylna',
+      wydruk: JSON.parse(JSON.stringify(wzor)), uklad: 'pojedyncze', pierwsza: 'prawa', wzorce: [], numeracja: { tryb: 'brak', od: 1 },
+      specjalna: { ...domyslnaSpecjalna('wyklejka'), strona, zadruk },
+    };
+    // Przednia: zaraz za okładką (albo na początku), tylna: na końcu.
+    const okl = projekt.sekcje.findIndex((s) => s.okladka);
+    if (strona === 'przednia') projekt.sekcje.splice(okl + 1, 0, sekcja); else projekt.sekcje.push(sekcja);
+    projekt.strony.push({ id: uid('s'), nazwa: sekcja.nazwa, sekcja: sekcja.id, wzorce: [], obiekty: [], tlo: null });
+    nowe.push(sekcja);
+  }
+  if (nowe.length) uporzadkujStrony(projekt); // strony w kolejności sekcji
+  return nowe;
 }
 
 // ---------- Kontrola przed drukiem ----------
@@ -666,6 +769,19 @@ function prostokatElementu(o) {
 // Uwagi do sekcji specjalnych: [{ rodzaj: 'specjalna', idSekcji, opis, strony }].
 export function uwagiSekcjiSpecjalnych(projekt, ciag) {
   const uwagi = [];
+  // Role w książce (#177): twarda oprawa potrzebuje wyklejek; wyklejka bez twardej oprawy nie ma do czego się kleić.
+  const twarda = (projekt.sekcje || []).find((s) => s.okladka?.oprawa === 'twarda');
+  const wyk = wyklejkiProjektu(projekt);
+  const ileWyklejek = (projekt.sekcje || []).filter((s) => s.specjalna?.rodzaj === 'wyklejka');
+  if (twarda && (!wyk.przednia || !wyk.tylna)) {
+    const brak = [!wyk.przednia && 'przedniej', !wyk.tylna && 'tylnej'].filter(Boolean).join(' i ');
+    uwagi.push({ rodzaj: 'specjalna', idSekcji: twarda.id, naprawa: 'wyklejki', opis: `Twarda oprawa bez wyklejki ${brak}. Wyklejka łączy blok z okładką – dodaj ją (może zostać czysta) albo potwierdź z drukarnią, że użyje własnej.` });
+  }
+  if (!twarda && ileWyklejek.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: ileWyklejek[0].id, opis: 'Projekt ma wyklejkę, a nie ma okładki twardej – wyklejki są tylko w twardej oprawie. Zmień oprawę okładki albo usuń wyklejkę.' });
+  for (const strona of ['przednia', 'tylna']) {
+    const lista = ileWyklejek.filter((s) => (s.specjalna.strona === 'tylna' ? 'tylna' : 'przednia') === strona);
+    if (lista.length > 1) uwagi.push({ rodzaj: 'specjalna', idSekcji: lista[1].id, opis: `Projekt ma ${lista.length} wyklejki ${strona === 'przednia' ? 'przednie' : 'tylne'} – książka ma jedną przednią i jedną tylną.` });
+  }
   for (const sekcja of projekt.sekcje || []) {
     const p = sekcja.specjalna;
     if (!p?.wynik) continue;

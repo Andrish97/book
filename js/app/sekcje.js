@@ -7,7 +7,7 @@ import {
   PAPIERY, STREFY, normalizujOkladke, domyslnaOkladka, geometriaOkladki, jestOkladka, przeliczOkladki,
   normalizujSkladke, bilansSkladki, opisSkladki,
 } from '../okladka.js';
-import { RODZAJE_SEKCJI, domyslnaSpecjalna, normalizujSpecjalna, geometriaSpecjalna, opisSpecjalnej } from '../sekcje-specjalne.js';
+import { RODZAJE_SEKCJI, ROLE_SEKCJI, domyslnaSpecjalna, normalizujSpecjalna, geometriaSpecjalna, opisSpecjalnej } from '../sekcje-specjalne.js';
 import { $, $$, powiadom, potwierdz } from '../ui.js';
 import { stan, biezacaSekcja, tenSamRozmiar, liczba, edytor, biezacaStrona } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
@@ -57,6 +57,10 @@ export function otworzUstawieniaSekcji(id) {
   otworzUstawieniaSekcji.jakoOkladka = false;
   wypelnijSpecjalna(f, istniejaca, otworzUstawieniaSekcji.jakoSpecjalna);
   otworzUstawieniaSekcji.jakoSpecjalna = null;
+  // Rola zwykłej sekcji stron (#177).
+  f.elements.rola.value = ['wkladka', 'podkladka'].includes(istniejaca?.rola) ? istniejaca.rola : 'blok';
+  f.elements.rola_gramatura.value = istniejaca?.papier?.gramatura || 130;
+  f.elements.rola_papier.value = istniejaca?.papier?.rodzaj || 'kredowy_mat';
 
   const lista = $('#sekcja-wzorce');
   lista.replaceChildren();
@@ -100,6 +104,16 @@ function odswiezPolaSekcji() {
     for (const el of $$('[data-sp]', f)) el.hidden = el.dataset.sp !== rodzajSp || (el.dataset.spKsztalt !== undefined && el.dataset.spKsztalt !== ksztalt);
     for (const el of $$('[data-sp-ksztalt]:not([data-sp])', f)) el.hidden = el.dataset.spKsztalt !== ksztalt;
   }
+  const zwykla = !okladka && !rodzajSp;
+  $('#pole-rola-sekcji').hidden = !zwykla;
+  $('#opis-roli-sekcji').hidden = !zwykla;
+  if (zwykla) {
+    const rola = f.elements.rola.value;
+    $('#opis-roli-sekcji').textContent = ROLE_SEKCJI[rola]?.opis || '';
+    $('#pole-rola-gramatura').hidden = rola !== 'wkladka';
+    $('#pole-rola-papier').hidden = rola !== 'wkladka';
+  }
+  $('#pole-ok-tasiemka').hidden = !okladka || f.elements.ok_oprawa.value !== 'twarda';
   $('#sekcja-format').hidden = okladka || arkuszSp;
   $('#pole-uklad-sekcji').hidden = okladka || arkuszSp;
   $('#pole-skladka').hidden = okladka || arkuszSp;
@@ -128,7 +142,7 @@ function odswiezPolaSekcji() {
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
   if (e.target.name?.startsWith('sp_')) { if (e.target.name === 'sp_ksztalt') odswiezPolaSekcji(); else rysujSpecjalna(); return; }
-  if (['uklad', 'numeracja', 'rodzaj', 'ok_papier', 'ok_oprawa', 'ok_strony', 'ok_wymiary', 'skladka'].includes(e.target.name)) {
+  if (['uklad', 'numeracja', 'rodzaj', 'rola', 'ok_papier', 'ok_oprawa', 'ok_strony', 'ok_wymiary', 'skladka'].includes(e.target.name)) {
     // Przejście na wpisane wymiary: pola dostają bieżące, liczone wartości – do poprawienia, nie od zera.
     if (e.target.name === 'ok_wymiary') {
       const f = e.target.form;
@@ -198,6 +212,8 @@ function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
   f.elements.ok_big.value = o.big_mm;
   f.elements.ok_naddatek.value = o.naddatek_mm;
   f.elements.ok_tektura.value = o.tektura_mm;
+  f.elements.ok_tasiemka.checked = Boolean(o.tasiemka);
+  if (o.tasiemka) f.elements.ok_tasiemka_kolor.value = o.tasiemka.kolor;
   f.elements.ok_wymiary.value = o.wymiary.tryb;
   f.elements.ok_grzbiet.value = o.wymiary.grzbiet_mm || '';
   f.elements.ok_szerokosc.value = o.wymiary.szerokosc_mm || '';
@@ -228,6 +244,7 @@ function okladkaZPol(f) {
     strony: { tryb: f.elements.ok_strony.value, liczba: n('ok_liczba') },
     papier: { tryb: f.elements.ok_papier.value, gramatura: n('ok_gramatura'), grubosc_mm: n('ok_grubosc'), rodzaj: f.elements.ok_rodzaj.value },
     zawiniecie_mm: n('ok_zawiniecie'), big_mm: n('ok_big'), naddatek_mm: n('ok_naddatek'), tektura_mm: n('ok_tektura'),
+    tasiemka: f.elements.ok_tasiemka.checked ? { kolor: f.elements.ok_tasiemka_kolor.value } : null,
     wymiary: { tryb: f.elements.ok_wymiary.value, grzbiet_mm: n('ok_grzbiet'), szerokosc_mm: n('ok_szerokosc'), wysokosc_mm: n('ok_wysokosc') },
   });
 }
@@ -299,6 +316,7 @@ function opiszSkladke() {
 
 // Pole okna → parametr rodzaju (część nazw parametrów powtarza się między rodzajami – pola mają własne nazwy).
 const POLA_SPECJALNE = {
+  wyklejka: { strona: 'sp_strona', zadruk: 'sp_zadruk', gramatura: 'sp_gramatura' },
   obwoluta: { skrzydelko_mm: 'sp_skrzydelko_mm', zapas_mm: 'sp_zapas_mm', naddatek_wys_mm: 'sp_naddatek_wys_mm' },
   ulotka: { panele: 'sp_panele', zlozenie: 'sp_zlozenie', szerokosc_mm: 'sp_szerokosc_mm', wysokosc_mm: 'sp_wysokosc_mm', skrot_mm: 'sp_skrot_mm' },
   kalendarz: { rok: 'sp_rok', jednostka: 'sp_jednostka', pierwszy: 'sp_pierwszy', swieta: 'sp_swieta' },
@@ -352,6 +370,7 @@ function specjalnaZPol(f) {
 }
 
 const PODPOWIEDZI_SPECJALNE = {
+  wyklejka: 'Format bierze się z bloku: dwie jego kartki obok siebie, zgięcie pośrodku. Połowa „Na okładce” przykleja się do wnętrza twardej okładki, druga to luźna kartka – jej grubość dochodzi do grzbietu. Wyklejka nie ma numerów stron; w PDF jest osobną sekcją w rozłożeniu, ze spadem.',
   obwoluta: 'Wymiary biorą się z twardej okładki projektu (płyty i grzbiet) – gdy przybędzie stron, obwoluta przeliczy się sama. Skrzydełko 0 – około połowy szerokości przodu.',
   ulotka: 'Sekcja ma dwie strony: zewnętrzną (okładka, tył) i wewnętrzną. Przy złożeniu zwijanym panel składany do środka jest węższy – inaczej zagnie się na zgięciu. Tekst nie powinien leżeć na zgięciu.',
   trojdzielny: 'Główka zgina się na bigu do tyłu; kalendaria i pasek reklamowy oddziela perforacja. Pola kalendariów to miejsca na naklejane bloki z datami.',
@@ -467,9 +486,17 @@ async function zatwierdzSekcje() {
   zapiszBiezacyCel();
   const { projekt } = stan;
   let sekcja = poprzednia;
+  // Rola zwykłej sekcji (#177): wkładka z własnym papierem albo podkładka; blok – bez pola.
+  const rola = !okladka && !specjalna ? f.elements.rola.value : 'blok';
+  if (rola === 'wkladka' || rola === 'podkladka') {
+    ustawienia.rola = rola;
+    if (rola === 'wkladka') ustawienia.papier = { gramatura: Math.max(30, Math.min(400, Number(f.elements.rola_gramatura.value) || 130)), rodzaj: f.elements.rola_papier.value };
+  }
   if (sekcja) {
     if (!okladka) delete sekcja.okladka;
     if (!specjalna) delete sekcja.specjalna;
+    delete sekcja.rola;
+    delete sekcja.papier;
     Object.assign(sekcja, ustawienia);
   } else {
     sekcja = { ...nowaSekcja(ustawienia.nazwa, wydruk), ...ustawienia };
