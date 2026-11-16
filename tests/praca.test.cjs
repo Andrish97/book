@@ -270,6 +270,7 @@ test('widoczne miejsca (#140): lupa na górnym pasku, „Znajdź i zamień” pi
   await strona.keyboard.press('Escape');
   // ⋯ na liście warstw: Kopiuj wygląd.
   const id = await strona.evaluate(() => { const e = window.seriodruk.edytor; const r = e.dodajProstokat(); r.set({ fill: '#c1121f' }); e.zatwierdz(); e.dodajProstokat(); e.zatwierdz(); return r.id; });
+  await strona.click('#zakladka-warstwy'); // warstwy w zakładce prawej kolumny (#171)
   await strona.click(`li[data-id="${id}"] .warstwa-menu`);
   await strona.click('#menu-warstwy [data-op="malarz"]');
   await strona.waitForFunction(() => document.body.classList.contains('malarz-aktywny'));

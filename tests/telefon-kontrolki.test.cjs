@@ -10,7 +10,7 @@ test('telefon: kwadratowe pola wyboru, paseczek w okienkach list i koloru, kszta
   const { strona, bledy } = await otworz(t, { telefon: true });
   await nowyProjekt(strona, 'Kontrolki');
   await strona.evaluate(() => window.seriodruk.edytor.dodajWielokat(3, false));
-  await strona.tap('button:has-text("Właściwości")');
+  await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');
   await strona.waitForSelector('.wybor-wielokata');
   // Pola wyboru we właściwościach (np. „Gwiazda”) – 18×18.
   const pola = await strona.evaluate(() => [...document.querySelectorAll('.wlasciwosci input[type=checkbox]')].map((el) => { const r = el.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }).filter(([w]) => w));

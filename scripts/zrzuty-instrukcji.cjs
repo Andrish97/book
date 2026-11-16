@@ -417,8 +417,12 @@ if (require.main === module) (async () => {
     edytor.canvas.requestRenderAll();
   });
   await s.waitForTimeout(500);
-  await s.evaluate(() => { document.getElementById('panel-inspektor').scrollTop = 1e6; });
+  // Ostrzeżenia na komputerze (#171): okienko z przycisku przy powiększeniu.
+  await s.evaluate(() => window.seriodruk.edytor.przeliczOstrzezenia());
+  await s.click('#przycisk-ostrzezen');
+  await s.waitForTimeout(300);
   await zrzut(s, 'ostrzezenia.png', { clip: { x: 240, y: 300, width: 1040, height: 500 } });
+  await s.click('#zamknij-ostrzezenia');
   await s.evaluate(() => {
     const { edytor } = window.seriodruk;
     edytor.zaznacz('o_przyklad');
@@ -477,13 +481,15 @@ if (require.main === module) (async () => {
   await zrzut(d, 'odleglosci.png', { clip: { x: 236, y: 56, width: 744, height: 520 } });
   await d.mouse.up();
 
-  // Warstwy: panel pod właściwościami (#115) – zawsze widoczny, zrzut prawej części okna z płótnem obok.
+  // Warstwy: zakładka „Warstwy” prawej kolumny (#171), zrzut prawej części okna z płótnem obok.
+  await d.click('#zakladka-warstwy');
   await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
   await d.click('#lista-warstw li:has-text("Pas na notatki") .warstwa-oko');
   await d.hover('#lista-warstw li:has-text("Poniedziałek")');
   await d.click('#lista-warstw li:has-text("Poniedziałek") .warstwa-klodka');
   await d.click('#lista-warstw li:has-text("Wtorek") .warstwa-nazwa');
   await zrzut(d, 'warstwy.png', { clip: { x: WIDOK.width - 820, y: 56, width: 820, height: WIDOK.height - 56 } });
+  await d.click('#zakladka-wlasciwosci');
 
   // Dane, pola i serie: strona dnia powielana według tabeli
   await d.evaluate(async () => {

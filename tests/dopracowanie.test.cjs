@@ -335,7 +335,7 @@ test('warstwy: grupę da się rozwinąć – elementy grupy z okiem i własną n
     e.canvas.discardActiveObject();
     e.zatwierdz();
   });
-  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
+  await strona.click('#zakladka-warstwy'); await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // zakładka Warstwy (#171)
   const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => `${li.classList.contains('w-grupie') ? '  ' : ''}${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('ukryta') ? ' (ukryty)' : ''}${li.querySelector('.warstwa-rozwin') ? ` [${li.querySelector('.warstwa-rozwin').getAttribute('aria-expanded')}]` : ''}`));
   assert.deepEqual(await wiersze(), ['Tabela 2×2 [false]', 'Grupa [false]'], 'grupa i tabela mają przycisk rozwijania');
 

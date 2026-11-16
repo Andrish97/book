@@ -88,7 +88,8 @@ działa, przycisk [⋯] pokazuje jego ikonę na niebieskim tle — stuknięcie g
 
 ## 4.5 Właściwości i warstwy
 
-Prawa kolumna ma dwie części: u góry **właściwości**, pod nimi panel **Warstwy** (→ 10).
+Prawa kolumna ma u góry dwie zakładki: [Właściwości] i [Warstwy] (→ 10). Każda zajmuje całą wysokość kolumny;
+przełączasz je kliknięciem albo klawiszem <kbd>F7</kbd>, a wybór zostaje zapamiętany.
 
 Nagłówek właściwości mówi, czego dotyczą ustawienia:
 
@@ -101,7 +102,7 @@ Nagłówek właściwości mówi, czego dotyczą ustawienia:
 Przy zaznaczonym elemencie w nagłówku są przyciski [Kopiuj do schowka] (<kbd>Ctrl</kbd>+<kbd>C</kbd>),
 [Duplikuj] (<kbd>Ctrl</kbd>+<kbd>D</kbd>), [Kopiuj wygląd] (→ 5.13), [Zapisz w bibliotece] (→ 5.8)
 i [Usuń] (<kbd>Delete</kbd>). Tytuł części (np. „Cień”) zwija
-ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (→ 13.2).
+ją i rozwija. **Ostrzeżenia** otwiera przycisk z trójkątem obok powiększenia (→ 13.2).
 
 ![Ustawienia narzędzia: rysowanie](k-rysowanie.png)
 
@@ -437,10 +438,10 @@ które mają wyglądać tak samo.
 **Styl znakowy** to zapisany wygląd fragmentu tekstu, np. „Wyróżnienie” albo „Nazwa własna”.
 
 1. Zaznacz fragment tekstu (kliknij tekst dwa razy i zaznacz słowa).
-2. Ustaw jego wygląd (→ 6.3), potem w części **Styl tekstu** wybierz [Nowy styl znakowy z wyglądu zaznaczenia].
+2. Ustaw jego wygląd (→ 6.3), potem w części **Styl tekstu** wybierz [Nowy styl znakowy].
 3. Inne fragmenty zaznacz i wybierz styl z listy **Styl znakowy**. Bez zaznaczenia styl dostaje cały tekst.
 
-[Aktualizuj styl znakowy] przenosi wygląd zaznaczenia do stylu — zmienią się wszystkie fragmenty z tym stylem
+[Aktualizuj styl] przenosi wygląd zaznaczenia do stylu — zmienią się wszystkie fragmenty z tym stylem
 w projekcie. Usunięty styl znakowy nie zmienia wyglądu fragmentów.
 
 ## 6.5 Listy
@@ -959,10 +960,10 @@ razy, zrobisz komórkę na kilka kolumn albo wierszy. [Rozdziel komórkę] wraca
 ## 10.1 Panel Warstwy
 
 Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego
-na spodzie. Widać go zawsze — niezależnie od tego, czy coś jest zaznaczone i czy włączone jest narzędzie.
+na spodzie. Jest dostępny zawsze — niezależnie od tego, czy coś jest zaznaczone i czy włączone jest narzędzie.
 
-- **Na komputerze** panel stoi w prawej kolumnie, pod właściwościami. Nagłówek „Warstwy” z liczbą
-  elementów zwija go i rozwija; zwinięcie zostaje zapamiętane.
+- **Na komputerze** to zakładka [Warstwy] u góry prawej kolumny (obok [Właściwości], <kbd>F7</kbd>);
+  liczba przy niej to liczba elementów strony.
 - **Na telefonie i tablecie w pionie** panel otwiera przycisk [Warstwy] na dole ekranu.
 
 ![Warstwy](warstwy.png)
@@ -1222,9 +1223,10 @@ Linie pomocnicze nie są drukowane:
 ## 13.2 Ostrzeżenia
 
 Element w marginesie albo poza spadem, tekst, który się nie mieści, czy pole z literówką dostają
-pomarańczową ramkę i trafiają na listę **Ostrzeżenia** na dole panelu z prawej (na telefonie —
-przycisk na dole ekranu). Kliknięcie pozycji zaznacza element. Gdy to celowe (np. tło na spad),
-kliknij [Wycisz].
+pomarańczową ramkę i trafiają na listę **Ostrzeżenia**. Na komputerze otwiera ją przycisk z trójkątem
+obok powiększenia (<kbd>F8</kbd>) — liczba na nim mówi, ile jest uwag; okienko nie blokuje pracy, zamyka je
+krzyżyk albo <kbd>Esc</kbd>. Na telefonie — przycisk [Ostrzeżenia] na dole ekranu. Kliknięcie pozycji
+zaznacza element. Gdy to celowe (np. tło na spad), kliknij [Wycisz].
 
 ![Ostrzeżenia](ostrzezenia.png)
 

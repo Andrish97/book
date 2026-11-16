@@ -762,6 +762,10 @@ body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-col
 .wlasciwosci .wskazowka.uwaga { color: var(--uwaga); }
 .wlasciwosci .rzad-przyciskow { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
 .wlasciwosci .rzad-przyciskow .przycisk { min-height: 34px; padding: 0 10px; font-size: 13px; }
+/* Długa etykieta zawija się w przycisku zamiast wychodzić poza panel (#171). */
+.wlasciwosci .rzad-przyciskow .przycisk { min-width: 0; max-width: 100%; height: auto; white-space: normal; text-align: left; line-height: 1.3; padding-top: 5px; padding-bottom: 5px; }
+.wlasciwosci .rzad-przyciskow .przycisk > svg { flex: none; }
+.wlasciwosci .rzad-przyciskow .przycisk > span { min-width: 0; overflow-wrap: anywhere; }
 .legenda-prowadnic { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; grid-column: 1 / -1; font-size: 12.5px; color: var(--tusz-2); }
 .legenda-prowadnic li { display: flex; align-items: center; gap: 8px; }
 .legenda-prowadnic i { flex: none; width: 22px; height: 0; border-top: 2px solid; }
@@ -1514,6 +1518,40 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .dok-warstw .lista-warstw { flex: 1 1 auto; min-height: 0; overflow: auto; margin: 0; padding: 0 10px 10px; list-style: none; }
 .dok-warstw.zwiniety .lista-warstw { display: none; }
 .panel-inspektor > .sekcja-ostrzezen { flex: none; max-height: 24%; overflow-y: auto; margin-top: 0; }
+/* Komputer (#171): zakładki Właściwości | Warstwy, każda na całą wysokość prawej kolumny; ostrzeżenia
+   w okienku z przycisku przy powiększeniu (nie zajmują stale miejsca pod warstwami). */
+.zakladki-inspektora { display: none; }
+.przycisk-ostrzezen, .zamknij-ostrzezenia { display: none; }
+@media (min-width: 861px) {
+  .zakladki-inspektora { flex: none; display: flex; gap: 2px; padding: 8px 10px 0; border-bottom: 1px solid var(--linia); }
+  .zakladki-inspektora [role="tab"] {
+    flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 8px;
+    border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; cursor: pointer;
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--cichy); white-space: nowrap;
+  }
+  .zakladki-inspektora [role="tab"] > span:not(.licznik) { overflow: hidden; text-overflow: ellipsis; }
+  .zakladki-inspektora [role="tab"][aria-selected="true"] { color: var(--tusz); border-bottom-color: var(--akcent); }
+  @media (hover: hover) { .zakladki-inspektora [role="tab"]:hover { color: var(--tusz); } }
+  .zakladki-inspektora [role="tab"]:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--akcent); border-radius: var(--r-s); }
+  .zakladki-inspektora .licznik { flex: none; }
+  body:not([data-prawy="warstwy"]) .dok-warstw { display: none; }
+  body[data-prawy="warstwy"] .panel-inspektor > :is(.naglowek-wlasciwosci, .wlasciwosci) { display: none; }
+  body[data-prawy="warstwy"] .dok-warstw { flex: 1 1 auto; max-height: none; border-top: 0; }
+  body[data-prawy="warstwy"] .dok-warstw .naglowek-dok { display: none; }
+  body[data-prawy="warstwy"] .dok-warstw .lista-warstw { display: flex; padding-top: 6px; }
+  .panel-inspektor > .sekcja-ostrzezen { display: none; }
+  .przycisk-ostrzezen { display: inline-grid; position: relative; }
+  .przycisk-ostrzezen.sa { color: var(--uwaga); }
+  .przycisk-ostrzezen .licznik { position: absolute; top: -3px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; background: var(--uwaga); color: #fff; border-radius: 8px; }
+  .przycisk-ostrzezen[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); }
+  body.ostrzezenia-otwarte .panel-inspektor > .sekcja-ostrzezen {
+    display: flex; flex-direction: column; position: fixed; z-index: 30; width: min(360px, calc(100vw - 16px)); max-height: min(60vh, 520px);
+    margin: 0; padding: 4px 8px 12px 12px; overflow-y: auto; border: 1px solid var(--linia); border-radius: var(--r-m);
+    background: var(--powierzchnia); box-shadow: var(--cien-3);
+  }
+  body.ostrzezenia-otwarte .sekcja-ostrzezen .naglowek-ostrzezen { cursor: default; padding-right: 36px; }
+  body.ostrzezenia-otwarte .zamknij-ostrzezenia { display: inline-grid; position: absolute; top: 8px; right: 6px; }
+}
 /* Tabela: kolumna i wiersz klikniętej komórki (#115). */
 .wlasciwosci .wybrana-komorka { margin: 0; padding: 6px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: var(--na-akcencie-tle); font-size: 12.5px; font-weight: 600; }
 .wlasciwosci .kolumna-i-wiersz .rzad-przyciskow .przycisk { flex: 1 1 auto; min-width: 0; padding: 0 8px; font-size: 12px; }
@@ -3207,9 +3245,11 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 
 /* Wybór wielokąta albo gwiazdy (#151) */
 .menu-wielokata { position: fixed; top: 0; left: 0; right: auto; min-width: 0; width: min(340px, calc(100vw - 16px)); }
-.siatka-wielokatow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+.siatka-wielokatow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
 .wybor-wielokata button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 2px; min-height: 58px; border: 1px solid transparent; border-radius: var(--r-s); background: none; color: var(--tusz); font: inherit; font-size: 10.5px; line-height: 1.2; cursor: pointer; }
-.wybor-wielokata { grid-column: 1 / -1; width: 100%; }
+.wybor-wielokata { grid-column: 1 / -1; width: 100%; min-width: 0; }
+.wybor-wielokata button { min-width: 0; }
+.wybor-wielokata button > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wybor-wielokata button[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); color: var(--akcent); }
 @media (hover: hover) { .wybor-wielokata button:hover { background: var(--wypelnienie); } }
 .menu .siatka-wielokatow button { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 2px; min-height: 64px; text-align: center; font-size: 11px; line-height: 1.2; }

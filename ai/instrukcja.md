@@ -352,7 +352,7 @@ Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (rozdział �
 
 ### 4.5 Właściwości i warstwy
 
-Prawa kolumna ma dwie części: u góry **właściwości**, pod nimi panel **Warstwy** (rozdział „10 Warstwy”).
+Prawa kolumna ma u góry dwie zakładki: **Właściwości** i **Warstwy** (rozdział „10 Warstwy”). Każda zajmuje całą wysokość kolumny; przełączasz je kliknięciem albo klawiszem `F7`, a wybór zostaje zapamiętany.
 
 Nagłówek właściwości mówi, czego dotyczą ustawienia:
 
@@ -362,7 +362,7 @@ Nagłówek właściwości mówi, czego dotyczą ustawienia:
 | **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. **Rysuj**. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
 | **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (rozdział „11.3 Właściwości strony”). |
 
-Przy zaznaczonym elemencie w nagłówku są przyciski **Kopiuj do schowka** (`Ctrl`+`C`), **Duplikuj** (`Ctrl`+`D`), **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”), **Zapisz w bibliotece** (rozdział „5.8 Biblioteka”) i **Usuń** (`Delete`). Tytuł części (np. „Cień”) zwija ją i rozwija. Na dole kolumny jest lista **Ostrzeżenia** (rozdział „13.2 Ostrzeżenia”).
+Przy zaznaczonym elemencie w nagłówku są przyciski **Kopiuj do schowka** (`Ctrl`+`C`), **Duplikuj** (`Ctrl`+`D`), **Kopiuj wygląd** (rozdział „5.13 Kopiuj wygląd (malarz formatów)”), **Zapisz w bibliotece** (rozdział „5.8 Biblioteka”) i **Usuń** (`Delete`). Tytuł części (np. „Cień”) zwija ją i rozwija. **Ostrzeżenia** otwiera przycisk z trójkątem obok powiększenia (rozdział „13.2 Ostrzeżenia”).
 
 ![Ustawienia narzędzia: rysowanie](https://makietka.app/img/instrukcja/k-rysowanie.png)
 
@@ -661,10 +661,10 @@ Kliknij tekst dwa razy, zaznacz fragment i zmień go tymi samymi ustawieniami �
 **Styl znakowy** to zapisany wygląd fragmentu tekstu, np. „Wyróżnienie” albo „Nazwa własna”.
 
 1. Zaznacz fragment tekstu (kliknij tekst dwa razy i zaznacz słowa).
-2. Ustaw jego wygląd (rozdział „6.3 Fragment tekstu”), potem w części **Styl tekstu** wybierz **Nowy styl znakowy z wyglądu zaznaczenia**.
+2. Ustaw jego wygląd (rozdział „6.3 Fragment tekstu”), potem w części **Styl tekstu** wybierz **Nowy styl znakowy**.
 3. Inne fragmenty zaznacz i wybierz styl z listy **Styl znakowy**. Bez zaznaczenia styl dostaje cały tekst.
 
-**Aktualizuj styl znakowy** przenosi wygląd zaznaczenia do stylu — zmienią się wszystkie fragmenty z tym stylem w projekcie. Usunięty styl znakowy nie zmienia wyglądu fragmentów.
+**Aktualizuj styl** przenosi wygląd zaznaczenia do stylu — zmienią się wszystkie fragmenty z tym stylem w projekcie. Usunięty styl znakowy nie zmienia wyglądu fragmentów.
 
 ### 6.5 Listy
 
@@ -1102,9 +1102,9 @@ W trakcie pisania w komórce: **Scal z komórką po prawej** i **Scal z komórk�
 
 ### 10.1 Panel Warstwy
 
-Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie. Widać go zawsze — niezależnie od tego, czy coś jest zaznaczone i czy włączone jest narzędzie.
+Panel **Warstwy** pokazuje wszystkie elementy otwartej strony, od leżącego na wierzchu do leżącego na spodzie. Jest dostępny zawsze — niezależnie od tego, czy coś jest zaznaczone i czy włączone jest narzędzie.
 
-- **Na komputerze** panel stoi w prawej kolumnie, pod właściwościami. Nagłówek „Warstwy” z liczbą elementów zwija go i rozwija; zwinięcie zostaje zapamiętane.
+- **Na komputerze** to zakładka **Warstwy** u góry prawej kolumny (obok **Właściwości**, `F7`); liczba przy niej to liczba elementów strony.
 - **Na telefonie i tablecie w pionie** panel otwiera przycisk **Warstwy** na dole ekranu.
 
 ![Warstwy](https://makietka.app/img/instrukcja/warstwy.png)
@@ -1338,7 +1338,7 @@ Linie pomocnicze nie są drukowane:
 
 ### 13.2 Ostrzeżenia
 
-Element w marginesie albo poza spadem, tekst, który się nie mieści, czy pole z literówką dostają pomarańczową ramkę i trafiają na listę **Ostrzeżenia** na dole panelu z prawej (na telefonie — przycisk na dole ekranu). Kliknięcie pozycji zaznacza element. Gdy to celowe (np. tło na spad), kliknij **Wycisz**.
+Element w marginesie albo poza spadem, tekst, który się nie mieści, czy pole z literówką dostają pomarańczową ramkę i trafiają na listę **Ostrzeżenia**. Na komputerze otwiera ją przycisk z trójkątem obok powiększenia (`F8`) — liczba na nim mówi, ile jest uwag; okienko nie blokuje pracy, zamyka je krzyżyk albo `Esc`. Na telefonie — przycisk **Ostrzeżenia** na dole ekranu. Kliknięcie pozycji zaznacza element. Gdy to celowe (np. tło na spad), kliknij **Wycisz**.
 
 ![Ostrzeżenia](https://makietka.app/img/instrukcja/ostrzezenia.png)
 
@@ -2393,6 +2393,8 @@ Skróty są takie jak w programach do składu i grafiki. Na Macu zamiast `Ctrl` 
 | `Ctrl` + `Shift` + `'` | Przyciąganie do siatki |
 | `Shift` + `R` | Pokaż albo ukryj linijki |
 | `Shift` + `W` | Podgląd bez edycji |
+| `F7` | Właściwości albo Warstwy w prawej kolumnie (komputer) |
+| `F8` | Okienko ostrzeżeń |
 
 #### Strony
 

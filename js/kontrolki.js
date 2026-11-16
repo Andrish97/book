@@ -174,6 +174,8 @@ function ulepszSelect(sel) {
   const odswiez = () => {
     const o = sel.options[sel.selectedIndex];
     tekst.textContent = o ? o.textContent : '';
+    // Skrócona wielokropkiem nazwa – w podpowiedzi cała (#171).
+    tekst.title = o ? o.textContent : '';
     tekst.style.fontFamily = o?.style.fontFamily || '';
     przycisk.disabled = sel.disabled;
     const etykieta = sel.getAttribute('aria-label') || sel.closest('label')?.querySelector('span')?.textContent || sel.closest('label')?.firstChild?.textContent?.trim();
@@ -209,6 +211,7 @@ function ulepszSelect(sel) {
       el.className = `wybor-opcja${wGrupie ? ' w-grupie' : ''}`;
       el.setAttribute('role', 'option');
       el.textContent = o.textContent;
+      el.title = o.textContent;
       el.style.fontFamily = o.style.fontFamily || '';
       el.dataset.wartosc = o.value;
       if (o.disabled) el.setAttribute('aria-disabled', 'true');
