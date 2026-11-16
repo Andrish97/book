@@ -34,6 +34,29 @@ export function renderujListe() {
   generujMiniatury();
 }
 
+// Sama zmiana bieżącej strony (#158): lista stron jest już zbudowana – wystarczy przestawić zaznaczenie,
+// zamiast budować od nowa kilkadziesiąt pozycji z miniaturami przy każdym przewinięciu strony. Gdy lista
+// nie odpowiada stronom projektu (dodana, usunięta), budowana jest w całości jak dotąd.
+export function oznaczBiezacaWLiscie() {
+  const { projekt } = stan;
+  if (!projekt) return;
+  const pozycje = [...$('#lista-stron').querySelectorAll('li.strona[data-id]')];
+  const ids = new Set(pozycje.map((li) => li.dataset.id));
+  if (pozycje.length !== projekt.strony.length || projekt.strony.some((s) => !ids.has(s.id))) { renderujListe(); return; }
+  const biezaca = stan.tryb === 'strona' ? projekt.strony[stan.indeks]?.id : null;
+  const naArkuszu = new Set(stan.tryb === 'strona' ? naPlotnie?.strony || [] : []);
+  for (const li of pozycje) {
+    const aktywna = li.dataset.id === biezaca;
+    li.classList.toggle('aktywna', aktywna);
+    li.classList.toggle('na-arkuszu', !aktywna && naArkuszu.has(li.dataset.id));
+    const m = li.querySelector('.miniatura');
+    if (aktywna) m?.setAttribute('aria-current', 'page'); else m?.removeAttribute('aria-current');
+  }
+  renderujListeWzorcow();
+  $('#panel-strony li.aktywna')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  generujMiniatury();
+}
+
 export function obrazMiniatury(id, wydruk) {
   const mini = stan.miniatury.get(id);
   const el = document.createElement(mini ? 'img' : 'div');
@@ -224,6 +247,12 @@ const bezczynnie = () => new Promise((ok) => {
   if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => ok(), { timeout: 1500 });
   else setTimeout(ok, 50);
 });
+// Użytkownik właśnie pisze albo przesuwa element (#158): narysowanie strony w tle to na telefonie kilkaset ms,
+// które wpadłyby w krótką przerwę między znakami albo ruchami palca – miniatura poczeka, aż skończy.
+// Pisanie liczy się do 2 s po ostatnim znaku – ramka otwarta do pisania bez pisania nie wstrzymuje miniatur.
+let ostatniZnak = 0;
+for (const z of ['keydown', 'input']) document.addEventListener(z, () => { ostatniZnak = performance.now(); }, true);
+const wTrakciePracy = () => Boolean(edytor?.canvas?._currentTransform || (edytor?.aktywny?.isEditing && performance.now() - ostatniZnak < 2000));
 
 let generowanie = null;
 export function generujMiniatury() {
@@ -270,6 +299,7 @@ export function odrysujMiniaturyWTle(ids) {
   timerMiniatur = setTimeout(async () => {
     const projekt = stan.projekt;
     if (!projekt) { doOdrysowania.clear(); return; }
+    if (wTrakciePracy()) { odrysujMiniaturyWTle(); return; } // jeszcze raz za chwilę, z tą samą kolejką
     const ciag = rozwin(projekt);
     const kolejka = [...doOdrysowania];
     doOdrysowania.clear();
@@ -279,6 +309,7 @@ export function odrysujMiniaturyWTle(ids) {
       // Rysowanie strony to dłuższa chwila – w wolnym czasie przeglądarki, nie w pół pisania.
       await bezczynnie();
       if (stan.projekt !== projekt || doOdrysowania.has(id)) continue;
+      if (wTrakciePracy()) { odrysujMiniaturyWTle([id, ...kolejka.slice(kolejka.indexOf(id) + 1)]); return; }
       const obraz = await renderujCel(projekt, cel, { szerokoscPx: 200, ciag });
       if (stan.projekt !== projekt || doOdrysowania.has(id)) continue;
       stan.miniatury.set(id, obraz);
@@ -324,7 +355,7 @@ export async function przejdzDoStrony(i) {
     zapiszBiezacyCel();
     stan.tryb = 'strona';
     stan.indeks = i;
-    await zaladujCel();
+    await zaladujCel({ nawigacja: true });
   }
   if (document.body.dataset.panel === 'strony') ustawPanel('');
 }

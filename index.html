@@ -37,6 +37,58 @@
   <link rel="stylesheet" href="css/aplikacja.css">
   <!-- Silnik płótna leży w repozytorium (przypięta wersja; powody w docs/DECYZJE.md #44). -->
   <script type="module" src="js/aplikacja.js"></script>
+  <!-- Moduły startu pobierane naraz, nie poziom po poziomie (#158). -->
+  <!-- moduly:start (scripts/moduly-buduj.cjs – nie edytuj ręcznie) -->
+  <link rel="modulepreload" href="js/app/doczytaj.js">
+  <link rel="modulepreload" href="js/app/instrukcja-leniwa.js">
+  <link rel="modulepreload" href="js/app/kontekst.js">
+  <link rel="modulepreload" href="js/app/logowanie.js">
+  <link rel="modulepreload" href="js/app/na-zywo.js">
+  <link rel="modulepreload" href="js/app/projekty.js">
+  <link rel="modulepreload" href="js/app/trasy.js">
+  <link rel="modulepreload" href="js/app/udostepnione.js">
+  <link rel="modulepreload" href="js/app/wspolpraca.js">
+  <link rel="modulepreload" href="js/chmura.js">
+  <link rel="modulepreload" href="js/czcionki.js">
+  <link rel="modulepreload" href="js/dymki.js">
+  <link rel="modulepreload" href="js/ikony.js">
+  <link rel="modulepreload" href="js/instalacja.js">
+  <link rel="modulepreload" href="js/kontrolki.js">
+  <link rel="modulepreload" href="js/motyw.js">
+  <link rel="modulepreload" href="js/paleta-polecen.js">
+  <link rel="modulepreload" href="js/podpowiedzi.js">
+  <link rel="modulepreload" href="js/ui.js">
+  <link rel="modulepreload" href="js/urzadzenie.js">
+  <link rel="modulepreload" href="js/zaslonki.js">
+  <link rel="modulepreload" href="js/app/moduly-edytora.js">
+  <link rel="modulepreload" href="js/biblioteki.js">
+  <link rel="modulepreload" href="js/historia-zapis.js">
+  <link rel="modulepreload" href="js/historia.js">
+  <link rel="modulepreload" href="js/kolory-druku.js">
+  <link rel="modulepreload" href="js/konfiguracja.js">
+  <link rel="modulepreload" href="js/konto.js">
+  <link rel="modulepreload" href="js/laczenie.js">
+  <link rel="modulepreload" href="js/lokalny.js">
+  <link rel="modulepreload" href="js/marka.js">
+  <link rel="modulepreload" href="js/miejsce.js">
+  <link rel="modulepreload" href="js/nazwa-uzytkownika.js">
+  <link rel="modulepreload" href="js/okladka.js">
+  <link rel="modulepreload" href="js/plik-projektu.js">
+  <link rel="modulepreload" href="js/podglad.js">
+  <link rel="modulepreload" href="js/postep.js">
+  <link rel="modulepreload" href="js/projekt.js">
+  <link rel="modulepreload" href="js/style-tekstu.js">
+  <link rel="modulepreload" href="js/wspolpraca-chmura.js">
+  <link rel="modulepreload" href="js/zasoby.js">
+  <link rel="modulepreload" href="js/zestaw-czcionek.js">
+  <link rel="modulepreload" href="js/zestaw-marki.js">
+  <link rel="modulepreload" href="js/serie.js">
+  <link rel="modulepreload" href="js/watki.js">
+  <link rel="modulepreload" href="js/ksiazka.js">
+  <link rel="modulepreload" href="js/pola.js">
+  <link rel="modulepreload" href="js/sklad.js">
+  <link rel="modulepreload" href="js/dzielenie.js">
+  <!-- moduly:koniec -->
 </head>
 <body data-ekran="start" class="startuje">
 

@@ -4,6 +4,7 @@
 // których potrzebuje reszta aplikacji (otwarcie projektu, zapis, podgląd…).
 
 import { powiadom } from '../ui.js';
+import { MODULY_EDYTORA } from './moduly-edytora.js';
 
 const FABRIC = 'js/zewnetrzne/fabric-7.4.0.min.js';
 
@@ -24,6 +25,15 @@ export function doczytajEdytor() {
   if (modul) return Promise.resolve(modul);
   if (!obietnica) {
     obietnica = (async () => {
+      // Moduły edytora pobierane naraz i równolegle z biblioteką płótna (#158) – zamiast import po imporcie.
+      // Sam preload niczego nie uruchamia; edytor startuje dopiero po wczytaniu Fabric.
+      for (const m of MODULY_EDYTORA) {
+        if (document.querySelector(`link[rel="modulepreload"][href="${m}"]`)) continue;
+        const l = document.createElement('link');
+        l.rel = 'modulepreload';
+        l.href = m;
+        document.head.append(l);
+      }
       if (typeof window.fabric === 'undefined') await wczytajSkrypt(FABRIC);
       modul = await import('./edytor-start.js');
       return modul;
