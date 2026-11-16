@@ -14,7 +14,8 @@
 //
 // Kolejny rodzaj dodaje się wpisem w RODZAJE_SEKCJI (nazwa, opis, domyślne parametry, normalizacja, geometria).
 
-import { geometriaOkladki, normalizujOkladke, przesunElementy, poPrzeliczeniu } from './okladka.js';
+import { geometriaOkladki, normalizujOkladke, przesunElementy } from './okladka.js';
+import { poPrzeliczeniu } from './przeliczenia-okladek.js';
 import { swietaPolskie, dataIso } from './swieta.js';
 import { rozwin } from './serie.js';
 import { uid, WZORCE_Z_SEKCJI, uporzadkujStrony } from './projekt.js';

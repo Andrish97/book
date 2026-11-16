@@ -83,6 +83,7 @@
   <link rel="modulepreload" href="js/zasoby.js">
   <link rel="modulepreload" href="js/zestaw-czcionek.js">
   <link rel="modulepreload" href="js/zestaw-marki.js">
+  <link rel="modulepreload" href="js/przeliczenia-okladek.js">
   <link rel="modulepreload" href="js/serie.js">
   <link rel="modulepreload" href="js/swieta.js">
   <link rel="modulepreload" href="js/typ-sekcji.js">
@@ -1742,6 +1743,7 @@
       </div>
       <div class="makieta-sterowanie">
         <label class="pole makieta-model"><span>Rodzaj</span><select id="makieta-model"></select></label>
+        <label class="pole makieta-ulozenie" id="makieta-ulozenie-pole"><span>Ułożenie</span><select id="makieta-ulozenie"><option value="lezy">Leży</option><option value="stoi">Stoi</option></select></label>
         <div class="makieta-kartki" role="group" aria-label="Kartkowanie">
           <button type="button" class="przycisk-ikona" id="makieta-wstecz" data-ikona="wstecz" title="Poprzednia kartka (←)" aria-label="Poprzednia kartka"></button>
           <span id="makieta-polozenie" class="ciche" aria-live="polite"></span>
@@ -1754,6 +1756,7 @@
         </div>
         <button type="button" class="przycisk" data-akcja="makieta-pobierz" data-ikona="pobierz">Pobierz obraz makiety</button>
       </div>
+      <p class="komunikat makieta-uwaga" id="makieta-uwaga" hidden></p>
       <p class="ciche makieta-podpowiedz">Przeciągnij, żeby obrócić; kółkiem myszy albo dwoma palcami przybliżasz. Kartki przewracasz strzałkami albo stuknięciem w prawą lub lewą połowę.</p>
     </div>
   </dialog>

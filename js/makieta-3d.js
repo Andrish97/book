@@ -27,6 +27,8 @@ const PAPIER = '#fbfaf7';
 const KRAWEDZ_OKLADKI = '#e8e4dc';
 const DRUT = '#2f3237';
 const TEKTURA = '#a29a8d';
+const KRAFT = '#cdbd9f'; // papier podklejki grzbietu twardej oprawy (wnętrze skorupy grzbietu, #179)
+const OKLEINA = '#2b2f3a'; // okleina twardej oprawy, gdy projekt nie ma sekcji okładki
 const OTWOR = '#6b675f';
 export const KRAWEDZ_KARTEK = 'tex:krawedz';
 export const SKLADKI = 'tex:skladki';
@@ -84,17 +86,23 @@ export function kartkiModelu(model, { strony, format, okladka = null, kartka_mm 
   // Wymiary z geometrii okładki tylko, gdy pasują do bloku (#161: okładka liczona dla innego formatu – np.
   // wyklejki A4 – nie rozciąga książki; tekstura przodu leży wtedy na okładce w rozmiarze bloku).
   const pasuje = (v, wzor) => v && Math.abs(v - wzor) < 10;
-  const wOkl = twarda ? (pasuje(okladka?.w, w + 3) ? Math.max(w + 3, okladka.w) : w + 3) : (pasuje(okladka?.w, w) ? okladka.w : w);
-  const hOkl = twarda ? (pasuje(okladka?.h, h + 6) ? Math.max(h + 6, okladka.h) : h + 6) : (pasuje(okladka?.h, h) ? okladka.h : h);
+  // Miękka i notes (#179): okładka przycięta razem z blokiem – dokładnie w jego rozmiarze (także gdy sekcja
+  // okładki projektu jest twarda i ma większe panele).
+  const wOkl = twarda ? (pasuje(okladka?.w, w + 3) ? Math.max(w + 3, okladka.w) : w + 3) : w;
+  const hOkl = twarda ? (pasuje(okladka?.h, h + 6) ? Math.max(h + 6, okladka.h) : h + 6) : h;
   const zOkladka = Boolean(okladka) || twarda || notes;
   const wPrzod = zOkladka && wnetrze?.przod && strony > 0;
   const wTyl = zOkladka && wnetrze?.tyl && strony > (wPrzod ? 1 : 0);
-  if (zOkladka) kartki.push({ przod: okladka ? 'okl:przod' : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true });
+  // Twarda (#179): wnętrze tektury – okleina zawinięta z zewnątrz, na niej połowa wyklejki (pastedown) wielkości
+  // strony bloku, 3 mm od krawędzi tektury; wyklejka: 'A' – na stronie przodu, 'B' – tyłu kartki okładki.
+  const okleina = okladka ? 'okl:okleina' : `kolor:${OKLEINA}`;
+  const wklejka = (strona) => (twarda ? { wyklejka: strona, okleina, wBloku: w, hBloku: h } : {});
+  if (zOkladka) kartki.push({ przod: okladka ? 'okl:przod' : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(wPrzod ? wklejka('B') : {}) });
   // Bez sekcji okładki pierwsza strona jest okładką (miękka): środek zaczyna się od niej.
   const od = (zOkladka && !okladka && strony) || wPrzod ? 1 : 0;
   const ile = wTyl ? strony - 1 : strony;
   for (let i = od; i < ile; i += 2) kartki.push({ przod: `p:${i}`, tyl: i + 1 < ile ? `p:${i + 1}` : null, w, h, d, kolor: PAPIER });
-  if (zOkladka) kartki.push({ przod: wTyl ? `p:${strony - 1}` : null, tyl: okladka ? 'okl:tyl' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true });
+  if (zOkladka) kartki.push({ przod: wTyl ? `p:${strony - 1}` : null, tyl: okladka ? 'okl:tyl' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(wTyl ? wklejka('A') : {}) });
   return kartki;
 }
 const wymiar = (r) => ({ w: Math.max(10, r.w), h: Math.max(10, r.h) });
@@ -336,13 +344,49 @@ function lisc(quady, kar, krzywa, mat) {
   const brzegPrzod = brzeg === kar.przod;
   // Twarda oprawa: rowek przy grzbiecie (zawias) – lekki cień 7–8 mm od krawędzi.
   const rowek = mat === 'twarda' ? (sg) => 1 - 0.3 * Math.exp(-(((sg - 7.5) / 1.4) ** 2)) : null;
+  // Twarda z wyklejką (#179): strona tektury od środka książki ma kolor okleiny (zawinięcie), a wyklejka leży
+  // na niej osobnym, cienkim arkuszem papieru.
+  const wA = kar.wyklejka === 'A';
+  const wB = kar.wyklejka === 'B';
   arkusz(quady, krzywa, kar.h, kar.d, {
     aoA: rowek, aoB: rowek,
-    texA: kar.przod || `kolor:${PAPIER}`, texB: kar.tyl || `kolor:${PAPIER}`,
+    texA: wA ? kar.okleina : (kar.przod || `kolor:${PAPIER}`), texB: wB ? kar.okleina : (kar.tyl || `kolor:${PAPIER}`),
     uA: (sg) => sg / L, uB: (sg) => 1 - sg / L, mat,
     krawedz: okl ? brzeg : `kolor:${kar.okladka ? KRAWEDZ_OKLADKI : PAPIER}`,
     krawedzieUv: okl ? (sg, g) => [ogr(brzegPrzod ? sg / L : 1 - sg / L, 0.004, 0.996), g ? 0.996 : 0.004] : null,
   });
+  if (wA || wB) wyklejkaNaTekturze(quady, kar, krzywa, wA ? 1 : -1);
+}
+
+// Połowa wyklejki przyklejona do tektury (#179): arkusz wielkości strony bloku (bez grubości), od zawiasu
+// (krawędź tektury przy grzbiecie) do 3 mm przed przednią krawędzią tektury, 3 mm od głowy i stopy; tuż nad
+// powierzchnią tektury po stronie strona (1 – strona A kartki, −1 – B). Przy zawiasie lekki cień rowka.
+function wyklejkaNaTekturze(quady, kar, krzywa, strona) {
+  const Lp = Math.min(kar.wBloku || kar.w - 3, kar.w - 1);
+  const hp = Math.min(kar.hBloku || kar.h - 6, kar.h - 2);
+  const o = strona * (kar.d / 2 + 0.03);
+  const { c, fi } = krzywa;
+  const n = c.length - 1;
+  const L = krzywa.sigma[n];
+  const pkt = (sg) => {
+    // Krzywa okładki jest prosta (sztywna tektura): punkt na długości sg, przesunięty po normalnej.
+    const t = Math.min(1, sg / L);
+    const i = Math.min(n - 1, Math.floor(t * n));
+    const f = fi[i];
+    const x = lerp(c[i][0], c[i + 1][0], t * n - i);
+    const z = lerp(c[i][1], c[i + 1][1], t * n - i);
+    return [x - Math.sin(f) * o, z + Math.cos(f) * o, f];
+  };
+  const N = 8;
+  const tex = strona > 0 ? kar.przod : kar.tyl;
+  siatka(quady, N, 2, (i, j) => {
+    const sg = (Lp * i) / N;
+    const [x, z, f] = pkt(sg);
+    const y = lerp(hp / 2, -hp / 2, j / 2);
+    // u: strona A czytana od zawiasu (jak przód kartki), B – od przedniej krawędzi.
+    const u = strona > 0 ? sg / Lp : 1 - sg / Lp;
+    return { p: naStol([x, y, z]), n: naStol([-Math.sin(f) * strona, 0, Math.cos(f) * strona]), uv: [u, (hp / 2 - y) / hp], ao: 1 - 0.22 * Math.exp(-sg / 3.5) };
+  }, tex || `kolor:${PAPIER}`, 'papier');
 }
 
 function ksiazka(quady, model, kartki, u) {
@@ -446,8 +490,9 @@ function ksiazka(quady, model, kartki, u) {
   let zawias = null; // { p: [x, z] zewnętrzna strona przy grzbiecie, d: kierunek okładki }
   if (obr !== null) {
     const kar = kartki[obr];
-    const sztywna = kar.okladka && twarda;
-    const wygiecie = kar.okladka ? (twarda ? 0 : 0.2) : 0.8;
+    // Okładka – tektura albo karton 250–350 g (#179): sztywna, zgina się tylko na zawiasie/bigach przy grzbiecie.
+    const sztywna = Boolean(kar.okladka);
+    const wygiecie = kar.okladka ? 0 : 0.8;
     const z0 = lerp(przyGrzbiecie(SP, pP), przyGrzbiecie(SL, pL), s) + kar.d / 2;
     let x0 = lerp(oP, -oL, s);
     if (kar.okladka && zOkl && obr === 0) x0 = -s * f * Ts;
@@ -512,7 +557,7 @@ function ksiazka(quady, model, kartki, u) {
         const tylNaDole = dolnaB === n - 1;
         const texZew = kar.przod?.startsWith('okl') ? 'okl:grzbiet' : `kolor:${KRAWEDZ_OKLADKI}`;
         const uZew = texZew === 'okl:grzbiet' ? (sg) => ogr(tylNaDole ? 1 - sg / L : sg / L, 0.003, 0.997) : () => 0.5;
-        const texWew = `kolor:${twarda ? TEKTURA : PAPIER}`;
+        const texWew = `kolor:${twarda ? KRAFT : PAPIER}`;
         const od = quady.length;
         arkusz(quady, krzywa, kar.h, dS, {
           texA: zewA ? texZew : texWew, texB: zewA ? texWew : texZew,
@@ -522,14 +567,21 @@ function ksiazka(quady, model, kartki, u) {
         });
         for (let i = od; i < quady.length; i += 1) quady[i].grzbiet = true;
       }
-      // Twarda po otwarciu okładki: wyklejka (zawias z papieru) łukiem z górnej krawędzi grzbietu bloku na okładkę.
+      // Twarda po otwarciu okładki (#179): zgięcie wyklejki – ten sam cienki papier, który leży na tekturze i jako
+      // pierwsza kartka na bloku. Schodzi z górnej krawędzi grzbietu bloku po jego narożniku (nie odstaje jak
+      // listwa) i wchodzi stycznie na tekturę; w rowku zawiasu lekki cień.
       if (twarda && wewA && Sb.blok) {
-        const P0 = [strB * oB - strB * 0.2, Sb.blok.z0 + Sb.blok.H];
+        const P0 = [strB * (oB + 0.4), Sb.blok.z0 + Sb.blok.H + 0.04];
         const dd = Math.hypot(wewA[0] - P0[0], wewA[1] - P0[1]);
         if (dd > 1) {
-          const kw = 0.4 * dd;
-          const pts = bezier(P0, [P0[0] - strB * kw, P0[1]], odj2(wewA, razy2(dA, kw)), wewA, 16);
-          arkusz(quady, krzywaZPunktow(pts), kartki[1]?.h || h, 0.12, { texA: `kolor:${PAPIER}`, texB: `kolor:${PAPIER}`, uA: () => 0.5, uB: () => 0.5, mat: 'papier', bezKrawedzi: true });
+          const k1 = Math.min(0.45 * dd, 6 + 0.2 * dd);
+          const dStart = norm2([-strB * 0.55, -1]);
+          const cel = [wewA[0] + dA[0] * 0.6, wewA[1] + dA[1] * 0.6];
+          const pts = bezier(P0, [P0[0] + dStart[0] * k1, P0[1] + dStart[1] * k1], odj2(cel, razy2(dA, 0.5 * dd)), cel, 18);
+          const kr = krzywaZPunktow(pts);
+          const Lz = kr.sigma.at(-1);
+          const cien = (sg) => 0.78 + 0.22 * Math.min(1, Math.abs(sg / Lz - 0.55) * 2.6);
+          arkusz(quady, kr, kartki[1]?.h || h, 0.06, { texA: `kolor:${PAPIER}`, texB: `kolor:${PAPIER}`, uA: () => 0.5, uB: () => 0.5, mat: 'papier', bezKrawedzi: true, aoA: cien, aoB: cien });
         }
       }
     }
@@ -550,6 +602,7 @@ function bezier(P0, P1, P2, P3, N) {
   return pts;
 }
 const odj2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const norm2 = (a) => { const l = Math.hypot(a[0], a[1]) || 1; return [a[0] / l, a[1] / l]; };
 const razy2 = (a, k) => [a[0] * k, a[1] * k];
 // Krzywa dla arkusz() z listy punktów [x, z]: kąty z kierunku odcinków, długość łuku.
 function krzywaZPunktow(pts) {
@@ -565,17 +618,49 @@ function krzywaZPunktow(pts) {
   return { c, fi, sigma };
 }
 
+// Oprawa Wire-O (#179) – średnica pierścienia z grubości bloku (z okładkami) wg tabel producentów: skok 3:1
+// (8,47 mm) do 1/2″, 2:1 (12,7 mm) od 9/16″. Grubszy blok – pierścień największy i zaGruby (drukarnia go nie zepnie).
+const WIRE_O = [[6.4, 4], [7.9, 5], [9.5, 7], [11.1, 8], [12.7, 10], [14.3, 11], [15.9, 12], [19.1, 15], [22.2, 18], [25.4, 21], [31.8, 28]];
+export function parametryWireO(T) {
+  const [srednica, max] = WIRE_O.find(([, m]) => T <= m) || WIRE_O.at(-1);
+  const trzy = srednica <= 12.7;
+  return {
+    srednica, typ: trzy ? '3:1' : '2:1', skok: trzy ? 8.47 : 12.7,
+    drut: srednica <= 9.5 ? 0.8 : srednica <= 15.9 ? 1.0 : 1.2,
+    otwor: ogr(0.45 * srednica, 3, 6), // środek otworu od krawędzi kartek
+    zaGruby: T > max, maks: WIRE_O.at(-1)[1],
+  };
+}
+
+// Drut Wire-O jako jedna łamana: przy każdym otworze „spinka” – dwa równoległe druty (palce) pełnym kołem
+// przez otwór, zawrócone na końcu; między otworami drut biegnie wzdłuż grzbietu. Kąt ka – miejsce grzbietu
+// (tam łączniki i zamknięcie pierścienia). P(a, kat) – punkt na okręgu w położeniu a wzdłuż osi.
+function wireO(q, pozycje, { skok, drut }, P, ka) {
+  const d = 0.12 * skok + drut / 2; // palce spinki blisko siebie, spinki wyraźnie oddzielone
+  const g = 0.32; // szczelina zamknięcia przy grzbiecie
+  const K = 30;
+  const pts = [];
+  pozycje.forEach((a, i) => {
+    for (let k = 0; k <= K; k += 1) pts.push(P(a - d, ka + g / 2 + (k / K) * (2 * Math.PI - g)));
+    // Zawrócenie spinki – półkole wzdłuż osi tuż przed grzbietem.
+    for (let k = 1; k < 6; k += 1) { const t = k / 6; pts.push(P(a - d + 2 * d * t, ka - g / 2 - 0.12 * Math.sin(Math.PI * t))); }
+    for (let k = K; k >= 0; k -= 1) pts.push(P(a + d, ka + g / 2 + (k / K) * (2 * Math.PI - g)));
+    if (i < pozycje.length - 1) { const b = pozycje[i + 1]; for (let k = 1; k < 4; k += 1) pts.push(P(lerp(a + d, b - d, k / 4), ka + g / 2)); }
+  });
+  rura(q, pts, drut / 2, 'drut', `kolor:${DRUT}`, false);
+}
+
 // Notes na spirali: kartki obracają się sztywno wokół osi spirali (x = 0, z = T/2); przewrócone leżą po
 // lewej. Spirala (#161) jak prawdziwa podwójna (Wire-O): okrągłe pętle o średnicy grubości bloku + ok. 3,6 mm,
 // skok 3:1 (8,47 mm) do średnicy 14,3 mm, grubsze – 2:1 (12,7 mm); drut 1,1–1,4 mm; otwory 1–4 mm od brzegu.
 // Pętle obejmują cały blok z okładkami i przechodzą przez otwory; notes leży na drucie (uniesiony).
 function notesSpirala(quady, kartki, { s, obr, lewe, prawe, T, h }) {
   const zc = T / 2;
-  const rr = Math.max(3.6, T / 2 + 1.8); // promień pętli (najmniejsza spirala ok. 7 mm)
-  const gruba = 2 * rr > 14.3;
-  const rw = gruba ? 0.7 : 0.55; // promień drutu
-  const pitch = gruba ? 12.7 : 8.47;
-  const x0 = rr - 3.4; // brzeg kartek od osi spirali
+  const wo = parametryWireO(T);
+  const rr = wo.srednica / 2; // promień pierścienia Wire-O (#179)
+  const rw = wo.drut / 2; // promień drutu
+  const pitch = wo.skok;
+  const x0 = rr - wo.otwor; // brzeg kartek od osi spirali – okrąg przechodzi przez środek otworu
   const n = kartki.length;
   const zKartki = [];
   let z = 0;
@@ -606,10 +691,10 @@ function notesSpirala(quady, kartki, { s, obr, lewe, prawe, T, h }) {
   };
   stos(lewe, Math.PI);
   stos(prawe, 0);
-  if (obr !== null) rysuj(obr, Math.PI * s, (kartki[obr].okladka ? 0.1 : 0.55) * Math.sin(Math.PI * s));
+  if (obr !== null) rysuj(obr, Math.PI * s, (kartki[obr].okladka ? 0 : 0.55) * Math.sin(Math.PI * s));
   const ile = Math.max(3, Math.floor((h - 10) / pitch));
   const ys = Array.from({ length: ile }, (_, i) => -((ile - 1) * pitch) / 2 + i * pitch);
-  const rozstaw = pitch * 0.13; // dwa druty pętli
+  const rozstaw = pitch * 0.12 + wo.drut / 2; // dwa palce spinki Wire-O
   // Otwory na wierzchnich kartkach obu stosów (lekko nad powierzchnią): jeden prostokątny na pętlę.
   const otwory = (lista, strona) => {
     if (!lista.length) return;
@@ -617,8 +702,8 @@ function notesSpirala(quady, kartki, { s, obr, lewe, prawe, T, h }) {
     const zt = (strona > 0 ? zKartki[top] : 2 * zc - zKartki[top]) + kartki[top].d / 2 + 0.08;
     const pol = rozstaw + rw + 0.35;
     for (const y of ys) {
-      const xa = strona * (x0 + 1.0);
-      const xb = strona * (x0 + 4.0);
+      const xa = strona * (x0 + wo.otwor - 1.6);
+      const xb = strona * (x0 + wo.otwor + 1.6);
       const p = [naStol([xa, y - pol, zt]), naStol([xb, y - pol, zt]), naStol([xb, y + pol, zt]), naStol([xa, y + pol, zt])];
       quad(quady, strona > 0 ? p : [p[1], p[0], p[3], p[2]], [[0, 0], [1, 0], [1, 1], [0, 1]], `kolor:${OTWOR}`, 'papier', { n: [0, 1, 0] });
     }
@@ -629,15 +714,8 @@ function notesSpirala(quady, kartki, { s, obr, lewe, prawe, T, h }) {
   const unies = Math.max(0, rr + rw - zc); // notes leży na drucie
   quady.push(...zPamieci(`notes|${rr}|${zc}|${h}|${pitch}`, () => {
     const q = [];
-    for (const y of ys) for (const dy of [-rozstaw, rozstaw]) {
-      const pts = [];
-      const K = 28;
-      for (let i = 0; i < K; i += 1) {
-        const a = (i / K) * 2 * Math.PI;
-        pts.push(naStol([rr * Math.cos(a), y + dy + 0.25 * Math.sin(a), zc + rr * Math.sin(a)]));
-      }
-      rura(q, pts, rw, 'drut', `kolor:${DRUT}`, true);
-    }
+    // Grzbiet spirali po stronie przeciwnej do kartek (kąt π).
+    wireO(q, ys, wo, (y, a) => naStol([rr * Math.cos(a), y, zc + rr * Math.sin(a)]), Math.PI);
     return q;
   }));
   if (unies) quady.forEach((q, i) => { quady[i] = { ...q, p: q.p.map(([x, y, z]) => [x, y + unies, z]) }; });
@@ -658,7 +736,8 @@ function kalendarz(quady, model, kartki, u) {
   const h = Math.max(...kartki.map((x) => x.h));
   const T = kartki.reduce((a, x) => a + x.d, 0);
   const pt = 1.8; // tektura stojaka
-  const r = biurkowy ? Math.max(5.5, T / 2 + pt + 1.8) : Math.max(4.5, T / 2 + 1.8); // średnica ≈ grubość + 3,6 mm (#161)
+  const wo = parametryWireO(T + (biurkowy ? 2 * pt : 0)); // Wire-O wg grubości (#179)
+  const r = wo.srednica / 2;
   const nach = biurkowy ? 0.34 : 0;
   const przod = [];
   const tyl = [];
@@ -666,7 +745,7 @@ function kalendarz(quady, model, kartki, u) {
   for (let j = n - 1; j >= 0; j -= 1) { przod[j] = a + kartki[j].d / 2; a += kartki[j].d; }
   a = biurkowy ? pt : 0;
   for (let j = 0; j < n; j += 1) { tyl[j] = -(a + kartki[j].d / 2); a += kartki[j].d; }
-  const gornyBrzeg = r - 4; // górna krawędź karty; otwory 4 mm niżej, na okręgu spirali
+  const gornyBrzeg = r - wo.otwor; // górna krawędź karty; środek otworu na okręgu spirali
   const obroc = (psi) => ([x, y, z]) => [x, y * Math.cos(psi) - z * Math.sin(psi), y * Math.sin(psi) + z * Math.cos(psi)];
   const scianaZ = biurkowy ? null : -(r + 0.8);
   const karta = (j, psi, dz, wygiecie = 0, kar = kartki[j]) => {
@@ -732,35 +811,33 @@ function kalendarz(quady, model, kartki, u) {
     }
   }
 
-  // Spirala: pełne pętle wokół osi przez otwory, po dwie przy każdym otworze – jak w notesie (#161):
-  // skok 3:1 (8,47 mm), przy średnicy ponad 14,3 mm – 2:1 (12,7 mm) i grubszy drut.
-  const gruba = 2 * r > 14.3;
-  const pitch = gruba ? 12.7 : 8.47;
-  const rw = gruba ? 0.7 : 0.5;
-  const rozstaw = pitch * 0.13;
+  // Wire-O (#179): spinki co skok wzdłuż górnej krawędzi; w ściennym pośrodku przerwa na wieszak
+  // (półokrągłe wycięcie w kartach), drut biegnie tam wzdłuż grzbietu.
+  const pitch = wo.skok;
   const ile = Math.max(3, Math.floor((w - 12) / pitch));
-  quady.push(...zPamieci(`kal|${ile}|${r}|${pitch}`, () => {
+  const wyciecie = biurkowy ? 0 : Math.min(30, w * 0.18);
+  const pozycje = Array.from({ length: ile }, (_, i) => -((ile - 1) * pitch) / 2 + i * pitch).filter((x) => Math.abs(x) > wyciecie / 2 + pitch * 0.3);
+  quady.push(...zPamieci(`kal|${pozycje.length}|${r}|${pitch}|${wyciecie}`, () => {
     const q0 = [];
-    for (let i = 0; i < ile; i += 1) {
-      const x = -((ile - 1) * pitch) / 2 + i * pitch;
-      for (const dx of [-rozstaw, rozstaw]) {
-        const pts = [];
-        const K = 28;
-        for (let q = 0; q < K; q += 1) {
-          const al = (q / K) * 2 * Math.PI;
-          pts.push([x + dx + 0.25 * Math.sin(al), r * Math.sin(al), r * Math.cos(al)]);
-        }
-        rura(q0, pts, rw, 'drut', `kolor:${DRUT}`, true);
-      }
-    }
+    // Grzbiet spirali na górze (kąt π/2 – nad kartami).
+    wireO(q0, pozycje, wo, (x, al) => [x, r * Math.sin(al), r * Math.cos(al)], Math.PI / 2);
     return q0;
   }));
   if (!biurkowy) {
-    // Wieszak: trójkątny drut nad spiralą, do gwoździa w ścianie.
+    // Półokrągłe wycięcie w kartach pod wieszak (ciemne – widać przez nie ścianę) – na wierzchniej karcie.
+    const rn = wyciecie / 2 - 2;
+    const zW = (przod[Math.min(...zPrzodu, n - 1)] ?? 0) + 0.05;
+    for (let i = 0; i < 12; i += 1) {
+      const t0 = (i / 12) * Math.PI;
+      const t1 = ((i + 1) / 12) * Math.PI;
+      const pt0 = (t) => [rn * Math.cos(t), -gornyBrzeg - rn * Math.sin(t) * 0.75, zW + 0.08];
+      quad(quady, [[0, -gornyBrzeg, zW + 0.08], pt0(t0), pt0(t1), [0, -gornyBrzeg, zW + 0.08]], [[0, 0], [1, 0], [1, 1], [0, 1]], `kolor:${OTWOR}`, 'papier', { n: [0, 0, 1] });
+    }
+    // Wieszak: haczyk z drutu w przerwie spirali, do gwoździa w ścianie.
     const pts = [];
     for (let q = 0; q <= 18; q += 1) {
       const t = q / 18;
-      const x = lerp(-16, 16, t);
+      const x = lerp(-rn, rn, t);
       pts.push([x, r + 0.2 + 15 * (1 - Math.abs(2 * t - 1)) ** 0.9, lerp(0, scianaZ + 1.2, 1 - Math.abs(2 * t - 1))]);
     }
     rura(quady, pts, 0.55);
@@ -801,14 +878,44 @@ function kartkaNaStole(quady, kartki, u) {
 // ---------- Scena ----------
 
 // Scena modelu w położeniu u: lista czworokątów (współrzędne świata) i quady.podloze.
-export function scena(model, kartki, u = 0) {
+// ulozenie (#179): 'lezy' (domyślnie) albo 'stoi' – książka i notes stoją na dolnej krawędzi; otwarte
+// – rozłożone w „V” jak na półce wystawowej (grzbiet z tyłu).
+export const ULOZENIA = { lezy: 'Leży', stoi: 'Stoi' };
+export const mozeStac = (model) => model.startsWith('ksiazka') || model === 'notes';
+export function scena(model, kartki, u = 0, { ulozenie = 'lezy' } = {}) {
   const quady = [];
   quady.podloze = { typ: 'stol', poziom: 0 };
   if (!kartki.length) return quady;
   if (model === 'kartka') kartkaNaStole(quady, kartki, u);
   else if (model.startsWith('kalendarz')) kalendarz(quady, model, kartki, u);
   else ksiazka(quady, model, kartki, u);
+  if (ulozenie === 'stoi' && mozeStac(model)) postaw(quady, kartki, u);
   return quady;
+}
+
+// Książka leżąca (oś Y – grubość, Z – wysokość strony) → stojąca na stopce: wysokość strony w górę, grubość
+// w głąb. Otwarta: obie połowy podniesione wokół grzbietu (V, ok. 110°), potem postawiona.
+function postaw(quady, kartki, u) {
+  const otwarta = u > 0.02 && u < kartki.length - 0.02;
+  const th = otwarta ? 0.62 : 0;
+  const zgnij = ([x, y, z]) => {
+    if (!th) return [x, y, z];
+    const a = th * ogr(x / 4, -1, 1);
+    return [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z];
+  };
+  const stoj = ([x, y, z]) => [x, -z, y];
+  for (let i = 0; i < quady.length; i += 1) {
+    const q = quady[i];
+    const p = q.p.map((v) => stoj(zgnij(v)));
+    // Normalne obrócone jak czworokąt (kąt wg środka – połowa lewa / prawa).
+    const a = th * ogr(q.p.reduce((acc, v) => acc + v[0], 0) / 16, -1, 1);
+    const nrm = ([x, y, z]) => stoj([x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z]);
+    quady[i] = { ...q, p, n: nrm(q.n), nv: q.nv ? q.nv.map(nrm) : q.nv };
+  }
+  let min = Infinity;
+  for (const q of quady) for (const v of q.p) min = Math.min(min, v[1]);
+  for (let i = 0; i < quady.length; i += 1) quady[i] = { ...quady[i], p: quady[i].p.map(([x, y, z]) => [x, y - min, z]) };
+  quady.podloze = { typ: 'stol', poziom: 0 };
 }
 
 // Prostopadłościan obejmujący scenę – środek i rozmiar dla kamery.
@@ -821,7 +928,8 @@ export function obwiednia(quady) {
 }
 
 // Ustawienia widoku dla modelu: kąty startowe i granice obracania (żeby nie zajrzeć pod stół ani za ścianę).
-export function widokModelu(model) {
+export function widokModelu(model, ulozenie = 'lezy') {
+  if (ulozenie === 'stoi' && mozeStac(model)) return { obrotY: -0.42, obrotX: 0.2, minX: 0.02, maxX: 1.1, minY: -Infinity, maxY: Infinity };
   if (model === 'kalendarz_scienny') return { obrotY: -0.38, obrotX: 0.12, minX: -0.7, maxX: 0.95, minY: -1.25, maxY: 1.25 };
   if (model === 'kalendarz_biurkowy') return { obrotY: -0.5, obrotX: 0.3, minX: 0.04, maxX: 1.35, minY: -Infinity, maxY: Infinity };
   return { obrotY: -0.32, obrotX: 0.68, minX: 0.1, maxX: 1.5, minY: -Infinity, maxY: Infinity };

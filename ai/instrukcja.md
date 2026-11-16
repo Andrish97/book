@@ -1724,14 +1724,14 @@ Strony idą po kolei, rozkładówki stoją obok siebie. Strony serii mają podpi
 
 | Rodzaj | Jak wygląda |
 |---|---|
-| **Książka – miękka oprawa** | Leży na stole. Okładka z sekcji okładki (rozdział „11.6 Okładka z grzbietem”): przód, grzbiet i tył; środek kartka po kartce, otwarte strony wygięte przy grzbiecie, krawędzie kartek widać z boku. Bez sekcji okładki okładką jest pierwsza strona. |
-| **Książka – twarda oprawa** | Okładki z tektury wystają ok. 3 mm poza środek i mają lekki połysk. Grzbiet to cienka, zaokrąglona płyta odsunięta od bloku — od góry i dołu widać szczelinę, zaokrąglony grzbiet środka ze składkami i kapitałkę. Otwarta okładka leży obok bloku i łączy się z nim grzbietem i wyklejką. |
-| **Notes na spirali** | Kartki na podwójnej spirali z drutu przez otwory przy brzegu. Pętle obejmują cały blok z okładkami — im grubszy notes, tym większe pętle (gruby notes – rzadszy skok i grubszy drut, jak w prawdziwej oprawie); notes leży na drucie. |
-| **Kalendarz ścienny** | Wisi na ścianie na wieszaku; karta po karcie na spirali u góry, przewrócona karta przechodzi na tył. |
+| **Książka – miękka oprawa** | Leży na stole. Okładka z sekcji okładki (rozdział „11.6 Okładka z grzbietem”): przód, grzbiet i tył, w rozmiarze środka; sztywna jak karton — zgina się tylko przy grzbiecie. Środek kartka po kartce, otwarte strony wygięte przy grzbiecie, krawędzie kartek widać z boku. Bez sekcji okładki okładką jest pierwsza strona. |
+| **Książka – twarda oprawa** | Okładki z tektury wystają ok. 3 mm poza środek i mają lekki połysk. Grzbiet to cienka, zaokrąglona płyta odsunięta od bloku — od góry i dołu widać szczelinę, zaokrąglony grzbiet środka ze składkami i kapitałkę. Na wnętrzu tektury widać okleinę zawiniętą z zewnątrz, a na niej wyklejkę — 3 mm od krawędzi. Otwarta okładka leży obok bloku; wyklejka przechodzi z niej cienkim zgięciem na blok. |
+| **Notes na spirali** | Oprawa Wire-O: przy każdym otworze dwa równoległe druty. Średnica pierścienia dobiera się z grubości bloku jak u producentów (od 1/4″ do 1¼″, skok 3:1 albo 2:1); blok grubszy niż ok. 28 mm dostaje największy pierścień i uwagę pod makietą. Notes leży na drucie. |
+| **Kalendarz ścienny** | Wisi na ścianie; spirala Wire-O u góry ma pośrodku przerwę z półokrągłym wycięciem na wieszak. Przewrócona karta przechodzi na tył. |
 | **Kalendarz biurkowy** | Stoi na biurku na stojaku z grubej tektury; karty przewracają się przez górę na drugą stronę. |
 | **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — leży na stole, przód i tył. |
 
-Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka); zmienisz go listą **Rodzaj**.
+Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka); zmienisz go listą **Rodzaj**. Książkę i notes ustawisz listą **Ułożenie**: **Leży** albo **Stoi** — zamknięta stoi na dolnej krawędzi, otwarta rozkłada się w „V” jak na półce wystawowej. Wybór zostaje zapamiętany dla projektu.
 
 Format środka to format większości stron projektu. Sekcje typu wyklejka (przednia albo tylna) nie są częścią środka: w książce przednia wyklejka leży na wewnętrznej stronie przedniej okładki i jako luźna kartka przed stroną 1, tylna — odwrotnie, tak jak po oprawie (arkusz A4 poziomo przy książce A5 dzieli się na dwie połowy). Twarda oprawa bez wyklejek w projekcie dostaje czystą wyklejkę. Inna strona dwa razy szersza od środka — np. rozkładówka na jednym arkuszu — też dzieli się na dwie strony.
 

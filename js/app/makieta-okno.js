@@ -7,12 +7,13 @@ import { postep } from '../postep.js';
 import { rozwin } from '../serie.js';
 import { renderujCel } from '../zlozenie.js';
 import { geometriaOkladki, jestOkladka, normalizujOkladke } from '../okladka.js';
-import { MODELE, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer, widokModelu, powodBrakuWebGL } from '../makieta-3d.js';
+import { MODELE, mozeStac, parametryWireO, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer, widokModelu, powodBrakuWebGL } from '../makieta-3d.js';
 import { typSekcji } from '../typ-sekcji.js'; // typ sekcji wspólny z resztą programu (#177)
 
 const dlg = $('#dlg-makieta');
 const plotno = $('#makieta-plotno');
 const wybor = $('#makieta-model');
+const wyborUlozenia = $('#makieta-ulozenie');
 // px tekstury strony (#161): 1280 na co dzień (telefon z dpr ~2,6 – strona ok. 1000 px na ekranie), po przybliżeniu
 // strony rysują się od nowa w 2048 px – ostro z bliska; mipmapy w rendererze uśredniają z daleka.
 const SZEROKOSC_STRONY = 1280;
@@ -103,6 +104,8 @@ function obrazStrony(moje, wpis) {
 
 // Okładka: cała strona sekcji okładki raz, potem wycinki stref (tył | grzbiet | przód, bez zawinięć).
 async function czescOkladki(moje, czesc) {
+  // Okleina twardej oprawy (#179) – kolor zawinięcia na wnętrzu tektury: średni kolor brzegu przodu okładki.
+  if (czesc === 'okleina') return kolorOkleiny(await czescOkladki(moje, 'przod'));
   moje.obrazOkladki ||= (async () => {
     const egz = moje.ciag.egzemplarze.find((e) => e.sekcja.id === moje.okladka.id);
     const szer = Math.round(Math.min(3000, 9 * moje.okladka.wydruk.szerokosc_mm));
@@ -118,6 +121,24 @@ async function czescOkladki(moje, czesc) {
   c.height = Math.max(2, Math.round((g.dol - g.gora) * s));
   c.getContext('2d').drawImage(img, strefa.x1 * s, g.gora * s, c.width, c.height, 0, 0, c.width, c.height);
   return c;
+}
+
+function kolorOkleiny(przod) {
+  if (!przod) return null;
+  const c = document.createElement('canvas');
+  c.width = 32;
+  c.height = 32;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(przod, 0, 0, 32, 32);
+  const d = g.getImageData(0, 0, 32, 32).data;
+  let r = 0; let gr = 0; let b = 0; let ile = 0;
+  for (let y = 0; y < 32; y += 1) for (let x = 0; x < 32; x += 1) {
+    if (x > 2 && x < 29 && y > 2 && y < 29) continue; // tylko pas przy krawędzi
+    const i = (y * 32 + x) * 4;
+    r += d[i]; gr += d[i + 1]; b += d[i + 2]; ile += 1;
+  }
+  const hex = (v) => Math.round(v / ile).toString(16).padStart(2, '0');
+  return `#${hex(r)}${hex(gr)}${hex(b)}`;
 }
 
 function rysujPozniej() {
@@ -136,8 +157,8 @@ function odlegloscDla(ob) {
   const tH = tV * asp;
   // Kadr dla bieżącego kąta kamery (#161 – po obróceniu rzecz nie wychodzi poza kadr); zmiana odległości
   // jest płynna, więc obracanie nie skacze. Rogi obwiedni w układzie kamery – każdy w kącie widzenia.
-  const a = st.kamera.obrotX ?? widokModelu(st.model).obrotX;
-  const b = st.kamera.obrotY ?? widokModelu(st.model).obrotY;
+  const a = st.kamera.obrotX ?? widokModelu(st.model, st.ulozenie).obrotX;
+  const b = st.kamera.obrotY ?? widokModelu(st.model, st.ulozenie).obrotY;
   let d = 0;
   for (const x of [ob.min[0], ob.max[0]]) for (const y of [ob.min[1], ob.max[1]]) for (const z of [ob.min[2], ob.max[2]]) {
     const [dx, dy, dz] = [x - ob.srodek[0], y - ob.srodek[1], z - ob.srodek[2]];
@@ -161,12 +182,12 @@ function rysuj() {
     st.u = st.cel > st.u ? Math.min(st.cel, st.u + krok) : Math.max(st.cel, st.u - krok);
     if (st.u !== st.cel) klatka = requestAnimationFrame(rysuj);
   }
-  if (st.scena?.u !== st.u || st.scena.model !== st.model) st.scena = { u: st.u, model: st.model, quady: scena(st.model, st.kartki, st.u) };
+  if (st.scena?.u !== st.u || st.scena.model !== st.model || st.scena.ulozenie !== st.ulozenie) st.scena = { u: st.u, model: st.model, ulozenie: st.ulozenie, quady: scena(st.model, st.kartki, st.u, { ulozenie: st.ulozenie }) };
   const { quady } = st.scena;
   for (const q of quady) if (!renderer.maTeksture(q.tex)) wczytajTeksture(q.tex);
   // Kadr z położenia docelowego (nie z przewracanej kartki) – bez „pompowania” przy kartkowaniu.
   const cu = Math.round(st.cel);
-  if (st.kadr?.u !== cu || st.kadr.model !== st.model) st.kadr = { u: cu, model: st.model, ob: obwiednia(cu === st.u ? quady : scena(st.model, st.kartki, cu)) };
+  if (st.kadr?.u !== cu || st.kadr.model !== st.model || st.kadr.ulozenie !== st.ulozenie) st.kadr = { u: cu, model: st.model, ulozenie: st.ulozenie, ob: obwiednia(cu === st.u ? quady : scena(st.model, st.kartki, cu, { ulozenie: st.ulozenie })) };
   const ob = st.kadr.ob;
   const k = st.kamera;
   const cel = odlegloscDla(ob);
@@ -247,10 +268,19 @@ function ustawModel(model) {
   });
   st.u = 0;
   st.cel = 0;
-  Object.assign(st.kamera, widokModelu(model), { zoom: 1, srodek: null, baza: null });
+  Object.assign(st.kamera, widokModelu(model, st.ulozenie), { zoom: 1, srodek: null, baza: null });
   st.kadr = null;
   st.scena = null;
   wybor.value = model;
+  $('#makieta-ulozenie-pole').hidden = !mozeStac(model);
+  // Oprawa Wire-O (#179): blok grubszy niż największy pierścień (ok. 28 mm) – drukarnia go nie zepnie.
+  const uwaga = $('#makieta-uwaga');
+  const spirala = model === 'notes' || model.startsWith('kalendarz');
+  const T = st.kartki.reduce((a, x) => a + x.d, 0);
+  const wo = parametryWireO(T);
+  uwaga.hidden = !(spirala && wo.zaGruby);
+  if (!uwaga.hidden) uwaga.textContent = `Blok ma ok. ${Math.round(T)} mm grubości – więcej niż mieści największy pierścień Wire-O (${wo.maks} mm). Makieta pokazuje największą spiralę; do druku podziel projekt na tomy albo wybierz oprawę klejoną.`;
+  wyborUlozenia.value = st.ulozenie;
   try { sessionStorage.setItem(`makieta:${st.projekt.id}`, model); } catch { /* bez pamięci – zostaje domyślny */ }
   rysujPozniej();
 }
@@ -312,13 +342,14 @@ export function otworzMakiete(projekt) {
   try { if (okladka) geometria = geometriaOkladki(projekt, okladka, ciag); } catch { geometria = null; }
   renderer?.zwolnij();
   renderer = null;
-  st = { projekt, ciag, strony, okladka: geometria ? okladka : null, geometria, format, kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null } };
+  st = { projekt, ciag, strony, okladka: geometria ? okladka : null, geometria, format, ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null } };
   if (!dlg.open) dlg.showModal();
   renderer = utworzRenderer(plotno);
   pokazBrak3D();
   if (!renderer) return;
   let zapamietany = null;
   try { zapamietany = sessionStorage.getItem(`makieta:${projekt.id}`); } catch { /* bez pamięci */ }
+  try { st.ulozenie = localStorage.getItem(`makieta-ulozenie:${projekt.id}`) === 'stoi' ? 'stoi' : 'lezy'; } catch { st.ulozenie = 'lezy'; }
   ustawModel(MODELE[zapamietany] ? zapamietany : domyslnyModel(projekt, strony.length, st.okladka));
   obserwator.observe(plotno);
   dopasujPlotno();
@@ -334,7 +365,7 @@ export function ustawPolozenieMakiety(u, { natychmiast = false } = {}) {
   rysujPozniej();
 }
 
-export const stanMakiety = () => (st ? { model: st.model, u: st.u, cel: st.cel, kartek: st.kartki.length, polozen: polozenia(st.model, st.kartki), kamera: { ...st.kamera }, renderer: Boolean(renderer), wToku: [...wToku] } : null);
+export const stanMakiety = () => (st ? { model: st.model, ulozenie: st.ulozenie, u: st.u, cel: st.cel, kartek: st.kartki.length, polozen: polozenia(st.model, st.kartki), kamera: { ...st.kamera }, renderer: Boolean(renderer), wToku: [...wToku] } : null);
 
 // Obraz makiety (PNG z tłem studia i cieniem) – w dużej rozdzielczości (dłuższy bok 3200 px), w tym samym
 // kadrze co na ekranie.
@@ -346,7 +377,7 @@ export async function pobierzObrazMakiety() {
   eksport = true;
   plotno.width = Math.round(w0 * skala);
   plotno.height = Math.round(h0 * skala);
-  const quady = scena(st.model, st.kartki, st.cel);
+  const quady = scena(st.model, st.kartki, st.cel, { ulozenie: st.ulozenie });
   const ob = obwiednia(quady);
   renderer.rysuj(quady, { ...st.kamera, srodek: ob.srodek, odleglosc: odlegloscDla(ob) / st.kamera.zoom }, { ciemny: ciemny() });
   const blob = await new Promise((ok) => plotno.toBlob(ok, 'image/png'));
@@ -382,7 +413,7 @@ export function powiekszMakiete(k) {
 }
 export function widokZPrzodu() {
   if (!st) return;
-  const { obrotY, obrotX } = widokModelu(st.model);
+  const { obrotY, obrotX } = widokModelu(st.model, st.ulozenie);
   Object.assign(st.kamera, { obrotY, obrotX, zoom: 1 });
   rysujPozniej();
 }
@@ -412,7 +443,7 @@ plotno.addEventListener('pointermove', (e) => {
   const dy = e.clientY - p.y;
   p.x = e.clientX; p.y = e.clientY;
   if (start) start.ruch += Math.abs(dx) + Math.abs(dy);
-  const g = widokModelu(st.model);
+  const g = widokModelu(st.model, st.ulozenie);
   st.kamera.obrotY = Math.max(g.minY, Math.min(g.maxY, st.kamera.obrotY + dx * 0.01));
   st.kamera.obrotX = Math.max(g.minX, Math.min(g.maxX, st.kamera.obrotX + dy * 0.01));
   rysujPozniej();
@@ -434,6 +465,18 @@ dlg.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft') { e.preventDefault(); kartkuj(-1); }
 });
 wybor.addEventListener('change', () => { if (st) ustawModel(wybor.value); });
+// Ułożenie (#179): leży / stoi – zapamiętane dla projektu na tym urządzeniu.
+export function ustawUlozenie(u) {
+  if (!st) return;
+  st.ulozenie = u === 'stoi' ? 'stoi' : 'lezy';
+  try { localStorage.setItem(`makieta-ulozenie:${st.projekt.id}`, st.ulozenie); } catch { /* bez pamięci */ }
+  Object.assign(st.kamera, widokModelu(st.model, st.ulozenie), { zoom: 1, srodek: null, baza: null });
+  st.scena = null;
+  st.kadr = null;
+  wyborUlozenia.value = st.ulozenie;
+  rysujPozniej();
+}
+wyborUlozenia.addEventListener('change', () => ustawUlozenie(wyborUlozenia.value));
 $('#makieta-wstecz').addEventListener('click', () => kartkuj(-1));
 $('#makieta-dalej').addEventListener('click', () => kartkuj(1));
 dlg.addEventListener('close', () => {
