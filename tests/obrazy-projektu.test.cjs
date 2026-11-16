@@ -169,7 +169,7 @@ test('obrazy projektu: jedno miejsce, duplikaty, okno z użyciami, zaznaczanie, 
 
   // „Podmień plik” w oknie: obraz z danych dostaje nowy plik, nazwa (i dopasowanie do danych) zostaje.
   const idNiebieski = lista.find((o) => o.nazwa === 'niebieski.png').id;
-  const [wybor] = await Promise.all([strona.waitForEvent('filechooser'), wpis(strona, 'niebieski.png').locator('[data-rola="podmien"]').click()]);
+  const [wybor] = await Promise.all([strona.waitForEvent('filechooser'), (async () => { await wpis(strona, 'niebieski.png').locator('[data-rola="wiecej"]').click(); await strona.click('#menu-obrazu [data-op="podmien"]'); })()]);
   await wybor.setFiles(await png(strona, '#0dd', 'cokolwiek.png'));
   await strona.waitForFunction((stary) => !window.seriodruk.stan.projekt.zasoby[stary], idNiebieski);
   assert.ok((await obrazy(strona)).some((o) => o.nazwa === 'niebieski.png' && o.id !== idNiebieski));
@@ -181,7 +181,9 @@ test('obrazy projektu: jedno miejsce, duplikaty, okno z użyciami, zaznaczanie, 
   await strona.fill('#dlg-nazwa input', 'NIEBIESKI.png');
   await strona.click('#dlg-nazwa button[value="tak"]');
   await strona.waitForFunction(() => /ma już tę nazwę/.test(document.querySelector('#powiadomienie').textContent));
-  await wpis(strona, 'Czerwony (2).png').locator('[data-rola="nazwa"][data-ikona]').click();
+  // Menu ⋯ karty (#182): Zmień nazwę.
+  await wpis(strona, 'Czerwony (2).png').locator('[data-rola="wiecej"]').click();
+  await strona.click('#menu-obrazu [data-op="nazwa"]');
   await strona.waitForSelector('#dlg-nazwa[open]');
   await strona.fill('#dlg-nazwa input', 'żółty.png');
   await strona.click('#dlg-nazwa button[value="tak"]');

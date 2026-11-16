@@ -65,6 +65,7 @@ export const MODULY_EDYTORA = [
   'js/widok.js',
   'js/wlasciwosci.js',
   'js/wykres.js',
+  'js/wzor-wypelnienia.js',
   'js/wzorce-standardowe.js',
   'js/wzory-tla.js',
   'js/zlozenie.js',

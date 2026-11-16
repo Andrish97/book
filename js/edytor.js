@@ -34,6 +34,7 @@ import { nowyWykres, toWykres } from './wykres.js';
 import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych, toKolaz, ulozKolaz } from './elementy-danych.js';
 import { KSZTALTY, ukladKolazu, wzorKresek } from './ksztalty-biblioteka.js';
 import { szablonPlanera, zastosujSzablon } from './szablony-planera.js';
+import { moznaWzor, normalizujWzor } from './wzor-wypelnienia.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -690,6 +691,21 @@ export class Edytor extends EventTarget {
     });
     p.set(this._srodek(p.width, p.height));
     return this._wstaw(p);
+  }
+
+  // Wzór jako wypełnienie kształtu (#182): id wzoru z Biblioteki (null – bez wzoru). Kolor, skala i obrót zostają
+  // z poprzedniego wzoru; kształt bez wypełnienia dostaje białe tło, żeby wzór miał na czym leżeć.
+  ustawWzor(obj, id, zmiany = {}) {
+    if (!moznaWzor(obj)) return false;
+    if (!id) { obj.set('wzor', undefined); obj.dirty = true; return true; }
+    const jasne = (k) => { try { const [r, g, b] = new fabric.Color(k).getSource(); return 0.299 * r + 0.587 * g + 0.114 * b > 150; } catch { return true; } };
+    const tlo = typeof obj.fill === 'string' && obj.fill && obj.fill !== 'transparent' ? obj.fill : null;
+    const w = normalizujWzor({ kolor: jasne(tlo || '#ffffff') ? '#2f5d8a' : '#ffffff', ...(obj.wzor || {}), ...zmiany, id });
+    if (!w) return false;
+    if (!obj.fill || obj.fill === 'transparent') obj.set('fill', '#ffffff');
+    obj.set('wzor', w);
+    obj.dirty = true;
+    return true;
   }
 
   // Zmienia liczbę boków wielokąta albo robi z niego gwiazdę; środek i wielkość zostają.

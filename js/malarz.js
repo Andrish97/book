@@ -6,7 +6,7 @@ import { POLA_STYLU } from './style-tekstu.js';
 // Wygląd wspólny dla wszystkich elementów.
 const WSPOLNE = ['opacity', 'shadow', 'uszlachetnienie', 'folia'];
 // Kształty (prostokąt, elipsa, wielokąt, ścieżka, linia, obraz w kształcie).
-const KSZTALT = ['fill', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', 'rx', 'ry', 'filtry', 'miekkie_krawedzie', 'miekkie_rodzaj'];
+const KSZTALT = ['fill', 'wzor', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', 'rx', 'ry', 'filtry', 'miekkie_krawedzie', 'miekkie_rodzaj'];
 // Obraz: filtry, zaokrąglenie narożników, obramowanie, miękkie krawędzie (#156).
 const OBRAZ = ['filtry', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 'zaokraglenie', 'miekkie_krawedzie', 'miekkie_rodzaj'];
 // Kształt ↔ obraz: to, co znaczy to samo w obu.
@@ -72,6 +72,8 @@ export function nalozWyglad(o, wyglad) {
   else if ((cel === 'ksztalt' && rodzaj === 'obraz') || (cel === 'obraz' && rodzaj === 'ksztalt')) dozwolone = [...WSPOLNE, ...KSZTALT_OBRAZ];
   const zmiany = {};
   for (const k of dozwolone) if (pola[k] !== undefined) zmiany[k] = kopia(pola[k]);
+  // Kształt bez wzoru (#182) zdejmuje wzór z kształtu, na który kopiuje się wygląd – tło (fill) i tak przechodzi.
+  if (cel === 'ksztalt' && rodzaj === 'ksztalt' && pola.wzor === undefined && o.wzor) zmiany.wzor = undefined;
   if (cel === 'tekst' && rodzaj === 'tekst') {
     // Cały tekst przyjmuje jeden wygląd – wygląd fragmentów (styles) znika, jak przy nadaniu stylu.
     o.set({ styles: {} });

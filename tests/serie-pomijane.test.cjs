@@ -285,7 +285,7 @@ test('lewa i prawa strona w aplikacji: ustawienie w oknie serii, edytor otwiera 
   await strona.waitForSelector('#dlg-seria[open]');
   assert.ok(await strona.isVisible('#seria-pole-strony'));
   assert.equal(await strona.isChecked('#dlg-seria input[name=pilnuj_stron]'), true);
-  await strona.check('#dlg-seria input[name=uklad][value=dlugi]');
+  await strona.click('#dlg-seria label:has(input[name=uklad][value=dlugi])');
   await strona.fill('#dlg-seria input[name=nazwa]', 'Dni');
   await strona.click('#zapisz-serie');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.serie[0]?.nazwa === 'Dni');

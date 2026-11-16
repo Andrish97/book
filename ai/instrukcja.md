@@ -337,7 +337,7 @@ Biblioteka to gotowe elementy do wstawienia: kształty, ramki, ozdobniki, planer
 | **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; separatory ozdobne (fala, zygzak, z kropką, kółkiem, gwiazdką, kwiatkiem, rombami, zawijasy, pętelki, listki…). Rodzaj i grubość zmienisz potem w części **Linia** (rozdział „6.2 Linia”). |
 | **Etykiety i plakietki** | Etykiety zaokrąglone, ze ściętymi rogami, owalne, z obwódką, faliste, ząbkowane, na słoik, herbowe, cenówka, metka, plakietka, pieczątka, znaczek pocztowy, tabliczka — w środek wstaw tekst. |
 | **Okolicznościowe** | Zestawy w jednym stylu na **Boże Narodzenie**, **Wielkanoc**, **urodziny**, **ślub**, **chrzest**, **Pierwszą Komunię** i **szkołę**: nagłówek z życzeniami, ramka, szlaczek i gotowa kartka. |
-| **Tła i wzory** | **Wzory na całą stronę** (paski, kropki, groszki, kratka, krata, jodełka, fale, zygzak, romby, gwiazdki, kwiatki, plaster miodu, łuski, trójkąty, krzyżyki, koła), **Tekstury papieru** (płótno lniane, karton, papier pakowy, czerpany, w linie z marginesem, milimetrowy), **Przejścia kolorów** i **Plamy i akwarela**. Wzory, tekstury i przejścia wstawiają się na całą stronę ze spadem, pod treść; wzór to jeden wektorowy element na tle – kolory zmienisz po otwarciu grupy (dwuklik). |
+| **Tła i wzory** | **Wzory na całą stronę** (paski, kropki, groszki, kratka, krata, jodełka, fale, zygzak, romby, gwiazdki, kwiatki, plaster miodu, łuski, trójkąty, krzyżyki, koła), **Tekstury papieru** (płótno lniane, karton, papier pakowy, czerpany, w linie z marginesem, milimetrowy), **Przejścia kolorów** i **Plamy i akwarela**. Wzory, tekstury i przejścia wstawiają się na całą stronę ze spadem, pod treść; wzór to jeden wektorowy element na tle – kolory zmienisz po otwarciu grupy (dwuklik). Przy zaznaczonym kształcie wzór może go wypełnić (rozdział „6.5 Wypełnienie”). |
 | **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (rozdział „4.9 Kalendarz miesiąca”). |
 | **Planer** | Gotowe tabele do planerów i notesów: lista zadań, tracker nawyków, plan tygodnia, plan dnia (godziny), notatki w linie, siatka dni tygodnia, lista zakupów, cele, budżet, kontakty, plan lekcji; **Plany**: kalendarz roczny (12 miesięcy na stronie), plan miesiąca, tydzień w kolumnach i z priorytetami, plan posiłków; **Trackery**: nastrój, woda, czytanie, dziennik modlitwy; **Listy i budżet**: lista życzeń, budżet miesięczny; do tego siatki do notatek: kratka, kropki, linie (co 5 mm), papier milimetrowy, siatka izometryczna. Pola wyboru są w **Kształtach → Znaki**. |
 | **Formularze do druku** | Data i podpis, kratki na litery, pola na dane, odcinek do odcięcia z nożyczkami, pola wyboru, skala ocen 1–5, pole na uwagi, kupon, zgoda z podpisem; tabelka zamówienia i lista obecności (zwykłe tabele). |
@@ -710,13 +710,17 @@ Kolor i grubość następnych linii ustawisz we właściwościach, w części **
 
 Część **Wypełnienie i obrys**, lista **Wypełnienie**:
 
-**Brak**, **Jeden kolor**, **Przejście liniowe** (w jednym kierunku, pod zadanym **Kątem**) albo **Przejście kołowe** (od środka na zewnątrz, zasięg — **Promień**).
+**Brak**, **Jeden kolor**, **Przejście liniowe** (w jednym kierunku, pod zadanym **Kątem**), **Przejście kołowe** (od środka na zewnątrz, zasięg — **Promień**) albo **Wzór**.
 
 Pasek przejścia pokazuje kolory. **Dodaj kolor** dokłada kolejny; kliknięcie koloru na pasku pozwala zmienić go i jego położenie w %, **Usuń ten kolor z przejścia** go usuwa.
 
 Każdy kolor przejścia ma pole **Krycie** — np. kolor przechodzący w przezroczystość nad zdjęciem.
 
 ![Krycie koloru w przejściu](https://makietka.app/img/instrukcja/k-krycie-przejscia.png)
+
+**Wzór** wypełnia kształt powtarzalnym wzorem z Biblioteki — paski, kropki, kratka, jodełka, fale i inne. Wybierasz go z kafelków, a pod nimi ustawiasz **Kolor wzoru**, **Kolor tła**, **Skalę wzoru** i **Obrót wzoru**. Wzór nie rozciąga się, gdy zmieniasz rozmiar kształtu, a w pliku PDF zostaje ostry (wektorowy). Zamknięty kształt z pióra i kształty z Biblioteki mają w części **Linia** przełącznik **Wypełnij wzorem**. Kafelek wzoru w Bibliotece przy zaznaczonym kształcie pyta, czy **Wypełnij zaznaczony kształt**, czy **Wstaw na stronę**.
+
+![Kształty wypełnione wzorem](https://makietka.app/img/instrukcja/k-wzor-ksztaltu.png)
 
 ### 6.6 Obrys
 
@@ -773,11 +777,14 @@ Kliknij obraz dwa razy albo wybierz **Kadruj przeciąganiem**: przesuwasz zdjęc
 | Przycisk | Co robi |
 |---|---|
 | **Wgraj obrazy…** | Dodaje pliki z urządzenia, kilka naraz — także archiwum ZIP z obrazami. |
-| **Kopiuj nazwę** | Kopiuje nazwę pliku, np. do tabeli danych. |
-| **Zmień nazwę** | Nowa nazwa; komórki tabel z tą nazwą zmieniają się razem z nią. |
-| **Podmień plik** | Nowy plik w miejsce starego — wszędzie, gdzie obraz był użyty. |
+| **Kopiuj nazwę** | Na karcie obrazu: kopiuje nazwę pliku, np. do tabeli danych. |
+| **⋯** na karcie | Rzadsze działania dla tego obrazu: **Zmień nazwę**, **Podmień plik…**, **Kopiuj nazwę**, **Usuń obraz…**. |
+| **Zmień nazwę** | Nowa nazwa (także kliknięciem nazwy); komórki tabel z tą nazwą zmieniają się razem z nią. |
+| **Podmień plik…** | Nowy plik w miejsce starego — wszędzie, gdzie obraz był użyty. |
 | **Usuń** | Usuwa zaznaczone obrazy. Użytych obrazów aplikacja nie usunie — powie, gdzie są. |
 | **Usuń nieużywane** | Usuwa obrazy, których nic nie używa. |
+
+![Menu ⋯ na karcie obrazu](https://makietka.app/img/instrukcja/k-menu-obrazu.png)
 
 Kliknięcie obrazu go zaznacza; `Ctrl` dodaje kolejne, `Shift` — cały zakres. Ten sam plik wgrany drugi raz nie tworzy kopii. Inny plik o tej samej nazwie — aplikacja pokaże oba obrazy i zapyta: **Zastąp**, **Zachowaj oba** albo **Pomiń**. Gdy projekt ma powtórzone obrazy sprzed tego okna, u góry pojawia się pasek z **Uporządkuj** — scala kopie w jeden plik. Przy kilku zaznaczonych obrazach **Kopiuj nazwy** kopiuje wszystkie nazwy naraz, np. do kolumny tabeli danych.
 
@@ -1460,13 +1467,15 @@ Okno serii otwiera się po wybraniu **+ Nowa seria…**, a dla istniejącej seri
 |---|---|
 | **Nazwa serii** | Nazwa na liście serii. |
 | **Dane z tabeli** | Tabela, z której biorą się wiersze. |
-| **Ile razy powielić** | **Tyle razy, ile wierszy ma tabela** albo **Stałą liczbę razy** — np. 12 miesięcy; dane idą wtedy w kółko. |
-| **Jak czytać tabelę** | **Jeden wiersz na cały blok stron** (kolumny np. `s1_tytul`, `s2_tytul` dla kolejnych stron) albo **Jeden wiersz na każdą stronę bloku**. |
+| **Ile razy powielić** | Przełącznik: **Tyle, ile wierszy tabeli** albo **Stałą liczbę razy** (wtedy pojawia się pole **Liczba powieleń**) — np. 12 miesięcy; dane idą wtedy w kółko. |
+| **Jak czytać tabelę** | Przełącznik: **Wiersz na cały blok** (kolumny np. `s1_tytul`, `s2_tytul` dla kolejnych stron) albo **Wiersz na każdą stronę**. |
 | **Dokończ ostatni blok stronami bez danych** | Seria kończy się na ostatnim wierszu; z tym ustawieniem ostatni blok jest pełny. |
 | **Pilnuj lewej i prawej strony** | W rozkładówkach (rozdział „16.6 Serie w rozkładówkach”). |
 | **Dodatkowe tabele** | Dane zmieniające się rzadziej niż strony (rozdział „16.5 Tabele dodatkowe”). |
 | **Dane, których potrzebują strony** | Pola użyte na stronach bloku. **Dodaj brakujące kolumny do tabeli** dopisuje brakujące. |
 | **Pobierz szablon danych (Excel)** | Plik z kolumnami, których potrzebują strony (rozdział „16.7 Szablon danych”). |
+
+![Segmenty w oknie Serii](https://makietka.app/img/instrukcja/k-seria-segmenty.png)
 
 ### 16.4 Wiersze pomijane
 

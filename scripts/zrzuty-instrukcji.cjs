@@ -1133,6 +1133,9 @@ if (require.main === module) (async () => {
   await require('./zrzuty-biblioteki.cjs').zrobZrzutyBiblioteki(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty biblioteki:', err.message));
   await require('./zrzuty-paska-telefonu.cjs').zrobZrzutPaskaTelefonu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut paska telefonu:', err.message));
   await require('./zrzuty-obramowania.cjs').zrobZrzutObramowania(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut obramowania:', err.message));
+  // Wzór jako wypełnienie kształtu (#182).
+  await require('./zrzuty-wzoru.cjs').zrobZrzutWzoru(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut wzoru:', err.message));
+  await require('./zrzuty-reszty-103.cjs').zrobZrzutyReszty103(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto kadry #103:', err.message));
   await require('./zrzuty-kolorow.cjs').zrobZrzutyKolorow(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzuty kolorów:', err.message));
   await require('./zrzuty-postepu.cjs').zrobZrzutPostepu(kadr, { ciemny: CIEMNY }).catch((err) => console.error('pominięto zrzut postępu:', err.message));
   // Gotowe sekcje (#166): galeria szablonów i szczegóły szablonu.

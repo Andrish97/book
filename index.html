@@ -2309,16 +2309,19 @@
       </div>
       <fieldset class="grupa-pol">
         <legend>Ile razy powielić</legend>
-        <label class="przelacznik"><input type="radio" name="tryb" value="tabela"><span>Tyle razy, ile wierszy ma tabela</span></label>
-        <div class="rzad">
-          <label class="przelacznik"><input type="radio" name="tryb" value="stala"><span>Stałą liczbę razy</span></label>
-          <label class="pole waskie" id="seria-pole-ile"><span>Liczba powieleń</span><input name="ile" type="number" min="1" max="2000" step="1" inputmode="numeric"></label>
+        <!-- Segmenty zamiast listy przycisków radiowych (#103, #182). -->
+        <div class="przelacznik-segmentowy" role="radiogroup" aria-label="Ile razy powielić">
+          <label><input type="radio" name="tryb" value="tabela"><span>Tyle, ile wierszy tabeli</span></label>
+          <label><input type="radio" name="tryb" value="stala"><span>Stałą liczbę razy</span></label>
         </div>
+        <label class="pole waskie" id="seria-pole-ile"><span>Liczba powieleń</span><input name="ile" type="number" min="1" max="2000" step="1" inputmode="numeric"></label>
       </fieldset>
       <fieldset class="grupa-pol" id="seria-pole-uklad">
         <legend>Jak czytać tabelę</legend>
-        <label class="przelacznik"><input type="radio" name="uklad" value="szeroki"><span>Jeden wiersz na cały blok stron</span></label>
-        <label class="przelacznik"><input type="radio" name="uklad" value="dlugi"><span>Jeden wiersz na każdą stronę bloku</span></label>
+        <div class="przelacznik-segmentowy" role="radiogroup" aria-label="Jak czytać tabelę">
+          <label title="Jeden wiersz tabeli na cały blok stron"><input type="radio" name="uklad" value="szeroki"><span>Wiersz na cały blok</span></label>
+          <label title="Jeden wiersz tabeli na każdą stronę bloku"><input type="radio" name="uklad" value="dlugi"><span>Wiersz na każdą stronę</span></label>
+        </div>
         <label class="przelacznik" id="seria-pole-dopelnij"><input type="checkbox" name="dopelnij"><span>Dokończ ostatni blok stronami bez danych</span></label>
         <p class="podpowiedz" id="seria-opis-konca">Seria kończy się na ostatnim wierszu tabeli – jeśli wypada on w środku bloku, dalszych stron bloku nie ma w wydruku.</p>
         <p class="podpowiedz" id="seria-opis-pomijania">Gdy dane mają zacząć się w środku bloku (np. rok zaczyna się w czwartek, a blok to tydzień), dopisz na początku tabeli <b>wiersze pomijane</b>: <code>[pomiń]</code> w pierwszej komórce. Zajmują miejsce w bloku, ale ich strony nie powstają. W oknie Dane wstawia je przycisk <b>Wiersz pomijany</b>.</p>

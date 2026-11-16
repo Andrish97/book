@@ -136,6 +136,9 @@ const PLAMY = [
   ['ksiezyc-plama', 'Plama półksiężyc', 'polksiezyc plama ozdoba', (c) => [P(`${plama(30, 30, 26, 307, 10, 0.12)} ${plama(38, 24, 20, 311, 10, 0.12)}`, { fill: rozjasnij(c.akcent2, 0.45), evenodd: true })]],
 ];
 
+// Wzory jako wypełnienie zaznaczonego kształtu (#182, js/wzor-wypelnienia.js): ta sama geometria.
+export const WZORY_WYPELNIEN = WZORY.map(([id, nazwa, slowa, gen]) => ({ id, nazwa, slowa, gen }));
+
 const tloStrony = (c) => ({ W: c.w + 2 * c.spad, H: c.h + 2 * c.spad });
 
 export const TLA = [
