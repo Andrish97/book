@@ -18,7 +18,7 @@ import { rozwin } from './serie.js';
 import { biblioteka } from './biblioteki.js';
 import { bezpiecznaNazwa } from './ui.js';
 import { uzyteCzcionki, CZCIONKI } from './czcionki.js';
-import { spotyDruku, mapaSpotow, trybKolorow, uzyteKoloryDruku, stanUszlachetnien } from './kolory-druku.js';
+import { spotyDruku, mapaSpotow, trybKolorow, trybyWSekcjach, uzyteKoloryDruku, stanUszlachetnien } from './kolory-druku.js';
 import { impozycjaPdf } from './impozycja.js';
 import { linkiStrony, dodajLinki, dodajZakladki } from './pdf-nawigacja.js';
 import { indeksKsiazki } from './ksiazka.js';
@@ -134,7 +134,11 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   const PDFLib = await biblioteka(PDFLIB_URL, 'PDFLib', 'modułu PDF');
   const warunki = druk || (pdfx ? await wczytajWarunki(pdfx, profilWlasny) : null);
   const wektor = tryb === 'wektor';
-  const szarosc = trybKolorow(projekt) !== 'pelny';
+  // Tryb kolorów strony = tryb jej sekcji, a bez niego – projektu (#167: np. okładka w kolorze, środek szary).
+  const szaraSekcja = (sek) => trybKolorow(projekt, sek) !== 'pelny';
+  const sekcjeDruku = [...new Set(egzemplarze.map((e) => e.sekcja))];
+  const szarosc = sekcjeDruku.length ? sekcjeDruku.every(szaraSekcja) : trybKolorow(projekt) !== 'pelny';
+  const gdziesSzaro = sekcjeDruku.some(szaraSekcja) || szarosc;
   if (szarosc) cmyk = true; // czerń i płyty – zawsze w farbach drukarskich
   const silnik = warunki && wektor && (cmyk || zdjeciaCmyk) && !szarosc ? warunki.silnik() : null;
   const silnikStron = warunki && !wektor && zdjeciaCmyk && !szarosc ? warunki.silnik() : null;
@@ -142,7 +146,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
   if (!wektor) {
     const { uszlachetnienia: uzyte } = uzyteKoloryDruku(projekt);
     if (uzyte.length) uwagi.set('uszlachetnienia pominięte – plik z obrazów stron nie ma osobnych płyt (wybierz plik wektorowy)', uzyte.reduce((n, u) => n + u.ile, 0));
-    if (trybKolorow(projekt) === 'czb1') uwagi.set('kolor dodatkowy w odcieniach szarości – plik z obrazów stron nie ma osobnej płyty (wybierz plik wektorowy)', 1);
+    if (sekcjeDruku.some((s) => trybKolorow(projekt, s) === 'czb1') || trybKolorow(projekt) === 'czb1') uwagi.set('kolor dodatkowy w odcieniach szarości – plik z obrazów stron nie ma osobnej płyty (wybierz plik wektorowy)', 1);
   }
   const pdf = await PDFLib.PDFDocument.create();
   pdf.setTitle(projekt.nazwa);
@@ -157,6 +161,13 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
       szarosc, spoty: mapaSpotow(spotyDruku(projekt)), trybUszl, tylkoPlyta,
     };
   }
+  // Strony sekcji w innym trybie niż reszta: własna czerń/płyty i zdjęcia w szarości (#167).
+  const obrazySzare = srodowisko && gdziesSzaro && !szarosc ? new ObrazyPdf(pdf, { szarosc: true }) : null;
+  const srodowiskoStrony = (sek) => {
+    if (!srodowisko || !trybyWSekcjach(projekt)) return srodowisko;
+    const sz = szaraSekcja(sek);
+    return { ...srodowisko, szarosc: sz, cmyk: srodowisko.cmyk || sz, silnik: sz ? null : srodowisko.silnik, obrazy: sz ? (obrazySzare || srodowisko.obrazy) : srodowisko.obrazy, spoty: mapaSpotow(spotyDruku(projekt, sek)) };
+  };
   let nr = 0;
   const naNumer = new Map(); // numer strony w wydruku → strona PDF (linki ze spisu i odsyłaczy)
   const naKlucz = new Map(); // klucz egzemplarza → strona PDF (zakładki)
@@ -174,13 +185,13 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     if (srodowisko) {
       const { tlo, obiekty } = await zlozCel(projekt, egz, { ciag, oryginaly: true });
       strona = pdf.addPage([szer, wys]);
-      await rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m });
+      await rysujStroneWektorowo(srodowiskoStrony(egz.sekcja), strona, { obiekty, tlo, m });
       if (nawigacja) {
         const zOdsylaczami = idyZOdsylaczami(egz.strona.obiekty);
         const linki = linkiStrony(obiekty, { maOdsylacze: (o) => zOdsylaczami.has(o.id) });
         if (linki.length) doLinkow.push({ strona, m, linki });
       }
-    } else if (silnikStron) {
+    } else if (silnikStron && !szaraSekcja(egz.sekcja)) {
       // Obraz strony w CMYK przez profil; czerń i szarości poza zdjęciami samą czarną farbą.
       // Zdjęcia idą pod spodem jako JPEG w czterech farbach, reszta strony na wierzchu bez strat (js/strona-cmyk.js).
       const obraz = await naPlotnieCelu(projekt, egz, { szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, oryginaly: true },
@@ -202,7 +213,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
         szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true,
       });
       if (!url.startsWith('data:image/jpeg')) throw new Error('Strona jest za duża na tę rozdzielczość. Wybierz niższą jakość.');
-      const obraz = await pdf.embedJpg(szarosc ? await szaryJpeg(url, jakosc) : url);
+      const obraz = await pdf.embedJpg(szaraSekcja(egz.sekcja) ? await szaryJpeg(url, jakosc) : url);
       strona = pdf.addPage([szer, wys]);
       strona.drawImage(obraz, { x: (m.pas - m.spad) * PT, y: (m.pas - m.spad) * PT, width: (m.w + 2 * m.spad) * PT, height: (m.h + 2 * m.spad) * PT });
     }

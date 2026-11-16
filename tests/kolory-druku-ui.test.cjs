@@ -32,16 +32,19 @@ test('interfejs: okno „Kolory do druku”, kolor dodatkowy w wyborze koloru (d
   });
   assert.equal(kolor.fill, kolor.oczekiwany);
   await strona.keyboard.press('Escape');
-  // Uszlachetnienie w panelu (część domyślnie zwinięta): złocenie, kolor folii; potem kopia z lakierem UV nad elementem.
-  await strona.click('#wlasciwosci button.zwijak:text-is("Uszlachetnienie")');
-  await strona.selectOption('#wlasciwosci label:has-text("Uszlachetnienie") select >> nth=0', 'folia');
+  // Wykończenie druku w panelu (#167, część domyślnie zwinięta): „Sam efekt” – złocenie, kolor folii; potem
+  // „Kolor + efekt” – kopia z lakierem nad elementem.
+  await strona.click('#wlasciwosci button.zwijak:has-text("Wykończenie druku")');
+  await strona.click('#wlasciwosci .jak-wykonczenie button:has-text("Sam efekt")');
+  await strona.click('#wlasciwosci .wybor-wykonczenia [data-wykonczenie="folia"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.uszlachetnienie === 'folia');
   await strona.selectOption('#wlasciwosci label:has-text("Kolor folii") select', 'srebro');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.folia === 'srebro');
   assert.match(await strona.textContent('#wlasciwosci'), /Foil_Silver/);
-  await strona.selectOption('#wlasciwosci label:has-text("Uszlachetnienie") select >> nth=0', '');
+  await strona.click('#wlasciwosci .wybor-wykonczenia [data-wykonczenie="brak"]');
   await strona.waitForFunction(() => !window.seriodruk.edytor.aktywny?.uszlachetnienie);
-  await strona.selectOption('#wlasciwosci label:has-text("Dodaj kopię z uszlachetnieniem") select', 'uv');
+  await strona.click('#wlasciwosci .jak-wykonczenie button:has-text("Kolor + efekt")');
+  await strona.click('#wlasciwosci .wybor-wykonczenia [data-wykonczenie="uv"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.uszlachetnienie === 'uv');
   const kopia = await strona.evaluate(() => {
     const ob = window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'rect');

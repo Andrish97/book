@@ -41,7 +41,7 @@ Pozycje są w grupach:
 | Grupa | Pozycje |
 |---|---|
 | Szukanie i uwagi | [Znajdź i zamień…] (→ 6.15), [Komentarze] (→ 25.7). |
-| Zasoby projektu | [Obrazy projektu…] (→ 8.5), [Czcionki projektu…] (→ 6.8), [Kolory do druku…] (→ 23.1, 23.5); na telefonie też [Wzorce…] i [Dane…]. |
+| Zasoby projektu | [Obrazy projektu…] (→ 8.5), [Czcionki projektu…] (→ 6.8), [Kolory projektu…] — kolory projektu i sekcji, kolory dodatkowe, wykończenia (→ 23.1, 23.5); na telefonie też [Wzorce…] i [Dane…]. |
 | Format i marka | [Zmień format projektu…] (→ 11.9), [Zastosuj markę do projektu…] (→ 2.9). |
 | Druk i eksport | [Sprawdź przed drukiem] (→ 21), [Eksportuj do PDF…] (→ 22), [Drukuj w domu…] (→ 22.8), [Pobierz bieżącą stronę jako PNG] (→ 22.5). |
 | Pozostałe | [Współpraca…] (→ 25) i przełącznik motywu (→ 2.4). |

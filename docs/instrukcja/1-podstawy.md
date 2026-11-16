@@ -77,7 +77,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz [U
 | **Motyw** | Wygląd aplikacji (→ 2.4). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 2.6). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (→ 26.2). |
-| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (→ 2.9). |
+| **Zestaw marki** | Kolory, czcionki, style tekstu i logo marki — dostępne w każdym projekcie (→ 2.9). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 2.5). |
 | **Usuń konto** | Usunięcie konta (→ 2.7). |
 
@@ -150,16 +150,29 @@ w każdym projekcie: [Ustawienia konta] → **Zestaw marki** → [Edytuj zestaw 
 - **Kolory marki** — z nazwą, np. „Granat marki”. Przełącznik **Pantone / CMYK** robi z koloru kolor
   dodatkowy, drukowany osobną farbą (→ 23.1).
 - **Czcionki marki** — jedna do nagłówków, jedna do tekstu.
+- **Style tekstu** — [Dodaj gotowe style] dodaje Tytuł, Podtytuł, Nagłówek 1–4, Akapit, Akapit wyróżniony, Podpis,
+  Cytat, Listę, Przypis, Stopkę / żywą paginę i Etykietę w czcionkach i kolorze marki; [Własny styl] — kolejne, bez
+  limitu. Każdy styl ma czcionkę, rozmiar, wagę, kursywę, interlinię, odstęp liter, kolor i wielkość liter.
 - **Logo** — PNG, JPG, WebP albo SVG; wstawisz je z Biblioteki.
+
+![Style tekstu marki](k-marka-style.png)
 
 
 ![Zestaw marki](k-marka.png)
 
 Marka jest pod ręką w oknie koloru (→ 7.7), na górze listy czcionek (→ 6.8) i w Bibliotece (→ 5.8).
 
-**Zastosuj markę do projektu** ([⋯] w edytorze) zamienia kolory i czcionki całego projektu na markowe:
-każdy kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę
-tekstu, pozostałe — nagłówków. Przed [Zastosuj] zmienisz każdą propozycję albo wybierzesz „bez zmian”.
+- **wybór koloru** — część **Marka** nad „Użytymi w projekcie” (→ 7.7),
+- **lista czcionek** — grupa **Marka** na samej górze (→ 6.8),
+- **Biblioteka** — kategoria **Marka**: logo, [Zastosuj markę do projektu…] i [Edytuj zestaw marki…] (→ 5.8),
+- [⋯] → [Zastosuj markę do projektu…] — zamiana kolorów i czcionek całego projektu na markowe (→ 4.3).
+
+**Zastosuj markę do projektu.** Okno pokazuje każdy kolor i każdą czcionkę projektu z propozycją:
+kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu,
+pozostałe — czcionkę nagłówków. Na listach zmienisz propozycję albo wybierzesz „bez zmian”. Część
+**Style tekstu** przenosi style marki do stylów projektu (→ 6.4): styl projektu o tej samej nazwie (np. „Tytuł”)
+dostaje wygląd marki i zostaje powiązany ze swoimi tekstami — zmienią się od razu — a brakujące style dochodzą.
+[Zastosuj] zmienia strony, wzorce i style naraz; całość cofniesz jednym [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
 
 ![Zastosuj markę do projektu](k-marka-zastosuj.png)
 

@@ -10,6 +10,7 @@ export const POLA_STYLU = [
   // Skład akapitu (#131) – w stylu zapisane jako null, gdy wyłączone (żeby styl je też wyłączał).
   'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'do_siatki',
   'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory',
+  'wielkosc_liter', // wielkość liter jako wygląd (#167: style marki, np. etykieta WIELKIMI)
 ];
 const POLA_SKLADU_STYLU = new Set(POLA_STYLU.slice(10));
 // Porównanie wartości stylu z tekstem (liczby z tolerancją, puste = wyłączone, listy po treści).

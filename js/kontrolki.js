@@ -10,7 +10,7 @@
 // w modalnym oknie byłoby nieklikalne.
 
 import { biezacaMarka } from './zestaw-marki.js';
-import { trybKolorow, koloryDodatkowe, spotyDruku, mapaSpotow, hexSpotu } from './kolory-druku.js';
+import { trybKolorow, koloryDodatkowe, spotyDruku, mapaSpotow, hexSpotu, sekcjaBiezaca, koloryWZakresie, dodajKolorDodatkowy, rgbNaCmyk } from './kolory-druku.js';
 
 const wartoscSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
 const indeksSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'selectedIndex');
@@ -424,15 +424,26 @@ function ulepszKolor(input) {
         <span class="kolor-podpis">Marka</span>
         <div class="kolor-paleta marki" role="group" aria-label="Kolory marki"></div>
       </div>
+      <div class="kolor-w-sekcji" hidden>
+        <span class="kolor-podpis">W tej sekcji</span>
+        <div class="kolor-paleta sekcji" role="group" aria-label="Użyte w tej sekcji"></div>
+      </div>
       <div class="kolor-uzyte" hidden>
         <span class="kolor-podpis">Użyte w projekcie</span>
         <div class="kolor-paleta projektu" role="group" aria-label="Użyte w projekcie"></div>
       </div>
       <div class="kolor-dodatkowe" hidden>
-        <span class="kolor-podpis">Kolory dodatkowe</span>
+        <span class="kolor-podpis">Kolory dodatkowe (np. Pantone)</span>
         <div class="kolor-paleta spoty" role="group" aria-label="Kolory dodatkowe"></div>
         <label class="kolor-odcien"><span>Odcień</span><input type="number" min="1" max="100" step="5" value="100" inputmode="numeric"><i>%</i></label>
-        <button type="button" class="link-przycisk kolor-zarzadzaj">Kolory do druku…</button>
+        <div class="kolor-nowy-spot" hidden>
+          <label class="kolor-hex"><span>Nazwa farby</span><input type="text" maxlength="60" spellcheck="false" autocomplete="off" placeholder="np. PANTONE 186 C"></label>
+          <button type="button" class="przycisk maly kolor-nowy-spot-dodaj">Dodaj</button>
+        </div>
+        <div class="kolor-linki">
+          <button type="button" class="link-przycisk kolor-z-tego">Zrób z tego koloru kolor dodatkowy…</button>
+          <button type="button" class="link-przycisk kolor-zarzadzaj">Kolory projektu…</button>
+        </div>
       </div>
       <p class="kolor-tryb" hidden></p>`;
     const pole = okienko.querySelector('.kolor-pole');
@@ -488,20 +499,23 @@ function ulepszKolor(input) {
         el.append(b);
       }
     };
-    // Tryb kolorów projektu (#127): w skali szarości i „cz/b + 1 kolor” gotowe kolory to odcienie czerni.
+    // Tryb kolorów (#127, #167 – projektu albo sekcji bieżącej strony): w skali szarości i „cz/b + 1 kolor”
+    // gotowe kolory to odcienie czerni.
     const projekt = globalThis.seriodruk?.stan?.projekt;
-    const tryb = trybKolorow(projekt);
+    const sekBiez = sekcjaBiezaca(projekt);
+    const tryb = trybKolorow(projekt, sekBiez);
     paleta(okienko.querySelector('.kolor-paleta'), tryb === 'pelny' ? PALETA : SZAROSCI);
     if (tryb !== 'pelny') {
       const p = okienko.querySelector('.kolor-tryb');
       p.hidden = false;
-      p.textContent = tryb === 'szarosc' ? 'Projekt w skali szarości: kolory pójdą do druku odcieniami czerni.' : 'Projekt czarno-biały + 1 kolor: wybierz odcień czerni albo kolor dodatkowy.';
+      const kto = sekBiez?.tryb_kolorow ? 'Sekcja' : 'Projekt';
+      p.textContent = tryb === 'szarosc' ? `${kto} w skali szarości: kolory pójdą do druku odcieniami czerni.` : `${kto} czarno-biały + 1 kolor: wybierz odcień czerni albo kolor dodatkowy.`;
     }
     // Kolory dodatkowe (spot) z odcieniem – dokładny kod koloru, który PDF zamienia na osobną płytę.
     if (projekt) {
       const sekcja = okienko.querySelector('.kolor-dodatkowe');
       sekcja.hidden = false;
-      const spoty = tryb === 'szarosc' ? [] : (tryb === 'czb1' ? spotyDruku(projekt) : koloryDodatkowe(projekt));
+      const spoty = tryb === 'szarosc' ? [] : (tryb === 'czb1' ? spotyDruku(projekt, sekBiez) : koloryDodatkowe(projekt));
       const odcien = sekcja.querySelector('.kolor-odcien input');
       const lista = sekcja.querySelector('.kolor-paleta.spoty');
       const znany = mapaSpotow(spoty).get(poczatkowy.toLowerCase());
@@ -524,8 +538,24 @@ function ulepszKolor(input) {
       }
       odcien.addEventListener('input', () => { if (wybrany) zKoloru(hexSpotu(wybrany, Math.min(100, Math.max(1, Number(odcien.value) || 100)) / 100)); });
       const zarzadzaj = sekcja.querySelector('.kolor-zarzadzaj');
-      zarzadzaj.textContent = spoty.length ? 'Kolory do druku…' : 'Dodaj kolor dodatkowy (np. Pantone)…';
       zarzadzaj.addEventListener('click', () => { zamknijOkienko(); document.dispatchEvent(new Event('makietka:kolory-druku')); });
+      // Nowy kolor dodatkowy prosto stąd (#167): nazwa farby + zapas CMYK z bieżącego koloru – bez osobnego okna.
+      const zTego = sekcja.querySelector('.kolor-z-tego');
+      const nowy = sekcja.querySelector('.kolor-nowy-spot');
+      const nazwaNowego = nowy.querySelector('input');
+      zTego.hidden = tryb === 'szarosc';
+      zTego.addEventListener('click', () => { nowy.hidden = false; zTego.hidden = true; nazwaNowego.focus(); });
+      const dodajSpot = () => {
+        const sp = dodajKolorDodatkowy(projekt, { nazwa: nazwaNowego.value, cmyk: rgbNaCmyk(wartoscInput.get.call(input)) });
+        if (tryb === 'czb1' && sekBiez?.tryb_kolorow && !sekBiez.kolor_trybu) sekBiez.kolor_trybu = sp.id;
+        document.dispatchEvent(new CustomEvent('makietka:kolor-dodatkowy', { detail: sp }));
+        wybrany = sp;
+        odcien.value = '100';
+        zKoloru(hexSpotu(sp, 1));
+        zamknijOkienko();
+      };
+      nowy.querySelector('button').addEventListener('click', dodajSpot);
+      nazwaNowego.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); dodajSpot(); } });
     }
     const ostatnie = ostatnieKolory();
     if (ostatnie.length) { const el = okienko.querySelector('.kolor-paleta.ostatnie'); el.hidden = false; paleta(el, ostatnie); }
@@ -541,8 +571,20 @@ function ulepszKolor(input) {
         b.setAttribute('aria-label', `Kolor ${opis}`);
       });
     }
+    // W tej sekcji (#167): przy kilku sekcjach najpierw kolory stron bieżącej sekcji, potem reszta projektu.
+    const wSekcji = projekt && sekBiez && projekt.sekcje.length > 1 ? koloryWZakresie(projekt, sekBiez.id).slice(0, 12) : [];
+    if (wSekcji.length) {
+      const blok = okienko.querySelector('.kolor-w-sekcji');
+      blok.hidden = false;
+      blok.querySelector('.kolor-podpis').textContent = `W tej sekcji („${sekBiez.nazwa}”)`;
+      const el = okienko.querySelector('.kolor-paleta.sekcji');
+      paleta(el, wSekcji.map((k) => k.kolor));
+      [...el.children].forEach((b, i) => { const o = `${wSekcji[i].kolor} · ${wSekcji[i].ile} ${wSekcji[i].ile === 1 ? 'raz' : 'razy'} w tej sekcji`; b.title = o; b.setAttribute('aria-label', `Kolor ${o}`); });
+    }
     // Użyte w projekcie (#136): z liczbą użyć w podpowiedzi; kolor dodatkowy (Pantone) – z nazwą.
-    const wProjekcie = uzyteKolory();
+    const juz = new Set(wSekcji.map((k) => k.kolor));
+    const wProjekcie = uzyteKolory().filter((k) => !juz.has(k.kolor));
+    if (wSekcji.length) okienko.querySelector('.kolor-uzyte .kolor-podpis').textContent = 'W innych sekcjach';
     if (wProjekcie.length) {
       okienko.querySelector('.kolor-uzyte').hidden = false;
       const el = okienko.querySelector('.kolor-paleta.projektu');

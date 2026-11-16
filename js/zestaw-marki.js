@@ -11,9 +11,55 @@ const powiadom = () => {
   for (const fn of sluchacze) { try { fn(pamiec); } catch { /* jeden słuchacz nie psuje reszty */ } }
 };
 
-export const PUSTA_MARKA = () => ({ kolory: [], czcionki: { naglowek: '', tekst: '' }, loga: [] });
+export const PUSTA_MARKA = () => ({ kolory: [], czcionki: { naglowek: '', tekst: '' }, loga: [], style: [] });
 
 const hex = (k) => (typeof k === 'string' && /^#[0-9a-f]{6}$/i.test(k.trim()) ? k.trim().toLowerCase() : null);
+
+// ---------- Style tekstu marki (#167) ----------
+// Gotowe miejsca (rola) i własne style bez limitu. Rozmiar w punktach (pt), interlinia jako mnożnik wysokości pisma,
+// odstęp liter w tysięcznych (‰, jak w panelu tekstu), kolor – kod (zwykle kolor marki), wielkość liter jako wygląd.
+export const ROLE_STYLOW = [
+  ['tytul', 'Tytuł'], ['podtytul', 'Podtytuł'], ['n1', 'Nagłówek 1'], ['n2', 'Nagłówek 2'], ['n3', 'Nagłówek 3'], ['n4', 'Nagłówek 4'],
+  ['akapit', 'Akapit'], ['wyrozniony', 'Akapit wyróżniony'], ['podpis', 'Podpis'], ['cytat', 'Cytat'], ['lista', 'Lista'],
+  ['przypis', 'Przypis'], ['stopka', 'Stopka / żywa pagina'], ['etykieta', 'Etykieta'],
+];
+export const WIELKOSCI_LITER = [['', 'Jak wpisane'], ['wielkie', 'WIELKIE'], ['male', 'małe'], ['kapitaliki', 'Kapitaliki']];
+// [rozmiar pt, waga, kursywa, interlinia, odstęp liter, czcionka nagłówków?, wielkość liter, jaśniejszy kolor?]
+const GOTOWE = {
+  tytul: [32, 'bold', false, 1.1, 0, true, ''], podtytul: [18, 'normal', false, 1.2, 0, true, ''],
+  n1: [24, 'bold', false, 1.15, 0, true, ''], n2: [18, 'bold', false, 1.2, 0, true, ''], n3: [14, 'bold', false, 1.25, 0, true, ''], n4: [12, 'bold', false, 1.3, 40, true, 'wielkie'],
+  akapit: [10.5, 'normal', false, 1.4, 0, false, ''], wyrozniony: [12, 'normal', false, 1.4, 0, false, ''], podpis: [8, 'normal', true, 1.3, 10, false, '', true],
+  cytat: [13, 'normal', true, 1.4, 0, true, ''], lista: [10.5, 'normal', false, 1.4, 0, false, ''], przypis: [7.5, 'normal', false, 1.3, 0, false, '', true],
+  stopka: [8, 'normal', false, 1.2, 60, false, 'wielkie', true], etykieta: [9, 'bold', false, 1.2, 80, false, 'wielkie'],
+};
+const liczba = (v, d, min, max) => { const n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; };
+
+export function gotowyStylMarki(rola, marka = biezacaMarka()) {
+  const [rozmiar, waga, kursywa, interlinia, odstep, naglowkowa, litery, jasny] = GOTOWE[rola] || GOTOWE.akapit;
+  const glowny = marka.kolory.find((k) => !neutralny(k.kolor))?.kolor;
+  return normalizujStylMarki({
+    id: `sm${rola}${Date.now().toString(36)}`, rola, nazwa: ROLE_STYLOW.find(([r]) => r === rola)?.[1] || 'Styl',
+    czcionka: (naglowkowa ? marka.czcionki.naglowek : marka.czcionki.tekst) || marka.czcionki.tekst || marka.czcionki.naglowek || 'Inter',
+    rozmiar, waga, kursywa, interlinia, odstep_liter: odstep, wielkosc_liter: litery,
+    kolor: jasny ? '#6b6861' : (naglowkowa && glowny) || '#1a1a1a',
+  });
+}
+
+export function normalizujStylMarki(s, i = 0) {
+  return {
+    id: String(s?.id || `sm${i}`),
+    ...(ROLE_STYLOW.some(([r]) => r === s?.rola) ? { rola: s.rola } : {}),
+    nazwa: String(s?.nazwa || 'Styl').trim().slice(0, 60) || 'Styl',
+    czcionka: String(s?.czcionka || 'Inter').slice(0, 80),
+    rozmiar: liczba(s?.rozmiar, 10.5, 4, 400),
+    waga: ['normal', 'bold', '600', '300'].includes(String(s?.waga)) ? String(s.waga) : 'normal',
+    kursywa: Boolean(s?.kursywa),
+    interlinia: liczba(s?.interlinia, 1.3, 0.6, 4),
+    odstep_liter: liczba(s?.odstep_liter, 0, -200, 2000),
+    kolor: hex(s?.kolor) || '#1a1a1a',
+    wielkosc_liter: WIELKOSCI_LITER.some(([w]) => w === s?.wielkosc_liter) ? s.wielkosc_liter : '',
+  };
+}
 
 export function normalizujMarke(m) {
   const w = PUSTA_MARKA();
@@ -28,11 +74,39 @@ export function normalizujMarke(m) {
   w.loga = (Array.isArray(m.loga) ? m.loga : []).filter((l) => l?.plik).map((l) => ({
     id: String(l.id), nazwa: String(l.nazwa || 'logo'), plik: String(l.plik), typ: String(l.typ || 'image/png'), podglad: typeof l.podglad === 'string' ? l.podglad : '',
   })).slice(0, 20);
+  w.style = (Array.isArray(m.style) ? m.style : []).filter((s) => s && typeof s === 'object').map(normalizujStylMarki);
   return w;
 }
 
 export const biezacaMarka = () => pamiec || PUSTA_MARKA();
-export const markaPusta = (m = biezacaMarka()) => !m.kolory.length && !m.czcionki.naglowek && !m.czcionki.tekst && !m.loga.length;
+export const markaPusta = (m = biezacaMarka()) => !m.kolory.length && !m.czcionki.naglowek && !m.czcionki.tekst && !m.loga.length && !m.style?.length;
+
+// Styl marki → pola stylu projektu (js/style-tekstu.js; wymiary w mm).
+export function stylMarkiDoProjektu(s) {
+  return {
+    fontFamily: s.czcionka, fontSize: Math.round(((s.rozmiar * 25.4) / 72) * 1000) / 1000, fontWeight: s.waga, fontStyle: s.kursywa ? 'italic' : 'normal',
+    lineHeight: s.interlinia, charSpacing: s.odstep_liter, fill: s.kolor, wielkosc_liter: s.wielkosc_liter || null,
+  };
+}
+// Style marki → style projektu: styl o tej samej nazwie (bez względu na wielkość liter) dostaje wygląd marki
+// i zachowuje swoje id (teksty z tym stylem zostają z nim powiązane), brakujące dochodzą. Zwraca
+// { dodane: [styl], zmienione: [styl] } – zmienione trzeba jeszcze rozpisać na teksty (zastosujStylWProjekcie).
+export function zastosujStyleMarki(projekt, marka = biezacaMarka(), noweId = () => `st${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`) {
+  projekt.style = Array.isArray(projekt.style) ? projekt.style : [];
+  const klucz = (n) => String(n || '').trim().toLocaleLowerCase('pl');
+  const dodane = [];
+  const zmienione = [];
+  for (const s of marka.style || []) {
+    const pola = stylMarkiDoProjektu(s);
+    const byl = projekt.style.find((x) => klucz(x.nazwa) === klucz(s.nazwa));
+    if (byl) { Object.assign(byl, pola); zmienione.push(byl); } else {
+      const nowy = { id: noweId(), nazwa: s.nazwa, underline: false, linethrough: false, textAlign: 'left', ...pola };
+      projekt.style.push(nowy);
+      dodane.push(nowy);
+    }
+  }
+  return { dodane, zmienione };
+}
 
 const konto = async () => (await import('./chmura.js')).kontoMarki();
 

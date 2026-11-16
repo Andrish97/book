@@ -11,14 +11,12 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 |---|---|---|
 | 160 | Audyt pokrycia testami wszystkich funkcji, docs/TESTY.md, lista kontrolna do ręcznego sprawdzenia | 🔄 |
 | 161 | Makieta 3D z telefonu: grzbiet jak w prawdziwej oprawie (szczelina, składki, kapitałka), proporcje bez rozciągania, okładka przytwierdzona do bloku na stronie 1, spirala (skala, gruby blok, artefakty) | 🔄 |
-| 167 | Kolory projektu i sekcji, ustawienia per sekcja, „Wykończenie druku” (tłoczenie, lakier, złocenie, biały, Pantone) prosto z Właściwości | 🔄 |
 | 171 | Komputer: Właściwości i Warstwy osobno (zakładki), Ostrzeżenia pod przyciskiem z licznikiem; ucięte przyciski i listy w panelu | 🔄 |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
-| Zestaw marki: więcej stylów tekstu do dodania (nagłówki H1–H6, akapit, podpis, cytat, listy, własne) | ⏳ |
 | Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ⏳ |
 | Instrukcja i system jeszcze raz dogłębnie: czy wszystko jest dostępne i intuicyjne, kompletność instrukcji, wszystkie zrzuty aktualne (np. ustawienia konta bez zestawu marki) – po scaleniu wątków zmieniających interfejs | ⏳ |
 | Przeniesienie „Konta” bliżej końca instrukcji (przenumerowanie rozdziałów) – po scaleniu wątków | ⏳ |
@@ -53,6 +51,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 | 173 | 159 | Paski postępu przy dłuższych czynnościach: jeden wygląd (karta, licznik x z y, pasek nieokreślony, Anuluj przy PDF), dopiero po 0,3 s, dostępne dla czytników ekranu; dodane przy PNG, separacjach, makiecie 3D, duplikowaniu, imporcie danych, czcionkach, usuwaniu tła, udostępnianiu, zmianie formatu, „Zamień wszystkie”, ekranie startowym i miniaturach (w panelu Strony). |
 | 158 | Wydajność: bufory Fabric tylko dla elementów, którym się opłacają (odrysowanie strony ~6× szybciej, 72 MB → 0 MB pamięci buforów na gęstej stronie), zmiana strony bez przebudowy listy stron, szybsze porównania przy zapisie, miniatury nie przeszkadzają w pisaniu i przeciąganiu, moduły pobierane naraz (`modulepreload`). |
 | 172 | Komentarze – przegląd i poprawki: usunięty wątek znika u wszystkich od razu, poprawianie własnego komentarza, pisana odpowiedź nie ginie przy zmianach na żywo, Ctrl+Enter w odpowiedzi, komentarz do usuniętego wątku/strony – czytelnie |
+| 167 | Style tekstu w zestawie marki (14 gotowych + własne bez limitu, przenoszone do stylów projektu po nazwie). Kolory projektu prościej i z podziałem na sekcje: okno „Kolory projektu” (Dotyczy: cały projekt albo sekcja) – zamiana koloru w zakresie, druk kolorów dla sekcji (np. okładka w kolorze, środek czarno-biały – także w PDF), kolory dodatkowe, przegląd wykończeń; w wyborze koloru „W tej sekcji” i nowy kolor dodatkowy prosto z koloru; Właściwości → „Wykończenie druku” kafelkami (lakier, złocenie, tłoczenie, wytłoczenie, biel) z wyborem „Kolor + efekt” / „Sam efekt” i farbą specjalną. |
 | 159 | Paski postępu przy dłuższych czynnościach: jeden wygląd (karta, licznik x z y, pasek nieokreślony, Anuluj przy PDF), dopiero po 0,3 s, dostępne dla czytników ekranu; dodane przy PNG, separacjach, makiecie 3D, duplikowaniu, imporcie danych, czcionkach, usuwaniu tła, udostępnianiu, zmianie formatu, „Zamień wszystkie”, ekranie startowym i miniaturach (w panelu Strony). |
 | 164 | Wzorce stron: zrozumiałe wyjaśnienie z rysunkiem, wejścia przy stronach (przycisk pod listą, menu strony i sekcji, pusty stan we właściwościach), znak wzorca na miniaturze, 39 gotowych wzorców z podglądami w 9 grupach (też w Bibliotece), dodanie jednym kliknięciem od razu na strony sekcji. |
 | 162 | Biblioteka: 9 nowych działów – Ikony (260), Ilustracje, Okolicznościowe, Tła i wzory, Formularze do druku, Infografiki, Nagłówki i tytuły, Bloki treści, Układy stron – i Planer +11 (kalendarz roczny, plany, trackery, budżet miesięczny); wszystko edytowalne (grupy tekstów, kształtów i ścieżek), wzory i tła wektorowe w PDF; instrukcja 5.8 z nowym kadrem |

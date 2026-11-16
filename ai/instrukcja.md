@@ -31,7 +31,7 @@ Podręcznik aplikacji Makietka (https://makietka.app/) – edytora publikacji do
   - 20. Podgląd
   - 21. Sprawdź przed drukiem
   - 22. Eksport do PDF i PNG
-  - 23. Kolory dodatkowe i uszlachetnienia
+  - 23. Kolory projektu, farby i wykończenia
   - 24. Udostępnianie linkiem
 - **Część V. Razem z innymi** — Wspólna praca nad projektem i asystent AI.
   - 25. Współpraca
@@ -111,7 +111,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz **
 | **Motyw** | Wygląd aplikacji (rozdział „2.4 Motyw”). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (rozdział „2.6 Powiadomienia”). |
 | **Dostęp dla AI** | Klucze dla asystentów AI (rozdział „26.2 Klucz dla AI”). |
-| **Zestaw marki** | Kolory, czcionki i logo marki — dostępne w każdym projekcie (rozdział „2.9 Zestaw marki”). |
+| **Zestaw marki** | Kolory, czcionki, style tekstu i logo marki — dostępne w każdym projekcie (rozdział „2.9 Zestaw marki”). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (rozdział „2.5 Miejsce i limity”). |
 | **Usuń konto** | Usunięcie konta (rozdział „2.7 Usuwanie konta”). |
 
@@ -166,13 +166,21 @@ Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — 
 
 - **Kolory marki** — z nazwą, np. „Granat marki”. Przełącznik **Pantone / CMYK** robi z koloru kolor dodatkowy, drukowany osobną farbą (rozdział „23.1 Kolory dodatkowe”).
 - **Czcionki marki** — jedna do nagłówków, jedna do tekstu.
+- **Style tekstu** — **Dodaj gotowe style** dodaje Tytuł, Podtytuł, Nagłówek 1–4, Akapit, Akapit wyróżniony, Podpis, Cytat, Listę, Przypis, Stopkę / żywą paginę i Etykietę w czcionkach i kolorze marki; **Własny styl** — kolejne, bez limitu. Każdy styl ma czcionkę, rozmiar, wagę, kursywę, interlinię, odstęp liter, kolor i wielkość liter.
 - **Logo** — PNG, JPG, WebP albo SVG; wstawisz je z Biblioteki.
+
+![Style tekstu marki](https://makietka.app/img/instrukcja/k-marka-style.png)
 
 ![Zestaw marki](https://makietka.app/img/instrukcja/k-marka.png)
 
 Marka jest pod ręką w oknie koloru (rozdział „7.7 Wybór koloru”), na górze listy czcionek (rozdział „6.8 Czcionki”) i w Bibliotece (rozdział „5.8 Biblioteka”).
 
-**Zastosuj markę do projektu** (**⋯** w edytorze) zamienia kolory i czcionki całego projektu na markowe: każdy kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu, pozostałe — nagłówków. Przed **Zastosuj** zmienisz każdą propozycję albo wybierzesz „bez zmian”.
+- **wybór koloru** — część **Marka** nad „Użytymi w projekcie” (rozdział „7.7 Wybór koloru”),
+- **lista czcionek** — grupa **Marka** na samej górze (rozdział „6.8 Czcionki”),
+- **Biblioteka** — kategoria **Marka**: logo, **Zastosuj markę do projektu…** i **Edytuj zestaw marki…** (rozdział „5.8 Biblioteka”),
+- **⋯** → **Zastosuj markę do projektu…** — zamiana kolorów i czcionek całego projektu na markowe (rozdział „4.3 Menu ⋯”).
+
+**Zastosuj markę do projektu.** Okno pokazuje każdy kolor i każdą czcionkę projektu z propozycją: kolor dostaje najbliższy kolor marki (czerń, biel i szarości zostają), najczęstsza czcionka — czcionkę tekstu, pozostałe — czcionkę nagłówków. Na listach zmienisz propozycję albo wybierzesz „bez zmian”. Część **Style tekstu** przenosi style marki do stylów projektu (rozdział „6.4 Style”): styl projektu o tej samej nazwie (np. „Tytuł”) dostaje wygląd marki i zostaje powiązany ze swoimi tekstami — zmienią się od razu — a brakujące style dochodzą. **Zastosuj** zmienia strony, wzorce i style naraz; całość cofniesz jednym **Cofnij** (`Ctrl`+`Z`).
 
 ![Zastosuj markę do projektu](https://makietka.app/img/instrukcja/k-marka-zastosuj.png)
 
@@ -266,7 +274,7 @@ Pozycje są w grupach:
 | Grupa | Pozycje |
 |---|---|
 | Szukanie i uwagi | **Znajdź i zamień…** (rozdział „6.15 Znajdź i zamień”), **Komentarze** (rozdział „25.7 Komentarze”). |
-| Zasoby projektu | **Obrazy projektu…** (rozdział „8.5 Okno Obrazy projektu”), **Czcionki projektu…** (rozdział „6.8 Czcionki”), **Kolory do druku…** (rozdział „23.1 Kolory dodatkowe”, „23.5 Tryb kolorów projektu”); na telefonie też **Wzorce…** i **Dane…**. |
+| Zasoby projektu | **Obrazy projektu…** (rozdział „8.5 Okno Obrazy projektu”), **Czcionki projektu…** (rozdział „6.8 Czcionki”), **Kolory projektu…** — kolory projektu i sekcji, kolory dodatkowe, wykończenia (rozdział „23.1 Kolory dodatkowe”, „23.5 Kolory projektu i druk kolorów — dla całości albo dla sekcji”); na telefonie też **Wzorce…** i **Dane…**. |
 | Format i marka | **Zmień format projektu…** (rozdział „11.9 Zmiana formatu ze skalowaniem”), **Zastosuj markę do projektu…** (rozdział „2.9 Zestaw marki”). |
 | Druk i eksport | **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”), **Eksportuj do PDF…** (rozdział „22 Eksport do PDF i PNG”), **Drukuj w domu…** (rozdział „22.8 Drukuj w domu”), **Pobierz bieżącą stronę jako PNG** (rozdział „22.5 Strona jako PNG”). |
 | Pozostałe | **Współpraca…** (rozdział „25 Współpraca”) i przełącznik motywu (rozdział „2.4 Motyw”). |
@@ -1845,43 +1853,46 @@ Pod ustawieniami widać, jak strony ułożą się na kartkach. **Drukuj** otwier
 3. Broszurę drukuj dwustronnie, **obracanie po krótszej krawędzi**; bez druku dwustronnego — najpierw strony nieparzyste, potem włóż stos z powrotem i wydrukuj parzyste.
 4. Złóż kartki na pół (pierwsza na wierzchu) i zszyj w zgięciu.
 
-## 23. Kolory dodatkowe i uszlachetnienia
+## 23. Kolory projektu, farby i wykończenia
 
 ### 23.1 Kolory dodatkowe
 
-Druk to nie tylko cztery farby CMYK. Makietka zna kolory dodatkowe (np. Pantone), uszlachetnienia — lakier, złocenie, tłoczenie, biały poddruk — i druk tylko czarną farbą albo czarną z jednym kolorem. Wszystko trafia do pliku PDF tak, jak oczekuje drukarnia: każda farba na osobnej płycie.
+Druk to nie tylko cztery farby CMYK. Makietka zna kolory dodatkowe (np. Pantone), wykończenia — lakier, złocenie, tłoczenie, biel — i druk tylko czarną farbą albo czarną z jednym kolorem. Wszystko trafia do pliku PDF tak, jak oczekuje drukarnia: każda farba na osobnej płycie.
 
-Kolor dodatkowy drukuje się osobną, gotową farbą — dokładnie w tym odcieniu, którego potrzebujesz (np. kolor logo).
+Kolor dodatkowy to osobna, gotowa farba — dokładnie w tym odcieniu, którego potrzebujesz (np. kolor logo). Najprościej dodać go przy elemencie:
 
-1. **⋯** → **Kolory do druku…** → **Dodaj kolor dodatkowy**.
-2. Wpisz **Nazwę** dokładnie jak w drukarni albo we wzorniku, np. „PANTONE 186 C”.
-3. Wpisz **C**, **M**, **Y**, **K** — to tylko podgląd na ekranie; drukarnia użyje swojej farby.
+1. Zaznacz element i otwórz jego kolor (np. **Kolor wypełnienia**).
+2. Na dole wyboru koloru: **Zrób z tego koloru kolor dodatkowy…**.
+3. Wpisz nazwę farby dokładnie jak w drukarni albo we wzorniku, np. „PANTONE 186 C”, i **Dodaj**.
 
-![Okno „Kolory do druku”](https://makietka.app/img/instrukcja/k-kolory-druku.png)
-
-Kolor dodatkowy wybierasz w każdym polu koloru — wypełnienie, obrys, tekst, fragment tekstu — w części **Kolory dodatkowe**, razem z **Odcieniem** (np. 40%).
+To samo zrobisz we Właściwościach → **Wykończenie druku** → **Farba specjalna** → **Nowa z obecnego koloru…**. Dodany kolor wybierasz potem w każdym polu koloru — wypełnienie, obrys, tekst, fragment tekstu — w części **Kolory dodatkowe**, razem z **Odcieniem** (np. 40%).
 
 ![Kolor dodatkowy w wyborze koloru](https://makietka.app/img/instrukcja/k-kolor-dodatkowy.png)
 
-Zmiana CMYK koloru dodatkowego zmienia wszystkie elementy w tym kolorze. Usunięcie koloru zostawia elementy w zwykłym kolorze CMYK.
+Listę kolorów dodatkowych masz w **⋯** → **Kolory projektu…**: tam zmienisz nazwę, wpiszesz **C**, **M**, **Y**, **K** (to tylko podgląd na ekranie — drukarnia użyje swojej farby) albo usuniesz kolor. Zmiana CMYK koloru dodatkowego zmienia wszystkie elementy w tym kolorze. Usunięcie koloru zostawia elementy w zwykłym kolorze CMYK.
 
-### 23.2 Uszlachetnienia
+### 23.2 Wykończenie druku: lakier, złocenie, tłoczenie, biel
 
-Uszlachetnienie ustawiasz przy elemencie, w części **Uszlachetnienie**:
+Wykończenie ustawiasz przy elemencie — nic nie trzeba wcześniej dodawać. Zaznacz element → Właściwości → **Wykończenie druku** i stuknij efekt:
 
-| Uszlachetnienie | Co to jest | Płyta w PDF |
+| Efekt | Co to jest | Płyta w PDF |
 |---|---|---|
-| **Lakier UV wybiórczy** | Błyszczący lakier tylko w tym miejscu, np. na tytule. | Spot_UV |
-| **Złocenie (folia)** | Metaliczna folia; **Kolor folii**: złoto, srebro albo miedź. | Foil_Gold, Foil_Silver, Foil_Copper |
-| **Tłoczenie (wypukłe)** | Wzór wypchnięty w papierze. | Emboss |
-| **Wytłoczenie (wklęsłe)** | Wzór wciśnięty w papier. | Debossing |
-| **Biały poddruk** | Biała farba — na kolorowym albo przezroczystym podłożu. | White |
+| **Lakier** | Błyszczący lakier tylko w tym miejscu, np. tytuł na matowej okładce. | Spot_UV |
+| **Złocenie** | Metaliczna folia; **Kolor folii**: złoto, srebro albo miedź. | Foil_Gold, Foil_Silver, Foil_Copper |
+| **Tłoczenie** | Wypukły wzór wyciśnięty w papierze. | Emboss |
+| **Wytłoczenie** | Wklęsły wzór wciśnięty w papier. | Debossing |
+| **Biel** | Biała farba pod spodem — na kolorowym, kraftowym albo przezroczystym podłożu. | White |
 
-![Uszlachetnienie w panelu elementu](https://makietka.app/img/instrukcja/k-uszlachetnienie.png)
+![Wykończenie druku w panelu elementu](https://makietka.app/img/instrukcja/k-uszlachetnienie.png)
 
-Element z uszlachetnieniem drukuje się **tylko** na płycie uszlachetnienia — jego kolory nie idą do druku. Żeby mieć napis w kolorze i ze złoceniem, zaznacz napis i w **Dodaj kopię z uszlachetnieniem** wybierz złocenie: kopia stanie dokładnie nad napisem.
+Nad kafelkami wybierasz, **jak** dodać efekt:
 
-> **Wskazówka:** Uszlachetnienie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (rozdział „21 Sprawdź przed drukiem”).
+- **Kolor + efekt** — element drukuje się w swoich kolorach, a efekt idzie na jego kopię dokładnie nad nim. Tak zrobisz lakier na zdjęciu albo kolorowy napis ze złoceniem. Dla zdjęć to ustawienie domyślne.
+- **Sam efekt** — element nie drukuje się żadną farbą, jest tylko efektem, np. napis samym złotem. Dla kształtów i tekstu to ustawienie domyślne.
+
+W tej samej części jest **Farba specjalna** — wypełnienie elementu kolorem dodatkowym (rozdział „23.1 Kolory dodatkowe”).
+
+> **Wskazówka:** Wykończenie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (rozdział „21 Sprawdź przed drukiem”).
 
 ### 23.3 Widok uszlachetnień
 
@@ -1897,17 +1908,26 @@ W pliku wektorowym każde uszlachetnienie to osobna płyta z **nadrukiem** — n
 
 Plik z obrazów stron nie ma osobnych płyt — wybierz plik wektorowy.
 
-### 23.5 Tryb kolorów projektu
+### 23.5 Kolory projektu i druk kolorów — dla całości albo dla sekcji
 
-**⋯** → **Kolory do druku…** → **Tryb kolorów projektu**:
+**⋯** → **Kolory projektu…** zbiera w jednym oknie wszystko o kolorach. Na górze, w polu **Dotyczy**, wybierasz **Cały projekt** albo jedną sekcję — np. okładka w pełnym kolorze, a środek czarno-biały.
+
+![Okno „Kolory projektu” dla sekcji „Środek”](https://makietka.app/img/instrukcja/k-kolory-druku.png)
+
+**Kolory w projekcie** (albo **w sekcji**) to kolory, których używasz, z liczbą użyć. Stuknij kolor i wybierz nowy — zmieni się wszędzie w tym zakresie: dla całego projektu na stronach, we wzorcach i w stylach, dla sekcji tylko na jej stronach. Zmianę cofniesz zwykłym **Cofnij**.
+
+**Druk kolorów** mówi, jakimi farbami pójdzie druk:
 
 | Tryb | Kiedy |
 |---|---|
 | **Pełny kolor** | Zwykły druk CMYK (domyślnie). |
 | **Skala szarości** | Druk jedną czarną farbą — kolory i zdjęcia idą odcieniami czerni. |
 | **Cz/b + 1 kolor** | Czerń i jeden kolor dodatkowy, np. kalendarz z czerwonymi niedzielami. **Kolor dodatkowy trybu** wybierasz pod spodem. |
+| **Jak w projekcie** | Tylko dla sekcji: sekcja drukuje się tak jak cały projekt (domyślnie). |
 
-W wyborze koloru zostają wtedy odcienie czerni i kolor trybu. Kolory spoza trybu okno pokaże — **Zamień na najbliższe dozwolone** zamieni je na czerń albo kolor trybu. To samo zrobi przycisk w **Sprawdź przed drukiem**.
+W PDF każda strona idzie w trybie swojej sekcji. W wyborze koloru na stronie takiej sekcji zostają odcienie czerni i kolor trybu, a kolory sekcji widać osobno — **W tej sekcji**. Kolory spoza trybu okno pokaże — **Zamień na najbliższe dozwolone** zamieni je na czerń albo kolor trybu. To samo zrobi przycisk w **Sprawdź przed drukiem**.
+
+Na dole okna, w części **Wykończenia druku**, widać, jakie efekty są w projekcie i na ilu elementach.
 
 > **Wskazówka:** Rozszerzony CMYK (CMYK z dodatkowymi farbami, np. pomarańczową, zieloną i fioletową) robi drukarnia sama z Twojego pliku — nie trzeba osobnej palety.
 

@@ -1,6 +1,6 @@
 // Okno „Eksport do PDF”: zakres stron, jakość, spady i podział na pliki.
 
-import { uzyteKoloryDruku, trybKolorow } from './kolory-druku.js';
+import { uzyteKoloryDruku, trybKolorow, trybyWSekcjach, TRYBY_KOLOROW } from './kolory-druku.js';
 import { $, pobierz, powiadom, odmiana } from './ui.js';
 import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
@@ -132,6 +132,7 @@ export class OknoPdf {
       druk.uszlachetnienia.length ? `Uszlachetnienia: ${druk.uszlachetnienia.map((x) => `${x.etykieta} (płyta ${x.plyta})`).join(', ')} – z nadrukiem, bez wybijania farby pod spodem.` : '',
       tryb === 'szarosc' ? 'Projekt w skali szarości: wszystko jedną czarną farbą, zdjęcia w odcieniach szarości.' : '',
       tryb === 'czb1' ? 'Projekt czarno-biały + 1 kolor: czerń i jedna płyta koloru dodatkowego, zdjęcia w odcieniach szarości.' : '',
+      trybyWSekcjach(this.zrodlo.projekt()) ? `Sekcje z własnym trybem kolorów: ${this.zrodlo.projekt().sekcje.filter((s) => s.tryb_kolorow).map((s) => `„${s.nazwa}” – ${TRYBY_KOLOROW.find((t) => t.id === s.tryb_kolorow).nazwa.toLowerCase()}`).join(', ')}.` : '',
     ].filter(Boolean).join(' ');
     $('#pdf-opis-kolorow').hidden = !opisKolorow;
     $('#pdf-opis-kolorow').textContent = opisKolorow;

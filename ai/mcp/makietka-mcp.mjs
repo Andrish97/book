@@ -41,7 +41,7 @@ export const ADRES_POBIERANIA = 'https://api.makietka.app/eksport/';
 export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony', 'rozdzial', 's', 'przypis'];
 export const POLA_STYLU = ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'lineHeight', 'charSpacing', 'fill', 'textAlign',
   // Skład akapitu (#131) – jak w js/style-tekstu.js.
-  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'do_siatki', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory'];
+  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'do_siatki', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory', 'wielkosc_liter'];
 export const POLA_FRAGMENTU = ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'fill'];
 const CZESCI = { sekcje: 'sekcja', wzorce: 'wzorzec', style: 'styl', tabele: 'tabela', serie: 'seria' };
 
@@ -685,7 +685,7 @@ function przeglad(w) {
     `Style: ${(p.style || []).map((x) => `${x.id} „${x.nazwa}”`).join('; ') || 'brak'}`,
     `Tabele: ${(p.tabele || []).map((t) => `${t.id} „${t.nazwa}” kolumny: ${(t.kolumny || []).join(', ')}; ${(t.wiersze || []).length} wierszy`).join(' | ') || 'brak'}`,
     `Serie: ${(p.serie || []).map((s) => `${s.id} „${s.nazwa}” tabela=${s.tabela || '–'} tryb=${s.tryb || 'tabela'}`).join('; ') || 'brak'}`,
-    `Kolory do druku: tryb ${p.tryb_kolorow || 'pelny'}${p.tryb_kolorow === 'czb1' ? ` (kolor trybu: ${p.kolor_trybu || 'brak'})` : ''}; kolory dodatkowe: ${(p.kolory_dodatkowe || []).map((k) => `${k.id} „${k.nazwa}” CMYK ${(k.cmyk || []).join('/')}`).join('; ') || 'brak'}`,
+    `Kolory do druku: tryb ${p.tryb_kolorow || 'pelny'}${p.tryb_kolorow === 'czb1' ? ` (kolor trybu: ${p.kolor_trybu || 'brak'})` : ''}${(p.sekcje || []).some((s) => s.tryb_kolorow) ? `; sekcje z własnym trybem: ${p.sekcje.filter((s) => s.tryb_kolorow).map((s) => `${s.id} „${s.nazwa}” ${s.tryb_kolorow}${s.tryb_kolorow === 'czb1' ? ` (${s.kolor_trybu || 'brak'})` : ''}`).join(', ')}` : ''}; kolory dodatkowe: ${(p.kolory_dodatkowe || []).map((k) => `${k.id} „${k.nazwa}” CMYK ${(k.cmyk || []).join('/')}`).join('; ') || 'brak'}`,
     `Obrazy i czcionki w projekcie (szczegóły obrazów: obrazy_projektu): ${Object.entries(p.zasoby || {}).map(([id, z]) => `${id} ${z.nazwa}`).join(', ') || 'brak'}`,
   ].join('\n');
 }
