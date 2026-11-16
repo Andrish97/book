@@ -38,6 +38,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 194 | Makieta 3D bez WebGL (Chrome na starszym Macu): komunikat z powodem z przeglądarki i krokami – akceleracja grafiki, chrome://gpu, ignore-gpu-blocklist, Safari |
 | 193 | Obrazy w czasie ładowania migoczą zamiast pustych miejsc i ikonek „zepsutego obrazu”; miniatury stron zapamiętane na urządzeniu – kolejne otwarcie projektu bez rysowania wszystkich od nowa |
 | 192 | Logowanie nazwą użytkownika albo adresem e-mail (adres z nazwy tylko przy dobrym haśle, limit prób) |
 | 191 | Znak wodny w podglądzie z linku: włączany w oknie Udostępnij (własny tekst, domyślnie „PODGLĄD”), wtopiony w obrazy stron – oglądający go nie wyłączy |

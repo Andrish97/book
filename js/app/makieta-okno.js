@@ -524,10 +524,33 @@ function dopasujPlotno() {
 }
 const obserwator = new ResizeObserver(() => { if (st) dopasujPlotno(); });
 
+// Co zrobić, gdy WebGL nie działa (#194) – zależnie od przeglądarki i systemu. Najczęstszy przypadek: starszy Mac
+// albo komputer, którego kartę graficzną Chrome ma na liście zablokowanych – WebGL znika (nowy Chrome nie zastępuje
+// go już grafiką programową), choć Safari na tym samym komputerze zwykle działa.
+const esc = (t) => String(t).replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
+export function tekstBraku3D(powod, ua = navigator.userAgent) {
+  const chrome = /Chrome\/|Chromium|Edg\//.test(ua) && !/OPR\//.test(ua);
+  const mac = /Macintosh|Mac OS X/.test(ua) && !/iPhone|iPad/.test(ua);
+  const telefon = /Android|iPhone|iPad/.test(ua);
+  const kroki = [];
+  if (powod.startsWith('kontekst')) kroki.push('Zamknij okno makiety i otwórz je jeszcze raz.');
+  if (chrome && !telefon) {
+    kroki.push('Sprawdź w Chrome ustawienie <b>Ustawienia → System → Używaj akceleracji grafiki, gdy jest dostępna</b> – ma być włączone (potem uruchom Chrome ponownie).');
+    kroki.push('Wpisz w pasku adresu <b>chrome://gpu</b>. Jeśli przy „WebGL” jest „Unavailable” albo „Software only”, Chrome zablokował kartę graficzną tego komputera (częste na starszych komputerach). Wtedy otwórz <b>chrome://flags/#ignore-gpu-blocklist</b>, ustaw „Override software rendering list” na <b>Enabled</b> i uruchom Chrome ponownie.');
+    if (mac) kroki.push('Albo otwórz Makietkę w <b>Safari</b> – na starszych Macach zwykle pokazuje makietę bez zmian w ustawieniach.');
+    else kroki.push('Albo otwórz Makietkę w innej przeglądarce (Firefox).');
+  } else if (telefon) {
+    kroki.push('Zaktualizuj przeglądarkę i system; przy oszczędzaniu baterii grafika bywa wyłączona – wyłącz je na chwilę.');
+  } else {
+    kroki.push('Zaktualizuj przeglądarkę i włącz w jej ustawieniach przyspieszenie sprzętowe (akcelerację grafiki).');
+  }
+  return `<b>Nie udało się pokazać makiety 3D:</b> ${esc(powod || 'nieznany błąd grafiki')}.<ul>${kroki.map((k) => `<li>${k}</li>`).join('')}</ul>`;
+}
+
 function pokazBrak3D() {
   const k = $('#makieta-brak-3d');
   k.hidden = Boolean(renderer);
-  if (!renderer) k.textContent = `Nie udało się pokazać makiety 3D: ${powodBrakuWebGL || 'nieznany błąd grafiki'}. Spróbuj zamknąć i otworzyć okno jeszcze raz; jeśli to nie pomoże – zaktualizuj przeglądarkę (Chrome) albo włącz w niej przyspieszenie sprzętowe.`;
+  if (!renderer) k.innerHTML = tekstBraku3D(powodBrakuWebGL);
 }
 
 // Utrata kontekstu WebGL (#157): telefon odbiera go np. przy przejściu aplikacji w tło. Bez preventDefault

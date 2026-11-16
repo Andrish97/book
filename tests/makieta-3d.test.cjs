@@ -457,3 +457,37 @@ test('makieta 3D (#179): wyklejka na tekturze, zawias, sztywna miękka okładka,
   const ciag = { sekcje: new Map([['b', { lista: Array(100) }], ['n', { lista: Array(2) }]]) };
   assert.deepEqual(formatSrodka(sr, ciag), { szerokosc_mm: 148, wysokosc_mm: 210 }, 'format bloku – najczęstszy, nie pierwszej sekcji');
 });
+
+// #194: przeglądarka bez WebGL (np. Chrome na starszym Macu z zablokowaną kartą graficzną) – komunikat podaje
+// powód z przeglądarki i konkretne kroki: akceleracja grafiki, chrome://gpu, ignore-gpu-blocklist, Safari.
+test('makieta 3D bez WebGL: powód z przeglądarki i kroki dla Chrome na Macu', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Bez grafiki');
+  await strona.evaluate(() => {
+    const zwykly = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (typ, ...r) {
+      if (/webgl/.test(typ)) {
+        const e = new Event('webglcontextcreationerror');
+        e.statusMessage = 'WebGL is blocklisted for this GPU';
+        this.dispatchEvent(e);
+        return null;
+      }
+      return zwykly.call(this, typ, ...r);
+    };
+  });
+  const wynik = await strona.evaluate(async () => {
+    const W = await import('./js/app/makieta-okno.js');
+    W.otworzMakiete(window.seriodruk.stan.projekt);
+    const k = document.querySelector('#makieta-brak-3d');
+    const mac = W.tekstBraku3D('przeglądarka nie udostępnia WebGL', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36');
+    return { widoczny: !k.hidden, tekst: k.textContent, mac };
+  });
+  assert.ok(wynik.widoczny);
+  assert.match(wynik.tekst, /nie udostępnia WebGL \(WebGL is blocklisted for this GPU\)/);
+  assert.match(wynik.mac, /chrome:\/\/gpu/);
+  assert.match(wynik.mac, /ignore-gpu-blocklist/);
+  assert.match(wynik.mac, /Safari/);
+  assert.match(wynik.mac, /akceleracji grafiki/);
+  assert.deepEqual(bledy, []);
+});

@@ -1691,8 +1691,16 @@ export let powodBrakuWebGL = '';
 export function utworzRenderer(plotno) {
   powodBrakuWebGL = '';
   const atr = { preserveDrawingBuffer: true, antialias: true, alpha: true, premultipliedAlpha: false }; // alfa – PNG z przezroczystym tłem (#181)
+  // Powód podany przez przeglądarkę (np. karta graficzna na liście zablokowanych – częste na starszych Macach).
+  let komunikatPrzegladarki = '';
+  const naBlad = (e) => { komunikatPrzegladarki = e.statusMessage || ''; };
+  plotno.addEventListener('webglcontextcreationerror', naBlad, { once: true });
   const gl = plotno.getContext('webgl', atr) || plotno.getContext('experimental-webgl', atr);
-  if (!gl) { powodBrakuWebGL = 'przeglądarka nie udostępnia WebGL'; return null; }
+  plotno.removeEventListener('webglcontextcreationerror', naBlad);
+  if (!gl) {
+    powodBrakuWebGL = `przeglądarka nie udostępnia WebGL${komunikatPrzegladarki ? ` (${komunikatPrzegladarki.trim().slice(0, 160)})` : ''}`;
+    return null;
+  }
   if (gl.isContextLost()) { powodBrakuWebGL = 'kontekst grafiki został utracony'; return null; }
   const shader = (typ, zrodlo) => {
     const s = gl.createShader(typ);

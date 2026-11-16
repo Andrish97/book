@@ -83,6 +83,10 @@ Osoba z linkiem do podglądu (→ 23.1) też widzi makietę — w jednym warianc
 zmianami sam: po zapisaniu ujęcia pokaże nowy wariant, a link utworzony wcześniej dostanie makietę przy
 najbliższym otwarciu projektu.
 
+> Uwaga: Makieta rysuje się kartą graficzną. Gdy zamiast niej widać komunikat „Nie udało się pokazać makiety 3D”,
+> okno podpowiada, co zrobić. Na starszych komputerach (zwłaszcza Macach) Chrome bywa zablokowany przez listę
+> kart graficznych — wtedy pomaga ustawienie z komunikatu albo Safari.
+
 ### Gotowe ujęcia
 
 Nad makietą jest rząd kafelków — jedno stuknięcie ustawia kamerę, ułożenie i kartki: **Przód**, **¾

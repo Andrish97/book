@@ -1650,6 +1650,8 @@ Format środka to format większości stron projektu. Sekcje typu wyklejka (prze
 
 Osoba z linkiem do podglądu (rozdział „23.1 Tworzenie linku”) też widzi makietę — w jednym wariancie, bez ustawień. Link idzie za zmianami sam: po zapisaniu ujęcia pokaże nowy wariant, a link utworzony wcześniej dostanie makietę przy najbliższym otwarciu projektu.
 
+> **Uwaga:** Makieta rysuje się kartą graficzną. Gdy zamiast niej widać komunikat „Nie udało się pokazać makiety 3D”, okno podpowiada, co zrobić. Na starszych komputerach (zwłaszcza Macach) Chrome bywa zablokowany przez listę kart graficznych — wtedy pomaga ustawienie z komunikatu albo Safari.
+
 #### Gotowe ujęcia
 
 Nad makietą jest rząd kafelków — jedno stuknięcie ustawia kamerę, ułożenie i kartki: **Przód**, **¾ (klasyczne)**, **Z góry (płasko)**, **Grzbiet**, **Stojąca**, **Rozkładówka z góry**, **Wachlarz kartek**, **Stos egzemplarzy**, **Przód i tył** (dwa egzemplarze obok siebie, drugi odwrócony) oraz **Na ścianie** dla kalendarzy ściennych (ściana z tynku, światło z okna). Widać tylko ujęcia, które pasują do rodzaju. Po wybraniu ujęcia możesz dalej obracać i przybliżać.
