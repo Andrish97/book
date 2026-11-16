@@ -9,7 +9,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
-| 178 | Program nie ogarnia wyklejek i innych sekcji tematycznych: rola sekcji (okładka, wyklejka, blok, obwoluta, wkładka) rozumiana wszędzie – grzbiet, numeracja, PDF, kontrola, makieta 3D (wyklejki przyklejone do okładki), AI | 🔄 |
+| 178 | Program nie ogarnia wyklejek i innych sekcji tematycznych: jawne typy sekcji (bez zgadywania po nazwie) (okładka, wyklejka, blok, obwoluta, wkładka) rozumiana wszędzie – grzbiet, numeracja, PDF, kontrola, makieta 3D (wyklejki przyklejone do okładki), AI | 🔄 |
 | 160 | Audyt pokrycia testami wszystkich funkcji, docs/TESTY.md, lista kontrolna do ręcznego sprawdzenia | 🔄 |
 | 161 | Makieta 3D z telefonu: grzbiet jak w prawdziwej oprawie (szczelina, składki, kapitałka), proporcje bez rozciągania, okładka przytwierdzona do bloku na stronie 1, spirala (skala, gruby blok, artefakty) | 🔄 |
 
