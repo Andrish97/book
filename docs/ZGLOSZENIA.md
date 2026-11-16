@@ -21,6 +21,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | Uwaga | Stan |
 |---|---|
+| 161 (reszta): makieta 3D – obwoluta (osobny obiekt nałożony na okładkę, skrzydełka zawinięte do środka) jeszcze nie pokazywana; rola sekcji tylko z jawnego typu (typSekcji w js/app/makieta-okno.js – do podpięcia pod wspólną funkcję z #177); obwoluta (typ 'obwoluta') pomijana – model obwoluty do zrobienia. Projekt użytkownika do czasu ustawienia typów wyklejek pokaże je jako zwykłe rozkładówki | ⏳ |
+| 161 (uwaga): geometria okładki bez listy sekcji środka (tryb auto) bierze format pierwszej sekcji – gdy to wyklejka A4, okładka liczy się dla A4 (makieta już tego nie przenosi, ale sama okładka do druku – do sprawdzenia razem z rolami sekcji #177) | ⏳ do sprawdzenia |
 | 137 (reszta): „obrazy poza pamięcią” pada jeszcze ok. raz na 2–3 pełne przebiegi pod obciążeniem – pliki obrazów z magazynu przeglądarki bywają wtedy nieczytelne (adres pliku daje 404, eksport bierze mniej plików); przyczyna w magazynie nieustalona do końca, obraz na stronie już nie znika (świeży adres albo obraz zastępczy) | ⏳ do zbadania |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
@@ -43,6 +45,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 161 | Makieta 3D z telefonu: format bloku z większości stron (wyklejka A4 nie rozciąga książki, dzieli się na połowy na wnętrzu okładek), twarda oprawa ze skorupą grzbietu, szczeliną, składkami i kapitałką, otwarta okładka połączona z blokiem, napis na grzbiecie nie w lustrze, spirala skalowana z grubością i obejmująca blok, bez mory i migotania, ostrzejszy obraz i tekstury, kadr dla bieżącego kąta. |
 | 156 | Obramowanie zdjęcia (kolor z kryciem, grubość, rodzaj linii, zaokrąglone narożniki przycinające zdjęcie) i miękkie krawędzie zdjęć i kształtów (równo wzdłuż brzegu albo owalna winieta) – w edytorze, podglądzie, PNG i PDF. |
 | 155 | Biblioteka: porządek (Planer tylko tabele i siatki do notatek, osobna kategoria Ramki, każdy kształt w jednym miejscu) i rozbudowa – ponad 400 kształtów (Kształty 200+, Ramki 80+ w grupach, ozdobniki, separatory, etykiety), nagłówki grup w oknie, ramki przerywane, pola na zdjęcie, obramowania stron |
 | 153 | Makieta 3D jak zdjęcie produktu: rzeczywiste proporcje bez rozciągania, światło z cieniem rzucanym i kontaktowym (stół, ściana), cień w zgięciu, wygięte kartki, krawędzie kartek, zaokrąglony grzbiet twardej oprawy bez artefaktów, spirala z drutu, stojak biurkowy z tektury, tło studia (też w PNG 3200 px). |

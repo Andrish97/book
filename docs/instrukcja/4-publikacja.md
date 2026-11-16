@@ -44,8 +44,8 @@ albo ścianie. Można ją obracać i kartkować, zanim pójdzie do drukarni.
 | Rodzaj | Jak wygląda |
 |---|---|
 | **Książka – miękka oprawa** | Leży na stole. Okładka z sekcji okładki (→ 11.6): przód, grzbiet i tył; środek kartka po kartce, otwarte strony wygięte przy grzbiecie, krawędzie kartek widać z boku. Bez sekcji okładki okładką jest pierwsza strona. |
-| **Książka – twarda oprawa** | Okładka z tektury, większa od środka i z lekkim połyskiem, grzbiet zaokrąglony. |
-| **Notes na spirali** | Kartki na podwójnej spirali z drutu wzdłuż grzbietu, z otworami. |
+| **Książka – twarda oprawa** | Okładki z tektury wystają ok. 3 mm poza środek i mają lekki połysk. Grzbiet to cienka, zaokrąglona płyta odsunięta od bloku — od góry i dołu widać szczelinę, zaokrąglony grzbiet środka ze składkami i kapitałkę. Otwarta okładka leży obok bloku i łączy się z nim grzbietem i wyklejką. |
+| **Notes na spirali** | Kartki na podwójnej spirali z drutu przez otwory przy brzegu. Pętle obejmują cały blok z okładkami — im grubszy notes, tym większe pętle (gruby notes – rzadszy skok i grubszy drut, jak w prawdziwej oprawie); notes leży na drucie. |
 | **Kalendarz ścienny** | Wisi na ścianie na wieszaku; karta po karcie na spirali u góry, przewrócona karta przechodzi na tył. |
 | **Kalendarz biurkowy** | Stoi na biurku na stojaku z grubej tektury; karty przewracają się przez górę na drugą stronę. |
 | **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — leży na stole, przód i tył. |
@@ -53,9 +53,16 @@ albo ścianie. Można ją obracać i kartkować, zanim pójdzie do drukarni.
 Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka);
 zmienisz go listą **Rodzaj**.
 
+Format środka to format większości stron projektu. Sekcje typu wyklejka (przednia albo tylna) nie są częścią
+środka: w książce przednia wyklejka leży na wewnętrznej stronie przedniej okładki i jako luźna kartka przed
+stroną 1, tylna — odwrotnie, tak jak po oprawie (arkusz A4 poziomo przy książce A5 dzieli się na dwie połowy). Twarda oprawa bez
+wyklejek w projekcie dostaje czystą wyklejkę. Inna strona dwa razy szersza od środka — np. rozkładówka na
+jednym arkuszu — też dzieli się na dwie strony.
+
 - **Obracanie** — przeciągnij myszą albo palcem. Światło idzie razem z widokiem, a makieta nie daje się
   obrócić pod stół ani za ścianę.
-- **Przybliżanie** — kółko myszy, dwa palce albo [−] i [+]; [Widok] wraca do widoku z przodu.
+- **Przybliżanie** — kółko myszy, dwa palce albo [−] i [+]; [Widok] wraca do widoku z przodu. Po przybliżeniu
+  strony wczytują się jeszcze raz w wyższej rozdzielczości — z bliska są ostre.
 - **Kartkowanie** — strzałki pod makietą, klawisze <kbd>←</kbd> <kbd>→</kbd> albo stuknięcie w prawą lub lewą połowę obrazu. Pod spodem widać, co jest otwarte, np. „Strony 2–3” albo „Karta 3 z 13”.
 - [Pobierz obraz makiety] zapisuje obraz PNG w dużej rozdzielczości (dłuższy bok 3200 px), z tłem studia
   i cieniem, w tym samym kadrze co na ekranie — np. do oferty albo wpisu w sieci. W ciemnym motywie tło
