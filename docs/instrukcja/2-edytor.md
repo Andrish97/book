@@ -752,11 +752,14 @@ rozmiar i miejsca użycia (numery stron, wzorce, tabele danych).
 | Przycisk | Co robi |
 |---|---|
 | [Wgraj obrazy…] | Dodaje pliki z urządzenia, kilka naraz — także archiwum ZIP z obrazami. |
-| [Kopiuj nazwę] | Kopiuje nazwę pliku, np. do tabeli danych. |
-| [Zmień nazwę] | Nowa nazwa; komórki tabel z tą nazwą zmieniają się razem z nią. |
-| [Podmień plik] | Nowy plik w miejsce starego — wszędzie, gdzie obraz był użyty. |
+| [Kopiuj nazwę] | Na karcie obrazu: kopiuje nazwę pliku, np. do tabeli danych. |
+| [⋯] na karcie | Rzadsze działania dla tego obrazu: [Zmień nazwę], [Podmień plik…], [Kopiuj nazwę], [Usuń obraz…]. |
+| [Zmień nazwę] | Nowa nazwa (także kliknięciem nazwy); komórki tabel z tą nazwą zmieniają się razem z nią. |
+| [Podmień plik…] | Nowy plik w miejsce starego — wszędzie, gdzie obraz był użyty. |
 | [Usuń] | Usuwa zaznaczone obrazy. Użytych obrazów aplikacja nie usunie — powie, gdzie są. |
 | [Usuń nieużywane] | Usuwa obrazy, których nic nie używa. |
+
+![Menu ⋯ na karcie obrazu](k-menu-obrazu.png)
 
 Kliknięcie obrazu go zaznacza; <kbd>Ctrl</kbd> dodaje kolejne, <kbd>Shift</kbd> — cały zakres.
 Ten sam plik wgrany drugi raz nie tworzy kopii. Inny plik o tej samej nazwie — aplikacja pokaże

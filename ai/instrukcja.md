@@ -777,11 +777,14 @@ Kliknij obraz dwa razy albo wybierz **Kadruj przeciąganiem**: przesuwasz zdjęc
 | Przycisk | Co robi |
 |---|---|
 | **Wgraj obrazy…** | Dodaje pliki z urządzenia, kilka naraz — także archiwum ZIP z obrazami. |
-| **Kopiuj nazwę** | Kopiuje nazwę pliku, np. do tabeli danych. |
-| **Zmień nazwę** | Nowa nazwa; komórki tabel z tą nazwą zmieniają się razem z nią. |
-| **Podmień plik** | Nowy plik w miejsce starego — wszędzie, gdzie obraz był użyty. |
+| **Kopiuj nazwę** | Na karcie obrazu: kopiuje nazwę pliku, np. do tabeli danych. |
+| **⋯** na karcie | Rzadsze działania dla tego obrazu: **Zmień nazwę**, **Podmień plik…**, **Kopiuj nazwę**, **Usuń obraz…**. |
+| **Zmień nazwę** | Nowa nazwa (także kliknięciem nazwy); komórki tabel z tą nazwą zmieniają się razem z nią. |
+| **Podmień plik…** | Nowy plik w miejsce starego — wszędzie, gdzie obraz był użyty. |
 | **Usuń** | Usuwa zaznaczone obrazy. Użytych obrazów aplikacja nie usunie — powie, gdzie są. |
 | **Usuń nieużywane** | Usuwa obrazy, których nic nie używa. |
+
+![Menu ⋯ na karcie obrazu](https://makietka.app/img/instrukcja/k-menu-obrazu.png)
 
 Kliknięcie obrazu go zaznacza; `Ctrl` dodaje kolejne, `Shift` — cały zakres. Ten sam plik wgrany drugi raz nie tworzy kopii. Inny plik o tej samej nazwie — aplikacja pokaże oba obrazy i zapyta: **Zastąp**, **Zachowaj oba** albo **Pomiń**. Gdy projekt ma powtórzone obrazy sprzed tego okna, u góry pojawia się pasek z **Uporządkuj** — scala kopie w jeden plik. Przy kilku zaznaczonych obrazach **Kopiuj nazwy** kopiuje wszystkie nazwy naraz, np. do kolumny tabeli danych.
 
@@ -1464,13 +1467,15 @@ Okno serii otwiera się po wybraniu **+ Nowa seria…**, a dla istniejącej seri
 |---|---|
 | **Nazwa serii** | Nazwa na liście serii. |
 | **Dane z tabeli** | Tabela, z której biorą się wiersze. |
-| **Ile razy powielić** | **Tyle razy, ile wierszy ma tabela** albo **Stałą liczbę razy** — np. 12 miesięcy; dane idą wtedy w kółko. |
-| **Jak czytać tabelę** | **Jeden wiersz na cały blok stron** (kolumny np. `s1_tytul`, `s2_tytul` dla kolejnych stron) albo **Jeden wiersz na każdą stronę bloku**. |
+| **Ile razy powielić** | Przełącznik: **Tyle, ile wierszy tabeli** albo **Stałą liczbę razy** (wtedy pojawia się pole **Liczba powieleń**) — np. 12 miesięcy; dane idą wtedy w kółko. |
+| **Jak czytać tabelę** | Przełącznik: **Wiersz na cały blok** (kolumny np. `s1_tytul`, `s2_tytul` dla kolejnych stron) albo **Wiersz na każdą stronę**. |
 | **Dokończ ostatni blok stronami bez danych** | Seria kończy się na ostatnim wierszu; z tym ustawieniem ostatni blok jest pełny. |
 | **Pilnuj lewej i prawej strony** | W rozkładówkach (rozdział „16.6 Serie w rozkładówkach”). |
 | **Dodatkowe tabele** | Dane zmieniające się rzadziej niż strony (rozdział „16.5 Tabele dodatkowe”). |
 | **Dane, których potrzebują strony** | Pola użyte na stronach bloku. **Dodaj brakujące kolumny do tabeli** dopisuje brakujące. |
 | **Pobierz szablon danych (Excel)** | Plik z kolumnami, których potrzebują strony (rozdział „16.7 Szablon danych”). |
+
+![Segmenty w oknie Serii](https://makietka.app/img/instrukcja/k-seria-segmenty.png)
 
 ### 16.4 Wiersze pomijane
 

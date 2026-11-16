@@ -6,7 +6,7 @@
 // i „Wstaw” albo „Podmień” używa obrazu, który już jest w projekcie, bez kopii.
 
 import {
-  $, powiadom, potwierdz, zapytajONazwe, odmiana,
+  $, powiadom, potwierdz, zapytajONazwe, odmiana, zamknijMenu,
 } from '../ui.js';
 import { wstawIkony } from '../ikony.js';
 import { adresZasobu } from '../zasoby.js';
@@ -86,9 +86,8 @@ function rysuj() {
       </div>
       <div class="obraz-akcje">
         <button type="button" class="przycisk-ikona" data-rola="kopiuj" data-ikona="kopiuj" title="Kopiuj nazwę" aria-label="Kopiuj nazwę"></button>
-        <button type="button" class="przycisk-ikona" data-rola="nazwa" data-ikona="olowek" title="Zmień nazwę" aria-label="Zmień nazwę"></button>
-        <button type="button" class="przycisk-ikona" data-rola="podmien" data-ikona="wyslij" title="Podmień plik (wszędzie, gdzie obraz jest użyty)" aria-label="Podmień plik"></button>
         ${u.pierwsze ? '<button type="button" class="przycisk-ikona" data-rola="pokaz" data-ikona="oko" title="Pokaż na stronie" aria-label="Pokaż na stronie"></button>' : ''}
+        <button type="button" class="przycisk-ikona obraz-wiecej" data-rola="wiecej" data-ikona="wiecej" title="Więcej" aria-label="Więcej działań" aria-haspopup="menu" aria-expanded="false"></button>
       </div>`;
     li.querySelector('.obraz-nazwa').textContent = z.nazwa;
     li.querySelector('.obraz-uzycie').textContent = opisUzycia(u);
@@ -356,6 +355,48 @@ async function podmienNa(id, plik) {
   return noweId;
 }
 
+// Menu ⋯ karty obrazu (#103, #182): rzadsze działania – zmiana nazwy, podmiana pliku, usunięcie. Na karcie zostają
+// „Kopiuj nazwę” (do tabeli danych) i „Pokaż na stronie”. Jedno menu w oknie (okno jest modalne – menu w body
+// byłoby pod nim), ustawiane przy przycisku.
+function otworzMenuObrazu(przycisk, id) {
+  let menu = document.getElementById('menu-obrazu');
+  const bylo = menu && !menu.hidden && menu.dataset.id === id;
+  zamknijMenu();
+  if (bylo) return;
+  if (!menu) {
+    menu = document.createElement('div');
+    menu.id = 'menu-obrazu';
+    menu.className = 'menu menu-strony';
+    menu.setAttribute('role', 'menu');
+    menu.hidden = true;
+    menu.innerHTML = `<button type="button" role="menuitem" data-op="nazwa"><span data-ikona="olowek"></span>Zmień nazwę</button>
+      <button type="button" role="menuitem" data-op="podmien"><span data-ikona="wyslij"></span>Podmień plik…</button>
+      <button type="button" role="menuitem" data-op="kopiuj"><span data-ikona="kopiuj"></span>Kopiuj nazwę</button>
+      <hr>
+      <button type="button" role="menuitem" data-op="usun"><span data-ikona="kosz"></span>Usuń obraz…</button>`;
+    wstawIkony(menu);
+    menu.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-op]');
+      if (!b) return;
+      const cel = menu.dataset.id;
+      zamknijMenu();
+      if (!stan.projekt.zasoby[cel]) return;
+      if (b.dataset.op === 'nazwa') zmienNazwe(cel);
+      else if (b.dataset.op === 'podmien') { podmieniany = cel; plikPodmien.click(); }
+      else if (b.dataset.op === 'kopiuj') kopiujNazwy([cel]);
+      else if (b.dataset.op === 'usun') usun([cel]);
+    });
+    $('#dlg-obrazy').append(menu);
+  }
+  menu.dataset.id = id;
+  menu.hidden = false;
+  const r = przycisk.getBoundingClientRect();
+  const mr = menu.getBoundingClientRect();
+  menu.style.left = `${Math.min(window.innerWidth - mr.width - 8, Math.max(8, r.right - mr.width))}px`;
+  menu.style.top = `${r.bottom + 4 + mr.height > window.innerHeight - 8 ? Math.max(8, r.top - 4 - mr.height) : r.bottom + 4}px`;
+  przycisk.setAttribute('aria-expanded', 'true');
+}
+
 async function zmienNazwe(id) {
   const p = stan.projekt;
   const z = p.zasoby[id];
@@ -556,7 +597,8 @@ lista.addEventListener('click', (e) => {
   }
   const b = e.target.closest('button[data-rola]');
   if (b && !wybor) {
-    if (b.dataset.rola === 'pokaz') pokaz(id);
+    if (b.dataset.rola === 'wiecej') otworzMenuObrazu(b, id);
+    else if (b.dataset.rola === 'pokaz') pokaz(id);
     else if (b.dataset.rola === 'nazwa') zmienNazwe(id);
     else if (b.dataset.rola === 'kopiuj') kopiujNazwy([id]);
     else if (b.dataset.rola === 'podmien') { podmieniany = id; plikPodmien.click(); }

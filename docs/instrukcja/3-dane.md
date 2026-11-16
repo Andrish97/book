@@ -134,13 +134,15 @@ Okno serii otwiera się po wybraniu [+ Nowa seria…], a dla istniejącej serii 
 |---|---|
 | **Nazwa serii** | Nazwa na liście serii. |
 | **Dane z tabeli** | Tabela, z której biorą się wiersze. |
-| **Ile razy powielić** | **Tyle razy, ile wierszy ma tabela** albo **Stałą liczbę razy** — np. 12 miesięcy; dane idą wtedy w kółko. |
-| **Jak czytać tabelę** | **Jeden wiersz na cały blok stron** (kolumny np. `s1_tytul`, `s2_tytul` dla kolejnych stron) albo **Jeden wiersz na każdą stronę bloku**. |
+| **Ile razy powielić** | Przełącznik: **Tyle, ile wierszy tabeli** albo **Stałą liczbę razy** (wtedy pojawia się pole **Liczba powieleń**) — np. 12 miesięcy; dane idą wtedy w kółko. |
+| **Jak czytać tabelę** | Przełącznik: **Wiersz na cały blok** (kolumny np. `s1_tytul`, `s2_tytul` dla kolejnych stron) albo **Wiersz na każdą stronę**. |
 | **Dokończ ostatni blok stronami bez danych** | Seria kończy się na ostatnim wierszu; z tym ustawieniem ostatni blok jest pełny. |
 | **Pilnuj lewej i prawej strony** | W rozkładówkach (→ 16.6). |
 | **Dodatkowe tabele** | Dane zmieniające się rzadziej niż strony (→ 16.5). |
 | **Dane, których potrzebują strony** | Pola użyte na stronach bloku. [Dodaj brakujące kolumny do tabeli] dopisuje brakujące. |
 | [Pobierz szablon danych (Excel)] | Plik z kolumnami, których potrzebują strony (→ 16.7). |
+
+![Segmenty w oknie Serii](k-seria-segmenty.png)
 
 ## 16.4 Wiersze pomijane
 

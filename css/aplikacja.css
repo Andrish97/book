@@ -227,6 +227,9 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
 }
 .przelacznik-segmentowy input:checked + span { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
 .przelacznik-segmentowy input:focus-visible + span { outline: 2px solid var(--akcent); }
+/* Niedostępny wybór (np. „Tyle, ile wierszy tabeli” bez tabeli): samo pole zostaje niewidoczne, wyszarzony napis. */
+.przelacznik-segmentowy input[type="radio"]:disabled { opacity: 0; }
+.przelacznik-segmentowy input:disabled + span { opacity: .45; cursor: default; }
 
 /* ---------- Marka ---------- */
 
@@ -1699,6 +1702,7 @@ input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b4231
 .siatka-obrazow .obraz-wymiary, .siatka-obrazow .obraz-uzycie { font-size: 12px; color: var(--cichy); overflow-wrap: anywhere; }
 .siatka-obrazow li.nieuzywany .obraz-uzycie { font-style: italic; }
 .siatka-obrazow .obraz-akcje { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin-top: auto; }
+.siatka-obrazow .obraz-wiecej { margin-left: auto; }
 .dialog-obrazy.tryb-wyboru .obraz-akcje, .dialog-obrazy.tryb-wyboru .obraz-zaznacz, .dialog-obrazy.tryb-wyboru .tylko-zarzadzanie { display: none; }
 .dialog-obrazy.tryb-wyboru .obraz-nazwa { cursor: pointer; pointer-events: none; }
 .zrodlo-obrazu { display: flex; flex-direction: column; gap: 8px; }
