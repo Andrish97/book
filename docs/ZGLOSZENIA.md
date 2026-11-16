@@ -8,19 +8,28 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 ## W toku
 
 | # | Uwaga | Stan |
-|---|---|
-| 114 | Instrukcja od nowa: sekcje i podsekcje, strona główna z kafelkami, spis na telefonie w zasłonce, mniej tekstu i więcej obrazów, bez technikaliów, nowy opis Makietki, dostęp bez konta | 🔄 |
-| 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
-| 127 | Uszlachetnienia (lakier UV, złocenie, tłoczenie, biały poddruk), kolory dodatkowe (Pantone), tryb cz/b + 1 kolor | 🔄 |
-| 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
-| 125 | Okładka: wpisanie grzbietu albo całego rozmiaru okładki | 🔄 |
-| 128 | Kod QR i kod kreskowy EAN/ISBN | 🔄 |
-| 137 | Niestabilne testy – przyczyny i naprawa | 🔄 |
+|---|---|---|
+| 160 | Audyt pokrycia testami wszystkich funkcji, docs/TESTY.md, lista kontrolna do ręcznego sprawdzenia | 🔄 |
+| 161 | Makieta 3D z telefonu: grzbiet jak w prawdziwej oprawie (szczelina, składki, kapitałka), proporcje bez rozciągania, okładka przytwierdzona do bloku na stronie 1, spirala (skala, gruby blok, artefakty) | 🔄 |
+| 162 | Biblioteka – nowe działy: tła i wzory, ikony, nagłówki, bloki treści, infografiki, formularze, planer, okolicznościowe, ilustracje | 🔄 |
+| 164 | Wzorce: więcej gotowych, z miniaturami i schematem działania, zrozumiały opis | 🔄 |
+| 166 | Gotowe sekcje (szablony dokumentów dopasowujące się do formatu): nowy projekt z szablonu, „+ Sekcja → gotowa”, Biblioteka | 🔄 |
+| 167 | Kolory projektu i sekcji, ustawienia per sekcja, „Wykończenie druku” (tłoczenie, lakier, złocenie, biały, Pantone) prosto z Właściwości | 🔄 |
+| 171 | Komputer: Właściwości i Warstwy osobno (zakładki), Ostrzeżenia pod przyciskiem z licznikiem; ucięte przyciski i listy w panelu | 🔄 |
+| 158 | Wydajność (gotowe, scalanie) | 🔄 |
+| 169 | Instrukcja odchudzona (gotowe, scalanie) | 🔄 |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
+| Zestaw marki: więcej stylów tekstu do dodania (nagłówki H1–H6, akapit, podpis, cytat, listy, własne) | ⏳ |
+| Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ⏳ |
+| Instrukcja i system jeszcze raz dogłębnie: czy wszystko jest dostępne i intuicyjne, kompletność instrukcji, wszystkie zrzuty aktualne (np. ustawienia konta bez zestawu marki) – po scaleniu wątków zmieniających interfejs | ⏳ |
+| Przeniesienie „Konta” bliżej końca instrukcji (przenumerowanie rozdziałów) – po scaleniu wątków | ⏳ |
+| Sekcje „inteligentne” jak okładka z grzbietem (system wie, jak działają): obwoluta ze skrzydełkami, ulotka składana z bigami, kalendarz z datami i świętami, kalendarz trójdzielny, koperta/teczka/pudełko z wykrojnikiem, arkusz naklejek/wizytówek – po #166 | ⏳ |
+| Komentarze: przegląd działania i testów, usunięty wątek znika u innych od razu | 🔄 |
+| Rysunek SVG: przy rozkładaniu elementy, których edytor nie ma (filtry, maski, wzory), mają zostać jako małe obrazy w miejscu, a nie znikać; uprzedzenie przed rozłożeniem | 🔄 |
 | 137 (reszta): „obrazy poza pamięcią” pada jeszcze ok. raz na 2–3 pełne przebiegi pod obciążeniem – pliki obrazów z magazynu przeglądarki bywają wtedy nieczytelne (adres pliku daje 404, eksport bierze mniej plików); przyczyna w magazynie nieustalona do końca, obraz na stronie już nie znika (świeży adres albo obraz zastępczy) | ⏳ do zbadania |
 | Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Instrukcja: dopisać funkcje z #103 (Ctrl+K, kolory projektu, tabela −/+, PDF „Zaawansowane”) i zrzuty nowych rozdziałów | ⏳ |
