@@ -752,8 +752,16 @@ zmienisz w nim kolorów ani napisów.
 kształtów i napisów** w tym samym miejscu. Kształtom zmienisz kolor i punkty, napisy poprawisz
 jak każdy tekst. Plik SVG nie zmienia się i zostaje w oknie obrazów projektu.
 
-Elementy, których edytor nie ma (filtry, maski, wzory), przy rozkładaniu znikają — wtedy zostaw
-rysunek jako obraz. <kbd>Ctrl</kbd>+<kbd>Z</kbd> przywraca obraz.
+Nic przy tym nie znika:
+
+- **przycięcie** i **przejścia kolorów** zostają kształtami,
+- **prosta maska** (biały kształt) staje się przycięciem, a **wzór** (np. kropki, kratka) — powtórzonymi
+  kształtami przyciętymi do swojej figury,
+- fragmenty z **efektami, których edytor nie ma** (rozmycie, cień z filtra, maska z przejściem, mieszanie
+  kolorów, groty linii, tekst po ścieżce) zostają **obrazem** w tym samym miejscu, w rozdzielczości do druku.
+  Po rozłożeniu aplikacja powie, ile ich jest; reszta rysunku jest edytowalna.
+
+<kbd>Ctrl</kbd>+<kbd>Z</kbd> przywraca cały rysunek.
 
 ![Rysunek SVG przed i po rozłożeniu](rysunek-svg.png)
 

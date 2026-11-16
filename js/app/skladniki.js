@@ -95,6 +95,7 @@ async function rozlozRysunekNaStronie(obj) {
   if (w.blad) { powiadom(w.blad, true); return; }
   if (!edytor.zastapObiekt(obj, w.grupa)) return;
   const czesci = [`Rysunek rozłożony na ${w.ile} ${odmiana(w.ile, 'element', 'elementy', 'elementów')} w grupie.`];
+  if (w.obrazy) czesci.push(`${w.obrazy} ${odmiana(w.obrazy, 'fragment', 'fragmenty', 'fragmentów')} z efektami ${odmiana(w.obrazy, 'został', 'zostały', 'zostało')} obrazem – reszta jest edytowalna.`);
   if (w.zastapione.length) czesci.push(`Czcionki spoza zestawu (${w.zastapione.join(', ')}) zastąpiła domyślna.`);
   if (w.uwaga) czesci.push(w.uwaga);
   czesci.push('Ctrl+Z przywraca obraz.');

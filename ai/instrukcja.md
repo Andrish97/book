@@ -879,7 +879,13 @@ Plik SVG wstawia się jako obraz: wygląda wiernie i zostaje ostry w każdym pow
 
 **Rozłóż rysunek na elementy** (we właściwościach obrazu) zamienia go na stronie w **grupę zwykłych kształtów i napisów** w tym samym miejscu. Kształtom zmienisz kolor i punkty, napisy poprawisz jak każdy tekst. Plik SVG nie zmienia się i zostaje w oknie obrazów projektu.
 
-Elementy, których edytor nie ma (filtry, maski, wzory), przy rozkładaniu znikają — wtedy zostaw rysunek jako obraz. `Ctrl`+`Z` przywraca obraz.
+Nic przy tym nie znika:
+
+- **przycięcie** i **przejścia kolorów** zostają kształtami,
+- **prosta maska** (biały kształt) staje się przycięciem, a **wzór** (np. kropki, kratka) — powtórzonymi kształtami przyciętymi do swojej figury,
+- fragmenty z **efektami, których edytor nie ma** (rozmycie, cień z filtra, maska z przejściem, mieszanie kolorów, groty linii, tekst po ścieżce) zostają **obrazem** w tym samym miejscu, w rozdzielczości do druku. Po rozłożeniu aplikacja powie, ile ich jest; reszta rysunku jest edytowalna.
+
+`Ctrl`+`Z` przywraca cały rysunek.
 
 ![Rysunek SVG przed i po rozłożeniu](https://makietka.app/img/instrukcja/rysunek-svg.png)
 
