@@ -1,4 +1,4 @@
-// Eksport PDF i PNG zlecany przez AI (decyzja #175, migracja 20261116210000_zlecenia_eksportu.sql).
+// Eksport PDF i PNG zlecany przez AI (decyzja #175, migracja 20261117110000_zlecenia_eksportu.sql).
 //
 // Łącznik AI nie narysuje pliku – robi to przeglądarka (czcionki, Fabric, profile barwne). AI składa zlecenie,
 // a każda otwarta karta zalogowanego konta słucha nowych zleceń (Realtime) i sprawdza zaległe przy starcie,
