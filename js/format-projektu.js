@@ -114,7 +114,8 @@ export function zmienFormat(projekt, idSekcji, nowyWymiar, { sposob = 'skaluj', 
   const sekcje = projekt.sekcje.filter((s) => idSekcji.includes(s.id));
   const wzorceZmienione = new Set();
   for (const sekcja of sekcje) {
-    if (sekcja.okladka) { wynik.pominieteOkladki.push(sekcja.nazwa); continue; }
+    // Okładka i sekcje specjalne z własnym arkuszem (#177) liczą format same.
+    if (sekcja.okladka || (sekcja.specjalna && sekcja.specjalna.rodzaj !== 'kalendarz')) { wynik.pominieteOkladki.push(sekcja.nazwa); continue; }
     const stary = { ...sekcja.wydruk };
     const nowy = { ...stary, szerokosc_mm: nowyWymiar.szerokosc_mm, wysokosc_mm: nowyWymiar.wysokosc_mm };
     if (Math.abs(stary.szerokosc_mm - nowy.szerokosc_mm) < 1e-6 && Math.abs(stary.wysokosc_mm - nowy.wysokosc_mm) < 1e-6) continue;

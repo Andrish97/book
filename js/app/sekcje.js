@@ -7,6 +7,7 @@ import {
   PAPIERY, STREFY, normalizujOkladke, domyslnaOkladka, geometriaOkladki, jestOkladka, przeliczOkladki,
   normalizujSkladke, bilansSkladki, opisSkladki,
 } from '../okladka.js';
+import { RODZAJE_SEKCJI, domyslnaSpecjalna, normalizujSpecjalna, geometriaSpecjalna, opisSpecjalnej } from '../sekcje-specjalne.js';
 import { $, $$, powiadom, potwierdz } from '../ui.js';
 import { stan, biezacaSekcja, tenSamRozmiar, liczba, edytor, biezacaStrona } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
@@ -54,6 +55,8 @@ export function otworzUstawieniaSekcji(id) {
   f.elements.skladka.value = String(normalizujSkladke(istniejaca?.skladka));
   wypelnijOkladke(f, istniejaca, otworzUstawieniaSekcji.jakoOkladka);
   otworzUstawieniaSekcji.jakoOkladka = false;
+  wypelnijSpecjalna(f, istniejaca, otworzUstawieniaSekcji.jakoSpecjalna);
+  otworzUstawieniaSekcji.jakoSpecjalna = null;
 
   const lista = $('#sekcja-wzorce');
   lista.replaceChildren();
@@ -84,11 +87,23 @@ function odswiezPolaSekcji() {
   $('#podpowiedz-rozkladowki').hidden = !rozkladowki;
   $('#pole-numeracja-od').hidden = f.elements.numeracja.value !== 'od';
   const okladka = f.elements.rodzaj.value === 'okladka';
+  const rodzajSp = RODZAJE_SEKCJI[f.elements.rodzaj.value] ? f.elements.rodzaj.value : null;
+  // Sekcja z własnym arkuszem (wszystkie specjalne poza kalendarzem z datami): format liczy się sam.
+  const arkuszSp = Boolean(rodzajSp) && rodzajSp !== 'kalendarz';
   $('#sekcja-okladka').hidden = !okladka;
-  $('#sekcja-format').hidden = okladka;
-  $('#pole-uklad-sekcji').hidden = okladka;
-  $('#pole-skladka').hidden = okladka;
-  $('#opis-skladki').hidden = okladka;
+  $('#sekcja-specjalna').hidden = !rodzajSp;
+  $('#opis-rodzaju-sekcji').hidden = !rodzajSp;
+  if (rodzajSp) {
+    $('#opis-rodzaju-sekcji').textContent = RODZAJE_SEKCJI[rodzajSp].opis;
+    $('#legenda-specjalnej').textContent = RODZAJE_SEKCJI[rodzajSp].nazwa;
+    const ksztalt = f.elements.sp_ksztalt.value;
+    for (const el of $$('[data-sp]', f)) el.hidden = el.dataset.sp !== rodzajSp || (el.dataset.spKsztalt !== undefined && el.dataset.spKsztalt !== ksztalt);
+    for (const el of $$('[data-sp-ksztalt]:not([data-sp])', f)) el.hidden = el.dataset.spKsztalt !== ksztalt;
+  }
+  $('#sekcja-format').hidden = okladka || arkuszSp;
+  $('#pole-uklad-sekcji').hidden = okladka || arkuszSp;
+  $('#pole-skladka').hidden = okladka || arkuszSp;
+  $('#opis-skladki').hidden = okladka || arkuszSp;
   if (okladka) {
     $('#etykieta-wewnetrzny').textContent = 'Przy grzbiecie';
     $('#etykieta-zewnetrzny').textContent = 'Zewnętrzny';
@@ -109,9 +124,10 @@ function odswiezPolaSekcji() {
   $('#pole-ok-grzbiet span').textContent = wymiary === 'rozmiar' ? 'Grzbiet (mm, puste – liczony)' : 'Grzbiet (mm)';
   f.elements.ok_liczba.disabled = f.elements.ok_strony.value !== 'reczne';
   rysujSchemat();
-  if (okladka) rysujOkladke(); else opiszSkladke();
+  if (okladka) rysujOkladke(); else if (rodzajSp) rysujSpecjalna(); else opiszSkladke();
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
+  if (e.target.name?.startsWith('sp_')) { if (e.target.name === 'sp_ksztalt') odswiezPolaSekcji(); else rysujSpecjalna(); return; }
   if (['uklad', 'numeracja', 'rodzaj', 'ok_papier', 'ok_oprawa', 'ok_strony', 'ok_wymiary', 'skladka'].includes(e.target.name)) {
     // Przejście na wpisane wymiary: pola dostają bieżące, liczone wartości – do poprawienia, nie od zera.
     if (e.target.name === 'ok_wymiary') {
@@ -279,6 +295,128 @@ function opiszSkladke() {
   $('#opis-skladki').textContent = tekst;
 }
 
+// ---------- Sekcje specjalne (#177) ----------
+
+// Pole okna → parametr rodzaju (część nazw parametrów powtarza się między rodzajami – pola mają własne nazwy).
+const POLA_SPECJALNE = {
+  obwoluta: { skrzydelko_mm: 'sp_skrzydelko_mm', zapas_mm: 'sp_zapas_mm', naddatek_wys_mm: 'sp_naddatek_wys_mm' },
+  ulotka: { panele: 'sp_panele', zlozenie: 'sp_zlozenie', szerokosc_mm: 'sp_szerokosc_mm', wysokosc_mm: 'sp_wysokosc_mm', skrot_mm: 'sp_skrot_mm' },
+  kalendarz: { rok: 'sp_rok', jednostka: 'sp_jednostka', pierwszy: 'sp_pierwszy', swieta: 'sp_swieta' },
+  trojdzielny: { szerokosc_mm: 'sp_t_szerokosc_mm', glowka_mm: 'sp_glowka_mm', kalendarium_mm: 'sp_kalendarium_mm', reklama_mm: 'sp_reklama_mm', okienko: 'sp_okienko' },
+  wykrojnik: {
+    ksztalt: 'sp_ksztalt', koperta: 'sp_koperta', panel_szer_mm: 'sp_panel_szer_mm', panel_wys_mm: 'sp_panel_wys_mm', grzbiet_mm: 'sp_grzbiet_mm',
+    kieszen_mm: 'sp_kieszen_mm', wizytowka: 'sp_wizytowka', dlugosc_mm: 'sp_dlugosc_mm', szerokosc_mm: 'sp_p_szerokosc_mm', wysokosc_mm: 'sp_p_wysokosc_mm',
+  },
+  arkusz: {
+    uzytek_szer_mm: 'sp_uzytek_szer_mm', uzytek_wys_mm: 'sp_uzytek_wys_mm', arkusz: 'sp_arkusz', odstep_mm: 'sp_odstep_mm', margines_mm: 'sp_margines_mm',
+    ksztalt: 'sp_u_ksztalt', zaokraglenie_mm: 'sp_zaokraglenie_mm',
+  },
+};
+
+// Pola wszystkich rodzajów: z parametrów sekcji (jej rodzaju) albo domyślne. `jako` – rodzaj wybrany z góry
+// (np. „Dodaj sekcję → Ulotka składana”).
+function wypelnijSpecjalna(f, sekcja, jako = null) {
+  const biezaca = normalizujSpecjalna(sekcja?.specjalna);
+  if (biezaca) f.elements.rodzaj.value = biezaca.rodzaj;
+  else if (jako && RODZAJE_SEKCJI[jako]) f.elements.rodzaj.value = jako;
+  const w = (sekcja || biezacaSekcja()).wydruk;
+  for (const [rodzaj, pola] of Object.entries(POLA_SPECJALNE)) {
+    const p = biezaca?.rodzaj === rodzaj ? biezaca : domyslnaSpecjalna(rodzaj);
+    // Ulotka: domyślnie panel w formacie bieżącej sekcji (do 210 mm szerokości).
+    if (biezaca?.rodzaj !== rodzaj && rodzaj === 'ulotka') Object.assign(p, { szerokosc_mm: Math.min(w.szerokosc_mm, 210), wysokosc_mm: w.wysokosc_mm });
+    for (const [klucz, nazwa] of Object.entries(pola)) {
+      const el = f.elements[nazwa];
+      if (!el) continue;
+      if (el.type === 'checkbox') el.checked = Boolean(p[klucz]);
+      else el.value = String(p[klucz] ?? '');
+    }
+  }
+}
+
+function specjalnaZPol(f) {
+  const rodzaj = f.elements.rodzaj.value;
+  const pola = POLA_SPECJALNE[rodzaj];
+  if (!pola) return null;
+  const surowe = { rodzaj };
+  for (const [klucz, nazwa] of Object.entries(pola)) {
+    const el = f.elements[nazwa];
+    if (!el) continue;
+    if (el.type === 'checkbox') surowe[klucz] = el.checked;
+    else if (el.type === 'number') surowe[klucz] = Number(String(el.value).replace(',', '.'));
+    else surowe[klucz] = el.value;
+  }
+  const istniejaca = stan.projekt?.sekcje.find((s) => s.id === $('#dlg-sekcja').dataset.id);
+  // Kalendarz: tabela i seria zostają te same (dane przepisują się dla nowego roku, kolumny dopisane ręcznie zostają).
+  if (rodzaj === 'kalendarz' && istniejaca?.specjalna?.rodzaj === 'kalendarz') Object.assign(surowe, { tabela: istniejaca.specjalna.tabela, seria: istniejaca.specjalna.seria });
+  return normalizujSpecjalna(surowe);
+}
+
+const PODPOWIEDZI_SPECJALNE = {
+  obwoluta: 'Wymiary biorą się z twardej okładki projektu (płyty i grzbiet) – gdy przybędzie stron, obwoluta przeliczy się sama. Skrzydełko 0 – około połowy szerokości przodu.',
+  ulotka: 'Sekcja ma dwie strony: zewnętrzną (okładka, tył) i wewnętrzną. Przy złożeniu zwijanym panel składany do środka jest węższy – inaczej zagnie się na zgięciu. Tekst nie powinien leżeć na zgięciu.',
+  trojdzielny: 'Główka zgina się na bigu do tyłu; kalendaria i pasek reklamowy oddziela perforacja. Pola kalendariów to miejsca na naklejane bloki z datami.',
+  wykrojnik: 'Linia cięcia i zgięć trafia do PDF w osobnych kolorach („CutContour” i „Crease”) – drukarnia ich nie drukuje, tylko wycina i bigi. To, co leży poza linią cięcia, odpadnie.',
+  arkusz: 'Projektujesz jeden użytek (albo kolejne z danych – seria). W PDF użytki stoją obok siebie na arkuszu, ze znakami cięcia; naklejka dostaje linię wykrojnika.',
+};
+
+// Schemat sekcji specjalnej: strefy, zgięcia, perforacje i wykrojnik w SVG, z opisem wyniku.
+function rysujSpecjalna() {
+  const f = $('#dlg-sekcja form');
+  const p = specjalnaZPol(f);
+  if (!p || !stan.projekt) return;
+  const el = $('#schemat-specjalnej');
+  const id = $('#dlg-sekcja').dataset.id;
+  const istniejaca = stan.projekt.sekcje.find((s) => s.id === id);
+  const sekcja = { ...(istniejaca || { id: '__nowa__', wydruk: biezacaSekcja().wydruk }), specjalna: p };
+  const g = geometriaSpecjalna(stan.projekt, sekcja);
+  $('#podpowiedz-specjalnej').textContent = PODPOWIEDZI_SPECJALNE[p.rodzaj] || '';
+  if (!g) {
+    el.hidden = true;
+    $('#wynik-specjalnej').replaceChildren(Object.assign(document.createElement('strong'), { textContent: opisSpecjalnej(sekcja) }),
+      Object.assign(document.createElement('small'), { textContent: 'Pierwsza strona sekcji powiela się dla każdego wiersza danych. Wstaw na nią pola: {data}, {dzien}, {miesiac}, {dzien_tygodnia}, {tydzien}, {swieto}; „wolne” ma wartość „tak” w niedziele i święta (np. do koloru zależnego od danych).' }));
+    return;
+  }
+  el.hidden = false;
+  const strony = g.strefy.some((z) => z.strona === 1) ? [0, 1] : [0];
+  const odstep = g.wysokosc * 0.12;
+  const H = strony.length * g.wysokosc + (strony.length - 1) * odstep;
+  el.style.setProperty('--proporcja', `${g.szerokosc} / ${H}`);
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${g.szerokosc} ${H}`);
+  const dodaj = (nazwa, atr, tekst) => {
+    const e = document.createElementNS(NS, nazwa);
+    for (const [k, v] of Object.entries(atr)) e.setAttribute(k, v);
+    if (tekst) e.textContent = tekst;
+    svg.append(e);
+    return e;
+  };
+  const fs = Math.max(6, Math.min(g.szerokosc, g.wysokosc) / 16);
+  strony.forEach((nr, i) => {
+    const dy = i * (g.wysokosc + odstep);
+    const tu = (x) => x.strona === undefined || x.strona === nr;
+    for (const z of g.strefy.filter(tu)) {
+      const pomocnicza = z.rodzaj.startsWith('klej') || ['okienko', 'wizytowka'].includes(z.rodzaj);
+      const r = dodaj('rect', { x: z.x1, y: z.y1 + dy, width: z.x2 - z.x1, height: z.y2 - z.y1, class: `sp-strefa${pomocnicza ? ' pomocnicza' : ''}${z.x2 - z.x1 < g.szerokosc * 0.06 ? ' waska' : ''}` });
+      const t = document.createElementNS(NS, 'title');
+      t.textContent = `${z.nazwa}: ${liczba(z.x2 - z.x1)} × ${liczba(z.y2 - z.y1)} mm`;
+      r.append(t);
+      if (z.x2 - z.x1 > fs * z.nazwa.length * 0.6 && z.y2 - z.y1 > fs * 1.6 && !z.rodzaj.startsWith('zapas')) dodaj('text', { x: (z.x1 + z.x2) / 2, y: (z.y1 + z.y2) / 2 + dy, 'font-size': fs }, z.nazwa);
+    }
+    for (const l of (g.bigi || []).filter(tu)) dodaj('line', { x1: l.x1, y1: l.y1 + dy, x2: l.x2, y2: l.y2 + dy, class: 'sp-big' });
+    for (const l of g.perforacje || []) dodaj('line', { x1: l.x1, y1: l.y1 + dy, x2: l.x2, y2: l.y2 + dy, class: 'sp-perforacja' });
+    for (const k of g.ciecie || []) dodaj('polygon', { points: k.map((q) => `${q.x},${q.y + dy}`).join(' '), class: 'sp-ciecie' });
+    for (const l of g.naciecia || []) dodaj('line', { x1: l.x1, y1: l.y1 + dy, x2: l.x2, y2: l.y2 + dy, class: 'sp-ciecie' });
+  });
+  el.replaceChildren(svg);
+  const opis = opisSpecjalnej({ ...sekcja, specjalna: { ...p, wynik: { rodzaj: p.rodzaj, ...g } } });
+  $('#wynik-specjalnej').replaceChildren(
+    Object.assign(document.createElement('strong'), { textContent: `${strony.length > 1 ? 'Arkusz (2 strony) ' : ''}${liczba(g.szerokosc)} × ${liczba(g.wysokosc)} mm` }),
+    Object.assign(document.createElement('small'), { textContent: opis }),
+  );
+}
+$('#sekcja-specjalna').addEventListener('input', () => rysujSpecjalna());
+
 async function zatwierdzSekcje() {
   const dlg = $('#dlg-sekcja');
   const f = dlg.querySelector('form');
@@ -311,6 +449,12 @@ async function zatwierdzSekcje() {
   };
   const okladka = f.elements.rodzaj.value === 'okladka';
   const poprzednia = stan.projekt.sekcje.find((s) => s.id === dlg.dataset.id);
+  const specjalna = specjalnaZPol(f);
+  if (specjalna) {
+    // Sekcja specjalna (#177): wynik poprzedniego przeliczenia tego samego rodzaju zostaje – elementy przesuną się o różnicę.
+    ustawienia.specjalna = { ...specjalna, wynik: poprzednia?.specjalna?.rodzaj === specjalna.rodzaj ? poprzednia.specjalna.wynik : null };
+    if (specjalna.rodzaj !== 'kalendarz') ustawienia.uklad = 'pojedyncze';
+  }
   if (okladka) {
     // Format okładki liczy się sam; wynik poprzedniego przeliczenia zostaje, żeby elementy przesunęły się o różnicę.
     ustawienia.okladka = { ...okladkaZPol(f), wynik: poprzednia?.okladka?.wynik || null };
@@ -325,6 +469,7 @@ async function zatwierdzSekcje() {
   let sekcja = poprzednia;
   if (sekcja) {
     if (!okladka) delete sekcja.okladka;
+    if (!specjalna) delete sekcja.specjalna;
     Object.assign(sekcja, ustawienia);
   } else {
     sekcja = { ...nowaSekcja(ustawienia.nazwa, wydruk), ...ustawienia };
@@ -337,7 +482,7 @@ async function zatwierdzSekcje() {
     stan.indeks = projekt.strony.indexOf(strona);
     ustawZakladke('strony');
   }
-  if (okladka) delete sekcja.skladka;
+  if (okladka || (specjalna && specjalna.rodzaj !== 'kalendarz')) delete sekcja.skladka;
   else if (!sekcja.skladka) delete sekcja.skladka;
   // Okładka przelicza swój format i przesuwa elementy (za pierwszym razem – ze starego formatu sekcji).
   przeliczOkladki(projekt);

@@ -15,6 +15,7 @@ import { DOMYSLNA, zapewnijCzcionki, zapewnijRodziny } from './czcionki.js';
 import { podmienZasoby, zrodloObrazu, wzorzecPrzezGrzbiet } from './zlozenie.js';
 import { przyciagnij, pomiary, przyciagnijKrawedz } from './przyciaganie.js';
 import { polaBezpieczne, STREFY } from './okladka.js';
+import { uwagiElementu, strefaWPunkcie } from './sekcje-specjalne.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
@@ -3239,6 +3240,75 @@ export class Edytor extends EventTarget {
     ctx.restore();
   }
 
+  // Sekcja specjalna (#177): strefy podpisane i z obszarem bezpiecznym (marginesy sekcji wewnątrz strefy),
+  // bigi (linie zgięć) przerywane, perforacje kropkowane, wykrojnik i nacięcia ciągłą linią w kolorze cięcia.
+  _rysujStrefySpecjalne(ctx, X, Y, s, sp, h, b) {
+    const m = this.wydruk.marginesy || { gora: 0, dol: 0, wewnetrzny: 0, zewnetrzny: 0 };
+    const odcinki = (lista) => {
+      ctx.beginPath();
+      for (const l of lista) { ctx.moveTo(Math.round(X(l.x1)) + 0.5, Math.round(Y(l.y1)) + 0.5); ctx.lineTo(Math.round(X(l.x2)) + 0.5, Math.round(Y(l.y2)) + 0.5); }
+      ctx.stroke();
+    };
+    ctx.save();
+    ctx.lineWidth = 1;
+    // Obszar bezpieczny każdej strefy (bez arkusza użytków – tam zwykłe marginesy strony).
+    if (sp.rodzaj !== 'arkusz') {
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(37, 99, 235, 0.7)';
+      const mx = Math.min(m.wewnetrzny, m.zewnetrzny);
+      for (const z of sp.strefy) {
+        if (['klej', 'klej_l', 'klej_p', 'okienko', 'wizytowka'].includes(z.rodzaj) || z.rodzaj.startsWith('zapas')) continue;
+        const x1 = z.x1 + Math.min(mx, (z.x2 - z.x1) / 4); const x2 = z.x2 - Math.min(mx, (z.x2 - z.x1) / 4);
+        const y1 = z.y1 + Math.min(m.gora, (z.y2 - z.y1) / 4); const y2 = z.y2 - Math.min(m.dol, (z.y2 - z.y1) / 4);
+        if (x2 - x1 < 2 || y2 - y1 < 2) continue;
+        ctx.strokeRect(Math.round(X(x1)) + 0.5, Math.round(Y(y1)) + 0.5, Math.round((x2 - x1) * s) - 1, Math.round((y2 - y1) * s) - 1);
+      }
+    }
+    // Strefy pomocnicze (klej, okienko, wizytówka): półprzezroczyste pola.
+    for (const z of sp.strefy) {
+      if (!['klej', 'klej_l', 'klej_p', 'okienko', 'wizytowka'].includes(z.rodzaj)) continue;
+      ctx.fillStyle = z.rodzaj.startsWith('klej') ? 'rgba(234, 179, 8, 0.18)' : 'rgba(13, 148, 136, 0.12)';
+      ctx.fillRect(X(z.x1), Y(z.y1), (z.x2 - z.x1) * s, (z.y2 - z.y1) * s);
+    }
+    ctx.setLineDash([6, 3]);
+    ctx.strokeStyle = 'rgba(13, 148, 136, 0.9)';
+    odcinki(sp.bigi || []);
+    ctx.setLineDash([1.5, 3]);
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.9)';
+    odcinki(sp.perforacje || []);
+    ctx.setLineDash([]);
+    if (sp.ciecie?.length || sp.naciecia?.length) {
+      ctx.strokeStyle = 'rgba(219, 39, 119, 0.95)';
+      ctx.lineWidth = 1.5;
+      for (const k of sp.ciecie || []) {
+        ctx.beginPath();
+        k.forEach((p, i) => (i ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y))));
+        ctx.closePath();
+        ctx.stroke();
+      }
+      odcinki(sp.naciecia || []);
+      // Poza wykrojnikiem: przyciemnienie (to odpadnie przy wycinaniu).
+      if (sp.rodzaj === 'wykrojnik') {
+        ctx.fillStyle = 'rgba(28, 27, 25, 0.06)';
+        ctx.beginPath();
+        ctx.rect(X(-b), Y(-b), (sp.szerokosc + 2 * b) * s, (h + 2 * b) * s);
+        for (const k of sp.ciecie || []) k.forEach((p, i) => (i ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y))));
+        ctx.fill('evenodd');
+      }
+    }
+    ctx.font = '600 10px Inter, system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(13, 118, 110, 0.95)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (const z of sp.strefy) {
+      if (z.rodzaj.startsWith('zapas') || z.rodzaj === 'uzytek') continue;
+      const szer = (z.x2 - z.x1) * s;
+      if (ctx.measureText(z.nazwa).width > szer - 4 || (z.y2 - z.y1) * s < 14) continue;
+      ctx.fillText(z.nazwa, X((z.x1 + z.x2) / 2), Y(z.y1) + 3);
+    }
+    ctx.restore();
+  }
+
   // ---------- Ostrzeżenia o układzie (4.5) ----------
 
   // Czy ramka x1..x2 leży świadomie na obu stronach rozkładówki: zaczyna się
@@ -3284,6 +3354,15 @@ export class Edytor extends EventTarget {
         if (grzbiet && cx >= grzbiet.x1 && cx <= grzbiet.x2 && x2 - x1 > grzbiet.x2 - grzbiet.x1 + tol && x1 > grzbiet.x1 - 20 && x2 < grzbiet.x2 + 20) {
           lista.push({ id: o.id, typ: 'szerszy_niz_grzbiet', obiekt: opisObiektu(o) });
         }
+      }
+      const spec = this.wydruk.specjalna;
+      if (spec && spec.rodzaj !== 'arkusz') {
+        // Sekcja specjalna (#177): obszar bezpieczny strefy, w której leży środek elementu; tło przez kilka stref – cały arkusz.
+        const z = strefaWPunkcie(spec, (x1 + x2) / 2, (y1 + y2) / 2);
+        const mx = Math.min(this.wydruk.marginesy?.wewnetrzny || 0, this.wydruk.marginesy?.zewnetrzny || 0);
+        if (z && x2 - x1 <= (z.x2 - z.x1) + 1) m = { lewy: z.x1 + mx, prawy: w - z.x2 + mx, gora: z.y1 + (this.wydruk.marginesy?.gora || 0), dol: h - z.y2 + (this.wydruk.marginesy?.dol || 0) };
+        else m = { lewy: -b, prawy: -b, gora: -b, dol: -b };
+        for (const t of uwagiElementu(spec, { x1, y1, x2, y2 }, { tekst: o.type === 'textbox' })) lista.push({ id: o.id, typ: t, obiekt: opisObiektu(o) });
       }
       let typ = null;
       if (x2 < -b || y2 < -b || x1 > w + b || y1 > h + b) {
@@ -4048,8 +4127,10 @@ export class Edytor extends EventTarget {
       // a obszar bezpieczny osobno dla tyłu, grzbietu i przodu.
       const okl = this.wydruk.okladka;
       if (okl) this._rysujStrefyOkladki(ctx, X, Y, s, okl, h, b);
+      const spec = this.wydruk.specjalna;
+      if (spec) this._rysujStrefySpecjalne(ctx, X, Y, s, spec, h, b);
       // Obszar bezpieczny (marginesy) każdej strony arkusza.
-      for (const { x, marg: m } of okl ? [] : this.strony) {
+      for (const { x, marg: m } of okl || (spec && spec.rodzaj !== 'arkusz') ? [] : this.strony) {
         if (m.lewy + m.prawy + m.gora + m.dol <= 0) continue;
         ctx.strokeStyle = 'rgba(37, 99, 235, 0.8)';
         ctx.setLineDash([4, 4]);

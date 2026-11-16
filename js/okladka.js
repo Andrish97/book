@@ -125,7 +125,10 @@ export function gruboscKartki(papier) {
 // Sekcje środka dla okładki: wskazane albo wszystkie, które nie są okładkami.
 export function sekcjeSrodka(projekt, sekcja) {
   const wybrane = sekcja.okladka?.srodek;
-  return projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s) && (!wybrane || wybrane.includes(s.id)));
+  // Sekcje specjalne z własnym arkuszem (obwoluta, ulotka, wykrojnik…, #177) nie są środkiem książki;
+  // kalendarz z datami – jest.
+  const osobnyArkusz = (s) => Boolean(s.specjalna) && s.specjalna.rodzaj !== 'kalendarz';
+  return projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s) && !osobnyArkusz(s) && (!wybrane || wybrane.includes(s.id)));
 }
 
 // Liczba stron w wydruku (z powieleniami serii i stronami pustymi) dla listy sekcji.
@@ -322,11 +325,16 @@ function zachowajObcyUklad(sekcja) {
 
 // Przelicza wszystkie okładki projektu: format sekcji, wynik i położenie elementów na ich stronach.
 // Zwraca id sekcji, które się zmieniły (ich strony trzeba przerysować).
+// Przeliczenia, które idą razem z okładką (sekcje specjalne #177 – js/sekcje-specjalne.js dopisuje się sama).
+export const poPrzeliczeniu = new Set();
+
 export function przeliczOkladki(projekt, ciag = null) {
   const zmienione = [];
+  // Najpierw sekcje specjalne (np. kalendarz dopisuje strony serii), potem okładka – liczy grzbiet z całości.
+  for (const f of poPrzeliczeniu) zmienione.push(...f(projekt, null));
   const okladki = (projekt.sekcje || []).filter(jestOkladka);
   if (!okladki.length) return zmienione;
-  const c = ciag || rozwin(projekt);
+  const c = ciag && !zmienione.length ? ciag : rozwin(projekt);
   for (const sekcja of okladki) {
     sekcja.okladka = normalizujOkladke(sekcja.okladka);
     zachowajObcyUklad(sekcja);

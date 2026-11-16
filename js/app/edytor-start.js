@@ -72,6 +72,8 @@ const OPIS_OSTRZEZEN = {
   poza_strona: 'Poza stroną – nie będzie widoczny w druku.',
   poza_spadem: 'Wychodzi poza spad – część zostanie ucięta.',
   szerszy_niz_grzbiet: 'Szerszy niż grzbiet – zachodzi na tył albo przód okładki.',
+  na_zgieciu: 'Tekst leży na zgięciu albo perforacji – po złożeniu będzie przełamany. Przesuń go do jednego panelu.',
+  poza_wykrojnikiem: 'Poza wykrojnikiem – ta część zostanie wycięta i nie trafi na gotową rzecz.',
   w_marginesie: 'Wchodzi w margines – może zostać przycięty.',
   nieznane_pole: 'Pole w klamrach nie pasuje do kolumny tabeli tej strony ani do pola dokumentu.',
   nie_miesci_sie: 'Tekst nie mieści się w ramce – dół zostanie ucięty.',

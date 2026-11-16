@@ -11,6 +11,7 @@
 
 import { odlaczWatkiKopii } from './watki.js';
 import { normalizujOkladke, normalizujSkladke } from './okladka.js';
+import { normalizujSpecjalna } from './sekcje-specjalne.js';
 import { normalizujKoloryDruku } from './kolory-druku.js';
 
 export const WERSJA_MODELU = 3;
@@ -260,6 +261,12 @@ export function normalizuj(p) {
     if (s.okladka) { sekcja.okladka = normalizujOkladke(s.okladka); sekcja.uklad = 'pojedyncze'; } else delete sekcja.okladka;
     const skladka = normalizujSkladke(s.skladka);
     if (skladka && !sekcja.okladka) sekcja.skladka = skladka; else delete sekcja.skladka;
+    // Sekcje specjalne (#177): obwoluta, ulotka składana, kalendarz z datami, trójdzielny, wykrojnik, arkusz użytków.
+    const specjalna = sekcja.okladka ? null : normalizujSpecjalna(s.specjalna);
+    if (specjalna) {
+      sekcja.specjalna = specjalna;
+      if (specjalna.rodzaj !== 'kalendarz') { sekcja.uklad = 'pojedyncze'; delete sekcja.skladka; }
+    } else delete sekcja.specjalna;
     return sekcja;
   });
   delete wynik.wydruk;

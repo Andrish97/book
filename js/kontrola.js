@@ -7,6 +7,7 @@ import { wzorceStrony } from './projekt.js';
 import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
 import { odmiana } from './ui.js';
 import { bilansSkladki } from './okladka.js';
+import { uwagiSekcjiSpecjalnych } from './sekcje-specjalne.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
 import { uwagiKolorowDruku } from './kolory-druku.js';
 import { tacKoloru, silnikTac, LIMIT_TAC } from './separacje.js';
@@ -221,6 +222,8 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Oprawa zeszytowa: środek ma ${okl.stron} stron, a potrzeba liczby podzielnej przez 4.` });
     }
   }
+  // Sekcje specjalne (#177): tekst na zgięciu, elementy poza wykrojnikiem, ulotka z nadmiarowymi stronami.
+  uwagi.push(...uwagiSekcjiSpecjalnych(projekt, ciag));
   // Kody QR i EAN (#128): za mały moduł, za wąski EAN, za jasny kod, zła treść – także po podstawieniu danych.
   const kodyUwagi = new Map(); // opis → strony
   const kody = (obiekty, wynik = []) => {
