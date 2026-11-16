@@ -3318,3 +3318,17 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
   .miniatura-szablonu { height: 120px; }
   .gotowe-podglad img { height: 180px; }
 }
+
+/* Typ sekcji (#177): karty z ikoną, nazwą i jednym zdaniem opisu. */
+.typy-sekcji { border: 0; padding: 0; margin: 0 0 8px; min-width: 0; }
+.typy-sekcji legend { font-size: 0.85rem; color: var(--cichy); padding: 0; margin-bottom: 6px; }
+.lista-typow { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+.karta-typu { position: relative; display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-m); cursor: pointer; background: var(--powierzchnia); }
+.karta-typu:hover { background: var(--wypelnienie-hover); }
+.karta-typu.wybrana { border-color: var(--akcent); background: var(--akcent-tlo); }
+.karta-typu input { position: absolute; opacity: 0; pointer-events: none; }
+.karta-typu:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.karta-typu .ikona { flex: none; margin-top: 1px; color: var(--akcent); }
+.karta-typu span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.karta-typu strong { font-size: 0.9rem; font-weight: 600; }
+.karta-typu small { font-size: 0.78rem; color: var(--cichy); line-height: 1.3; }

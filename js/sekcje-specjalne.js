@@ -18,6 +18,9 @@ import { geometriaOkladki, normalizujOkladke, przesunElementy, poPrzeliczeniu } 
 import { swietaPolskie, dataIso } from './swieta.js';
 import { rozwin } from './serie.js';
 import { uid, WZORCE_Z_SEKCJI, uporzadkujStrony } from './projekt.js';
+import { TYPY_SEKCJI, typSekcji, rolaTypu } from './typ-sekcji.js';
+
+export { TYPY_SEKCJI, typSekcji };
 
 const zaokr = (mm) => Math.round(mm * 10) / 10;
 const liczbaLub = (v, d, min = 0, max = Infinity) => {
@@ -349,13 +352,9 @@ export const ROLE_SEKCJI = {
 // Role do wyboru przy zwykłej sekcji stron (pozostałe wynikają z rodzaju sekcji).
 export const ROLE_STRON = ['blok', 'wkladka', 'podkladka'];
 
+// Rola wynika wyłącznie z typu sekcji (sekcja.typ, js/typ-sekcji.js) – nigdy z nazwy.
 export function rolaSekcji(projekt, sekcja) {
-  if (!sekcja) return 'blok';
-  if (sekcja.okladka) return 'okladka';
-  const r = sekcja.specjalna?.rodzaj;
-  if (r === 'wyklejka' || r === 'obwoluta') return r;
-  if (r && r !== 'kalendarz') return 'osobny';
-  return ROLE_STRON.includes(sekcja.rola) ? sekcja.rola : 'blok';
+  return rolaTypu(typSekcji(sekcja));
 }
 
 // Wyklejki projektu: { przednia, tylna } – sekcje (albo null) z wymiarami arkusza. Dla makiety 3D (#161):
@@ -363,8 +362,9 @@ export function rolaSekcji(projekt, sekcja) {
 export function wyklejkiProjektu(projekt) {
   const wynik = { przednia: null, tylna: null };
   for (const s of projekt.sekcje || []) {
-    if (s.specjalna?.rodzaj !== 'wyklejka') continue;
-    const strona = s.specjalna.strona === 'tylna' ? 'tylna' : 'przednia';
+    const typ = typSekcji(s);
+    if (typ !== 'wyklejka_przednia' && typ !== 'wyklejka_tylna') continue;
+    const strona = typ === 'wyklejka_tylna' ? 'tylna' : 'przednia';
     if (!wynik[strona]) wynik[strona] = s;
   }
   return wynik;
@@ -740,11 +740,12 @@ export function dodajWyklejki(projekt, { zadruk = 'czysta' } = {}) {
     const wzor = sekcjeBloku(projekt)[0]?.wydruk || projekt.sekcje[0]?.wydruk;
     const sekcja = {
       id: uid('sek'), nazwa: strona === 'przednia' ? 'Wyklejka przednia' : 'Wyklejka tylna',
+      typ: `wyklejka_${strona}`,
       wydruk: JSON.parse(JSON.stringify(wzor)), uklad: 'pojedyncze', pierwsza: 'prawa', wzorce: [], numeracja: { tryb: 'brak', od: 1 },
       specjalna: { ...domyslnaSpecjalna('wyklejka'), strona, zadruk },
     };
     // Przednia: zaraz za okładką (albo na początku), tylna: na końcu.
-    const okl = projekt.sekcje.findIndex((s) => s.okladka);
+    const okl = projekt.sekcje.findIndex((s) => typSekcji(s) === 'okladka');
     if (strona === 'przednia') projekt.sekcje.splice(okl + 1, 0, sekcja); else projekt.sekcje.push(sekcja);
     projekt.strony.push({ id: uid('s'), nazwa: sekcja.nazwa, sekcja: sekcja.id, wzorce: [], obiekty: [], tlo: null });
     nowe.push(sekcja);
@@ -772,14 +773,14 @@ export function uwagiSekcjiSpecjalnych(projekt, ciag) {
   // Role w książce (#177): twarda oprawa potrzebuje wyklejek; wyklejka bez twardej oprawy nie ma do czego się kleić.
   const twarda = (projekt.sekcje || []).find((s) => s.okladka?.oprawa === 'twarda');
   const wyk = wyklejkiProjektu(projekt);
-  const ileWyklejek = (projekt.sekcje || []).filter((s) => s.specjalna?.rodzaj === 'wyklejka');
+  const ileWyklejek = (projekt.sekcje || []).filter((s) => rolaSekcji(projekt, s) === 'wyklejka');
   if (twarda && (!wyk.przednia || !wyk.tylna)) {
     const brak = [!wyk.przednia && 'przedniej', !wyk.tylna && 'tylnej'].filter(Boolean).join(' i ');
     uwagi.push({ rodzaj: 'specjalna', idSekcji: twarda.id, naprawa: 'wyklejki', opis: `Twarda oprawa bez wyklejki ${brak}. Wyklejka łączy blok z okładką – dodaj ją (może zostać czysta) albo potwierdź z drukarnią, że użyje własnej.` });
   }
   if (!twarda && ileWyklejek.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: ileWyklejek[0].id, opis: 'Projekt ma wyklejkę, a nie ma okładki twardej – wyklejki są tylko w twardej oprawie. Zmień oprawę okładki albo usuń wyklejkę.' });
   for (const strona of ['przednia', 'tylna']) {
-    const lista = ileWyklejek.filter((s) => (s.specjalna.strona === 'tylna' ? 'tylna' : 'przednia') === strona);
+    const lista = ileWyklejek.filter((s) => typSekcji(s) === `wyklejka_${strona}`);
     if (lista.length > 1) uwagi.push({ rodzaj: 'specjalna', idSekcji: lista[1].id, opis: `Projekt ma ${lista.length} wyklejki ${strona === 'przednia' ? 'przednie' : 'tylne'} – książka ma jedną przednią i jedną tylną.` });
   }
   for (const sekcja of projekt.sekcje || []) {

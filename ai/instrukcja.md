@@ -1065,7 +1065,7 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (rozdział „11.5 Rozkładówki”). |
-| **Rodzaj sekcji** | **Strony**, **Okładka z grzbietem** (rozdział „11.6 Okładka z grzbietem”) albo sekcja specjalna: obwoluta, ulotka składana, kalendarz z datami, kalendarz trójdzielny, wykrojnik, arkusz użytków (rozdział „11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki”) — wtedy wymiary liczą się same. |
+| **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (rozdział „11.6 Okładka z grzbietem”), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (rozdział „11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki”). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy **+ Sekcja** i zmieniasz tutaj. |
 | **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij **Zmień format i dopasuj elementy…** (rozdział „11.9 Zmiana formatu ze skalowaniem”). |
 | **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
@@ -1091,7 +1091,7 @@ W sekcji z rozkładówkami strony tworzą pary: lewa i prawa, jak w otwartej ksi
 
 ### 11.6 Okładka z grzbietem
 
-Okładka to osobna sekcja z jedną szeroką stroną: tył, grzbiet i przód. Zrobisz ją w oknie sekcji (**Rodzaj sekcji** → **Okładka z grzbietem**), w menu sekcji (**Zamień na okładkę z grzbietem**) albo od razu w oknie nowego projektu (pole **Okładka**).
+Okładka to osobna sekcja z jedną szeroką stroną: tył, grzbiet i przód. Zrobisz ją w oknie sekcji (**Typ sekcji** → **Okładka**), w menu sekcji (**Zamień na okładkę z grzbietem**) albo od razu w oknie nowego projektu (pole **Okładka**).
 
 | Ustawienie | Co znaczy |
 |---|---|
@@ -1133,7 +1133,7 @@ Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pe�
 
 ### 11.8 Numeracja stron
 
-Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (rozdział „12.7 Pola we wzorcu”). Numeracja zależy od ustawień sekcji (rozdział „11.4 Ustawienia sekcji”) i liczy strony po powieleniu serii. Inne zapisy numeru (rzymskie, z zerami) są w tabeli pól (rozdział „16.2 Pola dokumentu”).
+Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (rozdział „12.7 Pola we wzorcu”). Numeracja zależy od ustawień sekcji (rozdział „11.4 Ustawienia sekcji”) i liczy strony po powieleniu serii. Numerowane są tylko sekcje bloku (typ **Zwykła**, **Blok**, **Kalendarz roczny**): okładka, wyklejki, obwoluta, wkładka, podkładka i druki osobne nie mają numerów i nie przesuwają numeracji — pierwsza strona bloku ma numer 1 także wtedy, gdy przed nią stoją okładka i wyklejka. Inne zapisy numeru (rzymskie, z zerami) są w tabeli pól (rozdział „16.2 Pola dokumentu”).
 
 ### 11.9 Zmiana formatu ze skalowaniem
 
@@ -1174,12 +1174,13 @@ Szablon nie jest zamrożonym plikiem: buduje się dla Twojego formatu, margines�
 
 ### 11.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki
 
-Sekcja specjalna działa jak okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”): wie, czym jest wydrukowana rzecz. Sama liczy swój format, podpisuje na stronie strefy (panele, skrzydełka, klapy), rysuje linie zgięć (bigi, przerywane), perforacji (kropkowane) i cięcia (ciągła różowa linia), ostrzega o tekście na zgięciu i o elementach poza linią cięcia, a w pliku PDF daje arkusz w pełnym wymiarze. Rodzaj wybierasz w ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”): **Rodzaj sekcji**. Schemat w oknie pokazuje strefy i zgięcia na bieżąco, pod nim wymiary arkusza.
+Sekcja specjalna działa jak okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”): wie, czym jest wydrukowana rzecz. Sama liczy swój format, podpisuje na stronie strefy (panele, skrzydełka, klapy), rysuje linie zgięć (bigi, przerywane), perforacji (kropkowane) i cięcia (ciągła różowa linia), ostrzega o tekście na zgięciu i o elementach poza linią cięcia, a w pliku PDF daje arkusz w pełnym wymiarze. Wybierasz ją jako **Typ sekcji** przy **+ Sekcja** albo w ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”). Schemat w oknie pokazuje strefy i zgięcia na bieżąco, pod nim wymiary arkusza.
 
 ![Ulotka składana w ustawieniach sekcji](https://makietka.app/img/instrukcja/k-sekcja-ulotka.png)
 
-| Rodzaj | Co liczy |
+| Typ | Co liczy |
 |---|---|
+| **Wyklejka przednia / tylna** | Twarda oprawa: arkusz o szerokości dwóch stron bloku, ze zgięciem pośrodku. Połowa **Na okładce (przyklejona)** przykleja się do wnętrza okładki, druga to pierwsza (przednia) albo ostatnia (tylna) luźna kartka książki. **Zadruk**: czysta, zadrukowana strona widoczna albo obie strony; **Papier** (g/m²) — luźna kartka dochodzi do grubości grzbietu. Wyklejka nie ma numerów stron. |
 | **Obwoluta ze skrzydełkami** | Tył, grzbiet i przód z twardej okładki projektu (płyty i grzbiet), dwa skrzydełka (**Skrzydełko**, 0 – około połowy przodu) i zapas na zgięcie przy płycie. Przybędzie stron – obwoluta przeliczy się sama, a elementy przodu przesuną się razem z nim. |
 | **Ulotka składana** | Arkusz na 2, 3 albo 4 panele, **Złożenie**: **Zwijane** (łamana C – panel składany do środka jest węższy o **Skrót**, żeby się nie zaginał) albo **Harmonijka** (Z – panele równe). Sekcja ma dwie strony: zewnętrzną (z panelem **Okładka**) i wewnętrzną. |
 | **Kalendarz z datami (rok)** | **Rok**, **Strona na** miesiąc, tydzień albo dzień, początek tygodnia i **Święta** (Polska: stałe i ruchome – Wielkanoc, Zielone Świątki, Boże Ciało). Tworzy tabelę danych i serię: pierwsza strona sekcji powiela się dla każdego miesiąca, tygodnia albo dnia. Zmiana roku przelicza wszystko. |
@@ -1193,7 +1194,11 @@ Sekcja specjalna działa jak okładka z grzbietem (rozdział „11.6 Okładka z 
 
 **W pliku PDF** (rozdział „22 Eksport do PDF i PNG”): linia cięcia wykrojnika jest osobnym kolorem dodatkowym **CutContour**, zgięcia – **Crease**, perforacje – **Perforation**: drukarnia ich nie drukuje, tylko wycina, biguje i perforuje. Przy obwolucie, ulotce i kalendarzu trójdzielnym (cięte prosto) zgięcia i perforacje są zaznaczone kreskami poza formatem, obok znaków cięcia. Arkusz użytków składa się sam, gdy w eksporcie jest **Układ arkuszy: Zwykły**. Uwagi o tekście na zgięciu i elementach poza linią cięcia pokazuje też **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”).
 
-Gotowe sekcje (rozdział „11.10 Gotowe sekcje (szablony dokumentów)”) **Broszura składana**, **Wizytówki** i **Etykiety i naklejki** wstawiają się od razu jako ulotka składana i arkusz użytków.
+Gotowe sekcje (rozdział „11.10 Gotowe sekcje (szablony dokumentów)”) **Broszura składana**, **Wizytówki** i **Etykiety i naklejki** wstawiają się od razu jako ulotka składana i arkusz użytków, a **Okładka** w twardej oprawie — razem z dwiema czystymi wyklejkami.
+
+**Książka w twardej oprawie** składa się z sekcji typów: **Okładka** (oprawa twarda), **Wyklejka przednia**, **Blok**, ewentualnie **Wkładka** (np. zdjęcia na kredzie — z własnym papierem, bez numerów stron) i **Wyklejka tylna**. Grzbiet okładki liczy się z bloku i dodaje luźne kartki wyklejek i kartki wkładek, każde swoim papierem. **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”) ostrzega, gdy twarda okładka nie ma wyklejek (przycisk **Dodaj wyklejki** dopisuje obie, czyste), i gdy wyklejka stoi przy miękkiej oprawie. Twarda okładka może mieć też **Zakładkę – tasiemkę w grzbiecie** w wybranym kolorze. W eksporcie PDF (rozdział „22 Eksport do PDF i PNG”) **Pliki dla drukarni: okładka, wyklejki, blok…** daje osobny plik dla każdej części: okładki, obwoluty, wyklejek, bloku, wkładek i każdego druku osobnego.
+
+Sekcja ze starszego projektu, która w nazwie ma „wyklejka”, a typ zwykły, dostaje raz podpowiedź „Sekcja … wygląda na wyklejkę – ustawić typ…?” z przyciskiem **Ustaw typ**. To tylko propozycja — bez kliknięcia sekcja zostaje zwykła.
 
 ## 12. Wzorce stron
 
@@ -2408,13 +2413,16 @@ Na Macu zamiast `Ctrl` naciśnij `⌘`. W edytorze tę listę pokaże klawisz `?
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
 | **Styl** | Zapisany wygląd tekstu, zmieniany naraz we wszystkich tekstach. |
 | **Tabela danych** | Arkusz w projekcie, z którego biorą się pola i serie — nie mylić z tabelą na stronie. |
+| **Tasiemka (zakładka)** | Wąska wstążka wklejona w grzbiet twardej oprawy, do zaznaczania miejsca w książce. |
 | **Tłoczenie** | Wypukły albo wklęsły wzór wyciśnięty w papierze. |
+| **Typ sekcji** | Czym sekcja jest w publikacji (blok, okładka, wyklejka, wkładka, ulotka…) – ustala jej format, numerację i miejsce w grzbiecie. |
 | **Uszlachetnienie** | Dodatkowe wykończenie druku: lakier, złocenie (folia), tłoczenie, biały poddruk. |
 | **Użytek** | Jeden egzemplarz małej rzeczy (wizytówki, naklejki) na arkuszu drukarskim – na jednym arkuszu mieści się ich wiele. |
 | **Wdowa i sierota** | Pojedynczy wiersz akapitu, który został sam na końcu albo na początku kolumny lub strony. |
 | **Wektor** | Rysunek opisany kształtami, a nie pikselami — ostry w każdym powiększeniu (teksty, kształty, PDF wektorowy). |
 | **Wiersz pomijany** | Wiersz `**pomiń**`: zajmuje miejsce w bloku, ale jego strona nie powstaje. |
-| **Wyklejka** | Kartka łącząca blok książki z twardą okładką, przyklejona do wnętrza okładki. |
+| **Wkładka** | Kartki na innym papierze wszyte w środek książki, np. zdjęcia na kredzie – bez numerów stron. |
+| **Wyklejka** | Arkusz łączący blok książki z twardą okładką: połowa przyklejona do wnętrza okładki, połowa to pierwsza (albo ostatnia) luźna kartka. |
 | **Wykrojnik** | Kształt, po którym drukarnia wycina i biguje arkusz (koperta, pudełko, naklejka); w PDF osobny kolor CutContour. |
 | **Wzorzec** | Wspólne elementy wielu stron: tło, stopka, numer strony. |
 | **Złocenie (folia)** | Błyszcząca folia (złota, srebrna, kolorowa) przenoszona na papier w wybranych miejscach. |

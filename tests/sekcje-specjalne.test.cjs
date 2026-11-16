@@ -171,7 +171,7 @@ test('aplikacja: okno sekcji tworzy ulotkę, edytor rysuje strefy i ostrzega o t
   // Nowa sekcja: rodzaj „Ulotka składana”.
   await strona.evaluate(async () => (await import('./js/app/sekcje.js')).otworzUstawieniaSekcji(null));
   await strona.waitForSelector('#dlg-sekcja[open]');
-  await strona.selectOption('#dlg-sekcja select[name="rodzaj"]', 'ulotka');
+  await strona.click('#dlg-sekcja .karta-typu[data-typ="ulotka"]');
   await strona.waitForSelector('#sekcja-specjalna:not([hidden])');
   assert.equal(await strona.isVisible('#sekcja-format'), false);
   assert.ok(await strona.locator('#schemat-specjalnej svg .sp-big').count() >= 4, 'schemat ma linie zgięć obu stron');
@@ -199,7 +199,7 @@ test('aplikacja: okno sekcji tworzy ulotkę, edytor rysuje strefy i ostrzega o t
     const p = window.seriodruk.stan.projekt;
     (await import('./js/app/sekcje.js')).otworzUstawieniaSekcji(p.sekcje.find((x) => x.specjalna).id);
   });
-  assert.equal(await strona.inputValue('#dlg-sekcja select[name="rodzaj"]'), 'ulotka');
+  assert.equal(await strona.inputValue('#dlg-sekcja input[name="typ"]:checked'), 'ulotka');
   assert.equal(await strona.inputValue('#dlg-sekcja input[name="sp_szerokosc_mm"]'), '99');
   await strona.keyboard.press('Escape');
   // PDF: koperta (wymiar arkusza + CutContour) i wizytówki na arkuszu.

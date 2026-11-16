@@ -141,13 +141,16 @@ W trakcie pisania tekstu działają tylko skróty z grupy „Tekst”.
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
 | **Styl** | Zapisany wygląd tekstu, zmieniany naraz we wszystkich tekstach. |
 | **Tabela danych** | Arkusz w projekcie, z którego biorą się pola i serie — nie mylić z tabelą na stronie. |
+| **Tasiemka (zakładka)** | Wąska wstążka wklejona w grzbiet twardej oprawy, do zaznaczania miejsca w książce. |
 | **Tłoczenie** | Wypukły albo wklęsły wzór wyciśnięty w papierze. |
+| **Typ sekcji** | Czym sekcja jest w publikacji (blok, okładka, wyklejka, wkładka, ulotka…) – ustala jej format, numerację i miejsce w grzbiecie. |
 | **Uszlachetnienie** | Dodatkowe wykończenie druku: lakier, złocenie (folia), tłoczenie, biały poddruk. |
 | **Użytek** | Jeden egzemplarz małej rzeczy (wizytówki, naklejki) na arkuszu drukarskim – na jednym arkuszu mieści się ich wiele. |
 | **Wdowa i sierota** | Pojedynczy wiersz akapitu, który został sam na końcu albo na początku kolumny lub strony. |
 | **Wektor** | Rysunek opisany kształtami, a nie pikselami — ostry w każdym powiększeniu (teksty, kształty, PDF wektorowy). |
 | **Wiersz pomijany** | Wiersz `[pomiń]`: zajmuje miejsce w bloku, ale jego strona nie powstaje. |
-| **Wyklejka** | Kartka łącząca blok książki z twardą okładką, przyklejona do wnętrza okładki. |
+| **Wkładka** | Kartki na innym papierze wszyte w środek książki, np. zdjęcia na kredzie – bez numerów stron. |
+| **Wyklejka** | Arkusz łączący blok książki z twardą okładką: połowa przyklejona do wnętrza okładki, połowa to pierwsza (albo ostatnia) luźna kartka. |
 | **Wykrojnik** | Kształt, po którym drukarnia wycina i biguje arkusz (koperta, pudełko, naklejka); w PDF osobny kolor CutContour. |
 | **Wzorzec** | Wspólne elementy wielu stron: tło, stopka, numer strony. |
 | **Złocenie (folia)** | Błyszcząca folia (złota, srebrna, kolorowa) przenoszona na papier w wybranych miejscach. |

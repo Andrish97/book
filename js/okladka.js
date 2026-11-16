@@ -12,6 +12,7 @@
 //   twarda:              zawinięcie | tył | big | grzbiet | big | przód | zawinięcie   (u góry i u dołu też zawinięcie)
 
 import { rozwin } from './serie.js';
+import { typSekcji, wBloku } from './typ-sekcji.js';
 
 // Wolumen papieru (cm³/g): grubość kartki w mm = gramatura × wolumen / 1000.
 export const PAPIERY = {
@@ -127,11 +128,9 @@ export function gruboscKartki(papier) {
 // Sekcje środka dla okładki: wskazane albo wszystkie, które nie są okładkami.
 export function sekcjeSrodka(projekt, sekcja) {
   const wybrane = sekcja.okladka?.srodek;
-  // Środek to blok (#177): bez sekcji specjalnych z własnym arkuszem (obwoluta, wyklejka, ulotka, wykrojnik…;
-  // kalendarz z datami jest blokiem) i bez wkładek i podkładek – wkładki liczą się do grzbietu osobno, swoim papierem.
-  const osobnyArkusz = (s) => Boolean(s.specjalna) && s.specjalna.rodzaj !== 'kalendarz';
-  const pozaBlokiem = (s) => s.rola === 'wkladka' || s.rola === 'podkladka';
-  return projekt.sekcje.filter((s) => s !== sekcja && !jestOkladka(s) && !osobnyArkusz(s) && !pozaBlokiem(s) && (!wybrane || wybrane.includes(s.id)));
+  // Środek to blok – według typu sekcji (#177): zwykła, blok, kalendarz roczny. Bez okładki, wyklejek, obwoluty,
+  // druków osobnych, wkładek i podkładek – wkładki i wyklejki liczą się do grzbietu osobno, swoim papierem.
+  return projekt.sekcje.filter((s) => s !== sekcja && wBloku(s) && (!wybrane || wybrane.includes(s.id)));
 }
 
 // Grubość, którą wyklejki i wkładki dokładają do grzbietu bloku (mm, #177): luźna kartka każdej wyklejki
@@ -141,10 +140,11 @@ export function dodatekGrzbietu(projekt, ciag, kartkaBloku) {
   let wyklejek = 0;
   let wkladek = 0;
   for (const s of projekt.sekcje || []) {
-    if (s.specjalna?.rodzaj === 'wyklejka') {
-      mm += gruboscKartki({ tryb: 'gramatura', gramatura: Number(s.specjalna.gramatura) || 140, rodzaj: 'offset' });
+    const typ = typSekcji(s);
+    if (typ === 'wyklejka_przednia' || typ === 'wyklejka_tylna') {
+      mm += gruboscKartki({ tryb: 'gramatura', gramatura: Number(s.specjalna?.gramatura) || 140, rodzaj: 'offset' });
       wyklejek += 1;
-    } else if (s.rola === 'wkladka') {
+    } else if (typ === 'wkladka') {
       const stron = ciag?.sekcje?.get(s.id)?.lista.length || 0;
       const k = s.papier?.gramatura ? gruboscKartki({ tryb: 'gramatura', gramatura: Number(s.papier.gramatura), rodzaj: s.papier.rodzaj || 'offset' }) : kartkaBloku;
       mm += Math.ceil(stron / 2) * k;

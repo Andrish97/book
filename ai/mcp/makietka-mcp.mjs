@@ -836,6 +836,17 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   function zachowajWyliczone(zmiany, projekt) {
     if (Array.isArray(zmiany.sekcje)) {
       for (const s of zmiany.sekcje) {
+        // Typ sekcji (#177): AI, które dopisało okładkę albo sekcję specjalną innego rodzaju, a typu nie zmieniło,
+        // dostaje typ wynikający z tych parametrów – inaczej aplikacja (czytająca tylko typ) by je pominęła.
+        if (s && typeof s === 'object') {
+          const dawnaS = (projekt.sekcje || []).find((x) => x.id === s.id);
+          const typZmieniony = s.typ !== undefined && s.typ !== dawnaS?.typ;
+          if (!typZmieniony) {
+            if (s.okladka && typeof s.okladka === 'object' && !dawnaS?.okladka) s.typ = 'okladka';
+            const r = s.specjalna && typeof s.specjalna === 'object' ? s.specjalna.rodzaj : null;
+            if (r && r !== dawnaS?.specjalna?.rodzaj) s.typ = r === 'wyklejka' ? (s.specjalna.strona === 'tylna' ? 'wyklejka_tylna' : 'wyklejka_przednia') : r;
+          }
+        }
         // Sekcja specjalna (#177): wynik (strefy, zgięcia, wykrojnik) liczy aplikacja – jak układ okładki.
         if (s?.specjalna && typeof s.specjalna === 'object') {
           const dawnaSp = (projekt.sekcje || []).find((x) => x.id === s.id)?.specjalna;

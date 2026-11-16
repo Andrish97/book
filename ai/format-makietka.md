@@ -96,6 +96,24 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
 - `wymiary.tryb`: `auto` – grzbiet i rozmiar liczone; `grzbiet` – `grzbiet_mm` wpisany (np. podany przez drukarnię) zamiast liczonego z papieru; `rozmiar` – `szerokosc_mm` × `wysokosc_mm` całej okładki bez spadu (tył i przód dzielą resztę po równo wokół grzbietu; grzbiet = `grzbiet_mm`, a gdy 0 – liczony). Liczone wartości aplikacja zapisuje w `wynik.liczone`.
 - `okladka.wynik` **liczy i zapisuje wyłącznie aplikacja – nie ustawiaj go** (łącznik i tak zachowuje wartość z projektu). Wymiary okładki ustawiasz przez `wymiary` (np. `tryb: "rozmiar"` z `szerokosc_mm`, `wysokosc_mm`, `grzbiet_mm`). Dla orientacji: `wynik` to (strefy `zawiniecie_l`, `tyl`, `big_l`, `grzbiet`, `big_p`, `przod`, `zawiniecie_p` z `x1`/`x2` w mm od lewej krawędzi cięcia, `gora`/`dol` – granice pola okładki bez zawinięcia). Przy zmianie grzbietu aplikacja przesuwa elementy: element grzbietu zostaje na jego środku, przód przesuwa się o różnicę, tło na całą okładkę się rozciąga. Element może mieć `okladka`: `tyl` | `grzbiet` | `przod` (przypięcie zamiast liczonego z położenia) i `okladka_dopasuj`: `true` (szerokość = szerokość grzbietu).
 
+**Typ sekcji (#177).** Każda sekcja ma pole `typ` – czym jest w publikacji. Typ sam ustala geometrię i zachowanie sekcji; aplikacja (grzbiet okładki, numeracja stron, pliki PDF dla drukarni, kontrola przed drukiem, makieta 3D) czyta wyłącznie `typ`, nigdy nazwy sekcji. Wartości:
+
+| `typ` | Czym jest | Parametry | Numery stron, grzbiet |
+|---|---|---|---|
+| `zwykla` | strony w wybranym formacie (plakat, ulotka jednokartkowa, broszura) | – | numerowana, liczy się do bloku |
+| `blok` | środek książki | – | numerowana, z jej stron i papieru liczy się grzbiet |
+| `okladka` | okładka z grzbietem | `okladka` | bez numerów |
+| `wyklejka_przednia`, `wyklejka_tylna` | twarda oprawa: arkusz 2× format bloku, połowa przyklejona do okładki, połowa to luźna kartka | `specjalna` (`rodzaj: "wyklejka"`) | bez numerów; jedna kartka papieru wyklejki dochodzi do grzbietu |
+| `obwoluta` | papierowa okładka ze skrzydełkami | `specjalna` | bez numerów |
+| `wkladka` | kartki na innym papierze w środku książki | `papier`: `{ "gramatura": 130, "rodzaj": "kredowy_mat" }` (`offset` \| `ksiazkowy` \| `objetosciowy` \| `kredowy_mat` \| `kredowy_blysk`) | bez numerów; jej kartki (tym papierem) dochodzą do grzbietu |
+| `podkladka` | karton pod kalendarzem albo notesem | – | bez numerów, poza grzbietem |
+| `ulotka`, `trojdzielny`, `wykrojnik`, `arkusz` | druki osobne | `specjalna` | bez numerów, poza blokiem |
+| `kalendarz` | kalendarz z datami | `specjalna` | numerowana jak blok |
+
+Nadając typ, ustaw też jego parametry (np. `typ: "okladka"` z polem `okladka`, `typ: "obwoluta"` z `specjalna: { "rodzaj": "obwoluta" }`); pole niezgodne z typem aplikacja usuwa. Gdy dopiszesz `okladka` albo `specjalna` innego rodzaju i nie zmienisz `typ`, łącznik ustawi typ z tych parametrów. Twarda okładka (`oprawa: "twarda"`) bez obu wyklejek to ostrzeżenie kontroli przed drukiem. Okładka twarda może mieć `okladka.tasiemka`: `{ "kolor": "#8b1e2d" }` (zakładka – tasiemka w grzbiecie; `null` – bez).
+
+- **Wyklejka** (`specjalna.rodzaj: "wyklejka"`): `strona` (`przednia` \| `tylna` – zgodnie z typem), `zadruk` (`czysta` \| `jednostronny` \| `dwustronny` – wtedy sekcja ma dwie strony), `gramatura` (domyślnie 140). Format liczy się sam: szerokość 2× format bloku, wysokość bloku (ze spadem sekcji). Strefy w `wynik.strefy`: strona 0 – `na_okladke` („Na okładce (przyklejona)”) i `luzna` („Pierwsza/Ostatnia luźna kartka”; w przedniej `na_okladke` po lewej, w tylnej po prawej), strona 1 (zadruk dwustronny) – `luzna_tyl` i `klej`; zgięcie (`bigi`) pośrodku.
+
 **Sekcje specjalne (#177).** Sekcja może mieć pole `specjalna` – wtedy, jak okładka, „wie”, czym jest: zna swoje strefy (panele, skrzydełka, klapy), sama liczy format (`wydruk.szerokosc_mm`, `wysokosc_mm` – nie wpisuj ich; `uklad` zawsze `pojedyncze`, poza kalendarzem z datami), rysuje zgięcia (bigi), perforacje i linię wykrojnika, ostrzega o tekście na zgięciu i elementach poza wykrojnikiem, a eksport PDF zna jej arkusz. Sekcja ma `okladka` albo `specjalna`, nigdy oba. `rodzaj` i parametry (mm):
 
 - `obwoluta` – `skrzydelko_mm` (0 = ok. 55% szerokości płyty), `zapas_mm` (na grubość płyty przy zgięciu, domyślnie 3), `naddatek_wys_mm`. Wymiary płyt i grzbietu bierze z sekcji `okladka` z `oprawa: "twarda"` (albo liczy jak dla twardej oprawy środka projektu). Strefy: `skrzydelko_l`, `zapas_l`, `tyl`, `grzbiet`, `przod`, `zapas_p`, `skrzydelko_p` – elementy idą za swoją strefą przy zmianie grzbietu (jak na okładce).

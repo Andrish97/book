@@ -1,4 +1,4 @@
-// Zrzuty instrukcji sekcji specjalnych (#177): k-sekcja-ulotka.png – okno sekcji z rodzajem „Ulotka składana”
+// Zrzuty instrukcji sekcji specjalnych (#177): k-sekcja-ulotka.png – okno sekcji z typem „Ulotka składana”
 // (schemat paneli obu stron i wynik), k-sekcja-wykrojnik.png – strona z wykrojnikiem pudełka w edytorze (strefy,
 // bigi i linia cięcia). Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje zrobZrzutySekcjiSpecjalnych.
 //
@@ -14,11 +14,11 @@ async function zrobZrzutySekcjiSpecjalnych(kadr, { ciemny = false } = {}) {
     await nowyProjekt(t, 'Ulotka i pudełko');
     await t.evaluate(async () => (await import('./js/app/sekcje.js')).otworzUstawieniaSekcji(null));
     await t.waitForSelector('#dlg-sekcja[open]');
-    await t.selectOption('#dlg-sekcja select[name="rodzaj"]', 'ulotka');
+    await t.click('#dlg-sekcja .karta-typu[data-typ="ulotka"]');
     await t.waitForSelector('#schemat-specjalnej svg');
-    await t.evaluate(() => document.querySelector('#pole-rodzaj-sekcji').scrollIntoView({ block: 'start' }));
+    await t.evaluate(() => document.querySelector('#dlg-sekcja .karta-typu[data-typ="ulotka"]').scrollIntoView({ block: 'start' }));
     await t.waitForTimeout(300);
-    await kadr(t, 'k-sekcja-ulotka.png', { obszar: ['#pole-rodzaj-sekcji', '#sekcja-specjalna'], margines: 10 });
+    await kadr(t, 'k-sekcja-ulotka.png', { obszar: ['#dlg-sekcja .karta-typu[data-typ="ulotka"]', '#sekcja-specjalna'], zaznacz: '#dlg-sekcja .karta-typu[data-typ="ulotka"]', margines: 10 });
     await t.keyboard.press('Escape');
     // Pudełko: wykrojnik na stronie.
     await t.evaluate(async () => {

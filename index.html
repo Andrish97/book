@@ -85,6 +85,7 @@
   <link rel="modulepreload" href="js/zestaw-marki.js">
   <link rel="modulepreload" href="js/serie.js">
   <link rel="modulepreload" href="js/swieta.js">
+  <link rel="modulepreload" href="js/typ-sekcji.js">
   <link rel="modulepreload" href="js/watki.js">
   <link rel="modulepreload" href="js/ksiazka.js">
   <link rel="modulepreload" href="js/pola.js">
@@ -1004,40 +1005,23 @@
           </div>
         </div>
       </div>
-      <!-- Rodzaj sekcji (#119, #177): zwykłe strony, okładka z grzbietem albo sekcja specjalna, która zna swoje strefy. -->
-      <label class="pole" id="pole-rodzaj-sekcji"><span>Rodzaj sekcji</span>
-        <select name="rodzaj">
-          <option value="strony">Strony</option>
-          <option value="okladka">Okładka z grzbietem</option>
-          <option value="wyklejka">Wyklejka (twarda oprawa)</option>
-          <option value="obwoluta">Obwoluta ze skrzydełkami</option>
-          <option value="ulotka">Ulotka składana</option>
-          <option value="kalendarz">Kalendarz z datami (rok)</option>
-          <option value="trojdzielny">Kalendarz trójdzielny</option>
-          <option value="wykrojnik">Wykrojnik: koperta, teczka, pudełko</option>
-          <option value="arkusz">Arkusz użytków: naklejki, wizytówki</option>
-        </select>
-      </label>
+      <!-- Typ sekcji (#177): wybierany przez użytkownika – sam ustala geometrię i zachowanie sekcji (okładka z grzbietem,
+           wyklejka, obwoluta, wkładka, ulotka składana…). Karty buduje js/app/sekcje.js z TYPY_SEKCJI (js/typ-sekcji.js). -->
+      <fieldset class="typy-sekcji" id="pole-typ-sekcji">
+        <legend>Typ sekcji</legend>
+        <div class="lista-typow" id="lista-typow-sekcji"></div>
+      </fieldset>
+      <input type="hidden" name="rodzaj" value="strony">
       <p class="podpowiedz" id="opis-rodzaju-sekcji" hidden></p>
-      <!-- Rola zwykłej sekcji stron w publikacji (#177): blok, wkładka (inny papier, poza numeracją), podkładka. -->
-      <div class="rzad" id="pole-rola-sekcji">
-        <label class="pole"><span>Rola w publikacji</span>
-          <select name="rola">
-            <option value="blok">Blok (środek książki)</option>
-            <option value="wkladka">Wkładka – inny papier, bez numerów stron</option>
-            <option value="podkladka">Podkładka / plecy (karton)</option>
-          </select>
-        </label>
-        <label class="pole waskie" id="pole-rola-gramatura"><span>Papier wkładki (g/m²)</span><input name="rola_gramatura" type="number" min="30" max="400" step="1" inputmode="numeric"></label>
-        <label class="pole" id="pole-rola-papier"><span>Rodzaj papieru wkładki</span><select name="rola_papier"><option value="kredowy_mat">Kredowy matowy</option><option value="kredowy_blysk">Kredowy błyszczący</option><option value="offset">Offsetowy</option><option value="ksiazkowy">Książkowy</option><option value="objetosciowy">Objętościowy</option></select></label>
+      <div class="rzad" id="pole-papier-wkladki" hidden>
+        <label class="pole waskie"><span>Papier wkładki (g/m²)</span><input name="rola_gramatura" type="number" min="30" max="400" step="1" inputmode="numeric"></label>
+        <label class="pole"><span>Rodzaj papieru wkładki</span><select name="rola_papier"><option value="kredowy_mat">Kredowy matowy</option><option value="kredowy_blysk">Kredowy błyszczący</option><option value="offset">Offsetowy</option><option value="ksiazkowy">Książkowy</option><option value="objetosciowy">Objętościowy</option></select></label>
       </div>
-      <p class="podpowiedz" id="opis-roli-sekcji"></p>
       <fieldset class="grupa-pol" id="sekcja-specjalna" hidden>
         <legend id="legenda-specjalnej">Sekcja</legend>
         <div class="schemat-okladki schemat-specjalnej" id="schemat-specjalnej" aria-hidden="true"></div>
         <p class="wynik-okladki" id="wynik-specjalnej" role="status"></p>
         <div class="rzad" data-sp="wyklejka">
-          <label class="pole waskie"><span>Wyklejka</span><select name="sp_strona"><option value="przednia">przednia</option><option value="tylna">tylna</option></select></label>
           <label class="pole"><span>Zadruk</span><select name="sp_zadruk"><option value="czysta">czysta (bez druku)</option><option value="jednostronny">zadrukowana – strona widoczna</option><option value="dwustronny">zadrukowana z obu stron</option></select></label>
           <label class="pole waskie"><span>Papier (g/m²)</span><input name="sp_gramatura" type="number" min="60" max="400" step="1" inputmode="numeric"></label>
         </div>

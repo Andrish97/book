@@ -7,7 +7,9 @@ import {
   PAPIERY, STREFY, normalizujOkladke, domyslnaOkladka, geometriaOkladki, jestOkladka, przeliczOkladki,
   normalizujSkladke, bilansSkladki, opisSkladki,
 } from '../okladka.js';
-import { RODZAJE_SEKCJI, ROLE_SEKCJI, domyslnaSpecjalna, normalizujSpecjalna, geometriaSpecjalna, opisSpecjalnej } from '../sekcje-specjalne.js';
+import { RODZAJE_SEKCJI, domyslnaSpecjalna, normalizujSpecjalna, geometriaSpecjalna, opisSpecjalnej } from '../sekcje-specjalne.js';
+import { TYPY_SEKCJI, typSekcji, wBloku } from '../typ-sekcji.js';
+import { ikona } from '../ikony.js';
 import { $, $$, powiadom, potwierdz } from '../ui.js';
 import { stan, biezacaSekcja, tenSamRozmiar, liczba, edytor, biezacaStrona } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
@@ -15,6 +17,16 @@ import { panel } from './skladniki.js';
 import { ustawZakladke, przelejPoZmianieKolejnosci } from './lista-stron.js';
 
 // ---------- Sekcje ----------
+
+// Karty typów sekcji (#177): ikona, nazwa i jedno zdanie opisu. Typ ustala geometrię i zachowanie sekcji.
+$('#lista-typow-sekcji').innerHTML = Object.entries(TYPY_SEKCJI).map(([k, t]) => `<label class="karta-typu" data-typ="${k}"><input type="radio" name="typ" value="${k}">${ikona(t.ikona)}<span><strong>${t.nazwa}</strong><small>${t.opis}</small></span></label>`).join('');
+
+// Typ wybrany w oknie i rodzaj parametrów, który z niego wynika ('strony', 'okladka' albo rodzaj sekcji specjalnej).
+const typOkna = (f) => (TYPY_SEKCJI[f.elements.typ.value] ? f.elements.typ.value : 'zwykla');
+function ustawTyp(f, typ) {
+  f.elements.typ.value = TYPY_SEKCJI[typ] ? typ : 'zwykla';
+  f.elements.rodzaj.value = TYPY_SEKCJI[typOkna(f)].rodzaj || 'strony';
+}
 
 // Dialog ustawień sekcji. id === null → nowa sekcja.
 export function otworzUstawieniaSekcji(id) {
@@ -53,12 +65,14 @@ export function otworzUstawieniaSekcji(id) {
   f.elements.numeracja.value = num.tryb;
   f.elements.numeracja_od.value = num.od;
   f.elements.skladka.value = String(normalizujSkladke(istniejaca?.skladka));
+  // Typ sekcji (#177): zapisany w sekcji; „Zamień na okładkę” i „jako” wybierają go z góry; nowa sekcja – zwykła.
+  const jako = otworzUstawieniaSekcji.jakoOkladka ? 'okladka' : otworzUstawieniaSekcji.jakoTyp;
   wypelnijOkladke(f, istniejaca, otworzUstawieniaSekcji.jakoOkladka);
   otworzUstawieniaSekcji.jakoOkladka = false;
-  wypelnijSpecjalna(f, istniejaca, otworzUstawieniaSekcji.jakoSpecjalna);
-  otworzUstawieniaSekcji.jakoSpecjalna = null;
-  // Rola zwykłej sekcji stron (#177).
-  f.elements.rola.value = ['wkladka', 'podkladka'].includes(istniejaca?.rola) ? istniejaca.rola : 'blok';
+  otworzUstawieniaSekcji.jakoTyp = null;
+  wypelnijSpecjalna(f, istniejaca, TYPY_SEKCJI[jako]?.rodzaj);
+  ustawTyp(f, TYPY_SEKCJI[jako] ? jako : istniejaca ? typSekcji(istniejaca) : 'zwykla');
+  // Wkładka: własny papier.
   f.elements.rola_gramatura.value = istniejaca?.papier?.gramatura || 130;
   f.elements.rola_papier.value = istniejaca?.papier?.rodzaj || 'kredowy_mat';
 
@@ -90,6 +104,9 @@ function odswiezPolaSekcji() {
   $('#pole-pierwsza').hidden = !rozkladowki;
   $('#podpowiedz-rozkladowki').hidden = !rozkladowki;
   $('#pole-numeracja-od').hidden = f.elements.numeracja.value !== 'od';
+  const typ = typOkna(f);
+  ustawTyp(f, typ);
+  for (const k of $$('.karta-typu', f)) k.classList.toggle('wybrana', k.dataset.typ === typ);
   const okladka = f.elements.rodzaj.value === 'okladka';
   const rodzajSp = RODZAJE_SEKCJI[f.elements.rodzaj.value] ? f.elements.rodzaj.value : null;
   // Sekcja z własnym arkuszem (wszystkie specjalne poza kalendarzem z datami): format liczy się sam.
@@ -104,15 +121,7 @@ function odswiezPolaSekcji() {
     for (const el of $$('[data-sp]', f)) el.hidden = el.dataset.sp !== rodzajSp || (el.dataset.spKsztalt !== undefined && el.dataset.spKsztalt !== ksztalt);
     for (const el of $$('[data-sp-ksztalt]:not([data-sp])', f)) el.hidden = el.dataset.spKsztalt !== ksztalt;
   }
-  const zwykla = !okladka && !rodzajSp;
-  $('#pole-rola-sekcji').hidden = !zwykla;
-  $('#opis-roli-sekcji').hidden = !zwykla;
-  if (zwykla) {
-    const rola = f.elements.rola.value;
-    $('#opis-roli-sekcji').textContent = ROLE_SEKCJI[rola]?.opis || '';
-    $('#pole-rola-gramatura').hidden = rola !== 'wkladka';
-    $('#pole-rola-papier').hidden = rola !== 'wkladka';
-  }
+  $('#pole-papier-wkladki').hidden = typ !== 'wkladka';
   $('#pole-ok-tasiemka').hidden = !okladka || f.elements.ok_oprawa.value !== 'twarda';
   $('#sekcja-format').hidden = okladka || arkuszSp;
   $('#pole-uklad-sekcji').hidden = okladka || arkuszSp;
@@ -142,7 +151,7 @@ function odswiezPolaSekcji() {
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
   if (e.target.name?.startsWith('sp_')) { if (e.target.name === 'sp_ksztalt') odswiezPolaSekcji(); else rysujSpecjalna(); return; }
-  if (['uklad', 'numeracja', 'rodzaj', 'rola', 'ok_papier', 'ok_oprawa', 'ok_strony', 'ok_wymiary', 'skladka'].includes(e.target.name)) {
+  if (['uklad', 'numeracja', 'typ', 'ok_papier', 'ok_oprawa', 'ok_strony', 'ok_wymiary', 'skladka'].includes(e.target.name)) {
     // Przejście na wpisane wymiary: pola dostają bieżące, liczone wartości – do poprawienia, nie od zera.
     if (e.target.name === 'ok_wymiary') {
       const f = e.target.form;
@@ -316,7 +325,7 @@ function opiszSkladke() {
 
 // Pole okna → parametr rodzaju (część nazw parametrów powtarza się między rodzajami – pola mają własne nazwy).
 const POLA_SPECJALNE = {
-  wyklejka: { strona: 'sp_strona', zadruk: 'sp_zadruk', gramatura: 'sp_gramatura' },
+  wyklejka: { zadruk: 'sp_zadruk', gramatura: 'sp_gramatura' }, // przednia albo tylna – z typu sekcji
   obwoluta: { skrzydelko_mm: 'sp_skrzydelko_mm', zapas_mm: 'sp_zapas_mm', naddatek_wys_mm: 'sp_naddatek_wys_mm' },
   ulotka: { panele: 'sp_panele', zlozenie: 'sp_zlozenie', szerokosc_mm: 'sp_szerokosc_mm', wysokosc_mm: 'sp_wysokosc_mm', skrot_mm: 'sp_skrot_mm' },
   kalendarz: { rok: 'sp_rok', jednostka: 'sp_jednostka', pierwszy: 'sp_pierwszy', swieta: 'sp_swieta' },
@@ -363,6 +372,7 @@ function specjalnaZPol(f) {
     else if (el.type === 'number') surowe[klucz] = Number(String(el.value).replace(',', '.'));
     else surowe[klucz] = el.value;
   }
+  if (rodzaj === 'wyklejka') surowe.strona = typOkna(f) === 'wyklejka_tylna' ? 'tylna' : 'przednia';
   const istniejaca = stan.projekt?.sekcje.find((s) => s.id === $('#dlg-sekcja').dataset.id);
   // Kalendarz: tabela i seria zostają te same (dane przepisują się dla nowego roku, kolumny dopisane ręcznie zostają).
   if (rodzaj === 'kalendarz' && istniejaca?.specjalna?.rodzaj === 'kalendarz') Object.assign(surowe, { tabela: istniejaca.specjalna.tabela, seria: istniejaca.specjalna.seria });
@@ -465,6 +475,7 @@ async function zatwierdzSekcje() {
     pierwsza: f.elements.pierwsza.value === 'lewa' ? 'lewa' : 'prawa',
     wzorce: $$('input[name="wzorce"]:checked', f).map((i) => i.value),
     numeracja: { tryb: f.elements.numeracja.value, od: Math.max(0, Math.round(mm('numeracja_od'))) },
+    typ: typOkna(f),
   };
   const okladka = f.elements.rodzaj.value === 'okladka';
   const poprzednia = stan.projekt.sekcje.find((s) => s.id === dlg.dataset.id);
@@ -486,12 +497,8 @@ async function zatwierdzSekcje() {
   zapiszBiezacyCel();
   const { projekt } = stan;
   let sekcja = poprzednia;
-  // Rola zwykłej sekcji (#177): wkładka z własnym papierem albo podkładka; blok – bez pola.
-  const rola = !okladka && !specjalna ? f.elements.rola.value : 'blok';
-  if (rola === 'wkladka' || rola === 'podkladka') {
-    ustawienia.rola = rola;
-    if (rola === 'wkladka') ustawienia.papier = { gramatura: Math.max(30, Math.min(400, Number(f.elements.rola_gramatura.value) || 130)), rodzaj: f.elements.rola_papier.value };
-  }
+  // Wkładka (#177): własny papier – jego grubość dochodzi do grzbietu okładki.
+  if (ustawienia.typ === 'wkladka') ustawienia.papier = { gramatura: Math.max(30, Math.min(400, Number(f.elements.rola_gramatura.value) || 130)), rodzaj: f.elements.rola_papier.value };
   if (sekcja) {
     if (!okladka) delete sekcja.okladka;
     if (!specjalna) delete sekcja.specjalna;
@@ -509,7 +516,7 @@ async function zatwierdzSekcje() {
     stan.indeks = projekt.strony.indexOf(strona);
     ustawZakladke('strony');
   }
-  if (okladka || (specjalna && specjalna.rodzaj !== 'kalendarz')) delete sekcja.skladka;
+  if (!wBloku(sekcja)) delete sekcja.skladka;
   else if (!sekcja.skladka) delete sekcja.skladka;
   // Okładka przelicza swój format i przesuwa elementy (za pierwszym razem – ze starego formatu sekcji).
   przeliczOkladki(projekt);
