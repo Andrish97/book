@@ -54,9 +54,10 @@ bez testu); **B** – brak testu.
 | `admin` – skrzynka, gwiazdka | pętla czekała na odpowiedź tylko 2,5 s | czekanie do 10 s (ta sama asercja) |
 | `karta-ai` – otwarcie po przeładowaniu bez nowej wersji | po poprawce nr 3 otwarcie wysyłało kopię bez zmian | wysyłka przy otwarciu tylko, gdy kopia różni się od stanu uzgodnionego z kontem |
 
-Zostaje (opisane w ZGLOSZENIA „137 (reszta)”): `zasoby` – „obrazy poza pamięcią” pada mniej więcej raz na 2–3 pełne
-przebiegi pod dużym obciążeniem (pliki z magazynu przeglądarki chwilowo nieczytelne); `grupa` – „ramka zaznaczenia
-w otwartej grupie” padła raz na 4 przebiegi (cofnięcie po kolejności w grupie) – osobno przechodzi.
+Dalsze niestabilne testy poprawione w #184 (DECYZJE): `zasoby` – „obrazy poza pamięcią” (pod obciążeniem zapisywał się
+kilkubajtowy plik zamiast oryginału – zapis jest teraz sprawdzany odczytem i powtarzany), `grupa`, `czcionki`,
+`instrukcja` (bez konta), `audyt-strony`, `admin-zapisy`, `poczta` (losowy błąd raz na 64), `rozkladowka-przycisk`,
+`dostep-ai`.
 
 ## Tabela funkcji
 
