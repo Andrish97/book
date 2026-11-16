@@ -2303,22 +2303,55 @@ Na Macu zamiast `Ctrl` naciśnij `⌘`. W edytorze tę listę pokaże klawisz `?
 
 | Pojęcie | Znaczenie |
 |---|---|
-| **Bigowanie (big)** | Wgniecenie w kartonie okładki, po którym się zgina. |
-| **Blok** | Strona albo kilka sąsiednich stron serii, powielane razem. |
-| **CMYK** | Cztery farby drukarskie: cyjan, magenta, żółty, czarny. |
+| **Biały poddruk** | Warstwa białej farby pod kolorami — potrzebna przy druku na przezroczystym, kolorowym albo metalizowanym podłożu. |
+| **Big, bigowanie** | Wgniecenie w kartonie (np. okładki), po którym karton zgina się równo i nie pęka. |
+| **Blok (książki)** | Wszystkie kartki środka książki razem, bez okładki. |
+| **Blok (serii)** | Strona albo kilka sąsiednich stron serii, powielane razem. |
+| **Broszura** | Kilka arkuszy złożonych na pół i zszytych w grzbiecie; strony trzeba na arkuszach odpowiednio ułożyć (impozycja). |
+| **CMYK** | Cztery farby drukarskie: cyjan, magenta, żółty, czarny. Kolory na ekranie (RGB) drukarnia przelicza na CMYK. |
+| **Dpi** | Liczba punktów obrazu na cal w rozmiarze druku. Zdjęcie do druku powinno mieć co najmniej 300 dpi. |
 | **Element** | Wszystko, co stoi na stronie: tekst, kształt, linia, obraz, tabela, grupa. |
-| **Grzbiet** | Część okładki między przodem a tyłem; w rozkładówce — miejsce zszycia. |
+| **Format** | Wymiary strony po przycięciu, np. A5 = 148 × 210 mm. |
+| **Gradient (przejście)** | Płynne przejście między kolorami w wypełnieniu, także do przezroczystości. |
+| **Gramatura** | Grubość papieru podawana jako masa metra kwadratowego (g/m²) — od niej zależy m.in. szerokość grzbietu. |
+| **Grzbiet** | Część okładki między przodem a tyłem; jego szerokość zależy od liczby stron i papieru. W rozkładówce — miejsce zszycia. |
+| **Impozycja** | Ułożenie stron na arkuszu do druku tak, aby po złożeniu i przycięciu były w dobrej kolejności (np. broszura). |
+| **Interlinia** | Odległość między kolejnymi wierszami tekstu. |
+| **Justowanie** | Wyrównanie tekstu do obu krawędzi ramki — wiersze mają równą długość. |
+| **Kadrowanie** | Wybór części zdjęcia, która jest widoczna w ramce. |
+| **Kapitałka** | Pasek tkaniny na górze i dole grzbietu bloku w twardej oprawie. |
+| **Kolor dodatkowy (Pantone)** | Gotowo zmieszana farba o dokładnym odcieniu, drukowana osobno obok CMYK. |
+| **Krycie** | Przezroczystość elementu albo koloru: 100% — w pełni widoczny, 0% — niewidoczny. |
+| **Lakier wybiórczy** | Błyszczący lakier tylko na wybranych miejscach strony, np. na tytule. |
+| **Linia bazowa** | Niewidoczna linia, na której „stoją” litery. Siatka linii bazowych wyrównuje wiersze w sąsiednich kolumnach i na stronach. |
 | **Łącznik** | Adres, przez który asystent AI pracuje w Twoich projektach. |
+| **Makieta** | Projekt publikacji strona po stronie; makieta 3D — podgląd wydrukowanej rzeczy (książki, kalendarza). |
 | **Margines** | Pas przy brzegu strony, w którym nie stawia się tekstu. |
+| **Miękkie krawędzie** | Brzeg zdjęcia albo kształtu płynnie przechodzący w przezroczystość. |
+| **Nadruk (overprint)** | Farba drukowana na farbie pod spodem, bez wycinania jej — ważne przy czarnym tekście i uszlachetnieniach. |
+| **Oprawa** | Sposób połączenia kartek: zeszytowa (zszywki), klejona (miękka okładka), twarda, na spirali. |
+| **PDF/X-4** | Odmiana PDF dla drukarni: osadzone czcionki, zapisany profil kolorów, przezroczystości bez spłaszczania. |
+| **Pokrycie farbą** | Suma farb CMYK w jednym miejscu (w %). Zbyt duże (zwykle ponad 300%) sprawia, że farba nie schnie. |
 | **Pole** | Nazwa w klamrach, np. `{dzien}`; na gotowej stronie zamienia się w wartość. |
 | **Pole dokumentu** | Pole wynikające z projektu: numer strony, sekcja, data. |
+| **Profil kolorów (ICC)** | Opis maszyny i papieru drukarni; przy przeliczaniu na CMYK daje kolory jak najbliższe zamierzonym. |
+| **Prowadnica** | Linia pomocnicza na stronie do wyrównywania elementów; nie drukuje się. |
+| **Rozdzielczość** | Zob. Dpi. |
 | **Rozkładówka** | Lewa i prawa strona obok siebie, jak w otwartej książce. |
-| **Sekcja** | Część publikacji z własnym formatem, marginesami i numeracją. |
+| **Sekcja** | Część publikacji z własnym formatem, marginesami i numeracją, np. okładka i środek. |
+| **Separacje** | Osobne płyty drukarskie dla każdej farby (C, M, Y, K, kolory dodatkowe, uszlachetnienia). |
 | **Seria** | Powielanie strony albo bloku dla kolejnych wierszy tabeli. |
 | **Składka** | Arkusz złożony w kilka kartek — książkę szyje się ze składek po 4, 8, 16 albo 32 strony. |
 | **Spad** | Kilka milimetrów za brzegiem strony; tła i zdjęcia wychodzą aż tam, a drukarnia je odcina. |
 | **Styl** | Zapisany wygląd tekstu, zmieniany naraz we wszystkich tekstach. |
 | **Tabela danych** | Arkusz w projekcie, z którego biorą się pola i serie — nie mylić z tabelą na stronie. |
+| **Tłoczenie** | Wypukły albo wklęsły wzór wyciśnięty w papierze. |
+| **Uszlachetnienie** | Dodatkowe wykończenie druku: lakier, złocenie (folia), tłoczenie, biały poddruk. |
+| **Wdowa i sierota** | Pojedynczy wiersz akapitu, który został sam na końcu albo na początku kolumny lub strony. |
+| **Wektor** | Rysunek opisany kształtami, a nie pikselami — ostry w każdym powiększeniu (teksty, kształty, PDF wektorowy). |
 | **Wiersz pomijany** | Wiersz `**pomiń**`: zajmuje miejsce w bloku, ale jego strona nie powstaje. |
+| **Wyklejka** | Kartka łącząca blok książki z twardą okładką, przyklejona do wnętrza okładki. |
 | **Wzorzec** | Wspólne elementy wielu stron: tło, stopka, numer strony. |
+| **Złocenie (folia)** | Błyszcząca folia (złota, srebrna, kolorowa) przenoszona na papier w wybranych miejscach. |
 | **Znaki cięcia** | Kreski w pliku PDF, które pokazują drukarni, gdzie ciąć. |
+| **Żywa pagina** | Tekst u góry albo dołu strony powtarzany na wielu stronach, np. tytuł rozdziału. |

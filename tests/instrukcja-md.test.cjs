@@ -50,3 +50,12 @@ test('instrukcja: Ctrl + plus w liście skrótów', () => {
   const wiersz = md.split('\n').find((l) => /\| Powiększ \|$/.test(l.trim()));
   assert.ok(wiersz && wiersz.includes('`Ctrl` + `+`') && !wiersz.includes('``'), wiersz);
 });
+
+// #176: słowniczek ma pojęcia drukarskie używane w instrukcji.
+test('instrukcja: słowniczek z pojęciami drukarskimi', () => {
+  const md = fs.readFileSync(path.join(__dirname, '..', 'docs', 'instrukcja', '6-pomoc.md'), 'utf8');
+  const slownik = md.slice(md.indexOf('# 30. Słowniczek'));
+  for (const p of ['Big', 'Gramatura', 'Impozycja', 'Kapitałka', 'Wyklejka', 'PDF/X-4', 'Pokrycie farbą', 'Profil kolorów', 'Tłoczenie', 'Złocenie', 'Biały poddruk', 'Dpi', 'Linia bazowa', 'Żywa pagina', 'Separacje']) {
+    assert.ok(slownik.includes(`**${p}`), `brak pojęcia ${p}`);
+  }
+});

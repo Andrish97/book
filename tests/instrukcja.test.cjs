@@ -103,6 +103,10 @@ test('instrukcja: strona główna, spis dwupoziomowy, bez powtórzeń nawigacji,
   assert.ok(!widoczne.includes('Warstwy'));
   await strona.fill('#instrukcja-szukaj', 'okładka z grzbietem');
   assert.ok(await strona.locator('li[data-sekcja="11.6"]:not([hidden])').isVisible(), 'trafiony podrozdział widać w spisie');
+  // Słowniczek (#176): pojęcia drukarskie, np. „big”, są do znalezienia.
+  await strona.fill('#instrukcja-szukaj', 'big');
+  const zBigiem = await strona.$$eval('#instrukcja-rozdzialy li[data-i]:not([hidden]) .rozdzial-przycisk span', (s) => s.map((x) => x.textContent));
+  assert.ok(zBigiem.includes('Słowniczek'), zBigiem.join(', '));
   await strona.fill('#instrukcja-szukaj', '');
   assert.equal(await strona.locator('#instrukcja-rozdzialy li[data-i]:not([hidden])').count(), dane.rozdzialy.length);
 
