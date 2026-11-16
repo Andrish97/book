@@ -1,5 +1,7 @@
 // Zrzuty instrukcji do partii D (#131D): k-format.png (zmiana formatu), k-marka.png, k-marka-kolor.png,
-// k-marka-zastosuj.png (zestaw marki), k-makieta.png, k-makieta-kalendarz.png (makieta 3D).
+// k-marka-zastosuj.png (zestaw marki), k-makieta.png, k-makieta-kalendarz.png (makieta 3D); #181: k-makieta-ujecia.png
+// (gotowe ujęcia), k-makieta-swiatlo.png („Ujęcie i światło”), k-makieta-stos.png (stos na drewnie), k-makieta-specjalne.png (ulotka
+// i pudełko z wykrojnika).
 // Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje zrobZrzutyPartiiD na końcu; tu można je zrobić osobno.
 //
 // Użycie:  node scripts/zrzuty-partii-d.cjs [adres] [ciemny] [makieta]   (makieta – tylko kadry makiety 3D)
@@ -123,24 +125,87 @@ async function zrobZrzutyPartiiD(kadr, { ciemny = false, tylkoMakieta = false } 
     await d.click('#dlg-format [data-akcja="format-zamknij"]');
     }
 
-    // Makieta 3D w podglądzie.
+    // Makieta 3D w podglądzie. Do kadru sekcji specjalnych – ulotka składana i pudełko z wykrojnika (#181).
+    await d.evaluate(async () => {
+      const P = await import('./js/projekt.js');
+      const S = await import('./js/sekcje-specjalne.js');
+      const O = await import('./js/okladka.js');
+      const p = window.seriodruk.stan.projekt;
+      const dodaj = (nazwa, rodzaj, param, strony) => {
+        const s = P.nowaSekcja(nazwa);
+        s.typ = rodzaj;
+        s.specjalna = { ...S.domyslnaSpecjalna(rodzaj), ...param };
+        p.sekcje.push(s);
+        for (const [tlo, obiekty] of strony) { const st = P.nowaStrona(nazwa, s.id); st.tlo = tlo; st.obiekty = obiekty; p.strony.push(st); }
+        return s;
+      };
+      const napis = (id, text, left, top, fill, size = 9) => ({ type: 'textbox', id, left, top, width: 80, text, fontFamily: 'Lora', fontSize: size, fontWeight: 'bold', fill, styles: [] });
+      dodaj('Ulotka', 'ulotka', { panele: 3, zlozenie: 'c' }, [
+        ['#0b525b', [napis('u1', 'Ogród botaniczny', 210, 30, '#f4efe1', 10), { type: 'rect', id: 'u2', left: 205, top: 120, width: 80, height: 60, fill: '#c9a227', strokeWidth: 0 }]],
+        ['#f4efe1', [napis('u3', 'Godziny otwarcia', 12, 20, '#0b525b'), napis('u4', 'Mapa', 110, 20, '#0b525b'), napis('u5', 'Bilety', 208, 20, '#0b525b')]],
+      ]);
+      dodaj('Pudełko', 'wykrojnik', { ksztalt: 'pudelko', dlugosc_mm: 90, szerokosc_mm: 55, wysokosc_mm: 130 }, [
+        ['#5f0f40', [napis('p1', 'HERBATA', 30, 120, '#f4efe1', 12)]],
+      ]);
+      O.przeliczOkladki(p);
+    });
     await d.click('[data-akcja="podglad"]');
     await d.waitForSelector('.podglad-strona[data-id]');
     await d.click('[data-akcja="podglad-makieta"]');
     await d.waitForSelector('#dlg-makieta[open]');
-    await d.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
+    const gotowe = async () => {
+      await d.waitForTimeout(800);
+      await d.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 60000 });
+      await d.waitForTimeout(600);
+    };
+    const M = (f, ...a) => d.evaluate(async ([f, a]) => (await import('./js/app/makieta-okno.js'))[f](...a), [f, a]);
+    await d.selectOption('#makieta-model', 'ksiazka_twarda');
+    await M('ustawOpcjeMakiety', { tlo: 'studio', swiatlo: 'lewo', barwa: 'neutralna' });
+    await gotowe();
     // Książka otwarta na rozkładówce – kartki wygięte przy grzbiecie, cień w zgięciu i pod książką.
     await d.click('#makieta-dalej');
     await d.click('#makieta-dalej');
-    await d.waitForTimeout(1500);
-    await d.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
-    await d.waitForTimeout(600);
+    await gotowe();
     await kadr(d, 'k-makieta.png', { obszar: '#dlg-makieta', margines: 0 });
+    // Gotowe ujęcia i „Ujęcie i światło” (#181): wachlarz kartek, ciepłe światło z okna, tło – drewno.
+    await d.click('.makieta-ujecie[data-ujecie="wachlarz"]');
+    await M('ustawOpcjeMakiety', { tlo: 'drewno', swiatlo: 'okno', barwa: 'ciepla' });
+    await d.evaluate(() => { document.querySelector('#makieta-ustawienia').open = true; });
+    await gotowe();
+    await d.evaluate(() => document.querySelector('#makieta-ujecia').scrollIntoView({ block: 'start' }));
+    await kadr(d, 'k-makieta-ujecia.png', { obszar: ['#makieta-ujecia', '.makieta-sterowanie'], zaznacz: '.makieta-ujecie[data-ujecie="wachlarz"]', margines: 8 });
+    await d.evaluate(() => document.querySelector('#makieta-ustawienia').scrollIntoView({ block: 'end' }));
+    await d.waitForTimeout(300);
+    await kadr(d, 'k-makieta-swiatlo.png', { obszar: '#makieta-ustawienia', zaznacz: '#makieta-ustawienia .makieta-grupy > fieldset:nth-child(4) > label:first-of-type', margines: 8 });
+    await d.evaluate(() => { document.querySelector('#makieta-ustawienia').open = false; });
+    await d.click('.makieta-ujecie[data-ujecie="stos"]');
+    await gotowe();
+    await kadr(d, 'k-makieta-stos.png', { obszar: '.makieta-scena', margines: 0 });
+    await M('ustawOpcjeMakiety', { tlo: 'studio', swiatlo: 'lewo', barwa: 'neutralna' });
+    // Sekcje specjalne: ulotka w trakcie rozkładania i złożone pudełko – jedno obok drugiego.
+    await d.selectOption('#makieta-model', 'ulotka');
+    await M('ustawPolozenieMakiety', 0.55, { natychmiast: true });
+    await M('ustawKamereMakiety', { obrotY: -0.25, obrotX: 0.75 });
+    await gotowe();
+    const ulotka = await d.evaluate(async () => URL.createObjectURL(await (await import('./js/app/makieta-okno.js')).obrazMakiety({ rozmiar: 'wlasny', wlasny: 900 })));
+    await d.selectOption('#makieta-model', 'pudelko');
+    await M('ustawPolozenieMakiety', 1, { natychmiast: true });
+    await M('ustawKamereMakiety', { obrotY: -0.6, obrotX: 0.45 });
+    await gotowe();
+    const pudelko = await d.evaluate(async () => URL.createObjectURL(await (await import('./js/app/makieta-okno.js')).obrazMakiety({ rozmiar: 'wlasny', wlasny: 900 })));
+    await d.evaluate(([a, b]) => {
+      const box = document.createElement('div');
+      box.id = 'kadr-specjalne';
+      Object.assign(box.style, { position: 'fixed', left: '0', top: '0', display: 'flex', gap: '0', zIndex: 2147483646, background: '#fff' });
+      for (const u of [a, b]) { const i = document.createElement('img'); i.src = u; i.style.width = '560px'; box.append(i); }
+      document.querySelector('#dlg-makieta').append(box); // w oknie – nad nim (warstwa okna modalnego)
+    }, [ulotka, pudelko]);
+    await d.waitForFunction(() => [...document.querySelectorAll('#kadr-specjalne img')].every((i) => i.complete && i.naturalWidth));
+    await kadr(d, 'k-makieta-specjalne.png', { obszar: '#kadr-specjalne', margines: 0 });
+    await d.evaluate(() => document.querySelector('#kadr-specjalne').remove());
     await d.selectOption('#makieta-model', 'kalendarz_scienny');
     await d.click('#makieta-dalej');
-    await d.waitForTimeout(1200);
-    await d.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
-    await d.waitForTimeout(600);
+    await gotowe();
     await kadr(d, 'k-makieta-kalendarz.png', { obszar: '.makieta-scena', zaznacz: '#makieta-model', margines: 8 });
   } finally {
     for (const f of sprzatanie) await f();

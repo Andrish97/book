@@ -14,6 +14,7 @@ import { normalizujOkladke, normalizujSkladke, domyslnaOkladka } from './okladka
 import { TYPY_SEKCJI, typSekcji, wBloku } from './typ-sekcji.js';
 import { normalizujSpecjalna } from './sekcje-specjalne.js';
 import { normalizujKoloryDruku, normalizujTrybySekcji } from './kolory-druku.js';
+import { normalizujMakiete } from './makieta-ustawienia.js';
 
 export const WERSJA_MODELU = 3;
 
@@ -229,6 +230,9 @@ export function normalizuj(p) {
   }));
   wynik.widok = normalizujWidok(p.widok);
   normalizujKoloryDruku(wynik); // kolory dodatkowe i tryb kolorów (#127)
+  // Zapisane ujęcia makiety 3D (#181): bez ujęć pole znika.
+  const makieta = normalizujMakiete(p.makieta);
+  if (makieta) wynik.makieta = makieta; else delete wynik.makieta;
   delete wynik.motywy; // zastąpione wzorcami
   delete wynik.uklad;
 

@@ -1630,6 +1630,12 @@ Strony idą po kolei, rozkładówki stoją obok siebie. Strony serii mają podpi
 | **Kalendarz ścienny** | Wisi na ścianie; spirala Wire-O u góry ma pośrodku przerwę z półokrągłym wycięciem na wieszak. Przewrócona karta przechodzi na tył. |
 | **Kalendarz biurkowy** | Stoi na biurku na stojaku z grubej tektury; karty przewracają się przez górę na drugą stronę. |
 | **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — leży na stole, przód i tył. |
+| **Ulotka składana** | Z sekcji typu ulotka (rozdział „10.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki”): złożona okładką do góry, rozkłada się panel po panelu (zwijana albo harmonijka), potem odwraca na stronę zewnętrzną. |
+| **Koperta** | Z wykrojnika koperty: przód z adresem, tył z klapkami i spodem, na końcu otwarta klapa. |
+| **Pudełko z wykrojnika** | Z wykrojnika pudełka: najpierw płaski arkusz z nadrukiem, potem ścianki, klapki i wieczko składają się w bryłę. |
+| **Kalendarz trójdzielny** | Wisi na ścianie: plecy z główką, trzy bloczki kalendariów i czerwone okienko na środkowym. |
+
+Lista **Rodzaj** pokazuje tylko to, co pasuje do sekcji projektu: ulotka, koperta, pudełko i kalendarz trójdzielny — gdy projekt ma taką sekcję; książki, notes, kalendarze i kartka — gdy ma zwykłe strony. Gdy projekt ma sekcję **obwoluty**, książka w twardej oprawie pokazuje ją na okładce (przód, grzbiet i tył z obwoluty, skrzydełka zawinięte do środka); przełącznik **Pokaż obwolutę** chowa ją i odsłania okładkę.
 
 Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka); zmienisz go listą **Rodzaj**. Książkę i notes ustawisz listą **Ułożenie**: **Leży** albo **Stoi** — zamknięta stoi na dolnej krawędzi, otwarta rozkłada się w „V” jak na półce wystawowej. Wybór zostaje zapamiętany dla projektu.
 
@@ -1638,7 +1644,44 @@ Format środka to format większości stron projektu. Sekcje typu wyklejka (prze
 - **Obracanie** — przeciągnij myszą albo palcem. Światło idzie razem z widokiem, a makieta nie daje się obrócić pod stół ani za ścianę.
 - **Przybliżanie** — kółko myszy, dwa palce albo **−** i **+**; **Widok** wraca do widoku z przodu. Po przybliżeniu strony wczytują się jeszcze raz w wyższej rozdzielczości — z bliska są ostre.
 - **Kartkowanie** — strzałki pod makietą, klawisze `←` `→` albo stuknięcie w prawą lub lewą połowę obrazu. Pod spodem widać, co jest otwarte, np. „Strony 2–3” albo „Karta 3 z 13”.
-- **Pobierz obraz makiety** zapisuje obraz PNG w dużej rozdzielczości (dłuższy bok 3200 px), z tłem studia i cieniem, w tym samym kadrze co na ekranie — np. do oferty albo wpisu w sieci. W ciemnym motywie tło jest ciemne.
+- **Pobierz obraz makiety** zapisuje obraz PNG w tym samym kadrze co na ekranie — np. do oferty albo wpisu w sieci. Rozmiar wybierasz w części **Eksport** (niżej). W ciemnym motywie tło studia jest ciemne.
+
+#### Gotowe ujęcia
+
+Nad makietą jest rząd kafelków — jedno stuknięcie ustawia kamerę, ułożenie i kartki: **Przód**, **¾ (klasyczne)**, **Z góry (płasko)**, **Grzbiet**, **Stojąca**, **Rozkładówka z góry**, **Wachlarz kartek**, **Stos egzemplarzy**, **Przód i tył** (dwa egzemplarze obok siebie, drugi odwrócony) oraz **Na ścianie** dla kalendarzy ściennych (ściana z tynku, światło z okna). Widać tylko ujęcia, które pasują do rodzaju. Po wybraniu ujęcia możesz dalej obracać i przybliżać.
+
+![Gotowe ujęcia: wachlarz kartek na drewnianym blacie](https://makietka.app/img/instrukcja/k-makieta-ujecia.png)
+
+![Stos egzemplarzy na drewnie](https://makietka.app/img/instrukcja/k-makieta-stos.png)
+
+#### Ujęcie i światło
+
+Zwinięta część **Ujęcie i światło** pod makietą zbiera wszystkie ustawienia sceny (na telefonie tak samo):
+
+| Grupa | Co ustawisz |
+|---|---|
+| **Kamera** | obrót, pochylenie, odległość i **obiektyw** — mały kąt to teleobiektyw (płasko, bez zniekształceń), duży — szeroki kąt z mocną perspektywą |
+| **Książka** | kąt otwarcia (180° — płasko), uchylona okładka, wachlarz kartek i wybór rozkładówki z listy |
+| **Światło** | kierunek (z lewej, z prawej, z góry, okno — nisko z boku), barwa (neutralna, ciepła, zimna), miękkość i siła cienia |
+| **Podłoże i tło** | studyjny gradient, jednolity kolor, drewno, papier, beton, marmur, tkanina, tynk albo przezroczyste; kolor tła (przy fakturach zmienia ich odcień) |
+| **Egzemplarze** | jeden, dwa albo trzy obok siebie, stos 3 albo 5, przód i tył |
+| **Materiały** | wykończenie okładki (jak w projekcie, mat, błysk, soft-touch), papier biały albo kremowy, kolor spirali i stojaka; **złocenia i lakier z projektu w świetle** — elementy z wykończeniem druku (rozdział „22.2 Wykończenie druku: lakier, złocenie, tłoczenie, biel”) błyszczą jak folia i lakier, gdy obracasz makietę |
+
+**Przywróć domyślne** wraca do ustawień startowych. Światło i tło zostają zapamiętane dla projektu na tym urządzeniu.
+
+![Ujęcie i światło: kamera, książka, światło, tło, egzemplarze, materiały](https://makietka.app/img/instrukcja/k-makieta-swiatlo.png)
+
+#### Eksport i animacja
+
+W części **Eksport** wybierasz rozmiar obrazu: **Internet** (dłuższy bok 1600 px), **Druk** (4000 px), **Instagram** (kwadrat 1080 × 1080) albo **Własny**, oraz **Przezroczyste tło** — zostaje sam przedmiot z cieniem, gotowy do wklejenia na stronę albo do prezentacji.
+
+**Nagraj animację** robi krótki film: **Obrót dookoła** albo **Kartkowanie** (od bieżącej strony), jako **wideo** (MP4, gdy przeglądarka to umie, inaczej WebM) albo **GIF**. Pasek postępu pokazuje klatki; **Anuluj** przerywa nagrywanie.
+
+#### Zapisane ujęcia
+
+W części **Zapisane ujęcia** wpisz nazwę i stuknij **Zapisz ujęcie** — rodzaj, kamera, światło, tło, egzemplarze i położenie kartek zapisują się w projekcie (także na innych urządzeniach i u osób, z którymi pracujesz; zapis ma krok cofania). Stuknięcie nazwy na liście przywraca ujęcie, kosz je usuwa.
+
+![Makiety sekcji specjalnych: ulotka w trakcie rozkładania i złożone pudełko](https://makietka.app/img/instrukcja/k-makieta-specjalne.png)
 
 ![Makieta 3D: kalendarz ścienny](https://makietka.app/img/instrukcja/k-makieta-kalendarz.png)
 

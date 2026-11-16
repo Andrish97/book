@@ -83,6 +83,7 @@
   <link rel="modulepreload" href="js/zasoby.js">
   <link rel="modulepreload" href="js/zestaw-czcionek.js">
   <link rel="modulepreload" href="js/zestaw-marki.js">
+  <link rel="modulepreload" href="js/makieta-ustawienia.js">
   <link rel="modulepreload" href="js/przeliczenia-okladek.js">
   <link rel="modulepreload" href="js/serie.js">
   <link rel="modulepreload" href="js/swieta.js">
@@ -1745,6 +1746,7 @@
         <h2 id="makieta-tytul">Makieta 3D</h2>
         <button type="button" class="przycisk-ikona x-okna" data-akcja="makieta-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
+      <div class="makieta-ujecia" id="makieta-ujecia" role="group" aria-label="Gotowe ujęcia"></div>
       <div class="makieta-scena">
         <canvas id="makieta-plotno" aria-label="Makieta projektu – przeciągnij, żeby obrócić; stuknij w prawą lub lewą połowę, żeby przewrócić kartkę"></canvas>
         <p id="makieta-brak-3d" class="komunikat blad" hidden>Ta przeglądarka nie pokazuje grafiki 3D (WebGL jest wyłączony). Włącz przyspieszenie sprzętowe albo otwórz projekt w innej przeglądarce.</p>
@@ -1762,8 +1764,79 @@
           <button type="button" class="wartosc-zoom" data-akcja="makieta-przod" title="Widok z przodu">Widok</button>
           <button type="button" class="powiekszenie-krok" data-akcja="makieta-plus" data-ikona="plus" aria-label="Przybliż" title="Przybliż"></button>
         </div>
-        <button type="button" class="przycisk" data-akcja="makieta-pobierz" data-ikona="pobierz">Pobierz obraz makiety</button>
+        <label class="przelacznik" id="makieta-obwoluta-pole" hidden><input type="checkbox" id="makieta-obwoluta"><span>Pokaż obwolutę</span></label>
+        <button type="button" class="przycisk" data-akcja="makieta-pobierz" data-ikona="pobierz" title="Obraz PNG w rozmiarze z części „Eksport”">Pobierz obraz makiety</button>
       </div>
+      <!-- Ujęcie i światło (#181): wszystkie ustawienia sceny w jednym miejscu, zwinięte – na telefonie i komputerze tak samo. -->
+      <details class="zaawansowane makieta-czesc" id="makieta-ustawienia">
+        <summary>Ujęcie i światło <span class="ciche">kamera, książka, światło, tło, materiały</span></summary>
+        <div class="makieta-grupy">
+          <fieldset class="grupa-pol"><legend>Kamera</legend>
+            <label class="makieta-suwak"><span>Obrót</span><input type="range" id="makieta-obrot" min="-180" max="180" step="1"><output for="makieta-obrot"></output></label>
+            <label class="makieta-suwak"><span>Pochylenie</span><input type="range" id="makieta-pochylenie" min="-40" max="88" step="1"><output for="makieta-pochylenie"></output></label>
+            <label class="makieta-suwak"><span>Odległość</span><input type="range" id="makieta-odleglosc" min="40" max="400" step="5"><output for="makieta-odleglosc"></output></label>
+            <label class="makieta-suwak" title="Mały kąt – teleobiektyw (płasko, bez zniekształceń), duży – szeroki kąt (mocna perspektywa)"><span>Obiektyw</span><input type="range" id="makieta-obiektyw" min="12" max="60" step="1"><output for="makieta-obiektyw"></output></label>
+          </fieldset>
+          <fieldset class="grupa-pol" id="makieta-grupa-ksiazka"><legend>Książka</legend>
+            <label class="makieta-suwak"><span>Kąt otwarcia</span><input type="range" id="makieta-otwarcie" min="80" max="180" step="2"><output for="makieta-otwarcie"></output></label>
+            <label class="makieta-suwak"><span>Uchylona okładka</span><input type="range" id="makieta-uchylenie" min="0" max="90" step="5"><output for="makieta-uchylenie"></output></label>
+            <label class="makieta-suwak"><span>Wachlarz kartek</span><input type="range" id="makieta-wachlarz" min="0" max="10" step="1"><output for="makieta-wachlarz"></output></label>
+            <label class="pole"><span>Rozkładówka</span><select id="makieta-rozkladowka"></select></label>
+          </fieldset>
+          <fieldset class="grupa-pol"><legend>Światło</legend>
+            <label class="pole"><span>Kierunek</span><select id="makieta-swiatlo"></select></label>
+            <label class="pole"><span>Barwa</span><select id="makieta-barwa"></select></label>
+            <label class="makieta-suwak"><span>Miękkość cienia</span><input type="range" id="makieta-miekkosc" min="0" max="100" step="5"><output for="makieta-miekkosc"></output></label>
+            <label class="makieta-suwak"><span>Siła cienia</span><input type="range" id="makieta-sila" min="0" max="160" step="5"><output for="makieta-sila"></output></label>
+          </fieldset>
+          <fieldset class="grupa-pol"><legend>Podłoże i tło</legend>
+            <label class="pole"><span>Tło</span><select id="makieta-tlo"></select></label>
+            <label class="pole waskie" id="makieta-kolor-tla-pole"><span>Kolor tła</span><input type="color" id="makieta-kolor-tla"></label>
+          </fieldset>
+          <fieldset class="grupa-pol"><legend>Egzemplarze</legend>
+            <label class="pole"><span>Ilość</span><select id="makieta-ilosc"></select></label>
+          </fieldset>
+          <fieldset class="grupa-pol"><legend>Materiały</legend>
+            <label class="pole"><span>Okładka</span><select id="makieta-wykonczenie"></select></label>
+            <label class="pole"><span>Papier</span><select id="makieta-papier"></select></label>
+            <label class="przelacznik" id="makieta-uszl-pole"><input type="checkbox" id="makieta-uszl"><span>Złocenia i lakier z projektu w świetle</span></label>
+            <div class="rzad">
+              <label class="pole waskie" id="makieta-spirala-pole"><span>Spirala</span><input type="color" id="makieta-spirala"></label>
+              <label class="pole waskie" id="makieta-stojak-pole"><span>Stojak</span><input type="color" id="makieta-stojak"></label>
+            </div>
+          </fieldset>
+        </div>
+        <button type="button" class="przycisk" data-akcja="makieta-domyslne">Przywróć domyślne</button>
+      </details>
+      <details class="zaawansowane makieta-czesc" id="makieta-eksport">
+        <summary>Eksport <span class="ciche">rozmiar obrazu, przezroczyste tło, animacja</span></summary>
+        <div class="makieta-grupy">
+          <fieldset class="grupa-pol"><legend>Obraz</legend>
+            <label class="pole"><span>Rozmiar</span><select id="makieta-rozmiar">
+              <option value="1600">Internet – 1600 px</option>
+              <option value="4000">Druk – 4000 px</option>
+              <option value="ig">Instagram – 1080 × 1080 px</option>
+              <option value="wlasny">Własny</option>
+            </select></label>
+            <label class="pole waskie" id="makieta-wlasny-pole" hidden><span>Dłuższy bok (px)</span><input type="number" id="makieta-wlasny" min="200" max="8000" step="10" value="2400" inputmode="numeric"></label>
+            <label class="przelacznik"><input type="checkbox" id="makieta-przezroczyste"><span>Przezroczyste tło (zostaje cień)</span></label>
+          </fieldset>
+          <fieldset class="grupa-pol"><legend>Animacja</legend>
+            <label class="pole"><span>Ruch</span><select id="makieta-anim-ruch"><option value="obrot">Obrót dookoła</option><option value="kartkowanie">Kartkowanie</option></select></label>
+            <label class="pole"><span>Plik</span><select id="makieta-anim-plik"><option value="wideo">Wideo (WebM / MP4)</option><option value="gif">GIF</option></select></label>
+            <button type="button" class="przycisk" data-akcja="makieta-animacja" data-ikona="prezentacja">Nagraj animację</button>
+          </fieldset>
+        </div>
+      </details>
+      <details class="zaawansowane makieta-czesc tylko-wlasciciel" id="makieta-zapisane">
+        <summary>Zapisane ujęcia <span class="ciche" id="makieta-zapisane-ile"></span></summary>
+        <div class="rzad makieta-zapisz">
+          <label class="pole"><span>Nazwa ujęcia</span><input type="text" id="makieta-nazwa-ujecia" maxlength="80" placeholder="np. Okładka na drewnie"></label>
+          <button type="button" class="przycisk glowny" data-akcja="makieta-zapisz-ujecie" data-ikona="plus">Zapisz ujęcie</button>
+        </div>
+        <ul class="makieta-lista-ujec" id="makieta-lista-ujec"></ul>
+        <p class="ciche" id="makieta-brak-ujec">Zapisane ujęcie (rodzaj, kamera, światło, tło, położenie kartek) zostaje w projekcie – także na innych urządzeniach.</p>
+      </details>
       <p class="komunikat makieta-uwaga" id="makieta-uwaga" hidden></p>
       <p class="ciche makieta-podpowiedz">Przeciągnij, żeby obrócić; kółkiem myszy albo dwoma palcami przybliżasz. Kartki przewracasz strzałkami albo stuknięciem w prawą lub lewą połowę.</p>
     </div>

@@ -54,6 +54,7 @@ Wszystkie wymiary są w **milimetrach**. Rozmiar pisma też w mm: `mm = pt × 25
 | `widok` | `{ siatka_mm, siatka, do_siatki, do_elementow, linijki }` | nieobowiązkowe ustawienia edytora |
 | `kolory_dodatkowe` | `[{ id, nazwa, cmyk: [c, m, y, k] }]` (opcjonalne) | kolory dodatkowe (spot, np. „PANTONE 186 C”) – osobne płyty w PDF; `cmyk` (0–100) to zapas do podglądu; rozdział 5, „Kolory do druku” |
 | `tryb_kolorow` | `"pelny"` \| `"szarosc"` \| `"czb1"` (opcjonalne) | pełny kolor (domyślnie), skala szarości (sama czerń), czerń + 1 kolor dodatkowy (`kolor_trybu` – jego `id`) |
+| `makieta` | `{ ujecia: [...] }` (opcjonalne) | zapisane ujęcia makiety 3D (kamera, światło, tło, położenie kartek); rozdział 9e. Bez ujęć pole nie występuje |
 
 Identyfikatory (`id`) wymyślasz sam: dowolne niepowtarzalne napisy, np. `s_1`, `o_tytul`, `z_styczen`. Pole `id` projektu pomiń – aplikacja nada nowe.
 
@@ -389,6 +390,24 @@ Numer pinezki to kolejność wątku w projekcie (od najstarszego). Po poprawce w
 ## 9d. Plik PDF i PNG (eksport przez aplikację)
 
 Gotowego pliku nie zapisuje się w projekcie i AI go nie składa samo – PDF (czcionki, spad, CMYK, PDF/X) rysuje aplikacja Makietki w przeglądarce użytkownika. Narzędzie `eksport_pdf` (cały projekt, sekcja albo strony; do drukarni albo na ekran; broszura i arkusze) i `eksport_png` (jedna strona) składają zlecenie: otwarta aplikacja konta klucza robi plik i wgrywa go na konto, a narzędzie zwraca link do pobrania (ważny 7 dni) z uwagami z kontroli przed drukiem. Gdy aplikacja nie jest otwarta, narzędzie zwraca link do aplikacji – daj go użytkownikowi, a potem sprawdź `stan_eksportu`. Zlecenie nie zmienia projektu ani `wersja` (działa też z kluczem tylko do czytania).
+
+## 9e. Makieta 3D – zapisane ujęcia (`makieta`)
+
+Okno „Makieta 3D” pokazuje projekt jako wydrukowaną rzecz. Ujęcia zapisane przyciskiem „Zapisz ujęcie” trafiają do pola projektu `makieta`: lista `ujecia` (najwyżej 40). Ujęcie nie zmienia wydruku – to tylko widok. Ujęcia zapisuje użytkownik w oknie makiety; łącznik AI pokazuje je przy czytaniu projektu, ale ich nie zmienia (`zmien_projekt` nie przyjmuje części `makieta`) – pole zostaje takie, jakie jest w projekcie. W pliku `.json` / `.makietka` składanym przez AI można je dodać. Pola ujęcia:
+
+| Pole | Typ | Uwagi |
+|---|---|---|
+| `id` | tekst | niepowtarzalny w projekcie |
+| `nazwa` | tekst (do 80 znaków) | pokazywana na liście „Zapisane ujęcia” |
+| `model` | `"ksiazka_miekka"` \| `"ksiazka_twarda"` \| `"notes"` \| `"kalendarz_scienny"` \| `"kalendarz_biurkowy"` \| `"kartka"` \| `"ulotka"` \| `"koperta"` \| `"pudelko"` \| `"trojdzielny"` | rodzaj makiety; ostatnie cztery tylko z sekcją takiego typu (ulotka, wykrojnik koperta / pudełko, trójdzielny) |
+| `u` | liczba ≥ 0 | położenie kartkowania: 0 – okładka (zamknięta), 1, 2… – kolejne przewrócone kartki; ulotka: 0 złożona, 1 rozłożona (środek), 2 odwrócona; koperta: 0 przód, 1 tył, 2 otwarta klapa; pudełko: 0 wykrojnik, 1 złożone |
+| `ulozenie` | `"lezy"` \| `"stoi"` | książka i notes mogą stać |
+| `kamera` | `{ obrotY, obrotX, zoom, fov }` | `obrotY`, `obrotX` – obrót wokół pionu i pochylenie w radianach (`obrotX` 1,5 – z góry, 0 – z boku), `zoom` 1 – cała rzecz w kadrze, `fov` – kąt widzenia w stopniach (12–60; mały – teleobiektyw, duży – szeroki kąt) |
+| `scena` | `{ otwarcie, wachlarz, ilosc, uchylenie }` | `otwarcie` – kąt rozłożenia książki w stopniach (60–180, `null` – domyślny), `wachlarz` – ile kartek uniesionych wachlarzem (0–12), `ilosc` – `null` albo `{ n, uklad }` z `uklad` `"obok"` \| `"stos"` \| `"przodTyl"`, `uchylenie` – uchylona okładka zamkniętej książki (0–0,95 z 180°) |
+| `opcje` | obiekt | światło, tło i materiały: `tlo` (`"studio"`, `"kolor"`, `"drewno"`, `"papier"`, `"beton"`, `"marmur"`, `"tkanina"`, `"tynk"`, `"przezroczyste"`), `kolorTla` (`#rrggbb`), `swiatlo` (`"lewo"`, `"prawo"`, `"gora"`, `"okno"`), `barwa` (`"neutralna"`, `"ciepla"`, `"zimna"`), `silaCienia` (0–1,6), `miekkosc` (0–1), `wykonczenie` okładki (`"projekt"`, `"mat"`, `"blysk"`, `"soft"`), `papier` (`"bialy"`, `"kremowy"`), `kolorSpirali`, `kolorStojaka` (`#rrggbb`), `uszlachetnienia` (złocenie i lakier z projektu w świetle, domyślnie `true`) |
+| `obwoluta` | wartość logiczna | twarda oprawa pokazana w obwolucie (sekcja typu `obwoluta`) |
+
+Nieznane wartości aplikacja zamienia na domyślne (`normalizuj`).
 
 ## 10. Czego nie robić
 

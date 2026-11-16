@@ -26,3 +26,10 @@ test('opis formatu dla AI zna pola projektu, sekcji i strony', async () => {
     .filter((k) => !jest(k.split('.')[1]));
   assert.deepEqual(brak, [], 'dopisz te pola do ai/format-makietka.md');
 });
+
+test('opis formatu dla AI zna pole makieta i pola zapisanego ujęcia (#181)', async () => {
+  const U = await import(pathToFileURL(path.join(__dirname, '..', 'js', 'makieta-ustawienia.js')).href);
+  const uj = U.normalizujUjecie({ nazwa: 'x' });
+  const pola = ['makieta', 'ujecia', ...Object.keys(uj), ...Object.keys(uj.kamera), ...Object.keys(uj.scena), ...Object.keys(uj.opcje), ...U.MODELE_MAKIETY, ...Object.keys(U.TLA), ...Object.keys(U.SWIATLA)];
+  assert.deepEqual(pola.filter((p) => !jest(p)), [], 'dopisz te pola do ai/format-makietka.md (rozdział 9e)');
+});
