@@ -98,6 +98,11 @@ następnym otwarciu projektu.
 Ten sam projekt możesz mieć otwarty na kilku urządzeniach albo w kilku kartach. Zmiana zrobiona
 na jednym pojawia się na drugim po chwili, bez odświeżania.
 
+Nowa wersja Makietki też włącza się sama, bez odświeżania strony: na liście projektów od razu, a w otwartym
+projekcie wtedy, gdy wrócisz do listy albo przełączysz się na inną kartę czy aplikację (zmiany zapisują się
+najpierw, projekt otwiera się potem w tym samym miejscu). Od razu włączysz ją przyciskiem [Odśwież teraz]
+w powiadomieniu „Jest nowa wersja aplikacji”.
+
 Gdy projekt zmieniono w dwóch miejscach naraz, aplikacja **łączy zmiany element po elemencie**:
 gdy na jednym urządzeniu przesuniesz zdjęcie, a na drugim poprawisz tytuł, zostaną obie zmiany.
 Pyta tylko wtedy, gdy ten sam element zmieniono w obu miejscach: okno „To samo zmieniono na dwóch

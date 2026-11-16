@@ -243,32 +243,63 @@ async function start() {
 // ---------- Aplikacja instalowana (PWA) ----------
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  navigator.serviceWorker.register('./sw.js').then(pilnujNowejWersji).catch((e) => console.warn('Service worker:', e));
+  // updateViaCache: 'none' – sprawdzanie nowej wersji zawsze pyta serwer (bez pamięci podręcznej HTTP).
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(pilnujNowejWersji).catch((e) => console.warn('Service worker:', e));
 }
 
-// Pliki aplikacji przychodzą z pamięci urządzenia (sw.js), więc nowa wersja po wdrożeniu czeka, aż ją
-// włączymy. Bez otwartego projektu włączamy ją od razu (strona przeładowuje się w ułamku sekundy, bo pliki
-// są już pobrane); w trakcie pracy w projekcie pokazujemy przycisk „Odśwież”.
+// Pliki aplikacji przychodzą z pamięci urządzenia (sw.js) – szybki start bez czekania na sieć. Nowa wersja
+// po wdrożeniu włącza się sama, bez ręcznego odświeżania (#197, jak w Familiadzie: zawsze aktualna):
+// * sprawdzamy ją przy uruchomieniu, przy każdym powrocie do karty/okna, po odzyskaniu sieci i co 10 minut;
+// * bez otwartego projektu (lista, logowanie, podgląd z linku) włącza się od razu – strona przeładowuje się
+//   w ułamku sekundy, bo pliki są już pobrane;
+// * w otwartym projekcie – w bezpiecznej chwili: gdy wrócisz do listy projektów albo gdy karta schowa się
+//   w tle (zmiany zapisują się najpierw; po przeładowaniu projekt i strona otwierają się z adresu, a historia
+//   cofania wraca z pamięci). Do tego czasu jest też przycisk „Odśwież” w powiadomieniu.
 function pilnujNowejWersji(rejestracja) {
-  if (!navigator.serviceWorker.controller) return; // pierwsze uruchomienie – nie ma czego podmieniać
+  // Pierwsze uruchomienie: service worker dopiero przejmuje stronę (to jeszcze nie nowa wersja) – bez
+  // przeładowania; kolejne wersje w tej samej sesji już tak.
+  let przejmuje = !navigator.serviceWorker.controller;
   let przeladowano = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (przejmuje) { przejmuje = false; return; }
     if (przeladowano) return;
     przeladowano = true;
     location.reload();
   });
-  const wlacz = (sw) => sw.postMessage('wlacz-nowa-wersje');
+  let czeka = null;
+  let wlaczana = false;
+  const wlacz = async () => {
+    if (!czeka || wlaczana) return;
+    wlaczana = true;
+    try { await edytorGotowy()?.zapiszTeraz(); } catch { /* zapis i tak trafił do pamięci urządzenia */ }
+    czeka.postMessage('wlacz-nowa-wersje');
+  };
   const zaproponuj = (sw) => {
-    if (!stan.projekt) { wlacz(sw); return; }
-    powiadom('Jest nowa wersja aplikacji.', false, { etykieta: 'Odśwież', fn: async () => { await edytorGotowy()?.zapiszTeraz(); wlacz(sw); } });
+    if (!navigator.serviceWorker.controller) return; // pierwsza instalacja – włączy się sama
+    czeka = sw;
+    if (!stan.projekt) { wlacz(); return; }
+    powiadom('Jest nowa wersja aplikacji – włączy się sama, gdy wrócisz do listy projektów.', false, { etykieta: 'Odśwież teraz', fn: wlacz });
   };
   if (rejestracja.waiting) zaproponuj(rejestracja.waiting);
   rejestracja.addEventListener('updatefound', () => {
     const nowy = rejestracja.installing;
     nowy?.addEventListener('statechange', () => { if (nowy.state === 'installed') zaproponuj(nowy); });
   });
-  // Długo otwarta karta też dowie się o nowej wersji.
-  setInterval(() => rejestracja.update().catch(() => {}), 60 * 60 * 1000);
+  let ostatnio = 0;
+  const sprawdz = () => {
+    if (Date.now() - ostatnio < 30000) return;
+    ostatnio = Date.now();
+    rejestracja.update().catch(() => {});
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') sprawdz();
+    else if (czeka) wlacz(); // karta w tle – dobra chwila na nową wersję
+  });
+  window.addEventListener('focus', sprawdz);
+  window.addEventListener('online', sprawdz);
+  setInterval(() => { ostatnio = 0; sprawdz(); }, 10 * 60 * 1000);
+  // Powrót do listy projektów (projekt zamknięty) – czekająca wersja włącza się od razu.
+  setInterval(() => { if (czeka && !stan.projekt) wlacz(); }, 2000);
 }
 
 if ('launchQueue' in window) {
