@@ -209,7 +209,7 @@ Jedyna pozostała funkcja bez testu (B): `zdrowie` (bez logiki) oraz – częśc
 4. Podgląd → Makieta 3D: obraz się rysuje, obracanie palcem działa; zamknij i otwórz drugi raz.
 5. Zainstaluj (Udostępnij → Do ekranu początkowego), otwórz z ikony, włącz powiadomienia.
 
-**Android (Chrome)**:
+**Android (Chrome)** – sprawdzone przez użytkownika 2026-11-16, wszystko działa:
 1. To samo co wyżej (1–4) oraz „Zainstaluj aplikację” z menu.
 2. Makieta 3D: otwórz, wyjdź do ekranu głównego na minutę, wróć – obraz wraca sam.
 3. Zrób zmianę i od razu zamknij kartę / aplikację; otwórz ponownie – zmiana jest (błąd nr 2).
