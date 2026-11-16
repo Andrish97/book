@@ -54,7 +54,7 @@ import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
   wzorzecZMenu, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
 } from './lista-stron.js';
-import { podlaczDokWarstw } from './dok-warstw.js';
+import { podlaczDokWarstw, przelaczZakladkePrawa, przelaczOstrzezenia, ostrzezeniaOtwarte } from './dok-warstw.js';
 import { dodajPolecenie } from '../paleta-polecen.js';
 import '../biblioteka-elementy.js';
 import '../biblioteka-wzorce.js'; // kategoria „Wzorce stron” (#164) – osobny moduł
@@ -96,6 +96,11 @@ function renderujOstrzezenia(lista) {
   licznik.textContent = lista.length;
   licznik.classList.toggle('sa', lista.length > 0);
   $('#kropka-ostrzezen').hidden = lista.length === 0;
+  // Przycisk ostrzeżeń przy powiększeniu (komputer, #171): licznik i kolor tylko, gdy są uwagi.
+  const lp = $('#licznik-ostrzezen-przycisk');
+  lp.textContent = lista.length;
+  lp.hidden = lista.length === 0;
+  $('#przycisk-ostrzezen').classList.toggle('sa', lista.length > 0);
   if (!lista.length) {
     const li = document.createElement('li');
     li.className = 'brak';
@@ -429,6 +434,7 @@ $('#wzorce-standardowe').addEventListener('click', (e) => {
 $('#przycisk-wiecej').addEventListener('click', (e) => przelaczMenu(e.currentTarget, $('#menu-wiecej')));
 $('#przycisk-widok').addEventListener('click', (e) => { menuWidoku.odswiez(); $('#widok-jedna').checked = jednaStrona(); $('#widok-uszlachetnienia').checked = stanUszlachetnien.pokaz; $('#widok-pisownia').checked = sprawdzanie.wlaczona(); przelaczMenu(e.currentTarget, $('#menu-widoku')); });
 $('#naglowek-ostrzezen').addEventListener('click', (e) => {
+  if (ostrzezeniaOtwarte()) return; // w okienku na komputerze lista jest zawsze rozwinięta (#171)
   const b = e.currentTarget;
   b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
 });
@@ -654,6 +660,8 @@ const kontekstSkrotow = {
   zapisz: () => zapiszTeraz().then(() => synchronizuj()),
   wstawObraz: () => $('#plik-obraz').click(),
   przelaczProwadnice: () => akcje.prowadnice(),
+  przelaczPanelPrawy: () => przelaczZakladkePrawa(),
+  ostrzezenia: () => przelaczOstrzezenia(),
   podglad: () => pokazPodglad(),
   strona: (o) => przejdzDoStrony(stan.indeks + o),
   nowaStrona: () => dodajStrone(),

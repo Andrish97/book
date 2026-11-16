@@ -1535,7 +1535,7 @@ export class PanelWlasciwosci {
     wybor.classList.add('szeroki');
     wybor.title = 'Nadaje styl zaznaczonemu fragmentowi (bez zaznaczenia – całemu tekstowi)';
     const przyciski = this.akcje([
-      ['plus', 'Nowy styl znakowy z wyglądu zaznaczenia', async () => {
+      ['plus', 'Nowy styl znakowy – z wyglądu zaznaczonego fragmentu', async () => {
         const nazwa = await zapytajONazwe('Nowy styl znakowy', 'Nazwa stylu', 'Wyróżnienie');
         if (!nazwa) return;
         const i = fragment() ? obj.selectionStart : 0;
@@ -1545,14 +1545,14 @@ export class PanelWlasciwosci {
         this.opcje.poZmianieStyliZnakowych?.(null);
         this.zbuduj();
       }],
-      ['olowek', 'Aktualizuj styl znakowy wyglądem zaznaczenia – zmienią się wszystkie fragmenty z tym stylem', () => {
+      ['olowek', 'Aktualizuj styl – wyglądem zaznaczenia; zmienią się wszystkie fragmenty z tym stylem', () => {
         const st = lista.find((x) => x.id === aktualny());
         if (!st) { powiadom('Zaznacz fragment, który ma już styl znakowy.', true); return; }
         const i = fragment() ? obj.selectionStart : 0;
         Object.assign(st, stylZnakowyZFragmentu(obj.getStyleAtPosition(i, true), st.nazwa, st.id));
         this.opcje.poZmianieStyliZnakowych?.(st);
       }],
-      ['kosz', 'Usuń styl znakowy – fragmenty zachowają wygląd', async () => {
+      ['kosz', 'Usuń styl – fragmenty zachowają wygląd', async () => {
         const st = lista.find((x) => x.id === aktualny());
         if (!st) return;
         if (!await potwierdz(`Usunąć styl znakowy „${st.nazwa}”?`, 'Fragmenty zachowają obecny wygląd, ale przestaną być ze sobą powiązane.', 'Usuń styl', true)) return;
@@ -2335,7 +2335,13 @@ export class PanelWlasciwosci {
       b.type = 'button';
       b.className = 'przycisk';
       b.innerHTML = ikona(ik, { rozmiar: 16 });
-      b.append(tekst);
+      // Etykieta krótka, objaśnienie w podpowiedzi (#171): „Nazwa – objaśnienie” → na przycisku tylko nazwa.
+      const [krotko, ...reszta] = String(tekst).split(' – ');
+      const etykieta = document.createElement('span');
+      etykieta.textContent = krotko;
+      b.append(etykieta);
+      b.title = tekst;
+      if (reszta.length) b.setAttribute('aria-label', tekst);
       b.addEventListener('click', klik);
       rzad.append(b);
     }

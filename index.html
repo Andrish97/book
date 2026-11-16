@@ -806,6 +806,7 @@
         </div>
 
         <div class="kontrolki-widoku" id="kontrolki-widoku">
+          <button class="przycisk-ikona przycisk-ostrzezen" id="przycisk-ostrzezen" data-ikona="uwaga" title="Ostrzeżenia: elementy poza marginesami, brakujące pola i inne uwagi do druku (F8)" aria-label="Ostrzeżenia" aria-pressed="false" aria-controls="sekcja-ostrzezen"><span class="licznik" id="licznik-ostrzezen-przycisk" hidden>0</span></button>
           <button class="przycisk-ikona" id="przycisk-rozkladowka" data-ikona="rozkladowka" title="Rozkładówka albo jedna strona" aria-label="Pokaż całą rozkładówkę" aria-pressed="false" hidden></button>
           <button class="przycisk-ikona" data-akcja="prowadnice" id="przycisk-prowadnice" data-ikona="prowadnice" title="Pokaż/ukryj linie pomocnicze (W)" aria-pressed="true"></button>
           <div class="menu-widoku-opak">
@@ -850,6 +851,12 @@
 
       <aside class="panel panel-inspektor" id="panel-inspektor" aria-label="Właściwości i warstwy">
         <button type="button" class="uchwyt-arkusza" aria-label="Uchwyt panelu: stuknij, żeby zamknąć (z powiększonego – zmniejszyć); przeciągnij w dół, żeby zamknąć"></button>
+        <!-- Komputer (#171): Właściwości i Warstwy jako dwie zakładki prawej kolumny, każda na całą wysokość
+             (wcześniej warstwy ściśnięte pod właściwościami). Na telefonie – dolne menu, jak dotąd. -->
+        <div class="zakladki-inspektora" id="zakladki-inspektora" role="tablist" aria-label="Prawy panel">
+          <button type="button" role="tab" id="zakladka-wlasciwosci" data-prawy="wlasciwosci" aria-selected="true" title="Właściwości zaznaczonego elementu, narzędzia albo strony (F7 – przełącz)"><span data-ikona="suwaki" data-rozmiar="16"></span><span>Właściwości</span></button>
+          <button type="button" role="tab" id="zakladka-warstwy" data-prawy="warstwy" aria-selected="false" title="Warstwy: elementy strony od wierzchu do spodu (F7 – przełącz)"><span data-ikona="warstwy" data-rozmiar="16"></span><span>Warstwy</span><span class="licznik" id="licznik-warstw-zakladka">0</span></button>
+        </div>
         <!-- Nagłówek mówi, czego dotyczą ustawienia: zaznaczonego elementu, narzędzia albo strony (#115).
              Kopiuj, duplikuj, usuń – przy zaznaczonym elemencie. -->
         <div class="naglowek-panelu naglowek-wlasciwosci" id="naglowek-wlasciwosci" data-rodzaj="strona">
@@ -873,11 +880,12 @@
           </button>
           <ol class="lista-warstw" id="lista-warstw" aria-label="Warstwy: elementy strony od wierzchu do spodu"></ol>
         </section>
-        <section class="sekcja-ostrzezen" id="sekcja-ostrzezen">
+        <section class="sekcja-ostrzezen" id="sekcja-ostrzezen" aria-label="Ostrzeżenia">
           <button class="naglowek-ostrzezen" id="naglowek-ostrzezen" aria-expanded="true">
             <span data-ikona="uwaga" data-rozmiar="16"></span> Ostrzeżenia <span class="licznik" id="licznik-ostrzezen">0</span>
           </button>
           <ul id="lista-ostrzezen" class="lista-ostrzezen"></ul>
+          <button type="button" class="przycisk-ikona maly zamknij-ostrzezenia" id="zamknij-ostrzezenia" data-ikona="zamknij" aria-label="Zamknij ostrzeżenia" title="Zamknij (Esc)"></button>
         </section>
       </aside>
     </div>

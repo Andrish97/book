@@ -59,7 +59,7 @@ test('tabela jest jednym elementem: wstawienie, pisanie w komórce po dwukliku, 
   assert.equal(s.tytul, 'Tabela');
   assert.deepEqual(await strona.evaluate(() => window.seriodruk.edytor.ostrzezenia.map((o) => o.typ)), [], 'bez ostrzeżeń (także o marginesie)');
   // Na liście warstw tabela to jeden wiersz.
-  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
+  await strona.click('#zakladka-warstwy'); await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // zakładka Warstwy (#171)
   assert.deepEqual(await strona.locator('#lista-warstw .warstwa-nazwa').allTextContents(), ['Tabela 3×4']);
 
   // Pojedyncze kliknięcie i przeciągnięcie przesuwa całą tabelę.
@@ -750,7 +750,7 @@ test('tabela na liście warstw: rozwinięcie pokazuje komórki z początkiem tre
     e.canvas.discardActiveObject();
     e.zatwierdz();
   });
-  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
+  await strona.click('#zakladka-warstwy'); await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // zakładka Warstwy (#171)
   const wiersze = () => strona.evaluate(() => [...document.querySelectorAll('#lista-warstw li.warstwa')].map((li) => (li.classList.contains('w-tabeli')
     ? `  ${li.querySelector('.warstwa-adres').textContent} ${li.querySelector('.warstwa-nazwa').textContent}${li.classList.contains('zaznaczona') ? ' *' : ''}`
     : `${li.querySelector('.warstwa-nazwa').textContent}${li.querySelector('.warstwa-rozwin') ? ` [${li.querySelector('.warstwa-rozwin').getAttribute('aria-expanded')}]` : ''}${li.classList.contains('zaznaczona') ? ' *' : ''}`)));

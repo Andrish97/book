@@ -164,7 +164,7 @@ test('telefon: okno „Kolory projektu” i wykończenie druku mieszczą się na
   const { strona, bledy } = await otworz(t, { telefon: true });
   await nowyProjekt(strona, 'Telefon');
   await strona.evaluate(() => window.seriodruk.edytor.dodajProstokat());
-  await strona.tap('button:has-text("Właściwości")');
+  await strona.tap('button[data-panel="inspektor"]');
   await strona.waitForTimeout(400);
   await strona.evaluate(() => [...document.querySelectorAll('#wlasciwosci button.zwijak')].find((b) => /Wykończenie druku/.test(b.textContent)).click());
   const kafle = await strona.evaluate(() => {

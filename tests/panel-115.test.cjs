@@ -13,20 +13,22 @@ const naglowek = (strona) => strona.evaluate(() => {
   };
 });
 
-test('panel: warstwy zawsze widoczne, nagłówek element / narzędzie / strona, pędzel dla następnych linii', async (t) => {
+test('panel: warstwy w zakładce obok właściwości (#171), nagłówek element / narzędzie / strona, pędzel dla następnych linii', async (t) => {
   const { strona, bledy } = await otworz(t, { widok: { width: 1440, height: 900 } });
   await nowyProjekt(strona, 'Panel');
-  // Nic nie zaznaczone: strona; warstwy widać pod właściwościami.
+  // Nic nie zaznaczone: strona; warstwy w zakładce obok – dostępne bez zaznaczenia.
   assert.deepEqual(await naglowek(strona), { rodzaj: 'strona', nad: 'Nic nie jest zaznaczone', tytul: 'Strona', opis: '' });
+  assert.equal(await strona.isVisible('#lista-warstw'), false, 'na zakładce Właściwości warstw nie widać');
+  await strona.click('#zakladka-warstwy');
   assert.ok(await strona.isVisible('#dok-warstw #lista-warstw'), 'warstwy bez zaznaczenia');
-  assert.equal(await strona.locator('#zakladki-panelu').count(), 0, 'bez zakładek Właściwości | Warstwy');
+  assert.equal(await strona.isVisible('#wlasciwosci'), false, 'warstwy na całą wysokość, bez właściwości');
+  await strona.click('#zakladka-wlasciwosci');
 
   // Zaznaczony element.
   await strona.click('[data-akcja="dodaj-prostokat"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny);
   assert.deepEqual(await naglowek(strona), { rodzaj: 'element', nad: 'Zaznaczony element', tytul: 'Prostokąt', opis: '' });
-  assert.ok(await strona.isVisible('#lista-warstw li.warstwa.zaznaczona'), 'warstwy razem z właściwościami');
-  assert.equal(await strona.textContent('#licznik-warstw'), '1');
+  assert.equal(await strona.textContent('#licznik-warstw-zakladka'), '1', 'licznik warstw na zakładce');
 
   // Narzędzie „Rysuj”: ustawienia pędzla, inny kolor nagłówka; warstwy dalej widać.
   await strona.click('[data-akcja="rysuj"]');
@@ -34,7 +36,7 @@ test('panel: warstwy zawsze widoczne, nagłówek element / narzędzie / strona, 
   await strona.waitForTimeout(400); // przejście koloru tła
   const tla = await strona.evaluate(() => getComputedStyle(document.querySelector('#naglowek-wlasciwosci')).backgroundColor);
   assert.notEqual(tla, 'rgba(0, 0, 0, 0)', 'nagłówek narzędzia ma własne tło');
-  assert.ok(await strona.isVisible('#lista-warstw'));
+  assert.ok(await strona.isVisible('#zakladka-warstwy'), 'warstwy dostępne także przy narzędziu');
   await strona.fill('.wlasciwosci label:has-text("Grubość linii") input', '1.5');
   await strona.press('.wlasciwosci label:has-text("Grubość linii") input', 'Tab');
   const [x, y] = await strona.evaluate(() => { const r = document.querySelector('#plotno').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
@@ -47,16 +49,17 @@ test('panel: warstwy zawsze widoczne, nagłówek element / narzędzie / strona, 
   await strona.click('.wlasciwosci button:has-text("Zakończ rysowanie")');
   assert.equal((await naglowek(strona)).rodzaj, 'strona');
 
-  // Zwinięcie panelu warstw zostaje zapamiętane.
-  await strona.click('#naglowek-warstw');
-  assert.equal(await strona.getAttribute('#naglowek-warstw', 'aria-expanded'), 'false');
-  assert.equal(await strona.isVisible('#lista-warstw'), false);
-  assert.equal(await strona.textContent('#licznik-warstw'), '2', 'licznik także przy zwiniętym panelu');
+  // Wybrana zakładka zostaje zapamiętana; F7 przełącza.
+  await strona.click('#zakladka-warstwy');
+  assert.ok(await strona.isVisible('#lista-warstw li.warstwa'));
+  assert.equal(await strona.textContent('#licznik-warstw-zakladka'), '2', 'licznik także przy otwartych właściwościach');
   await strona.reload();
   await strona.waitForFunction(() => window.seriodruk?.edytor?.wydruk);
-  assert.equal(await strona.getAttribute('#naglowek-warstw', 'aria-expanded'), 'false');
-  await strona.click('#naglowek-warstw');
+  assert.equal(await strona.getAttribute('#zakladka-warstwy', 'aria-selected'), 'true');
   assert.ok(await strona.isVisible('#lista-warstw'));
+  await strona.keyboard.press('F7');
+  assert.equal(await strona.getAttribute('#zakladka-wlasciwosci', 'aria-selected'), 'true');
+  assert.ok(await strona.isVisible('#wlasciwosci'));
   assert.deepEqual(bledy, []);
 });
 

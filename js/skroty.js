@@ -84,6 +84,8 @@ export const SKROTY = [
   { grupa: 'Widok', klawisze: ['Ctrl+Shift+Quote'], pokaz: 'Ctrl+Shift+\'', opis: 'Przyciąganie do siatki', akcja: (k) => k.widok.przelacz('do_siatki') },
   { grupa: 'Widok', klawisze: ['Shift+KeyR'], opis: 'Pokaż albo ukryj linijki', akcja: (k) => k.widok.przelacz('linijki') },
   { grupa: 'Widok', klawisze: ['Shift+KeyW'], opis: 'Podgląd bez edycji', akcja: (k) => k.podglad() },
+  { grupa: 'Widok', klawisze: ['F7'], opis: 'Właściwości albo Warstwy w prawej kolumnie (komputer)', zawsze: true, akcja: (k) => k.przelaczPanelPrawy() },
+  { grupa: 'Widok', klawisze: ['F8'], opis: 'Okienko ostrzeżeń', zawsze: true, akcja: (k) => k.ostrzezenia() },
 
   // ---------- Strony ----------
   { grupa: 'Strony', klawisze: ['PageUp'], opis: 'Poprzednia strona', akcja: (k) => k.strona(-1) },

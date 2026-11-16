@@ -272,7 +272,7 @@ test('warstwy: lista od wierzchu, zaznaczanie, ukrywanie, blokada, zmiana kolejn
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Warstwy');
   await prostokaty(strona, [['dół', 20, 30, 40, 40], ['środek', 30, 40, 40, 40], ['góra', 40, 50, 40, 40]]);
-  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
+  await strona.click('#zakladka-warstwy'); await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // zakładka Warstwy (#171)
   const lista = () => strona.locator('#lista-warstw .warstwa-nazwa').allTextContents();
   assert.deepEqual(await lista(), ['góra', 'środek', 'dół']);
 
@@ -403,7 +403,7 @@ test('prowadnice liczbą, warstwy z przyciskami kolejności i elementami wzorcó
     await przeladuj();
   });
   await prostokaty(strona, [['a', 20, 30, 20, 20], ['b', 30, 40, 20, 20], ['c', 40, 50, 20, 20]]);
-  await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // panel warstw zawsze widoczny (#115)
+  await strona.click('#zakladka-warstwy'); await strona.waitForSelector('#lista-warstw', { state: 'visible' }); // zakładka Warstwy (#171)
   const lista = () => strona.locator('#lista-warstw li.warstwa:not(.ze-wzorca) .warstwa-nazwa').allTextContents();
   assert.deepEqual(await lista(), ['c', 'b', 'a']);
   // ⋯ przy „c” → „Niżej” przesuwa go o jedno miejsce w dół, ⋯ przy „a” → „Wyżej” – w górę (#109: ▲▼ w menu wiersza).
