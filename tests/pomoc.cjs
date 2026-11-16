@@ -252,7 +252,8 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     for (const g of gniazda) {
       for (const [temat, t] of g.tematy) {
         if (!t.konto || !odbiorcy.includes(t.konto.id)) continue;
-        const ids = t.wiazania.filter((b) => (b.event === '*' || b.event === typ) && b.table === tabela).map((b) => b.id);
+        // Jak w Supabase: usunięć (DELETE) nie da się filtrować – kanał z filtrem (np. projekt_id=eq.…) ich nie dostaje.
+        const ids = t.wiazania.filter((b) => (b.event === '*' || b.event === typ) && b.table === tabela && !(typ === 'DELETE' && b.filter)).map((b) => b.id);
         if (!ids.length) continue;
         doGniazda(g, temat, 'postgres_changes', {
           ids,

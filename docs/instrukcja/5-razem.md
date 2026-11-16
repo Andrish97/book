@@ -92,9 +92,15 @@ pinezki otwiera jej wątek.
 - Filtry: **Nierozwiązane**, **Wszystkie**, **Moje** (moje wątki, moje odpowiedzi i wzmianki o mnie).
 - W wątku są odpowiedzi, [Odpowiedz] i [Pokaż na stronie].
 - [Rozwiąż] zamyka załatwiony wątek i chowa pinezkę; [Otwórz ponownie] (filtr **Wszystkie**) go przywraca.
-- Usunąć komentarz może autor albo właściciel projektu.
+- Własny komentarz poprawisz ołówkiem [Popraw] (dopisek „(poprawiony)”); <kbd>Ctrl</kbd>+<kbd>Enter</kbd> zapisuje i wysyła.
+- Usunąć komentarz może autor albo właściciel projektu — znika u wszystkich od razu, z odpowiedziami.
+- Komentarz przy elemencie idzie za elementem; gdy element usuniesz, pinezka zostaje w tym miejscu.
+  Wątek z usuniętej strony zostaje na liście z opisem „strona usunięta”.
+- Komentarze dodaje się na stronach, nie na wzorcach.
 
-Komentarze pojawiają się u wszystkich od razu; o nowych dowiesz się też z powiadomień (→ 2.6).
+Komentarze pojawiają się u wszystkich od razu; odpowiedź, którą piszesz, nie znika, gdy ktoś coś doda.
+O nowych dowiesz się też z powiadomień (→ 2.6).
+
 
 AI połączone kluczem też czyta komentarze, odpowiada na nie i może je rozwiązać po poprawce (→ 26.1).
 

@@ -137,7 +137,10 @@ test('komentarze: pinezka na płótnie i w podglądzie, wzmianka, odpowiedź i r
   await a.click(`.watek-komentarza[data-id="${k2.id}"] [data-op="usun"]`);
   await a.click('#dlg-potwierdz[open] #potwierdz-tak');
   await a.waitForFunction(() => document.querySelector('.przycisk-komentarzy .licznik-komentarzy')?.textContent === '1');
-  assert.equal(baza.komentarze.some((k) => k.id === k2.id), false);
+  assert.ok(baza.komentarze.find((k) => k.id === k2.id).usunieto, 'usunięty (ślad bez treści)');
+  assert.equal(baza.komentarze.find((k) => k.id === k2.id).tresc, '–');
+  // Usunięcie widać u Bartka od razu – kanał z filtrem nie dostaje DELETE, więc usunięcie idzie jako zmiana (#172).
+  await b.waitForFunction(() => document.querySelector('.komentarze-podgladu .licznik-komentarzy')?.textContent === '1', null, { timeout: 15000 });
 
   // Przejście z listy do miejsca: „Pokaż na stronie” zaznacza wątek (pinezka wybrana).
   await rozwin(a, k1.id);
@@ -175,4 +178,94 @@ test('komentarz przy zaznaczonym elemencie i trasa #/p/<id>/k/<wątek> otwiera w
   await a.keyboard.press('Escape');
   assert.equal(await a.getAttribute('[data-akcja="komentarz"]', 'aria-pressed'), 'false');
   assert.equal(await a.evaluate(() => document.body.dataset.ekran), 'edytor');
+});
+
+// #172: poprawianie własnego komentarza, pisana odpowiedź nie znika przy zmianie na żywo od innej osoby,
+// odpowiedź do wątku usuniętego w międzyczasie – czytelny błąd, pinezka komentarza do usuniętego elementu zostaje
+// w miejscu, komentarz do usuniętej strony – bez „Pokaż na stronie”.
+test('komentarze: poprawka, szkic odpowiedzi przy zmianie na żywo, usunięty wątek, usunięty element i strona', async (t) => {
+  const anna = await otworz(t, { konta: [ANNA, BARTEK].map((k) => ({ ...k })) });
+  const { strona: a, baza } = anna;
+  await nowyProjekt(a, 'Brzegowe');
+  await a.click('[data-akcja="dodaj-prostokat"]');
+  await a.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.set({ left: 30, top: 40 }); e.aktywny.setCoords(); e.zatwierdz(); });
+  await zapisano(a);
+  const pid = baza.projekty[0].id;
+  baza.wspolpracownicy.push({ projekt_id: pid, uzytkownik: BARTEK.id, rola: 'edycja', dodano: new Date().toISOString() });
+
+  // Komentarz Anny przy prostokącie.
+  await a.click('[data-akcja="komentarz"]');
+  await a.waitForSelector('#dlg-komentarze[open] #nowy-komentarz:not([hidden])');
+  await a.fill('#nowy-komentarz-tresc', 'Kolor do zmiany');
+  await a.keyboard.press('Control+Enter');
+  await a.waitForFunction(() => document.querySelectorAll('#lista-komentarzy .watek-komentarza').length === 1);
+  const k1 = baza.komentarze[0];
+  assert.ok(k1.element_id);
+
+  // Poprawka własnego komentarza.
+  await rozwin(a, k1.id);
+  await a.click(`.watek-komentarza[data-id="${k1.id}"] .akcje-watku [data-op="zmien"]`);
+  await a.waitForSelector(`.poprawa-komentarza[data-id="${k1.id}"] textarea`);
+  await a.fill(`.poprawa-komentarza[data-id="${k1.id}"] textarea`, 'Kolor do zmiany na granat');
+  await a.keyboard.press('Control+Enter');
+  await a.waitForFunction(() => /na granat/.test(document.querySelector('#lista-komentarzy .tresc-komentarza')?.textContent || ''));
+  assert.equal(baza.komentarze[0].tresc, 'Kolor do zmiany na granat');
+
+  // Bartek (może edytować) otwiera projekt; przy cudzym komentarzu nie ma „Popraw”.
+  const bartek = await drugieUrzadzenie(anna);
+  const b = bartek.strona;
+  await zaloguj(b, BARTEK);
+  await b.evaluate((x) => { location.hash = `#/p/${x}`; }, pid);
+  await b.waitForFunction(() => document.querySelector('.przycisk-komentarzy .licznik-komentarzy')?.textContent === '1', null, { timeout: 20000 });
+  await b.evaluate(() => document.querySelector('[data-akcja="komentarze"]').click());
+  await b.waitForSelector('#dlg-komentarze[open] .watek-komentarza');
+  await rozwin(b, k1.id);
+  assert.equal(await b.locator(`.watek-komentarza[data-id="${k1.id}"] [data-op="zmien"]`).count(), 0, 'cudzego nie poprawi');
+
+  // Anna pisze odpowiedź; w tym czasie Bartek dodaje własny wątek – lista Anny buduje się od nowa, szkic zostaje.
+  const pierwsza = await a.evaluate(() => window.seriodruk.stan.projekt.strony[0].id);
+  await a.fill(`.watek-komentarza[data-id="${k1.id}"] .odpowiedz-komentarz textarea`, 'Piszę właśnie');
+  await b.evaluate(async ([projekt, strona]) => {
+    const km = await import('./js/komentarze-chmura.js');
+    await km.dodajKomentarz({ projekt, strona, x: 50, y: 50, tresc: 'Nowy od Bartka' });
+  }, [pid, pierwsza]);
+  await a.waitForFunction(() => document.querySelectorAll('#lista-komentarzy .watek-komentarza').length === 2, null, { timeout: 15000 });
+  assert.equal(await a.inputValue(`.watek-komentarza[data-id="${k1.id}"] .odpowiedz-komentarz textarea`), 'Piszę właśnie', 'szkic odpowiedzi nie zginął');
+
+  // Anna usuwa wątek Bartka – znika u Bartka od razu; spóźniona odpowiedź do niego daje czytelny błąd.
+  const k2 = baza.komentarze.find((k) => k.tresc === 'Nowy od Bartka');
+  await rozwin(a, k2.id);
+  await a.click(`.watek-komentarza[data-id="${k2.id}"] [data-op="usun"]`);
+  await a.click('#dlg-potwierdz[open] #potwierdz-tak');
+  await b.waitForFunction((id) => !document.querySelector(`#lista-komentarzy .watek-komentarza[data-id="${id}"]`), k2.id, { timeout: 15000 });
+  const blad = await b.evaluate(async ([projekt, watek]) => {
+    const km = await import('./js/komentarze-chmura.js');
+    try { await km.dodajKomentarz({ projekt, tresc: 'Za późno', watek }); return ''; } catch (e) { return e.message; }
+  }, [pid, k2.id]);
+  assert.match(blad, /usunięty/);
+
+  // Usunięty prostokąt: pinezka zostaje w zapisanym miejscu na stronie.
+  await a.click('#komentarze-zamknij');
+  await a.evaluate((id) => { const e = window.seriodruk.edytor; const o = e.canvas.getObjects().find((x) => x.id === id); e.canvas.remove(o); e.canvas.requestRenderAll(); }, k1.element_id);
+  await a.waitForSelector(`.pinezki-komentarzy .pinezka-komentarza[data-watek="${k1.id}"]`);
+  const poz = await a.evaluate((id) => { const p = document.querySelector(`.pinezka-komentarza[data-watek="${id}"]`).getBoundingClientRect(); const c = window.seriodruk.edytor.canvas.upperCanvasEl.getBoundingClientRect(); return p.left > c.left && p.left < c.right && p.top > c.top && p.top < c.bottom; }, k1.id);
+  assert.ok(poz, 'pinezka na stronie');
+
+  // Komentarz do strony, którą potem usunięto: „strona usunięta”, „Pokaż na stronie” nieaktywne.
+  const druga = await a.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const p = window.seriodruk.stan.projekt;
+    const s = P.nowaStrona('Druga', p.sekcje[0].id);
+    p.strony.push(s);
+    return s.id;
+  });
+  await a.evaluate(async ([projekt, strona]) => (await import('./js/komentarze-chmura.js')).dodajKomentarz({ projekt, strona, x: 5, y: 5, tresc: 'Na drugiej' }), [pid, druga]);
+  await a.evaluate(() => { window.seriodruk.stan.projekt.strony.splice(1, 1); });
+  await a.evaluate(() => document.querySelector('[data-akcja="komentarze"]').click());
+  await a.click('.filtry-komentarzy [data-filtr="wszystkie"]');
+  const k3 = baza.komentarze.find((k) => k.tresc === 'Na drugiej');
+  await a.waitForSelector(`.watek-komentarza[data-id="${k3.id}"]`);
+  await rozwin(a, k3.id);
+  assert.match(await a.textContent(`.watek-komentarza[data-id="${k3.id}"] .opis-watku`), /strona usunięta/);
+  assert.equal(await a.isDisabled(`.watek-komentarza[data-id="${k3.id}"] [data-op="pokaz"]`), true);
 });

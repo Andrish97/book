@@ -3099,6 +3099,12 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .odpowiedzi li small { color: var(--cichy); }
 .odpowiedzi li p { margin: 2px 0 0; overflow-wrap: anywhere; }
 .odpowiedzi li .przycisk-ikona { position: absolute; top: -4px; right: 0; }
+.odpowiedzi li .przycisk-ikona[data-op="zmien"] { right: 30px; }
+/* Poprawianie własnego komentarza (#172) i znacznik poprawionego. */
+.poprawa-komentarza { display: flex; flex-direction: column; gap: 6px; margin: 4px 10px 8px 40px; }
+.odpowiedzi .poprawa-komentarza { margin: 4px 0 0; }
+.poprawa-komentarza textarea { width: 100%; box-sizing: border-box; resize: vertical; font: inherit; }
+.tresc-komentarza .zmieniony, .odpowiedzi .zmieniony { color: var(--cichy); font-size: 11px; }
 .odpowiedz-komentarz textarea, #nowy-komentarz-tresc { width: 100%; box-sizing: border-box; resize: vertical; font: inherit; }
 .podpowiedzi-wzmianek { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .akcje-watku { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
