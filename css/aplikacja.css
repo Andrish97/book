@@ -1259,14 +1259,23 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 
 .ekran-podgladu { flex-direction: column; }
 .podglad-opis { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Pasek podglądu (#189): nazwa projektu w jednej linii (z wielokropkiem, pełna w dymku), opis ustępuje pierwszy –
+   długa nazwa nie zawija się w kilka linii i nie ucina liczby stron w pół słowa. */
+@media (min-width: 861px) {
+  .pasek-podgladu .tytul-ekranu { flex: 0 1 auto; min-width: 6em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pasek-podgladu .podglad-opis { flex: 0 1000 auto; min-width: 0; }
+}
 .podglad-tresc {
   --skala: 2;
   flex: 1; overflow: auto; outline: none;
   padding: 24px 32px 80px; background: var(--obszar);
 }
 .podglad-sekcja { display: flex; flex-direction: column; align-items: center; gap: 28px; margin-bottom: 44px; min-width: min-content; }
+.podglad-tresc { container-type: inline-size; }
+/* Nagłówek sekcji (#189): szerokość okna podglądu, przyklejony do lewej – przy szerokiej okładce (przewijanej
+   w bok) nie ucina się z lewej. */
 .podglad-sekcja h2 {
-  align-self: stretch; position: sticky; left: 0;
+  align-self: flex-start; position: sticky; left: 32px; width: 100cqw; box-sizing: border-box; overflow-wrap: anywhere;
   font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--tusz-2);
   padding-bottom: 8px; border-bottom: 1px solid var(--linia-mocna);
 }
@@ -1280,6 +1289,7 @@ body.tryb-wzorca .kontener-plotna { background: var(--obszar-wzorca); }
 
 @media (max-width: 860px) {
   .podglad-tresc { padding: 16px 12px 60px; }
+  .podglad-sekcja h2 { left: 12px; }
   .podglad-opis { display: none; }
 }
 /* Wąski ekran (#154): przy tylu przyciskach nazwa projektu nie mieściła się w pasku – idzie do drugiej linii,

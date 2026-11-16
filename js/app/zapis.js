@@ -368,6 +368,9 @@ export async function otworzProjekt(p, cel = {}) {
     wczytajLokalnie(otwarty.id).then((r) => { if (r?.doSynchronizacji && stan.projekt === otwarty && rozni()) zaplanujChmure(); }).catch(() => {});
   }
   obrazyOdAi(stan.projekt);
+  // Link nieaktualny względem projektu (np. sprzed makiety 3D w linku, #189) aktualizuje się sam po otwarciu –
+  // z opóźnieniem jak przy zmianach z konta, żeby dwa otwarte urządzenia nie rysowały go naraz.
+  if (stan.uzytkownik) zaplanujAktualizacjeLinku(OPOZNIENIE_LINKU_Z_KONTA_MS);
   // Starsze obrazy nie mają zapisanych wymiarów – łącznik AI potrzebuje ich do wstawiania (czytane z nagłówka pliku).
   uzupelnijWymiary(stan.projekt).then((ile) => { if (ile && stan.uzytkownik) zaplanujChmure(2000); }).catch(() => {});
   // Współpraca (js/app/wspolpraca.js, js/app/obecnosc.js): tryb projektu i obecność innych osób.

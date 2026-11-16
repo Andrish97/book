@@ -139,6 +139,7 @@ export class Podglad {
     this.zrodlo = zrodlo;
     const n = stronyUkladu(this.uklad).length;
     $('#podglad-tytul').textContent = this.uklad.nazwa;
+    $('#podglad-tytul').title = this.uklad.nazwa;
     $('#podglad-opis').textContent = `${n} ${odmianaStron(n)} · ${zrodlo.opis}`;
     this.buduj();
     for (const fig of this.el.querySelectorAll('.podglad-strona[data-id]')) {
@@ -170,6 +171,7 @@ export class Podglad {
     this.zrodlo = zrodlo;
     const n = stronyUkladu(uklad).length;
     $('#podglad-tytul').textContent = uklad.nazwa;
+    $('#podglad-tytul').title = uklad.nazwa;
     $('#podglad-opis').textContent = `${n} ${odmianaStron(n)} · ${zrodlo.opis}`;
     this.buduj();
     this.dopasuj();

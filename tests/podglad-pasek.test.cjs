@@ -21,6 +21,29 @@ test('telefon: nazwa projektu w podglądzie w drugiej linii, w całości', async
   assert.deepEqual(bledy, []);
 });
 
+// #189: średni ekran (900 px) – nazwa w jednej linii, nie w trzech; nagłówek sekcji szerokiej okładki
+// przewiniętej w bok zostaje w oknie (nie ucina się z lewej).
+test('średni ekran: nazwa w jednej linii, nagłówek sekcji widoczny przy przewinięciu w bok', async (t) => {
+  const { strona, bledy } = await otworz(t, { widok: { width: 900, height: 700 } });
+  await nowyProjekt(strona, 'Dziennik biblijny 2027 – blok');
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForSelector('.podglad-strona[data-id]');
+  await strona.evaluate(() => { const t = document.querySelector('.podglad-tresc'); t.style.setProperty('--skala', '6'); });
+  await strona.waitForTimeout(200);
+  const w = await strona.evaluate(async () => {
+    const t = document.querySelector('.podglad-tresc');
+    t.scrollTo(t.scrollWidth, 0);
+    await new Promise((ok) => { requestAnimationFrame(() => requestAnimationFrame(ok)); });
+    const h = document.querySelector('#podglad-tytul');
+    const lh = parseFloat(getComputedStyle(h).lineHeight) || 20;
+    const n = document.querySelector('.podglad-sekcja h2').getBoundingClientRect();
+    const o = t.getBoundingClientRect();
+    return { przewiniete: t.scrollLeft > 0, jednaLinia: h.getBoundingClientRect().height < lh * 1.5, dymek: h.title, wOknie: n.left >= o.left && n.right <= o.right + 1 };
+  });
+  assert.deepEqual(w, { przewiniete: true, jednaLinia: true, dymek: 'Dziennik biblijny 2027 – blok', wOknie: true });
+  assert.deepEqual(bledy, []);
+});
+
 test('podgląd separacji: płótno w proporcjach strony', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Separacje');

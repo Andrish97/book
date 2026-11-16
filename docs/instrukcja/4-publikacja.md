@@ -79,8 +79,9 @@ jednym arkuszu — też dzieli się na dwie strony.
 - [Pobierz obraz makiety] zapisuje obraz PNG w tym samym kadrze co na ekranie — np. do oferty albo wpisu
   w sieci. Rozmiar wybierasz w części **Eksport** (niżej). W ciemnym motywie tło studia jest ciemne.
 
-Osoba z linkiem do podglądu (→ 23.1) też widzi makietę — w jednym wariancie, bez ustawień; po zmianie ujęć
-kliknij w oknie Udostępnij [Aktualizuj teraz], żeby link pokazywał nowy wariant.
+Osoba z linkiem do podglądu (→ 23.1) też widzi makietę — w jednym wariancie, bez ustawień. Link idzie za
+zmianami sam: po zapisaniu ujęcia pokaże nowy wariant, a link utworzony wcześniej dostanie makietę przy
+najbliższym otwarciu projektu.
 
 ### Gotowe ujęcia
 
@@ -403,8 +404,8 @@ Link do podglądu dla osób bez konta — klienta, rodziny, drukarni.
 
 Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów.
 Może też otworzyć [Makieta 3D] (→ 19.4): obracać ją, kartkować i pobrać obraz — w jednym wariancie, takim
-jak Twój w chwili publikacji (pierwsze zapisane ujęcie, a bez ujęć — rodzaj, ułożenie i światło z Twojej makiety),
-bez ustawień i bez zmiany rodzaju.
+jak Twój (pierwsze zapisane ujęcie, a bez ujęć — rodzaj, ułożenie i światło z Twojej makiety), bez ustawień
+i bez zmiany rodzaju. Makieta aktualizuje się w linku sama, także w linkach utworzonych przed jej dodaniem.
 
 1. W podglądzie kliknij [Udostępnij].
 2. [Utwórz link] — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.

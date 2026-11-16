@@ -38,6 +38,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 189 | Makieta w linku aktualizuje się sama, także w starych linkach (po otwarciu projektu i po zapisie ujęcia); w podglądzie nazwa projektu w jednej linii zamiast trzech, nagłówek sekcji okładki nie ucina się z lewej |
 | 188 | Makieta 3D w podglądzie z linku: oglądający bez konta obraca, kartkuje i pobiera obraz makiety (jeden wariant – jak u właściciela w chwili publikacji, bez ustawień); stare linki bez przycisku do pierwszej aktualizacji |
 | 186.1 | Suwaki makiety 3D z własnym wyglądem (tor i okrągły uchwyt 22 px pod palec, oba motywy) zamiast systemowych – test kontrolki-dotyk znów przechodzi |
 | 187 | Druk w domu odporny na okno drukowania przeglądarki: drukujemy gotowy PDF (bez nagłówków i stopek przeglądarki), skala 100% i dupleks zapisane w pliku, widoczna ramka „W oknie drukarki” (skala, marginesy, nagłówki i stopki), strona próbna z linijką 100 mm i ramkami 3/5/10 mm, informacja o zmniejszeniu strony do marginesu drukarki |

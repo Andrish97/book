@@ -105,3 +105,34 @@ test('makieta 3D z linku: ta sama bryła co u właściciela, obrazy linku, kartk
   assert.ok(await obca.isHidden('[data-akcja="podglad-makieta"]'));
   await gosc.close();
 });
+
+// #189: link sprzed #188 (manifest bez opisu makiety, stary odcisk) uzupełnia się sam po otwarciu projektu –
+// bez klikania „Aktualizuj teraz”.
+test('stary link bez makiety: po otwarciu projektu manifest sam dostaje opis makiety', async (t) => {
+  const { strona, baza } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
+  await nowyProjekt(strona, 'Stary link');
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 30000 });
+  const klucz = [...baza.pliki.keys()].find((k) => k.startsWith('podglady/') && k.endsWith('manifest.json'));
+  const manifest = () => JSON.parse(baza.pliki.get(klucz).tresc.toString());
+  // Udajemy link sprzed #188: manifest bez makiety i odcisk liczony po staremu.
+  const stary = manifest();
+  delete stary.uklad.makieta;
+  baza.pliki.set(klucz, { ...baza.pliki.get(klucz), tresc: Buffer.from(JSON.stringify(stary)) });
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.udostepnienie.odcisk = 'sprzed-188';
+    document.querySelector('#dlg-udostepnij')?.close();
+    await (await import('./js/app/zapis.js')).otworzProjekt(p);
+  });
+  const start = Date.now();
+  while (!manifest().uklad.makieta && Date.now() - start < 40000) await strona.waitForTimeout(500);
+  assert.ok(manifest().uklad.makieta, 'manifest po otwarciu projektu ma opis makiety');
+});

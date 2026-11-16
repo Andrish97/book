@@ -67,7 +67,9 @@ function skrot(tekst) {
   for (let i = 0; i < tekst.length; i += 1) { h ^= tekst.charCodeAt(i); h = Math.imul(h, 16777619); }
   return `${tekst.length}-${(h >>> 0).toString(36)}`;
 }
-const odciskTresci = (projekt) => skrot(JSON.stringify([projekt.nazwa, projekt.sekcje, projekt.wzorce, projekt.strony, projekt.style, projekt.tabele, projekt.serie, projekt.czcionki]));
+// 'm1' i projekt.makieta (#189): link idzie też za makietą 3D – a link sprzed #188 (bez opisu makiety) ma inny
+// odcisk, więc przy najbliższym otwarciu projektu sam się uzupełnia (wysyła się tylko opis, strony się nie zmieniły).
+const odciskTresci = (projekt) => skrot(JSON.stringify(['m1', projekt.nazwa, projekt.sekcje, projekt.wzorce, projekt.strony, projekt.style, projekt.tabele, projekt.serie, projekt.czcionki, projekt.makieta || null]));
 
 // Skrót wszystkiego, od czego zależy wygląd jednej strony wydruku. Strona o tym samym
 // skrócie co przy poprzedniej aktualizacji linku nie jest rysowana ani wysyłana.
