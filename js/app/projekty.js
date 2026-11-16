@@ -414,6 +414,8 @@ $('#dlg-nowy').addEventListener('close', async () => {
   }
   await otworzProjekt(projekt);
   await zapiszTeraz();
+  // Gotowy szablon (#166): galeria w formacie nowego projektu; wybrany szablon zastępuje pustą stronę startową.
+  if (f.elements.start?.value === 'szablon') (await import('./gotowe-sekcje-okno.js')).otworzGotoweSekcje({ zastapPusty: true });
 });
 
 // Projekt zniknął z konta (Realtime DELETE): otwarty – zamykamy bez zapisu (inaczej zapis założyłby go od nowa)

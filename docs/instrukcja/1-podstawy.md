@@ -195,6 +195,9 @@ i:
 
 Wszystko zmienisz później w ustawieniach sekcji (→ 11.4).
 
+**Zacznij od**: **Pustej strony** albo **Gotowego szablonu** — wtedy po utworzeniu projektu otworzy się
+galeria gotowych sekcji (kalendarz, planer, zaproszenie…), a wybrany szablon zastąpi pustą stronę (→ 11.10).
+
 ![Nowy projekt](nowy-projekt.png)
 
 ## 3.3 Menu projektu

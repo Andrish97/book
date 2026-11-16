@@ -253,3 +253,6 @@ zarejestrujKategorie({
     ];
   },
 });
+
+// Gotowe sekcje (#166) – kategoria w osobnym module.
+import './biblioteka-gotowe-sekcje.js';

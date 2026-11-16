@@ -203,6 +203,8 @@ Kliknięcie karty otwiera projekt w edytorze — na stronie, którą ostatnio ed
 
 Wszystko zmienisz później w ustawieniach sekcji (rozdział „11.4 Ustawienia sekcji”).
 
+**Zacznij od**: **Pustej strony** albo **Gotowego szablonu** — wtedy po utworzeniu projektu otworzy się galeria gotowych sekcji (kalendarz, planer, zaproszenie…), a wybrany szablon zastąpi pustą stronę (rozdział „11.10 Gotowe sekcje (szablony dokumentów)”).
+
 ![Nowy projekt](https://makietka.app/img/instrukcja/nowy-projekt.png)
 
 ### 3.3 Menu projektu
@@ -426,6 +428,7 @@ Biblioteka to gotowe elementy do wstawienia: kształty, ramki, ozdobniki, planer
 | Kategoria | Co w niej jest |
 |---|---|
 | **Moje elementy** | Elementy zapisane przez Ciebie – na koncie, w każdym projekcie (niżej). |
+| **Gotowe sekcje** | Całe dokumenty: kalendarze, planery, notesy, zaproszenia, dyplomy, wizytówki, ulotki, menu, rozdziały książki… Kafelek otwiera okno gotowych sekcji na tym szablonie (rozdział „11.10 Gotowe sekcje (szablony dokumentów)”). |
 | **Kształty** | Ponad 200 kształtów w grupach: **Podstawowe** (koło, kwadrat, owale, trójkąty, łuki, pierścień, sześcian, walec…), **Wielokąty** (także zaokrąglone, plaster miodu), **Gwiazdy i odznaki** (gwiazdy, pieczęcie, medal, zębatka, odznaki promocyjne), **Serca i natura** (serca, kwiaty, liście, chmury, góry, fala, płomień, tęcza, zwierzęta…), **Symbole i ikony** (dom, telefon, korona, puchar, kłódka, osoba, laptop, klucz, puzzel, mapa…), **Okolicznościowe** (prezent, balon, choinka, bombka, tort, pisanka, bałwanek…), **Znaki** (plus, minus, procent, pytajnik, ptaszek, pola wyboru…). |
 | **Strzałki i dymki** | Strzałki w każdą stronę, na skos, zakręcone, z kolanem, łukiem, faliste, wymiany, rozgałęzione; szewrony; dymki z każdej strony, okrągłe, owalne, myśli, chmurka, krzyku, dwa dymki. |
 | **Ramki** | Ponad 60 ramek w grupach: **Proste**, **Zaokrąglone**, **Podwójne i przerywane** (przerywana, kropkowana, kreska – kropka – to sam obrys), **Ozdobne**, **Z miejscem na tytuł**, **W kształcie** (serce, owal, koło, chmurka, ośmiokąt, łuk, gwiazda…), **Na zdjęcie** (pola w kształcie koła, serca, łuku, chmurki… – wstaw do nich obraz, a także odbitka, slajd, klatka filmu), **Kartki i notatki**, **Obramowania stron** (wstawiają się od razu na całą stronę). |
@@ -1148,6 +1151,20 @@ Kalendarz z A4 na A3, książka z B5 na A5 — format zmienisz razem z elementam
 ![Zmiana formatu z podglądem przed i po](https://makietka.app/img/instrukcja/k-format.png)
 
 Okładka z grzbietem (rozdział „11.6 Okładka z grzbietem”) przelicza się sama po zmianie formatu środka. Elementy, które po zmianie wystają poza stronę, pokaże **Sprawdź przed drukiem** (rozdział „21 Sprawdź przed drukiem”).
+
+### 11.10 Gotowe sekcje (szablony dokumentów)
+
+Cały gotowy dokument wstawisz jednym kliknięciem jako nową sekcję: kalendarz ścienny, planer na 365 dni, notes, zaproszenie, dyplomy dla listy osób, wizytówki, ulotkę, menu, rozdział książki i ponad 30 innych. Gdzie: na dole panelu stron przycisk **Gotowa** (obok **Sekcja**), w Bibliotece kategoria **Gotowe sekcje** (rozdział „5.8 Biblioteka”) albo od razu przy nowym projekcie: **Zacznij od → Gotowego szablonu** (rozdział „3.2 Nowy projekt”).
+
+![Gotowe sekcje – galeria szablonów](https://makietka.app/img/instrukcja/k-gotowe-sekcje.png)
+
+1. Wybierz rodzaj u góry (**Książka**, **Kalendarze**, **Planery i notesy**, **Zaproszenia i dyplomy**, **Firma i reklama**, **Inne**) albo wpisz słowo w **Szukaj**. Miniatura pokazuje pierwszą stronę w formacie Twojego projektu, a pod nią widać, ile stron powstanie. Plakietka **z danymi** – strony biorą treść z tabeli (np. 365 dni, osoby do dyplomów).
+2. Kliknij szablon. Zobaczysz podgląd pierwszych stron i ustawienia: - pytania szablonu, np. **Rok** kalendarza albo **Liczba stron** notesu, - **Kolory**: kolory marki (gdy masz zestaw marki, rozdział „2.9 Zestaw marki”), kolory szablonu albo jedna z gotowych palet, - szablony z własnym formatem (wizytówka 85 × 55 mm, dyplom A4 poziomo, etykieta 70 × 40 mm) mają przełącznik formatu – odznacz go, żeby szablon dopasował się do formatu sekcji.
+3. **Wstaw jako nową sekcję**. Sekcja staje za bieżącą, a edytor przechodzi na jej pierwszą stronę.
+
+![Szczegóły szablonu – podgląd, rok i kolory](https://makietka.app/img/instrukcja/k-gotowe-szczegoly.png)
+
+Szablon nie jest zamrożonym plikiem: buduje się dla Twojego formatu, marginesów i spadu, w kolorach i czcionkach marki. Po wstawieniu to zwykłe strony, wzorce (np. numer strony), style i tabela danych z serią (rozdział „15 Tabele danych”, „17 Serie”) – zmienisz w nich wszystko jak we własnych. Szare pola to miejsca na zdjęcia: wstaw do nich obraz (rozdział „8.7 Obraz w kształcie”). Całą wstawioną sekcję usuwa jedno **Cofnij** (`Ctrl`+`Z`).
 
 ## 12. Wzorce
 
