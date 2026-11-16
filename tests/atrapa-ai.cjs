@@ -490,9 +490,9 @@ function atrapaAi(stan) {
       const k = (stan.konta || []).find((x) => x.id === d.owner_id);
       const km = stan.komentarzeAI;
       try {
-        if (funkcja === 'ai_komentarze') return { projekt_id: d.projekt_id, komentarze: stan.komentarze.filter((x) => x.projekt_id === d.projekt_id).sort((a, b) => a.n - b.n).map((x) => km.json(x, null)) };
+        if (funkcja === 'ai_komentarze') return { projekt_id: d.projekt_id, komentarze: stan.komentarze.filter((x) => x.projekt_id === d.projekt_id && !x.usunieto).sort((a, b) => a.n - b.n).map((x) => km.json(x, null)) };
         if (funkcja === 'ai_skomentuj') return km.json(km.dodaj(k, { ...tresc, p_projekt: d.projekt_id }, 'ai', (d.opis || '').trim() || 'AI'), null);
-        const x = stan.komentarze.find((y) => y.id === tresc.p_id && !y.watek && y.projekt_id === d.projekt_id);
+        const x = stan.komentarze.find((y) => y.id === tresc.p_id && !y.watek && !y.usunieto && y.projekt_id === d.projekt_id);
         if (!x) return { blad: 'Nie ma takiego wątku w tym projekcie.' };
         return km.rozwiaz(k, { p_id: x.id, p_rozwiazany: tresc.p_rozwiazany !== false });
       } catch (e) { return { blad: e.message }; }

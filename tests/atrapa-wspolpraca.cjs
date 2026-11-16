@@ -84,8 +84,8 @@ function atrapaWspolpracy(stan) {
     let watek = null;
     let strona = p_strona;
     if (p_watek) {
-      const w = stan.komentarze.find((y) => y.id === p_watek && y.projekt_id === p_projekt);
-      if (!w) throw blad('Nie ma takiego wątku', 'P0002', 404);
+      const w = stan.komentarze.find((y) => y.id === p_watek && y.projekt_id === p_projekt && !y.usunieto);
+      if (!w) throw blad('Ten wątek został usunięty albo nie ma go w tym projekcie', 'P0002', 404);
       watek = w.watek || w.id;
       strona = stan.komentarze.find((y) => y.id === watek).strona_id;
     } else if (!strona) throw blad('Podaj stronę komentarza');
@@ -246,14 +246,15 @@ function atrapaWspolpracy(stan) {
     // Komentarze na stronach (migracja 20261116200000_komentarze.sql, #131D).
     komentarze_projektu(k, { p_projekt }) {
       if (!rolaW(stan, k, p_projekt)) throw blad('Nie masz dostępu do tego projektu', '42501', 403);
-      return stan.komentarze.filter((x) => x.projekt_id === p_projekt).sort((a, b) => a.n - b.n).map((x) => komentarzJson(x, k));
+      return stan.komentarze.filter((x) => x.projekt_id === p_projekt && !x.usunieto).sort((a, b) => a.n - b.n).map((x) => komentarzJson(x, k));
     },
     dodaj_komentarz(k, a) {
       return komentarzJson(dodajKomentarz(k, a, 'konto', null), k);
     },
     zmien_komentarz(k, { p_id, p_tresc }) {
-      const x = stan.komentarze.find((y) => y.id === p_id);
+      const x = stan.komentarze.find((y) => y.id === p_id && !y.usunieto);
       if (!x || x.autor !== k.id || x.zrodlo !== 'konto') throw blad('Zmienić można tylko własny komentarz', '42501', 403);
+      if (!String(p_tresc || '').trim()) throw blad('Komentarz jest pusty');
       x.tresc = String(p_tresc || '').trim();
       x.wzmianki = wzmianki(x.projekt_id, x.tresc);
       x.zmieniono = new Date().toISOString();
@@ -262,15 +263,18 @@ function atrapaWspolpracy(stan) {
     },
     usun_komentarz(k, { p_id }) {
       const x = stan.komentarze.find((y) => y.id === p_id);
-      if (!x) return null;
+      if (!x || x.usunieto) return null;
       const rola = rolaW(stan, k, x.projekt_id);
       if (!(rola === 'wlasciciel' || (x.autor === k.id && x.zrodlo === 'konto'))) throw blad('Usunąć może autor albo właściciel projektu', '42501', 403);
-      stan.komentarze = stan.komentarze.filter((y) => y !== x && y.watek !== x.id);
-      oglosKomentarz(x, 'DELETE');
+      // Jak migracja 20261117100000: ślad (UPDATE) zamiast skasowania – zmiana idzie kanałem z filtrem (#172).
+      for (const y of stan.komentarze.filter((z) => !z.usunieto && (z === x || (!x.watek && z.watek === x.id)))) {
+        Object.assign(y, { usunieto: new Date().toISOString(), tresc: '–', wzmianki: [], podpis: null });
+        oglosKomentarz(y, 'UPDATE');
+      }
       return null;
     },
     rozwiaz_komentarz(k, { p_id, p_rozwiazany }) {
-      const x = stan.komentarze.find((y) => y.id === p_id);
+      const x = stan.komentarze.find((y) => y.id === p_id && !y.usunieto);
       if (!x || !rolaW(stan, k, x.projekt_id)) throw blad('Nie ma takiego komentarza', 'P0002', 404);
       if (x.watek) throw blad('Rozwiązuje się cały wątek, nie odpowiedź');
       x.rozwiazany = p_rozwiazany !== false;

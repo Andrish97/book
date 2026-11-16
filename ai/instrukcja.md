@@ -2103,9 +2103,12 @@ Przycisk **Komentarze** na górnym pasku edytora i w podglądzie pokazuje liczb�
 - Filtry: **Nierozwiązane**, **Wszystkie**, **Moje** (moje wątki, moje odpowiedzi i wzmianki o mnie).
 - Kliknij wątek, żeby go rozwinąć: odpowiedzi, pole **Odpowiedz**, **Pokaż na stronie** — przejście do strony i zaznaczenie elementu.
 - **Rozwiąż** zamyka wątek, gdy uwaga jest załatwiona; pinezka znika ze strony. **Otwórz ponownie** przywraca go (filtr **Wszystkie**).
-- Usuwa autor komentarza albo właściciel projektu.
+- Własny komentarz albo odpowiedź poprawisz ołówkiem **Popraw** — poprawiony ma dopisek „(poprawiony)”. Ctrl+Enter zapisuje poprawkę i wysyła odpowiedź.
+- Usuwa autor komentarza albo właściciel projektu. Usunięty wątek znika u wszystkich od razu, razem z odpowiedziami.
+- Komentarz przy elemencie idzie za elementem, gdy go przesuniesz. Gdy element usuniesz, pinezka zostaje w miejscu, gdzie komentarz dodano. Gdy usuniesz stronę, wątek zostaje na liście z opisem „strona usunięta”.
+- Komentarze dodaje się na stronach, nie na wzorcach — uwagę do wzorca przypnij na stronie, która go używa.
 
-Komentarze i odpowiedzi pojawiają się u wszystkich od razu. Gdy masz włączone powiadomienia z przełącznikiem **Komentarze**, dowiesz się o nowym komentarzu w Twoim projekcie, o odpowiedzi w Twoim wątku i o wzmiance o Tobie — kliknięcie powiadomienia otwiera wątek (**Ustawienia konta** → **Powiadomienia**, → 2.6).
+Komentarze i odpowiedzi pojawiają się u wszystkich od razu. Odpowiedź, którą właśnie piszesz, nie znika, gdy w tym czasie ktoś inny coś doda. Gdy masz włączone powiadomienia z przełącznikiem **Komentarze**, dowiesz się o nowym komentarzu w Twoim projekcie, o odpowiedzi w Twoim wątku i o wzmiance o Tobie — kliknięcie powiadomienia otwiera wątek (**Ustawienia konta** → **Powiadomienia**, → 2.6).
 
 AI połączone kluczem też czyta komentarze, odpowiada na nie i może je rozwiązać po poprawce (rozdział „26.1 Co potrafi AI”).
 

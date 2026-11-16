@@ -64,7 +64,7 @@ async function wczytaj() {
   const id = projektId;
   wczytywanie = km.komentarzeProjektu(id).then((w) => {
     if (id !== projektId) return;
-    komentarze = w;
+    komentarze = w.filter((k) => !k.usunieto);
     odswiez();
   }).catch(() => { /* projekt jeszcze nie na koncie albo brak sieci – spróbujemy przy następnej okazji */ });
   return wczytywanie;
@@ -82,6 +82,7 @@ export function wlaczKomentarze(projekt) {
   if (projekt?.id === projektId) return;
   projektId = projekt?.id || null;
   komentarze = [];
+  edytowany = null;
   osoby = [];
   otwartyWatek = null;
   szkic = null;
@@ -120,7 +121,27 @@ export async function otworzKomentarze({ watek = null } = {}) {
   if (watek) idzDo(watek);
 }
 
+// Pisana odpowiedź albo poprawka nie może zniknąć, gdy lista buduje się od nowa – np. bo ktoś inny właśnie
+// dodał komentarz (zmiana na żywo, #172). Zapamiętujemy treść, fokus i kursor pól i wstawiamy je z powrotem.
+function zapamietajPola() {
+  const pola = new Map();
+  for (const t of $$('textarea[data-pole]', lista)) {
+    pola.set(t.dataset.pole, { v: t.value, fokus: document.activeElement === t, a: t.selectionStart, b: t.selectionEnd });
+  }
+  return pola;
+}
+function przywrocPola(pola) {
+  for (const t of $$('textarea[data-pole]', lista)) {
+    const p = pola.get(t.dataset.pole);
+    if (!p) continue;
+    t.value = p.v;
+    if (p.fokus) { t.focus(); t.setSelectionRange(p.a, p.b); }
+  }
+}
+let edytowany = null; // id komentarza, którego treść właśnie poprawiam
+
 function pokazListe() {
+  const pola = zapamietajPola();
   for (const b of $$('.filtry-komentarzy [data-filtr]', dlg)) b.setAttribute('aria-pressed', String(b.dataset.filtr === filtr));
   const nr = numery();
   const ja = stan.uzytkownik?.id;
@@ -140,21 +161,29 @@ function pokazListe() {
     const gdzie = `${nazwaStrony(k.strona_id)}${k.element_id ? ` · ${opisElementu(st, k.element_id)}` : ''}`;
     const odp = odpowiedzi(k.id);
     const mozeUsunac = (k.moj || wlasciciel);
+    const zmieniony = (x) => (x.zmieniono && x.utworzono && new Date(x.zmieniono) - new Date(x.utworzono) > 2000 ? ' <small class="zmieniony">(poprawiony)</small>' : '');
+    // Treść albo – przy poprawianiu własnego komentarza – pole z przyciskami.
+    const tresc = (x, korzen = false) => (edytowany === x.id
+      ? `<div class="poprawa-komentarza" data-id="${x.id}"><textarea rows="2" maxlength="4000" data-pole="z-${x.id}" aria-label="Popraw komentarz">${esc(x.tresc)}</textarea>
+          <div class="akcje-watku"><span class="odstep"></span><button type="button" class="przycisk maly" data-op="anuluj-zmiane">Anuluj</button><button type="button" class="przycisk maly glowny" data-op="zapisz-zmiane">Zapisz</button></div></div>`
+      : `<p${korzen ? ' class="tresc-komentarza"' : ''}>${trescHtml(x.tresc)}${zmieniony(x)}</p>`);
+    const stronaJest = Boolean(st);
     li.innerHTML = `<button type="button" class="naglowek-watku" data-op="otworz">
         <span class="numer-pinezki">${nr.get(k.id)}</span>
         <span class="opis-watku"><strong>${esc(k.autor_nazwa)}${k.zrodlo === 'ai' ? ' <small class="plakietka-ai">AI</small>' : ''}</strong><small>${esc(gdzie)} · ${esc(kiedy(k.utworzono))}</small></span>
         ${k.rozwiazany ? '<span class="stan-watku">rozwiązany</span>' : ''}${odp.length ? `<span class="licznik">${odp.length}</span>` : ''}
       </button>
-      <p class="tresc-komentarza">${trescHtml(k.tresc)}</p>
+      ${tresc(k, true)}
       <div class="szczegoly-watku">
-        <ol class="odpowiedzi">${odp.map((o) => `<li data-id="${o.id}"><strong>${esc(o.autor_nazwa)}${o.zrodlo === 'ai' ? ' <small class="plakietka-ai">AI</small>' : ''}</strong> <small>${esc(kiedy(o.utworzono))}</small>${o.moj || wlasciciel ? '<button type="button" class="przycisk-ikona maly" data-op="usun-odp" data-ikona="kosz" data-rozmiar="14" aria-label="Usuń odpowiedź" title="Usuń odpowiedź"></button>' : ''}<p>${trescHtml(o.tresc)}</p></li>`).join('')}</ol>
+        <ol class="odpowiedzi">${odp.map((o) => `<li data-id="${o.id}"><strong>${esc(o.autor_nazwa)}${o.zrodlo === 'ai' ? ' <small class="plakietka-ai">AI</small>' : ''}</strong> <small>${esc(kiedy(o.utworzono))}</small>${o.moj && edytowany !== o.id ? '<button type="button" class="przycisk-ikona maly" data-op="zmien" data-ikona="olowek" data-rozmiar="14" aria-label="Popraw odpowiedź" title="Popraw odpowiedź"></button>' : ''}${o.moj || wlasciciel ? '<button type="button" class="przycisk-ikona maly" data-op="usun-odp" data-ikona="kosz" data-rozmiar="14" aria-label="Usuń odpowiedź" title="Usuń odpowiedź"></button>' : ''}${tresc(o)}</li>`).join('')}</ol>
         <div class="odpowiedz-komentarz">
-          <textarea rows="2" maxlength="4000" placeholder="Odpowiedz… (@nazwa wspomina osobę)" aria-label="Odpowiedź"></textarea>
+          <textarea rows="2" maxlength="4000" data-pole="o-${k.id}" placeholder="Odpowiedz… (@nazwa wspomina osobę)" aria-label="Odpowiedź"></textarea>
           <div class="podpowiedzi-wzmianek" hidden></div>
         </div>
         <div class="akcje-watku">
-          <button type="button" class="przycisk maly" data-op="pokaz" data-ikona="oko">Pokaż na stronie</button>
+          <button type="button" class="przycisk maly" data-op="pokaz" data-ikona="oko"${stronaJest ? '' : ' disabled title="Tej strony nie ma już w projekcie"'}>Pokaż na stronie</button>
           <button type="button" class="przycisk maly" data-op="rozwiaz" data-ikona="${k.rozwiazany ? 'cofnij' : 'ok'}">${k.rozwiazany ? 'Otwórz ponownie' : 'Rozwiąż'}</button>
+          ${k.moj && edytowany !== k.id ? '<button type="button" class="przycisk-ikona maly" data-op="zmien" data-ikona="olowek" aria-label="Popraw komentarz" title="Popraw komentarz"></button>' : ''}
           ${mozeUsunac ? '<button type="button" class="przycisk-ikona maly niebezpieczny-ikona" data-op="usun" data-ikona="kosz" aria-label="Usuń wątek" title="Usuń wątek"></button>' : ''}
           <span class="odstep"></span>
           <button type="button" class="przycisk maly glowny" data-op="odpowiedz">Odpowiedz</button>
@@ -162,6 +191,7 @@ function pokazListe() {
       </div>`;
     return li;
   }));
+  przywrocPola(pola);
   import('../ikony.js').then((m) => m.wstawIkony(lista)).catch(() => {});
 }
 
@@ -191,7 +221,7 @@ lista.addEventListener('click', async (e) => {
   const op = b.dataset.op;
   try {
     if (op === 'otworz') {
-      if (otwartyWatek === id) { otwartyWatek = null; li.classList.remove('otwarty'); rysujPinezki(); return; }
+      if (otwartyWatek === id) { otwartyWatek = null; edytowany = null; li.classList.remove('otwarty'); rysujPinezki(); return; }
       await idzDo(id);
     } else if (op === 'pokaz') {
       await idzDo(id);
@@ -204,6 +234,24 @@ lista.addEventListener('click', async (e) => {
       if (!await potwierdz('Usunąć wątek?', 'Komentarz i wszystkie odpowiedzi znikną dla wszystkich osób w projekcie.', 'Usuń', true)) return;
       await km.usunKomentarz(id);
       await wczytaj();
+    } else if (op === 'zmien') {
+      edytowany = b.closest('li[data-id]:not(.watek-komentarza)')?.dataset.id || id;
+      otwartyWatek = id;
+      pokazListe();
+      const pole = lista.querySelector(`.poprawa-komentarza[data-id="${edytowany}"] textarea`);
+      pole?.focus();
+      pole?.setSelectionRange(pole.value.length, pole.value.length);
+    } else if (op === 'anuluj-zmiane') {
+      edytowany = null;
+      pokazListe();
+    } else if (op === 'zapisz-zmiane') {
+      const box = b.closest('.poprawa-komentarza');
+      const nowa = box.querySelector('textarea').value.trim();
+      if (!nowa) { box.querySelector('textarea').focus(); return; }
+      b.disabled = true;
+      await km.zmienKomentarz(box.dataset.id, nowa);
+      edytowany = null;
+      await wczytaj();
     } else if (op === 'usun-odp') {
       await km.usunKomentarz(b.closest('li[data-id]').dataset.id);
       await wczytaj();
@@ -214,6 +262,7 @@ lista.addEventListener('click', async (e) => {
       b.disabled = true;
       await km.dodajKomentarz({ projekt: projektId, tresc, watek: id });
       pole.value = '';
+      pole.blur();
       otwartyWatek = id;
       await wczytaj();
     }
@@ -262,6 +311,20 @@ function podpowiedziWzmianek(pole) {
   }));
 }
 dlg.addEventListener('input', (e) => { if (e.target.matches('textarea')) podpowiedziWzmianek(e.target); });
+// Ctrl+Enter wysyła odpowiedź albo zapisuje poprawkę (jak przy nowym komentarzu); Esc w poprawce – anuluje.
+lista.addEventListener('keydown', (e) => {
+  const t = e.target.closest('textarea');
+  if (!t) return;
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    (t.closest('.poprawa-komentarza')?.querySelector('[data-op="zapisz-zmiane"]') || t.closest('.watek-komentarza')?.querySelector('[data-op="odpowiedz"]'))?.click();
+  } else if (e.key === 'Escape' && t.closest('.poprawa-komentarza')) {
+    e.preventDefault();
+    e.stopPropagation();
+    edytowany = null;
+    pokazListe();
+  }
+});
 
 // ---------- Nowy komentarz ----------
 
