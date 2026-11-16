@@ -25,7 +25,29 @@ export const SZABLONY = [
   { id: 'plan-lekcji', nazwa: 'Plan lekcji', slowa: 'plan lekcji szkola zajecia tydzien', opis: 'Pięć dni, osiem lekcji', kolumny: [10, 0, 0, 0, 0, 0], wiersze: 9, wysokosc: 11, naglowek: ['', ...DNI_KROTKO.slice(0, 5)], pierwsza: ['1', '2', '3', '4', '5', '6', '7', '8'], srodek: [0, 1, 2, 3, 4, 5], linie: 'siatka' },
 ];
 
-export const szablonPlanera = (id) => SZABLONY.find((s) => s.id === id) || null;
+// Kolejne szablony planera (#162): plany, trackery, listy i budżet – grupa to nagłówek w kategorii „Planer”.
+const DNI_MIESIACA = Array.from({ length: 31 }, (_, i) => String(i + 1));
+SZABLONY.push(
+  { id: 'plan-miesiaca-lista', grupa: 'Plany', nazwa: 'Plan miesiąca – lista dni', slowa: 'plan miesiaca dni lista 31', opis: 'Dni 1–31 i miejsce na plan', kolumny: [9, 0], wiersze: 32, wysokosc: 5, naglowek: ['', 'Plan'], pierwsza: DNI_MIESIACA, srodek: [0], linie: 'poziome' },
+  { id: 'plan-tygodnia-kolumny', grupa: 'Plany', nazwa: 'Plan tygodnia – kolumny', slowa: 'plan tygodnia kolumny dni poziomo', opis: 'Siedem dni obok siebie', kolumny: [0, 0, 0, 0, 0, 0, 0], wiersze: 2, wysokosc: 60, naglowek: DNI_KROTKO, srodek: [0, 1, 2, 3, 4, 5, 6], linie: 'siatka' },
+  { id: 'plan-tygodnia-priorytety', grupa: 'Plany', nazwa: 'Tydzień z priorytetami', slowa: 'plan tygodnia priorytety cele zadania', opis: 'Dzień, zadania i najważniejsza rzecz', kolumny: [26, 0, 36], wiersze: 8, wysokosc: 16, naglowek: ['Dzień', 'Zadania', 'Najważniejsze'], pierwsza: DNI, linie: 'siatka' },
+  { id: 'plan-posilkow', grupa: 'Plany', nazwa: 'Plan posiłków', slowa: 'plan posilkow jadlospis menu dieta tydzien', opis: 'Śniadanie, obiad, kolacja na tydzień', kolumny: [20, 0, 0, 0], wiersze: 8, wysokosc: 14, naglowek: ['', 'Śniadanie', 'Obiad', 'Kolacja'], pierwsza: DNI_KROTKO, srodek: [0], linie: 'siatka' },
+  { id: 'tracker-nastroju', grupa: 'Trackery', nazwa: 'Tracker nastroju', slowa: 'tracker nastroj samopoczucie emocje miesiac', opis: 'Nastrój dzień po dniu', kolumny: [9, 0, 0, 0, 0, 0], wiersze: 32, wysokosc: 5, naglowek: ['', 'Świetnie', 'Dobrze', 'Średnio', 'Słabo', 'Źle'], pierwsza: DNI_MIESIACA, srodek: [0, 1, 2, 3, 4, 5], linie: 'siatka' },
+  { id: 'tracker-wody', grupa: 'Trackery', nazwa: 'Tracker wody', slowa: 'tracker woda picie szklanki nawodnienie', opis: 'Osiem szklanek dziennie', kolumny: [0, 9, 9, 9, 9, 9, 9, 9, 9], wiersze: 8, wysokosc: 9, naglowek: ['Dzień', '1', '2', '3', '4', '5', '6', '7', '8'], pierwsza: DNI, srodek: [1, 2, 3, 4, 5, 6, 7, 8], linie: 'siatka' },
+  { id: 'tracker-czytania', grupa: 'Trackery', nazwa: 'Tracker czytania', slowa: 'tracker czytanie ksiazki lektura strony', opis: 'Data, tytuł, strony', kolumny: [20, 0, 16, 16], wiersze: 13, wysokosc: 8, naglowek: ['Data', 'Tytuł', 'Strony', 'Koniec'], srodek: [2, 3], linie: 'siatka' },
+  { id: 'dziennik-modlitwy', grupa: 'Trackery', nazwa: 'Dziennik modlitwy', slowa: 'modlitwa intencje dziennik wiara wysluchane', opis: 'Data, intencja, wysłuchana', kolumny: [20, 0, 22], wiersze: 13, wysokosc: 9, naglowek: ['Data', 'Intencja', 'Wysłuchana'], srodek: [2], linie: 'siatka' },
+  { id: 'lista-zyczen', grupa: 'Listy i budżet', nazwa: 'Lista życzeń', slowa: 'lista zyczen marzenia prezenty', opis: 'Rzecz, cena, gdzie', kolumny: [7, 0, 20, 30], wiersze: 13, wysokosc: 8, naglowek: ['', 'Marzenie', 'Cena', 'Gdzie'], srodek: [2], linie: 'siatka' },
+  { id: 'budzet-miesieczny', grupa: 'Listy i budżet', nazwa: 'Budżet miesięczny', slowa: 'budzet miesieczny wydatki kategorie finanse domowe', opis: 'Kategorie, plan, wydatki, różnica', kolumny: [0, 22, 22, 22], wiersze: 12, wysokosc: 7, naglowek: ['Kategoria', 'Plan', 'Wydano', 'Różnica'], pierwsza: ['Mieszkanie', 'Jedzenie', 'Transport', 'Rachunki', 'Zdrowie', 'Ubrania', 'Rozrywka', 'Prezenty', 'Oszczędności', 'Inne'], srodek: [1, 2, 3], linie: 'siatka', ostatni: 'Razem' },
+);
+for (const s of SZABLONY) s.grupa ||= 'Gotowe tabele';
+
+// Tabele formularzy (#162) – w kategorii „Formularze do druku”, nie w Planerze.
+export const SZABLONY_FORMULARZY = [
+  { id: 'zamowienie', grupa: 'Tabele', nazwa: 'Tabelka zamówienia', slowa: 'zamowienie tabela produkty ilosc cena formularz', opis: 'Lp., produkt, ilość, cena, wartość', kolumny: [9, 0, 16, 20, 22], wiersze: 9, wysokosc: 8, naglowek: ['Lp.', 'Produkt', 'Ilość', 'Cena', 'Wartość'], pierwsza: ['1', '2', '3', '4', '5', '6', '7'], srodek: [0, 2, 3, 4], linie: 'siatka', ostatni: 'Razem' },
+  { id: 'lista-obecnosci', grupa: 'Tabele', nazwa: 'Lista obecności', slowa: 'lista obecnosci podpisy spotkanie', opis: 'Lp., imię i nazwisko, podpis', kolumny: [9, 0, 40], wiersze: 16, wysokosc: 8, naglowek: ['Lp.', 'Imię i nazwisko', 'Podpis'], pierwsza: Array.from({ length: 15 }, (_, i) => String(i + 1)), srodek: [0], linie: 'siatka' },
+];
+
+export const szablonPlanera = (id) => SZABLONY.find((s) => s.id === id) || SZABLONY_FORMULARZY.find((s) => s.id === id) || null;
 
 // Szerokości kolumn w mm przy całkowitej szerokości `szer` (kolumny 0 dzielą resztę po równo).
 export function szerokosciKolumn(s, szer) {
