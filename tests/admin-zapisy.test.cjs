@@ -34,8 +34,10 @@ test('panel administratora: dziennik zapisów z AI i urządzenia, filtr projektu
   // Filtr projektu.
   await strona.click('[data-filtr-projektu="p-1"]');
   await strona.waitForFunction(() => document.querySelector('#admin-zapisy-projekt').value === 'p-1');
-  await strona.waitForFunction(() => document.querySelector('#admin-zapisy table'));
+  // Tabela zostaje z poprzedniego wczytania – czekamy na samo zapytanie z filtrem, nie na tabelę (#184).
+  for (let i = 0; i < 300 && !wywolania.some(([n, p]) => n === 'dziennik' && p.p_projekt === 'p-1'); i += 1) await strona.waitForTimeout(100);
   assert.ok(wywolania.some(([n, p]) => n === 'dziennik' && p.p_projekt === 'p-1'));
+  await strona.waitForFunction(() => document.querySelector('#admin-zapisy table'));
   // Przywrócenie stanu sprzed zapisu urządzenia (kopia 22) – z potwierdzeniem.
   await strona.click('[data-przywroc="22"]');
   await strona.click('#potwierdz-tak');

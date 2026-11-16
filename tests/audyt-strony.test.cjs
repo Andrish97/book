@@ -23,6 +23,12 @@ test('strony z menu: nazwa, duplikat niezależny, przesuwanie w sekcji, do innej
     await przeladuj();
   });
   const nazwy = () => strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => `${s.nazwa}@${window.seriodruk.stan.projekt.sekcje.findIndex((x) => x.id === s.sekcja)}`));
+  // Kolejność stron po czynności – czekamy na nią, zamiast czytać od razu (pod obciążeniem czynność kończy się
+  // dopiero po wczytaniu strony na płótno, #184).
+  const nazwyBeda = (oczekiwane) => strona.waitForFunction((o) => {
+    const p = window.seriodruk.stan.projekt;
+    return JSON.stringify(p.strony.map((s) => `${s.nazwa}@${p.sekcje.findIndex((x) => x.id === s.sekcja)}`)) === JSON.stringify(o);
+  }, oczekiwane, { timeout: 60000 });
   const menu = async (i, akcja) => {
     await strona.click(`#lista-stron li.strona >> nth=${i} >> .menu-miniatury`);
     await strona.click(`#menu-strony [data-akcja="${akcja}"]`);
@@ -39,6 +45,11 @@ test('strony z menu: nazwa, duplikat niezależny, przesuwanie w sekcji, do innej
   // Duplikat: tuż za oryginałem, nowe id strony i elementów; zmiana w kopii nie rusza oryginału.
   await menu(0, 'strona-duplikuj');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 5);
+  // Kopia otwarta i wczytana na płótno (pod obciążeniem chwilę to trwa).
+  await strona.waitForFunction(() => {
+    const k = window.seriodruk.stan.projekt.strony[1];
+    return window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor.canvas.getObjects().some((x) => x.id === k.obiekty[0]?.id);
+  }, null, { timeout: 60000 });
   const kopia = await strona.evaluate(() => {
     const [a, k] = window.seriodruk.stan.projekt.strony;
     // Kopia jest otwarta na płótnie – zmiana przez edytor, jak ręczna.
@@ -52,13 +63,13 @@ test('strony z menu: nazwa, duplikat niezależny, przesuwanie w sekcji, do innej
 
   // Przesuń niżej / wyżej: zamiana z sąsiadem w tej samej sekcji; ostatnia strona sekcji nie przechodzi do następnej.
   await menu(0, 'strona-dol');
-  assert.deepEqual(await nazwy(), ['A (kopia)@0', 'A@0', 'Bé@0', 'C@0', 'D@1']);
+  await nazwyBeda(['A (kopia)@0', 'A@0', 'Bé@0', 'C@0', 'D@1']);
   await strona.click('#lista-stron li.strona >> nth=3 >> .menu-miniatury');
   assert.equal(await strona.isDisabled('#menu-strony [data-akcja="strona-dol"]'), true, 'ostatnia strona sekcji – „niżej” wyłączone');
   assert.equal(await strona.isDisabled('#menu-strony [data-akcja="strona-gora"]'), false);
   await strona.keyboard.press('Escape');
   await menu(2, 'strona-gora');
-  assert.deepEqual(await nazwy(), ['A (kopia)@0', 'Bé@0', 'A@0', 'C@0', 'D@1']);
+  await nazwyBeda(['A (kopia)@0', 'Bé@0', 'A@0', 'C@0', 'D@1']);
 
   // Do innej sekcji (właściwości strony): na koniec tamtej sekcji.
   await strona.evaluate(async () => {
@@ -66,6 +77,8 @@ test('strony z menu: nazwa, duplikat niezależny, przesuwanie w sekcji, do innej
     await (await import('./js/app/lista-stron.js')).przeniesStroneDoSekcji(p.strony.find((s) => s.nazwa === 'C'), p.sekcje[1].id);
   });
   assert.deepEqual(await nazwy(), ['A (kopia)@0', 'Bé@0', 'A@0', 'D@1', 'C@1']);
+  // Przeniesienie jest osobnym krokiem cofania – „Cofnij” niżej ma zdjąć samo usunięcie.
+  await strona.waitForFunction(() => !window.seriodruk.stan.doHistorii);
 
   // Usuń: pytanie, potem strona znika; „Cofnij” przywraca ją z treścią.
   await menu(2, 'strona-usun');
@@ -74,12 +87,10 @@ test('strony z menu: nazwa, duplikat niezależny, przesuwanie w sekcji, do innej
   assert.equal((await nazwy()).length, 5, 'Anuluj nie usuwa');
   await menu(2, 'strona-usun');
   await strona.click('#dlg-potwierdz[open] #potwierdz-tak');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 4);
-  assert.deepEqual(await nazwy(), ['A (kopia)@0', 'Bé@0', 'D@1', 'C@1']);
+  await nazwyBeda(['A (kopia)@0', 'Bé@0', 'D@1', 'C@1']);
   await strona.keyboard.press('Escape');
   await strona.click('[data-akcja="cofnij"]');
-  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 5);
-  assert.deepEqual(await nazwy(), ['A (kopia)@0', 'Bé@0', 'A@0', 'D@1', 'C@1']);
+  await nazwyBeda(['A (kopia)@0', 'Bé@0', 'A@0', 'D@1', 'C@1']);
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[2].obiekty[0].fill), '#ff0000', 'treść przywróconej strony');
 
   // Po zapisie i wczytaniu z konta – ta sama kolejność, sekcje, nazwy i treść kopii.

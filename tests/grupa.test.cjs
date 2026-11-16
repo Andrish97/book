@@ -19,9 +19,17 @@ const przeciagnij = async (strona, z, na) => {
 };
 // Osobny krok historii: czekamy, aż zmiana naprawdę stanie się krokiem cofania (licznik 300 ms w js/app/zapis.js),
 // a nie stałą chwilę – pod obciążeniem licznik się spóźnia i dwa kroki zlewały się w jeden (#137).
+// Krok cofania zapisany: zmiana z edytora przychodzi czasem dopiero w następnej klatce, a pod obciążeniem po
+// ponad 50 ms (#184) – czekamy, aż przez 400 ms nie ma zaplanowanego kroku (debounce historii to 300 ms).
 const krok = async (strona) => {
-  await strona.waitForTimeout(50);
-  await strona.waitForFunction(() => !window.seriodruk.stan.doHistorii, null, { timeout: 15000 });
+  await strona.waitForFunction(() => {
+    const s = window.seriodruk.stan;
+    const teraz = performance.now();
+    if (s.doHistorii) { window.__spokojOd = null; return false; }
+    window.__spokojOd ??= teraz;
+    return teraz - window.__spokojOd >= 400;
+  }, null, { timeout: 30000, polling: 50 });
+  await strona.evaluate(() => { window.__spokojOd = null; });
 };
 // Mysz trafia w całe piksele ekranu, czyli z dokładnością ok. 0,4 mm strony.
 const blisko = (a, b, tol = 0.6) => Math.abs(a - b) <= tol;

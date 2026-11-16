@@ -98,7 +98,14 @@ export function wlaczKomentarze(projekt) {
 function odswiezOsoby() {
   const id = projektId;
   if (!id) return;
-  osobyProjektu(id).then((l) => { if (id === projektId) osoby = l.filter((o) => o.nazwa && o.typ !== 'zaproszenie' && !o.ja).map((o) => o.nazwa); }).catch(() => {});
+  osobyProjektu(id).then((l) => {
+    if (id !== projektId) return;
+    osoby = l.filter((o) => o.nazwa && o.typ !== 'zaproszenie' && !o.ja).map((o) => o.nazwa);
+    // Lista osób przychodzi z sieci – „@Bar” wpisane, zanim doszła, dostaje podpowiedzi teraz, nie dopiero
+    // po kolejnym znaku (#184).
+    const pole = document.activeElement;
+    if (pole?.matches?.('#dlg-komentarze textarea') && /(^|\s)@[^\s@]*$/.test(pole.value.slice(0, pole.selectionStart))) podpowiedziWzmianek(pole);
+  }).catch(() => {});
 }
 
 document.addEventListener('seriodruk:projekt', (e) => wlaczKomentarze(e.detail));
