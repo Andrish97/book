@@ -58,10 +58,14 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
 
   // Równolegle: użytkownik przesuwa tekst, a AI zmienia kolor prostokąta – różne elementy, bez pytania.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; const tb = e.canvas.getObjects().find((x) => x.type === 'textbox'); tb.set({ left: 40 }); tb.setCoords(); e.zatwierdz(); });
-  const zmiana = baza.ai('ai_zapisz', {
-    p_klucz: klucz, p_znana_wersja: odczyt.wersja,
-    p_zmiany: { strony: [{ ...s, obiekty: s.obiekty.map((o) => (o.id === prostokat.id ? { ...o, fill: '#c1121f' } : o)) }] },
+  // AI postępuje jak opisuje odpowiedź na konflikt: gdy wcześniejszy zapis z edytora doszedł na konto po jego odczycie
+  // (pod obciążeniem bywa spóźniony, #184), czyta projekt jeszcze raz i nanosi zmianę od nowa.
+  const zmianaAi = (o) => baza.ai('ai_zapisz', {
+    p_klucz: klucz, p_znana_wersja: o.wersja,
+    p_zmiany: { strony: [{ ...o.projekt.strony[0], obiekty: o.projekt.strony[0].obiekty.map((x) => (x.id === prostokat.id ? { ...x, fill: '#c1121f' } : x)) }] },
   });
+  let zmiana = zmianaAi(odczyt);
+  for (let i = 0; i < 5 && zmiana.konflikt; i += 1) zmiana = zmianaAi(baza.ai('ai_projekt', { p_klucz: klucz }));
   assert.equal(zmiana.strony_zapisane, 1, JSON.stringify(zmiana));
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'rect')?.fill === '#c1121f', null, { timeout: 15000 });
   await zapisano(strona);

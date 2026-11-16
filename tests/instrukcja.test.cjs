@@ -174,7 +174,8 @@ test('instrukcja bez konta: „Zobacz, jak to działa” na ekranie logowania i 
   assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'logowanie');
   await strona.click('[data-akcja="zamknij-instrukcje"]');
   await strona.waitForFunction(() => !document.querySelector('#dlg-instrukcja').open);
-  await strona.waitForFunction(() => !/instrukcja/.test(location.hash), null, { timeout: 3000 }).catch(() => {});
+  // Adres wraca po zdarzeniu „close” – pod obciążeniem trwa to dłużej niż chwilę (#184): czekamy na warunek, bez stałego limitu.
+  await strona.waitForFunction(() => !/instrukcja/.test(location.hash));
   assert.doesNotMatch(await strona.evaluate(() => location.hash), /instrukcja/);
   assert.deepEqual(bledy, []);
 });

@@ -103,8 +103,13 @@ function odswiezGdyMenuZamkniete() {
   }, 300);
 }
 
+// Numer ostatniego wywołania (#184): lista z konta przychodzi z opóźnieniem, więc starsze odświeżenie (np. po
+// zmianie z innego urządzenia) potrafiło skończyć się PO odświeżeniu zrobionym po usunięciu projektu i narysować
+// starą listę – usunięty projekt wracał na ekran. Rysuje tylko najnowsze wywołanie.
+let pokolenieListy = 0;
 export async function pokazProjekty({ cicho = false } = {}) {
   if (cicho && otwarteMenuKarty()) { odswiezGdyMenuZamkniete(); return; }
+  const moje = ++pokolenieListy;
   const siatka = $('#siatka-projektow');
   if (!cicho) {
     pokazEkran('projekty');
@@ -116,6 +121,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
     $('.projekty-naglowek .przyciski-naglowka').hidden = true;
   }
   const wszystkie = await wpisyProjektow();
+  if (moje !== pokolenieListy) return; // w międzyczasie ruszyło nowsze odświeżenie – ono narysuje listę
   if (cicho && document.body.dataset.ekran !== 'projekty') return; // w międzyczasie otwarto projekt
   doczytajWTle(); // edytor przyjdzie w tle, zanim ktoś kliknie projekt
   odswiezZaproszenia();
@@ -331,6 +337,9 @@ async function usunProjekt(w) {
   );
   if (!ok) return false;
   try {
+    // Wysyłka projektu ruszona przy wyjściu z edytora może jeszcze trwać (np. duże zdjęcia) – po niej założyłaby
+    // usunięty projekt od nowa. Usuwamy dopiero, gdy się skończy (#184).
+    await edytorGotowy()?.poWysylkach?.();
     await usunLokalnie(w.id);
     await usunHistorie(w.id);
     if (stan.uzytkownik) await chmura.usunZChmury(w.id);

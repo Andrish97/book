@@ -88,10 +88,47 @@ export const kluczZasobu = (zasob) => (zasob && !zasob.dataUrl && podlaczone.get
 // Wkłada plik do magazynu i podłącza jego adres do opisu zasobu. Zwraca dane do opisu w projekcie.
 async function wlozPlik(projekt, id, blob, zasob) {
   const k = klucz(projekt, id);
-  await transakcja('readwrite', (m) => { m.put(blob, k); m.delete(KOPIA + k); });
-  // Adres wskazuje plik odczytany z magazynu (z dysku), nie kopię trzymaną w pamięci.
-  zarejestruj(k, (await transakcja('readonly', (m) => m.get(k))) || blob, zasob);
-  return { typ: blob.type || 'application/octet-stream', rozmiar: blob.size };
+  // Plik odczytany z powrotem musi być tym, który zapisaliśmy: pod dużym obciążeniem przeglądarka potrafiła
+  // zapisać zamiast zdjęcia kilkubajtowy plik bez typu (#184) – a po odłożeniu treść znika z projektu, więc
+  // zdjęcie przepadało. Zapis powtarzamy; gdy się nie uda, błąd zostawia treść obrazu w projekcie.
+  for (let proba = 0; proba < 3; proba += 1) {
+    await transakcja('readwrite', (m) => { m.put(blob, k); m.delete(KOPIA + k); });
+    const zapisany = await transakcja('readonly', (m) => m.get(k));
+    if (zapisany && zapisany.size === blob.size && zapisany.type === blob.type) {
+      // Adres wskazuje plik odczytany z magazynu (z dysku), nie kopię trzymaną w pamięci.
+      zarejestruj(k, zapisany, zasob);
+      return { typ: blob.type || 'application/octet-stream', rozmiar: blob.size };
+    }
+  }
+  throw new Error(`Nie udało się zapisać obrazu „${zasob?.nazwa || id}” w pamięci przeglądarki.`);
+}
+
+// Plik z konta musi się zgadzać z opisem obrazu w projekcie (#184): niepełny albo inny plik (np. przerwana wysyłka
+// albo odpowiedź, która nie jest obrazem) nie trafia do magazynu jako oryginał – obraz liczy się jako brakujący
+// i pobierze się przy następnym otwarciu. Bez typu w odpowiedzi plik dostaje typ z opisu.
+function sprawdzPobrany(blob, z) {
+  if (!blob || (z.rozmiar && blob.size !== z.rozmiar)) throw new Error(`Obraz „${z.nazwa || ''}” przyszedł niepełny.`);
+  return z.typ && !blob.type ? new Blob([blob], { type: z.typ }) : blob;
+}
+
+// Plik pobrany z konta trafia do magazynu tylko wtedy, gdy w czasie pobierania nie pojawił się tam plik z tego
+// urządzenia (#184): zapis obrazu dodanego albo podmienionego tutaj (ten sam identyfikator) biegnie obok
+// łączenia zmian z konta, a spóźnione pobranie nadpisywało go starszą kopią z konta. Sprawdzenie i zapis w jednej
+// transakcji. Zwraca dane do opisu zasobu – tego pliku, który został w magazynie.
+async function wlozPobrany(projekt, id, blob, zasob) {
+  const k = klucz(projekt, id);
+  const wMagazynie = await transakcja('readwrite', (m) => {
+    const odczyt = m.get(k);
+    const wynik = { blob: null };
+    odczyt.onsuccess = () => {
+      if (odczyt.result) wynik.blob = odczyt.result;
+      else { m.put(blob, k); m.delete(KOPIA + k); wynik.blob = blob; }
+    };
+    return wynik;
+  });
+  const plik = adresy.has(k) && wMagazynie.blob !== blob ? null : ((await transakcja('readonly', (m) => m.get(k))) || wMagazynie.blob);
+  if (plik) zarejestruj(k, plik, zasob); else podlaczone.set(zasob, k); // plik z tego urządzenia ma już swój adres
+  return { typ: wMagazynie.blob.type || 'application/octet-stream', rozmiar: wMagazynie.blob.size };
 }
 
 // Przed zapisem: obrazy, które mają jeszcze `dataUrl`, trafiają do magazynu, a z projektu znika ich treść.
@@ -155,7 +192,7 @@ export async function podlaczZasoby(projekt, pobierz = null, postep = null) {
   await Promise.all(Array.from({ length: Math.min(4, doPobrania.length) }, async () => {
     for (let w = doPobrania.shift(); w; w = doPobrania.shift()) {
       const [id, z] = w;
-      try { Object.assign(z, await wlozPlik(projekt, id, await pobierz(z.sciezka), z)); } catch { brak.push(z.nazwa || id); }
+      try { Object.assign(z, await wlozPobrany(projekt, id, sprawdzPobrany(await pobierz(z.sciezka), z), z)); } catch { brak.push(z.nazwa || id); }
       gotowe += 1;
       postep?.(gotowe, razem);
     }

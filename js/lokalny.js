@@ -86,6 +86,9 @@ export function zapiszLokalnieOdRazu(projekt, wlasciciel) {
   try {
     const tx = polaczenie.transaction(MAGAZYN, 'readwrite');
     tx.objectStore(MAGAZYN).put({ id: projekt.id, wlasciciel, miniatura: projekt.miniatura || null, nazwa: projekt.nazwa, zmieniono: projekt.zmieniono, projekt, doSynchronizacji: true });
+    // Zatwierdzenie od razu, bez czekania na koniec bieżącego zadania strony – przy zamykaniu karty liczy się
+    // każda chwila: transakcja niezatwierdzona w chwili zniszczenia strony przepada (#184).
+    tx.commit?.();
     return true;
   } catch { return false; }
 }
@@ -94,16 +97,18 @@ export async function zapiszLokalnie(projekt, wlasciciel, doSynchronizacji = tru
   // Nowe obrazy trafiają do magazynu plików, a z projektu znika ich treść. Gdyby magazyn zawiódł
   // (np. brak miejsca), obraz zostaje w projekcie jak dawniej – zapis nie może przepaść.
   try { await odlozZasoby(projekt); } catch { /* treść obrazu zostaje w rekordzie projektu */ }
-  const rekord = {
+  // Rekord powstaje dopiero w chwili zapisu (po krokach asynchronicznych): projekt mógł się w tym czasie zmienić
+  // i zostać już zapisany (np. przy zamykaniu karty). Znacznik „do wysłania” liczony przed tymi krokami
+  // nadpisywał wtedy nowszy zapis fałszem i zmiana zostawała tylko na urządzeniu (#184) – stąd funkcja.
+  return transakcja('readwrite', (m) => m.put({
     id: projekt.id,
     wlasciciel,
     miniatura: projekt.miniatura || null,
     nazwa: projekt.nazwa,
     zmieniono: projekt.zmieniono,
     projekt,
-    doSynchronizacji,
-  };
-  return transakcja('readwrite', (m) => m.put(rekord));
+    doSynchronizacji: Boolean(typeof doSynchronizacji === 'function' ? doSynchronizacji() : doSynchronizacji),
+  }));
 }
 
 export function wczytajLokalnie(id) {
@@ -133,12 +138,20 @@ export async function usunLokalnie(id) {
 }
 
 export async function oznaczZsynchronizowany(id, zmieniono) {
-  const rekord = await wczytajLokalnie(id);
+  // Odczyt i zapis w JEDNEJ transakcji (#184): wcześniej rekord był czytany w jednej, a zapisywany w drugiej –
+  // nowszy zapis, który wpadł pomiędzy (np. zapis przy zamykaniu karty), był nadpisywany starszą kopią projektu.
   // Nie zdejmujemy flagi, jeśli w międzyczasie pojawiła się nowsza zmiana.
-  if (rekord && rekord.zmieniono === zmieniono) {
-    rekord.doSynchronizacji = false;
-    await transakcja('readwrite', (m) => m.put(rekord));
-  }
+  await transakcja('readwrite', (m) => {
+    const odczyt = m.get(id);
+    odczyt.onsuccess = () => {
+      const rekord = odczyt.result;
+      if (rekord && rekord.zmieniono === zmieniono && rekord.doSynchronizacji) {
+        rekord.doSynchronizacji = false;
+        m.put(rekord);
+      }
+    };
+    return undefined;
+  });
 }
 
 // Usuwa z tej przeglądarki wszystkie projekty danego właściciela (po usunięciu konta).

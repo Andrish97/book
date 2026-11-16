@@ -255,7 +255,7 @@ test('zestaw czcionek: pliki pobierają się dopiero przy użyciu; pogrubienie i
   await nowyProjekt(strona, 'Zestaw');
   await strona.click('[data-akcja="dodaj-tekst"]');
   const pobrane = () => strona.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name.split('/').pop()).filter((n) => n.endsWith('.woff2')));
-  const przyciski = () => strona.evaluate(() => ['Pogrubienie', 'Kursywa'].map((n) => { const b = [...document.querySelectorAll('.wlasciwosci .segmenty button')].find((x) => x.getAttribute('aria-label') === n); return [b.disabled, b.title]; }));
+  const przyciski = () => strona.evaluate(() => ['Pogrubienie', 'Kursywa'].map((n) => { const b = [...document.querySelectorAll('.wlasciwosci .segmenty button')].find((x) => x.getAttribute('aria-label') === n); return [b.disabled, b.title || b.dataset.dymek || '']; })); // podpowiedź po najechaniu myszą siedzi w data-dymek (js/dymki.js)
   // Na starcie są tylko czcionka domyślna i czcionki stylów tekstu projektu (Tytuł: Playfair Display) –
   // z 52 rodzin przeglądarka nie pobiera niczego na zapas.
   await strona.waitForTimeout(400);

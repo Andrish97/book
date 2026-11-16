@@ -9,15 +9,20 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
-| 184 | Niestabilne testy pod obciążeniem (obrazy poza pamięcią, instrukcja bez konta, strony z menu, grupa, czcionki, admin) – przyczyny i poprawki | 🔄 |
 
 ## Czeka (kolejne etapy)
 
 | Uwaga | Stan |
 |---|---|
 | 161 (reszta, #185 – makieta już o tym ostrzega z przyciskiem „Ustaw typ sekcji…”): projekt użytkownika do czasu ustawienia typów wyklejek (sekcje wyklejek → typ „Wyklejka przednia / tylna”) pokaże je jako zwykłe rozkładówki | 👤 |
+| Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ⏳ |
+| 161 (reszta): makieta 3D – obwoluta (osobny obiekt nałożony na okładkę, skrzydełka zawinięte do środka) jeszcze nie pokazywana; rola sekcji tylko z jawnego typu (typSekcji w js/app/makieta-okno.js – do podpięcia pod wspólną funkcję z #177); obwoluta (typ 'obwoluta') pomijana – model obwoluty do zrobienia. Projekt użytkownika do czasu ustawienia typów wyklejek pokaże je jako zwykłe rozkładówki | ⏳ |
+| 161 (uwaga): geometria okładki bez listy sekcji środka (tryb auto) bierze format pierwszej sekcji – gdy to wyklejka A4, okładka liczy się dla A4 (makieta już tego nie przenosi, ale sama okładka do druku – do sprawdzenia razem z rolami sekcji #177) | ⏳ do sprawdzenia |
+| Makieta 3D dla sekcji specjalnych (ulotka składana, koperta, pudełko złożone z wykrojnika, kalendarz trójdzielny) – #177 | ⏳ |
+| Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
+| Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
 | Sprawdzenie na prawdziwym telefonie: gesty iPhone (#101), klawiatura w zasłonkach, instalacja aplikacji | ⏳ |
-| 160: ręczna lista kontrolna z docs/TESTY.md (iPhone/Safari, Android, prawdziwa drukarka, e-maile, push, migracje na produkcji) – tego nie sprawdzą testy w tym środowisku; do tego „grupa otwarta: ramka zaznaczenia” padła raz na 4 przebiegi (cofnięcie kolejności w grupie) | ⏳ ręcznie / do zbadania |
+| 160: ręczna lista kontrolna z docs/TESTY.md (iPhone/Safari, Android, prawdziwa drukarka, e-maile, push, migracje na produkcji) – tego nie sprawdzą testy w tym środowisku | ⏳ ręcznie / do zbadania |
 
 ## Kroki po Twojej stronie
 
@@ -34,6 +39,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 184 | Testy padające tylko pod obciążeniem ustabilizowane u źródła. „137 (reszta)” („obrazy poza pamięcią”): przyczyną nie był magazyn plików, tylko trzy wyścigi w aplikacji: spóźnione odświeżenie listy i spóźniona wysyłka z chwili wyjścia z edytora przywracały usunięty projekt, a pobranie obrazu z konta przy łączeniu zmian nadpisywało świeżo zapisany oryginał (stąd „eksport bierze mniej plików”) – wszystkie poprawione. Do tego w aplikacji: podpowiedzi wzmianek po wczytaniu listy osób, dwie utracone zmiany przy zamykaniu karty (zapis na urządzeniu i znacznik „do wysłania”), zmiany z czasu wysyłki nie przegrywają już z kontem bez pytania, „Cofnij” po usunięciu strony nie cofa też poprzedniej czynności. Testy czekają na stan zamiast na stały czas |
 | 183 | Skrzynka w panelu: własny edytor treści zamiast TinyMCE z CDN, filtry Nieprzeczytane / Z załącznikami / Z gwiazdką (reszta – foldery, rozmowy, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze – już była z #110) |
 | 182 | Wzór z Biblioteki jako wypełnienie kształtu (prostokąt, elipsa, wielokąt, zamknięty kształt): Wypełnienie → „Wzór” z podglądami, kolor wzoru i tła, skala, obrót; kafelek wzoru przy zaznaczonym kształcie pyta „Wypełnij zaznaczony kształt / Wstaw na stronę”; wzór w edytorze, miniaturach, podglądzie, PNG i wektorowo w PDF (bez obrazu), w zapisie, Kopiuj wygląd, cofaniu i opisie formatu dla AI. Reszta propozycji #103: segmenty zamiast listy przycisków radiowych w oknie Serii, menu ⋯ na karcie obrazu (zmień nazwę, podmień plik, kopiuj nazwę, usuń). Pozostałe punkty #103 rozstrzygnięte w DECYZJE #182 (już zrobione inaczej albo bez sensu w obecnym układzie). |
 | 181 | 180 | Przegląd systemu i instrukcji jak nowy użytkownik (komputer i telefon): poprawione niespójności nazw (instrukcja ↔ przyciski, automatyczne sprawdzenie), nieaktualne opisy (prawa kolumna z zakładkami, przycisk Ostrzeżenia, menu ⋯), brakujące opisy (okno konfliktu zmian, Uporządkuj / Kopiuj nazwy / Pomiń w obrazach, Importuj z pliku); pusta lista projektów z przyciskiem „Z gotowego szablonu”; menu „Wzorce stron…”; część „Konto” przeniesiona na koniec instrukcji (rozdział 27, odsyłacze przenumerowane); odświeżone wszystkie zrzuty w obu motywach, poprawione kadry ustawień konta, okładki i ulotki; CI odświeża zrzuty także po zmianie krótkich skryptów zrzutów (scripts/zrzuty-*.cjs) |

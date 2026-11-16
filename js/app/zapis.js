@@ -54,6 +54,10 @@ export async function pokazEdytor() {
 // Okno, przy którym krok historii czeka, a cofanie nie działa. Panele obok strony (Biblioteka,
 // „Znajdź i zamień”) nie blokują – zmiany z nich da się cofać, gdy panel jest jeszcze otwarty.
 const OKNO_BLOKUJACE = 'dialog[open]:not(.obok-strony)';
+// Krok historii czeka tylko przy oknach, w których zmienia się projekt (dane, serie, sekcje…). Pytanie
+// („Usunąć stronę?”) i nazwa niczego w projekcie nie zmieniają, póki są otwarte – czekanie przy nich sklejało
+// poprzednią czynność z tą, którą pytanie zatwierdza, i „Cofnij” cofało obie naraz (#184).
+const OKNO_WSTRZYMUJACE_KROK = 'dialog[open]:not(.obok-strony):not(#dlg-potwierdz):not(#dlg-nazwa)';
 
 // Przepisuje płótno do projektu i zapamiętuje stan jako krok historii.
 // W trakcie kadrowania i edycji punktów płótno ma stan przejściowy (np. obraz z grupy leży na czas kadrowania nad
@@ -603,7 +607,7 @@ export function zaplanujZapis({ historia: doHistorii = true } = {}) {
     stan.doHistorii = true;
     clearTimeout(stan.timerHistorii);
     // Przy otwartym oknie (dane, serie, sekcje) krok powstaje dopiero po jego zamknięciu.
-    stan.timerHistorii = setTimeout(() => { if ($(OKNO_BLOKUJACE)) zaplanujZapis(); else zapamietajStan(); }, 300);
+    stan.timerHistorii = setTimeout(() => { if ($(OKNO_WSTRZYMUJACE_KROK)) zaplanujZapis(); else zapamietajStan(); }, 300);
     odswiezCofanie();
   }
 }
@@ -667,6 +671,12 @@ export function synchronizuj({ wymus = false, projekt = null } = {}) {
   return kolejkaKonta;
 }
 
+// Koniec trwających wysyłek (bez dokładania nowej) – usunięcie projektu czeka na wysyłkę rozpoczętą przy wyjściu
+// z edytora; inaczej spóźniona wysyłka zakładała usunięty projekt od nowa, na koncie i na urządzeniu (#184).
+export function poWysylkach() {
+  return kolejkaKonta.catch(() => {});
+}
+
 // Wysyłka pominięta, bo akurat trwało dołączanie zmian z konta – po nim trzeba ją nadrobić.
 let pominietaWysylka = false;
 
@@ -688,9 +698,13 @@ async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
   try {
     await chmura.zapiszWChmurze(p, { wymus, postep: pasek && ((i, n) => pasek.krok(i, n)) });
     // Wysłane – to jest teraz stan uzgodniony z kontem.
-    if (otwarty) { dotkniete.clear(); zapamietajDotkniete(); } else try { localStorage.removeItem(kluczDotknietych(p.id)); } catch { /* nic */ }
+    // Zmiany zrobione w trakcie wysyłki (także tuż przed zamknięciem karty) nie są jeszcze na koncie – ich elementy
+    // zostają „dotknięte”, inaczej przy łączeniu przegrałyby z kontem bez pytania (#184).
+    if (p.zmieniono === wersja) {
+      if (otwarty) { dotkniete.clear(); zapamietajDotkniete(); } else try { localStorage.removeItem(kluczDotknietych(p.id)); } catch { /* nic */ }
+    }
     stan.konflikt = null;
-    await zapiszLokalnie(p, wlasciciel(), p.zmieniono !== wersja);
+    await zapiszLokalnie(p, wlasciciel(), () => p.zmieniono !== wersja);
     await zachowajHistorie(p); // nowy numer wersji z konta
     await oznaczZsynchronizowany(p.id, wersja);
     if (stan.projekt === p && !stan.timerZapisu) stanZapisu('ok', 'Zapisano');
@@ -800,8 +814,9 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       if (stan.projekt === p && tenSamStan(p, odciski)) {
         p.wersja_chmury = zKonta.wersja_chmury;
         p.podstawa_chmury = odciski;
-        await zapiszLokalnie(p, wlasciciel(), false);
-        await oznaczZsynchronizowany(p.id, p.zmieniono);
+        const uzgodniony = p.zmieniono;
+        await zapiszLokalnie(p, wlasciciel(), () => p.zmieniono !== uzgodniony);
+        await oznaczZsynchronizowany(p.id, uzgodniony);
         if (!stan.timerZapisu) stanZapisu('ok', 'Zapisano');
         return;
       }
@@ -912,7 +927,8 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       await synchronizuj();
     } else {
       if (zKonta.zmieniono) p.zmieniono = zKonta.zmieniono;
-      await zapiszLokalnie(p, wlasciciel(), false);
+      const uzgodniony = p.zmieniono;
+      await zapiszLokalnie(p, wlasciciel(), () => p.zmieniono !== uzgodniony); // zmiana w trakcie zapisu – do wysłania
       await zachowajHistorie(p);
       if (stan.projekt === p && !stan.timerZapisu && !pominietaWysylka) stanZapisu('ok', 'Zapisano');
       // Udostępniony link idzie także za zmianami z konta (np. od AI, którego nikt inny nie narysuje).

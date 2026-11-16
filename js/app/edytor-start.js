@@ -778,7 +778,7 @@ dodajPolecenie({ nazwa: 'Dodaj do skorowidza', opis: 'Zaznaczone słowo trafia d
 dodajPolecenie({ nazwa: 'Wstaw kod QR', opis: 'Adres, tekst, e-mail, telefon albo sieć Wi-Fi – także z pola danych', wykonaj: () => wstawKod('qr'), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Wstaw kod kreskowy EAN / ISBN', opis: 'EAN-13 albo ISBN, np. na okładkę książki', wykonaj: () => wstawKod('ean'), dostepne: wEdytorze });
 
-export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, pokazEdytor } from './zapis.js';
+export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, poWysylkach, pokazEdytor } from './zapis.js';
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
 export { edytujWzorzec } from './wzorce.js';

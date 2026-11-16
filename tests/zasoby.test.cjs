@@ -53,7 +53,7 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
 
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   const po = await pomiar(strona);
-  t.diagnostic(`12 zdjęć, razem ${(rozmiary.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB tekstu „data:”. Dane projektu w pamięci: przed zapisem ${(przed.wPamieci / 1e6).toFixed(2)} MB, po ${(po.wPamieci / 1e3).toFixed(1)} kB. Rekord zapisu lokalnego: ${(po.wRekordzie / 1e3).toFixed(1)} kB. Oryginały na dysku: ${(po.oryginaly.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB w ${po.oryginaly.length} plikach.`);
+  t.diagnostic(`12 zdjęć, razem ${(rozmiary.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB tekstu „data:”. Dane projektu w pamięci: przed zapisem ${(przed.wPamieci / 1e6).toFixed(2)} MB, po ${(po.wPamieci / 1e3).toFixed(1)} kB. Rekord zapisu lokalnego: ${(po.wRekordzie / 1e3).toFixed(1)} kB. Oryginały na dysku: ${(po.oryginaly.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB w ${po.oryginaly.length} plikach (${po.oryginaly.join(", ")}).`);
   assert.equal(po.zTrescia, 0, 'po zapisie treść obrazów znika z projektu');
   // Opis obrazu: nazwa, rozmiar, typ – a gdy plik zdążył już trafić na konto, także ścieżka do niego.
   assert.ok(po.opisy.every((o) => ['nazwa,rozmiar,typ', 'nazwa,rozmiar,sciezka,typ'].includes(o)), `opisy obrazów: ${[...new Set(po.opisy)]}`);
@@ -87,10 +87,19 @@ test('obrazy poza pamięcią: po zapisie w projekcie zostaje opis, oryginały le
     const png = await pngCelu(p, p.strony[0], 72);
     const plik = await zapiszPlikProjektu(p);
     const wczytany = await wczytajPlikProjektu(new File([plik], 'x.seriodruk'));
-    return { png: png.slice(0, 22), plik: plik.size, wPliku: Object.values(wczytany.zasoby).filter((z) => z.dataUrl?.startsWith('data:image/jpeg')).length, tresc: Object.values(p.zasoby).filter((z) => z.dataUrl).length };
+    // Stan każdego oryginału w magazynie – do opisu błędu, gdy w pliku czegoś brakuje.
+    const { blobZasobu } = await import('./js/zasoby.js');
+    const magazyn = await Promise.all(Object.keys(p.zasoby).map(async (id) => {
+      try {
+        const b = await blobZasobu(p, id);
+        if (!b) return 'brak';
+        try { await b.slice(0, 16).arrayBuffer(); return `${b.type || '?'}:${b.size}`; } catch (e) { return `nieczytelny ${b.type}:${b.size} ${e.name}`; }
+      } catch (e) { return `błąd ${e.name}: ${e.message}`; }
+    }));
+    return { png: png.slice(0, 22), plik: plik.size, wPliku: Object.values(wczytany.zasoby).filter((z) => z.dataUrl?.startsWith('data:image/jpeg')).length, tresc: Object.values(p.zasoby).filter((z) => z.dataUrl).length, magazyn };
   });
   assert.equal(eksport.png, 'data:image/png;base64,');
-  assert.equal(eksport.wPliku, 12, 'plik projektu niesie wszystkie obrazy');
+  assert.equal(eksport.wPliku, 12, `plik projektu niesie wszystkie obrazy; w magazynie: ${eksport.magazyn.join(', ')}`);
   assert.ok(eksport.plik > rozmiary.reduce((a, b) => a + b, 0) * 0.6, 'plik projektu zawiera oryginały');
   assert.equal(eksport.tresc, 0, 'eksport nie zostawia treści obrazów w projekcie');
 

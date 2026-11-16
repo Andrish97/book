@@ -28,6 +28,10 @@ test('rozkładówki: przycisk obok powiększenia przełącza całą rozkładówk
   await przycisk.click();
   await strona.waitForFunction(() => window.seriodruk.edytor.rozkladowka === false);
 
+  // Przełączenie wczytuje płótno od nowa – liczymy dopiero po jego końcu, żeby ostatni rysunek przełączenia
+  // nie wpadł do pomiaru zmiany strony (pod obciążeniem wczytanie kończy się później, #184).
+  await strona.waitForFunction(() => !window.seriodruk.edytor._wczytywanie);
+  await strona.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
   // Zmiana strony: w trakcie wczytywania płótno się nie rysuje, na końcu – raz.
   const rysunki = await strona.evaluate(async () => {
     const c = window.seriodruk.edytor.canvas;

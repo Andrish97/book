@@ -17,13 +17,15 @@ const KLUCZ = crypto.randomBytes(32);
 const SEKRET = `v1,whsec_${KLUCZ.toString('base64')}`;
 const ENV = { BREVO_API_KEY: 'klucz-brevo', SEND_EMAIL_HOOK_SECRET: SEKRET, SITE_URL: 'https://makietka.app' };
 
+// zepsuj: pierwszy znak podpisu zamieniony na inny (dawniej zawsze na „x” – podpis zaczynający się od „x”, raz na 64,
+// zostawał poprawny i test padał losowo, #184).
 function podpisane(payload, { sekret = KLUCZ, czas = Math.floor(Date.now() / 1000), zepsuj = false } = {}) {
   const tresc = JSON.stringify(payload);
   const id = `msg_${crypto.randomBytes(6).toString('hex')}`;
   const podpis = crypto.createHmac('sha256', sekret).update(`${id}.${czas}.${tresc}`).digest('base64');
   return new Request('https://x.supabase.co/functions/v1/poczta', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'webhook-id': id, 'webhook-timestamp': String(czas), 'webhook-signature': `v1,${zepsuj ? `x${podpis.slice(1)}` : podpis}` },
+    headers: { 'content-type': 'application/json', 'webhook-id': id, 'webhook-timestamp': String(czas), 'webhook-signature': `v1,${zepsuj ? `${podpis[0] === 'x' ? 'y' : 'x'}${podpis.slice(1)}` : podpis}` },
     body: tresc,
   });
 }
