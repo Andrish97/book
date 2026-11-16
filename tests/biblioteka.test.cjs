@@ -57,7 +57,7 @@ test('kalendarz miesiąca z biblioteki: siatka marca 2027, niedziele i święta,
   await nowyProjekt(strona, 'Kalendarz');
   await strona.click('[data-akcja="biblioteka"]');
   await strona.waitForSelector('#dlg-biblioteka[open]');
-  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 17, 'z „Moimi elementami”, „Marką” i „Gotowymi sekcjami”');
+  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 18, 'z „Moimi elementami”, „Marką”, „Gotowymi sekcjami” i „Wzorcami stron”');
   await strona.click('#kategorie-biblioteki [data-kategoria="kalendarze"]');
   await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="zwykly"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.kalendarz);

@@ -175,6 +175,14 @@ export function panelStrony(p) {
         }));
       }
     }
+    w.append(p.akcje([['wzorzec', 'Wzorce stron…', () => document.querySelector('[data-akcja="wzorce"]')?.click()]]));
+  }
+
+  else {
+    // Pusty stan (#164): skąd wiadomo, po co są wzorce – i jedno kliknięcie do galerii gotowych.
+    const w = p.sekcja('Wzorce');
+    w.append(p.wskazowka('Numer strony, nagłówek, stopka albo tło na wielu stronach naraz – dodajesz je raz, jako wzorzec, a nie na każdej stronie osobno.'));
+    w.append(p.akcje([['wzorzec', 'Wybierz gotowy wzorzec…', () => document.querySelector('[data-akcja="wzorce"]')?.click()]]));
   }
 
   const f = p.sekcja(`Sekcja „${sekcja.nazwa}”`);

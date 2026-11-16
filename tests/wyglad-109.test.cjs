@@ -147,9 +147,9 @@ test('okna: kosz w Serii, gumka w Danych, „+” przy wzorcach standardowych; t
   await nowyProjekt(strona, 'Okna');
   await strona.evaluate(() => document.querySelector('[data-akcja="wzorce"]').click());
   await strona.waitForSelector('#dlg-wzorce[open]');
-  const plus = await strona.evaluate(() => { const b = document.querySelector('#wzorce-standardowe button[data-standard]'); return { tekst: b.innerText.trim(), aria: b.getAttribute('aria-label'), ikona: Boolean(b.querySelector('svg')) }; });
-  assert.deepEqual([plus.tekst, plus.ikona], ['Dodaj', true], 'na telefonie krótkie „Dodaj”');
-  assert.match(plus.aria, /^Dodaj wzorzec „.+” do projektu$/);
+  const plus = await strona.evaluate(() => { const b = document.querySelector('#wzorce-standardowe button[data-standard]'); const z = b.querySelector('.znak-dodaj'); return { tekst: z.innerText.trim(), aria: b.getAttribute('aria-label'), ikona: Boolean(z.querySelector('svg')) }; });
+  assert.deepEqual([plus.tekst, plus.ikona], ['Dodaj', true], 'karta z „+ Dodaj” (#164)');
+  assert.match(plus.aria, /^Dodaj wzorzec „.+” do stron sekcji „.+”$/);
   await strona.evaluate(() => document.querySelector('#dlg-wzorce').close());
   // Ustawienia sekcji jako zasłonka: bez „Anuluj”, „Zapisz” na całą szerokość.
   await strona.evaluate(() => document.querySelector('[data-akcja="wydruk"]').click());

@@ -129,7 +129,7 @@ test('instrukcja na telefonie: przycisk z nazwą rozdziału otwiera spis jako za
   const { strona, bledy } = await otworz(t, { telefon: true });
   await strona.evaluate(async () => {
     const { ROZDZIALY } = await import('./js/instrukcja.js');
-    await window.seriodruk.instrukcja.otworz(ROZDZIALY.findIndex((r) => r.tytul === 'Wzorce'));
+    await window.seriodruk.instrukcja.otworz(ROZDZIALY.findIndex((r) => r.tytul === 'Wzorce stron'));
   });
   await strona.waitForSelector('#dlg-instrukcja[open]');
   assert.ok(await strona.locator('#instrukcja-wybor').isVisible());

@@ -251,7 +251,7 @@ Jedna strona na dzień, z dniem tygodnia, imieninami i świętami w kolorze.
 3. Na stronie wstaw teksty `{dzien}`, `{dzien_tygodnia}` i `Imieniny: {imieniny}` (→ 16.1).
 4. Kliknij puste miejsce strony i w **Seria** utwórz serię z tabelą Dni (→ 17.2) — powstanie 365 stron.
 5. Wstaw mały tekst `{swieto}` w kolorze czerwonym i ustaw **Pokaż element → nie jest puste** (→ 18.4).
-6. Numer strony i stopkę dodaj jako wzorzec (→ 12.4).
+6. Numer strony i stopkę dodaj jako wzorzec (→ 12.3).
 7. Sprawdź podgląd i wyeksportuj PDF (→ 20, 22).
 
 {{polecenie: PROMPT_DANE | Polecenie dla AI: tabela dni do kalendarza | Skopiuj, podmień nazwę projektu i wklej do rozmowy z AI, które ma podłączoną Makietkę (→ 26).}}

@@ -908,7 +908,7 @@ Zaznaczenie na liście przydaje się, gdy element leży pod innym i trudno w nie
 - Trójkąt przy grupie albo tabeli rozwija jej zawartość. Kliknięcie elementu grupy otwiera grupę z tym
   elementem zaznaczonym (→ 5.5); kliknięcie komórki tabeli zaczyna w niej pisanie.
 - Na górze i na dole listy są elementy wzorców strony (nad treścią i pod treścią). Nie zmienisz ich
-  tutaj — kliknięcie otwiera wzorzec do edycji (→ 12.3).
+  tutaj — kliknięcie otwiera wzorzec do edycji (→ 12.5).
 
 # 11. Strony, sekcje i rozkładówki
 
@@ -945,7 +945,7 @@ Gdy nic nie jest zaznaczone, panel właściwości pokazuje ustawienia otwartej s
 | **Nazwa strony** | Nazwa na liście stron. |
 | **Sekcja** | Przeniesienie strony do innej sekcji. |
 | **Tło** | Kolor tła tej strony. |
-| **Wzorce** | Wzorce z sekcji albo własny wybór dla tej strony (→ 12.2). |
+| **Wzorce** | Wzorce z sekcji albo własny wybór dla tej strony (→ 12.4). |
 | **Seria** | Powielanie strony z tabeli danych (→ 17). |
 | **Prowadnice** | Prowadnice wpisane liczbą (→ 13.4). |
 | [Wklej skopiowane elementy] | Wkleja elementy ze schowka w to samo miejsce. |
@@ -967,7 +967,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 11.8). |
 | **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (→ 11.7). |
-| **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 12.2). |
+| **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 12.4). |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
 | **Siatka linii bazowych** | **Odstęp** i **Pierwsza linia** (mm od góry) — wiersze tekstów z „Wyrównaj do siatki” stoją na tych liniach (→ 6.13). |
 
@@ -1036,7 +1036,7 @@ Na liście stron pod nazwą sekcji zobaczysz np. „46 z 48 – brakuje 2 do pe�
 
 ## 11.8 Numeracja stron
 
-Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (→ 12.6).
+Numer strony wstawisz polem `{nr}` — najlepiej we wzorcu, żeby był na każdej stronie (→ 12.7).
 Numeracja zależy od ustawień sekcji (→ 11.4) i liczy strony po powieleniu serii. Inne zapisy
 numeru (rzymskie, z zerami) są w tabeli pól (→ 16.2).
 
@@ -1087,60 +1087,94 @@ czcionkach marki. Po wstawieniu to zwykłe strony, wzorce (np. numer strony), st
 (→ 15, 17) – zmienisz w nich wszystko jak we własnych. Szare pola to miejsca na zdjęcia: wstaw do nich obraz
 (→ 8.7). Całą wstawioną sekcję usuwa jedno [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).
 
-# 12. Wzorce
+# 12. Wzorce stron
 
-## 12.1 Czym jest wzorzec
+## 12.1 Czym jest wzorzec i kiedy go użyć
 
-Wzorzec to elementy wspólne dla wielu stron: tło, ramka, logo, stopka, numer strony. Rysujesz go
-raz i dodajesz do stron albo do całej sekcji. Zmiana we wzorcu zmienia wszystkie te strony naraz.
-Strona może mieć kilka wzorców, np. „Tło miesiąca” i „Stopka”.
+Niektóre rzeczy powtarzają się na wielu stronach: **numer strony, nagłówek, stopka, tło, ramka,
+linie do pisania**. Zamiast wstawiać je na każdą stronę osobno, wstawiasz je raz — jako **wzorzec**.
 
-## 12.2 Okno Wzorce
+- Wzorzec leży **pod** treścią każdej strony, która go ma. Na samej stronie go nie zaznaczysz
+  ani nie przesuniesz — dzięki temu nie rozjedzie się przypadkiem.
+- Zmieniasz go raz, a zmieniają się **wszystkie** te strony.
+- Pole `{nr}` we wzorcu pokazuje na każdej stronie jej własny numer: jeden wzorzec, a na stronach 1, 2, 3…
+- Strona może mieć kilka wzorców naraz, np. „Kratka” pod treścią i „Numer strony” na dole.
 
-Kliknij [Wzorce] na górnym pasku.
+Kiedy wzorzec, a kiedy zwykły element? Jeśli coś ma być **na wielu stronach w tym samym miejscu** —
+wzorzec. Jeśli tylko na jednej stronie — zwykły element.
 
-![Wzorce na górnym pasku](k-wzorce.png)
+![Okno Wzorce stron: co to jest i gotowe wzorce](k-wzorce-galeria.png)
 
-Lista **Wzorce w tym projekcie** — przy każdym wzorcu:
+## 12.2 Gdzie są wzorce
+
+- [Wzorce] pod listą stron (obok [Sekcja]) i na górnym pasku edytora — otwiera okno **Wzorce stron**.
+- Menu ⋯ strony → [Wzorce tej strony…] — przechodzi na tę stronę i otwiera okno.
+- Menu ⋯ sekcji → [Wzorce sekcji…].
+- Właściwości strony (nic nie jest zaznaczone) → część **Wzorce**: które wzorce są na tej stronie;
+  dopóki projekt nie ma wzorców, jest tam przycisk [Wybierz gotowy wzorzec…].
+- Biblioteka → kategoria **Wzorce stron** — te same gotowe wzorce co w oknie.
+
+Strona, na której leży wzorzec, ma na miniaturze mały fioletowy znak; podpowiedź na nim mówi, jakie to wzorce.
+
+## 12.3 Gotowe wzorce
+
+W oknie **Wzorce stron** niżej jest galeria gotowych wzorców z podglądami — na schemacie elementy wzorca
+są wyraźne, a blade bloki to treść strony. Grupy:
+
+| Grupa | Przykłady |
+|---|---|
+| Numeracja | numer na dole, przy zewnętrznej krawędzi, „Strona 5 z 120”, w kółku, na pasku bocznym, rzymski |
+| Nagłówki i stopki | nazwa sekcji, projekt i sekcja, kolorowy pas, stopka z kontaktem |
+| Tła i papier | linie, kratka, kropki, papier milimetrowy, zeszyt z marginesem, kolorowe tło, znak wodny |
+| Ramki | w marginesach, podwójna, zaokrąglona, obwódka strony, narożniki |
+| Kalendarz i planer | zakładka na brzegu, nagłówek dnia, kolumna „Notatki”, tydzień |
+| Książka | żywa pagina z tytułem rozdziału, numer i rozdział u góry |
+| Katalog i oferta, Gazetka, Zaproszenie | logo i kontakt, winieta, szpalty, ozdobna ramka, pasy |
+
+Kliknięcie karty dodaje wzorzec do projektu i **od razu na wszystkie strony sekcji** otwartej strony —
+okno się zamyka, a wzorzec widać na stronie. [Cofnij] w komunikacie albo <kbd>Ctrl</kbd>+<kbd>Z</kbd>
+odwraca to jednym krokiem. Gotowe wzorce dopasowują się do formatu i marginesów sekcji, a kolory
+i czcionki biorą z zestawu marki (→ 2.9), jeśli go masz. Po dodaniu to zwykły wzorzec — możesz go zmienić.
+
+## 12.4 Na których stronach jest wzorzec
+
+W oknie, w części **W tym projekcie**, przy każdym wzorcu:
 
 | Przycisk | Co robi |
 |---|---|
-| [+ Dodaj do tej strony] | Włącza wzorzec na otwartej stronie. Ponowne kliknięcie (✓) go zdejmuje. |
+| [+ Dodaj do tej strony] | Włącza wzorzec tylko na otwartej stronie. Ponowne kliknięcie (✓) go zdejmuje. |
 | [+ Do całej sekcji] | Włącza wzorzec na stronach sekcji, które nie mają własnego wyboru. |
-| [Edytuj] | Otwiera wzorzec do edycji (→ 12.3). |
+| [Edytuj] | Otwiera wzorzec do edycji (→ 12.5). |
 | [⋯] | [Zmień nazwę], [Duplikuj], [Przesuń wyżej], [Przesuń niżej], [Usuń wzorzec]. |
 
-[Nowy pusty wzorzec] tworzy czysty wzorzec.
+Pojedynczej stronie wybierzesz wzorce też we właściwościach strony: **Wzorce na tej stronie** →
+**Jak w sekcji** albo **Własny wybór** i przełączniki przy nazwach.
 
 ![Okno Wzorce](okno-wzorcow.png)
 
-## 12.3 Edycja wzorca
+## 12.5 Własny wzorzec i edycja
 
-[Edytuj] otwiera wzorzec w edytorze. Fioletowy pasek nad stroną przypomina, że zmieniasz wzorzec;
-[Gotowe] wraca do stron. Na zwykłych stronach elementów wzorca nie da się zaznaczyć — widać je
+[Narysuj własny wzorzec] tworzy pusty wzorzec i od razu go otwiera. [Edytuj] otwiera istniejący.
+Fioletowy pasek nad stroną przypomina, że zmieniasz wzorzec — wszystko, co tu narysujesz, pojawi się
+na stronach z tym wzorcem; [Gotowe] wraca do stron. Na zwykłych stronach elementy wzorca widać
 na liście warstw, a kliknięcie tam otwiera wzorzec.
 
 ![Edycja wzorca](wzorce.png)
 
-## 12.4 Wzorce standardowe
-
-Niżej w oknie są gotowe **wzorce standardowe**: numer strony na dole albo przy zewnętrznej
-krawędzi, stopka, nagłówek, linie do pisania, kratka, ramka, zakładka na brzegu. Dopasowują się
-do formatu i marginesów sekcji. Przycisk [+] (na telefonie [Dodaj]) dodaje wzorzec do projektu
-— potem zmieniasz go jak własny.
-
-## 12.5 Nad treścią i odbicie lustrzane
+## 12.6 Nad treścią i odbicie lustrzane
 
 Elementy wzorca leżą **pod** treścią strony. Zaznacz element we wzorcu i włącz:
 
 - **Nad treścią strony** — element przykryje treść, np. ramka albo znak wodny,
 - **Odbijaj lustrzanie na lewych stronach** — element przy prawej krawędzi (np. numer strony)
-  na lewych stronach rozkładówek przejdzie na lewą krawędź.
+  na lewych stronach rozkładówek przejdzie na lewą krawędź. Gotowe wzorce „przy zewnętrznej krawędzi”
+  mają to włączone.
 
-## 12.6 Numer strony we wzorcu
+## 12.7 Pola we wzorcu
 
-Wpisz we wzorcu tekst z polem `{nr}`, np. `Strona {nr} z {liczba_stron}`. Na każdej stronie
-pojawi się jej numer. Najprościej dodać wzorzec standardowy z numerem strony (→ 12.4).
+Wpisz we wzorcu tekst z polem, np. `Strona {nr} z {liczba_stron}`, `{sekcja}` albo `{rozdzial}`
+(tytuł bieżącego rozdziału). Na każdej stronie pojawi się jej wartość. Najprościej zacząć od gotowego
+wzorca z numerem strony (→ 12.3).
 
 # 13. Linie pomocnicze, siatka i powiększenie
 

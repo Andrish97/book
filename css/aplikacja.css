@@ -932,6 +932,12 @@ dialog h2 { font-size: 19px; }
   background: var(--wzorzec); color: var(--wzorzec-tekst); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; pointer-events: none;
 }
 .strona.w-serii .miniatura { position: relative; }
+/* Wzorce na stronie (#164): znak w prawym dolnym rogu miniatury. */
+.lista-stron .strona .miniatura { position: relative; }
+.strona .znak-wzorcow {
+  position: absolute; right: 5px; bottom: 5px; z-index: 1; display: inline-flex; align-items: center; gap: 2px; padding: 2px 4px; border-radius: 999px;
+  background: color-mix(in srgb, var(--wzorzec) 85%, transparent); color: var(--wzorzec-tekst); font-size: 10px; font-weight: 600; pointer-events: auto;
+}
 
 /* ---------- Powiadomienie ---------- */
 
@@ -1474,14 +1480,41 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .opis-wzorca small { color: var(--cichy); font-size: 12.5px; line-height: 1.4; }
 .opis-wzorca .rzad-przyciskow { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
 .galeria-wzorcow [aria-pressed="true"] { background: var(--akcent-tlo); border-color: var(--akcent); color: var(--na-akcencie-tle); }
-.galeria-wzorcow.standardowe { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.galeria-wzorcow.standardowe > li.wzorzec { grid-template-columns: minmax(0, 1fr) auto; }
-.galeria-wzorcow.standardowe .opis-wzorca strong { white-space: normal; }
-.dodaj-standardowy { gap: 4px; }
-.dodaj-standardowy > span { display: none; }
-:root[data-urzadzenie="telefon"] .dodaj-standardowy > span { display: inline; }
-:root:not([data-urzadzenie="telefon"]) .dodaj-standardowy { width: 32px; padding: 0; justify-content: center; }
-@media (max-width: 640px) { .galeria-wzorcow.standardowe { grid-template-columns: minmax(0, 1fr); } .galeria-wzorcow > li.wzorzec { grid-template-columns: 64px minmax(0, 1fr) auto; } .galeria-wzorcow .miniatura { width: 64px; } }
+/* Galeria gotowych wzorców (#164): karty z podglądem rysowanym jak strona, w grupach. */
+.galeria-wzorcow.standardowe { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.galeria-wzorcow.standardowe > li.grupa-wzorcow { grid-column: 1 / -1; margin: 6px 2px 0; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--cichy); }
+.galeria-wzorcow.standardowe > li.grupa-wzorcow:first-child { margin-top: 0; }
+.galeria-wzorcow.standardowe > li.wzorzec { display: block; padding: 0; border: 0; background: none; }
+.karta-wzorca { display: flex; flex-direction: column; gap: 6px; width: 100%; height: 100%; padding: 10px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); color: var(--tusz); font: inherit; text-align: left; cursor: pointer; }
+@media (hover: hover) { .karta-wzorca:hover { border-color: var(--akcent); background: var(--akcent-tlo); } }
+.karta-wzorca:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.karta-wzorca .podglad-wzorca { display: grid; place-items: center; height: 120px; margin-bottom: 2px; }
+.karta-wzorca .podglad-wzorca svg { max-width: 100%; max-height: 100%; width: auto; height: 100%; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .14)); }
+.karta-wzorca .opis-wzorca strong { white-space: normal; font-size: 13px; line-height: 1.3; }
+.karta-wzorca .opis-wzorca small { font-size: 11.5px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.karta-wzorca .znak-dodaj { margin-top: auto; display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; padding: 3px 8px; border-radius: 999px; background: var(--akcent-tlo); color: var(--akcent); font-size: 12px; font-weight: 600; }
+/* Co to jest wzorzec: rysunek i trzy zdania. */
+.wzorce-wyjasnienie { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: center; padding: 12px 14px; border-radius: var(--r-m); background: var(--powierzchnia-2); }
+.wzorce-rysunek { width: 100%; height: auto; }
+.wzorce-rysunek .wr-kartka { fill: #fff; stroke: var(--linia-mocna); stroke-width: 1; }
+.wzorce-rysunek .wr-pas { fill: var(--wzorzec, var(--akcent)); }
+.wzorce-rysunek .wr-tresc { fill: color-mix(in srgb, var(--tusz) 10%, transparent); }
+.wzorce-rysunek .wr-strzalka { fill: none; stroke: var(--tusz-2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.wzorce-rysunek .wr-nr { font: 700 7px/1 Inter, sans-serif; fill: var(--wzorzec, var(--akcent)); text-anchor: middle; }
+.wzorce-rysunek .wr-wzor { stroke: var(--wzorzec, var(--akcent)); stroke-dasharray: 3 2; }
+/* Pas wzorca „przepływa” na strony – zmiana we wzorcu widać na wszystkich naraz. */
+@media (prefers-reduced-motion: no-preference) { .wzorce-rysunek .wr-pas, .wzorce-rysunek .wr-nr { animation: wzorzecPuls 2.4s ease-in-out infinite; } }
+@keyframes wzorzecPuls { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.wzorce-rysunek .wr-podpis { font: 600 8px/1 Inter, sans-serif; fill: var(--cichy); text-anchor: middle; }
+.wzorce-punkty { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.45; color: var(--tusz-2); }
+.wzorce-punkty strong { color: var(--tusz); }
+@media (max-width: 640px) {
+  .galeria-wzorcow.standardowe { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .galeria-wzorcow > li.wzorzec { grid-template-columns: 64px minmax(0, 1fr) auto; }
+  .galeria-wzorcow .miniatura { width: 64px; }
+  .wzorce-wyjasnienie { grid-template-columns: 1fr; gap: 8px; }
+  .wzorce-rysunek { max-width: 240px; margin: 0 auto; }
+}
 .panel-strony .naglowek-panelu h2 { padding-left: 6px; }
 /* Prawy panel (#115): nagłówek z rodzajem ustawień, przewijane właściwości, pod nimi zwijane Warstwy
    i Ostrzeżenia. Przewija się każda część osobno – warstwy są zawsze pod ręką. */
