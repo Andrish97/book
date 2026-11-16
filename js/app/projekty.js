@@ -152,13 +152,14 @@ export async function pokazProjekty({ cicho = false } = {}) {
         <div class="okladka">${w.miniatura ? '<img alt="">' : '<div class="pusta-okladka"></div>'}</div>
         <div class="opis"><strong></strong><small></small></div>
       </button>
-      ${w.udostepniony || w.wspolpraca ? `<div class="plakietki-karty">${w.udostepniony ? `<button class="plakietka-linku" title="Projekt ma link do podglądu – kliknij, żeby go skopiować albo unieważnić">${ikona('link', { rozmiar: 14 })}<span>Udostępniony</span></button>` : ''}${w.wspolpraca ? `<button class="plakietka-linku plakietka-wspolpracy" title="Projekt udostępniony Ci przez inną osobę – kliknij, żeby zobaczyć, kto ma dostęp">${ikonaWspolpracy()}<span></span></button>` : ''}</div>` : ''}
+      ${w.udostepniony || w.wspolpraca ? `<div class="plakietki-karty">${w.udostepniony ? `<button class="plakietka-linku" title="Projekt ma link do podglądu – kliknij, żeby go skopiować, zmienić hasło, ważność albo znak wodny">${ikona('link', { rozmiar: 14 })}<span>Udostępniony</span></button>` : ''}${w.wspolpraca ? `<button class="plakietka-linku plakietka-wspolpracy" title="Projekt udostępniony Ci przez inną osobę – kliknij, żeby zobaczyć, kto ma dostęp">${ikonaWspolpracy()}<span></span></button>` : ''}</div>` : ''}
       <button class="przycisk-ikona menu-karty" aria-label="Opcje projektu" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
         <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>
         ${w.wspolpraca?.rola === 'odczyt' ? '' : `<button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>`}
         <button role="menuitem" data-op="duplikuj">${ikona('kopiuj')}${w.wspolpraca ? 'Zrób własną kopię' : 'Duplikuj'}</button>
         <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.makietka)</button>
+        ${w.wspolpraca ? '' : `<button role="menuitem" data-op="udostepnij">${ikona('link')}${w.udostepniony ? 'Link do podglądu…' : 'Udostępnij linkiem…'}</button>`}
         <button role="menuitem" data-op="wspolpraca">${ikona('uzytkownik')}Współpraca…</button>
         <hr>
         ${w.wspolpraca
@@ -203,6 +204,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
       if (op === 'duplikuj') await duplikujProjekt(w);
       if (op === 'eksport') await eksportujProjekt(w);
       if (op === 'usun') await usunProjekt(w);
+      if (op === 'udostepnij') { try { otworzUdostepnianie(await wczytajProjektZWpisu(w)); } catch (err) { powiadom(chmura.komunikatBledu(err), true); } }
       if (op === 'wspolpraca') await otworzWspolprace(w);
       if (op === 'opusc') await opuscProjekt(w);
     });

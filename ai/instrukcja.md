@@ -1943,7 +1943,7 @@ Link do podglądu dla osób bez konta — klienta, rodziny, drukarni.
 
 Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i nie widzi innych Twoich projektów. Może też otworzyć **Makieta 3D** (rozdział „19.4 Makieta 3D”): obracać ją, kartkować i pobrać obraz — w jednym wariancie, takim jak Twój (pierwsze zapisane ujęcie, a bez ujęć — rodzaj, ułożenie i światło z Twojej makiety), bez ustawień i bez zmiany rodzaju. Makieta aktualizuje się w linku sama, także w linkach utworzonych przed jej dodaniem.
 
-1. W podglądzie kliknij **Udostępnij**.
+1. W podglądzie kliknij **Udostępnij** — albo na liście projektów **⋯** na karcie → **Udostępnij linkiem…** (projekt się nie otwiera, strony przygotują się w tle).
 2. **Utwórz link** — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.
 3. Skopiuj link i wyślij go.
 

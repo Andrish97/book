@@ -349,3 +349,46 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   assert.equal(await g5.s.textContent('.podglad-pusto h2'), 'Ten link nie działa');
   assert.deepEqual(bledy, []);
 });
+
+// #196: z listy projektów (bez otwierania projektu) – menu ⋯ → „Udostępnij linkiem…”: hasło ustawione od razu,
+// „Utwórz link” rysuje strony w tle, link krótki i chroniony; potem plakietka „Udostępniony” i zmiana hasła.
+test('udostępnianie z listy projektów: menu ⋯, link z hasłem bez otwierania projektu, zmiana hasła', async (t) => {
+  const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await nowyProjekt(strona, 'Z listy');
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); });
+  await strona.goto(strona.url().split('#')[0]);
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && document.querySelector('.karta-projektu .menu-karty'));
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt), null);
+  await strona.click('.karta-projektu .menu-karty');
+  await strona.click('.karta-projektu [data-op="udostepnij"]');
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  assert.ok(await strona.isVisible('#udostepnij-utworz'));
+  assert.ok(await strona.isVisible('#udostepnij-ochrona'));
+  await strona.check('#udostepnij-haslo-wl');
+  await strona.fill('#udostepnij-haslo', 'z-listy-1');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'projekty', 'projekt się nie otworzył');
+  const link = await strona.inputValue('#udostepnij-link');
+  assert.match(link, /\/[a-hj-km-np-z2-9]{6}$/);
+  const [klucz, u] = [...baza.chronione.entries()][0];
+  assert.equal(u.haslo, 'z-listy-1');
+  assert.equal(plikiChronione(baza, klucz).length, 2, 'opis i strona w folderze z ochroną');
+  // Plakietka na karcie i zmiana hasła z niej.
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await strona.waitForSelector('.karta-projektu .plakietka-linku');
+  await strona.click('.karta-projektu .plakietka-linku');
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  assert.equal(await strona.inputValue('#udostepnij-link'), link);
+  assert.ok(await strona.isChecked('#udostepnij-haslo-wl'));
+  await strona.fill('#udostepnij-haslo', 'z-listy-2');
+  await strona.click('#udostepnij-ochrona-zapisz');
+  await strona.waitForFunction(() => /^Zapisano\./.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 30000 });
+  assert.equal(baza.chronione.get(klucz).haslo, 'z-listy-2');
+  assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'projekty');
+  assert.deepEqual(bledy, []);
+});

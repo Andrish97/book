@@ -411,7 +411,8 @@ Może też otworzyć [Makieta 3D] (→ 19.4): obracać ją, kartkować i pobrać
 jak Twój (pierwsze zapisane ujęcie, a bez ujęć — rodzaj, ułożenie i światło z Twojej makiety), bez ustawień
 i bez zmiany rodzaju. Makieta aktualizuje się w linku sama, także w linkach utworzonych przed jej dodaniem.
 
-1. W podglądzie kliknij [Udostępnij].
+1. W podglądzie kliknij [Udostępnij] — albo na liście projektów [⋯] na karcie → [Udostępnij linkiem…] (projekt się
+   nie otwiera, strony przygotują się w tle).
 2. [Utwórz link] — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.
 3. Skopiuj link i wyślij go.
 

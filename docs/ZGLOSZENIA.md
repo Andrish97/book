@@ -38,6 +38,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
+| 196 | Udostępnianie w całości z listy projektów: menu ⋯ → „Udostępnij linkiem…”, utworzenie linku, hasło, ważność, znak wodny, aktualizacja i unieważnienie bez otwierania projektu |
 | 195 | Krótkie linki podglądu: makietka.app/ i 6 znaków (małe litery i cyfry); stare linki dostają krótki adres, długie dalej działają |
 | 194 | Makieta 3D bez WebGL (Chrome na starszym Macu): komunikat z powodem z przeglądarki i krokami – akceleracja grafiki, chrome://gpu, ignore-gpu-blocklist, Safari |
 | 193 | Obrazy w czasie ładowania migoczą zamiast pustych miejsc i ikonek „zepsutego obrazu”; miniatury stron zapamiętane na urządzeniu – kolejne otwarcie projektu bez rysowania wszystkich od nowa |

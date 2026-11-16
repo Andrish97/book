@@ -107,15 +107,15 @@ function odswiezOknoUdostepniania() {
   if (!p) return;
   const u = p.udostepnienie;
   const zKontem = Boolean(stan.uzytkownik);
-  const otwarty = p === stan.projekt;
   $('#udostepnij-link-blok').hidden = !u;
   $('#udostepnij-wylacz').hidden = !u;
-  $('#udostepnij-utworz').hidden = !zKontem || Boolean(u) || !otwarty;
-  $('#udostepnij-teraz').hidden = !zKontem || !u || !otwarty;
+  // Z listy projektów też (#196): utworzenie linku i „Aktualizuj teraz” rysują strony w tle.
+  $('#udostepnij-utworz').hidden = !zKontem || Boolean(u);
+  $('#udostepnij-teraz').hidden = !zKontem || !u;
   $('#udostepnij-komunikat').textContent = zKontem ? '' : 'Udostępnianie wymaga zalogowania.';
   $('#udostepnij-komunikat').classList.remove('sukces');
-  odswiezOchrone(p, zKontem && (otwarty || Boolean(u))); // z listy projektów: ochronę istniejącego linku też zmienisz (#190)
-  odswiezZnak(p, zKontem && (otwarty || Boolean(u)));
+  odswiezOchrone(p, zKontem); // z listy projektów: ochronę też ustawisz i zmienisz (#190, #196)
+  odswiezZnak(p, zKontem);
   if (!u) return;
   $('#udostepnij-link').value = linkUdostepnienia(p);
   const aktualny = u.odcisk === odciskTresci(p);
@@ -399,14 +399,18 @@ export async function uzupelnijKrotkiLink() {
 }
 
 // Przycisk „Utwórz link” albo „Aktualizuj teraz”.
+// Z listy projektów (#196) – projekt nie jest otwarty: strony rysują się w tle (przygotujDoRysowania),
+// zapis idzie do tej kopii projektu.
 export async function opublikujUdostepnienie() {
-  const p = stan.projekt;
+  const p = celOkna || stan.projekt;
+  const otwarty = p === stan.projekt;
+  const zapisz = () => (otwarty ? zapiszTeraz() : (p.zmieniono = new Date().toISOString(), zapiszGdziekolwiek(p)));
   const komunikat = $('#udostepnij-komunikat');
   komunikat.classList.remove('sukces');
   for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = true;
   trwaPublikacja = true;
   try {
-    await zapiszTeraz();
+    if (otwarty) await zapiszTeraz(); else await przygotujDoRysowania(p);
     if (!p.udostepnienie) {
       // Nowy link: ochrona wybrana w oknie działa od pierwszej publikacji.
       const w = ochronaZOkna(p);
@@ -426,7 +430,9 @@ export async function opublikujUdostepnienie() {
       : 'Gotowe. Skopiuj link i wyślij go, komu chcesz. Od teraz będzie się aktualizował sam.';
     komunikat.classList.add('sukces');
     wypelnijOchrone(p);
-    await zapiszTeraz();
+    odswiezOknoUdostepnianiaZachowujacKomunikat(); // link od razu w oknie, zapis – zaraz potem
+    await zapisz();
+    if (!otwarty && document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); // plakietka „Udostępniony”
   } catch (e) {
     komunikat.textContent = `Nie udało się udostępnić: ${chmura.komunikatBledu(e)}`;
   } finally {
