@@ -9,6 +9,7 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga | Stan |
 |---|---|---|
+| 179 | Makieta 3D: wyklejka jak w prawdziwej twardej oprawie (zawinięcie okleiny, płaska wyklejka, cienki zawias), spirale z poprawnymi parametrami (Wire-O 3:1/2:1, średnica z grubości, kalendarz ścienny z wieszakiem), sztywna okładka miękka zginana na bigach, poprawne wymiary okładki względem bloku, tryb stojący | 🔄 |
 | 178 | Program nie ogarnia wyklejek i innych sekcji tematycznych: jawne typy sekcji (bez zgadywania po nazwie) (okładka, wyklejka, blok, obwoluta, wkładka) rozumiana wszędzie – grzbiet, numeracja, PDF, kontrola, makieta 3D (wyklejki przyklejone do okładki), AI | 🔄 |
 | 160 | Audyt pokrycia testami wszystkich funkcji, docs/TESTY.md, lista kontrolna do ręcznego sprawdzenia | 🔄 |
 
