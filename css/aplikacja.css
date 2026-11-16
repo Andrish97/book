@@ -129,6 +129,10 @@ body[data-ekran="podglad"] #ekran-podgladu,
 body[data-ekran="edytor"] #ekran-edytora { display: flex; }
 
 .ekran-start { flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+/* Uruchamianie (#170): ekran startowy zasłania wszystko, aż pierwszy ekran (lista projektów albo otwarta
+   strona projektu) jest gotowy – po powrocie do aplikacji, którą telefon wyrzucił z pamięci, nie mrugają
+   po kolei: start, pusty ekran z kartą, start, edytor bez strony. */
+body.startuje #ekran-start { display: flex; position: fixed; inset: 0; z-index: 2147483000; background: var(--papier); }
 .logo-duze .znak-logo { width: 56px; height: 56px; font-size: 28px; border-radius: 14px; animation: puls 1.4s ease-in-out infinite; }
 @keyframes puls { 50% { opacity: .55; } }
 

@@ -39,7 +39,8 @@ export const edytorGotowy = () => modul;
 // Doczytanie, na które użytkownik czeka (otwarcie projektu): gdy trwa dłużej niż chwilę, mówimy o tym.
 export async function czekajNaEdytor() {
   if (modul) return modul;
-  const t = setTimeout(() => powiadom('Wczytuję edytor…'), 400);
+  // Przy uruchamianiu (#170) czeka ekran startowy – bez dodatkowego dymka.
+  const t = setTimeout(() => { if (!document.body.classList.contains('startuje')) powiadom('Wczytuję edytor…'); }, 400);
   try {
     return await doczytajEdytor();
   } catch (e) {

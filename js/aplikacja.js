@@ -289,8 +289,19 @@ wlaczPodpowiedzi();
 wlaczPalete();
 wlaczInstalacje();
 
+// Koniec uruchamiania (#170): ekran startowy znika dopiero, gdy pierwszy ekran jest gotowy (lista projektów
+// albo otwarta i narysowana strona) – dwie klatki później, żeby przeglądarka zdążyła go pokazać.
+function zakonczStart() {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.body.classList.remove('startuje');
+    const p = document.querySelector('#ekran-start .ciche');
+    if (p) p.textContent = 'Wczytywanie…';
+  }));
+}
+setTimeout(zakonczStart, 20000); // na wszelki wypadek – nigdy nie zostaje zasłonięta na zawsze
+
 start().catch((e) => {
   console.error(e);
   pokazEkran('logowanie');
   konto.komunikat(`Błąd startu: ${e.message}`);
-});
+}).finally(zakonczStart);

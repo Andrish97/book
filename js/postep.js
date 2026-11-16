@@ -70,8 +70,15 @@ export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNI
     if (znany) pasekEl.setAttribute('aria-valuenow', String(pr)); else pasekEl.removeAttribute('aria-valuenow');
     pasekEl.setAttribute('aria-valuetext', licznikEl.textContent || 'w toku');
     if (el.isConnected) dajHost();
+    if (opisEl.textContent) naEkranieStartu();
   };
-  const ustawOpis = (t) => { opisEl.textContent = t; pasekEl.setAttribute('aria-label', t); };
+  const ustawOpis = (t) => { opisEl.textContent = t; pasekEl.setAttribute('aria-label', t); naEkranieStartu(); };
+  // W trakcie uruchamiania (#170) karta jest pod ekranem startowym – opis czynności idzie na ekran startowy.
+  function naEkranieStartu() {
+    if (!document.body.classList.contains('startuje')) return;
+    const p = document.querySelector('#ekran-start .ciche');
+    if (p) p.textContent = `${opisEl.textContent}${licznikEl.textContent ? ` ${licznikEl.textContent}` : ''}`;
+  }
   ustawOpis(tekst);
   odswiez();
   const pokaz = setTimeout(() => { if (!zakonczony) { dajHost().append(el); el.dataset.widoczny = ''; } }, opoznienie);
