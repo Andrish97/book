@@ -2259,7 +2259,7 @@ Na Macu zamiast `Ctrl` naciśnij `⌘`. W edytorze tę listę pokaże klawisz `?
 
 | Klawisze | Działanie |
 |---|---|
-| `Ctrl` + `` + `` | Powiększ |
+| `Ctrl` + `+` | Powiększ |
 | `Ctrl` + `−` | Pomniejsz |
 | `Ctrl` + `0` | Dopasuj do okna |
 | `Ctrl` + `1` | Powiększenie 100% |

@@ -42,3 +42,11 @@ test('instrukcja: pliki zbudowane z docs/instrukcja są aktualne, ai/instrukcja.
     assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), `brak ${plik}`);
   }
 });
+
+// #174: skrót z plusem jako klawiszem („Ctrl++”) ma dwa klawisze: Ctrl i +, bez pustych.
+test('instrukcja: Ctrl + plus w liście skrótów', () => {
+  const fs = require('node:fs');
+  const md = fs.readFileSync(require('node:path').join(__dirname, '..', 'ai', 'instrukcja.md'), 'utf8');
+  const wiersz = md.split('\n').find((l) => /\| Powiększ \|$/.test(l.trim()));
+  assert.ok(wiersz && wiersz.includes('`Ctrl` + `+`') && !wiersz.includes('``'), wiersz);
+});

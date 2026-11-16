@@ -19,6 +19,9 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+// Klawisze skrótu: „Ctrl++” to Ctrl i plus – plus jako klawisz nie może zniknąć przy dzieleniu (#174).
+const klawiszeSkrotu = (t) => t.split(/\+(?!$)/).map((k) => k || '+');
+
 
 const KORZEN = path.join(__dirname, '..');
 const ZRODLO = path.join(KORZEN, 'docs', 'instrukcja');
@@ -285,7 +288,7 @@ async function zbuduj() {
   for (const s of SKROTY) {
     let g = grupy.find((x) => x.nazwa === s.grupa);
     if (!g) { g = { nazwa: s.grupa, w: [] }; grupy.push(g); }
-    g.w.push(`| ${opisKlawiszy(s).split('+').map((k) => `\`${k}\``).join(' + ')} | ${s.opis} |`);
+    g.w.push(`| ${klawiszeSkrotu(opisKlawiszy(s)).map((k) => `\`${k}\``).join(' + ')} | ${s.opis} |`);
   }
   const skroty = grupy.map((g) => `#### ${g.nazwa}\n\n| Klawisze | Działanie |\n|---|---|\n${g.w.join('\n')}`).join('\n\n');
   const md = [

@@ -12,6 +12,9 @@ import { SKROTY, opisKlawiszy } from './skroty.js';
 import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
 import { czyCiemny } from './motyw.js';
 import { CZESCI, ROZDZIALY as ZRODLO } from './instrukcja-tresc.js';
+// Klawisze skrótu: „Ctrl++” to Ctrl i plus – plus jako klawisz nie może zniknąć przy dzieleniu (#174).
+const klawiszeSkrotu = (t) => t.split(/\+(?!$)/).map((k) => k || '+');
+
 
 // Rozdziały z nazwą części (grupa) i tekstem do wyszukiwania (rozdział i każdy podrozdział).
 const naTekst = (html) => String(html || '').replace(/<pre>[\s\S]*?<\/pre>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').toLowerCase();
@@ -33,7 +36,7 @@ function tabelaSkrotow() {
   for (const s of SKROTY) {
     let g = grupy.find((x) => x.nazwa === s.grupa);
     if (!g) { g = { nazwa: s.grupa, wiersze: [] }; grupy.push(g); }
-    g.wiersze.push(`<tr><td>${opisKlawiszy(s).split('+').map((k) => `<kbd>${k}</kbd>`).join(' ')}</td><td>${s.opis}</td></tr>`);
+    g.wiersze.push(`<tr><td>${klawiszeSkrotu(opisKlawiszy(s)).map((k) => `<kbd>${k}</kbd>`).join(' ')}</td><td>${s.opis}</td></tr>`);
   }
   return grupy.map((g) => `<h4>${g.nazwa}</h4><div class="tabela-instrukcji"><table class="skroty"><tbody>${g.wiersze.join('')}</tbody></table></div>`).join('');
 }
