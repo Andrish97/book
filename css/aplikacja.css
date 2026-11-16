@@ -2258,8 +2258,27 @@ button.zalacznik:hover { border-color: var(--akcent); color: var(--akcent); }
 .podpowiedzi-adresow li[aria-selected="true"], .podpowiedzi-adresow li:hover { background: var(--akcent-tlo); }
 .pisz-edytor { flex: 1; min-height: 240px; display: flex; flex-direction: column; padding: 0; }
 .pisz-edytor > textarea { flex: 1; border: 0; }
-.pisz-edytor .tox-tinymce { flex: 1; border: 0 !important; border-radius: 0 !important; }
-.pisz-edytor .atrapa-tinymce { flex: 1; font-size: 15px; line-height: 1.55; color: var(--tusz); }
+/* Edytor wiadomości (#183, js/edytor-wiadomosci.js) – własny, bez TinyMCE z CDN. */
+.edytor-wiadomosci { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.edytor-wiadomosci-pasek { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 4px 10px; border-bottom: 1px solid var(--linia); background: var(--powierzchnia-2); }
+.edytor-wiadomosci-pasek .przycisk-ikona { --dotyk: 32px; color: var(--tusz-2); }
+.edytor-wiadomosci-pasek .przycisk-ikona[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); }
+.edytor-wiadomosci-pasek .kreska { width: 1px; height: 20px; margin: 0 4px; background: var(--linia); }
+.edytor-wiadomosci-styl { min-height: 32px; padding: 2px 6px; font: inherit; font-size: 13px; border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz); }
+.edytor-wiadomosci-kolor { width: 32px; height: 32px; padding: 3px; border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); cursor: pointer; }
+.edytor-wiadomosci-tresc { flex: 1; min-height: 200px; overflow: auto; padding: 12px 16px; outline: none; font-size: 15px; line-height: 1.55; color: var(--tusz); overflow-wrap: anywhere; }
+.edytor-wiadomosci-tresc:focus-visible { box-shadow: inset 0 0 0 2px var(--akcent-tlo); }
+.edytor-wiadomosci-tresc p { margin: 0 0 .5em; }
+.edytor-wiadomosci-tresc blockquote { margin: 6px 0 6px 4px; padding-left: 10px; border-left: 3px solid var(--linia-mocna); color: var(--tusz-2); }
+.edytor-wiadomosci-tresc a { color: var(--akcent); }
+.edytor-wiadomosci-tresc pre { white-space: pre-wrap; background: var(--powierzchnia-2); padding: 8px; border-radius: var(--r-s); }
+.edytor-wiadomosci-tresc .podpis { color: var(--tusz-2); }
+/* Filtry listy rozmów (#183). */
+.skrzynka-filtry { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 8px; }
+.skrzynka-filtry .chip { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 10px; border: 1px solid var(--linia); border-radius: 999px; background: var(--powierzchnia); color: var(--tusz-2); font: inherit; font-size: 12.5px; cursor: pointer; }
+.skrzynka-filtry .chip[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); border-color: transparent; font-weight: 600; }
+.skrzynka-filtry .chip[hidden] { display: none; }
+:root[data-dotyk] .skrzynka-filtry .chip { min-height: 34px; }
 .pisz-zalaczniki { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 8px 16px 0; list-style: none; }
 .pisz-zalaczniki .zalacznik { cursor: default; padding-right: 2px; }
 .pisz-zalaczniki .zalacznik.wysylanie { opacity: .65; }

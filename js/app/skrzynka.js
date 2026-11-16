@@ -1,11 +1,12 @@
 // Skrzynka kontakt@makietka.app w panelu administratora (decyzja #110) – klient poczty jak w Familiadzie (bez
 // marketingu), w wyglądzie Makietki:
 //  • foldery: Odebrane, Zgłoszenia (formularz kontaktowy, numery ZGL-RRRR-NNNN), Z gwiazdką, Wysłane, Robocze,
-//    Archiwum, Spam, Kosz; liczniki nieprzeczytanych; wyszukiwanie; strony po 50,
+//    Archiwum, Spam, Kosz; liczniki nieprzeczytanych; wyszukiwanie i filtry (nieprzeczytane, z załącznikami,
+//    z gwiazdką – #183); strony po 50,
 //  • lista z zaznaczaniem i operacjami zbiorczymi (przeczytane, gwiazdka, archiwum, spam, kosz, przywrócenie,
 //    usunięcie na zawsze, zamknięcie zgłoszeń),
 //  • rozmowa: treść HTML w ramce bez skryptów (sandbox + CSP, obrazy z internetu dopiero na żądanie), załączniki,
-//  • pisanie: Do/DW/UDW z podpowiedziami adresów, treść w TinyMCE (jsDelivr, GPL, po polsku, jasny/ciemny),
+//  • pisanie: Do/DW/UDW z podpowiedziami adresów, treść we własnym edytorze (js/edytor-wiadomosci.js, bez CDN, #183),
 //    załączniki do R2 (do 10 MB razem), podpis, odpowiedź / odpowiedź wszystkim / przekazanie z cytatem,
 //    kopie robocze zapisywane w trakcie pisania; wysyłka przez kolejkę (Brevo → ZeptoMail) z adresu skrzynki,
 //  • zmiany na żywo (Realtime na poczta_watki – tylko administrator),
@@ -13,12 +14,10 @@
 // Dane: funkcje bazy admin_poczta_* (migracja 20261115160000_skrzynka.sql).
 
 import { supabase, komunikatBledu, r2 } from '../chmura.js';
-import { $, $$, powiadom, potwierdz, kiedy, odmiana } from '../ui.js';
+import { $, $$, powiadom, potwierdz, kiedy, odmiana, zapytajONazwe } from '../ui.js';
+import { utworzEdytorWiadomosci } from '../edytor-wiadomosci.js';
 import { wstawIkony } from '../ikony.js';
-import { biblioteka } from '../biblioteki.js';
 
-export const TINYMCE = 'https://cdn.jsdelivr.net/npm/tinymce@7.9.3/tinymce.min.js';
-const TINYMCE_PL = 'https://cdn.jsdelivr.net/npm/tinymce-i18n@26.10.26/langs7/pl.js';
 const NA_STRONE = 50;
 const LIMIT_ZALACZNIKOW = 10 * 1024 * 1024;
 const FOLDERY = {
@@ -43,7 +42,7 @@ const KOMUNIKATY = {
 };
 
 const s = {
-  folder: 'skrzynka', szukaj: '', od: 0, razem: 0, watki: [], zaznaczone: new Set(), liczniki: {},
+  folder: 'skrzynka', szukaj: '', filtr: '', od: 0, razem: 0, watki: [], zaznaczone: new Set(), liczniki: {},
   otwarty: null, dane: null, skrzynka: 'kontakt@makietka.app', podpis: '', obrazy: new Set(), kanal: null,
 };
 
@@ -81,7 +80,7 @@ function ustawWidok(widok) {
 // ---------- Lista ----------
 
 export async function rysujSkrzynke() {
-  const w = await rpc('admin_poczta_watki', { p_folder: s.folder, p_szukaj: s.szukaj || null, p_limit: NA_STRONE, p_od: s.od });
+  const w = await rpc('admin_poczta_watki', { p_folder: s.folder, p_szukaj: s.szukaj || null, p_limit: NA_STRONE, p_od: s.od, ...(s.filtr ? { p_filtr: s.filtr } : {}) });
   s.watki = w.watki;
   s.razem = w.razem;
   s.liczniki = w.liczniki || {};
@@ -103,7 +102,12 @@ export async function rysujSkrzynke() {
   lista.replaceChildren(...s.watki.map(wierszListy));
   wstawIkony(lista);
   $('#admin-watki-pusto').hidden = s.watki.length > 0;
-  $('#admin-watki-pusto').textContent = s.szukaj ? 'Nic nie pasuje do wyszukiwania.' : {
+  for (const b of $$('#admin-filtry [data-filtr]')) {
+    b.setAttribute('aria-pressed', String(b.dataset.filtr === s.filtr));
+    // W kopiach roboczych ma sens tylko filtr „Z załącznikami”.
+    b.hidden = s.folder === 'robocze' && ['nieprzeczytane', 'gwiazdka'].includes(b.dataset.filtr);
+  }
+  $('#admin-watki-pusto').textContent = s.szukaj || s.filtr ? 'Nic nie pasuje do wyszukiwania ani filtra.' : {
     skrzynka: 'Brak wiadomości w Odebranych.', robocze: 'Brak wersji roboczych.', kosz: 'Kosz jest pusty.', spam: 'Brak spamu.',
   }[s.folder] || `${FOLDERY[s.folder]} – pusto.`;
   $('#admin-zakres').textContent = s.razem ? `${s.od + 1}–${Math.min(s.od + s.watki.length, s.razem)} z ${s.razem}` : '';
@@ -407,56 +411,16 @@ const pisz = {
   timer: null, zapis: Promise.resolve(), wysylanie: false, poprzedni: 'lista', edytor: null, gotowy: null, zmiany: false,
 };
 
-// TinyMCE z jsDelivr (wersja na sztywno, licencja GPL – bez klucza API), po polsku, motyw jak aplikacja.
+// Edytor treści (#183): własny, bez bibliotek z CDN (wcześniej TinyMCE z jsDelivr) – js/edytor-wiadomosci.js.
 async function edytor() {
   if (pisz.edytor) return pisz.edytor;
-  if (!pisz.gotowy) {
-    pisz.gotowy = (async () => {
-      const tinymce = await biblioteka(TINYMCE, 'tinymce', 'edytora wiadomości');
-      const ciemny = document.documentElement.dataset.motyw === 'ciemny';
-      const [ed] = await tinymce.init({
-        target: $('#admin-pisz-tresc'),
-        license_key: 'gpl',
-        language: 'pl',
-        language_url: TINYMCE_PL,
-        skin: ciemny ? 'oxide-dark' : 'oxide',
-        content_css: ciemny ? 'dark' : 'default',
-        content_style: 'body{font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55;margin:12px}blockquote{margin:6px 0 6px 4px;padding-left:10px;border-left:3px solid #d9d6cd;color:#807d75}',
-        menubar: false,
-        branding: false,
-        promotion: false,
-        statusbar: false,
-        resize: false,
-        height: '100%',
-        min_height: 220,
-        plugins: 'lists link autolink table code',
-        toolbar: 'undo redo | blocks | bold italic underline strikethrough | forecolor | bullist numlist | link table | removeformat code',
-        toolbar_mode: 'sliding',
-        link_default_target: '_blank',
-        convert_urls: false,
-        setup: (e) => {
-          e.on('input change undo redo keyup', () => zmieniono());
-          // Ctrl+Enter w treści – wyślij.
-          e.on('keydown', (z) => { if ((z.ctrlKey || z.metaKey) && z.key === 'Enter') { z.preventDefault(); $('#admin-form-pisz').requestSubmit(); } });
-        },
-      });
-      pisz.edytor = ed;
-      return ed;
-    })().catch((e) => { pisz.gotowy = null; throw e; });
-  }
-  return pisz.gotowy;
+  const ed = utworzEdytorWiadomosci($('#admin-pisz-tresc'), { zapytaj: zapytajONazwe });
+  ed.on('input', () => zmieniono());
+  // Ctrl+Enter w treści – wyślij.
+  ed.on('keydown', (z) => { if ((z.ctrlKey || z.metaKey) && z.key === 'Enter') { z.preventDefault(); $('#admin-form-pisz').requestSubmit(); } });
+  pisz.edytor = ed;
+  return ed;
 }
-
-// Zmiana motywu przy otwartym edytorze – nowy edytor z tą samą treścią.
-new MutationObserver(async () => {
-  if (!pisz.edytor) return;
-  const tresc = pisz.edytor.getContent();
-  pisz.edytor.remove();
-  pisz.edytor = null;
-  pisz.gotowy = null;
-  if ($('#admin-pisz').hidden) return;
-  (await edytor()).setContent(tresc);
-}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-motyw'] });
 
 const podpisHtml = () => (s.podpis ? `<p class="podpis">--<br>${esc(s.podpis).replace(/\n/g, '<br>')}</p>` : '');
 
@@ -842,9 +806,19 @@ async function naZywo(id) {
 for (const b of $$('#admin-foldery [data-folder]')) {
   b.addEventListener('click', () => {
     s.folder = b.dataset.folder;
+    if (s.folder === 'robocze' && s.filtr !== 'zalaczniki') s.filtr = '';
     s.od = 0;
     s.zaznaczone.clear();
     zamknijWatek();
+    rysujSkrzynke().catch(blad);
+  });
+}
+// Filtry listy (#183): nieprzeczytane, z załącznikami, z gwiazdką – razem z folderem i wyszukiwaniem.
+for (const b of $$('#admin-filtry [data-filtr]')) {
+  b.addEventListener('click', () => {
+    s.filtr = b.dataset.filtr;
+    s.od = 0;
+    s.zaznaczone.clear();
     rysujSkrzynke().catch(blad);
   });
 }

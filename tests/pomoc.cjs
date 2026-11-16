@@ -13,7 +13,6 @@ const { atrapaAi } = require('./atrapa-ai.cjs');
 const { atrapaEksportu } = require('./atrapa-eksport.cjs');
 const { atrapaWspolpracy, rolaW } = require('./atrapa-wspolpraca.cjs');
 const { atrapaPoczty } = require('./atrapa-poczta.cjs');
-const ATRAPA_TINYMCE = require('node:fs').readFileSync(require('node:path').join(__dirname, 'atrapa-tinymce.js'), 'utf8');
 
 const KORZEN = path.join(__dirname, '..');
 const TYPY = {
@@ -660,10 +659,6 @@ async function otworz(test, { tryb = 'zalogowany', telefon = false, urzadzenie =
   if (tryb === 'lokalny') tryb = 'zalogowany';
   const zBaza = tryb !== 'bez-bazy';
   await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: zBaza ? Z_ATRAPA : BEZ_BAZY }));
-  // Edytor wiadomości w skrzynce (TinyMCE z jsDelivr) – w testach zaślepka, bez sieci.
-  await kontekst.route(/^https:\/\/cdn\.jsdelivr\.net\/npm\/tinymce/, (r) => r.fulfill({
-    contentType: 'text/javascript', body: /tinymce-i18n/.test(r.request().url()) ? '' : ATRAPA_TINYMCE,
-  }));
   const baza = zBaza ? atrapaSupabase(kontekst, { konta, bezKanalu }) : null;
   const strona = await kontekst.newPage();
   const bledy = [];
