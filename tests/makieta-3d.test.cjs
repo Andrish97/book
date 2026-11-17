@@ -510,3 +510,28 @@ test('makieta 3D: twarda – bez „języka” w zgięciu, przy otwartej wyklejc
     assert.ok(sciana.some((x) => x.p.every((p) => Math.abs(p[0] - x.p[0][0]) < 1e-6)), `u = ${u}: pionowy grzbiet bloku`);
   }
 });
+
+// #199.3 (opis użytkownika): blok i okładka osobno, połączone wyklejkami; grzbiet zawsze tej samej szerokości –
+// przy otwartej wyklejce stoi pionowo, a odwinięta tektura leży poziomo na wysokości wierzchu bloku; w środku
+// grubej książki obie połowy lekko się unoszą (książka się przymyka), strony schodzą się w zgięciu.
+test('makieta 3D: twarda – pionowy grzbiet przy wyklejce, stała szerokość grzbietu, przymknięcie w środku', async () => {
+  const { kartkiModelu, scena, obwiednia } = await modul('js/makieta-3d.js');
+  const k = kartkiModelu('ksiazka_twarda', { strony: 480, format: { w: 148, h: 210 }, okladka: { w: 151, h: 216, tektura: 2.5 }, kartka_mm: 0.1, wnetrze: { przod: true, tyl: true } });
+  const Tb = k.filter((x) => !x.okladka).reduce((a, x) => a + x.d, 0);
+  // Otwarta wyklejka: grzbiet pionowy (wąski w poziomie, wysoki na grubość bloku), tektura u góry.
+  let q = scena('ksiazka_twarda', k, 1);
+  const g1 = obwiednia(q.filter((x) => x.grzbiet));
+  assert.ok(g1.max[0] - g1.min[0] < 3 && g1.max[1] - g1.min[1] > Tb - 1, `grzbiet pionowy (${(g1.max[0] - g1.min[0]).toFixed(1)} × ${(g1.max[1] - g1.min[1]).toFixed(1)} mm)`);
+  const tek = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
+  assert.ok(tek.max[1] - tek.min[1] < 3 && tek.min[1] > Tb - 1, 'odwinięta tektura leży poziomo na wysokości bloku');
+  // Szerokość grzbietu ta sama w każdym miejscu książki.
+  const szer = (u) => { const g = obwiednia(scena('ksiazka_twarda', k, u).filter((x) => x.grzbiet)); return Math.hypot(g.max[0] - g.min[0], g.max[1] - g.min[1]); };
+  for (const u of [40, 120, 200]) assert.ok(Math.abs(szer(u) - szer(1)) < 3, `u = ${u}: grzbiet ${szer(u).toFixed(1)} mm jak przy wyklejce ${szer(1).toFixed(1)} mm`);
+  // Środek: obie przednie krawędzie uniesione nad stół (książka lekko przymknięta), nic nie wchodzi pod stół.
+  q = scena('ksiazka_twarda', k, 120);
+  const okl = obwiednia(q);
+  assert.ok(okl.min[1] > -0.01, 'nic pod stołem');
+  const tyl = obwiednia(q.filter((x) => x.tex === 'okl:tyl'));
+  const prz = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
+  assert.ok(tyl.max[1] > 10 && prz.max[1] > 10, 'obie połowy uniesione przy przedniej krawędzi');
+});
