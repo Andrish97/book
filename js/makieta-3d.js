@@ -301,7 +301,9 @@ function krzywaZKata(start, L, kat, kroki = 28) {
 // kartek, spód – spodnią stronę (widoczną tylko od dołu).
 // o – przesunięcie od osi grzbietu (#161); zaokraglenie – wypukły grzbiet bloku szytego (twarda oprawa):
 // widać składki od głowy i stopy, kapitałkę i nici w szczelinie pod grzbietem okładki.
-function blok(quady, { strona, w, h, z0, wierzch, texWierzch, texSpod, aoX, grzbietowa = false, o = 0, zaokraglenie = 0 }) {
+// dociagnij – rozłożona książka (#199): połówka bloku odsunięta od osi (o) razem ze swoją okładką, ale wierzchnie
+// kartki schodzą w zgięciu aż do osi grzbietu – powierzchnia i boki bloku przedłużone o tyle w stronę osi.
+function blok(quady, { strona, w, h, z0, wierzch, texWierzch, texSpod, aoX, grzbietowa = false, o = 0, zaokraglenie = 0, dociagnij = 0 }) {
   const N = 34;
   const xs = (i) => w * (i / N) ** 1.35; // gęściej przy grzbiecie, gdzie kartki się wyginają
   const X = (x) => (x + o) * strona;
@@ -315,6 +317,21 @@ function blok(quady, { strona, w, h, z0, wierzch, texWierzch, texSpod, aoX, grzb
     const k = nachyl(x) * strona;
     return { p: naStol([X(x), y, wierzch(x)]), n: naStol(norm([-k, 0, 1])), uv: [uWierzch(x), v(y)], ao: aoX ? aoX(x) : 1 };
   }, texWierzch || `kolor:${PAPIER}`, 'papier');
+  if (dociagnij > 0.05) {
+    // Przedłużenie w zgięciu: od osi (x = −dociagnij) do brzegu bloku, na wysokości doliny, z brzegiem strony.
+    const zg = wierzch(0);
+    const M = 4;
+    siatka(quady, M, 3, (i, j) => {
+      const x = -dociagnij + (dociagnij * i) / M;
+      const y = lerp(h / 2, -h / 2, j / 3);
+      return { p: naStol([X(x), y, zg]), n: naStol([0, 0, 1]), uv: [uWierzch(0), v(y)], ao: (aoX ? aoX(0) : 1) * (0.8 + 0.2 * (i / M)) };
+    }, texWierzch || `kolor:${PAPIER}`, 'papier');
+    const vk0 = (z) => (z - z0) / 128;
+    for (const [y, sg] of [[h / 2, 1], [-h / 2, -1]]) {
+      quad(quady, [naStol([X(-dociagnij), y, zg]), naStol([X(0), y, zg]), naStol([X(0), y, z0]), naStol([X(-dociagnij), y, z0])],
+        [[0, vk0(zg)], [dociagnij / 40, vk0(zg)], [dociagnij / 40, vk0(z0)], [0, vk0(z0)]], KRAWEDZ_KARTEK, 'krawedz', { n: naStol([0, sg, 0]) });
+    }
+  }
   // Spód (płaski) – widoczny tylko od dołu.
   const uS = (x) => (strona > 0 ? 1 - x / w : x / w);
   quad(quady, [naStol([X(0), -h / 2, z0]), naStol([X(w), -h / 2, z0]), naStol([X(w), h / 2, z0]), naStol([X(0), h / 2, z0])],
@@ -565,6 +582,7 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
         aoX: rozlozona ? (x) => 1 - 0.45 * Math.exp(-x / (rg * 0.5)) : null,
         grzbietowa: !rozlozona && (otwarta || !zOkl) && !twarda,
         zaokraglenie: rozlozona ? 0 : bGrzbiet,
+        dociagnij: rozlozona ? o : 0,
       });
     });
   }
@@ -660,7 +678,9 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
       // Twarda po otwarciu okładki (#179): zgięcie wyklejki – ten sam cienki papier, który leży na tekturze i jako
       // pierwsza kartka na bloku. Schodzi z górnej krawędzi grzbietu bloku po jego narożniku (nie odstaje jak
       // listwa) i wchodzi stycznie na tekturę; w rowku zawiasu lekki cień.
-      if (twarda && wewA && Sb.blok) {
+      // Tylko gdy po drugiej stronie leży sama okładka: w środku otwartej książki wyklejka jest już pod
+      // przewróconymi kartkami – rysowana od wierzchu bloku sterczała między stronami jak „język” (#199).
+      if (twarda && wewA && Sb.blok && !rozlozona) {
         const P0 = [strB * (oB + 0.4), Sb.blok.z0 + Sb.blok.H + 0.04];
         const dd = Math.hypot(wewA[0] - P0[0], wewA[1] - P0[1]);
         if (dd > 1) {

@@ -491,3 +491,22 @@ test('makieta 3D bez WebGL: powód z przeglądarki i kroki dla Chrome na Macu', 
   assert.match(wynik.mac, /akceleracji grafiki/);
   assert.deepEqual(bledy, []);
 });
+
+// #199: twarda oprawa z wyklejkami otwarta w środku – w zgięciu nic nie wystaje ponad strony (dawniej zgięcie
+// wyklejki sterczało jak „język”), a wierzchnie strony obu połówek schodzą się w osi grzbietu (bez szczeliny).
+test('makieta 3D: twarda otwarta w środku – bez „języka” i bez szczeliny w zgięciu', async () => {
+  const { kartkiModelu, scena } = await modul('js/makieta-3d.js');
+  const k = kartkiModelu('ksiazka_twarda', { strony: 480, format: { w: 148, h: 210 }, okladka: { w: 148, h: 210 }, kartka_mm: 0.1, wnetrze: { przod: true, tyl: true } });
+  for (const u of [40, 60, 120, 200]) {
+    const q = scena('ksiazka_twarda', k, u);
+    const strony = q.filter((x) => /^p:/.test(x.tex) && x.mat === 'papier');
+    const wys = Math.max(...strony.flatMap((x) => x.p).filter((p) => Math.abs(p[0]) >= 2 && Math.abs(p[0]) <= 8).map((p) => p[1]));
+    const wystaje = q.filter((x) => x.p.some((p) => Math.abs(p[0]) < 3 && p[1] > wys + 0.3));
+    assert.equal(wystaje.length, 0, `u = ${u}: nic nie wystaje w zgięciu (${[...new Set(wystaje.map((x) => x.tex))]})`);
+    // Wierzchnie strony sięgają osi grzbietu z obu stron.
+    const xs = strony.flatMap((x) => x.p).map((p) => p[0]);
+    assert.ok(Math.min(...xs.filter((x) => x >= 0)) < 0.05 && Math.max(...xs.filter((x) => x <= 0)) > -0.05, `u = ${u}: strony schodzą się w osi`);
+  }
+  // Otwarta sama okładka – zgięcie wyklejki dalej jest (papier przy zawiasie).
+  assert.ok(scena('ksiazka_twarda', k, 1).some((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier'), 'zgięcie wyklejki przy otwartej okładce');
+});
