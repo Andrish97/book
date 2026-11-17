@@ -135,6 +135,9 @@ body[data-ekran="edytor"] #ekran-edytora { display: flex; }
 body.startuje #ekran-start { display: flex; position: fixed; inset: 0; z-index: 2147483000; background: var(--papier); }
 .logo-duze .znak-logo { width: 56px; height: 56px; font-size: 28px; border-radius: 14px; animation: puls 1.4s ease-in-out infinite; }
 @keyframes puls { 50% { opacity: .55; } }
+/* Opis na ekranie startowym (#200): długa nazwa projektu wyśrodkowana, z marginesem po bokach, najwyżej 3 linie –
+   nie dotyka krawędzi ekranu telefonu. */
+.ekran-start .ciche { box-sizing: border-box; width: 100%; max-width: 32em; margin: 0; padding: 0 24px; text-align: center; text-wrap: balance; overflow-wrap: anywhere; line-height: 1.4; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 
 /* ---------- Przyciski ---------- */
 

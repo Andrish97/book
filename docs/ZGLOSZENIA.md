@@ -38,7 +38,8 @@ Oznaczenia: ✅ zrobione i wdrożone · 🔄 w toku · ⏳ czeka (kolejny etap) 
 
 | # | Uwaga |
 |---|---|
-| 199 | Makieta 3D książki w twardej oprawie: „język” w zgięciu usunięty; strony obu połówek wychodzą z jednego zgięcia, bloki pochylone jak „Λ” ze składkami i kapitałką (jak na zdjęciach dziennika) |
+| 199 | Makieta 3D książki w twardej oprawie: „język” w zgięciu usunięty, kartki jak dawniej; przy otwartej wyklejce nic nie wisi, wyklejka przyklejona do pierwszej strony, grzbiet bloku pionowy |
+| 200 | Ekran ładowania: nazwa projektu wyśrodkowana z marginesami (nie od krawędzi ekranu) |
 | 198 | Kopia projektu pokazywała link oryginału – „Duplikuj” kopiował dane linku. Naprawione; wcześniejsze kopie same się czyszczą, oryginał zachowuje link |
 | 197 | Nowa wersja aplikacji włącza się sama, bez ręcznego odświeżania: na liście od razu, w projekcie po powrocie do listy albo w tle; sprawdzana przy każdym powrocie do karty i co 10 minut |
 | 196 | Udostępnianie w całości z listy projektów: menu ⋯ → „Udostępnij linkiem…”, utworzenie linku, hasło, ważność, znak wodny, aktualizacja i unieważnienie bez otwierania projektu |

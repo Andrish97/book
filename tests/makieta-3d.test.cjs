@@ -414,11 +414,8 @@ test('makieta 3D (#179): wyklejka na tekturze, zawias, sztywna miękka okładka,
   assert.ok(Math.abs((wkl.max[0] - wkl.min[0]) - 148) < 0.5 && Math.abs((wkl.max[2] - wkl.min[2]) - 210) < 0.5, 'wyklejka w rozmiarze strony bloku');
   assert.ok(wkl.min[0] - tektura.min[0] > 2.5, 'wyklejka 3 mm od przedniej krawędzi tektury (zawinięcie okleiny widać)');
   assert.ok(wkl.min[2] - tektura.min[2] > 2.5 && tektura.max[2] - wkl.max[2] > 2.5, '3 mm od głowy i stopy');
-  // Zgięcie wyklejki: papier nie wystaje ponad wierzch bloku (bez „listwy” w zawiasie).
-  const blokTop = Math.max(...q.filter((x) => x.mat === 'krawedz').flatMap((x) => x.p.map((p) => p[1])));
-  const zgiecie = q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier' && x.p.every((p) => p[0] < 2 && p[0] > -10));
-  assert.ok(zgiecie.length, 'zgięcie wyklejki jest');
-  assert.ok(zgiecie.every((x) => x.p.every((p) => p[1] <= blokTop + 0.3)), 'zgięcie nie odstaje nad blok');
+  // Bez paska zgięcia wyklejki w zawiasie (#199: nic nie wisi przy otwartej wyklejce).
+  assert.equal(q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier' && x.p.every((p) => p[0] < 2 && p[0] > -10)).length, 0, 'bez wiszącego paska');
   // Miękka: okładka w rozmiarze bloku (nawet gdy sekcja okładki jest twarda), sztywna w trakcie otwierania.
   const km = kartkiModelu('ksiazka_miekka', { strony: 100, format: A5, okladka: okl });
   assert.deepEqual([km[0].w, km[0].h], [148, 210], 'miękka okładka = blok');
@@ -492,9 +489,9 @@ test('makieta 3D bez WebGL: powód z przeglądarki i kroki dla Chrome na Macu', 
   assert.deepEqual(bledy, []);
 });
 
-// #199: twarda oprawa z wyklejkami otwarta w środku – w zgięciu nic nie wystaje ponad strony (dawniej zgięcie
-// wyklejki sterczało jak „język”), a wierzchnie strony obu połówek schodzą się w osi grzbietu (bez szczeliny).
-test('makieta 3D: twarda otwarta w środku – bez „języka”, strony z jednego zgięcia, bloki jak „Λ”', async () => {
+// #199: twarda oprawa z wyklejkami – w środku w zgięciu nic nie wystaje ponad strony (dawniej pasek zgięcia
+// wyklejki sterczał jak „język”); przy otwartej wyklejce nic nie wisi, a grzbiet bloku stoi pionowo.
+test('makieta 3D: twarda – bez „języka” w zgięciu, przy otwartej wyklejce pionowy grzbiet i nic nie wisi', async () => {
   const { kartkiModelu, scena } = await modul('js/makieta-3d.js');
   const k = kartkiModelu('ksiazka_twarda', { strony: 480, format: { w: 148, h: 210 }, okladka: { w: 148, h: 210 }, kartka_mm: 0.1, wnetrze: { przod: true, tyl: true } });
   for (const u of [40, 60, 120, 200]) {
@@ -503,20 +500,13 @@ test('makieta 3D: twarda otwarta w środku – bez „języka”, strony z jedne
     const wys = Math.max(...strony.flatMap((x) => x.p).filter((p) => Math.abs(p[0]) >= 2 && Math.abs(p[0]) <= 8).map((p) => p[1]));
     const wystaje = q.filter((x) => x.p.some((p) => Math.abs(p[0]) < 3 && p[1] > wys + 0.3));
     assert.equal(wystaje.length, 0, `u = ${u}: nic nie wystaje w zgięciu (${[...new Set(wystaje.map((x) => x.tex))]})`);
-    // Wierzchnie strony sięgają osi grzbietu z obu stron.
-    const xs = strony.flatMap((x) => x.p).map((p) => p[0]);
-    assert.ok(Math.min(...xs.filter((x) => x >= 0)) < 0.05 && Math.max(...xs.filter((x) => x <= 0)) > -0.05, `u = ${u}: strony schodzą się w osi`);
   }
-  // „Λ” (zdjęcia użytkownika): boki bloków od strony grzbietu pochylone – na górze w osi, na dole przy okładkach.
-  const q = scena('ksiazka_twarda', k, 120);
-  const boki = q.filter((x) => x.tex === 'tex:skladki');
-  assert.ok(boki.length, 'boki bloku ze składkami przy grzbiecie');
-  const lewy = boki.flatMap((x) => x.p).filter((p) => p[0] < 0.01);
-  const prawy = boki.flatMap((x) => x.p).filter((p) => p[0] > -0.01);
-  const wierzch = (pts) => pts.reduce((a, p) => (p[1] > a[1] ? p : a));
-  const spod = (pts) => pts.reduce((a, p) => (p[1] < a[1] ? p : a));
-  assert.ok(Math.abs(wierzch(lewy)[0]) < 0.05 && Math.abs(wierzch(prawy)[0]) < 0.05, 'szczyt „Λ” w osi');
-  assert.ok(spod(lewy)[0] < -1 && spod(prawy)[0] > 1, 'u dołu połówki rozchodzą się do okładek');
-  // Otwarta sama okładka – zgięcie wyklejki dalej jest (papier przy zawiasie).
-  assert.ok(scena('ksiazka_twarda', k, 1).some((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier'), 'zgięcie wyklejki przy otwartej okładce');
+  // Otwarta wyklejka (sama okładka po lewej): nic nie wisi w zgięciu – bez paska papieru między okładką a blokiem,
+  // grzbiet bloku stoi pionowo (ściana z krawędziami kartek zwrócona do okładki).
+  for (const u of [1, k.length - 1]) {
+    const q = scena('ksiazka_twarda', k, u);
+    assert.equal(q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier').length, 0, `u = ${u}: bez wiszącego paska wyklejki`);
+    const sciana = q.filter((x) => x.tex === 'tex:krawedz' && Math.abs(x.n[0]) > 0.95 && x.p.every((p) => Math.abs(p[0]) < 30));
+    assert.ok(sciana.some((x) => x.p.every((p) => Math.abs(p[0] - x.p[0][0]) < 1e-6)), `u = ${u}: pionowy grzbiet bloku`);
+  }
 });
