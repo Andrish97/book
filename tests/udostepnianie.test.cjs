@@ -392,3 +392,48 @@ test('udostępnianie z listy projektów: menu ⋯, link z hasłem bez otwierania
   assert.equal(await strona.evaluate(() => document.body.dataset.ekran), 'projekty');
   assert.deepEqual(bledy, []);
 });
+
+// #198: kopia projektu nie dziedziczy linku oryginału; kopia zrobiona przed poprawką (z danymi linku oryginału)
+// traci je przy otwarciu okna Udostępnij – oryginał i jego krótki link zostają.
+test('kopia projektu: bez linku oryginału; dawna kopia z cudzym linkiem sama się czyści', async (t) => {
+  const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await nowyProjekt(strona, 'Oryginał');
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  const link = await strona.inputValue('#udostepnij-link');
+  const kod = link.split('/').pop();
+  // Dawna kopia: te same dane linku, inny numer projektu (jak „Duplikuj” przed poprawką).
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    const stara = { ...JSON.parse(JSON.stringify(p)), id: crypto.randomUUID(), nazwa: 'Dawna kopia' };
+    delete stara.wersja_chmury; delete stara.podstawa_chmury;
+    await window.seriodruk.zapiszTeraz();
+    await (await import('./js/app/projekty.js')).zapiszGdziekolwiek(stara);
+  });
+  await strona.goto(strona.url().split('#')[0]);
+  await strona.waitForFunction(() => document.querySelectorAll('.karta-projektu:not(.szkielet)').length === 2);
+  // Nowa kopia z „Duplikuj” – bez linku.
+  const karta = (nazwa) => strona.locator('.karta-projektu').filter({ has: strona.getByText(nazwa, { exact: true }) }).first();
+  await karta('Oryginał').locator('.menu-karty').click();
+  await karta('Oryginał').locator('[data-op="duplikuj"]').click();
+  await strona.waitForFunction(() => [...document.querySelectorAll('.karta-projektu')].some((k) => k.textContent.includes('Oryginał (kopia)')));
+  assert.equal(await karta('Oryginał (kopia)').locator('.plakietka-linku').count(), 0, 'nowa kopia bez plakietki linku');
+  // Dawna kopia: okno Udostępnij usuwa cudzy link.
+  await karta('Dawna kopia').locator('.plakietka-linku').click();
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-link-blok').hidden && !document.querySelector('#udostepnij-utworz').hidden, null, { timeout: 15000 });
+  assert.equal(baza.krotkie.get(kod)?.projekt !== undefined, true, 'krótki link oryginału zostaje');
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  // Oryginał dalej ma swój link.
+  await karta('Oryginał').locator('.plakietka-linku').first().click();
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  await strona.waitForFunction((l) => document.querySelector('#udostepnij-link').value === l, link);
+  assert.deepEqual(bledy, []);
+});

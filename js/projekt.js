@@ -419,6 +419,7 @@ export function kopiujProjekt(projekt, nazwa) {
   delete kopia.wersja_chmury;
   delete kopia.podstawa_chmury;
   delete kopia.wspolpraca_chmury; // kopia projektu współdzielonego jest już własna
+  delete kopia.udostepnienie; // link do podglądu należy do oryginału – kopia dostaje własny dopiero po „Utwórz link” (#198)
   // Obrazy trzeba wysłać na konto jeszcze raz, pod nowym projektem.
   for (const z of Object.values(kopia.zasoby || {})) delete z.sciezka;
   return kopia;

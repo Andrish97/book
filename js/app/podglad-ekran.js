@@ -337,6 +337,12 @@ export async function otworzUdostepnianie(projekt = null) {
   $('#dlg-udostepnij').showModal();
   // Link sprzed krótkich adresów (#195) dostaje krótki kod przy otwarciu okna.
   const p = celOkna || stan.projekt;
+  if (await usunCudzyLink(p)) {
+    wypelnijOchrone(p);
+    if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
+    if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
+    return;
+  }
   if (p?.udostepnienie && !p.udostepnienie.krotki && await zapewnijKrotki(p)) {
     if (p === stan.projekt) zapiszTeraz().catch(() => {}); else { p.zmieniono = new Date().toISOString(); zapiszGdziekolwiek(p).catch(() => {}); }
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepnianiaZachowujacKomunikat();
@@ -390,11 +396,31 @@ async function zapewnijKrotki(p) {
   try { u.krotki = await chmura.krotkiLink(p.id, u.kod); return Boolean(u.krotki); } catch { return false; }
 }
 
+// Link skopiowany z innego projektu (#198: „Duplikuj” kopiował dane linku oryginału) – krótki kod prowadzi do
+// innego projektu albo pod numerem tego projektu nic nie opublikowano. Taki link usuwamy z projektu (oryginał
+// i jego link zostają nietknięte). Przy błędzie sieci nic nie ruszamy. Zwraca true, gdy link usunięto.
+async function usunCudzyLink(p) {
+  const u = p?.udostepnienie;
+  if (!u?.kod || !stan.uzytkownik) return false;
+  let cudzy = false;
+  try {
+    const krotki = u.krotki ? await chmura.rozwinKrotkiLink(u.krotki) : null;
+    if (krotki) cudzy = krotki.projekt !== p.id;
+    else cudzy = !(await chmura.linkProjektuIstnieje(p.id, u.kod));
+  } catch { return false; }
+  if (!cudzy || p.udostepnienie !== u) return false;
+  delete p.udostepnienie;
+  if (p === stan.projekt) await zapiszTeraz().catch(() => {}); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p).catch(() => {}); }
+  return true;
+}
+
 // Projekt otwarty w edytorze, link bez krótkiego adresu (sprzed #195): krótki kod dochodzi sam, w tle – długi
 // adres działa dalej. Zapis projektu niesie kod na konto i na inne urządzenia.
 export async function uzupelnijKrotkiLink() {
   const p = stan.projekt;
-  if (!p?.udostepnienie || p.udostepnienie.krotki || !navigator.onLine) return;
+  if (!p?.udostepnienie || !navigator.onLine) return;
+  if (await usunCudzyLink(p)) return;
+  if (p.udostepnienie.krotki) return;
   if (await zapewnijKrotki(p) && stan.projekt === p) zapiszTeraz().catch(() => {});
 }
 

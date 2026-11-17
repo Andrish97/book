@@ -627,6 +627,14 @@ export const adresPodgladu = (sciezka) => sciezkaPliku(BUCKET_PODGLADOW, sciezka
 const plikiFolderu = async (folder) => (await r2.lista(BUCKET_PODGLADOW, `${folder}/`)).map((p) => p.klucz);
 const usunPliki = (sciezki) => (sciezki.length ? r2.usun(BUCKET_PODGLADOW, sciezki) : null);
 
+// Czy link tego projektu ma pliki na koncie (folder <konto>/<projekt>/<kod> albo <kod>.<sekret>) – #198:
+// kopia projektu sprzed poprawki miała w sobie link oryginału, choć pod jej numerem nic nie opublikowano.
+export async function linkProjektuIstnieje(projektId, kod) {
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik || !kod) return true; // bez konta nie rozstrzygamy – nic nie ruszamy
+  return (await r2.lista(BUCKET_PODGLADOW, `${uzytkownik.id}/${projektId}/${kod}`)).length > 0;
+}
+
 // Usuwa wszystkie udostępnienia projektu (folder <konto>/<projekt>).
 async function usunPodglady(folderProjektu) {
   try {
