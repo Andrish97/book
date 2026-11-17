@@ -494,7 +494,7 @@ test('makieta 3D bez WebGL: powód z przeglądarki i kroki dla Chrome na Macu', 
 
 // #199: twarda oprawa z wyklejkami otwarta w środku – w zgięciu nic nie wystaje ponad strony (dawniej zgięcie
 // wyklejki sterczało jak „język”), a wierzchnie strony obu połówek schodzą się w osi grzbietu (bez szczeliny).
-test('makieta 3D: twarda otwarta w środku – bez „języka” i bez szczeliny w zgięciu', async () => {
+test('makieta 3D: twarda otwarta w środku – bez „języka”, strony z jednego zgięcia, bloki jak „Λ”', async () => {
   const { kartkiModelu, scena } = await modul('js/makieta-3d.js');
   const k = kartkiModelu('ksiazka_twarda', { strony: 480, format: { w: 148, h: 210 }, okladka: { w: 148, h: 210 }, kartka_mm: 0.1, wnetrze: { przod: true, tyl: true } });
   for (const u of [40, 60, 120, 200]) {
@@ -507,6 +507,16 @@ test('makieta 3D: twarda otwarta w środku – bez „języka” i bez szczeliny
     const xs = strony.flatMap((x) => x.p).map((p) => p[0]);
     assert.ok(Math.min(...xs.filter((x) => x >= 0)) < 0.05 && Math.max(...xs.filter((x) => x <= 0)) > -0.05, `u = ${u}: strony schodzą się w osi`);
   }
+  // „Λ” (zdjęcia użytkownika): boki bloków od strony grzbietu pochylone – na górze w osi, na dole przy okładkach.
+  const q = scena('ksiazka_twarda', k, 120);
+  const boki = q.filter((x) => x.tex === 'tex:skladki');
+  assert.ok(boki.length, 'boki bloku ze składkami przy grzbiecie');
+  const lewy = boki.flatMap((x) => x.p).filter((p) => p[0] < 0.01);
+  const prawy = boki.flatMap((x) => x.p).filter((p) => p[0] > -0.01);
+  const wierzch = (pts) => pts.reduce((a, p) => (p[1] > a[1] ? p : a));
+  const spod = (pts) => pts.reduce((a, p) => (p[1] < a[1] ? p : a));
+  assert.ok(Math.abs(wierzch(lewy)[0]) < 0.05 && Math.abs(wierzch(prawy)[0]) < 0.05, 'szczyt „Λ” w osi');
+  assert.ok(spod(lewy)[0] < -1 && spod(prawy)[0] > 1, 'u dołu połówki rozchodzą się do okładek');
   // Otwarta sama okładka – zgięcie wyklejki dalej jest (papier przy zawiasie).
   assert.ok(scena('ksiazka_twarda', k, 1).some((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier'), 'zgięcie wyklejki przy otwartej okładce');
 });
