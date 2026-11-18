@@ -18,7 +18,15 @@ export const USZLACHETNIENIA = [
   { id: 'tloczenie', nazwa: 'Tłoczenie (wypukłe)', plyta: 'Emboss', alt: [0, 0.5, 0, 0] },
   { id: 'wytloczenie', nazwa: 'Wytłoczenie (wklęsłe)', plyta: 'Debossing', alt: [0, 0.5, 0.5, 0] },
   { id: 'bialy', nazwa: 'Biały poddruk', plyta: 'White', alt: [0.15, 0, 0, 0] },
+  // Linie wykrojnika (#218) – płyty techniczne dla introligatorni i plotera (nazwy płyt jak w programach do cięcia:
+  // CutContour rozpoznaje większość ploterów print & cut). Element rysuje kształt cięcia / zgięcia / perforacji /
+  // miejsca klejenia; w edytorze zawsze widać go w kolorze linii, w druku nie zostawia farby.
+  { id: 'ciecie', nazwa: 'Linia cięcia (wykrojnik)', plyta: 'CutContour', alt: [0, 1, 0, 0], techniczna: true, kolor: '#e0004d', kreska: [] },
+  { id: 'big', nazwa: 'Big – linia zgięcia', plyta: 'Crease', alt: [1, 0, 0, 0], techniczna: true, kolor: '#0077d6', kreska: [3, 2] },
+  { id: 'perforacja', nazwa: 'Perforacja', plyta: 'Perforation', alt: [0, 0, 1, 0], techniczna: true, kolor: '#c77700', kreska: [0.6, 1] },
+  { id: 'klej', nazwa: 'Miejsce klejenia', plyta: 'Glue', alt: [0.5, 0, 1, 0], techniczna: true, kolor: '#14a35a', kreska: [] },
 ];
+export const LINIE_WYKROJNIKA = USZLACHETNIENIA.filter((u) => u.techniczna);
 export const FOLIE = {
   zloto: { nazwa: 'Złoto', plyta: 'Foil_Gold', alt: [0, 0.2, 0.7, 0.15], kolory: ['#8a6a1f', '#f6e27a', '#b8892b', '#fff3b0', '#8a6a1f'] },
   srebro: { nazwa: 'Srebro', plyta: 'Foil_Silver', alt: [0, 0, 0, 0.35], kolory: ['#7d8287', '#f4f6f8', '#a3a8ad', '#ffffff', '#7d8287'] },
@@ -34,7 +42,7 @@ export function plytaUszlachetnienia(o) {
     return { id, folia: FOLIE[o.folia] ? o.folia : 'zloto', plyta: f.plyta, alt: f.alt, etykieta: `Złocenie – ${f.nazwa.toLowerCase()}` };
   }
   const u = USZLACHETNIENIA.find((x) => x.id === id);
-  return u ? { id, plyta: u.plyta, alt: u.alt, etykieta: u.nazwa } : null;
+  return u ? { id, plyta: u.plyta, alt: u.alt, etykieta: u.nazwa, ...(u.techniczna ? { techniczna: true, kolor: u.kolor, kreska: u.kreska } : {}) } : null;
 }
 
 // ---------- Kolory dodatkowe i tryb kolorów ----------
@@ -442,6 +450,24 @@ function rysujZEfektem(o, ctx, render, u) {
   }
 }
 
+// Linia wykrojnika (#218) w edytorze i podglądzie: kontur w kolorze rodzaju linii (cięcie – czerwona ciągła, big –
+// niebieska kreskowana, perforacja – kropkowana), miejsce klejenia – zielone, półprzezroczyste pole. Bez farby elementu.
+function rysujLinieWykrojnika(o, ctx, render, u) {
+  const stare = { fill: o.fill, stroke: o.stroke, strokeWidth: o.strokeWidth, strokeDashArray: o.strokeDashArray, strokeUniform: o.strokeUniform, shadow: o.shadow, opacity: o.opacity };
+  try {
+    if (!o._objects) {
+      Object.assign(o, {
+        fill: u.id === 'klej' ? 'rgba(20,163,90,0.22)' : null, stroke: u.kolor, strokeWidth: 0.35, strokeUniform: true,
+        strokeDashArray: u.kreska?.length ? u.kreska : null, shadow: null, opacity: 1,
+      });
+      o.dirty = true;
+    }
+    return render.call(o, ctx);
+  } finally {
+    if (!o._objects) { Object.assign(o, stare); o.dirty = true; }
+  }
+}
+
 // Wywołuje js/fabric-ustawienia.js, gdy Fabric jest już wczytany (ten moduł bywa wczytany wcześniej, z projekt.js).
 export function zainstalujUszlachetnienia() {
   if (typeof fabric === 'undefined' || fabric.FabricObject.prototype._uszlachetnienia) return;
@@ -476,6 +502,7 @@ export function zainstalujUszlachetnienia() {
       return this._objects ? render.call(this, ctx) : undefined;
     }
     if (u && stanUszlachetnien.eksport && !stanUszlachetnien.surowo) return undefined;
+    if (u?.techniczna && !stanUszlachetnien.surowo) return rysujLinieWykrojnika(this, ctx, render, u);
     if (u && stanUszlachetnien.pokaz && !stanUszlachetnien.surowo) return rysujZEfektem(this, ctx, render, u);
     return render.call(this, ctx);
   };

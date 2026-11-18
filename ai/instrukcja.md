@@ -1937,6 +1937,17 @@ W tej samej części jest **Farba specjalna** — wypełnienie elementu kolorem 
 
 > **Wskazówka:** Wykończenie na bardzo drobnym tekście (poniżej 6 pt) i cienkich liniach (poniżej 0,3 mm) może się nie odwzorować. **Sprawdź przed drukiem** o tym przypomni (rozdział „20 Sprawdź przed drukiem”).
 
+**Wycinanki i składanki — linie wykrojnika.** W tych samych kafelkach są też linie techniczne. Element (kształt, linia, zamknięty kształt piórem, cała grupa) przestaje być rysunkiem i staje się linią dla introligatorni albo plotera:
+
+| Kafelek | Co to jest | W edytorze | Płyta w PDF |
+|---|---|---|---|
+| **Cięcie** | Kontur do wycięcia nożem albo ploterem. Grupa — każdy jej kształt. | czerwona linia | CutContour |
+| **Big** | Linia zgięcia — wgniatana, żeby karton zgiął się równo. | niebieska kreskowana | Crease |
+| **Perforacja** | Linia do oderwania (kupon, bilet). | pomarańczowa kropkowana | Perforation |
+| **Klej** | Pole, na które idzie klej (zakładka pudełka, koperty). | zielone pole | Glue |
+
+Linie zawsze widać na stronie, ale nie drukują się farbą — w PDF wektorowym trafiają na osobne płyty (CutContour rozpoznaje większość ploterów print & cut). Menu **⋯** → **Plik dla plotera (SVG, bieżąca strona)** pobiera same linie bieżącej strony w milimetrach — dla Cricut, Silhouette albo plotera w drukarni (kolor linii mówi, co robić). **Sprawdź przed drukiem** pilnuje, czy da się wyciąć i złożyć: cięcie z otwartej linii, big albo klej bez linii cięcia, big albo klej poza wycinanym kawałkiem. Gotowe wykroje koperty, teczki i pudełka z makietą 3D daje sekcja typu **Wykrojnik** (rozdział „10.4 Ustawienia sekcji”).
+
 ### 22.3 Widok uszlachetnień
 
 W edytorze i podglądzie uszlachetnienie widać jako efekt: połysk lakieru, metaliczną folię, cień tłoczenia, biel na szachownicy. Menu widoku → **Pokaż uszlachetnienia** wyłącza efekt (rozdział „3.6 Prawy dolny róg i menu widoku”).

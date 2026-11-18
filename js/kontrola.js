@@ -250,6 +250,37 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     const zPoddrukiem = egz.some((e) => JSON.stringify(e.strona.obiekty).includes('"uszlachetnienie":"bialy"'));
     if (r === 'folia' && !zPoddrukiem) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: [], opis: `Sekcja „${sekcja.nazwa}” jest na przezroczystej folii, a żaden element nie ma białego poddruku – kolory będą prześwitywać. Jeśli mają być kryjące, ustaw pod nimi biały poddruk.` });
   }
+  // Linie wykrojnika (#218): czy da się wyciąć i złożyć – cięcie z zamkniętego kształtu, big i klej na wykroju.
+  const techniczne = (obiekty, wynik = [], zGrupy = null) => {
+    for (const o of obiekty || []) {
+      const id = ['ciecie', 'big', 'perforacja', 'klej'].includes(o?.uszlachetnienie) ? o.uszlachetnienie : zGrupy;
+      if (Array.isArray(o?.objects) && o.objects.length) techniczne(o.objects, wynik, id);
+      else if (id && o) wynik.push({ o, id });
+    }
+    return wynik;
+  };
+  const ramka = (o) => ({ x1: o.left || 0, y1: o.top || 0, x2: (o.left || 0) + (o.width || 0) * Math.abs(o.scaleX ?? 1), y2: (o.top || 0) + (o.height || 0) * Math.abs(o.scaleY ?? 1) });
+  const otwarta = (o) => o.type === 'line' || o.type === 'polyline' || (o.type === 'path' && !/[zZ]\s*$/.test(JSON.stringify(o.path || '').replace(/[\]"]+$/, '')));
+  const wykNaStronach = { otwarte: [], bezCiecia: [], poza: [] };
+  for (const e of ciag.egzemplarze) {
+    if (e.pusta) continue;
+    const t = techniczne(e.strona.obiekty);
+    if (!t.length) continue;
+    const nr = e.nr ?? e.indeks + 1;
+    const ciecia = t.filter((x) => x.id === 'ciecie');
+    if (ciecia.some((x) => otwarta(x.o))) wykNaStronach.otwarte.push(nr);
+    const wykrojnikSekcji = e.sekcja.specjalna?.rodzaj === 'wykrojnik';
+    if (!ciecia.length && !wykrojnikSekcji && t.some((x) => x.id === 'big' || x.id === 'klej')) wykNaStronach.bezCiecia.push(nr);
+    if (ciecia.length) {
+      const r = ciecia.map((x) => ramka(x.o));
+      const x1 = Math.min(...r.map((q) => q.x1)) - 0.5; const y1 = Math.min(...r.map((q) => q.y1)) - 0.5;
+      const x2 = Math.max(...r.map((q) => q.x2)) + 0.5; const y2 = Math.max(...r.map((q) => q.y2)) + 0.5;
+      if (t.some((x) => (x.id === 'big' || x.id === 'klej') && (() => { const q = ramka(x.o); return q.x2 < x1 || q.x1 > x2 || q.y2 < y1 || q.y1 > y2; })())) wykNaStronach.poza.push(nr);
+    }
+  }
+  if (wykNaStronach.otwarte.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.otwarte, opis: `Linia cięcia z otwartej linii – nóż przetnie tylko ten odcinek. Jeśli to obrys kawałka do wycięcia, narysuj go zamkniętym kształtem (prostokąt, wielokąt, zamknięty kształt piórem). ${odmiana(new Set(wykNaStronach.otwarte).size, 'Strona', 'Strony', 'Strony')} ${lista(wykNaStronach.otwarte)}.` });
+  if (wykNaStronach.bezCiecia.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.bezCiecia, opis: `Są linie zgięcia albo miejsca klejenia, a nie ma linii cięcia – składanka nie da się wyciąć. Oznacz obrys kawałka jako „Cięcie” (Kolory do druku → Wykończenie). ${odmiana(new Set(wykNaStronach.bezCiecia).size, 'Strona', 'Strony', 'Strony')} ${lista(wykNaStronach.bezCiecia)}.` });
+  if (wykNaStronach.poza.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.poza, opis: `Linia zgięcia albo miejsce klejenia leży poza wykrojem – po wycięciu jej nie będzie. Przesuń ją na wycinany kawałek. ${odmiana(new Set(wykNaStronach.poza).size, 'Strona', 'Strony', 'Strony')} ${lista(wykNaStronach.poza)}.` });
   // Sekcje specjalne (#177): tekst na zgięciu, elementy poza wykrojnikiem, ulotka z nadmiarowymi stronami.
   uwagi.push(...uwagiSekcjiSpecjalnych(projekt, ciag));
   // Kody QR i EAN (#128): za mały moduł, za wąski EAN, za jasny kod, zła treść – także po podstawieniu danych.

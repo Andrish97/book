@@ -340,6 +340,20 @@ export const akcje = {
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
   // Tekst dla innych programów (#216): Word i EPUB – treść stron w kolejności czytania, z nagłówkami.
+  // Plik dla plotera (#218): linie wykrojnika bieżącej strony jako SVG w milimetrach.
+  'ploter-svg': async () => {
+    zamknijMenu();
+    zapiszBiezacyCel();
+    if (stan.tryb !== 'strona') { powiadom('Plik dla plotera robi się ze strony projektu (nie z wzorca).', true); return; }
+    const { svgPlotera } = await import('../ploter.js');
+    const { rozwin } = await import('../serie.js');
+    const ciag = rozwin(stan.projekt);
+    const egz = ciag.pierwszy.get(stan.projekt.strony[stan.indeks].id);
+    const w = egz ? await svgPlotera(stan.projekt, egz, { ciag }) : null;
+    if (!w) { powiadom('Na tej stronie nie ma linii wykrojnika. Zaznacz kształt i w części „Kolory do druku” wybierz Cięcie, Big, Perforację albo Klej.', true); return; }
+    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}-ploter.svg`, URL.createObjectURL(new Blob([w.svg], { type: 'image/svg+xml' })));
+    powiadom(`Pobrano plik dla plotera: cięcia ${w.ile.ciecie}, bigi ${w.ile.big}, perforacje ${w.ile.perforacja}, pola kleju ${w.ile.klej} – w milimetrach, kolor linii mówi ploterowi, co robić.`);
+  },
   'tekst-docx': () => zapiszTekstJako('docx'),
   'tekst-epub': () => zapiszTekstJako('epub'),
   'czat-ai': async () => { zamknijMenu(); (await import('./czat-ai.js')).otworzCzatAi(); },

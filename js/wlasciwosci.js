@@ -31,7 +31,7 @@ const TEKSTOWE = new Set(['textbox', 'i-text', 'text']);
 const KSZTALTY = new Set(['rect', 'ellipse', 'polygon']);
 
 // Wykończenie druku (#167): krótkie nazwy na kafelkach, opis prostymi słowami i ikona każdego efektu.
-const KROTKO_WYKONCZEN = { uv: 'Lakier', folia: 'Złocenie', tloczenie: 'Tłoczenie', wytloczenie: 'Wytłoczenie', bialy: 'Biel' };
+const KROTKO_WYKONCZEN = { uv: 'Lakier', folia: 'Złocenie', tloczenie: 'Tłoczenie', wytloczenie: 'Wytłoczenie', bialy: 'Biel', ciecie: 'Cięcie', big: 'Big', perforacja: 'Perforacja', klej: 'Klej' };
 const OPISY_WYKONCZEN = {
   brak: 'Zwykły druk – bez wykończenia.',
   uv: 'Lakier wybiórczy: błyszcząca warstwa tylko w tym miejscu, np. tytuł na matowej okładce.',
@@ -39,6 +39,10 @@ const OPISY_WYKONCZEN = {
   tloczenie: 'Tłoczenie: wypukły relief wyciśnięty w papierze.',
   wytloczenie: 'Wytłoczenie: wklęsły relief wciśnięty w papier.',
   bialy: 'Biel: biała farba pod spodem – na kolorowym, kraftowym albo przezroczystym podłożu.',
+  ciecie: 'Linia cięcia (wykrojnik): kontur elementu to miejsce, w którym nóż albo ploter tnie. Grupa – każdy jej kształt.',
+  big: 'Big: linia zgięcia – introligatornia albo ploter ją wgniata, żeby karton zgiął się równo.',
+  perforacja: 'Perforacja: linia do oderwania (kupon, bilet, kartka kalendarza).',
+  klej: 'Miejsce klejenia: pole, na które idzie klej (np. zakładka pudełka albo koperty).',
 };
 const ik = (sciezki) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${sciezki}</svg>`;
 const IKONY_WYKONCZEN = {
@@ -48,6 +52,10 @@ const IKONY_WYKONCZEN = {
   tloczenie: ik('<path d="M3.5 17.5h17"/><path d="M6.5 17.5v-5.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v5.5"/><path d="M9 10V7.5"/><path d="M15 10V7.5"/>'),
   wytloczenie: ik('<path d="M3.5 9.5h3v5.5a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V9.5h3"/><path d="M9 17v2.5"/><path d="M15 17v2.5"/>'),
   bialy: ik('<rect x="4.5" y="4.5" width="15" height="15" rx="2"/><path d="M4.5 12h15M12 4.5v15"/><path d="M4.5 4.5L12 12M12 12l7.5 7.5" stroke-opacity=".45"/>'),
+  ciecie: ik('<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 16M8 15.5L20 8"/>'),
+  big: ik('<path d="M4 18l8-12 8 12" stroke-dasharray="2.5 2"/>'),
+  perforacja: ik('<path d="M3.5 12h17" stroke-dasharray="0.5 2.5" stroke-width="2.2"/><path d="M6 6.5h12M6 17.5h12" stroke-opacity=".45"/>'),
+  klej: ik('<rect x="4.5" y="6.5" width="15" height="11" rx="1.5"/><path d="M7 15l4-4M10 15l5-5M13 15l4-4" stroke-opacity=".6"/>'),
 };
 
 const zaokr = (v, miejsc = 2) => {
