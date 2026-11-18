@@ -3537,5 +3537,7 @@
  "Margines – trzymaj w nim teksty": "Margin – keep text inside it",
  "Brak wzorców": "No masters",
  "Na razie każda strona ma tylko własną treść. Wybierz gotowy wzorzec poniżej – np. numer strony – a pojawi się od razu na wszystkich stronach sekcji.": "For now each page has only its own content. Choose a ready-made master below – e.g. a page number – and it will appear at once on every page of the section.",
- "Masz zaproszenia do projektów": "You have project invitations"
+ "Masz zaproszenia do projektów": "You have project invitations",
+ "Zapisz dla Scribusa (.sla)": "Save for Scribus (.sla)",
+ "Przygotowuję plik dla Scribusa…": "Preparing the Scribus file…"
 }

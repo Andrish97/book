@@ -356,6 +356,16 @@ export const akcje = {
   },
   'tekst-docx': () => zapiszTekstJako('docx'),
   'tekst-epub': () => zapiszTekstJako('epub'),
+  // Scribus (#220): cały projekt jako plik .sla – teksty edytowalne, kształty wektorowe, reszta jako obrazy w pliku.
+  scribus: async () => {
+    zamknijMenu();
+    zapiszBiezacyCel();
+    const { zapiszSla } = await import('../scribus.js');
+    powiadom('Przygotowuję plik dla Scribusa…');
+    const w = await zapiszSla(stan.projekt, { postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik dla Scribusa – strona ${i + 1} z ${z}…`); } });
+    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.sla`, URL.createObjectURL(new Blob([w.sla], { type: 'application/vnd.scribus' })));
+    powiadom(`Zapisano dla Scribusa: ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'} – zainstaluj je w systemie, zanim otworzysz plik.`);
+  },
   'czat-ai': async () => { zamknijMenu(); (await import('./czat-ai.js')).otworzCzatAi(); },
   'wstaw-tekst-z-pliku': async () => { zamknijMenu(); await import('./import-tekstu-okno.js'); $('#plik-tekst').click(); },
   // Specyfikacja dla drukarni (#214): ustawienia oprawy, papieru, materiału i uszlachetnień – tekst i JSON.

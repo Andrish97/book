@@ -148,3 +148,10 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
 - [Zapisz tekst jako Word (.docx)] i [Zapisz jako e-book (EPUB)] — sama treść stron w kolejności czytania
   (bez okładki), z nagłówkami i formatowaniem fragmentów; e-book ma spis treści i rozdział w osobnym pliku.
   Układ stron i obrazy zostają w Makietce.
+- [Zapisz dla Scribusa (.sla)] — cały projekt z układem stron do darmowego programu do składu Scribus (1.5 i 1.6):
+  strony w kolejności druku, ze spadem i marginesami, serie rozwinięte i dane podstawione. Teksty są zwykłymi
+  ramkami tekstowymi Scribusa (czcionka, wielkość, kolor, pogrubienie, kursywa, podkreślenie, wyrównanie,
+  akapity) — można je dalej poprawiać; prostokąty, elipsy, wielokąty, linie i ścieżki są kształtami z kolorami;
+  zdjęcia, tabele, kalendarze, grupy i elementy z cieniem lub przezroczystością wchodzą jako obrazy (300 dpi)
+  zapisane w samym pliku. Czcionki trzeba mieć zainstalowane w systemie — aplikacja podaje, których plik używa.
+  Linie wykrojnika nie przechodzą (są w pliku dla plotera).
