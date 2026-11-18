@@ -409,7 +409,7 @@
           <a href="#/konto/logowanie" data-do="ust-logowanie" data-sekcja="logowanie" data-cel="haslo"><span class="ikona-wiersza" data-ikona="klodka"></span><span class="tytul">Hasło</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/wyglad" data-do="ust-wyglad" data-sekcja="wyglad"><span class="ikona-wiersza" data-ikona="motyw"></span><span class="tytul">Motyw</span><span class="wartosc" data-podsumowanie="motyw"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/powiadomienia" data-do="ust-powiadomienia" data-sekcja="powiadomienia"><span class="ikona-wiersza" data-ikona="dzwonek"></span><span class="tytul">Powiadomienia</span><span class="wartosc" data-podsumowanie="powiadomienia"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
-          <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Dostęp dla AI</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
+          <a href="#/konto/ai" data-do="ust-ai" data-sekcja="ai"><span class="ikona-wiersza" data-ikona="klucz"></span><span class="tytul">Sztuczna inteligencja</span><span class="wartosc" data-podsumowanie="ai"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/marka" data-do="ust-marka" data-sekcja="marka"><span class="ikona-wiersza" data-ikona="marka"></span><span class="tytul">Zestaw marki</span><span class="wartosc" data-podsumowanie="marka"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/miejsce" data-do="ust-miejsce" data-sekcja="miejsce"><span class="ikona-wiersza" data-ikona="chmura"></span><span class="tytul">Miejsce</span><span class="wartosc" data-podsumowanie="miejsce"></span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
           <a href="#/konto/usun" data-do="ust-usun" data-sekcja="usun" class="niebezpieczny"><span class="ikona-wiersza" data-ikona="kosz"></span><span class="tytul">Usuwanie konta</span><span class="strzalka" data-ikona="dalej" data-rozmiar="16"></span></a>
@@ -559,8 +559,8 @@
 
           <section class="grupa-ustawien" id="ust-ai">
             <button type="button" class="przycisk przezroczysty maly do-listy-ustawien" data-ikona="wstecz"><span>Ustawienia</span></button>
-            <h2>Dostęp dla AI</h2>
-            <p class="ciche">Klucze, którymi asystent AI (Claude, ChatGPT) czyta i zmienia Twoje projekty: wybrane albo wszystkie – wtedy może też tworzyć i usuwać projekty.</p>
+            <h2>Sztuczna inteligencja</h2>
+            <p class="ciche">Trzy sposoby pracy z AI: czat w Makietce z Twoimi kluczami API (zaszyfrowanymi – nie odczyta ich nikt poza Tobą), łącznik w aplikacji AI (Claude, ChatGPT) i zwykły czat w przeglądarce, także darmowy.</p>
             <div class="wiersze-ustawien">
               <div class="wiersz-ustawien">
                 <div class="wiersz-glowny">
@@ -1617,14 +1617,31 @@
     </div>
   </dialog>
 
-  <dialog id="dlg-dostep-ai" class="dialog-szeroki">
+  <dialog id="dlg-dostep-ai" class="dialog-szeroki" data-zakladka="czat">
     <div class="formularz">
       <div class="naglowek-dialogu">
-        <h2>Dostęp dla AI</h2>
+        <h2>Sztuczna inteligencja</h2>
         <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
-      <p class="ciche">Klucz pozwala asystentowi AI (np. Claude albo ChatGPT) czytać i – jeśli zechcesz – zmieniać <b>wybrane projekty</b> albo <b>wszystkie projekty konta</b>, równolegle z Tobą. Dostajesz adres łącznika, który dodajesz w ustawieniach AI. Zmiany AI pojawiają się w edytorze na żywo. AI dostaje co najwyżej Twoje uprawnienia, nie widzi hasła ani ustawień konta; klucz możesz odebrać albo zmienić jego zakres w każdej chwili.</p>
-      <fieldset class="grupa-pol" id="dostep-ai-nowy">
+      <p class="ciche">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo. Wybierz, jak chcesz z nim pracować.</p>
+      <div class="przelacznik-segmentowy zakladki-ai" role="tablist" aria-label="Sposób pracy z AI">
+        <button type="button" role="tab" data-zakladka-ai="czat">Czat w Makietce</button>
+        <button type="button" role="tab" data-zakladka-ai="lacznik">Łącznik w aplikacji AI</button>
+        <button type="button" role="tab" data-zakladka-ai="zwykly">Zwykły czat</button>
+      </div>
+
+      <!-- Czat w Makietce: klucze dostawców w sejfie (#241, #243). -->
+      <fieldset class="grupa-pol" data-dla="czat">
+        <legend>Czat w Makietce – Twoje klucze API</legend>
+        <p class="podpowiedz">Asystent AI w edytorze (menu ⋯ → Asystent AI) rozmawia z wybranym dostawcą Twoim kluczem – płacisz u dostawcy. Klucze szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie: <b>bez hasła nie odczyta ich nikt, także twórca Makietki</b>.</p>
+        <ul class="lista-dostawcow-ai" id="ai-dostawcy-lista"></ul>
+        <div class="rzad-przyciskow" id="ai-sejf-akcje"></div>
+        <p class="podpowiedz"><b>Bez klucza i bez opłat:</b> w Asystencie AI wybierz „Dowolny czat bez klucza – kopiuj i wklej” – Makietka przygotuje polecenie dla dowolnego czatu w przeglądarce (np. darmowy ChatGPT), a jego odpowiedź wklejasz z powrotem.</p>
+      </fieldset>
+
+      <p class="podpowiedz uwaga-planu" data-dla="lacznik"><b>Najprawdopodobniej potrzebujesz płatnego planu.</b> Własne łączniki (MCP) w ChatGPT są w planach płatnych (tryb dewelopera); w Claude darmowy plan pozwala na jeden własny łącznik. Bez płatnego planu – zakładka „Zwykły czat” albo czat w Makietce.</p>
+      <p class="podpowiedz" data-dla="zwykly">Zwykła rozmowa w przeglądarce (także darmowy ChatGPT, Claude, Gemini) – bez łączników. Utwórz klucz i wklej czatowi gotowe polecenie: czat otworzy adres jak stronę, zobaczy narzędzia Makietki i będzie zmieniać projekt, otwierając kolejne adresy.</p>
+      <fieldset class="grupa-pol" id="dostep-ai-nowy" data-dla="lacznik zwykly">
         <legend>Nowy klucz</legend>
         <label class="pole"><span>Opis (dla Ciebie)</span><input id="dostep-ai-opis" maxlength="120" placeholder="np. Claude – poprawki kalendarza"></label>
         <div class="rzad">
@@ -1641,20 +1658,20 @@
       <fieldset class="grupa-pol" id="dostep-ai-gotowy" hidden>
         <legend>Adres łącznika – skopiuj go teraz</legend>
         <p class="podpowiedz">Adres zawiera klucz i widać go tylko teraz. Po zamknięciu okna nie da się go odczytać – najwyżej utworzyć nowy klucz.</p>
-        <label class="pole"><span>Adres łącznika dla AI</span>
+        <label class="pole" data-dla="lacznik"><span>Adres łącznika dla AI</span>
           <span class="z-przyciskiem">
             <input id="dostep-ai-adres" type="text" readonly>
             <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj-adres" data-ikona="kopiuj" title="Kopiuj adres" aria-label="Kopiuj adres łącznika"></button>
           </span>
         </label>
-        <p class="podpowiedz">Teraz dodaj ten adres w swojej aplikacji AI – zobacz „Jak podłączyć” niżej. W poleceniu do skopiowania adres jest już wpisany.</p>
-        <div class="dostep-ai-polecenie">
+        <p class="podpowiedz" data-dla="lacznik">Teraz dodaj ten adres w swojej aplikacji AI – zobacz „Jak podłączyć” niżej. W poleceniu do skopiowania adres jest już wpisany.</p>
+        <div class="dostep-ai-polecenie" data-dla="zwykly">
           <div class="prompt-naglowek"><b>Zwykły czat bez łączników (np. darmowy ChatGPT, Claude, Gemini): skopiuj i wklej w rozmowie, dopisz zadanie.</b>
             <button type="button" class="przycisk" data-akcja="dostep-ai-kopiuj-zwykly" data-ikona="kopiuj">Kopiuj dla zwykłego czatu</button></div>
           <pre id="dostep-ai-polecenie-zwykly"></pre>
-          <p class="podpowiedz">Czat otworzy adres jak stronę: zobaczy opis Makietki i narzędzia, a zmiany robi, otwierając kolejne adresy. Jeśli odpowie, że nie może otworzyć adresów, które sam zbudował – użyj w edytorze <b>Asystenta AI</b> z dostawcą „Dowolny czat bez klucza – kopiuj i wklej” (instrukcja 25.6).</p>
+          <p class="podpowiedz">Jeśli czat odpowie, że nie może otworzyć adresów, które sam zbudował – użyj w edytorze <b>Asystenta AI</b> z dostawcą „Dowolny czat bez klucza – kopiuj i wklej” (instrukcja 25.6).</p>
         </div>
-        <details class="dostep-ai-jak">
+        <details class="dostep-ai-jak" data-dla="lacznik">
           <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
           <label class="pole"><span>Klucz dostępu</span>
             <span class="z-przyciskiem">
@@ -1669,7 +1686,7 @@
           <p class="podpowiedz">Opis narzędzi i formatu projektu: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
         </details>
       </fieldset>
-      <fieldset class="grupa-pol dostep-ai-pomoc">
+      <fieldset class="grupa-pol dostep-ai-pomoc" data-dla="lacznik">
         <legend>Jak podłączyć</legend>
         <div class="dostep-ai-polecenie">
           <div class="prompt-naglowek"><b>Nie wiesz, jak podłączyć? Skopiuj to polecenie i wklej swojemu AI – poprowadzi Cię.</b>
@@ -1687,14 +1704,13 @@
             <li><b>Claude Desktop</b>: rozszerzenie wyżej – czyta zdjęcia, foldery i ZIP-y prosto z dysku.</li>
             <li><b>Claude Code</b>: <code id="dostep-ai-polecenie-code">claude mcp add --transport http makietka https://api.makietka.app/mcp/&lt;klucz&gt;</code></li>
             <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>; wklej adres, <i>No Authentication</i>.</li>
-            <li><b>Zwykły czat bez łączników</b> (każdy plan, także darmowy): wklej w rozmowie polecenie „Kopiuj dla zwykłego czatu” – czat otwiera adres jak stronę. Bez internetu po stronie czatu: w edytorze <b>Asystent AI</b> → „Dowolny czat bez klucza – kopiuj i wklej”.</li>
             <li><b>Inne</b> (Cursor, Windsurf): łącznik MCP przez HTTP – podaj adres. Dla programistów: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</li>
           </ul>
           <p class="podpowiedz"><b>Ograniczenia:</b> nie każda aplikacja i nie każdy plan obsługuje własne łączniki. Claude w czacie nie przekazuje łącznikom zdjęć z rozmowy – większe zdjęcia wrzucisz przez link, który poda AI. AI widzi tylko projekty z klucza.</p>
         </details>
       </fieldset>
-      <fieldset class="grupa-pol">
-        <legend>Klucze konta</legend>
+      <fieldset class="grupa-pol" data-dla="lacznik zwykly">
+        <legend>Klucze dostępu (łącznik i zwykły czat)</legend>
         <ul class="lista-dostepow" id="dostep-ai-lista"></ul>
         <p class="podpowiedz" id="dostep-ai-pusto">Nie masz jeszcze żadnego klucza.</p>
       </fieldset>
@@ -2392,7 +2408,7 @@
         </div>
         <label class="pole" data-z-kluczem><span>Model</span><input name="model" list="czat-ai-modele" placeholder="np. claude-opus-5-5"><datalist id="czat-ai-modele"></datalist></label>
         <label class="pole"><span>AI może w tym projekcie</span><select name="rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
-        <p class="podpowiedz">Klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – nikt poza Tobą, także twórca Makietki, go nie odczyta. Rozmowa idzie prosto do dostawcy (płacisz u niego). AI widzi wyłącznie ten projekt – przez jednodniowy klucz dostępu, który możesz odebrać w Ustawieniach konta → Dostęp dla AI.</p>
+        <p class="podpowiedz">Klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – nikt poza Tobą, także twórca Makietki, go nie odczyta. Rozmowa idzie prosto do dostawcy (płacisz u niego). AI widzi wyłącznie ten projekt – przez jednodniowy klucz dostępu, który możesz odebrać w Ustawieniach konta → Sztuczna inteligencja.</p>
       </form>
       <ol class="czat-ai-wiadomosci" id="czat-ai-wiadomosci" aria-live="polite"></ol>
       <form class="czat-ai-pisz" id="czat-ai-pisz">

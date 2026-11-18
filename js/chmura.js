@@ -865,7 +865,7 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
   return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
 }
 
-// ---------- Dostęp dla AI (klucze konta, decyzja #94) ----------
+// ---------- Sztuczna inteligencja (klucze konta, decyzja #94) ----------
 //
 // Klucz tworzy i odbiera właściciel konta; w bazie zostaje tylko jego skrót. Asystent AI używa
 // klucza w funkcjach ai_projekt i ai_zapisz (supabase/migrations/20261111200000_dostep_ai.sql).

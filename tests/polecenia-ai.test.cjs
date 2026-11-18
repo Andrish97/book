@@ -12,7 +12,7 @@ test('okno Dostęp dla AI: polecenie do skopiowania, rozszerzenie do pobrania, o
   await oknoAi(strona);
   const przed = await strona.evaluate(() => ({
     polecenie: document.querySelector('#dostep-ai-polecenie').textContent,
-    naWierzchu: document.querySelector('.dostep-ai-polecenie').textContent,
+    naWierzchu: document.querySelector('.dostep-ai-pomoc .dostep-ai-polecenie').textContent,
     widoczne: !!document.querySelector('#dostep-ai-polecenie').offsetParent,
     aplikacje: document.querySelector('#dostep-ai-aplikacje').textContent,
     zwiniete: !document.querySelector('#dostep-ai-aplikacje').open,

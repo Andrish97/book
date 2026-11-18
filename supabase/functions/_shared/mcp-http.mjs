@@ -133,7 +133,7 @@ function opisSchematu(schemat) {
 
 async function obsluzStrone(request, url, env) {
   const klucz = kluczZZadania(request);
-  if (!WZOR_KLUCZA.test(klucz)) return tekst(401, 'Ten adres nie zawiera prawidłowego klucza dostępu Makietki. Skopiuj pełny adres z aplikacji: Ustawienia konta → Dostęp dla AI.');
+  if (!WZOR_KLUCZA.test(klucz)) return tekst(401, 'Ten adres nie zawiera prawidłowego klucza dostępu Makietki. Skopiuj pełny adres z aplikacji: Ustawienia konta → Sztuczna inteligencja.');
   const serwer = utworzSerwer({ adres: env.adres || DOMYSLNY_ADRES, kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY, klucz });
   let nr = 0;
   const wolaj = async (method, params = {}) => {
@@ -230,8 +230,8 @@ export async function obsluzHttp(request, env = {}) {
     // narzędzi z tym dopiskiem („Couldn't reload tools from the server”).
     plikiZCzatu: /openai|chatgpt/i.test(request.headers.get('user-agent') || ''),
     brakKlucza: klucz
-      ? 'Adres łącznika zawiera nieprawidłowy klucz dostępu. Skopiuj adres jeszcze raz z okna „Dostęp dla AI” w aplikacji.'
-      : 'Adres łącznika nie zawiera klucza dostępu. Skopiuj pełny adres z okna „Dostęp dla AI” w aplikacji (menu ⋯ edytora).',
+      ? 'Adres łącznika zawiera nieprawidłowy klucz dostępu. Skopiuj adres jeszcze raz z okna „Sztuczna inteligencja” w aplikacji.'
+      : 'Adres łącznika nie zawiera klucza dostępu. Skopiuj pełny adres z okna „Sztuczna inteligencja” w aplikacji (menu ⋯ edytora).',
   });
 
   const jedna = async (w) => {

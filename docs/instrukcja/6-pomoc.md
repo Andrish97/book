@@ -44,7 +44,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz [U
 | **Hasło** | [Zmień hasło]. |
 | **Motyw** | Wygląd aplikacji (→ 27.4). |
 | **Powiadomienia** | Powiadomienia na tym urządzeniu (→ 27.6). |
-| **Dostęp dla AI** | Klucze dla asystentów AI (→ 25.2). |
+| **Sztuczna inteligencja** | Klucze dla asystentów AI (→ 25.2). |
 | **Zestaw marki** | Kolory, czcionki, style tekstu i logo marki — dostępne w każdym projekcie (→ 27.9). |
 | **Miejsce** | Ile zajmują Twoje pliki i projekty (→ 27.5). |
 | **Usuń konto** | Usunięcie konta (→ 27.7). |

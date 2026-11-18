@@ -16,6 +16,8 @@ import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
 import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
+import { DOSTAWCY } from '../ai-dostawcy.js';
+import { otwartySejf, sejfKonta } from './sejf-ai.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 
@@ -224,8 +226,56 @@ function pokazZakresNowego() {
 }
 
 // Otwiera okno (z ustawień konta). projektId – projekt zaznaczony na liście nowego klucza (domyślnie żaden).
-export async function otworzDostepAi({ projektId = null } = {}) {
-  if (!stan.uzytkownik) { powiadom('Dostęp dla AI wymaga zalogowania.', true); return; }
+// ---------- Zakładki (#243): czat w Makietce, łącznik, zwykły czat ----------
+
+export function ustawZakladkeAi(z) {
+  const dlg = $('#dlg-dostep-ai');
+  dlg.dataset.zakladka = z;
+  for (const b of dlg.querySelectorAll('[data-zakladka-ai]')) b.setAttribute('aria-selected', String(b.dataset.zakladkaAi === z));
+  if (z === 'czat') rysujDostawcow();
+}
+
+// Klucze dostawców w sejfie: stan każdego, wklejenie nowego, usunięcie; otwarcie / zamknięcie sejfu na urządzeniu.
+async function rysujDostawcow() {
+  const lista = $('#ai-dostawcy-lista');
+  const akcje = $('#ai-sejf-akcje');
+  const s = sejfKonta();
+  if (!s) return;
+  let st;
+  try { st = await s.stan(); } catch (e) { lista.replaceChildren(); powiadom(chmura.komunikatBledu(e), true); return; }
+  const przycisk = (tekst, fn, glowny = false) => { const b = Object.assign(document.createElement('button'), { type: 'button', className: `przycisk${glowny ? ' glowny' : ''}`, textContent: tekst }); b.addEventListener('click', fn); return b; };
+  lista.replaceChildren(...Object.entries(DOSTAWCY).filter(([, d]) => !d.bezKlucza).map(([id, d]) => {
+    const li = document.createElement('li');
+    const nazwa = Object.assign(document.createElement('span'), { className: 'nazwa-dostawcy', textContent: d.nazwa });
+    const jest = st === 'otwarty' && s.klucz(id);
+    const stanKlucza = Object.assign(document.createElement('span'), { className: 'stan-klucza', textContent: st === 'zamkniety' ? 'zaszyfrowany – otwórz klucze' : jest ? `zapisany (…${s.klucz(id).slice(-4)})` : 'brak klucza' });
+    const pole = Object.assign(document.createElement('input'), { type: 'password', placeholder: jest ? 'Wklej nowy, żeby zamienić' : 'Wklej klucz API', autocomplete: 'off', spellcheck: false });
+    pole.setAttribute('aria-label', `Klucz API – ${d.nazwa}`);
+    const zapiszKlucz = przycisk('Zapisz', async () => {
+      const v = pole.value.trim();
+      if (!v) { pole.focus(); return; }
+      const sejf = await otwartySejf();
+      if (!sejf) return;
+      await sejf.ustaw(id, v);
+      powiadom(`Klucz ${d.nazwa} zapisany – zaszyfrowany Twoim hasłem do kluczy.`);
+      rysujDostawcow();
+    });
+    li.append(nazwa, stanKlucza, pole, zapiszKlucz);
+    if (jest) li.append(przycisk('Usuń', async () => { await s.ustaw(id, ''); rysujDostawcow(); }));
+    if (d.kluczUrl) li.append(Object.assign(document.createElement('a'), { href: d.kluczUrl, target: '_blank', rel: 'noopener', className: 'link-przycisk', textContent: 'Gdzie wziąć klucz?' }));
+    return li;
+  }));
+  akcje.replaceChildren(...(st === 'zamkniety'
+    ? [przycisk('Otwórz klucze na tym urządzeniu', async () => { if (await otwartySejf()) rysujDostawcow(); }, true)]
+    : st === 'otwarty'
+      ? [przycisk('Zamknij klucze na tym urządzeniu', async () => { await s.zamknij(); rysujDostawcow(); }),
+        przycisk('Usuń wszystkie klucze z konta', async () => { if (await potwierdz('Usunąć zapisane klucze API?', 'Wszystkie klucze dostawców znikną z konta (także na innych urządzeniach). Hasło do kluczy przestanie być potrzebne.', 'Usuń')) { await s.usun(); rysujDostawcow(); } })]
+      : []));
+}
+
+export async function otworzDostepAi({ projektId = null, zakladka = 'czat' } = {}) {
+  if (!stan.uzytkownik) { powiadom('Ustawienia sztucznej inteligencji wymagają zalogowania.', true); return; }
+  ustawZakladkeAi(zakladka);
   $('#dostep-ai-gotowy').hidden = true;
   $('#dostep-ai-klucz').value = '';
   $('#dostep-ai-adres').value = '';
@@ -297,6 +347,7 @@ export function zamknijDostepAi() {
   document.dispatchEvent(new CustomEvent('makietka:klucze-ai'));
 }
 
+$('#dlg-dostep-ai').addEventListener('click', (e) => { const b = e.target.closest('[data-zakladka-ai]'); if (b) ustawZakladkeAi(b.dataset.zakladkaAi); });
 $('#dostep-ai-nowy').addEventListener('change', (e) => { if (e.target.name === 'dostep-ai-zakres') pokazZakresNowego(); });
 
 // Krótkie podsumowanie w ustawieniach konta: ile kluczy działa.

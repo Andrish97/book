@@ -3648,5 +3648,12 @@
  "Nie pamiętam – usuń zapisane klucze": "Forgot it – delete saved keys",
  "Nieprawidłowe hasło do kluczy.": "Wrong keys password.",
  "Hasła się różnią.": "Passwords don't match.",
- "Kopiuj dla zwykłego czatu": "Copy for a regular chat"
+ "Kopiuj dla zwykłego czatu": "Copy for a regular chat",
+ "Sztuczna inteligencja": "Artificial intelligence",
+ "Łącznik w aplikacji AI": "Connector in an AI app",
+ "Zwykły czat": "Regular chat",
+ "brak klucza": "no key",
+ "Otwórz klucze na tym urządzeniu": "Unlock keys on this device",
+ "Zamknij klucze na tym urządzeniu": "Lock keys on this device",
+ "Usuń wszystkie klucze z konta": "Delete all keys from the account"
 }

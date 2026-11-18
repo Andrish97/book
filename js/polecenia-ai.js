@@ -1,5 +1,5 @@
 // Gotowe polecenia dla AI (decyzje #104, #107) – jedno źródło dla instrukcji (docs/instrukcja, wstawka {{polecenie: …}}) i okna
-// „Dostęp dla AI” w ustawieniach konta (js/app/dostep-ai.js). W poleceniu „Podłącz Makietkę” okno podstawia prawdziwy
+// „Sztuczna inteligencja” w ustawieniach konta (js/app/dostep-ai.js). W poleceniu „Podłącz Makietkę” okno podstawia prawdziwy
 // adres łącznika z kluczem, gdy jest widoczny (zaraz po utworzeniu klucza).
 
 export const ADRES_ZASTEPCZY = 'https://api.makietka.app/mcp/<klucz>';
@@ -10,7 +10,7 @@ Co to jest Makietka: aplikacja w przeglądarce (https://makietka.app) do składa
 
 Co wiem o łączniku Makietki:
 - To zdalny serwer MCP (transport Streamable HTTP), bez logowania OAuth. Adres: https://api.makietka.app/mcp/<klucz>. Klucz można też podać nagłówkiem „Authorization: Bearer sdk_…” (wtedy adres bez klucza: https://api.makietka.app/mcp).
-- Klucz tworzę sam w Makietce: Ustawienia konta → Dostęp dla AI → Zarządzaj… Wybieram: które projekty (albo pełny dostęp – wtedy AI może też tworzyć i usuwać projekty), czy AI tylko czyta, czy też zmienia, i ważność. Adres z kluczem widać tylko raz.
+- Klucz tworzę sam w Makietce: Ustawienia konta → Sztuczna inteligencja → Zarządzaj… Wybieram: które projekty (albo pełny dostęp – wtedy AI może też tworzyć i usuwać projekty), czy AI tylko czyta, czy też zmienia, i ważność. Adres z kluczem widać tylko raz.
 - Narzędzia łącznika: lista projektów, nowy projekt i usunięcie projektu (przy pełnym dostępie), przegląd projektu, czytanie i zmiana stron, elementów, wzorców, stylów, tabel danych i serii, wgrywanie obrazów (adres https, link z Dysku Google albo Dropboxa, kod SVG, małe pliki kawałkami), wstawianie obrazów na strony, link do wgrania zdjęć przez przeglądarkę, kontrola przed drukiem.
 - Opis dla AI: https://makietka.app/ai/api.md, model danych projektu: https://makietka.app/ai/format-makietka.md.
 - Dla Claude Desktop jest też rozszerzenie https://makietka.app/ai/mcp/makietka.mcpb – działa na komputerze i czyta pliki oraz foldery z dysku.
@@ -43,5 +43,5 @@ export const PROMPT_DANE = `Korzystając z łącznika Makietka, w projekcie „<
 5. Pokaż mi, ile stron powstanie, i uruchom kontrolę przed drukiem.`;
 
 // Polecenie „Podłącz Makietkę” z podstawionym adresem łącznika (gdy adres jest znany – zaraz po utworzeniu klucza).
-// W oknie „Dostęp dla AI” jest tylko to polecenie; „Komiks” i „Kalendarz” są w instrukcji.
+// W oknie „Sztuczna inteligencja” jest tylko to polecenie; „Komiks” i „Kalendarz” są w instrukcji.
 export const polecenieZAdresem = (adres = '') => (adres ? PROMPT_PODLACZENIE.split(ADRES_ZASTEPCZY).join(adres) : PROMPT_PODLACZENIE);

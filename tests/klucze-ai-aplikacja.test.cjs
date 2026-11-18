@@ -47,6 +47,11 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForFunction(() => /Nie masz jeszcze żadnego klucza/.test(document.querySelector('#ust-ai-opis').textContent));
   await strona.click('[data-akcja="konto-dostep-ai"]');
   await strona.waitForSelector('#dlg-dostep-ai[open]');
+  // #243: okno otwiera się na „Czat w Makietce”; klucze dostępu – w zakładce łącznika.
+  assert.equal(await strona.getAttribute('#dlg-dostep-ai', 'data-zakladka'), 'czat');
+  assert.equal(await strona.isVisible('#dostep-ai-nowy'), false);
+  await strona.click('[data-zakladka-ai="lacznik"]');
+  assert.match(await strona.textContent('#dlg-dostep-ai .uwaga-planu'), /płatnego planu/);
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-projekty input').length === 1);
   assert.equal(await strona.locator('#dostep-ai-projekty input:checked').count(), 0, 'z ustawień konta nic nie jest zaznaczone z góry');
   await strona.check('#dostep-ai-nowy input[value="pelny"]');
@@ -83,5 +88,31 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForFunction(() => [...document.querySelectorAll('#siatka-projektow .karta-projektu')].some((k) => /Od AI/.test(k.textContent)));
   assert.ok(!(await strona.textContent('#siatka-projektow')).includes('Pierwszy'));
   assert.ok(baza.projekty.some((p) => p.id === idNowego));
+  assert.deepEqual(bledy, []);
+});
+
+// #243: zakładka „Czat w Makietce” – klucze dostawców w sejfie (hasło do kluczy), stan każdego dostawcy, usunięcie.
+test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z okna konta', async (t) => {
+  const { strona, baza, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Klucze');
+  await strona.evaluate(async () => (await import('./js/app/dostep-ai.js')).otworzDostepAi());
+  await strona.waitForSelector('#dlg-dostep-ai[open]');
+  await strona.waitForSelector('#ai-dostawcy-lista li');
+  assert.match(await strona.textContent('#dlg-dostep-ai'), /także twórca Makietki/);
+  const wiersz = strona.locator('#ai-dostawcy-lista li', { hasText: 'Anthropic' });
+  assert.match(await wiersz.textContent(), /brak klucza/);
+  await wiersz.locator('input').fill('sk-ant-z-okna-1234');
+  await wiersz.locator('button', { hasText: 'Zapisz' }).click();
+  await strona.waitForSelector('#dlg-sejf-ai[open]');
+  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'haslo-do-kluczy');
+  await strona.fill('#dlg-sejf-ai [name="powtorz"]', 'haslo-do-kluczy');
+  await strona.click('#dlg-sejf-ai button[value="tak"]');
+  await strona.waitForFunction(() => /zapisany \(…1234\)/.test([...document.querySelectorAll('#ai-dostawcy-lista li')].find((li) => li.textContent.includes('Anthropic'))?.textContent || ''));
+  assert.ok(!JSON.stringify([...baza.sejfy.values()]).includes('sk-ant-z-okna'), 'na koncie szyfrogram');
+  // Zakładki: zwykły czat pokazuje formularz klucza i opis, bez uwagi o płatnym planie.
+  await strona.click('[data-zakladka-ai="zwykly"]');
+  assert.equal(await strona.isVisible('#dostep-ai-nowy'), true);
+  assert.equal(await strona.isVisible('#dlg-dostep-ai .uwaga-planu'), false);
+  assert.equal(await strona.isVisible('#ai-dostawcy-lista'), false);
   assert.deepEqual(bledy, []);
 });

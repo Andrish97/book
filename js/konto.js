@@ -521,7 +521,7 @@ export class Konto {
     $('.konto-tresc').scrollTop = 0;
     this.wypelnijUstawienia();
     import('./miejsce-ustawienia.js').then((m) => m.pokazMiejsce()).catch(() => {}); // sekcja „Miejsce” (#90)
-    import('./app/dostep-ai.js').then((m) => m.podsumowanieKluczy()).catch(() => {}); // sekcja „Dostęp dla AI” (#94)
+    import('./app/dostep-ai.js').then((m) => m.podsumowanieKluczy()).catch(() => {}); // sekcja „Sztuczna inteligencja” (#94)
     import('./powiadomienia.js').then((m) => m.pokazPowiadomienia()).catch(() => {}); // sekcja „Powiadomienia” (#113)
     import('./marka-okno.js').then((m) => m.odswiezMarkeWUstawieniach()).catch(() => {}); // sekcja „Zestaw marki” (#131D)
     this.pokazSekcje(sekcja);

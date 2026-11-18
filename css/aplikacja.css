@@ -935,6 +935,18 @@ dialog h2 { font-size: 19px; }
 body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .czat-ai-do-skopiowania { max-height: 160px; overflow: auto; margin: 6px 0 0; padding: 8px; font-size: 11px; white-space: pre-wrap; word-break: break-word; background: var(--tlo-pola, rgba(0,0,0,0.04)); border-radius: var(--r-s); }
 .kroki-montazu { max-height: min(56vh, 480px); overflow: auto; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+/* Sztuczna inteligencja (#243): zakładki – czat w Makietce, łącznik, zwykły czat. */
+.zakladki-ai { margin: 4px 0 12px; }
+.zakladki-ai button[aria-selected="true"] { background: var(--akcent); color: #fff; }
+#dlg-dostep-ai[data-zakladka="czat"] [data-dla]:not([data-dla~="czat"]),
+#dlg-dostep-ai[data-zakladka="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
+#dlg-dostep-ai[data-zakladka="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
+.uwaga-planu { border-left: 3px solid var(--ostrzezenie, #d97706); padding: 8px 12px; background: rgba(217, 119, 6, 0.06); border-radius: var(--r-s); }
+.lista-dostawcow-ai { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.lista-dostawcow-ai li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-s); }
+.lista-dostawcow-ai .nazwa-dostawcy { flex: 1 1 180px; font-weight: 600; font-size: 14px; }
+.lista-dostawcow-ai .stan-klucza { font-size: 13px; color: var(--tekst-cichy, #666); }
+.lista-dostawcow-ai input { flex: 1 1 200px; min-width: 0; }
 .lista-polaczen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .lista-polaczen button { display: flex; gap: 8px; align-items: baseline; width: 100%; text-align: left; padding: 6px 8px; border: 1px solid var(--linia); border-radius: var(--r-s); background: none; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
 .lista-polaczen button:hover { border-color: #f08c00; background: rgba(240, 140, 0, 0.08); }

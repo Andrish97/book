@@ -70,7 +70,7 @@ function atrapaAi(stan) {
       return { blad: 'Nieprawidłowy klucz dostępu.' };
     }
     if (d.odwolany) return { blad: 'Klucz został odebrany w ustawieniach konta.' };
-    if (d.wazny_do && new Date(d.wazny_do) <= new Date()) return { blad: 'Klucz dostępu wygasł. Utwórz nowy w ustawieniach konta (Dostęp dla AI).' };
+    if (d.wazny_do && new Date(d.wazny_do) <= new Date()) return { blad: 'Klucz dostępu wygasł. Utwórz nowy w ustawieniach konta (Sztuczna inteligencja).' };
     d.nieudane = 0;
     d.ostatnie_uzycie = new Date().toISOString();
     return { d, projekt: m[3] || null };
@@ -87,7 +87,7 @@ function atrapaAi(stan) {
       else if (!ids.length) return { blad: 'Ten klucz nie obejmuje żadnego projektu (dodaj projekty w ustawieniach konta albo utwórz projekt narzędziem nowy_projekt).' };
       else return { blad: 'Ten klucz obejmuje kilka projektów – podaj projekt (lista: narzędzie projekty).' };
     } else if (d.zakres === 'wybrane' && !d.projekty.includes(pid)) {
-      return { blad: 'Ten klucz nie obejmuje tego projektu – dodasz go w ustawieniach konta (Dostęp dla AI).' };
+      return { blad: 'Ten klucz nie obejmuje tego projektu – dodasz go w ustawieniach konta (Sztuczna inteligencja).' };
     }
     const r = rolaKonta(d.owner_id, pid);
     if (!r) return { blad: 'Nie ma takiego projektu albo konto klucza nie ma już do niego dostępu.' };
@@ -118,7 +118,7 @@ function atrapaAi(stan) {
     const w = kluczKonta(p_klucz);
     if (w.blad) return w;
     const { d } = w;
-    if (d.zakres !== 'pelny' || d.rola !== 'edycja') return { blad: 'Tworzyć projekty może tylko klucz z pełnym dostępem, który czyta i zmienia (ustawienia konta → Dostęp dla AI).' };
+    if (d.zakres !== 'pelny' || d.rola !== 'edycja') return { blad: 'Tworzyć projekty może tylko klucz z pełnym dostępem, który czyta i zmienia (ustawienia konta → Sztuczna inteligencja).' };
     if (!p_id || stan.projekty.some((p) => p.id === p_id)) return { blad: 'Nieprawidłowy albo zajęty identyfikator projektu.' };
     if (typeof p_nazwa !== 'string' || !p_nazwa.trim() || p_nazwa.length > 120) return { blad: 'Nazwa projektu: niepusty tekst do 120 znaków.' };
     if (!p_dane || typeof p_dane !== 'object' || Array.isArray(p_dane)) return { blad: 'Dane projektu muszą być obiektem JSON.' };

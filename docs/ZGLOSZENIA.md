@@ -41,6 +41,8 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 243 | Okno „Sztuczna inteligencja” w trzech zakładkach: czat w Makietce (Twoje klucze), łącznik (zwykle płatny plan), zwykły czat |
+| 242 | Gotowe polecenie dla zwykłego czatu w oknie AI |
 | 241 | Klucze API do AI zaszyfrowane Twoim hasłem i zapisane na koncie – nikt poza Tobą, także twórca, ich nie odczyta |
 | 240 | Nowa ikona i znak Makietki: strona w znakach cięcia |
 | 239 | AI bez płatnego klucza: czat „kopiuj i wklej” z dowolnym darmowym czatem i dostęp przez zwykłe adresy dla AI, które czyta strony |

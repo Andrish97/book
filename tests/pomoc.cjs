@@ -771,7 +771,7 @@ const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFkl
 async function oknoAi(strona, { zaznacz = true } = {}) {
   await strona.evaluate(async (zaznaczOtwarty) => {
     const id = window.seriodruk?.stan?.projekt?.id;
-    await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ zakladka: 'lacznik' });
     const pole = id && zaznaczOtwarty && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
     if (pole && !pole.checked) pole.click();
   }, zaznacz);

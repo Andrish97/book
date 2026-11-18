@@ -3648,5 +3648,12 @@
  "Nie pamiętam – usuń zapisane klucze": "Не пам'ятаю – видалити збережені ключі",
  "Nieprawidłowe hasło do kluczy.": "Неправильний пароль до ключів.",
  "Hasła się różnią.": "Паролі не збігаються.",
- "Kopiuj dla zwykłego czatu": "Копіювати для звичайного чату"
+ "Kopiuj dla zwykłego czatu": "Копіювати для звичайного чату",
+ "Sztuczna inteligencja": "Штучний інтелект",
+ "Łącznik w aplikacji AI": "Конектор у застосунку ШІ",
+ "Zwykły czat": "Звичайний чат",
+ "brak klucza": "немає ключа",
+ "Otwórz klucze na tym urządzeniu": "Відкрити ключі на цьому пристрої",
+ "Zamknij klucze na tym urządzeniu": "Закрити ключі на цьому пристрої",
+ "Usuń wszystkie klucze z konta": "Видалити всі ключі з облікового запису"
 }

@@ -129,9 +129,18 @@ jak zmiany współpracownika (→ 24.4).
 
 ## 25.2 Klucz dla AI
 
-Klucz należy do konta: [Ustawienia konta] → **Dostęp dla AI** → [Zarządzaj…].
+[Ustawienia konta] → **Sztuczna inteligencja** → [Zarządzaj…] otwiera okno z trzema zakładkami – trzema
+drogami pracy z AI:
 
-![Dostęp dla AI w ustawieniach konta](k-konto-ai.png)
+| Zakładka | Do czego | Koszt |
+|---|---|---|
+| **Czat w Makietce** | Twoje klucze API dostawców (Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter, zgodne z OpenAI) do Asystenta AI w edytorze (→ 25.6). Przy każdym dostawcy stan klucza, [Zapisz], [Usuń], [Gdzie wziąć klucz?]. Klucze są zaszyfrowane Twoim hasłem do kluczy – nie odczyta ich nikt poza Tobą, także twórca Makietki. Bez klucza: tryb „kopiuj i wklej”. | Płacisz dostawcy (albo nic – „kopiuj i wklej”). |
+| **Łącznik w aplikacji AI** | Klucz dostępu i adres łącznika dla Claude, ChatGPT i innych aplikacji z MCP (→ 25.3). | **Najprawdopodobniej płatny plan** aplikacji AI (ChatGPT – plany płatne; Claude – w darmowym jeden własny łącznik). |
+| **Zwykły czat** | Klucz dostępu i gotowe polecenie dla zwykłej rozmowy w przeglądarce – czat otwiera adres jak stronę (→ 25.7). | Także darmowe plany. |
+
+Klucze dostępu (łącznik i zwykły czat) należą do konta – zakładki **Łącznik** i **Zwykły czat**:
+
+![Sztuczna inteligencja w ustawieniach konta](k-konto-ai.png)
 
 Część **Nowy klucz**:
 
@@ -148,16 +157,16 @@ Część **Nowy klucz**:
 Lista **Klucze konta** pokazuje zakres, ważność i ostatnie użycie każdego klucza. [Zmień zakres]
 dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łącznika się nie zmienia. [Odbierz] wyłącza klucz od razu.
 
-![Okno Dostęp dla AI](dostep-ai.png)
+![Okno Sztuczna inteligencja](dostep-ai.png)
 
 ## 25.3 Podłączenie w aplikacji AI
 
 | Aplikacja | Jak podłączyć |
 |---|---|
 | **Claude** (claude.ai, aplikacja na komputer i telefon) | **Ustawienia → Łączniki → Dodaj własny łącznik**, nazwa „Makietka”, wklej adres. W rozmowie włącz łącznik w menu narzędzi. |
-| **Claude Desktop** | W oknie Dostęp dla AI: [Pobierz rozszerzenie dla Claude Desktop], kliknij pobrany plik dwa razy i wklej klucz. Rozszerzenie czyta też pliki z Twojego dysku. |
+| **Claude Desktop** | W oknie Sztuczna inteligencja: [Pobierz rozszerzenie dla Claude Desktop], kliknij pobrany plik dwa razy i wklej klucz. Rozszerzenie czyta też pliki z Twojego dysku. |
 | **ChatGPT** | **Ustawienia → Aplikacje → Dodaj własny serwer MCP**, wklej adres, uwierzytelnianie: brak. |
-| **Claude Code** i inne programy z MCP | Polecenie z części **Dla zaawansowanych** w oknie Dostęp dla AI. |
+| **Claude Code** i inne programy z MCP | Polecenie z części **Dla zaawansowanych** w oknie Sztuczna inteligencja. |
 
 Sprawdzenie: napisz do AI „Pokaż moje projekty w Makietce”.
 
@@ -219,7 +228,7 @@ po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.
   Zgubione hasło: w oknie hasła [Nie pamiętam – usuń zapisane klucze] i wklej klucze od nowa.
 - Rozmowa idzie z przeglądarki prosto do dostawcy, a koszt rozliczasz u niego.
 - AI widzi wyłącznie otwarty projekt — przez jednodniowy klucz dostępu „Czat w Makietce”, widoczny
-  w [Ustawienia konta] → **Dostęp dla AI** (→ 25.2); tam możesz go odebrać.
+  w [Ustawienia konta] → **Sztuczna inteligencja** (→ 25.2); tam możesz go odebrać.
 - Zmiana dostawcy albo modelu zaczyna nową rozmowę.
 
 **Bez klucza i bez opłat – „kopiuj i wklej”.** Dostawca **Dowolny czat bez klucza – kopiuj i wklej** działa
@@ -237,7 +246,7 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 Adres łącznika (→ 25.2) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście.
 AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować
-bez dodawania łącznika: w oknie **Dostęp dla AI**, zaraz po utworzeniu klucza, [Kopiuj dla zwykłego czatu] daje
+bez dodawania łącznika: w oknie **Sztuczna inteligencja**, zaraz po utworzeniu klucza, [Kopiuj dla zwykłego czatu] daje
 gotowe polecenie z adresem – wklej je w rozmowie i dopisz zadanie. Narzędzia wywołuje, otwierając adresy
 `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu.
 Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
