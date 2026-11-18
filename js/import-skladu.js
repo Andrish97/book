@@ -11,6 +11,7 @@
 
 import { nowyProjekt, nowaSekcja, nowaStrona, nowyWzorzec, uid, normalizuj } from './projekt.js';
 import { czytajPub } from './pub-czytnik.js';
+import { Raport } from './raport-przeniesienia.js';
 
 const MM = 25.4 / 72; // pt → mm
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -129,19 +130,49 @@ function zlozTekst(fragmenty, akapity) {
 }
 
 // Pola korespondencji seryjnej: <<imie>> (InDesign / Affinity Data Merge), «imie» (Word / Publisher) → {imie}.
-export function polaScalania(text) {
+// styles (zakresy w znakach bez nowych linii) przesuwają się razem z tekstem – formatowanie fragmentów zostaje.
+const WZOR_POLA = /<<\s*([^<>\n]{1,60}?)\s*>>|«\s*([^«»\n]{1,60}?)\s*»/g;
+export function polaScalania(text, styles = []) {
   const pola = new Set();
-  const wynik = String(text).replace(/<<\s*([^<>\n]{1,60}?)\s*>>|«\s*([^«»\n]{1,60}?)\s*»/g, (_, a, b) => { const n = (a || b).replace(/^@/, ''); pola.add(n); return `{${n}}`; });
-  return { text: wynik, pola: [...pola] };
+  const zrodlo = String(text);
+  // Granice: indeks w starym tekście (bez \n) → indeks w nowym (bez \n).
+  const mapa = [];
+  const mapaKonca = []; // koniec zakresu w środku pola → koniec pola (zakres obejmuje całe pole)
+  let wynik = '';
+  let stary = 0;
+  let nowy = 0;
+  let poz = 0;
+  const kopiuj = (do_) => {
+    for (; poz < do_; poz += 1) {
+      wynik += zrodlo[poz];
+      if (zrodlo[poz] !== '\n') { mapa[stary] = nowy; stary += 1; nowy += 1; }
+    }
+  };
+  for (const m of zrodlo.matchAll(WZOR_POLA)) {
+    kopiuj(m.index);
+    const n = (m[1] || m[2]).replace(/^@/, '');
+    pola.add(n);
+    const zamiana = `{${n}}`;
+    for (let i = 0; i < m[0].length; i += 1) { mapa[stary] = nowy; if (i) mapaKonca[stary] = nowy + zamiana.length; stary += 1; }
+    mapa[stary] = nowy + zamiana.length; // koniec pola
+    wynik += zamiana;
+    nowy += zamiana.length;
+    poz = m.index + m[0].length;
+  }
+  kopiuj(zrodlo.length);
+  mapa[stary] = nowy;
+  const przesun = (i) => mapa[Math.min(i, stary)] ?? nowy;
+  const noweStyle = styles.map((s) => ({ ...s, start: przesun(s.start), end: mapaKonca[s.end] ?? przesun(s.end) })).filter((s) => s.end > s.start);
+  return { text: wynik, pola: [...pola], styles: noweStyle };
 }
 
 function ramkaTekstu({ x, y, w, h, kat, zlozony, nazwa }) {
   const p = zlozony.podstawowy;
-  const { text, pola } = polaScalania(zlozony.text);
+  const { text, pola, styles } = polaScalania(zlozony.text, zlozony.styles);
   return {
     obj: {
       type: 'textbox', id: uid('o'), strokeWidth: 0, left: r2(x), top: r2(y), width: r2(Math.max(2, w)), angle: r2(kat || 0), text,
-      styles: pola.length ? [] : zlozony.styles, // po zamianie pól indeksy się przesuwają – bez formatowania fragmentów
+      styles,
       fontFamily: p.fontFamily || 'Inter', fontSize: r2(p.fontSize || 4), fontWeight: p.fontWeight || 'normal', fontStyle: p.fontStyle || 'normal',
       fill: p.fill || '#000000', underline: Boolean(p.underline), linethrough: Boolean(p.linethrough),
       textAlign: zlozony.wyrownanie, lineHeight: r2(p._interlinia && p.fontSize ? Math.max(0.6, p._interlinia / (p.fontSize * 1.13)) : 1.16),
@@ -177,7 +208,7 @@ function obrazWRamce(zasob, px, ramkaObrazu, ramka) {
   };
 }
 function brakObrazu(ramka, nazwa) {
-  return { type: 'rect', id: uid('o'), left: r2(ramka.x), top: r2(ramka.y), width: r2(ramka.w), height: r2(ramka.h), fill: '#e8e6e1', stroke: '#c9c6bf', strokeWidth: 0.2, strokeUniform: true, nazwa: `Brak obrazu: ${nazwa}` };
+  return { z_importu: `brak obrazu ${nazwa} – w jego miejscu szare pole`, type: 'rect', id: uid('o'), left: r2(ramka.x), top: r2(ramka.y), width: r2(ramka.w), height: r2(ramka.h), fill: '#e8e6e1', stroke: '#c9c6bf', strokeWidth: 0.2, strokeUniform: true, nazwa: `Brak obrazu: ${nazwa}` };
 }
 
 // ---------- Projekt ----------
@@ -237,7 +268,21 @@ function polaczWatki(ramki) {
 
 // ---------- IDML ----------
 
-async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
+async function czytajIdml(zip, { obrazyObok, przyjmij, raport, oznacz }) {
+  // Efekty przezroczystości InDesigna (cień, krycie, wtapianie) – Makietka ich nie odczytuje.
+  const efektyIdml = (el, obj) => {
+    const ts = [...el.children].find((c) => c.tagName === 'TransparencySetting');
+    if (!ts) return;
+    const cien = ts.getElementsByTagName('DropShadowSetting')[0];
+    const bl = ts.getElementsByTagName('BlendingSetting')[0];
+    const inne = ['FeatherSetting', 'InnerShadowSetting', 'OuterGlowSetting', 'InnerGlowSetting', 'BevelAndEmbossSetting', 'SatinSetting', 'DirectionalFeatherSetting', 'GradientFeatherSetting']
+      .some((n) => { const x = ts.getElementsByTagName(n)[0]; return x && (x.getAttribute('Mode') || x.getAttribute('Applied')) && !/^(None|false)$/.test(x.getAttribute('Mode') || x.getAttribute('Applied')); });
+    if (cien && cien.getAttribute('Mode') && cien.getAttribute('Mode') !== 'None') oznacz(obj, 'pominiete', 'cień');
+    const krycie = Number(bl?.getAttribute('Opacity') ?? 100);
+    if (krycie < 100) obj.opacity = r2(krycie / 100);
+    if (bl?.getAttribute('BlendMode') && bl.getAttribute('BlendMode') !== 'Normal') oznacz(obj, 'pominiete', 'tryb mieszania kolorów');
+    if (inne) oznacz(obj, 'pominiete', 'efekty (wtapianie, poświata, faza)');
+  };
   const tekst = async (n) => { const f = zip.file(n); return f ? f.async('string') : ''; };
   const xml = (s) => new DOMParser().parseFromString(czystyXml(s), 'application/xml');
   const dm = xml(await tekst('designmap.xml'));
@@ -263,7 +308,9 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
       kolory.set(t.getAttribute('Self'), rgbHex(255 - (255 - r) * k, 255 - (255 - g) * k, 255 - (255 - b) * k));
     } else kolory.set(t.getAttribute('Self'), baza ?? null);
   }
+  const gradienty = new Set();
   for (const g of graphic.getElementsByTagName('Gradient')) {
+    gradienty.add(g.getAttribute('Self'));
     const stop = g.getElementsByTagName('GradientStop')[0];
     kolory.set(g.getAttribute('Self'), stop ? (kolory.get(stop.getAttribute('StopColor')) ?? '#cccccc') : '#cccccc');
   }
@@ -307,10 +354,23 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
     const st = d.getElementsByTagName('Story')[0];
     if (st) historie.set(st.getAttribute('Self'), st);
   }
+  // Tabela w tekście (IDML: Table → Row/Column/Cell) – jako tekst: komórki po tabulatorze, wiersze w nowych liniach.
+  const tabelaJakoTekst = (t) => {
+    const wiersze = new Map();
+    for (const c of [...t.children].filter((x) => x.tagName === 'Cell')) {
+      const [kol, wie] = String(c.getAttribute('Name') || '0:0').split(':').map(Number);
+      const tresc = [...c.getElementsByTagName('Content')].map((x) => x.textContent).join(' ').replace(/[\u2028\u2029\n\t]+/g, ' ').trim();
+      if (!wiersze.has(wie)) wiersze.set(wie, []);
+      wiersze.get(wie)[kol] = tresc;
+    }
+    return `${[...wiersze.entries()].sort((a, b) => a[0] - b[0]).map(([, w]) => Array.from(w, (x) => x ?? '').join('\t')).join('\n')}\n`;
+  };
+  let tabele = 0;
   const zlozHistorie = (st) => {
+    tabele = 0;
     const fragmenty = [];
     const akapity = [];
-    for (const psr of st.getElementsByTagName('ParagraphStyleRange')) {
+    for (const psr of [...st.getElementsByTagName('ParagraphStyleRange')].filter((x) => !x.closest('Table'))) {
       const just = atr('Justification', psr) || 'LeftAlign';
       akapity.push(/Center/.test(just) ? 'center' : /Right/.test(just) ? 'right' : /Justified/.test(just) ? 'justify' : 'left');
       for (const csr of [...psr.children].filter((x) => x.tagName === 'CharacterStyleRange' || x.tagName === 'Br')) {
@@ -330,13 +390,15 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
         };
         for (const ch of csr.childNodes) {
           if (ch.nodeType !== 1) continue;
+          if (ch.tagName === 'Table') { fragmenty.push({ tekst: tabelaJakoTekst(ch), styl }); tabele += 1; continue; }
           if (ch.tagName === 'Content') fragmenty.push({ tekst: ch.textContent.replace(/[\u2028\u2029]/g, '\n'), styl });
           else if (ch.tagName === 'Br') fragmenty.push({ tekst: '\n', styl });
           else if (ch.tagName === 'TextVariableInstance') fragmenty.push({ tekst: ch.getAttribute('ResultText') || '', styl });
         }
       }
     }
-    if (fragmenty.at(-1)?.tekst === '\n') fragmenty.pop();
+    const ost = fragmenty.at(-1);
+    if (ost?.tekst.endsWith('\n')) { ost.tekst = ost.tekst.slice(0, -1); if (!ost.tekst) fragmenty.pop(); }
     const z = zlozTekst(fragmenty, akapity);
     z.podstawowy._interlinia = z.podstawowy._interlinia ?? undefined;
     const interlinia = z.podstawowy._interlinia;
@@ -407,6 +469,9 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
         const { obj, pola } = ramkaTekstu({ x: lx, y: ly, w: (Math.max(...xs) - x0) * skX * MM, h: (Math.max(...ys) - y0) * skY * MM, kat: katMacierzy(mStr), zlozony: z, nazwa });
         const tlo = kolor(el.getAttribute('FillColor'));
         if (tlo) obj.backgroundColor = tlo;
+        if (tabele) oznacz(obj, 'uproszczone', 'tabela zamieniona na tekst (komórki rozdzielone tabulatorem) – wstaw tabelę Makietki');
+        if (el.getElementsByTagName('TextPath').length || [...(st?.getElementsByTagName('TextPath') || [])].length) oznacz(obj, 'uproszczone', 'tekst na ścieżce wstawiony jako zwykła ramka');
+        efektyIdml(el, obj);
         pola.forEach((p) => raport.pola.add(p));
         strona.obiekty.push(obj);
         const nast = el.getAttribute('NextTextFrame');
@@ -434,15 +499,24 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
         const b = przeksztalc(mi, [g[2], g[3]]).map((v) => v * MM);
         const ramkaObrazu = { x: Math.min(a[0], b[0]), y: Math.min(a[1], b[1]), w: Math.abs(b[0] - a[0]) || ramkaStr.w, h: Math.abs(b[1] - a[1]) || ramkaStr.h };
         const o = obrazWRamce(id, px, ramkaObrazu, ramkaStr);
-        if (o) { o.nazwa = nazwa || plik; strona.obiekty.push(o); raport.obrazy += 1; }
+        if (o) {
+          o.nazwa = nazwa || plik;
+          if (Math.abs(katMacierzy(mi)) > 0.05) oznacz(o, 'uproszczone', 'obraz obrócony w ramce – wstawiony bez obrotu');
+          efektyIdml(el, o);
+          strona.obiekty.push(o); raport.obrazy += 1;
+        }
         return;
       }
       const sw = Number(el.getAttribute('StrokeWeight'));
       const [skX] = skalaMacierzy(mStr);
-      strona.obiekty.push(ksztaltZeSciezki(naStr.path, {
+      const ks = ksztaltZeSciezki(naStr.path, {
         fill: kolor(el.getAttribute('FillColor')), stroke: kolor(el.getAttribute('StrokeColor')), strokeWidth: Number.isFinite(sw) ? sw * skX * MM : 0.35,
         nazwa, elipsa: tag === 'Oval', linia: tag === 'GraphicLine',
-      }));
+      });
+      if (gradienty.has(el.getAttribute('FillColor')) || gradienty.has(el.getAttribute('StrokeColor'))) oznacz(ks, 'uproszczone', 'gradient zamieniony na jeden kolor');
+      if (el.getAttribute('StrokeType') && !/Solid/.test(el.getAttribute('StrokeType'))) oznacz(ks, 'uproszczone', 'linia przerywana albo ozdobna zamieniona na ciągłą');
+      efektyIdml(el, ks);
+      strona.obiekty.push(ks);
       raport.ksztalty += 1;
     };
     for (const c of spread.children) await element(c, JEDNOSTKOWA);
@@ -479,7 +553,7 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
 // Starsze programy zapisują w XML znaki niedozwolone w XML 1.0 (np. &#x1; w tekście) – usuwamy je przed odczytem.
 const czystyXml = (t) => String(t).replace(/&#(?:x0*(?:[0-8bcef]|1[0-9a-f])|0*(?:[0-8]|1[1-2]|1[4-9]|2[0-9]|3[01]));/gi, '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
 
-async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
+async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport, oznacz }) {
   const d = new DOMParser().parseFromString(czystyXml(tekstSla), 'application/xml');
   const doc = d.getElementsByTagName('DOCUMENT')[0];
   if (!doc || d.querySelector('parsererror')) throw new Error('To nie jest poprawny plik Scribusa (.sla).');
@@ -517,12 +591,28 @@ async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
     if (st) st.mnam = pg.getAttribute('MNAM') || 'Normal';
   }
   const ramkiTekstu = [];
+  // Przezroczystość (TransValue: 0 – pełne krycie) i tryb mieszania Scribusa.
+  const efektySla = (el, obj) => {
+    const tv = Number(el.getAttribute('TransValue') || 0);
+    if (tv > 0) obj.opacity = r2(1 - tv);
+    if (Number(el.getAttribute('TransBlend') || 0) > 0) oznacz(obj, 'pominiete', 'tryb mieszania kolorów');
+    if (el.getAttribute('HASSOFTSHADOW') === '1') oznacz(obj, 'pominiete', 'cień');
+  };
   const element = async (el) => {
     if (el.getAttribute('isGroupControl') === '1') { for (const c of el.children) if (c.tagName === 'PAGEOBJECT' || c.tagName === 'MASTEROBJECT') await element(c); return; }
     const a = (k, def = 0) => Number(el.getAttribute(k) ?? def);
     const strona = el.tagName === 'MASTEROBJECT' ? wzorzecNr.get(a('OwnPage')) : (poNr.get(a('OwnPage')) || strony[0]);
     if (!strona) return;
     const typ = a('PTYPE');
+    if (typ === 8 || typ === 16) {
+      // Tekst na ścieżce (8) i tabela (16) – na razie bez odpowiednika: puste miejsce z opisem.
+      const [x0, y0] = przeksztalc(mnoz([1, 0, 0, 1, a('XPOS') - strona.x, a('YPOS') - strona.y], JEDNOSTKOWA), [0, 0]).map((v) => v * MM);
+      const zast = brakObrazu({ x: x0, y: y0, w: a('WIDTH') * MM, h: a('HEIGHT') * MM }, typ === 8 ? 'tekst na ścieżce' : 'tabela');
+      zast.nazwa = typ === 8 ? 'Tekst na ścieżce (nie przeniesiony)' : 'Tabela (nie przeniesiona)';
+      zast.z_importu = typ === 8 ? 'tekst na ścieżce nie przeniesiony – szare pole w jego miejscu' : 'tabela Scribusa nie przeniesiona – szare pole w jej miejscu';
+      strona.obiekty.push(zast);
+      return;
+    }
     const W = a('WIDTH');
     const H = a('HEIGHT');
     const m = mnoz([1, 0, 0, 1, a('XPOS') - strona.x, a('YPOS') - strona.y], (() => { const k = (a('ROT') * Math.PI) / 180; return [Math.cos(k), Math.sin(k), -Math.sin(k), Math.cos(k), 0, 0]; })());
@@ -561,6 +651,7 @@ async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
       const { obj, pola } = ramkaTekstu({ x: lx, y: ly, w: W * MM, h: H * MM, kat: a('ROT'), zlozony: z, nazwa });
       const tlo = kolor(el.getAttribute('PCOLOR'));
       if (tlo) obj.backgroundColor = tlo;
+      efektySla(el, obj);
       pola.forEach((p) => raport.pola.add(p));
       strona.obiekty.push(obj);
       const nast = el.getAttribute('NEXTITEM');
@@ -598,14 +689,24 @@ async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
         ramkaObrazu = { x: ramka.x + a('LOCALX') * sx * MM, y: ramka.y + a('LOCALY') * sy * MM, w: px.w * sx * MM, h: px.h * sy * MM };
       }
       const o = obrazWRamce(id, px, ramkaObrazu, ramka);
-      if (o) { o.nazwa = nazwa || plik; strona.obiekty.push(o); raport.obrazy += 1; }
+      if (o) {
+        o.nazwa = nazwa || plik;
+        if (a('ROT')) oznacz(o, 'uproszczone', 'obraz obrócony – wstawiony bez obrotu');
+        if (a('LOCALROT')) oznacz(o, 'uproszczone', 'obraz obrócony w ramce – wstawiony bez obrotu');
+        efektySla(el, o);
+        strona.obiekty.push(o); raport.obrazy += 1;
+      }
       return;
     }
     if (![5, 6, 7].includes(typ)) return;
-    strona.obiekty.push(ksztaltZeSciezki(naStr.path, {
+    const ks = ksztaltZeSciezki(naStr.path, {
       fill: kolor(el.getAttribute('PCOLOR')), stroke: kolor(el.getAttribute('PCOLOR2')), strokeWidth: a('PWIDTH', 1) * MM, nazwa,
       elipsa: a('FRTYPE') === 1, linia: typ === 5 || typ === 7,
-    }));
+    });
+    if (a('GRTYP') > 0) oznacz(ks, 'uproszczone', 'gradient zamieniony na jeden kolor');
+    if (a('PLINEART', 1) > 1 || el.getAttribute('DASHS')) oznacz(ks, 'uproszczone', 'linia przerywana zamieniona na ciągłą');
+    efektySla(el, ks);
+    strona.obiekty.push(ks);
     raport.ksztalty += 1;
   };
   for (const c of doc.children) if (c.tagName === 'PAGEOBJECT' || c.tagName === 'MASTEROBJECT') await element(c);
@@ -618,7 +719,7 @@ async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
 
 const CAL = 25.4; // cal → mm
 
-async function czytajPubDoStron(bufor, { przyjmij, raport }) {
+async function czytajPubDoStron(bufor, { przyjmij, raport, oznacz }) {
   const pub = czytajPub(bufor);
   const ramkiTekstu = [];
   const pierwszaRamka = new Map(); // id tekstu → ostatnia ramka tego tekstu (do łączenia w wątek)
@@ -638,7 +739,7 @@ async function czytajPubDoStron(bufor, { przyjmij, raport }) {
         const ramka = { x: k.x * CAL, y: k.y * CAL, w, h };
         const blob = k.obraz.bajty ? new Blob([k.obraz.bajty], { type: k.obraz.typ }) : null;
         const px = blob && await wymiaryObrazu(blob);
-        if (!px) { strona.obiekty.push(brakObrazu(ramka, `obraz ${k.obraz.typ.replace('image/', '').toUpperCase()}`)); const f = k.obraz.typ.replace('image/', '').toUpperCase(); raport.nieobslugiwane.set(f, (raport.nieobslugiwane.get(f) || 0) + 1); continue; }
+        if (!px) { const zast = brakObrazu(ramka, `obraz ${k.obraz.typ.replace('image/', '').toUpperCase()}`); zast.z_importu = `obraz ${k.obraz.typ.replace('image/', '').toUpperCase()} (format, którego przeglądarka nie odczyta) – szare pole w jego miejscu`; strona.obiekty.push(zast); const f = k.obraz.typ.replace('image/', '').toUpperCase(); raport.nieobslugiwane.set(f, (raport.nieobslugiwane.get(f) || 0) + 1); continue; }
         const id = await przyjmij(blob, `publisher-${nrStrony + 1}-${strona.obiekty.length + 1}.${{ 'image/jpeg': 'jpg', 'image/bmp': 'bmp', 'image/gif': 'gif' }[k.obraz.typ] || 'png'}`);
         const o = obrazWRamce(id, px, ramka, ramka);
         if (o) { if (k.kat) Object.assign(o, { left: r2(x), top: r2(y), angle: r2(k.kat) }); strona.obiekty.push(o); raport.obrazy += 1; }
@@ -694,6 +795,29 @@ async function czytajPubDoStron(bufor, { przyjmij, raport }) {
 
 // ---------- Wejście ----------
 
+// Raport przeniesienia po odczycie (#232): wpisy z oznaczonych elementów (z miejscem) i uwagi o całym pliku.
+function raportImportu(projekt, r, rodzaj) {
+  const raport = new Raport();
+  const elementy = (lista, cb) => { for (const o of lista || []) { cb(o); if (o.objects) elementy(o.objects, cb); } };
+  projekt.strony.forEach((st, i) => elementy(st.obiekty, (o) => {
+    const m = { idStrony: st.id, idObiektu: o.id, nr: i + 1 };
+    if (!o.z_importu) { raport.bezZmian(); return; }
+    if (o._powody) for (const [rd, p] of o._powody) raport.dodaj(rd, p, m);
+    else raport.dodaj('pominiete', o.z_importu, m);
+    delete o._powody;
+  }));
+  for (const wz of projekt.wzorce || []) elementy(wz.obiekty, (o) => {
+    if (!o.z_importu) { raport.bezZmian(); return; }
+    for (const [rd, p] of o._powody || [['pominiete', o.z_importu]]) raport.dodaj(rd, `${p} (na stronie wzorcowej „${wz.nazwa}”)`);
+    delete o._powody;
+  });
+  if (r.teksty) raport.dodaj('uproszczone', 'style akapitu i znaku zapisane jako zwykłe formatowanie (bez nazwanych stylów)');
+  if (r.teksty) raport.dodaj('uwaga', 'łamanie wierszy może wyjść trochę inaczej (inny silnik tekstu, dzielenie wyrazów, odstępy między znakami) – przejrzyj teksty');
+  if (r.pola.size) raport.dodaj('uwaga', `pola korespondencji seryjnej (${[...r.pola].slice(0, 6).join(', ')}${r.pola.size > 6 ? '…' : ''}) zamienione na pola Makietki – wczytaj tabelę danych i zrób z niej serię`);
+  if (rodzaj === 'pub') raport.dodaj('uproszczone', 'Publisher: kolory i kursywa ze stylów dokumentu, obrazy WMF/EMF i efekty WordArt nie są odczytywane');
+  return raport;
+}
+
 export const ROZSZERZENIA_SKLADU = ['.idml', '.sla'];
 export const toPlikSkladu = (plik) => /\.(idml|sla|pub)$/i.test(plik?.name || '');
 
@@ -734,11 +858,19 @@ export async function importujSklad(plik, JSZip, przyjmijObraz) {
   const projekt = nowyProjekt(nazwa);
   const obrazyObok = (n) => obok.get(String(n).toLowerCase()) || null;
   const przyjmij = async (blob, n) => (await przyjmijObraz(projekt, blob, n)).id;
-  const kontekst = { obrazyObok, przyjmij, raport };
+  // Oznaczenia elementów uproszczonych przy odczycie (#232): z_importu (opis) + rodzaj wpisu raportu.
+  const rodzajWpisu = new Map(); // id elementu → rodzaj
+  const oznacz = (obj, rodzaj, powod) => {
+    obj.z_importu = obj.z_importu && obj.z_importu !== powod ? `${obj.z_importu}; ${powod}` : powod;
+    if (!rodzajWpisu.has(obj.id) || rodzaj === 'pominiete') rodzajWpisu.set(obj.id, rodzaj);
+    (obj._powody ||= []).push([rodzaj, powod]);
+  };
+  const kontekst = { obrazyObok, przyjmij, raport, oznacz };
   const strony = glowny.rodzaj === 'idml' ? await czytajIdml(glowny.zip, kontekst) : glowny.rodzaj === 'pub' ? await czytajPubDoStron(glowny.bufor, kontekst) : await czytajSla(glowny.tekst, kontekst);
   const gotowy = zbudujProjekt(nazwa, strony);
   gotowy.id = projekt.id;
   gotowy.zasoby = projekt.zasoby;
   raport.stron = gotowy.strony.length;
-  return { projekt: normalizuj(gotowy), raport: { ...raport, brakujace: [...raport.brakujace], nieobslugiwane: [...raport.nieobslugiwane].map(([f, n]) => `${f} ×${n}`), pola: [...raport.pola] } };
+  const przeniesienie = raportImportu(gotowy, raport, glowny.rodzaj);
+  return { projekt: normalizuj(gotowy), przeniesienie, raport: { ...raport, brakujace: [...raport.brakujace], nieobslugiwane: [...raport.nieobslugiwane].map(([f, n]) => `${f} ×${n}`), pola: [...raport.pola] } };
 }

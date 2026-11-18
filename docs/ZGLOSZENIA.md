@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 232 | Raport „co przejdzie, a co nie” przy zapisie dla innych programów i po wczytaniu z nich – z pokazaniem elementów; tabele z InDesigna i formatowanie przy polach scalania |
 | 231 | Zapis dla Scribusa i InDesigna sprawdzony w prawdziwym Scribusie – poprawione czcionki, ucinany tekst, rozmiar zdjęć |
 | 230 | Odczyt IDML/SLA/PUB sprawdzony na prawdziwych plikach: strony wzorcowe jako wzorce, starsze pliki Scribusa, kolory z palety Publishera |
 | 229 | Zapis dla Worda z układem stron (także seria z polami scalania) i strony jako SVG |

@@ -24,6 +24,7 @@ export function rysujUwagi(ul, uwagi, { wPodgladzie, wzor, napraw } = {}) {
     if (wPodgladzie && u.strony?.length) dodaj('Pokaż', 'Pokaż tę stronę w podglądzie – z danymi tego powielenia', () => wPodgladzie(Math.min(...u.strony)));
     if (wzor && u.idStrony) dodaj('Otwórz wzór', 'Otwórz stronę-wzór w edytorze i zaznacz element', () => wzor(u.idStrony, u.idObiektu));
     if (napraw && u.naprawa === 'kolory_trybu') dodaj('Zamień na dozwolone', 'Zamień kolory spoza trybu kolorów na najbliższe dozwolone (czerń albo kolor trybu)', () => napraw(u));
+    if (napraw && u.naprawa === 'z_importu') dodaj('Sprawdzone', 'Usuń oznaczenie „z importu” z tego elementu', () => napraw(u));
     if (napraw && u.naprawa === 'wyklejki') dodaj('Dodaj wyklejki', 'Dodaj brakujące wyklejki (czyste) – przednią za okładką i tylną na końcu', () => napraw(u));
     if (przyciski.children.length) li.append(przyciski);
     return li;

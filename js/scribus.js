@@ -11,6 +11,7 @@ import { zlozCel } from './zlozenie.js';
 import { rozwin } from './serie.js';
 import { sekcjaStrony } from './projekt.js';
 import { plytaUszlachetnienia } from './kolory-druku.js';
+import { powodObrazu, uwagiProjektu, uwagiTekstu } from './raport-przeniesienia.js';
 
 export const PT = 72 / 25.4; // mm → pt
 const ODSTEP_STRON = 40; // pt między stronami w widoku Scribusa
@@ -241,7 +242,8 @@ async function qCompressBase64(blob) {
 
 // ---------- Dokument ----------
 
-export async function zapiszSla(projekt, { ciag = rozwin(projekt), egzemplarze = null, postep } = {}) {
+export async function zapiszSla(projekt, { ciag = rozwin(projekt), egzemplarze = null, postep, raport = null } = {}) {
+  if (raport && !egzemplarze) uwagiProjektu(projekt, raport);
   const kolory = new Kolory();
   const czcionki = new Set();
   const egz = egzemplarze || ciag.egzemplarze;
@@ -286,7 +288,10 @@ export async function zapiszSla(projekt, { ciag = rozwin(projekt), egzemplarze =
 
     for (const o of lista) {
       if (o.visible === false) continue;
-      if (plytaUszlachetnienia(o)?.techniczna) continue; // linie wykrojnika – osobny plik dla plotera (#218)
+      const m = { idStrony: e.strona?.id, idObiektu: o.id, nr: n + 1 };
+      const usz = plytaUszlachetnienia(o);
+      if (usz?.techniczna) { raport?.dodaj('pominiete', 'linie wykrojnika (cięcie, big, perforacja, klej) – są w pliku dla plotera', m); continue; } // (#218)
+      if (usz) raport?.dodaj('uproszczone', 'uszlachetnienie (złocenie, lakier, tłoczenie, biały poddruk) jako zwykły element – bez osobnej płyty', m);
       const typ = String(o.type).toLowerCase();
       const r = ramka(o);
       // Tekst – ramka tekstowa Scribusa.
@@ -299,6 +304,8 @@ export async function zapiszSla(projekt, { ciag = rozwin(projekt), egzemplarze =
           path: `M0 0 L${r.w * PT} 0 L${r.w * PT} ${(r.h + zapasRamki(o, r.sy)) * PT} L0 ${(r.h + zapasRamki(o, r.sy)) * PT} L0 0 Z`,
         })}>${storyText(o, r, kolory, czcionki)}</PAGEOBJECT>`);
         ile.teksty += 1;
+        raport?.bezZmian();
+        if (raport) uwagiTekstu(o, raport, m);
         continue;
       }
       // Prosty kształt – wielokąt Scribusa (linia – PTYPE 5).
@@ -314,11 +321,14 @@ export async function zapiszSla(projekt, { ciag = rozwin(projekt), egzemplarze =
           ANNAME: typ, path: sciezka, copath: sciezka,
         })}/>`);
         ile.ksztalty += 1;
+        raport?.bezZmian();
         continue;
       }
       // Reszta – obraz osadzony w pliku.
       const obraz = await obrazElementu(o);
       if (!obraz) continue;
+      const powod = powodObrazu(o);
+      if (powod) raport?.dodaj('obraz', powod, m); else raport?.bezZmian();
       const p = naDok(obraz.x, obraz.y);
       const w = obraz.w * PT;
       const h = obraz.h * PT;
@@ -366,5 +376,6 @@ ${obiekty.join('\n')}
  </DOCUMENT>
 </SCRIBUSUTF8NEW>
 `;
+  if (raport && czcionki.size) raport.dodaj('uwaga', `zainstaluj w systemie czcionki: ${[...czcionki].join(', ')} (pliki: Czcionki projektu w menu ⋯)`);
   return { sla, ile, czcionki: [...czcionki], stron: egz.length };
 }

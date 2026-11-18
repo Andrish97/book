@@ -74,7 +74,10 @@ test('idml: pakiet, strona, historia tekstu, kształty, obraz osadzony, pobranie
   assert.equal(w.png, 'PNG');
   for (const k of ['Black', 'Paper', 'Makietka #2a9d8f', 'Makietka #c1121f']) assert.ok(w.kolory.includes(k), k);
 
-  const [plik] = await Promise.all([strona.waitForEvent('download'), strona.evaluate(() => document.querySelector('[data-akcja="idml"]').click())]);
+  // Z menu: najpierw raport przeniesienia (#232), pobranie po „Pobierz”.
+  await strona.evaluate(() => document.querySelector('[data-akcja="idml"]').click());
+  await strona.waitForSelector('#dlg-raport-przeniesienia[open]');
+  const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#dlg-raport-przeniesienia button[value="tak"]')]);
   assert.equal(plik.suggestedFilename(), 'Do InDesigna.idml');
   assert.deepEqual(bledy, []);
 });

@@ -69,10 +69,9 @@ test('scribus: strony, ramka tekstu, kształty, obraz w pliku, pobranie z menu',
 
   // Z menu ⋯ – pobranie pliku .sla.
   await strona.click('#menu-projektu-przycisk, [data-akcja="menu-projektu"]').catch(() => {});
-  const [plik] = await Promise.all([
-    strona.waitForEvent('download'),
-    strona.evaluate(() => document.querySelector('[data-akcja="scribus"]').click()),
-  ]);
+  await strona.evaluate(() => document.querySelector('[data-akcja="scribus"]').click());
+  await strona.waitForSelector('#dlg-raport-przeniesienia[open]');
+  const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#dlg-raport-przeniesienia button[value="tak"]')]);
   assert.equal(plik.suggestedFilename(), 'Do Scribusa.sla');
   assert.deepEqual(bledy, []);
 });

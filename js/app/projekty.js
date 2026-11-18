@@ -547,7 +547,7 @@ async function wczytajPlikSkladu(plik) {
   try {
     const [{ biblioteka }, { importujSklad }, { przyjmijPlik }] = await Promise.all([import('../biblioteki.js'), import('../import-skladu.js'), import('../obrazy-projektu.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
-    const { projekt, raport } = await importujSklad(plik, JSZip, przyjmijPlik);
+    const { projekt, raport, przeniesienie } = await importujSklad(plik, JSZip, przyjmijPlik);
     if (await ponadLimit()) return;
     if (stan.projekt) await zapiszTeraz();
     await otworzProjekt(projekt);
@@ -558,6 +558,19 @@ async function wczytajPlikSkladu(plik) {
     if (raport.nieobslugiwane?.length) opis += ` Obrazy w starym formacie Windows (${raport.nieobslugiwane.join(', ')}) – przeglądarka ich nie wyświetla; w ich miejscu są szare pola – wstaw tam obrazy jeszcze raz (np. zapisane z Publishera jako PNG).`;
     if (raport.brakujace.length) opis += ` Brak plików obrazów (${raport.brakujace.length}): ${raport.brakujace.slice(0, 5).join(', ')}${raport.brakujace.length > 5 ? '…' : ''} – wczytaj ZIP z folderem obrazów (w InDesignie: Plik → Pakiet) albo wstaw je w szare pola.`;
     powiadom(opis);
+    pasek.koniec();
+    // Raport przeniesienia (#232): co uproszczono – elementy mają oznaczenie i są w „Sprawdź przed drukiem”.
+    if (przeniesienie.wpisy.length) {
+      const { pokazRaport } = await import('../raport-przeniesienia.js');
+      const edytor = await czekajNaEdytor();
+      const kontrola = await pokazRaport({
+        tytul: `Co przeszło z programu ${raport.format}`,
+        wstep: `${opis} Elementy uproszczone przy odczycie są oznaczone – zobaczysz je w „Sprawdź przed drukiem”, dopóki nie usuniesz oznaczenia.`,
+        raport: przeniesienie, przycisk: 'Sprawdź przed drukiem', anuluj: 'Zamknij',
+        pokaz: (s, o) => edytor.pokazElement(s, o),
+      });
+      if (kontrola) edytor.otworzKontrole();
+    }
   } catch (e) {
     powiadom(`Nie udało się wczytać pliku: ${e.message}`, true);
   } finally {

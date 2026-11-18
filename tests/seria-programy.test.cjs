@@ -51,12 +51,13 @@ test('seria dla innych programów: IDML, SLA, DOCX z polami i dane z obrazami; M
         const xl = XLSX.read(await zip.file('dane.xlsx').async('uint8array'), { type: 'array' });
         wyniki.xlsx = XLSX.utils.sheet_to_json(xl.Sheets.Dane, { header: 1 });
       }
-      wyniki[prog] = { pliki, dane: dane.split('\r\n').filter(Boolean), pola: r.pola, wierszy: r.wierszy, szablon };
+      wyniki[prog] = { pliki, dane: dane.split('\r\n').filter(Boolean), pola: r.pola, wierszy: r.wierszy, szablon, czytaj: await zip.file('CZYTAJ-MNIE.txt').async('string') };
       } catch (e) { wyniki[prog] = { blad: `${prog} ${e.stack}` }; }
     }
     return wyniki;
   });
   assert.equal(w.indesign.blad, undefined);
+  for (const prog of ['indesign', 'scribus', 'word']) assert.match(w[prog].czytaj, /Co i jak się przeniosło:\nPrzeniesione bez zmian: \d+/, `${prog}: raport przeniesienia w CZYTAJ-MNIE (#232)`);
   assert.deepEqual(w.indesign.pliki, ['CZYTAJ-MNIE.txt', 'dane.csv', 'obrazy/anna.png', 'szablon.idml']);
   assert.deepEqual(w.indesign.dane, ['imie,@foto', 'Anna Żak,obrazy/anna.png', 'Bartek,', 'Celina,']);
   assert.deepEqual(w.indesign.pola, ['imie']);

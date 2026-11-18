@@ -13,7 +13,7 @@ test('instrukcja: pliki zbudowane z docs/instrukcja są aktualne, ai/instrukcja.
   assert.ok(rozdzialy.length >= 25, `rozdziałów: ${rozdzialy.length}`);
   assert.ok((md.match(/^### \d+\.\d+ .+$/gm) || []).length >= 120, 'podrozdziały');
   // Bez znaczników HTML poza komentarzem o pochodzeniu pliku i blokami poleceń dla AI (tam <klucz> to miejsce do wpisania).
-  assert.deepEqual(md.replace(/<!--[\s\S]*?-->/g, '').replace(/```text\n[\s\S]*?\n```/g, '').match(/<\/?[a-z][^>]*>/gi) || [], []);
+  assert.deepEqual(md.replace(/<!--[\s\S]*?-->/g, '').replace(/```text\n[\s\S]*?\n```/g, '').replace(/`[^`\n]*`/g, '').match(/<\/?[a-z][^>]*>/gi) || [], []);
   // Zrzuty wskazują istniejące pliki – jasne i ciemne.
   for (const [, plik] of md.matchAll(/\(https:\/\/makietka\.app\/(img\/instrukcja\/[^)]+)\)/g)) {
     assert.ok(fs.existsSync(path.join(__dirname, '..', plik)), `brak pliku ${plik}`);

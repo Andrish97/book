@@ -307,6 +307,18 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   const pierwszyNr = new Map();
   for (const e of ciag.egzemplarze) if (!pierwszyNr.has(e.strona.id)) pierwszyNr.set(e.strona.id, e.indeks + 1);
   uwagi.push(...uwagiKolorowDruku(projekt, { numerStrony: (id) => pierwszyNr.get(id) || null }));
+  // Elementy uproszczone przy odczycie z innego programu (#232) – do przejrzenia; „Sprawdzone” zdejmuje oznaczenie.
+  const zImportu = (lista, strona, wzorzec) => {
+    for (const o of lista || []) {
+      if (o?.z_importu) {
+        const nr = strona ? pierwszyNr.get(strona.id) : null;
+        uwagi.push({ rodzaj: 'z_importu', naprawa: 'z_importu', idObiektu: o.id, ...(strona ? { idStrony: strona.id, strony: nr ? [nr] : [] } : { strony: [] }), opis: `Z importu${wzorzec ? ` (wzorzec „${wzorzec.nazwa}”)` : ''}: ${o.z_importu}.` });
+      }
+      if (Array.isArray(o?.objects)) zImportu(o.objects, strona, wzorzec);
+    }
+  };
+  for (const st of projekt.strony) zImportu(st.obiekty, st, null);
+  for (const wz of projekt.wzorce || []) zImportu(wz.obiekty, null, wz);
   // Łączne pokrycie farbą (#131C): kolory elementów, które po przeliczeniu profilem drukarni przekraczają 300%.
   // Bez wczytanego profilu (podgląd separacji z profilem albo eksport PDF/X) prosta zamiana nie przekracza limitu.
   if (silnikTac()) {

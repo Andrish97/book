@@ -49,7 +49,7 @@ test('własne kontrolki: lista rozwijana (mysz, klawiatura, grupy) i wybór kolo
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.formatujTekst(() => ({ fontFamily: 'Caveat' }), true); });
   assert.equal(await strona.textContent(`${czcionka} .wybor-tekst`), 'Caveat');
   await strona.click('.wlasciwosci label:has-text("Wstaw pole") .wybor-przycisk');
-  assert.deepEqual(await strona.locator('.wybor-lista .wybor-grupa').allTextContents(), ['Pola dokumentu']);
+  assert.deepEqual(await strona.locator('.wybor-lista .wybor-grupa').allTextContents(), ['Pola dokumentu', 'Z ustawień projektu']); // grupa z #209
   await strona.click('.wybor-lista .wybor-opcja:has-text("{nr}")');
   assert.match(await strona.evaluate(() => window.seriodruk.edytor.aktywny.text), /\{nr\}$/);
 

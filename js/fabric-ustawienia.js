@@ -22,6 +22,7 @@ export const WLASNE_POLA = [
   'lista', 'lista_start', // wypunktowanie / numerowanie akapitów (tekst-ramka.js)
   'watek', 'watek_nr', 'lacznik', // przelewanie tekstu między ramkami (watki.js)
   'auto_strony', // wątek dokłada strony, aż cały tekst się zmieści (#212)
+  'z_importu', // opis uproszczenia przy odczycie z innego programu (#232) – uwaga w „Sprawdź przed drukiem”
   'z_danych', // kolor i przesunięcie zależne od pola z danych (pola.js)
   'bez_pol', // klamry w tym tekście to zwykły tekst, nie pola
   'wielkosc_liter', // 'wielkie' | 'male' – tylko wygląd, treść zostaje jak wpisana

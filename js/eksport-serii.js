@@ -11,6 +11,7 @@ import { kolumnySerii } from './kontrola.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
 import { dataUrlZasobu } from './zasoby.js';
 import { zPolamiSzablonu } from './zlozenie.js';
+import { Raport } from './raport-przeniesienia.js';
 
 export const PROGRAMY_SERII = {
   indesign: { nazwa: 'InDesign / Affinity Publisher', plik: 'idml', znacznik: (n) => `<<${n}>>` },
@@ -98,7 +99,7 @@ z tym samym układem. Tabele, kalendarze i elementy z efektami są obrazami.`,
 };
 
 // Pakiet ZIP „szablon + dane” dla programu. Zwraca { blob, nazwa, pola, wierszy }.
-export async function pakietSerii(projekt, program, JSZip, { ciag = rozwin(projekt), XLSX = null } = {}) {
+export async function pakietSerii(projekt, program, JSZip, { ciag = rozwin(projekt), XLSX = null, raport = new Raport() } = {}) {
   const prog = PROGRAMY_SERII[program];
   if (!prog) throw new Error('Nieznany program.');
   const dane = daneSerii(projekt);
@@ -111,16 +112,16 @@ export async function pakietSerii(projekt, program, JSZip, { ciag = rozwin(proje
   const egzemplarze = projekt.strony.map((s) => ciag.pierwszy.get(s.id)).filter((e) => e && !e.pusta);
   if (prog.plik === 'idml') {
     const { zapiszIdml } = await import('./idml.js');
-    const { blob } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszIdml(projekt, JSZip, { ciag, egzemplarze }));
+    const { blob } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszIdml(projekt, JSZip, { ciag, egzemplarze, raport }));
     zip.file('szablon.idml', blob);
   } else if (prog.plik === 'sla') {
     const { zapiszSla } = await import('./scribus.js');
-    const { sla } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszSla(projekt, { ciag, egzemplarze }));
+    const { sla } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszSla(projekt, { ciag, egzemplarze, raport }));
     zip.file('szablon.sla', sla);
   } else {
     // Word z układem stron (#228): ramki na swoich miejscach, w nich pola scalania (MERGEFIELD).
     const { zapiszDocxUklad } = await import('./eksport-uklad.js');
-    const { blob } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszDocxUklad(projekt, JSZip, { ciag, egzemplarze, polaScalania: tekstowe }));
+    const { blob } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszDocxUklad(projekt, JSZip, { ciag, egzemplarze, polaScalania: tekstowe, raport }));
     zip.file('szablon.docx', blob);
   }
   // Dane: tabela pierwszej serii jako dane.csv; kolejne tabele – dane-<nazwa>.csv.
@@ -149,6 +150,6 @@ export async function pakietSerii(projekt, program, JSZip, { ciag = rozwin(proje
     if (url) zip.file(`obrazy/${nazwa}`, await (await fetch(url)).blob());
   }
   const pola = [...tekstowe].filter((k) => dane.some((d) => d.uzyte.has(k)));
-  zip.file('CZYTAJ-MNIE.txt', `${OPIS[program](pola.map(prog.znacznik).join(', ') || '(brak pól w tekście)')}\n\nZapisano w Makietce (makietka.app): ${projekt.nazwa}, ${wierszy} wierszy danych.\n`);
-  return { blob: await zip.generateAsync({ type: 'blob' }), nazwa: `${projekt.nazwa || 'projekt'} – szablon i dane – ${program}.zip`, pola, wierszy, obrazow: obrazy.size };
+  zip.file('CZYTAJ-MNIE.txt', `${OPIS[program](pola.map(prog.znacznik).join(', ') || '(brak pól w tekście)')}\n\nZapisano w Makietce (makietka.app): ${projekt.nazwa}, ${wierszy} wierszy danych.\n\nCo i jak się przeniosło:\n${raport.tekst()}\n`);
+  return { blob: await zip.generateAsync({ type: 'blob' }), nazwa: `${projekt.nazwa || 'projekt'} – szablon i dane – ${program}.zip`, pola, wierszy, obrazow: obrazy.size, raport };
 }

@@ -216,6 +216,21 @@ async function pobierzPng() {
   }
 }
 
+// Raport przeniesienia (#232): przed pobraniem pliku dla innego programu – co przejdzie jako obraz, co uproszczone,
+// co się nie przeniesie. „Pokaż” prowadzi do elementu w edytorze (pobieranie wtedy się nie odbywa).
+async function zRaportem(program, zapisz) {
+  const { Raport, pokazRaport } = await import('../raport-przeniesienia.js');
+  const raport = new Raport();
+  const w = await zapisz(raport);
+  const ok = await pokazRaport({
+    tytul: `Co przejdzie do programu ${program}`,
+    wstep: 'Nie wszystko ma odpowiednik w innym programie. Tak zapiszemy elementy projektu – „Pokaż” otwiera pierwszy taki element.',
+    raport,
+    pokaz: (idStrony, idObiektu) => oknoKontroli.zrodlo.pokaz(idStrony, idObiektu),
+  });
+  return ok ? w : null;
+}
+
 const oknoKontroli = new OknoKontroli({
   projekt: () => stan.projekt,
   przedSprawdzeniem: zapiszBiezacyCel,
@@ -229,6 +244,16 @@ const oknoKontroli = new OknoKontroli({
   // Naprawy prosto z listy uwag (#127): kolory spoza trybu kolorów → najbliższe dozwolone.
   napraw: async (u) => {
     if (u.naprawa === 'kolory_trybu') await zamienKoloryNaDozwolone();
+    // Element z importu przejrzany (#232): zdejmujemy oznaczenie z projektu i z płótna.
+    if (u.naprawa === 'z_importu') {
+      zapiszBiezacyCel();
+      const zdejmij = (lista) => { for (const o of lista || []) { if (o?.id === u.idObiektu) delete o.z_importu; if (o?.objects) zdejmij(o.objects); } };
+      for (const st of stan.projekt.strony) zdejmij(st.obiekty);
+      for (const wz of stan.projekt.wzorce || []) zdejmij(wz.obiekty);
+      const naPlotnie = edytor.canvas.getObjects().find((o) => o.id === u.idObiektu);
+      if (naPlotnie) delete naPlotnie.z_importu;
+      zaplanujZapis();
+    }
     // Twarda oprawa bez wyklejek (#177): brakujące wyklejki dochodzą jako czyste sekcje.
     if (u.naprawa === 'wyklejki') {
       zapiszBiezacyCel();
@@ -363,7 +388,8 @@ export const akcje = {
     const [{ biblioteka }, { zapiszIdml }] = await Promise.all([import('../biblioteki.js'), import('../idml.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
     powiadom('Przygotowuję plik IDML…');
-    const w = await zapiszIdml(stan.projekt, JSZip, { postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik IDML – strona ${i + 1} z ${z}…`); } });
+    const w = await zRaportem('InDesign / Affinity', (raport) => zapiszIdml(stan.projekt, JSZip, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik IDML – strona ${i + 1} z ${z}…`); } }));
+    if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.idml`, URL.createObjectURL(w.blob));
     powiadom(`Zapisano IDML (InDesign, Affinity Publisher, QuarkXPress): ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'}.`);
   },
@@ -374,7 +400,8 @@ export const akcje = {
     const [{ biblioteka }, { zapiszDocxUklad }] = await Promise.all([import('../biblioteki.js'), import('../eksport-uklad.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
     powiadom('Przygotowuję plik Worda…');
-    const w = await zapiszDocxUklad(stan.projekt, JSZip);
+    const w = await zRaportem('Word', (raport) => zapiszDocxUklad(stan.projekt, JSZip, { raport }));
+    if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.docx`, URL.createObjectURL(w.blob));
     powiadom(`Zapisano dla Worda: ${w.stron} stron z układem – ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}.`);
   },
@@ -403,7 +430,8 @@ export const akcje = {
     zapiszBiezacyCel();
     const { zapiszSla } = await import('../scribus.js');
     powiadom('Przygotowuję plik dla Scribusa…');
-    const w = await zapiszSla(stan.projekt, { postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik dla Scribusa – strona ${i + 1} z ${z}…`); } });
+    const w = await zRaportem('Scribus', (raport) => zapiszSla(stan.projekt, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik dla Scribusa – strona ${i + 1} z ${z}…`); } }));
+    if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.sla`, URL.createObjectURL(new Blob([w.sla], { type: 'application/vnd.scribus' })));
     powiadom(`Zapisano dla Scribusa: ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'} – zainstaluj je w systemie, zanim otworzysz plik.`);
   },
@@ -888,6 +916,9 @@ dodajPolecenie({ nazwa: 'Wstaw kod kreskowy EAN / ISBN', opis: 'EAN-13 albo ISBN
 export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, poWysylkach, pokazEdytor } from './zapis.js';
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';
 export { przejdzDoStrony } from './lista-stron.js';
+// Dla raportu po imporcie (#232, projekty.js): pokazanie elementu i okno „Sprawdź przed drukiem”.
+export const pokazElement = (idStrony, idObiektu) => oknoKontroli.zrodlo.pokaz(idStrony, idObiektu);
+export const otworzKontrole = () => oknoKontroli.otworz();
 export { edytujWzorzec } from './wzorce.js';
 
 // Zestaw marki z konta (#131D): kolory i czcionki marki w wyborze koloru i na liście czcionek od razu.

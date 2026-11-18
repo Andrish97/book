@@ -149,6 +149,12 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   wzorcowych pod treścią, zdjęcia (JPEG, PNG, GIF), kolorowe tła ramek i proste kształty. Obrazy w starym
   formacie Windows (WMF, EMF) przeglądarka nie wyświetla – w ich miejscu są szare pola. Starsze pliki (Publisher
   98/2000) trzeba najpierw zapisać w nowszej wersji.
+  Po wczytaniu okno **„Co przeszło z programu…”** mówi, co uproszczono: gradient zamieniony na jeden kolor, cień
+  i inne efekty pominięte, obrócony obraz wstawiony bez obrotu, tabela z IDML jako tekst z tabulatorami, tekst na
+  ścieżce i tabela Scribusa jako szare pole, brakujące obrazy, style akapitu jako zwykłe formatowanie. [Pokaż]
+  otwiera stronę z pierwszym takim elementem. Uproszczone elementy mają oznaczenie i pojawiają się w
+  **Sprawdź przed drukiem** jako „Z importu: …” – przycisk [Sprawdzone] zdejmuje oznaczenie, gdy element jest
+  już poprawiony. Formatowanie fragmentów (np. pogrubione pole `<<imie>>`) zostaje także przy polach scalania.
 - Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (→ 28.4).
 
 **Tekst z innych programów i do nich.** W edytorze, menu **⋯**:
@@ -177,6 +183,14 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   tabele, kalendarze i elementy z efektami jako obrazy. Taki plik otwiera też LibreOffice (Writer).
 - [Zapisz strony jako SVG (Inkscape, Illustrator)] — każda strona jako plik SVG w milimetrach (ZIP) – do
   Inkscape'a, Illustratora, Corela, Affinity albo LibreOffice Draw.
+- **Co przejdzie, a co nie.** Przed pobraniem pliku dla Scribusa, InDesigna i Worda okno **„Co przejdzie do
+  programu…”** wylicza, co wejdzie bez zmian, co **zamieni się w obraz** (wygląda tak samo, ale nie da się go
+  edytować: tabele, kalendarze, wykresy, kody, grupy, elementy z cieniem, przezroczystością, gradientem, linią
+  przerywaną, tekst po łuku), co zostanie **uproszczone** (serie rozwinięte w gotowe strony, wzorce wtopione w
+  strony, style jako zwykłe formatowanie, połączone ramki rozdzielone, Pantone jako RGB), czego **nie
+  przeniesiemy** (linki, przypisy, inicjały, linie wykrojnika) i co trzeba **zrobić w programie** (zainstalować
+  czcionki, włączyć dzielenie wyrazów). Przy każdej pozycji są numery stron, a [Pokaż] zamyka okno bez
+  pobierania i zaznacza pierwszy taki element – można go poprawić i zapisać jeszcze raz. [Pobierz] zapisuje plik.
 - [Seria dla innego programu (szablon + dane)…] — korespondencja seryjna poza Makietką. Strony projektu są raz (bez
   powielania), z polami w miejscu danych, a obok dane z tabeli serii. Do wyboru:
   - **InDesign / Affinity Publisher** – szablon IDML ze znacznikami `<<imie>>`, `dane.csv` i folder `obrazy/`
@@ -184,5 +198,6 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   - **Scribus** – szablon SLA ze zmiennymi `%VAR_imie%` dla wtyczki ScribusGenerator i `dane.csv`;
   - **Word / Publisher** – tekst w DOCX z prawdziwymi polami scalania i `dane.xlsx` (Korespondencja → Wybierz
     adresatów → Użyj istniejącej listy).
-  Pola dokumentu (`{nr}`, `{sekcja}`…) są już policzone. Plik `CZYTAJ-MNIE.txt` w paczce mówi krok po kroku, co dalej.
+  Pola dokumentu (`{nr}`, `{sekcja}`…) są już policzone. Plik `CZYTAJ-MNIE.txt` w paczce mówi krok po kroku, co dalej,
+  a na końcu ma ten sam opis „co i jak się przeniosło”.
   W drugą stronę: tekst z Worda z polami scalania (Wstaw tekst z pliku) przychodzi z polami `{imie}`.

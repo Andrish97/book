@@ -8,6 +8,7 @@
 import { zlozCel } from './zlozenie.js';
 import { rozwin } from './serie.js';
 import { plytaUszlachetnienia } from './kolory-druku.js';
+import { powodObrazu, uwagiProjektu, uwagiTekstu } from './raport-przeniesienia.js';
 import { PT, hex, ramka, sciezkaKsztaltu, TYPY_KSZTALTOW, zwyklyKolor, bezEfektow, obrazElementu, czcionkaElementu, zapasRamki } from './scribus.js';
 
 const NS = 'http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging';
@@ -138,7 +139,8 @@ async function base64(blob) {
   return btoa(s);
 }
 
-export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzemplarze = null, postep } = {}) {
+export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzemplarze = null, postep, raport = null } = {}) {
+  if (raport && !egzemplarze) uwagiProjektu(projekt, raport);
   const zip = new JSZip();
   zip.file('mimetype', 'application/vnd.adobe.indesign-idml-package', { compression: 'STORE' });
   zip.file('META-INF/container.xml', `${naglowek}<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="designmap.xml" media-type="text/xml"/></rootfiles></container>`);
@@ -173,7 +175,11 @@ export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzem
       elementy.push(`<Rectangle ${atrybuty({ Self: nowyId('t'), Name: 'Tło strony', ContentType: 'Unassigned', ItemLayer: 'ly', FillColor: kolory.nazwa(t.hex), StrokeColor: 'Swatch/None', StrokeWeight: 0, ItemTransform: macierz(0, x, y) })}><Properties>${geometria(prostokat(w, h))}</Properties></Rectangle>`);
     }
     for (const o of obiekty) {
-      if (o.visible === false || plytaUszlachetnienia(o)?.techniczna) continue;
+      if (o.visible === false) continue;
+      const m = { idStrony: e.strona?.id, idObiektu: o.id, nr: n + 1 };
+      const usz = plytaUszlachetnienia(o);
+      if (usz?.techniczna) { raport?.dodaj('pominiete', 'linie wykrojnika (cięcie, big, perforacja, klej) – są w pliku dla plotera', m); continue; }
+      if (usz) raport?.dodaj('uproszczone', 'uszlachetnienie (złocenie, lakier, tłoczenie, biały poddruk) jako zwykły element – bez osobnej płyty', m);
       const typ = String(o.type).toLowerCase();
       const r = ramka(o);
       if (r && typ === 'textbox' && !o.tabela && bezEfektow(o) && zwyklyKolor(o.fill)) {
@@ -183,6 +189,8 @@ export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzem
         const [x, y] = naRozkl(r.x, r.y);
         elementy.push(`<TextFrame ${atrybuty({ Self: nowyId('tf'), ParentStory: idH, PreviousTextFrame: 'n', NextTextFrame: 'n', ContentType: 'TextType', ItemLayer: 'ly', FillColor: kolory.nazwa(o.backgroundColor), StrokeColor: 'Swatch/None', StrokeWeight: 0, ItemTransform: macierz(r.kat, x, y) })}><Properties>${geometria(prostokat(r.w * PT, (r.h + zapasRamki(o, r.sy)) * PT))}</Properties><TextFramePreference TextColumnCount="1" TextColumnGutter="12" FirstBaselineOffset="AscentOffset" VerticalJustification="TopAlign"><Properties><InsetSpacing type="list"><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem></InsetSpacing></Properties></TextFramePreference></TextFrame>`);
         ile.teksty += 1;
+        raport?.bezZmian();
+        if (raport) uwagiTekstu(o, raport, m);
         continue;
       }
       const sciezka = r && TYPY_KSZTALTOW.has(typ) && bezEfektow(o) && zwyklyKolor(o.fill) && zwyklyKolor(o.stroke) && !o.strokeDashArray?.length ? sciezkaKsztaltu(o, r) : null;
@@ -199,10 +207,13 @@ export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzem
           StrokeAlignment: 'CenterAlignment', ItemTransform: macierz(r.kat, x, y),
         })}><Properties>${geometria(kontury)}</Properties></${znacznik}>`);
         ile.ksztalty += 1;
+        raport?.bezZmian();
         continue;
       }
       const obraz = await obrazElementu(o);
       if (!obraz) continue;
+      const powod = powodObrazu(o);
+      if (powod) raport?.dodaj('obraz', powod, m); else raport?.bezZmian();
       const [x, y] = naRozkl(obraz.x, obraz.y);
       const w = obraz.w * PT;
       const h = obraz.h * PT;
@@ -249,6 +260,8 @@ ${rozkladowki.map((r) => `<idPkg:Spread src="Spreads/Spread_${r.id}.xml"/>`).joi
 <idPkg:BackingStory src="XML/BackingStory.xml"/>
 ${historie.map((h) => `<idPkg:Story src="Stories/Story_${h}.xml"/>`).join('\n')}
 </Document>`);
+  if (raport && czcionki.size) raport.dodaj('uwaga', `zainstaluj w systemie czcionki: ${[...new Set([...czcionki].map((k) => k.split('\u0000')[0]))].join(', ')} (pliki: Czcionki projektu w menu ⋯)`);
+  if (raport) raport.dodaj('uwaga', 'każda strona to osobna rozkładówka z jedną stroną – rozkładówki książki ułóż w programie (Strony → Rozkładówki)');
   const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.adobe.indesign-idml-package', compression: 'DEFLATE' });
   return { blob, ile, stron: egz.length, czcionki: [...czcionki].map((k) => k.replace('\u0000', ' ')) };
 }

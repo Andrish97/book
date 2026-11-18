@@ -11,6 +11,7 @@
 import { zlozCel } from './zlozenie.js';
 import { rozwin } from './serie.js';
 import { plytaUszlachetnienia } from './kolory-druku.js';
+import { powodObrazu, uwagiProjektu, uwagiTekstu } from './raport-przeniesienia.js';
 import { hex, ramka, zwyklyKolor, bezEfektow, obrazElementu, czcionkaElementu } from './scribus.js';
 
 const EMU = 36000; // na mm
@@ -74,7 +75,8 @@ function kotwica({ id, x, y, w, h, kat = 0, graphic, nazwa = '' }) {
 
 const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w14"';
 
-export async function zapiszDocxUklad(projekt, JSZip, { ciag = rozwin(projekt), egzemplarze = null, polaScalania = null, postep } = {}) {
+export async function zapiszDocxUklad(projekt, JSZip, { ciag = rozwin(projekt), egzemplarze = null, polaScalania = null, postep, raport = null } = {}) {
+  if (raport && !egzemplarze) uwagiProjektu(projekt, raport);
   const zip = new JSZip();
   const egz = egzemplarze || ciag.egzemplarze;
   const obrazy = []; // { rid, plik, blob }
@@ -93,7 +95,11 @@ export async function zapiszDocxUklad(projekt, JSZip, { ciag = rozwin(projekt), 
       elementy.push(kotwica({ id: nid, x: 0, y: 0, w: wydruk.szerokosc_mm, h: wydruk.wysokosc_mm, nazwa: 'Tło strony', graphic: (rot) => `<a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp><wps:cNvSpPr/><wps:spPr><a:xfrm${rot}><a:off x="0" y="0"/><a:ext cx="${emu(wydruk.szerokosc_mm)}" cy="${emu(wydruk.wysokosc_mm)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${t.hex.slice(1).toUpperCase()}"/></a:solidFill><a:ln><a:noFill/></a:ln></wps:spPr><wps:bodyPr/></wps:wsp></a:graphicData>` }));
     }
     for (const o of obiekty) {
-      if (o.visible === false || plytaUszlachetnienia(o)?.techniczna) continue;
+      if (o.visible === false) continue;
+      const m = { idStrony: egz[n].strona?.id, idObiektu: o.id, nr: n + 1 };
+      const usz = plytaUszlachetnienia(o);
+      if (usz?.techniczna) { raport?.dodaj('pominiete', 'linie wykrojnika (cięcie, big, perforacja, klej) – są w pliku dla plotera', m); continue; }
+      if (usz) raport?.dodaj('pominiete', 'uszlachetnienie (złocenie, lakier, tłoczenie) – Word nie ma płyt drukarskich; element jako zwykły', m);
       const typ = String(o.type).toLowerCase();
       const r = ramka(o);
       const nid = id++;
@@ -105,6 +111,9 @@ export async function zapiszDocxUklad(projekt, JSZip, { ciag = rozwin(projekt), 
         const tloRamki = hex(o.backgroundColor);
         elementy.push(kotwica({ id: nid, x: cx - r.w / 2, y: cy - r.h / 2, w: r.w, h: r.h, kat: r.kat, nazwa: (o.text || 'Tekst').slice(0, 40), graphic: (rot) => `<a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp><wps:cNvSpPr txBox="1"/><wps:spPr><a:xfrm${rot}><a:off x="0" y="0"/><a:ext cx="${emu(r.w)}" cy="${emu(r.h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${tloRamki ? `<a:solidFill><a:srgbClr val="${tloRamki.hex.slice(1).toUpperCase()}"/></a:solidFill>` : '<a:noFill/>'}<a:ln><a:noFill/></a:ln></wps:spPr><wps:txbx><w:txbxContent>${akapityRamki(o, r.sy, polaScalania)}</w:txbxContent></wps:txbx><wps:bodyPr rot="0" vert="horz" wrap="square" lIns="0" tIns="0" rIns="0" bIns="0" anchor="t" anchorCtr="0"><a:noAutofit/></wps:bodyPr></wps:wsp></a:graphicData>` }));
         ile.teksty += 1;
+        raport?.bezZmian();
+        if (raport) uwagiTekstu(o, raport, m);
+        if (raport && r.kat) raport.dodaj('uwaga', 'obrócona ramka tekstu – Word ją obraca, LibreOffice pokazuje bez obrotu', m);
         continue;
       }
       const prosty = r && ['rect', 'ellipse', 'circle'].includes(typ) && bezEfektow(o) && zwyklyKolor(o.fill) && zwyklyKolor(o.stroke) && !(typ === 'rect' && o.rx);
@@ -117,10 +126,14 @@ export async function zapiszDocxUklad(projekt, JSZip, { ciag = rozwin(projekt), 
         const grub = obr ? emu(o.strokeWidth * (o.strokeUniform ? 1 : Math.max(r.sx, r.sy))) : 0;
         elementy.push(kotwica({ id: nid, x: cx - r.w / 2, y: cy - r.h / 2, w: r.w, h: r.h, kat: r.kat, nazwa: o.nazwa || typ, graphic: (rot) => `<a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp><wps:cNvSpPr/><wps:spPr><a:xfrm${rot}><a:off x="0" y="0"/><a:ext cx="${emu(r.w)}" cy="${emu(r.h)}"/></a:xfrm><a:prstGeom prst="${typ === 'rect' ? 'rect' : 'ellipse'}"><a:avLst/></a:prstGeom>${wyp ? `<a:solidFill><a:srgbClr val="${wyp.hex.slice(1).toUpperCase()}"/></a:solidFill>` : '<a:noFill/>'}${obr ? `<a:ln w="${grub}"><a:solidFill><a:srgbClr val="${obr.hex.slice(1).toUpperCase()}"/></a:solidFill></a:ln>` : '<a:ln><a:noFill/></a:ln>'}</wps:spPr><wps:bodyPr/></wps:wsp></a:graphicData>` }));
         ile.ksztalty += 1;
+        raport?.bezZmian();
         continue;
       }
       const obraz = await obrazElementu(o);
       if (!obraz) continue;
+      const pw = powodObrazu(o);
+      const powod = typ === 'rect' && o.rx ? 'prostokąt z zaokrąglonymi rogami' : pw === 'element bez odpowiednika w programie' && ['polygon', 'polyline', 'path', 'line', 'triangle'].includes(typ) ? 'wielokąt, linia albo krzywa (w zapisie dla Worda jako obraz)' : pw;
+      if (powod) raport?.dodaj('obraz', powod, m); else raport?.bezZmian();
       const rid = `rIdObr${obrazy.length + 1}`;
       obrazy.push({ rid, plik: `media/obraz${obrazy.length + 1}.png`, blob: obraz.blob });
       elementy.push(kotwica({ id: nid, x: obraz.x, y: obraz.y, w: obraz.w, h: obraz.h, nazwa: o.nazwa || typ, graphic: () => `<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${nid}" name="obraz${nid}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${emu(obraz.w)}" cy="${emu(obraz.h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData>` }));
