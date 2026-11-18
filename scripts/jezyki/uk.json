@@ -3705,5 +3705,9 @@
  "Otwórz z Asystentem AI": "Відкрити з асистентом ШІ",
  "Pozwól": "Дозволити",
  "Zawsze pozwalaj w tej rozmowie": "Завжди дозволяти в цій розмові",
- "Nie pozwalaj": "Не дозволяти"
+ "Nie pozwalaj": "Не дозволяти",
+ "Model i połączenie": "Модель і з'єднання",
+ "Model domyślny": "Типова модель",
+ "Adres API": "Адреса API",
+ "Sprawdź połączenie": "Перевірити з'єднання"
 }

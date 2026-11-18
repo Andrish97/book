@@ -966,6 +966,9 @@ ol.punkty-ai { padding-left: 20px; }
 .naglowek-kluczy-ai .podpowiedz { margin: 0; }
 .naglowek-kluczy-ai .przycisk { flex: none; }
 .sekcja-kluczy-ai .lista-dostawcow-ai:empty, .sekcja-kluczy-ai .lista-dostepow:empty { display: none; }
+.wynik-polaczenia.dobrze { color: var(--sukces); }
+.wynik-polaczenia.blad { color: var(--blad); }
+#ai-nowy-dostawca-pola .grupa-pol { margin: 4px 0 0; padding: 0; border: 0; }
 .uprawnienia-klucza { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; border: 0; }
 .uprawnienia-klucza legend { padding: 0; margin-bottom: 4px; font-size: 13px; font-weight: 600; color: var(--tusz-2); }
 .uprawnienia-klucza[hidden] { display: none; }

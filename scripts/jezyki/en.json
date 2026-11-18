@@ -3705,5 +3705,9 @@
  "Otwórz z Asystentem AI": "Open with the AI Assistant",
  "Pozwól": "Allow",
  "Zawsze pozwalaj w tej rozmowie": "Always allow in this conversation",
- "Nie pozwalaj": "Don't allow"
+ "Nie pozwalaj": "Don't allow",
+ "Model i połączenie": "Model and connection",
+ "Model domyślny": "Default model",
+ "Adres API": "API address",
+ "Sprawdź połączenie": "Test connection"
 }

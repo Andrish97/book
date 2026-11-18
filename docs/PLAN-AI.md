@@ -32,10 +32,10 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
    i usuwanie stron), usuwanie projektów – sprawdzane w rdzeniu po stronie serwera i pokazywane na stronie zgody.
 3. ✅ (#255) **Zatwierdzanie w czacie Makietki** – przed usunięciem stron, wielu elementów, obrazów w użyciu, projektu
    i przed zmianą wielu stron naraz: pytanie z opisem; „Zawsze pozwalaj w tej rozmowie”.
-4. ⏳ (#241–#251: sekcja w ustawieniach, trzy drogi, sejf kluczy, edycja i ważność kluczy; zostaje „Sprawdź połączenie” i model domyślny) **Ustawienia → Sztuczna inteligencja** – kilku dostawców naraz, model domyślny, „Sprawdź połączenie”, zmiana
+4. ✅ (#241–#251, #254, #256: sekcja w ustawieniach, cztery drogi, sejf kluczy, edycja i ważność kluczy, „Sprawdź połączenie”, model domyślny) **Ustawienia → Sztuczna inteligencja** – kilku dostawców naraz, model domyślny, „Sprawdź połączenie”, zmiana
    modelu w trakcie rozmowy; klucze **opcjonalnie na koncie** (szyfrowane w przekaźniku, rozmowa przez przekaźnik –
    klucz nie wraca do przeglądarki) albo jak dziś tylko na urządzeniu.
-5. **Adaptery** – streaming odpowiedzi, czytelne komunikaty (zły klucz, brak środków, limit, model niedostępny,
+5. ⏳ (#256: czytelne komunikaty i ponawianie przy przeciążeniu; zostaje streaming i zdjęcia w rozmowie) **Adaptery** – streaming odpowiedzi, czytelne komunikaty (zły klucz, brak środków, limit, model niedostępny,
    brak narzędzi w modelu), ponowienie przy przeciążeniu, zdjęcia w rozmowie (do projektu albo do obejrzenia).
 6. **Brakujące narzędzia** – kopiowanie stron, wyrównanie i rozmieszczenie, kadrowanie obrazu, przypisanie wzorców,
    style, serie, „napraw” z kontroli przed drukiem.

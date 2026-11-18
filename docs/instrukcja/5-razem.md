@@ -168,7 +168,7 @@ Przy każdym kluczu na liście jest [Edytuj] – edycja otwiera się w okienku, 
 | [Zapisz zmiany] | Zapisuje zakres i ważność. |
 | [Odbierz klucz] | Wyłącza klucz od razu. |
 
-Klucz API dostawcy w okienku edycji: [Pokaż klucz], **Zamień klucz** (wklejasz nowy i [Zapisz]) i [Usuń klucz].
+Klucz API dostawcy w okienku edycji: [Pokaż klucz], **Zamień klucz** (wklejasz nowy i [Zapisz]) i [Usuń klucz]. Część **Model i połączenie** (także przy dodawaniu): **Model domyślny** – od niego zaczyna Asystent AI (lista podpowiada modele dostawcy), przy „Inny – zgodne z OpenAI” także **Adres API**, i [Sprawdź połączenie] – Makietka pyta dostawcę o listę modeli i mówi, czy klucz działa, a jeśli nie – dlaczego (zły klucz, brak środków, limit, model niedostępny, brak internetu).
 
 Gdy klucze są zaszyfrowane na tym urządzeniu, sekcja Czat w Makietce pokazuje [Otwórz] – podajesz hasło do kluczy raz
 na urządzeniu.
@@ -264,6 +264,10 @@ z każdym czatem AI w przeglądarce, także darmowym (ChatGPT, Claude, Gemini, C
 4. Wklej wyniki czatowi AI – zobaczy, co się udało, i w razie potrzeby wyśle kolejne polecenia.
 
 Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w Makietce”, czytanie albo zmiany).
+
+**Gdy coś nie działa,** asystent pisze po ludzku, co się stało: dostawca odrzucił klucz, brak środków na koncie dostawcy,
+za dużo zapytań, model niedostępny albo bez obsługi narzędzi, brak połączenia. Gdy dostawca jest przeciążony, Makietka
+sama ponawia zapytanie dwa razy, zanim zgłosi błąd.
 
 **Zgoda na groźne zmiany.** Zanim asystent usunie strony, 3 i więcej elementów naraz, obrazy albo projekt, zmieni
 3 i więcej stron jednym zapisem albo zastąpi w całości wzorce, style, tabele czy serie, w rozmowie pojawia się pytanie

@@ -16,7 +16,7 @@ import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
 import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
-import { DOSTAWCY } from '../ai-dostawcy.js';
+import { DOSTAWCY, modeleDostawcy } from '../ai-dostawcy.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
 
@@ -321,6 +321,51 @@ export function edytujKluczAi(d) {
   if (!projekty.length) wczytajProjekty().then(() => { listaWyboru(lista, new Set((d.projekty || []).map((p) => p.id))); pokazListe(); }).catch(() => {});
 }
 
+// Model domyślny i adres (dla „zgodnych z OpenAI”) – w pamięci przeglądarki, jak w czacie (js/app/czat-ai.js).
+const PAMIEC_CZATU = 'makietka-czat-ai';
+const ustawieniaCzatu = () => { try { return JSON.parse(localStorage.getItem(PAMIEC_CZATU) || 'null') || { dostawca: 'anthropic', rola: 'edycja', dostawcy: {} }; } catch { return { dostawca: 'anthropic', rola: 'edycja', dostawcy: {} }; } };
+function zapiszUstawieniaDostawcy(id, zmiany) {
+  const u = ustawieniaCzatu();
+  u.dostawcy = { ...(u.dostawcy || {}), [id]: { ...(u.dostawcy?.[id] || {}), ...zmiany } };
+  try { localStorage.setItem(PAMIEC_CZATU, JSON.stringify(u)); } catch { /* bez pamięci */ }
+}
+
+// „Sprawdź połączenie” i „Model domyślny” (#256, plan AI krok 4) – w okienku klucza dostawcy.
+function polaPolaczenia(id, kluczFn) {
+  const d = DOSTAWCY[id];
+  const zapisane = ustawieniaCzatu().dostawcy?.[id] || {};
+  const model = el('input', { id: 'klucz-ai-model', autocomplete: 'off', spellcheck: false, value: zapisane.model || d.modele[0] || '', placeholder: 'nazwa modelu' });
+  const lista = el('datalist', { id: 'klucz-ai-modele' });
+  lista.append(...d.modele.map((m) => new Option(m, m)));
+  model.setAttribute('list', 'klucz-ai-modele');
+  const adres = d.wlasnyAdres ? el('input', { id: 'klucz-ai-adres', type: 'url', value: zapisane.adres || '', placeholder: 'https://…/v1' }) : null;
+  const wynik = el('p', { className: 'podpowiedz wynik-polaczenia', hidden: true });
+  wynik.setAttribute('role', 'status');
+  const sprawdz = przyciskAi('Sprawdź połączenie', async () => {
+    const klucz = kluczFn();
+    if (!klucz) { wynik.textContent = 'Najpierw wklej klucz.'; wynik.hidden = false; return; }
+    sprawdz.disabled = true;
+    wynik.textContent = 'Sprawdzam…';
+    wynik.hidden = false;
+    wynik.classList.remove('blad', 'dobrze');
+    try {
+      const modele = await modeleDostawcy(id, { klucz, adres: adres?.value.trim() || '' });
+      lista.replaceChildren(...modele.map((m) => new Option(m, m)));
+      const jest = !modele.length || modele.includes(model.value.trim());
+      wynik.textContent = `Działa – dostawca przyjął klucz${modele.length ? ` (modeli: ${modele.length})` : ''}.${jest ? '' : ' Wybranego modelu nie ma na liście – wybierz inny.'}`;
+      wynik.classList.add(jest ? 'dobrze' : 'blad');
+    } catch (e) {
+      wynik.textContent = e.message;
+      wynik.classList.add('blad');
+    } finally { sprawdz.disabled = false; }
+  });
+  const pole = el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Model i połączenie' }),
+    el('label', { className: 'pole' }, el('span', { textContent: 'Model domyślny' }), model), lista,
+    ...(adres ? [el('label', { className: 'pole' }, el('span', { textContent: 'Adres API' }), adres)] : []),
+    el('div', { className: 'rzad-przyciskow' }, sprawdz), wynik);
+  return { pole, zapisz: () => zapiszUstawieniaDostawcy(id, { model: model.value.trim(), ...(adres ? { adres: adres.value.trim() } : {}) }) };
+}
+
 function edytujKluczDostawcy(id) {
   const d = DOSTAWCY[id];
   const { dlg, tresc } = oknoEdycji(`Klucz API: ${d.nazwa}`);
@@ -332,6 +377,8 @@ function edytujKluczDostawcy(id) {
   const nowy = el('input', { type: 'password', id: 'edytuj-klucz-dostawcy', autocomplete: 'off', spellcheck: false, placeholder: 'Wklej nowy klucz, żeby zamienić' });
   const gdzie = d.kluczUrl ? el('a', { href: d.kluczUrl, target: '_blank', rel: 'noopener', textContent: 'Gdzie wziąć klucz?' }) : '';
   tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Zamień klucz' }), el('label', { className: 'pole' }, el('span', { textContent: 'Nowy klucz API' }), nowy), el('p', { className: 'podpowiedz' }, gdzie)));
+  const polaczenie = polaPolaczenia(id, () => nowy.value.trim() || s.klucz(id));
+  tresc.append(polaczenie.pole);
   tresc.append(el('div', { className: 'przyciski-dialogu' },
     przyciskAi('Usuń klucz', async () => {
       if (!await potwierdz(`Usunąć klucz ${d.nazwa}?`, 'Asystent AI nie będzie mógł używać tego dostawcy, dopóki nie wkleisz klucza od nowa.', 'Usuń', true)) return;
@@ -341,6 +388,7 @@ function edytujKluczDostawcy(id) {
     przyciskAi('Zapisz', async () => {
       const v = nowy.value.trim();
       if (v) { await s.ustaw(id, v); powiadom(`Klucz ${d.nazwa} zamieniony.`); }
+      polaczenie.zapisz();
       dlg.close();
     }, 'glowny')));
   if (!dlg.open) dlg.showModal();
@@ -417,8 +465,15 @@ function przygotujKluczDostawcy(dostawca) {
   $('#ai-nowy-klucz').value = '';
   gdzieWziac();
 }
+let polaczenieNowego = null;
 function gdzieWziac() {
-  const d = DOSTAWCY[$('#ai-nowy-dostawca').value];
+  const id = $('#ai-nowy-dostawca').value;
+  const d = DOSTAWCY[id];
+  // Model domyślny i „Sprawdź połączenie” dla wybranego dostawcy (#256).
+  $('#ai-nowy-polaczenie')?.remove();
+  polaczenieNowego = polaPolaczenia(id, () => $('#ai-nowy-klucz').value.trim());
+  polaczenieNowego.pole.id = 'ai-nowy-polaczenie';
+  $('#ai-nowy-dostawca-pola .rzad-przyciskow').before(polaczenieNowego.pole);
   const a = $('#ai-nowy-gdzie');
   a.hidden = !d?.kluczUrl;
   if (d?.kluczUrl) a.href = d.kluczUrl;
@@ -464,6 +519,7 @@ export async function zapiszKluczDostawcy() {
   const sejf = await otwartySejf();
   if (!sejf) return;
   await sejf.ustaw(id, v);
+  polaczenieNowego?.zapisz();
   pole.value = '';
   powiadom(`Klucz ${DOSTAWCY[id].nazwa} zapisany – zaszyfrowany Twoim hasłem do kluczy.`);
   zamknijDodawanie();
@@ -609,6 +665,8 @@ $('#dostep-ai-nowy').addEventListener('change', (e) => {
   if (e.target.name === 'dostep-ai-zakres') pokazZakresNowego();
   if (e.target.id === 'dostep-ai-rola') $('#dostep-ai-uprawnienia').hidden = e.target.value !== 'edycja';
 });
+
+$('#dostep-ai').dataset.gotowy = '1'; // moduł wczytany – przyciski działają (testy czekają na to)
 
 // Krótkie podsumowanie w ustawieniach konta: ile kluczy działa.
 export async function podsumowanieKluczy() {

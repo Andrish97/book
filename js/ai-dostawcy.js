@@ -21,18 +21,48 @@ export const DOSTAWCY = {
 
 const MAKS = 16000;
 
+// Czytelny komunikat błędu dostawcy (#256, plan AI krok 5). status – kod HTTP (0 – brak połączenia), opis – tekst dostawcy.
+export function komunikatBleduDostawcy(status, opis = '') {
+  const o = String(opis || '');
+  const szczegoly = o ? ` (dostawca: ${o.slice(0, 200)})` : '';
+  if (status === 0) return 'Brak połączenia z dostawcą – sprawdź internet. Przy własnym adresie (np. Ollama) serwer musi pozwalać na zapytania z przeglądarki (CORS).';
+  if (status === 401 || status === 403) return `Dostawca odrzucił klucz – sprawdź, czy klucz jest poprawny i aktywny (Ustawienia konta → Sztuczna inteligencja → Edytuj).${szczegoly}`;
+  if (status === 402 || /insufficient|credit|balance|billing|quota|payment/i.test(o)) return `Brak środków albo wyczerpany limit na koncie dostawcy – doładuj konto u dostawcy.${szczegoly}`;
+  if (status === 429) return `Za dużo zapytań naraz – odczekaj chwilę i spróbuj ponownie.${szczegoly}`;
+  if (/tool|function.?call/i.test(o) && status === 400) return `Ten model nie obsługuje narzędzi – wybierz inny model.${szczegoly}`;
+  if (status === 404 || (status === 400 && /model/i.test(o))) return `Model niedostępny u dostawcy albo zła nazwa modelu – wybierz inny model.${szczegoly}`;
+  if ([500, 502, 503, 504, 529].includes(status) || /overload/i.test(o)) return `Dostawca jest przeciążony albo ma awarię – spróbuj za chwilę.${szczegoly}`;
+  return `Dostawca odpowiedział błędem ${status}.${szczegoly}`;
+}
+
+// Przeciążenie i chwilowe awarie: dwie kolejne próby (po 1,5 s i 4 s; albo tyle, ile każe Retry-After, do 10 s).
+const PONOW = [1500, 4000];
+const PRZECIAZENIE = new Set([429, 500, 502, 503, 504, 529]);
+export const czekanie = { ms: (t) => new Promise((r) => setTimeout(r, t)) };
+
 async function zadanie(url, opcje) {
-  const odp = await fetch(url, opcje);
-  const tekst = await odp.text();
-  let dane = null;
-  try { dane = tekst ? JSON.parse(tekst) : null; } catch { /* odpowiedź nie-JSON */ }
-  if (!odp.ok) {
+  for (let proba = 0; ; proba += 1) {
+    let odp;
+    try { odp = await fetch(url, opcje); } catch {
+      const b = new Error(komunikatBleduDostawcy(0));
+      b.status = 0;
+      throw b;
+    }
+    const tekst = await odp.text();
+    let dane = null;
+    try { dane = tekst ? JSON.parse(tekst) : null; } catch { /* odpowiedź nie-JSON */ }
+    if (odp.ok) return dane;
     const opis = dane?.error?.message || dane?.message || tekst.slice(0, 300) || odp.statusText;
-    const blad = new Error(odp.status === 401 || odp.status === 403 ? `Dostawca odrzucił klucz (${odp.status}): ${opis}` : odp.status === 429 ? `Za dużo zapytań albo brak środków na koncie dostawcy (429): ${opis}` : `Dostawca odpowiedział błędem ${odp.status}: ${opis}`);
+    const brakSrodkow = odp.status === 402 || /insufficient|credit|balance|billing|quota/i.test(opis);
+    if (PRZECIAZENIE.has(odp.status) && !brakSrodkow && proba < PONOW.length) {
+      const poSek = Number(odp.headers?.get?.('retry-after'));
+      await czekanie.ms(Number.isFinite(poSek) && poSek > 0 ? Math.min(poSek * 1000, 10000) : PONOW[proba]);
+      continue;
+    }
+    const blad = new Error(komunikatBleduDostawcy(odp.status, opis));
     blad.status = odp.status;
     throw blad;
   }
-  return dane;
 }
 
 const naglowkiAnthropic = (klucz) => ({
