@@ -396,31 +396,67 @@ export async function otworzNowyProjekt({ szablon = false } = {}) {
   $('#wlasny-format').hidden = true;
   dlg.returnValue = '';
   dlg.showModal();
+  await pokazStart();
   f.elements.nazwa.focus();
+}
+
+// „Zacznij od: Gotowego szablonu” – galeria szablonów od razu w tym oknie (#208), bez pól formatu: format daje
+// szablon (albo A5). Wybór szablonu tworzy projekt i wstawia go w miejsce pustej strony.
+async function pokazStart() {
+  const f = $('#form-nowy');
+  const szablon = f.elements.start?.value === 'szablon';
+  f.dataset.start = szablon ? 'szablon' : 'pusty';
+  $('#nowy-szablony').hidden = !szablon;
+  if (!szablon) {
+    // Galeria w tym oknie była tylko, gdy edytor już się wczytał – inaczej nie ma czego chować.
+    if (edytorGotowy()) (await import('./gotowe-sekcje-okno.js')).schowajZNowegoProjektu();
+    return;
+  }
+  // Miniatury szablonów rysuje biblioteka płótna – doczytujemy ją jak przy otwieraniu projektu.
+  await czekajNaEdytor();
+  if (f.dataset.start !== 'szablon') return;
+  const okno = await import('./gotowe-sekcje-okno.js');
+  okno.pokazWNowymProjekcie($('#nowy-szablony'), {
+    wydruk: () => wydrukZFormularza(),
+    utworz: async (format) => {
+      const p = projektZFormularza(format);
+      await otworzProjekt(p);
+      await zapiszTeraz();
+    },
+  });
 }
 
 $('#form-nowy').addEventListener('change', (e) => {
   if (e.target.name === 'format') $('#wlasny-format').hidden = e.target.value !== 'Własny';
+  if (e.target.name === 'start') pokazStart();
 });
 
-$('#dlg-nowy').addEventListener('close', async () => {
-  if ($('#dlg-nowy').returnValue !== 'ok') return;
+function wydrukZFormularza(format = null) {
   const f = $('#form-nowy');
-  const format = f.elements.format.value;
-  let [w, h] = FORMATY[format] || [Number(f.elements.szerokosc_mm.value) || 148, Number(f.elements.wysokosc_mm.value) || 210];
-  if (f.elements.orientacja.value === 'poziom' && h > w) [w, h] = [h, w];
-  if (f.elements.orientacja.value === 'pion' && w > h) [w, h] = [h, w];
-  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || 'Nowy projekt', normalizujWydruk({
-    format: FORMATY[format] ? format : 'wlasny',
+  const nazwaFormatu = f.elements.format.value;
+  let [w, h] = format ? [format.szerokosc_mm, format.wysokosc_mm]
+    : FORMATY[nazwaFormatu] || [Number(f.elements.szerokosc_mm.value) || 148, Number(f.elements.wysokosc_mm.value) || 210];
+  if (!format && f.elements.orientacja.value === 'poziom' && h > w) [w, h] = [h, w];
+  if (!format && f.elements.orientacja.value === 'pion' && w > h) [w, h] = [h, w];
+  return normalizujWydruk({
+    format: !format && FORMATY[nazwaFormatu] ? nazwaFormatu : 'wlasny',
     szerokosc_mm: Math.max(20, w),
     wysokosc_mm: Math.max(20, h),
     spad_mm: Math.max(0, Number(f.elements.spad_mm.value) || 0),
     marginesy_mm: Math.max(0, Number(f.elements.marginesy_mm.value) || 0),
     znaki_ciecia: true,
-  }), f.elements.uklad.value === 'rozkladowki' ? 'rozkladowki' : 'pojedyncze');
+  });
+}
+
+// Pusty projekt z pól okna; z szablonu (#208) – bez okładki i układu z formularza (daje je szablon).
+function projektZFormularza(format = null, { zSzablonu = true } = {}) {
+  const f = $('#form-nowy');
+  const pelny = !zSzablonu || f.dataset.start !== 'szablon';
+  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || 'Nowy projekt', wydrukZFormularza(format),
+    pelny && f.elements.uklad.value === 'rozkladowki' ? 'rozkladowki' : 'pojedyncze');
   projekt.style = domyslneStyle();
   // Okładka liczona sama (#119): osobna sekcja przed środkiem, format z formatu i liczby stron środka.
-  if (f.elements.okladka.value) {
+  if (pelny && f.elements.okladka.value) {
     const srodek = projekt.sekcje[0];
     srodek.nazwa = 'Środek';
     const okladka = nowaSekcja('Okładka', { ...srodek.wydruk, marginesy: { ...srodek.wydruk.marginesy } });
@@ -430,10 +466,14 @@ $('#dlg-nowy').addEventListener('close', async () => {
     projekt.strony.unshift(nowaStrona('Okładka', okladka.id));
     przeliczOkladki(projekt);
   }
-  await otworzProjekt(projekt);
+  return projekt;
+}
+
+$('#dlg-nowy').addEventListener('close', async () => {
+  if (edytorGotowy()) import('./gotowe-sekcje-okno.js').then((m) => m.schowajZNowegoProjektu()).catch(() => {});
+  if ($('#dlg-nowy').returnValue !== 'ok') return;
+  await otworzProjekt(projektZFormularza(null, { zSzablonu: false }));
   await zapiszTeraz();
-  // Gotowy szablon (#166): galeria w formacie nowego projektu; wybrany szablon zastępuje pustą stronę startową.
-  if (f.elements.start?.value === 'szablon') (await import('./gotowe-sekcje-okno.js')).otworzGotoweSekcje({ zastapPusty: true });
 });
 
 // Projekt zniknął z konta (Realtime DELETE): otwarty – zamykamy bez zapisu (inaczej zapis założyłby go od nowa)

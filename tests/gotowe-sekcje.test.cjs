@@ -107,19 +107,35 @@ test('gotowe sekcje: okno z miniaturami, wstawienie, jedno cofnięcie, wejście 
   assert.deepEqual(bledy, []);
 });
 
-test('nowy projekt z gotowego szablonu: pusta sekcja startowa znika, zostaje szablon', async (t) => {
+test('nowy projekt z gotowego szablonu: galeria od razu w oknie „Nowy projekt”, potem projekt z samym szablonem (#208)', async (t) => {
   const { strona, bledy } = await otworz(t);
   await strona.locator('[data-akcja="nowy-projekt"]:visible').first().click();
   await strona.waitForSelector('#dlg-nowy[open]');
   await strona.fill('#form-nowy [name="nazwa"]', 'Mój planer');
   await strona.check('#form-nowy input[name="start"][value="szablon"]', { force: true });
-  await strona.click('#form-nowy button[value="ok"]');
-  await strona.waitForSelector('#dlg-gotowe-sekcje[open]');
-  await strona.click('#gotowe-lista .karta-szablonu[data-id="planer-dzienny"]');
-  await strona.waitForSelector('#gotowe-szczegoly:not([hidden])');
+  // Szablony w tym samym oknie, bez pól formatu i bez przycisku „Utwórz projekt”.
+  await strona.waitForSelector('#dlg-nowy[open] #nowy-szablony #gotowe-lista .karta-szablonu');
+  assert.equal(await strona.evaluate(() => document.querySelector('#dlg-gotowe-sekcje').open), false);
+  assert.ok(await strona.locator('#form-nowy button[value="ok"]').isHidden());
+  assert.ok(await strona.locator('#karty-formatu').isHidden());
+  // Enter w szukaniu nie tworzy projektu.
+  await strona.fill('#gotowe-szukaj', 'planer');
+  await strona.press('#gotowe-szukaj', 'Enter');
+  assert.ok(await strona.evaluate(() => document.querySelector('#dlg-nowy').open));
+  // Powrót do „Pustej strony” – pola wracają, galeria znika.
+  await strona.check('#form-nowy input[name="start"][value="pusty"]', { force: true });
+  await strona.waitForFunction(() => document.querySelector('#nowy-szablony').hidden);
+  assert.ok(await strona.locator('#form-nowy button[value="ok"]').isVisible());
+  await strona.check('#form-nowy input[name="start"][value="szablon"]', { force: true });
+  await strona.click('#nowy-szablony .karta-szablonu[data-id="planer-dzienny"]');
+  await strona.waitForSelector('#nowy-szablony #gotowe-szczegoly:not([hidden])');
+  assert.equal(await strona.textContent('#gotowe-wstaw'), 'Utwórz projekt z tym szablonem');
   await strona.click('#gotowe-wstaw');
-  await strona.waitForSelector('#dlg-gotowe-sekcje', { state: 'hidden' });
+  await strona.waitForFunction(() => !document.querySelector('#dlg-nowy').open && window.seriodruk.stan.projekt?.nazwa === 'Mój planer');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.sekcje.length === 1 && window.seriodruk.stan.projekt.sekcje[0].nazwa !== 'Główna', null, { timeout: 15000 });
   const p = await strona.evaluate(() => { const x = window.seriodruk.stan.projekt; return { nazwa: x.nazwa, sekcje: x.sekcje.map((s) => s.nazwa), stron: x.strony.length, seria: Boolean(x.strony[0].seria) }; });
   assert.deepEqual(p, { nazwa: 'Mój planer', sekcje: ['Planer dzienny (365 dni)'], stron: 1, seria: true });
+  // Galeria wróciła do swojego okna – „Gotowe sekcje” w edytorze działa jak dawniej.
+  assert.equal(await strona.evaluate(() => document.querySelector('#gotowe-lista').closest('dialog').id), 'dlg-gotowe-sekcje');
   assert.deepEqual(bledy, []);
 });

@@ -201,10 +201,9 @@
       <div class="konto-uklad">
         <nav class="konto-nawigacja admin-nawigacja" aria-label="Części panelu" role="tablist">
           <a href="#/admin/skrzynka" data-admin="skrzynka" data-ikona="koperta" role="tab" title="Skrzynka"><span class="etykieta-admin">Skrzynka</span> <span class="licznik-admin" id="admin-nieprzeczytane" hidden></span></a>
-          <a href="#/admin/kolejka" data-admin="kolejka" data-ikona="wyslij" role="tab" title="Kolejka maili"><span class="etykieta-admin">Kolejka maili</span></a>
-          <a href="#/admin/ustawienia" data-admin="ustawienia" data-ikona="suwaki" role="tab" title="Ustawienia poczty"><span class="etykieta-admin">Ustawienia poczty</span></a>
+          <a href="#/admin/poczta" data-admin="poczta" data-ikona="wyslij" role="tab" title="Poczta: kolejka i ustawienia"><span class="etykieta-admin">Poczta</span></a>
           <a href="#/admin/statystyki" data-admin="statystyki" data-ikona="dane" role="tab" title="Statystyki"><span class="etykieta-admin">Statystyki</span></a>
-          <a href="#/admin/zapisy" data-admin="zapisy" data-ikona="cofnij" role="tab" title="Zapisy i kopie awaryjne"><span class="etykieta-admin">Zapisy i kopie</span></a>
+          <a href="#/admin/zapisy" data-admin="zapisy" data-ikona="cofnij" role="tab" title="Zapisy i kopie awaryjne"><span class="etykieta-admin">Kopie</span></a>
         </nav>
 
         <div class="konto-sekcje admin-sekcje">
@@ -309,7 +308,7 @@
           </section>
 
           <!-- Kolejka maili: zaproszenia, potwierdzenia z formularza, odpowiedzi z panelu -->
-          <section class="grupa-ustawien admin-panel" data-panel-admin="kolejka" hidden>
+          <section class="grupa-ustawien admin-panel" data-panel-admin="poczta" id="admin-kolejka-sekcja" hidden>
             <h2>Kolejka maili</h2>
             <p class="ciche">Maile z aplikacji (poza mailami logowania) czekają tu na wysyłkę: wychodzą po kolei, z odstępem i w granicach dziennego limitu dostawcy. Nieudane próby wracają do kolejki: po 1, 5, 15 i 60 minutach.</p>
             <div class="admin-dostawcy" id="admin-dostawcy-stan"></div>
@@ -328,7 +327,7 @@
           </section>
 
           <!-- Ustawienia poczty: nadawca, dostawcy z limitami, odstępy, test -->
-          <section class="grupa-ustawien admin-panel" data-panel-admin="ustawienia" hidden>
+          <section class="grupa-ustawien admin-panel" data-panel-admin="poczta" id="admin-ustawienia-sekcja" hidden>
             <h2>Ustawienia poczty</h2>
             <form id="admin-form-ustawien" class="wiersze-ustawien" novalidate>
               <div class="wiersz-ustawien">
@@ -380,6 +379,11 @@
           <section class="grupa-ustawien admin-panel" data-panel-admin="zapisy" hidden>
             <h2>Zapisy i kopie awaryjne</h2>
             <p class="ciche">Każdy zapis projektu – z aplikacji, z innego urządzenia albo od AI – zostawia tu poprzedni stan na 14 dni (najwyżej 200 ostatnich zapisów na projekt). Gdy coś nadpisało czyjąś pracę, przywróć stan sprzed tego zapisu.</p>
+            <div class="admin-kopie-stan" id="admin-kopie-stan">
+              <span class="ciche" id="admin-kopie-opis">Sprawdzam…</span>
+              <label class="pole pole-wiersz"><span>Starsze niż</span><select id="admin-kopie-dni"><option value="3">3 dni</option><option value="7">7 dni</option><option value="14" selected>14 dni</option><option value="30">30 dni</option></select></label>
+              <button type="button" class="przycisk" id="admin-kopie-wyczysc" data-ikona="kosz">Wyczyść stare kopie…</button>
+            </div>
             <label class="pole"><span>Projekt (id albo puste – wszystkie)</span><input id="admin-zapisy-projekt" type="text" placeholder="np. 63951b73-…" autocomplete="off"></label>
             <div class="admin-tabele" id="admin-zapisy"></div>
           </section>
@@ -971,15 +975,17 @@
           <label><input type="radio" name="start" value="szablon"><span>Gotowego szablonu</span></label>
         </div>
       </div>
-      <fieldset class="pole">
+      <!-- Gotowe szablony od razu w tym oknie (#208): tu przenosi się galeria okna „Gotowe sekcje”. -->
+      <div class="nowy-szablony" id="nowy-szablony" hidden></div>
+      <fieldset class="pole tylko-pusty">
         <legend>Format strony</legend>
         <div class="karty-formatu" id="karty-formatu"></div>
       </fieldset>
-      <div class="rzad" id="wlasny-format" hidden>
+      <div class="rzad tylko-pusty" id="wlasny-format" hidden>
         <label class="pole"><span>Szerokość (mm)</span><input name="szerokosc_mm" type="number" min="20" max="1000" step="any" inputmode="decimal"></label>
         <label class="pole"><span>Wysokość (mm)</span><input name="wysokosc_mm" type="number" min="20" max="1000" step="any" inputmode="decimal"></label>
       </div>
-      <div class="rzad">
+      <div class="rzad tylko-pusty">
         <div class="pole pole-orientacja">
           <span>Orientacja</span>
           <div class="przelacznik-segmentowy" role="radiogroup">
@@ -990,14 +996,14 @@
         <label class="pole waskie"><span>Spad (mm)</span><input name="spad_mm" type="number" min="0" max="20" step="any" value="3" inputmode="decimal"></label>
         <label class="pole waskie"><span>Marginesy (mm)</span><input name="marginesy_mm" type="number" min="0" max="100" step="any" value="10" inputmode="decimal"></label>
       </div>
-      <div class="pole">
+      <div class="pole tylko-pusty">
         <span>Układ stron</span>
         <div class="przelacznik-segmentowy" role="radiogroup">
           <label><input type="radio" name="uklad" value="pojedyncze" checked><span>Pojedyncze strony</span></label>
           <label><input type="radio" name="uklad" value="rozkladowki"><span>Rozkładówki (lewa + prawa)</span></label>
         </div>
       </div>
-      <label class="pole"><span>Okładka</span>
+      <label class="pole tylko-pusty"><span>Okładka</span>
         <select name="okladka">
           <option value="">Bez osobnej okładki</option>
           <option value="miekka">Miękka klejona – z grzbietem liczonym z liczby stron</option>
@@ -1005,8 +1011,8 @@
           <option value="twarda">Twarda – tektura z zawinięciem</option>
         </select>
       </label>
-      <p class="podpowiedz">Spad to pas za krawędzią strony, który drukarnia odcina – tła i zdjęcia „na spad” sięgają do niego. Rozkładówki wybierz dla publikacji zszywanej lub klejonej jak książka – marginesy będą lustrzane. Wszystko możesz zmienić później.</p>
-      <div class="przyciski-dialogu">
+      <p class="podpowiedz tylko-pusty">Spad to pas za krawędzią strony, który drukarnia odcina – tła i zdjęcia „na spad” sięgają do niego. Rozkładówki wybierz dla publikacji zszywanej lub klejonej jak książka – marginesy będą lustrzane. Wszystko możesz zmienić później.</p>
+      <div class="przyciski-dialogu tylko-pusty">
         <button class="przycisk" value="anuluj" formnovalidate>Anuluj</button>
         <button class="przycisk glowny" value="ok">Utwórz projekt</button>
       </div>

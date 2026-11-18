@@ -2,7 +2,7 @@
 // rendererem, filtr kategorii i szukanie; szczegóły szablonu z podglądem w formacie projektu, pytaniami
 // (rok, liczba stron), kolorami (marka albo paleta) i wstawieniem jako nowa sekcja – jednym krokiem cofania.
 // Otwierają je: lista stron („Gotowa” obok „Sekcja”), Biblioteka (kategoria „Gotowe sekcje”) i nowy projekt
-// („Zacznij od gotowego szablonu”).
+// („Zacznij od gotowego szablonu” – wtedy galeria jest od razu w oknie „Nowy projekt”, #208).
 
 import { $, powiadom } from '../ui.js';
 import { ikona } from '../ikony.js';
@@ -19,7 +19,10 @@ import { stan, biezacaSekcja } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { ustawZakladke, generujMiniatury } from './lista-stron.js';
 
-const dlg = $('#dlg-gotowe-sekcje');
+const dlgGotowe = $('#dlg-gotowe-sekcje');
+const tresc = dlgGotowe.querySelector('.gotowe');
+// Okno, w którym jest teraz galeria: własne albo „Nowy projekt” (#208).
+const okno = () => tresc.closest('dialog');
 const lista = $('#gotowe-lista');
 const chipy = $('#gotowe-kategorie');
 const pole = $('#gotowe-szukaj');
@@ -29,7 +32,8 @@ const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const bezOgonkow = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
 
 let kategoria = '';
-let tryb = { zastapPusty: false };
+// nowy: { wydruk(), utworz() } – galeria w oknie „Nowy projekt”: projektu jeszcze nie ma, powstaje przy wyborze.
+let tryb = { zastapPusty: false, nowy: null };
 const miniatury = new Map(); // klucz (szablon|format|paleta) → { url, stron }
 
 // ---------- Kolory, format i budowa próbna ----------
@@ -43,7 +47,7 @@ const czcionkiMarki = () => {
   const m = marka();
   return m ? { tytul: m.czcionki.naglowek || undefined, tekst: m.czcionki.tekst || undefined } : {};
 };
-const wydrukCelu = () => (stan.projekt ? biezacaSekcja().wydruk : null);
+const wydrukCelu = () => (tryb.nowy ? tryb.nowy.wydruk() : stan.projekt ? biezacaSekcja().wydruk : null);
 
 // Projekt próbny z samą sekcją szablonu – do miniatur i podglądu (nie dotyka projektu użytkownika).
 async function projektProbny(szablon, { odpowiedzi, wlasnyFormat, wybor } = {}) {
@@ -88,7 +92,7 @@ let rysuje = false;
 async function rysujKolejke() {
   if (rysuje) return;
   rysuje = true;
-  while (kolejka.length && dlg.open) {
+  while (kolejka.length && okno()?.open) {
     const karta = kolejka.shift();
     const s = szablonSekcji(karta.dataset.id);
     const klucz = `${s.id}|${wydrukCelu()?.szerokosc_mm}x${wydrukCelu()?.wysokosc_mm}|${marka() ? 'marka' : ''}`;
@@ -135,7 +139,7 @@ function pokazSzczegoly(id) {
     ? `<label class="pole"><span>${esc(p.etykieta)}</span><select name="${p.klucz}">${p.opcje.map(([v, n]) => `<option value="${v}"${v === odp[p.klucz] ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`
     : `<label class="pole waskie"><span>${esc(p.etykieta)}</span><input name="${p.klucz}" type="number" min="${p.min}" max="${p.max}" step="1" inputmode="numeric" value="${odp[p.klucz]}"></label>`)).join('');
   const wp = $('#gotowe-format-pole');
-  wp.hidden = !s.format;
+  wp.hidden = !s.format || Boolean(tryb.nowy); // nowy projekt: zawsze w formacie szablonu
   if (s.format) {
     const cel = wydrukCelu();
     $('#gotowe-format-opis').textContent = `Format szablonu ${s.format[0]} × ${s.format[1]} mm${cel ? ` (bez zaznaczenia – format sekcji ${cel.szerokosc_mm} × ${cel.wysokosc_mm} mm)` : ''}`;
@@ -146,6 +150,8 @@ function pokazSzczegoly(id) {
   odswiezPodglad();
   $('#gotowe-wstaw').focus();
 }
+
+const wlasnyFormat = (s) => Boolean(tryb.nowy) || $('#gotowe-wlasny-format').checked || !s.format;
 
 function odpowiedzi() {
   const o = {};
@@ -160,7 +166,7 @@ function odswiezPodglad() {
     const box = $('#gotowe-podglad');
     box.setAttribute('aria-busy', 'true');
     try {
-      const { p, ciag, egz } = await projektProbny(s, { odpowiedzi: odpowiedzi(), wlasnyFormat: $('#gotowe-wlasny-format').checked || !s.format });
+      const { p, ciag, egz } = await projektProbny(s, { odpowiedzi: odpowiedzi(), wlasnyFormat: wlasnyFormat(s) });
       const obrazy = [];
       for (const e of egz.slice(0, 3)) obrazy.push(await renderujCel(p, e, { szerokoscPx: 260, spad: false, ciag, format: 'jpeg', jakosc: 0.85 }).catch(() => null));
       if (szczegoly.dataset.id !== s.id) return;
@@ -185,7 +191,16 @@ function pokazGalerie() {
 
 async function wstaw() {
   const s = szablonSekcji(szczegoly.dataset.id);
-  if (!s || !stan.projekt) return;
+  if (!s) return;
+  // Wybory czytane przed utworzeniem projektu – „Nowy projekt” zamyka się razem z galerią.
+  const opcje = { wlasnyFormat: wlasnyFormat(s), odpowiedzi: odpowiedzi(), paleta: paleta(s), czcionki: czcionkiMarki() };
+  if (tryb.nowy) {
+    const { utworz } = tryb.nowy;
+    tryb = { zastapPusty: true, nowy: null };
+    okno().close('szablon');
+    await utworz(s.format && !s.okladka ? { szerokosc_mm: s.format[0], wysokosc_mm: s.format[1] } : null);
+  }
+  if (!stan.projekt) return;
   if (s.okladka && stan.projekt.sekcje.some((x) => x.okladka)) {
     powiadom('Projekt ma już okładkę – zmień ją w ustawieniach sekcji okładki albo usuń, zanim wstawisz nową.', true);
     return;
@@ -194,13 +209,10 @@ async function wstaw() {
   const p = stan.projekt;
   const pusty = tryb.zastapPusty && projektPusty(p);
   const indeks = p.sekcje.indexOf(biezacaSekcja());
-  const { sekcja, strony } = await wstawGotowaSekcje(p, s.id, {
-    wydruk: biezacaSekcja().wydruk, wlasnyFormat: $('#gotowe-wlasny-format').checked || !s.format, odpowiedzi: odpowiedzi(),
-    paleta: paleta(s), czcionki: czcionkiMarki(), poIndeksie: indeks,
-  });
+  const { sekcja, strony } = await wstawGotowaSekcje(p, s.id, { wydruk: biezacaSekcja().wydruk, ...opcje, poIndeksie: indeks });
   if (pusty) usunPustyStart(p, sekcja);
   przeliczOkladki(p);
-  dlg.close();
+  if (dlgGotowe.open) dlgGotowe.close();
   stan.miniatury.clear();
   stan.tryb = 'strona';
   stan.indeks = Math.max(0, p.strony.indexOf(strony[0]));
@@ -214,14 +226,41 @@ async function wstaw() {
 
 // ---------- Otwieranie ----------
 
-export function otworzGotoweSekcje({ szablon = null, zastapPusty = false } = {}) {
-  if (!stan.projekt) return;
-  tryb = { zastapPusty };
+// Galeria w oknie „Nowy projekt” (#208): miejsce – element w tym oknie; wydruk() – format z formularza;
+// utworz(format) – tworzy i otwiera pusty projekt (format szablonu, gdy ma własny), do którego wstawi się szablon.
+export function pokazWNowymProjekcie(miejsce, { wydruk, utworz }) {
+  tryb = { zastapPusty: true, nowy: { wydruk, utworz } };
+  if (tresc.parentElement !== miejsce) { miejsce.append(tresc); lista.replaceChildren(); }
+  przygotuj();
+  pole.value = '';
+  pokazGalerie();
+}
+
+// Powrót galerii do jej własnego okna (wybrany „Pustej strony” albo zamknięte „Nowy projekt”).
+export function schowajZNowegoProjektu() {
+  if (tresc.parentElement === dlgGotowe) return;
+  dlgGotowe.append(tresc);
+  kolejka.length = 0;
+  if (tryb.nowy) tryb = { zastapPusty: false, nowy: null };
+}
+
+function przygotuj() {
   const sel = $('#gotowe-paleta');
   sel.innerHTML = `${marka() ? '<option value="marka">Kolory marki</option>' : ''}<option value="">Kolory szablonu</option>${Object.entries(PALETY).map(([k, v]) => `<option value="${k}">${esc(v.nazwa)}</option>`).join('')}`;
   sel.value = marka() ? 'marka' : '';
   pokazChipy();
-  if (!dlg.open) dlg.showModal();
+  $('#gotowe-wstaw').textContent = tryb.nowy ? 'Utwórz projekt z tym szablonem' : 'Wstaw jako nową sekcję';
+  galeria.querySelector('.gotowe-wstep').textContent = tryb.nowy
+    ? 'Wybierz szablon – projekt powstanie w jego formacie i w kolorach marki, a potem zmieniasz go jak zwykłe strony.'
+    : 'Całe gotowe dokumenty: kalendarze, planery, zaproszenia, dyplomy, ulotki, rozdziały książki… Wstawiają się jako nowa sekcja w formacie projektu i w kolorach marki – potem zmieniasz je jak zwykłe strony.';
+}
+
+export function otworzGotoweSekcje({ szablon = null, zastapPusty = false } = {}) {
+  if (!stan.projekt) return;
+  schowajZNowegoProjektu();
+  tryb = { zastapPusty, nowy: null };
+  przygotuj();
+  if (!dlgGotowe.open) dlgGotowe.showModal();
   if (szablon) pokazSzczegoly(szablon);
   else { pole.value = ''; pokazGalerie(); }
 }
@@ -240,8 +279,10 @@ lista.addEventListener('click', (e) => {
 });
 $('#gotowe-wroc').addEventListener('click', pokazGalerie);
 $('#gotowe-wstaw').addEventListener('click', wstaw);
-$('#gotowe-zamknij').addEventListener('click', () => dlg.close());
+$('#gotowe-zamknij').addEventListener('click', () => okno()?.close());
+// Enter w szukaniu i pytaniach nie wysyła formularza „Nowy projekt”.
+tresc.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('input')) e.preventDefault(); });
 for (const id of ['#gotowe-paleta', '#gotowe-wlasny-format']) $(id).addEventListener('change', odswiezPodglad);
 $('#gotowe-pytania').addEventListener('change', odswiezPodglad);
 $('#gotowe-wroc').insertAdjacentHTML('afterbegin', ikona('wstecz', { rozmiar: 16 }));
-dlg.addEventListener('close', () => { kolejka.length = 0; });
+dlgGotowe.addEventListener('close', () => { kolejka.length = 0; });

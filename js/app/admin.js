@@ -9,7 +9,10 @@ import { $, $$, powiadom, kiedy } from '../ui.js';
 import { stan, trasa } from './kontekst.js';
 import { rysujSkrzynke, sledzSkrzynke, przestanSledzic, przebiegKolejki } from './skrzynka.js';
 
-const ZAKLADKI = ['skrzynka', 'kolejka', 'ustawienia', 'statystyki', 'zapisy'];
+// Kolejka i ustawienia poczty to jedna zakładka „Poczta” (#207); dawne adresy #/admin/kolejka i
+// #/admin/ustawienia prowadzą do niej, przewinięte do swojej części.
+const ZAKLADKI = ['skrzynka', 'poczta', 'statystyki', 'zapisy'];
+const STARE = { kolejka: 'admin-kolejka-sekcja', ustawienia: 'admin-ustawienia-sekcja' };
 let zakladka = 'skrzynka';
 let stanKolejki = '';
 let czyAdmin = null; // { konto, tak }
@@ -45,20 +48,22 @@ const mb = (b) => (b >= 1024 ** 3 ? `${(b / 1024 ** 3).toFixed(2)} GB` : b >= 10
 const blad = (e) => powiadom(komunikatBledu(e), true);
 
 export async function pokazPanel(nazwa = 'skrzynka') {
+  const czesc = STARE[nazwa];
+  if (czesc) nazwa = 'poczta';
   zakladka = ZAKLADKI.includes(nazwa) ? nazwa : 'skrzynka';
   for (const a of $$('[data-admin]')) a.setAttribute('aria-selected', String(a.dataset.admin === zakladka));
   for (const s of $$('[data-panel-admin]')) s.hidden = s.dataset.panelAdmin !== zakladka;
   $('#ekran-admin').dataset.zakladka = zakladka;
   document.title = 'Panel administratora – Makietka';
   await odswiez();
+  if (czesc) document.getElementById(czesc)?.scrollIntoView({ block: 'start' });
 }
 
 export async function odswiez() {
   try {
     if (zakladka === 'skrzynka') await rysujSkrzynke();
-    else if (zakladka === 'kolejka') await rysujKolejke();
-    else if (zakladka === 'ustawienia') await rysujUstawienia();
-    else if (zakladka === 'zapisy') await rysujZapisy();
+    else if (zakladka === 'poczta') await Promise.all([rysujKolejke(), rysujUstawienia()]);
+    else if (zakladka === 'zapisy') await Promise.all([rysujZapisy(), rysujStanKopii()]);
     else await rysujStatystyki();
   } catch (e) { blad(e); }
 }
@@ -82,7 +87,28 @@ async function rysujZapisy() {
       </tr>`).join('')}</tbody></table>`
     : '<p class="ciche">Brak zapisów w ostatnich 14 dniach.</p>';
 }
+// Sprzątanie kopii (#207): kopie sprzątają się przy zapisie swojego projektu – porzucone i usunięte projekty
+// zostawiały je na zawsze. Tu stan wszystkich kopii i usunięcie starszych niż wybrana liczba dni.
+async function rysujStanKopii() {
+  const k = await rpc('admin_kopie_stan');
+  const n = (x) => Number(x || 0).toLocaleString('pl-PL');
+  $('#admin-kopie-opis').textContent = `Kopie: ${n(k.kopie)} zapisów, ${n(k.strony)} stron · ${mb(Number(k.rozmiar || 0))}`
+    + `${k.starsze_14 ? ` · starszych niż 14 dni: ${n(k.starsze_14)}` : ''}`
+    + `${k.usuniete_projekty ? ` · z usuniętych projektów: ${n(k.usuniete_projekty)}` : ''}`
+    + `${k.najstarsza ? ` · najstarsza: ${kiedy(k.najstarsza)}` : ''}`;
+}
 document.addEventListener('click', async (e) => {
+  if (e.target.closest('#admin-kopie-wyczysc')) {
+    const dni = Number($('#admin-kopie-dni').value) || 14;
+    const { potwierdz } = await import('../ui.js');
+    if (!await potwierdz('Wyczyścić stare kopie?', `Kopie, strony i wpisy dziennika starsze niż ${dni} dni znikną ze wszystkich projektów – takich stanów nie da się już przywrócić. Projekty i ich obecna treść zostają.`, 'Wyczyść', true)) return;
+    try {
+      const w = await rpc('admin_kopie_wyczysc', { p_dni: dni });
+      powiadom(`Usunięto kopie: ${w.kopie} zapisów, ${w.strony} stron, ${w.dziennik} wpisów dziennika.`);
+      await Promise.all([rysujZapisy(), rysujStanKopii()]);
+    } catch (err) { blad(err); }
+    return;
+  }
   const filtr = e.target.closest('[data-filtr-projektu]');
   if (filtr) { $('#admin-zapisy-projekt').value = filtr.dataset.filtrProjektu; rysujZapisy().catch(blad); return; }
   const b = e.target.closest('[data-przywroc]');

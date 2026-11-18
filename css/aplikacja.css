@@ -2093,7 +2093,7 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
    wąskim ekranie osobne ekrany (lista → rozmowa → pisanie). Zakładka skrzynki zwija nawigację panelu do ikon. */
 #ekran-admin[data-zakladka="skrzynka"] .admin-tresc { overflow: hidden; }
 #ekran-admin[data-zakladka="skrzynka"] .admin-tresc .konto-uklad {
-  max-width: none; height: 100%; padding: 12px 16px 12px 12px; gap: 12px; grid-template-columns: 52px minmax(0, 1fr); align-items: stretch;
+  max-width: none; height: 100%; padding: 12px 16px 12px 12px; gap: 12px; grid-template-columns: 64px minmax(0, 1fr); align-items: stretch;
 }
 @media (hover: hover) { .lista-watkow button:hover { background: var(--wypelnienie); } }
 .lista-watkow button:focus-visible { outline: 2px solid var(--akcent); outline-offset: -2px; }
@@ -2105,9 +2105,10 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 .lista-watkow li.nowy .od, .lista-watkow li.nowy .temat { font-weight: 700; }
 .lista-watkow .plakietka-zrodla { font-size: 11px; color: var(--cichy); border: 1px solid var(--linia); border-radius: 999px; padding: 0 6px; margin-left: 6px; font-weight: 500; }
 #ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja { top: 0; }
-#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja a { justify-content: center; padding: 9px 0; position: relative; }
-#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja .etykieta-admin { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja .licznik-admin { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; font-size: 10.5px; padding: 0 4px; }
+/* Pasek zakładek przy skrzynce: ikona z krótkim podpisem pod spodem (#207 – same ikony były nieczytelne). */
+#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja a { flex-direction: column; justify-content: center; gap: 3px; padding: 8px 0 6px; position: relative; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja .etykieta-admin { font-size: 10.5px; font-weight: 500; line-height: 1.1; white-space: nowrap; }
+#ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja .licznik-admin { position: absolute; top: 1px; right: 4px; min-width: 17px; height: 17px; font-size: 10.5px; padding: 0 4px; }
 #ekran-admin[data-zakladka="skrzynka"] .admin-sekcje { min-height: 0; height: 100%; }
 .admin-panel-skrzynka { height: 100%; min-height: 0; }
 #pozycja-admin .licznik-admin { margin-left: auto; }
@@ -2330,8 +2331,7 @@ button.zalacznik:hover { border-color: var(--akcent); color: var(--akcent); }
 /* Telefon i wąskie okno: osobne ekrany – foldery (pasek) i lista → rozmowa → pisanie; „Napisz” w rogu. */
 @media (max-width: 900px) {
   #ekran-admin[data-zakladka="skrzynka"] .admin-tresc .konto-uklad { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); padding: 0; gap: 0; }
-  #ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja { position: static; flex-direction: row; justify-content: center; gap: 4px; padding: 4px 8px; border-bottom: 1px solid var(--linia); }
-  #ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja a { width: 52px; flex: none; }
+  #ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja { border-bottom: 1px solid var(--linia); }
   .skrzynka { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); border: 0; border-radius: 0; min-height: 0; }
   .skrzynka-foldery { flex-direction: row; align-items: center; padding: 8px 10px; border-right: 0; border-bottom: 1px solid var(--linia); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
   .lista-folderow { flex-direction: row; gap: 6px; }
@@ -2348,6 +2348,10 @@ button.zalacznik:hover { border-color: var(--akcent); color: var(--akcent); }
   .skrzynka[data-widok="lista"] .skrzynka-podglad { display: none; }
   .skrzynka:not([data-widok="lista"]) .skrzynka-podglad, .skrzynka:not([data-widok="lista"]) .skrzynka-pisz { grid-row: 1 / -1; }
   .lista-watkow { padding-bottom: 84px; }
+  /* Pasek stron listy nie chowa się pod przyciskiem „Napisz”; filtry w jednym rzędzie, przewijane. */
+  .skrzynka-stopka { padding-right: calc(150px + env(safe-area-inset-right)); }
+  .skrzynka-filtry { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .skrzynka-filtry .chip { flex: none; }
   .watek-wstecz, .pisz-wstecz { display: inline-flex; }
   .pisz-zamknij { display: none; }
   .watek-pasek { justify-content: space-between; }
@@ -3527,3 +3531,37 @@ img:not([src]):not(.zaladowany) { color: transparent; }
 .menu-motywu { position: fixed; top: 0; right: 8px; left: auto; min-width: 200px; z-index: 2000; }
 .menu-motywu button[aria-checked="true"] { background: var(--akcent-tlo); color: var(--akcent); font-weight: 600; }
 .menu-motywu button[aria-checked="true"] .ikona { color: var(--akcent); }
+
+/* Panel administratora na telefonie i w wąskim oknie (#207): zakładki zawsze na górze, równe, z ikoną i podpisem –
+   bez przewijania w bok i bez obcinania (dawniej na skrzynce same ikony, na innych zakładkach ucięty pasek). */
+@media (max-width: 900px) {
+  #ekran-admin .admin-nawigacja {
+    position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px;
+    padding: 4px 6px; margin: 0; background: var(--tlo); overflow: visible; flex-direction: row;
+  }
+  #ekran-admin .admin-nawigacja a {
+    flex-direction: column; justify-content: center; align-items: center; gap: 3px; min-height: 52px; padding: 6px 2px;
+    position: relative; width: auto; white-space: nowrap;
+  }
+  #ekran-admin .admin-nawigacja .etykieta-admin {
+    position: static; width: auto; height: auto; clip: auto; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    font-size: 11.5px; font-weight: 500; line-height: 1.1;
+  }
+  #ekran-admin .admin-nawigacja .licznik-admin {
+    position: absolute; top: 2px; left: calc(50% + 6px); right: auto; margin: 0; min-width: 17px; height: 17px; font-size: 10.5px; padding: 0 4px;
+  }
+  #ekran-admin .admin-tresc .konto-uklad { grid-template-columns: minmax(0, 1fr); }
+  #ekran-admin:not([data-zakladka="skrzynka"]) .admin-tresc .konto-uklad { padding-top: 0; gap: 16px; }
+}
+/* Sprzątanie kopii (#207) */
+.admin-kopie-stan { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; padding: 12px; margin-bottom: 12px; border: 1px solid var(--linia); border-radius: var(--r-m); }
+.admin-kopie-stan > .ciche { flex: 1 1 100%; }
+.admin-kopie-stan .pole { margin: 0; }
+
+/* Nowy projekt z gotowego szablonu (#208): galeria szablonów od razu w oknie „Nowy projekt”, bez pól formatu. */
+#form-nowy[data-start="szablon"] .tylko-pusty { display: none !important; }
+#dlg-nowy:has(#form-nowy[data-start="szablon"]) { width: min(900px, calc(100vw - 32px)); max-width: none; }
+.nowy-szablony[hidden] { display: none; }
+.nowy-szablony .gotowe { padding: 0; max-height: none; }
+.nowy-szablony .gotowe > .naglowek-dialogu { display: none; }
+.nowy-szablony .gotowe-lista { overflow: visible; }
