@@ -17,6 +17,7 @@ import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
 import { DOSTAWCY } from '../ai-dostawcy.js';
+import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
@@ -146,36 +147,6 @@ function przyciskiZakresu(nazwa, zakres) {
   return w;
 }
 
-// Zmiana zakresu istniejącego klucza – w miejscu, pod kluczem na liście.
-function edytorZakresu(li, d) {
-  const box = document.createElement('div');
-  box.className = 'zmiana-zakresu';
-  const radia = przyciskiZakresu(`zakres-${d.id}`, d.zakres);
-  const lista = document.createElement('div');
-  lista.className = 'lista-projektow-klucza';
-  listaWyboru(lista, new Set((d.projekty || []).map((p) => p.id)));
-  const pokaz = () => { lista.hidden = radia.querySelector('input:checked')?.value === 'pelny'; };
-  radia.addEventListener('change', pokaz);
-  pokaz();
-  const zapisz = document.createElement('button');
-  zapisz.type = 'button';
-  zapisz.className = 'przycisk glowny';
-  zapisz.textContent = 'Zapisz zakres';
-  zapisz.addEventListener('click', async () => {
-    const zakres = radia.querySelector('input:checked')?.value || 'wybrane';
-    try {
-      await chmura.zmienDostepAi(d.id, { zakres, projekty: zakres === 'pelny' ? [] : wybrane(lista) });
-      powiadom('Zakres klucza zmieniony – adres łącznika zostaje ten sam.');
-      odswiezListe();
-    } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
-  });
-  const rzad = document.createElement('div');
-  rzad.className = 'rzad-przyciskow';
-  rzad.append(zapisz);
-  box.append(radia, lista, rzad);
-  li.append(box);
-}
-
 // ---------- Lista kluczy (#248): trzy sekcje – czat w Makietce, łącznik w aplikacji AI, zwykły czat ----------
 // Klucz dostępu trafia do sekcji według „sposob” (ustawiany przy tworzeniu); starsze klucze – z opisu.
 const sposobKlucza = (d) => d.sposob || (d.opis === 'Czat w Makietce' ? 'czat' : 'lacznik');
@@ -184,6 +155,7 @@ const wSejfie = (id) => `dostep:${id}`;
 const DNI = [['1', '1 dzień'], ['7', '7 dni'], ['30', '30 dni'], ['90', '90 dni'], ['365', 'rok'], ['bez', 'bez terminu']];
 
 const przyciskAi = (tekst, fn, klasa = '') => { const b = Object.assign(document.createElement('button'), { type: 'button', className: `przycisk${klasa ? ` ${klasa}` : ''}`, textContent: tekst }); b.addEventListener('click', fn); return b; };
+const el = (tag, wlasnosci = {}, ...dzieci) => { const e = Object.assign(document.createElement(tag), wlasnosci); e.append(...dzieci); return e; };
 
 function pokazPusto() {
   for (const sekcja of document.querySelectorAll('#dostep-ai .sekcja-kluczy-ai')) {
@@ -192,87 +164,144 @@ function pokazPusto() {
   }
 }
 
-// Rozwijane miejsce pod kluczem (pokazanie klucza, ważność, zakres) – jedno naraz.
-function rozwin(li, klasa, zbuduj) {
-  const bylo = li.querySelector(`.${klasa}`);
-  for (const x of li.querySelectorAll('.klucz-pokazany, .zmiana-waznosci, .zmiana-zakresu')) x.remove();
-  if (!bylo) zbuduj();
-}
-
 async function kopiujTekst(tekst, co) {
   try { await navigator.clipboard.writeText(tekst); powiadom(`${co} skopiowany.`); } catch { powiadom('Nie udało się skopiować – zaznacz tekst i skopiuj go ręcznie.', true); }
 }
 
-// „Pokaż klucz”: z sejfu (hasło do kluczy) – adres łącznika albo polecenie dla zwykłego czatu, do skopiowania.
-async function pokazKlucz(li, d) {
+// ---------- Edycja klucza – okienko (#248), spójne z dodawaniem ----------
+
+function oknoEdycji(tytul) {
+  let dlg = $('#dlg-edytuj-klucz-ai');
+  if (!dlg) {
+    dlg = el('dialog', { id: 'dlg-edytuj-klucz-ai', className: 'dialog-szeroki' });
+    document.body.append(dlg);
+    dlg.addEventListener('close', () => { dlg.querySelector('.formularz')?.remove(); rysujDostawcow(); odswiezListe(); document.dispatchEvent(new CustomEvent('makietka:klucze-ai')); });
+  }
+  dlg.querySelector('.formularz')?.remove();
+  const zamknij = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona' });
+  zamknij.dataset.ikona = 'zamknij';
+  zamknij.setAttribute('aria-label', 'Zamknij');
+  zamknij.addEventListener('click', () => dlg.close());
+  const tresc = el('div', { className: 'formularz' }, el('div', { className: 'naglowek-dialogu' }, el('h2', { textContent: tytul }), zamknij));
+  dlg.append(tresc);
+  wstawIkony(dlg);
+  return { dlg, tresc };
+}
+
+// Miejsce na pokazany klucz: przycisk „Pokaż klucz” → tekst do skopiowania (z sejfu).
+function miejsceKlucza(pobierz) {
+  const box = el('div', { className: 'klucz-pokazany' });
+  const pokaz = przyciskAi('Pokaż klucz', async () => {
+    const w = await pobierz();
+    if (!w) return;
+    box.replaceChildren(...(w.brak
+      ? [el('p', { className: 'podpowiedz', textContent: w.brak })]
+      : [el('pre', { textContent: w.tekst }), el('div', { className: 'rzad-przyciskow' }, ...w.przyciski)]));
+  });
+  box.append(pokaz);
+  return box;
+}
+
+async function kluczZSejfu(nazwa) {
   const s = sejfKonta();
   const st = s ? await s.stan().catch(() => 'brak') : 'brak';
-  const sejf = st === 'brak' ? null : await otwartySejf();
-  if (st !== 'brak' && !sejf) return;
-  rozwin(li, 'klucz-pokazany', () => {
-    const box = Object.assign(document.createElement('div'), { className: 'klucz-pokazany' });
-    const klucz = sejf?.klucz(wSejfie(d.id));
-    if (!klucz) {
-      box.append(Object.assign(document.createElement('p'), { className: 'podpowiedz', textContent: 'Tego klucza Makietka nie zapamiętała (utworzony wcześniej, przez logowanie w aplikacji AI albo bez hasła do kluczy). Jeśli go nie masz – odbierz go i dodaj nowy.' }));
-    } else {
-      const adres = adresLacznika(klucz);
-      const tekst = sposobKlucza(d) === 'zwykly' ? polecenieZwyklegoCzatu(adres) : adres;
-      box.append(Object.assign(document.createElement('pre'), { textContent: tekst }));
-      const rzad = Object.assign(document.createElement('div'), { className: 'rzad-przyciskow' });
-      rzad.append(przyciskAi(sposobKlucza(d) === 'zwykly' ? 'Kopiuj polecenie' : 'Kopiuj adres', () => kopiujTekst(tekst, sposobKlucza(d) === 'zwykly' ? 'Tekst' : 'Adres')),
-        przyciskAi('Kopiuj sam klucz', () => kopiujTekst(klucz, 'Klucz')));
-      box.append(rzad);
-    }
-    li.append(box);
-  });
+  if (st === 'brak') return '';
+  const sejf = await otwartySejf();
+  if (!sejf) return null;
+  return sejf.klucz(nazwa) || '';
 }
 
-// Zmiana czasu ważności – od teraz (działa też dla klucza, który wygasł).
-function edytorWaznosci(li, d) {
-  rozwin(li, 'zmiana-waznosci', () => {
-    const box = Object.assign(document.createElement('div'), { className: 'zmiana-waznosci' });
-    const wybor = document.createElement('select');
-    wybor.setAttribute('aria-label', 'Nowy czas ważności');
-    wybor.append(...DNI.map(([v, t]) => new Option(v === 'bez' ? t : `${t} od dziś`, v)));
-    wybor.value = d.wazny_do ? '30' : 'bez';
-    box.append(Object.assign(document.createElement('span'), { textContent: 'Ważny przez' }), wybor, przyciskAi('Zapisz ważność', async () => {
-      try {
-        await chmura.zmienWaznoscAi(d.id, wybor.value === 'bez' ? null : Number(wybor.value));
-        powiadom('Ważność klucza zmieniona – adres zostaje ten sam.');
-        odswiezListe();
-      } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
-    }, 'glowny'));
-    li.append(box);
-  });
-}
+export function edytujKluczAi(d) {
+  const { dlg, tresc } = oknoEdycji(`Klucz: ${d.opis || 'bez opisu'}`);
+  const sposob = sposobKlucza(d);
+  tresc.append(el('p', { className: 'podpowiedz', textContent: `${ROLE[d.rola] || d.rola} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` }));
 
-function wierszKlucza(d) {
-  const li = document.createElement('li');
-  li.dataset.id = d.id;
-  const opis = document.createElement('div');
-  const tytul = document.createElement('strong');
-  tytul.textContent = d.opis || 'Klucz bez opisu';
-  const zakres = Object.assign(document.createElement('span'), { className: 'zakres-opis', textContent: opisZakresu(d) });
-  const szczegoly = Object.assign(document.createElement('span'), { className: 'ciche' });
-  szczegoly.textContent = `${ROLE[d.rola] || d.rola} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}`;
-  opis.append(tytul, zakres, szczegoly);
-  const akcje = Object.assign(document.createElement('div'), { className: 'klucz-akcje' });
-  akcje.append(
-    przyciskAi('Pokaż klucz', () => pokazKlucz(li, d)),
-    przyciskAi('Zmień zakres', () => rozwin(li, 'zmiana-zakresu', () => edytorZakresu(li, d))),
-    przyciskAi('Ważność', () => edytorWaznosci(li, d)),
-    przyciskAi('Odbierz', async () => {
+  // Klucz jeszcze raz.
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: sposob === 'zwykly' ? 'Polecenie dla czatu' : 'Adres łącznika' }), miejsceKlucza(async () => {
+    const klucz = await kluczZSejfu(wSejfie(d.id));
+    if (klucz === null) return null;
+    if (!klucz) return { brak: 'Tego klucza Makietka nie zapamiętała (utworzony wcześniej, przez logowanie w aplikacji AI albo bez hasła do kluczy). Jeśli go nie masz – odbierz go i dodaj nowy.' };
+    const adres = adresLacznika(klucz);
+    const tekst = sposob === 'zwykly' ? polecenieZwyklegoCzatu(adres) : adres;
+    return { tekst, przyciski: [przyciskAi(sposob === 'zwykly' ? 'Kopiuj polecenie' : 'Kopiuj adres', () => kopiujTekst(tekst, sposob === 'zwykly' ? 'Tekst' : 'Adres')), przyciskAi('Kopiuj sam klucz', () => kopiujTekst(klucz, 'Klucz'))] };
+  })));
+
+  // Zakres.
+  const radia = przyciskiZakresu(`zakres-${d.id}`, d.zakres);
+  const lista = el('div', { className: 'lista-projektow-klucza' });
+  listaWyboru(lista, new Set((d.projekty || []).map((p) => p.id)));
+  const pokazListe = () => { lista.hidden = radia.querySelector('input:checked')?.value === 'pelny'; };
+  radia.addEventListener('change', pokazListe);
+  pokazListe();
+  tresc.append(el('fieldset', { className: 'grupa-pol zmiana-zakresu' }, el('legend', { textContent: 'Zakres' }), radia, lista));
+
+  // Ważność – od dziś.
+  const wybor = el('select', { id: 'edytuj-klucz-dni' });
+  wybor.append(new Option('bez zmian', ''), ...DNI.map(([v, t]) => new Option(v === 'bez' ? t : `${t} od dziś`, v)));
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Ważność' }),
+    el('label', { className: 'pole' }, el('span', { textContent: d.aktywny ? `Teraz: ${opisWaznosci(d)}` : 'Klucz wygasł – ustaw nowy czas' }), wybor)));
+
+  const blad = el('p', { className: 'blad-polaczenia', hidden: true });
+  blad.setAttribute('role', 'alert');
+  tresc.append(blad, el('div', { className: 'przyciski-dialogu' },
+    przyciskAi('Odbierz klucz', async () => {
       if (!await potwierdz('Odebrać klucz?', `Klucz „${d.opis || 'bez opisu'}” przestanie działać od razu – AI straci dostęp do wszystkich projektów tego klucza.`, 'Odbierz', true)) return;
       try {
         await chmura.odwolajDostepAi(d.id);
         const s = sejfKonta();
         if (s && s.klucz(wSejfie(d.id))) await s.ustaw(wSejfie(d.id), '').catch(() => {});
         powiadom('Klucz odebrany.');
-      } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
-      odswiezListe();
+        dlg.close();
+      } catch (e) { blad.textContent = chmura.komunikatBledu(e); blad.hidden = false; }
     }, 'niebezpieczny'),
-  );
-  li.append(opis, akcje);
+    przyciskAi('Zapisz zmiany', async () => {
+      try {
+        const zakres = radia.querySelector('input:checked')?.value || 'wybrane';
+        const projektyNowe = zakres === 'pelny' ? [] : wybrane(lista);
+        const stare = (d.projekty || []).map((p) => p.id).sort().join();
+        if (zakres !== d.zakres || (zakres === 'wybrane' && projektyNowe.slice().sort().join() !== stare)) await chmura.zmienDostepAi(d.id, { zakres, projekty: projektyNowe });
+        if (wybor.value) await chmura.zmienWaznoscAi(d.id, wybor.value === 'bez' ? null : Number(wybor.value));
+        powiadom('Klucz zmieniony – adres zostaje ten sam.');
+        dlg.close();
+      } catch (e) { blad.textContent = chmura.komunikatBledu(e); blad.hidden = false; }
+    }, 'glowny')));
+  if (!dlg.open) dlg.showModal();
+  // Projekty mogą jeszcze dochodzić (pierwsze otwarcie) – odśwież listę wyboru, gdy będą.
+  if (!projekty.length) wczytajProjekty().then(() => { listaWyboru(lista, new Set((d.projekty || []).map((p) => p.id))); pokazListe(); }).catch(() => {});
+}
+
+function edytujKluczDostawcy(id) {
+  const d = DOSTAWCY[id];
+  const { dlg, tresc } = oknoEdycji(`Klucz API: ${d.nazwa}`);
+  const s = sejfKonta();
+  tresc.append(el('p', { className: 'podpowiedz', textContent: `Do Asystenta AI w edytorze. Zaszyfrowany Twoim hasłem do kluczy (…${s.klucz(id).slice(-4)}).` }));
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Klucz' }), miejsceKlucza(async () => ({
+    tekst: s.klucz(id), przyciski: [przyciskAi('Kopiuj', () => kopiujTekst(s.klucz(id), 'Klucz'))],
+  }))));
+  const nowy = el('input', { type: 'password', id: 'edytuj-klucz-dostawcy', autocomplete: 'off', spellcheck: false, placeholder: 'Wklej nowy klucz, żeby zamienić' });
+  const gdzie = d.kluczUrl ? el('a', { href: d.kluczUrl, target: '_blank', rel: 'noopener', textContent: 'Gdzie wziąć klucz?' }) : '';
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Zamień klucz' }), el('label', { className: 'pole' }, el('span', { textContent: 'Nowy klucz API' }), nowy), el('p', { className: 'podpowiedz' }, gdzie)));
+  tresc.append(el('div', { className: 'przyciski-dialogu' },
+    przyciskAi('Usuń klucz', async () => {
+      if (!await potwierdz(`Usunąć klucz ${d.nazwa}?`, 'Asystent AI nie będzie mógł używać tego dostawcy, dopóki nie wkleisz klucza od nowa.', 'Usuń', true)) return;
+      await s.ustaw(id, '');
+      dlg.close();
+    }, 'niebezpieczny'),
+    przyciskAi('Zapisz', async () => {
+      const v = nowy.value.trim();
+      if (v) { await s.ustaw(id, v); powiadom(`Klucz ${d.nazwa} zamieniony.`); }
+      dlg.close();
+    }, 'glowny')));
+  if (!dlg.open) dlg.showModal();
+}
+
+function wierszKlucza(d) {
+  const li = document.createElement('li');
+  li.dataset.id = d.id;
+  const zakres = el('span', { className: 'zakres-opis', textContent: opisZakresu(d) });
+  const szczegoly = el('span', { className: 'ciche', textContent: `${ROLE[d.rola] || d.rola} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` });
+  li.append(el('div', {}, el('strong', { textContent: d.opis || 'Klucz bez opisu' }), zakres, szczegoly),
+    el('div', { className: 'klucz-akcje' }, przyciskAi('Edytuj', () => edytujKluczAi(d))));
   return li;
 }
 
@@ -296,7 +325,7 @@ function pokazZakresNowego() {
   $('#dostep-ai-projekty').hidden = pelny;
 }
 
-// Klucze API dostawców (sejf): zapisane – z „Pokaż”, „Zmień”, „Usuń”; sejf zamknięty na tym urządzeniu – „Otwórz”.
+// Klucze API dostawców (sejf): zapisane – z „Edytuj”; sejf zamknięty na tym urządzeniu – „Otwórz”.
 async function rysujDostawcow() {
   const lista = $('#ai-dostawcy-lista');
   const akcje = $('#ai-sejf-akcje');
@@ -304,36 +333,15 @@ async function rysujDostawcow() {
   if (!s) return;
   let st;
   try { st = await s.stan(); } catch (e) { lista.replaceChildren(); powiadom(chmura.komunikatBledu(e), true); return; }
-  const wiersz = (tytul, opis, ...przyciski) => {
-    const li = document.createElement('li');
-    const o = document.createElement('div');
-    o.append(Object.assign(document.createElement('strong'), { className: 'nazwa-dostawcy', textContent: tytul }), Object.assign(document.createElement('span'), { className: 'stan-klucza', textContent: opis }));
-    const a = Object.assign(document.createElement('div'), { className: 'klucz-akcje' });
-    a.append(...przyciski);
-    li.append(o, a);
-    return li;
-  };
+  const wiersz = (tytul, opis, przycisk) => el('li', {},
+    el('div', {}, el('strong', { className: 'nazwa-dostawcy', textContent: tytul }), el('span', { className: 'stan-klucza', textContent: opis })),
+    el('div', { className: 'klucz-akcje' }, przycisk));
   if (st === 'zamkniety') {
     lista.replaceChildren(wiersz('Klucze API dostawców', 'zaszyfrowane – na tym urządzeniu podaj hasło do kluczy',
       przyciskAi('Otwórz', async () => { if (await otwartySejf()) { rysujDostawcow(); odswiezListe(); } }, 'glowny')));
   } else {
-    lista.replaceChildren(...Object.entries(DOSTAWCY).filter(([id, d]) => !d.bezKlucza && st === 'otwarty' && s.klucz(id)).map(([id, d]) => {
-      const li = wiersz(d.nazwa, `klucz API · zaszyfrowany (…${s.klucz(id).slice(-4)})`);
-      li.querySelector('.klucz-akcje').append(
-        przyciskAi('Pokaż klucz', () => rozwin(li, 'klucz-pokazany', () => {
-          const box = Object.assign(document.createElement('div'), { className: 'klucz-pokazany' });
-          box.append(Object.assign(document.createElement('pre'), { textContent: s.klucz(id) }), przyciskAi('Kopiuj', () => kopiujTekst(s.klucz(id), 'Klucz')));
-          li.append(box);
-        })),
-        przyciskAi('Zmień', () => dodajKluczAi('czat', { dostawca: id })),
-        przyciskAi('Usuń', async () => {
-          if (!await potwierdz(`Usunąć klucz ${d.nazwa}?`, 'Asystent AI nie będzie mógł używać tego dostawcy, dopóki nie wkleisz klucza od nowa.', 'Usuń', true)) return;
-          await s.ustaw(id, '');
-          rysujDostawcow();
-        }, 'niebezpieczny'),
-      );
-      return li;
-    }));
+    lista.replaceChildren(...Object.entries(DOSTAWCY).filter(([id, d]) => !d.bezKlucza && st === 'otwarty' && s.klucz(id))
+      .map(([id, d]) => wiersz(d.nazwa, `klucz API · zaszyfrowany (…${s.klucz(id).slice(-4)})`, przyciskAi('Edytuj', () => edytujKluczDostawcy(id)))));
   }
   akcje.replaceChildren(...(st === 'otwarty'
     ? [przyciskAi('Zamknij klucze na tym urządzeniu', async () => { await s.zamknij(); rysujDostawcow(); }),

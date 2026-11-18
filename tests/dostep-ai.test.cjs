@@ -89,13 +89,14 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   await oknoAi(strona, { zaznacz: false, tryb: 'lista' });
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai .lista-dostepow li').length === 2);
   assert.match(await strona.textContent('#dostep-ai'), /ostatnio użyty/);
-  // Zmiana zakresu w miejscu: pełny dostęp – ten sam klucz widzi teraz wszystkie projekty konta.
-  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Zmień zakres")');
-  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") .zmiana-zakresu input[value="pelny"]');
-  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Zapisz zakres")');
+  // Zmiana zakresu w okienku edycji: pełny dostęp – ten sam klucz widzi teraz wszystkie projekty konta.
+  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Edytuj")');
+  await strona.click('#dlg-edytuj-klucz-ai .zmiana-zakresu input[value="pelny"]');
+  await strona.click('#dlg-edytuj-klucz-ai button:has-text("Zapisz zmiany")');
   await strona.waitForFunction(() => /pełny dostęp/.test(document.querySelector('#dostep-ai').textContent));
   assert.equal(baza.ai('ai_projekty', { p_klucz: klucz }).dostep.zakres, 'pelny');
-  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Odbierz")');
+  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Edytuj")');
+  await strona.click('#dlg-edytuj-klucz-ai button:has-text("Odbierz klucz")');
   await strona.click('#potwierdz-tak');
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai .lista-dostepow li').length === 1);
   assert.match(baza.ai('ai_projekt', { p_klucz: klucz }).blad, /odebrany/);

@@ -947,7 +947,6 @@ body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .sekcja-kluczy-ai ul:empty { display: none; }
 .klucz-pokazany { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .klucz-pokazany pre { white-space: pre-wrap; word-break: break-all; margin: 0; }
-.zmiana-waznosci { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
 .uwaga-planu { border-left: 3px solid var(--ostrzezenie, #d97706); padding: 8px 12px; background: rgba(217, 119, 6, 0.06); border-radius: var(--r-s); }
 .lista-dostawcow-ai { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .lista-dostawcow-ai li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-s); }
@@ -2097,8 +2096,6 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 .lista-dostepow li > .klucz-akcje, .lista-dostawcow-ai li > .klucz-akcje { flex-direction: row; flex-wrap: wrap; gap: 6px; flex: 0 1 auto; justify-content: flex-end; }
 /* #248: rozwinięte pod kluczem – pokazany klucz, ważność, zakres – na całą szerokość wiersza. */
 .lista-dostepow li > .klucz-pokazany, .lista-dostawcow-ai li > .klucz-pokazany { flex: 1 1 100%; flex-direction: column; align-items: stretch; }
-.lista-dostepow li > .zmiana-waznosci { flex: 1 1 100%; flex-direction: row; align-items: center; }
-.lista-dostepow li > .zmiana-zakresu { flex: 1 1 100%; }
 .klucz-pokazany pre { padding: 8px 10px; background: var(--wypelnienie); border-radius: var(--r-s); font-size: 12px; max-height: 220px; overflow: auto; }
 .lista-dostepow .zmiana-zakresu { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
 :root[data-dotyk] .lista-projektow-klucza .przelacznik { min-height: 40px; }

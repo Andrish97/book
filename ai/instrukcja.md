@@ -2234,15 +2234,17 @@ Okienko nowego klucza dostępu (łącznik i zwykły czat):
 
 **Utwórz klucz** pokazuje **Adres łącznika** (albo gotowe polecenie dla zwykłego czatu). Gdy masz hasło do kluczy, Makietka zapamiętuje klucz zaszyfrowany tym hasłem; bez hasła – **Zapamiętaj klucz** w okienku. **Gotowe** zamyka okienko.
 
-Przy każdym kluczu na liście:
+Przy każdym kluczu na liście jest **Edytuj** – edycja otwiera się w okienku, tak jak dodawanie:
 
-| Przycisk | Co robi |
+| W okienku | Co robi |
 |---|---|
-| **Pokaż klucz** | Pokazuje jeszcze raz adres łącznika albo polecenie dla zwykłego czatu (i sam klucz) – do skopiowania. Działa dla kluczy zapamiętanych w sejfie; klucz API dostawcy pokazuje się tak samo. |
-| **Zmień zakres** | Dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres się nie zmienia. |
-| **Ważność** | Nowy czas ważności od dziś (1 dzień … rok albo bez terminu), także dla klucza, który już wygasł — adres się nie zmienia. |
-| **Odbierz** | Wyłącza klucz od razu. |
-| **Zmień**, **Usuń** | Przy kluczach API dostawców: wklejenie nowego klucza w okienku albo usunięcie. |
+| **Pokaż klucz** | Pokazuje jeszcze raz adres łącznika albo polecenie dla zwykłego czatu (i sam klucz) – do skopiowania. Działa dla kluczy zapamiętanych w sejfie. |
+| **Zakres** | Wybrane projekty albo pełny dostęp — adres się nie zmienia. |
+| **Ważność** | Nowy czas od dziś (1 dzień … rok albo bez terminu), także dla klucza, który już wygasł; „bez zmian” zostawia obecny. |
+| **Zapisz zmiany** | Zapisuje zakres i ważność. |
+| **Odbierz klucz** | Wyłącza klucz od razu. |
+
+Klucz API dostawcy w okienku edycji: **Pokaż klucz**, **Zamień klucz** (wklejasz nowy i **Zapisz**) i **Usuń klucz**.
 
 Gdy klucze są zaszyfrowane na tym urządzeniu, sekcja Czat w Makietce pokazuje **Otwórz** – podajesz hasło do kluczy raz na urządzeniu.
 

@@ -3675,5 +3675,15 @@
  "wygasł": "термін минув",
  "Klucze API dostawców": "API-ключі постачальників",
  "Usuń wszystkie zaszyfrowane klucze z konta": "Видалити всі зашифровані ключі з облікового запису",
- "Ważność klucza zmieniona – adres zostaje ten sam.": "Термін дії ключа змінено – адреса та сама."
+ "Ważność klucza zmieniona – adres zostaje ten sam.": "Термін дії ключа змінено – адреса та сама.",
+ "Edytuj": "Редагувати",
+ "Zapisz zmiany": "Зберегти зміни",
+ "Odbierz klucz": "Відкликати ключ",
+ "Usuń klucz": "Видалити ключ",
+ "Zamień klucz": "Замінити ключ",
+ "Nowy klucz API": "Новий API-ключ",
+ "bez zmian": "без змін",
+ "Adres łącznika": "Адреса конектора",
+ "Polecenie dla czatu": "Запит для чату",
+ "Klucz zmieniony – adres zostaje ten sam.": "Ключ змінено – адреса та сама."
 }

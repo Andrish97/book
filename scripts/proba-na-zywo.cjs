@@ -309,7 +309,8 @@ const krok = async (nazwa, fn) => {
         if (pole && !pole.checked) pole.click();
       }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
       await p.waitForSelector('#dlg-dostep-ai[open]');
-      await p.click('#dostep-ai .lista-dostepow li:has-text("Próba na żywo") button:has-text("Odbierz")');
+      await p.click('#dostep-ai .lista-dostepow li:has-text("Próba na żywo") button:has-text("Edytuj")');
+      await p.click('#dlg-edytuj-klucz-ai button:has-text("Odbierz klucz")');
       await p.click('#potwierdz-tak');
       await p.waitForFunction(() => !document.querySelector('#dostep-ai .lista-dostepow li'));
       await p.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
@@ -463,7 +464,8 @@ const krok = async (nazwa, fn) => {
         if (pole && !pole.checked) pole.click();
       }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
       await p.waitForSelector('#dlg-dostep-ai[open]');
-      await p.click('#dostep-ai .lista-dostepow li:has-text("Łącznik na żywo") button:has-text("Odbierz")');
+      await p.click('#dostep-ai .lista-dostepow li:has-text("Łącznik na żywo") button:has-text("Edytuj")');
+      await p.click('#dlg-edytuj-klucz-ai button:has-text("Odbierz klucz")');
       await p.click('#potwierdz-tak');
       await p.waitForFunction(() => !document.querySelector('#dostep-ai .lista-dostepow li button'));
       await p.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());

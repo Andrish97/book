@@ -71,16 +71,19 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForFunction(() => !document.querySelector('#dlg-klucz-ai').open);
   await strona.waitForFunction(() => /pełny dostęp.*bez terminu/s.test(document.querySelector('#dostep-ai-lista-lacznik').textContent));
   assert.equal(await strona.textContent('#dostep-ai-lista-zwykly'), '', 'klucz łącznika tylko w sekcji łącznika');
-  // Ważność: zmiana z „bez terminu” na 7 dni od dziś – ten sam klucz.
+  // Edycja w okienku (jak dodawanie): na liście tylko „Edytuj”.
   const wiersz = strona.locator('#dostep-ai-lista-lacznik li', { hasText: 'Claude – całe konto' });
-  await wiersz.locator('button', { hasText: 'Ważność' }).click();
-  await wiersz.locator('.zmiana-waznosci select').selectOption('7');
-  await wiersz.locator('button', { hasText: 'Zapisz ważność' }).click();
-  await strona.waitForFunction(() => /ważny do/.test(document.querySelector('#dostep-ai-lista-lacznik').textContent));
+  assert.deepEqual(await wiersz.locator('button').allTextContents(), ['Edytuj']);
+  await wiersz.locator('button', { hasText: 'Edytuj' }).click();
+  await strona.waitForSelector('#dlg-edytuj-klucz-ai[open]');
   // „Pokaż klucz” bez hasła do kluczy – klucz nie był zapamiętany.
-  await strona.locator('#dostep-ai-lista-lacznik li button', { hasText: 'Pokaż klucz' }).click();
-  await strona.waitForSelector('#dostep-ai-lista-lacznik .klucz-pokazany');
-  assert.match(await strona.textContent('#dostep-ai-lista-lacznik .klucz-pokazany'), /nie zapamiętała/);
+  await strona.locator('#dlg-edytuj-klucz-ai button', { hasText: 'Pokaż klucz' }).click();
+  await strona.waitForFunction(() => /nie zapamiętała/.test(document.querySelector('#dlg-edytuj-klucz-ai .klucz-pokazany').textContent));
+  // Ważność: z „bez terminu” na 7 dni od dziś – ten sam klucz.
+  await strona.selectOption('#edytuj-klucz-dni', '7');
+  await strona.locator('#dlg-edytuj-klucz-ai button', { hasText: 'Zapisz zmiany' }).click();
+  await strona.waitForFunction(() => !document.querySelector('#dlg-edytuj-klucz-ai').open);
+  await strona.waitForFunction(() => /ważny do/.test(document.querySelector('#dostep-ai-lista-lacznik').textContent));
   await strona.waitForFunction(() => /Aktywne klucze: 1 – „Claude – całe konto” \(pełny dostęp\)/.test(document.querySelector('#ust-ai-opis').textContent));
 
   // AI tworzy projekt – lista projektów pokazuje go sama.
@@ -130,8 +133,11 @@ test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z 
   assert.equal(await strona.locator('#ai-dostawcy-lista li').count(), 1, 'na liście tylko zapisane klucze');
   assert.ok(!JSON.stringify([...baza.sejfy.values()]).includes('sk-ant-z-okna'), 'na koncie szyfrogram');
   // „Pokaż klucz” dostawcy – z sejfu.
-  await strona.locator('#ai-dostawcy-lista li button', { hasText: 'Pokaż klucz' }).click();
-  assert.match(await strona.textContent('#ai-dostawcy-lista .klucz-pokazany'), /sk-ant-z-okna-1234/);
+  await strona.locator('#ai-dostawcy-lista li button', { hasText: 'Edytuj' }).click();
+  await strona.waitForSelector('#dlg-edytuj-klucz-ai[open]');
+  await strona.locator('#dlg-edytuj-klucz-ai button', { hasText: 'Pokaż klucz' }).click();
+  await strona.waitForFunction(() => /sk-ant-z-okna-1234/.test(document.querySelector('#dlg-edytuj-klucz-ai .klucz-pokazany').textContent));
+  await strona.click('#dlg-edytuj-klucz-ai [aria-label="Zamknij"]');
   // Zwykły czat: okienko z formularzem, bez uwagi o płatnym planie; sejf otwarty – klucz zapamiętany od razu.
   await strona.click('[data-dodaj-klucz-ai="zwykly"]');
   await strona.waitForSelector('#dlg-klucz-ai[open]');
@@ -145,8 +151,9 @@ test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z 
   const kluczZwykly = await strona.inputValue('#dostep-ai-klucz');
   await strona.click('#dostep-ai-gotowy [data-akcja="dodaj-klucz-ai-zamknij"]');
   const wZwyklym = strona.locator('#dostep-ai-lista-zwykly li', { hasText: 'Darmowy czat' });
-  await wZwyklym.locator('button', { hasText: 'Pokaż klucz' }).click();
-  const pokazany = await wZwyklym.locator('.klucz-pokazany pre').textContent();
+  await wZwyklym.locator('button', { hasText: 'Edytuj' }).click();
+  await strona.locator('#dlg-edytuj-klucz-ai button', { hasText: 'Pokaż klucz' }).click();
+  const pokazany = await strona.locator('#dlg-edytuj-klucz-ai .klucz-pokazany pre').textContent();
   assert.ok(pokazany.includes(kluczZwykly) && /Otwórz ten adres/.test(pokazany), 'pokazane jeszcze raz polecenie z kluczem');
   assert.ok(!JSON.stringify([...baza.sejfy.values()]).includes(kluczZwykly), 'klucz dostępu w sejfie zaszyfrowany');
   assert.deepEqual(bledy, []);

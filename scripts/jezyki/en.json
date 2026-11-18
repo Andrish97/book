@@ -3675,5 +3675,15 @@
  "wygasł": "expired",
  "Klucze API dostawców": "Provider API keys",
  "Usuń wszystkie zaszyfrowane klucze z konta": "Delete all encrypted keys from the account",
- "Ważność klucza zmieniona – adres zostaje ten sam.": "Key validity changed – the address stays the same."
+ "Ważność klucza zmieniona – adres zostaje ten sam.": "Key validity changed – the address stays the same.",
+ "Edytuj": "Edit",
+ "Zapisz zmiany": "Save changes",
+ "Odbierz klucz": "Revoke key",
+ "Usuń klucz": "Delete key",
+ "Zamień klucz": "Replace key",
+ "Nowy klucz API": "New API key",
+ "bez zmian": "no change",
+ "Adres łącznika": "Connector address",
+ "Polecenie dla czatu": "Prompt for the chat",
+ "Klucz zmieniony – adres zostaje ten sam.": "Key changed – the address stays the same."
 }
