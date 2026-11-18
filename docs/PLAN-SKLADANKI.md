@@ -51,3 +51,22 @@ Stan: krok 1 ✅, 2 ✅ (#233), 3 ✅ (#235, kolejność klejenia – w kroku 7)
 8. **Pop-up** – typ sekcji „Rozkładówka pop-up”: zgięcie V, równoległe pudełko, nacięcia w zgięciu (cut & fold),
    warstwy na zakładkach, podpórki; podgląd otwierania 0–180° w 3D; sprawdzanie, czy nic nie wystaje po zamknięciu
    i nie zderza się.
+
+## Uniwersalność – trudne modele (uwaga użytkownika 18.11: „wałek, stożek to proste rzeczy; a jeśli ktoś zechce zrobić trudne?”)
+
+Stan dziś: część może mieć dowolny obrys (z kształtu, z pióra), zgięcia gdziekolwiek, pary między dowolnymi
+częściami na wielu arkuszach – ale całą siatkę trzeba wymyślić i narysować samemu, a krzywe z pióra wchodzą
+tylko punktami końcowymi (łuki się spłaszczają). Szablony to proste bryły. Żeby dało się robić rzeczy naprawdę
+trudne (zwierzę, budynek, pojazd, postać), kolejność:
+
+9. **Rozkładanie bryły 3D na siatkę** (jak Pepakura): wczytanie modelu OBJ / STL / glTF (z Blendera, z sieci),
+   automatyczne cięcie na części (wybór krawędzi cięcia, ręczne łączenie i dzielenie części), zakładki i numery par
+   same, rozkład na arkusze, nadruk – kolor/tekstura modelu na ścianach. To jest odpowiedź na „trudne rzeczy”.
+10. **Krzywe naprawdę**: łuki z pióra próbkowane gęsto (koło, owal, fala), zgięcia po łuku, powierzchnie
+    rozwijalne – walec, stożek, stożek ścięty, bryła obrotowa z profilu (pasy / kliny jak globus).
+11. **Bryła z rzutu**: dowolny wielokąt z pióra wyciągnięty w graniastosłup (domek, litera, gwiazda 3D) albo w
+    ostrosłup; łączenie brył (dach na domku) – siatki generowane z parami.
+12. **Sklejanie części w jedną bryłę w 3D** – części ustawiają się po parach krawędzi; makieta sprawdza, czy model
+    się zamyka (krawędzie bez pary, za duże szpary), i pokazuje montaż krok po kroku.
+13. **Mechanizmy**: zatrzaski, zamki na klapkę, zawiasy, elementy ruchome, wkładki; pop-up (krok 8).
+14. **Gotowe trudniejsze modele** do nauki: domek z dachem, samochód, zwierzę z siatki 3D.
