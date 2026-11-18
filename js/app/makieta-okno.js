@@ -521,7 +521,7 @@ function dopasujRozmiar() {
   const cw = plotno.clientWidth;
   const ch = plotno.clientHeight;
   if (cw < 2 || ch < 2) return;
-  let dpr = Math.min(MALO_PAMIECI ? 2 : 3, window.devicePixelRatio || 1);
+  let dpr = Math.min(MALO_PAMIECI ? 2.5 : 3, window.devicePixelRatio || 1);
   dpr = Math.min(dpr, Math.sqrt(4.5e6 / (cw * ch)));
   const w = Math.max(1, Math.round(cw * dpr));
   const h = Math.max(1, Math.round(ch * dpr));
