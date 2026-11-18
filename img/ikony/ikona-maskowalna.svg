@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Maskowalna (Android): tło do krawędzi, znak w strefie bezpiecznej (środkowe 80%). -->
+  <rect width="512" height="512" fill="#2f5bd3"/>
+  <g transform="translate(256 256) scale(0.78) translate(-256 -256)">
+    <rect x="160" y="136" width="192" height="240" rx="12" fill="#ffffff"/>
+    <path d="M160 72v40M352 72v40M160 400v40M352 400v40M96 136h40M96 376h40M376 136h40M376 376h40" stroke="#ffffff" stroke-width="21" stroke-linecap="round"/>
+    <path d="M200 200h112M200 240h112M200 280h72" stroke="#2f5bd3" stroke-width="19" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -133,7 +133,7 @@ body[data-ekran="edytor"] #ekran-edytora { display: flex; }
    strona projektu) jest gotowy – po powrocie do aplikacji, którą telefon wyrzucił z pamięci, nie mrugają
    po kolei: start, pusty ekran z kartą, start, edytor bez strony. */
 body.startuje #ekran-start { display: flex; position: fixed; inset: 0; z-index: 2147483000; background: var(--papier); }
-.logo-duze .znak-logo { width: 56px; height: 56px; font-size: 28px; border-radius: 14px; animation: puls 1.4s ease-in-out infinite; }
+.logo-duze .znak-logo { width: 56px; height: 56px; font-size: 28px; border-radius: 12px; animation: puls 1.4s ease-in-out infinite; }
 @keyframes puls { 50% { opacity: .55; } }
 /* Opis na ekranie startowym (#200): długa nazwa projektu wyśrodkowana, z marginesem po bokach, najwyżej 3 linie –
    nie dotyka krawędzi ekranu telefonu. */
@@ -240,9 +240,10 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
 .znak-logo {
   display: inline-grid; place-items: center;
   width: 30px; height: 30px; border-radius: 8px;
-  /* Ten sam znak co ikona aplikacji (img/ikony/): biała litera M na niebieskim tle. */
-  background: #2f5bd3; color: #ffffff;
-  font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 18px;
+  /* Ten sam znak co ikona aplikacji (img/ikony/, #240): strona w znakach cięcia. Litera w znaczniku zostaje
+     dla czytników ekranu i starych zrzutów – niewidoczna. */
+  background: #2f5bd3 url(../img/ikony/ikona.svg) center / cover no-repeat; color: transparent;
+  font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 18px; overflow: hidden;
 }
 
 /* ---------- Logowanie i rejestracja ---------- */

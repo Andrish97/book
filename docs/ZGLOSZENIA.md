@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 240 | Nowa ikona i znak Makietki: strona w znakach cięcia |
 | 239 | AI bez płatnego klucza: czat „kopiuj i wklej” z dowolnym darmowym czatem i dostęp przez zwykłe adresy dla AI, które czyta strony |
 | 238 | Składanki: makieta 3D składa części po zgięciach (z nadrukiem), instrukcja montażu do pobrania albo jako strona |
 | 237 | Składanki: szablony z wymiarów – pudełko z wieczkiem (z grubością materiału), tacka, kostka, graniastosłup, ostrosłup, przegródki |
