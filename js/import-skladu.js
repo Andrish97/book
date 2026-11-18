@@ -10,6 +10,7 @@
 // Bez DOM poza DOMParser i bez Fabric: elementy powstają jako zwykły JSON projektu (jak gotowe sekcje).
 
 import { nowyProjekt, nowaSekcja, nowaStrona, uid, normalizuj } from './projekt.js';
+import { czytajPub } from './pub-czytnik.js';
 
 const MM = 25.4 / 72; // pt → mm
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -565,10 +566,88 @@ async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
   return strony;
 }
 
+// ---------- Microsoft Publisher (.pub) ----------
+
+const CAL = 25.4; // cal → mm
+
+async function czytajPubDoStron(bufor, { przyjmij, raport }) {
+  const pub = czytajPub(bufor);
+  const ramkiTekstu = [];
+  const pierwszaRamka = new Map(); // id tekstu → ostatnia ramka tego tekstu (do łączenia w wątek)
+  const strony = [];
+  for (const [nrStrony, st] of pub.strony.entries()) {
+    const strona = { w: pub.szer * CAL, h: pub.wys * CAL, spad: 3, marginesy: { gora: 10, dol: 10, wewnetrzny: 10, zewnetrzny: 10 }, obiekty: [] };
+    for (const k of st.ksztalty) {
+      const w = k.w * CAL;
+      const h = k.h * CAL;
+      // Publisher obraca wokół środka, Makietka – wokół lewego górnego rogu.
+      const r = ((k.kat || 0) * Math.PI) / 180;
+      const cx = (k.x + k.w / 2) * CAL;
+      const cy = (k.y + k.h / 2) * CAL;
+      const x = cx + (-w / 2) * Math.cos(r) - (-h / 2) * Math.sin(r);
+      const y = cy + (-w / 2) * Math.sin(r) + (-h / 2) * Math.cos(r);
+      if (k.obraz) {
+        const ramka = { x: k.x * CAL, y: k.y * CAL, w, h };
+        const blob = k.obraz.bajty ? new Blob([k.obraz.bajty], { type: k.obraz.typ }) : null;
+        const px = blob && await wymiaryObrazu(blob);
+        if (!px) { strona.obiekty.push(brakObrazu(ramka, `obraz ${k.obraz.typ.replace('image/', '').toUpperCase()}`)); const f = k.obraz.typ.replace('image/', '').toUpperCase(); raport.nieobslugiwane.set(f, (raport.nieobslugiwane.get(f) || 0) + 1); continue; }
+        const id = await przyjmij(blob, `publisher-${nrStrony + 1}-${strona.obiekty.length + 1}.${{ 'image/jpeg': 'jpg', 'image/bmp': 'bmp', 'image/gif': 'gif' }[k.obraz.typ] || 'png'}`);
+        const o = obrazWRamce(id, px, ramka, ramka);
+        if (o) { if (k.kat) Object.assign(o, { left: r2(x), top: r2(y), angle: r2(k.kat) }); strona.obiekty.push(o); raport.obrazy += 1; }
+        continue;
+      }
+      if (k.tekst !== null && k.tekst !== undefined && k.tekst.replace(/[\r\n\u000b\s]/g, '')) {
+        // Fragmenty z wyglądem znaków; \r – akapit, \v – nowa linia; inne znaki sterujące pominięte.
+        const fragmenty = [];
+        const tresc = k.tekst.replace(/\r$/, '');
+        for (let i = 0; i < tresc.length; i += 1) {
+          let z = tresc[i];
+          if (z === '\r' || z === '\u000b') z = '\n';
+          else if (/[\u0000-\u0008\u000c\u000e-\u001f]/.test(z)) continue;
+          const st0 = k.style?.[i] || {};
+          const styl = {
+            fontFamily: st0.rodzina || 'Times New Roman', fontSize: r2((st0.pt || 10) * MM),
+            fontWeight: st0.b ? 'bold' : 'normal', fontStyle: st0.i ? 'italic' : 'normal', fill: '#000000',
+            ...(st0.u ? { underline: true } : {}),
+          };
+          const ost = fragmenty.at(-1);
+          if (ost && JSON.stringify(ost.styl) === JSON.stringify(styl)) ost.tekst += z; else fragmenty.push({ tekst: z, styl });
+        }
+        const z = zlozTekst(fragmenty, k.wyrownanie || ['left']);
+        // Wewnętrzne marginesy ramki tekstu Publishera: 0,04 cala z każdej strony (wartość domyślna).
+        const m = 0.04 * CAL;
+        const { obj, pola } = ramkaTekstu({ x: x + m * Math.cos(r) - m * Math.sin(r), y: y + m * Math.sin(r) + m * Math.cos(r), w: Math.max(2, w - 2 * m), h: Math.max(2, h - 2 * m), kat: k.kat, zlozony: z });
+        if (k.wypelnienie) obj.backgroundColor = k.wypelnienie;
+        pola.forEach((p) => raport.pola.add(p));
+        strona.obiekty.push(obj);
+        raport.teksty += 1;
+        // Ten sam tekst w kilku ramkach – ramki połączone (wątek).
+        const klucz = `t${ramkiTekstu.length}`;
+        const wpis = { klucz, nastepna: null, obj };
+        if (k.idTekstu !== null && !k.zWzorca) {
+          const poprzednia = pierwszaRamka.get(k.idTekstu);
+          if (poprzednia) poprzednia.nastepna = klucz;
+          pierwszaRamka.set(k.idTekstu, wpis);
+        }
+        ramkiTekstu.push(wpis);
+        continue;
+      }
+      if (k.wypelnienie || k.obrys) {
+        const wsp = { id: uid('o'), left: r2(x), top: r2(y), angle: r2(k.kat || 0), fill: k.wypelnienie || null, stroke: k.obrys || null, strokeWidth: k.obrys ? r2((k.grubosc || 0.75 / 72) * CAL) : 0, strokeUniform: true };
+        strona.obiekty.push(k.typKsztaltu === 3 ? { type: 'ellipse', rx: r2(w / 2), ry: r2(h / 2), width: r2(w), height: r2(h), ...wsp } : { type: 'rect', width: r2(w), height: r2(h), ...wsp });
+        raport.ksztalty += 1;
+      }
+    }
+    strony.push(strona);
+  }
+  polaczWatki(ramkiTekstu);
+  return strony;
+}
+
 // ---------- Wejście ----------
 
 export const ROZSZERZENIA_SKLADU = ['.idml', '.sla'];
-export const toPlikSkladu = (plik) => /\.(idml|sla)$/i.test(plik?.name || '');
+export const toPlikSkladu = (plik) => /\.(idml|sla|pub)$/i.test(plik?.name || '');
 
 // Czy ZIP to pakiet z IDML/SLA (a nie plik .makietka).
 export async function zipZeSkladem(zip) {
@@ -579,13 +658,14 @@ export async function zipZeSkladem(zip) {
 // projektu (js/obrazy-projektu.js przyjmijPlik). Zwraca { projekt, raport }.
 export async function importujSklad(plik, JSZip, przyjmijObraz) {
   const nazwaPliku = plik.name || 'projekt';
-  const raport = { format: '', teksty: 0, ksztalty: 0, obrazy: 0, brakujace: new Set(), pola: new Set(), stron: 0 };
+  const raport = { format: '', teksty: 0, ksztalty: 0, obrazy: 0, brakujace: new Set(), nieobslugiwane: new Map(), pola: new Set(), stron: 0 };
   let zip = null;
   let glowny = null; // { rodzaj, zip?, tekst? }
   const obok = new Map(); // nazwa pliku (małe litery) → Blob – obrazy z pakietu
   const bajty = new Uint8Array(await plik.slice(0, 4).arrayBuffer());
   const toZip = bajty[0] === 0x50 && bajty[1] === 0x4b;
-  if (/\.sla$/i.test(nazwaPliku) && !toZip) glowny = { rodzaj: 'sla', tekst: await plik.text() };
+  if (/\.pub$/i.test(nazwaPliku)) glowny = { rodzaj: 'pub', bufor: await plik.arrayBuffer() };
+  else if (/\.sla$/i.test(nazwaPliku) && !toZip) glowny = { rodzaj: 'sla', tekst: await plik.text() };
   else {
     zip = await JSZip.loadAsync(plik);
     if (zip.file('designmap.xml')) glowny = { rodzaj: 'idml', zip };
@@ -601,16 +681,16 @@ export async function importujSklad(plik, JSZip, przyjmijObraz) {
       }
     }
   }
-  raport.format = glowny.rodzaj === 'idml' ? 'InDesign (IDML)' : 'Scribus (SLA)';
-  const nazwa = nazwaPliku.replace(/\.(idml|sla|zip)$/i, '');
+  raport.format = { idml: 'InDesign (IDML)', sla: 'Scribus (SLA)', pub: 'Microsoft Publisher' }[glowny.rodzaj];
+  const nazwa = nazwaPliku.replace(/\.(idml|sla|pub|zip)$/i, '');
   const projekt = nowyProjekt(nazwa);
   const obrazyObok = (n) => obok.get(String(n).toLowerCase()) || null;
   const przyjmij = async (blob, n) => (await przyjmijObraz(projekt, blob, n)).id;
   const kontekst = { obrazyObok, przyjmij, raport };
-  const strony = glowny.rodzaj === 'idml' ? await czytajIdml(glowny.zip, kontekst) : await czytajSla(glowny.tekst, kontekst);
+  const strony = glowny.rodzaj === 'idml' ? await czytajIdml(glowny.zip, kontekst) : glowny.rodzaj === 'pub' ? await czytajPubDoStron(glowny.bufor, kontekst) : await czytajSla(glowny.tekst, kontekst);
   const gotowy = zbudujProjekt(nazwa, strony);
   gotowy.id = projekt.id;
   gotowy.zasoby = projekt.zasoby;
   raport.stron = gotowy.strony.length;
-  return { projekt: normalizuj(gotowy), raport: { ...raport, brakujace: [...raport.brakujace], pola: [...raport.pola] } };
+  return { projekt: normalizuj(gotowy), raport: { ...raport, brakujace: [...raport.brakujace], nieobslugiwane: [...raport.nieobslugiwane].map(([f, n]) => `${f} ×${n}`), pola: [...raport.pola] } };
 }

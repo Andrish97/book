@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 228 | Otwieranie plików Microsoft Publishera (.pub): strony, teksty z wyglądem, obrazy, wzorce |
 | 227 | Źródło danych przypięte do tabeli: plik Excel w projekcie, nowa wersja z porównaniem, odśwież z pliku i z linku (arkusz Google) |
 | 226 | Seria dla InDesigna, Affinity, Scribusa, Worda i Publishera: szablon z polami + dane (CSV, XLSX, obrazy) |
 | 225 | Otwieranie projektów z InDesigna (.idml) i Scribusa (.sla), także z pakietem obrazów; pola korespondencji seryjnej |

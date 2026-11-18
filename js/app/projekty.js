@@ -555,6 +555,7 @@ async function wczytajPlikSkladu(plik) {
     const czesci = [`${raport.stron} ${raport.stron === 1 ? 'strona' : 'stron'}`, `ramki tekstu ${raport.teksty}`, `kształty ${raport.ksztalty}`, `obrazy ${raport.obrazy}`];
     let opis = `Wczytano z programu ${raport.format}: ${czesci.join(', ')}.`;
     if (raport.pola.length) opis += ` Pola korespondencji seryjnej zamienione na pola Makietki: ${raport.pola.map((x) => `{${x}}`).join(', ')} – wczytaj dane w „Dane”.`;
+    if (raport.nieobslugiwane?.length) opis += ` Obrazy w starym formacie Windows (${raport.nieobslugiwane.join(', ')}) – przeglądarka ich nie wyświetla; w ich miejscu są szare pola – wstaw tam obrazy jeszcze raz (np. zapisane z Publishera jako PNG).`;
     if (raport.brakujace.length) opis += ` Brak plików obrazów (${raport.brakujace.length}): ${raport.brakujace.slice(0, 5).join(', ')}${raport.brakujace.length > 5 ? '…' : ''} – wczytaj ZIP z folderem obrazów (w InDesignie: Plik → Pakiet) albo wstaw je w szare pola.`;
     powiadom(opis);
   } catch (e) {

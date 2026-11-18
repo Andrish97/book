@@ -143,6 +143,12 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   razem z projektem w pliku ZIP (w InDesignie: Plik → Pakiet; w Scribusie: Plik → Zbierz do wydruku) – bez nich
   w ich miejscu stoją szare pola z nazwą pliku. Pola korespondencji seryjnej InDesigna i Affinity (`<<imie>>`) oraz
   Worda i Publishera (`«imie»`) stają się polami Makietki (`{imie}`) – zostaje tylko wczytać dane (→ 14).
+  Działa to też z plikami **Microsoft Publishera** (`.pub`, wersje 2002–2019 – Microsoft wycofał Publishera
+  w październiku 2026): strony w formacie z pliku, ramki tekstu na swoich miejscach z czcionką, wielkością,
+  pogrubieniem, kursywą, podkreśleniem i wyrównaniem, ramki połączone jako przelewany tekst, elementy stron
+  wzorcowych pod treścią, zdjęcia (JPEG, PNG, GIF), kolorowe tła ramek i proste kształty. Obrazy w starym
+  formacie Windows (WMF, EMF) przeglądarka nie wyświetla – w ich miejscu są szare pola. Starsze pliki (Publisher
+  98/2000) trzeba najpierw zapisać w nowszej wersji.
 - Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (→ 28.4).
 
 **Tekst z innych programów i do nich.** W edytorze, menu **⋯**:
