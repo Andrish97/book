@@ -9,7 +9,7 @@
 // którego elementy mogą przechodzić przez grzbiet.
 
 import './fabric-ustawienia.js';
-import { sekcjaStrony, wzorceStrony, scalRozkladowke, tloStrony, marginesyStrony, ptNaMm } from './projekt.js';
+import { sekcjaStrony, wzorceStrony, scalRozkladowke, zrodloTla, marginesyStrony, ptNaMm } from './projekt.js';
 import { przypisyStrony, uzywaKsiazki, trescElementu } from './ksiazka.js';
 import { rozwin, wartosciPol } from './serie.js';
 import { podstawWObiektach, kadrZWartosci, punktKadru } from './pola.js';
@@ -331,7 +331,7 @@ export async function tabeleEgzemplarza(projekt, egz, ciag) {
 // Składa stronę (albo wzorzec) do gotowych obiektów: dane podstawione, obrazy wczytane, teksty
 // wpisane w ramki i przelane, warstwy wzorców pod i nad treścią. Zwraca { wydruk, tlo, obiekty }
 // – obiekty w kolejności rysowania, w układzie strony (mm).
-export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
+export async function zlozCel(projekt, cel, { ciag, oryginaly = false, bezPodloza = false } = {}) {
   const jestWzorcem = projekt.wzorce.includes(cel);
   const rozwiniety = jestWzorcem ? null : (ciag || rozwin(projekt));
   const egz = jestWzorcem ? null : egzemplarz(cel, rozwiniety);
@@ -367,15 +367,17 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false } = {}) {
       }
     }
   }
-  return { wydruk, tlo: jestWzorcem ? (cel.tlo || '#ffffff') : tloStrony(projekt, egz.strona), obiekty: [...warstwy.pod, ...wlasne, ...warstwy.nad] };
+  // Podłoże (#213) w PDF się nie drukuje – plik do druku dostaje biel (bez farby) zamiast koloru papieru albo folii.
+  const tlo = jestWzorcem ? (cel.tlo || '#ffffff') : (() => { const z = zrodloTla(projekt, egz.strona); return z.podloze && bezPodloza ? '#ffffff' : z.tlo; })();
+  return { wydruk, tlo, obiekty: [...warstwy.pod, ...wlasne, ...warstwy.nad] };
 }
 
 // Renderuje stronę (jej pierwszy egzemplarz), egzemplarz z ciągu albo wzorzec
 // do obrazu (dataURL). opcje: szerokoscPx (z ewentualnym spadem), spad
 // (domyślnie tak), ciag (rozwinięty projekt – warto podać przy wielu stronach),
 // oryginaly (pełne obrazy zamiast kopii roboczych – do eksportu).
-export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false } = {}) {
-  const { plotno } = await plotnoCelu(projekt, cel, { szerokoscPx, spad, ciag, oryginaly });
+export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false, bezPodloza = false } = {}) {
+  const { plotno } = await plotnoCelu(projekt, cel, { szerokoscPx, spad, ciag, oryginaly, bezPodloza });
   const url = plotno.toDataURL({ format, quality: jakosc });
   plotno.dispose();
   return url;
@@ -388,8 +390,8 @@ export async function naPlotnieCelu(projekt, cel, opcje, uzyj) {
   try { return await uzyj(plotno, obiekty); } finally { plotno.dispose(); }
 }
 
-async function plotnoCelu(projekt, cel, { szerokoscPx = 200, spad = true, ciag, oryginaly = false } = {}) {
-  const { wydruk, tlo, obiekty } = await zlozCel(projekt, cel, { ciag, oryginaly });
+async function plotnoCelu(projekt, cel, { szerokoscPx = 200, spad = true, ciag, oryginaly = false, bezPodloza = false } = {}) {
+  const { wydruk, tlo, obiekty } = await zlozCel(projekt, cel, { ciag, oryginaly, bezPodloza });
   const { szerokosc_mm: w, wysokosc_mm: h } = wydruk;
   const b = spad ? wydruk.spad_mm : 0;
   const k = szerokoscPx / (w + 2 * b);

@@ -1241,6 +1241,18 @@
           <span>Wzorce na stronach tej sekcji</span>
           <div class="lista-wyboru" id="sekcja-wzorce"></div>
         </div>
+        <!-- Podłoże (#213): papier biały, kolorowy albo przezroczysta folia – widać je w edytorze, nie drukuje się. -->
+        <div class="rzad">
+          <label class="pole"><span>Podłoże (na czym drukujesz)</span>
+            <select name="podloze">
+              <option value="bialy">Biały papier</option>
+              <option value="kolor">Kolorowy papier</option>
+              <option value="folia">Przezroczysta folia</option>
+            </select>
+          </label>
+          <label class="pole waskie" id="pole-podloze-kolor" hidden><span>Kolor papieru</span><input name="podloze_kolor" type="color" value="#f3e4c2"></label>
+        </div>
+        <p class="podpowiedz" id="opis-podloza" hidden></p>
         <label class="przelacznik"><input name="znaki_ciecia" type="checkbox"><span>Znaki cięcia w pliku PDF</span></label>
       </fieldset>
 

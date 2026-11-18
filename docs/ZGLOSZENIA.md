@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 213 | Podłoże sekcji: kolorowy papier albo przezroczysta folia – widać w edytorze i podglądzie, w PDF się nie drukuje; ostrzeżenia o bieli i białym poddruku |
 | 212 | Książka: strony dokładane same dla długiego tekstu (i puste usuwane), wybór „akapit od nowej strony” przy rozdziałach |
 | 211 | Kilka zestawów marki: nowy, kopia, nazwa, usuwanie; projekt pamięta swój zestaw, konto ma zestaw w użyciu |
 | 210 | Kopiowanie elementów (Ctrl+C / Ctrl+V), stron i całych sekcji między projektami – z obrazami, wzorcami, danymi i stylami |

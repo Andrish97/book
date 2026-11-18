@@ -222,6 +222,27 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Oprawa zeszytowa: środek ma ${okl.stron} stron, a potrzeba liczby podzielnej przez 4.` });
     }
   }
+  // Podłoże (#213): biel nie jest farbą – na kolorowym papierze i folii białe elementy wyjdą w kolorze podłoża;
+  // na folii farby prześwitują bez białego poddruku.
+  const bialy = (k) => typeof k === 'string' && /^(#fff(fff)?|white|rgba?\(255,\s*255,\s*255(,\s*1)?\))$/i.test(k.trim());
+  const biale = (obiekty, wynik = []) => {
+    for (const o of obiekty || []) {
+      if (!o || o.visible === false || o.uszlachetnienie === 'bialy') continue;
+      if (Array.isArray(o.objects)) biale(o.objects, wynik);
+      else if (bialy(o.fill) || (o.strokeWidth > 0 && bialy(o.stroke))) wynik.push(o);
+    }
+    return wynik;
+  };
+  for (const sekcja of projekt.sekcje) {
+    const r = sekcja.podloze?.rodzaj;
+    if (r !== 'kolor' && r !== 'folia') continue;
+    const egz = ciag.egzemplarze.filter((e) => e.sekcja.id === sekcja.id && !e.pusta);
+    const zBiela = egz.filter((e) => biale(e.strona.obiekty).length || (e.strona.tlo && bialy(e.strona.tlo))).map((e) => e.nr ?? e.indeks + 1);
+    const podloze = r === 'folia' ? 'przezroczystej folii' : 'kolorowym papierze';
+    if (zBiela.length) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: zBiela, opis: `Sekcja „${sekcja.nazwa}” jest na ${podloze}: białe elementy nie wydrukują się (biel to brak farby) – wyjdą ${r === 'folia' ? 'przezroczyste' : 'w kolorze papieru'}. Ustaw im biały poddruk (Kolory do druku → Uszlachetnienie) albo inny kolor. ${odmiana(new Set(zBiela).size, 'Strona', 'Strony', 'Strony')} ${lista(zBiela)}.` });
+    const zPoddrukiem = egz.some((e) => JSON.stringify(e.strona.obiekty).includes('"uszlachetnienie":"bialy"'));
+    if (r === 'folia' && !zPoddrukiem) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: [], opis: `Sekcja „${sekcja.nazwa}” jest na przezroczystej folii, a żaden element nie ma białego poddruku – kolory będą prześwitywać. Jeśli mają być kryjące, ustaw pod nimi biały poddruk.` });
+  }
   // Sekcje specjalne (#177): tekst na zgięciu, elementy poza wykrojnikiem, ulotka z nadmiarowymi stronami.
   uwagi.push(...uwagiSekcjiSpecjalnych(projekt, ciag));
   // Kody QR i EAN (#128): za mały moduł, za wąski EAN, za jasny kod, zła treść – także po podstawieniu danych.

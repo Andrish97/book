@@ -584,12 +584,29 @@ export class Edytor extends EventTarget {
     ctx.save();
     ctx.transform(v[0], 0, 0, v[3], v[4], v[5]);
     this.strony.forEach((s, i) => {
-      ctx.fillStyle = this.tla[i] || '#ffffff';
       const x1 = i === 0 ? -b : s.x;
       const x2 = i === n - 1 ? s.x + w + b : s.x + w;
+      // Przezroczysta folia (#213): szachownica zamiast papieru.
+      if (this.tla[i] === 'transparent') ctx.fillStyle = this._szachownica(ctx);
+      else ctx.fillStyle = this.tla[i] || '#ffffff';
       ctx.fillRect(x1, -b, x2 - x1, h + 2 * b);
     });
     ctx.restore();
+  }
+
+  // Wzór szachownicy (kratka 4 mm) dla stron na przezroczystej folii.
+  _szachownica(ctx) {
+    if (!this._wzorSzachownicy) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 16;
+      const g = c.getContext('2d');
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, 16, 16);
+      g.fillStyle = '#e3e3e3'; g.fillRect(0, 0, 8, 8); g.fillRect(8, 8, 8, 8);
+      this._wzorSzachownicy = c;
+    }
+    const p = ctx.createPattern(this._wzorSzachownicy, 'repeat');
+    p.setTransform?.(new window.DOMMatrix().scale(0.5)); // 16 px wzoru = 8 mm w milimetrach strony
+    return p;
   }
 
   // Wycinek płótna z jedną stroną arkusza (ze spadem), w pikselach płótna.

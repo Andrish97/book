@@ -29,6 +29,27 @@ function ustawTyp(f, typ) {
 }
 
 // Dialog ustawień sekcji. id === null → nowa sekcja.
+// ---------- Podłoże (#213) ----------
+// Na czym się drukuje: biały papier (zwykle), kolorowy papier albo przezroczysta folia. Podłoże widać w edytorze,
+// podglądzie i makiecie 3D jako tło stron; w PDF się nie drukuje (to papier, nie farba).
+const OPISY_PODLOZA = {
+  kolor: 'Kolor papieru widać na stronach, ale nie drukuje się. Biel nie jest farbą: białe elementy wyjdą w kolorze papieru – chyba że dostaną biały poddruk (Kolory do druku → Uszlachetnienie).',
+  folia: 'Strony na szachownicy – folia jest przezroczysta. Farby na folii prześwitują; pod elementami, które mają być kryjące, ustaw biały poddruk (Kolory do druku → Uszlachetnienie → Biały poddruk).',
+};
+function podlozeZPol(f) {
+  const rodzaj = f.elements.podloze.value;
+  if (rodzaj === 'kolor') return { rodzaj, kolor: f.elements.podloze_kolor.value || '#f3e4c2' };
+  if (rodzaj === 'folia') return { rodzaj };
+  return undefined;
+}
+function opiszPodloze(f) {
+  const r = f.elements.podloze.value;
+  $('#pole-podloze-kolor').hidden = r !== 'kolor';
+  $('#opis-podloza').hidden = !OPISY_PODLOZA[r];
+  $('#opis-podloza').textContent = OPISY_PODLOZA[r] || '';
+}
+$('#dlg-sekcja form').addEventListener('change', (e) => { if (e.target.name === 'podloze') opiszPodloze(e.currentTarget); });
+
 export function otworzUstawieniaSekcji(id) {
   const dlg = $('#dlg-sekcja');
   const f = dlg.querySelector('form');
@@ -65,6 +86,10 @@ export function otworzUstawieniaSekcji(id) {
   f.elements.numeracja.value = num.tryb;
   f.elements.numeracja_od.value = num.od;
   f.elements.skladka.value = String(normalizujSkladke(istniejaca?.skladka));
+  // Podłoże (#213).
+  f.elements.podloze.value = istniejaca?.podloze?.rodzaj || 'bialy';
+  f.elements.podloze_kolor.value = istniejaca?.podloze?.kolor || '#f3e4c2';
+  opiszPodloze(f);
   // Typ sekcji (#177): zapisany w sekcji; „Zamień na okładkę” i „jako” wybierają go z góry; nowa sekcja – zwykła.
   const jako = otworzUstawieniaSekcji.jakoOkladka ? 'okladka' : otworzUstawieniaSekcji.jakoTyp;
   wypelnijOkladke(f, istniejaca, otworzUstawieniaSekcji.jakoOkladka);
@@ -476,6 +501,7 @@ async function zatwierdzSekcje() {
     wzorce: $$('input[name="wzorce"]:checked', f).map((i) => i.value),
     numeracja: { tryb: f.elements.numeracja.value, od: Math.max(0, Math.round(mm('numeracja_od'))) },
     typ: typOkna(f),
+    podloze: podlozeZPol(f),
   };
   const okladka = f.elements.rodzaj.value === 'okladka';
   const poprzednia = stan.projekt.sekcje.find((s) => s.id === dlg.dataset.id);
@@ -516,6 +542,7 @@ async function zatwierdzSekcje() {
     stan.indeks = projekt.strony.indexOf(strona);
     ustawZakladke('strony');
   }
+  if (!sekcja.podloze) delete sekcja.podloze;
   if (!wBloku(sekcja)) delete sekcja.skladka;
   else if (!sekcja.skladka) delete sekcja.skladka;
   // Okładka przelicza swój format i przesuwa elementy (za pierwszym razem – ze starego formatu sekcji).

@@ -1016,6 +1016,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 10.8). |
 | **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (→ 10.7). |
 | **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 11.4). |
+| **Podłoże (na czym drukujesz)** | **Biały papier**, **Kolorowy papier** (z kolorem) albo **Przezroczysta folia**. Kolor papieru widać na stronach, w podglądzie i w makiecie 3D, a folię – jako szachownicę; w PDF podłoże się nie drukuje (to papier, nie farba). Biel nie jest farbą: na kolorowym papierze i folii białe elementy wyjdą w kolorze podłoża – ustaw im **Biały poddruk** (Kolory do druku → Uszlachetnienie). „Sprawdź przed drukiem” o tym przypomina. |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
 | **Siatka linii bazowych** | **Odstęp** i **Pierwsza linia** (mm od góry) — wiersze tekstów z „Wyrównaj do siatki” stoją na tych liniach (→ 5.13). |
 

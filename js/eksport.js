@@ -205,7 +205,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     const wys = (m.h + 2 * m.pas) * PT;
     let strona;
     if (srodowisko) {
-      const { tlo, obiekty } = await zlozCel(projekt, egz, { ciag, oryginaly: true });
+      const { tlo, obiekty } = await zlozCel(projekt, egz, { ciag, oryginaly: true, bezPodloza: true }); // papier się nie drukuje (#213)
       strona = pdf.addPage([szer, wys]);
       await rysujStroneWektorowo(srodowiskoStrony(egz.sekcja), strona, { obiekty, tlo, m });
       if (nawigacja) {
@@ -216,7 +216,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
     } else if (silnikStron && !szaraSekcja(egz.sekcja)) {
       // Obraz strony w CMYK przez profil; czerń i szarości poza zdjęciami samą czarną farbą.
       // Zdjęcia idą pod spodem jako JPEG w czterech farbach, reszta strony na wierzchu bez strat (js/strona-cmyk.js).
-      const obraz = await naPlotnieCelu(projekt, egz, { szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, oryginaly: true },
+      const obraz = await naPlotnieCelu(projekt, egz, { szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, oryginaly: true, bezPodloza: true },
         (plotno, obiekty) => obrazStronyCmyk(pdf, silnikStron, plotno, obiekty, { jakosc }));
       strona = pdf.addPage([szer, wys]);
       const poleSzer = (m.w + 2 * m.spad) * PT; const poleWys = (m.h + 2 * m.spad) * PT; const odBrzegu = (m.pas - m.spad) * PT;
@@ -232,7 +232,7 @@ export async function zlozPdf(projekt, egzemplarze, { tryb = 'wektor', dpi = 300
       rysuj('Strona', odBrzegu, odBrzegu, poleSzer, poleWys);
     } else {
       const url = await renderujCel(projekt, egz, {
-        szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true,
+        szerokoscPx: pikseli(m.w + 2 * m.spad, dpi), spad, ciag, format: 'jpeg', jakosc, oryginaly: true, bezPodloza: true,
       });
       if (!url.startsWith('data:image/jpeg')) throw new Error('Strona jest za duża na tę rozdzielczość. Wybierz niższą jakość.');
       const obraz = await pdf.embedJpg(szaraSekcja(egz.sekcja) ? await szaryJpeg(url, jakosc) : url);

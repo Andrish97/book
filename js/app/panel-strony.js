@@ -123,9 +123,11 @@ export function panelStrony(p) {
   sel.classList.add('szeroki');
   s.append(sel);
 
-  s.append(p.kolor('Tło', () => edytor.tloAktywnej, (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+  // Folia (#213): tło „przezroczyste” – próbka biała; zmiana koloru da kolor nadrukowany na folii.
+  s.append(p.kolor('Tło', () => (edytor.tloAktywnej === 'transparent' ? '#ffffff' : edytor.tloAktywnej), (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+  if (sekcja.podloze?.rodzaj) s.append(p.wskazowka(sekcja.podloze.rodzaj === 'folia' ? 'Podłoże sekcji: przezroczysta folia (bez tła strony nic się tu nie drukuje).' : 'Podłoże sekcji: kolorowy papier – jego kolor nie drukuje się.'));
   if (strona.tlo) {
-    s.append(p.akcje([['cofnij', 'Tło z wzorca', () => {
+    s.append(p.akcje([['cofnij', sekcja.podloze?.rodzaj ? 'Tło z wzorca / podłoża' : 'Tło z wzorca', () => {
       edytor.ustawTlo(tloStrony(projekt, { ...strona, tlo: null }));
       strona.tlo = null;
       panel.zbuduj();

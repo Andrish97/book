@@ -372,9 +372,22 @@ export const stronyZWzorcem = (projekt, idWzorca) => projekt.strony.filter((s) =
 
 // Tło strony: własne albo z ostatniego wzorca, który je ma.
 export function tloStrony(projekt, strona) {
-  if (strona.tlo) return strona.tlo;
+  return zrodloTla(projekt, strona).tlo;
+}
+
+// Podłoże sekcji (#213): kolor papieru, 'transparent' (folia) albo biały.
+export function kolorPodloza(sekcja) {
+  const p = sekcja?.podloze;
+  if (p?.rodzaj === 'folia') return 'transparent';
+  if (p?.rodzaj === 'kolor' && /^#[0-9a-f]{6}$/i.test(p.kolor || '')) return p.kolor.toLowerCase();
+  return '#ffffff';
+}
+// Tło strony i skąd jest: { tlo, podloze } – podloze: true, gdy to sam papier (nie drukuje się w PDF).
+export function zrodloTla(projekt, strona) {
+  if (strona.tlo) return { tlo: strona.tlo, podloze: false };
   const zTlem = wzorceStrony(projekt, strona).filter((w) => w.tlo);
-  return zTlem.length ? zTlem.at(-1).tlo : '#ffffff';
+  if (zTlem.length) return { tlo: zTlem.at(-1).tlo, podloze: false };
+  return { tlo: kolorPodloza(sekcjaStrony(projekt, strona)), podloze: true };
 }
 
 // ---------- Kopie ----------

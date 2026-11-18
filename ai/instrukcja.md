@@ -1013,6 +1013,7 @@ Sekcja to część publikacji z własnymi ustawieniami, np. „Okładka” i „
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (rozdział „10.8 Numeracja stron”). |
 | **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (rozdział „10.7 Składki”). |
 | **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (rozdział „11.4 Na których stronach jest wzorzec”). |
+| **Podłoże (na czym drukujesz)** | **Biały papier**, **Kolorowy papier** (z kolorem) albo **Przezroczysta folia**. Kolor papieru widać na stronach, w podglądzie i w makiecie 3D, a folię – jako szachownicę; w PDF podłoże się nie drukuje (to papier, nie farba). Biel nie jest farbą: na kolorowym papierze i folii białe elementy wyjdą w kolorze podłoża – ustaw im **Biały poddruk** (Kolory do druku → Uszlachetnienie). „Sprawdź przed drukiem” o tym przypomina. |
 | **Znaki cięcia w pliku PDF** | Znaki cięcia na stronach tej sekcji w pliku dla drukarni. |
 | **Siatka linii bazowych** | **Odstęp** i **Pierwsza linia** (mm od góry) — wiersze tekstów z „Wyrównaj do siatki” stoją na tych liniach (rozdział „5.13 Siatka linii bazowych”). |
 

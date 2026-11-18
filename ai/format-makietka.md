@@ -80,6 +80,7 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
 - `numeracja.tryb`: `ciagla` (numery biegną dalej), `od` (sekcja zaczyna od `od`), `brak` (strony bez numeru, np. okładka).
 - `wydruk.siatka_bazowa` (opcjonalnie): `{ "odstep": 5, "przesuniecie": 12 }` – siatka linii bazowych (mm): pierwsza linia `przesuniecie` od górnej krawędzi strony, kolejne co `odstep`. Teksty z `do_siatki: true` stawiają na niej wiersze.
 - `tryb_kolorow` (opcjonalnie, sekcja): `"pelny"` | `"szarosc"` | `"czb1"` – tryb kolorów w druku tylko tej sekcji, np. okładka w pełnym kolorze, a środek w skali szarości; bez pola sekcja drukuje się w trybie projektu (`tryb_kolorow` projektu). Przy `"czb1"` sekcja ma `kolor_trybu` (id koloru z `kolory_dodatkowe`). W PDF każda strona idzie w trybie swojej sekcji.
+- `podloze` (opcjonalnie): `{ "rodzaj": "kolor", "kolor": "#f3e4c2" }` (kolorowy papier) albo `{ "rodzaj": "folia" }` (przezroczysta folia) – podłoże widać w edytorze i podglądzie, w PDF się nie drukuje; bez pola – biały papier.
 - `skladka` (opcjonalnie): `4`, `8`, `16` albo `32` – środek składany ze składek; aplikacja pilnuje, żeby liczba stron sekcji (po powieleniach serii) była wielokrotnością składki, i proponuje dopełnienie pustymi stronami.
 
 **Okładka liczona sama.** Sekcja z polem `okladka` jest okładką z grzbietem: jej `wydruk.szerokosc_mm` i `wysokosc_mm` liczy aplikacja (nie wpisuj ich), a `uklad` jest zawsze `pojedyncze`.
@@ -205,6 +206,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `lista`, `lista_start` | `punkty`, `kreski` albo `numery` przed akapitami; `lista_start` – pierwszy numer |
 | `wielkosc_liter` | `wielkie`, `male`, `kapitaliki` – tylko wygląd, treść zostaje |
 | `watek`, `watek_nr`, `lacznik` | tekst płynący przez kilka ramek – lepiej połączyć ramki w edytorze („Dodaj ramkę z ciągiem dalszym”); tego opis nie sprawdza |
+| `auto_strony` | `true` – wątek dokłada strony (z kopią ramki w tym samym miejscu), aż cały tekst się zmieści; ustawia się w edytorze. Akapit od nowej strony: w stylu znaku pierwszego znaku akapitu `nowa_strona: true` (z `deltaY: 0`) |
 | `pole` | obraz z danych (rozdział 8) |
 | `z_danych` | kolor, położenie, obrót, rozmiar i widoczność z danych (rozdział 8) |
 | `tabela` | tabela jako jeden element (rozdział 9) |
