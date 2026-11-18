@@ -40,6 +40,8 @@ const P = {
   obraz: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m20.5 16-4.5-4.5L6 19.5"/>',
   cofnij: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   ponow: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  // Odśwież (#207) – dwie strzałki w kółku; „ponów” (strzałka w prawo) myliło się z przekazaniem.
+  odswiez: '<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/>',
   // Obrót / zamiana orientacji (#121): kartka i strzałka po łuku – inna niż Cofnij i Ponów.
   skaluj: '<rect x="3.5" y="9.5" width="11" height="11" rx="1.5"/><path d="M13 3.5h7.5V11M20.5 3.5l-8 8"/>',
   marka: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',

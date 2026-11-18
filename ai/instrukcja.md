@@ -101,7 +101,21 @@ Kliknięcie karty otwiera projekt w edytorze — na stronie, którą ostatnio ed
 
 Wszystko zmienisz później w ustawieniach sekcji (rozdział „10.4 Ustawienia sekcji”).
 
-**Zacznij od**: **Pustej strony** albo **Gotowego szablonu** — wtedy po utworzeniu projektu otworzy się galeria gotowych sekcji (kalendarz, planer, zaproszenie…), a wybrany szablon zastąpi pustą stronę (rozdział „10.10 Gotowe sekcje (szablony dokumentów)”).
+**Zacznij od**: **Pustej strony** albo **Gotowego szablonu**. **Gotowego szablonu** pokazuje od razu w tym oknie szablony **całych projektów** — zestawy sekcji z ustawieniami, gotowe do druku i do makiety 3D:
+
+| Szablon | Sekcje |
+|---|---|
+| **Książka w twardej oprawie** | okładka twarda, wyklejka przednia, blok, wyklejka tylna |
+| **Książka w twardej oprawie z obwolutą** | jak wyżej i obwoluta ze skrzydełkami |
+| **Książka w miękkiej oprawie** | okładka miękka klejona, blok |
+| **Broszura zeszytowa** | okładka zeszytowa, środek (krotność 4) |
+| **Planer tygodniowy w twardej oprawie**, **Planer dzienny w miękkiej oprawie** | okładka, (wyklejki), kalendarz w bloku |
+| **Album ze zdjęciami w twardej oprawie** | okładka twarda, wyklejki, rozkładówki na zdjęcia |
+| **Kalendarz ścienny z plecami** | 12 miesięcy z okładką, plecy (karton) |
+
+Kliknij szablon: zobaczysz pierwsze strony każdej sekcji i wybierzesz **Format**, **Stron bloku** i **Krotność stron (składka)** — domyślnie po 16 stron; liczba stron bloku jest zawsze jej wielokrotnością. **Kolory** — marka albo paleta. **Utwórz projekt z tym szablonem** tworzy cały projekt. Pola formatu i układu są wtedy ukryte — daje je szablon.
+
+Szablony **sekcji** (kalendarz, planer, zaproszenie, rozdział…) to co innego: wstawiasz je do istniejącego projektu w edytorze (rozdział „10.10 Gotowe sekcje (szablony dokumentów)”).
 
 ![Nowy projekt](https://makietka.app/img/instrukcja/nowy-projekt.png)
 
@@ -1081,7 +1095,7 @@ Okładka z grzbietem (rozdział „10.6 Okładka z grzbietem”) przelicza się 
 
 ### 10.10 Gotowe sekcje (szablony dokumentów)
 
-Cały gotowy dokument wstawisz jednym kliknięciem jako nową sekcję: kalendarz ścienny, planer na 365 dni, notes, zaproszenie, dyplomy dla listy osób, wizytówki, ulotkę, menu, rozdział książki i ponad 30 innych. Gdzie: na dole panelu stron przycisk **Gotowa** (obok **Sekcja**), w Bibliotece kategoria **Gotowe sekcje** (rozdział „4.8 Biblioteka”) albo od razu przy nowym projekcie: **Zacznij od → Gotowego szablonu** (rozdział „2.2 Nowy projekt”).
+Cały gotowy dokument wstawisz jednym kliknięciem jako nową sekcję: kalendarz ścienny, planer na 365 dni, notes, zaproszenie, dyplomy dla listy osób, wizytówki, ulotkę, menu, rozdział książki i ponad 30 innych. Gdzie: na dole panelu stron przycisk **Gotowa** (obok **Sekcja**) i w Bibliotece kategoria **Gotowe sekcje** (rozdział „4.8 Biblioteka”). Szablony całych projektów (książka z okładką i wyklejkami, broszura…) są osobno — przy nowym projekcie (rozdział „2.2 Nowy projekt”).
 
 ![Gotowe sekcje – galeria szablonów](https://makietka.app/img/instrukcja/k-gotowe-sekcje.png)
 

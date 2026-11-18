@@ -18,6 +18,13 @@ test('panel administratora: dziennik zapisów z AI i urządzenia, filtr projektu
     wywolania.push(['dziennik', JSON.parse(r.request().postData() || '{}')]);
     r.fulfill({ contentType: 'application/json', body: JSON.stringify(wiersze) });
   });
+  const kopie = { kopie: 120, strony: 900, dziennik: 130, starsze_14: 40, usuniete_projekty: 2, najstarsza: new Date(Date.now() - 40 * 864e5).toISOString(), rozmiar: 52 * 1024 * 1024 };
+  await kontekst.route('**/rest/v1/rpc/admin_kopie_stan', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify(kopie) }));
+  await kontekst.route('**/rest/v1/rpc/admin_kopie_wyczysc', (r) => {
+    wywolania.push(['wyczysc', JSON.parse(r.request().postData() || '{}')]);
+    Object.assign(kopie, { kopie: 80, strony: 600, starsze_14: 0 });
+    r.fulfill({ contentType: 'application/json', body: JSON.stringify({ kopie: 40, strony: 300, dziennik: 30 }) });
+  });
   await kontekst.route('**/rest/v1/rpc/admin_przywroc_kopie', (r) => {
     wywolania.push(['przywroc', JSON.parse(r.request().postData() || '{}')]);
     r.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: true, strony: 2, wersja: 9 }) });
@@ -43,5 +50,15 @@ test('panel administratora: dziennik zapisów z AI i urządzenia, filtr projektu
   await strona.click('#potwierdz-tak');
   await strona.waitForFunction(() => /Przywrócono/.test(document.querySelector('#powiadomienie')?.textContent || ''));
   assert.deepEqual(wywolania.find(([n]) => n === 'przywroc')[1], { p_kopia: 22 });
+
+  // Sprzątanie kopii (#207): stan wszystkich kopii i usunięcie starszych niż wybrana liczba dni – z potwierdzeniem.
+  await strona.waitForFunction(() => /Kopie: 120 zapisów/.test(document.querySelector('#admin-kopie-opis').textContent));
+  assert.match(await strona.textContent('#admin-kopie-opis'), /52\.0 MB.*starszych niż 14 dni: 40.*z usuniętych projektów: 2/);
+  await strona.selectOption('#admin-kopie-dni', '30');
+  await strona.click('#admin-kopie-wyczysc');
+  await strona.click('#potwierdz-tak');
+  await strona.waitForFunction(() => /Usunięto kopie: 40 zapisów/.test(document.querySelector('#powiadomienie')?.textContent || ''));
+  assert.deepEqual(wywolania.find(([n]) => n === 'wyczysc')[1], { p_dni: 30 });
+  await strona.waitForFunction(() => /Kopie: 80 zapisów/.test(document.querySelector('#admin-kopie-opis').textContent));
   assert.deepEqual(bledy, []);
 });

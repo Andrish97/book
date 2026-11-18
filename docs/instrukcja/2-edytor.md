@@ -1102,8 +1102,8 @@ wystają poza stronę, pokaże **Sprawdź przed drukiem** (→ 20).
 
 Cały gotowy dokument wstawisz jednym kliknięciem jako nową sekcję: kalendarz ścienny, planer na 365 dni,
 notes, zaproszenie, dyplomy dla listy osób, wizytówki, ulotkę, menu, rozdział książki i ponad 30 innych.
-Gdzie: na dole panelu stron przycisk [Gotowa] (obok [Sekcja]), w Bibliotece kategoria **Gotowe sekcje** (→ 4.8)
-albo od razu przy nowym projekcie: **Zacznij od → Gotowego szablonu** (→ 2.2).
+Gdzie: na dole panelu stron przycisk [Gotowa] (obok [Sekcja]) i w Bibliotece kategoria **Gotowe sekcje** (→ 4.8).
+Szablony całych projektów (książka z okładką i wyklejkami, broszura…) są osobno — przy nowym projekcie (→ 2.2).
 
 ![Gotowe sekcje – galeria szablonów](k-gotowe-sekcje.png)
 

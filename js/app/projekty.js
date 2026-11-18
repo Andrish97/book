@@ -400,8 +400,8 @@ export async function otworzNowyProjekt({ szablon = false } = {}) {
   f.elements.nazwa.focus();
 }
 
-// „Zacznij od: Gotowego szablonu” – galeria szablonów od razu w tym oknie (#208), bez pól formatu: format daje
-// szablon (albo A5). Wybór szablonu tworzy projekt i wstawia go w miejsce pustej strony.
+// „Zacznij od: Gotowego szablonu” – galeria szablonów PROJEKTÓW od razu w tym oknie (#208), bez pól formatu
+// (format i sekcje daje szablon). Wybór szablonu tworzy cały projekt.
 async function pokazStart() {
   const f = $('#form-nowy');
   const szablon = f.elements.start?.value === 'szablon';
@@ -417,10 +417,9 @@ async function pokazStart() {
   if (f.dataset.start !== 'szablon') return;
   const okno = await import('./gotowe-sekcje-okno.js');
   okno.pokazWNowymProjekcie($('#nowy-szablony'), {
-    wydruk: () => wydrukZFormularza(),
-    utworz: async (format) => {
-      const p = projektZFormularza(format);
-      await otworzProjekt(p);
+    nazwa: () => f.elements.nazwa.value.trim(),
+    utworz: async (projekt) => {
+      await otworzProjekt(projekt);
       await zapiszTeraz();
     },
   });
@@ -431,32 +430,24 @@ $('#form-nowy').addEventListener('change', (e) => {
   if (e.target.name === 'start') pokazStart();
 });
 
-function wydrukZFormularza(format = null) {
+// Pusty projekt z pól okna „Nowy projekt”.
+function projektZFormularza() {
   const f = $('#form-nowy');
-  const nazwaFormatu = f.elements.format.value;
-  let [w, h] = format ? [format.szerokosc_mm, format.wysokosc_mm]
-    : FORMATY[nazwaFormatu] || [Number(f.elements.szerokosc_mm.value) || 148, Number(f.elements.wysokosc_mm.value) || 210];
-  if (!format && f.elements.orientacja.value === 'poziom' && h > w) [w, h] = [h, w];
-  if (!format && f.elements.orientacja.value === 'pion' && w > h) [w, h] = [h, w];
-  return normalizujWydruk({
-    format: !format && FORMATY[nazwaFormatu] ? nazwaFormatu : 'wlasny',
+  const format = f.elements.format.value;
+  let [w, h] = FORMATY[format] || [Number(f.elements.szerokosc_mm.value) || 148, Number(f.elements.wysokosc_mm.value) || 210];
+  if (f.elements.orientacja.value === 'poziom' && h > w) [w, h] = [h, w];
+  if (f.elements.orientacja.value === 'pion' && w > h) [w, h] = [h, w];
+  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || 'Nowy projekt', normalizujWydruk({
+    format: FORMATY[format] ? format : 'wlasny',
     szerokosc_mm: Math.max(20, w),
     wysokosc_mm: Math.max(20, h),
     spad_mm: Math.max(0, Number(f.elements.spad_mm.value) || 0),
     marginesy_mm: Math.max(0, Number(f.elements.marginesy_mm.value) || 0),
     znaki_ciecia: true,
-  });
-}
-
-// Pusty projekt z pól okna; z szablonu (#208) – bez okładki i układu z formularza (daje je szablon).
-function projektZFormularza(format = null, { zSzablonu = true } = {}) {
-  const f = $('#form-nowy');
-  const pelny = !zSzablonu || f.dataset.start !== 'szablon';
-  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || 'Nowy projekt', wydrukZFormularza(format),
-    pelny && f.elements.uklad.value === 'rozkladowki' ? 'rozkladowki' : 'pojedyncze');
+  }), f.elements.uklad.value === 'rozkladowki' ? 'rozkladowki' : 'pojedyncze');
   projekt.style = domyslneStyle();
   // Okładka liczona sama (#119): osobna sekcja przed środkiem, format z formatu i liczby stron środka.
-  if (pelny && f.elements.okladka.value) {
+  if (f.elements.okladka.value) {
     const srodek = projekt.sekcje[0];
     srodek.nazwa = 'Środek';
     const okladka = nowaSekcja('Okładka', { ...srodek.wydruk, marginesy: { ...srodek.wydruk.marginesy } });
@@ -472,7 +463,7 @@ function projektZFormularza(format = null, { zSzablonu = true } = {}) {
 $('#dlg-nowy').addEventListener('close', async () => {
   if (edytorGotowy()) import('./gotowe-sekcje-okno.js').then((m) => m.schowajZNowegoProjektu()).catch(() => {});
   if ($('#dlg-nowy').returnValue !== 'ok') return;
-  await otworzProjekt(projektZFormularza(null, { zSzablonu: false }));
+  await otworzProjekt(projektZFormularza());
   await zapiszTeraz();
 });
 

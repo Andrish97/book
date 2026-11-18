@@ -3547,7 +3547,7 @@ img:not([src]):not(.zaladowany) { color: transparent; }
     position: static; width: auto; height: auto; clip: auto; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
     font-size: 11.5px; font-weight: 500; line-height: 1.1;
   }
-  #ekran-admin .admin-nawigacja .licznik-admin {
+  #ekran-admin .admin-nawigacja .licznik-admin, #ekran-admin[data-zakladka="skrzynka"] .admin-nawigacja .licznik-admin {
     position: absolute; top: 2px; left: calc(50% + 6px); right: auto; margin: 0; min-width: 17px; height: 17px; font-size: 10.5px; padding: 0 4px;
   }
   #ekran-admin .admin-tresc .konto-uklad { grid-template-columns: minmax(0, 1fr); }

@@ -2,7 +2,8 @@
 // rendererem, filtr kategorii i szukanie; szczegóły szablonu z podglądem w formacie projektu, pytaniami
 // (rok, liczba stron), kolorami (marka albo paleta) i wstawieniem jako nowa sekcja – jednym krokiem cofania.
 // Otwierają je: lista stron („Gotowa” obok „Sekcja”), Biblioteka (kategoria „Gotowe sekcje”) i nowy projekt
-// („Zacznij od gotowego szablonu” – wtedy galeria jest od razu w oknie „Nowy projekt”, #208).
+// („Zacznij od gotowego szablonu” – wtedy w oknie „Nowy projekt” ta sama galeria pokazuje SZABLONY PROJEKTÓW,
+// czyli całe zestawy sekcji z js/szablony-projektow.js – to osobna rzecz od szablonów sekcji, #208).
 
 import { $, powiadom } from '../ui.js';
 import { ikona } from '../ikony.js';
@@ -15,6 +16,9 @@ import {
   SZABLONY_SEKCJI, KATEGORIE_SEKCJI, PALETY, szablonSekcji, domyslneOpcje, wstawGotowaSekcje, paletaZMarki, svgSchematu,
   usunPustyStart, projektPusty,
 } from '../gotowe-sekcje.js';
+import {
+  SZABLONY_PROJEKTOW, KATEGORIE_PROJEKTOW, szablonProjektu, domyslneOpcjeProjektu, zbudujProjekt, sekcjeSzablonu,
+} from '../szablony-projektow.js';
 import { stan, biezacaSekcja } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { ustawZakladke, generujMiniatury } from './lista-stron.js';
@@ -32,7 +36,7 @@ const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const bezOgonkow = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
 
 let kategoria = '';
-// nowy: { wydruk(), utworz() } – galeria w oknie „Nowy projekt”: projektu jeszcze nie ma, powstaje przy wyborze.
+// nowy: { nazwa(), utworz(projekt) } – galeria szablonów projektów w oknie „Nowy projekt”.
 let tryb = { zastapPusty: false, nowy: null };
 const miniatury = new Map(); // klucz (szablon|format|paleta) → { url, stron }
 
@@ -47,10 +51,21 @@ const czcionkiMarki = () => {
   const m = marka();
   return m ? { tytul: m.czcionki.naglowek || undefined, tekst: m.czcionki.tekst || undefined } : {};
 };
-const wydrukCelu = () => (tryb.nowy ? tryb.nowy.wydruk() : stan.projekt ? biezacaSekcja().wydruk : null);
+const wydrukCelu = () => (!tryb.nowy && stan.projekt ? biezacaSekcja().wydruk : null);
+// Szablon z karty: w oknie „Nowy projekt” – szablon projektu, w edytorze – szablon sekcji.
+const szablon = (id) => (tryb.nowy ? szablonProjektu(id) : szablonSekcji(id));
+const stronSlowo = (n) => `${n} ${n === 1 ? 'strona' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'strony' : 'stron'}`;
 
 // Projekt próbny z samą sekcją szablonu – do miniatur i podglądu (nie dotyka projektu użytkownika).
 async function projektProbny(szablon, { odpowiedzi, wlasnyFormat, wybor } = {}) {
+  if (tryb.nowy) {
+    // Szablon projektu: cały projekt; podgląd – pierwsza strona każdej sekcji.
+    const p = await zbudujProjekt(szablon.id, { nazwa: 'Podgląd', odpowiedzi, paleta: paleta(szablon, wybor), czcionki: czcionkiMarki() });
+    const ciag = rozwin(p);
+    const egz = ciag.egzemplarze.filter((e) => !e.pusta);
+    const pierwsze = p.sekcje.map((sek) => egz.find((e) => e.strona.sekcja === sek.id)).filter(Boolean);
+    return { p, ciag, egz, pierwsze };
+  }
   const wydruk = wydrukCelu() || { szerokosc_mm: 148, wysokosc_mm: 210, spad_mm: 3, marginesy: { gora: 12, dol: 12, wewnetrzny: 12, zewnetrzny: 12 } };
   const p = normalizuj(nowyProjekt('Podgląd', wydruk));
   if (szablon.okladka) {
@@ -62,25 +77,28 @@ async function projektProbny(szablon, { odpowiedzi, wlasnyFormat, wybor } = {}) 
   przeliczOkladki(p);
   const ciag = rozwin(p);
   const egz = ciag.egzemplarze.filter((e) => e.strona.sekcja === sekcja.id && !e.pusta);
-  return { p, ciag, egz };
+  return { p, ciag, egz, pierwsze: egz.slice(0, 3) };
 }
 
 // ---------- Galeria ----------
 
 function pokazChipy() {
-  chipy.innerHTML = [{ id: '', nazwa: 'Wszystkie' }, ...KATEGORIE_SEKCJI].map((k) => `<button type="button" class="chip-biblioteki" data-kategoria="${k.id}" aria-pressed="${k.id === kategoria}"><span>${esc(k.nazwa)}</span></button>`).join('');
+  chipy.innerHTML = [{ id: '', nazwa: 'Wszystkie' }, ...(tryb.nowy ? KATEGORIE_PROJEKTOW : KATEGORIE_SEKCJI)].map((k) => `<button type="button" class="chip-biblioteki" data-kategoria="${k.id}" aria-pressed="${k.id === kategoria}"><span>${esc(k.nazwa)}</span></button>`).join('');
 }
 
 function pokazListe() {
-  if (!lista.childElementCount) {
-    lista.innerHTML = SZABLONY_SEKCJI.map((s) => `<button type="button" class="karta-szablonu" data-id="${s.id}" data-kategoria="${s.kategoria}">
-      <span class="miniatura-szablonu">${svgSchematu(s)}</span>
+  const rodzaj = tryb.nowy ? 'projekty' : 'sekcje';
+  if (!lista.childElementCount || lista.dataset.rodzaj !== rodzaj) {
+    lista.dataset.rodzaj = rodzaj;
+    const zrodlo = tryb.nowy ? SZABLONY_PROJEKTOW : SZABLONY_SEKCJI;
+    lista.innerHTML = zrodlo.map((s) => `<button type="button" class="karta-szablonu" data-id="${s.id}" data-kategoria="${s.kategoria}">
+      <span class="miniatura-szablonu">${svgSchematu(tryb.nowy ? szablonSekcji(s.blok || 'okladka-ksiazki') : s)}</span>
       <strong>${esc(s.nazwa)}</strong><small>${esc(s.opis)}</small>${s.dane ? '<span class="plakietka-danych">z danymi</span>' : ''}</button>`).join('');
     for (const k of lista.children) obserwator.observe(k);
   }
   const slowa = bezOgonkow(pole.value).split(/\s+/).filter(Boolean);
   for (const k of lista.children) {
-    const s = szablonSekcji(k.dataset.id);
+    const s = szablon(k.dataset.id);
     const tekst = bezOgonkow(`${s.nazwa} ${s.slowa} ${s.opis}`);
     k.hidden = Boolean((kategoria && s.kategoria !== kategoria) || !slowa.every((x) => tekst.includes(x)));
   }
@@ -94,20 +112,20 @@ async function rysujKolejke() {
   rysuje = true;
   while (kolejka.length && okno()?.open) {
     const karta = kolejka.shift();
-    const s = szablonSekcji(karta.dataset.id);
-    const klucz = `${s.id}|${wydrukCelu()?.szerokosc_mm}x${wydrukCelu()?.wysokosc_mm}|${marka() ? 'marka' : ''}`;
+    const s = szablon(karta.dataset.id);
+    const klucz = `${tryb.nowy ? 'projekt:' : ''}${s.id}|${wydrukCelu()?.szerokosc_mm}x${wydrukCelu()?.wysokosc_mm}|${marka() ? 'marka' : ''}`;
     try {
       let m = miniatury.get(klucz);
       if (!m) {
         const { p, ciag, egz } = await projektProbny(s, { wlasnyFormat: true, wybor: marka() ? 'marka' : '' });
-        m = { url: await renderujCel(p, egz[0], { szerokoscPx: 220, spad: false, ciag, format: 'jpeg', jakosc: 0.8 }), stron: egz.length };
+        m = { url: await renderujCel(p, egz[0], { szerokoscPx: 220, spad: false, ciag, format: 'jpeg', jakosc: 0.8 }), stron: egz.length, sekcji: p.sekcje.length };
         miniatury.set(klucz, m);
       }
       const ramka = karta.querySelector('.miniatura-szablonu');
       ramka.innerHTML = `<img src="${m.url}" alt="">`;
       ramka.classList.add('gotowa');
       const meta = karta.querySelector('.meta-szablonu') || karta.appendChild(Object.assign(document.createElement('span'), { className: 'meta-szablonu' }));
-      meta.textContent = `${m.stron} ${m.stron === 1 ? 'strona' : m.stron < 5 ? 'strony' : 'stron'}`;
+      meta.textContent = tryb.nowy ? `${m.sekcji} ${m.sekcji < 5 ? 'sekcje' : 'sekcji'} · ${stronSlowo(m.stron)}` : stronSlowo(m.stron);
     } catch (e) { console.error(e); }
     await new Promise((r) => setTimeout(r, 0));
   }
@@ -126,7 +144,7 @@ const obserwator = new IntersectionObserver((wpisy) => {
 
 let czasPodgladu = null;
 function pokazSzczegoly(id) {
-  const s = szablonSekcji(id);
+  const s = szablon(id);
   if (!s) return;
   szczegoly.dataset.id = id;
   galeria.hidden = true;
@@ -134,7 +152,7 @@ function pokazSzczegoly(id) {
   $('#gotowe-nazwa').textContent = s.nazwa;
   $('#gotowe-opis').textContent = s.opis;
   const pyt = $('#gotowe-pytania');
-  const odp = domyslneOpcje(s);
+  const odp = tryb.nowy ? domyslneOpcjeProjektu(s) : domyslneOpcje(s);
   pyt.innerHTML = (s.pytania || []).map((p) => (p.typ === 'wybor'
     ? `<label class="pole"><span>${esc(p.etykieta)}</span><select name="${p.klucz}">${p.opcje.map(([v, n]) => `<option value="${v}"${v === odp[p.klucz] ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`
     : `<label class="pole waskie"><span>${esc(p.etykieta)}</span><input name="${p.klucz}" type="number" min="${p.min}" max="${p.max}" step="1" inputmode="numeric" value="${odp[p.klucz]}"></label>`)).join('');
@@ -162,16 +180,21 @@ function odpowiedzi() {
 function odswiezPodglad() {
   clearTimeout(czasPodgladu);
   czasPodgladu = setTimeout(async () => {
-    const s = szablonSekcji(szczegoly.dataset.id);
+    const s = szablon(szczegoly.dataset.id);
     const box = $('#gotowe-podglad');
     box.setAttribute('aria-busy', 'true');
     try {
-      const { p, ciag, egz } = await projektProbny(s, { odpowiedzi: odpowiedzi(), wlasnyFormat: wlasnyFormat(s) });
+      const { p, ciag, egz, pierwsze } = await projektProbny(s, { odpowiedzi: odpowiedzi(), wlasnyFormat: wlasnyFormat(s) });
       const obrazy = [];
-      for (const e of egz.slice(0, 3)) obrazy.push(await renderujCel(p, e, { szerokoscPx: 260, spad: false, ciag, format: 'jpeg', jakosc: 0.85 }).catch(() => null));
+      for (const e of pierwsze.slice(0, 5)) obrazy.push(await renderujCel(p, e, { szerokoscPx: 260, spad: false, ciag, format: 'jpeg', jakosc: 0.85 }).catch(() => null));
       if (szczegoly.dataset.id !== s.id) return;
       box.innerHTML = obrazy.filter(Boolean).map((u) => `<img src="${u}" alt="">`).join('');
       const sek = p.sekcje.at(-1);
+      if (tryb.nowy) {
+        const blok = p.sekcje.find((x) => x.typ === 'blok') || sek;
+        $('#gotowe-podsumowanie').textContent = `${sekcjeSzablonu(s, odpowiedzi()).join(' · ')} · razem ${stronSlowo(egz.length)} · ${Math.round(blok.wydruk.szerokosc_mm)} × ${Math.round(blok.wydruk.wysokosc_mm)} mm`;
+        return;
+      }
       $('#gotowe-podsumowanie').textContent = `${egz.length} ${egz.length === 1 ? 'strona' : egz.length < 5 ? 'strony' : 'stron'} · ${Math.round(sek.wydruk.szerokosc_mm)} × ${Math.round(sek.wydruk.wysokosc_mm)} mm${s.dane ? ' · strony z tabeli danych (do zmiany w oknie Dane)' : ''}`;
     } catch (e) {
       console.error(e);
@@ -190,15 +213,24 @@ function pokazGalerie() {
 // ---------- Wstawienie ----------
 
 async function wstaw() {
-  const s = szablonSekcji(szczegoly.dataset.id);
+  const s = szablon(szczegoly.dataset.id);
   if (!s) return;
-  // Wybory czytane przed utworzeniem projektu – „Nowy projekt” zamyka się razem z galerią.
   const opcje = { wlasnyFormat: wlasnyFormat(s), odpowiedzi: odpowiedzi(), paleta: paleta(s), czcionki: czcionkiMarki() };
   if (tryb.nowy) {
-    const { utworz } = tryb.nowy;
-    tryb = { zastapPusty: true, nowy: null };
-    okno().close('szablon');
-    await utworz(s.format && !s.okladka ? { szerokosc_mm: s.format[0], wysokosc_mm: s.format[1] } : null);
+    // Szablon projektu (#208): cały projekt naraz, potem otwarcie go jak każdego nowego projektu.
+    const { utworz, nazwa } = tryb.nowy;
+    const przycisk = $('#gotowe-wstaw');
+    przycisk.disabled = true;
+    try {
+      const projekt = await zbudujProjekt(s.id, { ...opcje, nazwa: nazwa() || s.nazwa });
+      okno().close('szablon');
+      await utworz(projekt);
+      powiadom(`Utworzono projekt z szablonu „${s.nazwa}”: ${sekcjeSzablonu(s, opcje.odpowiedzi).join(', ')}.`);
+    } catch (e) {
+      console.error(e);
+      powiadom(`Nie udało się utworzyć projektu: ${e.message}`, true);
+    } finally { przycisk.disabled = false; }
+    return;
   }
   if (!stan.projekt) return;
   if (s.okladka && stan.projekt.sekcje.some((x) => x.okladka)) {
@@ -226,10 +258,11 @@ async function wstaw() {
 
 // ---------- Otwieranie ----------
 
-// Galeria w oknie „Nowy projekt” (#208): miejsce – element w tym oknie; wydruk() – format z formularza;
-// utworz(format) – tworzy i otwiera pusty projekt (format szablonu, gdy ma własny), do którego wstawi się szablon.
-export function pokazWNowymProjekcie(miejsce, { wydruk, utworz }) {
-  tryb = { zastapPusty: true, nowy: { wydruk, utworz } };
+// Galeria szablonów projektów w oknie „Nowy projekt” (#208): miejsce – element w tym oknie; nazwa() – nazwa
+// z formularza; utworz(projekt) – otwiera i zapisuje zbudowany projekt.
+export function pokazWNowymProjekcie(miejsce, { nazwa, utworz }) {
+  tryb = { zastapPusty: false, nowy: { nazwa, utworz } };
+  kategoria = '';
   if (tresc.parentElement !== miejsce) { miejsce.append(tresc); lista.replaceChildren(); }
   przygotuj();
   pole.value = '';
@@ -249,9 +282,10 @@ function przygotuj() {
   sel.innerHTML = `${marka() ? '<option value="marka">Kolory marki</option>' : ''}<option value="">Kolory szablonu</option>${Object.entries(PALETY).map(([k, v]) => `<option value="${k}">${esc(v.nazwa)}</option>`).join('')}`;
   sel.value = marka() ? 'marka' : '';
   pokazChipy();
+  pole.placeholder = tryb.nowy ? 'Szukaj (książka, planer, kalendarz…)' : 'Szukaj (kalendarz, dyplom, menu…)';
   $('#gotowe-wstaw').textContent = tryb.nowy ? 'Utwórz projekt z tym szablonem' : 'Wstaw jako nową sekcję';
   galeria.querySelector('.gotowe-wstep').textContent = tryb.nowy
-    ? 'Wybierz szablon – projekt powstanie w jego formacie i w kolorach marki, a potem zmieniasz go jak zwykłe strony.'
+    ? 'Szablony całych projektów: od razu wszystkie sekcje z ustawieniami – okładka, wyklejki, blok z krotnością stron – gotowe do druku i makiety 3D.'
     : 'Całe gotowe dokumenty: kalendarze, planery, zaproszenia, dyplomy, ulotki, rozdziały książki… Wstawiają się jako nowa sekcja w formacie projektu i w kolorach marki – potem zmieniasz je jak zwykłe strony.';
 }
 
@@ -259,6 +293,7 @@ export function otworzGotoweSekcje({ szablon = null, zastapPusty = false } = {})
   if (!stan.projekt) return;
   schowajZNowegoProjektu();
   tryb = { zastapPusty, nowy: null };
+  kategoria = '';
   przygotuj();
   if (!dlgGotowe.open) dlgGotowe.showModal();
   if (szablon) pokazSzczegoly(szablon);

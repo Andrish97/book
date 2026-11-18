@@ -41,6 +41,8 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 208 | Szablony projektów (książka twarda z wyklejkami i blokiem z krotnością 16, z obwolutą, miękka, broszura, planery, album, kalendarz z plecami) od razu w oknie „Nowy projekt”, osobno od szablonów sekcji; czytelniejsza ikona motywu „jak w systemie” |
+| 207 | Panel administratora: zakładki z podpisami na górze na telefonie, „Poczta” = kolejka + ustawienia, czyszczenie starych kopii awaryjnych |
 | 206 | E-maile o zaproszeniach do wyłączenia w Ustawienia konta → Powiadomienia → „E-mailem” (dla całego konta); zapraszający widzi, że ta osoba zobaczy zaproszenie w aplikacji |
 | 204 | Udostępnianie w tle: link od razu, strony wysyłają się w tle; oglądający widzi „Podgląd jest w przygotowaniu” i strony pojawiające się po kolei |
 | 203 | Makieta 3D na telefonie nie zamyka karty („Kurza twarz”): limit stron w pamięci grafiki, mniejsze tekstury na telefonie |

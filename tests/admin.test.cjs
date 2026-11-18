@@ -110,13 +110,14 @@ test('panel administratora: tylko dla administratora; skrzynka – rozmowy, odpo
   await strona.fill('#admin-szukaj', '');
 
   // Kolejka: odpowiedź jako wysłana, dostawca z licznikiem dnia.
-  await strona.click('[data-admin="kolejka"]');
+  // Kolejka i ustawienia poczty – jedna zakładka „Poczta” (#207).
+  await strona.click('[data-admin="poczta"]');
   await strona.waitForSelector('#admin-kolejka li');
   assert.match(await strona.textContent('#admin-kolejka'), /wysłany.*Odpowiedź ze skrzynki → jan@przyklad\.pl/s);
   assert.match(await strona.textContent('#admin-dostawcy-stan'), /Brevo.*Dziś 1 z 300/s);
 
   // Ustawienia: zapis limitu dostawcy, odstępu i podpisu; obca domena nadawcy – błąd; żadnego klucza do kopiowania; test wysyłki.
-  await strona.click('[data-admin="ustawienia"]');
+  assert.ok(await strona.isVisible('#admin-ustawienia-sekcja'), 'ustawienia w tej samej zakładce');
   await strona.waitForSelector('#admin-dostawcy tbody tr');
   assert.equal(await strona.inputValue('#admin-form-ustawien [name="podpis"]'), 'Pozdrawiamy\nZespół Makietki');
   await strona.fill('#admin-dostawcy [name="dzienny_limit"]', '250');
@@ -430,7 +431,7 @@ test('skrzynka na telefonie: foldery i lista, potem rozmowa, potem pisanie – k
   await strona.evaluate(() => { location.hash = '#/admin/skrzynka'; });
   await naEkranie(strona, 'admin');
   await strona.waitForSelector('#admin-watki li');
-  const pozaEkranem = () => strona.evaluate(() => [...document.querySelectorAll('#ekran-admin button:not(.lista-folderow button), #ekran-admin input:not([type="checkbox"]):not([type="file"]), #ekran-admin .edytor-wiadomosci-tresc')]
+  const pozaEkranem = () => strona.evaluate(() => [...document.querySelectorAll('#ekran-admin button:not(.lista-folderow button):not(.skrzynka-filtry button), #ekran-admin input:not([type="checkbox"]):not([type="file"]), #ekran-admin .edytor-wiadomosci-tresc')]
     .filter((e) => e.offsetParent && e.getClientRects().length).map((e) => e.getBoundingClientRect()).filter((r) => r.width && (r.right > innerWidth + 1 || r.left < -1)).length);
   const widoczne = (sel) => strona.isVisible(sel);
   assert.equal(await widoczne('#admin-watek'), false, 'na telefonie najpierw sama lista');
