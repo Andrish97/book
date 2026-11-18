@@ -94,7 +94,7 @@ ${adres}
 
 Narzędzia wywołujesz, otwierając adresy podane na tej stronie (https://api.makietka.app/mcp/…/n/<narzędzie>?parametr=wartość). Zacznij od przeglądu projektu, zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Gdy nie możesz otworzyć adresu, który sam zbudowałeś, napisz mi go – otworzę albo wkleję Ci wynik.
 
-Zadanie (dopisz po dwukropku, co AI ma zrobić – inaczej zapyta): `;
+Na początek otwórz narzędzie projekty (link na stronie), pokaż mi moje projekty i zapytaj, co mam zrobić.`;
 function pokazPolecenia(adres = '') {
   adresWOknie = adres;
   const zw = $('#dostep-ai-polecenie-zwykly');
@@ -115,7 +115,7 @@ export async function kopiujPolecenieAi() {
 export async function kopiujPolecenieZwykle() {
   try {
     await navigator.clipboard.writeText(polecenieZwyklegoCzatu(adresWOknie));
-    powiadom('Skopiowano – wklej w rozmowie ze zwykłym czatem i dopisz zadanie.');
+    powiadom('Skopiowano – wklej w rozmowie ze zwykłym czatem.');
   } catch {
     powiadom('Nie udało się skopiować – zaznacz tekst i skopiuj go ręcznie.', true);
   }
