@@ -41,4 +41,6 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | 15 | (4) Ikona i logo – propozycje do zatwierdzenia (na koniec – wymaga oceny wyglądu) | ✅ #240 (znaki cięcia) |
 | 16 | **Tryb składanek i wycinanek** – ogólny tryb z własnymi narzędziami: modele z wielu części na wielu arkuszach, grubość materiału z kompensacją, zakładki, miejsca klejenia z numerami, szczeliny, połączenia, sprawdzanie, szablony, 3D z instrukcją, pop-up (ustalenia: docs/PLAN-SKLADANKI.md). Na koniec – „dość skomplikowane”. | ⏳ #233 (krok 1–2 z 8: tryb, ustawienia, część, narzędzia, połączenia numerami), #234 (krok 4: sprawdzanie), #235 (krok 3: połączenia), #236 (krok 5: arkusze), #237 (krok 6: szablony z kompensacją grubości), #238 (krok 7: 3D i instrukcja montażu) |
 
+| 17 | **AI według koncepcji „Makietka AI 1.0”** (dokument od użytkownika, 18.11): łącznik z logowaniem OAuth 2.1, drobniejsze zakresy uprawnień, zatwierdzanie usuwania w czacie, Ustawienia → Sztuczna inteligencja (kilku dostawców, test połączenia, klucze opcjonalnie na koncie), streaming i czytelne błędy, brakujące narzędzia. Audyt i plan: docs/PLAN-AI.md. **Robione przed dokończeniem punktu 16** (składanki: pop-up, rozkładanie brył 3D…). | ⏳ |
+
 Każdy punkt: test, instrukcja, DECYZJE, ZGŁOSZENIA, commit i push.
