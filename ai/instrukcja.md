@@ -1200,7 +1200,7 @@ Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy kr
 
 **Sprawdź przed drukiem** (rozdział „20 Sprawdź przed drukiem”) pilnuje modelu: część wystająca poza arkusz albo wchodząca w margines drukarki, części nachodzące na siebie razem z zakładkami (nie da się ich wyciąć), numer bez pary (nie wiadomo, do czego to przykleić), numer użyty więcej niż dwa razy, para krawędzi o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż wypustka. Przy każdej uwadze **Otwórz wzór** zaznacza część.
 
-Kolejne kroki tego trybu – sprawdzanie przy druku dla plotera i drukarni, rozkładanie części na arkusze, gotowe szablony z kompensacją grubości, makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
+Kolejne kroki tego trybu – gotowe szablony z kompensacją grubości, makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
 
 ## 11. Wzorce stron
 

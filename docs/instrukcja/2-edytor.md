@@ -1252,7 +1252,7 @@ drukarki, części nachodzące na siebie razem z zakładkami (nie da się ich wy
 o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż
 wypustka. Przy każdej uwadze [Otwórz wzór] zaznacza część.
 
-Kolejne kroki tego trybu – sprawdzanie przy druku dla plotera i drukarni, rozkładanie części na arkusze, gotowe szablony z kompensacją grubości,
+Kolejne kroki tego trybu – gotowe szablony z kompensacją grubości,
 makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
 
 # 11. Wzorce stron
