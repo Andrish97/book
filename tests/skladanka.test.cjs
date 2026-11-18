@@ -180,6 +180,43 @@ test('składanka: sekcja z materiałem, narzędzia, części, zgięcie, połącz
   assert.match(opisy, /Para 1: krawędzie mają różne długości \(40 i 30 mm\)|Para 2: miejsce klejenia/);
   assert.ok(kontrola.po.every(([, m]) => m === 'z miejscem'), 'każda uwaga prowadzi do części');
 
+  // Rozłóż na arkusze (#236): A (wystaje poza arkusz), B i nowa duża część C 240 × 170 mm (nie zmieści się obok
+  // na A4 poziomo; nachodzi na B) – po rozłożeniu żadna nie wystaje i nie nachodzi na inną.
+  const rozklad = await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    await window.seriodruk.przeladuj(); // płótno z danych zmienionych w kontroli
+    const e = window.seriodruk.edytor;
+    const { zbudujCzesc } = await import('./js/skladanka.js');
+    const c = zbudujCzesc({ nr: 'C', punkty: [{ x: 0, y: 0 }, { x: 240, y: 0 }, { x: 240, y: 170 }, { x: 0, y: 170 }] }, { left: 30, top: 20 });
+    e._wstaw(c); // nachodzi na A i B
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    const { rozwin } = await import('./js/serie.js');
+    await window.seriodruk.zapiszTeraz();
+    const nachodzi = sprawdzProjekt(p, rozwin(p)).filter((u) => /nachodzą na siebie/.test(u.opis)).length;
+    document.querySelector('[data-akcja="skladanka-rozloz"]').click();
+    await new Promise((ok) => setTimeout(ok, 600));
+    const sek = p.sekcje[0].id;
+    const arkusze = p.strony.filter((s) => s.sekcja === sek).map((s) => s.obiekty.filter((o) => o.czesc).map((o) => o.czesc.nr).sort());
+    const uwagi = sprawdzProjekt(p, rozwin(p)).filter((u) => u.rodzaj === 'skladanka' && /poza arkusz|nachodzą|margines/.test(u.opis)).map((u) => u.opis);
+    return { nachodzi, arkusze, uwagi };
+  });
+  assert.ok(rozklad.nachodzi >= 1, `przed: C nachodzi na B (${rozklad.nachodzi})`);
+  assert.equal(rozklad.arkusze.length, 2, 'dołożony drugi arkusz');
+  assert.deepEqual(rozklad.arkusze.flat().sort(), ['A', 'B', 'C']);
+  assert.deepEqual(rozklad.arkusze[0], ['C'], 'najwyższa część pierwsza, sama na arkuszu');
+  assert.deepEqual(rozklad.uwagi, [], 'po rozłożeniu: nic poza arkuszem, w marginesie ani na sobie');
+
+  // Obrót: część 250 × 60 mm nie mieści się poziomo w polu 196 × 283 – obraca się o 90° i mieści w ramce arkusza.
+  const obrot = await strona.evaluate(async () => {
+    const S = await import('./js/skladanka.js');
+    const r = S.rozlozNaArkusze([{ id: 'x', w: 250, h: 60 }], { x: 7, y: 7, w: 196, h: 283 });
+    const p = r.arkusze[0][0];
+    const o = { left: p.x + 60, top: p.y, width: 250, height: 60, angle: p.obrot, originX: 'left', originY: 'top' };
+    return { obrot: p.obrot, ramka: S.ramkaNaStronie(o) };
+  });
+  assert.equal(obrot.obrot, 90);
+  assert.deepEqual([obrot.ramka.x1, obrot.ramka.y1, obrot.ramka.x2, obrot.ramka.y2].map((v) => Math.round(v)), [7, 7, 67, 257]);
+
   // Poza sekcją składanki narzędzi nie widać.
   await strona.evaluate(async () => {
     const P = await import('./js/projekt.js');

@@ -2367,6 +2367,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Rozłącz ramki":"Роз'єднати рамки",
 "Rozłożona – środek":"Розгорнута – всередині",
 "Rozłożona – zewnątrz":"Розгорнута – зовні",
+"Rozłóż":"Розкласти",
 "Rozłóż równo w pionie":"Розподілити рівномірно по вертикалі",
 "Rozłóż równo w poziomie":"Розподілити рівномірно по горизонталі",
 "Rozłóż rysunek na elementy":"Розкласти малюнок на елементи",

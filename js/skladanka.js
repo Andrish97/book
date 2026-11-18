@@ -392,6 +392,9 @@ export function uwagiSkladanki(arkusze) {
       }
     }
   }
+  for (const a of arkusze) {
+    for (const [nrA, nrB, id] of nachodzaceCzesci(a.strona.obiekty)) uwagi.push({ rodzaj: 'skladanka', strony: a.nr ? [a.nr] : [], idStrony: a.strona.id, idObiektu: id, opis: `Części ${nrA} i ${nrB} nachodzą na siebie (razem z zakładkami) – nie da się ich wyciąć. Rozsuń je albo użyj „Rozłóż na arkusze”.` });
+  }
   for (const [para, lista] of wpisy) {
     const g = lista[0].gdzie;
     if (lista.length === 1) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} (${lista[0].opis}) nie ma pary – nie wiadomo, do czego to przykleić. Połącz z krawędzią albo miejscem (narzędzie „Połącz”) albo usuń numer.` }); continue; }
@@ -439,4 +442,71 @@ export function ksztaltyPar(def) {
   for (const p of c.pola) if (p.para) w.push({ para: p.para, punkty: [{ x: p.x, y: p.y }, { x: p.x + p.w, y: p.y }, { x: p.x + p.w, y: p.y + p.h }, { x: p.x, y: p.y + p.h }], zamkniety: true });
   for (const z of c.szczeliny) if (z.para) w.push({ para: z.para, punkty: prostokatSzczeliny(z), zamkniety: true });
   return w;
+}
+
+// ---------- Arkusze (#236) ----------
+
+// Punkt części (mm) → punkt strony dla ZAPISANEJ grupy (left/top – początek grupy, obrót wokół niego).
+export function naStronieZapisanej(o, p) {
+  const c = normalizujCzesc(o.czesc);
+  const u = c.uklad || (() => { const r = ramkaCzesci(c); return { x: r.x + r.w / 2, y: r.y + r.h / 2 }; })();
+  const w = (o.width || 0) * (o.scaleX || 1);
+  const h = (o.height || 0) * (o.scaleY || 1);
+  const ox = o.originX === 'center' ? 0 : o.originX === 'right' ? -w / 2 : w / 2;
+  const oy = o.originY === 'center' ? 0 : o.originY === 'bottom' ? -h / 2 : h / 2;
+  const k = ((o.angle || 0) * Math.PI) / 180;
+  const obr = (x, y) => ({ x: x * Math.cos(k) - y * Math.sin(k), y: x * Math.sin(k) + y * Math.cos(k) });
+  const s = obr(ox, oy);
+  const d = obr(p.x - u.x, p.y - u.y);
+  return { x: (o.left || 0) + s.x + d.x, y: (o.top || 0) + s.y + d.y };
+}
+
+// Czy dwa wielokąty się przecinają (krawędzie albo jeden w drugim).
+function przecinajaSie(p, q) {
+  const odc = (a, b, c, d) => {
+    const k = (u, v, w) => (v.x - u.x) * (w.y - u.y) - (v.y - u.y) * (w.x - u.x);
+    return k(a, b, c) * k(a, b, d) < 0 && k(c, d, a) * k(c, d, b) < 0;
+  };
+  for (let i = 0; i < p.length; i += 1) for (let j = 0; j < q.length; j += 1) if (odc(p[i], p[(i + 1) % p.length], q[j], q[(j + 1) % q.length])) return true;
+  return wWielokacie(q, p[0]) || wWielokacie(p, q[0]);
+}
+
+// Części na arkuszu, które na siebie nachodzą (obrysy cięcia z zakładkami): [[nrA, nrB, idA], …].
+export function nachodzaceCzesci(obiekty) {
+  const czesci = czesciWObiektach(obiekty).map((o) => ({ o, nr: normalizujCzesc(o.czesc).nr, obrys: obrysCiecia(normalizujCzesc(o.czesc)).map((p) => naStronieZapisanej(o, p)) }));
+  const wynik = [];
+  for (let i = 0; i < czesci.length; i += 1) {
+    for (let j = i + 1; j < czesci.length; j += 1) if (przecinajaSie(czesci[i].obrys, czesci[j].obrys)) wynik.push([czesci[i].nr, czesci[j].nr, czesci[i].o.id]);
+  }
+  return wynik;
+}
+
+// Rozkład części na arkusze (półki: rzędami od góry, najwyższe najpierw; część, która nie mieści się poziomo,
+// obraca się o 90°). czesci: [{ id, w, h }] (ramka grupy w mm), pole: { x, y, w, h } (pole druku arkusza).
+// Zwraca { arkusze: [[{ id, x, y, obrot }]], za_duze: [id…] } – x, y: lewy górny róg ramki na arkuszu.
+export function rozlozNaArkusze(czesci, pole, odstep = 4) {
+  const lista = czesci.map((c) => {
+    let { w, h } = c;
+    let obrot = 0;
+    const miesci = (a, b) => a <= pole.w + 0.01 && b <= pole.h + 0.01;
+    if (!miesci(w, h) && miesci(h, w)) { [w, h] = [h, w]; obrot = 90; } else if (w > h && miesci(h, w) && h > pole.h * 0.6) { [w, h] = [h, w]; obrot = 90; }
+    return { id: c.id, w, h, obrot, za_duza: !miesci(w, h) };
+  });
+  const za_duze = lista.filter((c) => c.za_duza).map((c) => c.id);
+  const kolej = lista.filter((c) => !c.za_duza).sort((a, b) => b.h - a.h || b.w - a.w);
+  const arkusze = [];
+  let ark = null;
+  let x = 0;
+  let y = 0;
+  let wysPolki = 0;
+  const nowy = () => { ark = []; arkusze.push(ark); x = 0; y = 0; wysPolki = 0; };
+  for (const c of kolej) {
+    if (!ark) nowy();
+    if (x > 0 && x + c.w > pole.w + 0.01) { y += wysPolki + odstep; x = 0; wysPolki = 0; }
+    if (y + c.h > pole.h + 0.01) nowy();
+    ark.push({ id: c.id, x: pole.x + x, y: pole.y + y, obrot: c.obrot });
+    x += c.w + odstep;
+    wysPolki = Math.max(wysPolki, c.h);
+  }
+  return { arkusze, za_duze };
 }

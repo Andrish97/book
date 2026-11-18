@@ -1226,6 +1226,7 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 | [Zgięcie] | Dwa kliknięcia na krawędziach części: linia zgięcia dzieli ją na ściany. Linia po samej krawędzi albo poza częścią się nie doda. |
 | [Połącz] | Kliknij przy krawędzi, która dostanie **zakładkę klejową**, potem przy krawędzi innej części (albo tej samej), do której się przykleja – obie dostają **ten sam numer**. Drugie kliknięcie w środku ściany zamiast przy krawędzi dodaje tam **miejsce klejenia** o długości krawędzi. Gdy krawędzie mają różne długości, aplikacja o tym powie. |
 | [Klej] | Kliknięcie w części dodaje miejsce klejenia (z <kbd>Shift</kbd> – na spodzie, bez druku, gdy druga strona arkusza jest na klej). |
+| [Rozłóż] | Wszystkie części sekcji układają się od nowa na arkuszach – rzędami w polu druku (bez marginesu drukarki), najwyższe najpierw; część, która nie mieści się poziomo, obraca się o 90°; brakujące arkusze dochodzą na końcu sekcji (przy druku dwustronnym części idą na pierwszą stronę arkusza). Inne elementy stron zostają. Część za duża nawet po obróceniu zostaje na miejscu – aplikacja o tym powie. |
 | [Szczelina] | Dwa kliknięcia w części: nacięcie na wypustkę albo przegródkę – szerokość to grubość materiału + 0,2 mm luzu. |
 
 <kbd>Esc</kbd> kończy narzędzie. Część przesuwasz i obracasz jak każdy element; nie da się jej rozciągnąć
@@ -1247,11 +1248,11 @@ Najechanie na pozycję podświetla na pomarańczowo obie strony pary na arkuszu,
 bez pary albo użyty więcej niż dwa razy ma pasek ostrzeżenia. Najechanie myszą na część podświetla wszystkie jej pary.
 
 **Sprawdź przed drukiem** (→ 20) pilnuje modelu: część wystająca poza arkusz albo wchodząca w margines
-drukarki, numer bez pary (nie wiadomo, do czego to przykleić), numer użyty więcej niż dwa razy, para krawędzi
+drukarki, części nachodzące na siebie razem z zakładkami (nie da się ich wyciąć), numer bez pary (nie wiadomo, do czego to przykleić), numer użyty więcej niż dwa razy, para krawędzi
 o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż
 wypustka. Przy każdej uwadze [Otwórz wzór] zaznacza część.
 
-Kolejne kroki tego trybu – rozkładanie części na arkusze, gotowe szablony z kompensacją grubości,
+Kolejne kroki tego trybu – sprawdzanie przy druku dla plotera i drukarni, rozkładanie części na arkusze, gotowe szablony z kompensacją grubości,
 makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
 
 # 11. Wzorce stron

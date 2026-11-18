@@ -2367,6 +2367,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Rozłącz ramki":"Unlink frames",
 "Rozłożona – środek":"Unfolded – inside",
 "Rozłożona – zewnątrz":"Unfolded – outside",
+"Rozłóż":"Lay out",
 "Rozłóż równo w pionie":"Distribute vertically",
 "Rozłóż równo w poziomie":"Distribute horizontally",
 "Rozłóż rysunek na elementy":"Break drawing apart into elements",

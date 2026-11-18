@@ -521,6 +521,7 @@ export const akcje = {
   'skladanka-polacz': () => obsluzAkcje('skladanka-polacz'),
   'skladanka-klej': () => obsluzAkcje('skladanka-klej'),
   'skladanka-szczelina': () => obsluzAkcje('skladanka-szczelina'),
+  'skladanka-rozloz': () => obsluzAkcje('skladanka-rozloz'),
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => otworzWyborWielokata(),

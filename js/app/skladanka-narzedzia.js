@@ -12,7 +12,10 @@
 import {
   zbudujCzesc, normalizujCzesc, czescZKsztaltu, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
   naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
+  rozlozNaArkusze,
 } from '../skladanka.js';
+import { nowaStrona } from '../projekt.js';
+import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
 import { $, $$, powiadom } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
@@ -337,10 +340,55 @@ export function panelPolaczen(panel, { przejdz }) {
   s.append(lista);
 }
 
+// ---------- Rozkładanie na arkusze (#236) ----------
+
+// Wszystkie części sekcji (z jej stron) układają się od nowa na arkuszach: w polu druku (bez marginesu drukarki),
+// rzędami, z obrotem o 90°, gdy trzeba; brakujące arkusze dochodzą na końcu sekcji. Inne elementy stron zostają.
+// Przy druku dwustronnym arkusz to dwie strony – części idą na pierwszą stronę arkusza.
+export async function rozlozCzesci() {
+  if (!wSkladance()) return null;
+  zapiszBiezacyCel();
+  const { projekt } = stan;
+  const sekcja = biezacaSekcja();
+  const sp = sekcja.specjalna || {};
+  const naArkusz = sp.druga_strona === 'druk' ? 2 : 1;
+  const stronySekcji = () => projekt.strony.filter((st) => st.sekcja === sekcja.id);
+  const czesci = stronySekcji().flatMap((st) => (st.obiekty || []).filter((o) => o.czesc));
+  if (!czesci.length) { powiadom('W tej sekcji nie ma jeszcze części – dodaj je narzędziem [Część].', true); return null; }
+  const { szerokosc_mm: W, wysokosc_mm: H } = sekcja.wydruk;
+  const m = (sp.druk === 'domowy' ? sp.margines_mm || 0 : 0) + 2;
+  const wym = (o) => ({ w: (o.width || 0) * (o.scaleX || 1), h: (o.height || 0) * (o.scaleY || 1) });
+  const { arkusze, za_duze } = rozlozNaArkusze(czesci.map((o) => ({ id: o.id, ...wym(o) })), { x: m, y: m, w: W - 2 * m, h: H - 2 * m });
+  const poId = new Map(czesci.map((o) => [o.id, o]));
+  for (const st of stronySekcji()) st.obiekty = (st.obiekty || []).filter((o) => !o.czesc || za_duze.includes(o.id));
+  // Brakujące arkusze – za ostatnią stroną sekcji.
+  while (stronySekcji().length < arkusze.length * naArkusz) {
+    const ost = stronySekcji().at(-1);
+    const nowa = nowaStrona(`Arkusz ${Math.floor(stronySekcji().length / naArkusz) + 1}`, sekcja.id);
+    projekt.strony.splice(projekt.strony.indexOf(ost) + 1, 0, nowa);
+  }
+  const strony = stronySekcji();
+  arkusze.forEach((ark, i) => {
+    for (const p of ark) {
+      const o = poId.get(p.id);
+      const { h } = wym(o);
+      Object.assign(o, { originX: 'left', originY: 'top', angle: p.obrot, left: p.obrot === 90 ? p.x + h : p.x, top: p.y });
+      strony[i * naArkusz].obiekty.push(o);
+    }
+  });
+  stan.miniatury?.clear?.();
+  await zaladujCel();
+  zaplanujZapis();
+  const ile = czesci.length - za_duze.length;
+  powiadom(`Rozłożono ${ile} ${ile === 1 ? 'część' : ile < 5 ? 'części' : 'części'} na ${arkusze.length} ${arkusze.length === 1 ? 'arkuszu' : 'arkuszach'}.${za_duze.length ? ` ${za_duze.length} nie mieści się na arkuszu nawet po obróceniu – zostaje na miejscu (wybierz większy arkusz w ustawieniach sekcji).` : ''}`, Boolean(za_duze.length));
+  return { arkuszy: arkusze.length, za_duze };
+}
+
 // Pasek narzędzi: przyciski z data-akcja="skladanka-…".
 export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-czesc') return nowaCzesc();
   if (akcja === 'skladanka-z-ksztaltu') return czescZZaznaczenia();
+  if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   const n = { 'skladanka-zgiecie': 'zgiecie', 'skladanka-polacz': 'polacz', 'skladanka-szczelina': 'szczelina', 'skladanka-klej': 'klej' }[akcja];
   if (n) ustawNarzedzie(n);
   return null;
