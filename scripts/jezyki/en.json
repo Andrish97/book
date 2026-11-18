@@ -3685,5 +3685,12 @@
  "bez zmian": "no change",
  "Adres łącznika": "Connector address",
  "Polecenie dla czatu": "Prompt for the chat",
- "Klucz zmieniony – adres zostaje ten sam.": "Key changed – the address stays the same."
+ "Klucz zmieniony – adres zostaje ten sam.": "Key changed – the address stays the same.",
+ "Dodaj klucz": "Add key",
+ "Twoje klucze API": "Your API keys",
+ "Twoje łączniki": "Your connectors",
+ "Twoje klucze dla czatu": "Your chat keys",
+ "Nie masz jeszcze kluczy API.": "You don't have any API keys yet.",
+ "Nie masz jeszcze łączników.": "You don't have any connectors yet.",
+ "Nie masz jeszcze kluczy dla zwykłego czatu.": "You don't have any keys for a regular chat yet."
 }

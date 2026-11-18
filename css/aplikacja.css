@@ -939,12 +939,29 @@ body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 #dodaj-klucz-ai[data-tryb="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
 #dodaj-klucz-ai[data-tryb="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
 /* #248: trzy sekcje kluczy w ustawieniach; nowy klucz w okienku. */
-.sekcja-kluczy-ai { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid var(--linia); }
-.naglowek-kluczy-ai { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+/* #250: przełącznik sekcji na górze (wygląd przełącznika segmentowego), jedna sekcja naraz. */
+.zakladki-ai { display: flex; margin: 4px 0 4px; }
+.zakladki-ai button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center;
+  padding: 7px 12px; border: 0; border-radius: calc(var(--r-m) - 2px); background: transparent;
+  color: var(--tusz-2, var(--tusz)); font: inherit; font-size: 13.5px; font-weight: 550; cursor: pointer; white-space: nowrap;
+}
+.zakladki-ai button:hover { color: var(--tusz); }
+.zakladki-ai button[aria-selected="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
+.zakladki-ai button:focus-visible { outline: 2px solid var(--akcent); }
+@media (max-width: 560px) { .zakladki-ai { flex-direction: column; } }
+#dostep-ai[data-sekcja="czat"] .sekcja-kluczy-ai:not([data-sposob="czat"]),
+#dostep-ai[data-sekcja="lacznik"] .sekcja-kluczy-ai:not([data-sposob="lacznik"]),
+#dostep-ai[data-sekcja="zwykly"] .sekcja-kluczy-ai:not([data-sposob="zwykly"]) { display: none; }
+.wyjasnienie-ai { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; background: var(--powierzchnia-2); border: 1px solid var(--linia); border-radius: var(--r-s); font-size: 13.5px; line-height: 1.5; }
+.wyjasnienie-ai p { margin: 0; }
+.punkty-ai { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; color: var(--tusz-2); }
+.sekcja-kluczy-ai { display: flex; flex-direction: column; gap: 10px; padding: 8px 0 0; }
+.naglowek-kluczy-ai { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
 .naglowek-kluczy-ai h3 { margin: 0 0 2px; font-size: 15px; }
 .naglowek-kluczy-ai .podpowiedz { margin: 0; }
 .naglowek-kluczy-ai .przycisk { flex: none; }
-.sekcja-kluczy-ai ul:empty { display: none; }
+.sekcja-kluczy-ai .lista-dostawcow-ai:empty, .sekcja-kluczy-ai .lista-dostepow:empty { display: none; }
 .klucz-pokazany { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .klucz-pokazany pre { white-space: pre-wrap; word-break: break-all; margin: 0; }
 .uwaga-planu { border-left: 3px solid var(--ostrzezenie, #d97706); padding: 8px 12px; background: rgba(217, 119, 6, 0.06); border-radius: var(--r-s); }

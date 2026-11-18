@@ -562,34 +562,69 @@
             <h2>Sztuczna inteligencja</h2>
             <p class="ciche" id="ust-ai-opis" hidden>Sprawdzam…</p>
             <!-- Panel AI (#247): wprost w ustawieniach, bez osobnego okna „Zarządzaj…”. -->
-            <div id="dostep-ai" class="formularz panel-ai">
-      <!-- #248: trzy sekcje z kluczami (edycja: zakres, ważność, „Pokaż klucz”); nowy klucz – okienko „Dodaj”. -->
-      <p class="ciche">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo.</p>
-      <section class="sekcja-kluczy-ai" data-sposob="czat">
+            <div id="dostep-ai" class="formularz panel-ai" data-sekcja="czat">
+      <!-- #250: przełącznik na górze – jedna z trzech dróg naraz; w każdej wyjaśnienie, klucze (Edytuj) i Dodaj (okienko). -->
+      <p class="ciche">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo. Są trzy drogi – wybierz, z której korzystasz.</p>
+      <div class="przelacznik-segmentowy zakladki-ai" role="tablist" aria-label="Sposób pracy z AI">
+        <button type="button" role="tab" data-sekcja-ai="czat" aria-selected="true">Czat w Makietce</button>
+        <button type="button" role="tab" data-sekcja-ai="lacznik" aria-selected="false">Łącznik w aplikacji AI</button>
+        <button type="button" role="tab" data-sekcja-ai="zwykly" aria-selected="false">Zwykły czat</button>
+      </div>
+
+      <section class="sekcja-kluczy-ai" data-sposob="czat" role="tabpanel">
+        <div class="wyjasnienie-ai">
+          <p><b>Rozmawiasz z AI wprost w edytorze Makietki</b> (menu ⋯ → Asystent AI). Asystent widzi otwarty projekt i sam robi zmiany – widzisz je od razu na stronie.</p>
+          <ul class="punkty-ai">
+            <li><b>Czego potrzebujesz:</b> klucza API od dostawcy AI – Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI albo OpenRouter. Klucz zakładasz na stronie dostawcy („Gdzie wziąć klucz?” w okienku).</li>
+            <li><b>Ile kosztuje:</b> płacisz dostawcy za to, ile rozmawiasz – Makietka nic nie dolicza.</li>
+            <li><b>Bezpieczeństwo:</b> klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – <b>nie odczyta go nikt, także twórca Makietki</b>.</li>
+            <li><b>Bez klucza i bez opłat:</b> w Asystencie AI wybierz „Dowolny czat bez klucza – kopiuj i wklej” – działa z każdym czatem w przeglądarce, także darmowym ChatGPT; tu nic nie dodajesz.</li>
+          </ul>
+        </div>
         <div class="naglowek-kluczy-ai">
-          <div><h3>Czat w Makietce</h3><p class="podpowiedz">Twoje klucze API dostawców (Anthropic, OpenAI, Gemini…) do Asystenta AI w edytorze – płacisz u dostawcy. Zaszyfrowane Twoim hasłem do kluczy: <b>nie odczyta ich nikt, także twórca Makietki</b>.</p></div>
-          <button type="button" class="przycisk" data-dodaj-klucz-ai="czat" data-ikona="plus">Dodaj</button>
+          <h3>Twoje klucze API</h3>
+          <button type="button" class="przycisk glowny" data-dodaj-klucz-ai="czat" data-ikona="plus">Dodaj klucz</button>
         </div>
         <ul class="lista-dostawcow-ai" id="ai-dostawcy-lista"></ul>
         <ul class="lista-dostepow" id="dostep-ai-lista-czat"></ul>
-        <p class="podpowiedz pusto-kluczy">Brak kluczy. Bez klucza i bez opłat: w edytorze menu ⋯ → Asystent AI → „Dowolny czat bez klucza – kopiuj i wklej”.</p>
+        <p class="podpowiedz pusto-kluczy">Nie masz jeszcze kluczy API.</p>
         <div class="rzad-przyciskow" id="ai-sejf-akcje"></div>
       </section>
-      <section class="sekcja-kluczy-ai" data-sposob="lacznik">
+
+      <section class="sekcja-kluczy-ai" data-sposob="lacznik" role="tabpanel">
+        <div class="wyjasnienie-ai">
+          <p><b>Makietka jako narzędzie w Twojej aplikacji AI</b> – Claude (claude.ai, aplikacja na komputer i telefon), ChatGPT i inne aplikacje z łącznikami (MCP). Piszesz w swojej aplikacji, a ona sama czyta i zmienia projekty w Makietce.</p>
+          <ul class="punkty-ai">
+            <li><b>Czego potrzebujesz:</b> aplikacji AI, w której da się dodać własny łącznik. <b>Najprawdopodobniej płatnego planu</b> – w ChatGPT własne łączniki są w planach płatnych; w Claude darmowy plan pozwala na jeden własny łącznik.</li>
+            <li><b>Najprościej – bez klucza:</b> w aplikacji AI dodaj łącznik pod adresem <code>https://api.makietka.app/mcp</code> i wybierz logowanie. Zalogujesz się w Makietce i wybierzesz projekty – połączenie pojawi się tu na liście.</li>
+            <li><b>Albo z kluczem:</b> „Dodaj klucz” da Ci gotowy adres łącznika do wklejenia w aplikacji AI i polecenie, które poprowadzi Cię krok po kroku.</li>
+            <li><b>Ile kosztuje:</b> Makietka nic nie bierze – płacisz tylko za plan aplikacji AI.</li>
+          </ul>
+        </div>
         <div class="naglowek-kluczy-ai">
-          <div><h3>Łącznik w aplikacji AI</h3><p class="podpowiedz">Claude, ChatGPT i inne aplikacje z łącznikami (MCP). <b>Najprawdopodobniej potrzebujesz płatnego planu.</b></p></div>
-          <button type="button" class="przycisk" data-dodaj-klucz-ai="lacznik" data-ikona="plus">Dodaj</button>
+          <h3>Twoje łączniki</h3>
+          <button type="button" class="przycisk glowny" data-dodaj-klucz-ai="lacznik" data-ikona="plus">Dodaj klucz</button>
         </div>
         <ul class="lista-dostepow" id="dostep-ai-lista-lacznik"></ul>
-        <p class="podpowiedz pusto-kluczy">Brak kluczy.</p>
+        <p class="podpowiedz pusto-kluczy">Nie masz jeszcze łączników.</p>
       </section>
-      <section class="sekcja-kluczy-ai" data-sposob="zwykly">
+
+      <section class="sekcja-kluczy-ai" data-sposob="zwykly" role="tabpanel">
+        <div class="wyjasnienie-ai">
+          <p><b>Zwykła rozmowa w przeglądarce, bez łączników</b> – np. darmowy ChatGPT, Claude czy Gemini. Wklejasz czatowi gotowe polecenie z adresem; czat otwiera ten adres jak stronę, widzi narzędzia Makietki i zmienia projekt, otwierając kolejne adresy.</p>
+          <ul class="punkty-ai">
+            <li><b>Czego potrzebujesz:</b> czatu, który umie sam otwierać strony internetowe. <b>Nie każdy to potrafi</b> – niektóre (np. darmowy ChatGPT) otwierają tylko adresy wklejone przez Ciebie i proszą, żebyś to Ty otwierał kolejne.</li>
+            <li><b>Gdy czat nie otwiera adresów:</b> użyj w edytorze Asystenta AI z „kopiuj i wklej” (zakładka Czat w Makietce) – zawsze działa.</li>
+            <li><b>Ile kosztuje:</b> nic – wystarczy darmowy plan czatu.</li>
+            <li><b>Bezpieczeństwo:</b> adres zawiera klucz – daj go tylko swojemu czatowi; klucz możesz w każdej chwili ograniczyć albo odebrać („Edytuj”).</li>
+          </ul>
+        </div>
         <div class="naglowek-kluczy-ai">
-          <div><h3>Zwykły czat</h3><p class="podpowiedz">Gotowe polecenie z adresem dla czatu w przeglądarce, który umie otwierać strony. Nie każdy czat to potrafi – wtedy tryb „kopiuj i wklej”.</p></div>
-          <button type="button" class="przycisk" data-dodaj-klucz-ai="zwykly" data-ikona="plus">Dodaj</button>
+          <h3>Twoje klucze dla czatu</h3>
+          <button type="button" class="przycisk glowny" data-dodaj-klucz-ai="zwykly" data-ikona="plus">Dodaj klucz</button>
         </div>
         <ul class="lista-dostepow" id="dostep-ai-lista-zwykly"></ul>
-        <p class="podpowiedz pusto-kluczy">Brak kluczy.</p>
+        <p class="podpowiedz pusto-kluczy">Nie masz jeszcze kluczy dla zwykłego czatu.</p>
       </section>
             </div>
           </section>

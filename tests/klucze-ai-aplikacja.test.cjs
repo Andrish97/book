@@ -47,11 +47,17 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForFunction(() => /Nie masz jeszcze żadnego klucza/.test(document.querySelector('#ust-ai-opis').textContent));
   // #247: panel wprost w sekcji ustawień – bez przycisku „Zarządzaj…” i bez osobnego okna.
   assert.equal(await strona.locator('[data-akcja="konto-dostep-ai"]').count(), 0);
-  await strona.waitForSelector('#ust-ai #dostep-ai [data-dodaj-klucz-ai="lacznik"]');
+  await strona.waitForSelector('#ust-ai #dostep-ai [data-dodaj-klucz-ai="czat"]');
   assert.equal(await strona.isVisible('#dlg-dostep-ai'), false);
-  // #248: trzy sekcje z kluczami, każda z „Dodaj”; nowy klucz – w okienku.
-  assert.deepEqual(await strona.$$eval('#dostep-ai .sekcja-kluczy-ai h3', (h) => h.map((x) => x.textContent)), ['Czat w Makietce', 'Łącznik w aplikacji AI', 'Zwykły czat']);
-  assert.equal(await strona.locator('#dostep-ai .pusto-kluczy:visible').count(), 3);
+  // #250: przełącznik na górze – trzy sekcje, widać jedną (z wyjaśnieniem, kluczami i „Dodaj klucz”); nowy klucz – w okienku.
+  assert.deepEqual(await strona.$$eval('#dostep-ai [data-sekcja-ai]', (b) => b.map((x) => x.textContent)), ['Czat w Makietce', 'Łącznik w aplikacji AI', 'Zwykły czat']);
+  assert.equal(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible').count(), 1);
+  assert.equal(await strona.isVisible('#dostep-ai .sekcja-kluczy-ai:visible .pusto-kluczy'), true, 'pusta sekcja mówi, że nie ma kluczy');
+  assert.match(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible .wyjasnienie-ai').textContent(), /Asystent AI.*Ile kosztuje.*także twórca Makietki/s);
+  assert.equal(await strona.isVisible('[data-dodaj-klucz-ai="lacznik"]'), false);
+  await strona.click('[data-sekcja-ai="lacznik"]');
+  assert.equal(await strona.getAttribute('[data-sekcja-ai="lacznik"]', 'aria-selected'), 'true');
+  assert.match(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible .wyjasnienie-ai').textContent(), /płatnego planu.*api\.makietka\.app\/mcp/s);
   assert.equal(await strona.isVisible('#dostep-ai-nowy'), false);
   await strona.click('[data-dodaj-klucz-ai="lacznik"]');
   await strona.waitForSelector('#dlg-klucz-ai[open]');
@@ -139,6 +145,7 @@ test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z 
   await strona.waitForFunction(() => /sk-ant-z-okna-1234/.test(document.querySelector('#dlg-edytuj-klucz-ai .klucz-pokazany').textContent));
   await strona.click('#dlg-edytuj-klucz-ai [aria-label="Zamknij"]');
   // Zwykły czat: okienko z formularzem, bez uwagi o płatnym planie; sejf otwarty – klucz zapamiętany od razu.
+  await strona.click('[data-sekcja-ai="zwykly"]');
   await strona.click('[data-dodaj-klucz-ai="zwykly"]');
   await strona.waitForSelector('#dlg-klucz-ai[open]');
   assert.equal(await strona.isVisible('#dostep-ai-nowy'), true);

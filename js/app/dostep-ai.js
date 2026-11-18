@@ -159,7 +159,7 @@ const el = (tag, wlasnosci = {}, ...dzieci) => { const e = Object.assign(documen
 
 function pokazPusto() {
   for (const sekcja of document.querySelectorAll('#dostep-ai .sekcja-kluczy-ai')) {
-    const ile = [...sekcja.querySelectorAll('ul')].reduce((n, ul) => n + ul.children.length, 0);
+    const ile = [...sekcja.querySelectorAll('.lista-dostawcow-ai, .lista-dostepow')].reduce((n, ul) => n + ul.children.length, 0);
     sekcja.querySelector('.pusto-kluczy').hidden = ile > 0;
   }
 }
@@ -458,7 +458,7 @@ export async function otworzDostepAi({ projektId = null, zakladka = null } = {})
   } catch (e) {
     powiadom(chmura.komunikatBledu(e), true);
   }
-  if (TYTULY[zakladka]) dodajKluczAi(zakladka);
+  if (TYTULY[zakladka]) { ustawSekcjeAi(zakladka); dodajKluczAi(zakladka); }
 }
 
 export async function utworzKluczAi() {
@@ -517,7 +517,19 @@ export function zamknijDostepAi() {
 
 $('#dlg-dostep-ai').addEventListener('close', () => przeniesPanel(false));
 $('#dlg-klucz-ai').addEventListener('close', () => { wyczyscNowy(); rysujDostawcow(); odswiezListe(); document.dispatchEvent(new CustomEvent('makietka:klucze-ai')); });
-$('#dostep-ai').addEventListener('click', (e) => { const b = e.target.closest('[data-dodaj-klucz-ai]'); if (b) dodajKluczAi(b.dataset.dodajKluczAi); });
+// Przełącznik na górze (#250): jedna z trzech sekcji naraz.
+export function ustawSekcjeAi(z) {
+  const sekcja = TYTULY[z] ? z : 'czat';
+  const panel = $('#dostep-ai');
+  panel.dataset.sekcja = sekcja;
+  for (const b of panel.querySelectorAll('[data-sekcja-ai]')) b.setAttribute('aria-selected', String(b.dataset.sekcjaAi === sekcja));
+}
+$('#dostep-ai').addEventListener('click', (e) => {
+  const s = e.target.closest('[data-sekcja-ai]');
+  if (s) { ustawSekcjeAi(s.dataset.sekcjaAi); return; }
+  const b = e.target.closest('[data-dodaj-klucz-ai]');
+  if (b) dodajKluczAi(b.dataset.dodajKluczAi);
+});
 $('#dostep-ai-nowy').addEventListener('change', (e) => { if (e.target.name === 'dostep-ai-zakres') pokazZakresNowego(); });
 
 // Krótkie podsumowanie w ustawieniach konta: ile kluczy działa.

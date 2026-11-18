@@ -2212,7 +2212,7 @@ Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile 
 
 ### 25.2 Klucz dla AI
 
-**Ustawienia konta** → **Sztuczna inteligencja** ma trzy sekcje – trzy drogi pracy z AI. W każdej widać klucze, które już masz, i przycisk **Dodaj**. Nowy klucz dodajesz zawsze w okienku, żeby nie pomylić go z kluczami już dodanymi.
+**Ustawienia konta** → **Sztuczna inteligencja** ma na górze przełącznik trzech dróg pracy z AI: **Czat w Makietce**, **Łącznik w aplikacji AI** i **Zwykły czat**. Każda zakładka wyjaśnia, jak ta droga działa, czego potrzebujesz i ile to kosztuje, a pod spodem pokazuje Twoje klucze z przyciskiem **Edytuj** i przycisk **Dodaj klucz**. Nowy klucz dodajesz i edytujesz zawsze w okienku.
 
 | Sekcja | Do czego | Koszt |
 |---|---|---|
