@@ -3557,5 +3557,7 @@
  "zmienione w Makietce": "змінено в Makietka",
  "Odśwież z pliku": "Оновити з файлу",
  "Odśwież z linku": "Оновити за посиланням",
- "Wczytaj nową wersję…": "Завантажити нову версію…"
+ "Wczytaj nową wersję…": "Завантажити нову версію…",
+ "Zapisz dla Worda z układem stron (.docx)": "Зберегти для Word з макетом сторінок (.docx)",
+ "Zapisz strony jako SVG (Inkscape, Illustrator)": "Зберегти сторінки як SVG (Inkscape, Illustrator)"
 }

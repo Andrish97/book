@@ -68,7 +68,8 @@ test('seria dla innych programów: IDML, SLA, DOCX z polami i dane z obrazami; M
   assert.match(w.scribus.szablon, /Dyplom dla %VAR_imie%/);
   assert.deepEqual(w.word.pliki, ['CZYTAJ-MNIE.txt', 'dane.csv', 'dane.xlsx', 'obrazy/anna.png', 'szablon.docx']);
   assert.match(w.word.szablon, /<w:fldSimple w:instr=" MERGEFIELD &quot;imie&quot; ">/);
-  assert.deepEqual(w.zPowrotem, ['Dyplom dla {imie}', 'strona {nr}'], 'MERGEFIELD wraca jako pole');
+  assert.match(w.word.szablon, /<wps:txbx>/, 'Word z układem stron – ramki tekstu');
+  assert.deepEqual(w.zPowrotem.filter((x) => x.trim()), ['Dyplom dla {imie}', 'strona 1'], 'MERGEFIELD wraca jako pole (numer strony szablonu policzony)');
   assert.deepEqual(w.xlsx, [['imie', '@foto'], ['Anna Żak', 'obrazy/anna.png'], ['Bartek', ''], ['Celina', '']]);
 
   // Z menu ⋯: okno wyboru programu → ZIP.

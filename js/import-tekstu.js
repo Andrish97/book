@@ -63,6 +63,10 @@ export async function czytajDocx(zip, Parser = DOMParser) {
     const nazwaPola = (instr) => { const m = String(instr).match(/MERGEFIELD\s+(?:"([^"]+)"|(\S+))/i); return m ? (m[1] || m[2]) : null; };
     const fldSimpleZ = new Set();
     for (const r of p.getElementsByTagNameNS(NS_W, 'r')) {
+      // Runy z pól tekstowych (ramek) zakotwiczonych w akapicie należą do ich własnych akapitów.
+      let przodek = r.parentNode;
+      while (przodek && przodek !== p && przodek.localName !== 'p') przodek = przodek.parentNode;
+      if (przodek !== p) continue;
       const fs = r.parentNode?.localName === 'fldSimple' ? r.parentNode : null;
       const instrS = fs && (fs.getAttributeNS(NS_W, 'instr') || fs.getAttribute('w:instr'));
       if (fs && nazwaPola(instrS)) {
@@ -97,6 +101,8 @@ export async function czytajDocx(zip, Parser = DOMParser) {
     return a;
   };
   for (const el of body.children) {
+    // Pola tekstowe (ramki DrawingML/VML) w akapicie – ich akapity po kolei, przed tekstem samego akapitu.
+    if (el.localName === 'p') for (const tx of el.getElementsByTagNameNS(NS_W, 'txbxContent')) for (const pp of tx.children) if (pp.localName === 'p') { const a = akapitZ(pp); if (a.tekst.trim()) wynik.akapity.push(a); }
     if (el.localName === 'p') wynik.akapity.push(akapitZ(el));
     else if (el.localName === 'tbl') {
       // Tabela: każdy wiersz jako akapit z komórkami rozdzielonymi tabulatorem.

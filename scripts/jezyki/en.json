@@ -3557,5 +3557,7 @@
  "zmienione w Makietce": "changed in Makietka",
  "Odśwież z pliku": "Refresh from file",
  "Odśwież z linku": "Refresh from link",
- "Wczytaj nową wersję…": "Load new version…"
+ "Wczytaj nową wersję…": "Load new version…",
+ "Zapisz dla Worda z układem stron (.docx)": "Save for Word with page layout (.docx)",
+ "Zapisz strony jako SVG (Inkscape, Illustrator)": "Save pages as SVG (Inkscape, Illustrator)"
 }

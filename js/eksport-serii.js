@@ -15,7 +15,7 @@ import { zPolamiSzablonu } from './zlozenie.js';
 export const PROGRAMY_SERII = {
   indesign: { nazwa: 'InDesign / Affinity Publisher', plik: 'idml', znacznik: (n) => `<<${n}>>` },
   scribus: { nazwa: 'Scribus (ScribusGenerator)', plik: 'sla', znacznik: (n) => `%VAR_${n}%` },
-  word: { nazwa: 'Word / Publisher (korespondencja seryjna)', plik: 'docx', znacznik: (n) => `«${n}»` },
+  word: { nazwa: 'Word / Publisher (korespondencja seryjna, z układem stron)', plik: 'docx', znacznik: (n) => `«${n}»` },
 };
 
 // Kolumny serii projektu: tabela główna każdej serii z jej kolumnami (tekstowe i obrazowe).
@@ -86,14 +86,15 @@ Zmienne %VAR_kolumna% w tekstach zastąpią się wartościami z kolejnych wiersz
   word: (pola) => `Szablon i dane do korespondencji seryjnej w Wordzie (a także w Publisherze, który go jeszcze ma).
 
 Pliki:
-  szablon.docx – tekst stron projektu z polami scalania ${pola}
+  szablon.docx – strony projektu z układem (ramki tekstu, obrazy, kształty na swoich miejscach) i polami scalania ${pola}
   dane.xlsx    – dane (arkusz „Dane”); to samo w dane.csv
 
 Word: otwórz szablon.docx → Korespondencja → Wybierz adresatów → Użyj istniejącej listy → dane.xlsx →
   Zakończ i scal. Pola już są w tekście (MERGEFIELD).
 Publisher: Korespondencja → Korespondencja seryjna → Użyj istniejącej listy → dane.xlsx, potem wstaw pola z listy.
 
-Uwaga: Word nie ma układu stron Makietki (ramek w stałych miejscach) – szablon to tekst do dalszej obróbki.`,
+Ramki tekstu są polami tekstowymi Worda zakotwiczonymi do strony – po scaleniu każdy wiersz danych to kolejna strona
+z tym samym układem. Tabele, kalendarze i elementy z efektami są obrazami.`,
 };
 
 // Pakiet ZIP „szablon + dane” dla programu. Zwraca { blob, nazwa, pola, wierszy }.
@@ -117,8 +118,10 @@ export async function pakietSerii(projekt, program, JSZip, { ciag = rozwin(proje
     const { sla } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszSla(projekt, { ciag, egzemplarze }));
     zip.file('szablon.sla', sla);
   } else {
-    const { zapiszDocx, akapityProjektu } = await import('./eksport-tekstu.js');
-    zip.file('szablon.docx', await zapiszDocx(projekt, JSZip, akapityProjektu(projekt, ciag), { polaScalania: tekstowe }));
+    // Word z układem stron (#228): ramki na swoich miejscach, w nich pola scalania (MERGEFIELD).
+    const { zapiszDocxUklad } = await import('./eksport-uklad.js');
+    const { blob } = await zPolamiSzablonu({ tekstowe, obrazowe, znacznik: prog.znacznik }, () => zapiszDocxUklad(projekt, JSZip, { ciag, egzemplarze, polaScalania: tekstowe }));
+    zip.file('szablon.docx', blob);
   }
   // Dane: tabela pierwszej serii jako dane.csv; kolejne tabele – dane-<nazwa>.csv.
   const obrazy = new Map();

@@ -367,6 +367,27 @@ export const akcje = {
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.idml`, URL.createObjectURL(w.blob));
     powiadom(`Zapisano IDML (InDesign, Affinity Publisher, QuarkXPress): ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'}.`);
   },
+  // Word z układem stron i SVG stron (#228).
+  'docx-uklad': async () => {
+    zamknijMenu();
+    zapiszBiezacyCel();
+    const [{ biblioteka }, { zapiszDocxUklad }] = await Promise.all([import('../biblioteki.js'), import('../eksport-uklad.js')]);
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+    powiadom('Przygotowuję plik Worda…');
+    const w = await zapiszDocxUklad(stan.projekt, JSZip);
+    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.docx`, URL.createObjectURL(w.blob));
+    powiadom(`Zapisano dla Worda: ${w.stron} stron z układem – ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}.`);
+  },
+  'svg-strony': async () => {
+    zamknijMenu();
+    zapiszBiezacyCel();
+    const [{ biblioteka }, { zapiszSvgStron }] = await Promise.all([import('../biblioteki.js'), import('../eksport-uklad.js')]);
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+    powiadom('Przygotowuję pliki SVG…');
+    const w = await zapiszSvgStron(stan.projekt, JSZip);
+    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')} - SVG.zip`, URL.createObjectURL(w.blob));
+    powiadom(`Zapisano ${w.stron} stron jako SVG (w milimetrach) – do Inkscape'a, Illustratora, Corela albo Affinity.`);
+  },
   // Seria dla innych programów (#226): szablon z polami + dane (InDesign/Affinity, Scribus, Word/Publisher).
   'seria-programy': async () => {
     zamknijMenu();

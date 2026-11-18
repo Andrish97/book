@@ -172,6 +172,11 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   Affinity Publisher i QuarkXPress: ramki tekstowe z formatowaniem, kształty z kolorami, reszta jako obrazy
   osadzone w pliku. Każda strona jest osobną stroną dokumentu (bez łączenia w rozkładówki); marginesy i spad
   zostają.
+- [Zapisz dla Worda z układem stron (.docx)] — strony projektu jako strony dokumentu Worda: ramki tekstu (pola
+  tekstowe) z czcionką, kolorem, wyrównaniem i interlinią, kształty i obrazy na swoich miejscach, tło strony;
+  tabele, kalendarze i elementy z efektami jako obrazy. Taki plik otwiera też LibreOffice (Writer).
+- [Zapisz strony jako SVG (Inkscape, Illustrator)] — każda strona jako plik SVG w milimetrach (ZIP) – do
+  Inkscape'a, Illustratora, Corela, Affinity albo LibreOffice Draw.
 - [Seria dla innego programu (szablon + dane)…] — korespondencja seryjna poza Makietką. Strony projektu są raz (bez
   powielania), z polami w miejscu danych, a obok dane z tabeli serii. Do wyboru:
   - **InDesign / Affinity Publisher** – szablon IDML ze znacznikami `<<imie>>`, `dane.csv` i folder `obrazy/`
