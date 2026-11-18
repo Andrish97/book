@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 231 | Zapis dla Scribusa i InDesigna sprawdzony w prawdziwym Scribusie – poprawione czcionki, ucinany tekst, rozmiar zdjęć |
 | 230 | Odczyt IDML/SLA/PUB sprawdzony na prawdziwych plikach: strony wzorcowe jako wzorce, starsze pliki Scribusa, kolory z palety Publishera |
 | 229 | Zapis dla Worda z układem stron (także seria z polami scalania) i strony jako SVG |
 | 228 | Otwieranie plików Microsoft Publishera (.pub): strony, teksty z wyglądem, obrazy, wzorce |

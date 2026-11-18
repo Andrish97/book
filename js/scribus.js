@@ -123,12 +123,24 @@ export function nazwaCzcionki(rodzina, waga, styl) {
   return `${r} ${odmiana}`;
 }
 
+// Czcionki, których odmiany nazywają się inaczej niż Regular/Italic (nazwa odmiany w pliku czcionki) – inaczej Scribus
+// i InDesign nie znajdą czcionki i podstawią inną (Scribus pyta wtedy o zamiennik).
+const NAZWY_ODMIAN = {
+  'DejaVu Sans': { Regular: 'Book', Italic: 'Oblique', 'Bold Italic': 'Bold Oblique' },
+  'DejaVu Sans Mono': { Regular: 'Book', Italic: 'Oblique', 'Bold Italic': 'Bold Oblique' },
+  'DejaVu Sans Condensed': { Regular: 'Condensed', Italic: 'Condensed Oblique', Bold: 'Condensed Bold', 'Bold Italic': 'Condensed Bold Oblique' },
+  'DejaVu Serif': { Regular: 'Book' },
+  Helvetica: { Italic: 'Oblique', 'Bold Italic': 'Bold Oblique' },
+  'Courier New': {},
+};
+
 // Rodzina (bez zapasowych z CSS) i odmiana: Regular, Bold, Italic albo Bold Italic.
 export function czcionkaElementu(rodzina, waga, styl) {
   const gruba = waga === 'bold' || Number(waga) >= 600;
   const kursywa = styl === 'italic' || styl === 'oblique';
   const odmiana = gruba && kursywa ? 'Bold Italic' : gruba ? 'Bold' : kursywa ? 'Italic' : 'Regular';
-  return { rodzina: String(rodzina || 'Arial').split(',')[0].replace(/["']/g, '').trim(), odmiana };
+  const r = String(rodzina || 'Arial').split(',')[0].replace(/["']/g, '').trim();
+  return { rodzina: r, odmiana: NAZWY_ODMIAN[r]?.[odmiana] || odmiana };
 }
 
 function storyText(o, r, kolory, czcionki) {
@@ -168,6 +180,33 @@ function storyText(o, r, kolory, czcionki) {
 
 // ---------- Obraz elementu ----------
 
+// Rozdzielczość zapisana w pliku PNG (blok pHYs) – bez niej Scribus przyjmuje 96 dpi, a InDesign 72 dpi
+// i obraz wychodzi w innym rozmiarze niż ramka.
+const TABLICA_CRC = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+const crc32 = (b) => { let c = 0xffffffff; for (const x of b) c = TABLICA_CRC[(c ^ x) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+export async function zRozdzielczoscia(blob, dpi) {
+  const b = new Uint8Array(await blob.arrayBuffer());
+  if (b[0] !== 0x89 || b[1] !== 0x50) return blob;
+  const ppm = Math.round(dpi / 0.0254);
+  const kawalek = new Uint8Array(21);
+  const dv = new DataView(kawalek.buffer);
+  dv.setUint32(0, 9);
+  kawalek.set([0x70, 0x48, 0x59, 0x73], 4); // pHYs
+  dv.setUint32(8, ppm); dv.setUint32(12, ppm); kawalek[16] = 1;
+  dv.setUint32(17, crc32(kawalek.subarray(4, 17)));
+  const poIhdr = 8 + 25; // sygnatura + IHDR (4 + 4 + 13 + 4)
+  const wynik = new Uint8Array(b.length + 21);
+  wynik.set(b.subarray(0, poIhdr)); wynik.set(kawalek, poIhdr); wynik.set(b.subarray(poIhdr), poIhdr + 21);
+  return new Blob([wynik], { type: 'image/png' });
+}
+
+// Wysokość ramki tekstu dla programów do składu: silnik edytora liczy ostatni wiersz bez odstępu interlinii,
+// a Scribus i InDesign nie pokażą wiersza, który nie mieści się w ramce w całości – zapas na pełną interlinię.
+export function zapasRamki(o, skala = 1) {
+  const r = (o.fontSize || 4) * skala;
+  return Math.max(0, r * ((o.lineHeight || 1.16) * (o._fontSizeMult || 1.13) - (o._fontSizeMult || 1.13))) + r * 0.25;
+}
+
 export async function obrazElementu(o) {
   const b = o.getBoundingRect();
   if (!(b.width > 0 && b.height > 0)) return null;
@@ -179,9 +218,10 @@ export async function obrazElementu(o) {
     plotno.viewportTransform = [k, 0, 0, k, -b.left * k, -b.top * k];
     plotno.add(o);
     plotno.renderAll();
-    const blob = await new Promise((ok) => plotno.getElement().toBlob(ok, 'image/png'));
+    const surowy = await new Promise((ok) => plotno.getElement().toBlob(ok, 'image/png'));
     plotno.remove(o);
-    return blob ? { blob, x: b.left, y: b.top, w: b.width, h: b.height } : null;
+    const blob = surowy && await zRozdzielczoscia(surowy, k * 25.4);
+    return blob ? { blob, x: b.left, y: b.top, w: b.width, h: b.height, px: W, py: H, dpi: k * 25.4 } : null;
   } finally {
     plotno.dispose();
   }
@@ -253,10 +293,10 @@ export async function zapiszSla(projekt, { ciag = rozwin(projekt), egzemplarze =
       if (r && typ === 'textbox' && !o.tabela && bezEfektow(o) && zwyklyKolor(o.fill)) {
         const p = naDok(r.x, r.y);
         obiekty.push(`  <PAGEOBJECT ${atrybuty({
-          ...wspolne(r), XPOS: p.x, YPOS: p.y, WIDTH: r.w * PT, HEIGHT: r.h * PT, PTYPE: 4, FRTYPE: 0,
+          ...wspolne(r), XPOS: p.x, YPOS: p.y, WIDTH: r.w * PT, HEIGHT: (r.h + zapasRamki(o, r.sy)) * PT, PTYPE: 4, FRTYPE: 0,
           PCOLOR: kolory.nazwa(o.backgroundColor), PCOLOR2: 'None', PWIDTH: 0, COLUMNS: 1, COLGAP: 0,
           EXTRA: 0, TEXTRA: 0, BEXTRA: 0, REXTRA: 0, ANNAME: (o.text || 'Tekst').slice(0, 40),
-          path: `M0 0 L${r.w * PT} 0 L${r.w * PT} ${r.h * PT} L0 ${r.h * PT} L0 0 Z`,
+          path: `M0 0 L${r.w * PT} 0 L${r.w * PT} ${(r.h + zapasRamki(o, r.sy)) * PT} L0 ${(r.h + zapasRamki(o, r.sy)) * PT} L0 0 Z`,
         })}>${storyText(o, r, kolory, czcionki)}</PAGEOBJECT>`);
         ile.teksty += 1;
         continue;

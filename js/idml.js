@@ -8,7 +8,7 @@
 import { zlozCel } from './zlozenie.js';
 import { rozwin } from './serie.js';
 import { plytaUszlachetnienia } from './kolory-druku.js';
-import { PT, hex, ramka, sciezkaKsztaltu, TYPY_KSZTALTOW, zwyklyKolor, bezEfektow, obrazElementu, czcionkaElementu } from './scribus.js';
+import { PT, hex, ramka, sciezkaKsztaltu, TYPY_KSZTALTOW, zwyklyKolor, bezEfektow, obrazElementu, czcionkaElementu, zapasRamki } from './scribus.js';
 
 const NS = 'http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging';
 const DOM = '8.0';
@@ -16,6 +16,20 @@ const naglowek = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
 const liczba = (x) => String(Math.round(x * 1000) / 1000);
 const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
 const atrybuty = (a) => Object.entries(a).filter(([, v]) => v !== undefined && v !== null).map(([k, v]) => `${k}="${xml(typeof v === 'number' ? liczba(v) : v)}"`).join(' ');
+
+// Nazwa PostScript czcionki – po niej InDesign i Scribus szukają czcionki w systemie. Dla popularnych czcionek
+// systemowych nazwy są nietypowe; reszta (m.in. czcionki Google, w tym czcionki Makietki) – „Rodzina-Odmiana”.
+const PS_WYJATKI = {
+  'DejaVu Sans': { Book: 'DejaVuSans', Bold: 'DejaVuSans-Bold', Oblique: 'DejaVuSans-Oblique', 'Bold Oblique': 'DejaVuSans-BoldOblique' },
+  'DejaVu Serif': { Book: 'DejaVuSerif', Bold: 'DejaVuSerif-Bold', Italic: 'DejaVuSerif-Italic', 'Bold Italic': 'DejaVuSerif-BoldItalic' },
+  Arial: { Regular: 'ArialMT', Bold: 'Arial-BoldMT', Italic: 'Arial-ItalicMT', 'Bold Italic': 'Arial-BoldItalicMT' },
+  'Times New Roman': { Regular: 'TimesNewRomanPSMT', Bold: 'TimesNewRomanPS-BoldMT', Italic: 'TimesNewRomanPS-ItalicMT', 'Bold Italic': 'TimesNewRomanPS-BoldItalicMT' },
+  'Liberation Sans': { Regular: 'LiberationSans', Bold: 'LiberationSans-Bold', Italic: 'LiberationSans-Italic', 'Bold Italic': 'LiberationSans-BoldItalic' },
+  'Liberation Serif': { Regular: 'LiberationSerif', Bold: 'LiberationSerif-Bold', Italic: 'LiberationSerif-Italic', 'Bold Italic': 'LiberationSerif-BoldItalic' },
+  Helvetica: { Regular: 'Helvetica', Bold: 'Helvetica-Bold', Oblique: 'Helvetica-Oblique', 'Bold Oblique': 'Helvetica-BoldOblique' },
+  'Courier New': { Regular: 'CourierNewPSMT', Bold: 'CourierNewPS-BoldMT', Italic: 'CourierNewPS-ItalicMT', 'Bold Italic': 'CourierNewPS-BoldItalicMT' },
+};
+export const nazwaPostScript = (r, o) => PS_WYJATKI[r]?.[o] || `${r.replace(/\s+/g, '')}-${o.replace(/\s+/g, '')}`;
 
 const JUSTOWANIE = { left: 'LeftAlign', center: 'CenterAlign', right: 'RightAlign', justify: 'LeftJustified', 'justify-left': 'LeftJustified', 'justify-center': 'CenterJustified', 'justify-right': 'RightJustified' };
 
@@ -167,7 +181,7 @@ export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzem
         historie.push(idH);
         zip.file(`Stories/Story_${idH}.xml`, historia(idH, o, r, kolory, czcionki));
         const [x, y] = naRozkl(r.x, r.y);
-        elementy.push(`<TextFrame ${atrybuty({ Self: nowyId('tf'), ParentStory: idH, PreviousTextFrame: 'n', NextTextFrame: 'n', ContentType: 'TextType', ItemLayer: 'ly', FillColor: kolory.nazwa(o.backgroundColor), StrokeColor: 'Swatch/None', StrokeWeight: 0, ItemTransform: macierz(r.kat, x, y) })}><Properties>${geometria(prostokat(r.w * PT, r.h * PT))}</Properties><TextFramePreference TextColumnCount="1" TextColumnGutter="12" FirstBaselineOffset="AscentOffset" VerticalJustification="TopAlign"><Properties><InsetSpacing type="list"><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem></InsetSpacing></Properties></TextFramePreference></TextFrame>`);
+        elementy.push(`<TextFrame ${atrybuty({ Self: nowyId('tf'), ParentStory: idH, PreviousTextFrame: 'n', NextTextFrame: 'n', ContentType: 'TextType', ItemLayer: 'ly', FillColor: kolory.nazwa(o.backgroundColor), StrokeColor: 'Swatch/None', StrokeWeight: 0, ItemTransform: macierz(r.kat, x, y) })}><Properties>${geometria(prostokat(r.w * PT, (r.h + zapasRamki(o, r.sy)) * PT))}</Properties><TextFramePreference TextColumnCount="1" TextColumnGutter="12" FirstBaselineOffset="AscentOffset" VerticalJustification="TopAlign"><Properties><InsetSpacing type="list"><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem></InsetSpacing></Properties></TextFramePreference></TextFrame>`);
         ile.teksty += 1;
         continue;
       }
@@ -192,12 +206,10 @@ export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzem
       const [x, y] = naRozkl(obraz.x, obraz.y);
       const w = obraz.w * PT;
       const h = obraz.h * PT;
-      const bitmapa = await window.createImageBitmap(obraz.blob);
-      const px = bitmapa.width;
-      const py = bitmapa.height;
-      bitmapa.close?.();
-      const ppi = Math.round((px / w) * 72);
-      elementy.push(`<Rectangle ${atrybuty({ Self: nowyId('r'), Name: o.nazwa || typ, ContentType: 'GraphicType', ItemLayer: 'ly', FillColor: 'Swatch/None', StrokeColor: 'Swatch/None', StrokeWeight: 0, ItemTransform: macierz(0, x, y) })}><Properties>${geometria(prostokat(w, h))}</Properties><FrameFittingOption FittingOnEmptyFrame="None"/><Image ${atrybuty({ Self: nowyId('i'), ImageTypeName: '$ID/Portable Network Graphics (PNG)', ActualPpi: `${ppi} ${ppi}`, EffectivePpi: `${ppi} ${ppi}`, ItemTransform: `${liczba(w / px)} 0 0 ${liczba(h / py)} 0 0` })}><Properties><Profile type="string">$ID/Embedded</Profile><GraphicBounds Left="0" Top="0" Right="${px}" Bottom="${py}"/><Contents><![CDATA[${await base64(obraz.blob)}]]></Contents></Properties><Link ${atrybuty({ Self: nowyId('l'), LinkResourceURI: `file:${o.id || 'obraz'}.png`, StoredState: 'Embedded', LinkResourceFormat: '$ID/Portable Network Graphics (PNG)' })}/></Image></Rectangle>`);
+      // Obraz ma zapisane 300 dpi (pHYs): jego naturalny rozmiar w pt to px × 72 / dpi – skala dopasowuje go do ramki.
+      const { px, py, dpi } = obraz;
+      const ppi = Math.round(dpi);
+      elementy.push(`<Rectangle ${atrybuty({ Self: nowyId('r'), Name: o.nazwa || typ, ContentType: 'GraphicType', ItemLayer: 'ly', FillColor: 'Swatch/None', StrokeColor: 'Swatch/None', StrokeWeight: 0, ItemTransform: macierz(0, x, y) })}><Properties>${geometria(prostokat(w, h))}</Properties><FrameFittingOption FittingOnEmptyFrame="None"/><Image ${atrybuty({ Self: nowyId('i'), ImageTypeName: '$ID/Portable Network Graphics (PNG)', ActualPpi: `${ppi} ${ppi}`, EffectivePpi: `${ppi} ${ppi}`, ItemTransform: `${liczba(w / ((px * 72) / dpi))} 0 0 ${liczba(h / ((py * 72) / dpi))} 0 0` })}><Properties><Profile type="string">$ID/Embedded</Profile><GraphicBounds Left="0" Top="0" Right="${liczba((px * 72) / dpi)}" Bottom="${liczba((py * 72) / dpi)}"/><Contents><![CDATA[${await base64(obraz.blob)}]]></Contents></Properties><Link ${atrybuty({ Self: nowyId('l'), LinkResourceURI: `file:${o.id || 'obraz'}.png`, StoredState: 'Embedded', LinkResourceFormat: '$ID/Portable Network Graphics (PNG)' })}/></Image></Rectangle>`);
       ile.obrazy += 1;
     }
     const idR = nowyId('sp');
@@ -221,7 +233,7 @@ ${kolory.xml()}
 </idPkg:Graphic>`);
   const rodziny = new Map();
   for (const k of czcionki) { const [r, o] = k.split('\u0000'); if (!rodziny.has(r)) rodziny.set(r, new Set()); rodziny.get(r).add(o); }
-  zip.file('Resources/Fonts.xml', `${naglowek}<idPkg:Fonts xmlns:idPkg="${NS}" DOMVersion="${DOM}">${[...rodziny].map(([r, odm], i) => `<FontFamily Self="di${i}" Name="${xml(r)}">${[...odm].map((o) => `<Font ${atrybuty({ Self: `di${i}Font${r} ${o}`, FontFamily: r, Name: `${r} ${o}`, PostScriptName: `${r.replace(/\s+/g, '')}-${o.replace(/\s+/g, '')}`, Status: 'NotAvailable', FontStyleName: o, FontType: 'OpenTypeTT', WritingScript: 0 })}/>`).join('')}</FontFamily>`).join('')}</idPkg:Fonts>`);
+  zip.file('Resources/Fonts.xml', `${naglowek}<idPkg:Fonts xmlns:idPkg="${NS}" DOMVersion="${DOM}">${[...rodziny].map(([r, odm], i) => `<FontFamily Self="di${i}" Name="${xml(r)}">${[...odm].map((o) => `<Font ${atrybuty({ Self: `di${i}Font${r} ${o}`, FontFamily: r, Name: `${r} ${o}`, PostScriptName: nazwaPostScript(r, o), Status: 'NotAvailable', FontStyleName: o, FontType: 'OpenTypeTT', WritingScript: 0 })}/>`).join('')}</FontFamily>`).join('')}</idPkg:Fonts>`);
   zip.file('Resources/Styles.xml', `${naglowek}<idPkg:Styles xmlns:idPkg="${NS}" DOMVersion="${DOM}"><RootCharacterStyleGroup Self="rcs"><CharacterStyle Self="CharacterStyle/$ID/[No character style]" Imported="false" Name="$ID/[No character style]"/></RootCharacterStyleGroup><RootParagraphStyleGroup Self="rps"><ParagraphStyle Self="ParagraphStyle/$ID/[No paragraph style]" Name="$ID/[No paragraph style]" Imported="false"/><ParagraphStyle Self="ParagraphStyle/$ID/NormalParagraphStyle" Name="$ID/NormalParagraphStyle" Imported="false" NextStyle="ParagraphStyle/$ID/NormalParagraphStyle"><Properties><BasedOn type="string">$ID/[No paragraph style]</BasedOn></Properties></ParagraphStyle></RootParagraphStyleGroup><RootCellStyleGroup Self="rcls"><CellStyle Self="CellStyle/$ID/[None]" Name="$ID/[None]"/></RootCellStyleGroup><RootTableStyleGroup Self="rts"><TableStyle Self="TableStyle/$ID/[No table style]" Name="$ID/[No table style]"/></RootTableStyleGroup><RootObjectStyleGroup Self="ros"><ObjectStyle Self="ObjectStyle/$ID/[None]" Name="$ID/[None]"/></RootObjectStyleGroup></idPkg:Styles>`);
   zip.file('Resources/Preferences.xml', `${naglowek}<idPkg:Preferences xmlns:idPkg="${NS}" DOMVersion="${DOM}"><DocumentPreference ${atrybuty({ PageHeight: w.wysokosc_mm * PT, PageWidth: w.szerokosc_mm * PT, PagesPerDocument: egz.length, FacingPages: 'false', DocumentBleedTopOffset: spad, DocumentBleedBottomOffset: spad, DocumentBleedInsideOrLeftOffset: spad, DocumentBleedOutsideOrRightOffset: spad, DocumentBleedUniformSize: 'true', PageBinding: 'LeftToRight', AllowPageShuffle: 'true', Intent: 'PrintIntent', StartPageNumber: 1 })}/><MarginPreference ${atrybuty({ ColumnCount: 1, ColumnGutter: 12, Top: (m.gora ?? 0) * PT, Bottom: (m.dol ?? 0) * PT, Left: (m.wewnetrzny ?? 0) * PT, Right: (m.zewnetrzny ?? 0) * PT, ColumnDirection: 'Horizontal' })}/><ViewPreference HorizontalMeasurementUnits="Millimeters" VerticalMeasurementUnits="Millimeters"/></idPkg:Preferences>`);
   zip.file('XML/BackingStory.xml', `${naglowek}<idPkg:BackingStory xmlns:idPkg="${NS}" DOMVersion="${DOM}"><XmlStory Self="bs" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n"><ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle"><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"/></ParagraphStyleRange></XmlStory></idPkg:BackingStory>`);
