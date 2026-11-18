@@ -367,6 +367,15 @@ export const akcje = {
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.idml`, URL.createObjectURL(w.blob));
     powiadom(`Zapisano IDML (InDesign, Affinity Publisher, QuarkXPress): ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'}.`);
   },
+  // Seria dla innych programów (#226): szablon z polami + dane (InDesign/Affinity, Scribus, Word/Publisher).
+  'seria-programy': async () => {
+    zamknijMenu();
+    zapiszBiezacyCel();
+    const { daneSerii } = await import('../eksport-serii.js');
+    if (!daneSerii(stan.projekt).length) { powiadom('Projekt nie ma serii z tabelą danych – szablon z polami robi się ze strony powielanej z tabeli (Dane → seria).', true); return; }
+    $('#seria-programy-uwaga').textContent = '';
+    $('#dlg-seria-programy').showModal();
+  },
   // Scribus (#220): cały projekt jako plik .sla – teksty edytowalne, kształty wektorowe, reszta jako obrazy w pliku.
   scribus: async () => {
     zamknijMenu();
@@ -940,3 +949,19 @@ function otworzWyborWielokata() {
   menu.style.left = `${Math.round(Math.max(8, Math.min(window.innerWidth - 8 - w, r.left + r.width / 2 - w / 2)))}px`;
 }
 new MutationObserver(odswiezWiecejNarzedzi).observe($('#pasek-narzedzi'), { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
+
+$('#seria-programy-ok').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const dlg = $('#dlg-seria-programy');
+  dlg.close();
+  const program = dlg.querySelector('input[name="program"]:checked')?.value || 'indesign';
+  const [{ biblioteka }, { pakietSerii }] = await Promise.all([import('../biblioteki.js'), import('../eksport-serii.js')]);
+  try {
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+    const XLSX = program === 'word' ? await biblioteka('js/zewnetrzne/xlsx-0.18.5.full.min.js', 'XLSX', 'obsługi plików Excela') : null;
+    powiadom('Przygotowuję szablon i dane…');
+    const w = await pakietSerii(stan.projekt, program, JSZip, { XLSX });
+    pobierz(w.nazwa, URL.createObjectURL(w.blob));
+    powiadom(`Pobrano szablon i dane: pola ${w.pola.map((p) => `{${p}}`).join(', ') || '–'}, ${w.wierszy} wierszy${w.obrazow ? `, obrazów ${w.obrazow}` : ''}. Co dalej – w pliku CZYTAJ-MNIE.txt.`);
+  } catch (e) { powiadom(`Nie udało się przygotować pliku: ${e.message}`, true); }
+});

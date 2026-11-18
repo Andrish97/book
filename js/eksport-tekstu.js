@@ -83,14 +83,24 @@ export function akapityProjektu(projekt, ciag = rozwin(projekt)) {
 
 const runDocx = (f) => `<w:r>${f.b || f.i || f.u ? `<w:rPr>${f.b ? '<w:b/>' : ''}${f.i ? '<w:i/>' : ''}${f.u ? '<w:u w:val="single"/>' : ''}</w:rPr>` : ''}<w:t xml:space="preserve">${esc(f.t.replace(/\t/g, ' '))}</w:t></w:r>`;
 
-export async function zapiszDocx(projekt, JSZip, akapity = akapityProjektu(projekt)) {
+// Pola korespondencji seryjnej (#226): {kolumna} → pole scalania Worda (MERGEFIELD) z podglądem «kolumna».
+function runyZPolami(f, pola) {
+  if (!pola?.size || !f.t.includes('{')) return runDocx(f);
+  return f.t.split(/(\{[^{}\n]+\})/).map((cz) => {
+    const n = cz.startsWith('{') && cz.endsWith('}') ? cz.slice(1, -1).split(':')[0].trim() : null;
+    if (n && pola.has(n)) return `<w:fldSimple w:instr=" MERGEFIELD &quot;${esc(n)}&quot; ">${runDocx({ ...f, t: `«${n}»` })}</w:fldSimple>`;
+    return cz ? runDocx({ ...f, t: cz }) : '';
+  }).join('');
+}
+
+export async function zapiszDocx(projekt, JSZip, akapity = akapityProjektu(projekt), { polaScalania = null } = {}) {
   const zip = new JSZip();
   zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>');
   zip.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
   zip.file('word/_rels/document.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
   const naglowek = (n, rozmiar) => `<w:style w:type="paragraph" w:styleId="Heading${n}"><w:name w:val="heading ${n}"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="240" w:after="120"/><w:outlineLvl w:val="${n - 1}"/></w:pPr><w:rPr><w:b/><w:sz w:val="${rozmiar}"/></w:rPr></w:style>`;
   zip.file('word/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:pPr><w:spacing w:after="120"/></w:pPr><w:rPr><w:sz w:val="22"/></w:rPr></w:style>${naglowek(1, 36)}${naglowek(2, 28)}${naglowek(3, 24)}</w:styles>`);
-  const body = akapity.map((a) => `<w:p>${a.poziom ? `<w:pPr><w:pStyle w:val="Heading${a.poziom}"/>${a.poziom === 1 ? '<w:pageBreakBefore/>' : ''}</w:pPr>` : ''}${a.fragmenty.map(runDocx).join('')}</w:p>`).join('');
+  const body = akapity.map((a) => `<w:p>${a.poziom ? `<w:pPr><w:pStyle w:val="Heading${a.poziom}"/>${a.poziom === 1 ? '<w:pageBreakBefore/>' : ''}</w:pPr>` : ''}${a.fragmenty.map((f) => runyZPolami(f, polaScalania)).join('')}</w:p>`).join('');
   zip.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr/></w:body></w:document>`);
   return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }

@@ -166,3 +166,12 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   Affinity Publisher i QuarkXPress: ramki tekstowe z formatowaniem, kształty z kolorami, reszta jako obrazy
   osadzone w pliku. Każda strona jest osobną stroną dokumentu (bez łączenia w rozkładówki); marginesy i spad
   zostają.
+- [Seria dla innego programu (szablon + dane)…] — korespondencja seryjna poza Makietką. Strony projektu są raz (bez
+  powielania), z polami w miejscu danych, a obok dane z tabeli serii. Do wyboru:
+  - **InDesign / Affinity Publisher** – szablon IDML ze znacznikami `<<imie>>`, `dane.csv` i folder `obrazy/`
+    (kolumna obrazów ma nazwę z `@`, np. `@zdjecie`, i ścieżki do plików – tak czyta je „Scalanie danych”);
+  - **Scribus** – szablon SLA ze zmiennymi `%VAR_imie%` dla wtyczki ScribusGenerator i `dane.csv`;
+  - **Word / Publisher** – tekst w DOCX z prawdziwymi polami scalania i `dane.xlsx` (Korespondencja → Wybierz
+    adresatów → Użyj istniejącej listy).
+  Pola dokumentu (`{nr}`, `{sekcja}`…) są już policzone. Plik `CZYTAJ-MNIE.txt` w paczce mówi krok po kroku, co dalej.
+  W drugą stronę: tekst z Worda z polami scalania (Wstaw tekst z pliku) przychodzi z polami `{imie}`.

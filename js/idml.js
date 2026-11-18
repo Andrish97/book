@@ -124,13 +124,13 @@ async function base64(blob) {
   return btoa(s);
 }
 
-export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), postep } = {}) {
+export async function zapiszIdml(projekt, JSZip, { ciag = rozwin(projekt), egzemplarze = null, postep } = {}) {
   const zip = new JSZip();
   zip.file('mimetype', 'application/vnd.adobe.indesign-idml-package', { compression: 'STORE' });
   zip.file('META-INF/container.xml', `${naglowek}<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="designmap.xml" media-type="text/xml"/></rootfiles></container>`);
   const kolory = new Kolory();
   const czcionki = new Set();
-  const egz = ciag.egzemplarze;
+  const egz = egzemplarze || ciag.egzemplarze;
   const rozkladowki = [];
   const historie = [];
   const ile = { teksty: 0, ksztalty: 0, obrazy: 0 };

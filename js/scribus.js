@@ -201,10 +201,10 @@ async function qCompressBase64(blob) {
 
 // ---------- Dokument ----------
 
-export async function zapiszSla(projekt, { ciag = rozwin(projekt), postep } = {}) {
+export async function zapiszSla(projekt, { ciag = rozwin(projekt), egzemplarze = null, postep } = {}) {
   const kolory = new Kolory();
   const czcionki = new Set();
-  const egz = ciag.egzemplarze;
+  const egz = egzemplarze || ciag.egzemplarze;
   const strony = [];
   const obiekty = [];
   const ile = { teksty: 0, ksztalty: 0, obrazy: 0 };

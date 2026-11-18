@@ -57,7 +57,29 @@ export async function czytajDocx(zip, Parser = DOMParser) {
     if (pStyle) a.poziom = poziomStyluDocx(pStyle.getAttributeNS(NS_W, 'val') || pStyle.getAttribute('w:val'), nazwy);
     const outline = pPr?.getElementsByTagNameNS(NS_W, 'outlineLvl')[0];
     if (!a.poziom && outline) a.poziom = Math.min(3, Number(outline.getAttributeNS(NS_W, 'val') || outline.getAttribute('w:val')) + 1);
+    // Pola scalania Worda/Publishera (#226): MERGEFIELD – proste (fldSimple) i złożone (fldChar + instrText) → {pole}.
+    let pole = null; // { instr, wynik: bool } – trwające pole złożone
+    let wPolu = false; // po „separate” – wynik pola (podgląd «pole») pomijamy
+    const nazwaPola = (instr) => { const m = String(instr).match(/MERGEFIELD\s+(?:"([^"]+)"|(\S+))/i); return m ? (m[1] || m[2]) : null; };
+    const fldSimpleZ = new Set();
     for (const r of p.getElementsByTagNameNS(NS_W, 'r')) {
+      const fs = r.parentNode?.localName === 'fldSimple' ? r.parentNode : null;
+      const instrS = fs && (fs.getAttributeNS(NS_W, 'instr') || fs.getAttribute('w:instr'));
+      if (fs && nazwaPola(instrS)) {
+        if (!fldSimpleZ.has(fs)) { fldSimpleZ.add(fs); dopisz(a, `{${nazwaPola(instrS)}}`, { b: false, i: false, u: false }); }
+        continue;
+      }
+      const znak = r.getElementsByTagNameNS(NS_W, 'fldChar')[0];
+      if (znak) {
+        const typ = znak.getAttributeNS(NS_W, 'fldCharType') || znak.getAttribute('w:fldCharType');
+        if (typ === 'begin') { pole = { instr: '' }; wPolu = false; }
+        else if (typ === 'separate' && pole) { const n = nazwaPola(pole.instr); if (n) { dopisz(a, `{${n}}`, { b: false, i: false, u: false }); wPolu = true; } }
+        else if (typ === 'end') { if (pole && !wPolu) { const n = nazwaPola(pole.instr); if (n) dopisz(a, `{${n}}`, { b: false, i: false, u: false }); } pole = null; wPolu = false; }
+        continue;
+      }
+      const instrText = r.getElementsByTagNameNS(NS_W, 'instrText')[0];
+      if (instrText && pole) { pole.instr += instrText.textContent; continue; }
+      if (wPolu) continue;
       const rPr = r.getElementsByTagNameNS(NS_W, 'rPr')[0];
       const f = {
         b: wlaczone(rPr?.getElementsByTagNameNS(NS_W, 'b')[0]),

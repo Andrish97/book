@@ -91,7 +91,8 @@ document.addEventListener('pointerdown', (e) => {
 export function pobierz(nazwa, url) {
   const a = document.createElement('a');
   a.href = url;
-  a.download = nazwa;
+  // Chrome odrzuca nazwę z półpauzą/pauzą (plik zapisuje się jako „download”) – zwykły łącznik.
+  a.download = String(nazwa).replace(/\s*[\u2013\u2014]\s*/g, ' - ');
   document.body.append(a);
   a.click();
   a.remove();

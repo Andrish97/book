@@ -11,7 +11,23 @@
 import './fabric-ustawienia.js';
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, zrodloTla, marginesyStrony, ptNaMm } from './projekt.js';
 import { przypisyStrony, uzywaKsiazki, trescElementu } from './ksiazka.js';
-import { rozwin, wartosciPol } from './serie.js';
+import { rozwin, wartosciPol as wartosciZDanych } from './serie.js';
+
+// Zapis serii jako „szablon + dane” dla innych programów (#226): pola z kolumn tabel zostają znacznikami
+// (InDesign/Affinity <<pole>>, ScribusGenerator %VAR_pole%), pola dokumentu ({nr}, {sekcja}…) liczą się jak zwykle,
+// obrazy z danych zostają obrazem-wzorem. null – zwykłe podstawianie.
+let szablonPol = null; // { tekstowe: Set, obrazowe: Set, znacznik: (nazwa) => string }
+export async function zPolamiSzablonu(ustawienia, fn) {
+  const poprzednie = szablonPol;
+  szablonPol = ustawienia;
+  try { return await fn(); } finally { szablonPol = poprzednie; }
+}
+function wartosciPol(projekt, egz, ciag) {
+  const w = wartosciZDanych(projekt, egz, ciag);
+  if (!szablonPol) return w;
+  const sz = szablonPol;
+  return (nazwa, zapis) => (sz.obrazowe.has(nazwa) ? undefined : sz.tekstowe.has(nazwa) ? sz.znacznik(nazwa) : w(nazwa, zapis));
+}
 import { podstawWObiektach, kadrZWartosci, punktKadru } from './pola.js';
 import { toKod, ulozKod } from './kod-obiekt.js';
 import { przygotujKopie, kopiaRobocza, rozmiarOryginalu, zbierzZasoby } from './obrazy.js';

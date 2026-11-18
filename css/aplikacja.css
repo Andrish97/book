@@ -3591,3 +3591,8 @@ img:not([src]):not(.zaladowany) { color: transparent; }
 /* Język (#219): flaga na przycisku i w menu. */
 .flaga-jezyka { width: 20px; height: 20px; display: block; border-radius: 3px; color: var(--tusz-2); }
 .menu-jezyka .flaga-jezyka { flex: none; }
+
+/* Seria dla innych programów (#226): karty wyboru programu jedna pod drugą, wybrana – obramowana. */
+#seria-programy-lista { display: grid; gap: 8px; margin: 12px 0; }
+#seria-programy-lista .karta-typu { width: 100%; }
+#seria-programy-lista .karta-typu:has(input:checked) { border-color: var(--akcent); box-shadow: inset 0 0 0 1px var(--akcent); }
