@@ -145,6 +145,11 @@ Gdy projekt zmieniono w dwóch miejscach naraz, aplikacja **łączy zmiany eleme
 - **Importuj z pliku** obok **Nowy projekt** wczytuje projekt z pliku `.makietka` (na wąskim ekranie to sama ikona strzałki).
 - Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (rozdział „28.4 Instalacja aplikacji”).
 
+**Tekst z innych programów i do nich.** W edytorze, menu **⋯**:
+
+- **Wstaw tekst z pliku (Word, ODT, Markdown)…** — plik `.docx` (Word), `.odt` (LibreOffice, OpenOffice), `.md` (Markdown) albo `.txt` trafia do jednej ramki na bieżącej stronie, w marginesach, z włączonym **Dokładaj strony**: tekst sam rozkłada się na tyle stron, ile trzeba. Nagłówki zostają nagłówkami (większe, pogrubione), rozdziały (nagłówek 1) zaczynają się od nowej strony, a pogrubienia, kursywy i podkreślenia fragmentów zostają. Tabele wchodzą jako wiersze z tabulatorami; obrazy i przypisy z pliku trzeba wstawić osobno — aplikacja powie, ile ich było.
+- **Zapisz tekst jako Word (.docx)** i **Zapisz jako e-book (EPUB)** — sama treść stron w kolejności czytania (bez okładki), z nagłówkami i formatowaniem fragmentów; e-book ma spis treści i rozdział w osobnym pliku. Układ stron i obrazy zostają w Makietce.
+
 ## 3. Ekran edytora
 
 Gdzie co jest w edytorze — paski, panele i menu.

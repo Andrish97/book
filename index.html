@@ -753,6 +753,7 @@
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
+          <button role="menuitem" data-akcja="wstaw-tekst-z-pliku" data-ikona="tekst">Wstaw tekst z pliku (Word, ODT, Markdown)…</button>
           <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory projektu…</button>
           <hr>
           <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj">Zmień format projektu…</button>
@@ -761,6 +762,8 @@
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
           <button role="menuitem" data-akcja="specyfikacja" data-ikona="pobierz">Specyfikacja dla drukarni</button>
+          <button role="menuitem" data-akcja="tekst-docx" data-ikona="pobierz">Zapisz tekst jako Word (.docx)</button>
+          <button role="menuitem" data-akcja="tekst-epub" data-ikona="pobierz">Zapisz jako e-book (EPUB)</button>
           <button role="menuitem" data-akcja="drukuj" data-ikona="drukarka">Drukuj w domu…<kbd>Ctrl P</kbd></button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <hr>
@@ -2535,6 +2538,7 @@
   <div class="powiadomienie" id="powiadomienie" role="status" aria-live="polite" hidden></div>
 
   <input type="file" id="plik-obraz" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
+  <input type="file" id="plik-tekst" accept=".docx,.odt,.md,.markdown,.txt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,text/markdown,text/plain" hidden>
   <input type="file" id="pliki-zasoby" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.zip,application/zip" multiple hidden>
   <input type="file" id="plik-podmiana" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
   <input type="file" id="plik-projekt" accept=".makietka,.json,application/vnd.seriodruk+zip,application/zip,application/json" hidden>

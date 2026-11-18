@@ -339,6 +339,10 @@ export const akcje = {
   'makieta-pobierz': async () => (await import('./makieta-okno.js')).pobierzObrazMakiety(),
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
+  // Tekst dla innych programów (#216): Word i EPUB – treść stron w kolejności czytania, z nagłówkami.
+  'tekst-docx': () => zapiszTekstJako('docx'),
+  'tekst-epub': () => zapiszTekstJako('epub'),
+  'wstaw-tekst-z-pliku': async () => { zamknijMenu(); await import('./import-tekstu-okno.js'); $('#plik-tekst').click(); },
   // Specyfikacja dla drukarni (#214): ustawienia oprawy, papieru, materiału i uszlachetnień – tekst i JSON.
   specyfikacja: async () => {
     zamknijMenu();
@@ -733,6 +737,18 @@ document.addEventListener('keydown', (e) => {
   obsluzKlawisz(e, kontekstSkrotow, { wPolu, wEdycji });
 });
 document.addEventListener('keyup', (e) => { if (e.code === 'Space') edytor.ustawReke(false); });
+
+async function zapiszTekstJako(format) {
+  zamknijMenu();
+  zapiszBiezacyCel();
+  const [{ biblioteka }, E] = await Promise.all([import('../biblioteki.js'), import('../eksport-tekstu.js')]);
+  const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+  const akapity = E.akapityProjektu(stan.projekt);
+  if (!akapity.length) { powiadom('W projekcie nie ma tekstu do zapisania.', true); return; }
+  const blob = format === 'docx' ? await E.zapiszDocx(stan.projekt, JSZip, akapity) : await E.zapiszEpub(stan.projekt, JSZip, akapity);
+  pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.${format}`, URL.createObjectURL(blob));
+  powiadom(`Zapisano ${akapity.length} akapitów jako ${format === 'docx' ? 'dokument Worda' : 'e-book EPUB'} – sama treść; układ stron i obrazy zostają w Makietce.`);
+}
 
 // Wklejanie (Ctrl+V): obraz ze schowka systemu – zrzut ekranu, skopiowany plik albo kod SVG –
 // a gdy go tam nie ma, element skopiowany wcześniej w aplikacji.

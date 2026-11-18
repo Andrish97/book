@@ -687,6 +687,24 @@ export class Edytor extends EventTarget {
     return this._wstaw(t);
   }
 
+  // Długi tekst z pliku (#216): ramka na cały obszar w marginesach, z tekstem i stylami fragmentów, z dokładaniem
+  // stron. styles – tablica { start, end, style } (indeksy bez nowych linii).
+  dodajDlugiTekst(text, styles, { rozmiarPt = 11 } = {}) {
+    const { wysokosc_mm: h } = this.wydruk;
+    const m = this.marg;
+    const t = new fabric.Textbox(text, {
+      left: this.strony[this.aktywna].x + m.lewy, top: m.gora,
+      width: Math.max(20, this.wydruk.szerokosc_mm - m.lewy - m.prawy),
+      fontFamily: DOMYSLNA, fontSize: ptNaMm(rozmiarPt), lineHeight: 1.35, fill: '#1a1a1a', textAlign: 'justify',
+      strokeWidth: 0, spojniki: true, wdowy: 2,
+      styles: fabric.util.stylesFromArray(styles || [], text),
+    });
+    t.ramka_h = Math.max(20, h - m.gora - m.dol);
+    t.auto_strony = true;
+    t.initDimensions();
+    return this._wstaw(t);
+  }
+
   dodajProstokat() {
     return this._wstaw(new fabric.Rect({
       ...this._srodek(40, 25), width: 40, height: 25,

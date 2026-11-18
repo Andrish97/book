@@ -34,7 +34,7 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | 9 | (7) Przetestować wszystkie makiety 3D | 🔄 |
 | 10 | (15) Makieta dobrana do projektu: projekt spełnia zwykle jedną, najwyżej dwie makiety (np. książka twarda albo miękka, czasem spirala); tylko te są dostępne, inne (np. kalendarz dla książki) się nie pokazują; przy brakach – co brakuje i propozycja uzupełnienia (np. białe strony) | ⏳ |
 | 11 | (16) Wycinanki i składanki: typy linii (cięcie, zgięcie, klejenie), miejsca klejenia, grupa wycinana jako jeden kawałek, druga strona arkusza, łączenie, zawijanie po krzywej, ustawienia plotera, gotowe wzory, sprawdzenie złożenia, makieta 3D | ⏳ |
-| 12 | (5) Zgodność z innymi programami: odczyt i zapis formatów (IDML, Scribus, DOCX, EPUB, PDF) | ⏳ |
+| 12 | (5) Zgodność z innymi programami: odczyt i zapis formatów (IDML, Scribus, DOCX, EPUB, PDF) | 🔄 #216: DOCX, ODT, Markdown, TXT – odczyt; DOCX i EPUB – zapis; dalej IDML i Scribus |
 | 13 | AI: własne klucze API wielu dostawców z wyborem modelu, własny czat w Makietce, łącznik MCP z logowaniem przez zatwierdzenie, uprawnienia per projekt, bez przywiązania do dostawcy | ⏳ |
 | 14 | (18) Przełącznik języka – 3 języki jak w Familiadzie (tłumaczenie całej aplikacji) | ⏳ |
 | 15 | (4) Ikona i logo – propozycje do zatwierdzenia (na koniec – wymaga oceny wyglądu) | ⏳ |
