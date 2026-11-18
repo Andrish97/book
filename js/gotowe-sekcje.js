@@ -976,6 +976,29 @@ export const SZABLONY_SEKCJI = [
     },
   },
   {
+    id: 'zawieszki', nazwa: 'Zawieszki na prezenty', kategoria: 'inne', format: [50, 90], marginesy: 4, paleta: 'zielen',
+    specjalna: { rodzaj: 'arkusz', uzytek_szer_mm: 50, uzytek_wys_mm: 90, arkusz: 'A4', ksztalt: 'zawieszka', zaokraglenie_mm: 12 },
+    opis: 'Zawieszka 50 × 90 mm ze ściętymi rogami i otworem na sznurek – dla każdego wiersza tabeli (dla kogo, życzenia, od kogo).', slowa: 'zawieszki metki prezenty swieta bilecik etykieta sznurek',
+    dane: true,
+    schemat: [['ramka', 10, 3, 10, 34], ['tytul', 11, 14, 8, 3], ['tekst', 11, 20, 8, 6]],
+    buduj(c, n) {
+      const { pole: p } = c;
+      const gora = 20; // pod otworem
+      const o = [
+        n.prost(-3, -3, 56, 96, { fill: c.k.jasny, nazwa: 'Tło zawieszki' }), // ze spadem
+        n.tekst('Dla {dla}', p.x, gora, p.w, { pt: 15, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, nazwa: 'Dla kogo' }),
+        n.tekst('{zyczenia}', p.x, gora + c.pt(15) * 1.8, p.w, { pt: 9, lh: 1.4, align: 'center', kolor: c.k.akcent2, nazwa: 'Życzenia' }),
+        n.tekst('od {od}', p.x, 90 - p.x - c.pt(8) * 1.6, p.w, { pt: 8, align: 'center', kolor: c.k.akcent2, nazwa: 'Od kogo' }),
+      ];
+      return {
+        strony: [{ nazwa: 'Zawieszka', obiekty: o, seria: 'zawieszki', wzorce: [] }],
+        tabele: [{ klucz: 'zawieszki', nazwa: 'Zawieszki', kolumny: ['dla', 'zyczenia', 'od'], wiersze: [['Ani', 'Wesołych Świąt i dużo radości!', 'Tomka'], ['Babci', 'Zdrowia i ciepła przez cały rok', 'wnuków'], ['Kuby', 'Niech się spełni każde marzenie', 'cioci Ewy']] }],
+        serie: [{ klucz: 'zawieszki', nazwa: 'Zawieszki', tabela: 'zawieszki', uklad: 'dlugi' }],
+        numeracja: { tryb: 'brak', od: 1 },
+      };
+    },
+  },
+  {
     id: 'spiewnik', nazwa: 'Śpiewnik / modlitewnik', kategoria: 'inne', paleta: 'granat',
     opis: 'Pieśń na stronie z tabeli: tytuł, numer, tekst zwrotek i miejsce na nuty z pliku.', slowa: 'spiewnik piesni modlitewnik nuty teksty koscielny',
     dane: true,

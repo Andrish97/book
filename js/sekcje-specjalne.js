@@ -313,10 +313,26 @@ function zaokraglonyProstokat(x, y, w, h, r) {
   return punkty(pkt);
 }
 
+// Owal wpisany w prostokąt użytku (naklejka okrągła albo owalna).
+function owal(x, y, w, h, n = 72) {
+  return punkty(Array.from({ length: n }, (_, i) => { const k = (i / n) * 2 * Math.PI; return [x + w / 2 + (w / 2) * Math.cos(k), y + h / 2 + (h / 2) * Math.sin(k)]; }));
+}
+
+// Zawieszka (metka na prezent, na butelkę): ścięte górne rogi i okrągły otwór na sznurek pośrodku u góry.
+// Ścięcie – zaokrąglenie_mm (domyślnie ok. 1/4 szerokości), otwór Ø 5 mm, 4 mm poniżej końca ścięcia.
+function zawieszka(w, h, sciecie) {
+  const c = Math.min(sciecie > 0 ? sciecie : w / 4, w / 2 - 1, h / 3);
+  const zewn = punkty([[c, 0], [w - c, 0], [w, c], [w, h], [0, h], [0, c]]);
+  const otwor = owal(w / 2 - 2.5, Math.max(3, c * 0.5), 5, 5, 36);
+  return [zewn, otwor];
+}
+
 function geometriaArkusza(p) {
   const w = p.uzytek_szer_mm;
   const h = p.uzytek_wys_mm;
-  const ciecie = p.ksztalt === 'naklejka' ? [zaokraglonyProstokat(0, 0, w, h, p.zaokraglenie_mm)] : [];
+  const ciecie = p.ksztalt === 'naklejka' ? [zaokraglonyProstokat(0, 0, w, h, p.zaokraglenie_mm)]
+    : p.ksztalt === 'kolo' ? [owal(0, 0, w, h)]
+      : p.ksztalt === 'zawieszka' ? zawieszka(w, h, p.zaokraglenie_mm) : [];
   return {
     szerokosc: zaokr(w), wysokosc: zaokr(h), stron: 1, strefy: [prost('uzytek', 'Użytek', 0, 0, w, h)], bigi: [], perforacje: [], ciecie, naciecia: [],
   };
@@ -532,7 +548,7 @@ export const RODZAJE_SEKCJI = {
       arkusz_szer_mm: liczbaLub(o.arkusz_szer_mm, d.arkusz_szer_mm, 50, 1200), arkusz_wys_mm: liczbaLub(o.arkusz_wys_mm, d.arkusz_wys_mm, 50, 1200),
       odstep_mm: liczbaLub(o.odstep_mm, d.odstep_mm, 0, 50), margines_mm: liczbaLub(o.margines_mm, d.margines_mm, 0, 50),
       kolumny: Math.round(liczbaLub(o.kolumny, 0, 0, 50)), wiersze: Math.round(liczbaLub(o.wiersze, 0, 0, 50)),
-      ksztalt: zListy(o.ksztalt, ['prostokat', 'naklejka'], d.ksztalt), zaokraglenie_mm: liczbaLub(o.zaokraglenie_mm, d.zaokraglenie_mm, 0, 50),
+      ksztalt: zListy(o.ksztalt, ['prostokat', 'naklejka', 'kolo', 'zawieszka'], d.ksztalt), zaokraglenie_mm: liczbaLub(o.zaokraglenie_mm, d.zaokraglenie_mm, 0, 50),
     }),
     geometria: (projekt, sekcja, p) => geometriaArkusza(p),
   },
@@ -606,10 +622,14 @@ export function uwagiElementu(wynik, r, { tekst = false } = {}) {
       : l.y1 > r.y1 + tol && l.y1 < r.y2 - tol && Math.max(r.x1, Math.min(l.x1, l.x2)) < Math.min(r.x2, Math.max(l.x1, l.x2))));
     if (przecina) uwagi.push('na_zgieciu');
   }
-  if (wynik.rodzaj === 'wykrojnik' && wynik.ciecie?.length) {
+  if (wynik.ciecie?.length) { // wykrojnik i użytki z wykrojem (naklejka, koło, zawieszka)
     const cx = (r.x1 + r.x2) / 2;
     const cy = (r.y1 + r.y2) / 2;
-    if (!wynik.ciecie.some((k) => wKonturze(k, cx, cy))) uwagi.push('poza_wykrojnikiem');
+    // Pierwszy kontur – obrys; kolejne leżące w nim – otwory (zawieszka), też wycinane.
+    const [obrys, ...reszta] = wynik.ciecie;
+    const wObrysie = wKonturze(obrys, cx, cy) || reszta.some((k) => !wKonturze(obrys, k[0].x, k[0].y) && wKonturze(k, cx, cy));
+    const wOtworze = reszta.some((k) => wKonturze(obrys, k[0].x, k[0].y) && wKonturze(k, cx, cy));
+    if (!wObrysie || wOtworze) uwagi.push('poza_wykrojnikiem');
   }
   return uwagi;
 }
