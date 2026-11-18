@@ -37,6 +37,6 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
    klucz nie wraca do przeglądarki) albo jak dziś tylko na urządzeniu.
 5. ⏳ (#256: czytelne komunikaty i ponawianie przy przeciążeniu; zostaje streaming i zdjęcia w rozmowie) **Adaptery** – streaming odpowiedzi, czytelne komunikaty (zły klucz, brak środków, limit, model niedostępny,
    brak narzędzi w modelu), ponowienie przy przeciążeniu, zdjęcia w rozmowie (do projektu albo do obejrzenia).
-6. **Brakujące narzędzia** – kopiowanie stron, wyrównanie i rozmieszczenie, kadrowanie obrazu, przypisanie wzorców,
+6. ⏳ (#257: kopiowanie stron, wyrównanie i rozmieszczenie; zostaje kadrowanie istniejącego obrazu, przypisanie wzorców, „napraw” z kontroli) **Brakujące narzędzia** – kopiowanie stron, wyrównanie i rozmieszczenie, kadrowanie obrazu, przypisanie wzorców,
    style, serie, „napraw” z kontroli przed drukiem.
 7. **Dokumentacja dla integratorów** – `ai/api.md` z opisem wszystkich dróg (OAuth, klucz, GET, kopiuj i wklej).

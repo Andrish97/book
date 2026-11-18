@@ -106,7 +106,9 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 | `czytaj` | pełny JSON strony, wzorca, sekcji, stylu, tabeli, serii, widoku albo całego projektu |
 | `zmien_elementy` | zmienia pola elementów (po id) na stronie albo we wzorcu; `null` usuwa pole |
 | `dodaj_elementy`, `usun_elementy`, `kolejnosc_elementow` | elementy dowolnego rodzaju: tekst (z formatowaniem fragmentów), kształty, linie, ścieżki, obrazy z wgranych plików i z danych, tabela, `z_danych`, łańcuchy ramek |
+| `wyrownaj_elementy`, `rozmiesc_elementy` | wyrównanie elementów (lewo, środek, prawo, góra, środek w pionie, dół – do skrajnego z elementów albo do strony) i równe odstępy poziomo albo pionowo (albo stały odstęp w mm) |
 | `dodaj_strone`, `zmien_strone`, `usun_strony`, `kolejnosc_stron` | strony: sekcja, wzorce, seria, tło, kolejność |
+| `kopiuj_strone` | kopia strony z elementami (nowe id), do 50 kopii, za oryginałem albo za wskazaną stroną |
 | `zmien_tabele` | tabela danych: komórki, kolumny, wiersze (także `[pomiń]`), listy dozwolonych wartości; nowa tabela |
 | `zmien_czesc` | ogólna zmiana jednej sekcji, wzorca, stylu, tabeli albo serii (nowa, zmiana, usunięcie). Zmiana stylu przepisuje go do tekstów, które go używają – jak w aplikacji; usunięty styl odpina się od tekstów |
 | `zmien_projekt` | ogólny zapis kilku części naraz (dla zmian, których inne narzędzia nie obejmują) |

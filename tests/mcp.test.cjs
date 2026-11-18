@@ -446,3 +446,45 @@ test('MCP: eksport_pdf i eksport_png zlecane aplikacji – link do pobrania albo
   assert.equal(za.blad, true);
   assert.match(za.tekst, /5 eksportów/);
 });
+
+// Plan AI krok 6 (#257): kopiuj_strone, wyrownaj_elementy, rozmiesc_elementy.
+test('MCP: kopiowanie strony z nowymi id, wyrównanie i równe rozmieszczenie elementów', async (t) => {
+  const s = await srodowisko(t);
+  const { narzedzie } = s.uruchom(s.edycja);
+  const strony = () => s.projekt().projekt.strony;
+  const przed = strony().length;
+  const k = await narzedzie('kopiuj_strone', { id: 's1', ile: 2 });
+  assert.ok(!k.blad, k.tekst);
+  assert.equal(strony().length, przed + 2);
+  assert.equal(strony()[0].id, 's1', 'kopie za oryginałem');
+  const kopie = strony().slice(1, 3);
+  assert.ok(kopie.every((x) => x.id !== 's1' && /\(kopia \d\)$/.test(x.nazwa)));
+  const idOryg = strony()[0].obiekty.map((o) => o.id);
+  for (const x of kopie) {
+    assert.equal(x.obiekty.length, idOryg.length);
+    assert.ok(x.obiekty.every((o) => !idOryg.includes(o.id)), 'elementy kopii mają nowe id');
+  }
+  assert.equal(kopie[0].obiekty.find((o) => o.type === 'textbox')?.text, 'Kalendarz {rok}');
+
+  // Trzy prostokąty: wyrównanie do lewej (do skrajnego) i do środka strony; równe odstępy poziomo.
+  const dodaj = await narzedzie('dodaj_elementy', { gdzie: 'strona:s1', elementy: [
+    { id: 'a', type: 'rect', left: 10, top: 10, width: 20, height: 10 },
+    { id: 'b', type: 'rect', left: 50, top: 30, width: 10, height: 10 },
+    { id: 'c', type: 'rect', left: 100, top: 50, width: 30, height: 10 },
+  ] });
+  assert.ok(!dodaj.blad, dodaj.tekst);
+  const el = (id) => strony()[0].obiekty.find((o) => o.id === id);
+  assert.ok(!(await narzedzie('rozmiesc_elementy', { gdzie: 'strona:s1', id: ['c', 'a', 'b'], kierunek: 'poziomo' })).blad);
+  // Od 10 do 130 mm: 60 mm szerokości elementów, dwa odstępy po 30 mm.
+  assert.deepEqual([el('a').left, el('b').left, el('c').left], [10, 60, 100]);
+  assert.ok(!(await narzedzie('wyrownaj_elementy', { gdzie: 'strona:s1', id: ['a', 'b', 'c'], do: 'gora' })).blad);
+  assert.deepEqual([el('a').top, el('b').top, el('c').top], [10, 10, 10]);
+  assert.ok(!(await narzedzie('wyrownaj_elementy', { gdzie: 'strona:s1', id: ['b'], do: 'srodek' })).blad);
+  const szer = s.projekt().projekt.sekcje[0].wydruk?.szerokosc_mm || 210;
+  assert.equal(el('b').left, szer / 2 - 5, 'jeden element – do środka strony');
+  assert.equal((await narzedzie('rozmiesc_elementy', { gdzie: 'strona:s1', id: ['a', 'b'], kierunek: 'pionowo' })).blad, true, 'dwa bez odstępu – odmowa');
+  assert.ok(!(await narzedzie('rozmiesc_elementy', { gdzie: 'strona:s1', id: ['a', 'b'], kierunek: 'pionowo', odstep_mm: 5 })).blad);
+  assert.equal(el('b').top, 25);
+  // Klucz tylko do odczytu – odmowa.
+  assert.equal((await s.uruchom(s.odczyt).narzedzie('kopiuj_strone', { id: 's1' })).blad, true);
+});

@@ -117,7 +117,7 @@ który dodajesz w aplikacji AI.
 | AI może | AI nie może |
 |---|---|
 | tworzyć i usuwać projekty (z pełnym dostępem) | zobaczyć projektów spoza klucza |
-| dodawać i zmieniać strony, elementy, style i wzorce | zmienić Twojego konta ani hasła |
+| dodawać, zmieniać i kopiować strony; dodawać, zmieniać, wyrównywać i równo rozmieszczać elementy; zmieniać style i wzorce | zmienić Twojego konta ani hasła |
 | wypełniać tabele danych i ustawiać serie | zrobić pliku PDF bez Makietki — rysuje go Twoja przeglądarka (→ 25.5) |
 | wgrywać, wstawiać i wymieniać zdjęcia | |
 | czytać komentarze, odpowiadać na nie i dodawać własne (→ 24.7) | |

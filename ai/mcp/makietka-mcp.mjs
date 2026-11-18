@@ -639,6 +639,19 @@ function miejsce(projekt, gdzie) {
   return { obiekty: w.obiekty, zmiany: () => ({ wzorce: projekt.wzorce }), nazwa: `wzorzec „${w.nazwa || w.id}”` };
 }
 
+// Prostokąt elementu w mm (lewy górny róg, bez obrotu) i przesunięcie – do wyrównywania i rozmieszczania.
+function ramkaElementu(o) {
+  const sx = Math.abs(o.scaleX ?? 1);
+  const sy = Math.abs(o.scaleY ?? 1);
+  const w = (o.type === 'ellipse' && o.rx != null ? 2 * o.rx : (o.width || 0)) * sx;
+  const h = (o.type === 'ellipse' && o.ry != null ? 2 * o.ry : (o.height || 0)) * sy;
+  return { x: o.left || 0, y: o.top || 0, w, h };
+}
+function przesun(o, dx, dy) {
+  o.left = Math.round(((o.left || 0) + dx) * 1000) / 1000;
+  o.top = Math.round(((o.top || 0) + dy) * 1000) / 1000;
+}
+
 // Wszystkie elementy w drzewie (także w grupach i komórkach tabeli).
 function wszystkie(obiekty, fn) {
   for (const o of obiekty || []) {
@@ -1470,6 +1483,63 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
       }),
     },
     {
+      name: 'wyrownaj_elementy',
+      title: 'Wyrównaj elementy',
+      description: 'Wyrównuje elementy (po id) na stronie albo we wzorcu – jak przyciski wyrównania w edytorze. do: lewo | srodek | prawo | gora | srodek_pionowo | dol. wzgledem: elementy (do skrajnego z zaznaczonych, domyślnie; przy jednym elemencie – do strony) albo strona. Liczy prostokąt elementu bez obrotu.',
+      inputSchema: S('', {
+        gdzie: GDZIE, id: { type: 'array', items: { type: 'string' } },
+        do: { type: 'string', enum: ['lewo', 'srodek', 'prawo', 'gora', 'srodek_pionowo', 'dol'] },
+        wzgledem: { type: 'string', enum: ['elementy', 'strona'] },
+      }, ['gdzie', 'id', 'do']),
+      dzialaj: ({ gdzie, id, do: kierunek, wzgledem = 'elementy' }) => zmien((p) => {
+        const m = miejsce(p, gdzie);
+        const el = id.map((x) => znajdz(m.obiekty, x, 'elementu'));
+        const ramki = el.map(ramkaElementu);
+        const { szer, wys } = wymiaryMiejsca(p, gdzie);
+        const doStrony = wzgledem === 'strona' || el.length === 1;
+        const lewo = doStrony ? 0 : Math.min(...ramki.map((r) => r.x));
+        const prawo = doStrony ? szer : Math.max(...ramki.map((r) => r.x + r.w));
+        const gora = doStrony ? 0 : Math.min(...ramki.map((r) => r.y));
+        const dol = doStrony ? wys : Math.max(...ramki.map((r) => r.y + r.h));
+        el.forEach((o, i) => {
+          const r = ramki[i];
+          if (kierunek === 'lewo') przesun(o, lewo - r.x, 0);
+          if (kierunek === 'prawo') przesun(o, prawo - (r.x + r.w), 0);
+          if (kierunek === 'srodek') przesun(o, (lewo + prawo) / 2 - (r.x + r.w / 2), 0);
+          if (kierunek === 'gora') przesun(o, 0, gora - r.y);
+          if (kierunek === 'dol') przesun(o, 0, dol - (r.y + r.h));
+          if (kierunek === 'srodek_pionowo') przesun(o, 0, (gora + dol) / 2 - (r.y + r.h / 2));
+        });
+        return { zmiany: m.zmiany(), opis: `Wyrównano ${el.length} el. (${kierunek}, względem ${doStrony ? 'strony' : 'elementów'}; ${m.nazwa}).` };
+      }),
+    },
+    {
+      name: 'rozmiesc_elementy',
+      title: 'Rozmieść elementy równo',
+      description: 'Rozmieszcza co najmniej 3 elementy (po id) z równymi odstępami – poziomo albo pionowo; skrajne zostają na miejscu (jak „Rozmieść” w edytorze). odstep_mm – zamiast tego stały odstęp od pierwszego elementu.',
+      inputSchema: S('', {
+        gdzie: GDZIE, id: { type: 'array', items: { type: 'string' } },
+        kierunek: { type: 'string', enum: ['poziomo', 'pionowo'] }, odstep_mm: { type: 'number' },
+      }, ['gdzie', 'id', 'kierunek']),
+      dzialaj: ({ gdzie, id, kierunek, odstep_mm: staly }) => zmien((p) => {
+        const m = miejsce(p, gdzie);
+        const el = id.map((x) => znajdz(m.obiekty, x, 'elementu'));
+        if (el.length < (staly == null ? 3 : 2)) throw new BladBazy('Podaj co najmniej 3 elementy (albo 2 z odstep_mm).');
+        const poz = kierunek === 'poziomo';
+        const lista = el.map((o) => ({ o, r: ramkaElementu(o) })).sort((a, b) => (poz ? a.r.x - b.r.x : a.r.y - b.r.y));
+        const start = poz ? lista[0].r.x : lista[0].r.y;
+        const rozmiary = lista.map(({ r }) => (poz ? r.w : r.h));
+        const koniec = poz ? lista.at(-1).r.x + lista.at(-1).r.w : lista.at(-1).r.y + lista.at(-1).r.h;
+        const odstep = staly != null ? staly : (koniec - start - rozmiary.reduce((a, b) => a + b, 0)) / (lista.length - 1);
+        let pozycja = start;
+        for (const { o, r } of lista) {
+          if (poz) przesun(o, pozycja - r.x, 0); else przesun(o, 0, pozycja - r.y);
+          pozycja += (poz ? r.w : r.h) + odstep;
+        }
+        return { zmiany: m.zmiany(), opis: `Rozmieszczono ${lista.length} el. ${kierunek}, odstęp ${Math.round(odstep * 100) / 100} mm (${m.nazwa}).` };
+      }),
+    },
+    {
       name: 'kolejnosc_elementow',
       title: 'Kolejność elementów',
       description: 'Ustawia kolejność warstw elementów na stronie albo we wzorcu: lista id od spodu do wierzchu (wszystkie elementy).',
@@ -1498,6 +1568,29 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         if (i < 0) { const ostatnia = p.strony.map((x) => x.sekcja).lastIndexOf(s.sekcja); i = ostatnia >= 0 ? ostatnia + 1 : ids.length; }
         ids.splice(i, 0, s.id);
         return { zmiany: { strony: [s], kolejnosc_stron: ids }, opis: `Dodano stronę ${s.id} „${s.nazwa || ''}” na pozycji ${i + 1}.` };
+      }),
+    },
+    {
+      name: 'kopiuj_strone',
+      title: 'Kopiuj stronę',
+      description: 'Kopiuje stronę razem z elementami (nowe id strony i elementów) – ile kopii (1–50), domyślnie za kopiowaną stroną; „po” – id strony, za którą wstawić. Strony powtarzane z danymi lepiej robić serią z tabeli.',
+      inputSchema: S('', { id: tekst('id strony do skopiowania'), ile: { type: 'integer', minimum: 1, maximum: 50 }, po: tekst('id strony, za którą wstawić') }, ['id']),
+      dzialaj: ({ id, ile = 1, po }) => zmien((p) => {
+        const wzor = znajdz(p.strony, id, 'strony');
+        const ids = p.strony.map((x) => x.id);
+        let i = ids.indexOf(po || id) + 1;
+        if (i === 0) throw new BladBazy(`Nie ma strony „${po}”.`);
+        const nowe = [];
+        for (let k = 0; k < Math.min(50, Math.max(1, ile)); k += 1) {
+          const s = kopia(wzor);
+          s.id = noweId('s');
+          s.nazwa = `${wzor.nazwa || 'Strona'} (kopia${ile > 1 ? ` ${k + 1}` : ''})`;
+          wszystkie(s.obiekty || [], (o) => { if (o.id) o.id = noweId('o'); });
+          nowe.push(s);
+          ids.splice(i, 0, s.id);
+          i += 1;
+        }
+        return { zmiany: { strony: nowe, kolejnosc_stron: ids }, opis: `Skopiowano stronę ${id}: ${nowe.map((s) => s.id).join(', ')}.` };
       }),
     },
     {
