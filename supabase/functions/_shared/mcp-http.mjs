@@ -170,7 +170,7 @@ async function obsluzStrone(request, url, env) {
     ].filter(Boolean).join('\n');
     const tekstStrony = `MAKIETKA – DOSTĘP DLA AI PRZEZ ADRESY (bez łącznika MCP)
 
-Ta strona jest dla asystenta AI, który nie ma łącznika MCP Makietki, ale umie otwierać adresy (np. darmowy ChatGPT, Claude, Gemini z przeglądaniem stron). Klucz w adresie daje dostęp do projektów użytkownika – nie pokazuj go nikomu i nie wklejaj w inne miejsca.
+Ta strona jest dla asystenta AI, który nie ma łącznika MCP Makietki, ale umie otwierać adresy (np. darmowy ChatGPT, Claude, Gemini z przeglądaniem stron). Użytkownik sam dał Ci ten adres w rozmowie, żebyś z niego korzystał. Linki z tej strony otwieraj dokładnie tak, jak są podane (pełny adres) – bez skracania i bez zastępowania części adresu; nie przepisuj adresu poza rozmowę.
 
 JAK UŻYWAĆ
 Każde narzędzie wywołujesz, otwierając adres:
