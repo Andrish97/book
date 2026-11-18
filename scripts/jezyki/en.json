@@ -3541,5 +3541,8 @@
  "Zapisz dla Scribusa (.sla)": "Save for Scribus (.sla)",
  "Przygotowuję plik dla Scribusa…": "Preparing the Scribus file…",
  "Zapisz dla InDesigna (.idml)": "Save for InDesign (.idml)",
- "Przygotowuję plik IDML…": "Preparing the IDML file…"
+ "Przygotowuję plik IDML…": "Preparing the IDML file…",
+ "z jednej strony (zewnątrz)": "printed on one side (outside)",
+ "z obu stron (też wnętrze)": "printed on both sides (inside too)",
+ "wnętrze": "inside"
 }

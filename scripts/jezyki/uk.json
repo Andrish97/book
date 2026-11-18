@@ -3541,5 +3541,8 @@
  "Zapisz dla Scribusa (.sla)": "Зберегти для Scribus (.sla)",
  "Przygotowuję plik dla Scribusa…": "Готую файл для Scribus…",
  "Zapisz dla InDesigna (.idml)": "Зберегти для InDesign (.idml)",
- "Przygotowuję plik IDML…": "Готую файл IDML…"
+ "Przygotowuję plik IDML…": "Готую файл IDML…",
+ "z jednej strony (zewnątrz)": "з одного боку (зовні)",
+ "z obu stron (też wnętrze)": "з обох боків (також усередині)",
+ "wnętrze": "усередині"
 }

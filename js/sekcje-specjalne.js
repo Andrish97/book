@@ -260,7 +260,24 @@ function geometriaPudelka(p) {
 
 function geometriaWykrojnika(p) {
   const g = p.ksztalt === 'teczka' ? geometriaTeczki(p) : p.ksztalt === 'pudelko' ? geometriaPudelka(p) : geometriaKoperty(p);
-  return { stron: 1, perforacje: [], ...g };
+  return { stron: p.zadruk === 'dwustronny' ? 2 : 1, perforacje: [], ...g };
+}
+
+// Druga strona arkusza wykrojnika (wnętrze koperty, pudełka, teczki): ten sam arkusz odwrócony na drugą stronę –
+// w poziomie lustrzany, więc strefy, bigi i linia cięcia leżą tam, gdzie wypadną po odwróceniu. Linie są tu tylko
+// pomocą w edytorze; do PDF idą wyłącznie z pierwszej strony (odwrotna: true).
+function odwrocArkusz(w) {
+  const W = w.szerokosc;
+  const odc = (l) => ({ ...l, x1: zaokr(W - l.x1), x2: zaokr(W - l.x2) });
+  return {
+    ...w,
+    odwrotna: true,
+    strefy: w.strefy.map((z) => ({ ...z, x1: zaokr(W - z.x2), x2: zaokr(W - z.x1), nazwa: `${z.nazwa} – wnętrze` })),
+    bigi: (w.bigi || []).map(odc),
+    perforacje: (w.perforacje || []).map(odc),
+    naciecia: (w.naciecia || []).map(odc),
+    ciecie: (w.ciecie || []).map((k) => k.map((q) => ({ ...q, x: zaokr(W - q.x) }))),
+  };
 }
 
 // ---------- Arkusz użytków ----------
@@ -485,9 +502,9 @@ export const RODZAJE_SEKCJI = {
   wykrojnik: {
     nazwa: 'Wykrojnik',
     opis: 'Koperta, teczka ofertowa z kieszenią albo składane pudełko – rozkładówka z linią cięcia i zgięć w osobnej warstwie.',
-    domyslne: { ksztalt: 'koperta', koperta: 'C6', panel_szer_mm: 220, panel_wys_mm: 310, grzbiet_mm: 5, kieszen_mm: 100, wizytowka: true, dlugosc_mm: 100, szerokosc_mm: 60, wysokosc_mm: 150 },
+    domyslne: { ksztalt: 'koperta', zadruk: 'jednostronny', koperta: 'C6', panel_szer_mm: 220, panel_wys_mm: 310, grzbiet_mm: 5, kieszen_mm: 100, wizytowka: true, dlugosc_mm: 100, szerokosc_mm: 60, wysokosc_mm: 150 },
     normalizuj: (o, d) => ({
-      ksztalt: zListy(o.ksztalt, ['koperta', 'teczka', 'pudelko'], d.ksztalt), koperta: KOPERTY[o.koperta] ? o.koperta : d.koperta,
+      ksztalt: zListy(o.ksztalt, ['koperta', 'teczka', 'pudelko'], d.ksztalt), zadruk: zListy(o.zadruk, ['jednostronny', 'dwustronny'], d.zadruk), koperta: KOPERTY[o.koperta] ? o.koperta : d.koperta,
       panel_szer_mm: liczbaLub(o.panel_szer_mm, d.panel_szer_mm, 80, 400), panel_wys_mm: liczbaLub(o.panel_wys_mm, d.panel_wys_mm, 80, 500),
       grzbiet_mm: liczbaLub(o.grzbiet_mm, d.grzbiet_mm, 0, 50), kieszen_mm: liczbaLub(o.kieszen_mm, d.kieszen_mm, 30, 200),
       wizytowka: o.wizytowka !== false && o.wizytowka !== 0,
@@ -556,7 +573,8 @@ export function geometriaSpecjalna(projekt, sekcja, ciag = null) {
 export function wynikDlaStrony(wynik, indeks = 0) {
   if (!wynik) return null;
   const tu = (x) => x.strona === undefined || x.strona === indeks % 2;
-  return { ...wynik, strefy: wynik.strefy.filter(tu), bigi: (wynik.bigi || []).filter(tu), indeks };
+  const w = { ...wynik, strefy: wynik.strefy.filter(tu), bigi: (wynik.bigi || []).filter(tu), indeks };
+  return wynik.rodzaj === 'wykrojnik' && wynik.stron === 2 && indeks % 2 === 1 ? odwrocArkusz(w) : w;
 }
 
 // Strefa, w której leży punkt (najmniejsza zawierająca), albo null.

@@ -394,7 +394,7 @@ const POLA_SPECJALNE = {
   kalendarz: { rok: 'sp_rok', jednostka: 'sp_jednostka', pierwszy: 'sp_pierwszy', swieta: 'sp_swieta' },
   trojdzielny: { szerokosc_mm: 'sp_t_szerokosc_mm', glowka_mm: 'sp_glowka_mm', kalendarium_mm: 'sp_kalendarium_mm', reklama_mm: 'sp_reklama_mm', okienko: 'sp_okienko' },
   wykrojnik: {
-    ksztalt: 'sp_ksztalt', koperta: 'sp_koperta', panel_szer_mm: 'sp_panel_szer_mm', panel_wys_mm: 'sp_panel_wys_mm', grzbiet_mm: 'sp_grzbiet_mm',
+    ksztalt: 'sp_ksztalt', zadruk: 'sp_w_zadruk', koperta: 'sp_koperta', panel_szer_mm: 'sp_panel_szer_mm', panel_wys_mm: 'sp_panel_wys_mm', grzbiet_mm: 'sp_grzbiet_mm',
     kieszen_mm: 'sp_kieszen_mm', wizytowka: 'sp_wizytowka', dlugosc_mm: 'sp_dlugosc_mm', szerokosc_mm: 'sp_p_szerokosc_mm', wysokosc_mm: 'sp_p_wysokosc_mm',
   },
   arkusz: {

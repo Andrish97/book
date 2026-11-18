@@ -71,7 +71,7 @@ function rysujFarba(PDFLib, strona, z, klucz, { kontury = [], odcinki = [] }, xy
 
 // Linie techniczne sekcji specjalnej na stronie PDF. wynik – wynik sekcji dla tej strony (wynikDlaStrony).
 export function rysujLinieSpecjalne(PDFLib, pdf, strona, m, wynik, { czarnaFarba = false } = {}) {
-  if (!wynik) return;
+  if (!wynik || wynik.odwrotna) return; // druga strona arkusza wykrojnika – linie tnie się z pierwszej
   const xy = (x, y) => [(m.pas + x) * PT, (m.pas + m.h - y) * PT];
   const z = zasoby(PDFLib, pdf, strona);
   const wykrojnik = wynik.rodzaj === 'wykrojnik' || (wynik.ciecie || []).length > 0;

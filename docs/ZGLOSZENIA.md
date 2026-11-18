@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 222 | Wykrojnik z zadrukiem z obu stron – wnętrze pudełka, koperty i teczki |
 | 221 | Zapis projektu dla InDesigna (.idml) – też Affinity Publisher i QuarkXPress |
 | 220 | Zapis projektu dla Scribusa (.sla) – teksty edytowalne, kształty, obrazy w pliku |
 | 219 | Język aplikacji: polski, angielski i ukraiński – przycisk z flagą na górze |
