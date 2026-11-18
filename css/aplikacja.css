@@ -936,8 +936,17 @@ body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .czat-ai-do-skopiowania { max-height: 160px; overflow: auto; margin: 6px 0 0; padding: 8px; font-size: 11px; white-space: pre-wrap; word-break: break-word; background: var(--tlo-pola, rgba(0,0,0,0.04)); border-radius: var(--r-s); }
 .kroki-montazu { max-height: min(56vh, 480px); overflow: auto; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 /* Sztuczna inteligencja (#243): zakładki – czat w Makietce, łącznik, zwykły czat. */
-.zakladki-ai { margin: 4px 0 12px; }
-.zakladki-ai button[aria-selected="true"] { background: var(--akcent); color: #fff; }
+/* Zakładki jak przełącznik segmentowy (ten sam wygląd co spany przełącznika – logowanie, motyw). */
+.zakladki-ai { display: flex; margin: 4px 0 12px; }
+.zakladki-ai button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center;
+  padding: 7px 12px; border: 0; border-radius: calc(var(--r-m) - 2px); background: transparent;
+  color: var(--tusz-2, var(--tusz)); font: inherit; font-size: 13.5px; font-weight: 550; cursor: pointer; white-space: nowrap;
+}
+.zakladki-ai button:hover { color: var(--tusz); }
+.zakladki-ai button[aria-selected="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
+.zakladki-ai button:focus-visible { outline: 2px solid var(--akcent); }
+@media (max-width: 560px) { .zakladki-ai { flex-direction: column; } }
 #dlg-dostep-ai[data-zakladka="czat"] [data-dla]:not([data-dla~="czat"]),
 #dlg-dostep-ai[data-zakladka="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
 #dlg-dostep-ai[data-zakladka="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
