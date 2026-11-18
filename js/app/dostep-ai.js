@@ -117,12 +117,25 @@ function instrukcje(klucz) {
 // z kluczem, widoczny tylko zaraz po utworzeniu klucza; wtedy polecenie i komenda Claude Code mają go już wpisanego.
 let adresWOknie = '';
 // Zwykły czat bez łączników (#239): adres otwarty jak strona – opis i narzędzia w tekście.
-export const polecenieZwyklegoCzatu = (adres) => `Pracujesz z moim projektem w Makietce (edytor publikacji do druku). Otwórz ten adres – to strona z zasadami i narzędziami Makietki dla AI. Adres jest przygotowany dla Ciebie w tej rozmowie; linki ze strony otwieraj sam, dokładnie tak, jak są podane (pełny adres):
+// Część czatów (np. ChatGPT) otwiera tylko adresy wklejone przez użytkownika – nie linki znalezione na stronie – więc
+// adresy narzędzi do odczytu są w poleceniu wprost (#253).
+export const polecenieZwyklegoCzatu = (adres) => `Pracujesz z moim projektem w Makietce (edytor publikacji do druku). Poniżej są adresy przygotowane dla Ciebie w tej rozmowie – otwieraj je dokładnie tak, jak są podane (pełny adres).
+
+Zasady i lista narzędzi Makietki:
 ${adres}
 
-Narzędzia wywołujesz, otwierając adresy podane na tej stronie (https://api.makietka.app/mcp/…/n/<narzędzie>?parametr=wartość). Zacznij od przeglądu projektu, zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Gdy któregoś adresu naprawdę nie możesz otworzyć, napisz mi to krótko – wtedy przejdziemy na tryb „kopiuj i wklej”.
+Moje projekty:
+${adres}/n/projekty
 
-Na początek otwórz narzędzie projekty (link na stronie), pokaż mi moje projekty i zapytaj, co mam zrobić.`;
+Przegląd projektu (gdy mam kilka projektów, dopisz ?projekt=<id albo nazwa>):
+${adres}/n/przeglad_projektu
+
+Opis formatu projektu:
+${adres}/n/opis_formatu
+
+Pozostałe narzędzia wywołujesz, otwierając adresy ${adres}/n/<narzędzie>?parametr=wartość (opis na stronie zasad). Zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Jeśli Twoja przeglądarka nie otworzy adresu, który sam zbudowałeś, napisz mi to krótko – zmiany zrobimy wtedy w Makietce przez Asystenta AI w trybie „kopiuj i wklej”.
+
+Na początek otwórz adres „Moje projekty”, pokaż mi moje projekty i zapytaj, co mam zrobić.`;
 function pokazPolecenia(adres = '') {
   adresWOknie = adres;
   const zw = $('#dostep-ai-polecenie-zwykly');

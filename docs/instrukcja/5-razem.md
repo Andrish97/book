@@ -276,6 +276,8 @@ Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
 > Uwaga: Część czatów otwiera tylko adresy, które dostała od użytkownika albo znalazła sama – nie te, które
 > zbuduje. Wtedy działa czytanie (linki z opisu), a do zmian użyj trybu „kopiuj i wklej” albo łącznika.
 
+> **ChatGPT** otwiera tylko adresy wklejone przez Ciebie (nie te, które sam zbuduje ani nie linki znalezione na stronie). Dlatego polecenie zawiera gotowe adresy do czytania: projekty, przegląd projektu i opis formatu – czytać będzie, ale zmian zwykle nie zrobi. Do zmian bez płatnego planu użyj Asystenta AI w trybie „kopiuj i wklej” (→ 25.6).
+
 ## 25.8 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta,

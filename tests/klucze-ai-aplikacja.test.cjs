@@ -161,7 +161,7 @@ test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z 
   await wZwyklym.locator('button', { hasText: 'Edytuj' }).click();
   await strona.locator('#dlg-edytuj-klucz-ai button', { hasText: 'Pokaż klucz' }).click();
   const pokazany = await strona.locator('#dlg-edytuj-klucz-ai .klucz-pokazany pre').textContent();
-  assert.ok(pokazany.includes(kluczZwykly) && /Otwórz ten adres/.test(pokazany), 'pokazane jeszcze raz polecenie z kluczem');
+  assert.ok(pokazany.includes(kluczZwykly) && /n\/projekty/.test(pokazany), 'pokazane jeszcze raz polecenie z kluczem');
   assert.ok(!JSON.stringify([...baza.sejfy.values()]).includes(kluczZwykly), 'klucz dostępu w sejfie zaszyfrowany');
   assert.deepEqual(bledy, []);
 });
