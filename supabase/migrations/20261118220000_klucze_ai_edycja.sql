@@ -1,7 +1,7 @@
 -- Klucze AI w ustawieniach konta (#248): trzy sekcje (czat w Makietce, łącznik w aplikacji AI, zwykły czat) z kluczami
 -- do edycji – zakres (zmien_dostep_ai), czas ważności (zmien_waznosc_ai) i ponowne pokazanie klucza. Klucza nie da się
 -- odczytać z bazy (leży tu tylko skrót); „Pokaż klucz” bierze go z sejfu użytkownika (sejf_kluczy_ai), zaszyfrowanego
--- w przeglądarce hasłem do kluczy – baza i twórca Makietki go nie widzą.
+-- w przeglądarce hasłem do kluczy – baza i administratorzy Makietki go nie widzą.
 
 alter table public.dostepy_projektu add column if not exists sposob text
   check (sposob is null or sposob in ('lacznik', 'zwykly', 'czat'));

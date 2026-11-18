@@ -577,7 +577,7 @@
           <ul class="punkty-ai">
             <li><b>Czego potrzebujesz:</b> klucza API od dostawcy AI – Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI albo OpenRouter. Klucz zakładasz na stronie dostawcy („Gdzie wziąć klucz?” w okienku).</li>
             <li><b>Ile kosztuje:</b> płacisz dostawcy za to, ile rozmawiasz – Makietka nic nie dolicza.</li>
-            <li><b>Bezpieczeństwo:</b> klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – <b>nie odczyta go nikt, także twórca Makietki</b>.</li>
+            <li><b>Bezpieczeństwo:</b> klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – <b>nie odczyta go nikt poza Tobą, nawet administratorzy Makietki</b>.</li>
             <li><b>Bez klucza i bez opłat:</b> w Asystencie AI wybierz „Dowolny czat bez klucza – kopiuj i wklej” – działa z każdym czatem w przeglądarce, także darmowym ChatGPT; tu nic nie dodajesz.</li>
           </ul>
         </div>
@@ -1685,7 +1685,7 @@
       <fieldset class="grupa-pol" data-dla="czat" id="ai-nowy-dostawca-pola">
         <label class="pole"><span>Dostawca</span><select id="ai-nowy-dostawca"></select></label>
         <label class="pole"><span>Klucz API</span><input id="ai-nowy-klucz" type="password" autocomplete="off" spellcheck="false" placeholder="Wklej klucz API"></label>
-        <p class="podpowiedz"><a id="ai-nowy-gdzie" target="_blank" rel="noopener" href="#">Gdzie wziąć klucz?</a> Przeglądarka szyfruje klucz Twoim hasłem do kluczy i dopiero wtedy zapisuje go na koncie: <b>bez hasła nie odczyta go nikt, także twórca Makietki</b>.</p>
+        <p class="podpowiedz"><a id="ai-nowy-gdzie" target="_blank" rel="noopener" href="#">Gdzie wziąć klucz?</a> Przeglądarka szyfruje klucz Twoim hasłem do kluczy i dopiero wtedy zapisuje go na koncie: <b>bez hasła nie odczyta go nikt poza Tobą, nawet administratorzy Makietki</b>.</p>
         <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="ai-zapisz-klucz-dostawcy" data-ikona="plus">Zapisz klucz</button></div>
       </fieldset>
       <div class="grupa-pol polacz-oauth" data-dla="lacznik">
@@ -2464,7 +2464,7 @@
         </div>
         <label class="pole" data-z-kluczem><span>Model</span><input name="model" list="czat-ai-modele" placeholder="np. claude-opus-5-5"><datalist id="czat-ai-modele"></datalist></label>
         <label class="pole"><span>AI może w tym projekcie</span><select name="rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
-        <p class="podpowiedz">Klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – nikt poza Tobą, także twórca Makietki, go nie odczyta. Rozmowa idzie prosto do dostawcy (płacisz u niego). AI widzi wyłącznie ten projekt – przez jednodniowy klucz dostępu, który możesz odebrać w Ustawieniach konta → Sztuczna inteligencja.</p>
+        <p class="podpowiedz">Klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – nikt poza Tobą go nie odczyta, nawet administratorzy Makietki. Rozmowa idzie prosto do dostawcy (płacisz u niego). AI widzi wyłącznie ten projekt – przez jednodniowy klucz dostępu, który możesz odebrać w Ustawieniach konta → Sztuczna inteligencja.</p>
       </form>
       <ol class="czat-ai-wiadomosci" id="czat-ai-wiadomosci" aria-live="polite"></ol>
       <form class="czat-ai-pisz" id="czat-ai-pisz">

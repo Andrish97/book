@@ -2,7 +2,7 @@
 // kluczy, które zna tylko użytkownik, i dopiero wtedy zapisywane na koncie. Z hasła PBKDF2-SHA256 (310 000
 // powtórzeń, losowa sól konta) powstaje klucz AES-GCM 256, którego nie da się wyjąć z przeglądarki
 // (extractable: false); urządzenie pamięta go w IndexedDB, więc hasło podaje się raz na urządzeniu. Baza ma tylko
-// szyfrogram – bez hasła nie odczyta go nikt, także twórca Makietki. Zgubione hasło = klucze trzeba wkleić od nowa.
+// szyfrogram – bez hasła nie odczyta go nikt poza Tobą, nawet administratorzy Makietki. Zgubione hasło = klucze trzeba wkleić od nowa.
 
 const POWTORZENIA = 310000;
 const KONTROLA = 'makietka-sejf-kluczy-v1';

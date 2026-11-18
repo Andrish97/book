@@ -53,7 +53,7 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   assert.deepEqual(await strona.$$eval('#dostep-ai [data-sekcja-ai]', (b) => b.map((x) => x.textContent)), ['Czat w Makietce', 'Łącznik w aplikacji AI', 'Zwykły czat']);
   assert.equal(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible').count(), 1);
   assert.equal(await strona.isVisible('#dostep-ai .sekcja-kluczy-ai:visible .pusto-kluczy'), true, 'pusta sekcja mówi, że nie ma kluczy');
-  assert.match(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible .wyjasnienie-ai').textContent(), /Asystent AI.*Ile kosztuje.*także twórca Makietki/s);
+  assert.match(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible .wyjasnienie-ai').textContent(), /Asystent AI.*Ile kosztuje.*nawet administratorzy Makietki/s);
   assert.equal(await strona.isVisible('[data-dodaj-klucz-ai="lacznik"]'), false);
   await strona.click('[data-sekcja-ai="lacznik"]');
   assert.equal(await strona.getAttribute('[data-sekcja-ai="lacznik"]', 'aria-selected'), 'true');
@@ -124,7 +124,7 @@ test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z 
   await nowyProjekt(strona, 'Klucze');
   await strona.evaluate(async () => (await import('./js/app/dostep-ai.js')).otworzDostepAi());
   await strona.waitForSelector('#dlg-dostep-ai[open]');
-  assert.match(await strona.textContent('#dlg-dostep-ai'), /także twórca Makietki/);
+  assert.match(await strona.textContent('#dlg-dostep-ai'), /nawet administratorzy Makietki/);
   await strona.click('[data-dodaj-klucz-ai="czat"]');
   await strona.waitForSelector('#dlg-klucz-ai[open]');
   await strona.selectOption('#ai-nowy-dostawca', 'anthropic');

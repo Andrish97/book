@@ -26,7 +26,7 @@ AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który ktoś Ci udostęp
 
 - Adres z kluczem trafia do firmy, która prowadzi AI (Anthropic, OpenAI…). Dlatego daj kluczowi **najwęższy zakres**, jaki wystarczy: wybrane projekty zamiast pełnego dostępu. Klucz nigdy nie otwiera ustawień konta, hasła, czcionek konta, udostępniania linkiem ani współpracy. Tworzyć i usuwać projekty może tylko klucz z pełnym dostępem, który czyta i zmienia; usunięcie wymaga podania dokładnej nazwy projektu, a usunąć można tylko własny projekt (nie udostępniony). Obrazy klucz do zmian wgrywa z limitami (obraz do 25 MB, pobierany plik do 50 MB, do 150 MB obrazów na projekt czekających na przeniesienie na konto).
 - Daj **najkrótszą ważność**, jaka wystarczy, i **odbierz** klucz, gdy praca się skończy. Do samego przeglądania wybierz **Tylko czyta**. Nie wklejaj adresu łącznika w miejsca, które widzą inni.
-- W bazie leży tylko skrót klucza (z solą) – klucza nie da się z niej odczytać ani pokazać ponownie, także twórcy Makietki. Zgubiony klucz odbierz i utwórz nowy.
+- W bazie leży tylko skrót klucza (z solą) – klucza nie da się z niej odczytać ani pokazać ponownie, także administratorom Makietki. Zgubiony klucz odbierz i utwórz nowy.
 - Klucze API dostawców wklejane w czacie Makietki są szyfrowane w przeglądarce hasłem do kluczy, które zna tylko użytkownik (PBKDF2-SHA256, AES-GCM 256); na koncie leży wyłącznie szyfrogram.
 - Po 10 złych próbach klucz blokuje się na kwadrans; jeden klucz może wykonać do 120 zapytań na minutę; konto może mieć do 20 aktywnych kluczy.
 - Każdy zapis przechodzi kontrolę spójności (sekcje, wzorce, serie, tabele, obrazy). Niespójna zmiana jest odrzucana z opisem, co poprawić – nie psuje projektu.

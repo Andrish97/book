@@ -1,6 +1,6 @@
 -- Sejf kluczy AI (#241): klucze API dostawców AI (Anthropic, OpenAI, OpenRouter…) wklejone przez użytkownika,
 -- zaszyfrowane W PRZEGLĄDARCE hasłem do kluczy, które zna tylko użytkownik (PBKDF2-SHA256 → AES-GCM 256).
--- Baza trzyma wyłącznie szyfrogram, sól i zaszyfrowany zapis kontrolny – bez hasła nikt (także twórca Makietki
+-- Baza trzyma wyłącznie szyfrogram, sól i zaszyfrowany zapis kontrolny – bez hasła nikt (nawet administratorzy Makietki
 -- z pełnym dostępem do bazy) nie odczyta kluczy. Jeden wiersz na konto, widoczny tylko dla właściciela.
 -- Klucze dostępu dla AI (sdk_…) były i są tylko skrótami z solą (migracja dostep_ai) – ich też nie da się odczytać.
 

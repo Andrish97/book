@@ -76,7 +76,7 @@ test('czat AI: klucz Anthropic, narzędzia na otwartym projekcie, zmiana nazwy p
   await strona.press('#czat-ai-tekst', 'Enter');
   await strona.waitForSelector('#dlg-sejf-ai[open]');
   assert.match(await strona.textContent('#dlg-sejf-ai h2'), /Otwórz klucze AI na tym urządzeniu/);
-  assert.match(await strona.textContent('#dlg-sejf-ai'), /także twórca Makietki/);
+  assert.match(await strona.textContent('#dlg-sejf-ai'), /nawet administratorzy Makietki/);
   await strona.fill('#dlg-sejf-ai [name="haslo"]', 'zle-haslo-000');
   await strona.click('#dlg-sejf-ai button[value="tak"]');
   await strona.waitForFunction(() => /Nieprawidłowe hasło/.test(document.querySelector('#dlg-sejf-ai .blad-sejfu').textContent));

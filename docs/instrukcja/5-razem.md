@@ -136,7 +136,7 @@ i edytujesz zawsze w okienku.
 
 | Sekcja | Do czego | Koszt |
 |---|---|---|
-| **Czat w Makietce** | Klucze API dostawców (Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter, zgodne z OpenAI) do Asystenta AI w edytorze (→ 25.6). W okienku wybierasz dostawcę, wklejasz klucz ([Gdzie wziąć klucz?] prowadzi do strony dostawcy) i [Zapisz klucz]. Klucze są zaszyfrowane Twoim hasłem do kluczy – nie odczyta ich nikt poza Tobą, także twórca Makietki. Tu widać też jednodniowe klucze „Czat w Makietce”, którymi asystent czyta otwarty projekt. | Płacisz dostawcy. Bez klucza: tryb „kopiuj i wklej” (→ 25.6). |
+| **Czat w Makietce** | Klucze API dostawców (Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter, zgodne z OpenAI) do Asystenta AI w edytorze (→ 25.6). W okienku wybierasz dostawcę, wklejasz klucz ([Gdzie wziąć klucz?] prowadzi do strony dostawcy) i [Zapisz klucz]. Klucze są zaszyfrowane Twoim hasłem do kluczy – nie odczyta ich nikt poza Tobą, nawet administratorzy Makietki. Tu widać też jednodniowe klucze „Czat w Makietce”, którymi asystent czyta otwarty projekt. | Płacisz dostawcy. Bez klucza: tryb „kopiuj i wklej” (→ 25.6). |
 | **Łącznik w aplikacji AI** | Klucz dostępu i adres łącznika dla Claude, ChatGPT i innych aplikacji z MCP (→ 25.3). Tu trafiają też połączenia z logowaniem („Łącznik: nazwa aplikacji”). | **Najprawdopodobniej płatny plan** aplikacji AI (ChatGPT – plany płatne; Claude – w darmowym jeden własny łącznik). |
 | **Zwykły czat** | Klucz dostępu i gotowe polecenie dla rozmowy w przeglądarce – czat otwiera adres jak stronę (→ 25.7). Nie każdy czat to potrafi. | Także darmowe plany. |
 
@@ -244,7 +244,7 @@ po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.
 - **Klucze są zaszyfrowane i leżą na koncie.** Przy pierwszym kluczu Makietka prosi o **hasło do kluczy AI**
   (co najmniej 8 znaków, najlepiej inne niż hasło konta). Przeglądarka szyfruje nim klucz (AES-256) i dopiero
   wtedy zapisuje go na koncie – na serwerze leży tylko zaszyfrowany zapis. Bez Twojego hasła nikt go nie odczyta,
-  **także twórca Makietki**. Na każdym nowym urządzeniu podajesz hasło raz; potem urządzenie je pamięta.
+  **nawet administratorzy Makietki**. Na każdym nowym urządzeniu podajesz hasło raz; potem urządzenie je pamięta.
   Zgubione hasło: w oknie hasła [Nie pamiętam – usuń zapisane klucze] i wklej klucze od nowa.
 - Rozmowa idzie z przeglądarki prosto do dostawcy, a koszt rozliczasz u niego.
 - AI widzi wyłącznie otwarty projekt — przez jednodniowy klucz dostępu „Czat w Makietce”, widoczny
