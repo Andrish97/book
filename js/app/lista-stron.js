@@ -18,6 +18,7 @@ import { edytujWzorzec } from './wzorce.js';
 import { pokazWarstwy } from './dok-warstw.js';
 import { bilansSkladki, opisSkladki } from '../okladka.js';
 import { dopelnijSkladke } from './sekcje.js';
+import { opisSchowka } from './schowek-okno.js';
 
 // ---------- Lista: strony (pogrupowane w sekcje) i wzorce ----------
 
@@ -597,6 +598,13 @@ function pokazMenu(menu, przycisk) {
   przycisk.setAttribute('aria-expanded', 'true');
 }
 
+// „Wklej … ze schowka” (#210): nieaktywne, gdy schowek nie ma tego rodzaju; z opisem, co i skąd.
+function opiszWklejanie(b, rodzaje, tekst) {
+  const opis = opisSchowka(rodzaje);
+  b.disabled = !opis;
+  b.lastChild.textContent = opis ? `${tekst}: ${opis}` : tekst;
+}
+
 function otworzMenuStrony(przycisk, i) {
   const menu = $('#menu-strony');
   const bylo = !menu.hidden && menu.dataset.indeks === String(i);
@@ -607,6 +615,7 @@ function otworzMenuStrony(przycisk, i) {
   $('[data-akcja="strona-gora"]', menu).disabled = i === 0 || strony[i - 1].sekcja !== strony[i].sekcja;
   $('[data-akcja="strona-dol"]', menu).disabled = i === strony.length - 1 || strony[i + 1].sekcja !== strony[i].sekcja;
   $('[data-akcja="strona-usun"]', menu).disabled = strony.length <= 1;
+  opiszWklejanie($('[data-akcja="strona-ze-schowka"]', menu), ['strony', 'sekcja'], 'Wklej strony ze schowka');
   pokazMenu(menu, przycisk);
 }
 
@@ -620,6 +629,7 @@ function otworzMenuSekcji(przycisk, id) {
   $('[data-akcja="sekcja-gora"]', menu).disabled = i === 0;
   $('[data-akcja="sekcja-dol"]', menu).disabled = i === stan.projekt.sekcje.length - 1;
   $('[data-akcja="sekcja-usun"]', menu).disabled = stan.projekt.sekcje.length <= 1;
+  opiszWklejanie($('[data-akcja="sekcja-ze-schowka"]', menu), ['sekcja'], 'Wklej sekcję ze schowka');
   pokazMenu(menu, przycisk);
 }
 

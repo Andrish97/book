@@ -58,6 +58,9 @@ import { podlaczDokWarstw, przelaczZakladkePrawa, przelaczOstrzezenia, ostrzezen
 import { dodajPolecenie } from '../paleta-polecen.js';
 import '../biblioteka-elementy.js';
 import '../biblioteka-wzorce.js'; // kategoria „Wzorce stron” (#164) – osobny moduł
+import {
+  maElementyDoWklejenia, wklejElementy, kopiujStroneDoSchowka, wklejStronyZeSchowka, kopiujSekcjeDoSchowka, wklejSekcjeZeSchowka,
+} from './schowek-okno.js';
 import { otworzBiblioteke, wstawZBiblioteki, TYP_PRZECIAGANIA } from './biblioteka-okno.js';
 import { otworzZnajdz } from './znajdz-okno.js';
 import { zapiszWBibliotece } from './moje-elementy-okno.js';
@@ -365,6 +368,10 @@ export const akcje = {
   'strona-dodaj': () => dodajStrone(),
   'strona-nazwa': przezMenu(indeksZMenu, zmienNazweStrony),
   'strona-duplikuj': przezMenu(indeksZMenu, duplikujStrone),
+  'strona-do-schowka': przezMenu(indeksZMenu, kopiujStroneDoSchowka),
+  'strona-ze-schowka': przezMenu(indeksZMenu, wklejStronyZeSchowka),
+  'sekcja-do-schowka': przezMenu(sekcjaZMenu, kopiujSekcjeDoSchowka),
+  'sekcja-ze-schowka': przezMenu(sekcjaZMenu, wklejSekcjeZeSchowka),
   // Wzorce wybranej strony (#164): przejście na nią i okno wzorców z przełącznikami „na tej stronie”.
   'strona-wzorce': przezMenu(indeksZMenu, async (i) => { await przejdzDoStrony(i); otworzWzorce(); }),
   'strona-usun': przezMenu(indeksZMenu, usunStrone),
@@ -718,10 +725,10 @@ document.addEventListener('paste', async (e) => {
   if (cel instanceof Element && cel.closest('input, textarea, select, [contenteditable]')) return; // także tekst edytowany na stronie
   if (edytor.aktywny?.isEditing || edytor.kadruje) return;
   const obrazy = obrazyZeSchowka(e.clipboardData);
-  if (!obrazy.length && !edytor.maSchowek) return;
+  if (!obrazy.length && !maElementyDoWklejenia()) return;
   e.preventDefault();
   if (obrazy.length) for (const plik of obrazy) await wstawObraz(plik);
-  else edytor.wklej();
+  else await wklejElementy(); // także z innego projektu – ze schowka urządzenia (#210)
 });
 window.addEventListener('blur', () => edytor.ustawReke(false));
 

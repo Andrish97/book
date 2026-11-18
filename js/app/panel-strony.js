@@ -2,6 +2,7 @@
 
 import { FORMATY, stronyZWzorcem, tloStrony, WZORCE_Z_SEKCJI, stronySekcji, normalizujWydruk } from '../projekt.js';
 import { bokStrony, rozwin, tabelaSerii, tabeleSerii } from '../serie.js';
+import { maElementyDoWklejenia, wklejElementy } from './schowek-okno.js';
 import { POLA_DOKUMENTU } from '../pola.js';
 import { $ } from '../ui.js';
 import { ikona } from '../ikony.js';
@@ -131,8 +132,8 @@ export function panelStrony(p) {
     }]]));
   }
 
-  if (edytor.maSchowek) {
-    s.append(p.akcje([['wklej', 'Wklej skopiowane elementy', () => edytor.wklej()]]));
+  if (maElementyDoWklejenia()) {
+    s.append(p.akcje([['wklej', 'Wklej skopiowane elementy', () => wklejElementy()]]));
   }
 
   // Seria: powielanie strony według tabeli albo zadaną liczbę razy.

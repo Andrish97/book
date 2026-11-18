@@ -26,8 +26,8 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | 1 | (14) **Szablony projektów** – osobno od szablonów sekcji. Szablon projektu to cały zestaw sekcji z ustawieniami, np. książka w twardej oprawie: okładka twarda, wyklejka przednia, blok z krotnością 16, wyklejka tylna; książka miękka, broszura zeszytowa (krotność 4), planer i album w twardej oprawie… – gotowe od razu pod makietę 3D. W „Nowy projekt” → „Gotowego szablonu” galeria szablonów projektów w tym samym oknie. Szablony sekcji zostają w edytorze (wstawianie sekcji). | ✅ #208 |
 | 2 | (11) Panel administratora: zakładki na górze na telefonie z podpisami, ładniejsza skrzynka, kolejka i ustawienia poczty jako jedna zakładka „Poczta”, czyszczenie starych kopii zapasowych | ✅ #207 |
 | 3 | (17) Pola z właściwości projektu bez wpisywania (lista pól do wstawienia) – tylko z tego, co już jest w ustawieniach projektu, bez dokładania nowych ustawień | ✅ #209 |
-| 4 | (12) Kopiowanie stron, sekcji i elementów między projektami | ⏳ |
-| 5 | (9) Kilka zestawów marki | ⏳ |
+| 4 | (12) Kopiowanie stron, sekcji i elementów między projektami | ✅ #210 |
+| 5 | (9) Kilka zestawów marki | 🔄 |
 | 6 | (6) Książka: automatyczne dokładanie stron przy długim tekście, wybór czy rozdział (i inne sekcje) zaczyna się od nowej strony, obrazy w tekście z opływaniem, wcięcia i odstępy, przypisy, klikalny spis treści, więcej wzorców | ⏳ |
 | 7 | (19) Druk na folii / kolorowym papierze: podłoże przezroczyste albo kolorowe, widoczne w edytorze, podglądzie i 3D; biały poddruk na folii | ⏳ |
 | 8 | (20) Materiały i uszlachetnienia według standardów drukarni (okleiny: płótno, skóra ekologiczna, papier; tłoczenie, złocenie/hot-stamping, lakier wybiórczy UV, folia mat/błysk/soft-touch) z kolorami; zaokrąglone rogi w opcjach sekcji okładki; widok w 3D i eksport ustawień | ⏳ |

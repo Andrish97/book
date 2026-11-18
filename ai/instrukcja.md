@@ -323,6 +323,8 @@ Zaznacz kilka elementów i wybierz **Zgrupuj** (`Ctrl`+`G`). Grupa przesuwa się
 - Część **Kolejność**: **Na wierzch**, **Wyżej**, **Niżej**, **Na spód**. To samo zrobisz przeciąganiem na liście warstw (rozdział „9 Warstwy”).
 - Część **Inne**: - **Krycie** — przezroczystość elementu w %, - **Zablokuj położenie i rozmiar** — elementu nie przesuniesz przypadkiem; kolor i tekst zmienisz dalej, - **Wycisz ostrzeżenia dla tego obiektu** — np. dla tła, które celowo wychodzi na spad, - **Nazwa** — nazwa elementu na liście warstw.
 - **Kopiuj do schowka** i `Ctrl`+`V` na innej stronie wklejają element w to samo miejsce. We właściwościach strony jest też **Wklej skopiowane elementy**.
+- **Między projektami**: skopiowany element czeka w schowku tego urządzenia — otwórz inny projekt i wklej (`Ctrl`+`V` albo **Wklej skopiowane elementy**). Obrazy elementu trafiają do obrazów nowego projektu. Schowek przetrwa przejście do innego projektu, przeładowanie i drugą kartę.
+- **Strony i sekcje** do innego projektu: menu strony (⋯ na miniaturze) → **Kopiuj do schowka (także do innego projektu)**, menu sekcji → **Kopiuj sekcję do schowka**. W drugim projekcie: menu strony → **Wklej strony ze schowka** (za tą stroną, w jej sekcji) albo menu sekcji → **Wklej sekcję ze schowka** (za tą sekcją). Razem ze stronami przechodzą ich obrazy, wzorce, serie z tabelami danych i style tekstu. Pozycja w menu mówi, co jest w schowku i z którego projektu. Okładki nie wkleisz do projektu, który już ma okładkę — wklej wtedy same strony.
 
 ### 4.7 Cień
 
