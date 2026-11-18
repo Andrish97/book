@@ -1648,6 +1648,12 @@
           </span>
         </label>
         <p class="podpowiedz">Teraz dodaj ten adres w swojej aplikacji AI – zobacz „Jak podłączyć” niżej. W poleceniu do skopiowania adres jest już wpisany.</p>
+        <div class="dostep-ai-polecenie">
+          <div class="prompt-naglowek"><b>Zwykły czat bez łączników (np. darmowy ChatGPT, Claude, Gemini): skopiuj i wklej w rozmowie, dopisz zadanie.</b>
+            <button type="button" class="przycisk" data-akcja="dostep-ai-kopiuj-zwykly" data-ikona="kopiuj">Kopiuj dla zwykłego czatu</button></div>
+          <pre id="dostep-ai-polecenie-zwykly"></pre>
+          <p class="podpowiedz">Czat otworzy adres jak stronę: zobaczy opis Makietki i narzędzia, a zmiany robi, otwierając kolejne adresy. Jeśli odpowie, że nie może otworzyć adresów, które sam zbudował – użyj w edytorze <b>Asystenta AI</b> z dostawcą „Dowolny czat bez klucza – kopiuj i wklej” (instrukcja 25.6).</p>
+        </div>
         <details class="dostep-ai-jak">
           <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
           <label class="pole"><span>Klucz dostępu</span>
@@ -1681,6 +1687,7 @@
             <li><b>Claude Desktop</b>: rozszerzenie wyżej – czyta zdjęcia, foldery i ZIP-y prosto z dysku.</li>
             <li><b>Claude Code</b>: <code id="dostep-ai-polecenie-code">claude mcp add --transport http makietka https://api.makietka.app/mcp/&lt;klucz&gt;</code></li>
             <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>; wklej adres, <i>No Authentication</i>.</li>
+            <li><b>Zwykły czat bez łączników</b> (każdy plan, także darmowy): wklej w rozmowie polecenie „Kopiuj dla zwykłego czatu” – czat otwiera adres jak stronę. Bez internetu po stronie czatu: w edytorze <b>Asystent AI</b> → „Dowolny czat bez klucza – kopiuj i wklej”.</li>
             <li><b>Inne</b> (Cursor, Windsurf): łącznik MCP przez HTTP – podaj adres. Dla programistów: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</li>
           </ul>
           <p class="podpowiedz"><b>Ograniczenia:</b> nie każda aplikacja i nie każdy plan obsługuje własne łączniki. Claude w czacie nie przekazuje łącznikom zdjęć z rozmowy – większe zdjęcia wrzucisz przez link, który poda AI. AI widzi tylko projekty z klucza.</p>

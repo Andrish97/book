@@ -80,8 +80,17 @@ function instrukcje(klucz) {
 // Polecenie „Podłącz Makietkę” (#107, ten sam tekst co w instrukcji – js/polecenia-ai.js). adres – adres łącznika
 // z kluczem, widoczny tylko zaraz po utworzeniu klucza; wtedy polecenie i komenda Claude Code mają go już wpisanego.
 let adresWOknie = '';
+// Zwykły czat bez łączników (#239): adres otwarty jak strona – opis i narzędzia w tekście.
+export const polecenieZwyklegoCzatu = (adres) => `Pracujesz z moim projektem w Makietce (edytor publikacji do druku). Otwórz ten adres – to strona z zasadami i narzędziami Makietki dla AI, z moim kluczem dostępu (nie pokazuj go nikomu):
+${adres}
+
+Narzędzia wywołujesz, otwierając adresy podane na tej stronie (…/n/<narzędzie>?parametr=wartość). Zacznij od przeglądu projektu, zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Gdy nie możesz otworzyć adresu, który sam zbudowałeś, napisz mi go – otworzę albo wkleję Ci wynik.
+
+Zadanie: `;
 function pokazPolecenia(adres = '') {
   adresWOknie = adres;
+  const zw = $('#dostep-ai-polecenie-zwykly');
+  if (zw) zw.textContent = adres ? polecenieZwyklegoCzatu(adres) : '';
   $('#dostep-ai-polecenie').textContent = polecenieZAdresem(adres);
   $('#dostep-ai-polecenie-code').textContent = `claude mcp add --transport http makietka ${adres || ADRES_ZASTEPCZY}`;
 }
@@ -92,6 +101,15 @@ export async function kopiujPolecenieAi() {
     powiadom('Skopiowano polecenie – wklej je w rozmowie ze swoim AI.');
   } catch {
     powiadom('Nie udało się skopiować – zaznacz tekst polecenia i skopiuj go ręcznie.', true);
+  }
+}
+
+export async function kopiujPolecenieZwykle() {
+  try {
+    await navigator.clipboard.writeText(polecenieZwyklegoCzatu(adresWOknie));
+    powiadom('Skopiowano – wklej w rozmowie ze zwykłym czatem i dopisz zadanie.');
+  } catch {
+    powiadom('Nie udało się skopiować – zaznacz tekst i skopiuj go ręcznie.', true);
   }
 }
 

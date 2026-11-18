@@ -1044,6 +1044,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Kopiuj adres":"Копіювати адресу",
 "Kopiuj adres łącznika":"Копіювати адресу конектора",
 "Kopiuj cały tekst":"Копіювати весь текст",
+"Kopiuj dla zwykłego czatu":"Копіювати для звичайного чату",
 "Kopiuj do schowka":"Копіювати в буфер обміну",
 "Kopiuj do schowka – wkleisz na tej lub innej stronie (Ctrl+C)":"Копіювати в буфер обміну – вставите на цій або іншій сторінці (Ctrl+C)",
 "Kopiuj do schowka (także do innego projektu)":"Копіювати в буфер обміну (також до іншого проєкту)",

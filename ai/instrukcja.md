@@ -2315,7 +2315,7 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 ### 25.7 AI, które umie otwierać strony (bez łącznika)
 
-Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika: wklej mu adres i napisz, co zrobić. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
+Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika: w oknie **Dostęp dla AI**, zaraz po utworzeniu klucza, **Kopiuj dla zwykłego czatu** daje gotowe polecenie z adresem – wklej je w rozmowie i dopisz zadanie. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
 
 > **Uwaga:** Część czatów otwiera tylko adresy, które dostała od użytkownika albo znalazła sama – nie te, które zbuduje. Wtedy działa czytanie (linki z opisu), a do zmian użyj trybu „kopiuj i wklej” albo łącznika.
 

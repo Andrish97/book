@@ -3647,5 +3647,6 @@
  "Szyfruję…": "Encrypting…",
  "Nie pamiętam – usuń zapisane klucze": "Forgot it – delete saved keys",
  "Nieprawidłowe hasło do kluczy.": "Wrong keys password.",
- "Hasła się różnią.": "Passwords don't match."
+ "Hasła się różnią.": "Passwords don't match.",
+ "Kopiuj dla zwykłego czatu": "Copy for a regular chat"
 }

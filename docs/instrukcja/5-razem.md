@@ -237,7 +237,8 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 Adres łącznika (→ 25.2) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście.
 AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować
-bez dodawania łącznika: wklej mu adres i napisz, co zrobić. Narzędzia wywołuje, otwierając adresy
+bez dodawania łącznika: w oknie **Dostęp dla AI**, zaraz po utworzeniu klucza, [Kopiuj dla zwykłego czatu] daje
+gotowe polecenie z adresem – wklej je w rozmowie i dopisz zadanie. Narzędzia wywołuje, otwierając adresy
 `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu.
 Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
 

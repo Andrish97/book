@@ -1044,6 +1044,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Kopiuj adres":"Copy URL",
 "Kopiuj adres łącznika":"Copy connector URL",
 "Kopiuj cały tekst":"Copy all text",
+"Kopiuj dla zwykłego czatu":"Copy for a regular chat",
 "Kopiuj do schowka":"Copy to clipboard",
 "Kopiuj do schowka – wkleisz na tej lub innej stronie (Ctrl+C)":"Copy to clipboard – paste on this or another page (Ctrl+C)",
 "Kopiuj do schowka (także do innego projektu)":"Copy to clipboard (also to another project)",
