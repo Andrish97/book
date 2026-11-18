@@ -627,12 +627,15 @@ export const adresPodgladu = (sciezka) => sciezkaPliku(BUCKET_PODGLADOW, sciezka
 const plikiFolderu = async (folder) => (await r2.lista(BUCKET_PODGLADOW, `${folder}/`)).map((p) => p.klucz);
 const usunPliki = (sciezki) => (sciezki.length ? r2.usun(BUCKET_PODGLADOW, sciezki) : null);
 
-// Czy link tego projektu ma pliki na koncie (folder <konto>/<projekt>/<kod> albo <kod>.<sekret>) – #198:
-// kopia projektu sprzed poprawki miała w sobie link oryginału, choć pod jej numerem nic nie opublikowano.
-export async function linkProjektuIstnieje(projektId, kod) {
-  const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik || !kod) return true; // bez konta nie rozstrzygamy – nic nie ruszamy
-  return (await r2.lista(BUCKET_PODGLADOW, `${uzytkownik.id}/${projektId}/${kod}`)).length > 0;
+// Czy link działa pod numerem TEGO projektu – tak, jak sprawdza go oglądający (#201): publiczny opis podglądu
+// albo stan linku z ochroną. true / false; null, gdy nie da się rozstrzygnąć (np. brak sieci).
+export async function linkDzialaDlaProjektu(konto, projektId, kod) {
+  try { await wczytajPodgladPubliczny(konto, projektId, kod); return true; } catch { /* może z ochroną */ }
+  try { await sprawdzLinkChroniony(konto, projektId, kod); return true; } catch (e) {
+    if (e?.stanLinku === 'haslo' || e?.stanLinku === 'wygasl') return true;
+    if (e?.stanLinku === 'brak') return false;
+    return null;
+  }
 }
 
 // Usuwa wszystkie udostępnienia projektu (folder <konto>/<projekt>).

@@ -437,3 +437,47 @@ test('kopia projektu: bez linku oryginału; dawna kopia z cudzym linkiem sama si
   await strona.waitForFunction((l) => document.querySelector('#udostepnij-link').value === l, link);
   assert.deepEqual(bledy, []);
 });
+
+// #201: kopia z „Duplikuj” zna swoją wersję na koncie – pierwsza zmiana po otwarciu nie pyta „Projekt zmieniono
+// w innym miejscu” (dawniej „Wczytaj” cofało zmianę, np. nowo dodany link – za każdym razem); link dodany
+// w kopii zostaje po ponownym otwarciu.
+test('kopia projektu: zmiana bez pytania o konflikt, link dodany w kopii zostaje', async (t) => {
+  const { strona, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await nowyProjekt(strona, 'Oryg');
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); });
+  const naListe = async () => { await strona.goto(strona.url().split('#')[0]); await strona.waitForFunction(() => document.querySelector('.karta-projektu .menu-karty')); };
+  await naListe();
+  await strona.click('.karta-projektu .menu-karty');
+  await strona.click('.karta-projektu [data-op="duplikuj"]');
+  await strona.waitForFunction(() => [...document.querySelectorAll('.karta-projektu')].some((k) => k.textContent.includes('Oryg (kopia)')));
+  const kopia = () => strona.locator('.karta-projektu').filter({ has: strona.getByText('Oryg (kopia)', { exact: true }) }).first();
+  await kopia().locator('.otworz-projekt').click();
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
+  await strona.click('[data-akcja="dodaj-tekst"]');
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  const link = await strona.inputValue('#udostepnij-link');
+  await strona.waitForTimeout(5000);
+  assert.equal(await strona.locator('#dlg-potwierdz[open]').count(), 0, 'bez pytania o konflikt');
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); });
+  await naListe();
+  await kopia().locator('.otworz-projekt').click();
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
+  await strona.waitForTimeout(5000);
+  assert.equal(await strona.locator('#dlg-potwierdz[open]').count(), 0);
+  assert.ok(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.udostepnienie?.krotki)), 'link kopii zostaje');
+  await naListe();
+  await kopia().locator('.plakietka-linku').click();
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  await strona.waitForTimeout(2000);
+  assert.equal(await strona.inputValue('#udostepnij-link'), link);
+  assert.deepEqual(bledy, []);
+});

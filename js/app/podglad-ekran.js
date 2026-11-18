@@ -343,7 +343,7 @@ export async function otworzUdostepnianie(projekt = null) {
     if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
     return;
   }
-  if (p?.udostepnienie && !p.udostepnienie.krotki && await zapewnijKrotki(p)) {
+  if (p?.udostepnienie && !p.udostepnienie.krotki && await zapewnijKrotki(p, { sprawdz: true })) {
     if (p === stan.projekt) zapiszTeraz().catch(() => {}); else { p.zmieniono = new Date().toISOString(); zapiszGdziekolwiek(p).catch(() => {}); }
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepnianiaZachowujacKomunikat();
   }
@@ -390,24 +390,23 @@ async function opublikuj(p, postep = () => {}, { pelna = false } = {}) {
 
 // Krótki kod linku (#195): przy pierwszej publikacji i dla linków sprzed tej zmiany (przy otwarciu okna).
 // Bez sieci albo przy błędzie link zostaje długi – i tak działa.
-async function zapewnijKrotki(p) {
+async function zapewnijKrotki(p, { sprawdz = false } = {}) {
   const u = p.udostepnienie;
   if (!u?.kod || u.krotki || !stan.uzytkownik) return false;
+  // Link sprzed krótkich adresów: krótki kod tylko wtedy, gdy podgląd naprawdę działa pod numerem tego projektu
+  // (dawna kopia z linkiem oryginału go nie dostanie – jej link nigdy nie działał).
+  if (sprawdz && (await chmura.linkDzialaDlaProjektu(u.konto, p.id, u.kod)) !== true) return false;
   try { u.krotki = await chmura.krotkiLink(p.id, u.kod); return Boolean(u.krotki); } catch { return false; }
 }
 
-// Link skopiowany z innego projektu (#198: „Duplikuj” kopiował dane linku oryginału) – krótki kod prowadzi do
-// innego projektu albo pod numerem tego projektu nic nie opublikowano. Taki link usuwamy z projektu (oryginał
-// i jego link zostają nietknięte). Przy błędzie sieci nic nie ruszamy. Zwraca true, gdy link usunięto.
+// Link skopiowany z innego projektu (#198: „Duplikuj” kopiował dane linku oryginału). Za cudzy uznajemy link
+// tylko wtedy, gdy jego krótki kod wprost prowadzi do innego projektu (#201: dawne sprawdzanie plików na koncie
+// mogło uznać własny link za cudzy i kasowało go przy każdym otwarciu). Przy błędzie sieci nic nie ruszamy.
 async function usunCudzyLink(p) {
   const u = p?.udostepnienie;
-  if (!u?.kod || !stan.uzytkownik) return false;
+  if (!u?.kod || !u.krotki || !stan.uzytkownik) return false;
   let cudzy = false;
-  try {
-    const krotki = u.krotki ? await chmura.rozwinKrotkiLink(u.krotki) : null;
-    if (krotki) cudzy = krotki.projekt !== p.id;
-    else cudzy = !(await chmura.linkProjektuIstnieje(p.id, u.kod));
-  } catch { return false; }
+  try { const k = await chmura.rozwinKrotkiLink(u.krotki); cudzy = Boolean(k && k.projekt !== p.id); } catch { return false; }
   if (!cudzy || p.udostepnienie !== u) return false;
   delete p.udostepnienie;
   if (p === stan.projekt) await zapiszTeraz().catch(() => {}); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p).catch(() => {}); }
@@ -421,7 +420,7 @@ export async function uzupelnijKrotkiLink() {
   if (!p?.udostepnienie || !navigator.onLine) return;
   if (await usunCudzyLink(p)) return;
   if (p.udostepnienie.krotki) return;
-  if (await zapewnijKrotki(p) && stan.projekt === p) zapiszTeraz().catch(() => {});
+  if (await zapewnijKrotki(p, { sprawdz: true }) && stan.projekt === p) zapiszTeraz().catch(() => {});
 }
 
 // Przycisk „Utwórz link” albo „Aktualizuj teraz”.

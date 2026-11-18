@@ -279,6 +279,11 @@ export async function zapiszGdziekolwiek(projekt) {
   if (!stan.uzytkownik) return;
   try {
     await chmura.zapiszWChmurze(projekt);
+    // Stan uzgodniony z kontem (#201): bez numeru wersji i punktu odniesienia na urządzeniu pierwsza zmiana
+    // w kopii („Duplikuj”) albo projekcie zmienianym z listy kończyła się pytaniem „Projekt zmieniono w innym
+    // miejscu”, a „Wczytaj” cofało zmianę (np. nowy link) – za każdym razem.
+    projekt.podstawa_chmury = podstawaProjektu(projekt);
+    await zapiszLokalnie(projekt, wlasciciel(), true);
     await oznaczZsynchronizowany(projekt.id, projekt.zmieniono);
   } catch (e) {
     powiadom(chmura.komunikatBledu(e), true);
