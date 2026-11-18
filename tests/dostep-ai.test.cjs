@@ -85,8 +85,8 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   const w = baza.ai('ai_projekt', { p_klucz: tylkoOdczyt.klucz }).wersja;
   assert.match(baza.ai('ai_zapisz', { p_klucz: tylkoOdczyt.klucz, p_znana_wersja: w, p_zmiany: { nazwa: 'X' } }).blad, /tylko czytać/);
 
-  // Odebranie z listy w oknie: klucz przestaje działać.
-  await oknoAi(strona, { zaznacz: false });
+  // Odebranie z listy „Twoje klucze”: klucz przestaje działać.
+  await oknoAi(strona, { zaznacz: false, tryb: 'lista' });
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 2);
   assert.match(await strona.textContent('#dostep-ai-lista'), /ostatnio użyty/);
   // Zmiana zakresu w miejscu: pełny dostęp – ten sam klucz widzi teraz wszystkie projekty konta.

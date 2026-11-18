@@ -562,21 +562,34 @@
             <h2>Sztuczna inteligencja</h2>
             <p class="ciche" id="ust-ai-opis" hidden>Sprawdzam…</p>
             <!-- Panel AI (#247): wprost w ustawieniach, bez osobnego okna „Zarządzaj…”. -->
-            <div id="dostep-ai" class="formularz panel-ai" data-zakladka="czat">
-      <p class="ciche">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo. Wybierz, jak chcesz z nim pracować.</p>
-      <div class="przelacznik-segmentowy zakladki-ai" role="tablist" aria-label="Sposób pracy z AI">
-        <button type="button" role="tab" data-zakladka-ai="czat">Czat w Makietce</button>
-        <button type="button" role="tab" data-zakladka-ai="lacznik">Łącznik w aplikacji AI</button>
-        <button type="button" role="tab" data-zakladka-ai="zwykly">Zwykły czat</button>
+            <div id="dostep-ai" class="formularz panel-ai" data-tryb="lista">
+      <!-- #248: jedna lista „Twoje klucze” + „Dodaj klucz” (wybór rodzaju, potem krótki formularz) zamiast zakładek. -->
+      <p class="ciche" data-dla="lista">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo.</p>
+      <div class="naglowek-kluczy-ai" data-dla="lista">
+        <h3>Twoje klucze</h3>
+        <button type="button" class="przycisk glowny" data-tryb-ai="wybor" data-ikona="plus">Dodaj klucz</button>
+      </div>
+      <ul class="lista-dostawcow-ai" id="ai-dostawcy-lista" data-dla="lista"></ul>
+      <ul class="lista-dostepow" id="dostep-ai-lista" data-dla="lista"></ul>
+      <p class="podpowiedz" id="dostep-ai-pusto" data-dla="lista">Nie masz jeszcze żadnego klucza.</p>
+      <div class="rzad-przyciskow" id="ai-sejf-akcje" data-dla="lista"></div>
+      <p class="podpowiedz" data-dla="lista"><b>Bez klucza i bez opłat:</b> w edytorze menu ⋯ → Asystent AI → „Dowolny czat bez klucza – kopiuj i wklej” – działa z każdym czatem w przeglądarce, także darmowym ChatGPT.</p>
+
+      <button type="button" class="przycisk przezroczysty maly wstecz-kluczy" data-tryb-ai="lista" data-ikona="wstecz" data-dla="wybor czat lacznik zwykly"><span>Twoje klucze</span></button>
+
+      <div class="wybor-klucza-ai" data-dla="wybor">
+        <h3>Jaki klucz dodajesz?</h3>
+        <button type="button" class="karta-wyboru" data-tryb-ai="czat"><strong>Klucz API dostawcy</strong><span>Do Asystenta AI w edytorze Makietki (Anthropic, OpenAI, Gemini…). Płacisz u dostawcy. Klucz jest zaszyfrowany Twoim hasłem – nie odczyta go nikt, także twórca Makietki.</span></button>
+        <button type="button" class="karta-wyboru" data-tryb-ai="lacznik"><strong>Łącznik w aplikacji AI</strong><span>Claude, ChatGPT i inne aplikacje z łącznikami (MCP). Najprawdopodobniej potrzebujesz płatnego planu.</span></button>
+        <button type="button" class="karta-wyboru" data-tryb-ai="zwykly"><strong>Zwykły czat w przeglądarce</strong><span>Gotowe polecenie z adresem dla czatu, który umie otwierać strony. Nie każdy czat to potrafi – wtedy użyj trybu „kopiuj i wklej”.</span></button>
       </div>
 
-      <!-- Czat w Makietce: klucze dostawców w sejfie (#241, #243). -->
-      <fieldset class="grupa-pol" data-dla="czat">
-        <legend>Czat w Makietce – Twoje klucze API</legend>
-        <p class="podpowiedz">Asystent AI w edytorze (menu ⋯ → Asystent AI) rozmawia z wybranym dostawcą Twoim kluczem – płacisz u dostawcy. Klucze szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie: <b>bez hasła nie odczyta ich nikt, także twórca Makietki</b>.</p>
-        <ul class="lista-dostawcow-ai" id="ai-dostawcy-lista"></ul>
-        <div class="rzad-przyciskow" id="ai-sejf-akcje"></div>
-        <p class="podpowiedz"><b>Bez klucza i bez opłat:</b> w Asystencie AI wybierz „Dowolny czat bez klucza – kopiuj i wklej” – Makietka przygotuje polecenie dla dowolnego czatu w przeglądarce (np. darmowy ChatGPT), a jego odpowiedź wklejasz z powrotem.</p>
+      <fieldset class="grupa-pol" data-dla="czat" id="ai-nowy-dostawca-pola">
+        <legend>Klucz API dostawcy</legend>
+        <label class="pole"><span>Dostawca</span><select id="ai-nowy-dostawca"></select></label>
+        <label class="pole"><span>Klucz API</span><input id="ai-nowy-klucz" type="password" autocomplete="off" spellcheck="false" placeholder="Wklej klucz API"></label>
+        <p class="podpowiedz"><a id="ai-nowy-gdzie" target="_blank" rel="noopener" href="#">Gdzie wziąć klucz?</a> Przeglądarka szyfruje klucz Twoim hasłem do kluczy i dopiero wtedy zapisuje go na koncie: <b>bez hasła nie odczyta go nikt, także twórca Makietki</b>.</p>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="ai-zapisz-klucz-dostawcy" data-ikona="plus">Zapisz klucz</button></div>
       </fieldset>
 
       <div class="grupa-pol polacz-oauth" data-dla="lacznik">
@@ -614,6 +627,7 @@
           <pre id="dostep-ai-polecenie-zwykly"></pre>
           <p class="podpowiedz">Jeśli czat odpowie, że nie może otworzyć adresów, które sam zbudował – użyj w edytorze <b>Asystenta AI</b> z dostawcą „Dowolny czat bez klucza – kopiuj i wklej” (instrukcja 25.6).</p>
         </div>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" data-tryb-ai="lista">Gotowe – wróć do kluczy</button></div>
         <details class="dostep-ai-jak" data-dla="lacznik">
           <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
           <label class="pole"><span>Klucz dostępu</span>
@@ -651,11 +665,6 @@
           </ul>
           <p class="podpowiedz"><b>Ograniczenia:</b> nie każda aplikacja i nie każdy plan obsługuje własne łączniki. Claude w czacie nie przekazuje łącznikom zdjęć z rozmowy – większe zdjęcia wrzucisz przez link, który poda AI. AI widzi tylko projekty z klucza.</p>
         </details>
-      </fieldset>
-      <fieldset class="grupa-pol" data-dla="lacznik zwykly">
-        <legend>Klucze dostępu (łącznik i zwykły czat)</legend>
-        <ul class="lista-dostepow" id="dostep-ai-lista"></ul>
-        <p class="podpowiedz" id="dostep-ai-pusto">Nie masz jeszcze żadnego klucza.</p>
       </fieldset>
             </div>
           </section>

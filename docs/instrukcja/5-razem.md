@@ -129,20 +129,23 @@ jak zmiany współpracownika (→ 24.4).
 
 ## 25.2 Klucz dla AI
 
-[Ustawienia konta] → **Sztuczna inteligencja** pokazuje od razu trzy zakładki – trzy
-drogi pracy z AI:
+[Ustawienia konta] → **Sztuczna inteligencja** pokazuje listę **Twoje klucze** – wszystkie klucze konta w jednym
+miejscu – i przycisk [Dodaj klucz]. Po kliknięciu wybierasz, jaki klucz dodajesz:
 
-| Zakładka | Do czego | Koszt |
+| Rodzaj | Do czego | Koszt |
 |---|---|---|
-| **Czat w Makietce** | Twoje klucze API dostawców (Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter, zgodne z OpenAI) do Asystenta AI w edytorze (→ 25.6). Przy każdym dostawcy stan klucza, [Zapisz], [Usuń], [Gdzie wziąć klucz?]. Klucze są zaszyfrowane Twoim hasłem do kluczy – nie odczyta ich nikt poza Tobą, także twórca Makietki. Bez klucza: tryb „kopiuj i wklej”. | Płacisz dostawcy (albo nic – „kopiuj i wklej”). |
+| **Klucz API dostawcy** | Klucz Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter albo API zgodnego z OpenAI do Asystenta AI w edytorze (→ 25.6). Wybierasz dostawcę, wklejasz klucz ([Gdzie wziąć klucz?] prowadzi do strony dostawcy) i [Zapisz klucz]. Klucz jest zaszyfrowany Twoim hasłem do kluczy – nie odczyta go nikt poza Tobą, także twórca Makietki. | Płacisz dostawcy. |
 | **Łącznik w aplikacji AI** | Klucz dostępu i adres łącznika dla Claude, ChatGPT i innych aplikacji z MCP (→ 25.3). | **Najprawdopodobniej płatny plan** aplikacji AI (ChatGPT – plany płatne; Claude – w darmowym jeden własny łącznik). |
-| **Zwykły czat** | Klucz dostępu i gotowe polecenie dla zwykłej rozmowy w przeglądarce – czat otwiera adres jak stronę (→ 25.7). | Także darmowe plany. |
+| **Zwykły czat w przeglądarce** | Klucz dostępu i gotowe polecenie dla rozmowy w przeglądarce – czat otwiera adres jak stronę (→ 25.7). Nie każdy czat to potrafi. | Także darmowe plany. |
 
-Klucze dostępu (łącznik i zwykły czat) należą do konta – zakładki **Łącznik** i **Zwykły czat**:
+Bez żadnego klucza i bez opłat działa tryb „kopiuj i wklej” w Asystencie AI (→ 25.6). [Twoje klucze] u góry formularza
+wraca do listy.
+
+Klucze należą do konta:
 
 ![Sztuczna inteligencja w ustawieniach konta](k-konto-ai.png)
 
-Część **Nowy klucz**:
+Formularz klucza dostępu (łącznik i zwykły czat):
 
 | Ustawienie | Znaczenie |
 |---|---|
@@ -152,9 +155,9 @@ Część **Nowy klucz**:
 | **Wybrane projekty** | Projekty, do których klucz daje dostęp — Twoje i udostępnione Ci. |
 | **Pełny dostęp – wszystkie projekty, także tworzenie i usuwanie** | Także projekty, które dojdą później. Usunięcie projektu AI zawsze potwierdza nazwą. |
 
-[Utwórz klucz] pokazuje **Adres łącznika** — widać go tylko raz, skopiuj go od razu.
+[Utwórz klucz] pokazuje **Adres łącznika** (albo gotowe polecenie dla zwykłego czatu) — widać go tylko raz, skopiuj go od razu. [Gotowe – wróć do kluczy] wraca do listy.
 
-Lista **Klucze konta** pokazuje zakres, ważność i ostatnie użycie każdego klucza. [Zmień zakres]
+Na liście **Twoje klucze** klucze API dostawców mają [Usuń] (gdy klucze są zaszyfrowane na tym urządzeniu – [Otwórz] i hasło do kluczy), a klucze dostępu pokazują zakres, ważność i ostatnie użycie. [Zmień zakres]
 dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łącznika się nie zmienia. [Odbierz] wyłącza klucz od razu.
 
 ![Ustawienia Sztuczna inteligencja](dostep-ai.png)

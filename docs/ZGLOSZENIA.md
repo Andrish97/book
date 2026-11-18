@@ -197,3 +197,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |
 - 18.11.2026: ikona języka EN nieczytelna w ciemnym trybie (tekst w currentColor w <img>) → tło jak przy flagach PL/UA, test tests/ikony-jezykow.test.cjs.
 - 18.11.2026: „Zarządzaj…” w Ustawieniach → Sztuczna inteligencja otwierało osobne okno – zbędny krok → panel wprost w sekcji (#247).
+- 18.11.2026: panel AI jako „kupa sekcji” (zakładki, 8 pól dostawców) → lista „Twoje klucze” + „Dodaj klucz” z wyborem rodzaju (#248).

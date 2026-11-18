@@ -768,13 +768,13 @@ const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFkl
 
 // Okno „Dostęp dla AI” (tylko w ustawieniach konta, #100) – w testach otwierane wprost, nad otwartym projektem,
 // z zaznaczonym otwartym projektem na liście nowego klucza (jak gdyby wybrał go użytkownik).
-async function oknoAi(strona, { zaznacz = true } = {}) {
-  await strona.evaluate(async (zaznaczOtwarty) => {
+async function oknoAi(strona, { zaznacz = true, tryb = 'lacznik' } = {}) {
+  await strona.evaluate(async ([zaznaczOtwarty, trybPanelu]) => {
     const id = window.seriodruk?.stan?.projekt?.id;
-    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ zakladka: 'lacznik' });
+    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ zakladka: trybPanelu });
     const pole = id && zaznaczOtwarty && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
     if (pole && !pole.checked) pole.click();
-  }, zaznacz);
+  }, [zaznacz, tryb]);
   await strona.waitForSelector('#dlg-dostep-ai[open]');
 }
 

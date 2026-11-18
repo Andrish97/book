@@ -935,21 +935,20 @@ dialog h2 { font-size: 19px; }
 body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .czat-ai-do-skopiowania { max-height: 160px; overflow: auto; margin: 6px 0 0; padding: 8px; font-size: 11px; white-space: pre-wrap; word-break: break-word; background: var(--tlo-pola, rgba(0,0,0,0.04)); border-radius: var(--r-s); }
 .kroki-montazu { max-height: min(56vh, 480px); overflow: auto; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
-/* Sztuczna inteligencja (#243): zakładki – czat w Makietce, łącznik, zwykły czat. */
-/* Zakładki jak przełącznik segmentowy (ten sam wygląd co spany przełącznika – logowanie, motyw). */
-.zakladki-ai { display: flex; margin: 4px 0 12px; }
-.zakladki-ai button {
-  flex: 1; display: inline-flex; align-items: center; justify-content: center;
-  padding: 7px 12px; border: 0; border-radius: calc(var(--r-m) - 2px); background: transparent;
-  color: var(--tusz-2, var(--tusz)); font: inherit; font-size: 13.5px; font-weight: 550; cursor: pointer; white-space: nowrap;
-}
-.zakladki-ai button:hover { color: var(--tusz); }
-.zakladki-ai button[aria-selected="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
-.zakladki-ai button:focus-visible { outline: 2px solid var(--akcent); }
-@media (max-width: 560px) { .zakladki-ai { flex-direction: column; } }
-#dostep-ai[data-zakladka="czat"] [data-dla]:not([data-dla~="czat"]),
-#dostep-ai[data-zakladka="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
-#dostep-ai[data-zakladka="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
+#dostep-ai[data-tryb="lista"] [data-dla]:not([data-dla~="lista"]),
+#dostep-ai[data-tryb="wybor"] [data-dla]:not([data-dla~="wybor"]),
+#dostep-ai[data-tryb="czat"] [data-dla]:not([data-dla~="czat"]),
+#dostep-ai[data-tryb="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
+#dostep-ai[data-tryb="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
+/* #248: lista kluczy i „Dodaj klucz” z wyborem rodzaju. */
+.naglowek-kluczy-ai { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
+.naglowek-kluczy-ai h3, .wybor-klucza-ai h3 { margin: 0; font-size: 16px; }
+.wstecz-kluczy { align-self: flex-start; }
+.wybor-klucza-ai { display: flex; flex-direction: column; gap: 8px; }
+.karta-wyboru { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 12px 14px; border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz); font: inherit; cursor: pointer; }
+.karta-wyboru:hover, .karta-wyboru:focus-visible { border-color: var(--akcent); background: var(--akcent-tlo); }
+.karta-wyboru strong { font-size: 14px; }
+.karta-wyboru span { font-size: 13px; color: var(--cichy); }
 .uwaga-planu { border-left: 3px solid var(--ostrzezenie, #d97706); padding: 8px 12px; background: rgba(217, 119, 6, 0.06); border-radius: var(--r-s); }
 .lista-dostawcow-ai { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .lista-dostawcow-ai li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-s); }

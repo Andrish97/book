@@ -76,6 +76,7 @@ document.addEventListener('fullscreenchange', odswiezPelnyEkran);
 const dostepAi = () => import('./app/dostep-ai.js');
 const akcje = {
   'dostep-ai-utworz': async () => (await dostepAi()).utworzKluczAi(),
+  'ai-zapisz-klucz-dostawcy': async () => (await dostepAi()).zapiszKluczDostawcy(),
   'dostep-ai-kopiuj': async () => (await dostepAi()).kopiujKluczAi(),
   'dostep-ai-kopiuj-adres': async () => (await dostepAi()).kopiujAdresAi(),
   'dostep-ai-kopiuj-polecenie': async () => (await dostepAi()).kopiujPolecenieAi(),
