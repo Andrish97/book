@@ -336,6 +336,11 @@ export function arkuszStrony(strona, ciag) {
 
 export const bokStrony = (strona, ciag) => ciag.pierwszy.get(strona.id)?.bok || null;
 
+// Pola z ustawień projektu (#209).
+const NAZWY_OPRAW = { twarda: 'twarda', miekka: 'miękka klejona', zeszytowa: 'zeszytowa' };
+const RODZAJE_PAPIERU = { offset: 'offset', ksiazkowy: 'papier książkowy', objetosciowy: 'papier objętościowy', kredowy_mat: 'kreda mat', kredowy_blysk: 'kreda błysk' };
+const okladkaProjektu = (projekt) => projekt.sekcje.find((x) => x.okladka) || null;
+const formatMm = (w) => (w ? `${String(Math.round(w.szerokosc_mm * 10) / 10).replace('.', ',')} × ${String(Math.round(w.wysokosc_mm * 10) / 10).replace('.', ',')} mm` : '');
 const dzis = () => new Date();
 const dwie = (n) => String(n).padStart(2, '0');
 
@@ -370,6 +375,16 @@ export function wartosciPol(projekt, egz, ciag) {
       case 'nr_sekcji': return liczba(ciag.sekcje.get(egz.sekcja.id).nr, zapis);
       case 'strona': return egz.strona.nazwa;
       case 'projekt': return projekt.nazwa;
+      case 'format': return formatMm(egz.sekcja.wydruk);
+      case 'oprawa': return okladkaProjektu(projekt) ? NAZWY_OPRAW[okladkaProjektu(projekt).okladka.oprawa] || '' : '';
+      case 'grzbiet': { const w = okladkaProjektu(projekt)?.okladka?.wynik; return w ? `${String(w.grzbiet).replace('.', ',')} mm` : ''; }
+      case 'stron_bloku': { const w = okladkaProjektu(projekt)?.okladka?.wynik; return w ? liczba(w.stron, zapis) : ''; }
+      case 'papier': {
+        const pa = okladkaProjektu(projekt)?.okladka?.papier;
+        if (!pa) return '';
+        return pa.tryb === 'gramatura' ? `${RODZAJE_PAPIERU[pa.rodzaj] || pa.rodzaj} ${pa.gramatura} g/m²` : `${String(pa.grubosc_mm).replace('.', ',')} mm na kartkę`;
+      }
+      case 'rok_kalendarza': { const k = projekt.sekcje.find((x) => x.specjalna?.rodzaj === 'kalendarz'); return k ? String(k.specjalna.rok) : ''; }
       case 'seria': return egz.seria ? egz.seria.nazwa : '';
       case 'egzemplarz': return liczba(egz.nrEgz ?? 1, zapis);
       case 'liczba_egzemplarzy': return liczba(egz.ileEgz ?? 1, zapis);

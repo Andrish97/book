@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 209 | Pola z ustawień projektu bez wpisywania: {format}, {oprawa}, {grzbiet}, {stron_bloku}, {papier}, {rok_kalendarza} – grupa „Z ustawień projektu” w „Wstaw pole” |
 | 208 | Szablony projektów (książka twarda z wyklejkami i blokiem z krotnością 16, z obwolutą, miękka, broszura, planery, album, kalendarz z plecami) od razu w oknie „Nowy projekt”, osobno od szablonów sekcji; czytelniejsza ikona motywu „jak w systemie” |
 | 207 | Panel administratora: zakładki z podpisami na górze na telefonie, „Poczta” = kolejka + ustawienia, czyszczenie starych kopii awaryjnych |
 | 206 | E-maile o zaproszeniach do wyłączenia w Ustawienia konta → Powiadomienia → „E-mailem” (dla całego konta); zapraszający widzi, że ta osoba zobaczy zaproszenie w aplikacji |

@@ -42,6 +42,13 @@ export const POLA_DOKUMENTU = [
   ['nr_sekcji', 'Numer sekcji'],
   ['strona', 'Nazwa strony'],
   ['projekt', 'Nazwa projektu'],
+  // Z ustawień projektu (#209) – bez wpisywania: wartości biorą się z sekcji i okładki, zmieniają się razem z nimi.
+  ['format', 'Format strony tej sekcji, np. 148 × 210 mm'],
+  ['oprawa', 'Oprawa z okładki projektu: twarda, miękka klejona albo zeszytowa'],
+  ['grzbiet', 'Grubość grzbietu okładki w mm (liczona z liczby stron i papieru)'],
+  ['stron_bloku', 'Liczba stron środka książki (blok, z którego liczy się grzbiet)'],
+  ['papier', 'Papier środka z ustawień okładki, np. offset 90 g/m²'],
+  ['rok_kalendarza', 'Rok z sekcji kalendarza z datami'],
   ['seria', 'Nazwa serii, do której należy strona'],
   ['egzemplarz', 'Numer powielenia w serii (1, 2, 3…)'],
   ['liczba_egzemplarzy', 'Liczba powieleń serii'],

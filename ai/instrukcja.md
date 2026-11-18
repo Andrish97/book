@@ -1424,6 +1424,12 @@ Pola dokumentu wynikają z samego projektu i działają na każdej stronie, tak�
 | `{nr_sekcji}` | Numer sekcji |
 | `{strona}` | Nazwa strony |
 | `{projekt}` | Nazwa projektu |
+| `{format}` | Format strony tej sekcji, np. 148 × 210 mm |
+| `{oprawa}` | Oprawa z okładki projektu: twarda, miękka klejona albo zeszytowa |
+| `{grzbiet}` | Grubość grzbietu okładki w mm (liczona z liczby stron i papieru) |
+| `{stron_bloku}` | Liczba stron środka książki (blok, z którego liczy się grzbiet) |
+| `{papier}` | Papier środka z ustawień okładki, np. offset 90 g/m² |
+| `{rok_kalendarza}` | Rok z sekcji kalendarza z datami |
 | `{seria}` | Nazwa serii, do której należy strona |
 | `{egzemplarz}` | Numer powielenia w serii (1, 2, 3…) |
 | `{liczba_egzemplarzy}` | Liczba powieleń serii |
@@ -1444,6 +1450,8 @@ Pola dokumentu wynikają z samego projektu i działają na każdej stronie, tak�
 | `{nr:i}` | i, ii, iii |
 | `{nr:A}` | A, B, C |
 | `{nr:a}` | a, b, c |
+
+Pola **z ustawień projektu** — `{format}`, `{oprawa}`, `{grzbiet}`, `{stron_bloku}`, `{papier}`, `{rok_kalendarza}` (i `{projekt}`) — nie wymagają wpisywania: biorą wartość z ustawień sekcji, okładki i kalendarza i zmieniają się razem z nimi, np. stopka redakcyjna „Format {format}, oprawa {oprawa}, {stron_bloku} stron”. Na liście **Wstaw pole** są w osobnej grupie **Z ustawień projektu**. Gdy projekt nie ma okładki albo kalendarza, pole jest puste.
 
 Gdy kolumna tabeli nazywa się tak samo jak pole dokumentu, na stronach tej tabeli wygrywa kolumna.
 

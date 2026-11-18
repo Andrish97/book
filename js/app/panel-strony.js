@@ -58,6 +58,7 @@ export function odswiezPasekEdytora() {
 
 // ---------- Pola: co można wstawić i co jest znane na otwartej stronie ----------
 
+const POLA_USTAWIEN = new Set(['projekt', 'format', 'oprawa', 'grzbiet', 'stron_bloku', 'papier', 'rok_kalendarza']);
 export const NAZWY_POL_DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
 
 // Tabela, z której strona bierze dane (przez swoją serię), albo null.
@@ -84,7 +85,9 @@ export function polaDoWstawienia() {
     ...(glowna ? [{ grupa: `Tabela tej strony: ${glowna.nazwa}`, pola: glowna.kolumny.map((k) => [k, '']) }] : []),
     ...dodatkowe.map((t) => ({ grupa: `Tabela dodatkowa serii: ${t.nazwa}`, pola: t.kolumny.map((k) => [`${t.nazwa}.${k}`, '']) })),
     ...reszta.map((t) => ({ grupa: `Tabela: ${t.nazwa}`, pola: t.kolumny.map((k) => [k, '']) })),
-    { grupa: 'Pola dokumentu', pola: POLA_DOKUMENTU },
+    // Pola z ustawień projektu osobną grupą (#209) – łatwo je znaleźć na liście.
+    { grupa: 'Pola dokumentu', pola: POLA_DOKUMENTU.filter(([n]) => !POLA_USTAWIEN.has(n)) },
+    { grupa: 'Z ustawień projektu', pola: POLA_DOKUMENTU.filter(([n]) => POLA_USTAWIEN.has(n)) },
   ];
 }
 
