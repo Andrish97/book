@@ -50,7 +50,7 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForSelector('#ust-ai #dostep-ai [data-dodaj-klucz-ai="czat"]');
   assert.equal(await strona.isVisible('#dlg-dostep-ai'), false);
   // #250: przełącznik na górze – trzy sekcje, widać jedną (z wyjaśnieniem, kluczami i „Dodaj klucz”); nowy klucz – w okienku.
-  assert.deepEqual(await strona.$$eval('#dostep-ai [data-sekcja-ai]', (b) => b.map((x) => x.textContent)), ['Czat w Makietce', 'Łącznik w aplikacji AI', 'Zwykły czat']);
+  assert.deepEqual(await strona.$$eval('#dostep-ai [data-sekcja-ai]', (b) => b.map((x) => x.textContent)), ['Czat w Makietce', 'Łącznik w aplikacji AI', 'Kopiuj i wklej', 'Czat otwierający strony']);
   assert.equal(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible').count(), 1);
   assert.equal(await strona.isVisible('#dostep-ai .sekcja-kluczy-ai:visible .pusto-kluczy'), true, 'pusta sekcja mówi, że nie ma kluczy');
   assert.match(await strona.locator('#dostep-ai .sekcja-kluczy-ai:visible .wyjasnienie-ai').textContent(), /Asystent AI.*Ile kosztuje.*nawet administratorzy Makietki/s);

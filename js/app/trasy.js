@@ -36,6 +36,13 @@ const otworzOknoObrazow = async () => {
   (await import('./obrazy-okno.js')).otworzObrazy();
 };
 
+// #/p/<id>/asystent – Asystent AI w trybie „kopiuj i wklej” (#254).
+const otworzAsystentaKopiuj = async () => {
+  await czekajNaEdytor();
+  trasa.ustaw(`p/${stan.projekt.id}`, { zastap: true });
+  (await import('./czat-ai.js')).otworzCzatAi({ dostawca: 'schowek' });
+};
+
 let obslugaTrasy = Promise.resolve();
 export function przejdzDoTrasy() {
   obslugaTrasy = obslugaTrasy.then(async () => {
@@ -90,6 +97,7 @@ export function przejdzDoTrasy() {
       if (t.podglad || tylkoPodglad()) { await pokazPodglad(); return; }
       if (document.body.dataset.ekran === 'podglad') await pokazEdytor();
       if (t.obrazy) { await otworzOknoObrazow(); return; }
+      if (t.asystent) { await otworzAsystentaKopiuj(); return; }
       if (t.wzorzec && (stan.tryb !== 'wzorzec' || stan.idWzorca !== t.wzorzec)) await edytujWzorzec(t.wzorzec);
       else if (t.strona) {
         const i = stan.projekt.strony.findIndex((x) => x.id === t.strona);
@@ -117,6 +125,7 @@ export function przejdzDoTrasy() {
     }
     if (t.podglad || tylkoPodglad()) await pokazPodglad();
     if (t.obrazy) await otworzOknoObrazow();
+    if (t.asystent && !t.podglad && !tylkoPodglad()) await otworzAsystentaKopiuj();
     if (t.komentarz) await otworzKomentarzZTrasy(t.komentarz);
     if (t.eksport) await eksportZTrasy(t.eksport);
   }).catch((e) => console.error(e));

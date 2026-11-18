@@ -3699,5 +3699,8 @@
  "zmieniać tabele danych i serie": "change data tables and series",
  "wgrywać, wymieniać i usuwać obrazy": "upload, replace and delete images",
  "robić pliki PDF i PNG": "make PDF and PNG files",
- "Uprawnienia": "Permissions"
+ "Uprawnienia": "Permissions",
+ "Kopiuj i wklej": "Copy and paste",
+ "Czat otwierający strony": "Chat that opens web pages",
+ "Otwórz z Asystentem AI": "Open with the AI Assistant"
 }

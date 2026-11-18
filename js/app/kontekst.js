@@ -46,6 +46,7 @@ export function pokazEkran(nazwa) {
 //   #/p/<id projektu>/w/<id wzorca>  edycja wzorca
 //   #/p/<id projektu>/podglad        podgląd bez edycji
 //   #/p/<id projektu>/obrazy         projekt z otwartym oknem „Obrazy projektu” (link od AI: „wrzuć zdjęcia tutaj”)
+//   #/p/<id projektu>/asystent       projekt z Asystentem AI w trybie „kopiuj i wklej” (Ustawienia → Sztuczna inteligencja, #254)
 //   #/p/<id projektu>/k/<id wątku>   projekt z otwartym panelem komentarzy na tym wątku (powiadomienie, #131D)
 //   #/p/<id projektu>/eksport/<id>   projekt i eksport PDF/PNG zlecony przez AI (link od AI, gdy aplikacja była zamknięta, #175)
 //   #/u/<konto>/<projekt>/<kod>      podgląd udostępniony linkiem (bez logowania)
@@ -59,7 +60,7 @@ export const trasa = {
     const [rodzaj, id, typ, cel] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
     if (rodzaj === 'p' && id) {
       return {
-        ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null, podglad: typ === 'podglad', obrazy: typ === 'obrazy', komentarz: typ === 'k' ? cel : null, eksport: typ === 'eksport' ? cel : null,
+        ekran: 'projekt', id, strona: typ === 's' ? cel : null, wzorzec: typ === 'w' ? cel : null, podglad: typ === 'podglad', obrazy: typ === 'obrazy', asystent: typ === 'asystent', komentarz: typ === 'k' ? cel : null, eksport: typ === 'eksport' ? cel : null,
       };
     }
     if (rodzaj === 'konto') return { ekran: 'konto', sekcja: id || null };

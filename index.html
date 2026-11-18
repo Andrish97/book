@@ -564,11 +564,12 @@
             <!-- Panel AI (#247): wprost w ustawieniach, bez osobnego okna „Zarządzaj…”. -->
             <div id="dostep-ai" class="formularz panel-ai" data-sekcja="czat">
       <!-- #250: przełącznik na górze – jedna z trzech dróg naraz; w każdej wyjaśnienie, klucze (Edytuj) i Dodaj (okienko). -->
-      <p class="ciche">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo. Są trzy drogi – wybierz, z której korzystasz.</p>
+      <p class="ciche">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo. Są cztery drogi – wybierz, z której korzystasz.</p>
       <div class="przelacznik-segmentowy zakladki-ai" role="tablist" aria-label="Sposób pracy z AI">
         <button type="button" role="tab" data-sekcja-ai="czat" aria-selected="true">Czat w Makietce</button>
         <button type="button" role="tab" data-sekcja-ai="lacznik" aria-selected="false">Łącznik w aplikacji AI</button>
-        <button type="button" role="tab" data-sekcja-ai="zwykly" aria-selected="false">Zwykły czat</button>
+        <button type="button" role="tab" data-sekcja-ai="kopiuj" aria-selected="false">Kopiuj i wklej</button>
+        <button type="button" role="tab" data-sekcja-ai="zwykly" aria-selected="false">Czat otwierający strony</button>
       </div>
 
       <section class="sekcja-kluczy-ai" data-sposob="czat" role="tabpanel">
@@ -609,13 +610,34 @@
         <p class="podpowiedz pusto-kluczy">Nie masz jeszcze łączników.</p>
       </section>
 
+      <section class="sekcja-kluczy-ai" data-sposob="kopiuj" role="tabpanel">
+        <div class="wyjasnienie-ai">
+          <p><b>Dowolny czat w przeglądarce, bez klucza i bez opłat</b> – także darmowy ChatGPT, Claude, Gemini czy Copilot. Makietka i czat wymieniają się tekstem przez schowek: Ty tylko kopiujesz i wklejasz.</p>
+          <ol class="punkty-ai">
+            <li>Otwórz projekt z Asystentem AI w trybie „kopiuj i wklej” (niżej) i napisz, co zrobić.</li>
+            <li>Makietka kopiuje gotowe polecenie – zasady, narzędzia, stan projektu i Twoje zadanie. Wklej je w czacie.</li>
+            <li>Czat odpowie krótko i doda blok z poleceniami dla Makietki. Skopiuj całą odpowiedź i wklej ją do Asystenta AI – Makietka wykona zmiany i skopiuje wyniki.</li>
+            <li>Wklej wyniki czatowi – zobaczy, co się udało, i w razie potrzeby da kolejne polecenia.</li>
+          </ol>
+          <ul class="punkty-ai">
+            <li><b>Czego potrzebujesz:</b> niczego poza dowolnym czatem – bez klucza API, bez łączników, bez płatnego planu.</li>
+            <li><b>Bezpieczeństwo:</b> czat nie dostaje żadnego klucza ani adresu do Twojego konta – widzi tylko to, co wkleisz. Zmiany wykonuje Makietka u Ciebie.</li>
+          </ul>
+        </div>
+        <div class="rzad-przyciskow otworz-kopiuj-ai">
+          <label class="pole"><span>Projekt</span><select id="ai-kopiuj-projekt"></select></label>
+          <button type="button" class="przycisk glowny" data-akcja="ai-kopiuj-otworz">Otwórz z Asystentem AI</button>
+        </div>
+        <p class="podpowiedz">W edytorze to samo: menu ⋯ → Asystent AI → dostawca „Dowolny czat bez klucza – kopiuj i wklej”.</p>
+      </section>
+
       <section class="sekcja-kluczy-ai" data-sposob="zwykly" role="tabpanel">
         <div class="wyjasnienie-ai">
-          <p><b>Zwykła rozmowa w przeglądarce, bez łączników</b> – np. darmowy ChatGPT, Claude czy Gemini. Wklejasz czatowi gotowe polecenie z adresem; czat otwiera ten adres jak stronę, widzi narzędzia Makietki i zmienia projekt, otwierając kolejne adresy.</p>
+          <p><b>Czat, który sam otwiera strony internetowe</b> – bez łączników i bez kopiowania wyników. Wklejasz czatowi gotowe polecenie z adresami; czat otwiera je jak strony, widzi narzędzia Makietki i zmienia projekt, otwierając kolejne adresy. Działa tylko z czatami, które naprawdę otwierają dowolne adresy – gdy Twój czat tego nie robi, wybierz „Kopiuj i wklej”.</p>
           <ul class="punkty-ai">
             <li><b>Czego potrzebujesz:</b> czatu, który umie sam otwierać strony internetowe. <b>Nie każdy potrafi wszystko</b> – ChatGPT otwiera tylko adresy wklejone przez Ciebie, nie te, które sam zbuduje. Polecenie zawiera więc gotowe adresy do czytania (projekty, przegląd, format) – <b>czytać</b> będzie, ale <b>zmian</b> zwykle nie zrobi.</li>
-            <li><b>Do zmian bez płatnego planu:</b> w edytorze Asystent AI z „kopiuj i wklej” (zakładka Czat w Makietce) – działa z każdym czatem, także darmowym ChatGPT.</li>
-            <li><b>Ile kosztuje:</b> nic – wystarczy darmowy plan czatu.</li>
+            <li><b>Do zmian bez płatnego planu:</b> zakładka „Kopiuj i wklej” – działa z każdym czatem, także darmowym ChatGPT.</li>
+            <li><b>Ile kosztuje:</b> Makietka nic nie bierze.</li>
             <li><b>Bezpieczeństwo:</b> adres zawiera klucz – daj go tylko swojemu czatowi; klucz możesz w każdej chwili ograniczyć albo odebrać („Edytuj”).</li>
           </ul>
         </div>

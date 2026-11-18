@@ -200,7 +200,8 @@ const el = (tag, wlasnosci = {}, ...dzieci) => { const e = Object.assign(documen
 function pokazPusto() {
   for (const sekcja of document.querySelectorAll('#dostep-ai .sekcja-kluczy-ai')) {
     const ile = [...sekcja.querySelectorAll('.lista-dostawcow-ai, .lista-dostepow')].reduce((n, ul) => n + ul.children.length, 0);
-    sekcja.querySelector('.pusto-kluczy').hidden = ile > 0;
+    const pusto = sekcja.querySelector('.pusto-kluczy');
+    if (pusto) pusto.hidden = ile > 0;
   }
 }
 
@@ -573,9 +574,27 @@ export function zamknijDostepAi() {
 // Zdarzenie close przychodzi z opóźnieniem – gdy okno zdążyło się otworzyć ponownie, panel zostaje w nim.
 $('#dlg-dostep-ai').addEventListener('close', () => { if (!$('#dlg-dostep-ai').open) przeniesPanel(false); });
 $('#dlg-klucz-ai').addEventListener('close', () => { if ($('#dlg-klucz-ai').open) return; wyczyscNowy(); rysujDostawcow(); odswiezListe(); document.dispatchEvent(new CustomEvent('makietka:klucze-ai')); });
-// Przełącznik na górze (#250): jedna z trzech sekcji naraz.
+// „Kopiuj i wklej” (#254): projekt do otwarcia z Asystentem AI w tym trybie (#/p/<id>/asystent).
+async function wypelnijProjektyKopiuj() {
+  const wybor = $('#ai-kopiuj-projekt');
+  if (!projekty.length) await wczytajProjekty().catch(() => {});
+  const byl = wybor.value || stan.projekt?.id || '';
+  wybor.replaceChildren(...projekty.filter((p) => p.rola !== 'odczyt').map((p) => new Option(p.nazwa, p.id)));
+  if (byl && projekty.some((p) => p.id === byl)) wybor.value = byl;
+  $('[data-akcja="ai-kopiuj-otworz"]').disabled = !wybor.options.length;
+}
+export function otworzZAsystentemKopiuj() {
+  const id = $('#ai-kopiuj-projekt').value;
+  if (!id) { powiadom('Najpierw utwórz projekt – Asystent AI pracuje w otwartym projekcie.', true); return; }
+  if ($('#dlg-dostep-ai').open) zamknijDostepAi();
+  location.hash = `#/p/${encodeURIComponent(id)}/asystent`;
+}
+
+// Przełącznik na górze (#250, #254): jedna z czterech sekcji naraz.
+const SEKCJE_AI = ['czat', 'lacznik', 'kopiuj', 'zwykly'];
 export function ustawSekcjeAi(z) {
-  const sekcja = TYTULY[z] ? z : 'czat';
+  const sekcja = SEKCJE_AI.includes(z) ? z : 'czat';
+  if (sekcja === 'kopiuj') wypelnijProjektyKopiuj();
   const panel = $('#dostep-ai');
   panel.dataset.sekcja = sekcja;
   for (const b of panel.querySelectorAll('[data-sekcja-ai]')) b.setAttribute('aria-selected', String(b.dataset.sekcjaAi === sekcja));

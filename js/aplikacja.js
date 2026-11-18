@@ -83,6 +83,7 @@ const akcje = {
   'dostep-ai-kopiuj-zwykly': async () => (await dostepAi()).kopiujPolecenieZwykle(),
   'dostep-ai-zamknij': async () => (await dostepAi()).zamknijDostepAi(),
   'dodaj-klucz-ai-zamknij': async () => (await dostepAi()).zamknijDodawanie(),
+  'ai-kopiuj-otworz': async () => (await dostepAi()).otworzZAsystentemKopiuj(),
   'nowy-projekt': () => otworzNowyProjekt(),
   'nowy-z-szablonu': () => otworzNowyProjekt({ szablon: true }),
   instrukcja: () => { zamknijMenu(); instrukcja.otworz(); },

@@ -203,3 +203,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 18.11.2026: „twórca Makietki” → „administratorzy Makietki” (#251).
 - 18.11.2026: plan AI krok 2 – drobniejsze zakresy kluczy (strony, wzorce i style, tabele i serie, obrazy, eksport), pilnowane w bazie (#252).
 - 18.11.2026: ChatGPT nie otwiera linków ze strony narzędzi (zasada ChatGPT) → adresy do odczytu wprost w poleceniu, opis sekcji „Zwykły czat” poprawiony (#253).
+- 18.11.2026: „Kopiuj i wklej” jako trzecia droga w Ustawieniach → Sztuczna inteligencja, z otwarciem projektu od razu w tym trybie; zwykły czat z API zostaje jako „Czat otwierający strony” (#254).

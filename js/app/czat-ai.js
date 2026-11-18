@@ -313,8 +313,10 @@ pole.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey &
 $('#czat-ai-przerwij').addEventListener('click', () => { przerwano = true; });
 $('#czat-ai-zamknij').addEventListener('click', () => dlg.close());
 
-export async function otworzCzatAi() {
+// dostawca – od razu ten dostawca (np. 'schowek' – „kopiuj i wklej” z ustawień konta, #254).
+export async function otworzCzatAi({ dostawca = null } = {}) {
   if (!stan.projekt) return;
+  if (dostawca && DOSTAWCY[dostawca]) { const u = ustawienia(); if (u.dostawca !== dostawca) { u.dostawca = dostawca; zapisz(PAMIEC, u); } }
   if (stan.uzytkownik) await otwartySejf({ pytaj: maKluczeDoPrzeniesienia() }).catch(() => null);
   pokazUstawienia();
   f.hidden = Boolean(ustDostawcy().klucz) || Boolean(DOSTAWCY[ustawienia().dostawca]?.bezKlucza);

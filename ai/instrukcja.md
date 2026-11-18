@@ -2212,13 +2212,14 @@ Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile 
 
 ### 25.2 Klucz dla AI
 
-**Ustawienia konta** → **Sztuczna inteligencja** ma na górze przełącznik trzech dróg pracy z AI: **Czat w Makietce**, **Łącznik w aplikacji AI** i **Zwykły czat**. Każda zakładka wyjaśnia, jak ta droga działa, czego potrzebujesz i ile to kosztuje, a pod spodem pokazuje Twoje klucze z przyciskiem **Edytuj** i przycisk **Dodaj klucz**. Nowy klucz dodajesz i edytujesz zawsze w okienku.
+**Ustawienia konta** → **Sztuczna inteligencja** ma na górze przełącznik czterech dróg pracy z AI: **Czat w Makietce**, **Łącznik w aplikacji AI**, **Kopiuj i wklej** i **Czat otwierający strony**. Każda zakładka wyjaśnia, jak ta droga działa, czego potrzebujesz i ile to kosztuje, a pod spodem pokazuje Twoje klucze z przyciskiem **Edytuj** i przycisk **Dodaj klucz**. Nowy klucz dodajesz i edytujesz zawsze w okienku.
 
 | Sekcja | Do czego | Koszt |
 |---|---|---|
 | **Czat w Makietce** | Klucze API dostawców (Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter, zgodne z OpenAI) do Asystenta AI w edytorze (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). W okienku wybierasz dostawcę, wklejasz klucz (**Gdzie wziąć klucz?** prowadzi do strony dostawcy) i **Zapisz klucz**. Klucze są zaszyfrowane Twoim hasłem do kluczy – nie odczyta ich nikt poza Tobą, nawet administratorzy Makietki. Tu widać też jednodniowe klucze „Czat w Makietce”, którymi asystent czyta otwarty projekt. | Płacisz dostawcy. Bez klucza: tryb „kopiuj i wklej” (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). |
 | **Łącznik w aplikacji AI** | Klucz dostępu i adres łącznika dla Claude, ChatGPT i innych aplikacji z MCP (rozdział „25.3 Podłączenie w aplikacji AI”). Tu trafiają też połączenia z logowaniem („Łącznik: nazwa aplikacji”). | **Najprawdopodobniej płatny plan** aplikacji AI (ChatGPT – plany płatne; Claude – w darmowym jeden własny łącznik). |
-| **Zwykły czat** | Klucz dostępu i gotowe polecenie dla rozmowy w przeglądarce – czat otwiera adres jak stronę (rozdział „25.7 AI, które umie otwierać strony (bez łącznika)”). Nie każdy czat to potrafi. | Także darmowe plany. |
+| **Kopiuj i wklej** | Dowolny czat w przeglądarce, także darmowy ChatGPT, bez klucza: wybierasz projekt i **Otwórz z Asystentem AI** – projekt otwiera się z Asystentem AI w trybie „kopiuj i wklej” (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). Czat nie dostaje żadnego klucza ani adresu. | Nic. |
+| **Czat otwierający strony** | Klucz dostępu i gotowe polecenie z adresami dla czatu, który sam otwiera dowolne strony (rozdział „25.7 AI, które umie otwierać strony (bez łącznika)”). ChatGPT tego nie robi – wtedy „Kopiuj i wklej”. | Makietka nic nie bierze. |
 
 ![Sztuczna inteligencja w ustawieniach konta](https://makietka.app/img/instrukcja/k-konto-ai.png)
 

@@ -949,10 +949,14 @@ body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .zakladki-ai button:hover { color: var(--tusz); }
 .zakladki-ai button[aria-selected="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
 .zakladki-ai button:focus-visible { outline: 2px solid var(--akcent); }
-@media (max-width: 560px) { .zakladki-ai { flex-direction: column; } }
+@media (max-width: 720px) { .zakladki-ai { flex-direction: column; } }
 #dostep-ai[data-sekcja="czat"] .sekcja-kluczy-ai:not([data-sposob="czat"]),
 #dostep-ai[data-sekcja="lacznik"] .sekcja-kluczy-ai:not([data-sposob="lacznik"]),
+#dostep-ai[data-sekcja="kopiuj"] .sekcja-kluczy-ai:not([data-sposob="kopiuj"]),
 #dostep-ai[data-sekcja="zwykly"] .sekcja-kluczy-ai:not([data-sposob="zwykly"]) { display: none; }
+.otworz-kopiuj-ai { align-items: flex-end; }
+.otworz-kopiuj-ai .pole { flex: 1 1 220px; margin: 0; }
+ol.punkty-ai { padding-left: 20px; }
 .wyjasnienie-ai { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; background: var(--powierzchnia-2); border: 1px solid var(--linia); border-radius: var(--r-s); font-size: 13.5px; line-height: 1.5; }
 .wyjasnienie-ai p { margin: 0; }
 .punkty-ai { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; color: var(--tusz-2); }
