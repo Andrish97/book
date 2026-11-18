@@ -112,3 +112,49 @@ test('import IDML i SLA: zapis i odczyt, wątki, pola scalania, wczytanie z list
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.strony[0].obiekty.length), 4, 'tekst, prostokąt, elipsa, obraz');
   assert.deepEqual(bledy, []);
 });
+
+// Błędy znalezione na prawdziwych plikach (szablony Scribusa 1.3–1.5, pliki InDesigna z publicznych repozytoriów):
+// niedozwolone znaki w XML starszego Scribusa, strony wzorcowe Scribusa (MASTERPAGE/MASTEROBJECT) i InDesigna
+// (MasterSpread) jako wzorce Makietki, uszkodzony obraz w IDML – bez przerwania odczytu.
+test('import: niedozwolone znaki w XML, strony wzorcowe SLA i IDML jako wzorce, uszkodzony obraz IDML', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Start');
+  const w = await strona.evaluate(async () => {
+    const { biblioteka } = await import('./js/biblioteki.js');
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'ZIP');
+    const { importujSklad } = await import('./js/import-skladu.js');
+    const { przyjmijPlik } = await import('./js/obrazy-projektu.js');
+    const sla = `<SCRIBUSUTF8NEW Version="1.3.3.13svn"><DOCUMENT ANZPAGES="2" PAGEWIDTH="595.28" PAGEHEIGHT="841.89">
+      <COLOR NAME="Black" CMYK="#000000ff"/>
+      <MASTERPAGE PAGEXPOS="100" PAGEYPOS="20" PAGEWIDTH="595.28" PAGEHEIGHT="841.89" NUM="0" NAM="Normal"/>
+      <PAGE PAGEXPOS="100" PAGEYPOS="20" PAGEWIDTH="595.28" PAGEHEIGHT="841.89" NUM="0" MNAM="Normal"/>
+      <PAGE PAGEXPOS="100" PAGEYPOS="900" PAGEWIDTH="595.28" PAGEHEIGHT="841.89" NUM="1" MNAM="Normal"/>
+      <MASTEROBJECT OwnPage="0" PTYPE="4" XPOS="150" YPOS="800" WIDTH="100" HEIGHT="20"><ITEXT CH="Stopka &#x1;wspólna" FONT="Arial Regular" FONTSIZE="9"/></MASTEROBJECT>
+      <PAGEOBJECT OwnPage="1" PTYPE="4" XPOS="150" YPOS="950" WIDTH="200" HEIGHT="40"><ITEXT CH="Druga strona" FONT="Arial Bold" FONTSIZE="12" FCOLOR="Black"/></PAGEOBJECT>
+    </DOCUMENT></SCRIBUSUTF8NEW>`;
+    const s = await importujSklad(new File([sla], 'stary.sla'), JSZip, przyjmijPlik);
+    // IDML z rozkładówką wzorcową i obrazem z uszkodzoną zawartością.
+    const zip = new JSZip();
+    const NS = 'xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"';
+    const strona0 = '<Page Self="p1" GeometricBounds="0 0 841.89 595.28" ItemTransform="1 0 0 1 -297.64 -420.945" AppliedMaster="mA"/>';
+    const geo = (x, y, w, h) => `<Properties><PathGeometry><GeometryPathType PathOpen="false"><PathPointArray>${[[x, y], [x, y + h], [x + w, y + h], [x + w, y]].map(([a, b]) => `<PathPointType Anchor="${a} ${b}" LeftDirection="${a} ${b}" RightDirection="${a} ${b}"/>`).join('')}</PathPointArray></GeometryPathType></PathGeometry></Properties>`;
+    zip.file('mimetype', 'application/vnd.adobe.indesign-idml-package');
+    zip.file('designmap.xml', `<?xml version="1.0"?><Document ${NS}><idPkg:MasterSpread src="MasterSpreads/m.xml"/><idPkg:Spread src="Spreads/s.xml"/></Document>`);
+    zip.file('MasterSpreads/m.xml', `<?xml version="1.0"?><idPkg:MasterSpread ${NS}><MasterSpread Self="mA" NamePrefix="A" BaseName="Wzór"><Page Self="mp" GeometricBounds="0 0 841.89 595.28" ItemTransform="1 0 0 1 -297.64 -420.945"/><Rectangle Self="r1" FillColor="Color/Black" ItemTransform="1 0 0 1 0 0">${geo(-297.64, 380, 595.28, 40)}</Rectangle></MasterSpread></idPkg:MasterSpread>`);
+    zip.file('Spreads/s.xml', `<?xml version="1.0"?><idPkg:Spread ${NS}><Spread Self="s1">${strona0}<Rectangle Self="r2" ItemTransform="1 0 0 1 0 0">${geo(-100, -100, 200, 100)}<Image Self="i1" ItemTransform="1 0 0 1 -100 -100"><Properties><Contents><![CDATA[###to-nie-jest-base64###]]></Contents><GraphicBounds Left="0" Top="0" Right="200" Bottom="100"/></Properties><Link LinkResourceURI="file:zdjecie.jpg"/></Image></Rectangle></Spread></idPkg:Spread>`);
+    const i = await importujSklad(new File([await zip.generateAsync({ type: 'blob' })], 'z-wzorcem.idml'), JSZip, przyjmijPlik);
+    return {
+      sla: { stron: s.projekt.strony.length, wzorce: s.projekt.wzorce.map((x) => [x.nazwa, x.obiekty[0]?.text]), przypiete: s.projekt.strony.map((x) => Array.isArray(x.wzorce) && x.wzorce[0] === s.projekt.wzorce[0]?.id), druga: s.projekt.strony[1].obiekty[0]?.text },
+      idml: { wzorce: i.projekt.wzorce.map((x) => [x.nazwa, x.obiekty.length, x.obiekty[0]?.fill]), przypiety: i.projekt.strony[0].wzorce?.[0] === i.projekt.wzorce[0]?.id, brak: i.raport.brakujace, szare: i.projekt.strony[0].obiekty.some((o) => /Brak obrazu: zdjecie.jpg/.test(o.nazwa || '')) },
+    };
+  });
+  assert.equal(w.sla.stron, 2);
+  assert.deepEqual(w.sla.wzorce, [['Normal', 'Stopka wspólna']], 'stopka ze strony wzorcowej, bez niedozwolonego znaku');
+  assert.deepEqual(w.sla.przypiete, [true, true]);
+  assert.equal(w.sla.druga, 'Druga strona');
+  assert.deepEqual(w.idml.wzorce, [['A-Wzór', 1, '#000000']]);
+  assert.ok(w.idml.przypiety);
+  assert.deepEqual(w.idml.brak, ['zdjecie.jpg'], 'uszkodzona zawartość obrazu – jak brakujący plik');
+  assert.ok(w.idml.szare);
+  assert.deepEqual(bledy, []);
+});

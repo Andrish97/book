@@ -118,6 +118,12 @@ function stylZnaku(s) {
     else if (bl.id === 0x03) st.i = true;
     else if (bl.id === 0x1e) st.u = (bl.dane & 0xff) !== 0;
     else if (bl.id === 0x0c) st.pt = (bl.dane * 72) / EMU;
+    else if (bl.id === 0x2e && DL_BLOKU(bl.typ) >= 0) st.kolor = bl.dane;
+    else if (bl.id === 0x44 && DL_BLOKU(bl.typ) < 0) {
+      s.p = bl.daneOd + 4;
+      while (s.dalej(bl.daneOd + bl.dlugosc)) { const sb = blok(s, true); if (sb.id === 0x0) { st.kolor = sb.dane; break; } }
+      s.p = bl.daneOd + bl.dlugosc;
+    }
     else if (bl.id === 0x24 && DL_BLOKU(bl.typ) < 0) {
       s.p = bl.daneOd + 4;
       while (s.dalej(bl.daneOd + bl.dlugosc)) {
@@ -165,12 +171,26 @@ function czytajTeksty(b) {
   const znaki = [];
   const akapity = [];
   const czcionki = [];
+  const kolory = []; // kolory tekstu (odwołania do koloru – RGB albo z palety)
   let tekst = null;
   for (const k of kawalki) {
     if (k.nazwa === 'STRS') { s.p = k.offset; const ile = s.u32(); s.p = 4 + k.offset + s.u32(); for (let j = 0; j < ile; j += 1) dlugosci.push(s.u32()); }
     else if (k.nazwa === 'SYID') { s.p = k.offset; s.u32(); const ile = s.u32(); for (let j = 0; j < ile; j += 1) idy.push(s.u32()); }
     else if (k.nazwa === 'TEXT') tekst = k;
     else if (k.nazwa === 'FDPC') znaki.push(...listaStylow(s, k, stylZnaku));
+    else if (k.nazwa === 'PL  ') {
+      s.p = k.offset;
+      const ile = s.u32();
+      s.p += 8;
+      for (let i = 0; i < ile && s.p < b.length; i += 1) {
+        const pocz = s.p;
+        const dl = s.u32();
+        let kol = 0;
+        while (s.dalej(pocz + dl)) { const bl = blok(s, true); if (bl.id === 0x01) kol = bl.dane; }
+        kolory.push(kol);
+        s.p = pocz + dl;
+      }
+    }
     else if (k.nazwa === 'FDPP') akapity.push(...listaStylow(s, k, stylAkapitu));
     else if (k.nazwa === 'FONT') {
       s.p = k.offset;
@@ -201,7 +221,7 @@ function czytajTeksty(b) {
       while (ia < akapity.length - 1 && p + 2 > akapity[ia].koniec + 1) ia += 1;
       const sz = znaki[iz]?.styl || {};
       t += z;
-      style.push({ ...sz, ...(sz.font !== undefined && czcionki[sz.font] ? { rodzina: czcionki[sz.font] } : {}) });
+      style.push({ ...sz, ...(sz.font !== undefined && czcionki[sz.font] ? { rodzina: czcionki[sz.font] } : {}), ...(sz.kolor !== undefined && kolory[sz.kolor] !== undefined ? { kolorRef: kolory[sz.kolor] } : {}) });
       if (z === '\r' || k === dlugosci[j] - 1) wyr.push(akapity[ia]?.styl?.wyr || 'left');
     }
     wynik.set(idy[j], { tekst: t, style, wyr });
@@ -271,7 +291,7 @@ function czytajContents(b) {
       } else s.p = bl.daneOd + (bl.dlugosc || 0);
     }
   }
-  const wynik = { szer: 8.5, wys: 11, stronyKolejnosc: [], strony: new Map(), ksztalty: new Map() };
+  const wynik = { szer: 8.5, wys: 11, stronyKolejnosc: [], strony: new Map(), ksztalty: new Map(), paleta: [] };
   for (const k of kawalki) {
     s.p = k.offset;
     const pocz = s.p;
@@ -298,6 +318,22 @@ function czytajContents(b) {
         else if (DL_BLOKU(bl.typ) < 0) s.p = bl.daneOd + bl.dlugosc;
       }
       wynik.strony.set(k.numer, strona);
+    } else if (k.typ === 0x5c) { // paleta kolorów dokumentu
+      while (s.dalej(pocz + dl)) {
+        const bl = blok(s);
+        if (bl.typ === 0xa0) {
+          while (s.dalej(bl.daneOd + bl.dlugosc)) {
+            const sb = blok(s);
+            if (sb.typ === 0x88) {
+              let kolor = 0;
+              while (s.dalej(sb.daneOd + sb.dlugosc)) { const e = blok(s, true); if (e.id === 0x01) kolor = e.dane; }
+              wynik.paleta.push(kolor & 0xffffff);
+            } else if (sb.typ === 0x78) wynik.paleta.push(0);
+            if (DL_BLOKU(sb.typ) < 0) s.p = sb.daneOd + sb.dlugosc;
+          }
+        }
+        if (DL_BLOKU(bl.typ) < 0) s.p = bl.daneOd + bl.dlugosc;
+      }
     } else if ([0x01, 0x20, 0x30, 0x10, 0x31].includes(k.typ)) { // kształt, kształt zastępczy, grupa, tabela, logo
       const ks = { typ: k.typ, tekst: null };
       while (s.dalej(pocz + dl)) {
@@ -466,11 +502,14 @@ function czytajObrazy(b) {
   return obrazy;
 }
 
-// Kolor Office Art: 0x00BBGGRR (bajt flag 0) – RGB; inaczej – kolor z palety dokumentu (nie umiemy) → null.
-export function kolorPub(v) {
+// Kolor Publishera (jak w libmspub ColorReference): bajt 0x08 – numer koloru w palecie dokumentu, inaczej 0x00BBGGRR.
+export function kolorPub(v, paleta = []) {
   if (v === null || v === undefined) return null;
-  if ((v >>> 24) !== 0) return null;
-  const r = v & 0xff; const g = (v >> 8) & 0xff; const bl = (v >> 16) & 0xff;
+  const typ = (v >>> 24) & 0xff;
+  let c = v & 0xffffff;
+  if (typ === 0x08) { if ((v & 0xffffff) >= paleta.length) return null; c = paleta[v & 0xffffff]; }
+  else if (typ !== 0) return null;
+  const r = c & 0xff; const g = (c >> 8) & 0xff; const bl = (c >> 16) & 0xff;
   return `#${[r, g, bl].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
 }
 
@@ -488,6 +527,8 @@ export function czytajPub(bufor) {
   const delay = cfb.strumien('Escher/EscherDelayStm');
   const obrazy = delay ? czytajObrazy(delay) : new Map();
   const kolejnosc = doc.stronyKolejnosc.length ? doc.stronyKolejnosc : [...doc.strony.keys()];
+  // Paleta z czarnym na początku, gdy krótsza niż 8 kolorów (jak libmspub).
+  const paleta = doc.paleta.length < 8 ? [0, ...doc.paleta] : doc.paleta;
   // Strony techniczne (stałe numery w każdym pliku – jak w libmspub) i strony wzorcowe (wskazywane przez inne strony).
   const TECHNICZNE = new Set([0x10d, 0x110, 0x113, 0x117]);
   const wzorcowe = new Set([...doc.strony.values()].map((x) => x.zWzorca).filter((x) => x && doc.strony.has(x)));
@@ -504,8 +545,8 @@ export function czytajPub(bufor) {
       const obraz = e.obraz !== null ? obrazy.get(e.obraz) || null : null;
       wynik.push({
         x: doc.szer / 2 + e.xs / EMU, y: doc.wys / 2 + e.ys / EMU, w: (e.xe - e.xs) / EMU, h: (e.ye - e.ys) / EMU, kat: e.obrot,
-        idTekstu, tekst, style: t?.style || null, wyrownanie: t?.wyr || null, obraz,
-        wypelnienie: kolorPub(e.wypelnienie), obrys: kolorPub(e.obrys), grubosc: e.grubosc, typKsztaltu: e.typ,
+        idTekstu, tekst, style: t?.style ? t.style.map((x) => (x.kolorRef !== undefined ? { ...x, kolor: kolorPub(x.kolorRef, paleta) } : x)) : null, wyrownanie: t?.wyr || null, obraz,
+        wypelnienie: kolorPub(e.wypelnienie, paleta), obrys: kolorPub(e.obrys, paleta), grubosc: e.grubosc, typKsztaltu: e.typ,
         tabela: c?.typ === 0x10,
       });
     }

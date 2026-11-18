@@ -9,7 +9,7 @@
 //
 // Bez DOM poza DOMParser i bez Fabric: elementy powstają jako zwykły JSON projektu (jak gotowe sekcje).
 
-import { nowyProjekt, nowaSekcja, nowaStrona, uid, normalizuj } from './projekt.js';
+import { nowyProjekt, nowaSekcja, nowaStrona, nowyWzorzec, uid, normalizuj } from './projekt.js';
 import { czytajPub } from './pub-czytnik.js';
 
 const MM = 25.4 / 72; // pt → mm
@@ -158,7 +158,9 @@ async function wymiaryObrazu(blob) {
   try { const b = await globalThis.createImageBitmap(blob); const w = { w: b.width, h: b.height }; b.close?.(); return w; } catch { return null; }
 }
 const typObrazu = (bajty) => (bajty[0] === 0x89 && bajty[1] === 0x50 ? 'image/png' : bajty[0] === 0xff && bajty[1] === 0xd8 ? 'image/jpeg' : bajty[0] === 0x47 && bajty[1] === 0x49 ? 'image/gif' : bajty[0] === 0x52 && bajty[1] === 0x49 ? 'image/webp' : '');
-const zBase64 = (s) => Uint8Array.from(atob(String(s).replace(/\s+/g, '')), (c) => c.charCodeAt(0));
+const zBase64 = (s) => {
+  try { return Uint8Array.from(atob(String(s).replace(/[^A-Za-z0-9+/=]/g, '')), (c) => c.charCodeAt(0)); } catch { return new Uint8Array(0); }
+};
 
 // Obraz przycięty do ramki (oba prostokąty w mm strony, bez obrotu): element obrazu z cropX/cropY.
 function obrazWRamce(zasob, px, ramkaObrazu, ramka) {
@@ -197,6 +199,16 @@ function zbudujProjekt(nazwa, strony) {
     }
     const st = nowaStrona(`Strona ${i + 1}`, sekcja.id);
     st.obiekty = s.obiekty;
+    // Strona wzorcowa z pliku → wzorzec Makietki (jeden na stronę wzorcową, wspólny dla stron, które go używają).
+    if (s.wzorzec) {
+      if (!s.wzorzec.idMakietki) {
+        const wz = nowyWzorzec(s.wzorzec.nazwaWzorca || 'Wzorzec', sekcja.wydruk);
+        wz.obiekty = s.wzorzec.obiekty;
+        p.wzorce.push(wz);
+        s.wzorzec.idMakietki = wz.id;
+      }
+      st.wzorce = [s.wzorzec.idMakietki];
+    }
     p.strony.push(st);
   });
   for (const s of p.sekcje) delete s._klucz;
@@ -227,7 +239,7 @@ function polaczWatki(ramki) {
 
 async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
   const tekst = async (n) => { const f = zip.file(n); return f ? f.async('string') : ''; };
-  const xml = (s) => new DOMParser().parseFromString(s, 'application/xml');
+  const xml = (s) => new DOMParser().parseFromString(czystyXml(s), 'application/xml');
   const dm = xml(await tekst('designmap.xml'));
   if (!dm.documentElement || dm.querySelector('parsererror')) throw new Error('To nie jest poprawny plik IDML (brak designmap.xml).');
   // Kolory.
@@ -337,13 +349,10 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
   const pref = xml(await tekst('Resources/Preferences.xml'));
   const dp = pref.getElementsByTagName('DocumentPreference')[0];
   const spad = Number(dp?.getAttribute('DocumentBleedTopOffset') || 0) * MM;
-  // Rozkładówki → strony.
+  // Rozkładówki → strony (i rozkładówki wzorcowe → wzorce).
   const strony = [];
   const ramkiTekstu = [];
-  for (const spEl of dm.getElementsByTagName('idPkg:Spread')) {
-    const d = xml(await tekst(spEl.getAttribute('src')));
-    const spread = d.getElementsByTagName('Spread')[0];
-    if (!spread) continue;
+  const rozkladowka = async (spread, cel) => {
     const naRozkl = [...spread.children].filter((c) => c.tagName === 'Page').map((pg) => {
       const gb = String(pg.getAttribute('GeometricBounds') || '0 0 792 612').split(/\s+/).map(Number); // góra lewo dół prawo
       const mt = macierzZ(pg.getAttribute('ItemTransform'));
@@ -355,11 +364,12 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
         // rozkładówka → strona (pt): odwrotność położenia strony, minus początek ramki strony
         doStrony: mnoz([1, 0, 0, 1, -gb[1], -gb[0]], odwroc(mt)),
         rog: przeksztalc(mt, [gb[1], gb[0]]), rog2: przeksztalc(mt, [gb[3], gb[2]]),
+        master: pg.getAttribute('AppliedMaster') || null,
       };
-      strony.push(strona);
+      cel.push(strona);
       return strona;
     });
-    if (!naRozkl.length) continue;
+    if (!naRozkl.length) return;
     const ktora = (pt) => naRozkl.find((s) => pt[0] >= Math.min(s.rog[0], s.rog2[0]) && pt[0] <= Math.max(s.rog[0], s.rog2[0]) && pt[1] >= Math.min(s.rog[1], s.rog2[1]) && pt[1] <= Math.max(s.rog[1], s.rog2[1]))
       || naRozkl.reduce((a, s) => (Math.hypot(pt[0] - (s.rog[0] + s.rog2[0]) / 2, pt[1] - (s.rog[1] + s.rog2[1]) / 2) < Math.hypot(pt[0] - (a.rog[0] + a.rog2[0]) / 2, pt[1] - (a.rog[1] + a.rog2[1]) / 2) ? s : a));
     const element = async (el, rodzic) => {
@@ -436,6 +446,29 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
       raport.ksztalty += 1;
     };
     for (const c of spread.children) await element(c, JEDNOSTKOWA);
+  };
+  // Wzorce (MasterSpread): strony wzorcowe → wzorce Makietki; strona dostaje wzorzec swojej strony (lewa/prawa).
+  const wzorce = new Map(); // Self rozkładówki wzorcowej → [strony]
+  for (const mEl of dm.getElementsByTagName('idPkg:MasterSpread')) {
+    const d = xml(await tekst(mEl.getAttribute('src')));
+    const ms = d.getElementsByTagName('MasterSpread')[0];
+    if (!ms) continue;
+    const lista = [];
+    await rozkladowka(ms, lista);
+    lista.forEach((st, i) => { st.nazwaWzorca = `${ms.getAttribute('NamePrefix') || ''}-${ms.getAttribute('BaseName') || 'Wzorzec'}${lista.length > 1 ? (i ? ' (prawa)' : ' (lewa)') : ''}`.replace(/^-/, ''); });
+    wzorce.set(ms.getAttribute('Self'), lista);
+  }
+  for (const spEl of dm.getElementsByTagName('idPkg:Spread')) {
+    const d = xml(await tekst(spEl.getAttribute('src')));
+    const spread = d.getElementsByTagName('Spread')[0];
+    if (spread) await rozkladowka(spread, strony);
+  }
+  for (const st of strony) {
+    const lista = st.master && st.master !== 'n' ? wzorce.get(st.master) : null;
+    if (!lista?.length) continue;
+    // Strona lewa (na lewo od grzbietu rozkładówki) – pierwsza strona wzorca, prawa – druga.
+    const w = lista.length > 1 && Math.max(st.rog[0], st.rog2[0]) > 0.5 ? lista[1] : lista[0];
+    if (w.obiekty.length) st.wzorzec = w;
   }
   polaczWatki(ramkiTekstu);
   return strony;
@@ -443,8 +476,11 @@ async function czytajIdml(zip, { obrazyObok, przyjmij, raport }) {
 
 // ---------- Scribus (.sla) ----------
 
+// Starsze programy zapisują w XML znaki niedozwolone w XML 1.0 (np. &#x1; w tekście) – usuwamy je przed odczytem.
+const czystyXml = (t) => String(t).replace(/&#(?:x0*(?:[0-8bcef]|1[0-9a-f])|0*(?:[0-8]|1[1-2]|1[4-9]|2[0-9]|3[01]));/gi, '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
+
 async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
-  const d = new DOMParser().parseFromString(tekstSla, 'application/xml');
+  const d = new DOMParser().parseFromString(czystyXml(tekstSla), 'application/xml');
   const doc = d.getElementsByTagName('DOCUMENT')[0];
   if (!doc || d.querySelector('parsererror')) throw new Error('To nie jest poprawny plik Scribusa (.sla).');
   const kolory = new Map([['None', null], ['White', '#ffffff'], ['Black', '#000000']]);
@@ -469,11 +505,22 @@ async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
     };
   }).sort((a, b) => a.nr - b.nr);
   const poNr = new Map(strony.map((s) => [s.nr, s]));
+  // Strony wzorcowe (MASTERPAGE, obiekty MASTEROBJECT) → wzorce; strona wskazuje swój wzorzec nazwą (MNAM).
+  const wzorce = [...doc.children].filter((c) => c.tagName === 'MASTERPAGE').map((pg) => {
+    const a = (k) => Number(pg.getAttribute(k) || 0);
+    return { nr: a('NUM'), nazwaWzorca: pg.getAttribute('NAM') || 'Wzorzec', x: a('PAGEXPOS'), y: a('PAGEYPOS'), w: (a('PAGEWIDTH') || a('PAGEWITH')) * MM, h: a('PAGEHEIGHT') * MM, obiekty: [] };
+  });
+  const wzorzecNr = new Map(wzorce.map((w) => [w.nr, w]));
+  const wzorzecNazwa = new Map(wzorce.map((w) => [w.nazwaWzorca, w]));
+  for (const pg of [...doc.children].filter((c) => c.tagName === 'PAGE')) {
+    const st = poNr.get(Number(pg.getAttribute('NUM') || 0));
+    if (st) st.mnam = pg.getAttribute('MNAM') || 'Normal';
+  }
   const ramkiTekstu = [];
   const element = async (el) => {
-    if (el.getAttribute('isGroupControl') === '1') { for (const c of el.children) if (c.tagName === 'PAGEOBJECT') await element(c); return; }
+    if (el.getAttribute('isGroupControl') === '1') { for (const c of el.children) if (c.tagName === 'PAGEOBJECT' || c.tagName === 'MASTEROBJECT') await element(c); return; }
     const a = (k, def = 0) => Number(el.getAttribute(k) ?? def);
-    const strona = poNr.get(a('OwnPage')) || strony[0];
+    const strona = el.tagName === 'MASTEROBJECT' ? wzorzecNr.get(a('OwnPage')) : (poNr.get(a('OwnPage')) || strony[0]);
     if (!strona) return;
     const typ = a('PTYPE');
     const W = a('WIDTH');
@@ -561,7 +608,8 @@ async function czytajSla(tekstSla, { obrazyObok, przyjmij, raport }) {
     }));
     raport.ksztalty += 1;
   };
-  for (const c of doc.children) if (c.tagName === 'PAGEOBJECT') await element(c);
+  for (const c of doc.children) if (c.tagName === 'PAGEOBJECT' || c.tagName === 'MASTEROBJECT') await element(c);
+  for (const st of strony) { const w = wzorzecNazwa.get(st.mnam); if (w?.obiekty.length) st.wzorzec = w; }
   polaczWatki(ramkiTekstu);
   return strony;
 }
@@ -607,7 +655,7 @@ async function czytajPubDoStron(bufor, { przyjmij, raport }) {
           const st0 = k.style?.[i] || {};
           const styl = {
             fontFamily: st0.rodzina || 'Times New Roman', fontSize: r2((st0.pt || 10) * MM),
-            fontWeight: st0.b ? 'bold' : 'normal', fontStyle: st0.i ? 'italic' : 'normal', fill: '#000000',
+            fontWeight: st0.b ? 'bold' : 'normal', fontStyle: st0.i ? 'italic' : 'normal', fill: st0.kolor || '#000000',
             ...(st0.u ? { underline: true } : {}),
           };
           const ost = fragmenty.at(-1);

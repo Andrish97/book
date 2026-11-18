@@ -29,7 +29,7 @@ test('import Publishera: Sample.pub i broszura – strony, teksty z wyglądem, o
       stron: s.projekt.strony.length, raport: { teksty: s.raport.teksty, format: s.raport.format },
       pierwszy: { text: t1[0].text.split('\n')[0], left: Math.round(t1[0].left), top: Math.round(t1[0].top), font: t1[0].fontFamily },
       drugi: { text: t1[1].text.split('\n')[0], b: t1[1].fontWeight, i: t1[1].fontStyle, pt: Math.round(t1[1].fontSize * 72 / 25.4), font: t1[1].fontFamily },
-      broszura: { stron: br.projekt.strony.length, format: [Math.round(br.projekt.sekcje[0].wydruk.szerokosc_mm), Math.round(br.projekt.sekcje[0].wydruk.wysokosc_mm)], obrazy: br.raport.obrazy, nieobsl: br.raport.nieobslugiwane, teksty: br.raport.teksty, zasobow: Object.keys(br.projekt.zasoby).length, tlo: br.projekt.strony[1].obiekty.some((o) => o.backgroundColor === '#b9b5eb') },
+      broszura: { stron: br.projekt.strony.length, format: [Math.round(br.projekt.sekcje[0].wydruk.szerokosc_mm), Math.round(br.projekt.sekcje[0].wydruk.wysokosc_mm)], obrazy: br.raport.obrazy, nieobsl: br.raport.nieobslugiwane, teksty: br.raport.teksty, zasobow: Object.keys(br.projekt.zasoby).length, tlo: br.projekt.strony[1].obiekty.some((o) => o.backgroundColor === '#b9b5eb'), paleta: br.projekt.strony[0].obiekty.some((o) => o.backgroundColor === '#9999cc' || o.fill === '#9999cc') },
     };
   }, pliki);
   assert.deepEqual(w.format, [210, 297], 'A4 (8,27 × 11,69 cala)');
@@ -43,6 +43,7 @@ test('import Publishera: Sample.pub i broszura – strony, teksty z wyglądem, o
   assert.deepEqual(w.broszura.nieobsl, ['WMF ×5'], 'obrazy WMF – szare pola');
   assert.equal(w.broszura.zasobow, 3);
   assert.ok(w.broszura.tlo, 'ramka tekstu z tłem w kolorze z Publishera');
+  assert.ok(w.broszura.paleta, 'kolor z palety dokumentu (fioletowy nagłówek, jak w LibreOffice)');
 
   // Z listy projektów.
   await strona.evaluate(() => { location.hash = '#/projekty'; });
