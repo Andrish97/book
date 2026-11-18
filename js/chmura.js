@@ -657,7 +657,10 @@ const wersjaObrazu = (manifest, id) => (manifest.skroty?.[id] || '').slice(0, 16
 // odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
 // Publikacja obrazów stron do folderu linku w R2 (zwykły link: <konto>/<projekt>/<kod>; link z ochroną:
 // <konto>/<projekt>/<kod>.<sekret>, #97). pelna: wszystkie strony od nowa. chroniony: pliki tylko w pamięci prywatnej.
-async function publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie = 'jpg', pelna = false, chroniony = false } = {}) {
+// Udostępnianie w tle (#204): opis podglądu (manifest) zapisuje się od razu i co kilka sekund w trakcie –
+// link działa natychmiast, a strony pojawiają się u oglądającego po kolei („przygotowanie” – brakuje stron).
+// naLink() – wywołane po pierwszym zapisie opisu (link już działa).
+async function publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie = 'jpg', pelna = false, chroniony = false, naLink = null } = {}) {
   // Skróty obrazów z poprzedniej publikacji: strona, której obraz się nie zmienił, nie jest wysyłana drugi raz.
   let poprzednie = {};
   let poprzednieTresci = {};
@@ -672,6 +675,19 @@ async function publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, 
   const skroty = {};
   let gotowe = 0;
   let wyslane = 0;
+  // Opis w trakcie: strony już gotowe (nowe skróty) i jeszcze nie przerobione z poprzedniej publikacji.
+  const zapiszOpis = async (koniec) => {
+    const teraz = koniec ? skroty : { ...Object.fromEntries(strony.map((x) => [x.id, poprzednie[x.id]]).filter(([, v]) => v)), ...skroty };
+    const brak = strony.some((x) => !teraz[x.id]);
+    const m = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano: new Date().toISOString(), v: Date.now(), uklad, skroty: teraz, rozszerzenie, ...(odciski && koniec ? { tresci: odciski } : {}), ...(!koniec && brak ? { przygotowanie: true, gotowe, wszystkie: strony.length } : {}) };
+    await r2.wyslij(BUCKET_PODGLADOW, `${folder}/manifest.json`, new Blob([JSON.stringify(m)], { type: 'application/json' }), { cache: 'no-cache' });
+    return m;
+  };
+  if (naLink) {
+    await zapiszOpis(false);
+    await naLink();
+  }
+  let ostatniOpis = Date.now();
   for (const s of strony) {
     if (odciski && poprzednie[s.id] && poprzednieTresci[s.id] === odciski[s.id]) {
       skroty[s.id] = poprzednie[s.id];
@@ -686,25 +702,24 @@ async function publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, 
     }
     gotowe += 1;
     postep(gotowe, strony.length);
+    if (naLink && Date.now() - ostatniOpis > 3000 && gotowe < strony.length) { ostatniOpis = Date.now(); await zapiszOpis(false); }
   }
   // Obrazy stron usuniętych od poprzedniej aktualizacji.
   const potrzebne = new Set([...strony.map((s) => `${s.id}.${rozszerzenie}`), 'manifest.json']);
   const zbedne = (await plikiFolderu(folder)).filter((k) => !potrzebne.has(k.slice(folder.length + 1)));
   if (zbedne.length) await usunPliki(zbedne);
 
-  const zaktualizowano = new Date().toISOString();
-  const manifest = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano, v: Date.now(), uklad, skroty, rozszerzenie, ...(odciski ? { tresci: odciski } : {}) };
-  await r2.wyslij(BUCKET_PODGLADOW, `${folder}/manifest.json`, new Blob([JSON.stringify(manifest)], { type: 'application/json' }), { cache: 'no-cache' });
+  const { zaktualizowano } = await zapiszOpis(true);
   return { zaktualizowano, wyslane, wszystkie: strony.length };
 }
 
 // uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob WebP albo JPEG (rozszerzenie: 'webp' | 'jpg').
 // Zwraca { konto, zaktualizowano, wyslane, wszystkie }.
 // odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
-export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg' } = {}) {
+export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg', naLink = null } = {}) {
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
-  const w = await publikujDoFolderu(`${uzytkownik.id}/${projektId}/${kod}`, uklad, strony, obraz, postep, odciski, { rozszerzenie });
+  const w = await publikujDoFolderu(`${uzytkownik.id}/${projektId}/${kod}`, uklad, strony, obraz, postep, odciski, { rozszerzenie, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
   return { konto: uzytkownik.id, ...w };
 }
 
@@ -820,13 +835,13 @@ export async function usunPodgladChroniony(projektId, kod) {
 
 // Właściciel: ta sama publikacja co opublikujPodglad, ale do folderu linku z ochroną.
 // pelna: true – wysyła wszystkie strony (np. przy przejściu z linku publicznego albo po zmianie hasła).
-export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg' } = {}) {
+export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg', naLink = null } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
   const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null);
   const folder = `${uzytkownik.id}/${projektId}/${w.folder}`;
-  const wynik = await publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie, pelna: pelna || w.nowy, chroniony: true });
+  const wynik = await publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie, pelna: pelna || w.nowy, chroniony: true, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
   return { konto: uzytkownik.id, ...wynik };
 }
 

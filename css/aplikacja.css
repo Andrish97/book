@@ -3520,3 +3520,5 @@ img:not([src]):not(.zaladowany) { color: transparent; }
   img[src]:not(.zaladowany), .podglad-kartka:has(> img:not(.zaladowany)) { animation: none; background-position: 50% 0; }
 }
 
+/* Podgląd z linku w przygotowaniu (#204): pasek nad stronami. */
+.podglad-przygotowanie { margin: 0; padding: 10px 16px; background: var(--akcent-tlo); color: var(--tusz); font-size: 13.5px; line-height: 1.4; border-bottom: 1px solid var(--linia); }

@@ -481,3 +481,54 @@ test('kopia projektu: zmiana bez pytania o konflikt, link dodany w kopii zostaje
   assert.equal(await strona.inputValue('#udostepnij-link'), link);
   assert.deepEqual(bledy, []);
 });
+
+// #204: udostępnianie w tle – link działa od razu (wstępny opis podglądu), strony wysyłają się w tle;
+// oglądający widzi „Podgląd jest w przygotowaniu”, a strony pojawiają się same; na końcu pasek znika.
+test('udostępnianie w tle: link od razu, oglądający widzi „w przygotowaniu”, strony dochodzą same', async (t) => {
+  const { strona, baza, przegladarka, Z_ATRAPA, kontekst } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
+  await nowyProjekt(strona, 'W tle');
+  await strona.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const p = window.seriodruk.stan.projekt;
+    for (let i = 2; i <= 8; i += 1) p.strony.push(P.nowaStrona(`S${i}`, p.sekcje[0].id));
+    await (await import('./js/app/zapis.js')).otworzProjekt(p);
+  });
+  // Wolne wysyłanie obrazów stron (np. słaby internet): każdy obraz ok. 1,2 s.
+  await kontekst.route(/\/pliki\/.*\.(webp|jpg)$/, async (r) => { await new Promise((ok) => { setTimeout(ok, 1200); }); await r.fallback(); });
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => /Link gotowy/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 15000 });
+  const link = await strona.inputValue('#udostepnij-link');
+  assert.match(link, /\/[a-hj-km-np-z2-9]{6}$/, 'krótki link od razu');
+  const klucz = [...baza.pliki.keys()].find((k) => k.startsWith('podglady/') && k.endsWith('manifest.json'));
+  assert.equal(JSON.parse(baza.pliki.get(klucz).tresc.toString()).przygotowanie, true, 'opis: w przygotowaniu');
+  // Oglądający w trakcie.
+  const gosc = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+  await gosc.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
+  await gosc.route('https://atrapa.supabase.co/podglady/**', async (r) => {
+    const k = `podglady/${decodeURIComponent(new URL(r.request().url()).pathname.slice('/podglady/'.length))}`;
+    const plik = baza.pliki.get(k);
+    if (!plik) return r.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
+    return r.fulfill({ status: 200, contentType: plik.typ, body: plik.tresc, headers: { 'access-control-allow-origin': '*' } });
+  });
+  await krotkieLinkiGoscia(gosc, baza);
+  const obca = await gosc.newPage();
+  await obca.goto(link);
+  await obca.waitForSelector('#podglad-przygotowanie');
+  assert.match(await obca.textContent('#podglad-przygotowanie'), /w przygotowaniu/);
+  // Koniec wysyłania: pasek znika sam, wszystkie strony mają obrazy.
+  await strona.waitForFunction(() => /^Gotowe/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 30000 });
+  await obca.waitForFunction(() => !document.querySelector('#podglad-przygotowanie'), null, { timeout: 15000 });
+  // Strony widoczne na ekranie (dalsze wczytują się przy przewijaniu) – z obrazami.
+  await obca.waitForFunction(() => {
+    const widoczne = [...document.querySelectorAll('.podglad-strona[data-id]')].filter((f) => { const r = f.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; });
+    return widoczne.length && widoczne.every((f) => f.querySelector('img').naturalWidth > 0);
+  }, null, { timeout: 15000 });
+  await gosc.close();
+});

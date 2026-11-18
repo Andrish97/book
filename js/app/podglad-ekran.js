@@ -360,7 +360,7 @@ const nowyKod = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) =>
 // Rysuje zmienione strony do JPEG i wysyła je razem z opisem – do folderu publicznego albo,
 // przy linku z ochroną, do tabeli chronionego linku. pelna: wysyła wszystkie strony.
 // Zwraca { wyslane, wszystkie }.
-async function opublikuj(p, postep = () => {}, { pelna = false } = {}) {
+async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } = {}) {
   const kod = p.udostepnienie?.kod || nowyKod();
   const ochrona = p.udostepnienie?.ochrona;
   const ciag = rozwin(p);
@@ -379,9 +379,16 @@ async function opublikuj(p, postep = () => {}, { pelna = false } = {}) {
     return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst) : blob;
   };
   const odcisk = odciskTresci(p);
+  // Link działa od razu (#204): po zapisaniu wstępnego opisu projekt dostaje dane linku i krótki adres,
+  // a strony dalej rysują się i wysyłają w tle.
+  const linkGotowy = naLink && (async ({ konto }) => {
+    p.udostepnienie = { ...(p.udostepnienie?.kod === kod ? p.udostepnienie : {}), kod, konto, zaktualizowano: new Date().toISOString(), ...(ochrona ? { ochrona } : {}) };
+    await zapewnijKrotki(p);
+    await naLink(p);
+  });
   const wynik = ochrona
-    ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie })
-    : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie });
+    ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie, naLink: linkGotowy })
+    : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie, naLink: linkGotowy });
   const krotki = p.udostepnienie?.kod === kod ? p.udostepnienie.krotki : null;
   p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}) };
   await zapewnijKrotki(p);
@@ -446,10 +453,23 @@ export async function opublikujUdostepnienie() {
         p.udostepnienie = { kod, ochrona: { haslo: Boolean(ochrona?.haslo), wazny_do: ochrona?.wazny_do || null } };
       }
     }
-    komunikat.textContent = 'Przygotowuję strony…';
+    komunikat.textContent = 'Przygotowuję link…';
     const pasek = pasekPostepu('Udostępnianie: strony podglądu');
     let wynik;
-    try { wynik = await opublikuj(p, (i, n) => { komunikat.textContent = `Strony: ${i} z ${n}…`; pasek.krok(i, n); }); } finally { pasek.koniec(); }
+    let linkJest = Boolean(p.udostepnienie);
+    const opisPostepu = (i, n) => (linkJest
+      ? `Link gotowy – możesz go już skopiować i wysłać albo zamknąć okno. Strony przygotowują się w tle: ${i} z ${n}.`
+      : `Strony: ${i} z ${n}…`);
+    try {
+      wynik = await opublikuj(p, (i, n) => { if (komunikat.isConnected) komunikat.textContent = opisPostepu(i, n); pasek.krok(i, n); }, {
+        naLink: async () => {
+          linkJest = true;
+          odswiezOknoUdostepnianiaZachowujacKomunikat();
+          komunikat.textContent = 'Link gotowy – możesz go już skopiować i wysłać albo zamknąć okno. Strony przygotowują się w tle; oglądający zobaczy je po kolei.';
+          for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = true;
+        },
+      });
+    } finally { pasek.koniec(); }
     komunikat.textContent = wynik.wyslane < wynik.wszystkie
       ? `Gotowe. Wysłano ${wynik.wyslane} z ${wynik.wszystkie} stron – reszta się nie zmieniła.`
       : 'Gotowe. Skopiuj link i wyślij go, komu chcesz. Od teraz będzie się aktualizował sam.';

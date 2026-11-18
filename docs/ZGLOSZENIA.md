@@ -40,6 +40,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 
 | # | Uwaga |
 |---|---|
+| 204 | Udostępnianie w tle: link od razu, strony wysyłają się w tle; oglądający widzi „Podgląd jest w przygotowaniu” i strony pojawiające się po kolei |
 | 203 | Makieta 3D na telefonie nie zamyka karty („Kurza twarz”): limit stron w pamięci grafiki, mniejsze tekstury na telefonie |
 | 202 | Okna na niskim ekranie telefonu (np. Udostępnij) przewijają się; tekst nie jest ucięty w pół linii |
 | 201 | Kopia projektu: koniec pytania „Projekt zmieniono w innym miejscu” po pierwszej zmianie i kasowania dodanego linku |

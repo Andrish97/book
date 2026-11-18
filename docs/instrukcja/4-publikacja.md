@@ -413,7 +413,8 @@ i bez zmiany rodzaju. Makieta aktualizuje się w linku sama, także w linkach ut
 
 1. W podglądzie kliknij [Udostępnij] — albo na liście projektów [⋯] na karcie → [Udostępnij linkiem…] (projekt się
    nie otwiera, strony przygotują się w tle).
-2. [Utwórz link] — aplikacja przygotuje obrazy wszystkich stron; przy dużym projekcie chwilę to potrwa.
+2. [Utwórz link] — link jest gotowy od razu; obrazy stron przygotowują się w tle (okno możesz zamknąć). Kto
+   otworzy link w tym czasie, zobaczy „Podgląd jest w przygotowaniu”, a strony pojawią się u niego same.
 3. Skopiuj link i wyślij go.
 
 Link jest krótki: **makietka.app/** i sześć znaków, np. `makietka.app/k7m2xq`. Linki utworzone wcześniej

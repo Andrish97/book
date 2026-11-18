@@ -51,7 +51,8 @@ let sledzony = null; // { t, haslo, chroniony, zaktualizowano, timer }
 function zrodloLinku({ manifest, adresObrazu }) {
   const kiedyStan = new Date(manifest.zaktualizowano).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
   return {
-    obraz: (strona) => adresObrazu(strona.id),
+    // Strona jeszcze nieprzygotowana (#204): bez obrazu – zostaje migoczące miejsce, dorysuje się po odświeżeniu.
+    obraz: (strona) => (manifest.przygotowanie && !manifest.skroty?.[strona.id] ? Promise.reject(new Error('w przygotowaniu')) : adresObrazu(strona.id)),
     odcisk: manifest.skroty ? (strona) => manifest.skroty[strona.id] : null,
     stale: true,
     klikalne: false,
@@ -62,7 +63,22 @@ function zrodloLinku({ manifest, adresObrazu }) {
 // Makieta 3D z linku (#188): przycisk tylko, gdy manifest ma opis makiety (link opublikowany po #188).
 function ustawDaneLinku(dane) {
   daneLinku = dane;
-  document.body.toggleAttribute('data-makieta-linku', Boolean(dane.manifest.uklad?.makieta?.strony?.length));
+  document.body.toggleAttribute('data-makieta-linku', Boolean(dane.manifest.uklad?.makieta?.strony?.length) && !dane.manifest.przygotowanie);
+  pokazPrzygotowanie(dane.manifest);
+}
+
+// Podgląd w przygotowaniu (#204): właściciel dopiero co utworzył albo zaktualizował link, strony wysyłają się
+// w tle – wprost mówimy, że nie wszystko jest jeszcze gotowe, a strony pojawią się same.
+function pokazPrzygotowanie(manifest) {
+  let el = document.querySelector('#podglad-przygotowanie');
+  if (!manifest.przygotowanie) { el?.remove(); return; }
+  if (!el) {
+    el = Object.assign(document.createElement('p'), { id: 'podglad-przygotowanie', className: 'podglad-przygotowanie' });
+    el.setAttribute('role', 'status');
+    document.querySelector('#podglad-tresc')?.before(el);
+  }
+  const ile = Number.isFinite(manifest.wszystkie) ? ` (gotowe ${manifest.gotowe ?? 0} z ${manifest.wszystkie})` : '';
+  el.textContent = `Podgląd jest w przygotowaniu${ile} – strony pojawiają się po kolei, sama strona odświeża się co kilka sekund.`;
 }
 
 export async function otworzMakieteLinku() {
@@ -90,7 +106,8 @@ function zaplanujSprawdzenie() {
   const s = sledzony;
   if (!s) return;
   clearTimeout(s.timer);
-  s.timer = setTimeout(async () => { await sprawdzLink(); zaplanujSprawdzenie(); }, CO_ILE_SPRAWDZAC);
+  // W przygotowaniu – co 4 s, aż wszystkie strony będą gotowe (#204); potem jak zwykle co minutę.
+  s.timer = setTimeout(async () => { await sprawdzLink(); zaplanujSprawdzenie(); }, daneLinku?.manifest?.przygotowanie ? 4000 : CO_ILE_SPRAWDZAC);
 }
 
 async function sprawdzLink() {
