@@ -195,3 +195,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | 102 | Pasek prezentacji, wspólna kontrolka powiększenia, X zamiast „Zamknij” |
 | 109 | 15 decyzji wyglądu: chmurka na karcie, ikony na górnym pasku z napisami „gdy się mieszczą”, „Wygląd edytora” w menu widoku, akcje przy zakładkach, kółko koloru przy rozmiarze, kafelek „+” na liście stron, warstwy z uchwytem ⋮⋮, „+” przy wzorcach, gumka i kosz w oknach, schemat marginesów, ustawienia konta jako lista, Wyloguj w menu awatara, jaśniejsze logowanie, zasłonki bez „Anuluj” |
 | – | Brevo: wysyłka działa po wyłączeniu blokady IP (reset hasła sprawdzony) |
+- 18.11.2026: ikona języka EN nieczytelna w ciemnym trybie (tekst w currentColor w <img>) → tło jak przy flagach PL/UA, test tests/ikony-jezykow.test.cjs.
