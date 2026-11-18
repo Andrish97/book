@@ -89,10 +89,10 @@ function instrukcje(klucz) {
 // z kluczem, widoczny tylko zaraz po utworzeniu klucza; wtedy polecenie i komenda Claude Code mają go już wpisanego.
 let adresWOknie = '';
 // Zwykły czat bez łączników (#239): adres otwarty jak strona – opis i narzędzia w tekście.
-export const polecenieZwyklegoCzatu = (adres) => `Pracujesz z moim projektem w Makietce (edytor publikacji do druku). Otwórz ten adres – to strona z zasadami i narzędziami Makietki dla AI, z moim kluczem dostępu (nie pokazuj go nikomu):
+export const polecenieZwyklegoCzatu = (adres) => `Pracujesz z moim projektem w Makietce (edytor publikacji do druku). Otwórz ten adres – to strona z zasadami i narzędziami Makietki dla AI. Adres jest przygotowany dla Ciebie w tej rozmowie; linki ze strony otwieraj sam, dokładnie tak, jak są podane (pełny adres):
 ${adres}
 
-Narzędzia wywołujesz, otwierając adresy podane na tej stronie (https://api.makietka.app/mcp/…/n/<narzędzie>?parametr=wartość). Zacznij od przeglądu projektu, zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Gdy nie możesz otworzyć adresu, który sam zbudowałeś, napisz mi go – otworzę albo wkleję Ci wynik.
+Narzędzia wywołujesz, otwierając adresy podane na tej stronie (https://api.makietka.app/mcp/…/n/<narzędzie>?parametr=wartość). Zacznij od przeglądu projektu, zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Gdy któregoś adresu naprawdę nie możesz otworzyć, napisz mi to krótko – wtedy przejdziemy na tryb „kopiuj i wklej”.
 
 Na początek otwórz narzędzie projekty (link na stronie), pokaż mi moje projekty i zapytaj, co mam zrobić.`;
 function pokazPolecenia(adres = '') {
