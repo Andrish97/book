@@ -2303,7 +2303,22 @@ Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych s
 - AI widzi wyłącznie otwarty projekt — przez jednodniowy klucz dostępu „Czat w Makietce”, widoczny w **Ustawienia konta** → **Dostęp dla AI** (rozdział „25.2 Klucz dla AI”); tam możesz go odebrać.
 - Zmiana dostawcy albo modelu zaczyna nową rozmowę.
 
-### 25.7 Bezpieczeństwo
+**Bez klucza i bez opłat – „kopiuj i wklej”.** Dostawca **Dowolny czat bez klucza – kopiuj i wklej** działa z każdym czatem AI w przeglądarce, także darmowym (ChatGPT, Claude, Gemini, Copilot…), bez klucza API:
+
+1. Napisz w czacie Makietki, co zrobić. Makietka kopiuje do schowka gotowe polecenie: zasady, listę narzędzi, stan projektu i Twoje zadanie (widać je też w rozmowie z przyciskiem **Kopiuj**).
+2. Wklej je w czacie AI. Odpowie krótko i doda blok kodu `makietka` z poleceniami.
+3. Wklej całą jego odpowiedź do czatu Makietki i wyślij – Makietka wykona polecenia (🔧) i skopiuje wyniki.
+4. Wklej wyniki czatowi AI – zobaczy, co się udało, i w razie potrzeby wyśle kolejne polecenia.
+
+Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w Makietce”, czytanie albo zmiany).
+
+### 25.7 AI, które umie otwierać strony (bez łącznika)
+
+Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika: wklej mu adres i napisz, co zrobić. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
+
+> **Uwaga:** Część czatów otwiera tylko adresy, które dostała od użytkownika albo znalazła sama – nie te, które zbuduje. Wtedy działa czytanie (linki z opisu), a do zmian użyj trybu „kopiuj i wklej” albo łącznika.
+
+### 25.8 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta, a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 

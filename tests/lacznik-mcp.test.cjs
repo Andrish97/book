@@ -71,7 +71,7 @@ async function srodowisko(t) {
     return { status: w.status, blad: w.tresc.result?.isError, tekst: w.tresc.result?.content?.[0]?.text, odp: w.tresc };
   };
   const stanProjektu = () => baza('ai_projekt', { p_klucz: edycja }).projekt;
-  return { stan, edycja, odczyt, wyslij, nowe, narzedzie, ADRES, stanProjektu };
+  return { stan, edycja, odczyt, wyslij, nowe, narzedzie, ADRES, stanProjektu, env };
 }
 
 test('łącznik MCP przez HTTP: starsza wersja (initialize) i 2026-07-28, lista narzędzi, odczyt i zmiana z ponowieniem po odmowie wersji', async (t) => {
@@ -172,4 +172,36 @@ test('serwer stdio jest złożony z aktualnego rdzenia; funkcja zadeklarowana do
   const funkcja = fs.readFileSync(path.join(KORZEN, 'supabase', 'functions', 'mcp', 'index.ts'), 'utf8');
   assert.match(funkcja, /from '\.\.\/_shared\/mcp-http\.mjs'/);
   assert.doesNotMatch(funkcja + fs.readFileSync(path.join(KORZEN, 'supabase', 'functions', '_shared', 'mcp-http.mjs'), 'utf8'), /SERVICE_ROLE|service_role/);
+});
+
+// #239: AI bez łącznika MCP (darmowe czaty umiejące otwierać adresy) – ten sam adres otwarty zwykłym GET daje
+// opis i narzędzia w tekście; …/n/<narzędzie>?parametr=… wywołuje narzędzie (odczyt i zmiana, uprawnienia klucza).
+test('łącznik przez zwykłe adresy (GET): opis z narzędziami, odczyt, zmiana, ?json=, klucz tylko do odczytu, zły klucz', async (t) => {
+  const s = await srodowisko(t);
+  const get = async (url) => {
+    const odp = await (await import(HTTP_MCP)).obsluzHttp(new Request(url, { headers: { accept: 'text/html' } }), s.env);
+    return { status: odp.status, typ: odp.headers.get('content-type'), tresc: await odp.text() };
+  };
+  const strona = await get(`${s.ADRES}/${s.edycja}`);
+  assert.equal(strona.status, 200);
+  assert.match(strona.typ, /text\/plain/);
+  assert.match(strona.tresc, /DOSTĘP DLA AI PRZEZ ADRESY/);
+  assert.match(strona.tresc, new RegExp(`${s.ADRES}/${s.edycja}/n/przeglad_projektu`));
+  assert.match(strona.tresc, /zmien_elementy\n/);
+  const przeglad = await get(`${s.ADRES}/${s.edycja}/n/przeglad_projektu`);
+  assert.match(przeglad.tresc, /^WYNIK narzędzia przeglad_projektu/);
+  assert.match(przeglad.tresc, /Kalendarz/);
+  const zmiana = await get(`${s.ADRES}/${s.edycja}/n/nazwa_projektu?nazwa=${encodeURIComponent('Kalendarz 2027')}`);
+  assert.match(zmiana.tresc, /^WYNIK/);
+  assert.equal(s.stanProjektu().nazwa, 'Kalendarz 2027');
+  const json = await get(`${s.ADRES}/${s.edycja}/n/zmien_elementy?json=${encodeURIComponent(JSON.stringify({ gdzie: 'strona:s1', zmiany: [{ id: 'tyt', pola: { text: 'Kalendarz na rok 2027' } }] }))}`);
+  assert.match(json.tresc, /^WYNIK/, json.tresc);
+  assert.equal(s.stanProjektu().strony[0].obiekty[0].text, 'Kalendarz na rok 2027');
+  const czyta = await get(`${s.ADRES}/${s.odczyt}/n/nazwa_projektu?nazwa=X`);
+  assert.match(czyta.tresc, /^BŁĄD[\s\S]*tylko czytać/);
+  assert.equal(s.stanProjektu().nazwa, 'Kalendarz 2027');
+  assert.equal((await get(`${s.ADRES}?klucz=${s.edycja}`)).status, 200, 'klucz w ?klucz=');
+  assert.equal((await get(`${s.ADRES}/sdk_zly`)).status, 401);
+  // Klient MCP pytający GET o strumień dalej dostaje 405.
+  assert.equal((await s.wyslij({ metoda: 'GET' })).status, 405);
 });

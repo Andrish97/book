@@ -58,3 +58,37 @@ test('czat AI: klucz Anthropic, narzędzia na otwartym projekcie, zmiana nazwy p
   assert.match(await strona.textContent('#czat-ai-wiadomosci'), /🔧 przeglad_projektu[\s\S]*🔧 nazwa_projektu/);
   assert.deepEqual(bledy, []);
 });
+
+// #239: czat bez klucza API – „kopiuj i wklej” z darmowym czatem w przeglądarce. Polecenie dla czatu (zasady,
+// narzędzia, stan projektu, zadanie) trafia do schowka; wklejona odpowiedź z blokiem ```makietka wykonuje narzędzia
+// i daje wyniki do odesłania czatowi.
+test('czat AI bez klucza: kopiuj i wklej – polecenie dla czatu, wklejona odpowiedź wykonuje zmiany', async (t) => {
+  const { strona, kontekst, baza, bledy } = await otworz(t);
+  await kontekst.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await nowyProjekt(strona, 'Plakat');
+  await zapisano(strona);
+  await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
+  await strona.waitForSelector('#dlg-czat-ai[open]');
+  if (!(await strona.isVisible('#czat-ai-ustawienia'))) await strona.click('#czat-ai-ustawienia-przelacz');
+  await strona.selectOption('#czat-ai-dostawca', 'schowek');
+  assert.equal(await strona.isVisible('#czat-ai-ustawienia [name="klucz"]'), false, 'bez pola klucza');
+  assert.ok(await strona.isVisible('#czat-ai-schowek-opis'));
+  await strona.fill('#czat-ai-tekst', 'Zmień nazwę projektu na Plakat koncertu');
+  await strona.press('#czat-ai-tekst', 'Enter');
+  await strona.waitForSelector('.czat-ai-do-skopiowania');
+  const polecenie = await strona.textContent('.czat-ai-do-skopiowania');
+  assert.match(polecenie, /```makietka/);
+  assert.match(polecenie, /- nazwa_projektu\(nazwa\*: string\)/);
+  assert.match(polecenie, /STAN PROJEKTU[\s\S]*Plakat/);
+  assert.match(polecenie, /ZADANIE UŻYTKOWNIKA:\nZmień nazwę projektu na Plakat koncertu$/);
+  assert.equal(await strona.evaluate(() => navigator.clipboard.readText()), polecenie, 'polecenie w schowku');
+  // Odpowiedź darmowego czatu wklejona do Makietki.
+  const odpowiedz = 'Zmienię nazwę.\n```makietka\n[{"narzedzie": "nazwa_projektu", "parametry": {"nazwa": "Plakat koncertu"}}]\n```';
+  await strona.fill('#czat-ai-tekst', odpowiedz);
+  await strona.press('#czat-ai-tekst', 'Enter');
+  await strona.waitForFunction(() => document.querySelectorAll('.czat-ai-do-skopiowania').length === 2);
+  const wyniki = await strona.$$eval('.czat-ai-do-skopiowania', (l) => l[1].textContent);
+  assert.match(wyniki, /^Wyniki z Makietki:\n\nWYNIK nazwa_projektu:/);
+  assert.equal(baza.projekty[0].nazwa, 'Plakat koncertu');
+  assert.deepEqual(bledy, []);
+});

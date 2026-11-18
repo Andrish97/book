@@ -10,6 +10,7 @@
 // odpowiedź zawsze jako application/json. Obsługuje protokół 2026-07-28 (wersja w _meta, nagłówki
 // MCP-Protocol-Version / Mcp-Method / Mcp-Name) oraz starsze wersje z initialize (2025-03-26 … 2025-11-25).
 
+/* global URLSearchParams */
 import { utworzSerwer, BLEDY, WERSJE_NOWE, WERSJE_STARE } from './seriodruk-mcp-rdzen.mjs';
 
 // Strony, z których przeglądarka może wysyłać żądania do łącznika (np. MCP Inspector na localhost).
@@ -91,6 +92,108 @@ async function obsluzObraz(request, url, env, cors) {
   }
 }
 
+// ---------- Dostęp przez zwykłe adresy (GET) – dla AI bez łącznika MCP (#239) ----------
+// Darmowe czaty (ChatGPT, Claude, Gemini…) często nie mają własnych łączników, ale umieją otworzyć adres strony.
+// Ten sam adres łącznika otwarty zwykłym GET (bez Accept: text/event-stream) zwraca opis i listę narzędzi
+// w czystym tekście, a …/n/<narzędzie>?parametr=wartość (albo ?json={…}) wywołuje narzędzie i zwraca wynik.
+// Tekst, nie HTML: Supabase podmienia text/html na text/plain, a AI czyta tekst najlepiej.
+
+const tekst = (status, tresc) => new Response(tresc, {
+  status,
+  headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow', 'referrer-policy': 'no-referrer' },
+});
+
+// Wartość parametru z adresu: liczba, true/false, null, JSON (obiekt/lista) albo zwykły tekst.
+function wartoscZAdresu(v) {
+  const t = String(v).trim();
+  if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
+  if (t === 'true' || t === 'false') return t === 'true';
+  if (t === 'null') return null;
+  if (/^[[{]/.test(t)) { try { return JSON.parse(t); } catch { /* zwykły tekst */ } }
+  return v;
+}
+
+export function argumentyZAdresu(url) {
+  let args = {};
+  const j = url.searchParams.get('json');
+  if (j) {
+    try { args = JSON.parse(j); } catch { throw new Error('Parametr json nie jest poprawnym JSON-em (zakoduj go w adresie, np. encodeURIComponent).'); }
+    if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Parametr json musi być obiektem {…}.');
+  }
+  for (const [k, v] of url.searchParams) if (!['json', 'klucz'].includes(k)) args[k] = wartoscZAdresu(v);
+  return args;
+}
+
+function opisSchematu(schemat) {
+  const pola = Object.entries(schemat?.properties || {});
+  if (!pola.length) return '  (bez parametrów)';
+  const wymagane = new Set(schemat.required || []);
+  return pola.map(([n, d]) => `  - ${n}${wymagane.has(n) ? ' (wymagany)' : ''}: ${d.type || (d.oneOf || d.anyOf ? 'różne' : 'dowolny')}${d.enum ? ` – jedno z: ${d.enum.join(', ')}` : ''}${d.description ? ` – ${String(d.description).replace(/\s+/g, ' ').slice(0, 300)}` : ''}`).join('\n');
+}
+
+async function obsluzStrone(request, url, env) {
+  const klucz = kluczZZadania(request);
+  if (!WZOR_KLUCZA.test(klucz)) return tekst(401, 'Ten adres nie zawiera prawidłowego klucza dostępu Makietki. Skopiuj pełny adres z aplikacji: Ustawienia konta → Dostęp dla AI.');
+  const serwer = utworzSerwer({ adres: env.adres || DOMYSLNY_ADRES, kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY, klucz });
+  let nr = 0;
+  const wolaj = async (method, params = {}) => {
+    const w = await serwer.obsluz({ jsonrpc: '2.0', id: (nr += 1), method, params }, {});
+    if (w?.error) throw new Error(w.error.message);
+    return w?.result;
+  };
+  // Adres bazowy (z kluczem) – do linków w odpowiedzi.
+  const czesci = url.pathname.split('/');
+  const iKlucza = czesci.findIndex((x) => decodeURIComponent(x) === klucz);
+  const baza = iKlucza >= 0 ? `${url.origin}${czesci.slice(0, iKlucza + 1).join('/')}` : `${url.origin}${url.pathname.replace(/\/n\/.*$/, '')}`;
+  const nKlucza = iKlucza >= 0 ? '' : `?klucz=${encodeURIComponent(klucz)}`;
+  const link = (nazwa, args = {}) => {
+    const q = new URLSearchParams(nKlucza ? { klucz } : {});
+    for (const [k, v] of Object.entries(args)) q.set(k, typeof v === 'string' ? v : JSON.stringify(v));
+    const qs = q.toString();
+    return `${baza}/n/${nazwa}${qs ? `?${qs}` : ''}`;
+  };
+  try {
+    const init = await wolaj('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'makietka-strona', version: '1' } });
+    const m = /\/n\/([a-z_]+)\/?$/.exec(url.pathname);
+    if (m) {
+      const args = argumentyZAdresu(url);
+      const r = await wolaj('tools/call', { name: m[1], arguments: args });
+      const tresc = (r?.content || []).map((c) => c.text || (c.type === 'image' ? '[obraz]' : '')).join('\n') || '(brak treści)';
+      return tekst(200, `${r?.isError ? 'BŁĄD' : 'WYNIK'} narzędzia ${m[1]}\n\n${tresc}\n\n---\nWszystkie narzędzia i zasady: ${baza}${nKlucza}\n`);
+    }
+    const { tools } = await wolaj('tools/list');
+    const nazwy = new Set(tools.map((t) => t.name));
+    const szybkie = [
+      nazwy.has('projekty') && `- Projekty w zasięgu klucza: ${link('projekty')}`,
+      nazwy.has('przeglad_projektu') && `- Przegląd projektu (gdy klucz ma kilka projektów, dopisz &projekt=<id albo nazwa>): ${link('przeglad_projektu')}`,
+      nazwy.has('opis_formatu') && `- Opis formatu projektu: ${link('opis_formatu')}`,
+    ].filter(Boolean).join('\n');
+    const tekstStrony = `MAKIETKA – DOSTĘP DLA AI PRZEZ ADRESY (bez łącznika MCP)
+
+Ta strona jest dla asystenta AI, który nie ma łącznika MCP Makietki, ale umie otwierać adresy (np. darmowy ChatGPT, Claude, Gemini z przeglądaniem stron). Klucz w adresie daje dostęp do projektów użytkownika – nie pokazuj go nikomu i nie wklejaj w inne miejsca.
+
+JAK UŻYWAĆ
+Każde narzędzie wywołujesz, otwierając adres:
+  ${baza}/n/<narzędzie>${nKlucza}${nKlucza ? '&' : '?'}<parametr>=<wartość>&<parametr>=<wartość>
+Wartości: tekst wprost (zakodowany w adresie), liczby i true/false wprost, obiekty i listy jako JSON. Parametry złożone możesz podać razem: ?json=<cały obiekt parametrów JSON, zakodowany w adresie>.
+Odpowiedź to zwykły tekst: wynik narzędzia albo opis błędu z tym, co poprawić. Zmieniaj małymi krokami i po zmianie sprawdź wynik (przeglad_projektu, czytaj).
+Jeśli nie możesz otworzyć adresu, który sam zbudowałeś, poproś użytkownika, żeby wkleił Ci go w rozmowie – albo użyj w Makietce czatu AI w trybie „kopiuj i wklej”.
+
+NA POCZĄTEK
+${szybkie}
+
+ZASADY OD MAKIETKI
+${init?.instructions || ''}
+
+NARZĘDZIA (${tools.length})
+${tools.map((t) => `${t.name}\n  ${String(t.description || '').replace(/\s+/g, ' ')}\n  Adres: ${link(t.name)}\n${opisSchematu(t.inputSchema)}`).join('\n\n')}
+`;
+    return tekst(200, tekstStrony);
+  } catch (e) {
+    return tekst(400, `BŁĄD: ${e.message}\n\nOpis i lista narzędzi: ${baza}${nKlucza}\n`);
+  }
+}
+
 // env: { adres?, kluczPubliczny? } – adres bazy i publikowalny klucz (domyślnie baza Makietki).
 export async function obsluzHttp(request, env = {}) {
   const origin = request.headers.get('origin');
@@ -102,6 +205,9 @@ export async function obsluzHttp(request, env = {}) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   // Łącznik nie używa logowania OAuth: brak opisu serwera autoryzacji oznacza „bez logowania”.
   if (url.pathname.includes('/.well-known/')) return json(404, { error: 'not_found' }, cors);
+  // Zwykłe otwarcie adresu (przeglądarka, narzędzie AI do czytania stron) – opis i narzędzia w tekście (#239).
+  // GET z Accept: text/event-stream to klient MCP pytający o strumień – ten dalej dostaje 405.
+  if ((request.method === 'GET' || request.method === 'HEAD') && !/text\/event-stream/.test(request.headers.get('accept') || '')) return obsluzStrone(request, url, env);
   if (request.method !== 'POST') {
     return json(405, { jsonrpc: '2.0', error: { code: BLEDY.ZADANIE, message: 'Łącznik MCP Makietki przyjmuje tylko POST (Streamable HTTP).' } }, { ...cors, allow: 'POST, OPTIONS' });
   }

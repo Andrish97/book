@@ -489,6 +489,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Dostosuj":"Customize",
 "Dotyczy":"Applies to",
 "Dotyczy tego urządzenia. Strony publikacji zawsze są pokazywane na białym papierze.":"Applies to this device. Publication pages are always shown on white paper.",
+"Dowolny czat bez klucza – kopiuj i wklej (darmowy ChatGPT, Claude, Gemini…)":"Any chat without a key – copy and paste (free ChatGPT, Claude, Gemini…)",
 "Dozwolone wartości":"Allowed values",
 "Drewno":"Wood",
 "Druga strona arkusza":"Back of the sheet",

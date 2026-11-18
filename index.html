@@ -2377,12 +2377,13 @@
       <form class="czat-ai-ustawienia" id="czat-ai-ustawienia" novalidate autocomplete="off">
         <label class="pole"><span>Dostawca</span><select name="dostawca" id="czat-ai-dostawca"></select></label>
         <label class="pole" id="czat-ai-adres-pole" hidden><span>Adres API (zgodne z OpenAI)</span><input name="adres" type="url" placeholder="https://…/v1"></label>
-        <label class="pole"><span>Klucz API</span><input name="klucz" type="password" placeholder="Klucz od dostawcy" spellcheck="false"></label>
-        <div class="rzad-przyciskow">
+        <label class="pole" data-z-kluczem><span>Klucz API</span><input name="klucz" type="password" placeholder="Klucz od dostawcy" spellcheck="false"></label>
+        <p class="podpowiedz" id="czat-ai-schowek-opis" hidden>Bez klucza i bez opłat: napisz, co zrobić, a Makietka skopiuje do schowka gotowe polecenie (zasady, narzędzia, stan projektu). Wklej je w dowolnym czacie AI w przeglądarce, a jego odpowiedź – z blokiem „makietka” – wklej tutaj: Makietka wykona zmiany i skopiuje wyniki dla czatu.</p>
+        <div class="rzad-przyciskow" data-z-kluczem>
           <button type="button" class="przycisk" id="czat-ai-openrouter" data-ikona="klucz" hidden>Zaloguj przez OpenRouter</button>
           <a class="link-przycisk" id="czat-ai-gdzie-klucz" target="_blank" rel="noopener">Gdzie wziąć klucz?</a>
         </div>
-        <label class="pole"><span>Model</span><input name="model" list="czat-ai-modele" placeholder="np. claude-opus-5-5"><datalist id="czat-ai-modele"></datalist></label>
+        <label class="pole" data-z-kluczem><span>Model</span><input name="model" list="czat-ai-modele" placeholder="np. claude-opus-5-5"><datalist id="czat-ai-modele"></datalist></label>
         <label class="pole"><span>AI może w tym projekcie</span><select name="rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
         <p class="podpowiedz">Klucz zostaje tylko na tym urządzeniu; rozmowa idzie prosto do dostawcy (płacisz u niego). AI widzi wyłącznie ten projekt – przez jednodniowy klucz dostępu, który możesz odebrać w Ustawieniach konta → Dostęp dla AI.</p>
       </form>

@@ -61,6 +61,10 @@ Sprawdzenie: `claude mcp list`. Usunięcie: `claude mcp remove makietka`.
 
 Każdy klient MCP obsługujący transport **Streamable HTTP** podłącza się tym samym adresem. Klucz można też podać nagłówkiem `Authorization: Bearer sdk_…` (wtedy adres bez klucza: `https://api.makietka.app/mcp`). Łącznik jest bezstanowy, odpowiada JSON-em; obsługuje protokół 2026-07-28 oraz starsze wersje z `initialize` (2025-03-26 … 2025-11-25).
 
+### AI bez łącznika: zwykłe adresy (GET)
+
+Ten sam adres łącznika otwarty zwykłym GET (bez `Accept: text/event-stream`) zwraca **czysty tekst**: zasady, szybkie linki i wszystkie narzędzia z parametrami. Narzędzie wywołuje się adresem `https://api.makietka.app/mcp/sdk_…/n/<narzędzie>?parametr=wartość` – liczby, `true`/`false` i JSON (obiekty, listy) są rozpoznawane, cały obiekt parametrów można podać jako `?json=<JSON zakodowany w adresie>`. Odpowiedź zaczyna się od `WYNIK narzędzia …` albo `BŁĄD narzędzia …`. Uprawnienia jak w łączniku (klucz tylko do odczytu nic nie zmieni). Dla czatów, które umieją otwierać strony, a nie mają łączników MCP; gdy czat nie otwiera adresów, które sam zbuduje – w Makietce jest tryb „kopiuj i wklej” (instrukcja 25.6).
+
 ### Dla zaawansowanych: serwer u siebie (stdio)
 
 Gdy wolisz uruchamiać serwer na własnym komputerze (np. Claude Desktop przez plik konfiguracji): pobierz [makietka-mcp.mjs](https://makietka.app/ai/mcp/makietka-mcp.mjs) (jeden plik, Node.js 18+, nic do instalowania) i dopisz w **Ustawienia → Programista → Edytuj konfigurację**:

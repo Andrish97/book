@@ -489,6 +489,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Dostosuj":"Налаштувати",
 "Dotyczy":"Стосується",
 "Dotyczy tego urządzenia. Strony publikacji zawsze są pokazywane na białym papierze.":"Стосується цього пристрою. Сторінки видання завжди показано на білому папері.",
+"Dowolny czat bez klucza – kopiuj i wklej (darmowy ChatGPT, Claude, Gemini…)":"Будь-який чат без ключа – копіювати й вставити (безкоштовні ChatGPT, Claude, Gemini…)",
 "Dozwolone wartości":"Дозволені значення",
 "Drewno":"Дерево (текстура)",
 "Druga strona arkusza":"Зворот аркуша",

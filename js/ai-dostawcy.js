@@ -15,6 +15,8 @@ export const DOSTAWCY = {
   xai: { nazwa: 'xAI (Grok)', rodzaj: 'openai', adres: 'https://api.x.ai/v1', modele: [], kluczUrl: 'https://console.x.ai' },
   openrouter: { nazwa: 'OpenRouter (wiele modeli, logowanie)', rodzaj: 'openai', adres: 'https://openrouter.ai/api/v1', modele: [], kluczUrl: 'https://openrouter.ai/keys', logowanie: true },
   zgodny: { nazwa: 'Inny – API zgodne z OpenAI', rodzaj: 'openai', adres: '', modele: [], wlasnyAdres: true },
+  // Bez klucza API (#239): darmowy czat w przeglądarce – polecenie kopiuje się do niego, jego odpowiedź wkleja tutaj.
+  schowek: { nazwa: 'Dowolny czat bez klucza – kopiuj i wklej (darmowy ChatGPT, Claude, Gemini…)', rodzaj: 'schowek', adres: '', modele: [], bezKlucza: true },
 };
 
 const MAKS = 16000;

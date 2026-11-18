@@ -55,12 +55,14 @@ function wypelnijDostawce() {
   f.elements.model.value = ust.model || '';
   f.elements.adres.value = ust.adres || '';
   $('#czat-ai-adres-pole').hidden = !d.wlasnyAdres;
+  for (const el of f.querySelectorAll('[data-z-kluczem]')) el.hidden = Boolean(d.bezKlucza);
+  $('#czat-ai-schowek-opis').hidden = !d.bezKlucza;
   $('#czat-ai-openrouter').hidden = !d.logowanie;
   const gdzie = $('#czat-ai-gdzie-klucz');
   gdzie.hidden = !d.kluczUrl;
   if (d.kluczUrl) gdzie.href = d.kluczUrl;
   $('#czat-ai-modele').replaceChildren(...d.modele.map((m) => new Option(m, m)));
-  if (ust.klucz) odswiezModele(id, ust);
+  if (ust.klucz && !d.bezKlucza) odswiezModele(id, ust);
 }
 async function odswiezModele(id, ust) {
   try {
@@ -144,11 +146,106 @@ function systemDla(n) {
 
 // ---------- Rozmowa ----------
 
+// ---------- Kopiuj i wklej (#239): czat bez klucza API ----------
+
+// Wiadomość z przyciskiem „Kopiuj” (schowek z przycisku działa zawsze; samoczynne kopiowanie – gdy przeglądarka pozwoli).
+function dopiszDoSkopiowania(rodzaj, opis, tresc) {
+  const li = dopisz(rodzaj, opis);
+  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: 'Kopiuj' });
+  b.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(tresc); b.textContent = 'Skopiowano'; } catch { powiadom('Przeglądarka nie pozwoliła skopiować – zaznacz tekst ręcznie.', true); }
+  });
+  const pre = Object.assign(document.createElement('pre'), { className: 'czat-ai-do-skopiowania', textContent: tresc });
+  li.append(b, pre);
+  navigator.clipboard?.writeText(tresc).then(() => { b.textContent = 'Skopiowano'; }, () => {});
+  return li;
+}
+
+// Wywołania narzędzi z odpowiedzi czatu: bloki ```makietka / ```json z [{ narzedzie, parametry }] (albo jednym obiektem).
+export function wywolaniaZOdpowiedzi(tekst) {
+  const bloki = [...String(tekst).matchAll(/```(?:makietka|json)?\s*([\s\S]*?)```/g)].map((m) => m[1]);
+  if (!bloki.length && /^\s*[[{]/.test(tekst)) bloki.push(tekst);
+  const wynik = [];
+  for (const b of bloki) {
+    let d;
+    try { d = JSON.parse(b.trim()); } catch { continue; }
+    for (const w of Array.isArray(d) ? d : [d]) {
+      const nazwa = w?.narzedzie || w?.name || w?.tool;
+      if (typeof nazwa === 'string') wynik.push({ nazwa, argumenty: w.parametry || w.arguments || w.args || {} });
+    }
+  }
+  return wynik;
+}
+
+function opisNarzedzi(lista) {
+  return lista.map((t) => {
+    const p = Object.entries(t.inputSchema?.properties || {}).map(([n, d]) => `${n}${(t.inputSchema.required || []).includes(n) ? '*' : ''}: ${d.type || 'dowolny'}${d.enum ? ` (${d.enum.join('|')})` : ''}`).join(', ');
+    return `- ${t.name}(${p}) – ${String(t.description || '').replace(/\s+/g, ' ')}`;
+  }).join('\n');
+}
+
+async function wyslijPrzezSchowek(tekst) {
+  if (!stan.uzytkownik) { powiadom('Asystent AI działa na projekcie na koncie – zaloguj się.', true); return; }
+  trwa = true;
+  $('#czat-ai-wyslij').disabled = true;
+  pole.value = '';
+  try {
+    await zapiszTeraz();
+    await synchronizuj({ wymus: true }).catch(() => {});
+    const n = await przygotujNarzedzia();
+    const wywolania = wywolaniaZOdpowiedzi(tekst);
+    if (wywolania.length) {
+      // Odpowiedź czatu wklejona: wykonujemy jego narzędzia i oddajemy wyniki do skopiowania.
+      dopisz('ja', `Odpowiedź AI wklejona – ${wywolania.length} ${wywolania.length === 1 ? 'polecenie' : 'polecenia'}.`);
+      const wyniki = [];
+      let zmiany = false;
+      for (const w of wywolania) {
+        dopisz('narzedzie', `🔧 ${w.nazwa}`);
+        try {
+          const r = await n.wolaj('tools/call', { name: w.nazwa, arguments: w.argumenty });
+          const t = (r?.content || []).map((c) => c.text || '').join('\n') || '(brak treści)';
+          wyniki.push(`${r?.isError ? 'BŁĄD' : 'WYNIK'} ${w.nazwa}:\n${t}`);
+          if (!r?.isError && !/^(czytaj|przeglad|projekty|obrazy_projektu|komentarze|stan_eksportu|opis_formatu|kontrola)/.test(w.nazwa)) zmiany = true;
+        } catch (e) { wyniki.push(`BŁĄD ${w.nazwa}:\n${e.message}`); }
+      }
+      if (zmiany) sprawdzKonto();
+      dopiszDoSkopiowania('ai', 'Wykonane. Wyniki są w schowku – wklej je czatowi AI, żeby wiedział, co się udało (i ewentualnie zrobił resztę).', `Wyniki z Makietki:\n\n${wyniki.join('\n\n')}`);
+      return;
+    }
+    // Polecenie użytkownika: składamy pełne polecenie dla czatu – zasady, narzędzia, stan projektu, zadanie.
+    dopisz('ja', tekst);
+    const przeglad = await n.wolaj('tools/call', { name: 'przeglad_projektu', arguments: {} }).then((r) => (r?.content || []).map((c) => c.text || '').join('\n')).catch(() => '');
+    const polecenie = `${systemDla(n)}
+
+JAK ODPOWIADAĆ: nie masz bezpośredniego dostępu do Makietki – użytkownik przenosi wiadomości. Napisz krótko po polsku, co zrobisz, a potem JEDEN blok kodu z poleceniami:
+\`\`\`makietka
+[{"narzedzie": "nazwa_narzedzia", "parametry": { … }}]
+\`\`\`
+Użytkownik wklei go do Makietki; ona wykona polecenia po kolei i odda Ci wyniki. Gdy najpierw musisz coś przeczytać (czytaj, opis_formatu…), wyślij tylko te polecenia i poczekaj na wyniki. Parametry podawaj dokładnie według listy (* – wymagany).
+
+NARZĘDZIA:
+${opisNarzedzi(n.lista)}
+
+STAN PROJEKTU (przeglad_projektu):
+${przeglad}
+
+ZADANIE UŻYTKOWNIKA:
+${tekst}`;
+    dopiszDoSkopiowania('ai', 'Polecenie dla czatu jest w schowku. Wklej je w darmowym czacie (np. chatgpt.com, claude.ai, gemini.google.com), a jego odpowiedź z blokiem „makietka” wklej tutaj i wyślij.', polecenie);
+  } catch (e) {
+    dopisz('blad', e.message);
+  } finally {
+    trwa = false;
+    $('#czat-ai-wyslij').disabled = false;
+  }
+}
+
 async function wyslij(tekst) {
   if (trwa || !tekst.trim()) return;
   zapamietajPola();
   const u = ustawienia();
   const ust = ustDostawcy(u);
+  if (DOSTAWCY[u.dostawca]?.bezKlucza) { await wyslijPrzezSchowek(tekst); return; }
   if (!ust.klucz) { f.hidden = false; powiadom('Podaj klucz API wybranego dostawcy (albo zaloguj się przez OpenRouter).', true); f.elements.klucz.focus(); return; }
   if (!ust.model) { f.hidden = false; powiadom('Wybierz model.', true); f.elements.model.focus(); return; }
   if (!stan.uzytkownik) { powiadom('Asystent AI działa na projekcie na koncie – zaloguj się.', true); return; }
@@ -197,7 +294,7 @@ $('#czat-ai-zamknij').addEventListener('click', () => dlg.close());
 export function otworzCzatAi() {
   if (!stan.projekt) return;
   pokazUstawienia();
-  f.hidden = Boolean(ustDostawcy().klucz);
+  f.hidden = Boolean(ustDostawcy().klucz) || Boolean(DOSTAWCY[ustawienia().dostawca]?.bezKlucza);
   dlg.classList.toggle('obok-strony', window.matchMedia('(min-width: 901px)').matches);
   if (!dlg.open) dlg.show();
   if (!lista.childElementCount) dopisz('ai', 'Cześć! Napisz, co zrobić w tym projekcie – np. „dodaj stronę z podziękowaniami” albo „popraw literówki na stronie 3”.');
