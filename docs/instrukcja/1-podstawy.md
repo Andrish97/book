@@ -136,6 +136,13 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
 - [Eksportuj do pliku (.makietka)] (menu [⋯] na karcie) zapisuje cały projekt, z obrazami i czcionkami,
   do pliku `.makietka` — to kopia zapasowa albo sposób na przekazanie projektu.
 - [Importuj z pliku] obok [Nowy projekt] wczytuje projekt z pliku `.makietka` (na wąskim ekranie to sama ikona strzałki).
+  Tak samo otworzysz projekt z **InDesigna** (`.idml` – w InDesignie: Plik → Zapisz jako → InDesign Markup) i ze
+  **Scribusa** (`.sla`): powstaje nowy projekt ze stronami (sekcja na każdy format strony, spad i marginesy z pliku),
+  ramkami tekstu z formatowaniem (połączone ramki dalej przelewają tekst), kształtami w kolorach (CMYK przeliczony
+  na RGB) i obrazami zapisanymi w pliku. Obrazy, które w InDesignie czy Scribusie są tylko podlinkowane, wczytasz
+  razem z projektem w pliku ZIP (w InDesignie: Plik → Pakiet; w Scribusie: Plik → Zbierz do wydruku) – bez nich
+  w ich miejscu stoją szare pola z nazwą pliku. Pola korespondencji seryjnej InDesigna i Affinity (`<<imie>>`) oraz
+  Worda i Publishera (`«imie»`) stają się polami Makietki (`{imie}`) – zostaje tylko wczytać dane (→ 14).
 - Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (→ 28.4).
 
 **Tekst z innych programów i do nich.** W edytorze, menu **⋯**:

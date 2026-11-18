@@ -532,7 +532,40 @@ ustawZaleznosci({ pokazProjekty, otworzProjektPoId, zapewnijNaKoncie, usunKopieL
 
 // ---------- Pliki ----------
 
+// Plik z innego programu do składu (#225): IDML, SLA albo ZIP z jednym z nich (pakiet z obrazami).
+async function plikSkladu(plik) {
+  const { toPlikSkladu, zipZeSkladem } = await import('../import-skladu.js');
+  if (toPlikSkladu(plik)) return true;
+  if (!/\.zip$/i.test(plik.name || '')) return false;
+  const { biblioteka } = await import('../biblioteki.js');
+  const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+  try { return await zipZeSkladem(await JSZip.loadAsync(plik)); } catch { return false; }
+}
+
+async function wczytajPlikSkladu(plik) {
+  const pasek = postep(`Odczyt „${plik.name}”…`);
+  try {
+    const [{ biblioteka }, { importujSklad }, { przyjmijPlik }] = await Promise.all([import('../biblioteki.js'), import('../import-skladu.js'), import('../obrazy-projektu.js')]);
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+    const { projekt, raport } = await importujSklad(plik, JSZip, przyjmijPlik);
+    if (await ponadLimit()) return;
+    if (stan.projekt) await zapiszTeraz();
+    await otworzProjekt(projekt);
+    await zapiszTeraz();
+    const czesci = [`${raport.stron} ${raport.stron === 1 ? 'strona' : 'stron'}`, `ramki tekstu ${raport.teksty}`, `kształty ${raport.ksztalty}`, `obrazy ${raport.obrazy}`];
+    let opis = `Wczytano z programu ${raport.format}: ${czesci.join(', ')}.`;
+    if (raport.pola.length) opis += ` Pola korespondencji seryjnej zamienione na pola Makietki: ${raport.pola.map((x) => `{${x}}`).join(', ')} – wczytaj dane w „Dane”.`;
+    if (raport.brakujace.length) opis += ` Brak plików obrazów (${raport.brakujace.length}): ${raport.brakujace.slice(0, 5).join(', ')}${raport.brakujace.length > 5 ? '…' : ''} – wczytaj ZIP z folderem obrazów (w InDesignie: Plik → Pakiet) albo wstaw je w szare pola.`;
+    powiadom(opis);
+  } catch (e) {
+    powiadom(`Nie udało się wczytać pliku: ${e.message}`, true);
+  } finally {
+    pasek.koniec();
+  }
+}
+
 export async function wczytajPlikProjektu(plik) {
+  if (await plikSkladu(plik)) { await wczytajPlikSkladu(plik); return; }
   let pasek = postep(`Wczytywanie pliku „${plik.name || 'projektu'}”…`);
   try {
     const projekt = normalizuj(await odczytajPlik(plik));

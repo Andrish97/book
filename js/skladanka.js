@@ -73,7 +73,6 @@ export function obrysCiecia(c) {
   return wynik;
 }
 
-const krzyz = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
 
 // Punkt na obwodzie wielokąta najbliższy p: { i (krawędź), t (0..1), punkt, odl }.
 export function naObwodzie(punkty, p) {

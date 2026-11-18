@@ -270,7 +270,7 @@ export async function zapiszSla(projekt, { ciag = rozwin(projekt), postep } = {}
         const linia = typ === 'line' || typ === 'polyline';
         obiekty.push(`  <PAGEOBJECT ${atrybuty({
           ...wspolne(r), XPOS: p.x, YPOS: p.y, WIDTH: Math.max(r.w * PT, 0.01), HEIGHT: Math.max(r.h * PT, 0.01),
-          PTYPE: linia ? 7 : 6, FRTYPE: 3, CLIPEDIT: 1, PCOLOR: linia ? 'None' : kolory.nazwa(o.fill), PCOLOR2: kreska, PWIDTH: grubosc,
+          PTYPE: linia ? 7 : 6, FRTYPE: typ === 'ellipse' || typ === 'circle' ? 1 : typ === 'rect' && !o.rx ? 0 : 3, CLIPEDIT: 1, PCOLOR: linia ? 'None' : kolory.nazwa(o.fill), PCOLOR2: kreska, PWIDTH: grubosc,
           ANNAME: typ, path: sciezka, copath: sciezka,
         })}/>`);
         ile.ksztalty += 1;

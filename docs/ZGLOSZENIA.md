@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 225 | Otwieranie projektów z InDesigna (.idml) i Scribusa (.sla), także z pakietem obrazów; pola korespondencji seryjnej |
 | 223 | Naklejki okrągłe i zawieszki z otworem na arkuszu użytków; szablon „Zawieszki na prezenty” |
 | 222 | Wykrojnik z zadrukiem z obu stron – wnętrze pudełka, koperty i teczki |
 | 221 | Zapis projektu dla InDesigna (.idml) – też Affinity Publisher i QuarkXPress |
