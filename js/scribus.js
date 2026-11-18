@@ -12,7 +12,7 @@ import { rozwin } from './serie.js';
 import { sekcjaStrony } from './projekt.js';
 import { plytaUszlachetnienia } from './kolory-druku.js';
 
-const PT = 72 / 25.4; // mm → pt
+export const PT = 72 / 25.4; // mm → pt
 const ODSTEP_STRON = 40; // pt między stronami w widoku Scribusa
 const START_X = 100; // obszar roboczy Scribusa (ScratchLeft / ScratchTop)
 const START_Y = 20;
@@ -25,7 +25,7 @@ const atrybuty = (a) => Object.entries(a).filter(([, v]) => v !== undefined && v
 
 // ---------- Kolory ----------
 
-function hex(kolor) {
+export function hex(kolor) {
   if (!kolor || typeof kolor !== 'string') return null;
   const c = new fabric.Color(kolor);
   const [r, g, b, a] = c.getSource();
@@ -51,7 +51,7 @@ class Kolory {
 
 // Ramka elementu bez obrotu: lewy górny róg (mm, na stronie), szerokość, wysokość i kąt – albo null,
 // gdy elementu nie da się tak opisać (pochylenie, odbicie) – wtedy idzie jako obraz.
-function ramka(o) {
+export function ramka(o) {
   const m = o.calcTransformMatrix();
   const d = fabric.util.qrDecompose(m);
   if (Math.abs(d.skewX) > 0.01 || Math.abs(d.skewY || 0) > 0.01 || d.scaleX < 0 || d.scaleY < 0 || o.flipX || o.flipY) return null;
@@ -62,7 +62,7 @@ function ramka(o) {
 }
 
 // Ścieżka SVG w układzie ramki (pt) dla kształtu – albo null, gdy to nie prosty kształt.
-function sciezkaKsztaltu(o, r) {
+export function sciezkaKsztaltu(o, r) {
   const W = r.w * PT;
   const H = r.h * PT;
   const t = String(o.type).toLowerCase();
@@ -110,19 +110,25 @@ function sciezkaKsztaltu(o, r) {
   return null;
 }
 
-const TYPY_KSZTALTOW = new Set(['rect', 'ellipse', 'circle', 'triangle', 'polygon', 'polyline', 'line', 'path']);
-const zwyklyKolor = (k) => k == null || k === '' || typeof k === 'string';
-const bezEfektow = (o) => !o.shadow && (o.opacity ?? 1) >= 0.999 && !o.clipPath && !o.filters?.length && (o.globalCompositeOperation || 'source-over') === 'source-over';
+export const TYPY_KSZTALTOW = new Set(['rect', 'ellipse', 'circle', 'triangle', 'polygon', 'polyline', 'line', 'path']);
+export const zwyklyKolor = (k) => k == null || k === '' || typeof k === 'string';
+export const bezEfektow = (o) => !o.shadow && (o.opacity ?? 1) >= 0.999 && !o.clipPath && !o.filters?.length && (o.globalCompositeOperation || 'source-over') === 'source-over';
 
 // ---------- Tekst ----------
 
 const ALIGN = { left: 0, center: 1, right: 2, justify: 3, 'justify-left': 3, 'justify-center': 3, 'justify-right': 3 };
 
-function nazwaCzcionki(rodzina, waga, styl) {
+export function nazwaCzcionki(rodzina, waga, styl) {
+  const { rodzina: r, odmiana } = czcionkaElementu(rodzina, waga, styl);
+  return `${r} ${odmiana}`;
+}
+
+// Rodzina (bez zapasowych z CSS) i odmiana: Regular, Bold, Italic albo Bold Italic.
+export function czcionkaElementu(rodzina, waga, styl) {
   const gruba = waga === 'bold' || Number(waga) >= 600;
   const kursywa = styl === 'italic' || styl === 'oblique';
   const odmiana = gruba && kursywa ? 'Bold Italic' : gruba ? 'Bold' : kursywa ? 'Italic' : 'Regular';
-  return `${String(rodzina || 'Arial').split(',')[0].replace(/["']/g, '').trim()} ${odmiana}`;
+  return { rodzina: String(rodzina || 'Arial').split(',')[0].replace(/["']/g, '').trim(), odmiana };
 }
 
 function storyText(o, r, kolory, czcionki) {
@@ -162,7 +168,7 @@ function storyText(o, r, kolory, czcionki) {
 
 // ---------- Obraz elementu ----------
 
-async function obrazElementu(o) {
+export async function obrazElementu(o) {
   const b = o.getBoundingRect();
   if (!(b.width > 0 && b.height > 0)) return null;
   const k = Math.min(DPI_OBRAZOW / 25.4, MAKS_PX / b.width, MAKS_PX / b.height);

@@ -356,6 +356,17 @@ export const akcje = {
   },
   'tekst-docx': () => zapiszTekstJako('docx'),
   'tekst-epub': () => zapiszTekstJako('epub'),
+  // InDesign (#221): pakiet IDML – te same zasady co dla Scribusa; otwierają go też Affinity Publisher i QuarkXPress.
+  idml: async () => {
+    zamknijMenu();
+    zapiszBiezacyCel();
+    const [{ biblioteka }, { zapiszIdml }] = await Promise.all([import('../biblioteki.js'), import('../idml.js')]);
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+    powiadom('Przygotowuję plik IDML…');
+    const w = await zapiszIdml(stan.projekt, JSZip, { postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik IDML – strona ${i + 1} z ${z}…`); } });
+    pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.idml`, URL.createObjectURL(w.blob));
+    powiadom(`Zapisano IDML (InDesign, Affinity Publisher, QuarkXPress): ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'}.`);
+  },
   // Scribus (#220): cały projekt jako plik .sla – teksty edytowalne, kształty wektorowe, reszta jako obrazy w pliku.
   scribus: async () => {
     zamknijMenu();

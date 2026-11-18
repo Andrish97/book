@@ -3539,5 +3539,7 @@
  "Na razie każda strona ma tylko własną treść. Wybierz gotowy wzorzec poniżej – np. numer strony – a pojawi się od razu na wszystkich stronach sekcji.": "Поки що кожна сторінка має лише власний вміст. Виберіть готовий шаблон нижче – наприклад, номер сторінки – і він одразу з’явиться на всіх сторінках розділу.",
  "Masz zaproszenia do projektów": "У вас є запрошення до проєктів",
  "Zapisz dla Scribusa (.sla)": "Зберегти для Scribus (.sla)",
- "Przygotowuję plik dla Scribusa…": "Готую файл для Scribus…"
+ "Przygotowuję plik dla Scribusa…": "Готую файл для Scribus…",
+ "Zapisz dla InDesigna (.idml)": "Зберегти для InDesign (.idml)",
+ "Przygotowuję plik IDML…": "Готую файл IDML…"
 }

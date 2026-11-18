@@ -155,3 +155,7 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   zdjęcia, tabele, kalendarze, grupy i elementy z cieniem lub przezroczystością wchodzą jako obrazy (300 dpi)
   zapisane w samym pliku. Czcionki trzeba mieć zainstalowane w systemie — aplikacja podaje, których plik używa.
   Linie wykrojnika nie przechodzą (są w pliku dla plotera).
+- [Zapisz dla InDesigna (.idml)] — to samo w formacie IDML, który otwiera Adobe InDesign (CS4 i nowsze), a także
+  Affinity Publisher i QuarkXPress: ramki tekstowe z formatowaniem, kształty z kolorami, reszta jako obrazy
+  osadzone w pliku. Każda strona jest osobną stroną dokumentu (bez łączenia w rozkładówki); marginesy i spad
+  zostają.
