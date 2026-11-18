@@ -273,7 +273,7 @@ const krok = async (nazwa, fn) => {
       await p.keyboard.press('Escape');
       await p.evaluate(async () => {
         const id = window.seriodruk?.stan?.projekt?.id;
-        await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+        await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ zakladka: 'lacznik' });
         const pole = id && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
         if (pole && !pole.checked) pole.click();
       }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
@@ -282,7 +282,7 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="dostep-ai-utworz"]');
       await p.waitForSelector('#dostep-ai-gotowy:not([hidden])');
       const klucz = await p.inputValue('#dostep-ai-klucz');
-      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      await p.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
       const rpc = (funkcja, tresc) => p.evaluate(async ([f, t]) => {
         const m = await import('./js/konfiguracja.js');
         const x = await fetch(`${m.SUPABASE_URL}/rest/v1/rpc/${f}`, { method: 'POST', headers: { apikey: m.SUPABASE_ANON_KEY, 'content-type': 'application/json' }, body: JSON.stringify(t) });
@@ -309,10 +309,10 @@ const krok = async (nazwa, fn) => {
         if (pole && !pole.checked) pole.click();
       }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
       await p.waitForSelector('#dlg-dostep-ai[open]');
-      await p.click('#dostep-ai-lista li:has-text("Próba na żywo") button:has-text("Odbierz")');
+      await p.click('#dostep-ai .lista-dostepow li:has-text("Próba na żywo") button:has-text("Odbierz")');
       await p.click('#potwierdz-tak');
-      await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li'));
-      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      await p.waitForFunction(() => !document.querySelector('#dostep-ai .lista-dostepow li'));
+      await p.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
       const poOdebraniu = await rpc('ai_projekt', { p_klucz: klucz });
       if (!/odebrany/.test(poOdebraniu.dane?.blad || '')) throw new Error(`odebrany klucz dalej działa: ${JSON.stringify(poOdebraniu.dane).slice(0, 200)}`);
       return `wersja po zapisie AI: ${zapis.dane.wersja}`;
@@ -353,7 +353,7 @@ const krok = async (nazwa, fn) => {
     await krok('zdalny łącznik MCP: adres z okna działa (initialize, lista narzędzi, odczyt, zmiana widoczna w edytorze), odebrany klucz przestaje działać', async () => {
       await p.evaluate(async () => {
         const id = window.seriodruk?.stan?.projekt?.id;
-        await (await import('./js/app/dostep-ai.js')).otworzDostepAi();
+        await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ zakladka: 'lacznik' });
         const pole = id && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
         if (pole && !pole.checked) pole.click();
       }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
@@ -362,7 +362,7 @@ const krok = async (nazwa, fn) => {
       await p.click('[data-akcja="dostep-ai-utworz"]');
       await p.waitForSelector('#dostep-ai-gotowy:not([hidden])');
       const adres = await p.inputValue('#dostep-ai-adres');
-      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      await p.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
       if (!/^https:\/\/api\.makietka\.app\/mcp\/sdk_[0-9a-f]{32}_/.test(adres)) throw new Error(`okno nie pokazało adresu łącznika: ${adres}`);
       // Wywołanie z przeglądarki (Origin strony aplikacji – sprawdza też CORS i OPTIONS funkcji).
       let nr = 0;
@@ -463,10 +463,10 @@ const krok = async (nazwa, fn) => {
         if (pole && !pole.checked) pole.click();
       }); // okno kluczy jest w ustawieniach konta (#100) – tu otwierane wprost nad projektem
       await p.waitForSelector('#dlg-dostep-ai[open]');
-      await p.click('#dostep-ai-lista li:has-text("Łącznik na żywo") button');
+      await p.click('#dostep-ai .lista-dostepow li:has-text("Łącznik na żywo") button:has-text("Odbierz")');
       await p.click('#potwierdz-tak');
-      await p.waitForFunction(() => !document.querySelector('#dostep-ai-lista li button'));
-      await p.click('[data-akcja="dostep-ai-zamknij"]');
+      await p.waitForFunction(() => !document.querySelector('#dostep-ai .lista-dostepow li button'));
+      await p.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
       const po = await wywolaj('tools/call', { name: 'przeglad_projektu', arguments: {} });
       if (!po.isError || !/odebrany/.test(po.content[0].text)) throw new Error(`odebrany klucz dalej działa w łączniku: ${JSON.stringify(po).slice(0, 200)}`);
       return `łącznik: ${init.serverInfo.name} ${init.serverInfo.version}, ${lista.tools.length} narzędzi; obraz od AI wgrany, wstawiony i przeniesiony na konto, wysyłka wprost i kawałkami przez łącznik działa; duże zdjęcie ${duzy.mb.toFixed(1)} MB w kawałkach w ${(duzy.ms / 1000).toFixed(1)} s`;

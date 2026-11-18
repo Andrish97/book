@@ -680,7 +680,7 @@ if (require.main === module) (async () => {
   // Okno jest w ustawieniach konta (#100) – otwierane wprost, z wybranym otwartym projektem.
   await d.evaluate(async () => {
     const id = window.seriodruk.stan.projekt?.id;
-    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ projektId: id });
+    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ projektId: id, zakladka: 'lacznik' });
   });
   await d.waitForSelector('#dlg-dostep-ai[open]');
   await d.fill('#dostep-ai-opis', 'Claude – poprawki kalendarza');
@@ -689,7 +689,7 @@ if (require.main === module) (async () => {
   // Zrzut pokazuje adres prawdziwej bazy, nie atrapy, z której korzysta skrypt.
   await d.evaluate(() => { const p = document.querySelector('#dostep-ai-adres'); p.value = p.value.replace('https://atrapa.supabase.co/functions/v1/mcp/', 'https://api.makietka.app/mcp/'); p.setSelectionRange(0, 0); p.scrollLeft = 0; });
   await zrzut(d, 'dostep-ai.png');
-  await d.click('[data-akcja="dostep-ai-zamknij"]');
+  await d.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
 
   // Współpraca: osoba z dostępem (Bartek edytuje) i świeże zaproszenie dla Oli z linkiem.
   const bartek = { id: '66666666-6666-4666-8666-666666666666', email: 'bartek.lis@przyklad.pl', haslo: 'Dobre#Haslo6', potwierdzone: true, nazwa: 'Bartek Lis' };

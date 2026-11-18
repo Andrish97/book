@@ -3,7 +3,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt, oknoAi } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, oknoAi, zamknijAi } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 
@@ -42,16 +42,16 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   assert.doesNotMatch(await strona.textContent('#dlg-dostep-ai'), /dozwolon|allowlist|odblokuj domen/i);
   assert.ok((await strona.textContent('#dostep-ai-claude-code')).includes(`/functions/v1/mcp/${klucz}`), 'polecenie dla Claude Code używa zdalnego łącznika');
   assert.ok((await strona.textContent('#dostep-ai-claude-desktop')).includes(klucz), 'gotowa konfiguracja serwera u siebie zawiera klucz');
-  await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 1);
-  assert.match(await strona.textContent('#dostep-ai-lista li'), /Claude – test.*„Projekt dla AI”.*czyta i zmienia.*ważny do.*jeszcze nieużyty/s);
+  await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai .lista-dostepow li').length === 1);
+  assert.match(await strona.textContent('#dostep-ai .lista-dostepow li'), /Claude – test.*„Projekt dla AI”.*czyta i zmienia.*ważny do.*jeszcze nieużyty/s);
   // Po zamknięciu i ponownym otwarciu klucza już nie widać.
-  await strona.click('[data-akcja="dostep-ai-zamknij"]');
+  await zamknijAi(strona);
   await oknoAi(strona, { zaznacz: false });
   assert.equal(await strona.inputValue('#dostep-ai-klucz'), '');
   assert.equal(await strona.inputValue('#dostep-ai-adres'), '');
   assert.equal(await strona.textContent('#dostep-ai-claude-code'), '');
   assert.equal(await strona.isVisible('#dostep-ai-gotowy'), false);
-  await strona.click('[data-akcja="dostep-ai-zamknij"]');
+  await zamknijAi(strona);
 
   // AI czyta projekt kluczem: strony w środku, zasoby opisane.
   const odczyt = baza.ai('ai_projekt', { p_klucz: klucz });
@@ -87,17 +87,17 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
 
   // Odebranie z listy „Twoje klucze”: klucz przestaje działać.
   await oknoAi(strona, { zaznacz: false, tryb: 'lista' });
-  await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 2);
-  assert.match(await strona.textContent('#dostep-ai-lista'), /ostatnio użyty/);
+  await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai .lista-dostepow li').length === 2);
+  assert.match(await strona.textContent('#dostep-ai'), /ostatnio użyty/);
   // Zmiana zakresu w miejscu: pełny dostęp – ten sam klucz widzi teraz wszystkie projekty konta.
-  await strona.click('#dostep-ai-lista li:has-text("Claude – test") button:has-text("Zmień zakres")');
-  await strona.click('#dostep-ai-lista li:has-text("Claude – test") .zmiana-zakresu input[value="pelny"]');
-  await strona.click('#dostep-ai-lista li:has-text("Claude – test") button:has-text("Zapisz zakres")');
-  await strona.waitForFunction(() => /pełny dostęp/.test(document.querySelector('#dostep-ai-lista').textContent));
+  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Zmień zakres")');
+  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") .zmiana-zakresu input[value="pelny"]');
+  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Zapisz zakres")');
+  await strona.waitForFunction(() => /pełny dostęp/.test(document.querySelector('#dostep-ai').textContent));
   assert.equal(baza.ai('ai_projekty', { p_klucz: klucz }).dostep.zakres, 'pelny');
-  await strona.click('#dostep-ai-lista li:has-text("Claude – test") button:has-text("Odbierz")');
+  await strona.click('#dostep-ai .lista-dostepow li:has-text("Claude – test") button:has-text("Odbierz")');
   await strona.click('#potwierdz-tak');
-  await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-lista li').length === 1);
+  await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai .lista-dostepow li').length === 1);
   assert.match(baza.ai('ai_projekt', { p_klucz: klucz }).blad, /odebrany/);
   assert.deepEqual(bledy, []);
 });

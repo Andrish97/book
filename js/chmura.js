@@ -892,6 +892,16 @@ export async function zmienDostepAi(id, { zakres, projekty = [] }) {
   sprawdz(await sb.rpc('zmien_dostep_ai', { p_id: id, p_zakres: zakres, p_projekty: projekty }));
 }
 
+// #248: sekcja klucza (lacznik / zwykly / czat) i nowy czas ważności od teraz (dni null – bez terminu).
+export async function oznaczDostepAi(id, sposob) {
+  const sb = await supabase();
+  sprawdz(await sb.rpc('oznacz_dostep_ai', { p_id: id, p_sposob: sposob }));
+}
+export async function zmienWaznoscAi(id, dni) {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('zmien_waznosc_ai', { p_id: id, p_dni: dni }));
+}
+
 export async function odwolajDostepAi(id) {
   const sb = await supabase();
   sprawdz(await sb.rpc('odwolaj_dostep_ai', { p_id: id }));

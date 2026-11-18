@@ -47,16 +47,16 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForFunction(() => /Nie masz jeszcze żadnego klucza/.test(document.querySelector('#ust-ai-opis').textContent));
   // #247: panel wprost w sekcji ustawień – bez przycisku „Zarządzaj…” i bez osobnego okna.
   assert.equal(await strona.locator('[data-akcja="konto-dostep-ai"]').count(), 0);
-  await strona.waitForSelector('#ust-ai #dostep-ai [data-tryb-ai="wybor"]');
+  await strona.waitForSelector('#ust-ai #dostep-ai [data-dodaj-klucz-ai="lacznik"]');
   assert.equal(await strona.isVisible('#dlg-dostep-ai'), false);
-  // #248: lista „Twoje klucze” i „Dodaj klucz” → wybór rodzaju → formularz.
-  assert.equal(await strona.getAttribute('#dostep-ai', 'data-tryb'), 'lista');
-  assert.equal(await strona.isVisible('#dostep-ai-pusto'), true);
+  // #248: trzy sekcje z kluczami, każda z „Dodaj”; nowy klucz – w okienku.
+  assert.deepEqual(await strona.$$eval('#dostep-ai .sekcja-kluczy-ai h3', (h) => h.map((x) => x.textContent)), ['Czat w Makietce', 'Łącznik w aplikacji AI', 'Zwykły czat']);
+  assert.equal(await strona.locator('#dostep-ai .pusto-kluczy:visible').count(), 3);
   assert.equal(await strona.isVisible('#dostep-ai-nowy'), false);
-  await strona.click('#dostep-ai [data-tryb-ai="wybor"]');
-  assert.equal(await strona.locator('#dostep-ai .karta-wyboru:visible').count(), 3);
-  await strona.click('.karta-wyboru[data-tryb-ai="lacznik"]');
-  assert.match(await strona.textContent('#dostep-ai .uwaga-planu'), /płatnego planu/);
+  await strona.click('[data-dodaj-klucz-ai="lacznik"]');
+  await strona.waitForSelector('#dlg-klucz-ai[open]');
+  assert.match(await strona.textContent('#dodaj-klucz-ai-tytul'), /łącznik/);
+  assert.match(await strona.textContent('#dlg-klucz-ai .uwaga-planu'), /płatnego planu/);
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-projekty input').length === 1);
   assert.equal(await strona.locator('#dostep-ai-projekty input:checked').count(), 0, 'z ustawień konta nic nie jest zaznaczone z góry');
   await strona.check('#dostep-ai-nowy input[value="pelny"]');
@@ -66,10 +66,21 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.click('[data-akcja="dostep-ai-utworz"]');
   await strona.waitForSelector('#dostep-ai-gotowy:not([hidden])');
   const klucz = await strona.inputValue('#dostep-ai-klucz');
-  await strona.click('#dostep-ai-gotowy [data-tryb-ai="lista"]');
-  await strona.waitForFunction(() => /pełny dostęp.*bez terminu/s.test(document.querySelector('#dostep-ai-lista').textContent));
-  assert.equal(await strona.isVisible('#dostep-ai-lista'), true, 'nowy klucz na liście „Twoje klucze”');
-  assert.equal(await strona.isVisible('#dostep-ai-pusto'), false);
+  assert.equal(await strona.isVisible('#dostep-ai-nowy'), false, 'po utworzeniu okienko pokazuje tylko wynik');
+  await strona.click('#dostep-ai-gotowy [data-akcja="dodaj-klucz-ai-zamknij"]');
+  await strona.waitForFunction(() => !document.querySelector('#dlg-klucz-ai').open);
+  await strona.waitForFunction(() => /pełny dostęp.*bez terminu/s.test(document.querySelector('#dostep-ai-lista-lacznik').textContent));
+  assert.equal(await strona.textContent('#dostep-ai-lista-zwykly'), '', 'klucz łącznika tylko w sekcji łącznika');
+  // Ważność: zmiana z „bez terminu” na 7 dni od dziś – ten sam klucz.
+  const wiersz = strona.locator('#dostep-ai-lista-lacznik li', { hasText: 'Claude – całe konto' });
+  await wiersz.locator('button', { hasText: 'Ważność' }).click();
+  await wiersz.locator('.zmiana-waznosci select').selectOption('7');
+  await wiersz.locator('button', { hasText: 'Zapisz ważność' }).click();
+  await strona.waitForFunction(() => /ważny do/.test(document.querySelector('#dostep-ai-lista-lacznik').textContent));
+  // „Pokaż klucz” bez hasła do kluczy – klucz nie był zapamiętany.
+  await strona.locator('#dostep-ai-lista-lacznik li button', { hasText: 'Pokaż klucz' }).click();
+  await strona.waitForSelector('#dostep-ai-lista-lacznik .klucz-pokazany');
+  assert.match(await strona.textContent('#dostep-ai-lista-lacznik .klucz-pokazany'), /nie zapamiętała/);
   await strona.waitForFunction(() => /Aktywne klucze: 1 – „Claude – całe konto” \(pełny dostęp\)/.test(document.querySelector('#ust-ai-opis').textContent));
 
   // AI tworzy projekt – lista projektów pokazuje go sama.
@@ -104,9 +115,9 @@ test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z 
   await nowyProjekt(strona, 'Klucze');
   await strona.evaluate(async () => (await import('./js/app/dostep-ai.js')).otworzDostepAi());
   await strona.waitForSelector('#dlg-dostep-ai[open]');
-  await strona.click('#dostep-ai [data-tryb-ai="wybor"]');
-  await strona.click('.karta-wyboru[data-tryb-ai="czat"]');
   assert.match(await strona.textContent('#dlg-dostep-ai'), /także twórca Makietki/);
+  await strona.click('[data-dodaj-klucz-ai="czat"]');
+  await strona.waitForSelector('#dlg-klucz-ai[open]');
   await strona.selectOption('#ai-nowy-dostawca', 'anthropic');
   assert.equal(await strona.isVisible('#ai-nowy-gdzie'), true);
   await strona.fill('#ai-nowy-klucz', 'sk-ant-z-okna-1234');
@@ -115,14 +126,28 @@ test('okno Sztuczna inteligencja: zakładki, klucz dostawcy zapisany w sejfie z 
   await strona.fill('#dlg-sejf-ai [name="haslo"]', 'haslo-do-kluczy');
   await strona.fill('#dlg-sejf-ai [name="powtorz"]', 'haslo-do-kluczy');
   await strona.click('#dlg-sejf-ai button[value="tak"]');
-  await strona.waitForFunction(() => document.querySelector('#dostep-ai').dataset.tryb === 'lista' && /zaszyfrowany \(…1234\)/.test([...document.querySelectorAll('#ai-dostawcy-lista li')].find((li) => li.textContent.includes('Anthropic'))?.textContent || ''));
+  await strona.waitForFunction(() => !document.querySelector('#dlg-klucz-ai').open && /zaszyfrowany \(…1234\)/.test([...document.querySelectorAll('#ai-dostawcy-lista li')].find((li) => li.textContent.includes('Anthropic'))?.textContent || ''));
   assert.equal(await strona.locator('#ai-dostawcy-lista li').count(), 1, 'na liście tylko zapisane klucze');
   assert.ok(!JSON.stringify([...baza.sejfy.values()]).includes('sk-ant-z-okna'), 'na koncie szyfrogram');
-  // Zwykły czat: formularz klucza i opis, bez uwagi o płatnym planie i bez listy kluczy.
-  await strona.click('#dostep-ai [data-tryb-ai="wybor"]');
-  await strona.click('.karta-wyboru[data-tryb-ai="zwykly"]');
+  // „Pokaż klucz” dostawcy – z sejfu.
+  await strona.locator('#ai-dostawcy-lista li button', { hasText: 'Pokaż klucz' }).click();
+  assert.match(await strona.textContent('#ai-dostawcy-lista .klucz-pokazany'), /sk-ant-z-okna-1234/);
+  // Zwykły czat: okienko z formularzem, bez uwagi o płatnym planie; sejf otwarty – klucz zapamiętany od razu.
+  await strona.click('[data-dodaj-klucz-ai="zwykly"]');
+  await strona.waitForSelector('#dlg-klucz-ai[open]');
   assert.equal(await strona.isVisible('#dostep-ai-nowy'), true);
-  assert.equal(await strona.isVisible('#dlg-dostep-ai .uwaga-planu'), false);
-  assert.equal(await strona.isVisible('#ai-dostawcy-lista'), false);
+  assert.equal(await strona.isVisible('#dlg-klucz-ai .uwaga-planu'), false);
+  await strona.fill('#dostep-ai-opis', 'Darmowy czat');
+  await strona.waitForSelector('#dostep-ai-projekty input');
+  await strona.check('#dostep-ai-projekty input >> nth=0');
+  await strona.click('[data-akcja="dostep-ai-utworz"]');
+  await strona.waitForSelector('#dostep-ai-gotowy:not([hidden])');
+  const kluczZwykly = await strona.inputValue('#dostep-ai-klucz');
+  await strona.click('#dostep-ai-gotowy [data-akcja="dodaj-klucz-ai-zamknij"]');
+  const wZwyklym = strona.locator('#dostep-ai-lista-zwykly li', { hasText: 'Darmowy czat' });
+  await wZwyklym.locator('button', { hasText: 'Pokaż klucz' }).click();
+  const pokazany = await wZwyklym.locator('.klucz-pokazany pre').textContent();
+  assert.ok(pokazany.includes(kluczZwykly) && /Otwórz ten adres/.test(pokazany), 'pokazane jeszcze raz polecenie z kluczem');
+  assert.ok(!JSON.stringify([...baza.sejfy.values()]).includes(kluczZwykly), 'klucz dostępu w sejfie zaszyfrowany');
   assert.deepEqual(bledy, []);
 });

@@ -3661,5 +3661,19 @@
  "Zezwól": "Allow",
  "Otwórz GPT Makietka": "Open the Makietka GPT",
  "Na jak długo": "For how long",
- "Może": "Can"
+ "Może": "Can",
+ "Pokaż klucz": "Show key",
+ "Ważność": "Validity",
+ "Zapisz ważność": "Save validity",
+ "Zmień": "Change",
+ "Kopiuj sam klucz": "Copy key only",
+ "Nowy klucz API dostawcy": "New provider API key",
+ "Nowy klucz – łącznik w aplikacji AI": "New key – connector in an AI app",
+ "Nowy klucz – zwykły czat": "New key – regular chat",
+ "Zapisz klucz": "Save key",
+ "Brak kluczy.": "No keys.",
+ "wygasł": "expired",
+ "Klucze API dostawców": "Provider API keys",
+ "Usuń wszystkie zaszyfrowane klucze z konta": "Delete all encrypted keys from the account",
+ "Ważność klucza zmieniona – adres zostaje ten sam.": "Key validity changed – the address stays the same."
 }

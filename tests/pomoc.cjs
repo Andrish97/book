@@ -428,7 +428,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       return json(r, 200, null);
     }
     // Dostęp dla AI (migracja dostep_ai): klucze właściciela i funkcje posiadacza klucza.
-    if (sc.startsWith('/rest/v1/rpc/') && /dostep_ai|dostepy_ai|obraz_ai|obrazu_ai|pliki_do_usuniecia|pliki_usuniete|^\/rest\/v1\/rpc\/(ai|oauth)_/.test(sc)) {
+    if (sc.startsWith('/rest/v1/rpc/') && /dostep_ai|dostepy_ai|waznosc_ai|obraz_ai|obrazu_ai|pliki_do_usuniecia|pliki_usuniete|^\/rest\/v1\/rpc\/(ai|oauth)_/.test(sc)) {
       stan.ai = stan.ai || atrapaAi(stan);
       try {
         return json(r, 200, stan.ai(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)));
@@ -771,12 +771,17 @@ const PNG_2X2 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFkl
 async function oknoAi(strona, { zaznacz = true, tryb = 'lacznik' } = {}) {
   await strona.evaluate(async ([zaznaczOtwarty, trybPanelu]) => {
     const id = window.seriodruk?.stan?.projekt?.id;
-    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ zakladka: trybPanelu });
+    await (await import('./js/app/dostep-ai.js')).otworzDostepAi({ zakladka: trybPanelu === 'lista' ? null : trybPanelu });
     const pole = id && zaznaczOtwarty && document.querySelector(`#dostep-ai-projekty input[value="${id}"]`);
     if (pole && !pole.checked) pole.click();
   }, [zaznacz, tryb]);
   await strona.waitForSelector('#dlg-dostep-ai[open]');
 }
 
+// Zamyka okienko nowego klucza i okno kluczy (#248) – jak „Zamknij” w obu.
+async function zamknijAi(strona) {
+  await strona.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
+}
+
 module.exports = {
-  krotkieLinkiGoscia, oknoAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };
+  krotkieLinkiGoscia, oknoAi, zamknijAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };

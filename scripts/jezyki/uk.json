@@ -3661,5 +3661,19 @@
  "Zezwól": "Дозволити",
  "Otwórz GPT Makietka": "Відкрити GPT Makietka",
  "Na jak długo": "На скільки",
- "Może": "Може"
+ "Może": "Може",
+ "Pokaż klucz": "Показати ключ",
+ "Ważność": "Термін дії",
+ "Zapisz ważność": "Зберегти термін",
+ "Zmień": "Змінити",
+ "Kopiuj sam klucz": "Копіювати лише ключ",
+ "Nowy klucz API dostawcy": "Новий API-ключ постачальника",
+ "Nowy klucz – łącznik w aplikacji AI": "Новий ключ – конектор у застосунку ШІ",
+ "Nowy klucz – zwykły czat": "Новий ключ – звичайний чат",
+ "Zapisz klucz": "Зберегти ключ",
+ "Brak kluczy.": "Немає ключів.",
+ "wygasł": "термін минув",
+ "Klucze API dostawców": "API-ключі постачальників",
+ "Usuń wszystkie zaszyfrowane klucze z konta": "Видалити всі зашифровані ключі з облікового запису",
+ "Ważność klucza zmieniona – adres zostaje ten sam.": "Термін дії ключа змінено – адреса та сама."
 }

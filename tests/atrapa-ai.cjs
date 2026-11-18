@@ -585,7 +585,7 @@ function atrapaAi(stan) {
         return { klucz: k.klucz, wazny_do: k.wazny_do };
       }
     }
-    if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai', 'zmien_dostep_ai'].includes(funkcja)) return undefined;
+    if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai', 'zmien_dostep_ai', 'oznacz_dostep_ai', 'zmien_waznosc_ai'].includes(funkcja)) return undefined;
     if (!konto) blad(401, 'Brak sesji');
     const projektyZakresu = (zakres, lista) => {
       if (!['wybrane', 'pelny'].includes(zakres)) blad(400, 'Zakres klucza: wybrane projekty albo pełny dostęp');
@@ -612,12 +612,26 @@ function atrapaAi(stan) {
     }
     if (funkcja === 'dostepy_ai') {
       return stan.dostepy.filter((x) => x.owner_id === konto.id).reverse()
-        .map(({ id, opis, rola, zakres, projekty, wazny_do, utworzono, ostatnie_uzycie, odwolany }) => ({
-          id, opis, rola, zakres, wazny_do, utworzono, ostatnie_uzycie, odwolany,
+        .map(({ id, opis, rola, zakres, sposob, projekty, wazny_do, utworzono, ostatnie_uzycie, odwolany }) => ({
+          id, opis, rola, zakres, sposob: sposob || null, wazny_do, utworzono, ostatnie_uzycie, odwolany,
           aktywny: !odwolany && (!wazny_do || new Date(wazny_do) > new Date()),
           projekty: projekty.map((pid) => stan.projekty.find((p) => p.id === pid)).filter((p) => p && rolaKonta(konto.id, p.id))
             .map((p) => ({ id: p.id, nazwa: p.nazwa })).sort((a, b) => a.nazwa.localeCompare(b.nazwa)),
         }));
+    }
+    if (funkcja === 'oznacz_dostep_ai') {
+      if (!['lacznik', 'zwykly', 'czat'].includes(tresc.p_sposob)) blad(400, 'Nieznany rodzaj klucza');
+      const d = stan.dostepy.find((x) => x.id === tresc.p_id && x.owner_id === konto.id);
+      if (!d) blad(400, 'Nie ma takiego klucza na tym koncie');
+      d.sposob = tresc.p_sposob;
+      return null;
+    }
+    if (funkcja === 'zmien_waznosc_ai') {
+      if (tresc.p_dni != null && !(tresc.p_dni >= 1 && tresc.p_dni <= 365)) blad(400, 'Ważność klucza: od 1 do 365 dni albo bez terminu');
+      const d = stan.dostepy.find((x) => x.id === tresc.p_id && x.owner_id === konto.id && !x.odwolany);
+      if (!d) blad(400, 'Nie ma takiego klucza na tym koncie (albo został odebrany)');
+      d.wazny_do = tresc.p_dni == null ? null : new Date(Date.now() + tresc.p_dni * 86400000).toISOString();
+      return { wazny_do: d.wazny_do };
     }
     if (funkcja === 'zmien_dostep_ai') {
       const d = stan.dostepy.find((x) => x.id === tresc.p_id && x.owner_id === konto.id);

@@ -935,25 +935,26 @@ dialog h2 { font-size: 19px; }
 body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .czat-ai-do-skopiowania { max-height: 160px; overflow: auto; margin: 6px 0 0; padding: 8px; font-size: 11px; white-space: pre-wrap; word-break: break-word; background: var(--tlo-pola, rgba(0,0,0,0.04)); border-radius: var(--r-s); }
 .kroki-montazu { max-height: min(56vh, 480px); overflow: auto; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
-#dostep-ai[data-tryb="lista"] [data-dla]:not([data-dla~="lista"]),
-#dostep-ai[data-tryb="wybor"] [data-dla]:not([data-dla~="wybor"]),
-#dostep-ai[data-tryb="czat"] [data-dla]:not([data-dla~="czat"]),
-#dostep-ai[data-tryb="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
-#dostep-ai[data-tryb="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
-/* #248: lista kluczy i „Dodaj klucz” z wyborem rodzaju. */
-.naglowek-kluczy-ai { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
-.naglowek-kluczy-ai h3, .wybor-klucza-ai h3 { margin: 0; font-size: 16px; }
-.wstecz-kluczy { align-self: flex-start; }
-.wybor-klucza-ai { display: flex; flex-direction: column; gap: 8px; }
-.karta-wyboru { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 12px 14px; border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz); font: inherit; cursor: pointer; }
-.karta-wyboru:hover, .karta-wyboru:focus-visible { border-color: var(--akcent); background: var(--akcent-tlo); }
-.karta-wyboru strong { font-size: 14px; }
-.karta-wyboru span { font-size: 13px; color: var(--cichy); }
+#dodaj-klucz-ai[data-tryb="czat"] [data-dla]:not([data-dla~="czat"]),
+#dodaj-klucz-ai[data-tryb="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
+#dodaj-klucz-ai[data-tryb="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
+/* #248: trzy sekcje kluczy w ustawieniach; nowy klucz w okienku. */
+.sekcja-kluczy-ai { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid var(--linia); }
+.naglowek-kluczy-ai { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.naglowek-kluczy-ai h3 { margin: 0 0 2px; font-size: 15px; }
+.naglowek-kluczy-ai .podpowiedz { margin: 0; }
+.naglowek-kluczy-ai .przycisk { flex: none; }
+.sekcja-kluczy-ai ul:empty { display: none; }
+.klucz-pokazany { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.klucz-pokazany pre { white-space: pre-wrap; word-break: break-all; margin: 0; }
+.zmiana-waznosci { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
 .uwaga-planu { border-left: 3px solid var(--ostrzezenie, #d97706); padding: 8px 12px; background: rgba(217, 119, 6, 0.06); border-radius: var(--r-s); }
 .lista-dostawcow-ai { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .lista-dostawcow-ai li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-s); }
 .lista-dostawcow-ai .nazwa-dostawcy { flex: 1 1 180px; font-weight: 600; font-size: 14px; }
-.lista-dostawcow-ai .stan-klucza { font-size: 13px; color: var(--tekst-cichy, #666); }
+.lista-dostawcow-ai .stan-klucza { font-size: 12.5px; color: var(--cichy); }
+.lista-dostawcow-ai li > div { display: flex; flex-direction: column; gap: 2px; flex: 1 1 200px; min-width: 0; }
+.klucz-akcje { display: flex; flex-wrap: wrap; gap: 6px; }
 .lista-dostawcow-ai input { flex: 1 1 200px; min-width: 0; }
 .lista-polaczen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .lista-polaczen button { display: flex; gap: 8px; align-items: baseline; width: 100%; text-align: left; padding: 6px 8px; border: 1px solid var(--linia); border-radius: var(--r-s); background: none; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
@@ -2092,7 +2093,13 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 .lista-projektow-klucza .projekt-klucza span { overflow-wrap: anywhere; }
 .lista-dostepow li { flex-wrap: wrap; }
 .lista-dostepow .zakres-opis { font-size: 13px; overflow-wrap: anywhere; }
-.lista-dostepow .klucz-akcje { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
+.lista-dostepow li > div:first-child { flex: 1 1 240px; }
+.lista-dostepow li > .klucz-akcje, .lista-dostawcow-ai li > .klucz-akcje { flex-direction: row; flex-wrap: wrap; gap: 6px; flex: 0 1 auto; justify-content: flex-end; }
+/* #248: rozwinięte pod kluczem – pokazany klucz, ważność, zakres – na całą szerokość wiersza. */
+.lista-dostepow li > .klucz-pokazany, .lista-dostawcow-ai li > .klucz-pokazany { flex: 1 1 100%; flex-direction: column; align-items: stretch; }
+.lista-dostepow li > .zmiana-waznosci { flex: 1 1 100%; flex-direction: row; align-items: center; }
+.lista-dostepow li > .zmiana-zakresu { flex: 1 1 100%; }
+.klucz-pokazany pre { padding: 8px 10px; background: var(--wypelnienie); border-radius: var(--r-s); font-size: 12px; max-height: 220px; overflow: auto; }
 .lista-dostepow .zmiana-zakresu { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
 :root[data-dotyk] .lista-projektow-klucza .przelacznik { min-height: 40px; }
 @media (max-width: 600px) {

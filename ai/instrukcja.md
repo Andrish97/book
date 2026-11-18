@@ -2212,21 +2212,17 @@ Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile 
 
 ### 25.2 Klucz dla AI
 
-**Ustawienia konta** → **Sztuczna inteligencja** pokazuje listę **Twoje klucze** – wszystkie klucze konta w jednym miejscu – i przycisk **Dodaj klucz**. Po kliknięciu wybierasz, jaki klucz dodajesz:
+**Ustawienia konta** → **Sztuczna inteligencja** ma trzy sekcje – trzy drogi pracy z AI. W każdej widać klucze, które już masz, i przycisk **Dodaj**. Nowy klucz dodajesz zawsze w okienku, żeby nie pomylić go z kluczami już dodanymi.
 
-| Rodzaj | Do czego | Koszt |
+| Sekcja | Do czego | Koszt |
 |---|---|---|
-| **Klucz API dostawcy** | Klucz Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter albo API zgodnego z OpenAI do Asystenta AI w edytorze (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). Wybierasz dostawcę, wklejasz klucz (**Gdzie wziąć klucz?** prowadzi do strony dostawcy) i **Zapisz klucz**. Klucz jest zaszyfrowany Twoim hasłem do kluczy – nie odczyta go nikt poza Tobą, także twórca Makietki. | Płacisz dostawcy. |
-| **Łącznik w aplikacji AI** | Klucz dostępu i adres łącznika dla Claude, ChatGPT i innych aplikacji z MCP (rozdział „25.3 Podłączenie w aplikacji AI”). | **Najprawdopodobniej płatny plan** aplikacji AI (ChatGPT – plany płatne; Claude – w darmowym jeden własny łącznik). |
-| **Zwykły czat w przeglądarce** | Klucz dostępu i gotowe polecenie dla rozmowy w przeglądarce – czat otwiera adres jak stronę (rozdział „25.7 AI, które umie otwierać strony (bez łącznika)”). Nie każdy czat to potrafi. | Także darmowe plany. |
-
-Bez żadnego klucza i bez opłat działa tryb „kopiuj i wklej” w Asystencie AI (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). **Twoje klucze** u góry formularza wraca do listy.
-
-Klucze należą do konta:
+| **Czat w Makietce** | Klucze API dostawców (Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter, zgodne z OpenAI) do Asystenta AI w edytorze (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). W okienku wybierasz dostawcę, wklejasz klucz (**Gdzie wziąć klucz?** prowadzi do strony dostawcy) i **Zapisz klucz**. Klucze są zaszyfrowane Twoim hasłem do kluczy – nie odczyta ich nikt poza Tobą, także twórca Makietki. Tu widać też jednodniowe klucze „Czat w Makietce”, którymi asystent czyta otwarty projekt. | Płacisz dostawcy. Bez klucza: tryb „kopiuj i wklej” (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). |
+| **Łącznik w aplikacji AI** | Klucz dostępu i adres łącznika dla Claude, ChatGPT i innych aplikacji z MCP (rozdział „25.3 Podłączenie w aplikacji AI”). Tu trafiają też połączenia z logowaniem („Łącznik: nazwa aplikacji”). | **Najprawdopodobniej płatny plan** aplikacji AI (ChatGPT – plany płatne; Claude – w darmowym jeden własny łącznik). |
+| **Zwykły czat** | Klucz dostępu i gotowe polecenie dla rozmowy w przeglądarce – czat otwiera adres jak stronę (rozdział „25.7 AI, które umie otwierać strony (bez łącznika)”). Nie każdy czat to potrafi. | Także darmowe plany. |
 
 ![Sztuczna inteligencja w ustawieniach konta](https://makietka.app/img/instrukcja/k-konto-ai.png)
 
-Formularz klucza dostępu (łącznik i zwykły czat):
+Okienko nowego klucza dostępu (łącznik i zwykły czat):
 
 | Ustawienie | Znaczenie |
 |---|---|
@@ -2236,9 +2232,19 @@ Formularz klucza dostępu (łącznik i zwykły czat):
 | **Wybrane projekty** | Projekty, do których klucz daje dostęp — Twoje i udostępnione Ci. |
 | **Pełny dostęp – wszystkie projekty, także tworzenie i usuwanie** | Także projekty, które dojdą później. Usunięcie projektu AI zawsze potwierdza nazwą. |
 
-**Utwórz klucz** pokazuje **Adres łącznika** (albo gotowe polecenie dla zwykłego czatu) — widać go tylko raz, skopiuj go od razu. **Gotowe – wróć do kluczy** wraca do listy.
+**Utwórz klucz** pokazuje **Adres łącznika** (albo gotowe polecenie dla zwykłego czatu). Gdy masz hasło do kluczy, Makietka zapamiętuje klucz zaszyfrowany tym hasłem; bez hasła – **Zapamiętaj klucz** w okienku. **Gotowe** zamyka okienko.
 
-Na liście **Twoje klucze** klucze API dostawców mają **Usuń** (gdy klucze są zaszyfrowane na tym urządzeniu – **Otwórz** i hasło do kluczy), a klucze dostępu pokazują zakres, ważność i ostatnie użycie. **Zmień zakres** dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łącznika się nie zmienia. **Odbierz** wyłącza klucz od razu.
+Przy każdym kluczu na liście:
+
+| Przycisk | Co robi |
+|---|---|
+| **Pokaż klucz** | Pokazuje jeszcze raz adres łącznika albo polecenie dla zwykłego czatu (i sam klucz) – do skopiowania. Działa dla kluczy zapamiętanych w sejfie; klucz API dostawcy pokazuje się tak samo. |
+| **Zmień zakres** | Dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres się nie zmienia. |
+| **Ważność** | Nowy czas ważności od dziś (1 dzień … rok albo bez terminu), także dla klucza, który już wygasł — adres się nie zmienia. |
+| **Odbierz** | Wyłącza klucz od razu. |
+| **Zmień**, **Usuń** | Przy kluczach API dostawców: wklejenie nowego klucza w okienku albo usunięcie. |
+
+Gdy klucze są zaszyfrowane na tym urządzeniu, sekcja Czat w Makietce pokazuje **Otwórz** – podajesz hasło do kluczy raz na urządzeniu.
 
 ![Ustawienia Sztuczna inteligencja](https://makietka.app/img/instrukcja/dostep-ai.png)
 

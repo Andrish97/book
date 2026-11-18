@@ -5,7 +5,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt, oknoAi, drugieUrzadzenie, zaloguj } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, oknoAi, drugieUrzadzenie, zaloguj, zamknijAi } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 20000 });
 
@@ -14,7 +14,7 @@ async function kluczAi(strona) {
   await strona.click('[data-akcja="dostep-ai-utworz"]');
   await strona.waitForSelector('#dostep-ai-gotowy:not([hidden])');
   const klucz = await strona.inputValue('#dostep-ai-klucz');
-  await strona.click('[data-akcja="dostep-ai-zamknij"]');
+  await zamknijAi(strona);
   return klucz;
 }
 

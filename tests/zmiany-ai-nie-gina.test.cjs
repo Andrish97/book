@@ -3,7 +3,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt, oknoAi } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, oknoAi, zamknijAi } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 
@@ -16,7 +16,7 @@ test('zmiany od AI przy zamkniętym projekcie zostają po otwarciu – także pr
   await strona.click('[data-akcja="dostep-ai-utworz"]');
   await strona.waitForSelector('#dostep-ai-gotowy:not([hidden])');
   const klucz = await strona.inputValue('#dostep-ai-klucz');
-  await strona.click('[data-akcja="dostep-ai-zamknij"]');
+  await zamknijAi(strona);
 
   // Użytkownik zamyka projekt; kopia na urządzeniu ma datę „z przyszłości” (zegar telefonu się spieszy).
   await strona.click('.pasek-edytora [data-akcja="do-projektow"]');

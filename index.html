@@ -562,110 +562,35 @@
             <h2>Sztuczna inteligencja</h2>
             <p class="ciche" id="ust-ai-opis" hidden>Sprawdzam…</p>
             <!-- Panel AI (#247): wprost w ustawieniach, bez osobnego okna „Zarządzaj…”. -->
-            <div id="dostep-ai" class="formularz panel-ai" data-tryb="lista">
-      <!-- #248: jedna lista „Twoje klucze” + „Dodaj klucz” (wybór rodzaju, potem krótki formularz) zamiast zakładek. -->
-      <p class="ciche" data-dla="lista">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo.</p>
-      <div class="naglowek-kluczy-ai" data-dla="lista">
-        <h3>Twoje klucze</h3>
-        <button type="button" class="przycisk glowny" data-tryb-ai="wybor" data-ikona="plus">Dodaj klucz</button>
-      </div>
-      <ul class="lista-dostawcow-ai" id="ai-dostawcy-lista" data-dla="lista"></ul>
-      <ul class="lista-dostepow" id="dostep-ai-lista" data-dla="lista"></ul>
-      <p class="podpowiedz" id="dostep-ai-pusto" data-dla="lista">Nie masz jeszcze żadnego klucza.</p>
-      <div class="rzad-przyciskow" id="ai-sejf-akcje" data-dla="lista"></div>
-      <p class="podpowiedz" data-dla="lista"><b>Bez klucza i bez opłat:</b> w edytorze menu ⋯ → Asystent AI → „Dowolny czat bez klucza – kopiuj i wklej” – działa z każdym czatem w przeglądarce, także darmowym ChatGPT.</p>
-
-      <button type="button" class="przycisk przezroczysty maly wstecz-kluczy" data-tryb-ai="lista" data-ikona="wstecz" data-dla="wybor czat lacznik zwykly"><span>Twoje klucze</span></button>
-
-      <div class="wybor-klucza-ai" data-dla="wybor">
-        <h3>Jaki klucz dodajesz?</h3>
-        <button type="button" class="karta-wyboru" data-tryb-ai="czat"><strong>Klucz API dostawcy</strong><span>Do Asystenta AI w edytorze Makietki (Anthropic, OpenAI, Gemini…). Płacisz u dostawcy. Klucz jest zaszyfrowany Twoim hasłem – nie odczyta go nikt, także twórca Makietki.</span></button>
-        <button type="button" class="karta-wyboru" data-tryb-ai="lacznik"><strong>Łącznik w aplikacji AI</strong><span>Claude, ChatGPT i inne aplikacje z łącznikami (MCP). Najprawdopodobniej potrzebujesz płatnego planu.</span></button>
-        <button type="button" class="karta-wyboru" data-tryb-ai="zwykly"><strong>Zwykły czat w przeglądarce</strong><span>Gotowe polecenie z adresem dla czatu, który umie otwierać strony. Nie każdy czat to potrafi – wtedy użyj trybu „kopiuj i wklej”.</span></button>
-      </div>
-
-      <fieldset class="grupa-pol" data-dla="czat" id="ai-nowy-dostawca-pola">
-        <legend>Klucz API dostawcy</legend>
-        <label class="pole"><span>Dostawca</span><select id="ai-nowy-dostawca"></select></label>
-        <label class="pole"><span>Klucz API</span><input id="ai-nowy-klucz" type="password" autocomplete="off" spellcheck="false" placeholder="Wklej klucz API"></label>
-        <p class="podpowiedz"><a id="ai-nowy-gdzie" target="_blank" rel="noopener" href="#">Gdzie wziąć klucz?</a> Przeglądarka szyfruje klucz Twoim hasłem do kluczy i dopiero wtedy zapisuje go na koncie: <b>bez hasła nie odczyta go nikt, także twórca Makietki</b>.</p>
-        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="ai-zapisz-klucz-dostawcy" data-ikona="plus">Zapisz klucz</button></div>
-      </fieldset>
-
-      <div class="grupa-pol polacz-oauth" data-dla="lacznik">
-        <p><b>Najprościej – z logowaniem:</b> w aplikacji AI dodaj łącznik pod adresem <code>https://api.makietka.app/mcp</code> (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy Makietkę – logujesz się swoim hasłem, wybierasz projekty i zakres. Nie kopiujesz żadnego klucza; połączenie widać niżej, w kluczach dostępu.</p>
-      </div>
-      <p class="podpowiedz uwaga-planu" data-dla="lacznik"><b>Najprawdopodobniej potrzebujesz płatnego planu.</b> Własne łączniki (MCP) w ChatGPT są w planach płatnych (tryb dewelopera); w Claude darmowy plan pozwala na jeden własny łącznik. Bez płatnego planu – zakładka „Zwykły czat” albo czat w Makietce.</p>
-      <p class="podpowiedz" data-dla="zwykly">Zwykła rozmowa w przeglądarce (także darmowy ChatGPT, Claude, Gemini) – bez łączników. Utwórz klucz i wklej czatowi gotowe polecenie: czat otworzy adres jak stronę, zobaczy narzędzia Makietki i będzie zmieniać projekt, otwierając kolejne adresy.</p>
-      <fieldset class="grupa-pol" id="dostep-ai-nowy" data-dla="lacznik zwykly">
-        <legend>Nowy klucz</legend>
-        <label class="pole"><span>Opis (dla Ciebie)</span><input id="dostep-ai-opis" maxlength="120" placeholder="np. Claude – poprawki kalendarza"></label>
-        <div class="rzad">
-          <label class="pole"><span>AI może</span><select id="dostep-ai-rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
-          <label class="pole"><span>Ważny przez</span><select id="dostep-ai-dni"><option value="1">1 dzień</option><option value="7">7 dni</option><option value="30" selected>30 dni</option><option value="90">90 dni</option><option value="365">rok</option><option value="bez">bez terminu</option></select></label>
+            <div id="dostep-ai" class="formularz panel-ai">
+      <!-- #248: trzy sekcje z kluczami (edycja: zakres, ważność, „Pokaż klucz”); nowy klucz – okienko „Dodaj”. -->
+      <p class="ciche">AI może czytać i – jeśli zechcesz – zmieniać Twoje projekty, równolegle z Tobą; zmiany widać w edytorze na żywo.</p>
+      <section class="sekcja-kluczy-ai" data-sposob="czat">
+        <div class="naglowek-kluczy-ai">
+          <div><h3>Czat w Makietce</h3><p class="podpowiedz">Twoje klucze API dostawców (Anthropic, OpenAI, Gemini…) do Asystenta AI w edytorze – płacisz u dostawcy. Zaszyfrowane Twoim hasłem do kluczy: <b>nie odczyta ich nikt, także twórca Makietki</b>.</p></div>
+          <button type="button" class="przycisk" data-dodaj-klucz-ai="czat" data-ikona="plus">Dodaj</button>
         </div>
-        <div class="zakres-klucza" role="radiogroup" aria-label="Zakres klucza">
-          <label class="przelacznik"><input type="radio" name="dostep-ai-zakres" value="wybrane" checked><span>Wybrane projekty</span></label>
-          <label class="przelacznik"><input type="radio" name="dostep-ai-zakres" value="pelny"><span>Pełny dostęp – wszystkie projekty, także tworzenie i usuwanie</span></label>
+        <ul class="lista-dostawcow-ai" id="ai-dostawcy-lista"></ul>
+        <ul class="lista-dostepow" id="dostep-ai-lista-czat"></ul>
+        <p class="podpowiedz pusto-kluczy">Brak kluczy. Bez klucza i bez opłat: w edytorze menu ⋯ → Asystent AI → „Dowolny czat bez klucza – kopiuj i wklej”.</p>
+        <div class="rzad-przyciskow" id="ai-sejf-akcje"></div>
+      </section>
+      <section class="sekcja-kluczy-ai" data-sposob="lacznik">
+        <div class="naglowek-kluczy-ai">
+          <div><h3>Łącznik w aplikacji AI</h3><p class="podpowiedz">Claude, ChatGPT i inne aplikacje z łącznikami (MCP). <b>Najprawdopodobniej potrzebujesz płatnego planu.</b></p></div>
+          <button type="button" class="przycisk" data-dodaj-klucz-ai="lacznik" data-ikona="plus">Dodaj</button>
         </div>
-        <div class="lista-projektow-klucza" id="dostep-ai-projekty"></div>
-        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="dostep-ai-utworz" data-ikona="plus">Utwórz klucz</button></div>
-      </fieldset>
-      <fieldset class="grupa-pol" id="dostep-ai-gotowy" hidden>
-        <legend>Adres łącznika – skopiuj go teraz</legend>
-        <p class="podpowiedz">Adres zawiera klucz i widać go tylko teraz. Po zamknięciu okna nie da się go odczytać – najwyżej utworzyć nowy klucz.</p>
-        <label class="pole" data-dla="lacznik"><span>Adres łącznika dla AI</span>
-          <span class="z-przyciskiem">
-            <input id="dostep-ai-adres" type="text" readonly>
-            <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj-adres" data-ikona="kopiuj" title="Kopiuj adres" aria-label="Kopiuj adres łącznika"></button>
-          </span>
-        </label>
-        <p class="podpowiedz" data-dla="lacznik">Teraz dodaj ten adres w swojej aplikacji AI – zobacz „Jak podłączyć” niżej. W poleceniu do skopiowania adres jest już wpisany.</p>
-        <div class="dostep-ai-polecenie" data-dla="zwykly">
-          <div class="prompt-naglowek"><b>Zwykły czat bez łączników (np. darmowy ChatGPT, Claude, Gemini): skopiuj i wklej w rozmowie – AI pokaże Twoje projekty i zapyta, co zrobić.</b>
-            <button type="button" class="przycisk" data-akcja="dostep-ai-kopiuj-zwykly" data-ikona="kopiuj">Kopiuj dla zwykłego czatu</button></div>
-          <pre id="dostep-ai-polecenie-zwykly"></pre>
-          <p class="podpowiedz">Jeśli czat odpowie, że nie może otworzyć adresów, które sam zbudował – użyj w edytorze <b>Asystenta AI</b> z dostawcą „Dowolny czat bez klucza – kopiuj i wklej” (instrukcja 25.6).</p>
+        <ul class="lista-dostepow" id="dostep-ai-lista-lacznik"></ul>
+        <p class="podpowiedz pusto-kluczy">Brak kluczy.</p>
+      </section>
+      <section class="sekcja-kluczy-ai" data-sposob="zwykly">
+        <div class="naglowek-kluczy-ai">
+          <div><h3>Zwykły czat</h3><p class="podpowiedz">Gotowe polecenie z adresem dla czatu w przeglądarce, który umie otwierać strony. Nie każdy czat to potrafi – wtedy tryb „kopiuj i wklej”.</p></div>
+          <button type="button" class="przycisk" data-dodaj-klucz-ai="zwykly" data-ikona="plus">Dodaj</button>
         </div>
-        <div class="rzad-przyciskow"><button type="button" class="przycisk" data-tryb-ai="lista">Gotowe – wróć do kluczy</button></div>
-        <details class="dostep-ai-jak" data-dla="lacznik">
-          <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
-          <label class="pole"><span>Klucz dostępu</span>
-            <span class="z-przyciskiem">
-              <input id="dostep-ai-klucz" type="text" readonly>
-              <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj" data-ikona="kopiuj" title="Kopiuj klucz" aria-label="Kopiuj klucz"></button>
-            </span>
-          </label>
-          <p class="podpowiedz">Claude Code (zdalny łącznik, nic do pobrania):</p>
-          <pre id="dostep-ai-claude-code"></pre>
-          <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/makietka-mcp.mjs" download="makietka-mcp.mjs">makietka-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
-          <pre id="dostep-ai-claude-desktop"></pre>
-          <p class="podpowiedz">Opis narzędzi i formatu projektu: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
-        </details>
-      </fieldset>
-      <fieldset class="grupa-pol dostep-ai-pomoc" data-dla="lacznik">
-        <legend>Jak podłączyć</legend>
-        <div class="dostep-ai-polecenie">
-          <div class="prompt-naglowek"><b>Nie wiesz, jak podłączyć? Skopiuj to polecenie i wklej swojemu AI – poprowadzi Cię.</b>
-            <button type="button" class="przycisk glowny" data-akcja="dostep-ai-kopiuj-polecenie" data-ikona="kopiuj">Kopiuj polecenie</button></div>
-          <pre id="dostep-ai-polecenie"></pre>
-        </div>
-        <div class="dostep-ai-rozszerzenie">
-          <a class="przycisk" id="dostep-ai-pobierz-mcpb" href="https://makietka.app/ai/mcp/makietka.mcpb" download="makietka.mcpb" data-ikona="pobierz">Pobierz rozszerzenie dla Claude Desktop</a>
-          <p class="podpowiedz">Kliknij dwukrotnie pobrany plik – Claude Desktop zapyta o instalację – i wklej klucz.</p>
-        </div>
-        <details class="dostep-ai-jak" id="dostep-ai-aplikacje">
-          <summary>Krótko dla każdej aplikacji</summary>
-          <ul class="dostep-ai-kroki">
-            <li><b>Claude</b>: <i>Dostosuj</i> → <i>Łączniki</i> → <b>+</b> → <i>Dodaj własny łącznik</i>; wklej adres łącznika, logowanie: <i>bez logowania</i>.</li>
-            <li><b>Claude Desktop</b>: rozszerzenie wyżej – czyta zdjęcia, foldery i ZIP-y prosto z dysku.</li>
-            <li><b>Claude Code</b>: <code id="dostep-ai-polecenie-code">claude mcp add --transport http makietka https://api.makietka.app/mcp/&lt;klucz&gt;</code></li>
-            <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>; wklej adres, <i>No Authentication</i>.</li>
-            <li><b>Inne</b> (Cursor, Windsurf): łącznik MCP przez HTTP – podaj adres. Dla programistów: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</li>
-          </ul>
-          <p class="podpowiedz"><b>Ograniczenia:</b> nie każda aplikacja i nie każdy plan obsługuje własne łączniki. Claude w czacie nie przekazuje łącznikom zdjęć z rozmowy – większe zdjęcia wrzucisz przez link, który poda AI. AI widzi tylko projekty z klucza.</p>
-        </details>
-      </fieldset>
+        <ul class="lista-dostepow" id="dostep-ai-lista-zwykly"></ul>
+        <p class="podpowiedz pusto-kluczy">Brak kluczy.</p>
+      </section>
             </div>
           </section>
 
@@ -1715,6 +1640,94 @@
     </div>
   </dialog>
 
+  <!-- #248: nowy klucz – zawsze w okienku, żeby nie mylić z kluczami już dodanymi. -->
+  <dialog id="dlg-klucz-ai" class="dialog-szeroki">
+    <div class="formularz" id="dodaj-klucz-ai" data-tryb="czat">
+      <div class="naglowek-dialogu">
+        <h2 id="dodaj-klucz-ai-tytul">Nowy klucz</h2>
+        <button type="button" class="przycisk-ikona" data-akcja="dodaj-klucz-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <fieldset class="grupa-pol" data-dla="czat" id="ai-nowy-dostawca-pola">
+        <label class="pole"><span>Dostawca</span><select id="ai-nowy-dostawca"></select></label>
+        <label class="pole"><span>Klucz API</span><input id="ai-nowy-klucz" type="password" autocomplete="off" spellcheck="false" placeholder="Wklej klucz API"></label>
+        <p class="podpowiedz"><a id="ai-nowy-gdzie" target="_blank" rel="noopener" href="#">Gdzie wziąć klucz?</a> Przeglądarka szyfruje klucz Twoim hasłem do kluczy i dopiero wtedy zapisuje go na koncie: <b>bez hasła nie odczyta go nikt, także twórca Makietki</b>.</p>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="ai-zapisz-klucz-dostawcy" data-ikona="plus">Zapisz klucz</button></div>
+      </fieldset>
+      <div class="grupa-pol polacz-oauth" data-dla="lacznik">
+        <p><b>Najprościej – z logowaniem:</b> w aplikacji AI dodaj łącznik pod adresem <code>https://api.makietka.app/mcp</code> (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy Makietkę – logujesz się swoim hasłem, wybierasz projekty i zakres. Nie kopiujesz żadnego klucza; połączenie widać niżej, w kluczach dostępu.</p>
+      </div>
+      <p class="podpowiedz uwaga-planu" data-dla="lacznik"><b>Najprawdopodobniej potrzebujesz płatnego planu.</b> Własne łączniki (MCP) w ChatGPT są w planach płatnych (tryb dewelopera); w Claude darmowy plan pozwala na jeden własny łącznik. Bez płatnego planu – zakładka „Zwykły czat” albo czat w Makietce.</p>
+      <p class="podpowiedz" data-dla="zwykly">Zwykła rozmowa w przeglądarce (także darmowy ChatGPT, Claude, Gemini) – bez łączników. Utwórz klucz i wklej czatowi gotowe polecenie: czat otworzy adres jak stronę, zobaczy narzędzia Makietki i będzie zmieniać projekt, otwierając kolejne adresy.</p>
+      <fieldset class="grupa-pol" id="dostep-ai-nowy" data-dla="lacznik zwykly">
+        <label class="pole"><span>Opis (dla Ciebie)</span><input id="dostep-ai-opis" maxlength="120" placeholder="np. Claude – poprawki kalendarza"></label>
+        <div class="rzad">
+          <label class="pole"><span>AI może</span><select id="dostep-ai-rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
+          <label class="pole"><span>Ważny przez</span><select id="dostep-ai-dni"><option value="1">1 dzień</option><option value="7">7 dni</option><option value="30" selected>30 dni</option><option value="90">90 dni</option><option value="365">rok</option><option value="bez">bez terminu</option></select></label>
+        </div>
+        <div class="zakres-klucza" role="radiogroup" aria-label="Zakres klucza">
+          <label class="przelacznik"><input type="radio" name="dostep-ai-zakres" value="wybrane" checked><span>Wybrane projekty</span></label>
+          <label class="przelacznik"><input type="radio" name="dostep-ai-zakres" value="pelny"><span>Pełny dostęp – wszystkie projekty, także tworzenie i usuwanie</span></label>
+        </div>
+        <div class="lista-projektow-klucza" id="dostep-ai-projekty"></div>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="dostep-ai-utworz" data-ikona="plus">Utwórz klucz</button></div>
+      </fieldset>
+      <fieldset class="grupa-pol" id="dostep-ai-gotowy" hidden>
+        <legend>Adres łącznika – skopiuj go teraz</legend>
+        <p class="podpowiedz">Adres zawiera klucz i widać go tylko teraz. Jeśli masz hasło do kluczy, Makietka zapamięta klucz zaszyfrowany – pokażesz go potem na liście („Pokaż klucz”).</p>
+        <label class="pole" data-dla="lacznik"><span>Adres łącznika dla AI</span>
+          <span class="z-przyciskiem">
+            <input id="dostep-ai-adres" type="text" readonly>
+            <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj-adres" data-ikona="kopiuj" title="Kopiuj adres" aria-label="Kopiuj adres łącznika"></button>
+          </span>
+        </label>
+        <p class="podpowiedz" data-dla="lacznik">Teraz dodaj ten adres w swojej aplikacji AI – zobacz „Jak podłączyć” niżej. W poleceniu do skopiowania adres jest już wpisany.</p>
+        <div class="dostep-ai-polecenie" data-dla="zwykly">
+          <div class="prompt-naglowek"><b>Zwykły czat bez łączników (np. darmowy ChatGPT, Claude, Gemini): skopiuj i wklej w rozmowie – AI pokaże Twoje projekty i zapyta, co zrobić.</b>
+            <button type="button" class="przycisk" data-akcja="dostep-ai-kopiuj-zwykly" data-ikona="kopiuj">Kopiuj dla zwykłego czatu</button></div>
+          <pre id="dostep-ai-polecenie-zwykly"></pre>
+          <p class="podpowiedz">Jeśli czat odpowie, że nie może otworzyć adresów, które sam zbudował – użyj w edytorze <b>Asystenta AI</b> z dostawcą „Dowolny czat bez klucza – kopiuj i wklej” (instrukcja 25.6).</p>
+        </div>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" data-akcja="dodaj-klucz-ai-zamknij">Gotowe</button></div>
+        <details class="dostep-ai-jak" data-dla="lacznik">
+          <summary>Dla zaawansowanych: sam klucz, Claude Code, serwer u siebie</summary>
+          <label class="pole"><span>Klucz dostępu</span>
+            <span class="z-przyciskiem">
+              <input id="dostep-ai-klucz" type="text" readonly>
+              <button type="button" class="przycisk-ikona" data-akcja="dostep-ai-kopiuj" data-ikona="kopiuj" title="Kopiuj klucz" aria-label="Kopiuj klucz"></button>
+            </span>
+          </label>
+          <p class="podpowiedz">Claude Code (zdalny łącznik, nic do pobrania):</p>
+          <pre id="dostep-ai-claude-code"></pre>
+          <p class="podpowiedz">Serwer uruchamiany u siebie (Claude Desktop i inne programy z MCP; wymaga Node.js 18+): pobierz <a href="ai/mcp/makietka-mcp.mjs" download="makietka-mcp.mjs">makietka-mcp.mjs</a> i dopisz do <code>mcpServers</code> w ustawieniach (Developer → Edit Config), podając prawdziwą ścieżkę do pliku:</p>
+          <pre id="dostep-ai-claude-desktop"></pre>
+          <p class="podpowiedz">Opis narzędzi i formatu projektu: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</p>
+        </details>
+      </fieldset>
+      <fieldset class="grupa-pol dostep-ai-pomoc" data-dla="lacznik">
+        <legend>Jak podłączyć</legend>
+        <div class="dostep-ai-polecenie">
+          <div class="prompt-naglowek"><b>Nie wiesz, jak podłączyć? Skopiuj to polecenie i wklej swojemu AI – poprowadzi Cię.</b>
+            <button type="button" class="przycisk glowny" data-akcja="dostep-ai-kopiuj-polecenie" data-ikona="kopiuj">Kopiuj polecenie</button></div>
+          <pre id="dostep-ai-polecenie"></pre>
+        </div>
+        <div class="dostep-ai-rozszerzenie">
+          <a class="przycisk" id="dostep-ai-pobierz-mcpb" href="https://makietka.app/ai/mcp/makietka.mcpb" download="makietka.mcpb" data-ikona="pobierz">Pobierz rozszerzenie dla Claude Desktop</a>
+          <p class="podpowiedz">Kliknij dwukrotnie pobrany plik – Claude Desktop zapyta o instalację – i wklej klucz.</p>
+        </div>
+        <details class="dostep-ai-jak" id="dostep-ai-aplikacje">
+          <summary>Krótko dla każdej aplikacji</summary>
+          <ul class="dostep-ai-kroki">
+            <li><b>Claude</b>: <i>Dostosuj</i> → <i>Łączniki</i> → <b>+</b> → <i>Dodaj własny łącznik</i>; wklej adres łącznika, logowanie: <i>bez logowania</i>.</li>
+            <li><b>Claude Desktop</b>: rozszerzenie wyżej – czyta zdjęcia, foldery i ZIP-y prosto z dysku.</li>
+            <li><b>Claude Code</b>: <code id="dostep-ai-polecenie-code">claude mcp add --transport http makietka https://api.makietka.app/mcp/&lt;klucz&gt;</code></li>
+            <li><b>ChatGPT</b>: <i>chatgpt.com/plugins</i> → <b>+</b> → <i>Add custom MCP server</i>; wklej adres, <i>No Authentication</i>.</li>
+            <li><b>Inne</b> (Cursor, Windsurf): łącznik MCP przez HTTP – podaj adres. Dla programistów: <a href="ai/api.md" target="_blank" rel="noopener">ai/api.md</a>.</li>
+          </ul>
+          <p class="podpowiedz"><b>Ograniczenia:</b> nie każda aplikacja i nie każdy plan obsługuje własne łączniki. Claude w czacie nie przekazuje łącznikom zdjęć z rozmowy – większe zdjęcia wrzucisz przez link, który poda AI. AI widzi tylko projekty z klucza.</p>
+        </details>
+      </fieldset>
+    </div>
+  </dialog>
   <dialog id="dlg-dostep-ai" class="dialog-szeroki">
     <div class="formularz">
       <div class="naglowek-dialogu">
