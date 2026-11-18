@@ -11,6 +11,8 @@ import { POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
 import { wstawIkony } from './ikony.js';
 import { zPostepem } from './postep.js';
+import { przypnijZrodlo, odepnijZrodlo, zmienionaWMakietce, podpisDanych, porownajTabele, opisPorownania, zapamietajUchwyt, uchwytTabeli, plikZUchwytu, moznaZapamietacPlik, wybierzPlikZDostepem, plikZLinku } from './zrodla-danych.js';
+import { dataUrlZasobu } from './zasoby.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
 const PORCJA_WIERSZY = 400;
@@ -75,6 +77,7 @@ export class Dane {
     $('#dane-edytor').hidden = !t;
     if (!t) return;
     $('#dane-nazwa').value = t.nazwa;
+    this.rysujZrodlo(t);
     const serie = this.projekt().serie.filter((s) => s.tabela === t.id).map((s) => `„${s.nazwa}”`);
     $('#dane-opis').textContent = [
       serie.length ? `Używana w ${serie.length === 1 ? 'serii' : 'seriach'}: ${serie.join(', ')}.` : 'Nie jest jeszcze używana w żadnej serii – serię ustawiasz we właściwościach strony.',
@@ -533,55 +536,188 @@ export class Dane {
       if (plik) await this.importuj(plik);
       e.target.value = '';
     });
+    // Źródło danych (#227).
+    $('#plik-dane-wersja').addEventListener('change', async (e) => {
+      const plik = e.target.files[0];
+      e.target.value = '';
+      const t = this.tabela();
+      if (plik && t) await this.nowaWersja(t, plik);
+    });
+    $('#dane-zrodlo-wersja').addEventListener('click', async () => {
+      const t = this.tabela();
+      if (!t) return;
+      if (moznaZapamietacPlik()) {
+        let w = null;
+        try { w = await wybierzPlikZDostepem(); } catch { $('#plik-dane-wersja').click(); return; }
+        if (w) await this.nowaWersja(t, w.plik, { uchwyt: w.uchwyt });
+      } else $('#plik-dane-wersja').click();
+    });
+    $('#dane-zrodlo-odswiez').addEventListener('click', async () => {
+      const t = this.tabela();
+      const uchwyt = t && await uchwytTabeli(this.projekt().id, t.id);
+      let plik = null;
+      try { plik = await plikZUchwytu(uchwyt); } catch { plik = null; }
+      if (!plik) { powiadom('Nie ma dostępu do pliku na dysku – wybierz go jeszcze raz („Wczytaj nową wersję…”).', true); return; }
+      await this.nowaWersja(t, plik, { uchwyt });
+    });
+    $('#dane-zrodlo-link').addEventListener('click', async () => {
+      const t = this.tabela();
+      if (!t?.zrodlo?.url) return;
+      try { await this.nowaWersja(t, await zPostepem('Pobieranie danych z linku…', () => plikZLinku(t.zrodlo.url)), { url: t.zrodlo.url }); } catch (e) { powiadom(e.message, true); }
+    });
+    $('#dane-zrodlo-oryginal').addEventListener('click', async () => {
+      const t = this.tabela();
+      const z = t?.zrodlo?.zasob && this.projekt().zasoby[t.zrodlo.zasob];
+      const url = z && await dataUrlZasobu(this.projekt(), t.zrodlo.zasob);
+      if (url) pobierz(z.nazwa, url); else powiadom('Pliku źródłowego nie ma na tym urządzeniu.', true);
+    });
+    $('#dane-zrodlo-xlsx').addEventListener('click', async () => {
+      const t = this.tabela();
+      if (!t) return;
+      const blob = await doXlsx([{ nazwa: t.nazwa, wiersze: [t.kolumny, ...t.wiersze] }]);
+      pobierz(`${bezpiecznaNazwa(t.nazwa)}.xlsx`, URL.createObjectURL(blob));
+    });
+    $('#dane-zrodlo-odepnij').addEventListener('click', async () => {
+      const t = this.tabela();
+      if (!t || !await potwierdz('Odpiąć źródło danych?', 'Tabela zostaje z obecnymi danymi; projekt zapomni plik albo link, z którego przyszła (także zapisany oryginał).', 'Odepnij')) return;
+      odepnijZrodlo(this.projekt(), t);
+      this.rysuj();
+      this.poZmianie();
+    });
+    $('#dane-z-linku').addEventListener('click', () => { $('#dane-link-form').hidden = !$('#dane-link-form').hidden; if (!$('#dane-link-form').hidden) $('#dane-link').focus(); });
+    $('#dane-link-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = $('#dane-link').value.trim();
+      if (!/^https?:\/\//i.test(url)) { powiadom('Wklej adres zaczynający się od https://', true); return; }
+      try {
+        const plik = await zPostepem('Pobieranie danych z linku…', () => plikZLinku(url));
+        await this.importuj(plik, { url });
+        $('#dane-link-form').hidden = true;
+        $('#dane-link').value = '';
+      } catch (er) { powiadom(er.message, true); }
+    });
     $('#dane-zamknij').addEventListener('click', () => this.dlg.close());
     this.dlg.addEventListener('close', () => this.poZamknieciu());
   }
 
   // Import pliku. Tabela o tej samej nazwie dostaje nowe dane (serie zostają
   // z nią powiązane) – tak aktualizuje się dane poprawione w arkuszu.
-  async importuj(plik) {
+  // plik – File; uchwyt – zapamiętany dostęp do pliku (#227); url – dane z linku (plik pobrany spod adresu).
+  async importuj(plik, { uchwyt = null, url = null } = {}) {
     const p = this.projekt();
     let wczytane;
     try { wczytane = await zPostepem(`Wczytywanie „${plik.name || 'pliku'}”…`, () => wczytajPlik(plik)); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return; }
     let ostatnia = null;
     let zachowano = null; // wygląd zachowany przy imporcie pliku bez wyglądu: { ile, bylo }
+    const doPrzypiecia = [];
     for (const surowa of wczytane) {
       const nowa = normalizujTabele({ ...surowa, id: undefined });
       const stara = p.tabele.find((t) => t.nazwa.trim().toLowerCase() === nowa.nazwa.trim().toLowerCase());
-      if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.`, 'Podmień dane', false, 'Dodaj osobno')) {
-        // Plik bez wyglądu (CSV, .xls, .ods, szablon danych) nie kasuje wyglądu komórek, których wartość się nie zmieniła
-        // (dopasowanie po numerze wiersza i nazwie kolumny).
-        if (!nowa.wyglad && stara.wyglad) {
-          let ile = 0;
-          const wyglad = nowa.wiersze.map((wiersz, w) => {
-            const komorki = nowa.kolumny.map((kol, k) => {
-              const ks = stara.kolumny.indexOf(kol);
-              const x = ks >= 0 ? stara.wyglad[w]?.[ks] : null;
-              return x && stara.wiersze[w]?.[ks] === wiersz[k] ? x : null;
-            });
-            ile += komorki.filter(Boolean).length;
-            return komorki.some(Boolean) ? komorki : null;
-          });
-          if (ile) { nowa.wyglad = wyglad; if (stara.wyglad_wyl) nowa.wyglad_wyl = true; }
-          zachowano = { ile, bylo: stara.wyglad.reduce((s, w) => s + (w || []).filter(Boolean).length, 0) };
-        }
-        stara.kolumny = nowa.kolumny;
-        stara.wiersze = nowa.wiersze;
-        if (nowa.wyglad) { stara.wyglad = nowa.wyglad; if (!nowa.wyglad_wyl) delete stara.wyglad_wyl; } else { delete stara.wyglad; delete stara.wyglad_wyl; }
-        if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
-        if (stara.listy) { for (const k of Object.keys(stara.listy)) if (!nowa.kolumny.includes(k)) delete stara.listy[k]; if (!Object.keys(stara.listy).length) delete stara.listy; }
+      if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.${this._opisZmian(stara, nowa)}`, 'Podmień dane', false, 'Dodaj osobno')) {
+        zachowano = this._podmienDane(stara, nowa) || zachowano;
+        doPrzypiecia.push([stara, surowa.arkusz]);
         ostatnia = stara;
       } else {
         if (stara) nowa.nazwa = `${nowa.nazwa} (2)`;
         p.tabele.push(nowa);
+        doPrzypiecia.push([nowa, surowa.arkusz]);
         ostatnia = nowa;
       }
     }
     this.idTabeli = ostatnia.id;
     this.rysuj();
     this.poZmianie();
+    // Źródło danych (#227) – po narysowaniu (zapis oryginału trwa chwilę).
+    for (const [t, arkusz] of doPrzypiecia) {
+      await przypnijZrodlo(p, t, { plik: url ? null : plik, arkusz, url });
+      if (uchwyt) await zapamietajUchwyt(p.id, t.id, uchwyt);
+    }
+    if (doPrzypiecia.length) { this.rysujZrodlo(this.tabela()); this.poZmianie(); }
     const oWygladzie = zachowano ? ` Plik nie niesie wyglądu komórek: wygląd został w ${zachowano.ile} z ${zachowano.bylo} ${odmiana(zachowano.bylo, 'komórki', 'komórek', 'komórek')} – tam, gdzie wartość się nie zmieniła.` : '';
     powiadom(`Wczytano: ${ostatnia.wiersze.length} ${odmiana(ostatnia.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}, ${ostatnia.kolumny.length} ${odmiana(ostatnia.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}.${oWygladzie}`);
+  }
+
+  // Podmiana danych tabeli na wczytane (te same serie i pola). Zwraca { ile, bylo } zachowanego wyglądu albo null.
+  _podmienDane(stara, nowa) {
+    let zachowano = null;
+
+    // Plik bez wyglądu (CSV, .xls, .ods, szablon danych) nie kasuje wyglądu komórek, których wartość się nie zmieniła
+    // (dopasowanie po numerze wiersza i nazwie kolumny).
+    if (!nowa.wyglad && stara.wyglad) {
+      let ile = 0;
+      const wyglad = nowa.wiersze.map((wiersz, w) => {
+        const komorki = nowa.kolumny.map((kol, k) => {
+          const ks = stara.kolumny.indexOf(kol);
+          const x = ks >= 0 ? stara.wyglad[w]?.[ks] : null;
+          return x && stara.wiersze[w]?.[ks] === wiersz[k] ? x : null;
+        });
+        ile += komorki.filter(Boolean).length;
+        return komorki.some(Boolean) ? komorki : null;
+      });
+      if (ile) { nowa.wyglad = wyglad; if (stara.wyglad_wyl) nowa.wyglad_wyl = true; }
+      zachowano = { ile, bylo: stara.wyglad.reduce((s, w) => s + (w || []).filter(Boolean).length, 0) };
+    }
+    stara.kolumny = nowa.kolumny;
+    stara.wiersze = nowa.wiersze;
+    if (nowa.wyglad) { stara.wyglad = nowa.wyglad; if (!nowa.wyglad_wyl) delete stara.wyglad_wyl; } else { delete stara.wyglad; delete stara.wyglad_wyl; }
+    if (stara.unikalne) stara.unikalne = stara.unikalne.filter((u) => nowa.kolumny.includes(u));
+    if (stara.listy) { for (const k of Object.keys(stara.listy)) if (!nowa.kolumny.includes(k)) delete stara.listy[k]; if (!Object.keys(stara.listy).length) delete stara.listy; }
+    return zachowano;
+  }
+
+  // Kolumny tabeli używane w polach stron (serie z tą tabelą).
+  _uzyteKolumny(t) {
+    const p = this.projekt();
+    return new Set(p.serie.filter((s) => s.tabela === t.id).flatMap((s) => kolumnySerii(p, s).map((k) => k.nazwa)));
+  }
+
+  // Zdanie o zmianach przed podmianą: co się zmieni, ostrzeżenie o kolumnach używanych w polach i o poprawkach w Makietce.
+  _opisZmian(stara, nowa) {
+    const r = porownajTabele(stara, nowa, this._uzyteKolumny(stara));
+    let t = ` Zmiany: ${opisPorownania(r)}.`;
+    if (r.brakujaceUzywane.length) t += ` Uwaga: w nowych danych nie ma kolumn używanych w polach: ${r.brakujaceUzywane.join(', ')} – te pola będą puste.`;
+    if (zmienionaWMakietce(stara)) t += ' Tabelę poprawiano w Makietce po wczytaniu – te poprawki zostaną zastąpione danymi z pliku.';
+    return t;
+  }
+
+  // Nowa wersja danych dla tej tabeli (z pliku, uchwytu albo linku): porównanie, potwierdzenie, podmiana.
+  async nowaWersja(t, plik, { uchwyt = null, url = null } = {}) {
+    const p = this.projekt();
+    let wczytane;
+    try { wczytane = await zPostepem(`Wczytywanie „${plik.name || 'pliku'}”…`, () => wczytajPlik(plik)); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return false; }
+    const surowa = wczytane.find((x) => t.zrodlo?.arkusz && x.arkusz === t.zrodlo.arkusz) || wczytane.find((x) => x.nazwa.trim().toLowerCase() === t.nazwa.trim().toLowerCase()) || wczytane[0];
+    const nowa = normalizujTabele({ ...surowa, id: undefined });
+    if (podpisDanych(nowa) === podpisDanych(t) && !zmienionaWMakietce(t)) {
+      await przypnijZrodlo(p, t, { plik: url ? null : plik, arkusz: surowa.arkusz, url });
+      if (uchwyt) await zapamietajUchwyt(p.id, t.id, uchwyt);
+      this.rysuj();
+      this.poZmianie();
+      powiadom('Dane w pliku są takie same jak w tabeli.');
+      return true;
+    }
+    if (!await potwierdz(`Nowa wersja danych „${t.nazwa}”?`, `Plik: ${plik.name}${surowa.arkusz ? `, arkusz „${surowa.arkusz}”` : ''}.${this._opisZmian(t, nowa)}`, 'Podmień dane')) return false;
+    const zachowano = this._podmienDane(t, nowa);
+    await przypnijZrodlo(p, t, { plik: url ? null : plik, arkusz: surowa.arkusz, url });
+    if (uchwyt) await zapamietajUchwyt(p.id, t.id, uchwyt);
+    this.rysuj();
+    this.poZmianie();
+    powiadom(`Wczytano nową wersję: ${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}.${zachowano ? ` Wygląd komórek został tam, gdzie wartość się nie zmieniła (${zachowano.ile}).` : ''}`);
+    return true;
+  }
+
+  // Pasek źródła danych pod nazwą tabeli.
+  async rysujZrodlo(t) {
+    const el = $('#dane-zrodlo');
+    const z = t?.zrodlo;
+    el.hidden = !z;
+    if (!z) return;
+    const kiedy = z.wczytano ? new Date(z.wczytano).toLocaleString('pl-PL', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    $('#dane-zrodlo-opis').textContent = `Dane z: ${z.plik || z.url}${z.arkusz && z.arkusz !== t.nazwa ? `, arkusz „${z.arkusz}”` : ''}${kiedy ? ` · wczytano ${kiedy}` : ''}`;
+    $('#dane-zrodlo-zmiany').hidden = !zmienionaWMakietce(t);
+    $('#dane-zrodlo-link').hidden = z.rodzaj !== 'link';
+    $('#dane-zrodlo-oryginal').hidden = !(z.zasob && this.projekt().zasoby?.[z.zasob]);
+    const uchwyt = z.rodzaj === 'plik' ? await uchwytTabeli(this.projekt().id, t.id) : null;
+    if (this.tabela() === t) $('#dane-zrodlo-odswiez').hidden = !uchwyt;
   }
 
   // ---------- Serie ----------

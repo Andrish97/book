@@ -15,7 +15,7 @@ export const bezRozszerzenia = (n) => pelnaNazwa(n).replace(/\.[a-z0-9]{2,5}$/, 
 export function obrazZNazwy(zasoby, wartosc, pomin = null) {
   const szukana = pelnaNazwa(wartosc);
   if (!szukana) return null;
-  const wpisy = Object.entries(zasoby || {}).filter(([id, z]) => z && !pomin?.has(id));
+  const wpisy = Object.entries(zasoby || {}).filter(([id, z]) => z && !pomin?.has(id) && z.rodzaj !== 'dane');
   const dokladne = wpisy.filter(([, z]) => pelnaNazwa(z.nazwa) === szukana);
   if (dokladne.length) return { id: dokladne[0][0] };
   const rdzen = wpisy.filter(([, z]) => bezRozszerzenia(z.nazwa) === szukana);

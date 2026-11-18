@@ -3550,5 +3550,12 @@
  "Zawieszki na prezenty": "Gift tags",
  "Seria dla innego programu (szablon + dane)…": "Series for another program (template + data)…",
  "Seria dla innego programu": "Series for another program",
- "Pobierz ZIP": "Download ZIP"
+ "Pobierz ZIP": "Download ZIP",
+ "Dane z linku: arkusz Google opublikowany jako CSV albo adres pliku CSV/XLSX – tabela zapamięta link i odświeży się przyciskiem": "Data from a link: a Google sheet published as CSV or a CSV/XLSX file address – the table remembers the link and refreshes with a button",
+ "Link do danych (arkusz Google, CSV, XLSX)": "Link to data (Google sheet, CSV, XLSX)",
+ "Wczytaj": "Load",
+ "zmienione w Makietce": "changed in Makietka",
+ "Odśwież z pliku": "Refresh from file",
+ "Odśwież z linku": "Refresh from link",
+ "Wczytaj nową wersję…": "Load new version…"
 }

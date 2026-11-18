@@ -374,7 +374,7 @@ function nazwaPliku(nazwa, typ) {
 // Obrazy projektu (bez czcionek): [[id, opis]] w kolejności zasobów (tak szukają dane).
 const obrazyWKolejnosci = (p) => {
   const czcionki = new Set((p.czcionki || []).map((c) => c.id));
-  return Object.entries(p.zasoby || {}).filter(([id, z]) => z && !czcionki.has(id));
+  return Object.entries(p.zasoby || {}).filter(([id, z]) => z && !czcionki.has(id) && z.rodzaj !== 'dane'); // bez plików źródłowych danych (#227)
 };
 // To samo, po nazwie – do list dla AI.
 const obrazyWProjekcie = (p) => obrazyWKolejnosci(p).sort(([, a], [, b]) => String(a.nazwa).localeCompare(String(b.nazwa), 'pl', { numeric: true }));

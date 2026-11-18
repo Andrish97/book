@@ -2462,9 +2462,14 @@
           <h2 id="dane-tytul">Dane</h2>
           <div class="dane-akcje">
             <button type="button" class="przycisk-ikona" id="dane-importuj" data-ikona="wyslij" title="Importuj tabelę z pliku CSV albo Excel (pierwszy wiersz – nazwy kolumn; plik o nazwie istniejącej tabeli podmienia jej dane)" aria-label="Importuj tabelę z pliku"></button>
+            <button type="button" class="przycisk-ikona" id="dane-z-linku" data-ikona="link" title="Dane z linku: arkusz Google opublikowany jako CSV albo adres pliku CSV/XLSX – tabela zapamięta link i odświeży się przyciskiem" aria-label="Dane z linku"></button>
             <button type="button" class="przycisk-ikona" id="dane-nowa" data-ikona="plus" title="Nowa tabela" aria-label="Nowa tabela"></button>
           </div>
         </div>
+        <form id="dane-link-form" class="dane-link" hidden>
+          <label class="pole"><span>Link do danych (arkusz Google, CSV, XLSX)</span><input id="dane-link" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" required></label>
+          <button class="przycisk glowny" type="submit">Wczytaj</button>
+        </form>
         <ol id="dane-tabele"></ol>
         <input type="file" id="plik-dane" accept=".csv,.txt,.tsv,.xlsx,.xls,.xlsm,.ods" hidden>
       </aside>
@@ -2483,6 +2488,18 @@
             <button type="button" class="przycisk" id="dane-kolumna" data-ikona="plus">Kolumna</button>
             <button type="button" class="przycisk-ikona" id="dane-csv" data-ikona="pobierz" title="Pobierz tabelę jako plik CSV" aria-label="Pobierz tabelę jako plik CSV"></button>
             <button type="button" class="przycisk" id="dane-usun" data-ikona="kosz" title="Usuń tabelę" aria-label="Usuń tabelę"></button>
+          </div>
+          <div class="dane-zrodlo" id="dane-zrodlo" hidden>
+            <span id="dane-zrodlo-opis"></span>
+            <span class="znacznik-zmian" id="dane-zrodlo-zmiany" hidden title="Tabelę zmieniano w Makietce po wczytaniu pliku – nowa wersja pliku zastąpi te poprawki">zmienione w Makietce</span>
+            <span class="odstep"></span>
+            <button type="button" class="przycisk maly" id="dane-zrodlo-odswiez" data-ikona="odswiez" hidden title="Wczytaj ten sam plik z dysku jeszcze raz – po poprawkach w Excelu">Odśwież z pliku</button>
+            <button type="button" class="przycisk maly" id="dane-zrodlo-link" data-ikona="odswiez" hidden title="Pobierz dane spod zapamiętanego linku jeszcze raz">Odśwież z linku</button>
+            <button type="button" class="przycisk maly" id="dane-zrodlo-wersja" data-ikona="wyslij" title="Wybierz nową wersję pliku – pola i serie zostają, przed podmianą zobaczysz, co się zmieni">Wczytaj nową wersję…</button>
+            <button type="button" class="przycisk-ikona maly" id="dane-zrodlo-oryginal" data-ikona="pobierz" hidden title="Pobierz plik źródłowy zapisany w projekcie" aria-label="Pobierz plik źródłowy"></button>
+            <button type="button" class="przycisk-ikona maly" id="dane-zrodlo-xlsx" data-ikona="tabela" title="Pobierz obecne dane tabeli jako plik Excela (.xlsx)" aria-label="Pobierz dane jako Excel"></button>
+            <button type="button" class="przycisk-ikona maly" id="dane-zrodlo-odepnij" data-ikona="kosz" title="Odepnij źródło – tabela zostaje, projekt zapomina plik albo link" aria-label="Odepnij źródło"></button>
+            <input type="file" id="plik-dane-wersja" accept=".csv,.txt,.tsv,.xlsx,.xls,.xlsm,.ods" hidden>
           </div>
           <p class="podpowiedz" id="dane-opis"></p>
           <p class="podpowiedz dane-pomijane" id="dane-pomijane" role="status" hidden></p>

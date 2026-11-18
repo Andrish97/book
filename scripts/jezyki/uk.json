@@ -3550,5 +3550,12 @@
  "Zawieszki na prezenty": "Бирки для подарунків",
  "Seria dla innego programu (szablon + dane)…": "Серія для іншої програми (шаблон + дані)…",
  "Seria dla innego programu": "Серія для іншої програми",
- "Pobierz ZIP": "Завантажити ZIP"
+ "Pobierz ZIP": "Завантажити ZIP",
+ "Dane z linku: arkusz Google opublikowany jako CSV albo adres pliku CSV/XLSX – tabela zapamięta link i odświeży się przyciskiem": "Дані за посиланням: таблиця Google, опублікована як CSV, або адреса файлу CSV/XLSX – таблиця запам’ятає посилання й оновиться кнопкою",
+ "Link do danych (arkusz Google, CSV, XLSX)": "Посилання на дані (таблиця Google, CSV, XLSX)",
+ "Wczytaj": "Завантажити",
+ "zmienione w Makietce": "змінено в Makietka",
+ "Odśwież z pliku": "Оновити з файлу",
+ "Odśwież z linku": "Оновити за посиланням",
+ "Wczytaj nową wersję…": "Завантажити нову версію…"
 }

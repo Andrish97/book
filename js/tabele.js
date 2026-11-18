@@ -101,7 +101,7 @@ export async function wczytajPlik(plik) {
     const tabele = arkusze.map((nazwa) => {
       const arkusz = skoroszyt.Sheets[nazwa];
       const dane = XLSX.utils.sheet_to_json(arkusz, { header: 1, raw: false, defval: '' });
-      const tabela = { nazwa: skoroszyt.SheetNames.length > 1 ? nazwa : bezRozszerzenia(plik.name), ...zWierszy(dane) };
+      const tabela = { nazwa: skoroszyt.SheetNames.length > 1 ? nazwa : bezRozszerzenia(plik.name), arkusz: nazwa, ...zWierszy(dane) };
       const komorki = wyglad.get(nazwa);
       if (komorki && arkusz['!ref']) {
         // Wiersz 0 danych to nagłówki; dane zaczynają się w lewym górnym rogu zajętego obszaru arkusza.

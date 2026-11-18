@@ -20,7 +20,7 @@ const czcionki = (p) => new Set((p?.czcionki || []).map((c) => c.id));
 export function obrazyProjektu(p) {
   const pomin = czcionki(p);
   return Object.entries(p?.zasoby || {})
-    .filter(([id, z]) => z && !pomin.has(id))
+    .filter(([id, z]) => z && !pomin.has(id) && z.rodzaj !== 'dane') // bez czcionek i plików źródłowych danych (#227)
     .sort(([, a], [, b]) => String(a.nazwa).localeCompare(String(b.nazwa), 'pl', { numeric: true }));
 }
 

@@ -3596,3 +3596,10 @@ img:not([src]):not(.zaladowany) { color: transparent; }
 #seria-programy-lista { display: grid; gap: 8px; margin: 12px 0; }
 #seria-programy-lista .karta-typu { width: 100%; }
 #seria-programy-lista .karta-typu:has(input:checked) { border-color: var(--akcent); box-shadow: inset 0 0 0 1px var(--akcent); }
+
+/* Źródło danych tabeli (#227): pasek pod nazwą tabeli i formularz linku. */
+.dane-zrodlo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 6px 0 2px; padding: 6px 10px; border-radius: 8px; background: var(--tlo-2, rgba(0,0,0,0.04)); font-size: 13px; }
+.dane-zrodlo .odstep { flex: 1; }
+.dane-zrodlo .znacznik-zmian { padding: 2px 8px; border-radius: 999px; background: #fff3cd; color: #7a5800; font-size: 12px; }
+.dane-link { display: flex; gap: 8px; align-items: flex-end; padding: 8px 0; }
+.dane-link .pole { flex: 1; }

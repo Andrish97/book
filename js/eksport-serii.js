@@ -135,6 +135,12 @@ export async function pakietSerii(projekt, program, JSZip, { ciag = rozwin(proje
       zip.file(`${nazwa}.xlsx`, XLSX.write(sk, { type: 'array', bookType: 'xlsx' }));
     }
   }
+  // Oryginalny plik źródłowy tabeli (#227), gdy jest zapisany w projekcie.
+  for (const d of dane) {
+    const z = d.tabela.zrodlo?.zasob && projekt.zasoby?.[d.tabela.zrodlo.zasob];
+    const url = z && await dataUrlZasobu(projekt, d.tabela.zrodlo.zasob);
+    if (url) zip.file(`zrodlo/${bezpieczna(z.nazwa)}`, await (await fetch(url)).blob());
+  }
   for (const [nazwa, id] of obrazy) {
     const url = await dataUrlZasobu(projekt, id);
     if (url) zip.file(`obrazy/${nazwa}`, await (await fetch(url)).blob());

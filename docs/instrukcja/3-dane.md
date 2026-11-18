@@ -31,6 +31,28 @@ Zmiany z jednego otwarcia okna cofniesz jednym [Cofnij].
 Poprawiłeś dane w arkuszu? Zaimportuj plik jeszcze raz. Gdy w projekcie jest tabela o tej samej
 nazwie, aplikacja zapyta, czy podmienić jej dane.
 
+### Źródło danych przypięte do tabeli
+
+Tabela pamięta, skąd przyszła. Pod jej nazwą widać pasek, np. „Dane z: goscie.xlsx, arkusz »Lista« · wczytano
+18.11.2026, 14:20”. Oryginalny plik (do 5 MB) zostaje zapisany w projekcie – nie ma go wśród obrazów i nie znika
+przy porządkach.
+
+- [Wczytaj nową wersję…] – wybierasz poprawiony plik; pola i serie zostają. Zanim dane się podmienią, zobaczysz,
+  co się zmieni: liczbę wierszy, zmienione komórki, nowe i usunięte kolumny, a osobno ostrzeżenie, gdy znika kolumna
+  używana w polach stron (te pola byłyby puste).
+- [Odśwież z pliku] – w Chrome i Edge na komputerze przeglądarka pamięta dostęp do pliku wybranego przez
+  „Wczytaj nową wersję…”. Po poprawce w Excelu wystarczy jedno kliknięcie (przeglądarka może raz zapytać o zgodę).
+- **zmienione w Makietce** – znacznik przy tabeli, którą poprawiano w oknie Dane po wczytaniu pliku. Nowa wersja
+  pliku zastąpi te poprawki – pytanie o podmianę też o tym przypomni.
+- Ikona strzałki w dół pobiera zapisany plik źródłowy, ikona tabeli – obecne dane jako plik Excela (`.xlsx`),
+  kosz odpina źródło (dane zostają).
+
+**Dane z linku** (ikona łańcucha obok [Importuj]) – wklej adres arkusza Google albo pliku CSV/XLSX w sieci.
+Arkusz Google musi być publiczny: Plik → Udostępnij → Opublikuj w internecie → CSV (wystarczy też zwykły link do
+arkusza dostępnego dla każdego, kto ma link). Tabela pamięta link, a [Odśwież z linku] pobiera dane od nowa,
+z tym samym porównaniem zmian. Niektóre serwisy nie pozwalają na pobieranie z przeglądarki – wtedy aplikacja to
+powie; pobierz plik i wczytaj go zwykłym importem.
+
 ## 14.3 Poprawianie danych w aplikacji
 
 - Kliknij komórkę i pisz. <kbd>Enter</kbd> przechodzi wiersz niżej, <kbd>Shift</kbd>+<kbd>Enter</kbd>

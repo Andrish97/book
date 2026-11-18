@@ -175,8 +175,17 @@ export function normalizujTabele(t, i = 0) {
     return komorki.some(Boolean) ? komorki : null;
   });
   const maWyglad = wyglad.some(Boolean);
+  // Źródło danych (#227): plik albo link, z którego tabela przyszła – { rodzaj: 'plik'|'link', plik, arkusz, url,
+  // wczytano (ISO), zasob (oryginał w zasobach projektu), podpis (odcisk danych po wczytaniu) }.
+  const z = t?.zrodlo && typeof t.zrodlo === 'object' ? t.zrodlo : null;
+  const zrodlo = z && (z.plik || z.url) ? Object.fromEntries(Object.entries({
+    rodzaj: z.rodzaj === 'link' ? 'link' : 'plik', plik: z.plik ? String(z.plik).slice(0, 200) : undefined, arkusz: z.arkusz ? String(z.arkusz).slice(0, 100) : undefined,
+    url: z.url ? String(z.url).slice(0, 2000) : undefined, wczytano: typeof z.wczytano === 'string' ? z.wczytano : undefined,
+    zasob: typeof z.zasob === 'string' ? z.zasob : undefined, podpis: typeof z.podpis === 'string' ? z.podpis : undefined,
+  }).filter(([, v]) => v !== undefined)) : null;
   return {
     id: t?.id || uid('t'), nazwa: String(t?.nazwa || `Tabela ${i + 1}`), kolumny, wiersze,
+    ...(zrodlo ? { zrodlo } : {}),
     ...(unikalne.length ? { unikalne } : {}), ...(Object.keys(listy).length ? { listy } : {}),
     ...(maWyglad ? { wyglad } : {}), ...(maWyglad && t?.wyglad_wyl ? { wyglad_wyl: true } : {}),
   };

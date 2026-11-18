@@ -81,5 +81,6 @@ export const MODULY_EDYTORA = [
   'js/makieta-3d.js',
   'js/separacje.js',
   'js/tabele.js',
+  'js/zrodla-danych.js',
   'js/arkusz-wyglad.js',
 ];

@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 227 | Źródło danych przypięte do tabeli: plik Excel w projekcie, nowa wersja z porównaniem, odśwież z pliku i z linku (arkusz Google) |
 | 226 | Seria dla InDesigna, Affinity, Scribusa, Worda i Publishera: szablon z polami + dane (CSV, XLSX, obrazy) |
 | 225 | Otwieranie projektów z InDesigna (.idml) i Scribusa (.sla), także z pakietem obrazów; pola korespondencji seryjnej |
 | 223 | Naklejki okrągłe i zawieszki z otworem na arkuszu użytków; szablon „Zawieszki na prezenty” |
