@@ -815,6 +815,10 @@ dialog {
 }
 dialog::backdrop { background: var(--zaslona); backdrop-filter: blur(2px); }
 dialog .formularz { padding: 22px 24px 20px; }
+/* Elementy okna nie ściskają się (#202): okno przewija się jako całość. Bez tego na niskim ekranie akapity
+   z ucinaniem (opis, komunikat) zwijały się do zera – tekst ucięty w pół linii, a przewijać nie było czego.
+   Niska waga (:where) – listy i siatki z własnym rozciąganiem (np. obrazy, dane) zostają, jak są. */
+dialog .formularz > :where(*) { flex-shrink: 0; }
 dialog h2 { font-size: 19px; }
 .dialog-szeroki { width: min(620px, calc(100vw - 24px)); }
 .naglowek-dialogu { display: flex; align-items: center; justify-content: space-between; margin: -6px -10px 0 0; }

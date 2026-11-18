@@ -9,7 +9,7 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | # | Uwaga | Stan |
 |---|---|---|
 | A1 | Kopia projektu: link sam się kasuje, nawet nowo dodany – pytanie o konflikt po pierwszej zmianie w kopii i zbyt agresywna naprawa #198 | ✅ #201 |
-| A2 | (3) Okno Udostępnij na telefonie – nie da się przewinąć ani w górę, ani w dół (ucięty opis i komunikat) | ⏳ |
+| A2 | (3) Okno Udostępnij na telefonie – nie da się przewinąć ani w górę, ani w dół (ucięty opis i komunikat) | ✅ #202 (dotyczyło wszystkich okien) |
 | A3 | (1) Makieta 3D na telefonie – czasem „Kurza twarz” (przeglądarka zamyka kartę – za dużo pamięci grafiki) | ⏳ |
 | A4 | (2) Udostępnianie: obrazy stron rysowane w tle, bez czekania; oglądający widzi wprost „podgląd w przygotowaniu” | ⏳ |
 | A5 | (14) Gotowe szablony projektów nie działają | ⏳ |

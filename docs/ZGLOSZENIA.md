@@ -40,6 +40,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 
 | # | Uwaga |
 |---|---|
+| 202 | Okna na niskim ekranie telefonu (np. Udostępnij) przewijają się; tekst nie jest ucięty w pół linii |
 | 201 | Kopia projektu: koniec pytania „Projekt zmieniono w innym miejscu” po pierwszej zmianie i kasowania dodanego linku |
 | 199 | Makieta 3D twardej oprawy jak prawdziwa książka: blok i okładka osobno (połączone wyklejkami), grzbiet stałej szerokości – przy wyklejce pionowo z okładką pod 90°, ku środkowi się schyla, gruba książka w środku lekko się przymyka; bez „języka” |
 | 200 | Ekran ładowania: nazwa projektu wyśrodkowana z marginesami (nie od krawędzi ekranu) |
