@@ -3,7 +3,10 @@
 
 import { CZCIONKI } from './czcionki.js';
 import { cmykNaRgb } from './kolory-druku.js';
-import { biezacaMarka, wczytajMarke, zapiszMarke, dodajLogo, usunLogo, normalizujMarke, markaPusta, ROLE_STYLOW, WIELKOSCI_LITER, gotowyStylMarki, normalizujStylMarki } from './zestaw-marki.js';
+import {
+  biezacaMarka, wczytajMarke, zapiszMarke, dodajLogo, usunLogo, normalizujMarke, markaPusta, ROLE_STYLOW, WIELKOSCI_LITER, gotowyStylMarki, normalizujStylMarki,
+  listaZestawow, idZestawuMarki, wybierzZestaw, dodajZestaw, zmienNazweZestawu, usunZestaw,
+} from './zestaw-marki.js';
 import { wstawIkony } from './ikony.js';
 
 const $ = (s) => document.querySelector(s);
@@ -153,13 +156,72 @@ async function podgladLogo(blob) {
   } catch { return ''; }
 }
 
-export async function otworzMarke() {
-  robocza = normalizujMarke(JSON.parse(JSON.stringify(await wczytajMarke())));
-  komunikat('');
+// ---------- Zestawy (#211) ----------
+
+const wProjekcie = () => document.body.dataset.ekran === 'edytor' || document.body.dataset.ekran === 'podglad';
+function rysujZestawy() {
+  const lista = listaZestawow();
+  const sel = $('#marka-zestaw');
+  sel.innerHTML = lista.map((z) => `<option value="${esc(z.id)}">${esc(z.nazwa)}${z.pusty ? ' (pusty)' : ''}</option>`).join('');
+  sel.value = idZestawuMarki() || '';
+  $('#marka-zestaw-usun').disabled = lista.length <= 1;
+  $('#marka-zestaw-opis').textContent = wProjekcie()
+    ? 'Ten zestaw jest marką otwartego projektu – projekt go zapamięta. Inne projekty zostają przy swoich zestawach.'
+    : 'Zestaw w użyciu: marka projektów, które nie mają własnego zestawu. Każdy projekt może mieć swój – wybierz go tu przy otwartym projekcie.';
+}
+function zaladujRobocza() {
+  robocza = normalizujMarke(JSON.parse(JSON.stringify(biezacaMarka())));
   rysujKolory();
   rysujCzcionki();
   rysujStyle();
   rysujLoga();
+  rysujZestawy();
+}
+// Przejście na inny zestaw: zmiany w obecnym najpierw zapisane, potem wybór (projekt go zapamiętuje).
+async function przejdzNaZestaw(id) {
+  await zapiszMarke({ ...robocza, loga: biezacaMarka().loga });
+  await wybierzZestaw(id);
+  document.dispatchEvent(new CustomEvent('zestaw-marki-wybrany', { detail: id }));
+  zaladujRobocza();
+}
+$('#marka-zestaw').addEventListener('change', async (e) => {
+  try { await przejdzNaZestaw(e.target.value); } catch (blad) { komunikat(blad.message, true); rysujZestawy(); }
+});
+async function nowyZestaw(kopia) {
+  const ui = await import('./ui.js');
+  const nazwa = await ui.zapytajONazwe(kopia ? 'Kopia zestawu marki' : 'Nowy zestaw marki', 'Nazwa zestawu (np. klient, szkoła, wydawnictwo)', kopia ? `${biezacaMarka().nazwa || 'Marka'} (kopia)` : 'Nowa marka');
+  if (!nazwa) return;
+  try {
+    await zapiszMarke({ ...robocza, loga: biezacaMarka().loga });
+    const id = await dodajZestaw(nazwa, { kopiaZ: kopia ? idZestawuMarki() : null });
+    document.dispatchEvent(new CustomEvent('zestaw-marki-wybrany', { detail: id }));
+    zaladujRobocza();
+  } catch (blad) { komunikat(blad.message, true); }
+}
+$('#marka-zestaw-nowy').addEventListener('click', () => nowyZestaw(false));
+$('#marka-zestaw-kopia').addEventListener('click', () => nowyZestaw(true));
+$('#marka-zestaw-nazwa').addEventListener('click', async () => {
+  const ui = await import('./ui.js');
+  const id = idZestawuMarki();
+  const nazwa = await ui.zapytajONazwe('Zmień nazwę zestawu', 'Nazwa zestawu', biezacaMarka().nazwa || '');
+  if (!nazwa) return;
+  try { await zmienNazweZestawu(id, nazwa); rysujZestawy(); } catch (blad) { komunikat(blad.message, true); }
+});
+$('#marka-zestaw-usun').addEventListener('click', async () => {
+  const ui = await import('./ui.js');
+  const nazwa = biezacaMarka().nazwa || 'zestaw';
+  if (!await ui.potwierdz(`Usunąć zestaw „${nazwa}”?`, 'Kolory, czcionki, style i logo tego zestawu znikną z konta. Projekty, które go używały, przejdą na zestaw w użyciu; to, co już jest na ich stronach, zostaje.', 'Usuń zestaw', true)) return;
+  try {
+    await usunZestaw(idZestawuMarki());
+    document.dispatchEvent(new CustomEvent('zestaw-marki-wybrany', { detail: null }));
+    zaladujRobocza();
+  } catch (blad) { komunikat(blad.message, true); }
+});
+
+export async function otworzMarke() {
+  await wczytajMarke();
+  zaladujRobocza();
+  komunikat('');
   if (!dlg.open) dlg.showModal();
 }
 
@@ -200,10 +262,14 @@ export async function pokazPodsumowanieMarki() {
   const el = $('#podsumowanie-marki');
   const m = biezacaMarka();
   const wiersz = document.querySelector('#ekran-konta [data-podsumowanie="marka"]');
-  if (wiersz) wiersz.textContent = markaPusta(m) ? 'pusty' : `${m.kolory.length} kol. · ${m.style.length} styl. · ${m.loga.length} logo`;
+  const zestawy = listaZestawow();
+  const ile = zestawy.length > 1 ? ` · ${zestawy.length} zestawy` : '';
+  if (wiersz) wiersz.textContent = (markaPusta(m) ? 'pusty' : `${m.kolory.length} kol. · ${m.style.length} styl. · ${m.loga.length} logo`) + ile;
   if (!el) return;
-  if (markaPusta(m)) { el.innerHTML = '<p class="ciche">Zestaw jest pusty. Dodaj kolory, czcionki i logo – zobaczysz je potem w każdym projekcie.</p>'; return; }
-  el.innerHTML = `<div class="probki-marki">${m.kolory.map((k) => `<span class="probka" style="background:${esc(k.kolor)}" title="${esc(k.nazwa || k.kolor)}"></span>`).join('')}</div>
+  const naglowek = zestawy.length > 1
+    ? `<p class="ciche">W użyciu: <b>${esc(m.nazwa || '')}</b>. Zestawy: ${zestawy.map((z) => esc(z.nazwa)).join(', ')}.</p>` : '';
+  if (markaPusta(m)) { el.innerHTML = `${naglowek}<p class="ciche">Zestaw jest pusty. Dodaj kolory, czcionki i logo – zobaczysz je potem w każdym projekcie.</p>`; return; }
+  el.innerHTML = `${naglowek}<div class="probki-marki">${m.kolory.map((k) => `<span class="probka" style="background:${esc(k.kolor)}" title="${esc(k.nazwa || k.kolor)}"></span>`).join('')}</div>
     <p class="ciche">${[m.czcionki.naglowek && `Nagłówki: ${esc(m.czcionki.naglowek)}`, m.czcionki.tekst && `Tekst: ${esc(m.czcionki.tekst)}`, m.style.length && `Style tekstu: ${m.style.length}`, m.loga.length && `Logo: ${m.loga.length}`].filter(Boolean).join(' · ')}</p>`;
 }
 

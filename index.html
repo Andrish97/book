@@ -1920,6 +1920,17 @@
         <h2 id="marka-tytul">Zestaw marki</h2>
         <button type="button" class="przycisk-ikona x-okna" data-akcja="marka-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
+      <!-- Kilka zestawów marki (#211): wybór, nowy (pusty albo kopia), nazwa, usunięcie. -->
+      <div class="zestawy-marki">
+        <label class="pole"><span>Zestaw</span><select id="marka-zestaw" aria-describedby="marka-zestaw-opis"></select></label>
+        <div class="rzad-przyciskow">
+          <button type="button" class="przycisk" id="marka-zestaw-nowy" data-ikona="plus">Nowy zestaw…</button>
+          <button type="button" class="przycisk" id="marka-zestaw-kopia" data-ikona="kopiuj">Kopia…</button>
+          <button type="button" class="przycisk" id="marka-zestaw-nazwa" data-ikona="olowek">Zmień nazwę…</button>
+          <button type="button" class="przycisk niebezpieczny" id="marka-zestaw-usun" data-ikona="kosz">Usuń</button>
+        </div>
+        <p class="podpowiedz" id="marka-zestaw-opis"></p>
+      </div>
       <fieldset class="grupa-pol">
         <legend>Kolory marki</legend>
         <ul class="lista-kolorow-marki" id="marka-kolory"></ul>
@@ -1963,6 +1974,7 @@
         <button type="button" class="przycisk-ikona x-okna" data-akcja="marka-zastosuj-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
       <p class="ciche">Kolory i czcionki projektu zamienią się na kolory i czcionki marki – na wszystkich stronach, we wzorcach i stylach (dla każdego możesz wybrać „bez zmian”), a style tekstu marki trafią do stylów projektu.</p>
+      <label class="pole" id="marka-zastosuj-zestaw-pole"><span>Zestaw marki</span><select id="marka-zastosuj-zestaw"></select></label>
       <fieldset class="grupa-pol"><legend>Kolory</legend><ul class="mapowanie-marki" id="marka-mapa-kolory"></ul></fieldset>
       <fieldset class="grupa-pol"><legend>Czcionki</legend><ul class="mapowanie-marki" id="marka-mapa-czcionki"></ul></fieldset>
       <fieldset class="grupa-pol"><legend>Style tekstu</legend>

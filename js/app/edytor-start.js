@@ -792,7 +792,18 @@ export { przejdzDoStrony } from './lista-stron.js';
 export { edytujWzorzec } from './wzorce.js';
 
 // Zestaw marki z konta (#131D): kolory i czcionki marki w wyborze koloru i na liście czcionek od razu.
-if (stan.uzytkownik) import('../zestaw-marki.js').then((m) => m.wczytajMarke()).catch(() => {});
+// Kilka zestawów marki (#211): projekt może mieć swój zestaw (projekt.zestaw_marki) – wtedy to on jest „marką”
+// w wyborze koloru, czcionkach i Bibliotece; bez niego – zestaw w użyciu z ustawień konta.
+import('../zestaw-marki.js').then((m) => {
+  m.ustawZrodloZestawuProjektu(() => stan.projekt?.zestaw_marki || null);
+  if (stan.uzytkownik) m.wczytajMarke();
+}).catch(() => {});
+// Wybór zestawu w oknie marki przy otwartym projekcie – projekt go zapamiętuje.
+document.addEventListener('zestaw-marki-wybrany', (e) => {
+  if (!stan.projekt || stan.projekt.zestaw_marki === e.detail) return;
+  stan.projekt.zestaw_marki = e.detail;
+  zaplanujZapis();
+});
 
 // ---------- Telefon: ⋯ paska wstawiania (#139, #142) ----------
 // Narzędzia, które nie mieszczą się w pasku na małym ekranie (wielokąt, rysowanie, pióro, komentarz, „Kopiuj

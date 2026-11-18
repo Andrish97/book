@@ -2324,6 +2324,8 @@ Pytanie, pomysł albo błąd? **Kontakt** jest w menu konta i pod formularzem lo
 
 Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — na koncie — i masz je w każdym projekcie: **Ustawienia konta** → **Zestaw marki** → **Edytuj zestaw marki…** (albo Biblioteka → **Marka**).
 
+**Kilka zestawów** — np. dla każdego klienta, szkoły albo wydawnictwa. Na górze okna marki lista **Zestaw**: **Nowy zestaw…** (pusty), **Kopia…** (z kolorami, czcionkami, stylami i logo bieżącego), **Zmień nazwę…**, **Usuń**. Zmiany w zestawie zapisują się przy przejściu na inny. Wybór w ustawieniach konta to **zestaw w użyciu** — marka projektów, które nie mają własnego. Wybór przy otwartym projekcie (okno marki z Biblioteki albo z menu ⋯) zapamiętuje projekt: jego kolory, czcionki i Biblioteka pokazują ten zestaw, a inne projekty zostają przy swoich. To samo robi **Zastosuj markę do projektu…** — w oknie wybierasz, który zestaw zastosować.
+
 - **Kolory marki** — z nazwą, np. „Granat marki”. Przełącznik **Pantone / CMYK** robi z koloru kolor dodatkowy, drukowany osobną farbą (rozdział „22.1 Kolory dodatkowe”).
 - **Czcionki marki** — jedna do nagłówków, jedna do tekstu.
 - **Style tekstu** — **Dodaj gotowe style** dodaje Tytuł, Podtytuł, Nagłówek 1–4, Akapit, Akapit wyróżniony, Podpis, Cytat, Listę, Przypis, Stopkę / żywą paginę i Etykietę w czcionkach i kolorze marki; **Własny styl** — kolejne, bez limitu. Każdy styl ma czcionkę, rozmiar, wagę, kursywę, interlinię, odstęp liter, kolor i wielkość liter.

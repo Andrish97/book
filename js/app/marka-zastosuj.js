@@ -3,7 +3,10 @@
 // w menu ⋯ projektu i w Bibliotece (kategoria „Marka”).
 
 import { uzyteKolory, uzyteCzcionki } from '../kontrolki.js';
-import { biezacaMarka, wczytajMarke, markaPusta, propozycjaMapowania, zastosujMapowanie, koloryDodatkoweZMarki, zastosujStyleMarki } from '../zestaw-marki.js';
+import {
+  biezacaMarka, wczytajMarke, markaPusta, propozycjaMapowania, zastosujMapowanie, koloryDodatkoweZMarki, zastosujStyleMarki,
+  listaZestawow, idZestawuMarki, zestawMarki, powiadomOZmianieZestawu,
+} from '../zestaw-marki.js';
 import { zastosujStylWProjekcie } from '../style-tekstu.js';
 import { uid } from '../projekt.js';
 import { $, powiadom } from '../ui.js';
@@ -14,6 +17,8 @@ import { panel } from './skladniki.js';
 const dlg = $('#dlg-marka-zastosuj');
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
 let mapa = null;
+let wybrany = null; // id zestawu do zastosowania (#211)
+const marka = () => (wybrany && zestawMarki(wybrany)) || biezacaMarka();
 
 function wierszKoloru(kolor, ile, marka) {
   const li = document.createElement('li');
@@ -42,13 +47,25 @@ function wierszCzcionki(nazwa, ile, marka) {
 
 export async function otworzZastosowanieMarki() {
   await wczytajMarke();
-  const marka = biezacaMarka();
-  if (markaPusta(marka)) {
+  const zestawy = listaZestawow();
+  wybrany = idZestawuMarki();
+  const sel = $('#marka-zastosuj-zestaw');
+  sel.innerHTML = zestawy.map((z) => `<option value="${esc(z.id)}">${esc(z.nazwa)}${z.pusty ? ' (pusty)' : ''}</option>`).join('');
+  sel.value = wybrany || '';
+  $('#marka-zastosuj-zestaw-pole').hidden = zestawy.length < 2;
+  if (markaPusta(marka()) && !zestawy.some((z) => !z.pusty)) {
     powiadom('Zestaw marki jest pusty – dodaj kolory, czcionki i style tekstu w Ustawieniach konta → Zestaw marki.', true);
     (await import('../marka-okno.js')).otworzMarke();
     return;
   }
   zapiszBiezacyCel();
+  rysujMapowanie();
+  if (!dlg.open) dlg.showModal();
+}
+
+// Mapowanie dla wybranego zestawu – od nowa przy zmianie zestawu.
+function rysujMapowanie() {
+  const marka = zestawMarki(wybrany) || biezacaMarka();
   const kolory = uzyteKolory(stan.projekt, 24);
   const czcionki = uzyteCzcionki(stan.projekt);
   mapa = propozycjaMapowania(kolory, czcionki, marka);
@@ -67,21 +84,24 @@ export async function otworzZastosowanieMarki() {
     li.innerHTML = `<span class="czcionka-proba" style="font-family:'${esc(s.czcionka)}';color:${esc(s.kolor)}">Aa</span><span>${esc(s.nazwa)} <span class="ciche">· ${esc(s.czcionka)} ${String(s.rozmiar).replace('.', ',')} pt</span></span><span class="ciche">${istniejace.has(klucz(s.nazwa)) ? 'zaktualizuje styl projektu' : 'nowy styl'}</span>`;
     return li;
   }));
-  if (!dlg.open) dlg.showModal();
+  $('#marka-zastosuj-ok').disabled = markaPusta(marka);
 }
+$('#marka-zastosuj-zestaw').addEventListener('change', (e) => { wybrany = e.target.value; rysujMapowanie(); });
 
 async function zastosuj() {
   zapiszBiezacyCel();
   const p = stan.projekt;
   let n = zastosujMapowanie(p, mapa);
   // Style tekstu marki → style projektu (te same nazwy – aktualizacja z zachowaniem powiązań, reszta dochodzi).
-  if ($('#marka-style-tak').checked && biezacaMarka().style.length) {
-    const { dodane, zmienione } = zastosujStyleMarki(p, biezacaMarka(), () => uid('st'));
+  if ($('#marka-style-tak').checked && marka().style.length) {
+    const { dodane, zmienione } = zastosujStyleMarki(p, marka(), () => uid('st'));
     for (const st of zmienione) zastosujStylWProjekcie(p, st);
     n += dodane.length + zmienione.length;
   }
   // Kolory marki z CMYK (Pantone) trafiają do kolorów dodatkowych projektu (#127) – osobne płyty w PDF.
-  const spoty = koloryDodatkoweZMarki();
+  const spoty = koloryDodatkoweZMarki(marka());
+  // Projekt zapamiętuje zestaw – to jego marka w wyborze koloru, czcionkach i Bibliotece (#211).
+  if (wybrany && p.zestaw_marki !== wybrany) { p.zestaw_marki = wybrany; n += 1; powiadomOZmianieZestawu(); }
   if (spoty.length) {
     p.kolory_dodatkowe = [...(p.kolory_dodatkowe || [])];
     for (const s of spoty) if (!p.kolory_dodatkowe.some((x) => x.nazwa === s.nazwa)) p.kolory_dodatkowe.push(s);

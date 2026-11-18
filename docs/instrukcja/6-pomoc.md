@@ -120,6 +120,13 @@ Kolory, czcionki i logo firmy (albo szkoły, parafii, klubu) zapisujesz raz — 
 w każdym projekcie: [Ustawienia konta] → **Zestaw marki** → [Edytuj zestaw marki…] (albo Biblioteka →
 **Marka**).
 
+**Kilka zestawów** — np. dla każdego klienta, szkoły albo wydawnictwa. Na górze okna marki lista **Zestaw**:
+[Nowy zestaw…] (pusty), [Kopia…] (z kolorami, czcionkami, stylami i logo bieżącego), [Zmień nazwę…], [Usuń]. Zmiany
+w zestawie zapisują się przy przejściu na inny. Wybór w ustawieniach konta to **zestaw w użyciu** — marka projektów,
+które nie mają własnego. Wybór przy otwartym projekcie (okno marki z Biblioteki albo z menu ⋯) zapamiętuje projekt:
+jego kolory, czcionki i Biblioteka pokazują ten zestaw, a inne projekty zostają przy swoich. To samo robi
+[Zastosuj markę do projektu…] — w oknie wybierasz, który zestaw zastosować.
+
 - **Kolory marki** — z nazwą, np. „Granat marki”. Przełącznik **Pantone / CMYK** robi z koloru kolor
   dodatkowy, drukowany osobną farbą (→ 22.1).
 - **Czcionki marki** — jedna do nagłówków, jedna do tekstu.

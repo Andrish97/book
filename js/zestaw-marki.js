@@ -2,13 +2,17 @@
 // i tekst) i logo – na koncie, dostępne w każdym projekcie: w wyborze koloru („Marka”), na liście czcionek,
 // w Bibliotece (kategoria „Marka”) i przy „Zastosuj markę do projektu” (zamiana kolorów i czcionek).
 // Zapis: js/chmura.js – kontoMarki() (<konto>/_marka/marka.json i pliki logo obok).
+// Kilka zestawów (#211): marka.json = { wersja: 2, aktywny, zestawy: [{ id, nazwa, ...zestaw }] } (dawny plik z jednym
+// zestawem czyta się jako zestaw „Moja marka”). biezacaMarka() to zestaw projektu (projekt.zestaw_marki), a bez niego –
+// zestaw w użyciu (aktywny). Loga wszystkich zestawów leżą w jednym folderze.
 
+let plik = null; // { wersja: 2, aktywny, zestawy }
+let zestawProjektu = () => null; // id zestawu otwartego projektu – podaje aplikacja (ustawZrodloZestawuProjektu)
 let pamiec = null; // { kolory: [{ id, nazwa, kolor, cmyk? }], czcionki: { naglowek, tekst }, loga: [{ id, nazwa, plik, typ, podglad }] }
 const sluchacze = new Set();
 export const naZmianeMarki = (fn) => { sluchacze.add(fn); return () => sluchacze.delete(fn); };
 const powiadom = () => {
-  globalThis.makietkaMarka = pamiec; // dla Biblioteki (kategoria „Marka”) bez importu tego modułu
-  for (const fn of sluchacze) { try { fn(pamiec); } catch { /* jeden słuchacz nie psuje reszty */ } }
+  for (const fn of sluchacze) { try { fn(biezacaMarka()); } catch { /* jeden słuchacz nie psuje reszty */ } }
 };
 
 export const PUSTA_MARKA = () => ({ kolory: [], czcionki: { naglowek: '', tekst: '' }, loga: [], style: [] });
@@ -78,7 +82,68 @@ export function normalizujMarke(m) {
   return w;
 }
 
-export const biezacaMarka = () => pamiec || PUSTA_MARKA();
+export const biezacaMarka = () => { odswiezPamiec(); return pamiec || PUSTA_MARKA(); };
+// Dla Biblioteki (kategoria „Marka”) bez importu tego modułu – zawsze zestaw, który widać teraz.
+Object.defineProperty(globalThis, 'makietkaMarka', { configurable: true, get: () => (plik ? biezacaMarka() : null) });
+
+// ---------- Zestawy (#211) ----------
+
+const nowyIdZestawu = () => `mk${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+export function normalizujPlikMarki(dane) {
+  if (dane && Array.isArray(dane.zestawy) && dane.zestawy.length) {
+    const zestawy = dane.zestawy.slice(0, 30).map((z, i) => ({
+      id: String(z?.id || `mk${i}`), nazwa: String(z?.nazwa || `Marka ${i + 1}`).trim().slice(0, 60) || `Marka ${i + 1}`, ...normalizujMarke(z),
+    }));
+    return { wersja: 2, aktywny: zestawy.some((z) => z.id === dane.aktywny) ? dane.aktywny : zestawy[0].id, zestawy };
+  }
+  return { wersja: 2, aktywny: 'mk1', zestawy: [{ id: 'mk1', nazwa: 'Moja marka', ...normalizujMarke(dane) }] };
+}
+const idBiezacego = () => {
+  let p = null;
+  try { p = zestawProjektu(); } catch { p = null; }
+  return p && plik?.zestawy.some((z) => z.id === p) ? p : plik?.aktywny;
+};
+// Zestawy w pliku są już znormalizowane – bieżący to jeden z nich (bez kopiowania przy każdym odczycie).
+function odswiezPamiec() {
+  if (!plik) return;
+  pamiec = plik.zestawy.find((x) => x.id === idBiezacego()) || plik.zestawy[0];
+}
+export const idZestawuMarki = () => idBiezacego() || null;
+// [{ id, nazwa, aktywny (w użyciu bez projektu), biezacy (ten widać teraz), pusty }]
+export const listaZestawow = () => (plik?.zestawy || []).map((z) => ({ id: z.id, nazwa: z.nazwa, aktywny: z.id === plik.aktywny, biezacy: z.id === idBiezacego(), pusty: markaPusta(normalizujMarke(z)) }));
+export const zestawMarki = (id) => { const z = plik?.zestawy.find((x) => x.id === id); return z ? normalizujMarke(z) : null; };
+// Skąd wziąć zestaw otwartego projektu: fn() → id zestawu albo null (projekt bez własnego zestawu, brak projektu).
+export function ustawZrodloZestawuProjektu(fn) { zestawProjektu = fn; }
+// Po zmianie zestawu projektu – odśwież to, co pokazuje markę.
+export const powiadomOZmianieZestawu = () => powiadom();
+async function zapiszPlik() { await (await konto()).zapisz(plik); odswiezPamiec(); powiadom(); }
+// Zestaw w użyciu (dla projektów bez własnego zestawu i w ustawieniach konta).
+export async function wybierzZestaw(id) {
+  if (!plik?.zestawy.some((z) => z.id === id)) return;
+  plik.aktywny = id;
+  await zapiszPlik();
+}
+export async function dodajZestaw(nazwa, { kopiaZ = null } = {}) {
+  if (!plik) await wczytajMarke();
+  const zrodlo = kopiaZ ? plik.zestawy.find((z) => z.id === kopiaZ) : null;
+  const z = { ...(zrodlo ? JSON.parse(JSON.stringify(normalizujMarke(zrodlo))) : PUSTA_MARKA()), id: nowyIdZestawu(), nazwa: String(nazwa || 'Nowa marka').trim().slice(0, 60) || 'Nowa marka' };
+  plik.zestawy.push(z);
+  plik.aktywny = z.id;
+  await zapiszPlik();
+  return z.id;
+}
+export async function zmienNazweZestawu(id, nazwa) {
+  const z = plik?.zestawy.find((x) => x.id === id);
+  if (!z || !String(nazwa || '').trim()) return;
+  z.nazwa = String(nazwa).trim().slice(0, 60);
+  await zapiszPlik();
+}
+export async function usunZestaw(id) {
+  if (!plik || plik.zestawy.length <= 1) throw new Error('To jedyny zestaw marki – zostaje (możesz go wyczyścić).');
+  plik.zestawy = plik.zestawy.filter((z) => z.id !== id);
+  if (plik.aktywny === id) plik.aktywny = plik.zestawy[0].id;
+  await zapiszPlik();
+}
 export const markaPusta = (m = biezacaMarka()) => !m.kolory.length && !m.czcionki.naglowek && !m.czcionki.tekst && !m.loga.length && !m.style?.length;
 
 // Styl marki → pola stylu projektu (js/style-tekstu.js; wymiary w mm).
@@ -111,16 +176,19 @@ export function zastosujStyleMarki(projekt, marka = biezacaMarka(), noweId = () 
 const konto = async () => (await import('./chmura.js')).kontoMarki();
 
 export async function wczytajMarke() {
-  try { pamiec = normalizujMarke(await (await konto()).wczytaj()); } catch { pamiec = pamiec || PUSTA_MARKA(); }
+  try { plik = normalizujPlikMarki(await (await konto()).wczytaj()); } catch { plik = plik || null; }
+  odswiezPamiec();
   powiadom();
   return pamiec;
 }
 
-export async function zapiszMarke(m) {
+// Zapis treści zestawu (domyślnie – tego, który widać teraz); nazwa i id zestawu zostają.
+export async function zapiszMarke(m, id = idBiezacego()) {
+  if (!plik) plik = normalizujPlikMarki(null);
   const n = normalizujMarke(m);
-  await (await konto()).zapisz(n);
-  pamiec = n;
-  powiadom();
+  const z = plik.zestawy.find((x) => x.id === id) || plik.zestawy[0];
+  Object.assign(z, n);
+  await zapiszPlik();
   return n;
 }
 
