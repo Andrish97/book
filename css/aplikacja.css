@@ -3587,3 +3587,7 @@ img:not([src]):not(.zaladowany) { color: transparent; }
 .czat-ai-wiadomosci li.blad { background: var(--blad-tlo); color: var(--blad); }
 .czat-ai-pisz { display: flex; gap: 8px; align-items: flex-end; flex: none; }
 .czat-ai-pisz textarea { flex: 1; resize: none; min-height: 44px; max-height: 140px; }
+
+/* Język (#219): flaga na przycisku i w menu. */
+.flaga-jezyka { width: 20px; height: 20px; display: block; border-radius: 3px; color: var(--tusz-2); }
+.menu-jezyka .flaga-jezyka { flex: none; }

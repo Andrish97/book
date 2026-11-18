@@ -681,7 +681,7 @@ async function otworz(test, { tryb = 'zalogowany', telefon = false, urzadzenie =
   // Bez „dociągania” liter do pikseli: tekst rysuje się tak samo na każdym komputerze, a testy porównujące
   // obrazy (PDF, podgląd) nie zależą od ustawień czcionek systemu, na którym biegną.
   const przegladarka = await chromium.launch({ args: ['--font-render-hinting=none'] });
-  const kontekst = await przegladarka.newContext({
+  const kontekst = await przegladarka.newContext({ locale: 'pl-PL',
     // telefon: true – telefon trzymany pionowo (tak pracuje edytor); 'poziom' – poziomo.
     // urzadzenie: nazwa z listy Playwright (np. 'iPad Mini') – tablet z dotykiem.
     ...(urzadzenie ? devices[urzadzenie] : telefon ? devices[telefon === 'poziom' ? 'Pixel 7 landscape' : 'Pixel 7'] : { viewport: widok }),
@@ -732,7 +732,7 @@ async function zamknijOkno(strona, dialog) {
 // Drugie urządzenie: osobny kontekst tej samej przeglądarki (własne ciasteczka, własny magazyn projektów),
 // podłączony do tej samej atrapy konta. Przyjmuje wynik otworz(..., { tryb: 'atrapa' }).
 async function drugieUrzadzenie({ przegladarka, baza, adres }, { widok = { width: 1280, height: 800 } } = {}) {
-  const kontekst = await przegladarka.newContext({ viewport: widok, serviceWorkers: 'block', acceptDownloads: true });
+  const kontekst = await przegladarka.newContext({ locale: 'pl-PL', viewport: widok, serviceWorkers: 'block', acceptDownloads: true });
   await kontekst.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
   baza.podlacz(kontekst);
   const strona = await kontekst.newPage();

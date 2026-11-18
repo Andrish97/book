@@ -51,7 +51,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   assert.equal(JSON.stringify(manifest).includes('obiekty'), false, 'manifest nie zawiera treści projektu');
 
   // Osoba bez konta: osobna przeglądarka, bez sesji.
-  const gosc = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+  const gosc = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
   await krotkieLinkiGoscia(gosc, baza);
   await gosc.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
   await gosc.route('https://atrapa.supabase.co/podglady/**', async (r) => {
@@ -177,7 +177,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
 // z ochroną, wydawany tylko przy żywym linku) i funkcję podglad_chroniony (te same zasady co w bazie).
 // Zwraca stronę gościa i jego błędy.
 async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
-  const k = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+  const k = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
   await k.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
   await k.route('https://atrapa.supabase.co/**', async (r) => {
     const url = new URL(r.request().url());
@@ -509,7 +509,7 @@ test('udostępnianie w tle: link od razu, oglądający widzi „w przygotowaniu�
   const klucz = [...baza.pliki.keys()].find((k) => k.startsWith('podglady/') && k.endsWith('manifest.json'));
   assert.equal(JSON.parse(baza.pliki.get(klucz).tresc.toString()).przygotowanie, true, 'opis: w przygotowaniu');
   // Oglądający w trakcie.
-  const gosc = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+  const gosc = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
   await gosc.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
   await gosc.route('https://atrapa.supabase.co/podglady/**', async (r) => {
     const k = `podglady/${decodeURIComponent(new URL(r.request().url()).pathname.slice('/podglady/'.length))}`;

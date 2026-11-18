@@ -141,6 +141,13 @@ document.addEventListener('click', (e) => {
       otworzMenuMotywu(kotwica, (n) => ikona(n));
       return;
     }
+    if (nazwa === 'jezyk') { // menu języka (#219) – jak motyw
+      e.preventDefault();
+      const kotwica = b.closest('.menu') ? (b.closest('.menu-wiecej, .menu-uzytkownika')?.querySelector(':scope > button') || b) : b;
+      zamknijMenu();
+      import('./jezyk.js').then((m) => m.otworzMenuJezyka(kotwica));
+      return;
+    }
     if (akcje[nazwa]) { e.preventDefault(); akcje[nazwa](); return; }
     const modul = edytorGotowy();
     if (modul?.akcje[nazwa]) { e.preventDefault(); modul.akcje[nazwa](); return; }
@@ -180,6 +187,8 @@ document.addEventListener('focusout', () => setTimeout(dokumentNaMiejsce, 150));
 async function start() {
   wstawIkony();
   odswiezPrzyciskiMotywu((n) => ikona(n)); // ikona wybranego trybu motywu (#205)
+  // Język interfejsu (#219): polski bez słownika, inny – słownik i tłumaczenie tego, co widać.
+  import('./jezyk.js').then((m) => m.ustawJezyk(m.wybranyJezyk(), { zapamietaj: false })).catch(() => {});
   odswiezPelnyEkran();
   konto.inicjuj();
 

@@ -29,7 +29,7 @@ test('nowa wersja: sama na liście projektów, w projekcie po schowaniu karty', 
   const adres = `http://localhost:${serwer.address().port}/`;
   const przegladarka = await chromium.launch();
   t.after(async () => { await przegladarka.close(); serwer.close(); });
-  const kontekst = await przegladarka.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: 'allow' });
+  const kontekst = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1280, height: 800 }, serviceWorkers: 'allow' });
   const baza = await podlaczAtrape(kontekst);
   const strona = await kontekst.newPage();
   const bledy = [];

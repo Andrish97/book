@@ -49,7 +49,7 @@ test('makieta 3D z linku: ta sama bryła co u właściciela, obrazy linku, kartk
   assert.equal(manifest.uklad.makieta.model, 'ksiazka_twarda');
   assert.equal(JSON.stringify(manifest).includes('obiekty'), false, 'opis makiety bez treści stron');
 
-  const gosc = await przegladarka.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
+  const gosc = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
   await krotkieLinkiGoscia(gosc, baza);
   await gosc.route('**/js/konfiguracja.js', (r) => r.fulfill({ contentType: 'text/javascript', body: Z_ATRAPA }));
   await gosc.route('https://atrapa.supabase.co/podglady/**', async (r) => {

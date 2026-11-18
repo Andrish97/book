@@ -36,7 +36,7 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | 11 | (16) Wycinanki i składanki: typy linii (cięcie, zgięcie, klejenie), miejsca klejenia, grupa wycinana jako jeden kawałek, druga strona arkusza, łączenie, zawijanie po krzywej, ustawienia plotera, gotowe wzory, sprawdzenie złożenia, makieta 3D | 🔄 #218: linie cięcia, bigu, perforacji i kleju (płyty PDF, SVG dla plotera, kontrola złożenia); dalej: druga strona arkusza, zawijanie po krzywej, 3D z dowolnego wykroju, więcej wzorów |
 | 12 | (5) Zgodność z innymi programami: odczyt i zapis formatów (IDML, Scribus, DOCX, EPUB, PDF) | 🔄 #216: DOCX, ODT, Markdown, TXT – odczyt; DOCX i EPUB – zapis; dalej IDML i Scribus |
 | 13 | AI: własne klucze API wielu dostawców z wyborem modelu, własny czat w Makietce, łącznik MCP z logowaniem przez zatwierdzenie, uprawnienia per projekt, bez przywiązania do dostawcy | ✅ #217 (czat z własnym kluczem, OpenRouter z logowaniem, uprawnienia per projekt; łącznik MCP był) |
-| 14 | (18) Przełącznik języka – 3 języki jak w Familiadzie (tłumaczenie całej aplikacji) | ⏳ |
+| 14 | (18) Przełącznik języka – 3 języki jak w Familiadzie (tłumaczenie całej aplikacji) | ✅ #219 |
 | 15 | (4) Ikona i logo – propozycje do zatwierdzenia (na koniec – wymaga oceny wyglądu) | ⏳ |
 
 Każdy punkt: test, instrukcja, DECYZJE, ZGŁOSZENIA, commit i push.
