@@ -6,6 +6,18 @@ Dokumenty obok: [instrukcja obsługi](https://makietka.app/ai/instrukcja.md), [f
 
 > **Dla asystenta AI:** nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka. Zacznij od narzędzia `projekty` (projekty w zasięgu klucza), a w narzędziach projektu podawaj `projekt` (id albo nazwa). Projekty czytasz i zmieniasz wyłącznie narzędziami łącznika (`przeglad_projektu`, `czytaj`, `zmien_elementy`…); one działają po stronie Makietki. Jeśli tych narzędzi nie masz, poproś użytkownika o dodanie łącznika (punkt 2) – nie proś o odblokowanie domen ani o zmianę ustawień sieci. Pliki z własnego środowiska wgrywasz narzędziem `wgraj_czesciami`.
 
+## Drogi w skrócie
+
+| Droga | Dla kogo | Jak | Koszt |
+|---|---|---|---|
+| **Łącznik z logowaniem (OAuth 2.1)** | Claude, ChatGPT i inne klienty MCP | adres `https://api.makietka.app/mcp` bez klucza; klient rejestruje się (DCR), użytkownik loguje się w Makietce i wybiera zakres na stronie zgody (punkt 2) | plan aplikacji AI z własnymi łącznikami |
+| **Łącznik z kluczem w adresie** | klienty MCP bez OAuth, Claude Code, serwer u siebie | `https://api.makietka.app/mcp/sdk_…` (punkt 1–2) | jw. |
+| **Zwykłe adresy (GET)** | czaty, które same otwierają dowolne strony | ten sam adres jak strona, narzędzia: `…/n/<narzędzie>?…` (punkt 2) | Makietka nic nie bierze |
+| **Kopiuj i wklej** | dowolny czat, także darmowy | Asystent AI w Makietce przygotowuje polecenie, czat odpowiada blokiem `makietka`, Makietka wykonuje (instrukcja 25.6) | nic |
+| **Czat w Makietce** | własny klucz API dostawcy | Asystent AI w edytorze rozmawia z dostawcą z przeglądarki; klucze zaszyfrowane hasłem do kluczy (instrukcja 25.6) | płatne u dostawcy |
+
+Wszystkie drogi używają tych samych narzędzi (jeden rdzeń) i tych samych uprawnień klucza: projekty (wybrane albo pełny dostęp), czytanie albo zmiany, a przy zmianach osobno strony, wzorce i style, tabele i serie, obrazy, eksport – pilnowane w bazie (punkt 1, Bezpieczeństwo). W czacie Makietki usunięcia i duże zmiany czekają na zgodę użytkownika.
+
 ## 1. Klucz i adres łącznika
 
 Klucz należy do **konta**, nie do jednego projektu.
@@ -89,9 +101,9 @@ Gdy wolisz uruchamiać serwer na własnym komputerze (np. Claude Desktop przez p
 
 Ma te same narzędzia co łącznik (wspólny kod). Działa tylko tam, gdzie program ma dostęp do internetu.
 
-### Własny GPT z akcjami (starszy sposób)
+### Funkcje bazy wprost (dla programistów)
 
-Bez łącznika ChatGPT może wołać funkcje bazy przez opis [openapi.json](https://makietka.app/ai/openapi.json): **Utwórz GPT → Konfiguruj → Utwórz nową akcję → Importuj z adresu URL**, uwierzytelnianie *Klucz API* / *Niestandardowy* / nagłówek `apikey` z publicznym kluczem bazy `sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq`, a w instrukcjach GPT klucz `sdk_…` jako `p_klucz` (punkt 4). Zapisz GPT jako **Tylko ja**.
+Własne programy mogą wołać funkcje bazy `ai_*` (punkt 4) z kluczem `sdk_…` jako `p_klucz` – opis [openapi.json](https://makietka.app/ai/openapi.json). Własne GPT w ChatGPT nie są już wspierane (OpenAI je wycofuje) – zamiast nich łącznik albo „kopiuj i wklej”.
 
 ## 3. Narzędzia łącznika
 
@@ -244,4 +256,4 @@ Treść: `{"p_klucz": "sdk_…", "p_kopie": {"z_nowe": {"z": "z_ab12", "nazwa": 
 
 ### Funkcje właściciela (zalogowany użytkownik aplikacji)
 
-`utworz_dostep_ai(p_opis, p_rola, p_dni, p_zakres, p_projekty)` → `{id, klucz, wazny_do}` (`p_dni` null – bez terminu; `p_zakres` `wybrane` z listą `p_projekty` albo `pelny`), `dostepy_ai()` → klucze konta bez ich treści (z zakresem i nazwami projektów), `zmien_dostep_ai(p_id, p_zakres, p_projekty)` – nowy zakres bez zmiany klucza, `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64) albo – dla pliku w kawałkach – `{typ, nazwa, rozmiar, skrot, czesci}` i wtedy `pobierz_czesc_obrazu_ai(p_id, p_nr)` → base64 kawałka; `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`.
+`utworz_dostep_ai(p_opis, p_rola, p_dni, p_zakres, p_projekty)` → `{id, klucz, wazny_do}` (`p_dni` null – bez terminu; `p_zakres` `wybrane` z listą `p_projekty` albo `pelny`), `dostepy_ai()` → klucze konta bez ich treści (z zakresem i nazwami projektów), `zmien_dostep_ai(p_id, p_zakres, p_projekty)` – nowy zakres bez zmiany klucza, `zmien_waznosc_ai(p_id, p_dni)` – nowy czas ważności od teraz, `ustaw_uprawnienia_ai(p_id, p_uprawnienia)` – podzbiór `strony`, `wzorce`, `tabele`, `obrazy`, `eksport` (null – wszystko), `oznacz_dostep_ai(p_id, p_sposob)` – sekcja w ustawieniach (`lacznik`, `zwykly`, `czat`), `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64) albo – dla pliku w kawałkach – `{typ, nazwa, rozmiar, skrot, czesci}` i wtedy `pobierz_czesc_obrazu_ai(p_id, p_nr)` → base64 kawałka; `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`.

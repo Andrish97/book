@@ -207,3 +207,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 18.11.2026: plan AI krok 3 – zgoda w czacie Makietki przed usuwaniem i dużymi zmianami (#255).
 - 18.11.2026: plan AI kroki 4–5 – Sprawdź połączenie, model domyślny, czytelne błędy dostawców i ponawianie przy przeciążeniu (#256).
 - 18.11.2026: plan AI krok 6 – narzędzia kopiuj_strone, wyrownaj_elementy, rozmiesc_elementy (#257).
+- 18.11.2026: plan AI krok 7 – ai/api.md z przeglądem wszystkich dróg i nowych funkcji (#258).
