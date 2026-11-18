@@ -252,6 +252,13 @@ export class PanelWlasciwosci {
       g.append(this.wskazowka('Zmieniasz jeden element grupy. Z Shiftem zaznaczysz kilka naraz. Kliknij poza grupą albo naciśnij Esc, żeby grupa znów była jednym elementem.'));
       g.append(this.akcje([['grupuj', 'Wróć do całej grupy', () => this.edytor.zamknijGrupe()]]));
     }
+    // Część składanki (#233): krawędzie, zgięcia, miejsca klejenia, szczeliny – bez skalowania.
+    if (obj.czesc && this.opcje.czesc) {
+      this.opcje.czesc(this, obj);
+      this.zbudujGeometrie(obj, { tylkoPozycja: true });
+      this.zbudujKolejnosc(obj);
+      return;
+    }
     if (obj.type === 'image') this.zbudujAkcjeObrazu(obj);
     if (toKalendarz(obj)) this.zbudujKalendarz(obj);
     if (toWykres(obj)) this.zbudujWykres(obj);

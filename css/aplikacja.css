@@ -929,6 +929,10 @@ dialog h2 { font-size: 19px; }
 .lista-uwag li { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--linia); border-left: 3px solid var(--ostrzezenie, #d97706); border-radius: var(--r-s); font-size: 14px; }
 .lista-uwag li:empty { display: none; }
 .lista-uwag .przyciski-uwagi { display: flex; gap: 6px; flex: none; }
+/* Składanka (#233): narzędzia tylko w jej sekcji; w trybie narzędzia kursor celownika. */
+.pasek-narzedzi .tylko-skladanka { display: none; }
+body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
+body.narzedzie-skladanki .kontener-plotna canvas { cursor: crosshair !important; }
 .okno-raportu { width: min(640px, calc(100vw - 32px)); }
 .okno-raportu .raport-lista { max-height: min(56vh, 480px); overflow: auto; display: flex; flex-direction: column; gap: 6px; }
 .okno-raportu .raport-lista h3 { font-size: 14px; margin: 10px 0 2px; }

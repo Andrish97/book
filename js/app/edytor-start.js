@@ -21,6 +21,7 @@
 import './edytor-instancja.js';
 import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
+import { obsluzAkcje, podlaczSkladanke } from './skladanka-narzedzia.js'; // narzędzia składanki (#233)
 import { toZaznaczenie } from '../fabric-ustawienia.js';
 import { opisObiektu, WIELOKATY, podgladWielokata } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
@@ -513,6 +514,13 @@ export const akcje = {
 
   'dodaj-tekst': () => edytor.dodajTekst(),
   'dodaj-prostokat': () => edytor.dodajProstokat(),
+  // Składanka (#233): część, część z kształtu, zgięcie, połączenie, miejsce klejenia, szczelina.
+  'skladanka-czesc': () => obsluzAkcje('skladanka-czesc'),
+  'skladanka-z-ksztaltu': () => obsluzAkcje('skladanka-z-ksztaltu'),
+  'skladanka-zgiecie': () => obsluzAkcje('skladanka-zgiecie'),
+  'skladanka-polacz': () => obsluzAkcje('skladanka-polacz'),
+  'skladanka-klej': () => obsluzAkcje('skladanka-klej'),
+  'skladanka-szczelina': () => obsluzAkcje('skladanka-szczelina'),
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => otworzWyborWielokata(),
@@ -874,6 +882,8 @@ window.addEventListener('resize', () => {
   clearTimeout(timerOkna);
   timerOkna = setTimeout(() => edytor.canvas.calcOffset(), 150);
 });
+
+podlaczSkladanke(); // kliknięcia narzędzi składanki na płótnie (#233)
 
 // Dostęp z konsoli, dla testów i skryptu zrzutów ekranu: część startowa (js/aplikacja.js) tworzy
 // window.seriodruk, a tu dochodzi to, co ma edytor. `edytor` daje tamta część (zawsze aktualny).

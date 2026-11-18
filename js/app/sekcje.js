@@ -146,6 +146,10 @@ function odswiezPolaSekcji() {
     const ksztalt = f.elements.sp_ksztalt.value;
     for (const el of $$('[data-sp]', f)) el.hidden = el.dataset.sp !== rodzajSp || (el.dataset.spKsztalt !== undefined && el.dataset.spKsztalt !== ksztalt);
     for (const el of $$('[data-sp-ksztalt]:not([data-sp])', f)) el.hidden = el.dataset.spKsztalt !== ksztalt;
+    // Składanka: wymiary tylko dla arkusza własnego; gramatura dla papieru i kartonu, grubość dla tektury i własnej.
+    const zGramatury = ['papier', 'karton'].includes(f.elements.sp_s_material.value);
+    const widac = { wlasny: f.elements.sp_s_arkusz.value === 'wlasny', gramatura: zGramatury, grubosc: !zGramatury };
+    for (const el of $$('[data-sp-s]', f)) el.hidden = rodzajSp !== 'skladanka' || !widac[el.dataset.spS];
   }
   $('#pole-papier-wkladki').hidden = typ !== 'wkladka';
   $('#pole-ok-tasiemka').hidden = !okladka || f.elements.ok_oprawa.value !== 'twarda';
@@ -176,7 +180,7 @@ function odswiezPolaSekcji() {
   if (okladka) rysujOkladke(); else if (rodzajSp) rysujSpecjalna(); else opiszSkladke();
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => {
-  if (e.target.name?.startsWith('sp_')) { if (e.target.name === 'sp_ksztalt') odswiezPolaSekcji(); else rysujSpecjalna(); return; }
+  if (e.target.name?.startsWith('sp_')) { if (['sp_ksztalt', 'sp_s_arkusz', 'sp_s_material'].includes(e.target.name)) odswiezPolaSekcji(); else rysujSpecjalna(); return; }
   if (['uklad', 'numeracja', 'typ', 'ok_papier', 'ok_oprawa', 'ok_strony', 'ok_wymiary', 'skladka'].includes(e.target.name)) {
     // Przejście na wpisane wymiary: pola dostają bieżące, liczone wartości – do poprawienia, nie od zera.
     if (e.target.name === 'ok_wymiary') {
@@ -397,6 +401,10 @@ const POLA_SPECJALNE = {
     ksztalt: 'sp_ksztalt', zadruk: 'sp_w_zadruk', koperta: 'sp_koperta', panel_szer_mm: 'sp_panel_szer_mm', panel_wys_mm: 'sp_panel_wys_mm', grzbiet_mm: 'sp_grzbiet_mm',
     kieszen_mm: 'sp_kieszen_mm', wizytowka: 'sp_wizytowka', dlugosc_mm: 'sp_dlugosc_mm', szerokosc_mm: 'sp_p_szerokosc_mm', wysokosc_mm: 'sp_p_wysokosc_mm',
   },
+  skladanka: {
+    arkusz: 'sp_s_arkusz', orientacja: 'sp_s_orientacja', arkusz_szer_mm: 'sp_s_szer_mm', arkusz_wys_mm: 'sp_s_wys_mm', material: 'sp_s_material', gramatura: 'sp_s_gramatura',
+    grubosc_mm: 'sp_s_grubosc_mm', druk: 'sp_s_druk', druga_strona: 'sp_s_druga', margines_mm: 'sp_s_margines_mm',
+  },
   arkusz: {
     uzytek_szer_mm: 'sp_uzytek_szer_mm', uzytek_wys_mm: 'sp_uzytek_wys_mm', arkusz: 'sp_arkusz', odstep_mm: 'sp_odstep_mm', margines_mm: 'sp_margines_mm',
     ksztalt: 'sp_u_ksztalt', zaokraglenie_mm: 'sp_zaokraglenie_mm',
@@ -448,6 +456,7 @@ const PODPOWIEDZI_SPECJALNE = {
   ulotka: 'Sekcja ma dwie strony: zewnętrzną (okładka, tył) i wewnętrzną. Przy złożeniu zwijanym panel składany do środka jest węższy – inaczej zagnie się na zgięciu. Tekst nie powinien leżeć na zgięciu.',
   trojdzielny: 'Główka zgina się na bigu do tyłu; kalendaria i pasek reklamowy oddziela perforacja. Pola kalendariów to miejsca na naklejane bloki z datami.',
   wykrojnik: 'Linia cięcia i zgięć trafia do PDF w osobnych kolorach („CutContour” i „Crease”) – drukarnia ich nie drukuje, tylko wycina i bigi. To, co leży poza linią cięcia, odpadnie.',
+  skladanka: 'Każda strona tej sekcji to jeden arkusz z częściami modelu. Grubość materiału liczy się z gramatury – szczeliny są o nią szersze, a zakładki i klapki wewnętrzne krótsze. W druku domowym linie cięcia i zgięć są wydrukowane; dla drukarni idą do PDF jako osobne kolory („CutContour”, „Crease”, „Glue”).',
   arkusz: 'Projektujesz jeden użytek (albo kolejne z danych – seria). W PDF użytki stoją obok siebie na arkuszu, ze znakami cięcia; naklejka dostaje linię wykrojnika.',
 };
 

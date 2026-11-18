@@ -472,6 +472,34 @@ export function wierszeKalendarza(p) {
   return wiersze;
 }
 
+// ---------- Składanka (#233) ----------
+
+// Arkusze do druku składanek: domowa drukarka (A4, A3, Letter) albo arkusz dla drukarni / plotera (własny).
+export const ARKUSZE_SKLADANKI = { A4: [210, 297], A3: [297, 420], A5: [148, 210], Letter: [216, 279] };
+// Materiał: grubość z gramatury (papier ok. 1,0 µm na g/m², karton ok. 1,3 µm – karton jest pulchniejszy);
+// tektura i własny – grubość wpisana.
+export const MATERIALY = {
+  papier: { nazwa: 'Papier', mikron: 1.0, gramatura: 160 },
+  karton: { nazwa: 'Karton', mikron: 1.3, gramatura: 300 },
+  tektura: { nazwa: 'Tektura', mikron: null, grubosc: 1.5 },
+  wlasny: { nazwa: 'Własna grubość', mikron: null, grubosc: 0.4 },
+};
+export function gruboscMaterialu(material, gramatura, grubosc) {
+  const m = MATERIALY[material] || MATERIALY.papier;
+  return m.mikron ? Math.round(gramatura * m.mikron) / 1000 : grubosc;
+}
+
+function geometriaSkladanki(p) {
+  const [w, h] = p.arkusz === 'wlasny' ? [p.arkusz_szer_mm, p.arkusz_wys_mm] : ARKUSZE_SKLADANKI[p.arkusz];
+  const [sz, wy] = p.orientacja === 'pozioma' ? [Math.max(w, h), Math.min(w, h)] : [Math.min(w, h), Math.max(w, h)];
+  const m = p.margines_mm;
+  return {
+    szerokosc: zaokr(sz), wysokosc: zaokr(wy), stron: p.druga_strona === 'druk' ? 2 : 1,
+    strefy: [prost('druk', 'Pole druku', m, m, sz - m, wy - m)], bigi: [], perforacje: [], ciecie: [], naciecia: [],
+    grubosc: p.grubosc_mm,
+  };
+}
+
 // ---------- Rodzaje ----------
 
 export const RODZAJE_SEKCJI = {
@@ -537,6 +565,25 @@ export const RODZAJE_SEKCJI = {
       gramatura: liczbaLub(o.gramatura, d.gramatura, 60, 400),
     }),
     geometria: (projekt, sekcja, p) => geometriaWyklejki(projekt, sekcja, p),
+  },
+  skladanka: {
+    nazwa: 'Składanka / wycinanka',
+    opis: 'Arkusze z częściami modelu z papieru: zakładki, zgięcia, miejsca klejenia z numerami par, szczeliny – z grubością materiału.',
+    domyslne: { arkusz: 'A4', arkusz_szer_mm: 320, arkusz_wys_mm: 450, orientacja: 'pionowa', material: 'karton', gramatura: 250, grubosc_mm: 0.33, druk: 'domowy', druga_strona: 'brak', margines_mm: 5 },
+    normalizuj: (o, d) => {
+      const material = zListy(o.material, Object.keys(MATERIALY), d.material);
+      const gramatura = liczbaLub(o.gramatura, MATERIALY[material].gramatura || d.gramatura, 40, 600);
+      return {
+        arkusz: ARKUSZE_SKLADANKI[o.arkusz] || o.arkusz === 'wlasny' ? o.arkusz : d.arkusz,
+        arkusz_szer_mm: liczbaLub(o.arkusz_szer_mm, d.arkusz_szer_mm, 50, 1600), arkusz_wys_mm: liczbaLub(o.arkusz_wys_mm, d.arkusz_wys_mm, 50, 1600),
+        orientacja: zListy(o.orientacja, ['pionowa', 'pozioma'], d.orientacja),
+        material, gramatura,
+        grubosc_mm: Math.round(gruboscMaterialu(material, gramatura, liczbaLub(o.grubosc_mm, MATERIALY[material].grubosc ?? d.grubosc_mm, 0.05, 10)) * 1000) / 1000,
+        druk: zListy(o.druk, ['domowy', 'drukarnia'], d.druk), druga_strona: zListy(o.druga_strona, ['brak', 'druk', 'klej'], d.druga_strona),
+        margines_mm: liczbaLub(o.margines_mm, o.druk === 'drukarnia' ? 0 : d.margines_mm, 0, 30),
+      };
+    },
+    geometria: (projekt, sekcja, p) => geometriaSkladanki(p),
   },
   arkusz: {
     nazwa: 'Arkusz użytków',
@@ -762,6 +809,7 @@ export function opisSpecjalnej(sekcja) {
   if (p.rodzaj === 'trojdzielny') return `Kalendarz ${rozmiar}: główka ${mm(p.glowka_mm)} mm, 3 kalendaria po ${mm(p.kalendarium_mm)} mm${p.reklama_mm ? `, pasek reklamowy ${mm(p.reklama_mm)} mm` : ''}.`;
   if (p.rodzaj === 'wykrojnik') return `Rozkładówka ${rozmiar}; po złożeniu ${mm(w.zlozona.w)} × ${mm(w.zlozona.h)}${w.zlozona.g ? ` × ${mm(w.zlozona.g)}` : ''} mm. Wykrojnik w PDF jako osobny kolor „CutContour”.`;
   if (p.rodzaj === 'wyklejka') return `Wyklejka ${p.strona} ${rozmiar} (dwie kartki formatu bloku), papier ${p.gramatura} g/m²${p.zadruk === 'czysta' ? ', bez zadruku' : p.zadruk === 'dwustronny' ? ', zadruk dwustronny' : ''}. Bez numerów stron; luźna kartka liczy się do grzbietu.`;
+  if (p.rodzaj === 'skladanka') return `Arkusz ${rozmiar}, ${MATERIALY[p.material].nazwa.toLowerCase()}${MATERIALY[p.material].mikron ? ` ${p.gramatura} g/m²` : ''} – grubość ${mm(p.grubosc_mm)} mm (szczeliny i zakładki ją uwzględniają); ${p.druk === 'domowy' ? `druk domowy – linie cięcia i zgięć drukowane, margines drukarki ${mm(p.margines_mm)} mm` : 'drukarnia z ploterem – linie cięcia, zgięć i kleju jako osobne kolory'}${p.druga_strona === 'druk' ? '; druk z obu stron' : p.druga_strona === 'klej' ? '; druga strona tylko na miejsca klejenia (bez druku)' : ''}.`;
   if (p.rodzaj === 'arkusz') {
     const u = w.uzytki;
     return `Użytek ${rozmiar}; na arkuszu ${mm(u.arkusz.w)} × ${mm(u.arkusz.h)} mm mieści się ${u.kolumny} × ${u.wiersze} = ${u.na_arkuszu}.`;

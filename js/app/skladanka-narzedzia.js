@@ -1,0 +1,286 @@
+// Narzędzia składanki (#233): pasek widoczny tylko w sekcji „Składanka / wycinanka” i panel zaznaczonej części.
+//
+// Część to grupa zbudowana z definicji `czesc` (js/skladanka.js). Narzędzia działają kliknięciami na stronie:
+//   Zgięcie   – dwa kliknięcia na obrysie części: linia zgięcia (dolina) dzieli ją na ściany;
+//   Połącz    – kliknięcie przy krawędzi jednej części, potem przy krawędzi drugiej (albo w środku ściany):
+//               obie dostają ten sam numer pary – pierwsza zakładkę klejową, druga krawędź „do sklejenia”
+//               (albo miejsce klejenia w klikniętym punkcie);
+//   Szczelina – dwa kliknięcia w części: nacięcie o szerokości grubości materiału (z luzem) na wypustkę;
+//   Klej      – kliknięcie w części: miejsce klejenia (z Shiftem na spodzie, gdy druga strona jest na klej).
+// Esc kończy narzędzie. Wszystko inne (kolor, krawędzie, numery, usuwanie) – w panelu części.
+
+import {
+  zbudujCzesc, normalizujCzesc, czescZKsztaltu, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
+  naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC,
+} from '../skladanka.js';
+import { typSekcji } from '../typ-sekcji.js';
+import { $, $$, powiadom } from '../ui.js';
+import { stan, edytor, biezacaSekcja } from './kontekst.js';
+
+const LUZ_SZCZELINY = 0.2; // mm ponad grubość materiału
+const TOLERANCJA = 3; // mm – kliknięcie „przy krawędzi”
+
+export const wSkladance = () => stan.tryb === 'strona' && typSekcji(biezacaSekcja()) === 'skladanka';
+const ustawieniaSekcji = () => biezacaSekcja()?.specjalna || {};
+const grubosc = () => Number(ustawieniaSekcji().grubosc_mm) || 0.3;
+
+// Wszystkie części projektu (zapisane strony) i z płótna – do numerów części i par.
+function wszystkieCzesci() {
+  const zPlotna = czesciWObiektach(edytor.canvas.getObjects()).map((g) => g.czesc);
+  const zProjektu = czesciWObiektach((stan.projekt?.strony || []).flatMap((s) => s.obiekty || [])).map((o) => o.czesc);
+  return [...zPlotna, ...zProjektu].filter(Boolean);
+}
+const uzyteNazwy = () => new Set(wszystkieCzesci().map((c) => c.nr));
+function uzytePary() {
+  const s = new Set();
+  for (const c of wszystkieCzesci()) {
+    for (const k of c.krawedzie || []) if (k.para) s.add(String(k.para));
+    for (const p of c.pola || []) if (p.para) s.add(String(p.para));
+    for (const z of c.szczeliny || []) if (z.para) s.add(String(z.para));
+  }
+  return s;
+}
+
+// Zmiana definicji części: przebudowa grupy, zapis, odświeżenie panelu.
+// Nowa grupa podmienia starą w tym samym miejscu listy (id, nazwa własna, warstwa, blokada zostają).
+const ZOSTAJE = ['id', 'warstwa', 'zablokowany', 'z', 'visible', 'opacity'];
+export function zmienCzesc(g, zmiana) {
+  const def = structuredClone(g.czesc);
+  zmiana(def);
+  const c = edytor.canvas;
+  const nowa = zbudujCzesc(def, { grupa: g });
+  for (const k of ZOSTAJE) if (g[k] !== undefined) nowa[k] = g[k];
+  zablokuj(nowa);
+  const i = c.getObjects().indexOf(g);
+  const aktywna = c.getActiveObject() === g;
+  c.remove(g);
+  if (i >= 0) c.insertAt(i, nowa); else c.add(nowa);
+  if (aktywna) c.setActiveObject(nowa);
+  c.requestRenderAll();
+  edytor.oznaczZmiane();
+  return nowa;
+}
+
+// Część nie skaluje się (wymiary są w mm modelu) – obraca się i przesuwa.
+function zablokuj(g) {
+  g.set({ lockScalingX: true, lockScalingY: true, lockSkewingX: true, lockSkewingY: true, subTargetCheck: false, interactive: false });
+  g.setControlsVisibility?.({ ml: false, mr: false, mt: false, mb: false, tl: false, tr: false, bl: false, br: false });
+}
+
+// Prostokąt pola klejenia w ścianie, w którą kliknięto (środek w q): mniejszy, jeśli ściana jest mniejsza,
+// i przesunięty tak, by nie wystawał poza nią (ramka ściany z zapasem 1 mm).
+function poleWScianie(c, q, w, h) {
+  const { sciany } = scianyCzesci(c);
+  const s = sciany.find((x) => wWielokacie(x, q)) || c.punkty;
+  const xs = s.map((p) => p.x);
+  const ys = s.map((p) => p.y);
+  const [x1, x2, y1, y2] = [Math.min(...xs) + 1, Math.max(...xs) - 1, Math.min(...ys) + 1, Math.max(...ys) - 1];
+  const W = Math.max(2, Math.min(w, x2 - x1));
+  const H = Math.max(2, Math.min(h, y2 - y1));
+  const x = Math.min(Math.max(q.x - W / 2, x1), x2 - W);
+  const y = Math.min(Math.max(q.y - H / 2, y1), y2 - H);
+  return { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100, w: Math.round(W * 100) / 100, h: Math.round(H * 100) / 100 };
+}
+
+// ---------- Wstawianie ----------
+
+export function nowaCzesc() {
+  if (!wSkladance()) return null;
+  const nr = kolejnaNazwa(uzyteNazwy());
+  const def = { nr, punkty: [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 60, y: 40 }, { x: 0, y: 40 }], druk: ustawieniaSekcji().druk };
+  const { left, top } = edytor._srodek(60, 40);
+  const g = zbudujCzesc(def, { left, top });
+  zablokuj(g);
+  return edytor._wstaw(g);
+}
+
+export function czescZZaznaczenia() {
+  const o = edytor.aktywny;
+  if (!o || o.czesc || o.type === 'activeselection' || o.type === 'activeSelection') { powiadom('Zaznacz kształt (prostokąt, wielokąt, elipsę albo kształt z pióra), z którego ma powstać część.', true); return null; }
+  const z = czescZKsztaltu(o, kolejnaNazwa(uzyteNazwy()));
+  if (!z) { powiadom('Z tego elementu nie da się zrobić części – potrzebny zamknięty kształt.', true); return null; }
+  z.def.druk = ustawieniaSekcji().druk;
+  const g = zbudujCzesc(z.def, { left: z.left, top: z.top });
+  zablokuj(g);
+  edytor.canvas.remove(o);
+  return edytor._wstaw(g);
+}
+
+// ---------- Narzędzia klikane ----------
+
+let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej'
+let pierwszy = null; // { g, q (układ części), krawedz? }
+
+const OPISY = {
+  zgiecie: 'Zgięcie: kliknij punkt na krawędzi części, potem drugi punkt na krawędzi – linia podzieli część na ściany (Esc kończy).',
+  polacz: 'Połącz: kliknij przy krawędzi, która dostanie zakładkę, potem przy krawędzi, do której się przykleja – albo w środku ściany (miejsce klejenia). Esc kończy.',
+  szczelina: 'Szczelina: kliknij początek i koniec nacięcia w części – szerokość z grubości materiału (Esc kończy).',
+  klej: 'Miejsce klejenia: kliknij w części (z Shiftem – na spodzie, bez druku). Esc kończy.',
+};
+
+export function ustawNarzedzie(n) {
+  narzedzie = n && narzedzie !== n ? n : null;
+  pierwszy = null;
+  for (const b of $$('[data-akcja^="skladanka-"]')) if (b.dataset.narzedzie) b.setAttribute('aria-pressed', String(b.dataset.narzedzie === narzedzie));
+  document.body.classList.toggle('narzedzie-skladanki', Boolean(narzedzie));
+  if (narzedzie) powiadom(OPISY[narzedzie]);
+}
+
+// Część pod punktem strony (najwyżej leżąca): w obrysie (z zakładkami) albo przy krawędzi.
+function czescPod(p) {
+  const czesci = czesciWObiektach(edytor.canvas.getObjects()).filter((g) => g.visible !== false && !g.zWzorca).reverse();
+  for (const g of czesci) {
+    const c = normalizujCzesc(g.czesc);
+    const q = doUkladuCzesci(g, p);
+    const brzeg = naObwodzie(c.punkty, q);
+    if (wWielokacie(c.punkty, q) || brzeg.odl <= TOLERANCJA) return { g, c, q, brzeg };
+  }
+  return null;
+}
+
+function klik(p, shift) {
+  const t = czescPod(p);
+  if (!t) { powiadom('Kliknij w część albo przy jej krawędzi.', true); return; }
+  const { g, c, q, brzeg } = t;
+  const przyKrawedzi = brzeg.odl <= TOLERANCJA;
+  if (narzedzie === 'klej') {
+    const spod = shift && ustawieniaSekcji().druga_strona === 'klej';
+    zmienCzesc(g, (d) => { d.pola = [...(d.pola || []), { ...poleWScianie(c, q, 20, 10), para: null, spod }]; });
+    return;
+  }
+  if (narzedzie === 'zgiecie') {
+    if (!przyKrawedzi) { powiadom('Zgięcie zaczyna się i kończy na krawędzi części – kliknij bliżej krawędzi.', true); return; }
+    if (!pierwszy) { pierwszy = { g, q: brzeg.punkt }; powiadom('Teraz drugi punkt na krawędzi tej samej części.'); return; }
+    if (pierwszy.g !== g) { pierwszy = null; powiadom('Oba końce zgięcia muszą być na tej samej części – zacznij od nowa.', true); return; }
+    const a = pierwszy.q;
+    const b = brzeg.punkt;
+    pierwszy = null;
+    // Zgięcie musi przeciąć ścianę (nie biec po krawędzi).
+    const { sciany } = scianyCzesci(c);
+    const s = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const sciana = sciany.find((w) => wWielokacie(w, s));
+    if (!sciana || !podzielWielokat(sciana, a, b)) { powiadom('Ta linia nie dzieli części na dwie ściany – zgięcie musi przejść przez środek części od krawędzi do krawędzi.', true); return; }
+    zmienCzesc(g, (d) => { d.zgiecia = [...(d.zgiecia || []), { a, b, rodzaj: 'dolina', kat: 90 }]; });
+    return;
+  }
+  if (narzedzie === 'szczelina') {
+    if (!wWielokacie(c.punkty, q)) { powiadom('Szczelina musi leżeć w części.', true); return; }
+    if (!pierwszy) { pierwszy = { g, q }; powiadom('Teraz koniec szczeliny.'); return; }
+    if (pierwszy.g !== g) { pierwszy = null; powiadom('Oba końce szczeliny muszą być w tej samej części.', true); return; }
+    const a = pierwszy.q;
+    pierwszy = null;
+    if (Math.hypot(q.x - a.x, q.y - a.y) < 2) { powiadom('Szczelina jest za krótka.', true); return; }
+    zmienCzesc(g, (d) => { d.szczeliny = [...(d.szczeliny || []), { a, b: q, szer: Math.round((grubosc() + LUZ_SZCZELINY) * 100) / 100, para: null }]; });
+    return;
+  }
+  if (narzedzie === 'polacz') {
+    if (!pierwszy) {
+      if (!przyKrawedzi) { powiadom('Najpierw kliknij przy krawędzi, która dostanie zakładkę.', true); return; }
+      pierwszy = { g, krawedz: brzeg.i };
+      powiadom(`Krawędź ${brzeg.i + 1} części ${c.nr}. Teraz krawędź albo miejsce, do którego się przykleja.`);
+      return;
+    }
+    const { g: g1, krawedz: k1 } = pierwszy;
+    pierwszy = null;
+    if (g1 === g && przyKrawedzi && brzeg.i === k1) { powiadom('To ta sama krawędź – wybierz inną.', true); return; }
+    const para = kolejnaPara(uzytePary());
+    const c1 = normalizujCzesc(g1.czesc);
+    const dl = (cz, i) => { const a = cz.punkty[i]; const b = cz.punkty[(i + 1) % cz.punkty.length]; return Math.hypot(b.x - a.x, b.y - a.y); };
+    const n1 = zmienCzesc(g1, (d) => { d.krawedzie = normalizujCzesc(d).krawedzie; d.krawedzie[k1] = { ...d.krawedzie[k1], typ: 'zakladka', para }; });
+    const g2 = g === g1 ? n1 : g;
+    if (przyKrawedzi) {
+      zmienCzesc(g2, (d) => { d.krawedzie = normalizujCzesc(d).krawedzie; d.krawedzie[brzeg.i] = { ...d.krawedzie[brzeg.i], typ: 'klej', para }; });
+      const r = Math.abs(dl(c1, k1) - dl(c, brzeg.i));
+      powiadom(`Para ${para}: zakładka na części ${c1.nr} ↔ krawędź części ${c.nr}.${r > 0.5 ? ` Uwaga: krawędzie różnią się o ${Math.round(r * 10) / 10} mm.` : ''}`);
+    } else {
+      // Krawędź do miejsca na ścianie: pole klejenia o długości krawędzi i szerokości zakładki.
+      const w = Math.max(5, dl(c1, k1) - 2);
+      const h = c1.krawedzie[k1]?.szer || 7;
+      zmienCzesc(g2, (d) => { d.pola = [...(d.pola || []), { ...poleWScianie(c, q, w, h), para, spod: false }]; });
+      powiadom(`Para ${para}: zakładka na części ${c1.nr} ↔ miejsce klejenia na części ${c.nr}.`);
+    }
+  }
+}
+
+export function podlaczSkladanke() {
+  const c = edytor.canvas;
+  if (!c || c._skladanka) return;
+  c._skladanka = true;
+  c.on('mouse:down', (opt) => {
+    if (!narzedzie) return;
+    if (!wSkladance()) { ustawNarzedzie(null); return; }
+    const p = opt.scenePoint || c.getScenePoint?.(opt.e) || c.getPointer(opt.e);
+    klik(p, opt.e?.shiftKey);
+  });
+  c.on('object:added', (e) => { if (e.target?.czesc) zablokuj(e.target); });
+  document.addEventListener('keydown', (e) => { if (narzedzie && e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); ustawNarzedzie(null); } }, true);
+}
+
+// ---------- Panel części ----------
+
+const dlugosc = (c, i) => { const a = c.punkty[i]; const b = c.punkty[(i + 1) % c.punkty.length]; return Math.round(Math.hypot(b.x - a.x, b.y - a.y) * 10) / 10; };
+
+export function panelCzesci(panel, g0) {
+  let g = g0;
+  const c = () => normalizujCzesc(g.czesc);
+  const zmien = (fn) => { g = zmienCzesc(g, (d) => { Object.assign(d, normalizujCzesc(d)); fn(d); }); panel.obj = g; panel.zbuduj(); };
+  panel.tytul.textContent = `Część ${c().nr}`;
+  const s = panel.sekcja('Część');
+  s.append(panel.tekst('Nazwa (numer części)', () => c().nr, (v) => zmien((d) => { d.nr = v || d.nr; })));
+  s.append(panel.kolor('Kolor ściany', () => c().kolor, (v) => zmien((d) => { d.kolor = v || '#ffffff'; })));
+  s.append(panel.przelacznik('Numery par i nazwa części', () => c().pokaz_numery, (v) => zmien((d) => { d.pokaz_numery = v; })));
+  s.append(panel.wskazowka(`${c().punkty.length} krawędzi, ${scianyCzesci(c()).sciany.length} ${scianyCzesci(c()).sciany.length === 1 ? 'ściana' : 'ściany'}. Grubość materiału sekcji: ${String(grubosc()).replace('.', ',')} mm.`));
+  s.append(panel.akcje([
+    ['linia', 'Zgięcie – dwa kliknięcia na krawędziach', () => ustawNarzedzie('zgiecie')],
+    ['link', 'Połącz – krawędź z krawędzią albo z miejscem', () => ustawNarzedzie('polacz')],
+    ['prostokat', 'Klej – miejsce klejenia', () => ustawNarzedzie('klej')],
+    ['minus', 'Szczelina – nacięcie na wypustkę', () => ustawNarzedzie('szczelina')],
+  ]));
+  const k = panel.sekcja('Krawędzie');
+  c().krawedzie.forEach((kr, i) => {
+    k.append(panel.wybor(`Krawędź ${i + 1} (${String(dlugosc(c(), i)).replace('.', ',')} mm)`, Object.entries(RODZAJE_KRAWEDZI), () => c().krawedzie[i].typ, (v) => zmien((d) => { d.krawedzie[i].typ = v; })));
+    if (kr.typ !== 'ciecie') {
+      k.append(panel.tekst('Numer pary', () => c().krawedzie[i].para || '', (v) => zmien((d) => { d.krawedzie[i].para = v || null; })));
+      if (kr.typ === 'zakladka' || kr.typ === 'wypustka') k.append(panel.liczba(kr.typ === 'zakladka' ? 'Szerokość zakładki' : 'Długość wypustki', () => c().krawedzie[i].szer, (v) => zmien((d) => { d.krawedzie[i].szer = v; }), { jednostka: 'mm', krok: 0.5, min: 2 }));
+    }
+  });
+  const zg = c().zgiecia;
+  if (zg.length) {
+    const z = panel.sekcja('Zgięcia');
+    zg.forEach((_, i) => {
+      z.append(panel.wybor(`Zgięcie ${i + 1}`, Object.entries(RODZAJE_ZGIEC), () => c().zgiecia[i].rodzaj, (v) => zmien((d) => { d.zgiecia[i].rodzaj = v; })));
+      z.append(panel.liczba('Kąt po złożeniu', () => c().zgiecia[i].kat, (v) => zmien((d) => { d.zgiecia[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
+      z.append(panel.akcje([['kosz', `Usuń zgięcie ${i + 1}`, () => zmien((d) => { d.zgiecia.splice(i, 1); })]]));
+    });
+  }
+  const pola = c().pola;
+  if (pola.length) {
+    const p = panel.sekcja('Miejsca klejenia');
+    pola.forEach((_, i) => {
+      p.append(panel.tekst(`Miejsce ${i + 1} – numer pary`, () => c().pola[i].para || '', (v) => zmien((d) => { d.pola[i].para = v || null; })));
+      p.append(panel.liczba('Szerokość', () => c().pola[i].w, (v) => zmien((d) => { d.pola[i].w = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
+      p.append(panel.liczba('Wysokość', () => c().pola[i].h, (v) => zmien((d) => { d.pola[i].h = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
+      p.append(panel.przelacznik('Na spodzie (bez druku)', () => c().pola[i].spod, (v) => zmien((d) => { d.pola[i].spod = v; })));
+      p.append(panel.akcje([['kosz', `Usuń miejsce ${i + 1}`, () => zmien((d) => { d.pola.splice(i, 1); })]]));
+    });
+  }
+  const sz = c().szczeliny;
+  if (sz.length) {
+    const p = panel.sekcja('Szczeliny');
+    sz.forEach((_, i) => {
+      p.append(panel.tekst(`Szczelina ${i + 1} – numer pary`, () => c().szczeliny[i].para || '', (v) => zmien((d) => { d.szczeliny[i].para = v || null; })));
+      p.append(panel.liczba('Szerokość', () => c().szczeliny[i].szer, (v) => zmien((d) => { d.szczeliny[i].szer = v; }), { jednostka: 'mm', krok: 0.05, min: 0.2 }));
+      p.append(panel.akcje([['kosz', `Usuń szczelinę ${i + 1}`, () => zmien((d) => { d.szczeliny.splice(i, 1); })]]));
+    });
+  }
+}
+
+// Pasek narzędzi: przyciski z data-akcja="skladanka-…".
+export function obsluzAkcje(akcja) {
+  if (akcja === 'skladanka-czesc') return nowaCzesc();
+  if (akcja === 'skladanka-z-ksztaltu') return czescZZaznaczenia();
+  const n = { 'skladanka-zgiecie': 'zgiecie', 'skladanka-polacz': 'polacz', 'skladanka-szczelina': 'szczelina', 'skladanka-klej': 'klej' }[akcja];
+  if (n) ustawNarzedzie(n);
+  return null;
+}
+void $;

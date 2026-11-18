@@ -26,6 +26,8 @@ Dodatkowo:
 
 ## Zakres (do zrobienia po kolei, każdy krok z testem, instrukcją, DECYZJE, ZGŁOSZENIA)
 
+Stan: krok 1 ✅ i 2 ✅ (#233) – bez osobnego panelu „Połączenia”, podświetlania pary i narzędzi Otwór, Rozłóż, 3D, Instrukcja (kroki 3, 5, 7).
+
 1. **Tryb i ustawienia** – typ projektu/sekcji „Składanka”: arkusze (A4, A3, własny), materiał (papier, karton,
    tektura) z grubością (mm albo z gramatury), druk domowy / drukarnia, druga strona: brak / druk / tylko klej.
    Własny pasek narzędzi: Część (prostokąt, wielokąt, pióro, z kształtu), Zgięcie (dolina/góra, kąt), Zakładka,

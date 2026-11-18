@@ -2,6 +2,7 @@
 
 import { FORMATY, stronyZWzorcem, tloStrony, WZORCE_Z_SEKCJI, stronySekcji, normalizujWydruk } from '../projekt.js';
 import { bokStrony, rozwin, tabelaSerii, tabeleSerii } from '../serie.js';
+import { typSekcji } from '../typ-sekcji.js';
 import { maElementyDoWklejenia, wklejElementy } from './schowek-okno.js';
 import { POLA_DOKUMENTU } from '../pola.js';
 import { $ } from '../ui.js';
@@ -43,6 +44,7 @@ export function odswiezPasekEdytora() {
     }
   }
   document.body.classList.toggle('tryb-wzorca', wz);
+  document.body.classList.toggle('w-skladance', !wz && typSekcji(biezacaSekcja()) === 'skladanka'); // narzędzia składanki (#233)
   $('#pasek-wzorca').hidden = !wz;
   if (wz) {
     const w = biezacyWzorzec();

@@ -20,6 +20,7 @@ import { edytor, stan, biezacaStrona, wlasciciel } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno, odswiezKsiazke } from './zapis.js';
 import { doEdycji } from './podglad-ekran.js';
 import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './panel-strony.js';
+import { panelCzesci } from './skladanka-narzedzia.js';
 import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki, dokladajStrony } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
@@ -39,6 +40,7 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   // Książka (#131B): przypisy, odsyłacze, skorowidz, spis treści – po zmianie zapis i przeliczenie spisów.
   poZmianieKsiazki: () => { zaplanujZapis(); setTimeout(() => odswiezKsiazke().catch((e) => console.error(e)), 50); },
   budujPusty: (p) => (stan.tryb === 'wzorzec' ? panelWzorca(p) : panelStrony(p)),
+  czesc: (p, obj) => panelCzesci(p, obj), // część składanki (#233)
   // Dodatkowe ustawienia elementu zależne od tego, co edytujemy.
   dodatkiElementu: (p, obj, sekcja) => {
     if (stan.tryb !== 'wzorzec') return;

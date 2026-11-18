@@ -41,6 +41,7 @@ export function normalizujCzesc(c = {}) {
   return {
     nr: String(c.nr || 'A'), punkty, krawedzie, zgiecia, pola, szczeliny, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
     pokaz_numery: c.pokaz_numery !== false, druk: c.druk === 'drukarnia' ? 'drukarnia' : 'domowy',
+    ...(Number.isFinite(c.uklad?.x) && Number.isFinite(c.uklad?.y) ? { uklad: { x: c.uklad.x, y: c.uklad.y } } : {}),
   };
 }
 
@@ -259,49 +260,41 @@ export function elementyCzesci(def) {
   return el;
 }
 
-// Nowa grupa części albo przebudowa istniejącej (te same położenie, obrót i skala: punkt (0,0) części zostaje
-// w tym samym miejscu strony).
+// Grupa części. Elementy powstają w układzie części przesuniętym o (left, top) – Fabric liczy z nich ramkę grupy;
+// `czesc.uklad` zapamiętuje, który punkt części jest środkiem grupy (do przeliczeń punkt strony ↔ punkt części).
+// Przebudowa (`grupa` – dotychczasowa grupa) daje NOWĄ grupę w tym samym miejscu, z tym samym obrotem: punkty
+// części, które się nie zmieniły, zostają na stronie tam, gdzie były. Podmienia ją wywołujący.
 export function zbudujCzesc(def, { grupa = null, left = 0, top = 0 } = {}) {
   const c = normalizujCzesc(def);
-  const r = ramkaCzesci(c);
-  const sx = r.x + r.w / 2;
-  const sy = r.y + r.h / 2;
   const el = elementyCzesci(c);
-  // Elementy w układzie grupy (środek ramki w 0,0).
-  for (const o of el) { o.set({ left: o.left - sx, top: o.top - sy }); o.setCoords(); }
-  if (!grupa) {
-    const g = new fabric.Group(el, { layoutManager: new fabric.LayoutManager(new fabric.FixedLayout()), nazwa: `Część ${c.nr}`, czesc: c, subTargetCheck: false, interactive: false });
-    g.set({ width: r.w, height: r.h });
-    g.setPositionByOrigin(new fabric.Point(left + sx, top + sy), 'center', 'center');
-    g.setCoords();
-    return g;
-  }
-  // Punkt (0,0) części na stronie przed przebudową.
+  for (const o of el) { o.set({ left: o.left + left, top: o.top + top }); o.setCoords(); }
+  const g = new fabric.Group(el, { nazwa: `Część ${c.nr}`, subTargetCheck: false, interactive: false, objectCaching: false });
+  const srodek = g.getCenterPoint();
+  c.uklad = { x: zaokr(srodek.x - left), y: zaokr(srodek.y - top) };
+  g.czesc = c;
+  if (!grupa) return g;
+  // To samo miejsce i obrót: środek nowej grupy = punkt strony, w którym stary układ ma nowy środek.
   const m = grupa.calcTransformMatrix();
-  const stara = grupa.czesc ? ramkaCzesci(normalizujCzesc(grupa.czesc)) : r;
-  const zero = fabric.util.transformPoint(new fabric.Point(-(stara.x + stara.w / 2), -(stara.y + stara.h / 2)), m);
-  grupa.remove(...grupa.getObjects());
-  grupa.add(...el);
-  grupa.set({ width: r.w, height: r.h, czesc: c, nazwa: `Część ${c.nr}` });
-  // Nowy środek tak, by (0,0) części było tam, gdzie było.
-  const bezPrzesuniecia = fabric.util.transformPoint(new fabric.Point(-sx, -sy), [m[0], m[1], m[2], m[3], 0, 0]);
-  grupa.setPositionByOrigin(new fabric.Point(zero.x - bezPrzesuniecia.x, zero.y - bezPrzesuniecia.y), 'center', 'center');
-  grupa.setCoords();
-  grupa.dirty = true;
-  return grupa;
+  const stary = grupa.czesc?.uklad || ramkaSrodek(normalizujCzesc(grupa.czesc));
+  const naStronie = fabric.util.transformPoint(new fabric.Point(c.uklad.x - stary.x, c.uklad.y - stary.y), m);
+  g.set({ angle: grupa.angle || 0, flipX: Boolean(grupa.flipX), flipY: Boolean(grupa.flipY) });
+  g.setPositionByOrigin(naStronie, 'center', 'center');
+  g.setCoords();
+  return g;
 }
+
+const ramkaSrodek = (c) => { const r = ramkaCzesci(c); return { x: r.x + r.w / 2, y: r.y + r.h / 2 }; };
+const srodekUkladu = (grupa) => grupa.czesc?.uklad || ramkaSrodek(normalizujCzesc(grupa.czesc));
 
 // Punkt strony (mm) → układ części (mm) dla grupy części.
 export function doUkladuCzesci(grupa, p) {
-  const c = normalizujCzesc(grupa.czesc);
-  const r = ramkaCzesci(c);
+  const s = srodekUkladu(grupa);
   const q = fabric.util.transformPoint(new fabric.Point(p.x, p.y), fabric.util.invertTransform(grupa.calcTransformMatrix()));
-  return { x: q.x + r.x + r.w / 2, y: q.y + r.y + r.h / 2 };
+  return { x: q.x + s.x, y: q.y + s.y };
 }
 export function zUkladuCzesci(grupa, p) {
-  const c = normalizujCzesc(grupa.czesc);
-  const r = ramkaCzesci(c);
-  return fabric.util.transformPoint(new fabric.Point(p.x - r.x - r.w / 2, p.y - r.y - r.h / 2), grupa.calcTransformMatrix());
+  const s = srodekUkladu(grupa);
+  return fabric.util.transformPoint(new fabric.Point(p.x - s.x, p.y - s.y), grupa.calcTransformMatrix());
 }
 
 // Definicja części z kształtu (prostokąt, wielokąt, ścieżka z odcinków, elipsa – przybliżona) w układzie strony.

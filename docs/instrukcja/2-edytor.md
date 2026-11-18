@@ -1009,7 +1009,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (→ 10.5). |
-| **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (→ 10.6), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (→ 10.11). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy [Sekcja] i zmieniasz tutaj. |
+| **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (→ 10.6), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (→ 10.11), **Składanka / wycinanka** (→ 10.12). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy [Sekcja] i zmieniasz tutaj. |
 | **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij [Zmień format i dopasuj elementy…] (→ 10.9). |
 | **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
@@ -1203,6 +1203,46 @@ osobny plik dla każdej części: okładki, obwoluty, wyklejek, bloku, wkładek 
 Sekcja ze starszego projektu, która w nazwie ma „wyklejka”, a typ zwykły, dostaje raz podpowiedź
 „Sekcja … wygląda na wyklejkę – ustawić typ…?” z przyciskiem [Ustaw typ]. To tylko propozycja — bez kliknięcia
 sekcja zostaje zwykła.
+
+## 10.12 Składanki i wycinanki
+
+Model z papieru albo kartonu z wielu części – domek, pudełko z przegródkami, bryła, zabawka – robisz w sekcji
+typu **Składanka / wycinanka**. Każda strona tej sekcji to jeden **arkusz** z częściami. W ustawieniach sekcji:
+
+- **Arkusz** – A4, A3, A5, Letter (drukarka domowa) albo **Własny** (arkusz drukarni, ploter), pionowo albo poziomo;
+- **Materiał** – papier albo karton z **gramaturą** (grubość liczy się sama: karton 300 g/m² ≈ 0,39 mm), tektura
+  albo własna grubość w milimetrach; od grubości zależy szerokość szczelin;
+- **Druk i cięcie** – **drukarka domowa** (linie cięcia i zgięć są wydrukowane – tniesz nożyczkami i nożykiem)
+  albo **drukarnia z ploterem** (linie idą do PDF jako osobne kolory: cięcie, zgięcia i klej – drukarnia ich
+  nie drukuje); **margines drukarki** – pas przy brzegu, którego drukarka nie zadrukuje;
+- **Druga strona arkusza** – nieużywana, też drukowana albo **tylko miejsca klejenia** (bez druku).
+
+W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
+
+| Narzędzie | Co robi |
+|---|---|
+| [Część] | Nowa część – prostokąt 60 × 40 mm z literą (A, B, C…). |
+| [Z kształtu] | Zaznaczony prostokąt, wielokąt, elipsę albo kształt z pióra (→ 6) zamienia w część – dowolny obrys. |
+| [Zgięcie] | Dwa kliknięcia na krawędziach części: linia zgięcia dzieli ją na ściany. Linia po samej krawędzi albo poza częścią się nie doda. |
+| [Połącz] | Kliknij przy krawędzi, która dostanie **zakładkę klejową**, potem przy krawędzi innej części (albo tej samej), do której się przykleja – obie dostają **ten sam numer**. Drugie kliknięcie w środku ściany zamiast przy krawędzi dodaje tam **miejsce klejenia** o długości krawędzi. Gdy krawędzie mają różne długości, aplikacja o tym powie. |
+| [Klej] | Kliknięcie w części dodaje miejsce klejenia (z <kbd>Shift</kbd> – na spodzie, bez druku, gdy druga strona arkusza jest na klej). |
+| [Szczelina] | Dwa kliknięcia w części: nacięcie na wypustkę albo przegródkę – szerokość to grubość materiału + 0,2 mm luzu. |
+
+<kbd>Esc</kbd> kończy narzędzie. Część przesuwasz i obracasz jak każdy element; nie da się jej rozciągnąć
+(wymiary są wymiarami modelu). Zaznaczona część ma w panelu **Właściwości**:
+
+- **Część** – nazwę (literę), kolor ścian, przełącznik **Numery par i nazwa części** i przyciski narzędzi;
+- **Krawędzie** – każda krawędź z długością i rodzajem: **Cięcie**, **Zakładka klejowa** (z szerokością),
+  **Do sklejenia (bez zakładki)** albo **Wypustka do szczeliny** (z długością) – i **numerem pary**;
+- **Zgięcia** – **dolina** (zginasz do siebie, kreski) albo **góra** (od siebie, kreska–kropka) i kąt po złożeniu;
+- **Miejsca klejenia** i **Szczeliny** – numer pary, wymiary, na spodzie, usuwanie.
+
+Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego
+się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯**) i PDF dla drukarni dostają
+obrys cięcia części z zakładkami i szczelinami, zgięcia (także u nasady każdej zakładki) i miejsca klejenia.
+
+Kolejne kroki tego trybu – sprawdzanie par, rozkładanie części na arkusze, gotowe szablony z kompensacją grubości,
+makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
 
 # 11. Wzorce stron
 

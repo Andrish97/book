@@ -985,7 +985,7 @@ export const SZABLONY_SEKCJI = [
       const { pole: p } = c;
       const gora = 20; // pod otworem
       const o = [
-        n.prost(-3, -3, 56, 96, { fill: c.k.jasny, nazwa: 'Tło zawieszki' }), // ze spadem
+        n.prost(-3, -3, 56, 96, { fill: c.k.jasny, nazwa: 'Tło zawieszki', bez_ostrzezen: true }), // ze spadem
         n.tekst('Dla {dla}', p.x, gora, p.w, { pt: 15, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, nazwa: 'Dla kogo' }),
         n.tekst('{zyczenia}', p.x, gora + c.pt(15) * 1.8, p.w, { pt: 9, lh: 1.4, align: 'center', kolor: c.k.akcent2, nazwa: 'Życzenia' }),
         n.tekst('od {od}', p.x, 90 - p.x - c.pt(8) * 1.6, p.w, { pt: 8, align: 'center', kolor: c.k.akcent2, nazwa: 'Od kogo' }),
