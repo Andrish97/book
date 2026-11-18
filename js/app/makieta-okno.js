@@ -5,6 +5,7 @@
 // eksport w wybranym rozmiarze (także z przezroczystym tłem), animacja (wideo, GIF), zapis ujęć w projekcie,
 // obwoluta i makiety sekcji specjalnych (ulotka, koperta, pudełko, kalendarz trójdzielny).
 
+import { MATERIALY, teksturaOkleiny } from '../materialy.js';
 import { $, powiadom, bezpiecznaNazwa, odmiana } from '../ui.js';
 import { postep } from '../postep.js';
 // Składanie stron (Fabric) – dopiero u właściciela; gość z linku (#188) dostaje gotowe obrazy stron.
@@ -183,6 +184,16 @@ function wytnijStrefe(img, szerMm, g, czesc) {
 
 // Okładka: cała strona sekcji okładki raz, potem wycinki stref (tył | grzbiet | przód, bez zawinięć).
 async function czescOkladki(moje, czesc) {
+  // Okleina bez nadruku (#214: płótno, skóra ekologiczna…): kolor z fakturą; złocenie i tłoczenie dochodzą maską.
+  const wyk = moje.okladka?.okladka?.wykonczenie;
+  if (wyk && !MATERIALY[wyk.material]?.druk) {
+    if (czesc === 'okleina') return wyk.kolor;
+    const szer = szerokoscCalej(moje.okladka.wydruk.szerokosc_mm);
+    const s = szer / moje.okladka.wydruk.szerokosc_mm;
+    const strefa = strefyOkladki(moje).strefy.find((z) => z.rodzaj === czesc);
+    if (!strefa) return null;
+    return teksturaOkleiny(wyk, (strefa.x2 - strefa.x1) * s, (moje.geometria.dol - moje.geometria.gora) * s);
+  }
   // Okleina twardej oprawy (#179) – kolor zawinięcia na wnętrzu tektury: średni kolor brzegu przodu okładki.
   if (czesc === 'okleina') return kolorOkleiny(await czescOkladki(moje, 'przod'));
   moje.obrazOkladki ||= rysujCel(moje, egzOkladki(moje), szerokoscCalej(moje.okladka.wydruk.szerokosc_mm)).then(obrazZUrl);

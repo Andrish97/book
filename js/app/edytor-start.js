@@ -339,6 +339,17 @@ export const akcje = {
   'makieta-pobierz': async () => (await import('./makieta-okno.js')).pobierzObrazMakiety(),
   png: () => { zamknijMenu(); pobierzPng(); },
   pdf: () => { zamknijMenu(); otworzOknoPdf(); },
+  // Specyfikacja dla drukarni (#214): ustawienia oprawy, papieru, materiału i uszlachetnień – tekst i JSON.
+  specyfikacja: async () => {
+    zamknijMenu();
+    zapiszBiezacyCel();
+    const { specyfikacja, specyfikacjaTekst } = await import('../specyfikacja.js');
+    const spec = specyfikacja(stan.projekt);
+    const nazwa = bezpiecznaNazwa(stan.projekt.nazwa || 'projekt');
+    pobierz(`${nazwa} – specyfikacja.txt`, URL.createObjectURL(new Blob([specyfikacjaTekst(spec)], { type: 'text/plain;charset=utf-8' })));
+    pobierz(`${nazwa} – specyfikacja.json`, URL.createObjectURL(new Blob([JSON.stringify(spec, null, 2)], { type: 'application/json' })));
+    powiadom('Pobrano specyfikację dla drukarni (tekst do zamówienia i JSON).');
+  },
   drukuj: () => { zamknijMenu(); otworzOknoDruku(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
   'kolory-druku': () => { zamknijMenu(); otworzKoloryDruku(); },

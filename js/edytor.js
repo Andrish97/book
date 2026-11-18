@@ -3290,6 +3290,28 @@ export class Edytor extends EventTarget {
 
   // Strefy okładki na płótnie (#119): linie zgięć (grzbiet, bigi, zawinięcia) przez całą wysokość, podpisy
   // u góry i ramki obszaru bezpiecznego tyłu, grzbietu i przodu.
+  // Zaokrąglone rogi okładki (#214): łuki w czterech zewnętrznych narożnikach (tył | … | przód), na linii cięcia
+  // – a w twardej oprawie na krawędzi płyt (bez zawinięć). To, co poza łukiem, zostanie odcięte.
+  _rysujRogi(ctx, X, Y, s, okl, h) {
+    const tyl = okl.strefy.find((z) => z.rodzaj === 'tyl');
+    const przod = okl.strefy.find((z) => z.rodzaj === 'przod');
+    if (!tyl || !przod) return;
+    const x1 = tyl.x1; const x2 = przod.x2;
+    const y1 = okl.gora > 0 ? okl.gora : 0; const y2 = okl.gora > 0 ? okl.dol : h;
+    const r = okl.rogi_mm;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(220, 38, 38, 0.9)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(X(x1), Y(y1 + r)); ctx.arcTo(X(x1), Y(y1), X(x1 + r), Y(y1), r * s);
+    ctx.moveTo(X(x2 - r), Y(y1)); ctx.arcTo(X(x2), Y(y1), X(x2), Y(y1 + r), r * s);
+    ctx.moveTo(X(x2), Y(y2 - r)); ctx.arcTo(X(x2), Y(y2), X(x2 - r), Y(y2), r * s);
+    ctx.moveTo(X(x1 + r), Y(y2)); ctx.arcTo(X(x1), Y(y2), X(x1), Y(y2 - r), r * s);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   _rysujStrefyOkladki(ctx, X, Y, s, okl, h, b) {
     ctx.save();
     ctx.setLineDash([6, 3]);
@@ -4216,6 +4238,7 @@ export class Edytor extends EventTarget {
       // a obszar bezpieczny osobno dla tyłu, grzbietu i przodu.
       const okl = this.wydruk.okladka;
       if (okl) this._rysujStrefyOkladki(ctx, X, Y, s, okl, h, b);
+      if (okl?.rogi_mm > 0) this._rysujRogi(ctx, X, Y, s, okl, h);
       const spec = this.wydruk.specjalna;
       if (spec) this._rysujStrefySpecjalne(ctx, X, Y, s, spec, h, b);
       // Obszar bezpieczny (marginesy) każdej strony arkusza.

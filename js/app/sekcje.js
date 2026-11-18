@@ -1,6 +1,7 @@
 // Sekcje: okno ustawień (format, spad, marginesy, układ, numeracja, okładka liczona sama #119, składki #120),
 // kolejność i usuwanie.
 
+import { MATERIALY, FOLIE_OKLADKI, ROGI } from '../materialy.js';
 import { FORMATY, nowaSekcja, nowaStrona, uporzadkujStrony } from '../projekt.js';
 import { rozwin } from '../serie.js';
 import {
@@ -246,6 +247,15 @@ function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
   f.elements.ok_big.value = o.big_mm;
   f.elements.ok_naddatek.value = o.naddatek_mm;
   f.elements.ok_tektura.value = o.tektura_mm;
+  // Materiał i wykończenie (#214).
+  const wyk = o.wykonczenie || { material: 'druk', folia: 'mat', rogi_mm: 0 };
+  f.elements.ok_material.replaceChildren(...Object.entries(MATERIALY).map(([k, m]) => new Option(m.nazwa, k)));
+  f.elements.ok_material.value = wyk.material;
+  f.elements.ok_folia.replaceChildren(...Object.entries(FOLIE_OKLADKI).map(([k, n]) => new Option(n, k)));
+  f.elements.ok_folia.value = wyk.folia || 'mat';
+  f.elements.ok_rogi.replaceChildren(...ROGI.map((r) => new Option(r ? `zaokrąglone ${r} mm` : 'proste', String(r))));
+  f.elements.ok_rogi.value = String(ROGI.includes(wyk.rogi_mm) ? wyk.rogi_mm : 0);
+  odswiezMaterial(f, wyk.kolor);
   f.elements.ok_tasiemka.checked = Boolean(o.tasiemka);
   if (o.tasiemka) f.elements.ok_tasiemka_kolor.value = o.tasiemka.kolor;
   f.elements.ok_wymiary.value = o.wymiary.tryb;
@@ -267,6 +277,33 @@ function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
   f.elements.ok_liczba.value = o.strony.tryb === 'reczne' ? o.strony.liczba : (podgladOkladki(f)?.stron ?? 0);
 }
 
+// Materiał okładki (#214): kolory okleiny według materiału, folia tylko przy druku.
+function odswiezMaterial(f, kolor = null) {
+  const m = MATERIALY[f.elements.ok_material.value] || MATERIALY.druk;
+  $('#pole-ok-folia').hidden = !m.druk;
+  $('#pole-ok-kolor-materialu').hidden = m.druk;
+  if (!m.druk) {
+    const sel = f.elements.ok_kolor_materialu;
+    sel.replaceChildren(...m.kolory.map(([k, n]) => new Option(n, k)), new Option('Inny kolor…', 'wlasny'));
+    const znany = m.kolory.some(([k]) => k === kolor);
+    sel.value = !kolor ? m.kolory[0][0] : znany ? kolor : 'wlasny';
+    if (kolor && !znany) f.elements.ok_kolor_wlasny.value = kolor;
+  }
+  $('#pole-ok-kolor-wlasny').hidden = m.druk || f.elements.ok_kolor_materialu.value !== 'wlasny';
+  $('#opis-materialu').textContent = m.druk
+    ? 'Nadruk na kartonie, zabezpieczony folią. Złocenie, lakier UV i tłoczenie ustawisz przy elementach (Kolory do druku → Uszlachetnienie).'
+    : `${m.opis} Grafika okładki się nie drukuje – na okleinie zostają elementy ze złoceniem albo tłoczeniem (Kolory do druku → Uszlachetnienie). Makieta 3D pokazuje okleinę w wybranym kolorze.`;
+}
+function wykonczenieZPol(f) {
+  const material = f.elements.ok_material.value;
+  const m = MATERIALY[material] || MATERIALY.druk;
+  const kolor = m.druk ? undefined : (f.elements.ok_kolor_materialu.value === 'wlasny' ? f.elements.ok_kolor_wlasny.value : f.elements.ok_kolor_materialu.value);
+  return { material, folia: f.elements.ok_folia.value, kolor, rogi_mm: Number(f.elements.ok_rogi.value) || 0 };
+}
+$('#dlg-sekcja form').addEventListener('change', (e) => {
+  if (e.target.name === 'ok_material' || e.target.name === 'ok_kolor_materialu') odswiezMaterial(e.currentTarget, e.target.name === 'ok_kolor_materialu' ? e.target.value : null);
+});
+
 // Parametry okładki z pól okna.
 function okladkaZPol(f) {
   const n = (k) => Number(String(f.elements[k].value).replace(',', '.'));
@@ -279,6 +316,7 @@ function okladkaZPol(f) {
     papier: { tryb: f.elements.ok_papier.value, gramatura: n('ok_gramatura'), grubosc_mm: n('ok_grubosc'), rodzaj: f.elements.ok_rodzaj.value },
     zawiniecie_mm: n('ok_zawiniecie'), big_mm: n('ok_big'), naddatek_mm: n('ok_naddatek'), tektura_mm: n('ok_tektura'),
     tasiemka: f.elements.ok_tasiemka.checked ? { kolor: f.elements.ok_tasiemka_kolor.value } : null,
+    wykonczenie: wykonczenieZPol(f),
     wymiary: { tryb: f.elements.ok_wymiary.value, grzbiet_mm: n('ok_grzbiet'), szerokosc_mm: n('ok_szerokosc'), wysokosc_mm: n('ok_wysokosc') },
   });
 }

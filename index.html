@@ -85,6 +85,7 @@
   <link rel="modulepreload" href="js/zestaw-czcionek.js">
   <link rel="modulepreload" href="js/zestaw-marki.js">
   <link rel="modulepreload" href="js/makieta-ustawienia.js">
+  <link rel="modulepreload" href="js/materialy.js">
   <link rel="modulepreload" href="js/przeliczenia-okladek.js">
   <link rel="modulepreload" href="js/serie.js">
   <link rel="modulepreload" href="js/swieta.js">
@@ -759,6 +760,7 @@
           <hr>
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz">Eksportuj do PDF…</button>
+          <button role="menuitem" data-akcja="specyfikacja" data-ikona="pobierz">Specyfikacja dla drukarni</button>
           <button role="menuitem" data-akcja="drukuj" data-ikona="drukarka">Drukuj w domu…<kbd>Ctrl P</kbd></button>
           <button role="menuitem" data-akcja="png" data-ikona="pobierz">Pobierz bieżącą stronę jako PNG</button>
           <hr>
@@ -1188,6 +1190,15 @@
           <label class="pole waskie"><span>Naddatek tektury (mm)</span><input name="ok_naddatek" type="number" min="0" max="20" step="any" inputmode="decimal"></label>
           <label class="pole waskie"><span>Grubość tektury (mm)</span><input name="ok_tektura" type="number" min="0" max="10" step="any" inputmode="decimal"></label>
         </div>
+        <!-- Materiał i wykończenie okładki (#214): druk z folią albo okleina w kolorze, zaokrąglone rogi. -->
+        <div class="rzad">
+          <label class="pole"><span>Materiał okładki</span><select name="ok_material"></select></label>
+          <label class="pole" id="pole-ok-folia"><span>Folia</span><select name="ok_folia"></select></label>
+          <label class="pole" id="pole-ok-kolor-materialu" hidden><span>Kolor okleiny</span><select name="ok_kolor_materialu"></select></label>
+          <label class="pole waskie" id="pole-ok-kolor-wlasny" hidden><span>Własny kolor</span><input name="ok_kolor_wlasny" type="color" value="#1f2a44"></label>
+          <label class="pole waskie"><span>Rogi</span><select name="ok_rogi"></select></label>
+        </div>
+        <p class="podpowiedz" id="opis-materialu"></p>
         <div class="rzad" id="pole-ok-tasiemka" hidden>
           <label class="przelacznik"><input type="checkbox" name="ok_tasiemka"><span>Zakładka – tasiemka w grzbiecie</span></label>
           <label class="pole waskie"><span>Kolor tasiemki</span><input name="ok_tasiemka_kolor" type="color" value="#8b1e2d"></label>

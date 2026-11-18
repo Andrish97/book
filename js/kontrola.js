@@ -1,6 +1,7 @@
 // Kontrola danych przed drukiem i szablon danych serii (plan 5.1 i 5.2).
 // Czyste funkcje: dostają projekt, niczego w nim nie zmieniają.
 
+import { opisWykonczenia } from './materialy.js';
 import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdzPola } from './pola.js';
 import { normalizujKod, uwagiKodu } from './kody.js';
 import { wzorceStrony } from './projekt.js';
@@ -217,6 +218,12 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     if (b?.brakuje) {
       uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Sekcja „${sekcja.nazwa}” ma ${b.stron} ${odmiana(b.stron, 'stronę', 'strony', 'stron')} – do pełnej składki po ${b.skladka} brakuje ${b.brakuje}. Dodaj strony albo użyj „Dopełnij pustymi” na liście stron.` });
     }
+    // Okleina (#214): płótno, skóra… – nadruk okładki się nie drukuje, drukarnia potrzebuje płyt złocenia/tłoczenia.
+    const wyk = sekcja.okladka?.wykonczenie;
+    if (wyk && wyk.material !== 'druk') {
+      uwagi.push({ rodzaj: 'material', idSekcji: sekcja.id, opis: `Okładka „${sekcja.nazwa}” jest z okleiny (${opisWykonczenia(wyk)}): jej grafika się nie drukuje. Na okleinie zostają elementy ze złoceniem albo tłoczeniem – wyślij drukarni plik uszlachetnień (Eksport PDF → uszlachetnienia osobno) i specyfikację (menu ⋯ → Specyfikacja dla drukarni).` });
+    }
+    if (wyk?.rogi_mm > 0) uwagi.push({ rodzaj: 'material', idSekcji: sekcja.id, opis: `Okładka „${sekcja.nazwa}” ma zaokrąglone rogi (${wyk.rogi_mm} mm) – nie stawiaj ważnych elementów w narożnikach; zaznacz to w zamówieniu (Specyfikacja dla drukarni).` });
     const okl = sekcja.okladka?.wynik;
     if (okl && sekcja.okladka.oprawa === 'zeszytowa' && okl.stron % 4) {
       uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Oprawa zeszytowa: środek ma ${okl.stron} stron, a potrzeba liczby podzielnej przez 4.` });

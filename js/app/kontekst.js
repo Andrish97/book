@@ -100,7 +100,7 @@ export function wydrukCelu() {
   if (stan.tryb === 'wzorzec') return biezacyWzorzec().wydruk;
   const sekcja = biezacaSekcja();
   // Okładka (#119): edytor dostaje też strefy (tył, grzbiet, przód…) – do prowadnic i ostrzeżeń.
-  if (sekcja.okladka?.wynik) return { ...sekcja.wydruk, okladka: sekcja.okladka.wynik };
+  if (sekcja.okladka?.wynik) return { ...sekcja.wydruk, okladka: { ...sekcja.okladka.wynik, rogi_mm: sekcja.okladka.wykonczenie?.rogi_mm || 0 } };
   // Sekcja specjalna (#177): strefy, bigi, perforacje i wykrojnik tej strony sekcji (ulotka: zewnątrz / środek).
   if (sekcja.specjalna?.wynik) {
     const indeks = stan.projekt.strony.filter((s) => s.sekcja === sekcja.id).indexOf(biezacaStrona());

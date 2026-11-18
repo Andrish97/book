@@ -1075,6 +1075,23 @@ Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sa
 
 > Uwaga: wzorce przypisane do sekcji okładki nie przesuwają się same.
 
+**Materiał okładki i rogi.** W tym samym oknie:
+
+| Pole | Co wybierasz |
+|---|---|
+| **Materiał okładki** | **Okładka drukowana** (karton z nadrukiem) albo okleina bez nadruku: **Płótno introligatorskie**, **Skóra ekologiczna**, **Papier strukturalny**, **Aksamit (welur)**. |
+| **Folia** | Przy okładce drukowanej: **matowa**, **błyszcząca**, **soft-touch** albo **bez folii**. |
+| **Kolor okleiny** | Typowe kolory danej okleiny (np. płótno granatowe, bordowe, butelkowa zieleń) albo **Inny kolor…**. |
+| **Rogi** | **proste** albo **zaokrąglone** 3, 5, 6 lub 10 mm — na płótnie czerwone łuki w narożnikach pokazują, co zostanie odcięte. |
+
+Na okleinie grafika okładki się nie drukuje — zostają elementy ze złoceniem albo tłoczeniem (Kolory do druku →
+Uszlachetnienie). Makieta 3D pokazuje okleinę w wybranym kolorze, z fakturą tkaniny, skóry albo papieru,
+a na niej złocenia i tłoczenia. **Sprawdź przed drukiem** przypomina o okleinie i rogach.
+
+**Specyfikacja dla drukarni** (menu **⋯**) pobiera dwa pliki: tekst do zamówienia albo maila i JSON. Są w nich
+formaty i liczby stron sekcji, oprawa i grzbiet, papier środka, materiał, folia i rogi okładki, tasiemka, składki,
+podłoże, tryb kolorów, kolory dodatkowe i uszlachetnienia.
+
 ## 10.7 Składki
 
 Środek szyty albo klejony ze składek musi mieć liczbę stron podzielną przez wielkość składki. W ustawieniach sekcji wybierz **Składki**: co 4, 8, 16 albo 32 strony.

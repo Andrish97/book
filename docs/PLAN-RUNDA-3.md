@@ -30,8 +30,8 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | 5 | (9) Kilka zestawów marki | ✅ #211 |
 | 6 | (6) Książka: automatyczne dokładanie stron przy długim tekście, wybór czy rozdział (i inne sekcje) zaczyna się od nowej strony, obrazy w tekście z opływaniem, wcięcia i odstępy, przypisy, klikalny spis treści, więcej wzorców | ✅ #212 (reszta była: opływanie, przypisy, spis treści, linki w PDF) |
 | 7 | (19) Druk na folii / kolorowym papierze: podłoże przezroczyste albo kolorowe, widoczne w edytorze, podglądzie i 3D; biały poddruk na folii | ✅ #213 (biały poddruk – uszlachetnienie elementu, było) |
-| 8 | (20) Materiały i uszlachetnienia według standardów drukarni (okleiny: płótno, skóra ekologiczna, papier; tłoczenie, złocenie/hot-stamping, lakier wybiórczy UV, folia mat/błysk/soft-touch) z kolorami; zaokrąglone rogi w opcjach sekcji okładki; widok w 3D i eksport ustawień | 🔄 |
-| 9 | (7) Przetestować wszystkie makiety 3D | ⏳ |
+| 8 | (20) Materiały i uszlachetnienia według standardów drukarni (okleiny: płótno, skóra ekologiczna, papier; tłoczenie, złocenie/hot-stamping, lakier wybiórczy UV, folia mat/błysk/soft-touch) z kolorami; zaokrąglone rogi w opcjach sekcji okładki; widok w 3D i eksport ustawień | ✅ #214 |
+| 9 | (7) Przetestować wszystkie makiety 3D | 🔄 |
 | 10 | (15) Makieta dobrana do projektu: projekt spełnia zwykle jedną, najwyżej dwie makiety (np. książka twarda albo miękka, czasem spirala); tylko te są dostępne, inne (np. kalendarz dla książki) się nie pokazują; przy brakach – co brakuje i propozycja uzupełnienia (np. białe strony) | ⏳ |
 | 11 | (16) Wycinanki i składanki: typy linii (cięcie, zgięcie, klejenie), miejsca klejenia, grupa wycinana jako jeden kawałek, druga strona arkusza, łączenie, zawijanie po krzywej, ustawienia plotera, gotowe wzory, sprawdzenie złożenia, makieta 3D | ⏳ |
 | 12 | (5) Zgodność z innymi programami: odczyt i zapis formatów (IDML, Scribus, DOCX, EPUB, PDF) | ⏳ |
