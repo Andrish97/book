@@ -1,6 +1,7 @@
 // Kontrola danych przed drukiem i szablon danych serii (plan 5.1 i 5.2).
 // Czyste funkcje: dostają projekt, niczego w nim nie zmieniają.
 
+import { uwagiSkladanki } from './skladanka.js';
 import { opisWykonczenia } from './materialy.js';
 import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdzPola } from './pola.js';
 import { normalizujKod, uwagiKodu } from './kody.js';
@@ -307,6 +308,14 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   const pierwszyNr = new Map();
   for (const e of ciag.egzemplarze) if (!pierwszyNr.has(e.strona.id)) pierwszyNr.set(e.strona.id, e.indeks + 1);
   uwagi.push(...uwagiKolorowDruku(projekt, { numerStrony: (id) => pierwszyNr.get(id) || null }));
+  // Składanki (#234): części poza arkuszem, numery bez pary, pary o różnych długościach, za wąskie szczeliny.
+  for (const sekcja of (projekt.sekcje || []).filter((x) => x.specjalna?.rodzaj === 'skladanka')) {
+    const sp = sekcja.specjalna;
+    const arkusze = projekt.strony.filter((st) => st.sekcja === sekcja.id).map((st) => ({
+      strona: st, nr: pierwszyNr.get(st.id) || null, w: sekcja.wydruk.szerokosc_mm, h: sekcja.wydruk.wysokosc_mm, margines: sp.druk === 'domowy' ? sp.margines_mm || 0 : 0, grubosc: sp.grubosc_mm || 0,
+    }));
+    uwagi.push(...uwagiSkladanki(arkusze).map(({ nazwa, ...u }) => u));
+  }
   // Elementy uproszczone przy odczycie z innego programu (#232) – do przejrzenia; „Sprawdzone” zdejmuje oznaczenie.
   const zImportu = (lista, strona, wzorzec) => {
     for (const o of lista || []) {

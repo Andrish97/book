@@ -1195,7 +1195,9 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 
 Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯**) i PDF dla drukarni dostają obrys cięcia części z zakładkami i szczelinami, zgięcia (także u nasady każdej zakładki) i miejsca klejenia.
 
-Kolejne kroki tego trybu – sprawdzanie par, rozkładanie części na arkusze, gotowe szablony z kompensacją grubości, makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
+**Sprawdź przed drukiem** (rozdział „20 Sprawdź przed drukiem”) pilnuje modelu: część wystająca poza arkusz albo wchodząca w margines drukarki, numer bez pary (nie wiadomo, do czego to przykleić), numer użyty więcej niż dwa razy, para krawędzi o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż wypustka. Przy każdej uwadze **Otwórz wzór** zaznacza część.
+
+Kolejne kroki tego trybu – osobny panel połączeń z podświetlaniem pary, rozkładanie części na arkusze, gotowe szablony z kompensacją grubości, makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
 
 ## 11. Wzorce stron
 

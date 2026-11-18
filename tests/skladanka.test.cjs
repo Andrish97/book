@@ -131,6 +131,30 @@ test('składanka: sekcja z materiałem, narzędzia, części, zgięcie, połącz
   assert.ok(po.ile.big >= 3, 'big: zgięcie i nasady zakładek');
   assert.ok(po.ile.klej >= 1, 'klej: miejsce klejenia');
 
+  // Sprawdź przed drukiem (#234): zakładka 60 mm (para 2) trafia na miejsce 27,6 mm w węższej ścianie A – uwaga;
+  // potem kolejne błędy w danych części.
+  const kontrola = await strona.evaluate(async () => {
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    const { rozwin } = await import('./js/serie.js');
+    const p = window.seriodruk.stan.projekt;
+    const uwagi = () => sprawdzProjekt(p, rozwin(p)).filter((u) => u.rodzaj === 'skladanka').map((u) => [u.opis, u.idObiektu ? 'z miejscem' : '']);
+    const przed = uwagi();
+    const [a, b] = p.strony[0].obiekty.filter((o) => o.czesc);
+    a.czesc.krawedzie[0] = { typ: 'zakladka', para: '9', szer: 7 }; // numer bez pary
+    b.czesc.punkty[1].x = 50; // krawędź B o innej długości niż krawędź A z parą 1? – B: górna krawędź krótsza
+    b.czesc.szczeliny[0].szer = 0.2; // węższa niż karton 0,39
+    a.left = 285; // A wystaje poza arkusz 297 mm
+    return { przed, po: uwagi() };
+  });
+  assert.equal(kontrola.przed.length, 1);
+  assert.match(kontrola.przed[0][0], /^Para 2: miejsce klejenia \(27,59 × 7 mm\) jest mniejsze niż zakładka \(60 × 7 mm\)/);
+  const opisy = kontrola.po.map(([o]) => o).join('\n');
+  assert.match(opisy, /Numer 9 \(krawędź 1 części A\) nie ma pary/);
+  assert.match(opisy, /Część A wystaje poza arkusz/);
+  assert.match(opisy, /Szczelina na części B ma 0,2 mm, a materiał 0,39 mm/);
+  assert.match(opisy, /Para 1: krawędzie mają różne długości \(40 i 30 mm\)|Para 2: miejsce klejenia/);
+  assert.ok(kontrola.po.every(([, m]) => m === 'z miejscem'), 'każda uwaga prowadzi do części');
+
   // Poza sekcją składanki narzędzi nie widać.
   await strona.evaluate(async () => {
     const P = await import('./js/projekt.js');

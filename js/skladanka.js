@@ -350,3 +350,60 @@ export function czesciWObiektach(obiekty) {
   idz(obiekty);
   return wynik;
 }
+
+// ---------- Sprawdzanie (#234) ----------
+
+const dlKrawedzi = (c, i) => { const a = c.punkty[i]; const b = c.punkty[(i + 1) % c.punkty.length]; return Math.hypot(b.x - a.x, b.y - a.y); };
+const mmTxt = (v) => String(Math.round(v * 100) / 100).replace('.', ',');
+
+// Narożniki części na stronie z zapisanej grupy (left/top to punkt początku – origin – grupy; obrót wokół niego).
+export function ramkaNaStronie(o) {
+  const w = (o.width || 0) * (o.scaleX || 1);
+  const h = (o.height || 0) * (o.scaleY || 1);
+  const ox = o.originX === 'center' ? w / 2 : o.originX === 'right' ? w : 0;
+  const oy = o.originY === 'center' ? h / 2 : o.originY === 'bottom' ? h : 0;
+  const k = ((o.angle || 0) * Math.PI) / 180;
+  const pkt = [[0, 0], [w, 0], [w, h], [0, h]].map(([x, y]) => {
+    const dx = x - ox; const dy = y - oy;
+    return { x: (o.left || 0) + dx * Math.cos(k) - dy * Math.sin(k), y: (o.top || 0) + dx * Math.sin(k) + dy * Math.cos(k) };
+  });
+  const xs = pkt.map((p) => p.x);
+  const ys = pkt.map((p) => p.y);
+  return { x1: Math.min(...xs), y1: Math.min(...ys), x2: Math.max(...xs), y2: Math.max(...ys) };
+}
+
+// Uwagi o częściach na arkuszach sekcji składanki: [{ rodzaj, opis, strony, idStrony?, idObiektu? }].
+// arkusze: [{ strona (obiekt strony projektu), nr (numer w wydruku), w, h, margines, grubosc }].
+export function uwagiSkladanki(arkusze) {
+  const uwagi = [];
+  const wpisy = new Map(); // para → [{ rodzaj: 'zakladka'|'klej'|'wypustka'|'pole'|'szczelina', dl, gdzie }]
+  for (const a of arkusze) {
+    for (const o of czesciWObiektach(a.strona.obiekty)) {
+      const c = normalizujCzesc(o.czesc);
+      const gdzie = { strony: a.nr ? [a.nr] : [], idStrony: a.strona.id, idObiektu: o.id, nazwa: c.nr };
+      const r = ramkaNaStronie(o);
+      if (r.x1 < -0.2 || r.y1 < -0.2 || r.x2 > a.w + 0.2 || r.y2 > a.h + 0.2) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Część ${c.nr} wystaje poza arkusz – przesuń ją albo przenieś na inny arkusz.` });
+      else if (a.margines > 0 && (r.x1 < a.margines || r.y1 < a.margines || r.x2 > a.w - a.margines || r.y2 > a.h - a.margines)) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Część ${c.nr} wchodzi w margines drukarki (${mmTxt(a.margines)} mm) – ten kawałek może się nie wydrukować.` });
+      c.krawedzie.forEach((k, i) => { if (k.para && k.typ !== 'ciecie') (wpisy.get(k.para) || wpisy.set(k.para, []).get(k.para)).push({ rodzaj: k.typ, dl: dlKrawedzi(c, i), szer: k.szer, gdzie, opis: `krawędź ${i + 1} części ${c.nr}` }); });
+      for (const p of c.pola) if (p.para) (wpisy.get(p.para) || wpisy.set(p.para, []).get(p.para)).push({ rodzaj: 'pole', dl: Math.max(p.w, p.h), szer: Math.min(p.w, p.h), gdzie, opis: `miejsce klejenia na części ${c.nr}` });
+      for (const z of c.szczeliny) {
+        if (z.para) (wpisy.get(z.para) || wpisy.set(z.para, []).get(z.para)).push({ rodzaj: 'szczelina', dl: Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y), gdzie, opis: `szczelina na części ${c.nr}` });
+        if (z.szer < a.grubosc) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Szczelina na części ${c.nr} ma ${mmTxt(z.szer)} mm, a materiał ${mmTxt(a.grubosc)} mm – wypustka się nie zmieści. Ustaw szerokość co najmniej ${mmTxt(a.grubosc + 0.2)} mm.` });
+      }
+    }
+  }
+  for (const [para, lista] of wpisy) {
+    const g = lista[0].gdzie;
+    if (lista.length === 1) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} (${lista[0].opis}) nie ma pary – nie wiadomo, do czego to przykleić. Połącz z krawędzią albo miejscem (narzędzie „Połącz”) albo usuń numer.` }); continue; }
+    if (lista.length > 2) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} jest użyty ${lista.length} razy (${lista.map((x) => x.opis).join(', ')}) – para to dwa miejsca; nadaj pozostałym inne numery.` });
+    const krawedzie = lista.filter((w) => ['zakladka', 'klej'].includes(w.rodzaj));
+    if (krawedzie.length === 2 && Math.abs(krawedzie[0].dl - krawedzie[1].dl) > 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: krawędzie mają różne długości (${mmTxt(krawedzie[0].dl)} i ${mmTxt(krawedzie[1].dl)} mm) – po sklejeniu jedna będzie wystawać.` });
+    const zak = lista.find((w) => w.rodzaj === 'zakladka');
+    const pole = lista.find((w) => w.rodzaj === 'pole');
+    if (zak && pole && (pole.dl < zak.dl - 3 || pole.szer < zak.szer - 1)) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: miejsce klejenia (${mmTxt(pole.dl)} × ${mmTxt(pole.szer)} mm) jest mniejsze niż zakładka (${mmTxt(zak.dl)} × ${mmTxt(zak.szer)} mm) – klej wyjdzie poza nie.` });
+    const wyp = lista.find((w) => w.rodzaj === 'wypustka');
+    const szcz = lista.find((w) => w.rodzaj === 'szczelina');
+    if (wyp && szcz && szcz.dl < Math.min(wyp.dl / 3, 30) + 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: szczelina (${mmTxt(szcz.dl)} mm) jest krótsza niż wypustka (${mmTxt(Math.min(wyp.dl / 3, 30))} mm).` });
+  }
+  return uwagi;
+}
