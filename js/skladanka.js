@@ -4,7 +4,10 @@
 //   { nr: 'A', punkty: [{x,y}…] – obrys ściany w mm (układ części),
 //     krawedzie: [{ typ: 'ciecie'|'zakladka'|'klej', para: '3'|null, szer: 7 }] – krawędź i: punkty[i] → punkty[i+1],
 //     zgiecia: [{ a:{x,y}, b:{x,y}, rodzaj: 'dolina'|'gora', kat: 90 }] – linie zgięcia w środku części,
-//     kolor: '#ffffff' }
+//     pola: [{ x, y, w, h, para, spod }] – miejsca klejenia na powierzchni (spod – na drugiej stronie, bez druku),
+//     szczeliny: [{ a:{x,y}, b:{x,y}, szer }] – nacięcia na wypustki innych części (szerokość z grubości materiału),
+//     kolor: '#ffffff', druk: 'domowy'|'drukarnia' }
+// Krawędź 'wypustka' – język bez kleju do wsunięcia w szczelinę (ścianki, przegródki wsuwane do środka).
 // Z niej powstają zwykłe elementy (dzięki temu PDF, plik dla plotera, kontrola i zapis do innych programów działają
 // bez zmian): ściana (kolor części), zakładki klejowe z numerem pary, linie zgięć drukowane (dolina – kreski,
 // góra – kreska-kropka) i na płycie Crease, obrys cięcia na płycie CutContour (#218) i drukowany cienki obrys
@@ -14,7 +17,7 @@
 
 /* global fabric */
 
-export const RODZAJE_KRAWEDZI = { ciecie: 'Cięcie', zakladka: 'Zakładka klejowa', klej: 'Do sklejenia (bez zakładki)' };
+export const RODZAJE_KRAWEDZI = { ciecie: 'Cięcie', zakladka: 'Zakładka klejowa', klej: 'Do sklejenia (bez zakładki)', wypustka: 'Wypustka do szczeliny' };
 export const RODZAJE_ZGIEC = { dolina: 'Dolina – zginaj do siebie', gora: 'Góra – zginaj od siebie' };
 export const KRESKI = { dolina: [2.4, 1.6], gora: [3, 1.2, 0.6, 1.2] };
 const SZER_ZAKLADKI = 7;
@@ -30,7 +33,15 @@ export function normalizujCzesc(c = {}) {
   const zgiecia = (Array.isArray(c.zgiecia) ? c.zgiecia : []).filter((z) => z?.a && z?.b).map((z) => ({
     a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), rodzaj: z.rodzaj === 'gora' ? 'gora' : 'dolina', kat: Number.isFinite(z.kat) ? Math.max(0, Math.min(180, z.kat)) : 90,
   }));
-  return { nr: String(c.nr || 'A'), punkty, krawedzie, zgiecia, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff', pokaz_numery: c.pokaz_numery !== false };
+  const liczba = (v, d) => (Number.isFinite(v) ? v : d);
+  const pola = (Array.isArray(c.pola) ? c.pola : []).filter((x) => x && Number.isFinite(x.x) && Number.isFinite(x.y)).map((x) => ({
+    x: zaokr(x.x), y: zaokr(x.y), w: zaokr(Math.max(2, liczba(x.w, 15))), h: zaokr(Math.max(2, liczba(x.h, 10))), para: x.para ? String(x.para) : null, spod: Boolean(x.spod),
+  }));
+  const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null }));
+  return {
+    nr: String(c.nr || 'A'), punkty, krawedzie, zgiecia, pola, szczeliny, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
+    pokaz_numery: c.pokaz_numery !== false, druk: c.druk === 'drukarnia' ? 'drukarnia' : 'domowy',
+  };
 }
 
 // ---------- Geometria ----------
@@ -63,14 +74,37 @@ export function zakladka(punkty, i, szer = SZER_ZAKLADKI) {
   return [a, b, P(b.x + n.x * w - d.x * s, b.y + n.y * w - d.y * s), P(a.x + n.x * w + d.x * s, a.y + n.y * w + d.y * s)];
 }
 
-// Obrys cięcia: ściana z zakładkami (wierzchołki zakładek między końcami krawędzi).
+// Wypustka na krawędzi i: prostokątny język o długości ok. 1/3 krawędzi, pośrodku, z małymi fazami na końcu.
+export function wypustka(punkty, i, szer = SZER_ZAKLADKI) {
+  const a = punkty[i];
+  const b = punkty[(i + 1) % punkty.length];
+  const dl = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const d = { x: (b.x - a.x) / dl, y: (b.y - a.y) / dl };
+  const n = normalnaZewn(punkty, i);
+  const pol = Math.min(dl / 3, 30) / 2;
+  const s = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const f = Math.min(1.5, szer / 3);
+  const pk = (t, h) => P(s.x + d.x * t + n.x * h, s.y + d.y * t + n.y * h);
+  return [pk(-pol, 0), pk(pol, 0), pk(pol, szer - f), pk(pol - f, szer), pk(-pol + f, szer), pk(-pol, szer - f)];
+}
+
+// Obrys cięcia: ściana z zakładkami i wypustkami (ich wierzchołki między końcami krawędzi).
 export function obrysCiecia(c) {
   const wynik = [];
   c.punkty.forEach((p, i) => {
     wynik.push(p);
-    if (c.krawedzie[i]?.typ === 'zakladka') { const z = zakladka(c.punkty, i, c.krawedzie[i].szer); wynik.push(z[3], z[2]); }
+    const k = c.krawedzie[i];
+    if (k?.typ === 'zakladka') { const z = zakladka(c.punkty, i, k.szer); wynik.push(z[3], z[2]); }
+    else if (k?.typ === 'wypustka') { const z = wypustka(c.punkty, i, k.szer); wynik.push(z[0], z[5], z[4], z[3], z[2], z[1]); }
   });
   return wynik;
+}
+
+// Szczelina jako wąski prostokąt wokół odcinka a–b (do wycięcia).
+export function prostokatSzczeliny(z) {
+  const dl = Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y) || 1;
+  const n = { x: -(z.b.y - z.a.y) / dl * (z.szer / 2), y: (z.b.x - z.a.x) / dl * (z.szer / 2) };
+  return [P(z.a.x + n.x, z.a.y + n.y), P(z.b.x + n.x, z.b.y + n.y), P(z.b.x - n.x, z.b.y - n.y), P(z.a.x - n.x, z.a.y - n.y)];
 }
 
 
@@ -176,24 +210,32 @@ export function elementyCzesci(def) {
   const c = normalizujCzesc(def);
   if (c.punkty.length < 3) return [];
   const el = [];
+  const domowy = c.druk === 'domowy'; // druk domowy: linie cięcia i zgięć drukowane; drukarnia – tylko płyty techniczne
   const wspolne = { strokeUniform: true, objectCaching: false, selectable: false, evented: false };
-  // Zakładki (pod ścianą – krawędź zgięcia zakładki rysuje się osobno).
+  const zgiecie = (a, b, rodzaj) => {
+    if (domowy) el.push(new fabric.Line([a.x, a.y, b.x, b.y], { ...wspolne, stroke: KOLOR_LINII, strokeWidth: 0.2, strokeDashArray: KRESKI[rodzaj], skladanka: 'zgiecie' }));
+    el.push(new fabric.Line([a.x, a.y, b.x, b.y], { ...wspolne, stroke: '#1f6feb', strokeWidth: 0.3, uszlachetnienie: 'big', skladanka: 'zgiecie' }));
+  };
+  const numer = (t, x, y, rozmiar, kolor = '#555555') => el.push(new fabric.Text(t, { ...wspolne, left: x, top: y, originX: 'center', originY: 'center', fontSize: rozmiar, fontFamily: 'Inter', fill: kolor, skladanka: 'numer' }));
+  // Zakładki i wypustki (pod ścianą – zgięcie u nasady rysuje się osobno).
   c.krawedzie.forEach((k, i) => {
-    if (k.typ !== 'zakladka') return;
-    const z = zakladka(c.punkty, i, k.szer);
-    el.push(new fabric.Polygon(z, { ...wspolne, fill: KOLOR_ZAKLADKI, stroke: null, strokeWidth: 0, nazwa: `Zakładka ${k.para || ''}`.trim(), skladanka: 'zakladka' }));
-    el.push(new fabric.Line([z[0].x, z[0].y, z[1].x, z[1].y], { ...wspolne, stroke: KOLOR_LINII, strokeWidth: 0.2, strokeDashArray: KRESKI.dolina, skladanka: 'zgiecie' }));
-    el.push(new fabric.Line([z[0].x, z[0].y, z[1].x, z[1].y], { ...wspolne, stroke: '#1f6feb', strokeWidth: 0.3, uszlachetnienie: 'big', skladanka: 'zgiecie' }));
-    if (k.para && c.pokaz_numery) {
-      const s = srodekWielokata(z);
-      el.push(new fabric.Text(k.para, { ...wspolne, left: s.x, top: s.y, originX: 'center', originY: 'center', fontSize: Math.min(3.2, k.szer * 0.5), fontFamily: 'Inter', fill: '#555555', skladanka: 'numer' }));
-    }
+    if (k.typ !== 'zakladka' && k.typ !== 'wypustka') return;
+    const z = k.typ === 'zakladka' ? zakladka(c.punkty, i, k.szer) : wypustka(c.punkty, i, k.szer);
+    el.push(new fabric.Polygon(z, { ...wspolne, fill: k.typ === 'zakladka' ? KOLOR_ZAKLADKI : c.kolor, stroke: null, strokeWidth: 0, nazwa: `${k.typ === 'zakladka' ? 'Zakładka' : 'Wypustka'} ${k.para || ''}`.trim(), skladanka: k.typ }));
+    const [a, b] = k.typ === 'zakladka' ? [z[0], z[1]] : [z[0], z[1]];
+    zgiecie(a, b, 'dolina');
+    if (k.para && c.pokaz_numery) { const s = srodekWielokata(z); numer(k.para, s.x, s.y, Math.min(3.2, k.szer * 0.5)); }
   });
   el.push(new fabric.Polygon(c.punkty, { ...wspolne, fill: c.kolor, stroke: null, strokeWidth: 0, nazwa: 'Ściana', skladanka: 'sciana' }));
-  // Zgięcia w środku części.
-  for (const z of c.zgiecia) {
-    el.push(new fabric.Line([z.a.x, z.a.y, z.b.x, z.b.y], { ...wspolne, stroke: KOLOR_LINII, strokeWidth: 0.2, strokeDashArray: KRESKI[z.rodzaj], skladanka: 'zgiecie' }));
-    el.push(new fabric.Line([z.a.x, z.a.y, z.b.x, z.b.y], { ...wspolne, stroke: '#1f6feb', strokeWidth: 0.3, uszlachetnienie: 'big', skladanka: 'zgiecie' }));
+  for (const z of c.zgiecia) zgiecie(z.a, z.b, z.rodzaj);
+  // Miejsca klejenia: na wierzchu – jasne pole z numerem (drukowane) i płyta Glue; na spodzie – tylko płyta Glue.
+  for (const pole of c.pola) {
+    const r = { left: pole.x, top: pole.y, width: pole.w, height: pole.h };
+    if (!pole.spod) {
+      el.push(new fabric.Rect({ ...wspolne, ...r, fill: '#e6efe0', stroke: '#9bb58a', strokeWidth: 0.2, strokeDashArray: [1.2, 0.8], skladanka: 'pole' }));
+      if (pole.para && c.pokaz_numery) numer(`${pole.para}`, pole.x + pole.w / 2, pole.y + pole.h / 2, Math.min(3.2, pole.h * 0.45), '#5f7a50');
+    }
+    el.push(new fabric.Rect({ ...wspolne, ...r, fill: '#14a35a', stroke: null, strokeWidth: 0, opacity: 0.25, uszlachetnienie: 'klej', skladanka: pole.spod ? 'pole-spod' : 'pole-klej' }));
   }
   // Numery krawędzi do sklejenia (bez zakładki) – po wewnętrznej stronie.
   c.krawedzie.forEach((k, i) => {
@@ -201,15 +243,19 @@ export function elementyCzesci(def) {
     const a = c.punkty[i];
     const b = c.punkty[(i + 1) % c.punkty.length];
     const n = normalnaZewn(c.punkty, i);
-    el.push(new fabric.Text(k.para, { ...wspolne, left: (a.x + b.x) / 2 - n.x * 2.4, top: (a.y + b.y) / 2 - n.y * 2.4, originX: 'center', originY: 'center', fontSize: 2.6, fontFamily: 'Inter', fill: '#777777', skladanka: 'numer' }));
+    numer(k.para, (a.x + b.x) / 2 - n.x * 2.4, (a.y + b.y) / 2 - n.y * 2.4, 2.6, '#777777');
   });
-  if (c.pokaz_numery) {
-    const s = srodekWielokata(c.punkty);
-    el.push(new fabric.Text(c.nr, { ...wspolne, left: s.x, top: s.y, originX: 'center', originY: 'center', fontSize: 3, fontFamily: 'Inter', fontWeight: 'bold', fill: '#9a9a9a', skladanka: 'numer' }));
-  }
+  if (c.pokaz_numery) { const s = srodekWielokata(c.punkty); numer(c.nr, s.x, s.y, 3, '#9a9a9a'); }
   const obrys = obrysCiecia(c);
-  el.push(new fabric.Polygon(obrys, { ...wspolne, fill: null, stroke: '#888888', strokeWidth: 0.15, skladanka: 'obrys' }));
+  if (domowy) el.push(new fabric.Polygon(obrys, { ...wspolne, fill: null, stroke: '#888888', strokeWidth: 0.15, skladanka: 'obrys' }));
   el.push(new fabric.Polygon(obrys, { ...wspolne, fill: null, stroke: '#e0004d', strokeWidth: 0.3, uszlachetnienie: 'ciecie', skladanka: 'ciecie' }));
+  // Szczeliny – wycinane (osobne kontury cięcia).
+  for (const z of c.szczeliny) {
+    const pr = prostokatSzczeliny(z);
+    if (domowy) el.push(new fabric.Polygon(pr, { ...wspolne, fill: null, stroke: '#888888', strokeWidth: 0.15, skladanka: 'obrys' }));
+    el.push(new fabric.Polygon(pr, { ...wspolne, fill: null, stroke: '#e0004d', strokeWidth: 0.3, uszlachetnienie: 'ciecie', skladanka: 'szczelina' }));
+    if (z.para && c.pokaz_numery) { const n = { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 }; numer(z.para, n.x + 2.5, n.y + 2.5, 2.4, '#777777'); }
+  }
   return el;
 }
 
