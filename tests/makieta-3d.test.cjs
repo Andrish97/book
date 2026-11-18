@@ -535,3 +535,31 @@ test('makieta 3D: twarda – pionowy grzbiet przy wyklejce, stała szerokość g
   const prz = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
   assert.ok(tyl.max[1] > 10 && prz.max[1] > 10, 'obie połowy uniesione przy przedniej krawędzi');
 });
+
+// #203: limit pamięci grafiki – kartkowanie grubej książki nie trzyma wszystkich obejrzanych stron (telefon zamykał
+// kartę, „Kurza twarz”); w pamięci zostają widoczne i ostatnio oglądane, najwyżej limit.
+test('makieta 3D: kartkowanie 160 stron – w pamięci grafiki najwyżej limit stron', async (t) => {
+  const { otworz, nowyProjekt } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Gruba');
+  await strona.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const p = window.seriodruk.stan.projekt;
+    for (let i = 2; i <= 160; i += 1) p.strony.push(P.nowaStrona(`S${i}`, p.sekcje[0].id));
+    await (await import('./js/app/zapis.js')).otworzProjekt(p);
+    (await import('./js/app/makieta-okno.js')).otworzMakiete(p);
+  });
+  let maks = 0;
+  for (let u = 0; u <= 80; u += 4) {
+    const m = await strona.evaluate(async (u) => {
+      const W = await import('./js/app/makieta-okno.js');
+      W.ustawPolozenieMakiety(u, { natychmiast: true });
+      await new Promise((ok) => { setTimeout(ok, 350); });
+      return W.pamiecStronMakiety();
+    }, u);
+    maks = Math.max(maks, m.stron);
+    assert.ok(m.stron <= m.limit + 4, `u = ${u}: ${m.stron} stron w pamięci (limit ${m.limit})`);
+  }
+  assert.ok(maks > 0, 'strony się wczytywały');
+  assert.deepEqual(bledy, []);
+});

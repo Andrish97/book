@@ -31,8 +31,11 @@ const wybor = $('#makieta-model');
 const wyborUlozenia = $('#makieta-ulozenie');
 // px tekstury strony (#161): 1280 na co dzień (telefon z dpr ~2,6 – strona ok. 1000 px na ekranie), po przybliżeniu
 // strony rysują się od nowa w 2048 px – ostro z bliska; mipmapy w rendererze uśredniają z daleka.
-const SZEROKOSC_STRONY = 1280;
-const SZEROKOSC_OSTRA = 2048;
+// Telefon i tablet (#203): mniej pamięci grafiki – tekstury 1024 / 1536 px i najwyżej 16 stron naraz.
+const MALO_PAMIECI = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || document.documentElement.dataset.urzadzenie === 'telefon';
+const SZEROKOSC_STRONY = MALO_PAMIECI ? 1024 : 1280;
+const SZEROKOSC_OSTRA = MALO_PAMIECI ? 1536 : 2048;
+const MAKS_STRON_W_PAMIECI = MALO_PAMIECI ? 16 : 48;
 
 let st = null; // { projekt, ciag, strony, okladka, format, model, kartki, u, cel, kamera, opcje, sc, ... }
 let renderer = null;
@@ -343,6 +346,12 @@ function rysuj() {
   if (st.scena?.klucz !== ks) st.scena = { klucz: ks, quady: zbudujScene(st.u) };
   const { quady } = st.scena;
   for (const q of quady) if (!renderer.maTeksture(q.tex)) wczytajTeksture(q.tex);
+  // Limit pamięci (#203): strony spoza widoku i spoza ostatnio oglądanych – zwolnione (tekstury i obrazy).
+  const zwolnione = renderer.przytnijStrony(new Set(quady.map((q) => q.tex)), MAKS_STRON_W_PAMIECI);
+  if (zwolnione.length && st.obrazy) {
+    for (const k of zwolnione) st.ostre?.delete(k);
+    if (st.obrazy.size > MAKS_STRON_W_PAMIECI * 2) for (const k of [...st.obrazy.keys()].slice(0, st.obrazy.size - MAKS_STRON_W_PAMIECI)) st.obrazy.delete(k);
+  }
   // Kadr z położenia docelowego (nie z przewracanej kartki) – bez „pompowania” przy kartkowaniu.
   const cu = Math.round(st.cel);
   const kk = kluczSceny(cu);
@@ -512,7 +521,7 @@ function dopasujRozmiar() {
   const cw = plotno.clientWidth;
   const ch = plotno.clientHeight;
   if (cw < 2 || ch < 2) return;
-  let dpr = Math.min(3, window.devicePixelRatio || 1);
+  let dpr = Math.min(MALO_PAMIECI ? 2 : 3, window.devicePixelRatio || 1);
   dpr = Math.min(dpr, Math.sqrt(4.5e6 / (cw * ch)));
   const w = Math.max(1, Math.round(cw * dpr));
   const h = Math.max(1, Math.round(ch * dpr));
@@ -615,6 +624,9 @@ function uruchom(baza, { model, ulozenie }) {
 
 // Do testów i zrzutów: ustawia położenie kartkowania wprost (także ułamkowe – kartka w trakcie przewracania).
 // natychmiast – kamera od razu w docelowym kadrze (bez płynnego dojścia).
+// Do testów (#203): ile stron jest teraz w pamięci grafiki i jaki jest limit.
+export const pamiecStronMakiety = () => ({ stron: renderer?.ileStron() ?? 0, limit: MAKS_STRON_W_PAMIECI });
+
 export function ustawPolozenieMakiety(u, { natychmiast = false } = {}) {
   if (!st) return;
   st.u = u;

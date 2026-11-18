@@ -1804,6 +1804,8 @@ export function utworzRenderer(plotno) {
   gl.bindBuffer(gl.ARRAY_BUFFER, buforTla);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1]), gl.STATIC_DRAW);
   const tekstury = new Map();
+  const uzycie = new Map(); // klucz tekstury → numer ostatniego użycia (limit pamięci, #203)
+  let licznikUzycia = 0;
   const nowaTekstura = (zrodlo, powtarzaj = false) => {
     const t = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, t);
@@ -1919,6 +1921,21 @@ export function utworzRenderer(plotno) {
     },
     // Tekstury stron do wymiany (inna lista stron po zmianie rodzaju makiety).
     // wszystkie – także okładka i obwoluta (inny sposób rysowania uszlachetnień, #181).
+    // Limit pamięci grafiki (#203): stron w pamięci najwyżej `max` – zostają potrzebne (widoczne, sąsiednie)
+    // i ostatnio używane, reszta jest zwalniana (wróci, gdy znów będzie widać tę stronę). Bez tego kartkowanie
+    // grubej książki trzymało każdą obejrzaną stronę i telefon zamykał kartę („Kurza twarz”).
+    ileStron: () => [...tekstury.keys()].filter((k) => /^(pol\|)?p:/.test(k)).length,
+    przytnijStrony(potrzebne, max) {
+      const strony = [...tekstury.keys()].filter((k) => /^(pol\|)?p:/.test(k));
+      if (strony.length <= max) return [];
+      const usuniete = [];
+      const doUsuniecia = strony.filter((k) => !potrzebne.has(k)).sort((a, b) => (uzycie.get(a) || 0) - (uzycie.get(b) || 0));
+      for (const k of doUsuniecia) {
+        if (strony.length - usuniete.length <= max) break;
+        gl.deleteTexture(tekstury.get(k)); tekstury.delete(k); uzycie.delete(k); usuniete.push(k);
+      }
+      return usuniete;
+    },
     zapomnijStrony(wszystkie = false) {
       const re = wszystkie ? /^(pol\|)?(p|okl|obw):/ : /^(pol\|)?p:/;
       for (const [klucz, t] of tekstury) if (re.test(klucz)) { gl.deleteTexture(t); tekstury.delete(klucz); }
@@ -2100,6 +2117,7 @@ export function utworzRenderer(plotno) {
         gl.bindTexture(gl.TEXTURE_2D, maska || tekstura(`kolor:${PAPIER}`));
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, tekstura(tex));
+        uzycie.set(tex, ++licznikUzycia);
         gl.drawArrays(gl.TRIANGLES, g.od, g.ile);
       }
       wylaczAtrybuty();
