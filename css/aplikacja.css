@@ -2649,8 +2649,8 @@ dialog { max-height: calc(100dvh - var(--bezp-gora) - var(--bezp-dol) - 16px); }
 }
 :root[data-dotyk] .pasek-aplikacji > .menu-uzytkownika, :root[data-dotyk] .pasek-aplikacji > .menu-wiecej { flex: none; }
 @media (max-width: 600px) {
-  #ekran-projektow > .pasek-aplikacji > [data-akcja="motyw"], #ekran-projektow > .pasek-aplikacji > .pelny-ekran,
-  #ekran-konta > .pasek-aplikacji > [data-akcja="motyw"], #ekran-konta > .pasek-aplikacji > .pelny-ekran { display: none !important; }
+  /* Motyw zostaje w pasku także na telefonie (#205) – przycisk na górze, jak w Familiadzie. */
+  #ekran-projektow > .pasek-aplikacji > .pelny-ekran, #ekran-konta > .pasek-aplikacji > .pelny-ekran { display: none !important; }
   #menu-uzytkownika .tylko-waski-pasek:not([hidden]) { display: flex; }
 }
 
@@ -3522,3 +3522,8 @@ img:not([src]):not(.zaladowany) { color: transparent; }
 
 /* Podgląd z linku w przygotowaniu (#204): pasek nad stronami. */
 .podglad-przygotowanie { margin: 0; padding: 10px 16px; background: var(--akcent-tlo); color: var(--tusz); font-size: 13.5px; line-height: 1.4; border-bottom: 1px solid var(--linia); }
+
+/* Menu motywu przy przycisku na górze (#205). */
+.menu-motywu { position: fixed; top: 0; right: 8px; left: auto; min-width: 200px; z-index: 2000; }
+.menu-motywu button[aria-checked="true"] { background: var(--akcent-tlo); color: var(--akcent); font-weight: 600; }
+.menu-motywu button[aria-checked="true"] .ikona { color: var(--akcent); }

@@ -19,7 +19,7 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 
 | # | Uwaga | Stan |
 |---|---|---|
-| B1 | (8) Motyw jako przycisk na górze, 3 tryby (jasny, ciemny, systemowy) jak w Familiadzie | ⏳ (dziś przycisk przełącza tylko jasny/ciemny) |
+| B1 | (8) Motyw jako przycisk na górze, 3 tryby (jasny, ciemny, systemowy) jak w Familiadzie | ✅ #205 |
 | B2 | (13) Wyłączenie przyklejania elementów do innych | ℹ️ jest: Widok → „Przyciągaj do elementów”; do sprawdzenia, czy łatwo znaleźć |
 | B3 | (10) Ustawienia powiadomień – wyłączenie e-maili (np. przy udostępnieniu) | ⏳ |
 | B4 | (11) Panel administratora: przyciski na górze w widoku mobilnym, ładniejsza skrzynka, kolejka i ustawienia maili w jednej sekcji, czyszczenie starych kopii zapasowych | ⏳ |

@@ -291,8 +291,14 @@ test('motyw: ciemny i jasny, zapamiętany po odświeżeniu i na koncie', async (
   const { strona, bledy } = dane;
   const motyw = () => strona.evaluate(() => [document.documentElement.dataset.motyw, getComputedStyle(document.body).backgroundColor]);
   assert.deepEqual(await motyw(), ['jasny', 'rgb(244, 243, 239)']);
+  // Przycisk motywu na górze (#205): menu z trzema trybami, ikona i opis wybranego.
   await strona.click('#ekran-logowania [data-akcja="motyw"]');
+  await strona.waitForSelector('.menu-motywu');
+  assert.deepEqual(await strona.$$eval('.menu-motywu button', (b) => b.map((x) => [x.textContent, x.getAttribute('aria-checked')])), [['Jak w systemie', 'true'], ['Jasny', 'false'], ['Ciemny', 'false']]);
+  await strona.click('.menu-motywu button[data-motyw="ciemny"]');
+  assert.equal(await strona.locator('.menu-motywu').count(), 0, 'menu zamyka się po wyborze');
   assert.deepEqual(await motyw(), ['ciemny', 'rgb(21, 20, 18)']);
+  assert.match(await strona.getAttribute('#ekran-logowania [data-akcja="motyw"]', 'title'), /ciemny/);
   await strona.reload();
   await strona.waitForSelector('#ekran-logowania', { state: 'visible' });
   assert.equal((await motyw())[0], 'ciemny');

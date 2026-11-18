@@ -2255,7 +2255,7 @@ Kliknij kółko z inicjałem w prawym górnym rogu listy projektów i wybierz **
 
 ### 27.4 Motyw
 
-**Ustawienia konta** → **Motyw**: **Jak w systemie**, **Jasny** albo **Ciemny**. Szybki przełącznik (ikona półkola) jest też na liście projektów i w menu **⋯** edytora. Motyw zmienia tylko wygląd aplikacji — strony publikacji zawsze są na białym papierze.
+Przycisk motywu jest na górze ekranu (na liście projektów, w ustawieniach konta, na ekranie logowania) i w menu **⋯** edytora. Pokazuje ikonę wybranego trybu i otwiera menu: **Jak w systemie**, **Jasny** albo **Ciemny**. To samo wybierzesz w **Ustawienia konta** → **Motyw**. Motyw zmienia tylko wygląd aplikacji — strony publikacji zawsze są na białym papierze.
 
 ![Ciemny motyw](https://makietka.app/img/instrukcja/motyw.png)
 

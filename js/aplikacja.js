@@ -9,9 +9,9 @@
 import './urzadzenie.js'; // najpierw: atrybuty urządzenia na <html> (zasłonki, cele dotyku)
 import { wlaczLadowanieObrazow } from './obrazy-ladowanie.js';
 import * as chmura from './chmura.js';
-import { wstawIkony } from './ikony.js';
+import { wstawIkony, ikona } from './ikony.js';
 import { $, powiadom, zamknijMenu, przelaczMenu } from './ui.js';
-import { przelaczMotyw } from './motyw.js';
+import { otworzMenuMotywu, odswiezPrzyciskiMotywu } from './motyw.js';
 import { wlaczWlasneKontrolki } from './kontrolki.js';
 import { wlaczDymki } from './dymki.js';
 import { wlaczZaslonki } from './zaslonki.js';
@@ -37,6 +37,7 @@ window.addEventListener('popstate', () => przejdzDoTrasy());
 
 // Motyw wybrany na koncie obowiązuje na każdym urządzeniu; zmiana motywu
 // zapisuje się na koncie.
+document.addEventListener('motyw', () => odswiezPrzyciskiMotywu((n) => ikona(n)));
 document.addEventListener('motyw', async (e) => {
   const u = stan.uzytkownik;
   if (!u || u.user_metadata?.motyw === e.detail.wybor) return;
@@ -96,7 +97,7 @@ const akcje = {
   'admin-odswiez': () => import('./app/admin.js').then((m) => m.odswiez()),
   'importuj-projekt': () => { zamknijMenu(); $('#plik-projekt').click(); },
   'do-projektow': doProjektow,
-  motyw: () => { zamknijMenu(); przelaczMotyw(); },
+  motyw: () => { zamknijMenu(); otworzMenuMotywu(document.querySelector('[data-akcja="motyw"]'), (n) => ikona(n)); },
   'pelny-ekran': () => przelaczPelnyEkran(),
   zainstaluj: () => { zamknijMenu(); zainstaluj(); },
   'zainstaluj-pozniej': () => odlozInstalacje(),
@@ -133,6 +134,13 @@ document.addEventListener('click', (e) => {
     if (b.classList.contains('tylko-waski-telefon')) zamknijMenu();
     const zLinku = podgladZLinku();
     if (zLinku && akcjePodgladuZLinku[nazwa]) { e.preventDefault(); akcjePodgladuZLinku[nazwa](zLinku); return; }
+    if (nazwa === 'motyw') { // menu motywu przy klikniętym przycisku; z menu ⋯ – przy jego przycisku (#205)
+      e.preventDefault();
+      const kotwica = b.closest('.menu') ? (b.closest('.menu-wiecej, .menu-uzytkownika')?.querySelector(':scope > button') || b) : b;
+      zamknijMenu();
+      otworzMenuMotywu(kotwica, (n) => ikona(n));
+      return;
+    }
     if (akcje[nazwa]) { e.preventDefault(); akcje[nazwa](); return; }
     const modul = edytorGotowy();
     if (modul?.akcje[nazwa]) { e.preventDefault(); modul.akcje[nazwa](); return; }
@@ -171,6 +179,7 @@ document.addEventListener('focusout', () => setTimeout(dokumentNaMiejsce, 150));
 
 async function start() {
   wstawIkony();
+  odswiezPrzyciskiMotywu((n) => ikona(n)); // ikona wybranego trybu motywu (#205)
   odswiezPelnyEkran();
   konto.inicjuj();
 
