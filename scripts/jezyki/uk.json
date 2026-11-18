@@ -3692,5 +3692,12 @@
  "Twoje klucze dla czatu": "Ваші ключі для чату",
  "Nie masz jeszcze kluczy API.": "У вас ще немає API-ключів.",
  "Nie masz jeszcze łączników.": "У вас ще немає конекторів.",
- "Nie masz jeszcze kluczy dla zwykłego czatu.": "У вас ще немає ключів для звичайного чату."
+ "Nie masz jeszcze kluczy dla zwykłego czatu.": "У вас ще немає ключів для звичайного чату.",
+ "Przy zmianach AI może też": "Під час змін ШІ також може",
+ "dodawać, usuwać i przestawiać strony": "додавати, видаляти й переставляти сторінки",
+ "zmieniać wzorce i style": "змінювати шаблони й стилі",
+ "zmieniać tabele danych i serie": "змінювати таблиці даних і серії",
+ "wgrywać, wymieniać i usuwać obrazy": "завантажувати, замінювати й видаляти зображення",
+ "robić pliki PDF i PNG": "створювати файли PDF і PNG",
+ "Uprawnienia": "Дозволи"
 }

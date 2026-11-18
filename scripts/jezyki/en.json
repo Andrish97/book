@@ -3692,5 +3692,12 @@
  "Twoje klucze dla czatu": "Your chat keys",
  "Nie masz jeszcze kluczy API.": "You don't have any API keys yet.",
  "Nie masz jeszcze łączników.": "You don't have any connectors yet.",
- "Nie masz jeszcze kluczy dla zwykłego czatu.": "You don't have any keys for a regular chat yet."
+ "Nie masz jeszcze kluczy dla zwykłego czatu.": "You don't have any keys for a regular chat yet.",
+ "Przy zmianach AI może też": "When editing, AI may also",
+ "dodawać, usuwać i przestawiać strony": "add, delete and reorder pages",
+ "zmieniać wzorce i style": "change masters and styles",
+ "zmieniać tabele danych i serie": "change data tables and series",
+ "wgrywać, wymieniać i usuwać obrazy": "upload, replace and delete images",
+ "robić pliki PDF i PNG": "make PDF and PNG files",
+ "Uprawnienia": "Permissions"
 }

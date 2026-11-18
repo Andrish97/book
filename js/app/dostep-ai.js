@@ -21,6 +21,33 @@ import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
+// Drobniejsze zakresy (#252) – pilnuje baza (ai_zakres_brak). Brak listy (null) – wszystko.
+const UPRAWNIENIA = [
+  ['strony', 'dodawać, usuwać i przestawiać strony'],
+  ['wzorce', 'zmieniać wzorce i style'],
+  ['tabele', 'zmieniać tabele danych i serie'],
+  ['obrazy', 'wgrywać, wymieniać i usuwać obrazy'],
+  ['eksport', 'robić pliki PDF i PNG'],
+];
+const KROTKO = { strony: 'stron', wzorce: 'wzorców i stylów', tabele: 'tabel i serii', obrazy: 'obrazów', eksport: 'PDF/PNG' };
+const opisUprawnien = (d) => (Array.isArray(d.uprawnienia)
+  ? (() => { const bez = UPRAWNIENIA.filter(([k]) => !d.uprawnienia.includes(k)).map(([k]) => KROTKO[k]); return bez.length ? ` · bez: ${bez.join(', ')}` : ''; })()
+  : '');
+// Pola wyboru zakresów w kontenerze; zwraca funkcję czytającą wybór (null, gdy zaznaczone wszystko).
+function poleUprawnien(kontener, wybrane) {
+  const legenda = kontener.querySelector('legend');
+  kontener.replaceChildren(...(legenda ? [legenda] : []), ...UPRAWNIENIA.map(([k, t]) => {
+    const l = document.createElement('label');
+    l.className = 'przelacznik';
+    const pole = Object.assign(document.createElement('input'), { type: 'checkbox', value: k, checked: !Array.isArray(wybrane) || wybrane.includes(k) });
+    l.append(pole, Object.assign(document.createElement('span'), { textContent: t }));
+    return l;
+  }));
+  return () => {
+    const tak = [...kontener.querySelectorAll('input:checked')].map((x) => x.value);
+    return tak.length === UPRAWNIENIA.length ? null : tak;
+  };
+}
 
 // Adres zdalnego łącznika MCP z kluczem (do dodania jako własny łącznik w Claude / serwer MCP w ChatGPT).
 // Przez przekaźnik (api.makietka.app) adres jest krótszy: …/mcp/<klucz>; wprost do bazy (np. atrapa w testach) – …/functions/v1/mcp/<klucz>.
@@ -234,6 +261,12 @@ export function edytujKluczAi(d) {
   radia.addEventListener('change', pokazListe);
   pokazListe();
   tresc.append(el('fieldset', { className: 'grupa-pol zmiana-zakresu' }, el('legend', { textContent: 'Zakres' }), radia, lista));
+  let czytajUprawnienia = null;
+  if (d.rola === 'edycja') {
+    const pola = el('fieldset', { className: 'uprawnienia-klucza' }, el('legend', { textContent: 'Przy zmianach AI może też' }));
+    czytajUprawnienia = poleUprawnien(pola, d.uprawnienia);
+    tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Uprawnienia' }), pola));
+  }
 
   // Ważność – od dziś.
   const wybor = el('select', { id: 'edytuj-klucz-dni' });
@@ -261,6 +294,10 @@ export function edytujKluczAi(d) {
         const stare = (d.projekty || []).map((p) => p.id).sort().join();
         if (zakres !== d.zakres || (zakres === 'wybrane' && projektyNowe.slice().sort().join() !== stare)) await chmura.zmienDostepAi(d.id, { zakres, projekty: projektyNowe });
         if (wybor.value) await chmura.zmienWaznoscAi(d.id, wybor.value === 'bez' ? null : Number(wybor.value));
+        if (czytajUprawnienia) {
+          const u = czytajUprawnienia();
+          if (JSON.stringify(u) !== JSON.stringify(d.uprawnienia ?? null)) await chmura.ustawUprawnieniaAi(d.id, u);
+        }
         powiadom('Klucz zmieniony – adres zostaje ten sam.');
         dlg.close();
       } catch (e) { blad.textContent = chmura.komunikatBledu(e); blad.hidden = false; }
@@ -299,7 +336,7 @@ function wierszKlucza(d) {
   const li = document.createElement('li');
   li.dataset.id = d.id;
   const zakres = el('span', { className: 'zakres-opis', textContent: opisZakresu(d) });
-  const szczegoly = el('span', { className: 'ciche', textContent: `${ROLE[d.rola] || d.rola} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` });
+  const szczegoly = el('span', { className: 'ciche', textContent: `${ROLE[d.rola] || d.rola}${d.rola === 'edycja' ? opisUprawnien(d) : ''} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` });
   li.append(el('div', {}, el('strong', { textContent: d.opis || 'Klucz bez opisu' }), zakres, szczegoly),
     el('div', { className: 'klucz-akcje' }, przyciskAi('Edytuj', () => edytujKluczAi(d))));
   return li;
@@ -354,6 +391,7 @@ async function rysujDostawcow() {
 
 const TYTULY = { czat: 'Nowy klucz API dostawcy', lacznik: 'Nowy klucz – łącznik w aplikacji AI', zwykly: 'Nowy klucz – zwykły czat' };
 let projektWybrany = null;
+let czytajNoweUprawnienia = () => null;
 
 function przygotujKluczDostawcy(dostawca) {
   const wybor = $('#ai-nowy-dostawca');
@@ -394,6 +432,8 @@ export function dodajKluczAi(rodzaj, { dostawca = null } = {}) {
     if (zakres) zakres.checked = true;
     listaWyboru($('#dostep-ai-projekty'), new Set(projektWybrany ? [projektWybrany] : []));
     pokazZakresNowego();
+    czytajNoweUprawnienia = poleUprawnien($('#dostep-ai-uprawnienia'), null);
+    $('#dostep-ai-uprawnienia').hidden = $('#dostep-ai-rola').value !== 'edycja';
   }
   if (!$('#dlg-klucz-ai').open) $('#dlg-klucz-ai').showModal();
 }
@@ -476,6 +516,8 @@ export async function utworzKluczAi() {
       projekty: zakres === 'pelny' ? [] : wybrane($('#dostep-ai-projekty')),
     });
     await chmura.oznaczDostepAi(wynik.id, rodzaj).catch(() => {});
+    const uprawnienia = $('#dostep-ai-rola').value === 'edycja' ? czytajNoweUprawnienia() : null;
+    if (uprawnienia) await chmura.ustawUprawnieniaAi(wynik.id, uprawnienia);
     $('#dostep-ai-klucz').value = wynik.klucz;
     $('#dostep-ai-adres').value = adresLacznika(wynik.klucz);
     instrukcje(wynik.klucz);
@@ -515,8 +557,9 @@ export function zamknijDostepAi() {
   document.dispatchEvent(new CustomEvent('makietka:klucze-ai'));
 }
 
-$('#dlg-dostep-ai').addEventListener('close', () => przeniesPanel(false));
-$('#dlg-klucz-ai').addEventListener('close', () => { wyczyscNowy(); rysujDostawcow(); odswiezListe(); document.dispatchEvent(new CustomEvent('makietka:klucze-ai')); });
+// Zdarzenie close przychodzi z opóźnieniem – gdy okno zdążyło się otworzyć ponownie, panel zostaje w nim.
+$('#dlg-dostep-ai').addEventListener('close', () => { if (!$('#dlg-dostep-ai').open) przeniesPanel(false); });
+$('#dlg-klucz-ai').addEventListener('close', () => { if ($('#dlg-klucz-ai').open) return; wyczyscNowy(); rysujDostawcow(); odswiezListe(); document.dispatchEvent(new CustomEvent('makietka:klucze-ai')); });
 // Przełącznik na górze (#250): jedna z trzech sekcji naraz.
 export function ustawSekcjeAi(z) {
   const sekcja = TYTULY[z] ? z : 'czat';
@@ -530,7 +573,10 @@ $('#dostep-ai').addEventListener('click', (e) => {
   const b = e.target.closest('[data-dodaj-klucz-ai]');
   if (b) dodajKluczAi(b.dataset.dodajKluczAi);
 });
-$('#dostep-ai-nowy').addEventListener('change', (e) => { if (e.target.name === 'dostep-ai-zakres') pokazZakresNowego(); });
+$('#dostep-ai-nowy').addEventListener('change', (e) => {
+  if (e.target.name === 'dostep-ai-zakres') pokazZakresNowego();
+  if (e.target.id === 'dostep-ai-rola') $('#dostep-ai-uprawnienia').hidden = e.target.value !== 'edycja';
+});
 
 // Krótkie podsumowanie w ustawieniach konta: ile kluczy działa.
 export async function podsumowanieKluczy() {

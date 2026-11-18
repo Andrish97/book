@@ -897,6 +897,11 @@ export async function oznaczDostepAi(id, sposob) {
   const sb = await supabase();
   sprawdz(await sb.rpc('oznacz_dostep_ai', { p_id: id, p_sposob: sposob }));
 }
+// #252: co jeszcze wolno kluczowi (podzbiór strony, wzorce, tabele, obrazy, eksport); null – wszystko.
+export async function ustawUprawnieniaAi(id, uprawnienia) {
+  const sb = await supabase();
+  sprawdz(await sb.rpc('ustaw_uprawnienia_ai', { p_id: id, p_uprawnienia: uprawnienia }));
+}
 export async function zmienWaznoscAi(id, dni) {
   const sb = await supabase();
   return sprawdz(await sb.rpc('zmien_waznosc_ai', { p_id: id, p_dni: dni }));

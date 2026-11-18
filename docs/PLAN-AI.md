@@ -13,7 +13,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
 | Kopiowanie stron, wyrównywanie i rozmieszczanie elementów, kadrowanie istniejącego obrazu, wzorce, style, serie | ⚠️ Da się, ale ogólnym `zmien_projekt` / `zmien_elementy` (AI liczy samo) – brak wygodnych narzędzi. |
 | Kontrola: propozycje i wykonanie poprawek | ⚠️ `kontrola` zwraca uwagi; poprawki AI robi sama zwykłymi narzędziami – brak „napraw” po stronie Makietki. |
 | 3.2 OAuth 2.1 | ✅ #244 (łącznik z logowaniem, strona zgody; GPT usunięty – #245). Wcześniej: ❌ Klucz w adresie łącznika (świadoma decyzja #32: „bez tokenów, prościej”). Claude i ChatGPT obsługują łączniki z logowaniem – to wygodniejsze i bezpieczniejsze niż kopiowanie adresu z kluczem. |
-| Zakresy uprawnień | ⚠️ Tylko „czyta” / „czyta i zmienia” + wybrane projekty / wszystkie. Brak drobniejszych (obrazy, wzorce, tabele, usuwanie). |
+| Zakresy uprawnień | ✅ #252: czyta / zmienia, projekty, a przy zmianach osobno strony, wzorce i style, tabele i serie, obrazy, eksport – pilnuje baza. |
 | 5 BYOK – dostawcy | ✅ Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter (logowanie), dowolne API zgodne z OpenAI (LiteLLM, Ollama – gdy pozwala na zapytania z przeglądarki), plus bez klucza: „kopiuj i wklej”. |
 | 5.2 Panel „Ustawienia → Sztuczna inteligencja” | ⚠️ Ustawienia są w samym czacie (jeden dostawca naraz). Brak listy kilku dostawców, modelu domyślnego, „Sprawdź połączenie”. |
 | 9 Klucze dostawców po stronie serwera, zaszyfrowane | ✅ #241: na koncie, zaszyfrowane w przeglądarce hasłem do kluczy (twórca nie odczyta) – decyzja użytkownika. |
@@ -28,7 +28,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
    autoryzacji, rejestracja klienta (DCR), PKCE, strona zgody w Makietce (logowanie, wybór projektów, zakres,
    ważność), tokeny dostępu i odświeżania na bazie kluczy AI (te same uprawnienia i odbieranie w Dostępie dla AI).
    Adres z kluczem zostaje jako druga droga.
-2. **Zakresy uprawnień** – obok czyta / zmienia: obrazy, wzorce i style, tabele i serie, struktura (dodawanie
+2. ✅ (#252) **Zakresy uprawnień** – obok czyta / zmienia: obrazy, wzorce i style, tabele i serie, struktura (dodawanie
    i usuwanie stron), usuwanie projektów – sprawdzane w rdzeniu po stronie serwera i pokazywane na stronie zgody.
 3. **Zatwierdzanie w czacie Makietki** – przed usunięciem stron, wielu elementów, obrazów w użyciu, projektu
    i przed zmianą wielu stron naraz: pytanie z opisem; „Zawsze pozwalaj w tej rozmowie”.

@@ -2231,6 +2231,7 @@ Okienko nowego klucza dostępu (łącznik i zwykły czat):
 | **Ważny przez** | 1 dzień, 7 dni, 30 dni, 90 dni, rok albo bez terminu. |
 | **Wybrane projekty** | Projekty, do których klucz daje dostęp — Twoje i udostępnione Ci. |
 | **Pełny dostęp – wszystkie projekty, także tworzenie i usuwanie** | Także projekty, które dojdą później. Usunięcie projektu AI zawsze potwierdza nazwą. |
+| **Przy zmianach AI może też** | Pięć przełączników (domyślnie wszystkie włączone): dodawać, usuwać i przestawiać strony; zmieniać wzorce i style; zmieniać tabele danych i serie; wgrywać, wymieniać i usuwać obrazy; robić pliki PDF i PNG. Wyłączone – AI dostaje odmowę z wyjaśnieniem; pilnuje tego serwer Makietki, nie aplikacja AI. Widać tylko przy kluczu „czytać i zmieniać”. |
 
 **Utwórz klucz** pokazuje **Adres łącznika** (albo gotowe polecenie dla zwykłego czatu). Gdy masz hasło do kluczy, Makietka zapamiętuje klucz zaszyfrowany tym hasłem; bez hasła – **Zapamiętaj klucz** w okienku. **Gotowe** zamyka okienko.
 
@@ -2240,6 +2241,7 @@ Przy każdym kluczu na liście jest **Edytuj** – edycja otwiera się w okienku
 |---|---|
 | **Pokaż klucz** | Pokazuje jeszcze raz adres łącznika albo polecenie dla zwykłego czatu (i sam klucz) – do skopiowania. Działa dla kluczy zapamiętanych w sejfie. |
 | **Zakres** | Wybrane projekty albo pełny dostęp — adres się nie zmienia. |
+| **Uprawnienia** | Te same pięć przełączników co przy nowym kluczu. Lista kluczy pokazuje, czego klucz nie może (np. „bez: stron, obrazów”). |
 | **Ważność** | Nowy czas od dziś (1 dzień … rok albo bez terminu), także dla klucza, który już wygasł; „bez zmian” zostawia obecny. |
 | **Zapisz zmiany** | Zapisuje zakres i ważność. |
 | **Odbierz klucz** | Wyłącza klucz od razu. |

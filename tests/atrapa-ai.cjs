@@ -76,6 +76,21 @@ function atrapaAi(stan) {
     return { d, projekt: m[3] || null };
   }
 
+  // Zakres klucza (#252) – jak ai_zakres_brak w bazie: null – wolno, inaczej { blad }.
+  const BRAK_ZAKRESU = {
+    strony: 'Ten klucz nie pozwala dodawać, usuwać ani przestawiać stron (ani zmieniać sekcji).',
+    wzorce: 'Ten klucz nie pozwala zmieniać wzorców ani stylów.',
+    tabele: 'Ten klucz nie pozwala zmieniać tabel danych ani serii.',
+    obrazy: 'Ten klucz nie pozwala wgrywać, wymieniać ani usuwać obrazów.',
+    eksport: 'Ten klucz nie pozwala robić plików PDF ani PNG.',
+  };
+  function zakresBrak(klucz, co) {
+    const m = /^sdk_([0-9a-f]{32})_([A-Za-z0-9_-]{20,100})/.exec(String(klucz || ''));
+    const d = m && stan.dostepy.find((x) => x.id.replace(/-/g, '') === m[1] && x.sekret === m[2]);
+    if (!d || !Array.isArray(d.uprawnienia) || d.uprawnienia.includes(co)) return null;
+    return { blad: `${BRAK_ZAKRESU[co]} Właściciel konta może to zmienić: Ustawienia konta → Sztuczna inteligencja → Edytuj.` };
+  }
+
   function sprawdzKlucz(klucz, edycja) {
     const w = kluczKonta(klucz);
     if (w.blad) return w;
@@ -171,9 +186,21 @@ function atrapaAi(stan) {
   }
 
   function aiZapisz({ p_klucz, p_znana_wersja, p_zmiany }) {
+    const z = p_zmiany;
+    if (z && typeof z === 'object' && !Array.isArray(z)) {
+      const ma = (...k) => k.some((x) => x in z);
+      const b = (ma('wzorce', 'style') && zakresBrak(p_klucz, 'wzorce')) || (ma('tabele', 'serie') && zakresBrak(p_klucz, 'tabele'))
+        || (ma('usun_strony', 'kolejnosc_stron', 'sekcje') && zakresBrak(p_klucz, 'strony'));
+      if (b) return b;
+      if (Array.isArray(z.strony) && zakresBrak(p_klucz, 'strony')) {
+        const dd = sprawdzKlucz(p_klucz, true);
+        const pr = !dd.blad && stan.projekty.find((x) => x.id === dd.projekt_id);
+        const byly = new Set((pr?.dane?.strony || []).map((x) => x?.id ?? x));
+        if (pr && z.strony.some((x) => !byly.has(x?.id))) return zakresBrak(p_klucz, 'strony');
+      }
+    }
     const d = sprawdzKlucz(p_klucz, true);
     if (d.blad) return d;
-    const z = p_zmiany;
     if (!z || typeof z !== 'object' || Array.isArray(z)) return { blad: 'Zmiany muszą być obiektem JSON.' };
     const bledy = Object.keys(z).filter((k) => !CZESCI.includes(k)).map((k) => `Nieznana część projektu „${k}” (dozwolone: ${CZESCI.join(', ')}).`);
     if (bledy.length) return { blad: 'Zmiany odrzucone.', szczegoly: bledy };
@@ -349,6 +376,8 @@ function atrapaAi(stan) {
 
   // Mały plik jednym zapytaniem (do 1 MB).
   function aiWgrajObraz({ p_klucz, p_nazwa, p_typ, p_dane, p_szer = null, p_wys = null, p_zastap = null }) {
+    const bz = zakresBrak(p_klucz, 'obrazy');
+    if (bz) return bz;
     const d = sprawdzKlucz(p_klucz, true);
     if (d.blad) return d;
     if (!SYGNATURY[p_typ]) return { blad: 'Obsługiwane obrazy: PNG, JPEG, WebP, GIF i SVG.' };
@@ -373,6 +402,8 @@ function atrapaAi(stan) {
 
   // Większy plik w kawałkach po 512 KB: początek → kawałki → koniec.
   function aiWgrajPoczatek({ p_klucz, p_nazwa, p_typ, p_rozmiar, p_skrot, p_szer = null, p_wys = null, p_zastap = null, p_kawalek = null }) {
+    const bz = zakresBrak(p_klucz, 'obrazy');
+    if (bz) return bz;
     const kawalek = p_kawalek ?? KAWALEK;
     if (kawalek < 16 * 1024 || kawalek > KAWALEK) return { blad: 'Wielkość kawałka (p_kawalek): od 16 KB do 512 KB.' };
     const d = sprawdzKlucz(p_klucz, true);
@@ -438,6 +469,8 @@ function atrapaAi(stan) {
   }
 
   function aiZmienObrazy({ p_klucz, p_kopie = {}, p_usun = [] }) {
+    const bz = zakresBrak(p_klucz, 'obrazy');
+    if (bz) return bz;
     const d = sprawdzKlucz(p_klucz, true);
     if (d.blad) return d;
     const p = stan.projekty.find((x) => x.id === d.projekt_id);
@@ -488,6 +521,7 @@ function atrapaAi(stan) {
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
     // Eksport zlecony przez AI (#175) – wspólny stan z aplikacją (tests/atrapa-eksport.cjs).
     if (funkcja === 'ai_zlec_eksport' || funkcja === 'ai_stan_eksportu') {
+      if (funkcja === 'ai_zlec_eksport') { const bz = zakresBrak(tresc.p_klucz, 'eksport'); if (bz) return bz; }
       stan.eksport = stan.eksport || atrapaEksportu(stan);
       return stan.eksport.ai(funkcja, tresc, { sprawdzKlucz, kluczKonta });
     }
@@ -585,7 +619,7 @@ function atrapaAi(stan) {
         return { klucz: k.klucz, wazny_do: k.wazny_do };
       }
     }
-    if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai', 'zmien_dostep_ai', 'oznacz_dostep_ai', 'zmien_waznosc_ai'].includes(funkcja)) return undefined;
+    if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai', 'zmien_dostep_ai', 'oznacz_dostep_ai', 'zmien_waznosc_ai', 'ustaw_uprawnienia_ai'].includes(funkcja)) return undefined;
     if (!konto) blad(401, 'Brak sesji');
     const projektyZakresu = (zakres, lista) => {
       if (!['wybrane', 'pelny'].includes(zakres)) blad(400, 'Zakres klucza: wybrane projekty albo pełny dostęp');
@@ -612,12 +646,21 @@ function atrapaAi(stan) {
     }
     if (funkcja === 'dostepy_ai') {
       return stan.dostepy.filter((x) => x.owner_id === konto.id).reverse()
-        .map(({ id, opis, rola, zakres, sposob, projekty, wazny_do, utworzono, ostatnie_uzycie, odwolany }) => ({
-          id, opis, rola, zakres, sposob: sposob || null, wazny_do, utworzono, ostatnie_uzycie, odwolany,
+        .map(({ id, opis, rola, zakres, sposob, uprawnienia, projekty, wazny_do, utworzono, ostatnie_uzycie, odwolany }) => ({
+          id, opis, rola, zakres, sposob: sposob || null, uprawnienia: uprawnienia || null, wazny_do, utworzono, ostatnie_uzycie, odwolany,
           aktywny: !odwolany && (!wazny_do || new Date(wazny_do) > new Date()),
           projekty: projekty.map((pid) => stan.projekty.find((p) => p.id === pid)).filter((p) => p && rolaKonta(konto.id, p.id))
             .map((p) => ({ id: p.id, nazwa: p.nazwa })).sort((a, b) => a.nazwa.localeCompare(b.nazwa)),
         }));
+    }
+    if (funkcja === 'ustaw_uprawnienia_ai') {
+      const WSZYSTKIE = ['strony', 'wzorce', 'tabele', 'obrazy', 'eksport'];
+      const u = tresc.p_uprawnienia;
+      if (u != null && u.some((x) => !WSZYSTKIE.includes(x))) blad(400, 'Nieznany zakres klucza');
+      const d = stan.dostepy.find((x) => x.id === tresc.p_id && x.owner_id === konto.id);
+      if (!d) blad(400, 'Nie ma takiego klucza na tym koncie');
+      d.uprawnienia = u == null || WSZYSTKIE.every((x) => u.includes(x)) ? null : [...new Set(u)].sort();
+      return null;
     }
     if (funkcja === 'oznacz_dostep_ai') {
       if (!['lacznik', 'zwykly', 'czat'].includes(tresc.p_sposob)) blad(400, 'Nieznany rodzaj klucza');

@@ -962,6 +962,9 @@ body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .naglowek-kluczy-ai .podpowiedz { margin: 0; }
 .naglowek-kluczy-ai .przycisk { flex: none; }
 .sekcja-kluczy-ai .lista-dostawcow-ai:empty, .sekcja-kluczy-ai .lista-dostepow:empty { display: none; }
+.uprawnienia-klucza { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; border: 0; }
+.uprawnienia-klucza legend { padding: 0; margin-bottom: 4px; font-size: 13px; font-weight: 600; color: var(--tusz-2); }
+.uprawnienia-klucza[hidden] { display: none; }
 .klucz-pokazany { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .klucz-pokazany pre { white-space: pre-wrap; word-break: break-all; margin: 0; }
 .uwaga-planu { border-left: 3px solid var(--ostrzezenie, #d97706); padding: 8px 12px; background: rgba(217, 119, 6, 0.06); border-radius: var(--r-s); }
