@@ -2212,7 +2212,7 @@ Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile 
 
 ### 25.2 Klucz dla AI
 
-**Ustawienia konta** → **Sztuczna inteligencja** → **Zarządzaj…** otwiera okno z trzema zakładkami – trzema drogami pracy z AI:
+**Ustawienia konta** → **Sztuczna inteligencja** pokazuje od razu trzy zakładki – trzy drogi pracy z AI:
 
 | Zakładka | Do czego | Koszt |
 |---|---|---|
@@ -2238,18 +2238,18 @@ Część **Nowy klucz**:
 
 Lista **Klucze konta** pokazuje zakres, ważność i ostatnie użycie każdego klucza. **Zmień zakres** dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łącznika się nie zmienia. **Odbierz** wyłącza klucz od razu.
 
-![Okno Sztuczna inteligencja](https://makietka.app/img/instrukcja/dostep-ai.png)
+![Ustawienia Sztuczna inteligencja](https://makietka.app/img/instrukcja/dostep-ai.png)
 
 ### 25.3 Podłączenie w aplikacji AI
 
-**Najprościej – z logowaniem (bez kopiowania klucza).** W aplikacji AI dodaj własny łącznik pod adresem `https://api.makietka.app/mcp` (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy stronę Makietki **Połącz z Makietką**: logujesz się swoim hasłem, widzisz, kto prosi (np. „Claude”), wybierasz projekty (albo wszystkie), czytanie albo też zmiany i ważność – **Zezwól** wraca do aplikacji AI, **Odmów** kończy łączenie. Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w oknie Sztuczna inteligencja i można go odebrać. Aplikacja AI nie dostaje Twojego hasła. Druga droga – adres z kluczem z okna – działa jak dotąd:
+**Najprościej – z logowaniem (bez kopiowania klucza).** W aplikacji AI dodaj własny łącznik pod adresem `https://api.makietka.app/mcp` (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy stronę Makietki **Połącz z Makietką**: logujesz się swoim hasłem, widzisz, kto prosi (np. „Claude”), wybierasz projekty (albo wszystkie), czytanie albo też zmiany i ważność – **Zezwól** wraca do aplikacji AI, **Odmów** kończy łączenie. Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w ustawieniach Sztuczna inteligencja i można go odebrać. Aplikacja AI nie dostaje Twojego hasła. Druga droga – adres z kluczem z okna – działa jak dotąd:
 
 | Aplikacja | Jak podłączyć |
 |---|---|
 | **Claude** (claude.ai, aplikacja na komputer i telefon) | **Ustawienia → Łączniki → Dodaj własny łącznik**, nazwa „Makietka”, wklej adres. W rozmowie włącz łącznik w menu narzędzi. |
 | **Claude Desktop** | W oknie Sztuczna inteligencja: **Pobierz rozszerzenie dla Claude Desktop**, kliknij pobrany plik dwa razy i wklej klucz. Rozszerzenie czyta też pliki z Twojego dysku. |
 | **ChatGPT** | **Ustawienia → Aplikacje → Dodaj własny serwer MCP**, wklej adres, uwierzytelnianie: brak. |
-| **Claude Code** i inne programy z MCP | Polecenie z części **Dla zaawansowanych** w oknie Sztuczna inteligencja. |
+| **Claude Code** i inne programy z MCP | Polecenie z części **Dla zaawansowanych** w ustawieniach Sztuczna inteligencja. |
 
 Sprawdzenie: napisz do AI „Pokaż moje projekty w Makietce”.
 
@@ -2264,7 +2264,7 @@ Co to jest Makietka: aplikacja w przeglądarce (https://makietka.app) do składa
 
 Co wiem o łączniku Makietki:
 - To zdalny serwer MCP (transport Streamable HTTP) z logowaniem OAuth: adres https://api.makietka.app/mcp (bez klucza) – aplikacja AI otworzy stronę Makietki, gdzie się loguję i wybieram projekty. Druga droga: adres z kluczem https://api.makietka.app/mcp/<klucz> (łącznik „bez logowania”).
-- Klucz tworzę sam w Makietce: Ustawienia konta → Sztuczna inteligencja → Zarządzaj… Wybieram: które projekty (albo pełny dostęp – wtedy AI może też tworzyć i usuwać projekty), czy AI tylko czyta, czy też zmienia, i ważność. Adres z kluczem widać tylko raz.
+- Klucz tworzę sam w Makietce: Ustawienia konta → Sztuczna inteligencja. Wybieram: które projekty (albo pełny dostęp – wtedy AI może też tworzyć i usuwać projekty), czy AI tylko czyta, czy też zmienia, i ważność. Adres z kluczem widać tylko raz.
 - Narzędzia łącznika: lista projektów, nowy projekt i usunięcie projektu (przy pełnym dostępie), przegląd projektu, czytanie i zmiana stron, elementów, wzorców, stylów, tabel danych i serii, wgrywanie obrazów (adres https, link z Dysku Google albo Dropboxa, kod SVG, małe pliki kawałkami), wstawianie obrazów na strony, link do wgrania zdjęć przez przeglądarkę, kontrola przed drukiem.
 - Opis dla AI: https://makietka.app/ai/api.md, model danych projektu: https://makietka.app/ai/format-makietka.md.
 - Dla Claude Desktop jest też rozszerzenie https://makietka.app/ai/mcp/makietka.mcpb – działa na komputerze i czyta pliki oraz foldery z dysku.
@@ -2325,7 +2325,7 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 ### 25.7 AI, które umie otwierać strony (bez łącznika)
 
-Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika: w oknie **Sztuczna inteligencja**, zaraz po utworzeniu klucza, **Kopiuj dla zwykłego czatu** daje gotowe polecenie z adresem – wklej je w rozmowie; AI pokaże Twoje projekty i zapyta, co zrobić. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
+Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika: w ustawieniach **Sztuczna inteligencja**, zaraz po utworzeniu klucza, **Kopiuj dla zwykłego czatu** daje gotowe polecenie z adresem – wklej je w rozmowie; AI pokaże Twoje projekty i zapyta, co zrobić. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
 
 > **Uwaga:** Część czatów otwiera tylko adresy, które dostała od użytkownika albo znalazła sama – nie te, które zbuduje. Wtedy działa czytanie (linki z opisu), a do zmian użyj trybu „kopiuj i wklej” albo łącznika.
 

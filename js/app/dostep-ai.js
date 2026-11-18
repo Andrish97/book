@@ -235,7 +235,7 @@ function pokazZakresNowego() {
 // ---------- Zakładki (#243): czat w Makietce, łącznik, zwykły czat ----------
 
 export function ustawZakladkeAi(z) {
-  const dlg = $('#dlg-dostep-ai');
+  const dlg = $('#dostep-ai');
   dlg.dataset.zakladka = z;
   for (const b of dlg.querySelectorAll('[data-zakladka-ai]')) b.setAttribute('aria-selected', String(b.dataset.zakladkaAi === z));
   if (z === 'czat') rysujDostawcow();
@@ -279,8 +279,19 @@ async function rysujDostawcow() {
       : []));
 }
 
+// Panel AI (#247) mieszka w ustawieniach konta (sekcja „Sztuczna inteligencja”) – bez osobnego okna. Poza ustawieniami
+// (np. z edytora) ten sam panel pokazuje się w oknie i wraca na miejsce po zamknięciu.
+const wUstawieniach = () => document.body.dataset.ekran === 'konto';
+function przeniesPanel(doOkna) {
+  const panel = $('#dostep-ai');
+  const cel = doOkna ? $('#dlg-dostep-ai .miejsce-panelu-ai') : $('#ust-ai');
+  if (panel.parentElement !== cel) cel.append(panel);
+}
+
 export async function otworzDostepAi({ projektId = null, zakladka = 'czat' } = {}) {
   if (!stan.uzytkownik) { powiadom('Ustawienia sztucznej inteligencji wymagają zalogowania.', true); return; }
+  const wOknie = !wUstawieniach();
+  przeniesPanel(wOknie);
   ustawZakladkeAi(zakladka);
   $('#dostep-ai-gotowy').hidden = true;
   $('#dostep-ai-klucz').value = '';
@@ -289,7 +300,7 @@ export async function otworzDostepAi({ projektId = null, zakladka = 'czat' } = {
   pokazPolecenia();
   const zakres = $(`#dostep-ai-nowy input[name="dostep-ai-zakres"][value="wybrane"]`);
   if (zakres) zakres.checked = true;
-  $('#dlg-dostep-ai').showModal();
+  if (wOknie && !$('#dlg-dostep-ai').open) $('#dlg-dostep-ai').showModal();
   try {
     // Otwarty projekt musi być na koncie, żeby dało się go wybrać.
     const modul = edytorGotowy();
@@ -324,6 +335,7 @@ export async function utworzKluczAi() {
     $('#dostep-ai-gotowy').hidden = false;
     $('#dostep-ai-adres').select();
     odswiezListe();
+    document.dispatchEvent(new CustomEvent('makietka:klucze-ai'));
   } catch (e) {
     powiadom(chmura.komunikatBledu(e), true);
   } finally {
@@ -349,11 +361,13 @@ export function zamknijDostepAi() {
   // Klucz (także w adresie i poleceniach) nie zostaje w oknie po zamknięciu.
   for (const id of ['#dostep-ai-klucz', '#dostep-ai-adres']) $(id).value = '';
   for (const id of ['#dostep-ai-claude-code', '#dostep-ai-claude-desktop']) $(id).textContent = '';
-  $('#dlg-dostep-ai').close();
+  if ($('#dlg-dostep-ai').open) $('#dlg-dostep-ai').close();
+  przeniesPanel(false);
   document.dispatchEvent(new CustomEvent('makietka:klucze-ai'));
 }
 
-$('#dlg-dostep-ai').addEventListener('click', (e) => { const b = e.target.closest('[data-zakladka-ai]'); if (b) ustawZakladkeAi(b.dataset.zakladkaAi); });
+$('#dlg-dostep-ai').addEventListener('close', () => przeniesPanel(false));
+$('#dostep-ai').addEventListener('click', (e) => { const b = e.target.closest('[data-zakladka-ai]'); if (b) ustawZakladkeAi(b.dataset.zakladkaAi); });
 $('#dostep-ai-nowy').addEventListener('change', (e) => { if (e.target.name === 'dostep-ai-zakres') pokazZakresNowego(); });
 
 // Krótkie podsumowanie w ustawieniach konta: ile kluczy działa.

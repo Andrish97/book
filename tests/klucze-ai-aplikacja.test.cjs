@@ -45,13 +45,15 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.evaluate(() => { location.hash = '#/konto/ai'; });
   await strona.waitForFunction(() => document.body.dataset.ekran === 'konto');
   await strona.waitForFunction(() => /Nie masz jeszcze żadnego klucza/.test(document.querySelector('#ust-ai-opis').textContent));
-  await strona.click('[data-akcja="konto-dostep-ai"]');
-  await strona.waitForSelector('#dlg-dostep-ai[open]');
-  // #243: okno otwiera się na „Czat w Makietce”; klucze dostępu – w zakładce łącznika.
-  assert.equal(await strona.getAttribute('#dlg-dostep-ai', 'data-zakladka'), 'czat');
+  // #247: panel wprost w sekcji ustawień – bez przycisku „Zarządzaj…” i bez osobnego okna.
+  assert.equal(await strona.locator('[data-akcja="konto-dostep-ai"]').count(), 0);
+  await strona.waitForSelector('#ust-ai #dostep-ai #ai-dostawcy-lista li');
+  assert.equal(await strona.isVisible('#dlg-dostep-ai'), false);
+  // #243: panel otwiera się na „Czat w Makietce”; klucze dostępu – w zakładce łącznika.
+  assert.equal(await strona.getAttribute('#dostep-ai', 'data-zakladka'), 'czat');
   assert.equal(await strona.isVisible('#dostep-ai-nowy'), false);
   await strona.click('[data-zakladka-ai="lacznik"]');
-  assert.match(await strona.textContent('#dlg-dostep-ai .uwaga-planu'), /płatnego planu/);
+  assert.match(await strona.textContent('#dostep-ai .uwaga-planu'), /płatnego planu/);
   await strona.waitForFunction(() => document.querySelectorAll('#dostep-ai-projekty input').length === 1);
   assert.equal(await strona.locator('#dostep-ai-projekty input:checked').count(), 0, 'z ustawień konta nic nie jest zaznaczone z góry');
   await strona.check('#dostep-ai-nowy input[value="pelny"]');
@@ -62,7 +64,6 @@ test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy 
   await strona.waitForSelector('#dostep-ai-gotowy:not([hidden])');
   const klucz = await strona.inputValue('#dostep-ai-klucz');
   await strona.waitForFunction(() => /pełny dostęp.*bez terminu/s.test(document.querySelector('#dostep-ai-lista').textContent));
-  await strona.click('[data-akcja="dostep-ai-zamknij"]');
   await strona.waitForFunction(() => /Aktywne klucze: 1 – „Claude – całe konto” \(pełny dostęp\)/.test(document.querySelector('#ust-ai-opis').textContent));
 
   // AI tworzy projekt – lista projektów pokazuje go sama.

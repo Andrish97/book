@@ -10,7 +10,7 @@ Co to jest Makietka: aplikacja w przeglądarce (https://makietka.app) do składa
 
 Co wiem o łączniku Makietki:
 - To zdalny serwer MCP (transport Streamable HTTP) z logowaniem OAuth: adres https://api.makietka.app/mcp (bez klucza) – aplikacja AI otworzy stronę Makietki, gdzie się loguję i wybieram projekty. Druga droga: adres z kluczem https://api.makietka.app/mcp/<klucz> (łącznik „bez logowania”).
-- Klucz tworzę sam w Makietce: Ustawienia konta → Sztuczna inteligencja → Zarządzaj… Wybieram: które projekty (albo pełny dostęp – wtedy AI może też tworzyć i usuwać projekty), czy AI tylko czyta, czy też zmienia, i ważność. Adres z kluczem widać tylko raz.
+- Klucz tworzę sam w Makietce: Ustawienia konta → Sztuczna inteligencja. Wybieram: które projekty (albo pełny dostęp – wtedy AI może też tworzyć i usuwać projekty), czy AI tylko czyta, czy też zmienia, i ważność. Adres z kluczem widać tylko raz.
 - Narzędzia łącznika: lista projektów, nowy projekt i usunięcie projektu (przy pełnym dostępie), przegląd projektu, czytanie i zmiana stron, elementów, wzorców, stylów, tabel danych i serii, wgrywanie obrazów (adres https, link z Dysku Google albo Dropboxa, kod SVG, małe pliki kawałkami), wstawianie obrazów na strony, link do wgrania zdjęć przez przeglądarkę, kontrola przed drukiem.
 - Opis dla AI: https://makietka.app/ai/api.md, model danych projektu: https://makietka.app/ai/format-makietka.md.
 - Dla Claude Desktop jest też rozszerzenie https://makietka.app/ai/mcp/makietka.mcpb – działa na komputerze i czyta pliki oraz foldery z dysku.

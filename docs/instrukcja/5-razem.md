@@ -129,8 +129,8 @@ jak zmiany współpracownika (→ 24.4).
 
 ## 25.2 Klucz dla AI
 
-[Ustawienia konta] → **Sztuczna inteligencja** → [Zarządzaj…] otwiera okno z trzema zakładkami – trzema
-drogami pracy z AI:
+[Ustawienia konta] → **Sztuczna inteligencja** pokazuje od razu trzy zakładki – trzy
+drogi pracy z AI:
 
 | Zakładka | Do czego | Koszt |
 |---|---|---|
@@ -157,7 +157,7 @@ Część **Nowy klucz**:
 Lista **Klucze konta** pokazuje zakres, ważność i ostatnie użycie każdego klucza. [Zmień zakres]
 dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łącznika się nie zmienia. [Odbierz] wyłącza klucz od razu.
 
-![Okno Sztuczna inteligencja](dostep-ai.png)
+![Ustawienia Sztuczna inteligencja](dostep-ai.png)
 
 ## 25.3 Podłączenie w aplikacji AI
 
@@ -165,7 +165,7 @@ dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łączni
 `https://api.makietka.app/mcp` (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy stronę Makietki
 **Połącz z Makietką**: logujesz się swoim hasłem, widzisz, kto prosi (np. „Claude”), wybierasz projekty (albo
 wszystkie), czytanie albo też zmiany i ważność – [Zezwól] wraca do aplikacji AI, [Odmów] kończy łączenie.
-Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w oknie Sztuczna inteligencja i można go
+Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w ustawieniach Sztuczna inteligencja i można go
 odebrać. Aplikacja AI nie dostaje Twojego hasła. Druga droga – adres z kluczem z okna – działa jak dotąd:
 
 | Aplikacja | Jak podłączyć |
@@ -173,7 +173,7 @@ odebrać. Aplikacja AI nie dostaje Twojego hasła. Druga droga – adres z klucz
 | **Claude** (claude.ai, aplikacja na komputer i telefon) | **Ustawienia → Łączniki → Dodaj własny łącznik**, nazwa „Makietka”, wklej adres. W rozmowie włącz łącznik w menu narzędzi. |
 | **Claude Desktop** | W oknie Sztuczna inteligencja: [Pobierz rozszerzenie dla Claude Desktop], kliknij pobrany plik dwa razy i wklej klucz. Rozszerzenie czyta też pliki z Twojego dysku. |
 | **ChatGPT** | **Ustawienia → Aplikacje → Dodaj własny serwer MCP**, wklej adres, uwierzytelnianie: brak. |
-| **Claude Code** i inne programy z MCP | Polecenie z części **Dla zaawansowanych** w oknie Sztuczna inteligencja. |
+| **Claude Code** i inne programy z MCP | Polecenie z części **Dla zaawansowanych** w ustawieniach Sztuczna inteligencja. |
 
 Sprawdzenie: napisz do AI „Pokaż moje projekty w Makietce”.
 
@@ -253,7 +253,7 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 Adres łącznika (→ 25.2) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście.
 AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować
-bez dodawania łącznika: w oknie **Sztuczna inteligencja**, zaraz po utworzeniu klucza, [Kopiuj dla zwykłego czatu] daje
+bez dodawania łącznika: w ustawieniach **Sztuczna inteligencja**, zaraz po utworzeniu klucza, [Kopiuj dla zwykłego czatu] daje
 gotowe polecenie z adresem – wklej je w rozmowie; AI pokaże Twoje projekty i zapyta, co zrobić. Narzędzia wywołuje, otwierając adresy
 `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu.
 Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.

@@ -502,6 +502,8 @@ export class Konto {
     const wybrana = znana || (WASKIE_USTAWIENIA.matches ? null : 'profil');
     $('#ekran-konta').dataset.sekcja = wybrana || '';
     $$('#ekran-konta .grupa-ustawien').forEach((g) => { g.classList.toggle('wybrana', g.id === `ust-${wybrana}`); });
+    // Sekcja „Sztuczna inteligencja” (#247): panel kluczy wprost w ustawieniach, wczytany przy wejściu.
+    if (wybrana === 'ai' && this.o.stan.uzytkownik) import('./app/dostep-ai.js').then((m) => m.otworzDostepAi()).catch(() => {});
     $$('#ekran-konta .konto-lista a[data-sekcja]').forEach((a) => {
       const tak = a.dataset.sekcja === wybrana;
       a.classList.toggle('aktywna', tak);
@@ -521,7 +523,7 @@ export class Konto {
     $('.konto-tresc').scrollTop = 0;
     this.wypelnijUstawienia();
     import('./miejsce-ustawienia.js').then((m) => m.pokazMiejsce()).catch(() => {}); // sekcja „Miejsce” (#90)
-    import('./app/dostep-ai.js').then((m) => m.podsumowanieKluczy()).catch(() => {}); // sekcja „Sztuczna inteligencja” (#94)
+    import('./app/dostep-ai.js').then((m) => m.podsumowanieKluczy()).catch(() => {}); // podsumowanie na liście ustawień (#94)
     import('./powiadomienia.js').then((m) => m.pokazPowiadomienia()).catch(() => {}); // sekcja „Powiadomienia” (#113)
     import('./marka-okno.js').then((m) => m.odswiezMarkeWUstawieniach()).catch(() => {}); // sekcja „Zestaw marki” (#131D)
     this.pokazSekcje(sekcja);

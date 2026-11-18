@@ -947,9 +947,9 @@ body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
 .zakladki-ai button[aria-selected="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
 .zakladki-ai button:focus-visible { outline: 2px solid var(--akcent); }
 @media (max-width: 560px) { .zakladki-ai { flex-direction: column; } }
-#dlg-dostep-ai[data-zakladka="czat"] [data-dla]:not([data-dla~="czat"]),
-#dlg-dostep-ai[data-zakladka="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
-#dlg-dostep-ai[data-zakladka="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
+#dostep-ai[data-zakladka="czat"] [data-dla]:not([data-dla~="czat"]),
+#dostep-ai[data-zakladka="lacznik"] [data-dla]:not([data-dla~="lacznik"]),
+#dostep-ai[data-zakladka="zwykly"] [data-dla]:not([data-dla~="zwykly"]) { display: none !important; }
 .uwaga-planu { border-left: 3px solid var(--ostrzezenie, #d97706); padding: 8px 12px; background: rgba(217, 119, 6, 0.06); border-radius: var(--r-s); }
 .lista-dostawcow-ai { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .lista-dostawcow-ai li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-s); }
