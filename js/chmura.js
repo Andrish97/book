@@ -896,3 +896,17 @@ export async function odwolajDostepAi(id) {
   const sb = await supabase();
   sprawdz(await sb.rpc('odwolaj_dostep_ai', { p_id: id }));
 }
+
+// Sejf kluczy AI (#241): sam szyfrogram kluczy dostawców (szyfruje i odszyfrowuje przeglądarka – js/sejf-kluczy.js).
+export async function sejfAiPobierz() {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('sejf_ai_pobierz')) || null;
+}
+export async function sejfAiZapisz({ sol, kontrolny, klucze }) {
+  const sb = await supabase();
+  sprawdz(await sb.rpc('sejf_ai_zapisz', { p_sol: sol, p_kontrolny: kontrolny, p_klucze: klucze }));
+}
+export async function sejfAiUsun() {
+  const sb = await supabase();
+  sprawdz(await sb.rpc('sejf_ai_usun'));
+}

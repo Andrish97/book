@@ -3640,5 +3640,12 @@
  "Składanka (model z części)": "Paper model (from parts)",
  "Złożone części": "Folded parts",
  "Arkusze (płasko)": "Sheets (flat)",
- "Dowolny czat bez klucza – kopiuj i wklej (darmowy ChatGPT, Claude, Gemini…)": "Any chat without a key – copy and paste (free ChatGPT, Claude, Gemini…)"
+ "Dowolny czat bez klucza – kopiuj i wklej (darmowy ChatGPT, Claude, Gemini…)": "Any chat without a key – copy and paste (free ChatGPT, Claude, Gemini…)",
+ "Hasło do kluczy AI": "AI keys password",
+ "Otwórz klucze AI na tym urządzeniu": "Unlock AI keys on this device",
+ "Otwórz": "Unlock",
+ "Szyfruję…": "Encrypting…",
+ "Nie pamiętam – usuń zapisane klucze": "Forgot it – delete saved keys",
+ "Nieprawidłowe hasło do kluczy.": "Wrong keys password.",
+ "Hasła się różnią.": "Passwords don't match."
 }

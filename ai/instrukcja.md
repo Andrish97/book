@@ -2299,7 +2299,8 @@ Bez osobnej aplikacji AI: w edytorze menu **⋯** → **Asystent AI (własny klu
 
 Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik (rozdział „25.1 Co potrafi AI”); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. **Przerwij** zatrzymuje po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.
 
-- Klucz dostawcy zostaje tylko na tym urządzeniu; rozmowa idzie z przeglądarki prosto do dostawcy, a koszt rozliczasz u niego.
+- **Klucze są zaszyfrowane i leżą na koncie.** Przy pierwszym kluczu Makietka prosi o **hasło do kluczy AI** (co najmniej 8 znaków, najlepiej inne niż hasło konta). Przeglądarka szyfruje nim klucz (AES-256) i dopiero wtedy zapisuje go na koncie – na serwerze leży tylko zaszyfrowany zapis. Bez Twojego hasła nikt go nie odczyta, **także twórca Makietki**. Na każdym nowym urządzeniu podajesz hasło raz; potem urządzenie je pamięta. Zgubione hasło: w oknie hasła **Nie pamiętam – usuń zapisane klucze** i wklej klucze od nowa.
+- Rozmowa idzie z przeglądarki prosto do dostawcy, a koszt rozliczasz u niego.
 - AI widzi wyłącznie otwarty projekt — przez jednodniowy klucz dostępu „Czat w Makietce”, widoczny w **Ustawienia konta** → **Dostęp dla AI** (rozdział „25.2 Klucz dla AI”); tam możesz go odebrać.
 - Zmiana dostawcy albo modelu zaczyna nową rozmowę.
 

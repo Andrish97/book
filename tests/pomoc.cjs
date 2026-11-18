@@ -416,6 +416,17 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       if (funkcja === 'usun_udostepnienie_chronione') { stan.chronione.delete(klucz); return json(r, 200, null); }
     }
+    // Sejf kluczy AI (#241): jeden wiersz na konto – sam szyfrogram (stan.sejfy: konto → wiersz).
+    if (/^\/rest\/v1\/rpc\/sejf_ai_(pobierz|zapisz|usun)$/.test(sc)) {
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'JWT expired', 'PGRST301');
+      stan.sejfy = stan.sejfy || new Map();
+      const f = sc.slice('/rest/v1/rpc/sejf_ai_'.length);
+      if (f === 'pobierz') return json(r, 200, stan.sejfy.get(k.id) || null);
+      if (f === 'zapisz') { stan.sejfy.set(k.id, { sol: tresc.p_sol, kontrolny: tresc.p_kontrolny, klucze: tresc.p_klucze || {}, zmieniono: new Date().toISOString() }); return json(r, 200, null); }
+      stan.sejfy.delete(k.id);
+      return json(r, 200, null);
+    }
     // Dostęp dla AI (migracja dostep_ai): klucze właściciela i funkcje posiadacza klucza.
     if (sc.startsWith('/rest/v1/rpc/') && /dostep_ai|dostepy_ai|obraz_ai|obrazu_ai|pliki_do_usuniecia|pliki_usuniete|^\/rest\/v1\/rpc\/ai_/.test(sc)) {
       stan.ai = stan.ai || atrapaAi(stan);

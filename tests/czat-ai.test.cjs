@@ -32,6 +32,12 @@ test('czat AI: klucz Anthropic, narzędzia na otwartym projekcie, zmiana nazwy p
   assert.ok(await strona.isVisible('#czat-ai-ustawienia'), 'bez klucza – ustawienia otwarte');
   await strona.fill('#czat-ai-ustawienia [name="klucz"]', 'sk-ant-test');
   await strona.dispatchEvent('#czat-ai-ustawienia [name="klucz"]', 'change');
+  // Sejf kluczy (#241): pierwszy klucz – hasło do kluczy; na koncie tylko szyfrogram.
+  await strona.waitForSelector('#dlg-sejf-ai[open]');
+  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'moje-haslo-123');
+  await strona.fill('#dlg-sejf-ai [name="powtorz"]', 'moje-haslo-123');
+  await strona.click('#dlg-sejf-ai button[value="tak"]');
+  await strona.waitForSelector('#dlg-sejf-ai:not([open])', { state: 'attached' });
   await strona.waitForFunction(() => document.querySelector('#czat-ai-ustawienia [name="model"]').value === 'claude-opus-5-5');
   await strona.fill('#czat-ai-tekst', 'Zmień nazwę projektu na Kalendarz 2027');
   await strona.press('#czat-ai-tekst', 'Enter');
@@ -56,6 +62,28 @@ test('czat AI: klucz Anthropic, narzędzia na otwartym projekcie, zmiana nazwy p
   const klucz = (baza.dostepy || baza.ai?.dostepy || []).at(-1);
   if (klucz) assert.deepEqual([klucz.opis, klucz.rola, klucz.projekty.length], ['Czat w Makietce', 'edycja', 1], 'jednodniowy klucz tylko do tego projektu');
   assert.match(await strona.textContent('#czat-ai-wiadomosci'), /🔧 przeglad_projektu[\s\S]*🔧 nazwa_projektu/);
+  // Klucz nigdzie jawnie: ani na koncie (sam szyfrogram), ani w pamięci przeglądarki.
+  const naKoncie = JSON.stringify([...baza.sejfy.values()]);
+  assert.ok(naKoncie.includes('szyfr') && !naKoncie.includes('sk-ant-test'), 'na koncie szyfrogram');
+  assert.ok(!naKoncie.includes('sdk_'), 'jednodniowy klucz czatu też zaszyfrowany');
+  assert.equal(await strona.evaluate(() => JSON.stringify(localStorage).includes('sk-ant-test') || JSON.stringify(localStorage).includes('sdk_')), false, 'nic jawnie w localStorage');
+  // „Nowe urządzenie”: bez zapamiętanego klucza sejfu – hasło; złe odrzucone, dobre otwiera i klucz wraca.
+  await strona.evaluate(() => new Promise((ok) => { const r = indexedDB.deleteDatabase('makietka-sejf'); r.onsuccess = ok; r.onerror = ok; r.onblocked = ok; }));
+  await strona.reload();
+  await strona.waitForFunction(() => window.seriodruk?.edytor?.canvas);
+  await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
+  await strona.fill('#czat-ai-tekst', 'Co jest w projekcie?');
+  await strona.press('#czat-ai-tekst', 'Enter');
+  await strona.waitForSelector('#dlg-sejf-ai[open]');
+  assert.match(await strona.textContent('#dlg-sejf-ai h2'), /Otwórz klucze AI na tym urządzeniu/);
+  assert.match(await strona.textContent('#dlg-sejf-ai'), /także twórca Makietki/);
+  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'zle-haslo-000');
+  await strona.click('#dlg-sejf-ai button[value="tak"]');
+  await strona.waitForFunction(() => /Nieprawidłowe hasło/.test(document.querySelector('#dlg-sejf-ai .blad-sejfu').textContent));
+  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'moje-haslo-123');
+  await strona.click('#dlg-sejf-ai button[value="tak"]');
+  for (let i = 0; i < 150 && zapytania.length < 4; i += 1) await strona.waitForTimeout(100);
+  assert.equal(zapytania.at(-1).naglowki['x-api-key'], 'sk-ant-test', 'po otwarciu sejfu – klucz z konta');
   assert.deepEqual(bledy, []);
 });
 

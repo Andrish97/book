@@ -16,7 +16,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
 | Zakresy uprawnień | ⚠️ Tylko „czyta” / „czyta i zmienia” + wybrane projekty / wszystkie. Brak drobniejszych (obrazy, wzorce, tabele, usuwanie). |
 | 5 BYOK – dostawcy | ✅ Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter (logowanie), dowolne API zgodne z OpenAI (LiteLLM, Ollama – gdy pozwala na zapytania z przeglądarki), plus bez klucza: „kopiuj i wklej”. |
 | 5.2 Panel „Ustawienia → Sztuczna inteligencja” | ⚠️ Ustawienia są w samym czacie (jeden dostawca naraz). Brak listy kilku dostawców, modelu domyślnego, „Sprawdź połączenie”. |
-| 9 Klucze dostawców po stronie serwera, zaszyfrowane | ❌ Klucze leżą tylko na urządzeniu (localStorage), rozmowa idzie z przeglądarki prosto do dostawcy. Dokument chce odwrotnie (serwer, szyfrowanie, nigdy w przeglądarce). |
+| 9 Klucze dostawców po stronie serwera, zaszyfrowane | ✅ #241: na koncie, zaszyfrowane w przeglądarce hasłem do kluczy (twórca nie odczyta) – decyzja użytkownika. |
 | 6 Adaptery: streaming, obrazy w rozmowie, ponawianie, czytelne błędy | ⚠️ Są 3 adaptery (Anthropic, Gemini, zgodne z OpenAI) z narzędziami; brak streamingu, obrazów w rozmowie, ponawiania; błędy częściowo surowe. |
 | 8 Czat: zatwierdzanie ważnych zmian, ponawianie | ❌ Narzędzia wykonują się od razu; brak pytania przed usuwaniem. |
 | 9 Historia operacji i cofanie | ⚠️ Zmiany AI to zwykłe zmiany z konta; edytorowe Cofnij ich nie zdejmuje. Użytkownik nie chce historii wersji w interfejsie – zostaje kopia (Eksport) przed dużymi zmianami. |

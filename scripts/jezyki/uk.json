@@ -3640,5 +3640,12 @@
  "Składanka (model z części)": "Паперова модель (з деталей)",
  "Złożone części": "Складені деталі",
  "Arkusze (płasko)": "Аркуші (пласко)",
- "Dowolny czat bez klucza – kopiuj i wklej (darmowy ChatGPT, Claude, Gemini…)": "Будь-який чат без ключа – копіювати й вставити (безкоштовні ChatGPT, Claude, Gemini…)"
+ "Dowolny czat bez klucza – kopiuj i wklej (darmowy ChatGPT, Claude, Gemini…)": "Будь-який чат без ключа – копіювати й вставити (безкоштовні ChatGPT, Claude, Gemini…)",
+ "Hasło do kluczy AI": "Пароль до ключів ШІ",
+ "Otwórz klucze AI na tym urządzeniu": "Відкрити ключі ШІ на цьому пристрої",
+ "Otwórz": "Відкрити",
+ "Szyfruję…": "Шифрую…",
+ "Nie pamiętam – usuń zapisane klucze": "Не пам'ятаю – видалити збережені ключі",
+ "Nieprawidłowe hasło do kluczy.": "Неправильний пароль до ключів.",
+ "Hasła się różnią.": "Паролі не збігаються."
 }
