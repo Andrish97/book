@@ -93,6 +93,10 @@ powiadomienia otwiera właściwy projekt albo wątek.
 Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają tylko
 w zainstalowanej aplikacji (→ 28.4).
 
+**E-mailem** — przełącznik dla całego konta: e-mail, gdy ktoś zaprosi Cię do projektu albo Ci go
+udostępni. Wyłączony — e-maile o zaproszeniach nie przychodzą, a zaproszenie czeka w aplikacji
+([Projekty] → [Zaproszenia]). Maili konta (potwierdzenie adresu, nowe hasło) nie da się wyłączyć.
+
 ![Powiadomienia w ustawieniach konta](k-powiadomienia.png)
 
 ## 27.7 Usuwanie konta

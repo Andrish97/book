@@ -171,6 +171,11 @@ test('zaproszenie do projektu idzie przez kolejkę: plan tokenem zapraszającego
   odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
   assert.deepEqual(await odp.json(), { wyslano: false, powod: 'za-czesto', za: '8 min', za_sekund: 470 });
   assert.equal(s.maile().length, 0);
+  // Adresat wyłączył e-maile o zaproszeniach (#206) – bez wysyłki.
+  s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { blad: 'adresat-wylaczyl' } } });
+  odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);
+  assert.deepEqual(await odp.json(), { wyslano: false, powod: 'adresat-wylaczyl' });
+  assert.equal(s.maile().length, 0);
   // Mail czeka w kolejce (np. dzienny limit dostawcy) – przebieg go nie wysłał.
   s = siecKolejki({ poczta_zaplanuj_zaproszenie: { tresc: { ok: true, id: 'k2', email: 'ola@przyklad.pl' } }, poczta_kolejka_pobierz: { tresc: { wiadomosci: [], powod: 'limit-dzienny' } } });
   odp = await obsluzPoczte(zadanie(), ENVK, s.wyslij);

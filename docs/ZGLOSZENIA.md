@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 206 | E-maile o zaproszeniach do wyłączenia w Ustawienia konta → Powiadomienia → „E-mailem” (dla całego konta); zapraszający widzi, że ta osoba zobaczy zaproszenie w aplikacji |
 | 204 | Udostępnianie w tle: link od razu, strony wysyłają się w tle; oglądający widzi „Podgląd jest w przygotowaniu” i strony pojawiające się po kolei |
 | 203 | Makieta 3D na telefonie nie zamyka karty („Kurza twarz”): limit stron w pamięci grafiki, mniejsze tekstury na telefonie |
 | 202 | Okna na niskim ekranie telefonu (np. Udostępnij) przewijają się; tekst nie jest ucięty w pół linii |

@@ -507,6 +507,8 @@ async function obsluzZaproszenie(request, id, env, wyslij) {
   }
   // Bez adresu w odpowiedzi: przy zaproszeniu po nazwie użytkownika zapraszający go nie zna (#100).
   if (plan?.blad === 'za-czesto') return json(200, { wyslano: false, powod: 'za-czesto', za: plan.za, za_sekund: plan.za_sekund }, true);
+  // Adresat wyłączył e-maile o zaproszeniach (#206) – zaproszenie czeka u niego w aplikacji.
+  if (plan?.blad === 'adresat-wylaczyl') return json(200, { wyslano: false, powod: 'adresat-wylaczyl' }, true);
   if (!ktokolwiek(env)) return json(200, { wyslano: false, powod: 'brak-konfiguracji' }, true);
   const przebieg = await przetworzKolejke(env, wyslij).catch((e) => ({ wyslane: [], bledy: [{ id: plan.id, blad: e.message }] }));
   if (przebieg.wyslane.includes(plan.id)) return json(200, { wyslano: true }, true);

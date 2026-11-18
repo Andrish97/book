@@ -158,8 +158,27 @@ function ustawStan(wlaczone, opis) {
   document.dispatchEvent(new CustomEvent('powiadomienia-stan'));
 }
 
+// ---------- E-maile o zaproszeniach (dla całego konta, #206) ----------
+
+async function pokazMaile() {
+  const p = $('#maile-zaproszenia');
+  if (!p) return;
+  p.disabled = true;
+  try {
+    const u = await rpc('moje_ustawienia_maili');
+    p.checked = u?.zaproszenia !== false;
+    $('#maile-stan').textContent = p.checked
+      ? 'E-mail, gdy ktoś zaprosi mnie do projektu albo mi go udostępni'
+      : 'Wyłączone – zaproszenia zobaczysz w aplikacji (Projekty → Zaproszenia)';
+    p.disabled = false;
+  } catch {
+    $('#maile-stan').textContent = 'Nie udało się sprawdzić – spróbuj później';
+  }
+}
+
 /** Wypełnia sekcję „Powiadomienia” stanem tego urządzenia. */
 export async function pokazPowiadomienia() {
+  pokazMaile();
   const w = wsparcie();
   const przelacznik = $('#powiadomienia-wlacz');
   przelacznik.disabled = w !== 'ok';
@@ -215,6 +234,12 @@ export function inicjujPowiadomienia() {
       trwa = false;
       await pokazPowiadomienia();
     }
+  });
+  $('#maile-zaproszenia')?.addEventListener('change', async (e) => {
+    const p = e.target;
+    p.disabled = true;
+    try { await rpc('zapisz_ustawienia_maili', { p_zaproszenia: p.checked }); } catch (b) { pokazUwage(b.message); }
+    await pokazMaile();
   });
   $('#powiadomienia-rodzaje').addEventListener('change', async () => {
     const rodzaje = $$('#powiadomienia-rodzaje input[name="rodzaj"]:checked').map((c) => c.value);

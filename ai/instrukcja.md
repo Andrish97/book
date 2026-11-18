@@ -2001,7 +2001,7 @@ W części **Zaproś osobę**:
 2. Wybierz **Rolę** (rozdział „24.2 Role”).
 3. Kliknij **Zaproś**.
 
-Aplikacja wysyła e-mail z linkiem do zaproszenia. Link możesz też skopiować i wysłać sam. Przy zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby.
+Aplikacja wysyła e-mail z linkiem do zaproszenia. Link możesz też skopiować i wysłać sam. Przy zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby. Jeśli ta osoba wyłączyła e-maile o zaproszeniach (rozdział „27.6 Powiadomienia”), aplikacja to powie — zaproszenie zobaczy w aplikacji.
 
 ![Okno Współpraca](https://makietka.app/img/instrukcja/wspolpraca.png)
 
@@ -2279,6 +2279,8 @@ Od 80% limitu aplikacja ostrzega — tutaj i przy wgrywaniu obrazów. **Posprzą
 Powiadomienia mówią od razu o zaproszeniach i komentarzach — także przy zamkniętej aplikacji. W **Ustawienia konta** → **Powiadomienia** włącz **Na tym urządzeniu** (przeglądarka zapyta o zgodę) i wybierz, o czym chcesz wiedzieć: zaproszenia, odpowiedzi na Twoje zaproszenia, zmiany roli i dostępu, komentarze i wzmianki (rozdział „24.7 Komentarze”). Kliknięcie powiadomienia otwiera właściwy projekt albo wątek.
 
 Powiadomienia włącza się osobno na każdym urządzeniu. Na iPhonie i iPadzie działają tylko w zainstalowanej aplikacji (rozdział „28.4 Instalacja aplikacji”).
+
+**E-mailem** — przełącznik dla całego konta: e-mail, gdy ktoś zaprosi Cię do projektu albo Ci go udostępni. Wyłączony — e-maile o zaproszeniach nie przychodzą, a zaproszenie czeka w aplikacji (**Projekty** → **Zaproszenia**). Maili konta (potwierdzenie adresu, nowe hasło) nie da się wyłączyć.
 
 ![Powiadomienia w ustawieniach konta](https://makietka.app/img/instrukcja/k-powiadomienia.png)
 

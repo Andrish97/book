@@ -21,7 +21,7 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 |---|---|---|
 | B1 | (8) Motyw jako przycisk na górze, 3 tryby (jasny, ciemny, systemowy) jak w Familiadzie | ✅ #205 |
 | B2 | (13) Wyłączenie przyklejania elementów do innych | ℹ️ jest: Widok → „Przyciągaj do elementów”; do sprawdzenia, czy łatwo znaleźć |
-| B3 | (10) Ustawienia powiadomień – wyłączenie e-maili (np. przy udostępnieniu) | ⏳ |
+| B3 | (10) Ustawienia powiadomień – wyłączenie e-maili (np. przy udostępnieniu) | ✅ #206 |
 | B4 | (11) Panel administratora: przyciski na górze w widoku mobilnym, ładniejsza skrzynka, kolejka i ustawienia maili w jednej sekcji, czyszczenie starych kopii zapasowych | ⏳ |
 | B5 | (4) Ikona i logo bardziej charakterystyczne | ⏳ |
 | B6 | (18) Przełącznik języka – 3 języki jak w Familiadzie | ⏳ (duże: tłumaczenie całej aplikacji) |

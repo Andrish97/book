@@ -21,7 +21,8 @@ W części **Zaproś osobę**:
 3. Kliknij [Zaproś].
 
 Aplikacja wysyła e-mail z linkiem do zaproszenia. Link możesz też skopiować i wysłać sam. Przy
-zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby.
+zaproszeniu po nazwie nie widzisz adresu e-mail tej osoby. Jeśli ta osoba wyłączyła e-maile
+o zaproszeniach (→ 27.6), aplikacja to powie — zaproszenie zobaczy w aplikacji.
 
 ![Okno Współpraca](wspolpraca.png)
 

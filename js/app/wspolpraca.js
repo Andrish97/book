@@ -13,6 +13,8 @@ import { zPostepem } from '../postep.js';
 import { stan, trasa } from './kontekst.js';
 import { poprawnaNazwa, szukajNazw } from '../nazwa-uzytkownika.js';
 
+// Adresat wyłączył e-maile o zaproszeniach (#206): zaproszenie czeka u niego w aplikacji.
+export const BEZ_MAILA = 'Ta osoba wyłączyła e-maile o zaproszeniach – zobaczy zaproszenie w aplikacji. Możesz też wysłać jej link sam.';
 const KROTKO = { edycja: 'edytuje', odczyt: 'ogląda', wlasciciel: 'właściciel' };
 export const opisRoli = (rola) => wsp.ROLE[rola] || rola;
 export const krotkoRola = (rola) => KROTKO[rola] || rola;
@@ -117,6 +119,7 @@ function wierszOsoby(o) {
     akcje.append(przyciskIkona('wyslij', 'Wyślij e-mail z zaproszeniem ponownie', '', async () => {
       const m = await wsp.wyslijZaproszenieMailem(o.id);
       if (m.wyslano) powiadom(o.email ? `Wysłano e-mail z zaproszeniem na adres ${o.email}.` : `Wysłano e-mail z zaproszeniem do ${ktoZaproszony(o)}.`);
+      else if (m.powod === 'adresat-wylaczyl') powiadom(BEZ_MAILA);
       else powiadom(m.powod === 'brak-konfiguracji' ? 'Aplikacja nie wysyła jeszcze e-maili – skopiuj link i wyślij go sam.' : (m.blad || 'E-mail nie wyszedł.'), true);
     }));
     akcje.append(przyciskIkona('zamknij', 'Cofnij zaproszenie', 'niebezpieczny', async () => {
@@ -198,7 +201,9 @@ async function zapros(e) {
         'brak-konfiguracji': 'Aplikacja nie wysyła jeszcze e-maili',
         'za-czesto': `Kolejny e-mail na ten adres można wysłać za ${m.za || 'chwilę'}`,
       };
-      $('#wspolpraca-gotowe-opis').textContent = m.wyslano
+      $('#wspolpraca-gotowe-opis').textContent = m.powod === 'adresat-wylaczyl'
+        ? BEZ_MAILA
+        : m.wyslano
         ? `Wysłano e-mail z zaproszeniem ${z.email ? `na adres ${z.email}` : `do ${ktoZaproszony(z)}`}. ${gdzie}`
         : m.powod === 'w-kolejce'
           ? `E-mail z zaproszeniem czeka w kolejce i wyjdzie za chwilę ${z.email ? `na adres ${z.email}` : `do ${ktoZaproszony(z)}`}. ${gdzie}`

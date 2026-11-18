@@ -47,6 +47,15 @@ async function przygotuj(t, opcje = {}, atrapa = {}) {
     if (nazwa === 'push_urzadzenie') wynik = baza.urzadzenie?.endpoint === p.p_endpoint ? { wlaczone: true, rodzaje: baza.urzadzenie.rodzaje } : { wlaczone: false, rodzaje: [] };
     await r.fulfill({ contentType: 'application/json', body: JSON.stringify(wynik) });
   });
+  baza.maile = { zaproszenia: true, zapisy: [] };
+  await kontekst.route('**/rest/v1/rpc/*ustawienia_maili', async (r) => {
+    if (r.request().url().endsWith('/zapisz_ustawienia_maili')) {
+      const p = JSON.parse(r.request().postData() || '{}');
+      baza.maile.zapisy.push(p);
+      baza.maile.zaproszenia = p.p_zaproszenia;
+    }
+    await r.fulfill({ contentType: 'application/json', body: JSON.stringify({ zaproszenia: baza.maile.zaproszenia }) });
+  });
   await strona.reload();
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
   await strona.evaluate(() => { location.hash = '#/konto/powiadomienia'; });
@@ -112,4 +121,26 @@ test('powiadomienia: iPhone bez instalacji – wskazówka i przycisk instalacji;
   assert.ok(await drugi.strona.isDisabled('#powiadomienia-wlacz'));
   assert.match(await drugi.strona.textContent('#powiadomienia-uwaga'), /zablokowane w ustawieniach przeglądarki/);
   assert.deepEqual(drugi.bledy, []);
+});
+
+test('powiadomienia: e-maile o zaproszeniach wyłączane dla całego konta (#206)', async (t) => {
+  const { strona, bledy, push } = await przygotuj(t);
+  await strona.waitForFunction(() => !document.querySelector('#maile-zaproszenia').disabled);
+  assert.ok(await strona.isChecked('#maile-zaproszenia'), 'domyślnie włączone');
+  assert.ok(await strona.locator('#maile-wiersz').isVisible(), 'widać bez włączania powiadomień na urządzeniu');
+  await strona.click('#maile-wiersz .przelacznik');
+  await strona.waitForFunction(() => /Wyłączone/.test(document.querySelector('#maile-stan').textContent));
+  assert.deepEqual(push.maile.zapisy, [{ p_zaproszenia: false }]);
+  assert.ok(!(await strona.isChecked('#maile-zaproszenia')));
+  await strona.click('#maile-wiersz .przelacznik');
+  await strona.waitForFunction(() => /E-mail, gdy/.test(document.querySelector('#maile-stan').textContent));
+  assert.deepEqual(push.maile.zapisy.at(-1), { p_zaproszenia: true });
+
+  // Zapraszający: adresat wyłączył e-maile – jasny komunikat zamiast błędu.
+  const tekst = await strona.evaluate(async () => {
+    const { BEZ_MAILA } = await import('./js/app/wspolpraca.js');
+    return BEZ_MAILA;
+  });
+  assert.match(tekst, /wyłączyła e-maile o zaproszeniach/);
+  assert.deepEqual(bledy, []);
 });
