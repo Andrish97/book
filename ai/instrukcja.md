@@ -1175,10 +1175,13 @@ Model z papieru albo kartonu z wielu części – domek, pudełko z przegródkam
 - **Druk i cięcie** – **drukarka domowa** (linie cięcia i zgięć są wydrukowane – tniesz nożyczkami i nożykiem) albo **drukarnia z ploterem** (linie idą do PDF jako osobne kolory: cięcie, zgięcia i klej – drukarnia ich nie drukuje); **margines drukarki** – pas przy brzegu, którego drukarka nie zadrukuje;
 - **Druga strona arkusza** – nieużywana, też drukowana albo **tylko miejsca klejenia** (bez druku).
 
+Marginesy sekcji równają się marginesowi drukarki, a spadu nie ma – model wycina się po obrysie części.
+
 W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 
 | Narzędzie | Co robi |
 |---|---|
+| **Szablon** | Gotowy model z wymiarów: **Pudełko z wieczkiem nakładanym** (dwie części – wieczko jest większe o dwie grubości materiału i 0,5 mm luzu, więc nakłada się ciasno, ale bez wciskania), **Tacka**, **Prostopadłościan**, **Graniastosłup** (3–12 boków), **Ostrosłup** i **Przegródki wsuwane na krzyż** (krótsze o dwie grubości, niższe o jedną, ze szczelinami grubość + 0,2 mm). Części mają zgięcia, zakładki i numery par; okno podaje grubość materiału sekcji. |
 | **Część** | Nowa część – prostokąt 60 × 40 mm z literą (A, B, C…). |
 | **Z kształtu** | Zaznaczony prostokąt, wielokąt, elipsę albo kształt z pióra (rozdział „6 Kształty, linie i kolory”) zamienia w część – dowolny obrys. |
 | **Zgięcie** | Dwa kliknięcia na krawędziach części: linia zgięcia dzieli ją na ściany. Linia po samej krawędzi albo poza częścią się nie doda. |
@@ -1200,7 +1203,7 @@ Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy kr
 
 **Sprawdź przed drukiem** (rozdział „20 Sprawdź przed drukiem”) pilnuje modelu: część wystająca poza arkusz albo wchodząca w margines drukarki, części nachodzące na siebie razem z zakładkami (nie da się ich wyciąć), numer bez pary (nie wiadomo, do czego to przykleić), numer użyty więcej niż dwa razy, para krawędzi o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż wypustka. Przy każdej uwadze **Otwórz wzór** zaznacza część.
 
-Kolejne kroki tego trybu – gotowe szablony z kompensacją grubości, makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
+Kolejne kroki tego trybu – makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
 
 ## 11. Wzorce stron
 

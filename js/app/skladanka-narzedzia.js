@@ -15,6 +15,7 @@ import {
   rozlozNaArkusze,
 } from '../skladanka.js';
 import { nowaStrona } from '../projekt.js';
+import { SZABLONY_SKLADANEK, OPISY_PARAMETROW, czesciSzablonu, numeruj } from '../skladanka-szablony.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
 import { $, $$, powiadom } from '../ui.js';
@@ -384,13 +385,82 @@ export async function rozlozCzesci() {
   return { arkuszy: arkusze.length, za_duze };
 }
 
+// ---------- Szablony (#237) ----------
+
+// Wstawia części szablonu na bieżący arkusz – obok siebie od lewego górnego rogu pola druku; pary dostają wolne
+// numery projektu, części kolejne litery. Zwraca wstawione grupy.
+export function wstawSzablon(klucz, parametry = {}) {
+  if (!wSkladance()) return [];
+  const sp = ustawieniaSekcji();
+  const pary = uzytePary();
+  const czesci = numeruj(czesciSzablonu(klucz, parametry, grubosc()), () => { const n = kolejnaPara(pary); pary.add(n); return n; });
+  const nazwy = uzyteNazwy();
+  const m = (sp.druk === 'domowy' ? sp.margines_mm || 0 : 0) + 4;
+  let x = edytor.strony[edytor.aktywna].x + m;
+  const wstawione = [];
+  for (const cz of czesci) {
+    const nr = kolejnaNazwa(nazwy);
+    nazwy.add(nr);
+    const g = zbudujCzesc({ ...cz, nr, opis: cz.nazwa, druk: sp.druk }, { left: 0, top: 0 });
+    // Ramka grupy (z zakładkami) od (x, m).
+    const r = g.getBoundingRect();
+    g.set({ left: g.left + (x - r.left), top: g.top + (m - r.top) });
+    g.setCoords();
+    zablokuj(g);
+    edytor._wstaw(g);
+    wstawione.push(g);
+    x += r.width + 4;
+  }
+  edytor.canvas.requestRenderAll();
+  return wstawione;
+}
+
+export function oknoSzablonow() {
+  if (!wSkladance()) return;
+  let dlg = $('#dlg-szablon-skladanki');
+  if (!dlg) {
+    dlg = document.createElement('dialog');
+    dlg.id = 'dlg-szablon-skladanki';
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Szablon składanki</h2>
+      <label class="pole"><span>Model</span><select name="szablon">${Object.entries(SZABLONY_SKLADANEK).map(([k, v]) => `<option value="${k}">${v.nazwa}</option>`).join('')}</select></label>
+      <p class="ciche opis-szablonu"></p><div class="rzad parametry-szablonu"></div><p class="ciche grubosc-szablonu"></p>
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Wstaw</button></div></form>`;
+    document.body.append(dlg);
+    dlg.querySelector('select').addEventListener('change', () => pola());
+  }
+  const f = dlg.querySelector('form');
+  function pola() {
+    const s = SZABLONY_SKLADANEK[f.elements.szablon.value];
+    f.querySelector('.opis-szablonu').textContent = s.opis;
+    f.querySelector('.parametry-szablonu').replaceChildren(...Object.entries(s.parametry).map(([k, v]) => {
+      const l = document.createElement('label');
+      l.className = 'pole waskie';
+      l.innerHTML = `<span>${OPISY_PARAMETROW[k] || k}</span><input type="number" step="any" min="${k === 'boki' ? 3 : 1}" ${k === 'boki' ? 'max="12"' : ''} inputmode="decimal">`;
+      const i = l.querySelector('input');
+      i.name = `p_${k}`;
+      i.value = v;
+      return l;
+    }));
+  }
+  pola();
+  f.querySelector('.grubosc-szablonu').textContent = `Grubość materiału sekcji: ${String(grubosc()).replace('.', ',')} mm – wieczko, szczeliny i przegródki ją uwzględniają.`;
+  dlg.addEventListener('close', () => {
+    if (dlg.returnValue !== 'tak') return;
+    const parametry = Object.fromEntries([...f.querySelectorAll('.parametry-szablonu input')].map((i) => [i.name.slice(2), Number(String(i.value).replace(',', '.'))]));
+    const w = wstawSzablon(f.elements.szablon.value, parametry);
+    if (w.length) powiadom(`Wstawiono: ${w.map((g) => g.nazwa.replace(/^Część /, '')).join(', ')}. Gdy części nie mieszczą się na arkuszu, użyj [Rozłóż].`);
+  }, { once: true });
+  dlg.returnValue = '';
+  dlg.showModal();
+}
+
 // Pasek narzędzi: przyciski z data-akcja="skladanka-…".
 export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-czesc') return nowaCzesc();
   if (akcja === 'skladanka-z-ksztaltu') return czescZZaznaczenia();
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
+  if (akcja === 'skladanka-szablon') return oknoSzablonow();
   const n = { 'skladanka-zgiecie': 'zgiecie', 'skladanka-polacz': 'polacz', 'skladanka-szczelina': 'szczelina', 'skladanka-klej': 'klej' }[akcja];
   if (n) ustawNarzedzie(n);
   return null;
 }
-void $;

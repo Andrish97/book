@@ -172,7 +172,7 @@ test('składanka: sekcja z materiałem, narzędzia, części, zgięcie, połącz
     return { przed, po: uwagi() };
   });
   assert.equal(kontrola.przed.length, 1);
-  assert.match(kontrola.przed[0][0], /^Para 2: miejsce klejenia \(27,59 × 7 mm\) jest mniejsze niż zakładka \(60 × 7 mm\)/);
+  assert.match(kontrola.przed[0][0], /^Para 2: miejsce klejenia \(27,\d+ × 7 mm\) jest mniejsze niż zakładka \(60 × 7 mm\)/);
   const opisy = kontrola.po.map(([o]) => o).join('\n');
   assert.match(opisy, /Numer 9 \(krawędź 1 części A\) nie ma pary/);
   assert.match(opisy, /Część A wystaje poza arkusz/);

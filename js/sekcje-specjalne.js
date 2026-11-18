@@ -778,6 +778,12 @@ export function przeliczSpecjalne(projekt, ciag = null) {
       for (const st of projekt.strony.filter((x) => x.sekcja === sekcja.id)) przesunElementy(st.obiekty, s, n, w.spad_mm || 0);
     }
     Object.assign(w, { szerokosc_mm: nowy.szerokosc, wysokosc_mm: nowy.wysokosc, format: 'wlasny' });
+    // Składanka (#237): marginesy = margines drukarki (części stoją w polu druku), bez spadu – model wycina się
+    // po obrysie, nie po formacie arkusza.
+    if (sekcja.specjalna.rodzaj === 'skladanka') {
+      const m = sekcja.specjalna.druk === 'domowy' ? sekcja.specjalna.margines_mm : 0;
+      Object.assign(w, { spad_mm: 0, marginesy: { gora: m, dol: m, wewnetrzny: m, zewnetrzny: m } });
+    }
     sekcja.uklad = 'pojedyncze';
     sekcja.specjalna.wynik = nowy;
     zmienione.push(sekcja.id);

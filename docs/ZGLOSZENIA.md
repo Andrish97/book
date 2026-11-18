@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 237 | Składanki: szablony z wymiarów – pudełko z wieczkiem (z grubością materiału), tacka, kostka, graniastosłup, ostrosłup, przegródki |
 | 236 | Składanki: „Rozłóż” – części na arkuszach z obracaniem i dokładaniem arkuszy; ostrzeżenie o nachodzących częściach |
 | 235 | Składanki: lista połączeń (co z czym, na którym arkuszu) i podświetlanie pary na arkuszu |
 | 234 | Składanki: sprawdzanie modelu przed drukiem – numery bez pary, różne długości, za małe miejsca klejenia, za wąskie szczeliny, części poza arkuszem |

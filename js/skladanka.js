@@ -39,7 +39,7 @@ export function normalizujCzesc(c = {}) {
   }));
   const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null }));
   return {
-    nr: String(c.nr || 'A'), punkty, krawedzie, zgiecia, pola, szczeliny, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
+    nr: String(c.nr || 'A'), ...(typeof c.opis === 'string' && c.opis ? { opis: c.opis.slice(0, 80) } : {}), punkty, krawedzie, zgiecia, pola, szczeliny, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
     pokaz_numery: c.pokaz_numery !== false, druk: c.druk === 'drukarnia' ? 'drukarnia' : 'domowy',
     ...(Number.isFinite(c.uklad?.x) && Number.isFinite(c.uklad?.y) ? { uklad: { x: c.uklad.x, y: c.uklad.y } } : {}),
   };
@@ -268,7 +268,7 @@ export function zbudujCzesc(def, { grupa = null, left = 0, top = 0 } = {}) {
   const c = normalizujCzesc(def);
   const el = elementyCzesci(c);
   for (const o of el) { o.set({ left: o.left + left, top: o.top + top }); o.setCoords(); }
-  const g = new fabric.Group(el, { nazwa: `Część ${c.nr}`, subTargetCheck: false, interactive: false, objectCaching: false });
+  const g = new fabric.Group(el, { nazwa: `Część ${c.nr}${c.opis ? ` – ${c.opis}` : ''}`, subTargetCheck: false, interactive: false, objectCaching: false });
   const srodek = g.getCenterPoint();
   c.uklad = { x: zaokr(srodek.x - left), y: zaokr(srodek.y - top) };
   g.czesc = c;

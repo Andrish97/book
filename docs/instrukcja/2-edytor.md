@@ -1217,10 +1217,13 @@ typu **Składanka / wycinanka**. Każda strona tej sekcji to jeden **arkusz** z 
   nie drukuje); **margines drukarki** – pas przy brzegu, którego drukarka nie zadrukuje;
 - **Druga strona arkusza** – nieużywana, też drukowana albo **tylko miejsca klejenia** (bez druku).
 
+Marginesy sekcji równają się marginesowi drukarki, a spadu nie ma – model wycina się po obrysie części.
+
 W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 
 | Narzędzie | Co robi |
 |---|---|
+| [Szablon] | Gotowy model z wymiarów: **Pudełko z wieczkiem nakładanym** (dwie części – wieczko jest większe o dwie grubości materiału i 0,5 mm luzu, więc nakłada się ciasno, ale bez wciskania), **Tacka**, **Prostopadłościan**, **Graniastosłup** (3–12 boków), **Ostrosłup** i **Przegródki wsuwane na krzyż** (krótsze o dwie grubości, niższe o jedną, ze szczelinami grubość + 0,2 mm). Części mają zgięcia, zakładki i numery par; okno podaje grubość materiału sekcji. |
 | [Część] | Nowa część – prostokąt 60 × 40 mm z literą (A, B, C…). |
 | [Z kształtu] | Zaznaczony prostokąt, wielokąt, elipsę albo kształt z pióra (→ 6) zamienia w część – dowolny obrys. |
 | [Zgięcie] | Dwa kliknięcia na krawędziach części: linia zgięcia dzieli ją na ściany. Linia po samej krawędzi albo poza częścią się nie doda. |
@@ -1252,7 +1255,7 @@ drukarki, części nachodzące na siebie razem z zakładkami (nie da się ich wy
 o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż
 wypustka. Przy każdej uwadze [Otwórz wzór] zaznacza część.
 
-Kolejne kroki tego trybu – gotowe szablony z kompensacją grubości,
+Kolejne kroki tego trybu –
 makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
 
 # 11. Wzorce stron

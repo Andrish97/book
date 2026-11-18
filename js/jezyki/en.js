@@ -2631,6 +2631,8 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Style tekstu":"Text styles",
 "Subtype":"Subtype",
 "Symbole i ikony":"Symbols and icons",
+"Szablon":"Template",
+"Szablon składanki":"Paper model template",
 "Szare":"Gray",
 "Szary":"Gray",
 "Szczelina":"Slot",

@@ -60,6 +60,7 @@ export const MODULY_EDYTORA = [
   'js/pisownia-rdzen.js',
   'js/przyciaganie.js',
   'js/schowek-projektow.js',
+  'js/skladanka-szablony.js',
   'js/skladanka.js',
   'js/svg-elementy.js',
   'js/szablony-planera.js',
