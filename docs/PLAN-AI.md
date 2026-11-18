@@ -24,7 +24,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
 
 ## Plan (po kolei, każdy krok z testem, instrukcją, DECYZJE, ZGŁOSZENIA)
 
-1. **Łącznik z logowaniem (OAuth 2.1)** – „Połącz z Makietką” w Claude / ChatGPT bez kopiowania klucza: opis serwera
+1. ✅ (#244) **Łącznik z logowaniem (OAuth 2.1)** – „Połącz z Makietką” w Claude / ChatGPT bez kopiowania klucza: opis serwera
    autoryzacji, rejestracja klienta (DCR), PKCE, strona zgody w Makietce (logowanie, wybór projektów, zakres,
    ważność), tokeny dostępu i odświeżania na bazie kluczy AI (te same uprawnienia i odbieranie w Dostępie dla AI).
    Adres z kluczem zostaje jako druga droga.
@@ -32,7 +32,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
    i usuwanie stron), usuwanie projektów – sprawdzane w rdzeniu po stronie serwera i pokazywane na stronie zgody.
 3. **Zatwierdzanie w czacie Makietki** – przed usunięciem stron, wielu elementów, obrazów w użyciu, projektu
    i przed zmianą wielu stron naraz: pytanie z opisem; „Zawsze pozwalaj w tej rozmowie”.
-4. **Ustawienia → Sztuczna inteligencja** – kilku dostawców naraz, model domyślny, „Sprawdź połączenie”, zmiana
+4. ⏳ (#241–#251: sekcja w ustawieniach, trzy drogi, sejf kluczy, edycja i ważność kluczy; zostaje „Sprawdź połączenie” i model domyślny) **Ustawienia → Sztuczna inteligencja** – kilku dostawców naraz, model domyślny, „Sprawdź połączenie”, zmiana
    modelu w trakcie rozmowy; klucze **opcjonalnie na koncie** (szyfrowane w przekaźniku, rozmowa przez przekaźnik –
    klucz nie wraca do przeglądarki) albo jak dziś tylko na urządzeniu.
 5. **Adaptery** – streaming odpowiedzi, czytelne komunikaty (zły klucz, brak środków, limit, model niedostępny,
