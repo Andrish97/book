@@ -20,7 +20,7 @@ import { edytor, stan, biezacaStrona, wlasciciel } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, odlaczPlotno, odswiezKsiazke } from './zapis.js';
 import { doEdycji } from './podglad-ekran.js';
 import { panelWzorca, panelStrony, polaDoWstawienia, tabelaStrony } from './panel-strony.js';
-import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki } from './lista-stron.js';
+import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki, dokladajStrony } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
 
@@ -81,6 +81,7 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   rozlozRysunek: (obj) => rozlozRysunekNaStronie(obj),
   // Tekst płynący przez strony (tylko na stronach, nie we wzorcach).
   ramkaNaNastepnejStronie: () => (stan.tryb === 'strona' ? ramkaNaNastepnejStronie() : null),
+  dokladajStrony: () => setTimeout(() => dokladajStrony(), 0),
   przejdzDoRamki: (strona, ramka) => przejdzDoRamki(strona, ramka),
   nazwaStrony: (id) => { const i = stan.projekt.strony.findIndex((s) => s.id === id); return i < 0 ? '' : `${i + 1} · ${stan.projekt.strony[i].nazwa}`; },
   naStronie: () => stan.tryb === 'strona',

@@ -450,6 +450,76 @@ export async function ramkaNaNastepnejStronie() {
   powiadom(dodana ? `Dodano stronę „${nastepna.nazwa}” z ramką na ciąg dalszy tekstu.` : `Ramka z ciągiem dalszym jest na stronie „${nastepna.nazwa}”. Ustaw ją tam, gdzie ma być.`);
 }
 
+// ---------- Dokładanie stron dla długiego tekstu (#212) ----------
+// Tekst z „Dokładaj strony” nie mieści się w ostatniej ramce wątku (albo ma w niej akapit od nowej strony):
+// za stroną ostatniej ramki dochodzą strony (w tej sekcji, z jej wzorcami) z taką samą ramką w tym samym miejscu.
+// Puste strony dołożone tak na końcu wątku znikają, gdy tekstu ubędzie. Bieżąca strona zostaje ta sama.
+let dokladanie = null;
+export function dokladajStrony() {
+  if (dokladanie) return dokladanie;
+  dokladanie = dokladajTeraz().finally(() => { dokladanie = null; });
+  return dokladanie;
+}
+async function dokladajTeraz() {
+  if (stan.tryb !== 'strona' || !stan.projekt || edytor.aktywny?.isEditing) return 0;
+  const p = stan.projekt;
+  let dodane = 0;
+  let usuniete = 0;
+  const biezaca = biezacaStrona();
+  for (let krok = 0; krok < 8; krok += 1) {
+    const brak = edytor.przepelnioneAutoStrony();
+    if (!brak.length) break;
+    zapiszBiezacyCel();
+    for (const { id, ile } of brak) {
+      const strona = p.strony.find((s) => s.obiekty.some((o) => o.id === id));
+      const zrodlo = strona?.obiekty.find((o) => o.id === id);
+      if (!zrodlo) continue;
+      if (!zrodlo.watek) Object.assign(zrodlo, { watek: uid('w'), watek_nr: 0 });
+      let i = p.strony.indexOf(strona);
+      for (let n = 1; n <= ile && p.strony.length < 2000; n += 1) {
+        const nowa = nowaStrona(`Strona ${p.strony.length + 1}`, strona.sekcja);
+        if (Array.isArray(strona.wzorce)) nowa.wzorce = [...strona.wzorce];
+        nowa.auto_watek = zrodlo.watek;
+        const ramka = { ...JSON.parse(JSON.stringify(zrodlo)), id: uid('o'), text: '', styles: [], watek_nr: (zrodlo.watek_nr || 0) + n, lacznik: '\n' };
+        delete ramka.lista_start; delete ramka.z;
+        nowa.obiekty = [ramka];
+        p.strony.splice(i + 1, 0, nowa);
+        i += 1;
+        dodane += 1;
+      }
+    }
+    stan.miniatury.clear();
+    stan.indeks = Math.max(0, p.strony.indexOf(biezaca));
+    await zaladujCel();
+    edytor.przelejWatki();
+  }
+  // Puste strony dołożone na końcu wątku, gdy tekstu ubyło.
+  zapiszBiezacyCel();
+  for (const watek of new Set(p.strony.map((s) => s.auto_watek).filter(Boolean))) {
+    for (;;) {
+      const ramki = p.strony.flatMap((s) => s.obiekty.filter((o) => o.watek === watek).map((o) => ({ s, o })));
+      if (ramki.length < 2) break;
+      const ostatnia = ramki.reduce((a, b) => ((b.o.watek_nr || 0) > (a.o.watek_nr || 0) ? b : a));
+      if (ostatnia.o.text || ostatnia.s.auto_watek !== watek || ostatnia.s.obiekty.length !== 1 || ostatnia.s === biezaca) break;
+      p.strony.splice(p.strony.indexOf(ostatnia.s), 1);
+      usuniete += 1;
+    }
+  }
+  if (usuniete) {
+    stan.miniatury.clear();
+    stan.indeks = Math.max(0, p.strony.indexOf(biezaca));
+    await zaladujCel();
+  }
+  if (dodane || usuniete) {
+    renderujListe();
+    generujMiniatury();
+    zaplanujZapis();
+    const netto = dodane - usuniete;
+    powiadom(netto >= 0 ? `Dodano ${netto} ${netto === 1 ? 'stronę' : netto < 5 ? 'strony' : 'stron'} – cały tekst się mieści.` : `Usunięto ${-netto} pustych stron na końcu tekstu.`);
+  }
+  return dodane - usuniete;
+}
+
 // Przechodzi do ramki tego samego wątku na innej stronie i ją zaznacza.
 export async function przejdzDoRamki(idStrony, idRamki) {
   const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);

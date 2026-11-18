@@ -22,7 +22,7 @@ import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 import { odswiezAdresZasobu } from './zasoby.js';
 import { maObraz, moznaWstawicObraz, przygotujObrazyKsztaltow, ukladObrazu, ustawKadr, ustawZrodloObrazow } from './obraz-w-ksztalcie.js';
 import { wlaczPamiecWarstw } from './warstwy-plotna.js';
-import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, WSPOLNE_W_WATKU } from './watki.js';
+import { watki, rozlej, kolejnoscCzytania, przeniesTekst, odlaczRamke, podzialyStron, WSPOLNE_W_WATKU } from './watki.js';
 import {
   toTabela, nowaTabela, ulozTabele, przygotujTabele, komorkiTabeli, komorkaWPunkcie, miejsceKomorki, utrwalSkaleTabeli,
   dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, scalKomorki, rozdzielKomorki, komorkaSchowana, ustawLinieZakresu, ustawKrawedzKomorki,
@@ -1415,6 +1415,62 @@ export class Edytor extends EventTarget {
   przelejWatki() {
     this._pilnujWatkow();
     this.canvas.requestRenderAll();
+  }
+
+  // Tekst z „Dokładaj strony” (#212), który nie mieści się w ostatniej ramce wątku (albo ma tam akapit od nowej
+  // strony): [{ id ostatniej ramki, watek, ile – ilu ramek dołożyć }]. Ramki z innych stron też się liczą.
+  przepelnioneAutoStrony() {
+    const ramki = [...this.canvas.getObjects().filter((o) => o.type === 'textbox' && !o.zWzorca), ...(this._poza || []).map((x) => x.o)]
+      .filter((o) => o?.type === 'textbox');
+    const grupy = new Map();
+    for (const r of ramki) {
+      const k = r.watek || r.id;
+      if (!grupy.has(k)) grupy.set(k, []);
+      grupy.get(k).push(r);
+    }
+    const wynik = [];
+    for (const [k, lista] of grupy) {
+      if (!lista.some((r) => r.auto_strony)) continue;
+      const ostatnia = lista.reduce((a, b) => ((b.watek_nr || 0) > (a.watek_nr || 0) ? b : a));
+      if (!(ostatnia.ramka_h > 0)) continue;
+      const podzialy = lista.length > 1 ? (ostatnia._potrzebaDalej || 0)
+        : podzialyStron(ostatnia.text || '', fabric.util.stylesToArray(ostatnia.styles || {}, ostatnia.text || '')).length;
+      const brak = nieMiesciSie(ostatnia) ? Math.max(1, Math.ceil((ostatnia._wysokoscTresci || 0) / ostatnia.ramka_h) - 1) : 0;
+      if (brak + podzialy > 0) wynik.push({ id: ostatnia.id, watek: lista.length > 1 ? k : null, ile: Math.min(200, brak + podzialy) });
+    }
+    return wynik;
+  }
+
+  // Akapit pod kursorem (albo pierwszy zaznaczony) od nowej strony (#212) – przełącznik.
+  akapitOdNowejStrony(obj = this.aktywny) {
+    if (obj?.type !== 'textbox') return null;
+    const text = obj.text || '';
+    const kursor = obj.isEditing ? obj.selectionStart : 0;
+    const poczatek = text.lastIndexOf('\n', Math.max(0, kursor - 1)) + 1;
+    if (poczatek >= text.length) return false;
+    return Boolean(obj.getSelectionStyles(poczatek, poczatek + 1)[0]?.nowa_strona) ? { obj, poczatek, jest: true } : { obj, poczatek, jest: false };
+  }
+
+  ustawAkapitOdNowejStrony(wlacz, obj = this.aktywny) {
+    const a = this.akapitOdNowejStrony(obj);
+    if (!a) return false;
+    if (a.poczatek === 0 && !obj.watek_nr) return false; // pierwszy akapit pierwszej ramki – już jest na początku
+    // deltaY: 0 – Fabric przy zamianie stylów na tablicę widzi tylko swoje pola; bez niego znacznik by się zgubił.
+    if (wlacz) a.obj.setSelectionStyles({ nowa_strona: true, deltaY: 0 }, a.poczatek, a.poczatek + 1);
+    else {
+      const { lineIndex: l, charIndex: c } = a.obj.get2DCursorLocation(a.poczatek, true);
+      const st = a.obj.styles?.[l]?.[c];
+      if (st) {
+        delete st.nowa_strona;
+        if (st.deltaY === 0) delete st.deltaY;
+        if (!Object.keys(st).length) delete a.obj.styles[l][c];
+      }
+      a.obj.dirty = true;
+    }
+    this._pilnujWatkow();
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    return true;
   }
 
   // Porządkuje wątki po każdej zmianie i przelewa tekst. Kopia ramki (powielenie,

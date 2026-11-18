@@ -466,6 +466,15 @@ następnej. Część **Przelewanie tekstu**:
 Piszesz w dowolnej ramce, a tekst przelewa się na bieżąco. Wygląd tekstu (czcionka, rozmiar, lista)
 jest wspólny dla połączonych ramek. Fioletowa linia pokazuje, dokąd płynie tekst z zaznaczonej ramki.
 
+**Długi tekst przez wiele stron (książka).** Włącz **Dokładaj strony, aż cały tekst się zmieści** — gdy tekst nie
+mieści się w ostatniej ramce, za jej stroną dochodzą nowe strony (w tej samej sekcji, z jej wzorcami) z ramką
+w tym samym miejscu i rozmiarze. Gdy tekstu ubędzie, puste dołożone strony na końcu znikają. Strony dochodzą po
+zakończeniu pisania (Esc albo kliknięcie obok), po wklejeniu i po zmianie wyglądu tekstu.
+
+**Akapit od nowej strony** (np. rozdział): ustaw kursor w akapicie i włącz **Ten akapit od nowej strony** — akapit
+i wszystko po nim przechodzi do następnej ramki. Wybór jest przy każdym akapicie osobno: rozdział może zaczynać się
+od nowej strony albo płynąć dalej. Z włączonym dokładaniem stron następna ramka powstaje sama.
+
 ![Kolumny, listy i tabela](uklad.png)
 
 ## 5.8 Czcionki

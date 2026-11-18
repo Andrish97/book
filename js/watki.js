@@ -97,6 +97,25 @@ function poczatekWiersza(ramka, k) {
 
 const akapity = (t) => (t ? t.split('\n').filter((a) => a.trim() !== '').length : 0);
 
+// Akapit „od nowej strony” (#212, np. rozdział): pierwszy znak akapitu ma w stylu znaku `nowa_strona` – tekst od
+// niego przechodzi do następnej ramki wątku. Styl wędruje z tekstem przy pisaniu i przelewaniu, a nie rysuje się.
+// Zwraca położenia (w tekście, > 0) początków takich akapitów.
+export function podzialyStron(text, styles) {
+  const wynik = [];
+  if (!styles?.length || !text) return wynik;
+  const znaczone = styles.filter((st) => st.style?.nowa_strona);
+  if (!znaczone.length) return wynik;
+  let linie = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    if (text[i] === '\n') { linie += 1; continue; }
+    if (i > 0 && text[i - 1] === '\n') {
+      const si = i - linie;
+      if (znaczone.some((st) => st.start <= si && si < st.end)) wynik.push(i);
+    }
+  }
+  return wynik;
+}
+
 // Przelewa tekst przez ramki jednego wątku (w kolejności). Zwraca true, gdy
 // treść którejkolwiek ramki się zmieniła.
 export function rozlej(ramki) {
@@ -117,6 +136,10 @@ export function rozlej(ramki) {
       const k = ileWierszy(r);
       if (k < r._textLines.length) idx = poczatekWiersza(r, k);
     }
+    // Akapit od nowej strony: ta ramka kończy się przed nim; w ostatniej – znak, że trzeba dalszej ramki.
+    const podzialy = podzialyStron(text, styles);
+    if (!ostatnia && podzialy.length && podzialy[0] < idx) idx = podzialy[0];
+    r._potrzebaDalej = ostatnia && podzialy.length ? podzialy.length : undefined;
     const [a, b] = podzielTekst(text, styles, idx);
     // Słowo podzielone między ramki (dzielenie wyrazów): łącznik na końcu tej ramki.
     const lacznikNaKoncu = b.lacznik === '' && Boolean(b.text);
@@ -158,7 +181,7 @@ export function odlaczRamke(r) {
 }
 
 // Właściwości tekstu wspólne dla całego wątku – tekst wygląda tak samo w każdej ramce.
-export const WSPOLNE_W_WATKU = ['fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl', 'wielkosc_liter',
+export const WSPOLNE_W_WATKU = ['auto_strony', 'fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl', 'wielkosc_liter',
   'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'do_siatki', 'tabulatory'];
 
 // Kolejność czytania ramek: z góry na dół, a ramki leżące obok siebie – od lewej.

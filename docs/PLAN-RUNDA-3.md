@@ -28,8 +28,8 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | 3 | (17) Pola z właściwości projektu bez wpisywania (lista pól do wstawienia) – tylko z tego, co już jest w ustawieniach projektu, bez dokładania nowych ustawień | ✅ #209 |
 | 4 | (12) Kopiowanie stron, sekcji i elementów między projektami | ✅ #210 |
 | 5 | (9) Kilka zestawów marki | ✅ #211 |
-| 6 | (6) Książka: automatyczne dokładanie stron przy długim tekście, wybór czy rozdział (i inne sekcje) zaczyna się od nowej strony, obrazy w tekście z opływaniem, wcięcia i odstępy, przypisy, klikalny spis treści, więcej wzorców | ⏳ |
-| 7 | (19) Druk na folii / kolorowym papierze: podłoże przezroczyste albo kolorowe, widoczne w edytorze, podglądzie i 3D; biały poddruk na folii | ⏳ |
+| 6 | (6) Książka: automatyczne dokładanie stron przy długim tekście, wybór czy rozdział (i inne sekcje) zaczyna się od nowej strony, obrazy w tekście z opływaniem, wcięcia i odstępy, przypisy, klikalny spis treści, więcej wzorców | ✅ #212 (reszta była: opływanie, przypisy, spis treści, linki w PDF) |
+| 7 | (19) Druk na folii / kolorowym papierze: podłoże przezroczyste albo kolorowe, widoczne w edytorze, podglądzie i 3D; biały poddruk na folii | 🔄 |
 | 8 | (20) Materiały i uszlachetnienia według standardów drukarni (okleiny: płótno, skóra ekologiczna, papier; tłoczenie, złocenie/hot-stamping, lakier wybiórczy UV, folia mat/błysk/soft-touch) z kolorami; zaokrąglone rogi w opcjach sekcji okładki; widok w 3D i eksport ustawień | ⏳ |
 | 9 | (7) Przetestować wszystkie makiety 3D | ⏳ |
 | 10 | (15) Makieta dobrana do projektu: projekt spełnia zwykle jedną, najwyżej dwie makiety (np. książka twarda albo miękka, czasem spirala); tylko te są dostępne, inne (np. kalendarz dla książki) się nie pokazują; przy brakach – co brakuje i propozycja uzupełnienia (np. białe strony) | ⏳ |

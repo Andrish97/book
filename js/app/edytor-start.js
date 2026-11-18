@@ -52,7 +52,7 @@ import { polePoTabelach } from '../serie.js';
 import { panel, instrukcja, podglad, dane, menuWidoku, oknoCzcionek, podmiana, ustawPisowniePanelu } from './skladniki.js';
 import {
   dodajStrone, indeksZMenu, zmienNazweStrony, duplikujStrone, usunStrone, przesunStrone, sekcjaZMenu,
-  wzorzecZMenu, przeniesStrone, przejdzDoStrony, piszNaInnejStronie,
+  wzorzecZMenu, przeniesStrone, przejdzDoStrony, piszNaInnejStronie, dokladajStrony,
 } from './lista-stron.js';
 import { podlaczDokWarstw, przelaczZakladkePrawa, przelaczOstrzezenia, ostrzezeniaOtwarte } from './dok-warstw.js';
 import { dodajPolecenie } from '../paleta-polecen.js';
@@ -559,6 +559,12 @@ edytor.addEventListener('punkty', (e) => {
 });
 edytor.addEventListener('schowek', () => { if (!edytor.aktywny) panel.zbuduj(); });
 edytor.addEventListener('ostrzezenia', (e) => renderujOstrzezenia(e.detail));
+// Długi tekst z „Dokładaj strony” (#212): po zmianie (i po zakończeniu pisania) dochodzą albo znikają strony.
+let czasDokladania = null;
+edytor.addEventListener('ostrzezenia', () => {
+  clearTimeout(czasDokladania);
+  czasDokladania = setTimeout(() => { if (!edytor.aktywny?.isEditing) dokladajStrony(); }, 500);
+});
 edytor.addEventListener('zoom', (e) => {
   $('#wartosc-zoom').textContent = `${Math.round(e.detail * 100)}%`;
 });

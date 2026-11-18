@@ -1027,6 +1027,29 @@ export class PanelWlasciwosci {
       w.append(this.wskazowka('Kolumny to połączone ramki obok siebie. Dwie istniejące ramki połączysz, zaznaczając je razem.'));
     }
 
+    // Książka (#212): strony dokładane same, aż cały tekst się zmieści; akapit (np. rozdział) od nowej strony.
+    if (naStronie) {
+      w.append(this.przelacznik('Dokładaj strony, aż cały tekst się zmieści', () => Boolean(obj.auto_strony), (v) => {
+        const ramki = watek ? this.edytor._ramkiWatku(obj) : [obj];
+        for (const x of ramki) x.auto_strony = v || undefined;
+        if (v && !(obj.ramka_h > 0)) { obj.ramka_h = Math.max(obj.height, 3); obj.autodopasowanie = undefined; obj.initDimensions(); }
+        this.edytor.oznaczZmiane();
+        this.opcje.dokladajStrony?.();
+        this.zbuduj();
+      }));
+      const akapit = this.edytor.akapitOdNowejStrony(obj);
+      if (akapit && !(akapit.poczatek === 0 && !obj.watek_nr)) {
+        w.append(this.przelacznik(obj.isEditing ? 'Ten akapit od nowej strony (np. rozdział)' : 'Pierwszy akapit od nowej strony', () => akapit.jest, (v) => {
+          this.edytor.ustawAkapitOdNowejStrony(v, obj);
+          if (v && !obj.auto_strony) powiadom('Akapit przejdzie do następnej ramki. Bez następnej ramki – włącz „Dokładaj strony” albo dodaj ramkę z ciągiem dalszym.');
+          this.opcje.dokladajStrony?.();
+          this.zbuduj();
+        }));
+      } else if (obj.isEditing) {
+        w.append(this.wskazowka('Ustaw kursor w akapicie (np. w tytule rozdziału), żeby zacząć go od nowej strony.'));
+      }
+    }
+
     // Ramka: stała wysokość, wyrównanie w pionie, zmniejszanie tekstu, który się nie mieści.
     const r = this.sekcja('Ramka tekstu');
     const przelicz = () => { obj.initDimensions(); obj.setCoords(); };
