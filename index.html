@@ -753,6 +753,7 @@
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane">Dane…</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst">Czcionki projektu…</button>
+          <button role="menuitem" data-akcja="czat-ai" data-ikona="klucz">Asystent AI (własny klucz)…</button>
           <button role="menuitem" data-akcja="wstaw-tekst-z-pliku" data-ikona="tekst">Wstaw tekst z pliku (Word, ODT, Markdown)…</button>
           <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku">Kolory projektu…</button>
           <hr>
@@ -2306,6 +2307,36 @@
           <button type="button" class="przycisk glowny" id="gotowe-wstaw">Wstaw jako nową sekcję</button>
         </div>
       </div>
+    </div>
+  </dialog>
+
+  <!-- Czat AI w Makietce (#217): własny klucz dostawcy (Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI,
+       OpenRouter albo zgodne API), wybór modelu, uprawnienia do projektu – te same narzędzia co łącznik MCP. -->
+  <dialog id="dlg-czat-ai" class="dialog-czatu obok-strony" aria-labelledby="czat-ai-tytul">
+    <div class="czat-ai">
+      <div class="naglowek-dialogu">
+        <h2 id="czat-ai-tytul">Asystent AI</h2>
+        <button type="button" class="przycisk-ikona" id="czat-ai-ustawienia-przelacz" data-ikona="suwaki" title="Dostawca, model i uprawnienia" aria-label="Dostawca, model i uprawnienia"></button>
+        <button type="button" class="przycisk-ikona x-okna" id="czat-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <form class="czat-ai-ustawienia" id="czat-ai-ustawienia" novalidate autocomplete="off">
+        <label class="pole"><span>Dostawca</span><select name="dostawca" id="czat-ai-dostawca"></select></label>
+        <label class="pole" id="czat-ai-adres-pole" hidden><span>Adres API (zgodne z OpenAI)</span><input name="adres" type="url" placeholder="https://…/v1"></label>
+        <label class="pole"><span>Klucz API</span><input name="klucz" type="password" placeholder="Klucz od dostawcy" spellcheck="false"></label>
+        <div class="rzad-przyciskow">
+          <button type="button" class="przycisk" id="czat-ai-openrouter" data-ikona="klucz" hidden>Zaloguj przez OpenRouter</button>
+          <a class="link-przycisk" id="czat-ai-gdzie-klucz" target="_blank" rel="noopener">Gdzie wziąć klucz?</a>
+        </div>
+        <label class="pole"><span>Model</span><input name="model" list="czat-ai-modele" placeholder="np. claude-opus-5-5"><datalist id="czat-ai-modele"></datalist></label>
+        <label class="pole"><span>AI może w tym projekcie</span><select name="rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
+        <p class="podpowiedz">Klucz zostaje tylko na tym urządzeniu; rozmowa idzie prosto do dostawcy (płacisz u niego). AI widzi wyłącznie ten projekt – przez jednodniowy klucz dostępu, który możesz odebrać w Ustawieniach konta → Dostęp dla AI.</p>
+      </form>
+      <ol class="czat-ai-wiadomosci" id="czat-ai-wiadomosci" aria-live="polite"></ol>
+      <form class="czat-ai-pisz" id="czat-ai-pisz">
+        <textarea id="czat-ai-tekst" rows="2" placeholder="Napisz, co zrobić w projekcie… (Enter – wyślij)" aria-label="Wiadomość do asystenta"></textarea>
+        <button type="submit" class="przycisk glowny" id="czat-ai-wyslij" data-ikona="wyslij">Wyślij</button>
+        <button type="button" class="przycisk" id="czat-ai-przerwij" hidden>Przerwij</button>
+      </form>
     </div>
   </dialog>
 

@@ -196,7 +196,29 @@ Link do pobrania działa bez logowania przez 7 dni, potem plik znika z konta. AI
 projekt, jedną sekcję albo wybrane strony, plik do drukarni (ze spadem i znakami cięcia, także PDF/X)
 albo do czytania na ekranie, broszurę do złożenia albo PNG jednej strony.
 
-## 25.6 Bezpieczeństwo
+## 25.6 Asystent AI w Makietce (własny klucz)
+
+Bez osobnej aplikacji AI: w edytorze menu **⋯** → [Asystent AI (własny klucz)…] otwiera czat obok strony
+(na telefonie — okno).
+
+1. **Dostawca** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok),
+   OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem).
+2. **Klucz API** — od wybranego dostawcy ([Gdzie wziąć klucz?] prowadzi do jego strony). Przy OpenRouter zamiast
+   wklejać klucz wystarczy [Zaloguj przez OpenRouter] — zalogujesz się i zatwierdzisz dostęp u nich.
+3. **Model** — lista modeli przychodzi od dostawcy po wpisaniu klucza; można też wpisać nazwę.
+4. **AI może w tym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
+
+Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik
+(→ 25.1); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. [Przerwij] zatrzymuje
+po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.
+
+- Klucz dostawcy zostaje tylko na tym urządzeniu; rozmowa idzie z przeglądarki prosto do dostawcy, a koszt
+  rozliczasz u niego.
+- AI widzi wyłącznie otwarty projekt — przez jednodniowy klucz dostępu „Czat w Makietce”, widoczny
+  w [Ustawienia konta] → **Dostęp dla AI** (→ 25.2); tam możesz go odebrać.
+- Zmiana dostawcy albo modelu zaczyna nową rozmowę.
+
+## 25.7 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta,
 a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.

@@ -264,8 +264,10 @@ test('makieta 3D (#181) w przeglądarce: ujęcia ustawiają kamerę, PNG w zadan
   await strona.waitForSelector('#dlg-makieta[open]');
   const M = (f, ...a) => strona.evaluate(async ([f, a]) => (await import('./js/app/makieta-okno.js'))[f](...a), [f, a]);
   await strona.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
-  // Lista „Rodzaj”: tylko modele ogólne (projekt nie ma sekcji specjalnych).
-  assert.deepEqual((await M('stanMakiety')).modele, ['ksiazka_miekka', 'ksiazka_twarda', 'notes', 'kalendarz_scienny', 'kalendarz_biurkowy', 'kartka']);
+  // Lista „Rodzaj” (#215): tylko rodzaj pasujący do projektu (twarda okładka – książka w twardej oprawie); reszta
+  // ogólnych w grupie „Nie pasuje do projektu”.
+  assert.deepEqual((await M('stanMakiety')).modele, ['ksiazka_twarda']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('#makieta-model optgroup option')].map((o) => o.value)), ['ksiazka_miekka', 'notes', 'kalendarz_scienny', 'kalendarz_biurkowy', 'kartka']);
   // Kafelki ujęć: kliknięcie ustawia kamerę i zaznacza kafelek.
   await strona.click('.makieta-ujecie[data-ujecie="zGory"]');
   let s = await M('stanMakiety');

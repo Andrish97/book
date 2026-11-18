@@ -342,6 +342,7 @@ export const akcje = {
   // Tekst dla innych programów (#216): Word i EPUB – treść stron w kolejności czytania, z nagłówkami.
   'tekst-docx': () => zapiszTekstJako('docx'),
   'tekst-epub': () => zapiszTekstJako('epub'),
+  'czat-ai': async () => { zamknijMenu(); (await import('./czat-ai.js')).otworzCzatAi(); },
   'wstaw-tekst-z-pliku': async () => { zamknijMenu(); await import('./import-tekstu-okno.js'); $('#plik-tekst').click(); },
   // Specyfikacja dla drukarni (#214): ustawienia oprawy, papieru, materiału i uszlachetnień – tekst i JSON.
   specyfikacja: async () => {

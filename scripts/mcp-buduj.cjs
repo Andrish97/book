@@ -134,15 +134,22 @@ function zbuduj() {
   return `${NAGLOWEK}\n// ---------- Wspólny rdzeń (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs) ----------\n\n${rdzen}\n${STDIO}`;
 }
 
+// Kopia rdzenia dla przeglądarki (#217): czat AI w aplikacji uruchamia te same narzędzia u siebie.
+const PRZEGLADARKA = path.join(KORZEN, 'js', 'ai-narzedzia-rdzen.js');
+const trescPrzegladarki = () => `// PLIK SKŁADANY z supabase/functions/_shared/seriodruk-mcp-rdzen.mjs (node scripts/mcp-buduj.cjs) – nie edytuj.\n// Czat AI w aplikacji (js/app/czat-ai.js) uruchamia tu te same narzędzia co łącznik MCP.\n${fs.readFileSync(RDZEN, 'utf8')}`;
+
 const tresc = zbuduj();
+const tresc2 = trescPrzegladarki();
 if (process.argv.includes('--sprawdz')) {
   const obecny = fs.existsSync(WYNIK) ? fs.readFileSync(WYNIK, 'utf8') : '';
-  if (obecny !== tresc) {
-    console.error('ai/mcp/makietka-mcp.mjs jest nieaktualny względem rdzenia – uruchom: node scripts/mcp-buduj.cjs');
+  const obecny2 = fs.existsSync(PRZEGLADARKA) ? fs.readFileSync(PRZEGLADARKA, 'utf8') : '';
+  if (obecny !== tresc || obecny2 !== tresc2) {
+    console.error('ai/mcp/makietka-mcp.mjs albo js/ai-narzedzia-rdzen.js jest nieaktualny względem rdzenia – uruchom: node scripts/mcp-buduj.cjs');
     process.exit(1);
   }
-  console.log('ai/mcp/makietka-mcp.mjs jest aktualny');
+  console.log('ai/mcp/makietka-mcp.mjs i js/ai-narzedzia-rdzen.js są aktualne');
 } else {
   fs.writeFileSync(WYNIK, tresc);
-  console.log(`ai/mcp/makietka-mcp.mjs: ${tresc.split('\n').length} linii`);
+  fs.writeFileSync(PRZEGLADARKA, tresc2);
+  console.log(`ai/mcp/makietka-mcp.mjs: ${tresc.split('\n').length} linii; js/ai-narzedzia-rdzen.js gotowy`);
 }

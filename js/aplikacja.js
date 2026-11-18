@@ -188,6 +188,8 @@ async function start() {
     await pokazUdostepniony(trasa.odczytaj());
     return;
   }
+  // Powrót z logowania OpenRouter (#217) – klucz dla czatu AI, adres bez kodu.
+  if (/[?&]code=/.test(location.search)) import('./app/czat-ai-logowanie.js').then((m) => m.dokonczLogowanieOpenRouter()).catch(() => {});
   stan.czcionki = zaladujCzcionki();
 
   if (!chmura.chmuraSkonfigurowana()) {

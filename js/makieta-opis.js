@@ -24,7 +24,7 @@ export function domyslnyModel(projekt, liczbaStron, okladka) {
 // Modele pasujące do sekcji projektu (#181): ogólne (książka, notes, kalendarz, kartka) – gdy projekt ma zwykłe
 // strony albo okładkę; ulotka, koperta, pudełko, trójdzielny – tylko z sekcją takiego typu. Zwraca też sekcje
 // specjalne modeli: { modele: [...], specjalne: { model: sekcja } }.
-export function modeleProjektu(projekt) {
+export function modeleProjektu(projekt, ciag = null) {
   const specjalne = {};
   let ogolne = false;
   for (const s of projekt.sekcje || []) {
@@ -41,8 +41,52 @@ export function modeleProjektu(projekt) {
     }
     if (model && !specjalne[model] && maStrony) specjalne[model] = s;
   }
-  const lista = Object.keys(MODELE).filter((m) => (jestSpecjalnyModel(m) ? Boolean(specjalne[m]) : ogolne || !Object.keys(specjalne).length));
-  return { modele: lista, specjalne };
+  // Makieta dobrana do projektu (#215): z ogólnych rodzajów tylko te, które projekt naprawdę spełnia – zwykle jeden,
+  // najwyżej dwa (np. miękka oprawa – książka albo notes na spirali). Reszta to „inne” – do wyboru z opisem, czego
+  // brakuje (książka nigdy nie jest kalendarzem).
+  const ogolneModele = Object.keys(MODELE).filter((m) => !jestSpecjalnyModel(m));
+  const bezSpecjalnych = !Object.keys(specjalne).length;
+  const pasujace = ogolne || bezSpecjalnych ? pasujaceOgolne(projekt, ciag) : [];
+  const lista = [...pasujace, ...Object.keys(MODELE).filter((m) => jestSpecjalnyModel(m) && specjalne[m])];
+  const inne = ogolne || bezSpecjalnych ? ogolneModele.filter((m) => !pasujace.includes(m)) : [];
+  return { modele: lista, inne, specjalne };
+}
+
+// Ogólne rodzaje pasujące do projektu: okładka mówi o oprawie; bez okładki – liczba i układ kart.
+function pasujaceOgolne(projekt, ciag) {
+  const okladka = (projekt.sekcje || []).find((s) => jestOkladka(s));
+  if (okladka) {
+    const oprawa = normalizujOkladke(okladka.okladka).oprawa;
+    return oprawa === 'twarda' ? ['ksiazka_twarda'] : oprawa === 'zeszytowa' ? ['ksiazka_miekka'] : ['ksiazka_miekka', 'notes'];
+  }
+  const c = ciag || rozwin(projekt);
+  const stron = c.egzemplarze.filter((e) => !e.pusta && !jestOkladka(e.sekcja)).length;
+  const typy = new Set((projekt.sekcje || []).map((s) => typSekcji(s)));
+  const pierwsza = (projekt.sekcje || []).find((s) => rolaTypu(typSekcji(s)) === 'blok') || projekt.sekcje?.[0];
+  const poziomo = pierwsza ? pierwsza.wydruk.szerokosc_mm > pierwsza.wydruk.wysokosc_mm : false;
+  const kalendarz = typy.has('kalendarz') || typy.has('podkladka') || /kalend/i.test(projekt.nazwa || '') || (stron >= 12 && stron <= 14);
+  if (kalendarz) return poziomo || /biurk/i.test(projekt.nazwa || '') ? ['kalendarz_biurkowy', 'kalendarz_scienny'] : ['kalendarz_scienny', 'kalendarz_biurkowy'];
+  if (stron <= 2) return ['kartka'];
+  return ['notes', 'ksiazka_miekka'];
+}
+
+// Czego brakuje, żeby projekt pasował do rodzaju makiety – z propozycją (#215).
+export function powodNiepasowania(model, projekt) {
+  const okladka = (projekt.sekcje || []).find((s) => jestOkladka(s));
+  const oprawa = okladka ? normalizujOkladke(okladka.okladka).oprawa : null;
+  const opisy = {
+    ksiazka_twarda: okladka
+      ? `Projekt ma oprawę ${oprawa === 'zeszytowa' ? 'zeszytową' : 'miękką'}. Żeby to była twarda oprawa, zmień oprawę w ustawieniach sekcji okładki – makieta doda wtedy białe wyklejki, jeśli ich nie ma.`
+      : 'Projekt nie ma okładki – makieta pokaże pustą, ciemną okleinę. Dodaj sekcję typu „Okładka” z twardą oprawą albo zacznij od szablonu projektu „Książka w twardej oprawie”.',
+    ksiazka_miekka: okladka
+      ? 'Projekt ma twardą oprawę – miękka okładka byłaby inną książką. Zmień oprawę w ustawieniach sekcji okładki.'
+      : 'Projekt nie ma okładki – makieta pokaże białą okładkę. Dodaj sekcję typu „Okładka” albo zacznij od szablonu projektu.',
+    notes: okladka && oprawa === 'twarda' ? 'Twarda oprawa nie jest szyta na spiralę – notes pokaże strony bez okładki.' : 'Notes na spirali – strony projektu zepnie spirala; okładka (jeśli jest) będzie pierwszą kartą.',
+    kalendarz_scienny: 'Kalendarz ścienny ma zwykle 13 kart (okładka i 12 miesięcy) – projekt ich nie ma. Brakujące karty będą białe; zacznij od szablonu „Kalendarz ścienny z plecami”.',
+    kalendarz_biurkowy: 'Kalendarz biurkowy ma zwykle 13 kart w poziomie – projekt ich nie ma. Brakujące karty będą białe.',
+    kartka: 'Pojedyncza kartka pokaże tylko dwie pierwsze strony projektu.',
+  };
+  return opisy[model] || '';
 }
 
 // Bryła makiety z projektu: { ciag, strony, okladka, geometria, format, obwoluta, modele, specjalne, specjalneDane }.
@@ -60,7 +104,7 @@ export function bazaMakiety(projekt, ciag = rozwin(projekt)) {
   if (eObw) {
     try { const wynik = geometriaSpecjalna(projekt, sObw, ciag); if (wynik?.strefy?.length) obwoluta = { sekcja: sObw, egz: eObw, wynik }; } catch { obwoluta = null; }
   }
-  const { modele, specjalne } = modeleProjektu(projekt);
+  const { modele, inne, specjalne } = modeleProjektu(projekt, ciag);
   // Geometria sekcji specjalnych liczona od razu – z linku nie da się jej policzyć (brak projektu).
   const specjalneDane = {};
   for (const [model, s] of Object.entries(specjalne)) {
@@ -68,7 +112,7 @@ export function bazaMakiety(projekt, ciag = rozwin(projekt)) {
   }
   return {
     ciag, strony, okladka: geometria ? okladka : null, geometria, format, obwoluta,
-    modele: modele.length ? modele : Object.keys(MODELE).filter((m) => !jestSpecjalnyModel(m)), specjalne, specjalneDane,
+    modele: modele.length ? modele : Object.keys(MODELE).filter((m) => !jestSpecjalnyModel(m)), inne: modele.length ? inne : [], specjalne, specjalneDane,
   };
 }
 

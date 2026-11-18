@@ -20,7 +20,7 @@ import {
   iloscSceny, idIlosci,
 } from '../makieta-ustawienia.js';
 import { typSekcji, rolaTypu, wBloku } from '../typ-sekcji.js'; // typ sekcji wspólny z resztą programu (#177)
-import { bazaMakiety, bazaZOpisu, domyslnyModel, modeleProjektu } from '../makieta-opis.js';
+import { bazaMakiety, bazaZOpisu, domyslnyModel, modeleProjektu, powodNiepasowania } from '../makieta-opis.js';
 import { uzyteKoloryDruku, stanUszlachetnien, FOLIE, plytaUszlachetnienia } from '../kolory-druku.js';
 import { maskaZRoznicy } from '../separacje.js';
 import { KoderGif } from '../gif.js';
@@ -492,6 +492,8 @@ function ustawModel(model, { kamera = true } = {}) {
   // Sekcja środka w innym formacie niż reszta bloku (#185) – np. wyklejka A4 bez ustawionego typu. Takiej strony
   // nie da się poprawnie złożyć w książkę: makieta mówi to wprost i prowadzi do ustawienia typu sekcji.
   const obce = st.gosc || model === 'kartka' || MODELE_SPECJALNE.includes(model) ? [] : niepasujaceSekcje(st.projekt, st.ciag);
+  // Rodzaj spoza pasujących (#215): co nie pasuje i co zrobić.
+  if (st.inne?.includes(model)) uwagi.unshift(`${MODELE[model]} nie pasuje do tego projektu. ${powodNiepasowania(model, st.projekt)}`);
   uwaga.replaceChildren();
   for (const t of uwagi) { const p = document.createElement('p'); p.textContent = t; uwaga.append(p); }
   for (const o of obce) {
@@ -621,7 +623,14 @@ function uruchom(baza, { model, ulozenie }) {
     kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null, fov: 28 }, sc: normalizujScene({}),
   };
   dlg.classList.toggle('makieta-z-linku', Boolean(baza.gosc));
+  // Pasujące rodzaje (#215) na górze; pozostałe – osobna grupa, z opisem, czego projektowi brakuje.
   wybor.replaceChildren(...st.modele.map((id) => new Option(MODELE[id], id)));
+  if (st.inne?.length && !st.gosc) {
+    const grupa = document.createElement('optgroup');
+    grupa.label = 'Nie pasuje do projektu';
+    grupa.append(...st.inne.map((id) => new Option(MODELE[id], id)));
+    wybor.append(grupa);
+  }
   if (!dlg.open) dlg.showModal();
   renderer = utworzRenderer(plotno);
   pokazBrak3D();
@@ -859,7 +868,7 @@ export function widokZPrzodu() {
 // Stan ujęcia (gotowego albo zapisanego): model, położenie, ułożenie, kamera, scena; opcje – światło i tło.
 function zastosujStan(s, opcje = null) {
   if (!st) return;
-  if (s.model && s.model !== st.model && st.modele.includes(s.model)) ustawModel(s.model, { kamera: false });
+  if (s.model && s.model !== st.model && (st.modele.includes(s.model) || st.inne?.includes(s.model))) ustawModel(s.model, { kamera: false });
   if (s.obwoluta !== undefined && st.obwoluta) { st.pokazObwolute = Boolean(s.obwoluta); przeliczKartki(); }
   st.ulozenie = s.ulozenie === 'stoi' && mozeStac(st.model) ? 'stoi' : 'lezy';
   st.sc = normalizujScene(s.scena);
@@ -939,7 +948,7 @@ export function pokazZapisaneUjecie(id) {
   const uj = st?.projekt.makieta?.ujecia?.find((u) => u.id === id);
   if (!uj) return false;
   const n = normalizujUjecie(uj);
-  zastosujStan({ ...n, model: n.model && st.modele.includes(n.model) ? n.model : st.model }, n.opcje);
+  zastosujStan({ ...n, model: n.model && (st.modele.includes(n.model) || st.inne?.includes(n.model)) ? n.model : st.model }, n.opcje);
   return true;
 }
 

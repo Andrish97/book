@@ -1679,8 +1679,11 @@ Strony idą po kolei, rozkładówki stoją obok siebie. Strony serii mają podpi
 | **Kalendarz ścienny** | Wisi na ścianie; spirala Wire-O u góry ma pośrodku przerwę z półokrągłym wycięciem na wieszak. Przewrócona karta przechodzi na tył. |
 | **Kalendarz biurkowy** | Stoi na biurku na stojaku z grubej tektury; karty przewracają się przez górę na drugą stronę. |
 | **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — leży na stole, przód i tył. |
+
+**Rodzaj dobrany do projektu.** Lista **Rodzaj** pokazuje na górze tylko to, czym projekt naprawdę jest — zwykle jeden rodzaj, najwyżej dwa: twarda okładka — **Książka – twarda oprawa**; miękka — książka albo notes na spirali; zeszytowa — książka; bez okładki 12–14 kart albo kalendarz — kalendarz ścienny i biurkowy; jedna, dwie strony — kartka; inne bez okładki — notes albo książka. Pozostałe rodzaje są niżej, w grupie **Nie pasuje do projektu**: po wybraniu takiego makieta mówi, czego brakuje, i proponuje, co zrobić (np. zmienić oprawę na twardą, dodać okładkę albo zacząć od szablonu projektu; brakujące karty pokaże jako białe).
+
 | **Ulotka składana** | Z sekcji typu ulotka (rozdział „10.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki”): złożona okładką do góry, rozkłada się panel po panelu (zwijana albo harmonijka), potem odwraca na stronę zewnętrzną. |
-| **Koperta** | Z wykrojnika koperty: przód z adresem, tył z klapkami i spodem, na końcu otwarta klapa. |
+|---|---|
 | **Pudełko z wykrojnika** | Z wykrojnika pudełka: najpierw płaski arkusz z nadrukiem, potem ścianki, klapki i wieczko składają się w bryłę. |
 | **Kalendarz trójdzielny** | Wisi na ścianie: plecy z główką, trzy bloczki kalendariów i czerwone okienko na środkowym. |
 
@@ -2215,7 +2218,22 @@ Poproś AI np. „Zrób PDF do drukarni” albo „Pokaż okładkę jako obraz�
 
 Link do pobrania działa bez logowania przez 7 dni, potem plik znika z konta. AI może zlecić cały projekt, jedną sekcję albo wybrane strony, plik do drukarni (ze spadem i znakami cięcia, także PDF/X) albo do czytania na ekranie, broszurę do złożenia albo PNG jednej strony.
 
-### 25.6 Bezpieczeństwo
+### 25.6 Asystent AI w Makietce (własny klucz)
+
+Bez osobnej aplikacji AI: w edytorze menu **⋯** → **Asystent AI (własny klucz)…** otwiera czat obok strony (na telefonie — okno).
+
+1. **Dostawca** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem).
+2. **Klucz API** — od wybranego dostawcy (**Gdzie wziąć klucz?** prowadzi do jego strony). Przy OpenRouter zamiast wklejać klucz wystarczy **Zaloguj przez OpenRouter** — zalogujesz się i zatwierdzisz dostęp u nich.
+3. **Model** — lista modeli przychodzi od dostawcy po wpisaniu klucza; można też wpisać nazwę.
+4. **AI może w tym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
+
+Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik (rozdział „25.1 Co potrafi AI”); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. **Przerwij** zatrzymuje po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.
+
+- Klucz dostawcy zostaje tylko na tym urządzeniu; rozmowa idzie z przeglądarki prosto do dostawcy, a koszt rozliczasz u niego.
+- AI widzi wyłącznie otwarty projekt — przez jednodniowy klucz dostępu „Czat w Makietce”, widoczny w **Ustawienia konta** → **Dostęp dla AI** (rozdział „25.2 Klucz dla AI”); tam możesz go odebrać.
+- Zmiana dostawcy albo modelu zaczyna nową rozmowę.
+
+### 25.7 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta, a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 

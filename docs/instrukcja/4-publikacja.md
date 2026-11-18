@@ -48,6 +48,13 @@ albo ścianie. Można ją obracać i kartkować, zanim pójdzie do drukarni.
 | **Kalendarz ścienny** | Wisi na ścianie; spirala Wire-O u góry ma pośrodku przerwę z półokrągłym wycięciem na wieszak. Przewrócona karta przechodzi na tył. |
 | **Kalendarz biurkowy** | Stoi na biurku na stojaku z grubej tektury; karty przewracają się przez górę na drugą stronę. |
 | **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — leży na stole, przód i tył. |
+
+**Rodzaj dobrany do projektu.** Lista **Rodzaj** pokazuje na górze tylko to, czym projekt naprawdę jest — zwykle
+jeden rodzaj, najwyżej dwa: twarda okładka — **Książka – twarda oprawa**; miękka — książka albo notes na spirali;
+zeszytowa — książka; bez okładki 12–14 kart albo kalendarz — kalendarz ścienny i biurkowy; jedna, dwie strony —
+kartka; inne bez okładki — notes albo książka. Pozostałe rodzaje są niżej, w grupie **Nie pasuje do projektu**:
+po wybraniu takiego makieta mówi, czego brakuje, i proponuje, co zrobić (np. zmienić oprawę na twardą,
+dodać okładkę albo zacząć od szablonu projektu; brakujące karty pokaże jako białe).
 | **Ulotka składana** | Z sekcji typu ulotka (→ 10.11): złożona okładką do góry, rozkłada się panel po panelu (zwijana albo harmonijka), potem odwraca na stronę zewnętrzną. |
 | **Koperta** | Z wykrojnika koperty: przód z adresem, tył z klapkami i spodem, na końcu otwarta klapa. |
 | **Pudełko z wykrojnika** | Z wykrojnika pudełka: najpierw płaski arkusz z nadrukiem, potem ścianki, klapki i wieczko składają się w bryłę. |

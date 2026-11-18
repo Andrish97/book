@@ -41,6 +41,8 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 217 | Asystent AI w Makietce z własnym kluczem: Anthropic, OpenAI, Gemini, DeepSeek, Mistral, xAI, OpenRouter (logowanie) i zgodne; wybór modelu; dostęp tylko do otwartego projektu (czytanie albo zmiany) |
+| 215 | Makieta 3D dobrana do projektu (książka nie jest kalendarzem), reszta w „Nie pasuje do projektu” z podpowiedzią; wszystkie makiety przetestowane na prawdziwych projektach |
 | 216 | Tekst z Worda, ODT, Markdown i TXT do książki (strony same, rozdziały od nowej strony); zapis tekstu do Worda i EPUB |
 | 214 | Materiał okładki (druk z folią albo płótno, skóra ekologiczna, papier strukturalny, aksamit – w kolorach), zaokrąglone rogi, okleina w 3D, „Specyfikacja dla drukarni” |
 | 213 | Podłoże sekcji: kolorowy papier albo przezroczysta folia – widać w edytorze i podglądzie, w PDF się nie drukuje; ostrzeżenia o bieli i białym poddruku |
