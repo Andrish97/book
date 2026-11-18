@@ -15,6 +15,7 @@
 // { p: [4 punkty], uv: [4], tex, n, nv?: [4 normalne], ao?: [4], mat } i opis podłoża (quady.podloze).
 
 import { normalizujOpcje, DOMYSLNE_OPCJE, DRUT, TEKTURA } from './makieta-ustawienia.js';
+import { normalizujCzesc, scianyCzesci, naStronieZapisanej, poleWielokata } from './skladanka.js';
 
 export { normalizujOpcje, DOMYSLNE_OPCJE };
 
@@ -30,9 +31,10 @@ export const MODELE = {
   koperta: 'Koperta',
   pudelko: 'Pudełko z wykrojnika',
   trojdzielny: 'Kalendarz trójdzielny',
+  skladanka: 'Składanka (model z części)',
 };
 // Modele z jednej sekcji specjalnej (rodzaj → model): ich kartki to strony tej sekcji, geometria z jej wyniku.
-export const MODELE_SPECJALNE = ['ulotka', 'koperta', 'pudelko', 'trojdzielny'];
+export const MODELE_SPECJALNE = ['ulotka', 'koperta', 'pudelko', 'trojdzielny', 'skladanka'];
 export const jestSpecjalnyModel = (model) => MODELE_SPECJALNE.includes(model);
 
 const PAPIER = '#fbfaf7';
@@ -87,6 +89,11 @@ export function kartkiModelu(model, { strony, format, okladka = null, kartka_mm 
   if (jestSpecjalnyModel(model)) {
     const wynik = specjalna?.wynik;
     if (!wynik) return kartki;
+    // Składanka (#238): każda strona sekcji to arkusz z częściami (specjalna.czesci – z położeniem na arkuszu).
+    if (model === 'skladanka') {
+      for (let i = 0; i < strony; i += 1) kartki.push({ przod: `p:${i}`, tyl: null, w: wynik.szerokosc, h: wynik.wysokosc, d: Math.max(0.1, specjalna.grubosc_mm || 0.3), kolor: PAPIER, specjalna });
+      return kartki;
+    }
     const gr = model === 'pudelko' ? 0.45 : model === 'trojdzielny' ? 1.2 : model === 'koperta' ? 0.12 : 0.15;
     kartki.push({ przod: strony > 0 ? 'p:0' : null, tyl: strony > 1 ? 'p:1' : null, w: wynik.szerokosc, h: wynik.wysokosc, d: gr, kolor: PAPIER, specjalna });
     return kartki;
@@ -136,7 +143,7 @@ const wymiar = (r) => ({ w: Math.max(10, r.w), h: Math.max(10, r.h) });
 // Ile położeń kartkowania ma model (u od 0 do tej liczby).
 // Ulotka: złożona → rozłożona (środek) → odwrócona (zewnątrz); koperta: przód → tył → otwarta klapa;
 // pudełko: wykrojnik płasko → złożone; trójdzielny – jedno położenie.
-const POLOZENIA_SPECJALNE = { ulotka: 2, koperta: 2, pudelko: 1, trojdzielny: 0 };
+const POLOZENIA_SPECJALNE = { ulotka: 2, koperta: 2, pudelko: 1, trojdzielny: 0, skladanka: 1 };
 export const polozenia = (model, kartki) => {
   if (jestSpecjalnyModel(model)) return kartki.length ? POLOZENIA_SPECJALNE[model] : 0;
   return model === 'kartka' ? Math.max(1, kartki.length * 2 - 1) : kartki.length;
@@ -151,6 +158,7 @@ export function opisPolozenia(model, kartki, u, numer = (i) => i + 1) {
   if (model === 'koperta') return ['Przód koperty', 'Tył – klapa zamknięta', 'Tył – klapa otwarta'][Math.min(2, t)];
   if (model === 'pudelko') return t === 0 ? 'Wykrojnik (płasko)' : 'Pudełko złożone';
   if (model === 'trojdzielny') return 'Kalendarz trójdzielny';
+  if (model === 'skladanka') return t === 0 ? 'Arkusze (płasko)' : 'Złożone części';
   if (model === 'kartka') {
     const k = kartki[Math.floor(t / 2)];
     const klucz = t % 2 ? k?.tyl : k?.przod;
@@ -1183,6 +1191,98 @@ function wykrojnik(quady, kar, panele, { e = 0.3 } = {}) {
   return T;
 }
 
+// ---------- Składanka (#238) ----------
+
+// Trójkąty wielokąta (ucinanie uszu) – ściany części bywają wklęsłe. Zwraca trójki indeksów.
+export function trojkatyWielokata(p) {
+  const n = p.length;
+  if (n < 3) return [];
+  const ccw = poleWielokata(p.map(([x, y]) => ({ x, y }))) > 0;
+  const idx = [...Array(n).keys()];
+  if (!ccw) idx.reverse();
+  const kr = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const wTrojkacie = (q, a, b, c) => kr(a, b, q) >= -1e-9 && kr(b, c, q) >= -1e-9 && kr(c, a, q) >= -1e-9;
+  const wynik = [];
+  let straz = 0;
+  while (idx.length > 3 && straz < 4 * n) {
+    straz += 1;
+    let ucieto = false;
+    for (let i = 0; i < idx.length; i += 1) {
+      const [ia, ib, ic] = [idx[(i - 1 + idx.length) % idx.length], idx[i], idx[(i + 1) % idx.length]];
+      const [a, b, c] = [p[ia], p[ib], p[ic]];
+      if (kr(a, b, c) <= 1e-9) continue; // wierzchołek wklęsły albo współliniowy
+      if (idx.some((j) => j !== ia && j !== ib && j !== ic && wTrojkacie(p[j], a, b, c))) continue;
+      wynik.push([ia, ib, ic]);
+      idx.splice(i, 1);
+      ucieto = true;
+      break;
+    }
+    if (!ucieto) break;
+  }
+  if (idx.length === 3) wynik.push([idx[0], idx[1], idx[2]]);
+  return wynik;
+}
+
+// Części na arkuszach: każda składa się po swoich zgięciach – drzewo ścian od największej (leży), kolejne
+// obracają się wokół zawiasów o (180° − kąt po złożeniu); „góra” – od nadruku (nadruk na zewnątrz), „dolina” –
+// w drugą stronę. Arkusze leżą obok siebie; u: 0 – płasko nadrukiem do góry, 1 – złożone (najpierw odwrócenie,
+// potem zginanie). Tekstura ścian – z arkusza (uv z położenia części na arkuszu), spód – karton.
+function skladanka(quady, kartki, u) {
+  const czesci = kartki[0]?.specjalna?.czesci || [];
+  const s = gladko(ogr((u - 0.3) / 0.7, 0, 1));
+  const od = quady.length;
+  const e = Math.max(0.15, kartki[0]?.d || 0.3);
+  for (const cz of czesci) {
+    const kar = kartki[cz.arkusz] || kartki[0];
+    const S = kar.w;
+    const Hs = kar.h;
+    const dx = cz.arkusz * (S + 40);
+    const F = ([x, y]) => [-(x - S / 2) - dx, 0, y - Hs / 2];
+    const c = normalizujCzesc(cz.czesc);
+    const { sciany, zawiasy } = scianyCzesci(c);
+    if (!sciany.length) continue;
+    const naArk = (q) => { const r = naStronieZapisanej(cz.obiekt, q); return [r.x, r.y]; };
+    const pola = sciany.map((w) => Math.abs(poleWielokata(w)));
+    const korzen = pola.indexOf(Math.max(...pola));
+    const T = new Array(sciany.length).fill(null);
+    T[korzen] = T_JEDN;
+    const kolejka = [korzen];
+    while (kolejka.length) {
+      const r = kolejka.shift();
+      for (const z of zawiasy) {
+        const dziecko = z.s1 === r ? z.s2 : z.s2 === r ? z.s1 : null;
+        if (dziecko === null || T[dziecko]) continue;
+        const zg = c.zgiecia[z.zgiecie];
+        const A = F(naArk(z.a));
+        const k = norm(odj(F(naArk(z.b)), A));
+        const srodek = sciany[dziecko].reduce((a, q) => ({ x: a.x + q.x / sciany[dziecko].length, y: a.y + q.y / sciany[dziecko].length }), { x: 0, y: 0 });
+        const sr = naT(T[r], F(naArk(srodek)));
+        const W = obrotOs(naT(T[r], A), naR(T[r].R, k), 0.1);
+        // Kierunek względem ściany-rodzica: „góra” – na stronę bez nadruku (lokalne +Y rodzica).
+        const nGora = naR(T[r].R, [0, 1, 0]);
+        const ruch = odj(naT(W, sr), sr);
+        const znak = ruch[0] * nGora[0] + ruch[1] * nGora[1] + ruch[2] * nGora[2] >= 0 ? 1 : -1;
+        const kat = (Math.PI - ((zg?.kat ?? 90) * Math.PI) / 180) * s;
+        const kier = zg?.rodzaj === 'dolina' ? -1 : 1;
+        T[dziecko] = zlozT(obrotOs(naT(T[r], A), naR(T[r].R, k), znak * kier * kat), T[r]);
+        kolejka.push(dziecko);
+      }
+    }
+    sciany.forEach((w, i) => {
+      const Ti = T[i] || T_JEDN;
+      const pts = w.map(naArk);
+      const P = pts.map((q) => naT(Ti, F(q)));
+      const uv = pts.map(([x, y]) => [ogr(x / S, 0, 1), ogr(y / Hs, 0, 1)]);
+      const nN = naR(Ti.R, [0, -1, 0]);
+      for (const [a, b, d] of trojkatyWielokata(pts)) {
+        quad(quady, [a, b, d, d].map((j) => dod(P[j], razy(nN, e / 2))), [a, b, d, d].map((j) => uv[j]), kar.przod || `kolor:${PAPIER}`, 'okladka', { n: nN });
+        quad(quady, [a, d, b, b].map((j) => dod(P[j], razy(nN, -e / 2))), [a, d, b, b].map((j) => uv[j]), `kolor:${KARTON}`, 'tektura', { n: razy(nN, -1) });
+      }
+    });
+  }
+  if (quady.length > od) obrocNaStol(quady, od, Math.PI * (1 - gladko(ogr(u / 0.3, 0, 1))));
+}
+
 // Bryła (czworokąty od indeksu od) obrócona o kąt wokół osi Z przez środek świata i postawiona na stole.
 function obrocNaStol(quady, od, kat) {
   if (Math.abs(kat) > 1e-6) {
@@ -1372,6 +1472,7 @@ export function scena(model, kartki, u = 0, { ulozenie = 'lezy', otwarcie = null
   else if (model === 'ulotka') ulotka(quady, kartki[0], u);
   else if (model === 'koperta') koperta(quady, kartki[0], u);
   else if (model === 'pudelko') pudelko(quady, kartki[0], u);
+  else if (model === 'skladanka') skladanka(quady, kartki, u);
   else if (model === 'trojdzielny') trojdzielny(quady, kartki[0]);
   else ksiazka(quady, model, kartki, u, { wachlarz });
   const otwarta = mozeStac(model) && u > 0.02 && u < kartki.length - 0.02;

@@ -523,6 +523,7 @@ export const akcje = {
   'skladanka-szczelina': () => obsluzAkcje('skladanka-szczelina'),
   'skladanka-rozloz': () => obsluzAkcje('skladanka-rozloz'),
   'skladanka-szablon': () => obsluzAkcje('skladanka-szablon'),
+  'skladanka-instrukcja': () => obsluzAkcje('skladanka-instrukcja'),
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => otworzWyborWielokata(),

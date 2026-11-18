@@ -1188,13 +1188,14 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 | **Połącz** | Kliknij przy krawędzi, która dostanie **zakładkę klejową**, potem przy krawędzi innej części (albo tej samej), do której się przykleja – obie dostają **ten sam numer**. Drugie kliknięcie w środku ściany zamiast przy krawędzi dodaje tam **miejsce klejenia** o długości krawędzi. Gdy krawędzie mają różne długości, aplikacja o tym powie. |
 | **Klej** | Kliknięcie w części dodaje miejsce klejenia (z `Shift` – na spodzie, bez druku, gdy druga strona arkusza jest na klej). |
 | **Rozłóż** | Wszystkie części sekcji układają się od nowa na arkuszach – rzędami w polu druku (bez marginesu drukarki), najwyższe najpierw; część, która nie mieści się poziomo, obraca się o 90°; brakujące arkusze dochodzą na końcu sekcji (przy druku dwustronnym części idą na pierwszą stronę arkusza). Inne elementy stron zostają. Część za duża nawet po obróceniu zostaje na miejscu – aplikacja o tym powie. |
+| **Instrukcja** | Instrukcja montażu z modelu: co wydrukować (materiał, gramatura), które części wyciąć (z numerami arkuszy), ile zgięć „od siebie” i „do siebie” ma każda część, potem klejenie par po kolei – „Posmaruj klejem zakładkę 3 (część A) i przyklej pod krawędź 4 części B z numerem 3”, „Wsuń wypustkę 7 w szczelinę 7”. **Pobierz (.txt)** albo **Wstaw jako stronę** – nowa sekcja A4 za arkuszami z ponumerowanymi krokami (do poprawienia jak zwykły tekst). |
 | **Szczelina** | Dwa kliknięcia w części: nacięcie na wypustkę albo przegródkę – szerokość to grubość materiału + 0,2 mm luzu. |
 
 `Esc` kończy narzędzie. Część przesuwasz i obracasz jak każdy element; nie da się jej rozciągnąć (wymiary są wymiarami modelu). Zaznaczona część ma w panelu **Właściwości**:
 
 - **Część** – nazwę (literę), kolor ścian, przełącznik **Numery par i nazwa części** i przyciski narzędzi;
 - **Krawędzie** – każda krawędź z długością i rodzajem: **Cięcie**, **Zakładka klejowa** (z szerokością), **Do sklejenia (bez zakładki)** albo **Wypustka do szczeliny** (z długością) – i **numerem pary**;
-- **Zgięcia** – **dolina** (zginasz do siebie, kreski) albo **góra** (od siebie, kreska–kropka) i kąt po złożeniu;
+- **Zgięcia** – **góra** (od siebie, kreska–kropka – nadruk zostaje na zewnątrz; tak są zgięcia szablonów i nowe zgięcia) albo **dolina** (do siebie, kreski) i **kąt po złożeniu** – kąt między ścianami w gotowym modelu (pudełko 90°, ściany sześciokątnego graniastosłupa 120°);
 - **Miejsca klejenia** i **Szczeliny** – numer pary, wymiary, na spodzie, usuwanie.
 
 Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯**) i PDF dla drukarni dostają obrys cięcia części z zakładkami i szczelinami, zgięcia (także u nasady każdej zakładki) i miejsca klejenia.
@@ -1203,7 +1204,9 @@ Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy kr
 
 **Sprawdź przed drukiem** (rozdział „20 Sprawdź przed drukiem”) pilnuje modelu: część wystająca poza arkusz albo wchodząca w margines drukarki, części nachodzące na siebie razem z zakładkami (nie da się ich wyciąć), numer bez pary (nie wiadomo, do czego to przykleić), numer użyty więcej niż dwa razy, para krawędzi o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż wypustka. Przy każdej uwadze **Otwórz wzór** zaznacza część.
 
-Kolejne kroki tego trybu – makieta 3D z instrukcją montażu i pop-up – dojdą w następnych wersjach.
+**Makieta 3D** (rozdział „19.4 Makieta 3D”) ma dla sekcji składanki model **Składanka (model z części)**: najpierw arkusze leżą płasko nadrukiem do góry, potem każda część składa się po swoich zgięciach – z nadrukiem z arkusza na ścianach i kartonem w środku. Części stoją obok siebie tak, jak leżą na arkuszach (makieta nie skleja jeszcze osobnych części w jedną bryłę – np. wieczko leży obok pudełka).
+
+Rozkładówki pop-up dojdą w następnej wersji.
 
 ## 11. Wzorce stron
 

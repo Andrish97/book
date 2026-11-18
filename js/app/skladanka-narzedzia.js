@@ -12,13 +12,13 @@
 import {
   zbudujCzesc, normalizujCzesc, czescZKsztaltu, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
   naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
-  rozlozNaArkusze,
+  rozlozNaArkusze, instrukcjaMontazu,
 } from '../skladanka.js';
-import { nowaStrona } from '../projekt.js';
+import { nowaStrona, nowaSekcja } from '../projekt.js';
 import { SZABLONY_SKLADANEK, OPISY_PARAMETROW, czesciSzablonu, numeruj } from '../skladanka-szablony.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
-import { $, $$, powiadom } from '../ui.js';
+import { $, $$, powiadom, pobierz, bezpiecznaNazwa } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
 
 const LUZ_SZCZELINY = 0.2; // mm ponad grubość materiału
@@ -164,7 +164,7 @@ function klik(p, shift) {
     const s = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const sciana = sciany.find((w) => wWielokacie(w, s));
     if (!sciana || !podzielWielokat(sciana, a, b)) { powiadom('Ta linia nie dzieli części na dwie ściany – zgięcie musi przejść przez środek części od krawędzi do krawędzi.', true); return; }
-    zmienCzesc(g, (d) => { d.zgiecia = [...(d.zgiecia || []), { a, b, rodzaj: 'dolina', kat: 90 }]; });
+    zmienCzesc(g, (d) => { d.zgiecia = [...(d.zgiecia || []), { a, b, rodzaj: 'gora', kat: 90 }]; });
     return;
   }
   if (narzedzie === 'szczelina') {
@@ -454,12 +454,62 @@ export function oknoSzablonow() {
   dlg.showModal();
 }
 
+// ---------- Instrukcja montażu (#238) ----------
+
+export function oknoInstrukcji() {
+  if (!wSkladance()) return null;
+  zapiszBiezacyCel();
+  const sekcja = biezacaSekcja();
+  const strony = stan.projekt.strony.filter((st) => st.sekcja === sekcja.id);
+  const ins = instrukcjaMontazu(strony, sekcja.specjalna || {});
+  if (!ins.czesci) { powiadom('W tej sekcji nie ma jeszcze części.', true); return null; }
+  let dlg = $('#dlg-instrukcja-montazu');
+  if (!dlg) {
+    dlg = document.createElement('dialog');
+    dlg.id = 'dlg-instrukcja-montazu';
+    dlg.className = 'okno-raportu';
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Instrukcja montażu</h2><ol class="kroki-montazu"></ol>
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Zamknij</button><button class="przycisk" type="button" data-rola="pobierz">Pobierz (.txt)</button><button class="przycisk glowny" value="strona">Wstaw jako stronę</button></div></form>`;
+    document.body.append(dlg);
+  }
+  dlg.querySelector('ol').replaceChildren(...ins.kroki.map((k) => Object.assign(document.createElement('li'), { textContent: k })));
+  const tekst = `Instrukcja montażu – ${stan.projekt.nazwa}\n\n${ins.kroki.map((k, i) => `${i + 1}. ${k}`).join('\n')}\n`;
+  dlg.querySelector('[data-rola="pobierz"]').onclick = () => pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'model')} - instrukcja montażu.txt`, URL.createObjectURL(new Blob([tekst], { type: 'text/plain;charset=utf-8' })));
+  dlg.addEventListener('close', async () => { if (dlg.returnValue === 'strona') await wstawInstrukcje(ins.kroki); }, { once: true });
+  dlg.returnValue = '';
+  dlg.showModal();
+  return ins;
+}
+
+// Instrukcja jako nowa sekcja A4 za sekcją składanki: tytuł i ponumerowane kroki w jednej ramce (Dokładaj strony).
+export async function wstawInstrukcje(kroki) {
+  const { projekt } = stan;
+  const skl = biezacaSekcja();
+  const sekcja = nowaSekcja('Instrukcja montażu'); // domyślnie A4
+  projekt.sekcje.splice(projekt.sekcje.indexOf(skl) + 1, 0, sekcja);
+  const strona = nowaStrona('Instrukcja montażu', sekcja.id);
+  const m = sekcja.wydruk.marginesy || { gora: 15, wewnetrzny: 15, zewnetrzny: 15 };
+  const lewy = m.wewnetrzny ?? 15;
+  const szer = sekcja.wydruk.szerokosc_mm - lewy - (m.zewnetrzny ?? 15);
+  strona.obiekty = [
+    { type: 'textbox', id: `o${Date.now().toString(36)}t`, left: lewy, top: m.gora ?? 15, width: szer, text: 'Instrukcja montażu', fontFamily: 'Inter', fontSize: 8, fontWeight: 'bold', fill: '#1a1a1a', strokeWidth: 0 },
+    { type: 'textbox', id: `o${Date.now().toString(36)}k`, left: lewy, top: (m.gora ?? 15) + 14, width: szer, text: kroki.map((k, i) => `${i + 1}. ${k}`).join('\n'), fontFamily: 'Inter', fontSize: 3.9, lineHeight: 1.35, fill: '#1a1a1a', strokeWidth: 0, auto_strony: true },
+  ];
+  const ostatnia = projekt.strony.filter((st) => st.sekcja === skl.id).at(-1);
+  projekt.strony.splice(projekt.strony.indexOf(ostatnia) + 1, 0, strona);
+  stan.miniatury?.clear?.();
+  await zaladujCel();
+  zaplanujZapis();
+  powiadom('Instrukcja montażu jest w nowej sekcji za arkuszami – możesz ją dowolnie poprawić.');
+}
+
 // Pasek narzędzi: przyciski z data-akcja="skladanka-…".
 export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-czesc') return nowaCzesc();
   if (akcja === 'skladanka-z-ksztaltu') return czescZZaznaczenia();
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   if (akcja === 'skladanka-szablon') return oknoSzablonow();
+  if (akcja === 'skladanka-instrukcja') return oknoInstrukcji();
   const n = { 'skladanka-zgiecie': 'zgiecie', 'skladanka-polacz': 'polacz', 'skladanka-szczelina': 'szczelina', 'skladanka-klej': 'klej' }[akcja];
   if (n) ustawNarzedzie(n);
   return null;

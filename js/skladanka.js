@@ -224,7 +224,7 @@ export function elementyCzesci(def) {
     const z = k.typ === 'zakladka' ? zakladka(c.punkty, i, k.szer) : wypustka(c.punkty, i, k.szer);
     el.push(new fabric.Polygon(z, { ...wspolne, fill: k.typ === 'zakladka' ? KOLOR_ZAKLADKI : c.kolor, stroke: null, strokeWidth: 0, nazwa: `${k.typ === 'zakladka' ? 'Zakładka' : 'Wypustka'} ${k.para || ''}`.trim(), skladanka: k.typ }));
     const [a, b] = k.typ === 'zakladka' ? [z[0], z[1]] : [z[0], z[1]];
-    zgiecie(a, b, 'dolina');
+    zgiecie(a, b, 'gora'); // zakładka chowa się pod spód (nadruk na zewnątrz)
     if (k.para && c.pokaz_numery) { const s = srodekWielokata(z); numer(k.para, s.x, s.y, Math.min(3.2, k.szer * 0.5)); }
   });
   el.push(new fabric.Polygon(c.punkty, { ...wspolne, fill: c.kolor, stroke: null, strokeWidth: 0, nazwa: 'Ściana', skladanka: 'sciana' }));
@@ -509,4 +509,37 @@ export function rozlozNaArkusze(czesci, pole, odstep = 4) {
     wysPolki = Math.max(wysPolki, c.h);
   }
   return { arkusze, za_duze };
+}
+
+// ---------- Instrukcja montażu (#238) ----------
+
+// Kroki montażu z części sekcji: wydruk i wycinanie, zginanie, klejenie par w kolejności numerów.
+// strony – strony sekcji (arkusze), sp – ustawienia sekcji. Zwraca { kroki: [tekst…], czesci, par }.
+export function instrukcjaMontazu(strony, sp = {}) {
+  const kroki = [];
+  const lista = strony.flatMap((st, i) => czesciWObiektach(st.obiekty).map((o) => ({ c: normalizujCzesc(o.czesc), arkusz: i + 1 })));
+  if (!lista.length) return { kroki, czesci: 0, par: 0 };
+  const nazwa = (x) => `${x.c.nr}${x.c.opis ? ` (${x.c.opis})` : ''}`;
+  const ark = strony.length;
+  kroki.push(`Wydrukuj ${ark === 1 ? 'arkusz' : `${ark} arkusze`}${sp.material ? ` na ${sp.material === 'karton' ? 'kartonie' : sp.material === 'tektura' ? 'tekturze' : 'papierze'}${sp.gramatura && ['papier', 'karton'].includes(sp.material) ? ` ${sp.gramatura} g/m²` : ''}` : ''}${sp.druga_strona === 'druk' ? ' dwustronnie' : ''}.`);
+  kroki.push(sp.druk === 'drukarnia'
+    ? `Części wycina ploter (linia cięcia „CutContour”); bigi („Crease”) ułatwią zginanie. Części: ${lista.map(nazwa).join(', ')}.`
+    : `Wytnij części po ciągłej linii: ${lista.map((x) => `${nazwa(x)}${ark > 1 ? ` – arkusz ${x.arkusz}` : ''}`).join(', ')}. Szczeliny natnij nożykiem.`);
+  const zgiecia = lista.map((x) => ({ x, g: x.c.zgiecia.filter((z) => z.rodzaj === 'gora').length, d: x.c.zgiecia.filter((z) => z.rodzaj === 'dolina').length, z: x.c.krawedzie.filter((k) => k.typ === 'zakladka').length })).filter((y) => y.g + y.d + y.z);
+  if (zgiecia.length) {
+    kroki.push('Zegnij wszystkie linie przed klejeniem – przyłóż linijkę i przeciągnij tępą stroną noża. Kreska–kropka („góra”) – zginaj od siebie, nadruk zostaje na zewnątrz; same kreski („dolina”) – do siebie. Zakładki zaginaj pod spód.');
+    for (const y of zgiecia) kroki.push(`Część ${nazwa(y.x)}: ${[y.g ? `${y.g} ${y.g === 1 ? 'zgięcie od siebie' : 'zgięcia od siebie'}` : '', y.d ? `${y.d} do siebie` : '', y.z ? `${y.z} ${y.z === 1 ? 'zakładka' : 'zakładki'}` : ''].filter(Boolean).join(', ')}.`);
+  }
+  const pary = paryWSekcji(strony);
+  const opis = (w) => `${w.opis} części ${w.czesc}`;
+  for (const [para, w] of pary) {
+    if (w.length !== 2) continue;
+    const zak = w.find((x) => x.rodzaj === 'zakladka');
+    const wyp = w.find((x) => x.rodzaj === 'wypustka');
+    const szcz = w.find((x) => x.rodzaj === 'szczelina');
+    if (wyp && szcz) kroki.push(`${para}. Wsuń wypustkę ${para} (część ${wyp.czesc}) w szczelinę ${para} (część ${szcz.czesc}).`);
+    else if (zak) { const inna = w.find((x) => x !== zak); kroki.push(`${para}. Posmaruj klejem zakładkę ${para} (część ${zak.czesc}) i przyklej ${inna.rodzaj === 'pole' ? `w miejscu ${para} na części ${inna.czesc}` : `pod ${opis(inna)} z numerem ${para}`}.`); } else kroki.push(`${para}. Sklej ${opis(w[0])} z ${opis(w[1])}.`);
+  }
+  kroki.push('Dociśnij sklejone miejsca i odczekaj, aż klej wyschnie.');
+  return { kroki, czesci: lista.length, par: pary.size };
 }

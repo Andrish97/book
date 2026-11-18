@@ -12,7 +12,8 @@ const P = (x, y) => ({ x: r2(x), y: r2(y) });
 
 // Krawędzie z listy: [['c'] | ['z', para] | ['k', para]] → definicja krawędzi (cięcie / zakładka / do sklejenia).
 const kr = (lista, szer = 7) => lista.map(([t, para]) => (t === 'z' ? { typ: 'zakladka', para, szer } : t === 'k' ? { typ: 'klej', para } : { typ: 'ciecie' }));
-const zg = (a, b, kat = 90) => ({ a: P(a[0], a[1]), b: P(b[0], b[1]), rodzaj: 'dolina', kat });
+// Zgięcia „góra” – od nadruku: nadruk zostaje na zewnątrz bryły.
+const zg = (a, b, kat = 90) => ({ a: P(a[0], a[1]), b: P(b[0], b[1]), rodzaj: 'gora', kat });
 
 // Prostopadłościan L × W × H: pas czterech ścian, wieko i dno przy pierwszej ścianie.
 function prostopadloscian({ dlugosc: L, szerokosc: W, wysokosc: H }) {
@@ -107,7 +108,7 @@ function ostroslup({ boki: n, bok: a, wysokosc: h }) {
     pkt.push(A, T);
     // A → T: lewy bok trójkąta i – do sklejenia z zakładką prawego boku trójkąta i-1; T → B: prawy bok – zakładka.
     kraw.push(['k', pary[(i - 1 + n) % n]], ['z', pary[i]]);
-    zgiecia.push(zg([A.x, A.y], [B.x, B.y], 180 - Math.atan2(h, ap) * (180 / Math.PI)));
+    zgiecia.push(zg([A.x, A.y], [B.x, B.y], Math.atan2(h, ap) * (180 / Math.PI))); // kąt między ścianą a podstawą
   }
   const minX = Math.min(...pkt.map((q) => q.x));
   const minY = Math.min(...pkt.map((q) => q.y));

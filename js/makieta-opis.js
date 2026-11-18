@@ -35,6 +35,7 @@ export function modeleProjektu(projekt, ciag = null) {
     let model = null;
     if (t === 'ulotka') model = 'ulotka';
     else if (t === 'trojdzielny') model = 'trojdzielny';
+    else if (t === 'skladanka') model = 'skladanka';
     else if (t === 'wykrojnik') {
       const k = normalizujSpecjalna(s.specjalna)?.ksztalt;
       model = k === 'pudelko' ? 'pudelko' : k === 'koperta' ? 'koperta' : null;
@@ -109,6 +110,13 @@ export function bazaMakiety(projekt, ciag = rozwin(projekt)) {
   const specjalneDane = {};
   for (const [model, s] of Object.entries(specjalne)) {
     try { specjalneDane[model] = { ...normalizujSpecjalna(s.specjalna), wynik: geometriaSpecjalna(projekt, s, ciag) }; } catch { specjalneDane[model] = null; }
+    // Składanka (#238): części z położeniem na arkuszu (indeks strony sekcji) – do składania w 3D.
+    if (model === 'skladanka' && specjalneDane[model]) {
+      const arkusze = ciag.egzemplarze.filter((e) => e.sekcja.id === s.id && !e.pusta).map((e) => e.strona);
+      specjalneDane[model].czesci = arkusze.flatMap((st, i) => (st.obiekty || []).filter((o) => o?.czesc).map((o) => ({
+        arkusz: i, czesc: o.czesc, obiekt: { czesc: o.czesc, left: o.left, top: o.top, width: o.width, height: o.height, angle: o.angle || 0, originX: o.originX, originY: o.originY, scaleX: o.scaleX || 1, scaleY: o.scaleY || 1 },
+      })));
+    }
   }
   return {
     ciag, strony, okladka: geometria ? okladka : null, geometria, format, obwoluta,

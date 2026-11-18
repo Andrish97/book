@@ -11,7 +11,7 @@ export const BARWY = { neutralna: 'Neutralna', ciepla: 'Ciepła', zimna: 'Zimna'
 export const WYKONCZENIA_OKLADKI = { projekt: 'Jak w projekcie', mat: 'Mat', blysk: 'Błysk', soft: 'Soft-touch' };
 export const PAPIERY = { bialy: 'Biały', kremowy: 'Kremowy' };
 export const ILOSCI = { 1: 'Jeden egzemplarz', obok2: 'Dwa obok siebie', obok3: 'Trzy obok siebie', stos3: 'Stos – 3', stos5: 'Stos – 5', przodTyl: 'Przód i tył' };
-export const MODELE_MAKIETY = ['ksiazka_miekka', 'ksiazka_twarda', 'notes', 'kalendarz_scienny', 'kalendarz_biurkowy', 'kartka', 'ulotka', 'koperta', 'pudelko', 'trojdzielny'];
+export const MODELE_MAKIETY = ['ksiazka_miekka', 'ksiazka_twarda', 'notes', 'kalendarz_scienny', 'kalendarz_biurkowy', 'kartka', 'ulotka', 'koperta', 'pudelko', 'trojdzielny', 'skladanka'];
 
 export const DOMYSLNE_OPCJE = {
   tlo: 'studio', kolorTla: '#e9e6e0', swiatlo: 'lewo', barwa: 'neutralna', silaCienia: 1, miekkosc: 0.5,
