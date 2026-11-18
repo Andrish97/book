@@ -2341,6 +2341,8 @@ Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła stron
 
 > **Uwaga:** Część czatów otwiera tylko adresy, które dostała od użytkownika albo znalazła sama – nie te, które zbuduje. Wtedy działa czytanie (linki z opisu), a do zmian użyj trybu „kopiuj i wklej” albo łącznika.
 
+> **Uwaga:** ChatGPT otwiera tylko adresy wklejone przez Ciebie (nie te, które sam zbuduje ani nie linki znalezione na stronie). Dlatego polecenie zawiera gotowe adresy do czytania: projekty, przegląd projektu i opis formatu – czytać będzie, ale zmian zwykle nie zrobi. Do zmian bez płatnego planu użyj Asystenta AI w trybie „kopiuj i wklej” (rozdział „25.6 Asystent AI w Makietce (własny klucz)”).
+
 ### 25.8 Bezpieczeństwo
 
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta, a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
