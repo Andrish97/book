@@ -3702,5 +3702,8 @@
  "Uprawnienia": "Дозволи",
  "Kopiuj i wklej": "Копіювати й вставити",
  "Czat otwierający strony": "Чат, що відкриває сторінки",
- "Otwórz z Asystentem AI": "Відкрити з асистентом ШІ"
+ "Otwórz z Asystentem AI": "Відкрити з асистентом ШІ",
+ "Pozwól": "Дозволити",
+ "Zawsze pozwalaj w tej rozmowie": "Завжди дозволяти в цій розмові",
+ "Nie pozwalaj": "Не дозволяти"
 }

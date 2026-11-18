@@ -2336,6 +2336,8 @@ Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych s
 
 Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w Makietce”, czytanie albo zmiany).
 
+**Zgoda na groźne zmiany.** Zanim asystent usunie strony, 3 i więcej elementów naraz, obrazy albo projekt, zmieni 3 i więcej stron jednym zapisem albo zastąpi w całości wzorce, style, tabele czy serie, w rozmowie pojawia się pytanie „AI chce … Pozwolić?” z przyciskami **Pozwól**, **Zawsze pozwalaj w tej rozmowie** i **Nie pozwalaj**. Po odmowie nic się nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
+
 ### 25.7 AI, które umie otwierać strony (bez łącznika)
 
 Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika: w ustawieniach **Sztuczna inteligencja**, zaraz po utworzeniu klucza, **Kopiuj dla zwykłego czatu** daje gotowe polecenie z adresem – wklej je w rozmowie; AI pokaże Twoje projekty i zapyta, co zrobić. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.

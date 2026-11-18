@@ -3650,6 +3650,9 @@ img:not([src]):not(.zaladowany) { color: transparent; }
 .czat-ai-wiadomosci li { padding: 8px 10px; border-radius: var(--r-m); font-size: 13.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .czat-ai-wiadomosci li.ja { align-self: flex-end; background: var(--akcent-tlo); max-width: 85%; }
 .czat-ai-wiadomosci li.ai { align-self: stretch; background: var(--wypelnienie); }
+.czat-ai-wiadomosci li.zgoda { align-self: stretch; background: var(--uwaga-tlo); border: 1px solid var(--uwaga); display: flex; flex-direction: column; gap: 8px; }
+.czat-ai-wiadomosci li.zgoda .rzad-przyciskow { flex-wrap: wrap; gap: 6px; }
+.czat-ai-wiadomosci li.zgoda .zgoda-wynik { color: var(--cichy); font-size: 12.5px; }
 .czat-ai-wiadomosci li.narzedzie { align-self: stretch; color: var(--cichy); font-size: 12px; padding: 2px 10px; }
 .czat-ai-wiadomosci li.blad { background: var(--blad-tlo); color: var(--blad); }
 .czat-ai-pisz { display: flex; gap: 8px; align-items: flex-end; flex: none; }

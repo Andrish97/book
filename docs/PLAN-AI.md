@@ -18,7 +18,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
 | 5.2 Panel „Ustawienia → Sztuczna inteligencja” | ⚠️ Ustawienia są w samym czacie (jeden dostawca naraz). Brak listy kilku dostawców, modelu domyślnego, „Sprawdź połączenie”. |
 | 9 Klucze dostawców po stronie serwera, zaszyfrowane | ✅ #241: na koncie, zaszyfrowane w przeglądarce hasłem do kluczy (twórca nie odczyta) – decyzja użytkownika. |
 | 6 Adaptery: streaming, obrazy w rozmowie, ponawianie, czytelne błędy | ⚠️ Są 3 adaptery (Anthropic, Gemini, zgodne z OpenAI) z narzędziami; brak streamingu, obrazów w rozmowie, ponawiania; błędy częściowo surowe. |
-| 8 Czat: zatwierdzanie ważnych zmian, ponawianie | ❌ Narzędzia wykonują się od razu; brak pytania przed usuwaniem. |
+| 8 Czat: zatwierdzanie ważnych zmian, ponawianie | ✅ #255: pytanie przed usuwaniem i dużymi zmianami (też w „kopiuj i wklej”); ponawianie – krok 5. |
 | 9 Historia operacji i cofanie | ⚠️ Zmiany AI to zwykłe zmiany z konta; edytorowe Cofnij ich nie zdejmuje. Użytkownik nie chce historii wersji w interfejsie – zostaje kopia (Eksport) przed dużymi zmianami. |
 | 8 Wariant B (AI płatne przez Makietkę) | — Nie robię (dokument: opcjonalne). |
 
@@ -30,7 +30,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
    Adres z kluczem zostaje jako druga droga.
 2. ✅ (#252) **Zakresy uprawnień** – obok czyta / zmienia: obrazy, wzorce i style, tabele i serie, struktura (dodawanie
    i usuwanie stron), usuwanie projektów – sprawdzane w rdzeniu po stronie serwera i pokazywane na stronie zgody.
-3. **Zatwierdzanie w czacie Makietki** – przed usunięciem stron, wielu elementów, obrazów w użyciu, projektu
+3. ✅ (#255) **Zatwierdzanie w czacie Makietki** – przed usunięciem stron, wielu elementów, obrazów w użyciu, projektu
    i przed zmianą wielu stron naraz: pytanie z opisem; „Zawsze pozwalaj w tej rozmowie”.
 4. ⏳ (#241–#251: sekcja w ustawieniach, trzy drogi, sejf kluczy, edycja i ważność kluczy; zostaje „Sprawdź połączenie” i model domyślny) **Ustawienia → Sztuczna inteligencja** – kilku dostawców naraz, model domyślny, „Sprawdź połączenie”, zmiana
    modelu w trakcie rozmowy; klucze **opcjonalnie na koncie** (szyfrowane w przekaźniku, rozmowa przez przekaźnik –

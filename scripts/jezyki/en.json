@@ -3702,5 +3702,8 @@
  "Uprawnienia": "Permissions",
  "Kopiuj i wklej": "Copy and paste",
  "Czat otwierający strony": "Chat that opens web pages",
- "Otwórz z Asystentem AI": "Open with the AI Assistant"
+ "Otwórz z Asystentem AI": "Open with the AI Assistant",
+ "Pozwól": "Allow",
+ "Zawsze pozwalaj w tej rozmowie": "Always allow in this conversation",
+ "Nie pozwalaj": "Don't allow"
 }

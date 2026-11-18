@@ -265,6 +265,12 @@ z każdym czatem AI w przeglądarce, także darmowym (ChatGPT, Claude, Gemini, C
 
 Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w Makietce”, czytanie albo zmiany).
 
+**Zgoda na groźne zmiany.** Zanim asystent usunie strony, 3 i więcej elementów naraz, obrazy albo projekt, zmieni
+3 i więcej stron jednym zapisem albo zastąpi w całości wzorce, style, tabele czy serie, w rozmowie pojawia się pytanie
+„AI chce … Pozwolić?” z przyciskami [Pozwól], [Zawsze pozwalaj w tej rozmowie] i [Nie pozwalaj]. Po odmowie nic się
+nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj
+i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
+
 ## 25.7 AI, które umie otwierać strony (bez łącznika)
 
 Adres łącznika (→ 25.2) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście.

@@ -11,6 +11,7 @@ import { DOSTAWCY, modeleDostawcy, nowaRozmowa, zapytaj, adresLogowaniaOpenRoute
 import { otwartySejf, sejfKonta, maKluczeDoPrzeniesienia } from './sejf-ai.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
+import { wymagaZgody } from '../zgoda-ai.js';
 
 const dlg = $('#dlg-czat-ai');
 const f = $('#czat-ai-ustawienia');
@@ -23,6 +24,29 @@ let rozmowa = null;
 let narzedzia = null; // { serwer, stanSesji, lista, instrukcje, projekt, rola }
 let przerwano = false;
 let trwa = false;
+let zawszePozwalaj = false; // „Zawsze pozwalaj w tej rozmowie” (#255) – do nowej rozmowy
+
+// Zgoda na groźną zmianę (#255): pytanie w rozmowie z przyciskami. Zwraca true – wolno, false – nie.
+function zapytajOZgode(opis) {
+  if (zawszePozwalaj) return Promise.resolve(true);
+  return new Promise((gotowe) => {
+    const li = dopisz('zgoda', `AI chce ${opis}. Pozwolić?`);
+    const rzad = Object.assign(document.createElement('div'), { className: 'rzad-przyciskow' });
+    const koniec = (wolno, zawsze = false) => {
+      if (zawsze) zawszePozwalaj = true;
+      rzad.remove();
+      li.append(Object.assign(document.createElement('span'), { className: 'zgoda-wynik', textContent: wolno ? (zawsze ? ' – pozwolono (do końca rozmowy)' : ' – pozwolono') : ' – nie pozwolono' }));
+      gotowe(wolno);
+    };
+    const przycisk = (tekst, klasa, fn) => { const b = Object.assign(document.createElement('button'), { type: 'button', className: `przycisk maly ${klasa}`, textContent: tekst }); b.addEventListener('click', fn); return b; };
+    rzad.append(przycisk('Pozwól', 'glowny', () => koniec(true)), przycisk('Zawsze pozwalaj w tej rozmowie', '', () => koniec(true, true)), przycisk('Nie pozwalaj', 'niebezpieczny', () => koniec(false)));
+    li.append(rzad);
+    lista.scrollTop = lista.scrollHeight;
+    rzad.querySelector('button').focus();
+  });
+}
+// Wynik narzędzia, gdy użytkownik nie pozwolił – AI dostaje go jak błąd i ma zapytać, co dalej.
+const ODMOWA = 'Użytkownik nie pozwolił na tę zmianę – niczego nie zmieniono. Nie ponawiaj jej; zapytaj, co zrobić zamiast tego.';
 
 const czytaj = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || 'null') ?? d; } catch { return d; } };
 const zapisz = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* bez pamięci – na tę sesję */ } };
@@ -84,7 +108,7 @@ function zapamietajPola() {
   u.rola = f.elements.rola.value;
   u.dostawcy[id] = { model: f.elements.model.value.trim(), ...(DOSTAWCY[id].wlasnyAdres ? { adres: f.elements.adres.value.trim() } : {}) };
   zapisz(PAMIEC, u);
-  if (stary !== id || (rozmowa && (rozmowa.model !== u.dostawcy[id].model || rozmowa.klucz !== ustDostawcy(u, id).klucz))) rozmowa = null; // nowy dostawca albo model – nowa rozmowa
+  if (stary !== id || (rozmowa && (rozmowa.model !== u.dostawcy[id].model || rozmowa.klucz !== ustDostawcy(u, id).klucz))) { rozmowa = null; zawszePozwalaj = false; } // nowy dostawca albo model – nowa rozmowa
   if (narzedzia && narzedzia.rola !== u.rola) narzedzia = null;
 }
 f.addEventListener('change', async (e) => {
@@ -222,6 +246,8 @@ async function wyslijPrzezSchowek(tekst) {
       let zmiany = false;
       for (const w of wywolania) {
         dopisz('narzedzie', `🔧 ${w.nazwa}`);
+        const opisZgody = wymagaZgody(w.nazwa, w.argumenty);
+        if (opisZgody && !await zapytajOZgode(opisZgody)) { wyniki.push(`BŁĄD ${w.nazwa}:\n${ODMOWA}`); continue; }
         try {
           const r = await n.wolaj('tools/call', { name: w.nazwa, arguments: w.argumenty });
           const t = (r?.content || []).map((c) => c.text || '').join('\n') || '(brak treści)';
@@ -282,7 +308,7 @@ async function wyslij(tekst) {
     await zapiszTeraz(); // AI ma widzieć to, co teraz na ekranie – także projekt, którego jeszcze nie ma na koncie
     await synchronizuj({ wymus: true }).catch(() => {});
     const n = await przygotujNarzedzia();
-    if (!rozmowa || rozmowa.projekt !== n.projekt) rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt };
+    if (!rozmowa || rozmowa.projekt !== n.projekt) { rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt }; zawszePozwalaj = false; }
     let zmiany = false;
     const wynik = await zapytaj(rozmowa, tekst, {
       przerwij: () => przerwano,
@@ -290,6 +316,11 @@ async function wyslij(tekst) {
       wykonaj: async (nazwa, argumenty) => {
         czeka.textContent = `Narzędzie: ${nazwa}…`;
         dopisz('narzedzie', `🔧 ${nazwa}`);
+        const opisZgody = wymagaZgody(nazwa, argumenty);
+        if (opisZgody) {
+          czeka.textContent = 'Czekam na Twoją zgodę…';
+          if (!await zapytajOZgode(opisZgody)) return { tekst: ODMOWA, blad: true };
+        }
         const r = await n.wolaj('tools/call', { name: nazwa, arguments: argumenty });
         if (!/^(czytaj|przeglad|projekty|obrazy_projektu|komentarze|stan_eksportu|opis_formatu|kontrola)/.test(nazwa)) zmiany = true;
         return { tekst: (r?.content || []).map((c) => c.text || '').join('\n') || '(brak treści)', blad: Boolean(r?.isError) };
