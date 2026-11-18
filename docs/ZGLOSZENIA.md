@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 235 | Składanki: lista połączeń (co z czym, na którym arkuszu) i podświetlanie pary na arkuszu |
 | 234 | Składanki: sprawdzanie modelu przed drukiem – numery bez pary, różne długości, za małe miejsca klejenia, za wąskie szczeliny, części poza arkuszem |
 | 233 | Składanki i wycinanki – krok 1: sekcja z arkuszem i materiałem (grubość z gramatury), części modelu, zgięcia, łączenie krawędzi numerami, miejsca klejenia, szczeliny |
 | 232 | Raport „co przejdzie, a co nie” przy zapisie dla innych programów i po wczytaniu z nich – z pokazaniem elementów; tabele z InDesigna i formatowanie przy polach scalania |

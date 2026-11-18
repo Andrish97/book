@@ -932,6 +932,11 @@ dialog h2 { font-size: 19px; }
 /* Składanka (#233): narzędzia tylko w jej sekcji; w trybie narzędzia kursor celownika. */
 .pasek-narzedzi .tylko-skladanka { display: none; }
 body.w-skladance .pasek-narzedzi .tylko-skladanka { display: inline-flex; }
+.lista-polaczen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.lista-polaczen button { display: flex; gap: 8px; align-items: baseline; width: 100%; text-align: left; padding: 6px 8px; border: 1px solid var(--linia); border-radius: var(--r-s); background: none; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+.lista-polaczen button:hover { border-color: #f08c00; background: rgba(240, 140, 0, 0.08); }
+.lista-polaczen strong { min-width: 1.6em; color: #c26d00; }
+.lista-polaczen li.uwaga button { border-left: 3px solid var(--ostrzezenie, #d97706); }
 body.narzedzie-skladanki .kontener-plotna canvas { cursor: crosshair !important; }
 .okno-raportu { width: min(640px, calc(100vw - 32px)); }
 .okno-raportu .raport-lista { max-height: min(56vh, 480px); overflow: auto; display: flex; flex-direction: column; gap: 6px; }

@@ -11,7 +11,7 @@
 
 import {
   zbudujCzesc, normalizujCzesc, czescZKsztaltu, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
-  naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC,
+  naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
 } from '../skladanka.js';
 import { typSekcji } from '../typ-sekcji.js';
 import { $, $$, powiadom } from '../ui.js';
@@ -202,10 +202,44 @@ function klik(p, shift) {
   }
 }
 
+// ---------- Podświetlanie par (#235) ----------
+
+let podswietlone = new Set(); // numery par podświetlone na stronie
+export function podswietlPary(pary) {
+  podswietlone = new Set(pary || []);
+  edytor.canvas.requestRenderAll();
+}
+// Na płótnie (po narysowaniu): pomarańczowe obrysy zakładek, krawędzi i miejsc z podświetlonymi numerami.
+function rysujPary(ctx) {
+  if (!podswietlone.size || !wSkladance()) return;
+  const v = edytor.canvas.viewportTransform;
+  ctx.save();
+  ctx.transform(...v);
+  ctx.strokeStyle = '#f08c00';
+  ctx.fillStyle = 'rgba(240, 140, 0, 0.18)';
+  ctx.lineWidth = 2.2 / v[0];
+  ctx.lineJoin = 'round';
+  for (const g of czesciWObiektach(edytor.canvas.getObjects())) {
+    for (const k of ksztaltyPar(g.czesc)) {
+      if (!podswietlone.has(k.para)) continue;
+      const pkt = k.punkty.map((q) => zUkladuCzesci(g, q));
+      ctx.beginPath();
+      pkt.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
+      if (k.zamkniety) { ctx.closePath(); ctx.fill(); }
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
 export function podlaczSkladanke() {
   const c = edytor.canvas;
   if (!c || c._skladanka) return;
   c._skladanka = true;
+  c.on('after:render', (e) => rysujPary(e.ctx || c.getContext()));
+  // Najechanie na część podświetla jej pary – także te, których drugi koniec jest na innej części tej strony.
+  c.on('mouse:over', (e) => { if (e.target?.czesc && !narzedzie) podswietlPary(ksztaltyPar(e.target.czesc).map((k) => k.para)); });
+  c.on('mouse:out', (e) => { if (e.target?.czesc && !narzedzie) podswietlPary([]); });
   c.on('mouse:down', (opt) => {
     if (!narzedzie) return;
     if (!wSkladance()) { ustawNarzedzie(null); return; }
@@ -273,6 +307,34 @@ export function panelCzesci(panel, g0) {
       p.append(panel.akcje([['kosz', `Usuń szczelinę ${i + 1}`, () => zmien((d) => { d.szczeliny.splice(i, 1); })]]));
     });
   }
+}
+
+// Panel strony w sekcji składanki: lista połączeń całej sekcji (para → co z czym, na którym arkuszu).
+export function panelPolaczen(panel, { przejdz }) {
+  const sekcja = biezacaSekcja();
+  const strony = (stan.projekt?.strony || []).filter((st) => st.sekcja === sekcja?.id);
+  const pary = paryWSekcji(strony);
+  const s = panel.sekcja('Połączenia');
+  if (!pary.size) { s.append(panel.wskazowka('Jeszcze nic nie jest połączone. Narzędzie [Połącz]: krawędź z zakładką, potem krawędź albo miejsce, do którego się przykleja.')); return; }
+  s.append(panel.wskazowka('Najedź na parę, żeby zobaczyć ją na arkuszu; kliknij, żeby zaznaczyć część.'));
+  const lista = document.createElement('ul');
+  lista.className = 'lista-polaczen';
+  for (const [para, w] of pary) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    const opis = w.map((x) => `${x.czesc}: ${x.opis}${strony.length > 1 ? ` (arkusz ${x.arkusz})` : ''}`).join(' ↔ ');
+    b.innerHTML = `<strong></strong><span></span>`;
+    b.querySelector('strong').textContent = para;
+    b.querySelector('span').textContent = w.length === 1 ? `${opis} – bez pary` : opis;
+    if (w.length !== 2) li.classList.add('uwaga');
+    b.addEventListener('mouseenter', () => podswietlPary([para]));
+    b.addEventListener('mouseleave', () => podswietlPary([]));
+    b.addEventListener('click', () => { podswietlPary([para]); przejdz(w[0].idStrony, w[0].idObiektu); });
+    li.append(b);
+    lista.append(li);
+  }
+  s.append(lista);
 }
 
 // Pasek narzędzi: przyciski z data-akcja="skladanka-…".

@@ -407,3 +407,36 @@ export function uwagiSkladanki(arkusze) {
   }
   return uwagi;
 }
+
+// ---------- Połączenia (#235) ----------
+
+// Pary w sekcji: Map para → [{ rodzaj, opis, czesc, arkusz, idStrony, idObiektu }] (kolejność: arkusz, część).
+export function paryWSekcji(strony) {
+  const pary = new Map();
+  const dodaj = (para, w) => { if (!pary.has(para)) pary.set(para, []); pary.get(para).push(w); };
+  strony.forEach((st, i) => {
+    for (const o of czesciWObiektach(st.obiekty)) {
+      const c = normalizujCzesc(o.czesc);
+      const m = { czesc: c.nr, arkusz: i + 1, idStrony: st.id, idObiektu: o.id };
+      c.krawedzie.forEach((k, j) => { if (k.para && k.typ !== 'ciecie') dodaj(k.para, { ...m, rodzaj: k.typ, opis: `${k.typ === 'zakladka' ? 'zakładka' : k.typ === 'wypustka' ? 'wypustka' : 'krawędź'} ${j + 1}` }); });
+      c.pola.forEach((p) => { if (p.para) dodaj(p.para, { ...m, rodzaj: 'pole', opis: p.spod ? 'miejsce klejenia (spód)' : 'miejsce klejenia' }); });
+      c.szczeliny.forEach((z) => { if (z.para) dodaj(z.para, { ...m, rodzaj: 'szczelina', opis: 'szczelina' }); });
+    }
+  });
+  return new Map([...pary].sort((a, b) => (Number(a[0]) || 0) - (Number(b[0]) || 0) || a[0].localeCompare(b[0])));
+}
+
+// Kształty par do podświetlenia w układzie części: [{ para, punkty: [{x,y}…], zamkniety }].
+export function ksztaltyPar(def) {
+  const c = normalizujCzesc(def);
+  const w = [];
+  c.krawedzie.forEach((k, i) => {
+    if (!k.para || k.typ === 'ciecie') return;
+    if (k.typ === 'zakladka') w.push({ para: k.para, punkty: zakladka(c.punkty, i, k.szer), zamkniety: true });
+    else if (k.typ === 'wypustka') w.push({ para: k.para, punkty: wypustka(c.punkty, i, k.szer), zamkniety: true });
+    else w.push({ para: k.para, punkty: [c.punkty[i], c.punkty[(i + 1) % c.punkty.length]], zamkniety: false });
+  });
+  for (const p of c.pola) if (p.para) w.push({ para: p.para, punkty: [{ x: p.x, y: p.y }, { x: p.x + p.w, y: p.y }, { x: p.x + p.w, y: p.y + p.h }, { x: p.x, y: p.y + p.h }], zamkniety: true });
+  for (const z of c.szczeliny) if (z.para) w.push({ para: z.para, punkty: prostokatSzczeliny(z), zamkniety: true });
+  return w;
+}

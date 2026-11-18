@@ -112,6 +112,31 @@ test('składanka: sekcja z materiałem, narzędzia, części, zgięcie, połącz
   const panel = await strona.evaluate(() => [...document.querySelectorAll('#wlasciwosci legend')].map((h) => h.textContent.trim()));
   for (const s of ['Część', 'Krawędzie', 'Zgięcia', 'Miejsca klejenia']) assert.ok(panel.some((x) => x.startsWith(s)), `panel: ${s} (${panel.join(' | ')})`);
 
+  // Panel strony (#235): połączenia sekcji – para, co z czym; kliknięcie zaznacza część; podświetlenie na płótnie.
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); const e = window.seriodruk.edytor; e.canvas.discardActiveObject(); e.canvas.fire('selection:cleared', {}); });
+  await strona.waitForSelector('.lista-polaczen li');
+  const polaczenia = await strona.evaluate(() => [...document.querySelectorAll('.lista-polaczen li')].map((li) => li.textContent));
+  assert.deepEqual(polaczenia, ['1A: zakładka 2 ↔ B: krawędź 4', '2A: miejsce klejenia ↔ B: zakładka 1']);
+  const piksel = async () => strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const b = e.canvas.getObjects().find((o) => o.czesc?.nr === 'B');
+    const ctx = e.canvas.getContext();
+    const r = window.devicePixelRatio || 1;
+    const v = e.canvas.viewportTransform;
+    const p = b.getCenterPoint();
+    // Środek górnej zakładki B (para 2): 3,5 mm nad górną krawędzią części.
+    const x = (p.x * v[0] + v[4]) * r;
+    const y = ((b.top - 3.5) * v[3] + v[5]) * r;
+    return [...ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data].slice(0, 3);
+  });
+  const zwykly = await piksel();
+  await strona.hover('.lista-polaczen li:nth-child(2) button');
+  await strona.waitForTimeout(100);
+  const podswietlony = await piksel();
+  assert.notDeepEqual(podswietlony, zwykly, 'para 2 podświetlona na arkuszu');
+  await strona.click('.lista-polaczen li:nth-child(2) button');
+  await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.czesc?.nr === 'A');
+
   // Zapis i odczyt strony; linie dla plotera z części.
   const po = await strona.evaluate(async () => {
     await window.seriodruk.zapiszTeraz();

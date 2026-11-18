@@ -3628,5 +3628,7 @@
  "Tylko miejsca klejenia (bez druku)": "Glue areas only (unprinted)",
  "Drukarka domowa – tnę sam (linie drukowane)": "Home printer – I cut myself (lines printed)",
  "Drukarnia z ploterem (linie jako osobne kolory)": "Print shop with plotter (lines as separate colours)",
- "Własny (drukarnia, ploter)": "Custom (print shop, plotter)"
+ "Własny (drukarnia, ploter)": "Custom (print shop, plotter)",
+ "Połączenia": "Connections",
+ "bez pary": "no pair"
 }

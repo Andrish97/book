@@ -3,6 +3,7 @@
 import { FORMATY, stronyZWzorcem, tloStrony, WZORCE_Z_SEKCJI, stronySekcji, normalizujWydruk } from '../projekt.js';
 import { bokStrony, rozwin, tabelaSerii, tabeleSerii } from '../serie.js';
 import { typSekcji } from '../typ-sekcji.js';
+import { panelPolaczen } from './skladanka-narzedzia.js';
 import { maElementyDoWklejenia, wklejElementy } from './schowek-okno.js';
 import { POLA_DOKUMENTU } from '../pola.js';
 import { $ } from '../ui.js';
@@ -139,6 +140,8 @@ export function panelStrony(p) {
   if (maElementyDoWklejenia()) {
     s.append(p.akcje([['wklej', 'Wklej skopiowane elementy', () => wklejElementy()]]));
   }
+  // Składanka (#235): połączenia całej sekcji.
+  if (typSekcji(sekcja) === 'skladanka') panelPolaczen(p, { przejdz: (idS, idO) => window.seriodruk?.oknoKontroli?.zrodlo.pokaz(idS, idO) });
 
   // Seria: powielanie strony według tabeli albo zadaną liczbę razy.
   const se = p.sekcja('Seria (powielanie)');
