@@ -12,7 +12,7 @@ Szczegóły każdej zmiany – docs/DECYZJE.md, bieżący stan – docs/ZGLOSZEN
 | A2 | (3) Okno Udostępnij na telefonie – nie da się przewinąć ani w górę, ani w dół (ucięty opis i komunikat) | ✅ #202 (dotyczyło wszystkich okien) |
 | A3 | (1) Makieta 3D na telefonie – czasem „Kurza twarz” (przeglądarka zamyka kartę – za dużo pamięci grafiki) | ✅ #203 |
 | A4 | (2) Udostępnianie: obrazy stron rysowane w tle, bez czekania; oglądający widzi wprost „podgląd w przygotowaniu” | ✅ #204 |
-| A5 | (14) Gotowe szablony projektów nie działają | ⏳ |
+| A5 | (14) Gotowe szablony projektów nie działają | ❓ nie odtworzone: wszystkie 33 szablony wstawiają się i rysują (komputer, telefon; nowy test gotowe-wszystkie) – potrzebny opis albo zrzut, co dokładnie nie działa |
 | A6 | Ekran ładowania – wyrównanie tekstu (zrobione w #200; telefon miał starą wersję) | ✅ |
 
 ## Etap B – ustawienia i wygoda
