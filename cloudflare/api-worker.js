@@ -37,7 +37,9 @@ const DWA_DNI_MS = 2 * 24 * 3600 * 1000;
 // Adres w bazie dla adresu zapytania do przekaźnika.
 export function adresCelu(adres, cel = CEL) {
   const u = new URL(adres);
-  const sciezka = u.pathname === '/mcp' || u.pathname.startsWith('/mcp/') ? `/functions/v1${u.pathname}` : u.pathname;
+  // /mcp/… – łącznik; /.well-known/oauth-… – opisy logowania OAuth łącznika (#244) – też w Funkcji Edge mcp.
+  const sciezka = u.pathname === '/mcp' || u.pathname.startsWith('/mcp/') ? `/functions/v1${u.pathname}`
+    : u.pathname.startsWith('/.well-known/oauth-') || u.pathname.startsWith('/.well-known/openid-configuration') ? `/functions/v1/mcp${u.pathname}` : u.pathname;
   return `${cel}${sciezka}${u.search}`;
 }
 

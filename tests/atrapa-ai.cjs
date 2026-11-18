@@ -478,7 +478,9 @@ function atrapaAi(stan) {
   }
 
   // Funkcje bazy według nazwy; konto – zalogowany właściciel (dla funkcji właściciela).
-  return function wywolaj(funkcja, tresc, konto) {
+  const ai = (f, t, k) => wywolaj(f, t, k);
+  return wywolaj;
+  function wywolaj(funkcja, tresc, konto) {
     if (funkcja === 'ai_projekt') return aiProjekt(tresc);
     if (funkcja === 'ai_projekty') return aiProjekty(tresc);
     if (funkcja === 'ai_nowy_projekt') return aiNowyProjekt(tresc);
@@ -533,6 +535,55 @@ function atrapaAi(stan) {
       if (!b) blad(400, 'Nie ma takiego kawałka obrazu');
       stan.kawalkiPobrane = (stan.kawalkiPobrane || 0) + 1;
       return b.toString('base64');
+    }
+    // OAuth dla łącznika (#244, migracja 20261118210000_oauth_ai.sql).
+    if (funkcja.startsWith('oauth_')) {
+      stan.oauth = stan.oauth || { klienci: new Map(), zadania: new Map(), kody: new Map() };
+      const o = stan.oauth;
+      const skrot = (s) => crypto.createHash('sha256').update(String(s || '')).digest();
+      if (funkcja === 'oauth_rejestruj') {
+        const adresy = tresc.p_adresy || [];
+        if (!adresy.length || adresy.some((a) => !/^(https:\/\/\S+|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/\S*)$/.test(a))) blad(400, 'Adres powrotu musi być https (albo http://localhost)');
+        const id = `mk_${crypto.randomBytes(16).toString('hex')}`;
+        const nazwa = String(tresc.p_nazwa || '').trim().slice(0, 80) || 'Aplikacja AI';
+        o.klienci.set(id, { nazwa, adresy });
+        return { client_id: id, client_name: nazwa, redirect_uris: adresy };
+      }
+      if (funkcja === 'oauth_rozpocznij') {
+        const k = o.klienci.get(tresc.p_klient);
+        if (!k || !k.adresy.includes(tresc.p_adres)) blad(400, 'Nieznana aplikacja albo adres powrotu');
+        if (!tresc.p_wyzwanie || tresc.p_wyzwanie.length < 43) blad(400, 'Brak PKCE (code_challenge S256)');
+        const id = crypto.randomBytes(16).toString('hex');
+        o.zadania.set(id, { klient: tresc.p_klient, adres: tresc.p_adres, wyzwanie: tresc.p_wyzwanie, stan: tresc.p_stan });
+        return id;
+      }
+      if (funkcja === 'oauth_zadanie') {
+        const z = o.zadania.get(tresc.p_id);
+        return z ? { klient: o.klienci.get(z.klient).nazwa, host: new URL(z.adres).hostname } : null;
+      }
+      if (funkcja === 'oauth_zatwierdz') {
+        if (!konto) blad(401, 'Brak sesji');
+        const z = o.zadania.get(tresc.p_id);
+        if (!z) blad(400, 'Prośba o połączenie wygasła – zacznij łączenie od nowa w aplikacji AI');
+        const w = ai('utworz_dostep_ai', { p_opis: `Łącznik: ${o.klienci.get(z.klient).nazwa}`, p_rola: tresc.p_rola, p_dni: tresc.p_dni, p_zakres: tresc.p_zakres, p_projekty: tresc.p_projekty }, konto);
+        const kod = crypto.randomBytes(32).toString('base64url');
+        o.kody.set(skrot(kod).toString('hex'), { ...z, klucz: w.klucz, wazny_do: w.wazny_do });
+        o.zadania.delete(tresc.p_id);
+        return { adres: `${z.adres}${z.adres.includes('?') ? '&' : '?'}code=${kod}${z.stan ? `&state=${encodeURIComponent(z.stan)}` : ''}` };
+      }
+      if (funkcja === 'oauth_odmow') {
+        const z = o.zadania.get(tresc.p_id);
+        if (!z) return null;
+        o.zadania.delete(tresc.p_id);
+        return { adres: `${z.adres}${z.adres.includes('?') ? '&' : '?'}error=access_denied${z.stan ? `&state=${encodeURIComponent(z.stan)}` : ''}` };
+      }
+      if (funkcja === 'oauth_wymien') {
+        const klucz = skrot(tresc.p_kod).toString('hex');
+        const k = o.kody.get(klucz);
+        o.kody.delete(klucz);
+        if (!k || k.klient !== tresc.p_klient || k.adres !== tresc.p_adres || skrot(tresc.p_weryfikator).toString('base64url') !== k.wyzwanie) blad(400, 'invalid_grant');
+        return { klucz: k.klucz, wazny_do: k.wazny_do };
+      }
     }
     if (!['utworz_dostep_ai', 'dostepy_ai', 'odwolaj_dostep_ai', 'zmien_dostep_ai'].includes(funkcja)) return undefined;
     if (!konto) blad(401, 'Brak sesji');

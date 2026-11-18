@@ -3655,5 +3655,11 @@
  "brak klucza": "немає ключа",
  "Otwórz klucze na tym urządzeniu": "Відкрити ключі на цьому пристрої",
  "Zamknij klucze na tym urządzeniu": "Закрити ключі на цьому пристрої",
- "Usuń wszystkie klucze z konta": "Видалити всі ключі з облікового запису"
+ "Usuń wszystkie klucze z konta": "Видалити всі ключі з облікового запису",
+ "Połącz z Makietką": "Підключитися до Makietka",
+ "Odmów": "Відмовити",
+ "Zezwól": "Дозволити",
+ "Otwórz GPT Makietka": "Відкрити GPT Makietka",
+ "Na jak długo": "На скільки",
+ "Może": "Може"
 }

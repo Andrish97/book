@@ -161,6 +161,13 @@ dodaje albo usuwa projekty albo przełącza na pełny dostęp — adres łączni
 
 ## 25.3 Podłączenie w aplikacji AI
 
+**Najprościej – z logowaniem (bez kopiowania klucza).** W aplikacji AI dodaj własny łącznik pod adresem
+`https://api.makietka.app/mcp` (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy stronę Makietki
+**Połącz z Makietką**: logujesz się swoim hasłem, widzisz, kto prosi (np. „Claude”), wybierasz projekty (albo
+wszystkie), czytanie albo też zmiany i ważność – [Zezwól] wraca do aplikacji AI, [Odmów] kończy łączenie.
+Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w oknie Sztuczna inteligencja i można go
+odebrać. Aplikacja AI nie dostaje Twojego hasła. Druga droga – adres z kluczem z okna – działa jak dotąd:
+
 | Aplikacja | Jak podłączyć |
 |---|---|
 | **Claude** (claude.ai, aplikacja na komputer i telefon) | **Ustawienia → Łączniki → Dodaj własny łącznik**, nazwa „Makietka”, wklej adres. W rozmowie włącz łącznik w menu narzędzi. |
@@ -246,7 +253,9 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 Adres łącznika (→ 25.2) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście.
 AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować
-bez dodawania łącznika: w oknie **Sztuczna inteligencja**, zaraz po utworzeniu klucza, [Kopiuj dla zwykłego czatu] daje
+bez dodawania łącznika. **GPT „Makietka” w ChatGPT** (gdy jest – przycisk [Otwórz GPT Makietka] w zakładce
+**Zwykły czat**) prosi o zalogowanie do Makietki jak łącznik wyżej – Twoim hasłem, w oknie Makietki – i działa także
+w darmowym ChatGPT. Bez GPT: w oknie **Sztuczna inteligencja**, zaraz po utworzeniu klucza, [Kopiuj dla zwykłego czatu] daje
 gotowe polecenie z adresem – wklej je w rozmowie i dopisz zadanie. Narzędzia wywołuje, otwierając adresy
 `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu.
 Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.

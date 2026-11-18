@@ -910,3 +910,17 @@ export async function sejfAiUsun() {
   const sb = await supabase();
   sprawdz(await sb.rpc('sejf_ai_usun'));
 }
+
+// Łącznik z logowaniem (#244): strona zgody – kto prosi, zgoda (klucz z zakresem + kod dla aplikacji AI), odmowa.
+export async function oauthZadanie(id) {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('oauth_zadanie', { p_id: id }));
+}
+export async function oauthZatwierdz(id, { rola, dni, zakres, projekty }) {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('oauth_zatwierdz', { p_id: id, p_rola: rola, p_dni: dni, p_zakres: zakres, p_projekty: projekty }));
+}
+export async function oauthOdmow(id) {
+  const sb = await supabase();
+  return sprawdz(await sb.rpc('oauth_odmow', { p_id: id }));
+}

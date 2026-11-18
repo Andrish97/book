@@ -55,6 +55,12 @@ export function przejdzDoTrasy() {
       await pokazZaproszenieZLinku(t.kod);
       return;
     }
+    // #/polacz-ai/<id> – aplikacja AI prosi o dostęp (łącznik z logowaniem OAuth, #244): strona zgody.
+    if (t.ekran === 'polacz-ai') {
+      if (stan.projekt) await doProjektow(); else if (document.body.dataset.ekran !== 'projekty') await pokazProjekty();
+      await (await import('./polacz-ai.js')).pokazZgode(t.id);
+      return;
+    }
     if (t.ekran === 'konto' && stan.uzytkownik) {
       // Przejście między listą a sekcją ustawień (Wstecz) – bez przeładowania ekranu.
       if (document.body.dataset.ekran === 'konto') { konto.pokazSekcje(t.sekcja); return; }

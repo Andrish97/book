@@ -1,0 +1,44 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Makietka",
+    "version": "1.0.0",
+    "description": "Narzędzia Makietki (edytor publikacji do druku) dla GPT z logowaniem OAuth. Najpierw wywołaj opis (lista narzędzi z parametrami), potem narzędzia przez wywolaj."
+  },
+  "servers": [{ "url": "https://api.makietka.app" }],
+  "paths": {
+    "/mcp": {
+      "get": {
+        "operationId": "opis",
+        "summary": "Zasady pracy z Makietką i lista wszystkich narzędzi z parametrami (czysty tekst). Wywołaj na początku rozmowy.",
+        "responses": { "200": { "description": "Opis i narzędzia", "content": { "text/plain": { "schema": { "type": "string" } } } } }
+      }
+    },
+    "/mcp/n/{narzedzie}": {
+      "get": {
+        "operationId": "wywolaj",
+        "summary": "Wywołuje narzędzie Makietki (np. projekty, przeglad_projektu, czytaj, zmien_elementy). Parametry narzędzia jako obiekt JSON w polu json.",
+        "parameters": [
+          { "name": "narzedzie", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Nazwa narzędzia z opisu, np. przeglad_projektu." },
+          { "name": "json", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Parametry narzędzia jako JSON, np. {\"projekt\":\"Kalendarz\"}." }
+        ],
+        "responses": { "200": { "description": "WYNIK albo BŁĄD narzędzia", "content": { "text/plain": { "schema": { "type": "string" } } } } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "oauth": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://api.makietka.app/mcp/oauth/authorize",
+            "tokenUrl": "https://api.makietka.app/mcp/oauth/token",
+            "scopes": { "makietka": "Projekty Makietki w zakresie wybranym przy zgodzie" }
+          }
+        }
+      }
+    }
+  },
+  "security": [{ "oauth": ["makietka"] }]
+}

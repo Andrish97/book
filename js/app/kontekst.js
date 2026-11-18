@@ -66,6 +66,7 @@ export const trasa = {
     if (rodzaj === 'instrukcja') return { ekran: 'instrukcja' }; // podręcznik – także bez konta (#114)
     if (rodzaj === 'admin') return { ekran: 'admin', zakladka: id || 'skrzynka' };
     if (rodzaj === 'zaproszenie' && id) return { ekran: 'zaproszenie', kod: id };
+    if (rodzaj === 'polacz-ai' && id) return { ekran: 'polacz-ai', id }; // zgoda na łącznik z logowaniem (#244)
     if (rodzaj === 'u' && id && typ && cel) return { ekran: 'udostepnione', konto: id, projekt: typ, kod: cel };
     return { ekran: 'projekty' };
   },

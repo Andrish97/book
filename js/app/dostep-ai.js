@@ -12,7 +12,7 @@ import * as chmura from '../chmura.js';
 import { udostepnioneMi } from '../wspolpraca-chmura.js';
 import { $, powiadom, kiedy, potwierdz } from '../ui.js';
 import { SUPABASE_URL } from '../konfiguracja.js';
-import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
+import { ADRES_API, ADRES_LACZNIKA, ADRES_GPT } from '../marka.js';
 import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
@@ -62,6 +62,12 @@ function listaWyboru(kontener, zaznaczone) {
     p.textContent = 'Na koncie nie ma jeszcze projektów – wybierz „Pełny dostęp”, żeby AI mogło je tworzyć.';
     kontener.append(p);
   }
+}
+// Wybór projektów dla strony zgody łącznika (#244): lista w kontenerze, zwraca funkcję czytającą wybór.
+export async function wyborProjektow(kontener) {
+  await wczytajProjekty();
+  listaWyboru(kontener, new Set());
+  return () => wybrane(kontener);
 }
 const wybrane = (kontener) => [...kontener.querySelectorAll('input[type=checkbox]:checked')].map((x) => x.value);
 
@@ -230,6 +236,9 @@ function pokazZakresNowego() {
 
 export function ustawZakladkeAi(z) {
   const dlg = $('#dlg-dostep-ai');
+  // GPT „Makietka” z logowaniem (#244) – przycisk, gdy właściciel go utworzył (js/marka.js ADRES_GPT).
+  $('#ai-gpt').hidden = !ADRES_GPT;
+  if (ADRES_GPT) $('#ai-gpt-link').href = ADRES_GPT;
   dlg.dataset.zakladka = z;
   for (const b of dlg.querySelectorAll('[data-zakladka-ai]')) b.setAttribute('aria-selected', String(b.dataset.zakladkaAi === z));
   if (z === 'czat') rysujDostawcow();

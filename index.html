@@ -1639,7 +1639,14 @@
         <p class="podpowiedz"><b>Bez klucza i bez opłat:</b> w Asystencie AI wybierz „Dowolny czat bez klucza – kopiuj i wklej” – Makietka przygotuje polecenie dla dowolnego czatu w przeglądarce (np. darmowy ChatGPT), a jego odpowiedź wklejasz z powrotem.</p>
       </fieldset>
 
+      <div class="grupa-pol polacz-oauth" data-dla="lacznik">
+        <p><b>Najprościej – z logowaniem:</b> w aplikacji AI dodaj łącznik pod adresem <code>https://api.makietka.app/mcp</code> (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy Makietkę – logujesz się swoim hasłem, wybierasz projekty i zakres. Nie kopiujesz żadnego klucza; połączenie widać niżej, w kluczach dostępu.</p>
+      </div>
       <p class="podpowiedz uwaga-planu" data-dla="lacznik"><b>Najprawdopodobniej potrzebujesz płatnego planu.</b> Własne łączniki (MCP) w ChatGPT są w planach płatnych (tryb dewelopera); w Claude darmowy plan pozwala na jeden własny łącznik. Bez płatnego planu – zakładka „Zwykły czat” albo czat w Makietce.</p>
+      <div class="grupa-pol" id="ai-gpt" data-dla="zwykly" hidden>
+        <p><b>Z logowaniem w ChatGPT:</b> GPT „Makietka” poprosi o zalogowanie do Makietki – Twoim hasłem, w oknie Makietki. Działa także w darmowym ChatGPT.</p>
+        <a class="przycisk glowny" id="ai-gpt-link" target="_blank" rel="noopener">Otwórz GPT Makietka</a>
+      </div>
       <p class="podpowiedz" data-dla="zwykly">Zwykła rozmowa w przeglądarce (także darmowy ChatGPT, Claude, Gemini) – bez łączników. Utwórz klucz i wklej czatowi gotowe polecenie: czat otworzy adres jak stronę, zobaczy narzędzia Makietki i będzie zmieniać projekt, otwierając kolejne adresy.</p>
       <fieldset class="grupa-pol" id="dostep-ai-nowy" data-dla="lacznik zwykly">
         <legend>Nowy klucz</legend>

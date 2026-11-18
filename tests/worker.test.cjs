@@ -14,6 +14,9 @@ test('przekaźnik api.makietka.app: /mcp → /functions/v1/mcp, reszta bez zmian
   assert.equal(CEL, 'https://pganajmivwtstapnwsgv.supabase.co');
   assert.equal(adresCelu('https://api.makietka.app/mcp/sdk_abc'), `${CEL}/functions/v1/mcp/sdk_abc`);
   assert.equal(adresCelu('https://api.makietka.app/mcp/sdk_abc/obraz?nazwa=a.jpg'), `${CEL}/functions/v1/mcp/sdk_abc/obraz?nazwa=a.jpg`);
+  // #244: opisy logowania OAuth łącznika.
+  assert.equal(adresCelu('https://api.makietka.app/.well-known/oauth-authorization-server'), `${CEL}/functions/v1/mcp/.well-known/oauth-authorization-server`);
+  assert.equal(adresCelu('https://api.makietka.app/.well-known/oauth-protected-resource/mcp'), `${CEL}/functions/v1/mcp/.well-known/oauth-protected-resource/mcp`);
   assert.equal(adresCelu('https://api.makietka.app/mcp'), `${CEL}/functions/v1/mcp`);
   assert.equal(adresCelu('https://api.makietka.app/mcpx'), `${CEL}/mcpx`, 'tylko ścieżka /mcp');
   assert.equal(adresCelu('https://api.makietka.app/rest/v1/projekty?select=id'), `${CEL}/rest/v1/projekty?select=id`);

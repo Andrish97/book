@@ -23,7 +23,7 @@ const WZOR_KLUCZA = /^sdk_[0-9a-f]{32}_[A-Za-z0-9_-]{20,100}$/;
 function naglowkiCors(origin) {
   return {
     ...(origin ? { 'access-control-allow-origin': origin, vary: 'Origin' } : {}),
-    'access-control-allow-methods': 'POST, OPTIONS',
+    'access-control-allow-methods': 'GET, POST, OPTIONS',
     'access-control-allow-headers': 'content-type, accept, authorization, mcp-protocol-version, mcp-method, mcp-name, mcp-session-id, last-event-id',
     'access-control-max-age': '86400',
   };
@@ -145,7 +145,9 @@ async function obsluzStrone(request, url, env) {
   const czesci = url.pathname.split('/');
   const iKlucza = czesci.findIndex((x) => decodeURIComponent(x) === klucz);
   const baza = iKlucza >= 0 ? `${url.origin}${czesci.slice(0, iKlucza + 1).join('/')}` : `${url.origin}${url.pathname.replace(/\/n\/.*$/, '')}`;
-  const nKlucza = iKlucza >= 0 ? '' : `?klucz=${encodeURIComponent(klucz)}`;
+  // Klucz z nagłówka (token OAuth, np. GPT „Makietka”) nie trafia do linków – klient i tak go dokłada.
+  const zNaglowka = /^Bearer\s+sdk_/i.test(request.headers.get('authorization') || '');
+  const nKlucza = iKlucza >= 0 || zNaglowka ? '' : `?klucz=${encodeURIComponent(klucz)}`;
   const link = (nazwa, args = {}) => {
     const q = new URLSearchParams(nKlucza ? { klucz } : {});
     for (const [k, v] of Object.entries(args)) q.set(k, typeof v === 'string' ? v : JSON.stringify(v));
@@ -194,7 +196,82 @@ ${tools.map((t) => `${t.name}\n  ${String(t.description || '').replace(/\s+/g, '
   }
 }
 
-// env: { adres?, kluczPubliczny? } – adres bazy i publikowalny klucz (domyślnie baza Makietki).
+// ---------- Logowanie OAuth 2.1 (#244) ----------
+// „Połącz z Makietką” w Claude / ChatGPT bez kopiowania adresu z kluczem: opis zasobu i serwera autoryzacji,
+// rejestracja klienta (DCR), /authorize (PKCE S256) → strona zgody w Makietce, /token → token = klucz dostępu AI
+// (Authorization: Bearer sdk_…) z zakresem wybranym przez użytkownika. Logika i kontrole – w bazie (oauth_*).
+
+export const ADRES_PUBLICZNY = 'https://api.makietka.app';
+export const ADRES_APLIKACJI = 'https://makietka.app/';
+
+async function rpcBazy(env, funkcja, parametry) {
+  const klucz = env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY;
+  const odp = await fetch(`${env.adres || DOMYSLNY_ADRES}/rest/v1/rpc/${funkcja}`, {
+    method: 'POST', headers: { apikey: klucz, authorization: `Bearer ${klucz}`, 'content-type': 'application/json' }, body: JSON.stringify(parametry),
+  });
+  const t = await odp.text();
+  let d = null;
+  try { d = t ? JSON.parse(t) : null; } catch { /* nie-JSON */ }
+  if (!odp.ok) throw new Error(d?.message || t.slice(0, 200) || `błąd ${odp.status}`);
+  return d;
+}
+
+export function metadaneOAuth(env = {}) {
+  const pub = env.publiczny || ADRES_PUBLICZNY;
+  return {
+    zasob: { resource: `${pub}/mcp`, authorization_servers: [pub], bearer_methods_supported: ['header'], resource_name: 'Makietka', resource_documentation: 'https://makietka.app/ai/api.md' },
+    serwer: {
+      issuer: pub,
+      authorization_endpoint: `${pub}/mcp/oauth/authorize`,
+      token_endpoint: `${pub}/mcp/oauth/token`,
+      registration_endpoint: `${pub}/mcp/oauth/register`,
+      response_types_supported: ['code'],
+      grant_types_supported: ['authorization_code'],
+      code_challenge_methods_supported: ['S256'],
+      token_endpoint_auth_methods_supported: ['none'],
+      scopes_supported: ['makietka'],
+      service_documentation: 'https://makietka.app/ai/api.md',
+    },
+  };
+}
+
+async function obsluzOAuth(request, url, env, cors) {
+  const m = metadaneOAuth(env);
+  const sc = url.pathname;
+  if (/\/\.well-known\/oauth-protected-resource/.test(sc)) return json(200, m.zasob, { ...cors, 'access-control-allow-origin': '*' });
+  if (/\/\.well-known\/(oauth-authorization-server|openid-configuration)/.test(sc)) return json(200, m.serwer, { ...cors, 'access-control-allow-origin': '*' });
+  if (/\/oauth\/register\/?$/.test(sc) && request.method === 'POST') {
+    let b = {};
+    try { b = JSON.parse(await request.text() || '{}'); } catch { return json(400, { error: 'invalid_client_metadata', error_description: 'Nieprawidłowy JSON.' }, cors); }
+    try {
+      const w = await rpcBazy(env, 'oauth_rejestruj', { p_nazwa: String(b.client_name || ''), p_adresy: Array.isArray(b.redirect_uris) ? b.redirect_uris.map(String) : [] });
+      return json(201, { ...w, token_endpoint_auth_method: 'none', grant_types: ['authorization_code'], response_types: ['code'], client_id_issued_at: Math.floor(Date.now() / 1000) }, cors);
+    } catch (e) { return json(400, { error: 'invalid_redirect_uri', error_description: e.message }, cors); }
+  }
+  if (/\/oauth\/authorize\/?$/.test(sc) && request.method === 'GET') {
+    const q = url.searchParams;
+    if (q.get('response_type') !== 'code' || (q.get('code_challenge_method') || 'S256') !== 'S256') return tekst(400, 'Makietka przyjmuje tylko response_type=code z PKCE (code_challenge_method=S256).');
+    try {
+      const id = await rpcBazy(env, 'oauth_rozpocznij', { p_klient: q.get('client_id') || '', p_adres: q.get('redirect_uri') || '', p_wyzwanie: q.get('code_challenge') || '', p_stan: q.get('state') || null });
+      return new Response(null, { status: 302, headers: { location: `${env.aplikacja || ADRES_APLIKACJI}#/polacz-ai/${id}`, 'cache-control': 'no-store' } });
+    } catch (e) { return tekst(400, `Nie da się rozpocząć łączenia z Makietką: ${e.message}`); }
+  }
+  if (/\/oauth\/token\/?$/.test(sc) && request.method === 'POST') {
+    const surowe = await request.text();
+    let p;
+    try { p = /json/.test(request.headers.get('content-type') || '') ? JSON.parse(surowe || '{}') : Object.fromEntries(new URLSearchParams(surowe)); } catch { p = {}; }
+    if (p.grant_type !== 'authorization_code') return json(400, { error: 'unsupported_grant_type' }, cors);
+    try {
+      const w = await rpcBazy(env, 'oauth_wymien', { p_kod: p.code || '', p_weryfikator: p.code_verifier || '', p_klient: p.client_id || '', p_adres: p.redirect_uri || '' });
+      const sek = w.wazny_do ? Math.max(60, Math.floor((new Date(w.wazny_do).getTime() - Date.now()) / 1000)) : undefined;
+      return json(200, { access_token: w.klucz, token_type: 'Bearer', ...(sek ? { expires_in: sek } : {}), scope: 'makietka' }, cors);
+    } catch { return json(400, { error: 'invalid_grant', error_description: 'Kod jest nieważny, wygasł albo nie pasuje (PKCE, klient, adres powrotu).' }, cors); }
+  }
+  return null;
+}
+
+// env: { adres?, kluczPubliczny?, publiczny?, aplikacja? } – adres bazy i publikowalny klucz (domyślnie baza Makietki),
+// publiczny adres łącznika i adres aplikacji (dla OAuth).
 export async function obsluzHttp(request, env = {}) {
   const origin = request.headers.get('origin');
   if (origin && !ZRODLA.some((r) => r.test(origin))) {
@@ -203,8 +280,11 @@ export async function obsluzHttp(request, env = {}) {
   const cors = naglowkiCors(origin);
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-  // Łącznik nie używa logowania OAuth: brak opisu serwera autoryzacji oznacza „bez logowania”.
-  if (url.pathname.includes('/.well-known/')) return json(404, { error: 'not_found' }, cors);
+  // Logowanie OAuth (#244): opisy, rejestracja, autoryzacja, token.
+  if (url.pathname.includes('/.well-known/') || /\/oauth\/(register|authorize|token)\/?$/.test(url.pathname)) {
+    const w = await obsluzOAuth(request, url, env, cors);
+    return w || json(404, { error: 'not_found' }, cors);
+  }
   // Zwykłe otwarcie adresu (przeglądarka, narzędzie AI do czytania stron) – opis i narzędzia w tekście (#239).
   // GET z Accept: text/event-stream to klient MCP pytający o strumień – ten dalej dostaje 405.
   if ((request.method === 'GET' || request.method === 'HEAD') && !/text\/event-stream/.test(request.headers.get('accept') || '')) return obsluzStrone(request, url, env);
@@ -222,6 +302,13 @@ export async function obsluzHttp(request, env = {}) {
   }
 
   const klucz = kluczZZadania(request);
+  // Bez żadnego klucza – 401 z opisem zasobu: klient MCP rozpoczyna wtedy logowanie OAuth (#244).
+  if (!klucz) {
+    const pub = env.publiczny || ADRES_PUBLICZNY;
+    return json(401, { jsonrpc: '2.0', id: tresc?.id ?? null, error: { code: BLEDY.ZADANIE, message: 'Zaloguj się do Makietki (OAuth) albo użyj adresu łącznika z kluczem z ustawień konta → Sztuczna inteligencja.' } }, {
+      ...cors, 'www-authenticate': `Bearer resource_metadata="${pub}/.well-known/oauth-protected-resource/mcp"`, 'access-control-expose-headers': 'www-authenticate',
+    });
+  }
   const serwer = utworzSerwer({
     adres: env.adres || DOMYSLNY_ADRES,
     kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY,
