@@ -20,7 +20,6 @@ export const TYPY_SEKCJI = {
   kalendarz: { nazwa: 'Kalendarz roczny (daty)', opis: 'Strona na miesiąc, tydzień albo dzień – daty i polskie święta w danych, zmiana roku przelicza wszystko.', ikona: 'kalendarz', rodzaj: 'kalendarz', rola: 'blok' },
   trojdzielny: { nazwa: 'Kalendarz trójdzielny', opis: 'Główka i trzy kalendaria z okienkiem, bigiem i perforacjami.', ikona: 'planer', rodzaj: 'trojdzielny', rola: 'osobny' },
   wykrojnik: { nazwa: 'Wykrojnik', opis: 'Koperta, teczka z kieszenią albo pudełko – linia cięcia i zgięć dla drukarni.', ikona: 'ksztalty', rodzaj: 'wykrojnik', rola: 'osobny' },
-  skladanka: { nazwa: 'Składanka / wycinanka', opis: 'Model z papieru z wielu części na wielu arkuszach: zakładki klejowe, zgięcia, numery par, makieta 3D.', ikona: 'ksztalty', rodzaj: null, rola: 'osobny' },
   arkusz: { nazwa: 'Arkusz użytków', opis: 'Wizytówki, naklejki, etykiety – jeden projekt powielony na arkuszu drukarskim.', ikona: 'siatka', rodzaj: 'arkusz', rola: 'osobny' },
 };
 
