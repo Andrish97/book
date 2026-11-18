@@ -2263,7 +2263,7 @@ Pomóż mi podłączyć Makietkę do Ciebie jako łącznik (serwer MCP), krok po
 Co to jest Makietka: aplikacja w przeglądarce (https://makietka.app) do składania publikacji do druku – kalendarzy, planerów, notesów, zeszytów, komiksów. Ma strony, wzorce, style tekstu, tabele danych, serie powielanych stron, obrazy i eksport PDF.
 
 Co wiem o łączniku Makietki:
-- To zdalny serwer MCP (transport Streamable HTTP), bez logowania OAuth. Adres: https://api.makietka.app/mcp/<klucz>. Klucz można też podać nagłówkiem „Authorization: Bearer sdk_…” (wtedy adres bez klucza: https://api.makietka.app/mcp).
+- To zdalny serwer MCP (transport Streamable HTTP) z logowaniem OAuth: adres https://api.makietka.app/mcp (bez klucza) – aplikacja AI otworzy stronę Makietki, gdzie się loguję i wybieram projekty. Druga droga: adres z kluczem https://api.makietka.app/mcp/<klucz> (łącznik „bez logowania”).
 - Klucz tworzę sam w Makietce: Ustawienia konta → Sztuczna inteligencja → Zarządzaj… Wybieram: które projekty (albo pełny dostęp – wtedy AI może też tworzyć i usuwać projekty), czy AI tylko czyta, czy też zmienia, i ważność. Adres z kluczem widać tylko raz.
 - Narzędzia łącznika: lista projektów, nowy projekt i usunięcie projektu (przy pełnym dostępie), przegląd projektu, czytanie i zmiana stron, elementów, wzorców, stylów, tabel danych i serii, wgrywanie obrazów (adres https, link z Dysku Google albo Dropboxa, kod SVG, małe pliki kawałkami), wstawianie obrazów na strony, link do wgrania zdjęć przez przeglądarkę, kontrola przed drukiem.
 - Opis dla AI: https://makietka.app/ai/api.md, model danych projektu: https://makietka.app/ai/format-makietka.md.
@@ -2325,7 +2325,7 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 ### 25.7 AI, które umie otwierać strony (bez łącznika)
 
-Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika. **GPT „Makietka” w ChatGPT** (gdy jest – przycisk **Otwórz GPT Makietka** w zakładce **Zwykły czat**) prosi o zalogowanie do Makietki jak łącznik wyżej – Twoim hasłem, w oknie Makietki – i działa także w darmowym ChatGPT. Bez GPT: w oknie **Sztuczna inteligencja**, zaraz po utworzeniu klucza, **Kopiuj dla zwykłego czatu** daje gotowe polecenie z adresem – wklej je w rozmowie i dopisz zadanie. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
+Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście. AI, które potrafi czytać strony z sieci (np. darmowy ChatGPT czy Claude z wyszukiwaniem), może więc pracować bez dodawania łącznika: w oknie **Sztuczna inteligencja**, zaraz po utworzeniu klucza, **Kopiuj dla zwykłego czatu** daje gotowe polecenie z adresem – wklej je w rozmowie i dopisz zadanie. Narzędzia wywołuje, otwierając adresy `…/n/<narzędzie>?parametr=wartość` (złożone parametry jako `?json=…`); odpowiedzią jest wynik albo opis błędu. Uprawnienia daje klucz – klucz **Tylko czyta** nic nie zmieni.
 
 > **Uwaga:** Część czatów otwiera tylko adresy, które dostała od użytkownika albo znalazła sama – nie te, które zbuduje. Wtedy działa czytanie (linki z opisu), a do zmian użyj trybu „kopiuj i wklej” albo łącznika.
 

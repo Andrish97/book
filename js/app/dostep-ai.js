@@ -12,7 +12,7 @@ import * as chmura from '../chmura.js';
 import { udostepnioneMi } from '../wspolpraca-chmura.js';
 import { $, powiadom, kiedy, potwierdz } from '../ui.js';
 import { SUPABASE_URL } from '../konfiguracja.js';
-import { ADRES_API, ADRES_LACZNIKA, ADRES_GPT } from '../marka.js';
+import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
 import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
@@ -236,9 +236,6 @@ function pokazZakresNowego() {
 
 export function ustawZakladkeAi(z) {
   const dlg = $('#dlg-dostep-ai');
-  // GPT „Makietka” z logowaniem (#244) – przycisk, gdy właściciel go utworzył (js/marka.js ADRES_GPT).
-  $('#ai-gpt').hidden = !ADRES_GPT;
-  if (ADRES_GPT) $('#ai-gpt-link').href = ADRES_GPT;
   dlg.dataset.zakladka = z;
   for (const b of dlg.querySelectorAll('[data-zakladka-ai]')) b.setAttribute('aria-selected', String(b.dataset.zakladkaAi === z));
   if (z === 'czat') rysujDostawcow();

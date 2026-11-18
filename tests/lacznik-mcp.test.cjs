@@ -264,8 +264,8 @@ test('łącznik z logowaniem OAuth: opisy, rejestracja, authorize → zgoda → 
   assert.ok(s.baza('dostepy_ai', {}, { id: 'u-1' }).some((d) => d.opis === 'Łącznik: Claude'));
 });
 
-// #244: GPT „Makietka” – GET z tokenem w nagłówku: opis bez klucza w linkach, wywołanie narzędzia przez ?json=.
-test('zwykłe adresy z tokenem OAuth w nagłówku (GPT): opis bez klucza w linkach, narzędzie przez ?json=', async (t) => {
+// #244: zwykłe adresy z tokenem z logowania w nagłówku: opis bez klucza w linkach, wywołanie narzędzia przez ?json=.
+test('zwykłe adresy z tokenem OAuth w nagłówku : opis bez klucza w linkach, narzędzie przez ?json=', async (t) => {
   const s = await srodowisko(t);
   const { obsluzHttp } = await import(HTTP_MCP);
   const get = async (url) => (await obsluzHttp(new Request(url, { headers: { authorization: `Bearer ${s.edycja}`, accept: 'text/plain' } }), s.env)).text();
@@ -274,7 +274,4 @@ test('zwykłe adresy z tokenem OAuth w nagłówku (GPT): opis bez klucza w linka
   assert.ok(!opis.includes(s.edycja), 'klucz nie wraca w treści');
   const w = await get(`${s.ADRES}/n/przeglad_projektu?json=${encodeURIComponent('{}')}`);
   assert.match(w, /^WYNIK narzędzia przeglad_projektu/);
-  const spec = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'ai', 'gpt', 'openapi.json'), 'utf8'));
-  assert.deepEqual(Object.keys(spec.paths), ['/mcp', '/mcp/n/{narzedzie}']);
-  assert.equal(spec.components.securitySchemes.oauth.flows.authorizationCode.tokenUrl, 'https://api.makietka.app/mcp/oauth/token');
 });

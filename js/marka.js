@@ -21,9 +21,6 @@ export const ADRES_API = PRZEZ_WORKER ? 'https://api.makietka.app' : ADRES_SUPAB
 // Adres zdalnego łącznika MCP (bez klucza): Worker skraca /functions/v1/mcp do /mcp.
 export const ADRES_LACZNIKA = PRZEZ_WORKER ? `${ADRES_API}/mcp` : `${ADRES_API}/functions/v1/mcp`;
 
-// GPT „Makietka” w ChatGPT z logowaniem OAuth (#244, ai/gpt/README.md) – adres po utworzeniu; pusty = przycisku nie ma.
-export const ADRES_GPT = '';
-
 // Plik projektu: rozszerzenie .makietka; wczytywanie rozpoznaje plik po treści, nie po rozszerzeniu.
 export const ROZSZERZENIE = '.makietka';
 export const TYP_MIME = 'application/vnd.seriodruk+zip';
