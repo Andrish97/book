@@ -43,6 +43,7 @@ export const WLASNE_POLA = [
   'zaokraglenie', // zaokrąglone narożniki zwykłego obrazu w mm – obraz przycięty, obrys po zaokrągleniu (miekkie-krawedzie.js, #156)
   'miekkie_krawedzie', 'miekkie_rodzaj', // miękkie krawędzie (wtapianie) w mm; rodzaj: brak = równo wzdłuż brzegu, owal = winieta (#156)
   'wzor', // wzór jako wypełnienie kształtu: { id, kolor, skala, obrot } – tłem jest fill (wzor-wypelnienia.js, #182)
+  'czesc', 'skladanka', // składanka (#224): definicja części modelu z papieru i rola elementu w części (js/skladanka.js)
   'kolaz', // kolaż: { uklad, odstep, zaokraglenie, szerokosc, wysokosc } – grupa pól na zdjęcia (#131A)
 ];
 

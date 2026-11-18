@@ -1,0 +1,314 @@
+// Składanki i wycinanki (#224): model z papieru z wielu części na wielu arkuszach.
+//
+// Część to grupa elementów budowana z definicji `czesc` (pole elementu, zapisywane w projekcie):
+//   { nr: 'A', punkty: [{x,y}…] – obrys ściany w mm (układ części),
+//     krawedzie: [{ typ: 'ciecie'|'zakladka'|'klej', para: '3'|null, szer: 7 }] – krawędź i: punkty[i] → punkty[i+1],
+//     zgiecia: [{ a:{x,y}, b:{x,y}, rodzaj: 'dolina'|'gora', kat: 90 }] – linie zgięcia w środku części,
+//     kolor: '#ffffff' }
+// Z niej powstają zwykłe elementy (dzięki temu PDF, plik dla plotera, kontrola i zapis do innych programów działają
+// bez zmian): ściana (kolor części), zakładki klejowe z numerem pary, linie zgięć drukowane (dolina – kreski,
+// góra – kreska-kropka) i na płycie Crease, obrys cięcia na płycie CutContour (#218) i drukowany cienki obrys
+// (cięcie nożyczkami w domu), numer pary przy krawędzi do sklejenia i nazwa części.
+//
+// Moduł bez DOM: geometria (podział na ściany, zakładki) jest też dla makiety 3D i rozkładania na arkusze.
+
+/* global fabric */
+
+export const RODZAJE_KRAWEDZI = { ciecie: 'Cięcie', zakladka: 'Zakładka klejowa', klej: 'Do sklejenia (bez zakładki)' };
+export const RODZAJE_ZGIEC = { dolina: 'Dolina – zginaj do siebie', gora: 'Góra – zginaj od siebie' };
+export const KRESKI = { dolina: [2.4, 1.6], gora: [3, 1.2, 0.6, 1.2] };
+const SZER_ZAKLADKI = 7;
+const zaokr = (v) => Math.round(v * 100) / 100;
+const P = (x, y) => ({ x: zaokr(x), y: zaokr(y) });
+
+export function normalizujCzesc(c = {}) {
+  const punkty = (Array.isArray(c.punkty) ? c.punkty : []).filter((p) => Number.isFinite(p?.x) && Number.isFinite(p?.y)).map((p) => P(p.x, p.y));
+  const krawedzie = punkty.map((_, i) => {
+    const k = c.krawedzie?.[i] || {};
+    return { typ: RODZAJE_KRAWEDZI[k.typ] ? k.typ : 'ciecie', para: k.para ? String(k.para) : null, szer: Number.isFinite(k.szer) && k.szer > 0 ? Math.min(30, k.szer) : SZER_ZAKLADKI };
+  });
+  const zgiecia = (Array.isArray(c.zgiecia) ? c.zgiecia : []).filter((z) => z?.a && z?.b).map((z) => ({
+    a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), rodzaj: z.rodzaj === 'gora' ? 'gora' : 'dolina', kat: Number.isFinite(z.kat) ? Math.max(0, Math.min(180, z.kat)) : 90,
+  }));
+  return { nr: String(c.nr || 'A'), punkty, krawedzie, zgiecia, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff', pokaz_numery: c.pokaz_numery !== false };
+}
+
+// ---------- Geometria ----------
+
+export function poleWielokata(p) {
+  let s = 0;
+  for (let i = 0; i < p.length; i += 1) { const a = p[i]; const b = p[(i + 1) % p.length]; s += a.x * b.y - b.x * a.y; }
+  return s / 2;
+}
+
+// Normalna na zewnątrz krawędzi i (jednostkowa).
+export function normalnaZewn(punkty, i) {
+  const a = punkty[i];
+  const b = punkty[(i + 1) % punkty.length];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const l = Math.hypot(dx, dy) || 1;
+  return poleWielokata(punkty) > 0 ? { x: dy / l, y: -dx / l } : { x: -dy / l, y: dx / l };
+}
+
+// Zakładka na krawędzi i: trapez od krawędzi na zewnątrz (skos 45°, nie więcej niż 1/3 długości z każdej strony).
+export function zakladka(punkty, i, szer = SZER_ZAKLADKI) {
+  const a = punkty[i];
+  const b = punkty[(i + 1) % punkty.length];
+  const dl = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const d = { x: (b.x - a.x) / dl, y: (b.y - a.y) / dl };
+  const n = normalnaZewn(punkty, i);
+  const w = Math.min(szer, dl * 0.45);
+  const s = Math.min(w, dl / 3);
+  return [a, b, P(b.x + n.x * w - d.x * s, b.y + n.y * w - d.y * s), P(a.x + n.x * w + d.x * s, a.y + n.y * w + d.y * s)];
+}
+
+// Obrys cięcia: ściana z zakładkami (wierzchołki zakładek między końcami krawędzi).
+export function obrysCiecia(c) {
+  const wynik = [];
+  c.punkty.forEach((p, i) => {
+    wynik.push(p);
+    if (c.krawedzie[i]?.typ === 'zakladka') { const z = zakladka(c.punkty, i, c.krawedzie[i].szer); wynik.push(z[3], z[2]); }
+  });
+  return wynik;
+}
+
+const krzyz = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+
+// Punkt na obwodzie wielokąta najbliższy p: { i (krawędź), t (0..1), punkt, odl }.
+export function naObwodzie(punkty, p) {
+  let naj = null;
+  punkty.forEach((a, i) => {
+    const b = punkty[(i + 1) % punkty.length];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const l2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2));
+    const q = { x: a.x + t * dx, y: a.y + t * dy };
+    const odl = Math.hypot(p.x - q.x, p.y - q.y);
+    if (!naj || odl < naj.odl) naj = { i, t, punkt: q, odl };
+  });
+  return naj;
+}
+
+// Podział wielokąta cięciwą a–b (oba punkty na obwodzie) na dwa wielokąty – albo null.
+export function podzielWielokat(punkty, a, b) {
+  const pa = naObwodzie(punkty, a);
+  const pb = naObwodzie(punkty, b);
+  if (!pa || !pb || pa.odl > 0.6 || pb.odl > 0.6) return null;
+  // Obwód z wstawionymi punktami a i b.
+  const lista = [];
+  let ia = -1;
+  let ib = -1;
+  punkty.forEach((p, i) => {
+    lista.push(p);
+    const wstaw = [[pa, 'a'], [pb, 'b']].filter(([q]) => q.i === i && q.t > 1e-6 && q.t < 1 - 1e-6).sort((x, y) => x[0].t - y[0].t);
+    for (const [q, k] of wstaw) { lista.push(q.punkt); if (k === 'a') ia = lista.length - 1; else ib = lista.length - 1; }
+    if (pa.i === i && pa.t <= 1e-6) ia = lista.length - 1;
+    if (pb.i === i && pb.t <= 1e-6) ib = lista.length - 1;
+  });
+  const n = lista.length;
+  if (ia < 0) ia = (lista.indexOf(punkty[(pa.i + 1) % punkty.length]));
+  if (ib < 0) ib = (lista.indexOf(punkty[(pb.i + 1) % punkty.length]));
+  if (ia < 0 || ib < 0 || ia === ib) return null;
+  const luk = (od, do_) => { const w = []; for (let i = od; ; i = (i + 1) % n) { w.push(lista[i]); if (i === do_) break; } return w; };
+  const p1 = luk(ia, ib);
+  const p2 = luk(ib, ia);
+  if (p1.length < 3 || p2.length < 3 || Math.abs(poleWielokata(p1)) < 0.5 || Math.abs(poleWielokata(p2)) < 0.5) return null;
+  return [p1, p2];
+}
+
+// Ściany części: wielokąt podzielony kolejnymi zgięciami. Zwraca { sciany: [[{x,y}]], zawiasy: [{ s1, s2, a, b, zgiecie }] }.
+export function scianyCzesci(c) {
+  let sciany = [c.punkty];
+  const uzyte = [];
+  c.zgiecia.forEach((z, nr) => {
+    const srodek = { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 };
+    const i = sciany.findIndex((s) => wWielokacie(s, srodek));
+    if (i < 0) return;
+    const podzial = podzielWielokat(sciany[i], z.a, z.b);
+    if (!podzial) return;
+    sciany = [...sciany.slice(0, i), podzial[0], ...sciany.slice(i + 1), podzial[1]];
+    uzyte.push(nr);
+  });
+  // Zawias: dwie ściany, na których obwodzie leży środek zgięcia.
+  const zawiasy = [];
+  for (const nr of uzyte) {
+    const z = c.zgiecia[nr];
+    const m = { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 };
+    const przy = sciany.map((s, i) => [i, naObwodzie(s, m).odl]).filter(([, d]) => d < 0.6).map(([i]) => i);
+    if (przy.length === 2) zawiasy.push({ s1: przy[0], s2: przy[1], a: z.a, b: z.b, zgiecie: nr });
+  }
+  return { sciany, zawiasy };
+}
+
+export function wWielokacie(p, q) {
+  let w = false;
+  for (let i = 0, j = p.length - 1; i < p.length; j = i, i += 1) {
+    if ((p[i].y > q.y) !== (p[j].y > q.y) && q.x < ((p[j].x - p[i].x) * (q.y - p[i].y)) / (p[j].y - p[i].y) + p[i].x) w = !w;
+  }
+  return w;
+}
+
+// Ramka części razem z zakładkami.
+export function ramkaCzesci(c) {
+  const o = obrysCiecia(c);
+  const xs = o.map((p) => p.x);
+  const ys = o.map((p) => p.y);
+  return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+}
+
+// Środek ciężkości wielokąta (do podpisu części).
+export function srodekWielokata(p) {
+  const A = poleWielokata(p) || 1;
+  let cx = 0;
+  let cy = 0;
+  for (let i = 0; i < p.length; i += 1) { const a = p[i]; const b = p[(i + 1) % p.length]; const f = a.x * b.y - b.x * a.y; cx += (a.x + b.x) * f; cy += (a.y + b.y) * f; }
+  return { x: cx / (6 * A), y: cy / (6 * A) };
+}
+
+// ---------- Elementy edytora ----------
+
+const KOLOR_LINII = '#6b6b6b';
+const KOLOR_ZAKLADKI = '#eeeeee';
+
+// Lista elementów Fabric części w układzie części (mm). Środek grupy liczy wywołujący.
+export function elementyCzesci(def) {
+  const c = normalizujCzesc(def);
+  if (c.punkty.length < 3) return [];
+  const el = [];
+  const wspolne = { strokeUniform: true, objectCaching: false, selectable: false, evented: false };
+  // Zakładki (pod ścianą – krawędź zgięcia zakładki rysuje się osobno).
+  c.krawedzie.forEach((k, i) => {
+    if (k.typ !== 'zakladka') return;
+    const z = zakladka(c.punkty, i, k.szer);
+    el.push(new fabric.Polygon(z, { ...wspolne, fill: KOLOR_ZAKLADKI, stroke: null, strokeWidth: 0, nazwa: `Zakładka ${k.para || ''}`.trim(), skladanka: 'zakladka' }));
+    el.push(new fabric.Line([z[0].x, z[0].y, z[1].x, z[1].y], { ...wspolne, stroke: KOLOR_LINII, strokeWidth: 0.2, strokeDashArray: KRESKI.dolina, skladanka: 'zgiecie' }));
+    el.push(new fabric.Line([z[0].x, z[0].y, z[1].x, z[1].y], { ...wspolne, stroke: '#1f6feb', strokeWidth: 0.3, uszlachetnienie: 'big', skladanka: 'zgiecie' }));
+    if (k.para && c.pokaz_numery) {
+      const s = srodekWielokata(z);
+      el.push(new fabric.Text(k.para, { ...wspolne, left: s.x, top: s.y, originX: 'center', originY: 'center', fontSize: Math.min(3.2, k.szer * 0.5), fontFamily: 'Inter', fill: '#555555', skladanka: 'numer' }));
+    }
+  });
+  el.push(new fabric.Polygon(c.punkty, { ...wspolne, fill: c.kolor, stroke: null, strokeWidth: 0, nazwa: 'Ściana', skladanka: 'sciana' }));
+  // Zgięcia w środku części.
+  for (const z of c.zgiecia) {
+    el.push(new fabric.Line([z.a.x, z.a.y, z.b.x, z.b.y], { ...wspolne, stroke: KOLOR_LINII, strokeWidth: 0.2, strokeDashArray: KRESKI[z.rodzaj], skladanka: 'zgiecie' }));
+    el.push(new fabric.Line([z.a.x, z.a.y, z.b.x, z.b.y], { ...wspolne, stroke: '#1f6feb', strokeWidth: 0.3, uszlachetnienie: 'big', skladanka: 'zgiecie' }));
+  }
+  // Numery krawędzi do sklejenia (bez zakładki) – po wewnętrznej stronie.
+  c.krawedzie.forEach((k, i) => {
+    if (k.typ !== 'klej' || !k.para || !c.pokaz_numery) return;
+    const a = c.punkty[i];
+    const b = c.punkty[(i + 1) % c.punkty.length];
+    const n = normalnaZewn(c.punkty, i);
+    el.push(new fabric.Text(k.para, { ...wspolne, left: (a.x + b.x) / 2 - n.x * 2.4, top: (a.y + b.y) / 2 - n.y * 2.4, originX: 'center', originY: 'center', fontSize: 2.6, fontFamily: 'Inter', fill: '#777777', skladanka: 'numer' }));
+  });
+  if (c.pokaz_numery) {
+    const s = srodekWielokata(c.punkty);
+    el.push(new fabric.Text(c.nr, { ...wspolne, left: s.x, top: s.y, originX: 'center', originY: 'center', fontSize: 3, fontFamily: 'Inter', fontWeight: 'bold', fill: '#9a9a9a', skladanka: 'numer' }));
+  }
+  const obrys = obrysCiecia(c);
+  el.push(new fabric.Polygon(obrys, { ...wspolne, fill: null, stroke: '#888888', strokeWidth: 0.15, skladanka: 'obrys' }));
+  el.push(new fabric.Polygon(obrys, { ...wspolne, fill: null, stroke: '#e0004d', strokeWidth: 0.3, uszlachetnienie: 'ciecie', skladanka: 'ciecie' }));
+  return el;
+}
+
+// Nowa grupa części albo przebudowa istniejącej (te same położenie, obrót i skala: punkt (0,0) części zostaje
+// w tym samym miejscu strony).
+export function zbudujCzesc(def, { grupa = null, left = 0, top = 0 } = {}) {
+  const c = normalizujCzesc(def);
+  const r = ramkaCzesci(c);
+  const sx = r.x + r.w / 2;
+  const sy = r.y + r.h / 2;
+  const el = elementyCzesci(c);
+  // Elementy w układzie grupy (środek ramki w 0,0).
+  for (const o of el) { o.set({ left: o.left - sx, top: o.top - sy }); o.setCoords(); }
+  if (!grupa) {
+    const g = new fabric.Group(el, { layoutManager: new fabric.LayoutManager(new fabric.FixedLayout()), nazwa: `Część ${c.nr}`, czesc: c, subTargetCheck: false, interactive: false });
+    g.set({ width: r.w, height: r.h });
+    g.setPositionByOrigin(new fabric.Point(left + sx, top + sy), 'center', 'center');
+    g.setCoords();
+    return g;
+  }
+  // Punkt (0,0) części na stronie przed przebudową.
+  const m = grupa.calcTransformMatrix();
+  const stara = grupa.czesc ? ramkaCzesci(normalizujCzesc(grupa.czesc)) : r;
+  const zero = fabric.util.transformPoint(new fabric.Point(-(stara.x + stara.w / 2), -(stara.y + stara.h / 2)), m);
+  grupa.remove(...grupa.getObjects());
+  grupa.add(...el);
+  grupa.set({ width: r.w, height: r.h, czesc: c, nazwa: `Część ${c.nr}` });
+  // Nowy środek tak, by (0,0) części było tam, gdzie było.
+  const bezPrzesuniecia = fabric.util.transformPoint(new fabric.Point(-sx, -sy), [m[0], m[1], m[2], m[3], 0, 0]);
+  grupa.setPositionByOrigin(new fabric.Point(zero.x - bezPrzesuniecia.x, zero.y - bezPrzesuniecia.y), 'center', 'center');
+  grupa.setCoords();
+  grupa.dirty = true;
+  return grupa;
+}
+
+// Punkt strony (mm) → układ części (mm) dla grupy części.
+export function doUkladuCzesci(grupa, p) {
+  const c = normalizujCzesc(grupa.czesc);
+  const r = ramkaCzesci(c);
+  const q = fabric.util.transformPoint(new fabric.Point(p.x, p.y), fabric.util.invertTransform(grupa.calcTransformMatrix()));
+  return { x: q.x + r.x + r.w / 2, y: q.y + r.y + r.h / 2 };
+}
+export function zUkladuCzesci(grupa, p) {
+  const c = normalizujCzesc(grupa.czesc);
+  const r = ramkaCzesci(c);
+  return fabric.util.transformPoint(new fabric.Point(p.x - r.x - r.w / 2, p.y - r.y - r.h / 2), grupa.calcTransformMatrix());
+}
+
+// Definicja części z kształtu (prostokąt, wielokąt, ścieżka z odcinków, elipsa – przybliżona) w układzie strony.
+export function czescZKsztaltu(o, nr = 'A') {
+  const m = o.calcTransformMatrix();
+  let lokalne = null;
+  const t = String(o.type).toLowerCase();
+  if (t === 'rect') lokalne = [[-o.width / 2, -o.height / 2], [o.width / 2, -o.height / 2], [o.width / 2, o.height / 2], [-o.width / 2, o.height / 2]];
+  else if (t === 'polygon' || t === 'polyline') lokalne = o.points.map((q) => [q.x - o.pathOffset.x, q.y - o.pathOffset.y]);
+  else if (t === 'triangle') lokalne = [[0, -o.height / 2], [o.width / 2, o.height / 2], [-o.width / 2, o.height / 2]];
+  else if (t === 'ellipse' || t === 'circle') {
+    const rx = o.rx ?? o.radius;
+    const ry = o.ry ?? o.radius;
+    lokalne = Array.from({ length: 24 }, (_, i) => { const k = (i / 24) * 2 * Math.PI; return [rx * Math.cos(k), ry * Math.sin(k)]; });
+  } else if (t === 'path') {
+    lokalne = [];
+    for (const k of o.path || []) {
+      const v = k.slice(1);
+      if (v.length >= 2) lokalne.push([v[v.length - 2] - o.pathOffset.x, v[v.length - 1] - o.pathOffset.y]);
+    }
+  }
+  if (!lokalne || lokalne.length < 3) return null;
+  const punkty = lokalne.map(([x, y]) => fabric.util.transformPoint(new fabric.Point(x, y), m));
+  // Bez powtórzonego ostatniego punktu.
+  const ost = punkty[punkty.length - 1];
+  if (Math.hypot(ost.x - punkty[0].x, ost.y - punkty[0].y) < 0.01) punkty.pop();
+  const minX = Math.min(...punkty.map((q) => q.x));
+  const minY = Math.min(...punkty.map((q) => q.y));
+  return {
+    def: normalizujCzesc({ nr, punkty: punkty.map((q) => ({ x: q.x - minX, y: q.y - minY })), kolor: typeof o.fill === 'string' ? o.fill : '#ffffff' }),
+    left: minX, top: minY,
+  };
+}
+
+// Następna wolna nazwa części (A, B, … Z, AA…) i numer pary krawędzi w projekcie.
+export function kolejnaNazwa(uzyte) {
+  for (let i = 0; i < 702; i += 1) {
+    const n = i < 26 ? String.fromCharCode(65 + i) : String.fromCharCode(64 + Math.floor(i / 26)) + String.fromCharCode(65 + (i % 26));
+    if (!uzyte.has(n)) return n;
+  }
+  return `C${uzyte.size + 1}`;
+}
+export function kolejnaPara(uzyte) {
+  let n = 1;
+  while (uzyte.has(String(n))) n += 1;
+  return String(n);
+}
+
+// Wszystkie części na liście obiektów (także w grupach), z nazwami i parami.
+export function czesciWObiektach(obiekty) {
+  const wynik = [];
+  const idz = (lista) => { for (const o of lista || []) { if (o?.czesc) wynik.push(o); else if (o?.objects) idz(o.objects); } };
+  idz(obiekty);
+  return wynik;
+}
