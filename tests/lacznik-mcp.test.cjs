@@ -187,7 +187,9 @@ test('łącznik przez zwykłe adresy (GET): opis z narzędziami, odczyt, zmiana,
   assert.equal(strona.status, 200);
   assert.match(strona.typ, /text\/plain/);
   assert.match(strona.tresc, /DOSTĘP DLA AI PRZEZ ADRESY/);
-  assert.match(strona.tresc, new RegExp(`${s.ADRES}/${s.edycja}/n/przeglad_projektu`));
+  // Linki zawsze publiczne https (nie http:// i host bazy, pod którym funkcja widzi żądanie – #246).
+  assert.ok(strona.tresc.includes(`https://api.makietka.app/mcp/${s.edycja}/n/przeglad_projektu`), 'link https na api.makietka.app');
+  assert.ok(!/http:\/\//.test(strona.tresc), 'żadnych linków http://');
   assert.match(strona.tresc, /zmien_elementy\n/);
   const przeglad = await get(`${s.ADRES}/${s.edycja}/n/przeglad_projektu`);
   assert.match(przeglad.tresc, /^WYNIK narzędzia przeglad_projektu/);

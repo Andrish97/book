@@ -141,15 +141,13 @@ async function obsluzStrone(request, url, env) {
     if (w?.error) throw new Error(w.error.message);
     return w?.result;
   };
-  // Adres bazowy (z kluczem) – do linków w odpowiedzi.
-  const czesci = url.pathname.split('/');
-  const iKlucza = czesci.findIndex((x) => decodeURIComponent(x) === klucz);
-  const baza = iKlucza >= 0 ? `${url.origin}${czesci.slice(0, iKlucza + 1).join('/')}` : `${url.origin}${url.pathname.replace(/\/n\/.*$/, '')}`;
-  // Klucz z nagłówka (token OAuth, np. GPT „Makietka”) nie trafia do linków – klient i tak go dokłada.
+  // Adres bazowy linków – zawsze publiczny https (https://api.makietka.app/mcp/<klucz>), nie adres, pod którym
+  // funkcja widzi żądanie (w Supabase wewnętrznie http:// i host bazy – AI dostawało błąd przekierowania, #246).
+  // Klucz z nagłówka (token z logowania) nie trafia do linków – klient i tak go dokłada.
   const zNaglowka = /^Bearer\s+sdk_/i.test(request.headers.get('authorization') || '');
-  const nKlucza = iKlucza >= 0 || zNaglowka ? '' : `?klucz=${encodeURIComponent(klucz)}`;
+  const baza = `${env.publiczny || ADRES_PUBLICZNY}/mcp${zNaglowka ? '' : `/${klucz}`}`;
   const link = (nazwa, args = {}) => {
-    const q = new URLSearchParams(nKlucza ? { klucz } : {});
+    const q = new URLSearchParams();
     for (const [k, v] of Object.entries(args)) q.set(k, typeof v === 'string' ? v : JSON.stringify(v));
     const qs = q.toString();
     return `${baza}/n/${nazwa}${qs ? `?${qs}` : ''}`;
@@ -161,7 +159,7 @@ async function obsluzStrone(request, url, env) {
       const args = argumentyZAdresu(url);
       const r = await wolaj('tools/call', { name: m[1], arguments: args });
       const tresc = (r?.content || []).map((c) => c.text || (c.type === 'image' ? '[obraz]' : '')).join('\n') || '(brak treści)';
-      return tekst(200, `${r?.isError ? 'BŁĄD' : 'WYNIK'} narzędzia ${m[1]}\n\n${tresc}\n\n---\nWszystkie narzędzia i zasady: ${baza}${nKlucza}\n`);
+      return tekst(200, `${r?.isError ? 'BŁĄD' : 'WYNIK'} narzędzia ${m[1]}\n\n${tresc}\n\n---\nWszystkie narzędzia i zasady: ${baza}\n`);
     }
     const { tools } = await wolaj('tools/list');
     const nazwy = new Set(tools.map((t) => t.name));
@@ -176,7 +174,7 @@ Ta strona jest dla asystenta AI, który nie ma łącznika MCP Makietki, ale umie
 
 JAK UŻYWAĆ
 Każde narzędzie wywołujesz, otwierając adres:
-  ${baza}/n/<narzędzie>${nKlucza}${nKlucza ? '&' : '?'}<parametr>=<wartość>&<parametr>=<wartość>
+  ${baza}/n/<narzędzie>?<parametr>=<wartość>&<parametr>=<wartość>
 Wartości: tekst wprost (zakodowany w adresie), liczby i true/false wprost, obiekty i listy jako JSON. Parametry złożone możesz podać razem: ?json=<cały obiekt parametrów JSON, zakodowany w adresie>.
 Odpowiedź to zwykły tekst: wynik narzędzia albo opis błędu z tym, co poprawić. Zmieniaj małymi krokami i po zmianie sprawdź wynik (przeglad_projektu, czytaj).
 Jeśli nie możesz otworzyć adresu, który sam zbudowałeś, poproś użytkownika, żeby wkleił Ci go w rozmowie – albo użyj w Makietce czatu AI w trybie „kopiuj i wklej”.
@@ -192,7 +190,7 @@ ${tools.map((t) => `${t.name}\n  ${String(t.description || '').replace(/\s+/g, '
 `;
     return tekst(200, tekstStrony);
   } catch (e) {
-    return tekst(400, `BŁĄD: ${e.message}\n\nOpis i lista narzędzi: ${baza}${nKlucza}\n`);
+    return tekst(400, `BŁĄD: ${e.message}\n\nOpis i lista narzędzi: ${baza}\n`);
   }
 }
 

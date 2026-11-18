@@ -36,7 +36,7 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
   // #239: polecenie dla zwykłego czatu (bez łączników) – z adresem do otwarcia jak strona.
   const zwykly = await strona.textContent('#dostep-ai-polecenie-zwykly');
   assert.ok(zwykly.includes(`https://atrapa.supabase.co/functions/v1/mcp/${klucz}`), 'adres w poleceniu');
-  assert.match(zwykly, /Otwórz ten adres[\s\S]*Zadanie: $/);
+  assert.match(zwykly, /Otwórz ten adres[\s\S]*Zadanie \(dopisz po dwukropku, co AI ma zrobić – inaczej zapyta\): $/);
   assert.equal(await strona.isVisible('#dostep-ai-klucz'), false, 'sam klucz jest w zwiniętej części dla zaawansowanych');
   assert.match(await strona.textContent('.dostep-ai-kroki'), /Claude.*Dodaj własny łącznik.*ChatGPT.*Add custom MCP server/s);
   assert.doesNotMatch(await strona.textContent('#dlg-dostep-ai'), /dozwolon|allowlist|odblokuj domen/i);

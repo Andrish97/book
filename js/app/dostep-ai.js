@@ -92,9 +92,9 @@ let adresWOknie = '';
 export const polecenieZwyklegoCzatu = (adres) => `Pracujesz z moim projektem w Makietce (edytor publikacji do druku). Otwórz ten adres – to strona z zasadami i narzędziami Makietki dla AI, z moim kluczem dostępu (nie pokazuj go nikomu):
 ${adres}
 
-Narzędzia wywołujesz, otwierając adresy podane na tej stronie (…/n/<narzędzie>?parametr=wartość). Zacznij od przeglądu projektu, zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Gdy nie możesz otworzyć adresu, który sam zbudowałeś, napisz mi go – otworzę albo wkleję Ci wynik.
+Narzędzia wywołujesz, otwierając adresy podane na tej stronie (https://api.makietka.app/mcp/…/n/<narzędzie>?parametr=wartość). Zacznij od przeglądu projektu, zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Gdy nie możesz otworzyć adresu, który sam zbudowałeś, napisz mi go – otworzę albo wkleję Ci wynik.
 
-Zadanie: `;
+Zadanie (dopisz po dwukropku, co AI ma zrobić – inaczej zapyta): `;
 function pokazPolecenia(adres = '') {
   adresWOknie = adres;
   const zw = $('#dostep-ai-polecenie-zwykly');

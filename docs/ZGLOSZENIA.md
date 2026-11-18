@@ -41,6 +41,7 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | # | Uwaga |
 |---|---|
 | 205 | Motyw: przycisk na górze z trzema trybami (jak w systemie, jasny, ciemny) – jak w Familiadzie |
+| 246 | Zwykły ChatGPT: poprawione linki narzędzi na stronie dla AI (zawsze https://api.makietka.app) i dopisek przy „Zadanie:” |
 | 245 | Bez GPT „Makietka” (OpenAI wycofuje własne GPT) |
 | 244 | Łącznik z logowaniem: „Połącz z Makietką” w Claude/ChatGPT bez kopiowania klucza |
 | 243 | Okno „Sztuczna inteligencja” w trzech zakładkach: czat w Makietce (Twoje klucze), łącznik (zwykle płatny plan), zwykły czat |
