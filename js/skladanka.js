@@ -247,6 +247,48 @@ function scianyPlanarne(c) {
   return { sciany, zawiasy };
 }
 
+// Rozcięcie części linią a → b (oba punkty na obwodzie) na dwie części (#274 – za duża część, ręczne dzielenie modelu).
+// Krawędzie dziedziczą rodzaj i parę po krawędzi, na której leżą; nowa krawędź cięcia: w pierwszej części zakładka,
+// w drugiej – do sklejenia, z numerem pary `para`. Zgięcia, pola i szczeliny trafiają do części, w której leży ich
+// środek (zgięcie przecinające linię jest przycinane do niej). Zwraca [część1, część2] albo null.
+export function rozetnijCzesc(c, a, b, para) {
+  const podzial = podzielWielokat(c.punkty, a, b);
+  if (!podzial) return null;
+  const blisko = (p, q) => Math.hypot(p.x - q.x, p.y - q.y) < 0.02;
+  const naOdc = (p, u, v) => { const d = naObwodzie([u, v], p); return d && d.odl < 0.02; };
+  const przeciecieZCieciem = (u, v) => {
+    const r = { x: v.x - u.x, y: v.y - u.y };
+    const q = { x: b.x - a.x, y: b.y - a.y };
+    const d = r.x * q.y - r.y * q.x;
+    if (Math.abs(d) < 1e-9) return null;
+    const t = ((a.x - u.x) * q.y - (a.y - u.y) * q.x) / d;
+    return t > 0 && t < 1 ? { x: u.x + r.x * t, y: u.y + r.y * t } : null;
+  };
+  return podzial.map((w, nr) => {
+    const krawedzie = w.map((u, i) => {
+      const v = w[(i + 1) % w.length];
+      if ((blisko(u, nr === 0 ? b : a) && blisko(v, nr === 0 ? a : b))) return nr === 0 ? { typ: 'zakladka', para, szer: 7 } : { typ: 'klej', para };
+      const j = c.punkty.findIndex((p, k) => naOdc(u, p, c.punkty[(k + 1) % c.punkty.length]) && naOdc(v, p, c.punkty[(k + 1) % c.punkty.length]));
+      return j >= 0 ? { ...c.krawedzie[j] } : { typ: 'ciecie' };
+    });
+    const wSrodku = (p) => wWielokacie(w, p) || (naObwodzie(w, p)?.odl ?? 1) < 0.02;
+    const zgiecia = [];
+    for (const z of c.zgiecia) {
+      const sr = { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 };
+      const ma = wSrodku(z.a);
+      const mb = wSrodku(z.b);
+      if (ma && mb && wSrodku(sr)) zgiecia.push(z);
+      else if (ma || mb) { const x = przeciecieZCieciem(z.a, z.b); if (x) zgiecia.push({ ...z, a: ma ? z.a : x, b: mb ? z.b : x }); }
+    }
+    const srodekPolaKl = (p) => { const r = rogiPola(p); return { x: (r[0].x + r[2].x) / 2, y: (r[0].y + r[2].y) / 2 }; };
+    return {
+      punkty: w, krawedzie, zgiecia,
+      pola: (c.pola || []).filter((p) => wWielokacie(w, srodekPolaKl(p))),
+      szczeliny: (c.szczeliny || []).filter((z) => wWielokacie(w, { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 })),
+    };
+  });
+}
+
 export function scianyCzesci(c) {
   if ((c.szczeliny || []).some((z) => z.naciecie)) return scianyPlanarne(c);
   let sciany = [c.punkty];

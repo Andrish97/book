@@ -2412,6 +2412,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Rozeta":"Rosette",
 "Rozeta podwójna":"Double rosette",
 "Rozeta z płatków":"Petal rosette",
+"Rozetnij na dwie części – dwa kliknięcia na krawędziach":"Split into two parts – two clicks on edges",
 "Rozety i ornamenty":"Rosettes and ornaments",
 "Rozgrupuj":"Ungroup",
 "Rozgwiazda":"Starfish",

@@ -2412,6 +2412,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Rozeta":"Розетка (орнамент)",
 "Rozeta podwójna":"Подвійна розетка",
 "Rozeta z płatków":"Розетка з пелюсток",
+"Rozetnij na dwie części – dwa kliknięcia na krawędziach":"Розрізати на дві частини – два кліки на краях",
 "Rozety i ornamenty":"Розетки й орнаменти",
 "Rozgrupuj":"Розгрупувати",
 "Rozgwiazda":"Морська зірка",

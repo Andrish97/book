@@ -223,3 +223,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – pudełko z zatrzaskiem (#271).
 - 19.11.2026: składanki – kartka pop-up ze zgięciem V, pola klejenia pod kątem (#272).
 - 19.11.2026: składanki – kartka pop-up (wycinanka) składa się w makiecie 3D; naprawione dzielenie ścian z wierzchołkami na prostej (#273).
+- 19.11.2026: składanki – narzędzie Rozetnij: podział części na dwie z parą na linii cięcia (#274).
