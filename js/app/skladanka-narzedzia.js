@@ -161,7 +161,7 @@ export function oknoModelu3D() {
     dlg.id = 'dlg-model-3d';
     dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Model 3D na siatkę</h2>
       <p class="ciche">Wczytaj bryłę z Blendera albo z sieci (OBJ albo STL). Makietka rozłoży ją na płasko: ściany wzdłuż najbardziej płaskich krawędzi, zgięcia góra i dolina z kątem, zakładki z numerami par; gdy część nachodziłaby na siebie, powstaje następna. Im mniej ścian, tym łatwiej skleić – najlepiej do kilkuset trójkątów.</p>
-      <label class="pole"><span>Plik modelu</span><input type="file" name="plik" accept=".obj,.stl,model/obj,model/stl"></label>
+      <label class="pole"><span>Plik modelu (OBJ albo STL; do OBJ można dołączyć MTL z kolorami)</span><input type="file" name="plik" accept=".obj,.stl,.mtl,model/obj,model/stl" multiple></label>
       <label class="pole waskie"><span>Największy wymiar (mm)</span><input type="number" name="rozmiar" min="10" step="any" value="120" inputmode="decimal"></label>
       <p class="blad-polaczenia" role="alert" hidden></p>
       <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Rozłóż model</button></div></form>`;
@@ -171,11 +171,13 @@ export function oknoModelu3D() {
       if (e.submitter?.value !== 'tak') return;
       e.preventDefault();
       const blad = f.querySelector('.blad-polaczenia');
-      const plik = f.elements.plik.files[0];
+      const pliki = [...f.elements.plik.files];
+      const plik = pliki.find((x) => /\.(obj|stl)$/i.test(x.name)) || pliki[0];
+      const mtl = pliki.find((x) => /\.mtl$/i.test(x.name));
       if (!plik) { blad.textContent = 'Wybierz plik OBJ albo STL.'; blad.hidden = false; return; }
       try {
         const m = await import('../rozkladanie-3d.js');
-        const siatka = /\.obj$/i.test(plik.name) ? m.wczytajOBJ(await plik.text()) : m.wczytajSTL(new Uint8Array(await plik.arrayBuffer()));
+        const siatka = /\.obj$/i.test(plik.name) ? m.wczytajOBJ(await plik.text(), mtl ? await mtl.text() : null) : m.wczytajSTL(new Uint8Array(await plik.arrayBuffer()));
         if (!siatka.sciany.length) throw new Error('W pliku nie ma ścian – czy to na pewno model OBJ albo STL?');
         if (siatka.sciany.length > 3000) throw new Error(`Model ma ${siatka.sciany.length} ścian – za dużo do sklejenia. Uprość go w programie 3D (np. Blender → Decimate) do kilkuset ścian.`);
         const w = m.rozlozSiatke(siatka, { rozmiar: Math.max(10, Number(String(f.elements.rozmiar.value).replace(',', '.')) || 120), nazwa: plik.name.replace(/\.[^.]+$/, '') });

@@ -226,3 +226,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – narzędzie Rozetnij: podział części na dwie z parą na linii cięcia (#274).
 - 19.11.2026: składanki – narzędzie Scal: dwie części po parze krawędzi w jedną (#275).
 - 19.11.2026: składanki – żółw (zwierzę z siatki 3D) (#276).
+- 19.11.2026: składanki – kolory części z materiałów modelu 3D (OBJ + MTL) (#277).

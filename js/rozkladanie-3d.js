@@ -10,18 +10,39 @@ const EPS = 1e-9;
 // ---------- Wczytywanie ----------
 
 // OBJ: v x y z; f a b c … (indeksy od 1, ujemne – od końca, „a/b/c” – bierzemy pierwszy).
-export function wczytajOBJ(tekst) {
+// usemtl – materiał kolejnych ścian (#277): kolor z MTL (Kd) albo – bez MTL – z palety według nazwy materiału.
+export function wczytajOBJ(tekst, mtl = null) {
   const v = [];
   const sciany = [];
+  const kolory = [];
+  const materialy = mtl ? wczytajMTL(mtl) : {};
+  let kolor = null;
+  const nazwy = [];
   for (const linia of String(tekst).split(/\r?\n/)) {
     const t = linia.trim().split(/\s+/);
     if (t[0] === 'v' && t.length >= 4) v.push([Number(t[1]), Number(t[2]), Number(t[3])]);
-    else if (t[0] === 'f' && t.length >= 4) {
+    else if (t[0] === 'usemtl') {
+      const n = t.slice(1).join(' ');
+      if (!nazwy.includes(n)) nazwy.push(n);
+      kolor = materialy[n] || PALETA[nazwy.indexOf(n) % PALETA.length];
+    } else if (t[0] === 'f' && t.length >= 4) {
       const ids = t.slice(1).map((x) => { const i = parseInt(x.split('/')[0], 10); return i < 0 ? v.length + i : i - 1; });
-      if (ids.every((i) => i >= 0 && i < v.length)) sciany.push(ids);
+      if (ids.every((i) => i >= 0 && i < v.length)) { sciany.push(ids); kolory.push(kolor); }
     }
   }
-  return { wierzcholki: v, sciany };
+  return { wierzcholki: v, sciany, ...(kolory.some(Boolean) ? { kolory } : {}) };
+}
+const PALETA = ['#f2c14e', '#7cb7e8', '#9bd18b', '#f28f6b', '#c7a2e0', '#f5f0e6', '#8fd6cf', '#e8a0bf'];
+// MTL: newmtl nazwa; Kd r g b (0–1) → { nazwa: '#rrggbb' }.
+export function wczytajMTL(tekst) {
+  const w = {};
+  let biezacy = null;
+  for (const linia of String(tekst).split(/\r?\n/)) {
+    const t = linia.trim().split(/\s+/);
+    if (t[0] === 'newmtl') biezacy = t.slice(1).join(' ');
+    else if (t[0] === 'Kd' && biezacy && t.length >= 4) w[biezacy] = `#${t.slice(1, 4).map((x) => Math.round(Math.max(0, Math.min(1, Number(x))) * 255).toString(16).padStart(2, '0')).join('')}`;
+  }
+  return w;
 }
 
 // STL binarny (80 B nagłówka, liczba trójkątów, po 50 B na trójkąt) albo tekstowy („solid … facet … vertex”).
@@ -133,9 +154,12 @@ export function rozlozSiatke(siatka, { rozmiar = 100, nazwa = 'Model', progZgiec
   const P3 = V.map((p) => p.map((x, k) => (x - min[k]) * skala));
   // Trójkąty: wielokąty dzielone metodą uszu (także wklęsłe – np. sylwetka auta), bez zdegenerowanych.
   const T = [];
-  for (const f of siatka.sciany) for (const t of trojkatySciany(f, P3)) {
-    if (new Set(t).size === 3 && dlug(iloczyn(odejmij(P3[t[1]], P3[t[0]]), odejmij(P3[t[2]], P3[t[0]]))) > 1e-9) T.push(t);
-  }
+  const kolorT = [];
+  siatka.sciany.forEach((f, fi) => {
+    for (const t of trojkatySciany(f, P3)) {
+      if (new Set(t).size === 3 && dlug(iloczyn(odejmij(P3[t[1]], P3[t[0]]), odejmij(P3[t[2]], P3[t[0]]))) > 1e-9) { T.push(t); kolorT.push(siatka.kolory?.[fi] || null); }
+    }
+  });
   const N = T.map((t) => normalna(P3[t[0]], P3[t[1]], P3[t[2]]));
   // Orientacja modelu: objętość ze znakiem < 0 – ściany zwrócone do środka; wtedy góra i dolina się zamieniają.
   const objetosc = T.reduce((s, t) => s + skalar(P3[t[0]], iloczyn(P3[t[1]], P3[t[2]])), 0);
@@ -295,7 +319,11 @@ export function rozlozSiatke(siatka, { rozmiar = 100, nazwa = 'Model', progZgiec
       const t = T[ti];
       zgiecia.push({ a: P(pozycja[ti][t.indexOf(u)]), b: P(pozycja[ti][t.indexOf(v)]), rodzaj: z.rodzaj, kat: r2(z.kat) });
     }
-    return { nazwa: wyspy.length > 1 ? `${nazwa} – część ${iw + 1}` : nazwa, punkty, krawedzie, zgiecia };
+    // Kolor części (#277): materiał o największej powierzchni w tej części.
+    const pola = new Map();
+    for (const ti of w.trojkaty) if (kolorT[ti]) pola.set(kolorT[ti], (pola.get(kolorT[ti]) || 0) + pole(ti));
+    const kolor = [...pola.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+    return { nazwa: wyspy.length > 1 ? `${nazwa} – część ${iw + 1}` : nazwa, punkty, krawedzie, zgiecia, ...(kolor ? { kolor } : {}) };
   });
   return { czesci, trojkatow: T.length, czesciIle: czesci.length };
 }

@@ -35,6 +35,18 @@ test('kostka OBJ: jedna część – krzyż z 6 kwadratów, 5 zgięć góra 90°
   assert.ok(rozlozSiatke(wczytajOBJ(odwr), { rozmiar: 50 }).czesci[0].zgiecia.every((z) => z.rodzaj === 'gora'));
 });
 
+test('kolory z materiałów (#277): MTL Kd → kolor części; bez MTL – paleta według nazwy', async () => {
+  const { wczytajOBJ, wczytajMTL, rozlozSiatke } = await modul();
+  const obj = KOSTKA.replace('f 1 4 3 2', 'usemtl czerwony\nf 1 4 3 2').replace('f 4 1 5 8', 'usemtl niebieski\nf 4 1 5 8');
+  const mtl = 'newmtl czerwony\nKd 1 0 0\nnewmtl niebieski\nKd 0 0 1';
+  assert.deepEqual(wczytajMTL(mtl), { czerwony: '#ff0000', niebieski: '#0000ff' });
+  const z = rozlozSiatke(wczytajOBJ(obj, mtl), { rozmiar: 40 });
+  assert.equal(z.czesci[0].kolor, '#ff0000', 'pięć ścian czerwonych, jedna niebieska');
+  const bez = rozlozSiatke(wczytajOBJ(obj), { rozmiar: 40 });
+  assert.match(bez.czesci[0].kolor, /^#[0-9a-f]{6}$/);
+  assert.equal(rozlozSiatke(wczytajOBJ(KOSTKA), { rozmiar: 40 }).czesci[0].kolor, undefined, 'bez materiałów – kolor części domyślny');
+});
+
 test('STL binarny: walec z 24 ścian – części bez nachodzenia, pary równe; czworościan tekstowy', async () => {
   const { wczytajSTL, rozlozSiatke, trojkatyNachodza } = await modul();
   // Walec (24 boki, z dnem i wiekiem) jako trójkąty STL.
