@@ -48,7 +48,7 @@ Stan: krok 1 ✅, 2 ✅ (#233), 3 ✅ (#235, kolejność klejenia – w kroku 7)
    domek; szablony projektów z kilku części.
 7. **Makieta 3D** – składanie z części po zgięciach i parach krawędzi, animacja krok po kroku; **instrukcja
    montażu** generowana sama (kroki, miniatury) – jako strona albo do pobrania.
-8. ⏳ (częściowo – brak animacji otwierania 0–180° i sprawdzania zamykania, kroki 19–20; #261: kartka pop-up „wycinanka”; #269: platforma wklejana – pasek na zakładkach po obu stronach grzbietu, #270: druga warstwa na platformie, #272: zgięcie V – pola klejenia obracane o kąt; #273: podgląd w 3D – ściany z podziału po zgięciach i nacięciach) **Pop-up** – typ sekcji „Rozkładówka pop-up”: zgięcie V, równoległe pudełko, nacięcia w zgięciu (cut & fold),
+8. ✅ (#299: otwieranie 0–180° w makiecie, #300: sprawdzanie zamykania; #261: kartka pop-up „wycinanka”; #269: platforma wklejana – pasek na zakładkach po obu stronach grzbietu, #270: druga warstwa na platformie, #272: zgięcie V – pola klejenia obracane o kąt; #273: podgląd w 3D – ściany z podziału po zgięciach i nacięciach) **Pop-up** – typ sekcji „Rozkładówka pop-up”: zgięcie V, równoległe pudełko, nacięcia w zgięciu (cut & fold),
    warstwy na zakładkach, podpórki; podgląd otwierania 0–180° w 3D; sprawdzanie, czy nic nie wystaje po zamknięciu
    i nie zderza się.
 
@@ -103,7 +103,7 @@ czy po zamknięciu nic nie wystaje i nie zderza się (krok 8 obiecywał to, a ni
 19. ✅ (#299) **Pop-up w 3D: otwieranie 0–180°** – kartka z grzbietem otwiera się suwakiem, a doklejone elementy (platformy,
     V, warstwy) i wycinanki poruszają się zgodnie z mechanizmem (ściany jako bryły sztywne na zawiasach, pary klejenia
     jako więzy).
-20. ⏳ **Sprawdzanie pop-upu** – po zamknięciu nic nie wystaje poza kartkę, elementy się nie przenikają, kąty V
+20. ✅ (#300) **Sprawdzanie pop-upu** – po zamknięciu nic nie wystaje poza kartkę, elementy się nie przenikają, kąty V
     i długości platform pozwalają się złożyć na płasko; uwagi w „Sprawdź przed drukiem”.
 21. ⏳ **Elementy pod kątem z dowolnej części** – Połącz po linii klejenia skośnej do grzbietu: część staje pod kątem
     wynikającym z geometrii (uogólnienie zgięcia V), z podpowiedzią kąta i długości.

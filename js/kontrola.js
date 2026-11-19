@@ -2,6 +2,7 @@
 // Czyste funkcje: dostają projekt, niczego w nim nie zmieniają.
 
 import { uwagiSkladanki } from './skladanka.js';
+import { sprawdzPopup } from './makieta-3d.js';
 import { opisWykonczenia } from './materialy.js';
 import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdzPola } from './pola.js';
 import { normalizujKod, uwagiKodu } from './kody.js';
@@ -315,6 +316,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       strona: st, nr: pierwszyNr.get(st.id) || null, w: sekcja.wydruk.szerokosc_mm, h: sekcja.wydruk.wysokosc_mm, margines: sp.druk === 'domowy' ? sp.margines_mm || 0 : 0, grubosc: sp.grubosc_mm || 0,
     }));
     uwagi.push(...uwagiSkladanki(arkusze).map(({ nazwa, ...u }) => u));
+    uwagi.push(...uwagiPopupu(arkusze));
   }
   // Elementy uproszczone przy odczycie z innego programu (#232) – do przejrzenia; „Sprawdzone” zdejmuje oznaczenie.
   const zImportu = (lista, strona, wzorzec) => {
@@ -465,6 +467,37 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     if (seria.tryb === 'stala' && zDanymi && seria.ile > zDanymi && (tabelaSerii(projekt, seria).unikalne || []).length) {
       uwagi.push({ rodzaj: 'za_malo_wartosci', strony: [], opis: `Seria „${seria.nazwa}” powiela się ${seria.ile} razy, a tabela ma ${zDanymi} ${odmiana(zDanymi, 'wiersz', 'wiersze', 'wierszy')}${zDanymi < wierszy ? ' z danymi' : ''} – wartości zaczną się powtarzać.` });
     }
+  }
+  return uwagi;
+}
+
+// Pop-up (#300, plan składanek krok 20): kartka z grzbietem i doklejone części – czy po zamknięciu nic nie wystaje
+// i czy mechanizm daje się złożyć na płasko (paski, zgięcia V, warstwy). Wynik zapamiętany dla tych samych części.
+const pamiecPopupu = new Map();
+function uwagiPopupu(arkusze) {
+  const czesci = arkusze.flatMap((a, i) => (a.strona.obiekty || []).filter((o) => o?.czesc).map((o) => ({
+    arkusz: i, nr: a.nr, idStrony: a.strona.id, idObiektu: o.id,
+    czesc: o.czesc, obiekt: { czesc: o.czesc, left: o.left, top: o.top, width: o.width, height: o.height, angle: o.angle || 0, originX: o.originX, originY: o.originY, scaleX: o.scaleX || 1, scaleY: o.scaleY || 1 },
+  })));
+  if (!czesci.some((c) => (c.czesc.zgiecia || []).some((z) => z.grzbiet))) return [];
+  const klucz = JSON.stringify(czesci.map((c) => [c.arkusz, c.obiekt]));
+  if (!pamiecPopupu.has(klucz)) {
+    let w = null;
+    try { w = sprawdzPopup(czesci); } catch { w = null; }
+    if (pamiecPopupu.size > 20) pamiecPopupu.clear();
+    pamiecPopupu.set(klucz, w);
+  }
+  const w = pamiecPopupu.get(klucz);
+  if (!w) return [];
+  const gdzie = (c) => ({ rodzaj: 'skladanka', strony: c.nr ? [c.nr] : [], idStrony: c.idStrony, idObiektu: c.idObiektu });
+  const nazwa = (c) => c.czesc.nr || c.czesc.nazwa || '?';
+  const kartka = czesci.find((c) => (c.czesc.zgiecia || []).some((z) => z.grzbiet));
+  const uwagi = [];
+  // Koszt więzów przy zamkniętej kartce: dobre modele mają ~1e-3, za długi pasek – setki.
+  if (w.koszt > 0.05) uwagi.push({ ...gdzie(kartka), opis: `Kartka pop-up ${nazwa(kartka)} nie zamyka się na płasko – doklejone części blokują się (pasek platformy albo ramię V innej długości niż odległość miejsc klejenia). Popraw długości albo miejsca klejenia.` });
+  for (const { ic, mm } of w.wystaje) {
+    const c = czesci[ic];
+    uwagi.push({ ...gdzie(c), opis: `Część ${nazwa(c)} wystaje po zamknięciu kartki pop-up o ${Math.round(mm)} mm – skróć ją albo przesuń miejsca klejenia bliżej grzbietu.` });
   }
   return uwagi;
 }

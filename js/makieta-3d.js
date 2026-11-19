@@ -1779,6 +1779,8 @@ export function mechanizmPopup(geo) {
   const pamiec = new Map();
   return {
     czesci,
+    korzen,
+    polowki: [polowkaA, polowkaB],
     koszt: 0,
     wiezy: wiezy.length,
     ustaw(katOtwarcia) {
@@ -2821,4 +2823,36 @@ export function utworzRenderer(plotno) {
       gl.deleteBuffer(buforTla);
     },
   };
+}
+
+// Sprawdzanie pop-upu (#300, plan składanek krok 20): kartka prawie zamknięta (3°) – czy mechanizm się domyka
+// (więzy spełnione: paski i zgięcia V mają długości, które pozwalają złożyć się na płasko, nic się nie blokuje)
+// i czy żadna ściana nie wystaje poza zamkniętą kartkę. czesci jak w specjalna.czesci makiety
+// ({ arkusz, czesc, obiekt }). Zwraca null, gdy nie ma kartki z grzbietem; inaczej { koszt, wystaje: [{ ic, mm }] }.
+export function sprawdzPopup(czesci) {
+  const kartki = [{ w: 1000, h: 1000, d: 0.3 }];
+  const geo = czesci.map((cz) => { try { return geometriaCzesci(cz, kartki, 0); } catch { return null; } });
+  const mech = mechanizmPopup(geo);
+  if (!mech) return null;
+  const Tm = mech.ustaw(3);
+  const gk = geo[mech.korzen];
+  const [iA, iB] = mech.polowki;
+  const TA = Tm.get(mech.korzen)[iA];
+  // Do układu połówki A (płasko, jak na arkuszu): x, z.
+  const lokalnie = (p) => { const d = odj(p, TA.t); const R = TA.R; return { x: R[0] * d[0] + R[3] * d[1] + R[6] * d[2], y: R[2] * d[0] + R[5] * d[1] + R[8] * d[2] }; };
+  const obrys = [iA, iB].map((i) => gk.sciany[i].map((q) => lokalnie(naT(Tm.get(mech.korzen)[i], gk.punkt(q, i)))));
+  const wystaje = new Map();
+  for (const ic of mech.czesci) {
+    const g = geo[ic];
+    g.sciany.forEach((w, i) => {
+      if ((ic === mech.korzen && (i === iA || i === iB)) || g.odpady.includes(i)) return;
+      for (const q of w) {
+        const l = lokalnie(naT(Tm.get(ic)[i], g.punkt(q, i)));
+        if (obrys.some((o) => wWielokacie(o, l))) continue;
+        const mm = Math.min(...obrys.map((o) => naObwodzie(o, l).odl));
+        if (mm > 1) wystaje.set(ic, Math.max(wystaje.get(ic) || 0, mm));
+      }
+    });
+  }
+  return { koszt: mech.koszt, wystaje: [...wystaje].map(([ic, mm]) => ({ ic, mm })) };
 }

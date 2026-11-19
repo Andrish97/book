@@ -1264,7 +1264,8 @@ bez pary albo użyty więcej niż dwa razy ma pasek ostrzeżenia. Najechanie mys
 **Sprawdź przed drukiem** (→ 20) pilnuje modelu: część wystająca poza arkusz albo wchodząca w margines
 drukarki, części nachodzące na siebie razem z zakładkami (nie da się ich wyciąć), numer bez pary (nie wiadomo, do czego to przykleić), numer użyty więcej niż dwa razy, para krawędzi
 o różnych długościach, miejsce klejenia mniejsze niż zakładka, szczelina węższa niż materiał albo krótsza niż
-wypustka. Przy każdej uwadze [Otwórz wzór] zaznacza część.
+wypustka, a w kartce pop-up – część, która po zamknięciu kartki wystaje poza nią (o ile milimetrów), i kartka, która
+nie zamyka się na płasko, bo pasek platformy albo ramię V nie pasuje do odległości miejsc klejenia. Przy każdej uwadze [Otwórz wzór] zaznacza część.
 
 **Makieta 3D** (→ 19.4) ma dla sekcji składanki model **Składanka (model z części)**: najpierw arkusze leżą
 płasko nadrukiem do góry, potem każda część składa się po swoich zgięciach – z nadrukiem z arkusza na ścianach
