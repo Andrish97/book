@@ -108,6 +108,8 @@ najbliższym otwarciu projektu.
 > otworzysz projekt na urządzeniu z grafiką 3D; aktualizacja linku z urządzenia bez 3D zachowuje ujęcia. Projekt bez
 > linku nie ma jeszcze ujęć — okno mówi wtedy, co zrobić. W oknie **Udostępnij** pod linkiem widać, czy ujęcia już są;
 > jeśli nie, na komputerze z grafiką 3D kliknij [Aktualizuj teraz] — zapiszą się od razu.
+> Na urządzeniu z grafiką 3D makieta zostaje trójwymiarowa, a gdy link ma gotowe ujęcia, w nagłówku okna makiety
+> jest przełącznik **3D / Zdjęcia** — „Zdjęcia” pokazuje te same ujęcia co na urządzeniach bez 3D.
 
 ### Gotowe ujęcia
 

@@ -56,6 +56,19 @@ test('makieta bez 3D: ujęcia narysowane przy publikacji linku, galeria u ogląd
   assert.equal(await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).makietaWolna()), true);
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.ujecia), true, 'link ma ujęcia');
   await strona.waitForFunction(() => /gotowe ujęcia są w linku/.test(document.querySelector('#udostepnij-ujecia').textContent));
+  // #314: na urządzeniu z 3D makieta zostaje 3D, a gotowe ujęcia są opcją „Zdjęcia” w nagłówku.
+  await strona.evaluate(() => document.querySelector('#dlg-udostepnij')?.close());
+  await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).otworzMakiete(window.seriodruk.stan.projekt));
+  await strona.waitForSelector('#makieta-tryb:not([hidden])', { timeout: 15000 });
+  const widok = () => strona.evaluate(() => ({ galeria: !document.querySelector('#makieta-galeria').hidden, plotno: document.querySelector('#makieta-plotno').offsetParent !== null, zdjecia: document.querySelector('[data-tryb-makiety="obrazy"]').getAttribute('aria-pressed') }));
+  assert.deepEqual(await widok(), { galeria: false, plotno: true, zdjecia: 'false' }, 'domyślnie 3D');
+  await strona.click('[data-tryb-makiety="obrazy"]');
+  assert.deepEqual(await widok(), { galeria: true, plotno: false, zdjecia: 'true' }, 'Zdjęcia – galeria ujęć');
+  assert.match(await strona.textContent('#makieta-galeria-podpis'), /Gotowe ujęcia makiety \(zdjęcia z linku\)/);
+  await strona.click('[data-tryb-makiety="3d"]');
+  assert.deepEqual(await widok(), { galeria: false, plotno: true, zdjecia: 'false' }, 'z powrotem 3D');
+  await strona.evaluate(() => document.querySelector('#dlg-makieta').close());
+  await strona.waitForFunction(async () => (await import('./js/app/makieta-okno.js')).makietaWolna());
 
   // Oglądający bez WebGL.
   const gosc = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });

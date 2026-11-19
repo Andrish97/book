@@ -658,7 +658,7 @@ export function otworzMakiete(projekt) {
     model: baza.modele.includes(zapamietany) ? zapamietany : baza.modele.includes(dm) ? dm : baza.modele[0], ulozenie,
   });
   // Bez grafiki 3D (zgłoszenie 19.11): ujęcia z linku projektu (narysowane przy publikacji na urządzeniu z 3D).
-  if (!renderer && projekt.udostepnienie?.kod) ujeciaZLinkuWlasciciela(projekt);
+  if (projekt.udostepnienie?.kod) ujeciaZLinkuWlasciciela(projekt); // bez 3D – galeria; z 3D – opcja „Zdjęcia” (#314)
 }
 
 async function ujeciaZLinkuWlasciciela(projekt) {
@@ -669,7 +669,7 @@ async function ujeciaZLinkuWlasciciela(projekt) {
     if (moje !== st) return;
     st.ujeciaObrazy = (manifest.uklad?.makieta?.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
   } catch { /* bez sieci albo bez linku – zostaje komunikat */ }
-  if (moje === st) pokazBrak3D();
+  if (moje === st) { if (renderer) pokazGalerie(); else pokazBrak3D(); }
 }
 
 // ---------- Ujęcia do linku: urządzenia bez grafiki 3D (zgłoszenie 19.11) ----------
@@ -714,7 +714,11 @@ export async function ujeciaWTle(projekt, model, { szer = MALO_PAMIECI ? 1200 : 
 let galeria = 0;
 function pokazGalerie() {
   const lista = st?.ujeciaObrazy || [];
-  const tak = !renderer && lista.length > 0;
+  // Bez 3D – zawsze; z 3D – gdy wybrano „Zdjęcia” w nagłówku (#314).
+  const tak = (!renderer || Boolean(st?.trybObrazy)) && lista.length > 0;
+  const tryb = $('#makieta-tryb');
+  tryb.hidden = !renderer || !lista.length;
+  for (const b of tryb.querySelectorAll('[data-tryb-makiety]')) b.setAttribute('aria-pressed', String((b.dataset.trybMakiety === 'obrazy') === tak));
   dlg.classList.toggle('makieta-galeria-tryb', tak);
   $('#makieta-galeria').hidden = !tak;
   if (!tak) return false;
@@ -723,11 +727,19 @@ function pokazGalerie() {
   const img = $('#makieta-galeria-obraz');
   if (img.getAttribute('src') !== u.adres) img.src = u.adres;
   img.alt = `Makieta – ${u.nazwa}`;
-  $('#makieta-galeria-podpis').textContent = `${u.nazwa} · ${galeria + 1} z ${lista.length}. To urządzenie nie pokazuje grafiki 3D – to gotowe ujęcia makiety.`;
+  $('#makieta-galeria-podpis').textContent = `${u.nazwa} · ${galeria + 1} z ${lista.length}. ${renderer ? 'Gotowe ujęcia makiety (zdjęcia z linku) – „3D” wraca do makiety.' : 'To urządzenie nie pokazuje grafiki 3D – to gotowe ujęcia makiety.'}`;
   $('#makieta-galeria-wstecz').disabled = galeria === 0;
   $('#makieta-galeria-dalej').disabled = galeria === lista.length - 1;
   return true;
 }
+// Przełącznik 3D / Zdjęcia (#314): na urządzeniu z 3D gotowe ujęcia z linku jako dodatkowy widok.
+export function ustawTrybMakiety(tryb) {
+  if (!st) return;
+  st.trybObrazy = tryb === 'obrazy';
+  pokazGalerie();
+  if (!st.trybObrazy) rysujPozniej();
+}
+$('#makieta-tryb').addEventListener('click', (e) => { const b = e.target.closest('[data-tryb-makiety]'); if (b) ustawTrybMakiety(b.dataset.trybMakiety); });
 export function przewinGalerie(d) { if (!st) return; galeria += d; pokazGalerie(); }
 export const stanGalerii = () => ({ widoczna: !$('#makieta-galeria').hidden, ktore: galeria, ile: st?.ujeciaObrazy?.length || 0 });
 $('#makieta-galeria-wstecz').addEventListener('click', () => przewinGalerie(-1));

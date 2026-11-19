@@ -185,3 +185,7 @@ button.podglad-kartka { cursor: pointer; }
 .makieta-galeria-dalej { right: 8px; }
 .makieta-galeria-podpis { margin: 6px 12px 8px; font-size: 13px; color: var(--cichy); text-align: center; }
 .makieta-galeria-tryb :is(#makieta-plotno, #makieta-ujecia, .makieta-sterowanie, #makieta-ustawienia, #makieta-eksport, #makieta-zapisane, #makieta-brak-3d) { display: none !important; }
+/* Przełącznik 3D / Zdjęcia w nagłówku makiety (#314). */
+.makieta-tryb { margin-left: auto; margin-right: 8px; }
+.makieta-tryb .przycisk { border: 0; background: transparent; box-shadow: none; color: var(--tusz-2); }
+.makieta-tryb .przycisk[aria-pressed="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
