@@ -12,7 +12,7 @@
 import {
   zbudujCzesc, elementyNadruku, trescCzesci, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, scalCzesci, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
   naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
-  rozlozNaArkusze, instrukcjaMontazu, obrysCiecia,
+  rozlozNaArkusze, instrukcjaMontazu, obrysCiecia, liniaZKsztaltu, odlegloscOdLinii, dlugoscLinii, liniaProsta,
 } from '../skladanka.js';
 import { nowaStrona, nowaSekcja } from '../projekt.js';
 import { przyjmijPlik } from '../obrazy-projektu.js';
@@ -42,6 +42,7 @@ function uzytePary() {
   for (const c of wszystkieCzesci()) {
     for (const k of c.krawedzie || []) if (k.para) s.add(String(k.para));
     for (const p of c.pola || []) if (p.para) s.add(String(p.para));
+    for (const l of c.linie || []) if (l.para) s.add(String(l.para));
     for (const z of c.szczeliny || []) if (z.para) s.add(String(z.para));
   }
   return s;
@@ -309,6 +310,34 @@ export function wyjmijZCzesci(g) {
   return { czesc: nowa, obiekty: naStronie.map((x) => x.obj) };
 }
 
+// Linia klejenia z zaznaczonych linii i kształtów (#285): każdy leżący na części zamienia się w jej linię klejenia
+// (krzywe z pióra – gęsto próbkowane). Bez zaznaczenia – narzędzie klikane (dwa punkty).
+export function liniaKlejenia() {
+  if (!wSkladance()) return 0;
+  const a = edytor.canvas.getActiveObject();
+  const lista = (a && (a.type === 'activeselection' || a.type === 'activeSelection') ? a.getObjects() : a ? [a] : []).filter(moznaNaCzesc);
+  if (!lista.length) { ustawNarzedzie('linia'); return 0; }
+  const naGrupe = new Map();
+  for (const o of lista) {
+    const l = liniaZKsztaltu(o);
+    if (!l) continue;
+    const sr = l.punkty[Math.floor(l.punkty.length / 2)];
+    const g = czescZTrescia(new fabric.Point(sr.x, sr.y)) || czescZTrescia(o.getCenterPoint());
+    if (!g) continue;
+    (naGrupe.get(g) || naGrupe.set(g, []).get(g)).push({ o, linia: { punkty: l.punkty.map((p) => doUkladuCzesci(g, p)), para: null, ...(l.zamknieta ? { zamknieta: true } : {}) } });
+  }
+  if (!naGrupe.size) { powiadom('Narysuj linię, łuk albo kształt piórem na części, zaznacz go i użyj [Linia klejenia] – albo kliknij [Linia klejenia] bez zaznaczenia i wskaż dwa punkty.', true); return 0; }
+  edytor.canvas.discardActiveObject();
+  let ile = 0;
+  for (const [g, w] of naGrupe) {
+    for (const { o } of w) edytor.canvas.remove(o);
+    zmienCzesc(g, (d) => { d.linie = [...(d.linie || []), ...w.map((x) => x.linia)]; });
+    ile += w.length;
+  }
+  powiadom(`${ile === 1 ? 'Linia klejenia gotowa' : `${ile} linie klejenia gotowe`}. [Połącz]: kliknij krawędź innej części, potem linię – dostaną ten sam numer.`);
+  return ile;
+}
+
 export function umiescZaznaczoneNaCzesci() {
   if (!wSkladance()) return 0;
   const a = edytor.canvas.getActiveObject();
@@ -321,11 +350,12 @@ export function umiescZaznaczoneNaCzesci() {
 
 // ---------- Narzędzia klikane ----------
 
-let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej' | 'rozetnij' | 'scal'
+let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej' | 'linia' | 'rozetnij' | 'scal'
 let pierwszy = null; // { g, q (układ części), krawedz? }
 
 const OPISY = {
   zgiecie: 'Zgięcie: kliknij punkt na krawędzi części, potem drugi punkt na krawędzi – linia podzieli część na ściany (Esc kończy).',
+  linia: 'Linia klejenia: kliknij początek i koniec w dowolnym miejscu części – nie musi dochodzić do krawędzi (Esc kończy). Krzywą albo łamaną narysuj linią lub piórem na części, zaznacz i użyj [Linia klejenia].',
   polacz: 'Połącz: kliknij przy krawędzi, która dostanie zakładkę, potem przy krawędzi, do której się przykleja – albo w środku ściany (miejsce klejenia). Esc kończy.',
   szczelina: 'Szczelina: kliknij początek i koniec nacięcia w części – szerokość z grubości materiału (Esc kończy).',
   klej: 'Miejsce klejenia: kliknij w części (z Shiftem – na spodzie, bez druku). Esc kończy.',
@@ -361,6 +391,17 @@ function klik(p, shift) {
   if (narzedzie === 'klej') {
     const spod = shift && ustawieniaSekcji().druga_strona === 'klej';
     zmienCzesc(g, (d) => { d.pola = [...(d.pola || []), { ...poleWScianie(c, q, 20, 10), para: null, spod }]; });
+    return;
+  }
+  if (narzedzie === 'linia') {
+    if (!wWielokacie(c.punkty, q) && !przyKrawedzi) { powiadom('Linia klejenia leży na części – kliknij w nią.', true); return; }
+    if (!pierwszy) { pierwszy = { g, q }; powiadom('Teraz koniec linii klejenia (w tej samej części).'); return; }
+    if (pierwszy.g !== g) { pierwszy = null; powiadom('Oba końce linii klejenia muszą być w tej samej części – zacznij od nowa.', true); return; }
+    const a = pierwszy.q;
+    pierwszy = null;
+    if (Math.hypot(q.x - a.x, q.y - a.y) < 2) { powiadom('Linia klejenia jest za krótka.', true); return; }
+    zmienCzesc(g, (d) => { d.linie = [...(d.linie || []), { punkty: [a, q], para: null }]; });
+    powiadom('Linia klejenia gotowa. [Połącz]: kliknij krawędź innej części, potem tę linię – dostaną ten sam numer.');
     return;
   }
   if (narzedzie === 'zgiecie') {
@@ -439,7 +480,14 @@ function klik(p, shift) {
     const dl = (cz, i) => { const a = cz.punkty[i]; const b = cz.punkty[(i + 1) % cz.punkty.length]; return Math.hypot(b.x - a.x, b.y - a.y); };
     const n1 = zmienCzesc(g1, (d) => { d.krawedzie = normalizujCzesc(d).krawedzie; d.krawedzie[k1] = { ...d.krawedzie[k1], typ: 'zakladka', para }; });
     const g2 = g === g1 ? n1 : g;
-    if (przyKrawedzi) {
+    const cL = normalizujCzesc(g2.czesc);
+    const iL = cL.linie.findIndex((l) => odlegloscOdLinii(l, q) <= 2);
+    if (iL >= 0) {
+      // Krawędź do linii klejenia (#285) w środku ściany.
+      zmienCzesc(g2, (d) => { d.linie = normalizujCzesc(d).linie; d.linie[iL].para = para; });
+      const r = Math.abs(dl(c1, k1) - dlugoscLinii(cL.linie[iL]));
+      powiadom(`Para ${para}: zakładka na części ${c1.nr} ↔ ${liniaProsta(cL.linie[iL]) ? 'linia klejenia' : 'krzywa linia klejenia'} na części ${c.nr}.${r > 1 ? ` Uwaga: krawędź i linia różnią się o ${Math.round(r * 10) / 10} mm.` : ''}`);
+    } else if (przyKrawedzi) {
       zmienCzesc(g2, (d) => { d.krawedzie = normalizujCzesc(d).krawedzie; d.krawedzie[brzeg.i] = { ...d.krawedzie[brzeg.i], typ: 'klej', para }; });
       const r = Math.abs(dl(c1, k1) - dl(c, brzeg.i));
       powiadom(`Para ${para}: zakładka na części ${c1.nr} ↔ krawędź części ${c.nr}.${r > 0.5 ? ` Uwaga: krawędzie różnią się o ${Math.round(r * 10) / 10} mm.` : ''}`);
@@ -519,6 +567,7 @@ export function panelCzesci(panel, g0) {
     ['linia', 'Zgięcie – dwa kliknięcia na krawędziach', () => ustawNarzedzie('zgiecie')],
     ['link', 'Połącz – krawędź z krawędzią albo z miejscem', () => ustawNarzedzie('polacz')],
     ['prostokat', 'Klej – miejsce klejenia', () => ustawNarzedzie('klej')],
+    ['ozdobnik', 'Linia klejenia – w dowolnym miejscu ściany', () => ustawNarzedzie('linia')],
     ['minus', 'Szczelina – nacięcie na wypustkę', () => ustawNarzedzie('szczelina')],
     ['separator', 'Rozetnij na dwie części – dwa kliknięcia na krawędziach', () => ustawNarzedzie('rozetnij')],
     ['link', 'Scal z częścią do pary – kliknij krawędź z numerem', () => ustawNarzedzie('scal')],
@@ -543,6 +592,16 @@ export function panelCzesci(panel, g0) {
       z.append(panel.wybor(`Zgięcie ${i + 1}`, Object.entries(RODZAJE_ZGIEC), () => c().zgiecia[i].rodzaj, (v) => zmien((d) => { d.zgiecia[i].rodzaj = v; })));
       z.append(panel.liczba('Kąt po złożeniu', () => c().zgiecia[i].kat, (v) => zmien((d) => { d.zgiecia[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
       z.append(panel.akcje([['kosz', `Usuń zgięcie ${i + 1}`, () => zmien((d) => { d.zgiecia.splice(i, 1); })]]));
+    });
+  }
+  const linie = c().linie;
+  if (linie.length) {
+    const ls = panel.sekcja('Linie klejenia');
+    linie.forEach((l, i) => {
+      ls.append(panel.wskazowka(`Linia ${i + 1}: ${String(Math.round(dlugoscLinii(l) * 10) / 10).replace('.', ',')} mm, ${liniaProsta(l) ? 'prosta – doklejona część stanie pod kątem' : 'krzywa – doklejona część wygnie się wzdłuż niej'}.`));
+      ls.append(panel.tekst(`Linia ${i + 1} – numer pary`, () => c().linie[i].para || '', (v) => zmien((d) => { d.linie[i].para = v || null; })));
+      ls.append(panel.przelacznik('Na spodzie (bez druku)', () => c().linie[i].spod, (v) => zmien((d) => { d.linie[i].spod = v || undefined; })));
+      ls.append(panel.akcje([['kosz', `Usuń linię ${i + 1}`, () => zmien((d) => { d.linie.splice(i, 1); })]]));
     });
   }
   const pola = c().pola;
@@ -787,6 +846,7 @@ export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-bryla') return oknoBryly();
   if (akcja === 'skladanka-model-3d') return oknoModelu3D();
   if (akcja === 'skladanka-na-czesc') return umiescZaznaczoneNaCzesci();
+  if (akcja === 'skladanka-linia') return liniaKlejenia();
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   if (akcja === 'skladanka-szablon') return oknoSzablonow();
   if (akcja === 'skladanka-instrukcja') return oknoInstrukcji();

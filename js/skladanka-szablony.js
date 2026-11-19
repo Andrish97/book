@@ -699,5 +699,5 @@ export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {
 export function numeruj(czesci, wolny) {
   const mapa = new Map();
   const nr = (p) => { if (!p) return null; if (!mapa.has(p)) mapa.set(p, wolny()); return mapa.get(p); };
-  return czesci.map((c) => ({ ...c, krawedzie: c.krawedzie.map((k) => ({ ...k, para: nr(k.para) })), szczeliny: (c.szczeliny || []).map((z) => ({ ...z, para: nr(z.para) })), pola: (c.pola || []).map((x) => ({ ...x, para: nr(x.para) })) }));
+  return czesci.map((c) => ({ ...c, krawedzie: c.krawedzie.map((k) => ({ ...k, para: nr(k.para) })), szczeliny: (c.szczeliny || []).map((z) => ({ ...z, para: nr(z.para) })), pola: (c.pola || []).map((x) => ({ ...x, para: nr(x.para) })), linie: (c.linie || []).map((l) => ({ ...l, para: nr(l.para) })) }));
 }

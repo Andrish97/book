@@ -40,9 +40,13 @@ export function normalizujCzesc(c = {}) {
     x: zaokr(x.x), y: zaokr(x.y), w: zaokr(Math.max(2, liczba(x.w, 15))), h: zaokr(Math.max(2, liczba(x.h, 10))), para: x.para ? String(x.para) : null, spod: Boolean(x.spod),
     ...(Number.isFinite(x.kat) && x.kat ? { kat: zaokr(x.kat) } : {}),
   }));
+  // Linie klejenia (#285, krok 16): linia pomocnicza w dowolnym miejscu ściany – prosta, łamana albo krzywa
+  // (punkty co ok. 1–2 mm), otwarta albo zamknięta; do niej przykleja się krawędź albo zakładka innej części.
+  const linie = (Array.isArray(c.linie) ? c.linie : []).map((l) => ({ ...l, punkty: (Array.isArray(l?.punkty) ? l.punkty : []).filter((q) => q && Number.isFinite(q.x) && Number.isFinite(q.y)) }))
+    .filter((l) => l.punkty.length >= 2).map((l) => ({ punkty: l.punkty.map((q) => P(q.x, q.y)), para: l.para ? String(l.para) : null, ...(l.spod ? { spod: true } : {}), ...(l.zamknieta ? { zamknieta: true } : {}) }));
   const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null, ...(z.naciecie ? { naciecie: true } : {}) }));
   return {
-    nr: String(c.nr || 'A'), ...(typeof c.opis === 'string' && c.opis ? { opis: c.opis.slice(0, 80) } : {}), punkty, krawedzie, zgiecia, pola, szczeliny, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
+    nr: String(c.nr || 'A'), ...(typeof c.opis === 'string' && c.opis ? { opis: c.opis.slice(0, 80) } : {}), punkty, krawedzie, zgiecia, pola, szczeliny, linie, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
     // Nadruk (#283): obraz projektu (zasób) w prostokącie części – tekstura modelu 3D.
     ...(c.nadruk && typeof c.nadruk.zasob === 'string' && [c.nadruk.x, c.nadruk.y, c.nadruk.w, c.nadruk.h].every(Number.isFinite) && c.nadruk.w > 0 && c.nadruk.h > 0
       ? { nadruk: { zasob: c.nadruk.zasob, x: zaokr(c.nadruk.x), y: zaokr(c.nadruk.y), w: zaokr(c.nadruk.w), h: zaokr(c.nadruk.h) } } : {}),
@@ -162,6 +166,35 @@ export function podzielWielokat(punkty, a, b) {
 // Ściany części z nacięciami (#273 – kartka pop-up „wycinanka”): podział planarny obrysu, zgięć i nacięć. Odcinki
 // dzielone w punktach przecięć i końcach innych odcinków, półkrawędzie, ściany jako cykle (skręt w lewo); ściana
 // zewnętrzna (ujemne pole) odpada. Zawias – zgięcie między dwiema ścianami; nacięcie rozdziela ściany bez zawiasu.
+// Długość linii klejenia (łamanej) i czy jest prosta (punkty najwyżej 0,5 mm od cięciwy).
+export function dlugoscLinii(l) {
+  const p = l.punkty;
+  let d = 0;
+  for (let i = 1; i < p.length; i += 1) d += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y);
+  if (l.zamknieta && p.length > 2) d += Math.hypot(p[0].x - p.at(-1).x, p[0].y - p.at(-1).y);
+  return d;
+}
+export function liniaProsta(l) {
+  if (l.zamknieta) return false;
+  const a = l.punkty[0];
+  const b = l.punkty.at(-1);
+  const L = Math.hypot(b.x - a.x, b.y - a.y);
+  if (L < 1e-6) return false;
+  return l.punkty.every((q) => Math.abs((b.x - a.x) * (q.y - a.y) - (b.y - a.y) * (q.x - a.x)) / L <= 0.5);
+}
+// Odległość punktu od linii klejenia.
+export function odlegloscOdLinii(l, q) {
+  const p = l.zamknieta ? [...l.punkty, l.punkty[0]] : l.punkty;
+  let m = Infinity;
+  for (let i = 1; i < p.length; i += 1) {
+    const a = p[i - 1]; const b = p[i];
+    const dx = b.x - a.x; const dy = b.y - a.y; const l2 = dx * dx + dy * dy || 1e-12;
+    const t = Math.max(0, Math.min(1, ((q.x - a.x) * dx + (q.y - a.y) * dy) / l2));
+    m = Math.min(m, Math.hypot(q.x - a.x - dx * t, q.y - a.y - dy * t));
+  }
+  return m;
+}
+
 // Zgięcie po łuku (#281): łuk okręgu przez a, luk (punkt w połowie łuku) i b – punkty co ok. 1–2 mm do rysowania
 // linii bigowania. Gdy trzy punkty leżą na prostej – odcinek. Ściany i makieta 3D pomijają zgięcia po łuku
 // (karton gnie się po krzywej sprężyście – jak w pudełku-poduszce), kontrola i instrukcja liczą je jak zwykłe.
@@ -307,6 +340,7 @@ export function rozetnijCzesc(c, a, b, para) {
       punkty: w, krawedzie, zgiecia, nadruk: undefined, // nadruk obejmował całą część – po rozcięciu by wystawał
       pola: (c.pola || []).filter((p) => wWielokacie(w, srodekPolaKl(p))),
       szczeliny: (c.szczeliny || []).filter((z) => wWielokacie(w, { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 })),
+      linie: (c.linie || []).filter((l) => wWielokacie(w, l.punkty[Math.floor(l.punkty.length / 2)])),
     };
   });
 }
@@ -353,6 +387,7 @@ export function scalCzesci(c1, i1, c2, i2) {
     zgiecia: [...c1.zgiecia, ...c2.zgiecia.map(Tz), { a: { ...A }, b: { ...B }, rodzaj: 'gora', kat: 90 }],
     pola: [...(c1.pola || []), ...(c2.pola || []).map((p) => { const q = T(p); return { ...p, x: q.x, y: q.y, kat: zaokr(((p.kat || 0) + (kat * 180) / Math.PI) % 360) }; })],
     szczeliny: [...(c1.szczeliny || []), ...(c2.szczeliny || []).map(Tz)],
+    linie: [...(c1.linie || []), ...(c2.linie || []).map((l) => ({ ...l, punkty: l.punkty.map(T) }))],
   };
   // Dla treści ścian doklejanej części (#284): punkt i kąt (stopnie) z układu c2 do układu wyniku – poza zapisem.
   Object.defineProperty(wynik, 'przeksztalc', { value: (p) => T(p), enumerable: false });
@@ -458,6 +493,20 @@ export function elementyCzesci(def) {
       if (pole.para && c.pokaz_numery) numer(`${pole.para}`, sx, sy, Math.min(3.2, Math.min(pole.w, pole.h) * 0.45), '#5f7a50');
     }
     el.push(new fabric.Rect({ ...wspolne, ...r, fill: '#14a35a', stroke: null, strokeWidth: 0, opacity: 0.25, uszlachetnienie: 'klej', skladanka: pole.spod ? 'pole-spod' : 'pole-klej' }));
+  }
+  // Linie klejenia (#285): na wierzchu – zielona kreskowana linia z numerem (drukowana); płyta Glue – pas 2 mm.
+  for (const l of c.linie) {
+    const pk = l.zamknieta ? [...l.punkty, l.punkty[0]] : l.punkty;
+    if (!l.spod) {
+      el.push(new fabric.Polyline(pk, { ...wspolne, fill: null, stroke: '#5f9a4a', strokeWidth: 0.35, strokeDashArray: [1.5, 0.8], skladanka: 'linia' }));
+      if (l.para && c.pokaz_numery) {
+        const sr = pk[Math.floor(pk.length / 2)];
+        const pop = pk[Math.max(0, Math.floor(pk.length / 2) - 1)];
+        const nx = -(sr.y - pop.y); const ny = sr.x - pop.x; const nl = Math.hypot(nx, ny) || 1;
+        numer(`${l.para}`, sr.x + (nx / nl) * 2.2, sr.y + (ny / nl) * 2.2, 2.6, '#5f7a50');
+      }
+    }
+    el.push(new fabric.Polyline(pk, { ...wspolne, fill: null, stroke: '#14a35a', strokeWidth: 2, opacity: 0.25, uszlachetnienie: 'klej', skladanka: l.spod ? 'linia-spod' : 'linia-klej' }));
   }
   // Numery krawędzi do sklejenia (bez zakładki) – po wewnętrznej stronie.
   c.krawedzie.forEach((k, i) => {
@@ -609,6 +658,30 @@ export function czescZKsztaltu(o, nr = 'A') {
   };
 }
 
+// Punkty linii klejenia z narysowanego kształtu (#285) w układzie strony: linia, łamana, ścieżka z pióra (krzywe
+// próbkowane), także zamknięte (okrąg, wielokąt). null – element nie jest linią ani kształtem.
+export function liniaZKsztaltu(o) {
+  const m = o.calcTransformMatrix();
+  const t = String(o.type).toLowerCase();
+  let lokalne = null;
+  let zamknieta = false;
+  if (t === 'line') { const p = o.calcLinePoints(); lokalne = [[p.x1, p.y1], [p.x2, p.y2]]; } else if (t === 'polyline' || t === 'polygon') {
+    lokalne = o.points.map((q) => [q.x - o.pathOffset.x, q.y - o.pathOffset.y]);
+    zamknieta = t === 'polygon';
+  } else if (t === 'path') {
+    lokalne = punktySciezki(o.path || []).map(([x, y]) => [x - o.pathOffset.x, y - o.pathOffset.y]);
+    zamknieta = (o.path || []).some((k) => String(k[0]).toUpperCase() === 'Z');
+  } else {
+    const z = czescZKsztaltu(o);
+    if (!z) return null;
+    return { punkty: z.def.punkty.map((q) => ({ x: q.x + z.left, y: q.y + z.top })), zamknieta: true };
+  }
+  if (!lokalne || lokalne.length < 2) return null;
+  const punkty = lokalne.map(([x, y]) => fabric.util.transformPoint(new fabric.Point(x, y), m)).map((q) => ({ x: q.x, y: q.y }));
+  if (punkty.length > 2 && Math.hypot(punkty.at(-1).x - punkty[0].x, punkty.at(-1).y - punkty[0].y) < 0.05) { punkty.pop(); zamknieta = true; }
+  return { punkty, zamknieta };
+}
+
 // Następna wolna nazwa części (A, B, … Z, AA…) i numer pary krawędzi w projekcie.
 export function kolejnaNazwa(uzyte) {
   for (let i = 0; i < 702; i += 1) {
@@ -666,6 +739,7 @@ export function uwagiSkladanki(arkusze) {
       else if (a.margines > 0 && (r.x1 < a.margines || r.y1 < a.margines || r.x2 > a.w - a.margines || r.y2 > a.h - a.margines)) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Część ${c.nr} wchodzi w margines drukarki (${mmTxt(a.margines)} mm) – ten kawałek może się nie wydrukować.` });
       c.krawedzie.forEach((k, i) => { if (k.para && k.typ !== 'ciecie') (wpisy.get(k.para) || wpisy.set(k.para, []).get(k.para)).push({ rodzaj: k.typ, dl: dlKrawedzi(c, i), szer: k.szer, gdzie, opis: `krawędź ${i + 1} części ${c.nr}` }); });
       for (const p of c.pola) if (p.para) (wpisy.get(p.para) || wpisy.set(p.para, []).get(p.para)).push({ rodzaj: 'pole', dl: Math.max(p.w, p.h), szer: Math.min(p.w, p.h), gdzie, opis: `miejsce klejenia na części ${c.nr}` });
+      for (const l of c.linie) if (l.para) (wpisy.get(l.para) || wpisy.set(l.para, []).get(l.para)).push({ rodzaj: 'linia', dl: dlugoscLinii(l), prosta: liniaProsta(l), gdzie, opis: `linia klejenia na części ${c.nr}` });
       for (const z of c.szczeliny) {
         if (z.para) (wpisy.get(z.para) || wpisy.set(z.para, []).get(z.para)).push({ rodzaj: 'szczelina', dl: Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y), gdzie, opis: `szczelina na części ${c.nr}` });
         if (!z.naciecie && z.szer < a.grubosc) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Szczelina na części ${c.nr} ma ${mmTxt(z.szer)} mm, a materiał ${mmTxt(a.grubosc)} mm – wypustka się nie zmieści. Ustaw szerokość co najmniej ${mmTxt(a.grubosc + 0.2)} mm.` });
@@ -691,6 +765,11 @@ export function uwagiSkladanki(arkusze) {
     }
     const krawedzie = lista.filter((w) => ['zakladka', 'klej'].includes(w.rodzaj));
     if (krawedzie.length === 2 && Math.abs(krawedzie[0].dl - krawedzie[1].dl) > 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: krawędzie mają różne długości (${mmTxt(krawedzie[0].dl)} i ${mmTxt(krawedzie[1].dl)} mm) – po sklejeniu jedna będzie wystawać.` });
+    // Linia klejenia (#285): krawędź (albo zakładka) przyklejana wzdłuż niej musi mieć jej długość – na prostej część
+    // stanie pod kątem, na krzywej wygnie się; dłuższa krawędź wystaje, krótsza zostawia kawałek linii bez kleju.
+    const linia = lista.find((w) => w.rodzaj === 'linia');
+    const doLinii = lista.find((w) => w !== linia && ['zakladka', 'klej', 'linia'].includes(w.rodzaj));
+    if (linia && doLinii && Math.abs(linia.dl - doLinii.dl) > 1) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: ${doLinii.rodzaj === 'linia' ? 'druga linia' : 'krawędź'} ma ${mmTxt(doLinii.dl)} mm, a linia klejenia ${mmTxt(linia.dl)} mm – ${doLinii.dl > linia.dl ? 'po przyklejeniu będzie wystawać' : 'kawałek linii zostanie bez kleju'}.` });
     const zak = lista.find((w) => w.rodzaj === 'zakladka');
     const pole = lista.find((w) => w.rodzaj === 'pole');
     if (zak && pole && (pole.dl < zak.dl - 3 || pole.szer < zak.szer - 1)) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: miejsce klejenia (${mmTxt(pole.dl)} × ${mmTxt(pole.szer)} mm) jest mniejsze niż zakładka (${mmTxt(zak.dl)} × ${mmTxt(zak.szer)} mm) – klej wyjdzie poza nie.` });
@@ -714,6 +793,7 @@ export function paryWSekcji(strony) {
       c.krawedzie.forEach((k, j) => { if (k.para && k.typ !== 'ciecie') dodaj(k.para, { ...m, rodzaj: k.typ, opis: `${k.typ === 'zakladka' ? 'zakładka' : k.typ === 'wypustka' ? 'wypustka' : 'krawędź'} ${j + 1}` }); });
       c.pola.forEach((p) => { if (p.para) dodaj(p.para, { ...m, rodzaj: 'pole', opis: p.spod ? 'miejsce klejenia (spód)' : 'miejsce klejenia' }); });
       c.szczeliny.forEach((z) => { if (z.para) dodaj(z.para, { ...m, rodzaj: 'szczelina', opis: 'szczelina' }); });
+      c.linie.forEach((l) => { if (l.para) dodaj(l.para, { ...m, rodzaj: 'linia', prosta: liniaProsta(l), opis: liniaProsta(l) ? 'linia klejenia' : 'krzywa linia klejenia' }); });
     }
   });
   return new Map([...pary].sort((a, b) => (Number(a[0]) || 0) - (Number(b[0]) || 0) || a[0].localeCompare(b[0])));
@@ -731,6 +811,7 @@ export function ksztaltyPar(def) {
   });
   for (const p of c.pola) if (p.para) w.push({ para: p.para, punkty: rogiPola(p), zamkniety: true });
   for (const z of c.szczeliny) if (z.para) w.push({ para: z.para, punkty: prostokatSzczeliny(z), zamkniety: true });
+  for (const l of c.linie) if (l.para) w.push({ para: l.para, punkty: l.punkty, zamkniety: Boolean(l.zamknieta) });
   return w;
 }
 
@@ -827,7 +908,15 @@ export function instrukcjaMontazu(strony, sp = {}) {
     const zak = w.find((x) => x.rodzaj === 'zakladka');
     const wyp = w.find((x) => x.rodzaj === 'wypustka');
     const szcz = w.find((x) => x.rodzaj === 'szczelina');
+    const lin = w.find((x) => x.rodzaj === 'linia');
+    const doLin = lin && w.find((x) => x !== lin);
     if (wyp && szcz) kroki.push(`${para}. Wsuń wypustkę ${para} (część ${wyp.czesc}) w szczelinę ${para} (część ${szcz.czesc}).`);
+    else if (lin && doLin && doLin.rodzaj !== 'linia') {
+      const co = doLin.rodzaj === 'zakladka' ? `zakładkę ${para} (część ${doLin.czesc})` : `${opis(doLin)}`;
+      kroki.push(lin.prosta
+        ? `${para}. Posmaruj klejem ${co} i przyklej wzdłuż linii ${para} na części ${lin.czesc} – doklejona część stanie pod kątem (zegnij ją na linii).`
+        : `${para}. Posmaruj klejem ${co} i przyklej wzdłuż krzywej linii ${para} na części ${lin.czesc}, prowadząc po kawałku – doklejona część wygnie się (zawinie) wzdłuż krzywej.`);
+    } else if (lin) kroki.push(`${para}. Sklej linie ${para} na częściach ${w[0].czesc} i ${w[1].czesc}.`);
     else if (zak) { const inna = w.find((x) => x !== zak); kroki.push(`${para}. Posmaruj klejem zakładkę ${para} (część ${zak.czesc}) i przyklej ${inna.rodzaj === 'pole' ? `w miejscu ${para} na części ${inna.czesc}` : `pod ${opis(inna)} z numerem ${para}`}.`); } else kroki.push(`${para}. Sklej ${opis(w[0])} z ${opis(w[1])}.`);
   }
   kroki.push('Dociśnij sklejone miejsca i odczekaj, aż klej wyschnie.');

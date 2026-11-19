@@ -520,6 +520,7 @@ export const akcje = {
   'skladanka-bryla': () => obsluzAkcje('skladanka-bryla'),
   'skladanka-model-3d': () => obsluzAkcje('skladanka-model-3d'),
   'skladanka-na-czesc': () => obsluzAkcje('skladanka-na-czesc'),
+  'skladanka-linia': () => obsluzAkcje('skladanka-linia'),
   'skladanka-zgiecie': () => obsluzAkcje('skladanka-zgiecie'),
   'skladanka-polacz': () => obsluzAkcje('skladanka-polacz'),
   'skladanka-klej': () => obsluzAkcje('skladanka-klej'),

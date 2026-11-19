@@ -66,7 +66,7 @@ trudne (zwierzę, budynek, pojazd, postać), kolejność:
     rozwijalne – walec, stożek, stożek ścięty, bryła obrotowa z profilu (pasy / kliny jak globus).
 11. ✅ (#263: graniastosłup i ostrosłup z dowolnego wielokąta – „Bryła z kształtu”; #282: ściany z dachem – bryły łączone parami) **Bryła z rzutu**: dowolny wielokąt z pióra wyciągnięty w graniastosłup (domek, litera, gwiazda 3D) albo w
     ostrosłup; łączenie brył (dach na domku) – siatki generowane z parami.
-12. ⏳ (najpierw kroki 15–16; potem tu: linie klejenia – prosto zagina, po krzywej zawija) **Sklejanie części w jedną bryłę w 3D** – części ustawiają się po parach krawędzi; makieta sprawdza, czy model
+12. ⏳ (kroki 15–16 gotowe – #284, #285; tu: linie klejenia – prosto zagina, po krzywej zawija) **Sklejanie części w jedną bryłę w 3D** – części ustawiają się po parach krawędzi; makieta sprawdza, czy model
     się zamyka (krawędzie bez pary, za duże szpary), i pokazuje montaż krok po kroku.
 13. ✅ (#268: pudełko z klapą wsuwaną; #271: pudełko z zatrzaskiem; #278: koło obrotowe – element ruchomy do książek; #279: suwak; #280: klapki z zawiasem) **Mechanizmy**: zatrzaski, zamki na klapkę, zawiasy, elementy ruchome, wkładki; pop-up (krok 8).
 14. ✅ (#265: domek z dachem i samochód; #276: żółw – zwierzę z kilku brył siatki 3D) **Gotowe trudniejsze modele** do nauki: domek z dachem, samochód, zwierzę z siatki 3D.
@@ -81,7 +81,7 @@ robimy linię pomocniczą i do tamtego miejsca przyklejamy – wtedy coś się z
     staje się częścią części – jedzie z nią przy przeciąganiu, obracaniu, [Rozłóż], przebudowie (zgięcia, zakładki),
     przy [Rozetnij] trafia do kawałka, na którym leży, przy [Scal] obraca się razem z doklejaną częścią; w makiecie
     3D jest na swojej ścianie i zgina się z nią. Można go wyjąć z części z powrotem.
-16. ⏳ **Linie klejenia** – linia pomocnicza w dowolnym miejscu ściany (nie tylko przy krawędzi): dwa kliknięcia
+16. ✅ (#285) **Linie klejenia** – linia pomocnicza w dowolnym miejscu ściany (nie tylko przy krawędzi): dwa kliknięcia
     albo z narysowanego otwartego kształtu (linia, pióro, łuk, fala). Ma numer pary; [Połącz] dokleja do niej
     krawędź albo zakładkę innej części. Kontrola porównuje długość krawędzi i linii. Instrukcja montażu: linia
     prosta – „przyklej wzdłuż linii, część stanie pod kątem”, krzywa – „zawiń wzdłuż linii”. W 3D (krok 12)
