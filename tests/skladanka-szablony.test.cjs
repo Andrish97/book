@@ -35,14 +35,18 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   for (const k of PROSTE) for (const c of geo[k]) assert.ok(c.pary, `${k}/${c.nazwa}: każda para – dwie krawędzie tej samej długości`);
   // Bryły o krzywych (#261): para łączy wiele krótkich krawędzi – po obu stronach te same długości (zakładki na
   // łuku płaszcza ↔ boki koła dna); różnice tylko z zaokrąglenia punktów do 0,01 mm.
-  for (const k of ['walec', 'stozek', 'stozek_sciety']) {
+  for (const k of ['walec', 'stozek', 'stozek_sciety', 'kula']) {
     for (const [klucz, l] of Object.entries(dlugosci).filter(([x]) => x.startsWith(`${k}:`))) {
-      const min = Math.min(...l);
-      const max = Math.max(...l);
-      assert.ok(l.length % 2 === 0 && max - min < 0.05, `${klucz}: ${l.length} krawędzi, ${min.toFixed(3)}–${max.toFixed(3)} mm`);
+      // Każda długość ma swoją parę po drugiej stronie szwu (kliny kuli – różne długości wzdłuż południka).
+      const p = [...l].sort((x, y) => x - y);
+      assert.ok(p.length % 2 === 0 && p.every((v, i) => i % 2 === 1 || Math.abs(p[i + 1] - v) < 0.05), `${klucz}: ${l.length} krawędzi bez par długości`);
     }
   }
   assert.deepEqual(geo.walec.map((c) => c.sciany), [1, 1, 1]);
+  // Kula Ø80 z 8 klinów: klin długi na pół obwodu (π · 40), najszerszy na równiku (2π · 40 / 8).
+  assert.equal(geo.kula.length, 8);
+  assert.ok(Math.abs(geo.kula[0].h - Math.PI * 40) < 0.05, `długość klinu ${geo.kula[0].h}`);
+  assert.ok(Math.abs(geo.kula[0].w - (2 * Math.PI * 40) / 8) < 0.05, `szerokość klinu ${geo.kula[0].w}`);
   // Walec Ø50 × 80: płaszcz ma obwód wielokąta podstawy (≈ π · 50) i wysokość 80.
   assert.ok(Math.abs(geo.walec[0].w - Math.PI * 50) < 0.2, `obwód ${geo.walec[0].w}`);
   assert.equal(geo.walec[0].h, 80);
@@ -88,7 +92,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);

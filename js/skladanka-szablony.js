@@ -234,6 +234,31 @@ function stozekSciety({ srednica_dolu: D1, srednica_gory: D2, wysokosc: H }) {
 }
 const stozek = ({ srednica: D, wysokosc: H }) => stozekSciety({ srednica_dolu: D, srednica_gory: 0, wysokosc: H });
 
+// Kula z klinów (globus, #262): n klinów od bieguna do bieguna. Klin na wysokości y (0 – biegun południowy, π·r –
+// północny) ma szerokość 2π·r·cos(φ)/n, φ = y/r − π/2. Brzegi klinów próbkowane co ~4 mm; prawy brzeg klinu i ma
+// zakładki, lewy brzeg klinu i+1 – „do sklejenia” z tym samym numerem (szew po łuku).
+function kula({ srednica: D, kliny: n }) {
+  const r = D / 2;
+  const ile = Math.max(4, Math.min(24, Math.round(n)));
+  const L = Math.PI * r;
+  const k = Math.max(8, Math.min(40, Math.round(L / 4)));
+  const pol = (y) => (Math.PI * r * Math.cos(y / r - Math.PI / 2)) / ile;
+  const ys = Array.from({ length: k + 1 }, (_, j) => (L * j) / k);
+  const hMax = pol(L / 2);
+  const prawy = ys.map((y) => P(hMax + pol(y), y));
+  const lewy = ys.slice(1, -1).reverse().map((y) => P(hMax - pol(y), y));
+  const szerZ = Math.min(5, Math.max(2.5, hMax * 0.35));
+  return Array.from({ length: ile }, (_, i) => ({
+    nazwa: `Kula – klin ${i + 1}`,
+    punkty: [...prawy, ...lewy],
+    krawedzie: [
+      ...Array.from({ length: k }, () => ({ typ: 'zakladka', para: `k${i}`, szer: szerZ })),
+      ...Array.from({ length: k }, () => ({ typ: 'klej', para: `k${(i + ile - 1) % ile}` })),
+    ],
+    zgiecia: [],
+  }));
+}
+
 export const SZABLONY_SKLADANEK = {
   prostopadloscian: { nazwa: 'Prostopadłościan (kostka)', opis: 'Jedna część: pas czterech ścian, wieko i dno, zakładki klejowe.', parametry: { dlugosc: 60, szerokosc: 40, wysokosc: 30 }, buduj: prostopadloscian },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
@@ -243,11 +268,12 @@ export const SZABLONY_SKLADANEK = {
   walec: { nazwa: 'Walec', opis: 'Płaszcz z zakładkami do dna i wieka (koła z wielu krótkich boków – pasują długością do zakładek).', parametry: { srednica: 50, wysokosc: 80 }, buduj: walec },
   stozek: { nazwa: 'Stożek', opis: 'Płaszcz – wycinek koła – z zakładkami do dna; kąt rozwinięcia liczony z wysokości i średnicy.', parametry: { srednica: 60, wysokosc: 70 }, buduj: stozek },
   stozek_sciety: { nazwa: 'Stożek ścięty (np. kubek, abażur)', opis: 'Płaszcz – wycinek pierścienia – z zakładkami do dna i wieka.', parametry: { srednica_dolu: 70, srednica_gory: 45, wysokosc: 60 }, buduj: stozekSciety },
+  kula: { nazwa: 'Kula z klinów (globus)', opis: 'Kliny od bieguna do bieguna (4–24) – każdy przykleja się zakładkami do następnego; im więcej klinów, tym okrąglej.', parametry: { srednica: 80, kliny: 8 }, buduj: kula },
   popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: 'Jeden arkusz: nacięcia i zgięcia – po otwarciu kartki pod kątem prostym pudełka wyskakują ze środka. Nic nie wystaje po zamknięciu (nacięcia kończą się przed brzegiem).', parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {

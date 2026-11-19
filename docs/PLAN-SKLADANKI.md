@@ -62,7 +62,7 @@ trudne (zwierzę, budynek, pojazd, postać), kolejność:
 9. **Rozkładanie bryły 3D na siatkę** (jak Pepakura): wczytanie modelu OBJ / STL / glTF (z Blendera, z sieci),
    automatyczne cięcie na części (wybór krawędzi cięcia, ręczne łączenie i dzielenie części), zakładki i numery par
    same, rozkład na arkusze, nadruk – kolor/tekstura modelu na ścianach. To jest odpowiedź na „trudne rzeczy”.
-10. ⏳ (#261: walec, stożek, stożek ścięty z dokładnym rozwinięciem i szwem po łuku; zostają łuki z pióra próbkowane gęsto, zgięcia po łuku, bryła obrotowa z profilu) **Krzywe naprawdę**: łuki z pióra próbkowane gęsto (koło, owal, fala), zgięcia po łuku, powierzchnie
+10. ⏳ (#261: walec, stożek, stożek ścięty z dokładnym rozwinięciem i szwem po łuku; #262: kula z klinów; zostają łuki z pióra próbkowane gęsto, zgięcia po łuku, bryła obrotowa z profilu) **Krzywe naprawdę**: łuki z pióra próbkowane gęsto (koło, owal, fala), zgięcia po łuku, powierzchnie
     rozwijalne – walec, stożek, stożek ścięty, bryła obrotowa z profilu (pasy / kliny jak globus).
 11. **Bryła z rzutu**: dowolny wielokąt z pióra wyciągnięty w graniastosłup (domek, litera, gwiazda 3D) albo w
     ostrosłup; łączenie brył (dach na domku) – siatki generowane z parami.

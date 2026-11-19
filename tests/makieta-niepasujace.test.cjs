@@ -41,6 +41,8 @@ test('makieta: sekcja w innym formacie niż środek – uwaga i przejście do us
   await strona.waitForSelector('#dlg-makieta[open]');
   await strona.selectOption('#makieta-model', 'ksiazka_twarda');
   await strona.waitForTimeout(300);
-  assert.equal(await strona.isVisible('#makieta-uwaga'), false);
+  // Uwaga o formacie znika; może zostać inna, prawdziwa uwaga (projekt bez okładki – makieta pokaże pustą okleinę).
+  const po = (await strona.isVisible('#makieta-uwaga')) ? await strona.textContent('#makieta-uwaga') : '';
+  assert.doesNotMatch(po, /Wyklejka przednia|297 × 210/);
   assert.deepEqual(bledy, []);
 });
