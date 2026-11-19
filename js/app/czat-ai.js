@@ -45,6 +45,64 @@ function zapytajOZgode(opis) {
     rzad.querySelector('button').focus();
   });
 }
+// ---------- Zdjęcia w rozmowie (#260) ----------
+// Dołączone zdjęcia: AI widzi je w wiadomości (pomniejszone do 1568 px – tyle i tak biorą modele), a oryginał
+// Makietka wgrywa do projektu (okno „Obrazy projektu”), żeby AI mogło go wstawić na stronę.
+let zalaczniki = []; // [{ plik, url }]
+const MAKS_ZALACZNIK = 5 * 1024 * 1024;
+function rysujZalaczniki() {
+  const ul = $('#czat-ai-zalaczniki');
+  ul.hidden = !zalaczniki.length;
+  ul.replaceChildren(...zalaczniki.map((z, i) => {
+    const li = document.createElement('li');
+    const img = Object.assign(document.createElement('img'), { src: z.url, alt: '' });
+    const usun = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona maly', textContent: '×', title: 'Usuń' });
+    usun.setAttribute('aria-label', `Usuń ${z.plik.name}`);
+    usun.addEventListener('click', () => { URL.revokeObjectURL(z.url); zalaczniki.splice(i, 1); rysujZalaczniki(); });
+    li.append(img, Object.assign(document.createElement('span'), { textContent: z.plik.name }), usun);
+    return li;
+  }));
+}
+$('#czat-ai-zalacz').addEventListener('click', () => $('#czat-ai-plik').click());
+$('#czat-ai-plik').addEventListener('change', (e) => {
+  for (const plik of e.target.files) {
+    if (plik.size > MAKS_ZALACZNIK) { powiadom(`„${plik.name}” ma ponad 5 MB – wgraj go w oknie „Obrazy projektu”.`, true); continue; }
+    zalaczniki.push({ plik, url: URL.createObjectURL(plik) });
+  }
+  e.target.value = '';
+  rysujZalaczniki();
+});
+const base64Pliku = (plik) => new Promise((ok, zle) => { const r = new FileReader(); r.onload = () => ok(String(r.result).replace(/^data:[^,]*,/, '')); r.onerror = () => zle(r.error); r.readAsDataURL(plik); });
+async function podgladDlaAi(z) {
+  const img = await new Promise((ok, zle) => { const i = new Image(); i.onload = () => ok(i); i.onerror = zle; i.src = z.url; });
+  const skala = Math.min(1, 1568 / Math.max(img.naturalWidth, img.naturalHeight));
+  if (skala === 1 && z.plik.size < 1.5 * 1024 * 1024 && z.plik.type !== 'image/gif') return { typ: z.plik.type, dane: await base64Pliku(z.plik) };
+  const c = Object.assign(document.createElement('canvas'), { width: Math.round(img.naturalWidth * skala), height: Math.round(img.naturalHeight * skala) });
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff';
+  g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(img, 0, 0, c.width, c.height);
+  return { typ: 'image/jpeg', dane: c.toDataURL('image/jpeg', 0.85).replace(/^data:[^,]*,/, '') };
+}
+// Wgrywa dołączone zdjęcia do projektu; zwraca { opis dla AI, podglady dla modelu }.
+async function przygotujZalaczniki(n, { podglad = true } = {}) {
+  const linie = [];
+  const podglady = [];
+  for (const z of zalaczniki) {
+    dopisz('narzedzie', `🔧 wgraj_obraz (${z.plik.name})`);
+    try {
+      const r = await n.wolaj('tools/call', { name: 'wgraj_obraz', arguments: { nazwa: z.plik.name, dane_base64: await base64Pliku(z.plik) } });
+      const t = (r?.content || []).map((c) => c.text || '').join(' ').replace(/\s+/g, ' ').slice(0, 300);
+      linie.push(r?.isError ? `„${z.plik.name}” – nie udało się wgrać: ${t}` : `„${z.plik.name}” – wgrany do projektu: ${t}`);
+    } catch (e) { linie.push(`„${z.plik.name}” – nie udało się wgrać: ${e.message}`); }
+    if (podglad) podglady.push(await podgladDlaAi(z).catch(() => null));
+    URL.revokeObjectURL(z.url);
+  }
+  zalaczniki = [];
+  rysujZalaczniki();
+  return { opis: linie.length ? `\n\n[Dołączone zdjęcia – Makietka wgrała je do projektu (obrazy_projektu); wstawisz je narzędziem wstaw_obraz:\n${linie.join('\n')}]` : '', podglady: podglady.filter(Boolean) };
+}
+
 // Wynik narzędzia, gdy użytkownik nie pozwolił – AI dostaje go jak błąd i ma zapytać, co dalej.
 const ODMOWA = 'Użytkownik nie pozwolił na tę zmianę – niczego nie zmieniono. Nie ponawiaj jej; zapytaj, co zrobić zamiast tego.';
 
@@ -261,6 +319,8 @@ async function wyslijPrzezSchowek(tekst) {
     }
     // Polecenie użytkownika: składamy pełne polecenie dla czatu – zasady, narzędzia, stan projektu, zadanie.
     dopisz('ja', tekst);
+    // Zdjęcia (#260): czat w przeglądarce ich nie zobaczy, ale są już w projekcie i może je wstawić.
+    if (zalaczniki.length) tekst += (await przygotujZalaczniki(n, { podglad: false })).opis;
     const przeglad = await n.wolaj('tools/call', { name: 'przeglad_projektu', arguments: {} }).then((r) => (r?.content || []).map((c) => c.text || '').join('\n')).catch(() => '');
     const polecenie = `${systemDla(n)}
 
@@ -308,12 +368,14 @@ async function wyslij(tekst) {
     await zapiszTeraz(); // AI ma widzieć to, co teraz na ekranie – także projekt, którego jeszcze nie ma na koncie
     await synchronizuj({ wymus: true }).catch(() => {});
     const n = await przygotujNarzedzia();
+    const zal = zalaczniki.length ? await przygotujZalaczniki(n) : { opis: '', podglady: [] };
     if (!rozmowa || rozmowa.projekt !== n.projekt) { rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt }; zawszePozwalaj = false; }
     let zmiany = false;
     // Streaming (#259): dymek odpowiedzi rośnie na bieżąco; każdy krok AI (przed narzędziami) – osobny dymek.
     let dymek = null;
     let strumien = false;
-    const wynik = await zapytaj(rozmowa, tekst, {
+    const wynik = await zapytaj(rozmowa, tekst + zal.opis, {
+      obrazy: zal.podglady,
       przerwij: () => przerwano,
       naTekst: (fragment) => {
         if (!dymek) { czeka.remove(); dymek = dopisz('ai', ''); }

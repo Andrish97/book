@@ -294,9 +294,16 @@ function dopiszWyniki(r, wyniki) {
 // Wiadomość użytkownika i cała pętla narzędzi aż do odpowiedzi. wykonaj(nazwa, argumenty) → { tekst, blad? }.
 // naKrok({ tekst, wywolania }) – postęp do pokazania w czacie. Najwyżej maksKrokow wywołań modelu.
 // naTekst(fragment) – gdy podane, odpowiedź przychodzi strumieniem (#259) i tekst pojawia się na bieżąco.
-export async function zapytaj(r, tekst, { wykonaj, naKrok = () => {}, naTekst = null, maksKrokow = 25, przerwij = () => false } = {}) {
-  if (r.rodzaj === 'gemini') r.historia.push({ role: 'user', parts: [{ text: tekst }] });
-  else r.historia.push({ role: 'user', content: tekst });
+// obrazy – [{ typ: 'image/jpeg', dane: base64 }] dołączone do wiadomości (#260): model je widzi.
+export function wiadomoscUzytkownika(rodzaj, tekst, obrazy = []) {
+  if (rodzaj === 'gemini') return { role: 'user', parts: [...obrazy.map((o) => ({ inline_data: { mime_type: o.typ, data: o.dane } })), { text: tekst }] };
+  if (!obrazy.length) return { role: 'user', content: tekst };
+  if (rodzaj === 'anthropic') return { role: 'user', content: [...obrazy.map((o) => ({ type: 'image', source: { type: 'base64', media_type: o.typ, data: o.dane } })), { type: 'text', text: tekst }] };
+  return { role: 'user', content: [{ type: 'text', text: tekst }, ...obrazy.map((o) => ({ type: 'image_url', image_url: { url: `data:${o.typ};base64,${o.dane}` } }))] };
+}
+
+export async function zapytaj(r, tekst, { wykonaj, naKrok = () => {}, naTekst = null, obrazy = [], maksKrokow = 25, przerwij = () => false } = {}) {
+  r.historia.push(wiadomoscUzytkownika(r.rodzaj, tekst, obrazy));
   let ostatni = '';
   for (let i = 0; i < maksKrokow; i += 1) {
     if (przerwij()) return { tekst: ostatni, przerwano: true };

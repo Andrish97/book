@@ -2338,6 +2338,8 @@ Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w
 
 Odpowiedź pojawia się w rozmowie na bieżąco, w miarę jak AI ją pisze (Anthropic, OpenAI i zgodne, Gemini).
 
+**Zdjęcia w rozmowie.** Spinacz obok pola wiadomości dołącza zdjęcia (PNG, JPEG, WebP, GIF, do 5 MB). AI je widzi (model musi obsługiwać obrazy), a Makietka od razu wgrywa oryginał do projektu (okno „Obrazy projektu”), więc AI może je wstawić na stronę. W trybie „kopiuj i wklej” zdjęcie też trafia do projektu, ale czat w przeglądarce go nie zobaczy.
+
 **Gdy coś nie działa,** asystent pisze po ludzku, co się stało: dostawca odrzucił klucz, brak środków na koncie dostawcy, za dużo zapytań, model niedostępny albo bez obsługi narzędzi, brak połączenia. Gdy dostawca jest przeciążony, Makietka sama ponawia zapytanie dwa razy, zanim zgłosi błąd.
 
 **Zgoda na groźne zmiany.** Zanim asystent usunie strony, 3 i więcej elementów naraz, obrazy albo projekt, zmieni 3 i więcej stron jednym zapisem albo zastąpi w całości wzorce, style, tabele czy serie, w rozmowie pojawia się pytanie „AI chce … Pozwolić?” z przyciskami **Pozwól**, **Zawsze pozwalaj w tej rozmowie** i **Nie pozwalaj**. Po odmowie nic się nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.

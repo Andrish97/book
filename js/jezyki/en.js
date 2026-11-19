@@ -473,6 +473,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Dolina – zginaj do siebie":"Valley – fold towards you",
 "Dolny":"Bottom",
 "Dołącz pliki czcionek użytych w projekcie":"Include font files used in the project",
+"Dołącz zdjęcia":"Attach photos",
 "Dom z sercem":"House with heart",
 "domyślne":"default",
 "Dopasowany do stron":"Fit to pages",

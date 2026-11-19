@@ -473,6 +473,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Dolina – zginaj do siebie":"Долина – згинати до себе",
 "Dolny":"Нижнє",
 "Dołącz pliki czcionek użytych w projekcie":"Додати файли шрифтів, використаних у проєкті",
+"Dołącz zdjęcia":"Додати фото",
 "Dom z sercem":"Будинок із серцем",
 "domyślne":"типові",
 "Dopasowany do stron":"За розміром сторінок",

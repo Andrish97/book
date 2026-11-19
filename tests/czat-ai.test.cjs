@@ -4,7 +4,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, PNG_2X2 } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 
@@ -140,5 +140,41 @@ test('czat AI bez klucza: kopiuj i wklej – polecenie dla czatu, wklejona odpow
   const wyniki = await strona.$$eval('.czat-ai-do-skopiowania', (l) => l[1].textContent);
   assert.match(wyniki, /^Wyniki z Makietki:\n\nWYNIK nazwa_projektu:/);
   assert.equal(baza.projekty[0].nazwa, 'Plakat koncertu');
+  assert.deepEqual(bledy, []);
+});
+
+// Zdjęcia w rozmowie (#260): dołączone zdjęcie model widzi (blok image), a Makietka wgrywa je do projektu.
+test('czat AI: dołączone zdjęcie – model je widzi, a plik trafia do projektu', async (t) => {
+  const { strona, kontekst, baza, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Ze zdjęciem');
+  await zapisano(strona);
+  const zapytania = [];
+  await kontekst.route('https://api.anthropic.com/v1/**', async (r) => {
+    if (r.request().method() === 'OPTIONS') { await r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } }); return; }
+    if (r.request().url().includes('/models')) { await r.fulfill({ contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ data: [{ id: 'claude-opus-5-5' }] }) }); return; }
+    const body = JSON.parse(r.request().postData());
+    zapytania.push(body);
+    await r.fulfill({ contentType: 'text/event-stream', headers: { 'access-control-allow-origin': '*' }, body: sseAnthropic({ id: 'm1', model: body.model, stop_reason: 'end_turn', content: [{ type: 'text', text: 'Widzę zdjęcie.' }] }) });
+  });
+  await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
+  await strona.waitForSelector('#dlg-czat-ai[open]');
+  await strona.fill('#czat-ai-ustawienia [name="klucz"]', 'sk-ant-test');
+  await strona.dispatchEvent('#czat-ai-ustawienia [name="klucz"]', 'change');
+  await strona.waitForSelector('#dlg-sejf-ai[open]');
+  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'moje-haslo-123');
+  await strona.fill('#dlg-sejf-ai [name="powtorz"]', 'moje-haslo-123');
+  await strona.click('#dlg-sejf-ai button[value="tak"]');
+  await strona.waitForSelector('#dlg-sejf-ai:not([open])', { state: 'attached' });
+  await strona.setInputFiles('#czat-ai-plik', { name: 'kot.png', mimeType: 'image/png', buffer: PNG_2X2 });
+  await strona.waitForSelector('#czat-ai-zalaczniki li');
+  await strona.fill('#czat-ai-tekst', 'Co jest na zdjęciu?');
+  await strona.press('#czat-ai-tekst', 'Enter');
+  await strona.waitForFunction(() => [...document.querySelectorAll('.czat-ai-wiadomosci li.ai')].some((li) => li.textContent === 'Widzę zdjęcie.'));
+  const tresc = zapytania[0].messages[0].content;
+  assert.equal(tresc[0].type, 'image', 'zdjęcie w wiadomości');
+  assert.equal(tresc[0].source.media_type, 'image/png');
+  assert.match(tresc.at(-1).text, /^Co jest na zdjęciu\?[\s\S]*„kot\.png” – wgrany do projektu/);
+  assert.equal(await strona.isVisible('#czat-ai-zalaczniki'), false, 'po wysłaniu lista pusta');
+  assert.ok([...(baza.obrazyAi || new Map()).values()].some((o) => /kot/.test(o.nazwa || '')) || JSON.stringify(baza.projekty).includes('kot.png'), 'plik w projekcie');
   assert.deepEqual(bledy, []);
 });
