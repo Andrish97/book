@@ -345,6 +345,22 @@ function modelZSylwetki(sylwetka, G, nazwa) {
   const wymiar = Math.max(...sylwetka.map(([x]) => x), ...sylwetka.map(([, y]) => y), G);
   return rozlozSiatke({ wierzcholki, sciany }, { rozmiar: wymiar, nazwa }).czesci;
 }
+// Bryła obrotowa z profilu (#267): profil [[r, z]] od dna do góry obrócony w n segmentach; dno płaskie, góra otwarta
+// (wazon) albo zamknięta. Siatka 3D rozłożona automatycznie – pasy ścian z zakładkami, dno w całości.
+export function brylaObrotowa(profil, { segmenty = 12, zamknieta = false, nazwa = 'Bryła obrotowa' } = {}) {
+  const n = Math.max(6, Math.min(32, Math.round(segmenty)));
+  const wierzcholki = [];
+  profil.forEach(([r, z]) => { for (let i = 0; i < n; i += 1) { const a = (2 * Math.PI * i) / n; wierzcholki.push([r * Math.cos(a), r * Math.sin(a), z]); } });
+  const id = (k, i) => k * n + (i % n);
+  const sciany = [Array.from({ length: n }, (_, i) => id(0, n - 1 - i))]; // dno (na zewnątrz w −z)
+  for (let k = 0; k + 1 < profil.length; k += 1) for (let i = 0; i < n; i += 1) sciany.push([id(k, i), id(k, i + 1), id(k + 1, i + 1), id(k + 1, i)]);
+  if (zamknieta) sciany.push(Array.from({ length: n }, (_, i) => id(profil.length - 1, i)));
+  const wymiar = Math.max(...profil.map(([r, z]) => Math.max(2 * r, z)));
+  return rozlozSiatke({ wierzcholki, sciany }, { rozmiar: wymiar, nazwa }).czesci;
+}
+// Wazon: dno Ø D, brzuch szerszy o połowę, szyjka węższa; wysokość H; otwarty u góry.
+const wazon = ({ srednica: D, wysokosc: H, segmenty: n }) => brylaObrotowa([[D / 2, 0], [D * 0.75, H * 0.35], [D * 0.6, H * 0.7], [D * 0.38, H * 0.85], [D * 0.45, H]], { segmenty: n, nazwa: 'Wazon' });
+
 // Domek: ściany S × Hs, dach dwuspadowy wysokości Hd, głębokość G.
 const domek = ({ szerokosc: S, wysokosc: Hs, dach: Hd, glebokosc: G }) => modelZSylwetki([[0, 0], [S, 0], [S, Hs], [S / 2, Hs + Hd], [0, Hs]], G, 'Domek');
 // Samochód: sylwetka z maską, kabiną i bagażnikiem; L × H, szerokość W.
@@ -362,13 +378,14 @@ export const SZABLONY_SKLADANEK = {
   stozek: { nazwa: 'Stożek', opis: 'Płaszcz – wycinek koła – z zakładkami do dna; kąt rozwinięcia liczony z wysokości i średnicy.', parametry: { srednica: 60, wysokosc: 70 }, buduj: stozek },
   stozek_sciety: { nazwa: 'Stożek ścięty (np. kubek, abażur)', opis: 'Płaszcz – wycinek pierścienia – z zakładkami do dna i wieka.', parametry: { srednica_dolu: 70, srednica_gory: 45, wysokosc: 60 }, buduj: stozekSciety },
   kula: { nazwa: 'Kula z klinów (globus)', opis: 'Kliny od bieguna do bieguna (4–24) – każdy przykleja się zakładkami do następnego; im więcej klinów, tym okrąglej.', parametry: { srednica: 80, kliny: 8 }, buduj: kula },
+  wazon: { nazwa: 'Wazon (bryła obrotowa)', opis: 'Profil obrócony w segmentach (6–32): pasy ścian z zakładkami i płaskie dno – rozłożone automatycznie; góra otwarta.', parametry: { srednica: 50, wysokosc: 110, segmenty: 12 }, buduj: wazon },
   domek: { nazwa: 'Domek z dachem dwuspadowym', opis: 'Ściany i dach jako jedna bryła rozłożona automatycznie – szczyty, połacie i ściany z zakładkami i numerami.', parametry: { szerokosc: 60, wysokosc: 45, dach: 30, glebokosc: 70 }, buduj: domek },
   samochod: { nazwa: 'Samochód (sylwetka)', opis: 'Nadwozie z maską, kabiną i bagażnikiem – bryła z sylwetki rozłożona automatycznie (koła dorysuj albo doklej osobno).', parametry: { dlugosc: 120, wysokosc: 45, szerokosc: 50 }, buduj: samochod },
   popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: 'Jeden arkusz: nacięcia i zgięcia – po otwarciu kartki pod kątem prostym pudełka wyskakują ze środka. Nic nie wystaje po zamknięciu (nacięcia kończą się przed brzegiem).', parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {
