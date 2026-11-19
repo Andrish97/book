@@ -35,7 +35,7 @@ danych i operacji, AI to wymienny interfejs” – jest już spełnione: jest je
 4. ✅ (#241–#251, #254, #256: sekcja w ustawieniach, cztery drogi, sejf kluczy, edycja i ważność kluczy, „Sprawdź połączenie”, model domyślny) **Ustawienia → Sztuczna inteligencja** – kilku dostawców naraz, model domyślny, „Sprawdź połączenie”, zmiana
    modelu w trakcie rozmowy; klucze **opcjonalnie na koncie** (szyfrowane w przekaźniku, rozmowa przez przekaźnik –
    klucz nie wraca do przeglądarki) albo jak dziś tylko na urządzeniu.
-5. ⏳ (#256: czytelne komunikaty i ponawianie przy przeciążeniu; zostaje streaming i zdjęcia w rozmowie) **Adaptery** – streaming odpowiedzi, czytelne komunikaty (zły klucz, brak środków, limit, model niedostępny,
+5. ⏳ (#256: czytelne komunikaty i ponawianie; #259: streaming u wszystkich dostawców; zostają zdjęcia w rozmowie) **Adaptery** – streaming odpowiedzi, czytelne komunikaty (zły klucz, brak środków, limit, model niedostępny,
    brak narzędzi w modelu), ponowienie przy przeciążeniu, zdjęcia w rozmowie (do projektu albo do obejrzenia).
 6. ✅ (#257: kopiowanie stron, wyrównanie i rozmieszczenie; przypisanie wzorców – zmien_strone, kadrowanie – zmien_elementy z polami kadru; „napraw” z kontroli – AI poprawia zwykłymi narzędziami według uwag kontroli) **Brakujące narzędzia** – kopiowanie stron, wyrównanie i rozmieszczenie, kadrowanie obrazu, przypisanie wzorców,
    style, serie, „napraw” z kontroli przed drukiem.

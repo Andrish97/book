@@ -40,7 +40,8 @@ const PONOW = [1500, 4000];
 const PRZECIAZENIE = new Set([429, 500, 502, 503, 504, 529]);
 export const czekanie = { ms: (t) => new Promise((r) => setTimeout(r, t)) };
 
-async function zadanie(url, opcje) {
+// Odpowiedź OK (z ponawianiem przy przeciążeniu) albo czytelny błąd.
+async function odpowiedz(url, opcje) {
   for (let proba = 0; ; proba += 1) {
     let odp;
     try { odp = await fetch(url, opcje); } catch {
@@ -48,10 +49,10 @@ async function zadanie(url, opcje) {
       b.status = 0;
       throw b;
     }
+    if (odp.ok) return odp;
     const tekst = await odp.text();
     let dane = null;
     try { dane = tekst ? JSON.parse(tekst) : null; } catch { /* odpowiedź nie-JSON */ }
-    if (odp.ok) return dane;
     const opis = dane?.error?.message || dane?.message || tekst.slice(0, 300) || odp.statusText;
     const brakSrodkow = odp.status === 402 || /insufficient|credit|balance|billing|quota/i.test(opis);
     if (PRZECIAZENIE.has(odp.status) && !brakSrodkow && proba < PONOW.length) {
@@ -62,6 +63,30 @@ async function zadanie(url, opcje) {
     const blad = new Error(komunikatBleduDostawcy(odp.status, opis));
     blad.status = odp.status;
     throw blad;
+  }
+}
+
+async function zadanie(url, opcje) {
+  const tekst = await (await odpowiedz(url, opcje)).text();
+  try { return tekst ? JSON.parse(tekst) : null; } catch { return null; }
+}
+
+// ---------- Streaming (#259): zdarzenia SSE → obiekty JSON ----------
+export async function* zdarzeniaSSE(odp) {
+  const czytnik = odp.body.getReader();
+  const dekoder = new TextDecoder();
+  let bufor = '';
+  for (;;) {
+    const { value, done } = await czytnik.read();
+    bufor += done ? dekoder.decode() : dekoder.decode(value, { stream: true });
+    const czesci = bufor.split(/\r?\n\r?\n/);
+    bufor = done ? '' : czesci.pop();
+    for (const c of czesci) {
+      const dane = c.split(/\r?\n/).filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trimStart()).join('\n');
+      if (!dane || dane === '[DONE]') continue;
+      try { yield JSON.parse(dane); } catch { /* niepełne albo obce zdarzenie */ }
+    }
+    if (done) return;
   }
 }
 
@@ -113,6 +138,96 @@ export function nowaRozmowa({ dostawca, model, ust, system, narzedzia }) {
 }
 
 // Jeden krok: wysyła historię, zwraca { tekst, wywolania: [{ id, nazwa, argumenty }] } i dopisuje odpowiedź do historii.
+// Krok ze streamingiem: tekst trafia do naTekst(fragment) na bieżąco; wynik jak w kroku bez streamingu.
+async function krokStrumien(r, naTekst) {
+  if (r.rodzaj === 'anthropic') {
+    const odp = await odpowiedz(`${r.adres}/messages`, {
+      method: 'POST', headers: naglowkiAnthropic(r.klucz),
+      body: JSON.stringify({
+        model: r.model, max_tokens: MAKS, system: r.system, messages: r.historia, stream: true,
+        tools: r.narzedzia.map((n) => ({ name: n.name, description: n.description, input_schema: n.inputSchema })),
+      }),
+    });
+    const bloki = [];
+    const json = [];
+    let stop = '';
+    for await (const z of zdarzeniaSSE(odp)) {
+      if (z.type === 'error') throw new Error(komunikatBleduDostawcy(/overload/i.test(z.error?.type || '') ? 529 : 500, z.error?.message));
+      if (z.type === 'content_block_start') { bloki[z.index] = { ...z.content_block }; if (z.content_block.type === 'tool_use') json[z.index] = ''; }
+      if (z.type === 'content_block_delta') {
+        const b = bloki[z.index];
+        const d = z.delta || {};
+        if (d.type === 'text_delta') { b.text = (b.text || '') + d.text; naTekst(d.text); }
+        if (d.type === 'input_json_delta') json[z.index] += d.partial_json;
+        if (d.type === 'thinking_delta') b.thinking = (b.thinking || '') + d.thinking;
+        if (d.type === 'signature_delta') b.signature = (b.signature || '') + d.signature;
+      }
+      if (z.type === 'content_block_stop' && bloki[z.index]?.type === 'tool_use') {
+        try { bloki[z.index].input = json[z.index] ? JSON.parse(json[z.index]) : {}; } catch { bloki[z.index].input = {}; }
+      }
+      if (z.type === 'message_delta' && z.delta?.stop_reason) stop = z.delta.stop_reason;
+    }
+    if (stop === 'refusal') throw new Error('Model odmówił odpowiedzi na tę prośbę.');
+    const content = bloki.filter(Boolean);
+    r.historia.push({ role: 'assistant', content });
+    return {
+      tekst: content.filter((b) => b.type === 'text').map((b) => b.text).join('\n'),
+      wywolania: content.filter((b) => b.type === 'tool_use').map((b) => ({ id: b.id, nazwa: b.name, argumenty: b.input || {} })),
+    };
+  }
+  if (r.rodzaj === 'gemini') {
+    const odp = await odpowiedz(`${r.adres}/models/${encodeURIComponent(r.model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(r.klucz)}`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: r.system }] }, contents: r.historia,
+        tools: [{ functionDeclarations: r.narzedzia.map((n) => ({ name: n.name, description: n.description, parameters: schematGemini(n.inputSchema) })) }],
+      }),
+    });
+    const czesci = [];
+    for await (const z of zdarzeniaSSE(odp)) {
+      for (const p of z?.candidates?.[0]?.content?.parts || []) {
+        if (p.text && czesci.at(-1)?.text !== undefined && !p.thought) { czesci.at(-1).text += p.text; naTekst(p.text); }
+        else { czesci.push({ ...p }); if (p.text && !p.thought) naTekst(p.text); }
+      }
+    }
+    r.historia.push({ role: 'model', parts: czesci });
+    return {
+      tekst: czesci.filter((p) => p.text && !p.thought).map((p) => p.text).join('\n'),
+      wywolania: czesci.filter((p) => p.functionCall).map((p, i) => ({ id: `g${i}`, nazwa: p.functionCall.name, argumenty: p.functionCall.args || {} })),
+    };
+  }
+  const odp = await odpowiedz(`${r.adres}/chat/completions`, {
+    method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${r.klucz}` },
+    body: JSON.stringify({
+      model: r.model, messages: [{ role: 'system', content: r.system }, ...r.historia], stream: true,
+      tools: r.narzedzia.map((n) => ({ type: 'function', function: { name: n.name, description: n.description, parameters: n.inputSchema } })),
+    }),
+  });
+  let tekst = '';
+  const wolania = [];
+  for await (const z of zdarzeniaSSE(odp)) {
+    if (z.error) throw new Error(komunikatBleduDostawcy(z.error.code === 429 ? 429 : 500, z.error.message));
+    const d = z?.choices?.[0]?.delta || {};
+    if (typeof d.content === 'string' && d.content) { tekst += d.content; naTekst(d.content); }
+    for (const t of d.tool_calls || []) {
+      const w = wolania[t.index ?? wolania.length] ||= { id: '', type: 'function', function: { name: '', arguments: '' } };
+      if (t.id) w.id = t.id;
+      if (t.function?.name) w.function.name += t.function.name;
+      if (t.function?.arguments) w.function.arguments += t.function.arguments;
+    }
+  }
+  const tool = wolania.filter(Boolean);
+  r.historia.push({ role: 'assistant', content: tekst, ...(tool.length ? { tool_calls: tool } : {}) });
+  return {
+    tekst,
+    wywolania: tool.map((t) => {
+      let argumenty = {};
+      try { argumenty = t.function.arguments ? JSON.parse(t.function.arguments) : {}; } catch { argumenty = {}; }
+      return { id: t.id, nazwa: t.function.name, argumenty };
+    }),
+  };
+}
+
 async function krok(r) {
   if (r.rodzaj === 'anthropic') {
     const w = await zadanie(`${r.adres}/messages`, {
@@ -178,13 +293,14 @@ function dopiszWyniki(r, wyniki) {
 
 // Wiadomość użytkownika i cała pętla narzędzi aż do odpowiedzi. wykonaj(nazwa, argumenty) → { tekst, blad? }.
 // naKrok({ tekst, wywolania }) – postęp do pokazania w czacie. Najwyżej maksKrokow wywołań modelu.
-export async function zapytaj(r, tekst, { wykonaj, naKrok = () => {}, maksKrokow = 25, przerwij = () => false } = {}) {
+// naTekst(fragment) – gdy podane, odpowiedź przychodzi strumieniem (#259) i tekst pojawia się na bieżąco.
+export async function zapytaj(r, tekst, { wykonaj, naKrok = () => {}, naTekst = null, maksKrokow = 25, przerwij = () => false } = {}) {
   if (r.rodzaj === 'gemini') r.historia.push({ role: 'user', parts: [{ text: tekst }] });
   else r.historia.push({ role: 'user', content: tekst });
   let ostatni = '';
   for (let i = 0; i < maksKrokow; i += 1) {
     if (przerwij()) return { tekst: ostatni, przerwano: true };
-    const k = await krok(r);
+    const k = naTekst ? await krokStrumien(r, naTekst) : await krok(r);
     naKrok(k);
     if (k.tekst) ostatni = k.tekst;
     if (!k.wywolania.length) return { tekst: ostatni };

@@ -8,6 +8,26 @@ const { otworz, nowyProjekt } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 
+// Odpowiedź Anthropic jako strumień SSE: tekst po kawałkach, wejście narzędzia jako partial_json w dwóch kawałkach.
+function sseAnthropic(w) {
+  const z = [{ type: 'message_start', message: { id: w.id, type: 'message', role: 'assistant', model: w.model, content: [] } }];
+  w.content.forEach((b, i) => {
+    if (b.type === 'text') {
+      z.push({ type: 'content_block_start', index: i, content_block: { type: 'text', text: '' } });
+      for (const k of b.text.match(/.{1,5}/gs)) z.push({ type: 'content_block_delta', index: i, delta: { type: 'text_delta', text: k } });
+    } else {
+      z.push({ type: 'content_block_start', index: i, content_block: { type: 'tool_use', id: b.id, name: b.name, input: {} } });
+      const j = JSON.stringify(b.input);
+      const pol = Math.floor(j.length / 2);
+      z.push({ type: 'content_block_delta', index: i, delta: { type: 'input_json_delta', partial_json: j.slice(0, pol) } });
+      z.push({ type: 'content_block_delta', index: i, delta: { type: 'input_json_delta', partial_json: j.slice(pol) } });
+    }
+    z.push({ type: 'content_block_stop', index: i });
+  });
+  z.push({ type: 'message_delta', delta: { stop_reason: w.stop_reason } }, { type: 'message_stop' });
+  return z.map((x) => `event: ${x.type}\ndata: ${JSON.stringify(x)}\n\n`).join('');
+}
+
 test('czat AI: klucz Anthropic, narzędzia na otwartym projekcie, zmiana nazwy przez AI', async (t) => {
   const { strona, kontekst, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Kalendarz firmowy');
@@ -25,7 +45,9 @@ test('czat AI: klucz Anthropic, narzędzia na otwartym projekcie, zmiana nazwy p
       : krok === 2
         ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'tu2', name: 'nazwa_projektu', input: { nazwa: 'Kalendarz 2027' } }] }
         : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Zmieniłem nazwę projektu na „Kalendarz 2027”.' }] };
-    await r.fulfill({ contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ id: `m${krok}`, type: 'message', role: 'assistant', model: body.model, ...odp }) });
+    // Streaming (#259): zdarzenia SSE jak w API Anthropic – tekst i JSON narzędzi w kawałkach.
+    assert.equal(body.stream, true, 'czat prosi o strumień');
+    await r.fulfill({ contentType: 'text/event-stream', headers: { 'access-control-allow-origin': '*' }, body: sseAnthropic({ id: `m${krok}`, model: body.model, ...odp }) });
   });
   await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
   await strona.waitForSelector('#dlg-czat-ai[open]');

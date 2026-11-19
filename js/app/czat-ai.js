@@ -310,9 +310,21 @@ async function wyslij(tekst) {
     const n = await przygotujNarzedzia();
     if (!rozmowa || rozmowa.projekt !== n.projekt) { rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt }; zawszePozwalaj = false; }
     let zmiany = false;
+    // Streaming (#259): dymek odpowiedzi rośnie na bieżąco; każdy krok AI (przed narzędziami) – osobny dymek.
+    let dymek = null;
+    let strumien = false;
     const wynik = await zapytaj(rozmowa, tekst, {
       przerwij: () => przerwano,
-      naKrok: (k) => { if (k.tekst && k.wywolania.length) dopisz('ai', k.tekst); },
+      naTekst: (fragment) => {
+        if (!dymek) { czeka.remove(); dymek = dopisz('ai', ''); }
+        dymek.textContent += fragment;
+        strumien = true;
+        lista.scrollTop = lista.scrollHeight;
+      },
+      naKrok: (k) => {
+        if (k.tekst && k.wywolania.length && !dymek) dopisz('ai', k.tekst);
+        if (k.wywolania.length) { dymek = null; if (!czeka.isConnected) lista.append(czeka); }
+      },
       wykonaj: async (nazwa, argumenty) => {
         czeka.textContent = `Narzędzie: ${nazwa}…`;
         dopisz('narzedzie', `🔧 ${nazwa}`);
@@ -327,7 +339,7 @@ async function wyslij(tekst) {
       },
     });
     czeka.remove();
-    dopisz('ai', wynik.tekst || (wynik.przerwano ? 'Przerwano.' : 'Gotowe.'));
+    if (!dymek || wynik.przerwano) dopisz('ai', wynik.przerwano ? (wynik.tekst && !strumien ? wynik.tekst : 'Przerwano.') : (wynik.tekst || 'Gotowe.'));
     if (zmiany) sprawdzKonto(); // zmiany AI – od razu w edytorze
   } catch (e) {
     czeka.remove();

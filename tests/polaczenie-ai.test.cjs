@@ -75,3 +75,49 @@ test('okienko klucza dostawcy: Sprawdź połączenie i model domyślny', async (
   assert.equal(await strona.evaluate(() => JSON.parse(localStorage.getItem('makietka-czat-ai')).dostawcy.anthropic.model), 'claude-haiku-5-5');
   assert.deepEqual(bledy.filter((b) => !/401/.test(b)), []);
 });
+
+// Streaming (#259): OpenAI-zgodne i Gemini – tekst po kawałkach do naTekst, wywołania narzędzi złożone z kawałków.
+test('streaming: zgodne z OpenAI i Gemini – tekst na bieżąco, narzędzia z kawałków', async () => {
+  const m = await modul();
+  const stary = globalThis.fetch;
+  const sse = (zdarzenia) => new Response(zdarzenia.map((z) => `data: ${typeof z === 'string' ? z : JSON.stringify(z)}\n\n`).join(''), { status: 200, headers: { 'content-type': 'text/event-stream' } });
+  try {
+    let krok = 0;
+    const zapytania = [];
+    globalThis.fetch = async (url, o) => {
+      zapytania.push(JSON.parse(o.body));
+      krok += 1;
+      if (krok === 1) {
+        return sse([
+          { choices: [{ delta: { content: 'Zmie' } }] }, { choices: [{ delta: { content: 'niam.' } }] },
+          { choices: [{ delta: { tool_calls: [{ index: 0, id: 'c1', function: { name: 'nazwa_projektu', arguments: '{"naz' } }] } }] },
+          { choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: 'wa":"X"}' } }] } }] }, '[DONE]',
+        ]);
+      }
+      return sse([{ choices: [{ delta: { content: 'Gotowe.' } }] }, '[DONE]']);
+    };
+    const r = m.nowaRozmowa({ dostawca: 'openai', model: 'gpt-x', ust: { klucz: 'k' }, system: 's', narzedzia: [{ name: 'nazwa_projektu', description: '', inputSchema: { type: 'object' } }] });
+    const kawalki = [];
+    const wolane = [];
+    const w = await m.zapytaj(r, 'zmień nazwę', { naTekst: (t) => kawalki.push(t), wykonaj: async (n, a) => { wolane.push([n, a]); return { tekst: 'ok' }; } });
+    assert.deepEqual(kawalki, ['Zmie', 'niam.', 'Gotowe.']);
+    assert.deepEqual(wolane, [['nazwa_projektu', { nazwa: 'X' }]]);
+    assert.equal(w.tekst, 'Gotowe.');
+    assert.equal(zapytania[0].stream, true);
+    assert.equal(zapytania[1].messages.find((x) => x.role === 'tool')?.content, 'ok', 'wynik narzędzia wraca do rozmowy');
+
+    krok = 0;
+    globalThis.fetch = async (url) => {
+      assert.match(String(url), /:streamGenerateContent\?alt=sse/);
+      krok += 1;
+      if (krok === 1) return sse([{ candidates: [{ content: { parts: [{ text: 'Dzia' }] } }] }, { candidates: [{ content: { parts: [{ text: 'łam.' }, { functionCall: { name: 'czytaj', args: { co: 'projekt' } } }] } }] }]);
+      return sse([{ candidates: [{ content: { parts: [{ text: 'Już.' }] } }] }]);
+    };
+    const g = m.nowaRozmowa({ dostawca: 'gemini', model: 'gemini-x', ust: { klucz: 'k' }, system: 's', narzedzia: [{ name: 'czytaj', description: '', inputSchema: { type: 'object' } }] });
+    const gk = [];
+    const gw = await m.zapytaj(g, 'czytaj', { naTekst: (t) => gk.push(t), wykonaj: async () => ({ tekst: '{}' }) });
+    assert.deepEqual(gk, ['Dzia', 'łam.', 'Już.']);
+    assert.equal(g.historia[1].parts[0].text, 'Działam.', 'tekst sklejony w historii');
+    assert.equal(gw.tekst, 'Już.');
+  } finally { globalThis.fetch = stary; }
+});

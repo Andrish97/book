@@ -265,6 +265,8 @@ z każdym czatem AI w przeglądarce, także darmowym (ChatGPT, Claude, Gemini, C
 
 Uprawnienia są takie same jak przy własnym kluczu (jednodniowy klucz „Czat w Makietce”, czytanie albo zmiany).
 
+Odpowiedź pojawia się w rozmowie na bieżąco, w miarę jak AI ją pisze (Anthropic, OpenAI i zgodne, Gemini).
+
 **Gdy coś nie działa,** asystent pisze po ludzku, co się stało: dostawca odrzucił klucz, brak środków na koncie dostawcy,
 za dużo zapytań, model niedostępny albo bez obsługi narzędzi, brak połączenia. Gdy dostawca jest przeciążony, Makietka
 sama ponawia zapytanie dwa razy, zanim zgłosi błąd.
