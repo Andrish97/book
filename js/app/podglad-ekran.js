@@ -275,7 +275,7 @@ function pokazPodgladZnaku() {
   g.fillRect(20, 20, 140, 140);
   g.fillStyle = '#555555';
   for (let i = 0; i < 7; i += 1) g.fillRect(180, 28 + i * 20, i === 6 ? 160 : 270, 6);
-  rysujZnak(g, c.width, c.height, $('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY, krycie, Math.round(c.width / 3));
+  rysujZnak(g, c.width, c.height, $('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY, krycie, Math.round(c.width / 9));
 }
 
 function odswiezZnak(p, mozna) {

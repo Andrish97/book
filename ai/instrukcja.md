@@ -2112,6 +2112,8 @@ Ochronę możesz ustawić przy tworzeniu linku albo w każdej chwili później: 
 
 Część **Znak wodny** w oknie Udostępnij: zaznacz **Napis ukośnie na każdej stronie linku**, wpisz **Tekst znaku wodnego** (puste pole — „PODGLĄD”), ustaw suwakiem **Krycie** (5–50 %, domyślnie 12 % — blady napis; mały podgląd pod suwakiem pokazuje go na kawałku strony od razu) i kliknij **Zapisz znak wodny**. Napis jest wtopiony w obrazy stron linku, także w makiecie 3D oglądającego, więc nie da się go wyłączyć po stronie oglądającego. Zapis przygotowuje strony linku od nowa; odznaczenie i zapis usuwa znak. Znak wodny działa też z listy projektów i nie zmienia wydruku ani pliku PDF.
 
+![Znak wodny: tekst, suwak Krycie i podgląd](https://makietka.app/img/instrukcja/k-znak-wodny.png)
+
 ### 23.5 Unieważnienie linku
 
 **Unieważnij link** usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne udostępnienie daje nowy adres.

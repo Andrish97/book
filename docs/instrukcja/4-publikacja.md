@@ -496,6 +496,8 @@ podgląd pod suwakiem pokazuje go na kawałku strony od razu) i kliknij [Zapisz 
 linku, także w makiecie 3D oglądającego, więc nie da się go wyłączyć po stronie oglądającego. Zapis przygotowuje strony linku od nowa;
 odznaczenie i zapis usuwa znak. Znak wodny działa też z listy projektów i nie zmienia wydruku ani pliku PDF.
 
+![Znak wodny: tekst, suwak Krycie i podgląd](k-znak-wodny.png)
+
 ## 23.5 Unieważnienie linku
 
 [Unieważnij link] usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne
