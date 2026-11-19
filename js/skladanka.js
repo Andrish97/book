@@ -298,6 +298,37 @@ export function zUkladuCzesci(grupa, p) {
   return fabric.util.transformPoint(new fabric.Point(p.x - s.x, p.y - s.y), grupa.calcTransformMatrix());
 }
 
+// Punkty obrysu ścieżki (#266): odcinki wprost, łuki Béziera (C, Q) próbkowane co ~2 mm (od 4 do 32 punktów na łuk),
+// żeby krzywe z pióra nie spłaszczały się do cięciw.
+export function punktySciezki(sciezka) {
+  const wynik = [];
+  let cur = [0, 0];
+  const dodaj = (p) => { const o = wynik[wynik.length - 1]; if (!o || Math.hypot(o[0] - p[0], o[1] - p[1]) > 0.05) wynik.push(p); };
+  const ile = (dl) => Math.max(4, Math.min(32, Math.ceil(dl / 2)));
+  for (const k of sciezka) {
+    const c = String(k[0]).toUpperCase();
+    const v = k.slice(1).map(Number);
+    if (c === 'M' || c === 'L') { cur = [v[0], v[1]]; dodaj(cur); } else if (c === 'C') {
+      const [x1, y1, x2, y2, x, y] = v;
+      const n = ile(Math.hypot(x1 - cur[0], y1 - cur[1]) + Math.hypot(x2 - x1, y2 - y1) + Math.hypot(x - x2, y - y2));
+      for (let i = 1; i <= n; i += 1) {
+        const t = i / n; const u = 1 - t;
+        dodaj([u * u * u * cur[0] + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x, u * u * u * cur[1] + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y]);
+      }
+      cur = [x, y];
+    } else if (c === 'Q') {
+      const [x1, y1, x, y] = v;
+      const n = ile(Math.hypot(x1 - cur[0], y1 - cur[1]) + Math.hypot(x - x1, y - y1));
+      for (let i = 1; i <= n; i += 1) {
+        const t = i / n; const u = 1 - t;
+        dodaj([u * u * cur[0] + 2 * u * t * x1 + t * t * x, u * u * cur[1] + 2 * u * t * y1 + t * t * y]);
+      }
+      cur = [x, y];
+    } else if (v.length >= 2) { cur = [v[v.length - 2], v[v.length - 1]]; dodaj(cur); }
+  }
+  return wynik;
+}
+
 // Definicja części z kształtu (prostokąt, wielokąt, ścieżka z odcinków, elipsa – przybliżona) w układzie strony.
 export function czescZKsztaltu(o, nr = 'A') {
   const m = o.calcTransformMatrix();
@@ -311,11 +342,7 @@ export function czescZKsztaltu(o, nr = 'A') {
     const ry = o.ry ?? o.radius;
     lokalne = Array.from({ length: 24 }, (_, i) => { const k = (i / 24) * 2 * Math.PI; return [rx * Math.cos(k), ry * Math.sin(k)]; });
   } else if (t === 'path') {
-    lokalne = [];
-    for (const k of o.path || []) {
-      const v = k.slice(1);
-      if (v.length >= 2) lokalne.push([v[v.length - 2] - o.pathOffset.x, v[v.length - 1] - o.pathOffset.y]);
-    }
+    lokalne = punktySciezki(o.path || []).map(([x, y]) => [x - o.pathOffset.x, y - o.pathOffset.y]);
   }
   if (!lokalne || lokalne.length < 3) return null;
   const punkty = lokalne.map(([x, y]) => fabric.util.transformPoint(new fabric.Point(x, y), m));
