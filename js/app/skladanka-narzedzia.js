@@ -300,7 +300,7 @@ export function wyjmijZCzesci(g) {
   for (const { obj, p, kat } of naStronie) {
     obj.group = undefined;
     obj.parent = undefined;
-    obj.set({ na_czesci: undefined, selectable: true, evented: true, angle: kat });
+    obj.set({ na_czesci: undefined, selectable: true, evented: true, angle: kat, clipPath: undefined });
     obj.setPositionByOrigin(new fabric.Point(p.x, p.y), 'center', 'center');
     obj.setCoords();
     edytor.canvas.add(obj);

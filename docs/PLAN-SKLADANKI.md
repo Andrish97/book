@@ -11,8 +11,8 @@ na ściany) – na gałęzi, jeszcze nie w aplikacji.
 2. Kolejność prac: dowolna, „najważniejsze, żeby to było dobre i systematyczne”.
 3. Projektowanie: **i z gotowych szablonów parametrycznych, i rysowanie własnych części od zera**.
 4. Numeracja par: **numerki** (1, 2, 3…).
-5. (pytanie o przycinanie grafiki do kształtu części – do wyjaśnienia przy pracy: domyślnie grafika ściany
-   przycina się do ściany, zakładki zostają gładkie).
+5. ✅ (#287) Przycinanie grafiki do kształtu części: grafika ściany przycina się do obrysu części, zakładki zostają
+   gładkie.
 6. Druga strona: **może być, nie musi**; drugą stronę można używać **jako miejsca klejenia bez drukowania**.
 
 Dodatkowo:
@@ -66,7 +66,7 @@ trudne (zwierzę, budynek, pojazd, postać), kolejność:
     rozwijalne – walec, stożek, stożek ścięty, bryła obrotowa z profilu (pasy / kliny jak globus).
 11. ✅ (#263: graniastosłup i ostrosłup z dowolnego wielokąta – „Bryła z kształtu”; #282: ściany z dachem – bryły łączone parami) **Bryła z rzutu**: dowolny wielokąt z pióra wyciągnięty w graniastosłup (domek, litera, gwiazda 3D) albo w
     ostrosłup; łączenie brył (dach na domku) – siatki generowane z parami.
-12. ⏳ (kroki 15–16 gotowe – #284, #285; tu: linie klejenia – prosto zagina, po krzywej zawija) **Sklejanie części w jedną bryłę w 3D** – części ustawiają się po parach krawędzi; makieta sprawdza, czy model
+12. ✅ (#286 – sklejony model; kroki 15–16 – #284, #285; tu: linie klejenia – prosto zagina, po krzywej zawija) **Sklejanie części w jedną bryłę w 3D** – części ustawiają się po parach krawędzi; makieta sprawdza, czy model
     się zamyka (krawędzie bez pary, za duże szpary), i pokazuje montaż krok po kroku.
 13. ✅ (#268: pudełko z klapą wsuwaną; #271: pudełko z zatrzaskiem; #278: koło obrotowe – element ruchomy do książek; #279: suwak; #280: klapki z zawiasem) **Mechanizmy**: zatrzaski, zamki na klapkę, zawiasy, elementy ruchome, wkładki; pop-up (krok 8).
 14. ✅ (#265: domek z dachem i samochód; #276: żółw – zwierzę z kilku brył siatki 3D) **Gotowe trudniejsze modele** do nauki: domek z dachem, samochód, zwierzę z siatki 3D.

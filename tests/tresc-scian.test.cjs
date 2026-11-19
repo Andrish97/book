@@ -46,6 +46,20 @@ test('treść ścian: Na część → jedzie z częścią; zapis, Rozłóż, Roz
   });
   let s = await stan();
   assert.deepEqual([s.czesci, s.luzne, s.tekst, s.lokalnie], [1, 0, 'Okno', { x: 25, y: 20 }], JSON.stringify(s));
+  // Grafika ściany przycina się do obrysu części: obrys przycięcia (w układzie napisu) wraca na punkty części.
+  const przyciecie = await strona.evaluate(async () => {
+    const S = await import('./js/skladanka.js');
+    const g = window.seriodruk.edytor.canvas.getObjects().find((o) => o.czesc);
+    const tx = S.trescCzesci(g)[0].obj;
+    const cp = tx.clipPath;
+    if (!cp) return null;
+    // Punkt obrysu przycięcia → układ grupy → układ części.
+    const m = fabric.util.multiplyTransformMatrices(tx.calcOwnMatrix(), cp.calcOwnMatrix());
+    const q = cp.points.map((p) => fabric.util.transformPoint(new fabric.Point(p.x - cp.pathOffset.x, p.y - cp.pathOffset.y), m));
+    const s = g.czesc.uklad;
+    return q.map((p) => [Math.round(p.x + s.x), Math.round(p.y + s.y)]);
+  });
+  assert.deepEqual(przyciecie, [[0, 0], [100, 0], [100, 40], [0, 40]], 'napis przycięty do obrysu części');
 
   // Przebudowa (kolor), przesunięcie i obrót części – napis zostaje w tym samym miejscu ściany i obraca się z nią.
   await strona.evaluate(async () => {
@@ -117,4 +131,38 @@ test('treść ścian: Na część → jedzie z częścią; zapis, Rozłóż, Roz
   assert.deepEqual([wyjety.naStronie, wyjety.na_czesci, wyjety.tresc], [true, undefined, 0]);
   assert.ok(wyjety.ruch < 0.05, `napis w tym samym miejscu (${wyjety.ruch})`);
   assert.deepEqual(bledy, []);
+});
+
+// Grafika ściany przycina się do obrysu (ustalenie nr 5): czerwony pas wystający za prawą krawędź obróconej części
+// jest czerwony w części i nie widać go za krawędzią.
+test('treść ścian: grafika przycięta do obrysu części (także obróconej)', async (t) => {
+  const { strona } = await otworz(t, { widok: { width: 1400, height: 900 } });
+  await nowyProjekt(strona, 'P');
+  const w = await strona.evaluate(async () => {
+    const { przeliczOkladki } = await import('./js/okladka.js');
+    const p = window.seriodruk.stan.projekt;
+    Object.assign(p.sekcje[0], { typ: 'skladanka', specjalna: { rodzaj: 'skladanka', arkusz: 'A4', orientacja: 'pozioma', material: 'karton', gramatura: 300, druk: 'ploter' } });
+    przeliczOkladki(p);
+    await window.seriodruk.przeladuj();
+    const n = await import('./js/app/skladanka-narzedzia.js');
+    const S = await import('./js/skladanka.js');
+    n.wstawCzesci([{ nazwa: 'Pas', punkty: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 40 }, { x: 0, y: 40 }], krawedzie: Array(4).fill({ typ: 'ciecie' }), zgiecia: [] }]);
+    const e = window.seriodruk.edytor;
+    let g = e.canvas.getObjects().find((o) => o.czesc);
+    g.set({ angle: 30 }); g.setCoords();
+    const sr = S.zUkladuCzesci(g, { x: 90, y: 20 });
+    const r = e.dodajProstokat();
+    r.set({ width: 60, height: 10, fill: '#ff0000', originX: 'center', originY: 'center', left: sr.x, top: sr.y, angle: 30, strokeWidth: 0 });
+    r.setCoords();
+    n.umiescNaCzesciach([r]);
+    e.canvas.renderAll();
+    g = e.canvas.getObjects().find((o) => o.czesc);
+    const ctx = e.canvas.lowerCanvasEl.getContext('2d');
+    const v = e.canvas.viewportTransform;
+    const k = e.canvas.getRetinaScaling();
+    const piks = (q) => { const p = S.zUkladuCzesci(g, q); const d = ctx.getImageData(Math.round((p.x * v[0] + v[4]) * k), Math.round((p.y * v[3] + v[5]) * k), 1, 1).data; return [...d.slice(0, 3)]; };
+    return { wewnatrz: piks({ x: 95, y: 20 }), poza: piks({ x: 110, y: 20 }) };
+  });
+  assert.ok(w.wewnatrz[0] > 200 && w.wewnatrz[1] < 80, `w części: ${w.wewnatrz}`);
+  assert.ok(!(w.poza[0] > 200 && w.poza[1] < 80), `za krawędzią: ${w.poza}`);
 });

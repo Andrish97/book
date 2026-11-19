@@ -15,7 +15,7 @@
 // { p: [4 punkty], uv: [4], tex, n, nv?: [4 normalne], ao?: [4], mat } i opis podłoża (quady.podloze).
 
 import { normalizujOpcje, DOMYSLNE_OPCJE, DRUT, TEKTURA } from './makieta-ustawienia.js';
-import { normalizujCzesc, scianyCzesci, naStronieZapisanej, poleWielokata } from './skladanka.js';
+import { normalizujCzesc, scianyCzesci, naStronieZapisanej, poleWielokata, wWielokacie, naObwodzie, rogiPola, liniaProsta } from './skladanka.js';
 
 export { normalizujOpcje, DOMYSLNE_OPCJE };
 
@@ -143,7 +143,7 @@ const wymiar = (r) => ({ w: Math.max(10, r.w), h: Math.max(10, r.h) });
 // Ile położeń kartkowania ma model (u od 0 do tej liczby).
 // Ulotka: złożona → rozłożona (środek) → odwrócona (zewnątrz); koperta: przód → tył → otwarta klapa;
 // pudełko: wykrojnik płasko → złożone; trójdzielny – jedno położenie.
-const POLOZENIA_SPECJALNE = { ulotka: 2, koperta: 2, pudelko: 1, trojdzielny: 0, skladanka: 1 };
+const POLOZENIA_SPECJALNE = { ulotka: 2, koperta: 2, pudelko: 1, trojdzielny: 0, skladanka: 2 };
 export const polozenia = (model, kartki) => {
   if (jestSpecjalnyModel(model)) return kartki.length ? POLOZENIA_SPECJALNE[model] : 0;
   return model === 'kartka' ? Math.max(1, kartki.length * 2 - 1) : kartki.length;
@@ -158,7 +158,7 @@ export function opisPolozenia(model, kartki, u, numer = (i) => i + 1) {
   if (model === 'koperta') return ['Przód koperty', 'Tył – klapa zamknięta', 'Tył – klapa otwarta'][Math.min(2, t)];
   if (model === 'pudelko') return t === 0 ? 'Wykrojnik (płasko)' : 'Pudełko złożone';
   if (model === 'trojdzielny') return 'Kalendarz trójdzielny';
-  if (model === 'skladanka') return t === 0 ? 'Arkusze (płasko)' : 'Złożone części';
+  if (model === 'skladanka') return t === 0 ? 'Arkusze (płasko)' : t === 1 ? 'Złożone części' : 'Sklejony model';
   if (model === 'kartka') {
     const k = kartki[Math.floor(t / 2)];
     const klucz = t % 2 ? k?.tyl : k?.przod;
@@ -1235,60 +1235,263 @@ export function trojkatyWielokata(p) {
 // Części na arkuszach: każda składa się po swoich zgięciach – drzewo ścian od największej (leży), kolejne
 // obracają się wokół zawiasów o (180° − kąt po złożeniu); „góra” – od nadruku (nadruk na zewnątrz), „dolina” –
 // w drugą stronę. Arkusze leżą obok siebie; u: 0 – płasko nadrukiem do góry, 1 – złożone (najpierw odwrócenie,
-// potem zginanie). Tekstura ścian – z arkusza (uv z położenia części na arkuszu), spód – karton.
+// potem zginanie), 2 – sklejony model (#286): części ustawiają się po parach (sklejModel). Tekstura ścian – z arkusza
+// (uv z położenia części na arkuszu), spód – karton.
+function geometriaCzesci(cz, kartki, s) {
+  const kar = kartki[cz.arkusz] || kartki[0];
+  const S = kar.w;
+  const Hs = kar.h;
+  const dx = cz.arkusz * (S + 40);
+  const F = ([x, y]) => [-(x - S / 2) - dx, 0, y - Hs / 2];
+  const c = normalizujCzesc(cz.czesc);
+  const { sciany, zawiasy } = scianyCzesci(c);
+  if (!sciany.length) return null;
+  const naArk = (q) => { const r = naStronieZapisanej(cz.obiekt, q); return [r.x, r.y]; };
+  const pola = sciany.map((w) => Math.abs(poleWielokata(w)));
+  const korzen = pola.indexOf(Math.max(...pola));
+  const T = new Array(sciany.length).fill(null);
+  T[korzen] = T_JEDN;
+  const kolejka = [korzen];
+  while (kolejka.length) {
+    const r = kolejka.shift();
+    for (const z of zawiasy) {
+      const dziecko = z.s1 === r ? z.s2 : z.s2 === r ? z.s1 : null;
+      if (dziecko === null || T[dziecko]) continue;
+      const zg = c.zgiecia[z.zgiecie];
+      const A = F(naArk(z.a));
+      const k = norm(odj(F(naArk(z.b)), A));
+      const srodek = sciany[dziecko].reduce((a, q) => ({ x: a.x + q.x / sciany[dziecko].length, y: a.y + q.y / sciany[dziecko].length }), { x: 0, y: 0 });
+      const sr = naT(T[r], F(naArk(srodek)));
+      const W = obrotOs(naT(T[r], A), naR(T[r].R, k), 0.1);
+      // Kierunek względem ściany-rodzica: „góra” – na stronę bez nadruku (lokalne +Y rodzica).
+      const nGora = naR(T[r].R, [0, 1, 0]);
+      const ruch = odj(naT(W, sr), sr);
+      const znak = ruch[0] * nGora[0] + ruch[1] * nGora[1] + ruch[2] * nGora[2] >= 0 ? 1 : -1;
+      const kat = (Math.PI - ((zg?.kat ?? 90) * Math.PI) / 180) * s;
+      const kier = zg?.rodzaj === 'dolina' ? -1 : 1;
+      T[dziecko] = zlozT(obrotOs(naT(T[r], A), naR(T[r].R, k), znak * kier * kat), T[r]);
+      kolejka.push(dziecko);
+    }
+  }
+  // Ściana punktu części: zawierająca go albo najbliższa po obwodzie (punkty na krawędziach i zgięciach).
+  const sciana = (q) => {
+    let best = 0; let d = Infinity;
+    sciany.forEach((w, i) => { const o = wWielokacie(w, q) ? 0 : naObwodzie(w, q).odl; if (o < d) { d = o; best = i; } });
+    return best;
+  };
+  const punkt = (q, i = sciana(q)) => naT(T[i] || T_JEDN, F(naArk(q)));
+  const normalna = (q, i = sciana(q)) => naR((T[i] || T_JEDN).R, [0, -1, 0]); // strona z nadrukiem
+  return { kar, S, Hs, c, sciany, T, naArk, punkt, normalna, pole: pola.reduce((a, b) => a + b, 0) };
+}
+
+// Miejsca par części (w układzie części): krawędzie z numerem, linie klejenia, pola (oś wzdłuż dłuższego boku),
+// szczeliny. { para, rodzaj: 'krawedz' | 'linia', punkty, prosta }.
+function miejscaPar(c) {
+  const w = [];
+  c.krawedzie.forEach((k, i) => { if (k.para && k.typ !== 'ciecie') w.push({ para: k.para, rodzaj: 'krawedz', punkty: [c.punkty[i], c.punkty[(i + 1) % c.punkty.length]], prosta: true }); });
+  for (const l of c.linie || []) if (l.para) w.push({ para: l.para, rodzaj: 'linia', punkty: l.zamknieta ? [...l.punkty, l.punkty[0]] : l.punkty, prosta: liniaProsta(l) });
+  for (const p of c.pola) {
+    if (!p.para) continue;
+    const r = rogiPola(p);
+    const [a, b] = p.w >= p.h ? [[r[0], r[3]], [r[1], r[2]]] : [[r[0], r[1]], [r[3], r[2]]];
+    const sr = (u, v) => ({ x: (u.x + v.x) / 2, y: (u.y + v.y) / 2 });
+    w.push({ para: p.para, rodzaj: 'linia', punkty: [sr(...a), sr(...b)], prosta: true });
+  }
+  for (const z of c.szczeliny) if (z.para) w.push({ para: z.para, rodzaj: 'linia', punkty: [z.a, z.b], prosta: true });
+  return w;
+}
+
+const skal3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const sr3 = (a, b) => razy(dod(a, b), 0.5);
+// Obrót wektora jednostkowego a na b (macierz).
+function obrotNaWektor(a, b) {
+  const v = wekt(a, b);
+  const sn = Math.hypot(v[0], v[1], v[2]);
+  const cs = skal3(a, b);
+  if (sn < 1e-9) {
+    if (cs > 0) return T_JEDN.R;
+    const p = Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+    return obrotOs([0, 0, 0], norm(wekt(a, p)), Math.PI).R;
+  }
+  return obrotOs([0, 0, 0], razy(v, 1 / sn), Math.atan2(sn, cs)).R;
+}
+// Część drogi od położenia na arkuszu do przekształcenia G (oś–kąt obrotu, środek części po prostej).
+function czescDrogi(G, srodek, k) {
+  if (k >= 1) return G;
+  const R = G.R;
+  const kat = Math.acos(ogr((R[0] + R[4] + R[8] - 1) / 2, -1, 1));
+  let Rk = T_JEDN.R;
+  if (kat > 1e-6) {
+    let os = [R[7] - R[5], R[2] - R[6], R[3] - R[1]];
+    if (Math.hypot(...os) < 1e-6) { // 180°: oś z kolumny R + I
+      const kol = [0, 1, 2].map((i) => [R[i] + (i === 0 ? 1 : 0), R[3 + i] + (i === 1 ? 1 : 0), R[6 + i] + (i === 2 ? 1 : 0)]);
+      os = kol.sort((a, b) => Math.hypot(...b) - Math.hypot(...a))[0];
+    }
+    Rk = obrotOs([0, 0, 0], norm(os), kat * k).R;
+  }
+  const cel = naT(G, srodek);
+  const sk = dod(srodek, razy(odj(cel, srodek), k));
+  return { R: Rk, t: odj(sk, naR(Rk, srodek)) };
+}
+
+// Sklejanie (#286, plan składanek krok 12): od największej części kolejne dochodzą po parach. Krawędź do prostej
+// linii klejenia, pola albo szczeliny – część staje prostopadle po stronie nadruku; krawędź do krzywej linii – część
+// wygina się wzdłuż niej (zawija); krawędź do krawędzi – obrót wokół wspólnej krawędzi dobrany tak, by pozostałe
+// pary tej części trafiły na swoje miejsca, a bez nich – na płasko (jak przedłużenie). Zwraca per część
+// { G } (sztywno) albo { mapa(q), normalna(q) } (wygięta); części bez połączeń zostają na arkuszu.
+function sklejModel(geo) {
+  const miejsca = geo.map((g) => (g ? miejscaPar(g.c) : []));
+  const wynik = geo.map(() => null);
+  const srodki = geo.map((g) => (g ? g.sciany.flatMap((w) => w.map((q) => g.punkt(q))).reduce((a, p, _, t) => dod(a, razy(p, 1 / t.length)), [0, 0, 0]) : null));
+  // Położenie i normalna punktu części po sklejeniu.
+  const pkt = (i, q) => (wynik[i].mapa ? wynik[i].mapa(q) : naT(wynik[i].G, geo[i].punkt(q)));
+  const nrm = (i, q) => (wynik[i].normalna ? wynik[i].normalna(q) : naR(wynik[i].G.R, geo[i].normalna(q)));
+  const srodekMiejsca = (m) => m.punkty[Math.floor((m.punkty.length - 1) / 2)];
+  const kolejnosc = geo.map((g, i) => i).filter((i) => geo[i]).sort((a, b) => geo[b].pole - geo[a].pole);
+  for (const start of kolejnosc) {
+    if (wynik[start]) continue;
+    wynik[start] = { G: T_JEDN };
+    for (;;) {
+      // Para: miejsce na części ułożonej (cel) i miejsce na nieułożonej (dokładana). Najpierw krawędzie dokładanej.
+      let wybor = null;
+      for (let a = 0; a < geo.length && !wybor; a += 1) {
+        if (!wynik[a]) continue;
+        for (const ma of miejsca[a]) {
+          for (let b = 0; b < geo.length; b += 1) {
+            if (wynik[b] || !geo[b]) continue;
+            const mb = miejsca[b].find((x) => x.para === ma.para);
+            if (mb && (!wybor || (mb.rodzaj === 'krawedz' && wybor.mb.rodzaj !== 'krawedz'))) wybor = { a, ma, b, mb };
+          }
+        }
+      }
+      if (!wybor) break;
+      const { a, ma, b, mb } = wybor;
+      const gb = geo[b];
+      // Krawędź do krzywej linii – wygięcie wzdłuż krzywej.
+      if (mb.rodzaj === 'krawedz' && ma.rodzaj === 'linia' && !ma.prosta) {
+        const C = ma.punkty.map((q) => pkt(a, q));
+        const N = ma.punkty.map((q) => nrm(a, q));
+        const dl = [0];
+        for (let j = 1; j < C.length; j += 1) dl.push(dl[j - 1] + Math.hypot(...odj(C[j], C[j - 1])));
+        const Lc = dl.at(-1) || 1;
+        const [E0, E1] = mb.punkty;
+        const Lb = Math.hypot(E1.x - E0.x, E1.y - E0.y) || 1;
+        const e = { x: (E1.x - E0.x) / Lb, y: (E1.y - E0.y) / Lb };
+        let n = { x: -e.y, y: e.x };
+        const srC = gb.c.punkty.reduce((acc, q) => ({ x: acc.x + q.x / gb.c.punkty.length, y: acc.y + q.y / gb.c.punkty.length }), { x: 0, y: 0 });
+        if ((srC.x - E0.x) * n.x + (srC.y - E0.y) * n.y < 0) n = { x: -n.x, y: -n.y };
+        const znak = -Math.sign(e.x * n.y - e.y * n.x) || 1;
+        const wzdluz = (q) => {
+          const sq = ogr(((q.x - E0.x) * e.x + (q.y - E0.y) * e.y) * (Lc / Lb), 0, Lc);
+          let j = 1;
+          while (j < dl.length - 1 && dl[j] < sq) j += 1;
+          const t = (sq - dl[j - 1]) / ((dl[j] - dl[j - 1]) || 1);
+          return { P: dod(C[j - 1], razy(odj(C[j], C[j - 1]), t)), Nn: norm(dod(razy(N[j - 1], 1 - t), razy(N[j], t))), tau: norm(odj(C[j], C[j - 1])) };
+        };
+        wynik[b] = {
+          mapa: (q) => { const w = wzdluz(q); const h = (q.x - E0.x) * n.x + (q.y - E0.y) * n.y; return dod(w.P, razy(w.Nn, h)); },
+          normalna: (q) => { const w = wzdluz(q); return norm(razy(wekt(w.tau, w.Nn), znak)); },
+          wygieta: true,
+        };
+        continue;
+      }
+      // Sztywno: środek miejsca dokładanej na środek celu, kierunek wzdłuż celu, obrót wokół niego wybrany z ocen.
+      const t0 = pkt(a, ma.punkty[0]);
+      const t1 = pkt(a, ma.punkty.at(-1));
+      const mt = pkt(a, srodekMiejsca(ma));
+      const midT = sr3(t0, t1);
+      const m0 = gb.punkt(mb.punkty[0]);
+      const m1 = gb.punkt(mb.punkty.at(-1));
+      const midM = sr3(m0, m1);
+      const nA = nrm(a, srodekMiejsca(ma));
+      const nB0 = gb.normalna(srodekMiejsca(mb));
+      const inne = [];
+      for (const x of miejsca[b]) {
+        if (x === mb) continue;
+        for (let o = 0; o < geo.length; o += 1) {
+          if (!wynik[o]) continue;
+          const y = miejsca[o].find((z) => z.para === x.para && !(o === a && z === ma));
+          if (y) inne.push({ z: gb.punkt(srodekMiejsca(x)), cel: pkt(o, srodekMiejsca(y)) });
+        }
+      }
+      const srA = wynik[a].G ? naT(wynik[a].G, srodki[a]) : mt;
+      let best = null;
+      for (const odwr of [true, false]) {
+        const dirT = norm(odwr ? odj(t0, t1) : odj(t1, t0));
+        const Ra = obrotNaWektor(norm(odj(m1, m0)), dirT);
+        const T1 = { R: Ra, t: odj(midT, naR(Ra, midM)) };
+        for (let st = 0; st < 72; st += 1) {
+          const G = zlozT(obrotOs(midT, dirT, (st * Math.PI) / 36), T1);
+          const nB = naR(G.R, nB0);
+          const cB = naT(G, srodki[b]);
+          let ocena = 0;
+          for (const x of inne) ocena += Math.hypot(...odj(naT(G, x.z), x.cel)) * 4;
+          if (ma.rodzaj === 'linia') ocena += 20 * Math.abs(skal3(nB, nA)) + (skal3(odj(cB, midT), nA) < 0 ? 30 : 0);
+          else if (mb.rodzaj === 'linia') ocena += 20 * Math.abs(skal3(nB, nA)) + (skal3(odj(srA, midT), nB) < 0 ? 30 : 0);
+          else if (!inne.length) ocena += 20 * (1 - skal3(nB, nA)) + (Math.hypot(...odj(cB, srA)) < Math.hypot(...odj(midT, srA)) ? 30 : 0);
+          if (ma.rodzaj === 'krawedz' && mb.rodzaj === 'krawedz' && !odwr) ocena += 1;
+          if (!best || ocena < best.ocena - 1e-9) best = { ocena, G };
+        }
+      }
+      wynik[b] = { G: best.G };
+    }
+  }
+  return wynik;
+}
+
 function skladanka(quady, kartki, u) {
   const czesci = kartki[0]?.specjalna?.czesci || [];
   const s = gladko(ogr((u - 0.3) / 0.7, 0, 1));
+  const k = gladko(ogr(u - 1, 0, 1)); // sklejanie (#286)
   const od = quady.length;
   const e = Math.max(0.15, kartki[0]?.d || 0.3);
-  for (const cz of czesci) {
-    const kar = kartki[cz.arkusz] || kartki[0];
-    const S = kar.w;
-    const Hs = kar.h;
-    const dx = cz.arkusz * (S + 40);
-    const F = ([x, y]) => [-(x - S / 2) - dx, 0, y - Hs / 2];
-    const c = normalizujCzesc(cz.czesc);
-    const { sciany, zawiasy } = scianyCzesci(c);
-    if (!sciany.length) continue;
-    const naArk = (q) => { const r = naStronieZapisanej(cz.obiekt, q); return [r.x, r.y]; };
-    const pola = sciany.map((w) => Math.abs(poleWielokata(w)));
-    const korzen = pola.indexOf(Math.max(...pola));
-    const T = new Array(sciany.length).fill(null);
-    T[korzen] = T_JEDN;
-    const kolejka = [korzen];
-    while (kolejka.length) {
-      const r = kolejka.shift();
-      for (const z of zawiasy) {
-        const dziecko = z.s1 === r ? z.s2 : z.s2 === r ? z.s1 : null;
-        if (dziecko === null || T[dziecko]) continue;
-        const zg = c.zgiecia[z.zgiecie];
-        const A = F(naArk(z.a));
-        const k = norm(odj(F(naArk(z.b)), A));
-        const srodek = sciany[dziecko].reduce((a, q) => ({ x: a.x + q.x / sciany[dziecko].length, y: a.y + q.y / sciany[dziecko].length }), { x: 0, y: 0 });
-        const sr = naT(T[r], F(naArk(srodek)));
-        const W = obrotOs(naT(T[r], A), naR(T[r].R, k), 0.1);
-        // Kierunek względem ściany-rodzica: „góra” – na stronę bez nadruku (lokalne +Y rodzica).
-        const nGora = naR(T[r].R, [0, 1, 0]);
-        const ruch = odj(naT(W, sr), sr);
-        const znak = ruch[0] * nGora[0] + ruch[1] * nGora[1] + ruch[2] * nGora[2] >= 0 ? 1 : -1;
-        const kat = (Math.PI - ((zg?.kat ?? 90) * Math.PI) / 180) * s;
-        const kier = zg?.rodzaj === 'dolina' ? -1 : 1;
-        T[dziecko] = zlozT(obrotOs(naT(T[r], A), naR(T[r].R, k), znak * kier * kat), T[r]);
-        kolejka.push(dziecko);
-      }
-    }
-    sciany.forEach((w, i) => {
-      const Ti = T[i] || T_JEDN;
-      const pts = w.map(naArk);
-      const P = pts.map((q) => naT(Ti, F(q)));
-      const uv = pts.map(([x, y]) => [ogr(x / S, 0, 1), ogr(y / Hs, 0, 1)]);
-      const nN = naR(Ti.R, [0, -1, 0]);
-      for (const [a, b, d] of trojkatyWielokata(pts)) {
-        quad(quady, [a, b, d, d].map((j) => dod(P[j], razy(nN, e / 2))), [a, b, d, d].map((j) => uv[j]), kar.przod || `kolor:${PAPIER}`, 'okladka', { n: nN });
-        quad(quady, [a, d, b, b].map((j) => dod(P[j], razy(nN, -e / 2))), [a, d, b, b].map((j) => uv[j]), `kolor:${KARTON}`, 'tektura', { n: razy(nN, -1) });
-      }
+  const geo = czesci.map((cz) => geometriaCzesci(cz, kartki, s));
+  const sklejone = k > 0 ? sklejModel(geo) : null;
+  geo.forEach((g, ic) => {
+    if (!g) return;
+    const { S, Hs, kar } = g;
+    const ul = sklejone?.[ic];
+    const srodek = g.sciany.flatMap((w) => w.map((q) => g.punkt(q))).reduce((a, p, _, t) => dod(a, razy(p, 1 / t.length)), [0, 0, 0]);
+    const Gk = ul?.G ? czescDrogi(ul.G, srodek, k) : null;
+    // Punkt i normalna ściany (i) w chwili k.
+    const P = (q, i) => {
+      const p0 = g.punkt(q, i);
+      if (Gk) return naT(Gk, p0);
+      if (ul?.mapa) return dod(razy(p0, 1 - k), razy(ul.mapa(q), k));
+      return p0;
+    };
+    const Nrm = (q, i) => {
+      const n0 = g.normalna(q, i);
+      if (Gk) return naR(Gk.R, n0);
+      if (ul?.normalna) return norm(dod(razy(n0, 1 - k), razy(ul.normalna(q), k)));
+      return n0;
+    };
+    const uvQ = (q) => { const [x, y] = g.naArk(q); return [ogr(x / S, 0, 1), ogr(y / Hs, 0, 1)]; };
+    const trojkat = (q3, i) => {
+      const pp = q3.map((q) => P(q, i));
+      const nN = Nrm({ x: (q3[0].x + q3[1].x + q3[2].x) / 3, y: (q3[0].y + q3[1].y + q3[2].y) / 3 }, i);
+      const uv = q3.map(uvQ);
+      const [a, b, d] = [0, 1, 2];
+      quad(quady, [a, b, d, d].map((j) => dod(pp[j], razy(nN, e / 2))), [a, b, d, d].map((j) => uv[j]), kar.przod || `kolor:${PAPIER}`, 'okladka', { n: nN, czesc: g.c.nr });
+      quad(quady, [a, d, b, b].map((j) => dod(pp[j], razy(nN, -e / 2))), [a, d, b, b].map((j) => uv[j]), `kolor:${KARTON}`, 'tektura', { n: razy(nN, -1), czesc: g.c.nr });
+    };
+    // Wygięta część – trójkąty dzielone do ok. 3 mm, żeby szły za krzywą.
+    const podziel = (q3, i, glebokosc = 0) => {
+      const dl = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+      const boki = [dl(q3[0], q3[1]), dl(q3[1], q3[2]), dl(q3[2], q3[0])];
+      const m = Math.max(...boki);
+      if (!ul?.mapa || k === 0 || m <= 3 || glebokosc > 7) { trojkat(q3, i); return; }
+      const j = boki.indexOf(m);
+      const A = q3[j]; const B = q3[(j + 1) % 3]; const C = q3[(j + 2) % 3];
+      const M = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+      podziel([A, M, C], i, glebokosc + 1);
+      podziel([M, B, C], i, glebokosc + 1);
+    };
+    g.sciany.forEach((w, i) => {
+      const pts = w.map(g.naArk);
+      for (const [a, b, d] of trojkatyWielokata(pts)) podziel([w[a], w[b], w[d]], i);
     });
-  }
+  });
   if (quady.length > od) obrocNaStol(quady, od, Math.PI * (1 - gladko(ogr(u / 0.3, 0, 1))));
 }
 

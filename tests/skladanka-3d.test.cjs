@@ -44,7 +44,7 @@ test('składanka w 3D: wymiary złożonych brył z szablonów, płaski arkusz, m
   assert.equal(w.piramida.zlozone[1], 50, `ostrosłup: wysokość 50 (${w.piramida.zlozone})`);
   assert.deepEqual(posortowane(w.piramida.zlozone).slice(1), [60, 60], 'podstawa 60 × 60');
   assert.ok(w.graniastoslup.zlozone.includes(60), `graniastosłup: ściany 60 mm (${w.graniastoslup.zlozone})`);
-  assert.equal(w.kostka.polozenia, 1);
+  assert.equal(w.kostka.polozenia, 2, 'płasko, złożone części, sklejony model (#286)');
   assert.equal(w.kostka.opis, 'Złożone części');
   assert.equal(w.trojkaty, 3, 'wielokąt wklęsły (5 wierzchołków) – 3 trójkąty');
   // Kartka pop-up „wycinanka” (#273): ściany z podziału po nacięciach – kartka otwarta pod kątem prostym (100 × 100 × 140),

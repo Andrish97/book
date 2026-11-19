@@ -553,6 +553,15 @@ export function zbudujCzesc(def, { grupa = null, left = 0, top = 0, tresc = unde
     obj.parent = undefined;
     obj.set({ na_czesci: true, selectable: false, evented: false });
     obj.setPositionByOrigin(new fabric.Point(x, y), 'center', 'center');
+    // Grafika ściany przycina się do obrysu części (ustalenie planu składanek nr 5) – nic nie wychodzi poza linię
+    // cięcia ani na zakładki. Obrys w układzie samego elementu (clipPath względny – jedzie z elementem).
+    const odwr = fabric.util.invertTransform(obj.calcOwnMatrix());
+    const lok = c.punkty.map((q) => fabric.util.transformPoint(new fabric.Point(q.x, q.y), odwr));
+    const xs = lok.map((q) => q.x); const ys = lok.map((q) => q.y);
+    const obrys = new fabric.Polygon(lok.map((q) => ({ x: q.x, y: q.y })), { originX: 'center', originY: 'center', objectCaching: false });
+    obrys.set({ left: (Math.min(...xs) + Math.max(...xs)) / 2, top: (Math.min(...ys) + Math.max(...ys)) / 2 });
+    obj.clipPath = obrys;
+    obj.dirty = true;
     return obj;
   });
   if (naScianach.length) {
