@@ -95,7 +95,7 @@ Element stający pod kątem – tylko szablon zgięcia V. Doklejki (pary, pola, 
 pokazuje pop-up nieruchomo (otwarty 90°) – nie ma otwierania kartki z ruchem doklejonych elementów ani sprawdzenia,
 czy po zamknięciu nic nie wystaje i nie zderza się (krok 8 obiecywał to, a nie zostało zrobione).
 
-17. ⏳ **Nacięcia w edytorze** – narzędzie „Nacięcie”: linia cięcia w środku części (prosta pod dowolnym kątem,
+17. ✅ (#297) **Nacięcia w edytorze** – narzędzie „Nacięcie”: linia cięcia w środku części (prosta pod dowolnym kątem,
     łamana, krzywa z pióra), bez szerokości; nacięcie + zgięcia dzielą ścianę (wycinanka). Kontrola: nacięcie nie
     przecina obrysu przypadkiem, nie zostawia wiszących kawałków.
 18. ⏳ **Wycięcia (otwory)** – zamknięty kształt w części wycinany w całości (okienko, drzwi do otwierania z zawiasem

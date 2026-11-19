@@ -48,7 +48,7 @@ export function normalizujCzesc(c = {}) {
   // (punkty co ok. 1–2 mm), otwarta albo zamknięta; do niej przykleja się krawędź albo zakładka innej części.
   const linie = (Array.isArray(c.linie) ? c.linie : []).map((l) => ({ ...l, punkty: (Array.isArray(l?.punkty) ? l.punkty : []).filter((q) => q && Number.isFinite(q.x) && Number.isFinite(q.y)) }))
     .filter((l) => l.punkty.length >= 2).map((l) => ({ punkty: l.punkty.map((q) => P(q.x, q.y)), para: l.para ? String(l.para) : null, ...(l.spod ? { spod: true } : {}), ...(l.zamknieta ? { zamknieta: true } : {}) }));
-  const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null, ...(z.naciecie ? { naciecie: true } : {}) }));
+  const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null, ...(z.naciecie ? { naciecie: true } : {}), ...(z.naciecie && z.ciag ? { ciag: String(z.ciag) } : {}) }));
   return {
     nr: String(c.nr || 'A'), ...(typeof c.opis === 'string' && c.opis ? { opis: c.opis.slice(0, 80) } : {}), punkty, krawedzie, zgiecia, pola, szczeliny, linie, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
     // Nadruk (#283): obraz projektu (zasób) w prostokącie części – tekstura modelu 3D.
@@ -273,6 +273,8 @@ function scianyPlanarne(c) {
   const uzyte = new Set();
   const sciany = [];
   const scianaPol = new Map();
+  const dziury = [];
+  const otwory = []; // { sciana, punkty } – brzegi otworów w ścianach (#297; rysowanie dziur – krok 18)
   for (const h0 of pol) {
     if (uzyte.has(h0)) continue;
     const cykl = [];
@@ -289,7 +291,25 @@ function scianyPlanarne(c) {
       straz += 1;
     }
     const w = cykl.map((x) => x.a);
-    if (poleWielokata(w) > 1e-3) { const nr = sciany.length; sciany.push(w); for (const x of cykl) scianaPol.set(x, nr); }
+    if (poleWielokata(w) > 1e-3) { const nr = sciany.length; sciany.push(w); for (const x of cykl) scianaPol.set(x, nr); } else dziury.push(cykl);
+  }
+  // Pętle o ujemnym polu: obrys całej części od zewnątrz (nic go nie otacza) albo brzeg otworu w ścianie – np. klapka
+  // wycięta nacięciami w środku kartki (#297). Półkrawędzie otworu należą do ściany, która go otacza: najmniejsza
+  // ściana zawierająca punkt tuż obok krawędzi otworu, inna niż ściana po drugiej stronie tej krawędzi (sama klapka).
+  for (const cykl of dziury) {
+    const h = cykl[0];
+    const po = scianaPol.get(blizniak.get(`${h.do}>${h.od}`));
+    const m = { x: (h.a.x + h.b.x) / 2, y: (h.a.y + h.b.y) / 2 };
+    const dl = Math.hypot(h.b.x - h.a.x, h.b.y - h.a.y) || 1;
+    const n = { x: -(h.b.y - h.a.y) / dl, y: (h.b.x - h.a.x) / dl };
+    let najlepsza = null;
+    for (const p of [{ x: m.x + n.x * 0.05, y: m.y + n.y * 0.05 }, { x: m.x - n.x * 0.05, y: m.y - n.y * 0.05 }]) {
+      sciany.forEach((sc, i) => {
+        if (i === po || !wWielokacie(sc, p)) return;
+        if (najlepsza === null || Math.abs(poleWielokata(sc)) < Math.abs(poleWielokata(sciany[najlepsza]))) najlepsza = i;
+      });
+    }
+    if (najlepsza !== null) { for (const x of cykl) scianaPol.set(x, najlepsza); otwory.push({ sciana: najlepsza, punkty: cykl.map((x) => x.a) }); }
   }
   const zawiasy = [];
   const juz = new Set();
@@ -303,7 +323,7 @@ function scianyPlanarne(c) {
     juz.add(k);
     zawiasy.push({ s1, s2, a: h.a, b: h.b, zgiecie: h.e.nr });
   }
-  return { sciany, zawiasy };
+  return { sciany, zawiasy, otwory };
 }
 
 // Rozcięcie części linią a → b (oba punkty na obwodzie) na dwie części (#274 – za duża część, ręczne dzielenie modelu).
@@ -755,6 +775,8 @@ export function uwagiSkladanki(arkusze) {
       for (const l of c.linie) if (l.para) (wpisy.get(l.para) || wpisy.set(l.para, []).get(l.para)).push({ rodzaj: 'linia', dl: dlugoscLinii(l), prosta: liniaProsta(l), gdzie, opis: `linia klejenia na części ${c.nr}` });
       for (const z of c.szczeliny) {
         if (z.para) (wpisy.get(z.para) || wpisy.set(z.para, []).get(z.para)).push({ rodzaj: 'szczelina', dl: Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y), gdzie, opis: `szczelina na części ${c.nr}` });
+        // Nacięcie (#297) – końce w części albo na jej krawędzi; poza nią nóż przetnie sąsiednią część albo powietrze.
+        if (z.naciecie && [z.a, z.b].some((q) => !wWielokacie(c.punkty, q) && naObwodzie(c.punkty, q).odl > 0.3)) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Nacięcie na części ${c.nr} wychodzi poza część – przesuń jego koniec do środka albo na krawędź.` });
         if (!z.naciecie && z.szer < a.grubosc) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Szczelina na części ${c.nr} ma ${mmTxt(z.szer)} mm, a materiał ${mmTxt(a.grubosc)} mm – wypustka się nie zmieści. Ustaw szerokość co najmniej ${mmTxt(a.grubosc + 0.2)} mm.` });
       }
     }
@@ -908,7 +930,7 @@ export function instrukcjaMontazu(strony, sp = {}) {
   kroki.push(`Wydrukuj ${ark === 1 ? 'arkusz' : `${ark} arkusze`}${sp.material ? ` na ${sp.material === 'karton' ? 'kartonie' : sp.material === 'tektura' ? 'tekturze' : 'papierze'}${sp.gramatura && ['papier', 'karton'].includes(sp.material) ? ` ${sp.gramatura} g/m²` : ''}` : ''}${sp.druga_strona === 'druk' ? ' dwustronnie' : ''}.`);
   kroki.push(sp.druk === 'drukarnia'
     ? `Części wycina ploter (linia cięcia „CutContour”); bigi („Crease”) ułatwią zginanie. Części: ${lista.map(nazwa).join(', ')}.`
-    : `Wytnij części po ciągłej linii: ${lista.map((x) => `${nazwa(x)}${ark > 1 ? ` – arkusz ${x.arkusz}` : ''}`).join(', ')}. Szczeliny natnij nożykiem.`);
+    : `Wytnij części po ciągłej linii: ${lista.map((x) => `${nazwa(x)}${ark > 1 ? ` – arkusz ${x.arkusz}` : ''}`).join(', ')}. ${lista.some((x) => x.c.szczeliny.some((z) => z.naciecie)) ? 'Nacięcia (także skośne i krzywe w środku części) przetnij nożykiem przy linijce, a szczeliny wytnij.' : 'Szczeliny natnij nożykiem.'}`);
   const zgiecia = lista.map((x) => ({ x, g: x.c.zgiecia.filter((z) => z.rodzaj === 'gora').length, d: x.c.zgiecia.filter((z) => z.rodzaj === 'dolina').length, z: x.c.krawedzie.filter((k) => k.typ === 'zakladka').length })).filter((y) => y.g + y.d + y.z);
   if (zgiecia.length) {
     kroki.push('Zegnij wszystkie linie przed klejeniem – przyłóż linijkę i przeciągnij tępą stroną noża. Kreska–kropka („góra”) – zginaj od siebie, nadruk zostaje na zewnątrz; same kreski („dolina”) – do siebie. Zakładki zaginaj pod spód.');

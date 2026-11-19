@@ -338,6 +338,38 @@ export function liniaKlejenia() {
   return ile;
 }
 
+// Nacięcie z zaznaczonej linii, łamanej albo krzywej z pióra (#297): odcinki nacięcia ze wspólnym `ciag`
+// (w panelu jedno nacięcie). Bez zaznaczenia – narzędzie klikane (dwa punkty).
+export function naciecie() {
+  if (!wSkladance()) return 0;
+  const a = edytor.canvas.getActiveObject();
+  const lista = (a && (a.type === 'activeselection' || a.type === 'activeSelection') ? a.getObjects() : a ? [a] : []).filter(moznaNaCzesc);
+  if (!lista.length) { ustawNarzedzie('naciecie'); return 0; }
+  const naGrupe = new Map();
+  for (const o of lista) {
+    const l = liniaZKsztaltu(o);
+    if (!l) continue;
+    const sr = l.punkty[Math.floor(l.punkty.length / 2)];
+    const g = czescZTrescia(new fabric.Point(sr.x, sr.y)) || czescZTrescia(o.getCenterPoint());
+    if (!g) continue;
+    const pk = l.punkty.map((p) => doUkladuCzesci(g, p));
+    if (l.zamknieta) pk.push(pk[0]);
+    const ciag = `n${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    const odcinki = pk.slice(1).map((b, i) => ({ a: pk[i], b, szer: 0.2, para: null, naciecie: true, ciag })).filter((z) => Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y) > 0.05);
+    (naGrupe.get(g) || naGrupe.set(g, []).get(g)).push({ o, odcinki });
+  }
+  if (!naGrupe.size) { powiadom('Narysuj linię, łuk albo kształt piórem na części, zaznacz go i użyj [Nacięcie] – albo kliknij [Nacięcie] bez zaznaczenia i wskaż dwa punkty.', true); return 0; }
+  edytor.canvas.discardActiveObject();
+  let ile = 0;
+  for (const [g, w] of naGrupe) {
+    for (const { o } of w) edytor.canvas.remove(o);
+    zmienCzesc(g, (d) => { d.szczeliny = [...(d.szczeliny || []), ...w.flatMap((x) => x.odcinki)]; });
+    ile += w.length;
+  }
+  powiadom(`${ile === 1 ? 'Nacięcie gotowe' : `${ile} nacięcia gotowe`} – na płycie cięcia razem z obrysem. Ze zgięciami dzieli ścianę (wycinanka).`);
+  return ile;
+}
+
 export function umiescZaznaczoneNaCzesci() {
   if (!wSkladance()) return 0;
   const a = edytor.canvas.getActiveObject();
@@ -350,12 +382,13 @@ export function umiescZaznaczoneNaCzesci() {
 
 // ---------- Narzędzia klikane ----------
 
-let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej' | 'linia' | 'rozetnij' | 'scal'
+let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'naciecie' | 'klej' | 'linia' | 'rozetnij' | 'scal'
 let pierwszy = null; // { g, q (układ części), krawedz? }
 
 const OPISY = {
   zgiecie: 'Zgięcie: kliknij punkt na krawędzi części, potem drugi punkt na krawędzi – linia podzieli część na ściany (Esc kończy).',
   linia: 'Linia klejenia: kliknij początek i koniec w dowolnym miejscu części – nie musi dochodzić do krawędzi (Esc kończy). Krzywą albo łamaną narysuj linią lub piórem na części, zaznacz i użyj [Linia klejenia].',
+  naciecie: 'Nacięcie: kliknij początek i koniec – w środku części albo od jej krawędzi, pod dowolnym kątem (Esc kończy). Krzywe albo łamane: narysuj linię lub pióro na części, zaznacz i użyj [Nacięcie].',
   polacz: 'Połącz: kliknij przy krawędzi, która dostanie zakładkę, potem przy krawędzi, do której się przykleja – albo w środku ściany (miejsce klejenia). Esc kończy.',
   szczelina: 'Szczelina: kliknij początek i koniec nacięcia w części – szerokość z grubości materiału (Esc kończy).',
   klej: 'Miejsce klejenia: kliknij w części (z Shiftem – na spodzie, bez druku). Esc kończy.',
@@ -453,6 +486,21 @@ function klik(p, shift) {
     edytor.canvas.remove(inna);
     zmienCzesc(g, (d) => Object.assign(d, w), { tresc: [...trescCzesci(g), ...tresc2] });
     powiadom(`Scalono części ${c.nr} i ${c2.nr} – krawędź ${k.para} jest teraz zgięciem.`);
+    return;
+  }
+  if (narzedzie === 'naciecie') {
+    if (!wWielokacie(c.punkty, q) && !przyKrawedzi) { powiadom('Nacięcie leży na części – kliknij w nią albo przy jej krawędzi.', true); return; }
+    // Przyciąganie (do 1,5 mm) do wierzchołków części, końców zgięć i innych nacięć – inaczej klapka (nacięcia +
+    // zgięcie) nie domknie się przez niedokładność kliknięcia.
+    const punktyChwytu = [...c.punkty, ...c.zgiecia.flatMap((z) => [z.a, z.b]), ...c.szczeliny.filter((z) => z.naciecie).flatMap((z) => [z.a, z.b]), ...(pierwszy?.g === g ? [pierwszy.q] : [])];
+    const chwyt = punktyChwytu.map((x) => ({ x, d: Math.hypot(x.x - q.x, x.y - q.y) })).sort((u, v) => u.d - v.d)[0];
+    const p = chwyt && chwyt.d <= 1.5 ? { x: chwyt.x.x, y: chwyt.x.y } : (przyKrawedzi ? brzeg.punkt : q);
+    if (!pierwszy) { pierwszy = { g, q: p }; powiadom('Teraz koniec nacięcia (w tej samej części).'); return; }
+    if (pierwszy.g !== g) { pierwszy = null; powiadom('Oba końce nacięcia muszą być w tej samej części – zacznij od nowa.', true); return; }
+    const a = pierwszy.q;
+    pierwszy = null;
+    if (Math.hypot(p.x - a.x, p.y - a.y) < 1) { powiadom('Nacięcie jest za krótkie.', true); return; }
+    zmienCzesc(g, (d) => { d.szczeliny = [...(d.szczeliny || []), { a, b: p, szer: 0.2, para: null, naciecie: true }]; });
     return;
   }
   if (narzedzie === 'szczelina') {
@@ -568,7 +616,8 @@ export function panelCzesci(panel, g0) {
     ['link', 'Połącz – krawędź z krawędzią albo z miejscem', () => ustawNarzedzie('polacz')],
     ['prostokat', 'Klej – miejsce klejenia', () => ustawNarzedzie('klej')],
     ['ozdobnik', 'Linia klejenia – w dowolnym miejscu ściany', () => ustawNarzedzie('linia')],
-    ['minus', 'Szczelina – nacięcie na wypustkę', () => ustawNarzedzie('szczelina')],
+    ['minus', 'Szczelina – na wypustkę (z szerokością)', () => ustawNarzedzie('szczelina')],
+    ['separator', 'Nacięcie – linia cięcia w środku części, pod dowolnym kątem', () => ustawNarzedzie('naciecie')],
     ['separator', 'Rozetnij na dwie części – dwa kliknięcia na krawędziach', () => ustawNarzedzie('rozetnij')],
     ['link', 'Scal z częścią do pary – kliknij krawędź z numerem', () => ustawNarzedzie('scal')],
   ]));
@@ -616,10 +665,28 @@ export function panelCzesci(panel, g0) {
       p.append(panel.akcje([['kosz', `Usuń miejsce ${i + 1}`, () => zmien((d) => { d.pola.splice(i, 1); })]]));
     });
   }
+  // Nacięcia (#297): ciąg odcinków z jednego kształtu – jedna pozycja.
+  const nac = [];
+  c().szczeliny.forEach((z, i) => {
+    if (!z.naciecie) return;
+    const k = z.ciag || `#${i}`;
+    let w = nac.find((x) => x.k === k);
+    if (!w) { w = { k, idx: [], dl: 0 }; nac.push(w); }
+    w.idx.push(i);
+    w.dl += Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y);
+  });
+  if (nac.length) {
+    const ns = panel.sekcja('Nacięcia');
+    nac.forEach((w, j) => {
+      ns.append(panel.wskazowka(`Nacięcie ${j + 1}: ${String(Math.round(w.dl * 10) / 10).replace('.', ',')} mm${w.idx.length > 1 ? ` (${w.idx.length} odcinków)` : ''}.`));
+      ns.append(panel.akcje([['kosz', `Usuń nacięcie ${j + 1}`, () => zmien((d) => { d.szczeliny = d.szczeliny.filter((_, i) => !w.idx.includes(i)); })]]));
+    });
+  }
   const sz = c().szczeliny;
-  if (sz.length) {
+  if (sz.some((z) => !z.naciecie)) {
     const p = panel.sekcja('Szczeliny');
-    sz.forEach((_, i) => {
+    sz.forEach((z0, i) => {
+      if (z0.naciecie) return;
       p.append(panel.tekst(`Szczelina ${i + 1} – numer pary`, () => c().szczeliny[i].para || '', (v) => zmien((d) => { d.szczeliny[i].para = v || null; })));
       p.append(panel.liczba('Szerokość', () => c().szczeliny[i].szer, (v) => zmien((d) => { d.szczeliny[i].szer = v; }), { jednostka: 'mm', krok: 0.05, min: 0.2 }));
       p.append(panel.akcje([['kosz', `Usuń szczelinę ${i + 1}`, () => zmien((d) => { d.szczeliny.splice(i, 1); })]]));
@@ -848,6 +915,7 @@ export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-model-3d') return oknoModelu3D();
   if (akcja === 'skladanka-na-czesc') return umiescZaznaczoneNaCzesci();
   if (akcja === 'skladanka-linia') return liniaKlejenia();
+  if (akcja === 'skladanka-naciecie') return naciecie();
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   if (akcja === 'skladanka-szablon') return oknoSzablonow();
   if (akcja === 'skladanka-instrukcja') return oknoInstrukcji();
