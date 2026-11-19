@@ -370,8 +370,9 @@ export async function zapiszZnakWodny() {
     if (nowy) p.znak_wodny = nowy; else delete p.znak_wodny;
     await zapiszP();
     wypelnijZnak(p);
+    odswiezZnak(p, true); // stan ustawienia widać od razu, nie dopiero po narysowaniu stron
     if (p.udostepnienie) {
-      komunikat.textContent = 'Zapisano. Strony linku przygotowują się w tle – możesz zamknąć to okno, ale nie zamykaj Makietki (pasek postępu na dole).';
+      komunikat.textContent = 'Zapisano. Strony linku przygotowują się w tle – możesz zamknąć to okno, ale nie zamykaj Makietki (postęp widać na pasku).';
       if (p !== stan.projekt) await przygotujDoRysowania(p);
       await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); komunikat.textContent = `Zapisano. Strony linku: ${i} z ${n} – możesz zamknąć to okno, nie zamykaj Makietki.`; }));
       await zapiszP();

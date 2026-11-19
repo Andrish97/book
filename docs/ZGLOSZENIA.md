@@ -261,3 +261,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: link – znak wodny i ochrona zapisują się od razu (zdjęty znak wodny nie zostaje w linku), strony linku tworzą się w tle z paskiem „nie zamykaj Makietki” także po zamknięciu okna Udostępnij (#316).
 - 19.11.2026: urządzenia bez grafiki 3D – uproszczona makieta 2D (obracanie, kartkowanie, obraz, ujęcia do linku) zamiast oczekiwania na zdjęcia; pełne ujęcia z 3D zastępują uproszczone (#318).
 - 19.11.2026: makieta – bez zdjęć jako opcji (przełącznik 3D / Zdjęcia i galeria usunięte), zdjęcie makiety tylko pobraniem (#319).
+- 19.11.2026: pasek postępu w oknach na telefonie – bez kanciastych rogów (#320).

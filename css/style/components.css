@@ -302,7 +302,7 @@ dialog:focus { outline: none; }
   transform: translateY(var(--zaslonka-ciag, 0px));
 }
 :root[data-zaslonka] dialog[open] { display: flex; flex-direction: column; }
-:root[data-zaslonka] dialog > :not(.uchwyt-zaslonki):not(.menu) { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+:root[data-zaslonka] dialog > :not(.uchwyt-zaslonki):not(.menu):not(.postepy) { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 /* Instrukcja ma własne przewijanie (treść i spis) – sam układ się nie przewija; inaczej schowany pod ekranem spis
    dawał się wyciągnąć przewinięciem razem z całą zasłonką (#132). */
 :root[data-zaslonka] dialog.dialog-instrukcja > .instrukcja { overflow: clip; }
