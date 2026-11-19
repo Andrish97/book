@@ -117,17 +117,21 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   // Pop-up z platformą (#269): pasek długości y + h = odległość pól przez grzbiet (leży płasko po otwarciu na 180°).
   const pl = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup_platforma', {}));
   const [karta, pasek, pasek2] = pl;
-  // Druga warstwa: tak samo – pasek 2 = odległość pól na pierwszym pasku przez jego zgięcie.
-  const zg1 = pasek.zgiecia[0].a.x;
-  const [q1, q2] = pasek.pola;
-  assert.ok(Math.abs((q1.x - zg1) + (zg1 - (q2.x + q2.w)) - pasek2.punkty[1].x) < 0.05, 'druga warstwa leży płasko po otwarciu');
+  // Druga warstwa (#299): w kącie między przodem pierwszego paska a kartką – pasek 2 = odległość pola l2 od końca
+  // przodu paska + odległość pola p2 od miejsca, gdzie pasek 1 dochodzi do kartki (leży płasko po otwarciu).
+  const [q1] = pasek.pola;
+  const pp2 = karta.pola.find((x) => x.para === 'p2');
+  const y1 = pasek.zgiecia[0].a.x;
+  const d1 = pasek.punkty[1].x - (q1.x + q1.w);
+  const d2 = pp2.x - (karta.punkty[1].x / 2 + y1);
+  assert.ok(Math.abs(d1 + d2 - pasek2.punkty[1].x) < 0.05, `druga warstwa leży płasko po otwarciu (${d1} + ${d2} vs ${pasek2.punkty[1].x})`);
   assert.equal((await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup_platforma', { warstwy: 1 }))).length, 2);
   const S = karta.punkty[1].x / 2;
   const [pl1, pl2] = karta.pola;
   assert.ok(Math.abs((S - (pl1.x + pl1.w)) + (pl2.x - S) - pasek.punkty[1].x) < 0.05, 'pasek = odległość pól przez grzbiet');
   assert.deepEqual(pasek.krawedzie.filter((k) => k.para).map((k) => k.para).sort(), ['l', 'p']);
   assert.deepEqual(pasek2.krawedzie.filter((k) => k.para).map((k) => k.para).sort(), ['l2', 'p2']);
-  assert.deepEqual(karta.pola.map((x) => x.para).sort(), ['l', 'p']);
+  assert.deepEqual(karta.pola.map((x) => x.para).sort(), ['l', 'p', 'p2']);
   // Zgięcie V (#272): pola skośne od punktu na grzbiecie, długość = ramię trójkąta, kąt trójkąta = kąt pól.
   const v = await strona.evaluate(async () => {
     const [k, t] = (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup_v', { kat: 40 });

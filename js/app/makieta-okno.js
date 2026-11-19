@@ -337,7 +337,7 @@ const ksiazkowy = (model) => model.startsWith('ksiazka') || model === 'notes';
 function zbudujScene(u, cel = st.cel) {
   let uu = u;
   if (ksiazkowy(st.model) && st.sc.uchylenie > 0 && u === 0 && cel === 0) uu = Math.min(0.97, odwrocGladko(st.sc.uchylenie));
-  return scena(st.model, st.kartki, uu, { ulozenie: st.ulozenie, otwarcie: st.sc.otwarcie, wachlarz: st.sc.wachlarz, ilosc: st.sc.ilosc });
+  return scena(st.model, st.kartki, uu, { ulozenie: st.ulozenie, otwarcie: st.sc.otwarcie, wachlarz: st.sc.wachlarz, ilosc: st.sc.ilosc, popup: st.sc.popup });
 }
 const kluczSceny = (u) => `${u}|${st.model}|${st.ulozenie}|${st.cel === 0}|${JSON.stringify(st.sc)}|${st.wersjaKartek}`;
 const opcjeRysowania = (zmiany = {}) => ({ ...st.opcje, ciemny: ciemny(), ...zmiany });
@@ -1024,6 +1024,9 @@ function pokazKontrolki() {
   ustawWyjscie('makieta-otwarcie', `${sc.otwarcie ?? domOtw}°`);
   $('#makieta-uchylenie').value = String(Math.round(sc.uchylenie * 180));
   ustawWyjscie('makieta-uchylenie', `${Math.round(sc.uchylenie * 180)}°`);
+  $('#makieta-grupa-popup').hidden = st.model !== 'skladanka';
+  $('#makieta-popup').value = String(sc.popup ?? 90);
+  ustawWyjscie('makieta-popup', `${sc.popup ?? 90}°`);
   $('#makieta-wachlarz').value = String(sc.wachlarz);
   ustawWyjscie('makieta-wachlarz', String(sc.wachlarz));
   // Rozkładówki: każde położenie kartkowania z opisem.
@@ -1111,6 +1114,7 @@ naZmiane('makieta-odleglosc', (el) => { st.kamera.zoom = Math.max(0.25, Math.min
 naZmiane('makieta-obiektyw', (el) => { st.kamera.fov = Number(el.value); rysujPozniej(); });
 naZmiane('makieta-otwarcie', (el) => ustawSceneMakiety({ otwarcie: Number(el.value) }));
 naZmiane('makieta-uchylenie', (el) => ustawSceneMakiety({ uchylenie: Number(el.value) / 180 }));
+naZmiane('makieta-popup', (el) => ustawSceneMakiety({ popup: Number(el.value) }));
 naZmiane('makieta-wachlarz', (el) => ustawSceneMakiety({ wachlarz: Number(el.value) }));
 naZmiane('makieta-ilosc', (el) => ustawSceneMakiety({ ilosc: iloscSceny(el.value) }), 'change');
 naZmiane('makieta-rozkladowka', (el) => { st.cel = Number(el.value); st.czas = performance.now(); rysujPozniej(); }, 'change');

@@ -53,6 +53,8 @@ export function normalizujScene(s = {}) {
     wachlarz: Math.round(liczba(s?.wachlarz, 0, 12, 0)),
     ilosc: iloscSceny(idIlosci(s?.ilosc)),
     uchylenie: liczba(s?.uchylenie, 0, 0.95, 0),
+    // Składanka pop-up (#299): kąt otwarcia kartki z grzbietem 0–180° (null – domyślne 90°).
+    popup: liczba(s?.popup, 0, 180, null) === null ? null : Math.round(liczba(s?.popup, 0, 180, null)),
   };
 }
 

@@ -38,6 +38,7 @@ export function normalizujCzesc(c = {}) {
   const zgiecia = (Array.isArray(c.zgiecia) ? c.zgiecia : []).filter((z) => z?.a && z?.b).map((z) => ({
     a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), rodzaj: z.rodzaj === 'gora' ? 'gora' : 'dolina', kat: Number.isFinite(z.kat) ? Math.max(0, Math.min(180, z.kat)) : 90,
     ...(z.luk && Number.isFinite(z.luk.x) && Number.isFinite(z.luk.y) ? { luk: P(z.luk.x, z.luk.y) } : {}),
+    ...(z.grzbiet ? { grzbiet: true } : {}), // grzbiet kartki pop-up (#299) – zgięcie otwierane suwakiem w makiecie
   }));
   const liczba = (v, d) => (Number.isFinite(v) ? v : d);
   const pola = (Array.isArray(c.pola) ? c.pola : []).filter((x) => x && Number.isFinite(x.x) && Number.isFinite(x.y)).map((x) => ({

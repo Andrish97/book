@@ -645,6 +645,8 @@ export function panelCzesci(panel, g0) {
     zg.forEach((_, i) => {
       z.append(panel.wybor(`Zgięcie ${i + 1}`, Object.entries(RODZAJE_ZGIEC), () => c().zgiecia[i].rodzaj, (v) => zmien((d) => { d.zgiecia[i].rodzaj = v; })));
       z.append(panel.liczba('Kąt po złożeniu', () => c().zgiecia[i].kat, (v) => zmien((d) => { d.zgiecia[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
+      // #299: grzbiet kartki pop-up – wokół niego kartka otwiera się suwakiem w makiecie, reszta rusza się mechanizmem.
+      z.append(panel.przelacznik('Grzbiet kartki (pop-up)', () => Boolean(c().zgiecia[i].grzbiet), (v) => zmien((d) => { if (v) d.zgiecia[i].grzbiet = true; else delete d.zgiecia[i].grzbiet; })));
       z.append(panel.akcje([['kosz', `Usuń zgięcie ${i + 1}`, () => zmien((d) => { d.zgiecia.splice(i, 1); })]]));
     });
   }

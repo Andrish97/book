@@ -1249,7 +1249,7 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
   **Do sklejenia (bez zakładki)** albo **Wypustka do szczeliny** (z długością) – i **numerem pary**;
 - **Zgięcia** – **góra** (od siebie, kreska–kropka – nadruk zostaje na zewnątrz; tak są zgięcia szablonów i nowe
   zgięcia) albo **dolina** (do siebie, kreski) i **kąt po złożeniu** – kąt między ścianami w gotowym modelu
-  (pudełko 90°, ściany sześciokątnego graniastosłupa 120°);
+  (pudełko 90°, ściany sześciokątnego graniastosłupa 120°), a w kartce pop-up przełącznik **Grzbiet kartki (pop-up)**;
 - **Miejsca klejenia** i **Szczeliny** – numer pary, wymiary, na spodzie, usuwanie.
 
 Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego
@@ -1276,7 +1276,11 @@ prostopadle po stronie nadruku, krawędź do krzywej linii klejenia – część
 z zachowaniem swoich zgięć (np. daszek paska zostaje zagięty).
 Ozdobniki, teksty i obrazy na ścianach jadą razem z nimi. Części bez par z resztą zostają na arkuszu.
 
-Rozkładówki pop-up dojdą w następnej wersji.
+**Pop-up w ruchu.** Gdy zgięcie kartki ma w panelu włączony **Grzbiet kartki (pop-up)** (szablony pop-up mają go
+od razu), w oknie makiety pojawia się suwak **Otwarcie kartki pop-up** (0–180°). Kartka otwiera się wokół grzbietu,
+a doklejone platformy, zgięcia V, drugie warstwy i wycinanki ruszają się tak, jak w prawdziwej książce: ściany są
+sztywne, zgięcia działają jak zawiasy, a miejsca klejenia trzymają doklejone części. Przy 180° wszystko leży płasko,
+przy 90° elementy stoją, a przy prawie zamkniętej kartce składają się do środka. Ustawienie zapisuje się w ujęciu.
 
 # 11. Wzorce stron
 

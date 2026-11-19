@@ -1239,7 +1239,7 @@ export function trojkatyWielokata(p) {
 // w drugą stronę. Arkusze leżą obok siebie; u: 0 – płasko nadrukiem do góry, 1 – złożone (najpierw odwrócenie,
 // potem zginanie), 2 – sklejony model (#286): części ustawiają się po parach (sklejModel). Tekstura ścian – z arkusza
 // (uv z położenia części na arkuszu), spód – karton.
-function geometriaCzesci(cz, kartki, s) {
+export function geometriaCzesci(cz, kartki, s) {
   const kar = kartki[cz.arkusz] || kartki[0];
   const S = kar.w;
   const Hs = kar.h;
@@ -1283,7 +1283,7 @@ function geometriaCzesci(cz, kartki, s) {
   };
   const punkt = (q, i = sciana(q)) => naT(T[i] || T_JEDN, F(naArk(q)));
   const normalna = (q, i = sciana(q)) => naR((T[i] || T_JEDN).R, [0, -1, 0]); // strona z nadrukiem
-  return { kar, S, Hs, c, sciany, T, naArk, punkt, normalna, otwory, odpady, pole: pola.reduce((a, b) => a + b, 0) };
+  return { kar, S, Hs, c, sciany, zawiasy, T, naArk, punkt, normalna, sciana, otwory, odpady, pole: pola.reduce((a, b) => a + b, 0) };
 }
 
 // Miejsca par części (w układzie części): krawędzie z numerem, linie klejenia, pola (oś wzdłuż dłuższego boku),
@@ -1297,7 +1297,8 @@ function miejscaPar(c) {
     const r = rogiPola(p);
     const [a, b] = p.w >= p.h ? [[r[0], r[3]], [r[1], r[2]]] : [[r[0], r[1]], [r[3], r[2]]];
     const sr = (u, v) => ({ x: (u.x + v.x) / 2, y: (u.y + v.y) / 2 });
-    w.push({ para: p.para, rodzaj: 'linia', punkty: [sr(...a), sr(...b)], prosta: true });
+    const dluzsze = p.w >= p.h ? [[r[0], r[1]], [r[3], r[2]]] : [[r[0], r[3]], [r[1], r[2]]];
+    w.push({ para: p.para, rodzaj: 'linia', punkty: [sr(...a), sr(...b)], prosta: true, pole: true, krawedzie: dluzsze });
   }
   for (const z of c.szczeliny) if (z.para) w.push({ para: z.para, rodzaj: 'linia', punkty: [z.a, z.b], prosta: true });
   return w;
@@ -1490,7 +1491,320 @@ function sklejModel(geo) {
   return wynik;
 }
 
-function skladanka(quady, kartki, u) {
+// ---------- Pop-up w ruchu (#299, plan składanek krok 19) ----------
+// Kartka z grzbietem (zgięcie z `grzbiet: true`) i wszystko, co do niej doklejono (pary), to mechanizm: ściany każdej
+// części są sztywne i obracają się na swoich zawiasach (drzewo ścian części; kąt każdego zawiasu – niewiadoma),
+// doklejone części mają swobodne położenie (6 stopni swobody). Więzy: zamknięte pętle zawiasów w części (wycinanka –
+// zawias spoza drzewa musi się zejść z obu stron) i pary klejenia (krawędź doklejanej części na swoim miejscu).
+// Kąt grzbietu zadaje suwak; resztę liczy Levenberg–Marquardt, krok po kroku od kartki rozłożonej płasko
+// (wszystko płasko – stan znany) do zadanego otwarcia. Wszystko w układzie arkusza „płasko” (geometriaCzesci z s = 0).
+function obrotWektorem(v) {
+  const kat = Math.hypot(v[0], v[1], v[2]);
+  return kat < 1e-12 ? T_JEDN.R : obrotOs([0, 0, 0], razy(v, 1 / kat), kat).R;
+}
+function rozwiazLM(f, x0, { iter = 30, tol = 1e-9 } = {}) {
+  let x = [...x0];
+  let r = f(x);
+  let koszt = r.reduce((a, v) => a + v * v, 0);
+  let lam = 1e-3;
+  for (let it = 0; it < iter && koszt > tol; it += 1) {
+    const n = x.length;
+    const J = [];
+    for (let j = 0; j < n; j += 1) {
+      const h = 1e-6;
+      const xp = [...x]; xp[j] += h;
+      const rp = f(xp);
+      J.push(rp.map((v, i) => (v - r[i]) / h));
+    }
+    // (JᵀJ + λ diag) Δ = −Jᵀr
+    const A = Array.from({ length: n }, (_, a) => Array.from({ length: n }, (__, b) => J[a].reduce((acc, v, i) => acc + v * J[b][i], 0)));
+    const g = Array.from({ length: n }, (_, a) => J[a].reduce((acc, v, i) => acc + v * r[i], 0));
+    let poprawa = false;
+    for (let proba = 0; proba < 8 && !poprawa; proba += 1) {
+      const M = A.map((w, a) => w.map((v, b) => (a === b ? v + lam * (v + 1) : v)));
+      const d = rozwiazUklad(M, g.map((v) => -v));
+      if (!d) { lam *= 10; continue; }
+      const xn = x.map((v, i) => v + d[i]);
+      const rn = f(xn);
+      const kn = rn.reduce((a, v) => a + v * v, 0);
+      if (kn < koszt) { x = xn; r = rn; koszt = kn; lam = Math.max(1e-9, lam / 3); poprawa = true; } else lam *= 10;
+    }
+    if (!poprawa) break;
+  }
+  return { x, koszt };
+}
+function rozwiazUklad(M, b) {
+  const n = b.length;
+  const A = M.map((w, i) => [...w, b[i]]);
+  for (let k = 0; k < n; k += 1) {
+    let p = k;
+    for (let i = k + 1; i < n; i += 1) if (Math.abs(A[i][k]) > Math.abs(A[p][k])) p = i;
+    if (Math.abs(A[p][k]) < 1e-14) return null;
+    [A[k], A[p]] = [A[p], A[k]];
+    for (let i = k + 1; i < n; i += 1) {
+      const m = A[i][k] / A[k][k];
+      for (let j = k; j <= n; j += 1) A[i][j] -= m * A[k][j];
+    }
+  }
+  const x = new Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i -= 1) {
+    let s = A[i][n];
+    for (let j = i + 1; j < n; j += 1) s -= A[i][j] * x[j];
+    x[i] = s / A[i][i];
+  }
+  return x;
+}
+
+// Mechanizm z części (geo – płaskie, s = 0). Zwraca null (brak grzbietu) albo { ustaw(katOtwarcia) → [per część:
+// [T ściany]] | null }.
+export function mechanizmPopup(geo) {
+  const czesciGrzbietu = geo.map((g, i) => (g && g.c.zgiecia.some((z) => z.grzbiet) ? i : -1)).filter((i) => i >= 0);
+  if (!czesciGrzbietu.length) return null;
+  const korzen = czesciGrzbietu[0];
+  // Składowa: części połączone parami z korzeniem.
+  const miejsca = geo.map((g) => (g ? miejscaPar(g.c) : []));
+  const wSkladowej = new Set([korzen]);
+  for (let zmiana = true; zmiana;) {
+    zmiana = false;
+    geo.forEach((g, i) => {
+      if (!g || wSkladowej.has(i)) return;
+      if ([...wSkladowej].some((j) => miejsca[i].some((m) => miejsca[j].some((n) => n.para === m.para)))) { wSkladowej.add(i); zmiana = true; }
+    });
+  }
+  const czesci = [...wSkladowej];
+  // Drzewo ścian każdej części: od ściany przy grzbiecie (korzeń) albo największej.
+  const drzewa = new Map();
+  let grzbiet = null;
+  for (const ic of czesci) {
+    const g = geo[ic];
+    const pola = g.sciany.map((w) => Math.abs(poleWielokata(w)));
+    let start = pola.indexOf(Math.max(...pola));
+    if (ic === korzen) {
+      const zg = g.zawiasy.find((z) => g.c.zgiecia[z.zgiecie]?.grzbiet);
+      if (zg) start = zg.s1;
+    }
+    const rodzic = new Map([[start, null]]);
+    const kolejka = [start];
+    const drzewo = [];
+    while (kolejka.length) {
+      const r = kolejka.shift();
+      for (const z of g.zawiasy) {
+        if (g.odpady.includes(z.s1) || g.odpady.includes(z.s2)) continue;
+        const d = z.s1 === r ? z.s2 : z.s2 === r ? z.s1 : null;
+        if (d === null || rodzic.has(d)) continue;
+        rodzic.set(d, drzewo.length);
+        drzewo.push({ z, od: r, do: d });
+        kolejka.push(d);
+      }
+    }
+    const pozaDrzewem = g.zawiasy.filter((z) => !drzewo.some((d) => d.z === z) && rodzic.has(z.s1) && rodzic.has(z.s2));
+    drzewa.set(ic, { start, drzewo, pozaDrzewem });
+    if (ic === korzen) {
+      const k = drzewo.findIndex((d) => g.c.zgiecia[d.z.zgiecie]?.grzbiet);
+      if (k >= 0) grzbiet = { ic, k };
+    }
+  }
+  if (!grzbiet) return null;
+  const zawGrzbietu = drzewa.get(grzbiet.ic).drzewo[grzbiet.k].z;
+  const polowkaA = zawGrzbietu.s1;
+  const polowkaB = zawGrzbietu.s2;
+  // Zmienne: kąty zawiasów drzewa (bez grzbietu) i położenie (obrót + przesunięcie) części doklejonych.
+  const indeks = [];
+  for (const ic of czesci) drzewa.get(ic).drzewo.forEach((_, k) => { if (!(ic === grzbiet.ic && k === grzbiet.k)) indeks.push({ ic, k }); });
+  const nZaw = indeks.length;
+  const inne = czesci.filter((ic) => ic !== korzen);
+  // Kierunek zawiasu „dodatni”: dziecko idzie na stronę nadruku (−y) przy dolinie, w drugą przy górze – jak przy
+  // składaniu w miejscu (geometriaCzesci).
+  const kierunek = (g, d) => {
+    const A = g.punkt(d.z.a, d.od); const B = g.punkt(d.z.b, d.od);
+    const os = norm(odj(B, A));
+    const sr = g.sciany[d.do].reduce((a, q) => dod(a, razy(g.punkt(q, d.do), 1 / g.sciany[d.do].length)), [0, 0, 0]);
+    const ruch = odj(naT(obrotOs(A, os, 0.1), sr), sr);
+    const wDol = ruch[1] < 0 ? 1 : -1; // +kąt → ku −y
+    const dolina = g.c.zgiecia[d.z.zgiecie]?.rodzaj === 'dolina';
+    return dolina ? wDol : -wDol;
+  };
+  const transformy = (x, katGrzbietu, poczatek) => {
+    const wynik = new Map();
+    let iz = 0;
+    const katy = new Map();
+    for (const { ic, k } of indeks) katy.set(`${ic}|${k}`, x[iz++]);
+    let ip = nZaw;
+    for (const ic of czesci) {
+      const g = geo[ic];
+      const { start, drzewo } = drzewa.get(ic);
+      let Tc = T_JEDN;
+      if (ic !== korzen) {
+        const p0 = poczatek.get(ic);
+        const R = obrotWektorem([x[ip], x[ip + 1], x[ip + 2]]);
+        const t = [x[ip + 3], x[ip + 4], x[ip + 5]];
+        ip += 6;
+        // Obrót wokół środka części w położeniu początkowym, potem przesunięcie.
+        const Rc = { R, t: odj(p0.srodek, naR(R, p0.srodek)) };
+        Tc = zlozT({ R: T_JEDN.R, t }, zlozT(Rc, p0.T));
+      }
+      const Tf = new Array(g.sciany.length).fill(null);
+      Tf[start] = Tc;
+      drzewo.forEach((d, k) => {
+        const kat = ic === grzbiet.ic && k === grzbiet.k ? katGrzbietu : katy.get(`${ic}|${k}`);
+        const A = g.punkt(d.z.a, d.od); const B = g.punkt(d.z.b, d.od);
+        Tf[d.do] = zlozT(Tf[d.od], obrotOs(A, norm(odj(B, A)), kat * d.znak));
+      });
+      wynik.set(ic, Tf);
+    }
+    return wynik;
+  };
+  for (const ic of czesci) for (const d of drzewa.get(ic).drzewo) d.znak = kierunek(geo[ic], d);
+  // Więzy par klejenia między częściami składowej (doklejana – ta z krawędzią).
+  const wiezy = [];
+  for (const ia of czesci) for (const ib of czesci) {
+    if (ia === ib) continue;
+    for (const mb of miejsca[ib]) {
+      if (mb.rodzaj !== 'krawedz') continue;
+      const ma = miejsca[ia].find((m) => m.para === mb.para && !(ia > ib && m.rodzaj === 'krawedz'));
+      if (!ma) continue;
+      wiezy.push({ ia, ib, ma, mb });
+    }
+  }
+  for (const w of wiezy) if (!w.ma.pole) w.cel = w.ma.punkty.length > 2 ? [w.ma.punkty[0], w.ma.punkty.at(-1)] : w.ma.punkty;
+  // Pole: krawędź zawiasu to dłuższy bok pola od strony ciała doklejanej części – ta leży między swoimi miejscami
+  // klejenia, więc bok bliższy jej drugiego miejsca (zakładka leży na polu, po drugiej stronie). Gdy część ma tylko
+  // jedno miejsce – bok bliższy zgięcia części docelowej. Wybór w położeniu płaskim, po ustawieniu części docelowych.
+  const wybierzBokiPol = (ic, polozenie) => {
+    const pary = wiezy.filter((w) => w.ib === ic && polozenie.has(w.ia));
+    const srodekCelu = (w, k) => { const ga = geo[w.ia]; const T = polozenie.get(w.ia).T; const pts = k.map((q) => naT(T, ga.punkt(q))); return razy(dod(pts[0], pts[1]), 0.5); };
+    for (const w of pary) {
+      if (!w.ma.pole) continue;
+      const [k1, k2] = w.ma.krawedzie;
+      const inne2 = pary.filter((x) => x !== w).map((x) => srodekCelu(x, x.ma.pole ? x.ma.punkty : x.cel || x.ma.punkty));
+      if (inne2.length) {
+        const cel = inne2.reduce((a2, p) => dod(a2, razy(p, 1 / inne2.length)), [0, 0, 0]);
+        w.cel = Math.hypot(...odj(srodekCelu(w, k1), cel)) <= Math.hypot(...odj(srodekCelu(w, k2), cel)) ? k1 : k2;
+      } else {
+        const g = geo[w.ia];
+        const odl = (p) => Math.min(...g.c.zgiecia.map((z) => naObwodzie([z.a, z.b], p).odl), Infinity);
+        const sr = (k) => ({ x: (k[0].x + k[1].x) / 2, y: (k[0].y + k[1].y) / 2 });
+        w.cel = odl(sr(k1)) <= odl(sr(k2)) ? k1 : k2;
+      }
+    }
+  };
+  // Położenie początkowe części doklejonych: płasko na kartce (strona nadruku, −y), dopasowanie 2D krawędzi do celów.
+  const poczatek = new Map([[korzen, { T: T_JEDN, srodek: [0, 0, 0] }]]);
+  // Kolejno od kartki: część dostaje położenie, gdy któraś z jej części docelowych już je ma (druga warstwa na pasku).
+  const kolejnosc = [];
+  for (let zmiana = true; zmiana;) {
+    zmiana = false;
+    for (const ic of inne) {
+      if (kolejnosc.includes(ic)) continue;
+      if (wiezy.some((w) => w.ib === ic && (w.ia === korzen || kolejnosc.includes(w.ia)))) { kolejnosc.push(ic); zmiana = true; }
+    }
+  }
+  for (const ic of inne) if (!kolejnosc.includes(ic)) kolejnosc.push(ic);
+  for (const ic of kolejnosc) {
+    const g = geo[ic];
+    wybierzBokiPol(ic, poczatek);
+    const pary = wiezy.filter((w) => w.ib === ic && poczatek.has(w.ia));
+    const cele = [];
+    for (const w of pary) {
+      const ga = geo[w.ia];
+      const c0 = w.cel.map((q) => naT(poczatek.get(w.ia).T, ga.punkt(q)));
+      const b0 = w.mb.punkty.map((q) => g.punkt(q));
+      cele.push({ b0, c0 });
+    }
+    if (!cele.length) { poczatek.set(ic, { T: T_JEDN, srodek: [0, 0, 0] }); continue; }
+    // Najlepszy obrót w płaszczyźnie (x, z) i przesunięcie, z wyborem kierunku każdej krawędzi.
+    let najlepszy = null;
+    for (let maska = 0; maska < 1 << cele.length; maska += 1) {
+      const pB = []; const pC = [];
+      cele.forEach((c, i) => { const cc = maska & (1 << i) ? [c.c0[1], c.c0[0]] : c.c0; pB.push(...c.b0); pC.push(...cc); });
+      const sb = pB.reduce((a, p) => dod(a, razy(p, 1 / pB.length)), [0, 0, 0]);
+      const sc = pC.reduce((a, p) => dod(a, razy(p, 1 / pC.length)), [0, 0, 0]);
+      let sxx = 0; let sxy = 0;
+      pB.forEach((p, i) => { const a = odj(p, sb); const b = odj(pC[i], sc); sxx += a[0] * b[0] + a[2] * b[2]; sxy += a[0] * b[2] - a[2] * b[0]; });
+      const kat = Math.atan2(sxy, sxx);
+      const R = obrotOs([0, 0, 0], [0, -1, 0], kat).R;
+      const t = odj(sc, naR(R, sb));
+      const T = { R, t: dod(t, [0, -0.3 * (1 + kolejnosc.indexOf(ic)), 0]) };
+      const blad = pB.reduce((a, p, i) => a + Math.hypot(...odj(naT(T, p), pC[i])), 0);
+      if (!najlepszy || blad < najlepszy.blad) najlepszy = { T, blad, maska };
+    }
+    const srodek = naT(najlepszy.T, g.sciany.flatMap((w) => w.map((q) => g.punkt(q))).reduce((a, p, _, t2) => dod(a, razy(p, 1 / t2.length)), [0, 0, 0]));
+    poczatek.set(ic, { T: najlepszy.T, srodek });
+    cele.forEach((_, i) => { if (najlepszy.maska & (1 << i)) pary[i].odwrocone = true; });
+  }
+  const reszty = (x, katGrzbietu, prior) => {
+    const Tm = transformy(x, katGrzbietu, poczatek);
+    const r = [];
+    for (const ic of czesci) {
+      const g = geo[ic];
+      for (const z of drzewa.get(ic).pozaDrzewem) {
+        for (const q of [z.a, z.b]) {
+          const p1 = naT(Tm.get(ic)[z.s1], g.punkt(q, z.s1));
+          const p2 = naT(Tm.get(ic)[z.s2], g.punkt(q, z.s2));
+          r.push(...odj(p1, p2));
+        }
+      }
+    }
+    for (const w of wiezy) {
+      const ga = geo[w.ia]; const gb = geo[w.ib];
+      const cel = w.odwrocone ? [w.cel[1], w.cel[0]] : w.cel;
+      w.mb.punkty.forEach((q, i) => {
+        const pb = naT(Tm.get(w.ib)[gb.sciana(q)], gb.punkt(q, gb.sciana(q)));
+        const pa = naT(Tm.get(w.ia)[ga.sciana(cel[i])], ga.punkt(cel[i], ga.sciana(cel[i])));
+        r.push(...razy(odj(pb, pa), 3));
+      });
+    }
+    // Papier nie przenika papieru: wszystko poza połówkami kartki leży po stronie nadruku obu połówek (w środku
+    // kąta otwarcia) – inaczej mechanizm może „wyskoczyć” na drugą stronę (druga gałąź rozwiązania).
+    const gk = geo[korzen];
+    const polowki = [polowkaA, polowkaB].map((i) => {
+      const T = Tm.get(korzen)[i];
+      return { p: naT(T, gk.punkt(gk.sciany[i][0], i)), n: naR(T.R, [0, -1, 0]) };
+    });
+    for (const ic of czesci) {
+      const g = geo[ic];
+      g.sciany.forEach((w, i) => {
+        if (ic === korzen && (i === polowkaA || i === polowkaB)) return;
+        if (g.odpady.includes(i)) return;
+        for (const q of w) {
+          const pp = naT(Tm.get(ic)[i], g.punkt(q, i));
+          for (const pl of polowki) { const d = skal3(odj(pp, pl.p), pl.n); if (d < -0.05) r.push((d + 0.05) * 2); else r.push(0); }
+        }
+      });
+    }
+    // Słabe przyciąganie do poprzedniego kroku (ciągłość, wybór gałęzi rozwiązania).
+    x.forEach((v, i) => r.push((v - prior[i]) * 0.02));
+    return r;
+  };
+  const pamiec = new Map();
+  return {
+    czesci,
+    koszt: 0,
+    wiezy: wiezy.length,
+    ustaw(katOtwarcia) {
+      const kat = Math.round(ogr(katOtwarcia, 0, 180));
+      if (pamiec.has(kat)) return pamiec.get(kat);
+      let x = new Array(nZaw + 6 * inne.length).fill(0);
+      let wynik = null;
+      // Od rozłożonej płasko (180°) w krokach po 5°.
+      for (let a = 180; a >= kat; a -= Math.min(5, Math.max(1, a - kat) || 5)) {
+        const kg = ((180 - a) * Math.PI) / 180;
+        // Przewidywanie: zawiasy drzewa ruszają się razem z grzbietem (mały krok w ich kierunku).
+        const start = x.map((v, i) => (i < nZaw && Math.abs(v) < 1e-9 ? 0.02 : v));
+        const { x: xn, koszt } = rozwiazLM((xx) => reszty(xx, kg, x), start, { iter: 25 });
+        x = xn;
+        this.koszt = koszt;
+        this.x = x;
+        wynik = transformy(x, kg, poczatek);
+        if (a === kat) break;
+      }
+      pamiec.set(kat, wynik);
+      return wynik;
+    },
+  };
+}
+
+function skladanka(quady, kartki, u, popup = 90) {
   const czesci = kartki[0]?.specjalna?.czesci || [];
   const s = gladko(ogr((u - 0.3) / 0.7, 0, 1));
   const k = gladko(ogr(u - 1, 0, 1)); // sklejanie (#286)
@@ -1498,6 +1812,11 @@ function skladanka(quady, kartki, u) {
   const e = Math.max(0.15, kartki[0]?.d || 0.3);
   const geo = czesci.map((cz) => geometriaCzesci(cz, kartki, s));
   const sklejone = k > 0 ? sklejModel(geo) : null;
+  // Pop-up w ruchu (#299): części mechanizmu (kartka z grzbietem i doklejone) – położenia ścian z rozwiązania.
+  const geo0 = k > 0 ? czesci.map((cz) => geometriaCzesci(cz, kartki, 0)) : null;
+  const mech = geo0 ? mechanizmPopup(geo0) : null;
+  const Tm = mech ? mech.ustaw(popup) : null;
+  if (Tm) for (const ic of mech.czesci) sklejone[ic] = { twarze: Tm.get(ic) };
   geo.forEach((g, ic) => {
     if (!g) return;
     const { S, Hs, kar } = g;
@@ -1507,12 +1826,14 @@ function skladanka(quady, kartki, u) {
     // Punkt i normalna ściany (i) w chwili k.
     const P = (q, i) => {
       const p0 = g.punkt(q, i);
+      if (ul?.twarze) return dod(razy(p0, 1 - k), razy(naT(ul.twarze[i] || T_JEDN, geo0[ic].punkt(q, i)), k));
       if (Gk) return naT(Gk, p0);
       if (ul?.mapa) return dod(razy(p0, 1 - k), razy(ul.mapa(q), k));
       return p0;
     };
     const Nrm = (q, i) => {
       const n0 = g.normalna(q, i);
+      if (ul?.twarze) return norm(dod(razy(n0, 1 - k), razy(naR((ul.twarze[i] || T_JEDN).R, [0, -1, 0]), k)));
       if (Gk) return naR(Gk.R, n0);
       if (ul?.normalna) return norm(dod(razy(n0, 1 - k), razy(ul.normalna(q), k)));
       return n0;
@@ -1729,7 +2050,7 @@ function powiel(quady, { n = 1, uklad = 'obok' } = {}) {
 // Scena modelu w położeniu u: lista czworokątów (współrzędne świata) i quady.podloze. Opcje (#181):
 // otwarcie – kąt rozłożenia książki w stopniach (180 – płasko; domyślnie płasko na leżąco, ok. 110° na stojąco),
 // wachlarz – ile kartek uniesionych wachlarzem, ilosc – { n, uklad: 'obok' | 'stos' | 'przodTyl' }.
-export function scena(model, kartki, u = 0, { ulozenie = 'lezy', otwarcie = null, wachlarz = 0, ilosc = null } = {}) {
+export function scena(model, kartki, u = 0, { ulozenie = 'lezy', otwarcie = null, wachlarz = 0, ilosc = null, popup = null } = {}) {
   const quady = [];
   quady.podloze = { typ: 'stol', poziom: 0 };
   if (!kartki.length) return quady;
@@ -1738,7 +2059,7 @@ export function scena(model, kartki, u = 0, { ulozenie = 'lezy', otwarcie = null
   else if (model === 'ulotka') ulotka(quady, kartki[0], u);
   else if (model === 'koperta') koperta(quady, kartki[0], u);
   else if (model === 'pudelko') pudelko(quady, kartki[0], u);
-  else if (model === 'skladanka') skladanka(quady, kartki, u);
+  else if (model === 'skladanka') skladanka(quady, kartki, u, popup ?? 90);
   else if (model === 'trojdzielny') trojdzielny(quady, kartki[0]);
   else ksiazka(quady, model, kartki, u, { wachlarz });
   const otwarta = mozeStac(model) && u > 0.02 && u < kartki.length - 0.02;

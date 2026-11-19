@@ -294,14 +294,14 @@ function popupWycinanka({ szerokosc: S, wysokosc: H, pudelka: n, glebokosc: d, w
   for (let i = 0; i < ile; i += 1) {
     const y1 = r2(odstep * (i + 1) + wys * i);
     const y2 = r2(y1 + wys);
-    zgiecia.push({ a: P(S, y), b: P(S, y1), rodzaj: 'dolina', kat: 90 });
+    zgiecia.push({ a: P(S, y), b: P(S, y1), rodzaj: 'dolina', kat: 90, grzbiet: true });
     zgiecia.push({ a: P(S, y1), b: P(S, y2), rodzaj: 'gora', kat: 90 });
     zgiecia.push({ a: P(S - gl, y1), b: P(S - gl, y2), rodzaj: 'dolina', kat: 90 });
     zgiecia.push({ a: P(S + gl, y1), b: P(S + gl, y2), rodzaj: 'dolina', kat: 90 });
     szczeliny.push({ a: P(S - gl, y1), b: P(S + gl, y1), szer: 0.2, para: null, naciecie: true }, { a: P(S - gl, y2), b: P(S + gl, y2), szer: 0.2, para: null, naciecie: true });
     y = y2;
   }
-  zgiecia.push({ a: P(S, y), b: P(S, H), rodzaj: 'dolina', kat: 90 });
+  zgiecia.push({ a: P(S, y), b: P(S, H), rodzaj: 'dolina', kat: 90, grzbiet: true });
   return [{
     nazwa: 'Kartka pop-up',
     opis: `Nacięcia (czerwone) przetnij, zegnij według linii i otwórz kartkę pod kątem prostym – ${ile === 1 ? 'pudełko wyskoczy' : 'pudełka wyskoczą'} na ${r2(gl)} mm.`,
@@ -329,7 +329,7 @@ function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pud
     opis: 'Zegnij w dolinę na grzbiecie; pasek przyklej zakładkami do pól klejenia z tymi samymi numerami.',
     punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
     krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
-    zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90 }],
+    zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90, grzbiet: true }],
     pola: [{ x: r2(S - h - zak - 0.5), y: r2(g), w: zak + 0.5, h: r2(w), para: 'l' }, { x: r2(S + y), y: r2(g), w: zak + 0.5, h: r2(w), para: 'p' }],
   };
   const pasek = {
@@ -340,18 +340,23 @@ function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pud
     zgiecia: [{ a: P(y, 0), b: P(y, w), rodzaj: 'gora', kat: 90 }],
   };
   if (Math.round(warstwy) < 2) return [karta, pasek];
-  const y2 = r2(Math.max(5, (y - zak) / 2));
-  const h2 = r2(Math.max(5, (h - zak) / 2));
+  // Druga warstwa (#299 – poprawka #270): mniejsza platforma w kącie WKLĘSŁYM między górą pierwszej (część paska przy
+  // tylnej połówce kartki, x od y do y + h) a tylną połówką kartki – tam, jak w pierwszej warstwie, jest kąt równy
+  // otwarciu kartki. (Wcześniej pasek szedł przez wypukły narożnik platformy – przy otwieraniu tam rośnie do 270°
+  // i taki pasek nie złoży się płasko; pokazała to makieta pop-upu w ruchu.) d1 – odległość pola na pasku od
+  // tylnej połówki, d2 – pola na kartce od linii przyklejenia paska; pasek drugiej warstwy: d2 przy pasku, d1 przy kartce.
+  const d1 = r2(Math.max(5, Math.min((h - zak) / 2, h - zak - 1)));
+  const d2 = r2(Math.max(5, Math.min((S - y - zak) / 2, S - y - zak - 2)));
   const w2 = r2(w * 0.6);
   const g2 = (w - w2) / 2;
-  // Pola na pierwszym pasku: na przodzie (x > y) w odległości h2 od zgięcia, na górze (x < y) w odległości y2.
-  pasek.pola = [{ x: r2(y + h2), y: r2(g2), w: zak + 0.5, h: w2, para: 'l2' }, { x: r2(y - y2 - zak - 0.5), y: r2(g2), w: zak + 0.5, h: w2, para: 'p2' }];
+  pasek.pola = [{ x: r2(y + h - d1 - zak - 0.5), y: r2(g2), w: zak + 0.5, h: w2, para: 'l2' }];
+  karta.pola.push({ x: r2(S + y + d2), y: r2(g + g2), w: zak + 0.5, h: w2, para: 'p2' });
   const pasek2 = {
     nazwa: 'Kartka pop-up – druga warstwa',
-    opis: `Na pierwszym pasku: góra ${y2} mm, przód ${h2} mm.`,
-    punkty: [P(0, 0), P(y2 + h2, 0), P(y2 + h2, w2), P(0, w2)],
+    opis: `Mniejsza platforma w kącie między pierwszą a kartką: ${d2} mm przy platformie, ${d1} mm przy kartce.`,
+    punkty: [P(0, 0), P(d2 + d1, 0), P(d2 + d1, w2), P(0, w2)],
     krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p2', szer: zak }, { typ: 'ciecie' }, { typ: 'zakladka', para: 'l2', szer: zak }],
-    zgiecia: [{ a: P(y2, 0), b: P(y2, w2), rodzaj: 'gora', kat: 90 }],
+    zgiecia: [{ a: P(d2, 0), b: P(d2, w2), rodzaj: 'gora', kat: 90 }],
   };
   return [karta, pasek, pasek2];
 }
@@ -373,7 +378,7 @@ function popupV({ szerokosc: S, wysokosc: H, ramie: g0, kat: alfa0 }) {
     opis: 'Zegnij grzbiet w dolinę; trójkąt przyklej zakładkami do skośnych pól z tymi samymi numerami.',
     punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
     krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
-    zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90 }],
+    zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90, grzbiet: true }],
     pola: [
       // Pola na zewnątrz linii (od grzbietu): zakładka leży płasko na kartce, a trójkąt obraca się wokół linii do
       // środka – przez grzbiet nic nie przechodzi. Lewa linia od końca do P, prawa od P do końca.

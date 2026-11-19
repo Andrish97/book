@@ -1203,7 +1203,7 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 
 - **Część** – nazwę (literę), kolor ścian, przełącznik **Numery par i nazwa części** i przyciski narzędzi;
 - **Krawędzie** – każda krawędź z długością i rodzajem: **Cięcie**, **Zakładka klejowa** (z szerokością), **Do sklejenia (bez zakładki)** albo **Wypustka do szczeliny** (z długością) – i **numerem pary**;
-- **Zgięcia** – **góra** (od siebie, kreska–kropka – nadruk zostaje na zewnątrz; tak są zgięcia szablonów i nowe zgięcia) albo **dolina** (do siebie, kreski) i **kąt po złożeniu** – kąt między ścianami w gotowym modelu (pudełko 90°, ściany sześciokątnego graniastosłupa 120°);
+- **Zgięcia** – **góra** (od siebie, kreska–kropka – nadruk zostaje na zewnątrz; tak są zgięcia szablonów i nowe zgięcia) albo **dolina** (do siebie, kreski) i **kąt po złożeniu** – kąt między ścianami w gotowym modelu (pudełko 90°, ściany sześciokątnego graniastosłupa 120°), a w kartce pop-up przełącznik **Grzbiet kartki (pop-up)**;
 - **Miejsca klejenia** i **Szczeliny** – numer pary, wymiary, na spodzie, usuwanie.
 
 Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯**) i PDF dla drukarni dostają obrys cięcia części z zakładkami i szczelinami, zgięcia (także u nasady każdej zakładki) i miejsca klejenia.
@@ -1214,7 +1214,7 @@ Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy kr
 
 **Makieta 3D** (rozdział „19.4 Makieta 3D”) ma dla sekcji składanki model **Składanka (model z części)**: najpierw arkusze leżą płasko nadrukiem do góry, potem każda część składa się po swoich zgięciach – z nadrukiem z arkusza na ścianach i kartonem w środku (**Złożone części** – stoją obok siebie tak, jak leżą na arkuszach). Ostatnie położenie, **Sklejony model**, skleja części po parach w jedną bryłę – od największej części kolejne dochodzą tam, gdzie mają się przykleić: krawędź do krawędzi (obrót taki, żeby zgadzały się wszystkie pary tej części; bez innych par – pod **Kątem po sklejeniu** z panelu krawędzi: 180° na płasko, jak przedłużenie, 90° prostopadle), krawędź do prostej linii klejenia, miejsca klejenia albo szczeliny – część staje prostopadle po stronie nadruku, krawędź do krzywej linii klejenia – część wygina się i zawija wzdłuż krzywej, z zachowaniem swoich zgięć (np. daszek paska zostaje zagięty). Ozdobniki, teksty i obrazy na ścianach jadą razem z nimi. Części bez par z resztą zostają na arkuszu.
 
-Rozkładówki pop-up dojdą w następnej wersji.
+**Pop-up w ruchu.** Gdy zgięcie kartki ma w panelu włączony **Grzbiet kartki (pop-up)** (szablony pop-up mają go od razu), w oknie makiety pojawia się suwak **Otwarcie kartki pop-up** (0–180°). Kartka otwiera się wokół grzbietu, a doklejone platformy, zgięcia V, drugie warstwy i wycinanki ruszają się tak, jak w prawdziwej książce: ściany są sztywne, zgięcia działają jak zawiasy, a miejsca klejenia trzymają doklejone części. Przy 180° wszystko leży płasko, przy 90° elementy stoją, a przy prawie zamkniętej kartce składają się do środka. Ustawienie zapisuje się w ujęciu.
 
 ## 11. Wzorce stron
 
