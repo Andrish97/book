@@ -249,48 +249,87 @@ for (const id of ['#udostepnij-haslo-wl', '#udostepnij-termin-wl']) $(id)?.addEv
 // projekt.znak_wodny = { tekst } – napis ukośnie, powtarzany na całej stronie, wtopiony w obrazy linku
 // (nie nakładka w przeglądarce oglądającego, więc nie da się go wyłączyć ani wyciąć z obrazu jednym ruchem).
 export const ZNAK_DOMYSLNY = 'PODGLĄD';
+// Krycie (zgłoszenie 19.11: „watermark troszkę bladszy albo suwak przezroczystości”): 5–50 %, domyślnie 12 %
+// (wcześniej na stałe ok. 24 % szarego napisu + 30 % białej obwódki – za mocny).
+export const KRYCIE_ZNAKU = 12;
+export const kryciaZnaku = (z) => Math.max(5, Math.min(50, Math.round(Number(z?.krycie) || KRYCIE_ZNAKU)));
 
 function wypelnijZnak(p) {
   $('#udostepnij-znak-wl').checked = Boolean(p?.znak_wodny);
   $('#udostepnij-znak-tekst').value = p?.znak_wodny?.tekst || '';
+  $('#udostepnij-znak-krycie').value = String(kryciaZnaku(p?.znak_wodny));
+  pokazPodgladZnaku();
+}
+
+// Podgląd na żywo: kawałek strony z tekstem akapitu i znakiem wodnym w wybranym kryciu.
+function pokazPodgladZnaku() {
+  const c = $('#udostepnij-znak-podglad');
+  if (!c) return;
+  const krycie = Number($('#udostepnij-znak-krycie').value) || KRYCIE_ZNAKU;
+  $('#udostepnij-znak-krycie').nextElementSibling.textContent = `${krycie}%`;
+  const g = c.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, c.width, c.height);
+  g.fillStyle = '#c9d6e3';
+  g.fillRect(20, 20, 140, 140);
+  g.fillStyle = '#555555';
+  for (let i = 0; i < 7; i += 1) g.fillRect(180, 28 + i * 20, i === 6 ? 160 : 270, 6);
+  rysujZnak(g, c.width, c.height, $('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY, krycie, Math.round(c.width / 3));
 }
 
 function odswiezZnak(p, mozna) {
   $('#udostepnij-znak').hidden = !mozna;
-  $('#udostepnij-znak-pole').hidden = !$('#udostepnij-znak-wl').checked;
+  pokazPolaZnaku();
   $('#udostepnij-znak-stan').textContent = p.znak_wodny
-    ? `Strony linku mają znak wodny „${p.znak_wodny.tekst}”.`
+    ? `Strony linku mają znak wodny „${p.znak_wodny.tekst}” (krycie ${kryciaZnaku(p.znak_wodny)}%).`
     : 'Bez znaku wodnego.';
 }
-$('#udostepnij-znak-wl')?.addEventListener('change', () => { $('#udostepnij-znak-pole').hidden = !$('#udostepnij-znak-wl').checked; });
+const pokazPolaZnaku = () => { const wl = $('#udostepnij-znak-wl').checked; $('#udostepnij-znak-pole').hidden = !wl; $('#udostepnij-znak-krycie-pole').hidden = !wl; if (wl) pokazPodgladZnaku(); };
+$('#udostepnij-znak-wl')?.addEventListener('change', pokazPolaZnaku);
+$('#udostepnij-znak-krycie')?.addEventListener('input', pokazPodgladZnaku);
+$('#udostepnij-znak-tekst')?.addEventListener('input', pokazPodgladZnaku);
 
 // Obraz strony z napisem: ukośne rzędy tekstu na całej powierzchni, półprzezroczyste, z jasną obwódką –
-// widoczne na jasnym i ciemnym tle.
-export async function zeZnakiemWodnym(blob, tekst) {
+// widoczne na jasnym i ciemnym tle. krycie – w procentach (szary napis; obwódka o 1/4 mocniejsza).
+function rysujZnak(g, w, h, tekst, krycie, rozmiarPx = null) {
+  const a = Math.max(5, Math.min(50, krycie)) / 100;
+  const rozmiar = rozmiarPx ?? Math.max(14, Math.round(Math.min(w, h) / 9));
+  g.save();
+  g.font = `700 ${rozmiar}px Inter, Arial, sans-serif`;
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineJoin = 'round';
+  const szer = g.measureText(tekst).width + rozmiar * 1.6;
+  const krok = rozmiar * 3.2;
+  const przekatna = Math.hypot(w, h);
+  g.translate(w / 2, h / 2);
+  g.rotate(-Math.atan2(h, w));
+  g.lineWidth = Math.max(2, rozmiar / 10);
+  g.strokeStyle = `rgba(255,255,255,${Math.min(1, a * 1.25).toFixed(3)})`;
+  g.fillStyle = `rgba(60,60,60,${a.toFixed(3)})`;
+  // Rzędy od środka strony (rząd przez środek zawsze jest) – na małym obrazie jedyny rząd nie wypada poza brzeg.
+  const rzedy = Math.ceil(przekatna / 2 / krok);
+  const wRzedzie = Math.ceil(przekatna / 2 / szer) + 1;
+  for (let r = -rzedy; r <= rzedy; r += 1) {
+    const y = r * krok;
+    const przes = (Math.abs(r) % 2) * szer / 2;
+    for (let i = -wRzedzie; i <= wRzedzie; i += 1) {
+      const x = i * szer + przes;
+      g.strokeText(tekst, x, y);
+      g.fillText(tekst, x, y);
+    }
+  }
+  g.restore();
+}
+
+export async function zeZnakiemWodnym(blob, tekst, krycie = KRYCIE_ZNAKU) {
   const obraz = await window.createImageBitmap(blob);
   const c = document.createElement('canvas');
   c.width = obraz.width; c.height = obraz.height;
   const g = c.getContext('2d');
   g.drawImage(obraz, 0, 0);
   obraz.close?.();
-  const rozmiar = Math.max(14, Math.round(Math.min(c.width, c.height) / 9));
-  g.font = `700 ${rozmiar}px Inter, Arial, sans-serif`;
-  g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.lineJoin = 'round';
-  const szer = g.measureText(tekst).width + rozmiar * 1.6;
-  const krok = rozmiar * 3.2;
-  const przekatna = Math.hypot(c.width, c.height);
-  g.translate(c.width / 2, c.height / 2);
-  g.rotate(-Math.atan2(c.height, c.width));
-  for (let y = -przekatna / 2, rzad = 0; y <= przekatna / 2; y += krok, rzad += 1) {
-    for (let x = -przekatna / 2 + (rzad % 2) * szer / 2; x <= przekatna / 2; x += szer) {
-      g.lineWidth = Math.max(2, rozmiar / 10);
-      g.strokeStyle = 'rgba(255,255,255,0.3)';
-      g.strokeText(tekst, x, y);
-      g.fillStyle = 'rgba(60,60,60,0.24)';
-      g.fillText(tekst, x, y);
-    }
-  }
+  rysujZnak(g, c.width, c.height, tekst, krycie);
   return new Promise((ok) => { c.toBlob((b) => ok(b || blob), blob.type || 'image/jpeg', 0.85); });
 }
 
@@ -302,7 +341,7 @@ export async function zapiszZnakWodny() {
   const komunikat = $('#udostepnij-komunikat');
   komunikat.classList.remove('sukces');
   const wl = $('#udostepnij-znak-wl').checked;
-  const nowy = wl ? { tekst: ($('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY).slice(0, 40) } : null;
+  const nowy = wl ? { tekst: ($('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY).slice(0, 40), krycie: kryciaZnaku({ krycie: $('#udostepnij-znak-krycie').value }) } : null;
   if (JSON.stringify(nowy) === JSON.stringify(p.znak_wodny || null)) { komunikat.textContent = 'Bez zmian.'; return; }
   const przycisk = $('#udostepnij-znak-zapisz');
   przycisk.disabled = true;
@@ -315,7 +354,7 @@ export async function zapiszZnakWodny() {
       await opublikuj(p, (i, n) => { komunikat.textContent = `Strony: ${i} z ${n}…`; });
     }
     if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
-    komunikat.textContent = nowy ? `Zapisano. Znak wodny „${nowy.tekst}”${p.udostepnienie ? ' jest już na stronach linku' : ' pojawi się na stronach linku'}.` : 'Zapisano. Strony linku są bez znaku wodnego.';
+    komunikat.textContent = nowy ? `Zapisano. Znak wodny „${nowy.tekst}” (krycie ${nowy.krycie}%)${p.udostepnienie ? ' jest już na stronach linku' : ' pojawi się na stronach linku'}.` : 'Zapisano. Strony linku są bez znaku wodnego.';
     komunikat.classList.add('sukces');
     wypelnijZnak(p);
   } catch (e) {
@@ -376,7 +415,7 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
   const obraz = async (s) => {
     const url = await renderujCel(p, poKluczu.get(s.id), { szerokoscPx: 1200, spad: false, ciag, ...(rozszerzenie === 'webp' ? { format: 'webp', jakosc: 0.8 } : { format: 'jpeg' }) });
     const blob = await (await fetch(url)).blob();
-    return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst) : blob;
+    return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst, kryciaZnaku(p.znak_wodny)) : blob;
   };
   const odcisk = odciskTresci(p);
   // Link działa od razu (#204): po zapisaniu wstępnego opisu projekt dostaje dane linku i krótki adres,

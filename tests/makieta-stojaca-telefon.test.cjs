@@ -1,6 +1,6 @@
 // Zgłoszenie 19.11: „Podgląd 3D dalej się wywala na Androidzie i na stojąco książka wygląda brzydko i się psuje”.
-// 1) Stojąca książka: przy otwieraniu okładki zgięcie w „V” narasta razem z okładką (wcześniej cała książka skokowo
-//    składała się w V już przy u = 0,02 – bryła „rozjeżdżała się” w trakcie przewracania); kamera po otwarciu sama
+// 1) Stojąca książka: zgięcie w „V” liczone z położenia kartek – stosy sztywno, przewracana kartka według swojego kąta,
+//    bryła wyśrodkowana między skrajnymi kartkami (wcześniej cała książka skokowo składała się w V już przy u = 0,02); kamera po otwarciu sama
 //    obraca się na wprost (obie połowy widać tak samo), po zamknięciu wraca na ¾, a gdy użytkownik obróci widok – zostaje.
 // 2) Telefon: rozpoznany także w trybie „wersja na komputer” (Android podaje się wtedy za Linuksa); mniejsze limity
 //    pamięci (10 stron, płótno ≤ 2,2 mln px); po nieoczekiwanym zamknięciu karty z makietą – tryb oszczędny z uwagą.
@@ -13,7 +13,7 @@ const { otworz, nowyProjekt } = require('./pomoc.cjs');
 
 const modul = (p) => import(pathToFileURL(path.join(__dirname, '..', p)).href);
 
-test('stojąca książka: zgięcie V narasta z okładką – bez skoku bryły przy otwieraniu i zamykaniu', async () => {
+test('stojąca książka: zgięcie V z położenia kartek – bez skoku bryły przy otwieraniu i zamykaniu', async () => {
   const { kartkiModelu, scena, obwiednia } = await modul('js/makieta-3d.js');
   const k = kartkiModelu('ksiazka_twarda', { strony: 40, format: { w: 148, h: 210 }, okladka: { w: 148, h: 210 }, kartka_mm: 0.1 });
   const n = k.length;

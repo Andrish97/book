@@ -674,9 +674,12 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
       zawias = { p: [krzywa.c[0][0] + (sg * nn[0] * kar.d) / 2, krzywa.c[0][1] + (sg * nn[1] * kar.d) / 2], d: [Math.cos(krzywa.fi[0]), Math.sin(krzywa.fi[0])], wew: [krzywa.c[0][0] - (sg * nn[0] * kar.d) / 2, krzywa.c[0][1] - (sg * nn[1] * kar.d) / 2] };
     }
   };
-  if (obr !== null) obracaj(obr, s);
+  // Przewracana kartka znaczy swoje czworokąty ułamkiem przewrócenia (0 – prawa, 1 – lewa) – zgięcie w V obraca
+  // ją sztywno według tego kąta, a stosy – sztywno jako całość (zegnij).
+  const oznacz = (od, sk) => { for (let i = od; i < quady.length; i += 1) quady[i] = { ...quady[i], przewrot: sk }; };
+  if (obr !== null) { const od = quady.length; obracaj(obr, s); oznacz(od, s); }
   // Wachlarz: wierzchnia kartka najwyżej (ok. 100°), kolejne coraz niżej.
-  wach.forEach((j, i) => obracaj(j, lerp(0.56, 0.07, wach.length > 1 ? i / (wach.length - 1) : 0)));
+  wach.forEach((j, i) => { const sk = lerp(0.56, 0.07, wach.length > 1 ? i / (wach.length - 1) : 0); const od = quady.length; obracaj(j, sk); oznacz(od, sk); });
 
   // Grzbiet okładki (#161): cienka skorupa od zawiasu okładki pod blokiem do zawiasu drugiej okładki – nie
   // bryła. Twarda: zaokrąglona płyta odsunięta od wypukłego grzbietu bloku (szczelina – widać składki
@@ -860,7 +863,11 @@ function notesSpirala(quady, kartki, { s, obr, lewe, prawe, T, h }) {
   };
   stos(lewe, Math.PI);
   stos(prawe, 0);
-  if (obr !== null) rysuj(obr, Math.PI * s, (kartki[obr].okladka ? 0 : 0.55) * Math.sin(Math.PI * s));
+  if (obr !== null) {
+    const od = quady.length;
+    rysuj(obr, Math.PI * s, (kartki[obr].okladka ? 0 : 0.55) * Math.sin(Math.PI * s));
+    for (let i = od; i < quady.length; i += 1) quady[i] = { ...quady[i], przewrot: s };
+  }
   const ile = Math.max(3, Math.floor((h - 10) / pitch));
   const ys = Array.from({ length: ile }, (_, i) => -((ile - 1) * pitch) / 2 + i * pitch);
   const rozstaw = pitch * 0.12 + wo.drut / 2; // dwa palce spinki Wire-O
@@ -1998,26 +2005,43 @@ function trojdzielny(quady, kar) {
 // ---------- Ustawienia sceny (#181) ----------
 
 // Rozłożona książka zgięta wokół grzbietu: każda połowa podniesiona o th – kąt otwarcia π − 2·th.
-// Obrót zależy od kąta punktu wokół grzbietu (φ: 0 – prawa połowa, π – lewa, π/2 – pion), nie od strony grzbietu:
-// przewracana kartka przechodzi płynnie z jednej połowy V na drugą (zgłoszenie 19.11 – wcześniej obrót zależał od x
-// w paśmie ±4 mm i kartka w pionie przeskakiwała o kilkadziesiąt mm w jednej klatce). Przy grzbiecie (r < 4 mm) –
-// jak dotąd łagodnie z x.
+// Zgięcie w „V” (stojąca, leżąca z kątem otwarcia) – liczone z położenia kartek, bez wygładzania
+// (zgłoszenie 19.11: „poprawne liczenie, nie wygładzanie”):
+// 1) stosy kartek są sztywne: prawa połowa obraca się wokół grzbietu o +th, lewa o −th (przy samym grzbiecie, w paśmie
+//    ±4 mm, obrót przechodzi z x – tam schodzą się obie połowy);
+// 2) przewracana kartka (czworokąty z `przewrot` = s, 0 – prawa, 1 – lewa) obraca się sztywno o th·(1 − 2s) – przechodzi
+//    z jednej połowy V na drugą dokładnie według swojego kąta;
+// 3) cała bryła obraca się sztywno wokół grzbietu tak, żeby środek był między skrajnymi kartkami: zamknięta książka –
+//    okładka na wprost / płasko, otwarta – symetryczne V, przy przewracaniu okładki – według jej położenia.
 function zegnij(quady, th) {
   if (!th) return;
   const obr = (a) => ([x, y, z]) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z];
-  const kat = (x, y) => {
-    const r = Math.hypot(x, y);
-    const zKata = th * (1 - (2 * Math.atan2(Math.max(y, 0), x)) / Math.PI);
-    if (r >= 4) return zKata;
-    const zX = th * ogr(x / 4, -1, 1);
-    return zX + (zKata - zX) * (r / 4);
-  };
+  let rMax = 0;
+  for (const q of quady) for (const [x, y] of q.p) rMax = Math.max(rMax, Math.hypot(x, y));
+  // Skrajne położenia (ułamek przewrócenia 0..1): stos po prawej – 0, po lewej – 1, przewracane – ich s.
+  let sMin = Infinity;
+  let sMax = -Infinity;
+  for (const q of quady) {
+    if (q.przewrot !== undefined) { sMin = Math.min(sMin, q.przewrot); sMax = Math.max(sMax, q.przewrot); continue; }
+    for (const [x] of q.p) {
+      if (x > 0.3 * rMax) { sMin = Math.min(sMin, 0); sMax = Math.max(sMax, 0); }
+      if (x < -0.3 * rMax) { sMin = Math.min(sMin, 1); sMax = Math.max(sMax, 1); }
+    }
+  }
+  if (sMin > sMax) { sMin = 0; sMax = 0; }
+  const wKartce = (sk) => th * (1 - 2 * sk);
+  const delta = -(wKartce(sMin) + wKartce(sMax)) / 2;
   for (let i = 0; i < quady.length; i += 1) {
     const q = quady[i];
-    const p = q.p.map((v) => obr(kat(v[0], v[1]))(v));
-    const sx = q.p.reduce((acc, v) => acc + v[0], 0) / 4;
-    const sy = q.p.reduce((acc, v) => acc + v[1], 0) / 4;
-    const R = obr(kat(sx, sy));
+    let p;
+    let R;
+    if (q.przewrot !== undefined) {
+      R = obr(wKartce(q.przewrot) + delta);
+      p = q.p.map(R);
+    } else {
+      p = q.p.map((v) => obr(th * ogr(v[0] / 4, -1, 1) + delta)(v));
+      R = obr(th * ogr(q.p.reduce((acc, v) => acc + v[0], 0) / 16, -1, 1) + delta);
+    }
     quady[i] = { ...q, p, n: R(q.n), nv: q.nv ? q.nv.map(R) : q.nv };
   }
 }
@@ -2079,12 +2103,11 @@ export function scena(model, kartki, u = 0, { ulozenie = 'lezy', otwarcie = null
   else if (model === 'skladanka') skladanka(quady, kartki, u, popup ?? 90);
   else if (model === 'trojdzielny') trojdzielny(quady, kartki[0]);
   else ksiazka(quady, model, kartki, u, { wachlarz });
-  const otwarta = mozeStac(model) && u > 0.02 && u < kartki.length - 0.02;
+  const otwarta = mozeStac(model) && u > 0 && u < kartki.length;
   const stoi = ulozenie === 'stoi' && mozeStac(model);
-  // Zgięcie w „V” narasta razem z okładką (pierwsza i ostatnia kartka): zamknięta książka nie składa się skokowo
-  // w V, gdy okładka dopiero rusza (zgłoszenie 19.11 – „na stojąco książka się psuje”).
-  const narastanie = gladko(ogr(Math.min(u, kartki.length - u), 0, 1));
-  const th = narastanie * (otwarta && Number.isFinite(otwarcie) ? (Math.PI - ogr(otwarcie, 60, 180) * (Math.PI / 180)) / 2 : (otwarta && stoi ? 0.62 : 0));
+  // Zgięcie w V – zamknięta (u = 0 albo koniec) bez zgięcia; w trakcie przewracania okładki V wynika z położenia
+  // kartek (zegnij: środek między skrajnymi kartkami), więc przejście jest ciągłe bez wygładzania.
+  const th = otwarta && Number.isFinite(otwarcie) ? (Math.PI - ogr(otwarcie, 60, 180) * (Math.PI / 180)) / 2 : (otwarta && stoi ? 0.62 : 0);
   if (stoi) postaw(quady, th);
   // Otwarta stojąca (zgłoszenie 19.11): światło bardziej od przodu – przy świetle z boku jedna strona V była w cieniu.
   if (stoi && th > 0.05) quady.otwartaStojaca = true;

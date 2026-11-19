@@ -1462,6 +1462,10 @@
         <label class="pole" id="udostepnij-znak-pole" hidden><span>Tekst znaku wodnego</span>
           <input id="udostepnij-znak-tekst" type="text" maxlength="40" placeholder="PODGLĄD">
         </label>
+        <div id="udostepnij-znak-krycie-pole" hidden>
+          <label class="makieta-suwak"><span>Krycie</span><input type="range" id="udostepnij-znak-krycie" min="5" max="50" step="1"><output for="udostepnij-znak-krycie"></output></label>
+          <canvas class="znak-podglad" id="udostepnij-znak-podglad" width="480" height="180" aria-label="Podgląd znaku wodnego"></canvas>
+        </div>
         <p class="podpowiedz" id="udostepnij-znak-stan"></p>
         <div class="rzad-przyciskow"><button type="button" class="przycisk" id="udostepnij-znak-zapisz" data-akcja="udostepnij-znak">Zapisz znak wodny</button></div>
       </fieldset>

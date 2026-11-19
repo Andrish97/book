@@ -1,5 +1,6 @@
 // Znak wodny w podglądzie z linku (#191): właściciel włącza go w oknie Udostępnij; napis jest wtopiony
 // w obrazy stron linku (pusta biała strona dostaje szare piksele), wyłączenie wraca do czystych stron.
+// Zgłoszenie 19.11: domyślnie bladszy (krycie 12 %), krycie ustawia suwak 5–50 % z podglądem na żywo.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { otworz, nowyProjekt } = require('./pomoc.cjs');
@@ -30,24 +31,37 @@ test('znak wodny: włączony w oknie Udostępnij jest w obrazach linku, wyłącz
     g.drawImage(obraz, 0, 0);
     const d = g.getImageData(0, 0, c.width, c.height).data;
     let n = 0;
-    for (let i = 0; i < d.length; i += 16) if (d[i] < 225) n += 1;
-    return n / (d.length / 16);
+    let suma = 0;
+    for (let i = 0; i < d.length; i += 16) { if (d[i] < 248) n += 1; suma += 255 - d[i]; }
+    return { udzial: n / (d.length / 16), ciemnosc: suma / (d.length / 16) };
   }, b64);
-  const bez = await ciemne(obrazLinku());
+  const bez = (await ciemne(obrazLinku())).udzial;
   assert.ok(bez < 0.01, `pusta strona bez znaku: ${bez}`);
 
   await strona.check('#udostepnij-znak-wl');
   await strona.fill('#udostepnij-znak-tekst', 'WZÓR');
   await strona.click('#udostepnij-znak-zapisz');
-  await strona.waitForFunction(() => /Znak wodny „WZÓR” jest już/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 30000 });
+  await strona.waitForFunction(() => /Znak wodny „WZÓR” \(krycie 12%\) jest już/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 30000 });
   const ze = await ciemne(obrazLinku());
-  assert.ok(ze > 0.03, `strona ze znakiem ma napisy: ${ze}`);
-  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.znak_wodny), { tekst: 'WZÓR' });
-  assert.match(await strona.textContent('#udostepnij-znak-stan'), /„WZÓR”/);
+  assert.ok(ze.udzial > 0.03, `strona ze znakiem ma napisy: ${ze.udzial}`);
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.znak_wodny), { tekst: 'WZÓR', krycie: 12 });
+  assert.match(await strona.textContent('#udostepnij-znak-stan'), /„WZÓR” \(krycie 12%\)/);
+  // Suwak krycia: podgląd ciemnieje na żywo, po zapisie napis na stronach linku jest mocniejszy.
+  // Biały pas między obrazkiem a tekstem podglądu (x 162–178) – ciemnieje tylko od napisu.
+  const podglad = () => strona.evaluate(() => { const c = document.querySelector('#udostepnij-znak-podglad'); const d = c.getContext('2d').getImageData(162, 0, 16, c.height).data; let s2 = 0; for (let i = 0; i < d.length; i += 4) s2 += 255 - d[i]; return s2; });
+  const p12 = await podglad();
+  await strona.evaluate(() => { const r = document.querySelector('#udostepnij-znak-krycie'); r.value = '40'; r.dispatchEvent(new Event('input')); });
+  const p40 = await podglad();
+  assert.ok(p40 > p12, `podgląd ciemnieje przy większym kryciu: ${p12} → ${p40}`);
+  assert.equal(await strona.textContent('#udostepnij-znak-krycie-pole output'), '40%');
+  await strona.click('#udostepnij-znak-zapisz');
+  await strona.waitForFunction(() => /krycie 40%/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 30000 });
+  const ze40 = await ciemne(obrazLinku());
+  assert.ok(ze40.ciemnosc > ze.ciemnosc * 2, `krycie 40 % ciemniejsze niż 12 %: ${ze40.ciemnosc} / ${ze.ciemnosc}`);
 
   await strona.uncheck('#udostepnij-znak-wl');
   await strona.click('#udostepnij-znak-zapisz');
   await strona.waitForFunction(() => /bez znaku wodnego/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 30000 });
-  assert.ok(await ciemne(obrazLinku()) < 0.01, 'po wyłączeniu strona znów czysta');
+  assert.ok((await ciemne(obrazLinku())).udzial < 0.01, 'po wyłączeniu strona znów czysta');
   assert.deepEqual(bledy, []);
 });

@@ -485,7 +485,8 @@ ochrony przygotowuje strony linku od nowa — chwilę to potrwa, także z listy 
 ## 23.4 Znak wodny
 
 Część **Znak wodny** w oknie Udostępnij: zaznacz **Napis ukośnie na każdej stronie linku**, wpisz **Tekst
-znaku wodnego** (puste pole — „PODGLĄD”) i kliknij [Zapisz znak wodny]. Napis jest wtopiony w obrazy stron
+znaku wodnego** (puste pole — „PODGLĄD”), ustaw suwakiem **Krycie** (5–50 %, domyślnie 12 % — blady napis; mały
+podgląd pod suwakiem pokazuje go na kawałku strony od razu) i kliknij [Zapisz znak wodny]. Napis jest wtopiony w obrazy stron
 linku, także w makiecie 3D oglądającego, więc nie da się go wyłączyć po stronie oglądającego. Zapis przygotowuje strony linku od nowa;
 odznaczenie i zapis usuwa znak. Znak wodny działa też z listy projektów i nie zmienia wydruku ani pliku PDF.
 
