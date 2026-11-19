@@ -33,6 +33,10 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   const sciany = Object.fromEntries(PROSTE.map((k) => [k, geo[k].map((c) => c.sciany)]));
   assert.deepEqual(sciany, { prostopadloscian: [6], tacka: [5], pudelko: [5, 5], graniastoslup: [8], ostroslup: [5], przegrodki: [1, 1] });
   for (const k of PROSTE) for (const c of geo[k]) assert.ok(c.pary, `${k}/${c.nazwa}: każda para – dwie krawędzie tej samej długości`);
+  // Gotowe modele z sylwetki (#265): rozłożone automatycznie – pary 1:1 równej długości, ściany jak bryła.
+  for (const k of ['domek', 'samochod']) for (const c of geo[k]) assert.ok(c.pary, `${k}/${c.nazwa}: pary`);
+  assert.deepEqual(geo.domek.map((c) => c.sciany), [7]);
+  assert.deepEqual(geo.samochod.map((c) => c.sciany), [12]);
   // Bryły o krzywych (#261): para łączy wiele krótkich krawędzi – po obu stronach te same długości (zakładki na
   // łuku płaszcza ↔ boki koła dna); różnice tylko z zaokrąglenia punktów do 0,01 mm.
   for (const k of ['walec', 'stozek', 'stozek_sciety', 'kula']) {
@@ -92,7 +96,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);

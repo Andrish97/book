@@ -83,6 +83,42 @@ export function trojkatyNachodza(t1, t2) {
   return a.some((p) => punktWTrojkacie(p, b)) || b.some((p) => punktWTrojkacie(p, a));
 }
 
+// Ściana (wielokąt płaski, indeksy) → trójkąty z zachowaniem kolejności wierzchołków. Rzut na płaszczyznę, w której
+// ściana jest najszersza, potem „obcinanie uszu”.
+export function trojkatySciany(f, P3) {
+  if (f.length <= 3) return [f];
+  // Normalna Newella – działa też dla wklęsłych.
+  const n = [0, 0, 0];
+  f.forEach((a, i) => { const p = P3[a]; const q = P3[f[(i + 1) % f.length]]; n[0] += (p[1] - q[1]) * (p[2] + q[2]); n[1] += (p[2] - q[2]) * (p[0] + q[0]); n[2] += (p[0] - q[0]) * (p[1] + q[1]); });
+  const os = [0, 1, 2].reduce((m, k) => (Math.abs(n[k]) > Math.abs(n[m]) ? k : m), 0);
+  const [ix, iy] = [[1, 2], [2, 0], [0, 1]][os];
+  const znak = n[os] >= 0 ? 1 : -1;
+  const p2 = (a) => ({ x: P3[a][ix], y: P3[a][iy] * znak });
+  const zostaje = [...f];
+  const wynik = [];
+  let straz = f.length * f.length;
+  while (zostaje.length > 3 && straz > 0) {
+    straz -= 1;
+    let obciete = false;
+    for (let i = 0; i < zostaje.length; i += 1) {
+      const a = zostaje[(i + zostaje.length - 1) % zostaje.length];
+      const b = zostaje[i];
+      const c = zostaje[(i + 1) % zostaje.length];
+      if (orient(p2(a), p2(b), p2(c)) <= EPS) continue; // wklęsły wierzchołek
+      const tr = [p2(a), p2(b), p2(c)];
+      if (zostaje.some((d) => d !== a && d !== b && d !== c && punktWTrojkacie(p2(d), tr))) continue;
+      wynik.push([a, b, c]);
+      zostaje.splice(i, 1);
+      obciete = true;
+      break;
+    }
+    if (!obciete) break;
+  }
+  if (zostaje.length === 3) wynik.push(zostaje);
+  else for (let i = 1; i + 1 < zostaje.length; i += 1) wynik.push([zostaje[0], zostaje[i], zostaje[i + 1]]); // awaryjnie
+  return wynik;
+}
+
 // ---------- Rozkładanie ----------
 
 // siatka: { wierzcholki: [[x,y,z]], sciany: [[i,j,k,…]] }. rozmiar – najdłuższy wymiar modelu w mm.
@@ -95,10 +131,9 @@ export function rozlozSiatke(siatka, { rozmiar = 100, nazwa = 'Model', progZgiec
   const max = [0, 1, 2].map((k) => Math.max(...V.map((p) => p[k])));
   const skala = rozmiar / (Math.max(...max.map((m, k) => m - min[k])) || 1);
   const P3 = V.map((p) => p.map((x, k) => (x - min[k]) * skala));
-  // Trójkąty (wielokąty dzielone wachlarzem), bez zdegenerowanych.
+  // Trójkąty: wielokąty dzielone metodą uszu (także wklęsłe – np. sylwetka auta), bez zdegenerowanych.
   const T = [];
-  for (const f of siatka.sciany) for (let i = 1; i + 1 < f.length; i += 1) {
-    const t = [f[0], f[i], f[i + 1]];
+  for (const f of siatka.sciany) for (const t of trojkatySciany(f, P3)) {
     if (new Set(t).size === 3 && dlug(iloczyn(odejmij(P3[t[1]], P3[t[0]]), odejmij(P3[t[2]], P3[t[0]]))) > 1e-9) T.push(t);
   }
   const N = T.map((t) => normalna(P3[t[0]], P3[t[1]], P3[t[2]]));

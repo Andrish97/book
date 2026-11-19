@@ -82,6 +82,7 @@ export const MODULY_EDYTORA = [
   'js/ksztalty-geometria.js',
   'js/ksztalty-wiecej.js',
   'js/makieta-3d.js',
+  'js/rozkladanie-3d.js',
   'js/separacje.js',
   'js/tabele.js',
   'js/zrodla-danych.js',
