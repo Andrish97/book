@@ -1777,7 +1777,7 @@ Osoba z linkiem do podglądu (rozdział „23.1 Tworzenie linku”) też widzi m
 
 #### Gotowe ujęcia
 
-Nad makietą jest rząd kafelków — jedno stuknięcie ustawia kamerę, ułożenie i kartki: **Przód**, **¾ (klasyczne)**, **Z góry (płasko)**, **Grzbiet**, **Stojąca**, **Rozkładówka z góry**, **Wachlarz kartek**, **Stos egzemplarzy**, **Przód i tył** (dwa egzemplarze obok siebie, drugi odwrócony) oraz **Na ścianie** dla kalendarzy ściennych (ściana z tynku, światło z okna). Widać tylko ujęcia, które pasują do rodzaju. Po wybraniu ujęcia możesz dalej obracać i przybliżać.
+Nad makietą jest rząd kafelków — jedno stuknięcie ustawia kamerę, ułożenie i kartki: **Przód**, **¾ (klasyczne)**, **Z góry (płasko)**, **Grzbiet**, **Stojąca**, **Rozkładówka z góry**, **Wachlarz kartek**, **Stos egzemplarzy**, **Przód i tył** (dwa egzemplarze obok siebie, drugi odwrócony) oraz **Na ścianie** dla kalendarzy ściennych (ściana z tynku, światło z okna). Widać tylko ujęcia, które pasują do rodzaju (kalendarz biurkowy nie ma stosu ani widoku z góry). Pudełko w ujęciach przodu, ¾ i stosu jest złożone, a z góry – płaskie. Po wybraniu ujęcia możesz dalej obracać i przybliżać.
 
 ![Gotowe ujęcia: wachlarz kartek na drewnianym blacie](https://makietka.app/img/instrukcja/k-makieta-ujecia.png)
 

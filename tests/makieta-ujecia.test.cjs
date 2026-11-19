@@ -421,3 +421,15 @@ test('makieta 3D (#181) w przeglądarce: lista „Rodzaj” wg sekcji – sama u
   assert.equal(await strona.isVisible('#makieta-obwoluta-pole'), false, 'obwoluta tylko na twardej oprawie');
   assert.deepEqual(bledy, []);
 });
+
+// Przegląd makiet 19.11: kalendarz biurkowy bez „Stosu” (stojaki balansowały jeden na szczycie drugiego) i bez
+// „Z góry” (sam grzbiet stojaka); pudełko w ujęciach przodu, ¾ i stosu – złożone, „Z góry” – płaski wykrojnik.
+test('ujęcia po przeglądzie: kalendarz biurkowy bez stosu i widoku z góry, pudełko złożone', async () => {
+  const { UJECIA, ujeciaModelu, kartkiModelu, polozenia } = await import(require('node:url').pathToFileURL(require('node:path').join(__dirname, '..', 'js/makieta-3d.js')).href);
+  assert.ok(!ujeciaModelu('kalendarz_biurkowy').includes('stos'));
+  assert.ok(!ujeciaModelu('kalendarz_biurkowy').includes('zGory'));
+  const kp = kartkiModelu('pudelko', { strony: 1, specjalna: { wynik: { szerokosc: 300, wysokosc: 300, siatka: null } } });
+  const max = polozenia('pudelko', kp);
+  for (const u of ['przod', 'trzyCzwarte', 'stos']) assert.equal(UJECIA[u].ustaw('pudelko', kp).u, max, u);
+  assert.equal(UJECIA.zGory.ustaw('pudelko', kp).u, 0);
+});

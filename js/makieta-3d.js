@@ -2144,19 +2144,21 @@ const ksiazkowy = (model) => model.startsWith('ksiazka') || model === 'notes';
 const srodekKsiazki = (kartki) => Math.max(1, Math.round(kartki.length / 2));
 const domyslnaScena = () => ({ otwarcie: null, wachlarz: 0, ilosc: null });
 const katy = (w) => ({ obrotY: w.obrotY, obrotX: w.obrotX });
+// Pudełko (przegląd 19.11): ujęcia przodu, ¾ i stosu – złożone, nie płaski wykrojnik („Z góry” zostaje płaskie).
+const uStart = (model, kartki) => (model === 'pudelko' && kartki ? polozenia(model, kartki) : 0);
 export const UJECIA = {
   przod: {
     nazwa: 'Przód', ikona: 'makieta', dla: () => true,
-    ustaw: (model) => (mozeStac(model)
+    ustaw: (model, kartki) => (mozeStac(model)
       ? { u: 0, ulozenie: 'stoi', kamera: { obrotY: 0, obrotX: 0.06, zoom: 1, fov: 22 }, scena: domyslnaScena() }
-      : { u: 0, ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: model.startsWith('kalendarz') || model === 'trojdzielny' ? 0.04 : 1.48, zoom: 1, fov: 22 }, scena: domyslnaScena() }),
+      : { u: uStart(model, kartki), ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: model.startsWith('kalendarz') || model === 'trojdzielny' ? 0.04 : model === 'pudelko' ? 0.22 : 1.48, zoom: 1, fov: 22 }, scena: domyslnaScena() }),
   },
   trzyCzwarte: {
     nazwa: '¾ (klasyczne)', ikona: 'obroc', dla: () => true,
-    ustaw: (model) => ({ u: 0, ulozenie: 'lezy', kamera: { ...katy(widokModelu(model)), obrotY: model === 'kalendarz_scienny' || model === 'trojdzielny' ? -0.55 : -0.62, zoom: 1, fov: 28 }, scena: domyslnaScena() }),
+    ustaw: (model, kartki) => ({ u: uStart(model, kartki), ulozenie: 'lezy', kamera: { ...katy(widokModelu(model)), obrotY: model === 'kalendarz_scienny' || model === 'trojdzielny' ? -0.55 : -0.62, zoom: 1, fov: 28 }, scena: domyslnaScena() }),
   },
   zGory: {
-    nazwa: 'Z góry (płasko)', ikona: 'siatka', dla: (model) => !(model === 'kalendarz_scienny' || model === 'trojdzielny'),
+    nazwa: 'Z góry (płasko)', ikona: 'siatka', dla: (model) => !(model === 'kalendarz_scienny' || model === 'trojdzielny' || model === 'kalendarz_biurkowy'),
     ustaw: () => ({ u: 0, ulozenie: 'lezy', kamera: { obrotY: 0, obrotX: 1.5, zoom: 1, fov: 24 }, scena: domyslnaScena() }),
   },
   grzbiet: {
@@ -2176,8 +2178,9 @@ export const UJECIA = {
     ustaw: (model, kartki) => ({ u: srodekKsiazki(kartki), ulozenie: 'lezy', kamera: { obrotY: -0.5, obrotX: 0.5, zoom: 1, fov: 28 }, scena: { ...domyslnaScena(), wachlarz: 6 } }),
   },
   stos: {
-    nazwa: 'Stos egzemplarzy', ikona: 'kopiuj', dla: (model) => !(model === 'kalendarz_scienny' || model === 'trojdzielny'),
-    ustaw: () => ({ u: 0, ulozenie: 'lezy', kamera: { obrotY: -0.55, obrotX: 0.42, zoom: 1, fov: 28 }, scena: { ...domyslnaScena(), ilosc: { n: 3, uklad: 'stos' } } }),
+    // Kalendarz biurkowy (przegląd 19.11): stojaki na sobie balansowały na szczycie – bez stosu.
+    nazwa: 'Stos egzemplarzy', ikona: 'kopiuj', dla: (model) => !(model === 'kalendarz_scienny' || model === 'trojdzielny' || model === 'kalendarz_biurkowy'),
+    ustaw: (model, kartki) => ({ u: uStart(model, kartki), ulozenie: 'lezy', kamera: { obrotY: -0.55, obrotX: 0.42, zoom: 1, fov: 28 }, scena: { ...domyslnaScena(), ilosc: { n: 3, uklad: 'stos' } } }),
   },
   przodTyl: {
     nazwa: 'Przód i tył', ikona: 'strony', dla: (model) => ksiazkowy(model) || model === 'kartka' || model === 'koperta' || model === 'ulotka',
