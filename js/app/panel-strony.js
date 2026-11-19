@@ -205,6 +205,19 @@ export function panelStrony(p) {
     const grzbiet = okl.grzbiet ? `grzbiet ${liczba(okl.grzbiet)} mm` : 'bez grzbietu';
     f.append(p.wskazowka(`Okładka ${OPRAWY[sekcja.okladka.oprawa].split(' (')[0].toLowerCase()}: ${grzbiet}, cała okładka ${liczba(okl.szerokosc)} × ${liczba(okl.wysokosc)} mm. Środek: ${okl.stron} stron. Format przelicza się sam, gdy zmieni się liczba stron albo papier.`));
   }
+  // Szybka zamiana stron lewa ↔ prawa (zgłoszenie 19.11: „np. dodaję pojedynczą stronę” – reszta rozkładówek się
+  // przesuwa): to samo co „Pierwsza strona sekcji” w ustawieniach, jednym kliknięciem; Cofnij przywraca.
+  if (sekcja.uklad === 'rozkladowki') {
+    f.append(p.przelacznik('Zacznij sekcję od lewej strony (zamienia strony lewe i prawe)', () => sekcja.pierwsza === 'lewa', async (v) => {
+      zapiszBiezacyCel();
+      sekcja.pierwsza = v ? 'lewa' : 'prawa';
+      stan.miniatury.clear();
+      await zaladujCel();
+      renderujListe();
+      p.zbuduj();
+      zaplanujZapis();
+    }));
+  }
   f.append(p.akcje([['format', okl ? 'Ustawienia okładki' : 'Ustawienia sekcji', () => otworzUstawieniaSekcji(sekcja.id)]]));
 
   p.legendaProwadnic(Boolean(bok));

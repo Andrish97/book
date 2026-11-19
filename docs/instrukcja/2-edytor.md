@@ -1012,7 +1012,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 | **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (→ 10.6), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (→ 10.11), **Składanka / wycinanka** (→ 10.12). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy [Sekcja] i zmieniasz tutaj. |
 | **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij [Zmień format i dopasuj elementy…] (→ 10.9). |
 | **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
-| **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. |
+| **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. Szybciej: w panelu **Właściwości** strony (nic nie zaznaczone) przełącznik **Zacznij sekcję od lewej strony** – zamienia strony lewe i prawe jednym kliknięciem, np. po dodaniu pojedynczej strony. |
 | **Numeracja stron** | **Dalszy ciąg poprzedniej sekcji**, **Zacznij od numeru…** albo **Bez numerów (np. okładka)** (→ 10.8). |
 | **Składki (pilnuj liczby stron)** | **Bez pilnowania** albo co 4, 8, 16, 32 strony (→ 10.7). |
 | **Wzorce na stronach tej sekcji** | Wzorce domyślne stron sekcji (→ 11.4). |
