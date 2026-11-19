@@ -29,7 +29,11 @@ export function normalizujCzesc(c = {}) {
   const punkty = (Array.isArray(c.punkty) ? c.punkty : []).filter((p) => Number.isFinite(p?.x) && Number.isFinite(p?.y)).map((p) => P(p.x, p.y));
   const krawedzie = punkty.map((_, i) => {
     const k = c.krawedzie?.[i] || {};
-    return { typ: RODZAJE_KRAWEDZI[k.typ] ? k.typ : 'ciecie', para: k.para ? String(k.para) : null, szer: Number.isFinite(k.szer) && k.szer > 0 ? Math.min(30, k.szer) : SZER_ZAKLADKI };
+    return {
+      typ: RODZAJE_KRAWEDZI[k.typ] ? k.typ : 'ciecie', para: k.para ? String(k.para) : null, szer: Number.isFinite(k.szer) && k.szer > 0 ? Math.min(30, k.szer) : SZER_ZAKLADKI,
+      // Kąt po sklejeniu krawędzi z krawędzią (#288): 180 – na płasko, 90 – prostopadle (bez ustawienia: z innych par albo 180).
+      ...(Number.isFinite(k.kat) ? { kat: Math.max(0, Math.min(180, k.kat)) } : {}),
+    };
   });
   const zgiecia = (Array.isArray(c.zgiecia) ? c.zgiecia : []).filter((z) => z?.a && z?.b).map((z) => ({
     a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), rodzaj: z.rodzaj === 'gora' ? 'gora' : 'dolina', kat: Number.isFinite(z.kat) ? Math.max(0, Math.min(180, z.kat)) : 90,

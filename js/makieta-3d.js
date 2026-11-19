@@ -1288,7 +1288,7 @@ function geometriaCzesci(cz, kartki, s) {
 // szczeliny. { para, rodzaj: 'krawedz' | 'linia', punkty, prosta }.
 function miejscaPar(c) {
   const w = [];
-  c.krawedzie.forEach((k, i) => { if (k.para && k.typ !== 'ciecie') w.push({ para: k.para, rodzaj: 'krawedz', punkty: [c.punkty[i], c.punkty[(i + 1) % c.punkty.length]], prosta: true }); });
+  c.krawedzie.forEach((k, i) => { if (k.para && k.typ !== 'ciecie') w.push({ para: k.para, rodzaj: 'krawedz', punkty: [c.punkty[i], c.punkty[(i + 1) % c.punkty.length]], prosta: true, kat: k.kat }); });
   for (const l of c.linie || []) if (l.para) w.push({ para: l.para, rodzaj: 'linia', punkty: l.zamknieta ? [...l.punkty, l.punkty[0]] : l.punkty, prosta: liniaProsta(l) });
   for (const p of c.pola) {
     if (!p.para) continue;
@@ -1376,21 +1376,38 @@ function sklejModel(geo) {
         const Lc = dl.at(-1) || 1;
         const [E0, E1] = mb.punkty;
         const Lb = Math.hypot(E1.x - E0.x, E1.y - E0.y) || 1;
-        const e = { x: (E1.x - E0.x) / Lb, y: (E1.y - E0.y) / Lb };
-        let n = { x: -e.y, y: e.x };
+        // Układ krawędzi w części złożonej na arkuszu (#288): wzdłuż krawędzi (e3), w głąb ściany (n3) i normalna
+        // nadruku ściany przy krawędzi (b3). Każdy punkt części (także za jej zgięciami) ma współrzędne (s, h, d) –
+        // po wygięciu: punkt krzywej na długości s, h wzdłuż normalnej podstawy, d w poprzek krzywej. Zgięcia
+        // doklejanej części zostają (np. daszek paska).
+        const E0p = gb.punkt(E0);
+        const e3 = norm(odj(gb.punkt(E1), E0p));
+        const b3 = gb.normalna({ x: (E0.x + E1.x) / 2, y: (E0.y + E1.y) / 2 });
+        let n3 = norm(wekt(b3, e3));
+        const w2 = { x: -(E1.y - E0.y) / Lb, y: (E1.x - E0.x) / Lb };
         const srC = gb.c.punkty.reduce((acc, q) => ({ x: acc.x + q.x / gb.c.punkty.length, y: acc.y + q.y / gb.c.punkty.length }), { x: 0, y: 0 });
-        if ((srC.x - E0.x) * n.x + (srC.y - E0.y) * n.y < 0) n = { x: -n.x, y: -n.y };
-        const znak = -Math.sign(e.x * n.y - e.y * n.x) || 1;
-        const wzdluz = (q) => {
-          const sq = ogr(((q.x - E0.x) * e.x + (q.y - E0.y) * e.y) * (Lc / Lb), 0, Lc);
+        const doSrodka = (srC.x - E0.x) * w2.x + (srC.y - E0.y) * w2.y >= 0 ? 1 : -1;
+        const wglab = gb.punkt({ x: (E0.x + E1.x) / 2 + w2.x * doSrodka, y: (E0.y + E1.y) / 2 + w2.y * doSrodka });
+        if (skal3(odj(wglab, E0p), n3) < 0) n3 = razy(n3, -1);
+        const reka = Math.sign(skal3(wekt(e3, n3), b3)) || 1;
+        const wzdluz = (sq0) => {
+          const sq = ogr(sq0 * (Lc / Lb), 0, Lc);
           let j = 1;
           while (j < dl.length - 1 && dl[j] < sq) j += 1;
           const t = (sq - dl[j - 1]) / ((dl[j] - dl[j - 1]) || 1);
-          return { P: dod(C[j - 1], razy(odj(C[j], C[j - 1]), t)), Nn: norm(dod(razy(N[j - 1], 1 - t), razy(N[j], t))), tau: norm(odj(C[j], C[j - 1])) };
+          const tau = norm(odj(C[j], C[j - 1]));
+          const Nn = norm(dod(razy(N[j - 1], 1 - t), razy(N[j], t)));
+          return { P: dod(C[j - 1], razy(odj(C[j], C[j - 1]), t)), Nn, tau, Bn: razy(norm(wekt(tau, Nn)), reka) };
         };
+        const wsp = (v) => [skal3(v, e3), skal3(v, n3), skal3(v, b3)];
         wynik[b] = {
-          mapa: (q) => { const w = wzdluz(q); const h = (q.x - E0.x) * n.x + (q.y - E0.y) * n.y; return dod(w.P, razy(w.Nn, h)); },
-          normalna: (q) => { const w = wzdluz(q); return norm(razy(wekt(w.tau, w.Nn), znak)); },
+          mapa: (q) => { const [sq, h, d] = wsp(odj(gb.punkt(q), E0p)); const w = wzdluz(sq); return dod(dod(w.P, razy(w.Nn, h)), razy(w.Bn, d)); },
+          normalna: (q) => {
+            const [sq] = wsp(odj(gb.punkt(q), E0p));
+            const w = wzdluz(sq);
+            const [x, y, z] = wsp(gb.normalna(q));
+            return norm(dod(dod(razy(w.tau, x), razy(w.Nn, y)), razy(w.Bn, z)));
+          },
           wygieta: true,
         };
         continue;
@@ -1428,7 +1445,13 @@ function sklejModel(geo) {
           for (const x of inne) ocena += Math.hypot(...odj(naT(G, x.z), x.cel)) * 4;
           if (ma.rodzaj === 'linia') ocena += 20 * Math.abs(skal3(nB, nA)) + (skal3(odj(cB, midT), nA) < 0 ? 30 : 0);
           else if (mb.rodzaj === 'linia') ocena += 20 * Math.abs(skal3(nB, nA)) + (skal3(odj(srA, midT), nB) < 0 ? 30 : 0);
-          else if (!inne.length) ocena += 20 * (1 - skal3(nB, nA)) + (Math.hypot(...odj(cB, srA)) < Math.hypot(...odj(midT, srA)) ? 30 : 0);
+          else if (!inne.length || Number.isFinite(mb.kat ?? ma.kat)) {
+            // Kąt po sklejeniu (#288): ustawiony przy krawędzi albo 180° (na płasko); poniżej 180° – jak zgięcie „góra”:
+            // doklejana część idzie na stronę bez nadruku części-celu.
+            const kat = ((mb.kat ?? ma.kat ?? 180) * Math.PI) / 180;
+            ocena += 20 * Math.abs(skal3(nB, nA) + Math.cos(kat)) + (Math.hypot(...odj(cB, srA)) < Math.hypot(...odj(midT, srA)) * 0.5 ? 30 : 0);
+            if (kat < Math.PI - 0.01 && skal3(odj(cB, midT), nA) > 0.5) ocena += 30;
+          }
           if (ma.rodzaj === 'krawedz' && mb.rodzaj === 'krawedz' && !odwr) ocena += 1;
           if (!best || ocena < best.ocena - 1e-9) best = { ocena, G };
         }

@@ -79,7 +79,21 @@ test('sklejony model: linia prosta – stoi, krzywa – zawija się, krawędzie 
     ]);
     const pud = [...s4.pkt('A'), ...s4.pkt('B')];
     const wym = [0, 1, 2].map((i) => Math.round(Math.max(...pud.map((p) => p[i])) - Math.min(...pud.map((p) => p[i]))));
-    return { klapka, pasekZakres, rozpietosc, dlLuku, plaski, dlugosc3, wym, opis: s1.opis };
+    // 5. Kąt po sklejeniu (#288): dwa kwadraty 40 × 40 połączone jedną parą z kątem 90° – stoją jak litera L.
+    const s5 = scena([
+      { punkty: pr(40, 40), krawedzie: kr('c', { typ: 'zakladka', para: '7', szer: 5, kat: 90 }, 'c', 'c'), zgiecia: [] },
+      { punkty: pr(40, 40), krawedzie: kr('c', 'c', 'c', { typ: 'klej', para: '7' }), zgiecia: [] },
+    ]);
+    const L5 = [...s5.pkt('A'), ...s5.pkt('B')];
+    const wym5 = [0, 1, 2].map((i) => Math.round(Math.max(...L5.map((p) => p[i])) - Math.min(...L5.map((p) => p[i]))));
+    // 6. Pasek z daszkiem (zgięcie 90° równoległe do klejonej krawędzi, 15 mm nad nią) na krzywej – daszek zostaje
+    // poziomo na wysokości 15 mm (zgięcia doklejanej części działają też po wygięciu).
+    const s6 = scena([
+      { punkty: pr(100, 60), krawedzie: kr('c', 'c', 'c', 'c'), zgiecia: [], linie: [{ punkty: luk, para: '2' }] },
+      { punkty: pr(dlLuku, 25), krawedzie: kr('c', 'c', { typ: 'zakladka', para: '2', szer: 5 }, 'c'), zgiecia: [{ a: { x: 0, y: 10 }, b: { x: dlLuku, y: 10 }, rodzaj: 'gora', kat: 90 }] },
+    ]);
+    const daszek = zakres(s6.pkt('B'), plaszczyzna(s6.pkt('A')));
+    return { klapka, pasekZakres, rozpietosc, dlLuku, plaski, dlugosc3, wym, wym5, daszek, opis: s1.opis };
   });
   assert.equal(w.opis, 'Sklejony model');
   assert.ok(w.klapka[0] < 0.5 && Math.abs(w.klapka[1] - 20) < 0.6, `klapka stoi: ${w.klapka}`);
@@ -88,5 +102,7 @@ test('sklejony model: linia prosta – stoi, krzywa – zawija się, krawędzie 
   assert.ok(w.plaski[1] < 0.6, `rozcięty pas sklejony na płasko: ${w.plaski}`);
   assert.ok(Math.abs(w.dlugosc3 - Math.hypot(100, 40)) < 1, `przekątna 100 × 40: ${w.dlugosc3}`);
   assert.deepEqual([...w.wym].sort((a, b) => a - b), [20, 40, 40], `pudełko 40 × 40 × 20 z dwóch części: ${w.wym}`);
+  assert.deepEqual(w.wym5, [40, 40, 40], `L z kątem 90° (płasko byłoby 80 × 40 × 0): ${w.wym5}`);
+  assert.ok(w.daszek[0] < 0.5 && Math.abs(w.daszek[1] - 15) < 0.6, `daszek na 15 mm, nie 25: ${w.daszek}`);
   assert.deepEqual(bledy, []);
 });

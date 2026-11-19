@@ -582,6 +582,7 @@ export function panelCzesci(panel, g0) {
     k.append(panel.wybor(`Krawędź ${i + 1} (${String(dlugosc(c(), i)).replace('.', ',')} mm)`, Object.entries(RODZAJE_KRAWEDZI), () => c().krawedzie[i].typ, (v) => zmien((d) => { d.krawedzie[i].typ = v; })));
     if (kr.typ !== 'ciecie') {
       k.append(panel.tekst('Numer pary', () => c().krawedzie[i].para || '', (v) => zmien((d) => { d.krawedzie[i].para = v || null; })));
+      if ((kr.typ === 'zakladka' || kr.typ === 'klej') && kr.para) k.append(panel.liczba('Kąt po sklejeniu (180 – na płasko)', () => c().krawedzie[i].kat ?? 180, (v) => zmien((d) => { d.krawedzie[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
       if (kr.typ === 'zakladka' || kr.typ === 'wypustka') k.append(panel.liczba(kr.typ === 'zakladka' ? 'Szerokość zakładki' : 'Długość wypustki', () => c().krawedzie[i].szer, (v) => zmien((d) => { d.krawedzie[i].szer = v; }), { jednostka: 'mm', krok: 0.5, min: 2 }));
     }
   });
