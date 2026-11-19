@@ -176,3 +176,12 @@ button.podglad-kartka { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .prezentacja-sterowanie, .prezentacja-strzalka { transition: none; } }
 /* Podgląd z linku w przygotowaniu (#204): pasek nad stronami. */
 .podglad-przygotowanie { margin: 0; padding: 10px 16px; background: var(--akcent-tlo); color: var(--tusz); font-size: 13.5px; line-height: 1.4; border-bottom: 1px solid var(--linia); }
+
+/* Galeria gotowych ujęć makiety – urządzenie bez grafiki 3D (zgłoszenie 19.11). Tylko obrazy, bez ustawień 3D. */
+.makieta-galeria { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto; place-items: center; touch-action: pan-y; user-select: none; }
+.makieta-galeria img { max-width: 100%; max-height: 100%; object-fit: contain; min-height: 0; }
+.makieta-galeria-wstecz, .makieta-galeria-dalej { position: absolute; top: 50%; transform: translateY(-50%); background: var(--powierzchnia); box-shadow: var(--cien-1, none); }
+.makieta-galeria-wstecz { left: 8px; }
+.makieta-galeria-dalej { right: 8px; }
+.makieta-galeria-podpis { margin: 6px 12px 8px; font-size: 13px; color: var(--cichy); text-align: center; }
+.makieta-galeria-tryb :is(#makieta-plotno, #makieta-ujecia, .makieta-sterowanie, #makieta-ustawienia, #makieta-eksport, #makieta-zapisane, #makieta-brak-3d) { display: none !important; }

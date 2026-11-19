@@ -41,9 +41,9 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.waitForFunction((l) => document.querySelector('#udostepnij-link').value === l, link);
   assert.match(await strona.textContent('#udostepnij-stan'), /aktualny stan/);
   const pliki = [...baza.pliki.keys()].filter((k) => k.startsWith('podglady/'));
-  assert.equal(pliki.filter((k) => /\.(webp|jpg)$/.test(k)).length, 2, 'po jednym obrazie na stronę');
+  assert.equal(pliki.filter((k) => /\.(webp|jpg)$/.test(k) && !/\/makieta-[^/]*$/.test(k)).length, 2, 'po jednym obrazie na stronę');
   // Obrazy stron w WebP (lżejsze od JPEG, #89) – Chromium umie je zapisać.
-  assert.equal(pliki.filter((k) => k.endsWith('.webp')).length, 2);
+  assert.equal(pliki.filter((k) => k.endsWith('.webp') && !/\/makieta-[^/]*$/.test(k)).length, 2);
   assert.equal(baza.pliki.get(pliki.find((k) => k.endsWith('.webp'))).typ, 'image/webp');
   assert.equal(pliki.filter((k) => k.endsWith('manifest.json')).length, 1);
   const manifest = JSON.parse(baza.pliki.get(pliki.find((k) => k.endsWith('manifest.json'))).tresc.toString());
@@ -90,7 +90,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.waitForFunction((z) => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano !== z, stanPrzed, { timeout: 25000 });
   // Zmieniła się jedna strona z dwóch: narysowany i wysłany jest tylko jej obraz, do tego opis.
   const ponownie = baza.wyslania.slice(przedAktualizacja).filter((k) => k.startsWith('podglady/'));
-  assert.equal(ponownie.filter((k) => /\.(webp|jpg)$/.test(k)).length, 1);
+  assert.equal(ponownie.filter((k) => /\.(webp|jpg)$/.test(k) && !/\/makieta-[^/]*$/.test(k)).length, 1);
   assert.equal(ponownie.filter((k) => k.endsWith('manifest.json')).length, 1);
   // Otwarty u gościa link sprawdza się sam (co minutę i przy powrocie do karty): podmienia się tylko
   // obraz zmienionej strony, a druga zostaje.
@@ -219,8 +219,10 @@ async function otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link) {
 }
 
 // Pliki linku z ochroną w R2: folder „<konto>/<projekt>/<kod>.<sekret>/” (#97).
-const plikiChronione = (baza, klucz) => [...baza.pliki.keys()].filter((k) => k.startsWith(`podglady/${klucz}.${baza.chronione.get(klucz)?.sekret}/`));
-const plikiZwykle = (baza) => [...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && !k.split('/')[3].includes('.'));
+// Ujęcia makiety dla urządzeń bez 3D (makieta-*.webp, zgłoszenie 19.11) – osobno od stron.
+const bezUjec = (k) => !/\/makieta-[^/]*$/.test(k);
+const plikiChronione = (baza, klucz) => [...baza.pliki.keys()].filter((k) => k.startsWith(`podglady/${klucz}.${baza.chronione.get(klucz)?.sekret}/`) && bezUjec(k));
+const plikiZwykle = (baza) => [...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && !k.split('/')[3].includes('.') && bezUjec(k));
 
 test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole hasła u gościa, zmiana hasła, ponowna publikacja, wygaśnięcie', async (t) => {
   const { strona, baza, bledy, przegladarka, Z_ATRAPA } = await otworz(t, { tryb: 'atrapa' });
@@ -327,7 +329,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   await strona.click('#udostepnij-ochrona-zapisz');
   await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
   assert.equal(baza.chronione.size, 0);
-  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && /\.(webp|jpg)$/.test(k)).length, 2);
+  assert.equal([...baza.pliki.keys()].filter((k) => k.startsWith('podglady/') && /\.(webp|jpg)$/.test(k) && !/\/makieta-[^/]*$/.test(k)).length, 2);
   assert.match(await strona.textContent('#udostepnij-ochrona-stan'), /bez ochrony/);
   const g4 = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
   await g4.s.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id] img').length === 2);

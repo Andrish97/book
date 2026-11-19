@@ -250,3 +250,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: makieta 3D – przewracana kartka płynnie przechodzi przez grzbiet w V; daleki skok listą rozkładówek bez przewracania wszystkich kartek po drodze (#303).
 - 19.11.2026: przegląd wszystkich makiet 3D – poprawione ujęcia kalendarza biurkowego i pudełka (#304).
 - 19.11.2026: znak wodny – krycie suwakiem (domyślnie bladszy) z podglądem (#305); zgięcie V makiet liczone z położenia kartek zamiast wygładzania (#306).
+- 19.11.2026: urządzenia bez grafiki 3D – galeria gotowych ujęć makiety narysowanych przy publikacji linku (#307).

@@ -99,6 +99,12 @@ najbliższym otwarciu projektu.
 > Uwaga: Makieta rysuje się kartą graficzną. Gdy zamiast niej widać komunikat „Nie udało się pokazać makiety 3D”,
 > okno podpowiada, co zrobić. Na starszych komputerach (zwłaszcza Macach) Chrome bywa zablokowany przez listę
 > kart graficznych — wtedy pomaga ustawienie z komunikatu albo Safari.
+>
+> Urządzenie bez grafiki 3D (stary telefon, zablokowana karta graficzna) zamiast makiety pokazuje **gotowe ujęcia**
+> — przód, ¾, otwartą rozkładówkę, stojącą książkę, przód i tył — jako zwykłe obrazy, przewijane strzałkami, klawiszami
+> ← → albo przesunięciem palcem. Ujęcia rysują się same przy udostępnianiu linku (i każdej jego aktualizacji) na
+> urządzeniu, które ma grafikę 3D, i są częścią linku: widzi je oglądający bez 3D, a Ty — w makiecie własnego projektu
+> na takim urządzeniu (gdy link jest bez hasła). Projekt bez linku nie ma jeszcze ujęć — okno mówi wtedy, co włączyć.
 
 ### Gotowe ujęcia
 

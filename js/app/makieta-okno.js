@@ -140,7 +140,7 @@ async function wczytajTeksture(klucz, ostra = false) {
   if (ostra) (moje.ostre ||= new Set()).add(klucz);
   const lista = st.lista;
   wToku.add(klucz);
-  if (!ostra) startTekstury(); // doostrzanie po przybliżeniu – bez paska postępu
+  if (!ostra && !moje.wTle) startTekstury(); // doostrzanie po przybliżeniu i rysowanie w tle – bez paska postępu
   try {
     let obraz;
     let zrodlo = null; // { egz, wytnij } – do maski uszlachetnień
@@ -165,7 +165,7 @@ async function wczytajTeksture(klucz, ostra = false) {
     if (moje === st && renderer) renderer.ustawTeksture(klucz, '#ffffff');
   } finally {
     wToku.delete(klucz);
-    if (!ostra) koniecTekstury();
+    if (!ostra && !moje.wTle) koniecTekstury();
     // Zawsze jeszcze jedna klatka: wynik odrzucony (lista stron zmieniła się w trakcie) albo ostatnia wczytana strona
     // – bez tego makieta zostawała z pustą stroną do pierwszego dotknięcia (zgłoszenie 19.11).
     if (st) rysujPozniej();
@@ -615,6 +615,7 @@ export function tekstBraku3D(powod, ua = navigator.userAgent) {
 
 function pokazBrak3D() {
   const k = $('#makieta-brak-3d');
+  if (pokazGalerie()) { k.hidden = true; return; }
   k.hidden = Boolean(renderer);
   if (!renderer) k.innerHTML = tekstBraku3D(powodBrakuWebGL);
 }
@@ -632,7 +633,7 @@ plotno.addEventListener('webglcontextrestored', () => {
 // Ustawienia światła i tła – na tym urządzeniu, dla projektu (zapisane ujęcia – w projekcie).
 const kluczOpcji = (projekt) => `makieta-opcje:${projekt.id}`;
 function zapiszOpcje() {
-  if (st.gosc) return;
+  if (st.gosc || st.wTle) return;
   try { localStorage.setItem(kluczOpcji(st.projekt), JSON.stringify(st.opcje)); } catch { /* bez pamięci */ }
 }
 
@@ -648,6 +649,88 @@ export function otworzMakiete(projekt) {
   uruchom({ projekt, ...baza, opcje: normalizujOpcje(opcje) }, {
     model: baza.modele.includes(zapamietany) ? zapamietany : baza.modele.includes(dm) ? dm : baza.modele[0], ulozenie,
   });
+  // Bez grafiki 3D (zgłoszenie 19.11): ujęcia z linku projektu (narysowane przy publikacji na urządzeniu z 3D).
+  if (!renderer && projekt.udostepnienie?.kod && !projekt.udostepnienie.ochrona) ujeciaZLinkuWlasciciela(projekt);
+}
+
+async function ujeciaZLinkuWlasciciela(projekt) {
+  const moje = st;
+  try {
+    const chmura = await import('../chmura.js');
+    const { manifest, adresObrazu } = await chmura.wczytajPodgladPubliczny(projekt.udostepnienie.konto, projekt.id, projekt.udostepnienie.kod);
+    if (moje !== st) return;
+    st.ujeciaObrazy = (manifest.uklad?.makieta?.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
+  } catch { /* bez sieci albo bez linku – zostaje komunikat */ }
+  if (moje === st) pokazBrak3D();
+}
+
+// ---------- Ujęcia do linku: urządzenia bez grafiki 3D (zgłoszenie 19.11) ----------
+// Urządzenie z grafiką 3D (właściciel przy publikacji linku) rysuje kilka gotowych ujęć makiety jako obrazy;
+// oglądający bez WebGL dostaje zamiast komunikatu galerię tych ujęć (przewijaną palcem i strzałkami).
+const UJECIA_LINKU = ['przod', 'trzyCzwarte', 'rozkladowka', 'stojaca', 'przodTyl', 'sciana'];
+// Czy można teraz rysować w tle (okno makiety zamknięte – jedno płótno i jeden stan na całe okno).
+export const makietaWolna = () => !st && !dlg.open;
+export const ujeciaLinku = (model) => UJECIA_LINKU.filter((id) => UJECIA[id]?.dla(model)).slice(0, 5).map((id) => ({ id: `makieta-${id}`, ujecie: id, nazwa: UJECIA[id].nazwa }));
+
+// Rysuje ujęcia w tle (okno makiety zamknięte, płótno poza ekranem): [{ id, nazwa, blob (PNG) }] albo null, gdy
+// to urządzenie nie ma grafiki 3D albo makieta jest właśnie otwarta.
+export async function ujeciaWTle(projekt, model, { szer = MALO_PAMIECI ? 1200 : 1600, wys = MALO_PAMIECI ? 900 : 1200 } = {}) {
+  if (st || dlg.open) return null;
+  let opcje = DOMYSLNE_OPCJE;
+  try { opcje = JSON.parse(localStorage.getItem(kluczOpcji(projekt)) || 'null') || DOMYSLNE_OPCJE; } catch { opcje = DOMYSLNE_OPCJE; }
+  const baza = bazaMakiety(projekt);
+  if (!baza.modele.includes(model)) return null;
+  uruchom({ projekt, ...baza, opcje: normalizujOpcje(opcje), wTle: true }, { model, ulozenie: 'lezy' }, { wTle: true });
+  try {
+    if (!renderer) return null;
+    const wynik = [];
+    for (const u of ujeciaLinku(model)) {
+      plotno.width = szer;
+      plotno.height = wys;
+      ustawUjecieMakiety(u.ujecie);
+      await doczytaj([zbudujScene(st.cel)]);
+      const blob = await obrazMakiety({ rozmiar: String(Math.max(szer, wys)) });
+      if (blob) wynik.push({ id: u.id, nazwa: u.nazwa, blob });
+    }
+    return wynik;
+  } finally {
+    cancelAnimationFrame(klatka);
+    klatka = 0;
+    renderer?.zwolnij();
+    renderer = null;
+    st = null;
+  }
+}
+
+// Galeria ujęć: obraz, strzałki, przesunięcie palcem, podpis „To urządzenie nie pokazuje grafiki 3D…”.
+let galeria = 0;
+function pokazGalerie() {
+  const lista = st?.ujeciaObrazy || [];
+  const tak = !renderer && lista.length > 0;
+  dlg.classList.toggle('makieta-galeria-tryb', tak);
+  $('#makieta-galeria').hidden = !tak;
+  if (!tak) return false;
+  galeria = Math.max(0, Math.min(lista.length - 1, galeria));
+  const u = lista[galeria];
+  const img = $('#makieta-galeria-obraz');
+  if (img.getAttribute('src') !== u.adres) img.src = u.adres;
+  img.alt = `Makieta – ${u.nazwa}`;
+  $('#makieta-galeria-podpis').textContent = `${u.nazwa} · ${galeria + 1} z ${lista.length}. To urządzenie nie pokazuje grafiki 3D – to gotowe ujęcia makiety.`;
+  $('#makieta-galeria-wstecz').disabled = galeria === 0;
+  $('#makieta-galeria-dalej').disabled = galeria === lista.length - 1;
+  return true;
+}
+export function przewinGalerie(d) { if (!st) return; galeria += d; pokazGalerie(); }
+export const stanGalerii = () => ({ widoczna: !$('#makieta-galeria').hidden, ktore: galeria, ile: st?.ujeciaObrazy?.length || 0 });
+$('#makieta-galeria-wstecz').addEventListener('click', () => przewinGalerie(-1));
+$('#makieta-galeria-dalej').addEventListener('click', () => przewinGalerie(1));
+{
+  let x0 = null;
+  const g = $('#makieta-galeria');
+  g.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
+  g.addEventListener('dragstart', (e) => e.preventDefault());
+  g.addEventListener('pointerup', (e) => { if (x0 !== null && Math.abs(e.clientX - x0) > 40) przewinGalerie(e.clientX < x0 ? 1 : -1); x0 = null; });
+  g.addEventListener('pointercancel', () => { x0 = null; });
 }
 
 // Podgląd z linku (#188): jeden wariant zapisany przy publikacji (rodzaj, ułożenie, ujęcie, światło), strony –
@@ -655,17 +738,21 @@ export function otworzMakiete(projekt) {
 export function otworzMakieteZLinku(opis, adresObrazu) {
   const w = opis.wariant || {};
   const projekt = { id: 'link', nazwa: opis.nazwa || 'Makieta', sekcje: opis.sekcje, strony: [] };
-  uruchom({ projekt, ...bazaZOpisu(opis), opcje: normalizujOpcje({ ...(w.opcje || {}), uszlachetnienia: false }), gosc: true, adresObrazu }, { model: opis.model, ulozenie: w.ulozenie });
+  const ujeciaObrazy = (opis.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
+  uruchom({ projekt, ...bazaZOpisu(opis), opcje: normalizujOpcje({ ...(w.opcje || {}), uszlachetnienia: false }), gosc: true, adresObrazu, ujeciaObrazy }, { model: opis.model, ulozenie: w.ulozenie });
   if (st && renderer && w.kamera) zastosujStan({ ...w, model: opis.model });
 }
 
-function uruchom(baza, { model, ulozenie }) {
+function uruchom(baza, { model, ulozenie }, { wTle = false } = {}) {
   renderer?.zwolnij();
   renderer = null;
-  let poprzednio = null;
-  try { poprzednio = localStorage.getItem(ZNACZNIK_MAKIETY); } catch { poprzednio = null; }
-  if (poprzednio && !oszczedny) { oszczedny = true; ustawLimity(); }
-  zaznaczOtwarta(true);
+  galeria = 0;
+  if (!wTle) {
+    let poprzednio = null;
+    try { poprzednio = localStorage.getItem(ZNACZNIK_MAKIETY); } catch { poprzednio = null; }
+    if (poprzednio && !oszczedny) { oszczedny = true; ustawLimity(); }
+    zaznaczOtwarta(true);
+  }
   st = {
     ...baza, ulozenie: 'lezy', pokazObwolute: Boolean(baza.obwoluta),
     kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null, fov: 28 }, sc: normalizujScene({}),
@@ -679,13 +766,13 @@ function uruchom(baza, { model, ulozenie }) {
     grupa.append(...st.inne.map((id) => new Option(MODELE[id], id)));
     wybor.append(grupa);
   }
-  if (!dlg.open) dlg.showModal();
-  renderer = utworzRenderer(plotno, { maksTekstury: MAKS_TEKSTURY });
-  pokazBrak3D();
-  pokazZapisane();
+  if (!dlg.open && !wTle) dlg.showModal();
+  renderer = utworzRenderer(plotno, { maksTekstury: wTle ? 2048 : MAKS_TEKSTURY });
+  if (!wTle) { pokazBrak3D(); pokazZapisane(); }
   if (!renderer) return;
   st.ulozenie = ulozenie === 'stoi' ? 'stoi' : 'lezy';
   ustawModel(model);
+  if (wTle) return;
   obserwator.observe(plotno);
   dopasujPlotno();
 }
@@ -1232,6 +1319,7 @@ plotno.addEventListener('pointercancel', puszczony);
 plotno.addEventListener('wheel', (e) => { e.preventDefault(); powiekszMakiete(Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
 dlg.addEventListener('keydown', (e) => {
   if (e.target.closest('select, input')) return;
+  if (!$('#makieta-galeria').hidden && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { e.preventDefault(); przewinGalerie(e.key === 'ArrowRight' ? 1 : -1); return; }
   if (e.key === 'ArrowRight') { e.preventDefault(); kartkuj(1); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); kartkuj(-1); }
 });

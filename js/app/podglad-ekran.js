@@ -394,6 +394,18 @@ const umieWebp = () => {
   return webp;
 };
 
+// Czy to urządzenie rysuje grafikę 3D (WebGL) – sprawdzenie na chwilowym płótnie.
+const maGrafike3D = () => { try { const c = document.createElement('canvas'); const gl = c.getContext('webgl'); gl?.getExtension('WEBGL_lose_context')?.loseContext(); return Boolean(gl); } catch { return false; } };
+// PNG → WebP / JPEG (jakość 0,85) – ujęcia makiety w formacie stron linku.
+async function przekoduj(png, typ) {
+  const obraz = await window.createImageBitmap(png);
+  const c = document.createElement('canvas');
+  c.width = obraz.width; c.height = obraz.height;
+  c.getContext('2d').drawImage(obraz, 0, 0);
+  obraz.close?.();
+  return new Promise((ok) => { c.toBlob((b) => ok(b || png), typ, 0.85); });
+}
+
 const nowyKod = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
 // Rysuje zmienione strony do JPEG i wysyła je razem z opisem – do folderu publicznego albo,
@@ -409,10 +421,28 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
   try { uklad.makieta = opisMakiety(p, ciag); } catch { /* bez makiety – link działa jak dawniej */ }
   const strony = stronyUkladu(uklad);
   const odciski = Object.fromEntries(strony.map((s) => [s.id, odciskStrony(p, poKluczu.get(s.id), ciag)]));
+  // Gotowe ujęcia makiety dla urządzeń bez grafiki 3D (zgłoszenie 19.11): rysuje je to urządzenie, jeśli ma 3D.
+  // Bez 3D tutaj – link zostaje bez ujęć (oglądający z 3D i tak widzi makietę).
+  let okno = uklad.makieta && maGrafike3D() ? await import('./makieta-okno.js') : null;
+  if (okno && !okno.makietaWolna()) okno = null; // okno makiety otwarte – ujęcia przy następnej publikacji
+  let ujeciaGotowe = null;
+  if (okno) {
+    const lista = okno.ujeciaLinku(uklad.makieta.model);
+    uklad.makieta.ujecia = lista.map((u) => ({ id: u.id, nazwa: u.nazwa }));
+    const odciskUjec = skrot(JSON.stringify([odciskTresci(p), uklad.makieta.wariant, 'u1']));
+    for (const u of lista) { strony.push({ id: u.id, ujecie: true }); odciski[u.id] = `${odciskUjec}|${u.id}`; }
+  }
   // WebP: ten sam wygląd przy ok. 30–40% mniejszych plikach (mniej transferu dla oglądających, #90).
   // Przeglądarka, która nie umie zapisać WebP (oddaje PNG), wysyła JPEG jak dawniej.
   const rozszerzenie = umieWebp() ? 'webp' : 'jpg';
   const obraz = async (s) => {
+    if (s.ujecie) {
+      ujeciaGotowe ||= okno.ujeciaWTle(p, uklad.makieta.model);
+      const png = (await ujeciaGotowe)?.find((u) => u.id === s.id)?.blob;
+      if (!png) throw new Error('Nie udało się narysować ujęcia makiety.');
+      const blob = await przekoduj(png, rozszerzenie === 'webp' ? 'image/webp' : 'image/jpeg');
+      return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst, kryciaZnaku(p.znak_wodny)) : blob;
+    }
     const url = await renderujCel(p, poKluczu.get(s.id), { szerokoscPx: 1200, spad: false, ciag, ...(rozszerzenie === 'webp' ? { format: 'webp', jakosc: 0.8 } : { format: 'jpeg' }) });
     const blob = await (await fetch(url)).blob();
     return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst, kryciaZnaku(p.znak_wodny)) : blob;
