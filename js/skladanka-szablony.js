@@ -185,7 +185,9 @@ function popupWycinanka({ szerokosc: S, wysokosc: H, pudelka: n, glebokosc: d, w
 // po lewej w odległości h od grzbietu, po prawej w odległości y. Przy kartce otwartej pod kątem prostym pasek
 // tworzy pudełko: góra równoległa do prawej strony, przód do lewej; przy zamkniętej i rozłożonej leży płasko
 // (długość paska y + h = odległość pól przez grzbiet). Nic nie wystaje, gdy y, h ≤ S − zakładka.
-function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pudelka: h0, szerokosc_pudelka: w0 }) {
+// Druga warstwa (warstwy = 2): ten sam mechanizm na zgięciu pierwszego paska – przód paska działa jak lewa strona
+// kartki, góra jak prawa; mniejszy pasek (ok. połowa) z polami na pierwszym.
+function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pudelka: h0, szerokosc_pudelka: w0, warstwy = 1 }) {
   const zak = 8;
   const y = Math.min(y0, S - zak - 2);
   const h = Math.min(h0, S - zak - 2);
@@ -206,7 +208,21 @@ function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pud
     krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p', szer: zak }, { typ: 'ciecie' }, { typ: 'zakladka', para: 'l', szer: zak }],
     zgiecia: [{ a: P(y, 0), b: P(y, w), rodzaj: 'gora', kat: 90 }],
   };
-  return [karta, pasek];
+  if (Math.round(warstwy) < 2) return [karta, pasek];
+  const y2 = r2(Math.max(5, (y - zak) / 2));
+  const h2 = r2(Math.max(5, (h - zak) / 2));
+  const w2 = r2(w * 0.6);
+  const g2 = (w - w2) / 2;
+  // Pola na pierwszym pasku: na przodzie (x > y) w odległości h2 od zgięcia, na górze (x < y) w odległości y2.
+  pasek.pola = [{ x: r2(y + h2), y: r2(g2), w: zak + 0.5, h: w2, para: 'l2' }, { x: r2(y - y2 - zak - 0.5), y: r2(g2), w: zak + 0.5, h: w2, para: 'p2' }];
+  const pasek2 = {
+    nazwa: 'Kartka pop-up – druga warstwa',
+    opis: `Na pierwszym pasku: góra ${y2} mm, przód ${h2} mm.`,
+    punkty: [P(0, 0), P(y2 + h2, 0), P(y2 + h2, w2), P(0, w2)],
+    krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p2', szer: zak }, { typ: 'ciecie' }, { typ: 'zakladka', para: 'l2', szer: zak }],
+    zgiecia: [{ a: P(y2, 0), b: P(y2, w2), rodzaj: 'gora', kat: 90 }],
+  };
+  return [karta, pasek, pasek2];
 }
 
 // ---------- Powierzchnie rozwijalne (#261, plan składanek krok 10): walec, stożek, stożek ścięty ----------
@@ -425,12 +441,12 @@ export const SZABLONY_SKLADANEK = {
   wazon: { nazwa: 'Wazon (bryła obrotowa)', opis: 'Profil obrócony w segmentach (6–32): pasy ścian z zakładkami i płaskie dno – rozłożone automatycznie; góra otwarta.', parametry: { srednica: 50, wysokosc: 110, segmenty: 12 }, buduj: wazon },
   domek: { nazwa: 'Domek z dachem dwuspadowym', opis: 'Ściany i dach jako jedna bryła rozłożona automatycznie – szczyty, połacie i ściany z zakładkami i numerami.', parametry: { szerokosc: 60, wysokosc: 45, dach: 30, glebokosc: 70 }, buduj: domek },
   samochod: { nazwa: 'Samochód (sylwetka)', opis: 'Nadwozie z maską, kabiną i bagażnikiem – bryła z sylwetki rozłożona automatycznie (koła dorysuj albo doklej osobno).', parametry: { dlugosc: 120, wysokosc: 45, szerokosc: 50 }, buduj: samochod },
-  popup_platforma: { nazwa: 'Kartka pop-up z platformą (wklejana)', opis: 'Kartka i pasek przyklejony zakładkami po obu stronach grzbietu – po otwarciu stoi jak pudełko, po zamknięciu leży płasko w środku.', parametry: { szerokosc: 100, wysokosc: 140, glebokosc: 35, wysokosc_pudelka: 30, szerokosc_pudelka: 60 }, buduj: popupPlatforma },
+  popup_platforma: { nazwa: 'Kartka pop-up z platformą (wklejana)', opis: 'Kartka i pasek przyklejony zakładkami po obu stronach grzbietu – po otwarciu stoi jak pudełko, po zamknięciu leży płasko w środku.', parametry: { szerokosc: 100, wysokosc: 140, glebokosc: 35, wysokosc_pudelka: 30, szerokosc_pudelka: 60, warstwy: 2 }, buduj: popupPlatforma },
   popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: 'Jeden arkusz: nacięcia i zgięcia – po otwarciu kartki pod kątem prostym pudełka wyskakują ze środka. Nic nie wystaje po zamknięciu (nacięcia kończą się przed brzegiem).', parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {

@@ -68,11 +68,17 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   assert.equal(pop.zgiecia.filter((z) => z.rodzaj === 'gora').length, 2, 'grzbiet odwrócony na każdym pudełku');
   // Pop-up z platformą (#269): pasek długości y + h = odległość pól przez grzbiet (leży płasko po otwarciu na 180°).
   const pl = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup_platforma', {}));
-  const [karta, pasek] = pl;
+  const [karta, pasek, pasek2] = pl;
+  // Druga warstwa: tak samo – pasek 2 = odległość pól na pierwszym pasku przez jego zgięcie.
+  const zg1 = pasek.zgiecia[0].a.x;
+  const [q1, q2] = pasek.pola;
+  assert.ok(Math.abs((q1.x - zg1) + (zg1 - (q2.x + q2.w)) - pasek2.punkty[1].x) < 0.05, 'druga warstwa leży płasko po otwarciu');
+  assert.equal((await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup_platforma', { warstwy: 1 }))).length, 2);
   const S = karta.punkty[1].x / 2;
   const [pl1, pl2] = karta.pola;
   assert.ok(Math.abs((S - (pl1.x + pl1.w)) + (pl2.x - S) - pasek.punkty[1].x) < 0.05, 'pasek = odległość pól przez grzbiet');
   assert.deepEqual(pasek.krawedzie.filter((k) => k.para).map((k) => k.para).sort(), ['l', 'p']);
+  assert.deepEqual(pasek2.krawedzie.filter((k) => k.para).map((k) => k.para).sort(), ['l2', 'p2']);
   assert.deepEqual(karta.pola.map((x) => x.para).sort(), ['l', 'p']);
   // Pudełko 100 × 70 × 40, wieczko 15: siatka dna 100 + 2 × 40; wieczka (100 + 2 × 0,4 + 0,5) + 2 × 15.
   assert.deepEqual([geo.pudelko[0].w, geo.pudelko[0].h], [180, 150]);

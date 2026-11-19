@@ -48,7 +48,7 @@ Stan: krok 1 ✅, 2 ✅ (#233), 3 ✅ (#235, kolejność klejenia – w kroku 7)
    domek; szablony projektów z kilku części.
 7. **Makieta 3D** – składanie z części po zgięciach i parach krawędzi, animacja krok po kroku; **instrukcja
    montażu** generowana sama (kroki, miniatury) – jako strona albo do pobrania.
-8. ⏳ (#261: kartka pop-up „wycinanka”; #269: platforma wklejana – pasek na zakładkach po obu stronach grzbietu; zostają zgięcie V, kilka warstw, podgląd otwierania w 3D) **Pop-up** – typ sekcji „Rozkładówka pop-up”: zgięcie V, równoległe pudełko, nacięcia w zgięciu (cut & fold),
+8. ⏳ (#261: kartka pop-up „wycinanka”; #269: platforma wklejana – pasek na zakładkach po obu stronach grzbietu, #270: druga warstwa na platformie; zostają zgięcie V (pola klejenia pod kątem), podgląd otwierania w 3D) **Pop-up** – typ sekcji „Rozkładówka pop-up”: zgięcie V, równoległe pudełko, nacięcia w zgięciu (cut & fold),
    warstwy na zakładkach, podpórki; podgląd otwierania 0–180° w 3D; sprawdzanie, czy nic nie wystaje po zamknięciu
    i nie zderza się.
 
