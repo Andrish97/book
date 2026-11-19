@@ -249,13 +249,14 @@ const naStol = ([x, y, z]) => [x, z, -y]; // książka, notes, kartka: leżą na
 // Linia środkowa w płaszczyźnie (x, z) układu kartki: punkty c[i] = [x, z] i kąty kierunku fi[i]
 // (0 – w prawo, π/2 – w górę), długość łuku sigma[i]. Kartka ma grubość d i rozciąga się w y od −h/2 do h/2.
 // Strona „+n” (normalna (−sin fi, cos fi)) ma teksturę texA z u = uA(sigma), druga – texB z u = uB(sigma).
-function arkusz(quady, krzywa, h, d, { texA, texB, uA, uB, mat, krawedz, matKrawedzi, aoA, aoB, T = naStol, krawedzieUv = null, bezKrawedzi = false, odY = -h / 2, doY = h / 2, vOdwrotnie = false }) {
+// grubosci: grubość w każdym punkcie krzywej (zamiast stałego d) – np. grzbiet okładki cienki w rowkach biga.
+function arkusz(quady, krzywa, h, d, { texA, texB, uA, uB, mat, krawedz, matKrawedzi, aoA, aoB, T = naStol, krawedzieUv = null, bezKrawedzi = false, odY = -h / 2, doY = h / 2, vOdwrotnie = false, grubosci = null }) {
   const { c, fi, sigma } = krzywa;
   const n = c.length - 1;
   const nv = 2;
   const pkt = (i, y, strona) => {
     const nn = [-Math.sin(fi[i]), Math.cos(fi[i])];
-    const o = (strona * d) / 2;
+    const o = (strona * (grubosci ? grubosci[i] : d)) / 2;
     return T([c[i][0] + nn[0] * o, y, c[i][1] + nn[1] * o]);
   };
   const nrm = (i, strona) => T([-Math.sin(fi[i]) * strona, 0, Math.cos(fi[i]) * strona]);
@@ -301,6 +302,11 @@ function krzywaZKata(start, L, kat, kroki = 28) {
   }
   return { c, fi, sigma };
 }
+
+// Twarda oprawa (zgłoszenie 19.11): tektura zaczyna się WYSUNIECIE mm dalej od grzbietu niż blok – róg bloku
+// wystaje poza krawędź tektury (punkt styku), w szparze jest rowek biga, a wyklejka przechodzi z tektury na blok
+// paskiem tej szerokości z dwoma zgięciami (arkusz wyklejki: strona bloku + pasek + część na tekturze).
+const WYSUNIECIE = 2.5;
 
 // Prosta krzywa sztywnej okładki: gęsto przy grzbiecie (cień biga), dalej rzadko.
 function krzywaSztywna(start, L, kat) {
@@ -477,7 +483,8 @@ function skrzydelkoObwoluty(quady, kar, krzywa) {
 // (krawędź tektury przy grzbiecie) do 3 mm przed przednią krawędzią tektury, 3 mm od głowy i stopy; tuż nad
 // powierzchnią tektury po stronie strona (1 – strona A kartki, −1 – B). Przy zawiasie lekki cień rowka.
 function wyklejkaNaTekturze(quady, kar, krzywa, strona) {
-  const Lp = Math.min(kar.wBloku || kar.w - 3, kar.w - 1);
+  // Część wyklejki na tekturze: strona bloku minus pasek przez szparę (arkusz ma stałą długość, zgłoszenie 19.11).
+  const Lp = Math.min((kar.wBloku || kar.w - 3) - WYSUNIECIE, kar.w - 1);
   const hp = Math.min(kar.hBloku || kar.h - 6, kar.h - 2);
   const o = strona * (kar.d / 2 + 0.03);
   // Krzywa okładki jest prosta (sztywna tektura): punkt na długości sg, przesunięty po normalnej.
@@ -494,18 +501,18 @@ function wyklejkaNaTekturze(quady, kar, krzywa, strona) {
   }, tex || `kolor:${PAPIER}`, 'papier');
 }
 
-// Odwinięta miękka okładka (zgłoszenie 19.11: „nie jak woda, ma robić łuk, nie opasać”): karton zgina się na bidze
-// u góry grzbietu i opada jednym łukiem o stałej krzywiźnie, dotykając stołu tylko brzegiem (nie kładzie się płasko –
-// bez fałdy w kształcie S). Kąt kierunku fi(t) dla t = 0..1 od zawiasu na wysokości H (środek grubości) do brzegu
-// na wysokości d/2; strona −1 – w lewo, 1 – w prawo.
-const ALFA_OKLADKI = 0.18; // okładka przy bidze lekko unosi się nad poziom (sprężystość kartonu)
+// Odwinięta miękka okładka (zgłoszenie 19.11: „nie jak woda”, okładka „prawie płaska, zgina się na bidze”): karton
+// zgina się na bidze u góry grzbietu i schodzi prawie prosto (lekkie ugięcie UGIECIE_OKLADKI rad na całej długości)
+// do stołu, dotykając go brzegiem. Kąt kierunku fi(t) dla t = 0..1 od zawiasu na wysokości H (środek grubości) do
+// brzegu na wysokości d/2; strona −1 – w lewo, 1 – w prawo.
+const UGIECIE_OKLADKI = 0.06;
 function lukOkladki(H, L, d, strona) {
-  const cel = -(H - d / 2) / L; // średni sinus kąta na długości okładki
-  const sredni = (g) => (g < 1e-6 ? Math.sin(ALFA_OKLADKI) : (Math.cos(ALFA_OKLADKI - g) - Math.cos(ALFA_OKLADKI)) / g);
-  let lo = 0; let hi = Math.PI;
-  for (let i = 0; i < 50; i += 1) { const m = (lo + hi) / 2; if (sredni(m) > cel) lo = m; else hi = m; }
-  const g = (lo + hi) / 2;
-  return strona < 0 ? (t) => Math.PI - ALFA_OKLADKI + g * t : (t) => ALFA_OKLADKI - g * t;
+  const cel = (H - d / 2) / L; // średni sinus spadku na długości okładki
+  const sredni = (a0) => (Math.cos(a0) - Math.cos(a0 + UGIECIE_OKLADKI)) / UGIECIE_OKLADKI; // średnie sin(a0 + κt)
+  let lo = -0.5; let hi = Math.PI / 2;
+  for (let i = 0; i < 50; i += 1) { const m = (lo + hi) / 2; if (sredni(m) < cel) lo = m; else hi = m; }
+  const a0 = (lo + hi) / 2;
+  return strona < 0 ? (t) => Math.PI + a0 + UGIECIE_OKLADKI * t : (t) => -a0 - UGIECIE_OKLADKI * t;
 }
 
 // wachlarz (#181): tyle kartek z wierzchu prawej strony rozłożonej książki stoi uniesionych pod różnymi kątami.
@@ -655,6 +662,11 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
           lisc(quady, kar, krzywaZKata([0, H], kar.w, lukOkladki(H, kar.w, kar.d, strona), 30), matOkl);
           return;
         }
+        if (twarda) {
+          const karT = { ...kar, w: kar.w - WYSUNIECIE };
+          lisc(quady, karT, krzywaSztywna([strona * (o + WYSUNIECIE), c.z0 + kar.d / 2], karT.w, strona > 0 ? 0 : Math.PI), matOkl);
+          return;
+        }
         const krzywa = krzywaSztywna([strona * o, c.z0 + kar.d / 2], kar.w, strona > 0 ? 0 : Math.PI);
         lisc(quady, kar, krzywa, matOkl);
         return;
@@ -686,12 +698,13 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
   // przesuwa się razem z grzbietem (zamknięta – na górze bloku, otwarta – obok bloku).
   const przyGrzbiecie = (S, p) => (S.czesci.length && !S.czesci.at(-1).okladka && p ? p(0) : S.wysokosc);
   let zawias = null; // { p: [x, z] zewnętrzna strona przy grzbiecie, d: kierunek okładki }
+  const paskiWyklejki = []; // [[x, z] przy tekturze, [x, z] przy bloku] – pasek wyklejki w szparze (twarda)
   const obracaj = (obr, s) => {
     const kar = kartki[obr];
     // Twarda – tektura (#179): sztywna, obraca się tylko na zawiasie. Miękka okładka (karton) i kartki (zgłoszenie
-    // 19.11: „nie jak woda, ma robić łuk, nie opasać”): sprężysty łuk o stałej krzywiźnie – karton sztywniej niż papier.
+    // 19.11: „nie jak woda”): łuk o stałej krzywiźnie – kartka lekko, karton prawie wcale (zgina się na bidze).
     const sztywna = Boolean(kar.okladka) && twarda;
-    const wygiecie = sztywna ? 0 : kar.okladka ? 0.35 : 0.7;
+    const wygiecie = sztywna ? 0 : kar.okladka ? 0.08 : 0.35;
     const z0 = lerp(przyGrzbiecie(SP, pP), przyGrzbiecie(SL, pL), s) + kar.d / 2;
     let x0 = lerp(oP, -oL, s);
     if (kar.okladka && zOkl && obr === 0) x0 = -s * f * Ts;
@@ -718,9 +731,23 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
         ? (t) => s * luk(t) - wygiecie * Math.sin(Math.PI * s) * t
         : (t) => lerp(luk(t), Math.PI, s) - wygiecie * Math.sin(Math.PI * s) * t;
     }
-    const start = [x0, zZawiasu ?? (V ? V.zgiecie[1] + kar.d / 2 : z0)];
-    const krzywa = sztywna ? krzywaSztywna(start, kar.w, fi(0)) : krzywaZKata(start, kar.w, fi, 30);
-    lisc(quady, kar, krzywa, kar.okladka ? matOkl : 'papier');
+    let start = [x0, zZawiasu ?? (V ? V.zgiecie[1] + kar.d / 2 : z0)];
+    let karL = kar;
+    if (sztywna && zOkl && (obr === 0 || obr === n - 1)) {
+      // Tektura obraca się wokół rowka; jej krawędź WYSUNIECIE mm od zawiasu.
+      start = [start[0] + WYSUNIECIE * Math.cos(fi(0)), start[1] + WYSUNIECIE * Math.sin(fi(0))];
+      karL = { ...kar, w: kar.w - WYSUNIECIE };
+    }
+    const krzywa = sztywna ? krzywaSztywna(start, karL.w, fi(0)) : krzywaZKata(start, karL.w, fi, 30);
+    lisc(quady, karL, krzywa, kar.okladka ? matOkl : 'papier');
+    if (sztywna && zOkl && (obr === 0 || obr === n - 1)) {
+      // Pasek wyklejki z tektury na blok (dwa zgięcia): od krawędzi tektury po stronie wewnętrznej do rogu bloku.
+      const nn = [-Math.sin(krzywa.fi[0]), Math.cos(krzywa.fi[0])];
+      const sw = obr === 0 ? -1 : 1; // wewnętrzna strona tektury
+      const pT = [krzywa.c[0][0] + sw * nn[0] * kar.d / 2, krzywa.c[0][1] + sw * nn[1] * kar.d / 2];
+      const pB = [0, obr === 0 ? przyGrzbiecie(SP, pP) : przyGrzbiecie(SL, pL)];
+      paskiWyklejki.push([pT, pB]);
+    }
     if (kar.okladka && (obr === 0 || obr === n - 1)) {
       const nn = [-Math.sin(krzywa.fi[0]), Math.cos(krzywa.fi[0])];
       const sg = obr === 0 ? 1 : -1;
@@ -745,17 +772,19 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
     const oB = strB > 0 ? oP : oL;
     const oO = strB > 0 ? oL : oP;
     const dolnaB = Sb.czesci[0]?.okladka ? Sb.czesci[0].kartki[0] : null;
-    const Bp = V ? V.PR : [strB * oB, 0];
+    // Twarda: grzbiet okładki łączy krawędzie tektur (WYSUNIECIE mm od rogów bloku).
+    const eT = twarda ? WYSUNIECIE : 0;
+    const Bp = V ? dod2(V.PR, V.obrot(V.tR, [eT, 0])) : [strB * (oB + eT), 0];
     const dB = [strB, 0];
     let A = null;
     let dA = null;
     // Twarda: grzbiet okładki sztywny – przy obracanej okładce ma ten sam kształt co w zamkniętej książce
     // (okładka obraca się na rowku u góry grzbietu, zgłoszenie 19.11).
     const zawiasSztywny = twarda && zawias && !V;
-    if (V) { A = V.PL; dA = [-1, 0]; } else if (zawiasSztywny) {
-      A = [strB * oB, Sb.wysokosc + kartki[obr].d]; dA = [strB, 0];
+    if (V) { A = dod2(V.PL, V.obrot(-V.tL, [-eT, 0])); dA = [-1, 0]; } else if (zawiasSztywny) {
+      A = [strB * (oB + eT), Sb.wysokosc + kartki[obr].d]; dA = [strB, 0];
     } else if (zawias) { A = zawias.p; dA = zawias.d; } else if (Sb.czesci.length > 1 && Sb.czesci.at(-1).okladka) {
-      A = [strB * oB, Sb.wysokosc]; dA = [strB, 0]; // zamknięta
+      A = [strB * (oB + eT), Sb.wysokosc]; dA = [strB, 0]; // zamknięta
     } else if (So.czesci[0]?.okladka) {
       A = [-strB * oO, 0]; dA = [-strB, 0];
     }
@@ -768,11 +797,18 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
         // odsunięcie zewnętrznej powierzchni od linii zawiasów w miejscu z (0..H). Przy tekturze pokrycie wchodzi
         // łagodnie (rowek biga – smoothstep na grubości tektury + 3 mm, promień większy od połowy grubości – bez
         // zawinięcia), dalej łuk grzbietu ok. 1 mm od grzbietu bloku. Jedna gładka funkcja – bez kantów.
-        const profilGrzbietu = (z, H) => {
-          const zR = Math.min(H / 2, kar.d + 3);
-          const u = ogr(Math.min(z, H - z) / zR, 0, 1);
-          return (1 + dS) * u * u * (3 - 2 * u) + bGrzbiet * Math.sin((Math.PI * z) / H);
+        // Przekrój sztywnego grzbietu twardej (zgłoszenie 19.11): z – miejsce od krawędzi tektury do krawędzi drugiej
+        // (0..H). Wnętrze pokrycia: rowek biga w szparze między krawędzią tektury a rogiem bloku (smoothstep – róg
+        // bloku zawsze pod pokryciem), dalej łuk ok. 1 mm od grzbietu bloku. W rowkach pokrycie cienkie (płótno),
+        // w łuku – grubość grzbietu. Zwraca odsunięcie środka grubości i grubość.
+        const przekroj = (z, H) => {
+          const ss = (u) => { const v = ogr(u, 0, 1); return v * v * (3 - 2 * v); };
+          const zz = Math.min(z, H - z);
+          const wn = (eT + 1) * ss(zz / (kar.d + 0.6)) + bGrzbiet * Math.sin((Math.PI * z) / H);
+          const g = 0.35 + (dS - 0.35) * ss(zz / (kar.d + 4));
+          return { o: wn + g / 2, g };
         };
+        let grubosci = null; // grubość w punktach krzywej (twarda) – krzywa to wtedy środek grubości
         // Grzbiet prosty (zgłoszenie 19.11) – płaska skorupa z zaokrąglonymi tylko rogami, jak w miękkiej.
         const kk = (twarda && !prostyGrzbiet ? 0.26 : 0.07) * dl;
         let pts;
@@ -786,15 +822,15 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
           if ((V.zgiecie[0] - cx) * nx + (V.zgiecie[1] - cy) * ny > 0) { nx = -nx; ny = -ny; }
           // Sztywny grzbiet (zgłoszenie 19.11): ten sam profil co w zamkniętej książce (rowki, łuk), rozpięty między
           // zawiasami – otwarta w środku: blok się wypłaszcza, grzbiet okładki zostaje okrągły.
-          pts = [];
-          for (let i = 0; i <= 48; i += 1) { const t = i / 48; const b = profilGrzbietu(t * dl, dl); pts.push([lerp(ax, bx, t) + nx * b, lerp(ay, by, t) + ny * b]); }
+          pts = []; grubosci = [];
+          for (let i = 0; i <= 48; i += 1) { const t = i / 48; const pr = przekroj(t * dl, dl); pts.push([lerp(ax, bx, t) + nx * pr.o, lerp(ay, by, t) + ny * pr.o]); grubosci.push(pr.g); }
         } else if (twarda && (!zawias || zawiasSztywny) && Math.abs(A[0] - Bp[0]) < 0.01) {
           // Zamknięta twarda (zgłoszenie 19.11: grzbiet „ma prawie przylegać”, bigi wyraźne, zaokrąglenie gładkie):
           // przekrój pokrycia – krawędź tektury, rowek biga (płótno wchodzi w szparę), gładki łuk grzbietu ok. 1 mm
           // od grzbietu bloku, rowek, krawędź drugiej tektury. Łuk jednym sinusem na całej wysokości – bez kantów.
           const H = A[1] - Bp[1];
-          pts = [];
-          for (let i = 0; i <= 48; i += 1) { const z = (H * i) / 48; pts.push([Bp[0] - strB * profilGrzbietu(z, H), Bp[1] + z]); }
+          pts = []; grubosci = [];
+          for (let i = 0; i <= 48; i += 1) { const z = (H * i) / 48; const pr = przekroj(z, H); pts.push([Bp[0] - strB * pr.o, Bp[1] + z]); grubosci.push(pr.g); }
         } else if (!twarda && (zawias || otwarta)) {
           // Miękka otwarta albo z okładką w ruchu: klejony grzbiet stoi przy bloku (sztywny, płaski), okładka
           // zgina się na bidze u jego górnej krawędzi.
@@ -809,7 +845,7 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
         const zewA = strB > 0;
         const k0 = krzywaZPunktow(pts);
         const sg0 = zewA ? 1 : -1;
-        const krzywa = krzywaZPunktow(k0.c.map((p, i) => [p[0] + sg0 * Math.sin(k0.fi[i]) * dS / 2, p[1] - sg0 * Math.cos(k0.fi[i]) * dS / 2]));
+        const krzywa = grubosci ? k0 : krzywaZPunktow(k0.c.map((p, i) => [p[0] + sg0 * Math.sin(k0.fi[i]) * dS / 2, p[1] - sg0 * Math.cos(k0.fi[i]) * dS / 2]));
         const L = krzywa.sigma.at(-1);
         const tylNaDole = dolnaB === n - 1;
         const pre = kar.przod?.match(/^(okl|obw):/)?.[1]; // obwoluta (#181) – grzbiet z obwoluty
@@ -821,13 +857,27 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
           texA: zewA ? texZew : texWew, texB: zewA ? texWew : texZew,
           uA: zewA ? uZew : () => 0.5, uB: zewA ? () => 0.5 : uZew,
           mat: matOkl, krawedz: texZew, matKrawedzi: matOkl,
-          krawedzieUv: pre ? (sg, g) => [uZew(sg), g ? 0.004 : 0.996] : null, vOdwrotnie: true,
+          krawedzieUv: pre ? (sg, g) => [uZew(sg), g ? 0.004 : 0.996] : null, vOdwrotnie: true, grubosci,
         });
         for (let i = od; i < quady.length; i += 1) quady[i].grzbiet = true;
       }
       // Bez paska zgięcia wyklejki (#199): luźna połowa wyklejki leży przyklejona do pierwszej strony bloku,
       // a grzbiet bloku przy otwartej okładce stoi pionowo – nic nie wisi w zgięciu ani nie sterczy między stronami.
     }
+  }
+  // Pasek wyklejki w szparze (zgłoszenie 19.11: wyklejka z dwoma zgięciami): odwinięta okładka – od wewnętrznej
+  // krawędzi tektury do grzbietu bloku, gdzie wyklejka przechodzi w pierwszą (ostatnią) stronę.
+  if (V && twarda) {
+    if (V.hL < 0.01) paskiWyklejki.push([dod2(V.PL, V.obrot(-V.tL, [-WYSUNIECIE, V.d])), V.zgiecie]);
+    if (V.hR < 0.01) paskiWyklejki.push([dod2(V.PR, V.obrot(V.tR, [WYSUNIECIE, V.d])), V.zgiecie]);
+  }
+  for (const [a, b] of paskiWyklejki) {
+    const hp = h - 0.2;
+    const nn = norm([-(b[1] - a[1]), b[0] - a[0], 0]);
+    const P3 = ([x, z], y) => naStol([x, y, z]);
+    // Dwustronny pasek papieru (bez grubości) – zgięcia na obu końcach.
+    quad(quady, [P3(a, hp / 2), P3(b, hp / 2), P3(b, -hp / 2), P3(a, -hp / 2)], [[0, 0], [1, 0], [1, 1], [0, 1]], `kolor:${PAPIER}`, 'wyklejka', { n: naStol([nn[0], 0, nn[1]]) });
+    quad(quady, [P3(a, -hp / 2), P3(b, -hp / 2), P3(b, hp / 2), P3(a, hp / 2)], [[0, 1], [1, 1], [1, 0], [0, 0]], `kolor:${PAPIER}`, 'wyklejka', { n: naStol([-nn[0], 0, -nn[1]]) });
   }
   // Otwarta twarda (#199.3): po obrocie połówek książka opiera się na stole najniższym punktem.
   if (V) {
@@ -851,6 +901,7 @@ function bezier(P0, P1, P2, P3, N) {
   return pts;
 }
 const odj2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const dod2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
 const razy2 = (a, k) => [a[0] * k, a[1] * k];
 // Krzywa dla arkusz() z listy punktów [x, z]: kąty z kierunku odcinków, długość łuku.
 function krzywaZPunktow(pts) {
