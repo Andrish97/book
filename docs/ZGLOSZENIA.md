@@ -242,3 +242,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: silnik stylów – kolory tylko z tokenów, !important tylko w widoczności, bez stylów w HTML (#294–#295).
 - 19.11.2026: podgląd z linku na telefonie – przyciski paska wysokie na palec; narzędzie zrzutów obsługuje krótkie linki (#296).
 - 19.11.2026: składanki – nacięcia pod dowolnym kątem i krzywe w edytorze; klapka wycięta w środku kartki ma zawias (#297).
+- 19.11.2026: składanki – wycięcia (okienka, otwory) i drzwiczki na zawiasie, w 3D z dziurą (#298).

@@ -98,7 +98,7 @@ czy po zamknięciu nic nie wystaje i nie zderza się (krok 8 obiecywał to, a ni
 17. ✅ (#297) **Nacięcia w edytorze** – narzędzie „Nacięcie”: linia cięcia w środku części (prosta pod dowolnym kątem,
     łamana, krzywa z pióra), bez szerokości; nacięcie + zgięcia dzielą ścianę (wycinanka). Kontrola: nacięcie nie
     przecina obrysu przypadkiem, nie zostawia wiszących kawałków.
-18. ⏳ **Wycięcia (otwory)** – zamknięty kształt w części wycinany w całości (okienko, drzwi do otwierania z zawiasem
+18. ✅ (#298) **Wycięcia (otwory)** – zamknięty kształt w części wycinany w całości (okienko, drzwi do otwierania z zawiasem
     = wycięcie bez jednego boku + zgięcie); w PDF na płycie cięcia, w 3D – dziura.
 19. ⏳ **Pop-up w 3D: otwieranie 0–180°** – kartka z grzbietem otwiera się suwakiem, a doklejone elementy (platformy,
     V, warstwy) i wycinanki poruszają się zgodnie z mechanizmem (ściany jako bryły sztywne na zawiasach, pary klejenia

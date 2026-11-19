@@ -1220,7 +1220,9 @@ export function trojkatyWielokata(p) {
       const [ia, ib, ic] = [idx[(i - 1 + idx.length) % idx.length], idx[i], idx[(i + 1) % idx.length]];
       const [a, b, c] = [p[ia], p[ib], p[ic]];
       if (kr(a, b, c) <= 1e-9) continue; // wierzchołek wklęsły albo współliniowy
-      if (idx.some((j) => j !== ia && j !== ib && j !== ic && wTrojkacie(p[j], a, b, c))) continue;
+      // Punkty w miejscu wierzchołków ucha (zdwojone przy mostku do otworu, #298) nie blokują ucha.
+      const tenSam = (q, r) => Math.abs(q[0] - r[0]) < 1e-9 && Math.abs(q[1] - r[1]) < 1e-9;
+      if (idx.some((j) => j !== ia && j !== ib && j !== ic && !tenSam(p[j], a) && !tenSam(p[j], b) && !tenSam(p[j], c) && wTrojkacie(p[j], a, b, c))) continue;
       wynik.push([ia, ib, ic]);
       idx.splice(i, 1);
       ucieto = true;
@@ -1244,7 +1246,7 @@ function geometriaCzesci(cz, kartki, s) {
   const dx = cz.arkusz * (S + 40);
   const F = ([x, y]) => [-(x - S / 2) - dx, 0, y - Hs / 2];
   const c = normalizujCzesc(cz.czesc);
-  const { sciany, zawiasy } = scianyCzesci(c);
+  const { sciany, zawiasy, otwory = [], odpady = [] } = scianyCzesci(c);
   if (!sciany.length) return null;
   const naArk = (q) => { const r = naStronieZapisanej(cz.obiekt, q); return [r.x, r.y]; };
   const pola = sciany.map((w) => Math.abs(poleWielokata(w)));
@@ -1281,7 +1283,7 @@ function geometriaCzesci(cz, kartki, s) {
   };
   const punkt = (q, i = sciana(q)) => naT(T[i] || T_JEDN, F(naArk(q)));
   const normalna = (q, i = sciana(q)) => naR((T[i] || T_JEDN).R, [0, -1, 0]); // strona z nadrukiem
-  return { kar, S, Hs, c, sciany, T, naArk, punkt, normalna, pole: pola.reduce((a, b) => a + b, 0) };
+  return { kar, S, Hs, c, sciany, T, naArk, punkt, normalna, otwory, odpady, pole: pola.reduce((a, b) => a + b, 0) };
 }
 
 // Miejsca par części (w układzie części): krawędzie z numerem, linie klejenia, pola (oś wzdłuż dłuższego boku),
@@ -1298,6 +1300,32 @@ function miejscaPar(c) {
     w.push({ para: p.para, rodzaj: 'linia', punkty: [sr(...a), sr(...b)], prosta: true });
   }
   for (const z of c.szczeliny) if (z.para) w.push({ para: z.para, rodzaj: 'linia', punkty: [z.a, z.b], prosta: true });
+  return w;
+}
+
+// Wielokąt z otworami → jeden wielokąt prosty (#298): każdy otwór dołączony „mostkiem” – od jego skrajnego
+// wierzchołka do najbliższego widocznego wierzchołka obrysu i z powrotem. Dzielenie na trójkąty metodą uszu radzi
+// sobie z takim zdwojonym mostkiem.
+function zOtworami(zew, otwory) {
+  const pole = (w) => poleWielokata(w);
+  const tnie = (p1, p2, p3, p4) => {
+    const o = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    const d1 = o(p3, p4, p1); const d2 = o(p3, p4, p2); const d3 = o(p1, p2, p3); const d4 = o(p1, p2, p4);
+    return ((d1 > 1e-9 && d2 < -1e-9) || (d1 < -1e-9 && d2 > 1e-9)) && ((d3 > 1e-9 && d4 < -1e-9) || (d3 < -1e-9 && d4 > 1e-9));
+  };
+  let w = [...zew];
+  const wszystkie = otwory.map((h) => (Math.sign(pole(h)) === Math.sign(pole(zew)) ? [...h].reverse() : [...h]));
+  for (const h of [...wszystkie].sort((a, b) => Math.max(...b.map((q) => q.x)) - Math.max(...a.map((q) => q.x)))) {
+    let hi = 0;
+    h.forEach((q, i) => { if (q.x > h[hi].x) hi = i; });
+    const H = h[hi];
+    const krawedzie = (lista) => lista.map((q, i) => [q, lista[(i + 1) % lista.length]]);
+    const przeszkody = [...krawedzie(w), ...wszystkie.flatMap(krawedzie)];
+    const kandydaci = w.map((q, i) => ({ i, d: Math.hypot(q.x - H.x, q.y - H.y) })).sort((a, b) => a.d - b.d);
+    const wid = kandydaci.find(({ i }) => !przeszkody.some(([a, b]) => tnie(H, w[i], a, b))) || kandydaci[0];
+    const oi = wid.i;
+    w = [...w.slice(0, oi + 1), ...h.slice(hi), ...h.slice(0, hi + 1), ...w.slice(oi)];
+  }
   return w;
 }
 
@@ -1511,8 +1539,11 @@ function skladanka(quady, kartki, u) {
       podziel([M, B, C], i, glebokosc + 1);
     };
     g.sciany.forEach((w, i) => {
-      const pts = w.map(g.naArk);
-      for (const [a, b, d] of trojkatyWielokata(pts)) podziel([w[a], w[b], w[d]], i);
+      if (g.odpady.includes(i)) return; // wycięty kawałek wypada (#298)
+      const otw = g.otwory.filter((o) => o.sciana === i).map((o) => o.punkty);
+      const ww = otw.length ? zOtworami(w, otw) : w;
+      const pts = ww.map(g.naArk);
+      for (const [a, b, d] of trojkatyWielokata(pts)) podziel([ww[a], ww[b], ww[d]], i);
     });
   });
   if (quady.length > od) obrocNaStol(quady, od, Math.PI * (1 - gladko(ogr(u / 0.3, 0, 1))));

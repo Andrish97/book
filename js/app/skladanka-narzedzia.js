@@ -340,15 +340,19 @@ export function liniaKlejenia() {
 
 // Nacięcie z zaznaczonej linii, łamanej albo krzywej z pióra (#297): odcinki nacięcia ze wspólnym `ciag`
 // (w panelu jedno nacięcie). Bez zaznaczenia – narzędzie klikane (dwa punkty).
-export function naciecie() {
+export function naciecie({ otwor = false } = {}) {
   if (!wSkladance()) return 0;
   const a = edytor.canvas.getActiveObject();
   const lista = (a && (a.type === 'activeselection' || a.type === 'activeSelection') ? a.getObjects() : a ? [a] : []).filter(moznaNaCzesc);
-  if (!lista.length) { ustawNarzedzie('naciecie'); return 0; }
+  if (!lista.length) {
+    if (otwor) { powiadom('Narysuj na części zamknięty kształt (prostokąt, elipsę, wielokąt, kształt z pióra), zaznacz go i użyj [Wycięcie] – zostanie wycięty.', true); return 0; }
+    ustawNarzedzie('naciecie');
+    return 0;
+  }
   const naGrupe = new Map();
   for (const o of lista) {
     const l = liniaZKsztaltu(o);
-    if (!l) continue;
+    if (!l || (otwor && !l.zamknieta)) continue;
     const sr = l.punkty[Math.floor(l.punkty.length / 2)];
     const g = czescZTrescia(new fabric.Point(sr.x, sr.y)) || czescZTrescia(o.getCenterPoint());
     if (!g) continue;
@@ -358,7 +362,7 @@ export function naciecie() {
     const odcinki = pk.slice(1).map((b, i) => ({ a: pk[i], b, szer: 0.2, para: null, naciecie: true, ciag })).filter((z) => Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y) > 0.05);
     (naGrupe.get(g) || naGrupe.set(g, []).get(g)).push({ o, odcinki });
   }
-  if (!naGrupe.size) { powiadom('Narysuj linię, łuk albo kształt piórem na części, zaznacz go i użyj [Nacięcie] – albo kliknij [Nacięcie] bez zaznaczenia i wskaż dwa punkty.', true); return 0; }
+  if (!naGrupe.size) { powiadom(otwor ? 'Wycięcie robi się z zamkniętego kształtu leżącego na części (prostokąt, elipsa, wielokąt, zamknięta ścieżka).' : 'Narysuj linię, łuk albo kształt piórem na części, zaznacz go i użyj [Nacięcie] – albo kliknij [Nacięcie] bez zaznaczenia i wskaż dwa punkty.', true); return 0; }
   edytor.canvas.discardActiveObject();
   let ile = 0;
   for (const [g, w] of naGrupe) {
@@ -366,7 +370,7 @@ export function naciecie() {
     zmienCzesc(g, (d) => { d.szczeliny = [...(d.szczeliny || []), ...w.flatMap((x) => x.odcinki)]; });
     ile += w.length;
   }
-  powiadom(`${ile === 1 ? 'Nacięcie gotowe' : `${ile} nacięcia gotowe`} – na płycie cięcia razem z obrysem. Ze zgięciami dzieli ścianę (wycinanka).`);
+  powiadom(otwor ? `${ile === 1 ? 'Wycięcie gotowe' : `${ile} wycięcia gotowe`} – kawałek w środku wypada (szare kreskowanie). Okienko z drzwiczkami: zostaw jeden bok jako zgięcie zamiast cięcia.` : `${ile === 1 ? 'Nacięcie gotowe' : `${ile} nacięcia gotowe`} – na płycie cięcia razem z obrysem. Ze zgięciami dzieli ścianę (wycinanka).`);
   return ile;
 }
 
@@ -916,6 +920,7 @@ export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-na-czesc') return umiescZaznaczoneNaCzesci();
   if (akcja === 'skladanka-linia') return liniaKlejenia();
   if (akcja === 'skladanka-naciecie') return naciecie();
+  if (akcja === 'skladanka-wyciecie') return naciecie({ otwor: true });
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   if (akcja === 'skladanka-szablon') return oknoSzablonow();
   if (akcja === 'skladanka-instrukcja') return oknoInstrukcji();

@@ -323,7 +323,14 @@ function scianyPlanarne(c) {
     juz.add(k);
     zawiasy.push({ s1, s2, a: h.a, b: h.b, zgiecie: h.e.nr });
   }
-  return { sciany, zawiasy, otwory };
+  // Odpad (#298): ściana otoczona samymi nacięciami, bez zawiasu – wypada przy wycinaniu (otwór, okienko).
+  const naZawiasie = new Set(zawiasy.flatMap((z) => [z.s1, z.s2]));
+  const tylkoCiecie = sciany.map(() => true);
+  // Półkrawędzie pętli otworu należą do ściany wokół – pomijamy je (to brzeg otworu, nie krawędź tej ściany).
+  const wOtworze = new Set(dziury.flat());
+  for (const [h, nr] of scianaPol) if (!wOtworze.has(h) && h.e.typ !== 'ciecie') tylkoCiecie[nr] = false;
+  const odpady = sciany.map((_, i) => i).filter((i) => tylkoCiecie[i] && !naZawiasie.has(i));
+  return { sciany, zawiasy, otwory, odpady };
 }
 
 // Rozcięcie części linią a → b (oba punkty na obwodzie) na dwie części (#274 – za duża część, ręczne dzielenie modelu).
@@ -441,7 +448,7 @@ export function scianyCzesci(c) {
     const przy = sciany.map((s, i) => [i, naObwodzie(s, m).odl]).filter(([, d]) => d < 0.6).map(([i]) => i);
     if (przy.length === 2) zawiasy.push({ s1: przy[0], s2: przy[1], a: z.a, b: z.b, zgiecie: nr });
   }
-  return { sciany, zawiasy };
+  return { sciany, zawiasy, otwory: [], odpady: [] };
 }
 
 export function wWielokacie(p, q) {
@@ -473,6 +480,7 @@ export function srodekWielokata(p) {
 
 const KOLOR_LINII = '#6b6b6b';
 const KOLOR_ZAKLADKI = '#eeeeee';
+const KOLOR_ODPADU = '#b5b2aa';
 
 // Lista elementów Fabric części w układzie części (mm). Środek grupy liczy wywołujący.
 // Obrazy nadruku (#283): zasób → wczytany element <img>/<canvas>. Wypełnia aplikacja przed wstawieniem części;
@@ -544,6 +552,11 @@ export function elementyCzesci(def) {
   const obrys = obrysCiecia(c);
   if (domowy) el.push(new fabric.Polygon(obrys, { ...wspolne, fill: null, stroke: '#888888', strokeWidth: 0.15, skladanka: 'obrys' }));
   el.push(new fabric.Polygon(obrys, { ...wspolne, fill: null, stroke: '#e0004d', strokeWidth: 0.3, uszlachetnienie: 'ciecie', skladanka: 'ciecie' }));
+  // Odpad (#298): wycinany kawałek (otwór) – szare kreskowanie, żeby było widać, co wypada (nie płyta techniczna).
+  if (c.szczeliny.some((z) => z.naciecie)) {
+    const { sciany, odpady } = scianyPlanarne(c);
+    for (const i of odpady) el.push(new fabric.Polygon(sciany[i], { ...wspolne, fill: KOLOR_ODPADU, stroke: null, strokeWidth: 0, opacity: 0.55, skladanka: 'odpad', nazwa: 'Odpad (wycięcie)' }));
+  }
   // Szczeliny – wycinane (osobne kontury cięcia).
   for (const z of c.szczeliny) {
     const pr = prostokatSzczeliny(z);
