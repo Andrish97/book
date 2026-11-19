@@ -1998,13 +1998,26 @@ function trojdzielny(quady, kar) {
 // ---------- Ustawienia sceny (#181) ----------
 
 // Rozłożona książka zgięta wokół grzbietu: każda połowa podniesiona o th – kąt otwarcia π − 2·th.
+// Obrót zależy od kąta punktu wokół grzbietu (φ: 0 – prawa połowa, π – lewa, π/2 – pion), nie od strony grzbietu:
+// przewracana kartka przechodzi płynnie z jednej połowy V na drugą (zgłoszenie 19.11 – wcześniej obrót zależał od x
+// w paśmie ±4 mm i kartka w pionie przeskakiwała o kilkadziesiąt mm w jednej klatce). Przy grzbiecie (r < 4 mm) –
+// jak dotąd łagodnie z x.
 function zegnij(quady, th) {
   if (!th) return;
   const obr = (a) => ([x, y, z]) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z];
+  const kat = (x, y) => {
+    const r = Math.hypot(x, y);
+    const zKata = th * (1 - (2 * Math.atan2(Math.max(y, 0), x)) / Math.PI);
+    if (r >= 4) return zKata;
+    const zX = th * ogr(x / 4, -1, 1);
+    return zX + (zKata - zX) * (r / 4);
+  };
   for (let i = 0; i < quady.length; i += 1) {
     const q = quady[i];
-    const p = q.p.map((v) => obr(th * ogr(v[0] / 4, -1, 1))(v));
-    const R = obr(th * ogr(q.p.reduce((acc, v) => acc + v[0], 0) / 16, -1, 1));
+    const p = q.p.map((v) => obr(kat(v[0], v[1]))(v));
+    const sx = q.p.reduce((acc, v) => acc + v[0], 0) / 4;
+    const sy = q.p.reduce((acc, v) => acc + v[1], 0) / 4;
+    const R = obr(kat(sx, sy));
     quady[i] = { ...q, p, n: R(q.n), nv: q.nv ? q.nv.map(R) : q.nv };
   }
 }

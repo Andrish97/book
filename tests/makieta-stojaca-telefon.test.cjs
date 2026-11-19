@@ -118,3 +118,31 @@ test('telefon: mniejsze limity; po nieoczekiwanym zamknięciu karty – tryb osz
   assert.match(o.uwaga, /zamknęła się nieoczekiwanie.*trybie oszczędnym/);
   assert.deepEqual(bledy, []);
 });
+
+// Daleki skok listą „Rozkładówka” (zgłoszenie 19.11, przy przeglądzie notesu): wcześniej makieta przewracała po kolei
+// każdą kartkę po drodze – 66 stron przez ok. 36 s, wszystkie rysowane i trzymane w pamięci (telefon zamykał kartę).
+// Teraz od razu kartka przed celem, przewraca się tylko ostatnia; strony pośrodku się nie wczytują.
+test('daleki skok rozkładówką – bez przewracania wszystkich kartek po drodze', async (t) => {
+  const { strona, bledy } = await otworz(t, { widok: { width: 1200, height: 800 } });
+  await otworzKsiazke(strona, 'Skok');
+  const w = await strona.evaluate(async () => {
+    const W = await import('./js/app/makieta-okno.js');
+    const ladowane = new Set();
+    const st0 = performance.now();
+    const s = document.querySelector('#makieta-rozkladowka');
+    const max = W.stanMakiety().polozen;
+    s.value = String(max);
+    s.dispatchEvent(new Event('change'));
+    while (performance.now() - st0 < 15000) {
+      for (const k of W.stanMakiety().wToku) ladowane.add(k);
+      if (document.querySelector('#makieta-plotno').dataset.gotowe === 'true' && W.stanMakiety().u === max) break;
+      await new Promise((ok) => { setTimeout(ok, 50); });
+    }
+    return { czas: performance.now() - st0, u: W.stanMakiety().u, max, ladowane: [...ladowane] };
+  });
+  assert.equal(w.u, w.max);
+  assert.ok(w.czas < 8000, `skok na koniec trwał ${Math.round(w.czas)} ms`);
+  const strony = w.ladowane.filter((k) => k.startsWith('p:')).map((k) => Number(k.slice(2)));
+  assert.ok(strony.every((n) => n >= w.max * 2 - 8), `wczytane tylko strony przy końcu: ${strony}`);
+  assert.deepEqual(bledy, []);
+});

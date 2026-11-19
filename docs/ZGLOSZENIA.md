@@ -246,4 +246,5 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – pop-up w 3D otwiera się suwakiem 0–180°, doklejone elementy ruszają się mechanizmem (#299).
 - 19.11.2026: składanki – „Sprawdź przed drukiem” pilnuje pop-upu: wystające po zamknięciu części i kartka, która się nie domyka (#300).
 - 19.11.2026: składanki – dowolna część na skośnych liniach klejenia staje pod kątem; podpowiedzi kąta i długości w panelu (#301).
-- 19.11.2026: makieta 3D – stojąca książka bez skoku przy otwieraniu, kamera na wprost po otwarciu; Android: mniejsze limity pamięci, tryb oszczędny po zamknięciu karty; makieta nie zostaje z pustą stroną po ponownym otwarciu (#302). Przegląd pozostałych modeli – w toku.
+- 19.11.2026: makieta 3D – stojąca książka bez skoku przy otwieraniu, kamera na wprost po otwarciu; Android: mniejsze limity pamięci, tryb oszczędny po zamknięciu karty; makieta nie zostaje z pustą stroną po ponownym otwarciu (#302).
+- 19.11.2026: makieta 3D – przewracana kartka płynnie przechodzi przez grzbiet w V; daleki skok listą rozkładówek bez przewracania wszystkich kartek po drodze (#303).

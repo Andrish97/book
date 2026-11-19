@@ -381,6 +381,10 @@ function rysuj() {
   dopasujRozmiar();
   // Animacja kartkowania: u dąży do celu.
   if (st.u !== st.cel) {
+    // Daleki skok (lista rozkładówek, ujęcie): bez przewracania po kolei każdej kartki po drodze – to rysowało
+    // i trzymało w pamięci wszystkie strony pośrodku (np. 66 stron przez 36 s; na telefonie – zamknięta karta,
+    // zgłoszenie 19.11). Od razu kartka przed celem, przewraca się tylko ostatnia.
+    if (Math.abs(st.cel - st.u) > 1.5) { st.u = st.cel - Math.sign(st.cel - st.u); st.czas = performance.now(); }
     const krok = Math.min(1, (performance.now() - (st.czas || performance.now())) / 550);
     st.czas = performance.now();
     st.u = st.cel > st.u ? Math.min(st.cel, st.u + krok) : Math.max(st.cel, st.u - krok);
