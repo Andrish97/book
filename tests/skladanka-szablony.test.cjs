@@ -34,7 +34,12 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   assert.deepEqual(sciany, { prostopadloscian: [6], tacka: [5], pudelko: [5, 5], graniastoslup: [8], ostroslup: [5], przegrodki: [1, 1] });
   for (const k of PROSTE) for (const c of geo[k]) assert.ok(c.pary, `${k}/${c.nazwa}: każda para – dwie krawędzie tej samej długości`);
   // Gotowe modele z sylwetki (#265): rozłożone automatycznie – pary 1:1 równej długości, ściany jak bryła.
-  for (const k of ['domek', 'samochod']) for (const c of geo[k]) assert.ok(c.pary, `${k}/${c.nazwa}: pary`);
+  for (const k of ['domek', 'samochod', 'pudelko_klapa']) for (const c of geo[k]) assert.ok(c.pary, `${k}/${c.nazwa}: pary`);
+  // Pudełko z klapą wsuwaną (#268): 6 ścian, język na wieku, bez par do wieka.
+  assert.equal(geo.pudelko_klapa[0].sciany, 6);
+  const klapa = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('pudelko_klapa', {})[0].krawedzie);
+  assert.equal(klapa.filter((k) => k.typ === 'wypustka').length, 1);
+  assert.equal(new Set(klapa.filter((k) => k.para).map((k) => k.para)).size, 4, 'szew i trzy brzegi dna');
   // Wazon 12 segmentów: dno + 4 pasy po 12 ścian (płaska ściana przecięta między części liczy się w każdej z nich).
   assert.ok(geo.wazon.reduce((a, c) => a + c.sciany, 0) >= 1 + 4 * 12);
   assert.deepEqual(geo.domek.map((c) => c.sciany), [7]);
@@ -98,7 +103,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);
