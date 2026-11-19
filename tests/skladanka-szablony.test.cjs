@@ -74,6 +74,24 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
     const z = kartkaK.zgiecia[i];
     assert.deepEqual([z.a, z.b], [s3.b, s1.a], 'zgięcie domyka obrys klapki');
   }
+  // Zgięcia po łuku (#281): łuk przez trzy punkty, rysowany jako linia łamana bigowania; ściany pomijają łuki.
+  const luk = await strona.evaluate(async () => {
+    const S = await import('./js/skladanka.js');
+    const pk = S.punktyLuku({ x: 0, y: 0 }, { x: 10, y: 5 }, { x: 20, y: 0 }, 20);
+    const r = (100 + 25) / 10; // promień: (c²/4 + s²) / 2s, c = 20, s = 5
+    const [c] = (await import('./js/skladanka-szablony.js')).czesciSzablonu('poduszka', {});
+    const el = S.elementyCzesci(c).filter((o) => o.skladanka === 'zgiecie' && o.uszlachetnienie === 'big');
+    return {
+      odl: pk.map((q) => Math.hypot(q.x - 10, q.y - (5 - r))),
+      srodek: pk[10], luki: c.zgiecia.filter((z) => z.luk).length, linie: el.map((o) => o.type),
+      sciany: S.scianyCzesci(c).sciany.length,
+    };
+  });
+  assert.ok(luk.odl.every((d) => Math.abs(d - 6.25 * 2) < 1e-6 || Math.abs(d - 12.5) < 1e-6), JSON.stringify(luk.odl));
+  assert.ok(Math.abs(luk.srodek.x - 10) < 1e-9 && Math.abs(luk.srodek.y - 5) < 1e-9);
+  assert.equal(luk.luki, 4);
+  assert.equal(luk.linie.filter((t) => t === 'polyline').length, 4, 'łuki jako linie łamane');
+  assert.equal(luk.sciany, 2, 'ściany dzieli tylko proste zgięcie');
   // Bryły o krzywych (#261): para łączy wiele krótkich krawędzi – po obu stronach te same długości (zakładki na
   // łuku płaszcza ↔ boki koła dna); różnice tylko z zaokrąglenia punktów do 0,01 mm.
   for (const k of ['walec', 'stozek', 'stozek_sciety', 'kula', 'wazon', 'zolw']) {
@@ -163,7 +181,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw', 'kolo_obrotowe', 'suwak', 'klapki']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw', 'kolo_obrotowe', 'suwak', 'klapki', 'poduszka']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);

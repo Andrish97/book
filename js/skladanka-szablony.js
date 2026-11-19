@@ -5,6 +5,7 @@
 //
 // Pary w szablonie są lokalne ('a', 'b'…) – wstawiający zamienia je na wolne numery projektu (numeruj()).
 
+import { punktyLuku } from './skladanka.js';
 import { rozlozSiatke } from './rozkladanie-3d.js';
 
 const LUZ = 0.5; // mm – luz między wieczkiem a pudełkiem
@@ -121,6 +122,29 @@ function suwak({ szerokosc: S, wysokosc: H, szerokosc_paska: w0, ruch: R0 }) {
     zgiecia: [],
   };
   return [kartka, pasek];
+}
+
+// Pudełko-poduszka (#281 – zgięcia po łuku): dwie ściany W × L i zakładka boczna; na końcach każdej ściany łuk
+// cięcia wypukły na zewnątrz (strzałka g) i łuk zgięcia wklęsły do środka ściany (ta sama strzałka) – po złożeniu
+// końce wciska się do środka i same się domykają. Łuki próbkowane co ok. 2 mm.
+function pudelkoPoduszka({ szerokosc: W, dlugosc: L, glebokosc: g0 }) {
+  const g = Math.max(3, Math.min(g0, W / 2.5));
+  const luk = (x0, x1, y, strz) => punktyLuku(P(x0, y), P((x0 + x1) / 2, y + strz), P(x1, y), 12).slice(1).map((q) => P(q.x, q.y));
+  const punkty = [P(0, 0), ...luk(0, W, 0, -g), ...luk(W, 2 * W, 0, -g), P(2 * W, L), ...luk(2 * W, W, L, g), ...luk(W, 0, L, g)];
+  punkty.pop(); // ostatni punkt łuku = P(0, L) – zostaje jako początek lewej krawędzi
+  punkty.push(P(0, L));
+  const krawedzie = punkty.map((p, i) => {
+    const q = punkty[(i + 1) % punkty.length];
+    if (p.x === 0 && q.x === 0) return { typ: 'zakladka', para: 'a', szer: 8 };
+    if (p.x === 2 * W && q.x === 2 * W) return { typ: 'klej', para: 'a' };
+    return { typ: 'ciecie' };
+  });
+  const zgiecia = [{ a: P(W, 0), b: P(W, L), rodzaj: 'dolina', kat: 170 }];
+  for (const x of [0, W]) {
+    zgiecia.push({ a: P(x, 0), b: P(x + W, 0), luk: P(x + W / 2, g), rodzaj: 'dolina', kat: 90 });
+    zgiecia.push({ a: P(x, L), b: P(x + W, L), luk: P(x + W / 2, L - g), rodzaj: 'dolina', kat: 90 });
+  }
+  return [{ nazwa: 'Pudełko-poduszka', opis: 'Zegnij łuki (big po łuku) i wciśnij końce do środka – zamykają się same.', punkty, krawedzie, zgiecia }];
 }
 
 // Klapki (lift-the-flap, #280 – zawias do książek): kartka z n okienkami (1–6, w siatce), każde wycięte z trzech
@@ -477,7 +501,7 @@ function przesunNaZero(czesc) {
   const minX = Math.min(...czesc.punkty.map((p) => p.x));
   const minY = Math.min(...czesc.punkty.map((p) => p.y));
   const m = (p) => P(p.x - minX, p.y - minY);
-  return { ...czesc, punkty: czesc.punkty.map(m), zgiecia: czesc.zgiecia.map((z) => ({ ...z, a: m(z.a), b: m(z.b) })) };
+  return { ...czesc, punkty: czesc.punkty.map(m), zgiecia: czesc.zgiecia.map((z) => ({ ...z, a: m(z.a), b: m(z.b), ...(z.luk ? { luk: m(z.luk) } : {}) })) };
 }
 export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc: H = 40, nazwa = 'Bryła' } = {}) {
   const pkt = zgodnieZRuchem(punktyWejscie.map((p) => ({ x: Number(p.x), y: Number(p.y) })));
@@ -606,6 +630,7 @@ export const SZABLONY_SKLADANEK = {
   pudelko_klapa: { nazwa: 'Pudełko z klapą wsuwaną', opis: 'Mechanizm: wieko na zawiasie z językiem wsuwanym za przednią ścianę – otwiera się i zamyka bez kleju.', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZKlapa },
   pudelko_zatrzask: { nazwa: 'Pudełko z zatrzaskiem', opis: 'Mechanizm: wieko z językiem wsuwanym w szczelinę w przedniej ścianie – zamyka się na zatrzask (szczelina na grubość materiału).', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZZatrzaskiem },
   kolo_obrotowe: { nazwa: 'Koło obrotowe (do książek)', opis: 'Element ruchomy: dwa krążki na ćwieku – górny z okienkiem pokazuje kolejne pola dolnego.', parametry: { srednica: 120, pola: 6 }, buduj: koloObrotowe },
+  poduszka: { nazwa: 'Pudełko-poduszka (zgięcia po łuku)', opis: 'Dwie ściany z łukami na końcach – zgięcia po łuku domykają pudełko bez kleju na końcach.', parametry: { szerokosc: 70, dlugosc: 120, glebokosc: 18 }, buduj: pudelkoPoduszka },
   klapki: { nazwa: 'Klapki (lift-the-flap, do książek)', opis: 'Okienka wycięte z trzech stron i zgięte na czwartej (zawias) – pod nimi druga kartka z ukrytym obrazkiem.', parametry: { szerokosc: 100, wysokosc: 140, klapki: 4, szerokosc_klapki: 30, wysokosc_klapki: 40 }, buduj: klapki },
   suwak: { nazwa: 'Suwak (pull-tab, do książek)', opis: 'Element ruchomy: pasek przełożony przez nacięcie w kartce – wysuwasz go za uchwyt, szeroki koniec nie pozwala go wyciągnąć.', parametry: { szerokosc: 100, wysokosc: 140, szerokosc_paska: 25, ruch: 50 }, buduj: suwak },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },

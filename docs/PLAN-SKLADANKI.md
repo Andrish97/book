@@ -62,7 +62,7 @@ trudne (zwierzę, budynek, pojazd, postać), kolejność:
 9. ⏳ (#264: OBJ i STL → części: drzewo ścian po najpłaskszych krawędziach, cięcie przy nachodzeniu, pary i zgięcia z kątem, płaskie ściany w całości; #274: Rozetnij, #275: Scal, #277: kolory materiałów (MTL) na częściach; zostaje tekstura obrazkowa) **Rozkładanie bryły 3D na siatkę** (jak Pepakura): wczytanie modelu OBJ / STL / glTF (z Blendera, z sieci),
    automatyczne cięcie na części (wybór krawędzi cięcia, ręczne łączenie i dzielenie części), zakładki i numery par
    same, rozkład na arkusze, nadruk – kolor/tekstura modelu na ścianach. To jest odpowiedź na „trudne rzeczy”.
-10. ⏳ (#261: walec, stożek, stożek ścięty z dokładnym rozwinięciem i szwem po łuku; #262: kula z klinów; #266: łuki z pióra próbkowane gęsto; #267: bryła obrotowa z profilu (wazon); zostają łuki z pióra próbkowane gęsto, zgięcia po łuku, bryła obrotowa z profilu) **Krzywe naprawdę**: łuki z pióra próbkowane gęsto (koło, owal, fala), zgięcia po łuku, powierzchnie
+10. ✅ (#261: walec, stożek, stożek ścięty z dokładnym rozwinięciem i szwem po łuku; #262: kula z klinów; #266: łuki z pióra próbkowane gęsto; #267: bryła obrotowa z profilu (wazon); #281: zgięcia po łuku, pudełko-poduszka) **Krzywe naprawdę**: łuki z pióra próbkowane gęsto (koło, owal, fala), zgięcia po łuku, powierzchnie
     rozwijalne – walec, stożek, stożek ścięty, bryła obrotowa z profilu (pasy / kliny jak globus).
 11. ⏳ (#263: graniastosłup i ostrosłup z dowolnego wielokąta – „Bryła z kształtu”; zostaje łączenie brył, np. dach na domku) **Bryła z rzutu**: dowolny wielokąt z pióra wyciągnięty w graniastosłup (domek, litera, gwiazda 3D) albo w
     ostrosłup; łączenie brył (dach na domku) – siatki generowane z parami.

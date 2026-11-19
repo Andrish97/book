@@ -33,6 +33,7 @@ export function normalizujCzesc(c = {}) {
   });
   const zgiecia = (Array.isArray(c.zgiecia) ? c.zgiecia : []).filter((z) => z?.a && z?.b).map((z) => ({
     a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), rodzaj: z.rodzaj === 'gora' ? 'gora' : 'dolina', kat: Number.isFinite(z.kat) ? Math.max(0, Math.min(180, z.kat)) : 90,
+    ...(z.luk && Number.isFinite(z.luk.x) && Number.isFinite(z.luk.y) ? { luk: P(z.luk.x, z.luk.y) } : {}),
   }));
   const liczba = (v, d) => (Number.isFinite(v) ? v : d);
   const pola = (Array.isArray(c.pola) ? c.pola : []).filter((x) => x && Number.isFinite(x.x) && Number.isFinite(x.y)).map((x) => ({
@@ -158,12 +159,30 @@ export function podzielWielokat(punkty, a, b) {
 // Ściany części z nacięciami (#273 – kartka pop-up „wycinanka”): podział planarny obrysu, zgięć i nacięć. Odcinki
 // dzielone w punktach przecięć i końcach innych odcinków, półkrawędzie, ściany jako cykle (skręt w lewo); ściana
 // zewnętrzna (ujemne pole) odpada. Zawias – zgięcie między dwiema ścianami; nacięcie rozdziela ściany bez zawiasu.
+// Zgięcie po łuku (#281): łuk okręgu przez a, luk (punkt w połowie łuku) i b – punkty co ok. 1–2 mm do rysowania
+// linii bigowania. Gdy trzy punkty leżą na prostej – odcinek. Ściany i makieta 3D pomijają zgięcia po łuku
+// (karton gnie się po krzywej sprężyście – jak w pudełku-poduszce), kontrola i instrukcja liczą je jak zwykłe.
+export function punktyLuku(a, m, b, n = 24) {
+  const d = 2 * (a.x * (m.y - b.y) + m.x * (b.y - a.y) + b.x * (a.y - m.y));
+  if (Math.abs(d) < 1e-9) return [a, b];
+  const q = (p) => p.x * p.x + p.y * p.y;
+  const ux = (q(a) * (m.y - b.y) + q(m) * (b.y - a.y) + q(b) * (a.y - m.y)) / d;
+  const uy = (q(a) * (b.x - m.x) + q(m) * (a.x - b.x) + q(b) * (m.x - a.x)) / d;
+  const r = Math.hypot(a.x - ux, a.y - uy);
+  const k = (p) => Math.atan2(p.y - uy, p.x - ux);
+  const ka = k(a); let km = k(m) - ka; let kb = k(b) - ka;
+  const norm = (x) => ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  km = norm(km); kb = norm(kb);
+  const zakres = km < kb ? kb : kb - 2 * Math.PI; // przez punkt m
+  return Array.from({ length: n + 1 }, (_, i) => (i === 0 ? { ...a } : i === n ? { ...b } : { x: ux + r * Math.cos(ka + (zakres * i) / n), y: uy + r * Math.sin(ka + (zakres * i) / n) }));
+}
+
 function scianyPlanarne(c) {
   const EPS = 0.01;
   const kl = (p) => `${Math.round(p.x / EPS)},${Math.round(p.y / EPS)}`;
   const odc = [];
   c.punkty.forEach((p, i) => odc.push({ a: p, b: c.punkty[(i + 1) % c.punkty.length], typ: 'brzeg' }));
-  c.zgiecia.forEach((z, i) => odc.push({ a: z.a, b: z.b, typ: 'zgiecie', nr: i }));
+  c.zgiecia.forEach((z, i) => { if (!z.luk) odc.push({ a: z.a, b: z.b, typ: 'zgiecie', nr: i }); });
   for (const z of c.szczeliny) if (z.naciecie) odc.push({ a: z.a, b: z.b, typ: 'ciecie' });
   // Punkty podziału każdego odcinka.
   const naOdcinku = (p, a, b) => {
@@ -325,7 +344,7 @@ export function scalCzesci(c1, i1, c2, i2) {
     if (i === 0 && j === L - 1) continue;
     if (tnie(punkty[i], punkty[(i + 1) % L], punkty[j], punkty[(j + 1) % L])) return null;
   }
-  const Tz = (z) => ({ ...z, a: T(z.a), b: T(z.b) });
+  const Tz = (z) => ({ ...z, a: T(z.a), b: T(z.b), ...(z.luk ? { luk: T(z.luk) } : {}) });
   return {
     punkty, krawedzie,
     zgiecia: [...c1.zgiecia, ...c2.zgiecia.map(Tz), { a: { ...A }, b: { ...B }, rodzaj: 'gora', kat: 90 }],
@@ -339,6 +358,7 @@ export function scianyCzesci(c) {
   let sciany = [c.punkty];
   const uzyte = [];
   c.zgiecia.forEach((z, nr) => {
+    if (z.luk) return;
     const srodek = { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 };
     const i = sciany.findIndex((s) => wWielokacie(s, srodek));
     if (i < 0) return;
@@ -395,9 +415,10 @@ export function elementyCzesci(def) {
   const el = [];
   const domowy = c.druk === 'domowy'; // druk domowy: linie cięcia i zgięć drukowane; drukarnia – tylko płyty techniczne
   const wspolne = { strokeUniform: true, objectCaching: false, selectable: false, evented: false };
-  const zgiecie = (a, b, rodzaj) => {
-    if (domowy) el.push(new fabric.Line([a.x, a.y, b.x, b.y], { ...wspolne, stroke: KOLOR_LINII, strokeWidth: 0.2, strokeDashArray: KRESKI[rodzaj], skladanka: 'zgiecie' }));
-    el.push(new fabric.Line([a.x, a.y, b.x, b.y], { ...wspolne, stroke: '#1f6feb', strokeWidth: 0.3, uszlachetnienie: 'big', skladanka: 'zgiecie' }));
+  const zgiecie = (a, b, rodzaj, luk) => {
+    const linia = (o) => (luk ? new fabric.Polyline(punktyLuku(a, luk, b), { ...o, fill: null }) : new fabric.Line([a.x, a.y, b.x, b.y], o));
+    if (domowy) el.push(linia({ ...wspolne, stroke: KOLOR_LINII, strokeWidth: 0.2, strokeDashArray: KRESKI[rodzaj], skladanka: 'zgiecie' }));
+    el.push(linia({ ...wspolne, stroke: '#1f6feb', strokeWidth: 0.3, uszlachetnienie: 'big', skladanka: 'zgiecie' }));
   };
   const numer = (t, x, y, rozmiar, kolor = '#555555') => el.push(new fabric.Text(t, { ...wspolne, left: x, top: y, originX: 'center', originY: 'center', fontSize: rozmiar, fontFamily: 'Inter', fill: kolor, skladanka: 'numer' }));
   // Zakładki i wypustki (pod ścianą – zgięcie u nasady rysuje się osobno).
@@ -410,7 +431,7 @@ export function elementyCzesci(def) {
     if (k.para && c.pokaz_numery) { const s = srodekWielokata(z); numer(k.para, s.x, s.y, Math.min(3.2, k.szer * 0.5)); }
   });
   el.push(new fabric.Polygon(c.punkty, { ...wspolne, fill: c.kolor, stroke: null, strokeWidth: 0, nazwa: 'Ściana', skladanka: 'sciana' }));
-  for (const z of c.zgiecia) zgiecie(z.a, z.b, z.rodzaj);
+  for (const z of c.zgiecia) zgiecie(z.a, z.b, z.rodzaj, z.luk);
   // Miejsca klejenia: na wierzchu – jasne pole z numerem (drukowane) i płyta Glue; na spodzie – tylko płyta Glue.
   for (const pole of c.pola) {
     // Pole obrócone o kat (stopnie) wokół lewego górnego rogu (#272 – zgięcie V klei się pod kątem do grzbietu).

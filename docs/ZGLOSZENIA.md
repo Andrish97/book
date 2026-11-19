@@ -230,3 +230,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – koło obrotowe do książek (#278).
 - 19.11.2026: składanki – suwak (pull-tab) do książek (#279).
 - 19.11.2026: składanki – klapki (lift-the-flap) z zawiasem do książek (#280).
+- 19.11.2026: składanki – zgięcia po łuku i pudełko-poduszka (#281).
