@@ -135,13 +135,13 @@ test('makieta bez 3D: ujęcia narysowane przy publikacji linku, galeria u ogląd
   for (const u of m2.uklad.makieta.ujecia) assert.ok([...baza.pliki.keys()].some((k) => k.startsWith(`${folder}${u.id}.`)), `plik ${u.id} został`);
 });
 
-test('makieta bez 3D, link bez ujęć: okno mówi, skąd się biorą ujęcia', async (t) => {
+test('makieta bez 3D, bez ujęć: bez błędu – spokojna informacja', async (t) => {
   const { strona } = await otworz(t, { widok: { width: 1100, height: 800 } });
   await strona.evaluate(BEZ_WEBGL);
   await nowyProjekt(strona, 'Bez ujęć');
   await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).otworzMakiete(window.seriodruk.stan.projekt));
   const tekst = await strona.textContent('#makieta-brak-3d');
   await strona.evaluate(() => document.querySelector('#dlg-makieta').close());
-  assert.match(tekst, /Nie udało się pokazać makiety 3D/);
-  assert.match(tekst, /udostępnij projekt linkiem na komputerze z grafiką 3D – ujęcia zapiszą się same/);
+  assert.doesNotMatch(tekst, /Nie udało się|WebGL|chrome/);
+  assert.match(tekst, /Makieta pojawi się tutaj jako gotowe zdjęcia, gdy udostępnisz projekt linkiem/);
 });

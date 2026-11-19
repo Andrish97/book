@@ -13,7 +13,7 @@ const zlozenie = () => import('../zlozenie.js');
 import { normalizujOkladke, formatSrodka } from '../okladka.js';
 import {
   MODELE, mozeStac, parametryWireO, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer,
-  widokModelu, powodBrakuWebGL, jestSpecjalnyModel, UJECIA, ujeciaModelu, MODELE_SPECJALNE, OBROT_OTWARTEJ_STOJACEJ,
+  widokModelu, jestSpecjalnyModel, UJECIA, ujeciaModelu, MODELE_SPECJALNE, OBROT_OTWARTEJ_STOJACEJ,
 } from '../makieta-3d.js';
 import {
   DOMYSLNE_OPCJE, normalizujOpcje, normalizujScene, normalizujUjecie, TLA, SWIATLA, BARWY, WYKONCZENIA_OKLADKI, PAPIERY, ILOSCI,
@@ -615,17 +615,40 @@ export function tekstBraku3D(powod, ua = navigator.userAgent) {
 
 function pokazBrak3D() {
   const k = $('#makieta-brak-3d');
-  if (pokazGalerie()) { k.hidden = true; return; }
+  dlg.classList.remove('makieta-czeka-tryb');
+  if (pokazGalerie()) { k.hidden = true; zakonczCzekanie(); return; }
   k.hidden = Boolean(renderer);
   if (!renderer) {
-    // Bez ujęć (#311): skąd się biorą i co zrobić, żeby były.
-    const wskazowka = st?.gosc
-      ? 'Gotowych ujęć makiety jeszcze nie ma – pojawią się, gdy osoba, która udostępniła projekt, otworzy go na komputerze z grafiką 3D.'
-      : st?.projekt?.udostepnienie?.kod
-        ? 'Gotowe ujęcia makiety (obrazy do przewijania) zapiszą się w linku same, gdy otworzysz ten projekt na komputerze albo telefonie z grafiką 3D – potem zobaczysz je tutaj.'
-        : 'Na urządzeniu bez grafiki 3D makieta pokazuje gotowe ujęcia z linku: udostępnij projekt linkiem na komputerze z grafiką 3D – ujęcia zapiszą się same i zobaczysz je tutaj.';
-    k.innerHTML = `${tekstBraku3D(powodBrakuWebGL)}<p>${wskazowka}</p>`;
+    // Bez grafiki 3D (zgłoszenie 19.11: „nie pokazuj błędu, tylko np. jeszcze się ładuje”): bez komunikatu o błędzie –
+    // zdjęcia makiety, a dopóki ich nie ma, spokojna informacja; okno samo sprawdza, czy już są.
+    k.classList.remove('blad');
+    dlg.classList.add('makieta-czeka-tryb');
+    const zLinkiem = st?.gosc || st?.projekt?.udostepnienie?.kod;
+    k.textContent = zLinkiem
+      ? 'Makieta się przygotowuje – gotowe zdjęcia makiety pojawią się tutaj same.'
+      : 'Makieta pojawi się tutaj jako gotowe zdjęcia, gdy udostępnisz projekt linkiem.';
+    if (zLinkiem) czekajNaUjecia();
   }
+}
+
+// Co 30 s – czy link ma już gotowe ujęcia (właściciel: własny link; oglądający: opis linku na nowo).
+let timerUjec = 0;
+function zakonczCzekanie() { clearTimeout(timerUjec); timerUjec = 0; }
+function czekajNaUjecia() {
+  if (timerUjec || !st) return;
+  const moje = st;
+  timerUjec = setTimeout(async () => {
+    timerUjec = 0;
+    if (moje !== st || renderer || !dlg.open) return;
+    try {
+      if (st.gosc && st.odswiezLink) {
+        const { manifest, adresObrazu } = await st.odswiezLink();
+        if (moje !== st) return;
+        st.ujeciaObrazy = (manifest.uklad?.makieta?.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
+        pokazBrak3D();
+      } else if (!st.gosc) await ujeciaZLinkuWlasciciela(st.projekt);
+    } catch { if (moje === st) czekajNaUjecia(); }
+  }, 30000);
 }
 
 // Utrata kontekstu WebGL (#157): telefon odbiera go np. przy przejściu aplikacji w tło. Bez preventDefault
@@ -688,7 +711,11 @@ export async function ujeciaWTle(projekt, model, { szer = MALO_PAMIECI ? 1200 : 
   try { opcje = JSON.parse(localStorage.getItem(kluczOpcji(projekt)) || 'null') || DOMYSLNE_OPCJE; } catch { opcje = DOMYSLNE_OPCJE; }
   const baza = bazaMakiety(projekt);
   if (!baza.modele.includes(model)) return null;
-  uruchom({ projekt, ...baza, opcje: normalizujOpcje(opcje), wTle: true }, { model, ulozenie: 'lezy' }, { wTle: true });
+  return rysujUjeciaWTle({ projekt, ...baza, opcje: normalizujOpcje(opcje), wTle: true }, model, { szer, wys });
+}
+
+async function rysujUjeciaWTle(baza, model, { szer, wys }) {
+  uruchom(baza, { model, ulozenie: 'lezy' }, { wTle: true });
   try {
     if (!renderer) return null;
     const wynik = [];
@@ -755,11 +782,11 @@ $('#makieta-galeria-dalej').addEventListener('click', () => przewinGalerie(1));
 
 // Podgląd z linku (#188): jeden wariant zapisany przy publikacji (rodzaj, ułożenie, ujęcie, światło), strony –
 // gotowe obrazy linku. Bez projektu, bez składania stron i bez zapisu czegokolwiek.
-export function otworzMakieteZLinku(opis, adresObrazu) {
+export function otworzMakieteZLinku(opis, adresObrazu, odswiezLink = null) {
   const w = opis.wariant || {};
   const projekt = { id: 'link', nazwa: opis.nazwa || 'Makieta', sekcje: opis.sekcje, strony: [] };
   const ujeciaObrazy = (opis.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
-  uruchom({ projekt, ...bazaZOpisu(opis), opcje: normalizujOpcje({ ...(w.opcje || {}), uszlachetnienia: false }), gosc: true, adresObrazu, ujeciaObrazy }, { model: opis.model, ulozenie: w.ulozenie });
+  uruchom({ projekt, ...bazaZOpisu(opis), opcje: normalizujOpcje({ ...(w.opcje || {}), uszlachetnienia: false }), gosc: true, adresObrazu, ujeciaObrazy, odswiezLink }, { model: opis.model, ulozenie: w.ulozenie });
   if (st && renderer && w.kamera) zastosujStan({ ...w, model: opis.model });
 }
 
@@ -1361,6 +1388,7 @@ $('#makieta-wstecz').addEventListener('click', () => kartkuj(-1));
 $('#makieta-dalej').addEventListener('click', () => kartkuj(1));
 dlg.addEventListener('close', () => {
   zaznaczOtwarta(false);
+  zakonczCzekanie();
   partia?.pasek.koniec();
   partia = null;
   obserwator.disconnect();

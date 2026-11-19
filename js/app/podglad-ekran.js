@@ -129,7 +129,7 @@ function odswiezOknoUdostepniania() {
     ? 'Makieta dla urządzeń bez grafiki 3D: gotowe ujęcia są w linku.'
     : maGrafike3D()
       ? 'Makieta dla urządzeń bez grafiki 3D: gotowych ujęć jeszcze nie ma – kliknij [Aktualizuj teraz], a zapiszą się od razu (albo same, gdy projekt będzie otwarty kilkanaście sekund).'
-      : 'Makieta dla urządzeń bez grafiki 3D: gotowych ujęć jeszcze nie ma, a to urządzenie nie umie ich narysować – otwórz projekt na komputerze z grafiką 3D i kliknij tam [Aktualizuj teraz].';
+      : 'Makieta dla urządzeń bez grafiki 3D: gotowych ujęć jeszcze nie ma – to urządzenie nie rysuje 3D; zapiszą się, gdy link zaktualizuje urządzenie z grafiką 3D.';
 }
 
 // ---------- Ochrona linku: hasło i data ważności ----------

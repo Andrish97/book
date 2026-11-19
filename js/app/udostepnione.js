@@ -84,11 +84,16 @@ function pokazPrzygotowanie(manifest) {
 export async function otworzMakieteLinku() {
   const opis = daneLinku?.manifest.uklad?.makieta;
   if (!opis) return;
-  (await import('./makieta-okno.js')).otworzMakieteZLinku(opis, daneLinku.adresObrazu);
+  // Bez grafiki 3D okno czeka na gotowe ujęcia i co jakiś czas czyta opis linku na nowo.
+  const t = ostatniLink;
+  const odswiez = t ? () => (t.chroniony ? chmura.wczytajPodgladChroniony(t.t.konto, t.t.projekt, t.t.kod, t.haslo) : chmura.wczytajPodgladPubliczny(t.t.konto, t.t.projekt, t.t.kod)) : null;
+  (await import('./makieta-okno.js')).otworzMakieteZLinku(opis, daneLinku.adresObrazu, odswiez);
 }
+let ostatniLink = null; // { t, haslo, chroniony } – do odświeżania opisu linku z okna makiety
 
 function pokazStronyLinku(dane, t, haslo = '') {
   const { manifest } = dane;
+  ostatniLink = { t, haslo, chroniony: Boolean(dane.chroniony) };
   ustawDaneLinku(dane);
   document.title = `${manifest.uklad.nazwa} – ${NAZWA}`;
   podgladPubliczny ||= new Podglad();

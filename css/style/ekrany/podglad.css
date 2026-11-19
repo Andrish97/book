@@ -189,3 +189,6 @@ button.podglad-kartka { cursor: pointer; }
 .makieta-tryb { margin-left: auto; margin-right: 8px; }
 .makieta-tryb .przycisk { border: 0; background: transparent; box-shadow: none; color: var(--tusz-2); }
 .makieta-tryb .przycisk[aria-pressed="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
+/* Bez grafiki 3D i jeszcze bez zdjęć makiety: spokojna informacja zamiast płótna i ustawień 3D. */
+.makieta-czeka-tryb :is(#makieta-plotno, #makieta-ujecia, .makieta-sterowanie, #makieta-ustawienia, #makieta-eksport, #makieta-zapisane) { display: none !important; }
+.makieta-czeka-tryb #makieta-brak-3d { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--cichy); background: transparent; border: 0; }
