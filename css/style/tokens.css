@@ -1,0 +1,92 @@
+/* ==========================================================================
+   Makietka – wygląd
+   Spokojna, „papierowa” paleta: ciepłe szarości, jeden kolor akcentu.
+   ========================================================================== */
+
+:root {
+  --papier: #f4f3ef;
+  --powierzchnia: #ffffff;
+  --powierzchnia-2: #f9f8f6;
+  --wypelnienie: #efeee9;
+  --wypelnienie-hover: #e7e5df;
+  --linia: #e3e1da;
+  --linia-mocna: #cfccc3;
+  --tusz: #1c1b19;
+  --tusz-2: #4a4843;
+  --cichy: #807d75;
+  --akcent: #2f5bd3;
+  --akcent-hover: #264bb3;
+  --akcent-tlo: #eaf0fd;
+  --akcent-tekst: #ffffff;
+  --uwaga: #b45309;
+  --uwaga-tlo: #fdf3e5;
+  --blad: #b42318;
+  --blad-tlo: #fdecea;
+  --sukces: #18794e;
+  --sukces-tlo: #e3f4ea;
+  --obszar: #dcdad3;
+  /* kolory pochodne, różne w obu motywach */
+  --na-akcencie-tle: #1d3f9e;   /* tekst na jasnym tle akcentu */
+  --na-ostrzezeniu: #ffffff;    /* tekst na pełnym kolorze ostrzeżenia */
+  --blad-linia: #e9b4ae;
+  --szklo: rgba(255, 255, 255, .92); /* przyciski leżące na miniaturach */
+  --zaslona: rgba(28, 27, 25, .4);
+  --wzorzec: #3b2a6b;           /* tryb edycji wzorca */
+  --wzorzec-tekst: #ffffff;
+  --obszar-wzorca: #d9d3e6;
+  --blask-1: #fbf4e6;
+  --blask-2: #e6ecf9;
+  --cien-strony: 0 2px 4px rgba(28, 27, 25, .1), 0 12px 32px rgba(28, 27, 25, .16);
+
+  --r-s: 6px;
+  --r-m: 10px;
+  --r-l: 16px;
+  --cien-1: 0 1px 2px rgba(28, 27, 25, .06), 0 1px 1px rgba(28, 27, 25, .04);
+  --cien-2: 0 4px 16px rgba(28, 27, 25, .08), 0 1px 3px rgba(28, 27, 25, .06);
+  --cien-3: 0 18px 50px rgba(28, 27, 25, .18), 0 4px 12px rgba(28, 27, 25, .08);
+  --dotyk: 40px;
+  --pasek: 56px;
+  --czas: .16s;
+  color-scheme: light;
+}
+
+/* Ciemny motyw: te same nazwy, inne wartości. Strony publikacji zostają
+   białe – to papier – zmienia się tylko interfejs wokół nich. */
+:root[data-motyw="ciemny"] {
+  --papier: #151412;
+  --powierzchnia: #1e1d1a;
+  --powierzchnia-2: #242320;
+  --wypelnienie: #2b2a26;
+  --wypelnienie-hover: #35332e;
+  --linia: #33312c;
+  --linia-mocna: #4b4841;
+  --tusz: #f1efe9;
+  --tusz-2: #cdc9bf;
+  --cichy: #99958b;
+  --akcent: #86a3f7;
+  --akcent-hover: #9db5f9;
+  --akcent-tlo: #222a44;
+  --akcent-tekst: #0f1320;
+  --uwaga: #f0a45e;
+  --uwaga-tlo: #382917;
+  --blad: #f28f86;
+  --blad-tlo: #3b1f1c;
+  --sukces: #74d6a3;
+  --sukces-tlo: #17362a;
+  --obszar: #0d0c0b;
+  --na-akcencie-tle: #c3d1fb;
+  --na-ostrzezeniu: #1c1206;
+  --blad-linia: #6b3a35;
+  --szklo: rgba(30, 29, 26, .9);
+  --zaslona: rgba(0, 0, 0, .6);
+  --wzorzec: #b9a5f0;
+  --wzorzec-tekst: #1a1233;
+  --obszar-wzorca: #1b1629;
+  --blask-1: #201c14;
+  --blask-2: #151a29;
+  --cien-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --cien-2: 0 4px 16px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
+  --cien-3: 0 18px 50px rgba(0, 0, 0, .6), 0 4px 12px rgba(0, 0, 0, .4);
+  --cien-strony: 0 2px 6px rgba(0, 0, 0, .5), 0 14px 36px rgba(0, 0, 0, .55);
+  color-scheme: dark;
+}

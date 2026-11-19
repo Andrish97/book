@@ -34,7 +34,20 @@
       if (dotyk || innerWidth <= 600) r.setAttribute('data-zaslonka', '');
     })();
   </script>
-  <link rel="stylesheet" href="css/aplikacja.css">
+  <!-- Silnik stylów (#291, docs/PLAN-STYLE.md): tokeny → baza → komponenty → układ → ekrany → urządzenia. -->
+  <link rel="stylesheet" href="css/style/tokens.css">
+  <link rel="stylesheet" href="css/style/base.css">
+  <link rel="stylesheet" href="css/style/components.css">
+  <link rel="stylesheet" href="css/style/layout.css">
+  <link rel="stylesheet" href="css/style/ekrany/logowanie.css">
+  <link rel="stylesheet" href="css/style/ekrany/konto.css">
+  <link rel="stylesheet" href="css/style/ekrany/projekty.css">
+  <link rel="stylesheet" href="css/style/ekrany/edytor.css">
+  <link rel="stylesheet" href="css/style/ekrany/podglad.css">
+  <link rel="stylesheet" href="css/style/ekrany/instrukcja.css">
+  <link rel="stylesheet" href="css/style/ekrany/wspolpraca.css">
+  <link rel="stylesheet" href="css/style/ekrany/admin.css">
+  <link rel="stylesheet" href="css/style/urzadzenia.css">
   <!-- Silnik płótna leży w repozytorium (przypięta wersja; powody w docs/DECYZJE.md #44). -->
   <script type="module" src="js/aplikacja.js"></script>
   <!-- Moduły startu pobierane naraz, nie poziom po poziomie (#158). -->

@@ -29,7 +29,7 @@ const MOTYWY = (ARG.motywy || 'jasny,ciemny').split(',');
 const WZOR_WIDOKOW = ARG.widoki ? new RegExp(ARG.widoki) : null;
 const ROWNOLEGLE = Math.max(1, Number(ARG.rownolegle) || 2);
 // --wyciecia: udawane wycięcia ekranu (Chromium nie ma env(safe-area-inset-*)) – telefon pionowo 47 px u góry
-// i 21 px u dołu, poziomo 47 px po bokach; zmienne --bezp-* z css/aplikacja.css (#99).
+// i 21 px u dołu, poziomo 47 px po bokach; zmienne --bezp-* z css/style/urzadzenia.css (#99).
 const WYCIECIA = Boolean(ARG.wyciecia);
 async function udawajWyciecia(kontekst, u) {
   if (!WYCIECIA || !u.opcje.hasTouch) return;
@@ -447,7 +447,12 @@ const WIDOKI = [
     await czekaj(s, 200);
   }, E],
   ['03e-menu-widoku', async (s) => { await doEdytora(s); await s.click('#przycisk-widok'); }, E],
-  ['03f-pasek-narzedzi-rysuj', async (s) => { await doEdytora(s); await s.locator('[data-akcja="rysuj"]:visible').first().click(); await czekaj(s, 200); }, E],
+  ['03f-pasek-narzedzi-rysuj', async (s) => {
+    await doEdytora(s);
+    // Na wąskim ekranie „Rysuj” jest w menu ⋯ paska narzędzi.
+    if (!await s.locator('[data-akcja="rysuj"]:visible').count()) { await s.click('#przycisk-narzedzia-wiecej'); await czekaj(s, 150); }
+    await s.locator('[data-akcja="rysuj"]:visible').first().click(); await czekaj(s, 200);
+  }, E],
   ['04-edytor-tekst', async (s) => { await doEdytora(s); await zaznacz(s, "o.text === 'Styczeń'"); await panel(s, 'inspektor'); }, E],
   ['04b-pisanie', async (s) => {
     await doEdytora(s);
@@ -732,7 +737,7 @@ async function widokiLogowania(s, zrzut) {
 
 // Udostępniony podgląd oczami gościa: link z hasłem (pole hasła), potem strony.
 async function widokiGoscia(przegladarka, u, motyw, baza, link, zrzutStrony) {
-  const k = await przegladarka.newContext({ ...u.opcje, deviceScaleFactor: 1, serviceWorkers: 'block', colorScheme: motyw === 'ciemny' ? 'dark' : 'light' });
+  const k = await przegladarka.newContext({ ...u.opcje, locale: 'pl-PL', deviceScaleFactor: 1, serviceWorkers: 'block', colorScheme: motyw === 'ciemny' ? 'dark' : 'light' });
   await udawajWyciecia(k, u);
   await podlaczAtrape(k).catch(() => {});
   baza.podlacz?.(k);
@@ -751,7 +756,7 @@ async function widokiGoscia(przegladarka, u, motyw, baza, link, zrzutStrony) {
 async function zrzutyUrzadzenia(przegladarka, u, motyw) {
   const katalog = path.join(KATALOG, u.nazwa, motyw);
   fs.mkdirSync(katalog, { recursive: true });
-  const kontekst = await przegladarka.newContext({ ...u.opcje, deviceScaleFactor: 1, serviceWorkers: 'block', colorScheme: motyw === 'ciemny' ? 'dark' : 'light' });
+  const kontekst = await przegladarka.newContext({ ...u.opcje, locale: 'pl-PL', deviceScaleFactor: 1, serviceWorkers: 'block', colorScheme: motyw === 'ciemny' ? 'dark' : 'light' });
   await udawajWyciecia(kontekst, u);
   const baza = await podlaczAtrape(kontekst);
   const s = await kontekst.newPage();

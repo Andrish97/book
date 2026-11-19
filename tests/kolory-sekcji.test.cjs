@@ -171,7 +171,8 @@ test('telefon: okno „Kolory projektu” i wykończenie druku mieszczą się na
     const r = [...document.querySelectorAll('#wlasciwosci .wybor-wykonczenia button')].map((b) => b.getBoundingClientRect());
     return { ile: r.length, wEkranie: r.every((x) => x.left >= 0 && x.right <= innerWidth), szer: Math.round(Math.min(...r.map((x) => x.width))) };
   });
-  assert.equal(kafle.ile, 6);
+  // 6 wykończeń (lakier, złocenie, tłoczenie, wytłoczenie, biel, bez) i 4 linie wykrojnika (cięcie, big, perforacja, klej).
+  assert.equal(kafle.ile, 10);
   assert.ok(kafle.wEkranie, 'kafelki w ekranie');
   assert.ok(kafle.szer >= 80, `kafelki nie za wąskie (${kafle.szer})`);
   await strona.evaluate(async () => (await import('./js/app/edytor-start.js')).akcje['kolory-druku']());

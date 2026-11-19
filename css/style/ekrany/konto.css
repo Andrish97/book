@@ -1,0 +1,213 @@
+/* ---------- Ustawienia konta ---------- */
+/* Jedna kolumna grup z wierszami „opis po lewej, wartość i akcja po prawej”;
+   formularze rozwijają się w wierszu dopiero wtedy, gdy są potrzebne. */
+
+.ekran-konta { flex-direction: column; }
+.tytul-ekranu { font-size: 16px; font-weight: 600; }
+.konto-tresc { flex: 1; overflow: auto; scroll-behavior: smooth; }
+.konto-uklad {
+  max-width: 980px; margin: 0 auto; padding: 32px clamp(16px, 4vw, 40px) 72px;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 40px; align-items: start;
+}
+.konto-nawigacja { position: sticky; top: 32px; display: flex; flex-direction: column; gap: 2px; }
+.konto-nawigacja a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r-m);
+  color: var(--tusz-2); text-decoration: none; font-weight: 500;
+}
+@media (hover: hover) { .konto-nawigacja a:hover { background: var(--wypelnienie); color: var(--tusz); } }
+@media (hover: hover) { .konto-nawigacja a.niebezpieczny:hover { background: var(--blad-tlo); } }
+.konto-nawigacja .ikona { color: var(--cichy); }
+.konto-sekcje { display: flex; flex-direction: column; gap: 36px; min-width: 0; }
+.grupa-ustawien { scroll-margin-top: 24px; }
+.grupa-ustawien > h2 { font-size: 20px; margin-bottom: 4px; }
+.grupa-ustawien > .ciche { margin-bottom: 14px; max-width: 60ch; }
+.wiersze-ustawien { border-top: 1px solid var(--linia); }
+.wiersz-ustawien { padding: 16px 0; border-bottom: 1px solid var(--linia); }
+.wiersz-glowny { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 20px; align-items: center; }
+.wiersz-opis { min-width: 0; }
+.wiersz-opis strong { display: block; font-weight: 600; }
+.wiersz-opis span { display: block; color: var(--cichy); font-size: 13px; overflow-wrap: anywhere; }
+.wiersz-opis .wartosc { color: var(--tusz-2); font-size: 14px; }
+.wiersz-akcje { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.wiersz-ustawien .formularz { margin-top: 14px; max-width: 420px; }
+.wiersz-ustawien .formularz .pole { flex: 0 0 auto; }
+.wiersz-ustawien .stopka-formularza { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.wiersz-ustawien .stopka-formularza .link { margin-left: auto; }
+.liczby-konta { display: flex; gap: 28px; flex-wrap: wrap; margin: 0; }
+.liczby-konta div { display: flex; flex-direction: column; }
+.liczby-konta dt { font-size: 12.5px; color: var(--cichy); }
+.liczby-konta dd { margin: 0; font-size: 18px; font-weight: 600; }
+.oczekuje {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px;
+  padding: 10px 12px; border-radius: var(--r-m);
+  background: var(--akcent-tlo); color: var(--na-akcencie-tle); font-size: 13px;
+}
+.oczekuje > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.oczekuje small { color: inherit; opacity: .8; }
+.grupa-ustawien.niebezpieczna > h2 { color: var(--blad); }
+
+/* Ustawienia konta jako lista jak w telefonie (#109): wiersz „Tytuł · wartość ›” otwiera jedną sekcję.
+   Szeroki ekran: lista po lewej, wybrana sekcja po prawej. Wąski: sama lista albo sama sekcja z „‹ Ustawienia”. */
+#ekran-konta .konto-uklad { grid-template-columns: 280px minmax(0, 1fr); }
+#ekran-konta .konto-lista {
+  gap: 0; border: 1px solid var(--linia); border-radius: var(--r-l, 12px); background: var(--powierzchnia, var(--tlo));
+  overflow: hidden;
+}
+#ekran-konta .konto-lista a {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  min-height: 46px; padding: 8px 12px; border-radius: 0; border-bottom: 1px solid var(--linia);
+}
+#ekran-konta .konto-lista a:last-child { border-bottom: 0; }
+#ekran-konta .konto-lista a .ikona-wiersza { display: inline-flex; color: var(--cichy); }
+#ekran-konta .konto-lista a .tytul { white-space: nowrap; }
+#ekran-konta .konto-lista a .wartosc {
+  justify-self: end; max-width: 100%; color: var(--cichy); font-weight: 400; font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#ekran-konta .konto-lista a .strzalka { display: inline-flex; color: var(--cichy); grid-column: 4; }
+#ekran-konta .konto-lista a.aktywna { background: var(--akcent-tlo); color: var(--na-akcencie-tle, var(--tusz)); }
+#ekran-konta .konto-lista a.aktywna .ikona-wiersza { color: inherit; }
+#ekran-konta .konto-lista a.niebezpieczny .tytul { color: var(--blad); }
+#ekran-konta .grupa-ustawien:not(.wybrana) { display: none; }
+#ekran-konta .do-listy-ustawien { display: none; margin: 0 0 8px -8px; }
+
+/* Ustawienia sekcji: marginesy na schemacie strony (#109). Proporcje kartki i marginesów ustawia js/app/sekcje.js
+   (--sz, --wy, --m-gora… w % szerokości/wysokości kartki, --spad w % szerokości). */
+.schemat-marginesow {
+  display: grid; grid-template-columns: minmax(64px, 96px) minmax(120px, 200px) minmax(64px, 96px);
+  grid-template-areas: "spad gora ." "lewy strona prawy" ". dol .";
+  gap: 8px 12px; align-items: center; justify-content: center; padding: 4px 0;
+}
+.schemat-marginesow .pole { min-width: 0; }
+.schemat-marginesow .pole input { width: 100%; text-align: center; }
+.schemat-gora { grid-area: gora; justify-self: center; width: 96px; }
+.schemat-dol { grid-area: dol; justify-self: center; width: 96px; }
+.schemat-lewy { grid-area: lewy; }
+.schemat-prawy { grid-area: prawy; }
+.schemat-spad-pole { grid-area: spad; align-self: end; }
+.schemat-strona { grid-area: strona; position: relative; width: 100%; max-height: 220px; aspect-ratio: var(--sz, 148) / var(--wy, 210); justify-self: center; }
+.schemat-spad { position: absolute; inset: 0; border: 1.5px dashed color-mix(in srgb, var(--blad) 55%, transparent); border-radius: 2px; }
+.schemat-kartka {
+  position: absolute; inset: var(--spad-y, 4%) var(--spad-x, 4%);
+  background: #fff; box-shadow: 0 1px 4px rgba(28, 27, 25, .25); border-radius: 1px;
+}
+.schemat-pole-tekstu {
+  position: absolute; top: var(--m-gora, 10%); bottom: var(--m-dol, 10%); left: var(--m-lewy, 12%); right: var(--m-prawy, 12%);
+  border: 1px dashed var(--akcent); background: color-mix(in srgb, var(--akcent) 8%, transparent);
+}
+/* Rozkładówki: kreska grzbietu przy marginesie wewnętrznym (schemat pokazuje prawą stronę). */
+.schemat-marginesow.rozkladowki .schemat-kartka { box-shadow: inset 3px 0 0 -1px rgba(28, 27, 25, .35), 0 1px 4px rgba(28, 27, 25, .25); }
+.schemat-marginesow.bez-spadu .schemat-spad { display: none; }
+@media (max-width: 420px) {
+  .schemat-marginesow { grid-template-columns: 72px minmax(96px, 1fr) 72px; column-gap: 8px; }
+}
+.menu-naglowek strong { display: block; color: var(--tusz); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
+.wybor-motywu span { gap: 6px; }
+
+/* ---------- Dostęp dla AI ---------- */
+.lista-dostepow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lista-dostepow li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--linia); border-radius: var(--r-s); }
+.lista-dostepow li > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lista-dostepow .ciche { font-size: 12.5px; }
+.dostep-ai-kroki { margin: 4px 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.45; }
+.dostep-ai-jak { margin-top: 4px; }
+.dostep-ai-jak pre { margin: 6px 0; padding: 10px; overflow-x: auto; font-size: 12px; line-height: 1.45; background: var(--wypelnienie); border-radius: var(--r-s); white-space: pre; }
+#dostep-ai-klucz, #dostep-ai-adres { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+
+/* Odwrotność .tylko-duzy-ekran: widoczne tylko na małym ekranie (np. wskazówki zastępujące schowane narzędzia). */
+.tylko-maly-ekran { display: none; }
+
+/* ---------- Miejsce na koncie (#90) ---------- */
+.miejsce-aplikacji { display: flex; flex-direction: column; gap: 8px; }
+.miejsce-naglowek { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.miejsce-naglowek span { color: var(--cichy); font-size: 13.5px; }
+.miejsce-pasek { display: flex; height: 10px; border-radius: 999px; background: var(--linia); overflow: hidden; }
+.miejsce-pasek span { display: block; height: 100%; width: 0; transition: width .3s ease; }
+.miejsce-pasek .moje { background: var(--akcent); }
+.miejsce-pasek .inne { background: color-mix(in srgb, var(--cichy) 55%, transparent); }
+.miejsce-aplikacji.wysoko .miejsce-pasek .moje { background: var(--uwaga); }
+.miejsce-legenda { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 0; font-size: 12.5px; color: var(--cichy); }
+.miejsce-legenda .kropka { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.miejsce-legenda .kropka.moje { background: var(--akcent); }
+.miejsce-legenda .kropka.inne { margin-left: 10px; background: color-mix(in srgb, var(--cichy) 55%, transparent); }
+.miejsce-ostrzezenie { margin: 0; padding: 10px 12px; border-radius: var(--r-m, 8px); background: var(--uwaga-tlo); color: var(--uwaga); font-size: 13.5px; line-height: 1.45; }
+#miejsce-baza { margin: 0; font-size: 12.5px; }
+@media (prefers-reduced-motion: reduce) { .miejsce-pasek span { transition: none; } }
+
+/* ===============================================================
+   Klucze AI konta (js/app/dostep-ai.js) – decyzja #94
+   ====================================================================== */
+.zakres-klucza { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.lista-projektow-klucza { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; padding: 6px 8px; border: 1px solid var(--linia); border-radius: var(--r-s); }
+.lista-projektow-klucza[hidden] { display: none; }
+.lista-projektow-klucza .projekt-klucza span { overflow-wrap: anywhere; }
+.lista-dostepow li { flex-wrap: wrap; }
+.lista-dostepow .zakres-opis { font-size: 13px; overflow-wrap: anywhere; }
+.lista-dostepow li > div:first-child { flex: 1 1 240px; }
+.lista-dostepow li > .klucz-akcje, .lista-dostawcow-ai li > .klucz-akcje { flex-direction: row; flex-wrap: wrap; gap: 6px; flex: 0 1 auto; justify-content: flex-end; }
+/* #248: rozwinięte pod kluczem – pokazany klucz, ważność, zakres – na całą szerokość wiersza. */
+.lista-dostepow li > .klucz-pokazany, .lista-dostawcow-ai li > .klucz-pokazany { flex: 1 1 100%; flex-direction: column; align-items: stretch; }
+.klucz-pokazany pre { padding: 8px 10px; background: var(--wypelnienie); border-radius: var(--r-s); font-size: 12px; max-height: 220px; overflow: auto; }
+.lista-dostepow .zmiana-zakresu { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
+:root[data-dotyk] .lista-projektow-klucza .przelacznik { min-height: 40px; }
+@media (max-width: 600px) {
+  .lista-dostepow .klucz-akcje { flex: 1 1 100%; }
+  .lista-dostepow .klucz-akcje .przycisk { flex: 1 1 auto; }
+}
+
+/* Menu w niskim oknie (telefon 320×568: menu ⋯ urosło o „Współpraca…”) – nie dłuższe niż ekran, reszta się przewija. */
+#menu-wiecej, #menu-uzytkownika { max-height: calc(100svh - 64px); overflow-y: auto; overscroll-behavior: contain; }
+
+/* Kropki legendy „Miejsce” w ustawieniach konta: ogólna klasa .kropka (znacznik ostrzeżeń) ustawiała je
+   absolutnie – na telefonie lądowały u góry ekranu, nad tytułem paska. */
+.miejsce-legenda .kropka { position: static; inset: auto; transform: none; margin: 0; flex: none; }
+
+/* Pasek podglądu na telefonie: przybliża się palcami (#84), więc − i + ustępują miejsca tytułowi
+   (na 320 px zostawało z niego „K…”); stuknięcie w procent dopasowuje stronę jak dotąd. */
+:root[data-dotyk][data-kompakt] .pasek-podgladu .powiekszenie-krok { display: none; }
+
+/* ---------- Panel użycia konta (#93): projekty, paski limitów, u innych ---------- */
+.uzycie-projektow { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.uzycie-sortowanie { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--cichy); }
+.uzycie-sortowanie select { width: auto; min-width: 0; }
+.uzycie-paski { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.uzycie-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.uzycie-projekt {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "opis akcje" "slupek slupek";
+  gap: 6px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--linia); border-radius: var(--r-m, 8px); background: var(--powierzchnia);
+}
+.uzycie-opis { grid-area: opis; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.uzycie-opis strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uzycie-meta { font-size: 12.5px; overflow-wrap: anywhere; }
+.uzycie-akcje { grid-area: akcje; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.uzycie-slupek { grid-area: slupek; height: 6px; border-radius: 999px; background: var(--linia); overflow: hidden; }
+.uzycie-slupek span { display: block; height: 100%; background: var(--akcent); border-radius: 999px; }
+.uzycie-u-innych summary { cursor: pointer; font-size: 13.5px; color: var(--cichy); padding: 4px 0; }
+.uzycie-u-innych .uzycie-lista { margin-top: 8px; }
+#uzycie-dodatki, #uzycie-pusto { margin: 0; font-size: 13px; }
+:root[data-dotyk] .uzycie-projekt .przycisk.maly { min-height: 40px; }
+@media (max-width: 600px) {
+  .uzycie-projekt { grid-template-columns: minmax(0, 1fr); grid-template-areas: "opis" "slupek" "akcje"; }
+  .uzycie-akcje { justify-content: stretch; }
+  .uzycie-akcje .przycisk { flex: 1 1 0; }
+}
+
+/* ---------- Dostęp dla AI: jak podłączyć i gotowe polecenia (js/polecenia-ai.js, #107) ---------- */
+.dostep-ai-pomoc .dostep-ai-jak > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
+:root[data-dotyk] .dostep-ai-pomoc .dostep-ai-jak > summary { min-height: 44px; display: flex; align-items: center; }
+.dostep-ai-pomoc ul.dostep-ai-kroki { list-style: disc; }
+.dostep-ai-pomoc code { font-size: 12px; overflow-wrap: anywhere; }
+.dostep-ai-polecenie { border: 1px solid var(--linia); border-radius: var(--r-m, 8px); padding: 8px 10px; }
+.dostep-ai-polecenie .prompt-naglowek { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.dostep-ai-polecenie pre { margin: 8px 0 0; padding: 10px; font-size: 12px; line-height: 1.45; background: var(--wypelnienie); border-radius: var(--r-s); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow-y: auto; }
+.dostep-ai-rozszerzenie { margin-top: 10px; }
+.dostep-ai-rozszerzenie .podpowiedz { margin: 4px 0 0; }
+
+/* Ustawienia konta → Powiadomienia (#113): uwaga pod przełącznikiem (iPhone bez instalacji, blokada w przeglądarce)
+   i rodzaje powiadomień jako przełączniki jeden pod drugim. */
+.wiersz-glowny.z-przelacznikiem { grid-template-columns: minmax(0, 1fr) auto; } /* przełącznik zostaje po prawej także na telefonie */
+.powiadomienia-uwaga { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 10px; }
+.powiadomienia-uwaga[hidden], .powiadomienia-rodzaje[hidden] { display: none; }
+.powiadomienia-rodzaje { margin: 0; border-width: 0 0 1px; border-style: solid; border-color: var(--linia); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.powiadomienia-rodzaje legend { float: left; width: 100%; margin: 0 0 2px; padding: 0; font-size: 13px; font-weight: 600; color: var(--tusz-2); }

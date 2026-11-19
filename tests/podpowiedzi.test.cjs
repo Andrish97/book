@@ -18,10 +18,16 @@ test('telefon: podpowiedzi o skrótach ukryte, długie zwinięte i rozwijane stu
   assert.ok(stan.zwijane > 0, 'są długie podpowiedzi');
   // Długa podpowiedź w otwartym oknie: dwie linie, po stuknięciu cała.
   const wynik = await strona.evaluate(async () => {
-    const el = [...document.querySelectorAll('.podpowiedz-zwijana')].find((x) => x.closest('dialog'));
-    const dlg = el.closest('dialog');
-    dlg.showModal();
-    await new Promise((ok) => { setTimeout(ok, 400); });
+    // Pierwsza widoczna długa podpowiedź w oknie (część podpowiedzi pokazuje się tylko w danym ustawieniu).
+    let el = null;
+    let dlg = null;
+    for (const d of new Set([...document.querySelectorAll('.podpowiedz-zwijana')].map((x) => x.closest('dialog')).filter(Boolean))) {
+      d.showModal();
+      await new Promise((ok) => { setTimeout(ok, 400); });
+      el = [...d.querySelectorAll('.podpowiedz-zwijana')].find((x) => x.offsetHeight > 0 && x.scrollHeight > x.clientHeight + 2);
+      if (el) { dlg = d; break; }
+      d.close();
+    }
     const linia = parseFloat(getComputedStyle(el).lineHeight) || 16;
     const przed = el.getBoundingClientRect().height;
     el.click();

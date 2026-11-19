@@ -1,0 +1,517 @@
+/* ---------- Przyciski ---------- */
+
+.przycisk, .przycisk-ikona {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--dotyk);
+  padding: 0 14px;
+  border: 1px solid var(--linia-mocna);
+  border-radius: var(--r-m);
+  background: var(--powierzchnia);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--czas), border-color var(--czas), color var(--czas), box-shadow var(--czas);
+}
+/* Mały przycisk (#291: jedna definicja komponentu – wcześniej dwie w plikach ekranów). */
+.przycisk.maly { min-height: 30px; padding: 0 10px; font-size: 13px; flex: none; }
+/* Duży (logowanie) i niebezpieczny (usuwanie) – warianty z plików ekranów przeniesione do komponentu (#291). */
+.przycisk.duzy { min-height: 46px; font-size: 15px; font-weight: 600; }
+.przycisk.niebezpieczny { border-color: var(--blad-linia); }
+.przycisk-ikona.niebezpieczny-ikona { color: var(--blad); }
+@media (hover: hover) { .przycisk-ikona.niebezpieczny-ikona:hover { background: var(--blad-tlo); color: var(--blad); } }
+@media (hover: hover) { .przycisk.niebezpieczny:hover { background: var(--blad-tlo); border-color: var(--blad); } }
+@media (hover: hover) { .przycisk:hover, .przycisk-ikona:hover { background: var(--powierzchnia-2); border-color: var(--cichy); } }
+.przycisk:active, .przycisk-ikona:active { background: var(--wypelnienie); }
+.przycisk.glowny { background: var(--akcent); border-color: var(--akcent); color: var(--akcent-tekst); }
+@media (hover: hover) { .przycisk.glowny:hover { background: var(--akcent-hover); border-color: var(--akcent-hover); } }
+.przycisk.pelny { width: 100%; }
+.przycisk.przezroczysty, .przycisk-ikona { border-color: transparent; background: transparent; }
+@media (hover: hover) { .przycisk.przezroczysty:hover, .przycisk-ikona:hover { background: var(--wypelnienie); border-color: transparent; } }
+.przycisk-ikona { width: var(--dotyk); padding: 0; color: var(--tusz-2); }
+.przycisk-ikona.maly { --dotyk: 34px; }
+.przycisk-ikona[aria-pressed="true"], .przycisk-ikona.aktywny { background: var(--akcent-tlo); color: var(--akcent); }
+button:disabled { opacity: .38; cursor: default; pointer-events: none; }
+.niebezpieczny { color: var(--blad) !important; }
+.link {
+  border: 0;
+  background: none;
+  padding: 6px 0;
+  color: var(--akcent);
+  font-weight: 500;
+  cursor: pointer;
+}
+.link:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; }
+
+/* ---------- Formularze ---------- */
+
+.formularz { display: flex; flex-direction: column; gap: 14px; }
+.pole { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; border: 0; margin: 0; padding: 0; }
+.pole > span:first-child, .pole > legend { font-size: 13px; font-weight: 500; color: var(--tusz-2); padding: 0; }
+.pole.waskie { flex: 0 1 120px; min-width: 90px; }
+.pole-orientacja { flex: 0 0 auto; }
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input:not([type]), select, textarea {
+  width: 100%;
+  min-height: var(--dotyk);
+  padding: 8px 11px;
+  border: 1px solid var(--linia-mocna);
+  border-radius: var(--r-s);
+  background: var(--powierzchnia);
+  transition: border-color var(--czas), box-shadow var(--czas);
+}
+input:hover, select:hover, textarea:hover { border-color: var(--cichy); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--akcent); box-shadow: 0 0 0 3px var(--akcent-tlo); }
+input:disabled { background: var(--wypelnienie); color: var(--cichy); }
+textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
+.z-przyciskiem { position: relative; display: block; }
+.z-przyciskiem input { padding-right: 44px; }
+.z-przyciskiem .przycisk-ikona { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); --dotyk: 36px; }
+.rzad { display: flex; gap: 12px; align-items: flex-end; }
+.wyrownaj-dol { margin-bottom: 0; }
+.podpowiedz { font-size: 12.5px; color: var(--cichy); }
+.komunikat { font-size: 13px; color: var(--blad); min-height: 0; }
+.komunikat:empty { display: none; }
+.komunikat.sukces { color: var(--sukces); }
+
+.przelacznik { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; min-height: 32px; }
+.przelacznik input { width: 18px; height: 18px; accent-color: var(--akcent); margin: 0; }
+
+.przelacznik-segmentowy {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--wypelnienie);
+  border-radius: var(--r-m);
+  gap: 2px;
+}
+/* position: relative trzyma ukryte pola wyboru w etykiecie – inaczej „wystają”
+   poza przewijany obszar i pozwalają przewinąć cały dokument. */
+.przelacznik-segmentowy label { display: flex; position: relative; }
+.przelacznik-segmentowy input { position: absolute; opacity: 0; pointer-events: none; }
+.przelacznik-segmentowy span {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 34px; padding: 0 12px; border-radius: 8px; cursor: pointer; color: var(--tusz-2); font-weight: 500;
+}
+.przelacznik-segmentowy input:checked + span { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
+.przelacznik-segmentowy input:focus-visible + span { outline: 2px solid var(--akcent); }
+/* Niedostępny wybór (np. „Tyle, ile wierszy tabeli” bez tabeli): samo pole zostaje niewidoczne, wyszarzony napis. */
+.przelacznik-segmentowy input[type="radio"]:disabled { opacity: 0; }
+.przelacznik-segmentowy input:disabled + span { opacity: .45; cursor: default; }
+/* Wariant zakładek (#292): przyciski z role="tab" zamiast pól wyboru – ten sam wygląd (np. sposoby pracy z AI). */
+.przelacznik-segmentowy > button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center;
+  padding: 7px 12px; border: 0; border-radius: calc(var(--r-m) - 2px); background: transparent;
+  color: var(--tusz-2); font: inherit; font-size: 13.5px; font-weight: 550; cursor: pointer; white-space: nowrap;
+}
+.przelacznik-segmentowy > button:hover { color: var(--tusz); }
+.przelacznik-segmentowy > button[aria-selected="true"] { background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-1); }
+.przelacznik-segmentowy > button:focus-visible { outline: 2px solid var(--akcent); }
+
+/* ---------- Marka ---------- */
+
+.marka { display: inline-flex; align-items: center; gap: 10px; font-weight: 650; font-size: 15px; }
+.znak-logo {
+  display: inline-grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 8px;
+  /* Ten sam znak co ikona aplikacji (img/ikony/, #240): strona w znakach cięcia. Litera w znaczniku zostaje
+     dla czytników ekranu i starych zrzutów – niewidoczna. */
+  background: #2f5bd3 url(../../img/ikony/ikona.svg) center / cover no-repeat; color: transparent;
+  font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 18px; overflow: hidden;
+}
+
+/* ---------- Dialogi ---------- */
+
+dialog {
+  border: 0; border-radius: var(--r-l); padding: 0;
+  width: min(480px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
+  background: var(--powierzchnia); color: var(--tusz);
+  box-shadow: var(--cien-3);
+}
+dialog::backdrop { background: var(--zaslona); backdrop-filter: blur(2px); }
+dialog .formularz { padding: 22px 24px 20px; }
+/* Elementy okna nie ściskają się (#202): okno przewija się jako całość. Bez tego na niskim ekranie akapity
+   z ucinaniem (opis, komunikat) zwijały się do zera – tekst ucięty w pół linii, a przewijać nie było czego.
+   Niska waga (:where) – listy i siatki z własnym rozciąganiem (np. obrazy, dane) zostają, jak są. */
+dialog .formularz > :where(*) { flex-shrink: 0; }
+dialog h2 { font-size: 19px; }
+.dialog-szeroki { width: min(620px, calc(100vw - 24px)); }
+.naglowek-dialogu { display: flex; align-items: center; justify-content: space-between; margin: -6px -10px 0 0; }
+.przyciski-dialogu { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+.karty-formatu { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 620px) { .karty-formatu { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.karta-formatu { position: relative; display: flex; }
+.karta-formatu input { position: absolute; opacity: 0; pointer-events: none; }
+.karta-formatu span {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px;
+  height: 104px; padding: 8px 4px;
+  border: 1px solid var(--linia-mocna); border-radius: var(--r-m); cursor: pointer;
+  font-size: 12px; color: var(--cichy); text-align: center;
+}
+.karta-formatu span b { font-size: 13px; color: var(--tusz); }
+.karta-formatu i { display: block; border: 1.5px solid var(--tusz-2); border-radius: 2px; background: var(--powierzchnia); }
+.karta-formatu input:checked + span { border-color: var(--akcent); background: var(--akcent-tlo); box-shadow: 0 0 0 1px var(--akcent); }
+.karta-formatu input:checked + span i { border-color: var(--akcent); }
+.karta-formatu input:focus-visible + span { outline: 2px solid var(--akcent); outline-offset: 2px; }
+
+/* ---------- Powiadomienie ---------- */
+
+.powiadomienie {
+  position: fixed; left: 50%; bottom: calc(24px + var(--bezp-dol)); transform: translateX(-50%); z-index: 100;
+  max-width: calc(100vw - 32px - var(--bezp-lewo) - var(--bezp-prawo)); padding: 10px 16px; border-radius: var(--r-m);
+  background: var(--tusz); color: var(--powierzchnia); box-shadow: var(--cien-3); font-size: 13.5px;
+}
+.powiadomienie.blad { background: var(--blad); color: var(--akcent-tekst); }
+.powiadomienie:not([hidden]) { display: flex; align-items: center; gap: 14px; }
+.powiadomienie button { border: 0; border-radius: var(--r-s); padding: 5px 10px; background: var(--powierzchnia); color: var(--tusz); font-weight: 600; cursor: pointer; }
+
+/* ---------- Postęp dłuższych czynności (js/postep.js) ---------- */
+
+.postepy {
+  position: fixed; top: calc(var(--pasek) + 10px + var(--bezp-gora)); left: 50%; transform: translateX(-50%); z-index: 110;
+  display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 16px)); pointer-events: none;
+}
+dialog > .postepy { position: fixed; }
+.postep {
+  pointer-events: auto; padding: 10px 14px 12px; border-radius: var(--r-m); border: 1px solid var(--linia);
+  background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-3); font-size: 13.5px;
+  animation: postepWejscie var(--czas) ease-out;
+}
+.postep-wiersz { display: flex; align-items: center; gap: 10px; min-height: 22px; }
+.postep-opis { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.postep-licznik { flex: none; color: var(--cichy); font-variant-numeric: tabular-nums; }
+.postep-anuluj {
+  flex: none; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia);
+  color: var(--tusz); padding: 3px 10px; font: inherit; font-weight: 600; cursor: pointer;
+}
+@media (hover: hover) { .postep-anuluj:hover { background: var(--wypelnienie-hover); } }
+.postep-pasek { height: 4px; margin-top: 8px; border-radius: 2px; background: var(--wypelnienie); overflow: hidden; position: relative; }
+.postep-wypelnienie { height: 100%; width: 0; border-radius: 2px; background: var(--akcent); transition: width .2s ease-out; }
+.postep.nieokreslony .postep-wypelnienie { position: absolute; width: 35%; transition: none; animation: postepRuch 1.1s ease-in-out infinite; }
+@keyframes postepRuch { from { left: -35%; } to { left: 100%; } }
+@keyframes postepWejscie { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .postep { animation: none; }
+  .postep.nieokreslony .postep-wypelnienie { animation: none; left: 0; width: 100%; opacity: .45; }
+}
+:root[data-dotyk] .postep-anuluj { min-height: var(--dotyk); padding: 0 14px; }
+/* Miniatury w panelu stron i pasek ekranu startowego (#159). */
+.postep-miniatur { flex: none; margin: 0 12px 8px; font-size: 12px; color: var(--cichy); }
+.postep-miniatur[hidden] { display: none; }
+.postep-miniatur .postep-pasek { margin-top: 4px; height: 3px; }
+.pasek-startu { width: 160px; margin: 6px auto 0; }
+.pasek-startu .postep-wypelnienie { position: absolute; width: 35%; animation: postepRuch 1.1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .pasek-startu .postep-wypelnienie { animation: none; left: 0; width: 100%; opacity: .45; } }
+
+/* ---------- Własne kontrolki (js/kontrolki.js) ---------- */
+/* Lista rozwijana: systemowy <select> leży niewidoczny pod własnym przyciskiem. */
+.wybor { position: relative; display: block; min-width: 0; }
+.wybor-natywny { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.wybor-przycisk {
+  width: 100%; min-height: var(--dotyk); padding: 8px 9px 8px 11px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); color: inherit;
+  font: inherit; text-align: left; cursor: pointer; transition: border-color var(--czas), box-shadow var(--czas);
+}
+@media (hover: hover) { .wybor-przycisk:hover { border-color: var(--cichy); } }
+.wybor-przycisk:focus-visible, .wybor-przycisk[aria-expanded="true"] { outline: none; border-color: var(--akcent); box-shadow: 0 0 0 3px var(--akcent-tlo); }
+.wybor-przycisk:disabled { opacity: .55; cursor: default; }
+.wybor-przycisk svg { flex: none; color: var(--cichy); transition: transform var(--czas); }
+.wybor-przycisk[aria-expanded="true"] svg { transform: rotate(180deg); }
+.wybor-tekst { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wlasciwosci .wybor-przycisk { min-height: 36px; padding: 6px 7px 6px 9px; font-size: 13px; color: var(--tusz); }
+.wybor-lista, .kolor-okienko, .kalendarz-okienko {
+  position: fixed; z-index: 1000; overflow: auto; overscroll-behavior: contain;
+  background: var(--powierzchnia); color: var(--tusz); border: 1px solid var(--linia-mocna); border-radius: var(--r-m);
+  box-shadow: var(--cien-3); font-size: 14px;
+}
+.wybor-lista { padding: 5px; max-width: min(420px, calc(100vw - 16px)); outline: none; }
+.wybor-opcja { padding: 8px 10px; border-radius: var(--r-s); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wybor-opcja.w-grupie { padding-left: 18px; }
+.wybor-lista [hidden] { display: none !important; }
+.wybor-filtr { position: sticky; top: -5px; z-index: 1; margin: -5px -5px 4px; padding: 7px 10px; font-size: 12px; color: var(--cichy); background: var(--powierzchnia); border-bottom: 1px solid var(--linia); }
+.wybor-opcja.aktywna { background: var(--wypelnienie); }
+.wybor-opcja[aria-selected="true"] { color: var(--akcent); font-weight: 600; }
+.wybor-opcja[aria-selected="true"].aktywna { background: var(--akcent-tlo); }
+.wybor-opcja[aria-disabled="true"] { color: var(--cichy); cursor: default; }
+.wybor-grupa { padding: 9px 10px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--cichy); }
+@media (pointer: coarse) { .wybor-opcja { padding: 11px 12px; } }
+
+/* Wybór koloru */
+.wybor-koloru { position: relative; display: inline-block; }
+.kolor-natywny { position: absolute; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; pointer-events: none; }
+.kolor-przycisk { width: 36px; height: 36px; padding: 3px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); cursor: pointer; display: block; }
+.kolor-przycisk i { display: block; width: 100%; height: 100%; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+.kolor-przycisk:focus-visible, .kolor-przycisk[aria-expanded="true"] { outline: none; border-color: var(--akcent); box-shadow: 0 0 0 3px var(--akcent-tlo); }
+.kolor-przycisk:disabled { opacity: .45; cursor: default; }
+.kolor-okienko { width: 236px; padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow: visible; }
+.kolor-pole { position: relative; height: 140px; border-radius: var(--r-s); cursor: crosshair; touch-action: none; }
+.kolor-pole i { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .5); pointer-events: none; }
+.kolor-barwa { position: relative; height: 14px; border-radius: 7px; cursor: pointer; touch-action: none; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+.kolor-barwa i { position: absolute; top: -2px; width: 8px; height: 18px; margin-left: -4px; border-radius: 4px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .5); pointer-events: none; }
+.kolor-pole:focus-visible, .kolor-barwa:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; }
+.kolor-hex { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cichy); white-space: nowrap; }
+.kolor-hex input { min-height: 32px; padding: 4px 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.kolor-paleta { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.kolor-paleta button { aspect-ratio: 1; padding: 0; border: 0; border-radius: 4px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); }
+.kolor-paleta button:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
+@media (hover: hover) { .kolor-paleta button:hover { outline: 2px solid var(--akcent); outline-offset: 1px; } }
+.kolor-paleta.ostatnie, .kolor-paleta.projektu { padding-top: 8px; border-top: 1px solid var(--linia); }
+.kolor-paleta.ostatnie::before { content: "Ostatnie"; } /* „Użyte w projekcie” ma własny podpis (#136) */
+.kolor-paleta.ostatnie::before { grid-column: 1 / -1; font-size: 11.5px; color: var(--cichy); }
+
+/* Pola wyboru i opcje: własny wygląd zamiast systemowego. */
+input[type="checkbox"], input[type="radio"] {
+  appearance: none; -webkit-appearance: none; flex: none; width: 18px; height: 18px; margin: 0;
+  border: 1.5px solid var(--linia-mocna); background: var(--powierzchnia); cursor: pointer; display: inline-grid; place-content: center;
+  transition: background var(--czas), border-color var(--czas);
+}
+input[type="checkbox"] { border-radius: 5px; }
+input[type="radio"] { border-radius: 50%; }
+input[type="checkbox"]::before { content: ""; width: 10px; height: 10px; transform: scale(0); background: var(--akcent-tekst); clip-path: polygon(14% 52%, 0 67%, 40% 100%, 100% 22%, 86% 9%, 39% 70%); transition: transform 90ms; }
+input[type="radio"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; transform: scale(0); background: var(--akcent-tekst); transition: transform 90ms; }
+input[type="checkbox"]:checked, input[type="radio"]:checked { background: var(--akcent); border-color: var(--akcent); }
+input[type="checkbox"]:checked::before, input[type="radio"]:checked::before { transform: scale(1); }
+input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--akcent-tlo); border-color: var(--akcent); }
+input[type="checkbox"]:disabled, input[type="radio"]:disabled { opacity: .5; cursor: default; }
+
+/* Pola liczbowe bez systemowych strzałek (strzałki na klawiaturze nadal zmieniają wartość). */
+input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { appearance: none; -webkit-appearance: none; margin: 0; }
+.wlasciwosci input[type="checkbox"], .wlasciwosci input[type="radio"], dialog input[type="checkbox"], dialog input[type="radio"] { min-height: 0; padding: 0; }
+
+/* ---------- Zasłonki: okna dialogowe na telefonie i tablecie (js/urzadzenie.js, js/zaslonki.js) ----------
+   Na komputerze okno stoi na środku, z krzyżykiem. Na urządzeniu dotykowym i w oknie do 600 px wyjeżdża od dołu:
+   zaokrąglone tylko u góry, bez odstępu od dołu ekranu, na telefonie na całą szerokość, na tablecie szerokie.
+   Zamiast krzyżyka jest uchwyt u góry. Przewija się treść; nagłówek, uchwyt i przyciski akcji stoją. */
+.uchwyt-zaslonki { display: none; }
+dialog:focus { outline: none; }
+/* Przewijana treść zasłonki bywa pierwszym miejscem fokusu po otwarciu – bez obwódki na całą szerokość. */
+:root[data-zaslonka] dialog > :focus-visible:not(button) { outline: none; }
+:root[data-zaslonka] dialog {
+  position: fixed; inset: auto 0 var(--klawiatura, 0px) 0; margin: 0 auto;
+  width: 100%; max-width: none; max-height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora));
+  border-radius: var(--r-l) var(--r-l) 0 0;
+  box-shadow: 0 -10px 36px rgba(0, 0, 0, .22);
+  padding: 0 var(--bezp-prawo) var(--bezp-dol) var(--bezp-lewo);
+  overflow: hidden; overflow: clip;
+  transform: translateY(var(--zaslonka-ciag, 0px));
+}
+:root[data-zaslonka] dialog[open] { display: flex; flex-direction: column; }
+:root[data-zaslonka] dialog > :not(.uchwyt-zaslonki):not(.menu) { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+/* Instrukcja ma własne przewijanie (treść i spis) – sam układ się nie przewija; inaczej schowany pod ekranem spis
+   dawał się wyciągnąć przewinięciem razem z całą zasłonką (#132). */
+:root[data-zaslonka] dialog.dialog-instrukcja > .instrukcja { overflow: clip; }
+:root[data-zaslonka] .uchwyt-zaslonki {
+  display: block; order: -1; flex: none; position: relative; width: 100%; height: 24px; padding: 0; border: 0; background: none;
+  cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+}
+.uchwyt-zaslonki::before, .uchwyt-arkusza::before {
+  content: ""; position: absolute; left: 50%; top: 10px; width: 44px; height: 5px; border-radius: 3px;
+  background: var(--linia-mocna); transform: translateX(-50%);
+}
+.uchwyt-zaslonki:focus-visible { outline: none; }
+.uchwyt-zaslonki:focus-visible::before { background: var(--akcent); }
+:root[data-zaslonka] dialog .x-okna { display: none !important; }
+:root[data-zaslonka] dialog .naglowek-dialogu { touch-action: none; margin-right: 0; }
+:root[data-zaslonka] dialog .formularz { padding: 4px 16px 14px; }
+/* Przyciski akcji na dole zasłonki stoją, gdy treść się przewija. */
+:root[data-zaslonka] dialog .formularz:has(> .przyciski-dialogu:last-child) { padding-bottom: 0; }
+:root[data-zaslonka] dialog .formularz > .przyciski-dialogu:last-child {
+  position: sticky; bottom: 0; z-index: 2; margin: 2px -16px 0; padding: 10px 16px 12px;
+  background: var(--powierzchnia); border-top: 1px solid var(--linia);
+}
+/* Telefon (#109): zasłonkę zamyka uchwyt, tło albo Esc – bez „Anuluj”; główny przycisk na całą szerokość.
+   Pytania (potwierdz) zostają z „Anuluj”, bo tam to odpowiedź „nie”. Anulowanie trwającego eksportu PDF
+   i wyboru obrazów zostaje (to nie zamykanie okna). */
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu > button:is([value="anuluj"], [value="nie"], [data-akcja="kontakt-zamknij"]) { display: none; }
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu > .przycisk.glowny { flex: 1 1 auto; justify-content: center; min-height: 44px; }
+:root[data-zaslonka][data-urzadzenie="telefon"] dialog:not(#dlg-potwierdz) .przyciski-dialogu:has(> .przycisk.glowny) > .odstep { display: none; }
+:root[data-zaslonka][data-urzadzenie="telefon"] #dlg-zrodlo-obrazu .przyciski-dialogu { display: none; }
+/* Duże okna (Dane, Instrukcja, Obrazy): stała wysokość prawie na cały ekran. */
+:root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja, .dialog-obrazy) { height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora)); }
+:root[data-zaslonka] .dialog-dane .dane-lista, :root[data-zaslonka] .dialog-instrukcja .instrukcja-spis { padding-right: 14px; }
+:root[data-zaslonka] .dane-pasek { padding-right: 0; }
+/* Tablet: zasłonka szeroka, ale nie na całą szerokość, z bocznymi krawędziami. */
+@media (min-width: 601px) {
+  :root[data-zaslonka] dialog { width: min(760px, 94vw); border: 1px solid var(--linia); border-bottom: 0; }
+  :root[data-zaslonka] dialog .formularz { padding: 6px 24px 18px; }
+  :root[data-zaslonka] dialog .formularz > .przyciski-dialogu:last-child { margin: 4px -24px 0; padding: 12px 24px 14px; }
+  :root[data-zaslonka] :is(.dialog-dane, .dialog-instrukcja) { width: calc(100vw - 32px); max-width: 1180px; height: min(92dvh, 1000px); }
+  :root[data-zaslonka] .dialog-obrazy { height: min(88dvh, 920px); }
+}
+/* Strona pod otwartą zasłonką się nie przewija. */
+:root[data-zaslonka][data-okno-otwarte] body { overflow: hidden; }
+
+@keyframes zaslonka-wjazd { from { transform: translateY(100%); } }
+@keyframes zaslonka-zjazd { from { transform: translateY(var(--zaslonka-ciag, 0px)); } to { transform: translateY(105%); } }
+@keyframes zaslonka-tlo-wjazd { from { opacity: 0; } }
+@keyframes zaslonka-tlo-zjazd { to { opacity: 0; } }
+:root[data-zaslonka] dialog.zaslonka-wjazd { animation: zaslonka-wjazd .28s cubic-bezier(.2, .8, .2, 1); }
+:root[data-zaslonka] dialog.zaslonka-wjazd::backdrop { animation: zaslonka-tlo-wjazd .28s ease-out; }
+:root[data-zaslonka] dialog.zaslonka-zjazd { animation: zaslonka-zjazd .19s cubic-bezier(.4, 0, 1, 1) forwards; }
+:root[data-zaslonka] dialog.zaslonka-zjazd::backdrop { animation: zaslonka-tlo-zjazd .19s forwards; }
+:root[data-zaslonka] dialog.zaslonka-wraca { transition: transform .22s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-zaslonka] dialog, :root[data-zaslonka] dialog::backdrop { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Podpowiedzi na telefonie (js/podpowiedzi.js, #96) ----------
+   Podpowiedzi o klawiaturze nie mają sensu na dotyku; długie zwijają się na telefonie do dwóch linii. */
+:root[data-dotyk] .podpowiedz-klawisze { display: none; }
+:root[data-urzadzenie="telefon"] .podpowiedz-zwijana:not(.rozwinieta) {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden; cursor: pointer;
+}
+
+/* ---------- Nazwa użytkownika (js/nazwa-uzytkownika.js, #100) ---------- */
+.podpowiedz-nazwy { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--cichy); }
+.podpowiedz-nazwy:empty { display: none; }
+.podpowiedz-nazwy.ok { color: var(--sukces); }
+.podpowiedz-nazwy.blad { color: var(--blad); }
+.podpowiedz-nazwy .link { padding: 0; border: 0; background: none; color: var(--akcent); font: inherit; text-decoration: underline; cursor: pointer; }
+.pole-z-podpowiedziami { position: relative; }
+.pole-z-podpowiedziami > label { display: block; }
+.lista-podpowiedzi {
+  position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px; list-style: none;
+  background: var(--powierzchnia); border: 1px solid var(--linia-mocna); border-radius: var(--r-m, 8px); box-shadow: 0 6px 20px rgba(0, 0, 0, .14);
+}
+.lista-podpowiedzi[hidden] { display: none; }
+.lista-podpowiedzi li { padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.lista-podpowiedzi li[aria-selected="true"], .lista-podpowiedzi li:hover { background: var(--wypelnienie); }
+:root[data-dotyk] .lista-podpowiedzi li { min-height: 40px; display: flex; align-items: center; }
+
+/* ---------- Lista wyboru, kolor i data na telefonie: zasłonka od dołu (js/kontrolki.js, #99) ---------- */
+.okienko-zaslonka {
+  max-width: none !important; border-radius: 16px 16px 0 0 !important; border-bottom: 0 !important;
+  padding-bottom: calc(8px + var(--bezp-dol)) !important;
+  padding-left: calc(8px + var(--bezp-lewo)); padding-right: calc(8px + var(--bezp-prawo));
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, .22) !important;
+  animation: okienkoZaslonka .18s ease-out;
+}
+.okienko-zaslonka.wybor-lista .wybor-opcja { padding: 12px 14px; font-size: 15px; white-space: normal; }
+.uchwyt-okienka { display: none; }
+.okienko-zaslonka[popover] { margin: 0; inset: auto; position: fixed; overflow: auto; }
+.okienko-zaslonka > .uchwyt-okienka {
+  display: block; position: sticky; top: -5px; z-index: 2; width: calc(100% + 10px); height: 26px; margin: -5px -5px 2px; padding: 0;
+  border: 0; background: var(--powierzchnia); cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+}
+.okienko-zaslonka > .uchwyt-okienka::before {
+  content: ""; position: absolute; left: 50%; top: 10px; width: 44px; height: 5px; border-radius: 3px;
+  background: var(--linia-mocna); transform: translateX(-50%);
+}
+.okienko-zaslonka .wybor-filtr { top: 21px; }
+.okienko-zaslonka.kolor-okienko > .uchwyt-okienka { position: relative; top: 0; width: calc(100% + 24px); margin: -12px -12px -6px; }
+.okienko-zaslonka.kalendarz-okienko > .uchwyt-okienka { position: relative; top: 0; width: calc(100% + 20px); margin: -10px -10px 0; }
+@keyframes okienkoZaslonka { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .okienko-zaslonka { animation: none; } }
+
+/* ---------- Instalacja aplikacji (js/instalacja.js, #99) ---------- */
+.zacheta-instalacji {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 0 0 16px; padding: 14px 16px;
+  border: 1px solid var(--akcent-tlo); border-radius: var(--r-l, 12px);
+  background: linear-gradient(135deg, var(--akcent-tlo), var(--powierzchnia)); color: var(--tusz);
+}
+.zacheta-instalacji[hidden] { display: none; }
+.zacheta-ikona .znak-logo { width: 40px; height: 40px; font-size: 20px; border-radius: 10px; }
+.zacheta-tresc { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.zacheta-tresc .ciche { font-size: 13px; line-height: 1.4; }
+.zacheta-przyciski { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+@media (max-width: 600px) { .zacheta-przyciski { width: 100%; } .zacheta-przyciski .przycisk { flex: 1 1 0; justify-content: center; } }
+.kroki-instalacji { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; counter-reset: krok; }
+.kroki-instalacji li { display: flex; align-items: center; gap: 12px; line-height: 1.45; }
+.krok-ikona {
+  flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--wypelnienie); color: var(--akcent);
+}
+.krok-ikona .znak-logo { width: 30px; height: 30px; font-size: 16px; border-radius: 8px; }
+/* Prezentacja na całym ekranie: przyciski i strona z dala od wycięć (dół – pasek prezentacji). */
+.prezentacja { padding: 0; }
+
+/* ---------- Powiększenie: wspólna kontrolka − 100% + (edytor, podgląd, prezentacja; #102) ----------
+   Jeden segment: ikony minus i plus po bokach, procent pośrodku (kliknięcie = dopasuj). */
+.powiekszenie {
+  display: inline-flex; align-items: center; flex: none; height: 34px; padding: 2px;
+  border: 1px solid var(--linia); border-radius: 999px; background: var(--powierzchnia);
+}
+.powiekszenie > button {
+  height: 100%; border: 0; background: none; color: var(--tusz); font: inherit; cursor: pointer;
+  display: inline-grid; place-items: center; border-radius: 999px;
+}
+.powiekszenie-krok { width: 30px; color: var(--cichy) !important; }
+@media (hover: hover) { .powiekszenie > button:hover:not(:disabled) { background: var(--wypelnienie); color: var(--tusz) !important; } }
+.powiekszenie > button:disabled { opacity: .35; cursor: default; }
+.powiekszenie > button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--akcent); }
+.wartosc-zoom { min-width: 52px; padding: 0 6px; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.kontrolki-widoku .powiekszenie { border: 0; background: none; padding: 0; height: 36px; }
+:root[data-dotyk] .powiekszenie { height: 42px; }
+:root[data-dotyk] .powiekszenie-krok { width: 40px; }
+:root[data-dotyk] .kontrolki-widoku .powiekszenie { height: 40px; }
+
+/* ---------- Przyciski-ikony w paskach na dotyku (#99) ----------
+   Stały cel dotyku 44×44, bez ściskania i z odstępem; na wąskim ekranie motyw i pełny ekran przechodzą do menu
+   konta (pasek listy projektów) – obok siebie były ciasne i ściśnięte. */
+:root[data-dotyk] .pasek-aplikacji:not(.pasek-edytora) { gap: 6px; }
+:root[data-dotyk] .pasek-aplikacji:not(.pasek-edytora) > .przycisk-ikona, :root[data-dotyk] .pasek-aplikacji > .menu-uzytkownika > .awatar,
+:root[data-dotyk] .pasek-aplikacji:not(.pasek-edytora) > .menu-wiecej > .przycisk-ikona, :root[data-dotyk] .logowanie-akcje > .przycisk-ikona {
+  flex: none; width: 44px; min-width: 44px; height: 44px;
+}
+:root[data-dotyk] .pasek-aplikacji > .menu-uzytkownika, :root[data-dotyk] .pasek-aplikacji > .menu-wiecej { flex: none; }
+@media (max-width: 600px) {
+  /* Motyw zostaje w pasku także na telefonie (#205) – przycisk na górze, jak w Familiadzie. */
+  #ekran-projektow > .pasek-aplikacji > .pelny-ekran, #ekran-konta > .pasek-aplikacji > .pelny-ekran { display: none !important; }
+  #menu-uzytkownika .tylko-waski-pasek:not([hidden]) { display: flex; }
+}
+/* Wybór daty (js/kontrolki.js): przycisk z datą po polsku i kalendarz miesiąca. */
+.wybor-przycisk.pusty .wybor-tekst { color: var(--cichy); }
+.kalendarz-okienko { padding: 10px; width: 272px; }
+.kalendarz-naglowek { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
+.kalendarz-naglowek strong { font-size: 14px; font-weight: 600; }
+.kalendarz-naglowek strong::first-letter { text-transform: uppercase; }
+.kalendarz-siatka { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; outline: none; }
+.kalendarz-dzien-tyg { text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--cichy); padding: 4px 0; }
+.kalendarz-dzien {
+  aspect-ratio: 1; display: grid; place-items: center; border: 0; border-radius: var(--r-s); background: none; color: inherit;
+  font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+@media (hover: hover) { .kalendarz-dzien:hover:not(:disabled) { background: var(--wypelnienie); } }
+.kalendarz-dzien.dzis { box-shadow: inset 0 0 0 1.5px var(--akcent); }
+.kalendarz-dzien[aria-selected="true"] { background: var(--akcent); color: var(--akcent-tekst); font-weight: 600; }
+.kalendarz-siatka:focus-visible .kalendarz-dzien.aktywny { outline: 2px solid var(--akcent); outline-offset: 1px; }
+.kalendarz-dzien:disabled { color: var(--linia-mocna); cursor: default; }
+.kalendarz-stopka { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
+
+/* Błąd w formularzu (js/kontrolki.js): komunikat pod polem zamiast systemowego dymku. */
+.blad-pola { margin: -2px 0 0; font-size: 12.5px; color: var(--blad, #b42318); grid-column: 1 / -1; }
+input.z-bledem, select.z-bledem, textarea.z-bledem, .z-bledem + .wybor-przycisk,
+input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b42318) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blad, #b42318) 22%, transparent) !important; outline: none; }
+
+/* Dymek z podpowiedzią (js/dymki.js) – zamiast systemowego dymku z atrybutu „title”. */
+.dymek {
+  position: fixed; z-index: 2000; max-width: min(320px, calc(100vw - 8px)); padding: 6px 9px;
+  background: var(--tusz); color: var(--papier); border-radius: 6px; box-shadow: var(--cien-2, 0 4px 14px rgba(0, 0, 0, .18));
+  font: 500 12.5px/1.35 Inter, system-ui, sans-serif; letter-spacing: 0; text-align: left; white-space: normal;
+  pointer-events: none; animation: dymek-wejscie 120ms ease-out;
+}
+@keyframes dymek-wejscie { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
+
+/* Obrazy w czasie ładowania (#193, js/obrazy-ladowanie.js): migoczące tło zamiast pustego miejsca, napisu alt
+   albo ikonki „zepsutego obrazu”; nieudany obraz dostaje zastępczy rysunek. Załadowany – klasa .zaladowany. */
+:root { --obraz-laduje-tlo: linear-gradient(100deg, color-mix(in srgb, var(--tusz) 5%, transparent) 30%, color-mix(in srgb, var(--tusz) 11%, transparent) 50%, color-mix(in srgb, var(--tusz) 5%, transparent) 70%); }
+@keyframes ladowanie-obrazu { from { background-position: 100% 0; } to { background-position: 0 0; } }
+img[src]:not(.zaladowany) { color: transparent; background: var(--obraz-laduje-tlo); background-size: 300% 100%; animation: ladowanie-obrazu 1.4s linear infinite; }
+img:not([src]):not(.zaladowany) { color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  img[src]:not(.zaladowany), .podglad-kartka:has(> img:not(.zaladowany)) { animation: none; background-position: 50% 0; }
+}
+
+/* Menu motywu przy przycisku na górze (#205). */
+.menu-motywu { position: fixed; top: 0; right: 8px; left: auto; min-width: 200px; z-index: 2000; }
+.menu-motywu button[aria-checked="true"] { background: var(--akcent-tlo); color: var(--akcent); font-weight: 600; }
+.menu-motywu button[aria-checked="true"] .ikona { color: var(--akcent); }
+
+/* Język (#219): flaga na przycisku i w menu. */
+.flaga-jezyka { width: 20px; height: 20px; display: block; border-radius: 3px; color: var(--tusz-2); }
+.menu-jezyka .flaga-jezyka { flex: none; }

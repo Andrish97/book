@@ -1,0 +1,439 @@
+/* ---------- Tablet ---------- */
+
+@media (max-width: 1180px) {
+  .uklad-edytora { grid-template-columns: 172px minmax(0, 1fr) 272px; }
+  .pasek-narzedzi button { min-width: 52px; }
+  .etyk { display: none; }
+}
+
+@media (max-width: 980px) {
+  body[data-ekran="logowanie"] #ekran-logowania { grid-template-columns: minmax(0, 1fr); }
+  .logowanie-bok { display: none; }
+  .marka-mobilna { display: inline-flex; }
+}
+
+@media (max-width: 760px) {
+  .konto-uklad { grid-template-columns: 1fr; gap: 20px; padding-top: 20px; }
+  .konto-nawigacja { position: static; flex-direction: row; overflow-x: auto; }
+  .konto-nawigacja a { white-space: nowrap; }
+  #ekran-konta .konto-uklad { grid-template-columns: 1fr; }
+  #ekran-konta .konto-lista { flex-direction: column; overflow: hidden; }
+  #ekran-konta .konto-lista a { min-height: 52px; }
+  #ekran-konta[data-sekcja=""] .konto-sekcje,
+  #ekran-konta:not([data-sekcja=""]) .konto-lista { display: none; }
+  #ekran-konta .do-listy-ustawien { display: inline-flex; }
+  .wiersz-glowny { grid-template-columns: 1fr; }
+  .wiersz-akcje { justify-content: flex-start; }
+}
+
+/* ---------- Telefon i tablet w pionie: panele jako arkusze z dołu ---------- */
+
+@media (max-width: 860px) {
+  .uklad-edytora { grid-template-columns: minmax(0, 1fr); }
+  /* Na telefonie linijki zabierałyby miejsce, a prowadnic i tak nie da się wygodnie wyciągać palcem. */
+  .z-linijkami .linijka { display: none; }
+  .z-linijkami .pasek-narzedzi { top: 10px; }
+  .z-linijkami .arkusz { padding: 72px 20px 72px; }
+  .dialog-dane { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border-radius: 0; }
+  .dane { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .dane-lista { border-right: 0; border-bottom: 1px solid var(--linia); padding: 14px 56px 12px 14px; max-height: 36vh; }
+  .dane-lista .podpowiedz { display: none; }
+  .dane-akcje { flex-direction: row; }
+  .dane-edytor { padding: 12px; }
+  .dane-pasek { padding-right: 0; }
+  .stan-zapisu .tekst { display: none; }
+  .nazwa-projektu { flex-basis: 120px; font-size: 14px; }
+  #przycisk-format { display: none; }
+  /* Wysokość w svh (okno z widocznym paskiem adresu), żeby arkusz nie zmieniał
+     rozmiaru, gdy pasek się chowa. Zamknięty arkusz zjeżdża cały poniżej ekranu
+     i staje się niewidoczny – nic nie wystaje spod dolnego menu. */
+  .panel {
+    position: fixed; left: 0; right: 0; z-index: 20;
+    bottom: calc(60px + var(--bezp-dol));
+    max-height: 62vh; max-height: 62svh;
+    border: 0 !important; border-radius: 18px 18px 0 0;
+    box-shadow: 0 -6px 24px rgba(28, 27, 25, .18);
+    transform: translateY(calc(100% + 100px + var(--bezp-dol)));
+    visibility: hidden;
+    transition: transform .2s ease-out, height .2s ease-out, visibility 0s linear .2s;
+    will-change: transform; contain: layout paint;
+  }
+  /* Uchwyt arkusza (zamiast krzyżyka): przeciągnięcie w dół zamyka, w górę powiększa, stuknięcie przełącza
+     wysokość. Arkusz zamyka też ponowne stuknięcie jego zakładki w dolnym menu. */
+  .uchwyt-arkusza {
+    display: block; position: relative; width: 100%; height: 26px; padding: 0; border: 0; background: none;
+    cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  }
+  /* Paseczek uchwytu: wspólny z zasłonkami okien (niżej, „Zasłonki”). */
+  .uchwyt-arkusza:focus-visible { outline: none; }
+  .uchwyt-arkusza:focus-visible::before { background: var(--akcent); }
+  .panel.ciagniety { transition: none !important; }
+  body[data-panel="strony"] .panel-strony,
+  body[data-panel="inspektor"] .panel-inspektor,
+  body[data-panel="ostrzezenia"] .panel-inspektor { transform: none; visibility: visible; transition: transform .2s ease-out, height .2s ease-out, visibility 0s; }
+  /* Właściwości mają stałą wysokość: treść zmienia się przy każdym zaznaczeniu i arkusz o wysokości
+     „do treści” skakałby razem z nią. Zwykle zajmują mniej niż połowę ekranu (nad nimi widać zaznaczony
+     element); uchwytem można je powiększyć do wysokości pod górnym paskiem. Przewija się tylko treść –
+     uchwyt, zakładki i nagłówek elementu stoją w miejscu. */
+  .panel-inspektor { overflow: hidden; }
+  .panel-inspektor > .wlasciwosci { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  /* Ostrzeżenia: wysokość z ekranu edytora (flex: none, najwyżej 24%) – tak było w jednym arkuszu, gdzie tamta
+     reguła stała dalej (#291). Pełna wysokość – tylko w panelu „Ostrzeżenia” niżej. */
+  .panel-inspektor > .sekcja-ostrzezen { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  body[data-panel="inspektor"] .panel-inspektor,
+  body[data-panel="warstwy"] .panel-inspektor,
+  body[data-panel="ostrzezenia"] .panel-inspektor { height: 45vh; height: 45svh; max-height: none; }
+  body[data-arkusz="pelny"] .panel-inspektor { height: calc(100vh - 124px); height: calc(100svh - 124px - var(--bezp-dol)); }
+  #naglowek-wlasciwosci { min-height: 44px; padding-top: 6px; padding-bottom: 6px; }
+  /* Warstwy na telefonie i tablecie w pionie: osobna zakładka dolnego menu – arkusz z samą listą (#115). */
+  body[data-panel="warstwy"] .panel-inspektor { transform: none; visibility: visible; transition: transform .2s ease-out, height .2s ease-out, visibility 0s; }
+  body[data-panel="warstwy"] .panel-inspektor > :is(.wlasciwosci, .naglowek-panelu, .sekcja-ostrzezen),
+  body[data-panel="warstwy"] .naglowek-dok,
+  body:not([data-panel="warstwy"]) .dok-warstw { display: none; }
+  body[data-panel="warstwy"] .dok-warstw { flex: 1 1 auto; max-height: none; border-top: 0; }
+  body[data-panel="warstwy"] .dok-warstw .lista-warstw { display: flex; padding-top: 4px; }
+  body[data-panel="ostrzezenia"] .wlasciwosci,
+  body[data-panel="ostrzezenia"] .lista-warstw,
+  body[data-panel="ostrzezenia"] .panel-inspektor > .naglowek-panelu { display: none; }
+
+  /* Gęstsze pola właściwości: mniej odstępów, pola wciąż wygodne pod palec (40 px). */
+  .wlasciwosci { padding: 0 14px 14px; gap: 0; }
+  .wlasciwosci fieldset { padding: 10px 0 10px; gap: 8px; }
+  .wlasciwosci fieldset:first-child { padding-top: 0; }
+  .wlasciwosci label { gap: 3px; font-size: 11.5px; }
+  .wlasciwosci input, .wlasciwosci select { min-height: 40px; padding: 5px 8px; }
+  .wlasciwosci input[type="color"] { width: 40px; height: 40px; }
+  .wlasciwosci .segmenty button { height: 34px; }
+  .wlasciwosci .rzad-przyciskow .przycisk { min-height: 40px; }
+  .wlasciwosci .wskazowka { font-size: 12px; line-height: 1.45; }
+  /* Położenie i rozmiar: X i Y w pierwszym rzędzie, szerokość, wysokość i obrót w drugim; nazwa skrócona
+     w samym polu zamiast nad nim. */
+  .wlasciwosci fieldset.geometria { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .geometria > label { grid-column: span 3; }
+  .geometria > label:nth-of-type(n + 3) { grid-column: span 2; }
+  .geometria > label:nth-of-type(3):nth-last-of-type(2), .geometria > label:nth-of-type(4):last-of-type { grid-column: span 3; }
+  .geometria .nazwa-pelna { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .geometria .nazwa-krotka {
+    display: block; position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+    font-style: normal; font-size: 11.5px; font-weight: 500; color: var(--cichy); pointer-events: none;
+  }
+  .geometria .z-krotka input { padding-left: calc(var(--krotko) * .62em + 12px); padding-right: 26px; }
+  .geometria .jednostka span { right: 7px; }
+  body[data-panel="inspektor"] .sekcja-ostrzezen { display: none; }
+  .sekcja-ostrzezen { border-top: 0; }
+  .lista-stron { flex-direction: row; overflow-x: auto; padding-bottom: 10px; }
+  .strona { flex: 0 0 104px; grid-template-columns: 1fr; }
+  .lista-stron > li.kafelek-dodaj-strone { flex: 0 0 104px; padding-left: 0; }
+  .strona .numer { display: none; }
+  .strona .nazwa { grid-column: 1; }
+  .strona .menu-miniatury { opacity: 1; }
+  .pasek-narzedzi { top: 10px; }
+  .pasek-narzedzi button { min-width: 48px; height: 46px; }
+  .pasek-narzedzi button span { display: none; }
+  /* Na bardzo wąskim ekranie pasek wstawiania przewija się w bok zamiast wychodzić poza ekran. */
+  .pasek-narzedzi { max-width: calc(100vw - 8px); overflow-x: auto; scrollbar-width: none; }
+  .pasek-narzedzi::-webkit-scrollbar { display: none; }
+  .pasek-narzedzi button { flex: none; }
+  /* Gdy przyciski się nie mieszczą (bardzo wąski ekran), brzeg z ukrytymi przyciskami gaśnie – widać,
+     że pasek przewija się w bok (klasy ustawia js/app/arkusze.js). */
+  .pasek-narzedzi.dalej-prawo { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+  .pasek-narzedzi.dalej-lewo { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+  .pasek-narzedzi.dalej-lewo.dalej-prawo { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+  /* Na telefonie przyciski wstawiania dzielą szerokość ekranu po równo (najmniej 34 px, na 360 px – 30 px) – mieszczą się
+     wszystkie, bez ostatniego uciętego w połowie. */
+  @media (max-width: 520px) {
+    .pasek-narzedzi { width: calc(100vw - 16px); gap: 0; }
+    .pasek-narzedzi button { flex: 1 1 0; min-width: 34px; padding: 4px 0; }
+  }
+  .kontrolki-widoku { right: 10px; bottom: 10px; }
+  .arkusz { padding: 72px 20px 72px; }
+  .zakladki-mobilne {
+    display: flex; gap: 4px; flex: none;
+    padding: 6px 8px calc(6px + var(--bezp-dol));
+    background: var(--powierzchnia); border-top: 1px solid var(--linia); z-index: 21;
+  }
+  .zakladki-mobilne button {
+    position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    height: 48px; border: 0; border-radius: var(--r-m); background: none; color: var(--tusz-2); font-size: 11.5px; font-weight: 500;
+  }
+  .zakladki-mobilne button.aktywny { background: var(--akcent-tlo); color: var(--akcent); }
+  .kropka { position: absolute; top: 6px; left: calc(50% + 8px); width: 8px; height: 8px; border-radius: 50%; background: var(--uwaga); }
+
+  .dialog-instrukcja { width: 100vw; height: 100dvh; max-height: 100dvh; max-width: 100vw; border-radius: 0; }
+  .projekty-naglowek { align-items: center; }
+  .projekty-naglowek h1 { font-size: 22px; }
+  .siatka-projektow { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .karta-projektu .okladka { height: 180px; padding: 14px; }
+  .rzad { flex-wrap: wrap; }
+  .pole-orientacja { flex-basis: 100%; }
+  .pole.waskie { flex: 1 1 100px; }
+}
+
+/* ---------- Poprawki z przeglądu zrzutów (scripts/zrzuty-przeglad.cjs) ---------- */
+/* Menu karty projektu wychodziło poza kartę i ekran (karta obcina treść): przy otwartym menu karta go nie obcina,
+   a samo menu przesuwa się w obręb ekranu (js/ui.js: przelaczMenu). */
+.karta-projektu:has(> .menu:not([hidden])) { overflow: visible; z-index: 5; transform: none; } /* bez uniesienia: menu nie drga pod palcem */
+.karta-projektu .okladka { border-radius: calc(var(--r-l) - 1px) calc(var(--r-l) - 1px) 0 0; }
+/* Pasek podglądu na telefonie: tytuł w jednej linii, przyciski mieszczą się na ekranie. */
+@media (max-width: 600px) {
+  .pasek-podgladu { gap: 4px; }
+  .pasek-podgladu [data-akcja="podglad-zamknij"] span, .pasek-podgladu .separator { display: none; }
+  .pasek-podgladu .tytul-ekranu { flex: 1 1 auto; min-width: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pasek-podgladu .odstep { display: none; }
+  .pasek-podgladu .grupa-przyciskow { flex: none; }
+}
+/* Pola obok siebie w wąskim oknie: zawijają się do nowego rzędu zamiast nachodzić podpisami. */
+:root[data-kompakt] dialog .rzad { flex-wrap: wrap; }
+:root[data-kompakt] dialog .rzad > .pole:not(.waskie) { min-width: 7.5rem; }
+/* Okno „Obraz o tej nazwie już jest”: przyciski jeden pod drugim na całą szerokość. */
+:root[data-kompakt] .duplikat-przyciski { flex-direction: column; align-items: stretch; }
+:root[data-kompakt] .duplikat-przyciski .przycisk { justify-content: center; white-space: normal; }
+:root[data-kompakt] .duplikat-przyciski .odstep { display: none; }
+/* Dół panelu stron: przyciski „Strona” i „Sekcja” nie ucinają się w węższym panelu. */
+.panel-strony .stopka-panelu { flex-wrap: wrap; }
+.panel-strony .stopka-panelu .przycisk { flex: 1 1 auto; min-width: max-content; }
+
+/* Cele dotyku: na urządzeniu dotykowym co najmniej ok. 40 px (na komputerze bez zmian). */
+:root[data-dotyk] .przycisk-ikona.maly, :root[data-dotyk] .karta-projektu .menu-karty, :root[data-dotyk] .z-przyciskiem .przycisk-ikona { --dotyk: 40px; }
+:root[data-dotyk] .przycisk.maly, :root[data-dotyk] .przelacznik, :root[data-dotyk] .prezentacja-zamknij,
+:root[data-dotyk] .link { min-height: 40px; }
+:root[data-dotyk] .menu button { min-height: 44px; }
+:root[data-dotyk] .awatar { width: 40px; height: 40px; }
+:root[data-dotyk] .wartosc-zoom { height: 40px; }
+:root[data-dotyk] .kolor-przycisk { width: 40px; height: 40px; }
+:root[data-dotyk] .strona .menu-miniatury, :root[data-dotyk] .strona.w-rozkladowce .menu-miniatury, :root[data-dotyk] .menu-miniatury { --dotyk: 36px; }
+:root[data-dotyk] .wlasciwosci .zwijak { min-height: 40px; }
+:root[data-dotyk] .wlasciwosci .segmenty button { min-height: 40px; }
+:root[data-dotyk] .warstwa { grid-template-columns: 32px 40px 20px minmax(0, 1fr) 40px 40px; min-height: 44px; }
+:root[data-dotyk] .warstwa.w-grupie { grid-template-columns: 40px 20px minmax(0, 1fr); }
+:root[data-dotyk] .warstwa button { min-height: 40px; min-width: 32px; }
+:root[data-dotyk] .siatka-obrazow .obraz-nazwa { padding: 11px 0; margin: -11px 0; }
+:root[data-dotyk] .wlasciwosci, :root[data-dotyk] .panel-strony { --dotyk: 40px; }
+:root[data-dotyk] .wlasciwosci :is(input, select, .przycisk, .wybor-przycisk), :root[data-dotyk] .panel-strony :is(input, .przycisk, .wybor-przycisk) { min-height: 40px; }
+/* Pola wyboru zostają kwadratowe (18×18) – reguły „pod palec” dla pól nie mogą ich wyciągać w górę (#152). */
+:root input:is([type="checkbox"], [type="radio"]) { min-height: 0 !important; min-width: 0 !important; height: 18px !important; width: 18px !important; padding: 0 !important; }
+:root[data-dotyk] #dlg-seria .grupa-pol .przelacznik { min-height: 40px; }
+/* Uchwyty zasłonek i arkuszy: pasek na całą szerokość, wysoki na palec. */
+:root[data-zaslonka] .uchwyt-zaslonki { height: 30px; }
+:root[data-dotyk] .uchwyt-arkusza { height: 30px; }
+:root[data-dotyk] .lista-ostrzezen .przycisk { min-height: 40px; }
+
+/* =====================================================================================================
+   Tryby urządzeń i poprawki z przeglądu zrzutów (#91)
+   Tryb ustawia js/urzadzenie.js (i skrypt w <head>): data-urzadzenie (telefon | tablet | komputer),
+   data-orientacja (pion | poziom), data-uklad (telefon-pion | telefon-poziom | tablet-pion | tablet-poziom |
+   komputer | komputer-waski | komputer-duzy), data-dotyk, data-zaslonka, data-kompakt, data-klawiatura.
+   Przegląd: scripts/zrzuty-przeglad.cjs (15 urządzeń, oba motywy, audyt układu).
+   ===================================================================================================== */
+
+/* Przyciski okna w wąskim oknie: zawijają się do kolejnego rzędu i dzielą szerokość, zamiast wychodzić
+   poza okno (np. „Wczytaj wersję z konta” / „Zachowaj wersję z tego urządzenia” na 320 px). */
+:root[data-kompakt] .przyciski-dialogu { flex-wrap: wrap; }
+:root[data-kompakt] .przyciski-dialogu > .przycisk { flex: 1 1 auto; justify-content: center; }
+:root[data-kompakt] .przyciski-dialogu > .odstep { display: none; }
+
+/* Skróty klawiszowe i podpowiedzi o myszy nie dotyczą ekranu dotykowego. */
+:root[data-dotyk] .menu kbd, :root[data-dotyk] .podpowiedz-widoku { display: none; }
+
+/* Pola z listą wyboru obok siebie w wąskim oknie: każde dostaje miejsce na czytelną treść (inaczej
+   „czytać i zmieniać projekt” kończy się na „czytać i zmieni…”); gdy się nie mieszczą – jedno pod drugim. */
+:root[data-kompakt] dialog .rzad > .pole:has(.wybor) { min-width: 200px; }
+
+/* Okno „Dane” na telefonie i tablecie w pionie: siatka danych ma stałą, wygodną wysokość, a cała prawa część
+   przewija się w pionie – wcześniej przyciski i podpowiedzi zgniatały siatkę do samego nagłówka. */
+@media (max-width: 860px) {
+  .dane-edytor { overflow-y: auto; overscroll-behavior: contain; }
+  .dane-siatka-opak { flex: none; height: max(240px, 52svh); }
+}
+
+/* Okno „Wzorce”: przycisk ⋯ leży w rogu karty – tekst nie wchodzi pod niego, a przyciski karty w wąskim
+   oknie stoją równo, jeden pod drugim, na całą szerokość opisu. */
+.galeria-wzorcow > li.wzorzec .opis-wzorca { padding-right: 34px; }
+:root[data-kompakt] .galeria-wzorcow > li.wzorzec .rzad-przyciskow { flex-direction: column; align-items: stretch; }
+:root[data-kompakt] .galeria-wzorcow > li.wzorzec .rzad-przyciskow .przycisk { justify-content: flex-start; }
+
+/* Komunikat na dole ekranu w edytorze na telefonie stoi nad dolnym menu paneli, a nie na nim. */
+@media (max-width: 860px) {
+  body[data-ekran="edytor"] .powiadomienie { bottom: calc(76px + var(--bezp-dol)); }
+}
+
+/* Menu „Siatka, przyciąganie, linijki” otwiera się w górę od przycisku na dole ekranu: w niskim oknie
+   (telefon 320×568) jego góra wychodziła ponad ekran. Teraz ma najwyżej tyle wysokości, ile jest nad
+   przyciskiem, a resztę przewija. */
+.menu-widoku { max-height: calc(var(--widok-h, 100svh) - 150px); overflow-y: auto; overscroll-behavior: contain; }
+
+/* Drobny tekst na telefonie: najmniej 12 px (dopiski przy polach, opisy sekcji w panelu stron). */
+:root[data-kompakt] .pole small, :root[data-kompakt] .opis-sekcji small,
+:root[data-kompakt] .warstwa-adres, :root[data-kompakt] .warstwa.ze-wzorca small { font-size: 12px; }
+
+/* Najwęższy telefon (320 px): wszystkie przyciski wstawiania mieszczą się w pasku bez przewijania w bok. */
+@media (max-width: 380px) { .pasek-narzedzi button { min-width: 30px; padding-left: 0; padding-right: 0; } }
+
+/* Tablet w pionie i wąskie okno: nazwa projektu w górnym pasku zajmuje wolne miejsce, zamiast kończyć się
+   na „Kalendarz 2…” obok pustej przestrzeni. */
+@media (min-width: 521px) and (max-width: 860px) { .pasek-edytora .nazwa-projektu { flex: 1 1 140px; max-width: 340px; min-width: 90px; } }
+
+/* Lista projektów na telefonie: tytuł w jednej linii, pod nim przyciski na całą szerokość (wcześniej
+   „Twoje projekty” łamało się na dwie linie obok przycisków). */
+:root[data-kompakt] .projekty-naglowek { flex-direction: column; align-items: stretch; gap: 14px; }
+:root[data-kompakt] .projekty-naglowek .przyciski-naglowka { flex-wrap: nowrap; }
+:root[data-kompakt] .projekty-naglowek .przyciski-naglowka .przycisk { flex: 1 1 0; justify-content: center; }
+
+/* Cele dotyku z przeglądu: okienko koloru na dotyku jest szersze, a kolory palety mają ok. 28 px (było 17);
+   „Gotowe” na pasku edycji wzorca i przełącznik motywu w udostępnionym podglądzie – pełne 40 px. */
+:root[data-dotyk] .kolor-okienko { width: min(320px, calc(100vw - 24px)); }
+:root[data-dotyk] .kolor-paleta { gap: 6px; }
+:root[data-dotyk] .kolor-okienko input { min-height: 40px; }
+:root[data-dotyk] .pasek-wzorca .przycisk { min-height: 40px; }
+:root[data-dotyk] .pasek-podgladu .przycisk-ikona { flex: none; }
+:root[data-kompakt] .warstwy-naglowek { font-size: 12px; }
+
+/* Podpowiedzi klawiszowe w tekście przycisków (np. „Zamknij (Esc)”) – tylko tam, gdzie jest klawiatura. */
+:root[data-dotyk] .tylko-klawiatura { display: none; }
+
+/* Przyciski okna, które nie mieszczą się w jednym rzędzie (długie napisy, np. „Wczytaj wersję z konta” obok
+   „Zachowaj wersję z tego urządzenia”), przechodzą do kolejnego rzędu także na komputerze – wcześniej lewy
+   wystawał poza okno. */
+.przyciski-dialogu { flex-wrap: wrap; }
+:root[data-kompakt] .galeria-wzorcow > li.wzorzec .rzad-przyciskow .przycisk { width: 100%; }
+/* ---------- Bezpieczne marginesy ekranu: wycięcia, zaokrąglone rogi, pasek systemowy (#99) ----------
+   Wzorem silnika stylów Familiady: viewport-fit=cover i jedne zmienne dla całej aplikacji. Testy podstawiają
+   tu liczby (Chromium bez wycięć ma env() = 0). */
+:root {
+  --bezp-gora: env(safe-area-inset-top, 0px);
+  --bezp-dol: env(safe-area-inset-bottom, 0px);
+  --bezp-lewo: env(safe-area-inset-left, 0px);
+  --bezp-prawo: env(safe-area-inset-right, 0px);
+}
+/* Boki (telefon poziomo): treść ekranów nie wchodzi pod wycięcie; tło paska sięga krawędzi. */
+.ekran { padding-left: var(--bezp-lewo); padding-right: var(--bezp-prawo); }
+.ekran > .pasek-aplikacji {
+  margin-left: calc(-1 * var(--bezp-lewo)); margin-right: calc(-1 * var(--bezp-prawo));
+  padding-left: calc(16px + var(--bezp-lewo)); padding-right: calc(12px + var(--bezp-prawo));
+}
+/* Góra: pasek aplikacji wyższy o wycięcie, przyciski pod nim. */
+.pasek-aplikacji { height: calc(var(--pasek) + var(--bezp-gora)); padding-top: var(--bezp-gora); }
+@media (max-width: 860px) { .pasek-aplikacji.pasek-podgladu { height: auto; min-height: calc(var(--pasek) + var(--bezp-gora)); } }
+/* Ekrany bez paska u góry. */
+#ekran-logowania, #ekran-start { padding-top: var(--bezp-gora); padding-bottom: var(--bezp-dol); }
+.logowanie-akcje {
+  position: absolute; z-index: 2; top: calc(12px + var(--bezp-gora)); right: calc(12px + var(--bezp-prawo));
+  display: flex; gap: 4px;
+}
+.logowanie-forma .logowanie-akcje .przelacz-motyw { position: static; }
+/* Okna i zasłonki: przyciski nad paskiem systemowym, boki z dala od wycięcia. */
+dialog { max-height: calc(100dvh - var(--bezp-gora) - var(--bezp-dol) - 16px); }
+
+/* ---------- Kompaktowość i ikony (#103) ---------- */
+/* Eksport PDF: ustawienia zaawansowane w zwijanej sekcji z podsumowaniem w nagłówku. */
+details.zaawansowane { border-top: 1px solid var(--linia); padding-top: 10px; }
+details.zaawansowane > summary { cursor: pointer; font-weight: 600; font-size: 13.5px; list-style: none; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+details.zaawansowane > summary::-webkit-details-marker { display: none; }
+details.zaawansowane > summary .ciche { font-weight: 400; font-size: 12.5px; }
+details.zaawansowane[open] > summary .ciche { display: none; }
+details.zaawansowane > :not(summary) { margin-top: 12px; }
+:root[data-dotyk] details.zaawansowane > summary { min-height: 40px; align-items: center; }
+/* Paleta poleceń (Ctrl+K, js/paleta-polecen.js). */
+dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; padding: 8px; margin: 12vh auto auto; border: 1px solid var(--linia); border-radius: var(--r-m, 10px); background: var(--powierzchnia); color: var(--tusz); box-shadow: 0 20px 60px rgba(0, 0, 0, .25); }
+.paleta-pole { width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 15px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s, 6px); background: var(--powierzchnia); color: var(--tusz); }
+.paleta-lista { list-style: none; margin: 6px 0 0; padding: 0; max-height: 50vh; overflow-y: auto; }
+.paleta-lista li { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.paleta-lista li .ciche { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.paleta-lista li[aria-selected="true"], .paleta-lista li:hover { background: var(--wypelnienie); }
+.paleta-pusto { margin: 8px 10px; }
+/* Tabela we właściwościach: liczniki wierszy i kolumn. */
+.licznik-tabeli { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.licznik-wiersz { display: inline-flex; align-items: center; gap: 4px; }
+.licznik-podpis { font-size: 13px; color: var(--tusz-2); margin-right: 4px; }
+.licznik-liczba { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ---------- Telefon: pasek stron i ostrzeżenia (#117, #122) ---------- */
+@media (max-width: 860px) {
+  /* Ostrzeżenia w arkuszu: cała wysokość arkusza, lista się przewija (na komputerze 24% pod właściwościami). */
+  body[data-panel="ostrzezenia"] .panel-inspektor > .sekcja-ostrzezen { flex: 1 1 auto; max-height: none; min-height: 0; }
+  /* Pasek stron: wysokość decyduje o wielkości miniatur, nagłówek sekcji to wąska etykieta. */
+  #lista-stron { height: 176px; flex: none; align-items: stretch; gap: 10px; padding: 4px 14px 8px; overscroll-behavior-x: contain; }
+  #lista-stron > li { flex: 0 0 auto; min-height: 0; }
+  #lista-stron > .sekcja-listy {
+    width: 78px; margin: 0; padding: 8px 2px 2px 8px;
+    flex-direction: column; align-items: stretch; justify-content: space-between; gap: 4px;
+  }
+  #lista-stron .opis-sekcji strong {
+    white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3;
+    font-size: 12px; line-height: 1.25; overflow-wrap: anywhere;
+  }
+  #lista-stron .opis-sekcji small {
+    white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+    font-size: 10.5px; line-height: 1.3; margin-top: 3px;
+  }
+  #lista-stron .sekcja-listy > button { align-self: flex-end; --dotyk: 32px; width: 32px; height: 32px; min-height: 32px; }
+  #lista-stron > li.strona { display: flex; flex-direction: column; gap: 4px; width: min-content; }
+  #lista-stron > li.strona.w-rozkladowce { flex: 0 0 auto; }
+  #lista-stron > li.strona.w-rozkladowce.lewa { margin-right: -8px; }
+  /* Stała wysokość obrazka (pasek 176 px − odstępy − podpis): szerokość kafelka wynika z proporcji strony. */
+  #lista-stron .strona .miniatura { flex: none; width: auto; display: block; }
+  #lista-stron .strona .miniatura img, #lista-stron .strona .miniatura .brak { height: 138px; width: auto; max-width: 280px; object-fit: contain; }
+  #lista-stron .strona .nazwa { width: 0; min-width: 100%; flex: none; line-height: 18px; }
+  #lista-stron .strona .menu-miniatury {
+    --dotyk: 30px; width: 30px; height: 30px; min-height: 30px; top: 5px; right: 5px;
+    background: color-mix(in srgb, var(--powierzchnia) 78%, transparent); backdrop-filter: blur(2px);
+  }
+  #lista-stron > li.kafelek-dodaj-strone { flex: 0 0 64px; padding-left: 0; display: flex; flex-direction: column; }
+  #lista-stron .kafelek-dodaj { flex: none; width: 64px; height: 142px; aspect-ratio: auto !important; }
+  #lista-stron .kafelek-dodaj-strone.w-pustej { flex-basis: 104px; }
+  #lista-stron .kafelek-dodaj-strone.w-pustej .kafelek-dodaj { width: 104px; }
+}
+/* ---------- Telefon: menu ⋯ paska wstawiania (#139, #142) ----------
+   Na małym ekranie pasek ma podstawowe narzędzia; wielokąt, rysowanie, pióro, komentarz i „Kopiuj wygląd”
+   są pod jego przyciskiem ⋯. Gdy jedno z tych narzędzi działa, ⋯ pokazuje jego ikonę – stuknięcie je kończy. */
+.menu-narzedzi { position: fixed; top: 0; left: 0; right: auto; min-width: 220px; }
+.menu-narzedzi button[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); }
+.menu-narzedzi button:disabled { opacity: .45; }
+@media (max-width: 600px) {
+  .pasek-narzedzi .w-menu-narzedzi { display: none !important; }
+}
+
+/* Podgląd (#139): gdy napisy przycisków są schowane, przyciski wyglądają jak ikony górnego paska edytora
+   (bez obramowania), a nie jak puste ramki. */
+@media (max-width: 1180px) {
+  .pasek-podgladu .przycisk:has(> .etyk) { border-color: transparent; background: transparent; box-shadow: none; width: var(--dotyk); min-width: var(--dotyk); padding: 0; justify-content: center; gap: 0; color: var(--tusz-2); position: relative; }
+  .pasek-podgladu .przycisk:has(> .etyk)[aria-pressed="true"] { background: var(--akcent-tlo); color: var(--akcent); }
+  .pasek-podgladu .komentarze-podgladu .licznik-komentarzy { position: absolute; top: 2px; right: 0; margin: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; }
+}
+#przycisk-narzedzia-wiecej { display: none; }
+@media (max-width: 600px) { .pasek-narzedzi #przycisk-narzedzia-wiecej { display: flex; } }
+#menu-wiecej { min-width: 280px; }
+.menu kbd { white-space: nowrap; }
+
+/* Przełączniki segmentowe w oknach (#139): gdy tor zajmuje całą szerokość, opcje dzielą ją po równo –
+   jak w oknie „Nowy projekt”, „Ustawienia sekcji”, „Usuń tło” (a nie stłoczone z lewej). */
+dialog .przelacznik-segmentowy label { flex: 1 1 0; min-width: 0; }
+dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
+@media (max-width: 600px) {
+  .usun-tlo-narzedzia .segmenty { flex: 1 1 100%; }
+  .usun-tlo-narzedzia .segmenty button { flex: 1 1 0; justify-content: center; }
+}
+
+/* Druk z menu przeglądarki w edytorze i podglądzie (#150): zamiast zrzutu aplikacji kartka z podpowiedzią.
+   Właściwy wydruk idzie przez „Drukuj w domu” (gotowy PDF w osobnej ramce – tego ta reguła nie dotyczy). */
+@media print {
+  body[data-ekran="edytor"] > *, body[data-ekran="podglad"]:not(.podglad-publiczny) > * { display: none !important; }
+  body[data-ekran="edytor"]::before, body[data-ekran="podglad"]:not(.podglad-publiczny)::before {
+    content: "Aby wydrukować projekt, użyj w Makietce: menu ⋯ → Drukuj w domu (albo Ctrl+P). Ustawi wydruk, broszurę i skalę za Ciebie.";
+    display: block; margin: 40mm 20mm; font: 14pt/1.5 sans-serif; color: #000;
+  }
+}
+
+/* Wybór wielokąta albo gwiazdy (#151) */
+.menu-wielokata { position: fixed; top: 0; left: 0; right: auto; min-width: 0; width: min(340px, calc(100vw - 16px)); }
+.siatka-wielokatow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+.wybor-wielokata button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 2px; min-height: 58px; border: 1px solid transparent; border-radius: var(--r-s); background: none; color: var(--tusz); font: inherit; font-size: 10.5px; line-height: 1.2; cursor: pointer; }
+.wybor-wielokata { grid-column: 1 / -1; width: 100%; min-width: 0; }
+.wybor-wielokata button { min-width: 0; }
+.wybor-wielokata button > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wybor-wielokata button[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); color: var(--akcent); }
+@media (hover: hover) { .wybor-wielokata button:hover { background: var(--wypelnienie); } }
+.menu .siatka-wielokatow button { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 2px; min-height: 64px; text-align: center; font-size: 11px; line-height: 1.2; }
+.siatka-wielokatow svg { width: 28px; height: 28px; }
+.siatka-wielokatow polygon { fill: var(--akcent-tlo); stroke: var(--tusz); stroke-width: 1.2; stroke-linejoin: round; }
+.menu-wielokata .podpowiedz-menu { margin: 6px 6px 2px; font-size: 12px; color: var(--cichy); }

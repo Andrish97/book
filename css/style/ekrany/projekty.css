@@ -1,0 +1,80 @@
+/* ---------- Projekty ---------- */
+
+.ekran-projektow { flex-direction: column; }
+.projekty-tresc { flex: 1; overflow: auto; padding: 36px clamp(16px, 4vw, 48px) 56px; }
+.projekty-naglowek { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; max-width: 1200px; margin: 0 auto 28px; }
+.projekty-naglowek h1 { font-size: 28px; }
+.siatka-projektow, .pusto-projekty { max-width: 1200px; margin: 0 auto; }
+.siatka-projektow {
+  list-style: none; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px;
+}
+.karta-projektu {
+  position: relative;
+  display: flex; flex-direction: column;
+  border-radius: var(--r-l);
+  background: var(--powierzchnia);
+  border: 1px solid var(--linia);
+  box-shadow: var(--cien-1);
+  overflow: hidden;
+  transition: box-shadow var(--czas), transform var(--czas);
+}
+@media (hover: hover) { .karta-projektu:hover { box-shadow: var(--cien-2); transform: translateY(-2px); } }
+.karta-projektu .otworz-projekt {
+  display: flex; flex-direction: column; text-align: left; width: 100%;
+  border: 0; padding: 0; background: none; cursor: pointer;
+}
+.karta-projektu .okladka {
+  display: flex; align-items: center; justify-content: center;
+  height: 240px; padding: 18px;
+  background: var(--wypelnienie);
+}
+.karta-projektu .okladka img, .karta-projektu .okladka .pusta-okladka {
+  max-width: 100%; max-height: 100%;
+  background: #fff; box-shadow: 0 6px 18px rgba(28, 27, 25, .16);
+}
+.karta-projektu .pusta-okladka { width: 60%; aspect-ratio: 148 / 210; }
+.karta-projektu .opis { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.karta-projektu .opis strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.karta-projektu .opis small { color: var(--cichy); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.karta-projektu .stan-wysylki { display: inline-flex; vertical-align: -2px; margin-right: 6px; color: var(--cichy); }
+.karta-projektu .stan-wysylki.chmura_ok { color: var(--sukces, #2e7d4f); }
+.karta-projektu .stan-wysylki.chmura_czeka { color: var(--uwaga, #b7791f); }
+.karta-projektu { position: relative; }
+.plakietka-linku { display: inline-flex; max-width: 100%; min-width: 0; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--linia-mocna); border-radius: 999px; background: var(--powierzchnia); color: var(--tekst); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+@media (hover: hover) { .plakietka-linku:hover { border-color: var(--akcent); color: var(--akcent); } }
+.karta-projektu .menu-karty { position: absolute; top: 8px; right: 8px; background: var(--szklo); --dotyk: 34px; }
+.karta-projektu .menu { top: 46px; right: 8px; min-width: 200px; }
+.karta-projektu.szkielet .okladka { animation: puls 1.4s ease-in-out infinite; }
+
+.pusto-projekty {
+  padding: 36px; border-radius: var(--r-l);
+  background: var(--powierzchnia); border: 1px solid var(--linia);
+  display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
+}
+.pusto-projekty h2 { font-size: 22px; }
+.kroki { list-style: none; padding: 0; margin: 8px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; width: 100%; }
+.kroki li { display: flex; gap: 12px; padding: 14px; border-radius: var(--r-m); background: var(--powierzchnia-2); border: 1px solid var(--linia); }
+.kroki li p { color: var(--cichy); font-size: 13px; margin-top: 2px; }
+.kroki li.wkrotce { opacity: .7; }
+.kroki em { font-style: normal; font-size: 11px; font-weight: 600; color: var(--uwaga); background: var(--uwaga-tlo); padding: 1px 6px; border-radius: 6px; margin-left: 4px; }
+.numer-kroku { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--tusz); color: var(--powierzchnia); font-weight: 600; font-size: 13px; }
+
+/* ---------- Plakietki na karcie projektu (#99) ----------
+   „Udostępniony” i „od …” stoją razem w lewym górnym rogu, w kolumnie, i nigdy nie wchodzą pod ⋯ (prawy róg). */
+.plakietki-karty {
+  position: absolute; z-index: 1; top: 8px; left: 8px; right: 52px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none;
+}
+.plakietki-karty .plakietka-linku { pointer-events: auto; }
+.plakietka-linku span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plakietka-linku svg { flex: none; }
+:root[data-dotyk] .plakietki-karty { right: 56px; }
+:root[data-dotyk] .plakietka-linku { min-height: 32px; }
+/* Nowy projekt z gotowego szablonu (#208): galeria szablonów od razu w oknie „Nowy projekt”, bez pól formatu. */
+#form-nowy[data-start="szablon"] .tylko-pusty { display: none !important; }
+#dlg-nowy:has(#form-nowy[data-start="szablon"]) { width: min(900px, calc(100vw - 32px)); max-width: none; }
+.nowy-szablony[hidden] { display: none; }
+.nowy-szablony .gotowe { padding: 0; max-height: none; }
+.nowy-szablony .gotowe > .naglowek-dialogu { display: none; }
+.nowy-szablony .gotowe-lista { overflow: visible; }

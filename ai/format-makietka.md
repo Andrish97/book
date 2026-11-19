@@ -221,6 +221,9 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `oblewanie`, `oblewanie_odstep` | dowolny element poza tekstem: `prostokat` (tekst opływa ramkę), `ksztalt` (elipsa, wielokąt, ścieżka – opływa kształt), `skok` (tekst przeskakuje pod element); odstęp w mm (domyślnie 2) |
 | `bez_oblewania` | tekst: `true` – nie opływa innych elementów |
 | `link` | adres klikalny w PDF do czytania na ekranie (#131C): `"https://…"`, `"mailto:…"`, `"tel:…"` (bez schematu – `www.…` dostaje `https://`). Działa dla każdego elementu (cały jego obszar); kod QR z adresem jest klikalny sam |
+| `z_importu` | opis uproszczenia przy odczycie pliku z innego programu (IDML, SLA, DOCX…) – tylko do odczytu, pokazywany w „Sprawdź przed drukiem” |
+| `czesc`, `skladanka` | składanka (sekcja typu `skladanka`): `czesc` – definicja części modelu z papieru na grupie (obrys, krawędzie z zakładkami i numerami par, zgięcia, miejsca i linie klejenia, szczeliny); `skladanka` – rola elementu w grupie części (ściana, zgięcie, zakładka…). Rysunek części buduje aplikacja z `czesc` – części najlepiej robić w edytorze (Szablon, Część, Model 3D) |
+| `na_czesci` | `true` – element (tekst, obraz, kształt) jest treścią ściany części składanki: leży w grupie części, przesuwa się, obraca i składa razem z nią, przycięty do jej obrysu |
 | `ksztalt_tekstu` | tekst po kształcie albo wygięty (#131B): `{ "rodzaj": "luk", "zgiecie": 50 }`. `rodzaj`: `luk` (`zgiecie` −100…100, ujemne – łuk w dół; `promien` mm, 0 – sam), `okrag` (`promien`, `przesuniecie` – obrót początku w stopniach, `strona`: `zewn` – litery na zewnątrz u góry, `wewn` – do środka u dołu), `elipsa` (`promien`, `zgiecie` 0…100 – spłaszczenie, `przesuniecie` w %), `sciezka` (`d` – ścieżka SVG w mm względem środka tekstu, `przesuniecie` w %, `wyrownanie`: `lewo` / `srodek` / `prawo`, `strona`: `zewn` – nad linią, `wewn` – pod, `odwroc`: `true`), wygięcia `luk_gora`, `luk_dol`, `wypuklosc`, `wkleslosc`, `fala`, `flaga`, `zwezenie` (siła w `zgiecie`). Tekst jest jednym wierszem; `width` i `height` elementu aplikacja liczy sama z liter po kształcie. Usunięcie pola (null) – tekst prosto |
 
 ## 6. Style tekstu
@@ -402,7 +405,7 @@ Okno „Makieta 3D” pokazuje projekt jako wydrukowaną rzecz. Ujęcia zapisane
 |---|---|---|
 | `id` | tekst | niepowtarzalny w projekcie |
 | `nazwa` | tekst (do 80 znaków) | pokazywana na liście „Zapisane ujęcia” |
-| `model` | `"ksiazka_miekka"` \| `"ksiazka_twarda"` \| `"notes"` \| `"kalendarz_scienny"` \| `"kalendarz_biurkowy"` \| `"kartka"` \| `"ulotka"` \| `"koperta"` \| `"pudelko"` \| `"trojdzielny"` | rodzaj makiety; ostatnie cztery tylko z sekcją takiego typu (ulotka, wykrojnik koperta / pudełko, trójdzielny) |
+| `model` | `"ksiazka_miekka"` \| `"ksiazka_twarda"` \| `"notes"` \| `"kalendarz_scienny"` \| `"kalendarz_biurkowy"` \| `"kartka"` \| `"ulotka"` \| `"koperta"` \| `"pudelko"` \| `"trojdzielny"` \| `"skladanka"` | rodzaj makiety; ostatnie pięć tylko z sekcją takiego typu (`skladanka` – sekcja składanki: części na arkuszach, złożone i sklejony model) (ulotka, wykrojnik koperta / pudełko, trójdzielny) |
 | `u` | liczba ≥ 0 | położenie kartkowania: 0 – okładka (zamknięta), 1, 2… – kolejne przewrócone kartki; ulotka: 0 złożona, 1 rozłożona (środek), 2 odwrócona; koperta: 0 przód, 1 tył, 2 otwarta klapa; pudełko: 0 wykrojnik, 1 złożone |
 | `ulozenie` | `"lezy"` \| `"stoi"` | książka i notes mogą stać |
 | `kamera` | `{ obrotY, obrotX, zoom, fov }` | `obrotY`, `obrotX` – obrót wokół pionu i pochylenie w radianach (`obrotX` 1,5 – z góry, 0 – z boku), `zoom` 1 – cała rzecz w kadrze, `fov` – kąt widzenia w stopniach (12–60; mały – teleobiektyw, duży – szeroki kąt) |

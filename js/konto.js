@@ -21,7 +21,7 @@ export const brakiHasla = (h) => ZASADY_HASLA.filter(([, , test]) => !test(h)).m
 
 const poprawnyEmail = (e) => /^\S+@\S+\.\S+$/.test(e);
 const ODSTEP_WYSYLKI = 60; // sekund między kolejnymi wiadomościami
-// Ustawienia konta na wąskim ekranie: lista albo jedna sekcja (jak w telefonie), próg jak w css/aplikacja.css.
+// Ustawienia konta na wąskim ekranie: lista albo jedna sekcja (jak w telefonie), próg jak w css/style/ekrany/konto.css.
 const WASKIE_USTAWIENIA = matchMedia('(max-width: 760px)');
 
 // Lista zasad hasła zaznaczana na bieżąco podczas pisania.

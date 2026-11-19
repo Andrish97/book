@@ -1,0 +1,15 @@
+/* ---------- Katalog komponentów (katalog-komponentow.html, silnik stylów krok 3 – #292) ----------
+   Tylko układ strony katalogu – wygląd komponentów pochodzi z components.css, kolory z tokens.css. */
+
+/* Dokument aplikacji się nie przewija (base.css) – katalog przewija się w środku. */
+.katalog { height: 100%; overflow: auto; padding: 32px max(16px, calc((100% - 960px) / 2)); display: flex; flex-direction: column; gap: 28px; }
+.katalog-naglowek { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; justify-content: space-between; }
+.katalog-naglowek h1 { font-size: 24px; margin-bottom: 6px; }
+.katalog-sekcja { display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--powierzchnia); border: 1px solid var(--linia); border-radius: var(--r-l); box-shadow: var(--cien-1); }
+.katalog-sekcja h2 { font-size: 17px; }
+.katalog-rzad { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.katalog-formularz { max-width: 420px; }
+.katalog-probki { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.katalog-probka { display: grid; grid-template-columns: 36px 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; }
+.katalog-kolor { grid-row: span 2; width: 36px; height: 36px; border-radius: var(--r-s); border: 1px solid var(--linia-mocna); background: var(--probka); }
+.katalog-probka code { justify-self: start; }

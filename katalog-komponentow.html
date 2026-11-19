@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Makietka – katalog komponentów</title>
+  <!-- Silnik stylów, krok 3 (#292): wszystkie komponenty interfejsu w jednym miejscu, w obu motywach. Nowe elementy
+       interfejsu bierze się stąd (docs/PLAN-STYLE.md). Te same pliki stylów, w tej samej kolejności, co index.html. -->
+  <link rel="stylesheet" href="css/czcionki.css">
+  <link rel="stylesheet" href="css/style/tokens.css">
+  <link rel="stylesheet" href="css/style/base.css">
+  <link rel="stylesheet" href="css/style/components.css">
+  <link rel="stylesheet" href="css/style/layout.css">
+  <link rel="stylesheet" href="css/style/ekrany/logowanie.css">
+  <link rel="stylesheet" href="css/style/ekrany/konto.css">
+  <link rel="stylesheet" href="css/style/ekrany/projekty.css">
+  <link rel="stylesheet" href="css/style/ekrany/edytor.css">
+  <link rel="stylesheet" href="css/style/ekrany/podglad.css">
+  <link rel="stylesheet" href="css/style/ekrany/instrukcja.css">
+  <link rel="stylesheet" href="css/style/ekrany/wspolpraca.css">
+  <link rel="stylesheet" href="css/style/ekrany/admin.css">
+  <link rel="stylesheet" href="css/style/urzadzenia.css">
+  <link rel="stylesheet" href="css/style/ekrany/katalog.css">
+</head>
+<body class="katalog-strona">
+  <main class="katalog">
+    <header class="katalog-naglowek">
+      <div>
+        <h1>Katalog komponentów</h1>
+        <p class="ciche">Każdy przycisk, pole, lista, przełącznik i okno Makietki. Nowe elementy interfejsu – tylko stąd; wygląd zmienia się w tokenach i komponentach, nie w ekranach.</p>
+      </div>
+      <div class="przelacznik-segmentowy" role="radiogroup" aria-label="Motyw">
+        <label><input type="radio" name="motyw" value="jasny" checked><span>Jasny</span></label>
+        <label><input type="radio" name="motyw" value="ciemny"><span>Ciemny</span></label>
+      </div>
+    </header>
+
+    <section class="katalog-sekcja" id="k-tokeny">
+      <h2>Tokeny – kolory</h2>
+      <p class="ciche">css/style/tokens.css – te same nazwy w obu motywach, inne wartości.</p>
+      <div class="katalog-probki" id="probki-kolorow"></div>
+    </section>
+
+    <section class="katalog-sekcja" id="k-przyciski">
+      <h2>Przyciski</h2>
+      <div class="katalog-rzad">
+        <button class="przycisk glowny" type="button" data-ikona="plus">Główny</button>
+        <button class="przycisk" type="button">Zwykły</button>
+        <button class="przycisk przezroczysty" type="button">Przezroczysty</button>
+        <button class="przycisk niebezpieczny" type="button" data-ikona="kosz">Niebezpieczny</button>
+        <button class="przycisk" type="button" disabled>Wyłączony</button>
+      </div>
+      <div class="katalog-rzad">
+        <button class="przycisk glowny duzy" type="button">Duży (logowanie)</button>
+        <button class="przycisk-ikona niebezpieczny-ikona" type="button" data-ikona="kosz" aria-label="Usuń"></button>
+      </div>
+      <div class="katalog-rzad">
+        <button class="przycisk glowny maly" type="button">Główny mały</button>
+        <button class="przycisk maly" type="button">Mały</button>
+        <button class="przycisk przezroczysty maly" type="button">Przezroczysty mały</button>
+      </div>
+      <div class="katalog-rzad">
+        <button class="przycisk-ikona" type="button" data-ikona="wiecej" aria-label="Więcej"></button>
+        <button class="przycisk-ikona maly" type="button" data-ikona="olowek" aria-label="Edytuj"></button>
+        <button class="przycisk-ikona x-okna" type="button" data-ikona="zamknij" aria-label="Zamknij"></button>
+      </div>
+      <code>.przycisk</code> <code>.glowny</code> <code>.przezroczysty</code> <code>.niebezpieczny</code> <code>.maly</code> <code>.duzy</code> <code>.przycisk-ikona</code> <code>.niebezpieczny-ikona</code>
+    </section>
+
+    <section class="katalog-sekcja" id="k-pola">
+      <h2>Pola formularza</h2>
+      <form class="formularz katalog-formularz" novalidate>
+        <label class="pole"><span>Tekst</span><input type="text" placeholder="np. Kalendarz 2027"></label>
+        <label class="pole"><span>Hasło</span><span class="z-przyciskiem"><input type="password" value="tajne"><button type="button" class="przycisk-ikona pokaz-haslo" aria-label="Pokaż hasło" data-ikona="oko"></button></span></label>
+        <div class="rzad">
+          <label class="pole"><span>Liczba</span><input type="number" value="12"></label>
+          <label class="pole"><span>Data</span><input type="date" value="2027-01-01"></label>
+        </div>
+        <label class="pole"><span>Lista wyboru</span><select><option>A4</option><option>A5</option><option>Własny</option></select></label>
+        <label class="pole"><span>Dłuższy tekst</span><textarea rows="3">Opis projektu</textarea></label>
+        <label class="pole"><span>Kolor</span><input type="color" value="#2f5bd3"></label>
+        <label class="przelacznik"><input type="checkbox" checked><span>Przełącznik włączony</span></label>
+        <label class="przelacznik"><input type="checkbox"><span>Przełącznik wyłączony</span></label>
+      </form>
+      <code>label.pole</code> <code>.z-przyciskiem</code> <code>.rzad</code> <code>.przelacznik</code>
+    </section>
+
+    <section class="katalog-sekcja" id="k-zakladki">
+      <h2>Zakładki i przełącznik segmentowy</h2>
+      <div class="przelacznik-segmentowy" role="tablist" aria-label="Przykład">
+        <button type="button" role="tab" aria-selected="true">Pierwsza</button>
+        <button type="button" role="tab" aria-selected="false">Druga</button>
+        <button type="button" role="tab" aria-selected="false">Trzecia</button>
+      </div>
+      <code>.przelacznik-segmentowy</code> (role="tablist" albo radiogroup)
+    </section>
+
+    <section class="katalog-sekcja" id="k-komunikaty">
+      <h2>Komunikaty</h2>
+      <p class="komunikat">Nie udało się zapisać – sprawdź połączenie.</p>
+      <p class="komunikat sukces">Zapisano zmiany.</p>
+      <p class="ciche">Tekst pomocniczy (.ciche).</p>
+      <code>.komunikat</code> (błąd) <code>.komunikat.sukces</code> <code>.ciche</code>
+    </section>
+
+    <section class="katalog-sekcja" id="k-okno">
+      <h2>Okno</h2>
+      <button class="przycisk" type="button" id="otworz-okno">Otwórz przykładowe okno</button>
+      <dialog id="katalog-okno">
+        <form method="dialog" class="formularz">
+          <div class="naglowek-dialogu"><h2>Przykładowe okno</h2><button class="przycisk-ikona x-okna" value="nie" data-ikona="zamknij" aria-label="Zamknij"></button></div>
+          <p class="ciche">Nagłówek z tytułem i zamknięciem, treść, przyciski na dole – główny po prawej.</p>
+          <label class="pole"><span>Nazwa</span><input type="text" value="Nowa sekcja"></label>
+          <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Zapisz</button></div>
+        </form>
+      </dialog>
+      <code>dialog</code> <code>.naglowek-dialogu</code> <code>.przyciski-dialogu</code>
+    </section>
+  </main>
+  <script type="module">
+    import { wstawIkony } from './js/ikony.js';
+    import { wlaczWlasneKontrolki } from './js/kontrolki.js';
+    wstawIkony();
+    wlaczWlasneKontrolki();
+    // Próbki kolorów: każdy token koloru z :root (nazwa i wartość w bieżącym motywie).
+    const nazwy = [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules]; } catch { return []; } })
+      .filter((r) => r.selectorText === ':root').flatMap((r) => [...r.style]).filter((n) => n.startsWith('--'));
+    const probki = document.getElementById('probki-kolorow');
+    const rysuj = () => {
+      probki.replaceChildren();
+      for (const n of [...new Set(nazwy)]) {
+        const v = getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+        if (!/^(#|rgb)/.test(v)) continue;
+        const d = document.createElement('div');
+        d.className = 'katalog-probka';
+        d.innerHTML = `<span class="katalog-kolor"></span><code></code><small class="ciche"></small>`;
+        d.querySelector('.katalog-kolor').style.setProperty('--probka', `var(${n})`);
+        d.querySelector('code').textContent = n;
+        d.querySelector('small').textContent = v;
+        probki.append(d);
+      }
+    };
+    rysuj();
+    for (const r of document.querySelectorAll('[name="motyw"]')) {
+      r.addEventListener('change', () => {
+        if (r.value === 'ciemny') document.documentElement.dataset.motyw = 'ciemny'; else delete document.documentElement.dataset.motyw;
+        rysuj();
+      });
+    }
+    for (const t of document.querySelectorAll('[role="tab"]')) {
+      t.addEventListener('click', () => { for (const x of t.parentElement.children) x.setAttribute('aria-selected', String(x === t)); });
+    }
+    document.getElementById('otworz-okno').addEventListener('click', () => document.getElementById('katalog-okno').showModal());
+  </script>
+</body>
+</html>

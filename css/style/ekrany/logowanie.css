@@ -1,0 +1,85 @@
+/* ---------- Logowanie i rejestracja ---------- */
+
+/* Siatka: okładka po lewej, formularz po prawej. Selektor z id – inaczej wygrywało ogólne „display: flex” ekranów
+   i formularz na telefonie poziomo i na tablecie stał wąski przy lewej krawędzi. */
+body[data-ekran="logowanie"] #ekran-logowania { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(400px, 1fr); grid-template-rows: minmax(0, 1fr); }
+
+/* Lewa połowa: stała, ciemna „okładka” – taka sama w obu motywach. */
+.logowanie-bok {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center; gap: 18px;
+  padding: 56px clamp(32px, 6vw, 88px);
+  background: #1c1b19; color: #f4f3ef;
+}
+.logowanie-bok .marka { position: absolute; top: 32px; left: clamp(32px, 6vw, 88px); }
+
+.logowanie-bok h1 { font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: clamp(30px, 3.4vw, 46px); line-height: 1.12; }
+.logowanie-bok p { max-width: 44ch; color: #c9c6bd; font-size: 15.5px; line-height: 1.55; }
+.podglad-stron { position: relative; height: 210px; margin-top: 22px; }
+.kartka {
+  position: absolute; width: 136px; height: 192px; padding: 22px 16px;
+  background: #fbfaf7; border-radius: 3px; box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+  display: flex; flex-direction: column; gap: 9px;
+}
+.kartka span { height: 6px; border-radius: 3px; background: #dcd8cd; }
+.kartka span:first-child { height: 22px; background: #2f5bd3; opacity: .9; }
+.kartka span.krotka { width: 60%; }
+.kartka.k1 { left: 0; transform: rotate(-6deg); }
+.kartka.k2 { left: 116px; top: -8px; transform: rotate(1deg); }
+.kartka.k2 span:first-child { background: #c2410c; }
+.kartka.k3 { left: 232px; transform: rotate(7deg); }
+.kartka.k3 span:first-child { background: #18794e; }
+/* Jasny motyw (#109): lewa połowa jasna, ciepły papier, i miękkie przejście w tło formularza zamiast ostrej krawędzi. */
+:root:not([data-motyw="ciemny"]) .logowanie-bok {
+  background:
+    radial-gradient(120% 90% at 0% 0%, #fffdf8 0%, transparent 60%),
+    linear-gradient(90deg, #e9e5da 0%, #efebe2 62%, var(--papier) 100%);
+  color: var(--tusz);
+}
+:root:not([data-motyw="ciemny"]) .logowanie-bok p { color: var(--tusz-2); }
+:root:not([data-motyw="ciemny"]) .logowanie-bok .kartka { box-shadow: 0 14px 34px rgba(60, 50, 30, .18), 0 1px 3px rgba(60, 50, 30, .12); }
+
+.logowanie-forma {
+  position: relative; overflow: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 24px;
+  padding: 64px 24px 24px;
+}
+/* Karta na środku, ale „bezpiecznie”: gdy formularz jest wyższy niż okno (niski telefon, telefon poziomo,
+   rejestracja z wymaganiami hasła), góra – logo i zakładki – zostaje do przewinięcia, a nie ucięta. */
+.logowanie-forma > .karta-logowania { margin-block: auto; }
+.logowanie-forma .przelacz-motyw { position: absolute; top: 16px; right: 16px; }
+.karta-logowania { width: min(400px, 100%); display: flex; flex-direction: column; gap: 14px; }
+.marka-mobilna { display: none; margin-bottom: 6px; }
+#widok-formularz, .widok-wyslano { display: flex; flex-direction: column; gap: 14px; }
+#widok-formularz.wylaczony { opacity: .5; }
+.zakladki-logowania { display: flex; }
+.zakladki-logowania label { flex: 1; }
+.zakladki-logowania span { flex: 1; min-height: 38px; }
+.karta-logowania h1 { font-size: 24px; }
+.pole small { font-weight: 400; color: var(--cichy); }
+.linki-logowania { display: flex; }
+
+.zasady-hasla { list-style: none; margin: -2px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.zasady-hasla li {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px 3px 6px; border-radius: 999px;
+  background: var(--wypelnienie); color: var(--cichy); font-size: 12px;
+  transition: background var(--czas), color var(--czas);
+}
+.zasady-hasla li .ikona { opacity: .35; }
+.zasady-hasla li.spelniona { background: var(--sukces-tlo); color: var(--sukces); }
+.zasady-hasla li.spelniona .ikona { opacity: 1; }
+
+.widok-wyslano { align-items: flex-start; }
+.widok-wyslano p { color: var(--tusz-2); line-height: 1.55; }
+.ikona-stanu {
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px;
+  background: var(--akcent-tlo); color: var(--akcent);
+}
+.stopka-logowania { font-size: 12px; color: var(--cichy); margin-top: auto; }
+.brak-konfiguracji {
+  padding: 14px 16px; border-radius: var(--r-m);
+  background: var(--uwaga-tlo); color: var(--uwaga);
+  display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;
+}
+.brak-konfiguracji .przycisk { align-self: flex-start; color: var(--tusz); }
