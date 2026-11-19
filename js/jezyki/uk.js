@@ -2470,6 +2470,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Same narożniki pola tekstu – lekka, nowoczesna ramka.":"Лише кути текстового поля – легка сучасна рамка.",
 "Samochód":"Автомобіль",
 "Samolot":"Літак",
+"Scal z częścią do pary – kliknij krawędź z numerem":"Об'єднати з парною частиною – клацніть край з номером",
 "Scal z komórką po prawej":"Об'єднати з клітинкою праворуч",
 "Scal z komórką poniżej":"Об'єднати з клітинкою нижче",
 "Sejf":"Сейф",

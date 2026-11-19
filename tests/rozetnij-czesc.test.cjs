@@ -75,3 +75,35 @@ test('narzędzie Rozetnij w aplikacji: dwa kliknięcia na krawędziach – dwie 
   assert.deepEqual(czesci.map((c) => c[1]).sort(), ['klej', 'zakladka']);
   assert.deepEqual(bledy, []);
 });
+
+// Scalenie (#275): odwrotność rozcięcia – dwa kwadraty po parze w jeden prostokąt ze zgięciem; nachodzenie – odmowa.
+test('scalCzesci: dwa kwadraty po parze 5 → prostokąt 80 × 40 ze zgięciem; rozcięty pas scala się z powrotem', async () => {
+  globalThis.fabric = globalThis.fabric || {};
+  const K = await import(pathToFileURL(path.join(__dirname, '..', 'js', 'skladanka.js')).href);
+  const kw = (x0, y0, kr) => K.normalizujCzesc({ nr: 'X', punkty: [{ x: x0, y: y0 }, { x: x0 + 40, y: y0 }, { x: x0 + 40, y: y0 + 40 }, { x: x0, y: y0 + 40 }], krawedzie: kr, zgiecia: [] });
+  const c1 = kw(0, 0, [{ typ: 'ciecie' }, { typ: 'zakladka', para: '5', szer: 7 }, { typ: 'ciecie' }, { typ: 'ciecie' }]);
+  const c2 = kw(300, 120, [{ typ: 'ciecie' }, { typ: 'ciecie' }, { typ: 'ciecie' }, { typ: 'klej', para: '5' }]);
+  const w = K.scalCzesci(c1, 1, c2, 3);
+  assert.ok(w);
+  const xs = w.punkty.map((q) => q.x);
+  const ys = w.punkty.map((q) => q.y);
+  assert.deepEqual([Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)], [0, 80, 0, 40]);
+  assert.equal(w.krawedzie.filter((k) => k.para === '5').length, 0, 'para zniknęła');
+  assert.equal(w.punkty.length, w.krawedzie.length);
+  assert.deepEqual(w.zgiecia.map((z) => [z.a.x, z.b.x]), [[40, 40]], 'zgięcie w miejscu pary');
+  // Rozcięty pas wraca do jednej części.
+  const pas = K.normalizujCzesc({ nr: 'A', punkty: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 40 }, { x: 0, y: 40 }], krawedzie: Array(4).fill({ typ: 'ciecie' }), zgiecia: [] });
+  const [r1, r2] = K.rozetnijCzesc(pas, { x: 60, y: 0 }, { x: 60, y: 40 }, '9').map((x) => K.normalizujCzesc({ nr: 'A', ...x }));
+  const i1 = r1.krawedzie.findIndex((k) => k.para === '9');
+  const i2 = r2.krawedzie.findIndex((k) => k.para === '9');
+  const z = K.scalCzesci(r1, i1, r2, i2);
+  assert.ok(z && Math.abs(Math.abs(K.poleWielokata(z.punkty)) - 4000) < 1, 'pole jak przed rozcięciem');
+  // Część z ramieniem, na które druga weszłaby po złączeniu – odmowa (ten sam obieg, ta sama długość krawędzi).
+  const zRamieniem = K.normalizujCzesc({ nr: 'R', punkty: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 30 }, { x: 80, y: 30 }, { x: 80, y: 40 }, { x: 0, y: 40 }], krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: '6', szer: 7 }, ...Array(4).fill({ typ: 'ciecie' })], zgiecia: [] });
+  const wysoka = K.normalizujCzesc({ nr: 'W', punkty: [{ x: 0, y: 0 }, { x: 30, y: 0 }, { x: 30, y: 45 }, { x: 10, y: 45 }, { x: 10, y: 30 }, { x: 0, y: 30 }], krawedzie: [...Array(5).fill({ typ: 'ciecie' }), { typ: 'klej', para: '6' }], zgiecia: [] });
+  assert.equal(Math.sign(K.poleWielokata(zRamieniem.punkty)), Math.sign(K.poleWielokata(wysoka.punkty)), 'ten sam obieg');
+  assert.equal(K.scalCzesci(zRamieniem, 1, wysoka, 5), null, 'nachodzenie – odmowa');
+  // Bez ramienia ta sama para się scala.
+  const bez = K.normalizujCzesc({ ...zRamieniem, punkty: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 30 }, { x: 40, y: 40 }, { x: 0, y: 40 }], krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: '6', szer: 7 }, ...Array(3).fill({ typ: 'ciecie' })] });
+  assert.ok(K.scalCzesci(bez, 1, wysoka, 5), 'bez ramienia – scala');
+});

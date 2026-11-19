@@ -10,7 +10,7 @@
 // Esc kończy narzędzie. Wszystko inne (kolor, krawędzie, numery, usuwanie) – w panelu części.
 
 import {
-  zbudujCzesc, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
+  zbudujCzesc, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, scalCzesci, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
   naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
   rozlozNaArkusze, instrukcjaMontazu,
 } from '../skladanka.js';
@@ -193,7 +193,7 @@ export function oknoModelu3D() {
 
 // ---------- Narzędzia klikane ----------
 
-let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej' | 'rozetnij'
+let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej' | 'rozetnij' | 'scal'
 let pierwszy = null; // { g, q (układ części), krawedz? }
 
 const OPISY = {
@@ -201,6 +201,7 @@ const OPISY = {
   polacz: 'Połącz: kliknij przy krawędzi, która dostanie zakładkę, potem przy krawędzi, do której się przykleja – albo w środku ściany (miejsce klejenia). Esc kończy.',
   szczelina: 'Szczelina: kliknij początek i koniec nacięcia w części – szerokość z grubości materiału (Esc kończy).',
   klej: 'Miejsce klejenia: kliknij w części (z Shiftem – na spodzie, bez druku). Esc kończy.',
+  scal: 'Scal: kliknij przy krawędzi z numerem pary – druga część dołączy się w tym miejscu, a krawędź stanie się zgięciem (Esc kończy).',
   rozetnij: 'Rozetnij: kliknij punkt na krawędzi części, potem drugi – część podzieli się na dwie z zakładką na linii cięcia (Esc kończy).',
 };
 
@@ -264,6 +265,20 @@ function klik(p, shift) {
     zmienCzesc(g, (d) => Object.assign(d, dwie[0]));
     edytor._wstaw(druga);
     powiadom(`Rozcięto na części ${c.nr} i ${nr2} – sklejasz je zakładką ${para}.`);
+    return;
+  }
+  if (narzedzie === 'scal') {
+    const k = c.krawedzie[brzeg.i];
+    if (!przyKrawedzi || !k?.para || !['zakladka', 'klej'].includes(k.typ)) { powiadom('Kliknij przy krawędzi z numerem pary (zakładka albo krawędź do sklejenia) – części połączą się w tym miejscu.', true); return; }
+    const inna = czesciWObiektach(edytor.canvas.getObjects()).find((x) => x !== g && normalizujCzesc(x.czesc).krawedzie.some((e) => e.para === k.para && ['zakladka', 'klej'].includes(e.typ)));
+    if (!inna) { powiadom(`Para ${k.para} nie ma drugiej krawędzi na innej części tego arkusza.`, true); return; }
+    const c2 = normalizujCzesc(inna.czesc);
+    const i2 = c2.krawedzie.findIndex((e) => e.para === k.para && ['zakladka', 'klej'].includes(e.typ));
+    const w = scalCzesci(c, brzeg.i, c2, i2);
+    if (!w) { powiadom('Tych części nie da się scalić w jedną – po złączeniu nachodziłyby na siebie (albo krawędzie mają różne długości). Zostaw je osobno.', true); return; }
+    edytor.canvas.remove(inna);
+    zmienCzesc(g, (d) => Object.assign(d, w));
+    powiadom(`Scalono części ${c.nr} i ${c2.nr} – krawędź ${k.para} jest teraz zgięciem.`);
     return;
   }
   if (narzedzie === 'szczelina') {
@@ -373,6 +388,7 @@ export function panelCzesci(panel, g0) {
     ['prostokat', 'Klej – miejsce klejenia', () => ustawNarzedzie('klej')],
     ['minus', 'Szczelina – nacięcie na wypustkę', () => ustawNarzedzie('szczelina')],
     ['separator', 'Rozetnij na dwie części – dwa kliknięcia na krawędziach', () => ustawNarzedzie('rozetnij')],
+    ['link', 'Scal z częścią do pary – kliknij krawędź z numerem', () => ustawNarzedzie('scal')],
   ]));
   const k = panel.sekcja('Krawędzie');
   c().krawedzie.forEach((kr, i) => {

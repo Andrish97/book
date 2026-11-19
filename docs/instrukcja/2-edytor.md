@@ -1235,6 +1235,7 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 | [Instrukcja] | Instrukcja montażu z modelu: co wydrukować (materiał, gramatura), które części wyciąć (z numerami arkuszy), ile zgięć „od siebie” i „do siebie” ma każda część, potem klejenie par po kolei – „Posmaruj klejem zakładkę 3 (część A) i przyklej pod krawędź 4 części B z numerem 3”, „Wsuń wypustkę 7 w szczelinę 7”. [Pobierz (.txt)] albo [Wstaw jako stronę] – nowa sekcja A4 za arkuszami z ponumerowanymi krokami (do poprawienia jak zwykły tekst). |
 | [Szczelina] | Dwa kliknięcia w części: nacięcie na wypustkę albo przegródkę – szerokość to grubość materiału + 0,2 mm luzu. |
 | Rozetnij (w panelu części) | Dwa kliknięcia na krawędziach dzielą część na dwie – np. gdy po [Model 3D] część nie mieści się na arkuszu. Krawędzie zachowują zakładki i numery, zgięcia trafiają do swojej części (przecinające linię są do niej przycinane), a na linii cięcia powstaje nowa para: zakładka w jednej części, krawędź do sklejenia w drugiej. |
+| Scal (w panelu części) | Kliknięcie przy krawędzi z numerem pary łączy obie części w jedną: druga obraca się i przesuwa tak, by krawędzie pary się pokryły, a krawędź klejenia staje się zgięciem (góra, 90°). Gdy części nachodziłyby na siebie, Makietka odmawia – zostają osobno. |
 
 <kbd>Esc</kbd> kończy narzędzie. Część przesuwasz i obracasz jak każdy element; nie da się jej rozciągnąć
 (wymiary są wymiarami modelu). Zaznaczona część ma w panelu **Właściwości**:

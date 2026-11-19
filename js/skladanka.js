@@ -289,6 +289,51 @@ export function rozetnijCzesc(c, a, b, para) {
   });
 }
 
+// Scalenie dwóch części po parze krawędzi (#275, odwrotność rozetnijCzesc): krawędź i1 części c1 (A → B) i krawędź i2
+// części c2 (C → D) mają ten sam numer pary. c2 obracamy i przesuwamy tak, by C trafiło w B, a D w A; obrys: c1 od B
+// do A, potem c2 bez krawędzi i2. Krawędź klejenia staje się zgięciem (góra, 90°). Nachodzenie obrysu – null.
+export function scalCzesci(c1, i1, c2, i2) {
+  const n = c1.punkty.length;
+  const m = c2.punkty.length;
+  const A = c1.punkty[i1];
+  const B = c1.punkty[(i1 + 1) % n];
+  const C = c2.punkty[i2];
+  const D = c2.punkty[(i2 + 1) % m];
+  const k1 = Math.atan2(A.y - B.y, A.x - B.x);
+  const k2 = Math.atan2(D.y - C.y, D.x - C.x);
+  if (Math.abs(Math.hypot(A.x - B.x, A.y - B.y) - Math.hypot(D.x - C.x, D.y - C.y)) > 0.5) return null;
+  const kat = k1 - k2;
+  const cs = Math.cos(kat);
+  const sn = Math.sin(kat);
+  const T = (p) => ({ x: zaokr(B.x + (p.x - C.x) * cs - (p.y - C.y) * sn), y: zaokr(B.y + (p.x - C.x) * sn + (p.y - C.y) * cs) });
+  // Obie części z tym samym obiegiem – inaczej odbijamy c2 (nie: część ma nadruk tylko z jednej strony).
+  if (Math.sign(poleWielokata(c1.punkty)) !== Math.sign(poleWielokata(c2.punkty))) return null;
+  const punkty = [];
+  const krawedzie = [];
+  for (let k = 0; k < n; k += 1) { const j = (i1 + 1 + k) % n; punkty.push(c1.punkty[j]); if (j !== i1) krawedzie.push({ ...c1.krawedzie[j] }); }
+  // Po A (ostatni z c1) – krawędź A → kolejny z c2: to krawędź c2 po i2 (D → …).
+  for (let k = 2; k < m; k += 1) { const j = (i2 + k) % m; punkty.push(T(c2.punkty[j])); }
+  for (let k = 1; k < m; k += 1) krawedzie.push({ ...c2.krawedzie[(i2 + k) % m] });
+  // Samoprzecięcia obrysu (części nachodziłyby na siebie).
+  const L = punkty.length;
+  const tnie = (p1, p2, p3, p4) => {
+    const o = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    const d1 = o(p3, p4, p1); const d2 = o(p3, p4, p2); const d3 = o(p1, p2, p3); const d4 = o(p1, p2, p4);
+    return ((d1 > 1e-6 && d2 < -1e-6) || (d1 < -1e-6 && d2 > 1e-6)) && ((d3 > 1e-6 && d4 < -1e-6) || (d3 < -1e-6 && d4 > 1e-6));
+  };
+  for (let i = 0; i < L; i += 1) for (let j = i + 2; j < L; j += 1) {
+    if (i === 0 && j === L - 1) continue;
+    if (tnie(punkty[i], punkty[(i + 1) % L], punkty[j], punkty[(j + 1) % L])) return null;
+  }
+  const Tz = (z) => ({ ...z, a: T(z.a), b: T(z.b) });
+  return {
+    punkty, krawedzie,
+    zgiecia: [...c1.zgiecia, ...c2.zgiecia.map(Tz), { a: { ...A }, b: { ...B }, rodzaj: 'gora', kat: 90 }],
+    pola: [...(c1.pola || []), ...(c2.pola || []).map((p) => { const q = T(p); return { ...p, x: q.x, y: q.y, kat: zaokr(((p.kat || 0) + (kat * 180) / Math.PI) % 360) }; })],
+    szczeliny: [...(c1.szczeliny || []), ...(c2.szczeliny || []).map(Tz)],
+  };
+}
+
 export function scianyCzesci(c) {
   if ((c.szczeliny || []).some((z) => z.naciecie)) return scianyPlanarne(c);
   let sciany = [c.punkty];

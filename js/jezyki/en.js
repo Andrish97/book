@@ -2470,6 +2470,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Same narożniki pola tekstu – lekka, nowoczesna ramka.":"Just the corners of the text box – a light, modern frame.",
 "Samochód":"Car",
 "Samolot":"Airplane",
+"Scal z częścią do pary – kliknij krawędź z numerem":"Merge with the paired part – click a numbered edge",
 "Scal z komórką po prawej":"Merge with cell to the right",
 "Scal z komórką poniżej":"Merge with cell below",
 "Sejf":"Safe",
