@@ -12,8 +12,9 @@
 import {
   zbudujCzesc, elementyNadruku, trescCzesci, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, scalCzesci, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
   naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
-  rozlozNaArkusze, instrukcjaMontazu, obrysCiecia, liniaZKsztaltu, odlegloscOdLinii, dlugoscLinii, liniaProsta,
+  rozlozNaArkusze, instrukcjaMontazu, obrysCiecia, liniaZKsztaltu, odlegloscOdLinii, dlugoscLinii, liniaProsta, liniaDoGrzbietu,
 } from '../skladanka.js';
+import { podpowiedzPopup } from '../makieta-3d.js';
 import { nowaStrona, nowaSekcja } from '../projekt.js';
 import { przyjmijPlik } from '../obrazy-projektu.js';
 import { SZABLONY_SKLADANEK, OPISY_PARAMETROW, czesciSzablonu, numeruj, brylaZRzutu } from '../skladanka-szablony.js';
@@ -603,6 +604,24 @@ export function podlaczSkladanke() {
 
 // ---------- Panel części ----------
 
+// Podpowiedź pop-upu dla części (#301) – części z płótna (wspólny układ współrzędnych), wynik zapamiętany.
+const pamiecPodpowiedzi = new Map();
+function podpowiedzPopupu(g) {
+  const grupy = czesciWObiektach(edytor.canvas.getObjects());
+  if (!grupy.some((x) => (x.czesc?.zgiecia || []).some((z) => z.grzbiet))) return null;
+  const ic = grupy.indexOf(g);
+  if (ic < 0) return null;
+  const czesci = grupy.map((x) => ({ arkusz: 0, czesc: x.czesc, obiekt: { czesc: x.czesc, left: x.left, top: x.top, width: x.width, height: x.height, angle: x.angle || 0, originX: x.originX, originY: x.originY, scaleX: x.scaleX || 1, scaleY: x.scaleY || 1 } }));
+  const klucz = JSON.stringify([ic, czesci.map((x) => x.obiekt)]);
+  if (!pamiecPodpowiedzi.has(klucz)) {
+    let w = null;
+    try { w = podpowiedzPopup(czesci, ic); } catch { w = null; }
+    if (pamiecPodpowiedzi.size > 40) pamiecPodpowiedzi.clear();
+    pamiecPodpowiedzi.set(klucz, w);
+  }
+  return pamiecPodpowiedzi.get(klucz);
+}
+
 const dlugosc = (c, i) => { const a = c.punkty[i]; const b = c.punkty[(i + 1) % c.punkty.length]; return Math.round(Math.hypot(b.x - a.x, b.y - a.y) * 10) / 10; };
 
 export function panelCzesci(panel, g0) {
@@ -625,6 +644,12 @@ export function panelCzesci(panel, g0) {
     ['separator', 'Rozetnij na dwie części – dwa kliknięcia na krawędziach', () => ustawNarzedzie('rozetnij')],
     ['link', 'Scal z częścią do pary – kliknij krawędź z numerem', () => ustawNarzedzie('scal')],
   ]));
+  // Pop-up (#301): część doklejona do kartki z grzbietem – kąt przy otwarciu 90°, zasięg, wystawanie po zamknięciu.
+  const pp = podpowiedzPopupu(g);
+  if (pp) {
+    const ps = panel.sekcja('Pop-up');
+    ps.append(panel.wskazowka(`Przy kartce otwartej na 90° stoi pod kątem ${pp.kat}° do kartki i sięga ${pp.siega} mm od niej. Po zamknięciu ${pp.wystaje ? `wystaje o ${pp.wystaje} mm – skróć część albo przesuń miejsca klejenia bliżej grzbietu` : 'chowa się w kartce'}${pp.domyka ? '' : '; kartka nie domyka się na płasko – popraw długości albo miejsca klejenia'}.`));
+  }
   // Treść ścian (#284).
   const tr = trescCzesci(g);
   const ts = panel.sekcja('Na ścianach');
@@ -654,7 +679,9 @@ export function panelCzesci(panel, g0) {
   if (linie.length) {
     const ls = panel.sekcja('Linie klejenia');
     linie.forEach((l, i) => {
-      ls.append(panel.wskazowka(`Linia ${i + 1}: ${String(Math.round(dlugoscLinii(l) * 10) / 10).replace('.', ',')} mm, ${liniaProsta(l) ? 'prosta – doklejona część stanie pod kątem' : 'krzywa – doklejona część wygnie się wzdłuż niej'}.`));
+      const dg = liniaDoGrzbietu(c(), l);
+      const doGrzbietu = dg ? ` Kąt do grzbietu ${String(dg.kat).replace('.', ',')}°, ${String(dg.odl).replace('.', ',')} mm od grzbietu${dg.kat < 89 && dg.kat > 1 ? ' – ze skośną linią po drugiej stronie grzbietu doklejona część stanie pod kątem jak zgięcie V' : ''}.` : '';
+      ls.append(panel.wskazowka(`Linia ${i + 1}: ${String(Math.round(dlugoscLinii(l) * 10) / 10).replace('.', ',')} mm, ${liniaProsta(l) ? 'prosta – doklejona część stanie pod kątem' : 'krzywa – doklejona część wygnie się wzdłuż niej'}.${doGrzbietu}`));
       ls.append(panel.tekst(`Linia ${i + 1} – numer pary`, () => c().linie[i].para || '', (v) => zmien((d) => { d.linie[i].para = v || null; })));
       ls.append(panel.przelacznik('Na spodzie (bez druku)', () => c().linie[i].spod, (v) => zmien((d) => { d.linie[i].spod = v || undefined; })));
       ls.append(panel.akcje([['kosz', `Usuń linię ${i + 1}`, () => zmien((d) => { d.linie.splice(i, 1); })]]));

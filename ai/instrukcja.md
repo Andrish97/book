@@ -1216,6 +1216,8 @@ Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy kr
 
 **Pop-up w ruchu.** Gdy zgięcie kartki ma w panelu włączony **Grzbiet kartki (pop-up)** (szablony pop-up mają go od razu), w oknie makiety pojawia się suwak **Otwarcie kartki pop-up** (0–180°). Kartka otwiera się wokół grzbietu, a doklejone platformy, zgięcia V, drugie warstwy i wycinanki ruszają się tak, jak w prawdziwej książce: ściany są sztywne, zgięcia działają jak zawiasy, a miejsca klejenia trzymają doklejone części. Przy 180° wszystko leży płasko, przy 90° elementy stoją, a przy prawie zamkniętej kartce składają się do środka. Ustawienie zapisuje się w ujęciu.
 
+**Elementy pod kątem z dowolnej części.** Nie trzeba szablonu V: narysuj na kartce z grzbietem dwie proste **linie klejenia** po obu stronach grzbietu (skośnie do niego) i połącz z nimi krawędzie dowolnej części – w makiecie część stanie pod kątem wynikającym z geometrii. Panel kartki przy każdej prostej linii podaje **kąt do grzbietu** i odległość od niego, a panel doklejonej części ma sekcję **Pop-up**: pod jakim kątem stoi przy kartce otwartej na 90°, jak daleko sięga od kartki i czy po zamknięciu chowa się w kartce, czy wystaje (o ile milimetrów).
+
 ## 11. Wzorce stron
 
 ### 11.1 Czym jest wzorzec i kiedy go użyć

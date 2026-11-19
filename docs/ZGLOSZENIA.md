@@ -245,3 +245,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – wycięcia (okienka, otwory) i drzwiczki na zawiasie, w 3D z dziurą (#298).
 - 19.11.2026: składanki – pop-up w 3D otwiera się suwakiem 0–180°, doklejone elementy ruszają się mechanizmem (#299).
 - 19.11.2026: składanki – „Sprawdź przed drukiem” pilnuje pop-upu: wystające po zamknięciu części i kartka, która się nie domyka (#300).
+- 19.11.2026: składanki – dowolna część na skośnych liniach klejenia staje pod kątem; podpowiedzi kąta i długości w panelu (#301).

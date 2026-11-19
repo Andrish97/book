@@ -105,5 +105,5 @@ czy po zamknięciu nic nie wystaje i nie zderza się (krok 8 obiecywał to, a ni
     jako więzy).
 20. ✅ (#300) **Sprawdzanie pop-upu** – po zamknięciu nic nie wystaje poza kartkę, elementy się nie przenikają, kąty V
     i długości platform pozwalają się złożyć na płasko; uwagi w „Sprawdź przed drukiem”.
-21. ⏳ **Elementy pod kątem z dowolnej części** – Połącz po linii klejenia skośnej do grzbietu: część staje pod kątem
+21. ✅ (#301) **Elementy pod kątem z dowolnej części** – Połącz po linii klejenia skośnej do grzbietu: część staje pod kątem
     wynikającym z geometrii (uogólnienie zgięcia V), z podpowiedzią kąta i długości.

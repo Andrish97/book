@@ -179,6 +179,21 @@ export function dlugoscLinii(l) {
   if (l.zamknieta && p.length > 2) d += Math.hypot(p[0].x - p.at(-1).x, p[0].y - p.at(-1).y);
   return d;
 }
+// Prosta linia klejenia na części z grzbietem pop-up (#301): kąt do grzbietu (0–90°) i odległość bliższego końca
+// od grzbietu (mm); przecięcie przedłużenia z grzbietem – jak w zgięciu V. null, gdy nie ma grzbietu albo linia krzywa.
+export function liniaDoGrzbietu(c, l) {
+  const z = (c.zgiecia || []).find((x) => x.grzbiet);
+  if (!z || !liniaProsta(l)) return null;
+  const a = l.punkty[0]; const b = l.punkty.at(-1);
+  const u = { x: z.b.x - z.a.x, y: z.b.y - z.a.y };
+  const Lu = Math.hypot(u.x, u.y);
+  const v = { x: b.x - a.x, y: b.y - a.y };
+  const Lv = Math.hypot(v.x, v.y);
+  const kat = (Math.acos(Math.min(1, Math.abs(u.x * v.x + u.y * v.y) / (Lu * Lv))) * 180) / Math.PI;
+  const odl = (q) => Math.abs(u.x * (q.y - z.a.y) - u.y * (q.x - z.a.x)) / Lu;
+  return { kat: Math.round(kat * 10) / 10, odl: Math.round(Math.min(odl(a), odl(b)) * 10) / 10 };
+}
+
 export function liniaProsta(l) {
   if (l.zamknieta) return false;
   const a = l.punkty[0];

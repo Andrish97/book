@@ -2856,3 +2856,28 @@ export function sprawdzPopup(czesci) {
   }
   return { koszt: mech.koszt, wystaje: [...wystaje].map(([ic, mm]) => ({ ic, mm })) };
 }
+
+// Podpowiedź do części w kartce pop-up (#301, plan składanek krok 21): przy kartce otwartej na 90° – pod jakim kątem
+// największa ściana części stoi do połówki kartki, do której jest przyklejona (bliższej), i jak daleko od niej sięga;
+// po zamknięciu – o ile wystaje (z sprawdzPopup). null, gdy część nie jest doklejona do kartki z grzbietem.
+export function podpowiedzPopup(czesci, ic) {
+  const kartki = [{ w: 1000, h: 1000, d: 0.3 }];
+  const geo = czesci.map((cz) => { try { return geometriaCzesci(cz, kartki, 0); } catch { return null; } });
+  const mech = mechanizmPopup(geo);
+  if (!mech || !mech.czesci.includes(ic) || ic === mech.korzen) return null;
+  const Tm = mech.ustaw(90);
+  const gk = geo[mech.korzen];
+  const polowki = mech.polowki.map((i) => { const T = Tm.get(mech.korzen)[i]; return { p: naT(T, gk.punkt(gk.sciany[i][0], i)), n: naR(T.R, [0, -1, 0]) }; });
+  const g = geo[ic];
+  const pola = g.sciany.map((w, i) => (g.odpady.includes(i) ? 0 : Math.abs(poleWielokata(w))));
+  const i0 = pola.indexOf(Math.max(...pola));
+  const pts = g.sciany.flatMap((w, i) => (g.odpady.includes(i) ? [] : w.map((q) => naT(Tm.get(ic)[i], g.punkt(q, i)))));
+  const odl = (pl) => Math.max(...pts.map((p) => Math.abs(skal3(odj(p, pl.p), pl.n))));
+  const min = (pl) => Math.min(...pts.map((p) => Math.abs(skal3(odj(p, pl.p), pl.n))));
+  const pl = min(polowki[0]) <= min(polowki[1]) ? polowki[0] : polowki[1];
+  const n = naR(Tm.get(ic)[i0].R, [0, 1, 0]);
+  const kat = (Math.acos(Math.min(1, Math.abs(skal3(n, pl.n)))) * 180) / Math.PI;
+  const zamk = sprawdzPopup(czesci);
+  return { kat: Math.round(kat), siega: Math.round(odl(pl)), wystaje: Math.round(zamk?.wystaje.find((x) => x.ic === ic)?.mm || 0), domyka: (zamk?.koszt ?? 0) <= 0.05 };
+}
+
