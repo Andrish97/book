@@ -482,11 +482,9 @@ test('makieta 3D bez WebGL: powód z przeglądarki i kroki dla Chrome na Macu', 
     const mac = W.tekstBraku3D('przeglądarka nie udostępnia WebGL', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36');
     return { widoczny: !k.hidden, tekst: k.textContent, mac };
   });
-  // Zgłoszenie 19.11: bez grafiki 3D okno nie pokazuje błędu – spokojna informacja (zdjęcia makiety z linku);
+  // Zgłoszenie 19.11: bez grafiki 3D okno nie pokazuje błędu – makieta uproszczona 2D (js/makieta-2d.js);
   // tekstBraku3D zostaje do diagnozy (opis przyczyny i kroki), ale nie w oknie.
-  assert.ok(wynik.widoczny);
-  assert.doesNotMatch(wynik.tekst, /Nie udało się|WebGL/);
-  assert.match(wynik.tekst, /gotowe zdjęcia/);
+  assert.equal(wynik.widoczny, false);
   assert.match(wynik.mac, /chrome:\/\/gpu/);
   assert.match(wynik.mac, /ignore-gpu-blocklist/);
   assert.match(wynik.mac, /Safari/);

@@ -96,21 +96,11 @@ Osoba z linkiem do podglądu (→ 23.1) też widzi makietę — w jednym warianc
 zmianami sam: po zapisaniu ujęcia pokaże nowy wariant, a link utworzony wcześniej dostanie makietę przy
 najbliższym otwarciu projektu.
 
-> Uwaga: Makieta rysuje się kartą graficzną. Gdy zamiast niej widać komunikat „Nie udało się pokazać makiety 3D”,
-> okno podpowiada, co zrobić. Na starszych komputerach (zwłaszcza Macach) Chrome bywa zablokowany przez listę
-> kart graficznych — wtedy pomaga ustawienie z komunikatu albo Safari.
->
-> Urządzenie bez grafiki 3D (stary telefon, zablokowana karta graficzna) zamiast makiety pokazuje **gotowe ujęcia**
-> — przód, ¾, otwartą rozkładówkę, stojącą książkę, przód i tył — jako zwykłe obrazy, przewijane strzałkami, klawiszami
-> ← → albo przesunięciem palcem. Ujęcia rysują się same przy udostępnianiu linku (i każdej jego aktualizacji) na
-> urządzeniu, które ma grafikę 3D, i są częścią linku: widzi je oglądający bez 3D, a Ty — w makiecie własnego projektu
-> na takim urządzeniu (także przy linku z hasłem). Dopóki ujęć nie ma, okno pokazuje „Makieta się przygotowuje” —
-> bez komunikatu o błędzie — i samo pokaże zdjęcia, gdy się pojawią. Link bez ujęć (np. udostępniony wcześniej) uzupełnia się sam, gdy
-> otworzysz projekt na urządzeniu z grafiką 3D; aktualizacja linku z urządzenia bez 3D zachowuje ujęcia. Projekt bez
-> linku nie ma jeszcze ujęć — okno mówi wtedy, co zrobić. W oknie **Udostępnij** pod linkiem widać, czy ujęcia już są;
-> jeśli nie, na komputerze z grafiką 3D kliknij [Aktualizuj teraz] — zapiszą się od razu.
-> Na urządzeniu z grafiką 3D makieta zostaje trójwymiarowa, a gdy link ma gotowe ujęcia, w nagłówku okna makiety
-> jest przełącznik **3D / Zdjęcia** — „Zdjęcia” pokazuje te same ujęcia co na urządzeniach bez 3D.
+> Uwaga: Makieta rysuje się kartą graficzną. Urządzenie bez grafiki 3D (stary telefon, zablokowana karta graficzna,
+> np. Chrome na starszym Macu) pokazuje **makietę uproszczoną**: ta sama książka, notes czy kalendarz, z tymi samymi
+> stronami, obracaniem palcem i myszą i kartkowaniem, tylko bez cieni rzucanych, połysku i odbić (nad makietą jest
+> o tym krótka uwaga). Obraz makiety (PNG) i zapisane ujęcia działają tak samo.
+> Zdjęcie makiety zapiszesz tylko pobraniem — [Pobierz obraz makiety] (PNG), także w makiecie z linku.
 
 ### Gotowe ujęcia
 

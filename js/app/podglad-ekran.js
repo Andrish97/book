@@ -124,12 +124,6 @@ function odswiezOknoUdostepniania() {
     : (aktualny
       ? `Link pokazuje aktualny stan projektu (zaktualizowano ${kiedy(u.zaktualizowano)}).`
       : `Projekt zmienił się po ostatniej aktualizacji linku (${kiedy(u.zaktualizowano)}). Link zaktualizuje się sam, gdy zmiany zapiszą się na koncie.`);
-  // Gotowe ujęcia makiety dla urządzeń bez 3D (#307, #311, #313): czy są w linku i jak je dodać – widać od razu.
-  $('#udostepnij-ujecia').textContent = u.ujecia
-    ? 'Makieta dla urządzeń bez grafiki 3D: gotowe ujęcia są w linku.'
-    : maGrafike3D()
-      ? 'Makieta dla urządzeń bez grafiki 3D: gotowych ujęć jeszcze nie ma – kliknij [Aktualizuj teraz], a zapiszą się od razu (albo same, gdy projekt będzie otwarty kilkanaście sekund).'
-      : 'Makieta dla urządzeń bez grafiki 3D: gotowych ujęć jeszcze nie ma – to urządzenie nie rysuje 3D; zapiszą się, gdy link zaktualizuje urządzenie z grafiką 3D.';
 }
 
 // ---------- Ochrona linku: hasło i data ważności ----------
@@ -422,18 +416,6 @@ const umieWebp = () => {
   return webp;
 };
 
-// Czy to urządzenie rysuje grafikę 3D (WebGL) – sprawdzenie na chwilowym płótnie.
-const maGrafike3D = () => { try { const c = document.createElement('canvas'); const gl = c.getContext('webgl'); gl?.getExtension('WEBGL_lose_context')?.loseContext(); return Boolean(gl); } catch { return false; } };
-// PNG → WebP / JPEG (jakość 0,85) – ujęcia makiety w formacie stron linku.
-async function przekoduj(png, typ) {
-  const obraz = await window.createImageBitmap(png);
-  const c = document.createElement('canvas');
-  c.width = obraz.width; c.height = obraz.height;
-  c.getContext('2d').drawImage(obraz, 0, 0);
-  obraz.close?.();
-  return new Promise((ok) => { c.toBlob((b) => ok(b || png), typ, 0.85); });
-}
-
 const nowyKod = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
 // Rysuje zmienione strony do JPEG i wysyła je razem z opisem – do folderu publicznego albo,
@@ -449,42 +431,10 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
   try { uklad.makieta = opisMakiety(p, ciag); } catch { /* bez makiety – link działa jak dawniej */ }
   const strony = stronyUkladu(uklad);
   const odciski = Object.fromEntries(strony.map((s) => [s.id, odciskStrony(p, poKluczu.get(s.id), ciag)]));
-  // Gotowe ujęcia makiety dla urządzeń bez grafiki 3D (zgłoszenie 19.11): rysuje je to urządzenie, jeśli ma 3D.
-  // Bez 3D tutaj – link zostaje bez ujęć (oglądający z 3D i tak widzi makietę).
-  let okno = uklad.makieta && maGrafike3D() ? await import('./makieta-okno.js') : null;
-  if (okno && !okno.makietaWolna()) okno = null; // okno makiety otwarte – ujęcia przy następnej publikacji
-  let ujeciaGotowe = null;
-  let poprzednieUjecia = null; // { adresObrazu } – ujęcia z poprzedniej publikacji, gdy tu nie da się ich narysować
-  if (okno) {
-    const lista = okno.ujeciaLinku(uklad.makieta.model);
-    uklad.makieta.ujecia = lista.map((u) => ({ id: u.id, nazwa: u.nazwa }));
-    const odciskUjec = skrot(JSON.stringify([odciskTresci(p), uklad.makieta.wariant, 'u1']));
-    for (const u of lista) { strony.push({ id: u.id, ujecie: true }); odciski[u.id] = `${odciskUjec}|${u.id}`; }
-  } else if (uklad.makieta && p.udostepnienie?.kod) {
-    // To urządzenie nie narysuje ujęć (bez 3D albo okno makiety otwarte): zostają te z poprzedniej publikacji
-    // (#311 – wcześniej aktualizacja linku z telefonu bez 3D je kasowała). Odświeżą się przy publikacji z 3D.
-    try {
-      const { manifest, adresObrazu } = await chmura.wczytajPodgladWlasciciela(p.id, p.udostepnienie.kod, Boolean(ochrona));
-      const stare = manifest.uklad?.makieta?.ujecia || [];
-      if (stare.length && (manifest.rozszerzenie || 'jpg') === (umieWebp() ? 'webp' : 'jpg') && stare.every((u) => manifest.tresci?.[u.id])) {
-        uklad.makieta.ujecia = stare;
-        for (const u of stare) { strony.push({ id: u.id, ujecie: true, stare: true }); odciski[u.id] = manifest.tresci[u.id]; }
-        poprzednieUjecia = { adresObrazu };
-      }
-    } catch { /* pierwsza publikacja albo bez sieci – link bez ujęć */ }
-  }
   // WebP: ten sam wygląd przy ok. 30–40% mniejszych plikach (mniej transferu dla oglądających, #90).
   // Przeglądarka, która nie umie zapisać WebP (oddaje PNG), wysyła JPEG jak dawniej.
   const rozszerzenie = umieWebp() ? 'webp' : 'jpg';
   const obraz = async (s) => {
-    if (s.stare) return (await fetch(poprzednieUjecia.adresObrazu(s.id))).blob(); // zwykle niepotrzebne: ten sam odcisk – bez wysyłki
-    if (s.ujecie) {
-      ujeciaGotowe ||= okno.ujeciaWTle(p, uklad.makieta.model);
-      const png = (await ujeciaGotowe)?.find((u) => u.id === s.id)?.blob;
-      if (!png) throw new Error('Nie udało się narysować ujęcia makiety.');
-      const blob = await przekoduj(png, rozszerzenie === 'webp' ? 'image/webp' : 'image/jpeg');
-      return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst, kryciaZnaku(p.znak_wodny)) : blob;
-    }
     const url = await renderujCel(p, poKluczu.get(s.id), { szerokoscPx: 1200, spad: false, ciag, ...(rozszerzenie === 'webp' ? { format: 'webp', jakosc: 0.8 } : { format: 'jpeg' }) });
     const blob = await (await fetch(url)).blob();
     return p.znak_wodny ? zeZnakiemWodnym(blob, p.znak_wodny.tekst, kryciaZnaku(p.znak_wodny)) : blob;
@@ -501,9 +451,7 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
     ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie, naLink: linkGotowy })
     : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie, naLink: linkGotowy });
   const krotki = p.udostepnienie?.kod === kod ? p.udostepnienie.krotki : null;
-  // ujecia: link ma gotowe ujęcia makiety – bez nich urządzenie z 3D zaktualizuje link samo (#311).
-  const maUjecia = !uklad.makieta || Boolean(uklad.makieta.ujecia?.length); // bez makiety – nie ma czego rysować
-  p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}), ...(maUjecia ? { ujecia: true } : {}) };
+  p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}) };
   await zapewnijKrotki(p);
   return wynik;
 }
@@ -612,12 +560,10 @@ let timerLinku = null;
 export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
   clearTimeout(timerLinku);
   const p = stan.projekt;
-  // Link bez gotowych ujęć makiety (#311), a to urządzenie umie je narysować – aktualizacja, choć treść ta sama.
-  const brakUjec = () => !p.udostepnienie.ujecia && maGrafike3D();
-  if (!p?.udostepnienie || !stan.uzytkownik || (p.udostepnienie.odcisk === odciskTresci(p) && !brakUjec())) return;
+  if (!p?.udostepnienie || !stan.uzytkownik || p.udostepnienie.odcisk === odciskTresci(p)) return;
   timerLinku = setTimeout(async () => {
     if (stan.projekt !== p || !p.udostepnienie || trwaPublikacja || !navigator.onLine) return;
-    if (p.udostepnienie.odcisk === odciskTresci(p) && !brakUjec()) return;
+    if (p.udostepnienie.odcisk === odciskTresci(p)) return;
     trwaPublikacja = true;
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     try {

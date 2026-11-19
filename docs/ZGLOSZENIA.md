@@ -259,3 +259,5 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: makieta – przełącznik 3D / Zdjęcia (gotowe ujęcia jako opcja także na urządzeniach z 3D), stan ujęć w oknie Udostępnij (#313, #314).
 - 19.11.2026: makieta bez grafiki 3D – bez komunikatu o błędzie, „makieta się przygotowuje”, zdjęcia pojawiają się same (#315).
 - 19.11.2026: link – znak wodny i ochrona zapisują się od razu (zdjęty znak wodny nie zostaje w linku), strony linku tworzą się w tle z paskiem „nie zamykaj Makietki” także po zamknięciu okna Udostępnij (#316).
+- 19.11.2026: urządzenia bez grafiki 3D – uproszczona makieta 2D (obracanie, kartkowanie, obraz, ujęcia do linku) zamiast oczekiwania na zdjęcia; pełne ujęcia z 3D zastępują uproszczone (#318).
+- 19.11.2026: makieta – bez zdjęć jako opcji (przełącznik 3D / Zdjęcia i galeria usunięte), zdjęcie makiety tylko pobraniem (#319).

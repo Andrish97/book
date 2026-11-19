@@ -19,6 +19,7 @@ import {
   DOMYSLNE_OPCJE, normalizujOpcje, normalizujScene, normalizujUjecie, TLA, SWIATLA, BARWY, WYKONCZENIA_OKLADKI, PAPIERY, ILOSCI,
   iloscSceny, idIlosci,
 } from '../makieta-ustawienia.js';
+import { utworzRenderer2D } from '../makieta-2d.js';
 import { typSekcji, rolaTypu, wBloku } from '../typ-sekcji.js'; // typ sekcji wspólny z resztą programu (#177)
 import { bazaMakiety, bazaZOpisu, domyslnyModel, modeleProjektu, powodNiepasowania } from '../makieta-opis.js';
 import { uzyteKoloryDruku, stanUszlachetnien, FOLIE, plytaUszlachetnienia } from '../kolory-druku.js';
@@ -536,6 +537,7 @@ function ustawModel(model, { kamera = true } = {}) {
   // nie da się poprawnie złożyć w książkę: makieta mówi to wprost i prowadzi do ustawienia typu sekcji.
   const obce = st.gosc || model === 'kartka' || MODELE_SPECJALNE.includes(model) ? [] : niepasujaceSekcje(st.projekt, st.ciag);
   // Rodzaj spoza pasujących (#215): co nie pasuje i co zrobić.
+  if (renderer?.uproszczony) uwagi.push('To urządzenie nie pokazuje grafiki 3D – makieta jest narysowana w wersji uproszczonej (bez cieni rzucanych i połysku). Obracanie i kartkowanie działają tak samo.');
   if (oszczedny) uwagi.push('Poprzednio makieta zamknęła się nieoczekiwanie (zwykle brakuje pamięci w telefonie) – teraz działa w trybie oszczędnym: mniej stron naraz i mniejsza rozdzielczość stron.');
   if (st.inne?.includes(model)) uwagi.unshift(`${MODELE[model]} nie pasuje do tego projektu. ${powodNiepasowania(model, st.projekt)}`);
   uwaga.replaceChildren();
@@ -613,42 +615,21 @@ export function tekstBraku3D(powod, ua = navigator.userAgent) {
   return `<b>Nie udało się pokazać makiety 3D:</b> ${esc(powod || 'nieznany błąd grafiki')}.<ul>${kroki.map((k) => `<li>${k}</li>`).join('')}</ul>`;
 }
 
-function pokazBrak3D() {
-  const k = $('#makieta-brak-3d');
-  dlg.classList.remove('makieta-czeka-tryb');
-  if (pokazGalerie()) { k.hidden = true; zakonczCzekanie(); return; }
-  k.hidden = Boolean(renderer);
-  if (!renderer) {
-    // Bez grafiki 3D (zgłoszenie 19.11: „nie pokazuj błędu, tylko np. jeszcze się ładuje”): bez komunikatu o błędzie –
-    // zdjęcia makiety, a dopóki ich nie ma, spokojna informacja; okno samo sprawdza, czy już są.
-    k.classList.remove('blad');
-    dlg.classList.add('makieta-czeka-tryb');
-    const zLinkiem = st?.gosc || st?.projekt?.udostepnienie?.kod;
-    k.textContent = zLinkiem
-      ? 'Makieta się przygotowuje – gotowe zdjęcia makiety pojawią się tutaj same.'
-      : 'Makieta pojawi się tutaj jako gotowe zdjęcia, gdy udostępnisz projekt linkiem.';
-    if (zLinkiem) czekajNaUjecia();
-  }
+// Renderer makiety: pełny 3D (WebGL), a bez grafiki 3D – uproszczony 2D (zgłoszenie 19.11: „prostszy render na
+// kompach bez 3D”), z tym samym obracaniem i kartkowaniem. localStorage „makieta-rysowanie” = „2d” wymusza 2D
+// (testy, porównanie).
+function nowyRenderer(maksTekstury) {
+  let wymus = false;
+  try { wymus = localStorage.getItem('makieta-rysowanie') === '2d'; } catch { wymus = false; }
+  return (!wymus && utworzRenderer(plotno, { maksTekstury })) || utworzRenderer2D(plotno, { maksTekstury });
 }
 
-// Co 30 s – czy link ma już gotowe ujęcia (właściciel: własny link; oglądający: opis linku na nowo).
-let timerUjec = 0;
-function zakonczCzekanie() { clearTimeout(timerUjec); timerUjec = 0; }
-function czekajNaUjecia() {
-  if (timerUjec || !st) return;
-  const moje = st;
-  timerUjec = setTimeout(async () => {
-    timerUjec = 0;
-    if (moje !== st || renderer || !dlg.open) return;
-    try {
-      if (st.gosc && st.odswiezLink) {
-        const { manifest, adresObrazu } = await st.odswiezLink();
-        if (moje !== st) return;
-        st.ujeciaObrazy = (manifest.uklad?.makieta?.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
-        pokazBrak3D();
-      } else if (!st.gosc) await ujeciaZLinkuWlasciciela(st.projekt);
-    } catch { if (moje === st) czekajNaUjecia(); }
-  }, 30000);
+function pokazBrak3D() {
+  const k = $('#makieta-brak-3d');
+  k.hidden = Boolean(renderer);
+  // Nie da się rysować wcale (ani 3D, ani 2D) – spokojna informacja, bez komunikatu o błędzie (zgłoszenie 19.11).
+  dlg.classList.toggle('makieta-czeka-tryb', !renderer);
+  if (!renderer) { k.classList.remove('blad'); k.textContent = 'Ta przeglądarka nie może teraz pokazać makiety. Zamknij okno makiety i otwórz je jeszcze raz.'; }
 }
 
 // Utrata kontekstu WebGL (#157): telefon odbiera go np. przy przejściu aplikacji w tło. Bez preventDefault
@@ -656,7 +637,7 @@ function czekajNaUjecia() {
 plotno.addEventListener('webglcontextlost', (e) => { e.preventDefault(); renderer = null; if (MALO_PAMIECI && !oszczedny) { oszczedny = true; ustawLimity(); } });
 plotno.addEventListener('webglcontextrestored', () => {
   if (!st) return;
-  renderer = utworzRenderer(plotno, { maksTekstury: MAKS_TEKSTURY });
+  renderer = nowyRenderer(MAKS_TEKSTURY);
   pokazBrak3D();
   if (renderer) { st.scena = null; rysujPozniej(); }
 });
@@ -680,120 +661,20 @@ export function otworzMakiete(projekt) {
   uruchom({ projekt, ...baza, opcje: normalizujOpcje(opcje) }, {
     model: baza.modele.includes(zapamietany) ? zapamietany : baza.modele.includes(dm) ? dm : baza.modele[0], ulozenie,
   });
-  // Bez grafiki 3D (zgłoszenie 19.11): ujęcia z linku projektu (narysowane przy publikacji na urządzeniu z 3D).
-  if (projekt.udostepnienie?.kod) ujeciaZLinkuWlasciciela(projekt); // bez 3D – galeria; z 3D – opcja „Zdjęcia” (#314)
-}
-
-async function ujeciaZLinkuWlasciciela(projekt) {
-  const moje = st;
-  try {
-    const chmura = await import('../chmura.js');
-    const { manifest, adresObrazu } = await chmura.wczytajPodgladWlasciciela(projekt.id, projekt.udostepnienie.kod, Boolean(projekt.udostepnienie.ochrona));
-    if (moje !== st) return;
-    st.ujeciaObrazy = (manifest.uklad?.makieta?.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
-  } catch { /* bez sieci albo bez linku – zostaje komunikat */ }
-  if (moje === st) { if (renderer) pokazGalerie(); else pokazBrak3D(); }
-}
-
-// ---------- Ujęcia do linku: urządzenia bez grafiki 3D (zgłoszenie 19.11) ----------
-// Urządzenie z grafiką 3D (właściciel przy publikacji linku) rysuje kilka gotowych ujęć makiety jako obrazy;
-// oglądający bez WebGL dostaje zamiast komunikatu galerię tych ujęć (przewijaną palcem i strzałkami).
-const UJECIA_LINKU = ['przod', 'trzyCzwarte', 'rozkladowka', 'stojaca', 'przodTyl', 'sciana'];
-// Czy można teraz rysować w tle (okno makiety zamknięte – jedno płótno i jeden stan na całe okno).
-export const makietaWolna = () => !st && !dlg.open;
-export const ujeciaLinku = (model) => UJECIA_LINKU.filter((id) => UJECIA[id]?.dla(model)).slice(0, 5).map((id) => ({ id: `makieta-${id}`, ujecie: id, nazwa: UJECIA[id].nazwa }));
-
-// Rysuje ujęcia w tle (okno makiety zamknięte, płótno poza ekranem): [{ id, nazwa, blob (PNG) }] albo null, gdy
-// to urządzenie nie ma grafiki 3D albo makieta jest właśnie otwarta.
-export async function ujeciaWTle(projekt, model, { szer = MALO_PAMIECI ? 1200 : 1600, wys = MALO_PAMIECI ? 900 : 1200 } = {}) {
-  if (st || dlg.open) return null;
-  let opcje = DOMYSLNE_OPCJE;
-  try { opcje = JSON.parse(localStorage.getItem(kluczOpcji(projekt)) || 'null') || DOMYSLNE_OPCJE; } catch { opcje = DOMYSLNE_OPCJE; }
-  const baza = bazaMakiety(projekt);
-  if (!baza.modele.includes(model)) return null;
-  return rysujUjeciaWTle({ projekt, ...baza, opcje: normalizujOpcje(opcje), wTle: true }, model, { szer, wys });
-}
-
-async function rysujUjeciaWTle(baza, model, { szer, wys }) {
-  uruchom(baza, { model, ulozenie: 'lezy' }, { wTle: true });
-  try {
-    if (!renderer) return null;
-    const wynik = [];
-    for (const u of ujeciaLinku(model)) {
-      plotno.width = szer;
-      plotno.height = wys;
-      ustawUjecieMakiety(u.ujecie);
-      await doczytaj([zbudujScene(st.cel)]);
-      const blob = await obrazMakiety({ rozmiar: String(Math.max(szer, wys)) });
-      if (blob) wynik.push({ id: u.id, nazwa: u.nazwa, blob });
-    }
-    return wynik;
-  } finally {
-    cancelAnimationFrame(klatka);
-    klatka = 0;
-    renderer?.zwolnij();
-    renderer = null;
-    st = null;
-  }
-}
-
-// Galeria ujęć: obraz, strzałki, przesunięcie palcem, podpis „To urządzenie nie pokazuje grafiki 3D…”.
-let galeria = 0;
-function pokazGalerie() {
-  const lista = st?.ujeciaObrazy || [];
-  // Bez 3D – zawsze; z 3D – gdy wybrano „Zdjęcia” w nagłówku (#314).
-  const tak = (!renderer || Boolean(st?.trybObrazy)) && lista.length > 0;
-  const tryb = $('#makieta-tryb');
-  tryb.hidden = !renderer || !lista.length;
-  for (const b of tryb.querySelectorAll('[data-tryb-makiety]')) b.setAttribute('aria-pressed', String((b.dataset.trybMakiety === 'obrazy') === tak));
-  dlg.classList.toggle('makieta-galeria-tryb', tak);
-  $('#makieta-galeria').hidden = !tak;
-  if (!tak) return false;
-  galeria = Math.max(0, Math.min(lista.length - 1, galeria));
-  const u = lista[galeria];
-  const img = $('#makieta-galeria-obraz');
-  if (img.getAttribute('src') !== u.adres) img.src = u.adres;
-  img.alt = `Makieta – ${u.nazwa}`;
-  $('#makieta-galeria-podpis').textContent = `${u.nazwa} · ${galeria + 1} z ${lista.length}. ${renderer ? 'Gotowe ujęcia makiety (zdjęcia z linku) – „3D” wraca do makiety.' : 'To urządzenie nie pokazuje grafiki 3D – to gotowe ujęcia makiety.'}`;
-  $('#makieta-galeria-wstecz').disabled = galeria === 0;
-  $('#makieta-galeria-dalej').disabled = galeria === lista.length - 1;
-  return true;
-}
-// Przełącznik 3D / Zdjęcia (#314): na urządzeniu z 3D gotowe ujęcia z linku jako dodatkowy widok.
-export function ustawTrybMakiety(tryb) {
-  if (!st) return;
-  st.trybObrazy = tryb === 'obrazy';
-  pokazGalerie();
-  if (!st.trybObrazy) rysujPozniej();
-}
-$('#makieta-tryb').addEventListener('click', (e) => { const b = e.target.closest('[data-tryb-makiety]'); if (b) ustawTrybMakiety(b.dataset.trybMakiety); });
-export function przewinGalerie(d) { if (!st) return; galeria += d; pokazGalerie(); }
-export const stanGalerii = () => ({ widoczna: !$('#makieta-galeria').hidden, ktore: galeria, ile: st?.ujeciaObrazy?.length || 0 });
-$('#makieta-galeria-wstecz').addEventListener('click', () => przewinGalerie(-1));
-$('#makieta-galeria-dalej').addEventListener('click', () => przewinGalerie(1));
-{
-  let x0 = null;
-  const g = $('#makieta-galeria');
-  g.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
-  g.addEventListener('dragstart', (e) => e.preventDefault());
-  g.addEventListener('pointerup', (e) => { if (x0 !== null && Math.abs(e.clientX - x0) > 40) przewinGalerie(e.clientX < x0 ? 1 : -1); x0 = null; });
-  g.addEventListener('pointercancel', () => { x0 = null; });
 }
 
 // Podgląd z linku (#188): jeden wariant zapisany przy publikacji (rodzaj, ułożenie, ujęcie, światło), strony –
 // gotowe obrazy linku. Bez projektu, bez składania stron i bez zapisu czegokolwiek.
-export function otworzMakieteZLinku(opis, adresObrazu, odswiezLink = null) {
+export function otworzMakieteZLinku(opis, adresObrazu) {
   const w = opis.wariant || {};
   const projekt = { id: 'link', nazwa: opis.nazwa || 'Makieta', sekcje: opis.sekcje, strony: [] };
-  const ujeciaObrazy = (opis.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
-  uruchom({ projekt, ...bazaZOpisu(opis), opcje: normalizujOpcje({ ...(w.opcje || {}), uszlachetnienia: false }), gosc: true, adresObrazu, ujeciaObrazy, odswiezLink }, { model: opis.model, ulozenie: w.ulozenie });
+  uruchom({ projekt, ...bazaZOpisu(opis), opcje: normalizujOpcje({ ...(w.opcje || {}), uszlachetnienia: false }), gosc: true, adresObrazu }, { model: opis.model, ulozenie: w.ulozenie });
   if (st && renderer && w.kamera) zastosujStan({ ...w, model: opis.model });
 }
 
 function uruchom(baza, { model, ulozenie }, { wTle = false } = {}) {
   renderer?.zwolnij();
   renderer = null;
-  galeria = 0;
   if (!wTle) {
     let poprzednio = null;
     try { poprzednio = localStorage.getItem(ZNACZNIK_MAKIETY); } catch { poprzednio = null; }
@@ -814,7 +695,7 @@ function uruchom(baza, { model, ulozenie }, { wTle = false } = {}) {
     wybor.append(grupa);
   }
   if (!dlg.open && !wTle) dlg.showModal();
-  renderer = utworzRenderer(plotno, { maksTekstury: wTle ? 2048 : MAKS_TEKSTURY });
+  renderer = nowyRenderer(wTle ? 2048 : MAKS_TEKSTURY);
   if (!wTle) { pokazBrak3D(); pokazZapisane(); }
   if (!renderer) return;
   st.ulozenie = ulozenie === 'stoi' ? 'stoi' : 'lezy';
@@ -839,7 +720,7 @@ export function ustawPolozenieMakiety(u, { natychmiast = false } = {}) {
 
 export const stanMakiety = () => (st ? {
   model: st.model, modele: [...st.modele], ulozenie: st.ulozenie, u: st.u, cel: st.cel, kartek: st.kartki.length, polozen: polozenia(st.model, st.kartki),
-  kamera: { ...st.kamera }, opcje: { ...st.opcje }, scena: { ...st.sc }, obwoluta: obwolutaWidoczna(), renderer: Boolean(renderer), wToku: [...wToku],
+  kamera: { ...st.kamera }, opcje: { ...st.opcje }, scena: { ...st.sc }, obwoluta: obwolutaWidoczna(), renderer: Boolean(renderer), uproszczony: Boolean(renderer?.uproszczony), wToku: [...wToku],
 } : null);
 
 // ---------- Eksport obrazu (#181) ----------
@@ -858,7 +739,7 @@ export async function obrazMakiety({ rozmiar = '1600', wlasny = 2400, przezroczy
   if (!st || !renderer) return null;
   const { width: w0, height: h0 } = plotno;
   const gl = renderer.gl;
-  const max = Math.min(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) || 4096, ...(gl.getParameter(gl.MAX_VIEWPORT_DIMS) || [4096]));
+  const max = gl ? Math.min(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) || 4096, ...(gl.getParameter(gl.MAX_VIEWPORT_DIMS) || [4096])) : 4096;
   let { w, h } = rozmiarEksportu(w0, h0, rozmiar, wlasny);
   if (Math.max(w, h) > max) { const k = max / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
   eksport = true;
@@ -1366,7 +1247,6 @@ plotno.addEventListener('pointercancel', puszczony);
 plotno.addEventListener('wheel', (e) => { e.preventDefault(); powiekszMakiete(Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
 dlg.addEventListener('keydown', (e) => {
   if (e.target.closest('select, input')) return;
-  if (!$('#makieta-galeria').hidden && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { e.preventDefault(); przewinGalerie(e.key === 'ArrowRight' ? 1 : -1); return; }
   if (e.key === 'ArrowRight') { e.preventDefault(); kartkuj(1); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); kartkuj(-1); }
 });
@@ -1388,7 +1268,6 @@ $('#makieta-wstecz').addEventListener('click', () => kartkuj(-1));
 $('#makieta-dalej').addEventListener('click', () => kartkuj(1));
 dlg.addEventListener('close', () => {
   zaznaczOtwarta(false);
-  zakonczCzekanie();
   partia?.pasek.koniec();
   partia = null;
   obserwator.disconnect();

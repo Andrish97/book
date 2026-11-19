@@ -1442,7 +1442,6 @@
           </span>
         </label>
         <p class="podpowiedz" id="udostepnij-stan"></p>
-        <p class="podpowiedz" id="udostepnij-ujecia"></p>
       </div>
 
       <fieldset class="ochrona-linku" id="udostepnij-ochrona" hidden>
@@ -1971,22 +1970,11 @@
     <div class="formularz">
       <div class="naglowek-dialogu">
         <h2 id="makieta-tytul">Makieta 3D</h2>
-        <div class="przelacznik-segmentowy makieta-tryb" id="makieta-tryb" role="group" aria-label="Widok makiety" hidden>
-          <button type="button" class="przycisk maly" data-tryb-makiety="3d" aria-pressed="true">3D</button>
-          <button type="button" class="przycisk maly" data-tryb-makiety="obrazy" aria-pressed="false">Zdjęcia</button>
-        </div>
         <button type="button" class="przycisk-ikona x-okna" data-akcja="makieta-zamknij" data-ikona="zamknij" aria-label="Zamknij"></button>
       </div>
       <div class="makieta-ujecia" id="makieta-ujecia" role="group" aria-label="Gotowe ujęcia"></div>
       <div class="makieta-scena">
         <canvas id="makieta-plotno" aria-label="Makieta projektu – przeciągnij, żeby obrócić; stuknij w prawą lub lewą połowę, żeby przewrócić kartkę"></canvas>
-        <!-- Urządzenie bez grafiki 3D (zgłoszenie 19.11): gotowe ujęcia makiety narysowane przy publikacji linku. -->
-        <div id="makieta-galeria" class="makieta-galeria" hidden>
-          <img id="makieta-galeria-obraz" alt="" draggable="false">
-          <button type="button" class="przycisk-ikona makieta-galeria-wstecz" id="makieta-galeria-wstecz" data-ikona="wstecz" aria-label="Poprzednie ujęcie" title="Poprzednie ujęcie (←)"></button>
-          <button type="button" class="przycisk-ikona makieta-galeria-dalej" id="makieta-galeria-dalej" data-ikona="dalej" aria-label="Następne ujęcie" title="Następne ujęcie (→)"></button>
-          <p class="makieta-galeria-podpis" id="makieta-galeria-podpis" aria-live="polite"></p>
-        </div>
         <div id="makieta-brak-3d" class="komunikat blad" role="alert" hidden>Ta przeglądarka nie pokazuje grafiki 3D (WebGL jest wyłączony). Włącz przyspieszenie sprzętowe albo otwórz projekt w innej przeglądarce.</div>
       </div>
       <div class="makieta-sterowanie">
