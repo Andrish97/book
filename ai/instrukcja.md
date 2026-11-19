@@ -1039,6 +1039,7 @@ W sekcji z rozkładówkami strony tworzą pary: lewa i prawa, jak w otwartej ksi
 - Element może leżeć **przez grzbiet**, np. zdjęcie na całą rozkładówkę — każda strona wydrukuje swoją część. Element należy do strony, na której leży jego środek.
 - Gruba ciemna linia to grzbiet. Tekstu nie kładź tuż przy nim — po zszyciu może go nie być widać; aplikacja ostrzega o elementach, które wystają w pas przy grzbiecie.
 - Przycisk z dwiema kartkami obok powiększenia przełącza całą rozkładówkę i jedną stronę (na telefonie domyślnie jedna strona).
+- **Strona sama przechodzi z prawej na lewą** (i odwrotnie): gdy dodasz, usuniesz albo przesuniesz stronę przed nią (albo przełączysz **Zacznij sekcję od lewej strony**), jej elementy idą na lustrzane miejsca — numer przy zewnętrznej krawędzi zostaje przy zewnętrznej (z wyrównaniem do niej), zdjęcie przy grzbiecie zostaje przy grzbiecie, a ramka tekstu wpasowana w marginesy trafia w nowe marginesy. Tekst i obrazy się nie odwracają. Element, który ma zostać tam, gdzie jest, oznacz w panelu (**Inne** → **Stała pozycja, gdy strona zmieni bok**); element przez grzbiet należy do pary stron i się nie przenosi. Strony powielane z danych też: egzemplarz, który wypada na drugim boku, ma układ odbity.
 
 ![Rozkładówka](https://makietka.app/img/instrukcja/rozkladowki.png)
 

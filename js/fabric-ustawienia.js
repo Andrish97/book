@@ -13,6 +13,7 @@ export const WLASNE_POLA = [
   'id', 'nazwa', 'zasob', 'bez_ostrzezen',
   'warstwa', // element wzorca: 'nad' = nad treścią strony (domyślnie pod)
   'zablokowany', 'styl',
+  'stala_pozycja', // rozkładówki: nie przechodzi na lustrzane miejsce, gdy strona zmieni bok (js/boki-stron.js)
   'z', // kolejność na rozkładówce (żeby po zapisie stron osobno dało się ją odtworzyć)
   // Na etap 2 (pola z danymi): już teraz przenoszone przez zapis.
   'pole', 'autodopasowanie', 'min_rozmiar',

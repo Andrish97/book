@@ -8,6 +8,7 @@
 // (serie.js): z jego numerem, stroną rozkładówki, wierszem danych i sąsiadem,
 // którego elementy mogą przechodzić przez grzbiet.
 
+import { elementyNaBok } from './boki-stron.js';
 import './fabric-ustawienia.js';
 import { sekcjaStrony, wzorceStrony, scalRozkladowke, zrodloTla, marginesyStrony, ptNaMm } from './projekt.js';
 import { przypisyStrony, uzywaKsiazki, trescElementu } from './ksiazka.js';
@@ -183,9 +184,11 @@ function odbijWMiejscu(o) {
 const egzemplarz = (cel, ciag) => (cel && cel.klucz && cel.strona ? cel : ciag.pierwszy.get(cel.id));
 
 // Treść egzemplarza z podstawionymi polami (teksty i obrazy z kolumn).
+// Strona ułożona dla drugiego boku rozkładówki (js/boki-stron.js) – elementy na lustrzanych miejscach.
 function trescEgzemplarza(projekt, egz, ciag) {
   const wartosc = wartosciPol(projekt, egz, ciag);
-  return obrazyZPol(podstawWObiektach(egz.strona.obiekty, wartosc), wartosc, projekt.zasoby);
+  const obiekty = elementyNaBok(egz.strona, egz.bok, egz.sekcja.wydruk.szerokosc_mm);
+  return obrazyZPol(podstawWObiektach(obiekty, wartosc), wartosc, projekt.zasoby);
 }
 
 // Przypisy dolne egzemplarza (#131B): kreska i tekst „1 Treść…” nad dolnym marginesem strony, w wyglądzie stylu

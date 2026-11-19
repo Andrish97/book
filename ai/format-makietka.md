@@ -145,6 +145,7 @@ Nadając typ, ustaw też jego parametry (np. `typ: "okladka"` z polem `okladka`,
 - `seria`: identyfikator serii, gdy strona ma się powielać (rozdział 8). Sąsiednie strony z tą samą serią tworzą **blok** powielany razem.
 - `obiekty`: elementy strony (rozdział 5), w kolejności od spodu do wierzchu.
 - `prowadnice`: nieobowiązkowe `{ "x": [mm], "y": [mm] }`.
+- `bok_ukladu`: w rozkładówkach – `"lewa"` albo `"prawa"`, dla którego boku ułożono elementy strony (aplikacja ustawia sama). Gdy strona trafi na drugi bok (dodanie, usunięcie, przesunięcie stron), elementy rysują się na lustrzanych miejscach względem środka strony, a przy edycji zapis przechodzi na nowy bok. Element z `"stala_pozycja": true` zostaje na miejscu.
 
 Współrzędne elementów liczą się od **lewego górnego rogu strony po przycięciu** (bez spadu). Element na spad zaczyna się od `-spad_mm`. W rozkładówce każda strona ma własne współrzędne.
 
@@ -198,6 +199,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `nazwa` | nazwa na liście warstw |
 | `styl` | identyfikator stylu tekstu (rozdział 6) |
 | `zablokowany` | `true` – nie da się przesunąć w edytorze |
+| `stala_pozycja` | `true` – w rozkładówkach nie przechodzi na lustrzane miejsce, gdy strona zmieni bok (lewa ↔ prawa) |
 | `warstwa` | we wzorcu: `"nad"` – nad treścią strony |
 | `bez_ostrzezen` | `true` – bez uwag o marginesie i spadzie |
 | `ramka_h` | stała wysokość ramki tekstu (mm) |

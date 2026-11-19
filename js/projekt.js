@@ -312,6 +312,7 @@ export function normalizuj(p) {
     else strona.wzorce = tylkoIstniejace([s.wzorzec]);
     delete strona.wzorzec;
     if (!wynik.serie.some((x) => x.id === strona.seria)) delete strona.seria;
+    if (strona.bok_ukladu !== 'lewa' && strona.bok_ukladu !== 'prawa') delete strona.bok_ukladu; // js/boki-stron.js
     return strona;
   });
   if (wynik.strony.length === 0) wynik.strony.push(nowaStrona('Strona 1', wynik.sekcje[0].id));

@@ -281,6 +281,9 @@ export class PanelWlasciwosci {
     if (!wGrupie) this.zbudujZDanych(obj);
     const inne = this.sekcja('Inne');
     if (!wGrupie) inne.append(this.przelacznik('Zablokuj położenie i rozmiar', () => Boolean(obj.zablokowany), (v) => this.edytor.ustawBlokade(obj, v)));
+    // Rozkładówki (js/boki-stron.js): gdy strona przejdzie z prawej na lewą (albo odwrotnie), elementy idą na lustrzane
+    // miejsca – ten zostaje tam, gdzie jest.
+    if (!wGrupie && !obj.zWzorca) inne.append(this.przelacznik('Stała pozycja, gdy strona zmieni bok (lewa ↔ prawa)', () => Boolean(obj.stala_pozycja), (v) => { obj.stala_pozycja = v || undefined; }));
     inne.append(this.tekst('Nazwa elementu (opcjonalnie)', () => obj.nazwa || '', (v) => { obj.nazwa = v || undefined; }, true));
     // Link (#131C): w PDF do czytania na ekranie element jest klikalny (adres strony, e-mail, telefon).
     if (!wGrupie) {

@@ -1,6 +1,7 @@
 // Otwarty projekt a płótno: wczytywanie strony albo wzorca na płótno, przepisywanie płótna do projektu,
 // zapis (w przeglądarce i na koncie), historia cofania.
 
+import { uzgodnijBokStrony } from '../boki-stron.js';
 import { marginesyWzorca, tloStrony, marginesyStrony, normalizuj, stronyZWzorcem, kopiujProjekt } from '../projekt.js';
 import { warstwyWzorcow } from '../zlozenie.js';
 import { rozwin, arkuszStrony, bokStrony } from '../serie.js';
@@ -256,6 +257,15 @@ async function wczytajCel({ dopasuj = false, nawigacja = false } = {}) {
   } else {
     const ciag = rozwin(projekt);
     const arkusz = arkuszStrony(cel, ciag);
+    // Lewa ↔ prawa (js/boki-stron.js): strony arkusza ułożone dla drugiego boku przechodzą na bieżący (elementy na
+    // lustrzane miejsca); pozostałe strony bez zapamiętanego boku – tylko go zapamiętują (punkt odniesienia na
+    // wypadek późniejszego dodania albo przesunięcia stron).
+    let przeniesione = false;
+    for (const s of arkusz) {
+      const sek = projekt.sekcje.find((x) => x.id === s.sekcja);
+      if (sek && uzgodnijBokStrony(s, bokStrony(s, ciag), sek.wydruk.szerokosc_mm)) { przeniesione = true; stan.miniatury.delete(s.id); }
+    }
+    for (const s of projekt.strony) if (!s.bok_ukladu) { const b = bokStrony(s, ciag); if (b) s.bok_ukladu = b; }
     const strony = jednaStrona() ? [cel] : arkusz;
     const dane = [];
     for (const s of strony) {
@@ -273,6 +283,7 @@ async function wczytajCel({ dopasuj = false, nawigacja = false } = {}) {
     naPlotnie = { strony: strony.map((s) => s.id), wczytane: zdjeciePlotna(strony) };
     naPlotnie.pola = zdjeciePol(strony);
     podpisKsiazki = uzywaKsiazki(projekt) ? podpisWarstwKsiazki(projekt) : ''; // to, co pokazują wczytane warstwy (#131B)
+    if (przeniesione) setTimeout(() => zaplanujZapis({ historia: false }), 0); // strona przeszła na drugi bok – zapis (skutek poprzedniego kroku, bez osobnego kroku cofania)
   }
   edytor.przeliczOstrzezenia(); // które pola są znane, wiadomo dopiero po wczytaniu
   edytor.ustawWidok(projekt.widok);
