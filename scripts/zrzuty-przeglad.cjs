@@ -821,11 +821,13 @@ async function zrzutyUrzadzenia(przegladarka, u, motyw) {
       if (!await s.locator('#udostepnij-haslo-wl').isChecked()) await s.check('#udostepnij-haslo-wl');
       await s.fill('#udostepnij-haslo', 'tajne-haslo');
       await s.click('#udostepnij-utworz');
-      await s.waitForFunction(() => { const k = document.querySelector('#udostepnij-komunikat'); return k.classList.contains('sukces') || k.classList.contains('blad'); }, null, { timeout: 120000 });
-      const kom = await s.evaluate(() => { const k = document.querySelector('#udostepnij-komunikat'); return k.classList.contains('sukces') ? '' : k.textContent; });
+      await s.waitForFunction(() => { const k = document.querySelector('#udostepnij-komunikat'); return k.classList.contains('sukces') || /^Nie udało/.test(k.textContent); }, null, { timeout: 120000 })
+        .catch(async (e) => { throw new Error(`${e.message.split('\n')[0]} – komunikat: ${await s.textContent('#udostepnij-komunikat')}`); });
+      const kom = await s.evaluate(() => { const k = document.querySelector('#udostepnij-komunikat'); return k.classList.contains('sukces') ? '' : k.textContent; }); // błąd udostępniania – bez klasy, tekst „Nie udało się…”
       if (kom) throw new Error(`udostępnianie: ${kom}`);
-      await s.waitForFunction(() => document.querySelector('#udostepnij-link').value.includes('#/u/'), null, { timeout: 120000 });
-      const link = await s.inputValue('#udostepnij-link');
+      // Link bywa krótki (/kod – przekierowuje Worker); lokalnie otwieramy długą postać #/u/konto/projekt/kod.
+      await s.waitForFunction(() => document.querySelector('#udostepnij-link').value, null, { timeout: 120000 });
+      const link = await s.evaluate(() => { const p = window.seriodruk.stan.projekt; return `${location.origin}${location.pathname}#/u/${p.udostepnienie.konto}/${p.id}/${p.udostepnienie.kod}`; });
       await widokiGoscia(przegladarka, u, motyw, baza, link, zrzutStrony);
     } catch (e) { nieudane.push(`link: ${e.message.split("\n").slice(0, 3).join(" | ")}`); }
   }

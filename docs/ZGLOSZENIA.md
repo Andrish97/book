@@ -240,3 +240,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: silnik stylów – strażnik wyglądu przycisków i pól, zasady arkuszy (#289).
 - 19.11.2026: silnik stylów – warstwy w css/style, katalog komponentów, porównanie wyglądu przed i po (#290–#292).
 - 19.11.2026: silnik stylów – kolory tylko z tokenów, !important tylko w widoczności, bez stylów w HTML (#294–#295).
+- 19.11.2026: podgląd z linku na telefonie – przyciski paska wysokie na palec; narzędzie zrzutów obsługuje krótkie linki (#296).

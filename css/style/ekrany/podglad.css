@@ -41,7 +41,8 @@
    na całą szerokość, pod przyciskami. */
 @media (max-width: 860px) {
   .pasek-podgladu { flex-wrap: wrap; height: auto; min-height: var(--pasek); row-gap: 0; padding-bottom: 6px; }
-  .pasek-podgladu > * { min-height: 0; }
+  /* Przyciski zostają wysokie na palec (#296 – u gościa leżą wprost w pasku i miały 22 px). */
+  .pasek-podgladu > :not(.przycisk, .przycisk-ikona) { min-height: 0; }
   .pasek-podgladu .tytul-ekranu { order: 10; margin: -4px 0 0; padding: 0 4px; font-weight: 600; line-height: 1.3; color: var(--tusz-2); }
   :root:root .pasek-podgladu .tytul-ekranu { flex: 1 0 100%; font-size: 13.5px; }
   .pasek-podgladu .tytul-ekranu ~ .odstep { display: block !important; flex: 1 1 auto; }
