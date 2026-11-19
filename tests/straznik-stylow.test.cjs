@@ -21,7 +21,9 @@ function policzArkusze() {
   const kolory = [];
   for (const p of pliki) {
     const s = fs.readFileSync(path.join(KORZEN, 'css', p), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-    important += (s.match(/!important/g) || []).length;
+    // #295: !important tylko w klasach widoczności (display) i przy kursorze nad płótnem (Fabric wpisuje kursor
+    // w styl elementu) – reszta przez mocniejszy selektor.
+    for (const m of s.matchAll(/([a-z-]+)\s*:[^;{}]*!important/g)) if (!['display', 'cursor'].includes(m[1])) important += 1;
     const bez = s.replace(/:root(\[[^\]]*\])?\s*\{[^}]*\}/g, '');
     for (const k of bez.match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/g) || []) kolory.push(`${p}: ${k}`);
   }
@@ -30,11 +32,11 @@ function policzArkusze() {
 
 // Zapadka: wartości z chwili wprowadzenia strażnika; kroki 2 i 6 je obniżają (nie wolno podnieść).
 // #294: kolory poza tokenami – 0 (wszystkie w tokens.css).
-const NAJWIECEJ = { important: 75, kolory: 0 };
+const NAJWIECEJ = { important: 0, kolory: 0 };
 
 test('zasady arkuszy: !important i kolory spoza tokenów nie przybywają; w JS bez kolorów wpisanych w style', () => {
   const { important, kolory } = policzArkusze();
-  assert.ok(important <= NAJWIECEJ.important, `!important: ${important} (najwyżej ${NAJWIECEJ.important}) – użyj tokenu albo mocniejszego selektora`);
+  assert.ok(important <= NAJWIECEJ.important, `!important poza display i cursor: ${important} – użyj mocniejszego selektora (np. :root:root …)`);
   assert.ok(kolory.length <= NAJWIECEJ.kolory, `kolory poza tokenami: ${kolory.length} (najwyżej ${NAJWIECEJ.kolory}) – dodaj token w :root i użyj var(--…)`);
   // JS: przypisanie koloru-literału do stylu elementu interfejsu (kolory z danych projektu idą przez zmienne).
   const zle = [];
@@ -43,6 +45,8 @@ test('zasady arkuszy: !important i kolory spoza tokenów nie przybywają; w JS b
     for (const m of s.matchAll(/\.style\.(background|backgroundColor|color|borderColor|outlineColor)\s*=\s*['"`](#[0-9a-fA-F]{3,8}|rgba?\()/g)) zle.push(`${p}: ${m[0]}`);
   }
   assert.deepEqual(zle, [], 'kolor wpisany w styl elementu w JS – użyj klasy albo var(--…)');
+  // HTML: bez atrybutu style (#295) – wygląd tylko w arkuszach.
+  for (const p of ['index.html', 'katalog-komponentow.html']) assert.doesNotMatch(fs.readFileSync(path.join(KORZEN, p), 'utf8'), /\sstyle="/, `${p}: styl wpisany w HTML`);
 });
 
 test('strażnik wyłapuje przycisk w wyglądzie przeglądarki (kalibracja)', async (t) => {

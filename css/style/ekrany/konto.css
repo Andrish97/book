@@ -211,3 +211,5 @@
 .powiadomienia-uwaga[hidden], .powiadomienia-rodzaje[hidden] { display: none; }
 .powiadomienia-rodzaje { margin: 0; border-width: 0 0 1px; border-style: solid; border-color: var(--linia); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .powiadomienia-rodzaje legend { float: left; width: 100%; margin: 0 0 2px; padding: 0; font-size: 13px; font-weight: 600; color: var(--tusz-2); }
+/* Pole nazwy użytkownika w wierszu ustawień (#295 – dawniej styl wpisany w HTML). */
+#konto-nazwa { width: 200px; }

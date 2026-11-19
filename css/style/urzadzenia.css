@@ -50,14 +50,14 @@
   .panel {
     position: fixed; left: 0; right: 0; z-index: 20;
     bottom: calc(60px + var(--bezp-dol));
-    max-height: 62vh; max-height: 62svh;
-    border: 0 !important; border-radius: 18px 18px 0 0;
+    max-height: 62vh; max-height: 62svh; border-radius: 18px 18px 0 0;
     box-shadow: var(--cien-arkusza);
     transform: translateY(calc(100% + 100px + var(--bezp-dol)));
     visibility: hidden;
     transition: transform .2s ease-out, height .2s ease-out, visibility 0s linear .2s;
-    will-change: transform; contain: layout paint;
-  }
+    will-change: transform; contain: layout paint; }
+  :root:root .panel {
+    border: 0; }
   /* Uchwyt arkusza (zamiast krzyżyka): przeciągnięcie w dół zamyka, w górę powiększa, stuknięcie przełącza
      wysokość. Arkusz zamyka też ponowne stuknięcie jego zakładki w dolnym menu. */
   .uchwyt-arkusza {
@@ -67,7 +67,7 @@
   /* Paseczek uchwytu: wspólny z zasłonkami okien (niżej, „Zasłonki”). */
   .uchwyt-arkusza:focus-visible { outline: none; }
   .uchwyt-arkusza:focus-visible::before { background: var(--akcent); }
-  .panel.ciagniety { transition: none !important; }
+  :root:root .panel.ciagniety { transition: none; }
   body[data-panel="strony"] .panel-strony,
   body[data-panel="inspektor"] .panel-inspektor,
   body[data-panel="ostrzezenia"] .panel-inspektor { transform: none; visibility: visible; transition: transform .2s ease-out, height .2s ease-out, visibility 0s; }
@@ -211,7 +211,7 @@
 :root[data-dotyk] .wlasciwosci, :root[data-dotyk] .panel-strony { --dotyk: 40px; }
 :root[data-dotyk] .wlasciwosci :is(input, select, .przycisk, .wybor-przycisk), :root[data-dotyk] .panel-strony :is(input, .przycisk, .wybor-przycisk) { min-height: 40px; }
 /* Pola wyboru zostają kwadratowe (18×18) – reguły „pod palec” dla pól nie mogą ich wyciągać w górę (#152). */
-:root input:is([type="checkbox"], [type="radio"]) { min-height: 0 !important; min-width: 0 !important; height: 18px !important; width: 18px !important; padding: 0 !important; }
+:root:root:root:root input:is([type="checkbox"], [type="radio"]) { min-height: 0; min-width: 0; height: 18px; width: 18px; padding: 0; }
 :root[data-dotyk] #dlg-seria .grupa-pol .przelacznik { min-height: 40px; }
 /* Uchwyty zasłonek i arkuszy: pasek na całą szerokość, wysoki na palec. */
 :root[data-zaslonka] .uchwyt-zaslonki { height: 30px; }
@@ -379,7 +379,8 @@ dialog.paleta-polecen { width: min(560px, calc(100vw - 32px)); max-width: none; 
     background: color-mix(in srgb, var(--powierzchnia) 78%, transparent); backdrop-filter: blur(2px);
   }
   #lista-stron > li.kafelek-dodaj-strone { flex: 0 0 64px; padding-left: 0; display: flex; flex-direction: column; }
-  #lista-stron .kafelek-dodaj { flex: none; width: 64px; height: 142px; aspect-ratio: auto !important; }
+  #lista-stron .kafelek-dodaj { flex: none; width: 64px; height: 142px; }
+  :root:root #lista-stron .kafelek-dodaj { aspect-ratio: auto; }
   #lista-stron .kafelek-dodaj-strone.w-pustej { flex-basis: 104px; }
   #lista-stron .kafelek-dodaj-strone.w-pustej .kafelek-dodaj { width: 104px; }
 }

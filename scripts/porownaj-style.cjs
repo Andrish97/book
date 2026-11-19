@@ -73,9 +73,30 @@ async function przejdz(tryb, stary) {
       await por(`okno ${id}`);
       await strona.evaluate((i) => document.getElementById(i).close(), id);
     }
-    await strona.evaluate(() => { location.hash = `${location.hash.replace(/\/?$/, '')}/podglad`; });
+    // Stany otwierane akcjami (instrukcja, biblioteka, gotowe sekcje, lista wyboru – na telefonie zasłonka).
+    // Bez Escape – w podglądzie Escape z niego wychodzi; okna zamyka się wprost.
+    const akcja = async (nazwa, g, przed = null) => {
+      await strona.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); });
+      if (przed) await strona.evaluate(przed);
+      const ok = await strona.evaluate((n) => { const b = [...document.querySelectorAll(`[data-akcja="${n}"]`)].find((x) => x.offsetParent) || document.querySelector(`[data-akcja="${n}"]`); if (!b) return false; b.click(); return true; }, nazwa);
+      if (!ok) return;
+      await strona.waitForTimeout(900);
+      await por(g);
+    };
+    await akcja('instrukcja', 'instrukcja');
+    await akcja('biblioteka', 'biblioteka');
+    await akcja('gotowe-sekcje', 'gotowe sekcje');
+    await strona.keyboard.press('Escape').catch(() => {});
+    await strona.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) d.close(); const e = window.seriodruk.edytor; e.odznacz(); const o = e.dodajTekst(); e.canvas.setActiveObject(o); e.canvas.requestRenderAll(); });
+    await strona.waitForTimeout(300);
+    await strona.evaluate(() => { const b = [...document.querySelectorAll('#wlasciwosci .wybor-przycisk')].find((x) => x.offsetParent); b?.click(); });
+    await strona.waitForTimeout(400);
+    await por('lista wyboru');
+    await strona.keyboard.press('Escape').catch(() => {});
+    await strona.evaluate(() => { location.hash = `#/p/${window.seriodruk.stan.projekt.id}/podglad`; });
     await strona.waitForTimeout(1500);
     await por('podglad');
+    await akcja('podglad-prezentacja', 'prezentacja');
   } finally {
     for (const fn of sprzatanie) await fn();
   }

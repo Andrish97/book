@@ -6,7 +6,7 @@ powtarzało, Makietka dostanie warstwowy silnik stylów na wzór Familiady (`web
 1. ✅ (#291: css/style/ – tokens, base, components, layout, ekrany/*, urzadzenia; css/aplikacja.css usunięty) Warstwy plików: `tokens.css` (kolory, odstępy, promienie, cienie – jasny i ciemny), `base.css` (każdy przycisk,
    pole, wybór, przełącznik, dialog ma styl bazowy), `components.css` (katalog komponentów), `layout.css`,
    `utilities.css`. Pliki ekranów – tylko układ.
-2. ⏳ (#294: kolory – wszystkie z tokenów; zostaje !important) Zasady: bez `!important`, bez kolorów i stylów wpisanych w HTML/JS; nowe elementy tylko z katalogu komponentów.
+2. ✅ (#294: kolory – wszystkie z tokenów; #295: !important tylko w widoczności i kursorze, bez stylów w HTML) Zasady: bez `!important`, bez kolorów i stylów wpisanych w HTML/JS; nowe elementy tylko z katalogu komponentów.
 3. ✅ (#292: katalog-komponentow.html – przyciski, pola, przełączniki, zakładki, komunikaty, okno, próbki tokenów,
    oba motywy; test: strażnik na katalogu) Katalog komponentów (strona podglądu) – wszystkie przyciski, pola, zakładki, listy, okna w jednym miejscu.
 4. ✅ (#289: tests/straznik-stylow.test.cjs – ekrany, konto, okno AI z dodawaniem kluczy, edytor z zaznaczonym
@@ -22,8 +22,9 @@ powtarzało, Makietka dostanie warstwowy silnik stylów na wzór Familiady (`web
 Źródło wzoru: publiczne repo Familiady. Opis użycia silnika (`silnik-stylow-uzycie.md`, `wzorce-ui.md`) jest
 w prywatnym repo `familijna-server` – do podpięcia, gdy użytkownik pozwoli (patrz rozmowa).
 
-## Stan (19.11.2026)
+## Stan (19.11.2026) – wszystkie kroki ✅
 
-Zostaje krok 2 (zasady): !important tylko w klasach widoczności (warstwa utilities), kolory spoza tokenów → tokeny.
-Zapadka w tests/straznik-stylow.test.cjs pilnuje, żeby nie przybywało. Każdą zmianę sprawdza
-`node scripts/porownaj-style.cjs HEAD` – przy przenoszeniu i zamianie na tokeny wynik ma być pusty.
+Zasady pilnuje tests/straznik-stylow.test.cjs (elementy w wyglądzie przeglądarki, !important tylko przy display
+i cursor, kolory tylko z tokenów, bez stylów w HTML i kolorów-literałów w JS). Każdą zmianę wyglądu bez zamiaru
+zmiany sprawdza `node scripts/porownaj-style.cjs HEAD` – wynik ma być pusty. Nowe elementy interfejsu – z katalogu
+komponentów (katalog-komponentow.html).

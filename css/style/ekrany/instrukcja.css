@@ -22,9 +22,9 @@
 }
 .instrukcja-szukaj:focus-within { background: var(--powierzchnia); border-color: var(--akcent); color: var(--akcent); }
 .instrukcja-szukaj input {
-  flex: 1; min-width: 0; height: 100%; padding: 0; border: 0 !important; background: none !important; box-shadow: none !important;
-  outline: none; font: inherit; font-size: 14px; color: var(--tusz);
-}
+  flex: 1; min-width: 0; height: 100%; padding: 0;
+  outline: none; font: inherit; font-size: 14px; color: var(--tusz); }
+:root:root .instrukcja-szukaj input { border: 0; background: none; box-shadow: none; }
 .instrukcja-szukaj input::placeholder { color: var(--cichy); }
 .instrukcja-szukaj input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
 :root[data-dotyk] .instrukcja-szukaj { height: 42px; }
@@ -35,16 +35,19 @@
 .instrukcja-spis button { display: flex; align-items: baseline; gap: 8px; width: 100%; border: 0; background: none; cursor: pointer; text-align: left; font: inherit; color: var(--tusz-2); border-radius: var(--r-s); }
 .instrukcja-spis button small { flex: none; min-width: 22px; color: var(--cichy); font-size: 12px; font-variant-numeric: tabular-nums; }
 .czesc-spisu + .czesc-spisu { margin-top: 4px; }
-.czesc-przycisk { align-items: center !important; padding: 9px 8px; font-size: 11.5px !important; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--cichy) !important; }
+.czesc-przycisk { padding: 9px 8px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+:root:root .czesc-przycisk { align-items: center; font-size: 11.5px; color: var(--cichy); }
 .czesc-przycisk .tytul { flex: 1; }
 .czesc-przycisk .strzalka { transition: transform .15s; }
 .czesc-spisu.otwarta > .czesc-przycisk .strzalka { transform: rotate(90deg); }
-.rozdzialy-spisu { display: none; padding: 0 0 6px 4px !important; }
+.rozdzialy-spisu { display: none; }
+:root:root .rozdzialy-spisu { padding: 0 0 6px 4px; }
 .czesc-spisu.otwarta > .rozdzialy-spisu { display: block; }
 .rozdzial-przycisk { padding: 7px 10px; font-size: 14px; line-height: 1.35; }
 .rozdzial-przycisk[aria-current="true"] { background: var(--akcent-tlo); color: var(--akcent); font-weight: 600; }
 .rozdzial-przycisk[aria-current="true"] small { color: var(--akcent); }
-.podrozdzialy-spisu { display: none; margin: 2px 0 6px 20px !important; border-left: 1px solid var(--linia); }
+.podrozdzialy-spisu { display: none; border-left: 1px solid var(--linia); }
+:root:root .podrozdzialy-spisu { margin: 2px 0 6px 20px; }
 li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { display: block; }
 .podrozdzialy-spisu button { padding: 5px 10px; font-size: 13px; color: var(--cichy); }
 .podrozdzialy-spisu button small { min-width: 30px; }
@@ -126,7 +129,8 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
 }
 /* Poprzedni / następny rozdział pod treścią. */
 /* Strona główna: części z listami rozdziałów. */
-.instrukcja-czesci { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; max-width: none !important; }
+.instrukcja-czesci { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+:root:root .instrukcja-czesci { max-width: none; }
 .karta-czesci { padding: 16px 18px; border: 1px solid var(--linia); border-radius: var(--r-l, 14px); background: var(--powierzchnia); }
 .karta-czesci h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 16px; }
 .karta-czesci h2 [data-ikona], .karta-czesci h2 svg { color: var(--akcent); }
@@ -168,7 +172,7 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
   .instrukcja-tresc figure.telefon img { width: min(300px, 100%); }
   .instrukcja-stopka { padding: 10px 14px calc(10px + var(--bezp-dol)); }
 }
-@media (prefers-reduced-motion: reduce) { .instrukcja-spis, .instrukcja-tresc { transition: none !important; scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { .instrukcja-spis, .instrukcja-tresc { scroll-behavior: auto; } :root:root .instrukcja-spis, :root:root .instrukcja-tresc { transition: none; } }
 
 /* Ekran logowania: instrukcja bez konta (#114). */
 .zobacz-jak { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 18px auto 0; padding: 8px 12px; border: 0; border-radius: var(--r-s); background: none; color: var(--akcent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }

@@ -4,11 +4,11 @@
 .pasek-edytora { padding-left: 8px; }
 .nazwa-projektu {
   flex: 0 1 280px; min-width: 80px; text-overflow: ellipsis;
-  border-color: transparent !important; background: transparent !important;
-  font-weight: 600; font-size: 15px;
-}
-.nazwa-projektu:hover { border-color: var(--linia-mocna) !important; }
-.nazwa-projektu:focus { border-color: var(--akcent) !important; background: var(--powierzchnia) !important; }
+  font-weight: 600; font-size: 15px; }
+:root:root .nazwa-projektu {
+  border-color: transparent; background: transparent; }
+:root:root .nazwa-projektu:hover { border-color: var(--linia-mocna); }
+:root:root .nazwa-projektu:focus { border-color: var(--akcent); background: var(--powierzchnia); }
 .stan-zapisu { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--cichy); white-space: nowrap; }
 .stan-zapisu.blad { color: var(--blad); }
 .stan-zapisu.zapisuje .ikona { animation: puls 1s ease-in-out infinite; }
@@ -738,7 +738,9 @@ details > summary:focus-visible { outline: 2px solid var(--akcent); outline-offs
 .duplikat-przyciski { flex-wrap: wrap; }
 /* Okno obrazów jako zasłonka (telefon, tablet): nagłówek, pasek zaznaczenia i przyciski na dole stoją w miejscu,
    a przewija się tylko siatka obrazów – nic nie ucieka poza ekran. */
-:root[data-zaslonka] .dialog-obrazy > .formularz { overflow: hidden !important; display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px !important; }
+:root[data-zaslonka] .dialog-obrazy > .formularz { display: flex; flex-direction: column; gap: 10px; }
+/* Mocniej niż „formularz z przyciskami na dole bez dolnego odstępu” w zasłonce (components.css). */
+:root:root:root[data-zaslonka] .dialog-obrazy > .formularz { overflow: hidden; padding-bottom: 12px; }
 :root[data-zaslonka] .dialog-obrazy .formularz > * { margin-top: 0; margin-bottom: 0; flex-shrink: 0; }
 :root[data-zaslonka] .dialog-obrazy .formularz > .siatka-obrazow { flex: 1 1 auto; flex-shrink: 1; min-height: 0; max-height: none; align-content: start; }
 :root[data-zaslonka] .dialog-obrazy .formularz > .przyciski-dialogu:last-child { position: static; margin: 0; padding: 10px 0 0; }
@@ -889,7 +891,8 @@ details > summary:focus-visible { outline: 2px solid var(--akcent); outline-offs
   border: 1px solid transparent; border-radius: 999px; background: var(--wypelnienie); color: var(--cichy); cursor: text;
 }
 .szukaj-w-bibliotece:focus-within { background: var(--powierzchnia); border-color: var(--akcent); color: var(--akcent); }
-.szukaj-w-bibliotece input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0 !important; background: none !important; box-shadow: none !important; outline: none; font: inherit; font-size: 14px; color: var(--tusz); }
+.szukaj-w-bibliotece input { flex: 1; min-width: 0; height: 100%; padding: 0; outline: none; font: inherit; font-size: 14px; color: var(--tusz); }
+:root:root .szukaj-w-bibliotece input { border: 0; background: none; box-shadow: none; }
 :root[data-dotyk] .szukaj-w-bibliotece { height: 42px; }
 :root[data-dotyk] .szukaj-w-bibliotece input { font-size: 16px; }
 .kategorie-biblioteki { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
@@ -1259,7 +1262,7 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .gotowe-podglad { display: flex; gap: 12px; overflow-x: auto; padding: 12px; min-height: 160px; align-items: center; border-radius: var(--r-m); background: var(--obszar); }
 .gotowe-podglad img { height: 230px; flex: none; box-shadow: var(--cien-gotowej); background: var(--kartka); }
 .gotowe-podglad[aria-busy="true"] { opacity: .6; }
-.gotowe-podsumowanie { font-size: 12px !important; }
+:root:root .gotowe-podsumowanie { font-size: 12px; }
 .gotowe-ustawienia { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; }
 .gotowe-ustawienia .rzad { display: contents; }
 .gotowe-ustawienia .pole { min-width: 160px; flex: 1 1 160px; }

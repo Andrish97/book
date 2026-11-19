@@ -42,7 +42,8 @@
 @media (max-width: 860px) {
   .pasek-podgladu { flex-wrap: wrap; height: auto; min-height: var(--pasek); row-gap: 0; padding-bottom: 6px; }
   .pasek-podgladu > * { min-height: 0; }
-  .pasek-podgladu .tytul-ekranu { order: 10; flex: 1 0 100% !important; margin: -4px 0 0; padding: 0 4px; font-size: 13.5px !important; font-weight: 600; line-height: 1.3; color: var(--tusz-2); }
+  .pasek-podgladu .tytul-ekranu { order: 10; margin: -4px 0 0; padding: 0 4px; font-weight: 600; line-height: 1.3; color: var(--tusz-2); }
+  :root:root .pasek-podgladu .tytul-ekranu { flex: 1 0 100%; font-size: 13.5px; }
   .pasek-podgladu .tytul-ekranu ~ .odstep { display: block !important; flex: 1 1 auto; }
 }
 
@@ -120,7 +121,8 @@ button.podglad-kartka { cursor: pointer; }
 
 /* ---------- Prezentacja: sterowanie w stylu odtwarzacza (#102) ---------- */
 .prezentacja { }
-.prezentacja-scena { position: absolute !important; inset: 0; }
+.prezentacja-scena { inset: 0; }
+:root:root .prezentacja-scena { position: absolute; }
 .prezentacja-sterowanie { transition: opacity .25s ease, transform .25s ease; }
 .prezentacja.bez-sterowania .prezentacja-sterowanie { opacity: 0; }
 .prezentacja.bez-sterowania .prezentacja-pasek { transform: translate(-50%, 8px); }
@@ -151,7 +153,7 @@ button.podglad-kartka { cursor: pointer; }
   color: var(--prez-licznik);
 }
 .prezentacja .powiekszenie { margin-left: 6px; height: 38px; border-color: var(--prez-linia); background: var(--prez-jasny-06); }
-.prezentacja .powiekszenie > button { color: var(--prez-tekst) !important; }
+:root:root .prezentacja .powiekszenie > button { color: var(--prez-tekst); }
 @media (hover: hover) { .prezentacja .powiekszenie > button:hover:not(:disabled) { background: var(--prez-jasny-12); } }
 .prezentacja-strzalka {
   position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); width: 52px; height: 52px; border-radius: 50%;
@@ -159,7 +161,8 @@ button.podglad-kartka { cursor: pointer; }
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: opacity .25s ease, background .15s;
 }
 @media (hover: hover) { .prezentacja-strzalka:hover:not(:disabled) { background: var(--prez-przycisk-hover); color: var(--na-kolorze); } }
-.prezentacja-strzalka:disabled { opacity: 0 !important; pointer-events: none; }
+.prezentacja-strzalka:disabled { pointer-events: none; }
+:root:root .prezentacja-strzalka:disabled { opacity: 0; }
 .prezentacja-strzalka.wstecz { left: calc(18px + var(--bezp-lewo)); }
 .prezentacja-strzalka.dalej { right: calc(18px + var(--bezp-prawo)); }
 .prezentacja.bez-sterowania .prezentacja-strzalka { opacity: 0; }
