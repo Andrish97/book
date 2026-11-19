@@ -210,7 +210,7 @@ Wybierz [⋯] → [Eksportuj do PDF…].
 | Ustawienie | Znaczenie |
 |---|---|
 | **Rodzaj pliku** | **Wektorowy – ostry tekst i kształty**: tekst z osadzonymi czcionkami, ostry w każdym powiększeniu, da się go zaznaczyć. **Obrazy stron – strona jako zdjęcie**: każda strona to jeden obraz; wygląda wszędzie tak samo, ale plik jest większy. |
-| **Zakres** | **Cały projekt**, **Tylko bieżąca sekcja** albo **Strony od–do** (numery w całym wydruku). |
+| **Zakres** | **Cały projekt**, **Wybrane sekcje** (zaznacz jedną albo kilka; przy każdej liczba stron) albo **Wybrane strony** – numery jak w Wordzie: `1-5, 8, 11-` (przecinek albo średnik między kawałkami, `11-` – od 11 do końca, `-3` – od początku do 3). Numery liczą się w całym wydruku, z powieleniami serii. Podsumowanie pod spodem od razu mówi, ile stron wyjdzie, i podpowiada, gdy czegoś nie da się odczytać. |
 | **Przeznaczenie** | **Do drukarni – ze spadem i znakami cięcia** albo **Do oglądania – równo do formatu**. Znaki cięcia dostają sekcje, które mają je włączone (→ 10.4). |
 | **Układ arkuszy** | **Zwykłe strony** albo strony ułożone na arkuszach do samodzielnego druku (→ 21.6). |
 | **Jakość** | Rozdzielczość zdjęć: 300 dpi — standard do druku, 150 dpi — mały plik na próbę, 600 dpi — bardzo ostro. |
@@ -299,7 +299,7 @@ Okno samo układa strony na kartkach — nie drukuj projektu z menu przeglądark
 | **Co wydrukować** | **Zwykły wydruk** (strona na kartce), **Broszura do złożenia** (kartki składane na pół i zszywane w środku – kolejność stron układa się sama), **2** albo **4 strony na kartce**. |
 | **Papier** | A4, A3 albo Letter – kartka obraca się sama. |
 | **Rozmiar stron** | **Rzeczywisty** (strony zmniejszone tylko, gdy się nie mieszczą) albo **Dopasuj do kartki**. |
-| **Strony** | Wszystkie, od–do albo tylko bieżąca. |
+| **Strony** | Wszystkie, **wybrane sekcje** (jedna albo kilka), **wybrane strony** (jak w Wordzie: `1-5, 8, 11-`) albo tylko bieżąca. |
 | **W odcieniach szarości** | Wydruk czarno-biały. |
 | **Znaki cięcia i złamu** | Przy broszurze, którą przytniesz po zszyciu. |
 

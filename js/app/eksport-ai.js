@@ -152,12 +152,17 @@ export function opcjePdf(projekt, u = {}) {
   const ekran = u.przeznaczenie === 'ekran';
   const uklad = ['broszura', 'skladki', 'dwie', 'cztery'].includes(u.uklad) ? u.uklad : 'zwykly';
   const pdfx = ['fogra39', 'fogra47'].includes(u.pdfx) ? u.pdfx : '';
-  const szukana = String(u.sekcja ?? '').trim().toLowerCase();
-  const sekcja = szukana ? projekt.sekcje.find((s) => s.id === u.sekcja || String(s.nazwa || '').trim().toLowerCase() === szukana) : null;
+  const znajdz = (x) => { const sz = String(x ?? '').trim().toLowerCase(); return sz ? projekt.sekcje.find((s) => s.id === x || String(s.nazwa || '').trim().toLowerCase() === sz) : null; };
+  const sekcja = znajdz(u.sekcja);
   if (u.zakres === 'sekcja' && !sekcja) throw new Error(`Projekt nie ma sekcji „${u.sekcja ?? ''}”.`);
+  // #312: kilka sekcji naraz (lista id albo nazw) i strony jak w Wordzie („1-5, 8, 11-”).
+  const sekcje = (Array.isArray(u.sekcje) ? u.sekcje : []).map((x) => { const s = znajdz(x); if (!s) throw new Error(`Projekt nie ma sekcji „${x}”.`); return s.id; });
+  if (u.zakres === 'sekcje' && !sekcje.length) throw new Error('Podaj sekcje (lista id albo nazw).');
   return {
-    zakres: ['sekcja', 'strony'].includes(u.zakres) ? u.zakres : 'wszystko',
+    zakres: ['sekcja', 'sekcje', 'strony'].includes(u.zakres) ? u.zakres : 'wszystko',
     sekcja: sekcja?.id,
+    sekcje,
+    strony: typeof u.strony === 'string' ? u.strony : undefined,
     od: Number(u.od) || 1,
     do: Number(u.do) || Infinity,
     tryb,

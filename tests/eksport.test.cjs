@@ -117,7 +117,7 @@ test('eksport PDF: strony z powieleniami serii, spad i znaki cięcia, podział n
   await strona.click('#przycisk-wiecej');
   await strona.click('[data-akcja="pdf"]');
   await strona.selectOption('#form-pdf select[name=zakres]', 'strony');
-  await strona.fill('#form-pdf input[name=od]', '2');
+  await strona.fill('#form-pdf input[name=strony]', '2-');
   await strona.selectOption('#form-pdf select[name=druk]', 'podglad');
   await strona.selectOption('#form-pdf select[name=dpi]', '150');
   await strona.selectOption('#form-pdf select[name=podzial]', 'czesci');

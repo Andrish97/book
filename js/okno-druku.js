@@ -11,6 +11,7 @@ import { opisPlanu, planImpozycji, wymiaryArkusza, ARKUSZE } from './impozycja.j
 import { biblioteka } from './biblioteki.js';
 import { pokazPlanArkuszy } from './okno-pdf.js';
 import { postep } from './postep.js';
+import { wypelnijSekcje, wybraneSekcje, uwagaZakresu } from './zakres-eksportu.js';
 
 const KLUCZ = (id) => `makietka:druk:${id}`;
 const POLA = ['uklad', 'papier', 'dopasowanie', 'zakres', 'szarosc', 'znaki'];
@@ -125,7 +126,7 @@ export class OknoDruku {
     this.okno = $('#dlg-druk');
     this.f = $('#form-druk');
     this.f.addEventListener('change', () => { this.zapamietaj(); this.odswiez(); });
-    this.f.addEventListener('input', (e) => { if (e.target.type === 'number') this.odswiez(); });
+    this.f.addEventListener('input', (e) => { if (e.target.type === 'number' || e.target.name === 'strony') this.odswiez(); });
     this.f.addEventListener('submit', (e) => { e.preventDefault(); this.wykonaj(true); });
     $('#druk-pobierz').addEventListener('click', () => this.wykonaj(false));
     $('#druk-probna').addEventListener('click', async () => {
@@ -139,8 +140,10 @@ export class OknoDruku {
     const p = this.zrodlo.projekt();
     this.ciag = rozwin(p);
     const ile = this.ciag.egzemplarze.length;
-    const { od, do: doStrony } = this.f.elements;
-    od.max = ile; doStrony.max = ile; od.value = 1; doStrony.value = ile;
+    // Zakres (#312): wybrane sekcje (na start – sekcja bieżącej strony) i strony jak w Wordzie.
+    const biezaca = p.strony.find((x) => x.id === this.zrodlo.biezacaStrona?.());
+    wypelnijSekcje($('#druk-lista-sekcji'), p, this.ciag, [biezaca?.sekcja || p.sekcje[0]?.id].filter(Boolean));
+    if (!this.f.elements.strony.value.trim()) this.f.elements.strony.value = ile > 1 ? `1-${ile}` : '1';
     let zapisane = {};
     try { zapisane = JSON.parse(localStorage.getItem(KLUCZ(p.id)) || '{}'); } catch { /* bez zapamiętanych ustawień */ }
     for (const k of POLA) {
@@ -155,7 +158,7 @@ export class OknoDruku {
 
   opcje() {
     const e = this.f.elements;
-    return { uklad: e.uklad.value, papier: e.papier.value, dopasowanie: e.dopasowanie.value, zakres: e.zakres.value, szarosc: e.szarosc.checked, znaki: e.znaki.checked, od: Number(e.od.value), do: Number(e.do.value) };
+    return { uklad: e.uklad.value, papier: e.papier.value, dopasowanie: e.dopasowanie.value, zakres: e.zakres.value, szarosc: e.szarosc.checked, znaki: e.znaki.checked, strony: e.strony.value, sekcje: wybraneSekcje($('#druk-lista-sekcji')) };
   }
 
   zapamietaj() {
@@ -175,6 +178,7 @@ export class OknoDruku {
   odswiez() {
     const o = this.opcje();
     $('#druk-pole-strony').hidden = o.zakres !== 'strony';
+    $('#druk-pole-sekcje').hidden = o.zakres !== 'sekcje';
     $('#druk-pole-znaki').hidden = o.uklad !== 'broszura';
     const egz = this.egzemplarze(o);
     const plan = { uklad: o.uklad, skladka: 16 };
@@ -184,6 +188,8 @@ export class OknoDruku {
       ? `${egz.length} ${egz.length === 1 ? 'strona' : 'stron'} na ${o.papier}, ${o.dopasowanie === 'dopasuj' ? 'dopasowane do kartki' : 'w rzeczywistym rozmiarze (zmniejszone tylko, gdy się nie mieszczą)'}.`
       : `${opisPlanu(egz.length, plan)} Papier ${o.papier}.`;
     $('#druk-skala').textContent = opisSkali(egz, plan, o);
+    const uwagaStron = o.zakres === 'strony' ? uwagaZakresu(o.strony, this.ciag.egzemplarze.length) : null;
+    if (uwagaStron) $('#druk-opis').textContent = `${uwagaStron} ${$('#druk-opis').textContent}`;
     pokazPlanArkuszy($('#druk-plan'), egz, plan);
     $('#druk-pomoc-tresc').innerHTML = pomoc(o.uklad);
   }

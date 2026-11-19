@@ -6,6 +6,7 @@ import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
 import { eksportujPdf, wybierzEgzemplarze, planPlikow, JAKOSCI_PDF, Przerwano } from './eksport.js';
+import { wypelnijSekcje, wybraneSekcje, uwagaZakresu } from './zakres-eksportu.js';
 import { WARUNKI_DRUKU } from './profil-icc.js';
 import { postep } from './postep.js';
 import { planImpozycji, opisPlanu } from './impozycja.js';
@@ -48,9 +49,9 @@ export class OknoPdf {
     this.zrodlo.przedEksportem();
     this.ciag = rozwin(this.zrodlo.projekt());
     const ile = this.ciag.egzemplarze.length;
-    const { od, do: doStrony } = this.f.elements;
-    od.max = ile; doStrony.max = ile;
-    od.value = 1; doStrony.value = ile;
+    // Zakres (#312): wybrane sekcje (na start – bieżąca) i strony jak w Wordzie (na start – wszystkie).
+    wypelnijSekcje($('#pdf-lista-sekcji'), this.zrodlo.projekt(), this.ciag, [this.zrodlo.sekcja()?.id].filter(Boolean));
+    if (!this.f.elements.strony.value.trim()) this.f.elements.strony.value = ile > 1 ? `1-${ile}` : '1';
     $('#pdf-komunikat').textContent = '';
     // Rzeczy do sprawdzenia przed drukiem – nie blokują eksportu.
     const blok = $('#pdf-uwagi');
@@ -85,9 +86,8 @@ export class OknoPdf {
     const e = this.f.elements;
     return {
       zakres: e.zakres.value,
-      sekcja: this.zrodlo.sekcja()?.id,
-      od: Number(e.od.value),
-      do: Number(e.do.value),
+      sekcje: wybraneSekcje($('#pdf-lista-sekcji')),
+      strony: e.strony.value,
       tryb: e.tryb.value,
       krzywe: e.tryb.value === 'wektor' && e.krzywe.checked,
       cmyk: e.tryb.value === 'wektor' && e.cmyk.checked,
@@ -114,6 +114,7 @@ export class OknoPdf {
   odswiez() {
     const o = this.opcje();
     $('#pdf-pole-strony').hidden = o.zakres !== 'strony';
+    $('#pdf-pole-sekcje').hidden = o.zakres !== 'sekcje';
     $('#pdf-pole-ile').hidden = o.podzial !== 'czesci';
     const wektor = o.tryb === 'wektor';
     $('#pdf-opcje-wektora').hidden = !wektor;
@@ -173,6 +174,8 @@ export class OknoPdf {
     $('#pdf-podsumowanie').textContent = egz.length
       ? `Do eksportu: ${stron}${powielone ? ` (w tym ${powielone} z powieleń serii)` : ''}${pliki.length > 1 ? `, ${pliki.length} ${odmiana(pliki.length, 'plik', 'pliki', 'plików')} PDF w jednym archiwum ZIP` : ''}.`
       : 'W wybranym zakresie nie ma stron.';
+    const uwagaStron = o.zakres === 'strony' ? uwagaZakresu(o.strony, this.ciag.egzemplarze.length) : null;
+    if (uwagaStron) $('#pdf-podsumowanie').textContent = `${uwagaStron} ${$('#pdf-podsumowanie').textContent}`;
     // Podsumowanie zwiniętej sekcji „Zaawansowane”: jakość, kolory, standard, podział.
     const f = this.f.elements;
     const wybrana = (pole) => pole?.selectedOptions?.[0]?.textContent?.split(/ [–-] /)[0] || '';

@@ -1515,14 +1515,16 @@
       <label class="pole"><span>Strony</span>
         <select name="zakres">
           <option value="wszystko" selected>Wszystkie</option>
-          <option value="strony">Od–do</option>
+          <option value="sekcje">Wybrane sekcje</option>
+          <option value="strony">Wybrane strony</option>
           <option value="biezaca">Tylko bieżąca strona</option>
         </select>
       </label>
-      <div class="rzad" id="druk-pole-strony" hidden>
-        <label class="pole"><span>Od strony</span><input name="od" type="number" min="1" step="1" inputmode="numeric"></label>
-        <label class="pole"><span>Do strony</span><input name="do" type="number" min="1" step="1" inputmode="numeric"></label>
-      </div>
+      <fieldset class="lista-sekcji-eksportu" id="druk-pole-sekcje" hidden><legend>Sekcje</legend><div id="druk-lista-sekcji"></div></fieldset>
+      <label class="pole" id="druk-pole-strony" hidden><span>Numery stron</span>
+        <input name="strony" type="text" inputmode="text" autocomplete="off" placeholder="np. 1-5, 8, 11-">
+        <small class="ciche">Numery i przedziały po przecinku, jak w Wordzie: 1-5, 8, 11- (od 11 do końca).</small>
+      </label>
       <label class="przelacznik"><input name="szarosc" type="checkbox"><span>W odcieniach szarości</span></label>
       <label class="przelacznik" id="druk-pole-znaki" hidden><input name="znaki" type="checkbox"><span>Znaki cięcia i złamu (broszura do przycięcia)</span></label>
       <p class="podpowiedz" id="druk-opis"></p>
@@ -1565,14 +1567,15 @@
       <label class="pole"><span>Zakres</span>
         <select name="zakres">
           <option value="wszystko">Cały projekt</option>
-          <option value="sekcja">Tylko bieżąca sekcja</option>
-          <option value="strony">Strony od–do</option>
+          <option value="sekcje">Wybrane sekcje</option>
+          <option value="strony">Wybrane strony</option>
         </select>
       </label>
-      <div class="rzad" id="pdf-pole-strony" hidden>
-        <label class="pole"><span>Od strony</span><input name="od" type="number" min="1" step="1" inputmode="numeric"></label>
-        <label class="pole"><span>Do strony</span><input name="do" type="number" min="1" step="1" inputmode="numeric"></label>
-      </div>
+      <fieldset class="lista-sekcji-eksportu" id="pdf-pole-sekcje" hidden><legend>Sekcje</legend><div id="pdf-lista-sekcji"></div></fieldset>
+      <label class="pole" id="pdf-pole-strony" hidden><span>Strony</span>
+        <input name="strony" type="text" inputmode="text" autocomplete="off" placeholder="np. 1-5, 8, 11-">
+        <small class="ciche">Numery i przedziały po przecinku, jak w Wordzie: 1-5, 8, 11- (od 11 do końca). Numery w całym wydruku, z powieleniami serii.</small>
+      </label>
       <label class="pole"><span>Przeznaczenie</span>
         <select name="druk">
           <option value="drukarnia">Do drukarni – ze spadem i znakami cięcia</option>

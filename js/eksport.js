@@ -52,12 +52,40 @@ export function pngCelu(projekt, cel, dpi = 300) {
   return renderujCel(projekt, cel, { szerokoscPx: pikseli(wydruk.szerokosc_mm + 2 * wydruk.spad_mm, dpi), oryginaly: true });
 }
 
-// Egzemplarze stron do eksportu. zakres: 'wszystko' | 'sekcja' (opcje.sekcja = id)
-// | 'strony' (opcje.od, opcje.do – kolejne numery stron w całym wydruku, od 1).
-export function wybierzEgzemplarze(ciag, { zakres = 'wszystko', sekcja, od = 1, do: doStrony } = {}) {
+// Zakres stron jak w Wordzie (zgłoszenie 19.11): „1-5, 8, 11-” – pojedyncze numery i przedziały oddzielone
+// przecinkiem albo średnikiem; „11-” – od 11 do końca, „-3” – od początku do 3; myślnik zwykły albo półpauza.
+// n – liczba stron. Zwraca { numery: [1…n, rosnąco, bez powtórzeń], bledy: [tekst kawałka, którego nie da się
+// odczytać], poza: [numery większe niż n] }.
+export function parsujZakresStron(tekst, n) {
+  const numery = new Set();
+  const bledy = [];
+  const poza = [];
+  for (const kawalek of String(tekst ?? '').split(/[,;]+/).map((x) => x.trim()).filter(Boolean)) {
+    const m = kawalek.replace(/[–—]/g, '-').replace(/\s+/g, '').match(/^(\d*)(-?)(\d*)$/);
+    if (!m || (!m[1] && !m[3]) || (!m[2] && !m[1])) { bledy.push(kawalek); continue; }
+    const a = m[1] ? Number(m[1]) : 1;
+    const b = m[2] ? (m[3] ? Number(m[3]) : n) : a;
+    if (a < 1 || b < a) { bledy.push(kawalek); continue; }
+    for (let i = a; i <= b; i += 1) {
+      if (i > n) { poza.push(i); break; }
+      numery.add(i);
+    }
+  }
+  return { numery: [...numery].sort((x, y) => x - y), bledy, poza };
+}
+
+// Egzemplarze stron do eksportu. zakres: 'wszystko' | 'sekcje' (opcje.sekcje = [id], wiele naraz)
+// | 'sekcja' (opcje.sekcja = id – dawny zapis) | 'strony' (opcje.strony = tekst „1-5, 8”, albo dawne opcje.od,
+// opcje.do – numery stron w całym wydruku, od 1, z powieleniami serii).
+export function wybierzEgzemplarze(ciag, { zakres = 'wszystko', sekcja, sekcje, strony, od = 1, do: doStrony } = {}) {
   const wszystkie = ciag.egzemplarze;
   if (zakres === 'sekcja') return wszystkie.filter((e) => e.sekcja.id === sekcja);
+  if (zakres === 'sekcje') { const id = new Set(sekcje || []); return wszystkie.filter((e) => id.has(e.sekcja.id)); }
   if (zakres === 'strony') {
+    if (typeof strony === 'string' && strony.trim()) {
+      const { numery } = parsujZakresStron(strony, wszystkie.length);
+      return numery.map((i) => wszystkie[i - 1]);
+    }
     const a = Math.max(1, Math.round(od) || 1);
     const b = Math.min(wszystkie.length, Math.round(doStrony) || wszystkie.length);
     return wszystkie.slice(a - 1, Math.max(a, b));
