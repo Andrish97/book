@@ -237,3 +237,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – linie klejenia w środku ściany, także otwarte i krzywe (#285).
 - 19.11.2026: składanki – sklejony model w 3D: części po parach, prosta linia – część staje, krzywa – zawija się (#286).
 - 19.11.2026: składanki – kąt po sklejeniu krawędzi; zawijanie po krzywej z zachowaniem zgięć (#288).
+- 19.11.2026: silnik stylów – strażnik wyglądu przycisków i pól, zasady arkuszy (#289).

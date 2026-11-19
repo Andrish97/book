@@ -1,4 +1,4 @@
-# Silnik stylów jak w Familiadzie – plan na później (18.11.2026)
+# Silnik stylów jak w Familiadzie (plan 18.11.2026, praca od 19.11.2026)
 
 Powód: przyciski w oknie „Sztuczna inteligencja” pokazały się bez stylów (wygląd przeglądarki). Żeby to się nie
 powtarzało, Makietka dostanie warstwowy silnik stylów na wzór Familiady (`web/shared/style/`).
@@ -8,7 +8,8 @@ powtarzało, Makietka dostanie warstwowy silnik stylów na wzór Familiady (`web
    `utilities.css`. Pliki ekranów – tylko układ.
 2. Zasady: bez `!important`, bez kolorów i stylów wpisanych w HTML/JS; nowe elementy tylko z katalogu komponentów.
 3. Katalog komponentów (strona podglądu) – wszystkie przyciski, pola, zakładki, listy, okna w jednym miejscu.
-4. Test-strażnik: przechodzi po oknach i panelach aplikacji i zgłasza każdy przycisk albo pole z wyglądem
+4. ✅ (#289: tests/straznik-stylow.test.cjs – ekrany, konto, okno AI z dodawaniem kluczy, edytor z zaznaczonym
+   tekstem i kształtem, wszystkie okna z index.html, komputer i telefon; zapadka na !important i kolory) Test-strażnik: przechodzi po oknach i panelach aplikacji i zgłasza każdy przycisk albo pole z wyglądem
    domyślnym przeglądarki (brak klasy/stylu bazowego) oraz `!important` i kolory spoza tokenów.
 5. Zrzuty ekranów okien (jak `scripts/screens/` w Familiadzie) do porównania przed i po.
 6. Przeniesienie obecnego `css/aplikacja.css` na warstwy krok po kroku, bez zmiany wyglądu.
