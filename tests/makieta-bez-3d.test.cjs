@@ -55,6 +55,7 @@ test('makieta bez 3D: ujęcia narysowane przy publikacji linku, galeria u ogląd
   // Okno makiety po publikacji działa jak dawniej (rysowanie w tle posprzątało po sobie).
   assert.equal(await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).makietaWolna()), true);
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.ujecia), true, 'link ma ujęcia');
+  await strona.waitForFunction(() => /gotowe ujęcia są w linku/.test(document.querySelector('#udostepnij-ujecia').textContent));
 
   // Oglądający bez WebGL.
   const gosc = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
@@ -127,6 +128,7 @@ test('makieta bez 3D, link bez ujęć: okno mówi, skąd się biorą ujęcia', a
   await nowyProjekt(strona, 'Bez ujęć');
   await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).otworzMakiete(window.seriodruk.stan.projekt));
   const tekst = await strona.textContent('#makieta-brak-3d');
+  await strona.evaluate(() => document.querySelector('#dlg-makieta').close());
   assert.match(tekst, /Nie udało się pokazać makiety 3D/);
   assert.match(tekst, /udostępnij projekt linkiem na komputerze z grafiką 3D – ujęcia zapiszą się same/);
 });

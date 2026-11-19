@@ -124,6 +124,12 @@ function odswiezOknoUdostepniania() {
     : (aktualny
       ? `Link pokazuje aktualny stan projektu (zaktualizowano ${kiedy(u.zaktualizowano)}).`
       : `Projekt zmienił się po ostatniej aktualizacji linku (${kiedy(u.zaktualizowano)}). Link zaktualizuje się sam, gdy zmiany zapiszą się na koncie.`);
+  // Gotowe ujęcia makiety dla urządzeń bez 3D (#307, #311, #313): czy są w linku i jak je dodać – widać od razu.
+  $('#udostepnij-ujecia').textContent = u.ujecia
+    ? 'Makieta dla urządzeń bez grafiki 3D: gotowe ujęcia są w linku.'
+    : maGrafike3D()
+      ? 'Makieta dla urządzeń bez grafiki 3D: gotowych ujęć jeszcze nie ma – kliknij [Aktualizuj teraz], a zapiszą się od razu (albo same, gdy projekt będzie otwarty kilkanaście sekund).'
+      : 'Makieta dla urządzeń bez grafiki 3D: gotowych ujęć jeszcze nie ma, a to urządzenie nie umie ich narysować – otwórz projekt na komputerze z grafiką 3D i kliknij tam [Aktualizuj teraz].';
 }
 
 // ---------- Ochrona linku: hasło i data ważności ----------

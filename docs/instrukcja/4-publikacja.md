@@ -106,7 +106,8 @@ najbliższym otwarciu projektu.
 > urządzeniu, które ma grafikę 3D, i są częścią linku: widzi je oglądający bez 3D, a Ty — w makiecie własnego projektu
 > na takim urządzeniu (także przy linku z hasłem). Link bez ujęć (np. udostępniony wcześniej) uzupełnia się sam, gdy
 > otworzysz projekt na urządzeniu z grafiką 3D; aktualizacja linku z urządzenia bez 3D zachowuje ujęcia. Projekt bez
-> linku nie ma jeszcze ujęć — okno mówi wtedy, co zrobić.
+> linku nie ma jeszcze ujęć — okno mówi wtedy, co zrobić. W oknie **Udostępnij** pod linkiem widać, czy ujęcia już są;
+> jeśli nie, na komputerze z grafiką 3D kliknij [Aktualizuj teraz] — zapiszą się od razu.
 
 ### Gotowe ujęcia
 
