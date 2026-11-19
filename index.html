@@ -2003,6 +2003,12 @@
             <label class="makieta-suwak"><span>Odległość</span><input type="range" id="makieta-odleglosc" min="40" max="400" step="5"><output for="makieta-odleglosc"></output></label>
             <label class="makieta-suwak" title="Mały kąt – teleobiektyw (płasko, bez zniekształceń), duży – szeroki kąt (mocna perspektywa)"><span>Obiektyw</span><input type="range" id="makieta-obiektyw" min="12" max="60" step="1"><output for="makieta-obiektyw"></output></label>
           </fieldset>
+          <fieldset class="grupa-pol"><legend>Światło</legend>
+            <label class="pole"><span>Kierunek</span><select id="makieta-swiatlo"></select></label>
+            <label class="pole"><span>Barwa</span><select id="makieta-barwa"></select></label>
+            <label class="makieta-suwak"><span>Miękkość cienia</span><input type="range" id="makieta-miekkosc" min="0" max="100" step="5"><output for="makieta-miekkosc"></output></label>
+            <label class="makieta-suwak"><span>Siła cienia</span><input type="range" id="makieta-sila" min="0" max="160" step="5"><output for="makieta-sila"></output></label>
+          </fieldset>
           <fieldset class="grupa-pol" id="makieta-grupa-ksiazka"><legend>Książka</legend>
             <label class="makieta-suwak"><span>Kąt otwarcia</span><input type="range" id="makieta-otwarcie" min="80" max="180" step="2"><output for="makieta-otwarcie"></output></label>
             <label class="makieta-suwak"><span>Uchylona okładka</span><input type="range" id="makieta-uchylenie" min="0" max="90" step="5"><output for="makieta-uchylenie"></output></label>
@@ -2011,12 +2017,6 @@
           </fieldset>
           <fieldset class="grupa-pol" id="makieta-grupa-popup" hidden><legend>Pop-up</legend>
             <label class="makieta-suwak"><span>Otwarcie kartki pop-up</span><input type="range" id="makieta-popup" min="0" max="180" step="5"><output for="makieta-popup"></output></label>
-          </fieldset>
-          <fieldset class="grupa-pol"><legend>Światło</legend>
-            <label class="pole"><span>Kierunek</span><select id="makieta-swiatlo"></select></label>
-            <label class="pole"><span>Barwa</span><select id="makieta-barwa"></select></label>
-            <label class="makieta-suwak"><span>Miękkość cienia</span><input type="range" id="makieta-miekkosc" min="0" max="100" step="5"><output for="makieta-miekkosc"></output></label>
-            <label class="makieta-suwak"><span>Siła cienia</span><input type="range" id="makieta-sila" min="0" max="160" step="5"><output for="makieta-sila"></output></label>
           </fieldset>
           <fieldset class="grupa-pol"><legend>Podłoże i tło</legend>
             <label class="pole"><span>Tło</span><select id="makieta-tlo"></select></label>
@@ -2029,13 +2029,11 @@
             <label class="pole"><span>Okładka</span><select id="makieta-wykonczenie"></select></label>
             <label class="pole"><span>Papier</span><select id="makieta-papier"></select></label>
             <label class="przelacznik" id="makieta-uszl-pole"><input type="checkbox" id="makieta-uszl"><span>Złocenia i lakier z projektu w świetle</span></label>
-            <div class="rzad">
-              <label class="pole waskie" id="makieta-spirala-pole"><span>Spirala</span><input type="color" id="makieta-spirala"></label>
-              <label class="pole waskie" id="makieta-stojak-pole"><span>Stojak</span><input type="color" id="makieta-stojak"></label>
-            </div>
+            <label class="pole waskie" id="makieta-spirala-pole"><span>Spirala</span><input type="color" id="makieta-spirala"></label>
+            <label class="pole waskie" id="makieta-stojak-pole"><span>Stojak</span><input type="color" id="makieta-stojak"></label>
           </fieldset>
         </div>
-        <button type="button" class="przycisk" data-akcja="makieta-domyslne">Przywróć domyślne</button>
+        <div class="makieta-domyslne"><button type="button" class="przycisk" data-akcja="makieta-domyslne">Przywróć domyślne</button></div>
       </details>
       <details class="zaawansowane makieta-czesc" id="makieta-eksport">
         <summary>Eksport <span class="ciche">rozmiar obrazu, przezroczyste tło, animacja</span></summary>
@@ -2059,9 +2057,11 @@
       </details>
       <details class="zaawansowane makieta-czesc tylko-wlasciciel" id="makieta-zapisane">
         <summary>Zapisane ujęcia <span class="ciche" id="makieta-zapisane-ile"></span></summary>
-        <div class="rzad makieta-zapisz">
-          <label class="pole"><span>Nazwa ujęcia</span><input type="text" id="makieta-nazwa-ujecia" maxlength="80" placeholder="np. Okładka na drewnie"></label>
-          <button type="button" class="przycisk glowny" data-akcja="makieta-zapisz-ujecie" data-ikona="plus">Zapisz ujęcie</button>
+        <div class="makieta-grupy makieta-zapisz">
+          <fieldset class="grupa-pol"><legend>Nowe ujęcie</legend>
+            <label class="pole"><span>Nazwa ujęcia</span><input type="text" id="makieta-nazwa-ujecia" maxlength="80" placeholder="np. Okładka na drewnie"></label>
+            <button type="button" class="przycisk glowny" data-akcja="makieta-zapisz-ujecie" data-ikona="plus">Zapisz ujęcie</button>
+          </fieldset>
         </div>
         <ul class="makieta-lista-ujec" id="makieta-lista-ujec"></ul>
         <p class="ciche" id="makieta-brak-ujec">Zapisane ujęcie (rodzaj, kamera, światło, tło, położenie kartek) zostaje w projekcie – także na innych urządzeniach.</p>

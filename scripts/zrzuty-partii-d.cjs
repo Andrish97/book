@@ -176,7 +176,7 @@ async function zrobZrzutyPartiiD(kadr, { ciemny = false, tylkoMakieta = false } 
     await kadr(d, 'k-makieta-ujecia.png', { obszar: ['#makieta-ujecia', '.makieta-sterowanie'], zaznacz: '.makieta-ujecie[data-ujecie="wachlarz"]', margines: 8 });
     await d.evaluate(() => document.querySelector('#makieta-ustawienia').scrollIntoView({ block: 'end' }));
     await d.waitForTimeout(300);
-    await kadr(d, 'k-makieta-swiatlo.png', { obszar: '#makieta-ustawienia', zaznacz: '#makieta-ustawienia .makieta-grupy > fieldset:nth-child(4) > label:first-of-type', margines: 8 });
+    await kadr(d, 'k-makieta-swiatlo.png', { obszar: '#makieta-ustawienia', zaznacz: '#makieta-ustawienia .makieta-grupy > fieldset:nth-child(2) > label:first-of-type', margines: 8 });
     await d.evaluate(() => { document.querySelector('#makieta-ustawienia').open = false; });
     await d.click('.makieta-ujecie[data-ujecie="stos"]');
     await gotowe();

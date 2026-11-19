@@ -418,12 +418,14 @@ test('makieta 3D (#179): wyklejka na tekturze, zawias, sztywna miękka okładka,
   assert.ok(wkl.min[2] - tektura.min[2] > 2.5 && tektura.max[2] - wkl.max[2] > 2.5, '3 mm od głowy i stopy');
   // Bez paska zgięcia wyklejki w zawiasie (#199: nic nie wisi przy otwartej wyklejce).
   assert.equal(q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier' && x.p.every((p) => p[0] < 2 && p[0] > -10)).length, 0, 'bez wiszącego paska');
-  // Miękka: okładka w rozmiarze bloku (nawet gdy sekcja okładki jest twarda), sztywna w trakcie otwierania.
+  // Miękka: okładka w rozmiarze bloku (nawet gdy sekcja okładki jest twarda). W trakcie otwierania (zgłoszenie 19.11:
+  // „nie jak woda, ma robić łuk, nie opasać”) – sprężysty łuk: wygięta, ale mniej niż kartka papieru.
   const km = kartkiModelu('ksiazka_miekka', { strony: 100, format: A5, okladka: okl });
   assert.deepEqual([km[0].w, km[0].h], [148, 210], 'miękka okładka = blok');
-  const qm = scena('ksiazka_miekka', km, 0.5);
-  const nn = qm.filter((x) => x.tex === 'okl:przod').map((x) => x.n.map((v) => Math.round(v * 100) / 100).join());
-  assert.ok(new Set(nn).size <= 4, `okładka płaska jak karton – płaszczyzna i trzy brzegi, bez wygięcia (${new Set(nn).size} kierunków)`);
+  const rozpietosc = (lista) => { const a = lista.map((x) => Math.atan2(x.n[1], x.n[0])); return Math.max(...a) - Math.min(...a); };
+  const okladkaM = rozpietosc(scena('ksiazka_miekka', km, 0.5).filter((x) => x.tex === 'okl:przod' && Math.abs(x.n[2]) < 0.1));
+  const kartkaM = rozpietosc(scena('ksiazka_miekka', km, 10.5).filter((x) => x.tex === km[10].przod && Math.abs(x.n[2]) < 0.1));
+  assert.ok(okladkaM > 0.1 && okladkaM < kartkaM, `okładka łukiem, sztywniej niż kartka (${okladkaM.toFixed(2)} / ${kartkaM.toFixed(2)} rad)`);
   // Wire-O wg tabel producentów.
   assert.deepEqual([parametryWireO(3.5).srednica, parametryWireO(3.5).typ, parametryWireO(3.5).skok], [6.4, '3:1', 8.47]);
   assert.deepEqual([parametryWireO(10).srednica, parametryWireO(10).typ], [12.7, '3:1']);
@@ -510,7 +512,9 @@ test('makieta 3D: twarda – bez „języka” w zgięciu, przy otwartej wyklejc
     const q = scena('ksiazka_twarda', k, u);
     assert.equal(q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier').length, 0, `u = ${u}: bez wiszącego paska wyklejki`);
     const sciana = q.filter((x) => x.tex === 'tex:krawedz' && Math.abs(x.n[0]) > 0.95 && x.p.every((p) => Math.abs(p[0]) < 30));
-    assert.ok(sciana.some((x) => x.p.every((p) => Math.abs(p[0] - x.p[0][0]) < 1e-6)), `u = ${u}: pionowy grzbiet bloku`);
+    // Grzbiet bloku pionowy – płaski albo (okrągły grzbiet, zgłoszenie 19.11) łuk składek: cały blok po jednej stronie
+    // zostaje zaokrąglony jak w zamkniętej książce.
+    assert.ok(sciana.some((x) => x.p.every((p) => Math.abs(p[0] - x.p[0][0]) < 1e-6)) || q.some((x) => x.tex === 'tex:skladki'), `u = ${u}: pionowy grzbiet bloku`);
   }
 });
 
@@ -524,7 +528,8 @@ test('makieta 3D: twarda – pionowy grzbiet przy wyklejce, stała szerokość g
   // Otwarta wyklejka: grzbiet pionowy (wąski w poziomie, wysoki na grubość bloku), tektura u góry.
   let q = scena('ksiazka_twarda', k, 1);
   const g1 = obwiednia(q.filter((x) => x.grzbiet));
-  assert.ok(g1.max[0] - g1.min[0] < 3 && g1.max[1] - g1.min[1] > Tb - 1, `grzbiet pionowy (${(g1.max[0] - g1.min[0]).toFixed(1)} × ${(g1.max[1] - g1.min[1]).toFixed(1)} mm)`);
+  // Sztywny grzbiet (zgłoszenie 19.11) – ten sam profil co w zamkniętej: łuk ok. 6 mm + 1 mm szpary + grubość.
+  assert.ok(g1.max[0] - g1.min[0] < 11 && g1.max[1] - g1.min[1] > Tb - 1, `grzbiet pionowy (${(g1.max[0] - g1.min[0]).toFixed(1)} × ${(g1.max[1] - g1.min[1]).toFixed(1)} mm)`);
   const tek = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
   assert.ok(tek.max[1] - tek.min[1] < 3 && tek.min[1] > Tb - 1, 'odwinięta tektura leży poziomo na wysokości bloku');
   // Szerokość grzbietu ta sama w każdym miejscu książki.
