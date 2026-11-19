@@ -251,6 +251,7 @@ function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
   f.elements.ok_big.value = o.big_mm;
   f.elements.ok_naddatek.value = o.naddatek_mm;
   f.elements.ok_tektura.value = o.tektura_mm;
+  f.elements.ok_ksztalt_grzbietu.value = o.grzbiet;
   // Materiał i wykończenie (#214).
   const wyk = o.wykonczenie || { material: 'druk', folia: 'mat', rogi_mm: 0 };
   f.elements.ok_material.replaceChildren(...Object.entries(MATERIALY).map(([k, m]) => new Option(m.nazwa, k)));
@@ -318,7 +319,7 @@ function okladkaZPol(f) {
     srodek: pola.length > 1 && wybrane.length < pola.length ? wybrane : null,
     strony: { tryb: f.elements.ok_strony.value, liczba: n('ok_liczba') },
     papier: { tryb: f.elements.ok_papier.value, gramatura: n('ok_gramatura'), grubosc_mm: n('ok_grubosc'), rodzaj: f.elements.ok_rodzaj.value },
-    zawiniecie_mm: n('ok_zawiniecie'), big_mm: n('ok_big'), naddatek_mm: n('ok_naddatek'), tektura_mm: n('ok_tektura'),
+    zawiniecie_mm: n('ok_zawiniecie'), big_mm: n('ok_big'), naddatek_mm: n('ok_naddatek'), tektura_mm: n('ok_tektura'), grzbiet: f.elements.ok_ksztalt_grzbietu.value === 'prosty' ? 'prosty' : 'okragly',
     tasiemka: f.elements.ok_tasiemka.checked ? { kolor: f.elements.ok_tasiemka_kolor.value } : null,
     wykonczenie: wykonczenieZPol(f),
     wymiary: { tryb: f.elements.ok_wymiary.value, grzbiet_mm: n('ok_grzbiet'), szerokosc_mm: n('ok_szerokosc'), wysokosc_mm: n('ok_wysokosc') },

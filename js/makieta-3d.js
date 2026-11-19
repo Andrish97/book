@@ -130,7 +130,7 @@ export function kartkiModelu(model, { strony, format, okladka = null, kartka_mm 
   const skrz = (czesc, strona) => (twarda && obwoluta?.skrzydelko_mm > 0 ? { skrzydelko: { tex: `obw:${czesc}`, w: Math.min(obwoluta.skrzydelko_mm, wOkl - 4), strona } } : {});
   const naOkl = twarda && obwoluta ? 'obw' : 'okl'; // obwoluta zakrywa przód, grzbiet i tył okładki
   const zObw = Boolean(okladka) || naOkl === 'obw';
-  if (zOkladka) kartki.push({ przod: zObw ? `${naOkl}:przod` : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(wPrzod ? wklejka('B') : {}), ...skrz('skrzydelko_p', -1) });
+  if (zOkladka) kartki.push({ przod: zObw ? `${naOkl}:przod` : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(okladka?.grzbiet === 'prosty' ? { grzbiet: 'prosty' } : {}), ...(wPrzod ? wklejka('B') : {}), ...skrz('skrzydelko_p', -1) });
   // Bez sekcji okładki pierwsza strona jest okładką (miękka): środek zaczyna się od niej.
   const od = (zOkladka && !zObw && strony) || wPrzod ? 1 : 0;
   const ile = wTyl ? strony - 1 : strony;
@@ -598,7 +598,10 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
   else if (zOkl && SP.czesci.length === 1 && SP.czesci[0].okladka && SL.czesci[0]?.okladka) oP = f * Ts;
   if (V) { oL = 0; oP = 0; }
   // Twarda oprawa: blok szyty z wypukłym grzbietem (składki, kapitałka), schowany pod skorupą grzbietu.
-  const bGrzbiet = twarda && zOkl ? Math.min(3.5, 0.1 * Tb) : 0;
+  // Zgłoszenie 19.11 („książka z zaokrąglonym grzbietem”): wybór w ustawieniach okładki – zaokrąglony (łuk
+  // ok. 1/5 grubości bloku, najwyżej 6 mm; wcześniej 1/10 – przy cieńszych książkach niewidoczny) albo prosty.
+  const prostyGrzbiet = kartki.some((x) => x.okladka && x.grzbiet === 'prosty');
+  const bGrzbiet = twarda && zOkl && !prostyGrzbiet ? Math.min(6, Math.max(1, 0.2 * Tb)) : 0;
 
   // Obrót i przesunięcie quadów połowy: z układu „od zawiasu, na płasko” do położenia w otwartej książce.
   const przeniesQuady = (od, kat, [jx, jy]) => {
@@ -706,7 +709,8 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0 } = {}) {
       const dl = Math.hypot(A[0] - Bp[0], A[1] - Bp[1]);
       if (dl > (V ? 0.05 : 0.4)) {
         const dS = twarda ? 1.2 : kar.d;
-        const kk = (twarda ? 0.26 : 0.07) * dl;
+        // Grzbiet prosty (zgłoszenie 19.11) – płaska skorupa z zaokrąglonymi tylko rogami, jak w miękkiej.
+        const kk = (twarda && !prostyGrzbiet ? 0.26 : 0.07) * dl;
         let pts;
         if (V) {
           // Grzbiet skorupy (#199.3): prosty, stałej szerokości, od zawiasu do zawiasu, lekko wypukły na zewnątrz

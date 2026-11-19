@@ -93,7 +93,7 @@ Sekcja to część publikacji z własnym formatem (np. okładka i środek).
                 "wymiary": { "tryb": "auto", "grzbiet_mm": 0, "szerokosc_mm": 0, "wysokosc_mm": 0 } } }
 ```
 
-- `oprawa`: `miekka` (klejona, grzbiet = kartki × grubość kartki), `zeszytowa` (zszywki, bez grzbietu), `twarda` (tektura: grzbiet = blok + 2 × `tektura_mm`; dookoła `zawiniecie_mm`, przy grzbiecie bigi `big_mm`, tektura wystaje o `naddatek_mm`).
+- `oprawa`: `miekka` (klejona, grzbiet = kartki × grubość kartki), `zeszytowa` (zszywki, bez grzbietu), `twarda` (tektura: grzbiet = blok + 2 × `tektura_mm`; dookoła `zawiniecie_mm`, przy grzbiecie bigi `big_mm`, tektura wystaje o `naddatek_mm`; `grzbiet`: `okragly` (domyślnie) albo `prosty` – kształt grzbietu w makiecie 3D).
 - `srodek`: `null` – środek to wszystkie sekcje poza okładkami; albo lista id sekcji. Format strony środka bierze się z pierwszej z nich.
 - `strony.tryb`: `auto` – liczba stron środka liczona z sekcji środka (z powieleniami serii); `reczne` – `strony.liczba`.
 - `papier.tryb`: `grubosc` – `grubosc_mm` jednej kartki; `gramatura` – grubość = `gramatura` × wolumen papieru / 1000 (`rodzaj`: `offset` 1,25, `ksiazkowy` 1,5, `objetosciowy` 1,8, `kredowy_mat` 0,95, `kredowy_blysk` 0,8 cm³/g).

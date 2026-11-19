@@ -105,6 +105,8 @@ export function normalizujOkladke(o) {
     big_mm: liczbaLub(o.big_mm, d.big_mm, 0, 30),
     naddatek_mm: liczbaLub(o.naddatek_mm, d.naddatek_mm, 0, 20),
     tektura_mm: liczbaLub(o.tektura_mm, d.tektura_mm, 0, 10),
+    // Grzbiet twardej oprawy (zgłoszenie 19.11): zaokrąglony (blok szyty, wypukły grzbiet) albo prosty (płaski).
+    grzbiet: o.grzbiet === 'prosty' ? 'prosty' : 'okragly',
     wykonczenie: normalizujWykonczenie(o.wykonczenie), // materiał, folia, rogi (#214)
     tasiemka: o.tasiemka && typeof o.tasiemka === 'object' && /^#[0-9a-f]{6}$/i.test(o.tasiemka.kolor || '') ? { kolor: o.tasiemka.kolor.toLowerCase() } : null,
     wymiary: {

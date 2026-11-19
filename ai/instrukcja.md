@@ -1048,7 +1048,7 @@ Okładka to osobna sekcja z jedną szeroką stroną: tył, grzbiet i przód. Zro
 
 | Ustawienie | Co znaczy |
 |---|---|
-| **Oprawa** | **Miękka klejona (z grzbietem)**, **Zeszytowa – szyta zszywkami (bez grzbietu)** albo **Twarda (tektura z zawinięciem)** — przy twardej ustawisz **Zawinięcie**, **Big**, **Naddatek tektury** i **Grubość tektury** (mm). |
+| **Oprawa** | **Miękka klejona (z grzbietem)**, **Zeszytowa – szyta zszywkami (bez grzbietu)** albo **Twarda (tektura z zawinięciem)** — przy twardej ustawisz **Zawinięcie**, **Big**, **Naddatek tektury**, **Grubość tektury** (mm) i **Grzbiet**: **Zaokrąglony** (blok szyty z wypukłym grzbietem – makieta 3D pokazuje łuk) albo **Prosty** (płaski). |
 | **Papier środka** | **Gramatura** — **Gramatura (g/m²)** i **Rodzaj papieru** (offset, kredowy mat, kredowy błysk, objętościowy) — albo **Grubość kartki** w mm od drukarni. |
 | **Strony środka** | **Policz same** — ze wszystkich stron środka, razem z powieleniami serii — albo **Wpisz** liczbę. **Środek to sekcje** wybiera, które sekcje się liczą, gdy jest ich kilka. |
 
