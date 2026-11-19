@@ -43,6 +43,9 @@ export function normalizujCzesc(c = {}) {
   const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null, ...(z.naciecie ? { naciecie: true } : {}) }));
   return {
     nr: String(c.nr || 'A'), ...(typeof c.opis === 'string' && c.opis ? { opis: c.opis.slice(0, 80) } : {}), punkty, krawedzie, zgiecia, pola, szczeliny, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
+    // Nadruk (#283): obraz projektu (zasób) w prostokącie części – tekstura modelu 3D.
+    ...(c.nadruk && typeof c.nadruk.zasob === 'string' && [c.nadruk.x, c.nadruk.y, c.nadruk.w, c.nadruk.h].every(Number.isFinite) && c.nadruk.w > 0 && c.nadruk.h > 0
+      ? { nadruk: { zasob: c.nadruk.zasob, x: zaokr(c.nadruk.x), y: zaokr(c.nadruk.y), w: zaokr(c.nadruk.w), h: zaokr(c.nadruk.h) } } : {}),
     pokaz_numery: c.pokaz_numery !== false, druk: c.druk === 'drukarnia' ? 'drukarnia' : 'domowy',
     ...(Number.isFinite(c.uklad?.x) && Number.isFinite(c.uklad?.y) ? { uklad: { x: c.uklad.x, y: c.uklad.y } } : {}),
   };
@@ -301,7 +304,7 @@ export function rozetnijCzesc(c, a, b, para) {
     }
     const srodekPolaKl = (p) => { const r = rogiPola(p); return { x: (r[0].x + r[2].x) / 2, y: (r[0].y + r[2].y) / 2 }; };
     return {
-      punkty: w, krawedzie, zgiecia,
+      punkty: w, krawedzie, zgiecia, nadruk: undefined, // nadruk obejmował całą część – po rozcięciu by wystawał
       pola: (c.pola || []).filter((p) => wWielokacie(w, srodekPolaKl(p))),
       szczeliny: (c.szczeliny || []).filter((z) => wWielokacie(w, { x: (z.a.x + z.b.x) / 2, y: (z.a.y + z.b.y) / 2 })),
     };
@@ -346,7 +349,7 @@ export function scalCzesci(c1, i1, c2, i2) {
   }
   const Tz = (z) => ({ ...z, a: T(z.a), b: T(z.b), ...(z.luk ? { luk: T(z.luk) } : {}) });
   return {
-    punkty, krawedzie,
+    punkty, krawedzie, nadruk: undefined,
     zgiecia: [...c1.zgiecia, ...c2.zgiecia.map(Tz), { a: { ...A }, b: { ...B }, rodzaj: 'gora', kat: 90 }],
     pola: [...(c1.pola || []), ...(c2.pola || []).map((p) => { const q = T(p); return { ...p, x: q.x, y: q.y, kat: zaokr(((p.kat || 0) + (kat * 180) / Math.PI) % 360) }; })],
     szczeliny: [...(c1.szczeliny || []), ...(c2.szczeliny || []).map(Tz)],
@@ -409,6 +412,9 @@ const KOLOR_LINII = '#6b6b6b';
 const KOLOR_ZAKLADKI = '#eeeeee';
 
 // Lista elementów Fabric części w układzie części (mm). Środek grupy liczy wywołujący.
+// Obrazy nadruku (#283): zasób → wczytany element <img>/<canvas>. Wypełnia aplikacja przed wstawieniem części;
+// przebudowa części bierze element z dotychczasowej grupy (po wczytaniu projektu obraz jest już w jej środku).
+export const elementyNadruku = new Map();
 export function elementyCzesci(def) {
   const c = normalizujCzesc(def);
   if (c.punkty.length < 3) return [];
@@ -431,6 +437,12 @@ export function elementyCzesci(def) {
     if (k.para && c.pokaz_numery) { const s = srodekWielokata(z); numer(k.para, s.x, s.y, Math.min(3.2, k.szer * 0.5)); }
   });
   el.push(new fabric.Polygon(c.punkty, { ...wspolne, fill: c.kolor, stroke: null, strokeWidth: 0, nazwa: 'Ściana', skladanka: 'sciana' }));
+  const obrazNadruku = c.nadruk && elementyNadruku.get(c.nadruk.zasob);
+  if (obrazNadruku) {
+    const iw = obrazNadruku.naturalWidth || obrazNadruku.width;
+    const ih = obrazNadruku.naturalHeight || obrazNadruku.height;
+    el.push(new fabric.FabricImage(obrazNadruku, { ...wspolne, left: c.nadruk.x, top: c.nadruk.y, originX: 'left', originY: 'top', scaleX: c.nadruk.w / iw, scaleY: c.nadruk.h / ih, zasob: c.nadruk.zasob, nazwa: 'Nadruk', skladanka: 'nadruk' }));
+  }
   for (const z of c.zgiecia) zgiecie(z.a, z.b, z.rodzaj, z.luk);
   // Miejsca klejenia: na wierzchu – jasne pole z numerem (drukowane) i płyta Glue; na spodzie – tylko płyta Glue.
   for (const pole of c.pola) {
@@ -470,6 +482,7 @@ export function elementyCzesci(def) {
 // Przebudowa (`grupa` – dotychczasowa grupa) daje NOWĄ grupę w tym samym miejscu, z tym samym obrotem: punkty
 // części, które się nie zmieniły, zostają na stronie tam, gdzie były. Podmienia ją wywołujący.
 export function zbudujCzesc(def, { grupa = null, left = 0, top = 0 } = {}) {
+  for (const o of grupa?.getObjects?.() || []) if (o.zasob && typeof o.getElement === 'function' && !elementyNadruku.has(o.zasob)) elementyNadruku.set(o.zasob, o.getElement());
   const c = normalizujCzesc(def);
   const el = elementyCzesci(c);
   for (const o of el) { o.set({ left: o.left + left, top: o.top + top }); o.setCoords(); }

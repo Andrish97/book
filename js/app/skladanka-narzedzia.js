@@ -10,11 +10,12 @@
 // Esc kończy narzędzie. Wszystko inne (kolor, krawędzie, numery, usuwanie) – w panelu części.
 
 import {
-  zbudujCzesc, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, scalCzesci, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
+  zbudujCzesc, elementyNadruku, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, scalCzesci, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
   naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
   rozlozNaArkusze, instrukcjaMontazu,
 } from '../skladanka.js';
 import { nowaStrona, nowaSekcja } from '../projekt.js';
+import { przyjmijPlik } from '../obrazy-projektu.js';
 import { SZABLONY_SKLADANEK, OPISY_PARAMETROW, czesciSzablonu, numeruj, brylaZRzutu } from '../skladanka-szablony.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
@@ -164,6 +165,42 @@ export function oknoBryly() {
   dlg.showModal();
 }
 
+// Tekstura modelu na części (#283): każdy trójkąt obrazka (UV) przeniesiony afinicznie na swoje miejsce w części,
+// z przycięciem do trójkąta poszerzonego o pół piksela (bez szczelin). Wynik – obraz projektu w prostokącie części.
+async function nadrukZTekstury(m, t, cz, plikObrazu) {
+  const obraz = await globalThis.createImageBitmap(plikObrazu);
+  const w = Math.max(...cz.punkty.map((q) => q.x));
+  const h = Math.max(...cz.punkty.map((q) => q.y));
+  const k = Math.max(2, Math.min(12, 3000 / Math.max(w, h, 1))); // pikseli na mm (12 ≈ 300 dpi)
+  const plotno = document.createElement('canvas');
+  plotno.width = Math.ceil(w * k);
+  plotno.height = Math.ceil(h * k);
+  const ctx = plotno.getContext('2d');
+  for (const tr of t.trojkaty) {
+    const src = tr.uv.map(([u, v]) => ({ x: u * obraz.width, y: (1 - v) * obraz.height }));
+    const dst = tr.p.map((q) => ({ x: q.x * k, y: q.y * k }));
+    const M = m.macierzTrojkata(src, dst);
+    if (!M) continue;
+    const sx = (dst[0].x + dst[1].x + dst[2].x) / 3;
+    const sy = (dst[0].y + dst[1].y + dst[2].y) / 3;
+    const pos = dst.map((q) => { const l = Math.hypot(q.x - sx, q.y - sy) || 1; return { x: q.x + ((q.x - sx) / l) * 0.6, y: q.y + ((q.y - sy) / l) * 0.6 }; });
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(pos[0].x, pos[0].y);
+    ctx.lineTo(pos[1].x, pos[1].y);
+    ctx.lineTo(pos[2].x, pos[2].y);
+    ctx.closePath();
+    ctx.clip();
+    ctx.setTransform(...M);
+    ctx.drawImage(obraz, 0, 0);
+    ctx.restore();
+  }
+  const blob = await new Promise((ok) => plotno.toBlob(ok, 'image/png'));
+  const { id } = await przyjmijPlik(stan.projekt, new File([blob], `${cz.nazwa} – nadruk.png`, { type: 'image/png' }), `${cz.nazwa} – nadruk.png`);
+  elementyNadruku.set(id, plotno);
+  return { zasob: id, x: 0, y: 0, w, h };
+}
+
 // Model 3D z pliku (#264): OBJ albo STL rozłożony na części (js/rozkladanie-3d.js), potem [Rozłóż] na arkusze.
 export function oknoModelu3D() {
   if (!wSkladance()) return;
@@ -173,7 +210,7 @@ export function oknoModelu3D() {
     dlg.id = 'dlg-model-3d';
     dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Model 3D na siatkę</h2>
       <p class="ciche">Wczytaj bryłę z Blendera albo z sieci (OBJ albo STL). Makietka rozłoży ją na płasko: ściany wzdłuż najbardziej płaskich krawędzi, zgięcia góra i dolina z kątem, zakładki z numerami par; gdy część nachodziłaby na siebie, powstaje następna. Im mniej ścian, tym łatwiej skleić – najlepiej do kilkuset trójkątów.</p>
-      <label class="pole"><span>Plik modelu (OBJ albo STL; do OBJ można dołączyć MTL z kolorami)</span><input type="file" name="plik" accept=".obj,.stl,.mtl,model/obj,model/stl" multiple></label>
+      <label class="pole"><span>Plik modelu (OBJ albo STL; do OBJ można dołączyć MTL z kolorami i obrazek tekstury)</span><input type="file" name="plik" accept=".obj,.stl,.mtl,.png,.jpg,.jpeg,.webp,model/obj,model/stl,image/png,image/jpeg,image/webp" multiple></label>
       <label class="pole waskie"><span>Największy wymiar (mm)</span><input type="number" name="rozmiar" min="10" step="any" value="120" inputmode="decimal"></label>
       <p class="blad-polaczenia" role="alert" hidden></p>
       <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Rozłóż model</button></div></form>`;
@@ -193,9 +230,20 @@ export function oknoModelu3D() {
         if (!siatka.sciany.length) throw new Error('W pliku nie ma ścian – czy to na pewno model OBJ albo STL?');
         if (siatka.sciany.length > 3000) throw new Error(`Model ma ${siatka.sciany.length} ścian – za dużo do sklejenia. Uprość go w programie 3D (np. Blender → Decimate) do kilkuset ścian.`);
         const w = m.rozlozSiatke(siatka, { rozmiar: Math.max(10, Number(String(f.elements.rozmiar.value).replace(',', '.')) || 120), nazwa: plik.name.replace(/\.[^.]+$/, '') });
+        const obrazy = new Map(pliki.filter((x) => x.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(x.name)).map((x) => [x.name.toLowerCase(), x]));
+        const brakObrazow = new Set();
+        for (const cz of w.czesci) {
+          const t = cz.tekstura;
+          delete cz.tekstura;
+          if (!t) continue;
+          const obraz = obrazy.get(t.plik.toLowerCase());
+          if (!obraz) { brakObrazow.add(t.plik); continue; }
+          cz.nadruk = await nadrukZTekstury(m, t, cz, obraz);
+        }
         const wstawione = wstawCzesci(w.czesci);
+        if (w.czesci.some((c) => c.nadruk)) edytor.dispatchEvent(new Event('zasoby'));
         dlg.close();
-        powiadom(`Model rozłożony: ${w.trojkatow} trójkątów → ${wstawione.length} ${wstawione.length === 1 ? 'część' : 'części'}. Użyj [Rozłóż], żeby ułożyć je na arkuszach.`);
+        powiadom(`Model rozłożony: ${w.trojkatow} trójkątów → ${wstawione.length} ${wstawione.length === 1 ? 'część' : 'części'}. Użyj [Rozłóż], żeby ułożyć je na arkuszach.${brakObrazow.size ? ` Brakuje obrazka tekstury: ${[...brakObrazow].join(', ')} – wybierz go razem z modelem, żeby trafił na części.` : ''}`, Boolean(brakObrazow.size));
       } catch (er) { blad.textContent = er.message; blad.hidden = false; }
     });
   }

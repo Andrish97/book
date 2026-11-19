@@ -13,24 +13,43 @@ const EPS = 1e-9;
 // usemtl – materiał kolejnych ścian (#277): kolor z MTL (Kd) albo – bez MTL – z palety według nazwy materiału.
 export function wczytajOBJ(tekst, mtl = null) {
   const v = [];
+  const vt = [];
   const sciany = [];
+  const scianyUV = [];
   const kolory = [];
+  const tekstury = [];
   const materialy = mtl ? wczytajMTL(mtl) : {};
+  const mapy = mtl ? teksturyMTL(mtl) : {};
   let kolor = null;
+  let tekstura = null;
   const nazwy = [];
   for (const linia of String(tekst).split(/\r?\n/)) {
     const t = linia.trim().split(/\s+/);
     if (t[0] === 'v' && t.length >= 4) v.push([Number(t[1]), Number(t[2]), Number(t[3])]);
+    else if (t[0] === 'vt' && t.length >= 3) vt.push([Number(t[1]), Number(t[2])]);
     else if (t[0] === 'usemtl') {
       const n = t.slice(1).join(' ');
       if (!nazwy.includes(n)) nazwy.push(n);
       kolor = materialy[n] || PALETA[nazwy.indexOf(n) % PALETA.length];
+      tekstura = mapy[n] || null;
     } else if (t[0] === 'f' && t.length >= 4) {
-      const ids = t.slice(1).map((x) => { const i = parseInt(x.split('/')[0], 10); return i < 0 ? v.length + i : i - 1; });
-      if (ids.every((i) => i >= 0 && i < v.length)) { sciany.push(ids); kolory.push(kolor); }
+      const idx = (x, n) => { const i = parseInt(x, 10); return Number.isNaN(i) ? -1 : i < 0 ? n + i : i - 1; };
+      const ids = t.slice(1).map((x) => idx(x.split('/')[0], v.length));
+      const uv = t.slice(1).map((x) => idx(x.split('/')[1] ?? '', vt.length));
+      if (ids.every((i) => i >= 0 && i < v.length)) {
+        sciany.push(ids);
+        kolory.push(kolor);
+        // Tekstura (#283): współrzędne UV wierzchołków ściany, gdy materiał ma obrazek (map_Kd) i UV są kompletne.
+        const pelne = tekstura && uv.every((i) => i >= 0 && i < vt.length);
+        scianyUV.push(pelne ? uv : null);
+        tekstury.push(pelne ? tekstura : null);
+      }
     }
   }
-  return { wierzcholki: v, sciany, ...(kolory.some(Boolean) ? { kolory } : {}) };
+  return {
+    wierzcholki: v, sciany, ...(kolory.some(Boolean) ? { kolory } : {}),
+    ...(tekstury.some(Boolean) ? { uv: vt, scianyUV, tekstury } : {}),
+  };
 }
 const PALETA = ['#f2c14e', '#7cb7e8', '#9bd18b', '#f28f6b', '#c7a2e0', '#f5f0e6', '#8fd6cf', '#e8a0bf'];
 // MTL: newmtl nazwa; Kd r g b (0–1) → { nazwa: '#rrggbb' }.
@@ -41,6 +60,18 @@ export function wczytajMTL(tekst) {
     const t = linia.trim().split(/\s+/);
     if (t[0] === 'newmtl') biezacy = t.slice(1).join(' ');
     else if (t[0] === 'Kd' && biezacy && t.length >= 4) w[biezacy] = `#${t.slice(1, 4).map((x) => Math.round(Math.max(0, Math.min(1, Number(x))) * 255).toString(16).padStart(2, '0')).join('')}`;
+  }
+  return w;
+}
+
+// MTL: newmtl nazwa; map_Kd [opcje] plik → { nazwa: 'plik.png' } (sama nazwa pliku, bez folderów).
+export function teksturyMTL(tekst) {
+  const w = {};
+  let biezacy = null;
+  for (const linia of String(tekst).split(/\r?\n/)) {
+    const t = linia.trim().split(/\s+/);
+    if (t[0] === 'newmtl') biezacy = t.slice(1).join(' ');
+    else if (t[0] === 'map_Kd' && biezacy && t.length >= 2) w[biezacy] = t[t.length - 1].split(/[\\/]/).pop();
   }
   return w;
 }
@@ -155,9 +186,17 @@ export function rozlozSiatke(siatka, { rozmiar = 100, nazwa = 'Model', progZgiec
   // Trójkąty: wielokąty dzielone metodą uszu (także wklęsłe – np. sylwetka auta), bez zdegenerowanych.
   const T = [];
   const kolorT = [];
+  const uvT = []; // [[u, v] × 3] w kolejności wierzchołków trójkąta albo null
+  const teksT = [];
   siatka.sciany.forEach((f, fi) => {
+    const fuv = siatka.scianyUV?.[fi];
     for (const t of trojkatySciany(f, P3)) {
-      if (new Set(t).size === 3 && dlug(iloczyn(odejmij(P3[t[1]], P3[t[0]]), odejmij(P3[t[2]], P3[t[0]]))) > 1e-9) { T.push(t); kolorT.push(siatka.kolory?.[fi] || null); }
+      if (new Set(t).size === 3 && dlug(iloczyn(odejmij(P3[t[1]], P3[t[0]]), odejmij(P3[t[2]], P3[t[0]]))) > 1e-9) {
+        T.push(t);
+        kolorT.push(siatka.kolory?.[fi] || null);
+        uvT.push(fuv ? t.map((v) => siatka.uv[fuv[f.indexOf(v)]]) : null);
+        teksT.push(fuv ? siatka.tekstury[fi] : null);
+      }
     }
   });
   const N = T.map((t) => normalna(P3[t[0]], P3[t[1]], P3[t[2]]));
@@ -323,7 +362,32 @@ export function rozlozSiatke(siatka, { rozmiar = 100, nazwa = 'Model', progZgiec
     const pola = new Map();
     for (const ti of w.trojkaty) if (kolorT[ti]) pola.set(kolorT[ti], (pola.get(kolorT[ti]) || 0) + pole(ti));
     const kolor = [...pola.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
-    return { nazwa: wyspy.length > 1 ? `${nazwa} – część ${iw + 1}` : nazwa, punkty, krawedzie, zgiecia, ...(kolor ? { kolor } : {}) };
+    // Tekstura (#283): obrazek o największej powierzchni w części; trójkąty z położeniem w układzie części i UV.
+    const tp = new Map();
+    for (const ti of w.trojkaty) if (teksT[ti]) tp.set(teksT[ti], (tp.get(teksT[ti]) || 0) + pole(ti));
+    const plik = [...tp.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+    const tekstura = plik ? {
+      plik,
+      trojkaty: w.trojkaty.filter((ti) => teksT[ti] === plik).map((ti) => ({ p: pozycja[ti].map((q) => ({ x: q.x - minX, y: q.y - minY })), uv: uvT[ti] })),
+    } : null;
+    return { nazwa: wyspy.length > 1 ? `${nazwa} – część ${iw + 1}` : nazwa, punkty, krawedzie, zgiecia, ...(kolor ? { kolor } : {}), ...(tekstura ? { tekstura } : {}) };
   });
   return { czesci, trojkatow: T.length, czesciIle: czesci.length };
+}
+
+// Przekształcenie afiniczne trójkąta src na trójkąt dst (#283 – malowanie tekstury): [a, b, c, d, e, f] jak
+// w ctx.setTransform – punkt (x, y) → (a·x + c·y + e, b·x + d·y + f). null, gdy src jest zdegenerowany.
+export function macierzTrojkata(src, dst) {
+  const [s0, s1, s2] = src;
+  const [d0, d1, d2] = dst;
+  const ux = s1.x - s0.x; const uy = s1.y - s0.y; const vx = s2.x - s0.x; const vy = s2.y - s0.y;
+  const det = ux * vy - vx * uy;
+  if (Math.abs(det) < 1e-12) return null;
+  const px = d1.x - d0.x; const py = d1.y - d0.y; const qx = d2.x - d0.x; const qy = d2.y - d0.y;
+  // A = D · S⁻¹, S = [[ux, vx], [uy, vy]], D = [[px, qx], [py, qy]].
+  const a = (px * vy - qx * uy) / det;
+  const c = (qx * ux - px * vx) / det;
+  const b = (py * vy - qy * uy) / det;
+  const d = (qy * ux - py * vx) / det;
+  return [a, b, c, d, d0.x - a * s0.x - c * s0.y, d0.y - b * s0.x - d * s0.y];
 }

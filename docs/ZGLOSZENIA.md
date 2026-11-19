@@ -232,3 +232,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – klapki (lift-the-flap) z zawiasem do książek (#280).
 - 19.11.2026: składanki – zgięcia po łuku i pudełko-poduszka (#281).
 - 19.11.2026: składanki – łączenie brył: ściany z dachem (#282).
+- 19.11.2026: składanki – tekstura modelu 3D jako nadruk na częściach (#283).
