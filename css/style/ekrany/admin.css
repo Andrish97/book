@@ -106,7 +106,7 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 .watek-akcje .gwiazdka { width: var(--dotyk); height: var(--dotyk); border-radius: var(--r-m); }
 .lista-watkow .gwiazdka:hover, .watek-akcje .gwiazdka:hover { color: var(--cichy); }
 .lista-watkow .gwiazdka:focus-visible, .watek-akcje .gwiazdka:focus-visible { outline: 2px solid var(--akcent); outline-offset: -4px; border-radius: 6px; }
-.skrzynka .gwiazdka[aria-pressed="true"] { color: #e3a008; }
+.skrzynka .gwiazdka[aria-pressed="true"] { color: var(--gwiazdka); }
 .skrzynka .gwiazdka[aria-pressed="true"] .ikona { fill: currentColor; }
 .lista-watkow .otworz {
   all: unset; box-sizing: border-box; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px;
@@ -165,7 +165,7 @@ body[data-ekran="admin"] #ekran-admin { display: flex; }
 .wiadomosc.zwinieta .wiadomosc-zajawka { display: block; }
 .wiadomosc-tresc { margin: 10px 0 0 46px; min-width: 0; }
 .tekst-wiadomosci { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.55; }
-.ramka-wiadomosci { display: block; width: 100%; height: 60px; border: 0; border-radius: var(--r-s); background: #fff; color-scheme: light; }
+.ramka-wiadomosci { display: block; width: 100%; height: 60px; border: 0; border-radius: var(--r-s); background: var(--kartka); color-scheme: light; }
 :root[data-motyw="ciemny"] .ramka-wiadomosci { padding: 10px 12px; box-sizing: content-box; width: calc(100% - 24px); }
 .pasek-obrazow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 8px; padding: 6px 10px; border-radius: var(--r-s); background: var(--powierzchnia-2); color: var(--cichy); font-size: 12.5px; }
 .wiadomosc-zalaczniki { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0 46px; }

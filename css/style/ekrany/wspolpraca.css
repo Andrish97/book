@@ -37,7 +37,7 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 .osoba-akcje select { width: auto; min-width: 150px; }
 .awatar-maly {
   flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center;
-  background: var(--akcent); color: #fff; font-size: 14px; font-weight: 700;
+  background: var(--akcent); color: var(--na-kolorze); font-size: 14px; font-weight: 700;
 }
 .osoba-zaproszenie .awatar-maly { background: var(--wypelnienie); color: var(--cichy); border: 1px dashed var(--linia-mocna); }
 #zaproszenie-opis { margin: 0; line-height: 1.5; }
@@ -54,12 +54,12 @@ a.przycisk.glowny { color: var(--akcent-tekst); }
 .obecnosc[hidden] { display: none; }
 .awatar-obecnosci {
   width: 28px; height: 28px; margin-left: -7px; border-radius: 50%; display: inline-grid; place-items: center;
-  border: 2px solid var(--powierzchnia); color: #fff; font-size: 12px; font-weight: 700; cursor: default;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+  border: 2px solid var(--powierzchnia); color: var(--na-kolorze); font-size: 12px; font-weight: 700; cursor: default;
+  box-shadow: var(--cien-awatara);
 }
 .awatar-obecnosci:first-child { margin-left: 0; }
 .awatar-obecnosci.reszta { background: var(--wypelnienie); color: var(--tusz); }
 .lista-stron li.strona::after {
   position: absolute; top: 6px; left: 32px; width: 18px; height: 18px; border-radius: 50%;
-  display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; pointer-events: none;
+  display: grid; place-items: center; color: var(--na-kolorze); font-size: 10px; font-weight: 700; line-height: 1; pointer-events: none;
 }

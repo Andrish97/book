@@ -31,17 +31,17 @@
 }
 .karta-projektu .okladka img, .karta-projektu .okladka .pusta-okladka {
   max-width: 100%; max-height: 100%;
-  background: #fff; box-shadow: 0 6px 18px rgba(28, 27, 25, .16);
+  background: var(--kartka); box-shadow: var(--cien-okladki);
 }
 .karta-projektu .pusta-okladka { width: 60%; aspect-ratio: 148 / 210; }
 .karta-projektu .opis { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .karta-projektu .opis strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .karta-projektu .opis small { color: var(--cichy); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .karta-projektu .stan-wysylki { display: inline-flex; vertical-align: -2px; margin-right: 6px; color: var(--cichy); }
-.karta-projektu .stan-wysylki.chmura_ok { color: var(--sukces, #2e7d4f); }
-.karta-projektu .stan-wysylki.chmura_czeka { color: var(--uwaga, #b7791f); }
+.karta-projektu .stan-wysylki.chmura_ok { color: var(--sukces); }
+.karta-projektu .stan-wysylki.chmura_czeka { color: var(--uwaga); }
 .karta-projektu { position: relative; }
-.plakietka-linku { display: inline-flex; max-width: 100%; min-width: 0; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--linia-mocna); border-radius: 999px; background: var(--powierzchnia); color: var(--tekst); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.plakietka-linku { display: inline-flex; max-width: 100%; min-width: 0; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--linia-mocna); border-radius: 999px; background: var(--powierzchnia); color: var(--tekst); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: var(--cien-plakietki); }
 @media (hover: hover) { .plakietka-linku:hover { border-color: var(--akcent); color: var(--akcent); } }
 .karta-projektu .menu-karty { position: absolute; top: 8px; right: 8px; background: var(--szklo); --dotyk: 34px; }
 .karta-projektu .menu { top: 46px; right: 8px; min-width: 200px; }

@@ -56,10 +56,12 @@ async function porownajStyle(strona, innyCss, gdzie = '') {
   await podmienArkusze(strona, innyCss);
   const inne = await stylyStrony(strona);
   await podmienArkusze(strona, null);
+  // Drugi pomiar z bieżącymi arkuszami: element, który zmienił się sam (panel przebudowany w trakcie), pomijamy.
+  const teraz2 = await stylyStrony(strona);
   const roznice = [];
   for (const [k, v] of Object.entries(teraz)) {
     const s = inne[k];
-    if (s === undefined || s === v) continue;
+    if (s === undefined || s === v || teraz2[k] !== v) continue;
     if (v === 'display:none' || s === 'display:none') { roznice.push(`${gdzie} ${k}: widoczność ${s} → ${v}`); continue; }
     const a = s.split('|'); const b = v.split('|');
     const r = WLASCIWOSCI.map((p, i) => (a[i] !== b[i] ? `${p}: ${a[i]} → ${b[i]}` : null)).filter(Boolean);

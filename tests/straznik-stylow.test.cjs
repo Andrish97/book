@@ -29,7 +29,8 @@ function policzArkusze() {
 }
 
 // Zapadka: wartości z chwili wprowadzenia strażnika; kroki 2 i 6 je obniżają (nie wolno podnieść).
-const NAJWIECEJ = { important: 75, kolory: 167 };
+// #294: kolory poza tokenami – 0 (wszystkie w tokens.css).
+const NAJWIECEJ = { important: 75, kolory: 0 };
 
 test('zasady arkuszy: !important i kolory spoza tokenów nie przybywają; w JS bez kolorów wpisanych w style', () => {
   const { important, kolory } = policzArkusze();

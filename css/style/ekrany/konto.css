@@ -90,14 +90,14 @@
 .schemat-spad { position: absolute; inset: 0; border: 1.5px dashed color-mix(in srgb, var(--blad) 55%, transparent); border-radius: 2px; }
 .schemat-kartka {
   position: absolute; inset: var(--spad-y, 4%) var(--spad-x, 4%);
-  background: #fff; box-shadow: 0 1px 4px rgba(28, 27, 25, .25); border-radius: 1px;
+  background: var(--kartka); box-shadow: var(--cien-schematu); border-radius: 1px;
 }
 .schemat-pole-tekstu {
   position: absolute; top: var(--m-gora, 10%); bottom: var(--m-dol, 10%); left: var(--m-lewy, 12%); right: var(--m-prawy, 12%);
   border: 1px dashed var(--akcent); background: color-mix(in srgb, var(--akcent) 8%, transparent);
 }
 /* Rozkładówki: kreska grzbietu przy marginesie wewnętrznym (schemat pokazuje prawą stronę). */
-.schemat-marginesow.rozkladowki .schemat-kartka { box-shadow: inset 3px 0 0 -1px rgba(28, 27, 25, .35), 0 1px 4px rgba(28, 27, 25, .25); }
+.schemat-marginesow.rozkladowki .schemat-kartka { box-shadow: var(--cien-grzbietu-schematu), var(--cien-schematu); }
 .schemat-marginesow.bez-spadu .schemat-spad { display: none; }
 @media (max-width: 420px) {
   .schemat-marginesow { grid-template-columns: 72px minmax(96px, 1fr) 72px; column-gap: 8px; }

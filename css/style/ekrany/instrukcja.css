@@ -92,7 +92,7 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
 }
 .instrukcja-tresc ol.kroki > li::before {
   content: counter(krok); position: absolute; left: 12px; top: 10px; width: 24px; height: 24px; border-radius: 50%;
-  display: grid; place-items: center; background: var(--akcent); color: var(--akcent-tekst, #fff); font-size: 12.5px; font-weight: 700;
+  display: grid; place-items: center; background: var(--akcent); color: var(--akcent-tekst); font-size: 12.5px; font-weight: 700;
 }
 /* Tabele opcji. */
 .tabela-instrukcji { max-width: 100%; margin: 4px 0 16px; overflow-x: auto; border: 1px solid var(--linia); border-radius: var(--r-m); }
@@ -112,11 +112,11 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
 .instrukcja-tresc figcaption { margin-top: 8px; font-size: 12.5px; color: var(--cichy); }
 .instrukcja-tresc .galeria { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 16px; align-items: start; }
 .instrukcja-tresc .galeria figure.telefon img { width: 100%; max-width: 300px; }
-.instrukcja-lupa { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 24px; background: rgba(20, 19, 17, .82); cursor: zoom-out; }
-.instrukcja-lupa img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--r-m); background: #fff; }
+.instrukcja-lupa { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 24px; background: var(--zaslona-ciemna); cursor: zoom-out; }
+.instrukcja-lupa img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--r-m); background: var(--kartka); }
 /* Ramki i polecenia dla AI. */
 .instrukcja-tresc .ramka-instrukcji { max-width: 72ch; margin: 0 0 14px; padding: 10px 14px; border-radius: var(--r-m); font-size: 14px; line-height: 1.5; border-left: 4px solid var(--akcent); background: var(--akcent-tlo); }
-.instrukcja-tresc .ramka-instrukcji.uwaga { border-left-color: var(--uwaga, #b45309); background: var(--uwaga-tlo, #fff4e5); }
+.instrukcja-tresc .ramka-instrukcji.uwaga { border-left-color: var(--uwaga); background: var(--uwaga-tlo); }
 .instrukcja-tresc .prompt-instrukcji { max-width: 76ch; margin: 0 0 16px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); overflow: hidden; }
 .instrukcja-tresc .prompt-naglowek { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--linia); }
 .instrukcja-tresc .prompt-instrukcji > .ciche { margin: 8px 14px 0; font-size: 13px; }
@@ -154,12 +154,12 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
   .instrukcja-wybor .strzalka { flex: none; transform: rotate(90deg); color: var(--cichy); }
   .instrukcja-spis {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; height: min(86%, 720px); padding: 16px 14px calc(14px + var(--bezp-dol));
-    border: 0; border-top: 1px solid var(--linia); border-radius: 18px 18px 0 0; box-shadow: 0 -12px 40px rgba(0, 0, 0, .22);
+    border: 0; border-top: 1px solid var(--linia); border-radius: 18px 18px 0 0; box-shadow: var(--cien-spisu);
     transform: translateY(105%); visibility: hidden; transition: transform .22s ease, visibility 0s .22s;
   }
   .spis-otwarty .instrukcja-spis { transform: none; visibility: visible; transition: transform .22s ease; }
   .instrukcja .instrukcja-spis-zamknij { display: inline-grid; }
-  .instrukcja-tlo-spisu { position: absolute; inset: 0; z-index: 3; background: rgba(20, 19, 17, .38); }
+  .instrukcja-tlo-spisu { position: absolute; inset: 0; z-index: 3; background: var(--zaslona-spisu); }
   .instrukcja.spis-otwarty .instrukcja-tlo-spisu { display: block; }
   .instrukcja-tresc { padding: 18px 16px 24px; }
   .instrukcja-h1 { font-size: 22px; }

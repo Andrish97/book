@@ -118,7 +118,7 @@ textarea { min-height: 84px; resize: vertical; line-height: 1.4; }
   width: 30px; height: 30px; border-radius: 8px;
   /* Ten sam znak co ikona aplikacji (img/ikony/, #240): strona w znakach cięcia. Litera w znaczniku zostaje
      dla czytników ekranu i starych zrzutów – niewidoczna. */
-  background: #2f5bd3 url(../../img/ikony/ikona.svg) center / cover no-repeat; color: transparent;
+  background: var(--logo) url(../../img/ikony/ikona.svg) center / cover no-repeat; color: transparent;
   font-family: Inter, system-ui, sans-serif; font-weight: 700; font-size: 18px; overflow: hidden;
 }
 
@@ -244,19 +244,19 @@ dialog > .postepy { position: fixed; }
 .wybor-koloru { position: relative; display: inline-block; }
 .kolor-natywny { position: absolute; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; pointer-events: none; }
 .kolor-przycisk { width: 36px; height: 36px; padding: 3px; border: 1px solid var(--linia-mocna); border-radius: var(--r-s); background: var(--powierzchnia); cursor: pointer; display: block; }
-.kolor-przycisk i { display: block; width: 100%; height: 100%; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+.kolor-przycisk i { display: block; width: 100%; height: 100%; border-radius: 3px; box-shadow: var(--cien-probki); }
 .kolor-przycisk:focus-visible, .kolor-przycisk[aria-expanded="true"] { outline: none; border-color: var(--akcent); box-shadow: 0 0 0 3px var(--akcent-tlo); }
 .kolor-przycisk:disabled { opacity: .45; cursor: default; }
 .kolor-okienko { width: 236px; padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow: visible; }
 .kolor-pole { position: relative; height: 140px; border-radius: var(--r-s); cursor: crosshair; touch-action: none; }
-.kolor-pole i { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .5); pointer-events: none; }
-.kolor-barwa { position: relative; height: 14px; border-radius: 7px; cursor: pointer; touch-action: none; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
-.kolor-barwa i { position: absolute; top: -2px; width: 8px; height: 18px; margin-left: -4px; border-radius: 4px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .5); pointer-events: none; }
+.kolor-pole i { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid var(--na-kolorze); box-shadow: var(--cien-uchwytu-koloru); pointer-events: none; }
+.kolor-barwa { position: relative; height: 14px; border-radius: 7px; cursor: pointer; touch-action: none; background: var(--barwy); }
+.kolor-barwa i { position: absolute; top: -2px; width: 8px; height: 18px; margin-left: -4px; border-radius: 4px; background: var(--kartka); box-shadow: var(--cien-uchwytu-koloru); pointer-events: none; }
 .kolor-pole:focus-visible, .kolor-barwa:focus-visible { outline: 2px solid var(--akcent); outline-offset: 2px; }
 .kolor-hex { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cichy); white-space: nowrap; }
 .kolor-hex input { min-height: 32px; padding: 4px 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
 .kolor-paleta { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
-.kolor-paleta button { aspect-ratio: 1; padding: 0; border: 0; border-radius: 4px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); }
+.kolor-paleta button { aspect-ratio: 1; padding: 0; border: 0; border-radius: 4px; cursor: pointer; box-shadow: var(--cien-probki-mocny); }
 .kolor-paleta button:focus-visible { outline: 2px solid var(--akcent); outline-offset: 1px; }
 @media (hover: hover) { .kolor-paleta button:hover { outline: 2px solid var(--akcent); outline-offset: 1px; } }
 .kolor-paleta.ostatnie, .kolor-paleta.projektu { padding-top: 8px; border-top: 1px solid var(--linia); }
@@ -295,7 +295,7 @@ dialog:focus { outline: none; }
   position: fixed; inset: auto 0 var(--klawiatura, 0px) 0; margin: 0 auto;
   width: 100%; max-width: none; max-height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora));
   border-radius: var(--r-l) var(--r-l) 0 0;
-  box-shadow: 0 -10px 36px rgba(0, 0, 0, .22);
+  box-shadow: var(--cien-zaslonki);
   padding: 0 var(--bezp-prawo) var(--bezp-dol) var(--bezp-lewo);
   overflow: hidden; overflow: clip;
   transform: translateY(var(--zaslonka-ciag, 0px));
@@ -376,7 +376,7 @@ dialog:focus { outline: none; }
 .pole-z-podpowiedziami > label { display: block; }
 .lista-podpowiedzi {
   position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px; list-style: none;
-  background: var(--powierzchnia); border: 1px solid var(--linia-mocna); border-radius: var(--r-m, 8px); box-shadow: 0 6px 20px rgba(0, 0, 0, .14);
+  background: var(--powierzchnia); border: 1px solid var(--linia-mocna); border-radius: var(--r-m, 8px); box-shadow: var(--cien-podpowiedzi);
 }
 .lista-podpowiedzi[hidden] { display: none; }
 .lista-podpowiedzi li { padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
@@ -388,7 +388,7 @@ dialog:focus { outline: none; }
   max-width: none !important; border-radius: 16px 16px 0 0 !important; border-bottom: 0 !important;
   padding-bottom: calc(8px + var(--bezp-dol)) !important;
   padding-left: calc(8px + var(--bezp-lewo)); padding-right: calc(8px + var(--bezp-prawo));
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, .22) !important;
+  box-shadow: var(--cien-okienka-zaslonki) !important;
   animation: okienkoZaslonka .18s ease-out;
 }
 .okienko-zaslonka.wybor-lista .wybor-opcja { padding: 12px 14px; font-size: 15px; white-space: normal; }
@@ -484,14 +484,14 @@ dialog:focus { outline: none; }
 .kalendarz-stopka { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linia); }
 
 /* Błąd w formularzu (js/kontrolki.js): komunikat pod polem zamiast systemowego dymku. */
-.blad-pola { margin: -2px 0 0; font-size: 12.5px; color: var(--blad, #b42318); grid-column: 1 / -1; }
+.blad-pola { margin: -2px 0 0; font-size: 12.5px; color: var(--blad); grid-column: 1 / -1; }
 input.z-bledem, select.z-bledem, textarea.z-bledem, .z-bledem + .wybor-przycisk,
-input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad, #b42318) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blad, #b42318) 22%, transparent) !important; outline: none; }
+input.z-bledem:focus, textarea.z-bledem:focus { border-color: var(--blad) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blad) 22%, transparent) !important; outline: none; }
 
 /* Dymek z podpowiedzią (js/dymki.js) – zamiast systemowego dymku z atrybutu „title”. */
 .dymek {
   position: fixed; z-index: 2000; max-width: min(320px, calc(100vw - 8px)); padding: 6px 9px;
-  background: var(--tusz); color: var(--papier); border-radius: 6px; box-shadow: var(--cien-2, 0 4px 14px rgba(0, 0, 0, .18));
+  background: var(--tusz); color: var(--papier); border-radius: 6px; box-shadow: var(--cien-2);
   font: 500 12.5px/1.35 Inter, system-ui, sans-serif; letter-spacing: 0; text-align: left; white-space: normal;
   pointer-events: none; animation: dymek-wejscie 120ms ease-out;
 }

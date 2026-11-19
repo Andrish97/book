@@ -6,7 +6,7 @@ powtarzało, Makietka dostanie warstwowy silnik stylów na wzór Familiady (`web
 1. ✅ (#291: css/style/ – tokens, base, components, layout, ekrany/*, urzadzenia; css/aplikacja.css usunięty) Warstwy plików: `tokens.css` (kolory, odstępy, promienie, cienie – jasny i ciemny), `base.css` (każdy przycisk,
    pole, wybór, przełącznik, dialog ma styl bazowy), `components.css` (katalog komponentów), `layout.css`,
    `utilities.css`. Pliki ekranów – tylko układ.
-2. Zasady: bez `!important`, bez kolorów i stylów wpisanych w HTML/JS; nowe elementy tylko z katalogu komponentów.
+2. ⏳ (#294: kolory – wszystkie z tokenów; zostaje !important) Zasady: bez `!important`, bez kolorów i stylów wpisanych w HTML/JS; nowe elementy tylko z katalogu komponentów.
 3. ✅ (#292: katalog-komponentow.html – przyciski, pola, przełączniki, zakładki, komunikaty, okno, próbki tokenów,
    oba motywy; test: strażnik na katalogu) Katalog komponentów (strona podglądu) – wszystkie przyciski, pola, zakładki, listy, okna w jednym miejscu.
 4. ✅ (#289: tests/straznik-stylow.test.cjs – ekrany, konto, okno AI z dodawaniem kluczy, edytor z zaznaczonym
