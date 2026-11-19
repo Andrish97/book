@@ -34,6 +34,7 @@ test('składanka w 3D: wymiary złożonych brył z szablonów, płaski arkusz, m
       kostka: bryla('prostopadloscian', { dlugosc: 60, szerokosc: 40, wysokosc: 30 }),
       piramida: bryla('ostroslup', { boki: 4, bok: 60, wysokosc: 50 }),
       graniastoslup: bryla('graniastoslup', { boki: 6, bok: 25, wysokosc: 60 }),
+      popup: bryla('popup', { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }),
       trojkaty: M.trojkatyWielokata([[0, 0], [10, 0], [10, 10], [5, 4], [0, 10]]).length,
     };
   });
@@ -46,6 +47,11 @@ test('składanka w 3D: wymiary złożonych brył z szablonów, płaski arkusz, m
   assert.equal(w.kostka.polozenia, 1);
   assert.equal(w.kostka.opis, 'Złożone części');
   assert.equal(w.trojkaty, 3, 'wielokąt wklęsły (5 wierzchołków) – 3 trójkąty');
+  // Kartka pop-up „wycinanka” (#273): ściany z podziału po nacięciach – kartka otwarta pod kątem prostym (100 × 100 × 140),
+  // pudełka w środku nie wystają poza strony.
+  const pop = posortowane(w.popup.zlozone);
+  assert.ok(Math.abs(pop[0] - 100) <= 2 && Math.abs(pop[1] - 100) <= 2 && Math.abs(pop[2] - 140) <= 2, `pop-up złożony: ${w.popup.zlozone}`);
+  assert.equal(w.popup.plasko[1], 0, 'pop-up płasko na stole');
 
   // Okno makiety: sekcja składanki → model „Składanka”.
   const modele = await strona.evaluate(async () => {

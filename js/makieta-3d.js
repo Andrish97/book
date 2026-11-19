@@ -1198,9 +1198,18 @@ export function trojkatyWielokata(p) {
   const n = p.length;
   if (n < 3) return [];
   const ccw = poleWielokata(p.map(([x, y]) => ({ x, y }))) > 0;
-  const idx = [...Array(n).keys()];
+  let idx = [...Array(n).keys()];
   if (!ccw) idx.reverse();
   const kr = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  // Wierzchołki na prostej (np. końce zgięć i nacięć na brzegu ściany, #273) blokowałyby obcinanie uszu – pomijamy je.
+  for (let zmiana = true; zmiana && idx.length > 3;) {
+    zmiana = false;
+    for (let i = 0; i < idx.length; i += 1) {
+      const [a, b, c] = [p[idx[(i - 1 + idx.length) % idx.length]], p[idx[i]], p[idx[(i + 1) % idx.length]]];
+      const dl = Math.hypot(c[0] - a[0], c[1] - a[1]) || 1;
+      if (Math.abs(kr(a, b, c)) / dl < 1e-6 && (b[0] - a[0]) * (c[0] - b[0]) + (b[1] - a[1]) * (c[1] - b[1]) >= 0) { idx = idx.filter((_, j) => j !== i); zmiana = true; break; }
+    }
+  }
   const wTrojkacie = (q, a, b, c) => kr(a, b, q) >= -1e-9 && kr(b, c, q) >= -1e-9 && kr(c, a, q) >= -1e-9;
   const wynik = [];
   let straz = 0;

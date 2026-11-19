@@ -155,7 +155,100 @@ export function podzielWielokat(punkty, a, b) {
 }
 
 // Ściany części: wielokąt podzielony kolejnymi zgięciami. Zwraca { sciany: [[{x,y}]], zawiasy: [{ s1, s2, a, b, zgiecie }] }.
+// Ściany części z nacięciami (#273 – kartka pop-up „wycinanka”): podział planarny obrysu, zgięć i nacięć. Odcinki
+// dzielone w punktach przecięć i końcach innych odcinków, półkrawędzie, ściany jako cykle (skręt w lewo); ściana
+// zewnętrzna (ujemne pole) odpada. Zawias – zgięcie między dwiema ścianami; nacięcie rozdziela ściany bez zawiasu.
+function scianyPlanarne(c) {
+  const EPS = 0.01;
+  const kl = (p) => `${Math.round(p.x / EPS)},${Math.round(p.y / EPS)}`;
+  const odc = [];
+  c.punkty.forEach((p, i) => odc.push({ a: p, b: c.punkty[(i + 1) % c.punkty.length], typ: 'brzeg' }));
+  c.zgiecia.forEach((z, i) => odc.push({ a: z.a, b: z.b, typ: 'zgiecie', nr: i }));
+  for (const z of c.szczeliny) if (z.naciecie) odc.push({ a: z.a, b: z.b, typ: 'ciecie' });
+  // Punkty podziału każdego odcinka.
+  const naOdcinku = (p, a, b) => {
+    const dx = b.x - a.x; const dy = b.y - a.y; const l2 = dx * dx + dy * dy || 1e-12;
+    const t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+    if (t <= 1e-6 || t >= 1 - 1e-6) return null;
+    const q = { x: a.x + dx * t, y: a.y + dy * t };
+    return Math.hypot(q.x - p.x, q.y - p.y) < EPS ? t : null;
+  };
+  const przeciecie = (o1, o2) => {
+    const r = { x: o1.b.x - o1.a.x, y: o1.b.y - o1.a.y };
+    const q = { x: o2.b.x - o2.a.x, y: o2.b.y - o2.a.y };
+    const d = r.x * q.y - r.y * q.x;
+    if (Math.abs(d) < 1e-9) return null;
+    const t = ((o2.a.x - o1.a.x) * q.y - (o2.a.y - o1.a.y) * q.x) / d;
+    const u = ((o2.a.x - o1.a.x) * r.y - (o2.a.y - o1.a.y) * r.x) / d;
+    return t > 1e-6 && t < 1 - 1e-6 && u > -1e-6 && u < 1 + 1e-6 ? t : null;
+  };
+  const krawedzie = [];
+  odc.forEach((o, i) => {
+    const ts = [0, 1];
+    odc.forEach((o2, j) => {
+      if (i === j) return;
+      for (const p of [o2.a, o2.b]) { const t = naOdcinku(p, o.a, o.b); if (t !== null) ts.push(t); }
+      const t = przeciecie(o, o2);
+      if (t !== null) ts.push(t);
+    });
+    const pk = [...new Set(ts.map((t) => Math.round(t * 1e6) / 1e6))].sort((x, y) => x - y).map((t) => ({ x: o.a.x + (o.b.x - o.a.x) * t, y: o.a.y + (o.b.y - o.a.y) * t }));
+    for (let k = 0; k + 1 < pk.length; k += 1) if (kl(pk[k]) !== kl(pk[k + 1])) krawedzie.push({ u: pk[k], v: pk[k + 1], typ: o.typ, nr: o.nr });
+  });
+  // Bez powtórzeń (np. zgięcie na brzegu) – pierwszy wygrywa, zgięcie ma pierwszeństwo przed brzegiem.
+  const unik = new Map();
+  for (const e of krawedzie) {
+    const k = [kl(e.u), kl(e.v)].sort().join('|');
+    if (!unik.has(k) || (unik.get(k).typ === 'brzeg' && e.typ === 'zgiecie')) unik.set(k, e);
+  }
+  const wierz = new Map();
+  const pol = [];
+  for (const e of unik.values()) {
+    for (const [a, b] of [[e.u, e.v], [e.v, e.u]]) {
+      const h = { od: kl(a), do: kl(b), a, b, e, kat: Math.atan2(b.y - a.y, b.x - a.x) };
+      pol.push(h);
+      (wierz.get(h.od) || wierz.set(h.od, []).get(h.od)).push(h);
+    }
+  }
+  for (const l of wierz.values()) l.sort((x, y) => x.kat - y.kat);
+  const blizniak = new Map(pol.map((h) => [`${h.od}>${h.do}`, h]));
+  const uzyte = new Set();
+  const sciany = [];
+  const scianaPol = new Map();
+  for (const h0 of pol) {
+    if (uzyte.has(h0)) continue;
+    const cykl = [];
+    let h = h0;
+    let straz = 0;
+    while (h && !uzyte.has(h) && straz < 10000) {
+      uzyte.add(h);
+      cykl.push(h);
+      // Następna: przy końcu h – półkrawędź tuż przed bliźniakiem w kolejności kątów (skręt w lewo przy osi y w dół).
+      const wyj = wierz.get(h.do);
+      const bl = blizniak.get(`${h.do}>${h.od}`);
+      const i = wyj.indexOf(bl);
+      h = wyj[(i - 1 + wyj.length) % wyj.length];
+      straz += 1;
+    }
+    const w = cykl.map((x) => x.a);
+    if (poleWielokata(w) > 1e-3) { const nr = sciany.length; sciany.push(w); for (const x of cykl) scianaPol.set(x, nr); }
+  }
+  const zawiasy = [];
+  const juz = new Set();
+  for (const h of pol) {
+    if (h.e.typ !== 'zgiecie') continue;
+    const s1 = scianaPol.get(h);
+    const s2 = scianaPol.get(blizniak.get(`${h.do}>${h.od}`));
+    if (s1 === undefined || s2 === undefined || s1 === s2) continue;
+    const k = `${Math.min(s1, s2)}|${Math.max(s1, s2)}|${h.e.nr}`;
+    if (juz.has(k)) continue;
+    juz.add(k);
+    zawiasy.push({ s1, s2, a: h.a, b: h.b, zgiecie: h.e.nr });
+  }
+  return { sciany, zawiasy };
+}
+
 export function scianyCzesci(c) {
+  if ((c.szczeliny || []).some((z) => z.naciecie)) return scianyPlanarne(c);
   let sciany = [c.punkty];
   const uzyte = [];
   c.zgiecia.forEach((z, nr) => {
