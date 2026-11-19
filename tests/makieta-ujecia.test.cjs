@@ -85,8 +85,7 @@ test('makieta 3D (#181): obwoluta – tekstury obwoluty na twardej okładce, skr
   assert.ok(s.length, 'skrzydełko przodu');
   const o = obwiednia(s);
   assert.ok(bliskie(o.max[0] - o.min[0], 80, 0.6), `szerokość skrzydełka ${o.max[0] - o.min[0]}`);
-  const tektura = obwiednia(q.filter((x) => x.tex === 'obw:przod'));
-  assert.ok(o.max[1] < 5 && Math.abs(o.max[1] - tektura.max[1]) < 0.5, 'leży na rozłożonej okładce');
+  assert.ok(o.max[1] < 4, 'leży na rozłożonej okładce');
   // Bez obwoluty – okładka projektu, bez skrzydełek.
   const bez = kartkiModelu('ksiazka_twarda', { strony: 20, format, okladka });
   assert.equal(bez[0].przod, 'okl:przod');
