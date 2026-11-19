@@ -3717,5 +3717,8 @@
  "Model 3D na siatkę": "3D model to net",
  "Rozłóż model": "Unfold model",
  "Plik modelu": "Model file",
- "Największy wymiar (mm)": "Largest dimension (mm)"
+ "Największy wymiar (mm)": "Largest dimension (mm)",
+ "Ramię trójkąta (mm)": "Triangle arm (mm)",
+ "Kąt do grzbietu (15–75°)": "Angle to spine (15–75°)",
+ "Warstwy (1–2)": "Layers (1–2)"
 }

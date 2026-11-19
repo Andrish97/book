@@ -239,6 +239,41 @@ function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pud
   return [karta, pasek, pasek2];
 }
 
+// Kartka pop-up ze zgięciem V (#272): trójkąt z grzbietem „góra” przyklejony zakładkami wzdłuż dwóch linii, które
+// wychodzą z punktu P na grzbiecie kartki pod kątem α do grzbietu. Kąt między brzegiem trójkąta a jego grzbietem
+// jest taki sam (α) – dlatego trójkąt leży płasko na rozłożonej kartce, a przy zamykaniu wstaje i składa się
+// w środku. Pola klejenia są obrócone o kąt linii i leżą na zewnątrz niej (od grzbietu).
+function popupV({ szerokosc: S, wysokosc: H, ramie: g0, kat: alfa0 }) {
+  const zak = 8;
+  const a = (Math.max(15, Math.min(75, alfa0)) * Math.PI) / 180;
+  const yP = H * 0.8;
+  const g = Math.min(g0, (S - 5) / Math.sin(a), (yP - 5) / Math.cos(a));
+  const sx = Math.sin(a);
+  const cy = Math.cos(a);
+  const st = (rad) => r2((rad * 180) / Math.PI);
+  const karta = {
+    nazwa: 'Kartka pop-up V – podstawa',
+    opis: 'Zegnij grzbiet w dolinę; trójkąt przyklej zakładkami do skośnych pól z tymi samymi numerami.',
+    punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
+    krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
+    zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90 }],
+    pola: [
+      // Pola na zewnątrz linii (od grzbietu): zakładka leży płasko na kartce, a trójkąt obraca się wokół linii do
+      // środka – przez grzbiet nic nie przechodzi. Lewa linia od końca do P, prawa od P do końca.
+      { x: r2(S - g * sx), y: r2(yP - g * cy), w: r2(g), h: zak + 0.5, kat: st(Math.atan2(cy, sx)), para: 'l' },
+      { x: r2(S), y: r2(yP), w: r2(g), h: zak + 0.5, kat: st(Math.atan2(-cy, sx)), para: 'p' },
+    ],
+  };
+  const trojkat = {
+    nazwa: 'Kartka pop-up V – trójkąt',
+    opis: `Ramię ${r2(g)} mm, kąt ${r2((a * 180) / Math.PI)}° do grzbietu.`,
+    punkty: [P(0, 0), P(2 * g * sx, 0), P(g * sx, g * cy)],
+    krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p', szer: zak }, { typ: 'zakladka', para: 'l', szer: zak }],
+    zgiecia: [{ a: P(g * sx, g * cy), b: P(g * sx, 0), rodzaj: 'gora', kat: 90 }],
+  };
+  return [karta, trojkat];
+}
+
 // ---------- Powierzchnie rozwijalne (#261, plan składanek krok 10): walec, stożek, stożek ścięty ----------
 // Koło jako wielokąt (krawędzie co ~3 mm, co najmniej 24) – do druku i cięcia wystarczająco gładkie.
 const bokiKola = (r) => Math.max(24, Math.min(96, Math.round((2 * Math.PI * r) / 3)));
@@ -457,11 +492,12 @@ export const SZABLONY_SKLADANEK = {
   domek: { nazwa: 'Domek z dachem dwuspadowym', opis: 'Ściany i dach jako jedna bryła rozłożona automatycznie – szczyty, połacie i ściany z zakładkami i numerami.', parametry: { szerokosc: 60, wysokosc: 45, dach: 30, glebokosc: 70 }, buduj: domek },
   samochod: { nazwa: 'Samochód (sylwetka)', opis: 'Nadwozie z maską, kabiną i bagażnikiem – bryła z sylwetki rozłożona automatycznie (koła dorysuj albo doklej osobno).', parametry: { dlugosc: 120, wysokosc: 45, szerokosc: 50 }, buduj: samochod },
   popup_platforma: { nazwa: 'Kartka pop-up z platformą (wklejana)', opis: 'Kartka i pasek przyklejony zakładkami po obu stronach grzbietu – po otwarciu stoi jak pudełko, po zamknięciu leży płasko w środku.', parametry: { szerokosc: 100, wysokosc: 140, glebokosc: 35, wysokosc_pudelka: 30, szerokosc_pudelka: 60, warstwy: 2 }, buduj: popupPlatforma },
+  popup_v: { nazwa: 'Kartka pop-up ze zgięciem V', opis: 'Trójkąt przyklejony skośnie po obu stronach grzbietu – na rozłożonej kartce leży płasko, przy zamykaniu wstaje i składa się w środku.', parametry: { szerokosc: 100, wysokosc: 140, ramie: 60, kat: 45 }, buduj: popupV },
   popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: 'Jeden arkusz: nacięcia i zgięcia – po otwarciu kartki pod kątem prostym pudełka wyskakują ze środka. Nic nie wystaje po zamknięciu (nacięcia kończą się przed brzegiem).', parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {

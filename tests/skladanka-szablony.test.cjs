@@ -85,6 +85,22 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   assert.deepEqual(pasek.krawedzie.filter((k) => k.para).map((k) => k.para).sort(), ['l', 'p']);
   assert.deepEqual(pasek2.krawedzie.filter((k) => k.para).map((k) => k.para).sort(), ['l2', 'p2']);
   assert.deepEqual(karta.pola.map((x) => x.para).sort(), ['l', 'p']);
+  // Zgięcie V (#272): pola skośne od punktu na grzbiecie, długość = ramię trójkąta, kąt trójkąta = kąt pól.
+  const v = await strona.evaluate(async () => {
+    const [k, t] = (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup_v', { kat: 40 });
+    const { rogiPola } = await import('./js/skladanka.js');
+    return { pola: k.pola.map((x) => ({ w: x.w, r: rogiPola(x) })), t, S: k.punkty[1].x / 2 };
+  });
+  const ramie = Math.hypot(v.t.punkty[2].x - v.t.punkty[0].x, v.t.punkty[2].y - v.t.punkty[0].y);
+  for (const p of v.pola) assert.ok(Math.abs(p.w - ramie) < 0.05, 'pole = ramię');
+  // Pola na zewnątrz linii: lewe całe na lewej połowie, prawe na prawej – nic nie przechodzi przez grzbiet.
+  assert.ok(v.pola[0].r.every((q) => q.x <= v.S + 0.01), 'lewe pole po lewej');
+  assert.ok(v.pola[1].r.every((q) => q.x >= v.S - 0.01), 'prawe pole po prawej');
+  // Linie pól spotykają się na grzbiecie (punkt P) pod kątem 40° do grzbietu.
+  const L0 = v.pola[0].r;
+  const kat = (Math.atan2(Math.abs(L0[1].x - L0[0].x), Math.abs(L0[1].y - L0[0].y)) * 180) / Math.PI;
+  assert.ok(Math.abs(kat - 40) < 0.1, `kąt linii ${kat}`);
+  assert.ok(Math.abs(L0[1].x - v.S) < 0.01 && Math.abs(v.pola[1].r[0].x - v.S) < 0.01, 'linie zaczynają się na grzbiecie');
   // Pudełko 100 × 70 × 40, wieczko 15: siatka dna 100 + 2 × 40; wieczka (100 + 2 × 0,4 + 0,5) + 2 × 15.
   assert.deepEqual([geo.pudelko[0].w, geo.pudelko[0].h], [180, 150]);
   assert.deepEqual([geo.pudelko[1].w, geo.pudelko[1].h], [131.3, 101.3]);
@@ -122,7 +138,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);

@@ -37,6 +37,7 @@ export function normalizujCzesc(c = {}) {
   const liczba = (v, d) => (Number.isFinite(v) ? v : d);
   const pola = (Array.isArray(c.pola) ? c.pola : []).filter((x) => x && Number.isFinite(x.x) && Number.isFinite(x.y)).map((x) => ({
     x: zaokr(x.x), y: zaokr(x.y), w: zaokr(Math.max(2, liczba(x.w, 15))), h: zaokr(Math.max(2, liczba(x.h, 10))), para: x.para ? String(x.para) : null, spod: Boolean(x.spod),
+    ...(Number.isFinite(x.kat) && x.kat ? { kat: zaokr(x.kat) } : {}),
   }));
   const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null, ...(z.naciecie ? { naciecie: true } : {}) }));
   return {
@@ -232,10 +233,12 @@ export function elementyCzesci(def) {
   for (const z of c.zgiecia) zgiecie(z.a, z.b, z.rodzaj);
   // Miejsca klejenia: na wierzchu – jasne pole z numerem (drukowane) i płyta Glue; na spodzie – tylko płyta Glue.
   for (const pole of c.pola) {
-    const r = { left: pole.x, top: pole.y, width: pole.w, height: pole.h };
+    // Pole obrócone o kat (stopnie) wokół lewego górnego rogu (#272 – zgięcie V klei się pod kątem do grzbietu).
+    const r = { left: pole.x, top: pole.y, width: pole.w, height: pole.h, angle: pole.kat || 0 };
     if (!pole.spod) {
       el.push(new fabric.Rect({ ...wspolne, ...r, fill: '#e6efe0', stroke: '#9bb58a', strokeWidth: 0.2, strokeDashArray: [1.2, 0.8], skladanka: 'pole' }));
-      if (pole.para && c.pokaz_numery) numer(`${pole.para}`, pole.x + pole.w / 2, pole.y + pole.h / 2, Math.min(3.2, pole.h * 0.45), '#5f7a50');
+      const [sx, sy] = srodekPola(pole);
+      if (pole.para && c.pokaz_numery) numer(`${pole.para}`, sx, sy, Math.min(3.2, Math.min(pole.w, pole.h) * 0.45), '#5f7a50');
     }
     el.push(new fabric.Rect({ ...wspolne, ...r, fill: '#14a35a', stroke: null, strokeWidth: 0, opacity: 0.25, uszlachetnienie: 'klej', skladanka: pole.spod ? 'pole-spod' : 'pole-klej' }));
   }
@@ -297,6 +300,15 @@ export function zUkladuCzesci(grupa, p) {
   const s = srodekUkladu(grupa);
   return fabric.util.transformPoint(new fabric.Point(p.x - s.x, p.y - s.y), grupa.calcTransformMatrix());
 }
+
+// Rogi pola klejenia (z obrotem o kat wokół lewego górnego rogu) i jego środek.
+export function rogiPola(p) {
+  const k = ((p.kat || 0) * Math.PI) / 180;
+  const c = Math.cos(k);
+  const s = Math.sin(k);
+  return [[0, 0], [p.w, 0], [p.w, p.h], [0, p.h]].map(([x, y]) => ({ x: p.x + x * c - y * s, y: p.y + x * s + y * c }));
+}
+const srodekPola = (p) => { const r = rogiPola(p); return [(r[0].x + r[2].x) / 2, (r[0].y + r[2].y) / 2]; };
 
 // Punkty obrysu ścieżki (#266): odcinki wprost, łuki Béziera (C, Q) próbkowane co ~2 mm (od 4 do 32 punktów na łuk),
 // żeby krzywe z pióra nie spłaszczały się do cięciw.
@@ -477,7 +489,7 @@ export function ksztaltyPar(def) {
     else if (k.typ === 'wypustka') w.push({ para: k.para, punkty: wypustka(c.punkty, i, k.szer), zamkniety: true });
     else w.push({ para: k.para, punkty: [c.punkty[i], c.punkty[(i + 1) % c.punkty.length]], zamkniety: false });
   });
-  for (const p of c.pola) if (p.para) w.push({ para: p.para, punkty: [{ x: p.x, y: p.y }, { x: p.x + p.w, y: p.y }, { x: p.x + p.w, y: p.y + p.h }, { x: p.x, y: p.y + p.h }], zamkniety: true });
+  for (const p of c.pola) if (p.para) w.push({ para: p.para, punkty: rogiPola(p), zamkniety: true });
   for (const z of c.szczeliny) if (z.para) w.push({ para: z.para, punkty: prostokatSzczeliny(z), zamkniety: true });
   return w;
 }
