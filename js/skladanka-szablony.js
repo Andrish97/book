@@ -469,6 +469,38 @@ export function brylaObrotowa(profil, { segmenty = 12, zamknieta = false, nazwa 
 // Wazon: dno Ø D, brzuch szerszy o połowę, szyjka węższa; wysokość H; otwarty u góry.
 const wazon = ({ srednica: D, wysokosc: H, segmenty: n }) => brylaObrotowa([[D / 2, 0], [D * 0.75, H * 0.35], [D * 0.6, H * 0.7], [D * 0.38, H * 0.85], [D * 0.45, H]], { segmenty: n, nazwa: 'Wazon' });
 
+// Żółw (#276, plan składanek krok 14 – zwierzę z siatki 3D): skorupa (kopuła z profilu, płaski spód), głowa i cztery
+// łapy (prostopadłościany), ogon (ostrosłup) – kilka zamkniętych brył w jednej siatce, rozłożonych automatycznie
+// (każda bryła to osobne części; głowę, łapy i ogon dokleja się pod skorupę).
+function zolw({ dlugosc: L }) {
+  const wierzcholki = [];
+  const sciany = [];
+  const prost = (x0, y0, z0, dx, dy, dz) => {
+    const b = wierzcholki.length;
+    for (const [x, y, z] of [[0, 0, 0], [dx, 0, 0], [dx, dy, 0], [0, dy, 0], [0, 0, dz], [dx, 0, dz], [dx, dy, dz], [0, dy, dz]]) wierzcholki.push([x0 + x, y0 + y, z0 + z]);
+    sciany.push([b, b + 3, b + 2, b + 1], [b + 4, b + 5, b + 6, b + 7], [b, b + 1, b + 5, b + 4], [b + 1, b + 2, b + 6, b + 5], [b + 2, b + 3, b + 7, b + 6], [b + 3, b, b + 4, b + 7]);
+  };
+  // Skorupa: profil kopuły (r, z), 10 segmentów, spód płaski.
+  const R = L * 0.4;
+  const profil = [[R, 0], [R * 0.95, R * 0.25], [R * 0.75, R * 0.5], [R * 0.4, R * 0.68], [0.001, R * 0.72]];
+  const n = 10;
+  const b0 = wierzcholki.length;
+  profil.forEach(([r, z]) => { for (let i = 0; i < n; i += 1) { const a = (2 * Math.PI * i) / n; wierzcholki.push([r * Math.cos(a), r * Math.sin(a), z]); } });
+  const id = (k, i) => b0 + k * n + (i % n);
+  sciany.push(Array.from({ length: n }, (_, i) => id(0, n - 1 - i)));
+  for (let k = 0; k + 1 < profil.length; k += 1) for (let i = 0; i < n; i += 1) sciany.push([id(k, i), id(k, i + 1), id(k + 1, i + 1), id(k + 1, i)]);
+  // Głowa z przodu (+x), łapy na ukos, ogon z tyłu.
+  const g = L * 0.16;
+  prost(R - g * 0.3, -g / 2, 0, g * 1.3, g, g * 0.9);
+  const l = L * 0.12;
+  for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) prost(sx * R * 0.6 - l / 2, sy * R * 0.75 - l / 2, 0, l, l, l * 0.6);
+  const t = wierzcholki.length;
+  const o = L * 0.1;
+  wierzcholki.push([-R + o * 0.2, -o / 2, 0], [-R + o * 0.2, o / 2, 0], [-R + o * 0.2, 0, o * 0.6], [-R - o, 0, 0]);
+  sciany.push([t, t + 1, t + 2], [t, t + 3, t + 1], [t + 1, t + 3, t + 2], [t + 2, t + 3, t]);
+  return rozlozSiatke({ wierzcholki, sciany }, { rozmiar: L, nazwa: 'Żółw' }).czesci;
+}
+
 // Domek: ściany S × Hs, dach dwuspadowy wysokości Hd, głębokość G.
 const domek = ({ szerokosc: S, wysokosc: Hs, dach: Hd, glebokosc: G }) => modelZSylwetki([[0, 0], [S, 0], [S, Hs], [S / 2, Hs + Hd], [0, Hs]], G, 'Domek');
 // Samochód: sylwetka z maską, kabiną i bagażnikiem; L × H, szerokość W.
@@ -489,6 +521,7 @@ export const SZABLONY_SKLADANEK = {
   stozek_sciety: { nazwa: 'Stożek ścięty (np. kubek, abażur)', opis: 'Płaszcz – wycinek pierścienia – z zakładkami do dna i wieka.', parametry: { srednica_dolu: 70, srednica_gory: 45, wysokosc: 60 }, buduj: stozekSciety },
   kula: { nazwa: 'Kula z klinów (globus)', opis: 'Kliny od bieguna do bieguna (4–24) – każdy przykleja się zakładkami do następnego; im więcej klinów, tym okrąglej.', parametry: { srednica: 80, kliny: 8 }, buduj: kula },
   wazon: { nazwa: 'Wazon (bryła obrotowa)', opis: 'Profil obrócony w segmentach (6–32): pasy ścian z zakładkami i płaskie dno – rozłożone automatycznie; góra otwarta.', parametry: { srednica: 50, wysokosc: 110, segmenty: 12 }, buduj: wazon },
+  zolw: { nazwa: 'Żółw (zwierzę z siatki 3D)', opis: 'Skorupa z segmentów, głowa, cztery łapy i ogon – bryły rozłożone automatycznie; głowę, łapy i ogon doklej pod skorupę.', parametry: { dlugosc: 140 }, buduj: zolw },
   domek: { nazwa: 'Domek z dachem dwuspadowym', opis: 'Ściany i dach jako jedna bryła rozłożona automatycznie – szczyty, połacie i ściany z zakładkami i numerami.', parametry: { szerokosc: 60, wysokosc: 45, dach: 30, glebokosc: 70 }, buduj: domek },
   samochod: { nazwa: 'Samochód (sylwetka)', opis: 'Nadwozie z maską, kabiną i bagażnikiem – bryła z sylwetki rozłożona automatycznie (koła dorysuj albo doklej osobno).', parametry: { dlugosc: 120, wysokosc: 45, szerokosc: 50 }, buduj: samochod },
   popup_platforma: { nazwa: 'Kartka pop-up z platformą (wklejana)', opis: 'Kartka i pasek przyklejony zakładkami po obu stronach grzbietu – po otwarciu stoi jak pudełko, po zamknięciu leży płasko w środku.', parametry: { szerokosc: 100, wysokosc: 140, glebokosc: 35, wysokosc_pudelka: 30, szerokosc_pudelka: 60, warstwy: 2 }, buduj: popupPlatforma },

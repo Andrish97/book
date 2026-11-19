@@ -69,4 +69,4 @@ trudne (zwierzę, budynek, pojazd, postać), kolejność:
 12. **Sklejanie części w jedną bryłę w 3D** – części ustawiają się po parach krawędzi; makieta sprawdza, czy model
     się zamyka (krawędzie bez pary, za duże szpary), i pokazuje montaż krok po kroku.
 13. ⏳ (#268: pudełko z klapą wsuwaną; #271: pudełko z zatrzaskiem – język w szczelinie; zostają zawiasy osobne, elementy ruchome) **Mechanizmy**: zatrzaski, zamki na klapkę, zawiasy, elementy ruchome, wkładki; pop-up (krok 8).
-14. ⏳ (#265: domek z dachem i samochód – bryły z sylwetki rozłożone automatycznie; zostaje zwierzę z siatki 3D) **Gotowe trudniejsze modele** do nauki: domek z dachem, samochód, zwierzę z siatki 3D.
+14. ✅ (#265: domek z dachem i samochód; #276: żółw – zwierzę z kilku brył siatki 3D) **Gotowe trudniejsze modele** do nauki: domek z dachem, samochód, zwierzę z siatki 3D.
