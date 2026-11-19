@@ -181,6 +181,34 @@ function popupWycinanka({ szerokosc: S, wysokosc: H, pudelka: n, glebokosc: d, w
   }];
 }
 
+// Kartka pop-up z platformą (#269): pasek (góra y + przód h, szerokość w) przyklejony zakładkami do pól na kartce –
+// po lewej w odległości h od grzbietu, po prawej w odległości y. Przy kartce otwartej pod kątem prostym pasek
+// tworzy pudełko: góra równoległa do prawej strony, przód do lewej; przy zamkniętej i rozłożonej leży płasko
+// (długość paska y + h = odległość pól przez grzbiet). Nic nie wystaje, gdy y, h ≤ S − zakładka.
+function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pudelka: h0, szerokosc_pudelka: w0 }) {
+  const zak = 8;
+  const y = Math.min(y0, S - zak - 2);
+  const h = Math.min(h0, S - zak - 2);
+  const w = Math.min(w0, H - 20);
+  const g = (H - w) / 2;
+  const karta = {
+    nazwa: 'Kartka pop-up – podstawa',
+    opis: 'Zegnij w dolinę na grzbiecie; pasek przyklej zakładkami do pól klejenia z tymi samymi numerami.',
+    punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
+    krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
+    zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90 }],
+    pola: [{ x: r2(S - h - zak - 0.5), y: r2(g), w: zak + 0.5, h: r2(w), para: 'l' }, { x: r2(S + y), y: r2(g), w: zak + 0.5, h: r2(w), para: 'p' }],
+  };
+  const pasek = {
+    nazwa: 'Kartka pop-up – platforma',
+    opis: `Góra ${r2(y)} mm, przód ${r2(h)} mm; zakładki do pól na kartce.`,
+    punkty: [P(0, 0), P(y + h, 0), P(y + h, w), P(0, w)],
+    krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p', szer: zak }, { typ: 'ciecie' }, { typ: 'zakladka', para: 'l', szer: zak }],
+    zgiecia: [{ a: P(y, 0), b: P(y, w), rodzaj: 'gora', kat: 90 }],
+  };
+  return [karta, pasek];
+}
+
 // ---------- Powierzchnie rozwijalne (#261, plan składanek krok 10): walec, stożek, stożek ścięty ----------
 // Koło jako wielokąt (krawędzie co ~3 mm, co najmniej 24) – do druku i cięcia wystarczająco gładkie.
 const bokiKola = (r) => Math.max(24, Math.min(96, Math.round((2 * Math.PI * r) / 3)));
@@ -397,11 +425,12 @@ export const SZABLONY_SKLADANEK = {
   wazon: { nazwa: 'Wazon (bryła obrotowa)', opis: 'Profil obrócony w segmentach (6–32): pasy ścian z zakładkami i płaskie dno – rozłożone automatycznie; góra otwarta.', parametry: { srednica: 50, wysokosc: 110, segmenty: 12 }, buduj: wazon },
   domek: { nazwa: 'Domek z dachem dwuspadowym', opis: 'Ściany i dach jako jedna bryła rozłożona automatycznie – szczyty, połacie i ściany z zakładkami i numerami.', parametry: { szerokosc: 60, wysokosc: 45, dach: 30, glebokosc: 70 }, buduj: domek },
   samochod: { nazwa: 'Samochód (sylwetka)', opis: 'Nadwozie z maską, kabiną i bagażnikiem – bryła z sylwetki rozłożona automatycznie (koła dorysuj albo doklej osobno).', parametry: { dlugosc: 120, wysokosc: 45, szerokosc: 50 }, buduj: samochod },
+  popup_platforma: { nazwa: 'Kartka pop-up z platformą (wklejana)', opis: 'Kartka i pasek przyklejony zakładkami po obu stronach grzbietu – po otwarciu stoi jak pudełko, po zamknięciu leży płasko w środku.', parametry: { szerokosc: 100, wysokosc: 140, glebokosc: 35, wysokosc_pudelka: 30, szerokosc_pudelka: 60 }, buduj: popupPlatforma },
   popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: 'Jeden arkusz: nacięcia i zgięcia – po otwarciu kartki pod kątem prostym pudełka wyskakują ze środka. Nic nie wystaje po zamknięciu (nacięcia kończą się przed brzegiem).', parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {

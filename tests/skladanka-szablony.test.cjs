@@ -66,6 +66,14 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   const pop = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup', { szerokosc: 60, glebokosc: 80 })[0]);
   assert.ok(pop.szczeliny.every((z) => Math.min(z.a.x, z.b.x) >= 5 && Math.max(z.a.x, z.b.x) <= 115), 'za głębokie pudełko skrócone – po zamknięciu nic nie wystaje');
   assert.equal(pop.zgiecia.filter((z) => z.rodzaj === 'gora').length, 2, 'grzbiet odwrócony na każdym pudełku');
+  // Pop-up z platformą (#269): pasek długości y + h = odległość pól przez grzbiet (leży płasko po otwarciu na 180°).
+  const pl = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup_platforma', {}));
+  const [karta, pasek] = pl;
+  const S = karta.punkty[1].x / 2;
+  const [pl1, pl2] = karta.pola;
+  assert.ok(Math.abs((S - (pl1.x + pl1.w)) + (pl2.x - S) - pasek.punkty[1].x) < 0.05, 'pasek = odległość pól przez grzbiet');
+  assert.deepEqual(pasek.krawedzie.filter((k) => k.para).map((k) => k.para).sort(), ['l', 'p']);
+  assert.deepEqual(karta.pola.map((x) => x.para).sort(), ['l', 'p']);
   // Pudełko 100 × 70 × 40, wieczko 15: siatka dna 100 + 2 × 40; wieczka (100 + 2 × 0,4 + 0,5) + 2 × 15.
   assert.deepEqual([geo.pudelko[0].w, geo.pudelko[0].h], [180, 150]);
   assert.deepEqual([geo.pudelko[1].w, geo.pudelko[1].h], [131.3, 101.3]);
@@ -103,7 +111,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);
