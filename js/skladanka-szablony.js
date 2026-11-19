@@ -43,6 +43,20 @@ function pudelkoZKlapa({ dlugosc: L, szerokosc: W, wysokosc: H }) {
   return [{ ...c, nazwa: 'Pudełko z klapą wsuwaną', opis: 'Wieko na zawiasie, język wsuwany za przednią ścianę – otwiera się i zamyka bez kleju.', krawedzie }];
 }
 
+// Pudełko z zatrzaskiem (#271): jak z klapą wsuwaną, ale język wieka wchodzi w szczelinę w przedniej (trzeciej)
+// ścianie – szczelina szeroka na grubość materiału + luz, dłuższa od języka o 1 mm, kilka mm pod górnym brzegiem.
+function pudelkoZZatrzaskiem({ dlugosc: L, szerokosc: W, wysokosc: H }, t = 0.3) {
+  const [c] = pudelkoZKlapa({ dlugosc: L, szerokosc: W, wysokosc: H });
+  const szerJ = Math.min(15, Math.max(5, W * 0.35));
+  const dlJ = Math.min(L / 3, 30);
+  const krawedzie = [...c.krawedzie];
+  krawedzie[0] = { typ: 'wypustka', para: 'z', szer: szerJ };
+  const sx = L + W + L / 2;
+  const sy = W + Math.min(szerJ * 0.6, H / 3);
+  return [{ ...c, nazwa: 'Pudełko z zatrzaskiem', opis: 'Wieko na zawiasie, język wsuwany w szczelinę w przedniej ścianie – zamyka się na zatrzask.', krawedzie,
+    szczeliny: [{ a: P(sx - dlJ / 2 - 0.5, sy), b: P(sx + dlJ / 2 + 0.5, sy), szer: r2(t + LUZ_SZCZELINY), para: 'z' }] }];
+}
+
 // Tacka (pudełko bez wieka) L × W, ścianki H: dno pośrodku, ścianki dookoła, zakładki na dłuższych ściankach.
 function tacka({ dlugosc: L, szerokosc: W, wysokosc: H }, nazwa = 'Tacka', p = ['a', 'b', 'c', 'd']) {
   const pkt = [[H, 0], [H + L, 0], [H + L, H], [2 * H + L, H], [2 * H + L, H + W], [H + L, H + W], [H + L, 2 * H + W], [H, 2 * H + W], [H, H + W], [0, H + W], [0, H], [H, H]];
@@ -430,6 +444,7 @@ const samochod = ({ dlugosc: L, wysokosc: H, szerokosc: W }) => modelZSylwetki([
 export const SZABLONY_SKLADANEK = {
   prostopadloscian: { nazwa: 'Prostopadłościan (kostka)', opis: 'Jedna część: pas czterech ścian, wieko i dno, zakładki klejowe.', parametry: { dlugosc: 60, szerokosc: 40, wysokosc: 30 }, buduj: prostopadloscian },
   pudelko_klapa: { nazwa: 'Pudełko z klapą wsuwaną', opis: 'Mechanizm: wieko na zawiasie z językiem wsuwanym za przednią ścianę – otwiera się i zamyka bez kleju.', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZKlapa },
+  pudelko_zatrzask: { nazwa: 'Pudełko z zatrzaskiem', opis: 'Mechanizm: wieko z językiem wsuwanym w szczelinę w przedniej ścianie – zamyka się na zatrzask (szczelina na grubość materiału).', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZZatrzaskiem },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
   pudelko: { nazwa: 'Pudełko z wieczkiem nakładanym', opis: 'Dwie części: pudełko i wieczko większe o dwie grubości materiału i luz – nakłada się ciasno, ale bez wciskania.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40, wieczko: 15 }, buduj: pudelkoZWieczkiem },
   graniastoslup: { nazwa: 'Graniastosłup (np. sześciokątny)', opis: 'Pas ścian i dwie podstawy przy pierwszej ścianie.', parametry: { boki: 6, bok: 25, wysokosc: 60 }, buduj: graniastoslup },
