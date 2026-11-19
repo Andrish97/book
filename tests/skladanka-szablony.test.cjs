@@ -19,15 +19,38 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
         const dl = (i) => Math.hypot(n.punkty[(i + 1) % n.punkty.length].x - n.punkty[i].x, n.punkty[(i + 1) % n.punkty.length].y - n.punkty[i].y);
         const pary = {};
         n.krawedzie.forEach((e, i) => { if (e.para) (pary[e.para] ||= []).push(dl(i)); });
+        wynik.dlugosci ||= {};
+        for (const [para, l] of Object.entries(pary)) (wynik.dlugosci[`${k}:${para}`] ||= []).push(...l);
         const r = K.ramkaCzesci({ ...n, krawedzie: n.krawedzie.map(() => ({ typ: 'ciecie' })) });
         return { nazwa: c.nazwa, sciany: K.scianyCzesci(n).sciany.length, pary: Object.values(pary).every((l) => l.length === 2 && Math.abs(l[0] - l[1]) < 0.05), w: Math.round(r.w * 100) / 100, h: Math.round(r.h * 100) / 100, szczeliny: n.szczeliny.map((z) => z.szer) };
       });
     }
     return wynik;
   });
-  const sciany = Object.fromEntries(Object.entries(geo).map(([k, l]) => [k, l.map((c) => c.sciany)]));
+  const { dlugosci } = geo;
+  delete geo.dlugosci;
+  const PROSTE = ['prostopadloscian', 'tacka', 'pudelko', 'graniastoslup', 'ostroslup', 'przegrodki'];
+  const sciany = Object.fromEntries(PROSTE.map((k) => [k, geo[k].map((c) => c.sciany)]));
   assert.deepEqual(sciany, { prostopadloscian: [6], tacka: [5], pudelko: [5, 5], graniastoslup: [8], ostroslup: [5], przegrodki: [1, 1] });
-  for (const [k, l] of Object.entries(geo)) for (const c of l) assert.ok(c.pary, `${k}/${c.nazwa}: każda para – dwie krawędzie tej samej długości`);
+  for (const k of PROSTE) for (const c of geo[k]) assert.ok(c.pary, `${k}/${c.nazwa}: każda para – dwie krawędzie tej samej długości`);
+  // Bryły o krzywych (#261): para łączy wiele krótkich krawędzi – po obu stronach te same długości (zakładki na
+  // łuku płaszcza ↔ boki koła dna); różnice tylko z zaokrąglenia punktów do 0,01 mm.
+  for (const k of ['walec', 'stozek', 'stozek_sciety']) {
+    for (const [klucz, l] of Object.entries(dlugosci).filter(([x]) => x.startsWith(`${k}:`))) {
+      const min = Math.min(...l);
+      const max = Math.max(...l);
+      assert.ok(l.length % 2 === 0 && max - min < 0.05, `${klucz}: ${l.length} krawędzi, ${min.toFixed(3)}–${max.toFixed(3)} mm`);
+    }
+  }
+  assert.deepEqual(geo.walec.map((c) => c.sciany), [1, 1, 1]);
+  // Walec Ø50 × 80: płaszcz ma obwód wielokąta podstawy (≈ π · 50) i wysokość 80.
+  assert.ok(Math.abs(geo.walec[0].w - Math.PI * 50) < 0.2, `obwód ${geo.walec[0].w}`);
+  assert.equal(geo.walec[0].h, 80);
+  // Pop-up: kartka 200 × 140 bez zakładek, dwa pudełka – po 2 nacięcia i 5 + 6 zgięć; nacięcia nie dochodzą do brzegu.
+  assert.deepEqual([geo.popup[0].w, geo.popup[0].h, geo.popup[0].szczeliny.length], [200, 140, 4]);
+  const pop = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('popup', { szerokosc: 60, glebokosc: 80 })[0]);
+  assert.ok(pop.szczeliny.every((z) => Math.min(z.a.x, z.b.x) >= 5 && Math.max(z.a.x, z.b.x) <= 115), 'za głębokie pudełko skrócone – po zamknięciu nic nie wystaje');
+  assert.equal(pop.zgiecia.filter((z) => z.rodzaj === 'gora').length, 2, 'grzbiet odwrócony na każdym pudełku');
   // Pudełko 100 × 70 × 40, wieczko 15: siatka dna 100 + 2 × 40; wieczka (100 + 2 × 0,4 + 0,5) + 2 × 15.
   assert.deepEqual([geo.pudelko[0].w, geo.pudelko[0].h], [180, 150]);
   assert.deepEqual([geo.pudelko[1].w, geo.pudelko[1].h], [131.3, 101.3]);
@@ -62,5 +85,26 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   });
   assert.deepEqual(po.uwagi, [], 'pudełko i wieczko: pary pełne, nic poza arkuszem, nic na sobie');
   assert.equal(po.arkuszy, 1, 'oba na jednym arkuszu A4');
+
+  // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
+  // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
+  for (const k of ['walec', 'stozek_sciety', 'popup']) {
+    await strona.click('[data-akcja="skladanka-szablon"]');
+    await strona.waitForSelector('#dlg-szablon-skladanki[open]');
+    await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);
+    if (k === 'walec') await strona.fill('#dlg-szablon-skladanki input[name="p_wysokosc"]', '50');
+    await strona.click('#dlg-szablon-skladanki button[value="tak"]');
+    await strona.waitForFunction(() => !document.querySelector('#dlg-szablon-skladanki').open);
+  }
+  const krzywe = await strona.evaluate(async () => {
+    await window.seriodruk.zapiszTeraz();
+    document.querySelector('[data-akcja="skladanka-rozloz"]').click();
+    await new Promise((ok) => setTimeout(ok, 800));
+    const p = window.seriodruk.stan.projekt;
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    const { rozwin } = await import('./js/serie.js');
+    return sprawdzProjekt(p, rozwin(p)).filter((u) => u.rodzaj === 'skladanka' && !/poza arkusz|wchodzi w margines|nachodzą/.test(u.opis)).map((u) => u.opis);
+  });
+  assert.deepEqual(krzywe, [], 'szwy po łuku bez uwag');
   assert.deepEqual(bledy, []);
 });

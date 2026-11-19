@@ -327,11 +327,17 @@ export function panelPolaczen(panel, { przejdz }) {
     const li = document.createElement('li');
     const b = document.createElement('button');
     b.type = 'button';
-    const opis = w.map((x) => `${x.czesc}: ${x.opis}${strony.length > 1 ? ` (arkusz ${x.arkusz})` : ''}`).join(' ↔ ');
+    // Szew po łuku (#261): wiele krawędzi jednej pary na dwóch częściach – jedna linia „B: 73 zakładki ↔ C: 73 krawędzie”.
+    const wg = new Map();
+    for (const x of w) wg.set(x.czesc, [...(wg.get(x.czesc) || []), x]);
+    const szew = w.length > 2 && wg.size === 2 && [...wg.values()].every((l) => l.length === w.length / 2);
+    const opis = szew
+      ? [...wg.entries()].map(([c, l]) => `${c}: ${l.length} × ${l[0].opis.replace(/\s*\d+$/, '')}`).join(' ↔ ')
+      : w.map((x) => `${x.czesc}: ${x.opis}${strony.length > 1 ? ` (arkusz ${x.arkusz})` : ''}`).join(' ↔ ');
     b.innerHTML = `<strong></strong><span></span>`;
     b.querySelector('strong').textContent = para;
     b.querySelector('span').textContent = w.length === 1 ? `${opis} – bez pary` : opis;
-    if (w.length !== 2) li.classList.add('uwaga');
+    if (w.length !== 2 && !szew) li.classList.add('uwaga');
     b.addEventListener('mouseenter', () => podswietlPary([para]));
     b.addEventListener('mouseleave', () => podswietlPary([]));
     b.addEventListener('click', () => { podswietlPary([para]); przejdz(w[0].idStrony, w[0].idObiektu); });

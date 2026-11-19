@@ -130,16 +130,124 @@ function przegrodki({ dlugosc: L, szerokosc: W, wysokosc: H }, t) {
   return [plytka(L - 2 * t, 'Przegródka wzdłuż', true), plytka(W - 2 * t, 'Przegródka w poprzek', false)];
 }
 
+// ---------- Pop-up (#261, plan składanek krok 8) ----------
+// Kartka pop-up „wycinanka” (cut & fold): jeden arkusz, otwarta kartka szer. 2 × S, wys. H, grzbiet pionowo w x = S
+// (dolina – kartka zamyka się nadrukiem do środka). Pudełko: dwa równoległe nacięcia prostopadłe do grzbietu
+// (od x = S − d do S + d), między nimi grzbiet odwrócony (góra), a na końcach nacięć – doliny. Po otwarciu kartki
+// pod kątem prostym pudełko wyskakuje na głębokość d. Po zamknięciu leży w środku, jeśli d < S (nic nie wystaje).
+function popupWycinanka({ szerokosc: S, wysokosc: H, pudelka: n, glebokosc: d, wysokosc_pudelka: h }) {
+  const ile = Math.max(1, Math.min(4, Math.round(n)));
+  const gl = Math.min(d, S - 5); // nacięcie nie może dojść do brzegu kartki
+  const wys = Math.min(h, (H - 10 * (ile + 1)) / ile); // pudełka z odstępami co najmniej 10 mm
+  const odstep = (H - ile * wys) / (ile + 1);
+  const szczeliny = [];
+  const zgiecia = [];
+  let y = 0;
+  for (let i = 0; i < ile; i += 1) {
+    const y1 = r2(odstep * (i + 1) + wys * i);
+    const y2 = r2(y1 + wys);
+    zgiecia.push({ a: P(S, y), b: P(S, y1), rodzaj: 'dolina', kat: 90 });
+    zgiecia.push({ a: P(S, y1), b: P(S, y2), rodzaj: 'gora', kat: 90 });
+    zgiecia.push({ a: P(S - gl, y1), b: P(S - gl, y2), rodzaj: 'dolina', kat: 90 });
+    zgiecia.push({ a: P(S + gl, y1), b: P(S + gl, y2), rodzaj: 'dolina', kat: 90 });
+    szczeliny.push({ a: P(S - gl, y1), b: P(S + gl, y1), szer: 0.2, para: null, naciecie: true }, { a: P(S - gl, y2), b: P(S + gl, y2), szer: 0.2, para: null, naciecie: true });
+    y = y2;
+  }
+  zgiecia.push({ a: P(S, y), b: P(S, H), rodzaj: 'dolina', kat: 90 });
+  return [{
+    nazwa: 'Kartka pop-up',
+    opis: `Nacięcia (czerwone) przetnij, zegnij według linii i otwórz kartkę pod kątem prostym – ${ile === 1 ? 'pudełko wyskoczy' : 'pudełka wyskoczą'} na ${r2(gl)} mm.`,
+    punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
+    krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
+    zgiecia,
+    szczeliny,
+  }];
+}
+
+// ---------- Powierzchnie rozwijalne (#261, plan składanek krok 10): walec, stożek, stożek ścięty ----------
+// Koło jako wielokąt (krawędzie co ~3 mm, co najmniej 24) – do druku i cięcia wystarczająco gładkie.
+const bokiKola = (r) => Math.max(24, Math.min(96, Math.round((2 * Math.PI * r) / 3)));
+function kolo(r, nazwa, para) {
+  const n = bokiKola(r);
+  const pkt = Array.from({ length: n }, (_, i) => P(r + r * Math.cos((2 * Math.PI * i) / n), r + r * Math.sin((2 * Math.PI * i) / n)));
+  return { nazwa, punkty: pkt, krawedzie: pkt.map(() => ({ typ: 'klej', para })), zgiecia: [] };
+}
+// Pas zakładek wzdłuż łuku: zakładki co odcinek łuku (n odcinków) – krawędzie typu „zakładka” z jedną parą.
+function walec({ srednica: D, wysokosc: H }) {
+  const r = D / 2;
+  const n = bokiKola(r);
+  const obwod = 2 * n * r * Math.sin(Math.PI / n); // obwód wielokąta podstawy – płaszcz pasuje do niego dokładnie
+  const krok = obwod / n;
+  const szerZ = Math.min(6, Math.max(3, krok * 0.8));
+  const dol = Array.from({ length: n + 1 }, (_, i) => P(i * krok, H));
+  const gora = Array.from({ length: n + 1 }, (_, i) => P((n - i) * krok, 0));
+  const punkty = [...dol, ...gora];
+  const krawedzie = [
+    ...Array.from({ length: n }, () => ({ typ: 'zakladka', para: 'a', szer: szerZ })),
+    { typ: 'zakladka', para: 'c', szer: 7 },
+    ...Array.from({ length: n }, () => ({ typ: 'zakladka', para: 'b', szer: szerZ })),
+    { typ: 'klej', para: 'c' },
+  ];
+  return [
+    { nazwa: 'Walec – płaszcz', opis: `Zwiń w rurkę (obwód ${r2(obwod)} mm), sklej zakładkę „c”, potem zakładki do podstaw.`, punkty, krawedzie, zgiecia: [] },
+    kolo(r, 'Walec – dno', 'a'),
+    kolo(r, 'Walec – wieko', 'b'),
+  ];
+}
+// Stożek ścięty (r2 = 0 – zwykły stożek): pierścień kołowy o promieniach R1 = s·r1/(r1−r2), R2 = s·r2/(r1−r2),
+// kąt rozwinięcia 2π·r1/R1; s – tworząca. Zakładki na łuku podstawy, szew zakładką.
+function stozekSciety({ srednica_dolu: D1, srednica_gory: D2, wysokosc: H }) {
+  const r1 = Math.max(D1, D2) / 2;
+  const rg = Math.min(D1, D2) / 2;
+  const s = Math.hypot(H, r1 - rg);
+  const R1 = (s * r1) / (r1 - rg || 1e-9);
+  const R2 = R1 - s;
+  const n = bokiKola(r1);
+  const obwod1 = 2 * n * r1 * Math.sin(Math.PI / n);
+  const kat = obwod1 / R1; // łuk zewnętrzny = obwód wielokąta podstawy
+  const luk = (R, odwrotnie) => Array.from({ length: n + 1 }, (_, i) => {
+    const k = (kat * (odwrotnie ? n - i : i)) / n;
+    return P(R1 + R * Math.sin(k - kat / 2), R1 - R * Math.cos(k - kat / 2));
+  });
+  const szerZ = Math.min(6, Math.max(3, (obwod1 / n) * 0.8));
+  if (rg < 0.5) {
+    // Stożek: wycinek koła (wierzchołek w środku), zakładki na łuku i szew.
+    const punkty = [P(R1, R1), ...luk(R1, false)];
+    const krawedzie = [{ typ: 'klej', para: 'c' }, ...Array.from({ length: n }, () => ({ typ: 'zakladka', para: 'a', szer: szerZ })), { typ: 'zakladka', para: 'c', szer: 7 }];
+    return [{ nazwa: 'Stożek – płaszcz', opis: `Zwiń w stożek (kąt rozwinięcia ${r2((kat * 180) / Math.PI)}°), sklej zakładkę „c”, potem do dna.`, punkty, krawedzie, zgiecia: [] }, kolo(r1, 'Stożek – dno', 'a')];
+  }
+  const zew = luk(R1, false);
+  const wew = luk(R2, true);
+  const obwod2 = 2 * n * rg * Math.sin(Math.PI / n);
+  const szerW = Math.min(5, Math.max(2.5, (obwod2 / n) * 0.8));
+  const punkty = [...zew, ...wew];
+  const krawedzie = [
+    ...Array.from({ length: n }, () => ({ typ: 'zakladka', para: 'a', szer: szerZ })),
+    { typ: 'zakladka', para: 'c', szer: 7 },
+    ...Array.from({ length: n }, () => ({ typ: 'zakladka', para: 'b', szer: szerW })),
+    { typ: 'klej', para: 'c' },
+  ];
+  // Wieko w tej samej liczbie boków co pierścień (krawędzie zakładek pasują długością).
+  const wieko = { nazwa: 'Stożek ścięty – wieko', punkty: Array.from({ length: n }, (_, i) => P(rg + rg * Math.cos((2 * Math.PI * i) / n), rg + rg * Math.sin((2 * Math.PI * i) / n))), krawedzie: Array.from({ length: n }, () => ({ typ: 'klej', para: 'b' })), zgiecia: [] };
+  const dno = { nazwa: 'Stożek ścięty – dno', punkty: Array.from({ length: n }, (_, i) => P(r1 + r1 * Math.cos((2 * Math.PI * i) / n), r1 + r1 * Math.sin((2 * Math.PI * i) / n))), krawedzie: Array.from({ length: n }, () => ({ typ: 'klej', para: 'a' })), zgiecia: [] };
+  return [{ nazwa: 'Stożek ścięty – płaszcz', opis: `Zwiń (kąt rozwinięcia ${r2((kat * 180) / Math.PI)}°), sklej zakładkę „c”, potem dno i wieko.`, punkty, krawedzie, zgiecia: [] }, dno, wieko];
+}
+const stozek = ({ srednica: D, wysokosc: H }) => stozekSciety({ srednica_dolu: D, srednica_gory: 0, wysokosc: H });
+
 export const SZABLONY_SKLADANEK = {
   prostopadloscian: { nazwa: 'Prostopadłościan (kostka)', opis: 'Jedna część: pas czterech ścian, wieko i dno, zakładki klejowe.', parametry: { dlugosc: 60, szerokosc: 40, wysokosc: 30 }, buduj: prostopadloscian },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
   pudelko: { nazwa: 'Pudełko z wieczkiem nakładanym', opis: 'Dwie części: pudełko i wieczko większe o dwie grubości materiału i luz – nakłada się ciasno, ale bez wciskania.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40, wieczko: 15 }, buduj: pudelkoZWieczkiem },
   graniastoslup: { nazwa: 'Graniastosłup (np. sześciokątny)', opis: 'Pas ścian i dwie podstawy przy pierwszej ścianie.', parametry: { boki: 6, bok: 25, wysokosc: 60 }, buduj: graniastoslup },
   ostroslup: { nazwa: 'Ostrosłup (piramida)', opis: 'Podstawa i trójkąty ścian dookoła; zakładka na każdym trójkącie.', parametry: { boki: 4, bok: 60, wysokosc: 50 }, buduj: ostroslup },
+  walec: { nazwa: 'Walec', opis: 'Płaszcz z zakładkami do dna i wieka (koła z wielu krótkich boków – pasują długością do zakładek).', parametry: { srednica: 50, wysokosc: 80 }, buduj: walec },
+  stozek: { nazwa: 'Stożek', opis: 'Płaszcz – wycinek koła – z zakładkami do dna; kąt rozwinięcia liczony z wysokości i średnicy.', parametry: { srednica: 60, wysokosc: 70 }, buduj: stozek },
+  stozek_sciety: { nazwa: 'Stożek ścięty (np. kubek, abażur)', opis: 'Płaszcz – wycinek pierścienia – z zakładkami do dna i wieka.', parametry: { srednica_dolu: 70, srednica_gory: 45, wysokosc: 60 }, buduj: stozekSciety },
+  popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: 'Jeden arkusz: nacięcia i zgięcia – po otwarciu kartki pod kątem prostym pudełka wyskakują ze środka. Nic nie wystaje po zamknięciu (nacięcia kończą się przed brzegiem).', parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {
@@ -155,5 +263,5 @@ export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {
 export function numeruj(czesci, wolny) {
   const mapa = new Map();
   const nr = (p) => { if (!p) return null; if (!mapa.has(p)) mapa.set(p, wolny()); return mapa.get(p); };
-  return czesci.map((c) => ({ ...c, krawedzie: c.krawedzie.map((k) => ({ ...k, para: nr(k.para) })), szczeliny: (c.szczeliny || []).map((z) => ({ ...z, para: nr(z.para) })) }));
+  return czesci.map((c) => ({ ...c, krawedzie: c.krawedzie.map((k) => ({ ...k, para: nr(k.para) })), szczeliny: (c.szczeliny || []).map((z) => ({ ...z, para: nr(z.para) })), pola: (c.pola || []).map((x) => ({ ...x, para: nr(x.para) })) }));
 }

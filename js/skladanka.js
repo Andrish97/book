@@ -5,7 +5,8 @@
 //     krawedzie: [{ typ: 'ciecie'|'zakladka'|'klej', para: '3'|null, szer: 7 }] – krawędź i: punkty[i] → punkty[i+1],
 //     zgiecia: [{ a:{x,y}, b:{x,y}, rodzaj: 'dolina'|'gora', kat: 90 }] – linie zgięcia w środku części,
 //     pola: [{ x, y, w, h, para, spod }] – miejsca klejenia na powierzchni (spod – na drugiej stronie, bez druku),
-//     szczeliny: [{ a:{x,y}, b:{x,y}, szer }] – nacięcia na wypustki innych części (szerokość z grubości materiału),
+//     szczeliny: [{ a:{x,y}, b:{x,y}, szer, naciecie? }] – nacięcia na wypustki innych części (szerokość z grubości materiału);
+//       naciecie: true – zwykłe cięcie w środku części (pop-up), bez wypustki,
 //     kolor: '#ffffff', druk: 'domowy'|'drukarnia' }
 // Krawędź 'wypustka' – język bez kleju do wsunięcia w szczelinę (ścianki, przegródki wsuwane do środka).
 // Z niej powstają zwykłe elementy (dzięki temu PDF, plik dla plotera, kontrola i zapis do innych programów działają
@@ -37,7 +38,7 @@ export function normalizujCzesc(c = {}) {
   const pola = (Array.isArray(c.pola) ? c.pola : []).filter((x) => x && Number.isFinite(x.x) && Number.isFinite(x.y)).map((x) => ({
     x: zaokr(x.x), y: zaokr(x.y), w: zaokr(Math.max(2, liczba(x.w, 15))), h: zaokr(Math.max(2, liczba(x.h, 10))), para: x.para ? String(x.para) : null, spod: Boolean(x.spod),
   }));
-  const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null }));
+  const szczeliny = (Array.isArray(c.szczeliny) ? c.szczeliny : []).filter((z) => z?.a && z?.b).map((z) => ({ a: P(z.a.x, z.a.y), b: P(z.b.x, z.b.y), szer: zaokr(Math.max(0.2, Math.min(10, liczba(z.szer, 0.8)))), para: z.para ? String(z.para) : null, ...(z.naciecie ? { naciecie: true } : {}) }));
   return {
     nr: String(c.nr || 'A'), ...(typeof c.opis === 'string' && c.opis ? { opis: c.opis.slice(0, 80) } : {}), punkty, krawedzie, zgiecia, pola, szczeliny, kolor: typeof c.kolor === 'string' ? c.kolor : '#ffffff',
     pokaz_numery: c.pokaz_numery !== false, druk: c.druk === 'drukarnia' ? 'drukarnia' : 'domowy',
@@ -388,7 +389,7 @@ export function uwagiSkladanki(arkusze) {
       for (const p of c.pola) if (p.para) (wpisy.get(p.para) || wpisy.set(p.para, []).get(p.para)).push({ rodzaj: 'pole', dl: Math.max(p.w, p.h), szer: Math.min(p.w, p.h), gdzie, opis: `miejsce klejenia na części ${c.nr}` });
       for (const z of c.szczeliny) {
         if (z.para) (wpisy.get(z.para) || wpisy.set(z.para, []).get(z.para)).push({ rodzaj: 'szczelina', dl: Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y), gdzie, opis: `szczelina na części ${c.nr}` });
-        if (z.szer < a.grubosc) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Szczelina na części ${c.nr} ma ${mmTxt(z.szer)} mm, a materiał ${mmTxt(a.grubosc)} mm – wypustka się nie zmieści. Ustaw szerokość co najmniej ${mmTxt(a.grubosc + 0.2)} mm.` });
+        if (!z.naciecie && z.szer < a.grubosc) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Szczelina na części ${c.nr} ma ${mmTxt(z.szer)} mm, a materiał ${mmTxt(a.grubosc)} mm – wypustka się nie zmieści. Ustaw szerokość co najmniej ${mmTxt(a.grubosc + 0.2)} mm.` });
       }
     }
   }
@@ -398,7 +399,17 @@ export function uwagiSkladanki(arkusze) {
   for (const [para, lista] of wpisy) {
     const g = lista[0].gdzie;
     if (lista.length === 1) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} (${lista[0].opis}) nie ma pary – nie wiadomo, do czego to przykleić. Połącz z krawędzią albo miejscem (narzędzie „Połącz”) albo usuń numer.` }); continue; }
-    if (lista.length > 2) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} jest użyty ${lista.length} razy (${lista.map((x) => x.opis).join(', ')}) – para to dwa miejsca; nadaj pozostałym inne numery.` });
+    if (lista.length > 2) {
+      // Szew po łuku (#261: walec, stożek): tyle samo krawędzi z tym numerem na dwóch częściach – razem tej samej długości.
+      const wg = new Map();
+      for (const w of lista) wg.set(w.gdzie.idObiektu, [...(wg.get(w.gdzie.idObiektu) || []), w]);
+      const [s1, s2] = [...wg.values()];
+      const szew = wg.size === 2 && s1.length === s2.length && lista.every((w) => ['zakladka', 'klej'].includes(w.rodzaj));
+      if (!szew) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} jest użyty ${lista.length} razy (${lista.map((x) => x.opis).join(', ')}) – para to dwa miejsca; nadaj pozostałym inne numery.` }); continue; }
+      const suma = (l) => l.reduce((x, w) => x + w.dl, 0);
+      if (Math.abs(suma(s1) - suma(s2)) > 1) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Szew ${para}: strony mają różne długości (${mmTxt(suma(s1))} i ${mmTxt(suma(s2))} mm) – po sklejeniu jedna będzie wystawać.` });
+      continue;
+    }
     const krawedzie = lista.filter((w) => ['zakladka', 'klej'].includes(w.rodzaj));
     if (krawedzie.length === 2 && Math.abs(krawedzie[0].dl - krawedzie[1].dl) > 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: krawędzie mają różne długości (${mmTxt(krawedzie[0].dl)} i ${mmTxt(krawedzie[1].dl)} mm) – po sklejeniu jedna będzie wystawać.` });
     const zak = lista.find((w) => w.rodzaj === 'zakladka');
