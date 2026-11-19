@@ -15,7 +15,7 @@ import {
   rozlozNaArkusze, instrukcjaMontazu,
 } from '../skladanka.js';
 import { nowaStrona, nowaSekcja } from '../projekt.js';
-import { SZABLONY_SKLADANEK, OPISY_PARAMETROW, czesciSzablonu, numeruj } from '../skladanka-szablony.js';
+import { SZABLONY_SKLADANEK, OPISY_PARAMETROW, czesciSzablonu, numeruj, brylaZRzutu } from '../skladanka-szablony.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
 import { $, $$, powiadom, pobierz, bezpiecznaNazwa } from '../ui.js';
@@ -108,6 +108,48 @@ export function czescZZaznaczenia() {
   zablokuj(g);
   edytor.canvas.remove(o);
   return edytor._wstaw(g);
+}
+
+// Bryła z zaznaczonego kształtu (#263): graniastosłup albo ostrosłup – jedna część z siatką, parami i zgięciami
+// w miejscu kształtu. Kształt znika (jak przy „Z kształtu”).
+export function brylaZZaznaczenia({ rodzaj = 'graniastoslup', wysokosc = 40, id = null } = {}) {
+  // id – kształt zaznaczony przy otwarciu okna (płótno mogło się w tym czasie przebudować).
+  const o = (id && edytor.canvas.getObjects().find((x) => x.id === id)) || edytor.aktywny;
+  if (!o || o.czesc || o.type === 'activeselection' || o.type === 'activeSelection') { powiadom('Zaznacz kształt (wielokąt, prostokąt, kształt z pióra) – rzut bryły.', true); return null; }
+  const z = czescZKsztaltu(o, 'A');
+  if (!z) { powiadom('Z tego elementu nie da się zrobić bryły – potrzebny zamknięty kształt.', true); return null; }
+  const pary = uzytePary();
+  const [cz] = numeruj(brylaZRzutu(z.def.punkty, { rodzaj, wysokosc, nazwa: o.nazwa || 'Bryła' }), () => { const n = kolejnaPara(pary); pary.add(n); return n; });
+  const g = zbudujCzesc({ ...cz, nr: kolejnaNazwa(uzyteNazwy()), opis: cz.nazwa, kolor: z.def.kolor, druk: ustawieniaSekcji().druk }, { left: 0, top: 0 });
+  const r = g.getBoundingRect();
+  g.set({ left: g.left + (z.left - r.left), top: g.top + (z.top - r.top) });
+  g.setCoords();
+  zablokuj(g);
+  edytor.canvas.remove(o);
+  return edytor._wstaw(g);
+}
+export function oknoBryly() {
+  if (!wSkladance()) return;
+  let dlg = $('#dlg-bryla-skladanki');
+  if (!dlg) {
+    dlg = document.createElement('dialog');
+    dlg.id = 'dlg-bryla-skladanki';
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Bryła z kształtu</h2>
+      <p class="ciche">Zaznaczony kształt to podstawa (rzut) bryły. Makietka zrobi z niego siatkę: ściany na każdym boku, zakładki z numerami par i zgięcia. Kształt wklęsły (np. litera L) też się da – sprawdź tylko, czy ściany na siatce nie nachodzą na siebie.</p>
+      <div class="rzad"><label class="pole"><span>Bryła</span><select name="rodzaj"><option value="graniastoslup">Graniastosłup (ściany prostopadłe, wieko)</option><option value="ostroslup">Ostrosłup (ściany do wierzchołka)</option></select></label>
+      <label class="pole waskie"><span>Wysokość (mm)</span><input type="number" name="wysokosc" min="1" step="any" value="40" inputmode="decimal"></label></div>
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Zrób bryłę</button></div></form>`;
+    document.body.append(dlg);
+  }
+  const f = dlg.querySelector('form');
+  const id = edytor.aktywny?.id || null;
+  dlg.addEventListener('close', () => {
+    if (dlg.returnValue !== 'tak') return;
+    const g = brylaZZaznaczenia({ id, rodzaj: f.elements.rodzaj.value, wysokosc: Math.max(1, Number(String(f.elements.wysokosc.value).replace(',', '.')) || 40) });
+    if (g) powiadom(`Zrobiono ${g.nazwa.replace(/^Część /, 'część ')}. Gdy nie mieści się na arkuszu, użyj [Rozłóż].`);
+  }, { once: true });
+  dlg.returnValue = '';
+  dlg.showModal();
 }
 
 // ---------- Narzędzia klikane ----------
@@ -513,6 +555,7 @@ export async function wstawInstrukcje(kroki) {
 export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-czesc') return nowaCzesc();
   if (akcja === 'skladanka-z-ksztaltu') return czescZZaznaczenia();
+  if (akcja === 'skladanka-bryla') return oknoBryly();
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   if (akcja === 'skladanka-szablon') return oknoSzablonow();
   if (akcja === 'skladanka-instrukcja') return oknoInstrukcji();

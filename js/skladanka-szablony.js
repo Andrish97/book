@@ -259,6 +259,76 @@ function kula({ srednica: D, kliny: n }) {
   }));
 }
 
+// ---------- Bryła z rzutu (#263, plan składanek krok 11) ----------
+// Z dowolnego wielokąta (kształt z pióra, gwiazda, litera z odcinków) – jedna część: podstawa w środku, na każdym jej
+// boku ściana. Graniastosłup: prostokąty boczne wysokości H, wieko odbite za pierwszą ścianą; ostrosłup: trójkąty
+// z wierzchołkiem H nad środkiem ciężkości podstawy. Pary: boki sąsiednich ścian (zakładka ↔ do sklejenia), w
+// graniastosłupie także górne brzegi ścian ↔ boki wieka. Zgięcia: boki podstawy (i brzeg wieka).
+function zgodnieZRuchem(pkt) {
+  const pole = pkt.reduce((a, p, i) => { const q = pkt[(i + 1) % pkt.length]; return a + p.x * q.y - q.x * p.y; }, 0);
+  return pole < 0 ? [...pkt].reverse() : pkt;
+}
+const normalna = (a, b) => { const l = Math.hypot(b.x - a.x, b.y - a.y) || 1; return { x: (b.y - a.y) / l, y: -(b.x - a.x) / l }; };
+const dodaj = (p, n, d) => ({ x: p.x + n.x * d, y: p.y + n.y * d });
+function przesunNaZero(czesc) {
+  const minX = Math.min(...czesc.punkty.map((p) => p.x));
+  const minY = Math.min(...czesc.punkty.map((p) => p.y));
+  const m = (p) => P(p.x - minX, p.y - minY);
+  return { ...czesc, punkty: czesc.punkty.map(m), zgiecia: czesc.zgiecia.map((z) => ({ ...z, a: m(z.a), b: m(z.b) })) };
+}
+export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc: H = 40, nazwa = 'Bryła' } = {}) {
+  const pkt = zgodnieZRuchem(punktyWejscie.map((p) => ({ x: Number(p.x), y: Number(p.y) })));
+  const n = pkt.length;
+  if (n < 3) return [];
+  const nast = (i) => pkt[(i + 1) % n];
+  const szer = (l) => Math.min(8, Math.max(3, l * 0.3));
+  const dl = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+  const zgiecia = pkt.map((p, i) => ({ a: p, b: nast(i), rodzaj: 'gora', kat: 90 }));
+  const punkty = [];
+  const krawedzie = [];
+  if (rodzaj === 'ostroslup') {
+    const c = { x: pkt.reduce((a, p) => a + p.x, 0) / n, y: pkt.reduce((a, p) => a + p.y, 0) / n };
+    for (let i = 0; i < n; i += 1) {
+      const a = pkt[i];
+      const b = nast(i);
+      const sa = Math.hypot(dl(a, c), H);
+      const sb = Math.hypot(dl(b, c), H);
+      const l = dl(a, b);
+      // Wierzchołek trójkąta w płaszczyźnie: odległość sa od a i sb od b, po zewnętrznej stronie boku.
+      const x = (sa * sa - sb * sb + l * l) / (2 * l);
+      const h = Math.sqrt(Math.max(0, sa * sa - x * x));
+      const u = { x: (b.x - a.x) / l, y: (b.y - a.y) / l };
+      const nr = normalna(a, b);
+      const w = { x: a.x + u.x * x + nr.x * h, y: a.y + u.y * x + nr.y * h };
+      punkty.push(a, w);
+      krawedzie.push({ typ: 'klej', para: `s${(i + n - 1) % n}` }, { typ: 'zakladka', para: `s${i}`, szer: szer(sb) });
+    }
+    return [przesunNaZero({ nazwa: `${nazwa} – ostrosłup`, opis: `Ostrosłup o wysokości ${r2(H)} mm z wielokąta (${n} boków).`, punkty, krawedzie, zgiecia })];
+  }
+  const A = dodaj(pkt[0], normalna(pkt[0], pkt[1]), H);
+  const B = dodaj(pkt[1], normalna(pkt[0], pkt[1]), H);
+  // Wieko: podstawa odbita względem prostej równoległej do pierwszego boku w odległości H/2 (T0 = A, T1 = B).
+  const n0 = normalna(pkt[0], pkt[1]);
+  const odbij = (p) => { const d = (p.x - pkt[0].x) * n0.x + (p.y - pkt[0].y) * n0.y; return dodaj(p, n0, H - 2 * d); };
+  const T = pkt.map(odbij);
+  for (let i = 0; i < n; i += 1) {
+    const a = pkt[i];
+    const b = nast(i);
+    const nr = normalna(a, b);
+    punkty.push(a, dodaj(a, nr, H));
+    krawedzie.push({ typ: 'klej', para: `s${(i + n - 1) % n}` });
+    if (i === 0) {
+      // Brzeg wieka od A dookoła do B: T0 → T(n−1) → … → T2 → T1.
+      krawedzie.push({ typ: 'klej', para: `t${n - 1}` });
+      for (let k = n - 1; k >= 2; k -= 1) { punkty.push(T[k]); krawedzie.push({ typ: 'klej', para: `t${k - 1}` }); }
+    } else krawedzie.push({ typ: 'zakladka', para: `t${i}`, szer: szer(dl(a, b)) });
+    punkty.push(dodaj(b, nr, H));
+    krawedzie.push({ typ: 'zakladka', para: `s${i}`, szer: szer(H) });
+  }
+  zgiecia.push({ a: A, b: B, rodzaj: 'gora', kat: 90 });
+  return [przesunNaZero({ nazwa: `${nazwa} – graniastosłup`, opis: `Graniastosłup o wysokości ${r2(H)} mm z wielokąta (${n} boków); wieko przy pierwszej ścianie.`, punkty, krawedzie, zgiecia })];
+}
+
 export const SZABLONY_SKLADANEK = {
   prostopadloscian: { nazwa: 'Prostopadłościan (kostka)', opis: 'Jedna część: pas czterech ścian, wieko i dno, zakładki klejowe.', parametry: { dlugosc: 60, szerokosc: 40, wysokosc: 30 }, buduj: prostopadloscian },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },

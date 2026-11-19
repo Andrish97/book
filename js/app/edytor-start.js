@@ -517,6 +517,7 @@ export const akcje = {
   // Składanka (#233): część, część z kształtu, zgięcie, połączenie, miejsce klejenia, szczelina.
   'skladanka-czesc': () => obsluzAkcje('skladanka-czesc'),
   'skladanka-z-ksztaltu': () => obsluzAkcje('skladanka-z-ksztaltu'),
+  'skladanka-bryla': () => obsluzAkcje('skladanka-bryla'),
   'skladanka-zgiecie': () => obsluzAkcje('skladanka-zgiecie'),
   'skladanka-polacz': () => obsluzAkcje('skladanka-polacz'),
   'skladanka-klej': () => obsluzAkcje('skladanka-klej'),
