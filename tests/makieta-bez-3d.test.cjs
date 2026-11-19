@@ -54,6 +54,7 @@ test('makieta bez 3D: ujęcia narysowane przy publikacji linku, galeria u ogląd
   assert.ok(!JSON.stringify(manifest.uklad.sekcje).includes('makieta-'));
   // Okno makiety po publikacji działa jak dawniej (rysowanie w tle posprzątało po sobie).
   assert.equal(await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).makietaWolna()), true);
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.ujecia), true, 'link ma ujęcia');
 
   // Oglądający bez WebGL.
   const gosc = await przegladarka.newContext({ locale: 'pl-PL', viewport: { width: 1100, height: 800 }, serviceWorkers: 'block' });
@@ -105,4 +106,27 @@ test('makieta bez 3D: ujęcia narysowane przy publikacji linku, galeria u ogląd
     return { ...W.stanGalerii(), blad: !document.querySelector('#makieta-brak-3d').hidden };
   });
   assert.deepEqual(wl, { widoczna: true, ktore: 0, ile: 5, blad: false });
+
+  // #311: aktualizacja linku z tego urządzenia (bez 3D) zachowuje ujęcia z poprzedniej publikacji.
+  await strona.evaluate(() => document.querySelector('#dlg-makieta').close());
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.strony[1].tlo = '#ffe8cc';
+    await (await import('./js/app/podglad-ekran.js')).opublikujUdostepnienie();
+  });
+  const czytaj = () => JSON.parse(baza.pliki.get(kluczManifestu).tresc.toString());
+  for (let i = 0; i < 300 && (czytaj().zaktualizowano === manifest.zaktualizowano || czytaj().przygotowanie); i += 1) await strona.waitForTimeout(100);
+  const m2 = czytaj();
+  assert.equal(m2.uklad.makieta.ujecia?.length, 5, 'ujęcia zostały w linku');
+  for (const u of m2.uklad.makieta.ujecia) assert.ok([...baza.pliki.keys()].some((k) => k.startsWith(`${folder}${u.id}.`)), `plik ${u.id} został`);
+});
+
+test('makieta bez 3D, link bez ujęć: okno mówi, skąd się biorą ujęcia', async (t) => {
+  const { strona } = await otworz(t, { widok: { width: 1100, height: 800 } });
+  await strona.evaluate(BEZ_WEBGL);
+  await nowyProjekt(strona, 'Bez ujęć');
+  await strona.evaluate(async () => (await import('./js/app/makieta-okno.js')).otworzMakiete(window.seriodruk.stan.projekt));
+  const tekst = await strona.textContent('#makieta-brak-3d');
+  assert.match(tekst, /Nie udało się pokazać makiety 3D/);
+  assert.match(tekst, /udostępnij projekt linkiem na komputerze z grafiką 3D – ujęcia zapiszą się same/);
 });

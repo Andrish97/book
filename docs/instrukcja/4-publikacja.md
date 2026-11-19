@@ -104,7 +104,9 @@ najbliższym otwarciu projektu.
 > — przód, ¾, otwartą rozkładówkę, stojącą książkę, przód i tył — jako zwykłe obrazy, przewijane strzałkami, klawiszami
 > ← → albo przesunięciem palcem. Ujęcia rysują się same przy udostępnianiu linku (i każdej jego aktualizacji) na
 > urządzeniu, które ma grafikę 3D, i są częścią linku: widzi je oglądający bez 3D, a Ty — w makiecie własnego projektu
-> na takim urządzeniu (gdy link jest bez hasła). Projekt bez linku nie ma jeszcze ujęć — okno mówi wtedy, co włączyć.
+> na takim urządzeniu (także przy linku z hasłem). Link bez ujęć (np. udostępniony wcześniej) uzupełnia się sam, gdy
+> otworzysz projekt na urządzeniu z grafiką 3D; aktualizacja linku z urządzenia bez 3D zachowuje ujęcia. Projekt bez
+> linku nie ma jeszcze ujęć — okno mówi wtedy, co zrobić.
 
 ### Gotowe ujęcia
 

@@ -865,6 +865,23 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
   return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
 }
 
+// Właściciel: opis i adresy obrazów własnego linku – zwykłego albo z ochroną (folder z sekretem bez hasła,
+// jak przy publikacji). Ujęcia makiety dla urządzeń bez 3D (#307, #311).
+export async function wczytajPodgladWlasciciela(projektId, kod, chroniony = false) {
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  let folder = `${uzytkownik.id}/${projektId}/${kod}`;
+  if (chroniony) {
+    const sb = await supabase();
+    const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null);
+    folder = `${uzytkownik.id}/${projektId}/${w.folder}`;
+  }
+  const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!odp.ok) throw bladLinku('brak');
+  const manifest = await odp.json();
+  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
+}
+
 // ---------- Sztuczna inteligencja (klucze konta, decyzja #94) ----------
 //
 // Klucz tworzy i odbiera właściciel konta; w bazie zostaje tylko jego skrót. Asystent AI używa

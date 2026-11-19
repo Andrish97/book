@@ -617,7 +617,15 @@ function pokazBrak3D() {
   const k = $('#makieta-brak-3d');
   if (pokazGalerie()) { k.hidden = true; return; }
   k.hidden = Boolean(renderer);
-  if (!renderer) k.innerHTML = tekstBraku3D(powodBrakuWebGL);
+  if (!renderer) {
+    // Bez ujęć (#311): skąd się biorą i co zrobić, żeby były.
+    const wskazowka = st?.gosc
+      ? 'Gotowych ujęć makiety jeszcze nie ma – pojawią się, gdy osoba, która udostępniła projekt, otworzy go na komputerze z grafiką 3D.'
+      : st?.projekt?.udostepnienie?.kod
+        ? 'Gotowe ujęcia makiety (obrazy do przewijania) zapiszą się w linku same, gdy otworzysz ten projekt na komputerze albo telefonie z grafiką 3D – potem zobaczysz je tutaj.'
+        : 'Na urządzeniu bez grafiki 3D makieta pokazuje gotowe ujęcia z linku: udostępnij projekt linkiem na komputerze z grafiką 3D – ujęcia zapiszą się same i zobaczysz je tutaj.';
+    k.innerHTML = `${tekstBraku3D(powodBrakuWebGL)}<p>${wskazowka}</p>`;
+  }
 }
 
 // Utrata kontekstu WebGL (#157): telefon odbiera go np. przy przejściu aplikacji w tło. Bez preventDefault
@@ -650,14 +658,14 @@ export function otworzMakiete(projekt) {
     model: baza.modele.includes(zapamietany) ? zapamietany : baza.modele.includes(dm) ? dm : baza.modele[0], ulozenie,
   });
   // Bez grafiki 3D (zgłoszenie 19.11): ujęcia z linku projektu (narysowane przy publikacji na urządzeniu z 3D).
-  if (!renderer && projekt.udostepnienie?.kod && !projekt.udostepnienie.ochrona) ujeciaZLinkuWlasciciela(projekt);
+  if (!renderer && projekt.udostepnienie?.kod) ujeciaZLinkuWlasciciela(projekt);
 }
 
 async function ujeciaZLinkuWlasciciela(projekt) {
   const moje = st;
   try {
     const chmura = await import('../chmura.js');
-    const { manifest, adresObrazu } = await chmura.wczytajPodgladPubliczny(projekt.udostepnienie.konto, projekt.id, projekt.udostepnienie.kod);
+    const { manifest, adresObrazu } = await chmura.wczytajPodgladWlasciciela(projekt.id, projekt.udostepnienie.kod, Boolean(projekt.udostepnienie.ochrona));
     if (moje !== st) return;
     st.ujeciaObrazy = (manifest.uklad?.makieta?.ujecia || []).map((u) => ({ nazwa: u.nazwa, adres: adresObrazu(u.id) }));
   } catch { /* bez sieci albo bez linku – zostaje komunikat */ }

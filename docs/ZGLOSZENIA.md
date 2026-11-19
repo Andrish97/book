@@ -254,3 +254,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: szybka zamiana stron lewa ↔ prawa w rozkładówkach – przełącznik w panelu strony (#308).
 - 19.11.2026: twarda oprawa – grzbiet zaokrąglony albo prosty, widoczny w makiecie 3D (#309).
 - 19.11.2026: rozkładówki – strona po zmianie boku (dodanie strony przed nią) sama przenosi elementy na lustrzane miejsca (#310).
+- 19.11.2026: makieta bez 3D – link bez ujęć uzupełnia się sam na urządzeniu z 3D, aktualizacja bez 3D ich nie kasuje, ujęcia też przy linku z hasłem (#311).

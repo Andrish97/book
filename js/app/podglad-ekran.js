@@ -426,16 +426,30 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
   let okno = uklad.makieta && maGrafike3D() ? await import('./makieta-okno.js') : null;
   if (okno && !okno.makietaWolna()) okno = null; // okno makiety otwarte – ujęcia przy następnej publikacji
   let ujeciaGotowe = null;
+  let poprzednieUjecia = null; // { adresObrazu } – ujęcia z poprzedniej publikacji, gdy tu nie da się ich narysować
   if (okno) {
     const lista = okno.ujeciaLinku(uklad.makieta.model);
     uklad.makieta.ujecia = lista.map((u) => ({ id: u.id, nazwa: u.nazwa }));
     const odciskUjec = skrot(JSON.stringify([odciskTresci(p), uklad.makieta.wariant, 'u1']));
     for (const u of lista) { strony.push({ id: u.id, ujecie: true }); odciski[u.id] = `${odciskUjec}|${u.id}`; }
+  } else if (uklad.makieta && p.udostepnienie?.kod) {
+    // To urządzenie nie narysuje ujęć (bez 3D albo okno makiety otwarte): zostają te z poprzedniej publikacji
+    // (#311 – wcześniej aktualizacja linku z telefonu bez 3D je kasowała). Odświeżą się przy publikacji z 3D.
+    try {
+      const { manifest, adresObrazu } = await chmura.wczytajPodgladWlasciciela(p.id, p.udostepnienie.kod, Boolean(ochrona));
+      const stare = manifest.uklad?.makieta?.ujecia || [];
+      if (stare.length && (manifest.rozszerzenie || 'jpg') === (umieWebp() ? 'webp' : 'jpg') && stare.every((u) => manifest.tresci?.[u.id])) {
+        uklad.makieta.ujecia = stare;
+        for (const u of stare) { strony.push({ id: u.id, ujecie: true, stare: true }); odciski[u.id] = manifest.tresci[u.id]; }
+        poprzednieUjecia = { adresObrazu };
+      }
+    } catch { /* pierwsza publikacja albo bez sieci – link bez ujęć */ }
   }
   // WebP: ten sam wygląd przy ok. 30–40% mniejszych plikach (mniej transferu dla oglądających, #90).
   // Przeglądarka, która nie umie zapisać WebP (oddaje PNG), wysyła JPEG jak dawniej.
   const rozszerzenie = umieWebp() ? 'webp' : 'jpg';
   const obraz = async (s) => {
+    if (s.stare) return (await fetch(poprzednieUjecia.adresObrazu(s.id))).blob(); // zwykle niepotrzebne: ten sam odcisk – bez wysyłki
     if (s.ujecie) {
       ujeciaGotowe ||= okno.ujeciaWTle(p, uklad.makieta.model);
       const png = (await ujeciaGotowe)?.find((u) => u.id === s.id)?.blob;
@@ -459,7 +473,9 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
     ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie, naLink: linkGotowy })
     : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie, naLink: linkGotowy });
   const krotki = p.udostepnienie?.kod === kod ? p.udostepnienie.krotki : null;
-  p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}) };
+  // ujecia: link ma gotowe ujęcia makiety – bez nich urządzenie z 3D zaktualizuje link samo (#311).
+  const maUjecia = !uklad.makieta || Boolean(uklad.makieta.ujecia?.length); // bez makiety – nie ma czego rysować
+  p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}), ...(maUjecia ? { ujecia: true } : {}) };
   await zapewnijKrotki(p);
   return wynik;
 }
@@ -567,10 +583,12 @@ let timerLinku = null;
 export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
   clearTimeout(timerLinku);
   const p = stan.projekt;
-  if (!p?.udostepnienie || !stan.uzytkownik || p.udostepnienie.odcisk === odciskTresci(p)) return;
+  // Link bez gotowych ujęć makiety (#311), a to urządzenie umie je narysować – aktualizacja, choć treść ta sama.
+  const brakUjec = () => !p.udostepnienie.ujecia && maGrafike3D();
+  if (!p?.udostepnienie || !stan.uzytkownik || (p.udostepnienie.odcisk === odciskTresci(p) && !brakUjec())) return;
   timerLinku = setTimeout(async () => {
     if (stan.projekt !== p || !p.udostepnienie || trwaPublikacja || !navigator.onLine) return;
-    if (p.udostepnienie.odcisk === odciskTresci(p)) return;
+    if (p.udostepnienie.odcisk === odciskTresci(p) && !brakUjec()) return;
     trwaPublikacja = true;
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     try {
