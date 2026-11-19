@@ -68,6 +68,8 @@ test('makieta 3D z linku: ta sama bryła co u właściciela, obrazy linku, kartk
   await obca.click('[data-akcja="podglad-makieta"]');
   await obca.waitForSelector('#dlg-makieta[open]');
   await obca.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 30000 });
+  // Oglądający z grafiką 3D – pełna makieta 3D (uproszczona 2D tylko bez WebGL, #318).
+  assert.deepEqual(await obca.evaluate(async () => { const s = (await import('./js/app/makieta-okno.js')).stanMakiety(); return { renderer: s.renderer, uproszczony: s.uproszczony }; }), { renderer: true, uproszczony: false });
   const W = () => obca.evaluate(async () => {
     const M = await import('./js/app/makieta-okno.js');
     const s = M.stanMakiety();
