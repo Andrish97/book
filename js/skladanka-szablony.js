@@ -123,6 +123,33 @@ function suwak({ szerokosc: S, wysokosc: H, szerokosc_paska: w0, ruch: R0 }) {
   return [kartka, pasek];
 }
 
+// Klapki (lift-the-flap, #280 – zawias do książek): kartka z n okienkami (1–6, w siatce), każde wycięte z trzech
+// stron i zgięte na czwartej (lewej) – zgięcie jest zawiasem. Pod kartką druga kartka z polami do przyklejenia
+// (obrys bez okienek – klej tylko poza klapkami), na której rysuje się to, co klapka zasłania.
+function klapki({ szerokosc: S, wysokosc: H, klapki: n0, szerokosc_klapki: w0, wysokosc_klapki: h0 }) {
+  const n = Math.max(1, Math.min(6, Math.round(n0)));
+  const kol = n <= 2 ? n : Math.min(3, Math.ceil(n / 2));
+  const wier = Math.ceil(n / kol);
+  const w = Math.min(w0, (S - 10 * (kol + 1)) / kol);
+  const h = Math.min(h0, (H - 10 * (wier + 1)) / wier);
+  const dx = (S - kol * w) / (kol + 1);
+  const dy = (H - wier * h) / (wier + 1);
+  const szczeliny = [];
+  const zgiecia = [];
+  for (let i = 0; i < n; i += 1) {
+    const x = dx + (i % kol) * (w + dx);
+    const y = dy + Math.floor(i / kol) * (h + dy);
+    const [A, B, C, D] = [P(x, y), P(x + w, y), P(x + w, y + h), P(x, y + h)];
+    szczeliny.push({ a: A, b: B, szer: 0.2, para: null, naciecie: true }, { a: B, b: C, szer: 0.2, para: null, naciecie: true }, { a: C, b: D, szer: 0.2, para: null, naciecie: true });
+    zgiecia.push({ a: D, b: A, rodzaj: 'gora', kat: 120 });
+  }
+  const prost = () => [P(0, 0), P(S, 0), P(S, H), P(0, H)];
+  return [
+    { nazwa: 'Klapki – kartka', opis: `${n} ${n === 1 ? 'klapka' : n < 5 ? 'klapki' : 'klapek'}: przetnij trzy boki każdej (czerwone), zegnij czwarty – to zawias.`, punkty: prost(), krawedzie: kr([['c'], ['c'], ['c'], ['c']]), zgiecia, szczeliny },
+    { nazwa: 'Klapki – spód', opis: 'Narysuj tu to, co zasłaniają klapki, i przyklej kartkę na wierzch – klej tylko poza okienkami.', punkty: prost(), krawedzie: kr([['c'], ['c'], ['c'], ['c']]), zgiecia: [] },
+  ];
+}
+
 // Tacka (pudełko bez wieka) L × W, ścianki H: dno pośrodku, ścianki dookoła, zakładki na dłuższych ściankach.
 function tacka({ dlugosc: L, szerokosc: W, wysokosc: H }, nazwa = 'Tacka', p = ['a', 'b', 'c', 'd']) {
   const pkt = [[H, 0], [H + L, 0], [H + L, H], [2 * H + L, H], [2 * H + L, H + W], [H + L, H + W], [H + L, 2 * H + W], [H, 2 * H + W], [H, H + W], [0, H + W], [0, H], [H, H]];
@@ -579,6 +606,7 @@ export const SZABLONY_SKLADANEK = {
   pudelko_klapa: { nazwa: 'Pudełko z klapą wsuwaną', opis: 'Mechanizm: wieko na zawiasie z językiem wsuwanym za przednią ścianę – otwiera się i zamyka bez kleju.', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZKlapa },
   pudelko_zatrzask: { nazwa: 'Pudełko z zatrzaskiem', opis: 'Mechanizm: wieko z językiem wsuwanym w szczelinę w przedniej ścianie – zamyka się na zatrzask (szczelina na grubość materiału).', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZZatrzaskiem },
   kolo_obrotowe: { nazwa: 'Koło obrotowe (do książek)', opis: 'Element ruchomy: dwa krążki na ćwieku – górny z okienkiem pokazuje kolejne pola dolnego.', parametry: { srednica: 120, pola: 6 }, buduj: koloObrotowe },
+  klapki: { nazwa: 'Klapki (lift-the-flap, do książek)', opis: 'Okienka wycięte z trzech stron i zgięte na czwartej (zawias) – pod nimi druga kartka z ukrytym obrazkiem.', parametry: { szerokosc: 100, wysokosc: 140, klapki: 4, szerokosc_klapki: 30, wysokosc_klapki: 40 }, buduj: klapki },
   suwak: { nazwa: 'Suwak (pull-tab, do książek)', opis: 'Element ruchomy: pasek przełożony przez nacięcie w kartce – wysuwasz go za uchwyt, szeroki koniec nie pozwala go wyciągnąć.', parametry: { szerokosc: 100, wysokosc: 140, szerokosc_paska: 25, ruch: 50 }, buduj: suwak },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
   pudelko: { nazwa: 'Pudełko z wieczkiem nakładanym', opis: 'Dwie części: pudełko i wieczko większe o dwie grubości materiału i luz – nakłada się ciasno, ale bez wciskania.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40, wieczko: 15 }, buduj: pudelkoZWieczkiem },
@@ -598,7 +626,7 @@ export const SZABLONY_SKLADANEK = {
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { szerokosc_paska: 'Szerokość paska (mm)', ruch: 'Ruch paska (mm)', pola: 'Liczba pól (3–12)', ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { klapki: 'Liczba klapek', szerokosc_klapki: 'Szerokość klapki (mm)', wysokosc_klapki: 'Wysokość klapki (mm)', szerokosc_paska: 'Szerokość paska (mm)', ruch: 'Ruch paska (mm)', pola: 'Liczba pól (3–12)', ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {

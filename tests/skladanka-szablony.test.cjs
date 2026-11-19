@@ -65,6 +65,15 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   const dlNac = Math.hypot(nac.b.x - nac.a.x, nac.b.y - nac.a.y);
   const szerKonca = Math.max(...pasekS.punkty.map((q) => q.y)) - Math.min(...pasekS.punkty.map((q) => q.y));
   assert.ok(Math.abs(dlNac - 26) < 0.01 && szerKonca > dlNac, `nacięcie ${dlNac}, koniec ${szerKonca}`);
+  // Klapki (#280): każda klapka = 3 nacięcia + zgięcie zamykające obrys (zawias); okienka w kartce, bez nakładania.
+  const [kartkaK] = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('klapki', { klapki: 5 }));
+  assert.equal(kartkaK.szczeliny.length, 15);
+  assert.equal(kartkaK.zgiecia.length, 5);
+  for (let i = 0; i < 5; i += 1) {
+    const [s1, , s3] = kartkaK.szczeliny.slice(i * 3, i * 3 + 3);
+    const z = kartkaK.zgiecia[i];
+    assert.deepEqual([z.a, z.b], [s3.b, s1.a], 'zgięcie domyka obrys klapki');
+  }
   // Bryły o krzywych (#261): para łączy wiele krótkich krawędzi – po obu stronach te same długości (zakładki na
   // łuku płaszcza ↔ boki koła dna); różnice tylko z zaokrąglenia punktów do 0,01 mm.
   for (const k of ['walec', 'stozek', 'stozek_sciety', 'kula', 'wazon', 'zolw']) {
@@ -154,7 +163,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw', 'kolo_obrotowe', 'suwak']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw', 'kolo_obrotowe', 'suwak', 'klapki']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);
