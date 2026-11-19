@@ -95,6 +95,34 @@ function koloObrotowe({ srednica: D, pola: n0 }) {
   return [dolny, gorny];
 }
 
+// Suwak (pull-tab, #279 – element ruchomy do książek): kartka z nacięciem przy brzegu (długość = szerokość paska
+// + 1 mm) i pasek w kształcie litery T: wąska część przechodzi przez nacięcie, szeroki koniec (o 10 mm szerszy)
+// zostaje pod kartką i nie pozwala wyciągnąć paska. Ruch paska = długość wąskiej części − zapas.
+function suwak({ szerokosc: S, wysokosc: H, szerokosc_paska: w0, ruch: R0 }) {
+  const w = Math.min(w0, H - 30);
+  const ruch = Math.min(R0, S - 30);
+  const yS = (H - w - 1) / 2;
+  const xS = S - 12;
+  const kartka = {
+    nazwa: 'Suwak – kartka',
+    opis: 'Przetnij nacięcie przy prawym brzegu i przełóż przez nie pasek od spodu – szeroki koniec zostaje pod kartką.',
+    punkty: [P(0, 0), P(S, 0), P(S, H), P(0, H)],
+    krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
+    zgiecia: [],
+    szczeliny: [{ a: P(xS, yS), b: P(xS, yS + w + 1), szer: 0.2, para: null, naciecie: true }],
+  };
+  const dl = ruch + 20; // wąska część: ruch + uchwyt
+  const szer = w + 10;
+  const pasek = {
+    nazwa: 'Suwak – pasek',
+    opis: `Ruch ${r2(ruch)} mm; uchwyt wystaje poza kartkę.`,
+    punkty: [P(0, 0), P(12, 0), P(12, 5), P(12 + dl, 5), P(12 + dl, 5 + w), P(12, 5 + w), P(12, szer), P(0, szer)],
+    krawedzie: kr(Array(8).fill(['c'])),
+    zgiecia: [],
+  };
+  return [kartka, pasek];
+}
+
 // Tacka (pudełko bez wieka) L × W, ścianki H: dno pośrodku, ścianki dookoła, zakładki na dłuższych ściankach.
 function tacka({ dlugosc: L, szerokosc: W, wysokosc: H }, nazwa = 'Tacka', p = ['a', 'b', 'c', 'd']) {
   const pkt = [[H, 0], [H + L, 0], [H + L, H], [2 * H + L, H], [2 * H + L, H + W], [H + L, H + W], [H + L, 2 * H + W], [H, 2 * H + W], [H, H + W], [0, H + W], [0, H], [H, H]];
@@ -551,6 +579,7 @@ export const SZABLONY_SKLADANEK = {
   pudelko_klapa: { nazwa: 'Pudełko z klapą wsuwaną', opis: 'Mechanizm: wieko na zawiasie z językiem wsuwanym za przednią ścianę – otwiera się i zamyka bez kleju.', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZKlapa },
   pudelko_zatrzask: { nazwa: 'Pudełko z zatrzaskiem', opis: 'Mechanizm: wieko z językiem wsuwanym w szczelinę w przedniej ścianie – zamyka się na zatrzask (szczelina na grubość materiału).', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZZatrzaskiem },
   kolo_obrotowe: { nazwa: 'Koło obrotowe (do książek)', opis: 'Element ruchomy: dwa krążki na ćwieku – górny z okienkiem pokazuje kolejne pola dolnego.', parametry: { srednica: 120, pola: 6 }, buduj: koloObrotowe },
+  suwak: { nazwa: 'Suwak (pull-tab, do książek)', opis: 'Element ruchomy: pasek przełożony przez nacięcie w kartce – wysuwasz go za uchwyt, szeroki koniec nie pozwala go wyciągnąć.', parametry: { szerokosc: 100, wysokosc: 140, szerokosc_paska: 25, ruch: 50 }, buduj: suwak },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
   pudelko: { nazwa: 'Pudełko z wieczkiem nakładanym', opis: 'Dwie części: pudełko i wieczko większe o dwie grubości materiału i luz – nakłada się ciasno, ale bez wciskania.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40, wieczko: 15 }, buduj: pudelkoZWieczkiem },
   graniastoslup: { nazwa: 'Graniastosłup (np. sześciokątny)', opis: 'Pas ścian i dwie podstawy przy pierwszej ścianie.', parametry: { boki: 6, bok: 25, wysokosc: 60 }, buduj: graniastoslup },
@@ -569,7 +598,7 @@ export const SZABLONY_SKLADANEK = {
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { pola: 'Liczba pól (3–12)', ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { szerokosc_paska: 'Szerokość paska (mm)', ruch: 'Ruch paska (mm)', pola: 'Liczba pól (3–12)', ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {

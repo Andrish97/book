@@ -228,3 +228,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – żółw (zwierzę z siatki 3D) (#276).
 - 19.11.2026: składanki – kolory części z materiałów modelu 3D (OBJ + MTL) (#277).
 - 19.11.2026: składanki – koło obrotowe do książek (#278).
+- 19.11.2026: składanki – suwak (pull-tab) do książek (#279).

@@ -59,6 +59,12 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   assert.ok(Math.abs(szer(kolo[0]) - 100) < 0.5 && Math.abs(szer(kolo[1]) - 92) < 0.5);
   assert.ok(kolo.every((c) => c.szczeliny.every((z) => z.naciecie)));
   assert.equal(kolo[1].szczeliny.length, 2 + 18, 'krzyżyk + 18 odcinków okienka');
+  // Suwak (#279): nacięcie dłuższe od paska o 1 mm, szeroki koniec szerszy od nacięcia (nie wyjdzie).
+  const [kartkaS, pasekS] = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('suwak', { szerokosc_paska: 25 }));
+  const nac = kartkaS.szczeliny[0];
+  const dlNac = Math.hypot(nac.b.x - nac.a.x, nac.b.y - nac.a.y);
+  const szerKonca = Math.max(...pasekS.punkty.map((q) => q.y)) - Math.min(...pasekS.punkty.map((q) => q.y));
+  assert.ok(Math.abs(dlNac - 26) < 0.01 && szerKonca > dlNac, `nacięcie ${dlNac}, koniec ${szerKonca}`);
   // Bryły o krzywych (#261): para łączy wiele krótkich krawędzi – po obu stronach te same długości (zakładki na
   // łuku płaszcza ↔ boki koła dna); różnice tylko z zaokrąglenia punktów do 0,01 mm.
   for (const k of ['walec', 'stozek', 'stozek_sciety', 'kula', 'wazon', 'zolw']) {
@@ -148,7 +154,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw', 'kolo_obrotowe']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw', 'kolo_obrotowe', 'suwak']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);
