@@ -503,7 +503,7 @@ function przesunNaZero(czesc) {
   const m = (p) => P(p.x - minX, p.y - minY);
   return { ...czesc, punkty: czesc.punkty.map(m), zgiecia: czesc.zgiecia.map((z) => ({ ...z, a: m(z.a), b: m(z.b), ...(z.luk ? { luk: m(z.luk) } : {}) })) };
 }
-export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc: H = 40, nazwa = 'Bryła' } = {}) {
+export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc: H = 40, wysokosc_dachu: HD = 25, nazwa = 'Bryła' } = {}) {
   const pkt = zgodnieZRuchem(punktyWejscie.map((p) => ({ x: Number(p.x), y: Number(p.y) })));
   const n = pkt.length;
   if (n < 3) return [];
@@ -531,6 +531,38 @@ export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc:
       krawedzie.push({ typ: 'klej', para: `s${(i + n - 1) % n}` }, { typ: 'zakladka', para: `s${i}`, szer: szer(sb) });
     }
     return [przesunNaZero({ nazwa: `${nazwa} – ostrosłup`, opis: `Ostrosłup o wysokości ${r2(H)} mm z wielokąta (${n} boków).`, punkty, krawedzie, zgiecia })];
+  }
+  if (rodzaj === 'z_dachem') {
+    // Łączenie brył (#282): ściany z dnem (bez wieka) – górne brzegi z zakładkami d0…d(n−1) – i dach (ostrosłup bez
+    // podstawy) rozłożony wachlarzem wokół szczytu: brzegi dołu dachu to miejsca klejenia tych samych par.
+    for (let i = 0; i < n; i += 1) {
+      const a = pkt[i];
+      const b = nast(i);
+      const nr = normalna(a, b);
+      punkty.push(a, dodaj(a, nr, H), dodaj(b, nr, H));
+      krawedzie.push({ typ: 'klej', para: `s${(i + n - 1) % n}` }, { typ: 'zakladka', para: `d${i}`, szer: szer(dl(a, b)) }, { typ: 'zakladka', para: `s${i}`, szer: szer(H) });
+    }
+    const sciany = przesunNaZero({ nazwa: `${nazwa} – ściany`, opis: `Ściany wysokości ${r2(H)} mm z dnem; zakładki u góry wchodzą pod dach.`, punkty, krawedzie, zgiecia });
+    const c = { x: pkt.reduce((s2, p) => s2 + p.x, 0) / n, y: pkt.reduce((s2, p) => s2 + p.y, 0) / n };
+    const ram = pkt.map((p) => Math.hypot(dl(p, c), HD)); // krawędzie boczne dachu
+    const dach = [P(0, 0)];
+    const kr2 = [{ typ: 'klej', para: 'r' }];
+    const zg2 = [];
+    let kat = 0;
+    for (let i = 0; i <= n; i += 1) {
+      const r = ram[i % n];
+      dach.push(P(r * Math.cos(kat), r * Math.sin(kat)));
+      if (i < n) {
+        const l = dl(pkt[i], nast(i));
+        const r1 = ram[(i + 1) % n];
+        kat += Math.acos(Math.max(-1, Math.min(1, (r * r + r1 * r1 - l * l) / (2 * r * r1))));
+        kr2.push({ typ: 'klej', para: `d${i}` });
+        if (i > 0) zg2.push({ a: P(0, 0), b: dach[dach.length - 1], rodzaj: 'gora', kat: 90 });
+      }
+    }
+    kr2.push({ typ: 'zakladka', para: 'r', szer: szer(ram[0]) });
+    const dachC = przesunNaZero({ nazwa: `${nazwa} – dach`, opis: `Dach wysokości ${r2(HD)} mm: sklej w stożek zakładką r i naklej na zakładki d ścian.`, punkty: dach, krawedzie: kr2, zgiecia: zg2 });
+    return [sciany, dachC];
   }
   const A = dodaj(pkt[0], normalna(pkt[0], pkt[1]), H);
   const B = dodaj(pkt[1], normalna(pkt[0], pkt[1]), H);

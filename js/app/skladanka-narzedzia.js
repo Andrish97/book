@@ -112,21 +112,31 @@ export function czescZZaznaczenia() {
 
 // Bryła z zaznaczonego kształtu (#263): graniastosłup albo ostrosłup – jedna część z siatką, parami i zgięciami
 // w miejscu kształtu. Kształt znika (jak przy „Z kształtu”).
-export function brylaZZaznaczenia({ rodzaj = 'graniastoslup', wysokosc = 40, id = null } = {}) {
+export function brylaZZaznaczenia({ rodzaj = 'graniastoslup', wysokosc = 40, wysokosc_dachu = 25, id = null } = {}) {
   // id – kształt zaznaczony przy otwarciu okna (płótno mogło się w tym czasie przebudować).
   const o = (id && edytor.canvas.getObjects().find((x) => x.id === id)) || edytor.aktywny;
   if (!o || o.czesc || o.type === 'activeselection' || o.type === 'activeSelection') { powiadom('Zaznacz kształt (wielokąt, prostokąt, kształt z pióra) – rzut bryły.', true); return null; }
   const z = czescZKsztaltu(o, 'A');
   if (!z) { powiadom('Z tego elementu nie da się zrobić bryły – potrzebny zamknięty kształt.', true); return null; }
   const pary = uzytePary();
-  const [cz] = numeruj(brylaZRzutu(z.def.punkty, { rodzaj, wysokosc, nazwa: o.nazwa || 'Bryła' }), () => { const n = kolejnaPara(pary); pary.add(n); return n; });
-  const g = zbudujCzesc({ ...cz, nr: kolejnaNazwa(uzyteNazwy()), opis: cz.nazwa, kolor: z.def.kolor, druk: ustawieniaSekcji().druk }, { left: 0, top: 0 });
-  const r = g.getBoundingRect();
-  g.set({ left: g.left + (z.left - r.left), top: g.top + (z.top - r.top) });
-  g.setCoords();
-  zablokuj(g);
+  const nazwy = uzyteNazwy();
+  const czesci = numeruj(brylaZRzutu(z.def.punkty, { rodzaj, wysokosc, wysokosc_dachu, nazwa: o.nazwa || 'Bryła' }), () => { const n = kolejnaPara(pary); pary.add(n); return n; });
+  // Kilka części (bryły łączone, #282): pierwsza w miejscu kształtu, kolejne obok po prawej.
   edytor.canvas.remove(o);
-  return edytor._wstaw(g);
+  let x = z.left;
+  let g = null;
+  for (const cz of czesci) {
+    const nr = kolejnaNazwa(nazwy);
+    nazwy.add(nr);
+    g = zbudujCzesc({ ...cz, nr, opis: cz.nazwa, kolor: z.def.kolor, druk: ustawieniaSekcji().druk }, { left: 0, top: 0 });
+    const r = g.getBoundingRect();
+    g.set({ left: g.left + (x - r.left), top: g.top + (z.top - r.top) });
+    g.setCoords();
+    zablokuj(g);
+    x += r.width + 6;
+    edytor._wstaw(g);
+  }
+  return g;
 }
 export function oknoBryly() {
   if (!wSkladance()) return;
@@ -136,8 +146,9 @@ export function oknoBryly() {
     dlg.id = 'dlg-bryla-skladanki';
     dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Bryła z kształtu</h2>
       <p class="ciche">Zaznaczony kształt to podstawa (rzut) bryły. Makietka zrobi z niego siatkę: ściany na każdym boku, zakładki z numerami par i zgięcia. Kształt wklęsły (np. litera L) też się da – sprawdź tylko, czy ściany na siatce nie nachodzą na siebie.</p>
-      <div class="rzad"><label class="pole"><span>Bryła</span><select name="rodzaj"><option value="graniastoslup">Graniastosłup (ściany prostopadłe, wieko)</option><option value="ostroslup">Ostrosłup (ściany do wierzchołka)</option></select></label>
-      <label class="pole waskie"><span>Wysokość (mm)</span><input type="number" name="wysokosc" min="1" step="any" value="40" inputmode="decimal"></label></div>
+      <div class="rzad"><label class="pole"><span>Bryła</span><select name="rodzaj"><option value="graniastoslup">Graniastosłup (ściany prostopadłe, wieko)</option><option value="ostroslup">Ostrosłup (ściany do wierzchołka)</option><option value="z_dachem">Ściany z dachem (dwie części: ściany i dach na zakładkach)</option></select></label>
+      <label class="pole waskie"><span>Wysokość (mm)</span><input type="number" name="wysokosc" min="1" step="any" value="40" inputmode="decimal"></label>
+      <label class="pole waskie"><span>Wysokość dachu (mm)</span><input type="number" name="wysokosc_dachu" min="1" step="any" value="25" inputmode="decimal"></label></div>
       <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Zrób bryłę</button></div></form>`;
     document.body.append(dlg);
   }
@@ -145,7 +156,8 @@ export function oknoBryly() {
   const id = edytor.aktywny?.id || null;
   dlg.addEventListener('close', () => {
     if (dlg.returnValue !== 'tak') return;
-    const g = brylaZZaznaczenia({ id, rodzaj: f.elements.rodzaj.value, wysokosc: Math.max(1, Number(String(f.elements.wysokosc.value).replace(',', '.')) || 40) });
+    const liczba = (pole, d) => Math.max(1, Number(String(f.elements[pole].value).replace(',', '.')) || d);
+    const g = brylaZZaznaczenia({ id, rodzaj: f.elements.rodzaj.value, wysokosc: liczba('wysokosc', 40), wysokosc_dachu: liczba('wysokosc_dachu', 25) });
     if (g) powiadom(`Zrobiono ${g.nazwa.replace(/^Część /, 'część ')}. Gdy nie mieści się na arkuszu, użyj [Rozłóż].`);
   }, { once: true });
   dlg.returnValue = '';

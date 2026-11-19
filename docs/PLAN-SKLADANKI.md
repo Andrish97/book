@@ -64,7 +64,7 @@ trudne (zwierzę, budynek, pojazd, postać), kolejność:
    same, rozkład na arkusze, nadruk – kolor/tekstura modelu na ścianach. To jest odpowiedź na „trudne rzeczy”.
 10. ✅ (#261: walec, stożek, stożek ścięty z dokładnym rozwinięciem i szwem po łuku; #262: kula z klinów; #266: łuki z pióra próbkowane gęsto; #267: bryła obrotowa z profilu (wazon); #281: zgięcia po łuku, pudełko-poduszka) **Krzywe naprawdę**: łuki z pióra próbkowane gęsto (koło, owal, fala), zgięcia po łuku, powierzchnie
     rozwijalne – walec, stożek, stożek ścięty, bryła obrotowa z profilu (pasy / kliny jak globus).
-11. ⏳ (#263: graniastosłup i ostrosłup z dowolnego wielokąta – „Bryła z kształtu”; zostaje łączenie brył, np. dach na domku) **Bryła z rzutu**: dowolny wielokąt z pióra wyciągnięty w graniastosłup (domek, litera, gwiazda 3D) albo w
+11. ✅ (#263: graniastosłup i ostrosłup z dowolnego wielokąta – „Bryła z kształtu”; #282: ściany z dachem – bryły łączone parami) **Bryła z rzutu**: dowolny wielokąt z pióra wyciągnięty w graniastosłup (domek, litera, gwiazda 3D) albo w
     ostrosłup; łączenie brył (dach na domku) – siatki generowane z parami.
 12. **Sklejanie części w jedną bryłę w 3D** – części ustawiają się po parach krawędzi; makieta sprawdza, czy model
     się zamyka (krawędzie bez pary, za duże szpary), i pokazuje montaż krok po kroku.

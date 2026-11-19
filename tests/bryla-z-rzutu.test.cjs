@@ -40,6 +40,25 @@ test('bryła z rzutu: graniastosłup i ostrosłup z litery L i trójkąta – pa
   assert.ok(s.every((v) => Math.abs(v - 30) < 0.05));
 });
 
+// Łączenie brył (#282): ściany i dach to dwie części; każda para (s, d, r) to zakładka i miejsce klejenia równej
+// długości – pary d łączą górę ścian z dołem dachu, krawędź boczna dachu = √(odl. od środka² + wysokość²).
+test('bryła z rzutu: ściany z dachem – dwie części połączone parami', async () => {
+  const { brylaZRzutu } = await modul();
+  const pk = [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 60, y: 40 }, { x: 0, y: 40 }];
+  const czesci = brylaZRzutu(pk, { rodzaj: 'z_dachem', wysokosc: 30, wysokosc_dachu: 20 });
+  assert.equal(czesci.length, 2);
+  const m = {};
+  czesci.forEach((c, nr) => c.krawedzie.forEach((k, i) => { if (k.para) (m[k.para] ||= []).push({ nr, typ: k.typ, dl: dl(c, i) }); }));
+  assert.deepEqual(Object.keys(m).sort(), ['d0', 'd1', 'd2', 'd3', 'r', 's0', 's1', 's2', 's3']);
+  for (const [p, l] of Object.entries(m)) {
+    assert.deepEqual(l.map((x) => x.typ).sort(), ['klej', 'zakladka'], p);
+    assert.ok(Math.abs(l[0].dl - l[1].dl) < 0.05, `${p}: ${l[0].dl} ≠ ${l[1].dl}`);
+    if (p.startsWith('d')) assert.deepEqual(l.map((x) => x.nr).sort(), [0, 1], `${p} łączy ściany z dachem`);
+  }
+  assert.ok(Math.abs(m.r[0].dl - Math.hypot(30, 20, 20)) < 0.05, 'krawędź boczna dachu');
+  assert.equal(czesci[1].zgiecia.length, 3);
+});
+
 // W aplikacji: „Bryła z kształtu” w sekcji składanki – kształt zamienia się w jedną część z parami, kontrola bez
 // uwag o parach.
 const { otworz, nowyProjekt } = require('./pomoc.cjs');
@@ -53,7 +72,7 @@ test('Bryła z kształtu: prostokąt → graniastosłup, wielokąt → ostrosłu
     przeliczOkladki(p);
     await window.seriodruk.przeladuj();
   });
-  for (const [rodzaj, wys] of [['graniastoslup', '25'], ['ostroslup', '35']]) {
+  for (const [rodzaj, wys] of [['graniastoslup', '25'], ['ostroslup', '35'], ['z_dachem', '30']]) {
     await strona.evaluate(() => { const e = window.seriodruk.edytor; e.odznacz(); const r = e.dodajProstokat(); r.set({ left: 150, top: 120, width: 50, height: 30, angle: 0 }); r.setCoords(); e.zaznacz(r.id); });
     await strona.click('[data-akcja="skladanka-bryla"]');
     await strona.waitForSelector('#dlg-bryla-skladanki[open]');
@@ -61,7 +80,7 @@ test('Bryła z kształtu: prostokąt → graniastosłup, wielokąt → ostrosłu
     await strona.fill('#dlg-bryla-skladanki input[name="wysokosc"]', wys);
     await strona.click('#dlg-bryla-skladanki button[value="tak"]');
     await strona.waitForFunction(() => !document.querySelector('#dlg-bryla-skladanki').open);
-    await strona.waitForFunction((n) => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.czesc).length === n, rodzaj === 'graniastoslup' ? 1 : 2);
+    await strona.waitForFunction((n) => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.czesc).length === n, { graniastoslup: 1, ostroslup: 2, z_dachem: 4 }[rodzaj]);
   }
   const wynik = await strona.evaluate(async () => {
     const czesci = window.seriodruk.edytor.canvas.getObjects().filter((o) => o.czesc);
@@ -78,7 +97,8 @@ test('Bryła z kształtu: prostokąt → graniastosłup, wielokąt → ostrosłu
     };
   });
   // Prostopadłościan 50 × 30 × 25: 5 zgięć, 7 par (14 krawędzi); ostrosłup: 4 zgięcia, 4 pary (8 krawędzi).
-  assert.deepEqual(wynik.czesci, [['A', 5, 14], ['B', 4, 8]]);
+  // Ściany z dachem (#282): ściany – 4 zgięcia dna, 4 pary s (8) + 4 zakładki d; dach – 3 zgięcia, 4 d + 2 r.
+  assert.deepEqual(wynik.czesci, [['A', 5, 14], ['B', 4, 8], ['C', 4, 12], ['D', 3, 6]]);
   assert.equal(wynik.prostokatow, 0, 'kształty zamienione w części');
   assert.deepEqual(wynik.uwagi.filter((u) => !/nachodzą|poza arkusz|margines/.test(u)), [], JSON.stringify(wynik.uwagi));
   assert.deepEqual(bledy, []);
