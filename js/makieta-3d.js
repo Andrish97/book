@@ -1050,6 +1050,8 @@ function kartkaNaStole(quady, kartki, u) {
 // ulozenie (#179): 'lezy' (domyślnie) albo 'stoi' – książka i notes stoją na dolnej krawędzi; otwarte
 // – rozłożone w „V” jak na półce wystawowej (grzbiet z tyłu).
 export const ULOZENIA = { lezy: 'Leży', stoi: 'Stoi' };
+// Kąt kamery otwartej stojącej książki (auto): prawie na wprost – lekko z lewej, żeby było widać grubość bloku.
+export const OBROT_OTWARTEJ_STOJACEJ = -0.1;
 export const mozeStac = (model) => model.startsWith('ksiazka') || model === 'notes';
 // ---------- Sekcje specjalne (#181) ----------
 
@@ -2066,8 +2068,13 @@ export function scena(model, kartki, u = 0, { ulozenie = 'lezy', otwarcie = null
   else ksiazka(quady, model, kartki, u, { wachlarz });
   const otwarta = mozeStac(model) && u > 0.02 && u < kartki.length - 0.02;
   const stoi = ulozenie === 'stoi' && mozeStac(model);
-  const th = otwarta && Number.isFinite(otwarcie) ? (Math.PI - ogr(otwarcie, 60, 180) * (Math.PI / 180)) / 2 : (otwarta && stoi ? 0.62 : 0);
+  // Zgięcie w „V” narasta razem z okładką (pierwsza i ostatnia kartka): zamknięta książka nie składa się skokowo
+  // w V, gdy okładka dopiero rusza (zgłoszenie 19.11 – „na stojąco książka się psuje”).
+  const narastanie = gladko(ogr(Math.min(u, kartki.length - u), 0, 1));
+  const th = narastanie * (otwarta && Number.isFinite(otwarcie) ? (Math.PI - ogr(otwarcie, 60, 180) * (Math.PI / 180)) / 2 : (otwarta && stoi ? 0.62 : 0));
   if (stoi) postaw(quady, th);
+  // Otwarta stojąca (zgłoszenie 19.11): światło bardziej od przodu – przy świetle z boku jedna strona V była w cieniu.
+  if (stoi && th > 0.05) quady.otwartaStojaca = true;
   else if (th) { zegnij(quady, th); polozNaStole(quady); }
   if (ilosc && (ilosc.n > 1 || ilosc.uklad === 'przodTyl')) {
     const pod = quady.podloze;
@@ -2108,10 +2115,12 @@ export function obwiednia(quady) {
 
 // Ustawienia widoku dla modelu: kąty startowe i granice obracania (żeby nie zajrzeć pod stół ani za ścianę).
 export function widokModelu(model, ulozenie = 'lezy') {
-  if (ulozenie === 'stoi' && mozeStac(model)) return { obrotY: -0.42, obrotX: 0.2, minX: 0.02, maxX: 1.1, minY: -Infinity, maxY: Infinity };
-  if (model === 'kalendarz_scienny' || model === 'trojdzielny') return { obrotY: -0.38, obrotX: 0.12, minX: -0.7, maxX: 0.95, minY: -1.25, maxY: 1.25 };
-  if (model === 'kalendarz_biurkowy') return { obrotY: -0.5, obrotX: 0.3, minX: 0.04, maxX: 1.35, minY: -Infinity, maxY: Infinity };
-  return { obrotY: -0.32, obrotX: 0.68, minX: 0.1, maxX: 1.5, minY: -Infinity, maxY: Infinity };
+  // auto (zgłoszenie 19.11): stojąca książka – kamera sama obraca się na wprost po otwarciu (obie strony V widać
+  // tak samo), z powrotem na ¾ po zamknięciu; przestaje, gdy użytkownik sam obróci widok.
+  if (ulozenie === 'stoi' && mozeStac(model)) return { obrotY: -0.42, obrotX: 0.2, minX: 0.02, maxX: 1.1, minY: -Infinity, maxY: Infinity, auto: true };
+  if (model === 'kalendarz_scienny' || model === 'trojdzielny') return { obrotY: -0.38, obrotX: 0.12, minX: -0.7, maxX: 0.95, minY: -1.25, maxY: 1.25, auto: false };
+  if (model === 'kalendarz_biurkowy') return { obrotY: -0.5, obrotX: 0.3, minX: 0.04, maxX: 1.35, minY: -Infinity, maxY: Infinity, auto: false };
+  return { obrotY: -0.32, obrotX: 0.68, minX: 0.1, maxX: 1.5, minY: -Infinity, maxY: Infinity, auto: false };
 }
 
 // ---------- Gotowe ujęcia (#181) ----------
@@ -2449,7 +2458,7 @@ function teksturaKapitalki() {
 // kamera: { srodek, odleglosc, obrotY, obrotX }; opcje: { ciemny }. Zwraca null, gdy przeglądarka nie ma WebGL.
 // Powód ostatniej porażki (#157) – okno pokazuje go w komunikacie zamiast samego „nie działa”.
 export let powodBrakuWebGL = '';
-export function utworzRenderer(plotno) {
+export function utworzRenderer(plotno, { maksTekstury = 2048 } = {}) {
   powodBrakuWebGL = '';
   const atr = { preserveDrawingBuffer: true, antialias: true, alpha: true, premultipliedAlpha: false }; // alfa – PNG z przezroczystym tłem (#181)
   // Powód podany przez przeglądarkę (np. karta graficzna na liście zablokowanych – częste na starszych Macach).
@@ -2496,7 +2505,7 @@ export function utworzRenderer(plotno) {
   const tekstury = new Map();
   const uzycie = new Map(); // klucz tekstury → numer ostatniego użycia (limit pamięci, #203)
   let licznikUzycia = 0;
-  const nowaTekstura = (zrodlo, powtarzaj = false) => {
+  const nowaTekstura = (zrodlo, powtarzaj = false, maks = maksTekstury) => {
     const t = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, t);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -2513,8 +2522,9 @@ export function utworzRenderer(plotno) {
     // Obraz strony: do rozmiaru potęgi dwójki (mipmapy – ostro i bez migotania z daleka). Proporcje strony
     // trzyma geometria (uv 0..1 na całą kartkę), więc przeskalowanie tekstury niczego nie rozciąga.
     let src = zrodlo;
-    const W = Math.min(maxTex, 2048, POT(zrodlo.width));
-    const H = Math.min(maxTex, 2048, POT(zrodlo.height));
+    // Telefon (zgłoszenie 19.11): do maks px na bok (1024) – strona 1024 × 1450 nie rośnie do 1024 × 2048.
+    const W = Math.min(maxTex, maks, POT(zrodlo.width));
+    const H = Math.min(maxTex, maks, POT(zrodlo.height));
     if (W !== zrodlo.width || H !== zrodlo.height) {
       src = document.createElement('canvas');
       src.width = W;
@@ -2630,10 +2640,10 @@ export function utworzRenderer(plotno) {
       const re = wszystkie ? /^(pol\|)?(p|okl|obw):/ : /^(pol\|)?p:/;
       for (const [klucz, t] of tekstury) if (re.test(klucz)) { gl.deleteTexture(t); tekstury.delete(klucz); }
     },
-    ustawTeksture(klucz, obraz) {
+    ustawTeksture(klucz, obraz, { ostra = false } = {}) {
       const stara = tekstury.get(klucz);
       if (stara) gl.deleteTexture(stara);
-      tekstury.set(klucz, nowaTekstura(obraz));
+      tekstury.set(klucz, nowaTekstura(obraz, false, ostra ? 2048 : maksTekstury));
     },
     rysuj(quady, kamera, opcjeRys = {}) {
       const ciemny = Boolean(opcjeRys.ciemny);
@@ -2656,7 +2666,7 @@ export function utworzRenderer(plotno) {
         gora: sciana ? [-0.08, 0.95, 0.55] : [-0.12, 1, 0.22],
         okno: sciana ? [-0.95, 0.3, 0.45] : [-0.95, 0.42, -0.15],
       };
-      const L0 = KIER[op.swiatlo];
+      const L0 = quady.otwartaStojaca && op.swiatlo !== 'okno' ? [KIER[op.swiatlo][0] * 0.4, KIER[op.swiatlo][1], Math.max(0.9, KIER[op.swiatlo][2])] : KIER[op.swiatlo];
       const L = norm(obrocY(L0));
       const F = norm(obrocY(sciana ? [-L0[0] * 0.9, 0.2, 0.9] : [-L0[0] || 0.75, 0.45, 0.6]));
       const barwa = { neutralna: [1.0, 0.982, 0.955], ciepla: [1.0, 0.9, 0.76], zimna: [0.88, 0.94, 1.0] }[op.barwa];

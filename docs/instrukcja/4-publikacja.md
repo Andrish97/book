@@ -70,7 +70,13 @@ z obwoluty, skrzydełka zawinięte do środka); przełącznik [Pokaż obwolutę]
 
 Rodzaj dobiera się sam (z okładką — książka, kalendarz z nazwy albo z 12–14 kart, jedna strona — kartka);
 zmienisz go listą **Rodzaj**. Książkę i notes ustawisz listą **Ułożenie**: **Leży** albo **Stoi** — zamknięta stoi
-na dolnej krawędzi, otwarta rozkłada się w „V” jak na półce wystawowej. Wybór zostaje zapamiętany dla projektu.
+na dolnej krawędzi, otwarta rozkłada się w „V” jak na półce wystawowej (V otwiera się razem z okładką, płynnie).
+Po otwarciu stojącej książki widok sam obraca się na wprost, żeby obie strony było widać tak samo, a po zamknięciu
+wraca na ukos; gdy obrócisz widok palcem albo myszą, zostaje tam, gdzie go ustawisz. Wybór zostaje zapamiętany dla projektu.
+
+Na telefonie i tablecie makieta trzyma w pamięci mniej stron naraz i rysuje je w mniejszej rozdzielczości (bez
+połysku folii i lakieru w świetle) – telefon z mało pamięci zamykał kartę przeglądarki. Gdy mimo to karta zamknie się
+z otwartą makietą, przy następnym otwarciu makieta działa w **trybie oszczędnym** i mówi o tym nad podglądem.
 
 Format środka to format większości stron projektu. Sekcje typu wyklejka (przednia albo tylna) nie są częścią
 środka: w książce przednia wyklejka leży na wewnętrznej stronie przedniej okładki i jako luźna kartka przed

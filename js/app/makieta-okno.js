@@ -13,7 +13,7 @@ const zlozenie = () => import('../zlozenie.js');
 import { normalizujOkladke, formatSrodka } from '../okladka.js';
 import {
   MODELE, mozeStac, parametryWireO, ukladStron, kartkiModelu, polozenia, opisPolozenia, scena, obwiednia, utworzRenderer,
-  widokModelu, powodBrakuWebGL, jestSpecjalnyModel, UJECIA, ujeciaModelu, MODELE_SPECJALNE,
+  widokModelu, powodBrakuWebGL, jestSpecjalnyModel, UJECIA, ujeciaModelu, MODELE_SPECJALNE, OBROT_OTWARTEJ_STOJACEJ,
 } from '../makieta-3d.js';
 import {
   DOMYSLNE_OPCJE, normalizujOpcje, normalizujScene, normalizujUjecie, TLA, SWIATLA, BARWY, WYKONCZENIA_OKLADKI, PAPIERY, ILOSCI,
@@ -33,10 +33,37 @@ const wyborUlozenia = $('#makieta-ulozenie');
 // px tekstury strony (#161): 1280 na co dzień (telefon z dpr ~2,6 – strona ok. 1000 px na ekranie), po przybliżeniu
 // strony rysują się od nowa w 2048 px – ostro z bliska; mipmapy w rendererze uśredniają z daleka.
 // Telefon i tablet (#203): mniej pamięci grafiki – tekstury 1024 / 1536 px i najwyżej 16 stron naraz.
-const MALO_PAMIECI = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || document.documentElement.dataset.urzadzenie === 'telefon';
-const SZEROKOSC_STRONY = MALO_PAMIECI ? 1024 : 1280;
-const SZEROKOSC_OSTRA = MALO_PAMIECI ? 1536 : 2048;
-const MAKS_STRON_W_PAMIECI = MALO_PAMIECI ? 16 : 48;
+// Zgłoszenie 19.11 („podgląd 3D dalej się wywala na Androidzie”): telefon z Androidem w trybie „wersja na komputer”
+// (domyślnym na tabletach i części telefonów) podaje się za Linuksa – rozpoznawany po ekranie dotykowym; tak samo
+// urządzenie z małą pamięcią (navigator.deviceMemory ≤ 4 GB). Telefon: 10 stron naraz, tekstury do 1024 px, płótno
+// do ok. 2,2 mln pikseli, strony rysowane po jednej (każda to płótno Fabric z obrazami – kilka naraz zabierało
+// setki MB), bez masek uszlachetnień (dwa dodatkowe rysunki strony z odczytem pikseli).
+export const maloPamieci = (ua = navigator.userAgent, nav = navigator, telefon = document.documentElement.dataset.urzadzenie === 'telefon') => (
+  /Android|iPhone|iPad|iPod/i.test(ua) || telefon
+  || (/Linux|Macintosh/.test(ua) && (nav.maxTouchPoints || 0) > 1)
+  || (Number(nav.deviceMemory) > 0 && Number(nav.deviceMemory) <= 4)
+);
+const MALO_PAMIECI = maloPamieci();
+let SZEROKOSC_STRONY = 1280;
+let SZEROKOSC_OSTRA = 2048;
+let MAKS_STRON_W_PAMIECI = 48;
+let RYSOWANIE_NARAZ = 3;
+let MAKS_PIKSELI = 4.5e6;
+let MAKS_DPR = 3;
+let MAKS_TEKSTURY = 2048;
+// Tryb oszczędny: poprzednio karta zamknęła się z otwartą makietą (przeglądarka zabija kartę bez pamięci – nie
+// zostawia żadnego zdarzenia, więc znacznik w localStorage zostaje). Następne otwarcie – jeszcze mniejsze limity.
+let oszczedny = false;
+function ustawLimity() {
+  const [str, ostra, stron, naraz, piks, dpr, tex] = oszczedny ? [768, 1024, 6, 1, 1.2e6, 1.5, 1024]
+    : MALO_PAMIECI ? [1024, 1536, 10, 1, 2.2e6, 2, 1024] : [1280, 2048, 48, 3, 4.5e6, 3, 2048];
+  SZEROKOSC_STRONY = str; SZEROKOSC_OSTRA = ostra; MAKS_STRON_W_PAMIECI = stron; RYSOWANIE_NARAZ = naraz; MAKS_PIKSELI = piks; MAKS_DPR = dpr; MAKS_TEKSTURY = tex;
+}
+ustawLimity();
+const ZNACZNIK_MAKIETY = 'makieta-otwarta';
+const zaznaczOtwarta = (tak) => { try { if (tak) localStorage.setItem(ZNACZNIK_MAKIETY, String(Date.now())); else localStorage.removeItem(ZNACZNIK_MAKIETY); } catch { /* bez pamięci */ } };
+document.addEventListener('visibilitychange', () => { if (st) zaznaczOtwarta(document.visibilityState === 'visible'); });
+window.addEventListener('pagehide', () => { if (st) zaznaczOtwarta(false); });
 
 let st = null; // { projekt, ciag, strony, okladka, format, model, kartki, u, cel, kamera, opcje, sc, ... }
 let renderer = null;
@@ -66,7 +93,7 @@ const obrazZUrl = (url) => new Promise((ok, zle) => {
 let aktywne = 0;
 let maskaTrwa = null;
 async function rysunekStrony(f) {
-  while (maskaTrwa) await maskaTrwa;
+  while (maskaTrwa || aktywne >= RYSOWANIE_NARAZ) await (maskaTrwa || new Promise((ok) => { setTimeout(ok, 30); }));
   aktywne += 1;
   try { return await f(); } finally { aktywne -= 1; }
 }
@@ -82,7 +109,7 @@ async function rysunekMaski(f) {
 function rysujCel(moje, egz, szerokoscPx, oryginaly = false) {
   if (moje.adresObrazu) return Promise.resolve(moje.adresObrazu(egz.klucz)); // z linku: gotowy obraz strony (#188)
   const opcje = { szerokoscPx, spad: false, ciag: moje.ciag, oryginaly };
-  if (moje.opcje.uszlachetnienia && maPolysk(moje.projekt, egz)) {
+  if (moje.opcje.uszlachetnienia && !MALO_PAMIECI && maPolysk(moje.projekt, egz)) {
     return rysunekMaski(async () => {
       stanUszlachetnien.eksport = true;
       try { return await (await zlozenie()).renderujCel(moje.projekt, egz, opcje); } finally { stanUszlachetnien.eksport = false; }
@@ -131,12 +158,18 @@ async function wczytajTeksture(klucz, ostra = false) {
       if (o) zrodlo = { egz: o.egz, wytnij: (img) => wytnijStrefe(img, o.sekcja.wydruk.szerokosc_mm, strefyObwoluty(o), klucz.slice(4)) };
     }
     if (moje !== st || !renderer || (klucz.startsWith('p:') && moje.lista !== lista)) return;
-    renderer.ustawTeksture(klucz, obraz || '#ffffff');
+    renderer.ustawTeksture(klucz, obraz || '#ffffff', { ostra });
     rysujPozniej();
-    if (zrodlo && !ostra && moje.opcje.uszlachetnienia) maskaTekstury(moje, klucz, zrodlo);
+    if (zrodlo && !ostra && moje.opcje.uszlachetnienia && !MALO_PAMIECI) maskaTekstury(moje, klucz, zrodlo);
   } catch {
     if (moje === st && renderer) renderer.ustawTeksture(klucz, '#ffffff');
-  } finally { wToku.delete(klucz); if (!ostra) koniecTekstury(); }
+  } finally {
+    wToku.delete(klucz);
+    if (!ostra) koniecTekstury();
+    // Zawsze jeszcze jedna klatka: wynik odrzucony (lista stron zmieniła się w trakcie) albo ostatnia wczytana strona
+    // – bez tego makieta zostawała z pustą stroną do pierwszego dotknięcia (zgłoszenie 19.11).
+    if (st) rysujPozniej();
+  }
 }
 
 const polowa = (img, ktora) => {
@@ -361,7 +394,7 @@ function rysuj() {
   const zwolnione = renderer.przytnijStrony(new Set(quady.map((q) => q.tex)), MAKS_STRON_W_PAMIECI);
   if (zwolnione.length && st.obrazy) {
     for (const k of zwolnione) st.ostre?.delete(k);
-    if (st.obrazy.size > MAKS_STRON_W_PAMIECI * 2) for (const k of [...st.obrazy.keys()].slice(0, st.obrazy.size - MAKS_STRON_W_PAMIECI)) st.obrazy.delete(k);
+    if (st.obrazy.size > MAKS_STRON_W_PAMIECI) for (const k of [...st.obrazy.keys()].slice(0, st.obrazy.size - MAKS_STRON_W_PAMIECI)) st.obrazy.delete(k);
   }
   // Kadr z położenia docelowego (nie z przewracanej kartki) – bez „pompowania” przy kartkowaniu.
   const cu = Math.round(st.cel);
@@ -369,6 +402,12 @@ function rysuj() {
   if (st.kadr?.klucz !== kk) st.kadr = { klucz: kk, ob: obwiednia(cu === st.u ? quady : zbudujScene(cu)) };
   const ob = st.kadr.ob;
   const k = st.kamera;
+  // Stojąca książka: kamera sama na wprost po otwarciu, na ¾ po zamknięciu (dopóki użytkownik nie obróci widoku).
+  if (k.auto && st.ulozenie === 'stoi' && ksiazkowy(st.model)) {
+    const otw = cu > 0 && cu < polozenia(st.model, st.kartki);
+    const celY = otw ? OBROT_OTWARTEJ_STOJACEJ : widokModelu(st.model, st.ulozenie).obrotY;
+    if (Math.abs(celY - k.obrotY) > 0.002) { k.obrotY += (celY - k.obrotY) * 0.15; rysujPozniej(); } else k.obrotY = celY;
+  }
   const cel = odlegloscDla(ob);
   const celSrodek = k.przes ? ob.srodek.map((v, i) => v + k.przes[i]) : ob.srodek; // przes – tylko testy i zrzuty
   k.srodek = k.srodek ? k.srodek.map((v, i) => v + (celSrodek[i] - v) * 0.22) : celSrodek;
@@ -387,7 +426,7 @@ function rysuj() {
   plotno.dataset.gotowe = String(!wToku.size && st.u === st.cel);
   pokazKamere();
   // Wczytaj z wyprzedzeniem sąsiednie kartki.
-  for (const d of [1, -1, 2]) {
+  for (const d of oszczedny ? [] : MALO_PAMIECI ? [1] : [1, -1, 2]) {
     const sasiad = scena(st.model, st.kartki, Math.max(0, Math.min(polozenia(st.model, st.kartki), Math.round(st.cel) + d)));
     for (const q of sasiad) if (!renderer.maTeksture(q.tex) && /^(p|okl|obw):/.test(q.tex)) wczytajTeksture(q.tex);
   }
@@ -493,6 +532,7 @@ function ustawModel(model, { kamera = true } = {}) {
   // nie da się poprawnie złożyć w książkę: makieta mówi to wprost i prowadzi do ustawienia typu sekcji.
   const obce = st.gosc || model === 'kartka' || MODELE_SPECJALNE.includes(model) ? [] : niepasujaceSekcje(st.projekt, st.ciag);
   // Rodzaj spoza pasujących (#215): co nie pasuje i co zrobić.
+  if (oszczedny) uwagi.push('Poprzednio makieta zamknęła się nieoczekiwanie (zwykle brakuje pamięci w telefonie) – teraz działa w trybie oszczędnym: mniej stron naraz i mniejsza rozdzielczość stron.');
   if (st.inne?.includes(model)) uwagi.unshift(`${MODELE[model]} nie pasuje do tego projektu. ${powodNiepasowania(model, st.projekt)}`);
   uwaga.replaceChildren();
   for (const t of uwagi) { const p = document.createElement('p'); p.textContent = t; uwaga.append(p); }
@@ -534,8 +574,8 @@ function dopasujRozmiar() {
   const cw = plotno.clientWidth;
   const ch = plotno.clientHeight;
   if (cw < 2 || ch < 2) return;
-  let dpr = Math.min(MALO_PAMIECI ? 2.5 : 3, window.devicePixelRatio || 1);
-  dpr = Math.min(dpr, Math.sqrt(4.5e6 / (cw * ch)));
+  let dpr = Math.min(MAKS_DPR, window.devicePixelRatio || 1);
+  dpr = Math.min(dpr, Math.sqrt(MAKS_PIKSELI / (cw * ch)));
   const w = Math.max(1, Math.round(cw * dpr));
   const h = Math.max(1, Math.round(ch * dpr));
   if (plotno.width !== w || plotno.height !== h) { plotno.width = w; plotno.height = h; }
@@ -577,10 +617,10 @@ function pokazBrak3D() {
 
 // Utrata kontekstu WebGL (#157): telefon odbiera go np. przy przejściu aplikacji w tło. Bez preventDefault
 // nie wraca nigdy; po powrocie renderer powstaje od nowa, a tekstury stron wczytują się jeszcze raz.
-plotno.addEventListener('webglcontextlost', (e) => { e.preventDefault(); renderer = null; });
+plotno.addEventListener('webglcontextlost', (e) => { e.preventDefault(); renderer = null; if (MALO_PAMIECI && !oszczedny) { oszczedny = true; ustawLimity(); } });
 plotno.addEventListener('webglcontextrestored', () => {
   if (!st) return;
-  renderer = utworzRenderer(plotno);
+  renderer = utworzRenderer(plotno, { maksTekstury: MAKS_TEKSTURY });
   pokazBrak3D();
   if (renderer) { st.scena = null; rysujPozniej(); }
 });
@@ -618,6 +658,10 @@ export function otworzMakieteZLinku(opis, adresObrazu) {
 function uruchom(baza, { model, ulozenie }) {
   renderer?.zwolnij();
   renderer = null;
+  let poprzednio = null;
+  try { poprzednio = localStorage.getItem(ZNACZNIK_MAKIETY); } catch { poprzednio = null; }
+  if (poprzednio && !oszczedny) { oszczedny = true; ustawLimity(); }
+  zaznaczOtwarta(true);
   st = {
     ...baza, ulozenie: 'lezy', pokazObwolute: Boolean(baza.obwoluta),
     kamera: { obrotY: 0, obrotX: 0.5, zoom: 1, srodek: null, fov: 28 }, sc: normalizujScene({}),
@@ -632,7 +676,7 @@ function uruchom(baza, { model, ulozenie }) {
     wybor.append(grupa);
   }
   if (!dlg.open) dlg.showModal();
-  renderer = utworzRenderer(plotno);
+  renderer = utworzRenderer(plotno, { maksTekstury: MAKS_TEKSTURY });
   pokazBrak3D();
   pokazZapisane();
   if (!renderer) return;
@@ -645,7 +689,7 @@ function uruchom(baza, { model, ulozenie }) {
 // Do testów i zrzutów: ustawia położenie kartkowania wprost (także ułamkowe – kartka w trakcie przewracania).
 // natychmiast – kamera od razu w docelowym kadrze (bez płynnego dojścia).
 // Do testów (#203): ile stron jest teraz w pamięci grafiki i jaki jest limit.
-export const pamiecStronMakiety = () => ({ stron: renderer?.ileStron() ?? 0, limit: MAKS_STRON_W_PAMIECI });
+export const pamiecStronMakiety = () => ({ stron: renderer?.ileStron() ?? 0, limit: MAKS_STRON_W_PAMIECI, oszczedny, maloPamieci: MALO_PAMIECI });
 
 export function ustawPolozenieMakiety(u, { natychmiast = false } = {}) {
   if (!st) return;
@@ -848,6 +892,7 @@ export const kartkiMakiety = () => st?.kartki || null;
 export function ustawKamereMakiety(zmiany) {
   if (!st) return;
   Object.assign(st.kamera, zmiany);
+  if (zmiany.obrotY !== undefined && zmiany.auto === undefined) st.kamera.auto = false;
   rysujPozniej();
 }
 
@@ -875,7 +920,7 @@ function zastosujStan(s, opcje = null) {
   const max = polozenia(st.model, st.kartki);
   st.u = Math.max(0, Math.min(max, Math.round(s.u || 0)));
   st.cel = st.u;
-  Object.assign(st.kamera, { obrotY: s.kamera.obrotY, obrotX: s.kamera.obrotX, zoom: s.kamera.zoom ?? 1, fov: s.kamera.fov ?? 28, srodek: null, baza: null });
+  Object.assign(st.kamera, { obrotY: s.kamera.obrotY, obrotX: s.kamera.obrotX, zoom: s.kamera.zoom ?? 1, fov: s.kamera.fov ?? 28, srodek: null, baza: null, auto: false });
   if (opcje) {
     const uszl = st.opcje.uszlachetnienia;
     st.opcje = normalizujOpcje({ ...st.opcje, ...opcje });
@@ -1108,7 +1153,7 @@ export function domyslneUstawieniaMakiety() {
 }
 
 const naZmiane = (id, f, zdarzenie = 'input') => $(`#${id}`).addEventListener(zdarzenie, (e) => { if (st) f(e.target); });
-naZmiane('makieta-obrot', (el) => { st.kamera.obrotY = (Number(el.value) * Math.PI) / 180; rysujPozniej(); });
+naZmiane('makieta-obrot', (el) => { st.kamera.obrotY = (Number(el.value) * Math.PI) / 180; st.kamera.auto = false; rysujPozniej(); });
 naZmiane('makieta-pochylenie', (el) => { st.kamera.obrotX = (Number(el.value) * Math.PI) / 180; rysujPozniej(); });
 naZmiane('makieta-odleglosc', (el) => { st.kamera.zoom = Math.max(0.25, Math.min(5, 100 / Number(el.value))); rysujPozniej(); });
 naZmiane('makieta-obiektyw', (el) => { st.kamera.fov = Number(el.value); rysujPozniej(); });
@@ -1164,6 +1209,7 @@ plotno.addEventListener('pointermove', (e) => {
   const dy = e.clientY - p.y;
   p.x = e.clientX; p.y = e.clientY;
   if (start) start.ruch += Math.abs(dx) + Math.abs(dy);
+  if (!start || start.ruch >= 8) st.kamera.auto = false;
   const g = widokModelu(st.model, st.ulozenie);
   st.kamera.obrotY = Math.max(g.minY, Math.min(g.maxY, st.kamera.obrotY + dx * 0.01));
   st.kamera.obrotX = Math.max(g.minX, Math.min(g.maxX, st.kamera.obrotX + dy * 0.01));
@@ -1202,6 +1248,7 @@ wyborUlozenia.addEventListener('change', () => ustawUlozenie(wyborUlozenia.value
 $('#makieta-wstecz').addEventListener('click', () => kartkuj(-1));
 $('#makieta-dalej').addEventListener('click', () => kartkuj(1));
 dlg.addEventListener('close', () => {
+  zaznaczOtwarta(false);
   partia?.pasek.koniec();
   partia = null;
   obserwator.disconnect();

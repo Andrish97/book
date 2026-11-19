@@ -340,7 +340,9 @@ test('makieta 3D (#161): telefon – płótno w proporcjach widoku, okładka A5 
   // Bufor płótna w proporcjach elementu (bez rozciągania przez CSS), gęstość ekranu telefonu.
   const pl = await strona.evaluate(() => { const c = document.querySelector('#makieta-plotno'); return { w: c.width, h: c.height, cw: c.clientWidth, ch: c.clientHeight, dpr: devicePixelRatio }; });
   assert.ok(Math.abs(pl.w / pl.h - pl.cw / pl.ch) < 0.01, `proporcje bufora ${pl.w}×${pl.h} i widoku ${pl.cw}×${pl.ch}`);
-  assert.ok(pl.w >= pl.cw * Math.min(2.5, pl.dpr) - 2, `pełna gęstość ekranu (${pl.w} px przy ${pl.cw} px × ${pl.dpr})`);
+  // Zgłoszenie 19.11 (Android zamykał kartę): na telefonie gęstość do 2× i najwyżej ok. 2,2 mln pikseli.
+  assert.ok(pl.w >= Math.min(pl.cw * Math.min(2, pl.dpr), pl.cw * Math.sqrt(2.2e6 / (pl.cw * pl.ch))) - 2, `gęstość ekranu (${pl.w} px przy ${pl.cw} px × ${pl.dpr})`);
+  assert.ok(pl.w * pl.h <= 2.25e6, `płótno telefonu ${pl.w}×${pl.h}`);
   // Kadr: wszystkie rogi obwiedni sceny w polu widzenia (kamera jak w oknie).
   const kadr = () => strona.evaluate(async () => {
     const M = await import('./js/makieta-3d.js');
