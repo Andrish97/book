@@ -48,7 +48,7 @@ Stan: krok 1 ✅, 2 ✅ (#233), 3 ✅ (#235, kolejność klejenia – w kroku 7)
    domek; szablony projektów z kilku części.
 7. **Makieta 3D** – składanie z części po zgięciach i parach krawędzi, animacja krok po kroku; **instrukcja
    montażu** generowana sama (kroki, miniatury) – jako strona albo do pobrania.
-8. ✅ (#261: kartka pop-up „wycinanka”; #269: platforma wklejana – pasek na zakładkach po obu stronach grzbietu, #270: druga warstwa na platformie, #272: zgięcie V – pola klejenia obracane o kąt; #273: podgląd w 3D – ściany z podziału po zgięciach i nacięciach) **Pop-up** – typ sekcji „Rozkładówka pop-up”: zgięcie V, równoległe pudełko, nacięcia w zgięciu (cut & fold),
+8. ⏳ (częściowo – brak animacji otwierania 0–180° i sprawdzania zamykania, kroki 19–20; #261: kartka pop-up „wycinanka”; #269: platforma wklejana – pasek na zakładkach po obu stronach grzbietu, #270: druga warstwa na platformie, #272: zgięcie V – pola klejenia obracane o kąt; #273: podgląd w 3D – ściany z podziału po zgięciach i nacięciach) **Pop-up** – typ sekcji „Rozkładówka pop-up”: zgięcie V, równoległe pudełko, nacięcia w zgięciu (cut & fold),
    warstwy na zakładkach, podpórki; podgląd otwierania 0–180° w 3D; sprawdzanie, czy nic nie wystaje po zamknięciu
    i nie zderza się.
 
@@ -86,3 +86,24 @@ robimy linię pomocniczą i do tamtego miejsca przyklejamy – wtedy coś się z
     krawędź albo zakładkę innej części. Kontrola porównuje długość krawędzi i linii. Instrukcja montażu: linia
     prosta – „przyklej wzdłuż linii, część stanie pod kątem”, krzywa – „zawiń wzdłuż linii”. W 3D (krok 12)
     doklejona część zagina się na prostej i wygina po krzywej.
+
+## Uwagi użytkownika 19.11 (2) – książki pop-up: nacięcia pod skosem, elementy wystające pod kątem, wycięcia, doklejki
+
+Przegląd stanu (szczerze): nacięcia i otwory w środku części robią dziś tylko szablony (wycinanka pop-up, koło
+obrotowe) – w edytorze nie ma narzędzia, żeby narysować własne; szczeliny (z szerokością) są pod dowolnym kątem.
+Element stający pod kątem – tylko szablon zgięcia V. Doklejki (pary, pola, linie klejenia) są, ale makieta 3D
+pokazuje pop-up nieruchomo (otwarty 90°) – nie ma otwierania kartki z ruchem doklejonych elementów ani sprawdzenia,
+czy po zamknięciu nic nie wystaje i nie zderza się (krok 8 obiecywał to, a nie zostało zrobione).
+
+17. ⏳ **Nacięcia w edytorze** – narzędzie „Nacięcie”: linia cięcia w środku części (prosta pod dowolnym kątem,
+    łamana, krzywa z pióra), bez szerokości; nacięcie + zgięcia dzielą ścianę (wycinanka). Kontrola: nacięcie nie
+    przecina obrysu przypadkiem, nie zostawia wiszących kawałków.
+18. ⏳ **Wycięcia (otwory)** – zamknięty kształt w części wycinany w całości (okienko, drzwi do otwierania z zawiasem
+    = wycięcie bez jednego boku + zgięcie); w PDF na płycie cięcia, w 3D – dziura.
+19. ⏳ **Pop-up w 3D: otwieranie 0–180°** – kartka z grzbietem otwiera się suwakiem, a doklejone elementy (platformy,
+    V, warstwy) i wycinanki poruszają się zgodnie z mechanizmem (ściany jako bryły sztywne na zawiasach, pary klejenia
+    jako więzy).
+20. ⏳ **Sprawdzanie pop-upu** – po zamknięciu nic nie wystaje poza kartkę, elementy się nie przenikają, kąty V
+    i długości platform pozwalają się złożyć na płasko; uwagi w „Sprawdź przed drukiem”.
+21. ⏳ **Elementy pod kątem z dowolnej części** – Połącz po linii klejenia skośnej do grzbietu: część staje pod kątem
+    wynikającym z geometrii (uogólnienie zgięcia V), z podpowiedzią kąta i długości.
