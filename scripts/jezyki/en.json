@@ -3712,5 +3712,10 @@
  "Sprawdź połączenie": "Test connection",
  "Dołącz zdjęcia": "Attach photos",
  "Bryła z kształtu": "Solid from shape",
- "Zrób bryłę": "Make solid"
+ "Zrób bryłę": "Make solid",
+ "Model 3D": "3D model",
+ "Model 3D na siatkę": "3D model to net",
+ "Rozłóż model": "Unfold model",
+ "Plik modelu": "Model file",
+ "Największy wymiar (mm)": "Largest dimension (mm)"
 }

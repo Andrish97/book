@@ -213,3 +213,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: składanki – walec, stożek, stożek ścięty i kartka pop-up (wycinanka) jako szablony; szwy po łuku w kontroli (#261).
 - 19.11.2026: składanki – kula z klinów (globus) (#262); naprawiony stary test makieta-niepasujace.
 - 19.11.2026: składanki – „Bryła z kształtu”: graniastosłup albo ostrosłup z dowolnego wielokąta (#263).
+- 19.11.2026: składanki – „Model 3D”: OBJ/STL rozłożony na części z parami i zgięciami (#264).

@@ -152,6 +152,45 @@ export function oknoBryly() {
   dlg.showModal();
 }
 
+// Model 3D z pliku (#264): OBJ albo STL rozłożony na części (js/rozkladanie-3d.js), potem [Rozłóż] na arkusze.
+export function oknoModelu3D() {
+  if (!wSkladance()) return;
+  let dlg = $('#dlg-model-3d');
+  if (!dlg) {
+    dlg = document.createElement('dialog');
+    dlg.id = 'dlg-model-3d';
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Model 3D na siatkę</h2>
+      <p class="ciche">Wczytaj bryłę z Blendera albo z sieci (OBJ albo STL). Makietka rozłoży ją na płasko: ściany wzdłuż najbardziej płaskich krawędzi, zgięcia góra i dolina z kątem, zakładki z numerami par; gdy część nachodziłaby na siebie, powstaje następna. Im mniej ścian, tym łatwiej skleić – najlepiej do kilkuset trójkątów.</p>
+      <label class="pole"><span>Plik modelu</span><input type="file" name="plik" accept=".obj,.stl,model/obj,model/stl"></label>
+      <label class="pole waskie"><span>Największy wymiar (mm)</span><input type="number" name="rozmiar" min="10" step="any" value="120" inputmode="decimal"></label>
+      <p class="blad-polaczenia" role="alert" hidden></p>
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Rozłóż model</button></div></form>`;
+    document.body.append(dlg);
+    const f = dlg.querySelector('form');
+    f.addEventListener('submit', async (e) => {
+      if (e.submitter?.value !== 'tak') return;
+      e.preventDefault();
+      const blad = f.querySelector('.blad-polaczenia');
+      const plik = f.elements.plik.files[0];
+      if (!plik) { blad.textContent = 'Wybierz plik OBJ albo STL.'; blad.hidden = false; return; }
+      try {
+        const m = await import('../rozkladanie-3d.js');
+        const siatka = /\.obj$/i.test(plik.name) ? m.wczytajOBJ(await plik.text()) : m.wczytajSTL(new Uint8Array(await plik.arrayBuffer()));
+        if (!siatka.sciany.length) throw new Error('W pliku nie ma ścian – czy to na pewno model OBJ albo STL?');
+        if (siatka.sciany.length > 3000) throw new Error(`Model ma ${siatka.sciany.length} ścian – za dużo do sklejenia. Uprość go w programie 3D (np. Blender → Decimate) do kilkuset ścian.`);
+        const w = m.rozlozSiatke(siatka, { rozmiar: Math.max(10, Number(String(f.elements.rozmiar.value).replace(',', '.')) || 120), nazwa: plik.name.replace(/\.[^.]+$/, '') });
+        const wstawione = wstawCzesci(w.czesci);
+        dlg.close();
+        powiadom(`Model rozłożony: ${w.trojkatow} trójkątów → ${wstawione.length} ${wstawione.length === 1 ? 'część' : 'części'}. Użyj [Rozłóż], żeby ułożyć je na arkuszach.`);
+      } catch (er) { blad.textContent = er.message; blad.hidden = false; }
+    });
+  }
+  const f = dlg.querySelector('form');
+  f.reset();
+  f.querySelector('.blad-polaczenia').hidden = true;
+  dlg.showModal();
+}
+
 // ---------- Narzędzia klikane ----------
 
 let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej'
@@ -439,9 +478,15 @@ export async function rozlozCzesci() {
 // numery projektu, części kolejne litery. Zwraca wstawione grupy.
 export function wstawSzablon(klucz, parametry = {}) {
   if (!wSkladance()) return [];
+  return wstawCzesci(czesciSzablonu(klucz, parametry, grubosc()));
+}
+
+// Wstawia gotowe definicje części (pary lokalne → wolne numery projektu) obok siebie na bieżącym arkuszu.
+export function wstawCzesci(lokalne) {
+  if (!wSkladance()) return [];
   const sp = ustawieniaSekcji();
   const pary = uzytePary();
-  const czesci = numeruj(czesciSzablonu(klucz, parametry, grubosc()), () => { const n = kolejnaPara(pary); pary.add(n); return n; });
+  const czesci = numeruj(lokalne, () => { const n = kolejnaPara(pary); pary.add(n); return n; });
   const nazwy = uzyteNazwy();
   const m = (sp.druk === 'domowy' ? sp.margines_mm || 0 : 0) + 4;
   let x = edytor.strony[edytor.aktywna].x + m;
@@ -556,6 +601,7 @@ export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-czesc') return nowaCzesc();
   if (akcja === 'skladanka-z-ksztaltu') return czescZZaznaczenia();
   if (akcja === 'skladanka-bryla') return oknoBryly();
+  if (akcja === 'skladanka-model-3d') return oknoModelu3D();
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   if (akcja === 'skladanka-szablon') return oknoSzablonow();
   if (akcja === 'skladanka-instrukcja') return oknoInstrukcji();

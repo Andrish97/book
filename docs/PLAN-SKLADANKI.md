@@ -59,7 +59,7 @@ częściami na wielu arkuszach – ale całą siatkę trzeba wymyślić i naryso
 tylko punktami końcowymi (łuki się spłaszczają). Szablony to proste bryły. Żeby dało się robić rzeczy naprawdę
 trudne (zwierzę, budynek, pojazd, postać), kolejność:
 
-9. **Rozkładanie bryły 3D na siatkę** (jak Pepakura): wczytanie modelu OBJ / STL / glTF (z Blendera, z sieci),
+9. ⏳ (#264: OBJ i STL → części: drzewo ścian po najpłaskszych krawędziach, cięcie przy nachodzeniu, pary i zgięcia z kątem, płaskie ściany w całości; zostają ręczne łączenie i dzielenie części oraz kolor/tekstura modelu) **Rozkładanie bryły 3D na siatkę** (jak Pepakura): wczytanie modelu OBJ / STL / glTF (z Blendera, z sieci),
    automatyczne cięcie na części (wybór krawędzi cięcia, ręczne łączenie i dzielenie części), zakładki i numery par
    same, rozkład na arkusze, nadruk – kolor/tekstura modelu na ścianach. To jest odpowiedź na „trudne rzeczy”.
 10. ⏳ (#261: walec, stożek, stożek ścięty z dokładnym rozwinięciem i szwem po łuku; #262: kula z klinów; zostają łuki z pióra próbkowane gęsto, zgięcia po łuku, bryła obrotowa z profilu) **Krzywe naprawdę**: łuki z pióra próbkowane gęsto (koło, owal, fala), zgięcia po łuku, powierzchnie
