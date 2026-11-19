@@ -212,6 +212,23 @@ async function zastosujOchrone(p, w, postep = () => {}) {
   }
 }
 
+// Aktualizacja linku w tle (#316, zgłoszenie 19.11: „pliki dalej się tworzą, a pokazujemy pasek postępu”):
+// strony linku rysuje ta przeglądarka – pasek na dole ekranu (także po zamknięciu okna Udostępnij) i ostrzeżenie
+// przy zamykaniu karty. Przerwana aktualizacja dokończy się sama przy następnym otwarciu projektu (inny odcisk).
+let trwajace = 0;
+const ostrzezenieZamkniecia = (e) => { e.preventDefault(); e.returnValue = ''; };
+function pilnujZamkniecia(tak) {
+  trwajace = Math.max(0, trwajace + (tak ? 1 : -1));
+  if (tak && trwajace === 1) window.addEventListener('beforeunload', ostrzezenieZamkniecia);
+  if (!tak && trwajace === 0) window.removeEventListener('beforeunload', ostrzezenieZamkniecia);
+}
+async function linkWTle(praca) {
+  const pasek = pasekPostepu('Aktualizuję podgląd z linku – nie zamykaj Makietki', { opoznienie: 0 });
+  pilnujZamkniecia(true);
+  try { return await praca((i, n) => pasek.krok(i, n)); } finally { pasek.koniec(); pilnujZamkniecia(false); }
+}
+export const trwaAktualizacjaLinku = () => trwajace > 0;
+
 // Czy zmiana ochrony wymaga narysowania stron od nowa: przejście między linkiem publicznym a chronionym
 // albo zmiana / zdjęcie hasła (nowy folder z sekretem). Sama data ważności – nie.
 const ochronaRysuje = (u, w) => Boolean(w.chroniony) !== Boolean(u.ochrona) || (w.chroniony && w.zmienHaslo && (Boolean(w.haslo) || Boolean(u.ochrona?.haslo)));
@@ -235,7 +252,7 @@ export async function zapiszOchroneLinku() {
       await przygotujDoRysowania(p);
     }
     komunikat.textContent = 'Zapisuję ochronę linku…';
-    await zastosujOchrone(p, w, (i, n) => { komunikat.textContent = `Przenoszę strony: ${i} z ${n}…`; });
+    await linkWTle((pasek) => zastosujOchrone(p, w, (i, n) => { pasek(i, n); komunikat.textContent = `Przenoszę strony: ${i} z ${n}… (możesz zamknąć to okno, nie zamykaj Makietki)`; }));
     if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
     komunikat.textContent = `Zapisano. ${opisOchrony(p.udostepnienie.ochrona)}`;
     komunikat.classList.add('sukces');
@@ -352,14 +369,19 @@ export async function zapiszZnakWodny() {
   const przycisk = $('#udostepnij-znak-zapisz');
   przycisk.disabled = true;
   trwaPublikacja = true;
+  // Zapis od razu (#316): ustawienie jest w projekcie, zanim zaczną się rysować strony linku – zamknięcie karty
+  // w trakcie nie gubi zmiany, a link dokończy się sam przy następnym otwarciu.
+  const zapiszP = async () => { if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
   try {
     if (nowy) p.znak_wodny = nowy; else delete p.znak_wodny;
+    await zapiszP();
+    wypelnijZnak(p);
     if (p.udostepnienie) {
+      komunikat.textContent = 'Zapisano. Strony linku przygotowują się w tle – możesz zamknąć to okno, ale nie zamykaj Makietki (pasek postępu na dole).';
       if (p !== stan.projekt) await przygotujDoRysowania(p);
-      komunikat.textContent = 'Przygotowuję strony linku…';
-      await opublikuj(p, (i, n) => { komunikat.textContent = `Strony: ${i} z ${n}…`; });
+      await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); komunikat.textContent = `Zapisano. Strony linku: ${i} z ${n} – możesz zamknąć to okno, nie zamykaj Makietki.`; }));
+      await zapiszP();
     }
-    if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
     komunikat.textContent = nowy ? `Zapisano. Znak wodny „${nowy.tekst}” (krycie ${nowy.krycie}%)${p.udostepnienie ? ' jest już na stronach linku' : ' pojawi się na stronach linku'}.` : 'Zapisano. Strony linku są bez znaku wodnego.';
     komunikat.classList.add('sukces');
     wypelnijZnak(p);
@@ -545,7 +567,8 @@ export async function opublikujUdostepnienie() {
       }
     }
     komunikat.textContent = 'Przygotowuję link…';
-    const pasek = pasekPostepu('Udostępnianie: strony podglądu');
+    const pasek = pasekPostepu('Udostępnianie: strony podglądu – nie zamykaj Makietki', { opoznienie: 0 });
+    pilnujZamkniecia(true);
     let wynik;
     let linkJest = Boolean(p.udostepnienie);
     const opisPostepu = (i, n) => (linkJest
@@ -560,7 +583,7 @@ export async function opublikujUdostepnienie() {
           for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = true;
         },
       });
-    } finally { pasek.koniec(); }
+    } finally { pasek.koniec(); pilnujZamkniecia(false); }
     komunikat.textContent = wynik.wyslane < wynik.wszystkie
       ? `Gotowe. Wysłano ${wynik.wyslane} z ${wynik.wszystkie} stron – reszta się nie zmieniła.`
       : 'Gotowe. Skopiuj link i wyślij go, komu chcesz. Od teraz będzie się aktualizował sam.';
@@ -598,7 +621,7 @@ export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
     trwaPublikacja = true;
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     try {
-      await opublikuj(p);
+      await linkWTle((pasek) => opublikuj(p, pasek));
       await zapiszTeraz();
     } catch { /* spróbujemy przy następnym zapisie */ } finally {
       trwaPublikacja = false;

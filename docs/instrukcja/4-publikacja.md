@@ -475,7 +475,11 @@ zmieniły. Adres zostaje ten sam. [Aktualizuj teraz] robi to od razu. Osoba, kt�
 nie musi odświeżać strony — nowe strony pojawią się same.
 
 Obrazy stron przygotowuje aplikacja, więc link nadąża za zmianami, gdy projekt jest otwarty —
-w edytorze albo w podglądzie, na dowolnym urządzeniu.
+w edytorze albo w podglądzie, na dowolnym urządzeniu. W trakcie na ekranie widać pasek
+**Aktualizuję podgląd z linku – nie zamykaj Makietki** z licznikiem stron. Okno Udostępnij możesz
+zamknąć — strony tworzą się dalej, a pasek zostaje na ekranie. Nie zamykaj tylko karty z Makietką:
+przeglądarka zapyta, czy na pewno. Gdy karta jednak się zamknie, link dokończy się sam przy następnym
+otwarciu projektu.
 
 ## 23.3 Ochrona linku
 
@@ -499,8 +503,9 @@ ochrony przygotowuje strony linku od nowa — chwilę to potrwa, także z listy 
 Część **Znak wodny** w oknie Udostępnij: zaznacz **Napis ukośnie na każdej stronie linku**, wpisz **Tekst
 znaku wodnego** (puste pole — „PODGLĄD”), ustaw suwakiem **Krycie** (5–50 %, domyślnie 12 % — blady napis; mały
 podgląd pod suwakiem pokazuje go na kawałku strony od razu) i kliknij [Zapisz znak wodny]. Napis jest wtopiony w obrazy stron
-linku, także w makiecie 3D oglądającego, więc nie da się go wyłączyć po stronie oglądającego. Zapis przygotowuje strony linku od nowa;
-odznaczenie i zapis usuwa znak. Znak wodny działa też z listy projektów i nie zmienia wydruku ani pliku PDF.
+linku, także w makiecie 3D oglądającego, więc nie da się go wyłączyć po stronie oglądającego. Ustawienie zapisuje się od razu,
+a strony linku przygotowują się potem w tle (pasek na ekranie, patrz 23.2) — okno możesz zamknąć;
+odznaczenie i zapis usuwa znak. To samo dotyczy zmiany ochrony linku. Znak wodny działa też z listy projektów i nie zmienia wydruku ani pliku PDF.
 
 ![Znak wodny: tekst, suwak Krycie i podgląd](k-znak-wodny.png)
 

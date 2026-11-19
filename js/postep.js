@@ -34,6 +34,12 @@ function dajHost() {
   return host;
 }
 
+// Okno zamknięte w trakcie czynności (np. Udostępnij, gdy strony linku rysują się dalej w tle, #316) – karty
+// wracają z zamkniętego okna na ekran albo do okna leżącego niżej.
+document.addEventListener('close', (e) => {
+  if (host && e.target?.tagName === 'DIALOG' && e.target.contains(host) && host.children.length) dajHost();
+}, true);
+
 // procent: licznik jako „37%” zamiast „12 z 48” (np. gdy liczy się bajty, a nie strony).
 export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNIENIE, procent = false } = {}) {
   const el = document.createElement('div');
