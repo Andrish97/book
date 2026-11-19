@@ -52,6 +52,13 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
   // Żółw (#276): skorupa, głowa, 4 łapy (po 6 ścian), ogon (4 ściany).
   assert.ok(geo.zolw.length >= 7);
   assert.equal(geo.zolw.filter((c) => c.sciany === 6).length, 5, 'głowa i łapy');
+  // Koło obrotowe (#278): dwa krążki, górny mniejszy o 4 mm promienia; okienko i krzyżyk – nacięcia (bez uwag o szczelinach).
+  const kolo = await strona.evaluate(async () => (await import('./js/skladanka-szablony.js')).czesciSzablonu('kolo_obrotowe', { srednica: 100, pola: 6 }));
+  assert.equal(kolo.length, 2);
+  const szer = (c) => Math.max(...c.punkty.map((q) => q.x)) - Math.min(...c.punkty.map((q) => q.x));
+  assert.ok(Math.abs(szer(kolo[0]) - 100) < 0.5 && Math.abs(szer(kolo[1]) - 92) < 0.5);
+  assert.ok(kolo.every((c) => c.szczeliny.every((z) => z.naciecie)));
+  assert.equal(kolo[1].szczeliny.length, 2 + 18, 'krzyżyk + 18 odcinków okienka');
   // Bryły o krzywych (#261): para łączy wiele krótkich krawędzi – po obu stronach te same długości (zakładki na
   // łuku płaszcza ↔ boki koła dna); różnice tylko z zaokrąglenia punktów do 0,01 mm.
   for (const k of ['walec', 'stozek', 'stozek_sciety', 'kula', 'wazon', 'zolw']) {
@@ -141,7 +148,7 @@ test('szablony składanek: geometria, kompensacja grubości, okno, rozłożenie 
 
   // Walec, stożek ścięty i kartka pop-up (#261): wstawione, rozłożone – kontrola bez uwag (szwy po łuku to pary
   // wielu krawędzi), panel połączeń pokazuje szew w jednej linii.
-  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw']) {
+  for (const k of ['walec', 'stozek_sciety', 'popup', 'kula', 'domek', 'wazon', 'pudelko_klapa', 'popup_platforma', 'pudelko_zatrzask', 'popup_v', 'zolw', 'kolo_obrotowe']) {
     await strona.click('[data-akcja="skladanka-szablon"]');
     await strona.waitForSelector('#dlg-szablon-skladanki[open]');
     await strona.selectOption('#dlg-szablon-skladanki select[name="szablon"]', k);

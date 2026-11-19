@@ -57,6 +57,44 @@ function pudelkoZZatrzaskiem({ dlugosc: L, szerokosc: W, wysokosc: H }, t = 0.3)
     szczeliny: [{ a: P(sx - dlJ / 2 - 0.5, sy), b: P(sx + dlJ / 2 + 0.5, sy), szer: r2(t + LUZ_SZCZELINY), para: 'z' }] }];
 }
 
+// Koło obrotowe (volvelle, #278 – element ruchomy do książek): dolny krążek R i górny R − 4 mm z okienkiem (wycinek
+// koła, nacięcia), oba z krzyżykiem nacięć w środku na ćwiek (spinacz dwunóżny). Okienko ma kąt jednego z n pól –
+// pola dolnego krążka projektuje się nadrukiem.
+function koloObrotowe({ srednica: D, pola: n0 }) {
+  const n = Math.max(3, Math.min(12, Math.round(n0)));
+  const R = D / 2;
+  const r = R - 4;
+  const bok = (rr) => Math.max(24, Math.min(96, Math.round((2 * Math.PI * rr) / 3)));
+  const krazek = (rr, przes) => Array.from({ length: bok(rr) }, (_, i) => P(przes + rr * Math.cos((2 * Math.PI * i) / bok(rr)), przes + rr * Math.sin((2 * Math.PI * i) / bok(rr))));
+  const krzyzyk = (c) => [{ a: P(c - 2, c), b: P(c + 2, c), szer: 0.2, para: null, naciecie: true }, { a: P(c, c - 2), b: P(c, c + 2), szer: 0.2, para: null, naciecie: true }];
+  const dolny = {
+    nazwa: 'Koło obrotowe – spód',
+    opis: `${n} pól do zadruku; w środku krzyżyk na ćwiek.`,
+    punkty: krazek(R, R),
+    krawedzie: krazek(R, R).map(() => ({ typ: 'ciecie' })),
+    zgiecia: [],
+    szczeliny: krzyzyk(R),
+  };
+  // Okienko: wycinek między promieniami r1 i r2 w kącie jednego pola (z marginesem 10 %).
+  const k = (2 * Math.PI) / n;
+  const r1 = r * 0.35;
+  const r2 = r * 0.9;
+  const a0 = -Math.PI / 2 - k / 2 + k * 0.1;
+  const a1 = -Math.PI / 2 + k / 2 - k * 0.1;
+  const luk = (rr, od, do_) => Array.from({ length: 9 }, (_, i) => { const a = od + ((do_ - od) * i) / 8; return P(r + rr * Math.cos(a), r + rr * Math.sin(a)); });
+  const okno = [...luk(r2, a0, a1), ...luk(r1, a1, a0)];
+  const nacieciaOkna = okno.map((p, i) => ({ a: p, b: okno[(i + 1) % okno.length], szer: 0.2, para: null, naciecie: true }));
+  const gorny = {
+    nazwa: 'Koło obrotowe – wierzch z okienkiem',
+    opis: 'Wytnij okienko, przebij środek obu krążków i połącz ćwiekiem – górny obraca się nad dolnym.',
+    punkty: krazek(r, r),
+    krawedzie: krazek(r, r).map(() => ({ typ: 'ciecie' })),
+    zgiecia: [],
+    szczeliny: [...krzyzyk(r), ...nacieciaOkna],
+  };
+  return [dolny, gorny];
+}
+
 // Tacka (pudełko bez wieka) L × W, ścianki H: dno pośrodku, ścianki dookoła, zakładki na dłuższych ściankach.
 function tacka({ dlugosc: L, szerokosc: W, wysokosc: H }, nazwa = 'Tacka', p = ['a', 'b', 'c', 'd']) {
   const pkt = [[H, 0], [H + L, 0], [H + L, H], [2 * H + L, H], [2 * H + L, H + W], [H + L, H + W], [H + L, 2 * H + W], [H, 2 * H + W], [H, H + W], [0, H + W], [0, H], [H, H]];
@@ -512,6 +550,7 @@ export const SZABLONY_SKLADANEK = {
   prostopadloscian: { nazwa: 'Prostopadłościan (kostka)', opis: 'Jedna część: pas czterech ścian, wieko i dno, zakładki klejowe.', parametry: { dlugosc: 60, szerokosc: 40, wysokosc: 30 }, buduj: prostopadloscian },
   pudelko_klapa: { nazwa: 'Pudełko z klapą wsuwaną', opis: 'Mechanizm: wieko na zawiasie z językiem wsuwanym za przednią ścianę – otwiera się i zamyka bez kleju.', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZKlapa },
   pudelko_zatrzask: { nazwa: 'Pudełko z zatrzaskiem', opis: 'Mechanizm: wieko z językiem wsuwanym w szczelinę w przedniej ścianie – zamyka się na zatrzask (szczelina na grubość materiału).', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZZatrzaskiem },
+  kolo_obrotowe: { nazwa: 'Koło obrotowe (do książek)', opis: 'Element ruchomy: dwa krążki na ćwieku – górny z okienkiem pokazuje kolejne pola dolnego.', parametry: { srednica: 120, pola: 6 }, buduj: koloObrotowe },
   tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
   pudelko: { nazwa: 'Pudełko z wieczkiem nakładanym', opis: 'Dwie części: pudełko i wieczko większe o dwie grubości materiału i luz – nakłada się ciasno, ale bez wciskania.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40, wieczko: 15 }, buduj: pudelkoZWieczkiem },
   graniastoslup: { nazwa: 'Graniastosłup (np. sześciokątny)', opis: 'Pas ścian i dwie podstawy przy pierwszej ścianie.', parametry: { boki: 6, bok: 25, wysokosc: 60 }, buduj: graniastoslup },
@@ -530,7 +569,7 @@ export const SZABLONY_SKLADANEK = {
   przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
-export const OPISY_PARAMETROW = { ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
+export const OPISY_PARAMETROW = { pola: 'Liczba pól (3–12)', ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };
 
 // Części szablonu: [{ nazwa, punkty, krawedzie, zgiecia, szczeliny? }] – pary lokalne.
 export function czesciSzablonu(klucz, parametry = {}, grubosc = 0.3) {
