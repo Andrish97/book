@@ -10,15 +10,16 @@
 // Esc kończy narzędzie. Wszystko inne (kolor, krawędzie, numery, usuwanie) – w panelu części.
 
 import {
-  zbudujCzesc, elementyNadruku, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, scalCzesci, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
+  zbudujCzesc, elementyNadruku, trescCzesci, normalizujCzesc, czescZKsztaltu, rozetnijCzesc, scalCzesci, kolejnaNazwa, kolejnaPara, czesciWObiektach, doUkladuCzesci,
   naObwodzie, wWielokacie, podzielWielokat, scianyCzesci, RODZAJE_KRAWEDZI, RODZAJE_ZGIEC, paryWSekcji, ksztaltyPar, zUkladuCzesci,
-  rozlozNaArkusze, instrukcjaMontazu,
+  rozlozNaArkusze, instrukcjaMontazu, obrysCiecia,
 } from '../skladanka.js';
 import { nowaStrona, nowaSekcja } from '../projekt.js';
 import { przyjmijPlik } from '../obrazy-projektu.js';
 import { SZABLONY_SKLADANEK, OPISY_PARAMETROW, czesciSzablonu, numeruj, brylaZRzutu } from '../skladanka-szablony.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
+/* global fabric */
 import { $, $$, powiadom, pobierz, bezpiecznaNazwa } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
 
@@ -49,11 +50,11 @@ function uzytePary() {
 // Zmiana definicji części: przebudowa grupy, zapis, odświeżenie panelu.
 // Nowa grupa podmienia starą w tym samym miejscu listy (id, nazwa własna, warstwa, blokada zostają).
 const ZOSTAJE = ['id', 'warstwa', 'zablokowany', 'z', 'visible', 'opacity'];
-export function zmienCzesc(g, zmiana) {
+export function zmienCzesc(g, zmiana, { tresc } = {}) {
   const def = structuredClone(g.czesc);
   zmiana(def);
   const c = edytor.canvas;
-  const nowa = zbudujCzesc(def, { grupa: g });
+  const nowa = zbudujCzesc(def, { grupa: g, tresc });
   for (const k of ZOSTAJE) if (g[k] !== undefined) nowa[k] = g[k];
   zablokuj(nowa);
   const i = c.getObjects().indexOf(g);
@@ -253,6 +254,71 @@ export function oknoModelu3D() {
   dlg.showModal();
 }
 
+// ---------- Treść ścian (#284, plan składanek krok 15) ----------
+
+// Część, na której leży punkt strony (najwyżej położona w kolejności rysowania).
+function czescZTrescia(punkt) {
+  const czesci = czesciWObiektach(edytor.canvas.getObjects()).filter((g) => g.visible !== false && !g.zWzorca);
+  for (let i = czesci.length - 1; i >= 0; i -= 1) {
+    const g = czesci[i];
+    if (wWielokacie(obrysCiecia(normalizujCzesc(g.czesc)), doUkladuCzesci(g, punkt))) return g;
+  }
+  return null;
+}
+const moznaNaCzesc = (o) => o && !o.czesc && !o.watek && !o.okladka && o.type !== 'activeselection' && o.type !== 'activeSelection';
+
+// Elementy (tekst, obraz, kształt…) leżące na częściach stają się ich treścią: znikają z płótna jako osobne
+// elementy i wchodzą do grupy części w swoim miejscu. Zwraca liczbę umieszczonych.
+export function umiescNaCzesciach(obiekty) {
+  const c = edytor.canvas;
+  const naGrupe = new Map();
+  for (const o of obiekty.filter(moznaNaCzesc)) {
+    const sr = o.getCenterPoint();
+    const g = czescZTrescia(sr);
+    if (!g) continue;
+    const q = doUkladuCzesci(g, sr);
+    (naGrupe.get(g) || naGrupe.set(g, []).get(g)).push({ obj: o, x: q.x, y: q.y, kat: (o.angle || 0) - (g.angle || 0) });
+  }
+  if (!naGrupe.size) return 0;
+  c.discardActiveObject();
+  let ile = 0;
+  for (const [g, lista] of naGrupe) {
+    for (const t of lista) { c.remove(t.obj); t.obj.set({ angle: t.kat }); ile += 1; }
+    zmienCzesc(g, () => {}, { tresc: [...trescCzesci(g), ...lista] });
+  }
+  c.requestRenderAll();
+  return ile;
+}
+
+// Elementy ze ścian części wracają na stronę jako zwykłe elementy (np. do edycji tekstu) – w tym samym miejscu.
+export function wyjmijZCzesci(g) {
+  const tresc = trescCzesci(g);
+  if (!tresc.length) return null;
+  const naStronie = tresc.map((t) => ({ obj: t.obj, p: zUkladuCzesci(g, t), kat: (t.obj.angle || 0) + (g.angle || 0) }));
+  const nowa = zmienCzesc(g, () => {}, { tresc: [] });
+  for (const { obj, p, kat } of naStronie) {
+    obj.group = undefined;
+    obj.parent = undefined;
+    obj.set({ na_czesci: undefined, selectable: true, evented: true, angle: kat });
+    obj.setPositionByOrigin(new fabric.Point(p.x, p.y), 'center', 'center');
+    obj.setCoords();
+    edytor.canvas.add(obj);
+  }
+  edytor.canvas.requestRenderAll();
+  edytor.oznaczZmiane();
+  return { czesc: nowa, obiekty: naStronie.map((x) => x.obj) };
+}
+
+export function umiescZaznaczoneNaCzesci() {
+  if (!wSkladance()) return 0;
+  const a = edytor.canvas.getActiveObject();
+  const lista = a && (a.type === 'activeselection' || a.type === 'activeSelection') ? a.getObjects() : a ? [a] : [];
+  const ile = umiescNaCzesciach(lista);
+  if (!ile) powiadom('Zaznacz element (tekst, obraz, kształt) leżący na części – wejdzie na jej ścianę i będzie się z nią przesuwał, obracał i składał.', true);
+  else powiadom(`${ile === 1 ? 'Element jest' : `${ile} elementy są`} teraz na ścianie części – przesuwa${ile === 1 ? '' : 'ją'} się i składa${ile === 1 ? '' : 'ją'} razem z nią. Wyjmiesz w panelu części.`);
+  return ile;
+}
+
 // ---------- Narzędzia klikane ----------
 
 let narzedzie = null; // 'zgiecie' | 'polacz' | 'szczelina' | 'klej' | 'rozetnij' | 'scal'
@@ -322,9 +388,12 @@ function klik(p, shift) {
     const dwie = rozetnijCzesc(c, a, brzeg.punkt, para);
     if (!dwie) { powiadom('Ta linia nie dzieli części na dwie – przeprowadź ją przez środek od krawędzi do krawędzi.', true); return; }
     const nr2 = kolejnaNazwa(uzyteNazwy());
-    const druga = zbudujCzesc({ ...structuredClone(g.czesc), ...dwie[1], nr: nr2 }, { grupa: g });
+    // Treść ścian (#284) – do kawałka, na którym leży jej środek.
+    const tresc = trescCzesci(g);
+    const t2 = tresc.filter((t) => wWielokacie(dwie[1].punkty, t));
+    const druga = zbudujCzesc({ ...structuredClone(g.czesc), ...dwie[1], nr: nr2 }, { grupa: g, tresc: t2 });
     zablokuj(druga);
-    zmienCzesc(g, (d) => Object.assign(d, dwie[0]));
+    zmienCzesc(g, (d) => Object.assign(d, dwie[0]), { tresc: tresc.filter((t) => !t2.includes(t)) });
     edytor._wstaw(druga);
     powiadom(`Rozcięto na części ${c.nr} i ${nr2} – sklejasz je zakładką ${para}.`);
     return;
@@ -338,8 +407,10 @@ function klik(p, shift) {
     const i2 = c2.krawedzie.findIndex((e) => e.para === k.para && ['zakladka', 'klej'].includes(e.typ));
     const w = scalCzesci(c, brzeg.i, c2, i2);
     if (!w) { powiadom('Tych części nie da się scalić w jedną – po złączeniu nachodziłyby na siebie (albo krawędzie mają różne długości). Zostaw je osobno.', true); return; }
+    // Treść ścian doklejanej części (#284) obraca się i przesuwa razem z nią.
+    const tresc2 = trescCzesci(inna).map((t) => { t.obj.set({ angle: (t.obj.angle || 0) + w.obrot }); return { obj: t.obj, ...w.przeksztalc(t) }; });
     edytor.canvas.remove(inna);
-    zmienCzesc(g, (d) => Object.assign(d, w));
+    zmienCzesc(g, (d) => Object.assign(d, w), { tresc: [...trescCzesci(g), ...tresc2] });
     powiadom(`Scalono części ${c.nr} i ${c2.nr} – krawędź ${k.para} jest teraz zgięciem.`);
     return;
   }
@@ -452,6 +523,11 @@ export function panelCzesci(panel, g0) {
     ['separator', 'Rozetnij na dwie części – dwa kliknięcia na krawędziach', () => ustawNarzedzie('rozetnij')],
     ['link', 'Scal z częścią do pary – kliknij krawędź z numerem', () => ustawNarzedzie('scal')],
   ]));
+  // Treść ścian (#284).
+  const tr = trescCzesci(g);
+  const ts = panel.sekcja('Na ścianach');
+  ts.append(panel.wskazowka(tr.length ? `${tr.length} ${tr.length === 1 ? 'element' : tr.length < 5 ? 'elementy' : 'elementów'} (tekst, obraz, ozdobnik) na ścianach – przesuwa${tr.length === 1 ? '' : 'ją'} się, obraca${tr.length === 1 ? '' : 'ją'} i składa${tr.length === 1 ? '' : 'ją'} razem z częścią.` : 'Połóż na części tekst, obraz albo kształt i użyj [Na część] – wejdzie na ścianę i będzie się z nią przesuwał i składał.'));
+  if (tr.length) ts.append(panel.akcje([['rozgrupuj', 'Wyjmij z części (do edycji)', () => { const w = wyjmijZCzesci(g); if (w?.obiekty?.length) { edytor.canvas.setActiveObject(w.obiekty.length === 1 ? w.obiekty[0] : new fabric.ActiveSelection(w.obiekty, { canvas: edytor.canvas })); edytor.canvas.requestRenderAll(); } }]]));
   const k = panel.sekcja('Krawędzie');
   c().krawedzie.forEach((kr, i) => {
     k.append(panel.wybor(`Krawędź ${i + 1} (${String(dlugosc(c(), i)).replace('.', ',')} mm)`, Object.entries(RODZAJE_KRAWEDZI), () => c().krawedzie[i].typ, (v) => zmien((d) => { d.krawedzie[i].typ = v; })));
@@ -532,6 +608,16 @@ export function panelPolaczen(panel, { przejdz }) {
 // Przy druku dwustronnym arkusz to dwie strony – części idą na pierwszą stronę arkusza.
 export async function rozlozCzesci() {
   if (!wSkladance()) return null;
+  // Ozdobniki leżące w całości na części (#284) idą z nią – inaczej zostałyby na starym miejscu arkusza.
+  const lezace = edytor.canvas.getObjects().filter((o) => {
+    if (!moznaNaCzesc(o) || !o.visible) return false;
+    const g = czescZTrescia(o.getCenterPoint());
+    if (!g) return false;
+    const r = o.getBoundingRect();
+    const R = g.getBoundingRect();
+    return r.left >= R.left - 0.5 && r.top >= R.top - 0.5 && r.left + r.width <= R.left + R.width + 0.5 && r.top + r.height <= R.top + R.height + 0.5;
+  });
+  const przypiete = lezace.length ? umiescNaCzesciach(lezace) : 0;
   zapiszBiezacyCel();
   const { projekt } = stan;
   const sekcja = biezacaSekcja();
@@ -565,6 +651,7 @@ export async function rozlozCzesci() {
   await zaladujCel();
   zaplanujZapis();
   const ile = czesci.length - za_duze.length;
+  if (przypiete) powiadom(`${przypiete} ${przypiete === 1 ? 'element leżący na części wszedł' : 'elementy leżące na częściach weszły'} na ich ściany i pojechały z nimi.`);
   powiadom(`Rozłożono ${ile} ${ile === 1 ? 'część' : ile < 5 ? 'części' : 'części'} na ${arkusze.length} ${arkusze.length === 1 ? 'arkuszu' : 'arkuszach'}.${za_duze.length ? ` ${za_duze.length} nie mieści się na arkuszu nawet po obróceniu – zostaje na miejscu (wybierz większy arkusz w ustawieniach sekcji).` : ''}`, Boolean(za_duze.length));
   return { arkuszy: arkusze.length, za_duze };
 }
@@ -699,6 +786,7 @@ export function obsluzAkcje(akcja) {
   if (akcja === 'skladanka-z-ksztaltu') return czescZZaznaczenia();
   if (akcja === 'skladanka-bryla') return oknoBryly();
   if (akcja === 'skladanka-model-3d') return oknoModelu3D();
+  if (akcja === 'skladanka-na-czesc') return umiescZaznaczoneNaCzesci();
   if (akcja === 'skladanka-rozloz') return rozlozCzesci();
   if (akcja === 'skladanka-szablon') return oknoSzablonow();
   if (akcja === 'skladanka-instrukcja') return oknoInstrukcji();

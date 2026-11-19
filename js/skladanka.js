@@ -348,12 +348,16 @@ export function scalCzesci(c1, i1, c2, i2) {
     if (tnie(punkty[i], punkty[(i + 1) % L], punkty[j], punkty[(j + 1) % L])) return null;
   }
   const Tz = (z) => ({ ...z, a: T(z.a), b: T(z.b), ...(z.luk ? { luk: T(z.luk) } : {}) });
-  return {
+  const wynik = {
     punkty, krawedzie, nadruk: undefined,
     zgiecia: [...c1.zgiecia, ...c2.zgiecia.map(Tz), { a: { ...A }, b: { ...B }, rodzaj: 'gora', kat: 90 }],
     pola: [...(c1.pola || []), ...(c2.pola || []).map((p) => { const q = T(p); return { ...p, x: q.x, y: q.y, kat: zaokr(((p.kat || 0) + (kat * 180) / Math.PI) % 360) }; })],
     szczeliny: [...(c1.szczeliny || []), ...(c2.szczeliny || []).map(Tz)],
   };
+  // Dla treści ścian doklejanej części (#284): punkt i kąt (stopnie) z układu c2 do układu wyniku – poza zapisem.
+  Object.defineProperty(wynik, 'przeksztalc', { value: (p) => T(p), enumerable: false });
+  Object.defineProperty(wynik, 'obrot', { value: (kat * 180) / Math.PI, enumerable: false });
+  return wynik;
 }
 
 export function scianyCzesci(c) {
@@ -481,10 +485,32 @@ export function elementyCzesci(def) {
 // `czesc.uklad` zapamiętuje, który punkt części jest środkiem grupy (do przeliczeń punkt strony ↔ punkt części).
 // Przebudowa (`grupa` – dotychczasowa grupa) daje NOWĄ grupę w tym samym miejscu, z tym samym obrotem: punkty
 // części, które się nie zmieniły, zostają na stronie tam, gdzie były. Podmienia ją wywołujący.
-export function zbudujCzesc(def, { grupa = null, left = 0, top = 0 } = {}) {
+// Treść ścian (#284, plan składanek krok 15): elementy użytkownika (tekst, obraz, kształt, ozdobnik) w grupie części
+// – pole na_czesci. Zwraca [{ obj, x, y }] – środek elementu w układzie części (mm), kąt elementu jest względem części.
+export function trescCzesci(grupa) {
+  if (!grupa?.getObjects) return [];
+  const s = srodekUkladu(grupa);
+  return grupa.getObjects().filter((o) => o.na_czesci).map((o) => { const p = o.getRelativeCenterPoint(); return { obj: o, x: p.x + s.x, y: p.y + s.y }; });
+}
+
+// tresc – elementy na ścianach (domyślnie: z dotychczasowej grupy) w układzie części; trafiają nad ścianę i nadruk,
+// pod linie zgięć, cięcia i numery.
+export function zbudujCzesc(def, { grupa = null, left = 0, top = 0, tresc = undefined } = {}) {
   for (const o of grupa?.getObjects?.() || []) if (o.zasob && typeof o.getElement === 'function' && !elementyNadruku.has(o.zasob)) elementyNadruku.set(o.zasob, o.getElement());
   const c = normalizujCzesc(def);
   const el = elementyCzesci(c);
+  const naScianach = (tresc === undefined ? trescCzesci(grupa) : tresc).map(({ obj, x, y }) => {
+    obj.group = undefined;
+    obj.parent = undefined;
+    obj.set({ na_czesci: true, selectable: false, evented: false });
+    obj.setPositionByOrigin(new fabric.Point(x, y), 'center', 'center');
+    return obj;
+  });
+  if (naScianach.length) {
+    let i = 0;
+    el.forEach((o, j) => { if (o.skladanka === 'sciana' || o.skladanka === 'nadruk') i = j + 1; });
+    el.splice(i, 0, ...naScianach);
+  }
   for (const o of el) { o.set({ left: o.left + left, top: o.top + top }); o.setCoords(); }
   const g = new fabric.Group(el, { nazwa: `Część ${c.nr}${c.opis ? ` – ${c.opis}` : ''}`, subTargetCheck: false, interactive: false, objectCaching: false });
   const srodek = g.getCenterPoint();

@@ -77,7 +77,7 @@ trudne (zwierzę, budynek, pojazd, postać), kolejność:
 „Klejenie nie zawsze jest przy krawędzi i kształty nie muszą być zamknięte. Klejenie może być w środku kształtu:
 robimy linię pomocniczą i do tamtego miejsca przyklejamy – wtedy coś się zagina, jeżeli pasuje, albo zawija.”
 
-15. ⏳ **Treść ścian** – dowolny element (tekst, obraz, kształt, ozdobnik) położony na części można umieścić na niej:
+15. ✅ (#284) **Treść ścian** – dowolny element (tekst, obraz, kształt, ozdobnik) położony na części można umieścić na niej:
     staje się częścią części – jedzie z nią przy przeciąganiu, obracaniu, [Rozłóż], przebudowie (zgięcia, zakładki),
     przy [Rozetnij] trafia do kawałka, na którym leży, przy [Scal] obraca się razem z doklejaną częścią; w makiecie
     3D jest na swojej ścianie i zgina się z nią. Można go wyjąć z części z powrotem.
