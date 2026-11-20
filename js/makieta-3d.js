@@ -834,15 +834,30 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const xZew = strona > 0 ? Tb : 0;
     const xWew = strona > 0 ? Tb - H : H;
     const start = naGrz(xZew);
-    const kr = krzywaZKata(start, w, katStrony(xZew, strona), 30);
-    const n0 = nIn(kr.fi[0], strona);
-    const krW = krzywaZKata(naGrz(xWew), w, katStrony(xWew, strona), 30);
     // Strona, po której kartek jeszcze (prawie) nie ma: tektura obróciła się na bidze i leży o swoją grubość wyżej
-    // niż wierzch bloku; przewrócone kartki kładą się na niej – za grzbietem unoszą się o tyle samo.
+    // niż wierzch bloku; przewrócone kartki wychodzą z grzbietu łagodnie w górę (ok. 5 mm) i kładą się na niej –
+    // bez zawijania przy grzbiecie (wyklejka i pierwsze kartki leżą wyrównane).
     const mala = strona < 0 ? HLe <= HPe : HLe > HPe;
     const unies = mala ? (tb + 2 * WY) * (1 - fObie) : 0;
+    const krzywa = (x) => {
+      const zwykla = katStrony(x, strona);
+      if (unies <= 0.02) return krzywaZKata(naGrz(x), w, zwykla, 90);
+      const cel = zwykla(1);
+      const wUp0 = nIn(cel, strona);
+      const sgnR = Math.cos(cel) * wUp0[1] - Math.sin(cel) * wUp0[0] > 0 ? 1 : -1;
+      const LR = 5;
+      // kąt rampy, przy którym kartka wznosi się dokładnie o „unies” na długości LR
+      const wznies = (th) => { let y = 0; for (let i = 0; i < 20; i += 1) y += Math.sin(th * (1 - gladko((i + 0.5) / 20))) * (LR / 20); return y; };
+      let lo = 0; let hi = 1.5;
+      for (let i = 0; i < 30; i += 1) { const m = (lo + hi) / 2; if (wznies(m) < unies) lo = m; else hi = m; }
+      const th = (lo + hi) / 2;
+      const rampa = (t) => cel + sgnR * th * (1 - gladko(Math.min(1, (t * w) / LR)));
+      return krzywaZKata(naGrz(x), w, (t) => lerp(rampa(t), zwykla(t), fObie), 90);
+    };
+    const kr = krzywa(xZew); // gęsto – przy grzbiecie kartki zaginają się na kilku mm
+    const n0 = nIn(kr.fi[0], strona);
+    const krW = krzywa(xWew);
     const wUp = nIn(kr.fi[kr.c.length - 1], strona);
-    if (unies > 0) for (const k2 of [kr, krW]) k2.c = k2.c.map((p, i) => plus2(p, wUp, unies * gladko(Math.min(1, k2.sigma[i] / 1.2))));
     return { lista, strona, H, xZew, xWew, start, kr, krW, wierzch: krW.c, kat: katStrony(xZew, strona), n0, unies, wUp };
   };
   const PL = polowa(lewe, -1); const PP = polowa(prawe, 1);
@@ -875,7 +890,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     // Wyklejka z wierzchu grzebienia na swoją stronę; schodzi do poziomu odwiniętej tektury.
     const cel = P.kr.fi.at(-1);
     const L2 = w - KLEJ;
-    const krN = krzywaZKata(F, L2, () => cel, 30);
+    const krN = krzywaZKata(F, L2, () => cel, 90);
     const doTektury = (P.unies || 0) - KLEJ; const upP = P.wUp || [0, 0];
     krN.c = krN.c.map((p, i) => plus2(p, upP, doTektury * gladko(Math.min(1, krN.sigma[i] / 6))));
     const krG = { c: krN.c.map((p, i) => plus2(p, nIn(krN.fi[i], P.strona), P.H)), fi: krN.fi, sigma: krN.sigma };
@@ -1212,8 +1227,22 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
       const E0 = plus2(T.E, Nin, 0.2);
       const dEJ = Math.max(0.01, dl2(E0, J)); const uJ = [(E0[0] - J[0]) / dEJ, (E0[1] - J[1]) / dEJ];
       // Zaczyna się 1 mm na wyklejce na tekturze (zakładka) – bez szczeliny na styku, przez którą prześwituje okładka.
-      const pts = [plus2(E0, T.dr, 1), ...bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)]
-        .map((p, i, a) => { if (i === 0 || i === a.length - 1) return p; let q = p; for (let kk = 0; kk < 40 && wBloku(q, 0.1); kk += 1) q = plus2(q, T.No, 0.05); return q; });
+      // Bez przyklejonego grzebienia zgięcie leży tuż pod pierwszą kartką (od ramienia bloku do krawędzi tektury) –
+      // nigdy nie wychodzi ponad nią; z grzebieniem – łukiem od tektury do grzbietu (pod wyklejką z grzebienia).
+      let sciezka = null;
+      if (!P.zgiecie && !naWierzchu) {
+        const kr = P.kr;
+        const pod = [];
+        for (let i = 0; i < kr.c.length; i += 1) {
+          const p = kr.c[i];
+          if ((p[0] - T.E[0]) * -T.dr[0] + (p[1] - T.E[1]) * -T.dr[1] <= 0.3) break;
+          const nn = nIn(kr.fi[i], P.strona);
+          pod.push(plus2(p, nn, -0.12));
+        }
+        if (pod.length >= 2) sciezka = [plus2(E0, T.dr, 1), E0, ...pod.reverse()];
+      }
+      const pts = sciezka || [plus2(E0, T.dr, 1), ...bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)]
+        .map((p, i, a) => { if (i === 0 || i === a.length - 1) return p; let q = p; for (let kk = 0; kk < 60 && wBloku(q, 0.1); kk += 1) q = plus2(q, uJ, 0.05); return q; });
       for (let i = 0; i < pts.length - 1; i += 1) {
         const ua2 = u0 * (1 - i / (pts.length - 1)); const ub2 = u0 * (1 - (i + 1) / (pts.length - 1));
         const [ta, tb2] = kar.wyklejka === 'A' ? [ua2, ub2] : [1 - ua2, 1 - ub2];
