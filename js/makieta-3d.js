@@ -836,7 +836,13 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const kr = krzywaZKata(start, w, katStrony(xZew, strona), 30);
     const n0 = nIn(kr.fi[0], strona);
     const krW = krzywaZKata(naGrz(xWew), w, katStrony(xWew, strona), 30);
-    return { lista, strona, H, xZew, xWew, start, kr, krW, wierzch: krW.c, kat: katStrony(xZew, strona), n0 };
+    // Strona, po której kartek jeszcze (prawie) nie ma: tektura obróciła się na bidze i leży o swoją grubość wyżej
+    // niż wierzch bloku; przewrócone kartki kładą się na niej – za grzbietem unoszą się o tyle samo.
+    const mala = strona < 0 ? HLe <= HPe : HLe > HPe;
+    const unies = mala ? (tb + 2 * WY) * (1 - fObie) : 0;
+    const wUp = nIn(kr.fi[kr.c.length - 1], strona);
+    if (unies > 0) for (const k2 of [kr, krW]) k2.c = k2.c.map((p, i) => plus2(p, wUp, unies * gladko(Math.min(1, k2.sigma[i] / 3))));
+    return { lista, strona, H, xZew, xWew, start, kr, krW, wierzch: krW.c, kat: katStrony(xZew, strona), n0, unies, wUp };
   };
   const PL = polowa(lewe, -1); const PP = polowa(prawe, 1);
   const wielokaty = [PL, PP].filter((p) => p.H > 0.01).map((p) => [...p.kr.c, ...[...p.wierzch].reverse()]);
@@ -900,7 +906,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const pg = [lerp(pt(i0)[0], pt(i0 + 1)[0], fg), lerp(pt(i0)[1], pt(i0 + 1)[1], fg)];
     const ng = [lerp(nOut(i0)[0], nOut(i0 + 1)[0], fg), lerp(nOut(i0)[1], nOut(i0 + 1)[1], fg)];
     const EC = plus2(pg, ng, WY);
-    const EJ = plus2(plus2(kr.c[0], [Math.cos(fiK), Math.sin(fiK)], g), nOut(N), WY);
+    const EJ = plus2(plus2(plus2(kr.c[0], [Math.cos(fiK), Math.sin(fiK)], g), nOut(N), WY), P.wUp, P.unies);
     const pusta = !naWierzchu && P.H <= 0.01; // sama okładka po tej stronie – tektura prosto w kierunku połowy
     let E = naWierzchu ? EC : pusta ? EJ : [lerp(EJ[0], EC[0], fObie), lerp(EJ[1], EC[1], fObie)];
     const F = plus2(pt(N), nOut(N), WY);
@@ -943,9 +949,12 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   // zewnątrz tak, by bigi (stała długość) były napięte; zaokrąglony spłaszcza się, gdy tektury się rozchodzą.
   const EpF = plus2(TF.E, TF.No, tb); const EpB = plus2(TB.E, TB.No, tb);
   const D = Math.max(0.01, dl2(EpF, EpB));
-  const uu = [(EpB[0] - EpF[0]) / D, (EpB[1] - EpF[1]) / D];
+  // Grzbiet okładki ustawia się równolegle do cięciwy grzbietu bloku (od ramienia do ramienia) i odsuwa od bloku
+  // tylko tyle, żeby go nie dotykać (niżej); rozstaw tektur (D) decyduje o spłaszczeniu zaokrąglonego.
+  const G0 = naGrz(0); const G1 = naGrz(Tb); const dG = Math.max(0.01, dl2(G0, G1));
+  const uu = [(G1[0] - G0[0]) / dG, (G1[1] - G0[1]) / dG];
   let vv = [uu[1], -uu[0]];
-  const Q = [(EpF[0] + EpB[0]) / 2, (EpF[1] + EpB[1]) / 2];
+  const Q = [(G0[0] + G1[0]) / 2, (G0[1] + G1[1]) / 2];
   // Na zewnątrz = od punktu w głębi bloku (1/4 szerokości strony od miejsca otwarcia) do środka cięciwy.
   const kSr = katGrz(xF) + Math.PI / 2;
   const wn = plus2(naGrz(xF), [Math.cos(kSr), Math.sin(kSr)], w / 4);
@@ -959,7 +968,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     for (let i = 0; i < 40; i += 1) { const m = (lo + hi) / 2; if (Larc * Math.sin(m / 2) / (m / 2) > c) lo = m; else hi = m; }
     bs = (lo + hi) / 2;
   }
-  const off = Math.sqrt(Math.max(0, hz * hz - ((D - c) / 2) ** 2));
+  const off = 0; // dalej odsuwa go zasada „nie wchodzi w blok”
   const gr = prosty ? tb : 1.2;
   const a0s = Math.atan2(uu[1], uu[0]);
   // Łuk grzbietu (linia środkowa) od A do B, wybrzuszony w stronę vv.
@@ -969,7 +978,29 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   {
     const M = 24; let p = [0, 0]; const pts = [p];
     for (let i = 0; i < M; i += 1) { const a = a0s + sgB * (-bs / 2 + bs * ((i + 0.5) / M)); p = [p[0] + Math.cos(a) / M, p[1] + Math.sin(a) / M]; pts.push(p); }
-    const Aa = plus2(plus2(Q, uu, -c / 2), vv, off); const Bb = plus2(plus2(Q, uu, c / 2), vv, off);
+    // Wzdłuż grzbietu bloku: tam, gdzie oba bigi są jednakowo napięte (odległość od końca do krawędzi tektury).
+    const roz = (t) => dl2(plus2(Q, uu, t - c / 2), EpF) - dl2(plus2(Q, uu, t + c / 2), EpB);
+    // Miejsce zerowe najbliżej środka (funkcja nie jest monotoniczna – szukamy od 0 na zewnątrz).
+    let tS = 0;
+    if (Math.abs(roz(0)) > 1e-6) {
+      const krok = c / 80;
+      for (let i = 1; i <= 80; i += 1) {
+        const para = [[(i - 1) * krok, i * krok], [-(i - 1) * krok, -i * krok]].find(([a, b]) => roz(a) * roz(b) <= 0);
+        if (!para) continue;
+        let [lo, hi] = para;
+        for (let j = 0; j < 30; j += 1) { const m = (lo + hi) / 2; if (roz(lo) * roz(m) <= 0) hi = m; else lo = m; }
+        tS = (lo + hi) / 2; break;
+      }
+    }
+    // Końce grzbietu nie wychodzą ponad tektury (po stronie wyklejki) – grzbiet zsuwa się wzdłuż bloku.
+    for (const [T, Ep, kier] of [[TF, EpF, 1], [TB, EpB, -1]]) {
+      const Nin = [-T.No[0], -T.No[1]];
+      const P0 = plus2(Q, uu, tS - (kier * c) / 2);
+      const nad = (P0[0] - Ep[0]) * Nin[0] + (P0[1] - Ep[1]) * Nin[1] + gr;
+      const wzd = -kier * (uu[0] * Nin[0] + uu[1] * Nin[1]);
+      if (nad > 0 && wzd > 0.2) tS += (kier * nad) / wzd;
+    }
+    const Aa = plus2(plus2(Q, uu, tS - c / 2), vv, off); const Bb = plus2(plus2(Q, uu, tS + c / 2), vv, off);
     const z0 = pts[0]; const z1 = pts.at(-1);
     const mx = z1[0] - z0[0]; const my = z1[1] - z0[1]; const tx = Bb[0] - Aa[0]; const ty = Bb[1] - Aa[1];
     const den = mx * mx + my * my;
@@ -1092,7 +1123,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const Nin = [-T.No[0], -T.No[1]];
     const tex = kar.wyklejka === 'A' ? kar.przod : kar.tyl;
     siatka(quady, 8, 2, (i, j) => {
-      const sg = (Lp * i) / 8; const p = plus2(plus2(T.E, T.dr, sg), Nin, 0.2);
+      const sg = (Lp * i) / 8; const p = plus2(plus2(T.E, T.dr, sg), Nin, 0.4);
       const y = lerp(hp / 2, -hp / 2, j / 2);
       const uu2 = kar.wyklejka === 'A' ? u0 + (1 - u0) * (sg / Lp) : 1 - u0 - (1 - u0) * (sg / Lp);
       return { p: P3(p, y), n: N3(Nin), uv: [uu2, (hp / 2 - y) / hp], ao: 1 - 0.22 * Math.exp(-sg / 3.5) };
@@ -1102,9 +1133,10 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     // trafiłyby w blok, odsuwają się w stronę tektury.
     if (!ruch && P && P.H > 0.01) {
       const J = naWierzchu ? P.wierzch[0] : P.kr.c[0];
-      const E0 = plus2(T.E, Nin, 0.2);
+      const E0 = plus2(T.E, Nin, 0.4);
       const dEJ = Math.max(0.01, dl2(E0, J)); const uJ = [(E0[0] - J[0]) / dEJ, (E0[1] - J[1]) / dEJ];
-      const pts = bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)
+      // Zaczyna się 1 mm na wyklejce na tekturze (zakładka) – bez szczeliny na styku, przez którą prześwituje okładka.
+      const pts = [plus2(E0, T.dr, 1), ...bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)]
         .map((p, i, a) => { if (i === 0 || i === a.length - 1) return p; let q = p; for (let kk = 0; kk < 40 && wBloku(q, 0.1); kk += 1) q = plus2(q, T.No, 0.05); return q; });
       for (let i = 0; i < pts.length - 1; i += 1) {
         const ua2 = u0 * (1 - i / (pts.length - 1)); const ub2 = u0 * (1 - (i + 1) / (pts.length - 1));
@@ -1118,7 +1150,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     if (!kar.skrzydelko) return;
     const { tex, w: sw } = kar.skrzydelko;
     const Nin = [-T.No[0], -T.No[1]];
-    const hs = hO - 0.6; const o = 0.32; // nad wyklejką (0,2 mm nad tekturą)
+    const hs = hO - 0.6; const o = 0.52; // nad wyklejką (0,2 mm nad tekturą)
     siatka(quady, 6, 2, (i, j) => {
       const sg = Lb - sw + (sw * i) / 6; const p = plus2(plus2(T.E, T.dr, sg), Nin, o);
       const y = lerp(hs / 2, -hs / 2, j / 2);
