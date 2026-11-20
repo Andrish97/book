@@ -751,6 +751,7 @@ function blokMiedzy(quady, { dol, gora, dir, h, H, texWierzch, texSpod }) {
 }
 
 function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy = true } = {}) {
+  const WAR = globalThis.__twardaWariant || {};
   const n = kartki.length;
   const k = Math.floor(u + 1e-9);
   const ulamek = u - k;
@@ -837,7 +838,9 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     // Strona, po której kartek jeszcze (prawie) nie ma: tektura obróciła się na bidze i leży o swoją grubość wyżej
     // niż wierzch bloku; przewrócone kartki wychodzą z grzbietu łagodnie w górę (ok. 5 mm) i kładą się na niej –
     // bez zawijania przy grzbiecie (wyklejka i pierwsze kartki leżą wyrównane).
-    const unies = 0; // bez podnoszenia – przy grzbiecie nigdy nie ma zgrubienia (20.11)
+    // Warianty do porównania (20.11, tylko podgląd porównawczy): globalThis.__twardaWariant = { unies, grzebien, wygladz }.
+    const mala = strona < 0 ? HLe <= HPe : HLe > HPe;
+    const unies = WAR.unies && mala ? (tb + 2 * WY) * (1 - fObie) : 0;
     const krzywa = (x) => {
       const zwykla = katStrony(x, strona);
       if (unies <= 0.02) return krzywaZKata(naGrz(x), w, zwykla, 90);
@@ -876,7 +879,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   };
   const zKlejem = (j, P, Pd, sk) => {
     // sk: 1 – wolna kartka całkiem po stronie P; ułamek – w ruchu
-    const wys = KLEJ * sk;
+    const wys = (WAR.grzebien ?? KLEJ) * sk;
     const J = Pd.krW.c[0];
     const up = garb(Pd, wys);
     const F = plus2(J, up, wys);
@@ -1044,7 +1047,8 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   const kSr = katGrz(xF) + Math.PI / 2;
   const wn = plus2(naGrz(xF), [Math.cos(kSr), Math.sin(kSr)], w / 4);
   if ((Q[0] - wn[0]) * vv[0] + (Q[1] - wn[1]) * vv[1] < 0) vv = [-vv[0], -vv[1]];
-  let c = c0; let bs = 0;
+  // Prosty grzbiet: płytka szerokości bloku (z małym luzem) – nie sięga do zewnętrznych powierzchni tektur.
+  let c = prosty ? Tb + 2 * WY : c0; let bs = 0;
   if (!prosty) {
     const Larc = c0 * (beta0 / 2) / Math.sin(beta0 / 2);
     const b6 = 0.65 * beta0; const cmax = Larc * Math.sin(b6 / 2) / (b6 / 2);
@@ -1054,7 +1058,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     bs = (lo + hi) / 2;
   }
   const off = 0; // dalej odsuwa go zasada „nie wchodzi w blok”
-  const gr = prosty ? tb : 1.2;
+  const gr = prosty ? 0.75 * tb : 1.2;
   const a0s = Math.atan2(uu[1], uu[0]);
   // Łuk grzbietu (linia środkowa) od A do B, wybrzuszony w stronę vv.
   const czyVvPrawo = vv[0] * Math.sin(a0s) - vv[1] * Math.cos(a0s) > 0; // vv po prawej od kierunku uu
@@ -1116,7 +1120,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   dodaj(grzZew.at(-1), EpB, BIGA_GR, 'bB');
   dodaj(EpB, plus2(EpB, TB.dr, KR), tb, 'B');
   surowa.push(plus2(EpB, TB.dr, KR)); grubS.push(tb); strefy.push({ st: 'B', t: 0 });
-  let zew = wygladzLamana(surowa, 250);
+  let zew = wygladzLamana(surowa, WAR.wygladz ?? 250);
   const grub = wygladzLiczby(grubS, 120);
   // Normalna do środka (strona bloku) – ten sam obrót wzdłuż całej linii; środek grzbietu wskazuje kierunek.
   const im = zew.length >> 1;
@@ -1144,6 +1148,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   const pelnaG = [tb, ...grub, tb];
   const nn = normalne(pelna);
   const wew = pelna.map((p, i) => plus2(p, nn[i], pelnaG[i]));
+  const PRZ = Array.isArray(globalThis.__twardaPrzekroj) ? { oklZew: pelna, oklWew: wew, polowy: [PL, PP].filter((P) => P.H > 0.01).map((P) => ({ dol: P.kr.c, gora: P.krW.c })), grzbiet: Array.from({ length: 25 }, (_, i) => naGrz((Tb * i) / 24)), wyklejki: [], kartki: [], grzebienie: grzebienie.map((g) => [g.J, g.F]) } : null;
   // Wygładzony róg przy bidze nie wychodzi wnętrzem okładki ponad płaszczyznę tektury (tam leży wyklejka).
   for (const [T, strefaT] of [[TF, ['F', 'bF']], [TB, ['B', 'bB']]]) {
     const Nin = [-T.No[0], -T.No[1]];
@@ -1242,6 +1247,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
       }
       const pts = sciezka || [plus2(E0, T.dr, 1), ...bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)]
         .map((p, i, a) => { if (i === 0 || i === a.length - 1) return p; let q = p; for (let kk = 0; kk < 60 && wBloku(q, 0.1); kk += 1) q = plus2(q, uJ, 0.05); return q; });
+      if (PRZ) PRZ.wyklejki.push({ zgiecie: pts, naTekturze: [plus2(T.E, Nin, 0.2), plus2(plus2(T.E, T.dr, Lp), Nin, 0.2)] });
       for (let i = 0; i < pts.length - 1; i += 1) {
         const ua2 = u0 * (1 - i / (pts.length - 1)); const ub2 = u0 * (1 - (i + 1) / (pts.length - 1));
         const [ta, tb2] = kar.wyklejka === 'A' ? [ua2, ub2] : [1 - ua2, 1 - ub2];
@@ -1277,6 +1283,13 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   wklejka(okF, TF, PL.H > 0.01 ? PL : PP, !(PL.H > 0.01), obr === 0);
   wklejka(okB, TB, PP.H > 0.01 ? PP : PL, !(PP.H > 0.01), obr === n - 1);
   // Leżąca: cała książka przechyla się na grzbiecie w stronę cięższej połowy (jak miękka), potem na stół.
+  if (PRZ) {
+    const kat = lezy && otw > 0 ? katLezacej : 0;
+    const [c1, s1] = [Math.cos(kat), Math.sin(kat)];
+    const ob = (p) => [p[0] * c1 - p[1] * s1, p[0] * s1 + p[1] * c1];
+    const obr2 = (v) => (Array.isArray(v) && typeof v[0] === 'number' ? ob(v) : Array.isArray(v) ? v.map(obr2) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k2, w2]) => [k2, obr2(w2)])) : v);
+    globalThis.__twardaPrzekroj.push({ u, ...obr2(PRZ) });
+  }
   if (lezy && otw > 0) {
     const kat = katLezacej;
     const [cc, sn] = [Math.cos(kat), Math.sin(kat)];
