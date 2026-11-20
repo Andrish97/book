@@ -497,7 +497,7 @@ function przeliczKartki() {
     wnetrze: st.wnetrze,
     // Każda strona w swoim formacie (sekcje mogą mieć różne) – tekstura leży na kartce bez rozciągania.
     rozmiary: st.lista.map((e) => ({ w: e.w, h: e.h })),
-    okladka: st.geometria && przod ? { w: przod.x2 - przod.x1, h: st.geometria.dol - st.geometria.gora, tektura: normalizujOkladke(st.okladka.okladka).tektura_mm, grzbiet: normalizujOkladke(st.okladka.okladka).grzbiet } : null,
+    okladka: st.geometria && przod ? { w: przod.x2 - przod.x1, h: st.geometria.dol - st.geometria.gora, tektura: normalizujOkladke(st.okladka.okladka).tektura_mm, grzbiet: normalizujOkladke(st.okladka.okladka).grzbiet, big: normalizujOkladke(st.okladka.okladka).big_mm } : null,
     kartka_mm: st.geometria?.kartka_mm || 0.1,
     specjalna,
     obwoluta: obwolutaWidoczna() ? { skrzydelko_mm: skrz ? skrz.x2 - skrz.x1 : 0 } : null,

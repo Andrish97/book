@@ -262,3 +262,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 19.11.2026: urządzenia bez grafiki 3D – uproszczona makieta 2D (obracanie, kartkowanie, obraz, ujęcia do linku) zamiast oczekiwania na zdjęcia; pełne ujęcia z 3D zastępują uproszczone (#318).
 - 19.11.2026: makieta – bez zdjęć jako opcji (przełącznik 3D / Zdjęcia i galeria usunięte), zdjęcie makiety tylko pobraniem (#319).
 - 19.11.2026: pasek postępu w oknach na telefonie – bez kanciastych rogów (#320).
+- 20.11.2026: makieta – twarda oprawa według przekroju z prawdziwej książki: okładka jedną gładką bryłą, grzbiet okładki wisi na bigach i przechyla się przy otwieraniu, kapitałka składa się w „U” zależnie od grubości bloku, wyklejka zagięta do bloku, nic nie przenika bloku; napis na grzbiecie bez lustra (#321).

@@ -130,7 +130,7 @@ export function kartkiModelu(model, { strony, format, okladka = null, kartka_mm 
   const skrz = (czesc, strona) => (twarda && obwoluta?.skrzydelko_mm > 0 ? { skrzydelko: { tex: `obw:${czesc}`, w: Math.min(obwoluta.skrzydelko_mm, wOkl - 4), strona } } : {});
   const naOkl = twarda && obwoluta ? 'obw' : 'okl'; // obwoluta zakrywa przód, grzbiet i tył okładki
   const zObw = Boolean(okladka) || naOkl === 'obw';
-  if (zOkladka) kartki.push({ przod: zObw ? `${naOkl}:przod` : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(okladka?.grzbiet === 'prosty' ? { grzbiet: 'prosty' } : {}), ...(wPrzod ? wklejka('B') : {}), ...skrz('skrzydelko_p', -1) });
+  if (zOkladka) kartki.push({ przod: zObw ? `${naOkl}:przod` : (strony && !wPrzod ? 'p:0' : null), tyl: wPrzod ? 'p:0' : null, w: wOkl, h: hOkl, d: dOkl, kolor: KRAWEDZ_OKLADKI, okladka: true, ...(okladka?.grzbiet === 'prosty' ? { grzbiet: 'prosty' } : {}), ...(twarda && Number.isFinite(okladka?.big) ? { big: okladka.big } : {}), ...(wPrzod ? wklejka('B') : {}), ...skrz('skrzydelko_p', -1) });
   // Bez sekcji okładki pierwsza strona jest okładką (miękka): środek zaczyna się od niej.
   const od = (zOkladka && !zObw && strony) || wPrzod ? 1 : 0;
   const ile = wTyl ? strony - 1 : strony;
@@ -585,7 +585,7 @@ function ksiazkaMiekka(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const pre = kar.przod?.match(/^(okl|obw):/)?.[1];
     const texZew = pre ? `${pre}:grzbiet` : `kolor:${KRAWEDZ_OKLADKI}`;
     const od = quady.length;
-    arkusz(quady, krz, kar.h, kar.d, { texA: `kolor:${PAPIER}`, texB: texZew, uA: () => 0.5, uB: pre ? (sg) => ogr(1 - sg / Lk, 0.003, 0.997) : () => 0.5, mat: 'okladka', krawedz: texZew, vOdwrotnie: true });
+    arkusz(quady, krz, kar.h, kar.d, { texA: `kolor:${PAPIER}`, texB: texZew, uA: () => 0.5, uB: pre ? (sg) => ogr(sg / Lk, 0.003, 0.997) : () => 0.5, mat: 'okladka', krawedz: texZew, vOdwrotnie: true });
     for (let q = od; q < quady.length; q += 1) quady[q].grzbiet = true;
   }
   // Leżąca (zgłoszenie 19.11): cała książka przechyla się na grzbiecie w stronę, po której jest więcej stron – kąt
@@ -611,7 +611,7 @@ function ksiazkaMiekka(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
 // startWierzch – miejsce wewnętrznej (wierzchniej) kartki na grzbiecie: przy wygiętym grzbiecie kartki są przyklejone
 // do łuku, więc wewnętrzne unoszą się razem z nim (długość bez zmian) – wierzch to spód odsunięty o grubość i o
 // podniesienie na łuku.
-function blokLukiem(quady, { start, dir, kat, L, h, H, texWierzch, przykryty, startWierzch = null }) {
+function blokLukiem(quady, { start, dir, kat, L, h, H, texWierzch, przykryty, startWierzch = null, texSpod = null }) {
   const N = 30;
   const kr = krzywaZKata(start, L, kat, N);
   // Normalna w stronę zgięcia (do środka połowy): dla prawej – w lewo od kierunku, dla lewej – w prawo.
@@ -628,6 +628,13 @@ function blokLukiem(quady, { start, dir, kat, L, h, H, texWierzch, przykryty, st
       return { p: naStol([p[0], y, p[1]]), n: naStol([nn[0], 0, nn[1]]), uv: [uS(kr.sigma[i]), v(y)], ao: 1 - 0.35 * Math.exp(-kr.sigma[i] / 10) };
     }, texWierzch || `kolor:${PAPIER}`, 'papier');
   }
+  // Spód – zewnętrzna kartka (twarda: widoczna w klinie między tekturą a kartkami przy grzbiecie).
+  if (texSpod) {
+    siatka(quady, N, 3, (i, j) => {
+      const p = pkt(i, 0); const y = lerp(-h / 2, h / 2, j / 3); const nn = nIn(kr.fi[i]);
+      return { p: naStol([p[0], y, p[1]]), n: naStol([-nn[0], 0, -nn[1]]), uv: [uS(kr.sigma[i]), v(y)], ao: 1 - 0.3 * Math.exp(-kr.sigma[i] / 8) };
+    }, texSpod, 'papier');
+  }
   const vk = (o) => o / 128;
   // Brzeg (koniec krzywej).
   {
@@ -643,6 +650,492 @@ function blokLukiem(quady, { start, dir, kat, L, h, H, texWierzch, przykryty, st
         [[kr.sigma[i] / 40, vk(H)], [kr.sigma[i + 1] / 40, vk(H)], [kr.sigma[i + 1] / 40, 0], [kr.sigma[i] / 40, 0]], KRAWEDZ_KARTEK, 'krawedz', { n: naStol([0, sg, 0]) });
     }
   }
+}
+
+// ---------- Twarda oprawa – jeden model dla każdego położenia (przekrój uzgodniony 20.11) ----------
+// Sztywne: tektury i grzbiet okładki (zaokrąglony – lekko spłaszcza łuk pod naciągiem; prosty – płytka grubości
+// tektury). Miękkie o stałej długości: bigi, wyklejka, kartki. Grzbiet okładki NIE jest przyklejony do bloku – wisi
+// na dwóch bigach między tekturami, więc jego położenie wynika z położenia tektur (przechyla się i odsuwa przy
+// otwieraniu). Blok trzyma się okładki wyklejkami. Grzbiet bloku z kapitałką zgina się w miejscu otwarcia
+// (rozłożona w środku – ciasne odwrócone „U”, kartki prawie 180°); im cieńszy blok, tym mniej giętka kapitałka.
+// Okładka to jedna bryła: gładka powierzchnia zewnętrzna tektura → biga → grzbiet → biga → tektura, grubość
+// zmienia się płynnie od środka. Zasada: nic nie przenika bloku – sztywne części się odsuwają, miękkie układają.
+const OTWARCIE_TWARDEJ = Math.PI / 2 - 0.03; // połowa otwartej leżącej: prawie płasko, nigdy do końca
+const WY = 0.35; // grubość wyklejki między tekturą a blokiem
+const BIGA_GR = 0.7; // grubość płótna na bidze
+const katPunktu = (a, b) => Math.atan2(b[1] - a[1], b[0] - a[0]);
+const plus2 = (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k];
+const dl2 = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+function wWielokacie2(p, poly) {
+  let w = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
+    const [xi, yi] = poly[i]; const [xj, yj] = poly[j];
+    if ((yi > p[1]) !== (yj > p[1]) && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi) w = !w;
+  }
+  return w;
+}
+// Grzbiet bloku: krzywa długości Tb, kąt θ(x) = zaokrąglenie − zgięcie w miejscu otwarcia (tanh – promień ~Tb/15).
+function grzbietBloku(Tb, beta, delta, xF, kroki = 48) {
+  const wpk = Math.max(0.3, Tb / 15);
+  const th = (x) => beta * (x / Tb - 0.5) - (delta / 2) * Math.tanh((x - xF) / wpk);
+  const pts = [[0, 0]]; const ang = [th(0)];
+  for (let i = 1; i <= kroki; i += 1) {
+    const x0 = (Tb * (i - 1)) / kroki; const x1 = (Tb * i) / kroki;
+    const a = th((x0 + x1) / 2); const p = pts[i - 1];
+    pts.push([p[0] + Math.cos(a) * (x1 - x0), p[1] + Math.sin(a) * (x1 - x0)]);
+    ang.push(th(x1));
+  }
+  return { pts, ang, kroki };
+}
+// Największe zgięcie kapitałki (rozłożona w środku): grzbiet okładki rozpycha tektury (szerokość grzbietu i bigi),
+// rozstaw ramion bloku = rozstaw tektur − 2 × rowek. Cieńszy blok – mniejsze zgięcie (mniej giętka kapitałka).
+function zgiecieKapitalki(Tb, beta, c0, hz, g) {
+  return zPamieci(`kap:${Tb.toFixed(2)}:${beta.toFixed(3)}:${c0.toFixed(2)}:${hz.toFixed(2)}:${g.toFixed(2)}`, () => {
+    const dmax = Math.PI * Math.min(0.99, Tb / 30);
+    const ssep = c0 - 2 * hz * Math.cos((40 * Math.PI) / 180) - 2 * g;
+    const rozstaw = (dl) => { const s = grzbietBloku(Tb, beta, dl, Tb / 2, 40); return s.pts.at(-1)[0] - s.pts[0][0]; };
+    if (rozstaw(dmax) > ssep) return dmax;
+    let lo = 0; let hi = dmax;
+    for (let i = 0; i < 40; i += 1) { const m = (lo + hi) / 2; if (rozstaw(m) > ssep) lo = m; else hi = m; }
+    return (lo + hi) / 2;
+  });
+}
+const wygladzLamana = (a, ile) => {
+  for (let r = 0; r < ile; r += 1) {
+    const b = [a[0]];
+    for (let i = 1; i < a.length - 1; i += 1) b.push([(a[i - 1][0] + 2 * a[i][0] + a[i + 1][0]) / 4, (a[i - 1][1] + 2 * a[i][1] + a[i + 1][1]) / 4]);
+    b.push(a.at(-1)); a = b;
+  }
+  return a;
+};
+const wygladzLiczby = (a, ile) => {
+  for (let r = 0; r < ile; r += 1) {
+    const b = [a[0]];
+    for (let i = 1; i < a.length - 1; i += 1) b.push((a[i - 1] + 2 * a[i] + a[i + 1]) / 4);
+    b.push(a.at(-1)); a = b;
+  }
+  return a;
+};
+
+// Blok jednej połowy twardej oprawy między krzywą zewnętrznej (dol) i wewnętrznej kartki (gora) – obie tej samej
+// długości, wychodzą z grzbietu bloku każda pod swoim kątem. Wierzch i spód z teksturami stron, brzeg i głowa/stopa –
+// krawędzie kartek.
+function blokMiedzy(quady, { dol, gora, dir, h, H, texWierzch, texSpod }) {
+  const N = dol.c.length - 1;
+  const L = dol.sigma[N];
+  const v = (y) => (h / 2 - y) / h;
+  const uS = (sg) => (dir > 0 ? sg / L : 1 - sg / L);
+  const nIn = (fi) => [-dir * Math.sin(fi), dir * Math.cos(fi)];
+  siatka(quady, N, 3, (i, j) => {
+    const p = gora.c[i]; const y = lerp(h / 2, -h / 2, j / 3); const nn = nIn(gora.fi[i]);
+    return { p: naStol([p[0], y, p[1]]), n: naStol([nn[0], 0, nn[1]]), uv: [uS(gora.sigma[i]), v(y)], ao: 1 - 0.35 * Math.exp(-gora.sigma[i] / 10) };
+  }, texWierzch || `kolor:${PAPIER}`, 'papier');
+  siatka(quady, N, 3, (i, j) => {
+    const p = dol.c[i]; const y = lerp(-h / 2, h / 2, j / 3); const nn = nIn(dol.fi[i]);
+    return { p: naStol([p[0], y, p[1]]), n: naStol([-nn[0], 0, -nn[1]]), uv: [uS(dol.sigma[i]), v(y)], ao: 1 - 0.3 * Math.exp(-dol.sigma[i] / 8) };
+  }, texSpod || `kolor:${PAPIER}`, 'papier');
+  const vk = (o) => o / 128;
+  {
+    const a = dol.c[N]; const b = gora.c[N]; const fi = dol.fi[N];
+    quad(quady, [naStol([b[0], h / 2, b[1]]), naStol([a[0], h / 2, a[1]]), naStol([a[0], -h / 2, a[1]]), naStol([b[0], -h / 2, b[1]])],
+      [[0, vk(H)], [0, 0], [h / 40, 0], [h / 40, vk(H)]], KRAWEDZ_KARTEK, 'krawedz', { n: naStol([Math.cos(fi), 0, Math.sin(fi)]) });
+  }
+  for (const [y, sg] of [[h / 2, 1], [-h / 2, -1]]) {
+    for (let i = 0; i < N; i += 1) {
+      const a0 = dol.c[i]; const a1 = dol.c[i + 1]; const b0 = gora.c[i]; const b1 = gora.c[i + 1];
+      quad(quady, [naStol([b0[0], y, b0[1]]), naStol([b1[0], y, b1[1]]), naStol([a1[0], y, a1[1]]), naStol([a0[0], y, a0[1]])],
+        [[dol.sigma[i] / 40, vk(H)], [dol.sigma[i + 1] / 40, vk(H)], [dol.sigma[i + 1] / 40, 0], [dol.sigma[i] / 40, 0]], KRAWEDZ_KARTEK, 'krawedz', { n: naStol([0, sg, 0]) });
+    }
+  }
+}
+
+function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy = true } = {}) {
+  const n = kartki.length;
+  const k = Math.floor(u + 1e-9);
+  const ulamek = u - k;
+  const s = ulamek > 1e-6 ? gladko(Math.min(1, ulamek)) : 0;
+  const obr = ulamek > 1e-6 && k < n ? k : null;
+  const wach = [];
+  if (wachlarz > 0 && obr === null && k > 0) for (let j = k; j < n && wach.length < wachlarz; j += 1) if (!kartki[j].okladka) wach.push(j);
+  const srodek = kartki.find((x) => !x.okladka) || kartki[0];
+  const { w, h } = srodek;
+  const okF = kartki[0]; const okB = kartki[n - 1];
+  const tb = okF.d;
+  const Tb = kartki.reduce((a, x) => a + (x.okladka ? 0 : x.d), 0);
+  const otw = u <= 0 || u >= n ? 0 : u < 1 ? s : u > n - 1 ? 1 - s : 1;
+  const big = ogr(okF.big ?? 7, 1, 30);
+  const g = big / 2; // rowek: od ramienia bloku do krawędzi tektury
+  const hz = g + 0.6; // długość płótna biga między tekturą a grzbietem okładki
+  const prosty = okF.grzbiet === 'prosty' || okB.grzbiet === 'prosty';
+  const bZaokr = prosty ? 0 : Math.min(6, Math.max(1, 0.2 * Tb));
+  const beta0 = prosty ? 0 : Math.min(1.0, (8 * bZaokr) / Math.max(1, Tb));
+  const beta = beta0 * (1 - 0.7 * otw);
+  const A = (Number.isFinite(otwarcie) ? Math.min(OTWARCIE_TWARDEJ, otwarcie / 2) : OTWARCIE_TWARDEJ) * otw;
+  // Połowa bez kartek (sama odwinięta okładka) – tektura leży całkiem płasko (albo pod kątem V stojącej).
+  const Apusta = ((Number.isFinite(otwarcie) ? otwarcie : Math.PI) - (Number.isFinite(otwarcie) ? Math.min(OTWARCIE_TWARDEJ, otwarcie / 2) : OTWARCIE_TWARDEJ)) * otw;
+  // Szerokość grzbietu okładki: rozstaw zewnętrznych powierzchni tektur przy bigach w zamkniętej książce.
+  const c0 = zPamieci(`c0:${Tb.toFixed(2)}:${beta0.toFixed(3)}:${g}:${tb}:${w}`, () => {
+    const z = grzbietBloku(Tb, beta0, 0, Tb / 2, 48);
+    const pk = (x) => { const t = (x / Tb) * z.kroki; const i = Math.min(z.kroki - 1, Math.floor(t)); return { p: [lerp(z.pts[i][0], z.pts[i + 1][0], t - i), lerp(z.pts[i][1], z.pts[i + 1][1], t - i)], a: lerp(z.ang[i], z.ang[i + 1], t - i) }; };
+    const naG = (x) => { const { p, a } = pk(x); const a0 = a + Math.PI / 2; const rem = Math.PI / 2 - a0; const tck = Math.max(2, (14 * Math.abs(rem)) / (Math.PI / 2)); return krzywaZKata(p, g, (t) => a0 + rem * gladko(Math.min(1, (t * g) / tck)), 12).c.at(-1); };
+    return dl2(naG(0), naG(Tb)) + 2 * WY + 2 * tb;
+  });
+  // Połowy: kartki bloku po lewej (przed przewracaną) i po prawej; okładki osobno (tektury).
+  const naBoku = (j) => (j === obr || wach.includes(j) ? 0 : j < k ? -1 : 1);
+  const lewe = []; const prawe = []; const wRuchu = [];
+  for (let j = 0; j < n; j += 1) { if (kartki[j].okladka) continue; const b = naBoku(j); (b < 0 ? lewe : b > 0 ? prawe : wRuchu).push(j); }
+  const HLb = lewe.reduce((a, j) => a + kartki[j].d, 0);
+  const dRuch = wRuchu.reduce((a, j) => a + kartki[j].d, 0);
+  const xF = HLb + dRuch / 2; // miejsce otwarcia na grzbiecie bloku
+  // Zgięcie kapitałki: gdy po jednej stronie nie ma jeszcze kartek (otwarta sama okładka), blok zostaje zamknięty –
+  // grzbiet bloku obraca się cały w miejscu otwarcia (2A) i kartki leżą prosto; z każdą kartką po drugiej stronie
+  // przechodzi w zgięcie kapitałki (rozłożona w środku – ciasne „U”, zależne od grubości bloku).
+  const HLe = HLb + dRuch * s; const HPe = Tb - HLb - dRuch * s;
+  const fObie = gladko(Math.min(1, Math.min(HLe, HPe) / Math.max(0.3, 0.12 * Tb)));
+  const delta = lerp(2 * A, zgiecieKapitalki(Tb, beta0 * 0.3, c0, hz, g) * otw, fObie);
+  // Przechył leżącej: cięższa połowa leży płasko – kierunek jej kartek (psi + π/2 ∓ A) obrócony do poziomu.
+  const katLezacej = (() => {
+    const psiL = -(Math.PI / 2) * (1 - otw);
+    const Ts = kartki.reduce((a, x) => a + x.d, 0);
+    // Okładki należą do połowy, w której leżą (przednia po lewej od u ≥ 1, tylna po lewej dopiero na końcu).
+    const poLewej = (j) => (kartki[j].okladka ? (j === 0 ? k > 0 && obr !== 0 : k >= n) : naBoku(j) < 0);
+    const HLc = kartki.reduce((a, x, j) => a + (poLewej(j) ? x.d : 0), 0);
+    const roznica = (Ts - 2 * HLc) / Math.max(0.01, Ts);
+    const AL = lewe.length ? A : Apusta; const AP = prawe.length ? A : Apusta;
+    const tR = -(psiL + Math.PI / 2 - AP); const tL = Math.PI / 2 - psiL - AL;
+    return lerp((tR + tL) / 2, roznica > 0 ? tR : tL, Math.abs(roznica));
+  })();
+  // Jedna strona pusta: zgięcie poza blokiem – cały grzbiet bloku obrócony równo (blok zamknięty, kartki proste).
+  const wpkB = Math.max(0.3, Tb / 15);
+  const xZg = lerp(HLe <= HPe ? -3 * wpkB : Tb + 3 * wpkB, xF, fObie);
+  const gb = grzbietBloku(Tb, beta, delta, xZg);
+  // Układ: grzbiet od przodu do tyłu w kierunku e (zamknięta – pionowo, przód na górze; otwarta – poziomo).
+  const psi = -(Math.PI / 2) * (1 - otw);
+  const e = [Math.cos(psi), Math.sin(psi)]; const nr = [-e[1], e[0]];
+  const sr = gb.pts[gb.kroki / 2 | 0];
+  const sw = (p) => { const x = p[0] - sr[0]; const y = p[1] - sr[1]; return [e[0] * x + nr[0] * y, e[1] * x + nr[1] * y]; };
+  const naGrz = (x) => { const t = ogr(x / Tb, 0, 1) * gb.kroki; const i = Math.min(gb.kroki - 1, Math.floor(t)); const f = t - i; return sw([lerp(gb.pts[i][0], gb.pts[i + 1][0], f), lerp(gb.pts[i][1], gb.pts[i + 1][1], f)]); };
+  const katGrz = (x) => { const t = ogr(x / Tb, 0, 1) * gb.kroki; const i = Math.min(gb.kroki - 1, Math.floor(t)); return psi + lerp(gb.ang[i], gb.ang[i + 1], t - i); };
+  // Kartka wychodzi z grzbietu prostopadle i zawija się do kierunku swojej połowy (strona −1 lewa, 1 prawa).
+  const tc = lerp(14, 10, otw);
+  const tcK = lerp(1.5, tc, fObie); // pierwsze/ostatnie kartki (po jednej stronie ich mało) zaginają się ciasno przy grzbiecie
+  const katStrony = (x, strona) => {
+    const a0 = katGrz(x) + Math.PI / 2;
+    const cel = psi + Math.PI / 2 - strona * ((strona < 0 ? lewe : prawe).length ? A : Apusta);
+    const rem = cel - a0;
+    const tck = Math.max(1, (tcK * Math.abs(rem)) / (Math.PI / 2));
+    return (t) => a0 + rem * gladko(Math.min(1, (t * w) / tck));
+  };
+  const nIn = (fi, dir) => [-dir * Math.sin(fi), dir * Math.cos(fi)];
+  // Krzywe połowy: spód (zewnętrzna kartka) i wierzch (wewnętrzna) – jak blokLukiem.
+  const polowa = (lista, strona) => {
+    const H = lista.reduce((a, j) => a + kartki[j].d, 0);
+    const xZew = strona > 0 ? Tb : 0;
+    const xWew = strona > 0 ? Tb - H : H;
+    const start = naGrz(xZew);
+    const kr = krzywaZKata(start, w, katStrony(xZew, strona), 30);
+    const n0 = nIn(kr.fi[0], strona);
+    const krW = krzywaZKata(naGrz(xWew), w, katStrony(xWew, strona), 30);
+    return { lista, strona, H, xZew, xWew, start, kr, krW, wierzch: krW.c, kat: katStrony(xZew, strona), n0 };
+  };
+  const PL = polowa(lewe, -1); const PP = polowa(prawe, 1);
+  const wielokaty = [PL, PP].filter((p) => p.H > 0.01).map((p) => [...p.kr.c, ...[...p.wierzch].reverse()]);
+  // Grzbiet bloku (łuk, kapitałka) też jest blokiem – pas od łuku 2 mm w głąb.
+  {
+    const lukG = []; const lukW = [];
+    // Łuk wysunięty o grubość kapitałki (wałek wystaje poza grzbiet bloku).
+    const rKap = Math.min(0.75, 0.25 + Tb / 80) + 0.05;
+    for (let i = 0; i <= 24; i += 1) { const x = (Tb * i) / 24; const p = naGrz(x); const a = katGrz(x) + Math.PI / 2; lukG.push(plus2(p, [Math.cos(a), Math.sin(a)], -rKap)); lukW.push(plus2(p, [Math.cos(a), Math.sin(a)], 2)); }
+    wielokaty.push([...lukG, ...lukW.reverse()]);
+  }
+  const wBloku = (p, luz = 0.25) => wielokaty.some((poly) => wWielokacie2(p, poly)
+    || [[luz, 0], [-luz, 0], [0, luz], [0, -luz]].some(([dx, dy]) => wWielokacie2([p[0] + dx, p[1] + dy], poly)));
+  // Blok: połowy jako zawinięte pasy (spód – zewnętrzna kartka, widoczna w klinie przy wyklejce).
+  for (const P of [PP, PL]) {
+    if (P.H <= 0.01) continue;
+    const zew = P.strona > 0 ? Math.max(...P.lista) : Math.min(...P.lista);
+    const wew = P.strona > 0 ? Math.min(...P.lista) : Math.max(...P.lista);
+    blokMiedzy(quady, { dol: P.kr, gora: P.krW, dir: P.strona, h, H: P.H,
+      texWierzch: P.strona > 0 ? kartki[wew].przod : kartki[wew].tyl,
+      texSpod: P.strona > 0 ? kartki[zew].tyl : kartki[zew].przod });
+  }
+  // Grzbiet bloku: składki od głowy do stopy i kapitałka wzdłuż łuku (u góry i u dołu).
+  {
+    const M = 24;
+    const pk = (i, o = 0) => { const x = (Tb * i) / M; const p = naGrz(x); const a = katGrz(x) - Math.PI / 2; return [p[0] + Math.cos(a) * o, p[1] + Math.sin(a) * o, a]; };
+    siatka(quady, M, 4, (i, j) => {
+      const [x, z, a] = pk(i, 0.02); const y = lerp(h / 2, -h / 2, j / 4);
+      return { p: naStol([x, y, z]), n: naStol([Math.cos(a), 0, Math.sin(a)]), uv: [(Tb * i) / M / 6.4, (h / 2 - y) / 24], ao: 0.82 };
+    }, SKLADKI, 'krawedz');
+    for (const sg of [1, -1]) {
+      const pts = [];
+      for (let i = 0; i <= M; i += 1) { const [x, z] = pk(i, 0.15); pts.push(naStol([x, sg * (h / 2 - 0.3), z])); }
+      rura(quady, pts, Math.min(0.75, 0.25 + Tb / 80), 'papier', KAPITALKI);
+    }
+  }
+  // Przewracana kartka (i wachlarz) – z miejsca otwarcia, kąt płynnie od prawej do lewej połowy.
+  const katPrzewracanej = (sk) => { const kp = katStrony(xF, 1); const kl = katStrony(xF, -1); return (t) => lerp(kp(t), kl(t), sk) - (sk > 0 && sk < 1 ? 0.35 * Math.sin(Math.PI * sk) * t : 0); };
+  const przewracaj = (j, sk) => {
+    const od = quady.length;
+    lisc(quady, kartki[j], krzywaZKata(naGrz(xF), kartki[j].w, katPrzewracanej(sk), 30), 'papier');
+    for (let q = od; q < quady.length; q += 1) quady[q] = { ...quady[q], przewrot: sk };
+  };
+  for (const j of wRuchu) if (j === obr) przewracaj(j, s);
+  wach.forEach((j, i2) => przewracaj(j, lerp(0.56, 0.07, wach.length > 1 ? i2 / (wach.length - 1) : 0)));
+
+  // Tektury. Na zewnątrz połowy – leży wzdłuż zewnętrznej kartki (wyklejka między nimi; przy grzbiecie, gdzie
+  // kartki się zawijają, zostaje klin), na wierzchu połowy (zamknięta) – na wierzchniej kartce.
+  const Lb = Math.max(10, okF.w - g);
+  const poza = (P, naWierzchu) => {
+    const kr = P.kr; const N = kr.c.length - 1;
+    const pt = (i) => (naWierzchu ? P.wierzch[i] : kr.c[i]);
+    const zn = naWierzchu ? 1 : -1; // na zewnątrz: od wierzchu w stronę zgięcia, od spodu – od zgięcia
+    const krR = naWierzchu ? P.krW : kr;
+    const nOut = (i) => { const nn = nIn(krR.fi[i], P.strona); return [nn[0] * zn, nn[1] * zn]; };
+    // Krawędź tektury przy bidze: na wierzchu – na wierzchniej kartce; na zewnątrz – rowek od ramienia bloku
+    // w kierunku, w którym połowa leży (kartki przy grzbiecie mogą się zawijać – tektura zostaje prosta, klin).
+    const fiK = kr.fi[N];
+    // Punkt na krzywej w odległości g od grzbietu (między próbkami – szerokość biga działa płynnie).
+    const tg = Math.min(N - 1e-6, (g / w) * N); const i0 = Math.floor(tg); const fg = tg - i0;
+    const pg = [lerp(pt(i0)[0], pt(i0 + 1)[0], fg), lerp(pt(i0)[1], pt(i0 + 1)[1], fg)];
+    const ng = [lerp(nOut(i0)[0], nOut(i0 + 1)[0], fg), lerp(nOut(i0)[1], nOut(i0 + 1)[1], fg)];
+    const EC = plus2(pg, ng, WY);
+    const EJ = plus2(plus2(kr.c[0], [Math.cos(fiK), Math.sin(fiK)], g), nOut(N), WY);
+    const pusta = !naWierzchu && P.H <= 0.01; // sama okładka po tej stronie – tektura prosto w kierunku połowy
+    let E = naWierzchu ? EC : pusta ? EJ : [lerp(EJ[0], EC[0], fObie), lerp(EJ[1], EC[1], fObie)];
+    const F = plus2(pt(N), nOut(N), WY);
+    const kat = pusta ? fiK : katPunktu(E, F);
+    const dr = [Math.cos(kat), Math.sin(kat)];
+    let No = [-dr[1], dr[0]];
+    if (No[0] * nOut(N)[0] + No[1] * nOut(N)[1] < 0) No = [-No[0], -No[1]];
+    // Sztywna tektura nie wchodzi w blok – odsuwa się po normalnej.
+    let push = 0;
+    for (const poly of wielokaty) for (const p of poly) {
+      const r = (p[0] - E[0]) * dr[0] + (p[1] - E[1]) * dr[1];
+      const gl = (p[0] - E[0]) * No[0] + (p[1] - E[1]) * No[1]; // > −WY: kartka w tekturze (albo za blisko)
+      if (r >= 0 && r <= Lb && gl > -WY && gl <= tb) push = Math.max(push, gl + WY);
+    }
+    E = plus2(E, No, push);
+    return { E, dr, No, kat };
+  };
+  const pozaOkladki = (j) => {
+    // Gdzie leży okładka j (bez ruchu): przód – u = 0 na wierzchu prawej, potem na spodzie lewej; tył odwrotnie.
+    if (j === 0) return k === 0 ? poza(PP, true) : poza(PL, false);
+    return k >= n ? poza(PL, true) : poza(PP, false);
+  };
+  const lerpPoza = (a, b, t) => {
+    let d = b.kat - a.kat; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+    const kat = a.kat + d * t; const dr = [Math.cos(kat), Math.sin(kat)];
+    let No = [-dr[1], dr[0]];
+    const nRef = [lerp(a.No[0], b.No[0], t), lerp(a.No[1], b.No[1], t)];
+    if (No[0] * nRef[0] + No[1] * nRef[1] < 0) No = [-No[0], -No[1]];
+    return { E: [lerp(a.E[0], b.E[0], t), lerp(a.E[1], b.E[1], t)], dr, No, kat };
+  };
+  const tektura = (j) => {
+    if (j !== obr) return pozaOkladki(j);
+    // Okładka w ruchu: obraca się sztywno na bidze od położenia przed do położenia po.
+    return j === 0 ? lerpPoza(poza(PP, true), poza(PL, false), s) : lerpPoza(poza(PP, false), poza(PL, true), s);
+  };
+  const TF = tektura(0); const TB = tektura(n - 1);
+
+
+  // Grzbiet okładki: cięciwa równoległa do linii między zewnętrznymi krawędziami tektur przy bigach, odsunięta na
+  // zewnątrz tak, by bigi (stała długość) były napięte; zaokrąglony spłaszcza się, gdy tektury się rozchodzą.
+  const EpF = plus2(TF.E, TF.No, tb); const EpB = plus2(TB.E, TB.No, tb);
+  const D = Math.max(0.01, dl2(EpF, EpB));
+  const uu = [(EpB[0] - EpF[0]) / D, (EpB[1] - EpF[1]) / D];
+  let vv = [uu[1], -uu[0]];
+  const Q = [(EpF[0] + EpB[0]) / 2, (EpF[1] + EpB[1]) / 2];
+  // Na zewnątrz = od punktu w głębi bloku (1/4 szerokości strony od miejsca otwarcia) do środka cięciwy.
+  const kSr = katGrz(xF) + Math.PI / 2;
+  const wn = plus2(naGrz(xF), [Math.cos(kSr), Math.sin(kSr)], w / 4);
+  if ((Q[0] - wn[0]) * vv[0] + (Q[1] - wn[1]) * vv[1] < 0) vv = [-vv[0], -vv[1]];
+  let c = c0; let bs = 0;
+  if (!prosty) {
+    const Larc = c0 * (beta0 / 2) / Math.sin(beta0 / 2);
+    const b6 = 0.65 * beta0; const cmax = Larc * Math.sin(b6 / 2) / (b6 / 2);
+    c = D - c0 <= 1.6 * hz ? c0 : Math.min(cmax, D - 1.6 * hz);
+    let lo = 1e-6; let hi = 3;
+    for (let i = 0; i < 40; i += 1) { const m = (lo + hi) / 2; if (Larc * Math.sin(m / 2) / (m / 2) > c) lo = m; else hi = m; }
+    bs = (lo + hi) / 2;
+  }
+  const off = Math.sqrt(Math.max(0, hz * hz - ((D - c) / 2) ** 2));
+  const gr = prosty ? tb : 1.2;
+  const a0s = Math.atan2(uu[1], uu[0]);
+  // Łuk grzbietu (linia środkowa) od A do B, wybrzuszony w stronę vv.
+  const czyVvPrawo = vv[0] * Math.sin(a0s) - vv[1] * Math.cos(a0s) > 0; // vv po prawej od kierunku uu
+  const sgB = czyVvPrawo ? 1 : -1;
+  let grz = [];
+  {
+    const M = 24; let p = [0, 0]; const pts = [p];
+    for (let i = 0; i < M; i += 1) { const a = a0s + sgB * (-bs / 2 + bs * ((i + 0.5) / M)); p = [p[0] + Math.cos(a) / M, p[1] + Math.sin(a) / M]; pts.push(p); }
+    const Aa = plus2(plus2(Q, uu, -c / 2), vv, off); const Bb = plus2(plus2(Q, uu, c / 2), vv, off);
+    const z0 = pts[0]; const z1 = pts.at(-1);
+    const mx = z1[0] - z0[0]; const my = z1[1] - z0[1]; const tx = Bb[0] - Aa[0]; const ty = Bb[1] - Aa[1];
+    const den = mx * mx + my * my;
+    const ca = (mx * tx + my * ty) / den; const sa = (mx * ty - my * tx) / den;
+    grz = pts.map(([x, y]) => [Aa[0] + ca * (x - z0[0]) - sa * (y - z0[1]), Aa[1] + sa * (x - z0[0]) + ca * (y - z0[1])]);
+  }
+  // … ani pod stół: leżąca opiera się na tekturach, grzbiet wiszący na bigach nie schodzi niżej niż one.
+  if (lezy && otw > 0) {
+    const dol = [-Math.sin(katLezacej), -Math.cos(katLezacej)];
+    const pr = (p) => p[0] * dol[0] + p[1] * dol[1];
+    const poziom = Math.max(...[TF, TB].flatMap((T) => { const Ep = plus2(T.E, T.No, tb); return [pr(Ep), pr(plus2(Ep, T.dr, Lb))]; }));
+    const nad = Math.max(...grz.map((p) => pr(plus2(p, vv, gr / 2)))) - poziom;
+    if (nad > 0) grz = grz.map((p) => plus2(p, dol, -nad));
+  }
+  // Sztywny grzbiet okładki nie wchodzi w blok – odsuwa się na zewnątrz (ważniejsze niż stół – wtedy unosi książkę).
+  for (let krok = 0; krok < 300 && grz.some((p) => wBloku(plus2(p, vv, -gr / 2), 0.12)); krok += 1) grz = grz.map((p) => plus2(p, vv, 0.1));
+
+  // Bryła okładki: zewnętrzna linia (gładka) i grubość wzdłuż niej.
+  const KR = 10; // tyle mm tektury przy bidze wchodzi do wygładzania
+  // Każda próbka niesie swoją strefę (F – przednia tektura, bF – biga, G – grzbiet z udziałem t, bB, B) – wygładzanie
+  // przesuwa punkty, ale nie zmienia ich kolejności, więc strefy i nadruk grzbietu zostają na swoich miejscach.
+  const surowa = []; const grubS = []; const strefy = [];
+  const dodaj = (p, q, t, st, t0 = 0, t1 = 0) => { const m = Math.max(1, Math.ceil(dl2(p, q) / 0.25)); for (let i = 0; i < m; i += 1) { surowa.push([lerp(p[0], q[0], i / m), lerp(p[1], q[1], i / m)]); grubS.push(t); strefy.push({ st, t: lerp(t0, t1, i / m) }); } };
+  const grzZew = grz.map((p) => plus2(p, vv, gr / 2));
+  dodaj(plus2(EpF, TF.dr, KR), EpF, tb, 'F');
+  dodaj(EpF, grzZew[0], BIGA_GR, 'bF');
+  for (let i = 0; i < grzZew.length - 1; i += 1) dodaj(grzZew[i], grzZew[i + 1], gr, 'G', i / (grzZew.length - 1), (i + 1) / (grzZew.length - 1));
+  dodaj(grzZew.at(-1), EpB, BIGA_GR, 'bB');
+  dodaj(EpB, plus2(EpB, TB.dr, KR), tb, 'B');
+  surowa.push(plus2(EpB, TB.dr, KR)); grubS.push(tb); strefy.push({ st: 'B', t: 0 });
+  let zew = wygladzLamana(surowa, 250);
+  const grub = wygladzLiczby(grubS, 120);
+  // Normalna do środka (strona bloku) – ten sam obrót wzdłuż całej linii; środek grzbietu wskazuje kierunek.
+  const im = zew.length >> 1;
+  const tm = [zew[im + 1][0] - zew[im - 1][0], zew[im + 1][1] - zew[im - 1][1]];
+  const sgN = (-tm[1]) * (-vv[0]) + tm[0] * (-vv[1]) > 0 ? 1 : -1;
+  const normalne = (z) => z.map((p, i) => {
+    const a = z[Math.max(0, i - 1)]; const b = z[Math.min(z.length - 1, i + 1)];
+    const tx = b[0] - a[0]; const ty = b[1] - a[1]; const l = Math.hypot(tx, ty) || 1;
+    return [(sgN * -ty) / l, (sgN * tx) / l];
+  });
+  // Wewnętrzna strona okładki nie wchodzi w blok – ścianka odsuwa się na zewnątrz.
+  for (let r = 0; r < 3; r += 1) {
+    const nn = normalne(zew); let zmiana = false;
+    zew = zew.map((p, i) => {
+      let q = p; let kk = 0;
+      while (kk < 40 && wBloku(plus2(q, nn[i], grub[i]), 0.2)) { q = plus2(q, nn[i], -0.1); kk += 1; }
+      if (kk) zmiana = true;
+      return q;
+    });
+    if (!zmiana) break;
+    zew = wygladzLamana(zew, 20);
+  }
+  // Pełna linia: daleki brzeg przedniej tektury … tylnej.
+  const pelna = [plus2(EpF, TF.dr, Lb), ...zew, plus2(EpB, TB.dr, Lb)];
+  const pelnaG = [tb, ...grub, tb];
+  const nn = normalne(pelna);
+  const wew = pelna.map((p, i) => plus2(p, nn[i], pelnaG[i]));
+  const strefyP = [{ st: 'F', t: 0 }, ...strefy, { st: 'B', t: 0 }];
+  const pre = okF.przod?.match(/^(okl|obw):/)?.[1];
+  const texGrz = pre ? `${pre}:grzbiet` : `kolor:${KRAWEDZ_OKLADKI}`;
+  const texF = okF.przod || `kolor:${OKLEINA}`; const texB = okB.tyl || `kolor:${OKLEINA}`;
+  const hO = okF.h;
+  // Strefa punktu i linii: tektury – nadruk przodu/tyłu (u od bigi), bigi – płótno w kolorze brzegu tektury przy
+  // grzbiecie, grzbiet – nadruk grzbietu.
+  const vT = (y) => (hO / 2 - y) / hO;
+  const strefa = (i) => {
+    const { st, t } = strefyP[i]; const p = pelna[i];
+    if (st === 'F') return { tex: texF, u: ogr(((p[0] - EpF[0]) * TF.dr[0] + (p[1] - EpF[1]) * TF.dr[1]) / Lb, 0.003, 0.997), v: vT };
+    if (st === 'B') return { tex: texB, u: ogr(1 - ((p[0] - EpB[0]) * TB.dr[0] + (p[1] - EpB[1]) * TB.dr[1]) / Lb, 0.003, 0.997), v: vT };
+    if (st === 'bF') return { tex: texF, u: 0.003, v: vT };
+    if (st === 'bB') return { tex: texB, u: 0.997, v: vT };
+    return { tex: texGrz, u: pre ? ogr(t, 0.003, 0.997) : 0.5, v: (y) => (y + hO / 2) / hO };
+  };
+  const texWewF = okF.wyklejka ? okF.okleina : (okF.tyl || `kolor:${PAPIER}`);
+  const texWewB = okB.wyklejka ? okB.okleina : (okB.przod || `kolor:${PAPIER}`);
+  const strefaWew = (i) => { const st = strefyP[i].st; return st === 'F' ? texWewF : st === 'B' ? texWewB : `kolor:${KRAFT}`; };
+  const P3 = (p, y) => naStol([p[0], y, p[1]]);
+  const N3 = (v2) => naStol([v2[0], 0, v2[1]]);
+  for (let i = 0; i < pelna.length - 1; i += 1) {
+    // Odcinek należy do strefy swojego początku; na granicy stref u z tej samej strefy.
+    const st = strefa(i); const st1 = strefa(i + 1);
+    const ua = st.u; const ub = st1.tex === st.tex ? st1.u : st.u;
+    const zo = [-nn[i][0], -nn[i][1]]; const zo1 = [-nn[i + 1][0], -nn[i + 1][1]];
+    const odSeg = quady.length;
+    quad(quady, [P3(pelna[i], hO / 2), P3(pelna[i + 1], hO / 2), P3(pelna[i + 1], -hO / 2), P3(pelna[i], -hO / 2)],
+      [[ua, st.v(hO / 2)], [ub, st.v(hO / 2)], [ub, st.v(-hO / 2)], [ua, st.v(-hO / 2)]], st.tex, 'twarda', { nv: [N3(zo), N3(zo1), N3(zo1), N3(zo)] });
+    // Wewnętrzna strona (okleina na tekturze, kraft na grzbiecie).
+    quad(quady, [P3(wew[i], -hO / 2), P3(wew[i + 1], -hO / 2), P3(wew[i + 1], hO / 2), P3(wew[i], hO / 2)],
+      [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]], strefaWew(i), 'twarda', { nv: [N3(nn[i]), N3(nn[i + 1]), N3(nn[i + 1]), N3(nn[i])] });
+    // Głowa i stopa – brzeg okładki w kolorze jej zewnętrznej strony.
+    for (const [y, sg] of [[hO / 2, 1], [-hO / 2, -1]]) {
+      const ve = sg > 0 ? 0.004 : 0.996;
+      quad(quady, [P3(pelna[i], y), P3(pelna[i + 1], y), P3(wew[i + 1], y), P3(wew[i], y)], [[ua, ve], [ub, ve], [ub, ve], [ua, ve]], st.tex, 'twarda', { n: naStol([0, sg, 0]) });
+    }
+    // Grzbiet okładki z bigami (bez tektur) – do kamery „grzbiet” i testów.
+    if (strefyP[i].st !== 'F' && strefyP[i].st !== 'B') for (let q = odSeg; q < quady.length; q += 1) quady[q].grzbiet = true;
+  }
+  for (const [i, kier] of [[0, TF.dr], [pelna.length - 1, TB.dr]]) {
+    const st = strefa(i);
+    quad(quady, [P3(pelna[i], hO / 2), P3(wew[i], hO / 2), P3(wew[i], -hO / 2), P3(pelna[i], -hO / 2)], [[st.u, 0.004], [st.u, 0.004], [st.u, 0.996], [st.u, 0.996]], st.tex, 'twarda', { n: N3(kier) });
+  }
+  // Wyklejka przyklejona do tektury (połowa wielkości strony bloku) i jej zawias przy bidze – do pierwszej kartki.
+  const wklejka = (kar, T, P, naWierzchu, ruch) => {
+    if (!kar.wyklejka) return;
+    const Wp = kar.wBloku || w; // szerokość strony wyklejki
+    const Lp = Math.min(Wp, Lb - 3); // na tekturze: do 3 mm przed przednią krawędzią (zawinięcie okleiny)
+    const u0 = (Wp - Lp) / Wp; // reszta strony – w zawiasie przy bidze
+    const hp = Math.min(kar.hBloku || h, hO - 2);
+    const Nin = [-T.No[0], -T.No[1]];
+    const tex = kar.wyklejka === 'A' ? kar.przod : kar.tyl;
+    siatka(quady, 8, 2, (i, j) => {
+      const sg = (Lp * i) / 8; const p = plus2(plus2(T.E, T.dr, sg), Nin, 0.03);
+      const y = lerp(hp / 2, -hp / 2, j / 2);
+      const uu2 = kar.wyklejka === 'A' ? u0 + (1 - u0) * (sg / Lp) : 1 - u0 - (1 - u0) * (sg / Lp);
+      return { p: P3(p, y), n: N3(Nin), uv: [uu2, (hp / 2 - y) / hp], ao: 1 - 0.22 * Math.exp(-sg / 3.5) };
+    }, tex || `kolor:${PAPIER}`, 'papier');
+    // Zawias wyklejki: od krawędzi tektury do pierwszej kartki bloku przy grzbiecie (pasek kleju ok. 2 mm).
+    if (!ruch && P && P.H > 0.01) {
+      const kr = P.kr; const N = kr.c.length - 1; const ij = Math.max(1, Math.round((1.8 / w) * N));
+      const cel = naWierzchu ? P.wierzch[ij] : kr.c[ij];
+      const pts = bezier(plus2(T.E, Nin, 0.03), plus2(T.E, T.dr, -1.2), cel, cel, 8);
+      for (let i = 0; i < pts.length - 1; i += 1) {
+        const ua2 = u0 * (1 - i / (pts.length - 1)); const ub2 = u0 * (1 - (i + 1) / (pts.length - 1));
+        const [ta, tb2] = kar.wyklejka === 'A' ? [ua2, ub2] : [1 - ua2, 1 - ub2];
+        quad(quady, [P3(pts[i], hp / 2), P3(pts[i + 1], hp / 2), P3(pts[i + 1], -hp / 2), P3(pts[i], -hp / 2)], [[ta, 0], [tb2, 0], [tb2, 1], [ta, 1]], tex || `kolor:${PAPIER}`, 'papier', { n: N3(Nin), zawiasWyklejki: true });
+      }
+    }
+  };
+  // Skrzydełko obwoluty (#181): pas od przedniej krawędzi tektury do środka, na wyklejce, z zawinięciem wokół brzegu.
+  const skrzydelko = (kar, T) => {
+    if (!kar.skrzydelko) return;
+    const { tex, w: sw } = kar.skrzydelko;
+    const Nin = [-T.No[0], -T.No[1]];
+    const hs = hO - 0.6; const o = 0.12;
+    siatka(quady, 6, 2, (i, j) => {
+      const sg = Lb - sw + (sw * i) / 6; const p = plus2(plus2(T.E, T.dr, sg), Nin, o);
+      const y = lerp(hs / 2, -hs / 2, j / 2);
+      const uu2 = kar.skrzydelko.strona < 0 ? (Lb - sg) / sw : (sg - (Lb - sw)) / sw;
+      return { p: P3(p, y), n: N3(Nin), uv: [uu2, (hs / 2 - y) / hs], ao: 1 - 0.18 * Math.exp(-(sg - (Lb - sw)) / 2) };
+    }, tex, 'papier');
+    const C = plus2(plus2(T.E, T.dr, Lb), T.No, tb / 2); const r = tb / 2 + o;
+    const ue = kar.skrzydelko.strona < 0 ? 0.002 : 0.998;
+    const K = 6;
+    const pk = (a) => [C[0] + (T.dr[0] * Math.sin(a) + Nin[0] * Math.cos(a)) * r, C[1] + (T.dr[1] * Math.sin(a) + Nin[1] * Math.cos(a)) * r];
+    for (let i = 0; i < K; i += 1) {
+      const a0 = (Math.PI * i) / K; const a1 = (Math.PI * (i + 1)) / K; const am = (a0 + a1) / 2;
+      const nm = [T.dr[0] * Math.sin(am) + Nin[0] * Math.cos(am), T.dr[1] * Math.sin(am) + Nin[1] * Math.cos(am)];
+      quad(quady, [P3(pk(a0), hs / 2), P3(pk(a1), hs / 2), P3(pk(a1), -hs / 2), P3(pk(a0), -hs / 2)], [[ue, 0], [ue, 0], [ue, 1], [ue, 1]], tex, 'papier', { n: N3(nm) });
+    }
+  };
+  skrzydelko(okF, TF); skrzydelko(okB, TB);
+  // Wolna połowa wyklejki to skrajna kartka bloku (przednia – x = 0 grzbietu, tylna – x = Tb): spód swojej połowy,
+  // a gdy ta połowa nie ma kartek – wierzch drugiej.
+  wklejka(okF, TF, PL.H > 0.01 ? PL : PP, !(PL.H > 0.01), obr === 0);
+  wklejka(okB, TB, PP.H > 0.01 ? PP : PL, !(PP.H > 0.01), obr === n - 1);
+  // Leżąca: cała książka przechyla się na grzbiecie w stronę cięższej połowy (jak miękka), potem na stół.
+  if (lezy && otw > 0) {
+    const kat = katLezacej;
+    const [cc, sn] = [Math.cos(kat), Math.sin(kat)];
+    const obroc = ([x, y, z]) => [x * cc - y * sn, x * sn + y * cc, z];
+    for (const q of quady) { q.p = q.p.map(obroc); if (q.n) q.n = obroc(q.n); if (q.nv) q.nv = q.nv.map(obroc); }
+  }
+  let min = Infinity;
+  for (const q of quady) for (const p of q.p) if (p[1] < min) min = p[1];
+  if (Number.isFinite(min)) for (const q of quady) q.p = q.p.map(([x, y, z]) => [x, y - min, z]);
 }
 
 // otwarcie (zgłoszenie 19.11: „jeden algorytm – okładki mogą się różnie układać, np. przy stojącej V”): kąt między
@@ -668,6 +1161,7 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0, otwarcie = null, otwar
 
   if (model === 'notes') { notesSpirala(quady, kartki, { s, obr, lewe, prawe, T, h }); return; }
   if (model === 'ksiazka_miekka' && kartki[0].okladka && kartki[n - 1].okladka) { ksiazkaMiekka(quady, kartki, u, { wachlarz, otwarcie: otwarcieSuwak, lezy }); return; }
+  if (twarda && kartki[0].okladka && kartki[n - 1].okladka && kartki.some((x) => !x.okladka)) { ksiazkaTwarda(quady, kartki, u, { wachlarz, otwarcie, lezy }); return; }
 
   // Stos po jednej stronie, od dołu: części – okładka albo blok kartek środka.
   const uloz = (lista, strona) => {

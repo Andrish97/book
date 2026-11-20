@@ -415,13 +415,17 @@ test('makieta 3D (#179): wyklejka na tekturze, zawias, sztywna miękka okładka,
   // Wnętrze tektury: okleina; wyklejka osobnym, płaskim arkuszem (bez grubości) wielkości strony bloku.
   assert.ok(q.some((x) => x.tex === 'okl:okleina' && x.mat === 'twarda'), 'okleina na wnętrzu tektury');
   const tektura = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
-  const wkl = obwiednia(q.filter((x) => x.tex === 'p:0'));
-  assert.ok(wkl.max[1] - wkl.min[1] < 0.2, `wyklejka płaska (${(wkl.max[1] - wkl.min[1]).toFixed(2)} mm)`);
-  assert.ok(Math.abs((wkl.max[0] - wkl.min[0]) - 148) < 0.5 && Math.abs((wkl.max[2] - wkl.min[2]) - 210) < 0.5, 'wyklejka w rozmiarze strony bloku');
+  // Przekrój 20.11: na tekturze leży część strony wyklejki (do 3 mm przed przednią krawędzią), reszta w zawiasie
+  // przy bidze – zgięta do pierwszej kartki bloku.
+  const wkl = obwiednia(q.filter((x) => x.tex === 'p:0' && !x.zawiasWyklejki));
+  assert.ok(wkl.max[1] - wkl.min[1] < 0.6, `wyklejka płaska (${(wkl.max[1] - wkl.min[1]).toFixed(2)} mm)`);
+  assert.ok(wkl.max[0] - wkl.min[0] > 130 && Math.abs((wkl.max[2] - wkl.min[2]) - 210) < 0.5, 'wyklejka na tekturze, wysokość strony');
+  const zaw = q.filter((x) => x.tex === 'p:0' && x.zawiasWyklejki);
+  assert.ok(zaw.length, 'zawias wyklejki przy bidze');
   assert.ok(wkl.min[0] - tektura.min[0] > 2.5, 'wyklejka 3 mm od przedniej krawędzi tektury (zawinięcie okleiny widać)');
   assert.ok(wkl.min[2] - tektura.min[2] > 2.5 && tektura.max[2] - wkl.max[2] > 2.5, '3 mm od głowy i stopy');
-  // Bez paska zgięcia wyklejki w zawiasie (#199: nic nie wisi przy otwartej wyklejce).
-  assert.equal(q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier' && x.p.every((p) => p[0] < 2 && p[0] > -10)).length, 0, 'bez wiszącego paska');
+  // Zawias wyklejki nic nie zwisa: leży nad stołem, między tekturą a blokiem.
+  assert.ok(obwiednia(zaw).min[1] > 0.5, 'zawias wyklejki nie zwisa pod tekturę');
   // Miękka: okładka w rozmiarze bloku (nawet gdy sekcja okładki jest twarda), sztywna w trakcie otwierania.
   const km = kartkiModelu('ksiazka_miekka', { strony: 100, format: A5, okladka: okl });
   assert.deepEqual([km[0].w, km[0].h], [148, 210], 'miękka okładka = blok');
@@ -514,8 +518,9 @@ test('makieta 3D: twarda – bez „języka” w zgięciu, przy otwartej wyklejc
   for (const u of [1, k.length - 1]) {
     const q = scena('ksiazka_twarda', k, u);
     assert.equal(q.filter((x) => x.tex === 'kolor:#fbfaf7' && x.mat === 'papier').length, 0, `u = ${u}: bez wiszącego paska wyklejki`);
-    const sciana = q.filter((x) => x.tex === 'tex:krawedz' && Math.abs(x.n[0]) > 0.95 && x.p.every((p) => Math.abs(p[0]) < 30));
-    assert.ok(sciana.some((x) => x.p.every((p) => Math.abs(p[0] - x.p[0][0]) < 1e-6)), `u = ${u}: pionowy grzbiet bloku`);
+    // Grzbiet bloku (składki) stoi pionowo przy otwartej samej okładce – blok zamknięty, nie zwinięty.
+    const sk = q.filter((x) => x.tex === 'tex:skladki');
+    assert.ok(sk.length && sk.every((x) => Math.abs(x.n[1]) < 0.35), `u = ${u}: pionowy grzbiet bloku`);
   }
 });
 
@@ -528,12 +533,15 @@ test('makieta 3D: twarda – pionowy grzbiet przy wyklejce, stała szerokość g
   const Tb = k.filter((x) => !x.okladka).reduce((a, x) => a + x.d, 0);
   // Otwarta wyklejka: grzbiet pionowy (wąski w poziomie, wysoki na grubość bloku), tektura u góry.
   let q = scena('ksiazka_twarda', k, 1);
-  const g1 = obwiednia(q.filter((x) => x.grzbiet));
-  assert.ok(g1.max[0] - g1.min[0] < 3 && g1.max[1] - g1.min[1] > Tb - 1, `grzbiet pionowy (${(g1.max[0] - g1.min[0]).toFixed(1)} × ${(g1.max[1] - g1.min[1]).toFixed(1)} mm)`);
-  const tek = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
-  assert.ok(tek.max[1] - tek.min[1] < 3 && tek.min[1] > Tb - 1, 'odwinięta tektura leży poziomo na wysokości bloku');
+  // Sam grzbiet okładki (płytka z nadrukiem grzbietu) – bigi przechodzą w tektury.
+  const g1 = obwiednia(q.filter((x) => x.grzbiet && x.tex === 'okl:grzbiet'));
+  assert.ok(g1.max[0] - g1.min[0] < g1.max[1] - g1.min[1] && g1.max[1] - g1.min[1] > 0.7 * Tb, `grzbiet pionowy (${(g1.max[0] - g1.min[0]).toFixed(1)} × ${(g1.max[1] - g1.min[1]).toFixed(1)} mm)`);
+  const tek = obwiednia(q.filter((x) => x.tex === 'okl:przod' && Math.abs(x.n[1]) > 0.9)); // sama tektura (bez bigi)
+  assert.ok(tek.max[1] - tek.min[1] < 5 && tek.min[1] > Tb - 4, 'odwinięta tektura leży poziomo na wysokości bloku');
   // Szerokość grzbietu ta sama w każdym miejscu książki.
-  const szer = (u) => { const g = obwiednia(scena('ksiazka_twarda', k, u).filter((x) => x.grzbiet)); return Math.hypot(g.max[0] - g.min[0], g.max[1] - g.min[1]); };
+  // Długość grzbietu okładki (po zewnętrznej powierzchni) – sztywny, więc stała.
+  const szer = (u) => scena('ksiazka_twarda', k, u).filter((x) => x.grzbiet && x.tex === 'okl:grzbiet' && Math.abs(x.n[2]) < 0.5)
+    .reduce((a, x) => a + Math.hypot(x.p[1][0] - x.p[0][0], x.p[1][1] - x.p[0][1]), 0);
   for (const u of [40, 120, 200]) assert.ok(Math.abs(szer(u) - szer(1)) < 3, `u = ${u}: grzbiet ${szer(u).toFixed(1)} mm jak przy wyklejce ${szer(1).toFixed(1)} mm`);
   // Środek: obie przednie krawędzie uniesione nad stół (książka lekko przymknięta), nic nie wchodzi pod stół.
   q = scena('ksiazka_twarda', k, 120);
@@ -541,7 +549,39 @@ test('makieta 3D: twarda – pionowy grzbiet przy wyklejce, stała szerokość g
   assert.ok(okl.min[1] > -0.01, 'nic pod stołem');
   const tyl = obwiednia(q.filter((x) => x.tex === 'okl:tyl'));
   const prz = obwiednia(q.filter((x) => x.tex === 'okl:przod'));
-  assert.ok(tyl.max[1] > 10 && prz.max[1] > 10, 'obie połowy uniesione przy przedniej krawędzi');
+  assert.ok(tyl.max[1] > 5 && prz.max[1] > 5, 'obie połowy uniesione przy przedniej krawędzi');
+});
+
+// Przekrój uzgodniony 20.11: okładka twarda jedną bryłą, grzbiet okładki wisi na bigach i nigdy nie wchodzi w blok –
+// zamknięta: cały na zewnątrz grzbietu bloku; rozłożona w środku: pod kapitałką złożoną w „U”; szerokość biga
+// z ustawień okładki (big_mm) zmienia odstęp tektury od bloku.
+test('makieta 3D: twarda – grzbiet okładki poza blokiem w każdym położeniu, big z ustawień okładki', async () => {
+  const { kartkiModelu, scena, obwiednia } = await modul('js/makieta-3d.js');
+  for (const grzbiet of [null, 'prosty']) {
+    const k = kartkiModelu('ksiazka_twarda', { strony: 300, format: { w: 148, h: 210 }, okladka: { w: 151, h: 216, tektura: 2.2, grzbiet, big: 7 } });
+    let q = scena('ksiazka_twarda', k, 0);
+    const blok = obwiednia(q.filter((x) => x.tex === 'tex:skladki'));
+    const plyta = obwiednia(q.filter((x) => x.tex === 'okl:grzbiet'));
+    // Zewnętrzna powierzchnia grzbietu okładki przed grzbietem bloku, w odstępie najwyżej kilku mm (płytka + szczelina).
+    assert.ok(plyta.min[0] < blok.min[0] - 0.5 && blok.min[0] - plyta.min[0] < 4, `${grzbiet || 'zaokrąglony'}: zamknięta – grzbiet okładki na zewnątrz, tuż przy bloku (${plyta.min[0].toFixed(2)} / ${blok.min[0].toFixed(2)})`);
+    for (const u of [k.length / 2, k.length / 2 + 0.5]) {
+      q = scena('ksiazka_twarda', k, u);
+      // Pod złożonym grzbietem bloku grzbiet okładki jest niżej niż łuk grzbietu bloku.
+      const luk = q.filter((x) => x.tex === 'tex:skladki').flatMap((x) => x.p);
+      const zakres = obwiednia(q.filter((x) => x.tex === 'tex:skladki'));
+      const pod = q.filter((x) => x.tex === 'okl:grzbiet').flatMap((x) => x.p).filter((p) => p[0] > zakres.min[0] && p[0] < zakres.max[0]);
+      const zle = pod.filter((p) => p[1] > Math.min(...luk.filter((c) => Math.abs(c[0] - p[0]) < 0.6).map((c) => c[1])) - 0.2);
+      assert.ok(pod.length && !zle.length, `${grzbiet || 'zaokrąglony'} u = ${u}: grzbiet okładki pod grzbietem bloku (${zle.length} punktów za blisko)`);
+      assert.ok(obwiednia(q).min[1] > -0.01, 'nic pod stołem');
+    }
+  }
+  // Szerszy big – tektura dalej od grzbietu bloku.
+  const odstep = (big) => {
+    const k = kartkiModelu('ksiazka_twarda', { strony: 300, format: { w: 148, h: 210 }, okladka: { w: 151, h: 216, tektura: 2.2, big } });
+    const q = scena('ksiazka_twarda', k, 0);
+    return obwiednia(q.filter((x) => x.tex === 'okl:przod' && !x.grzbiet && x.n[1] > 0.9)).min[0] - obwiednia(q.filter((x) => x.tex === 'tex:skladki')).min[0];
+  };
+  assert.ok(odstep(12) > odstep(4) + 2, `big 12 mm dalej niż 4 mm (${odstep(12).toFixed(1)} / ${odstep(4).toFixed(1)})`);
 });
 
 // #203: limit pamięci grafiki – kartkowanie grubej książki nie trzyma wszystkich obejrzanych stron (telefon zamykał
