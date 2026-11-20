@@ -46,7 +46,11 @@ test('makieta 3D: kartki modeli i geometria w świecie (stół, ściana, biurko)
   assert.ok(tekstury.has('p:1') && tekstury.has('p:2'));
   assert.equal(opisPolozenia('ksiazka_miekka', k, 2), 'Strony 2–3');
   const ob = obwiednia(q);
-  assert.ok(ob.min[0] < -140 && ob.max[0] > 140, 'otwarta książka sięga w obie strony grzbietu');
+  // Miękka (zgłoszenie 19.11): otwarta leży na grzbiecie, połowy zawijają się łukami w obie strony – nie płasko.
+  assert.ok(ob.min[0] < -60 && ob.max[0] > 60, 'otwarta książka sięga w obie strony grzbietu');
+  const grzb = obwiednia(q.filter((x) => x.grzbiet));
+  assert.ok(grzb.min[1] < 0.5 && grzb.max[0] - grzb.min[0] > 0.8, 'grzbiet leży na stole');
+  assert.ok(ob.max[1] > 25, 'połowy uniesione łukami (nigdy płasko)');
   const prawa = obwiednia(q.filter((x) => x.tex === 'p:2'));
   assert.ok(prawa.max[1] - prawa.min[1] > 1, 'strona wygięta przy grzbiecie');
   assert.ok(q.some((x) => x.tex === 'p:2' && x.ao.some((a) => a < 0.8)), 'cień w zgięciu (AO przy grzbiecie)');
@@ -421,9 +425,10 @@ test('makieta 3D (#179): wyklejka na tekturze, zawias, sztywna miękka okładka,
   // Miękka: okładka w rozmiarze bloku (nawet gdy sekcja okładki jest twarda), sztywna w trakcie otwierania.
   const km = kartkiModelu('ksiazka_miekka', { strony: 100, format: A5, okladka: okl });
   assert.deepEqual([km[0].w, km[0].h], [148, 210], 'miękka okładka = blok');
+  // Miękka okładka w ruchu (zgłoszenie 19.11): zawija się łukiem jak kartki – nie łamie się.
   const qm = scena('ksiazka_miekka', km, 0.5);
-  const nn = qm.filter((x) => x.tex === 'okl:przod').map((x) => x.n.map((v) => Math.round(v * 100) / 100).join());
-  assert.ok(new Set(nn).size <= 4, `okładka płaska jak karton – płaszczyzna i trzy brzegi, bez wygięcia (${new Set(nn).size} kierunków)`);
+  const kat = qm.filter((x) => x.tex === 'okl:przod' && Math.abs(x.n[2]) < 0.1).map((x) => Math.atan2(x.n[1], x.n[0]));
+  assert.ok(Math.max(...kat) - Math.min(...kat) > 0.05, 'okładka zawinięta łukiem');
   // Wire-O wg tabel producentów.
   assert.deepEqual([parametryWireO(3.5).srednica, parametryWireO(3.5).typ, parametryWireO(3.5).skok], [6.4, '3:1', 8.47]);
   assert.deepEqual([parametryWireO(10).srednica, parametryWireO(10).typ], [12.7, '3:1']);

@@ -47,7 +47,7 @@ test('makieta 3D (#181): kąt otwarcia, wachlarz kartek, egzemplarze obok, w sto
   const k = kartkiModelu('ksiazka_miekka', { strony: 40, format: { w: 148, h: 210 }, okladka: { w: 148, h: 210 } });
   const plasko = obwiednia(scena('ksiazka_miekka', k, 10));
   const v = obwiednia(scena('ksiazka_miekka', k, 10, { otwarcie: 100 }));
-  assert.ok(v.max[0] - v.min[0] < (plasko.max[0] - plasko.min[0]) * 0.85, 'otwarcie 100° – połowy podniesione, węższa');
+  assert.ok(v.max[0] - v.min[0] < (plasko.max[0] - plasko.min[0]) * 0.92, 'otwarcie 100° – połowy podniesione, węższa');
   assert.ok(v.max[1] > 80, 'połowy stoją w górę');
   assert.ok(v.min[1] > -0.01, 'na stole');
   // Wachlarz: więcej czworokątów (osobne kartki), wysoko nad książką.
