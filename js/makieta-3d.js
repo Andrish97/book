@@ -1028,6 +1028,16 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   const pelnaG = [tb, ...grub, tb];
   const nn = normalne(pelna);
   const wew = pelna.map((p, i) => plus2(p, nn[i], pelnaG[i]));
+  // Wygładzony róg przy bidze nie wychodzi wnętrzem okładki ponad płaszczyznę tektury (tam leży wyklejka).
+  for (const [T, strefaT] of [[TF, ['F', 'bF']], [TB, ['B', 'bB']]]) {
+    const Nin = [-T.No[0], -T.No[1]];
+    wew.forEach((p, i) => {
+      const st = i === 0 ? 'F' : i === pelna.length - 1 ? 'B' : strefy[i - 1].st;
+      if (!strefaT.includes(st)) return;
+      const nad = (p[0] - T.E[0]) * Nin[0] + (p[1] - T.E[1]) * Nin[1];
+      if (nad > 0) wew[i] = plus2(p, Nin, -nad);
+    });
+  }
   const strefyP = [{ st: 'F', t: 0 }, ...strefy, { st: 'B', t: 0 }];
   const pre = okF.przod?.match(/^(okl|obw):/)?.[1];
   const texGrz = pre ? `${pre}:grzbiet` : `kolor:${KRAWEDZ_OKLADKI}`;
