@@ -842,10 +842,36 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const mala = strona < 0 ? HLe <= HPe : HLe > HPe;
     const unies = mala ? (tb + 2 * WY) * (1 - fObie) : 0;
     const wUp = nIn(kr.fi[kr.c.length - 1], strona);
-    if (unies > 0) for (const k2 of [kr, krW]) k2.c = k2.c.map((p, i) => plus2(p, wUp, unies * gladko(Math.min(1, k2.sigma[i] / 3))));
+    if (unies > 0) for (const k2 of [kr, krW]) k2.c = k2.c.map((p, i) => plus2(p, wUp, unies * gladko(Math.min(1, k2.sigma[i] / 1.2))));
     return { lista, strona, H, xZew, xWew, start, kr, krW, wierzch: krW.c, kat: katStrony(xZew, strona), n0, unies, wUp };
   };
   const PL = polowa(lewe, -1); const PP = polowa(prawe, 1);
+  // Wolna połowa wyklejki (#20.11): od spodu wzdłuż zgięcia ok. 4 mm kleju na pierwszej kartce bloku. Gdy jest
+  // przewrócona na drugą stronę, a kartka, do której jest przyklejona, jeszcze nie – pasek kleju zostaje na bloku,
+  // a wyklejka zgina się dopiero za nim (szczelina przy grzbiecie nie otwiera się do końca).
+  const KLEJ = 4;
+  const jF = okF.wyklejka ? 1 : null; const jB = okB.wyklejka ? n - 2 : null;
+  const punktKleju = (Pd) => {
+    // punkt na wierzchu drugiej połowy w odległości KLEJ od grzbietu i kierunek wierzchu w tym miejscu
+    const kr = Pd.krW; const N = kr.c.length - 1; const t = Math.min(N - 1e-6, (KLEJ / w) * N); const i0 = Math.floor(t); const f = t - i0;
+    return { p: [lerp(kr.c[i0][0], kr.c[i0 + 1][0], f), lerp(kr.c[i0][1], kr.c[i0 + 1][1], f)], fi: lerp(kr.fi[i0], kr.fi[i0 + 1], f), od: kr.c[0] };
+  };
+  const wolnaPrzyklejona = (P, Pd, j) => j !== null && P.lista.length === 1 && P.lista[0] === j && Pd.H > 0.01;
+  const naKleju = [];
+  for (const [P, Pd, j] of [[PL, PP, jF], [PP, PL, jB]]) {
+    if (!wolnaPrzyklejona(P, Pd, j)) continue;
+    const K = punktKleju(Pd);
+    // Kartka zaczyna się na końcu kleju, biegnie po bloku w stronę grzbietu, potem zawija na swoją stronę.
+    const cel = P.kr.fi.at(-1);
+    const a0 = K.fi + (P === PL ? 1 : -1) * Math.PI;
+    let celU = cel; while (celU - a0 > Math.PI) celU -= 2 * Math.PI; while (a0 - celU > Math.PI) celU += 2 * Math.PI;
+    const lift = (P.unies || 0); const up = P.wUp || [0, 0];
+    const krN = krzywaZKata(K.p, w - KLEJ, (t) => a0 + (celU - a0) * gladko(Math.min(1, (t * (w - KLEJ)) / 2.5)), 30);
+    krN.c = krN.c.map((p, i) => plus2(p, up, lift * gladko(Math.min(1, krN.sigma[i] / 2.5))));
+    const krG = { c: krN.c.map((p, i) => { const nn = nIn(krN.fi[i], P.strona); return plus2(p, nn, P.H); }), fi: krN.fi, sigma: krN.sigma };
+    P.kr = krN; P.krW = krG; P.wierzch = krG.c; P.klej = true; P.zgiecie = K.od; // zgięcie wyklejki – przy grzbiecie
+    naKleju.push({ j, od: K.od, do: K.p, Pd, strona: P.strona });
+  }
   const wielokaty = [PL, PP].filter((p) => p.H > 0.01).map((p) => [...p.kr.c, ...[...p.wierzch].reverse()]);
   // Grzbiet bloku (łuk, kapitałka) też jest blokiem – pas od łuku 2 mm w głąb.
   {
@@ -884,11 +910,39 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   const katPrzewracanej = (sk) => { const kp = katStrony(xF, 1); const kl = katStrony(xF, -1); return (t) => lerp(kp(t), kl(t), sk) - (sk > 0 && sk < 1 ? 0.35 * Math.sin(Math.PI * sk) * t : 0); };
   const przewracaj = (j, sk) => {
     const od = quady.length;
+    const Pd = j === jF ? PP : j === jB ? PL : null;
+    if (Pd && Pd.H > 0.01) {
+      // Wolna połowa wyklejki w ruchu: obraca się na końcu kleju (pasek przy grzbiecie zostaje na bloku).
+      const K = punktKleju(Pd);
+      // Obrót o π wokół końca kleju (przednia – przeciwnie do ruchu wskazówek zegara, tylna – zgodnie).
+      const sgn = Pd === PP ? 1 : -1;
+      const P = Pd === PP ? PL : PP;
+      const a0s = K.fi + sgn * Math.PI;
+      let cel = P.kr.fi.at(-1); while (cel - a0s > Math.PI) cel -= 2 * Math.PI; while (a0s - cel > Math.PI) cel += 2 * Math.PI;
+      const Lw = kartki[j].w - KLEJ;
+      const aStat = (t) => a0s + (cel - a0s) * gladko(Math.min(1, (t * Lw) / 2.5));
+      lisc(quady, kartki[j], krzywaZKata(K.p, Lw, (t) => lerp(K.fi, aStat(t), sk) - sgn * (sk > 0 && sk < 1 ? 0.35 * Math.sin(Math.PI * sk) * t : 0), 30), 'papier');
+      naKleju.push({ j, od: K.od, do: K.p, Pd, strona: Pd === PP ? -1 : 1 });
+      for (let q = od; q < quady.length; q += 1) quady[q] = { ...quady[q], przewrot: sk };
+      return;
+    }
     lisc(quady, kartki[j], krzywaZKata(naGrz(xF), kartki[j].w, katPrzewracanej(sk), 30), 'papier');
     for (let q = od; q < quady.length; q += 1) quady[q] = { ...quady[q], przewrot: sk };
   };
   for (const j of wRuchu) if (j === obr) przewracaj(j, s);
   wach.forEach((j, i2) => przewracaj(j, lerp(0.56, 0.07, wach.length > 1 ? i2 / (wach.length - 1) : 0)));
+  // Pasek kleju: część wolnej połowy wyklejki przyklejona do bloku – widać jej wierzchnią stronę przy grzbiecie.
+  for (const { j, od, do: dk, Pd } of naKleju) {
+    const kar = kartki[j];
+    const przod = j === jF; // przednia: strona „przód” kartki czytana od grzbietu
+    const tex = przod ? kar.przod : kar.tyl;
+    const nn = nIn(Pd.krW.fi[0], Pd.strona);
+    const a = plus2(od, nn, 0.06); const b = plus2(dk, nn, 0.06);
+    const uK = KLEJ / kar.w;
+    const [ua, ub] = przod ? [0, uK] : [1, 1 - uK];
+    quad(quady, [naStol([a[0], h / 2, a[1]]), naStol([b[0], h / 2, b[1]]), naStol([b[0], -h / 2, b[1]]), naStol([a[0], -h / 2, a[1]])],
+      [[ua, 0], [ub, 0], [ub, 1], [ua, 1]], tex || `kolor:${PAPIER}`, 'papier', { n: naStol([nn[0], 0, nn[1]]) });
+  }
 
   // Tektury. Na zewnątrz połowy – leży wzdłuż zewnętrznej kartki (wyklejka między nimi; przy grzbiecie, gdzie
   // kartki się zawijają, zostaje klin), na wierzchu połowy (zamknięta) – na wierzchniej kartce.
@@ -1121,7 +1175,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const Wp = kar.wBloku || w; // szerokość strony wyklejki
     // Połowa wyklejki to strona szerokości bloku liczona od zgięcia (ramię bloku J): część biegnie przez rowek do
     // krawędzi tektury, reszta leży na tekturze – kończy się tam, gdzie wolna kartka (tektura wystaje 3 mm).
-    const Jw = P ? (naWierzchu ? P.wierzch[0] : P.kr.c[0]) : T.E;
+    const Jw = P ? (P.zgiecie || (naWierzchu ? P.wierzch[0] : P.kr.c[0])) : T.E;
     const dlZaw = Math.min(Wp * 0.3, dl2(plus2(T.E, Nin0(T), 0.2), Jw) * 1.08);
     const Lp = Math.min(Wp - dlZaw, Lb - 3);
     const u0 = (Wp - Lp) / Wp; // reszta strony – w zawiasie przy bidze
@@ -1138,7 +1192,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     // zewnątrz do ramienia bloku, tam się zagina i wraca jako pierwsza kartka. Nie wchodzi w blok – punkty, które
     // trafiłyby w blok, odsuwają się w stronę tektury.
     if (!ruch && P && P.H > 0.01) {
-      const J = naWierzchu ? P.wierzch[0] : P.kr.c[0];
+      const J = P.zgiecie || (naWierzchu ? P.wierzch[0] : P.kr.c[0]);
       const E0 = plus2(T.E, Nin, 0.2);
       const dEJ = Math.max(0.01, dl2(E0, J)); const uJ = [(E0[0] - J[0]) / dEJ, (E0[1] - J[1]) / dEJ];
       // Zaczyna się 1 mm na wyklejce na tekturze (zakładka) – bez szczeliny na styku, przez którą prześwituje okładka.
