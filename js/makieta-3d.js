@@ -1087,11 +1087,15 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
       const uu2 = kar.wyklejka === 'A' ? u0 + (1 - u0) * (sg / Lp) : 1 - u0 - (1 - u0) * (sg / Lp);
       return { p: P3(p, y), n: N3(Nin), uv: [uu2, (hp / 2 - y) / hp], ao: 1 - 0.22 * Math.exp(-sg / 3.5) };
     }, tex || `kolor:${PAPIER}`, 'papier');
-    // Zawias wyklejki: od krawędzi tektury do pierwszej kartki bloku przy grzbiecie (pasek kleju ok. 2 mm).
+    // Zgięcie wyklejki (20.11: jeden arkusz złożony raz, bez klejenia w połowie): z tektury papier dochodzi od
+    // zewnątrz do ramienia bloku, tam się zagina i wraca jako pierwsza kartka. Nie wchodzi w blok – punkty, które
+    // trafiłyby w blok, odsuwają się w stronę tektury.
     if (!ruch && P && P.H > 0.01) {
-      const kr = P.kr; const N = kr.c.length - 1; const ij = Math.max(1, Math.round((1.8 / w) * N));
-      const cel = naWierzchu ? P.wierzch[ij] : kr.c[ij];
-      const pts = bezier(plus2(T.E, Nin, 0.03), plus2(T.E, T.dr, -1.2), cel, cel, 8);
+      const J = naWierzchu ? P.wierzch[0] : P.kr.c[0];
+      const E0 = plus2(T.E, Nin, 0.03);
+      const dEJ = Math.max(0.01, dl2(E0, J)); const uJ = [(E0[0] - J[0]) / dEJ, (E0[1] - J[1]) / dEJ];
+      const pts = bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)
+        .map((p, i, a) => { if (i === 0 || i === a.length - 1) return p; let q = p; for (let kk = 0; kk < 40 && wBloku(q, 0.1); kk += 1) q = plus2(q, T.No, 0.05); return q; });
       for (let i = 0; i < pts.length - 1; i += 1) {
         const ua2 = u0 * (1 - i / (pts.length - 1)); const ub2 = u0 * (1 - (i + 1) / (pts.length - 1));
         const [ta, tb2] = kar.wyklejka === 'A' ? [ua2, ub2] : [1 - ua2, 1 - ub2];
