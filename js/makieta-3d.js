@@ -730,7 +730,8 @@ function blokMiedzy(quady, { dol, gora, dir, h, H, texWierzch, texSpod }) {
     const p = gora.c[i]; const y = lerp(h / 2, -h / 2, j / 3); const nn = nIn(gora.fi[i]);
     return { p: naStol([p[0], y, p[1]]), n: naStol([nn[0], 0, nn[1]]), uv: [uS(gora.sigma[i]), v(y)], ao: 1 - 0.35 * Math.exp(-gora.sigma[i] / 10) };
   }, texWierzch || `kolor:${PAPIER}`, 'papier');
-  siatka(quady, N, 3, (i, j) => {
+  // Spód tylko przy grubszej połowie – przy kilku kartkach leżałby tuż pod wierzchem i prześwitywał (migotanie).
+  if (H > 0.5) siatka(quady, N, 3, (i, j) => {
     const p = dol.c[i]; const y = lerp(-h / 2, h / 2, j / 3); const nn = nIn(dol.fi[i]);
     return { p: naStol([p[0], y, p[1]]), n: naStol([-nn[0], 0, -nn[1]]), uv: [uS(dol.sigma[i]), v(y)], ao: 1 - 0.3 * Math.exp(-dol.sigma[i] / 8) };
   }, texSpod || `kolor:${PAPIER}`, 'papier');
