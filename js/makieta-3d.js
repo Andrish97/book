@@ -819,12 +819,12 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   const katGrz = (x) => { const t = ogr(x / Tb, 0, 1) * gb.kroki; const i = Math.min(gb.kroki - 1, Math.floor(t)); return psi + lerp(gb.ang[i], gb.ang[i + 1], t - i); };
   // Kartka wychodzi z grzbietu prostopadle i zawija się do kierunku swojej połowy (strona −1 lewa, 1 prawa).
   const tc = lerp(14, 10, otw);
-  const tcK = lerp(1.5, tc, fObie); // pierwsze/ostatnie kartki (po jednej stronie ich mało) zaginają się ciasno przy grzbiecie
+  const tcK = lerp(0.35, tc, fObie); // pierwsze/ostatnie kartki (po jednej stronie ich mało) zaginają się ostro przy grzbiecie – jak złożony papier
   const katStrony = (x, strona) => {
     const a0 = katGrz(x) + Math.PI / 2;
     const cel = psi + Math.PI / 2 - strona * ((strona < 0 ? lewe : prawe).length ? A : Apusta);
     const rem = cel - a0;
-    const tck = Math.max(1, (tcK * Math.abs(rem)) / (Math.PI / 2));
+    const tck = Math.max(0.3, (tcK * Math.abs(rem)) / (Math.PI / 2));
     return (t) => a0 + rem * gladko(Math.min(1, (t * w) / tck));
   };
   const nIn = (fi, dir) => [-dir * Math.sin(fi), dir * Math.cos(fi)];
@@ -1115,16 +1115,21 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     quad(quady, [P3(pelna[i], hO / 2), P3(wew[i], hO / 2), P3(wew[i], -hO / 2), P3(pelna[i], -hO / 2)], [[st.u, 0.004], [st.u, 0.004], [st.u, 0.996], [st.u, 0.996]], st.tex, 'twarda', { n: N3(kier) });
   }
   // Wyklejka przyklejona do tektury (połowa wielkości strony bloku) i jej zawias przy bidze – do pierwszej kartki.
+  const Nin0 = (T) => [-T.No[0], -T.No[1]];
   const wklejka = (kar, T, P, naWierzchu, ruch) => {
     if (!kar.wyklejka) return;
     const Wp = kar.wBloku || w; // szerokość strony wyklejki
-    const Lp = Math.min(Wp, Lb - 3); // na tekturze: do 3 mm przed przednią krawędzią (zawinięcie okleiny)
+    // Połowa wyklejki to strona szerokości bloku liczona od zgięcia (ramię bloku J): część biegnie przez rowek do
+    // krawędzi tektury, reszta leży na tekturze – kończy się tam, gdzie wolna kartka (tektura wystaje 3 mm).
+    const Jw = P ? (naWierzchu ? P.wierzch[0] : P.kr.c[0]) : T.E;
+    const dlZaw = Math.min(Wp * 0.3, dl2(plus2(T.E, Nin0(T), 0.2), Jw) * 1.08);
+    const Lp = Math.min(Wp - dlZaw, Lb - 3);
     const u0 = (Wp - Lp) / Wp; // reszta strony – w zawiasie przy bidze
     const hp = Math.min(kar.hBloku || h, hO - 2);
     const Nin = [-T.No[0], -T.No[1]];
     const tex = kar.wyklejka === 'A' ? kar.przod : kar.tyl;
     siatka(quady, 8, 2, (i, j) => {
-      const sg = (Lp * i) / 8; const p = plus2(plus2(T.E, T.dr, sg), Nin, 0.4);
+      const sg = (Lp * i) / 8; const p = plus2(plus2(T.E, T.dr, sg), Nin, 0.2); // niżej niż pierwsza kartka (WY) – kartka ją przykrywa
       const y = lerp(hp / 2, -hp / 2, j / 2);
       const uu2 = kar.wyklejka === 'A' ? u0 + (1 - u0) * (sg / Lp) : 1 - u0 - (1 - u0) * (sg / Lp);
       return { p: P3(p, y), n: N3(Nin), uv: [uu2, (hp / 2 - y) / hp], ao: 1 - 0.22 * Math.exp(-sg / 3.5) };
@@ -1134,7 +1139,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     // trafiłyby w blok, odsuwają się w stronę tektury.
     if (!ruch && P && P.H > 0.01) {
       const J = naWierzchu ? P.wierzch[0] : P.kr.c[0];
-      const E0 = plus2(T.E, Nin, 0.4);
+      const E0 = plus2(T.E, Nin, 0.2);
       const dEJ = Math.max(0.01, dl2(E0, J)); const uJ = [(E0[0] - J[0]) / dEJ, (E0[1] - J[1]) / dEJ];
       // Zaczyna się 1 mm na wyklejce na tekturze (zakładka) – bez szczeliny na styku, przez którą prześwituje okładka.
       const pts = [plus2(E0, T.dr, 1), ...bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)]
@@ -1151,7 +1156,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     if (!kar.skrzydelko) return;
     const { tex, w: sw } = kar.skrzydelko;
     const Nin = [-T.No[0], -T.No[1]];
-    const hs = hO - 0.6; const o = 0.52; // nad wyklejką (0,2 mm nad tekturą)
+    const hs = hO - 0.6; const o = 0.28; // nad wyklejką (0,2 mm nad tekturą)
     siatka(quady, 6, 2, (i, j) => {
       const sg = Lb - sw + (sw * i) / 6; const p = plus2(plus2(T.E, T.dr, sg), Nin, o);
       const y = lerp(hs / 2, -hs / 2, j / 2);
