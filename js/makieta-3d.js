@@ -1082,7 +1082,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     const Nin = [-T.No[0], -T.No[1]];
     const tex = kar.wyklejka === 'A' ? kar.przod : kar.tyl;
     siatka(quady, 8, 2, (i, j) => {
-      const sg = (Lp * i) / 8; const p = plus2(plus2(T.E, T.dr, sg), Nin, 0.03);
+      const sg = (Lp * i) / 8; const p = plus2(plus2(T.E, T.dr, sg), Nin, 0.2);
       const y = lerp(hp / 2, -hp / 2, j / 2);
       const uu2 = kar.wyklejka === 'A' ? u0 + (1 - u0) * (sg / Lp) : 1 - u0 - (1 - u0) * (sg / Lp);
       return { p: P3(p, y), n: N3(Nin), uv: [uu2, (hp / 2 - y) / hp], ao: 1 - 0.22 * Math.exp(-sg / 3.5) };
@@ -1092,7 +1092,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     // trafiłyby w blok, odsuwają się w stronę tektury.
     if (!ruch && P && P.H > 0.01) {
       const J = naWierzchu ? P.wierzch[0] : P.kr.c[0];
-      const E0 = plus2(T.E, Nin, 0.03);
+      const E0 = plus2(T.E, Nin, 0.2);
       const dEJ = Math.max(0.01, dl2(E0, J)); const uJ = [(E0[0] - J[0]) / dEJ, (E0[1] - J[1]) / dEJ];
       const pts = bezier(E0, plus2(E0, T.dr, -0.4 * dEJ), plus2(J, uJ, 0.4 * dEJ), J, 12)
         .map((p, i, a) => { if (i === 0 || i === a.length - 1) return p; let q = p; for (let kk = 0; kk < 40 && wBloku(q, 0.1); kk += 1) q = plus2(q, T.No, 0.05); return q; });
@@ -1108,7 +1108,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     if (!kar.skrzydelko) return;
     const { tex, w: sw } = kar.skrzydelko;
     const Nin = [-T.No[0], -T.No[1]];
-    const hs = hO - 0.6; const o = 0.12;
+    const hs = hO - 0.6; const o = 0.32; // nad wyklejką (0,2 mm nad tekturą)
     siatka(quady, 6, 2, (i, j) => {
       const sg = Lb - sw + (sw * i) / 6; const p = plus2(plus2(T.E, T.dr, sg), Nin, o);
       const y = lerp(hs / 2, -hs / 2, j / 2);
