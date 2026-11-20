@@ -837,8 +837,7 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     // Strona, po której kartek jeszcze (prawie) nie ma: tektura obróciła się na bidze i leży o swoją grubość wyżej
     // niż wierzch bloku; przewrócone kartki wychodzą z grzbietu łagodnie w górę (ok. 5 mm) i kładą się na niej –
     // bez zawijania przy grzbiecie (wyklejka i pierwsze kartki leżą wyrównane).
-    const mala = strona < 0 ? HLe <= HPe : HLe > HPe;
-    const unies = mala ? (tb + 2 * WY) * (1 - fObie) : 0;
+    const unies = 0; // bez podnoszenia – przy grzbiecie nigdy nie ma zgrubienia (20.11)
     const krzywa = (x) => {
       const zwykla = katStrony(x, strona);
       if (unies <= 0.02) return krzywaZKata(naGrz(x), w, zwykla, 90);
