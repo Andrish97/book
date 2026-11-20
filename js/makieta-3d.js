@@ -525,8 +525,24 @@ function ksiazkaMiekka(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   const lewe = []; const prawe = [];
   for (let j = 0; j < n; j += 1) if (j !== obr && !wach.includes(j)) (j < k ? lewe : prawe).push(j);
   const HL = grub(lewe);
+  // Kąt kartki przewracanej (i wachlarza): od łuku prawej do łuku lewej połowy; brzeg lekko zostaje w tyle.
+  const katPrzewracanej = (j, sk) => {
+    const kp = katPolowy(1, HL); const kl = katPolowy(-1, HL);
+    const opor = kartki[j].okladka ? 0.08 : 0.35;
+    return (t) => lerp(kp(t), kl(t), sk) - (sk > 0 && sk < 1 ? opor * Math.sin(Math.PI * sk) * t : 0);
+  };
+  // Model „pałeczek” (zgłoszenie 19.11): grzbiet w przekroju to linia (lekko wygięta w łuk przy otwarciu), z której
+  // wychodzi wszystko – kartki i okładki jako skrajne strony – zawsze tej samej długości. Okładka zaczyna się na końcu
+  // grzbietu tak jak kartka; pokrycie grzbietu biegnie po linii grzbietu od jednej okładki do drugiej.
+  const dOkl = kartki[0].d;
+  const out = [-nr[0] * dOkl / 2, -nr[1] * dOkl / 2];
+  const naZew = (x) => { const p = naGrzbiecie(x); return [p[0] + out[0], p[1] + out[1]]; };
+  const okladka = (j) => {
+    const kar = kartki[j];
+    const kat = j === obr ? katPrzewracanej(j, s) : (j < k ? katPolowy(-1, HL) : katPolowy(1, HL));
+    lisc(quady, kar, krzywaZKata(naGrzbiecie(j === 0 ? dOkl / 2 : Ts - dOkl / 2), kar.w, kat, 30), 'okladka');
+  };
   // Połowa: okładka na zewnątrz (gdy jest w tej połowie), blok kartek, okładka po wewnętrznej (zamknięta książka).
-  const kierOkladki = [null, null]; // kierunek wyjścia przedniej i tylnej okładki z grzbietu (do bigi)
   const polowa = (lista, strona) => {
     if (!lista.length) return;
     // Od zewnątrz do środka (od okładki do zgięcia): prawa – od tyłu, lewa – od przodu.
@@ -537,12 +553,7 @@ function ksiazkaMiekka(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     let i = 0;
     while (i < kol.length) {
       const kar = kartki[kol[i]];
-      if (kar.okladka) {
-        const start = naGrzbiecie(xZew - strona * (off + kar.d / 2));
-        kierOkladki[kol[i] === 0 ? 0 : 1] = kat(0);
-        lisc(quady, kar, krzywaZKata(start, kar.w, kat, 30), 'okladka');
-        off += kar.d; i += 1; continue;
-      }
+      if (kar.okladka) { okladka(kol[i]); off += kar.d; i += 1; continue; }
       let j = i; let H = 0;
       while (j < kol.length && !kartki[kol[j]].okladka) { H += kartki[kol[j]].d; j += 1; }
       blokLukiem(quady, { start: naGrzbiecie(xZew - strona * off), startWierzch: naGrzbiecie(xZew - strona * (off + H)), dir: strona, kat, L: w, h, H,
@@ -556,33 +567,19 @@ function ksiazkaMiekka(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
   // lekko zostaje w tyle w trakcie ruchu.
   const przewracaj = (j, sk) => {
     const kar = kartki[j];
-    const start = naGrzbiecie(HL + kar.d / 2);
-    const kp = katPolowy(1, HL); const kl = katPolowy(-1, HL);
-    const opor = kar.okladka ? 0.08 : 0.35;
-    const kat = (t) => lerp(kp(t), kl(t), sk) - (sk > 0 && sk < 1 ? opor * Math.sin(Math.PI * sk) * t : 0);
-    if (kar.okladka) kierOkladki[j === 0 ? 0 : 1] = kat(0);
     const od = quady.length;
-    lisc(quady, kar, krzywaZKata(start, kar.w, kat, 30), kar.okladka ? 'okladka' : 'papier');
+    if (kar.okladka) okladka(j);
+    else lisc(quady, kar, krzywaZKata(naGrzbiecie(HL + kar.d / 2), kar.w, katPrzewracanej(j, sk), 30), 'papier');
     for (let q = od; q < quady.length; q += 1) quady[q] = { ...quady[q], przewrot: sk };
   };
   if (obr !== null) przewracaj(obr, s);
   wach.forEach((j, i2) => przewracaj(j, lerp(0.56, 0.07, wach.length > 1 ? i2 / (wach.length - 1) : 0)));
-  // Klejony grzbiet okładki (zgłoszenie 19.11) – przyklejony do grzbietu bloku i połączony z obiema okładkami
-  // jednym pasem: przy każdej krawędzi grzbietu biga – łagodny łuk od kierunku grzbietu do kierunku okładki (bez
-  // szczeliny i bez kantu, także gdy okładka się unosi).
+  // Klejony grzbiet okładki – po linii grzbietu, przyklejony do grzbietu bloku, od nasady przedniej do tylnej okładki.
   {
     const kar = kartki[0];
-    const out = [-nr[0] * kar.d / 2, -nr[1] * kar.d / 2];
-    const naZew = (x) => { const p = naGrzbiecie(x); return [p[0] + out[0], p[1] + out[1]]; };
-    const r = Math.max(0.8, kar.d * 2.5); // ciasno wokół krawędzi bloku (okładka przyklejona do krawędzi)
-    const C0 = naGrzbiecie(kar.d / 2);
-    const C1 = naGrzbiecie(Ts - kar.d / 2);
-    const k0 = kierOkladki[0] ?? a0; const k1 = kierOkladki[1] ?? a0;
-    const S0 = naZew(Math.min(r, Ts / 3)); const S1 = naZew(Math.max(Ts - r, (2 * Ts) / 3));
-    const lukBigi = (C, kk, S, kierS) => bezier(C, [C[0] - Math.cos(kk) * kar.d, C[1] - Math.sin(kk) * kar.d], [S[0] - kierS[0] * r * 0.5, S[1] - kierS[1] * r * 0.5], S, 8);
-    const pts = [...lukBigi(C0, k0, S0, e)];
-    for (let i = 1; i < 8; i += 1) pts.push(naZew(lerp(Math.min(r, Ts / 3), Math.max(Ts - r, (2 * Ts) / 3), i / 8)));
-    pts.push(...lukBigi(C1, k1, S1, [-e[0], -e[1]]).reverse());
+    // Po zewnętrznej stronie grzbietu, od przedniej do tylnej okładki (nasady okładek na końcach grzbietu).
+    const pts = [];
+    for (let i = 0; i <= 12; i += 1) pts.push(naZew((Ts * i) / 12));
     const krz = krzywaZPunktow(pts);
     const Lk = krz.sigma.at(-1);
     const pre = kar.przod?.match(/^(okl|obw):/)?.[1];
