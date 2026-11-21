@@ -968,7 +968,14 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
     U.c = U.c.map((p, i) => { const k = 1 - gladko(Math.min(1, (U.sigma[i] - U.sigma[0]) / 3)); return [p[0] + dx * k, p[1] + dy * k]; });
     U.fi = U.c.map((p, i) => { const a = U.c[Math.max(0, i - 1)]; const b = U.c[Math.min(U.c.length - 1, i + 1)]; return Math.atan2(b[1] - a[1], b[0] - a[0]); });
   };
-  const katPrzewracanej = (sk) => { const kp = katStrony(xF, 1); const kl = katStrony(xF, -1); return (t) => lerp(kp(t), kl(t), sk) - (sk > 0 && sk < 1 ? 0.35 * Math.sin(Math.PI * sk) * t : 0); };
+  // Przewracana strona: kąt jak u leżących, z płynnym zgięciem przy grzbiecie – kąt uśredniony na ok. 2 mm
+  // (papier nie zawija się ostrzej, bez „V” przy kapitałce i na sklejeniu z wyklejką).
+  const katPrzewracanej = (sk) => {
+    const kp = katStrony(xF, 1); const kl = katStrony(xF, -1);
+    const f = (t) => lerp(kp(t), kl(t), sk) - (sk > 0 && sk < 1 ? 0.35 * Math.sin(Math.PI * sk) * t : 0);
+    const ok = 2 / Math.max(10, w); const N = 8;
+    return (t) => { let a = 0; for (let i = 0; i <= N; i += 1) a += f(ogr(t + ok * (i / N - 0.5), 0, 1)); return a / (N + 1); };
+  };
   // Najwyżej tyle (rad) sklejony pasek unosi się z pierwszą stroną, gdy wyklejka jest w ruchu – lekko.
   const UNIES_KLEJU = 0.35;
   const zKlejem = (j, P, Pd, sk) => {
@@ -1026,26 +1033,27 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
       // wyrównuje jej łuk i lekko dociska, aż obie leżą płasko.
       const J = naGrz(xF);
       const natP = krzywaZKata(J, kartki[jP1].w, katPrzewracanej(s), 160);
-      const iK = natP.sigma.findIndex((x) => x >= KLEJ);
-      const F = natP.c[iK];
-      const g = { j, J, F, up: nIn(Pd.krW.fi[0], Pd.strona), Pd, pas: natP.c.slice(0, iK + 1) };
-      grzebienie.push(g);
       const K = 160; const L = w; const ds = L / K;
       const k1 = Math.max(1, Math.round(KLEJ / ds));
-      const pasK = natP.c.slice(0, k1 + 1); // sklejenie idzie łukiem razem z przewracaną stroną
-      const U = zawrot(pasK.at(-1), { ...g, pas: pasK }, P, L - k1 * ds, K - k1);
-      const cU = [...pasK, ...U.c.slice(1)];
       const sl = [0]; for (let i = 1; i < P.kr.c.length; i += 1) sl.push(sl[i - 1] + dl2(P.kr.c[i - 1], P.kr.c[i]));
       const naL = (x) => { let i = 1; while (i < sl.length - 1 && sl[i] < x) i += 1; const f = ogr((x - sl[i - 1]) / Math.max(1e-9, sl[i] - sl[i - 1]), 0, 1); return [lerp(P.kr.c[i - 1][0], P.kr.c[i][0], f), lerp(P.kr.c[i - 1][1], P.kr.c[i][1], f)]; };
-      const wz = gladko(ogr(s * 1.15, 0, 1));
-      const c = cU.map((p, i) => { const q = naL(i * ds * (sl.at(-1) / L)); return [lerp(p[0], q[0], wz), lerp(p[1], q[1], wz)]; });
-      const sg = [0]; for (let i = 1; i < c.length; i += 1) sg.push(sg[i - 1] + dl2(c[i - 1], c[i]));
       // Przewracana pierwsza strona: pod koniec kładzie się na wyklejce (to samo ułożenie, o grubość wyżej).
       const flat = Array.from({ length: K + 1 }, (_, i) => naL(i * ds * (sl.at(-1) / L)));
       const nP = (i) => { const a2 = flat[Math.max(0, i - 1)]; const b2 = flat[Math.min(K, i + 1)]; return nIn(Math.atan2(b2[1] - a2[1], b2[0] - a2[0]), P.strona); };
       const w2 = gladko(ogr((s - 0.4) / 0.6, 0, 1));
       const natR = Array.from({ length: K + 1 }, (_, i) => { const x = (i / K) * natP.sigma.at(-1); let m = 1; while (m < natP.sigma.length - 1 && natP.sigma[m] < x) m += 1; const f = ogr((x - natP.sigma[m - 1]) / Math.max(1e-9, natP.sigma[m] - natP.sigma[m - 1]), 0, 1); return [lerp(natP.c[m - 1][0], natP.c[m][0], f), lerp(natP.c[m - 1][1], natP.c[m][1], f)]; });
-      const cP = natR.map((p, i) => { const q = plus2(flat[i], nP(i), P.H + 0.12); return [lerp(p[0], q[0], w2), lerp(p[1], q[1], w2)]; });
+      const cP = natR.map((p, i) => { const q = plus2(flat[i], nP(i), (P.H + 0.12) * gladko(Math.min(1, (i * ds) / 2))); return [lerp(p[0], q[0], w2), lerp(p[1], q[1], w2)]; });
+      cP[0] = J;
+      // Sklejenie to początek tej samej (ostatecznej) krzywej strony – łuk, bez „V”.
+      const pasK = cP.slice(0, k1 + 1);
+      const F = pasK.at(-1);
+      const g = { j, J, F, up: nIn(Pd.krW.fi[0], Pd.strona), Pd, pas: pasK };
+      grzebienie.push(g);
+      const U = zawrot(F, g, P, L - k1 * ds, K - k1);
+      const cU = [...pasK, ...U.c.slice(1)];
+      const wz = gladko(ogr(s * 1.15, 0, 1));
+      const c = cU.map((p, i) => { const q = i <= k1 ? p : flat[i]; return [lerp(p[0], q[0], wz), lerp(p[1], q[1], wz)]; });
+      const sg = [0]; for (let i = 1; i < c.length; i += 1) sg.push(sg[i - 1] + dl2(c[i - 1], c[i]));
       // Wyklejka dociśnięta: nigdy ponad przewracaną stroną (po stronie od grzbietu).
       const strY = (x) => { let best = null; for (let i = 1; i < cP.length; i += 1) { const a2 = cP[i - 1]; const b2 = cP[i]; if ((a2[0] - x) * (b2[0] - x) <= 0 && Math.abs(b2[0] - a2[0]) > 1e-9) { const y = lerp(a2[1], b2[1], (x - a2[0]) / (b2[0] - a2[0])); best = best === null ? y : Math.max(best, y); } } return best; };
       for (let i = 0; i < c.length; i += 1) {
