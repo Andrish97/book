@@ -154,3 +154,48 @@ test('rysowanie na serwerze: pełne rysowanie linku do R2, tylko folder linku, r
   assert.ok(!env.PLIKI.m.has(`zadania/${UID}/p1.json`), 'zlecenie usunięte po rysowaniu');
   assert.ok(postep.length > 0);
 });
+
+// #337: eksport zlecony przez AI na serwerze – cron przejmuje zaległe zlecenie, przeglądarka robi PDF tym samym
+// kodem co aplikacja, plik trafia do folderu _eksporty właściciela, zlecenie się zamyka.
+test('eksport dla AI na serwerze: PDF z projektu z bazy, plik w _eksporty, zlecenie zamknięte', async (t) => {
+  const R = await import(MODUL);
+  const { strona, przegladarka, adres } = await otworz(t);
+  await nowyProjekt(strona, 'Start');
+  const PROJ = '22222222-2222-4222-8222-222222222222';
+  const projekt = await strona.evaluate(async (id) => {
+    const { zbudujProjekt } = await import('./js/szablony-projektow.js');
+    const P = await import('./js/projekt.js');
+    const p = P.normalizuj(await zbudujProjekt('ksiazka-miekka', { nazwa: 'Eksport z serwera' }));
+    p.id = id;
+    return JSON.parse(JSON.stringify(p));
+  }, PROJ);
+  const wywolania = [];
+  const prawdziwy = globalThis.fetch;
+  globalThis.fetch = async (adresZ, opcje) => {
+    const u = String(adresZ);
+    if (u.startsWith('https://baza.test/rest/v1/rpc/')) {
+      const nazwa = u.split('/').pop();
+      const cialo = JSON.parse(opcje.body);
+      wywolania.push([nazwa, cialo, opcje.headers]);
+      const dane = nazwa === 'serwer_przyjmij_eksporty' ? [{ id: 'e1', projekt_id: PROJ, wlasciciel: UID, rodzaj: 'pdf', ustawienia: { przeznaczenie: 'ekran' } }]
+        : nazwa === 'serwer_projekt' ? projekt : { stan: cialo.p_blad ? 'blad' : 'gotowe' };
+      return new Response(JSON.stringify(dane), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return prawdziwy(adresZ, opcje);
+  };
+  t.after(() => { globalThis.fetch = prawdziwy; });
+  const env = { PLIKI: r2(), PRZEGLADARKA: {}, APLIKACJA: adres.replace(/\/$/, ''), SUPABASE_URL: 'https://baza.test', SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', __puppeteer: puppeteerZPlaywright(przegladarka) };
+  env.RYSOWANIE = kolejki(env, R.Rysowanie);
+  assert.equal(await R.przebiegEksportow(env), 1, 'jedno zlecenie przejęte');
+  const obiekt = env.RYSOWANIE.instancje.get('eksport:e1');
+  assert.ok(obiekt?.state.alarm, 'zlecenie w osobnym obiekcie z alarmem');
+  await obiekt.obj.alarm();
+  const plik = env.PLIKI.m.get(`zasoby/${UID}/_eksporty/e1.pdf`);
+  assert.ok(plik, 'plik w folderze _eksporty właściciela');
+  assert.equal(Buffer.from(plik.dane).subarray(0, 5).toString(), '%PDF-');
+  const koniec = wywolania.find(([n]) => n === 'serwer_zakoncz_eksport');
+  assert.equal(koniec[1].p_blad, null, `bez błędu: ${koniec[1].p_blad}`);
+  assert.equal(koniec[1].p_plik, `${UID}/_eksporty/e1.pdf`);
+  assert.ok(koniec[1].p_strony > 0 && /\.pdf$/.test(koniec[1].p_nazwa));
+  assert.deepEqual(koniec[2], { apikey: 'sb_secret_test', 'content-type': 'application/json' }, 'klucz serwisowy tylko w nagłówku apikey');
+});

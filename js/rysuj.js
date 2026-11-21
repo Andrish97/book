@@ -33,12 +33,21 @@ const magazyn = {
   usun: (klucze) => window.__mkUsun(klucze),
 };
 
+const naDataUrl = (blob) => new Promise((ok, blad) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => blad(r.error); r.readAsDataURL(blob); });
+
 // Przygotowanie projektu do rysowania – jak przygotujDoRysowania w aplikacji (js/app/zapis.js).
 async function przygotuj(projekt) {
   await zaladujCzcionki();
   const p = normalizuj(projekt);
   const pobierz = async (sciezka) => { const w = await window.__mkPobierz(sciezka); if (!w) throw new Error('brak pliku'); return zBase64(w.b64, w.typ); };
-  const brak = await podlaczZasoby(p, pobierz).catch(() => []);
+  // Własne czcionki projektu muszą być w projekcie (dataUrl) – jak przy wczytaniu z konta (chmura.wczytajZChmury).
+  const brak = [];
+  for (const c of p.czcionki || []) {
+    const z = p.zasoby?.[c.id];
+    if (!z || z.dataUrl || !z.sciezka) continue;
+    try { z.dataUrl = await naDataUrl(await pobierz(z.sciezka)); } catch { brak.push(z.nazwa || c.id); }
+  }
+  brak.push(...await podlaczZasoby(p, pobierz).catch(() => []));
   await zarejestrujCzcionkiProjektu(p);
   try { przeliczOkladki(p); } catch { /* okładka zostaje jak była */ }
   return { p, brak };
@@ -53,5 +62,36 @@ window.makietkaRysuj = {
     const w = await publikujDoMagazynu(magazyn, folder, uklad, strony, obraz, (i, n) => window.__mkPostep?.(i, n), odciski, { rozszerzenie, pelna, chroniony });
     return { ...w, odcisk, brakujace: brak };
   },
+};
+
+// Plik eksportu (#337): PDF całego projektu albo PNG jednej strony – ten sam kod co eksport zlecony przez AI
+// w aplikacji (js/app/eksport-ai.js). Zwraca { b64, typ, nazwa, strony, uwagi }.
+window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = {} }) => {
+  const { p } = await przygotuj(projekt);
+  const { rozwin } = await import('./serie.js');
+  const { sprawdzProjekt } = await import('./kontrola.js');
+  const ciag = rozwin(p);
+  const u = ustawienia || {};
+  let uwagi = sprawdzProjekt(p, ciag).map((x) => x.opis).filter(Boolean);
+  const nazwaPliku = (t) => String(t || 'projekt').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'projekt';
+  if (rodzaj === 'png') {
+    const egz = ciag.egzemplarze.filter((e) => e.strona?.id === u.strona);
+    const e = egz[Math.max(0, Math.min(egz.length - 1, (Number(u.egzemplarz) || 1) - 1))];
+    if (!e) throw new Error(`Projekt nie ma strony „${u.strona ?? ''}”.`);
+    const { renderujCel } = await import('./zlozenie.js');
+    const dpi = Math.min(600, Math.max(72, Number(u.dpi) || 150));
+    const w = e.sekcja.wydruk;
+    const url = await renderujCel(p, e, { szerokoscPx: Math.round(((w.szerokosc_mm + 2 * w.spad_mm) / 25.4) * dpi), spad: true, ciag, oryginaly: true });
+    const blob = await (await fetch(url)).blob();
+    return { b64: await doBase64(blob), typ: blob.type || 'image/png', nazwa: `${nazwaPliku(p.nazwa)}-${nazwaPliku(e.strona.nazwa || 'strona')}.png`, strony: 1, uwagi: uwagi.slice(0, 10) };
+  }
+  const { eksportujPdf, wybierzEgzemplarze } = await import('./eksport.js');
+  const { opcjePdf } = await import('./eksport-opcje.js');
+  const opcje = opcjePdf(p, u);
+  const wynik = await eksportujPdf(p, { ...opcje, postep: (i, n) => window.__mkPostep?.(i, n) });
+  for (const [powod, n] of wynik.uwagi || []) uwagi.push(`Zapisane jako obraz (${n}): ${powod}`);
+  for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(`Tekst jako krzywe (${n}): ${czcionka}`);
+  uwagi = uwagi.slice(0, 40);
+  return { b64: await doBase64(wynik.blob), typ: wynik.blob.type || 'application/pdf', nazwa: wynik.nazwa, strony: wybierzEgzemplarze(ciag, opcje).length, uwagi };
 };
 window.makietkaRysujGotowe = true;

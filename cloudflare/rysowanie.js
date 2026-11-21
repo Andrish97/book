@@ -121,6 +121,12 @@ export class Rysowanie {
       await s.setAlarm(Date.now());
       return Response.json({ stan: 'w_kolejce', id: z.id });
     }
+    if (u.pathname === '/eksport' && zapytanie.method === 'POST') {
+      // Eksport zlecony przez AI (#337) – ten obiekt („eksport:<id>”) robi jedno zlecenie.
+      await s.put('eksport', await zapytanie.json());
+      await s.setAlarm(Date.now());
+      return Response.json({ stan: 'w_kolejce' });
+    }
     if (u.pathname === '/licznik' && zapytanie.method === 'POST') {
       // Licznik stron konta na dziś (ten sam typ obiektu, nazwa „konto:<uid>”).
       const { stron = 0 } = await zapytanie.json();
@@ -136,6 +142,12 @@ export class Rysowanie {
 
   async alarm() {
     const s = this.state.storage;
+    const eksport = await s.get('eksport');
+    if (eksport) {
+      await s.delete('eksport');
+      await wykonajEksport(this.env, eksport);
+      return;
+    }
     const z = await s.get('zlecenie');
     if (!z) return;
     await s.delete('zlecenie');
@@ -230,5 +242,75 @@ export async function rysujLink(env, klucz, postep = () => {}) {
   } finally {
     await przegladarka.close().catch(() => {});
     await env.PLIKI.delete(klucz).catch(() => {});
+  }
+}
+
+// ---------- Eksport zlecony przez AI na serwerze (#337) ----------
+// Zlecenie, którego żadna otwarta karta konta nie przyjęła w 20 sekund, przejmuje worker (cron co minutę):
+// projekt z bazy (funkcje serwer_* – tylko klucz serwisowy), plik w przeglądarce tym samym kodem co aplikacja,
+// zapis w „zasoby/<konto>/_eksporty/<zlecenie>.<pdf|png>” i zamknięcie zlecenia – AI dostaje link jak dotąd.
+
+const naglowkiSerwisowe = (k) => (String(k).startsWith('sb_') ? { apikey: k } : { apikey: k, authorization: `Bearer ${k}` });
+async function rpcSerwisowe(env, nazwa, parametry) {
+  const odp = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${nazwa}`, {
+    method: 'POST',
+    headers: { ...naglowkiSerwisowe(env.SUPABASE_SERVICE_ROLE_KEY), 'content-type': 'application/json' },
+    body: JSON.stringify(parametry),
+  });
+  const tresc = await odp.json().catch(() => null);
+  if (!odp.ok) throw new Error(tresc?.message || `${nazwa}: ${odp.status}`);
+  return tresc;
+}
+
+// Przebieg crona: przejęcie zaległych zleceń i przekazanie każdego do osobnego obiektu (alarm – bez limitu crona).
+export async function przebiegEksportow(env) {
+  if (!env.RYSOWANIE || !env.PRZEGLADARKA || !env.PLIKI || !env.SUPABASE_SERVICE_ROLE_KEY) return 0;
+  const lista = await rpcSerwisowe(env, 'serwer_przyjmij_eksporty', { p_po_sekundach: 20, p_ile: 3 }) || [];
+  for (const z of lista) {
+    await env.RYSOWANIE.get(env.RYSOWANIE.idFromName(`eksport:${z.id}`)).fetch('https://kolejka/eksport', { method: 'POST', body: JSON.stringify(z) });
+  }
+  return lista.length;
+}
+
+export async function wykonajEksport(env, z) {
+  const zakoncz = (w) => rpcSerwisowe(env, 'serwer_zakoncz_eksport', { p_id: z.id, p_plik: null, p_nazwa: null, p_typ: null, p_rozmiar: null, p_strony: null, p_uwagi: [], p_blad: null, ...w });
+  try {
+    const projekt = await rpcSerwisowe(env, 'serwer_projekt', { p_projekt: z.projekt_id });
+    if (!projekt) throw new Error('Nie ma tego projektu.');
+    projekt.id ??= z.projekt_id;
+    // Ten sam dzienny limit stron co rysowanie linku.
+    const konto = env.RYSOWANIE.get(env.RYSOWANIE.idFromName(`konto:${z.wlasciciel}`));
+    const limit = await (await konto.fetch('https://kolejka/licznik', { method: 'POST', body: JSON.stringify({ stron: (projekt.strony || []).length }) })).json();
+    if (!limit.ok) throw new Error('Dzienny limit plików robionych na serwerze – otwórz Makietkę, żeby zrobić plik na urządzeniu.');
+    const sciezki = new Set(sciezkiZasobow(projekt));
+    const w = await wPrzegladarce(env, { pobierz: (sc) => sciezki.has(sc) }, (strona) => strona.evaluate((a) => window.makietkaRysuj.eksportuj(a), { projekt, rodzaj: z.rodzaj, ustawienia: z.ustawienia || {} }));
+    const plik = `${z.wlasciciel}/_eksporty/${z.id}.${z.rodzaj === 'png' ? 'png' : 'pdf'}`;
+    const bajty = zBase64(w.b64);
+    await env.PLIKI.put(`zasoby/${plik}`, bajty, { httpMetadata: { contentType: w.typ, cacheControl: 'private, max-age=3600' } });
+    await zakoncz({ p_plik: plik, p_nazwa: w.nazwa, p_typ: w.typ, p_rozmiar: bajty.length, p_strony: w.strony, p_uwagi: (w.uwagi || []).slice(0, 40) });
+  } catch (e) {
+    await zakoncz({ p_blad: String(e?.message || e).slice(0, 900) }).catch(() => {});
+  }
+}
+
+// Przeglądarka z zamkniętym ruchem i stroną rysuj.html; dostęp do plików konta tylko przez pobierz(ścieżka) → bool.
+async function wPrzegladarce(env, { pobierz }, praca) {
+  const puppeteer = env.__puppeteer || (await import('@cloudflare/puppeteer')).default;
+  const przegladarka = await puppeteer.launch(env.PRZEGLADARKA, { keep_alive: 600000 });
+  try {
+    const strona = await przegladarka.newPage();
+    await strona.setRequestInterception(true);
+    strona.on('request', (r) => { if (dozwolonyAdres(r.url(), env.APLIKACJA || APLIKACJA)) r.continue(); else r.abort(); });
+    await strona.exposeFunction('__mkPobierz', async (sciezka) => {
+      if (!pobierz(sciezka)) return null;
+      const o = await env.PLIKI.get(`zasoby/${sciezka}`);
+      return o ? { b64: await doBase64(o), typ: o.httpMetadata?.contentType || 'application/octet-stream' } : null;
+    });
+    await strona.exposeFunction('__mkPostep', () => {});
+    await strona.goto(`${env.APLIKACJA || APLIKACJA}/rysuj.html`, { waitUntil: 'load', timeout: 60000 });
+    await strona.waitForFunction('window.makietkaRysujGotowe === true', { timeout: 60000 });
+    return await praca(strona);
+  } finally {
+    await przegladarka.close().catch(() => {});
   }
 }

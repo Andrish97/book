@@ -215,14 +215,15 @@ Zdjęcia, które stoi na stronie, AI nie usuwa — wymienia je na nowy plik w ty
 
 ## 25.5 Plik PDF przez AI
 
-Poproś AI np. „Zrób PDF do drukarni” albo „Pokaż okładkę jako obraz”. Plik rysuje Makietka w Twojej
-przeglądarce, tak samo jak [Eksportuj do PDF…] (→ 21):
+Poproś AI np. „Zrób PDF do drukarni” albo „Pokaż okładkę jako obraz”. Plik rysuje Makietka tym samym
+kodem co [Eksportuj do PDF…] (→ 21):
 
 - **Makietka jest otwarta** (dowolna karta, na komputerze albo telefonie) — przyjmuje zlecenie sama.
   Na górze pojawia się pasek „AI zleciło eksport PDF…”, a po chwili powiadomienie z przyciskiem
   [Pobierz]. AI dostaje link do pobrania pliku i uwagi ze sprawdzenia przed drukiem.
-- **Makietka jest zamknięta** — AI poda link do aplikacji. Otwórz go: projekt się otworzy, plik
-  zrobi się sam, a AI poda link do pobrania, gdy znów go zapytasz.
+- **Makietka jest zamknięta** — plik zrobi serwer Makietki (po około minucie), a AI poda link do pobrania,
+  gdy znów je zapytasz. Nic nie musisz otwierać. Jeśli serwer nie da rady (np. dzienny limit), AI poda link
+  do aplikacji — po jego otwarciu plik zrobi się sam.
 
 Link do pobrania działa bez logowania przez 7 dni, potem plik znika z konta. AI może zlecić cały
 projekt, jedną sekcję albo wybrane strony, plik do drukarni (ze spadem i znakami cięcia, także PDF/X)
