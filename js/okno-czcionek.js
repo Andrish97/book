@@ -8,7 +8,7 @@ import {
   CZCIONKI, ROZSZERZENIA_CZCIONEK, dodajCzcionkiDoProjektu, zarejestrujCzcionkiProjektu, nazwaOdmiany, uzyteCzcionki,
 } from './czcionki.js';
 import { mojeCzcionki, zapamietaj, zapomnij, dodajRodzineDoProjektu, kluczOdmiany } from './moje-czcionki.js';
-import { wpiszNazwe } from './jezyk.js';
+import { wpiszNazwe, t } from './jezyk.js';
 
 const probki = new Map(); // rodzina ze zbioru → nazwa, pod którą przeglądarka zna jej próbkę
 
@@ -52,7 +52,7 @@ export class OknoCzcionek {
         <span class="opis"></span>
         <button type="button" class="przycisk-ikona" data-usun="${c.id}" data-ikona="kosz" title="Usuń czcionkę z projektu" aria-label="Usuń czcionkę"></button>`;
       const probka = li.querySelector('.probka');
-      probka.textContent = 'Zażółć gęślą jaźń 0123';
+      probka.textContent = t('oknoCzcionek.zazolcGeslaJazn0123');
       Object.assign(probka.style, { fontFamily: `"${c.rodzina}"`, fontWeight: c.waga, fontStyle: c.kursywa ? 'italic' : 'normal' });
       li.querySelector('input').value = c.rodzina;
       li.querySelector('.opis').textContent = `${nazwaOdmiany(c)} · ${p.zasoby[c.id]?.nazwa || 'plik'}${uzyte.has(c.rodzina) ? ' · używana' : ''}`;
@@ -77,7 +77,7 @@ export class OknoCzcionek {
       pobierz.title = `Pobierz pliki czcionki ${c.nazwa}`;
       pobierz.setAttribute('aria-label', pobierz.title);
       const probka = li.querySelector('.probka');
-      probka.textContent = 'Zażółć gęślą jaźń';
+      probka.textContent = t('oknoCzcionek.zazolcGeslaJazn');
       probka.style.fontFamily = `"${c.nazwa}"`;
       li.querySelector('.opis').textContent = this._opisZestawu(c.nazwa, uzyte);
       li.querySelector('button').addEventListener('click', () => this.pobierzZestaw([c.nazwa]));
@@ -186,7 +186,7 @@ export class OknoCzcionek {
     if (!c) return;
     const ostatnia = p.czcionki.filter((x) => x.rodzina === c.rodzina).length === 1;
     const wUzyciu = ostatnia && uzyteCzcionki(p).has(c.rodzina);
-    if (wUzyciu && !await potwierdz(`Usunąć czcionkę „${c.rodzina}”?`, 'Teksty, które jej używają, pokażą się czcionką zastępczą, dopóki nie wybierzesz innej.', 'Usuń czcionkę', true)) return;
+    if (wUzyciu && !await potwierdz(`Usunąć czcionkę „${c.rodzina}”?`, t('oknoCzcionek.tekstyKtoreJejUzywaja'), t('oknoCzcionek.usunCzcionke'), true)) return;
     this.zrodlo.przedZmiana();
     p.czcionki = p.czcionki.filter((x) => x !== c);
     delete p.zasoby[id];

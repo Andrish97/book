@@ -1,4 +1,4 @@
-import { wpiszNazwe } from './jezyk.js';
+import { wpiszNazwe, t as tt } from './jezyk.js';
 // Paleta poleceń (Ctrl+K / ⌘K, decyzja #103): wyszukiwarka działań aplikacji dla samodzielnej pracy – zamiast
 // szukać przycisku w menu wpisujesz kilka liter („pdf”, „dane”, „wzorce”, „obraz”) i Enter.
 // Lista powstaje z przycisków z data-akcja widocznych na bieżącym ekranie (także z menu ⋯ i menu konta),
@@ -58,7 +58,7 @@ function zbuduj() {
   okno = document.createElement('dialog');
   okno.id = 'paleta-polecen';
   okno.className = 'paleta-polecen';
-  okno.setAttribute('aria-label', 'Szukaj polecenia');
+  okno.setAttribute('aria-label', tt('paletaPolecen.szukajPolecenia'));
   okno.innerHTML = '<input type="search" class="paleta-pole" placeholder="Szukaj polecenia… (np. pdf, dane, obraz)" aria-label="Szukaj polecenia" autocomplete="off" spellcheck="false">'
     + '<ul class="paleta-lista" role="listbox" aria-label="Polecenia"></ul><p class="paleta-pusto ciche" hidden>Nic nie pasuje.</p>';
   document.body.append(okno);

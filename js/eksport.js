@@ -25,6 +25,7 @@ import { indeksKsiazki } from './ksiazka.js';
 import { ustawSilnikTac } from './separacje.js';
 import { wynikDlaStrony, rolaSekcji, ROLE_SEKCJI } from './sekcje-specjalne.js';
 import { rysujLinieSpecjalne, arkuszeUzytkow } from './pdf-specjalne.js';
+import { t } from './jezyk.js';
 
 export const PDFLIB_URL = 'js/zewnetrzne/pdf-lib-1.17.1.min.js';
 const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
@@ -339,7 +340,7 @@ export function zakladkiPliku(projekt, egzemplarze, ciag, naKlucz) {
   const wynik = [];
   for (const s of sekcje) {
     const pierwszy = egzemplarze.find((e) => e.sekcja === s);
-    if (zSekcjami && strona(pierwszy)) wynik.push({ tytul: s.nazwa || 'Sekcja', strona: strona(pierwszy), poziom: 1 });
+    if (zSekcjami && strona(pierwszy)) wynik.push({ tytul: s.nazwa || t('eksport.sekcja'), strona: strona(pierwszy), poziom: 1 });
     for (const n of naglowki) {
       if (n.egz.sekcja !== s || !strona(n.egz)) continue;
       wynik.push({ tytul: n.tekst, strona: strona(n.egz), poziom: n.poziom + (zSekcjami ? 1 : 0) });

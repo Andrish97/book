@@ -6,6 +6,7 @@
 import * as chmura from './chmura.js';
 import { iOS, zainstalowana } from './instalacja.js';
 import { $, $$ } from './ui.js';
+import { t } from './jezyk.js';
 
 export const RODZAJE = ['zaproszenia', 'odpowiedzi', 'dostep', 'komentarze'];
 const KLUCZ_WLASCICIEL = 'makietka:powiadomienia-konto'; // konto, które włączyło powiadomienia na tym urządzeniu
@@ -168,11 +169,11 @@ async function pokazMaile() {
     const u = await rpc('moje_ustawienia_maili');
     p.checked = u?.zaproszenia !== false;
     $('#maile-stan').textContent = p.checked
-      ? 'E-mail, gdy ktoś zaprosi mnie do projektu albo mi go udostępni'
-      : 'Wyłączone – zaproszenia zobaczysz w aplikacji (Projekty → Zaproszenia)';
+      ? t('powiadomienia.eMailGdyKtos')
+      : t('powiadomienia.wylaczoneZaproszeniaZobaczyszW');
     p.disabled = false;
   } catch {
-    $('#maile-stan').textContent = 'Nie udało się sprawdzić – spróbuj później';
+    $('#maile-stan').textContent = t('powiadomienia.nieUdaloSieSprawdzic');
   }
 }
 
@@ -222,10 +223,10 @@ export function inicjujPowiadomienia() {
     pokazUwage('');
     try {
       if (przelacznik.checked) {
-        $('#powiadomienia-stan').textContent = 'Włączam…';
+        $('#powiadomienia-stan').textContent = t('powiadomienia.wlaczam');
         await wlacz(RODZAJE);
       } else {
-        $('#powiadomienia-stan').textContent = 'Wyłączam…';
+        $('#powiadomienia-stan').textContent = t('powiadomienia.wylaczam');
         await wylacz();
       }
     } catch (e) {

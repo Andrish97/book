@@ -10,7 +10,7 @@ import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis
 import { odswiezPasekEdytora, poZmianieWzorcowStrony } from './panel-strony.js';
 import { panel } from './skladniki.js';
 import { ustawZakladke, renderujListe, generujMiniatury } from './lista-stron.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t } from '../jezyk.js';
 
 // ---------- Wzorce ----------
 
@@ -54,7 +54,7 @@ export async function duplikujWzorzecZ(id) {
 
 export async function zmienNazweWzorca(id) {
   const w = stan.projekt.wzorce.find((x) => x.id === id);
-  const nazwa = await zapytajONazwe('Zmień nazwę wzorca', 'Nazwa wzorca', w.nazwa);
+  const nazwa = await zapytajONazwe(t('wzorce.zmienNazweWzorca'), t('wzorce.nazwaWzorca'), w.nazwa);
   if (!nazwa) return;
   w.nazwa = nazwa;
   renderujListe();
@@ -68,8 +68,8 @@ export async function usunWzorzec(id) {
   const n = stronyZWzorcem(projekt, id).length;
   const ok = await potwierdz(
     `Usunąć wzorzec „${w.nazwa}”?`,
-    n ? `Zniknie ze ${n} stron, które go używają. Ich własna treść zostanie.` : 'Wzorzec nie jest nigdzie używany.',
-    'Usuń wzorzec',
+    n ? `Zniknie ze ${n} stron, które go używają. Ich własna treść zostanie.` : t('wzorce.wzorzecNieJestNigdzie'),
+    t('wzorce.usunWzorzec'),
     true,
   );
   if (!ok) return;
@@ -87,7 +87,7 @@ export async function usunWzorzec(id) {
     await zaladujCel();
   }
   zaplanujZapis();
-  powiadom(`Usunięto wzorzec „${w.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+  powiadom(`Usunięto wzorzec „${w.nazwa}”.`, false, { etykieta: t('wzorce.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 // Kolejność wzorców: pierwszy na liście leży najniżej na stronie.
@@ -164,7 +164,7 @@ export async function dodajWzorzecStandardowy(klucz, { doSekcji = true } = {}) {
   renderujListe();
   generujMiniatury();
   zaplanujZapis();
-  powiadom(doSekcji ? `Wzorzec „${nazwa}” jest teraz na wszystkich stronach sekcji „${sekcja.nazwa}”.` : `Dodano wzorzec „${nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+  powiadom(doSekcji ? `Wzorzec „${nazwa}” jest teraz na wszystkich stronach sekcji „${sekcja.nazwa}”.` : `Dodano wzorzec „${nazwa}”.`, false, { etykieta: t('wzorce.cofnij'), fn: () => cofnijKrok(-1) });
   return w;
 }
 

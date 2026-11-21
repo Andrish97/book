@@ -7,6 +7,7 @@ import { ikona } from './ikony.js';
 import { NAZWA } from './marka.js';
 import { ustawMotyw, wybranyMotyw } from './motyw.js';
 import { podpowiedzNazwy, poprawnaNazwa, ustawNazwe, ZASADY_NAZWY } from './nazwa-uzytkownika.js';
+import { t as tt } from './jezyk.js';
 
 // Te same wymagania co w ustawieniach Supabase
 // (password_requirements = lower_upper_letters_digits_symbols, min. 8 znaków).
@@ -46,7 +47,7 @@ function przelacznikWidocznosci(przycisk) {
     const widac = input.type === 'text';
     input.type = widac ? 'password' : 'text';
     przycisk.innerHTML = ikona(widac ? 'oko' : 'okoOff');
-    przycisk.setAttribute('aria-label', widac ? 'Pokaż hasło' : 'Ukryj hasło');
+    przycisk.setAttribute('aria-label', widac ? tt('konto.pokazHaslo') : tt('konto.ukryjHaslo'));
   });
 }
 
@@ -71,22 +72,22 @@ function odliczaj(przycisk, etykieta, sekundy = ODSTEP_WYSYLKI) {
 
 const TRYBY = {
   logowanie: {
-    opis: 'Zaloguj się, aby wrócić do swoich projektów.',
-    przycisk: 'Zaloguj się',
+    opis: tt('konto.zalogujSieAbyWrocic'),
+    przycisk: tt('konto.zalogujSie'),
   },
   rejestracja: {
-    opis: 'Załóż konto – projekty będą zapisane i dostępne na każdym urządzeniu.',
-    przycisk: 'Załóż konto',
+    opis: tt('konto.zalozKontoProjektyBeda'),
+    przycisk: tt('konto.zalozKonto'),
   },
   reset: {
-    tytul: 'Nie pamiętasz hasła?',
-    opis: 'Podaj adres e-mail konta. Wyślemy link, po którym ustawisz nowe hasło.',
-    przycisk: 'Wyślij link',
+    tytul: tt('konto.niePamietaszHasla'),
+    opis: tt('konto.podajAdresEMail2'),
+    przycisk: tt('konto.wyslijLink'),
   },
   'nowe-haslo': {
-    tytul: 'Ustaw nowe hasło',
-    opis: 'Wpisz nowe hasło do swojego konta.',
-    przycisk: 'Zapisz hasło',
+    tytul: tt('konto.ustawNoweHaslo'),
+    opis: tt('konto.wpiszNoweHasloDo'),
+    przycisk: tt('konto.zapiszHaslo'),
   },
 };
 
@@ -169,14 +170,14 @@ export class Konto {
     $('#pole-email').hidden = nowe;
     // Logowanie przyjmuje też nazwę użytkownika (#192): pole tekstowe z podpowiedzią menedżera haseł „username”.
     const login = tryb === 'logowanie';
-    $('#pole-email > span').textContent = login ? 'E-mail albo nazwa użytkownika' : 'E-mail';
+    $('#pole-email > span').textContent = login ? tt('konto.eMailAlboNazwa') : tt('konto.eMail');
     f.elements.email.type = login ? 'text' : 'email';
     f.elements.email.autocomplete = login ? 'username' : 'email';
     f.elements.email.inputMode = login ? 'text' : 'email';
     f.elements.email.autocapitalize = 'none';
     f.elements.email.spellcheck = false;
     $('#pole-haslo').hidden = tryb === 'reset';
-    $('#pole-haslo > span:first-child').textContent = nowe ? 'Nowe hasło' : 'Hasło';
+    $('#pole-haslo > span:first-child').textContent = nowe ? tt('konto.noweHaslo') : tt('konto.haslo');
     $('#pole-haslo2').hidden = !(rej || nowe);
     $('#zasady-hasla').hidden = !(rej || nowe);
     f.elements.haslo.autocomplete = rej || nowe ? 'new-password' : 'current-password';
@@ -193,7 +194,7 @@ export class Konto {
     this.rodzajWyslanego = rodzaj;
     $('#widok-formularz').hidden = true;
     $('#widok-wyslano').hidden = false;
-    $('#wyslano-tytul').textContent = 'Sprawdź skrzynkę';
+    $('#wyslano-tytul').textContent = tt('konto.sprawdzSkrzynke');
     const opis = $('#wyslano-opis');
     opis.replaceChildren();
     const b = document.createElement('strong');
@@ -213,7 +214,7 @@ export class Konto {
     try {
       if (this.rodzajWyslanego === 'rejestracja') await chmura.wyslijPotwierdzeniePonownie(this.ostatniEmail);
       else await chmura.wyslijResetHasla(this.ostatniEmail);
-      k.textContent = 'Wysłano ponownie. Zajrzyj też do folderu ze spamem.';
+      k.textContent = tt('konto.wyslanoPonownieZajrzyjTez');
       k.classList.add('sukces');
       odliczaj($('#wyslij-ponownie'), 'Wyślij ponownie');
     } catch (e) {
@@ -227,11 +228,11 @@ export class Konto {
     const haslo = f.elements.haslo.value;
     const { tryb } = this;
     // Logowanie: adres e-mail albo nazwa użytkownika (#192).
-    if (tryb === 'logowanie' && !email) { this.komunikat('Podaj adres e-mail albo nazwę użytkownika.'); return; }
+    if (tryb === 'logowanie' && !email) { this.komunikat(tt('konto.podajAdresEMail')); return; }
     if (tryb === 'logowanie' && !email.includes('@') && !poprawnaNazwa(email)) { this.komunikat('Podaj poprawny adres e-mail albo nazwę użytkownika.'); return; }
-    if (tryb !== 'nowe-haslo' && tryb !== 'logowanie' && !poprawnyEmail(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
-    if (tryb === 'logowanie' && email.includes('@') && !poprawnyEmail(email)) { this.komunikat('Podaj poprawny adres e-mail.'); return; }
-    if (tryb === 'logowanie' && !haslo) { this.komunikat('Podaj hasło.'); return; }
+    if (tryb !== 'nowe-haslo' && tryb !== 'logowanie' && !poprawnyEmail(email)) { this.komunikat(tt('konto.podajPoprawnyAdresE')); return; }
+    if (tryb === 'logowanie' && email.includes('@') && !poprawnyEmail(email)) { this.komunikat(tt('konto.podajPoprawnyAdresE')); return; }
+    if (tryb === 'logowanie' && !haslo) { this.komunikat(tt('konto.podajHaslo')); return; }
     if (tryb === 'rejestracja' && !poprawnaNazwa(f.elements.nazwa.value.trim())) {
       this.komunikat(`Nazwa użytkownika: ${ZASADY_NAZWY}`);
       f.elements.nazwa.focus();
@@ -240,11 +241,11 @@ export class Konto {
     if (tryb === 'rejestracja' || tryb === 'nowe-haslo') {
       const braki = brakiHasla(haslo);
       if (braki.length) { this.komunikat(`W haśle brakuje: ${braki.join(', ')}.`); return; }
-      if (haslo !== f.elements.haslo2.value) { this.komunikat('Hasła nie są takie same.'); return; }
+      if (haslo !== f.elements.haslo2.value) { this.komunikat(tt('konto.haslaNieSaTakie')); return; }
     }
     // Wolna nazwa – sprawdzana na końcu (zapytanie do bazy), żeby błędy formularza były od razu.
     if (tryb === 'rejestracja' && !await this.sprawdzNazweRejestracji()) {
-      this.komunikat('Ta nazwa użytkownika jest już zajęta – wybierz inną.');
+      this.komunikat(tt('konto.taNazwaUzytkownikaJest'));
       f.elements.nazwa.focus();
       return;
     }
@@ -265,7 +266,7 @@ export class Konto {
         this.pokazWyslano('reset', email);
       } else if (tryb === 'nowe-haslo') {
         const u = await chmura.ustawNoweHaslo(haslo);
-        powiadom('Hasło zostało zmienione.');
+        powiadom(tt('konto.hasloZostaloZmienione'));
         this.ustawTryb('logowanie');
         await this.o.poZalogowaniu(u);
       }
@@ -276,7 +277,7 @@ export class Konto {
         $('#komunikat-wyslano').textContent = chmura.komunikatBledu(e);
         $('#wyslij-ponownie').disabled = false;
         clearInterval($('#wyslij-ponownie')._odliczanie);
-        $('#wyslij-ponownie').textContent = 'Wyślij ponownie';
+        $('#wyslij-ponownie').textContent = tt('konto.wyslijPonownie');
       } else {
         this.komunikat(chmura.komunikatBledu(e));
       }
@@ -354,7 +355,7 @@ export class Konto {
       const nazwa = f.elements.nazwa.value.trim();
       if (!poprawnaNazwa(nazwa)) { blad(`Nazwa użytkownika: ${ZASADY_NAZWY}`); return null; }
       this.zaktualizuj(await ustawNazwe(nazwa));
-      powiadom('Nazwa użytkownika zapisana.');
+      powiadom(tt('konto.nazwaUzytkownikaZapisana'));
       return null;
     });
 
@@ -385,7 +386,7 @@ export class Konto {
       }
       await chmura.ustawNoweHaslo(nowe);
       this.zwin('form-haslo');
-      powiadom('Hasło zostało zmienione.');
+      powiadom(tt('konto.hasloZostaloZmienione'));
       return null;
     });
 
@@ -421,7 +422,7 @@ export class Konto {
     });
 
     $('#wyloguj-wszedzie').addEventListener('click', async () => {
-      if (!await potwierdz('Wylogować ze wszystkich urządzeń?', 'Na każdym urządzeniu, także na tym, trzeba będzie zalogować się ponownie.', 'Wyloguj wszędzie')) return;
+      if (!await potwierdz(tt('konto.wylogowacZeWszystkichUrzadzen'), tt('konto.naKazdymUrzadzeniuTakze'), tt('konto.wylogujWszedzie'))) return;
       await this.o.wyloguj(true);
     });
 
@@ -436,9 +437,9 @@ export class Konto {
       }
       const n = await this.o.liczbaProjektow();
       const ok = await potwierdz(
-        'Usunąć konto na zawsze?',
+        tt('konto.usunacKontoNaZawsze'),
         `Konto ${stan.uzytkownik.email} i ${n === 0 ? 'wszystkie dane' : `wszystkie projekty (${n})`} zostaną trwale usunięte. Tego nie da się cofnąć.`,
-        'Usuń konto i dane',
+        tt('konto.usunKontoIDane'),
         true,
       );
       if (!ok) return null;

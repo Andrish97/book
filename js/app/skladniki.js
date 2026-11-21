@@ -24,6 +24,7 @@ import { panelCzesci } from './skladanka-narzedzia.js';
 import { generujMiniatury, ramkaNaNastepnejStronie, przejdzDoRamki, dokladajStrony } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 import { wybierzZrodloObrazu } from './zrodlo-obrazu.js';
+import { t as tt } from '../jezyk.js';
 
 export { instrukcja } from './instrukcja-leniwa.js';
 // Obraz, który dostanie plik wybrany przyciskiem „Podmień zdjęcie”.
@@ -44,7 +45,7 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   // Dodatkowe ustawienia elementu zależne od tego, co edytujemy.
   dodatkiElementu: (p, obj, sekcja) => {
     if (stan.tryb !== 'wzorzec') return;
-    sekcja.append(p.przelacznik('Nad treścią strony (domyślnie pod)', () => obj.warstwa === 'nad', (v) => { obj.warstwa = v ? 'nad' : undefined; }));
+    sekcja.append(p.przelacznik(tt('skladniki.nadTresciaStronyDomyslnie'), () => obj.warstwa === 'nad', (v) => { obj.warstwa = v ? 'nad' : undefined; }));
   },
   style: () => stan.projekt?.style || [],
   styleZnakowe: () => { if (!stan.projekt) return null; stan.projekt.style_znakowe ||= []; return stan.projekt.style_znakowe; },
@@ -60,20 +61,20 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
   // „Podmień zdjęcie”: plik wybrany w oknie systemu trafia w ramkę tego obrazu (js/app/edytor-start.js).
   // „Podmień zdjęcie”: nowe z urządzenia albo jeden z obrazów projektu.
   podmienObraz: (obj) => wybierzZrodloObrazu({
-    tytul: 'Podmień zdjęcie',
+    tytul: tt('skladniki.podmienZdjecie'),
     pomin: obj.zasob,
     zUrzadzenia: () => { podmiana.obj = obj; $('#plik-podmiana').click(); },
     zProjektu: async () => (await import('./obrazy-okno.js')).otworzObrazy({
-      wybierz: { etykieta: 'Podmień', fn: async (id) => (await import('./edytor-start.js')).podmienZProjektu(obj, id) },
+      wybierz: { etykieta: tt('skladniki.podmien'), fn: async (id) => (await import('./edytor-start.js')).podmienZProjektu(obj, id) },
     }),
   }),
   // Kształt jako ramka obrazu (#123): obraz z urządzenia albo z obrazów projektu trafia do kształtu.
   wstawObrazDoKsztaltu: (obj) => wybierzZrodloObrazu({
-    tytul: 'Obraz w kształcie',
+    tytul: tt('skladniki.obrazWKsztalcie'),
     pomin: obj.zasob,
     zUrzadzenia: () => { podmiana.obj = obj; podmiana.doKsztaltu = true; $('#plik-podmiana').click(); },
     zProjektu: async () => (await import('./obrazy-okno.js')).otworzObrazy({
-      wybierz: { etykieta: 'Wstaw', fn: (id) => edytor.wstawObrazDoKsztaltu(obj, id) },
+      wybierz: { etykieta: tt('skladniki.wstaw'), fn: (id) => edytor.wstawObrazDoKsztaltu(obj, id) },
     }),
   }),
   wyjmijObrazZKsztaltu: (obj) => edytor.wyjmijObrazZKsztaltu(obj),
@@ -92,8 +93,8 @@ export const panel = new PanelWlasciwosci($('#wlasciwosci'), $('#tytul-wlasciwos
 
 // „Rozłóż rysunek na elementy”: obraz SVG znika, w jego miejscu staje grupa kształtów i napisów.
 async function rozlozRysunekNaStronie(obj) {
-  if (obj.group) { powiadom('Najpierw rozgrupuj – rozłożyć da się rysunek, który nie jest w grupie.'); return; }
-  if (obj.pole?.kolumna) { powiadom('Ten obraz zmienia się według danych – rozłożyć da się tylko stały rysunek.'); return; }
+  if (obj.group) { powiadom(tt('skladniki.najpierwRozgrupujRozlozycDa')); return; }
+  if (obj.pole?.kolumna) { powiadom(tt('skladniki.tenObrazZmieniaSie')); return; }
   const w = await rozlozRysunek(stan.projekt, obj);
   if (w.blad) { powiadom(w.blad, true); return; }
   if (!edytor.zastapObiekt(obj, w.grupa)) return;

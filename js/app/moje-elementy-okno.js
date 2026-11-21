@@ -8,29 +8,30 @@ import { opisObiektu } from '../edytor.js';
 import * as chmura from '../chmura.js';
 import { edytor, stan } from './kontekst.js';
 import { odswiezBiblioteke, otworzBiblioteke } from './biblioteka-okno.js';
+import { t } from '../jezyk.js';
 
 naZmianeMoichElementow((lista) => { MOJE.lista = lista; odswiezBiblioteke(); });
 
 MOJE.zmienNazwe = async (m) => {
-  const nazwa = await zapytajONazwe('Zmień nazwę elementu', 'Nazwa', m.nazwa);
+  const nazwa = await zapytajONazwe(t('mojeElementyOkno.zmienNazweElementu'), t('mojeElementyOkno.nazwa'), m.nazwa);
   if (!nazwa || nazwa === m.nazwa) return;
   try { await zmienNazweMojegoElementu(m.id, nazwa); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
 };
 
 MOJE.usun = async (m) => {
-  if (!await potwierdz('Usunąć z biblioteki?', `„${m.nazwa}” zniknie z „Moich elementów” we wszystkich projektach. Elementy już wstawione na strony zostają.`, 'Usuń', true)) return;
+  if (!await potwierdz(t('mojeElementyOkno.usunacZBiblioteki'), `„${m.nazwa}” zniknie z „Moich elementów” we wszystkich projektach. Elementy już wstawione na strony zostają.`, t('mojeElementyOkno.usun'), true)) return;
   try { await usunMojElement(m.id); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
 };
 
 // Zaznaczenie → nowy element w „Moich elementach” (z obrazami), na koncie.
 export async function zapiszWBibliotece() {
   const akt = edytor.aktywny;
-  if (!akt) { powiadom('Zaznacz element albo kilka – trafią do Biblioteki razem.', true); return; }
-  if (!stan.uzytkownik) { powiadom('Moje elementy są na koncie – zaloguj się.', true); return; }
+  if (!akt) { powiadom(t('mojeElementyOkno.zaznaczElementAlboKilka'), true); return; }
+  if (!stan.uzytkownik) { powiadom(t('mojeElementyOkno.mojeElementySaNa'), true); return; }
   const dane = await edytor.elementDoBiblioteki();
-  if (!dane) { powiadom('Tego elementu nie da się zapisać (element wzorca albo pisany tekst).', true); return; }
+  if (!dane) { powiadom(t('mojeElementyOkno.tegoElementuNieDa'), true); return; }
   const domyslna = akt.type === 'activeselection' || akt.type === 'activeSelection' ? `${akt.getObjects().length} elementy` : opisObiektu(akt);
-  const nazwa = await zapytajONazwe('Zapisz w bibliotece', 'Nazwa w „Moich elementach”', domyslna);
+  const nazwa = await zapytajONazwe(t('mojeElementyOkno.zapiszWBibliotece'), t('mojeElementyOkno.nazwaWMoichElementach'), domyslna);
   if (!nazwa) return;
   try {
     await zapiszMojElement({ nazwa, obiekty: dane.obiekty, szer: dane.szer, wys: dane.wys, podglad: dane.podglad }, stan.projekt);

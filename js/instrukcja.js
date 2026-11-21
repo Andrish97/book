@@ -11,16 +11,29 @@ import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
 import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
 import { czyCiemny } from './motyw.js';
-import { biezacyJezyk } from './jezyk.js';
-import { CZESCI, ROZDZIALY as ZRODLO } from './instrukcja-tresc.js';
+import { biezacyJezyk, t as tt } from './jezyk.js';
+import { CZESCI as CZESCI_PL, ROZDZIALY as ZRODLO_PL } from './instrukcja-tresc.js';
 // Klawisze skrótu: „Ctrl++” to Ctrl i plus – plus jako klawisz nie może zniknąć przy dzieleniu (#174).
 const klawiszeSkrotu = (t) => t.split(/\+(?!$)/).map((k) => k || '+');
 
 
 // Rozdziały z nazwą części (grupa) i tekstem do wyszukiwania (rozdział i każdy podrozdział).
 const naTekst = (html) => String(html || '').replace(/<pre>[\s\S]*?<\/pre>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').toLowerCase();
-export const ROZDZIALY = ZRODLO.map((r) => ({ ...r, grupa: r.czesc }));
-export { CZESCI };
+const zGrupa = (lista) => lista.map((r) => ({ ...r, grupa: r.czesc }));
+// Treść w języku interfejsu (#346): js/instrukcja-tresc-<język>.js – ta sama budowa co po polsku; brak pliku – polska.
+export let ROZDZIALY = zGrupa(ZRODLO_PL);
+export let CZESCI = CZESCI_PL;
+const TRESCI = { en: () => import('./instrukcja-tresc-en.js'), uk: () => import('./instrukcja-tresc-uk.js') };
+let jezykTresci = 'pl';
+export async function wczytajTrescInstrukcji(j = biezacyJezyk()) {
+  if (j === jezykTresci) return false;
+  let m = { CZESCI: CZESCI_PL, ROZDZIALY: ZRODLO_PL };
+  if (TRESCI[j]) { try { m = await TRESCI[j](); } catch { m = { CZESCI: CZESCI_PL, ROZDZIALY: ZRODLO_PL }; } }
+  CZESCI = m.CZESCI;
+  ROZDZIALY = zGrupa(m.ROZDZIALY);
+  jezykTresci = j;
+  return true;
+}
 export const tekstRozdzialu = (r) => naTekst(`${r.tytul} ${r.sekcje.map((s) => `${s.tytul} ${s.html}`).join(' ')}`);
 
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -28,8 +41,8 @@ const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 function tabelaPol() {
   const pola = POLA_DOKUMENTU.map(([nazwa, opis]) => `<tr><td><code>{${nazwa}}</code></td><td>${opis.replace(/\{[^}]+\}/g, (m) => `<code>${m}</code>`)}</td></tr>`).join('');
   const zapisy = ZAPISY_LICZB.map(([zapis, opis]) => `<tr><td><code>{nr${zapis ? `:${zapis}` : ''}}</code></td><td>${opis}</td></tr>`).join('');
-  return `<div class="tabela-instrukcji"><table><thead><tr><th>Pole</th><th>Znaczenie</th></tr></thead><tbody>${pola}</tbody></table></div>`
-    + `<h4>Zapis liczby (po dwukropku, przy każdym polu z liczbą)</h4><div class="tabela-instrukcji"><table><thead><tr><th>Zapis</th><th>Znaczenie</th></tr></thead><tbody>${zapisy}</tbody></table></div>`;
+  return `<div class="tabela-instrukcji"><table><thead><tr><th>${tt('instrukcja.pole')}</th><th>${tt('instrukcja.znaczenie')}</th></tr></thead><tbody>${pola}</tbody></table></div>`
+    + `<h4>${tt('instrukcja.zapisLiczby')}</h4><div class="tabela-instrukcji"><table><thead><tr><th>${tt('instrukcja.zapis')}</th><th>${tt('instrukcja.znaczenie')}</th></tr></thead><tbody>${zapisy}</tbody></table></div>`;
 }
 
 function tabelaSkrotow() {
@@ -68,12 +81,15 @@ export class Instrukcja {
     this.wybor = document.getElementById('instrukcja-wybor');
     this.szukaj = document.getElementById('instrukcja-szukaj');
     this.indeks = -1; // -1 = strona główna instrukcji
-    this.teksty = ROZDZIALY.map((r) => r.sekcje.map((s) => naTekst(`${r.tytul} ${s.tytul} ${s.html}`)));
-
-    this.zbudujSpis();
+    this.przygotujTresc();
     // Zmiana motywu przy otwartej instrukcji podmienia zrzuty na pasujące.
     document.addEventListener('motyw', () => { if (this.dlg?.open) this.pokaz(this.indeks, { przewin: false }); });
-    document.addEventListener('jezyk', () => { if (this.dlg?.open) this.pokaz(this.indeks, { przewin: false }); }); // zrzuty w nowym języku (#334)
+    // Nowy język: treść instrukcji i zrzuty w tym języku (#334, #346).
+    document.addEventListener('jezyk', async () => {
+      await wczytajTrescInstrukcji();
+      this.przygotujTresc();
+      if (this.dlg?.open) this.pokaz(this.indeks, { przewin: false });
+    });
     this.szukaj?.addEventListener('input', () => this.filtruj(this.szukaj.value));
     this.wybor?.addEventListener('click', () => this.przelaczSpis());
     this.dlg.querySelector('[data-akcja="instrukcja-spis-zamknij"]')?.addEventListener('click', () => this.przelaczSpis(false));
@@ -92,7 +108,7 @@ export class Instrukcja {
         const ok = await kopiujTekst(kop.closest('.prompt-instrukcji').querySelector('pre').textContent);
         const tekst = kop.lastChild;
         const przed = tekst.textContent;
-        tekst.textContent = ok ? 'Skopiowano' : 'Zaznacz i skopiuj ręcznie';
+        tekst.textContent = ok ? tt('instrukcja.skopiowano') : tt('instrukcja.zaznaczISkopiujRecznie');
         setTimeout(() => { tekst.textContent = przed; }, 1800);
         return;
       }
@@ -121,6 +137,12 @@ export class Instrukcja {
   }
 
   // Spis: części (zwijane) z rozdziałami; rozdział otwarty pokazuje swoje podrozdziały.
+  przygotujTresc() {
+    this.teksty = ROZDZIALY.map((r) => r.sekcje.map((s) => naTekst(`${r.tytul} ${s.tytul} ${s.html}`)));
+    this.zbudujSpis();
+    if (this.szukaj?.value) this.filtruj(this.szukaj.value);
+  }
+
   zbudujSpis() {
     const html = CZESCI.map((c) => `<li class="czesc-spisu" data-czesc="${c.nr}">`
       + `<button type="button" class="czesc-przycisk" data-czesc-przelacz aria-expanded="false"><span data-ikona="${c.ikona}" data-rozmiar="16"></span><span class="tytul">${esc(c.tytul)}</span><span class="strzalka" data-ikona="dalej" data-rozmiar="14"></span></button>`
@@ -162,7 +184,9 @@ export class Instrukcja {
   }
 
   otworzRozdzial(tytul) {
-    this.otworz(Math.max(0, ROZDZIALY.findIndex((r) => r.tytul === tytul)));
+    // Wywołania w kodzie podają polski tytuł – rozdział o tym samym numerze w bieżącym języku.
+    const i = ZRODLO_PL.findIndex((r) => r.tytul === tytul);
+    this.otworz(Math.max(0, i >= 0 ? i : ROZDZIALY.findIndex((r) => r.tytul === tytul)));
   }
 
   // „7” – rozdział, „7.3” – podrozdział (strona rozdziału przewinięta do niego).
@@ -221,15 +245,15 @@ export class Instrukcja {
     const lupa = document.createElement('div');
     lupa.className = 'instrukcja-lupa';
     lupa.setAttribute('role', 'button');
-    lupa.setAttribute('aria-label', 'Zamknij powiększenie');
+    lupa.setAttribute('aria-label', tt('instrukcja.zamknijPowiekszenie'));
     lupa.innerHTML = `<img src="${img.getAttribute('src')}" alt="${esc(img.alt)}">`;
     this.uklad.append(lupa);
   }
 
   stronaGlowna() {
-    return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1">Instrukcja Makietki</h1>`
-      + '<p class="instrukcja-lead">Makietka to edytor publikacji do druku: książek, kalendarzy, planerów, zaproszeń i innych dokumentów.</p></header>'
-      + `<div class="instrukcja-czesci">${CZESCI.map((c) => `<section class="karta-czesci"><h2><span data-ikona="${c.ikona}" data-rozmiar="18"></span>Część ${c.nr}. ${esc(c.tytul)}</h2>`
+    return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1">${tt('instrukcja.tytulGlowny')}</h1>`
+      + `<p class="instrukcja-lead">${tt('instrukcja.lead')}</p></header>`
+      + `<div class="instrukcja-czesci">${CZESCI.map((c) => `<section class="karta-czesci"><h2><span data-ikona="${c.ikona}" data-rozmiar="18"></span>${tt('instrukcja.czesc')} ${c.nr}. ${esc(c.tytul)}</h2>`
         + `<p class="ciche">${esc(c.opis)}</p><ol>${c.rozdzialy.map((nr) => `<li><a href="#" data-cel="${nr}"><small>${nr}</small>${esc(ROZDZIALY[rozdzialNr(nr)].tytul)}</a></li>`).join('')}</ol></section>`).join('')}</div>`;
   }
 
@@ -245,7 +269,7 @@ export class Instrukcja {
     // Bez okruszków (#169): część i rozdział pokazuje już spis z boku, a na telefonie przycisk nad treścią.
     return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1"><small>${r.nr}.</small> ${esc(r.tytul)}</h1>`
       + (r.wstep ? `<p class="instrukcja-lead wstep-rozdzialu">${r.wstep}</p>` : '')
-      + (r.sekcje.length > 1 ? `<nav class="w-rozdziale" aria-label="W tym rozdziale"><span class="ciche">W tym rozdziale</span><ol>${r.sekcje.map((s) => `<li><a href="#" data-cel="${s.id}"><small>${s.id}</small>${esc(s.tytul)}</a></li>`).join('')}</ol></nav>` : '')
+      + (r.sekcje.length > 1 ? `<nav class="w-rozdziale" aria-label="${tt('instrukcja.wTymRozdziale')}"><span class="ciche">${tt('instrukcja.wTymRozdziale')}</span><ol>${r.sekcje.map((s) => `<li><a href="#" data-cel="${s.id}"><small>${s.id}</small>${esc(s.tytul)}</a></li>`).join('')}</ol></nav>` : '')
       + `</header><div class="instrukcja-dokument">${html}</div>`;
   }
 
@@ -261,12 +285,12 @@ export class Instrukcja {
     this.zaznaczWSpisie();
     // Bieżący rozdział na przycisku spisu (wąski ekran) i numer w stopce.
     const tytul = this.wybor?.querySelector('.instrukcja-wybor-tytul');
-    if (tytul) tytul.textContent = r ? `${r.nr}. ${r.tytul}` : 'Spis treści';
+    if (tytul) tytul.textContent = r ? `${r.nr}. ${r.tytul}` : tt('instrukcja.spisTresci');
     const podpis = this.wybor?.querySelector('.instrukcja-wybor-czesc');
-    if (podpis) podpis.textContent = r ? r.czesc : 'Instrukcja';
-    this.numer.textContent = r ? `${i + 1} z ${ROZDZIALY.length}` : '';
+    if (podpis) podpis.textContent = r ? r.czesc : tt('instrukcja.instrukcja');
+    this.numer.textContent = r ? tt('instrukcja.numerZ', { nr: i + 1, razem: ROZDZIALY.length }) : '';
     this.wstecz.disabled = i < 0;
-    this.dalej.textContent = r ? (i === ROZDZIALY.length - 1 ? 'Spis treści' : 'Następny') : 'Zacznij czytać';
+    this.dalej.textContent = r ? (i === ROZDZIALY.length - 1 ? tt('instrukcja.spisTresci') : tt('instrukcja.nastepny')) : tt('instrukcja.zacznijCzytac');
     if (sekcja) {
       const el = this.tresc.querySelector(`#${idSekcji(sekcja)}`);
       if (el) { this.tresc.scrollTop += el.getBoundingClientRect().top - this.tresc.getBoundingClientRect().top - 8; el.classList.add('wskazany'); setTimeout(() => el.classList.remove('wskazany'), 1600); }

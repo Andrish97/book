@@ -17,6 +17,7 @@ import { supabase, komunikatBledu, r2 } from '../chmura.js';
 import { $, $$, powiadom, potwierdz, kiedy, odmiana, zapytajONazwe } from '../ui.js';
 import { utworzEdytorWiadomosci } from '../edytor-wiadomosci.js';
 import { wstawIkony } from '../ikony.js';
+import { t as tt } from '../jezyk.js';
 
 const NA_STRONE = 50;
 const LIMIT_ZALACZNIKOW = 10 * 1024 * 1024;
@@ -107,7 +108,7 @@ export async function rysujSkrzynke() {
     // W kopiach roboczych ma sens tylko filtr „Z załącznikami”.
     b.hidden = s.folder === 'robocze' && ['nieprzeczytane', 'gwiazdka'].includes(b.dataset.filtr);
   }
-  $('#admin-watki-pusto').textContent = s.szukaj || s.filtr ? 'Nic nie pasuje do wyszukiwania ani filtra.' : {
+  $('#admin-watki-pusto').textContent = s.szukaj || s.filtr ? tt('skrzynka.nicNiePasujeDo') : {
     skrzynka: 'Brak wiadomości w Odebranych.', robocze: 'Brak wersji roboczych.', kosz: 'Kosz jest pusty.', spam: 'Brak spamu.',
   }[s.folder] || `${FOLDERY[s.folder]} – pusto.`;
   $('#admin-zakres').textContent = s.razem ? `${s.od + 1}–${Math.min(s.od + s.watki.length, s.razem)} z ${s.razem}` : '';
@@ -115,7 +116,7 @@ export async function rysujSkrzynke() {
   $('#admin-nastepne').disabled = s.od + NA_STRONE >= s.razem;
   const oproznij = $('#admin-oproznij');
   oproznij.hidden = !['kosz', 'spam'].includes(s.folder) || !s.watki.length;
-  oproznij.textContent = s.folder === 'spam' ? 'Opróżnij spam' : 'Opróżnij kosz';
+  oproznij.textContent = s.folder === 'spam' ? tt('skrzynka.oproznijSpam') : tt('skrzynka.oproznijKosz');
   rysujZbiorcze();
 }
 
@@ -177,7 +178,7 @@ async function zbiorczo(akcja, ids = [...s.zaznaczone]) {
   if (!ids.length) return;
   if (akcja === 'usun') {
     const ile = `${ids.length} ${odmiana(ids.length, 'wiadomość', 'wiadomości', 'wiadomości')}`;
-    if (!await potwierdz('Usunąć na zawsze?', `${ile} zniknie bez możliwości przywrócenia, razem z załącznikami.`, 'Usuń na zawsze', true)) return;
+    if (!await potwierdz(tt('skrzynka.usunacNaZawsze'), `${ile} zniknie bez możliwości przywrócenia, razem z załącznikami.`, tt('skrzynka.usunNaZawsze'), true)) return;
   }
   try {
     if (s.folder === 'robocze') {
@@ -250,11 +251,11 @@ function rysujWatek() {
   const wKoszu = t.folder === 'kosz';
   const wSpamie = t.folder === 'spam';
   const akcje = [
-    !wKoszu && !wSpamie && t.folder !== 'archiwum' ? przyciskAkcji('archiwum', 'archiwum', 'Archiwizuj') : '',
-    t.folder === 'archiwum' || wKoszu || wSpamie ? przyciskAkcji('przywroc', 'odebrane', wSpamie ? 'To nie spam' : 'Przywróć do Odebranych') : '',
-    !wSpamie && !wKoszu ? przyciskAkcji('spam', 'uwaga', 'Zgłoś spam') : '',
-    !wKoszu ? przyciskAkcji('kosz', 'kosz', 'Usuń (do kosza)') : przyciskAkcji('usun', 'kosz', 'Usuń na zawsze', 'niebezpieczny'),
-    przyciskAkcji('nieprzeczytane', 'koperta', 'Oznacz jako nieprzeczytane'),
+    !wKoszu && !wSpamie && t.folder !== 'archiwum' ? przyciskAkcji('archiwum', 'archiwum', tt('skrzynka.archiwizuj')) : '',
+    t.folder === 'archiwum' || wKoszu || wSpamie ? przyciskAkcji('przywroc', 'odebrane', wSpamie ? tt('skrzynka.toNieSpam') : tt('skrzynka.przywrocDoOdebranych')) : '',
+    !wSpamie && !wKoszu ? przyciskAkcji('spam', 'uwaga', tt('skrzynka.zglosSpam')) : '',
+    !wKoszu ? przyciskAkcji('kosz', 'kosz', tt('skrzynka.usunDoKosza')) : przyciskAkcji('usun', 'kosz', tt('skrzynka.usunNaZawsze'), 'niebezpieczny'),
+    przyciskAkcji('nieprzeczytane', 'koperta', tt('skrzynka.oznaczJakoNieprzeczytane')),
     `<button type="button" class="przycisk-ikona gwiazdka" data-watek-akcja="${t.gwiazdka ? 'bez_gwiazdki' : 'gwiazdka'}" data-ikona="gwiazdka" aria-pressed="${t.gwiazdka}" title="${t.gwiazdka ? 'Usuń gwiazdkę' : 'Dodaj gwiazdkę'}" aria-label="Gwiazdka"></button>`,
   ].join('');
   const ostatnia = wiadomosci.at(-1);
@@ -516,7 +517,7 @@ function zapiszRobocza() {
     if (pisz.wysylanie || $('#admin-pisz').hidden) return;
     const d = dane();
     if (!cokolwiek(d)) return;
-    $('#admin-pisz-stan').textContent = 'Zapisywanie…';
+    $('#admin-pisz-stan').textContent = tt('skrzynka.zapisywanie');
     try {
       const w = await rpc('admin_poczta_robocza_zapisz', { p: { ...d, id: pisz.id } });
       pisz.id = w.id;
@@ -536,7 +537,7 @@ async function zamknijPisanie({ cicho = false } = {}) {
   if (!pisz.wysylanie && cokolwiek(d)) {
     pisz.zmiany = true;
     await zapiszRobocza();
-    if (!cicho && pisz.id) powiadom('Wiadomość została w folderze Robocze.');
+    if (!cicho && pisz.id) powiadom(tt('skrzynka.wiadomoscZostalaWFolderze'));
   }
   pisz.wysylanie = true;
   pisz.edytor?.setContent('');
@@ -555,7 +556,7 @@ async function odrzuc() {
   try {
     if (id) await usunRobocza(id);
     else await usunPliki(wlasne);
-    powiadom('Odrzucono wersję roboczą.');
+    powiadom(tt('skrzynka.odrzuconoWersjeRobocza'));
   } catch (e) { blad(e); }
   pisz.id = null;
   await zamknijPisanie({ cicho: true });
@@ -576,9 +577,9 @@ async function wyslij(e) {
   const d = dane();
   const zle = [...d.do, ...d.dw, ...d.udw].filter((a) => !POPRAWNY.test(a));
   if (zle.length) { powiadom(`Popraw adres: ${zle.join(', ')}`, true); return; }
-  if (!d.do.length) { powiadom('Podaj adresata w polu „Do”.', true); $('#admin-pisz-do').focus(); return; }
-  if (pisz.zalaczniki.some((z) => !z.klucz)) { powiadom('Poczekaj, aż załączniki się wyślą.', true); return; }
-  if (!d.temat && !await potwierdz('Wysłać bez tematu?', 'Wiadomość nie ma tematu.', 'Wyślij')) return;
+  if (!d.do.length) { powiadom(tt('skrzynka.podajAdresataWPolu'), true); $('#admin-pisz-do').focus(); return; }
+  if (pisz.zalaczniki.some((z) => !z.klucz)) { powiadom(tt('skrzynka.poczekajAzZalacznikiSie'), true); return; }
+  if (!d.temat && !await potwierdz(tt('skrzynka.wyslacBezTematu'), tt('skrzynka.wiadomoscNieMaTematu'), tt('skrzynka.wyslij'))) return;
   const przycisk = $('#admin-form-pisz [type="submit"]');
   przycisk.disabled = true;
   clearTimeout(pisz.timer);
@@ -588,7 +589,7 @@ async function wyslij(e) {
     const w = await rpc('admin_poczta_wyslij', { p: { ...d, robocza: pisz.id } });
     pisz.id = null;
     const p = await przebiegKolejki();
-    powiadom(p?.wyslane ? 'Wiadomość wysłana.' : 'Wiadomość czeka w kolejce i wyjdzie za chwilę.');
+    powiadom(p?.wyslane ? tt('skrzynka.wiadomoscWyslana') : tt('skrzynka.wiadomoscCzekaWKolejce'));
     await zamknijPisanie({ cicho: true });
     await rysujSkrzynke();
     await otworzWatek(w.watek);
@@ -838,7 +839,7 @@ $('#admin-poprzednie').addEventListener('click', () => { s.od = Math.max(0, s.od
 $('#admin-nastepne').addEventListener('click', () => { s.od += NA_STRONE; rysujSkrzynke().catch(blad); });
 $('#admin-oproznij').addEventListener('click', async () => {
   const co = s.folder === 'spam' ? 'spam' : 'kosz';
-  if (!await potwierdz(co === 'spam' ? 'Opróżnić spam?' : 'Opróżnić kosz?', `Wszystkie wiadomości z folderu ${FOLDERY[co]} znikną na zawsze.`, 'Opróżnij', true)) return;
+  if (!await potwierdz(co === 'spam' ? tt('skrzynka.oproznicSpam') : tt('skrzynka.oproznicKosz'), `Wszystkie wiadomości z folderu ${FOLDERY[co]} znikną na zawsze.`, tt('skrzynka.oproznij'), true)) return;
   try {
     const w = await rpc('admin_poczta_oproznij', { p_folder: co });
     await usunPliki(w?.klucze);

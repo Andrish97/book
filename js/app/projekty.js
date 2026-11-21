@@ -244,7 +244,7 @@ async function wczytajProjektZWpisuBez(w, pasek = null) {
     if (lokalny) await podlaczObrazy(lokalny, pasek);
     return lokalny;
   }
-  pasek?.opis('Pobieranie projektu z konta…');
+  pasek?.opis(t('projekty.pobieranieProjektuZKonta'));
   const projekt = normalizuj(await chmura.wczytajZChmury(w.id));
   projekt.podstawa_chmury = podstawaProjektu(projekt); // stan uzgodniony z kontem – punkt odniesienia przy łączeniu zmian
   await zapiszLokalnie(projekt, wlasciciel(), false);
@@ -254,7 +254,7 @@ async function wczytajProjektZWpisuBez(w, pasek = null) {
 
 // Obrazy projektu dostają adresy plików z magazynu przeglądarki; brakujące są pobierane z konta.
 export async function podlaczObrazy(projekt, pasek = null) {
-  const brak = await podlaczZasoby(projekt, stan.uzytkownik ? chmura.pobierzZasob : null, pasek && ((i, n) => { pasek.opis('Pobieranie obrazów z konta…'); pasek.krok(i, n); }));
+  const brak = await podlaczZasoby(projekt, stan.uzytkownik ? chmura.pobierzZasob : null, pasek && ((i, n) => { pasek.opis(t('projekty.pobieranieObrazowZKonta')); pasek.krok(i, n); }));
   if (brak.length) powiadom(`Nie udało się wczytać ${brak.length === 1 ? `obrazu „${brak[0]}”` : `obrazów (${brak.length}): ${brak.slice(0, 3).join(', ')}${brak.length > 3 ? '…' : ''}`}.${navigator.onLine ? '' : ' Są na koncie – pobiorą się po powrocie internetu.'}`, true);
 }
 
@@ -297,9 +297,9 @@ async function duplikujProjekt(w) {
   try {
     const zrodlo = await wczytajProjektZWpisu(w);
     const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
-    pasek.opis('Kopiowanie obrazów…');
+    pasek.opis(t('projekty.kopiowanieObrazow'));
     await kopiujPliki(zrodlo, kopia); // kopia ma własne pliki obrazów – podmiana zdjęcia w niej nie rusza oryginału
-    pasek.opis('Zapisywanie kopii…');
+    pasek.opis(t('projekty.zapisywanieKopii'));
     await zapiszGdziekolwiek(kopia);
     powiadom(`Utworzono „${kopia.nazwa}”.`);
   } catch (e) {
@@ -311,7 +311,7 @@ async function duplikujProjekt(w) {
 }
 
 async function zmienNazweProjektu(w) {
-  const nazwa = await zapytajONazwe('Zmień nazwę projektu', 'Nazwa', w.nazwa || '');
+  const nazwa = await zapytajONazwe(t('projekty.zmienNazweProjektu'), t('projekty.nazwa'), w.nazwa || '');
   if (!nazwa) return;
   const projekt = await wczytajProjektZWpisu(w);
   projekt.nazwa = nazwa;
@@ -325,7 +325,7 @@ async function zmienNazweProjektu(w) {
 async function eksportujProjekt(w) {
   try {
     const projekt = await wczytajProjektZWpisu(w);
-    powiadom('Przygotowuję plik…');
+    powiadom(t('projekty.przygotowujePlik'));
     const blob = await zapiszPlikProjektu(projekt);
     const url = URL.createObjectURL(blob);
     pobierz(`${bezpiecznaNazwa(projekt.nazwa)}${ROZSZERZENIE}`, url);
@@ -339,8 +339,8 @@ async function eksportujProjekt(w) {
 async function usunProjekt(w) {
   const ok = await potwierdz(
     `Usunąć „${w.nazwa || 'Bez nazwy'}”?`,
-    'Projekt zniknie ze wszystkich Twoich urządzeń. Tego nie można cofnąć.',
-    'Usuń projekt',
+    t('projekty.projektZniknieZeWszystkich'),
+    t('projekty.usunProjekt'),
     true,
   );
   if (!ok) return false;
@@ -351,7 +351,7 @@ async function usunProjekt(w) {
     await usunLokalnie(w.id);
     await usunHistorie(w.id);
     if (stan.uzytkownik) await chmura.usunZChmury(w.id);
-    powiadom('Projekt usunięty.');
+    powiadom(t('projekty.projektUsuniety'));
   } catch (e) {
     powiadom(`Nie udało się usunąć: ${chmura.komunikatBledu(e)}`, true);
   }
@@ -567,7 +567,7 @@ async function wczytajPlikSkladu(plik) {
       const kontrola = await pokazRaport({
         tytul: `Co przeszło z programu ${raport.format}`,
         wstep: `${opis} Elementy uproszczone przy odczycie są oznaczone – zobaczysz je w „Sprawdź przed drukiem”, dopóki nie usuniesz oznaczenia.`,
-        raport: przeniesienie, przycisk: 'Sprawdź przed drukiem', anuluj: 'Zamknij',
+        raport: przeniesienie, przycisk: t('projekty.sprawdzPrzedDrukiem'), anuluj: 'Zamknij',
         pokaz: (s, o) => edytor.pokazElement(s, o),
       });
       if (kontrola) edytor.otworzKontrole();
@@ -591,9 +591,9 @@ export async function wczytajPlikProjektu(plik) {
     const istniejacy = await wczytajLokalnie(projekt.id);
     if (istniejacy) {
       const zastap = await potwierdz(
-        'Ten projekt już istnieje',
+        t('projekty.tenProjektJuzIstnieje'),
         `„${istniejacy.nazwa}” jest już na liście. Zastąpić go wersją z pliku? „Anuluj” doda plik jako osobny projekt.`,
-        'Zastąp',
+        t('projekty.zastap'),
       );
       if (!zastap) projekt.id = crypto.randomUUID();
     }
@@ -603,7 +603,7 @@ export async function wczytajPlikProjektu(plik) {
     // Plik w miejsce projektu: dawna historia cofania do niego nie pasuje.
     if (istniejacy && projekt.id === istniejacy.id) await usunHistorie(projekt.id);
     await otworzProjekt(projekt);
-    pasek.opis('Zapisywanie projektu na urządzeniu…');
+    pasek.opis(t('projekty.zapisywanieProjektuNaUrzadzeniu'));
     await zapiszTeraz();
     powiadom(`Wczytano „${projekt.nazwa}”.`);
   } catch (e) {

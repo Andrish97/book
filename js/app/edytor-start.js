@@ -71,6 +71,7 @@ import { otworzUstawieniaSekcji, przesunSekcje, usunSekcje, zamienNaOkladke } fr
 import {
   dodajWzorzec, zmienNazweWzorca, duplikujWzorzecZ, usunWzorzec, przesunWzorzec, wrocDoStron, edytujWzorzec, otworzWzorce, dodajWzorzecStandardowy, przelaczWzorzecNaStronie, przelaczWzorzecWSekcji,
 } from './wzorce.js';
+import { t } from '../jezyk.js';
 
 const OPIS_OSTRZEZEN = {
   poza_strona: 'Poza stroną – nie będzie widoczny w druku.',
@@ -111,7 +112,7 @@ function renderujOstrzezenia(lista) {
   if (!lista.length) {
     const li = document.createElement('li');
     li.className = 'brak';
-    li.textContent = 'Wszystko mieści się w marginesach.';
+    li.textContent = t('edytorStart.wszystkoMiesciSieW');
     ul.append(li);
     return;
   }
@@ -134,7 +135,7 @@ function renderujOstrzezenia(lista) {
 
 async function wstawObraz(plik) {
   if (!plik.type.startsWith('image/')) {
-    powiadom('To nie jest plik obrazu.', true);
+    powiadom(t('edytorStart.toNieJestPlik'), true);
     return;
   }
   try {
@@ -155,7 +156,7 @@ async function wstawObraz(plik) {
 
 // Nowe zdjęcie w ramce zaznaczonego obrazu (przycisk „Podmień zdjęcie” we właściwościach).
 async function podmienObraz(obj, plik) {
-  if (!plik.type.startsWith('image/')) { powiadom('To nie jest plik obrazu.', true); return; }
+  if (!plik.type.startsWith('image/')) { powiadom(t('edytorStart.toNieJestPlik'), true); return; }
   if (!edytor.canvas.getObjects().includes(obj) && !obj.group) return; // obraz zniknął ze strony w międzyczasie
   try {
     const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
@@ -165,20 +166,20 @@ async function podmienObraz(obj, plik) {
     await edytor.podmienObraz(obj, null, nazwa, stan.projekt.zasoby, { id });
     panel.zbuduj();
   } catch (blad) {
-    powiadom(blad.message || 'Nie udało się podmienić zdjęcia.', true);
+    powiadom(blad.message || t('edytorStart.nieUdaloSiePodmienic'), true);
   }
 }
 
 // Kształt jako ramka obrazu (#123): plik z urządzenia trafia do obrazów projektu i do kształtu.
 async function obrazDoKsztaltu(obj, plik) {
-  if (!plik.type.startsWith('image/')) { powiadom('To nie jest plik obrazu.', true); return; }
+  if (!plik.type.startsWith('image/')) { powiadom(t('edytorStart.toNieJestPlik'), true); return; }
   try {
     const gotowy = plik.type === 'image/svg+xml' ? await uporzadkujPlikSvg(plik) : plik;
     const { id } = await przyjmijPlik(stan.projekt, gotowy, plik.name);
     await edytor.wstawObrazDoKsztaltu(obj, id);
     panel.zbuduj();
   } catch (blad) {
-    powiadom(blad.message || 'Nie udało się wstawić obrazu.', true);
+    powiadom(blad.message || t('edytorStart.nieUdaloSieWstawic'), true);
   }
 }
 
@@ -195,7 +196,7 @@ export async function podmienZProjektu(obj, id) {
     await edytor.podmienObraz(obj, null, z.nazwa, stan.projekt.zasoby, { id });
     panel.zbuduj();
   } catch (blad) {
-    powiadom(blad.message || 'Nie udało się podmienić zdjęcia.', true);
+    powiadom(blad.message || t('edytorStart.nieUdaloSiePodmienic'), true);
   }
 }
 
@@ -214,7 +215,7 @@ async function pobierzPng() {
       pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa)}-${bezpiecznaNazwa(nazwa)}.png`, await pngCelu(stan.projekt, cel, 300));
     });
   } catch (blad) {
-    powiadom(blad.message || 'Nie udało się przygotować obrazu.');
+    powiadom(blad.message || t('edytorStart.nieUdaloSiePrzygotowac'));
   }
 }
 
@@ -266,7 +267,7 @@ const oknoKontroli = new OknoKontroli({
       stan.miniatury.clear();
       await zaladujCel();
       zaplanujZapis();
-      powiadom(nowe.length ? `Dodano: ${nowe.map((s) => s.nazwa.toLowerCase()).join(' i ')}.` : 'Wyklejki już są.');
+      powiadom(nowe.length ? `Dodano: ${nowe.map((s) => s.nazwa.toLowerCase()).join(' i ')}.` : t('edytorStart.wyklejkiJuzSa'));
       oknoKontroli.otworz();
     }
   },
@@ -277,7 +278,7 @@ const oknoKontroli = new OknoKontroli({
 let oknoPdf = null;
 async function otworzOknoPdf() {
   if (!oknoPdf) {
-    const czekaj = setTimeout(() => powiadom('Wczytuję eksport PDF…'), 400);
+    const czekaj = setTimeout(() => powiadom(t('edytorStart.wczytujeEksportPdf')), 400);
     try {
       const { OknoPdf } = await import('../okno-pdf.js');
       oknoPdf ||= new OknoPdf({
@@ -373,7 +374,7 @@ export const akcje = {
   'ploter-svg': async () => {
     zamknijMenu();
     zapiszBiezacyCel();
-    if (stan.tryb !== 'strona') { powiadom('Plik dla plotera robi się ze strony projektu (nie z wzorca).', true); return; }
+    if (stan.tryb !== 'strona') { powiadom(t('edytorStart.plikDlaPloteraRobi'), true); return; }
     const { svgPlotera } = await import('../ploter.js');
     const { rozwin } = await import('../serie.js');
     const ciag = rozwin(stan.projekt);
@@ -391,7 +392,7 @@ export const akcje = {
     zapiszBiezacyCel();
     const [{ biblioteka }, { zapiszIdml }] = await Promise.all([import('../biblioteki.js'), import('../idml.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
-    powiadom('Przygotowuję plik IDML…');
+    powiadom(t('edytorStart.przygotowujePlikIdml'));
     const w = await zRaportem('InDesign / Affinity', (raport) => zapiszIdml(stan.projekt, JSZip, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik IDML – strona ${i + 1} z ${z}…`); } }));
     if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.idml`, URL.createObjectURL(w.blob));
@@ -433,7 +434,7 @@ export const akcje = {
     zamknijMenu();
     zapiszBiezacyCel();
     const { zapiszSla } = await import('../scribus.js');
-    powiadom('Przygotowuję plik dla Scribusa…');
+    powiadom(t('edytorStart.przygotowujePlikDlaScribusa'));
     const w = await zRaportem('Scribus', (raport) => zapiszSla(stan.projekt, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik dla Scribusa – strona ${i + 1} z ${z}…`); } }));
     if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.sla`, URL.createObjectURL(new Blob([w.sla], { type: 'application/vnd.scribus' })));
@@ -450,7 +451,7 @@ export const akcje = {
     const nazwa = bezpiecznaNazwa(stan.projekt.nazwa || 'projekt');
     pobierz(`${nazwa} – specyfikacja.txt`, URL.createObjectURL(new Blob([specyfikacjaTekst(spec)], { type: 'text/plain;charset=utf-8' })));
     pobierz(`${nazwa} – specyfikacja.json`, URL.createObjectURL(new Blob([JSON.stringify(spec, null, 2)], { type: 'application/json' })));
-    powiadom('Pobrano specyfikację dla drukarni (tekst do zamówienia i JSON).');
+    powiadom(t('edytorStart.pobranoSpecyfikacjeDlaDrukarni'));
   },
   drukuj: () => { zamknijMenu(); otworzOknoDruku(); },
   czcionki: () => { zamknijMenu(); oknoCzcionek.otworz(); },
@@ -538,9 +539,9 @@ export const akcje = {
   'dodaj-wielokat': () => otworzWyborWielokata(),
   // Narzędzie „Obraz”: z urządzenia albo z obrazów projektu (bez obrazów w projekcie – od razu wybór pliku).
   'dodaj-obraz': () => wybierzZrodloObrazu({
-    tytul: 'Wstaw obraz',
+    tytul: t('edytorStart.wstawObraz'),
     zUrzadzenia: () => $('#plik-obraz').click(),
-    zProjektu: async () => (await oknoObrazow()).otworzObrazy({ wybierz: { etykieta: 'Wstaw', fn: wstawZProjektu } }),
+    zProjektu: async () => (await oknoObrazow()).otworzObrazy({ wybierz: { etykieta: t('edytorStart.wstaw'), fn: wstawZProjektu } }),
   }),
   rysuj: () => edytor.ustawRysowanie(!edytor.rysuje),
   pioro: () => edytor.ustawPioro(!edytor.pioro),
@@ -554,7 +555,7 @@ export const akcje = {
   cofnij: () => cofnijKrok(-1),
   ponow: () => cofnijKrok(1),
   duplikuj: () => edytor.duplikuj(),
-  kopiuj: async () => { if (await edytor.kopiuj()) powiadom('Skopiowano. Wklej na tej albo innej stronie: Ctrl+V lub „Wklej” we właściwościach strony.'); },
+  kopiuj: async () => { if (await edytor.kopiuj()) powiadom(t('edytorStart.skopiowanoWklejNaTej')); },
   usun: () => edytor.usun(),
   prowadnice: () => {
     edytor.pokazProwadnice = !edytor.pokazProwadnice;
@@ -669,14 +670,14 @@ edytor.addEventListener('pisanie-na-innej-stronie', (e) => { piszNaInnejStronie(
 // Widok jednej strony rozkładówki: kliknięty element należy do sąsiedniej strony i tylko zachodzi na tę.
 edytor.addEventListener('element-sasiedniej-strony', () => {
   powiadom('Ten element leży na sąsiedniej stronie i przechodzi przez grzbiet. Zmienisz go na jego stronie albo w widoku rozkładówki.', false, {
-    etykieta: 'Pokaż rozkładówkę',
+    etykieta: t('edytorStart.pokazRozkladowke'),
     fn: () => { const p = $('#widok-jedna'); p.checked = false; p.dispatchEvent(new Event('change')); },
   });
 });
 edytor.addEventListener('rysowanie', (e) => {
   for (const b of document.querySelectorAll('[data-akcja="rysuj"]')) b.setAttribute('aria-pressed', String(e.detail));
   odswiezWiecejNarzedzi();
-  if (e.detail) powiadom('Rysowanie odręczne: przeciągaj po stronie. Esc albo ponowne kliknięcie „Rysuj” kończy.');
+  if (e.detail) powiadom(t('edytorStart.rysowanieOdrecznePrzeciagajPo'));
 });
 edytor.addEventListener('pioro', (e) => {
   for (const b of document.querySelectorAll('[data-akcja="pioro"]')) b.setAttribute('aria-pressed', String(e.detail));
@@ -770,17 +771,17 @@ function ustawMalarza(wl) {
 }
 function kopiujWyglad(wielokrotny = false) {
   const w = wygladZ(edytor.aktywny);
-  if (!w) { powiadom('Zaznacz element, którego wygląd chcesz skopiować (tekst, kształt albo zdjęcie).', true); return false; }
+  if (!w) { powiadom(t('edytorStart.zaznaczElementKtoregoWyglad'), true); return false; }
   malarz.wyglad = w;
   malarz.wielokrotny = wielokrotny;
   ustawMalarza(true);
-  powiadom(wielokrotny ? 'Wygląd skopiowany – klikaj kolejne elementy. Esc kończy.' : 'Wygląd skopiowany – kliknij element, który ma go dostać.');
+  powiadom(wielokrotny ? t('edytorStart.wygladSkopiowanyKlikajKolejne') : t('edytorStart.wygladSkopiowanyKliknijElement'));
   return true;
 }
 function zakonczMalarza() { malarz.wielokrotny = false; ustawMalarza(false); }
 function nalozWygladNa(obj) {
   if (!obj || !malarz.wyglad || obj.zWzorca) return false;
-  if (!nalozWyglad(obj, malarz.wyglad)) { powiadom('Ten element nie przyjmie tego wyglądu (np. wygląd tekstu na zdjęcie).', true); return false; }
+  if (!nalozWyglad(obj, malarz.wyglad)) { powiadom(t('edytorStart.tenElementNiePrzyjmie'), true); return false; }
   edytor.canvas.requestRenderAll();
   edytor.zatwierdz();
   panel.odswiez();
@@ -793,7 +794,7 @@ function malarzPrzycisk() {
   const teraz = Date.now();
   const dwaRazy = teraz - ostatniMalarz < 400;
   ostatniMalarz = teraz;
-  if (dwaRazy && malarz.wyglad) { malarz.wielokrotny = true; ustawMalarza(true); powiadom('Wygląd skopiowany – klikaj kolejne elementy. Esc kończy.'); return; }
+  if (dwaRazy && malarz.wyglad) { malarz.wielokrotny = true; ustawMalarza(true); powiadom(t('edytorStart.wygladSkopiowanyKlikajKolejne')); return; }
   if (malarz.wyglad && akt?.isEditing && akt.selectionEnd > akt.selectionStart && document.body.classList.contains('malarz-aktywny')) { nalozWygladNa(akt); if (!malarz.wielokrotny) zakonczMalarza(); return; }
   if (document.body.classList.contains('malarz-aktywny')) { zakonczMalarza(); return; }
   kopiujWyglad(false);
@@ -813,7 +814,7 @@ const kontekstSkrotow = {
   edytor,
   znajdz: (zamiana) => otworzZnajdz({ zamiana }),
   malarzKopiuj: () => kopiujWyglad(false),
-  malarzNaloz: () => { if (!malarz.wyglad) powiadom('Najpierw skopiuj wygląd: Ctrl+Alt+C.', true); else nalozWygladNa(edytor.aktywny); },
+  malarzNaloz: () => { if (!malarz.wyglad) powiadom(t('edytorStart.najpierwSkopiujWygladCtrl'), true); else nalozWygladNa(edytor.aktywny); },
   cofnij: () => akcje.cofnij(),
   ponow: () => akcje.ponow(),
   widok: menuWidoku,
@@ -858,7 +859,7 @@ async function zapiszTekstJako(format) {
   const [{ biblioteka }, E] = await Promise.all([import('../biblioteki.js'), import('../eksport-tekstu.js')]);
   const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
   const akapity = E.akapityProjektu(stan.projekt);
-  if (!akapity.length) { powiadom('W projekcie nie ma tekstu do zapisania.', true); return; }
+  if (!akapity.length) { powiadom(t('edytorStart.wProjekcieNieMa'), true); return; }
   const blob = format === 'docx' ? await E.zapiszDocx(stan.projekt, JSZip, akapity) : await E.zapiszEpub(stan.projekt, JSZip, akapity);
   pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.${format}`, URL.createObjectURL(blob));
   powiadom(`Zapisano ${akapity.length} akapitów jako ${format === 'docx' ? 'dokument Worda' : 'e-book EPUB'} – sama treść; układ stron i obrazy zostają w Makietce.`);
@@ -914,13 +915,13 @@ export function wstawKod(rodzaj = 'qr') {
 }
 const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan.projekt);
 // Praca (#131C): znajdź i zamień, malarz formatów, Moje elementy, pisownia.
-dodajPolecenie({ nazwa: 'Komentarze', opis: 'Lista komentarzy projektu (przycisk z licznikiem na górnym pasku)', wykonaj: () => otworzKomentarze(), dostepne: () => Boolean(stan.projekt) });
-dodajPolecenie({ nazwa: 'Dodaj komentarz', opis: 'Narzędzie „Komentarz”: kliknij miejsce albo element na stronie', wykonaj: () => narzedzieKomentarz(), dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Znajdź i zamień', opis: 'Teksty wszystkich stron i wzorców (Ctrl+F, Ctrl+H)', wykonaj: () => otworzZnajdz(), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Komentarze', opis: t('edytorStart.listaKomentarzyProjektuPrzycisk'), wykonaj: () => otworzKomentarze(), dostepne: () => Boolean(stan.projekt) });
+dodajPolecenie({ nazwa: 'Dodaj komentarz', opis: t('edytorStart.narzedzieKomentarzKliknijMiejsce'), wykonaj: () => narzedzieKomentarz(), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Znajdź i zamień', opis: t('edytorStart.tekstyWszystkichStronI'), wykonaj: () => otworzZnajdz(), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: 'Malarz formatów: wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C; przycisk w nagłówku panelu właściwości, na telefonie też w ⋯ paska narzędzi)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
-dodajPolecenie({ nazwa: 'Zapisz w bibliotece', opis: 'Zaznaczenie trafi do Biblioteki → Moje elementy, w każdym projekcie', wykonaj: () => zapiszWBibliotece(), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
-dodajPolecenie({ nazwa: 'Moje elementy', opis: 'Biblioteka – elementy zapisane na koncie', wykonaj: () => otworzBiblioteke('moje'), dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Sprawdzaj pisownię', opis: 'Włącz albo wyłącz falistą linię pod słowami spoza słownika (menu widoku)', wykonaj: () => { sprawdzanie.ustawWlaczona(!sprawdzanie.wlaczona()); panel.zbuduj(); }, dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Zapisz w bibliotece', opis: t('edytorStart.zaznaczenieTrafiDoBiblioteki'), wykonaj: () => zapiszWBibliotece(), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
+dodajPolecenie({ nazwa: 'Moje elementy', opis: t('edytorStart.bibliotekaElementyZapisaneNa'), wykonaj: () => otworzBiblioteke('moje'), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Sprawdzaj pisownię', opis: t('edytorStart.wlaczAlboWylaczFalista'), wykonaj: () => { sprawdzanie.ustawWlaczona(!sprawdzanie.wlaczona()); panel.zbuduj(); }, dostepne: wEdytorze });
 podlaczPisownie();
 ustawPisowniePanelu(sprawdzanie);
 $('#widok-pisownia').addEventListener('change', (e) => { sprawdzanie.ustawWlaczona(e.target.checked); panel.zbuduj(); });
@@ -928,12 +929,12 @@ $('#widok-pisownia').addEventListener('change', (e) => { sprawdzanie.ustawWlaczo
 // Książka (#131B): spis treści, skorowidz, przypis, hasło skorowidza.
 const poKsiazce = () => { zaplanujZapis(); setTimeout(() => odswiezKsiazke().catch((e) => console.error(e)), 50); };
 const zTekstem = () => wEdytorze() && edytor.aktywny?.type === 'textbox';
-dodajPolecenie({ nazwa: 'Wstaw spis treści', opis: 'Rozdziały z numerami stron – układa się sam', wykonaj: () => { edytor.dodajElementKsiazki('spis'); poKsiazce(); }, dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Wstaw skorowidz', opis: 'Hasła alfabetycznie z numerami stron', wykonaj: () => { edytor.dodajElementKsiazki('skorowidz'); poKsiazce(); }, dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Wstaw spis treści', opis: t('edytorStart.rozdzialyZNumeramiStron'), wykonaj: () => { edytor.dodajElementKsiazki('spis'); poKsiazce(); }, dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Wstaw skorowidz', opis: t('edytorStart.haslaAlfabetycznieZNumerami'), wykonaj: () => { edytor.dodajElementKsiazki('skorowidz'); poKsiazce(); }, dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Wstaw przypis', opis: 'Przypis dolny w miejscu kursora; treść wpiszesz w panelu', wykonaj: () => { edytor.wstawPrzypis(''); poKsiazce(); panel.zbuduj(); }, dostepne: zTekstem });
-dodajPolecenie({ nazwa: 'Dodaj do skorowidza', opis: 'Zaznaczone słowo trafia do skorowidza', wykonaj: () => { if (edytor.dodajDoSkorowidza()) poKsiazce(); else powiadom('Zaznacz słowo w pisanym tekście.', true); }, dostepne: zTekstem });
-dodajPolecenie({ nazwa: 'Wstaw kod QR', opis: 'Adres, tekst, e-mail, telefon albo sieć Wi-Fi – także z pola danych', wykonaj: () => wstawKod('qr'), dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Wstaw kod kreskowy EAN / ISBN', opis: 'EAN-13 albo ISBN, np. na okładkę książki', wykonaj: () => wstawKod('ean'), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Dodaj do skorowidza', opis: t('edytorStart.zaznaczoneSlowoTrafiaDo'), wykonaj: () => { if (edytor.dodajDoSkorowidza()) poKsiazce(); else powiadom(t('edytorStart.zaznaczSlowoWPisanym'), true); }, dostepne: zTekstem });
+dodajPolecenie({ nazwa: 'Wstaw kod QR', opis: t('edytorStart.adresTekstEMail'), wykonaj: () => wstawKod('qr'), dostepne: wEdytorze });
+dodajPolecenie({ nazwa: 'Wstaw kod kreskowy EAN / ISBN', opis: t('edytorStart.ean13AlboIsbn'), wykonaj: () => wstawKod('ean'), dostepne: wEdytorze });
 
 export { otworzProjekt, zapiszTeraz, sprawdzKonto, synchronizuj, poWysylkach, pokazEdytor } from './zapis.js';
 export { pokazPodglad, otworzUdostepnianie } from './podglad-ekran.js';

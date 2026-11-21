@@ -12,7 +12,7 @@ import {
   TRYBY_KOLOROW, hexSpotu, koloryDodatkowe, trybKolorow, koloryPozaTrybem, najblizszyDozwolony, przekolorujProjekt, zmienZapasSpotu,
   koloryWZakresie, zamienKolorWZakresie, mapaSpotow, uzyteKoloryDruku, sekcjaBiezaca,
 } from '../kolory-druku.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-kolory-druku');
 const OPISY = {
@@ -50,12 +50,12 @@ function rysujZakres() {
 function rysujUzyte() {
   const p = stan.projekt;
   const sek = sekcjaZakresu();
-  $('#kolory-uzyte-tytul').textContent = sek ? `Kolory w sekcji „${sek.nazwa}”` : 'Kolory w projekcie';
+  $('#kolory-uzyte-tytul').textContent = sek ? `Kolory w sekcji „${sek.nazwa}”` : tt('koloryDrukuOkno.koloryWProjekcie');
   const uzyte = koloryWZakresie(p, zakres);
   const spoty = mapaSpotow(koloryDodatkowe(p));
   $('#kolory-uzyte-opis').textContent = uzyte.length
-    ? (sek ? 'Kliknij kolor, żeby zamienić go na inny na stronach tej sekcji (wzorce i style zostają bez zmian).' : 'Kliknij kolor, żeby zamienić go na inny wszędzie: na stronach, we wzorcach i w stylach.')
-    : (sek ? 'Na stronach tej sekcji nie ma jeszcze kolorów – pojawią się tu, gdy pokolorujesz elementy.' : 'W projekcie nie ma jeszcze kolorów – pojawią się tu, gdy pokolorujesz elementy.');
+    ? (sek ? tt('koloryDrukuOkno.kliknijKolorZebyZamienic2') : tt('koloryDrukuOkno.kliknijKolorZebyZamienic'))
+    : (sek ? tt('koloryDrukuOkno.naStronachTejSekcji') : tt('koloryDrukuOkno.wProjekcieNieMa'));
   $('#kolory-uzyte').replaceChildren(...uzyte.slice(0, 40).map(({ kolor, ile }) => {
     const li = document.createElement('li');
     const spot = spoty.get(kolor);
@@ -69,7 +69,7 @@ function rysujUzyte() {
     inp.addEventListener('change', async () => {
       const nowy = inp.value;
       const n = await zmien((proj) => zamienKolorWZakresie(proj, zakres, kolor, nowy));
-      if (n) powiadom(`Zamieniono kolor w ${n} ${n === 1 ? 'miejscu' : 'miejscach'}.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+      if (n) powiadom(`Zamieniono kolor w ${n} ${n === 1 ? 'miejscu' : 'miejscach'}.`, false, { etykieta: tt('koloryDrukuOkno.cofnij'), fn: () => cofnijKrok(-1) });
     });
     return li;
   }));
@@ -121,7 +121,7 @@ function rysujSpoty() {
       });
     }
     li.querySelector('button').addEventListener('click', async () => {
-      if (!await potwierdz('Usunąć kolor dodatkowy?', `Elementy w kolorze „${s.nazwa}” zostaną w zwykłym kolorze (CMYK) – bez osobnej płyty.`, 'Usuń', true)) return;
+      if (!await potwierdz(tt('koloryDrukuOkno.usunacKolorDodatkowy'), `Elementy w kolorze „${s.nazwa}” zostaną w zwykłym kolorze (CMYK) – bez osobnej płyty.`, tt('koloryDrukuOkno.usun'), true)) return;
       zmien((proj) => {
         proj.kolory_dodatkowe = koloryDodatkowe(proj).filter((x) => x !== s);
         if (proj.kolor_trybu === s.id) proj.kolor_trybu = proj.kolory_dodatkowe[0]?.id || null;
@@ -138,7 +138,7 @@ function rysujWykonczenia() {
   if (!uszlachetnienia.length) {
     const li = document.createElement('li');
     li.className = 'ciche';
-    li.textContent = 'Na razie bez wykończeń – wszystko drukuje się samymi farbami.';
+    li.textContent = tt('koloryDrukuOkno.naRazieBezWykonczen');
     lista.replaceChildren(li);
     return;
   }

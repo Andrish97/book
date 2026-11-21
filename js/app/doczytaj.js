@@ -5,6 +5,7 @@
 
 import { powiadom } from '../ui.js';
 import { MODULY_EDYTORA } from './moduly-edytora.js';
+import { t as tt } from '../jezyk.js';
 
 const FABRIC = 'js/zewnetrzne/fabric-7.4.0.min.js';
 
@@ -50,7 +51,7 @@ export const edytorGotowy = () => modul;
 export async function czekajNaEdytor() {
   if (modul) return modul;
   // Przy uruchamianiu (#170) czeka ekran startowy – bez dodatkowego dymka.
-  const t = setTimeout(() => { if (!document.body.classList.contains('startuje')) powiadom('Wczytuję edytor…'); }, 400);
+  const t = setTimeout(() => { if (!document.body.classList.contains('startuje')) powiadom(tt('doczytaj.wczytujeEdytor')); }, 400);
   try {
     return await doczytajEdytor();
   } catch (e) {

@@ -19,7 +19,7 @@ import { edytorGotowy } from './doczytaj.js';
 import { DOSTAWCY, modeleDostawcy } from '../ai-dostawcy.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t as tt } from '../jezyk.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 // Drobniejsze zakresy (#252) – pilnuje baza (ai_zakres_brak). Brak listy (null) – wszystko.
@@ -88,7 +88,7 @@ function listaWyboru(kontener, zaznaczone) {
   if (!projekty.length) {
     const p = document.createElement('p');
     p.className = 'podpowiedz';
-    p.textContent = 'Na koncie nie ma jeszcze projektów – wybierz „Pełny dostęp”, żeby AI mogło je tworzyć.';
+    p.textContent = tt('dostepAi.naKoncieNieMa');
     kontener.append(p);
   }
 }
@@ -148,9 +148,9 @@ function pokazPolecenia(adres = '') {
 export async function kopiujPolecenieAi() {
   try {
     await navigator.clipboard.writeText(polecenieZAdresem(adresWOknie));
-    powiadom('Skopiowano polecenie – wklej je w rozmowie ze swoim AI.');
+    powiadom(tt('dostepAi.skopiowanoPolecenieWklejJe'));
   } catch {
-    powiadom('Nie udało się skopiować – zaznacz tekst polecenia i skopiuj go ręcznie.', true);
+    powiadom(tt('dostepAi.nieUdaloSieSkopiowac'), true);
   }
 }
 
@@ -222,7 +222,7 @@ function oknoEdycji(tytul) {
   dlg.querySelector('.formularz')?.remove();
   const zamknij = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona' });
   zamknij.dataset.ikona = 'zamknij';
-  zamknij.setAttribute('aria-label', 'Zamknij');
+  zamknij.setAttribute('aria-label', tt('dostepAi.zamknij'));
   zamknij.addEventListener('click', () => dlg.close());
   const tresc = el('div', { className: 'formularz' }, el('div', { className: 'naglowek-dialogu' }, el('h2', { textContent: tytul }), zamknij));
   dlg.append(tresc);
@@ -233,7 +233,7 @@ function oknoEdycji(tytul) {
 // Miejsce na pokazany klucz: przycisk „Pokaż klucz” → tekst do skopiowania (z sejfu).
 function miejsceKlucza(pobierz) {
   const box = el('div', { className: 'klucz-pokazany' });
-  const pokaz = przyciskAi('Pokaż klucz', async () => {
+  const pokaz = przyciskAi(tt('dostepAi.pokazKlucz'), async () => {
     const w = await pobierz();
     if (!w) return;
     box.replaceChildren(...(w.brak
@@ -259,13 +259,13 @@ export function edytujKluczAi(d) {
   tresc.append(el('p', { className: 'podpowiedz', textContent: `${ROLE[d.rola] || d.rola} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` }));
 
   // Klucz jeszcze raz.
-  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: sposob === 'zwykly' ? 'Polecenie dla czatu' : 'Adres łącznika' }), miejsceKlucza(async () => {
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: sposob === 'zwykly' ? tt('dostepAi.polecenieDlaCzatu') : tt('dostepAi.adresLacznika') }), miejsceKlucza(async () => {
     const klucz = await kluczZSejfu(wSejfie(d.id));
     if (klucz === null) return null;
     if (!klucz) return { brak: 'Tego klucza Makietka nie zapamiętała (utworzony wcześniej, przez logowanie w aplikacji AI albo bez hasła do kluczy). Jeśli go nie masz – odbierz go i dodaj nowy.' };
     const adres = adresLacznika(klucz);
     const tekst = sposob === 'zwykly' ? polecenieZwyklegoCzatu(adres) : adres;
-    return { tekst, przyciski: [przyciskAi(sposob === 'zwykly' ? 'Kopiuj polecenie' : 'Kopiuj adres', () => kopiujTekst(tekst, sposob === 'zwykly' ? 'Tekst' : 'Adres')), przyciskAi('Kopiuj sam klucz', () => kopiujTekst(klucz, 'Klucz'))] };
+    return { tekst, przyciski: [przyciskAi(sposob === 'zwykly' ? tt('dostepAi.kopiujPolecenie') : tt('dostepAi.kopiujAdres'), () => kopiujTekst(tekst, sposob === 'zwykly' ? 'Tekst' : 'Adres')), przyciskAi(tt('dostepAi.kopiujSamKlucz'), () => kopiujTekst(klucz, 'Klucz'))] };
   })));
 
   // Zakres.
@@ -275,34 +275,34 @@ export function edytujKluczAi(d) {
   const pokazListe = () => { lista.hidden = radia.querySelector('input:checked')?.value === 'pelny'; };
   radia.addEventListener('change', pokazListe);
   pokazListe();
-  tresc.append(el('fieldset', { className: 'grupa-pol zmiana-zakresu' }, el('legend', { textContent: 'Zakres' }), radia, lista));
+  tresc.append(el('fieldset', { className: 'grupa-pol zmiana-zakresu' }, el('legend', { textContent: tt('dostepAi.zakres') }), radia, lista));
   let czytajUprawnienia = null;
   if (d.rola === 'edycja') {
-    const pola = el('fieldset', { className: 'uprawnienia-klucza' }, el('legend', { textContent: 'Przy zmianach AI może też' }));
+    const pola = el('fieldset', { className: 'uprawnienia-klucza' }, el('legend', { textContent: tt('dostepAi.przyZmianachAiMoze') }));
     czytajUprawnienia = poleUprawnien(pola, d.uprawnienia);
-    tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Uprawnienia' }), pola));
+    tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.uprawnienia') }), pola));
   }
 
   // Ważność – od dziś.
   const wybor = el('select', { id: 'edytuj-klucz-dni' });
   wybor.append(new Option('bez zmian', ''), ...DNI.map(([v, t]) => new Option(v === 'bez' ? t : `${t} od dziś`, v)));
-  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Ważność' }),
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.waznosc') }),
     el('label', { className: 'pole' }, el('span', { textContent: d.aktywny ? `Teraz: ${opisWaznosci(d)}` : 'Klucz wygasł – ustaw nowy czas' }), wybor)));
 
   const blad = el('p', { className: 'blad-polaczenia', hidden: true });
   blad.setAttribute('role', 'alert');
   tresc.append(blad, el('div', { className: 'przyciski-dialogu' },
-    przyciskAi('Odbierz klucz', async () => {
-      if (!await potwierdz('Odebrać klucz?', `Klucz „${d.opis || 'bez opisu'}” przestanie działać od razu – AI straci dostęp do wszystkich projektów tego klucza.`, 'Odbierz', true)) return;
+    przyciskAi(tt('dostepAi.odbierzKlucz'), async () => {
+      if (!await potwierdz(tt('dostepAi.odebracKlucz'), `Klucz „${d.opis || 'bez opisu'}” przestanie działać od razu – AI straci dostęp do wszystkich projektów tego klucza.`, tt('dostepAi.odbierz'), true)) return;
       try {
         await chmura.odwolajDostepAi(d.id);
         const s = sejfKonta();
         if (s && s.klucz(wSejfie(d.id))) await s.ustaw(wSejfie(d.id), '').catch(() => {});
-        powiadom('Klucz odebrany.');
+        powiadom(tt('dostepAi.kluczOdebrany'));
         dlg.close();
       } catch (e) { blad.textContent = chmura.komunikatBledu(e); blad.hidden = false; }
     }, 'niebezpieczny'),
-    przyciskAi('Zapisz zmiany', async () => {
+    przyciskAi(tt('dostepAi.zapiszZmiany'), async () => {
       try {
         const zakres = radia.querySelector('input:checked')?.value || 'wybrane';
         const projektyNowe = zakres === 'pelny' ? [] : wybrane(lista);
@@ -313,7 +313,7 @@ export function edytujKluczAi(d) {
           const u = czytajUprawnienia();
           if (JSON.stringify(u) !== JSON.stringify(d.uprawnienia ?? null)) await chmura.ustawUprawnieniaAi(d.id, u);
         }
-        powiadom('Klucz zmieniony – adres zostaje ten sam.');
+        powiadom(tt('dostepAi.kluczZmienionyAdresZostaje'));
         dlg.close();
       } catch (e) { blad.textContent = chmura.komunikatBledu(e); blad.hidden = false; }
     }, 'glowny')));
@@ -342,11 +342,11 @@ function polaPolaczenia(id, kluczFn) {
   const adres = d.wlasnyAdres ? el('input', { id: 'klucz-ai-adres', type: 'url', value: zapisane.adres || '', placeholder: 'https://…/v1' }) : null;
   const wynik = el('p', { className: 'podpowiedz wynik-polaczenia', hidden: true });
   wynik.setAttribute('role', 'status');
-  const sprawdz = przyciskAi('Sprawdź połączenie', async () => {
+  const sprawdz = przyciskAi(tt('dostepAi.sprawdzPolaczenie'), async () => {
     const klucz = kluczFn();
     if (!klucz) { wynik.textContent = 'Najpierw wklej klucz.'; wynik.hidden = false; return; }
     sprawdz.disabled = true;
-    wynik.textContent = 'Sprawdzam…';
+    wynik.textContent = tt('dostepAi.sprawdzam');
     wynik.hidden = false;
     wynik.classList.remove('blad', 'dobrze');
     try {
@@ -360,9 +360,9 @@ function polaPolaczenia(id, kluczFn) {
       wynik.classList.add('blad');
     } finally { sprawdz.disabled = false; }
   });
-  const pole = el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Model i połączenie' }),
-    el('label', { className: 'pole' }, el('span', { textContent: 'Model domyślny' }), model), lista,
-    ...(adres ? [el('label', { className: 'pole' }, el('span', { textContent: 'Adres API' }), adres)] : []),
+  const pole = el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.modelIPolaczenie') }),
+    el('label', { className: 'pole' }, el('span', { textContent: tt('dostepAi.modelDomyslny') }), model), lista,
+    ...(adres ? [el('label', { className: 'pole' }, el('span', { textContent: tt('dostepAi.adresApi') }), adres)] : []),
     el('div', { className: 'rzad-przyciskow' }, sprawdz), wynik);
   return { pole, zapisz: () => zapiszUstawieniaDostawcy(id, { model: model.value.trim(), ...(adres ? { adres: adres.value.trim() } : {}) }) };
 }
@@ -372,21 +372,21 @@ function edytujKluczDostawcy(id) {
   const { dlg, tresc } = oknoEdycji(`Klucz API: ${d.nazwa}`);
   const s = sejfKonta();
   tresc.append(el('p', { className: 'podpowiedz', textContent: `Do Asystenta AI w edytorze. Zaszyfrowany Twoim hasłem do kluczy (…${s.klucz(id).slice(-4)}).` }));
-  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Klucz' }), miejsceKlucza(async () => ({
-    tekst: s.klucz(id), przyciski: [przyciskAi('Kopiuj', () => kopiujTekst(s.klucz(id), 'Klucz'))],
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.klucz') }), miejsceKlucza(async () => ({
+    tekst: s.klucz(id), przyciski: [przyciskAi(tt('dostepAi.kopiuj'), () => kopiujTekst(s.klucz(id), 'Klucz'))],
   }))));
   const nowy = el('input', { type: 'password', id: 'edytuj-klucz-dostawcy', autocomplete: 'off', spellcheck: false, placeholder: 'Wklej nowy klucz, żeby zamienić' });
-  const gdzie = d.kluczUrl ? el('a', { href: d.kluczUrl, target: '_blank', rel: 'noopener', textContent: 'Gdzie wziąć klucz?' }) : '';
-  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: 'Zamień klucz' }), el('label', { className: 'pole' }, el('span', { textContent: 'Nowy klucz API' }), nowy), el('p', { className: 'podpowiedz' }, gdzie)));
+  const gdzie = d.kluczUrl ? el('a', { href: d.kluczUrl, target: '_blank', rel: 'noopener', textContent: tt('dostepAi.gdzieWziacKlucz') }) : '';
+  tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.zamienKlucz') }), el('label', { className: 'pole' }, el('span', { textContent: tt('dostepAi.nowyKluczApi') }), nowy), el('p', { className: 'podpowiedz' }, gdzie)));
   const polaczenie = polaPolaczenia(id, () => nowy.value.trim() || s.klucz(id));
   tresc.append(polaczenie.pole);
   tresc.append(el('div', { className: 'przyciski-dialogu' },
-    przyciskAi('Usuń klucz', async () => {
-      if (!await potwierdz(`Usunąć klucz ${d.nazwa}?`, 'Asystent AI nie będzie mógł używać tego dostawcy, dopóki nie wkleisz klucza od nowa.', 'Usuń', true)) return;
+    przyciskAi(tt('dostepAi.usunKlucz'), async () => {
+      if (!await potwierdz(`Usunąć klucz ${d.nazwa}?`, 'Asystent AI nie będzie mógł używać tego dostawcy, dopóki nie wkleisz klucza od nowa.', tt('dostepAi.usun'), true)) return;
       await s.ustaw(id, '');
       dlg.close();
     }, 'niebezpieczny'),
-    przyciskAi('Zapisz', async () => {
+    przyciskAi(tt('dostepAi.zapisz'), async () => {
       const v = nowy.value.trim();
       if (v) { await s.ustaw(id, v); powiadom(`Klucz ${d.nazwa} zamieniony.`); }
       polaczenie.zapisz();
@@ -400,8 +400,8 @@ function wierszKlucza(d) {
   li.dataset.id = d.id;
   const zakres = el('span', { className: 'zakres-opis', textContent: opisZakresu(d) });
   const szczegoly = el('span', { className: 'ciche', textContent: `${ROLE[d.rola] || d.rola}${d.rola === 'edycja' ? opisUprawnien(d) : ''} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` });
-  li.append(el('div', {}, el('strong', { textContent: d.opis || 'Klucz bez opisu' }), zakres, szczegoly),
-    el('div', { className: 'klucz-akcje' }, przyciskAi('Edytuj', () => edytujKluczAi(d))));
+  li.append(el('div', {}, el('strong', { textContent: d.opis || tt('dostepAi.kluczBezOpisu') }), zakres, szczegoly),
+    el('div', { className: 'klucz-akcje' }, przyciskAi(tt('dostepAi.edytuj'), () => edytujKluczAi(d))));
   return li;
 }
 
@@ -438,14 +438,14 @@ async function rysujDostawcow() {
     el('div', { className: 'klucz-akcje' }, przycisk));
   if (st === 'zamkniety') {
     lista.replaceChildren(wiersz('Klucze API dostawców', 'zaszyfrowane – na tym urządzeniu podaj hasło do kluczy',
-      przyciskAi('Otwórz', async () => { if (await otwartySejf()) { rysujDostawcow(); odswiezListe(); } }, 'glowny')));
+      przyciskAi(tt('dostepAi.otworz'), async () => { if (await otwartySejf()) { rysujDostawcow(); odswiezListe(); } }, 'glowny')));
   } else {
     lista.replaceChildren(...Object.entries(DOSTAWCY).filter(([id, d]) => !d.bezKlucza && st === 'otwarty' && s.klucz(id))
-      .map(([id, d]) => wiersz(d.nazwa, `klucz API · zaszyfrowany (…${s.klucz(id).slice(-4)})`, przyciskAi('Edytuj', () => edytujKluczDostawcy(id)))));
+      .map(([id, d]) => wiersz(d.nazwa, `klucz API · zaszyfrowany (…${s.klucz(id).slice(-4)})`, przyciskAi(tt('dostepAi.edytuj'), () => edytujKluczDostawcy(id)))));
   }
   akcje.replaceChildren(...(st === 'otwarty'
-    ? [przyciskAi('Zamknij klucze na tym urządzeniu', async () => { await s.zamknij(); rysujDostawcow(); }),
-      przyciskAi('Usuń wszystkie zaszyfrowane klucze z konta', async () => { if (await potwierdz('Usunąć zapisane klucze?', 'Wszystkie klucze API dostawców i zapamiętane klucze dostępu znikną z sejfu (także na innych urządzeniach). Hasło do kluczy przestanie być potrzebne.', 'Usuń', true)) { await s.usun(); rysujDostawcow(); } })]
+    ? [przyciskAi(tt('dostepAi.zamknijKluczeNaTym'), async () => { await s.zamknij(); rysujDostawcow(); }),
+      przyciskAi(tt('dostepAi.usunWszystkieZaszyfrowaneKlucze'), async () => { if (await potwierdz('Usunąć zapisane klucze?', 'Wszystkie klucze API dostawców i zapamiętane klucze dostępu znikną z sejfu (także na innych urządzeniach). Hasło do kluczy przestanie być potrzebne.', tt('dostepAi.usun'), true)) { await s.usun(); rysujDostawcow(); } })]
     : []));
   pokazPusto();
 }
@@ -677,7 +677,7 @@ export async function podsumowanieKluczy() {
     const aktywne = (await chmura.dostepyAi()).filter((d) => d.aktywny);
     el.textContent = aktywne.length
       ? `Aktywne klucze: ${aktywne.length} – ${aktywne.slice(0, 3).map((d) => `„${d.opis || 'bez opisu'}” (${d.zakres === 'pelny' ? 'pełny dostęp' : `projekty: ${d.projekty.length}`})`).join(', ')}${aktywne.length > 3 ? '…' : ''}.`
-      : 'Nie masz jeszcze żadnego klucza.';
+      : tt('dostepAi.nieMaszJeszczeZadnego');
   } catch { el.textContent = ''; }
 }
 

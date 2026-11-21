@@ -25,7 +25,7 @@ import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pok
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
 import { ustawZakladke, generujMiniatury, renderujListe, oznaczBiezacaWLiscie, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t } from '../jezyk.js';
 
 // Nazwa projektu w górnym pasku; pełna także w dymku – na wąskim ekranie pole bywa ucięte.
 const pokazNazwe = (nazwa) => { const pole = $('#nazwa-projektu'); pole.value = nazwa; pole.title = nazwa; };
@@ -133,7 +133,7 @@ async function przywrocHistorie(p) {
     if ((zapis.wersja_chmury ?? null) === (p.wersja_chmury ?? null)) { historia.zapisz(p); return; }
     const byloCoCofac = historia.moznaCofnac || historia.moznaPonowic;
     historia.wyczysc();
-    if (byloCoCofac) powiadom('Historia cofania zaczyna się od nowa – projekt zmienił się na innym urządzeniu od ostatniej pracy na tym.');
+    if (byloCoCofac) powiadom(t('zapis.historiaCofaniaZaczynaSie'));
   }
   historia.zapisz(p); // stan wyjściowy – do niego wraca pierwsze cofnięcie
 }
@@ -368,7 +368,7 @@ export async function otworzProjekt(p, cel = {}) {
   stan.doHistorii = false;
   // Okładka mogła się zmienić, gdy projekt był zamknięty (np. strony od AI). Błąd przeliczenia (np. dziwne dane
   // okładki) nie może zablokować otwarcia projektu – okładka zostaje wtedy jak była.
-  try { przeliczOkladki(stan.projekt); } catch (e) { console.error(e); powiadom('Nie udało się przeliczyć okładki – zostaje bez zmian. Sprawdź ustawienia sekcji okładki.', true); }
+  try { przeliczOkladki(stan.projekt); } catch (e) { console.error(e); powiadom(t('zapis.nieUdaloSiePrzeliczyc'), true); }
   await przywrocHistorie(stan.projekt);
   if (!plotnoOdlozone) await zaladujCel({ dopasuj: true });
   odswiezCofanie();
@@ -420,7 +420,7 @@ function podpowiedzTypu(projekt) {
   } catch { /* podpowiedź pokaże się znowu przy następnym otwarciu */ }
   const typ = /ty[lł]/i.test(s.nazwa) ? 'wyklejka_tylna' : 'wyklejka_przednia';
   powiadom(`Sekcja „${s.nazwa}” wygląda na wyklejkę – ustawić typ „${typ === 'wyklejka_tylna' ? 'Wyklejka tylna' : 'Wyklejka przednia'}”?`, false, {
-    etykieta: 'Ustaw typ',
+    etykieta: t('zapis.ustawTyp'),
     fn: async () => {
       if (stan.projekt !== projekt) return;
       const { normalizujSpecjalna } = await import('../sekcje-specjalne.js');
@@ -719,7 +719,7 @@ async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
   const wersja = p.zmieniono;
   // Nowe obrazy (wgrane tutaj albo przez AI) idą na konto przed projektem – przy dużych zdjęciach widać postęp.
   const doWyslania = Object.values(p.zasoby || {}).filter((z) => z && (!z.sciezka || chmura.czyOdAi(z.sciezka))).length;
-  const pasek = doWyslania ? postep('Wysyłanie obrazów na konto…', { razem: doWyslania, opoznienie: 800 }) : null;
+  const pasek = doWyslania ? postep(t('zapis.wysylanieObrazowNaKonto'), { razem: doWyslania, opoznienie: 800 }) : null;
   try {
     await chmura.zapiszWChmurze(p, { wymus, postep: pasek && ((i, n) => pasek.krok(i, n)) });
     // Wysłane – to jest teraz stan uzgodniony z kontem.
@@ -742,7 +742,7 @@ async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
     // Właściciel odebrał dostęp albo zmienił rolę na „może oglądać” (współpraca).
     if (e.code === '42501' && p.wspolpraca_chmury) {
       stanZapisu('blad', 'Nie wysłano: nie masz już prawa zmieniać tego projektu');
-      powiadom('Właściciel odebrał Ci prawo zmieniania tego projektu. Twoje ostatnie zmiany zostały tylko na tym urządzeniu.', true);
+      powiadom(t('zapis.wlascicielOdebralCiPrawo'), true);
       return;
     }
     stanZapisu('blad', `Nie wysłano: ${chmura.komunikatBledu(e)}`);
@@ -862,7 +862,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
     if (zKonta.wersja_chmury === p.wersja_chmury) { koniec(); return; } // to już mamy
     // Obrazy, które doszły na koncie, pobieramy zawczasu – po połączeniu płótno ma się odświeżyć od razu.
     // Przy wielu nowych obrazach widać to jako postęp (np. zdjęcia wgrane przez AI).
-    const pasekObrazow = postep('Pobieranie obrazów z konta…', { opoznienie: 800 });
+    const pasekObrazow = postep(t('zapis.pobieranieObrazowZKonta'), { opoznienie: 800 });
     try {
       await podlaczZasoby(zKonta, chmura.pobierzZasob, (i, n) => pasekObrazow.krok(i, n));
     } catch { /* brakujące obrazy pokażą się jako brakujące */ } finally { pasekObrazow.koniec(); }
@@ -941,7 +941,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
       powiadom(`Połączono zmiany z innego urządzenia (z konta: ${ileZKonta} ${ileZKonta === 1 ? 'część' : 'części'} projektu). Twoje zmiany zostały.`);
     } else if (ileZKonta && Date.now() - ostatnieWczytanie > 20000) {
       ostatnieWczytanie = Date.now();
-      powiadom('Wczytano zmiany z innego urządzenia.');
+      powiadom(t('zapis.wczytanoZmianyZInnego'));
     }
     if (doWyslania) {
       p.zmieniono = new Date().toISOString(); // drugie urządzenie ma zobaczyć, że na koncie jest coś nowszego niż u niego
@@ -1027,11 +1027,11 @@ async function zapytajOCalyProjekt(p, e) {
   stanZapisu('blad', 'Nowsza wersja na koncie');
   const kiedyTamta = e.zmieniono ? ` (zapisana ${kiedy(e.zmieniono)})` : '';
   const tylkoKonto = await potwierdz(
-    'Projekt zmieniono w innym miejscu',
+    t('zapis.projektZmienionoWInnym'),
     `Na koncie jest nowsza wersja projektu „${p.nazwa}”${kiedyTamta} – np. z innego urządzenia albo od AI. Wczytaj ją. Jeśli na tym urządzeniu też coś zmieniono, możesz te zmiany zachować jako osobną kopię projektu – nic nie przepadnie.`,
-    'Wczytaj wersję z konta',
+    t('zapis.wczytajWersjeZKonta'),
     false,
-    'Wczytaj i zachowaj moją jako kopię',
+    t('zapis.wczytajIZachowajMoja'),
   );
   if (stan.projekt !== p) { stan.konflikt = null; return; }
   if (!tylkoKonto) {
@@ -1057,7 +1057,7 @@ async function zapytajOCalyProjekt(p, e) {
     stan.projekt = null; // żeby otwarcie nie zapisało porzucanej wersji
     await usunHistorie(zKonta.id); // historia porzucanej wersji nie pasuje do wersji z konta
     await otworzProjekt(zKonta);
-    powiadom('Wczytano wersję z konta.');
+    powiadom(t('zapis.wczytanoWersjeZKonta'));
   } catch (blad) {
     stan.konflikt = null;
     stanZapisu('blad', `Nie udało się wczytać wersji z konta: ${chmura.komunikatBledu(blad)}`);

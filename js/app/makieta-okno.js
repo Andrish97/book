@@ -26,7 +26,7 @@ import { uzyteKoloryDruku, stanUszlachetnien, FOLIE, plytaUszlachetnienia } from
 import { maskaZRoznicy } from '../separacje.js';
 import { KoderGif } from '../gif.js';
 import { ikona, wstawIkony } from '../ikony.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-makieta');
 const plotno = $('#makieta-plotno');
@@ -125,7 +125,7 @@ const wToku = new Set();
 // Postęp wczytywania stron (#159): „x z y” dla bieżącej partii, znika, gdy wszystkie gotowe.
 let partia = null; // { pasek, razem, gotowe }
 function startTekstury() {
-  if (!partia) partia = { pasek: postep('Wczytywanie stron makiety…', { razem: 0 }), razem: 0, gotowe: 0 };
+  if (!partia) partia = { pasek: postep(tt('makietaOkno.wczytywanieStronMakiety'), { razem: 0 }), razem: 0, gotowe: 0 };
   partia.razem += 1;
   partia.pasek.krok(partia.gotowe, partia.razem);
 }
@@ -555,7 +555,7 @@ function ustawModel(model, { kamera = true } = {}) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'przycisk maly';
-    b.textContent = 'Ustaw typ sekcji…';
+    b.textContent = tt('makietaOkno.ustawTypSekcji');
     b.addEventListener('click', () => { $('#dlg-makieta').close(); window.seriodruk?.otworzUstawieniaSekcji?.(o.sekcja.id); });
     p.append(b);
     uwaga.append(p);
@@ -782,7 +782,7 @@ const ustawieniaEksportu = () => ({ rozmiar: $('#makieta-rozmiar').value, wlasny
 export async function pobierzObrazMakiety() {
   if (!st || !renderer) return;
   const blob = await obrazMakiety(ustawieniaEksportu());
-  if (!blob) { powiadom('Nie udało się zapisać obrazu makiety.', true); return; }
+  if (!blob) { powiadom(tt('makietaOkno.nieUdaloSieZapisac'), true); return; }
   pobierzPlik(blob, 'png');
 }
 
@@ -812,7 +812,7 @@ export async function nagrajAnimacje({ ruch = 'obrot', plik = 'wideo', klatek = 
   if (!st || !renderer) return null;
   const gif = plik === 'gif';
   const mime = gif ? 'image/gif' : formatWideo();
-  if (!mime || (!gif && typeof plotno.captureStream !== 'function')) { powiadom('Ta przeglądarka nie nagrywa wideo z grafiki 3D – wybierz GIF.', true); return null; }
+  if (!mime || (!gif && typeof plotno.captureStream !== 'function')) { powiadom(tt('makietaOkno.taPrzegladarkaNieNagrywa'), true); return null; }
   const max = polozenia(st.model, st.kartki);
   const kartkowanie = ruch === 'kartkowanie' && max > 0;
   // Klatki: obrót – pełne koło; kartkowanie – każde położenie z płynnym przewracaniem i chwilą postoju.
@@ -832,7 +832,7 @@ export async function nagrajAnimacje({ ruch = 'obrot', plik = 'wideo', klatek = 
   }
   if (klatek) lista.length = Math.min(lista.length, klatek);
   let przerwij = false;
-  const pasek = postep(gif ? 'Nagrywanie GIF…' : 'Nagrywanie wideo…', { razem: lista.length, anuluj: () => { przerwij = true; } });
+  const pasek = postep(gif ? tt('makietaOkno.nagrywanieGif') : tt('makietaOkno.nagrywanieWideo'), { razem: lista.length, anuluj: () => { przerwij = true; } });
   const { width: w0, height: h0 } = plotno;
   eksport = true;
   try {
@@ -932,7 +932,7 @@ export function przelaczPelnyEkranMakiety(wlacz) {
   const b = dlg.querySelector('[data-akcja="makieta-pelny-ekran"]');
   if (b) {
     b.setAttribute('aria-pressed', String(cel));
-    b.title = cel ? 'Zamknij pełny ekran (Esc)' : 'Pełny ekran';
+    b.title = cel ? tt('makietaOkno.zamknijPelnyEkranEsc') : tt('makietaOkno.pelnyEkran');
     b.setAttribute('aria-label', b.title);
     b.querySelector(':scope > svg.ikona')?.remove();
     b.dataset.ikona = cel ? 'zwin-ekran' : 'pelny-ekran';
@@ -1064,7 +1064,7 @@ function pokazZapisane() {
     b.type = 'button';
     b.className = 'nazwa-ujecia';
     b.dataset.pokazUjecie = u.id;
-    b.title = 'Pokaż to ujęcie';
+    b.title = tt('makietaOkno.pokazToUjecie');
     const n = document.createElement('span');
     wpiszNazwe(n, u.nazwa);
     const o = document.createElement('span');
@@ -1075,7 +1075,7 @@ function pokazZapisane() {
     x.type = 'button';
     x.className = 'przycisk-ikona';
     x.dataset.usunUjecie = u.id;
-    x.title = 'Usuń ujęcie';
+    x.title = tt('makietaOkno.usunUjecie');
     x.setAttribute('aria-label', `Usuń ujęcie ${u.nazwa}`);
     x.innerHTML = ikona('kosz', { rozmiar: 18 });
     li.append(b, x);

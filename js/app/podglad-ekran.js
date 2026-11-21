@@ -12,6 +12,7 @@ import { zapiszTeraz, pokazEdytor, plotnoOdlozone, przygotujDoRysowania } from '
 import { podglad } from './skladniki.js';
 import { przejdzDoStrony } from './lista-stron.js';
 import { zapiszGdziekolwiek, pokazProjekty } from './projekty.js';
+import { t } from '../jezyk.js';
 
 export async function doEdycji(idStrony) {
   const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);
@@ -106,7 +107,7 @@ function odswiezOknoUdostepniania() {
   $('#udostepnij-link').value = linkUdostepnienia(p);
   const aktualny = u.odcisk === odciskTresci(p);
   $('#udostepnij-stan').textContent = trwaPublikacja
-    ? 'Aktualizuję link…'
+    ? t('podgladEkran.aktualizujeLink')
     : (aktualny
       ? `Link pokazuje aktualny stan projektu (zaktualizowano ${kiedy(u.zaktualizowano)}).`
       : `Projekt zmienił się po ostatniej aktualizacji linku (${kiedy(u.zaktualizowano)}). Link zaktualizuje się sam, gdy zmiany zapiszą się na koncie.`);
@@ -135,7 +136,7 @@ function odswiezPolaOchrony() {
   const u = (celOkna || stan.projekt)?.udostepnienie;
   $('#udostepnij-haslo-pole').hidden = !$('#udostepnij-haslo-wl').checked;
   $('#udostepnij-termin-pole').hidden = !$('#udostepnij-termin-wl').checked;
-  $('#udostepnij-haslo').placeholder = u?.ochrona?.haslo ? 'bez zmian – wpisz nowe, żeby je zmienić' : 'co najmniej 4 znaki';
+  $('#udostepnij-haslo').placeholder = u?.ochrona?.haslo ? 'bez zmian – wpisz nowe, żeby je zmienić' : t('podgladEkran.coNajmniej4Znaki');
 }
 
 // Pola ochrony według zapisanych ustawień linku – przy otwarciu okna i po udanym zapisie
@@ -150,7 +151,7 @@ function wypelnijOchrone(p) {
 
 function odswiezOchrone(p, mozna) {
   $('#udostepnij-ochrona').hidden = !mozna;
-  $('#udostepnij-ochrona-stan').textContent = p.udostepnienie ? opisOchrony(p.udostepnienie.ochrona) : 'Ustawienia zadziałają od razu przy tworzeniu linku.';
+  $('#udostepnij-ochrona-stan').textContent = p.udostepnienie ? opisOchrony(p.udostepnienie.ochrona) : t('podgladEkran.ustawieniaZadzialajaOdRazu');
   $('#udostepnij-ochrona-zapisz').hidden = !p.udostepnienie;
   odswiezPolaOchrony();
 }
@@ -232,16 +233,16 @@ export async function zapiszOchroneLinku() {
   if (!p?.udostepnienie) return;
   const w = ochronaZOkna(p);
   if (w.blad) { komunikat.textContent = w.blad; return; }
-  if (!w.chroniony && !p.udostepnienie.ochrona) { komunikat.textContent = 'Link jest bez ochrony.'; return; }
+  if (!w.chroniony && !p.udostepnienie.ochrona) { komunikat.textContent = t('podgladEkran.linkJestBezOchrony'); return; }
   const przycisk = $('#udostepnij-ochrona-zapisz');
   przycisk.disabled = true;
   trwaPublikacja = true;
   try {
     if (p !== stan.projekt && ochronaRysuje(p.udostepnienie, w)) {
-      komunikat.textContent = 'Przygotowuję strony linku…';
+      komunikat.textContent = t('podgladEkran.przygotowujeStronyLinku');
       await przygotujDoRysowania(p);
     }
-    komunikat.textContent = 'Zapisuję ochronę linku…';
+    komunikat.textContent = t('podgladEkran.zapisujeOchroneLinku');
     await linkWTle((pasek) => zastosujOchrone(p, w, (i, n) => { pasek(i, n); komunikat.textContent = `Przenoszę strony: ${i} z ${n}… (możesz zamknąć to okno, nie zamykaj Makietki)`; }));
     if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
     komunikat.textContent = `Zapisano. ${opisOchrony(p.udostepnienie.ochrona)}`;
@@ -292,7 +293,7 @@ function odswiezZnak(p, mozna) {
   pokazPolaZnaku();
   $('#udostepnij-znak-stan').textContent = p.znak_wodny
     ? `Strony linku mają znak wodny „${p.znak_wodny.tekst}” (krycie ${kryciaZnaku(p.znak_wodny)}%).`
-    : 'Bez znaku wodnego.';
+    : t('podgladEkran.bezZnakuWodnego');
 }
 const pokazPolaZnaku = () => { const wl = $('#udostepnij-znak-wl').checked; $('#udostepnij-znak-pole').hidden = !wl; $('#udostepnij-znak-krycie-pole').hidden = !wl; if (wl) pokazPodgladZnaku(); };
 $('#udostepnij-znak-wl')?.addEventListener('change', pokazPolaZnaku);
@@ -308,7 +309,7 @@ export async function zapiszZnakWodny() {
   komunikat.classList.remove('sukces');
   const wl = $('#udostepnij-znak-wl').checked;
   const nowy = wl ? { tekst: ($('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY).slice(0, 40), krycie: kryciaZnaku({ krycie: $('#udostepnij-znak-krycie').value }) } : null;
-  if (JSON.stringify(nowy) === JSON.stringify(p.znak_wodny || null)) { komunikat.textContent = 'Bez zmian.'; return; }
+  if (JSON.stringify(nowy) === JSON.stringify(p.znak_wodny || null)) { komunikat.textContent = t('podgladEkran.bezZmian'); return; }
   const przycisk = $('#udostepnij-znak-zapisz');
   przycisk.disabled = true;
   trwaPublikacja = true;
@@ -326,7 +327,7 @@ export async function zapiszZnakWodny() {
       await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); komunikat.textContent = `Zapisano. Strony linku: ${i} z ${n} – możesz zamknąć to okno, nie zamykaj Makietki.`; }));
       await zapiszP();
     }
-    komunikat.textContent = nowy ? `Zapisano. Znak wodny „${nowy.tekst}” (krycie ${nowy.krycie}%)${p.udostepnienie ? ' jest już na stronach linku' : ' pojawi się na stronach linku'}.` : 'Zapisano. Strony linku są bez znaku wodnego.';
+    komunikat.textContent = nowy ? `Zapisano. Znak wodny „${nowy.tekst}” (krycie ${nowy.krycie}%)${p.udostepnienie ? ' jest już na stronach linku' : ' pojawi się na stronach linku'}.` : t('podgladEkran.zapisanoStronyLinkuSa');
     komunikat.classList.add('sukces');
     wypelnijZnak(p);
   } catch (e) {
@@ -385,7 +386,7 @@ export async function zapiszMakieteLinku() {
   const ujecie = $('#udostepnij-makieta-ujecie').value;
   const nowy = !wl ? { pokaz: false } : { ...(model ? { model } : {}), ...(ujecie ? { ujecie } : {}) };
   const pusty = !Object.keys(nowy).length;
-  if (JSON.stringify(pusty ? null : nowy) === JSON.stringify(p.makieta_linku || null)) { komunikat.textContent = 'Bez zmian.'; return; }
+  if (JSON.stringify(pusty ? null : nowy) === JSON.stringify(p.makieta_linku || null)) { komunikat.textContent = t('podgladEkran.bezZmian'); return; }
   const przycisk = $('#udostepnij-makieta-zapisz');
   przycisk.disabled = true;
   trwaPublikacja = true;
@@ -568,7 +569,7 @@ export async function opublikujUdostepnienie() {
         p.udostepnienie = { kod, ochrona: { haslo: Boolean(ochrona?.haslo), wazny_do: ochrona?.wazny_do || null } };
       }
     }
-    komunikat.textContent = 'Przygotowuję link…';
+    komunikat.textContent = t('podgladEkran.przygotowujeLink');
     const pasek = pasekPostepu('Udostępnianie: strony podglądu – nie zamykaj Makietki', { opoznienie: 0 });
     pilnujZamkniecia(true);
     let wynik;
@@ -588,7 +589,7 @@ export async function opublikujUdostepnienie() {
     } finally { pasek.koniec(); pilnujZamkniecia(false); }
     komunikat.textContent = wynik.wyslane < wynik.wszystkie
       ? `Gotowe. Wysłano ${wynik.wyslane} z ${wynik.wszystkie} stron – reszta się nie zmieniła.`
-      : 'Gotowe. Skopiuj link i wyślij go, komu chcesz. Od teraz będzie się aktualizował sam.';
+      : t('podgladEkran.gotoweSkopiujLinkI');
     komunikat.classList.add('sukces');
     wypelnijOchrone(p);
     odswiezOknoUdostepnianiaZachowujacKomunikat(); // link od razu w oknie, zapis – zaraz potem
@@ -642,7 +643,7 @@ function odswiezOknoUdostepnianiaZachowujacKomunikat() {
 export async function wylaczUdostepnienie() {
   const p = celOkna || stan.projekt;
   if (!p?.udostepnienie) return;
-  if (!await potwierdz('Unieważnić link?', 'Osoby, które dostały link, przestaną widzieć podgląd. Jeśli udostępnisz projekt ponownie, link będzie miał inny adres.', 'Unieważnij link', true)) return;
+  if (!await potwierdz(t('podgladEkran.uniewaznicLink'), t('podgladEkran.osobyKtoreDostalyLink'), t('podgladEkran.uniewaznijLink'), true)) return;
   try {
     clearTimeout(timerLinku);
     if (p.udostepnienie.ochrona) await chmura.usunPodgladChroniony(p.id, p.udostepnienie.kod);
@@ -651,7 +652,7 @@ export async function wylaczUdostepnienie() {
     delete p.udostepnienie;
     if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
     odswiezOknoUdostepniania();
-    $('#udostepnij-komunikat').textContent = 'Link unieważniony.';
+    $('#udostepnij-komunikat').textContent = t('podgladEkran.linkUniewazniony');
     if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
   } catch (e) {
     $('#udostepnij-komunikat').textContent = `Nie udało się unieważnić: ${chmura.komunikatBledu(e)}`;
@@ -662,9 +663,9 @@ export async function kopiujLinkUdostepnienia() {
   const pole = $('#udostepnij-link');
   try {
     await navigator.clipboard.writeText(pole.value);
-    powiadom('Link skopiowany.');
+    powiadom(t('podgladEkran.linkSkopiowany'));
   } catch {
     pole.select();
-    powiadom('Zaznaczyłem link – skopiuj go z pola.');
+    powiadom(t('podgladEkran.zaznaczylemLinkSkopiujGo'));
   }
 }

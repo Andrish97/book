@@ -12,6 +12,7 @@ import { otwartySejf, sejfKonta, maKluczeDoPrzeniesienia } from './sejf-ai.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
 import { wymagaZgody } from '../zgoda-ai.js';
+import { t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-czat-ai');
 const f = $('#czat-ai-ustawienia');
@@ -39,7 +40,7 @@ function zapytajOZgode(opis) {
       gotowe(wolno);
     };
     const przycisk = (tekst, klasa, fn) => { const b = Object.assign(document.createElement('button'), { type: 'button', className: `przycisk maly ${klasa}`, textContent: tekst }); b.addEventListener('click', fn); return b; };
-    rzad.append(przycisk('Pozwól', 'glowny', () => koniec(true)), przycisk('Zawsze pozwalaj w tej rozmowie', '', () => koniec(true, true)), przycisk('Nie pozwalaj', 'niebezpieczny', () => koniec(false)));
+    rzad.append(przycisk(tt('czatAi.pozwol'), 'glowny', () => koniec(true)), przycisk(tt('czatAi.zawszePozwalajWTej'), '', () => koniec(true, true)), przycisk(tt('czatAi.niePozwalaj'), 'niebezpieczny', () => koniec(false)));
     li.append(rzad);
     lista.scrollTop = lista.scrollHeight;
     rzad.querySelector('button').focus();
@@ -56,7 +57,7 @@ function rysujZalaczniki() {
   ul.replaceChildren(...zalaczniki.map((z, i) => {
     const li = document.createElement('li');
     const img = Object.assign(document.createElement('img'), { src: z.url, alt: '' });
-    const usun = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona maly', textContent: '×', title: 'Usuń' });
+    const usun = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona maly', textContent: '×', title: tt('czatAi.usun') });
     usun.setAttribute('aria-label', `Usuń ${z.plik.name}`);
     usun.addEventListener('click', () => { URL.revokeObjectURL(z.url); zalaczniki.splice(i, 1); rysujZalaczniki(); });
     li.append(img, Object.assign(document.createElement('span'), { textContent: z.plik.name }), usun);
@@ -206,7 +207,7 @@ async function kluczDostepu(projektId, rola) {
   let k = kluczeKarty.get(nazwa);
   if (!k && s?.klucz(nazwa)) { try { k = JSON.parse(s.klucz(nazwa)); } catch { k = null; } }
   if (k && new Date(k.wazny_do).getTime() > Date.now() + 10 * 60 * 1000) return k.klucz;
-  const w = await chmura.utworzDostepAi(projektId, { opis: 'Czat w Makietce', rola, dni: 1 });
+  const w = await chmura.utworzDostepAi(projektId, { opis: tt('czatAi.czatWMakietce'), rola, dni: 1 });
   k = { klucz: w.klucz, wazny_do: w.wazny_do || new Date(Date.now() + 864e5).toISOString() };
   kluczeKarty.set(nazwa, k);
   if (s) await s.ustaw(nazwa, JSON.stringify(k)).catch(() => {});
@@ -254,13 +255,13 @@ function systemDla(n) {
 // Wiadomość z przyciskiem „Kopiuj” (schowek z przycisku działa zawsze; samoczynne kopiowanie – gdy przeglądarka pozwoli).
 function dopiszDoSkopiowania(rodzaj, opis, tresc) {
   const li = dopisz(rodzaj, opis);
-  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: 'Kopiuj' });
+  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: tt('czatAi.kopiuj') });
   b.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(tresc); b.textContent = 'Skopiowano'; } catch { powiadom('Przeglądarka nie pozwoliła skopiować – zaznacz tekst ręcznie.', true); }
+    try { await navigator.clipboard.writeText(tresc); b.textContent = tt('czatAi.skopiowano'); } catch { powiadom('Przeglądarka nie pozwoliła skopiować – zaznacz tekst ręcznie.', true); }
   });
   const pre = Object.assign(document.createElement('pre'), { className: 'czat-ai-do-skopiowania', textContent: tresc });
   li.append(b, pre);
-  navigator.clipboard?.writeText(tresc).then(() => { b.textContent = 'Skopiowano'; }, () => {});
+  navigator.clipboard?.writeText(tresc).then(() => { b.textContent = tt('czatAi.skopiowano'); }, () => {});
   return li;
 }
 
@@ -288,7 +289,7 @@ function opisNarzedzi(lista) {
 }
 
 async function wyslijPrzezSchowek(tekst) {
-  if (!stan.uzytkownik) { powiadom('Asystent AI działa na projekcie na koncie – zaloguj się.', true); return; }
+  if (!stan.uzytkownik) { powiadom(tt('czatAi.asystentAiDzialaNa'), true); return; }
   trwa = true;
   $('#czat-ai-wyslij').disabled = true;
   pole.value = '';
@@ -354,9 +355,9 @@ async function wyslij(tekst) {
   const ust = ustDostawcy(u);
   if (DOSTAWCY[u.dostawca]?.bezKlucza) { await wyslijPrzezSchowek(tekst); return; }
   if (!ust.klucz && stan.uzytkownik) { await otwartySejf(); Object.assign(ust, ustDostawcy(u)); }
-  if (!ust.klucz) { f.hidden = false; powiadom('Podaj klucz API wybranego dostawcy (albo zaloguj się przez OpenRouter).', true); f.elements.klucz.focus(); return; }
-  if (!ust.model) { f.hidden = false; powiadom('Wybierz model.', true); f.elements.model.focus(); return; }
-  if (!stan.uzytkownik) { powiadom('Asystent AI działa na projekcie na koncie – zaloguj się.', true); return; }
+  if (!ust.klucz) { f.hidden = false; powiadom(tt('czatAi.podajKluczApiWybranego'), true); f.elements.klucz.focus(); return; }
+  if (!ust.model) { f.hidden = false; powiadom(tt('czatAi.wybierzModel'), true); f.elements.model.focus(); return; }
+  if (!stan.uzytkownik) { powiadom(tt('czatAi.asystentAiDzialaNa'), true); return; }
   trwa = true;
   przerwano = false;
   $('#czat-ai-wyslij').disabled = true;

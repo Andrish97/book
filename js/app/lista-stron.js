@@ -19,7 +19,7 @@ import { pokazWarstwy } from './dok-warstw.js';
 import { bilansSkladki, opisSkladki } from '../okladka.js';
 import { dopelnijSkladke } from './sekcje.js';
 import { opisSchowka } from './schowek-okno.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t } from '../jezyk.js';
 
 // ---------- Lista: strony (pogrupowane w sekcje) i wzorce ----------
 
@@ -103,7 +103,7 @@ function renderujListeStron() {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'przycisk maly';
-        b.textContent = 'Dopełnij pustymi';
+        b.textContent = t('listaStron.dopelnijPustymi');
         b.title = `Dodaje ${skladka.brakuje} pustych stron na końcu sekcji`;
         b.addEventListener('click', (e) => { e.stopPropagation(); dopelnijSkladke(sekcja.id); });
         p.append(b);
@@ -585,7 +585,7 @@ export async function duplikujStrone(i) {
 export async function usunStrone(i) {
   if (stan.projekt.strony.length <= 1) return;
   const s = stan.projekt.strony[i];
-  if (!await potwierdz(`Usunąć stronę „${s.nazwa}”?`, 'Wszystkie elementy z tej strony zostaną usunięte.', 'Usuń stronę', true)) return;
+  if (!await potwierdz(`Usunąć stronę „${s.nazwa}”?`, t('listaStron.wszystkieElementyZTej'), t('listaStron.usunStrone'), true)) return;
   zapiszBiezacyCel();
   const biezaca = biezacaStrona();
   zachowajTekstStrony(stan.projekt, s); // tekst płynący przez strony zostaje w pozostałych ramkach
@@ -595,7 +595,7 @@ export async function usunStrone(i) {
   stan.indeks = nowyIndeks >= 0 ? nowyIndeks : Math.min(i, stan.projekt.strony.length - 1);
   if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();
   zaplanujZapis();
-  powiadom(`Usunięto stronę „${s.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+  powiadom(`Usunięto stronę „${s.nazwa}”.`, false, { etykieta: t('listaStron.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 // Po zmianie kolejności stron tekst płynący przez strony układa się w nowej kolejności stron.
@@ -650,7 +650,7 @@ export async function przeniesStroneDoSekcji(strona, idSekcji) {
 
 export async function zmienNazweStrony(i) {
   const s = stan.projekt.strony[i];
-  const nazwa = await zapytajONazwe('Zmień nazwę strony', 'Nazwa strony', s.nazwa);
+  const nazwa = await zapytajONazwe(t('listaStron.zmienNazweStrony'), t('listaStron.nazwaStrony'), s.nazwa);
   if (!nazwa) return;
   s.nazwa = nazwa;
   renderujListe();

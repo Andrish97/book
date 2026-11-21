@@ -16,7 +16,7 @@ import { stan, biezacaSekcja, tenSamRozmiar, liczba, edytor, biezacaStrona } fro
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { panel } from './skladniki.js';
 import { ustawZakladke, przelejPoZmianieKolejnosci } from './lista-stron.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t as tt } from '../jezyk.js';
 
 // ---------- Sekcje ----------
 
@@ -63,8 +63,8 @@ export function otworzUstawieniaSekcji(id) {
   // Zmiana formatu z dopasowaniem elementów (#131D) – dla istniejącej sekcji.
   $('[data-akcja="format-sekcji"]').hidden = !istniejaca;
   $('#sekcja-format-skaluj-opis').hidden = !istniejaca;
-  $('#tytul-sekcji').textContent = istniejaca ? 'Ustawienia sekcji' : 'Nowa sekcja';
-  $('#zapisz-sekcje').textContent = istniejaca ? 'Zapisz' : 'Dodaj sekcję';
+  $('#tytul-sekcji').textContent = istniejaca ? tt('sekcje.ustawieniaSekcji') : tt('sekcje.nowaSekcja');
+  $('#zapisz-sekcje').textContent = istniejaca ? tt('sekcje.zapisz') : tt('sekcje.dodajSekcje');
   f.elements.nazwa.value = istniejaca ? istniejaca.nazwa : `Sekcja ${projekt.sekcje.length + 1}`;
   f.elements.uklad.value = wzor.uklad;
   f.elements.pierwsza.value = wzor.pierwsza;
@@ -126,8 +126,8 @@ export function otworzUstawieniaSekcji(id) {
 function odswiezPolaSekcji() {
   const f = $('#dlg-sekcja form');
   const rozkladowki = f.elements.uklad.value === 'rozkladowki';
-  $('#etykieta-wewnetrzny').textContent = rozkladowki ? 'Wewnętrzny' : 'Lewy';
-  $('#etykieta-zewnetrzny').textContent = rozkladowki ? 'Zewnętrzny' : 'Prawy';
+  $('#etykieta-wewnetrzny').textContent = rozkladowki ? tt('sekcje.wewnetrzny') : tt('sekcje.lewy');
+  $('#etykieta-zewnetrzny').textContent = rozkladowki ? tt('sekcje.zewnetrzny') : tt('sekcje.prawy');
   $('#pole-pierwsza').hidden = !rozkladowki;
   $('#podpowiedz-rozkladowki').hidden = !rozkladowki;
   $('#pole-numeracja-od').hidden = f.elements.numeracja.value !== 'od';
@@ -159,8 +159,8 @@ function odswiezPolaSekcji() {
   $('#pole-skladka').hidden = okladka || arkuszSp;
   $('#opis-skladki').hidden = okladka || arkuszSp;
   if (okladka) {
-    $('#etykieta-wewnetrzny').textContent = 'Przy grzbiecie';
-    $('#etykieta-zewnetrzny').textContent = 'Zewnętrzny';
+    $('#etykieta-wewnetrzny').textContent = tt('sekcje.przyGrzbiecie');
+    $('#etykieta-zewnetrzny').textContent = tt('sekcje.zewnetrzny');
     $('#pole-pierwsza').hidden = true;
     $('#podpowiedz-rozkladowki').hidden = true;
   }
@@ -175,7 +175,7 @@ function odswiezPolaSekcji() {
   $('#pole-ok-grzbiet').hidden = zeszyt;
   $('#pole-ok-szerokosc').hidden = wymiary !== 'rozmiar';
   $('#pole-ok-wysokosc').hidden = wymiary !== 'rozmiar';
-  $('#pole-ok-grzbiet span').textContent = wymiary === 'rozmiar' ? 'Grzbiet (mm, puste – liczony)' : 'Grzbiet (mm)';
+  $('#pole-ok-grzbiet span').textContent = wymiary === 'rozmiar' ? tt('sekcje.grzbietMmPusteLiczony') : tt('sekcje.grzbietMm');
   f.elements.ok_liczba.disabled = f.elements.ok_strony.value !== 'reczne';
   rysujSchemat();
   if (okladka) rysujOkladke(); else if (rodzajSp) rysujSpecjalna(); else opiszSkladke();
@@ -643,13 +643,13 @@ export async function usunSekcje(id) {
   const sekcja = projekt.sekcje.find((s) => s.id === id);
   const strony = projekt.strony.filter((s) => s.sekcja === id);
   if (strony.length === projekt.strony.length) {
-    powiadom('To jedyne strony w projekcie – przenieś najpierw jakąś stronę do innej sekcji.', true);
+    powiadom(tt('sekcje.toJedyneStronyW'), true);
     return;
   }
   const ok = await potwierdz(
     `Usunąć sekcję „${sekcja.nazwa}”?`,
-    strony.length ? `Razem z nią zostanie usuniętych ${strony.length} stron.` : 'Sekcja jest pusta.',
-    'Usuń sekcję',
+    strony.length ? `Razem z nią zostanie usuniętych ${strony.length} stron.` : tt('sekcje.sekcjaJestPusta'),
+    tt('sekcje.usunSekcje'),
     true,
   );
   if (!ok) return;
@@ -662,7 +662,7 @@ export async function usunSekcje(id) {
   stan.miniatury.clear();
   await zaladujCel();
   zaplanujZapis();
-  powiadom(`Usunięto sekcję „${sekcja.nazwa}”.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+  powiadom(`Usunięto sekcję „${sekcja.nazwa}”.`, false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 // „Zamień na okładkę” (#119): okno ustawień od razu z rodzajem „Okładka” – elementy zostają i przesuwają się
@@ -689,7 +689,7 @@ export async function dopelnijSkladke(id) {
   await zaladujCel();
   zaplanujZapis();
   const ile = b.brakuje === 1 ? 'pustą stronę' : (b.brakuje < 5 ? 'puste strony' : 'pustych stron');
-  powiadom(`Dodano ${b.brakuje} ${ile} – sekcja „${sekcja.nazwa}” ma ${b.doPelnej} stron.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+  powiadom(`Dodano ${b.brakuje} ${ile} – sekcja „${sekcja.nazwa}” ma ${b.doPelnej} stron.`, false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
   return b.brakuje;
 }
 

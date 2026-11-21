@@ -28,24 +28,43 @@ const ZRODLO = path.join(KORZEN, 'docs', 'instrukcja');
 const PLIK_JS = path.join(KORZEN, 'js', 'instrukcja-tresc.js');
 const PLIK_MD = path.join(KORZEN, 'ai', 'instrukcja.md');
 const ADRES = 'https://makietka.app/';
+// Języki instrukcji (#346): polski w docs/instrukcja, tłumaczenia w docs/instrukcja/<język>/ – ta sama budowa
+// (numery rozdziałów i podrozdziałów, zrzuty), treść w js/instrukcja-tresc-<język>.js.
+const JEZYKI = ['pl', 'en', 'uk'];
+const zrodloJezyka = (j) => (j === 'pl' ? ZRODLO : path.join(ZRODLO, j));
+const plikJsJezyka = (j) => (j === 'pl' ? PLIK_JS : path.join(KORZEN, 'js', `instrukcja-tresc-${j}.js`));
+const SLOWA = {
+  pl: { czesc: 'Część', uwaga: 'Uwaga', wskazowka: 'Wskazówka', kopiuj: 'Kopiuj' },
+  en: { czesc: 'Part', uwaga: 'Note', wskazowka: 'Tip', kopiuj: 'Copy' },
+  uk: { czesc: 'Частина', uwaga: 'Увага', wskazowka: 'Порада', kopiuj: 'Копіювати' },
+};
+const czytajSlownik = (j) => { const t = fs.readFileSync(path.join(KORZEN, 'js', 'jezyki', 'klucze', `${j}.js`), 'utf8'); return JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); };
 
-const modul = (plik) => import(`data:text/javascript;charset=utf-8,${encodeURIComponent(fs.readFileSync(path.join(KORZEN, plik), 'utf8'))}`);
+// Moduł aplikacji w Node: import t z jezyk.js zastąpiony słownikiem kluczy danego języka.
+const modul = (plik, j = 'pl') => {
+  const kod = fs.readFileSync(path.join(KORZEN, plik), 'utf8').replace(/^import \{([^}]*)\} from '\.\/jezyk\.js';$/m, (_, spec) => {
+    const nazwa = /\bt as (\w+)/.exec(spec)?.[1] || 't';
+    return `const __sl = ${JSON.stringify({ ...czytajSlownik('pl'), ...czytajSlownik(j) })}; const ${nazwa} = (k) => __sl[k] ?? k;`;
+  });
+  return import(`data:text/javascript;charset=utf-8,${encodeURIComponent(kod)}`);
+};
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // ---------- Czytanie źródła ----------
 
-function wczytaj() {
+function wczytaj(j = 'pl') {
   const czesci = [];
   const rozdzialy = [];
   let czesc = null;
   let rozdzial = null;
   let sekcja = null;
   let opisCzesci = false;
-  const pliki = fs.readdirSync(ZRODLO).filter((f) => /^\d+-.*\.md$/.test(f)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  const katalog = zrodloJezyka(j);
+  const pliki = fs.readdirSync(katalog).filter((f) => /^\d+-.*\.md$/.test(f)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
   for (const plik of pliki) {
-    for (const linia of fs.readFileSync(path.join(ZRODLO, plik), 'utf8').split('\n')) {
+    for (const linia of fs.readFileSync(path.join(katalog, plik), 'utf8').split('\n')) {
       let m;
-      if ((m = linia.match(/^# Część ([IVX]+)\. (.+?)\s*\{ikona=([\w-]+)\}\s*$/))) {
+      if ((m = linia.match(/^# (?:Część|Part|Частина) ([IVX]+)\. (.+?)\s*\{ikona=([\w-]+)\}\s*$/))) {
         czesc = { nr: m[1], tytul: m[2], ikona: m[3], opis: '', rozdzialy: [] };
         czesci.push(czesc);
         opisCzesci = true;
@@ -115,9 +134,9 @@ function bloki(linie) {
       const tekst = [];
       while (i < linie.length && /^>/.test(linie[i])) { tekst.push(linie[i].replace(/^>\s?/, '')); i += 1; }
       const t = tekst.join(' ');
-      const r = t.match(/^(Uwaga|Wskazówka):\s*(.*)$/);
+      const r = t.match(/^(Uwaga|Wskazówka|Note|Tip|Увага|Порада):\s*(.*)$/);
       if (!r) throw new Error(`ramka bez „Uwaga:” albo „Wskazówka:”: ${t}`);
-      wynik.push({ typ: 'ramka', rodzaj: r[1] === 'Uwaga' ? 'uwaga' : 'wskazowka', tekst: r[2] });
+      wynik.push({ typ: 'ramka', rodzaj: ['Uwaga', 'Note', 'Увага'].includes(r[1]) ? 'uwaga' : 'wskazowka', tekst: r[2] });
       continue;
     }
     if (/^(- |\d+\. )/.test(l)) {
@@ -185,14 +204,14 @@ function htmlWiersza(tekst, t) {
   return s.replace(/\u0000(\d+)\u0000/g, (_, n) => kody[Number(n)]);
 }
 
-function htmlBlokow(lista, t, polecenia) {
+function htmlBlokow(lista, t, polecenia, sl = SLOWA.pl) {
   return lista.map((b) => {
     switch (b.typ) {
       case 'akapit': return `<p>${htmlWiersza(b.tekst, t)}</p>`;
       case 'naglowek': return `<h4>${htmlWiersza(b.tekst, t)}</h4>`;
       case 'lista': return `<ul class="punkty">${b.elementy.map((e) => `<li>${htmlWiersza(e, t)}</li>`).join('')}</ul>`;
       case 'kroki': return `<ol class="kroki">${b.elementy.map((e) => `<li>${htmlWiersza(e, t)}</li>`).join('')}</ol>`;
-      case 'ramka': return `<p class="ramka-instrukcji ${b.rodzaj}"><b>${b.rodzaj === 'uwaga' ? 'Uwaga' : 'Wskazówka'}.</b> ${htmlWiersza(b.tekst, t)}</p>`;
+      case 'ramka': return `<p class="ramka-instrukcji ${b.rodzaj}"><b>${b.rodzaj === 'uwaga' ? sl.uwaga : sl.wskazowka}.</b> ${htmlWiersza(b.tekst, t)}</p>`;
       case 'tabela': return `<div class="tabela-instrukcji"><table><thead><tr>${b.naglowek.map((k) => `<th>${htmlWiersza(k, t)}</th>`).join('')}</tr></thead>`
         + `<tbody>${b.wiersze.map((w) => `<tr>${w.map((k) => `<td>${htmlWiersza(k, t)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
       case 'obrazy': {
@@ -208,7 +227,7 @@ function htmlBlokow(lista, t, polecenia) {
       case 'polecenie': {
         const tekst = polecenia[b.nazwa];
         if (typeof tekst !== 'string') throw new Error(`nie ma polecenia ${b.nazwa} w js/polecenia-ai.js`);
-        return `<div class="prompt-instrukcji"><div class="prompt-naglowek"><b>${esc(b.tytul)}</b><button type="button" class="przycisk" data-kopiuj-prompt data-ikona="kopiuj">Kopiuj</button></div>`
+        return `<div class="prompt-instrukcji"><div class="prompt-naglowek"><b>${esc(b.tytul)}</b><button type="button" class="przycisk" data-kopiuj-prompt data-ikona="kopiuj">${sl.kopiuj}</button></div>`
           + `<p class="ciche">${htmlWiersza(b.opis, t)}</p><pre>${esc(tekst)}</pre></div>`;
       }
       default: throw new Error(`nieznany blok ${b.typ}`);
@@ -251,17 +270,23 @@ function mdBlokow(lista, t, polecenia, pola, skroty) {
 
 // ---------- Budowa ----------
 
-async function zbuduj() {
-  const { czesci, rozdzialy } = wczytaj();
+async function zbuduj(j = 'pl') {
+  const { czesci, rozdzialy } = wczytaj(j);
   const t = tytuly(rozdzialy);
   const polecenia = await modul('js/polecenia-ai.js');
   const { POLA_DOKUMENTU, ZAPISY_LICZB } = await modul('js/pola.js');
-  const { SKROTY, opisKlawiszy } = await modul('js/skroty.js');
+  const { SKROTY, opisKlawiszy } = await modul('js/skroty.js', j);
+  if (j !== 'pl') {
+    // Tłumaczenie ma tę samą budowę co polski oryginał – te same rozdziały, podrozdziały i części.
+    const pl = wczytaj('pl');
+    const budowa = (w) => JSON.stringify([w.czesci.map((c) => [c.nr, c.ikona, c.rozdzialy]), w.rozdzialy.map((r) => [r.nr, r.sekcje.map((s) => s.id)])]);
+    if (budowa(pl) !== budowa({ czesci, rozdzialy })) throw new Error(`instrukcja ${j}: inna budowa rozdziałów niż po polsku`);
+  }
 
   const wynik = rozdzialy.map((r) => {
     const sekcje = r.sekcje.map((s) => {
       const b = bloki(s.linie);
-      const html = htmlBlokow(b, t, polecenia);
+      const html = htmlBlokow(b, t, polecenia, SLOWA[j]);
       return { id: s.id, tytul: s.tytul, html, bloki: b };
     });
     return { ...r, sekcje };
@@ -276,7 +301,7 @@ async function zbuduj() {
       sekcje: r.sekcje.map((s) => ({ id: s.id, tytul: s.tytul, html: s.html })),
     })),
   };
-  const js = '// Plik wygenerowany przez scripts/instrukcja-buduj.cjs ze źródła docs/instrukcja/*.md – nie zmieniaj go ręcznie.\n'
+  const js = `// Plik wygenerowany przez scripts/instrukcja-buduj.cjs ze źródła docs/instrukcja/${j === 'pl' ? '' : `${j}/`}*.md – nie zmieniaj go ręcznie.\n`
     + '// Po zmianie źródła: node scripts/instrukcja-buduj.cjs\n\n'
     + `export const CZESCI = [\n${daneJs.czesci.map((c) => `  ${JSON.stringify(c)},`).join('\n')}\n];\n\n`
     + `export const ROZDZIALY = [\n${daneJs.rozdzialy.map((r) => `  ${JSON.stringify(r)},`).join('\n')}\n];\n`;
@@ -311,21 +336,28 @@ async function zbuduj() {
     ]),
   ].join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
 
-  return { js, md };
+  return { js, md: j === 'pl' ? md : null };
 }
 
-module.exports = { zbuduj, PLIK_JS, PLIK_MD };
+// Języki, które mają źródło (tłumaczenia mogą jeszcze nie istnieć).
+const jezykiInstrukcji = () => JEZYKI.filter((j) => j === 'pl' || (fs.existsSync(zrodloJezyka(j)) && fs.readdirSync(zrodloJezyka(j)).some((f) => /^\d+-.*\.md$/.test(f))));
+
+module.exports = { zbuduj, PLIK_JS, PLIK_MD, plikJsJezyka, jezykiInstrukcji };
 
 if (require.main === module) {
-  zbuduj().then(({ js, md }) => {
-    if (process.argv.includes('--sprawdz')) {
-      const stare = [fs.existsSync(PLIK_JS) && fs.readFileSync(PLIK_JS, 'utf8'), fs.existsSync(PLIK_MD) && fs.readFileSync(PLIK_MD, 'utf8')];
-      if (stare[0] !== js || stare[1] !== md) { console.error('Instrukcja jest nieaktualna – uruchom: node scripts/instrukcja-buduj.cjs'); process.exit(1); }
-      console.log('Instrukcja aktualna.');
-      return;
+  (async () => {
+    const czytaj = (p) => fs.existsSync(p) && fs.readFileSync(p, 'utf8');
+    for (const j of jezykiInstrukcji()) {
+      const { js, md } = await zbuduj(j);
+      const plik = plikJsJezyka(j);
+      if (process.argv.includes('--sprawdz')) {
+        if (czytaj(plik) !== js || (md && czytaj(PLIK_MD) !== md)) { console.error(`Instrukcja (${j}) jest nieaktualna – uruchom: node scripts/instrukcja-buduj.cjs`); process.exit(1); }
+        continue;
+      }
+      fs.writeFileSync(plik, js);
+      if (md) fs.writeFileSync(PLIK_MD, md);
+      console.log(`Zapisano ${path.relative(KORZEN, plik)} (${Math.round(js.length / 1024)} kB)${md ? ` i ${path.relative(KORZEN, PLIK_MD)}` : ''}.`);
     }
-    fs.writeFileSync(PLIK_JS, js);
-    fs.writeFileSync(PLIK_MD, md);
-    console.log(`Zapisano ${path.relative(KORZEN, PLIK_JS)} (${Math.round(js.length / 1024)} kB) i ${path.relative(KORZEN, PLIK_MD)}.`);
-  }).catch((e) => { console.error(e.message); process.exit(1); });
+    if (process.argv.includes('--sprawdz')) console.log('Instrukcja aktualna.');
+  })().catch((e) => { console.error(e.message); process.exit(1); });
 }

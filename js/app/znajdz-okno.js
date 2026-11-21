@@ -9,6 +9,7 @@ import { edytor, stan } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { przejdzDoStrony, renderujListe } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
+import { t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-znajdz');
 const pole = $('#znajdz-fraza');
@@ -32,7 +33,7 @@ function pokaz() {
   if (stan.projekt && edytor.wydruk) zapiszBiezacyCel(); // to, co na płótnie, też ma być znalezione
   trafienia = fraza ? szukaj(stan.projekt, fraza, opcje()) : [];
   if (wybrane >= trafienia.length) wybrane = trafienia.length - 1;
-  licznik.textContent = !fraza ? '' : trafienia.length ? `${trafienia.length} ${trafienia.length === 1 ? 'wynik' : trafienia.length % 10 >= 2 && trafienia.length % 10 <= 4 && (trafienia.length % 100 < 12 || trafienia.length % 100 > 14) ? 'wyniki' : 'wyników'}` : 'Brak wyników';
+  licznik.textContent = !fraza ? '' : trafienia.length ? `${trafienia.length} ${trafienia.length === 1 ? 'wynik' : trafienia.length % 10 >= 2 && trafienia.length % 10 <= 4 && (trafienia.length % 100 < 12 || trafienia.length % 100 > 14) ? 'wyniki' : 'wyników'}` : tt('znajdzOkno.brakWynikow');
   lista.replaceChildren(...trafienia.slice(0, 300).map((t, i) => {
     const li = document.createElement('li');
     const b = document.createElement('button');
@@ -91,7 +92,7 @@ async function zamienTrafienia(lista2) {
     stan.miniatury.clear();
     await zaladujCel();
   });
-  if (!zm.liczba) { powiadom('Tekst zmienił się w międzyczasie – szukam jeszcze raz.'); pokaz(); return; }
+  if (!zm.liczba) { powiadom(tt('znajdzOkno.tekstZmienilSieW')); pokaz(); return; }
   if (zaznaczony) edytor.zaznacz(zaznaczony);
   renderujListe();
   zaplanujZapis();

@@ -23,6 +23,7 @@ import { typSekcji } from '../typ-sekcji.js';
 /* global fabric */
 import { $, $$, powiadom, pobierz, bezpiecznaNazwa } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
+import { t as tt } from '../jezyk.js';
 
 const LUZ_SZCZELINY = 0.2; // mm ponad grubość materiału
 const TOLERANCJA = 3; // mm – kliknięcie „przy krawędzi”
@@ -629,10 +630,10 @@ export function panelCzesci(panel, g0) {
   const c = () => normalizujCzesc(g.czesc);
   const zmien = (fn) => { g = zmienCzesc(g, (d) => { Object.assign(d, normalizujCzesc(d)); fn(d); }); panel.obj = g; panel.zbuduj(); };
   panel.tytul.textContent = `Część ${c().nr}`;
-  const s = panel.sekcja('Część');
-  s.append(panel.tekst('Nazwa (numer części)', () => c().nr, (v) => zmien((d) => { d.nr = v || d.nr; })));
-  s.append(panel.kolor('Kolor ściany', () => c().kolor, (v) => zmien((d) => { d.kolor = v || '#ffffff'; })));
-  s.append(panel.przelacznik('Numery par i nazwa części', () => c().pokaz_numery, (v) => zmien((d) => { d.pokaz_numery = v; })));
+  const s = panel.sekcja(tt('skladankaNarzedzia.czesc'));
+  s.append(panel.tekst(tt('skladankaNarzedzia.nazwaNumerCzesci'), () => c().nr, (v) => zmien((d) => { d.nr = v || d.nr; })));
+  s.append(panel.kolor(tt('skladankaNarzedzia.kolorSciany'), () => c().kolor, (v) => zmien((d) => { d.kolor = v || '#ffffff'; })));
+  s.append(panel.przelacznik(tt('skladankaNarzedzia.numeryParINazwa'), () => c().pokaz_numery, (v) => zmien((d) => { d.pokaz_numery = v; })));
   s.append(panel.wskazowka(`${c().punkty.length} krawędzi, ${scianyCzesci(c()).sciany.length} ${scianyCzesci(c()).sciany.length === 1 ? 'ściana' : 'ściany'}. Grubość materiału sekcji: ${String(grubosc()).replace('.', ',')} mm.`));
   s.append(panel.akcje([
     ['linia', 'Zgięcie – dwa kliknięcia na krawędziach', () => ustawNarzedzie('zgiecie')],
@@ -655,21 +656,21 @@ export function panelCzesci(panel, g0) {
   const ts = panel.sekcja('Na ścianach');
   ts.append(panel.wskazowka(tr.length ? `${tr.length} ${tr.length === 1 ? 'element' : tr.length < 5 ? 'elementy' : 'elementów'} (tekst, obraz, ozdobnik) na ścianach – przesuwa${tr.length === 1 ? '' : 'ją'} się, obraca${tr.length === 1 ? '' : 'ją'} i składa${tr.length === 1 ? '' : 'ją'} razem z częścią.` : 'Połóż na części tekst, obraz albo kształt i użyj [Na część] – wejdzie na ścianę i będzie się z nią przesuwał i składał.'));
   if (tr.length) ts.append(panel.akcje([['rozgrupuj', 'Wyjmij z części (do edycji)', () => { const w = wyjmijZCzesci(g); if (w?.obiekty?.length) { edytor.canvas.setActiveObject(w.obiekty.length === 1 ? w.obiekty[0] : new fabric.ActiveSelection(w.obiekty, { canvas: edytor.canvas })); edytor.canvas.requestRenderAll(); } }]]));
-  const k = panel.sekcja('Krawędzie');
+  const k = panel.sekcja(tt('skladankaNarzedzia.krawedzie'));
   c().krawedzie.forEach((kr, i) => {
     k.append(panel.wybor(`Krawędź ${i + 1} (${String(dlugosc(c(), i)).replace('.', ',')} mm)`, Object.entries(RODZAJE_KRAWEDZI), () => c().krawedzie[i].typ, (v) => zmien((d) => { d.krawedzie[i].typ = v; })));
     if (kr.typ !== 'ciecie') {
-      k.append(panel.tekst('Numer pary', () => c().krawedzie[i].para || '', (v) => zmien((d) => { d.krawedzie[i].para = v || null; })));
+      k.append(panel.tekst(tt('skladankaNarzedzia.numerPary'), () => c().krawedzie[i].para || '', (v) => zmien((d) => { d.krawedzie[i].para = v || null; })));
       if ((kr.typ === 'zakladka' || kr.typ === 'klej') && kr.para) k.append(panel.liczba('Kąt po sklejeniu (180 – na płasko)', () => c().krawedzie[i].kat ?? 180, (v) => zmien((d) => { d.krawedzie[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
-      if (kr.typ === 'zakladka' || kr.typ === 'wypustka') k.append(panel.liczba(kr.typ === 'zakladka' ? 'Szerokość zakładki' : 'Długość wypustki', () => c().krawedzie[i].szer, (v) => zmien((d) => { d.krawedzie[i].szer = v; }), { jednostka: 'mm', krok: 0.5, min: 2 }));
+      if (kr.typ === 'zakladka' || kr.typ === 'wypustka') k.append(panel.liczba(kr.typ === 'zakladka' ? tt('skladankaNarzedzia.szerokoscZakladki') : tt('skladankaNarzedzia.dlugoscWypustki'), () => c().krawedzie[i].szer, (v) => zmien((d) => { d.krawedzie[i].szer = v; }), { jednostka: 'mm', krok: 0.5, min: 2 }));
     }
   });
   const zg = c().zgiecia;
   if (zg.length) {
-    const z = panel.sekcja('Zgięcia');
+    const z = panel.sekcja(tt('skladankaNarzedzia.zgiecia'));
     zg.forEach((_, i) => {
       z.append(panel.wybor(`Zgięcie ${i + 1}`, Object.entries(RODZAJE_ZGIEC), () => c().zgiecia[i].rodzaj, (v) => zmien((d) => { d.zgiecia[i].rodzaj = v; })));
-      z.append(panel.liczba('Kąt po złożeniu', () => c().zgiecia[i].kat, (v) => zmien((d) => { d.zgiecia[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
+      z.append(panel.liczba(tt('skladankaNarzedzia.katPoZlozeniu'), () => c().zgiecia[i].kat, (v) => zmien((d) => { d.zgiecia[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
       // #299: grzbiet kartki pop-up – wokół niego kartka otwiera się suwakiem w makiecie, reszta rusza się mechanizmem.
       z.append(panel.przelacznik('Grzbiet kartki (pop-up)', () => Boolean(c().zgiecia[i].grzbiet), (v) => zmien((d) => { if (v) d.zgiecia[i].grzbiet = true; else delete d.zgiecia[i].grzbiet; })));
       z.append(panel.akcje([['kosz', `Usuń zgięcie ${i + 1}`, () => zmien((d) => { d.zgiecia.splice(i, 1); })]]));
@@ -683,18 +684,18 @@ export function panelCzesci(panel, g0) {
       const doGrzbietu = dg ? ` Kąt do grzbietu ${String(dg.kat).replace('.', ',')}°, ${String(dg.odl).replace('.', ',')} mm od grzbietu${dg.kat < 89 && dg.kat > 1 ? ' – ze skośną linią po drugiej stronie grzbietu doklejona część stanie pod kątem jak zgięcie V' : ''}.` : '';
       ls.append(panel.wskazowka(`Linia ${i + 1}: ${String(Math.round(dlugoscLinii(l) * 10) / 10).replace('.', ',')} mm, ${liniaProsta(l) ? 'prosta – doklejona część stanie pod kątem' : 'krzywa – doklejona część wygnie się wzdłuż niej'}.${doGrzbietu}`));
       ls.append(panel.tekst(`Linia ${i + 1} – numer pary`, () => c().linie[i].para || '', (v) => zmien((d) => { d.linie[i].para = v || null; })));
-      ls.append(panel.przelacznik('Na spodzie (bez druku)', () => c().linie[i].spod, (v) => zmien((d) => { d.linie[i].spod = v || undefined; })));
+      ls.append(panel.przelacznik(tt('skladankaNarzedzia.naSpodzieBezDruku'), () => c().linie[i].spod, (v) => zmien((d) => { d.linie[i].spod = v || undefined; })));
       ls.append(panel.akcje([['kosz', `Usuń linię ${i + 1}`, () => zmien((d) => { d.linie.splice(i, 1); })]]));
     });
   }
   const pola = c().pola;
   if (pola.length) {
-    const p = panel.sekcja('Miejsca klejenia');
+    const p = panel.sekcja(tt('skladankaNarzedzia.miejscaKlejenia'));
     pola.forEach((_, i) => {
       p.append(panel.tekst(`Miejsce ${i + 1} – numer pary`, () => c().pola[i].para || '', (v) => zmien((d) => { d.pola[i].para = v || null; })));
-      p.append(panel.liczba('Szerokość', () => c().pola[i].w, (v) => zmien((d) => { d.pola[i].w = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
-      p.append(panel.liczba('Wysokość', () => c().pola[i].h, (v) => zmien((d) => { d.pola[i].h = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
-      p.append(panel.przelacznik('Na spodzie (bez druku)', () => c().pola[i].spod, (v) => zmien((d) => { d.pola[i].spod = v; })));
+      p.append(panel.liczba(tt('skladankaNarzedzia.szerokosc'), () => c().pola[i].w, (v) => zmien((d) => { d.pola[i].w = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
+      p.append(panel.liczba(tt('skladankaNarzedzia.wysokosc'), () => c().pola[i].h, (v) => zmien((d) => { d.pola[i].h = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
+      p.append(panel.przelacznik(tt('skladankaNarzedzia.naSpodzieBezDruku'), () => c().pola[i].spod, (v) => zmien((d) => { d.pola[i].spod = v; })));
       p.append(panel.akcje([['kosz', `Usuń miejsce ${i + 1}`, () => zmien((d) => { d.pola.splice(i, 1); })]]));
     });
   }
@@ -717,11 +718,11 @@ export function panelCzesci(panel, g0) {
   }
   const sz = c().szczeliny;
   if (sz.some((z) => !z.naciecie)) {
-    const p = panel.sekcja('Szczeliny');
+    const p = panel.sekcja(tt('skladankaNarzedzia.szczeliny'));
     sz.forEach((z0, i) => {
       if (z0.naciecie) return;
       p.append(panel.tekst(`Szczelina ${i + 1} – numer pary`, () => c().szczeliny[i].para || '', (v) => zmien((d) => { d.szczeliny[i].para = v || null; })));
-      p.append(panel.liczba('Szerokość', () => c().szczeliny[i].szer, (v) => zmien((d) => { d.szczeliny[i].szer = v; }), { jednostka: 'mm', krok: 0.05, min: 0.2 }));
+      p.append(panel.liczba(tt('skladankaNarzedzia.szerokosc'), () => c().szczeliny[i].szer, (v) => zmien((d) => { d.szczeliny[i].szer = v; }), { jednostka: 'mm', krok: 0.05, min: 0.2 }));
       p.append(panel.akcje([['kosz', `Usuń szczelinę ${i + 1}`, () => zmien((d) => { d.szczeliny.splice(i, 1); })]]));
     });
   }
@@ -732,7 +733,7 @@ export function panelPolaczen(panel, { przejdz }) {
   const sekcja = biezacaSekcja();
   const strony = (stan.projekt?.strony || []).filter((st) => st.sekcja === sekcja?.id);
   const pary = paryWSekcji(strony);
-  const s = panel.sekcja('Połączenia');
+  const s = panel.sekcja(tt('skladankaNarzedzia.polaczenia'));
   if (!pary.size) { s.append(panel.wskazowka('Jeszcze nic nie jest połączone. Narzędzie [Połącz]: krawędź z zakładką, potem krawędź albo miejsce, do którego się przykleja.')); return; }
   s.append(panel.wskazowka('Najedź na parę, żeby zobaczyć ją na arkuszu; kliknij, żeby zaznaczyć część.'));
   const lista = document.createElement('ul');

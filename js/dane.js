@@ -13,7 +13,7 @@ import { wstawIkony } from './ikony.js';
 import { zPostepem } from './postep.js';
 import { przypnijZrodlo, odepnijZrodlo, zmienionaWMakietce, podpisDanych, porownajTabele, opisPorownania, zapamietajUchwyt, uchwytTabeli, plikZUchwytu, moznaZapamietacPlik, wybierzPlikZDostepem, plikZLinku } from './zrodla-danych.js';
 import { dataUrlZasobu } from './zasoby.js';
-import { wpiszNazwe } from './jezyk.js';
+import { wpiszNazwe, t as tt } from './jezyk.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
 const PORCJA_WIERSZY = 400;
@@ -155,7 +155,7 @@ export class Dane {
   _oznaczPomijany(tr, w) {
     const pomijany = wierszPomijany(this.tabela().wiersze[w]);
     tr.classList.toggle('pomijany', pomijany);
-    tr.title = pomijany ? 'Wiersz pomijany: zajmuje miejsce w bloku serii, ale strona dla niego nie powstaje' : '';
+    tr.title = pomijany ? tt('dane.wierszPomijanyZajmujeMiejsce') : '';
     this._opiszPomijane();
   }
 
@@ -222,7 +222,7 @@ export class Dane {
   _ustawWyglad(zmiana) {
     const t = this.tabela();
     const komorki = this._komorkiZaznaczone();
-    if (!t || !komorki.length) { powiadom('Kliknij komórkę (Shift+kliknięcie zaznacza kilka), a potem wybierz wygląd.'); return; }
+    if (!t || !komorki.length) { powiadom(tt('dane.kliknijKomorkeShiftKlikniecie')); return; }
     const wyglad = (t.wyglad || []).slice(0, t.wiersze.length);
     while (wyglad.length < t.wiersze.length) wyglad.push(null);
     const komorka = (w, k) => wyglad[w]?.[k] || null;
@@ -455,9 +455,9 @@ export class Dane {
         return;
       }
       if (kolumna) {
-        if (t.kolumny.length <= 1) { powiadom('Tabela musi mieć przynajmniej jedną kolumnę.', true); return; }
+        if (t.kolumny.length <= 1) { powiadom(tt('dane.tabelaMusiMiecPrzynajmniej'), true); return; }
         const k = Number(kolumna.dataset.k);
-        if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, 'Pola z tej kolumny przestaną się wypełniać.', 'Usuń kolumnę', true)) return;
+        if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, tt('dane.polaZTejKolumny'), tt('dane.usunKolumne'), true)) return;
         if (t.unikalne) t.unikalne = t.unikalne.filter((u) => u !== t.kolumny[k]);
         if (t.listy) { delete t.listy[t.kolumny[k]]; if (!Object.keys(t.listy).length) delete t.listy; }
         for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana) { d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).filter((z) => z !== t.kolumny[k])); if (!d.zmiana) delete d.zmiana; }
@@ -515,7 +515,7 @@ export class Dane {
       const p = this.projekt();
       const serie = p.serie.filter((x) => x.tabela === t.id);
       const opis = serie.length ? `Serie, które z niej korzystają (${serie.map((x) => `„${x.nazwa}”`).join(', ')}), zostaną bez danych.` : 'Tej operacji nie da się cofnąć.';
-      if (!await potwierdz(`Usunąć tabelę „${t.nazwa}”?`, opis, 'Usuń tabelę', true)) return;
+      if (!await potwierdz(`Usunąć tabelę „${t.nazwa}”?`, opis, tt('dane.usunTabele'), true)) return;
       p.tabele = p.tabele.filter((x) => x !== t);
       for (const x of serie) x.tabela = null;
       for (const x of p.serie) x.dodatkowe = (x.dodatkowe || []).filter((d) => d.tabela !== t.id);
@@ -614,7 +614,7 @@ export class Dane {
     for (const surowa of wczytane) {
       const nowa = normalizujTabele({ ...surowa, id: undefined });
       const stara = p.tabele.find((t) => t.nazwa.trim().toLowerCase() === nowa.nazwa.trim().toLowerCase());
-      if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.${this._opisZmian(stara, nowa)}`, 'Podmień dane', false, 'Dodaj osobno')) {
+      if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.${this._opisZmian(stara, nowa)}`, tt('dane.podmienDane'), false, tt('dane.dodajOsobno'))) {
         zachowano = this._podmienDane(stara, nowa) || zachowano;
         doPrzypiecia.push([stara, surowa.arkusz]);
         ostatnia = stara;
@@ -696,7 +696,7 @@ export class Dane {
       powiadom('Dane w pliku są takie same jak w tabeli.');
       return true;
     }
-    if (!await potwierdz(`Nowa wersja danych „${t.nazwa}”?`, `Plik: ${plik.name}${surowa.arkusz ? `, arkusz „${surowa.arkusz}”` : ''}.${this._opisZmian(t, nowa)}`, 'Podmień dane')) return false;
+    if (!await potwierdz(`Nowa wersja danych „${t.nazwa}”?`, `Plik: ${plik.name}${surowa.arkusz ? `, arkusz „${surowa.arkusz}”` : ''}.${this._opisZmian(t, nowa)}`, tt('dane.podmienDane'))) return false;
     const zachowano = this._podmienDane(t, nowa);
     await przypnijZrodlo(p, t, { plik: url ? null : plik, arkusz: surowa.arkusz, url });
     if (uchwyt) await zapamietajUchwyt(p.id, t.id, uchwyt);
@@ -879,7 +879,7 @@ export class Dane {
         const dodatkowe = b.dodatkowe.map((d) => ` Tabela „${d.tabela.nazwa}”: ${opisKroku(d)} – potrzeba ${d.potrzeba} ${odmiana(d.potrzeba, 'wiersza', 'wierszy', 'wierszy')}, ${d.jest >= d.potrzeba ? `jest ${d.jest}` : `a jest tylko ${d.jest}`}.`).join('');
         return opis + koniec + dodatkowe;
       }).join(' ')
-      : 'Żadna strona nie należy jeszcze do tej serii.';
+      : tt('dane.zadnaStronaNieNalezy');
     const braki = bloki.length ? this.brakiSerii(proba, probny) : '';
     $('#seria-braki').hidden = !braki;
     $('#seria-braki').textContent = braki;
@@ -890,7 +890,7 @@ export class Dane {
       ? `Pola na stronach serii: ${potrzebne.map((k) => `{${k.nazwa}}`).join(', ')}.${brak.length ? ` W tabeli brakuje ${odmiana(brak.length, 'kolumny', 'kolumn', 'kolumn')}: ${brak.join(', ')}.` : (maTabele ? ' Tabela ma wszystkie potrzebne kolumny.' : '')}`
       : 'Na stronach tej serii nie ma jeszcze pól z danymi. Pole wstawiasz w tekście jako nazwę kolumny w nawiasach klamrowych, np. {dzien}.';
     $('#seria-dodaj-kolumny').hidden = !brak.length;
-    $('#seria-dodaj-kolumny').textContent = maTabele ? 'Dodaj brakujące kolumny do tabeli' : 'Utwórz tabelę z tych pól';
+    $('#seria-dodaj-kolumny').textContent = maTabele ? tt('dane.dodajBrakujaceKolumnyDo') : tt('dane.utworzTabeleZTych');
     $('#seria-szablon').hidden = !bloki.length;
   }
 
@@ -977,7 +977,7 @@ export class Dane {
     $('#seria-usun').addEventListener('click', async () => {
       const p = this.projekt();
       const seria = p.serie.find((s) => s.id === dlg.dataset.id);
-      if (!await potwierdz(`Usunąć serię „${seria.nazwa}”?`, 'Strony zostają w projekcie, ale przestają się powielać.', 'Usuń serię', true)) return;
+      if (!await potwierdz(`Usunąć serię „${seria.nazwa}”?`, tt('dane.stronyZostajaWProjekcie'), tt('dane.usunSerie'), true)) return;
       p.serie = p.serie.filter((s) => s !== seria);
       for (const s of p.strony) if (s.seria === seria.id) delete s.seria;
       dlg.close('usun');

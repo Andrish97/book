@@ -9,6 +9,7 @@ import { naPlotnieCelu } from '../zlozenie.js';
 import { spotyDruku, mapaSpotow, uzyteKoloryDruku, stanUszlachetnien, cmykNaRgb } from '../kolory-druku.js';
 import { rozbij, obrazPlyt, maskaZRoznicy, PLYTY_CMYK, ustawSilnikTac } from '../separacje.js';
 import { wczytajWarunki } from '../pdf-x.js';
+import { t as tt } from '../jezyk.js';
 
 const SZEROKOSC = 900; // px – obraz strony do rozbicia (wystarcza do oceny, liczy się szybko)
 const dlg = $('#dlg-separacje');
@@ -32,14 +33,14 @@ async function przelicz() {
   const nr = ++liczy;
   // Postęp w oknie (#159): obraz strony, maska każdego uszlachetnienia, rozbicie na płyty.
   const ileUszl = uzyteKoloryDruku(stan.projekt).uszlachetnienia.length;
-  const pasek = postep('Liczenie płyt druku…', { razem: ileUszl + 2 });
+  const pasek = postep(tt('separacjeOkno.liczeniePlytDruku'), { razem: ileUszl + 2 });
   try { await przeliczZPaskiem(nr, pasek); } finally { pasek.koniec(); }
 }
 async function przeliczZPaskiem(nr, pasek) {
   const { projekt, ciag } = stan;
   const egz = ciag.egzemplarze[stan.i];
   $('#separacje-numer').textContent = `Strona ${stan.i + 1} z ${ciag.egzemplarze.length}`;
-  $('#separacje-wynik').textContent = 'Liczę płyty…';
+  $('#separacje-wynik').textContent = tt('separacjeOkno.liczePlyty');
   const odczyt = (p) => p.getContext().getImageData(0, 0, p.getWidth(), p.getHeight());
   const opcje = { szerokoscPx: SZEROKOSC, spad: true, ciag, oryginaly: false };
   // Strona bez efektów uszlachetnień (to nie farba) – sama farba CMYK i kolory dodatkowe.

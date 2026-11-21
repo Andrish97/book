@@ -11,6 +11,7 @@
 
 import { biezacaMarka } from './zestaw-marki.js';
 import { trybKolorow, koloryDodatkowe, spotyDruku, mapaSpotow, hexSpotu, sekcjaBiezaca, koloryWZakresie, dodajKolorDodatkowy, rgbNaCmyk } from './kolory-druku.js';
+import { t as tt } from './jezyk.js';
 
 const wartoscSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
 const indeksSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'selectedIndex');
@@ -67,7 +68,7 @@ function dodajUchwyt(okienko) {
   const u = document.createElement('button');
   u.type = 'button';
   u.className = 'uchwyt-okienka';
-  u.setAttribute('aria-label', 'Zamknij');
+  u.setAttribute('aria-label', tt('kontrolki.zamknij'));
   let start = null;
   u.addEventListener('pointerdown', (e) => { start = e.clientY; u.setPointerCapture?.(e.pointerId); });
   u.addEventListener('pointermove', (e) => {
@@ -416,7 +417,7 @@ function ulepszKolor(input) {
     const okienko = document.createElement('div');
     okienko.className = 'kolor-okienko';
     okienko.setAttribute('role', 'dialog');
-    okienko.setAttribute('aria-label', 'Wybór koloru');
+    okienko.setAttribute('aria-label', tt('kontrolki.wyborKoloru'));
     okienko.innerHTML = `
       <div class="kolor-pole" tabindex="0" role="slider" aria-label="Nasycenie i jasność"><i></i></div>
       <div class="kolor-barwa" tabindex="0" role="slider" aria-label="Barwa" aria-valuemin="0" aria-valuemax="360"><i></i></div>
@@ -587,7 +588,7 @@ function ulepszKolor(input) {
     // Użyte w projekcie (#136): z liczbą użyć w podpowiedzi; kolor dodatkowy (Pantone) – z nazwą.
     const juz = new Set(wSekcji.map((k) => k.kolor));
     const wProjekcie = uzyteKolory().filter((k) => !juz.has(k.kolor));
-    if (wSekcji.length) okienko.querySelector('.kolor-uzyte .kolor-podpis').textContent = 'W innych sekcjach';
+    if (wSekcji.length) okienko.querySelector('.kolor-uzyte .kolor-podpis').textContent = tt('kontrolki.wInnychSekcjach');
     if (wProjekcie.length) {
       okienko.querySelector('.kolor-uzyte').hidden = false;
       const el = okienko.querySelector('.kolor-paleta.projektu');
@@ -654,7 +655,7 @@ function ulepszDate(input) {
   const najwczesniej = () => (input.getAttribute('min') === 'dzis' ? naIso(new Date()) : input.getAttribute('min') || '');
   const odswiez = () => {
     const v = wartoscInput.get.call(input);
-    przycisk.querySelector('.wybor-tekst').textContent = v ? dataSlownie(v) : 'Wybierz dzień';
+    przycisk.querySelector('.wybor-tekst').textContent = v ? dataSlownie(v) : tt('kontrolki.wybierzDzien');
     przycisk.classList.toggle('pusty', !v);
     przycisk.disabled = input.disabled;
     przycisk.setAttribute('aria-label', `${przycisk.dataset.etykieta ? `${przycisk.dataset.etykieta}: ` : ''}${v ? dataSlownie(v) : 'nie wybrano'} – zmień`);
@@ -672,7 +673,7 @@ function ulepszDate(input) {
     const okienko = document.createElement('div');
     okienko.className = 'kalendarz-okienko';
     okienko.setAttribute('role', 'dialog');
-    okienko.setAttribute('aria-label', 'Wybór dnia');
+    okienko.setAttribute('aria-label', tt('kontrolki.wyborDnia'));
     okienko.innerHTML = `
       <div class="kalendarz-naglowek">
         <button type="button" class="przycisk-ikona maly" data-krok="-1" aria-label="Poprzedni miesiąc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 6-6 6 6 6"/></svg></button>

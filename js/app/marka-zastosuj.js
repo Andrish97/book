@@ -13,6 +13,7 @@ import { $, powiadom } from '../ui.js';
 import { stan, edytor } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { panel } from './skladniki.js';
+import { t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-marka-zastosuj');
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
@@ -54,7 +55,7 @@ export async function otworzZastosowanieMarki() {
   sel.value = wybrany || '';
   $('#marka-zastosuj-zestaw-pole').hidden = zestawy.length < 2;
   if (markaPusta(marka()) && !zestawy.some((z) => !z.pusty)) {
-    powiadom('Zestaw marki jest pusty – dodaj kolory, czcionki i style tekstu w Ustawieniach konta → Zestaw marki.', true);
+    powiadom(tt('markaZastosuj.zestawMarkiJestPusty'), true);
     (await import('../marka-okno.js')).otworzMarke();
     return;
   }
@@ -106,12 +107,12 @@ async function zastosuj() {
     p.kolory_dodatkowe = [...(p.kolory_dodatkowe || [])];
     for (const s of spoty) if (!p.kolory_dodatkowe.some((x) => x.nazwa === s.nazwa)) p.kolory_dodatkowe.push(s);
   }
-  if (!n) { powiadom('Nic się nie zmieniło – wszystko zostało „bez zmian”.'); return; }
+  if (!n) { powiadom(tt('markaZastosuj.nicSieNieZmienilo')); return; }
   stan.miniatury.clear();
   await zaladujCel();
   if (!edytor.aktywny) panel.zbuduj();
   zaplanujZapis();
-  powiadom(`Zastosowano markę: ${n} ${n === 1 ? 'zmiana' : 'zmian'} kolorów, czcionek i stylów.`, false, { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+  powiadom(`Zastosowano markę: ${n} ${n === 1 ? 'zmiana' : 'zmian'} kolorów, czcionek i stylów.`, false, { etykieta: tt('markaZastosuj.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 dlg.addEventListener('close', () => { if (dlg.returnValue === 'ok') zastosuj(); dlg.returnValue = ''; });

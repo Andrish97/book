@@ -12,6 +12,7 @@ import { biblioteka } from './biblioteki.js';
 import { pokazPlanArkuszy } from './okno-pdf.js';
 import { postep } from './postep.js';
 import { wypelnijSekcje, wybraneSekcje, uwagaZakresu } from './zakres-eksportu.js';
+import { t as tt } from './jezyk.js';
 
 const KLUCZ = (id) => `makietka:druk:${id}`;
 const POLA = ['uklad', 'papier', 'dopasowanie', 'zakres', 'szarosc', 'znaki'];
@@ -35,16 +36,16 @@ export function drukujPlik(url) {
   if (window.seriodruk?.drukujTestowo) return window.seriodruk.drukujTestowo(url); // testy: bez okna drukarki
   if (ramkaNieDziala()) {
     window.open(url, '_blank');
-    powiadom('Plik otworzył się w nowej karcie – wybierz tam Udostępnij → Drukuj.');
+    powiadom(tt('oknoDruku.plikOtworzylSieW2'));
     return;
   }
   document.querySelector('#ramka-druku')?.remove();
-  const ramka = Object.assign(document.createElement('iframe'), { id: 'ramka-druku', src: url, title: 'Wydruk' });
+  const ramka = Object.assign(document.createElement('iframe'), { id: 'ramka-druku', src: url, title: tt('oknoDruku.wydruk') });
   ramka.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
   ramka.addEventListener('load', () => {
     try { ramka.contentWindow.focus(); ramka.contentWindow.print(); } catch {
       window.open(url, '_blank');
-      powiadom('Plik otworzył się w nowej karcie – wydrukuj go stamtąd (Ctrl+P).');
+      powiadom(tt('oknoDruku.plikOtworzylSieW'));
     }
   }, { once: true });
   document.body.append(ramka);
@@ -198,11 +199,11 @@ export class OknoDruku {
     if (this.trwa) return;
     const o = this.opcje();
     const egz = this.egzemplarze(o);
-    if (!egz.length) { $('#druk-komunikat').textContent = 'W wybranym zakresie nie ma stron.'; return; }
+    if (!egz.length) { $('#druk-komunikat').textContent = tt('oknoDruku.wWybranymZakresieNie'); return; }
     this.trwa = true;
     const przyciski = this.okno.querySelectorAll('.przyciski-dialogu button');
     przyciski.forEach((b) => { b.disabled = true; });
-    const pasek = postep('Składanie pliku do druku…', { razem: egz.length });
+    const pasek = postep(tt('oknoDruku.skladaniePlikuDoDruku'), { razem: egz.length });
     try {
       this.zrodlo.przedDrukiem?.();
       const p = this.zrodlo.projekt();

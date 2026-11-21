@@ -14,6 +14,7 @@
 // Uchwyt dokłada się sam do każdego <dialog> na stronie – w index.html nic nie trzeba dopisywać.
 
 import { czyZaslonka } from './urzadzenie.js';
+import { t } from './jezyk.js';
 
 const bezRuchu = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const otwarte = new Set();
@@ -163,7 +164,7 @@ function przygotuj(dlg) {
   const uchwyt = document.createElement('button');
   uchwyt.type = 'button';
   uchwyt.className = 'uchwyt-zaslonki';
-  uchwyt.setAttribute('aria-label', 'Zamknij (albo pociągnij w dół)');
+  uchwyt.setAttribute('aria-label', t('zaslonki.zamknijAlboPociagnijW'));
   // Na końcu okna (w CSS stoi na górze): pierwszy przycisk okna dostaje fokus przy otwarciu, a to nie może
   // być uchwyt – Enter zamknąłby okno zamiast zatwierdzić.
   dlg.append(uchwyt);

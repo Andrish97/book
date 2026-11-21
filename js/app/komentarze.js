@@ -11,6 +11,7 @@ import { osobyProjektu } from '../wspolpraca-chmura.js';
 import { edytor, stan } from './kontekst.js';
 import { naPlotnie } from './zapis.js';
 import { przejdzDoStrony } from './lista-stron.js';
+import { t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-komentarze');
 const lista = $('#lista-komentarzy');
@@ -116,7 +117,7 @@ document.addEventListener('seriodruk:zapisano-na-koncie', () => { if (projektId 
 
 export async function otworzKomentarze({ watek = null } = {}) {
   if (!stan.projekt) return;
-  if (!stan.uzytkownik) { powiadom('Komentarze są dostępne po zalogowaniu.', true); return; }
+  if (!stan.uzytkownik) { powiadom(tt('komentarze.komentarzeSaDostepnePo'), true); return; }
   if (!dlg.open) {
     dlg.classList.toggle('obok-strony', naKomputerze());
     if (naKomputerze()) dlg.show(); else dlg.showModal();
@@ -158,8 +159,8 @@ function pokazListe() {
       : !k.rozwiazany));
   pusto.hidden = widoczne.length > 0;
   pusto.textContent = komentarze.length
-    ? 'Brak komentarzy w tym widoku.'
-    : 'Nie ma jeszcze komentarzy. Wybierz „Nowy komentarz” albo narzędzie „Komentarz” i kliknij miejsce na stronie.';
+    ? tt('komentarze.brakKomentarzyWTym')
+    : tt('komentarze.nieMaJeszczeKomentarzy');
   lista.replaceChildren(...widoczne.map((k) => {
     const li = document.createElement('li');
     li.className = `watek-komentarza${k.rozwiazany ? ' rozwiazany' : ''}${otwartyWatek === k.id ? ' otwarty' : ''}`;
@@ -238,7 +239,7 @@ lista.addEventListener('click', async (e) => {
       await km.rozwiazKomentarz(id, !k?.rozwiazany);
       await wczytaj();
     } else if (op === 'usun') {
-      if (!await potwierdz('Usunąć wątek?', 'Komentarz i wszystkie odpowiedzi znikną dla wszystkich osób w projekcie.', 'Usuń', true)) return;
+      if (!await potwierdz(tt('komentarze.usunacWatek'), tt('komentarze.komentarzIWszystkieOdpowiedzi'), tt('komentarze.usun'), true)) return;
       await km.usunKomentarz(id);
       await wczytaj();
     } else if (op === 'zmien') {
@@ -386,10 +387,10 @@ function szkicZPunktu(stronaId, x, y, elementId = null) {
 // Narzędzie „Komentarz”: zaznaczony element – komentarz od razu przy nim; inaczej czeka na kliknięcie strony.
 export function narzedzieKomentarz() {
   if (!stan.projekt) return;
-  if (!stan.uzytkownik) { powiadom('Komentarze są dostępne po zalogowaniu.', true); return; }
+  if (!stan.uzytkownik) { powiadom(tt('komentarze.komentarzeSaDostepnePo'), true); return; }
   if (tryb) { ustawTryb(false); return; }
   if (!wPodgladzie()) {
-    if (stan.tryb !== 'strona') { powiadom('Komentarze dodaje się na stronach – wróć ze wzorca do stron.', true); return; }
+    if (stan.tryb !== 'strona') { powiadom(tt('komentarze.komentarzeDodajeSieNa'), true); return; }
     const akt = edytor.aktywny;
     if (akt && !akt.zWzorca && akt.type !== 'activeSelection' && akt.id) {
       const c = akt.getCenterPoint();
@@ -405,7 +406,7 @@ function ustawTryb(wl) {
   tryb = Boolean(wl);
   for (const b of $$('[data-akcja="komentarz"]')) b.setAttribute('aria-pressed', String(tryb));
   document.body.classList.toggle('tryb-komentarza', tryb);
-  if (tryb) powiadom(wPodgladzie() ? 'Kliknij miejsce na stronie, którego dotyczy komentarz (Esc – anuluj).' : 'Kliknij miejsce albo element na stronie, którego dotyczy komentarz (Esc – anuluj).');
+  if (tryb) powiadom(wPodgladzie() ? tt('komentarze.kliknijMiejsceNaStronie') : tt('komentarze.kliknijMiejsceAlboElement'));
 }
 
 document.addEventListener('keydown', (e) => { if (tryb && e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); ustawTryb(false); } }, true);
@@ -488,7 +489,7 @@ function rysujPinezki() {
       b.setAttribute('aria-label', `Komentarz ${nr.get(p.k.id)}: ${p.k.tresc.slice(0, 80)}`);
     } else {
       b.textContent = '+';
-      b.setAttribute('aria-label', 'Nowy komentarz');
+      b.setAttribute('aria-label', tt('komentarze.nowyKomentarz'));
     }
     return b;
   }));

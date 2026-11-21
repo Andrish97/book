@@ -11,6 +11,7 @@ import {
 import { stan, edytor } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { generujMiniatury, renderujListe, ustawZakladke } from './lista-stron.js';
+import { t } from '../jezyk.js';
 
 const skad = (wpis) => (stan.projekt && wpis.projekt !== stan.projekt.id ? ` z projektu „${wpis.nazwaProjektu}”` : '');
 
@@ -81,7 +82,7 @@ async function poWklejeniu(pierwsza, komunikat) {
 // Strony ze schowka (strona albo strony skopiowanej sekcji) za stroną i – w jej sekcji.
 export async function wklejStronyZeSchowka(i) {
   const wpis = await wezZeSchowka();
-  if (!wpis || !['strony', 'sekcja'].includes(wpis.rodzaj)) { powiadom('W schowku nie ma stron – skopiuj stronę albo sekcję (menu strony / sekcji).', true); return; }
+  if (!wpis || !['strony', 'sekcja'].includes(wpis.rodzaj)) { powiadom(t('schowekOkno.wSchowkuNieMa2'), true); return; }
   zapiszBiezacyCel();
   const nowe = await wklejStrony(stan.projekt, wpis, i);
   await poWklejeniu(nowe[0], `Wklejono ${nowe.length === 1 ? `stronę „${nowe[0].nazwa}”` : `${nowe.length} stron`}${skad(wpis)}.`);
@@ -90,9 +91,9 @@ export async function wklejStronyZeSchowka(i) {
 // Sekcja ze schowka za sekcją id (okładka – na początek; drugiej okładki nie dokładamy).
 export async function wklejSekcjeZeSchowka(id) {
   const wpis = await wezZeSchowka();
-  if (!wpis || wpis.rodzaj !== 'sekcja') { powiadom('W schowku nie ma sekcji – skopiuj ją z menu sekcji („Kopiuj sekcję do schowka”).', true); return; }
+  if (!wpis || wpis.rodzaj !== 'sekcja') { powiadom(t('schowekOkno.wSchowkuNieMa'), true); return; }
   if (wpis.dane.sekcja.okladka && stan.projekt.sekcje.some((s) => s.okladka)) {
-    powiadom('Ten projekt ma już okładkę – usuń ją albo wklej same strony („Wklej strony ze schowka”).', true);
+    powiadom(t('schowekOkno.tenProjektMaJuz'), true);
     return;
   }
   zapiszBiezacyCel();

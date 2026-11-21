@@ -15,6 +15,7 @@ import { powiadom, pobierz, bezpiecznaNazwa } from '../ui.js';
 import { stan, trasa } from './kontekst.js';
 import { czekajNaEdytor } from './doczytaj.js';
 import { wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
+import { t } from '../jezyk.js';
 
 // Ta karta – do blokady „jedna karta robi zlecenie”.
 const KARTA = `k-${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
@@ -103,13 +104,13 @@ export async function wykonajZTrasy(id) {
   if (stan.projekt) trasa.ustaw(`p/${stan.projekt.id}`, { zastap: true });
   let z = null;
   try { z = await rpc('zlecenie_eksportu', { p_id: id }); } catch { z = null; }
-  if (!z) { powiadom('Nie ma takiego zlecenia eksportu na tym koncie (może wygasło po 7 dniach).', true); return; }
+  if (!z) { powiadom(t('eksportAi.nieMaTakiegoZlecenia'), true); return; }
   if (z.stan === 'gotowe') {
-    powiadom(`Plik „${z.nazwa}” jest już gotowy – AI poda link do pobrania.`, false, { etykieta: 'Pobierz', fn: () => pobierzGotowy(z) });
+    powiadom(`Plik „${z.nazwa}” jest już gotowy – AI poda link do pobrania.`, false, { etykieta: t('eksportAi.pobierz'), fn: () => pobierzGotowy(z) });
     return;
   }
   if (z.stan === 'w_toku' && !(await rpc('eksporty_czekajace')).some((x) => x.id === id)) {
-    powiadom('Ten eksport robi już inna karta albo urządzenie.');
+    powiadom(t('eksportAi.tenEksportRobiJuz'));
     return;
   }
   // Czekające, porzucone albo nieudane w tej karcie – robimy teraz.
@@ -188,7 +189,7 @@ async function wykonaj(z) {
       for (const [powod, n] of wynik.uwagi || []) uwagi.push(`Zapisane jako obraz (${n}): ${powod}`);
       for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(`Tekst jako krzywe (${n}): ${czcionka}`);
     }
-    pasek.opis('AI zleciło eksport – wysyłanie pliku na konto…');
+    pasek.opis(t('eksportAi.aiZleciloEksportWysylanie'));
     pasek.razem(null);
     const plik = `${uid}/_eksporty/${z.id}.${z.rodzaj === 'png' ? 'png' : 'pdf'}`;
     await chmura.r2.wyslij('zasoby', plik, blob, { cache: 'private, max-age=3600' });
@@ -196,7 +197,7 @@ async function wykonaj(z) {
       p_id: z.id, p_karta: KARTA, p_plik: plik, p_nazwa: nazwa, p_typ: blob.type || (z.rodzaj === 'png' ? 'image/png' : 'application/pdf'),
       p_rozmiar: blob.size, p_strony: strony, p_uwagi: uwagi.slice(0, 40), p_blad: null,
     });
-    powiadom(`Gotowy plik „${nazwa}” zlecony przez AI – AI dostało link do pobrania.`, false, { etykieta: 'Pobierz', fn: () => pobierz(nazwa, URL.createObjectURL(blob)) });
+    powiadom(`Gotowy plik „${nazwa}” zlecony przez AI – AI dostało link do pobrania.`, false, { etykieta: t('eksportAi.pobierz'), fn: () => pobierz(nazwa, URL.createObjectURL(blob)) });
   } catch (e) {
     const opis = e?.message || String(e);
     try { await rpc('zakoncz_eksport', { p_id: z.id, p_karta: KARTA, p_plik: null, p_nazwa: null, p_typ: null, p_rozmiar: null, p_strony: null, p_uwagi: [], p_blad: opis }); } catch { /* zostaje w toku – inna karta przejmie po 5 min */ }

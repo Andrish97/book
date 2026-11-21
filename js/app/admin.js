@@ -8,6 +8,7 @@ import { supabase, komunikatBledu, r2, zuzycieSerwera } from '../chmura.js';
 import { $, $$, powiadom, kiedy } from '../ui.js';
 import { stan, trasa } from './kontekst.js';
 import { rysujSkrzynke, sledzSkrzynke, przestanSledzic, przebiegKolejki } from './skrzynka.js';
+import { t } from '../jezyk.js';
 
 // Kolejka i ustawienia poczty to jedna zakładka „Poczta” (#207); dawne adresy #/admin/kolejka i
 // #/admin/ustawienia prowadzą do niej, przewinięte do swojej części.
@@ -54,7 +55,7 @@ export async function pokazPanel(nazwa = 'skrzynka') {
   for (const a of $$('[data-admin]')) a.setAttribute('aria-selected', String(a.dataset.admin === zakladka));
   for (const s of $$('[data-panel-admin]')) s.hidden = s.dataset.panelAdmin !== zakladka;
   $('#ekran-admin').dataset.zakladka = zakladka;
-  document.title = 'Panel administratora – Makietka';
+  document.title = t('admin.panelAdministratoraMakietka');
   await odswiez();
   if (czesc) document.getElementById(czesc)?.scrollIntoView({ block: 'start' });
 }
@@ -101,7 +102,7 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('#admin-kopie-wyczysc')) {
     const dni = Number($('#admin-kopie-dni').value) || 14;
     const { potwierdz } = await import('../ui.js');
-    if (!await potwierdz('Wyczyścić stare kopie?', `Kopie, strony i wpisy dziennika starsze niż ${dni} dni znikną ze wszystkich projektów – takich stanów nie da się już przywrócić. Projekty i ich obecna treść zostają.`, 'Wyczyść', true)) return;
+    if (!await potwierdz(t('admin.wyczyscicStareKopie'), `Kopie, strony i wpisy dziennika starsze niż ${dni} dni znikną ze wszystkich projektów – takich stanów nie da się już przywrócić. Projekty i ich obecna treść zostają.`, t('admin.wyczysc'), true)) return;
     try {
       const w = await rpc('admin_kopie_wyczysc', { p_dni: dni });
       powiadom(`Usunięto kopie: ${w.kopie} zapisów, ${w.strony} stron, ${w.dziennik} wpisów dziennika.`);
@@ -114,7 +115,7 @@ document.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-przywroc]');
   if (!b) return;
   const { potwierdz } = await import('../ui.js');
-  if (!await potwierdz('Przywrócić stan sprzed zapisu?', 'Dane projektu i strony zmienione albo usunięte przez ten zapis wrócą do stanu sprzed niego. Otwarte edytory dostaną to jak każdą zmianę z konta. Samo przywrócenie też trafi do kopii – da się je cofnąć.', 'Przywróć')) return;
+  if (!await potwierdz(t('admin.przywrocicStanSprzedZapisu'), 'Dane projektu i strony zmienione albo usunięte przez ten zapis wrócą do stanu sprzed niego. Otwarte edytory dostaną to jak każdą zmianę z konta. Samo przywrócenie też trafi do kopii – da się je cofnąć.', t('admin.przywroc'))) return;
   try {
     const w = await rpc('admin_przywroc_kopie', { p_kopia: Number(b.dataset.przywroc) });
     powiadom(`Przywrócono (stron: ${w.strony}, wersja ${w.wersja}).`);
@@ -223,7 +224,7 @@ async function zapiszUstawienia(e) {
   };
   try {
     await rpc('admin_poczta_zapisz', { p });
-    kom.textContent = 'Zapisano.';
+    kom.textContent = t('admin.zapisano');
     kom.className = 'komunikat ok';
     await rysujUstawienia();
   } catch (err) {
@@ -275,18 +276,18 @@ async function rysujStatystyki() {
   const godz = (ms) => `${(ms / 3600000).toFixed(ms < 360000 ? 2 : 1).replace('.', ',')} h`;
   const kafel = (opis, wartosc, dopisek = '') => `<div class="admin-kafelek"><span>${esc(opis)}</span><strong>${esc(wartosc)}</strong>${dopisek ? `<small>${esc(dopisek)}</small>` : ''}</div>`;
   $('#admin-kafelki').innerHTML = [
-    kafel('Konta', s.konta.razem, `nowe w 7 dni: ${s.konta.nowe_7}`),
-    kafel('Aktywne konta', s.konta.aktywne_7, `w 30 dni: ${s.konta.aktywne_30}`),
-    kafel('Projekty', s.projekty.razem, `zmienione w 7 dni: ${s.projekty.zmienione_7}`),
-    kafel('Projekty współdzielone', s.projekty.wspoldzielone),
-    kafel('Zaproszenia', s.zaproszenia.razem, `przyjęte: ${s.zaproszenia.przyjete} · czekają: ${s.zaproszenia.czekajace}`),
-    kafel('Maile dziś', s.maile.wyslane_dzis, `30 dni: ${s.maile.wyslane_30}`),
-    kafel('Kolejka', s.maile.w_kolejce, `błędy: ${s.maile.bledy}`),
-    kafel('Skrzynka', s.skrzynka.nieprzeczytane, `nieprzeczytane · rozmów w 30 dni: ${s.skrzynka.rozmowy_30}`),
+    kafel(t('admin.konta'), s.konta.razem, `nowe w 7 dni: ${s.konta.nowe_7}`),
+    kafel(t('admin.aktywneKonta'), s.konta.aktywne_7, `w 30 dni: ${s.konta.aktywne_30}`),
+    kafel(t('admin.projekty'), s.projekty.razem, `zmienione w 7 dni: ${s.projekty.zmienione_7}`),
+    kafel(t('admin.projektyWspoldzielone'), s.projekty.wspoldzielone),
+    kafel(t('admin.zaproszenia'), s.zaproszenia.razem, `przyjęte: ${s.zaproszenia.przyjete} · czekają: ${s.zaproszenia.czekajace}`),
+    kafel(t('admin.maileDzis'), s.maile.wyslane_dzis, `30 dni: ${s.maile.wyslane_30}`),
+    kafel(t('admin.kolejka'), s.maile.w_kolejce, `błędy: ${s.maile.bledy}`),
+    kafel(t('admin.skrzynka'), s.skrzynka.nieprzeczytane, `nieprzeczytane · rozmów w 30 dni: ${s.skrzynka.rozmowy_30}`),
     pliki.blad
-      ? kafel('Pliki (R2)', '–', `nie udało się odczytać: ${pliki.blad}`)
-      : kafel('Pliki (R2)', mb(pliki.pliki_razem), `z ${mb(pliki.limit_plikow)} puli (${Math.round((pliki.pliki_razem / pliki.limit_plikow) * 100)}%)`),
-    kafel('Baza', mb(rozmiary.baza), `z 500 MB (${Math.round((rozmiary.baza / (500 * 1024 ** 2)) * 100)}%)`),
+      ? kafel(t('admin.plikiR2'), '–', `nie udało się odczytać: ${pliki.blad}`)
+      : kafel(t('admin.plikiR2'), mb(pliki.pliki_razem), `z ${mb(pliki.limit_plikow)} puli (${Math.round((pliki.pliki_razem / pliki.limit_plikow) * 100)}%)`),
+    kafel(t('admin.baza'), mb(rozmiary.baza), `z 500 MB (${Math.round((rozmiary.baza / (500 * 1024 ** 2)) * 100)}%)`),
     serwer.blad
       ? kafel('Serwer rysowania', '–', `nie udało się odczytać: ${serwer.blad}`)
       : kafel('Serwer rysowania', godz(serwer.miesiac.ms), `w tym miesiącu z ${serwer.planGodzin} h w planie (${Math.round((serwer.miesiac.ms / (serwer.planGodzin * 3600000)) * 100)}%) · stron: ${serwer.miesiac.stron} · zleceń: ${serwer.miesiac.zlecen}`),

@@ -7,6 +7,7 @@ import { supabase } from '../chmura.js';
 import { $, powiadom } from '../ui.js';
 import { wstawIkony } from '../ikony.js';
 import { stan } from './kontekst.js';
+import { t as tt } from '../jezyk.js';
 
 // Klucz witryny Cloudflare Turnstile (publiczny; sekret jest w Workerze jako TURNSTILE_SECRET). Pusty – bez Turnstile:
 // formularz chronią wtedy pułapka i limity. Wpisz tu klucz po dodaniu witryny makietka.app w Cloudflare → Turnstile.
@@ -79,7 +80,7 @@ form.addEventListener('submit', async (e) => {
   const przycisk = $('#kontakt-wyslij');
   przycisk.disabled = true;
   kom.className = 'komunikat';
-  kom.textContent = 'Wysyłam…';
+  kom.textContent = tt('kontakt.wysylam');
   try {
     // Zwykłe zapytanie (text/plain albo multipart z plikami) – bez osobnego zapytania wstępnego CORS.
     const naglowki = pliki.length ? {} : { 'content-type': 'text/plain;charset=UTF-8' };
@@ -110,9 +111,9 @@ form.addEventListener('submit', async (e) => {
     pokazPliki();
     kom.textContent = '';
     dlg.close();
-    powiadom('Dziękujemy! Zgłoszenie dotarło – odpowiemy na podany adres.');
+    powiadom(tt('kontakt.dziekujemyZgloszenieDotarloOdpowiemy'));
   } catch (err) {
-    kom.textContent = err.message === 'Failed to fetch' ? 'Brak połączenia – spróbuj za chwilę.' : err.message;
+    kom.textContent = err.message === 'Failed to fetch' ? tt('kontakt.brakPolaczeniaSprobujZa') : err.message;
     kom.className = 'komunikat blad';
     if (widget !== null) window.turnstile?.reset(widget);
   } finally {

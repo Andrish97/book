@@ -21,6 +21,7 @@ import { szablonPlanera, zastosujSzablon } from './szablony-planera.js';
 import { normalizujOkladke, geometriaOkladki } from './okladka.js';
 import { domyslnaSpecjalna, geometriaSpecjalna, dodajWyklejki } from './sekcje-specjalne.js';
 import { domyslneStyle } from './style-tekstu.js';
+import { t as tt } from './jezyk.js';
 
 // Zależności rysujące – wczytywane raz, przy pierwszym wstawieniu.
 let Z = null;
@@ -232,15 +233,15 @@ export const KATEGORIE_SEKCJI = [
   { id: 'inne', nazwa: 'Inne' },
 ];
 
-const pytanieRok = { klucz: 'rok', etykieta: 'Rok', typ: 'liczba', min: 2000, max: 2100, domyslna: () => domyslnyRok() };
-const pytanieStron = (d, max = 400) => ({ klucz: 'stron', etykieta: 'Liczba stron', typ: 'liczba', min: 1, max, domyslna: () => d });
+const pytanieRok = { klucz: 'rok', etykieta: tt('gotoweSekcje.rok'), typ: 'liczba', min: 2000, max: 2100, domyslna: () => domyslnyRok() };
+const pytanieStron = (d, max = 400) => ({ klucz: 'stron', etykieta: tt('gotoweSekcje.liczbaStron'), typ: 'liczba', min: 1, max, domyslna: () => d });
 
 export const SZABLONY_SEKCJI = [
   // ---------- Książka ----------
   {
     id: 'okladka-ksiazki', nazwa: 'Okładka książki', kategoria: 'ksiazka', okladka: 'miekka', paleta: 'granat',
     opis: 'Przód, grzbiet i tył – grzbiet liczy się sam z liczby stron środka.', slowa: 'okladka ksiazki grzbiet tyl przod oprawa',
-    pytania: [{ klucz: 'oprawa', etykieta: 'Oprawa', typ: 'wybor', opcje: [['miekka', 'Miękka klejona'], ['twarda', 'Twarda'], ['zeszytowa', 'Zeszytowa (zszywki)']], domyslna: () => 'miekka' }],
+    pytania: [{ klucz: 'oprawa', etykieta: tt('gotoweSekcje.oprawa'), typ: 'wybor', opcje: [['miekka', 'Miękka klejona'], ['twarda', 'Twarda'], ['zeszytowa', 'Zeszytowa (zszywki)']], domyslna: () => 'miekka' }],
     schemat: [['tlo', 0, 0, 30, 42], ['akcent', 4, 8, 22, 1], ['tytul', 4, 12, 22, 5], ['tekst', 4, 33, 22, 2]],
     buduj(c, n) {
       const g = c.okladka;
@@ -252,7 +253,7 @@ export const SZABLONY_SEKCJI = [
       const o = [
         { ...n.tlo(c.k.akcent), okladka: 'cala' },
         { ...n.kreska(przod.x1 + mx, y0 + my + wys * 0.12, Math.min(30, pw * 0.3), 0.6, c.k.akcent2), okladka: 'przod' },
-        { ...n.tekst('Tytuł książki', przod.x1 + mx, y0 + my + wys * 0.16, pw - 2 * mx, { pt: 30, font: c.f.tytul, bold: true, kolor: '#ffffff', lh: 1.05, nazwa: 'Tytuł' }), okladka: 'przod' },
+        { ...n.tekst(tt('gotoweSekcje.tytulKsiazki'), przod.x1 + mx, y0 + my + wys * 0.16, pw - 2 * mx, { pt: 30, font: c.f.tytul, bold: true, kolor: '#ffffff', lh: 1.05, nazwa: 'Tytuł' }), okladka: 'przod' },
         { ...n.tekst('Podtytuł albo krótkie zdanie o książce', przod.x1 + mx, y0 + my + wys * 0.36, pw - 2 * mx, { pt: 12, kolor: mieszaj(c.k.akcent, '#ffffff', 0.8), italic: true, nazwa: 'Podtytuł' }), okladka: 'przod' },
         { ...n.tekst('IMIĘ NAZWISKO', przod.x1 + mx, y0 + wys - my - c.pt(11) * 1.4, pw - 2 * mx, { pt: 11, kolor: c.k.akcent2, cs: 120, nazwa: 'Autor' }), okladka: 'przod' },
         { ...n.tekst(akapit(3), tyl.x1 + mx, y0 + my + wys * 0.12, (tyl.x2 - tyl.x1) - 2 * mx, { pt: 9.5, kolor: '#ffffff', lh: 1.4, nazwa: 'Opis na tyle' }), okladka: 'tyl' },
@@ -273,7 +274,7 @@ export const SZABLONY_SEKCJI = [
       const { pole: p } = c;
       const s1 = [
         n.tekst('IMIĘ NAZWISKO', p.x, p.y + p.h * 0.18, p.w, { pt: 10, align: 'center', cs: 160, kolor: c.k.akcent2 }),
-        n.tekst('Tytuł książki', p.x, p.y + p.h * 0.26, p.w, { pt: 26, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, lh: 1.05, nazwa: 'Tytuł' }),
+        n.tekst(tt('gotoweSekcje.tytulKsiazki'), p.x, p.y + p.h * 0.26, p.w, { pt: 26, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, lh: 1.05, nazwa: 'Tytuł' }),
         n.tekst('Podtytuł książki', p.x, p.y + p.h * 0.42, p.w, { pt: 12, italic: true, align: 'center' }),
         ...n.ozdobnik(p.x + p.w / 2, p.y + p.h * 0.52, Math.min(50, p.w * 0.5)),
         n.tekst('Wydawnictwo · Miasto · Rok', p.x, p.y + p.h - c.pt(9) * 2, p.w, { pt: 9, align: 'center', kolor: c.k.akcent2 }),
@@ -292,7 +293,7 @@ export const SZABLONY_SEKCJI = [
         strony: [{
           nazwa: 'Spis treści',
           obiekty: [
-            n.tekst('Spis treści', p.x, p.y, p.w, { pt: 22, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł spisu' }),
+            n.tekst(tt('gotoweSekcje.spisTresci'), p.x, p.y, p.w, { pt: 22, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł spisu' }),
             n.kreska(p.x, p.y + c.pt(22) * 1.5, Math.min(30, p.w * 0.3), 0.5, c.k.akcent2),
             { ...n.tekst('', p.x, p.y + c.pt(22) * 2.2, p.w, { pt: 10.5, lh: 1.6 }), ksiazka: { rodzaj: 'spis', poziomy: 2, kropki: true }, nazwa: 'Spis treści' },
           ],
@@ -353,7 +354,7 @@ export const SZABLONY_SEKCJI = [
       const okladka = [
         n.zdjecie(-c.spad, -c.spad, c.W + 2 * c.spad, c.H * 0.68 + c.spad, { bez_ostrzezen: true }),
         n.tekst(String(rok), p.x, c.H * 0.72, p.w, { pt: 54, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Rok' }),
-        n.tekst('Kalendarz', p.x, c.H * 0.72 + c.pt(54) * 1.05, p.w, { pt: 14, cs: 200, kolor: c.k.akcent2, wielkosc_liter: 'wielkie' }),
+        n.tekst(tt('gotoweSekcje.kalendarz'), p.x, c.H * 0.72 + c.pt(54) * 1.05, p.w, { pt: 14, cs: 200, kolor: c.k.akcent2, wielkosc_liter: 'wielkie' }),
       ];
       const miesiac = [
         n.zdjecie(p.x, p.y, p.w, hZdj),
@@ -812,7 +813,7 @@ export const SZABLONY_SEKCJI = [
         n.tekst('O nas', k0.x, m, k0.w, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent }),
         n.tekst(akapit(4), k0.x, m + c.pt(16) * 1.6, k0.w, { pt: 9, lh: 1.4 }),
         n.prost(k1.x, c.H * 0.35, k1.w, c.H * 0.45, { fill: c.k.jasny, rx: 2, nazwa: 'Kontakt' }),
-        n.tekst('Kontakt', k1.x + 3, c.H * 0.35 + 3, k1.w - 6, { pt: 13, bold: true, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.kontakt'), k1.x + 3, c.H * 0.35 + 3, k1.w - 6, { pt: 13, bold: true, kolor: c.k.akcent }),
         n.tekst('tel. 600 000 000\nkontakt@firma.pl\nwww.firma.pl', k1.x + 3, c.H * 0.35 + 3 + c.pt(13) * 1.7, k1.w - 6, { pt: 9.5, lh: 1.5 }),
         n.zdjecie(2 * tr, -c.spad, tr + c.spad, c.H * 0.55 + c.spad, { bez_ostrzezen: true }),
         n.tekst('Nazwa firmy', k2.x, c.H * 0.6, k2.w, { pt: 22, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.05, nazwa: 'Tytuł' }),
@@ -887,7 +888,7 @@ export const SZABLONY_SEKCJI = [
       const bok = p.w * 0.32; const glowna = p.w - bok - 4;
       const o = [
         n.prost(-c.spad, -c.spad, c.W + 2 * c.spad, p.y + hW + c.spad, { fill: c.k.akcent, bez_ostrzezen: true, nazwa: 'Winieta' }),
-        n.tekst('Nazwa gazetki', p.x, p.y + 1, p.w * 0.7, { pt: 28, font: c.f.tytul, bold: true, kolor: '#ffffff', nazwa: 'Tytuł' }),
+        n.tekst(tt('gotoweSekcje.nazwaGazetki'), p.x, p.y + 1, p.w * 0.7, { pt: 28, font: c.f.tytul, bold: true, kolor: '#ffffff', nazwa: 'Tytuł' }),
         n.tekst('Nr 1 · czerwiec 2027', p.x + p.w * 0.6, p.y + hW - c.pt(8) * 2.4, p.w * 0.4, { pt: 8, align: 'right', kolor: c.k.akcent2 }),
       ];
       const y = p.y + hW + 6;
@@ -1089,7 +1090,7 @@ export async function wstawGotowaSekcje(projekt, id, opcje = {}) {
   if (!szablon) throw new Error(`Nie ma gotowej sekcji „${id}”.`);
   await zaleznosci();
   const k = typeof opcje.paleta === 'object' && opcje.paleta ? opcje.paleta : (PALETY[opcje.paleta] || PALETY[szablon.paleta] || PALETY.granat);
-  const f = { tytul: opcje.czcionki?.tytul || 'Playfair Display', tekst: opcje.czcionki?.tekst || 'Inter' };
+  const f = { tytul: opcje.czcionki?.tytul || tt('gotoweSekcje.playfairDisplay'), tekst: opcje.czcionki?.tekst || 'Inter' };
   const odpowiedzi = { ...domyslneOpcje(szablon), ...(opcje.odpowiedzi || {}) };
   const wydruk = wydrukSzablonu(szablon, opcje.wydruk || projekt.sekcje[0]?.wydruk, { wlasnyFormat: opcje.wlasnyFormat !== false });
   const sekcja = nowaSekcja(szablon.nazwa, wydruk);

@@ -9,6 +9,7 @@ import { konto } from './logowanie.js';
 import { czekajNaEdytor, edytorGotowy } from './doczytaj.js';
 import { pokazZaproszenieZLinku } from './wspolpraca.js';
 import { instrukcja } from './instrukcja-leniwa.js';
+import { t as tt } from '../jezyk.js';
 
 // Funkcje edytora: wczytują go, gdy adres prowadzi do projektu (js/app/doczytaj.js).
 const zapiszTeraz = async () => edytorGotowy()?.zapiszTeraz();
@@ -111,7 +112,7 @@ export function przejdzDoTrasy() {
     try {
       const projekt = wpis && await wczytajProjektZWpisu(wpis, pasek).catch(() => null);
       if (!projekt) {
-        powiadom('Nie znaleziono projektu z tego adresu – może został usunięty.', true);
+        powiadom(tt('trasy.nieZnalezionoProjektuZ'), true);
         trasa.ustaw('projekty', { zastap: true });
         stan.projekt = null;
         await pokazProjekty();

@@ -1,4 +1,4 @@
-import { wpiszNazwe } from './jezyk.js';
+import { wpiszNazwe, t } from './jezyk.js';
 // Raport przeniesienia (#232): co przy zapisie do innego programu (albo odczycie z niego) przeszło bez zmian, co
 // zamieniło się w obraz, co uproszczono, a co się nie przeniosło – z miejscem (strona, element), żeby dało się to
 // pokazać w edytorze. Zapis zbiera wpisy w trakcie (te same reguły, które decydują o kształcie pliku), odczyt –
@@ -122,7 +122,7 @@ export function pokazRaport({ tytul, wstep, raport, przycisk = 'Pobierz', anuluj
       opis.textContent = `${x.powod}${x.ile > 1 ? ` (${x.ile})` : ''}${gdzie}`;
       li.append(opis);
       if (pokaz && x.pierwszy) {
-        const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: 'Pokaż', title: 'Zamknij okno i pokaż pierwszy taki element w edytorze' });
+        const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: t('raportPrzeniesienia.pokaz'), title: t('raportPrzeniesienia.zamknijOknoIPokaz') });
         b.addEventListener('click', () => { dlg.close('nie'); pokaz(x.pierwszy.idStrony, x.pierwszy.idObiektu); });
         li.append(b);
       }
@@ -132,7 +132,7 @@ export function pokazRaport({ tytul, wstep, raport, przycisk = 'Pobierz', anuluj
   }
   if (!grupy.length) {
     const p = document.createElement('p');
-    p.textContent = 'Wszystko przeszło bez zmian.';
+    p.textContent = t('raportPrzeniesienia.wszystkoPrzeszloBezZmian');
     lista.append(p);
   }
   const [bNie, bTak] = dlg.querySelectorAll('.przyciski-dialogu button');

@@ -9,7 +9,7 @@
 import { rozwin } from './serie.js';
 import { $ } from './ui.js';
 import { ikona } from './ikony.js';
-import { wpiszNazwe } from './jezyk.js';
+import { wpiszNazwe, t as tt } from './jezyk.js';
 
 const MAKS_PX = 1800; // górna granica szerokości renderowanego obrazu
 const MAKS_PX_ZOOM = 4096; // powiększona strona w prezentacji – ostra, ale bez zjadania pamięci
@@ -221,7 +221,7 @@ export class Podglad {
           ramka.className = 'podglad-kartka';
           if (this.zrodlo.klikalne) {
             ramka.type = 'button';
-            ramka.title = 'Kliknij, aby edytować tę stronę';
+            ramka.title = tt('podglad.kliknijAbyEdytowacTe');
             ramka.addEventListener('click', () => this.o.naKlik?.(s.strona || s.id));
           }
           const img = document.createElement('img');

@@ -8,7 +8,7 @@ import {
   listaZestawow, idZestawuMarki, wybierzZestaw, dodajZestaw, zmienNazweZestawu, usunZestaw,
 } from './zestaw-marki.js';
 import { wstawIkony } from './ikony.js';
-import { wpiszNazwe } from './jezyk.js';
+import { wpiszNazwe, t as tt } from './jezyk.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
@@ -167,7 +167,7 @@ function rysujZestawy() {
   sel.value = idZestawuMarki() || '';
   $('#marka-zestaw-usun').disabled = lista.length <= 1;
   $('#marka-zestaw-opis').textContent = wProjekcie()
-    ? 'Ten zestaw jest marką otwartego projektu – projekt go zapamięta. Inne projekty zostają przy swoich zestawach.'
+    ? tt('markaOkno.tenZestawJestMarka')
     : 'Zestaw w użyciu: marka projektów, które nie mają własnego zestawu. Każdy projekt może mieć swój – wybierz go tu przy otwartym projekcie.';
 }
 function zaladujRobocza() {

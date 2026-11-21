@@ -5,6 +5,7 @@
 
 import { supabase } from './chmura.js';
 import { $ } from './ui.js';
+import { t as tt } from './jezyk.js';
 
 export const ZASADY_NAZWY = '3–30 znaków: litery, cyfry, _ . -; na początku litera albo cyfra.';
 const WZOR = /^[A-Za-z0-9ĄĆĘŁŃÓŚŹŻąćęłńóśźż][A-Za-z0-9ĄĆĘŁŃÓŚŹŻąćęłńóśźż_.-]{2,29}$/;
@@ -124,7 +125,7 @@ async function oknoNazwy(uzytkownik) {
         dlg.close();
         ok(u);
       } catch (err) {
-        komunikat.textContent = err?.message || 'Nie udało się zapisać nazwy.';
+        komunikat.textContent = err?.message || tt('nazwaUzytkownika.nieUdaloSieZapisac');
       } finally {
         przycisk.disabled = false;
       }

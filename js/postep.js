@@ -14,6 +14,7 @@
 //   await zPostepem('Otwieranie projektu…', () => otworz());  // bez licznika
 
 // Krótkie czynności (poniżej ~0,3 s) nie pokazują karty wcale – nic nie mruga (#159).
+import { t as tt } from './jezyk.js';
 const OPOZNIENIE = 300;
 
 let host = null;
@@ -60,8 +61,8 @@ export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNI
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'postep-anuluj';
-    b.textContent = 'Anuluj';
-    b.addEventListener('click', () => { b.disabled = true; opisEl.textContent = 'Przerywanie…'; anuluj(); });
+    b.textContent = tt('postep.anuluj');
+    b.addEventListener('click', () => { b.disabled = true; opisEl.textContent = tt('postep.przerywanie'); anuluj(); });
     el.querySelector('.postep-wiersz').append(b);
   }
   let zrobione = 0;

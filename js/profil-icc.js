@@ -8,6 +8,7 @@
 // Obsługiwane są profile CMYK z tablicami w starszym, powszechnym zapisie (typy mft1 / mft2, przestrzeń
 // pośrednia Lab) – tak zbudowane są profile ECI, FOGRA, GRACoL i większość profili od drukarń.
 // Sposób przeliczania: kolorymetryczny względny z kompensacją punktu czerni (domyślny w programach DTP).
+import { t as tt } from './jezyk.js';
 
 const BIEL_D50 = [0.9642, 1.0, 0.8249];
 // sRGB (liniowe) → XYZ przy bieli D50 (macierz po adaptacji Bradforda – ta sama, którą mają profile sRGB).
@@ -277,6 +278,6 @@ export function profilSrgb() {
 
 // Warunki druku, dla których aplikacja ma profil. `identyfikator` to nazwa z rejestru ICC (www.color.org).
 export const WARUNKI_DRUKU = {
-  fogra39: { plik: 'css/profile/Coated_Fogra39L_VIGC_300.icc', identyfikator: 'FOGRA39', nazwa: 'papier powlekany (FOGRA39)', opis: 'Offset arkuszowy, papier powlekany (kredowy), ISO 12647-2:2004 – Coated FOGRA39L, VIGC, 300%' },
-  fogra47: { plik: 'css/profile/PSO_Uncoated_ISO12647_eci.icc', identyfikator: 'FOGRA47', nazwa: 'papier niepowlekany (FOGRA47)', opis: 'Offset arkuszowy, papier niepowlekany (offsetowy), ISO 12647-2:2004 – PSO Uncoated ISO12647 (ECI)' },
+  fogra39: { plik: 'css/profile/Coated_Fogra39L_VIGC_300.icc', identyfikator: 'FOGRA39', nazwa: 'papier powlekany (FOGRA39)', opis: tt('profilIcc.offsetArkuszowyPapierPowlekany') },
+  fogra47: { plik: 'css/profile/PSO_Uncoated_ISO12647_eci.icc', identyfikator: 'FOGRA47', nazwa: 'papier niepowlekany (FOGRA47)', opis: tt('profilIcc.offsetArkuszowyPapierNiepowlekany') },
 };

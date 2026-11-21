@@ -8,6 +8,7 @@ import { przeliczOkladki } from './okladka.js';
 import { domyslnaSpecjalna, dodajWyklejki } from './sekcje-specjalne.js';
 import { domyslneStyle } from './style-tekstu.js';
 import { wstawGotowaSekcje, usunPustyStart } from './gotowe-sekcje.js';
+import { t } from './jezyk.js';
 
 export const FORMATY_KSIAZKI = [
   ['148x210', 'A5 – 148 × 210 mm'],
@@ -18,7 +19,7 @@ export const FORMATY_KSIAZKI = [
   ['210x210', 'Kwadrat – 210 × 210 mm'],
 ];
 const STRONY = (od, krok, ile) => Array.from({ length: ile }, (_, i) => [String(od + i * krok), `${od + i * krok} stron`]);
-const pytanieFormatu = (domyslny = '148x210', formaty = FORMATY_KSIAZKI) => ({ klucz: 'format', etykieta: 'Format', typ: 'wybor', opcje: formaty, domyslna: domyslny });
+const pytanieFormatu = (domyslny = '148x210', formaty = FORMATY_KSIAZKI) => ({ klucz: 'format', etykieta: t('szablonyProjektow.format'), typ: 'wybor', opcje: formaty, domyslna: domyslny });
 const pytanieKrotnosci = (domyslna = '16', opcje = ['16', '8', '32', '4']) => ({
   klucz: 'skladka', etykieta: 'Krotność stron (składka)', typ: 'wybor', opcje: opcje.map((k) => [k, `po ${k} stron`]), domyslna,
 });

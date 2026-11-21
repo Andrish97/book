@@ -4,9 +4,10 @@
 //    – w typowych kolorach (zdobienia na nich: złocenie i tłoczenie – uszlachetnienia elementów, #127),
 //  • zaokrąglone rogi (narożniki) – zwykle 3, 5, 6 albo 10 mm.
 // Okleina bez nadruku: grafika okładki nie drukuje się – zostają elementy z uszlachetnieniem (złocenie, tłoczenie).
+import { t } from './jezyk.js';
 
 export const MATERIALY = {
-  druk: { nazwa: 'Okładka drukowana', opis: 'Karton z nadrukiem, zwykle foliowany.', druk: true, kolory: [] },
+  druk: { nazwa: 'Okładka drukowana', opis: t('materialy.kartonZNadrukiemZwykle'), druk: true, kolory: [] },
   plotno: {
     nazwa: 'Płótno introligatorskie', opis: 'Tkanina na tekturze; zdobienia – złocenie albo tłoczenie.', druk: false, ziarno: 'tkanina',
     kolory: [['#1f2a44', 'Granatowe'], ['#6d1a24', 'Bordowe'], ['#20402f', 'Butelkowa zieleń'], ['#1b1b1b', 'Czarne'], ['#7a7a76', 'Szare'], ['#cdbf9f', 'Lniane (beż)'], ['#8a5a2b', 'Brązowe']],
@@ -16,11 +17,11 @@ export const MATERIALY = {
     kolory: [['#15130f', 'Czarna'], ['#4a2c1a', 'Brązowa'], ['#8a4b22', 'Koniakowa'], ['#5c1622', 'Bordowa'], ['#1d2840', 'Granatowa'], ['#ece3cf', 'Kremowa']],
   },
   papier_strukturalny: {
-    nazwa: 'Papier strukturalny', opis: 'Papier ozdobny z fakturą (np. len, skóra, kora).', druk: false, ziarno: 'papier',
+    nazwa: 'Papier strukturalny', opis: t('materialy.papierOzdobnyZFaktura'), druk: false, ziarno: 'papier',
     kolory: [['#f2ede1', 'Kremowy'], ['#ffffff', 'Biały'], ['#2a2a2a', 'Grafitowy'], ['#9b2335', 'Malinowy'], ['#2f4a3a', 'Zielony']],
   },
   aksamit: {
-    nazwa: 'Aksamit (welur)', opis: 'Miękka okleina z meszkiem – albumy ślubne i pamiątkowe.', druk: false, ziarno: 'aksamit',
+    nazwa: 'Aksamit (welur)', opis: t('materialy.miekkaOkleinaZMeszkiem'), druk: false, ziarno: 'aksamit',
     kolory: [['#4b1028', 'Burgund'], ['#13213f', 'Granat'], ['#e9dccb', 'Kość słoniowa'], ['#1a1a1a', 'Czarny']],
   },
 };

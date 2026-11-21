@@ -9,6 +9,7 @@ import { przedDlugaCzynnoscia } from '../postep.js';
 import { stan, biezacaStrona, edytor } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { panel } from './skladniki.js';
+import { t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-format');
 const f = $('#form-format');
@@ -76,7 +77,7 @@ export function otworzZmianeFormatu(zakresSekcji = null) {
   const { projekt } = stan;
   zakres = zakresSekcji || projekt.sekcje.map((s) => s.id);
   const pierwsza = sekcjeZakresu()[0];
-  if (!pierwsza) { powiadom('Tu jest tylko okładka – jej format liczy się sam z formatu środka.', true); return; }
+  if (!pierwsza) { powiadom(tt('zmianaFormatu.tuJestTylkoOkladka'), true); return; }
   const w = pierwsza.wydruk;
   const sel = f.elements.format;
   sel.replaceChildren();
@@ -88,7 +89,7 @@ export function otworzZmianeFormatu(zakresSekcji = null) {
   f.elements.sposob.value = 'skaluj';
   f.elements.dopasowanie.value = 'zmiesc';
   const ile = sekcjeZakresu().length;
-  $('#format-tytul').textContent = zakresSekcji ? 'Zmień format sekcji' : 'Zmień format projektu';
+  $('#format-tytul').textContent = zakresSekcji ? tt('zmianaFormatu.zmienFormatSekcji') : tt('zmianaFormatu.zmienFormatProjektu');
   $('#format-zakres').textContent = zakresSekcji
     ? `Sekcja „${pierwsza.nazwa}” – ${projekt.strony.filter((s) => s.sekcja === pierwsza.id).length} str.`
     : `Wszystkie sekcje projektu (${ile})${projekt.sekcje.some((s) => s.okladka) ? ' – okładka przeliczy się sama' : ''}.`;
@@ -108,13 +109,13 @@ async function zastosuj() {
     stan.miniatury.clear();
     await zaladujCel({ dopasuj: true });
   });
-  if (!wynik.sekcje.length) { powiadom('Format się nie zmienił.'); return; }
+  if (!wynik.sekcje.length) { powiadom(tt('zmianaFormatu.formatSieNieZmienil')); return; }
   if (!edytor.aktywny) panel.zbuduj();
   zaplanujZapis();
   const poza = elementyPozaStrona(projekt, wynik.sekcje).length;
   const nazwa = nazwaFormatu(o.szerokosc_mm, o.wysokosc_mm);
   powiadom(`Nowy format: ${nazwa === 'wlasny' ? `${o.szerokosc_mm} × ${o.wysokosc_mm} mm` : nazwa} (${wynik.strony} str.${wynik.wzorce ? `, wzorce: ${wynik.wzorce}` : ''}).${poza ? ` Poza stroną: ${poza} – sprawdź ostrzeżenia.` : ''}`,
-    Boolean(poza), { etykieta: 'Cofnij', fn: () => cofnijKrok(-1) });
+    Boolean(poza), { etykieta: tt('zmianaFormatu.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 f.elements.format.addEventListener('change', () => {

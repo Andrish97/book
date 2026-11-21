@@ -2,6 +2,7 @@
 
 import { powiadom } from '../ui.js';
 import { kluczZKoduOpenRouter } from '../ai-dostawcy.js';
+import { t } from '../jezyk.js';
 
 const PAMIEC = 'makietka-czat-ai';
 
@@ -20,7 +21,7 @@ export async function dokonczLogowanieOpenRouter() {
     u.dostawca = 'openrouter';
     u.dostawcy.openrouter = { ...(u.dostawcy.openrouter || {}), klucz };
     try { localStorage.setItem(PAMIEC, JSON.stringify(u)); } catch { /* bez pamięci */ }
-    powiadom('Połączono z OpenRouter – asystent AI może korzystać z modeli z Twojego konta OpenRouter.');
+    powiadom(t('czatAiLogowanie.polaczonoZOpenrouterAsystent'));
     return true;
   } catch (e) {
     powiadom(`Logowanie przez OpenRouter nie powiodło się: ${e.message}`, true);

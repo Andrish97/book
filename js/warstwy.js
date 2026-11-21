@@ -6,6 +6,7 @@
 
 import { ikona } from './ikony.js';
 import { zapytajONazwe, zamknijMenu } from './ui.js';
+import { t } from './jezyk.js';
 
 const IKONY_TYPOW = { textbox: 'tekst', rect: 'prostokat', ellipse: 'elipsa', line: 'linia', image: 'obraz', group: 'grupuj', polygon: 'wielokat', path: 'rysuj' };
 
@@ -57,13 +58,13 @@ export class PanelWarstw {
     lista.addEventListener('dblclick', async (e) => {
       const wGrupie = e.target.closest('li[data-grupa]');
       if (wGrupie && !e.target.closest('button')) {
-        const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', wGrupie.querySelector('.warstwa-nazwa').textContent);
+        const nazwa = await zapytajONazwe(t('warstwy.nazwaElementu'), t('warstwy.nazwaNaLiscieWarstw'), wGrupie.querySelector('.warstwa-nazwa').textContent);
         if (nazwa) edytor.nazwijWGrupie(wGrupie.dataset.grupa, wGrupie.dataset.nr, nazwa);
         return;
       }
       const li = e.target.closest('li[data-id]');
       if (!li || e.target.closest('button')) return;
-      const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', li.querySelector('.warstwa-nazwa').textContent);
+      const nazwa = await zapytajONazwe(t('warstwy.nazwaElementu'), t('warstwy.nazwaNaLiscieWarstw'), li.querySelector('.warstwa-nazwa').textContent);
       if (nazwa) edytor.nazwij(li.dataset.id, nazwa);
     });
 
@@ -159,7 +160,7 @@ export class PanelWarstw {
           document.querySelector(`#akcje-obiektu [data-akcja="${b.dataset.op}"]`)?.click();
         } else if (b.dataset.op === 'nazwa') {
           const li = this.lista.querySelector(`:scope > li[data-id="${CSS.escape(cel)}"]`);
-          const nazwa = await zapytajONazwe('Nazwa elementu', 'Nazwa na liście warstw', li?.querySelector('.warstwa-nazwa').textContent || '');
+          const nazwa = await zapytajONazwe(t('warstwy.nazwaElementu'), t('warstwy.nazwaNaLiscieWarstw'), li?.querySelector('.warstwa-nazwa').textContent || '');
           if (nazwa) this.edytor.nazwij(cel, nazwa);
         }
       });
@@ -198,8 +199,8 @@ export class PanelWarstw {
     const rozwin = document.createElement('button');
     rozwin.className = 'warstwa-rozwin';
     rozwin.setAttribute('aria-expanded', String(otwarta));
-    rozwin.setAttribute('aria-label', otwarta ? 'Zwiń tabelę' : 'Pokaż komórki tabeli');
-    rozwin.title = otwarta ? 'Zwiń tabelę' : `Pokaż komórki tabeli (${komorki.length})`;
+    rozwin.setAttribute('aria-label', otwarta ? t('warstwy.zwinTabele') : t('warstwy.pokazKomorkiTabeli'));
+    rozwin.title = otwarta ? t('warstwy.zwinTabele') : `Pokaż komórki tabeli (${komorki.length})`;
     rozwin.textContent = otwarta ? '▾' : '▸';
     li.querySelector('.warstwa-typ').replaceWith(rozwin);
     if (!otwarta) return;
@@ -253,8 +254,8 @@ export class PanelWarstw {
       const rozwin = document.createElement('button');
       rozwin.className = 'warstwa-rozwin';
       rozwin.setAttribute('aria-expanded', String(otwarta));
-      rozwin.setAttribute('aria-label', otwarta ? 'Zwiń grupę' : 'Pokaż elementy grupy');
-      rozwin.title = otwarta ? 'Zwiń grupę' : `Pokaż elementy grupy (${w.dzieci.length})`;
+      rozwin.setAttribute('aria-label', otwarta ? t('warstwy.zwinGrupe') : t('warstwy.pokazElementyGrupy'));
+      rozwin.title = otwarta ? t('warstwy.zwinGrupe') : `Pokaż elementy grupy (${w.dzieci.length})`;
       rozwin.textContent = otwarta ? '▾' : '▸';
       li.querySelector('.warstwa-typ').replaceWith(rozwin);
       if (!otwarta) continue;
@@ -265,7 +266,7 @@ export class PanelWarstw {
         wiersz.className = `warstwa w-grupie${d.zaznaczony ? ' zaznaczona' : ''}${d.otwarta ? ' otwarta' : ''}${d.ukryty ? ' ukryta' : ''}`;
         // Element grupy leżącej w grupie: wcięcie o poziom głębiej.
         if (d.poziom > 1) wiersz.style.paddingLeft = `${24 + (d.poziom - 1) * 16}px`;
-        wiersz.title = 'Kliknij, żeby zmienić ten element bez rozgrupowywania';
+        wiersz.title = t('warstwy.kliknijZebyZmienicTen');
         wiersz.innerHTML = `<button class="warstwa-oko" aria-label="${d.ukryty ? 'Pokaż' : 'Ukryj'}" title="${d.ukryty ? 'Pokaż' : 'Ukryj (nie będzie drukowany)'}">${ikona(d.ukryty ? 'okoOff' : 'oko', { rozmiar: 16 })}</button>
           <span class="warstwa-typ">${ikona(IKONY_TYPOW[d.typ] || 'prostokat', { rozmiar: 16 })}</span>
           <span class="warstwa-nazwa"></span>`;
@@ -278,7 +279,7 @@ export class PanelWarstw {
     if (zeWzorcow.length) {
       const naglowek = document.createElement('li');
       naglowek.className = 'warstwy-naglowek';
-      naglowek.textContent = 'Ze wzorców (edycja we wzorcu)';
+      naglowek.textContent = t('warstwy.zeWzorcowEdycjaWe');
       this.lista.append(naglowek);
       for (const w of zeWzorcow) {
         const li = document.createElement('li');

@@ -14,6 +14,7 @@ import { panel, dane } from './skladniki.js';
 import { renderujListe, przeniesStroneDoSekcji } from './lista-stron.js';
 import { otworzUstawieniaSekcji } from './sekcje.js';
 import { OPRAWY } from '../okladka.js';
+import { t as tt } from '../jezyk.js';
 
 function opisMarginesow(wydruk, rozkladowki) {
   const m = wydruk.marginesy;
@@ -39,7 +40,7 @@ export function odswiezPasekEdytora() {
     if (rozk) {
       const jedna = jednaStrona();
       przRozk.setAttribute('aria-pressed', String(!jedna));
-      przRozk.title = jedna ? 'Pokaż całą rozkładówkę' : 'Pokaż jedną stronę';
+      przRozk.title = jedna ? tt('panelStrony.pokazCalaRozkladowke') : tt('panelStrony.pokazJednaStrone');
       przRozk.setAttribute('aria-label', przRozk.title);
       przRozk.innerHTML = ikona(jedna ? 'rozkladowka' : 'jednaStrona', { rozmiar: 20 });
     }
@@ -115,20 +116,20 @@ export function panelStrony(p) {
   const strona = biezacaStrona();
   const sekcja = biezacaSekcja();
   const bok = bokStrony(strona, rozwin(projekt));
-  const s = p.sekcja('Strona');
-  s.append(p.tekst('Nazwa strony', () => strona.nazwa, (v) => {
+  const s = p.sekcja(tt('panelStrony.strona'));
+  s.append(p.tekst(tt('panelStrony.nazwaStrony'), () => strona.nazwa, (v) => {
     strona.nazwa = v || strona.nazwa;
     renderujListe();
     zaplanujZapis();
   }, true, false));
 
-  const sel = p.wybor('Sekcja', projekt.sekcje.map((x) => [x.id, x.nazwa]), () => strona.sekcja, (v) => przeniesStroneDoSekcji(strona, v));
+  const sel = p.wybor(tt('panelStrony.sekcja'), projekt.sekcje.map((x) => [x.id, x.nazwa]), () => strona.sekcja, (v) => przeniesStroneDoSekcji(strona, v));
   sel.classList.add('szeroki');
   s.append(sel);
 
   // Folia (#213): tło „przezroczyste” – próbka biała; zmiana koloru da kolor nadrukowany na folii.
-  s.append(p.kolor('Tło', () => (edytor.tloAktywnej === 'transparent' ? '#ffffff' : edytor.tloAktywnej), (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
-  if (sekcja.podloze?.rodzaj) s.append(p.wskazowka(sekcja.podloze.rodzaj === 'folia' ? 'Podłoże sekcji: przezroczysta folia (bez tła strony nic się tu nie drukuje).' : 'Podłoże sekcji: kolorowy papier – jego kolor nie drukuje się.'));
+  s.append(p.kolor(tt('panelStrony.tlo'), () => (edytor.tloAktywnej === 'transparent' ? '#ffffff' : edytor.tloAktywnej), (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+  if (sekcja.podloze?.rodzaj) s.append(p.wskazowka(sekcja.podloze.rodzaj === 'folia' ? tt('panelStrony.podlozeSekcjiPrzezroczystaFolia') : tt('panelStrony.podlozeSekcjiKolorowyPapier')));
   if (strona.tlo) {
     s.append(p.akcje([['cofnij', sekcja.podloze?.rodzaj ? 'Tło z wzorca / podłoża' : 'Tło z wzorca', () => {
       edytor.ustawTlo(tloStrony(projekt, { ...strona, tlo: null }));
@@ -144,9 +145,9 @@ export function panelStrony(p) {
   if (typSekcji(sekcja) === 'skladanka') panelPolaczen(p, { przejdz: (idS, idO) => window.seriodruk?.oknoKontroli?.zrodlo.pokaz(idS, idO) });
 
   // Seria: powielanie strony według tabeli albo zadaną liczbę razy.
-  const se = p.sekcja('Seria (powielanie)');
+  const se = p.sekcja(tt('panelStrony.seriaPowielanie'));
   const seria = projekt.serie.find((x) => x.id === strona.seria);
-  const wyborSerii = p.wybor('Seria', [['', 'Brak – strona pojedyncza'], ...projekt.serie.map((x) => [x.id, x.nazwa]), ['+', '+ Nowa seria…']], () => strona.seria || '', async (v) => {
+  const wyborSerii = p.wybor(tt('panelStrony.seria'), [['', tt('panelStrony.brakStronaPojedyncza')], ...projekt.serie.map((x) => [x.id, x.nazwa]), ['+', tt('panelStrony.nowaSeria')]], () => strona.seria || '', async (v) => {
     const nowa = v === '+' ? dane.nowaSeria() : null;
     if (v === '') delete strona.seria; else strona.seria = nowa ? nowa.id : v;
     zapiszBiezacyCel();
@@ -164,14 +165,14 @@ export function panelStrony(p) {
     if (braki) se.append(p.wskazowka(braki, true));
     se.append(p.akcje([['suwaki', 'Ustawienia serii', () => dane.otworzSerie(seria.id)], ['dane', 'Dane', () => dane.otworz(seria.tabela)]]));
   } else {
-    se.append(p.wskazowka('Strony z tą samą serią, leżące obok siebie, powielają się razem – np. według wierszy tabeli.'));
+    se.append(p.wskazowka(tt('panelStrony.stronyZTaSama')));
   }
 
   if (projekt.wzorce.length) {
-    const w = p.sekcja('Wzorce');
-    const tryb = p.wybor('Wzorce na tej stronie', [
+    const w = p.sekcja(tt('panelStrony.wzorce'));
+    const tryb = p.wybor(tt('panelStrony.wzorceNaTejStronie'), [
       ['sekcja', `Jak w sekcji (${nazwyWzorcow(sekcja.wzorce)})`],
-      ['wlasne', 'Własny wybór'],
+      ['wlasne', tt('panelStrony.wlasnyWybor')],
     ], () => (strona.wzorce === WZORCE_Z_SEKCJI ? 'sekcja' : 'wlasne'), (v) => {
       strona.wzorce = v === 'sekcja' ? WZORCE_Z_SEKCJI : [...sekcja.wzorce];
       poZmianieWzorcowStrony(strona);
@@ -191,14 +192,14 @@ export function panelStrony(p) {
 
   else {
     // Pusty stan (#164): skąd wiadomo, po co są wzorce – i jedno kliknięcie do galerii gotowych.
-    const w = p.sekcja('Wzorce');
-    w.append(p.wskazowka('Numer strony, nagłówek, stopka albo tło na wielu stronach naraz – dodajesz je raz, jako wzorzec, a nie na każdej stronie osobno.'));
+    const w = p.sekcja(tt('panelStrony.wzorce'));
+    w.append(p.wskazowka(tt('panelStrony.numerStronyNaglowekStopka')));
     w.append(p.akcje([['wzorzec', 'Wybierz gotowy wzorzec…', () => document.querySelector('[data-akcja="wzorce"]')?.click()]]));
   }
 
   const f = p.sekcja(`Sekcja „${sekcja.nazwa}”`);
   f.append(p.wskazowka(`${sekcja.uklad === 'rozkladowki' ? `Rozkładówki – to strona ${bok}. ` : ''}${nazwaFormatu(sekcja.wydruk, true, sekcja.uklad === 'rozkladowki')}`));
-  if (edytor.rozkladowka) f.append(p.wskazowka('Obie strony rozkładówki edytujesz razem. Element może leżeć przez grzbiet – na każdej stronie wydrukuje się jego część.'));
+  if (edytor.rozkladowka) f.append(p.wskazowka(tt('panelStrony.obieStronyRozkladowkiEdytujesz')));
   const okl = sekcja.okladka?.wynik;
   if (okl) {
     // Okładka (#119): wynik przeliczenia – liczby, które drukarnia chce znać.
@@ -226,23 +227,23 @@ export function panelStrony(p) {
 export function panelWzorca(p) {
   const { projekt } = stan;
   const w = biezacyWzorzec();
-  const s = p.sekcja('Wzorzec');
-  s.append(p.tekst('Nazwa wzorca', () => w.nazwa, (v) => {
+  const s = p.sekcja(tt('panelStrony.wzorzec'));
+  s.append(p.tekst(tt('panelStrony.nazwaWzorca'), () => w.nazwa, (v) => {
     w.nazwa = v || w.nazwa;
     renderujListe();
     odswiezPasekEdytora();
     zaplanujZapis();
   }, true, false));
-  s.append(p.kolor('Tło stron', () => edytor.tloAktywnej, (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
-  s.append(p.wskazowka('Białe tło znaczy „bez tła” – wzorzec nie zmienia wtedy koloru strony.'));
-  s.append(p.przelacznik('Odbijaj lustrzanie na lewych stronach rozkładówek', () => w.lustro, (v) => {
+  s.append(p.kolor(tt('panelStrony.tloStron'), () => edytor.tloAktywnej, (v) => edytor.ustawTlo(v), { bezZatwierdzania: true }));
+  s.append(p.wskazowka(tt('panelStrony.bialeTloZnaczyBez')));
+  s.append(p.przelacznik(tt('panelStrony.odbijajLustrzanieNaLewych'), () => w.lustro, (v) => {
     w.lustro = v;
     for (const st of stronyZWzorcem(projekt, w.id)) stan.miniatury.delete(st.id);
     zaplanujZapis();
   }));
   s.append(p.wskazowka('Elementy wzorca leżą pod treścią stron. Zaznacz element i włącz „Nad treścią strony”, jeśli ma ją przykrywać (np. ramka albo znak wodny).'));
 
-  const u = p.sekcja('Gdzie jest używany');
+  const u = p.sekcja(tt('panelStrony.gdzieJestUzywany'));
   for (const sek of projekt.sekcje) {
     const inny = tenSamRozmiar(sek.wydruk, w.wydruk) ? '' : ' – inny rozmiar';
     u.append(p.przelacznik(`Sekcja „${sek.nazwa}”${inny}`, () => sek.wzorce.includes(w.id), (v) => {
@@ -253,11 +254,11 @@ export function panelWzorca(p) {
       zaplanujZapis();
     }));
   }
-  u.append(p.wskazowka('Strona może mieć kilka wzorców naraz (np. tło + stopka). Pojedynczym stronom wybierzesz je w ich właściwościach.'));
+  u.append(p.wskazowka(tt('panelStrony.stronaMozeMiecKilka')));
 
-  const r = p.sekcja('Rozmiar');
+  const r = p.sekcja(tt('panelStrony.rozmiar'));
   r.append(p.wskazowka(nazwaFormatu(w.wydruk, true)));
-  const dopasuj = p.wybor('Ustaw rozmiar jak w sekcji', [['', '— wybierz sekcję —'], ...projekt.sekcje.map((x) => [x.id, x.nazwa])], () => '', async (v) => {
+  const dopasuj = p.wybor(tt('panelStrony.ustawRozmiarJakW'), [['', '— wybierz sekcję —'], ...projekt.sekcje.map((x) => [x.id, x.nazwa])], () => '', async (v) => {
     const sek = projekt.sekcje.find((x) => x.id === v);
     if (!sek) return;
     zapiszBiezacyCel();
@@ -269,7 +270,7 @@ export function panelWzorca(p) {
   dopasuj.classList.add('szeroki');
   r.append(dopasuj);
 
-  const z = p.sekcja('Numer strony i inne zmienne');
+  const z = p.sekcja(tt('panelStrony.numerStronyIInne'));
   const lista = document.createElement('ul');
   lista.className = 'lista-zmiennych szeroki';
   lista.innerHTML = [

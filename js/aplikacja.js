@@ -32,6 +32,7 @@ import { doczytajEdytor, czekajNaEdytor, edytorGotowy } from './app/doczytaj.js'
 import {
   otworzWspolprace, zamknijWspolprace, kopiujLinkZaproszenia, opuscProjekt, otworzZaproszenia,
 } from './app/wspolpraca.js';
+import { t } from './jezyk.js';
 
 window.addEventListener('popstate', () => przejdzDoTrasy());
 
@@ -53,15 +54,15 @@ document.addEventListener('motyw', async (e) => {
 function przelaczPelnyEkran() {
   zamknijMenu();
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-  else document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => powiadom('Przeglądarka nie pozwoliła włączyć pełnego ekranu.', true));
+  else document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => powiadom(t('aplikacja.przegladarkaNiePozwolilaWlaczyc'), true));
 }
 function odswiezPelnyEkran() {
   const wlaczony = Boolean(document.fullscreenElement);
   document.querySelectorAll('[data-akcja="pelny-ekran"]').forEach((b) => {
     b.hidden = !document.fullscreenEnabled || iOS() || (zainstalowana() && !document.fullscreenElement);
     b.setAttribute('aria-pressed', String(wlaczony));
-    b.title = wlaczony ? 'Zamknij pełny ekran (Esc)' : 'Pełny ekran';
-    if (b.getAttribute('role') === 'menuitem') b.lastChild.textContent = wlaczony ? 'Zamknij pełny ekran' : 'Pełny ekran';
+    b.title = wlaczony ? t('aplikacja.zamknijPelnyEkranEsc') : t('aplikacja.pelnyEkran');
+    if (b.getAttribute('role') === 'menuitem') b.lastChild.textContent = wlaczony ? t('aplikacja.zamknijPelnyEkran') : t('aplikacja.pelnyEkran');
     else b.setAttribute('aria-label', b.title);
     b.querySelector(':scope > svg.ikona')?.remove();
     b.dataset.ikona = wlaczony ? 'zwin-ekran' : 'pelny-ekran';
@@ -249,12 +250,12 @@ async function start() {
       pokazEkran('logowanie');
     } else if (uzytkownik) {
       await poZalogowaniu(uzytkownik); // otwiera adres z paska (np. odświeżony projekt)
-      if (powrot.typ === 'signup') powiadom('Konto potwierdzone. Witaj w Makietce!');
-      if (powrot.typ === 'email_change') powiadom('Adres e-mail został zmieniony.');
+      if (powrot.typ === 'signup') powiadom(t('aplikacja.kontoPotwierdzoneWitajW'));
+      if (powrot.typ === 'email_change') powiadom(t('aplikacja.adresEMailZostal'));
     } else {
       pokazEkran('logowanie');
       // Link z zaproszeniem do projektu: po zalogowaniu albo założeniu konta adres zostaje i pytanie wraca.
-      if (trasa.odczytaj().ekran === 'zaproszenie') konto.komunikat('Masz zaproszenie do projektu. Zaloguj się albo załóż konto – zaraz potem je przyjmiesz.', true);
+      if (trasa.odczytaj().ekran === 'zaproszenie') konto.komunikat(t('aplikacja.maszZaproszenieDoProjektu'), true);
       // #/instrukcja bez konta: podręcznik nad ekranem logowania (#114).
       if (trasa.odczytaj().ekran === 'instrukcja') instrukcja.otworzZAdresu('#/');
     }
@@ -377,7 +378,7 @@ function zakonczStart() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.body.classList.remove('startuje');
     const p = document.querySelector('#ekran-start .ciche');
-    if (p) p.textContent = 'Wczytywanie…';
+    if (p) p.textContent = t('aplikacja.wczytywanie');
   }));
 }
 setTimeout(zakonczStart, 20000); // na wszelki wypadek – nigdy nie zostaje zasłonięta na zawsze

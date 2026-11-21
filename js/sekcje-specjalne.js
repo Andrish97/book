@@ -20,6 +20,7 @@ import { swietaPolskie, dataIso } from './swieta.js';
 import { rozwin } from './serie.js';
 import { uid, WZORCE_Z_SEKCJI, uporzadkujStrony } from './projekt.js';
 import { TYPY_SEKCJI, typSekcji, rolaTypu } from './typ-sekcji.js';
+import { t as tt } from './jezyk.js';
 
 export { TYPY_SEKCJI, typSekcji };
 
@@ -375,13 +376,13 @@ function geometriaWyklejki(projekt, sekcja, p) {
 // numeracja stron pomija okładkę, wyklejki, obwolutę i wkładki, PDF dla drukarni dzieli się na pliki według roli,
 // a kontrola przed drukiem pilnuje kompletu (twarda oprawa bez wyklejek, wyklejka przy miękkiej).
 export const ROLE_SEKCJI = {
-  blok: { nazwa: 'Blok (środek książki)', opis: 'Strony środka: liczą się do numeracji i do grubości grzbietu (papier środka z okładki).' },
-  okladka: { nazwa: 'Okładka', opis: 'Okładka z grzbietem liczonym z bloku – osobny plik dla drukarni, bez numerów stron.' },
+  blok: { nazwa: 'Blok (środek książki)', opis: tt('sekcjeSpecjalne.stronySrodkaLiczaSie') },
+  okladka: { nazwa: 'Okładka', opis: tt('sekcjeSpecjalne.okladkaZGrzbietemLiczonym') },
   wyklejka: { nazwa: 'Wyklejka', opis: 'Arkusz łączący blok z twardą okładką: połowa na okładce, połowa to pierwsza albo ostatnia kartka. Własny papier, bez numerów stron.' },
-  obwoluta: { nazwa: 'Obwoluta', opis: 'Papierowa okładka na twardą oprawę, ze skrzydełkami – osobny plik.' },
-  wkladka: { nazwa: 'Wkładka', opis: 'Kartki na innym papierze w środku (np. zdjęcia na kredzie): poza numeracją, grubość z własnego papieru.' },
-  podkladka: { nazwa: 'Podkładka / plecy', opis: 'Karton pod kalendarzem albo notesem (np. plecy z główką): poza numeracją i grzbietem.' },
-  osobny: { nazwa: 'Osobny druk', opis: 'Rzecz drukowana osobno (ulotka, wykrojnik, arkusz użytków, kalendarz trójdzielny).' },
+  obwoluta: { nazwa: 'Obwoluta', opis: tt('sekcjeSpecjalne.papierowaOkladkaNaTwarda2') },
+  wkladka: { nazwa: 'Wkładka', opis: tt('sekcjeSpecjalne.kartkiNaInnymPapierze') },
+  podkladka: { nazwa: 'Podkładka / plecy', opis: tt('sekcjeSpecjalne.kartonPodKalendarzemAlbo') },
+  osobny: { nazwa: 'Osobny druk', opis: tt('sekcjeSpecjalne.rzeczDrukowanaOsobnoUlotka') },
 };
 // Role do wyboru przy zwykłej sekcji stron (pozostałe wynikają z rodzaju sekcji).
 export const ROLE_STRON = ['blok', 'wkladka', 'podkladka'];
@@ -505,14 +506,14 @@ function geometriaSkladanki(p) {
 export const RODZAJE_SEKCJI = {
   obwoluta: {
     nazwa: 'Obwoluta',
-    opis: 'Papierowa okładka na twardą oprawę: tył, grzbiet i przód z wymiarów książki, dwa skrzydełka zawinięte do środka.',
+    opis: tt('sekcjeSpecjalne.papierowaOkladkaNaTwarda'),
     domyslne: { skrzydelko_mm: 0, zapas_mm: 3, naddatek_wys_mm: 0 },
     normalizuj: (o, d) => ({ skrzydelko_mm: liczbaLub(o.skrzydelko_mm, d.skrzydelko_mm, 0, 300), zapas_mm: liczbaLub(o.zapas_mm, d.zapas_mm, 0, 20), naddatek_wys_mm: liczbaLub(o.naddatek_wys_mm, d.naddatek_wys_mm, 0, 20) }),
     geometria: (projekt, sekcja, p, ciag) => geometriaObwoluty(projekt, sekcja, p, ciag),
   },
   ulotka: {
     nazwa: 'Ulotka składana',
-    opis: 'Arkusz składany na 2, 3 albo 4 panele – strona zewnętrzna i wewnętrzna, zgięcia (bigi) i panele podpisane.',
+    opis: tt('sekcjeSpecjalne.arkuszSkladanyNa2'),
     domyslne: { panele: 3, zlozenie: 'c', szerokosc_mm: 99, wysokosc_mm: 210, skrot_mm: 2 },
     normalizuj: (o, d) => ({
       panele: Math.round(liczbaLub(o.panele, d.panele, 2, 4)), zlozenie: zListy(o.zlozenie, ['c', 'z'], d.zlozenie),
@@ -534,7 +535,7 @@ export const RODZAJE_SEKCJI = {
   },
   trojdzielny: {
     nazwa: 'Kalendarz trójdzielny',
-    opis: 'Główka (plecy) i trzy kalendaria jeden pod drugim, okienko na środkowym, pasek reklamowy – z bigiem i perforacjami.',
+    opis: tt('sekcjeSpecjalne.glowkaPlecyITrzy'),
     domyslne: { szerokosc_mm: 310, glowka_mm: 200, kalendarium_mm: 145, reklama_mm: 60, margines_kal_mm: 7, okienko: true },
     normalizuj: (o, d) => ({
       szerokosc_mm: liczbaLub(o.szerokosc_mm, d.szerokosc_mm, 150, 500), glowka_mm: liczbaLub(o.glowka_mm, d.glowka_mm, 50, 400),
@@ -545,7 +546,7 @@ export const RODZAJE_SEKCJI = {
   },
   wykrojnik: {
     nazwa: 'Wykrojnik',
-    opis: 'Koperta, teczka ofertowa z kieszenią albo składane pudełko – rozkładówka z linią cięcia i zgięć w osobnej warstwie.',
+    opis: tt('sekcjeSpecjalne.kopertaTeczkaOfertowaZ'),
     domyslne: { ksztalt: 'koperta', zadruk: 'jednostronny', koperta: 'C6', panel_szer_mm: 220, panel_wys_mm: 310, grzbiet_mm: 5, kieszen_mm: 100, wizytowka: true, dlugosc_mm: 100, szerokosc_mm: 60, wysokosc_mm: 150 },
     normalizuj: (o, d) => ({
       ksztalt: zListy(o.ksztalt, ['koperta', 'teczka', 'pudelko'], d.ksztalt), zadruk: zListy(o.zadruk, ['jednostronny', 'dwustronny'], d.zadruk), koperta: KOPERTY[o.koperta] ? o.koperta : d.koperta,
@@ -587,7 +588,7 @@ export const RODZAJE_SEKCJI = {
   },
   arkusz: {
     nazwa: 'Arkusz użytków',
-    opis: 'Naklejki, wizytówki, etykiety: jeden użytek (albo kolejne z danych) powielony na arkuszu drukarskim ze znakami cięcia.',
+    opis: tt('sekcjeSpecjalne.naklejkiWizytowkiEtykietyJeden'),
     domyslne: { uzytek_szer_mm: 85, uzytek_wys_mm: 55, arkusz: 'SRA3', arkusz_szer_mm: 320, arkusz_wys_mm: 450, odstep_mm: 4, margines_mm: 10, kolumny: 0, wiersze: 0, ksztalt: 'prostokat', zaokraglenie_mm: 3 },
     normalizuj: (o, d) => ({
       uzytek_szer_mm: liczbaLub(o.uzytek_szer_mm, d.uzytek_szer_mm, 10, 500), uzytek_wys_mm: liczbaLub(o.uzytek_wys_mm, d.uzytek_wys_mm, 10, 500),

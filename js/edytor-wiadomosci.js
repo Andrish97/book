@@ -3,6 +3,7 @@
 // pogrubienie, kursywa, podkreślenie, przekreślenie, kolor, listy, link, usuń formatowanie.
 // API jak to, którego używała skrzynka: getContent({ format: 'text' }), setContent, focus, remove, on('input').
 // Wklejany HTML przechodzi przez czyszczenie (bez skryptów, styli, klas, zdarzeń) – zostaje prosta struktura.
+import { t as tt } from './jezyk.js';
 
 const DOZWOLONE = new Set(['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'A', 'UL', 'OL', 'LI', 'BLOCKQUOTE',
   'H1', 'H2', 'H3', 'H4', 'DIV', 'SPAN', 'FONT', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH', 'PRE', 'CODE', 'HR', 'IMG', 'SUB', 'SUP']);
@@ -73,17 +74,17 @@ export function utworzEdytorWiadomosci(cel, { zapytaj = async (t, e, w) => windo
   const pasek = document.createElement('div');
   pasek.className = 'edytor-wiadomosci-pasek';
   pasek.setAttribute('role', 'toolbar');
-  pasek.setAttribute('aria-label', 'Formatowanie wiadomości');
+  pasek.setAttribute('aria-label', tt('edytorWiadomosci.formatowanieWiadomosci'));
   const styl = document.createElement('select');
   styl.className = 'edytor-wiadomosci-styl';
-  styl.setAttribute('aria-label', 'Styl akapitu');
+  styl.setAttribute('aria-label', tt('edytorWiadomosci.stylAkapitu'));
   styl.innerHTML = '<option value="p">Akapit</option><option value="h2">Nagłówek</option><option value="h3">Podtytuł</option><option value="blockquote">Cytat</option><option value="pre">Kod</option>';
   const tresc = document.createElement('div');
   tresc.className = 'edytor-wiadomosci-tresc';
   tresc.contentEditable = 'true';
   tresc.setAttribute('role', 'textbox');
   tresc.setAttribute('aria-multiline', 'true');
-  tresc.setAttribute('aria-label', cel.getAttribute('aria-label') || 'Treść wiadomości');
+  tresc.setAttribute('aria-label', cel.getAttribute('aria-label') || tt('edytorWiadomosci.trescWiadomosci'));
   tresc.spellcheck = true;
   tresc.lang = 'pl';
 
@@ -140,8 +141,8 @@ export function utworzEdytorWiadomosci(cel, { zapytaj = async (t, e, w) => windo
   kolor.type = 'color';
   kolor.value = '#1c1b19';
   kolor.className = 'edytor-wiadomosci-kolor';
-  kolor.title = 'Kolor tekstu';
-  kolor.setAttribute('aria-label', 'Kolor tekstu');
+  kolor.title = tt('edytorWiadomosci.kolorTekstu');
+  kolor.setAttribute('aria-label', tt('edytorWiadomosci.kolorTekstu'));
   kolor.addEventListener('input', () => { przywroc(); document.execCommand('styleWithCSS', false, true); document.execCommand('foreColor', false, kolor.value); document.execCommand('styleWithCSS', false, false); zmiana(); });
   pasek.insertBefore(kolor, pasek.querySelector('[data-polecenie="lista"]').previousSibling);
   styl.addEventListener('change', () => { przywroc(); document.execCommand('formatBlock', false, styl.value); zmiana(); });

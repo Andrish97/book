@@ -7,6 +7,7 @@
 // rozkładówki odbijają się same. marka: { akcent, akcent2, jasny, tekst, linia, siatka, fontTekst, fontNaglowek }.
 
 import { uid, ptNaMm } from './projekt.js';
+import { t as tt } from './jezyk.js';
 
 export const MARKA_DOMYSLNA = {
   akcent: '#2f5bd3', akcent2: '#c9a227', jasny: '#eef1fb', tekst: '#4a4843', linia: '#b9b5aa', siatka: '#d5d1c6',
@@ -53,30 +54,30 @@ export const GRUPY_WZORCOW = ['Numeracja', 'Nagłówki i stopki', 'Tła i papier
 export const WZORCE_STANDARDOWE = [
   // ---------- Numeracja ----------
   {
-    klucz: 'numer-dol', grupa: 'Numeracja', nazwa: 'Numer strony na dole', opis: 'Numer na środku dolnego marginesu.', slowa: 'numeracja numer strony stopka',
+    klucz: 'numer-dol', grupa: 'Numeracja', nazwa: 'Numer strony na dole', opis: tt('wzorceStandardowe.numerNaSrodkuDolnego'), slowa: 'numeracja numer strony stopka',
     obiekty: (w, m) => { const p = pole(w); return [tekst('{nr}', { left: p.x, top: yDol(w), width: p.w, textAlign: 'center', nazwa: 'Numer strony' }, m)]; },
   },
   {
-    klucz: 'numer-zewnatrz', grupa: 'Numeracja', nazwa: 'Numer strony przy zewnętrznej krawędzi', opis: 'W rozkładówkach numer zawsze stoi po zewnętrznej stronie.', lustro: true, slowa: 'numeracja numer strony ksiazka rozkladowka',
+    klucz: 'numer-zewnatrz', grupa: 'Numeracja', nazwa: 'Numer strony przy zewnętrznej krawędzi', opis: tt('wzorceStandardowe.wRozkladowkachNumerZawsze'), lustro: true, slowa: 'numeracja numer strony ksiazka rozkladowka',
     obiekty: (w, m) => { const p = pole(w); return [tekst('{nr}', { left: p.x, top: yDol(w), width: p.w, textAlign: 'right', nazwa: 'Numer strony' }, m)]; },
   },
   {
-    klucz: 'numer-z-liczba', grupa: 'Numeracja', nazwa: 'Strona 5 z 120', opis: '„Strona 5 z 120” na środku dolnego marginesu.', slowa: 'numeracja liczba stron',
+    klucz: 'numer-z-liczba', grupa: 'Numeracja', nazwa: 'Strona 5 z 120', opis: tt('wzorceStandardowe.strona5Z120'), slowa: 'numeracja liczba stron',
     obiekty: (w, m) => { const p = pole(w); return [tekst('Strona {nr} z {liczba_stron}', { left: p.x, top: yDol(w), width: p.w, textAlign: 'center', fontSize: ptNaMm(8), nazwa: 'Numer strony' }, m)]; },
   },
   {
-    klucz: 'numer-kreski', grupa: 'Numeracja', nazwa: 'Numer z kreskami', opis: 'Klasyczne „— 5 —” na dole strony.', slowa: 'numeracja ozdobny klasyczny',
+    klucz: 'numer-kreski', grupa: 'Numeracja', nazwa: 'Numer z kreskami', opis: tt('wzorceStandardowe.klasyczne5NaDole'), slowa: 'numeracja ozdobny klasyczny',
     obiekty: (w, m) => { const p = pole(w); return [tekst('—  {nr}  —', { left: p.x, top: yDol(w), width: p.w, textAlign: 'center', fontFamily: M(m).fontNaglowek, nazwa: 'Numer strony' }, m)]; },
   },
   {
-    klucz: 'numer-kolo', grupa: 'Numeracja', nazwa: 'Numer w kółku', opis: 'Numer na kolorowym kółku przy zewnętrznym rogu.', lustro: true, slowa: 'numeracja kolo kolorowy nowoczesny',
+    klucz: 'numer-kolo', grupa: 'Numeracja', nazwa: 'Numer w kółku', opis: tt('wzorceStandardowe.numerNaKolorowymKolku'), lustro: true, slowa: 'numeracja kolo kolorowy nowoczesny',
     obiekty: (w, m) => {
       const r = Math.min(4, w.marginesy.dol / 3); const cx = w.szerokosc_mm - w.marginesy.zewnetrzny - r; const cy = w.wysokosc_mm - w.marginesy.dol / 2;
       return [kolo(cx, cy, r, { fill: M(m).akcent, nazwa: 'Kółko numeru' }), tekst('{nr}', { left: cx - r, top: cy - 1.6, width: 2 * r, textAlign: 'center', fontSize: ptNaMm(8), fill: '#ffffff', fontWeight: 'bold', nazwa: 'Numer strony' }, m)];
     },
   },
   {
-    klucz: 'numer-boczny', grupa: 'Numeracja', nazwa: 'Numer na pasku bocznym', opis: 'Pionowy pasek w kolorze marki przy zewnętrznej krawędzi, numer u dołu paska.', lustro: true, slowa: 'numeracja pasek bok kolor',
+    klucz: 'numer-boczny', grupa: 'Numeracja', nazwa: 'Numer na pasku bocznym', opis: tt('wzorceStandardowe.pionowyPasekWKolorze'), lustro: true, slowa: 'numeracja pasek bok kolor',
     obiekty: (w, m) => {
       const s = 7; const x = w.szerokosc_mm - s;
       return [pasek(x, -w.spad_mm, s + w.spad_mm, w.wysokosc_mm + 2 * w.spad_mm, { fill: M(m).akcent, nazwa: 'Pasek boczny', bez_ostrzezen: true }),
@@ -84,12 +85,12 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'numer-rzymski', grupa: 'Numeracja', nazwa: 'Numer rzymski (wstęp)', opis: 'Numery I, II, III… – np. na stronach wstępu przed właściwą numeracją.', slowa: 'numeracja rzymskie wstep przedmowa',
+    klucz: 'numer-rzymski', grupa: 'Numeracja', nazwa: 'Numer rzymski (wstęp)', opis: tt('wzorceStandardowe.numeryIIiIii'), slowa: 'numeracja rzymskie wstep przedmowa',
     obiekty: (w, m) => { const p = pole(w); return [tekst('{nr:I}', { left: p.x, top: yDol(w), width: p.w, textAlign: 'center', nazwa: 'Numer strony' }, m)]; },
   },
   // ---------- Nagłówki i stopki ----------
   {
-    klucz: 'stopka', grupa: 'Nagłówki i stopki', nazwa: 'Stopka: nazwa projektu i numer', opis: 'Cienka linia, nazwa projektu z lewej, „str. 5 z 120” z prawej.', slowa: 'stopka linia numer nazwa',
+    klucz: 'stopka', grupa: 'Nagłówki i stopki', nazwa: 'Stopka: nazwa projektu i numer', opis: tt('wzorceStandardowe.cienkaLiniaNazwaProjektu'), slowa: 'stopka linia numer nazwa',
     obiekty: (w, m) => {
       const p = pole(w); const y = w.wysokosc_mm - w.marginesy.dol + 1.5;
       return [
@@ -100,7 +101,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'naglowek', grupa: 'Nagłówki i stopki', nazwa: 'Nagłówek: nazwa sekcji', opis: 'Nazwa sekcji nad górnym marginesem, z linią pod spodem.', slowa: 'naglowek sekcja linia',
+    klucz: 'naglowek', grupa: 'Nagłówki i stopki', nazwa: 'Nagłówek: nazwa sekcji', opis: tt('wzorceStandardowe.nazwaSekcjiNadGornym'), slowa: 'naglowek sekcja linia',
     obiekty: (w, m) => {
       const p = pole(w); const y = Math.max(2, w.marginesy.gora - 6);
       return [
@@ -110,7 +111,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'naglowek-projekt-sekcja', grupa: 'Nagłówki i stopki', nazwa: 'Nagłówek: projekt i sekcja', opis: 'Nazwa projektu z lewej, nazwa sekcji z prawej, linia pod spodem.', slowa: 'naglowek projekt sekcja',
+    klucz: 'naglowek-projekt-sekcja', grupa: 'Nagłówki i stopki', nazwa: 'Nagłówek: projekt i sekcja', opis: tt('wzorceStandardowe.nazwaProjektuZLewej'), slowa: 'naglowek projekt sekcja',
     obiekty: (w, m) => {
       const p = pole(w); const y = Math.max(2, w.marginesy.gora - 6);
       return [
@@ -121,7 +122,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'naglowek-pasek', grupa: 'Nagłówki i stopki', nazwa: 'Kolorowy pas nagłówka', opis: 'Pas w kolorze marki przez całą szerokość (ze spadem), w nim nazwa sekcji.', slowa: 'naglowek pas kolor banner',
+    klucz: 'naglowek-pasek', grupa: 'Nagłówki i stopki', nazwa: 'Kolorowy pas nagłówka', opis: tt('wzorceStandardowe.pasWKolorzeMarki2'), slowa: 'naglowek pas kolor banner',
     obiekty: (w, m) => {
       const h = Math.max(8, w.marginesy.gora - 4); const p = pole(w);
       return [pasek(-w.spad_mm, -w.spad_mm, w.szerokosc_mm + 2 * w.spad_mm, h + w.spad_mm, { fill: M(m).akcent, nazwa: 'Pas nagłówka', bez_ostrzezen: true }),
@@ -129,7 +130,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'stopka-pasek', grupa: 'Nagłówki i stopki', nazwa: 'Kolorowy pas stopki z numerem', opis: 'Pas w kolorze marki na dole strony, numer w środku.', slowa: 'stopka pas kolor numer',
+    klucz: 'stopka-pasek', grupa: 'Nagłówki i stopki', nazwa: 'Kolorowy pas stopki z numerem', opis: tt('wzorceStandardowe.pasWKolorzeMarki'), slowa: 'stopka pas kolor numer',
     obiekty: (w, m) => {
       const h = Math.max(7, w.marginesy.dol - 4); const y = w.wysokosc_mm - h;
       return [pasek(-w.spad_mm, y, w.szerokosc_mm + 2 * w.spad_mm, h + w.spad_mm, { fill: M(m).akcent, nazwa: 'Pas stopki', bez_ostrzezen: true }),
@@ -137,7 +138,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'stopka-kontakt', grupa: 'Nagłówki i stopki', nazwa: 'Stopka z kontaktem', opis: 'Adres strony, e-mail i telefon na dole – podmień na swoje.', slowa: 'stopka kontakt adres telefon email www',
+    klucz: 'stopka-kontakt', grupa: 'Nagłówki i stopki', nazwa: 'Stopka z kontaktem', opis: tt('wzorceStandardowe.adresStronyEMail'), slowa: 'stopka kontakt adres telefon email www',
     obiekty: (w, m) => {
       const p = pole(w); const y = w.wysokosc_mm - w.marginesy.dol + 1.5;
       return [pasek(p.x, y, p.w, 0.25, { nazwa: 'Linia stopki', fill: M(m).linia }),
@@ -146,7 +147,7 @@ export const WZORCE_STANDARDOWE = [
   },
   // ---------- Tła i papier ----------
   {
-    klucz: 'linie', grupa: 'Tła i papier', nazwa: 'Linie do pisania', opis: 'Poziome linie co 8 mm w polu między marginesami.', slowa: 'linie zeszyt notatki pisanie',
+    klucz: 'linie', grupa: 'Tła i papier', nazwa: 'Linie do pisania', opis: tt('wzorceStandardowe.poziomeLinieCo8'), slowa: 'linie zeszyt notatki pisanie',
     obiekty: (w) => {
       const p = pole(w); const l = [];
       for (let y = p.y + 8; y <= p.y + p.h + 0.01; y += 8) l.push(pasek(p.x, y, p.w, 0.2, { fill: '#d5d1c6' }));
@@ -154,7 +155,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'kratka', grupa: 'Tła i papier', nazwa: 'Kratka 5 mm', opis: 'Siatka pionowych i poziomych linii w polu między marginesami.', slowa: 'kratka siatka zeszyt matematyka',
+    klucz: 'kratka', grupa: 'Tła i papier', nazwa: 'Kratka 5 mm', opis: tt('wzorceStandardowe.siatkaPionowychIPoziomych'), slowa: 'kratka siatka zeszyt matematyka',
     obiekty: (w) => {
       const p = pole(w); const kol = Math.floor(p.w / 5); const wier = Math.floor(p.h / 5);
       const szer = kol * 5; const wys = wier * 5; const l = [];
@@ -164,7 +165,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'kropki', grupa: 'Tła i papier', nazwa: 'Kropki 5 mm', opis: 'Siatka kropek jak w notesie typu bullet journal.', slowa: 'kropki dot grid bullet journal notes',
+    klucz: 'kropki', grupa: 'Tła i papier', nazwa: 'Kropki 5 mm', opis: tt('wzorceStandardowe.siatkaKropekJakW'), slowa: 'kropki dot grid bullet journal notes',
     obiekty: (w) => {
       const p = pole(w); const kol = Math.floor(p.w / 5); const wier = Math.floor(p.h / 5);
       const x0 = p.x + (p.w - kol * 5) / 2; const y0 = p.y + (p.h - wier * 5) / 2; const odc = [];
@@ -173,7 +174,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'milimetrowy', grupa: 'Tła i papier', nazwa: 'Papier milimetrowy', opis: 'Linie co 1 mm, mocniejsze co 1 cm.', slowa: 'milimetrowy siatka wykres techniczny',
+    klucz: 'milimetrowy', grupa: 'Tła i papier', nazwa: 'Papier milimetrowy', opis: tt('wzorceStandardowe.linieCo1Mm'), slowa: 'milimetrowy siatka wykres techniczny',
     obiekty: (w, m) => {
       const p = pole(w); const kol = Math.floor(p.w / 10) * 10; const wier = Math.floor(p.h / 10) * 10;
       const x0 = p.x + (p.w - kol) / 2; const y0 = p.y + (p.h - wier) / 2; const drobne = []; const grube = [];
@@ -183,23 +184,23 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'linie-margines', grupa: 'Tła i papier', nazwa: 'Zeszyt z marginesem', opis: 'Linie co 8 mm i czerwona linia marginesu po lewej.', slowa: 'zeszyt linie margines szkola',
+    klucz: 'linie-margines', grupa: 'Tła i papier', nazwa: 'Zeszyt z marginesem', opis: tt('wzorceStandardowe.linieCo8Mm'), slowa: 'zeszyt linie margines szkola',
     obiekty: (w) => {
       const p = pole(w);
       return [sciezka('Linie', linie(p, 8), { stroke: '#c7d3e8', strokeWidth: 0.25 }), sciezka('Margines', [[p.x + 12, p.y, p.x + 12, p.y + p.h]], { stroke: '#e06666', strokeWidth: 0.3 })];
     },
   },
   {
-    klucz: 'tlo-kolor', grupa: 'Tła i papier', nazwa: 'Kolorowe tło', opis: 'Jasny kolor marki na całej stronie (zmienisz w ustawieniach wzorca).', slowa: 'tlo kolor strona',
+    klucz: 'tlo-kolor', grupa: 'Tła i papier', nazwa: 'Kolorowe tło', opis: tt('wzorceStandardowe.jasnyKolorMarkiNa'), slowa: 'tlo kolor strona',
     tlo: (w, m) => M(m).jasny,
     obiekty: () => [],
   },
   {
-    klucz: 'tlo-rog', grupa: 'Tła i papier', nazwa: 'Ozdobny róg', opis: 'Duże koło w kolorze marki wychodzące zza górnego zewnętrznego rogu.', lustro: true, slowa: 'tlo ozdoba rog kolo',
+    klucz: 'tlo-rog', grupa: 'Tła i papier', nazwa: 'Ozdobny róg', opis: tt('wzorceStandardowe.duzeKoloWKolorze'), lustro: true, slowa: 'tlo ozdoba rog kolo',
     obiekty: (w, m) => { const r = Math.min(w.szerokosc_mm, w.wysokosc_mm) * 0.28; return [kolo(w.szerokosc_mm, 0, r, { fill: M(m).jasny, nazwa: 'Róg', bez_ostrzezen: true })]; },
   },
   {
-    klucz: 'znak-wodny', grupa: 'Tła i papier', nazwa: 'Znak wodny „WZÓR”', opis: 'Duży, blady napis po skosie nad treścią – np. na próbnym wydruku.', slowa: 'znak wodny wzor probny szkic',
+    klucz: 'znak-wodny', grupa: 'Tła i papier', nazwa: 'Znak wodny „WZÓR”', opis: tt('wzorceStandardowe.duzyBladyNapisPo'), slowa: 'znak wodny wzor probny szkic',
     obiekty: (w, m) => {
       const d = Math.hypot(w.szerokosc_mm, w.wysokosc_mm) * 0.7;
       return [tekst('WZÓR', {
@@ -210,11 +211,11 @@ export const WZORCE_STANDARDOWE = [
   },
   // ---------- Ramki ----------
   {
-    klucz: 'ramka', grupa: 'Ramki', nazwa: 'Ramka w marginesach', opis: 'Cienka ramka wokół pola tekstu, nad treścią strony.', slowa: 'ramka obramowanie',
+    klucz: 'ramka', grupa: 'Ramki', nazwa: 'Ramka w marginesach', opis: tt('wzorceStandardowe.cienkaRamkaWokolPola'), slowa: 'ramka obramowanie',
     obiekty: (w) => { const p = pole(w); return [obrys(p.x, p.y, p.w - 0.3, p.h - 0.3, { nazwa: 'Ramka', warstwa: 'nad' })]; },
   },
   {
-    klucz: 'ramka-podwojna', grupa: 'Ramki', nazwa: 'Ramka podwójna', opis: 'Gruba i cienka linia wokół pola tekstu.', slowa: 'ramka podwojna elegancka dyplom',
+    klucz: 'ramka-podwojna', grupa: 'Ramki', nazwa: 'Ramka podwójna', opis: tt('wzorceStandardowe.grubaICienkaLinia2'), slowa: 'ramka podwojna elegancka dyplom',
     obiekty: (w, m) => {
       const p = pole(w); const o = 1.6;
       return [obrys(p.x - o, p.y - o, p.w + 2 * o - 0.8, p.h + 2 * o - 0.8, { strokeWidth: 0.8, stroke: M(m).akcent, nazwa: 'Ramka zewnętrzna', warstwa: 'nad' }),
@@ -222,11 +223,11 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'ramka-zaokraglona', grupa: 'Ramki', nazwa: 'Ramka zaokrąglona', opis: 'Ramka z zaokrąglonymi narożnikami w kolorze marki.', slowa: 'ramka zaokraglona miekka',
+    klucz: 'ramka-zaokraglona', grupa: 'Ramki', nazwa: 'Ramka zaokrąglona', opis: tt('wzorceStandardowe.ramkaZZaokraglonymiNaroznikami'), slowa: 'ramka zaokraglona miekka',
     obiekty: (w, m) => { const p = pole(w); return [obrys(p.x, p.y, p.w - 0.5, p.h - 0.5, { rx: 5, ry: 5, strokeWidth: 0.5, stroke: M(m).akcent, nazwa: 'Ramka', warstwa: 'nad' })]; },
   },
   {
-    klucz: 'ramka-krawedz', grupa: 'Ramki', nazwa: 'Kolorowa obwódka strony', opis: 'Szeroki pas koloru marki wzdłuż krawędzi strony (ze spadem).', slowa: 'ramka obwodka krawedz spad kolor',
+    klucz: 'ramka-krawedz', grupa: 'Ramki', nazwa: 'Kolorowa obwódka strony', opis: tt('wzorceStandardowe.szerokiPasKoloruMarki'), slowa: 'ramka obwodka krawedz spad kolor',
     obiekty: (w, m) => {
       const s = 5; const b = w.spad_mm; const W = w.szerokosc_mm; const H = w.wysokosc_mm; const k = { fill: M(m).akcent, bez_ostrzezen: true };
       return [pasek(-b, -b, W + 2 * b, s + b, { ...k, nazwa: 'Pas górny' }), pasek(-b, H - s, W + 2 * b, s + b, { ...k, nazwa: 'Pas dolny' }),
@@ -234,7 +235,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'ramka-narozniki', grupa: 'Ramki', nazwa: 'Narożniki', opis: 'Same narożniki pola tekstu – lekka, nowoczesna ramka.', slowa: 'ramka narozniki rogi',
+    klucz: 'ramka-narozniki', grupa: 'Ramki', nazwa: 'Narożniki', opis: tt('wzorceStandardowe.sameNaroznikiPolaTekstu'), slowa: 'ramka narozniki rogi',
     obiekty: (w, m) => {
       const p = pole(w); const d = Math.min(12, p.w / 6); const x2 = p.x + p.w; const y2 = p.y + p.h;
       return [sciezka('Narożniki', [[p.x, p.y + d, p.x, p.y], [p.x, p.y, p.x + d, p.y], [x2 - d, p.y, x2, p.y], [x2, p.y, x2, p.y + d],
@@ -253,7 +254,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'naglowek-dnia', grupa: 'Kalendarz i planer', nazwa: 'Nagłówek dnia', opis: 'Duża nazwa strony z linią – w serii dni podmień ją na pole z datą z tabeli.', slowa: 'kalendarz dzien data planer naglowek',
+    klucz: 'naglowek-dnia', grupa: 'Kalendarz i planer', nazwa: 'Nagłówek dnia', opis: tt('wzorceStandardowe.duzaNazwaStronyZ'), slowa: 'kalendarz dzien data planer naglowek',
     obiekty: (w, m) => {
       const p = pole(w); const y = Math.max(2, w.marginesy.gora - 12);
       return [tekst('{strona}', { left: p.x, top: y, width: p.w, fontSize: ptNaMm(18), fontWeight: 'bold', fontFamily: M(m).fontNaglowek, fill: M(m).akcent, nazwa: 'Data / nazwa dnia' }, m),
@@ -261,7 +262,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'planer-notatki-bok', grupa: 'Kalendarz i planer', nazwa: 'Kolumna „Notatki” z boku', opis: 'Wąska kolumna z liniami przy zewnętrznym marginesie.', lustro: true, slowa: 'planer notatki kolumna linie',
+    klucz: 'planer-notatki-bok', grupa: 'Kalendarz i planer', nazwa: 'Kolumna „Notatki” z boku', opis: tt('wzorceStandardowe.waskaKolumnaZLiniami'), lustro: true, slowa: 'planer notatki kolumna linie',
     obiekty: (w, m) => {
       const p = pole(w); const s = Math.min(38, p.w * 0.3); const x = p.x + p.w - s;
       return [pasek(x - 3, p.y, 0.25, p.h, { fill: M(m).linia, nazwa: 'Linia kolumny' }),
@@ -270,7 +271,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'planer-tydzien', grupa: 'Kalendarz i planer', nazwa: 'Tydzień: 7 dni', opis: 'Pole strony podzielone na 7 pasów z nazwami dni.', slowa: 'planer tydzien dni kalendarz tygodniowy',
+    klucz: 'planer-tydzien', grupa: 'Kalendarz i planer', nazwa: 'Tydzień: 7 dni', opis: tt('wzorceStandardowe.poleStronyPodzieloneNa'), slowa: 'planer tydzien dni kalendarz tygodniowy',
     obiekty: (w, m) => {
       const p = pole(w); const dni = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela']; const h = p.h / 7; const o = [];
       dni.forEach((d, i) => {
@@ -282,7 +283,7 @@ export const WZORCE_STANDARDOWE = [
   },
   // ---------- Książka ----------
   {
-    klucz: 'ksiazka-klasyczna', grupa: 'Książka', nazwa: 'Książka klasyczna', opis: 'Żywa pagina (tytuł rozdziału) na górze, numer przy zewnętrznym rogu na dole.', lustro: true, slowa: 'ksiazka zywa pagina rozdzial numer',
+    klucz: 'ksiazka-klasyczna', grupa: 'Książka', nazwa: 'Książka klasyczna', opis: tt('wzorceStandardowe.zywaPaginaTytulRozdzialu'), lustro: true, slowa: 'ksiazka zywa pagina rozdzial numer',
     obiekty: (w, m) => {
       const p = pole(w);
       return [tekst('{rozdzial}', { left: p.x, top: yGora(w), width: p.w, textAlign: 'center', fontSize: ptNaMm(8), fontStyle: 'italic', fontFamily: M(m).fontNaglowek, nazwa: 'Żywa pagina' }, m),
@@ -290,14 +291,14 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'ksiazka-numer-gora', grupa: 'Książka', nazwa: 'Numer i rozdział u góry', opis: 'Numer strony i tytuł rozdziału przy zewnętrznym rogu, nad tekstem.', lustro: true, slowa: 'ksiazka zywa pagina numer gora',
+    klucz: 'ksiazka-numer-gora', grupa: 'Książka', nazwa: 'Numer i rozdział u góry', opis: tt('wzorceStandardowe.numerStronyITytul'), lustro: true, slowa: 'ksiazka zywa pagina numer gora',
     obiekty: (w, m) => {
       const p = pole(w); const y = yGora(w);
       return [tekst('{rozdzial}   |   {nr}', { left: p.x, top: y, width: p.w, textAlign: 'right', fontSize: ptNaMm(8), charSpacing: 40, nazwa: 'Żywa pagina z numerem' }, m)];
     },
   },
   {
-    klucz: 'ksiazka-tytul-sekcji', grupa: 'Książka', nazwa: 'Tytuł książki i rozdziału', opis: 'Nazwa projektu i rozdziału w nagłówku, cienka linia, numer na dole na środku.', slowa: 'ksiazka naglowek tytul rozdzial',
+    klucz: 'ksiazka-tytul-sekcji', grupa: 'Książka', nazwa: 'Tytuł książki i rozdziału', opis: tt('wzorceStandardowe.nazwaProjektuIRozdzialu'), slowa: 'ksiazka naglowek tytul rozdzial',
     obiekty: (w, m) => {
       const p = pole(w); const y = Math.max(2, w.marginesy.gora - 6);
       return [tekst('{projekt}', { left: p.x, top: y, width: p.w / 2, fontSize: ptNaMm(7.5), fontStyle: 'italic', fontFamily: M(m).fontNaglowek, nazwa: 'Tytuł książki' }, m),
@@ -308,7 +309,7 @@ export const WZORCE_STANDARDOWE = [
   },
   // ---------- Katalog i oferta ----------
   {
-    klucz: 'katalog', grupa: 'Katalog i oferta', nazwa: 'Katalog: logo i kontakt', opis: 'Miejsce na logo i nazwę sekcji u góry, kontakt i numer na dole.', slowa: 'katalog oferta firma logo kontakt',
+    klucz: 'katalog', grupa: 'Katalog i oferta', nazwa: 'Katalog: logo i kontakt', opis: tt('wzorceStandardowe.miejsceNaLogoI'), slowa: 'katalog oferta firma logo kontakt',
     obiekty: (w, m) => {
       const p = pole(w); const y = Math.max(2, w.marginesy.gora - 9); const yd = w.wysokosc_mm - w.marginesy.dol + 2;
       return [obrys(p.x, y, 18, 6, { stroke: M(m).linia, strokeDashArray: [1, 1], nazwa: 'Miejsce na logo' }),
@@ -320,7 +321,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'oferta-pas-boczny', grupa: 'Katalog i oferta', nazwa: 'Oferta z pasem bocznym', opis: 'Kolorowy pas wzdłuż wewnętrznej krawędzi z pionową nazwą sekcji.', lustro: true, slowa: 'oferta katalog pas bok pionowy',
+    klucz: 'oferta-pas-boczny', grupa: 'Katalog i oferta', nazwa: 'Oferta z pasem bocznym', opis: tt('wzorceStandardowe.kolorowyPasWzdluzWewnetrznej'), lustro: true, slowa: 'oferta katalog pas bok pionowy',
     obiekty: (w, m) => {
       const s = Math.max(6, w.marginesy.wewnetrzny - 6);
       return [pasek(-w.spad_mm, -w.spad_mm, s + w.spad_mm, w.wysokosc_mm + 2 * w.spad_mm, { fill: M(m).akcent, nazwa: 'Pas boczny', bez_ostrzezen: true }),
@@ -329,7 +330,7 @@ export const WZORCE_STANDARDOWE = [
   },
   // ---------- Gazetka ----------
   {
-    klucz: 'gazetka', grupa: 'Gazetka', nazwa: 'Gazetka: winieta', opis: 'Gruba i cienka linia na górze z nazwą i datą, numer strony na dole.', slowa: 'gazetka gazeta parafialna szkolna winieta',
+    klucz: 'gazetka', grupa: 'Gazetka', nazwa: 'Gazetka: winieta', opis: tt('wzorceStandardowe.grubaICienkaLinia'), slowa: 'gazetka gazeta parafialna szkolna winieta',
     obiekty: (w, m) => {
       const p = pole(w); const y = Math.max(2, w.marginesy.gora - 8);
       return [tekst('{projekt}', { left: p.x, top: y, width: p.w * 0.6, fontSize: ptNaMm(9), fontWeight: 'bold', fontFamily: M(m).fontNaglowek, nazwa: 'Nazwa gazetki' }, m),
@@ -339,12 +340,12 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'gazetka-kolumny', grupa: 'Gazetka', nazwa: 'Gazetka: linie między kolumnami', opis: 'Cienkie pionowe linie dzielące pole na 3 szpalty.', slowa: 'gazetka kolumny szpalty linie',
+    klucz: 'gazetka-kolumny', grupa: 'Gazetka', nazwa: 'Gazetka: linie między kolumnami', opis: tt('wzorceStandardowe.cienkiePionoweLinieDzielace'), slowa: 'gazetka kolumny szpalty linie',
     obiekty: (w, m) => { const p = pole(w); const k = p.w / 3; return [sciezka('Linie szpalt', [[p.x + k, p.y, p.x + k, p.y + p.h], [p.x + 2 * k, p.y, p.x + 2 * k, p.y + p.h]], { stroke: M(m).linia, strokeWidth: 0.2 })]; },
   },
   // ---------- Zaproszenie ----------
   {
-    klucz: 'zaproszenie', grupa: 'Zaproszenie', nazwa: 'Zaproszenie: ozdobna ramka', opis: 'Podwójna cienka ramka z rombami w narożnikach.', slowa: 'zaproszenie slub komunia chrzest ramka elegancka',
+    klucz: 'zaproszenie', grupa: 'Zaproszenie', nazwa: 'Zaproszenie: ozdobna ramka', opis: tt('wzorceStandardowe.podwojnaCienkaRamkaZ'), slowa: 'zaproszenie slub komunia chrzest ramka elegancka',
     obiekty: (w, m) => {
       const b = Math.min(w.marginesy.gora, w.marginesy.zewnetrzny) / 2; const W = w.szerokosc_mm; const H = w.wysokosc_mm; const k = M(m).akcent2; const r = 1.6;
       const romb = (x, y) => ({ type: 'rect', version: '5.3.0', id: uid('o'), left: x, top: y, originX: 'center', originY: 'center', width: r * 2, height: r * 2, angle: 45, fill: k, strokeWidth: 0, nazwa: 'Romb' });
@@ -354,7 +355,7 @@ export const WZORCE_STANDARDOWE = [
     },
   },
   {
-    klucz: 'zaproszenie-pasy', grupa: 'Zaproszenie', nazwa: 'Zaproszenie: pasy u góry i u dołu', opis: 'Dwa pasy w kolorach marki przy górnej i dolnej krawędzi (ze spadem).', slowa: 'zaproszenie pasy kolor elegancko',
+    klucz: 'zaproszenie-pasy', grupa: 'Zaproszenie', nazwa: 'Zaproszenie: pasy u góry i u dołu', opis: tt('wzorceStandardowe.dwaPasyWKolorach'), slowa: 'zaproszenie pasy kolor elegancko',
     obiekty: (w, m) => {
       const b = w.spad_mm; const W = w.szerokosc_mm; const H = w.wysokosc_mm; const h = Math.max(6, w.marginesy.gora * 0.5);
       return [pasek(-b, -b, W + 2 * b, h + b, { fill: M(m).akcent, nazwa: 'Pas górny', bez_ostrzezen: true }), pasek(-b, h, W + 2 * b, 1, { fill: M(m).akcent2, nazwa: 'Linia górna', bez_ostrzezen: true }),

@@ -9,16 +9,17 @@ import { czytajPlikTekstu, tekstDoRamki } from '../import-tekstu.js';
 import { ptNaMm } from '../projekt.js';
 import { stan, edytor } from './kontekst.js';
 import { dokladajStrony } from './lista-stron.js';
+import { t } from '../jezyk.js';
 
 const JSZIP_URL = 'js/zewnetrzne/jszip-3.10.1.min.js';
 
 export async function wstawTekstZPliku(plik) {
-  if (!plik || !stan.projekt || stan.tryb !== 'strona') { powiadom('Tekst z pliku wstawisz na stronie projektu (nie we wzorcu).', true); return null; }
+  if (!plik || !stan.projekt || stan.tryb !== 'strona') { powiadom(t('importTekstuOkno.tekstZPlikuWstawisz'), true); return null; }
   try {
     const JSZip = await biblioteka(JSZIP_URL, 'JSZip', 'modułu ZIP');
     const wynik = await czytajPlikTekstu(plik, JSZip);
     const { text, styles, akapitow, rozdzialow } = tekstDoRamki(wynik, { rozmiar: ptNaMm(11) });
-    if (!text.trim()) { powiadom('W pliku nie ma tekstu.', true); return null; }
+    if (!text.trim()) { powiadom(t('importTekstuOkno.wPlikuNieMa'), true); return null; }
     const ramka = edytor.dodajDlugiTekst(text, styles, { rozmiarPt: 11 });
     edytor.zatwierdz?.();
     const pom = wynik.pominiete;

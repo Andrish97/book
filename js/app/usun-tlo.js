@@ -10,6 +10,7 @@ import { przyjmijPlik } from '../obrazy-projektu.js';
 import { maObraz } from '../obraz-w-ksztalcie.js';
 import { rozdzka, pociagniecie, wygladz, skladaj, KOD_WATKU } from '../usun-tlo-rdzen.js';
 import { panel } from './skladniki.js';
+import { t as tt } from '../jezyk.js';
 
 const MAKS_BOK = 4096; // większe zdjęcia są zmniejszane do pracy (druk 300 dpi: ok. 35 cm boku)
 const MAKS_COFNIEC = 12;
@@ -70,10 +71,10 @@ plotno.addEventListener('pointerdown', async (e) => {
   const p = wObrazie(e);
   zapamietaj();
   if (st.tryb === 'rozdzka') {
-    stanTekst('Usuwam…');
-    const pasek = postep('Usuwanie tła…');
+    stanTekst(tt('usunTlo.usuwam'));
+    const pasek = postep(tt('usunTlo.usuwanieTla'));
     try { st.maska = await rozdzkaWTle(p.x, p.y); } finally { pasek.koniec(); }
-    stanTekst('Kliknij kolejne miejsce tła albo popraw brzegi pędzlem.');
+    stanTekst(tt('usunTlo.kliknijKolejneMiejsceTla'));
     rysujPozniej();
     return;
   }
@@ -107,11 +108,11 @@ dlg.addEventListener('close', () => { st.dane = null; st.maska = null; st.cofnij
 
 $('#usun-tlo-zapisz').addEventListener('click', async () => {
   if (!st.dane || st.zapisuje) return;
-  if (!st.maska.some((v) => v < 255)) { powiadom('Nic nie zostało usunięte – kliknij różdżką w tło.'); return; }
+  if (!st.maska.some((v) => v < 255)) { powiadom(tt('usunTlo.nicNieZostaloUsuniete')); return; }
   st.zapisuje = true;
   $('#usun-tlo-zapisz').disabled = true;
-  stanTekst('Zapisuję…');
-  const pasek = postep('Zapisywanie obrazu bez tła…');
+  stanTekst(tt('usunTlo.zapisuje'));
+  const pasek = postep(tt('usunTlo.zapisywanieObrazuBezTla'));
   try {
     rysuj();
     const blob = await new Promise((ok) => plotno.toBlob(ok, 'image/png'));
@@ -124,7 +125,7 @@ $('#usun-tlo-zapisz').addEventListener('click', async () => {
     dlg.close();
     powiadom(`Zapisano „${nazwa}”. Oryginał został w obrazach projektu.`);
   } catch (e) {
-    powiadom(e.message || 'Nie udało się zapisać obrazu.', true);
+    powiadom(e.message || tt('usunTlo.nieUdaloSieZapisac'), true);
   } finally {
     pasek.koniec();
     st.zapisuje = false;
@@ -135,15 +136,15 @@ $('#usun-tlo-zapisz').addEventListener('click', async () => {
 // obj: zaznaczony obraz albo kształt z obrazem.
 export async function otworzUsuwanieTla(obj) {
   const zasob = obj?.zasob;
-  if (!zasob || !stan.projekt?.zasoby?.[zasob]) { powiadom('Ten element nie ma obrazu.'); return; }
+  if (!zasob || !stan.projekt?.zasoby?.[zasob]) { powiadom(tt('usunTlo.tenElementNieMa')); return; }
   if (/svg/i.test(stan.projekt.zasoby[zasob].typ || '') || /\.svg$/i.test(stan.projekt.zasoby[zasob].nazwa || '')) { powiadom('Rysunek SVG ma już przezroczyste tło – usuń zbędne kształty po „Rozłóż rysunek na elementy”.'); return; }
   Object.assign(st, { obj, zasob, nazwa: stan.projekt.zasoby[zasob].nazwa, cofnij: [], dane: null, maska: null });
   $('#usun-tlo-cofnij').disabled = true;
   ustawTryb('rozdzka');
-  stanTekst('Wczytuję obraz…');
+  stanTekst(tt('usunTlo.wczytujeObraz'));
   ctx.clearRect(0, 0, plotno.width, plotno.height);
   if (!dlg.open) dlg.showModal();
-  const pasek = postep('Wczytywanie obrazu…');
+  const pasek = postep(tt('usunTlo.wczytywanieObrazu'));
   try {
     const blob = await blobZasobu(stan.projekt, zasob);
     if (!blob) throw new Error('Nie ma oryginału tego obrazu na urządzeniu – otwórz projekt z internetem i spróbuj jeszcze raz.');
@@ -160,10 +161,10 @@ export async function otworzUsuwanieTla(obj) {
     st.maska = new Uint8Array(st.szer * st.wys).fill(255);
     stanTekst(skala < 1
       ? `Kliknij w tło, żeby je usunąć. Duże zdjęcie – nowy plik będzie miał ${st.szer} × ${st.wys} px.`
-      : 'Kliknij w tło, żeby je usunąć. Brzegi popraw pędzlem „Usuń” i „Przywróć”.');
+      : tt('usunTlo.kliknijWTloZeby'));
     rysuj();
   } catch (e) {
-    stanTekst(e.message || 'Nie udało się wczytać obrazu.');
+    stanTekst(e.message || tt('usunTlo.nieUdaloSieWczytac'));
   } finally {
     pasek.koniec();
   }

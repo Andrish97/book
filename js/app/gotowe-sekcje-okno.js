@@ -22,7 +22,7 @@ import {
 import { stan, biezacaSekcja } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { ustawZakladke, generujMiniatury } from './lista-stron.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t as tt } from '../jezyk.js';
 
 const dlgGotowe = $('#dlg-gotowe-sekcje');
 const tresc = dlgGotowe.querySelector('.gotowe');
@@ -235,7 +235,7 @@ async function wstaw() {
   }
   if (!stan.projekt) return;
   if (s.okladka && stan.projekt.sekcje.some((x) => x.okladka)) {
-    powiadom('Projekt ma już okładkę – zmień ją w ustawieniach sekcji okładki albo usuń, zanim wstawisz nową.', true);
+    powiadom(tt('gotoweSekcjeOkno.projektMaJuzOkladke'), true);
     return;
   }
   zapiszBiezacyCel();
@@ -283,11 +283,11 @@ function przygotuj() {
   sel.innerHTML = `${marka() ? '<option value="marka">Kolory marki</option>' : ''}<option value="">Kolory szablonu</option>${Object.entries(PALETY).map(([k, v]) => `<option value="${k}">${esc(v.nazwa)}</option>`).join('')}`;
   sel.value = marka() ? 'marka' : '';
   pokazChipy();
-  pole.placeholder = tryb.nowy ? 'Szukaj (książka, planer, kalendarz…)' : 'Szukaj (kalendarz, dyplom, menu…)';
-  $('#gotowe-wstaw').textContent = tryb.nowy ? 'Utwórz projekt z tym szablonem' : 'Wstaw jako nową sekcję';
+  pole.placeholder = tryb.nowy ? tt('gotoweSekcjeOkno.szukajKsiazkaPlanerKalendarz') : tt('gotoweSekcjeOkno.szukajKalendarzDyplomMenu');
+  $('#gotowe-wstaw').textContent = tryb.nowy ? tt('gotoweSekcjeOkno.utworzProjektZTym') : tt('gotoweSekcjeOkno.wstawJakoNowaSekcje');
   galeria.querySelector('.gotowe-wstep').textContent = tryb.nowy
     ? 'Szablony całych projektów: od razu wszystkie sekcje z ustawieniami – okładka, wyklejki, blok z krotnością stron – gotowe do druku i makiety 3D.'
-    : 'Całe gotowe dokumenty: kalendarze, planery, zaproszenia, dyplomy, ulotki, rozdziały książki… Wstawiają się jako nowa sekcja w formacie projektu i w kolorach marki – potem zmieniasz je jak zwykłe strony.';
+    : tt('gotoweSekcjeOkno.caleGotoweDokumentyKalendarze');
 }
 
 export function otworzGotoweSekcje({ szablon = null, zastapPusty = false } = {}) {

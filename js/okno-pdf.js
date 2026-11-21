@@ -11,6 +11,7 @@ import { WARUNKI_DRUKU } from './profil-icc.js';
 import { postep } from './postep.js';
 import * as chmura from './chmura.js';
 import { planImpozycji, opisPlanu } from './impozycja.js';
+import { t as tt } from './jezyk.js';
 
 export class OknoPdf {
   // projekt() → bieżący projekt, sekcja() → bieżąca sekcja, przedEksportem() –
@@ -119,7 +120,7 @@ export class OknoPdf {
     $('#pdf-pole-ile').hidden = o.podzial !== 'czesci';
     const wektor = o.tryb === 'wektor';
     $('#pdf-opcje-wektora').hidden = !wektor;
-    $('#pdf-etykieta-dpi').textContent = wektor ? 'Jakość elementów zapisanych jako obraz' : 'Jakość';
+    $('#pdf-etykieta-dpi').textContent = wektor ? tt('oknoPdf.jakoscElementowZapisanychJako') : tt('oknoPdf.jakosc');
     $('#pdf-opis-trybu').textContent = wektor
       ? (o.krzywe
         ? 'Tekst jest zamieniony na kształty liter: wygląda identycznie wszędzie i drukarnia nie potrzebuje czcionek, ale nie da się go zaznaczyć ani poprawić. Zdjęcia idą w oryginalnej rozdzielczości.'
@@ -140,9 +141,9 @@ export class OknoPdf {
     $('#pdf-opis-kolorow').textContent = opisKolorow;
     // Standard dla drukarni: co plik będzie zawierał, prostymi słowami.
     $('#pdf-pole-zdjecia').hidden = !o.pdfx;
-    $('#pdf-etykieta-zdjecia').textContent = wektor ? 'Zdjęcia też w CMYK (większy plik)' : 'Obrazy stron w CMYK (większy plik)';
+    $('#pdf-etykieta-zdjecia').textContent = wektor ? tt('oknoPdf.zdjeciaTezWCmyk') : tt('oknoPdf.obrazyStronWCmyk');
     $('#pdf-pole-profil').hidden = o.pdfx !== 'wlasny';
-    $('#pdf-nazwa-profilu').textContent = this.profilWlasny ? this.profilWlasny.nazwa : 'Nie wybrano pliku.';
+    $('#pdf-nazwa-profilu').textContent = this.profilWlasny ? this.profilWlasny.nazwa : tt('oknoPdf.nieWybranoPliku');
     const opisPdfx = $('#pdf-opis-pdfx');
     opisPdfx.hidden = !o.pdfx;
     if (o.pdfx) {
@@ -174,7 +175,7 @@ export class OknoPdf {
     const stron = `${egz.length} ${odmiana(egz.length, 'strona', 'strony', 'stron')}`;
     $('#pdf-podsumowanie').textContent = egz.length
       ? `Do eksportu: ${stron}${powielone ? ` (w tym ${powielone} z powieleń serii)` : ''}${pliki.length > 1 ? `, ${pliki.length} ${odmiana(pliki.length, 'plik', 'pliki', 'plików')} PDF w jednym archiwum ZIP` : ''}.`
-      : 'W wybranym zakresie nie ma stron.';
+      : tt('oknoPdf.wWybranymZakresieNie');
     const uwagaStron = o.zakres === 'strony' ? uwagaZakresu(o.strony, this.ciag.egzemplarze.length) : null;
     if (uwagaStron) $('#pdf-podsumowanie').textContent = `${uwagaStron} ${$('#pdf-podsumowanie').textContent}`;
     // Podsumowanie zwiniętej sekcji „Zaawansowane”: jakość, kolory, standard, podział.
@@ -189,10 +190,10 @@ export class OknoPdf {
     const komunikat = $('#pdf-komunikat');
     this.trwa = true; this.przerwane = false;
     $('#pdf-eksportuj').disabled = true;
-    $('#pdf-anuluj').textContent = 'Przerwij';
-    komunikat.textContent = 'Przygotowuję strony…';
+    $('#pdf-anuluj').textContent = tt('oknoPdf.przerwij');
+    komunikat.textContent = tt('oknoPdf.przygotowujeStrony');
     // Wspólny wskaźnik postępu (js/postep.js): pasek „strona i z n” i „Anuluj”, jak przy innych dłuższych czynnościach.
-    const pasek = postep('Eksport do PDF', { anuluj: () => { this.przerwane = true; } });
+    const pasek = postep(tt('oknoPdf.eksportDoPdf'), { anuluj: () => { this.przerwane = true; } });
     try {
       const krok = (i, n) => { komunikat.textContent = `Strona ${i} z ${n}…`; pasek.krok(i, n); };
       // Duży projekt (#338): plik robi serwer – urządzenie nie mieli setek stron; przy kłopocie z serwerem – jak dotąd.
@@ -219,11 +220,11 @@ export class OknoPdf {
       if (ileKrzywych) czesci.push(`Tekst jako krzywe (nie da się go zaznaczyć) w ${ileKrzywych} ${odmiana(ileKrzywych, 'elemencie', 'elementach', 'elementach')}: ${lista(jakoKrzywe)}.`);
       powiadom(czesci.join(' '));
     } catch (blad) {
-      komunikat.textContent = blad instanceof Przerwano ? 'Eksport przerwany.' : (blad.message || 'Nie udało się przygotować pliku PDF.');
+      komunikat.textContent = blad instanceof Przerwano ? tt('oknoPdf.eksportPrzerwany') : (blad.message || tt('oknoPdf.nieUdaloSiePrzygotowac'));
     } finally {
       pasek.koniec();
       this.trwa = false;
-      $('#pdf-anuluj').textContent = 'Anuluj';
+      $('#pdf-anuluj').textContent = tt('oknoPdf.anuluj');
       this.odswiez();
     }
   }

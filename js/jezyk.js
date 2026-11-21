@@ -4,6 +4,8 @@
 // także dopisywane później (MutationObserver) – ten sam napis zawsze tak samo. Powrót do polskiego przywraca
 // oryginały. Treść projektów użytkownika (płótno, pola formularzy) nie jest ruszana.
 
+import SLOWNIK_PL from './jezyki/klucze/pl.js';
+
 export const JEZYKI = {
   pl: { nazwa: 'Polski', flaga: 'img/jezyki/flag-pl.svg' },
   en: { nazwa: 'English', flaga: 'img/jezyki/lang-en.svg' },
@@ -26,9 +28,24 @@ const ATRYBUTY = ['title', 'placeholder', 'aria-label'];
 // -aria-label (atrybuty), w kodzie t('obszar.nazwa', { zmienne }). Słowniki: js/jezyki/klucze/<język>.js.
 // Polski tekst zostaje w HTML – po polsku nic się nie wczytuje. Tłumaczy się tylko to, co ma klucz; napisy kodu
 // bez klucza (przenoszone etapami) – jeszcze dawnym słownikiem „polski napis → tłumaczenie”.
-const slownikiKluczy = {}; // język → { klucz: napis }
+// Polski słownik jest zawsze (napisy kodu przed wczytaniem języka), a wybrany język wczytuje się, zanim moduły
+// aplikacji zaczną działać (await na poziomie modułu) – stałe z t() mają od razu właściwy język.
+const slownikiKluczy = { pl: SLOWNIK_PL }; // język → { klucz: napis }
 let klucze = null; // bieżący język
 const wczytajKlucze = async (j) => { slownikiKluczy[j] ??= (await import(`./jezyki/klucze/${j}.js`)).default; return slownikiKluczy[j]; };
+// Odwrotnie: napis → klucz (w każdym wczytanym języku). Dzięki temu przełączenie języka zamienia także napisy
+// wstawione wcześniej przez t() w innym języku – bez pamiętania oryginałów i bez przebudowy okien.
+const odwrotne = new Map();
+function kluczNapisu(tekst) {
+  if (!klucze || !tekst) return null;
+  for (const [j, sl] of Object.entries(slownikiKluczy)) {
+    let m = odwrotne.get(j);
+    if (!m) { m = new Map(); for (const [k, v] of Object.entries(sl)) { const n = norm(v); if (!m.has(n)) m.set(n, k); } odwrotne.set(j, m); }
+    const k = m.get(tekst);
+    if (k && klucze[k] !== undefined) return k;
+  }
+  return null;
+}
 // Czy tekst elementu to wciąż napis klucza w którymś języku (a nie treść wstawiona przez kod) – wtedy wolno go podmienić.
 const napisKlucza = (k, tekst) => Object.values(slownikiKluczy).some((sl) => sl[k] !== undefined && norm(sl[k]) === tekst);
 function zastosujKlucze(korzen) {
@@ -66,6 +83,11 @@ export function wybranyJezyk() {
 }
 export const biezacyJezyk = () => jezyk;
 
+try {
+  const startowy = wybranyJezyk();
+  if (startowy !== 'pl') klucze = await wczytajKlucze(startowy);
+} catch { /* bez słownika – napisy po polsku, ustawJezyk spróbuje jeszcze raz */ }
+
 // Napis złożony w kodzie z kilku części („Okładka: Twarda”, „Kolor #1f2a44 – zmień”): gdy słownik nie ma całości,
 // tłumaczy się każdą część osobno – tylko wtedy, gdy wszystkie części ze słowami są w słowniku.
 const SZWY = [': ', ' – ', ' · ', ' — '];
@@ -100,6 +122,15 @@ export function t(tekst, zmienne = null) {
 function tlumaczTekst(wezel) {
   const el = wezel.parentElement;
   if (!el || el.closest(POMIJANE)) return;
+  if (!oryginalyTekstu.has(wezel)) {
+    const k = kluczNapisu(norm(wezel.nodeValue));
+    if (k) {
+      const v = wezel.nodeValue;
+      const cel = `${v.match(/^\s*/)[0]}${klucze[k]}${v.match(/\s*$/)[0]}`;
+      if (v !== cel) wezel.nodeValue = cel;
+      return;
+    }
+  }
   const oryg = oryginalyTekstu.has(wezel) ? oryginalyTekstu.get(wezel) : wezel.nodeValue;
   const klucz = norm(oryg);
   if (!klucz || !/\p{L}/u.test(klucz)) return;
@@ -119,6 +150,10 @@ function tlumaczAtrybuty(el) {
   for (const a of ATRYBUTY) {
     if (!el.hasAttribute(a) || el.hasAttribute(`data-i18n-${a}`)) continue; // z kluczem – zastosujKlucze
     let mapa = oryginalyAtrybutow.get(el);
+    if (!mapa?.has(a)) {
+      const k = kluczNapisu(norm(el.getAttribute(a)));
+      if (k) { if (el.getAttribute(a) !== klucze[k]) el.setAttribute(a, klucze[k]); continue; }
+    }
     const oryg = mapa?.has(a) ? mapa.get(a) : el.getAttribute(a);
     const klucz = norm(oryg);
     const cel = jezyk === 'pl' ? oryg : (slownik ? przeloz(klucz) : undefined);

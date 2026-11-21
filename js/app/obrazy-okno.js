@@ -28,7 +28,7 @@ import {
 import { generujMiniatury, przejdzDoStrony } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 import { panel } from './skladniki.js';
-import { wpiszNazwe } from '../jezyk.js';
+import { wpiszNazwe, t as tt } from '../jezyk.js';
 
 const okno = $('#dlg-obrazy');
 const lista = $('#obrazy-lista');
@@ -53,8 +53,8 @@ export function otworzObrazy(opcje = {}) {
   kotwica = null;
   trybZaznaczania = false;
   okno.classList.toggle('tryb-wyboru', Boolean(wybor));
-  $('#obrazy-tytul-tekst').textContent = wybor ? 'Wybierz obraz' : 'Obrazy projektu';
-  $('#obrazy-wybierz').textContent = wybor?.etykieta || 'Wstaw';
+  $('#obrazy-tytul-tekst').textContent = wybor ? tt('obrazyOkno.wybierzObraz') : tt('obrazyOkno.obrazyProjektu');
+  $('#obrazy-wybierz').textContent = wybor?.etykieta || tt('obrazyOkno.wstaw');
   for (const el of okno.querySelectorAll('.tylko-wybor')) el.hidden = !wybor;
   rysuj();
   if (!okno.open) okno.showModal();
@@ -134,8 +134,8 @@ async function uporzadkuj() {
   const tresc = [];
   if (kopie.length) tresc.push('Kopie tego samego pliku staną się jednym obrazem – elementy na stronach zostają na miejscu i pokazują ten jeden plik.');
   if (nazwy.length) tresc.push('Obrazy o tej samej nazwie, a innej treści dostaną dopisek „(2)” – dane w tabelach pokażą ten sam obraz co dotąd.');
-  if (!await potwierdz('Uporządkować obrazy projektu?', tresc.join(' '), 'Uporządkuj')) return;
-  const pasek = postep('Porządkowanie obrazów…');
+  if (!await potwierdz(tt('obrazyOkno.uporzadkowacObrazyProjektu'), tresc.join(' '), tt('obrazyOkno.uporzadkuj'))) return;
+  const pasek = postep(tt('obrazyOkno.porzadkowanieObrazow'));
   try {
     // Nowe nazwy najpierw (nowy identyfikator na obraz – patrz nowaWersja), potem jedno przepięcie wszędzie.
     const przemianowane = [];
@@ -174,7 +174,7 @@ let miniaturRazem = 0;
 function pokazMiniature(li, id, z, rozmiar) {
   kolejkaMiniatur.push(() => zrobMiniature(li, id, z, rozmiar));
   miniaturRazem += 1;
-  if (!pasekMiniatur) pasekMiniatur = postep('Miniatury obrazów', { razem: miniaturRazem, opoznienie: 700 });
+  if (!pasekMiniatur) pasekMiniatur = postep(tt('obrazyOkno.miniaturyObrazow'), { razem: miniaturRazem, opoznienie: 700 });
   nastepnaMiniatura();
 }
 function nastepnaMiniatura() {
@@ -276,7 +276,7 @@ function odswiezZaznaczenie() {
   }
   $('#obrazy-zaznaczone').textContent = n
     ? `Zaznaczone: ${n}`
-    : (trybZaznaczania ? 'Stukaj obrazy, żeby je zaznaczyć.' : 'Kliknij obraz, żeby go zaznaczyć (Ctrl – kilka, Shift – zakres; na telefonie przytrzymaj).');
+    : (trybZaznaczania ? tt('obrazyOkno.stukajObrazyZebyJe') : 'Kliknij obraz, żeby go zaznaczyć (Ctrl – kilka, Shift – zakres; na telefonie przytrzymaj).');
   for (const id of ['#obrazy-kopiuj-nazwy', '#obrazy-usun-zaznaczone', '#obrazy-odznacz']) $(id).hidden = n === 0;
   const t = $('#obrazy-tryb-zaznaczania');
   t.hidden = n > 0;
@@ -401,12 +401,12 @@ function otworzMenuObrazu(przycisk, id) {
 async function zmienNazwe(id) {
   const p = stan.projekt;
   const z = p.zasoby[id];
-  const nowa = await zapytajONazwe('Zmień nazwę obrazu', 'Nazwa pliku (z rozszerzeniem)', z.nazwa);
+  const nowa = await zapytajONazwe(tt('obrazyOkno.zmienNazweObrazu'), tt('obrazyOkno.nazwaPlikuZRozszerzeniem'), z.nazwa);
   if (!nowa || nowa === z.nazwa) return;
   const kolizja = poNazwie(p, nowa, id);
   if (kolizja) { powiadom(`Obraz „${p.zasoby[kolizja].nazwa}” ma już tę nazwę. Dane wskazują obrazy nazwą, więc nazwy muszą być różne.`, true); return; }
   const u = uzycia(p, id);
-  if (u.dane.length && !await potwierdz('Zmienić nazwę obrazu z danych?', `Tabele danych (${u.dane.map((n) => `„${n}”`).join(', ')}) wskazują ten obraz nazwą „${z.nazwa}”. Te komórki dostaną nową nazwę „${nowa}”.`, 'Zmień nazwę')) return;
+  if (u.dane.length && !await potwierdz(tt('obrazyOkno.zmienicNazweObrazuZ'), `Tabele danych (${u.dane.map((n) => `„${n}”`).join(', ')}) wskazują ten obraz nazwą „${z.nazwa}”. Te komórki dostaną nową nazwę „${nowa}”.`, tt('obrazyOkno.zmienNazwe'))) return;
   try {
     const noweId = await nowaWersja(p, id, { nazwa: nowa });
     // Komórki liczone bez nowego wpisu – żeby nazwa bez rozszerzenia nie stała się chwilowo niejednoznaczna.
@@ -442,8 +442,8 @@ async function usun(ids, { tytulZbiorczy = null } = {}) {
     const tresc = `${uzyte.length === 1 ? 'Ten obraz jest użyty' : 'Te obrazy są użyte'}: ${opisUzytych}. Najpierw usuń go ze stron albo z tabeli danych – albo podmień plik, jeśli chcesz inny obraz w tych samych miejscach.`;
     const [id, u] = uzyte[0];
     if (uzyte.length === 1 && u.pierwsze) {
-      if (await potwierdz('Obraz jest w użyciu', tresc, 'Pokaż', false, 'Zamknij')) await pokaz(id);
-    } else await potwierdz(uzyte.length === 1 ? 'Obraz jest w użyciu' : 'Obrazy są w użyciu', tresc, 'OK', false, 'Zamknij');
+      if (await potwierdz(tt('obrazyOkno.obrazJestWUzyciu'), tresc, tt('obrazyOkno.pokaz'), false, tt('obrazyOkno.zamknij'))) await pokaz(id);
+    } else await potwierdz(uzyte.length === 1 ? tt('obrazyOkno.obrazJestWUzyciu') : tt('obrazyOkno.obrazySaWUzyciu'), tresc, tt('obrazyOkno.ok'), false, tt('obrazyOkno.zamknij'));
     return;
   }
   const wHist = wolne.some((id) => wHistorii(historia, id));
@@ -451,7 +451,7 @@ async function usun(ids, { tytulZbiorczy = null } = {}) {
   if (uzyte.length) czesci.push(`W użyciu ${uzyte.length === 1 ? 'jest i zostaje' : 'są i zostają'}: ${opisUzytych}.`);
   if (wHist) czesci.push('Część była niedawno na stronach: cofnięcie (Ctrl+Z) przywróci tam elementy, ale już bez obrazów.');
   const tytul = tytulZbiorczy || (wolne.length === 1 ? `Usunąć obraz „${p.zasoby[wolne[0]].nazwa}”?` : `Usunąć ${wolne.length} ${odmiana(wolne.length, 'obraz', 'obrazy', 'obrazów')}?`);
-  if (!await potwierdz(tytul, czesci.join(' '), 'Usuń', true)) return;
+  if (!await potwierdz(tytul, czesci.join(' '), tt('obrazyOkno.usun'), true)) return;
   for (const id of wolne) { await usunObraz(p, id, usunZKonta); zaznaczone.delete(id); }
   zaplanujZapis({ historia: false });
   powiadom(`Usunięto ${wolne.length} ${odmiana(wolne.length, 'obraz', 'obrazy', 'obrazów')}.${uzyte.length ? ` ${uzyte.length} w użyciu ${uzyte.length === 1 ? 'został' : 'zostały'}.` : ''}`);
@@ -514,7 +514,7 @@ async function rozpakujArchiwa(pliki) {
 
 export async function wgrajObrazy(wybrane) {
   const p = stan.projekt;
-  const pasek = postep(wybrane.some((f) => /\.zip$/i.test(f.name)) ? 'Rozpakowywanie archiwum…' : 'Wgrywanie obrazów…');
+  const pasek = postep(wybrane.some((f) => /\.zip$/i.test(f.name)) ? tt('obrazyOkno.rozpakowywanieArchiwum') : tt('obrazyOkno.wgrywanieObrazow'));
   try {
     return await wgrajObrazyZPostepem(p, wybrane, pasek);
   } finally {
@@ -527,7 +527,7 @@ async function wgrajObrazyZPostepem(p, wybrane, pasek) {
   const obrazy = pliki.filter((f) => f.type.startsWith('image/'));
   const wynik = { dodane: [], zastapione: [], takieSame: [], pominiete: [] };
   let dlaWszystkich = null;
-  pasek.opis('Wgrywanie obrazów…');
+  pasek.opis(tt('obrazyOkno.wgrywanieObrazow'));
   pasek.razem(obrazy.length);
   for (const [n, plik] of obrazy.entries()) {
     pasek.krok(n);
@@ -643,7 +643,7 @@ plikPodmien.addEventListener('change', async (e) => {
   const id = podmieniany;
   podmieniany = null;
   if (!plik || !id || !stan.projekt.zasoby[id]) { e.target.value = ''; return; }
-  if (!plik.type.startsWith('image/')) { e.target.value = ''; powiadom('To nie jest plik obrazu.', true); return; }
+  if (!plik.type.startsWith('image/')) { e.target.value = ''; powiadom(tt('obrazyOkno.toNieJestPlik'), true); return; }
   const stara = stan.projekt.zasoby[id].nazwa;
   // Nazwa zostaje (dane dalej pasują) – także gdy nowy plik jest innego rodzaju (np. PNG zamiast JPG).
   try {

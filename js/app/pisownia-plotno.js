@@ -6,6 +6,7 @@ import { slowaWTekscie } from '../pisownia-rdzen.js';
 import * as chmura from '../chmura.js';
 import { edytor, stan } from './kontekst.js';
 import { zamknijMenu } from '../ui.js';
+import { t as tt } from '../jezyk.js';
 
 const KLUCZ = 'makietka:pisownia';
 let wlaczona = (() => { try { return localStorage.getItem(KLUCZ) !== '0'; } catch { return true; } })();
@@ -155,8 +156,8 @@ async function pokazDymek(o, b, x, y) {
   tytul.textContent = `„${b.slowo}” – nie ma w słowniku`;
   const czeka = document.createElement('small');
   czeka.className = 'menu-pisowni-tytul';
-  czeka.textContent = 'Szukam podpowiedzi…';
-  menu.replaceChildren(tytul, czeka, document.createElement('hr'), przycisk('Dodaj do słownika', () => dodajDoSlownika(b.slowo)));
+  czeka.textContent = tt('pisowniaPlotno.szukamPodpowiedzi');
+  menu.replaceChildren(tytul, czeka, document.createElement('hr'), przycisk(tt('pisowniaPlotno.dodajDoSlownika'), () => dodajDoSlownika(b.slowo)));
   menu.hidden = false;
   const ustaw = () => {
     const r = menu.getBoundingClientRect();
@@ -167,7 +168,7 @@ async function pokazDymek(o, b, x, y) {
   let propozycje = [];
   try { propozycje = await podpowiedzi(b.slowo); } catch { /* bez słownika – tylko „Dodaj” */ }
   if (menu.hidden) return;
-  czeka.replaceWith(...(propozycje.length ? propozycje.slice(0, 5).map((nowe) => przycisk(nowe, () => zamienZakres(o, b, nowe), 'podpowiedz-pisowni')) : [Object.assign(document.createElement('small'), { className: 'menu-pisowni-tytul', textContent: 'Brak podpowiedzi' })]));
+  czeka.replaceWith(...(propozycje.length ? propozycje.slice(0, 5).map((nowe) => przycisk(nowe, () => zamienZakres(o, b, nowe), 'podpowiedz-pisowni')) : [Object.assign(document.createElement('small'), { className: 'menu-pisowni-tytul', textContent: tt('pisowniaPlotno.brakPodpowiedzi') })]));
   ustaw();
 }
 

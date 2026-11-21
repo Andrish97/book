@@ -1,6 +1,7 @@
 // Motyw interfejsu: 'system' (domyślnie), 'jasny' albo 'ciemny'.
 // Wybór jest zapamiętany na urządzeniu; pierwszy raz ustawia go krótki
 // skrypt w <head>, żeby strona nie mignęła jasnym tłem.
+import { t } from './jezyk.js';
 
 const KLUCZ = 'seriodruk:motyw';
 const systemowyCiemny = window.matchMedia('(prefers-color-scheme: dark)');
@@ -37,7 +38,7 @@ export function otworzMenuMotywu(przycisk, ikona) {
   const m = document.createElement('div');
   m.className = 'menu menu-motywu';
   m.setAttribute('role', 'menu');
-  m.setAttribute('aria-label', 'Motyw');
+  m.setAttribute('aria-label', t('motyw.motyw'));
   for (const [wartosc, nazwa, ik] of TRYBY_MOTYWU) {
     const b = document.createElement('button');
     b.type = 'button';

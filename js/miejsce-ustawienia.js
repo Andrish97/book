@@ -6,6 +6,7 @@ import { postep } from './postep.js';
 import {
   miejsce, planSprzatania, posprzataj, rozmiar, udzialKonta, ostrzezenie,
 } from './miejsce.js';
+import { t } from './jezyk.js';
 
 const procent = (x) => `${(Math.min(100, Math.round(x * 1000) / 10)).toLocaleString('pl-PL')}%`;
 const liczba = (x) => Number(x) || 0;
@@ -21,7 +22,7 @@ export async function pokazMiejsce({ swieze = true } = {}) {
   if (!konto) return;
   let m;
   try { m = await miejsce({ swieze }); } catch {
-    konto.textContent = 'Nie udało się sprawdzić – brak połączenia z kontem.';
+    konto.textContent = t('miejsceUstawienia.nieUdaloSieSprawdzic');
     return;
   }
   konto.textContent = `${rozmiar(m.konto)} z ${rozmiar(m.limit_konta)} (${procent(udzialKonta(m))})`;
@@ -46,18 +47,18 @@ async function sprzataj() {
   const przycisk = $('#miejsce-posprzataj');
   const komunikat = $('#miejsce-komunikat');
   przycisk.disabled = true;
-  komunikat.textContent = 'Sprawdzam, co można usunąć…';
+  komunikat.textContent = t('miejsceUstawienia.sprawdzamCoMoznaUsunac');
   try {
     const plan = await planSprzatania();
-    if (!plan.ile) { komunikat.textContent = 'Nie ma czego sprzątać – każdy plik na koncie jest używany.'; return; }
+    if (!plan.ile) { komunikat.textContent = t('miejsceUstawienia.nieMaCzegoSprzatac'); return; }
     const tak = await potwierdz(
-      'Posprzątać konto?',
+      t('miejsceUstawienia.posprzatacKonto'),
       `Usunę ${plan.ile} ${pliki(plan.ile)}, których żaden projekt nie używa – zwolni się ${rozmiar(plan.bajty)}. Projektów, obrazów na stronach ani czcionek to nie zmienia.`,
-      'Posprzątaj',
+      t('miejsceUstawienia.posprzataj'),
     );
     if (!tak) { komunikat.textContent = ''; return; }
-    komunikat.textContent = 'Sprzątam…';
-    const karta = postep('Sprzątanie konta', { razem: plan.ile });
+    komunikat.textContent = t('miejsceUstawienia.sprzatam');
+    const karta = postep(t('miejsceUstawienia.sprzatanieKonta'), { razem: plan.ile });
     try { await posprzataj(plan, (gotowe) => karta.krok(gotowe)); } finally { karta.koniec(); }
     komunikat.textContent = `Posprzątane – zwolniono ${rozmiar(plan.bajty)}.`;
     await pokazMiejsce();

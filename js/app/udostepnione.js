@@ -7,6 +7,7 @@ import { $ } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { Podglad } from '../podglad.js';
 import { pokazEkran } from './kontekst.js';
+import { t as tt } from '../jezyk.js';
 
 let podgladPubliczny = null;
 let daneLinku = null; // ostatni manifest i adresy obrazów – do makiety 3D (#188)
@@ -132,7 +133,7 @@ document.addEventListener('visibilitychange', () => {
 
 function pokazBladLinku(e) {
   document.title = NAZWA;
-  $('#podglad-tytul').textContent = 'Podgląd niedostępny';
+  $('#podglad-tytul').textContent = tt('udostepnione.podgladNiedostepny');
   $('#podglad-opis').textContent = '';
   const el = $('#podglad-tresc');
   const tytul = { wygasl: 'Link wygasł' }[e.stanLinku] || 'Ten link nie działa';
@@ -143,7 +144,7 @@ function pokazBladLinku(e) {
 // Link chroniony hasłem: pole hasła; dopiero poprawne hasło pokazuje strony.
 function pokazPoleHasla(t) {
   document.title = NAZWA;
-  $('#podglad-tytul').textContent = 'Podgląd chroniony hasłem';
+  $('#podglad-tytul').textContent = tt('udostepnione.podgladChronionyHaslem');
   $('#podglad-opis').textContent = '';
   const el = $('#podglad-tresc');
   el.innerHTML = `<div class="podglad-pusto" id="podglad-haslo"><h2>Podgląd chroniony hasłem</h2>
@@ -157,7 +158,7 @@ function pokazPoleHasla(t) {
     const komunikat = $('.komunikat', el);
     const przycisk = $('button', form);
     przycisk.disabled = true;
-    komunikat.textContent = 'Sprawdzam hasło…';
+    komunikat.textContent = tt('udostepnione.sprawdzamHaslo');
     try {
       const haslo = form.elements.haslo.value;
       pokazStronyLinku({ ...(await chmura.wczytajPodgladChroniony(t.konto, t.projekt, t.kod, haslo)), chroniony: true }, t, haslo);

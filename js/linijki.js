@@ -1,6 +1,7 @@
 // Linijki w milimetrach nad płótnem i z jego lewej strony. Zero leży w rogu
 // strony bieżącej. Przeciągnięcie z linijki na stronę tworzy prowadnicę:
 // z górnej – poziomą, z lewej – pionową.
+import { t } from './jezyk.js';
 
 const GRUBOSC = 20;
 const KROKI = [1, 2, 5, 10, 20, 50, 100, 200, 500];
@@ -29,7 +30,7 @@ export class Linijki {
   _plotno(klasa, os) {
     const c = document.createElement('canvas');
     c.className = klasa;
-    c.title = os === 'y' ? 'Przeciągnij w dół, aby dodać poziomą prowadnicę' : 'Przeciągnij w prawo, aby dodać pionową prowadnicę';
+    c.title = os === 'y' ? t('linijki.przeciagnijWDolAby') : t('linijki.przeciagnijWPrawoAby');
     c.addEventListener('pointerdown', (e) => {
       if (!this.edytor.wydruk) return;
       e.preventDefault();

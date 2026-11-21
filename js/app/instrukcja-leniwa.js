@@ -6,7 +6,7 @@ let obietnica = null;
 
 function wczytaj() {
   if (!obietnica) {
-    obietnica = import('../instrukcja.js').then(({ Instrukcja }) => new Instrukcja());
+    obietnica = import('../instrukcja.js').then(async ({ Instrukcja, wczytajTrescInstrukcji }) => { await wczytajTrescInstrukcji(); return new Instrukcja(); });
     obietnica.catch(() => { obietnica = null; });
   }
   return obietnica;

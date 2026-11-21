@@ -11,6 +11,7 @@ import { wpisyProjektow, pokazProjekty, plikiDoOtwarcia, otworzOczekujacePliki }
 import { edytorGotowy } from './doczytaj.js';
 import { przejdzDoTrasy } from './trasy.js';
 import { wlaczNaZywo, wylaczNaZywo } from './na-zywo.js';
+import { t } from '../jezyk.js';
 
 // ======================================================================
 // Logowanie
@@ -30,7 +31,7 @@ export const konto = new Konto({
     trasa.ustaw('projekty', { zastap: true });
     konto.ustawTryb('logowanie');
     pokazEkran('logowanie');
-    powiadom('Konto i wszystkie dane zostały usunięte.');
+    powiadom(t('logowanie.kontoIWszystkieDane'));
   },
 });
 
@@ -38,15 +39,15 @@ export function odswiezNaglowek() {
   const u = stan.uzytkownik;
   const nazwa = u ? chmura.nazwaUzytkownika(u) : '';
   $('#awatar').textContent = (nazwa || '?')[0].toUpperCase();
-  $('#awatar').title = u ? `Konto: ${nazwa}` : 'Nie zalogowano';
-  $('#nazwa-uzytkownika').textContent = u ? nazwa : 'Nie zalogowano';
+  $('#awatar').title = u ? `Konto: ${nazwa}` : t('logowanie.nieZalogowano');
+  $('#nazwa-uzytkownika').textContent = u ? nazwa : t('logowanie.nieZalogowano');
   $('#email-uzytkownika').textContent = u ? u.email : '';
   $('#pozycja-konto').hidden = !u;
   // Panel administratora – tylko dla kont z tabeli administratorzy (pyta baza, decyzja #95).
   $('#pozycja-admin').hidden = true;
   if (!u) import('./admin.js').then((m) => m.wylogowano()).catch(() => {});
   if (u) import('./admin.js').then((m) => m.czyAdministrator()).then((tak) => { if (stan.uzytkownik === u) $('#pozycja-admin').hidden = !tak; }).catch(() => {});
-  $('[data-akcja="wyloguj"]').lastChild.textContent = u ? 'Wyloguj' : 'Przejdź do logowania';
+  $('[data-akcja="wyloguj"]').lastChild.textContent = u ? t('logowanie.wyloguj') : t('logowanie.przejdzDoLogowania');
 }
 
 export async function poZalogowaniu(uzytkownik) {

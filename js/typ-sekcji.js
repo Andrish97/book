@@ -7,21 +7,22 @@
 
 // rodzaj – parametry sekcji: 'okladka' (pole sekcja.okladka), rodzaj sekcji specjalnej (pole sekcja.specjalna,
 // js/sekcje-specjalne.js) albo null (zwykłe strony). rola – miejsce w publikacji (grzbiet, numeracja, pliki PDF).
+import { t } from './jezyk.js';
 export const TYPY_SEKCJI = {
-  zwykla: { nazwa: 'Zwykła', opis: 'Strony w wybranym formacie – plakat, ulotka jednokartkowa, zaproszenie, broszura.', ikona: 'strony', rodzaj: null, rola: 'blok' },
-  blok: { nazwa: 'Blok (środek książki)', opis: 'Strony środka: numerowane, z ich liczby i papieru liczy się grzbiet okładki.', ikona: 'ksiazka', rodzaj: null, rola: 'blok' },
-  okladka: { nazwa: 'Okładka', opis: 'Tył, grzbiet i przód – szerokość grzbietu liczy się sama z bloku i papieru.', ikona: 'makieta', rodzaj: 'okladka', rola: 'okladka' },
-  wyklejka_przednia: { nazwa: 'Wyklejka przednia', opis: 'Twarda oprawa: arkusz z dwóch kartek – połowa przyklejona do okładki, połowa to pierwsza kartka.', ikona: 'warstwy', rodzaj: 'wyklejka', rola: 'wyklejka' },
-  wyklejka_tylna: { nazwa: 'Wyklejka tylna', opis: 'Twarda oprawa: ostatnia luźna kartka i połowa przyklejona do tylnej okładki.', ikona: 'warstwy', rodzaj: 'wyklejka', rola: 'wyklejka' },
-  obwoluta: { nazwa: 'Obwoluta', opis: 'Papierowa okładka na twardą oprawę ze skrzydełkami – wymiary z okładki.', ikona: 'format', rodzaj: 'obwoluta', rola: 'obwoluta' },
-  wkladka: { nazwa: 'Wkładka', opis: 'Kartki na innym papierze w środku książki (np. zdjęcia na kredzie) – bez numerów stron.', ikona: 'obraz', rodzaj: null, rola: 'wkladka' },
-  podkladka: { nazwa: 'Podkładka / plecy', opis: 'Karton pod kalendarzem albo notesem – poza numeracją i grzbietem.', ikona: 'separator', rodzaj: null, rola: 'podkladka' },
-  ulotka: { nazwa: 'Ulotka składana', opis: 'Arkusz na 2–4 panele (zwijany albo harmonijka) – zgięcia i panele podpisane.', ikona: 'rozkladowka', rodzaj: 'ulotka', rola: 'osobny' },
-  kalendarz: { nazwa: 'Kalendarz roczny (daty)', opis: 'Strona na miesiąc, tydzień albo dzień – daty i polskie święta w danych, zmiana roku przelicza wszystko.', ikona: 'kalendarz', rodzaj: 'kalendarz', rola: 'blok' },
-  trojdzielny: { nazwa: 'Kalendarz trójdzielny', opis: 'Główka i trzy kalendaria z okienkiem, bigiem i perforacjami.', ikona: 'planer', rodzaj: 'trojdzielny', rola: 'osobny' },
-  wykrojnik: { nazwa: 'Wykrojnik', opis: 'Koperta, teczka z kieszenią albo pudełko – linia cięcia i zgięć dla drukarni.', ikona: 'ksztalty', rodzaj: 'wykrojnik', rola: 'osobny' },
+  zwykla: { nazwa: 'Zwykła', opis: t('typSekcji.stronyWWybranymFormacie'), ikona: 'strony', rodzaj: null, rola: 'blok' },
+  blok: { nazwa: 'Blok (środek książki)', opis: t('typSekcji.stronySrodkaNumerowaneZ'), ikona: 'ksiazka', rodzaj: null, rola: 'blok' },
+  okladka: { nazwa: 'Okładka', opis: t('typSekcji.tylGrzbietIPrzod'), ikona: 'makieta', rodzaj: 'okladka', rola: 'okladka' },
+  wyklejka_przednia: { nazwa: 'Wyklejka przednia', opis: t('typSekcji.twardaOprawaArkuszZ'), ikona: 'warstwy', rodzaj: 'wyklejka', rola: 'wyklejka' },
+  wyklejka_tylna: { nazwa: 'Wyklejka tylna', opis: t('typSekcji.twardaOprawaOstatniaLuzna'), ikona: 'warstwy', rodzaj: 'wyklejka', rola: 'wyklejka' },
+  obwoluta: { nazwa: 'Obwoluta', opis: t('typSekcji.papierowaOkladkaNaTwarda'), ikona: 'format', rodzaj: 'obwoluta', rola: 'obwoluta' },
+  wkladka: { nazwa: 'Wkładka', opis: t('typSekcji.kartkiNaInnymPapierze'), ikona: 'obraz', rodzaj: null, rola: 'wkladka' },
+  podkladka: { nazwa: 'Podkładka / plecy', opis: t('typSekcji.kartonPodKalendarzemAlbo'), ikona: 'separator', rodzaj: null, rola: 'podkladka' },
+  ulotka: { nazwa: 'Ulotka składana', opis: t('typSekcji.arkuszNa24'), ikona: 'rozkladowka', rodzaj: 'ulotka', rola: 'osobny' },
+  kalendarz: { nazwa: 'Kalendarz roczny (daty)', opis: t('typSekcji.stronaNaMiesiacTydzien'), ikona: 'kalendarz', rodzaj: 'kalendarz', rola: 'blok' },
+  trojdzielny: { nazwa: 'Kalendarz trójdzielny', opis: t('typSekcji.glowkaITrzyKalendaria'), ikona: 'planer', rodzaj: 'trojdzielny', rola: 'osobny' },
+  wykrojnik: { nazwa: 'Wykrojnik', opis: t('typSekcji.kopertaTeczkaZKieszenia'), ikona: 'ksztalty', rodzaj: 'wykrojnik', rola: 'osobny' },
   skladanka: { nazwa: 'Składanka / wycinanka', opis: 'Model z papieru albo kartonu z wielu części na kilku arkuszach: zakładki klejowe, zgięcia, miejsca klejenia z numerami, szczeliny.', ikona: 'ksztalty', rodzaj: 'skladanka', rola: 'osobny' },
-  arkusz: { nazwa: 'Arkusz użytków', opis: 'Wizytówki, naklejki, etykiety – jeden projekt powielony na arkuszu drukarskim.', ikona: 'siatka', rodzaj: 'arkusz', rola: 'osobny' },
+  arkusz: { nazwa: 'Arkusz użytków', opis: t('typSekcji.wizytowkiNaklejkiEtykietyJeden'), ikona: 'siatka', rodzaj: 'arkusz', rola: 'osobny' },
 };
 
 // Typ sekcji: zapisany `typ` albo – dla sekcji bez typu (starsze projekty, sekcja zbudowana w kodzie) – wynikający

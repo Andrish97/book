@@ -6,6 +6,7 @@ import { $, powiadom } from '../ui.js';
 import * as chmura from '../chmura.js';
 import { utworzSejf } from '../sejf-kluczy.js';
 import { stan } from './kontekst.js';
+import { t } from '../jezyk.js';
 
 const PAMIEC = 'makietka-czat-ai';
 const czytaj = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || 'null') ?? d; } catch { return d; } };
@@ -40,10 +41,10 @@ function oknoSejfu(tryb) {
   }
   const fo = dlg.querySelector('form');
   const zakladanie = tryb === 'brak';
-  dlg.querySelector('h2').textContent = zakladanie ? 'Hasło do kluczy AI' : 'Otwórz klucze AI na tym urządzeniu';
+  dlg.querySelector('h2').textContent = zakladanie ? t('sejfAi.hasloDoKluczyAi') : t('sejfAi.otworzKluczeAiNa');
   dlg.querySelector('[data-rola="powtorz"]').hidden = !zakladanie;
   dlg.querySelector('[data-rola="usun"]').hidden = zakladanie;
-  dlg.querySelector('button[value="tak"]').textContent = zakladanie ? 'Zapisz hasło' : 'Otwórz';
+  dlg.querySelector('button[value="tak"]').textContent = zakladanie ? t('sejfAi.zapiszHaslo') : t('sejfAi.otworz');
   const blad = dlg.querySelector('.blad-sejfu');
   blad.hidden = true;
   fo.reset();
@@ -55,7 +56,7 @@ function oknoSejfu(tryb) {
       const haslo = fo.elements.haslo.value;
       const przycisk = e.submitter;
       przycisk.disabled = true;
-      przycisk.textContent = 'Szyfruję…';
+      przycisk.textContent = t('sejfAi.szyfruje');
       try {
         if (zakladanie) {
           if (haslo !== fo.elements.powtorz.value) throw new Error('Hasła się różnią.');
@@ -64,7 +65,7 @@ function oknoSejfu(tryb) {
         fo.removeEventListener('submit', naSubmit);
         dlg.close('tak');
         ok(true);
-      } catch (er) { blad.textContent = er.message; blad.hidden = false; } finally { przycisk.disabled = false; przycisk.textContent = zakladanie ? 'Zapisz hasło' : 'Otwórz'; }
+      } catch (er) { blad.textContent = er.message; blad.hidden = false; } finally { przycisk.disabled = false; przycisk.textContent = zakladanie ? t('sejfAi.zapiszHaslo') : t('sejfAi.otworz'); }
     };
     fo.addEventListener('submit', naSubmit);
     dlg.querySelector('[data-rola="usun"]').onclick = async () => {

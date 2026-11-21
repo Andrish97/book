@@ -203,8 +203,8 @@ const PODGLAD_SKOROWIDZA = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x=
 zarejestrujKategorie({
   id: 'ksiazka', nazwa: 'Książka', ikona: 'ksiazka', kolejnosc: 68,
   elementy: () => [
-    { id: 'spis', nazwa: 'Spis treści', slowa: 'spis tresci rozdzialy naglowki strony ksiazka', duzy: true, podglad: PODGLAD_SPISU, opis: 'Rozdziały z numerami stron – układa się sam', wstaw: (e, punkt) => e.dodajElementKsiazki('spis', punkt) },
-    { id: 'skorowidz', nazwa: 'Skorowidz', slowa: 'skorowidz indeks hasla slowa ksiazka', duzy: true, podglad: PODGLAD_SKOROWIDZA, opis: 'Hasła alfabetycznie z numerami stron', wstaw: (e, punkt) => e.dodajElementKsiazki('skorowidz', punkt) },
+    { id: 'spis', nazwa: 'Spis treści', slowa: 'spis tresci rozdzialy naglowki strony ksiazka', duzy: true, podglad: PODGLAD_SPISU, opis: tt('bibliotekaElementy.rozdzialyZNumeramiStron'), wstaw: (e, punkt) => e.dodajElementKsiazki('spis', punkt) },
+    { id: 'skorowidz', nazwa: 'Skorowidz', slowa: 'skorowidz indeks hasla slowa ksiazka', duzy: true, podglad: PODGLAD_SKOROWIDZA, opis: tt('bibliotekaElementy.haslaAlfabetycznieZNumerami'), wstaw: (e, punkt) => e.dodajElementKsiazki('skorowidz', punkt) },
   ],
 });
 
@@ -291,3 +291,4 @@ kategoriaSkladow('uklady', 'Układy stron', 'uklad', 64, duze(UKLADY), 'Całe st
 
 // Gotowe sekcje (#166) – kategoria w osobnym module.
 import './biblioteka-gotowe-sekcje.js';
+import { t as tt } from './jezyk.js';
