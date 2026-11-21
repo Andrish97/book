@@ -38,6 +38,18 @@
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq",
     "APLIKACJA": "https://makietka.app"
   },
+  // Podglądy gałęzi (Workers Builds „npx wrangler preview”, #354): te same publiczne adresy i ten sam magazyn plików
+  // (dostęp i tak sprawdza logowanie); bez crona i Durable Objects (podgląd ich nie dostaje) – rysowanie na serwerze
+  // w podglądzie nie działa, działa na produkcji.
+  "previews": {
+    "vars": {
+      "SUPABASE_URL": "https://pganajmivwtstapnwsgv.supabase.co",
+      "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq",
+      "APLIKACJA": "https://makietka.app"
+    },
+    "r2_buckets": [{ "binding": "PLIKI", "bucket_name": "makietka-files" }],
+    "browser": { "binding": "PRZEGLADARKA" }
+  },
   // Co minutę przebieg kolejki maili (cloudflare/poczta.js, decyzja #95).
   "triggers": { "crons": ["* * * * *"] }
 }
