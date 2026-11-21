@@ -169,7 +169,7 @@ zarejestrujKategorie({
     ['krzyk', tt('bibliotekaElementy.dymekKrzyk'), 'dymek krzyk wybuch komiks'],
     ['szept', tt('bibliotekaElementy.dymekSzept'), 'dymek szept cicho przerywany komiks'],
     ['narracja', tt('bibliotekaElementy.dymekNarracja'), 'dymek narracja ramka komiks opis'],
-  ].map(([rodzaj, nazwa, slowa]) => ({ id: `dymek-${rodzaj}`, nazwa, slowa, podglad: PODGLADY_DYMKOW[rodzaj], opis: tt('bibliotekaElementy.dymekOpis'), wstaw: (e, punkt) => e.dodajDymek(rodzaj, punkt) })),
+  ].map(([rodzaj, nazwa, slowa]) => ({ id: `dymek-${rodzaj}`, nazwa, slowa, podglad: `<svg viewBox="0 0 70 52" aria-hidden="true">${PODGLADY_DYMKOW[rodzaj]}</svg>`, opis: tt('bibliotekaElementy.dymekOpis'), wstaw: (e, punkt) => e.dodajDymek(rodzaj, punkt) })),
 });
 
 // Style tekstu (#131A, #134): style akapitu projektu. Kliknięcie nadaje styl zaznaczonemu tekstowi,
